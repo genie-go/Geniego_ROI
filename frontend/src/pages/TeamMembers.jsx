@@ -5,6 +5,7 @@ import { IS_DEMO } from '../utils/demoEnv';
 import { tGetJSON, tSetJSON } from '../utils/tenantStorage.js';
 import * as wmsApi from '../services/wmsApi.js'; // 212차 #5: 파트너(매입처/물류처/창고처) 계정
 import { handlePlanLimit } from '../utils/planLimit.js';
+import AvatarField from '../components/AvatarField.jsx'; // [231차 #3] 프로필 사진 등록·표시
 
 /**
  * 멤버 구성원 — 팀/팀원 하위계정 관리 (180차 Phase2 · 181차 다국어).
@@ -61,8 +62,14 @@ export default function TeamMembers() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState('');
   const [toast, setToast] = useState('');
-  const [form, setForm] = useState({ email: '', password: '', name: '', team_role: 'member', team_name: '' });
+  const [form, setForm] = useState({ email: '', password: '', name: '', team_role: 'member', team_name: '', photo: '' });
   const [busy, setBusy] = useState(false);
+  const [query, setQuery] = useState(''); // [231차 #3] 리스트 조회/검색
+  const filteredMembers = members.filter(m => {
+    const q = query.trim().toLowerCase();
+    if (!q) return true;
+    return [m.name, m.email, m.team_name, m.team_role].some(v => String(v || '').toLowerCase().includes(q));
+  });
 
   const flash = (m) => { setToast(m); setTimeout(() => setToast(''), 2600); };
 
@@ -88,15 +95,15 @@ export default function TeamMembers() {
     if (IS_DEMO) {
       const list = demoLoad();
       if (list.some(m => m.email.toLowerCase() === form.email.toLowerCase())) { flash(t('teamMembers.errDupEmail', 'This email is already registered.')); setBusy(false); return; }
-      const next = [...list, { id: 'tm_' + Date.now(), email: form.email.toLowerCase(), name: form.name, team_role: form.team_role, team_name: form.team_name, is_active: 1, created_at: new Date().toISOString().slice(0, 10) }];
+      const next = [...list, { id: 'tm_' + Date.now(), email: form.email.toLowerCase(), name: form.name, team_role: form.team_role, team_name: form.team_name, photo: form.photo || '', is_active: 1, created_at: new Date().toISOString().slice(0, 10) }];
       demoSave(next); setMembers(next);
-      setForm({ email: '', password: '', name: '', team_role: 'member', team_name: '' });
+      setForm({ email: '', password: '', name: '', team_role: 'member', team_name: '', photo: '' });
       flash(t('teamMembers.okCreatedDemo', '✅ Team member added (demo).')); setBusy(false); return;
     }
     try {
       const r = await fetch(`${API}/auth/team/members`, { method: 'POST', headers: authHeaders(), body: JSON.stringify(form) });
       const d = await r.json();
-      if (d.ok) { setForm({ email: '', password: '', name: '', team_role: 'member', team_name: '' }); flash(t('teamMembers.okCreated', '✅ Team member sub-account created.')); load(); }
+      if (d.ok) { setForm({ email: '', password: '', name: '', team_role: 'member', team_name: '', photo: '' }); flash(t('teamMembers.okCreated', '✅ Team member sub-account created.')); load(); }
       else flash('⚠ ' + (d.error || t('teamMembers.errCreate', 'Creation failed')));
     } catch (e) { flash(t('teamMembers.errNetwork', 'Network error') + ': ' + e.message); }
     setBusy(false);
@@ -166,6 +173,10 @@ export default function TeamMembers() {
       {canManage && (
         <form onSubmit={onCreate} style={{ ...card, marginBottom: 18 }}>
           <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 12 }}>➕ {t('teamMembers.formTitle', 'Register team member sub-account')}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
+            <AvatarField value={form.photo} name={form.name} size={56} editable onChange={(url) => setForm(f => ({ ...f, photo: url }))} />
+            <span style={{ fontSize: 12, color: 'var(--text-3,#94a3b8)' }}>{t('teamMembers.photoHint', '프로필 사진 (선택) — 클릭하여 등록')}</span>
+          </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(170px,1fr))', gap: 10 }}>
             <input style={input} type="email" placeholder={t('teamMembers.phEmail', 'Email (login ID)')} value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
             <input style={input} type="password" placeholder={t('teamMembers.phPassword', 'Password (6+)')} value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} />
@@ -184,13 +195,17 @@ export default function TeamMembers() {
 
       {/* 구성원 목록 */}
       <div style={card}>
-        <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 12 }}>{t('teamMembers.listTitle', 'Member list')} ({members.length})</div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 12, flexWrap: 'wrap' }}>
+          <div style={{ fontSize: 14, fontWeight: 700 }}>{t('teamMembers.listTitle', 'Member list')} ({filteredMembers.length}{query ? `/${members.length}` : ''})</div>
+          <input style={{ ...input, maxWidth: 240 }} placeholder={t('teamMembers.searchPh', '🔍 이름·이메일·팀 검색')} value={query} onChange={e => setQuery(e.target.value)} />
+        </div>
         {err && <div style={{ color: '#ef4444', fontSize: 13, marginBottom: 10 }}>⚠ {err}</div>}
         {loading ? <div style={{ color: '#64748b', fontSize: 13 }}>{t('teamMembers.loading', 'Loading…')}</div> : (
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
                 <tr style={{ textAlign: 'left', color: '#64748b', borderBottom: '1px solid var(--border,#e5e7eb)' }}>
+                  <th style={{ padding: '8px 10px' }}>{t('teamMembers.colPhoto', '사진')}</th>
                   <th style={{ padding: '8px 10px' }}>{t('teamMembers.colName', 'Name')}</th>
                   <th style={{ padding: '8px 10px' }}>{t('teamMembers.colEmail', 'Email (ID)')}</th>
                   <th style={{ padding: '8px 10px' }}>{t('teamMembers.colTeam', 'Team')}</th>
@@ -201,8 +216,9 @@ export default function TeamMembers() {
                 </tr>
               </thead>
               <tbody>
-                {members.map(m => (
+                {filteredMembers.map(m => (
                   <tr key={m.id} style={{ borderBottom: '1px solid var(--border,#f1f5f9)', opacity: m.is_active ? 1 : 0.5 }}>
+                    <td style={{ padding: '6px 10px' }}><AvatarField value={m.photo} name={m.name} size={34} /></td>
                     <td style={{ padding: '9px 10px', fontWeight: 600 }}>{m.name}</td>
                     <td style={{ padding: '9px 10px', color: '#475569' }}>{m.email}</td>
                     <td style={{ padding: '9px 10px' }}>{m.team_name || '—'}</td>
@@ -232,7 +248,7 @@ export default function TeamMembers() {
                     )}
                   </tr>
                 ))}
-                {!members.length && <tr><td colSpan={canManage ? 7 : 6} style={{ padding: 20, textAlign: 'center', color: '#94a3b8' }}>{t('teamMembers.empty', 'No members registered.')}</td></tr>}
+                {!filteredMembers.length && <tr><td colSpan={canManage ? 8 : 7} style={{ padding: 20, textAlign: 'center', color: '#94a3b8' }}>{query ? t('teamMembers.noMatch', '검색 결과가 없습니다.') : t('teamMembers.empty', 'No members registered.')}</td></tr>}
               </tbody>
             </table>
           </div>
@@ -251,14 +267,17 @@ export default function TeamMembers() {
 const PT_LABEL = { supplier: '매입처', logistics: '물류처', warehouse: '창고처' };
 function PartnerSection({ t, flash, input }) {
   const [list, setList] = useState([]);
-  const [form, setForm] = useState({ partner_type: 'supplier', partner_name: '', login_id: '', password: '' });
+  const [form, setForm] = useState({ partner_type: 'supplier', partner_name: '', login_id: '', password: '', photo: '' });
   const [busy, setBusy] = useState(false);
+  const [pq, setPq] = useState(''); // [231차 #3] 파트너 조회/검색
   const load = useCallback(async () => { try { const r = await wmsApi.listPartners(); setList(Array.isArray(r?.partners) ? r.partners : []); } catch { setList([]); } }, []);
   useEffect(() => { load(); }, [load]);
+  const filtered = list.filter(p => { const q = pq.trim().toLowerCase(); return !q || [p.partner_name, p.login_id, p.partner_type].some(v => String(v || '').toLowerCase().includes(q)); });
+  const setPhoto = async (p, url) => { try { await wmsApi.updatePartner(p.id, { photo: url }); load(); } catch (e) { flash(String(e?.message || e)); } };
   const create = async () => {
     if (!form.partner_name || !form.login_id || form.password.length < 8) { flash('대상명·로그인 ID·8자 이상 비밀번호를 입력하세요.'); return; }
     setBusy(true);
-    try { const r = await wmsApi.createPartner(form); if (r?.ok) { flash('파트너 계정이 발급되었습니다.'); setForm({ partner_type: 'supplier', partner_name: '', login_id: '', password: '' }); load(); } else flash(r?.error || '발급 실패'); }
+    try { const r = await wmsApi.createPartner(form); if (r?.ok) { flash('파트너 계정이 발급되었습니다.'); setForm({ partner_type: 'supplier', partner_name: '', login_id: '', password: '', photo: '' }); load(); } else flash(r?.error || '발급 실패'); }
     catch (e) { if (!handlePlanLimit(e)) flash(String(e?.message || e)); }
     setBusy(false);
   };
@@ -270,6 +289,10 @@ function PartnerSection({ t, flash, input }) {
     <div style={{ marginTop: 28, background: 'var(--card,#fff)', border: '1px solid var(--border,#e2e8f0)', borderRadius: 14, padding: 20 }}>
       <div style={{ fontSize: 16, fontWeight: 900, color: 'var(--text-1,#0f172a)', marginBottom: 4 }}>🤝 파트너 계정 (매입처 · 물류처 · 창고처)</div>
       <div style={{ fontSize: 12, color: 'var(--text-3,#64748b)', marginBottom: 14 }}>파트너에게 별도 로그인 ID를 발급합니다. 파트너는 <b>/partner</b> 포털로 접속해 공유된 본인 데이터(발주/출고/재고)만 등록·열람합니다. 발급 수는 구독 플랜 한도를 따릅니다.</div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+        <AvatarField value={form.photo} name={form.partner_name} size={50} editable onChange={(url) => setForm(f => ({ ...f, photo: url }))} />
+        <span style={{ fontSize: 12, color: 'var(--text-3,#94a3b8)' }}>파트너 사진/로고 (선택) — 클릭하여 등록</span>
+      </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(140px,1fr)) auto', gap: 8, alignItems: 'end', marginBottom: 16 }}>
         <div><label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3,#64748b)' }}>유형</label>
           <select value={form.partner_type} onChange={e => setForm(f => ({ ...f, partner_type: e.target.value }))} style={{ ...inp, width: '100%', boxSizing: 'border-box' }}>
@@ -281,13 +304,18 @@ function PartnerSection({ t, flash, input }) {
         <div><label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3,#64748b)' }}>비밀번호(8자+)</label><input type="password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} style={{ ...inp, width: '100%', boxSizing: 'border-box' }} /></div>
         <button onClick={create} disabled={busy} style={{ padding: '9px 16px', borderRadius: 9, border: 'none', background: '#22c55e', color: '#fff', fontWeight: 800, fontSize: 13, cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.6 : 1 }}>발급</button>
       </div>
+      {list.length > 0 && <input value={pq} onChange={e => setPq(e.target.value)} placeholder="🔍 파트너명·ID·유형 검색" style={{ ...inp, width: '100%', boxSizing: 'border-box', marginBottom: 8 }} />}
       <div style={{ display: 'grid', gap: 7 }}>
         {list.length === 0 && <div style={{ fontSize: 12, color: '#94a3b8' }}>발급된 파트너 계정이 없습니다.</div>}
-        {list.map(p => (
+        {list.length > 0 && filtered.length === 0 && <div style={{ fontSize: 12, color: '#94a3b8' }}>검색 결과가 없습니다.</div>}
+        {filtered.map(p => (
           <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8, padding: '9px 13px', borderRadius: 10, border: '1px solid var(--border,#e5e7eb)', opacity: p.active ? 1 : 0.55 }}>
-            <div style={{ fontSize: 12.5 }}>
+            <div style={{ fontSize: 12.5, display: 'flex', alignItems: 'center', gap: 10 }}>
+              <AvatarField value={p.photo} name={p.partner_name} size={34} editable onChange={(url) => setPhoto(p, url)} />
+              <span>
               <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 12, background: '#6366f118', color: '#6366f1' }}>{PT_LABEL[p.partner_type] || p.partner_type}</span>
               <b style={{ marginLeft: 8 }}>{p.partner_name}</b><span style={{ color: '#64748b', marginLeft: 8 }}>ID: {p.login_id}</span>
+              </span>
             </div>
             <div style={{ display: 'flex', gap: 6 }}>
               <button onClick={() => toggle(p)} style={{ fontSize: 11, padding: '4px 9px', borderRadius: 7, border: '1px solid #cbd5e1', background: 'transparent', cursor: 'pointer', color: p.active ? '#ef4444' : '#16a34a' }}>{p.active ? '비활성' : '활성'}</button>

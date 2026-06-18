@@ -618,13 +618,28 @@ export function AuthProvider({ children }) {
      * 홈(종합 대시보드)은 안정적 랜딩을 위해 항상 허용. */
     const isSubAdmin = isAdmin && (user?.admin_level === "sub");
     const _SUB_ALWAYS = ["/dashboard"];
+    // [231차 #4] admin_menus 가 {경로:'view'|'edit'} 맵(신) 또는 경로배열(레거시) — 양형 정규화.
+    const _adminMenuPaths = (am) => Array.isArray(am) ? am : (am && typeof am === "object" ? Object.keys(am) : []);
     const subMenuAllowed = useCallback((to) => {
         if (!isSubAdmin) return true;
         if (!to) return true;
         if (_SUB_ALWAYS.includes(to)) return true;
-        const menus = Array.isArray(user?.admin_menus) ? user.admin_menus : [];
+        const paths = _adminMenuPaths(user?.admin_menus);
         // 부여된 경로(정확) 또는 그 하위 경로(예: /crm → /crm/123) 허용.
-        return menus.some((p) => to === p || to.startsWith(p + "/"));
+        return paths.some((p) => to === p || to.startsWith(p + "/"));
+    }, [isSubAdmin, user]);
+    /* [231차 #4] 하위관리자 메뉴 권한 레벨: 'view'|'edit'|null. master/비-sub 은 항상 'edit'. 페이지가 읽기전용 게이팅에 사용. */
+    const adminMenuLevel = useCallback((to) => {
+        if (!isSubAdmin) return "edit";
+        if (!to || _SUB_ALWAYS.includes(to)) return "edit";
+        const am = user?.admin_menus;
+        if (Array.isArray(am)) return am.some((p) => to === p || to.startsWith(p + "/")) ? "edit" : null;
+        if (am && typeof am === "object") {
+            if (am[to]) return am[to];
+            const parent = Object.keys(am).find((p) => to.startsWith(p + "/"));
+            return parent ? am[parent] : null;
+        }
+        return null;
     }, [isSubAdmin, user]);
 
     /* ── 183차 Phase3: 테넌트 내 팀 역할(team_role) RBAC ──
@@ -724,7 +739,7 @@ export function AuthProvider({ children }) {
             autoLogoutMin, setAutoLogoutMin,
             isDemoMode: IS_DEMO_MODE,
             isPro, isPaid, isDemo, isFreeUser, isAdmin,
-            isSubAdmin, subMenuAllowed, // [현 차수] 하위 관리자 메뉴 게이팅
+            isSubAdmin, subMenuAllowed, adminMenuLevel, // [현 차수] 하위 관리자 메뉴 게이팅 + [231차 #4] view/edit 레벨
             adminLevel: isAdmin ? (user?.admin_level === "sub" ? "sub" : "master") : null,
             hasRealKeys, activateLiveMode, onApiKeyRegistered,
             subscriptionExpiresAt, subscriptionDaysLeft,

@@ -3,6 +3,7 @@ import { useAuth } from "../auth/AuthContext.jsx";
 import { useI18n } from "../i18n";
 import { getJsonAuth } from "../services/apiClient.js";
 import { MEMBER_MENU, ADMIN_MENU } from "../layout/sidebarManifest.js";
+import AvatarField from "../components/AvatarField.jsx"; // [231차 #3] 관리자 프로필 사진
 
 /*
  * [현 차수] 하위 관리자(sub-admin) 관리 — 최고관리자(master) 전용
@@ -42,11 +43,14 @@ export default function SubAdminManager() {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
-  const [menus, setMenus] = useState(() => new Set(["/dashboard"]));
+  const [photo, setPhoto] = useState(""); // [231차 #3] 관리자 프로필 사진
+  const [query, setQuery] = useState(""); // [231차 #3] 조회/검색
+  // [231차 #4] 메뉴 권한 = {경로: 'view'|'edit'} 맵(열람/수정 2단계). 기본 대시보드=edit.
+  const [menus, setMenus] = useState(() => ({ "/dashboard": "edit" }));
 
   // 편집 상태
   const [editId, setEditId] = useState(null);
-  const [editMenus, setEditMenus] = useState(new Set());
+  const [editMenus, setEditMenus] = useState({});
   const [pwId, setPwId] = useState(null);
   const [pwVal, setPwVal] = useState("");
 
@@ -68,31 +72,29 @@ export default function SubAdminManager() {
   }, []);
   useEffect(() => { load(); }, [load]);
 
-  const toggleMenu = (set, setter, path) => {
-    const n = new Set(set);
-    n.has(path) ? n.delete(path) : n.add(path);
-    setter(n);
-  };
-  const toggleSection = (set, setter, paths, on) => {
-    const n = new Set(set);
-    paths.forEach((p) => (on ? n.add(p) : n.delete(p)));
-    setter(n);
-  };
+  // [231차 #4] map{경로:level} 조작 헬퍼
+  const toMap = (am) => Array.isArray(am) ? Object.fromEntries(am.map((p) => [p, "edit"])) : (am && typeof am === "object" ? { ...am } : {});
+  const toggleMenu = (map, setter, path) => { const n = { ...map }; if (n[path]) delete n[path]; else n[path] = "edit"; setter(n); }; // 부여 토글(기본 수정)
+  const setMenuLevel = (map, setter, path, level) => { const n = { ...map }; n[path] = level; setter(n); }; // 열람/수정 전환
+  const toggleSection = (map, setter, paths, on) => { const n = { ...map }; paths.forEach((p) => { if (on) { if (!n[p]) n[p] = "edit"; } else delete n[p]; }); setter(n); };
 
   const create = async () => {
     setMsg(null); setBusy(true);
     const { ok, d } = await authFetch("/api/auth/admin/sub-admins", "POST", {
-      email, name, password, menus: [...menus],
+      email, name, password, photo, menus,
     });
     setBusy(false);
     if (ok) {
       setMsg({ ok: true, text: d.message || "하위 관리자가 발급되었습니다." });
-      setEmail(""); setName(""); setPassword(""); setMenus(new Set(["/dashboard"]));
+      setEmail(""); setName(""); setPassword(""); setPhoto(""); setMenus({ "/dashboard": "edit" });
       load();
     } else {
       setMsg({ ok: false, text: d.error || "발급에 실패했습니다." });
     }
   };
+
+  // [231차 #3] 조회/검색 필터(이름·이메일)
+  const subMatch = (m) => { const q = query.trim().toLowerCase(); return !q || [m.name, m.email].some(v => String(v || "").toLowerCase().includes(q)); };
 
   const setActive = async (id, active) => {
     const { ok, d } = await authFetch(`/api/auth/admin/sub-admins/${id}`, "PATCH", { is_active: active ? 1 : 0 });
@@ -101,8 +103,8 @@ export default function SubAdminManager() {
   };
 
   const saveMenus = async (id) => {
-    if (editMenus.size < 1) { setMsg({ ok: false, text: "메뉴를 1개 이상 선택하세요." }); return; }
-    const { ok, d } = await authFetch(`/api/auth/admin/sub-admins/${id}`, "PATCH", { menus: [...editMenus] });
+    if (Object.keys(editMenus).length < 1) { setMsg({ ok: false, text: "메뉴를 1개 이상 선택하세요." }); return; }
+    const { ok, d } = await authFetch(`/api/auth/admin/sub-admins/${id}`, "PATCH", { menus: editMenus });
     setMsg(ok ? { ok: true, text: "메뉴 권한이 변경되었습니다." } : { ok: false, text: d.error || "변경 실패" });
     if (ok) { setEditId(null); load(); }
   };
@@ -131,20 +133,30 @@ export default function SubAdminManager() {
     <div style={{ display: "grid", gap: 10, maxHeight: 320, overflowY: "auto", padding: 4 }}>
       {SECTIONS.map((s) => {
         const paths = s.items.map((i) => i.to);
-        const allOn = paths.every((p) => selected.has(p));
+        const allOn = paths.every((p) => !!selected[p]);
+        const isAdminSec = s.key === "system"; // 관리자 시스템 섹션 강조
         return (
-          <div key={s.key} style={{ border: "1px solid rgba(0,0,0,0.08)", borderRadius: 10, padding: "8px 10px" }}>
+          <div key={s.key} style={{ border: isAdminSec ? "1.5px solid rgba(168,85,247,0.45)" : "1px solid rgba(0,0,0,0.08)", borderRadius: 10, padding: "8px 10px", background: isAdminSec ? "rgba(168,85,247,0.05)" : "transparent" }}>
             <label style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 800, fontSize: 12.5, cursor: "pointer" }}>
               <input type="checkbox" checked={allOn} onChange={() => toggleSection(selected, setter, paths, !allOn)} />
-              <span>{s.icon} {s.label}</span>
+              <span>{s.icon} {s.label}{isAdminSec && <span style={{ marginLeft: 6, fontSize: 10, color: "#a855f7" }}>· 관리자 시스템</span>}</span>
             </label>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(180px,1fr))", gap: 4, marginTop: 6, paddingLeft: 22 }}>
-              {s.items.map((it) => (
-                <label key={it.to} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, cursor: "pointer", color: "var(--text-2)" }}>
-                  <input type="checkbox" checked={selected.has(it.to)} onChange={() => toggleMenu(selected, setter, it.to)} />
-                  <span>{it.icon} {it.label}</span>
-                </label>
-              ))}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(230px,1fr))", gap: 5, marginTop: 6, paddingLeft: 22 }}>
+              {s.items.map((it) => {
+                const lvl = selected[it.to]; // undefined=미부여 | 'view' | 'edit'
+                return (
+                  <div key={it.to} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>
+                    <input type="checkbox" checked={!!lvl} onChange={() => toggleMenu(selected, setter, it.to)} style={{ cursor: "pointer" }} />
+                    <span style={{ flex: 1, color: "var(--text-2)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{it.icon} {it.label}</span>
+                    {lvl && (
+                      <span style={{ display: "inline-flex", border: "1px solid #cbd5e1", borderRadius: 6, overflow: "hidden", flexShrink: 0 }}>
+                        <button type="button" onClick={() => setMenuLevel(selected, setter, it.to, "view")} style={{ padding: "2px 7px", border: "none", fontSize: 10.5, fontWeight: 700, cursor: "pointer", background: lvl === "view" ? "#3b82f6" : "transparent", color: lvl === "view" ? "#fff" : "#64748b" }}>열람</button>
+                        <button type="button" onClick={() => setMenuLevel(selected, setter, it.to, "edit")} style={{ padding: "2px 7px", border: "none", fontSize: 10.5, fontWeight: 700, cursor: "pointer", background: lvl === "edit" ? "#a855f7" : "transparent", color: lvl === "edit" ? "#fff" : "#64748b" }}>수정</button>
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         );
@@ -179,16 +191,21 @@ export default function SubAdminManager() {
       {/* 발급 폼 */}
       <div style={{ ...card, marginBottom: 18 }}>
         <div style={{ fontSize: 15, fontWeight: 800, marginBottom: 12 }}>＋ 하위 관리자 발급</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+          <AvatarField value={photo} name={name} size={56} editable onChange={setPhoto} />
+          <span style={{ fontSize: 12, color: "var(--text-3)" }}>관리자 프로필 사진 (선택) — 클릭하여 등록</span>
+        </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 12 }}>
           <div><div style={lblS}>이메일(로그인 ID)</div><input style={input} type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="sub-admin@company.com" /></div>
           <div><div style={lblS}>이름</div><input style={input} type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="홍길동" /></div>
           <div><div style={lblS}>초기 비밀번호</div><input style={input} type="text" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="8자+ 영문 대/소문자·숫자·특수문자 3종" /></div>
         </div>
-        <div style={lblS}>부여할 메뉴 권한 ({menus.size}개 선택)</div>
+        <div style={lblS}>부여할 메뉴 권한 ({Object.keys(menus).length}개 선택) · 메뉴별 열람/수정 선택 · 🔧 관리자 시스템 메뉴 포함</div>
         <MenuTree selected={menus} setter={setMenus} />
         <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-          <button style={btnGhost} onClick={() => setMenus(new Set([...ALL_PATHS, "/dashboard"]))}>전체 선택</button>
-          <button style={btnGhost} onClick={() => setMenus(new Set(["/dashboard"]))}>초기화</button>
+          <button style={btnGhost} onClick={() => setMenus({ ...Object.fromEntries(ALL_PATHS.map((p) => [p, "edit"])), "/dashboard": "edit" })}>전체 선택(수정)</button>
+          <button style={btnGhost} onClick={() => setMenus(Object.fromEntries(ALL_PATHS.concat("/dashboard").map((p) => [p, "view"])))}>전체 열람</button>
+          <button style={btnGhost} onClick={() => setMenus({ "/dashboard": "edit" })}>초기화</button>
           <div style={{ flex: 1 }} />
           <button style={{ ...btnPrimary, opacity: busy ? 0.6 : 1 }} disabled={busy} onClick={create}>{busy ? "발급 중…" : "하위 관리자 발급"}</button>
         </div>
@@ -196,21 +213,25 @@ export default function SubAdminManager() {
 
       {/* 목록 */}
       <div style={card}>
-        <div style={{ fontSize: 15, fontWeight: 800, marginBottom: 12 }}>발급된 하위 관리자 {Array.isArray(list) ? `(${list.length})` : ""}</div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 12, flexWrap: "wrap" }}>
+          <div style={{ fontSize: 15, fontWeight: 800 }}>발급된 하위 관리자 {Array.isArray(list) ? `(${list.filter(subMatch).length}${query ? `/${list.length}` : ""})` : ""}</div>
+          {Array.isArray(list) && list.length > 0 && <input style={{ ...input, maxWidth: 240 }} placeholder="🔍 이름·이메일 검색" value={query} onChange={(e) => setQuery(e.target.value)} />}
+        </div>
         {list === null && <div style={{ color: "var(--text-3)", fontSize: 13 }}>불러오는 중…</div>}
         {Array.isArray(list) && list.length === 0 && <div style={{ color: "var(--text-3)", fontSize: 13 }}>아직 발급된 하위 관리자가 없습니다.</div>}
-        {Array.isArray(list) && list.map((m) => (
+        {Array.isArray(list) && list.filter(subMatch).map((m) => (
           <div key={m.id} style={{ borderTop: "1px solid rgba(0,0,0,0.06)", padding: "12px 0" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+              <AvatarField value={m.photo} name={m.name} size={36} />
               <span style={{ fontWeight: 800, fontSize: 13.5 }}>{m.name || "(이름 없음)"}</span>
               <span style={{ fontSize: 12, color: "var(--text-3)" }}>{m.email}</span>
               <span style={{ fontSize: 10.5, fontWeight: 800, padding: "2px 8px", borderRadius: 20,
                 background: m.is_active ? "rgba(34,197,94,0.14)" : "rgba(239,68,68,0.14)", color: m.is_active ? "#16a34a" : "#dc2626" }}>
                 {m.is_active ? "활성" : "정지"}
               </span>
-              <span style={{ fontSize: 11, color: "var(--text-3)" }}>메뉴 {Array.isArray(m.admin_menus) ? m.admin_menus.length : 0}개</span>
+              <span style={{ fontSize: 11, color: "var(--text-3)" }}>메뉴 {Object.keys(toMap(m.admin_menus)).length}개</span>
               <div style={{ flex: 1 }} />
-              <button style={btnGhost} onClick={() => { setEditId(editId === m.id ? null : m.id); setEditMenus(new Set(m.admin_menus || [])); }}>메뉴 권한</button>
+              <button style={btnGhost} onClick={() => { setEditId(editId === m.id ? null : m.id); setEditMenus(toMap(m.admin_menus)); }}>메뉴 권한</button>
               <button style={btnGhost} onClick={() => { setPwId(pwId === m.id ? null : m.id); setPwVal(""); }}>비번 재설정</button>
               {m.is_active
                 ? <button style={{ ...btnGhost, color: "#dc2626", borderColor: "rgba(239,68,68,0.4)" }} onClick={() => setActive(m.id, false)}>정지</button>
@@ -218,10 +239,10 @@ export default function SubAdminManager() {
             </div>
 
             {/* 부여 메뉴 미리보기 */}
-            {Array.isArray(m.admin_menus) && m.admin_menus.length > 0 && editId !== m.id && (
+            {Object.keys(toMap(m.admin_menus)).length > 0 && editId !== m.id && (
               <div style={{ marginTop: 6, display: "flex", flexWrap: "wrap", gap: 5 }}>
-                {m.admin_menus.map((p) => (
-                  <span key={p} style={{ fontSize: 10.5, padding: "2px 7px", borderRadius: 5, background: "rgba(99,102,241,0.1)", color: "#6366f1" }}>{pathLabel(p)}</span>
+                {Object.entries(toMap(m.admin_menus)).map(([p, lvl]) => (
+                  <span key={p} style={{ fontSize: 10.5, padding: "2px 7px", borderRadius: 5, background: lvl === "view" ? "rgba(59,130,246,0.12)" : "rgba(168,85,247,0.12)", color: lvl === "view" ? "#3b82f6" : "#a855f7" }}>{pathLabel(p)} · {lvl === "view" ? "열람" : "수정"}</span>
                 ))}
               </div>
             )}
@@ -229,10 +250,10 @@ export default function SubAdminManager() {
             {/* 메뉴 권한 편집 */}
             {editId === m.id && (
               <div style={{ marginTop: 10, padding: 12, background: "rgba(99,102,241,0.04)", borderRadius: 10 }}>
-                <div style={lblS}>부여할 메뉴 ({editMenus.size}개)</div>
+                <div style={lblS}>부여할 메뉴 ({Object.keys(editMenus).length}개) · 각 메뉴 열람/수정 선택</div>
                 <MenuTree selected={editMenus} setter={setEditMenus} />
                 <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-                  <button style={btnGhost} onClick={() => setEditMenus(new Set([...ALL_PATHS, "/dashboard"]))}>전체 선택</button>
+                  <button style={btnGhost} onClick={() => setEditMenus({ ...Object.fromEntries(ALL_PATHS.map((p) => [p, "edit"])), "/dashboard": "edit" })}>전체 선택(수정)</button>
                   <div style={{ flex: 1 }} />
                   <button style={btnGhost} onClick={() => setEditId(null)}>취소</button>
                   <button style={btnPrimary} onClick={() => saveMenus(m.id)}>저장</button>

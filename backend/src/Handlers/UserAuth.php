@@ -166,6 +166,8 @@ final class UserAuth
             // [현 차수] 하위 관리자(sub-admin) 체계: admin_level('master'|'sub'), admin_menus(JSON 허용 메뉴 경로 배열)
             "ALTER TABLE app_user ADD COLUMN admin_level VARCHAR(20) NULL",
             "ALTER TABLE app_user ADD COLUMN admin_menus TEXT NULL",
+            // [231차 #3] 멤버/하위관리자 프로필 사진(Base64 data-URL)
+            "ALTER TABLE app_user ADD COLUMN photo MEDIUMTEXT NULL",
         ];
         foreach ($alters as $sql) {
             try { $pdo->exec($sql); } catch (\Throwable $e) { /* 이미 존재 or 미지원 — 무시 */ }
@@ -970,7 +972,7 @@ final class UserAuth
         $rows = [];
         try {
             $st = $pdo->prepare(
-                "SELECT id, email, name, team_role, team_name, is_active, created_at, parent_user_id
+                "SELECT id, email, name, team_role, team_name, is_active, created_at, parent_user_id, photo
                    FROM app_user WHERE tenant_id = ?
                   ORDER BY (CASE WHEN team_role = 'owner' THEN 0 ELSE 1 END), id ASC"
             );
@@ -1047,12 +1049,15 @@ final class UserAuth
                 return self::json($res, ['ok' => false, 'error' => '팀원 생성 오류: ' . $e2->getMessage()], 500);
             }
         }
+        // [231차 #3] 프로필 사진(Base64) — post-insert UPDATE(있을 때만)
+        $photo = (string)($body['photo'] ?? '');
+        if ($photo !== '' && $newId > 0) { try { $pdo->prepare("UPDATE app_user SET photo=? WHERE id=?")->execute([$photo, $newId]); } catch (\Throwable $e) {} }
         return self::json($res, [
             'ok' => true,
             'member' => [
                 'id' => $newId, 'email' => $email, 'name' => $name,
                 'team_role' => $memberRole, 'team_name' => $teamName,
-                'is_active' => 1, 'created_at' => $now, 'parent_user_id' => $parentId,
+                'is_active' => 1, 'created_at' => $now, 'parent_user_id' => $parentId, 'photo' => $photo,
             ],
         ], 201);
     }
@@ -1084,6 +1089,7 @@ final class UserAuth
         if (isset($body['team_role']) && in_array($body['team_role'], ['manager', 'member'], true)) { $sets[] = 'team_role = ?'; $vals[] = $body['team_role']; }
         if (array_key_exists('team_name', $body)) { $sets[] = 'team_name = ?'; $vals[] = trim((string)$body['team_name']) ?: null; }
         if (isset($body['is_active'])) { $sets[] = 'is_active = ?'; $vals[] = $body['is_active'] ? 1 : 0; }
+        if (array_key_exists('photo', $body)) { $sets[] = 'photo = ?'; $vals[] = (string)$body['photo']; } // [231차 #3] 프로필 사진
         if (isset($body['password']) && (string)$body['password'] !== '') {
             // 204차 P1: 팀원 비번 재설정도 은행급 정책 강제(8자+3종+사전차단).
             if (($pwErr = self::passwordPolicyError((string)$body['password'])) !== null) return self::json($res, ['ok' => false, 'error' => $pwErr], 422);
@@ -1136,13 +1142,27 @@ final class UserAuth
     //   • 최고관리자만 하위 관리자를 추가/정지/권한변경 가능(sub→sub 관리 불가, 권한상승 차단).
     // ═════════════════════════════════════════════════════════════
 
+    /**
+     * [231차 #4] admin_menus 를 {경로: 'view'|'edit'} 맵으로 정규화.
+     *   - 레거시(경로 문자열 배열)는 전부 'edit'(전체권한)로 변환 → 기존 하위관리자 무후퇴.
+     *   - 맵 입력은 view/edit 만 허용(그 외는 edit). 빈 경로 제거.
+     */
     private static function decodeAdminMenus($raw): array
     {
-        if (is_array($raw)) return array_values(array_filter(array_map('strval', $raw)));
-        $s = trim((string)$raw);
-        if ($s === '') return [];
-        $d = json_decode($s, true);
-        return is_array($d) ? array_values(array_filter(array_map('strval', $d))) : [];
+        $d = is_array($raw) ? $raw : null;
+        if ($d === null) {
+            $s = trim((string)$raw);
+            if ($s === '') return [];
+            $j = json_decode($s, true);
+            $d = is_array($j) ? $j : [];
+        }
+        $out = [];
+        if (array_is_list($d)) {
+            foreach ($d as $p) { $p = (string)$p; if ($p !== '') $out[$p] = 'edit'; }
+        } else {
+            foreach ($d as $p => $lvl) { $p = (string)$p; if ($p === '') continue; $out[$p] = in_array($lvl, ['view', 'edit'], true) ? $lvl : 'edit'; }
+        }
+        return $out;
     }
 
     /** 토큰으로 최고관리자(master) 검증. 하위 관리자(sub)는 거부. */
@@ -1167,7 +1187,7 @@ final class UserAuth
         $rows = [];
         try {
             $st = $pdo->prepare(
-                "SELECT id, email, name, is_active, admin_menus, created_at
+                "SELECT id, email, name, is_active, admin_menus, photo, created_at
                    FROM app_user
                   WHERE plan='admin' AND admin_level='sub' AND parent_user_id = ?
                   ORDER BY id ASC"
@@ -1208,7 +1228,7 @@ final class UserAuth
         $hashed = password_hash($password, PASSWORD_DEFAULT);
         $masterId = (int)($caller['id'] ?? 0);
         $tenant = self::callerTenant($caller);
-        $menuJson = json_encode(array_values($menus), JSON_UNESCAPED_UNICODE);
+        $menuJson = json_encode((object)$menus, JSON_UNESCAPED_UNICODE); // [231차 #4] {경로:level} 맵 보존
         try {
             $pdo->prepare(
                 "INSERT INTO app_user(email,password_hash,name,plan,plans,company,is_active,created_at,tenant_id,parent_user_id,team_role,admin_level,admin_menus)
@@ -1226,6 +1246,9 @@ final class UserAuth
                 return self::json($res, ['ok' => false, 'error' => '하위 관리자 생성 오류: ' . $e2->getMessage()], 500);
             }
         }
+        // [231차 #3] 프로필 사진(Base64 data-URL) — INSERT 미수정·post-insert UPDATE(있을 때만).
+        $photo = (string)($body['photo'] ?? '');
+        if ($photo !== '' && $newId > 0) { try { $pdo->prepare("UPDATE app_user SET photo=? WHERE id=?")->execute([$photo, $newId]); } catch (\Throwable $e) {} }
         self::audit($req, 'sub_admin_create', "하위 관리자 발급: {$email}", 'high', $caller);
         return self::json($res, ['ok' => true, 'id' => $newId, 'email' => $email, 'message' => '하위 관리자가 발급되었습니다. 최고관리자 접속코드 + 발급한 이메일/비번으로 로그인할 수 있습니다.']);
     }
@@ -1257,7 +1280,8 @@ final class UserAuth
         if (array_key_exists('menus', $body) || array_key_exists('admin_menus', $body)) {
             $menus = self::decodeAdminMenus($body['menus'] ?? $body['admin_menus'] ?? []);
             if (count($menus) < 1) return self::json($res, ['ok' => false, 'error' => '부여할 메뉴를 1개 이상 선택해 주세요.'], 422);
-            $sets[] = 'admin_menus = ?'; $vals[] = json_encode(array_values($menus), JSON_UNESCAPED_UNICODE);
+            $sets[] = 'admin_menus = ?'; $vals[] = json_encode((object)$menus, JSON_UNESCAPED_UNICODE); // [231차 #4] {경로:level} 맵
+
         }
         if (!empty($body['password'])) {
             $pw = (string)$body['password'];
@@ -1268,6 +1292,7 @@ final class UserAuth
             try { $pdo->prepare('DELETE FROM user_session WHERE user_id = ?')->execute([$targetId]); } catch (\Throwable $e) {}
         }
         if (!empty($body['name'])) { $sets[] = 'name = ?'; $vals[] = trim((string)$body['name']); }
+        if (array_key_exists('photo', $body)) { $sets[] = 'photo = ?'; $vals[] = (string)$body['photo']; } // [231차 #3] 프로필 사진
         if (!$sets) return self::json($res, ['ok' => false, 'error' => '변경할 항목이 없습니다.'], 422);
 
         $vals[] = $targetId;

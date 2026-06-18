@@ -65,6 +65,8 @@ class PartnerPortal
             $pdo->exec("CREATE TABLE IF NOT EXISTS partner_account (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL, partner_type TEXT NOT NULL, partner_id INTEGER NOT NULL DEFAULT 0, partner_name TEXT NOT NULL DEFAULT '', login_id TEXT NOT NULL UNIQUE, password_hash TEXT NOT NULL, name TEXT, active INTEGER DEFAULT 1, last_login TEXT, created_at TEXT, updated_at TEXT)");
             $pdo->exec("CREATE TABLE IF NOT EXISTS partner_session (token TEXT PRIMARY KEY, partner_account_id INTEGER NOT NULL, tenant_id TEXT NOT NULL, expires_at TEXT, created_at TEXT)");
         }
+        // [231차 #3] 파트너 프로필 사진(Base64 data-URL) — 락게이트 우회 멱등 ALTER
+        try { $pdo->exec("ALTER TABLE partner_account ADD COLUMN photo " . ($mysql ? "MEDIUMTEXT" : "TEXT")); } catch (\Throwable $e) {}
     }
 
     /* ═══════════════ 관리자(본사) — 파트너 계정 관리 ═══════════════ */
@@ -74,7 +76,7 @@ class PartnerPortal
         if ($err = UserAuth::requirePro($req, $res)) return $err;
         self::ensureTables();
         $t = (UserAuth::authedTenant($req) ?? 'demo');
-        $st = self::db()->prepare("SELECT id,partner_type,partner_id,partner_name,login_id,name,active,last_login,created_at FROM partner_account WHERE tenant_id=? ORDER BY id DESC");
+        $st = self::db()->prepare("SELECT id,partner_type,partner_id,partner_name,login_id,name,active,last_login,created_at,photo FROM partner_account WHERE tenant_id=? ORDER BY id DESC");
         $st->execute([$t]);
         return self::json($res, ['ok' => true, 'partners' => $st->fetchAll(PDO::FETCH_ASSOC) ?: []]);
     }
@@ -104,7 +106,11 @@ class PartnerPortal
         $now = self::now();
         $pdo->prepare("INSERT INTO partner_account (tenant_id,partner_type,partner_id,partner_name,login_id,password_hash,name,active,created_at,updated_at) VALUES (?,?,?,?,?,?,?,1,?,?)")
             ->execute([$t, $type, (int)($b['partner_id'] ?? 0), (string)($b['partner_name'] ?? ''), $loginId, password_hash($pw, PASSWORD_DEFAULT), (string)($b['name'] ?? ''), $now, $now]);
-        return self::json($res, ['ok' => true, 'id' => (int)$pdo->lastInsertId()], 201);
+        $newId = (int)$pdo->lastInsertId();
+        // [231차 #3] 프로필 사진(Base64) — post-insert UPDATE(있을 때만)
+        $photo = (string)($b['photo'] ?? '');
+        if ($photo !== '' && $newId > 0) { try { $pdo->prepare("UPDATE partner_account SET photo=? WHERE id=?")->execute([$photo, $newId]); } catch (\Throwable $e) {} }
+        return self::json($res, ['ok' => true, 'id' => $newId], 201);
     }
 
     /* PUT /auth/partners/{id} — 비번 재설정/활성토글/이름수정 */
@@ -118,6 +124,7 @@ class PartnerPortal
         if (isset($b['password']) && strlen((string)$b['password']) >= 8) { $sets[] = 'password_hash=?'; $vals[] = password_hash((string)$b['password'], PASSWORD_DEFAULT); }
         if (isset($b['active'])) { $sets[] = 'active=?'; $vals[] = !empty($b['active']) ? 1 : 0; }
         if (isset($b['name'])) { $sets[] = 'name=?'; $vals[] = (string)$b['name']; }
+        if (array_key_exists('photo', $b)) { $sets[] = 'photo=?'; $vals[] = (string)$b['photo']; } // [231차 #3] 프로필 사진
         if (!$sets) return self::json($res, ['ok' => false, 'error' => '변경할 항목이 없습니다.'], 422);
         $sets[] = 'updated_at=?'; $vals[] = self::now();
         $vals[] = $id; $vals[] = $t;
