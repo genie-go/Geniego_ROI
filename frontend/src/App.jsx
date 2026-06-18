@@ -77,6 +77,10 @@ const PMTaskTable = lazy(() => import("./pages/PMTaskTable.jsx"));
 const PMMilestones = lazy(() => import("./pages/PMMilestones.jsx"));
 const PMActivity = lazy(() => import("./pages/PMActivity.jsx"));
 const PMSettings = lazy(() => import("./pages/PMSettings.jsx"));
+const PMPortfolio = lazy(() => import("./pages/PMPortfolio.jsx")); // 231차 PM 초엔터프라이즈
+const PMResources = lazy(() => import("./pages/PMResources.jsx"));
+const PMRaid = lazy(() => import("./pages/PMRaid.jsx"));
+const PMEvm = lazy(() => import("./pages/PMEvm.jsx"));
 const CampaignManager = lazy(() => import("./pages/CampaignManager.jsx"));
 const ContentCalendar = lazy(() => import("./pages/ContentCalendar.jsx"));
 const BudgetTracker = lazy(() => import("./pages/BudgetTracker.jsx"));
@@ -398,7 +402,11 @@ function AppLayout() {
                       <Route path="/admin/site-intro" element={<SiteIntroAdmin />} />
                       <Route path="/me/menu" element={<UserMenuPreferences />} />
                       <Route path="/pm" element={<PMOverview />} />
+                      <Route path="/pm/portfolio" element={<PMPortfolio />} />
+                      <Route path="/pm/resources" element={<PMResources />} />
                       <Route path="/pm/projects/:id" element={<PMProjectDetail />} />
+                      <Route path="/pm/projects/:id/raid" element={<PMRaid />} />
+                      <Route path="/pm/projects/:id/evm" element={<PMEvm />} />
                       <Route path="/pm/projects/:id/board" element={<PMTaskBoard />} />
                       <Route path="/pm/projects/:id/gantt" element={<PMGanttView />} />
                       <Route path="/pm/projects/:id/tasks" element={<PMTaskTable />} />

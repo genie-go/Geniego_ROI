@@ -113,7 +113,9 @@ export const MEMBER_MENU = [
   {
     key: "pm", icon: "🗂️", labelKey: "gNav.pmGroup",
     items: [
-      { to: "/pm", icon: "🗂️", labelKey: "gNav.pmOverviewLabel", menuKey: "ops" },
+      { to: "/pm",           icon: "🗂️", labelKey: "gNav.pmOverviewLabel",  menuKey: "ops" },
+      { to: "/pm/portfolio", icon: "📁", labelKey: "gNav.pmPortfolioLabel", menuKey: "ops" },
+      { to: "/pm/resources", icon: "👥", labelKey: "gNav.pmResourcesLabel", menuKey: "ops" },
     ],
   },
   /* 데이터 & 연동 (통합) */

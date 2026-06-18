@@ -170,6 +170,8 @@ final class UserAuth
             "ALTER TABLE app_user ADD COLUMN photo MEDIUMTEXT NULL",
             // [231차 OS#4] AI Agent 권한모드: 'recommend'|'approval'(기본)|'auto'. 민감 실행 기본=승인필수.
             "ALTER TABLE app_user ADD COLUMN agent_mode VARCHAR(20) NULL",
+            // [231차 팀권한] 멤버가 소속된 팀 엔터티(team.id) 참조. NULL=미배정(레거시 무후퇴). TeamPermissions 핸들러가 소비.
+            "ALTER TABLE app_user ADD COLUMN team_id INTEGER NULL",
         ];
         foreach ($alters as $sql) {
             try { $pdo->exec($sql); } catch (\Throwable $e) { /* 이미 존재 or 미지원 — 무시 */ }
@@ -1092,6 +1094,19 @@ final class UserAuth
         if (isset($body['name']) && trim((string)$body['name']) !== '') { $sets[] = 'name = ?'; $vals[] = trim((string)$body['name']); }
         if (isset($body['team_role']) && in_array($body['team_role'], ['manager', 'member'], true)) { $sets[] = 'team_role = ?'; $vals[] = $body['team_role']; }
         if (array_key_exists('team_name', $body)) { $sets[] = 'team_name = ?'; $vals[] = trim((string)$body['team_name']) ?: null; }
+        // [231차 팀권한] 팀 엔터티(team.id) 배정/해제. team_id 와 함께 team_name 라벨도 동기화(역정규화).
+        if (array_key_exists('team_id', $body)) {
+            $tid = ($body['team_id'] !== null && $body['team_id'] !== '') ? (int)$body['team_id'] : null;
+            $sets[] = 'team_id = ?'; $vals[] = $tid;
+            if ($tid !== null) {
+                try {
+                    $ts = $pdo->prepare('SELECT name FROM team WHERE id = ? AND tenant_id = ?');
+                    $ts->execute([$tid, $tenantId]);
+                    $tn = $ts->fetchColumn();
+                    if ($tn !== false) { $sets[] = 'team_name = ?'; $vals[] = (string)$tn; }
+                } catch (\Throwable $e) { /* team 테이블 미생성 — team_id 만 저장 */ }
+            }
+        }
         if (isset($body['is_active'])) { $sets[] = 'is_active = ?'; $vals[] = $body['is_active'] ? 1 : 0; }
         if (array_key_exists('photo', $body)) { $sets[] = 'photo = ?'; $vals[] = (string)$body['photo']; } // [231차 #3] 프로필 사진
         if (isset($body['password']) && (string)$body['password'] !== '') {
@@ -2956,6 +2971,15 @@ final class UserAuth
             $pdo->prepare('INSERT INTO auth_audit_log(at,user_id,actor,role,tenant_id,action,detail,ip,ua,risk) VALUES(?,?,?,?,?,?,?,?,?,?)')
                 ->execute([self::now(), $uid, $email, $role, $tenant, $action, $detail, self::clientIp($req), $ua, $risk]);
         } catch (\Throwable $e) { /* 기록 실패는 무시 */ }
+    }
+
+    /**
+     * [231차 팀권한] 외부 핸들러(TeamPermissions 등)가 동일 감사로그(auth_audit_log)에 기록하기 위한 공개 래퍼.
+     *   단일 SSOT 유지 → 팀/권한 변경 이벤트가 GET /auth/audit-logs 에 함께 노출된다.
+     */
+    public static function logAudit(ServerRequestInterface $req, string $action, string $detail, string $risk = 'low', $who = null): void
+    {
+        self::audit($req, $action, $detail, $risk, $who);
     }
 
     /** GET /auth/audit-logs — admin=전체, 그 외=본인(user_id) 이벤트. */

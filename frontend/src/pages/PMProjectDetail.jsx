@@ -109,6 +109,8 @@ export default function PMProjectDetail() {
             <TabLink to={`/pm/projects/${encodeURIComponent(id)}/tasks`} label={t('pm.tab.tasks', '작업')} />
             <TabLink to={`/pm/projects/${encodeURIComponent(id)}/gantt`} label={t('pm.tab.gantt', 'Gantt')} />
             <TabLink to={`/pm/projects/${encodeURIComponent(id)}/milestones`} label={t('pm.tab.milestones', '마일스톤')} />
+            <TabLink to={`/pm/projects/${encodeURIComponent(id)}/raid`} label={t('pm.tab.raid', 'RAID')} />
+            <TabLink to={`/pm/projects/${encodeURIComponent(id)}/evm`} label={t('pm.tab.evm', 'EVM')} />
             <TabLink to={`/pm/projects/${encodeURIComponent(id)}/activity`} label={t('pm.tab.activity', '활동')} />
             <TabLink to={`/pm/projects/${encodeURIComponent(id)}/settings`} label={t('pm.tab.settings', '설정')} />
           </div>

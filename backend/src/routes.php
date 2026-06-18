@@ -845,6 +845,24 @@ return function (App $app): void {
         // Events (SSE) + Audit
         'GET /v425/pm/events/stream'             => 'Genie\\Handlers\\PM\\Events::stream',
         'GET /v425/pm/audit'                     => 'Genie\\Handlers\\PM\\Audit::list',
+        // [231차 PM 초엔터프라이즈] 포트폴리오/EVM/RAID/타임시트/베이스라인/리소스 — PM\Enterprise
+        'GET /v425/pm/portfolios'                => 'Genie\\Handlers\\PM\\Enterprise::listPortfolios',
+        'POST /v425/pm/portfolios'               => 'Genie\\Handlers\\PM\\Enterprise::createPortfolio',
+        'PATCH /v425/pm/portfolios/{id}'         => 'Genie\\Handlers\\PM\\Enterprise::patchPortfolio',
+        'DELETE /v425/pm/portfolios/{id}'        => 'Genie\\Handlers\\PM\\Enterprise::deletePortfolio',
+        'POST /v425/pm/portfolios/{id}/attach'   => 'Genie\\Handlers\\PM\\Enterprise::attachProject',
+        'GET /v425/pm/portfolios/{id}/rollup'    => 'Genie\\Handlers\\PM\\Enterprise::portfolioRollup',
+        'GET /v425/pm/projects/{id}/evm'         => 'Genie\\Handlers\\PM\\Enterprise::projectEvm',
+        'GET /v425/pm/projects/{id}/baselines'   => 'Genie\\Handlers\\PM\\Enterprise::listBaselines',
+        'POST /v425/pm/projects/{id}/baselines'  => 'Genie\\Handlers\\PM\\Enterprise::createBaseline',
+        'GET /v425/pm/raid'                      => 'Genie\\Handlers\\PM\\Enterprise::listRaid',
+        'POST /v425/pm/raid'                     => 'Genie\\Handlers\\PM\\Enterprise::createRaid',
+        'PATCH /v425/pm/raid/{id}'               => 'Genie\\Handlers\\PM\\Enterprise::patchRaid',
+        'DELETE /v425/pm/raid/{id}'              => 'Genie\\Handlers\\PM\\Enterprise::deleteRaid',
+        'GET /v425/pm/time'                      => 'Genie\\Handlers\\PM\\Enterprise::listTime',
+        'POST /v425/pm/time'                     => 'Genie\\Handlers\\PM\\Enterprise::createTime',
+        'DELETE /v425/pm/time/{id}'              => 'Genie\\Handlers\\PM\\Enterprise::deleteTime',
+        'GET /v425/pm/resources'                 => 'Genie\\Handlers\\PM\\Enterprise::resourceCapacity',
         // /api/ alias (Apache Alias /api 환경 호환)
         'GET /api/v425/pm/projects'                  => 'Genie\\Handlers\\PM\\Projects::list',
         'POST /api/v425/pm/projects'                 => 'Genie\\Handlers\\PM\\Projects::create',
@@ -872,6 +890,23 @@ return function (App $app): void {
         'POST /api/v425/pm/attachments'              => 'Genie\\Handlers\\PM\\Attachments::create',
         'GET /api/v425/pm/events/stream'             => 'Genie\\Handlers\\PM\\Events::stream',
         'GET /api/v425/pm/audit'                     => 'Genie\\Handlers\\PM\\Audit::list',
+        'GET /api/v425/pm/portfolios'                => 'Genie\\Handlers\\PM\\Enterprise::listPortfolios',
+        'POST /api/v425/pm/portfolios'               => 'Genie\\Handlers\\PM\\Enterprise::createPortfolio',
+        'PATCH /api/v425/pm/portfolios/{id}'         => 'Genie\\Handlers\\PM\\Enterprise::patchPortfolio',
+        'DELETE /api/v425/pm/portfolios/{id}'        => 'Genie\\Handlers\\PM\\Enterprise::deletePortfolio',
+        'POST /api/v425/pm/portfolios/{id}/attach'   => 'Genie\\Handlers\\PM\\Enterprise::attachProject',
+        'GET /api/v425/pm/portfolios/{id}/rollup'    => 'Genie\\Handlers\\PM\\Enterprise::portfolioRollup',
+        'GET /api/v425/pm/projects/{id}/evm'         => 'Genie\\Handlers\\PM\\Enterprise::projectEvm',
+        'GET /api/v425/pm/projects/{id}/baselines'   => 'Genie\\Handlers\\PM\\Enterprise::listBaselines',
+        'POST /api/v425/pm/projects/{id}/baselines'  => 'Genie\\Handlers\\PM\\Enterprise::createBaseline',
+        'GET /api/v425/pm/raid'                      => 'Genie\\Handlers\\PM\\Enterprise::listRaid',
+        'POST /api/v425/pm/raid'                     => 'Genie\\Handlers\\PM\\Enterprise::createRaid',
+        'PATCH /api/v425/pm/raid/{id}'               => 'Genie\\Handlers\\PM\\Enterprise::patchRaid',
+        'DELETE /api/v425/pm/raid/{id}'              => 'Genie\\Handlers\\PM\\Enterprise::deleteRaid',
+        'GET /api/v425/pm/time'                      => 'Genie\\Handlers\\PM\\Enterprise::listTime',
+        'POST /api/v425/pm/time'                     => 'Genie\\Handlers\\PM\\Enterprise::createTime',
+        'DELETE /api/v425/pm/time/{id}'              => 'Genie\\Handlers\\PM\\Enterprise::deleteTime',
+        'GET /api/v425/pm/resources'                 => 'Genie\\Handlers\\PM\\Enterprise::resourceCapacity',
 
         // ── v425 Admin/User 메뉴 가시성 토글 (168차 N-152-F F2/F3 = T3, spec: docs/spec/n152f_consolidated_pm_track.md §4) ─
         'GET /v425/admin/menu-tree'             => 'Genie\\Handlers\\AdminMenu::getAdminTree',
@@ -944,6 +979,21 @@ return function (App $app): void {
         'POST /auth/team/members'        => 'Genie\\Handlers\\UserAuth::createTeamMember',
         'PATCH /auth/team/members/{id}'  => 'Genie\\Handlers\\UserAuth::updateTeamMember',
         'DELETE /auth/team/members/{id}' => 'Genie\\Handlers\\UserAuth::deleteTeamMember',
+        // [231차 팀권한] 팀 엔터티 + 메뉴×8동작 매트릭스 + 데이터범위 + 위임(RBAC/ABAC) — TeamPermissions 핸들러
+        'GET /auth/team/menu-catalog'                    => 'Genie\\Handlers\\TeamPermissions::menuCatalog',
+        'GET /auth/team/teams'                           => 'Genie\\Handlers\\TeamPermissions::listTeams',
+        'POST /auth/team/teams'                          => 'Genie\\Handlers\\TeamPermissions::createTeam',
+        'PATCH /auth/team/teams/{id}'                    => 'Genie\\Handlers\\TeamPermissions::updateTeam',
+        'DELETE /auth/team/teams/{id}'                   => 'Genie\\Handlers\\TeamPermissions::deleteTeam',
+        'POST /auth/team/teams/{id}/restore'             => 'Genie\\Handlers\\TeamPermissions::restoreTeam',
+        'POST /auth/team/teams/seed-org'                 => 'Genie\\Handlers\\TeamPermissions::seedOrg',
+        'GET /auth/team/teams/{id}/permissions'          => 'Genie\\Handlers\\TeamPermissions::getTeamPermissions',
+        'PUT /auth/team/teams/{id}/permissions'          => 'Genie\\Handlers\\TeamPermissions::putTeamPermissions',
+        'GET /auth/team/members/{id}/permissions'        => 'Genie\\Handlers\\TeamPermissions::getMemberPermissions',
+        'PUT /auth/team/members/{id}/permissions'        => 'Genie\\Handlers\\TeamPermissions::putMemberPermissions',
+        'GET /auth/team/effective-permissions'           => 'Genie\\Handlers\\TeamPermissions::effectivePermissions',
+        'GET /auth/team/assignable-permissions'          => 'Genie\\Handlers\\TeamPermissions::assignablePermissions',
+        'GET /auth/team/audit'                           => 'Genie\\Handlers\\TeamPermissions::teamAudit',
         // [현 차수] 하위 관리자(sub-admin) 관리 — 최고관리자 전용
         'GET /auth/admin/sub-admins'        => 'Genie\\Handlers\\UserAuth::listSubAdmins',
         'POST /auth/admin/sub-admins'       => 'Genie\\Handlers\\UserAuth::createSubAdmin',
@@ -1799,6 +1849,21 @@ return function (App $app): void {
     $register('POST',   '/auth/team/members');
     $register('PATCH',  '/auth/team/members/{id}');
     $register('DELETE', '/auth/team/members/{id}');
+    // [231차 팀권한] 팀 엔터티 + 권한 매트릭스 + 데이터범위 + 위임 (TeamPermissions)
+    $register('GET',    '/auth/team/menu-catalog');
+    $register('GET',    '/auth/team/teams');
+    $register('POST',   '/auth/team/teams');
+    $register('PATCH',  '/auth/team/teams/{id}');
+    $register('DELETE', '/auth/team/teams/{id}');
+    $register('POST',   '/auth/team/teams/seed-org');
+    $register('POST',   '/auth/team/teams/{id}/restore');
+    $register('GET',    '/auth/team/teams/{id}/permissions');
+    $register('PUT',    '/auth/team/teams/{id}/permissions');
+    $register('GET',    '/auth/team/members/{id}/permissions');
+    $register('PUT',    '/auth/team/members/{id}/permissions');
+    $register('GET',    '/auth/team/effective-permissions');
+    $register('GET',    '/auth/team/assignable-permissions');
+    $register('GET',    '/auth/team/audit');
     // [현 차수] 하위 관리자(sub-admin) 관리 — 최고관리자 전용
     $register('GET',   '/auth/admin/sub-admins');
     $register('POST',  '/auth/admin/sub-admins');
@@ -2570,6 +2635,24 @@ return function (App $app): void {
     $register('POST',   '/v425/pm/attachments');
     $register('GET',    '/v425/pm/events/stream');
     $register('GET',    '/v425/pm/audit');
+    // [231차 PM 초엔터프라이즈] Enterprise
+    $register('GET',    '/v425/pm/portfolios');
+    $register('POST',   '/v425/pm/portfolios');
+    $register('PATCH',  '/v425/pm/portfolios/{id}');
+    $register('DELETE', '/v425/pm/portfolios/{id}');
+    $register('POST',   '/v425/pm/portfolios/{id}/attach');
+    $register('GET',    '/v425/pm/portfolios/{id}/rollup');
+    $register('GET',    '/v425/pm/projects/{id}/evm');
+    $register('GET',    '/v425/pm/projects/{id}/baselines');
+    $register('POST',   '/v425/pm/projects/{id}/baselines');
+    $register('GET',    '/v425/pm/raid');
+    $register('POST',   '/v425/pm/raid');
+    $register('PATCH',  '/v425/pm/raid/{id}');
+    $register('DELETE', '/v425/pm/raid/{id}');
+    $register('GET',    '/v425/pm/time');
+    $register('POST',   '/v425/pm/time');
+    $register('DELETE', '/v425/pm/time/{id}');
+    $register('GET',    '/v425/pm/resources');
     $register('GET',    '/api/v425/pm/projects');
     $register('POST',   '/api/v425/pm/projects');
     $register('GET',    '/api/v425/pm/projects/{id}');
@@ -2596,6 +2679,23 @@ return function (App $app): void {
     $register('POST',   '/api/v425/pm/attachments');
     $register('GET',    '/api/v425/pm/events/stream');
     $register('GET',    '/api/v425/pm/audit');
+    $register('GET',    '/api/v425/pm/portfolios');
+    $register('POST',   '/api/v425/pm/portfolios');
+    $register('PATCH',  '/api/v425/pm/portfolios/{id}');
+    $register('DELETE', '/api/v425/pm/portfolios/{id}');
+    $register('POST',   '/api/v425/pm/portfolios/{id}/attach');
+    $register('GET',    '/api/v425/pm/portfolios/{id}/rollup');
+    $register('GET',    '/api/v425/pm/projects/{id}/evm');
+    $register('GET',    '/api/v425/pm/projects/{id}/baselines');
+    $register('POST',   '/api/v425/pm/projects/{id}/baselines');
+    $register('GET',    '/api/v425/pm/raid');
+    $register('POST',   '/api/v425/pm/raid');
+    $register('PATCH',  '/api/v425/pm/raid/{id}');
+    $register('DELETE', '/api/v425/pm/raid/{id}');
+    $register('GET',    '/api/v425/pm/time');
+    $register('POST',   '/api/v425/pm/time');
+    $register('DELETE', '/api/v425/pm/time/{id}');
+    $register('GET',    '/api/v425/pm/resources');
 
     // ── V425 Admin/User 메뉴 가시성 (168차 N-152-F F2/F3 = T3) ──
     $register('GET',   '/v425/admin/menu-tree');

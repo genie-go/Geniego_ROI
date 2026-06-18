@@ -6,15 +6,18 @@ import { tGetJSON, tSetJSON } from '../utils/tenantStorage.js';
 import * as wmsApi from '../services/wmsApi.js'; // 212차 #5: 파트너(매입처/물류처/창고처) 계정
 import { handlePlanLimit } from '../utils/planLimit.js';
 import AvatarField from '../components/AvatarField.jsx'; // [231차 #3] 프로필 사진 등록·표시
+import * as teamApi from '../services/teamApi.js'; // [231차 팀권한] 팀 엔터티/권한 매트릭스/데이터범위
+import { MENU_CATALOG, ACTIONS, DATA_SCOPES, TEAM_TYPES, normActions, actionsCover } from '../services/teamApi.js';
 
 /**
- * 멤버 구성원 — 팀/팀원 하위계정 관리 (180차 Phase2 · 181차 다국어).
+ * 팀·멤버·권한 관리 (180차 멤버구성원 → 231차 초엔터프라이즈 RBAC/ABAC 통합).
  * ──────────────────────────────────────────────────────────────────────────
- * owner(본 계정)가 팀원 하위계정(ID/비번)을 등록·관리. 하위계정은 상위 owner 의
- * tenant_id 를 상속 → 동일 회원으로 인식되어 같은 데이터를 공유.
- *  - 운영: 백엔드 /auth/team/members (UserAuth) 연동.
- *  - 데모: 백엔드 없이 tenant 스코프 localStorage 로 시뮬레이션(체험용).
- *  - 권한: owner / manager 만 관리 가능.
+ * 단일 화면 4탭: 팀원 / 팀 관리 / 권한 매트릭스 / 감사 로그 (+ 파트너 계정).
+ *  - 팀원: owner 가 팀원 하위계정(ID/비번) 등록·역할·팀 배정. (/auth/team/members)
+ *  - 팀 관리: 팀 추가/수정/유형/관리자 지정/비활성(archive)/복구/하드삭제. (/auth/team/teams)
+ *  - 권한 매트릭스: 팀·멤버별 메뉴×8동작 권한 + 데이터 접근 범위. 팀관리자는 위임 상한 내에서만.
+ *  - 감사 로그: 팀/권한 변경 이력.
+ *  - 권한: owner/manager(=admin 우회). member 는 읽기전용 배너.
  */
 
 const API = import.meta.env.VITE_API_BASE || '';
@@ -22,6 +25,7 @@ const TOKEN_KEY = IS_DEMO ? 'demo_genie_token' : 'genie_token';
 const DEMO_KEY = 'demo_team_members';
 
 const ROLE_COLOR = { owner: '#7c3aed', manager: '#2563eb', member: '#0891b2' };
+const STATUS_COLOR = { active: '#16a34a', disabled: '#f59e0b', archived: '#94a3b8' };
 
 function authHeaders() {
   const t = localStorage.getItem(TOKEN_KEY) || '';
@@ -31,10 +35,10 @@ function authHeaders() {
 /* ── 데모 시뮬레이션 (tenant 스코프 — 다른 체험자와 분리) ── */
 function demoSeed() {
   return [
-    { id: 'owner', email: 'owner@geniego.com', name: '대표 계정', team_role: 'owner', team_name: '본사', is_active: 1, created_at: '2026-01-02' },
-    { id: 'tm_1', email: 'manager.kim@geniego.com', name: '김매니저', team_role: 'manager', team_name: '마케팅팀', is_active: 1, created_at: '2026-02-10' },
-    { id: 'tm_2', email: 'staff.lee@geniego.com', name: '이담당', team_role: 'member', team_name: '마케팅팀', is_active: 1, created_at: '2026-03-05' },
-    { id: 'tm_3', email: 'staff.park@geniego.com', name: '박담당', team_role: 'member', team_name: '커머스팀', is_active: 1, created_at: '2026-03-22' },
+    { id: 'owner', email: 'owner@geniego.com', name: '대표 계정', team_role: 'owner', team_name: '본사', team_id: null, is_active: 1, created_at: '2026-01-02' },
+    { id: 'tm_1', email: 'manager.kim@geniego.com', name: '김매니저', team_role: 'manager', team_name: '마케팅팀', team_id: 1, is_active: 1, created_at: '2026-02-10' },
+    { id: 'tm_2', email: 'staff.lee@geniego.com', name: '이담당', team_role: 'member', team_name: '마케팅팀', team_id: 1, is_active: 1, created_at: '2026-03-05' },
+    { id: 'tm_3', email: 'staff.park@geniego.com', name: '박담당', team_role: 'member', team_name: '커머스팀', team_id: 2, is_active: 1, created_at: '2026-03-22' },
   ];
 }
 function demoLoad() {
@@ -51,30 +55,81 @@ export default function TeamMembers() {
   const { user } = useAuth() || {};
   const callerRole = user?.team_role || 'owner';
   const canManage = IS_DEMO || ['owner', 'manager'].includes(callerRole) || user?.plan === 'admin';
+  const isOwnerAdmin = IS_DEMO || callerRole === 'owner' || user?.plan === 'admin';
 
-  const roleLabel = (r) => ({
-    owner: t('teamMembers.roleOwner', 'Owner'),
-    manager: t('teamMembers.roleManager', 'Manager'),
-    member: t('teamMembers.roleMember', 'Member'),
-  }[r] || r);
+  const [tab, setTab] = useState('members');
+  const [toast, setToast] = useState('');
+  const flash = (m) => { setToast(m); setTimeout(() => setToast(''), 2600); };
 
+  const TABS = [
+    { id: 'members', label: t('teamMembers.tabMembers', '팀원'), icon: '🧑‍🤝‍🧑' },
+    { id: 'teams', label: t('teamMembers.tabTeams', '팀 관리'), icon: '🏢' },
+    { id: 'matrix', label: t('teamMembers.tabMatrix', '권한 매트릭스'), icon: '🔐' },
+    { id: 'audit', label: t('teamMembers.tabAudit', '감사 로그'), icon: '🧾' },
+  ];
+
+  return (
+    <div style={{ padding: 24, color: 'var(--text-1,#1e293b)', maxWidth: 1180, margin: '0 auto' }}>
+      <div style={{ marginBottom: 14 }}>
+        <div style={{ fontSize: 23, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 10 }}>👥 {t('teamMembers.title', '팀·멤버·권한 관리')}</div>
+        <div style={{ fontSize: 13, color: 'var(--text-3,#64748b)', marginTop: 5 }}>
+          {t('teamMembers.descV2', '팀을 구성하고 팀·팀원 단위로 메뉴·기능·데이터 접근 권한을 부여합니다. 하위계정은 동일 회원(테넌트)으로 격리되어 같은 데이터를 공유합니다.')}
+          {IS_DEMO && <span style={{ marginLeft: 8, color: '#f59e0b', fontWeight: 700 }}>· 🧪 {t('teamMembers.demoBadge', 'Demo (simulation)')}</span>}
+        </div>
+      </div>
+
+      {!canManage && (
+        <div style={{ marginBottom: 16, border: '1px solid #fde68a', background: 'rgba(245,158,11,0.08)', borderRadius: 12, padding: 14, display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ fontSize: 18 }}>🔒</span>
+          <span style={{ fontSize: 13, color: 'var(--text-2,#475569)', fontWeight: 600 }}>
+            {t('teamMembers.readOnlyBanner', '읽기 전용 멤버 계정입니다 — 팀·권한 관리는 관리자(owner) 또는 매니저만 가능합니다.')}
+          </span>
+        </div>
+      )}
+
+      {/* 탭 바 */}
+      <div style={{ display: 'flex', gap: 6, marginBottom: 18, flexWrap: 'wrap', borderBottom: '1px solid var(--border,#e5e7eb)' }}>
+        {TABS.map(x => (
+          <button key={x.id} onClick={() => setTab(x.id)} style={{
+            padding: '9px 16px', border: 'none', borderBottom: tab === x.id ? '2px solid #4f46e5' : '2px solid transparent',
+            background: 'transparent', cursor: 'pointer', fontSize: 13.5, fontWeight: tab === x.id ? 800 : 600,
+            color: tab === x.id ? '#4f46e5' : 'var(--text-3,#64748b)',
+          }}>{x.icon} {x.label}</button>
+        ))}
+      </div>
+
+      {tab === 'members' && <MembersPanel t={t} canManage={canManage} flash={flash} />}
+      {tab === 'teams' && <TeamsPanel t={t} canManage={isOwnerAdmin} flash={flash} />}
+      {tab === 'matrix' && <MatrixPanel t={t} canManage={canManage} isOwnerAdmin={isOwnerAdmin} flash={flash} />}
+      {tab === 'audit' && <AuditPanel t={t} flash={flash} />}
+
+      {toast && <div style={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', background: '#1e293b', color: '#fff', padding: '11px 22px', borderRadius: 10, fontSize: 13, fontWeight: 600, zIndex: 9999 }}>{toast}</div>}
+    </div>
+  );
+}
+
+const card = { background: 'var(--surface,#fff)', border: '1px solid var(--border,#e5e7eb)', borderRadius: 14, padding: 20 };
+const input = { padding: '9px 12px', borderRadius: 9, border: '1px solid var(--border,#cbd5e1)', fontSize: 13, background: 'var(--bg,#fff)', color: 'var(--text-1,#1e293b)' };
+
+/* ═══════════════════ 팀원 패널 (기존 멤버 CRUD + 팀 배정) ═══════════════════ */
+function MembersPanel({ t, canManage, flash }) {
+  const roleLabel = (r) => ({ owner: t('teamMembers.roleOwner', 'Owner'), manager: t('teamMembers.roleManager', 'Manager'), member: t('teamMembers.roleMember', 'Member') }[r] || r);
   const [members, setMembers] = useState([]);
+  const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState('');
-  const [toast, setToast] = useState('');
-  const [form, setForm] = useState({ email: '', password: '', name: '', team_role: 'member', team_name: '', photo: '' });
+  const [form, setForm] = useState({ email: '', password: '', name: '', team_role: 'member', team_id: '', photo: '' });
   const [busy, setBusy] = useState(false);
-  const [query, setQuery] = useState(''); // [231차 #3] 리스트 조회/검색
+  const [query, setQuery] = useState('');
   const filteredMembers = members.filter(m => {
     const q = query.trim().toLowerCase();
     if (!q) return true;
     return [m.name, m.email, m.team_name, m.team_role].some(v => String(v || '').toLowerCase().includes(q));
   });
 
-  const flash = (m) => { setToast(m); setTimeout(() => setToast(''), 2600); };
-
   const load = useCallback(async () => {
     setLoading(true); setErr('');
+    try { const r = await teamApi.listTeams(); setTeams(r.teams || []); } catch { setTeams([]); }
     if (IS_DEMO) { setMembers(demoLoad()); setLoading(false); return; }
     try {
       const r = await fetch(`${API}/auth/team/members`, { headers: authHeaders() });
@@ -84,135 +139,104 @@ export default function TeamMembers() {
     } catch (e) { setErr(t('teamMembers.errNetwork', 'Network error') + ': ' + e.message); }
     setLoading(false);
   }, [t]);
-
   useEffect(() => { load(); }, [load]);
+
+  const teamName = (id) => (teams.find(x => String(x.id) === String(id)) || {}).name || '';
 
   const onCreate = async (e) => {
     e.preventDefault();
-    if (!form.email || !form.password || !form.name) { flash(t('teamMembers.errRequired', 'Please enter email, password, and name.')); return; }
-    if (form.password.length < 6) { flash(t('teamMembers.errPwLen', 'Password must be at least 6 characters.')); return; }
+    if (!form.email || !form.password || !form.name) { flash(t('teamMembers.errRequired', '이메일·비밀번호·이름을 입력하세요.')); return; }
+    if (form.password.length < 6) { flash(t('teamMembers.errPwLen', '비밀번호는 6자 이상이어야 합니다.')); return; }
     setBusy(true);
+    const tid = form.team_id ? Number(form.team_id) : null;
     if (IS_DEMO) {
       const list = demoLoad();
-      if (list.some(m => m.email.toLowerCase() === form.email.toLowerCase())) { flash(t('teamMembers.errDupEmail', 'This email is already registered.')); setBusy(false); return; }
-      const next = [...list, { id: 'tm_' + Date.now(), email: form.email.toLowerCase(), name: form.name, team_role: form.team_role, team_name: form.team_name, photo: form.photo || '', is_active: 1, created_at: new Date().toISOString().slice(0, 10) }];
+      if (list.some(m => m.email.toLowerCase() === form.email.toLowerCase())) { flash(t('teamMembers.errDupEmail', '이미 등록된 이메일입니다.')); setBusy(false); return; }
+      const next = [...list, { id: 'tm_' + Date.now(), email: form.email.toLowerCase(), name: form.name, team_role: form.team_role, team_id: tid, team_name: teamName(tid), photo: form.photo || '', is_active: 1, created_at: new Date().toISOString().slice(0, 10) }];
       demoSave(next); setMembers(next);
-      setForm({ email: '', password: '', name: '', team_role: 'member', team_name: '', photo: '' });
-      flash(t('teamMembers.okCreatedDemo', '✅ Team member added (demo).')); setBusy(false); return;
+      setForm({ email: '', password: '', name: '', team_role: 'member', team_id: '', photo: '' });
+      flash(t('teamMembers.okCreatedDemo', '✅ 팀원이 추가되었습니다 (데모).')); setBusy(false); return;
     }
     try {
-      const r = await fetch(`${API}/auth/team/members`, { method: 'POST', headers: authHeaders(), body: JSON.stringify(form) });
+      const r = await fetch(`${API}/auth/team/members`, { method: 'POST', headers: authHeaders(), body: JSON.stringify({ ...form, team_id: tid }) });
       const d = await r.json();
-      if (d.ok) { setForm({ email: '', password: '', name: '', team_role: 'member', team_name: '', photo: '' }); flash(t('teamMembers.okCreated', '✅ Team member sub-account created.')); load(); }
-      else flash('⚠ ' + (d.error || t('teamMembers.errCreate', 'Creation failed')));
+      if (d.ok) { setForm({ email: '', password: '', name: '', team_role: 'member', team_id: '', photo: '' }); flash(t('teamMembers.okCreated', '✅ 팀원 하위계정이 생성되었습니다.')); load(); }
+      else flash('⚠ ' + (d.error || t('teamMembers.errCreate', '생성 실패')));
     } catch (e) { flash(t('teamMembers.errNetwork', 'Network error') + ': ' + e.message); }
     setBusy(false);
   };
 
-  const onToggleActive = async (m) => {
-    if (m.team_role === 'owner') return;
+  const patchMember = async (m, body, okMsg) => {
     if (IS_DEMO) {
-      const next = demoLoad().map(x => x.id === m.id ? { ...x, is_active: x.is_active ? 0 : 1 } : x);
-      demoSave(next); setMembers(next); flash(t('teamMembers.okStatusDemo', 'Status changed (demo)')); return;
+      const next = demoLoad().map(x => x.id === m.id ? { ...x, ...body, ...(body.team_id !== undefined ? { team_name: teamName(body.team_id) } : {}) } : x);
+      demoSave(next); setMembers(next); flash(okMsg); return;
     }
     try {
-      const r = await fetch(`${API}/auth/team/members/${m.id}`, { method: 'PATCH', headers: authHeaders(), body: JSON.stringify({ is_active: m.is_active ? 0 : 1 }) });
-      const d = await r.json(); d.ok ? load() : flash('⚠ ' + (d.error || t('teamMembers.errFail', 'Failed')));
+      const r = await fetch(`${API}/auth/team/members/${m.id}`, { method: 'PATCH', headers: authHeaders(), body: JSON.stringify(body) });
+      const d = await r.json(); d.ok ? load() : flash('⚠ ' + (d.error || t('teamMembers.errFail', '실패')));
     } catch (e) { flash(t('teamMembers.errNetwork', 'Network error') + ': ' + e.message); }
   };
-
+  const onToggleActive = (m) => { if (m.team_role === 'owner') return; patchMember(m, { is_active: m.is_active ? 0 : 1 }, t('teamMembers.okStatusDemo', '상태 변경됨')); };
+  const onRoleChange = (m, role) => { if (m.team_role === 'owner') return; patchMember(m, { team_role: role }, t('teamMembers.okRoleDemo', '역할 변경됨')); };
+  const onTeamChange = (m, tid) => { if (m.team_role === 'owner') return; patchMember(m, { team_id: tid ? Number(tid) : null }, t('teamMembers.okTeamChanged', '소속 팀 변경됨')); };
   const onDelete = async (m) => {
     if (m.team_role === 'owner') return;
-    if (!window.confirm(t('teamMembers.confirmDelete', "Deactivate (delete) the sub-account '{{name}} ({{email}})'?", { name: m.name, email: m.email }))) return;
-    if (IS_DEMO) {
-      const next = demoLoad().filter(x => x.id !== m.id);
-      demoSave(next); setMembers(next); flash(t('teamMembers.okDeletedDemo', 'Deleted (demo)')); return;
-    }
+    if (!window.confirm(t('teamMembers.confirmDelete', "하위계정 '{{name}} ({{email}})' 을(를) 비활성(삭제)하시겠습니까?", { name: m.name, email: m.email }))) return;
+    if (IS_DEMO) { const next = demoLoad().filter(x => x.id !== m.id); demoSave(next); setMembers(next); flash(t('teamMembers.okDeletedDemo', '삭제됨')); return; }
     try {
       const r = await fetch(`${API}/auth/team/members/${m.id}`, { method: 'DELETE', headers: authHeaders() });
-      const d = await r.json(); d.ok ? load() : flash('⚠ ' + (d.error || t('teamMembers.errFail', 'Failed')));
+      const d = await r.json(); d.ok ? load() : flash('⚠ ' + (d.error || t('teamMembers.errFail', '실패')));
     } catch (e) { flash(t('teamMembers.errNetwork', 'Network error') + ': ' + e.message); }
   };
 
-  const onRoleChange = async (m, role) => {
-    if (m.team_role === 'owner') return;
-    if (IS_DEMO) {
-      const next = demoLoad().map(x => x.id === m.id ? { ...x, team_role: role } : x);
-      demoSave(next); setMembers(next); flash(t('teamMembers.okRoleDemo', 'Role changed (demo)')); return;
-    }
-    try {
-      const r = await fetch(`${API}/auth/team/members/${m.id}`, { method: 'PATCH', headers: authHeaders(), body: JSON.stringify({ team_role: role }) });
-      const d = await r.json(); d.ok ? load() : flash('⚠ ' + (d.error || t('teamMembers.errFail', 'Failed')));
-    } catch (e) { flash(t('teamMembers.errNetwork', 'Network error') + ': ' + e.message); }
-  };
-
-  const card = { background: 'var(--surface,#fff)', border: '1px solid var(--border,#e5e7eb)', borderRadius: 14, padding: 20 };
-  const input = { padding: '9px 12px', borderRadius: 9, border: '1px solid var(--border,#cbd5e1)', fontSize: 13, background: 'var(--bg,#fff)', color: 'var(--text-1,#1e293b)' };
+  const activeTeams = teams.filter(x => x.status === 'active' || !x.status);
 
   return (
-    <div style={{ padding: 24, color: 'var(--text-1,#1e293b)', maxWidth: 1100, margin: '0 auto' }}>
-      <div style={{ marginBottom: 18 }}>
-        <div style={{ fontSize: 23, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 10 }}>👥 {t('teamMembers.title', 'Team Members')}</div>
-        <div style={{ fontSize: 13, color: 'var(--text-3,#64748b)', marginTop: 5 }}>
-          {t('teamMembers.desc', 'Register and manage team and member sub-accounts. Sub-accounts are recognized as the same company (account) and share the same data, fully isolated from other company accounts.')}
-          {IS_DEMO && <span style={{ marginLeft: 8, color: '#f59e0b', fontWeight: 700 }}>· 🧪 {t('teamMembers.demoBadge', 'Demo (simulation)')}</span>}
-        </div>
-      </div>
-
-      {/* 183차 Phase3: 읽기전용 멤버 안내 배너 */}
-      {!canManage && (
-        <div style={{ ...card, marginBottom: 18, borderColor: '#fde68a', background: 'rgba(245,158,11,0.08)', display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 18 }}>🔒</span>
-          <span style={{ fontSize: 13, color: 'var(--text-2,#475569)', fontWeight: 600 }}>
-            {t('teamMembers.readOnlyBanner', '읽기 전용 멤버 계정입니다 — 팀원 관리는 관리자(owner) 또는 매니저만 가능합니다.')}
-          </span>
-        </div>
-      )}
-
-      {/* 등록 폼 */}
+    <>
       {canManage && (
         <form onSubmit={onCreate} style={{ ...card, marginBottom: 18 }}>
-          <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 12 }}>➕ {t('teamMembers.formTitle', 'Register team member sub-account')}</div>
+          <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 12 }}>➕ {t('teamMembers.formTitle', '팀원 하위계정 등록')}</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
             <AvatarField value={form.photo} name={form.name} size={56} editable onChange={(url) => setForm(f => ({ ...f, photo: url }))} />
             <span style={{ fontSize: 12, color: 'var(--text-3,#94a3b8)' }}>{t('teamMembers.photoHint', '프로필 사진 (선택) — 클릭하여 등록')}</span>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(170px,1fr))', gap: 10 }}>
-            <input style={input} type="email" placeholder={t('teamMembers.phEmail', 'Email (login ID)')} value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
-            <input style={input} type="password" placeholder={t('teamMembers.phPassword', 'Password (6+)')} value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} />
-            <input style={input} placeholder={t('teamMembers.phName', 'Name')} value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
-            <input style={input} placeholder={t('teamMembers.phTeam', 'Team name (optional)')} value={form.team_name} onChange={e => setForm(f => ({ ...f, team_name: e.target.value }))} />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: 10 }}>
+            <input style={input} type="email" placeholder={t('teamMembers.phEmail', '이메일 (로그인 ID)')} value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
+            <input style={input} type="password" placeholder={t('teamMembers.phPassword', '비밀번호 (6자+)')} value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} />
+            <input style={input} placeholder={t('teamMembers.phName', '이름')} value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
+            <select style={input} value={form.team_id} onChange={e => setForm(f => ({ ...f, team_id: e.target.value }))}>
+              <option value="">{t('teamMembers.phNoTeam', '소속 팀 (선택)')}</option>
+              {activeTeams.map(tm => <option key={tm.id} value={tm.id}>{tm.name}</option>)}
+            </select>
             <select style={input} value={form.team_role} onChange={e => setForm(f => ({ ...f, team_role: e.target.value }))}>
               <option value="member">{t('teamMembers.roleMember', 'Member')}</option>
               <option value="manager">{t('teamMembers.roleManager', 'Manager')}</option>
             </select>
           </div>
           <button type="submit" disabled={busy} style={{ marginTop: 12, padding: '10px 20px', borderRadius: 9, border: 'none', background: busy ? '#94a3b8' : '#4f46e5', color: '#fff', fontWeight: 700, fontSize: 13, cursor: busy ? 'default' : 'pointer' }}>
-            {busy ? t('teamMembers.processing', 'Processing…') : t('teamMembers.createAccount', 'Create sub-account')}
+            {busy ? t('teamMembers.processing', '처리 중…') : t('teamMembers.createAccount', '하위계정 생성')}
           </button>
         </form>
       )}
 
-      {/* 구성원 목록 */}
       <div style={card}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 12, flexWrap: 'wrap' }}>
-          <div style={{ fontSize: 14, fontWeight: 700 }}>{t('teamMembers.listTitle', 'Member list')} ({filteredMembers.length}{query ? `/${members.length}` : ''})</div>
+          <div style={{ fontSize: 14, fontWeight: 700 }}>{t('teamMembers.listTitle', '구성원 목록')} ({filteredMembers.length}{query ? `/${members.length}` : ''})</div>
           <input style={{ ...input, maxWidth: 240 }} placeholder={t('teamMembers.searchPh', '🔍 이름·이메일·팀 검색')} value={query} onChange={e => setQuery(e.target.value)} />
         </div>
         {err && <div style={{ color: '#ef4444', fontSize: 13, marginBottom: 10 }}>⚠ {err}</div>}
-        {loading ? <div style={{ color: '#64748b', fontSize: 13 }}>{t('teamMembers.loading', 'Loading…')}</div> : (
+        {loading ? <div style={{ color: '#64748b', fontSize: 13 }}>{t('teamMembers.loading', '불러오는 중…')}</div> : (
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
                 <tr style={{ textAlign: 'left', color: '#64748b', borderBottom: '1px solid var(--border,#e5e7eb)' }}>
                   <th style={{ padding: '8px 10px' }}>{t('teamMembers.colPhoto', '사진')}</th>
-                  <th style={{ padding: '8px 10px' }}>{t('teamMembers.colName', 'Name')}</th>
-                  <th style={{ padding: '8px 10px' }}>{t('teamMembers.colEmail', 'Email (ID)')}</th>
-                  <th style={{ padding: '8px 10px' }}>{t('teamMembers.colTeam', 'Team')}</th>
-                  <th style={{ padding: '8px 10px' }}>{t('teamMembers.colRole', 'Role')}</th>
-                  <th style={{ padding: '8px 10px' }}>{t('teamMembers.colStatus', 'Status')}</th>
-                  <th style={{ padding: '8px 10px' }}>{t('teamMembers.colJoined', 'Joined')}</th>
-                  {canManage && <th style={{ padding: '8px 10px' }}>{t('teamMembers.colManage', 'Manage')}</th>}
+                  <th style={{ padding: '8px 10px' }}>{t('teamMembers.colName', '이름')}</th>
+                  <th style={{ padding: '8px 10px' }}>{t('teamMembers.colEmail', '이메일 (ID)')}</th>
+                  <th style={{ padding: '8px 10px' }}>{t('teamMembers.colTeam', '팀')}</th>
+                  <th style={{ padding: '8px 10px' }}>{t('teamMembers.colRole', '역할')}</th>
+                  <th style={{ padding: '8px 10px' }}>{t('teamMembers.colStatus', '상태')}</th>
+                  {canManage && <th style={{ padding: '8px 10px' }}>{t('teamMembers.colManage', '관리')}</th>}
                 </tr>
               </thead>
               <tbody>
@@ -221,34 +245,38 @@ export default function TeamMembers() {
                     <td style={{ padding: '6px 10px' }}><AvatarField value={m.photo} name={m.name} size={34} /></td>
                     <td style={{ padding: '9px 10px', fontWeight: 600 }}>{m.name}</td>
                     <td style={{ padding: '9px 10px', color: '#475569' }}>{m.email}</td>
-                    <td style={{ padding: '9px 10px' }}>{m.team_name || '—'}</td>
+                    <td style={{ padding: '9px 10px' }}>
+                      {(canManage && m.team_role !== 'owner') ? (
+                        <select value={m.team_id || ''} onChange={e => onTeamChange(m, e.target.value)} style={{ ...input, padding: '4px 8px', fontSize: 12 }}>
+                          <option value="">—</option>
+                          {activeTeams.map(tm => <option key={tm.id} value={tm.id}>{tm.name}</option>)}
+                        </select>
+                      ) : (m.team_name || '—')}
+                    </td>
                     <td style={{ padding: '9px 10px' }}>
                       {(canManage && m.team_role !== 'owner') ? (
                         <select value={m.team_role} onChange={e => onRoleChange(m, e.target.value)} style={{ ...input, padding: '4px 8px', fontSize: 12 }}>
                           <option value="member">{t('teamMembers.roleMember', 'Member')}</option>
                           <option value="manager">{t('teamMembers.roleManager', 'Manager')}</option>
                         </select>
-                      ) : (
-                        <span style={{ color: ROLE_COLOR[m.team_role] || '#475569', fontWeight: 700 }}>{roleLabel(m.team_role)}</span>
-                      )}
+                      ) : (<span style={{ color: ROLE_COLOR[m.team_role] || '#475569', fontWeight: 700 }}>{roleLabel(m.team_role)}</span>)}
                     </td>
                     <td style={{ padding: '9px 10px' }}>
-                      <span style={{ fontSize: 11, fontWeight: 700, color: m.is_active ? '#16a34a' : '#94a3b8' }}>{m.is_active ? '● ' + t('teamMembers.active', 'Active') : '○ ' + t('teamMembers.inactive', 'Inactive')}</span>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: m.is_active ? '#16a34a' : '#94a3b8' }}>{m.is_active ? '● ' + t('teamMembers.active', '활성') : '○ ' + t('teamMembers.inactive', '비활성')}</span>
                     </td>
-                    <td style={{ padding: '9px 10px', color: '#94a3b8' }}>{(m.created_at || '').slice(0, 10)}</td>
                     {canManage && (
                       <td style={{ padding: '9px 10px' }}>
                         {m.team_role === 'owner' ? <span style={{ color: '#cbd5e1', fontSize: 12 }}>—</span> : (
                           <span style={{ display: 'flex', gap: 8 }}>
-                            <button onClick={() => onToggleActive(m)} style={{ fontSize: 11, padding: '4px 9px', borderRadius: 7, border: '1px solid #cbd5e1', background: 'transparent', cursor: 'pointer', color: 'var(--text-2,#475569)' }}>{m.is_active ? t('teamMembers.deactivate', 'Deactivate') : t('teamMembers.activate', 'Activate')}</button>
-                            <button onClick={() => onDelete(m)} style={{ fontSize: 11, padding: '4px 9px', borderRadius: 7, border: '1px solid #fecaca', background: 'transparent', cursor: 'pointer', color: '#ef4444' }}>{t('teamMembers.delete', 'Delete')}</button>
+                            <button onClick={() => onToggleActive(m)} style={{ fontSize: 11, padding: '4px 9px', borderRadius: 7, border: '1px solid #cbd5e1', background: 'transparent', cursor: 'pointer', color: 'var(--text-2,#475569)' }}>{m.is_active ? t('teamMembers.deactivate', '비활성') : t('teamMembers.activate', '활성')}</button>
+                            <button onClick={() => onDelete(m)} style={{ fontSize: 11, padding: '4px 9px', borderRadius: 7, border: '1px solid #fecaca', background: 'transparent', cursor: 'pointer', color: '#ef4444' }}>{t('teamMembers.delete', '삭제')}</button>
                           </span>
                         )}
                       </td>
                     )}
                   </tr>
                 ))}
-                {!filteredMembers.length && <tr><td colSpan={canManage ? 8 : 7} style={{ padding: 20, textAlign: 'center', color: '#94a3b8' }}>{query ? t('teamMembers.noMatch', '검색 결과가 없습니다.') : t('teamMembers.empty', 'No members registered.')}</td></tr>}
+                {!filteredMembers.length && <tr><td colSpan={canManage ? 7 : 6} style={{ padding: 20, textAlign: 'center', color: '#94a3b8' }}>{query ? t('teamMembers.noMatch', '검색 결과가 없습니다.') : t('teamMembers.empty', '등록된 구성원이 없습니다.')}</td></tr>}
               </tbody>
             </table>
           </div>
@@ -256,20 +284,373 @@ export default function TeamMembers() {
       </div>
 
       {canManage && !IS_DEMO && <PartnerSection t={t} flash={flash} input={input} />}
+    </>
+  );
+}
 
-      {toast && <div style={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', background: '#1e293b', color: '#fff', padding: '11px 22px', borderRadius: 10, fontSize: 13, fontWeight: 600, zIndex: 9999 }}>{toast}</div>}
+/* ═══════════════════ 팀 관리 패널 ═══════════════════ */
+const TYPE_LABEL = {
+  internal_super: '계정 총관리', brand: '브랜드팀', marketing: '마케팅팀', marketing_global: '마케팅-글로벌', marketing_domestic: '마케팅-국내',
+  sales: '영업팀', sales_global: '해외영업', sales_domestic: '국내영업', sales_enterprise: '대기업영업', sales_channel: '유통/총판영업',
+  logistics: '물류팀', finance: '재무팀',
+  partner_agency: '외부 대행사', partner_live: '라이브커머스 파트너', partner_supplier: '공급 파트너', partner_distribution: '유통 파트너', custom: '사용자 정의',
+};
+function TeamsPanel({ t, canManage, flash }) {
+  const [teams, setTeams] = useState([]);
+  const [members, setMembers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState(null); // null | {} (new) | team
+  const blank = { name: '', team_type: 'custom', description: '', manager_user_id: '', status: 'active' };
+  const [form, setForm] = useState(blank);
+  const [busy, setBusy] = useState(false);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try { const r = await teamApi.listTeams(); setTeams(r.teams || []); } catch (e) { flash('⚠ ' + e.message); setTeams([]); }
+    // 관리자 후보 멤버
+    if (IS_DEMO) setMembers(demoLoad());
+    else { try { const r = await fetch(`${API}/auth/team/members`, { headers: authHeaders() }); const d = await r.json(); setMembers(d.ok ? (d.members || []) : []); } catch { setMembers([]); } }
+    setLoading(false);
+  }, []);
+  useEffect(() => { load(); }, [load]);
+
+  const startNew = () => { setForm(blank); setEditing({}); };
+  const startEdit = (tm) => { setForm({ name: tm.name, team_type: tm.team_type || 'custom', description: tm.description || '', manager_user_id: tm.manager_user_id || '', status: tm.status || 'active' }); setEditing(tm); };
+  const save = async () => {
+    if (!form.name.trim()) { flash(t('teamMembers.errTeamName', '팀 이름을 입력하세요.')); return; }
+    setBusy(true);
+    const payload = { name: form.name.trim(), team_type: form.team_type, description: form.description, manager_user_id: form.manager_user_id || null };
+    try {
+      if (editing && editing.id) { await teamApi.updateTeam(editing.id, { ...payload, status: form.status }); flash(t('teamMembers.okTeamSaved', '✅ 팀이 저장되었습니다.')); }
+      else { await teamApi.createTeam(payload); flash(t('teamMembers.okTeamCreated', '✅ 팀이 생성되었습니다.')); }
+      setEditing(null); load();
+    } catch (e) { flash('⚠ ' + e.message); }
+    setBusy(false);
+  };
+  const archive = async (tm) => {
+    if (!window.confirm(t('teamMembers.confirmArchive', "팀 '{{name}}' 을(를) 비활성(보관)하시겠습니까? 소속 멤버 {{n}}명·권한 {{p}}건은 보존됩니다.", { name: tm.name, n: tm.member_count || 0, p: tm.permission_count || 0 }))) return;
+    try { await teamApi.deleteTeam(tm.id); flash(t('teamMembers.okArchived', '팀이 보관 처리되었습니다.')); load(); } catch (e) { flash('⚠ ' + e.message); }
+  };
+  const restore = async (tm) => { try { await teamApi.restoreTeam(tm.id); flash(t('teamMembers.okRestored', '팀이 복구되었습니다.')); load(); } catch (e) { flash('⚠ ' + e.message); } };
+  const hardDelete = async (tm) => {
+    if (!window.confirm(t('teamMembers.confirmHardDelete', "⚠ 팀 '{{name}}' 을(를) 영구 삭제합니다. 소속 멤버 {{n}}명의 팀 배정이 해제되고 팀 권한 {{p}}건이 삭제됩니다. 되돌릴 수 없습니다. 계속하시겠습니까?", { name: tm.name, n: tm.member_count || 0, p: tm.permission_count || 0 }))) return;
+    try { await teamApi.deleteTeam(tm.id, { hard: true }); flash(t('teamMembers.okHardDeleted', '팀이 영구 삭제되었습니다.')); load(); } catch (e) { flash('⚠ ' + e.message); }
+  };
+
+  const seedOrg = async () => {
+    if (!window.confirm(t('teamMembers.confirmSeedOrg', '표준 조직 구조(브랜드/마케팅/영업/물류/재무 + 외부 파트너 4종)와 유형별 기본 권한을 일괄 생성하시겠습니까? 동명 팀은 건너뜁니다.'))) return;
+    setBusy(true);
+    try { const r = await teamApi.seedOrg(); flash(t('teamMembers.okSeedOrg', '✅ 표준 조직 구조 생성: {{c}}개 (건너뜀 {{s}})', { c: (r.created || []).length, s: (r.skipped || []).length })); load(); }
+    catch (e) { flash('⚠ ' + e.message); }
+    setBusy(false);
+  };
+
+  const mgrCandidates = members.filter(m => m.team_role !== 'member' || true); // 전 멤버(매니저 승격 가능)
+  const statusLabel = (s) => ({ active: t('teamMembers.stActive', '활성'), disabled: t('teamMembers.stDisabled', '비활성'), archived: t('teamMembers.stArchived', '보관') }[s] || s);
+
+  return (
+    <div style={card}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, flexWrap: 'wrap', gap: 8 }}>
+        <div style={{ fontSize: 14, fontWeight: 700 }}>🏢 {t('teamMembers.teamsTitle', '팀 목록')} ({teams.length})</div>
+        {canManage && (
+          <div style={{ display: 'flex', gap: 8 }}>
+            {!teams.length && <button onClick={seedOrg} disabled={busy} style={{ padding: '8px 16px', borderRadius: 9, border: '1px solid #c7d2fe', background: 'rgba(79,70,229,0.06)', color: '#4f46e5', fontWeight: 700, fontSize: 13, cursor: busy ? 'default' : 'pointer' }}>🏗️ {t('teamMembers.seedOrg', '표준 조직 구조 생성')}</button>}
+            <button onClick={startNew} style={{ padding: '8px 16px', borderRadius: 9, border: 'none', background: '#4f46e5', color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>+ {t('teamMembers.addTeam', '팀 추가')}</button>
+          </div>
+        )}
+      </div>
+
+      {editing && canManage && (
+        <div style={{ border: '1px solid #c7d2fe', background: 'rgba(79,70,229,0.04)', borderRadius: 12, padding: 16, marginBottom: 16 }}>
+          <div style={{ fontWeight: 700, fontSize: 13.5, marginBottom: 10 }}>{editing.id ? t('teamMembers.editTeam', '팀 수정') : t('teamMembers.newTeam', '새 팀')}</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 10 }}>
+            <input style={input} placeholder={t('teamMembers.phTeamName', '팀 이름')} value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
+            <select style={input} value={form.team_type} onChange={e => setForm(f => ({ ...f, team_type: e.target.value }))}>
+              {TEAM_TYPES.map(tp => <option key={tp} value={tp}>{TYPE_LABEL[tp] || tp}</option>)}
+            </select>
+            <select style={input} value={form.manager_user_id} onChange={e => setForm(f => ({ ...f, manager_user_id: e.target.value }))}>
+              <option value="">{t('teamMembers.phManager', '팀관리자 지정 (선택)')}</option>
+              {mgrCandidates.map(m => <option key={m.id} value={m.id}>{m.name} ({m.email})</option>)}
+            </select>
+            {editing.id && (
+              <select style={input} value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))}>
+                <option value="active">{statusLabel('active')}</option>
+                <option value="disabled">{statusLabel('disabled')}</option>
+                <option value="archived">{statusLabel('archived')}</option>
+              </select>
+            )}
+          </div>
+          <textarea style={{ ...input, width: '100%', boxSizing: 'border-box', marginTop: 10, minHeight: 56, resize: 'vertical' }} placeholder={t('teamMembers.phTeamDesc', '팀 설명 (선택)')} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
+          <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
+            <button onClick={save} disabled={busy} style={{ padding: '8px 18px', borderRadius: 9, border: 'none', background: busy ? '#94a3b8' : '#16a34a', color: '#fff', fontWeight: 700, fontSize: 13, cursor: busy ? 'default' : 'pointer' }}>{busy ? t('teamMembers.processing', '처리 중…') : t('teamMembers.save', '저장')}</button>
+            <button onClick={() => setEditing(null)} style={{ padding: '8px 18px', borderRadius: 9, border: '1px solid #cbd5e1', background: 'transparent', color: 'var(--text-2,#475569)', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>{t('teamMembers.cancel', '취소')}</button>
+          </div>
+        </div>
+      )}
+
+      {loading ? <div style={{ color: '#64748b', fontSize: 13 }}>{t('teamMembers.loading', '불러오는 중…')}</div> : (
+        <div style={{ display: 'grid', gap: 10 }}>
+          {teams.map(tm => (
+            <div key={tm.id} style={{ border: '1px solid var(--border,#e5e7eb)', borderRadius: 11, padding: '13px 16px', opacity: tm.status === 'archived' ? 0.6 : 1 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontWeight: 800, fontSize: 14 }}>{tm.name}</span>
+                    <span style={{ fontSize: 10.5, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: '#6366f118', color: '#6366f1' }}>{TYPE_LABEL[tm.team_type] || tm.team_type}</span>
+                    <span style={{ fontSize: 10.5, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: (STATUS_COLOR[tm.status] || '#94a3b8') + '1a', color: STATUS_COLOR[tm.status] || '#94a3b8' }}>{statusLabel(tm.status)}</span>
+                  </div>
+                  <div style={{ fontSize: 12, color: 'var(--text-3,#64748b)', marginTop: 4 }}>
+                    {tm.description || '—'} · 👤 {t('teamMembers.colManager', '관리자')}: {tm.manager_name || '—'} · 👥 {tm.member_count || 0} · 🔐 {tm.permission_count || 0}
+                  </div>
+                </div>
+                {canManage && (
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    <button onClick={() => startEdit(tm)} style={btnGhost}>{t('teamMembers.edit', '수정')}</button>
+                    {tm.status === 'archived'
+                      ? <button onClick={() => restore(tm)} style={{ ...btnGhost, color: '#16a34a', borderColor: '#bbf7d0' }}>{t('teamMembers.restore', '복구')}</button>
+                      : <button onClick={() => archive(tm)} style={{ ...btnGhost, color: '#f59e0b', borderColor: '#fde68a' }}>{t('teamMembers.archive', '비활성')}</button>}
+                    <button onClick={() => hardDelete(tm)} style={{ ...btnGhost, color: '#ef4444', borderColor: '#fecaca' }}>{t('teamMembers.hardDelete', '영구삭제')}</button>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+          {!teams.length && <div style={{ padding: 20, textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>{t('teamMembers.noTeams', '등록된 팀이 없습니다. ‘팀 추가’로 시작하세요.')}</div>}
+        </div>
+      )}
+    </div>
+  );
+}
+const btnGhost = { fontSize: 11.5, padding: '5px 11px', borderRadius: 7, border: '1px solid #cbd5e1', background: 'transparent', cursor: 'pointer', color: 'var(--text-2,#475569)', fontWeight: 600 };
+
+/* ═══════════════════ 권한 매트릭스 패널 ═══════════════════ */
+const GROUP_LABEL = { core: '핵심', marketing: '마케팅', commerce: '커머스', sales: '영업', ops: '운영·물류', finance: '재무', data: '데이터', partner: '파트너', admin: '관리' };
+const ACTION_LABEL = { view: '조회', create: '생성', update: '수정', delete: '삭제', approve: '승인', export: '내보내기', execute: '실행', manage: '관리' };
+function MatrixPanel({ t, canManage, isOwnerAdmin, flash }) {
+  const [subjectType, setSubjectType] = useState('team'); // team | member
+  const [teams, setTeams] = useState([]);
+  const [members, setMembers] = useState([]);
+  const [subjectId, setSubjectId] = useState('');
+  const [perms, setPerms] = useState({});           // menu_key -> [actions]
+  const [scope, setScope] = useState({ scope_type: 'own', values: [] });
+  const [assignable, setAssignable] = useState(null); // null=무제한, {} map
+  const [effective, setEffective] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      try { const r = await teamApi.listTeams(); setTeams((r.teams || []).filter(x => x.status !== 'archived')); } catch { setTeams([]); }
+      if (IS_DEMO) setMembers(demoLoad().filter(m => m.team_role !== 'owner'));
+      else { try { const r = await fetch(`${API}/auth/team/members`, { headers: authHeaders() }); const d = await r.json(); setMembers((d.ok ? d.members : []).filter(m => m.team_role !== 'owner')); } catch { setMembers([]); } }
+    })();
+  }, []);
+
+  const loadSubject = useCallback(async (type, id) => {
+    if (!id) { setPerms({}); setScope({ scope_type: 'own', values: [] }); setAssignable(null); setEffective(null); return; }
+    setLoading(true);
+    try {
+      if (type === 'team') {
+        const d = await teamApi.getTeamPermissions(id);
+        setPerms(d.menus || {}); setScope(d.scope || { scope_type: 'team', values: [] }); setAssignable(null); setEffective(null);
+      } else {
+        const d = await teamApi.getMemberPermissions(id);
+        setPerms(d.explicit || {}); setScope(d.scope || { scope_type: 'own', values: [] });
+        setAssignable(d.assignable === undefined ? null : d.assignable);
+        setEffective(d.effective || null);
+      }
+    } catch (e) { flash('⚠ ' + e.message); }
+    setLoading(false);
+  }, []);
+  useEffect(() => { loadSubject(subjectType, subjectId); }, [subjectType, subjectId, loadSubject]);
+
+  // 매트릭스가 팀이면 owner/admin 만 편집, 멤버면 owner/manager 편집(상한 내).
+  const editable = subjectType === 'team' ? isOwnerAdmin : canManage;
+  // 셀 활성 여부: 멤버 + manager(assignable!=null) 일 때 상한 초과 동작 비활성.
+  const cellAllowed = (menu, action) => {
+    if (subjectType === 'team') return true;          // 팀 권한은 owner 가 전권
+    if (assignable === null) return true;             // owner/admin → 무제한
+    return actionsCover(assignable[menu] || [], action);
+  };
+
+  const toggle = (menu, action) => {
+    if (!editable || !cellAllowed(menu, action)) return;
+    setPerms(prev => {
+      const cur = new Set(prev[menu] || []);
+      if (action === 'view') {
+        if (cur.has('view')) return { ...prev, [menu]: [] };      // view 해제 → 전체 해제
+        return { ...prev, [menu]: ['view'] };
+      }
+      if (cur.has(action)) cur.delete(action);
+      else { cur.add(action); cur.add('view'); }                   // 동작 부여 시 view 자동
+      const arr = normActions([...cur]);
+      const next = { ...prev };
+      if (arr.length) next[menu] = arr; else delete next[menu];
+      return next;
+    });
+  };
+  const toggleRowAll = (menu) => {
+    if (!editable) return;
+    setPerms(prev => {
+      const allowed = ACTIONS.filter(a => cellAllowed(menu, a));
+      const cur = prev[menu] || [];
+      const full = allowed.every(a => cur.includes(a));
+      const next = { ...prev };
+      if (full) delete next[menu]; else next[menu] = normActions(allowed);
+      return next;
+    });
+  };
+
+  const save = async () => {
+    if (!subjectId) { flash(t('teamPerms.errNoSubject', '대상을 먼저 선택하세요.')); return; }
+    setBusy(true);
+    try {
+      const body = { menus: perms, scope };
+      if (subjectType === 'team') await teamApi.putTeamPermissions(subjectId, body);
+      else await teamApi.putMemberPermissions(subjectId, body);
+      flash(t('teamPerms.okSaved', '✅ 권한이 저장되었습니다.'));
+      loadSubject(subjectType, subjectId);
+    } catch (e) { flash('⚠ ' + e.message); }
+    setBusy(false);
+  };
+
+  const grouped = MENU_CATALOG.reduce((acc, m) => { (acc[m.group] = acc[m.group] || []).push(m); return acc; }, {});
+  const effectiveMenus = effective ? Object.keys(effective.menus || {}) : Object.keys(perms);
+
+  return (
+    <div style={card}>
+      <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', marginBottom: 14 }}>
+        <div style={{ display: 'flex', gap: 4, border: '1px solid var(--border,#e5e7eb)', borderRadius: 9, padding: 3 }}>
+          {['team', 'member'].map(ty => (
+            <button key={ty} onClick={() => { setSubjectType(ty); setSubjectId(''); }} style={{ padding: '6px 14px', borderRadius: 7, border: 'none', background: subjectType === ty ? '#4f46e5' : 'transparent', color: subjectType === ty ? '#fff' : 'var(--text-2,#475569)', fontWeight: 700, fontSize: 12.5, cursor: 'pointer' }}>
+              {ty === 'team' ? t('teamPerms.subjTeam', '팀 권한') : t('teamPerms.subjMember', '팀원 권한')}
+            </button>
+          ))}
+        </div>
+        <select style={{ ...input, minWidth: 220 }} value={subjectId} onChange={e => setSubjectId(e.target.value)}>
+          <option value="">{subjectType === 'team' ? t('teamPerms.pickTeam', '팀 선택…') : t('teamPerms.pickMember', '팀원 선택…')}</option>
+          {(subjectType === 'team' ? teams : members).map(x => <option key={x.id} value={x.id}>{x.name}{subjectType === 'member' ? ` (${x.email})` : ''}</option>)}
+        </select>
+        {subjectType === 'member' && assignable !== null && <span style={{ fontSize: 11.5, color: '#f59e0b', fontWeight: 600 }}>ℹ️ {t('teamPerms.delegateNote', '팀관리자는 본인 권한 범위 내에서만 부여할 수 있습니다 (회색 = 부여 불가).')}</span>}
+      </div>
+
+      {!subjectId ? (
+        <div style={{ padding: 30, textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>{t('teamPerms.selectPrompt', '대상을 선택하면 메뉴×동작 권한 매트릭스가 표시됩니다.')}</div>
+      ) : loading ? <div style={{ color: '#64748b', fontSize: 13 }}>{t('teamMembers.loading', '불러오는 중…')}</div> : (
+        <>
+          {/* 데이터 접근 범위 */}
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', marginBottom: 14, padding: '10px 14px', background: 'var(--bg,#f8fafc)', borderRadius: 10 }}>
+            <span style={{ fontSize: 12.5, fontWeight: 700 }}>📊 {t('teamPerms.dataScope', '데이터 접근 범위')}:</span>
+            <select style={{ ...input, padding: '6px 10px' }} disabled={!editable} value={scope.scope_type} onChange={e => setScope(s => ({ ...s, scope_type: e.target.value }))}>
+              {DATA_SCOPES.map(ds => <option key={ds} value={ds}>{t('teamPerms.scope_' + ds, scopeLabel(ds))}</option>)}
+            </select>
+            {!['company', 'own'].includes(scope.scope_type) && (
+              <input style={{ ...input, minWidth: 240, padding: '6px 10px' }} disabled={!editable} placeholder={t('teamPerms.scopeValuesPh', '대상 ID (쉼표 구분, 예: brand_a, brand_b)')}
+                value={(scope.values || []).join(', ')} onChange={e => setScope(s => ({ ...s, values: e.target.value.split(',').map(v => v.trim()).filter(Boolean) }))} />
+            )}
+          </div>
+
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12.5 }}>
+              <thead>
+                <tr style={{ color: '#64748b', borderBottom: '2px solid var(--border,#e5e7eb)' }}>
+                  <th style={{ padding: '8px 10px', textAlign: 'left', position: 'sticky', left: 0 }}>{t('teamPerms.colMenu', '메뉴')}</th>
+                  {ACTIONS.map(a => <th key={a} style={{ padding: '8px 6px', textAlign: 'center', minWidth: 56 }}>{t('teamPerms.act_' + a, ACTION_LABEL[a])}</th>)}
+                  {editable && <th style={{ padding: '8px 6px', textAlign: 'center' }}>{t('teamPerms.all', '전체')}</th>}
+                </tr>
+              </thead>
+              <tbody>
+                {Object.entries(grouped).map(([g, items]) => (
+                  <React.Fragment key={g}>
+                    <tr><td colSpan={ACTIONS.length + 2} style={{ padding: '8px 10px 3px', fontSize: 11, fontWeight: 800, color: '#6366f1', textTransform: 'uppercase' }}>{t('teamPerms.grp_' + g, GROUP_LABEL[g] || g)}</td></tr>
+                    {items.map(m => (
+                      <tr key={m.key} style={{ borderBottom: '1px solid var(--border,#f1f5f9)' }}>
+                        <td style={{ padding: '7px 10px', fontWeight: 600 }}>{m.ko}</td>
+                        {ACTIONS.map(a => {
+                          const on = (perms[m.key] || []).includes(a) || (a !== 'view' && (perms[m.key] || []).includes('manage'));
+                          const allow = cellAllowed(m.key, a);
+                          return (
+                            <td key={a} style={{ padding: '5px 6px', textAlign: 'center' }}>
+                              <input type="checkbox" checked={!!on} disabled={!editable || !allow}
+                                onChange={() => toggle(m.key, a)}
+                                style={{ width: 16, height: 16, cursor: editable && allow ? 'pointer' : 'not-allowed', accentColor: '#4f46e5', opacity: allow ? 1 : 0.3 }} />
+                            </td>
+                          );
+                        })}
+                        {editable && <td style={{ padding: '5px 6px', textAlign: 'center' }}><button onClick={() => toggleRowAll(m.key)} style={{ fontSize: 10, padding: '2px 7px', borderRadius: 6, border: '1px solid #cbd5e1', background: 'transparent', cursor: 'pointer', color: '#64748b' }}>±</button></td>}
+                      </tr>
+                    ))}
+                  </React.Fragment>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* 미리보기 + 저장 */}
+          <div style={{ marginTop: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' }}>
+            <div style={{ fontSize: 12, color: 'var(--text-3,#64748b)', maxWidth: 620 }}>
+              <b>👁 {t('teamPerms.preview', '접근 가능 메뉴 미리보기')}:</b>{' '}
+              {effectiveMenus.length ? effectiveMenus.map(k => (MENU_CATALOG.find(m => m.key === k) || {}).ko || k).join(', ') : t('teamPerms.noAccess', '(없음)')}
+            </div>
+            {editable && <button onClick={save} disabled={busy} style={{ padding: '10px 22px', borderRadius: 9, border: 'none', background: busy ? '#94a3b8' : '#4f46e5', color: '#fff', fontWeight: 700, fontSize: 13, cursor: busy ? 'default' : 'pointer' }}>{busy ? t('teamMembers.processing', '처리 중…') : t('teamPerms.savePerms', '권한 저장')}</button>}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+function scopeLabel(ds) {
+  return { company: '전체 회사', brand: '특정 브랜드', team: '특정 팀', campaign: '특정 캠페인', product: '특정 상품', warehouse: '특정 창고', partner: '특정 파트너', own: '본인 담당만' }[ds] || ds;
+}
+
+/* ═══════════════════ 감사 로그 패널 ═══════════════════ */
+function AuditPanel({ t, flash }) {
+  const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    (async () => { setLoading(true); try { const d = await teamApi.getTeamAudit(); setLogs(d.logs || []); } catch (e) { flash('⚠ ' + e.message); } setLoading(false); })();
+  }, []);
+  const RISK_COLOR = { high: '#ef4444', medium: '#f59e0b', low: '#16a34a' };
+  return (
+    <div style={card}>
+      <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 12 }}>🧾 {t('teamMembers.auditTitle', '팀·권한 변경 감사 로그')} ({logs.length})</div>
+      {loading ? <div style={{ color: '#64748b', fontSize: 13 }}>{t('teamMembers.loading', '불러오는 중…')}</div> : !logs.length ? (
+        <div style={{ padding: 20, textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>{t('teamMembers.noAudit', '기록된 감사 이벤트가 없습니다.')}</div>
+      ) : (
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12.5 }}>
+            <thead><tr style={{ textAlign: 'left', color: '#64748b', borderBottom: '1px solid var(--border,#e5e7eb)' }}>
+              <th style={{ padding: '8px 10px' }}>{t('teamMembers.auditTime', '시각')}</th>
+              <th style={{ padding: '8px 10px' }}>{t('teamMembers.auditActor', '행위자')}</th>
+              <th style={{ padding: '8px 10px' }}>{t('teamMembers.auditAction', '동작')}</th>
+              <th style={{ padding: '8px 10px' }}>{t('teamMembers.auditDetail', '상세')}</th>
+              <th style={{ padding: '8px 10px' }}>{t('teamMembers.auditRisk', '위험도')}</th>
+            </tr></thead>
+            <tbody>
+              {logs.map((l, i) => (
+                <tr key={i} style={{ borderBottom: '1px solid var(--border,#f1f5f9)' }}>
+                  <td style={{ padding: '7px 10px', color: '#94a3b8', whiteSpace: 'nowrap' }}>{(l.at || '').replace('T', ' ').slice(0, 19)}</td>
+                  <td style={{ padding: '7px 10px' }}>{l.actor || '—'}</td>
+                  <td style={{ padding: '7px 10px', fontWeight: 600 }}>{l.action}</td>
+                  <td style={{ padding: '7px 10px', color: '#475569' }}>{l.detail}</td>
+                  <td style={{ padding: '7px 10px' }}><span style={{ fontSize: 11, fontWeight: 700, color: RISK_COLOR[l.risk] || '#64748b' }}>{l.risk || '—'}</span></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
 
-/* 212차 #5: 파트너(매입처/물류처/창고처) 계정 — 멤버 구성원과 동일 화면에서 등록·관리.
-   별도 /partner 포털 로그인 ID 발급. 발급 수는 구독 플랜 한도(매입처/물류처/창고) 내. */
+/* 212차 #5: 파트너(매입처/물류처/창고처) 계정 — 멤버 구성원과 동일 화면에서 등록·관리. */
 const PT_LABEL = { supplier: '매입처', logistics: '물류처', warehouse: '창고처' };
 function PartnerSection({ t, flash, input }) {
   const [list, setList] = useState([]);
   const [form, setForm] = useState({ partner_type: 'supplier', partner_name: '', login_id: '', password: '', photo: '' });
   const [busy, setBusy] = useState(false);
-  const [pq, setPq] = useState(''); // [231차 #3] 파트너 조회/검색
+  const [pq, setPq] = useState('');
   const load = useCallback(async () => { try { const r = await wmsApi.listPartners(); setList(Array.isArray(r?.partners) ? r.partners : []); } catch { setList([]); } }, []);
   useEffect(() => { load(); }, [load]);
   const filtered = list.filter(p => { const q = pq.trim().toLowerCase(); return !q || [p.partner_name, p.login_id, p.partner_type].some(v => String(v || '').toLowerCase().includes(q)); });
