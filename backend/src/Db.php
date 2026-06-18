@@ -804,6 +804,7 @@ final class Db
             platform_fee_rate    DOUBLE NOT NULL DEFAULT 0,
             ad_fee_rate          DOUBLE NOT NULL DEFAULT 0,
             shipping_standard    DOUBLE NOT NULL DEFAULT 0,
+            free_ship_threshold  DOUBLE NOT NULL DEFAULT 0,
             return_fee_standard  DOUBLE NOT NULL DEFAULT 0,
             vat_rate             DOUBLE NOT NULL DEFAULT 0.10,
             note                 TEXT,

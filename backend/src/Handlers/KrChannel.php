@@ -92,17 +92,21 @@ final class KrChannel {
             return TemplateResponder::respond($response->withStatus(422), ['error' => 'channel_key required']);
         }
 
+        // [231차] 무료배송 기준금액(free_ship_threshold) 컬럼 보장 — 락게이트 migrate 우회(기존 DB 멱등 ALTER)
+        try { $pdo->exec("ALTER TABLE kr_fee_rule ADD COLUMN free_ship_threshold DOUBLE NOT NULL DEFAULT 0"); } catch (\Throwable $e) {}
+
         $stmt = $pdo->prepare(
             'INSERT INTO kr_fee_rule
              (tenant_id,channel_key,category,platform_fee_rate,ad_fee_rate,shipping_standard,
-              return_fee_standard,vat_rate,note,effective_from,created_at)
-             VALUES(?,?,?,?,?,?,?,?,?,?,?)'
+              free_ship_threshold,return_fee_standard,vat_rate,note,effective_from,created_at)
+             VALUES(?,?,?,?,?,?,?,?,?,?,?,?)'
         );
         $stmt->execute([
             $tenant, $key, $category,
             (float)($body['platform_fee_rate']    ?? 0),
             (float)($body['ad_fee_rate']           ?? 0),
             (float)($body['shipping_standard']     ?? 0),
+            (float)($body['free_ship_threshold']   ?? 0),
             (float)($body['return_fee_standard']   ?? 0),
             (float)($body['vat_rate']              ?? 0.10),
             $body['note']           ?? null,

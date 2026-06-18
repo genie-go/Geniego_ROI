@@ -1746,6 +1746,7 @@ export function GlobalDataProvider({ children }) {
                 totalAdFee: Number(srv.totalAdFee) || 0,
                 totalCouponDiscount: Number(srv.totalCouponDiscount) || 0,
                 totalReturnFee: Number(srv.totalReturnFee) || 0,
+                totalShippingFee: Number(srv.totalShippingFee) || 0,
                 settledAmount: Number(srv.settledAmount) || 0,
                 pendingAmount: Number(srv.pendingAmount) || 0,
                 totalOrders: Number(srv.totalOrders) || 0,
@@ -1761,6 +1762,7 @@ export function GlobalDataProvider({ children }) {
             totalAdFee: settlement.reduce((s, r) => s + (r.adFee || 0), 0),
             totalCouponDiscount: settlement.reduce((s, r) => s + (r.couponDiscount || 0), 0),
             totalReturnFee: settlement.reduce((s, r) => s + (r.returnFee || 0), 0),
+            totalShippingFee: settlement.reduce((s, r) => s + (r.shippingFee || 0), 0), // 데모/클라 폴백: 정산행에 shippingFee 있으면 합산(없으면 0)
             settledAmount: settled.reduce((s, r) => s + (r.netPayout || 0), 0),
             pendingAmount: pending.reduce((s, r) => s + (r.netPayout || 0), 0),
             totalOrders: settlement.reduce((s, r) => s + (r.orders || 0), 0),
@@ -1837,12 +1839,16 @@ export function GlobalDataProvider({ children }) {
         // 반품 처리비
         const returnFee = settlementStats.totalReturnFee;
 
+        // [231차] 배송비 — 채널별 정률+무료배송 기준금액(주문별 무료/유료 판정) 서버집계. 미설정 시 0(무후퇴).
+        //   net_payout(정산 실수령액)엔 이미 배송비 차감 반영 → operatingProfit(gross 경로)에만 가산(netProfit 불변).
+        const shippingCost = settlementStats.totalShippingFee || 0;
+
         // 정산 순지급액 (실제 받은 금액)
         const netPayout = settlementStats.totalNetPayout;
 
         // 손익 계산
         const grossProfit = revenue - cogs;                              // Revenue총이익 = Revenue - 원가
-        const operatingProfit = grossProfit - adSpend - platformFee - couponDiscount - returnFee; // 영업이익
+        const operatingProfit = grossProfit - adSpend - platformFee - couponDiscount - returnFee - shippingCost; // 영업이익(배송비 포함)
         // [227차 감사 P1] 순이익에 쿠폰할인 반영 — netPayout(=gross-platform-returnFee)은 쿠폰 미차감이라
         //   기존엔 영업이익엔 쿠폰 차감/순이익엔 누락되어 netProfit>operatingProfit 역전 가능했음(데모/운영 공통).
         const netProfit = netPayout > 0
@@ -1851,7 +1857,7 @@ export function GlobalDataProvider({ children }) {
 
         return {
             revenue, cogs, grossProfit,
-            adSpend, platformFee, couponDiscount, returnFee,
+            adSpend, platformFee, couponDiscount, returnFee, shippingCost,
             operatingProfit, netProfit, netPayout,
             margin: revenue > 0 ? (operatingProfit / revenue * 100).toFixed(1) : '0',
             netMargin: revenue > 0 ? (netProfit / revenue * 100).toFixed(1) : '0',

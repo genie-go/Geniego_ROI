@@ -103,6 +103,7 @@ function OverviewTab({ live, t, fmt, dateRange }) {
         { label: t('pnl.wfPlatformFee'), v: -live.platformFee, col: RED },
         { label: t('pnl.wfCoupon'), v: -live.couponDiscount, col: '#eab308' },
         { label: t('pnl.wfReturnFee'), v: -live.returnFee, col: '#ec4899' },
+        { label: t('pnl.wfShipping', '배송비'), v: -live.shippingCost, col: '#14b8a6' },
         { label: t('pnl.wfOperatingProfit'), v: live.operatingProfit, col: live.operatingProfit >= 0 ? GREEN : RED, bold: true },
     ];
     return (
@@ -128,6 +129,7 @@ function OverviewTab({ live, t, fmt, dateRange }) {
                 <KpiCard label={t('pnl.kpiAdSpend')} value={fmt(live.adSpend)} color="#f97316" icon="📣" sub={pct(live.adSpend, live.grossRevenue)} />
                 <KpiCard label={t('pnl.kpiPlatformFee')} value={fmt(live.platformFee)} color={RED} icon="🏪" sub={pct(live.platformFee, live.grossRevenue)} />
                 <KpiCard label={t('pnl.kpiCogs')} value={fmt(live.cogs)} color="#a855f7" icon="📦" />
+                <KpiCard label={t('pnl.kpiShipping', '배송비')} value={fmt(live.shippingCost)} color="#14b8a6" icon="🚚" sub={pct(live.shippingCost, live.grossRevenue)} />
                 <KpiCard label={t('pnl.kpiNetPayout')} value={fmt(live.netPayout)} color={GREEN} icon="✅" />
                 <KpiCard label={t('pnl.kpiOperatingProfit')} value={fmt(live.operatingProfit)} color={live.operatingProfit >= 0 ? GREEN : RED} icon="📊"
                     sub={pct(live.operatingProfit, live.grossRevenue) + ' ' + t('pnl.margin')} alert={live.operatingProfit < 0} />
@@ -530,6 +532,7 @@ export default function PnLDashboard() {
         grossRevenue: pnlStats.revenue || 0, adSpend: pnlStats.adSpend || 0,
         platformFee: pnlStats.platformFee || 0, couponDiscount: pnlStats.couponDiscount || 0,
         returnFee: pnlStats.returnFee || 0, cogs: pnlStats.cogs || 0,
+        shippingCost: pnlStats.shippingCost || 0,
         grossProfit: pnlStats.grossProfit || 0, operatingProfit: pnlStats.operatingProfit || 0,
         netPayout: pnlStats.netPayout || 0, pendingPayout: settlementStats.pendingAmount || 0,
         roas: budgetStats.blendedRoas || 0,

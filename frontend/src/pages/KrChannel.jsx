@@ -109,7 +109,7 @@ function FeeRulesTab() {
     const [rules, setRules] = useState([]);
     const [form, setForm] = useState({
         channel_key: "", category: "*", platform_fee_rate: "", ad_fee_rate: "",
-        shipping_standard: "", return_fee_standard: "", vat_rate: "0.10", note: "",
+        shipping_standard: "", free_ship_threshold: "", return_fee_standard: "", vat_rate: "0.10", note: "",
         effective_from: new Date().toISOString().slice(0, 10),
     });
     const [msg, setMsg] = useState("");
@@ -133,6 +133,7 @@ function FeeRulesTab() {
             platform_fee_rate: parseFloat(form.platform_fee_rate) || 0,
             ad_fee_rate: parseFloat(form.ad_fee_rate) || 0,
             shipping_standard: parseFloat(form.shipping_standard) || 0,
+            free_ship_threshold: parseFloat(form.free_ship_threshold) || 0,
             return_fee_standard: parseFloat(form.return_fee_standard) || 0,
             vat_rate: parseFloat(form.vat_rate) || 0.1,
         });
@@ -169,6 +170,7 @@ function FeeRulesTab() {
                         <Inp label={t('krChannel.shippingFee', '기본 배송비 (₩)')} k="shipping_standard" ph="3000" />
                         <Inp label={t('krChannel.returnFee', '기본 반품비 (₩)')} k="return_fee_standard" ph="5000" />
                     </div>
+                    <Inp label={t('krChannel.freeShipThreshold', '무료배송 기준금액 (₩, 이상 구매 시 배송비 무료 · 0=항상 유료)')} k="free_ship_threshold" ph="50000" />
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 7 }}>
                         <Inp label={t('krChannel.vatRateLabel', '부가세율')} k="vat_rate" ph="0.10" />
                         <Inp label={t('krChannel.effectiveDate', '적용 시작일')} k="effective_from" ph="2024-01-01" />
@@ -194,7 +196,7 @@ function FeeRulesTab() {
                         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 4, color: "#94a3b8" }}>
                             <span>{t('krChannel.feeShort', '수수료')} <b style={{ color: '#fff' }}>{PCT(r.platform_fee_rate * 100)}</b></span>
                             <span>{t('krChannel.adShort', '광고')} <b style={{ color: '#fff' }}>{PCT(r.ad_fee_rate * 100)}</b></span>
-                            <span>{t('krChannel.shipShort', '배송')} <b style={{ color: '#fff' }}>{KRW(r.shipping_standard)}</b></span>
+                            <span>{t('krChannel.shipShort', '배송')} <b style={{ color: '#fff' }}>{KRW(r.shipping_standard)}</b>{Number(r.free_ship_threshold) > 0 && <span style={{ color: '#14b8a6' }}> ({KRW(r.free_ship_threshold)}{t('krChannel.freeAbove', '↑무료')})</span>}</span>
                             <span>{t('krChannel.lblVat', '부가세')} <b style={{ color: '#fff' }}>{PCT(r.vat_rate * 100)}</b></span>
                         </div>
                         {r.note && <div style={{ color: "#64748b", marginTop: 3 }}>{r.note}</div>}

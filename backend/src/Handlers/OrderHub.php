@@ -709,6 +709,28 @@ final class OrderHub
         $orders  = (int)($r['ord'] ?? 0);
         $returns = (int)($r['ret'] ?? 0);
 
+        // [231차] 채널별 배송비(정률·무료배송 기준금액) → 순이익 정합.
+        //   주문별: free_ship_threshold>0 && total>=threshold → 무료(0), 아니면 shipping_standard(유료).
+        //   채널 규칙(kr_fee_rule 최신) 없거나 컬럼 부재 시 0(무후퇴). 활성 주문만(취소/반품 제외).
+        $shipFee = 0.0;
+        try {
+            $sw = ['co.tenant_id = ?']; $sa = [$tenant];
+            if ($period  !== null) { $sw[] = "co.ordered_at LIKE ?"; $sa[] = $period . '%'; }
+            if ($channel !== null) { $sw[] = "co.channel = ?";        $sa[] = $channel; }
+            $sw[] = "COALESCE(co.status,'') NOT IN ('cancelled','canceled','취소','반품','refunded','returned','cancel','return')";
+            $swSql = implode(' AND ', $sw);
+            $shipSt = $pdo->prepare(
+                "SELECT COALESCE(SUM(CASE WHEN fr.ship > 0 AND (fr.thr <= 0 OR co.total_price < fr.thr) THEN fr.ship ELSE 0 END),0) AS shipfee
+                 FROM channel_orders co
+                 JOIN (SELECT channel_key, shipping_standard AS ship, free_ship_threshold AS thr FROM kr_fee_rule
+                       WHERE tenant_id = ? AND id IN (SELECT MAX(id) FROM kr_fee_rule WHERE tenant_id = ? GROUP BY channel_key)) fr
+                   ON fr.channel_key = co.channel
+                 WHERE $swSql"
+            );
+            $shipSt->execute(array_merge([$tenant, $tenant], $sa));
+            $shipFee = (float)($shipSt->fetchColumn() ?: 0);
+        } catch (\Throwable $e) { $shipFee = 0.0; }
+
         return self::json($resp, [
             'ok'                  => true,
             'rowsCount'           => (int)($r['rows_count'] ?? 0),
@@ -718,6 +740,7 @@ final class OrderHub
             'totalAdFee'          => (float)($r['adfee'] ?? 0),
             'totalCouponDiscount' => (float)($r['coupon'] ?? 0),
             'totalReturnFee'      => (float)($r['rfee'] ?? 0),
+            'totalShippingFee'    => $shipFee,
             'settledAmount'       => (float)($r['settled_amt'] ?? 0),
             'pendingAmount'       => (float)($r['pending_amt'] ?? 0),
             'totalOrders'         => $orders,
