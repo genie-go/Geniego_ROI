@@ -1094,7 +1094,7 @@ return function (App $app): void {
         'POST /v423/admin/popups/{id}/toggle'       => 'Genie\\Handlers\\EventPopup::toggle',
 
         // ── Ad Performance (Multi-Team Analysis) ───────────────────────────
-        'GET /api/v1/ad-performance/summary'        => 'Genie\\Controllers\\PerformanceController::getSummary',
+        'GET /api/v1/ad-performance/summary'        => 'Genie\\Handlers\\AdPerformance::summary',
         // 175차 S3.3 — Meta 광고 campaign 데이터 (AccountPerformance.jsx)
         'GET /performance/meta-ads'                 => 'Genie\\Handlers\\AdPerformance::metaAds',
         'GET /api/performance/meta-ads'             => 'Genie\\Handlers\\AdPerformance::metaAds',
@@ -2386,7 +2386,6 @@ return function (App $app): void {
     $register('DELETE', '/v427/billing/methods/{id}');      $register('DELETE', '/api/v427/billing/methods/{id}');
     $register('GET',    '/v427/billing/budget-status');     $register('GET',    '/api/v427/billing/budget-status');
     $register('GET',    '/v427/billing/ledger');            $register('GET',    '/api/v427/billing/ledger');
-    $register('GET',    '/api/performance', ['Genie\\Controllers\\PerformanceController', 'getMetrics']);
     $register('POST', '/v422/ai/analyze');
     $register('GET', '/v422/ai/analyses');
     $register('POST', '/v422/ai/marketing-eval');
@@ -2396,8 +2395,6 @@ return function (App $app): void {
     $register('GET',  '/v422/ai/channel-kpi-config');
     $register('POST', '/v422/ai/channel-kpi-config');
     $register('POST', '/v422/ai/campaign-recommend');
-    $register('POST',   '/api/performance', ['Genie\\Controllers\\PerformanceController', 'ingestMetrics']);
-    $register('GET',    '/api/performance/recommendations', ['Genie\\Controllers\\PerformanceController', 'getRecommendations']);
     // 175차 S3.3 — Meta 광고
     $register('GET',    '/performance/meta-ads');
     $register('GET',    '/api/performance/meta-ads');

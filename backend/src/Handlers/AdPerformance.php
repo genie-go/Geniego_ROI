@@ -108,6 +108,26 @@ class AdPerformance {
     }
 
     // ─────────────────────────────────────────────────────────────
+    // GET /api/v1/ad-performance/summary  (231차: 종전 Controllers\PerformanceController::getSummary 이관 — 중복 컨트롤러 제거)
+    //   동작 동일: auth_tenant(미들웨어 주입·위조불가) 우선 해석 → 인스턴스 getSummary 위임 → 배열 응답.
+    //   PerformanceHub.jsx 가 소비. 응답 형식 보존(array_values).
+    public static function summary(
+        \Psr\Http\Message\ServerRequestInterface $req,
+        \Psr\Http\Message\ResponseInterface $res
+    ): \Psr\Http\Message\ResponseInterface {
+        $tenant = $req->getAttribute('auth_tenant') ?: 'demo';
+        $rows = [];
+        try {
+            $pdo = \Genie\Db::pdo();
+            $handler = new self($pdo, $tenant, 'pro');
+            $rows = $handler->getSummary((array)$req->getQueryParams());
+        } catch (\Throwable $e) {
+            $rows = [];
+        }
+        $res->getBody()->write(json_encode(array_values($rows)));
+        return $res->withHeader('Content-Type', 'application/json');
+    }
+
     // GET /api/performance/meta-ads  (175차 S3.3 — Slim handler)
     // Frontend: AccountPerformance.jsx 의 Meta 광고 campaign 데이터
     // Response: { ok, campaigns: [{ id, name, status, spend, roas, impressions, clicks, ctr, conv, budget, adsets, history }] }
