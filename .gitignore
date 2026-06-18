@@ -395,3 +395,28 @@ frontend/android/app/src/main/assets/capacitor.config.json
 frontend/ios/App/App/public/
 frontend/ios/App/App/capacitor.config.json
 frontend/ios/App/Pods/
+
+# ── 231차: 빌드/배포/감사 임시 산출물 재발 방지 ──
+/dist_*.tgz
+/dist_*.zip
+/demo_dist_*.tgz
+/prod_dist_*.tgz
+/fdist_*.tgz
+/dist_*onb*.tar.gz
+/audit_*/
+/audit_*.json
+/audit_*.png
+/_tmp_*
+/frontend/_tmp_*
+/frontend/dist_demo/
+/frontend/dist_demo*.tar.gz
+/frontend/dist_prod_*/
+/frontend/dist_prod_*.tar.gz
+/frontend/src/_tmp_*
+/frontend/src/i18n/locales/_tmp_*
+/session*_collisions/
+/session*_wronglang/
+/triage_*.json
+/triage_out_*/
+# 루트 스크린샷(작업 캡처) — 추적 금지
+/*.png
