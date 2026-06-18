@@ -18,5 +18,7 @@
 
 - ✅ **#2 Root Cause**(PnLDashboard 🚨 탭 실연결): 순이익 워터폴 분해(원가·광고·수수료·배송·반품·쿠폰 큰순 잠식 진단)+채널 이상신호(AnomalyDetection scan best-effort)+권장조치 딥링크(가격최적화·자동마케팅·연동허브·반품포털). ActionTab→/approvals 승인센터 연결. 스텁→실분석 전환. 무위험(live 파생). 배포·검증.
 
+- ✅ **#3 What-if Scenario**(PnLDashboard ForecastTab): 실제 워터폴(live) 기반 시나리오 빌더 — 매출/판매량±·광고비±·원가±·배송비±·반품비± 레버 → 현재 대비 순이익 영향(Δ금액·Δ%·마진) 즉시 계산. 매출변동=변동비 비례 모델. 기본0=baseline 일치(무서프라이즈). 무위험(live 파생). 배포·검증.
+
 ## OS 디렉티브 잔여(REMAINING_GAPS 순서)
 Profit Health Score → Root Cause 처방 → What-if Scenario → Agent 권한모드 → Executive Copilot → 거버넌스 → 보안보강 → 역할별 View. 전부 기존 확장.

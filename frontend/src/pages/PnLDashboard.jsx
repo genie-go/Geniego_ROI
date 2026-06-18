@@ -440,6 +440,12 @@ function ForecastTab({ live, t, fmt }) {
     const [feeRatio, setFeeRatio] = useState(10);
     const [returnRatePct, setReturnRatePct] = useState(8);
     const [months, setMonths] = useState(6);
+    // [231차 OS#3] What-if Scenario — 실제 워터폴(live) 기준 ±% 레버. 기본 0=baseline 동일(무서프라이즈).
+    const [scRev, setScRev] = useState(0);   // 매출/판매량
+    const [scAd, setScAd] = useState(0);     // 광고비
+    const [scCogs, setScCogs] = useState(0); // 원가
+    const [scShip, setScShip] = useState(0); // 배송비
+    const [scRet, setScRet] = useState(0);   // 반품비
 
     const baseRevenue = live.grossRevenue || 0;
     const forecastRows = Array.from({ length: months }, (_, i) => {
@@ -465,12 +471,64 @@ function ForecastTab({ live, t, fmt }) {
         </div>
     );
 
+    // [231차 OS#3] 시나리오 재계산 — 매출변동=판매량 변동 가정(변동비 비례) + 레버별 ±%.
+    const bRev = live.grossRevenue || 0, vf = 1 + scRev / 100;
+    const sc = {
+        rev: bRev * vf,
+        cogs: (live.cogs || 0) * vf * (1 + scCogs / 100),
+        ad: (live.adSpend || 0) * (1 + scAd / 100),
+        fee: (live.platformFee || 0) * vf,
+        coupon: (live.couponDiscount || 0) * vf,
+        ret: (live.returnFee || 0) * vf * (1 + scRet / 100),
+        ship: (live.shippingCost || 0) * vf * (1 + scShip / 100),
+    };
+    const scOp = sc.rev - sc.cogs - sc.ad - sc.fee - sc.coupon - sc.ret - sc.ship;
+    const baseOp = live.operatingProfit || 0;
+    const dOp = scOp - baseOp;
+    const dPct = baseOp !== 0 ? (dOp / Math.abs(baseOp) * 100) : 0;
+    const scMargin = sc.rev > 0 ? (scOp / sc.rev * 100) : 0;
+    const dirty = scRev || scAd || scCogs || scShip || scRet;
+    const scSlider = (label, val, set, min, max) => (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11 }}>
+                <span style={{ color: 'var(--text-3)' }}>{label}</span>
+                <strong style={{ color: val > 0 ? RED : val < 0 ? GREEN : 'var(--text-2)' }}>{val > 0 ? '+' : ''}{val}%</strong>
+            </div>
+            <input type="range" min={min} max={max} value={val} onChange={e => set(Number(e.target.value))} style={{ width: '100%', accentColor: ACCENT }} />
+        </div>
+    );
     return (
         <div style={{ display: 'grid', gap: 16 }}>
             <div>
                 <div style={{ fontWeight: 800, fontSize: 14 }}>🔮 {t('pnl.forecastTitle')}</div>
                 <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2 }}>{t('pnl.forecastDesc')}</div>
             </div>
+
+            {/* [231차 OS#3] What-if Scenario Builder — 현재 순이익 기준 시나리오 영향 */}
+            <div style={{ ...CARD, background: 'rgba(168,85,247,0.05)', borderColor: 'rgba(168,85,247,0.25)' }}>
+                <div style={{ fontWeight: 800, fontSize: 13, marginBottom: 2 }}>🧪 {t('pnl.whatifTitle', 'What-if 시나리오 (순이익 영향)')}</div>
+                <div style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 12 }}>{t('pnl.whatifDesc', '현재 실적 기준으로 각 레버를 조정하면 순이익이 어떻게 변하는지 즉시 계산됩니다.')}</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(280px,1fr) minmax(220px,300px)', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'grid', gap: 9 }}>
+                        {scSlider(t('pnl.whatifRev', '매출/판매량'), scRev, setScRev, -30, 30)}
+                        {scSlider(t('pnl.whatifAd', '광고비'), scAd, setScAd, -50, 50)}
+                        {scSlider(t('pnl.whatifCogs', '원가(COGS)'), scCogs, setScCogs, -20, 20)}
+                        {scSlider(t('pnl.whatifShip', '배송비'), scShip, setScShip, -40, 40)}
+                        {scSlider(t('pnl.whatifRet', '반품비'), scRet, setScRet, -50, 50)}
+                        {dirty ? <button onClick={() => { setScRev(0); setScAd(0); setScCogs(0); setScShip(0); setScRet(0); }} style={{ justifySelf: 'start', fontSize: 11, fontWeight: 700, padding: '4px 12px', borderRadius: 8, border: '1px solid var(--border,#cbd5e1)', background: 'transparent', cursor: 'pointer', color: 'var(--text-2)' }}>{t('pnl.whatifReset', '초기화')}</button> : null}
+                    </div>
+                    <div style={{ textAlign: 'center', padding: 16, borderRadius: 12, background: 'var(--card)', border: `2px solid ${dOp >= 0 ? GREEN : RED}` }}>
+                        <div style={{ fontSize: 10, color: 'var(--text-3)' }}>{t('pnl.whatifBase', '현재 순이익')}</div>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-2)' }}>{fmt(baseOp)}</div>
+                        <div style={{ fontSize: 20, margin: '4px 0', color: dOp >= 0 ? GREEN : RED }}>{dOp >= 0 ? '▲' : '▼'}</div>
+                        <div style={{ fontSize: 10, color: 'var(--text-3)' }}>{t('pnl.whatifScenario', '시나리오 순이익')}</div>
+                        <div style={{ fontSize: 22, fontWeight: 900, color: dOp >= 0 ? GREEN : RED }}>{fmt(scOp)}</div>
+                        <div style={{ fontSize: 12, fontWeight: 800, color: dOp >= 0 ? GREEN : RED, marginTop: 4 }}>{dOp >= 0 ? '+' : ''}{fmt(dOp)} ({dOp >= 0 ? '+' : ''}{dPct.toFixed(1)}%)</div>
+                        <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 4 }}>{t('pnl.whatifMargin', '시나리오 마진')} {scMargin.toFixed(1)}%</div>
+                    </div>
+                </div>
+            </div>
+
             {/* 204차: 파라미터 박스 확대(좌)+월별추이 그래프를 파라미터 아래 배치, 표는 우측 — 그래프/숫자 박스 이탈 해소·균형 */}
             <div style={{ display: 'grid', gridTemplateColumns: 'minmax(330px, 400px) minmax(0, 1fr)', gap: 16, alignItems: 'start' }}>
                 {/* 좌: 파라미터 설정 + 누적 요약 + 월별 추이 그래프(파라미터 박스 아래) */}
