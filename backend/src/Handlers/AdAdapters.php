@@ -363,7 +363,7 @@ final class AdAdapters
     /** ad_design(AI 디자인) spec_json → 광고 카피 추출. svg 는 래스터화 필요(이미지 매체용). */
     private static function loadDesign(PDO $pdo, string $tenant, int $designId): array
     {
-        $out = ['headline' => 'GenieGo', 'copy' => '', 'subheadline' => '', 'cta' => 'LEARN_MORE', 'has_svg' => false, 'image_b64' => ''];
+        $out = ['headline' => 'GenieGo', 'copy' => '', 'subheadline' => '', 'cta' => 'LEARN_MORE', 'has_svg' => false, 'image_b64' => '', 'animation' => ''];
         if ($designId <= 0) return $out;
         try {
             $st = $pdo->prepare('SELECT spec_json, svg FROM ad_design WHERE tenant_id=? AND id=? LIMIT 1');
@@ -375,6 +375,7 @@ final class AdAdapters
             $out['copy']        = mb_substr((string)($spec['copy'] ?? $spec['body'] ?? ''), 0, 90);
             $out['subheadline'] = mb_substr((string)($spec['subheadline'] ?? ''), 0, 30);
             $out['cta']         = (string)($spec['cta'] ?? 'LEARN_MORE');
+            $out['animation']   = (string)($spec['animation'] ?? '');  // [현 차수] 채널별 광고물 CSS 모션(온사이트 소재 적용·정직 표기)
             $svg = (string)($row['svg'] ?? '');
             $out['has_svg']     = $svg !== '';
             // [227차 P0] 래스터 이미지 감지 — AI 이미지생성(DALL-E/Stability) 결과는 data:image/*;base64 로
@@ -395,12 +396,19 @@ final class AdAdapters
         if ($landing === '') $landing = 'https://roi.genie-go.com';
         try {
             switch ($channel) {
-                case 'google_ads':      return self::googleDeliver($pdo, $tenant, $campExtId, $d, $daily, $landing);
-                case 'naver_sa':        return self::naverDeliver($pdo, $tenant, $campExtId, $d, $daily, $landing);
-                case 'meta_ads':        return self::metaDeliver($pdo, $tenant, $campExtId, $d, $daily, $landing);
-                case 'tiktok_business': return self::tiktokDeliver($pdo, $tenant, $campExtId, $d, $daily);
+                case 'google_ads':      $r = self::googleDeliver($pdo, $tenant, $campExtId, $d, $daily, $landing); break;
+                case 'naver_sa':        $r = self::naverDeliver($pdo, $tenant, $campExtId, $d, $daily, $landing); break;
+                case 'meta_ads':        $r = self::metaDeliver($pdo, $tenant, $campExtId, $d, $daily, $landing); break;
+                case 'tiktok_business': $r = self::tiktokDeliver($pdo, $tenant, $campExtId, $d, $daily); break;
                 default:                return ['ok' => false, 'status' => 'unsupported'];
             }
+            // [현 차수] 저장 광고물 애니메이션(CSS 모션) 표기 — 매체는 정적 프레임 업로드, 모션은 온사이트/웹팝업 소재에 적용.
+            $anim = (string)($d['animation'] ?? '');
+            if ($anim !== '' && $anim !== 'none' && is_array($r)) {
+                $r['animation'] = $anim;
+                $r['note'] = trim((string)($r['note'] ?? '') . ' · 애니메이션:' . $anim);
+            }
+            return $r;
         } catch (Throwable $e) { return ['ok' => false, 'error' => $e->getMessage()]; }
     }
 

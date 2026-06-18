@@ -7173,3 +7173,11 @@ button.cs-inactive-tab {
   color: #0f172a !important;
   -webkit-text-fill-color: #0f172a !important;
 }
+
+/* [n230] Ad creative CSS-motion animations — channel-specific ad designs (AiDesignEngine / CreativeStudioTab / web popup). */
+@keyframes adFadeIn  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes adSlideUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes adZoomIn  { from { opacity: 0; transform: scale(.9); } to { opacity: 1; transform: scale(1); } }
+@keyframes adPulse   { 0%,100% { transform: scale(1); } 50% { transform: scale(1.04); } }
+@keyframes adFloat   { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@keyframes adShine   { 0%,100% { filter: brightness(1); } 50% { filter: brightness(1.18); } }

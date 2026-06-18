@@ -42,6 +42,19 @@ const THEMES = [
   { id:"product", label:"Product Launch", icon:"🚀", colors:["#8b5cf6","#7c3aed","#6d28d9"] },
 ];
 
+/* [현 차수] 채널별 광고물 CSS 모션 애니메이션 — 디자인에 저장(spec.animation)되어 채널별로 보관되고,
+ *  엔진/보관함 미리보기와 웹팝업 소재에 실제 적용. (keyframes 는 styles.css 의 ad* 정의) */
+const ANIMATIONS = [
+  { id:"none",    label:"정적(없음)",  icon:"⏹️", css:"" },
+  { id:"fadeIn",  label:"페이드 인",   icon:"🌫️", css:"adFadeIn 1.2s ease both" },
+  { id:"slideUp", label:"슬라이드 업", icon:"⬆️", css:"adSlideUp 0.9s cubic-bezier(.2,.8,.2,1) both" },
+  { id:"zoomIn",  label:"줌 인",       icon:"🔎", css:"adZoomIn 0.9s ease both" },
+  { id:"pulse",   label:"펄스",        icon:"💓", css:"adPulse 1.8s ease-in-out infinite" },
+  { id:"float",   label:"플로팅",      icon:"🎈", css:"adFloat 2.8s ease-in-out infinite" },
+  { id:"shine",   label:"샤인",        icon:"✨", css:"adShine 2.2s ease-in-out infinite" },
+];
+export const animCss = (id) => (ANIMATIONS.find(a => a.id === id) || {}).css || "";
+
 const INTERACTIVE_TYPES = [
   { id:"spin", label:"Spin-to-Win", icon:"🎰" },
   { id:"scratch", label:"Scratch Card", icon:"🎫" },
@@ -106,6 +119,7 @@ export default function AiDesignEngine({ defaultPlatform="popup", mode=null, hid
   const [ctaText, setCtaText] = useState("Shop Now");
   const [interactiveType, setInteractiveType] = useState("");
   const [popupTrigger, setPopupTrigger] = useState("exit_intent");
+  const [animation, setAnimation] = useState("fadeIn"); // [현 차수] 채널별 광고물 CSS 모션
   const [generating, setGenerating] = useState(false);
   const [result, setResult] = useState(null);
   const [history, setHistory] = useState([]);
@@ -134,7 +148,7 @@ export default function AiDesignEngine({ defaultPlatform="popup", mode=null, hid
       const dataUrl=renderCanvas(c, prompt||headline||theme, theme, platform);
       const res={
         id:Date.now(), platform, theme, prompt, headline, subheadline, ctaText,
-        interactiveType, popupTrigger, dataUrl,
+        interactiveType, popupTrigger, animation, dataUrl,
         size:`${currentPlatform.w*2}×${currentPlatform.h*2}`,
         ratio:currentPlatform.ratio,
         timestamp:new Date().toISOString(),
@@ -157,6 +171,7 @@ export default function AiDesignEngine({ defaultPlatform="popup", mode=null, hid
         channel: result.platform, format: result.platformLabel, ratio: result.ratio,
         headline: result.headline, subheadline: result.subheadline, body: result.prompt, cta: result.ctaText,
         mood: th?.label || result.theme,
+        animation: result.animation || animation, // [현 차수] 채널별 광고물 애니메이션(CSS 모션) 영속
         palette: { bg: cols[0], primary: cols[1]||cols[0], accent: cols[2]||cols[1]||cols[0], text: "#ffffff" },
       };
       // [현 차수] 채널별 광고물 기간 등록 — 노출 기간(설정 시)을 함께 저장해 채널별·기간별로 사용.
@@ -169,7 +184,7 @@ export default function AiDesignEngine({ defaultPlatform="popup", mode=null, hid
       setSaveMsg(r.ok && d.ok ? { ok:true, text:d.message||"저장되었습니다." } : { ok:false, text:(d.error||"저장에 실패했습니다. 로그인 상태를 확인하세요.") });
     } catch { setSaveMsg({ ok:false, text:"서버 오류. 다시 시도하세요." }); }
     setSaving(false);
-  },[result, scheduleEnabled, startDate, endDate]);
+  },[result, scheduleEnabled, startDate, endDate, animation]);
 
   const handleUpload = useCallback((file)=>{
     if(!file||file.size>5*1024*1024) return;
@@ -203,6 +218,7 @@ export default function AiDesignEngine({ defaultPlatform="popup", mode=null, hid
     {id:"theme",icon:"🎨",label:t("marketing.aiSectionTheme","Theme & Style")},
     {id:"content",icon:"✏️",label:t("marketing.aiSectionContent","Content & Copy")},
     {id:"interactive",icon:"🎮",label:t("marketing.aiSectionInteractive","Interactive & Triggers")},
+    {id:"animation",icon:"📽️",label:t("marketing.aiSectionAnimation","Animation")},
     ...(needsSchedule ? [{id:"schedule",icon:"📅",label:t("marketing.aiSectionSchedule","Event Period")}] : []),
     {id:"generate",icon:"🚀",label:t("marketing.aiSectionGenerate","Generate & Preview")},
   ];
@@ -325,6 +341,25 @@ export default function AiDesignEngine({ defaultPlatform="popup", mode=null, hid
         </div>
       )}
 
+      {/* ANIMATION SECTION — [현 차수] 채널별 광고물 CSS 모션 */}
+      {activeSection==="animation" && (
+        <div style={CS.card}>
+          <div style={CS.label}>📽️ {t("marketing.aiAnimationTitle","Creative Animation (CSS Motion)")}</div>
+          <div style={{fontSize:11,color:"#94a3b8",marginBottom:10}}>{t("marketing.aiAnimationHint","선택한 모션은 채널별로 저장되어 보관함·웹팝업 소재에 적용됩니다.")}</div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(120px,1fr))",gap:6}}>
+            {ANIMATIONS.map(a=>(
+              <button key={a.id} onClick={()=>setAnimation(a.id)} style={{...CS.chip(animation===a.id,"#ec4899"),padding:"10px 8px",flexDirection:"column",gap:3,textAlign:"center",borderRadius:10}}>
+                <span style={{fontSize:18, animation: a.css||"none"}}>{a.icon}</span>
+                <span style={{fontSize:10,fontWeight:700}}>{a.label}</span>
+              </button>
+            ))}
+          </div>
+          <div style={{marginTop:12,padding:"10px 14px",background:"rgba(236,72,153,0.06)",borderRadius:10,border:"1px solid rgba(236,72,153,0.15)"}}>
+            <div style={{fontSize:11,fontWeight:700,color:"#ec4899"}}>✅ {t("marketing.aiSelected","Selected")}: {(ANIMATIONS.find(a=>a.id===animation)||ANIMATIONS[0]).icon} {(ANIMATIONS.find(a=>a.id===animation)||ANIMATIONS[0]).label}</div>
+          </div>
+        </div>
+      )}
+
       {/* SCHEDULE SECTION */}
       {activeSection==="schedule" && needsSchedule && (
         <div style={CS.card}>
@@ -429,10 +464,11 @@ export default function AiDesignEngine({ defaultPlatform="popup", mode=null, hid
               </div>
               {result.dataUrl && (
                 <div style={{borderRadius:12,overflow:"hidden",border:"1px solid rgba(0,0,0,0.06)",marginBottom:12}}>
-                  <img src={result.dataUrl} alt="AI Generated" style={{width:"100%",maxHeight:400,objectFit:"contain",display:"block"}} />
+                  <img key={(result.id)+"-"+(result.animation||"none")} src={result.dataUrl} alt="AI Generated" style={{width:"100%",maxHeight:400,objectFit:"contain",display:"block",animation:animCss(result.animation)||"none"}} />
                 </div>
               )}
               <div style={{display:"flex",gap:6,flexWrap:"wrap",fontSize:10}}>
+                {result.animation && result.animation!=="none" && <span style={{padding:"3px 10px",borderRadius:999,background:"rgba(236,72,153,0.1)",color:"#ec4899",fontWeight:700}}>📽️ {(ANIMATIONS.find(a=>a.id===result.animation)||{}).label||result.animation}</span>}
                 {result.size && <span style={{padding:"3px 10px",borderRadius:999,background:"rgba(79,142,247,0.08)",color:"#4f8ef7",fontWeight:600}}>📐 {result.size}</span>}
                 {result.platformLabel && <span style={{padding:"3px 10px",borderRadius:999,background:"rgba(168,85,247,0.08)",color:"#a855f7",fontWeight:600}}>📱 {result.platformLabel}</span>}
                 {result.ratio && <span style={{padding:"3px 10px",borderRadius:999,background:"rgba(249,115,22,0.08)",color:"#f97316",fontWeight:600}}>📏 {result.ratio}</span>}

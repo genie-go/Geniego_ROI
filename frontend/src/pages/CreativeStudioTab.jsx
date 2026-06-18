@@ -11,12 +11,12 @@ import AIDesignStudio from '../components/AIDesignStudio.jsx'; // 196차 — AI 
 
 /* ── Demo 전용 가상 데이터 (운영 미노출) ─────────────── */
 const DEMO_GALLERY = [
-  { id:'G1', name:'Summer UV Campaign', format:'carousel', platform:'Meta', status:'approved', ctr:4.2, conv:312, date:'2026-04-15', periodStart:'2026-05-01', periodEnd:'2026-05-31' },
-  { id:'G2', name:'Spring Lookbook', format:'video', platform:'Instagram', status:'approved', ctr:5.1, conv:287, date:'2026-04-12', periodStart:'2026-04-20', periodEnd:'2026-05-20' },
-  { id:'G3', name:'Flash Sale Banner', format:'banner', platform:'Google', status:'review', ctr:3.8, conv:198, date:'2026-04-10', periodStart:'2026-04-25', periodEnd:'2026-04-27' },
-  { id:'G4', name:'TikTok Challenge', format:'short', platform:'TikTok', status:'approved', ctr:6.3, conv:456, date:'2026-04-08', periodStart:'2026-05-01', periodEnd:'2026-06-30' },
-  { id:'G5', name:'Retargeting DPA', format:'DPA', platform:'Meta', status:'active', ctr:2.9, conv:523, date:'2026-04-05', periodStart:'2026-04-10', periodEnd:'2026-07-10' },
-  { id:'G6', name:'YouTube Bumper Promo', format:'short', platform:'YouTube', status:'approved', ctr:4.7, conv:341, date:'2026-04-02', periodStart:'2026-05-05', periodEnd:'2026-05-19' },
+  { id:'G1', name:'Summer UV Campaign', format:'carousel', platform:'Meta', status:'approved', ctr:4.2, conv:312, date:'2026-04-15', periodStart:'2026-05-01', periodEnd:'2026-05-31', animation:'fadeIn' },
+  { id:'G2', name:'Spring Lookbook', format:'video', platform:'Instagram', status:'approved', ctr:5.1, conv:287, date:'2026-04-12', periodStart:'2026-04-20', periodEnd:'2026-05-20', animation:'slideUp' },
+  { id:'G3', name:'Flash Sale Banner', format:'banner', platform:'Google', status:'review', ctr:3.8, conv:198, date:'2026-04-10', periodStart:'2026-04-25', periodEnd:'2026-04-27', animation:'pulse' },
+  { id:'G4', name:'TikTok Challenge', format:'short', platform:'TikTok', status:'approved', ctr:6.3, conv:456, date:'2026-04-08', periodStart:'2026-05-01', periodEnd:'2026-06-30', animation:'zoomIn' },
+  { id:'G5', name:'Retargeting DPA', format:'DPA', platform:'Meta', status:'active', ctr:2.9, conv:523, date:'2026-04-05', periodStart:'2026-04-10', periodEnd:'2026-07-10', animation:'shine' },
+  { id:'G6', name:'YouTube Bumper Promo', format:'short', platform:'YouTube', status:'approved', ctr:4.7, conv:341, date:'2026-04-02', periodStart:'2026-05-05', periodEnd:'2026-05-19', animation:'float' },
 ];
 const DEMO_ASSETS = [
   { id:'BA1', name:'Primary Logo', type:'SVG', size:'24KB', updated:'2026-04-20' },
@@ -43,6 +43,16 @@ const familyOf = (platform) => {
   const p = String(platform || '');
   const f = CHANNEL_FAMILIES.find(x => x.match.test(p));
   return f ? f.id : 'etc';
+};
+
+/* [현 차수] 저장 광고물 CSS 모션 애니메이션 — AiDesignEngine 과 동일 정의(keyframes=styles.css ad*). */
+const ANIM_CSS = {
+  fadeIn:  { css: 'adFadeIn 1.2s ease both', label: '페이드 인' },
+  slideUp: { css: 'adSlideUp 0.9s cubic-bezier(.2,.8,.2,1) both', label: '슬라이드 업' },
+  zoomIn:  { css: 'adZoomIn 0.9s ease both', label: '줌 인' },
+  pulse:   { css: 'adPulse 1.8s ease-in-out infinite', label: '펄스' },
+  float:   { css: 'adFloat 2.8s ease-in-out infinite', label: '플로팅' },
+  shine:   { css: 'adShine 2.2s ease-in-out infinite', label: '샤인' },
 };
 
 export default function CreativeStudioTab({ sourcePage, onUseCampaign }) {
@@ -92,6 +102,8 @@ export default function CreativeStudioTab({ sourcePage, onUseCampaign }) {
             date: String(r.created_at || '').slice(0, 10),
             periodStart: r.period_start || null,   // [현 차수] 채널별 광고물 노출 기간
             periodEnd: r.period_end || null,
+            animation: spec.animation || '',       // [현 차수] CSS 모션 애니메이션
+            img: /^data:image\//.test(String(r.svg || '')) ? r.svg : '',
             svg: typeof r.svg === 'string' && r.svg.indexOf('<svg') === 0 ? r.svg : '',
           };
         }));
@@ -214,9 +226,15 @@ export default function CreativeStudioTab({ sourcePage, onUseCampaign }) {
       <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))', gap:14 }}>
         {filteredGallery.map(item => (
           <div key={item.id} style={{ ...card, padding:18, position:'relative' }}>
-            {item.svg && (
-              <div style={{ width:'100%', aspectRatio:'16/9', borderRadius:10, overflow:'hidden', marginBottom:10, background:'#0f172a' }}
-                dangerouslySetInnerHTML={{ __html: item.svg.replace('<svg', '<svg width="100%" height="100%" preserveAspectRatio="xMidYMid slice"') }} />
+            {(item.img || item.svg) && (
+              <div style={{ width:'100%', aspectRatio:'16/9', borderRadius:10, overflow:'hidden', marginBottom:10, background:'#0f172a', position:'relative' }}>
+                {item.img
+                  ? <img src={item.img} alt={item.name} style={{ width:'100%', height:'100%', objectFit:'cover', display:'block', animation:(ANIM_CSS[item.animation]||{}).css || 'none' }} />
+                  : <div style={{ width:'100%', height:'100%', animation:(ANIM_CSS[item.animation]||{}).css || 'none' }} dangerouslySetInnerHTML={{ __html: item.svg.replace('<svg', '<svg width="100%" height="100%" preserveAspectRatio="xMidYMid slice"') }} />}
+                {item.animation && ANIM_CSS[item.animation] && (
+                  <span style={{ position:'absolute', top:6, right:6, padding:'2px 8px', borderRadius:6, fontSize:9, fontWeight:800, background:'rgba(236,72,153,0.92)', color:'#fff' }}>📽️ {ANIM_CSS[item.animation].label}</span>
+                )}
+              </div>
             )}
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:10 }}>
               <div style={{ fontWeight:800, fontSize:13, color:'#1e293b', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:'70%' }}>{item.name}</div>
@@ -239,6 +257,11 @@ export default function CreativeStudioTab({ sourcePage, onUseCampaign }) {
             {(item.periodStart || item.periodEnd) && (
               <div style={{ fontSize:10, fontWeight:700, color:'#4f8ef7', marginBottom:8, display:'flex', alignItems:'center', gap:4, padding:'5px 8px', borderRadius:7, background:'rgba(79,142,247,0.07)' }}>
                 📅 {t('marketing.csPeriod','노출 기간')}: {item.periodStart || '—'} ~ {item.periodEnd || '—'}
+              </div>
+            )}
+            {item.animation && ANIM_CSS[item.animation] && (
+              <div style={{ fontSize:10, fontWeight:700, color:'#ec4899', marginBottom:8, display:'flex', alignItems:'center', gap:4, padding:'5px 8px', borderRadius:7, background:'rgba(236,72,153,0.07)' }}>
+                📽️ {t('marketing.csAnimation','애니메이션')}: {ANIM_CSS[item.animation].label}
               </div>
             )}
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
