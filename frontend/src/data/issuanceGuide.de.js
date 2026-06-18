@@ -412,4 +412,30 @@ export default {
     'Wenn Sie einen Kanal auswählen, wird eine Webhook URL generiert.',
     'Geben Sie bei GenieGo unter [Registrieren] webhook_url ein und speichern Sie.',
   ],
+  lotteon: [
+    "Voraussetzung: Sie benötigen ein Lotte-On-Verkäuferkonto mit abgeschlossener Geschäftsverifizierung (Einzug bei Lotte On).",
+    "Melden Sie sich beim Lotte-On-Verkäufer-Storecenter (store.lotteon.com) an.",
+    "Registrieren Sie unter [Verkäuferinformationen] > [OpenAPI-Verwaltung] > [Informationseinstellungen] die aufrufende Server-IP.",
+    "Klicken Sie auf die Schaltfläche [Schlüsselausstellung], um einen OpenAPI-Authentifizierungsschlüssel auszustellen, und ermitteln Sie die Verkäufer-(Seller-)ID.",
+    "Geben Sie bei GenieGo unter [Registrieren] api_key (OpenAPI-Authentifizierungsschlüssel) und seller_id ein und speichern Sie.",
+  ],
+  yahoo_japan: [
+    "Voraussetzung: Sie benötigen eine Yahoo! JAPAN Business-ID sowie eine Yahoo!-Developer-Anwendung.",
+    "Registrieren Sie unter e.developer.yahoo.co.jp eine Anwendung, um Client ID und Client Secret auszustellen.",
+    "Beschaffen Sie über den OAuth-2.0-Autorisierungsablauf ein Access Token (OAuth Token).",
+    "Geben Sie bei GenieGo unter [Registrieren] client_id, client_secret und access_token ein und speichern Sie.",
+  ],
+  kakao_alimtalk: [
+    "Voraussetzung: Sie benötigen einen KakaoTalk-Kanal (mit Business-Verifizierung) sowie ein Konto bei einem Versanddienstleister/einer Plattform. ★Die Business-Verifizierung des Kanals, die Prüfung des Absenderprofils und die Genehmigung der AlimTalk-Vorlage müssen vorab abgeschlossen sein.",
+    "Eröffnen Sie einen KakaoTalk-Kanal und schließen Sie die Business-Verifizierung ab.",
+    "Registrieren Sie beim Versanddienstleister/auf der Plattform (BizMessage) ein Absenderprofil (sender_key) und lassen Sie die AlimTalk-Vorlage genehmigen.",
+    "Ermitteln Sie auf der Versandplattform den API Key und das Secret.",
+    "Geben Sie bei GenieGo unter [Registrieren] sender_key, api_key und api_secret ein und speichern Sie.",
+  ],
+  line: [
+    "Voraussetzung: Sie benötigen ein LINE-Developers-Konto sowie ein offizielles LINE-Konto (Messaging-API-Kanal).",
+    "Erstellen Sie in der Konsole von developers.line.biz einen Provider und einen Messaging-API-Kanal.",
+    "Stellen Sie unter [Basic settings] das Channel Secret und unter [Messaging API] das Channel Access Token aus.",
+    "Geben Sie bei GenieGo unter [Registrieren] channel_secret und channel_access_token ein und speichern Sie.",
+  ],
 };

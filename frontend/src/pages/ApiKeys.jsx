@@ -274,6 +274,39 @@ const ISSUANCE_URL = {
   yahoo_japan: 'https://e.developer.yahoo.co.jp/', kakao_alimtalk: 'https://business.kakao.com/', line: 'https://developers.line.biz/console/',
 };
 
+/* [현 차수] 채널 계정 "가입(회원/셀러/개발자 등록)" 바로가기 — 발급(ISSUANCE_URL)과 별개로
+   "아직 계정이 없는" 이용자가 곧바로 가입하도록 안내. 모든 호스트 DNS 실재 검증(2026-06).
+   미정의 채널은 SIGNUP_URL[key] || ISSUANCE_URL[key] 폴백(콘솔에서 가입 겸용). 계약형 물류/PG는 가입 URL 없음(영업 문의). */
+const SIGNUP_URL = {
+  // 국내 오픈마켓 — 판매자 회원가입
+  coupang: 'https://wing.coupang.com', st11: 'https://soffice.11st.co.kr',
+  gmarket: 'https://www.esmplus.com', auction: 'https://www.esmplus.com',
+  naver_smartstore: 'https://sell.smartstore.naver.com', naver_sa: 'https://searchad.naver.com',
+  lotteon: 'https://store.lotteon.com', godomall: 'https://www.nhn-commerce.com',
+  // 글로벌 마켓 — 셀러 가입 (shopee/tiktok_shop은 지역별 서브도메인 → ISSUANCE_URL 폴백)
+  amazon_spapi: 'https://sell.amazon.com', ebay: 'https://www.ebay.com/sl/sell', etsy: 'https://www.etsy.com/sell',
+  walmart: 'https://marketplace.walmart.com', lazada: 'https://www.lazada.com', rakuten: 'https://www.rakuten.co.jp',
+  qoo10: 'https://www.qoo10.jp', yahoo_japan: 'https://business.yahoo.co.jp',
+  // 자사몰 D2C
+  shopify: 'https://www.shopify.com', woocommerce: 'https://woocommerce.com', magento: 'https://business.adobe.com', cafe24: 'https://www.cafe24.com',
+  // 광고 매체 — 계정/비즈니스 가입
+  meta_ads: 'https://business.facebook.com', google_ads: 'https://ads.google.com', tiktok_business: 'https://ads.tiktok.com',
+  google_analytics: 'https://analytics.google.com', kakao_moment: 'https://business.kakao.com',
+  // 결제 게이트웨이(PG)
+  stripe: 'https://dashboard.stripe.com/register', paypal: 'https://www.paypal.com/bizsignup', toss: 'https://www.tosspayments.com',
+  inicis: 'https://www.inicis.com', kcp: 'https://www.kcp.co.kr', kakaopay: 'https://biz.kakaopay.com',
+  paddle: 'https://www.paddle.com', adyen: 'https://www.adyen.com', square: 'https://squareup.com',
+  braintree: 'https://www.braintreepayments.com', checkout: 'https://www.checkout.com', mollie: 'https://www.mollie.com',
+  razorpay: 'https://razorpay.com', klarna: 'https://www.klarna.com',
+  // 물류 — 통합추적/우체국(자가 가입)
+  smarttracker: 'https://tracking.sweettracker.co.kr', epost: 'https://service.epost.go.kr',
+  // SNS 라이브 — 계정 가입
+  youtube: 'https://accounts.google.com/signup', twitch: 'https://www.twitch.tv/signup',
+  instagram: 'https://www.instagram.com', facebook: 'https://www.facebook.com', line: 'https://account.line.biz', slack: 'https://slack.com/get-started',
+};
+/* 계정 가입 바로가기 — 채널 가입 페이지 우선, 없으면 발급 콘솔(가입 겸용)로 폴백. */
+const signupUrl = (key) => SIGNUP_URL[key] || ISSUANCE_URL[key] || '';
+
 /* [현 차수] 요청2: 채널별 "API 키 발급에 필요한 정보" 입력 필드 — 발급 신청 시 해당 채널이 요구하는
    계정/식별 정보를 전부 등록하도록 한다(신청 접수의 완결성). 재사용 라벨로 정의해 15개국 i18n 부담 최소화. */
 const APPLY_FIELD_DEFS = {
@@ -2258,6 +2291,9 @@ function ConnectModal({ channel, onClose, onSubmit, t, extraFields = {}, postOau
           {MANUAL_KEYS.has(channel.key) && (
             <a href={manualUrl(channel.key, uiLang)} target="_blank" rel="noopener noreferrer" title={t('ak.manualHint','API 키 발급 과정을 단계별로 안내합니다.')} style={{ fontSize: 11.5, fontWeight: 800, color: '#6366f1', textDecoration: 'none', padding: '5px 9px', border: '1px solid rgba(99,102,241,0.3)', borderRadius: 8, whiteSpace: 'nowrap' }}>📖 {t('ak.manualBtn','발급 매뉴얼')}</a>
           )}
+          {signupUrl(channel.key) && (
+            <a href={signupUrl(channel.key)} target="_blank" rel="noopener noreferrer" title={t('ak.signupHint2','이 채널 계정이 없으면 먼저 가입하세요.')} style={{ fontSize: 11.5, fontWeight: 800, color: '#9333ea', textDecoration: 'none', padding: '5px 9px', border: '1px solid rgba(147,51,234,0.3)', borderRadius: 8, whiteSpace: 'nowrap' }}>🔗 {t('ak.signupShort','가입')}</a>
+          )}
         </div>
         {postOauth && (
           <div style={{ marginBottom: 16, padding: '12px 14px', borderRadius: 12, background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.28)' }}>
@@ -2442,6 +2478,26 @@ function ApplyModal({ channel, currentUser, onClose, onSubmit, onRegister, t }) 
             </div>
           );
         })()}
+
+        {/* [현 차수] 요청: 채널 계정 "바로 가입" — 아직 계정이 없는 이용자가 즉시 가입(회원/셀러/개발자 등록)하도록 안내.
+           발급(콘솔) 이전 단계. signupUrl = 가입 페이지 우선, 없으면 발급 콘솔(가입 겸용) 폴백. */}
+        {signupUrl(channel.key) && (
+          <div style={{ marginBottom: 16, padding: '12px 14px', borderRadius: 12, background: 'rgba(168,85,247,0.06)', border: '1px solid rgba(168,85,247,0.22)' }}>
+            <div style={{ fontSize: 12, fontWeight: 800, color: '#9333ea', marginBottom: 6 }}>
+              👤 {t('ak.signupTitle', { ch: channel.name, defaultValue: `${channel.name} 계정이 아직 없으신가요?` })}
+            </div>
+            <div style={{ fontSize: 11, color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 9 }}>
+              {t('ak.signupDesc', { ch: channel.name, defaultValue: `API 키를 발급하려면 먼저 ${channel.name} 계정(판매자/개발자 등록)이 필요합니다. 아래 버튼으로 바로 가입하세요.` })}
+            </div>
+            <button onClick={() => { try { window.open(signupUrl(channel.key), '_blank', 'noopener,noreferrer'); } catch { /* popup 차단 무시 */ } }}
+              style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#a855f7,#7c3aed)', color: '#fff', fontSize: 12, fontWeight: 800 }}>
+              🔗 {t('ak.signupBtn', { ch: channel.name, defaultValue: `${channel.name} 가입하러 가기` })} ↗
+            </button>
+            <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 7, lineHeight: 1.5 }}>
+              {t('ak.signupHint','이미 계정이 있으면 이 단계를 건너뛰고 아래에서 키를 발급·등록하세요.')}
+            </div>
+          </div>
+        )}
 
         {/* [현 차수] ★발급 따라하기 — 초보자가 그대로 따라하면 발급되는 상세 단계(현재 UI 언어로 표시). */}
         {guideSteps && guideSteps.length > 0 && (

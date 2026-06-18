@@ -414,4 +414,30 @@ export default {
     'เลือก channel จากนั้น Webhook URL จะถูกสร้างขึ้น',
     'กรอก webhook_url ที่ [ลงทะเบียน] ของ GenieGo แล้วบันทึก',
   ],
+  lotteon: [
+    "สิ่งที่ต้องเตรียม: บัญชีผู้ขายที่เข้าร่วม Lotte ON (ยืนยันนิติบุคคลเสร็จแล้ว)",
+    "เข้าสู่ระบบ Lotte ON Seller Store Center (store.lotteon.com)",
+    "ที่ [ข้อมูลผู้ขาย] > [การจัดการ OpenAPI] > [ตั้งค่าข้อมูล] ลงทะเบียน IP เซิร์ฟเวอร์ที่เรียก",
+    "กดปุ่ม [ออกคีย์] เพื่อออกคีย์ยืนยันตัวตน OpenAPI และตรวจสอบ ID ผู้ขาย (seller)",
+    "กรอก api_key (คีย์ยืนยันตัวตน OpenAPI) และ seller_id ที่ [ลงทะเบียน] ของ GenieGo แล้วบันทึก",
+  ],
+  yahoo_japan: [
+    "สิ่งที่ต้องเตรียม: Yahoo! JAPAN Business ID + แอปพลิเคชัน Yahoo!デベロッパー",
+    "ลงทะเบียนแอปพลิเคชันที่ e.developer.yahoo.co.jp เพื่อออก Client ID และ Client Secret",
+    "รับ Access Token (OAuth Token) ผ่านขั้นตอนการให้สิทธิ์ OAuth 2.0",
+    "กรอก client_id, client_secret, access_token ที่ [ลงทะเบียน] ของ GenieGo แล้วบันทึก",
+  ],
+  kakao_alimtalk: [
+    "สิ่งที่ต้องเตรียม: ช่อง KakaoTalk (ยืนยันธุรกิจ) + บัญชีตัวแทน/แพลตฟอร์มการส่ง ★ต้องดำเนินการยืนยันธุรกิจของช่อง · ตรวจสอบโปรไฟล์ผู้ส่ง · อนุมัติเทมเพลต Alimtalk ให้เสร็จก่อน",
+    "เปิดช่อง KakaoTalk และยืนยันธุรกิจให้เสร็จ",
+    "ลงทะเบียนโปรไฟล์ผู้ส่ง (sender_key) กับตัวแทน/แพลตฟอร์มการส่ง (BizMessage) และรับการอนุมัติเทมเพลต Alimtalk",
+    "ตรวจสอบ API Key และ Secret ที่แพลตฟอร์มการส่ง",
+    "กรอก sender_key, api_key, api_secret ที่ [ลงทะเบียน] ของ GenieGo แล้วบันทึก",
+  ],
+  line: [
+    "สิ่งที่ต้องเตรียม: บัญชี LINE Developers + บัญชีทางการ LINE (ช่อง Messaging API)",
+    "สร้าง provider และช่อง Messaging API ที่คอนโซล developers.line.biz",
+    "ออก Channel Secret ที่ [Basic settings] และ Channel Access Token ที่ [Messaging API]",
+    "กรอก channel_secret, channel_access_token ที่ [ลงทะเบียน] ของ GenieGo แล้วบันทึก",
+  ],
 };

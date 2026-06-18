@@ -412,4 +412,30 @@ export default {
     '選擇頻道後即會產生 Webhook URL。',
     '在 GenieGo〔註冊〕中輸入 webhook_url 並儲存。',
   ],
+  lotteon: [
+    "準備事項：您需要一個樂天 ON（롯데온）入駐（已完成商業認證）的賣家帳號。",
+    "使用賣家帳號登入樂天 ON 賣家 Store Center（store.lotteon.com）。",
+    "在〔賣家資訊〕>〔OpenAPI 管理〕>〔資訊設定〕中註冊呼叫伺服器 IP。",
+    "點選〔金鑰發行〕按鈕來發行 OpenAPI 認證金鑰，並確認賣家（Seller）ID。",
+    "在 GenieGo〔註冊〕中輸入 api_key（OpenAPI 認證金鑰）與 seller_id 並儲存。",
+  ],
+  yahoo_japan: [
+    "準備事項：您需要 Yahoo! JAPAN 商業 ID 與 Yahoo!デベロッパー 應用程式。",
+    "在 e.developer.yahoo.co.jp 註冊應用程式以發行 Client ID 與 Client Secret。",
+    "透過 OAuth 2.0 授權流程取得 Access Token（OAuth Token）。",
+    "在 GenieGo〔註冊〕中輸入 client_id、client_secret、access_token 並儲存。",
+  ],
+  kakao_alimtalk: [
+    "準備事項：您需要一個 KakaoTalk 頻道（已完成商業認證）與發送代理商／平台帳號。★頻道商業認證、發送設定檔審查、Alimtalk 範本核准須先行完成。",
+    "開設 KakaoTalk 頻道並完成商業認證。",
+    "在發送代理商／平台（BizMessage）中註冊發送設定檔（sender_key），並取得 Alimtalk 範本核准。",
+    "在發送平台中確認 API Key 與 Secret。",
+    "在 GenieGo〔註冊〕中輸入 sender_key、api_key、api_secret 並儲存。",
+  ],
+  line: [
+    "準備事項：您需要一個 LINE Developers 帳號與一個 LINE 官方帳號（Messaging API 頻道）。",
+    "在 developers.line.biz 主控台中建立供應商（Provider）與 Messaging API 頻道。",
+    "在〔Basic settings〕中取得 Channel Secret，在〔Messaging API〕中發行 Channel Access Token。",
+    "在 GenieGo〔註冊〕中輸入 channel_secret、channel_access_token 並儲存。",
+  ],
 };

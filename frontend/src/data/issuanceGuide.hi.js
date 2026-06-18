@@ -414,4 +414,30 @@ export default {
     'चैनल चुनने पर Webhook URL बन जाता है।',
     'GenieGo [पंजीकरण] में webhook_url दर्ज करके सहेजें।',
   ],
+  lotteon: [
+    "आवश्यकताएँ: आपको Lotte ON में पंजीकृत (व्यवसाय प्रमाणन पूर्ण) विक्रेता खाता चाहिए।",
+    "Lotte ON विक्रेता स्टोर सेंटर (store.lotteon.com) पर लॉग इन करें।",
+    "[विक्रेता जानकारी] > [OpenAPI प्रबंधन] > [जानकारी सेटिंग] में कॉल करने वाले सर्वर का IP पंजीकृत करें।",
+    "[कुंजी जारी करें] बटन दबाकर OpenAPI प्रमाणन कुंजी जारी करें और विक्रेता (Seller) ID जाँचें।",
+    "GenieGo [पंजीकरण] में api_key (OpenAPI प्रमाणन कुंजी) और seller_id दर्ज करके सहेजें।",
+  ],
+  yahoo_japan: [
+    "आवश्यकताएँ: आपको Yahoo! JAPAN बिज़नेस ID + Yahoo!デベロッパー एप्लिकेशन चाहिए।",
+    "e.developer.yahoo.co.jp पर एप्लिकेशन पंजीकृत करके Client ID·Client Secret जारी करें।",
+    "OAuth 2.0 प्राधिकरण प्रक्रिया से Access Token (OAuth Token) प्राप्त करें।",
+    "GenieGo [पंजीकरण] में client_id, client_secret, access_token दर्ज करके सहेजें।",
+  ],
+  kakao_alimtalk: [
+    "आवश्यकताएँ: एक KakaoTalk चैनल (व्यवसाय प्रमाणन) + प्रेषण एजेंसी/प्लेटफ़ॉर्म खाता। ★चैनल व्यवसाय प्रमाणन·प्रेषक प्रोफ़ाइल समीक्षा·AlimTalk टेम्पलेट अनुमोदन पहले से पूर्ण होने चाहिए।",
+    "KakaoTalk चैनल खोलें और व्यवसाय प्रमाणन पूरा करें।",
+    "प्रेषण एजेंसी/प्लेटफ़ॉर्म (BizMessage) पर प्रेषक प्रोफ़ाइल (sender_key) पंजीकृत करें और AlimTalk टेम्पलेट अनुमोदन प्राप्त करें।",
+    "प्रेषण प्लेटफ़ॉर्म पर API Key·Secret जाँचें।",
+    "GenieGo [पंजीकरण] में sender_key, api_key, api_secret दर्ज करके सहेजें।",
+  ],
+  line: [
+    "आवश्यकताएँ: आपको एक LINE Developers खाता + LINE आधिकारिक खाता (Messaging API चैनल) चाहिए।",
+    "developers.line.biz कंसोल में एक प्रोवाइडर और Messaging API चैनल बनाएँ।",
+    "[Basic settings] में Channel Secret, और [Messaging API] में Channel Access Token जारी करें।",
+    "GenieGo [पंजीकरण] में channel_secret, channel_access_token दर्ज करके सहेजें।",
+  ],
 };

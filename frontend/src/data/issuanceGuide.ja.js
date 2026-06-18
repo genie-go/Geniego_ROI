@@ -411,4 +411,30 @@ export default {
     "チャンネルを選択すると Webhook URL が生成されます。",
     "GenieGo の [登録] に webhook_url を入力して保存します。",
   ],
+  lotteon: [
+    "ご用意いただくもの: ロッテオン入店（事業者認証完了済み）のセラーアカウントが必要です。",
+    "ロッテオンのセラーストアセンター（store.lotteon.com）にログインします。",
+    "[販売者情報] > [OpenAPI管理] > [情報設定] で呼び出しサーバーの IP を登録します。",
+    "[キー発行] ボタンをクリックして OpenAPI 認証キーを発行し、販売者（セラー）ID を確認します。",
+    "GenieGo の [登録] に api_key（OpenAPI 認証キー）と seller_id を入力して保存します。",
+  ],
+  yahoo_japan: [
+    "ご用意いただくもの: Yahoo! JAPAN ビジネス ID と Yahoo!デベロッパーのアプリケーションが必要です。",
+    "e.developer.yahoo.co.jp でアプリケーションを登録し、Client ID・Client Secret を発行します。",
+    "OAuth 2.0 認可フローで Access Token（OAuth Token）を発行します。",
+    "GenieGo の [登録] に client_id、client_secret、access_token を入力して保存します。",
+  ],
+  kakao_alimtalk: [
+    "ご用意いただくもの: カカオトークチャンネル（ビジネス認証）と配信代行会社/プラットフォームのアカウントが必要です。★チャンネルのビジネス認証・送信プロフィールの審査・アルムトーク（通知トーク）テンプレートの承認が先行している必要があります。",
+    "カカオトークチャンネルを開設し、ビジネス認証を完了します。",
+    "配信代行会社/プラットフォーム（ビズメッセージ）に送信プロフィール（sender_key）を登録し、アルムトークテンプレートの承認を受けます。",
+    "配信プラットフォームで API Key・Secret を確認します。",
+    "GenieGo の [登録] に sender_key、api_key、api_secret を入力して保存します。",
+  ],
+  line: [
+    "ご用意いただくもの: LINE Developers アカウントと LINE 公式アカウント（Messaging API チャネル）が必要です。",
+    "developers.line.biz コンソールでプロバイダーと Messaging API チャネルを作成します。",
+    "[Basic settings] で Channel Secret を、[Messaging API] で Channel Access Token を発行します。",
+    "GenieGo の [登録] に channel_secret、channel_access_token を入力して保存します。",
+  ],
 };

@@ -3,136 +3,167 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Instagram Live API 발급 매뉴얼</title>
+<title>기업 Instagram 비즈니스 계정 전환 매뉴얼</title>
 <style>
-:root{--blue:#0866ff;--dark:#111827;--gray:#6b7280;--line:#e5e7eb;--green:#16a34a;--red:#ef4444;--yellow:#f59e0b;--pink:#db2777}
 *{box-sizing:border-box}
-body{margin:0;font-family:"Pretendard","Noto Sans KR","Apple SD Gothic Neo",Arial,sans-serif;background:linear-gradient(135deg,#fff7fb,#fdf2f8,#fff7ed);color:var(--dark);line-height:1.65}
-.wrap{max-width:1120px;margin:auto;padding:42px 22px 80px}
-.hero{border-radius:30px;padding:50px;color:white;background:radial-gradient(circle at 85% 15%,rgba(253,29,29,.45),transparent 30%),radial-gradient(circle at 75% 85%,rgba(252,176,69,.4),transparent 28%),linear-gradient(135deg,#0f172a,#4a1d96,#831843);box-shadow:0 30px 80px rgba(131,24,67,.28)}
-.badge{display:inline-flex;gap:10px;align-items:center;padding:9px 15px;border-radius:999px;border:1px solid rgba(255,255,255,.24);background:rgba(255,255,255,.12);font-weight:800}
-.icon{display:inline-grid;place-items:center;width:32px;height:32px;border-radius:10px;color:white;font-weight:900}
-.ig{background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045)}
-h1{font-size:clamp(34px,5vw,58px);line-height:1.12;margin:25px 0 15px;letter-spacing:-1.8px}
-.hero p{max-width:780px;color:#fbe8f3;font-size:18px;margin:0}
+body{margin:0;font-family:Arial,"Noto Sans KR",sans-serif;background:linear-gradient(135deg,#f8fafc,#fdf2f8,#fff7ed);color:#111827;line-height:1.7}
+.wrap{max-width:1080px;margin:auto;padding:42px 22px 80px}
+.hero{border-radius:30px;padding:50px;color:white;background:linear-gradient(135deg,#111827,#3b0764,#e11d48);box-shadow:0 30px 80px rgba(15,23,42,.25)}
+.badge{display:inline-block;padding:9px 15px;border-radius:999px;background:rgba(255,255,255,.14);font-weight:900}
+h1{font-size:clamp(34px,5vw,58px);line-height:1.12;margin:24px 0 16px;letter-spacing:-1.5px}
+.hero p{max-width:780px;color:#f3f4f6;font-size:18px}
 .quick{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:26px}
-.quick div{padding:18px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.1);border-radius:18px}
-.quick strong{display:block}.quick span{color:#f5d0e6;font-size:13px}
-.section{margin-top:32px;background:#fff;border:1px solid var(--line);border-radius:26px;padding:34px;box-shadow:0 18px 45px rgba(15,23,42,.07)}
+.quick div{padding:18px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.1);border-radius:18px}
+.quick strong{display:block}.quick span{color:#e5e7eb;font-size:13px}
+.section{margin-top:32px;background:white;border:1px solid #e5e7eb;border-radius:26px;padding:34px;box-shadow:0 18px 45px rgba(15,23,42,.07)}
 h2{margin:0 0 12px;font-size:28px;letter-spacing:-.8px}h3{margin:0 0 8px;font-size:20px}
-.desc{color:var(--gray);margin:0 0 24px}
-.notice{border-left:5px solid var(--yellow);background:#fffbeb;padding:17px 20px;border-radius:16px;margin:18px 0}.good{border-color:var(--green);background:#f0fdf4}.danger{border-color:var(--red);background:#fff1f2}.info{border-color:var(--pink);background:#fdf2f8}
-.steps{display:grid;gap:18px}.step{display:grid;grid-template-columns:56px 1fr;gap:18px;padding:22px;border:1px solid var(--line);border-radius:20px;background:#fff}
-.num{width:48px;height:48px;border-radius:16px;background:linear-gradient(135deg,#833ab4,#db2777,#fcb045);color:#fff;display:grid;place-items:center;font-weight:900;font-size:18px}
+.desc{color:#6b7280;margin:0 0 24px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}.card{border:1px solid #e5e7eb;border-radius:20px;padding:22px;background:white}
+.tag{display:inline-block;font-size:13px;font-weight:900;padding:5px 10px;border-radius:999px;margin-bottom:10px}.biz{background:#eff6ff;color:#2563eb}.creator{background:#fdf2f8;color:#db2777}
+.notice{border-left:5px solid #f59e0b;background:#fffbeb;padding:17px 20px;border-radius:16px;margin:18px 0}.good{border-color:#16a34a;background:#f0fdf4}.danger{border-color:#ef4444;background:#fff1f2}.info{border-color:#2563eb;background:#eff6ff}
+.steps{display:grid;gap:18px}.step{display:grid;grid-template-columns:56px 1fr;gap:18px;padding:22px;border:1px solid #e5e7eb;border-radius:20px;background:white}
+.num{width:48px;height:48px;border-radius:16px;background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);color:white;display:grid;place-items:center;font-weight:900;font-size:18px}
 .path{display:inline-block;margin-top:5px;padding:8px 12px;border-radius:10px;background:#f3f4f6;border:1px solid #e5e7eb;font-family:Consolas,monospace;font-size:14px}
-table{width:100%;border-collapse:collapse;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:#fff}th,td{padding:15px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{background:#f9fafb;font-weight:900}tr:last-child td{border-bottom:0}
-.code{background:#0f172a;color:#e5e7eb;padding:18px;border-radius:16px;overflow:auto;font-family:Consolas,monospace;font-size:14px}
-.checklist{list-style:none;padding:0;margin:0;display:grid;gap:10px}.checklist li{padding:13px 15px;border:1px solid var(--line);border-radius:14px;background:#f9fafb}.checklist li:before{content:"✓";color:var(--green);font-weight:900;margin-right:8px}
-.footer{text-align:center;color:var(--gray);font-size:14px;margin-top:28px}
-@media(max-width:860px){.hero{padding:34px 24px}.quick{grid-template-columns:1fr}.step{grid-template-columns:1fr}.section{padding:24px}}
+table{width:100%;border-collapse:collapse;border:1px solid #e5e7eb;border-radius:16px;overflow:hidden;background:white}th,td{padding:15px;border-bottom:1px solid #e5e7eb;text-align:left;vertical-align:top}th{background:#f9fafb;font-weight:900}tr:last-child td{border-bottom:0}
+.checklist{list-style:none;padding:0;margin:0;display:grid;gap:10px}.checklist li{padding:13px 15px;border:1px solid #e5e7eb;border-radius:14px;background:#f9fafb}.checklist li:before{content:"✓";color:#16a34a;font-weight:900;margin-right:8px}
+.flow{background:#0f172a;color:#e5e7eb;padding:22px;border-radius:18px;font-family:Consolas,monospace;overflow:auto;white-space:pre}
+.footer{text-align:center;color:#6b7280;font-size:14px;margin-top:28px}
+@media(max-width:860px){.hero{padding:34px 24px}.quick,.grid2{grid-template-columns:1fr}.step{grid-template-columns:1fr}.section{padding:24px}}
 </style>
 </head>
 <body>
 <main class="wrap">
 <section class="hero">
-<span class="badge"><span class="icon ig">◎</span> Instagram Live API Beginner Manual</span>
-<h1>Instagram Live<br>API 발급 매뉴얼</h1>
-<p>Meta for Developers에서 앱을 만들고 Instagram 비즈니스/크리에이터 계정 연동에 필요한 App ID, App Secret, Access Token과 IG 비즈니스 계정 ID를 준비하는 과정을 초보자도 따라 할 수 있도록 정리했습니다.</p>
+<span class="badge">Instagram Business Setup Manual</span>
+<h1>기업 Instagram<br>비즈니스 계정 전환 매뉴얼</h1>
+<p>기업, 브랜드, 쇼핑몰, 라이브커머스 운영자가 Instagram 계정을 비즈니스/크리에이터 계정으로 전환하고 Meta Business Suite 및 API 연동 준비까지 할 수 있도록 정리한 초보자용 가이드입니다.</p>
 <div class="quick">
-<div><strong>핵심 개념</strong><span>API Key가 아니라 Access Token</span></div>
-<div><strong>개발 사이트</strong><span>developers.facebook.com</span></div>
-<div><strong>사용 API</strong><span>Instagram Graph API</span></div>
-<div><strong>필요 계정</strong><span>비즈니스/크리에이터 계정</span></div>
+<div><strong>추천 계정</strong><span>기업은 비즈니스 계정</span></div>
+<div><strong>필요 앱</strong><span>Instagram / Facebook</span></div>
+<div><strong>연동 대상</strong><span>Facebook 페이지</span></div>
+<div><strong>API 준비</strong><span>Meta Business + Developer</span></div>
 </div>
 </section>
 
 <section class="section">
-<h2>1. 먼저 알아야 할 핵심</h2>
-<p class="desc">Instagram API는 비즈니스/크리에이터 계정의 미디어·댓글·인사이트·메시징 중심이며, Facebook 페이지와의 연결이 전제입니다.</p>
-<div class="notice danger"><strong>Instagram Live 주의:</strong> Instagram Live 송출 자동화는 일반 Graph API 기본 기능처럼 단순히 열려 있지 않습니다. 공식 문서의 현재 지원 범위와 앱 검수(App Review) 가능 여부를 먼저 확인하세요. (인사이트·미디어·댓글 조회는 표준 지원)</div>
+<h2>1. 비즈니스 계정과 크리에이터 계정 차이</h2>
+<p class="desc">기업 운영 목적이라면 대부분 비즈니스 계정을 선택하는 것이 가장 적합합니다.</p>
+<div class="grid2">
+<div class="card"><span class="tag biz">Business Account</span><h3>비즈니스 계정</h3><p>회사, 브랜드, 쇼핑몰, 물류 서비스, 라이브커머스, 온라인 판매에 적합합니다. 광고, 인사이트, Meta Business Suite, API 연동에 유리합니다.</p></div>
+<div class="card"><span class="tag creator">Creator Account</span><h3>크리에이터 계정</h3><p>인플루언서, 콘텐츠 제작자, 개인 브랜드 운영자에게 적합합니다. 기업형 API·쇼핑·광고 운영에는 비즈니스 계정이 더 안정적입니다.</p></div>
+</div>
+<div class="notice good"><strong>추천:</strong> 기업 Instagram 계정은 <strong>비즈니스 계정</strong>으로 전환하세요.</div>
 </section>
 
 <section class="section">
-<h2>2. 준비물</h2>
+<h2>2. 계정 생성 전 준비물</h2>
 <ul class="checklist">
-<li>Meta/Facebook 계정 + Meta for Developers 접속 권한</li><li>Instagram 비즈니스 또는 크리에이터 계정</li><li>Instagram과 연결된 Facebook 페이지</li><li>실제 서비스용 개인정보처리방침 URL · 서비스 약관 URL</li>
+<li>기업용 이메일 주소</li><li>브랜드명 또는 회사명</li><li>Instagram 사용자 이름 후보</li><li>회사 로고 또는 프로필 이미지</li><li>회사 소개 문구</li><li>웹사이트 URL</li><li>Facebook 페이지 또는 생성 예정 페이지</li>
 </ul>
 </section>
 
 <section class="section">
-<h2>3. Instagram을 비즈니스/크리에이터 계정으로 전환·연결</h2>
+<h2>3. Instagram 계정 만들기</h2>
 <div class="steps">
-<div class="step"><div class="num">1</div><div><h3>계정 유형 확인·전환</h3><p>Instagram 앱 설정에서 계정을 비즈니스 또는 크리에이터로 전환합니다.</p><span class="path">Instagram 설정 → 계정 유형</span></div></div>
-<div class="step"><div class="num">2</div><div><h3>Facebook 페이지와 연결</h3><p>Meta Business Suite에서 Facebook 페이지와 Instagram 계정을 연결합니다(Graph API 호출의 전제).</p><span class="path">Meta Business Suite → 계정 연결</span></div></div>
+<div class="step"><div class="num">1</div><div><h3>Instagram 앱 설치</h3><p>스마트폰에서 Instagram 앱을 설치하고 실행합니다.</p><span class="path">App Store / Google Play → Instagram</span></div></div>
+<div class="step"><div class="num">2</div><div><h3>회원가입</h3><p>기업용 이메일 또는 휴대폰 번호로 새 계정을 만듭니다.</p><span class="path">새 계정 만들기</span></div></div>
+<div class="step"><div class="num">3</div><div><h3>사용자 이름 설정</h3><p>브랜드명과 일치하거나 검색하기 쉬운 사용자 이름을 입력합니다.</p><span class="path">예: geniego_global / ocl_korea</span></div></div>
+<div class="step"><div class="num">4</div><div><h3>프로필 기본 정보 입력</h3><p>로고, 소개 문구, 웹사이트 URL을 입력합니다.</p><span class="path">프로필 편집</span></div></div>
 </div>
 </section>
 
 <section class="section">
-<h2>4. Meta Developer 앱 만들기</h2>
-<p class="desc">모든 Meta API 연동은 앱을 만드는 것에서 시작합니다.</p>
+<h2>4. 프로페셔널 계정으로 전환</h2>
 <div class="steps">
-<div class="step"><div class="num">1</div><div><h3>Meta for Developers 접속</h3><p>브라우저에서 Meta for Developers에 로그인합니다.</p><span class="path">developers.facebook.com</span></div></div>
-<div class="step"><div class="num">2</div><div><h3>내 앱 → 앱 만들기</h3><p>상단 My Apps → Create App을 클릭합니다(Business 유형).</p><span class="path">My Apps → Create App</span></div></div>
-<div class="step"><div class="num">3</div><div><h3>App ID / App Secret 확인</h3><p>앱 설정 → 기본 설정에서 App ID·App Secret을 확인합니다. (App Secret은 공개 노출 금지)</p><span class="path">App Settings → Basic</span></div></div>
+<div class="step"><div class="num">1</div><div><h3>프로필 메뉴 열기</h3><p>Instagram 앱 하단의 프로필 아이콘을 누릅니다.</p><span class="path">프로필</span></div></div>
+<div class="step"><div class="num">2</div><div><h3>설정 및 개인정보 이동</h3><p>오른쪽 상단 ☰ 메뉴를 누른 뒤 설정 및 개인정보로 이동합니다.</p><span class="path">☰ → 설정 및 개인정보</span></div></div>
+<div class="step"><div class="num">3</div><div><h3>계정 유형 및 도구 선택</h3><p>계정 관리 메뉴에서 프로페셔널 계정 전환 메뉴를 찾습니다.</p><span class="path">계정 유형 및 도구</span></div></div>
+<div class="step"><div class="num">4</div><div><h3>프로페셔널 계정으로 전환</h3><p>안내 화면을 넘기고 프로페셔널 계정 전환을 선택합니다.</p><span class="path">프로페셔널 계정으로 전환</span></div></div>
 </div>
 </section>
 
 <section class="section">
-<h2>5. Instagram 제품 추가 + Access Token 발급</h2>
+<h2>5. 비즈니스 계정 선택</h2>
 <div class="steps">
-<div class="step"><div class="num">1</div><div><h3>Instagram 제품 추가</h3><p>앱 대시보드에서 Instagram(그래프 API) 제품을 추가합니다.</p><span class="path">Add Product → Instagram</span></div></div>
-<div class="step"><div class="num">2</div><div><h3>권한 신청(App Review)</h3><p>instagram_basic, instagram_manage_insights 등 목적에 맞는 권한을 신청합니다.</p><span class="path">Permissions → App Review</span></div></div>
-<div class="step"><div class="num">3</div><div><h3>Access Token 발급</h3><p>Graph API Explorer 또는 OAuth 로그인 흐름으로 권한이 포함된 토큰을 발급합니다.</p><span class="path">Tools → Graph API Explorer</span></div></div>
-<div class="step"><div class="num">4</div><div><h3>IG 비즈니스 계정 ID 확인</h3><p>연결된 페이지에서 instagram_business_account 필드로 IG 비즈니스 계정 ID(ig_user_id)를 조회합니다.</p><span class="path">ig_user_id</span></div></div>
+<div class="step"><div class="num">1</div><div><h3>계정 유형 선택</h3><p>크리에이터와 비즈니스 중에서 비즈니스를 선택합니다.</p><span class="path">비즈니스 선택</span></div></div>
+<div class="step"><div class="num">2</div><div><h3>카테고리 선택</h3><p>회사 성격에 맞는 카테고리를 고릅니다.</p><span class="path">카테고리 선택</span></div></div>
+<div class="step"><div class="num">3</div><div><h3>연락처 정보 입력</h3><p>이메일, 전화번호, 주소 등 고객이 확인할 수 있는 정보를 입력합니다.</p><span class="path">비즈니스 연락처 정보</span></div></div>
+<div class="step"><div class="num">4</div><div><h3>전환 완료 확인</h3><p>프로필에 프로페셔널 대시보드가 보이면 전환이 완료된 것입니다.</p><span class="path">프로페셔널 대시보드</span></div></div>
 </div>
-<h3>IG 비즈니스 계정 ID 조회 예시</h3>
-<pre class="code">GET /{page-id}?fields=instagram_business_account
-access_token={ACCESS_TOKEN}</pre>
 </section>
 
 <section class="section">
-<h2>6. GenieGo 연동허브에 등록</h2>
-<div class="steps">
-<div class="step"><div class="num">1</div><div><h3>액세스 토큰 복사</h3><p>발급한 Access Token을 복사합니다(장기 토큰 권장).</p><span class="path">access_token</span></div></div>
-<div class="step"><div class="num">2</div><div><h3>IG 비즈니스 계정 ID 확인</h3><p>위에서 조회한 ig_user_id를 준비합니다.</p><span class="path">ig_user_id</span></div></div>
-<div class="step"><div class="num">3</div><div><h3>연동허브에 등록</h3><p>GenieGo 연동허브 → Instagram Live → [등록]에 아래 값을 입력해 저장합니다.</p><span class="path">access_token · ig_user_id</span></div></div>
-</div>
-<div class="notice good">등록한 키는 AES-256-GCM으로 암호화 저장되며 조회 시 마스킹됩니다.</div>
-</section>
-
-<section class="section">
-<h2>7. Access Token 종류</h2>
+<h2>6. 추천 카테고리</h2>
 <table>
-<thead><tr><th>토큰 종류</th><th>용도</th><th>주의사항</th></tr></thead>
+<thead><tr><th>사업 유형</th><th>추천 카테고리</th><th>설명</th></tr></thead>
 <tbody>
-<tr><td>User Access Token</td><td>사용자 로그인 기반 API 호출</td><td>권한 승인 범위에 따라 접근 데이터가 달라집니다.</td></tr>
-<tr><td>Long-Lived Token</td><td>만료 시간을 늘린 장기 토큰</td><td>운영 시 만료·갱신 로직이 필요합니다.</td></tr>
-<tr><td>App Access Token</td><td>앱 단위 설정/검증 작업</td><td>사용자/미디어 데이터 접근용과는 다릅니다.</td></tr>
+<tr><td>물류/배송</td><td>Logistics Company / Transportation Service / Cargo & Freight Company</td><td>물류회사, 배송대행, 국제운송 서비스에 적합합니다.</td></tr>
+<tr><td>라이브커머스</td><td>Shopping & Retail / E-commerce Website</td><td>라이브 방송 판매, 온라인 쇼핑몰 운영에 적합합니다.</td></tr>
+<tr><td>화장품 판매</td><td>Beauty, Cosmetic & Personal Care / Health Beauty</td><td>K-뷰티, 화장품, 뷰티 브랜드 판매에 적합합니다.</td></tr>
+<tr><td>AI/IT 플랫폼</td><td>Software Company / Internet Company</td><td>SaaS, 플랫폼, IT 서비스 운영에 적합합니다.</td></tr>
 </tbody>
 </table>
 </section>
 
 <section class="section">
-<h2>8. 체크리스트</h2>
-<ul class="checklist">
-<li>Instagram을 비즈니스/크리에이터 계정으로 전환했다.</li><li>Facebook 페이지와 Instagram 계정을 연결했다.</li><li>Meta Developer 앱을 생성하고 App ID·App Secret을 확인했다.</li><li>Instagram 제품을 추가하고 필요 권한(App Review)을 신청했다.</li><li>Access Token과 IG 비즈니스 계정 ID(ig_user_id)를 확인했다.</li><li>GenieGo [등록]에 access_token·ig_user_id를 입력해 저장했다.</li>
-</ul>
+<h2>7. Facebook 페이지 연결</h2>
+<div class="steps">
+<div class="step"><div class="num">1</div><div><h3>프로페셔널 대시보드 이동</h3><p>Instagram 프로필에서 프로페셔널 대시보드를 엽니다.</p><span class="path">프로필 → 프로페셔널 대시보드</span></div></div>
+<div class="step"><div class="num">2</div><div><h3>Facebook 페이지 연결</h3><p>기존 Facebook 페이지를 선택하거나 새 페이지를 만듭니다.</p><span class="path">Facebook 페이지 연결</span></div></div>
+<div class="step"><div class="num">3</div><div><h3>관리자 권한 확인</h3><p>연결하려는 Facebook 페이지의 관리자 권한이 있는지 확인합니다.</p><span class="path">Page Admin 권한</span></div></div>
+</div>
+<div class="notice info">Facebook 페이지와 연결하면 광고 집행, 인사이트 확인, Meta Business Suite 관리가 쉬워집니다.</div>
 </section>
 
 <section class="section">
-<h2>9. 자주 발생하는 문제</h2>
-<table>
-<thead><tr><th>문제</th><th>원인</th><th>해결 방법</th></tr></thead>
-<tbody>
-<tr><td>API Key 메뉴가 없음</td><td>Meta는 단일 API Key 구조가 아님</td><td>App ID·App Secret·Access Token 구조로 진행합니다.</td></tr>
-<tr><td>IG 계정 ID 조회 실패</td><td>페이지-Instagram 연결 누락 또는 계정 유형 미전환</td><td>비즈니스/크리에이터 전환 + 페이지 연결을 확인합니다.</td></tr>
-<tr><td>권한 오류</td><td>토큰에 instagram_basic 등 권한 없음</td><td>Graph API Explorer에서 권한 추가 후 토큰 재발급.</td></tr>
-<tr><td>Instagram Live 자동화 불가</td><td>공식 API 지원 범위 제한</td><td>Meta 공식 문서의 현재 지원 범위·앱 검수 가능 여부를 확인합니다.</td></tr>
-</tbody>
-</table>
+<h2>8. Meta Business Suite 연결</h2>
+<div class="steps">
+<div class="step"><div class="num">1</div><div><h3>Meta Business Suite 접속</h3><p>브라우저에서 Meta Business Suite에 접속합니다.</p><span class="path">business.facebook.com</span></div></div>
+<div class="step"><div class="num">2</div><div><h3>비즈니스 계정 생성</h3><p>회사명, 이름, 이메일을 입력해 비즈니스 계정을 만듭니다.</p><span class="path">비즈니스 만들기</span></div></div>
+<div class="step"><div class="num">3</div><div><h3>Instagram 계정 추가</h3><p>비즈니스 설정에서 Instagram 계정을 추가합니다.</p><span class="path">비즈니스 설정 → 계정 → Instagram 계정</span></div></div>
+<div class="step"><div class="num">4</div><div><h3>Facebook 페이지와 연결 확인</h3><p>Instagram 계정이 올바른 Facebook 페이지와 연결되어 있는지 확인합니다.</p><span class="path">연결된 자산 확인</span></div></div>
+</div>
 </section>
 
-<p class="footer">Instagram Live API 발급 매뉴얼 · GenieGo 연동허브 · Meta 연동 초보자용 가이드</p>
+<section class="section">
+<h2>9. 비즈니스 인증</h2>
+<div class="steps">
+<div class="step"><div class="num">1</div><div><h3>비즈니스 설정 열기</h3><p>Meta Business Suite에서 비즈니스 설정으로 이동합니다.</p><span class="path">비즈니스 설정</span></div></div>
+<div class="step"><div class="num">2</div><div><h3>보안 센터 이동</h3><p>왼쪽 메뉴에서 보안 센터를 선택합니다.</p><span class="path">보안 센터</span></div></div>
+<div class="step"><div class="num">3</div><div><h3>사업자 인증 시작</h3><p>사업자등록증, 회사명, 주소, 웹사이트 등을 입력합니다.</p><span class="path">사업자 인증</span></div></div>
+<div class="step"><div class="num">4</div><div><h3>검토 결과 확인</h3><p>Meta 검토 완료 후 인증 상태를 확인합니다.</p><span class="path">Verification Status</span></div></div>
+</div>
+</section>
+
+<section class="section">
+<h2>10. Instagram API 연동 준비 구조</h2>
+<div class="flow">Instagram Business Account
+        │
+        ▼
+Facebook Page
+        │
+        ▼
+Meta Business Suite
+        │
+        ▼
+Meta Developer App
+        │
+        ▼
+Instagram Graph API
+        │
+        ▼
+Access Token 발급</div>
+<div class="notice danger"><strong>주의:</strong> Instagram API를 사용하려면 계정만 비즈니스로 바꾸는 것에서 끝나지 않고 Facebook 페이지 연결, Meta Business 설정, Developer App 생성, 권한 검수까지 필요할 수 있습니다.</div>
+</section>
+
+<section class="section">
+<h2>11. 최종 체크리스트</h2>
+<ul class="checklist">
+<li>기업용 Instagram 계정을 생성했다.</li><li>프로필 이미지, 소개, 웹사이트를 입력했다.</li><li>프로페셔널 계정으로 전환했다.</li><li>계정 유형을 비즈니스로 선택했다.</li><li>사업에 맞는 카테고리를 선택했다.</li><li>연락처 정보를 입력했다.</li><li>Facebook 페이지와 연결했다.</li><li>Meta Business Suite에 Instagram 계정을 추가했다.</li><li>필요하면 비즈니스 인증을 진행했다.</li><li>API 연동을 위해 Meta Developer App을 준비한다.</li>
+</ul>
+</section>
+
+<p class="footer">기업 Instagram 비즈니스 계정 전환 매뉴얼 · 초보자용 실무 가이드</p>
 </main>
 </body>
 </html>

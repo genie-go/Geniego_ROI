@@ -1,12 +1,244 @@
-<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Twitch API 발급 매뉴얼</title><style>:root{--accent:#9146FF;--dark:#111827;--gray:#6b7280;--line:#e5e7eb;--green:#16a34a;--yellow:#f59e0b;--card:#fff;}*{box-sizing:border-box;}body{margin:0;font-family:"Pretendard","Noto Sans KR","Apple SD Gothic Neo",Arial,sans-serif;background:linear-gradient(135deg,#f8fafc 0%,#eef2ff 100%);color:var(--dark);line-height:1.65;}.page{max-width:1120px;margin:0 auto;padding:44px 22px 80px;}.hero{background:linear-gradient(135deg,#111827 0%,#1f2937 60%,#3b0764 100%);color:#fff;border-radius:28px;padding:48px;position:relative;overflow:hidden;box-shadow:0 25px 70px rgba(17,24,39,.25);}.hero::after{content:"";position:absolute;inset-inline-end:-80px;top:-80px;width:260px;height:260px;background:var(--accent);opacity:.28;border-radius:50%;filter:blur(8px);}.badge{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);font-size:14px;font-weight:700;}.hero .ic{font-size:22px;}h1{font-size:clamp(30px,5vw,52px);line-height:1.14;margin:24px 0 16px;}.hero p{max-width:760px;color:#d1d5db;font-size:18px;margin:0;}.quick{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:24px;}.quick-card{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);border-radius:18px;padding:18px;}.quick-card strong{display:block;font-size:15px;color:#fff;}.quick-card span{font-size:13px;color:#d1d5db;}.section{margin-top:34px;background:var(--card);border:1px solid var(--line);border-radius:24px;padding:34px;box-shadow:0 14px 40px rgba(15,23,42,.06);}.section h2{margin:0 0 16px;font-size:26px;}.section-desc{color:var(--gray);margin-top:-4px;margin-bottom:24px;}.steps{display:grid;gap:18px;}.step{display:grid;grid-template-columns:56px 1fr;gap:18px;padding:22px;border:1px solid var(--line);border-radius:20px;background:#fff;}.num{width:48px;height:48px;border-radius:16px;background:linear-gradient(135deg,var(--accent),#ef4444);color:#fff;display:grid;place-items:center;font-weight:900;font-size:18px;}.step p{margin:0;color:#374151;}.notice{border-inline-start:5px solid var(--yellow);background:#fffbeb;padding:18px 20px;border-radius:16px;margin-top:18px;}.notice.success{border-inline-start-color:var(--green);background:#f0fdf4;}.notice.danger{border-inline-start-color:#ff0033;background:#fff1f2;}.checklist{display:grid;gap:10px;padding:0;list-style:none;margin:0;}.checklist li{padding:13px 15px;background:#f9fafb;border:1px solid var(--line);border-radius:14px;}.checklist li::before{content:"\2713";color:var(--green);font-weight:900;margin-inline-end:8px;}.footer{margin-top:28px;text-align:center;color:var(--gray);font-size:14px;}@media(max-width:820px){.hero{padding:34px 24px;}.quick{grid-template-columns:1fr 1fr;}.step{grid-template-columns:1fr;}.section{padding:24px;}}</style></head><body><main class="page"><section class="hero"><span class="badge"><span class="ic">🎮</span> 초보자 가이드</span><h1>Twitch<br/>API 발급 매뉴얼</h1><p>Twitch 자격증명(API 키/토큰)을 발급해 GenieGo 연동허브에 등록하는 과정을, 초보자도 그대로 따라 할 수 있도록 단계별로 정리했습니다.</p><div class="quick"><div class="quick-card"><strong>예상 소요</strong><span>약 5~15분</span></div><div class="quick-card"><strong>필요 계정</strong><span>Twitch 계정</span></div><div class="quick-card"><strong>단계 수</strong><span>6단계</span></div><div class="quick-card"><strong>결과물</strong><span>API 자격증명</span></div></div></section><section class="section"><h2>발급 절차 (따라하기)</h2><p class="section-desc">아래 순서를 그대로 따라 하면 자격증명을 발급받아 등록할 수 있습니다.</p><div class="steps">
-<div class="step"><div class="num">1</div><div><p>준비물: Twitch 계정이 필요합니다.</p></div></div>
-<div class="step"><div class="num">2</div><div><p>dev.twitch.tv/console 에 로그인합니다.</p></div></div>
-<div class="step"><div class="num">3</div><div><p>[Applications] &gt; [Register Your Application]을 누릅니다.</p></div></div>
-<div class="step"><div class="num">4</div><div><p>앱 이름과 OAuth Redirect URL을 입력하고 카테고리를 선택해 생성합니다.</p></div></div>
-<div class="step"><div class="num">5</div><div><p>생성된 앱에서 Client ID를 확인하고 [New Secret]으로 Client Secret을 발급합니다.</p></div></div>
-<div class="step"><div class="num">6</div><div><p>GenieGo [등록]에 client_id와 client_secret을 입력해 저장합니다.</p></div></div></div></section><section class="section"><h2>최종 체크리스트</h2><ul class="checklist"><li>준비물: Twitch 계정이 필요합니다.</li>
-<li>dev.twitch.tv/console 에 로그인합니다.</li>
-<li>[Applications] &gt; [Register Your Application]을 누릅니다.</li>
-<li>앱 이름과 OAuth Redirect URL을 입력하고 카테고리를 선택해 생성합니다.</li>
-<li>생성된 앱에서 Client ID를 확인하고 [New Secret]으로 Client Secret을 발급합니다.</li>
-<li>GenieGo [등록]에 client_id와 client_secret을 입력해 저장합니다.</li></ul><div class="notice success">발급한 키는 GenieGo 연동허브 [등록]에 입력하면 <strong>AES-256-GCM으로 암호화 저장</strong>되며, 조회 시 마스킹됩니다.</div><div class="notice danger">발급한 키/시크릿은 외부에 노출되지 않도록 안전하게 보관하세요. 노출이 의심되면 즉시 재발급(회전)하세요.</div></section><p class="footer">Twitch API 발급 매뉴얼 · GenieGo 연동허브 · 초보자용 실무 가이드</p></main></body></html>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Twitch 기업 채널 개설 및 API 발급 매뉴얼</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,"Noto Sans KR",sans-serif;background:linear-gradient(135deg,#f8fafc,#f5f3ff,#eef2ff);color:#111827;line-height:1.7}
+.wrap{max-width:1120px;margin:auto;padding:42px 22px 80px}
+.hero{border-radius:30px;padding:50px;color:white;background:radial-gradient(circle at 85% 18%,rgba(145,70,255,.55),transparent 28%),linear-gradient(135deg,#0f172a,#2e1065,#6441a5);box-shadow:0 30px 80px rgba(15,23,42,.28)}
+.badge{display:inline-flex;align-items:center;gap:10px;padding:9px 15px;border-radius:999px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.24);font-weight:900}
+.logo{width:34px;height:34px;border-radius:10px;background:#9146ff;display:inline-grid;place-items:center;color:white;font-weight:900}
+h1{font-size:clamp(34px,5vw,58px);line-height:1.12;margin:24px 0 16px;letter-spacing:-1.7px}
+.hero p{max-width:800px;color:#f3f4f6;font-size:18px;margin:0}
+.quick{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:26px}
+.quick div{padding:18px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.1);border-radius:18px}
+.quick strong{display:block}.quick span{color:#e5e7eb;font-size:13px}
+.section{margin-top:32px;background:white;border:1px solid #e5e7eb;border-radius:26px;padding:34px;box-shadow:0 18px 45px rgba(15,23,42,.07)}
+h2{margin:0 0 12px;font-size:28px;letter-spacing:-.8px}h3{margin:0 0 8px;font-size:20px}
+.desc{color:#6b7280;margin:0 0 24px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}.card{border:1px solid #e5e7eb;border-radius:20px;padding:22px;background:white}
+.tag{display:inline-block;font-size:13px;font-weight:900;padding:5px 10px;border-radius:999px;margin-bottom:10px;background:#f5f3ff;color:#6d28d9}
+.notice{border-left:5px solid #f59e0b;background:#fffbeb;padding:17px 20px;border-radius:16px;margin:18px 0}.good{border-color:#16a34a;background:#f0fdf4}.danger{border-color:#ef4444;background:#fff1f2}.info{border-color:#9146ff;background:#f5f3ff}
+.steps{display:grid;gap:18px}.step{display:grid;grid-template-columns:56px 1fr;gap:18px;padding:22px;border:1px solid #e5e7eb;border-radius:20px;background:white}
+.num{width:48px;height:48px;border-radius:16px;background:linear-gradient(135deg,#9146ff,#6d28d9);color:white;display:grid;place-items:center;font-weight:900;font-size:18px}
+.path{display:inline-block;margin-top:5px;padding:8px 12px;border-radius:10px;background:#f3f4f6;border:1px solid #e5e7eb;font-family:Consolas,monospace;font-size:14px}
+table{width:100%;border-collapse:collapse;border:1px solid #e5e7eb;border-radius:16px;overflow:hidden;background:white}th,td{padding:15px;border-bottom:1px solid #e5e7eb;text-align:left;vertical-align:top}th{background:#f9fafb;font-weight:900}tr:last-child td{border-bottom:0}
+.checklist{list-style:none;padding:0;margin:0;display:grid;gap:10px}.checklist li{padding:13px 15px;border:1px solid #e5e7eb;border-radius:14px;background:#f9fafb}.checklist li:before{content:"✓";color:#16a34a;font-weight:900;margin-right:8px}
+.code,.flow{background:#0f172a;color:#e5e7eb;padding:20px;border-radius:18px;font-family:Consolas,monospace;overflow:auto;white-space:pre}
+.footer{text-align:center;color:#6b7280;font-size:14px;margin-top:28px}
+@media(max-width:860px){.hero{padding:34px 24px}.quick,.grid2{grid-template-columns:1fr}.step{grid-template-columns:1fr}.section{padding:24px}}
+</style>
+</head>
+<body>
+<main class="wrap">
+
+<section class="hero">
+<span class="badge"><span class="logo">T</span> Twitch Business Channel & API Manual</span>
+<h1>Twitch 기업 채널 개설<br>및 API 발급 매뉴얼</h1>
+<p>기업, 브랜드, 라이브커머스, IT/물류 플랫폼 운영자가 Twitch 공식 채널을 만들고 방송 설정, OBS 연결, Twitch Developer API 발급까지 진행할 수 있도록 정리한 초보자용 실무 가이드입니다.</p>
+<div class="quick">
+<div><strong>계정 구조</strong><span>일반 계정 → 채널 운영</span></div>
+<div><strong>수익 단계</strong><span>Affiliate / Partner</span></div>
+<div><strong>방송 도구</strong><span>OBS Studio</span></div>
+<div><strong>API 결과물</strong><span>Client ID / Secret</span></div>
+</div>
+</section>
+
+<section class="section">
+<h2>1. Twitch 계정 구조 이해</h2>
+<p class="desc">Twitch는 Instagram처럼 비즈니스 계정/크리에이터 계정을 별도로 선택하는 구조가 아닙니다.</p>
+<div class="grid2">
+<div class="card"><span class="tag">기업 공식 채널</span><h3>브랜드 운영용</h3><p>회사명 또는 브랜드명으로 일반 Twitch 계정을 만든 뒤 공식 채널처럼 운영합니다. 제품 소개, 라이브커머스, 이벤트 방송에 적합합니다.</p></div>
+<div class="card"><span class="tag">스트리머 성장 단계</span><h3>Affiliate / Partner</h3><p>방송 실적, 팔로워, 시청 시간 조건을 충족하면 Affiliate 또는 Partner 프로그램에 참여할 수 있습니다.</p></div>
+</div>
+<div class="notice info"><strong>핵심:</strong> 기업도 먼저 일반 Twitch 계정을 만들고, 채널 브랜딩과 2단계 인증, OBS 연결, Developer Console 앱 등록을 진행하면 됩니다.</div>
+</section>
+
+<section class="section">
+<h2>2. 준비물</h2>
+<ul class="checklist">
+<li>기업용 이메일 주소</li>
+<li>브랜드명 또는 회사명</li>
+<li>Twitch 사용자 이름 후보</li>
+<li>회사 로고와 채널 배너 이미지</li>
+<li>회사 소개 문구와 웹사이트 URL</li>
+<li>방송 송출용 PC 또는 노트북</li>
+<li>OBS Studio 또는 스트리밍 소프트웨어</li>
+<li>API 연동용 OAuth Redirect URL</li>
+</ul>
+</section>
+
+<section class="section">
+<h2>3. Twitch 계정 생성</h2>
+<div class="steps">
+<div class="step"><div class="num">1</div><div><h3>Twitch 접속</h3><p>브라우저에서 Twitch 공식 사이트에 접속합니다.</p><span class="path">https://www.twitch.tv</span></div></div>
+<div class="step"><div class="num">2</div><div><h3>회원가입 클릭</h3><p>우측 상단의 Sign Up 또는 회원가입 버튼을 클릭합니다.</p><span class="path">Sign Up</span></div></div>
+<div class="step"><div class="num">3</div><div><h3>기업 정보로 가입</h3><p>회사 이메일, 사용자 이름, 비밀번호, 생년월일을 입력합니다.</p><span class="path">Email / Username / Password</span></div></div>
+<div class="step"><div class="num">4</div><div><h3>이메일 인증</h3><p>Twitch에서 보낸 인증 메일을 열고 Verify Email을 완료합니다.</p><span class="path">Verify Email</span></div></div>
+</div>
+</section>
+
+<section class="section">
+<h2>4. 브랜드 계정명 정하기</h2>
+<p class="desc">Twitch 사용자명은 채널 주소가 되므로 짧고 기억하기 쉬운 이름이 좋습니다.</p>
+<table>
+<thead><tr><th>목적</th><th>추천 이름 예시</th><th>설명</th></tr></thead>
+<tbody>
+<tr><td>기업 공식 채널</td><td>Geniego / OCLKorea</td><td>회사명과 일치해 신뢰도가 높습니다.</td></tr>
+<tr><td>글로벌 방송</td><td>GeniegoGlobal / OCLGlobal</td><td>해외 시청자를 고려할 때 적합합니다.</td></tr>
+<tr><td>라이브커머스</td><td>GeniegoLive / GeniegoCommerce</td><td>판매 방송, 쇼핑 방송 목적이 명확합니다.</td></tr>
+<tr><td>기술/플랫폼</td><td>GeniegoTech / OCLTech</td><td>IT, SaaS, 플랫폼 소개 방송에 적합합니다.</td></tr>
+</tbody>
+</table>
+</section>
+
+<section class="section">
+<h2>5. 채널 프로필 설정</h2>
+<div class="steps">
+<div class="step"><div class="num">1</div><div><h3>설정 메뉴 이동</h3><p>우측 상단 프로필 아이콘을 클릭한 뒤 Settings로 이동합니다.</p><span class="path">Profile → Settings</span></div></div>
+<div class="step"><div class="num">2</div><div><h3>프로필 이미지 등록</h3><p>회사 로고 또는 브랜드 아이콘을 프로필 이미지로 등록합니다.</p><span class="path">Profile Picture</span></div></div>
+<div class="step"><div class="num">3</div><div><h3>채널 배너 등록</h3><p>브랜드 컬러와 서비스 메시지가 담긴 배너 이미지를 등록합니다.</p><span class="path">Profile Banner</span></div></div>
+<div class="step"><div class="num">4</div><div><h3>소개 문구 입력</h3><p>회사 소개, 서비스 설명, 문의 이메일, 웹사이트를 입력합니다.</p><span class="path">Bio / Links</span></div></div>
+</div>
+</section>
+
+<section class="section">
+<h2>6. 2단계 인증 설정</h2>
+<p class="desc">Twitch에서 방송 송출과 보안 설정을 안정적으로 사용하려면 2FA 설정이 매우 중요합니다.</p>
+<div class="steps">
+<div class="step"><div class="num">1</div><div><h3>보안 메뉴 이동</h3><p>설정에서 Security and Privacy 메뉴를 엽니다.</p><span class="path">Settings → Security and Privacy</span></div></div>
+<div class="step"><div class="num">2</div><div><h3>2FA 활성화</h3><p>Two-Factor Authentication을 활성화합니다.</p><span class="path">Set Up Two-Factor Authentication</span></div></div>
+<div class="step"><div class="num">3</div><div><h3>휴대폰 또는 인증 앱 연결</h3><p>문자 인증 또는 Google Authenticator, Authy 같은 인증 앱을 연결합니다.</p><span class="path">Authenticator App</span></div></div>
+</div>
+<div class="notice danger"><strong>주의:</strong> 기업 계정은 여러 사람이 사용할 수 있으므로 관리자 권한과 복구 이메일을 반드시 관리하세요.</div>
+</section>
+
+<section class="section">
+<h2>7. 스트림 키 확인 및 OBS 연결</h2>
+<div class="steps">
+<div class="step"><div class="num">1</div><div><h3>크리에이터 대시보드 열기</h3><p>프로필 메뉴에서 Creator Dashboard로 이동합니다.</p><span class="path">Creator Dashboard</span></div></div>
+<div class="step"><div class="num">2</div><div><h3>스트림 메뉴 이동</h3><p>설정 메뉴에서 Stream 항목을 선택합니다.</p><span class="path">Settings → Stream</span></div></div>
+<div class="step"><div class="num">3</div><div><h3>Primary Stream Key 확인</h3><p>기본 스트림 키를 복사합니다. 이 키는 비밀번호처럼 보관해야 합니다.</p><span class="path">Primary Stream Key</span></div></div>
+<div class="step"><div class="num">4</div><div><h3>OBS에 연결</h3><p>OBS Studio에서 서비스는 Twitch, 스트림 키는 복사한 값을 입력합니다.</p><span class="path">OBS → Settings → Stream → Twitch</span></div></div>
+</div>
+<div class="notice danger">스트림 키가 노출되면 다른 사람이 내 채널로 방송할 수 있습니다. 절대 공개하지 마세요.</div>
+</section>
+
+<section class="section">
+<h2>8. 방송 카테고리 추천</h2>
+<table>
+<thead><tr><th>기업 목적</th><th>추천 카테고리</th><th>활용 예시</th></tr></thead>
+<tbody>
+<tr><td>라이브커머스</td><td>Just Chatting</td><td>상품 소개, 실시간 판매, Q&A 방송</td></tr>
+<tr><td>물류/배송 플랫폼</td><td>Science & Technology</td><td>서비스 소개, 물류 자동화 데모, 기술 설명</td></tr>
+<tr><td>SaaS/IT 서비스</td><td>Software and Game Development</td><td>플랫폼 시연, 개발 과정 공유, 기능 업데이트</td></tr>
+<tr><td>브랜드 이벤트</td><td>Special Events</td><td>신제품 발표, 웨비나, 글로벌 행사</td></tr>
+</tbody>
+</table>
+</section>
+
+<section class="section">
+<h2>9. Twitch Developer Console 등록</h2>
+<p class="desc">채팅봇, 시청자 분석, 방송 상태 조회, 자동화 기능을 만들려면 Twitch Developer 앱을 등록해야 합니다.</p>
+<div class="steps">
+<div class="step"><div class="num">1</div><div><h3>Twitch Developer 접속</h3><p>Twitch 개발자 사이트에 접속합니다.</p><span class="path">https://dev.twitch.tv</span></div></div>
+<div class="step"><div class="num">2</div><div><h3>Console 이동</h3><p>상단 메뉴에서 Console 또는 Developer Console을 클릭합니다.</p><span class="path">Developer Console</span></div></div>
+<div class="step"><div class="num">3</div><div><h3>Applications 메뉴 선택</h3><p>왼쪽 또는 상단 메뉴에서 Applications를 선택합니다.</p><span class="path">Applications</span></div></div>
+<div class="step"><div class="num">4</div><div><h3>Register Your Application 클릭</h3><p>새 애플리케이션 등록 버튼을 클릭합니다.</p><span class="path">Register Your Application</span></div></div>
+</div>
+</section>
+
+<section class="section">
+<h2>10. Twitch API 앱 등록 정보 입력</h2>
+<table>
+<thead><tr><th>입력 항목</th><th>입력 예시</th><th>설명</th></tr></thead>
+<tbody>
+<tr><td>Name</td><td>Geniego Twitch App</td><td>앱 이름입니다. 서비스명 기준으로 입력합니다.</td></tr>
+<tr><td>OAuth Redirect URLs</td><td>https://yourdomain.com/auth/twitch/callback</td><td>OAuth 로그인 후 돌아올 서버 주소입니다.</td></tr>
+<tr><td>Category</td><td>Website Integration / Chat Bot</td><td>앱 용도에 맞는 카테고리를 선택합니다.</td></tr>
+<tr><td>Client Type</td><td>Confidential</td><td>서버에서 Secret을 안전하게 보관하는 일반 서비스에 적합합니다.</td></tr>
+</tbody>
+</table>
+<div class="notice good">등록이 완료되면 <strong>Client ID</strong>가 표시되고, <strong>New Secret</strong> 버튼으로 Client Secret을 생성할 수 있습니다.</div>
+</section>
+
+<section class="section">
+<h2>11. Client ID / Client Secret 확인</h2>
+<div class="steps">
+<div class="step"><div class="num">1</div><div><h3>등록한 앱 선택</h3><p>Developer Console의 Applications 목록에서 방금 만든 앱을 클릭합니다.</p><span class="path">Applications → 앱 선택</span></div></div>
+<div class="step"><div class="num">2</div><div><h3>Client ID 복사</h3><p>화면에 표시된 Client ID를 복사해 서버 설정에 저장합니다.</p><span class="path">Client ID</span></div></div>
+<div class="step"><div class="num">3</div><div><h3>Client Secret 생성</h3><p>New Secret 버튼을 눌러 Client Secret을 생성하고 안전하게 저장합니다.</p><span class="path">New Secret</span></div></div>
+</div>
+<div class="notice danger">Client Secret은 한 번만 확인 가능한 경우가 많습니다. 생성 즉시 안전한 곳에 저장하세요.</div>
+</section>
+
+<section class="section">
+<h2>12. Twitch API 인증 구조</h2>
+<div class="flow">Twitch Channel
+       │
+       ▼
+Developer Console
+       │
+       ▼
+Application
+       │
+       ▼
+Client ID / Client Secret
+       │
+       ▼
+OAuth Token
+       │
+       ▼
+Twitch Helix API
+       │
+       ▼
+채널 정보, 방송 상태, 채팅봇, 시청자 분석</div>
+</section>
+
+<section class="section">
+<h2>13. OAuth 토큰 발급 흐름</h2>
+<pre class="code">1) Twitch OAuth 인증 URL 생성
+2) 사용자가 Twitch 계정으로 로그인
+3) Redirect URL로 authorization code 수신
+4) authorization code + Client Secret으로 Access Token 요청
+5) Access Token으로 Twitch API 호출
+6) 필요 시 Refresh Token으로 갱신</pre>
+<div class="notice info">단순 공개 데이터 조회는 App Access Token으로 가능하고, 사용자 권한이 필요한 작업은 User Access Token이 필요합니다.</div>
+</section>
+
+<section class="section">
+<h2>14. 기업 운영 추천 구성</h2>
+<table>
+<thead><tr><th>목적</th><th>권장 구성</th><th>설명</th></tr></thead>
+<tbody>
+<tr><td>라이브커머스</td><td>Twitch + YouTube Live + Facebook Live 동시 송출</td><td>동일 방송을 여러 채널에 송출해 도달률을 높입니다.</td></tr>
+<tr><td>고객 소통</td><td>Twitch Chat Bot</td><td>채팅 자동응답, 상품 링크 안내, 쿠폰 안내를 자동화합니다.</td></tr>
+<tr><td>글로벌 운영</td><td>AI 자막 + 다국어 번역</td><td>한국어, 영어, 일본어 등 다국어 시청자를 지원합니다.</td></tr>
+<tr><td>성과 분석</td><td>Twitch API + 내부 대시보드</td><td>팔로워, 방송 상태, 시청자 반응을 분석합니다.</td></tr>
+</tbody>
+</table>
+</section>
+
+<section class="section">
+<h2>15. 최종 체크리스트</h2>
+<ul class="checklist">
+<li>기업용 이메일로 Twitch 계정을 생성했다.</li>
+<li>브랜드명과 일치하는 사용자 이름을 설정했다.</li>
+<li>이메일 인증을 완료했다.</li>
+<li>프로필 이미지, 배너, 소개 문구, 링크를 설정했다.</li>
+<li>2단계 인증을 활성화했다.</li>
+<li>Creator Dashboard에서 Stream Key를 확인했다.</li>
+<li>OBS Studio와 Twitch 채널을 연결했다.</li>
+<li>Twitch Developer Console에서 앱을 등록했다.</li>
+<li>Client ID와 Client Secret을 발급받았다.</li>
+<li>OAuth Redirect URL과 토큰 발급 흐름을 준비했다.</li>
+</ul>
+</section>
+
+<p class="footer">Twitch 기업 채널 개설 및 API 발급 매뉴얼 · 초보자용 실무 가이드</p>
+</main>
+</body>
+</html>

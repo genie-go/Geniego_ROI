@@ -414,4 +414,30 @@ export default {
     'عند اختيار قناة يُنشأ Webhook URL.',
     'في GenieGo [تسجيل]، أدخل webhook_url ثم احفظ.',
   ],
+  lotteon: [
+    "المتطلبات: تحتاج إلى حساب بائع (Seller) مُسجَّل في LotteON (مع توثيق نشاط تجاري مكتمل).",
+    "سجّل الدخول إلى مركز متجر البائعين في LotteON (store.lotteon.com).",
+    "في [معلومات البائع] > [إدارة OpenAPI] > [إعداد المعلومات] سجّل عنوان IP للخادم الذي سيستدعي الـ API.",
+    "اضغط زر [إصدار المفتاح] لإصدار مفتاح مصادقة OpenAPI وتحقّق من معرّف البائع (Seller) ID.",
+    "في GenieGo [تسجيل]، أدخل api_key (مفتاح مصادقة OpenAPI) و seller_id ثم احفظ.",
+  ],
+  yahoo_japan: [
+    "المتطلبات: تحتاج إلى معرّف أعمال Yahoo! JAPAN + تطبيق Yahoo!デベロッパー.",
+    "سجّل تطبيقًا على e.developer.yahoo.co.jp لإصدار Client ID و Client Secret.",
+    "احصل على Access Token (OAuth Token) عبر إجراء تفويض OAuth 2.0.",
+    "في GenieGo [تسجيل]، أدخل client_id و client_secret و access_token ثم احفظ.",
+  ],
+  kakao_alimtalk: [
+    "المتطلبات: قناة KakaoTalk (مع توثيق الأعمال) + حساب لدى وكالة إرسال/منصة. ★يجب أولًا إتمام توثيق أعمال القناة ومراجعة ملف الإرسال واعتماد قالب AlimTalk.",
+    "افتح قناة KakaoTalk وأكمِل توثيق الأعمال.",
+    "سجّل ملف الإرسال (sender_key) لدى وكالة الإرسال/المنصة (BizMessage) واحصل على اعتماد قالب AlimTalk.",
+    "في منصة الإرسال تحقّق من API Key و Secret.",
+    "في GenieGo [تسجيل]، أدخل sender_key و api_key و api_secret ثم احفظ.",
+  ],
+  line: [
+    "المتطلبات: تحتاج إلى حساب LINE Developers + حساب LINE رسمي (قناة Messaging API).",
+    "أنشئ مزوّدًا (Provider) وقناة Messaging API من وحدة تحكم developers.line.biz.",
+    "أصدِر Channel Secret من [Basic settings] و Channel Access Token من [Messaging API].",
+    "في GenieGo [تسجيل]، أدخل channel_secret و channel_access_token ثم احفظ.",
+  ],
 };

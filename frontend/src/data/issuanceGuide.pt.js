@@ -410,4 +410,30 @@ export default {
     "Ao escolher um canal, a Webhook URL será gerada.",
     "No GenieGo [Registrar], insira webhook_url e salve.",
   ],
+  lotteon: [
+    "Pré-requisitos: você precisa de uma conta de vendedor (seller) com loja aberta na Lotte On (com verificação empresarial concluída).",
+    "Faça login no Centro de Lojas do Vendedor da Lotte On (store.lotteon.com).",
+    "Em [Informações do vendedor] > [Gerenciamento de OpenAPI] > [Configuração de informações], registre o IP do servidor de chamadas.",
+    "Clique no botão [Emitir chave] para emitir a chave de autenticação da OpenAPI e verifique o ID do vendedor (seller).",
+    "No GenieGo [Registrar], insira api_key (chave de autenticação da OpenAPI) e seller_id, e salve.",
+  ],
+  yahoo_japan: [
+    "Pré-requisitos: você precisa de um Yahoo! JAPAN Business ID + um aplicativo do Yahoo!デベロッパー.",
+    "Em e.developer.yahoo.co.jp, registre um aplicativo para emitir o Client ID e o Client Secret.",
+    "Obtenha um Access Token (OAuth Token) pelo processo de autorização OAuth 2.0.",
+    "No GenieGo [Registrar], insira client_id, client_secret e access_token, e salve.",
+  ],
+  kakao_alimtalk: [
+    "Pré-requisitos: um canal do KakaoTalk (com verificação empresarial) + uma conta de agência/plataforma de envio. ★A verificação empresarial do canal, a análise do perfil de remetente e a aprovação do modelo de AlimTalk devem ser concluídas antes.",
+    "Crie um canal do KakaoTalk e conclua a verificação empresarial.",
+    "Registre o perfil de remetente (sender_key) na agência/plataforma de envio (Biz Message) e obtenha a aprovação do modelo de AlimTalk.",
+    "Na plataforma de envio, verifique a API Key e o Secret.",
+    "No GenieGo [Registrar], insira sender_key, api_key e api_secret, e salve.",
+  ],
+  line: [
+    "Pré-requisitos: você precisa de uma conta do LINE Developers + uma conta oficial do LINE (canal da Messaging API).",
+    "No console em developers.line.biz, crie um provedor e um canal da Messaging API.",
+    "Em [Basic settings], emita o Channel Secret e, em [Messaging API], emita o Channel Access Token.",
+    "No GenieGo [Registrar], insira channel_secret e channel_access_token, e salve.",
+  ],
 };

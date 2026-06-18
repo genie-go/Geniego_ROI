@@ -414,4 +414,30 @@ export default {
     'Chọn channel, khi đó Webhook URL sẽ được tạo.',
     'Nhập webhook_url vào [Đăng ký] của GenieGo rồi lưu.',
   ],
+  lotteon: [
+    "Chuẩn bị: cần tài khoản người bán đã vào sàn Lotte ON (đã hoàn tất xác minh doanh nghiệp).",
+    "Đăng nhập vào Lotte ON Seller Store Center (store.lotteon.com).",
+    "Vào [Thông tin người bán] > [Quản lý OpenAPI] > [Thiết lập thông tin] để đăng ký IP máy chủ gọi API.",
+    "Nhấn nút [Phát hành key] để phát hành khóa xác thực OpenAPI và kiểm tra ID người bán (seller).",
+    "Nhập api_key (khóa xác thực OpenAPI) và seller_id vào [Đăng ký] của GenieGo rồi lưu.",
+  ],
+  yahoo_japan: [
+    "Chuẩn bị: cần Yahoo! JAPAN Business ID + ứng dụng Yahoo!デベロッパー.",
+    "Đăng ký ứng dụng tại e.developer.yahoo.co.jp để phát hành Client ID và Client Secret.",
+    "Phát hành Access Token (OAuth Token) qua quy trình ủy quyền OAuth 2.0.",
+    "Nhập client_id, client_secret, access_token vào [Đăng ký] của GenieGo rồi lưu.",
+  ],
+  kakao_alimtalk: [
+    "Chuẩn bị: cần kênh KakaoTalk (đã xác minh doanh nghiệp) + tài khoản đại lý/nền tảng gửi tin. ★Phải hoàn tất trước việc xác minh doanh nghiệp kênh, xét duyệt hồ sơ người gửi và phê duyệt mẫu Alimtalk.",
+    "Mở kênh KakaoTalk và hoàn tất xác minh doanh nghiệp.",
+    "Đăng ký hồ sơ người gửi (sender_key) tại đại lý/nền tảng gửi tin (BizMessage) và được phê duyệt mẫu Alimtalk.",
+    "Kiểm tra API Key và Secret trên nền tảng gửi tin.",
+    "Nhập sender_key, api_key, api_secret vào [Đăng ký] của GenieGo rồi lưu.",
+  ],
+  line: [
+    "Chuẩn bị: cần tài khoản LINE Developers + tài khoản chính thức LINE (kênh Messaging API).",
+    "Tạo provider và kênh Messaging API trong console developers.line.biz.",
+    "Phát hành Channel Secret tại [Basic settings] và Channel Access Token tại [Messaging API].",
+    "Nhập channel_secret, channel_access_token vào [Đăng ký] của GenieGo rồi lưu.",
+  ],
 };

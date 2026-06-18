@@ -410,4 +410,30 @@ export default {
     "Al elegir un canal se generará la Webhook URL.",
     "En GenieGo [Registrar], introduce webhook_url y guarda.",
   ],
+  lotteon: [
+    "Requisitos: necesitas una cuenta de vendedor (seller) de Lotte On (con verificación empresarial completada).",
+    "Inicia sesión en el Centro de Tiendas para Vendedores de Lotte On (store.lotteon.com).",
+    "En [Información del vendedor] > [Gestión de OpenAPI] > [Configuración de información], registra la IP del servidor de llamadas.",
+    "Pulsa el botón [Emitir clave] para emitir la clave de autenticación de OpenAPI y consulta el ID del vendedor (seller).",
+    "En GenieGo [Registrar], introduce api_key (clave de autenticación de OpenAPI) y seller_id, y guarda.",
+  ],
+  yahoo_japan: [
+    "Requisitos: necesitas un ID de empresa de Yahoo! JAPAN y una aplicación de Yahoo!デベロッパー.",
+    "En e.developer.yahoo.co.jp registra una aplicación para emitir el Client ID y el Client Secret.",
+    "Mediante el proceso de autorización de OAuth 2.0, obtén el Access Token (OAuth Token).",
+    "En GenieGo [Registrar], introduce client_id, client_secret y access_token, y guarda.",
+  ],
+  kakao_alimtalk: [
+    "Requisitos: un canal de KakaoTalk (con verificación empresarial) + una cuenta de agencia/plataforma de envío. ★Debes completar previamente la verificación empresarial del canal, la revisión del perfil de remitente y la aprobación de las plantillas de AlimTalk.",
+    "Abre un canal de KakaoTalk y completa la verificación empresarial.",
+    "Registra el perfil de remitente (sender_key) en la agencia/plataforma de envío (BizMessage) y obtén la aprobación de las plantillas de AlimTalk.",
+    "En la plataforma de envío consulta la API Key y el Secret.",
+    "En GenieGo [Registrar], introduce sender_key, api_key y api_secret, y guarda.",
+  ],
+  line: [
+    "Requisitos: necesitas una cuenta de LINE Developers y una cuenta oficial de LINE (canal de Messaging API).",
+    "En la consola de developers.line.biz crea un proveedor (provider) y un canal de Messaging API.",
+    "En [Basic settings] emite el Channel Secret y en [Messaging API] emite el Channel Access Token.",
+    "En GenieGo [Registrar], introduce channel_secret y channel_access_token, y guarda.",
+  ],
 };

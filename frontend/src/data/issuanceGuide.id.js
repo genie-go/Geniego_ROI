@@ -414,4 +414,30 @@ export default {
     'Pilih channel, maka Webhook URL akan dibuat.',
     'Masukkan webhook_url pada [Daftar] GenieGo lalu simpan.',
   ],
+  lotteon: [
+    "Yang dibutuhkan: akun penjual (seller) Lotte ON dengan toko terdaftar (verifikasi badan usaha selesai).",
+    "Masuk ke Lotte ON Seller Store Center (store.lotteon.com).",
+    "Di [Info Penjual] > [Manajemen OpenAPI] > [Pengaturan Info], daftarkan IP server pemanggil.",
+    "Klik tombol [Penerbitan Key] untuk menerbitkan kunci otentikasi OpenAPI dan periksa ID penjual (seller).",
+    "Masukkan api_key (kunci otentikasi OpenAPI) dan seller_id pada [Daftar] GenieGo lalu simpan.",
+  ],
+  yahoo_japan: [
+    "Yang dibutuhkan: Yahoo! JAPAN Business ID + aplikasi Yahoo!デベロッパー.",
+    "Daftarkan aplikasi di e.developer.yahoo.co.jp untuk menerbitkan Client ID dan Client Secret.",
+    "Terbitkan Access Token (OAuth Token) melalui proses otorisasi OAuth 2.0.",
+    "Masukkan client_id, client_secret, access_token pada [Daftar] GenieGo lalu simpan.",
+  ],
+  kakao_alimtalk: [
+    "Yang dibutuhkan: Kakao Talk Channel (verifikasi bisnis) + akun agensi/platform pengiriman. ★Verifikasi bisnis channel, peninjauan profil pengirim, dan persetujuan template AlimTalk harus diselesaikan terlebih dahulu.",
+    "Buka Kakao Talk Channel dan selesaikan verifikasi bisnis.",
+    "Daftarkan profil pengirim (sender_key) di agensi/platform pengiriman (BizMessage) dan dapatkan persetujuan template AlimTalk.",
+    "Periksa API Key dan Secret di platform pengiriman.",
+    "Masukkan sender_key, api_key, api_secret pada [Daftar] GenieGo lalu simpan.",
+  ],
+  line: [
+    "Yang dibutuhkan: akun LINE Developers + akun resmi LINE (channel Messaging API).",
+    "Buat provider dan channel Messaging API di konsol developers.line.biz.",
+    "Terbitkan Channel Secret di [Basic settings] dan Channel Access Token di [Messaging API].",
+    "Masukkan channel_secret, channel_access_token pada [Daftar] GenieGo lalu simpan.",
+  ],
 };

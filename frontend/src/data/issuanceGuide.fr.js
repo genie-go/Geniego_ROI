@@ -412,4 +412,30 @@ export default {
     'Lorsque vous sélectionnez un canal, une Webhook URL est générée.',
     'Dans GenieGo [Enregistrer], saisissez webhook_url, puis enregistrez.',
   ],
+  lotteon: [
+    "Prérequis : vous avez besoin d’un compte vendeur ayant rejoint Lotte ON (vérification professionnelle effectuée).",
+    "Connectez-vous au Seller Store Center de Lotte ON (store.lotteon.com).",
+    "Dans [Informations vendeur] > [Gestion OpenAPI] > [Paramètres], enregistrez l’IP du serveur appelant.",
+    "Cliquez sur le bouton [Émettre une clé] pour émettre la clé d’authentification OpenAPI et repérez l’ID vendeur (Seller).",
+    "Dans GenieGo [Enregistrer], saisissez api_key (clé d’authentification OpenAPI) et seller_id, puis enregistrez.",
+  ],
+  yahoo_japan: [
+    "Prérequis : vous avez besoin d’un Yahoo! JAPAN Business ID et d’une application Yahoo!デベロッパー.",
+    "Sur e.developer.yahoo.co.jp, enregistrez une application pour émettre le Client ID et le Client Secret.",
+    "Obtenez un Access Token (OAuth Token) via le processus d’autorisation OAuth 2.0.",
+    "Dans GenieGo [Enregistrer], saisissez client_id, client_secret et access_token, puis enregistrez.",
+  ],
+  kakao_alimtalk: [
+    "Prérequis : un canal KakaoTalk (vérification professionnelle) + un compte d’agence/plateforme d’envoi. ★La vérification professionnelle du canal, l’examen du profil expéditeur et l’approbation du modèle de notification (AlimTalk) doivent être effectués au préalable.",
+    "Ouvrez un canal KakaoTalk et effectuez la vérification professionnelle.",
+    "Enregistrez le profil expéditeur (sender_key) auprès de l’agence/plateforme d’envoi (Biz Message) et faites approuver le modèle de notification (AlimTalk).",
+    "Sur la plateforme d’envoi, repérez l’API Key et le Secret.",
+    "Dans GenieGo [Enregistrer], saisissez sender_key, api_key et api_secret, puis enregistrez.",
+  ],
+  line: [
+    "Prérequis : vous avez besoin d’un compte LINE Developers + d’un compte officiel LINE (canal Messaging API).",
+    "Dans la console developers.line.biz, créez un fournisseur (provider) et un canal Messaging API.",
+    "Émettez le Channel Secret dans [Basic settings] et le Channel Access Token dans [Messaging API].",
+    "Dans GenieGo [Enregistrer], saisissez channel_secret et channel_access_token, puis enregistrez.",
+  ],
 };

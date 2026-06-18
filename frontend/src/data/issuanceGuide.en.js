@@ -411,4 +411,30 @@ export default {
     "Select a channel to generate a Webhook URL.",
     "In GenieGo [Register], enter your webhook_url and save.",
   ],
+  lotteon: [
+    "What you need: a Lotte ON seller account (with completed business verification).",
+    "Sign in to the Lotte ON Seller Store Center (store.lotteon.com).",
+    "Go to [Seller Info] > [OpenAPI Management] > [Settings] and register your calling server IP.",
+    "Click [Issue Key] to issue your OpenAPI authentication key, and note your seller ID.",
+    "In GenieGo [Register], enter your api_key (OpenAPI authentication key) and seller_id, then save.",
+  ],
+  yahoo_japan: [
+    "What you need: a Yahoo! JAPAN Business ID and a Yahoo!デベロッパー application.",
+    "At e.developer.yahoo.co.jp, register an application to issue your Client ID and Client Secret.",
+    "Obtain an Access Token (OAuth Token) through the OAuth 2.0 authorization flow.",
+    "In GenieGo [Register], enter your client_id, client_secret, and access_token, then save.",
+  ],
+  kakao_alimtalk: [
+    "What you need: a KakaoTalk channel (business-verified) and a sending-agency/platform account. ★The channel business verification, sender profile review, and AlimTalk template approval must be completed first.",
+    "Open a KakaoTalk channel and complete business verification.",
+    "Register your sender profile (sender_key) with a sending agency/platform (BizMessage) and get your AlimTalk templates approved.",
+    "Find your API Key and Secret on the sending platform.",
+    "In GenieGo [Register], enter your sender_key, api_key, and api_secret, then save.",
+  ],
+  line: [
+    "What you need: a LINE Developers account and a LINE official account (a Messaging API channel).",
+    "In the developers.line.biz console, create a provider and a Messaging API channel.",
+    "Issue your Channel Secret under [Basic settings] and your Channel Access Token under [Messaging API].",
+    "In GenieGo [Register], enter your channel_secret and channel_access_token, then save.",
+  ],
 };
