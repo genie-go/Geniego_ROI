@@ -9,6 +9,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 
 const LANG_LOCALE_MAP = { ko:'ko-KR', en:'en-US', ja:'ja-JP', zh:'zh-CN', 'zh-TW':'zh-TW', de:'de-DE', th:'th-TH', vi:'vi-VN', id:'id-ID', es:'es-ES', fr:'fr-FR', pt:'pt-BR', ru:'ru-RU', ar:'ar-SA', hi:'hi-IN' };
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
+import RoleViewBar from '../components/RoleViewBar.jsx'; // [231차 디렉티브 #11] 역할별 관점 통합
 import { useI18n } from '../i18n/index.js';
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
 import DashOverview from '../components/dashboards/DashOverview.jsx';
@@ -308,6 +309,7 @@ export default function Dashboard() {
 
       {/* ═══ SCROLL ZONE: Dashboard Content ════════════════════════════ */}
       <div className="fade-up" style={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden', padding: '12px 4px 24px' }}>
+        <RoleViewBar />{/* [231차 디렉티브 #11] 역할별 관점 통합(기존 페이지 큐레이션 진입) */}
         {DashComp && <DashComp ticker={ticker} period={showPeriod ? period : undefined} />}
       </div>
     </div>

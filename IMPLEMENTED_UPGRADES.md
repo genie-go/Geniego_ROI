@@ -24,5 +24,7 @@
 
 - ✅ **#5 Executive AI Copilot**(AIInsights 확장): Executive Briefing 카드(순이익·마진·매출·ROAS 근거 KPI + 최대 잠식비용 Root Cause + 개선페이지 딥링크) + 경영진 프리셋(CEO/CFO/CMO/COO 5문항) + ClaudeAI analyze에 실 pnlStats grounding(기존 빈data→실 워터폴 전달). 신규 AI메뉴 X. 무위험(live 파생+기존 ClaudeAI). 배포·검증.
 
+- ✅ **#11 역할별 Dashboard View 통합**(RoleViewBar, Dashboard 상단): CEO/CFO/CMO/COO/마케팅/커머스/물류/라이브/AIAgent/거버넌스 10관점을 기존 최적 페이지(rollup/pnl/performance/operations/auto-marketing/omni-channel/supply-chain/live-commerce/ai-insights/data-trust)로 큐레이션 진입. 신규 대시보드 0(동일 순이익 SSOT·관점만 전환). 무위험. 배포·검증.
+
 ## OS 디렉티브 잔여(REMAINING_GAPS 순서)
 Profit Health Score → Root Cause 처방 → What-if Scenario → Agent 권한모드 → Executive Copilot → 거버넌스 → 보안보강 → 역할별 View. 전부 기존 확장.
