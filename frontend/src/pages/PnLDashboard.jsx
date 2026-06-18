@@ -8,6 +8,7 @@ import { useI18n } from '../i18n';
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
 import { useAuth } from '../auth/AuthContext.jsx'; // [현 차수] 플랜별 탭 노출
 import { tabAllowedByPlan } from '../auth/tabPlanPolicy.js';
+import { getJsonAuth } from '../services/apiClient.js'; // [231차 OS#2] Root Cause: anomaly scan 보강(best-effort)
 
 /* ─── Security Engine ──────────────────── */
 const SEC_PATTERNS = [
@@ -298,26 +299,80 @@ function PnlUnitTab({ live, t, fmt, connectedChannels }) {
 }
 
 /* ═══════ TAB 3: Anomaly ═══════ */
-function AnomalyTab({ t }) {
+/* ═══════ TAB: Root Cause (231차 AI Profit OS #2 — 분석→처방) ═══════
+   순이익 워터폴 분해(live=pnlStats, 무위험)로 '어느 비용이 순이익을 깎는가' 자동 진단 +
+   채널별 이상점(AnomalyDetection scan, best-effort) 보강 + 권장조치를 기존 실행 페이지로 딥링크. */
+function AnomalyTab({ t, live, fmt, navigate }) {
+    const [anoms, setAnoms] = useState(null); // null=loading, []=none/unavailable
+    useEffect(() => {
+        let on = true;
+        getJsonAuth('/api/v424/anomaly/scan?window=60')
+            .then(d => { if (on) setAnoms(Array.isArray(d?.anomalies) ? d.anomalies : []); })
+            .catch(() => { if (on) setAnoms([]); });
+        return () => { on = false; };
+    }, []);
+    const rev = (live && live.grossRevenue) || 0;
+    // 순이익 차감 비용 드라이버(워터폴 항목). amount 큰 순 = 순이익 최대 잠식.
+    const DRIVERS = [
+        { key: 'cogs', label: t('pnl.rcCogs', '원가(COGS)'), amt: live.cogs || 0, to: '/price-opt', act: t('pnl.rcActCogs', '가격 최적화 · 매입가 점검'), warn: 0.6 },
+        { key: 'ad', label: t('pnl.rcAd', '광고비'), amt: live.adSpend || 0, to: '/auto-marketing', act: t('pnl.rcActAd', 'ROAS 낮은 채널 예산 회수'), warn: 0.3 },
+        { key: 'fee', label: t('pnl.rcFee', '플랫폼 수수료'), amt: live.platformFee || 0, to: '/settlements', act: t('pnl.rcActFee', '저수수료 채널·정산 규칙 점검'), warn: 0.15 },
+        { key: 'ship', label: t('pnl.rcShip', '배송비'), amt: live.shippingCost || 0, to: '/integration-hub', act: t('pnl.rcActShip', '무료배송 기준·택배사 단가 조정'), warn: 0.05 },
+        { key: 'ret', label: t('pnl.rcRet', '반품비'), amt: live.returnFee || 0, to: '/returns-portal', act: t('pnl.rcActRet', '반품 사유 상위 SKU 점검'), warn: 0.05 },
+        { key: 'coupon', label: t('pnl.rcCoupon', '쿠폰 할인'), amt: live.couponDiscount || 0, to: '/my-coupons', act: t('pnl.rcActCoupon', '쿠폰 발급 한도·중복 점검'), warn: 0.08 },
+    ].filter(d => d.amt > 0).sort((a, b) => b.amt - a.amt);
+    const top = DRIVERS[0];
     return (
         <div style={{ display: 'grid', gap: 16 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 10 }}>
-                <KpiCard label={t('pnl.anomRoasDown')} value={'0 ' + t('pnl.unitItems')} color={GREEN} icon="📉" />
-                <KpiCard label={t('pnl.anomReturnUp')} value={'0 ' + t('pnl.unitItems')} color={GREEN} icon="↩" />
-                <KpiCard label={t('pnl.anomCouponAbuse')} value={'0 ' + t('pnl.unitItems')} color={GREEN} icon="🏷" />
-                <KpiCard label={t('pnl.anomFeeUp')} value={'0 ' + t('pnl.unitItems')} color={GREEN} icon="💸" />
+            <div style={{ ...CARD, background: 'rgba(236,72,153,0.05)', borderColor: 'rgba(236,72,153,0.25)' }}>
+                <div style={{ fontSize: 12, color: 'var(--text-3)', fontWeight: 700 }}>🔍 {t('pnl.rcTitle', '순이익 원인 분석 (Root Cause)')}</div>
+                <div style={{ fontSize: 13, color: 'var(--text-2)', marginTop: 6, lineHeight: 1.6 }}>
+                    {top
+                        ? <>{t('pnl.rcLead', '현재 순이익을 가장 크게 잠식하는 항목은')} <b style={{ color: '#ec4899' }}>{top.label}</b> {t('pnl.rcLead2', '입니다')} ({fmt(top.amt)}, {rev > 0 ? (top.amt / rev * 100).toFixed(1) : '0'}% {t('pnl.rcOfRev', '매출 대비')}).</>
+                        : t('pnl.rcNone', '비용 데이터가 들어오면 원인 분해가 표시됩니다.')}
+                </div>
             </div>
-            <div style={{ ...CARD, textAlign: 'center' }}>
-                <div style={{ fontSize: 40, marginBottom: 8 }}>✅</div>
-                <div style={{ fontWeight: 700, fontSize: 14 }}>{t('pnl.noAnomaliesDetected')}</div>
-                <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 4 }}>{t('pnl.noAnomaliesDesc')}</div>
+
+            {DRIVERS.length > 0 && (
+                <div style={{ ...CARD }}>
+                    <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 10 }}>📉 {t('pnl.rcDrivers', '순이익 잠식 항목 (큰 순)')}</div>
+                    <div style={{ display: 'grid', gap: 8 }}>
+                        {DRIVERS.map((d, i) => {
+                            const ratio = rev > 0 ? d.amt / rev : 0;
+                            const col = ratio >= d.warn ? '#ef4444' : ratio >= d.warn * 0.7 ? '#eab308' : '#64748b';
+                            return (
+                                <div key={d.key} style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', padding: '8px 4px', borderBottom: '1px solid var(--border,#f1f5f9)' }}>
+                                    <span style={{ flexShrink: 0, width: 22, height: 22, borderRadius: '50%', background: col, color: '#fff', fontWeight: 800, fontSize: 11, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{i + 1}</span>
+                                    <div style={{ minWidth: 110, fontWeight: 700, fontSize: 12.5 }}>{d.label}</div>
+                                    <MiniBar v={d.amt} max={DRIVERS[0].amt} color={col} />
+                                    <div style={{ width: 96, textAlign: 'right', fontFamily: 'monospace', fontSize: 12, fontWeight: 700, color: col }}>{fmt(d.amt)}</div>
+                                    <div style={{ width: 48, textAlign: 'right', fontSize: 10.5, color: 'var(--text-3)' }}>{(ratio * 100).toFixed(1)}%</div>
+                                    <button onClick={() => navigate(d.to)} style={{ flexShrink: 0, fontSize: 11, fontWeight: 700, padding: '5px 12px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#a855f7,#4f8ef7)', color: '#fff' }}>{d.act} →</button>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
+
+            <div style={{ ...CARD }}>
+                <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 10 }}>🚨 {t('pnl.rcChannelAnom', '채널별 이상 신호')} {anoms && anoms.length > 0 ? `(${anoms.length})` : ''}</div>
+                {anoms === null && <div style={{ fontSize: 12, color: 'var(--text-3)' }}>{t('pnl.loading', '불러오는 중…')}</div>}
+                {anoms && anoms.length === 0 && <div style={{ fontSize: 12, color: 'var(--text-3)' }}>✅ {t('pnl.rcNoAnom', '통계적 이상 신호가 없습니다(또는 데이터 부족).')}</div>}
+                {anoms && anoms.slice(0, 8).map((a, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', fontSize: 12, padding: '6px 0', borderBottom: '1px solid var(--border,#f1f5f9)' }}>
+                        <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 7px', borderRadius: 10, background: a.severity === 'critical' ? 'rgba(239,68,68,0.15)' : 'rgba(234,179,8,0.15)', color: a.severity === 'critical' ? '#ef4444' : '#b45309' }}>{a.severity === 'critical' ? '긴급' : '경계'}</span>
+                        <b>{a.channel}</b>
+                        <span style={{ color: 'var(--text-2)' }}>{a.metric_label || a.metric} {a.direction === 'down' || (a.bad === 'down') ? '↓' : '↑'} {a.message || ''}</span>
+                    </div>
+                ))}
             </div>
         </div>
     );
 }
 
-/* ═══════ TAB 4: Action ═══════ */
-function ActionTab({ t }) {
+/* ═══════ TAB: Action (231차 OS#2) — 기존 승인 플로우(/approvals)로 연결 ═══════ */
+function ActionTab({ t, navigate }) {
     return (
         <div style={{ display: 'grid', gap: 14 }}>
             <div style={{ fontSize: 11, color: 'var(--text-3)', padding: '8px 12px', borderRadius: 8, background: 'rgba(99,140,255,0.04)', border: '1px solid rgba(99,140,255,0.1)' }}>
@@ -325,8 +380,9 @@ function ActionTab({ t }) {
             </div>
             <div style={{ ...CARD, textAlign: 'center' }}>
                 <div style={{ fontSize: 40, marginBottom: 8 }}>📋</div>
-                <div style={{ fontWeight: 700, fontSize: 14 }}>{t('pnl.noActions')}</div>
-                <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 4 }}>{t('pnl.noActionsDesc')}</div>
+                <div style={{ fontWeight: 700, fontSize: 14 }}>{t('pnl.actionHubTitle', '실행 승인 센터에서 관리하세요')}</div>
+                <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 4, marginBottom: 14 }}>{t('pnl.actionHubDesc', '원인 분석에서 도출된 조치는 승인 센터에서 승인·실행·추적됩니다(폐쇄 루프).')}</div>
+                <button onClick={() => navigate('/approvals')} style={{ fontSize: 13, fontWeight: 800, padding: '9px 20px', borderRadius: 9, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#4f8ef7,#6366f1)', color: '#fff' }}>{t('pnl.actionGoApprovals', '실행 승인 센터 열기')} →</button>
             </div>
         </div>
     );
@@ -720,8 +776,8 @@ export default function PnLDashboard() {
                 {tab === 'health' && <HealthTab live={live} t={t} fmt={fmt} />}
                 {tab === 'overview' && <OverviewTab live={live} t={t} fmt={fmt} dateRange={dateRange} />}
                 {tab === 'pnl' && <PnlUnitTab live={live} t={t} fmt={fmt} connectedChannels={connectedChannels} />}
-                {tab === 'anomaly' && <AnomalyTab t={t} />}
-                {tab === 'action' && <ActionTab t={t} />}
+                {tab === 'anomaly' && <AnomalyTab t={t} live={live} fmt={fmt} navigate={navigate} />}
+                {tab === 'action' && <ActionTab t={t} navigate={navigate} />}
                 {tab === 'forecast' && <ForecastTab live={live} t={t} fmt={fmt} />}
                 {tab === 'guide' && <GuideTab t={t} />}
             </div>
