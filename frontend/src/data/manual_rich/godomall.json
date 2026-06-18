@@ -1,0 +1,2226 @@
+{
+  "name": "godomall",
+  "icon": "🏯",
+  "langs": {
+    "ko": {
+      "titleType": "API Key 발급 매뉴얼",
+      "badge": "Beginner Guide",
+      "intro": "NHN커머스 개발자센터에서 고도몰 오픈API 키 발급을 신청해 파트너키·API키를 받아 GenieGo 연동 허브에 등록하는 과정을 초보자도 그대로 따라 할 수 있도록 정리한 매뉴얼입니다.",
+      "org": "GenieGo 연동 허브",
+      "quick": [
+        [
+          "소요 시간",
+          "약 10~20분(승인 대기 포함)"
+        ],
+        [
+          "필요 계정",
+          "고도몰(NHN커머스) 쇼핑몰 운영자 계정"
+        ],
+        [
+          "발급 키",
+          "파트너키 · API키"
+        ],
+        [
+          "결과물",
+          "오픈API 자격증명"
+        ]
+      ],
+      "sections": [
+        {
+          "h2": "1. 시작하기 전에",
+          "desc": "고도몰 오픈API는 NHN커머스 개발자센터에서 개발자 등록과 승인을 거쳐 신청합니다.",
+          "blocks": [
+            {
+              "type": "cards",
+              "items": [
+                {
+                  "tag": "필요",
+                  "h3": "쇼핑몰 운영자 계정",
+                  "p": "고도몰(NHN커머스) 쇼핑몰을 운영하는 운영자 계정이 있어야 합니다. 이 계정으로 개발자센터에 회원·개발자 등록을 진행합니다."
+                },
+                {
+                  "tag": "발급 키",
+                  "h3": "파트너키 · API키",
+                  "p": "키발급 신청이 승인되면 오픈API 키(파트너키/API키)가 발급됩니다."
+                }
+              ]
+            },
+            {
+              "type": "notice",
+              "kind": "",
+              "html": "<strong>참고:</strong> 개발자 등록과 키발급 신청은 승인 절차를 거치므로 승인까지 시간이 걸릴 수 있습니다."
+            }
+          ]
+        },
+        {
+          "h2": "2. 오픈API 키 발급 단계",
+          "desc": "아래 순서대로 신청·발급하고 GenieGo에 등록합니다.",
+          "blocks": [
+            {
+              "type": "steps",
+              "items": [
+                {
+                  "h3": "개발자 등록·승인",
+                  "p": "NHN커머스 개발자센터에 회원·개발자로 등록하고 승인을 받습니다.",
+                  "path": "devcenter.nhn-commerce.com"
+                },
+                {
+                  "h3": "키발급 신청",
+                  "p": "[오픈API] > [키발급 신청]에서 신청폼을 작성해 제출합니다.",
+                  "path": "오픈API → 키발급 신청"
+                },
+                {
+                  "h3": "키 확인",
+                  "p": "발급된 오픈API 키(파트너키/API키)를 확인합니다."
+                }
+              ]
+            },
+            {
+              "type": "notice",
+              "kind": "success",
+              "html": "파트너키·API키가 발급되면 정상 신청·승인된 것입니다."
+            }
+          ]
+        },
+        {
+          "h2": "3. GenieGo에 등록할 정보",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "필드",
+                "설명"
+              ],
+              "rows": [
+                [
+                  "partner_key",
+                  "발급된 파트너키"
+                ],
+                [
+                  "api_key",
+                  "발급된 API키(노출 주의)"
+                ]
+              ]
+            },
+            {
+              "type": "notice",
+              "kind": "success",
+              "html": "GenieGo 연동 허브 [등록]에 입력해 저장하면 자격증명은 AES-256-GCM으로 암호화 저장되고 조회 시 마스킹됩니다."
+            }
+          ]
+        },
+        {
+          "h2": "4. 자주 발생하는 문제",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "문제",
+                "원인",
+                "해결"
+              ],
+              "rows": [
+                [
+                  "키발급 신청을 할 수 없음",
+                  "개발자 등록·승인 미완료",
+                  "개발자센터에서 회원·개발자 등록과 승인을 먼저 완료합니다."
+                ],
+                [
+                  "신청 후 키가 발급되지 않음",
+                  "승인 대기 중",
+                  "승인 절차가 완료될 때까지 기다린 뒤 다시 확인합니다."
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "최종 체크리스트",
+          "blocks": [
+            {
+              "type": "checklist",
+              "items": [
+                "NHN커머스 개발자센터에 회원·개발자로 등록하고 승인을 받았다.",
+                "[오픈API > 키발급 신청]에서 신청폼을 작성해 제출했다.",
+                "발급된 파트너키·API키를 확인했다.",
+                "GenieGo [등록]에 partner_key·api_key를 입력해 저장했다."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "en": {
+      "titleType": "API Key Issuance Manual",
+      "badge": "Beginner Guide",
+      "intro": "A beginner-friendly, step-by-step guide to applying for godomall Open API keys in the NHN Commerce Developer Center, receiving your partner key and API key, and registering them in the GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        [
+          "Est. time",
+          "About 10–20 min (including approval wait)"
+        ],
+        [
+          "Account needed",
+          "godomall (NHN Commerce) store operator account"
+        ],
+        [
+          "Keys issued",
+          "Partner key · API key"
+        ],
+        [
+          "Result",
+          "Open API credentials"
+        ]
+      ],
+      "sections": [
+        {
+          "h2": "1. Before You Begin",
+          "desc": "The godomall Open API is applied for in the NHN Commerce Developer Center after developer registration and approval.",
+          "blocks": [
+            {
+              "type": "cards",
+              "items": [
+                {
+                  "tag": "Required",
+                  "h3": "Store operator account",
+                  "p": "You need an operator account that runs a godomall (NHN Commerce) store. Use this account to complete member and developer registration in the Developer Center."
+                },
+                {
+                  "tag": "Keys issued",
+                  "h3": "Partner key · API key",
+                  "p": "Once your key issuance application is approved, the Open API keys (partner key / API key) are issued."
+                }
+              ]
+            },
+            {
+              "type": "notice",
+              "kind": "",
+              "html": "<strong>Note:</strong> Developer registration and key issuance applications go through an approval process, so approval may take some time."
+            }
+          ]
+        },
+        {
+          "h2": "2. Open API Key Issuance Steps",
+          "desc": "Apply and issue in the order below, then register in GenieGo.",
+          "blocks": [
+            {
+              "type": "steps",
+              "items": [
+                {
+                  "h3": "Register and get approved as a developer",
+                  "p": "Register as a member and developer in the NHN Commerce Developer Center and obtain approval.",
+                  "path": "devcenter.nhn-commerce.com"
+                },
+                {
+                  "h3": "Apply for key issuance",
+                  "p": "In [Open API] > [Apply for Key Issuance], fill out the application form and submit it.",
+                  "path": "Open API → Apply for Key Issuance"
+                },
+                {
+                  "h3": "Check the keys",
+                  "p": "Check the issued Open API keys (partner key / API key)."
+                }
+              ]
+            },
+            {
+              "type": "notice",
+              "kind": "success",
+              "html": "Once the partner key and API key are issued, the application has been correctly submitted and approved."
+            }
+          ]
+        },
+        {
+          "h2": "3. Information to Register in GenieGo",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "Field",
+                "Description"
+              ],
+              "rows": [
+                [
+                  "partner_key",
+                  "The issued partner key"
+                ],
+                [
+                  "api_key",
+                  "The issued API key (handle with care)"
+                ]
+              ]
+            },
+            {
+              "type": "notice",
+              "kind": "success",
+              "html": "Enter and save the values in the GenieGo Integration Hub [Register]. Credentials are encrypted at rest with AES-256-GCM and masked on read."
+            }
+          ]
+        },
+        {
+          "h2": "4. Common Issues",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "Issue",
+                "Cause",
+                "Solution"
+              ],
+              "rows": [
+                [
+                  "Cannot apply for key issuance",
+                  "Developer registration / approval not completed",
+                  "Complete member and developer registration and approval in the Developer Center first."
+                ],
+                [
+                  "Keys are not issued after applying",
+                  "Pending approval",
+                  "Wait until the approval process is completed, then check again."
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "Final Checklist",
+          "blocks": [
+            {
+              "type": "checklist",
+              "items": [
+                "Registered as a member and developer in the NHN Commerce Developer Center and obtained approval.",
+                "Filled out and submitted the application form in [Open API > Apply for Key Issuance].",
+                "Checked the issued partner key and API key.",
+                "Entered partner_key·api_key in GenieGo [Register] and saved."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "ja": {
+      "titleType": "API Key 発行マニュアル",
+      "badge": "初心者ガイド",
+      "intro": "NHN Commerce 開発者センターで godomall オープンAPI キーの発行を申請し、パートナーキー・API キーを受け取って GenieGo 連携ハブに登録する手順を、初心者でもそのまま実行できるようにまとめたマニュアルです。",
+      "org": "GenieGo 連携ハブ",
+      "quick": [
+        [
+          "所要時間",
+          "約 10〜20 分(承認待ちを含む)"
+        ],
+        [
+          "必要なアカウント",
+          "godomall(NHN Commerce)ショップ運営者アカウント"
+        ],
+        [
+          "発行するキー",
+          "パートナーキー · API キー"
+        ],
+        [
+          "成果物",
+          "オープンAPI 認証情報"
+        ]
+      ],
+      "sections": [
+        {
+          "h2": "1. はじめる前に",
+          "desc": "godomall のオープンAPI は、NHN Commerce 開発者センターで開発者登録と承認を経て申請します。",
+          "blocks": [
+            {
+              "type": "cards",
+              "items": [
+                {
+                  "tag": "必須",
+                  "h3": "ショップ運営者アカウント",
+                  "p": "godomall(NHN Commerce)ショップを運営する運営者アカウントが必要です。このアカウントで開発者センターに会員・開発者登録を行います。"
+                },
+                {
+                  "tag": "発行するキー",
+                  "h3": "パートナーキー · API キー",
+                  "p": "キー発行申請が承認されると、オープンAPI キー(パートナーキー / API キー)が発行されます。"
+                }
+              ]
+            },
+            {
+              "type": "notice",
+              "kind": "",
+              "html": "<strong>注意:</strong> 開発者登録とキー発行申請は承認手続きを経るため、承認までに時間がかかる場合があります。"
+            }
+          ]
+        },
+        {
+          "h2": "2. オープンAPI キー発行手順",
+          "desc": "以下の順序で申請・発行し、GenieGo に登録します。",
+          "blocks": [
+            {
+              "type": "steps",
+              "items": [
+                {
+                  "h3": "開発者登録・承認",
+                  "p": "NHN Commerce 開発者センターに会員・開発者として登録し、承認を受けます。",
+                  "path": "devcenter.nhn-commerce.com"
+                },
+                {
+                  "h3": "キー発行申請",
+                  "p": "[オープンAPI] > [キー発行申請] で申請フォームを記入して提出します。",
+                  "path": "オープンAPI → キー発行申請"
+                },
+                {
+                  "h3": "キーの確認",
+                  "p": "発行されたオープンAPI キー(パートナーキー / API キー)を確認します。"
+                }
+              ]
+            },
+            {
+              "type": "notice",
+              "kind": "success",
+              "html": "パートナーキー・API キーが発行されれば、正常に申請・承認されています。"
+            }
+          ]
+        },
+        {
+          "h2": "3. GenieGo に登録する情報",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "フィールド",
+                "説明"
+              ],
+              "rows": [
+                [
+                  "partner_key",
+                  "発行されたパートナーキー"
+                ],
+                [
+                  "api_key",
+                  "発行された API キー(取り扱い注意)"
+                ]
+              ]
+            },
+            {
+              "type": "notice",
+              "kind": "success",
+              "html": "GenieGo 連携ハブ [登録] に入力して保存すると、認証情報は AES-256-GCM で暗号化して保存され、閲覧時にはマスキングされます。"
+            }
+          ]
+        },
+        {
+          "h2": "4. よくある問題",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "問題",
+                "原因",
+                "解決方法"
+              ],
+              "rows": [
+                [
+                  "キー発行申請ができない",
+                  "開発者登録・承認が未完了",
+                  "開発者センターで会員・開発者登録と承認を先に完了します。"
+                ],
+                [
+                  "申請後にキーが発行されない",
+                  "承認待ち",
+                  "承認手続きが完了するまで待ってから、再度確認します。"
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "最終チェックリスト",
+          "blocks": [
+            {
+              "type": "checklist",
+              "items": [
+                "NHN Commerce 開発者センターに会員・開発者として登録し、承認を受けた。",
+                "[オープンAPI > キー発行申請] で申請フォームを記入して提出した。",
+                "発行されたパートナーキー・API キーを確認した。",
+                "GenieGo の [登録] に partner_key·api_key を入力して保存した。"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "zh": {
+      "titleType": "API Key 申请手册",
+      "badge": "新手指南",
+      "intro": "本手册手把手指导新手在 NHN Commerce 开发者中心申请 godomall 开放 API 密钥，获取合作伙伴密钥和 API 密钥，并注册到 GenieGo 集成中心。",
+      "org": "GenieGo 集成中心",
+      "quick": [
+        [
+          "预计时间",
+          "约 10~20 分钟(含审核等待)"
+        ],
+        [
+          "所需账户",
+          "godomall(NHN Commerce)商城运营者账户"
+        ],
+        [
+          "签发密钥",
+          "合作伙伴密钥 · API 密钥"
+        ],
+        [
+          "成果",
+          "开放 API 凭证"
+        ]
+      ],
+      "sections": [
+        {
+          "h2": "1. 开始之前",
+          "desc": "godomall 开放 API 需在 NHN Commerce 开发者中心完成开发者注册和审核后申请。",
+          "blocks": [
+            {
+              "type": "cards",
+              "items": [
+                {
+                  "tag": "必需",
+                  "h3": "商城运营者账户",
+                  "p": "您需要一个运营 godomall(NHN Commerce)商城的运营者账户。使用该账户在开发者中心完成会员和开发者注册。"
+                },
+                {
+                  "tag": "签发密钥",
+                  "h3": "合作伙伴密钥 · API 密钥",
+                  "p": "密钥签发申请通过审核后，将签发开放 API 密钥(合作伙伴密钥 / API 密钥)。"
+                }
+              ]
+            },
+            {
+              "type": "notice",
+              "kind": "",
+              "html": "<strong>注意:</strong> 开发者注册和密钥签发申请需经过审核流程，因此审核可能需要一些时间。"
+            }
+          ]
+        },
+        {
+          "h2": "2. 开放 API 密钥签发步骤",
+          "desc": "按以下顺序申请、签发，然后在 GenieGo 中注册。",
+          "blocks": [
+            {
+              "type": "steps",
+              "items": [
+                {
+                  "h3": "注册并通过开发者审核",
+                  "p": "在 NHN Commerce 开发者中心注册为会员和开发者并获得审核通过。",
+                  "path": "devcenter.nhn-commerce.com"
+                },
+                {
+                  "h3": "申请密钥签发",
+                  "p": "在[开放 API] > [申请密钥签发]中填写申请表并提交。",
+                  "path": "开放 API → 申请密钥签发"
+                },
+                {
+                  "h3": "查看密钥",
+                  "p": "查看已签发的开放 API 密钥(合作伙伴密钥 / API 密钥)。"
+                }
+              ]
+            },
+            {
+              "type": "notice",
+              "kind": "success",
+              "html": "当签发出合作伙伴密钥和 API 密钥时，即表示已正确申请并通过审核。"
+            }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中注册的信息",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "字段",
+                "说明"
+              ],
+              "rows": [
+                [
+                  "partner_key",
+                  "已签发的合作伙伴密钥"
+                ],
+                [
+                  "api_key",
+                  "已签发的 API 密钥(请妥善保管)"
+                ]
+              ]
+            },
+            {
+              "type": "notice",
+              "kind": "success",
+              "html": "在 GenieGo 集成中心 [注册] 中输入并保存后，凭证将以 AES-256-GCM 加密存储，并在查询时进行掩码处理。"
+            }
+          ]
+        },
+        {
+          "h2": "4. 常见问题",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "问题",
+                "原因",
+                "解决方法"
+              ],
+              "rows": [
+                [
+                  "无法申请密钥签发",
+                  "开发者注册 / 审核未完成",
+                  "请先在开发者中心完成会员和开发者注册及审核。"
+                ],
+                [
+                  "申请后未签发密钥",
+                  "正在等待审核",
+                  "请等待审核流程完成后再次查看。"
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "最终检查清单",
+          "blocks": [
+            {
+              "type": "checklist",
+              "items": [
+                "已在 NHN Commerce 开发者中心注册为会员和开发者并通过审核。",
+                "已在[开放 API > 申请密钥签发]中填写并提交申请表。",
+                "已查看签发的合作伙伴密钥和 API 密钥。",
+                "已在 GenieGo [注册] 中输入 partner_key·api_key 并保存。"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "zh-TW": {
+      "titleType": "API Key 申請手冊",
+      "badge": "新手指南",
+      "intro": "本手冊手把手指導新手在 NHN Commerce 開發者中心申請 godomall 開放 API 金鑰，取得合作夥伴金鑰和 API 金鑰，並註冊到 GenieGo 整合中心。",
+      "org": "GenieGo 整合中心",
+      "quick": [
+        [
+          "預計時間",
+          "約 10~20 分鐘(含審查等待)"
+        ],
+        [
+          "所需帳戶",
+          "godomall(NHN Commerce)商城營運者帳戶"
+        ],
+        [
+          "簽發金鑰",
+          "合作夥伴金鑰 · API 金鑰"
+        ],
+        [
+          "成果",
+          "開放 API 憑證"
+        ]
+      ],
+      "sections": [
+        {
+          "h2": "1. 開始之前",
+          "desc": "godomall 開放 API 需在 NHN Commerce 開發者中心完成開發者註冊和審查後申請。",
+          "blocks": [
+            {
+              "type": "cards",
+              "items": [
+                {
+                  "tag": "必需",
+                  "h3": "商城營運者帳戶",
+                  "p": "您需要一個營運 godomall(NHN Commerce)商城的營運者帳戶。使用該帳戶在開發者中心完成會員和開發者註冊。"
+                },
+                {
+                  "tag": "簽發金鑰",
+                  "h3": "合作夥伴金鑰 · API 金鑰",
+                  "p": "金鑰簽發申請通過審查後，將簽發開放 API 金鑰(合作夥伴金鑰 / API 金鑰)。"
+                }
+              ]
+            },
+            {
+              "type": "notice",
+              "kind": "",
+              "html": "<strong>注意:</strong> 開發者註冊和金鑰簽發申請需經過審查流程，因此審查可能需要一些時間。"
+            }
+          ]
+        },
+        {
+          "h2": "2. 開放 API 金鑰簽發步驟",
+          "desc": "依以下順序申請、簽發，然後在 GenieGo 中註冊。",
+          "blocks": [
+            {
+              "type": "steps",
+              "items": [
+                {
+                  "h3": "註冊並通過開發者審查",
+                  "p": "在 NHN Commerce 開發者中心註冊為會員和開發者並獲得審查通過。",
+                  "path": "devcenter.nhn-commerce.com"
+                },
+                {
+                  "h3": "申請金鑰簽發",
+                  "p": "在[開放 API] > [申請金鑰簽發]中填寫申請表並提交。",
+                  "path": "開放 API → 申請金鑰簽發"
+                },
+                {
+                  "h3": "查看金鑰",
+                  "p": "查看已簽發的開放 API 金鑰(合作夥伴金鑰 / API 金鑰)。"
+                }
+              ]
+            },
+            {
+              "type": "notice",
+              "kind": "success",
+              "html": "當簽發出合作夥伴金鑰和 API 金鑰時，即表示已正確申請並通過審查。"
+            }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中註冊的資訊",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "欄位",
+                "說明"
+              ],
+              "rows": [
+                [
+                  "partner_key",
+                  "已簽發的合作夥伴金鑰"
+                ],
+                [
+                  "api_key",
+                  "已簽發的 API 金鑰(請妥善保管)"
+                ]
+              ]
+            },
+            {
+              "type": "notice",
+              "kind": "success",
+              "html": "在 GenieGo 整合中心 [註冊] 中輸入並儲存後，憑證將以 AES-256-GCM 加密儲存，並在查詢時進行遮罩處理。"
+            }
+          ]
+        },
+        {
+          "h2": "4. 常見問題",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "問題",
+                "原因",
+                "解決方法"
+              ],
+              "rows": [
+                [
+                  "無法申請金鑰簽發",
+                  "開發者註冊 / 審查未完成",
+                  "請先在開發者中心完成會員和開發者註冊及審查。"
+                ],
+                [
+                  "申請後未簽發金鑰",
+                  "正在等待審查",
+                  "請等待審查流程完成後再次查看。"
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "最終檢查清單",
+          "blocks": [
+            {
+              "type": "checklist",
+              "items": [
+                "已在 NHN Commerce 開發者中心註冊為會員和開發者並通過審查。",
+                "已在[開放 API > 申請金鑰簽發]中填寫並提交申請表。",
+                "已查看簽發的合作夥伴金鑰和 API 金鑰。",
+                "已在 GenieGo [註冊] 中輸入 partner_key·api_key 並儲存。"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "de": {
+      "titleType": "Anleitung zur API-Key-Ausstellung",
+      "badge": "Einsteigerleitfaden",
+      "intro": "Eine einsteigerfreundliche Schritt-für-Schritt-Anleitung zur Beantragung von godomall-Open-API-Schlüsseln im NHN Commerce Developer Center, zum Erhalt Ihres Partnerschlüssels und API-Schlüssels und zur Registrierung im GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        [
+          "Geschätzte Zeit",
+          "Etwa 10–20 Min. (inkl. Wartezeit auf Genehmigung)"
+        ],
+        [
+          "Benötigtes Konto",
+          "godomall (NHN Commerce) Shop-Betreiberkonto"
+        ],
+        [
+          "Ausgestellte Schlüssel",
+          "Partnerschlüssel · API-Schlüssel"
+        ],
+        [
+          "Ergebnis",
+          "Open-API-Anmeldedaten"
+        ]
+      ],
+      "sections": [
+        {
+          "h2": "1. Bevor Sie beginnen",
+          "desc": "Die godomall-Open-API wird im NHN Commerce Developer Center nach der Entwicklerregistrierung und -genehmigung beantragt.",
+          "blocks": [
+            {
+              "type": "cards",
+              "items": [
+                {
+                  "tag": "Erforderlich",
+                  "h3": "Shop-Betreiberkonto",
+                  "p": "Sie benötigen ein Betreiberkonto, das einen godomall-Shop (NHN Commerce) betreibt. Verwenden Sie dieses Konto, um die Mitglieds- und Entwicklerregistrierung im Developer Center abzuschließen."
+                },
+                {
+                  "tag": "Ausgestellte Schlüssel",
+                  "h3": "Partnerschlüssel · API-Schlüssel",
+                  "p": "Sobald Ihr Antrag auf Schlüsselausstellung genehmigt ist, werden die Open-API-Schlüssel (Partnerschlüssel / API-Schlüssel) ausgestellt."
+                }
+              ]
+            },
+            {
+              "type": "notice",
+              "kind": "",
+              "html": "<strong>Hinweis:</strong> Die Entwicklerregistrierung und der Antrag auf Schlüsselausstellung durchlaufen ein Genehmigungsverfahren, sodass die Genehmigung einige Zeit dauern kann."
+            }
+          ]
+        },
+        {
+          "h2": "2. Schritte zur Open-API-Schlüsselausstellung",
+          "desc": "Beantragen und stellen Sie in der unten angegebenen Reihenfolge aus und registrieren Sie in GenieGo.",
+          "blocks": [
+            {
+              "type": "steps",
+              "items": [
+                {
+                  "h3": "Als Entwickler registrieren und genehmigen lassen",
+                  "p": "Registrieren Sie sich als Mitglied und Entwickler im NHN Commerce Developer Center und erhalten Sie die Genehmigung.",
+                  "path": "devcenter.nhn-commerce.com"
+                },
+                {
+                  "h3": "Schlüsselausstellung beantragen",
+                  "p": "Füllen Sie unter [Open API] > [Schlüsselausstellung beantragen] das Antragsformular aus und reichen Sie es ein.",
+                  "path": "Open API → Schlüsselausstellung beantragen"
+                },
+                {
+                  "h3": "Schlüssel überprüfen",
+                  "p": "Überprüfen Sie die ausgestellten Open-API-Schlüssel (Partnerschlüssel / API-Schlüssel)."
+                }
+              ]
+            },
+            {
+              "type": "notice",
+              "kind": "success",
+              "html": "Sobald der Partnerschlüssel und der API-Schlüssel ausgestellt sind, wurde der Antrag korrekt eingereicht und genehmigt."
+            }
+          ]
+        },
+        {
+          "h2": "3. In GenieGo zu registrierende Informationen",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "Feld",
+                "Beschreibung"
+              ],
+              "rows": [
+                [
+                  "partner_key",
+                  "Der ausgestellte Partnerschlüssel"
+                ],
+                [
+                  "api_key",
+                  "Der ausgestellte API-Schlüssel (vertraulich behandeln)"
+                ]
+              ]
+            },
+            {
+              "type": "notice",
+              "kind": "success",
+              "html": "Geben Sie die Werte im GenieGo Integration Hub [Registrieren] ein und speichern Sie. Anmeldedaten werden im Ruhezustand mit AES-256-GCM verschlüsselt und beim Lesen maskiert."
+            }
+          ]
+        },
+        {
+          "h2": "4. Häufige Probleme",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "Problem",
+                "Ursache",
+                "Lösung"
+              ],
+              "rows": [
+                [
+                  "Schlüsselausstellung kann nicht beantragt werden",
+                  "Entwicklerregistrierung / Genehmigung nicht abgeschlossen",
+                  "Schließen Sie zuerst die Mitglieds- und Entwicklerregistrierung sowie die Genehmigung im Developer Center ab."
+                ],
+                [
+                  "Schlüssel werden nach dem Antrag nicht ausgestellt",
+                  "Genehmigung ausstehend",
+                  "Warten Sie, bis das Genehmigungsverfahren abgeschlossen ist, und überprüfen Sie es dann erneut."
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "Abschließende Checkliste",
+          "blocks": [
+            {
+              "type": "checklist",
+              "items": [
+                "Als Mitglied und Entwickler im NHN Commerce Developer Center registriert und die Genehmigung erhalten.",
+                "Das Antragsformular unter [Open API > Schlüsselausstellung beantragen] ausgefüllt und eingereicht.",
+                "Den ausgestellten Partnerschlüssel und API-Schlüssel überprüft.",
+                "partner_key·api_key in GenieGo [Registrieren] eingegeben und gespeichert."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "th": {
+      "titleType": "คู่มือการออก API Key",
+      "badge": "คู่มือสำหรับผู้เริ่มต้น",
+      "intro": "คู่มือทีละขั้นตอนที่เป็นมิตรกับผู้เริ่มต้น สำหรับการยื่นขอคีย์ Open API ของ godomall ใน NHN Commerce Developer Center รับ partner key และ API key แล้วลงทะเบียนใน GenieGo Integration Hub",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        [
+          "เวลาโดยประมาณ",
+          "ประมาณ 10–20 นาที (รวมเวลารออนุมัติ)"
+        ],
+        [
+          "บัญชีที่ต้องใช้",
+          "บัญชีผู้ดูแลร้านค้า godomall (NHN Commerce)"
+        ],
+        [
+          "คีย์ที่ออก",
+          "partner key · API key"
+        ],
+        [
+          "ผลลัพธ์",
+          "ข้อมูลรับรอง Open API"
+        ]
+      ],
+      "sections": [
+        {
+          "h2": "1. ก่อนเริ่มต้น",
+          "desc": "Open API ของ godomall ยื่นขอใน NHN Commerce Developer Center หลังจากการลงทะเบียนนักพัฒนาและการอนุมัติ",
+          "blocks": [
+            {
+              "type": "cards",
+              "items": [
+                {
+                  "tag": "จำเป็น",
+                  "h3": "บัญชีผู้ดูแลร้านค้า",
+                  "p": "คุณต้องมีบัญชีผู้ดูแลที่ดำเนินการร้านค้า godomall (NHN Commerce) ใช้บัญชีนี้เพื่อทำการลงทะเบียนสมาชิกและนักพัฒนาใน Developer Center"
+                },
+                {
+                  "tag": "คีย์ที่ออก",
+                  "h3": "partner key · API key",
+                  "p": "เมื่อคำขอออกคีย์ได้รับการอนุมัติ คีย์ Open API (partner key / API key) จะถูกออกให้"
+                }
+              ]
+            },
+            {
+              "type": "notice",
+              "kind": "",
+              "html": "<strong>หมายเหตุ:</strong> การลงทะเบียนนักพัฒนาและคำขอออกคีย์ต้องผ่านกระบวนการอนุมัติ ดังนั้นการอนุมัติอาจใช้เวลาสักระยะ"
+            }
+          ]
+        },
+        {
+          "h2": "2. ขั้นตอนการออกคีย์ Open API",
+          "desc": "ยื่นขอและออกตามลำดับด้านล่าง จากนั้นลงทะเบียนใน GenieGo",
+          "blocks": [
+            {
+              "type": "steps",
+              "items": [
+                {
+                  "h3": "ลงทะเบียนและได้รับการอนุมัติเป็นนักพัฒนา",
+                  "p": "ลงทะเบียนเป็นสมาชิกและนักพัฒนาใน NHN Commerce Developer Center และรับการอนุมัติ",
+                  "path": "devcenter.nhn-commerce.com"
+                },
+                {
+                  "h3": "ยื่นขอออกคีย์",
+                  "p": "ใน [Open API] > [ยื่นขอออกคีย์] กรอกแบบฟอร์มคำขอและส่ง",
+                  "path": "Open API → ยื่นขอออกคีย์"
+                },
+                {
+                  "h3": "ตรวจสอบคีย์",
+                  "p": "ตรวจสอบคีย์ Open API ที่ออกแล้ว (partner key / API key)"
+                }
+              ]
+            },
+            {
+              "type": "notice",
+              "kind": "success",
+              "html": "เมื่อมีการออก partner key และ API key แล้ว แสดงว่ายื่นขอและได้รับการอนุมัติอย่างถูกต้อง"
+            }
+          ]
+        },
+        {
+          "h2": "3. ข้อมูลที่ต้องลงทะเบียนใน GenieGo",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "ฟิลด์",
+                "คำอธิบาย"
+              ],
+              "rows": [
+                [
+                  "partner_key",
+                  "partner key ที่ออกแล้ว"
+                ],
+                [
+                  "api_key",
+                  "API key ที่ออกแล้ว (จัดการด้วยความระมัดระวัง)"
+                ]
+              ]
+            },
+            {
+              "type": "notice",
+              "kind": "success",
+              "html": "ป้อนและบันทึกค่าใน GenieGo Integration Hub [ลงทะเบียน] ข้อมูลรับรองจะถูกเข้ารหัสขณะจัดเก็บด้วย AES-256-GCM และปิดบังเมื่ออ่าน"
+            }
+          ]
+        },
+        {
+          "h2": "4. ปัญหาที่พบบ่อย",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "ปัญหา",
+                "สาเหตุ",
+                "วิธีแก้ไข"
+              ],
+              "rows": [
+                [
+                  "ไม่สามารถยื่นขอออกคีย์ได้",
+                  "การลงทะเบียนนักพัฒนา / การอนุมัติยังไม่เสร็จสมบูรณ์",
+                  "ทำการลงทะเบียนสมาชิกและนักพัฒนาและการอนุมัติใน Developer Center ให้เสร็จก่อน"
+                ],
+                [
+                  "ไม่มีการออกคีย์หลังจากยื่นขอ",
+                  "กำลังรอการอนุมัติ",
+                  "รอจนกว่ากระบวนการอนุมัติจะเสร็จสมบูรณ์ แล้วตรวจสอบอีกครั้ง"
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "รายการตรวจสอบขั้นสุดท้าย",
+          "blocks": [
+            {
+              "type": "checklist",
+              "items": [
+                "ลงทะเบียนเป็นสมาชิกและนักพัฒนาใน NHN Commerce Developer Center และได้รับการอนุมัติแล้ว",
+                "กรอกและส่งแบบฟอร์มคำขอใน [Open API > ยื่นขอออกคีย์] แล้ว",
+                "ตรวจสอบ partner key และ API key ที่ออกแล้ว",
+                "ป้อน partner_key·api_key ใน GenieGo [ลงทะเบียน] และบันทึกแล้ว"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "vi": {
+      "titleType": "Hướng dẫn cấp API Key",
+      "badge": "Hướng dẫn cho người mới",
+      "intro": "Hướng dẫn từng bước thân thiện với người mới về việc đăng ký khóa Open API godomall trong NHN Commerce Developer Center, nhận partner key và API key, rồi đăng ký chúng trong GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        [
+          "Thời gian dự kiến",
+          "Khoảng 10–20 phút (bao gồm thời gian chờ phê duyệt)"
+        ],
+        [
+          "Tài khoản cần thiết",
+          "Tài khoản người vận hành cửa hàng godomall (NHN Commerce)"
+        ],
+        [
+          "Khóa được cấp",
+          "partner key · API key"
+        ],
+        [
+          "Kết quả",
+          "Thông tin xác thực Open API"
+        ]
+      ],
+      "sections": [
+        {
+          "h2": "1. Trước khi bắt đầu",
+          "desc": "Open API của godomall được đăng ký trong NHN Commerce Developer Center sau khi đăng ký nhà phát triển và được phê duyệt.",
+          "blocks": [
+            {
+              "type": "cards",
+              "items": [
+                {
+                  "tag": "Bắt buộc",
+                  "h3": "Tài khoản người vận hành cửa hàng",
+                  "p": "Bạn cần một tài khoản người vận hành đang vận hành cửa hàng godomall (NHN Commerce). Sử dụng tài khoản này để hoàn tất đăng ký thành viên và nhà phát triển trong Developer Center."
+                },
+                {
+                  "tag": "Khóa được cấp",
+                  "h3": "partner key · API key",
+                  "p": "Sau khi đơn đăng ký cấp khóa được phê duyệt, các khóa Open API (partner key / API key) sẽ được cấp."
+                }
+              ]
+            },
+            {
+              "type": "notice",
+              "kind": "",
+              "html": "<strong>Lưu ý:</strong> Việc đăng ký nhà phát triển và đơn đăng ký cấp khóa phải trải qua quy trình phê duyệt, vì vậy việc phê duyệt có thể mất một khoảng thời gian."
+            }
+          ]
+        },
+        {
+          "h2": "2. Các bước cấp khóa Open API",
+          "desc": "Đăng ký và cấp theo thứ tự dưới đây, sau đó đăng ký trong GenieGo.",
+          "blocks": [
+            {
+              "type": "steps",
+              "items": [
+                {
+                  "h3": "Đăng ký và được phê duyệt làm nhà phát triển",
+                  "p": "Đăng ký làm thành viên và nhà phát triển trong NHN Commerce Developer Center và nhận phê duyệt.",
+                  "path": "devcenter.nhn-commerce.com"
+                },
+                {
+                  "h3": "Đăng ký cấp khóa",
+                  "p": "Trong [Open API] > [Đăng ký cấp khóa], điền vào biểu mẫu đăng ký và gửi.",
+                  "path": "Open API → Đăng ký cấp khóa"
+                },
+                {
+                  "h3": "Kiểm tra khóa",
+                  "p": "Kiểm tra các khóa Open API đã được cấp (partner key / API key)."
+                }
+              ]
+            },
+            {
+              "type": "notice",
+              "kind": "success",
+              "html": "Khi partner key và API key được cấp, nghĩa là đơn đăng ký đã được gửi và phê duyệt đúng cách."
+            }
+          ]
+        },
+        {
+          "h2": "3. Thông tin cần đăng ký trong GenieGo",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "Trường",
+                "Mô tả"
+              ],
+              "rows": [
+                [
+                  "partner_key",
+                  "partner key đã được cấp"
+                ],
+                [
+                  "api_key",
+                  "API key đã được cấp (xử lý cẩn thận)"
+                ]
+              ]
+            },
+            {
+              "type": "notice",
+              "kind": "success",
+              "html": "Nhập và lưu các giá trị trong GenieGo Integration Hub [Đăng ký]. Thông tin xác thực được mã hóa khi lưu trữ bằng AES-256-GCM và được che khi đọc."
+            }
+          ]
+        },
+        {
+          "h2": "4. Sự cố thường gặp",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "Sự cố",
+                "Nguyên nhân",
+                "Giải pháp"
+              ],
+              "rows": [
+                [
+                  "Không thể đăng ký cấp khóa",
+                  "Đăng ký nhà phát triển / phê duyệt chưa hoàn tất",
+                  "Hoàn tất đăng ký thành viên và nhà phát triển cùng phê duyệt trong Developer Center trước."
+                ],
+                [
+                  "Khóa không được cấp sau khi đăng ký",
+                  "Đang chờ phê duyệt",
+                  "Chờ cho đến khi quy trình phê duyệt hoàn tất, rồi kiểm tra lại."
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "Danh sách kiểm tra cuối cùng",
+          "blocks": [
+            {
+              "type": "checklist",
+              "items": [
+                "Đã đăng ký làm thành viên và nhà phát triển trong NHN Commerce Developer Center và nhận phê duyệt.",
+                "Đã điền và gửi biểu mẫu đăng ký trong [Open API > Đăng ký cấp khóa].",
+                "Đã kiểm tra partner key và API key đã được cấp.",
+                "Đã nhập partner_key·api_key vào GenieGo [Đăng ký] và lưu."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "id": {
+      "titleType": "Panduan Penerbitan API Key",
+      "badge": "Panduan Pemula",
+      "intro": "Panduan langkah demi langkah yang ramah pemula untuk mengajukan kunci Open API godomall di NHN Commerce Developer Center, menerima partner key dan API key, lalu mendaftarkannya di GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        [
+          "Perkiraan waktu",
+          "Sekitar 10–20 menit (termasuk menunggu persetujuan)"
+        ],
+        [
+          "Akun yang dibutuhkan",
+          "Akun operator toko godomall (NHN Commerce)"
+        ],
+        [
+          "Kunci yang diterbitkan",
+          "partner key · API key"
+        ],
+        [
+          "Hasil",
+          "Kredensial Open API"
+        ]
+      ],
+      "sections": [
+        {
+          "h2": "1. Sebelum Anda Mulai",
+          "desc": "Open API godomall diajukan di NHN Commerce Developer Center setelah pendaftaran dan persetujuan pengembang.",
+          "blocks": [
+            {
+              "type": "cards",
+              "items": [
+                {
+                  "tag": "Diperlukan",
+                  "h3": "Akun operator toko",
+                  "p": "Anda memerlukan akun operator yang menjalankan toko godomall (NHN Commerce). Gunakan akun ini untuk menyelesaikan pendaftaran anggota dan pengembang di Developer Center."
+                },
+                {
+                  "tag": "Kunci yang diterbitkan",
+                  "h3": "partner key · API key",
+                  "p": "Setelah pengajuan penerbitan kunci disetujui, kunci Open API (partner key / API key) akan diterbitkan."
+                }
+              ]
+            },
+            {
+              "type": "notice",
+              "kind": "",
+              "html": "<strong>Catatan:</strong> Pendaftaran pengembang dan pengajuan penerbitan kunci melalui proses persetujuan, sehingga persetujuan dapat memakan waktu beberapa saat."
+            }
+          ]
+        },
+        {
+          "h2": "2. Langkah Penerbitan Kunci Open API",
+          "desc": "Ajukan dan terbitkan sesuai urutan di bawah, lalu daftarkan di GenieGo.",
+          "blocks": [
+            {
+              "type": "steps",
+              "items": [
+                {
+                  "h3": "Daftar dan dapatkan persetujuan sebagai pengembang",
+                  "p": "Daftar sebagai anggota dan pengembang di NHN Commerce Developer Center dan dapatkan persetujuan.",
+                  "path": "devcenter.nhn-commerce.com"
+                },
+                {
+                  "h3": "Ajukan penerbitan kunci",
+                  "p": "Di [Open API] > [Ajukan Penerbitan Kunci], isi formulir pengajuan dan kirimkan.",
+                  "path": "Open API → Ajukan Penerbitan Kunci"
+                },
+                {
+                  "h3": "Periksa kunci",
+                  "p": "Periksa kunci Open API yang telah diterbitkan (partner key / API key)."
+                }
+              ]
+            },
+            {
+              "type": "notice",
+              "kind": "success",
+              "html": "Setelah partner key dan API key diterbitkan, berarti pengajuan telah dikirim dan disetujui dengan benar."
+            }
+          ]
+        },
+        {
+          "h2": "3. Informasi yang Akan Didaftarkan di GenieGo",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "Bidang",
+                "Deskripsi"
+              ],
+              "rows": [
+                [
+                  "partner_key",
+                  "partner key yang diterbitkan"
+                ],
+                [
+                  "api_key",
+                  "API key yang diterbitkan (tangani dengan hati-hati)"
+                ]
+              ]
+            },
+            {
+              "type": "notice",
+              "kind": "success",
+              "html": "Masukkan dan simpan nilai di GenieGo Integration Hub [Daftar]. Kredensial dienkripsi saat disimpan dengan AES-256-GCM dan disamarkan saat dibaca."
+            }
+          ]
+        },
+        {
+          "h2": "4. Masalah Umum",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "Masalah",
+                "Penyebab",
+                "Solusi"
+              ],
+              "rows": [
+                [
+                  "Tidak dapat mengajukan penerbitan kunci",
+                  "Pendaftaran pengembang / persetujuan belum selesai",
+                  "Selesaikan terlebih dahulu pendaftaran anggota dan pengembang serta persetujuan di Developer Center."
+                ],
+                [
+                  "Kunci tidak diterbitkan setelah pengajuan",
+                  "Menunggu persetujuan",
+                  "Tunggu hingga proses persetujuan selesai, lalu periksa kembali."
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "Daftar Periksa Akhir",
+          "blocks": [
+            {
+              "type": "checklist",
+              "items": [
+                "Mendaftar sebagai anggota dan pengembang di NHN Commerce Developer Center dan mendapatkan persetujuan.",
+                "Mengisi dan mengirimkan formulir pengajuan di [Open API > Ajukan Penerbitan Kunci].",
+                "Memeriksa partner key dan API key yang diterbitkan.",
+                "Memasukkan partner_key·api_key di GenieGo [Daftar] dan menyimpannya."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "ar": {
+      "titleType": "دليل إصدار مفتاح API",
+      "badge": "دليل المبتدئين",
+      "intro": "دليل سهل للمبتدئين خطوة بخطوة لتقديم طلب الحصول على مفاتيح Open API الخاصة بـ godomall في NHN Commerce Developer Center، واستلام partner key و API key، وتسجيلهما في GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        [
+          "الوقت التقديري",
+          "حوالي 10–20 دقيقة (شامل انتظار الموافقة)"
+        ],
+        [
+          "الحساب المطلوب",
+          "حساب مشغّل متجر godomall (NHN Commerce)"
+        ],
+        [
+          "المفاتيح الصادرة",
+          "partner key · API key"
+        ],
+        [
+          "النتيجة",
+          "بيانات اعتماد Open API"
+        ]
+      ],
+      "sections": [
+        {
+          "h2": "1. قبل أن تبدأ",
+          "desc": "يتم تقديم طلب Open API الخاص بـ godomall في NHN Commerce Developer Center بعد تسجيل المطوّر والموافقة عليه.",
+          "blocks": [
+            {
+              "type": "cards",
+              "items": [
+                {
+                  "tag": "مطلوب",
+                  "h3": "حساب مشغّل المتجر",
+                  "p": "تحتاج إلى حساب مشغّل يدير متجر godomall (NHN Commerce). استخدم هذا الحساب لإكمال تسجيل العضو والمطوّر في Developer Center."
+                },
+                {
+                  "tag": "المفاتيح الصادرة",
+                  "h3": "partner key · API key",
+                  "p": "بمجرد الموافقة على طلب إصدار المفتاح، يتم إصدار مفاتيح Open API (partner key / API key)."
+                }
+              ]
+            },
+            {
+              "type": "notice",
+              "kind": "",
+              "html": "<strong>ملاحظة:</strong> يمر تسجيل المطوّر وطلب إصدار المفتاح بعملية موافقة، لذا قد تستغرق الموافقة بعض الوقت."
+            }
+          ]
+        },
+        {
+          "h2": "2. خطوات إصدار مفتاح Open API",
+          "desc": "قدّم الطلب وأصدر بالترتيب أدناه، ثم سجّل في GenieGo.",
+          "blocks": [
+            {
+              "type": "steps",
+              "items": [
+                {
+                  "h3": "التسجيل والحصول على الموافقة كمطوّر",
+                  "p": "سجّل كعضو ومطوّر في NHN Commerce Developer Center واحصل على الموافقة.",
+                  "path": "devcenter.nhn-commerce.com"
+                },
+                {
+                  "h3": "تقديم طلب إصدار المفتاح",
+                  "p": "في [Open API] > [تقديم طلب إصدار المفتاح]، املأ نموذج الطلب وأرسله.",
+                  "path": "Open API → تقديم طلب إصدار المفتاح"
+                },
+                {
+                  "h3": "التحقق من المفاتيح",
+                  "p": "تحقق من مفاتيح Open API الصادرة (partner key / API key)."
+                }
+              ]
+            },
+            {
+              "type": "notice",
+              "kind": "success",
+              "html": "بمجرد إصدار partner key و API key، يكون الطلب قد قُدّم وتمت الموافقة عليه بشكل صحيح."
+            }
+          ]
+        },
+        {
+          "h2": "3. المعلومات المراد تسجيلها في GenieGo",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "الحقل",
+                "الوصف"
+              ],
+              "rows": [
+                [
+                  "partner_key",
+                  "partner key الصادر"
+                ],
+                [
+                  "api_key",
+                  "API key الصادر (تعامل معه بحذر)"
+                ]
+              ]
+            },
+            {
+              "type": "notice",
+              "kind": "success",
+              "html": "أدخل القيم واحفظها في GenieGo Integration Hub [تسجيل]. يتم تشفير بيانات الاعتماد أثناء التخزين باستخدام AES-256-GCM وإخفاؤها عند القراءة."
+            }
+          ]
+        },
+        {
+          "h2": "4. المشكلات الشائعة",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "المشكلة",
+                "السبب",
+                "الحل"
+              ],
+              "rows": [
+                [
+                  "تعذّر تقديم طلب إصدار المفتاح",
+                  "لم يكتمل تسجيل المطوّر / الموافقة",
+                  "أكمل أولاً تسجيل العضو والمطوّر والموافقة في Developer Center."
+                ],
+                [
+                  "لم تُصدر المفاتيح بعد التقديم",
+                  "في انتظار الموافقة",
+                  "انتظر حتى تكتمل عملية الموافقة، ثم تحقق مرة أخرى."
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "قائمة التحقق النهائية",
+          "blocks": [
+            {
+              "type": "checklist",
+              "items": [
+                "سجّلت كعضو ومطوّر في NHN Commerce Developer Center وحصلت على الموافقة.",
+                "ملأت نموذج الطلب وأرسلته في [Open API > تقديم طلب إصدار المفتاح].",
+                "تحققت من partner key و API key الصادرين.",
+                "أدخلت partner_key·api_key في GenieGo [تسجيل] وحفظتها."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "es": {
+      "titleType": "Manual de Emisión de API Key",
+      "badge": "Guía para principiantes",
+      "intro": "Una guía paso a paso para principiantes sobre cómo solicitar las claves de Open API de godomall en el NHN Commerce Developer Center, recibir tu partner key y API key, y registrarlas en el GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        [
+          "Tiempo estimado",
+          "Unos 10–20 min (incluida la espera de aprobación)"
+        ],
+        [
+          "Cuenta necesaria",
+          "Cuenta de operador de tienda godomall (NHN Commerce)"
+        ],
+        [
+          "Claves emitidas",
+          "partner key · API key"
+        ],
+        [
+          "Resultado",
+          "Credenciales de Open API"
+        ]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de empezar",
+          "desc": "La Open API de godomall se solicita en el NHN Commerce Developer Center tras el registro y la aprobación del desarrollador.",
+          "blocks": [
+            {
+              "type": "cards",
+              "items": [
+                {
+                  "tag": "Requerido",
+                  "h3": "Cuenta de operador de tienda",
+                  "p": "Necesitas una cuenta de operador que gestione una tienda godomall (NHN Commerce). Usa esta cuenta para completar el registro de miembro y desarrollador en el Developer Center."
+                },
+                {
+                  "tag": "Claves emitidas",
+                  "h3": "partner key · API key",
+                  "p": "Una vez que se apruebe tu solicitud de emisión de claves, se emiten las claves de Open API (partner key / API key)."
+                }
+              ]
+            },
+            {
+              "type": "notice",
+              "kind": "",
+              "html": "<strong>Nota:</strong> El registro del desarrollador y la solicitud de emisión de claves pasan por un proceso de aprobación, por lo que la aprobación puede tardar algún tiempo."
+            }
+          ]
+        },
+        {
+          "h2": "2. Pasos para la emisión de la clave de Open API",
+          "desc": "Solicita y emite en el orden siguiente, luego registra en GenieGo.",
+          "blocks": [
+            {
+              "type": "steps",
+              "items": [
+                {
+                  "h3": "Registrarse y obtener la aprobación como desarrollador",
+                  "p": "Regístrate como miembro y desarrollador en el NHN Commerce Developer Center y obtén la aprobación.",
+                  "path": "devcenter.nhn-commerce.com"
+                },
+                {
+                  "h3": "Solicitar la emisión de claves",
+                  "p": "En [Open API] > [Solicitar emisión de claves], completa el formulario de solicitud y envíalo.",
+                  "path": "Open API → Solicitar emisión de claves"
+                },
+                {
+                  "h3": "Verificar las claves",
+                  "p": "Verifica las claves de Open API emitidas (partner key / API key)."
+                }
+              ]
+            },
+            {
+              "type": "notice",
+              "kind": "success",
+              "html": "Una vez que se emiten la partner key y la API key, la solicitud se ha enviado y aprobado correctamente."
+            }
+          ]
+        },
+        {
+          "h2": "3. Información para registrar en GenieGo",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "Campo",
+                "Descripción"
+              ],
+              "rows": [
+                [
+                  "partner_key",
+                  "La partner key emitida"
+                ],
+                [
+                  "api_key",
+                  "La API key emitida (manéjala con cuidado)"
+                ]
+              ]
+            },
+            {
+              "type": "notice",
+              "kind": "success",
+              "html": "Introduce y guarda los valores en el GenieGo Integration Hub [Registrar]. Las credenciales se cifran en reposo con AES-256-GCM y se enmascaran al leerlas."
+            }
+          ]
+        },
+        {
+          "h2": "4. Problemas frecuentes",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "Problema",
+                "Causa",
+                "Solución"
+              ],
+              "rows": [
+                [
+                  "No se puede solicitar la emisión de claves",
+                  "Registro del desarrollador / aprobación no completados",
+                  "Completa primero el registro de miembro y desarrollador y la aprobación en el Developer Center."
+                ],
+                [
+                  "Las claves no se emiten tras la solicitud",
+                  "Aprobación pendiente",
+                  "Espera a que se complete el proceso de aprobación y luego vuelve a comprobarlo."
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "Lista de verificación final",
+          "blocks": [
+            {
+              "type": "checklist",
+              "items": [
+                "Te registraste como miembro y desarrollador en el NHN Commerce Developer Center y obtuviste la aprobación.",
+                "Completaste y enviaste el formulario de solicitud en [Open API > Solicitar emisión de claves].",
+                "Verificaste la partner key y la API key emitidas.",
+                "Introdujiste partner_key·api_key en GenieGo [Registrar] y guardaste."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "fr": {
+      "titleType": "Manuel d'émission de la clé API",
+      "badge": "Guide du débutant",
+      "intro": "Un guide pas à pas convivial pour les débutants expliquant comment demander les clés Open API de godomall dans le NHN Commerce Developer Center, recevoir votre partner key et votre API key, et les enregistrer dans le GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        [
+          "Temps estimé",
+          "Environ 10–20 min (attente d'approbation incluse)"
+        ],
+        [
+          "Compte requis",
+          "Compte opérateur de boutique godomall (NHN Commerce)"
+        ],
+        [
+          "Clés émises",
+          "partner key · API key"
+        ],
+        [
+          "Résultat",
+          "Identifiants Open API"
+        ]
+      ],
+      "sections": [
+        {
+          "h2": "1. Avant de commencer",
+          "desc": "L'Open API de godomall se demande dans le NHN Commerce Developer Center après l'inscription et l'approbation du développeur.",
+          "blocks": [
+            {
+              "type": "cards",
+              "items": [
+                {
+                  "tag": "Requis",
+                  "h3": "Compte opérateur de boutique",
+                  "p": "Vous avez besoin d'un compte opérateur qui gère une boutique godomall (NHN Commerce). Utilisez ce compte pour effectuer l'inscription en tant que membre et développeur dans le Developer Center."
+                },
+                {
+                  "tag": "Clés émises",
+                  "h3": "partner key · API key",
+                  "p": "Une fois votre demande d'émission de clés approuvée, les clés Open API (partner key / API key) sont émises."
+                }
+              ]
+            },
+            {
+              "type": "notice",
+              "kind": "",
+              "html": "<strong>Remarque :</strong> L'inscription du développeur et la demande d'émission de clés passent par un processus d'approbation, l'approbation peut donc prendre un certain temps."
+            }
+          ]
+        },
+        {
+          "h2": "2. Étapes d'émission de la clé Open API",
+          "desc": "Demandez et émettez dans l'ordre ci-dessous, puis enregistrez dans GenieGo.",
+          "blocks": [
+            {
+              "type": "steps",
+              "items": [
+                {
+                  "h3": "S'inscrire et obtenir l'approbation en tant que développeur",
+                  "p": "Inscrivez-vous en tant que membre et développeur dans le NHN Commerce Developer Center et obtenez l'approbation.",
+                  "path": "devcenter.nhn-commerce.com"
+                },
+                {
+                  "h3": "Demander l'émission des clés",
+                  "p": "Dans [Open API] > [Demander l'émission des clés], remplissez le formulaire de demande et soumettez-le.",
+                  "path": "Open API → Demander l'émission des clés"
+                },
+                {
+                  "h3": "Vérifier les clés",
+                  "p": "Vérifiez les clés Open API émises (partner key / API key)."
+                }
+              ]
+            },
+            {
+              "type": "notice",
+              "kind": "success",
+              "html": "Une fois que la partner key et l'API key sont émises, la demande a été correctement soumise et approuvée."
+            }
+          ]
+        },
+        {
+          "h2": "3. Informations à enregistrer dans GenieGo",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "Champ",
+                "Description"
+              ],
+              "rows": [
+                [
+                  "partner_key",
+                  "La partner key émise"
+                ],
+                [
+                  "api_key",
+                  "L'API key émise (à manipuler avec précaution)"
+                ]
+              ]
+            },
+            {
+              "type": "notice",
+              "kind": "success",
+              "html": "Saisissez et enregistrez les valeurs dans le GenieGo Integration Hub [Enregistrer]. Les identifiants sont chiffrés au repos avec AES-256-GCM et masqués à la lecture."
+            }
+          ]
+        },
+        {
+          "h2": "4. Problèmes fréquents",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "Problème",
+                "Cause",
+                "Solution"
+              ],
+              "rows": [
+                [
+                  "Impossible de demander l'émission des clés",
+                  "Inscription du développeur / approbation non terminées",
+                  "Terminez d'abord l'inscription en tant que membre et développeur et l'approbation dans le Developer Center."
+                ],
+                [
+                  "Les clés ne sont pas émises après la demande",
+                  "En attente d'approbation",
+                  "Attendez que le processus d'approbation soit terminé, puis vérifiez à nouveau."
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "Liste de vérification finale",
+          "blocks": [
+            {
+              "type": "checklist",
+              "items": [
+                "Inscrit en tant que membre et développeur dans le NHN Commerce Developer Center et approbation obtenue.",
+                "Formulaire de demande rempli et soumis dans [Open API > Demander l'émission des clés].",
+                "partner key et API key émises vérifiées.",
+                "partner_key·api_key saisis dans GenieGo [Enregistrer] et enregistrés."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "hi": {
+      "titleType": "API Key जारी करने की मैनुअल",
+      "badge": "शुरुआती गाइड",
+      "intro": "NHN Commerce Developer Center में godomall Open API कुंजियों के लिए आवेदन करने, अपनी partner key और API key प्राप्त करने, और उन्हें GenieGo Integration Hub में पंजीकृत करने की एक शुरुआती-अनुकूल चरण-दर-चरण गाइड।",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        [
+          "अनुमानित समय",
+          "लगभग 10–20 मिनट (अनुमोदन प्रतीक्षा सहित)"
+        ],
+        [
+          "आवश्यक खाता",
+          "godomall (NHN Commerce) स्टोर संचालक खाता"
+        ],
+        [
+          "जारी कुंजियाँ",
+          "partner key · API key"
+        ],
+        [
+          "परिणाम",
+          "Open API क्रेडेंशियल"
+        ]
+      ],
+      "sections": [
+        {
+          "h2": "1. शुरू करने से पहले",
+          "desc": "godomall Open API के लिए डेवलपर पंजीकरण और अनुमोदन के बाद NHN Commerce Developer Center में आवेदन किया जाता है।",
+          "blocks": [
+            {
+              "type": "cards",
+              "items": [
+                {
+                  "tag": "आवश्यक",
+                  "h3": "स्टोर संचालक खाता",
+                  "p": "आपके पास एक संचालक खाता होना चाहिए जो godomall (NHN Commerce) स्टोर चलाता हो। इस खाते का उपयोग Developer Center में सदस्य और डेवलपर पंजीकरण पूरा करने के लिए करें।"
+                },
+                {
+                  "tag": "जारी कुंजियाँ",
+                  "h3": "partner key · API key",
+                  "p": "जब आपका कुंजी जारी करने का आवेदन अनुमोदित हो जाता है, तो Open API कुंजियाँ (partner key / API key) जारी की जाती हैं।"
+                }
+              ]
+            },
+            {
+              "type": "notice",
+              "kind": "",
+              "html": "<strong>नोट:</strong> डेवलपर पंजीकरण और कुंजी जारी करने का आवेदन एक अनुमोदन प्रक्रिया से गुजरता है, इसलिए अनुमोदन में कुछ समय लग सकता है।"
+            }
+          ]
+        },
+        {
+          "h2": "2. Open API कुंजी जारी करने के चरण",
+          "desc": "नीचे दिए गए क्रम में आवेदन करें और जारी करें, फिर GenieGo में पंजीकृत करें।",
+          "blocks": [
+            {
+              "type": "steps",
+              "items": [
+                {
+                  "h3": "डेवलपर के रूप में पंजीकरण करें और अनुमोदन प्राप्त करें",
+                  "p": "NHN Commerce Developer Center में सदस्य और डेवलपर के रूप में पंजीकरण करें और अनुमोदन प्राप्त करें।",
+                  "path": "devcenter.nhn-commerce.com"
+                },
+                {
+                  "h3": "कुंजी जारी करने के लिए आवेदन करें",
+                  "p": "[Open API] > [कुंजी जारी करने के लिए आवेदन] में आवेदन फॉर्म भरें और जमा करें।",
+                  "path": "Open API → कुंजी जारी करने के लिए आवेदन"
+                },
+                {
+                  "h3": "कुंजियाँ जाँचें",
+                  "p": "जारी की गई Open API कुंजियाँ (partner key / API key) जाँचें।"
+                }
+              ]
+            },
+            {
+              "type": "notice",
+              "kind": "success",
+              "html": "जब partner key और API key जारी हो जाती हैं, तो आवेदन सही ढंग से जमा और अनुमोदित हो चुका होता है।"
+            }
+          ]
+        },
+        {
+          "h2": "3. GenieGo में पंजीकृत करने योग्य जानकारी",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "फ़ील्ड",
+                "विवरण"
+              ],
+              "rows": [
+                [
+                  "partner_key",
+                  "जारी की गई partner key"
+                ],
+                [
+                  "api_key",
+                  "जारी की गई API key (सावधानी से संभालें)"
+                ]
+              ]
+            },
+            {
+              "type": "notice",
+              "kind": "success",
+              "html": "GenieGo Integration Hub [पंजीकरण] में मान दर्ज करें और सहेजें। क्रेडेंशियल को संग्रहण के समय AES-256-GCM से एन्क्रिप्ट किया जाता है और पढ़ते समय मास्क किया जाता है।"
+            }
+          ]
+        },
+        {
+          "h2": "4. सामान्य समस्याएँ",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "समस्या",
+                "कारण",
+                "समाधान"
+              ],
+              "rows": [
+                [
+                  "कुंजी जारी करने के लिए आवेदन नहीं कर सकते",
+                  "डेवलपर पंजीकरण / अनुमोदन पूरा नहीं हुआ",
+                  "पहले Developer Center में सदस्य और डेवलपर पंजीकरण तथा अनुमोदन पूरा करें।"
+                ],
+                [
+                  "आवेदन के बाद कुंजियाँ जारी नहीं होतीं",
+                  "अनुमोदन लंबित",
+                  "अनुमोदन प्रक्रिया पूरी होने तक प्रतीक्षा करें, फिर दोबारा जाँचें।"
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "अंतिम जाँच सूची",
+          "blocks": [
+            {
+              "type": "checklist",
+              "items": [
+                "NHN Commerce Developer Center में सदस्य और डेवलपर के रूप में पंजीकरण किया और अनुमोदन प्राप्त किया।",
+                "[Open API > कुंजी जारी करने के लिए आवेदन] में आवेदन फॉर्म भरा और जमा किया।",
+                "जारी की गई partner key और API key जाँची।",
+                "GenieGo [पंजीकरण] में partner_key·api_key दर्ज किया और सहेजा।"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "pt": {
+      "titleType": "Manual de Emissão de API Key",
+      "badge": "Guia para iniciantes",
+      "intro": "Um guia passo a passo amigável para iniciantes sobre como solicitar as chaves da Open API do godomall no NHN Commerce Developer Center, receber sua partner key e API key, e registrá-las no GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        [
+          "Tempo estimado",
+          "Cerca de 10–20 min (incluindo espera de aprovação)"
+        ],
+        [
+          "Conta necessária",
+          "Conta de operador de loja godomall (NHN Commerce)"
+        ],
+        [
+          "Chaves emitidas",
+          "partner key · API key"
+        ],
+        [
+          "Resultado",
+          "Credenciais da Open API"
+        ]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de começar",
+          "desc": "A Open API do godomall é solicitada no NHN Commerce Developer Center após o registro e a aprovação do desenvolvedor.",
+          "blocks": [
+            {
+              "type": "cards",
+              "items": [
+                {
+                  "tag": "Obrigatório",
+                  "h3": "Conta de operador de loja",
+                  "p": "Você precisa de uma conta de operador que administre uma loja godomall (NHN Commerce). Use esta conta para concluir o registro de membro e desenvolvedor no Developer Center."
+                },
+                {
+                  "tag": "Chaves emitidas",
+                  "h3": "partner key · API key",
+                  "p": "Assim que sua solicitação de emissão de chaves for aprovada, as chaves da Open API (partner key / API key) são emitidas."
+                }
+              ]
+            },
+            {
+              "type": "notice",
+              "kind": "",
+              "html": "<strong>Observação:</strong> O registro do desenvolvedor e a solicitação de emissão de chaves passam por um processo de aprovação, portanto a aprovação pode levar algum tempo."
+            }
+          ]
+        },
+        {
+          "h2": "2. Etapas de emissão da chave da Open API",
+          "desc": "Solicite e emita na ordem abaixo e registre no GenieGo.",
+          "blocks": [
+            {
+              "type": "steps",
+              "items": [
+                {
+                  "h3": "Registrar-se e obter aprovação como desenvolvedor",
+                  "p": "Registre-se como membro e desenvolvedor no NHN Commerce Developer Center e obtenha a aprovação.",
+                  "path": "devcenter.nhn-commerce.com"
+                },
+                {
+                  "h3": "Solicitar a emissão das chaves",
+                  "p": "Em [Open API] > [Solicitar emissão de chaves], preencha o formulário de solicitação e envie-o.",
+                  "path": "Open API → Solicitar emissão de chaves"
+                },
+                {
+                  "h3": "Verificar as chaves",
+                  "p": "Verifique as chaves da Open API emitidas (partner key / API key)."
+                }
+              ]
+            },
+            {
+              "type": "notice",
+              "kind": "success",
+              "html": "Assim que a partner key e a API key são emitidas, a solicitação foi enviada e aprovada corretamente."
+            }
+          ]
+        },
+        {
+          "h2": "3. Informações para registrar no GenieGo",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "Campo",
+                "Descrição"
+              ],
+              "rows": [
+                [
+                  "partner_key",
+                  "A partner key emitida"
+                ],
+                [
+                  "api_key",
+                  "A API key emitida (manuseie com cuidado)"
+                ]
+              ]
+            },
+            {
+              "type": "notice",
+              "kind": "success",
+              "html": "Insira e salve os valores no GenieGo Integration Hub [Registrar]. As credenciais são criptografadas em repouso com AES-256-GCM e mascaradas na leitura."
+            }
+          ]
+        },
+        {
+          "h2": "4. Problemas comuns",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "Problema",
+                "Causa",
+                "Solução"
+              ],
+              "rows": [
+                [
+                  "Não é possível solicitar a emissão de chaves",
+                  "Registro do desenvolvedor / aprovação não concluídos",
+                  "Conclua primeiro o registro de membro e desenvolvedor e a aprovação no Developer Center."
+                ],
+                [
+                  "As chaves não são emitidas após a solicitação",
+                  "Aprovação pendente",
+                  "Aguarde até que o processo de aprovação seja concluído e verifique novamente."
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "Lista de verificação final",
+          "blocks": [
+            {
+              "type": "checklist",
+              "items": [
+                "Registrou-se como membro e desenvolvedor no NHN Commerce Developer Center e obteve a aprovação.",
+                "Preencheu e enviou o formulário de solicitação em [Open API > Solicitar emissão de chaves].",
+                "Verificou a partner key e a API key emitidas.",
+                "Inseriu partner_key·api_key no GenieGo [Registrar] e salvou."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "ru": {
+      "titleType": "Руководство по выпуску API Key",
+      "badge": "Руководство для начинающих",
+      "intro": "Понятное пошаговое руководство для начинающих по подаче заявки на ключи Open API godomall в NHN Commerce Developer Center, получению partner key и API key и их регистрации в GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        [
+          "Примерное время",
+          "Около 10–20 мин (включая ожидание одобрения)"
+        ],
+        [
+          "Необходимая учётная запись",
+          "Учётная запись оператора магазина godomall (NHN Commerce)"
+        ],
+        [
+          "Выпускаемые ключи",
+          "partner key · API key"
+        ],
+        [
+          "Результат",
+          "Учётные данные Open API"
+        ]
+      ],
+      "sections": [
+        {
+          "h2": "1. Перед началом",
+          "desc": "Заявка на Open API godomall подаётся в NHN Commerce Developer Center после регистрации разработчика и одобрения.",
+          "blocks": [
+            {
+              "type": "cards",
+              "items": [
+                {
+                  "tag": "Требуется",
+                  "h3": "Учётная запись оператора магазина",
+                  "p": "Вам нужна учётная запись оператора, управляющего магазином godomall (NHN Commerce). Используйте эту учётную запись для завершения регистрации участника и разработчика в Developer Center."
+                },
+                {
+                  "tag": "Выпускаемые ключи",
+                  "h3": "partner key · API key",
+                  "p": "После одобрения вашей заявки на выпуск ключей выпускаются ключи Open API (partner key / API key)."
+                }
+              ]
+            },
+            {
+              "type": "notice",
+              "kind": "",
+              "html": "<strong>Примечание:</strong> Регистрация разработчика и заявка на выпуск ключей проходят процесс одобрения, поэтому одобрение может занять некоторое время."
+            }
+          ]
+        },
+        {
+          "h2": "2. Этапы выпуска ключа Open API",
+          "desc": "Подайте заявку и выпустите в указанном ниже порядке, затем зарегистрируйте в GenieGo.",
+          "blocks": [
+            {
+              "type": "steps",
+              "items": [
+                {
+                  "h3": "Зарегистрироваться и получить одобрение как разработчик",
+                  "p": "Зарегистрируйтесь как участник и разработчик в NHN Commerce Developer Center и получите одобрение.",
+                  "path": "devcenter.nhn-commerce.com"
+                },
+                {
+                  "h3": "Подать заявку на выпуск ключей",
+                  "p": "В [Open API] > [Подать заявку на выпуск ключей] заполните форму заявки и отправьте её.",
+                  "path": "Open API → Подать заявку на выпуск ключей"
+                },
+                {
+                  "h3": "Проверить ключи",
+                  "p": "Проверьте выпущенные ключи Open API (partner key / API key)."
+                }
+              ]
+            },
+            {
+              "type": "notice",
+              "kind": "success",
+              "html": "Как только partner key и API key выпущены, заявка была корректно подана и одобрена."
+            }
+          ]
+        },
+        {
+          "h2": "3. Информация для регистрации в GenieGo",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "Поле",
+                "Описание"
+              ],
+              "rows": [
+                [
+                  "partner_key",
+                  "Выпущенный partner key"
+                ],
+                [
+                  "api_key",
+                  "Выпущенный API key (обращайтесь осторожно)"
+                ]
+              ]
+            },
+            {
+              "type": "notice",
+              "kind": "success",
+              "html": "Введите и сохраните значения в GenieGo Integration Hub [Регистрация]. Учётные данные шифруются при хранении с помощью AES-256-GCM и маскируются при чтении."
+            }
+          ]
+        },
+        {
+          "h2": "4. Частые проблемы",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "Проблема",
+                "Причина",
+                "Решение"
+              ],
+              "rows": [
+                [
+                  "Невозможно подать заявку на выпуск ключей",
+                  "Регистрация разработчика / одобрение не завершены",
+                  "Сначала завершите регистрацию участника и разработчика и одобрение в Developer Center."
+                ],
+                [
+                  "Ключи не выпускаются после подачи заявки",
+                  "Ожидание одобрения",
+                  "Дождитесь завершения процесса одобрения, затем проверьте снова."
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "Итоговый контрольный список",
+          "blocks": [
+            {
+              "type": "checklist",
+              "items": [
+                "Зарегистрировался как участник и разработчик в NHN Commerce Developer Center и получил одобрение.",
+                "Заполнил и отправил форму заявки в [Open API > Подать заявку на выпуск ключей].",
+                "Проверил выпущенные partner key и API key.",
+                "Ввёл partner_key·api_key в GenieGo [Регистрация] и сохранил."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

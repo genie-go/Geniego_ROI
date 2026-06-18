@@ -1,0 +1,1491 @@
+{
+  "name": "LINE",
+  "icon": "L",
+  "langs": {
+    "ko": {
+      "titleType": "API 발급 매뉴얼",
+      "badge": "API 발급 초보자 매뉴얼",
+      "intro": "LINE Developers Console에서 Provider와 Messaging API Channel을 만들고 Channel Access Token, Webhook URL을 설정하는 과정을 정리했습니다.",
+      "org": "실무 연동 초보자용 가이드",
+      "quick": [
+        ["인증 구조", "Channel Access Token"],
+        ["필요 계정", "LINE 계정"],
+        ["주요 결과물", "Channel ID / Secret / Token"],
+        ["용도", "메시징·챗봇"]
+      ],
+      "sections": [
+        {
+          "h2": "1. LINE API 발급 개념",
+          "desc": "LINE 연동은 LINE Developers Console에서 Provider와 Channel을 만들고, Messaging API 또는 LINE Login용 Channel ID, Channel Secret, Channel Access Token을 발급받는 방식입니다.",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>구분:</strong> 메시지 발송은 Messaging API 채널, 로그인 연동은 LINE Login 채널을 사용합니다." }
+          ]
+        },
+        {
+          "h2": "2. 준비물",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "LINE 계정 또는 비즈니스 계정",
+              "LINE Developers Console 접속 권한",
+              "LINE Official Account",
+              "서비스 이름과 설명",
+              "Webhook URL",
+              "개인정보처리방침 URL 및 약관 URL"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. Provider 생성",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "LINE Developers 접속", "p": "LINE Developers Console에 로그인합니다.", "path": "developers.line.biz" },
+              { "h3": "Provider 생성", "p": "회사명 또는 서비스명으로 Provider를 만듭니다.", "path": "Create Provider" },
+              { "h3": "기본 정보 입력", "p": "서비스 운영 주체, 연락처, 약관 정보를 입력합니다.", "path": "Provider Settings" }
+            ] }
+          ]
+        },
+        {
+          "h2": "4. Messaging API 채널 만들기",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "새 채널 생성", "p": "Provider 안에서 Create a new channel을 클릭합니다.", "path": "Create a new channel" },
+              { "h3": "Messaging API 선택", "p": "채널 유형에서 Messaging API를 선택합니다.", "path": "Messaging API" },
+              { "h3": "채널 정보 입력", "p": "채널 이름, 설명, 카테고리, 이메일 등을 입력합니다.", "path": "Channel Information" },
+              { "h3": "LINE Official Account 연결", "p": "메시지를 보낼 공식 계정을 연결하거나 새로 생성합니다.", "path": "LINE Official Account" },
+              { "h3": "채널 생성 완료", "p": "생성 후 Channel ID와 Channel Secret을 확인합니다.", "path": "Channel ID / Channel Secret" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. Channel Access Token 발급",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Messaging API 탭 이동", "p": "생성한 채널 화면에서 Messaging API 탭으로 이동합니다.", "path": "Messaging API tab" },
+              { "h3": "Channel access token 항목 찾기", "p": "하단의 Channel access token 영역을 확인합니다.", "path": "Channel access token" },
+              { "h3": "Issue 클릭", "p": "Issue 또는 Reissue 버튼을 눌러 토큰을 발급합니다.", "path": "Issue" },
+              { "h3": "서버에 안전하게 저장", "p": "발급된 토큰은 서버 환경변수나 Secret Manager에 저장합니다.", "path": "LINE_CHANNEL_ACCESS_TOKEN" }
+            ] },
+            { "type": "notice", "kind": "danger", "html": "Channel Access Token은 메시지 발송 권한을 가진 비밀키입니다. HTML, 프론트엔드, 공개 저장소에 노출하면 안 됩니다." }
+          ]
+        },
+        {
+          "h2": "6. Webhook 설정",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Webhook URL 입력", "p": "사용자 메시지 이벤트를 받을 서버 URL을 입력합니다.", "path": "Webhook URL" },
+              { "h3": "Use webhook 활성화", "p": "Webhook 사용 옵션을 Enabled로 변경합니다.", "path": "Use webhook: Enabled" },
+              { "h3": "Verify 테스트", "p": "LINE에서 서버로 테스트 요청을 보내 연결을 확인합니다.", "path": "Verify" },
+              { "h3": "응답 코드 확인", "p": "서버가 200 OK를 반환하는지 확인합니다.", "path": "HTTP 200 OK" }
+            ] }
+          ]
+        },
+        {
+          "h2": "7. 메시지 발송 예시",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "POST https://api.line.me/v2/bot/message/push Authorization: Bearer {CHANNEL_ACCESS_TOKEN} Content-Type: application/json { \"to\": \"USER_ID\", \"messages\": [ {\"type\": \"text\", \"text\": \"안녕하세요. LINE 메시지 테스트입니다.\"} ] }" }
+          ]
+        },
+        {
+          "h2": "8. 최종 체크리스트",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Provider를 생성했다.",
+              "Messaging API 채널을 생성했다.",
+              "LINE Official Account를 연결했다.",
+              "Channel ID와 Channel Secret을 확인했다.",
+              "Channel Access Token을 발급했다.",
+              "Webhook URL을 등록하고 Verify를 통과했다.",
+              "토큰을 서버 환경변수에 안전하게 저장했다."
+            ] }
+          ]
+        }
+      ]
+    },
+    "en": {
+      "titleType": "API Issuance Manual",
+      "badge": "Beginner API Issuance Guide",
+      "intro": "This guide walks through creating a Provider and a Messaging API Channel in the LINE Developers Console and configuring the Channel Access Token and Webhook URL.",
+      "org": "Practical Integration Beginner Guide",
+      "quick": [
+        ["Auth structure", "Channel Access Token"],
+        ["Account needed", "LINE account"],
+        ["Key outputs", "Channel ID / Secret / Token"],
+        ["Use case", "Messaging · Chatbot"]
+      ],
+      "sections": [
+        {
+          "h2": "1. LINE API Issuance Concept",
+          "desc": "LINE integration works by creating a Provider and a Channel in the LINE Developers Console, then issuing the Channel ID, Channel Secret, and Channel Access Token for the Messaging API or LINE Login.",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>Distinction:</strong> Use a Messaging API channel to send messages, and a LINE Login channel for login integration." }
+          ]
+        },
+        {
+          "h2": "2. Prerequisites",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "A LINE account or business account",
+              "Access permission to the LINE Developers Console",
+              "A LINE Official Account",
+              "Service name and description",
+              "Webhook URL",
+              "Privacy policy URL and terms of service URL"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. Create a Provider",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Access LINE Developers", "p": "Sign in to the LINE Developers Console.", "path": "developers.line.biz" },
+              { "h3": "Create a Provider", "p": "Create a Provider using your company name or service name.", "path": "Create Provider" },
+              { "h3": "Enter basic information", "p": "Enter the service operator, contact details, and terms information.", "path": "Provider Settings" }
+            ] }
+          ]
+        },
+        {
+          "h2": "4. Create a Messaging API Channel",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Create a new channel", "p": "Click Create a new channel inside the Provider.", "path": "Create a new channel" },
+              { "h3": "Select Messaging API", "p": "Choose Messaging API as the channel type.", "path": "Messaging API" },
+              { "h3": "Enter channel information", "p": "Enter the channel name, description, category, email, and so on.", "path": "Channel Information" },
+              { "h3": "Link a LINE Official Account", "p": "Link an existing official account to send messages from, or create a new one.", "path": "LINE Official Account" },
+              { "h3": "Finish channel creation", "p": "After creation, check the Channel ID and Channel Secret.", "path": "Channel ID / Channel Secret" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. Issue the Channel Access Token",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Go to the Messaging API tab", "p": "On the channel screen you created, move to the Messaging API tab.", "path": "Messaging API tab" },
+              { "h3": "Find the Channel access token item", "p": "Locate the Channel access token area at the bottom.", "path": "Channel access token" },
+              { "h3": "Click Issue", "p": "Click the Issue or Reissue button to issue the token.", "path": "Issue" },
+              { "h3": "Store it safely on the server", "p": "Store the issued token in a server environment variable or Secret Manager.", "path": "LINE_CHANNEL_ACCESS_TOKEN" }
+            ] },
+            { "type": "notice", "kind": "danger", "html": "The Channel Access Token is a secret key with permission to send messages. It must not be exposed in HTML, the frontend, or public repositories." }
+          ]
+        },
+        {
+          "h2": "6. Configure the Webhook",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Enter the Webhook URL", "p": "Enter the server URL that will receive user message events.", "path": "Webhook URL" },
+              { "h3": "Enable Use webhook", "p": "Change the Use webhook option to Enabled.", "path": "Use webhook: Enabled" },
+              { "h3": "Run the Verify test", "p": "Send a test request from LINE to your server to confirm the connection.", "path": "Verify" },
+              { "h3": "Check the response code", "p": "Confirm that the server returns 200 OK.", "path": "HTTP 200 OK" }
+            ] }
+          ]
+        },
+        {
+          "h2": "7. Message Sending Example",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "POST https://api.line.me/v2/bot/message/push Authorization: Bearer {CHANNEL_ACCESS_TOKEN} Content-Type: application/json { \"to\": \"USER_ID\", \"messages\": [ {\"type\": \"text\", \"text\": \"Hello. This is a LINE message test.\"} ] }" }
+          ]
+        },
+        {
+          "h2": "8. Final Checklist",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Created a Provider.",
+              "Created a Messaging API channel.",
+              "Linked a LINE Official Account.",
+              "Checked the Channel ID and Channel Secret.",
+              "Issued the Channel Access Token.",
+              "Registered the Webhook URL and passed Verify.",
+              "Stored the token safely in a server environment variable."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ja": {
+      "titleType": "API 発行マニュアル",
+      "badge": "API 発行 初心者マニュアル",
+      "intro": "LINE Developers Console で Provider と Messaging API Channel を作成し、Channel Access Token と Webhook URL を設定する手順をまとめました。",
+      "org": "実務連携 初心者向けガイド",
+      "quick": [
+        ["認証構造", "Channel Access Token"],
+        ["必要なアカウント", "LINE アカウント"],
+        ["主な成果物", "Channel ID / Secret / Token"],
+        ["用途", "メッセージング・チャットボット"]
+      ],
+      "sections": [
+        {
+          "h2": "1. LINE API 発行の概念",
+          "desc": "LINE 連携は、LINE Developers Console で Provider と Channel を作成し、Messaging API または LINE Login 用の Channel ID、Channel Secret、Channel Access Token を発行する方式です。",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>区分:</strong> メッセージ送信は Messaging API チャネル、ログイン連携は LINE Login チャネルを使用します。" }
+          ]
+        },
+        {
+          "h2": "2. 準備するもの",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "LINE アカウントまたはビジネスアカウント",
+              "LINE Developers Console へのアクセス権限",
+              "LINE Official Account",
+              "サービス名と説明",
+              "Webhook URL",
+              "プライバシーポリシー URL および利用規約 URL"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. Provider の作成",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "LINE Developers にアクセス", "p": "LINE Developers Console にログインします。", "path": "developers.line.biz" },
+              { "h3": "Provider を作成", "p": "会社名またはサービス名で Provider を作成します。", "path": "Create Provider" },
+              { "h3": "基本情報を入力", "p": "サービス運営主体、連絡先、規約情報を入力します。", "path": "Provider Settings" }
+            ] }
+          ]
+        },
+        {
+          "h2": "4. Messaging API チャネルの作成",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "新規チャネルを作成", "p": "Provider 内で Create a new channel をクリックします。", "path": "Create a new channel" },
+              { "h3": "Messaging API を選択", "p": "チャネルの種類で Messaging API を選択します。", "path": "Messaging API" },
+              { "h3": "チャネル情報を入力", "p": "チャネル名、説明、カテゴリ、メールなどを入力します。", "path": "Channel Information" },
+              { "h3": "LINE Official Account を連携", "p": "メッセージを送信する公式アカウントを連携するか、新規に作成します。", "path": "LINE Official Account" },
+              { "h3": "チャネル作成完了", "p": "作成後に Channel ID と Channel Secret を確認します。", "path": "Channel ID / Channel Secret" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. Channel Access Token の発行",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Messaging API タブへ移動", "p": "作成したチャネル画面で Messaging API タブに移動します。", "path": "Messaging API tab" },
+              { "h3": "Channel access token 項目を探す", "p": "下部の Channel access token 領域を確認します。", "path": "Channel access token" },
+              { "h3": "Issue をクリック", "p": "Issue または Reissue ボタンを押してトークンを発行します。", "path": "Issue" },
+              { "h3": "サーバーに安全に保存", "p": "発行されたトークンはサーバーの環境変数や Secret Manager に保存します。", "path": "LINE_CHANNEL_ACCESS_TOKEN" }
+            ] },
+            { "type": "notice", "kind": "danger", "html": "Channel Access Token はメッセージ送信権限を持つ秘密鍵です。HTML、フロントエンド、公開リポジトリに公開してはいけません。" }
+          ]
+        },
+        {
+          "h2": "6. Webhook の設定",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Webhook URL を入力", "p": "ユーザーのメッセージイベントを受け取るサーバー URL を入力します。", "path": "Webhook URL" },
+              { "h3": "Use webhook を有効化", "p": "Webhook 使用オプションを Enabled に変更します。", "path": "Use webhook: Enabled" },
+              { "h3": "Verify テスト", "p": "LINE からサーバーへテストリクエストを送り、接続を確認します。", "path": "Verify" },
+              { "h3": "応答コードを確認", "p": "サーバーが 200 OK を返すか確認します。", "path": "HTTP 200 OK" }
+            ] }
+          ]
+        },
+        {
+          "h2": "7. メッセージ送信の例",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "POST https://api.line.me/v2/bot/message/push Authorization: Bearer {CHANNEL_ACCESS_TOKEN} Content-Type: application/json { \"to\": \"USER_ID\", \"messages\": [ {\"type\": \"text\", \"text\": \"こんにちは。LINE メッセージのテストです。\"} ] }" }
+          ]
+        },
+        {
+          "h2": "8. 最終チェックリスト",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Provider を作成した。",
+              "Messaging API チャネルを作成した。",
+              "LINE Official Account を連携した。",
+              "Channel ID と Channel Secret を確認した。",
+              "Channel Access Token を発行した。",
+              "Webhook URL を登録し、Verify を通過した。",
+              "トークンをサーバーの環境変数に安全に保存した。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh": {
+      "titleType": "API 申请手册",
+      "badge": "API 申请新手手册",
+      "intro": "本手册整理了在 LINE Developers Console 中创建 Provider 和 Messaging API Channel，并配置 Channel Access Token、Webhook URL 的过程。",
+      "org": "实务对接新手指南",
+      "quick": [
+        ["认证结构", "Channel Access Token"],
+        ["所需账户", "LINE 账户"],
+        ["主要成果", "Channel ID / Secret / Token"],
+        ["用途", "消息推送·聊天机器人"]
+      ],
+      "sections": [
+        {
+          "h2": "1. LINE API 申请概念",
+          "desc": "LINE 对接是在 LINE Developers Console 中创建 Provider 和 Channel，然后为 Messaging API 或 LINE Login 申请 Channel ID、Channel Secret、Channel Access Token 的方式。",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>区分:</strong> 发送消息使用 Messaging API 渠道，登录对接使用 LINE Login 渠道。" }
+          ]
+        },
+        {
+          "h2": "2. 准备事项",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "LINE 账户或企业账户",
+              "LINE Developers Console 访问权限",
+              "LINE Official Account",
+              "服务名称和说明",
+              "Webhook URL",
+              "隐私政策 URL 及条款 URL"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. 创建 Provider",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "访问 LINE Developers", "p": "登录 LINE Developers Console。", "path": "developers.line.biz" },
+              { "h3": "创建 Provider", "p": "使用公司名称或服务名称创建 Provider。", "path": "Create Provider" },
+              { "h3": "填写基本信息", "p": "填写服务运营主体、联系方式和条款信息。", "path": "Provider Settings" }
+            ] }
+          ]
+        },
+        {
+          "h2": "4. 创建 Messaging API 渠道",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "创建新渠道", "p": "在 Provider 内点击 Create a new channel。", "path": "Create a new channel" },
+              { "h3": "选择 Messaging API", "p": "在渠道类型中选择 Messaging API。", "path": "Messaging API" },
+              { "h3": "填写渠道信息", "p": "填写渠道名称、说明、类别、邮箱等。", "path": "Channel Information" },
+              { "h3": "关联 LINE Official Account", "p": "关联用于发送消息的官方账号，或新建一个。", "path": "LINE Official Account" },
+              { "h3": "完成渠道创建", "p": "创建后确认 Channel ID 和 Channel Secret。", "path": "Channel ID / Channel Secret" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. 申请 Channel Access Token",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "切换到 Messaging API 标签页", "p": "在创建的渠道页面切换到 Messaging API 标签页。", "path": "Messaging API tab" },
+              { "h3": "查找 Channel access token 项", "p": "确认底部的 Channel access token 区域。", "path": "Channel access token" },
+              { "h3": "点击 Issue", "p": "点击 Issue 或 Reissue 按钮申请令牌。", "path": "Issue" },
+              { "h3": "安全保存到服务器", "p": "将申请到的令牌保存在服务器环境变量或 Secret Manager 中。", "path": "LINE_CHANNEL_ACCESS_TOKEN" }
+            ] },
+            { "type": "notice", "kind": "danger", "html": "Channel Access Token 是拥有消息发送权限的密钥。不得在 HTML、前端或公开仓库中暴露。" }
+          ]
+        },
+        {
+          "h2": "6. 配置 Webhook",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "输入 Webhook URL", "p": "输入用于接收用户消息事件的服务器 URL。", "path": "Webhook URL" },
+              { "h3": "启用 Use webhook", "p": "将 Webhook 使用选项改为 Enabled。", "path": "Use webhook: Enabled" },
+              { "h3": "Verify 测试", "p": "从 LINE 向服务器发送测试请求以确认连接。", "path": "Verify" },
+              { "h3": "确认响应码", "p": "确认服务器返回 200 OK。", "path": "HTTP 200 OK" }
+            ] }
+          ]
+        },
+        {
+          "h2": "7. 消息发送示例",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "POST https://api.line.me/v2/bot/message/push Authorization: Bearer {CHANNEL_ACCESS_TOKEN} Content-Type: application/json { \"to\": \"USER_ID\", \"messages\": [ {\"type\": \"text\", \"text\": \"您好。这是 LINE 消息测试。\"} ] }" }
+          ]
+        },
+        {
+          "h2": "8. 最终检查清单",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已创建 Provider。",
+              "已创建 Messaging API 渠道。",
+              "已关联 LINE Official Account。",
+              "已确认 Channel ID 和 Channel Secret。",
+              "已申请 Channel Access Token。",
+              "已注册 Webhook URL 并通过 Verify。",
+              "已将令牌安全保存到服务器环境变量。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh-TW": {
+      "titleType": "API 申請手冊",
+      "badge": "API 申請新手手冊",
+      "intro": "本手冊整理了在 LINE Developers Console 中建立 Provider 和 Messaging API Channel，並設定 Channel Access Token、Webhook URL 的過程。",
+      "org": "實務對接新手指南",
+      "quick": [
+        ["驗證結構", "Channel Access Token"],
+        ["所需帳戶", "LINE 帳戶"],
+        ["主要成果", "Channel ID / Secret / Token"],
+        ["用途", "訊息推送·聊天機器人"]
+      ],
+      "sections": [
+        {
+          "h2": "1. LINE API 申請概念",
+          "desc": "LINE 對接是在 LINE Developers Console 中建立 Provider 和 Channel，然後為 Messaging API 或 LINE Login 申請 Channel ID、Channel Secret、Channel Access Token 的方式。",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>區分:</strong> 發送訊息使用 Messaging API 頻道，登入對接使用 LINE Login 頻道。" }
+          ]
+        },
+        {
+          "h2": "2. 準備事項",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "LINE 帳戶或企業帳戶",
+              "LINE Developers Console 存取權限",
+              "LINE Official Account",
+              "服務名稱和說明",
+              "Webhook URL",
+              "隱私權政策 URL 及條款 URL"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. 建立 Provider",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "存取 LINE Developers", "p": "登入 LINE Developers Console。", "path": "developers.line.biz" },
+              { "h3": "建立 Provider", "p": "使用公司名稱或服務名稱建立 Provider。", "path": "Create Provider" },
+              { "h3": "填寫基本資訊", "p": "填寫服務營運主體、聯絡方式和條款資訊。", "path": "Provider Settings" }
+            ] }
+          ]
+        },
+        {
+          "h2": "4. 建立 Messaging API 頻道",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "建立新頻道", "p": "在 Provider 內點擊 Create a new channel。", "path": "Create a new channel" },
+              { "h3": "選擇 Messaging API", "p": "在頻道類型中選擇 Messaging API。", "path": "Messaging API" },
+              { "h3": "填寫頻道資訊", "p": "填寫頻道名稱、說明、類別、電子郵件等。", "path": "Channel Information" },
+              { "h3": "連結 LINE Official Account", "p": "連結用於發送訊息的官方帳號，或新建一個。", "path": "LINE Official Account" },
+              { "h3": "完成頻道建立", "p": "建立後確認 Channel ID 和 Channel Secret。", "path": "Channel ID / Channel Secret" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. 申請 Channel Access Token",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "切換到 Messaging API 分頁", "p": "在建立的頻道頁面切換到 Messaging API 分頁。", "path": "Messaging API tab" },
+              { "h3": "尋找 Channel access token 項目", "p": "確認底部的 Channel access token 區域。", "path": "Channel access token" },
+              { "h3": "點擊 Issue", "p": "點擊 Issue 或 Reissue 按鈕申請權杖。", "path": "Issue" },
+              { "h3": "安全儲存到伺服器", "p": "將申請到的權杖儲存在伺服器環境變數或 Secret Manager 中。", "path": "LINE_CHANNEL_ACCESS_TOKEN" }
+            ] },
+            { "type": "notice", "kind": "danger", "html": "Channel Access Token 是擁有訊息發送權限的密鑰。不得在 HTML、前端或公開儲存庫中暴露。" }
+          ]
+        },
+        {
+          "h2": "6. 設定 Webhook",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "輸入 Webhook URL", "p": "輸入用於接收使用者訊息事件的伺服器 URL。", "path": "Webhook URL" },
+              { "h3": "啟用 Use webhook", "p": "將 Webhook 使用選項改為 Enabled。", "path": "Use webhook: Enabled" },
+              { "h3": "Verify 測試", "p": "從 LINE 向伺服器發送測試請求以確認連線。", "path": "Verify" },
+              { "h3": "確認回應碼", "p": "確認伺服器回傳 200 OK。", "path": "HTTP 200 OK" }
+            ] }
+          ]
+        },
+        {
+          "h2": "7. 訊息發送範例",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "POST https://api.line.me/v2/bot/message/push Authorization: Bearer {CHANNEL_ACCESS_TOKEN} Content-Type: application/json { \"to\": \"USER_ID\", \"messages\": [ {\"type\": \"text\", \"text\": \"您好。這是 LINE 訊息測試。\"} ] }" }
+          ]
+        },
+        {
+          "h2": "8. 最終檢查清單",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已建立 Provider。",
+              "已建立 Messaging API 頻道。",
+              "已連結 LINE Official Account。",
+              "已確認 Channel ID 和 Channel Secret。",
+              "已申請 Channel Access Token。",
+              "已註冊 Webhook URL 並通過 Verify。",
+              "已將權杖安全儲存到伺服器環境變數。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "de": {
+      "titleType": "API-Ausstellungsanleitung",
+      "badge": "Einsteiger-Anleitung zur API-Ausstellung",
+      "intro": "Diese Anleitung beschreibt das Erstellen eines Providers und eines Messaging-API-Channels in der LINE Developers Console sowie das Konfigurieren des Channel Access Tokens und der Webhook-URL.",
+      "org": "Einsteigerleitfaden für die praktische Integration",
+      "quick": [
+        ["Authentifizierungsstruktur", "Channel Access Token"],
+        ["Benötigtes Konto", "LINE-Konto"],
+        ["Wichtige Ergebnisse", "Channel ID / Secret / Token"],
+        ["Verwendungszweck", "Messaging · Chatbot"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Konzept der LINE-API-Ausstellung",
+          "desc": "Die LINE-Integration funktioniert, indem Sie in der LINE Developers Console einen Provider und einen Channel erstellen und dann die Channel ID, das Channel Secret und das Channel Access Token für die Messaging API oder LINE Login ausstellen.",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>Unterscheidung:</strong> Zum Senden von Nachrichten verwenden Sie einen Messaging-API-Channel und für die Login-Integration einen LINE-Login-Channel." }
+          ]
+        },
+        {
+          "h2": "2. Voraussetzungen",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Ein LINE-Konto oder ein Geschäftskonto",
+              "Zugriffsberechtigung für die LINE Developers Console",
+              "Ein LINE Official Account",
+              "Servicename und Beschreibung",
+              "Webhook-URL",
+              "URL der Datenschutzrichtlinie und URL der Nutzungsbedingungen"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. Provider erstellen",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "LINE Developers aufrufen", "p": "Melden Sie sich bei der LINE Developers Console an.", "path": "developers.line.biz" },
+              { "h3": "Provider erstellen", "p": "Erstellen Sie einen Provider mit Ihrem Firmen- oder Servicenamen.", "path": "Create Provider" },
+              { "h3": "Grundinformationen eingeben", "p": "Geben Sie den Betreiber des Dienstes, Kontaktdaten und Informationen zu den Bedingungen ein.", "path": "Provider Settings" }
+            ] }
+          ]
+        },
+        {
+          "h2": "4. Messaging-API-Channel erstellen",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Neuen Channel erstellen", "p": "Klicken Sie innerhalb des Providers auf Create a new channel.", "path": "Create a new channel" },
+              { "h3": "Messaging API auswählen", "p": "Wählen Sie als Channel-Typ Messaging API aus.", "path": "Messaging API" },
+              { "h3": "Channel-Informationen eingeben", "p": "Geben Sie Channel-Name, Beschreibung, Kategorie, E-Mail und so weiter ein.", "path": "Channel Information" },
+              { "h3": "LINE Official Account verknüpfen", "p": "Verknüpfen Sie einen offiziellen Account, von dem Nachrichten gesendet werden, oder erstellen Sie einen neuen.", "path": "LINE Official Account" },
+              { "h3": "Channel-Erstellung abschließen", "p": "Prüfen Sie nach der Erstellung die Channel ID und das Channel Secret.", "path": "Channel ID / Channel Secret" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. Channel Access Token ausstellen",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Zum Messaging-API-Tab wechseln", "p": "Wechseln Sie auf dem Bildschirm des erstellten Channels zum Messaging-API-Tab.", "path": "Messaging API tab" },
+              { "h3": "Den Eintrag Channel access token finden", "p": "Prüfen Sie den Bereich Channel access token am unteren Rand.", "path": "Channel access token" },
+              { "h3": "Auf Issue klicken", "p": "Klicken Sie auf die Schaltfläche Issue oder Reissue, um das Token auszustellen.", "path": "Issue" },
+              { "h3": "Sicher auf dem Server speichern", "p": "Speichern Sie das ausgestellte Token in einer Server-Umgebungsvariablen oder im Secret Manager.", "path": "LINE_CHANNEL_ACCESS_TOKEN" }
+            ] },
+            { "type": "notice", "kind": "danger", "html": "Das Channel Access Token ist ein geheimer Schlüssel mit der Berechtigung zum Senden von Nachrichten. Es darf nicht in HTML, im Frontend oder in öffentlichen Repositories offengelegt werden." }
+          ]
+        },
+        {
+          "h2": "6. Webhook konfigurieren",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Webhook-URL eingeben", "p": "Geben Sie die Server-URL ein, die Nachrichtenereignisse von Nutzern empfängt.", "path": "Webhook URL" },
+              { "h3": "Use webhook aktivieren", "p": "Ändern Sie die Option Use webhook auf Enabled.", "path": "Use webhook: Enabled" },
+              { "h3": "Verify-Test", "p": "Senden Sie eine Testanfrage von LINE an Ihren Server, um die Verbindung zu prüfen.", "path": "Verify" },
+              { "h3": "Antwortcode prüfen", "p": "Prüfen Sie, ob der Server 200 OK zurückgibt.", "path": "HTTP 200 OK" }
+            ] }
+          ]
+        },
+        {
+          "h2": "7. Beispiel für das Senden einer Nachricht",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "POST https://api.line.me/v2/bot/message/push Authorization: Bearer {CHANNEL_ACCESS_TOKEN} Content-Type: application/json { \"to\": \"USER_ID\", \"messages\": [ {\"type\": \"text\", \"text\": \"Hallo. Dies ist ein LINE-Nachrichtentest.\"} ] }" }
+          ]
+        },
+        {
+          "h2": "8. Abschließende Checkliste",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Einen Provider erstellt.",
+              "Einen Messaging-API-Channel erstellt.",
+              "Einen LINE Official Account verknüpft.",
+              "Die Channel ID und das Channel Secret geprüft.",
+              "Das Channel Access Token ausgestellt.",
+              "Die Webhook-URL registriert und Verify bestanden.",
+              "Das Token sicher in einer Server-Umgebungsvariablen gespeichert."
+            ] }
+          ]
+        }
+      ]
+    },
+    "th": {
+      "titleType": "คู่มือการออก API",
+      "badge": "คู่มือการออก API สำหรับผู้เริ่มต้น",
+      "intro": "คู่มือนี้สรุปขั้นตอนการสร้าง Provider และ Messaging API Channel ใน LINE Developers Console และการตั้งค่า Channel Access Token, Webhook URL",
+      "org": "คู่มือการเชื่อมต่อสำหรับผู้เริ่มต้น",
+      "quick": [
+        ["โครงสร้างการยืนยันตัวตน", "Channel Access Token"],
+        ["บัญชีที่ต้องใช้", "บัญชี LINE"],
+        ["ผลลัพธ์หลัก", "Channel ID / Secret / Token"],
+        ["การใช้งาน", "การส่งข้อความ·แชทบอท"]
+      ],
+      "sections": [
+        {
+          "h2": "1. แนวคิดการออก LINE API",
+          "desc": "การเชื่อมต่อ LINE คือการสร้าง Provider และ Channel ใน LINE Developers Console จากนั้นออก Channel ID, Channel Secret, Channel Access Token สำหรับ Messaging API หรือ LINE Login",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>การแบ่งประเภท:</strong> การส่งข้อความใช้ช่องทาง Messaging API และการเชื่อมต่อการเข้าสู่ระบบใช้ช่องทาง LINE Login" }
+          ]
+        },
+        {
+          "h2": "2. สิ่งที่ต้องเตรียม",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "บัญชี LINE หรือบัญชีธุรกิจ",
+              "สิทธิ์การเข้าถึง LINE Developers Console",
+              "LINE Official Account",
+              "ชื่อบริการและคำอธิบาย",
+              "Webhook URL",
+              "URL นโยบายความเป็นส่วนตัวและ URL ข้อกำหนด"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. สร้าง Provider",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "เข้าถึง LINE Developers", "p": "เข้าสู่ระบบ LINE Developers Console", "path": "developers.line.biz" },
+              { "h3": "สร้าง Provider", "p": "สร้าง Provider โดยใช้ชื่อบริษัทหรือชื่อบริการ", "path": "Create Provider" },
+              { "h3": "กรอกข้อมูลพื้นฐาน", "p": "กรอกผู้ดำเนินการบริการ ข้อมูลติดต่อ และข้อมูลข้อกำหนด", "path": "Provider Settings" }
+            ] }
+          ]
+        },
+        {
+          "h2": "4. สร้างช่องทาง Messaging API",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "สร้างช่องทางใหม่", "p": "คลิก Create a new channel ภายใน Provider", "path": "Create a new channel" },
+              { "h3": "เลือก Messaging API", "p": "เลือก Messaging API เป็นประเภทช่องทาง", "path": "Messaging API" },
+              { "h3": "กรอกข้อมูลช่องทาง", "p": "กรอกชื่อช่องทาง คำอธิบาย หมวดหมู่ อีเมล และอื่น ๆ", "path": "Channel Information" },
+              { "h3": "เชื่อมต่อ LINE Official Account", "p": "เชื่อมต่อบัญชีทางการที่จะใช้ส่งข้อความ หรือสร้างใหม่", "path": "LINE Official Account" },
+              { "h3": "เสร็จสิ้นการสร้างช่องทาง", "p": "หลังจากสร้างแล้วให้ตรวจสอบ Channel ID และ Channel Secret", "path": "Channel ID / Channel Secret" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. ออก Channel Access Token",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "ไปที่แท็บ Messaging API", "p": "ในหน้าจอช่องทางที่สร้างไว้ ให้ไปที่แท็บ Messaging API", "path": "Messaging API tab" },
+              { "h3": "ค้นหารายการ Channel access token", "p": "ตรวจสอบส่วน Channel access token ที่ด้านล่าง", "path": "Channel access token" },
+              { "h3": "คลิก Issue", "p": "คลิกปุ่ม Issue หรือ Reissue เพื่อออกโทเค็น", "path": "Issue" },
+              { "h3": "จัดเก็บบนเซิร์ฟเวอร์อย่างปลอดภัย", "p": "จัดเก็บโทเค็นที่ออกแล้วในตัวแปรสภาพแวดล้อมของเซิร์ฟเวอร์หรือ Secret Manager", "path": "LINE_CHANNEL_ACCESS_TOKEN" }
+            ] },
+            { "type": "notice", "kind": "danger", "html": "Channel Access Token เป็นกุญแจลับที่มีสิทธิ์ส่งข้อความ ห้ามเปิดเผยใน HTML ฟรอนต์เอนด์ หรือที่เก็บโค้ดสาธารณะ" }
+          ]
+        },
+        {
+          "h2": "6. ตั้งค่า Webhook",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "ป้อน Webhook URL", "p": "ป้อน URL ของเซิร์ฟเวอร์ที่จะรับเหตุการณ์ข้อความของผู้ใช้", "path": "Webhook URL" },
+              { "h3": "เปิดใช้งาน Use webhook", "p": "เปลี่ยนตัวเลือก Use webhook เป็น Enabled", "path": "Use webhook: Enabled" },
+              { "h3": "ทดสอบ Verify", "p": "ส่งคำขอทดสอบจาก LINE ไปยังเซิร์ฟเวอร์ของคุณเพื่อยืนยันการเชื่อมต่อ", "path": "Verify" },
+              { "h3": "ตรวจสอบรหัสการตอบกลับ", "p": "ตรวจสอบว่าเซิร์ฟเวอร์ส่งคืน 200 OK", "path": "HTTP 200 OK" }
+            ] }
+          ]
+        },
+        {
+          "h2": "7. ตัวอย่างการส่งข้อความ",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "POST https://api.line.me/v2/bot/message/push Authorization: Bearer {CHANNEL_ACCESS_TOKEN} Content-Type: application/json { \"to\": \"USER_ID\", \"messages\": [ {\"type\": \"text\", \"text\": \"สวัสดี นี่คือการทดสอบข้อความ LINE\"} ] }" }
+          ]
+        },
+        {
+          "h2": "8. รายการตรวจสอบขั้นสุดท้าย",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "สร้าง Provider แล้ว",
+              "สร้างช่องทาง Messaging API แล้ว",
+              "เชื่อมต่อ LINE Official Account แล้ว",
+              "ตรวจสอบ Channel ID และ Channel Secret แล้ว",
+              "ออก Channel Access Token แล้ว",
+              "ลงทะเบียน Webhook URL และผ่าน Verify แล้ว",
+              "จัดเก็บโทเค็นในตัวแปรสภาพแวดล้อมของเซิร์ฟเวอร์อย่างปลอดภัยแล้ว"
+            ] }
+          ]
+        }
+      ]
+    },
+    "vi": {
+      "titleType": "Hướng dẫn cấp API",
+      "badge": "Hướng dẫn cấp API cho người mới",
+      "intro": "Hướng dẫn này tổng hợp quá trình tạo Provider và Messaging API Channel trong LINE Developers Console và cấu hình Channel Access Token, Webhook URL.",
+      "org": "Hướng dẫn tích hợp dành cho người mới",
+      "quick": [
+        ["Cấu trúc xác thực", "Channel Access Token"],
+        ["Tài khoản cần thiết", "Tài khoản LINE"],
+        ["Kết quả chính", "Channel ID / Secret / Token"],
+        ["Mục đích", "Nhắn tin·Chatbot"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Khái niệm cấp LINE API",
+          "desc": "Tích hợp LINE hoạt động bằng cách tạo một Provider và một Channel trong LINE Developers Console, sau đó cấp Channel ID, Channel Secret và Channel Access Token cho Messaging API hoặc LINE Login.",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>Phân biệt:</strong> Việc gửi tin nhắn dùng kênh Messaging API, còn tích hợp đăng nhập dùng kênh LINE Login." }
+          ]
+        },
+        {
+          "h2": "2. Chuẩn bị",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Tài khoản LINE hoặc tài khoản doanh nghiệp",
+              "Quyền truy cập LINE Developers Console",
+              "LINE Official Account",
+              "Tên dịch vụ và mô tả",
+              "Webhook URL",
+              "URL chính sách bảo mật và URL điều khoản"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. Tạo Provider",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Truy cập LINE Developers", "p": "Đăng nhập vào LINE Developers Console.", "path": "developers.line.biz" },
+              { "h3": "Tạo Provider", "p": "Tạo một Provider bằng tên công ty hoặc tên dịch vụ.", "path": "Create Provider" },
+              { "h3": "Nhập thông tin cơ bản", "p": "Nhập chủ thể vận hành dịch vụ, thông tin liên hệ và thông tin điều khoản.", "path": "Provider Settings" }
+            ] }
+          ]
+        },
+        {
+          "h2": "4. Tạo kênh Messaging API",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Tạo kênh mới", "p": "Nhấp Create a new channel bên trong Provider.", "path": "Create a new channel" },
+              { "h3": "Chọn Messaging API", "p": "Chọn Messaging API làm loại kênh.", "path": "Messaging API" },
+              { "h3": "Nhập thông tin kênh", "p": "Nhập tên kênh, mô tả, danh mục, email, v.v.", "path": "Channel Information" },
+              { "h3": "Liên kết LINE Official Account", "p": "Liên kết tài khoản chính thức để gửi tin nhắn, hoặc tạo mới.", "path": "LINE Official Account" },
+              { "h3": "Hoàn tất tạo kênh", "p": "Sau khi tạo, kiểm tra Channel ID và Channel Secret.", "path": "Channel ID / Channel Secret" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. Cấp Channel Access Token",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Chuyển đến tab Messaging API", "p": "Trên màn hình kênh đã tạo, chuyển đến tab Messaging API.", "path": "Messaging API tab" },
+              { "h3": "Tìm mục Channel access token", "p": "Kiểm tra khu vực Channel access token ở phía dưới.", "path": "Channel access token" },
+              { "h3": "Nhấp Issue", "p": "Nhấp nút Issue hoặc Reissue để cấp mã thông báo.", "path": "Issue" },
+              { "h3": "Lưu trữ an toàn trên máy chủ", "p": "Lưu mã thông báo đã cấp vào biến môi trường máy chủ hoặc Secret Manager.", "path": "LINE_CHANNEL_ACCESS_TOKEN" }
+            ] },
+            { "type": "notice", "kind": "danger", "html": "Channel Access Token là khóa bí mật có quyền gửi tin nhắn. Không được để lộ trong HTML, frontend hoặc kho lưu trữ công khai." }
+          ]
+        },
+        {
+          "h2": "6. Cấu hình Webhook",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Nhập Webhook URL", "p": "Nhập URL máy chủ sẽ nhận các sự kiện tin nhắn của người dùng.", "path": "Webhook URL" },
+              { "h3": "Bật Use webhook", "p": "Đổi tùy chọn Use webhook thành Enabled.", "path": "Use webhook: Enabled" },
+              { "h3": "Kiểm thử Verify", "p": "Gửi yêu cầu kiểm thử từ LINE đến máy chủ của bạn để xác nhận kết nối.", "path": "Verify" },
+              { "h3": "Kiểm tra mã phản hồi", "p": "Xác nhận máy chủ trả về 200 OK.", "path": "HTTP 200 OK" }
+            ] }
+          ]
+        },
+        {
+          "h2": "7. Ví dụ gửi tin nhắn",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "POST https://api.line.me/v2/bot/message/push Authorization: Bearer {CHANNEL_ACCESS_TOKEN} Content-Type: application/json { \"to\": \"USER_ID\", \"messages\": [ {\"type\": \"text\", \"text\": \"Xin chào. Đây là bài kiểm thử tin nhắn LINE.\"} ] }" }
+          ]
+        },
+        {
+          "h2": "8. Danh sách kiểm tra cuối cùng",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Đã tạo Provider.",
+              "Đã tạo kênh Messaging API.",
+              "Đã liên kết LINE Official Account.",
+              "Đã kiểm tra Channel ID và Channel Secret.",
+              "Đã cấp Channel Access Token.",
+              "Đã đăng ký Webhook URL và vượt qua Verify.",
+              "Đã lưu mã thông báo an toàn trong biến môi trường máy chủ."
+            ] }
+          ]
+        }
+      ]
+    },
+    "id": {
+      "titleType": "Panduan Penerbitan API",
+      "badge": "Panduan Penerbitan API untuk Pemula",
+      "intro": "Panduan ini merangkum proses pembuatan Provider dan Messaging API Channel di LINE Developers Console serta konfigurasi Channel Access Token dan Webhook URL.",
+      "org": "Panduan Integrasi untuk Pemula",
+      "quick": [
+        ["Struktur autentikasi", "Channel Access Token"],
+        ["Akun yang dibutuhkan", "Akun LINE"],
+        ["Hasil utama", "Channel ID / Secret / Token"],
+        ["Kegunaan", "Pesan·Chatbot"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Konsep Penerbitan LINE API",
+          "desc": "Integrasi LINE bekerja dengan membuat Provider dan Channel di LINE Developers Console, lalu menerbitkan Channel ID, Channel Secret, dan Channel Access Token untuk Messaging API atau LINE Login.",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>Pembedaan:</strong> Pengiriman pesan menggunakan kanal Messaging API, dan integrasi login menggunakan kanal LINE Login." }
+          ]
+        },
+        {
+          "h2": "2. Yang Perlu Disiapkan",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Akun LINE atau akun bisnis",
+              "Izin akses ke LINE Developers Console",
+              "LINE Official Account",
+              "Nama layanan dan deskripsi",
+              "Webhook URL",
+              "URL kebijakan privasi dan URL ketentuan"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. Membuat Provider",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Akses LINE Developers", "p": "Masuk ke LINE Developers Console.", "path": "developers.line.biz" },
+              { "h3": "Buat Provider", "p": "Buat Provider menggunakan nama perusahaan atau nama layanan.", "path": "Create Provider" },
+              { "h3": "Masukkan informasi dasar", "p": "Masukkan penyelenggara layanan, detail kontak, dan informasi ketentuan.", "path": "Provider Settings" }
+            ] }
+          ]
+        },
+        {
+          "h2": "4. Membuat Kanal Messaging API",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Buat kanal baru", "p": "Klik Create a new channel di dalam Provider.", "path": "Create a new channel" },
+              { "h3": "Pilih Messaging API", "p": "Pilih Messaging API sebagai jenis kanal.", "path": "Messaging API" },
+              { "h3": "Masukkan informasi kanal", "p": "Masukkan nama kanal, deskripsi, kategori, email, dan sebagainya.", "path": "Channel Information" },
+              { "h3": "Tautkan LINE Official Account", "p": "Tautkan akun resmi untuk mengirim pesan, atau buat yang baru.", "path": "LINE Official Account" },
+              { "h3": "Selesaikan pembuatan kanal", "p": "Setelah dibuat, periksa Channel ID dan Channel Secret.", "path": "Channel ID / Channel Secret" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. Menerbitkan Channel Access Token",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Buka tab Messaging API", "p": "Pada layar kanal yang Anda buat, pindah ke tab Messaging API.", "path": "Messaging API tab" },
+              { "h3": "Temukan item Channel access token", "p": "Periksa area Channel access token di bagian bawah.", "path": "Channel access token" },
+              { "h3": "Klik Issue", "p": "Klik tombol Issue atau Reissue untuk menerbitkan token.", "path": "Issue" },
+              { "h3": "Simpan dengan aman di server", "p": "Simpan token yang diterbitkan di variabel lingkungan server atau Secret Manager.", "path": "LINE_CHANNEL_ACCESS_TOKEN" }
+            ] },
+            { "type": "notice", "kind": "danger", "html": "Channel Access Token adalah kunci rahasia dengan izin untuk mengirim pesan. Tidak boleh diekspos di HTML, frontend, atau repositori publik." }
+          ]
+        },
+        {
+          "h2": "6. Mengonfigurasi Webhook",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Masukkan Webhook URL", "p": "Masukkan URL server yang akan menerima event pesan pengguna.", "path": "Webhook URL" },
+              { "h3": "Aktifkan Use webhook", "p": "Ubah opsi Use webhook menjadi Enabled.", "path": "Use webhook: Enabled" },
+              { "h3": "Uji Verify", "p": "Kirim permintaan uji dari LINE ke server Anda untuk mengonfirmasi koneksi.", "path": "Verify" },
+              { "h3": "Periksa kode respons", "p": "Konfirmasikan bahwa server mengembalikan 200 OK.", "path": "HTTP 200 OK" }
+            ] }
+          ]
+        },
+        {
+          "h2": "7. Contoh Pengiriman Pesan",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "POST https://api.line.me/v2/bot/message/push Authorization: Bearer {CHANNEL_ACCESS_TOKEN} Content-Type: application/json { \"to\": \"USER_ID\", \"messages\": [ {\"type\": \"text\", \"text\": \"Halo. Ini adalah uji pesan LINE.\"} ] }" }
+          ]
+        },
+        {
+          "h2": "8. Daftar Periksa Akhir",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Membuat Provider.",
+              "Membuat kanal Messaging API.",
+              "Menautkan LINE Official Account.",
+              "Memeriksa Channel ID dan Channel Secret.",
+              "Menerbitkan Channel Access Token.",
+              "Mendaftarkan Webhook URL dan lulus Verify.",
+              "Menyimpan token dengan aman di variabel lingkungan server."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ar": {
+      "titleType": "دليل إصدار API",
+      "badge": "دليل إصدار API للمبتدئين",
+      "intro": "يلخص هذا الدليل عملية إنشاء Provider و Messaging API Channel في LINE Developers Console وتهيئة Channel Access Token و Webhook URL.",
+      "org": "دليل التكامل العملي للمبتدئين",
+      "quick": [
+        ["بنية المصادقة", "Channel Access Token"],
+        ["الحساب المطلوب", "حساب LINE"],
+        ["النتائج الرئيسية", "Channel ID / Secret / Token"],
+        ["الاستخدام", "المراسلة · روبوت الدردشة"]
+      ],
+      "sections": [
+        {
+          "h2": "1. مفهوم إصدار LINE API",
+          "desc": "يعمل تكامل LINE من خلال إنشاء Provider و Channel في LINE Developers Console، ثم إصدار Channel ID و Channel Secret و Channel Access Token لـ Messaging API أو LINE Login.",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>التمييز:</strong> يُستخدم قناة Messaging API لإرسال الرسائل، وقناة LINE Login لتكامل تسجيل الدخول." }
+          ]
+        },
+        {
+          "h2": "2. المتطلبات",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "حساب LINE أو حساب تجاري",
+              "إذن الوصول إلى LINE Developers Console",
+              "LINE Official Account",
+              "اسم الخدمة والوصف",
+              "Webhook URL",
+              "عنوان URL لسياسة الخصوصية وعنوان URL للشروط"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. إنشاء Provider",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "الوصول إلى LINE Developers", "p": "سجّل الدخول إلى LINE Developers Console.", "path": "developers.line.biz" },
+              { "h3": "إنشاء Provider", "p": "أنشئ Provider باستخدام اسم الشركة أو اسم الخدمة.", "path": "Create Provider" },
+              { "h3": "إدخال المعلومات الأساسية", "p": "أدخل جهة تشغيل الخدمة وتفاصيل الاتصال ومعلومات الشروط.", "path": "Provider Settings" }
+            ] }
+          ]
+        },
+        {
+          "h2": "4. إنشاء قناة Messaging API",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "إنشاء قناة جديدة", "p": "انقر فوق Create a new channel داخل Provider.", "path": "Create a new channel" },
+              { "h3": "اختيار Messaging API", "p": "اختر Messaging API كنوع للقناة.", "path": "Messaging API" },
+              { "h3": "إدخال معلومات القناة", "p": "أدخل اسم القناة والوصف والفئة والبريد الإلكتروني وغير ذلك.", "path": "Channel Information" },
+              { "h3": "ربط LINE Official Account", "p": "اربط حسابًا رسميًا لإرسال الرسائل منه، أو أنشئ حسابًا جديدًا.", "path": "LINE Official Account" },
+              { "h3": "إكمال إنشاء القناة", "p": "بعد الإنشاء، تحقق من Channel ID و Channel Secret.", "path": "Channel ID / Channel Secret" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. إصدار Channel Access Token",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "الانتقال إلى علامة التبويب Messaging API", "p": "في شاشة القناة التي أنشأتها، انتقل إلى علامة التبويب Messaging API.", "path": "Messaging API tab" },
+              { "h3": "العثور على عنصر Channel access token", "p": "تحقق من منطقة Channel access token في الأسفل.", "path": "Channel access token" },
+              { "h3": "النقر فوق Issue", "p": "انقر فوق زر Issue أو Reissue لإصدار الرمز المميز.", "path": "Issue" },
+              { "h3": "التخزين بأمان على الخادم", "p": "خزّن الرمز المميز الصادر في متغير بيئة الخادم أو في Secret Manager.", "path": "LINE_CHANNEL_ACCESS_TOKEN" }
+            ] },
+            { "type": "notice", "kind": "danger", "html": "Channel Access Token هو مفتاح سري لديه إذن إرسال الرسائل. يجب عدم كشفه في HTML أو الواجهة الأمامية أو المستودعات العامة." }
+          ]
+        },
+        {
+          "h2": "6. تهيئة Webhook",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "إدخال Webhook URL", "p": "أدخل عنوان URL للخادم الذي سيستقبل أحداث رسائل المستخدم.", "path": "Webhook URL" },
+              { "h3": "تفعيل Use webhook", "p": "غيّر خيار Use webhook إلى Enabled.", "path": "Use webhook: Enabled" },
+              { "h3": "اختبار Verify", "p": "أرسل طلب اختبار من LINE إلى خادمك للتأكد من الاتصال.", "path": "Verify" },
+              { "h3": "التحقق من رمز الاستجابة", "p": "تأكد من أن الخادم يُرجع 200 OK.", "path": "HTTP 200 OK" }
+            ] }
+          ]
+        },
+        {
+          "h2": "7. مثال على إرسال رسالة",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "POST https://api.line.me/v2/bot/message/push Authorization: Bearer {CHANNEL_ACCESS_TOKEN} Content-Type: application/json { \"to\": \"USER_ID\", \"messages\": [ {\"type\": \"text\", \"text\": \"مرحبًا. هذا اختبار رسالة LINE.\"} ] }" }
+          ]
+        },
+        {
+          "h2": "8. قائمة التحقق النهائية",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "أنشأت Provider.",
+              "أنشأت قناة Messaging API.",
+              "ربطت LINE Official Account.",
+              "تحققت من Channel ID و Channel Secret.",
+              "أصدرت Channel Access Token.",
+              "سجّلت Webhook URL واجتزت Verify.",
+              "خزّنت الرمز المميز بأمان في متغير بيئة الخادم."
+            ] }
+          ]
+        }
+      ]
+    },
+    "es": {
+      "titleType": "Manual de emisión de API",
+      "badge": "Manual de emisión de API para principiantes",
+      "intro": "Esta guía resume el proceso de crear un Provider y un Messaging API Channel en la LINE Developers Console y de configurar el Channel Access Token y la Webhook URL.",
+      "org": "Guía de integración para principiantes",
+      "quick": [
+        ["Estructura de autenticación", "Channel Access Token"],
+        ["Cuenta necesaria", "Cuenta de LINE"],
+        ["Resultados principales", "Channel ID / Secret / Token"],
+        ["Uso", "Mensajería · Chatbot"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Concepto de emisión de la API de LINE",
+          "desc": "La integración de LINE funciona creando un Provider y un Channel en la LINE Developers Console y luego emitiendo el Channel ID, el Channel Secret y el Channel Access Token para la Messaging API o LINE Login.",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>Distinción:</strong> El envío de mensajes utiliza un canal Messaging API, y la integración de inicio de sesión utiliza un canal LINE Login." }
+          ]
+        },
+        {
+          "h2": "2. Requisitos previos",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Una cuenta de LINE o una cuenta empresarial",
+              "Permiso de acceso a la LINE Developers Console",
+              "Una LINE Official Account",
+              "Nombre del servicio y descripción",
+              "Webhook URL",
+              "URL de la política de privacidad y URL de los términos"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. Crear un Provider",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Acceder a LINE Developers", "p": "Inicie sesión en la LINE Developers Console.", "path": "developers.line.biz" },
+              { "h3": "Crear un Provider", "p": "Cree un Provider usando el nombre de su empresa o de su servicio.", "path": "Create Provider" },
+              { "h3": "Introducir la información básica", "p": "Introduzca el operador del servicio, los datos de contacto y la información de los términos.", "path": "Provider Settings" }
+            ] }
+          ]
+        },
+        {
+          "h2": "4. Crear un canal Messaging API",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Crear un nuevo canal", "p": "Haga clic en Create a new channel dentro del Provider.", "path": "Create a new channel" },
+              { "h3": "Seleccionar Messaging API", "p": "Elija Messaging API como tipo de canal.", "path": "Messaging API" },
+              { "h3": "Introducir la información del canal", "p": "Introduzca el nombre del canal, la descripción, la categoría, el correo electrónico, etc.", "path": "Channel Information" },
+              { "h3": "Vincular una LINE Official Account", "p": "Vincule una cuenta oficial desde la que enviar mensajes, o cree una nueva.", "path": "LINE Official Account" },
+              { "h3": "Finalizar la creación del canal", "p": "Tras la creación, verifique el Channel ID y el Channel Secret.", "path": "Channel ID / Channel Secret" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. Emitir el Channel Access Token",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Ir a la pestaña Messaging API", "p": "En la pantalla del canal que creó, vaya a la pestaña Messaging API.", "path": "Messaging API tab" },
+              { "h3": "Buscar el elemento Channel access token", "p": "Localice el área Channel access token en la parte inferior.", "path": "Channel access token" },
+              { "h3": "Hacer clic en Issue", "p": "Haga clic en el botón Issue o Reissue para emitir el token.", "path": "Issue" },
+              { "h3": "Almacenarlo de forma segura en el servidor", "p": "Almacene el token emitido en una variable de entorno del servidor o en Secret Manager.", "path": "LINE_CHANNEL_ACCESS_TOKEN" }
+            ] },
+            { "type": "notice", "kind": "danger", "html": "El Channel Access Token es una clave secreta con permiso para enviar mensajes. No debe exponerse en HTML, en el frontend ni en repositorios públicos." }
+          ]
+        },
+        {
+          "h2": "6. Configurar el Webhook",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Introducir la Webhook URL", "p": "Introduzca la URL del servidor que recibirá los eventos de mensajes de los usuarios.", "path": "Webhook URL" },
+              { "h3": "Activar Use webhook", "p": "Cambie la opción Use webhook a Enabled.", "path": "Use webhook: Enabled" },
+              { "h3": "Prueba Verify", "p": "Envíe una solicitud de prueba desde LINE a su servidor para confirmar la conexión.", "path": "Verify" },
+              { "h3": "Comprobar el código de respuesta", "p": "Confirme que el servidor devuelve 200 OK.", "path": "HTTP 200 OK" }
+            ] }
+          ]
+        },
+        {
+          "h2": "7. Ejemplo de envío de mensaje",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "POST https://api.line.me/v2/bot/message/push Authorization: Bearer {CHANNEL_ACCESS_TOKEN} Content-Type: application/json { \"to\": \"USER_ID\", \"messages\": [ {\"type\": \"text\", \"text\": \"Hola. Esta es una prueba de mensaje de LINE.\"} ] }" }
+          ]
+        },
+        {
+          "h2": "8. Lista de verificación final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Creé un Provider.",
+              "Creé un canal Messaging API.",
+              "Vinculé una LINE Official Account.",
+              "Verifiqué el Channel ID y el Channel Secret.",
+              "Emití el Channel Access Token.",
+              "Registré la Webhook URL y pasé Verify.",
+              "Almacené el token de forma segura en una variable de entorno del servidor."
+            ] }
+          ]
+        }
+      ]
+    },
+    "fr": {
+      "titleType": "Manuel d'émission d'API",
+      "badge": "Manuel d'émission d'API pour débutants",
+      "intro": "Ce guide résume le processus de création d'un Provider et d'un Messaging API Channel dans la LINE Developers Console, ainsi que la configuration du Channel Access Token et de la Webhook URL.",
+      "org": "Guide d'intégration pour débutants",
+      "quick": [
+        ["Structure d'authentification", "Channel Access Token"],
+        ["Compte requis", "Compte LINE"],
+        ["Principaux résultats", "Channel ID / Secret / Token"],
+        ["Utilisation", "Messagerie · Chatbot"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Concept d'émission de l'API LINE",
+          "desc": "L'intégration de LINE consiste à créer un Provider et un Channel dans la LINE Developers Console, puis à émettre le Channel ID, le Channel Secret et le Channel Access Token pour la Messaging API ou LINE Login.",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>Distinction :</strong> L'envoi de messages utilise un canal Messaging API, et l'intégration de connexion utilise un canal LINE Login." }
+          ]
+        },
+        {
+          "h2": "2. Prérequis",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Un compte LINE ou un compte professionnel",
+              "Une autorisation d'accès à la LINE Developers Console",
+              "Un LINE Official Account",
+              "Le nom du service et sa description",
+              "Webhook URL",
+              "URL de la politique de confidentialité et URL des conditions"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. Créer un Provider",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Accéder à LINE Developers", "p": "Connectez-vous à la LINE Developers Console.", "path": "developers.line.biz" },
+              { "h3": "Créer un Provider", "p": "Créez un Provider en utilisant le nom de votre entreprise ou de votre service.", "path": "Create Provider" },
+              { "h3": "Saisir les informations de base", "p": "Saisissez l'exploitant du service, les coordonnées et les informations relatives aux conditions.", "path": "Provider Settings" }
+            ] }
+          ]
+        },
+        {
+          "h2": "4. Créer un canal Messaging API",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Créer un nouveau canal", "p": "Cliquez sur Create a new channel à l'intérieur du Provider.", "path": "Create a new channel" },
+              { "h3": "Sélectionner Messaging API", "p": "Choisissez Messaging API comme type de canal.", "path": "Messaging API" },
+              { "h3": "Saisir les informations du canal", "p": "Saisissez le nom du canal, la description, la catégorie, l'e-mail, etc.", "path": "Channel Information" },
+              { "h3": "Associer un LINE Official Account", "p": "Associez un compte officiel à partir duquel envoyer des messages, ou créez-en un nouveau.", "path": "LINE Official Account" },
+              { "h3": "Terminer la création du canal", "p": "Après la création, vérifiez le Channel ID et le Channel Secret.", "path": "Channel ID / Channel Secret" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. Émettre le Channel Access Token",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Aller à l'onglet Messaging API", "p": "Sur l'écran du canal que vous avez créé, accédez à l'onglet Messaging API.", "path": "Messaging API tab" },
+              { "h3": "Trouver l'élément Channel access token", "p": "Repérez la zone Channel access token en bas.", "path": "Channel access token" },
+              { "h3": "Cliquer sur Issue", "p": "Cliquez sur le bouton Issue ou Reissue pour émettre le token.", "path": "Issue" },
+              { "h3": "Le stocker en toute sécurité sur le serveur", "p": "Stockez le token émis dans une variable d'environnement du serveur ou dans Secret Manager.", "path": "LINE_CHANNEL_ACCESS_TOKEN" }
+            ] },
+            { "type": "notice", "kind": "danger", "html": "Le Channel Access Token est une clé secrète dotée de l'autorisation d'envoyer des messages. Il ne doit pas être exposé dans le HTML, le frontend ou les dépôts publics." }
+          ]
+        },
+        {
+          "h2": "6. Configurer le Webhook",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Saisir la Webhook URL", "p": "Saisissez l'URL du serveur qui recevra les événements de messages des utilisateurs.", "path": "Webhook URL" },
+              { "h3": "Activer Use webhook", "p": "Réglez l'option Use webhook sur Enabled.", "path": "Use webhook: Enabled" },
+              { "h3": "Test Verify", "p": "Envoyez une requête de test depuis LINE vers votre serveur pour confirmer la connexion.", "path": "Verify" },
+              { "h3": "Vérifier le code de réponse", "p": "Confirmez que le serveur renvoie 200 OK.", "path": "HTTP 200 OK" }
+            ] }
+          ]
+        },
+        {
+          "h2": "7. Exemple d'envoi de message",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "POST https://api.line.me/v2/bot/message/push Authorization: Bearer {CHANNEL_ACCESS_TOKEN} Content-Type: application/json { \"to\": \"USER_ID\", \"messages\": [ {\"type\": \"text\", \"text\": \"Bonjour. Ceci est un test de message LINE.\"} ] }" }
+          ]
+        },
+        {
+          "h2": "8. Liste de contrôle finale",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Créé un Provider.",
+              "Créé un canal Messaging API.",
+              "Associé un LINE Official Account.",
+              "Vérifié le Channel ID et le Channel Secret.",
+              "Émis le Channel Access Token.",
+              "Enregistré la Webhook URL et réussi le test Verify.",
+              "Stocké le token en toute sécurité dans une variable d'environnement du serveur."
+            ] }
+          ]
+        }
+      ]
+    },
+    "hi": {
+      "titleType": "API जारी करने की मार्गदर्शिका",
+      "badge": "शुरुआती लोगों के लिए API जारी करने की मार्गदर्शिका",
+      "intro": "यह मार्गदर्शिका LINE Developers Console में Provider और Messaging API Channel बनाने तथा Channel Access Token, Webhook URL को कॉन्फ़िगर करने की प्रक्रिया को संक्षेप में प्रस्तुत करती है।",
+      "org": "व्यावहारिक एकीकरण के लिए शुरुआती मार्गदर्शिका",
+      "quick": [
+        ["प्रमाणीकरण संरचना", "Channel Access Token"],
+        ["आवश्यक खाता", "LINE खाता"],
+        ["मुख्य परिणाम", "Channel ID / Secret / Token"],
+        ["उपयोग", "मैसेजिंग · चैटबॉट"]
+      ],
+      "sections": [
+        {
+          "h2": "1. LINE API जारी करने की अवधारणा",
+          "desc": "LINE एकीकरण LINE Developers Console में एक Provider और एक Channel बनाकर, फिर Messaging API या LINE Login के लिए Channel ID, Channel Secret और Channel Access Token जारी करके काम करता है।",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>अंतर:</strong> संदेश भेजने के लिए Messaging API चैनल का और लॉगिन एकीकरण के लिए LINE Login चैनल का उपयोग करें।" }
+          ]
+        },
+        {
+          "h2": "2. आवश्यक चीज़ें",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "एक LINE खाता या व्यावसायिक खाता",
+              "LINE Developers Console तक पहुँच की अनुमति",
+              "एक LINE Official Account",
+              "सेवा का नाम और विवरण",
+              "Webhook URL",
+              "गोपनीयता नीति URL और शर्तें URL"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. Provider बनाएँ",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "LINE Developers तक पहुँचें", "p": "LINE Developers Console में साइन इन करें।", "path": "developers.line.biz" },
+              { "h3": "Provider बनाएँ", "p": "अपनी कंपनी या सेवा के नाम का उपयोग करके एक Provider बनाएँ।", "path": "Create Provider" },
+              { "h3": "बुनियादी जानकारी दर्ज करें", "p": "सेवा संचालक, संपर्क विवरण और शर्तों की जानकारी दर्ज करें।", "path": "Provider Settings" }
+            ] }
+          ]
+        },
+        {
+          "h2": "4. Messaging API चैनल बनाएँ",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "नया चैनल बनाएँ", "p": "Provider के अंदर Create a new channel पर क्लिक करें।", "path": "Create a new channel" },
+              { "h3": "Messaging API चुनें", "p": "चैनल प्रकार के रूप में Messaging API चुनें।", "path": "Messaging API" },
+              { "h3": "चैनल जानकारी दर्ज करें", "p": "चैनल का नाम, विवरण, श्रेणी, ईमेल आदि दर्ज करें।", "path": "Channel Information" },
+              { "h3": "LINE Official Account लिंक करें", "p": "संदेश भेजने के लिए एक आधिकारिक खाता लिंक करें, या नया बनाएँ।", "path": "LINE Official Account" },
+              { "h3": "चैनल निर्माण पूरा करें", "p": "बनाने के बाद Channel ID और Channel Secret की जाँच करें।", "path": "Channel ID / Channel Secret" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. Channel Access Token जारी करें",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Messaging API टैब पर जाएँ", "p": "अपने बनाए गए चैनल की स्क्रीन पर, Messaging API टैब पर जाएँ।", "path": "Messaging API tab" },
+              { "h3": "Channel access token आइटम खोजें", "p": "नीचे दिए गए Channel access token क्षेत्र की जाँच करें।", "path": "Channel access token" },
+              { "h3": "Issue पर क्लिक करें", "p": "टोकन जारी करने के लिए Issue या Reissue बटन पर क्लिक करें।", "path": "Issue" },
+              { "h3": "सर्वर पर सुरक्षित रूप से संग्रहीत करें", "p": "जारी किए गए टोकन को सर्वर पर्यावरण चर या Secret Manager में संग्रहीत करें।", "path": "LINE_CHANNEL_ACCESS_TOKEN" }
+            ] },
+            { "type": "notice", "kind": "danger", "html": "Channel Access Token संदेश भेजने की अनुमति वाली एक गुप्त कुंजी है। इसे HTML, फ्रंटएंड या सार्वजनिक रिपॉज़िटरी में उजागर नहीं किया जाना चाहिए।" }
+          ]
+        },
+        {
+          "h2": "6. Webhook कॉन्फ़िगर करें",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Webhook URL दर्ज करें", "p": "वह सर्वर URL दर्ज करें जो उपयोगकर्ता संदेश इवेंट प्राप्त करेगा।", "path": "Webhook URL" },
+              { "h3": "Use webhook सक्षम करें", "p": "Use webhook विकल्प को Enabled में बदलें।", "path": "Use webhook: Enabled" },
+              { "h3": "Verify परीक्षण", "p": "कनेक्शन की पुष्टि के लिए LINE से अपने सर्वर पर एक परीक्षण अनुरोध भेजें।", "path": "Verify" },
+              { "h3": "प्रतिक्रिया कोड जाँचें", "p": "पुष्टि करें कि सर्वर 200 OK लौटाता है।", "path": "HTTP 200 OK" }
+            ] }
+          ]
+        },
+        {
+          "h2": "7. संदेश भेजने का उदाहरण",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "POST https://api.line.me/v2/bot/message/push Authorization: Bearer {CHANNEL_ACCESS_TOKEN} Content-Type: application/json { \"to\": \"USER_ID\", \"messages\": [ {\"type\": \"text\", \"text\": \"नमस्ते। यह एक LINE संदेश परीक्षण है।\"} ] }" }
+          ]
+        },
+        {
+          "h2": "8. अंतिम जाँच सूची",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "एक Provider बनाया।",
+              "एक Messaging API चैनल बनाया।",
+              "एक LINE Official Account लिंक किया।",
+              "Channel ID और Channel Secret की जाँच की।",
+              "Channel Access Token जारी किया।",
+              "Webhook URL पंजीकृत किया और Verify पास किया।",
+              "टोकन को सर्वर पर्यावरण चर में सुरक्षित रूप से संग्रहीत किया।"
+            ] }
+          ]
+        }
+      ]
+    },
+    "pt": {
+      "titleType": "Manual de emissão de API",
+      "badge": "Manual de emissão de API para iniciantes",
+      "intro": "Este guia resume o processo de criação de um Provider e de um Messaging API Channel no LINE Developers Console e de configuração do Channel Access Token e da Webhook URL.",
+      "org": "Guia de integração para iniciantes",
+      "quick": [
+        ["Estrutura de autenticação", "Channel Access Token"],
+        ["Conta necessária", "Conta LINE"],
+        ["Principais resultados", "Channel ID / Secret / Token"],
+        ["Uso", "Mensagens · Chatbot"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Conceito de emissão da API do LINE",
+          "desc": "A integração do LINE funciona criando um Provider e um Channel no LINE Developers Console e, em seguida, emitindo o Channel ID, o Channel Secret e o Channel Access Token para a Messaging API ou o LINE Login.",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>Distinção:</strong> O envio de mensagens usa um canal Messaging API, e a integração de login usa um canal LINE Login." }
+          ]
+        },
+        {
+          "h2": "2. Pré-requisitos",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Uma conta LINE ou uma conta empresarial",
+              "Permissão de acesso ao LINE Developers Console",
+              "Uma LINE Official Account",
+              "Nome do serviço e descrição",
+              "Webhook URL",
+              "URL da política de privacidade e URL dos termos"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. Criar um Provider",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Acessar o LINE Developers", "p": "Faça login no LINE Developers Console.", "path": "developers.line.biz" },
+              { "h3": "Criar um Provider", "p": "Crie um Provider usando o nome da sua empresa ou do seu serviço.", "path": "Create Provider" },
+              { "h3": "Inserir as informações básicas", "p": "Insira o operador do serviço, os dados de contato e as informações dos termos.", "path": "Provider Settings" }
+            ] }
+          ]
+        },
+        {
+          "h2": "4. Criar um canal Messaging API",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Criar um novo canal", "p": "Clique em Create a new channel dentro do Provider.", "path": "Create a new channel" },
+              { "h3": "Selecionar Messaging API", "p": "Escolha Messaging API como o tipo de canal.", "path": "Messaging API" },
+              { "h3": "Inserir as informações do canal", "p": "Insira o nome do canal, a descrição, a categoria, o e-mail, etc.", "path": "Channel Information" },
+              { "h3": "Vincular uma LINE Official Account", "p": "Vincule uma conta oficial a partir da qual enviar mensagens, ou crie uma nova.", "path": "LINE Official Account" },
+              { "h3": "Concluir a criação do canal", "p": "Após a criação, verifique o Channel ID e o Channel Secret.", "path": "Channel ID / Channel Secret" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. Emitir o Channel Access Token",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Ir para a aba Messaging API", "p": "Na tela do canal que você criou, vá para a aba Messaging API.", "path": "Messaging API tab" },
+              { "h3": "Encontrar o item Channel access token", "p": "Localize a área Channel access token na parte inferior.", "path": "Channel access token" },
+              { "h3": "Clicar em Issue", "p": "Clique no botão Issue ou Reissue para emitir o token.", "path": "Issue" },
+              { "h3": "Armazenar com segurança no servidor", "p": "Armazene o token emitido em uma variável de ambiente do servidor ou no Secret Manager.", "path": "LINE_CHANNEL_ACCESS_TOKEN" }
+            ] },
+            { "type": "notice", "kind": "danger", "html": "O Channel Access Token é uma chave secreta com permissão para enviar mensagens. Ele não deve ser exposto em HTML, no frontend ou em repositórios públicos." }
+          ]
+        },
+        {
+          "h2": "6. Configurar o Webhook",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Inserir a Webhook URL", "p": "Insira a URL do servidor que receberá os eventos de mensagens dos usuários.", "path": "Webhook URL" },
+              { "h3": "Ativar Use webhook", "p": "Altere a opção Use webhook para Enabled.", "path": "Use webhook: Enabled" },
+              { "h3": "Teste Verify", "p": "Envie uma solicitação de teste do LINE para o seu servidor para confirmar a conexão.", "path": "Verify" },
+              { "h3": "Verificar o código de resposta", "p": "Confirme que o servidor retorna 200 OK.", "path": "HTTP 200 OK" }
+            ] }
+          ]
+        },
+        {
+          "h2": "7. Exemplo de envio de mensagem",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "POST https://api.line.me/v2/bot/message/push Authorization: Bearer {CHANNEL_ACCESS_TOKEN} Content-Type: application/json { \"to\": \"USER_ID\", \"messages\": [ {\"type\": \"text\", \"text\": \"Olá. Este é um teste de mensagem do LINE.\"} ] }" }
+          ]
+        },
+        {
+          "h2": "8. Lista de verificação final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Criei um Provider.",
+              "Criei um canal Messaging API.",
+              "Vinculei uma LINE Official Account.",
+              "Verifiquei o Channel ID e o Channel Secret.",
+              "Emiti o Channel Access Token.",
+              "Registrei a Webhook URL e passei no Verify.",
+              "Armazenei o token com segurança em uma variável de ambiente do servidor."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ru": {
+      "titleType": "Руководство по выпуску API",
+      "badge": "Руководство по выпуску API для начинающих",
+      "intro": "В этом руководстве описан процесс создания Provider и Messaging API Channel в LINE Developers Console, а также настройки Channel Access Token и Webhook URL.",
+      "org": "Руководство по интеграции для начинающих",
+      "quick": [
+        ["Структура аутентификации", "Channel Access Token"],
+        ["Требуемая учётная запись", "Учётная запись LINE"],
+        ["Основные результаты", "Channel ID / Secret / Token"],
+        ["Назначение", "Обмен сообщениями · Чат-бот"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Концепция выпуска LINE API",
+          "desc": "Интеграция LINE работает за счёт создания Provider и Channel в LINE Developers Console и последующего выпуска Channel ID, Channel Secret и Channel Access Token для Messaging API или LINE Login.",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>Различие:</strong> Для отправки сообщений используется канал Messaging API, а для интеграции входа — канал LINE Login." }
+          ]
+        },
+        {
+          "h2": "2. Что потребуется",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Учётная запись LINE или бизнес-аккаунт",
+              "Право доступа к LINE Developers Console",
+              "LINE Official Account",
+              "Название сервиса и описание",
+              "Webhook URL",
+              "URL политики конфиденциальности и URL условий"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. Создание Provider",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Вход в LINE Developers", "p": "Войдите в LINE Developers Console.", "path": "developers.line.biz" },
+              { "h3": "Создание Provider", "p": "Создайте Provider, используя название компании или сервиса.", "path": "Create Provider" },
+              { "h3": "Ввод основной информации", "p": "Введите оператора сервиса, контактные данные и информацию об условиях.", "path": "Provider Settings" }
+            ] }
+          ]
+        },
+        {
+          "h2": "4. Создание канала Messaging API",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Создание нового канала", "p": "Внутри Provider нажмите Create a new channel.", "path": "Create a new channel" },
+              { "h3": "Выбор Messaging API", "p": "Выберите Messaging API в качестве типа канала.", "path": "Messaging API" },
+              { "h3": "Ввод информации о канале", "p": "Введите имя канала, описание, категорию, эл. почту и т. д.", "path": "Channel Information" },
+              { "h3": "Привязка LINE Official Account", "p": "Привяжите официальный аккаунт, с которого будут отправляться сообщения, или создайте новый.", "path": "LINE Official Account" },
+              { "h3": "Завершение создания канала", "p": "После создания проверьте Channel ID и Channel Secret.", "path": "Channel ID / Channel Secret" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. Выпуск Channel Access Token",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Переход на вкладку Messaging API", "p": "На экране созданного канала перейдите на вкладку Messaging API.", "path": "Messaging API tab" },
+              { "h3": "Поиск элемента Channel access token", "p": "Проверьте область Channel access token внизу.", "path": "Channel access token" },
+              { "h3": "Нажатие Issue", "p": "Нажмите кнопку Issue или Reissue, чтобы выпустить токен.", "path": "Issue" },
+              { "h3": "Безопасное хранение на сервере", "p": "Сохраните выпущенный токен в переменной окружения сервера или в Secret Manager.", "path": "LINE_CHANNEL_ACCESS_TOKEN" }
+            ] },
+            { "type": "notice", "kind": "danger", "html": "Channel Access Token — это секретный ключ с правом отправки сообщений. Его нельзя раскрывать в HTML, во фронтенде или в публичных репозиториях." }
+          ]
+        },
+        {
+          "h2": "6. Настройка Webhook",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Ввод Webhook URL", "p": "Введите URL сервера, который будет получать события сообщений пользователей.", "path": "Webhook URL" },
+              { "h3": "Включение Use webhook", "p": "Измените параметр Use webhook на Enabled.", "path": "Use webhook: Enabled" },
+              { "h3": "Тест Verify", "p": "Отправьте тестовый запрос из LINE на ваш сервер, чтобы подтвердить соединение.", "path": "Verify" },
+              { "h3": "Проверка кода ответа", "p": "Убедитесь, что сервер возвращает 200 OK.", "path": "HTTP 200 OK" }
+            ] }
+          ]
+        },
+        {
+          "h2": "7. Пример отправки сообщения",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "POST https://api.line.me/v2/bot/message/push Authorization: Bearer {CHANNEL_ACCESS_TOKEN} Content-Type: application/json { \"to\": \"USER_ID\", \"messages\": [ {\"type\": \"text\", \"text\": \"Здравствуйте. Это тест сообщения LINE.\"} ] }" }
+          ]
+        },
+        {
+          "h2": "8. Итоговый контрольный список",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Создан Provider.",
+              "Создан канал Messaging API.",
+              "Привязан LINE Official Account.",
+              "Проверены Channel ID и Channel Secret.",
+              "Выпущен Channel Access Token.",
+              "Зарегистрирован Webhook URL и пройден Verify.",
+              "Токен безопасно сохранён в переменной окружения сервера."
+            ] }
+          ]
+        }
+      ]
+    }
+  }
+}

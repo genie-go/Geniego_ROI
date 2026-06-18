@@ -1,0 +1,1026 @@
+{
+  "name": "Fulfillment (3PL)",
+  "icon": "🏭",
+  "langs": {
+    "ko": {
+      "titleType": "API Key 발급 매뉴얼",
+      "badge": "Beginner Guide",
+      "intro": "3PL 풀필먼트 입출고 위탁 계약을 체결하고 발급받은 3PL API 키·창고 ID를 GenieGo 연동 허브에 등록하는 과정을 정리한 매뉴얼입니다. 이 채널은 자가 콘솔 발급이 아닌 위탁 계약을 통해 자격증명을 수령합니다.",
+      "org": "GenieGo 연동 허브",
+      "quick": [
+        ["소요 시간", "계약 진행에 따라 상이"],
+        ["필요 계정", "3PL 풀필먼트 위탁 계약"],
+        ["발급 키", "3PL API 키 · 창고 ID"],
+        ["결과물", "풀필먼트 API 자격증명"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 시작하기 전에",
+          "desc": "풀필먼트(3PL)는 입출고 위탁 계약 후 자격증명이 발급되는 계약형 채널입니다.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "필요", "h3": "입출고 위탁 계약", "p": "3PL 풀필먼트를 이용하려면 풀필먼트 사업자 또는 운영팀과 입출고 위탁 계약이 선행되어야 합니다." },
+              { "tag": "발급 키", "h3": "3PL API 키 · 창고 ID", "p": "계약 완료 후 창고 ID와 3PL API 키를 발급받습니다." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>참고:</strong> 이 채널은 셀프 콘솔에서 직접 발급하는 방식이 아니라, 위탁 계약을 통해 자격증명을 수령하는 방식입니다." }
+          ]
+        },
+        {
+          "h2": "2. 발급 신청 절차",
+          "desc": "아래 순서대로 신청·수령한 뒤 GenieGo에 등록합니다.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "위탁 계약 진행", "p": "풀필먼트 사업자 또는 운영팀과 입출고 위탁 계약을 진행합니다." },
+              { "h3": "계약 체결", "p": "3PL 풀필먼트 입출고 위탁 계약을 체결합니다." },
+              { "h3": "자격증명 수령", "p": "계약 완료 후 창고 ID·3PL API 키를 발급받습니다." },
+              { "h3": "GenieGo 등록", "p": "발급받은 api_key, warehouse_id 를 GenieGo [등록]에 입력해 저장합니다." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "풀필먼트 사업자로부터 창고 ID·3PL API 키를 모두 수령했다면 정상적으로 발급된 것입니다." }
+          ]
+        },
+        {
+          "h2": "3. GenieGo에 등록할 정보",
+          "blocks": [
+            { "type": "table", "head": ["필드", "설명"], "rows": [
+              ["api_key", "발급받은 3PL API 키"],
+              ["warehouse_id", "발급받은 창고 ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 연동 허브 [등록]에 입력해 저장하면 자격증명은 AES-256-GCM으로 암호화 저장되고 조회 시 마스킹됩니다." }
+          ]
+        },
+        {
+          "h2": "4. 자주 발생하는 문제",
+          "blocks": [
+            { "type": "table", "head": ["문제", "원인", "해결"], "rows": [
+              ["자격증명을 받지 못함", "입출고 위탁 계약 미완료", "풀필먼트 사업자 또는 운영팀과 위탁 계약을 체결한 뒤 자격증명을 발급받습니다."],
+              ["입출고 연동 오류", "창고 ID(warehouse_id) 오기재", "발급받은 창고 ID를 다시 확인해 정확히 입력합니다."]
+            ] }
+          ]
+        },
+        {
+          "h2": "최종 체크리스트",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "풀필먼트 사업자 또는 운영팀과 입출고 위탁 계약을 체결했다.",
+              "계약 완료 후 창고 ID·3PL API 키를 발급받았다.",
+              "api_key·warehouse_id 를 확인했다.",
+              "GenieGo [등록]에 api_key·warehouse_id 를 입력해 저장했다."
+            ] }
+          ]
+        }
+      ]
+    },
+    "en": {
+      "titleType": "API Key Issuance Manual",
+      "badge": "Beginner Guide",
+      "intro": "A guide to signing a 3PL fulfillment inbound/outbound consignment contract and registering the issued 3PL API key and warehouse ID in the GenieGo Integration Hub. For this channel, credentials are received through a consignment contract rather than self-service console issuance.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Est. time", "Varies with contract progress"],
+        ["Account needed", "3PL fulfillment consignment contract"],
+        ["Keys issued", "3PL API key · Warehouse ID"],
+        ["Result", "Fulfillment API credentials"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Before You Begin",
+          "desc": "Fulfillment (3PL) is a contract-based channel where credentials are issued after an inbound/outbound consignment contract.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Required", "h3": "Inbound/outbound consignment contract", "p": "To use 3PL fulfillment, an inbound/outbound consignment contract with a fulfillment provider or operations team must come first." },
+              { "tag": "Keys issued", "h3": "3PL API key · Warehouse ID", "p": "After the contract is completed, you are issued a warehouse ID and a 3PL API key." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Note:</strong> This channel does not issue credentials directly from a self-service console; instead, you receive credentials through a consignment contract." }
+          ]
+        },
+        {
+          "h2": "2. Issuance Request Procedure",
+          "desc": "Apply and receive in the order below, then register in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Proceed with the consignment contract", "p": "Proceed with an inbound/outbound consignment contract with a fulfillment provider or operations team." },
+              { "h3": "Sign the contract", "p": "Sign the 3PL fulfillment inbound/outbound consignment contract." },
+              { "h3": "Receive credentials", "p": "After the contract is completed, you are issued a warehouse ID and a 3PL API key." },
+              { "h3": "Register in GenieGo", "p": "Enter the issued api_key and warehouse_id in GenieGo [Register] and save." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "If you have received both the warehouse ID and the 3PL API key from the fulfillment provider, they have been issued correctly." }
+          ]
+        },
+        {
+          "h2": "3. Information to Register in GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Field", "Description"], "rows": [
+              ["api_key", "The issued 3PL API key"],
+              ["warehouse_id", "The issued warehouse ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "When you enter and save them in the GenieGo Integration Hub [Register], credentials are encrypted at rest with AES-256-GCM and masked on read." }
+          ]
+        },
+        {
+          "h2": "4. Common Issues",
+          "blocks": [
+            { "type": "table", "head": ["Issue", "Cause", "Solution"], "rows": [
+              ["Credentials not received", "Inbound/outbound consignment contract not completed", "Sign a consignment contract with a fulfillment provider or operations team, then have the credentials issued."],
+              ["Inbound/outbound integration error", "Warehouse ID (warehouse_id) entered incorrectly", "Re-check the issued warehouse ID and enter it correctly."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Final Checklist",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Signed an inbound/outbound consignment contract with a fulfillment provider or operations team.",
+              "Received the warehouse ID and 3PL API key after the contract was completed.",
+              "Confirmed api_key and warehouse_id.",
+              "Entered api_key and warehouse_id in GenieGo [Register] and saved."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ja": {
+      "titleType": "API Key 発行マニュアル",
+      "badge": "初心者ガイド",
+      "intro": "3PL フルフィルメントの入出庫委託契約を締結し、発行された 3PL API キー・倉庫 ID を GenieGo 連携ハブに登録する手順をまとめたマニュアルです。このチャネルは、セルフコンソールでの発行ではなく、委託契約を通じて認証情報を受領する方式です。",
+      "org": "GenieGo 連携ハブ",
+      "quick": [
+        ["所要時間", "契約の進行状況により異なる"],
+        ["必要なアカウント", "3PL フルフィルメント委託契約"],
+        ["発行するキー", "3PL API キー · 倉庫 ID"],
+        ["成果物", "フルフィルメント API 認証情報"]
+      ],
+      "sections": [
+        {
+          "h2": "1. はじめる前に",
+          "desc": "フルフィルメント(3PL)は、入出庫委託契約の後に認証情報が発行される契約型チャネルです。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必須", "h3": "入出庫委託契約", "p": "3PL フルフィルメントを利用するには、フルフィルメント事業者または運用チームとの入出庫委託契約が先行して必要です。" },
+              { "tag": "発行するキー", "h3": "3PL API キー · 倉庫 ID", "p": "契約完了後、倉庫 ID と 3PL API キーが発行されます。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> このチャネルは、セルフコンソールで直接発行する方式ではなく、委託契約を通じて認証情報を受領する方式です。" }
+          ]
+        },
+        {
+          "h2": "2. 発行申請手順",
+          "desc": "以下の順序で申請・受領してから GenieGo に登録します。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "委託契約の進行", "p": "フルフィルメント事業者または運用チームと入出庫委託契約を進めます。" },
+              { "h3": "契約締結", "p": "3PL フルフィルメントの入出庫委託契約を締結します。" },
+              { "h3": "認証情報の受領", "p": "契約完了後、倉庫 ID·3PL API キーが発行されます。" },
+              { "h3": "GenieGo に登録", "p": "発行された api_key、warehouse_id を GenieGo の [登録] に入力して保存します。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "フルフィルメント事業者から倉庫 ID·3PL API キーをすべて受領していれば、正常に発行されています。" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo に登録する情報",
+          "blocks": [
+            { "type": "table", "head": ["フィールド", "説明"], "rows": [
+              ["api_key", "発行された 3PL API キー"],
+              ["warehouse_id", "発行された倉庫 ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 連携ハブの [登録] に入力して保存すると、認証情報は AES-256-GCM で暗号化して保存され、閲覧時にはマスキングされます。" }
+          ]
+        },
+        {
+          "h2": "4. よくある問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["認証情報を受け取れない", "入出庫委託契約が未完了", "フルフィルメント事業者または運用チームと委託契約を締結したうえで、認証情報を発行してもらいます。"],
+              ["入出庫連携エラー", "倉庫 ID(warehouse_id)の記載ミス", "発行された倉庫 ID を再度確認し、正確に入力します。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終チェックリスト",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "フルフィルメント事業者または運用チームと入出庫委託契約を締結した。",
+              "契約完了後、倉庫 ID·3PL API キーを発行してもらった。",
+              "api_key·warehouse_id を確認した。",
+              "GenieGo の [登録] に api_key·warehouse_id を入力して保存した。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh": {
+      "titleType": "API Key 申请手册",
+      "badge": "新手指南",
+      "intro": "本手册整理了签订 3PL 履约（入库/出库）委托合同，并将签发的 3PL API 密钥和仓库 ID 注册到 GenieGo 集成中心的流程。本渠道并非通过自助控制台签发，而是通过委托合同领取凭证。",
+      "org": "GenieGo 集成中心",
+      "quick": [
+        ["预计时间", "因合同进展而异"],
+        ["所需账户", "3PL 履约委托合同"],
+        ["签发密钥", "3PL API 密钥 · 仓库 ID"],
+        ["成果", "履约 API 凭证"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 开始之前",
+          "desc": "履约（3PL）是一种合同型渠道，在签订入库/出库委托合同后签发凭证。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "入库/出库委托合同", "p": "要使用 3PL 履约，必须先与履约服务商或运营团队签订入库/出库委托合同。" },
+              { "tag": "签发密钥", "h3": "3PL API 密钥 · 仓库 ID", "p": "合同完成后，您将获得仓库 ID 和 3PL API 密钥。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> 本渠道不通过自助控制台直接签发，而是通过委托合同领取凭证。" }
+          ]
+        },
+        {
+          "h2": "2. 申请签发流程",
+          "desc": "按以下顺序申请并领取后，在 GenieGo 中注册。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "推进委托合同", "p": "与履约服务商或运营团队推进入库/出库委托合同。" },
+              { "h3": "签订合同", "p": "签订 3PL 履约入库/出库委托合同。" },
+              { "h3": "领取凭证", "p": "合同完成后，您将获得仓库 ID·3PL API 密钥。" },
+              { "h3": "在 GenieGo 中注册", "p": "在 GenieGo 的[注册]中输入签发的 api_key、warehouse_id 并保存。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "如果您已从履约服务商处领取了仓库 ID·3PL API 密钥，即表示已正确签发。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中注册的信息",
+          "blocks": [
+            { "type": "table", "head": ["字段", "说明"], "rows": [
+              ["api_key", "签发的 3PL API 密钥"],
+              ["warehouse_id", "签发的仓库 ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 集成中心[注册]中输入并保存后，凭证将以 AES-256-GCM 加密存储，并在查询时进行掩码处理。" }
+          ]
+        },
+        {
+          "h2": "4. 常见问题",
+          "blocks": [
+            { "type": "table", "head": ["问题", "原因", "解决方法"], "rows": [
+              ["未收到凭证", "入库/出库委托合同未完成", "与履约服务商或运营团队签订委托合同后，再领取凭证。"],
+              ["入库/出库集成错误", "仓库 ID(warehouse_id)填写错误", "重新确认签发的仓库 ID 并准确输入。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最终检查清单",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已与履约服务商或运营团队签订入库/出库委托合同。",
+              "合同完成后已领取仓库 ID·3PL API 密钥。",
+              "已确认 api_key·warehouse_id。",
+              "已在 GenieGo 的[注册]中输入 api_key·warehouse_id 并保存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh-TW": {
+      "titleType": "API Key 申請手冊",
+      "badge": "新手指南",
+      "intro": "本手冊整理了簽訂 3PL 履約（入庫/出庫）委託合約，並將簽發的 3PL API 金鑰和倉庫 ID 註冊到 GenieGo 整合中心的流程。本渠道並非透過自助主控台簽發，而是透過委託合約領取憑證。",
+      "org": "GenieGo 整合中心",
+      "quick": [
+        ["預計時間", "依合約進展而異"],
+        ["所需帳戶", "3PL 履約委託合約"],
+        ["簽發金鑰", "3PL API 金鑰 · 倉庫 ID"],
+        ["成果", "履約 API 憑證"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 開始之前",
+          "desc": "履約（3PL）是一種合約型渠道，在簽訂入庫/出庫委託合約後簽發憑證。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "入庫/出庫委託合約", "p": "要使用 3PL 履約，必須先與履約服務商或營運團隊簽訂入庫/出庫委託合約。" },
+              { "tag": "簽發金鑰", "h3": "3PL API 金鑰 · 倉庫 ID", "p": "合約完成後，您將取得倉庫 ID 和 3PL API 金鑰。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> 本渠道不透過自助主控台直接簽發，而是透過委託合約領取憑證。" }
+          ]
+        },
+        {
+          "h2": "2. 申請簽發流程",
+          "desc": "依以下順序申請並領取後，在 GenieGo 中註冊。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "推進委託合約", "p": "與履約服務商或營運團隊推進入庫/出庫委託合約。" },
+              { "h3": "簽訂合約", "p": "簽訂 3PL 履約入庫/出庫委託合約。" },
+              { "h3": "領取憑證", "p": "合約完成後，您將取得倉庫 ID·3PL API 金鑰。" },
+              { "h3": "在 GenieGo 中註冊", "p": "在 GenieGo 的[註冊]中輸入簽發的 api_key、warehouse_id 並儲存。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "如果您已從履約服務商處領取了倉庫 ID·3PL API 金鑰，即表示已正確簽發。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中註冊的資訊",
+          "blocks": [
+            { "type": "table", "head": ["欄位", "說明"], "rows": [
+              ["api_key", "簽發的 3PL API 金鑰"],
+              ["warehouse_id", "簽發的倉庫 ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 整合中心[註冊]中輸入並儲存後，憑證將以 AES-256-GCM 加密儲存，並在查詢時進行遮罩處理。" }
+          ]
+        },
+        {
+          "h2": "4. 常見問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["未收到憑證", "入庫/出庫委託合約未完成", "與履約服務商或營運團隊簽訂委託合約後，再領取憑證。"],
+              ["入庫/出庫整合錯誤", "倉庫 ID(warehouse_id)填寫錯誤", "重新確認簽發的倉庫 ID 並準確輸入。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終檢查清單",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已與履約服務商或營運團隊簽訂入庫/出庫委託合約。",
+              "合約完成後已領取倉庫 ID·3PL API 金鑰。",
+              "已確認 api_key·warehouse_id。",
+              "已在 GenieGo 的[註冊]中輸入 api_key·warehouse_id 並儲存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "de": {
+      "titleType": "Anleitung zur API-Key-Ausstellung",
+      "badge": "Einsteigerleitfaden",
+      "intro": "Eine Anleitung zum Abschluss eines 3PL-Fulfillment-Kommissionsvertrags für Wareneingang/Warenausgang und zur Registrierung des ausgestellten 3PL-API-Schlüssels und der Warehouse-ID im GenieGo Integration Hub. Bei diesem Kanal werden die Anmeldedaten nicht über eine Self-Service-Konsole ausgestellt, sondern über einen Kommissionsvertrag empfangen.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Geschätzte Zeit", "Je nach Vertragsfortschritt unterschiedlich"],
+        ["Benötigtes Konto", "3PL-Fulfillment-Kommissionsvertrag"],
+        ["Ausgestellte Schlüssel", "3PL-API-Schlüssel · Warehouse-ID"],
+        ["Ergebnis", "Fulfillment-API-Anmeldedaten"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Bevor Sie beginnen",
+          "desc": "Fulfillment (3PL) ist ein vertragsbasierter Kanal, bei dem die Anmeldedaten nach einem Kommissionsvertrag für Wareneingang/Warenausgang ausgestellt werden.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Erforderlich", "h3": "Kommissionsvertrag für Wareneingang/Warenausgang", "p": "Um 3PL-Fulfillment zu nutzen, muss zuerst ein Kommissionsvertrag für Wareneingang/Warenausgang mit einem Fulfillment-Anbieter oder dem Betriebsteam vorliegen." },
+              { "tag": "Ausgestellte Schlüssel", "h3": "3PL-API-Schlüssel · Warehouse-ID", "p": "Nach Abschluss des Vertrags erhalten Sie eine Warehouse-ID und einen 3PL-API-Schlüssel." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Hinweis:</strong> Bei diesem Kanal werden die Anmeldedaten nicht direkt über eine Self-Service-Konsole ausgestellt, sondern über einen Kommissionsvertrag empfangen." }
+          ]
+        },
+        {
+          "h2": "2. Verfahren zur Ausstellungsbeantragung",
+          "desc": "Beantragen und empfangen Sie in der unten angegebenen Reihenfolge und registrieren Sie dann in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Kommissionsvertrag durchführen", "p": "Führen Sie einen Kommissionsvertrag für Wareneingang/Warenausgang mit einem Fulfillment-Anbieter oder dem Betriebsteam durch." },
+              { "h3": "Vertrag abschließen", "p": "Schließen Sie den 3PL-Fulfillment-Kommissionsvertrag für Wareneingang/Warenausgang ab." },
+              { "h3": "Anmeldedaten empfangen", "p": "Nach Abschluss des Vertrags erhalten Sie eine Warehouse-ID·3PL-API-Schlüssel." },
+              { "h3": "In GenieGo registrieren", "p": "Geben Sie den ausgestellten api_key und die warehouse_id in GenieGo [Registrieren] ein und speichern Sie." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Wenn Sie sowohl die Warehouse-ID als auch den 3PL-API-Schlüssel vom Fulfillment-Anbieter erhalten haben, wurden sie korrekt ausgestellt." }
+          ]
+        },
+        {
+          "h2": "3. In GenieGo zu registrierende Informationen",
+          "blocks": [
+            { "type": "table", "head": ["Feld", "Beschreibung"], "rows": [
+              ["api_key", "Der ausgestellte 3PL-API-Schlüssel"],
+              ["warehouse_id", "Die ausgestellte Warehouse-ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Wenn Sie sie im GenieGo Integration Hub [Registrieren] eingeben und speichern, werden die Anmeldedaten im Ruhezustand mit AES-256-GCM verschlüsselt und beim Lesen maskiert." }
+          ]
+        },
+        {
+          "h2": "4. Häufige Probleme",
+          "blocks": [
+            { "type": "table", "head": ["Problem", "Ursache", "Lösung"], "rows": [
+              ["Anmeldedaten nicht erhalten", "Kommissionsvertrag für Wareneingang/Warenausgang nicht abgeschlossen", "Schließen Sie einen Kommissionsvertrag mit einem Fulfillment-Anbieter oder dem Betriebsteam ab und lassen Sie dann die Anmeldedaten ausstellen."],
+              ["Integrationsfehler bei Wareneingang/Warenausgang", "Warehouse-ID (warehouse_id) falsch eingegeben", "Überprüfen Sie die ausgestellte Warehouse-ID erneut und geben Sie sie korrekt ein."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Abschließende Checkliste",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Einen Kommissionsvertrag für Wareneingang/Warenausgang mit einem Fulfillment-Anbieter oder dem Betriebsteam abgeschlossen.",
+              "Nach Abschluss des Vertrags die Warehouse-ID·3PL-API-Schlüssel erhalten.",
+              "api_key·warehouse_id bestätigt.",
+              "api_key·warehouse_id in GenieGo [Registrieren] eingegeben und gespeichert."
+            ] }
+          ]
+        }
+      ]
+    },
+    "th": {
+      "titleType": "คู่มือการออก API Key",
+      "badge": "คู่มือสำหรับผู้เริ่มต้น",
+      "intro": "คู่มือสรุปขั้นตอนการทำสัญญารับฝากจัดการคลังสินค้า (เข้า/ออก) แบบ 3PL fulfillment และลงทะเบียน 3PL API key และ warehouse ID ที่ออกให้ใน GenieGo Integration Hub ช่องทางนี้ไม่ได้ออกผ่านคอนโซลด้วยตนเอง แต่รับข้อมูลรับรองผ่านสัญญารับฝากจัดการ",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["เวลาโดยประมาณ", "แตกต่างกันไปตามความคืบหน้าของสัญญา"],
+        ["บัญชีที่ต้องใช้", "สัญญารับฝากจัดการ 3PL fulfillment"],
+        ["คีย์ที่ออก", "3PL API key · warehouse ID"],
+        ["ผลลัพธ์", "ข้อมูลรับรอง fulfillment API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. ก่อนเริ่มต้น",
+          "desc": "Fulfillment (3PL) เป็นช่องทางแบบสัญญา ซึ่งจะออกข้อมูลรับรองหลังจากทำสัญญารับฝากจัดการคลังสินค้า (เข้า/ออก)",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "จำเป็น", "h3": "สัญญารับฝากจัดการคลังสินค้า (เข้า/ออก)", "p": "หากต้องการใช้ 3PL fulfillment จะต้องมีสัญญารับฝากจัดการคลังสินค้า (เข้า/ออก) กับผู้ให้บริการ fulfillment หรือทีมปฏิบัติการก่อน" },
+              { "tag": "คีย์ที่ออก", "h3": "3PL API key · warehouse ID", "p": "หลังจากทำสัญญาเสร็จสมบูรณ์ คุณจะได้รับ warehouse ID และ 3PL API key" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>หมายเหตุ:</strong> ช่องทางนี้ไม่ได้ออกข้อมูลรับรองโดยตรงจากคอนโซลด้วยตนเอง แต่เป็นการรับข้อมูลรับรองผ่านสัญญารับฝากจัดการ" }
+          ]
+        },
+        {
+          "h2": "2. ขั้นตอนการยื่นขอออก",
+          "desc": "ยื่นขอและรับตามลำดับด้านล่าง จากนั้นลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "ดำเนินการสัญญารับฝากจัดการ", "p": "ดำเนินการสัญญารับฝากจัดการคลังสินค้า (เข้า/ออก) กับผู้ให้บริการ fulfillment หรือทีมปฏิบัติการ" },
+              { "h3": "ลงนามในสัญญา", "p": "ลงนามในสัญญารับฝากจัดการคลังสินค้า (เข้า/ออก) แบบ 3PL fulfillment" },
+              { "h3": "รับข้อมูลรับรอง", "p": "หลังจากทำสัญญาเสร็จสมบูรณ์ คุณจะได้รับ warehouse ID·3PL API key" },
+              { "h3": "ลงทะเบียนใน GenieGo", "p": "ป้อน api_key, warehouse_id ที่ออกให้ใน GenieGo [ลงทะเบียน] แล้วบันทึก" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "หากคุณได้รับทั้ง warehouse ID·3PL API key จากผู้ให้บริการ fulfillment แล้ว แสดงว่าออกอย่างถูกต้อง" }
+          ]
+        },
+        {
+          "h2": "3. ข้อมูลที่ต้องลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["ฟิลด์", "คำอธิบาย"], "rows": [
+              ["api_key", "3PL API key ที่ออกให้"],
+              ["warehouse_id", "warehouse ID ที่ออกให้"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "เมื่อป้อนและบันทึกใน GenieGo Integration Hub [ลงทะเบียน] ข้อมูลรับรองจะถูกเข้ารหัสขณะจัดเก็บด้วย AES-256-GCM และปิดบังเมื่ออ่าน" }
+          ]
+        },
+        {
+          "h2": "4. ปัญหาที่พบบ่อย",
+          "blocks": [
+            { "type": "table", "head": ["ปัญหา", "สาเหตุ", "วิธีแก้ไข"], "rows": [
+              ["ไม่ได้รับข้อมูลรับรอง", "สัญญารับฝากจัดการคลังสินค้า (เข้า/ออก) ยังไม่เสร็จสมบูรณ์", "ลงนามในสัญญารับฝากจัดการกับผู้ให้บริการ fulfillment หรือทีมปฏิบัติการ จากนั้นจึงรับข้อมูลรับรอง"],
+              ["ข้อผิดพลาดการเชื่อมต่อเข้า/ออกคลังสินค้า", "ป้อน warehouse ID (warehouse_id) ผิด", "ตรวจสอบ warehouse ID ที่ออกให้อีกครั้งและป้อนให้ถูกต้อง"]
+            ] }
+          ]
+        },
+        {
+          "h2": "รายการตรวจสอบขั้นสุดท้าย",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "ลงนามในสัญญารับฝากจัดการคลังสินค้า (เข้า/ออก) กับผู้ให้บริการ fulfillment หรือทีมปฏิบัติการแล้ว",
+              "ได้รับ warehouse ID·3PL API key หลังจากทำสัญญาเสร็จสมบูรณ์แล้ว",
+              "ยืนยัน api_key·warehouse_id แล้ว",
+              "ป้อน api_key·warehouse_id ใน GenieGo [ลงทะเบียน] และบันทึกแล้ว"
+            ] }
+          ]
+        }
+      ]
+    },
+    "vi": {
+      "titleType": "Hướng dẫn cấp API Key",
+      "badge": "Hướng dẫn cho người mới",
+      "intro": "Hướng dẫn về việc ký hợp đồng ủy thác xuất/nhập kho fulfillment 3PL và đăng ký 3PL API key cùng warehouse ID đã được cấp trong GenieGo Integration Hub. Với kênh này, thông tin xác thực được nhận thông qua hợp đồng ủy thác chứ không phải cấp qua bảng điều khiển tự phục vụ.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Thời gian dự kiến", "Khác nhau tùy tiến độ hợp đồng"],
+        ["Tài khoản cần thiết", "Hợp đồng ủy thác fulfillment 3PL"],
+        ["Khóa được cấp", "3PL API key · warehouse ID"],
+        ["Kết quả", "Thông tin xác thực fulfillment API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Trước khi bắt đầu",
+          "desc": "Fulfillment (3PL) là kênh dựa trên hợp đồng, trong đó thông tin xác thực được cấp sau khi ký hợp đồng ủy thác xuất/nhập kho.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Bắt buộc", "h3": "Hợp đồng ủy thác xuất/nhập kho", "p": "Để sử dụng fulfillment 3PL, trước tiên cần có hợp đồng ủy thác xuất/nhập kho với nhà cung cấp fulfillment hoặc nhóm vận hành." },
+              { "tag": "Khóa được cấp", "h3": "3PL API key · warehouse ID", "p": "Sau khi hợp đồng hoàn tất, bạn được cấp warehouse ID và 3PL API key." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Lưu ý:</strong> Kênh này không cấp thông tin xác thực trực tiếp từ bảng điều khiển tự phục vụ; thay vào đó, bạn nhận thông tin xác thực thông qua hợp đồng ủy thác." }
+          ]
+        },
+        {
+          "h2": "2. Quy trình yêu cầu cấp",
+          "desc": "Yêu cầu và nhận theo thứ tự dưới đây, sau đó đăng ký trong GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Tiến hành hợp đồng ủy thác", "p": "Tiến hành hợp đồng ủy thác xuất/nhập kho với nhà cung cấp fulfillment hoặc nhóm vận hành." },
+              { "h3": "Ký hợp đồng", "p": "Ký hợp đồng ủy thác xuất/nhập kho fulfillment 3PL." },
+              { "h3": "Nhận thông tin xác thực", "p": "Sau khi hợp đồng hoàn tất, bạn được cấp warehouse ID·3PL API key." },
+              { "h3": "Đăng ký trong GenieGo", "p": "Nhập api_key, warehouse_id đã được cấp vào GenieGo [Đăng ký] rồi lưu." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Nếu bạn đã nhận được cả warehouse ID·3PL API key từ nhà cung cấp fulfillment, nghĩa là chúng đã được cấp đúng cách." }
+          ]
+        },
+        {
+          "h2": "3. Thông tin cần đăng ký trong GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Trường", "Mô tả"], "rows": [
+              ["api_key", "3PL API key đã được cấp"],
+              ["warehouse_id", "warehouse ID đã được cấp"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Khi bạn nhập và lưu chúng trong GenieGo Integration Hub [Đăng ký], thông tin xác thực được mã hóa khi lưu trữ bằng AES-256-GCM và được che khi đọc." }
+          ]
+        },
+        {
+          "h2": "4. Sự cố thường gặp",
+          "blocks": [
+            { "type": "table", "head": ["Sự cố", "Nguyên nhân", "Giải pháp"], "rows": [
+              ["Không nhận được thông tin xác thực", "Hợp đồng ủy thác xuất/nhập kho chưa hoàn tất", "Ký hợp đồng ủy thác với nhà cung cấp fulfillment hoặc nhóm vận hành, sau đó nhận cấp thông tin xác thực."],
+              ["Lỗi tích hợp xuất/nhập kho", "Nhập sai warehouse ID (warehouse_id)", "Kiểm tra lại warehouse ID đã được cấp và nhập chính xác."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Danh sách kiểm tra cuối cùng",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Đã ký hợp đồng ủy thác xuất/nhập kho với nhà cung cấp fulfillment hoặc nhóm vận hành.",
+              "Đã nhận warehouse ID·3PL API key sau khi hợp đồng hoàn tất.",
+              "Đã xác nhận api_key·warehouse_id.",
+              "Đã nhập api_key·warehouse_id vào GenieGo [Đăng ký] và lưu."
+            ] }
+          ]
+        }
+      ]
+    },
+    "id": {
+      "titleType": "Panduan Penerbitan API Key",
+      "badge": "Panduan Pemula",
+      "intro": "Panduan untuk menandatangani kontrak konsinyasi fulfillment 3PL (masuk/keluar gudang) dan mendaftarkan 3PL API key serta warehouse ID yang diterbitkan di GenieGo Integration Hub. Pada kanal ini, kredensial diterima melalui kontrak konsinyasi, bukan diterbitkan melalui konsol mandiri.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Perkiraan waktu", "Bervariasi sesuai kemajuan kontrak"],
+        ["Akun yang dibutuhkan", "Kontrak konsinyasi fulfillment 3PL"],
+        ["Kunci yang diterbitkan", "3PL API key · warehouse ID"],
+        ["Hasil", "Kredensial fulfillment API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Sebelum Anda Mulai",
+          "desc": "Fulfillment (3PL) adalah kanal berbasis kontrak di mana kredensial diterbitkan setelah kontrak konsinyasi masuk/keluar gudang.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Diperlukan", "h3": "Kontrak konsinyasi masuk/keluar gudang", "p": "Untuk menggunakan fulfillment 3PL, kontrak konsinyasi masuk/keluar gudang dengan penyedia fulfillment atau tim operasional harus dilakukan terlebih dahulu." },
+              { "tag": "Kunci yang diterbitkan", "h3": "3PL API key · warehouse ID", "p": "Setelah kontrak selesai, Anda akan diterbitkan warehouse ID dan 3PL API key." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Catatan:</strong> Kanal ini tidak menerbitkan kredensial secara langsung dari konsol mandiri; sebaliknya, Anda menerima kredensial melalui kontrak konsinyasi." }
+          ]
+        },
+        {
+          "h2": "2. Prosedur Permintaan Penerbitan",
+          "desc": "Ajukan dan terima sesuai urutan di bawah, lalu daftarkan di GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Lanjutkan kontrak konsinyasi", "p": "Lanjutkan kontrak konsinyasi masuk/keluar gudang dengan penyedia fulfillment atau tim operasional." },
+              { "h3": "Tandatangani kontrak", "p": "Tandatangani kontrak konsinyasi masuk/keluar gudang fulfillment 3PL." },
+              { "h3": "Terima kredensial", "p": "Setelah kontrak selesai, Anda akan diterbitkan warehouse ID·3PL API key." },
+              { "h3": "Daftarkan di GenieGo", "p": "Masukkan api_key, warehouse_id yang diterbitkan ke GenieGo [Daftar] lalu simpan." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Jika Anda telah menerima warehouse ID·3PL API key dari penyedia fulfillment, berarti telah diterbitkan dengan benar." }
+          ]
+        },
+        {
+          "h2": "3. Informasi yang Perlu Didaftarkan di GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Bidang", "Deskripsi"], "rows": [
+              ["api_key", "3PL API key yang diterbitkan"],
+              ["warehouse_id", "warehouse ID yang diterbitkan"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Saat Anda memasukkan dan menyimpannya di GenieGo Integration Hub [Daftar], kredensial dienkripsi saat disimpan dengan AES-256-GCM dan disamarkan saat dibaca." }
+          ]
+        },
+        {
+          "h2": "4. Masalah Umum",
+          "blocks": [
+            { "type": "table", "head": ["Masalah", "Penyebab", "Solusi"], "rows": [
+              ["Kredensial tidak diterima", "Kontrak konsinyasi masuk/keluar gudang belum selesai", "Tandatangani kontrak konsinyasi dengan penyedia fulfillment atau tim operasional, lalu terbitkan kredensial."],
+              ["Kesalahan integrasi masuk/keluar gudang", "warehouse ID (warehouse_id) dimasukkan salah", "Periksa kembali warehouse ID yang diterbitkan dan masukkan dengan benar."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Daftar Periksa Akhir",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Menandatangani kontrak konsinyasi masuk/keluar gudang dengan penyedia fulfillment atau tim operasional.",
+              "Menerima warehouse ID·3PL API key setelah kontrak selesai.",
+              "Mengonfirmasi api_key·warehouse_id.",
+              "Memasukkan api_key·warehouse_id di GenieGo [Daftar] dan menyimpannya."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ar": {
+      "titleType": "دليل إصدار API Key",
+      "badge": "دليل المبتدئين",
+      "intro": "دليل لإبرام عقد عُهدة لخدمات التنفيذ اللوجستي 3PL (الإدخال/الإخراج من المستودع) وتسجيل مفتاح 3PL API ومُعرّف المستودع (warehouse ID) الصادرَين في GenieGo Integration Hub. في هذه القناة، يتم استلام بيانات الاعتماد عبر عقد عُهدة وليس عبر الإصدار الذاتي من وحدة التحكم.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["الوقت التقديري", "يختلف حسب تقدُّم العقد"],
+        ["الحساب المطلوب", "عقد عُهدة لخدمات التنفيذ 3PL"],
+        ["المفاتيح الصادرة", "مفتاح 3PL API · مُعرّف المستودع"],
+        ["النتيجة", "بيانات اعتماد واجهة برمجة تطبيقات التنفيذ"]
+      ],
+      "sections": [
+        {
+          "h2": "1. قبل أن تبدأ",
+          "desc": "خدمة التنفيذ (3PL) قناة قائمة على العقود، حيث تُصدَر بيانات الاعتماد بعد إبرام عقد عُهدة للإدخال/الإخراج من المستودع.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "مطلوب", "h3": "عقد عُهدة للإدخال/الإخراج من المستودع", "p": "لاستخدام خدمة التنفيذ 3PL، يجب أولاً إبرام عقد عُهدة للإدخال/الإخراج من المستودع مع مزوّد خدمة التنفيذ أو فريق التشغيل." },
+              { "tag": "المفاتيح الصادرة", "h3": "مفتاح 3PL API · مُعرّف المستودع", "p": "بعد اكتمال العقد، يتم إصدار مُعرّف المستودع ومفتاح 3PL API لك." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>ملاحظة:</strong> لا تُصدِر هذه القناة بيانات الاعتماد مباشرةً من وحدة تحكم ذاتية؛ بل تستلم بيانات الاعتماد عبر عقد عُهدة." }
+          ]
+        },
+        {
+          "h2": "2. إجراء طلب الإصدار",
+          "desc": "قدّم الطلب واستلم وفق الترتيب أدناه، ثم سجّل في GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "متابعة عقد العُهدة", "p": "تابِع عقد العُهدة للإدخال/الإخراج من المستودع مع مزوّد خدمة التنفيذ أو فريق التشغيل." },
+              { "h3": "إبرام العقد", "p": "أبرِم عقد العُهدة للإدخال/الإخراج من المستودع لخدمة التنفيذ 3PL." },
+              { "h3": "استلام بيانات الاعتماد", "p": "بعد اكتمال العقد، يتم إصدار مُعرّف المستودع·مفتاح 3PL API لك." },
+              { "h3": "التسجيل في GenieGo", "p": "أدخِل api_key وwarehouse_id الصادرَين في GenieGo [تسجيل] واحفظ." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "إذا استلمت كلًّا من مُعرّف المستودع·مفتاح 3PL API من مزوّد خدمة التنفيذ، فهذا يعني أنه قد تم إصدارهما بشكل صحيح." }
+          ]
+        },
+        {
+          "h2": "3. المعلومات المطلوب تسجيلها في GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["الحقل", "الوصف"], "rows": [
+              ["api_key", "مفتاح 3PL API الصادر"],
+              ["warehouse_id", "مُعرّف المستودع الصادر"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "عند إدخالها وحفظها في GenieGo Integration Hub [تسجيل]، يتم تشفير بيانات الاعتماد أثناء التخزين باستخدام AES-256-GCM وإخفاؤها عند القراءة." }
+          ]
+        },
+        {
+          "h2": "4. المشكلات الشائعة",
+          "blocks": [
+            { "type": "table", "head": ["المشكلة", "السبب", "الحل"], "rows": [
+              ["عدم استلام بيانات الاعتماد", "عدم اكتمال عقد العُهدة للإدخال/الإخراج من المستودع", "أبرِم عقد عُهدة مع مزوّد خدمة التنفيذ أو فريق التشغيل، ثم اطلب إصدار بيانات الاعتماد."],
+              ["خطأ في تكامل الإدخال/الإخراج من المستودع", "إدخال مُعرّف المستودع (warehouse_id) بشكل خاطئ", "تحقّق مرة أخرى من مُعرّف المستودع الصادر وأدخِله بشكل صحيح."]
+            ] }
+          ]
+        },
+        {
+          "h2": "قائمة التحقق النهائية",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "أبرمتُ عقد عُهدة للإدخال/الإخراج من المستودع مع مزوّد خدمة التنفيذ أو فريق التشغيل.",
+              "استلمتُ مُعرّف المستودع·مفتاح 3PL API بعد اكتمال العقد.",
+              "تأكّدتُ من api_key·warehouse_id.",
+              "أدخلتُ api_key·warehouse_id في GenieGo [تسجيل] وحفظتُه."
+            ] }
+          ]
+        }
+      ]
+    },
+    "es": {
+      "titleType": "Manual de emisión de API Key",
+      "badge": "Guía para principiantes",
+      "intro": "Una guía para firmar un contrato de consignación de fulfillment 3PL (entrada/salida de almacén) y registrar la 3PL API key y el warehouse ID emitidos en el GenieGo Integration Hub. En este canal, las credenciales se reciben mediante un contrato de consignación, no por emisión desde una consola de autoservicio.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tiempo estimado", "Varía según el avance del contrato"],
+        ["Cuenta necesaria", "Contrato de consignación de fulfillment 3PL"],
+        ["Claves emitidas", "3PL API key · warehouse ID"],
+        ["Resultado", "Credenciales de fulfillment API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de comenzar",
+          "desc": "Fulfillment (3PL) es un canal basado en contrato en el que las credenciales se emiten tras un contrato de consignación de entrada/salida de almacén.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requerido", "h3": "Contrato de consignación de entrada/salida de almacén", "p": "Para usar fulfillment 3PL, primero debe existir un contrato de consignación de entrada/salida de almacén con un proveedor de fulfillment o el equipo de operaciones." },
+              { "tag": "Claves emitidas", "h3": "3PL API key · warehouse ID", "p": "Tras completarse el contrato, se le emite un warehouse ID y una 3PL API key." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Nota:</strong> Este canal no emite las credenciales directamente desde una consola de autoservicio; en su lugar, recibe las credenciales mediante un contrato de consignación." }
+          ]
+        },
+        {
+          "h2": "2. Procedimiento de solicitud de emisión",
+          "desc": "Solicite y reciba en el orden siguiente y luego registre en GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Avanzar con el contrato de consignación", "p": "Avance con un contrato de consignación de entrada/salida de almacén con un proveedor de fulfillment o el equipo de operaciones." },
+              { "h3": "Firmar el contrato", "p": "Firme el contrato de consignación de entrada/salida de almacén de fulfillment 3PL." },
+              { "h3": "Recibir las credenciales", "p": "Tras completarse el contrato, se le emite un warehouse ID·3PL API key." },
+              { "h3": "Registrar en GenieGo", "p": "Introduzca el api_key y el warehouse_id emitidos en GenieGo [Registrar] y guarde." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Si ha recibido tanto el warehouse ID·3PL API key del proveedor de fulfillment, se han emitido correctamente." }
+          ]
+        },
+        {
+          "h2": "3. Información para registrar en GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descripción"], "rows": [
+              ["api_key", "La 3PL API key emitida"],
+              ["warehouse_id", "El warehouse ID emitido"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Cuando los introduce y guarda en el GenieGo Integration Hub [Registrar], las credenciales se cifran en reposo con AES-256-GCM y se enmascaran al leerlas." }
+          ]
+        },
+        {
+          "h2": "4. Problemas frecuentes",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solución"], "rows": [
+              ["No se reciben las credenciales", "Contrato de consignación de entrada/salida de almacén no completado", "Firme un contrato de consignación con un proveedor de fulfillment o el equipo de operaciones y luego haga emitir las credenciales."],
+              ["Error de integración de entrada/salida de almacén", "warehouse ID (warehouse_id) introducido incorrectamente", "Vuelva a comprobar el warehouse ID emitido e introdúzcalo correctamente."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificación final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Firmé un contrato de consignación de entrada/salida de almacén con un proveedor de fulfillment o el equipo de operaciones.",
+              "Recibí el warehouse ID·3PL API key tras completarse el contrato.",
+              "Confirmé api_key·warehouse_id.",
+              "Introduje api_key·warehouse_id en GenieGo [Registrar] y guardé."
+            ] }
+          ]
+        }
+      ]
+    },
+    "fr": {
+      "titleType": "Manuel d'émission de l'API Key",
+      "badge": "Guide du débutant",
+      "intro": "Un guide pour signer un contrat de consignation de fulfillment 3PL (entrée/sortie d'entrepôt) et enregistrer la 3PL API key et le warehouse ID émis dans le GenieGo Integration Hub. Pour ce canal, les identifiants sont reçus via un contrat de consignation et non émis depuis une console en libre-service.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Temps estimé", "Variable selon l'avancement du contrat"],
+        ["Compte requis", "Contrat de consignation de fulfillment 3PL"],
+        ["Clés émises", "3PL API key · warehouse ID"],
+        ["Résultat", "Identifiants de fulfillment API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Avant de commencer",
+          "desc": "Fulfillment (3PL) est un canal basé sur un contrat, où les identifiants sont émis après un contrat de consignation d'entrée/sortie d'entrepôt.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requis", "h3": "Contrat de consignation d'entrée/sortie d'entrepôt", "p": "Pour utiliser le fulfillment 3PL, un contrat de consignation d'entrée/sortie d'entrepôt avec un prestataire de fulfillment ou l'équipe d'exploitation doit d'abord être en place." },
+              { "tag": "Clés émises", "h3": "3PL API key · warehouse ID", "p": "Une fois le contrat conclu, un warehouse ID et une 3PL API key vous sont émis." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Remarque :</strong> Ce canal n'émet pas les identifiants directement depuis une console en libre-service ; vous recevez plutôt les identifiants via un contrat de consignation." }
+          ]
+        },
+        {
+          "h2": "2. Procédure de demande d'émission",
+          "desc": "Faites la demande et recevez dans l'ordre ci-dessous, puis enregistrez dans GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Faire avancer le contrat de consignation", "p": "Faites avancer un contrat de consignation d'entrée/sortie d'entrepôt avec un prestataire de fulfillment ou l'équipe d'exploitation." },
+              { "h3": "Signer le contrat", "p": "Signez le contrat de consignation d'entrée/sortie d'entrepôt de fulfillment 3PL." },
+              { "h3": "Recevoir les identifiants", "p": "Une fois le contrat conclu, un warehouse ID·3PL API key vous sont émis." },
+              { "h3": "Enregistrer dans GenieGo", "p": "Saisissez l'api_key et le warehouse_id émis dans GenieGo [Enregistrer] et enregistrez." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Si vous avez reçu à la fois le warehouse ID·3PL API key du prestataire de fulfillment, ils ont été émis correctement." }
+          ]
+        },
+        {
+          "h2": "3. Informations à enregistrer dans GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Champ", "Description"], "rows": [
+              ["api_key", "La 3PL API key émise"],
+              ["warehouse_id", "Le warehouse ID émis"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Lorsque vous les saisissez et les enregistrez dans le GenieGo Integration Hub [Enregistrer], les identifiants sont chiffrés au repos avec AES-256-GCM et masqués à la lecture." }
+          ]
+        },
+        {
+          "h2": "4. Problèmes fréquents",
+          "blocks": [
+            { "type": "table", "head": ["Problème", "Cause", "Solution"], "rows": [
+              ["Identifiants non reçus", "Contrat de consignation d'entrée/sortie d'entrepôt non conclu", "Signez un contrat de consignation avec un prestataire de fulfillment ou l'équipe d'exploitation, puis faites émettre les identifiants."],
+              ["Erreur d'intégration d'entrée/sortie d'entrepôt", "warehouse ID (warehouse_id) saisi incorrectement", "Vérifiez à nouveau le warehouse ID émis et saisissez-le correctement."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Liste de vérification finale",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Signé un contrat de consignation d'entrée/sortie d'entrepôt avec un prestataire de fulfillment ou l'équipe d'exploitation.",
+              "Reçu le warehouse ID·3PL API key une fois le contrat conclu.",
+              "Confirmé api_key·warehouse_id.",
+              "Saisi api_key·warehouse_id dans GenieGo [Enregistrer] et enregistré."
+            ] }
+          ]
+        }
+      ]
+    },
+    "hi": {
+      "titleType": "API Key जारी करने की नियमावली",
+      "badge": "शुरुआती गाइड",
+      "intro": "3PL फ़ुलफ़िलमेंट इनबाउंड/आउटबाउंड कंसाइनमेंट अनुबंध पर हस्ताक्षर करने और जारी की गई 3PL API key व warehouse ID को GenieGo Integration Hub में पंजीकृत करने की प्रक्रिया की नियमावली। इस चैनल में, क्रेडेंशियल सेल्फ-सर्विस कंसोल से जारी होने के बजाय कंसाइनमेंट अनुबंध के माध्यम से प्राप्त होते हैं।",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["अनुमानित समय", "अनुबंध की प्रगति के अनुसार भिन्न"],
+        ["आवश्यक खाता", "3PL फ़ुलफ़िलमेंट कंसाइनमेंट अनुबंध"],
+        ["जारी की गई कुंजियाँ", "3PL API key · warehouse ID"],
+        ["परिणाम", "फ़ुलफ़िलमेंट API क्रेडेंशियल"]
+      ],
+      "sections": [
+        {
+          "h2": "1. शुरू करने से पहले",
+          "desc": "Fulfillment (3PL) एक अनुबंध-आधारित चैनल है, जहाँ इनबाउंड/आउटबाउंड कंसाइनमेंट अनुबंध के बाद क्रेडेंशियल जारी किए जाते हैं।",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "आवश्यक", "h3": "इनबाउंड/आउटबाउंड कंसाइनमेंट अनुबंध", "p": "3PL फ़ुलफ़िलमेंट का उपयोग करने के लिए, सबसे पहले किसी फ़ुलफ़िलमेंट प्रदाता या ऑपरेशन टीम के साथ इनबाउंड/आउटबाउंड कंसाइनमेंट अनुबंध होना चाहिए।" },
+              { "tag": "जारी की गई कुंजियाँ", "h3": "3PL API key · warehouse ID", "p": "अनुबंध पूरा होने के बाद, आपको warehouse ID और 3PL API key जारी की जाती है।" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>नोट:</strong> यह चैनल सेल्फ-सर्विस कंसोल से सीधे क्रेडेंशियल जारी नहीं करता; इसके बजाय, आप कंसाइनमेंट अनुबंध के माध्यम से क्रेडेंशियल प्राप्त करते हैं।" }
+          ]
+        },
+        {
+          "h2": "2. जारी करने के अनुरोध की प्रक्रिया",
+          "desc": "नीचे दिए गए क्रम में अनुरोध करें और प्राप्त करें, फिर GenieGo में पंजीकृत करें।",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "कंसाइनमेंट अनुबंध आगे बढ़ाएँ", "p": "किसी फ़ुलफ़िलमेंट प्रदाता या ऑपरेशन टीम के साथ इनबाउंड/आउटबाउंड कंसाइनमेंट अनुबंध आगे बढ़ाएँ।" },
+              { "h3": "अनुबंध पर हस्ताक्षर करें", "p": "3PL फ़ुलफ़िलमेंट इनबाउंड/आउटबाउंड कंसाइनमेंट अनुबंध पर हस्ताक्षर करें।" },
+              { "h3": "क्रेडेंशियल प्राप्त करें", "p": "अनुबंध पूरा होने के बाद, आपको warehouse ID·3PL API key जारी की जाती है।" },
+              { "h3": "GenieGo में पंजीकृत करें", "p": "जारी की गई api_key, warehouse_id को GenieGo [पंजीकरण] में दर्ज करें और सहेजें।" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "यदि आपको फ़ुलफ़िलमेंट प्रदाता से warehouse ID·3PL API key दोनों प्राप्त हो गए हैं, तो वे सही ढंग से जारी हुए हैं।" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo में पंजीकृत की जाने वाली जानकारी",
+          "blocks": [
+            { "type": "table", "head": ["फ़ील्ड", "विवरण"], "rows": [
+              ["api_key", "जारी की गई 3PL API key"],
+              ["warehouse_id", "जारी की गई warehouse ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "जब आप इन्हें GenieGo Integration Hub [पंजीकरण] में दर्ज करके सहेजते हैं, तो क्रेडेंशियल AES-256-GCM के साथ संग्रहण के समय एन्क्रिप्ट किए जाते हैं और पढ़ते समय मास्क किए जाते हैं।" }
+          ]
+        },
+        {
+          "h2": "4. सामान्य समस्याएँ",
+          "blocks": [
+            { "type": "table", "head": ["समस्या", "कारण", "समाधान"], "rows": [
+              ["क्रेडेंशियल प्राप्त नहीं हुए", "इनबाउंड/आउटबाउंड कंसाइनमेंट अनुबंध पूरा नहीं हुआ", "किसी फ़ुलफ़िलमेंट प्रदाता या ऑपरेशन टीम के साथ कंसाइनमेंट अनुबंध पर हस्ताक्षर करें, फिर क्रेडेंशियल जारी करवाएँ।"],
+              ["इनबाउंड/आउटबाउंड एकीकरण त्रुटि", "warehouse ID (warehouse_id) गलत दर्ज की गई", "जारी की गई warehouse ID को फिर से जाँचें और सही ढंग से दर्ज करें।"]
+            ] }
+          ]
+        },
+        {
+          "h2": "अंतिम चेकलिस्ट",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "किसी फ़ुलफ़िलमेंट प्रदाता या ऑपरेशन टीम के साथ इनबाउंड/आउटबाउंड कंसाइनमेंट अनुबंध पर हस्ताक्षर किए।",
+              "अनुबंध पूरा होने के बाद warehouse ID·3PL API key प्राप्त की।",
+              "api_key·warehouse_id की पुष्टि की।",
+              "GenieGo [पंजीकरण] में api_key·warehouse_id दर्ज करके सहेजा।"
+            ] }
+          ]
+        }
+      ]
+    },
+    "pt": {
+      "titleType": "Manual de emissão da API Key",
+      "badge": "Guia para iniciantes",
+      "intro": "Um guia para assinar um contrato de consignação de fulfillment 3PL (entrada/saída de armazém) e registrar a 3PL API key e o warehouse ID emitidos no GenieGo Integration Hub. Neste canal, as credenciais são recebidas por meio de um contrato de consignação, e não emitidas a partir de um console de autoatendimento.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tempo estimado", "Varia conforme o andamento do contrato"],
+        ["Conta necessária", "Contrato de consignação de fulfillment 3PL"],
+        ["Chaves emitidas", "3PL API key · warehouse ID"],
+        ["Resultado", "Credenciais de fulfillment API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de começar",
+          "desc": "Fulfillment (3PL) é um canal baseado em contrato, no qual as credenciais são emitidas após um contrato de consignação de entrada/saída de armazém.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Obrigatório", "h3": "Contrato de consignação de entrada/saída de armazém", "p": "Para usar o fulfillment 3PL, primeiro é necessário um contrato de consignação de entrada/saída de armazém com um provedor de fulfillment ou a equipe de operações." },
+              { "tag": "Chaves emitidas", "h3": "3PL API key · warehouse ID", "p": "Após a conclusão do contrato, você recebe um warehouse ID e uma 3PL API key." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Nota:</strong> Este canal não emite as credenciais diretamente de um console de autoatendimento; em vez disso, você recebe as credenciais por meio de um contrato de consignação." }
+          ]
+        },
+        {
+          "h2": "2. Procedimento de solicitação de emissão",
+          "desc": "Solicite e receba na ordem abaixo e, em seguida, registre no GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Prosseguir com o contrato de consignação", "p": "Prossiga com um contrato de consignação de entrada/saída de armazém com um provedor de fulfillment ou a equipe de operações." },
+              { "h3": "Assinar o contrato", "p": "Assine o contrato de consignação de entrada/saída de armazém de fulfillment 3PL." },
+              { "h3": "Receber as credenciais", "p": "Após a conclusão do contrato, você recebe um warehouse ID·3PL API key." },
+              { "h3": "Registrar no GenieGo", "p": "Insira o api_key e o warehouse_id emitidos no GenieGo [Registrar] e salve." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Se você recebeu tanto o warehouse ID·3PL API key do provedor de fulfillment, eles foram emitidos corretamente." }
+          ]
+        },
+        {
+          "h2": "3. Informações para registrar no GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descrição"], "rows": [
+              ["api_key", "A 3PL API key emitida"],
+              ["warehouse_id", "O warehouse ID emitido"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Quando você os insere e salva no GenieGo Integration Hub [Registrar], as credenciais são criptografadas em repouso com AES-256-GCM e mascaradas na leitura." }
+          ]
+        },
+        {
+          "h2": "4. Problemas frequentes",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solução"], "rows": [
+              ["Credenciais não recebidas", "Contrato de consignação de entrada/saída de armazém não concluído", "Assine um contrato de consignação com um provedor de fulfillment ou a equipe de operações e, em seguida, solicite a emissão das credenciais."],
+              ["Erro de integração de entrada/saída de armazém", "warehouse ID (warehouse_id) inserido incorretamente", "Verifique novamente o warehouse ID emitido e insira-o corretamente."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificação final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Assinei um contrato de consignação de entrada/saída de armazém com um provedor de fulfillment ou a equipe de operações.",
+              "Recebi o warehouse ID·3PL API key após a conclusão do contrato.",
+              "Confirmei api_key·warehouse_id.",
+              "Inseri api_key·warehouse_id no GenieGo [Registrar] e salvei."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ru": {
+      "titleType": "Руководство по выпуску API Key",
+      "badge": "Руководство для начинающих",
+      "intro": "Руководство по заключению договора комиссии на 3PL-фулфилмент (приём/отгрузка со склада) и регистрации выпущенных 3PL API key и warehouse ID в GenieGo Integration Hub. В этом канале учётные данные получают по договору комиссии, а не выпускают самостоятельно через консоль.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Ориент. время", "Зависит от хода договора"],
+        ["Требуемый аккаунт", "Договор комиссии на 3PL-фулфилмент"],
+        ["Выпускаемые ключи", "3PL API key · warehouse ID"],
+        ["Результат", "Учётные данные fulfillment API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Прежде чем начать",
+          "desc": "Fulfillment (3PL) — это канал на договорной основе, в котором учётные данные выпускаются после заключения договора комиссии на приём/отгрузку со склада.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Требуется", "h3": "Договор комиссии на приём/отгрузку со склада", "p": "Чтобы использовать 3PL-фулфилмент, сначала необходимо заключить договор комиссии на приём/отгрузку со склада с провайдером фулфилмента или операционной командой." },
+              { "tag": "Выпускаемые ключи", "h3": "3PL API key · warehouse ID", "p": "После завершения договора вам выпускают warehouse ID и 3PL API key." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Примечание:</strong> Этот канал не выпускает учётные данные напрямую из консоли самообслуживания; вместо этого вы получаете учётные данные по договору комиссии." }
+          ]
+        },
+        {
+          "h2": "2. Процедура запроса на выпуск",
+          "desc": "Подайте запрос и получите в указанном ниже порядке, затем зарегистрируйте в GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Продвижение договора комиссии", "p": "Продвигайте договор комиссии на приём/отгрузку со склада с провайдером фулфилмента или операционной командой." },
+              { "h3": "Заключение договора", "p": "Заключите договор комиссии на приём/отгрузку со склада для 3PL-фулфилмента." },
+              { "h3": "Получение учётных данных", "p": "После завершения договора вам выпускают warehouse ID·3PL API key." },
+              { "h3": "Регистрация в GenieGo", "p": "Введите выпущенные api_key и warehouse_id в GenieGo [Регистрация] и сохраните." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Если вы получили и warehouse ID·3PL API key от провайдера фулфилмента, значит они выпущены корректно." }
+          ]
+        },
+        {
+          "h2": "3. Информация для регистрации в GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Поле", "Описание"], "rows": [
+              ["api_key", "Выпущенный 3PL API key"],
+              ["warehouse_id", "Выпущенный warehouse ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Когда вы вводите и сохраняете их в GenieGo Integration Hub [Регистрация], учётные данные шифруются при хранении с помощью AES-256-GCM и маскируются при чтении." }
+          ]
+        },
+        {
+          "h2": "4. Частые проблемы",
+          "blocks": [
+            { "type": "table", "head": ["Проблема", "Причина", "Решение"], "rows": [
+              ["Учётные данные не получены", "Договор комиссии на приём/отгрузку со склада не завершён", "Заключите договор комиссии с провайдером фулфилмента или операционной командой, затем получите выпуск учётных данных."],
+              ["Ошибка интеграции приёма/отгрузки со склада", "warehouse ID (warehouse_id) введён неверно", "Ещё раз проверьте выпущенный warehouse ID и введите его правильно."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Итоговый контрольный список",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Заключил договор комиссии на приём/отгрузку со склада с провайдером фулфилмента или операционной командой.",
+              "Получил warehouse ID·3PL API key после завершения договора.",
+              "Подтвердил api_key·warehouse_id.",
+              "Ввёл api_key·warehouse_id в GenieGo [Регистрация] и сохранил."
+            ] }
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,1011 @@
+{
+  "name": "eBay Seller Hub",
+  "icon": "🛍️",
+  "langs": {
+    "ko": {
+      "titleType": "API Key 발급 매뉴얼",
+      "badge": "Beginner Guide",
+      "intro": "eBay 개발자 프로그램에서 운영(Production) keyset(DevID·AppID·CertID)을 발급하고 OAuth 사용자 토큰을 생성해 GenieGo 연동 허브에 등록하는 과정을 초보자도 그대로 따라 할 수 있도록 정리한 매뉴얼입니다.",
+      "org": "GenieGo 연동 허브",
+      "quick": [
+        ["소요 시간", "약 10~20분"],
+        ["필요 계정", "eBay 계정"],
+        ["발급 키", "DevID · AppID · CertID + OAuth 토큰"],
+        ["결과물", "OAuth 액세스 토큰"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 시작하기 전에",
+          "desc": "eBay keyset 발급에는 개발자 프로그램 가입이 필요합니다.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "필요", "h3": "eBay 계정", "p": "발급을 진행하려면 eBay 계정이 있어야 합니다. 이 계정으로 developer.ebay.com 개발자 프로그램에 가입합니다." },
+              { "tag": "발급 키", "h3": "DevID · AppID · CertID", "p": "운영(Production) keyset을 생성하면 DevID, AppID, CertID가 발급됩니다. 이후 OAuth 사용자 토큰까지 생성해야 GenieGo에 등록할 수 있습니다." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>참고:</strong> 운영 keyset은 &quot;Your Keyset is currently disabled&quot; 안내가 보일 수 있으며, 이때 마켓플레이스 계정 삭제 알림 구독/거부 절차를 완료해야 활성화됩니다." }
+          ]
+        },
+        {
+          "h2": "2. 발급 단계",
+          "desc": "아래 순서대로 발급하고 GenieGo에 등록합니다.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "개발자 프로그램 가입", "p": "developer.ebay.com에 접속해 eBay 계정으로 개발자 프로그램에 가입합니다.", "path": "developer.ebay.com" },
+              { "h3": "운영 keyset 생성", "p": "[Application Keys] 페이지에서 Production 항목의 [Create a keyset]을 누릅니다.", "path": "https://developer.ebay.com/my/keys" },
+              { "h3": "keyset 활성화 절차", "p": "\"Your Keyset is currently disabled\" 안내가 보이면 링크를 눌러 마켓플레이스 계정 삭제 알림 구독/거부 절차를 완료합니다.", "path": "Application Keys → Production" },
+              { "h3": "키 확인 및 OAuth 토큰 생성", "p": "발급된 DevID, AppID, CertID를 확인하고 OAuth 사용자 토큰을 생성합니다." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "DevID·AppID·CertID가 발급되고 OAuth 사용자 토큰까지 생성되면 정상 발급된 것입니다." }
+          ]
+        },
+        {
+          "h2": "3. GenieGo에 등록할 정보",
+          "blocks": [
+            { "type": "table", "head": ["필드", "설명"], "rows": [
+              ["OAuth 액세스 토큰", "생성한 OAuth 사용자 토큰(노출 주의)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 연동 허브 [등록]에 OAuth 액세스 토큰을 입력해 저장하면 자격증명은 AES-256-GCM으로 암호화 저장되고 조회 시 마스킹됩니다." }
+          ]
+        },
+        {
+          "h2": "4. 자주 발생하는 문제",
+          "blocks": [
+            { "type": "table", "head": ["문제", "원인", "해결"], "rows": [
+              ["keyset이 비활성 상태", "마켓플레이스 계정 삭제 알림 구독/거부 절차 미완료", "\"Your Keyset is currently disabled\" 안내 링크를 눌러 해당 절차를 완료합니다."],
+              ["OAuth 토큰을 발급할 수 없음", "운영 keyset(DevID·AppID·CertID) 미발급", "[Application Keys]에서 Production keyset을 먼저 생성한 뒤 OAuth 토큰을 생성합니다."]
+            ] }
+          ]
+        },
+        {
+          "h2": "최종 체크리스트",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "eBay 계정으로 developer.ebay.com 개발자 프로그램에 가입했다.",
+              "Production [Create a keyset]으로 DevID·AppID·CertID를 발급했다.",
+              "keyset 비활성 시 마켓플레이스 계정 삭제 알림 구독/거부 절차를 완료했다.",
+              "OAuth 사용자 토큰을 생성하고 GenieGo [등록]에 OAuth 액세스 토큰을 입력해 저장했다."
+            ] }
+          ]
+        }
+      ]
+    },
+    "en": {
+      "titleType": "API Key Issuance Manual",
+      "badge": "Beginner Guide",
+      "intro": "A beginner-friendly, step-by-step guide to issuing a Production keyset (DevID·AppID·CertID) in the eBay Developers Program, generating an OAuth user token, and registering it in the GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Est. time", "About 10–20 min"],
+        ["Account needed", "eBay account"],
+        ["Keys issued", "DevID · AppID · CertID + OAuth token"],
+        ["Result", "OAuth access token"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Before You Begin",
+          "desc": "Issuing an eBay keyset requires enrollment in the Developers Program.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Required", "h3": "eBay account", "p": "To proceed with issuance you need an eBay account. Use this account to enroll in the Developers Program at developer.ebay.com." },
+              { "tag": "Keys issued", "h3": "DevID · AppID · CertID", "p": "Creating a Production keyset issues a DevID, AppID, and CertID. You must then also generate an OAuth user token to register with GenieGo." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Note:</strong> A Production keyset may show a &quot;Your Keyset is currently disabled&quot; notice. In that case it is activated only after you complete the marketplace account deletion notification subscription/opt-out procedure." }
+          ]
+        },
+        {
+          "h2": "2. Issuance Steps",
+          "desc": "Issue in the order below and register in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Enroll in the Developers Program", "p": "Go to developer.ebay.com and enroll in the Developers Program with your eBay account.", "path": "developer.ebay.com" },
+              { "h3": "Create a Production keyset", "p": "On the [Application Keys] page, click [Create a keyset] under the Production section.", "path": "https://developer.ebay.com/my/keys" },
+              { "h3": "Keyset activation procedure", "p": "If you see the \"Your Keyset is currently disabled\" notice, click the link to complete the marketplace account deletion notification subscription/opt-out procedure.", "path": "Application Keys → Production" },
+              { "h3": "Verify keys and generate an OAuth token", "p": "Verify the issued DevID, AppID, and CertID, and generate an OAuth user token." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Once the DevID·AppID·CertID are issued and an OAuth user token is generated, issuance is complete." }
+          ]
+        },
+        {
+          "h2": "3. Information to Register in GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Field", "Description"], "rows": [
+              ["OAuth access token", "The OAuth user token you generated (handle with care)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "In the GenieGo Integration Hub [Register], enter your OAuth access token and save. Credentials are encrypted at rest with AES-256-GCM and masked on read." }
+          ]
+        },
+        {
+          "h2": "4. Common Issues",
+          "blocks": [
+            { "type": "table", "head": ["Issue", "Cause", "Solution"], "rows": [
+              ["Keyset is in a disabled state", "Marketplace account deletion notification subscription/opt-out procedure not completed", "Click the \"Your Keyset is currently disabled\" notice link and complete that procedure."],
+              ["OAuth token cannot be issued", "Production keyset (DevID·AppID·CertID) not yet issued", "In [Application Keys], create the Production keyset first, then generate the OAuth token."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Final Checklist",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Enrolled in the Developers Program at developer.ebay.com with your eBay account.",
+              "Issued the DevID·AppID·CertID via Production [Create a keyset].",
+              "Completed the marketplace account deletion notification subscription/opt-out procedure when the keyset was disabled.",
+              "Generated an OAuth user token and entered the OAuth access token in GenieGo [Register] and saved."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ja": {
+      "titleType": "API Key 発行マニュアル",
+      "badge": "初心者ガイド",
+      "intro": "eBay デベロッパープログラムで本番(Production)キーセット(DevID·AppID·CertID)を発行し、OAuth ユーザートークンを生成して GenieGo 連携ハブに登録する手順を、初心者でもそのまま実行できるようにまとめたマニュアルです。",
+      "org": "GenieGo 連携ハブ",
+      "quick": [
+        ["所要時間", "約 10〜20 分"],
+        ["必要なアカウント", "eBay アカウント"],
+        ["発行するキー", "DevID · AppID · CertID + OAuth トークン"],
+        ["成果物", "OAuth アクセストークン"]
+      ],
+      "sections": [
+        {
+          "h2": "1. はじめる前に",
+          "desc": "eBay キーセットの発行にはデベロッパープログラムへの登録が必要です。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必須", "h3": "eBay アカウント", "p": "発行を進めるには eBay アカウントが必要です。このアカウントで developer.ebay.com のデベロッパープログラムに登録します。" },
+              { "tag": "発行するキー", "h3": "DevID · AppID · CertID", "p": "本番(Production)キーセットを作成すると DevID、AppID、CertID が発行されます。その後 OAuth ユーザートークンまで生成すると GenieGo に登録できます。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> 本番キーセットには &quot;Your Keyset is currently disabled&quot; という案内が表示される場合があり、その際はマーケットプレイスのアカウント削除通知の購読/拒否手続きを完了すると有効化されます。" }
+          ]
+        },
+        {
+          "h2": "2. 発行手順",
+          "desc": "以下の順序で発行し、GenieGo に登録します。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "デベロッパープログラムに登録", "p": "developer.ebay.com にアクセスし、eBay アカウントでデベロッパープログラムに登録します。", "path": "developer.ebay.com" },
+              { "h3": "本番キーセットを作成", "p": "[Application Keys] ページで Production 項目の [Create a keyset] をクリックします。", "path": "https://developer.ebay.com/my/keys" },
+              { "h3": "キーセットの有効化手続き", "p": "\"Your Keyset is currently disabled\" の案内が表示されたら、リンクをクリックしてマーケットプレイスのアカウント削除通知の購読/拒否手続きを完了します。", "path": "Application Keys → Production" },
+              { "h3": "キーの確認と OAuth トークンの生成", "p": "発行された DevID、AppID、CertID を確認し、OAuth ユーザートークンを生成します。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "DevID·AppID·CertID が発行され、OAuth ユーザートークンまで生成されれば、正常に発行されています。" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo に登録する情報",
+          "blocks": [
+            { "type": "table", "head": ["フィールド", "説明"], "rows": [
+              ["OAuth アクセストークン", "生成した OAuth ユーザートークン(取り扱い注意)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 連携ハブの [登録] に OAuth アクセストークンを入力して保存すると、認証情報は AES-256-GCM で暗号化して保存され、閲覧時にはマスキングされます。" }
+          ]
+        },
+        {
+          "h2": "4. よくある問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["キーセットが無効状態", "マーケットプレイスのアカウント削除通知の購読/拒否手続きが未完了", "\"Your Keyset is currently disabled\" の案内リンクをクリックして該当手続きを完了します。"],
+              ["OAuth トークンを発行できない", "本番キーセット(DevID·AppID·CertID)が未発行", "[Application Keys] で Production キーセットを先に作成してから OAuth トークンを生成します。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終チェックリスト",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "eBay アカウントで developer.ebay.com のデベロッパープログラムに登録した。",
+              "Production [Create a keyset] で DevID·AppID·CertID を発行した。",
+              "キーセットが無効の場合、マーケットプレイスのアカウント削除通知の購読/拒否手続きを完了した。",
+              "OAuth ユーザートークンを生成し、GenieGo の [登録] に OAuth アクセストークンを入力して保存した。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh": {
+      "titleType": "API Key 申请手册",
+      "badge": "新手指南",
+      "intro": "本手册手把手指导新手在 eBay 开发者计划中签发生产(Production)密钥集(DevID·AppID·CertID),生成 OAuth 用户令牌并注册到 GenieGo 集成中心。",
+      "org": "GenieGo 集成中心",
+      "quick": [
+        ["预计时间", "约 10~20 分钟"],
+        ["所需账户", "eBay 账户"],
+        ["签发密钥", "DevID · AppID · CertID + OAuth 令牌"],
+        ["成果", "OAuth 访问令牌"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 开始之前",
+          "desc": "签发 eBay 密钥集需要先加入开发者计划。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "eBay 账户", "p": "要进行签发，您需要一个 eBay 账户。使用该账户在 developer.ebay.com 加入开发者计划。" },
+              { "tag": "签发密钥", "h3": "DevID · AppID · CertID", "p": "创建生产(Production)密钥集后会签发 DevID、AppID 和 CertID。之后还需生成 OAuth 用户令牌才能注册到 GenieGo。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> 生产密钥集可能会显示 &quot;Your Keyset is currently disabled&quot; 提示，此时需完成市场账户删除通知的订阅/拒绝流程后才会激活。" }
+          ]
+        },
+        {
+          "h2": "2. 申请步骤",
+          "desc": "按以下顺序签发并在 GenieGo 中注册。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "加入开发者计划", "p": "访问 developer.ebay.com，使用您的 eBay 账户加入开发者计划。", "path": "developer.ebay.com" },
+              { "h3": "创建生产密钥集", "p": "在 [Application Keys] 页面，点击 Production 项下的 [Create a keyset]。", "path": "https://developer.ebay.com/my/keys" },
+              { "h3": "密钥集激活流程", "p": "如果看到 \"Your Keyset is currently disabled\" 提示，请点击链接完成市场账户删除通知的订阅/拒绝流程。", "path": "Application Keys → Production" },
+              { "h3": "确认密钥并生成 OAuth 令牌", "p": "确认签发的 DevID、AppID 和 CertID，并生成 OAuth 用户令牌。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "当 DevID·AppID·CertID 已签发并生成了 OAuth 用户令牌时，即表示已正确签发。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中注册的信息",
+          "blocks": [
+            { "type": "table", "head": ["字段", "说明"], "rows": [
+              ["OAuth 访问令牌", "您生成的 OAuth 用户令牌(请妥善保管)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 集成中心的 [注册] 中输入 OAuth 访问令牌并保存后，凭证将以 AES-256-GCM 加密存储，并在查询时进行掩码处理。" }
+          ]
+        },
+        {
+          "h2": "4. 常见问题",
+          "blocks": [
+            { "type": "table", "head": ["问题", "原因", "解决方法"], "rows": [
+              ["密钥集处于禁用状态", "市场账户删除通知的订阅/拒绝流程未完成", "点击 \"Your Keyset is currently disabled\" 提示链接并完成该流程。"],
+              ["无法签发 OAuth 令牌", "尚未签发生产密钥集(DevID·AppID·CertID)", "在 [Application Keys] 中先创建生产密钥集，然后再生成 OAuth 令牌。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最终检查清单",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已使用 eBay 账户在 developer.ebay.com 加入开发者计划。",
+              "已通过 Production [Create a keyset] 签发 DevID·AppID·CertID。",
+              "密钥集被禁用时，已完成市场账户删除通知的订阅/拒绝流程。",
+              "已生成 OAuth 用户令牌，并在 GenieGo 的 [注册] 中输入 OAuth 访问令牌并保存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh-TW": {
+      "titleType": "API Key 申請手冊",
+      "badge": "新手指南",
+      "intro": "本手冊手把手指導新手在 eBay 開發者計畫中簽發正式(Production)金鑰組(DevID·AppID·CertID),產生 OAuth 使用者權杖並註冊到 GenieGo 整合中心。",
+      "org": "GenieGo 整合中心",
+      "quick": [
+        ["預計時間", "約 10~20 分鐘"],
+        ["所需帳戶", "eBay 帳戶"],
+        ["簽發金鑰", "DevID · AppID · CertID + OAuth 權杖"],
+        ["成果", "OAuth 存取權杖"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 開始之前",
+          "desc": "簽發 eBay 金鑰組需要先加入開發者計畫。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "eBay 帳戶", "p": "要進行簽發，您需要一個 eBay 帳戶。使用該帳戶在 developer.ebay.com 加入開發者計畫。" },
+              { "tag": "簽發金鑰", "h3": "DevID · AppID · CertID", "p": "建立正式(Production)金鑰組後會簽發 DevID、AppID 和 CertID。之後還需產生 OAuth 使用者權杖才能註冊到 GenieGo。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> 正式金鑰組可能會顯示 &quot;Your Keyset is currently disabled&quot; 提示，此時需完成市集帳戶刪除通知的訂閱/拒絕流程後才會啟用。" }
+          ]
+        },
+        {
+          "h2": "2. 簽發步驟",
+          "desc": "依以下順序簽發並在 GenieGo 中註冊。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "加入開發者計畫", "p": "前往 developer.ebay.com，使用您的 eBay 帳戶加入開發者計畫。", "path": "developer.ebay.com" },
+              { "h3": "建立正式金鑰組", "p": "在 [Application Keys] 頁面，點擊 Production 項下的 [Create a keyset]。", "path": "https://developer.ebay.com/my/keys" },
+              { "h3": "金鑰組啟用流程", "p": "如果看到 \"Your Keyset is currently disabled\" 提示，請點擊連結完成市集帳戶刪除通知的訂閱/拒絕流程。", "path": "Application Keys → Production" },
+              { "h3": "確認金鑰並產生 OAuth 權杖", "p": "確認簽發的 DevID、AppID 和 CertID，並產生 OAuth 使用者權杖。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "當 DevID·AppID·CertID 已簽發並產生了 OAuth 使用者權杖時，即表示已正確簽發。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中註冊的資訊",
+          "blocks": [
+            { "type": "table", "head": ["欄位", "說明"], "rows": [
+              ["OAuth 存取權杖", "您產生的 OAuth 使用者權杖(請妥善保管)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 整合中心的 [註冊] 中輸入 OAuth 存取權杖並儲存後，憑證將以 AES-256-GCM 加密儲存，並在查詢時進行遮罩處理。" }
+          ]
+        },
+        {
+          "h2": "4. 常見問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["金鑰組處於停用狀態", "市集帳戶刪除通知的訂閱/拒絕流程未完成", "點擊 \"Your Keyset is currently disabled\" 提示連結並完成該流程。"],
+              ["無法簽發 OAuth 權杖", "尚未簽發正式金鑰組(DevID·AppID·CertID)", "在 [Application Keys] 中先建立正式金鑰組，然後再產生 OAuth 權杖。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終檢查清單",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已使用 eBay 帳戶在 developer.ebay.com 加入開發者計畫。",
+              "已透過 Production [Create a keyset] 簽發 DevID·AppID·CertID。",
+              "金鑰組被停用時，已完成市集帳戶刪除通知的訂閱/拒絕流程。",
+              "已產生 OAuth 使用者權杖，並在 GenieGo 的 [註冊] 中輸入 OAuth 存取權杖並儲存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "de": {
+      "titleType": "Anleitung zur API-Key-Ausstellung",
+      "badge": "Einsteigerleitfaden",
+      "intro": "Eine einsteigerfreundliche Schritt-für-Schritt-Anleitung zum Ausstellen eines Production-Keysets (DevID·AppID·CertID) im eBay-Entwicklerprogramm, zum Generieren eines OAuth-Benutzertokens und zum Registrieren im GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Geschätzte Zeit", "Etwa 10–20 Min."],
+        ["Benötigtes Konto", "eBay-Konto"],
+        ["Ausgestellte Schlüssel", "DevID · AppID · CertID + OAuth-Token"],
+        ["Ergebnis", "OAuth-Zugriffstoken"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Bevor Sie beginnen",
+          "desc": "Das Ausstellen eines eBay-Keysets erfordert die Anmeldung im Entwicklerprogramm.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Erforderlich", "h3": "eBay-Konto", "p": "Um mit der Ausstellung fortzufahren, benötigen Sie ein eBay-Konto. Verwenden Sie dieses Konto, um sich unter developer.ebay.com im Entwicklerprogramm anzumelden." },
+              { "tag": "Ausgestellte Schlüssel", "h3": "DevID · AppID · CertID", "p": "Beim Erstellen eines Production-Keysets werden eine DevID, AppID und CertID ausgestellt. Anschließend müssen Sie außerdem ein OAuth-Benutzertoken generieren, um es bei GenieGo zu registrieren." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Hinweis:</strong> Bei einem Production-Keyset kann der Hinweis &quot;Your Keyset is currently disabled&quot; angezeigt werden. In diesem Fall wird es erst aktiviert, nachdem Sie das Verfahren zum Abonnieren/Ablehnen der Benachrichtigung über die Löschung von Marketplace-Konten abgeschlossen haben." }
+          ]
+        },
+        {
+          "h2": "2. Ausstellungsschritte",
+          "desc": "Stellen Sie in der unten angegebenen Reihenfolge aus und registrieren Sie in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Im Entwicklerprogramm anmelden", "p": "Gehen Sie zu developer.ebay.com und melden Sie sich mit Ihrem eBay-Konto im Entwicklerprogramm an.", "path": "developer.ebay.com" },
+              { "h3": "Production-Keyset erstellen", "p": "Klicken Sie auf der Seite [Application Keys] im Abschnitt Production auf [Create a keyset].", "path": "https://developer.ebay.com/my/keys" },
+              { "h3": "Verfahren zur Keyset-Aktivierung", "p": "Wenn der Hinweis \"Your Keyset is currently disabled\" angezeigt wird, klicken Sie auf den Link, um das Verfahren zum Abonnieren/Ablehnen der Benachrichtigung über die Löschung von Marketplace-Konten abzuschließen.", "path": "Application Keys → Production" },
+              { "h3": "Schlüssel überprüfen und OAuth-Token generieren", "p": "Überprüfen Sie die ausgestellte DevID, AppID und CertID und generieren Sie ein OAuth-Benutzertoken." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Sobald DevID·AppID·CertID ausgestellt und ein OAuth-Benutzertoken generiert wurde, ist die Ausstellung abgeschlossen." }
+          ]
+        },
+        {
+          "h2": "3. In GenieGo zu registrierende Informationen",
+          "blocks": [
+            { "type": "table", "head": ["Feld", "Beschreibung"], "rows": [
+              ["OAuth-Zugriffstoken", "Das von Ihnen generierte OAuth-Benutzertoken (vertraulich behandeln)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Geben Sie im GenieGo Integration Hub unter [Registrieren] Ihr OAuth-Zugriffstoken ein und speichern Sie. Anmeldedaten werden im Ruhezustand mit AES-256-GCM verschlüsselt und beim Lesen maskiert." }
+          ]
+        },
+        {
+          "h2": "4. Häufige Probleme",
+          "blocks": [
+            { "type": "table", "head": ["Problem", "Ursache", "Lösung"], "rows": [
+              ["Keyset befindet sich im deaktivierten Zustand", "Verfahren zum Abonnieren/Ablehnen der Benachrichtigung über die Löschung von Marketplace-Konten nicht abgeschlossen", "Klicken Sie auf den Hinweis-Link \"Your Keyset is currently disabled\" und schließen Sie dieses Verfahren ab."],
+              ["OAuth-Token kann nicht ausgestellt werden", "Production-Keyset (DevID·AppID·CertID) noch nicht ausgestellt", "Erstellen Sie unter [Application Keys] zuerst das Production-Keyset und generieren Sie dann das OAuth-Token."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Abschließende Checkliste",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Mit dem eBay-Konto unter developer.ebay.com im Entwicklerprogramm angemeldet.",
+              "DevID·AppID·CertID über Production [Create a keyset] ausgestellt.",
+              "Bei deaktiviertem Keyset das Verfahren zum Abonnieren/Ablehnen der Benachrichtigung über die Löschung von Marketplace-Konten abgeschlossen.",
+              "Ein OAuth-Benutzertoken generiert und das OAuth-Zugriffstoken in GenieGo [Registrieren] eingegeben und gespeichert."
+            ] }
+          ]
+        }
+      ]
+    },
+    "th": {
+      "titleType": "คู่มือการออก API Key",
+      "badge": "คู่มือสำหรับผู้เริ่มต้น",
+      "intro": "คู่มือทีละขั้นตอนที่เป็นมิตรกับผู้เริ่มต้น สำหรับการออกชุดคีย์ใช้งานจริง (Production) (DevID·AppID·CertID) ในโปรแกรมนักพัฒนา eBay สร้างโทเค็นผู้ใช้ OAuth และลงทะเบียนใน GenieGo Integration Hub",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["เวลาโดยประมาณ", "ประมาณ 10–20 นาที"],
+        ["บัญชีที่ต้องใช้", "บัญชี eBay"],
+        ["คีย์ที่ออก", "DevID · AppID · CertID + โทเค็น OAuth"],
+        ["ผลลัพธ์", "โทเค็นการเข้าถึง OAuth"]
+      ],
+      "sections": [
+        {
+          "h2": "1. ก่อนเริ่มต้น",
+          "desc": "การออกชุดคีย์ eBay จำเป็นต้องสมัครเข้าร่วมโปรแกรมนักพัฒนาก่อน",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "จำเป็น", "h3": "บัญชี eBay", "p": "หากต้องการดำเนินการออกคีย์ คุณต้องมีบัญชี eBay ใช้บัญชีนี้สมัครเข้าร่วมโปรแกรมนักพัฒนาที่ developer.ebay.com" },
+              { "tag": "คีย์ที่ออก", "h3": "DevID · AppID · CertID", "p": "เมื่อสร้างชุดคีย์ใช้งานจริง (Production) ระบบจะออก DevID, AppID และ CertID จากนั้นคุณยังต้องสร้างโทเค็นผู้ใช้ OAuth ด้วย จึงจะลงทะเบียนกับ GenieGo ได้" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>หมายเหตุ:</strong> ชุดคีย์ใช้งานจริงอาจแสดงข้อความแจ้ง &quot;Your Keyset is currently disabled&quot; ในกรณีนี้จะเปิดใช้งานได้ก็ต่อเมื่อคุณดำเนินการสมัคร/ปฏิเสธการแจ้งเตือนการลบบัญชีมาร์เก็ตเพลซเสร็จสมบูรณ์" }
+          ]
+        },
+        {
+          "h2": "2. ขั้นตอนการออก",
+          "desc": "ออกตามลำดับด้านล่างและลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "สมัครเข้าร่วมโปรแกรมนักพัฒนา", "p": "ไปที่ developer.ebay.com และสมัครเข้าร่วมโปรแกรมนักพัฒนาด้วยบัญชี eBay ของคุณ", "path": "developer.ebay.com" },
+              { "h3": "สร้างชุดคีย์ใช้งานจริง", "p": "ในหน้า [Application Keys] คลิก [Create a keyset] ในส่วน Production", "path": "https://developer.ebay.com/my/keys" },
+              { "h3": "ขั้นตอนการเปิดใช้งานชุดคีย์", "p": "หากเห็นข้อความแจ้ง \"Your Keyset is currently disabled\" ให้คลิกลิงก์เพื่อดำเนินการสมัคร/ปฏิเสธการแจ้งเตือนการลบบัญชีมาร์เก็ตเพลซให้เสร็จสมบูรณ์", "path": "Application Keys → Production" },
+              { "h3": "ตรวจสอบคีย์และสร้างโทเค็น OAuth", "p": "ตรวจสอบ DevID, AppID และ CertID ที่ออกแล้ว และสร้างโทเค็นผู้ใช้ OAuth" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "เมื่อ DevID·AppID·CertID ถูกออกและสร้างโทเค็นผู้ใช้ OAuth แล้ว แสดงว่าออกอย่างถูกต้อง" }
+          ]
+        },
+        {
+          "h2": "3. ข้อมูลที่ต้องลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["ฟิลด์", "คำอธิบาย"], "rows": [
+              ["โทเค็นการเข้าถึง OAuth", "โทเค็นผู้ใช้ OAuth ที่คุณสร้างขึ้น (จัดการด้วยความระมัดระวัง)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "ใน GenieGo Integration Hub [ลงทะเบียน] ป้อนโทเค็นการเข้าถึง OAuth แล้วบันทึก ข้อมูลรับรองจะถูกเข้ารหัสขณะจัดเก็บด้วย AES-256-GCM และปิดบังเมื่ออ่าน" }
+          ]
+        },
+        {
+          "h2": "4. ปัญหาที่พบบ่อย",
+          "blocks": [
+            { "type": "table", "head": ["ปัญหา", "สาเหตุ", "วิธีแก้ไข"], "rows": [
+              ["ชุดคีย์อยู่ในสถานะปิดใช้งาน", "ยังไม่ได้ดำเนินการสมัคร/ปฏิเสธการแจ้งเตือนการลบบัญชีมาร์เก็ตเพลซให้เสร็จสมบูรณ์", "คลิกลิงก์ข้อความแจ้ง \"Your Keyset is currently disabled\" และดำเนินการขั้นตอนนั้นให้เสร็จสมบูรณ์"],
+              ["ไม่สามารถออกโทเค็น OAuth ได้", "ยังไม่ได้ออกชุดคีย์ใช้งานจริง (DevID·AppID·CertID)", "ใน [Application Keys] ให้สร้างชุดคีย์ใช้งานจริงก่อน แล้วจึงสร้างโทเค็น OAuth"]
+            ] }
+          ]
+        },
+        {
+          "h2": "รายการตรวจสอบขั้นสุดท้าย",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "สมัครเข้าร่วมโปรแกรมนักพัฒนาที่ developer.ebay.com ด้วยบัญชี eBay ของคุณแล้ว",
+              "ออก DevID·AppID·CertID ผ่าน Production [Create a keyset] แล้ว",
+              "เมื่อชุดคีย์ถูกปิดใช้งาน ได้ดำเนินการสมัคร/ปฏิเสธการแจ้งเตือนการลบบัญชีมาร์เก็ตเพลซเสร็จสมบูรณ์แล้ว",
+              "สร้างโทเค็นผู้ใช้ OAuth และป้อนโทเค็นการเข้าถึง OAuth ใน GenieGo [ลงทะเบียน] และบันทึกแล้ว"
+            ] }
+          ]
+        }
+      ]
+    },
+    "vi": {
+      "titleType": "Hướng dẫn cấp API Key",
+      "badge": "Hướng dẫn cho người mới",
+      "intro": "Hướng dẫn từng bước thân thiện với người mới về việc cấp bộ khóa chính thức (Production) (DevID·AppID·CertID) trong Chương trình Nhà phát triển eBay, tạo mã thông báo người dùng OAuth và đăng ký trong GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Thời gian dự kiến", "Khoảng 10–20 phút"],
+        ["Tài khoản cần thiết", "Tài khoản eBay"],
+        ["Khóa được cấp", "DevID · AppID · CertID + mã thông báo OAuth"],
+        ["Kết quả", "Mã thông báo truy cập OAuth"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Trước khi bắt đầu",
+          "desc": "Việc cấp bộ khóa eBay yêu cầu đăng ký tham gia Chương trình Nhà phát triển.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Bắt buộc", "h3": "Tài khoản eBay", "p": "Để tiến hành cấp khóa, bạn cần một tài khoản eBay. Dùng tài khoản này để đăng ký Chương trình Nhà phát triển tại developer.ebay.com." },
+              { "tag": "Khóa được cấp", "h3": "DevID · AppID · CertID", "p": "Khi tạo bộ khóa chính thức (Production), hệ thống sẽ cấp DevID, AppID và CertID. Sau đó bạn còn phải tạo mã thông báo người dùng OAuth thì mới đăng ký được với GenieGo." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Lưu ý:</strong> Bộ khóa chính thức có thể hiển thị thông báo &quot;Your Keyset is currently disabled&quot;. Khi đó, nó chỉ được kích hoạt sau khi bạn hoàn tất quy trình đăng ký/từ chối thông báo xóa tài khoản sàn giao dịch." }
+          ]
+        },
+        {
+          "h2": "2. Các bước cấp",
+          "desc": "Cấp theo thứ tự dưới đây và đăng ký trong GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Đăng ký Chương trình Nhà phát triển", "p": "Truy cập developer.ebay.com và đăng ký Chương trình Nhà phát triển bằng tài khoản eBay của bạn.", "path": "developer.ebay.com" },
+              { "h3": "Tạo bộ khóa chính thức", "p": "Trên trang [Application Keys], nhấp vào [Create a keyset] trong mục Production.", "path": "https://developer.ebay.com/my/keys" },
+              { "h3": "Quy trình kích hoạt bộ khóa", "p": "Nếu bạn thấy thông báo \"Your Keyset is currently disabled\", hãy nhấp vào liên kết để hoàn tất quy trình đăng ký/từ chối thông báo xóa tài khoản sàn giao dịch.", "path": "Application Keys → Production" },
+              { "h3": "Xác minh khóa và tạo mã thông báo OAuth", "p": "Xác minh DevID, AppID và CertID đã được cấp, rồi tạo mã thông báo người dùng OAuth." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Khi DevID·AppID·CertID đã được cấp và mã thông báo người dùng OAuth đã được tạo, nghĩa là việc cấp đã hoàn tất." }
+          ]
+        },
+        {
+          "h2": "3. Thông tin cần đăng ký trong GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Trường", "Mô tả"], "rows": [
+              ["Mã thông báo truy cập OAuth", "Mã thông báo người dùng OAuth bạn đã tạo (xử lý cẩn thận)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Trong GenieGo Integration Hub [Đăng ký], nhập mã thông báo truy cập OAuth của bạn rồi lưu. Thông tin xác thực được mã hóa khi lưu trữ bằng AES-256-GCM và được che khi đọc." }
+          ]
+        },
+        {
+          "h2": "4. Sự cố thường gặp",
+          "blocks": [
+            { "type": "table", "head": ["Sự cố", "Nguyên nhân", "Giải pháp"], "rows": [
+              ["Bộ khóa ở trạng thái bị vô hiệu hóa", "Chưa hoàn tất quy trình đăng ký/từ chối thông báo xóa tài khoản sàn giao dịch", "Nhấp vào liên kết thông báo \"Your Keyset is currently disabled\" và hoàn tất quy trình đó."],
+              ["Không thể cấp mã thông báo OAuth", "Bộ khóa chính thức (DevID·AppID·CertID) chưa được cấp", "Trong [Application Keys], hãy tạo bộ khóa chính thức trước, rồi mới tạo mã thông báo OAuth."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Danh sách kiểm tra cuối cùng",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Đã đăng ký Chương trình Nhà phát triển tại developer.ebay.com bằng tài khoản eBay của bạn.",
+              "Đã cấp DevID·AppID·CertID qua Production [Create a keyset].",
+              "Khi bộ khóa bị vô hiệu hóa, đã hoàn tất quy trình đăng ký/từ chối thông báo xóa tài khoản sàn giao dịch.",
+              "Đã tạo mã thông báo người dùng OAuth và nhập mã thông báo truy cập OAuth vào GenieGo [Đăng ký] và lưu."
+            ] }
+          ]
+        }
+      ]
+    },
+    "id": {
+      "titleType": "Panduan Penerbitan API Key",
+      "badge": "Panduan Pemula",
+      "intro": "Panduan langkah demi langkah yang ramah pemula untuk menerbitkan keyset Production (DevID·AppID·CertID) di Program Pengembang eBay, menghasilkan token pengguna OAuth, dan mendaftarkannya di GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Perkiraan waktu", "Sekitar 10–20 menit"],
+        ["Akun yang dibutuhkan", "Akun eBay"],
+        ["Kunci yang diterbitkan", "DevID · AppID · CertID + token OAuth"],
+        ["Hasil", "Token akses OAuth"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Sebelum Anda Mulai",
+          "desc": "Menerbitkan keyset eBay memerlukan pendaftaran di Program Pengembang.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Diperlukan", "h3": "Akun eBay", "p": "Untuk melanjutkan penerbitan, Anda memerlukan akun eBay. Gunakan akun ini untuk mendaftar Program Pengembang di developer.ebay.com." },
+              { "tag": "Kunci yang diterbitkan", "h3": "DevID · AppID · CertID", "p": "Membuat keyset Production akan menerbitkan DevID, AppID, dan CertID. Setelah itu Anda juga harus menghasilkan token pengguna OAuth agar dapat mendaftar dengan GenieGo." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Catatan:</strong> Keyset Production mungkin menampilkan pemberitahuan &quot;Your Keyset is currently disabled&quot;. Dalam hal ini, keyset baru aktif setelah Anda menyelesaikan prosedur berlangganan/menolak pemberitahuan penghapusan akun marketplace." }
+          ]
+        },
+        {
+          "h2": "2. Langkah Penerbitan",
+          "desc": "Terbitkan sesuai urutan di bawah dan daftarkan di GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Daftar ke Program Pengembang", "p": "Buka developer.ebay.com dan daftar ke Program Pengembang dengan akun eBay Anda.", "path": "developer.ebay.com" },
+              { "h3": "Buat keyset Production", "p": "Pada halaman [Application Keys], klik [Create a keyset] di bagian Production.", "path": "https://developer.ebay.com/my/keys" },
+              { "h3": "Prosedur aktivasi keyset", "p": "Jika Anda melihat pemberitahuan \"Your Keyset is currently disabled\", klik tautan untuk menyelesaikan prosedur berlangganan/menolak pemberitahuan penghapusan akun marketplace.", "path": "Application Keys → Production" },
+              { "h3": "Verifikasi kunci dan hasilkan token OAuth", "p": "Verifikasi DevID, AppID, dan CertID yang diterbitkan, lalu hasilkan token pengguna OAuth." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Setelah DevID·AppID·CertID diterbitkan dan token pengguna OAuth dihasilkan, penerbitan telah selesai." }
+          ]
+        },
+        {
+          "h2": "3. Informasi yang Harus Didaftarkan di GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Bidang", "Deskripsi"], "rows": [
+              ["Token akses OAuth", "Token pengguna OAuth yang Anda hasilkan (tangani dengan hati-hati)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Di GenieGo Integration Hub [Daftar], masukkan token akses OAuth Anda lalu simpan. Kredensial dienkripsi saat disimpan dengan AES-256-GCM dan disamarkan saat dibaca." }
+          ]
+        },
+        {
+          "h2": "4. Masalah Umum",
+          "blocks": [
+            { "type": "table", "head": ["Masalah", "Penyebab", "Solusi"], "rows": [
+              ["Keyset dalam keadaan dinonaktifkan", "Prosedur berlangganan/menolak pemberitahuan penghapusan akun marketplace belum selesai", "Klik tautan pemberitahuan \"Your Keyset is currently disabled\" dan selesaikan prosedur tersebut."],
+              ["Token OAuth tidak dapat diterbitkan", "Keyset Production (DevID·AppID·CertID) belum diterbitkan", "Di [Application Keys], buat keyset Production terlebih dahulu, lalu hasilkan token OAuth."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Daftar Periksa Akhir",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Telah mendaftar ke Program Pengembang di developer.ebay.com dengan akun eBay Anda.",
+              "Telah menerbitkan DevID·AppID·CertID melalui Production [Create a keyset].",
+              "Saat keyset dinonaktifkan, telah menyelesaikan prosedur berlangganan/menolak pemberitahuan penghapusan akun marketplace.",
+              "Telah menghasilkan token pengguna OAuth dan memasukkan token akses OAuth di GenieGo [Daftar] lalu menyimpannya."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ar": {
+      "titleType": "دليل إصدار مفتاح API",
+      "badge": "دليل المبتدئين",
+      "intro": "دليل تفصيلي خطوة بخطوة ومناسب للمبتدئين لإصدار مجموعة مفاتيح الإنتاج (Production) (DevID·AppID·CertID) في برنامج مطوري eBay، وإنشاء رمز مستخدم OAuth، وتسجيله في GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["الوقت المقدّر", "حوالي 10–20 دقيقة"],
+        ["الحساب المطلوب", "حساب eBay"],
+        ["المفاتيح المُصدَرة", "DevID · AppID · CertID + رمز OAuth"],
+        ["النتيجة", "رمز وصول OAuth"]
+      ],
+      "sections": [
+        {
+          "h2": "1. قبل أن تبدأ",
+          "desc": "يتطلب إصدار مجموعة مفاتيح eBay التسجيل في برنامج المطورين.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "مطلوب", "h3": "حساب eBay", "p": "للمتابعة في الإصدار، تحتاج إلى حساب eBay. استخدم هذا الحساب للتسجيل في برنامج المطورين على developer.ebay.com." },
+              { "tag": "المفاتيح المُصدَرة", "h3": "DevID · AppID · CertID", "p": "يؤدي إنشاء مجموعة مفاتيح الإنتاج (Production) إلى إصدار DevID وAppID وCertID. بعد ذلك يجب أيضًا إنشاء رمز مستخدم OAuth لتتمكن من التسجيل في GenieGo." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>ملاحظة:</strong> قد تُظهر مجموعة مفاتيح الإنتاج إشعار &quot;Your Keyset is currently disabled&quot;، وفي هذه الحالة لا يتم تفعيلها إلا بعد إكمال إجراء الاشتراك/الرفض لإشعار حذف حساب السوق." }
+          ]
+        },
+        {
+          "h2": "2. خطوات الإصدار",
+          "desc": "أصدِر بالترتيب أدناه وسجّل في GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "التسجيل في برنامج المطورين", "p": "انتقل إلى developer.ebay.com وسجّل في برنامج المطورين باستخدام حساب eBay الخاص بك.", "path": "developer.ebay.com" },
+              { "h3": "إنشاء مجموعة مفاتيح الإنتاج", "p": "في صفحة [Application Keys]، انقر على [Create a keyset] ضمن قسم Production.", "path": "https://developer.ebay.com/my/keys" },
+              { "h3": "إجراء تفعيل مجموعة المفاتيح", "p": "إذا ظهر لك إشعار \"Your Keyset is currently disabled\"، فانقر على الرابط لإكمال إجراء الاشتراك/الرفض لإشعار حذف حساب السوق.", "path": "Application Keys → Production" },
+              { "h3": "التحقق من المفاتيح وإنشاء رمز OAuth", "p": "تحقق من DevID وAppID وCertID المُصدَرة، وأنشئ رمز مستخدم OAuth." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "بمجرد إصدار DevID·AppID·CertID وإنشاء رمز مستخدم OAuth، يكون الإصدار قد اكتمل." }
+          ]
+        },
+        {
+          "h2": "3. المعلومات المطلوب تسجيلها في GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["الحقل", "الوصف"], "rows": [
+              ["رمز وصول OAuth", "رمز مستخدم OAuth الذي أنشأته (تعامل معه بحذر)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "في GenieGo Integration Hub [تسجيل]، أدخل رمز وصول OAuth الخاص بك واحفظه. يتم تشفير بيانات الاعتماد أثناء التخزين باستخدام AES-256-GCM وإخفاؤها عند القراءة." }
+          ]
+        },
+        {
+          "h2": "4. المشكلات الشائعة",
+          "blocks": [
+            { "type": "table", "head": ["المشكلة", "السبب", "الحل"], "rows": [
+              ["مجموعة المفاتيح في حالة معطّلة", "لم يكتمل إجراء الاشتراك/الرفض لإشعار حذف حساب السوق", "انقر على رابط الإشعار \"Your Keyset is currently disabled\" وأكمل ذلك الإجراء."],
+              ["لا يمكن إصدار رمز OAuth", "لم يتم إصدار مجموعة مفاتيح الإنتاج (DevID·AppID·CertID) بعد", "في [Application Keys]، أنشئ مجموعة مفاتيح الإنتاج أولاً، ثم أنشئ رمز OAuth."]
+            ] }
+          ]
+        },
+        {
+          "h2": "قائمة التحقق النهائية",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "تم التسجيل في برنامج المطورين على developer.ebay.com باستخدام حساب eBay الخاص بك.",
+              "تم إصدار DevID·AppID·CertID عبر Production [Create a keyset].",
+              "عند تعطيل مجموعة المفاتيح، تم إكمال إجراء الاشتراك/الرفض لإشعار حذف حساب السوق.",
+              "تم إنشاء رمز مستخدم OAuth وإدخال رمز وصول OAuth في GenieGo [تسجيل] وحفظه."
+            ] }
+          ]
+        }
+      ]
+    },
+    "es": {
+      "titleType": "Manual de emisión de API Key",
+      "badge": "Guía para principiantes",
+      "intro": "Una guía paso a paso y apta para principiantes para emitir un conjunto de claves de producción (Production) (DevID·AppID·CertID) en el Programa para Desarrolladores de eBay, generar un token de usuario OAuth y registrarlo en el GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tiempo estimado", "Unos 10–20 min"],
+        ["Cuenta necesaria", "Cuenta de eBay"],
+        ["Claves emitidas", "DevID · AppID · CertID + token OAuth"],
+        ["Resultado", "Token de acceso OAuth"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de empezar",
+          "desc": "Emitir un conjunto de claves de eBay requiere la inscripción en el Programa para Desarrolladores.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requerido", "h3": "Cuenta de eBay", "p": "Para continuar con la emisión necesitas una cuenta de eBay. Usa esta cuenta para inscribirte en el Programa para Desarrolladores en developer.ebay.com." },
+              { "tag": "Claves emitidas", "h3": "DevID · AppID · CertID", "p": "Al crear un conjunto de claves de producción (Production) se emiten un DevID, un AppID y un CertID. Después también debes generar un token de usuario OAuth para registrarlo en GenieGo." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Nota:</strong> Un conjunto de claves de producción puede mostrar el aviso &quot;Your Keyset is currently disabled&quot;. En ese caso, se activa solo después de completar el procedimiento de suscripción/rechazo de la notificación de eliminación de cuentas del marketplace." }
+          ]
+        },
+        {
+          "h2": "2. Pasos de emisión",
+          "desc": "Emite en el orden siguiente y registra en GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Inscríbete en el Programa para Desarrolladores", "p": "Ve a developer.ebay.com e inscríbete en el Programa para Desarrolladores con tu cuenta de eBay.", "path": "developer.ebay.com" },
+              { "h3": "Crea un conjunto de claves de producción", "p": "En la página [Application Keys], haz clic en [Create a keyset] en la sección Production.", "path": "https://developer.ebay.com/my/keys" },
+              { "h3": "Procedimiento de activación del conjunto de claves", "p": "Si ves el aviso \"Your Keyset is currently disabled\", haz clic en el enlace para completar el procedimiento de suscripción/rechazo de la notificación de eliminación de cuentas del marketplace.", "path": "Application Keys → Production" },
+              { "h3": "Verifica las claves y genera un token OAuth", "p": "Verifica el DevID, el AppID y el CertID emitidos y genera un token de usuario OAuth." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Una vez que se emiten el DevID·AppID·CertID y se genera un token de usuario OAuth, la emisión está completa." }
+          ]
+        },
+        {
+          "h2": "3. Información para registrar en GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descripción"], "rows": [
+              ["Token de acceso OAuth", "El token de usuario OAuth que generaste (manéjalo con cuidado)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "En el GenieGo Integration Hub [Registrar], introduce tu token de acceso OAuth y guarda. Las credenciales se cifran en reposo con AES-256-GCM y se enmascaran al leerlas." }
+          ]
+        },
+        {
+          "h2": "4. Problemas frecuentes",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solución"], "rows": [
+              ["El conjunto de claves está deshabilitado", "No se ha completado el procedimiento de suscripción/rechazo de la notificación de eliminación de cuentas del marketplace", "Haz clic en el enlace del aviso \"Your Keyset is currently disabled\" y completa ese procedimiento."],
+              ["No se puede emitir el token OAuth", "El conjunto de claves de producción (DevID·AppID·CertID) aún no se ha emitido", "En [Application Keys], crea primero el conjunto de claves de producción y luego genera el token OAuth."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificación final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Te inscribiste en el Programa para Desarrolladores en developer.ebay.com con tu cuenta de eBay.",
+              "Emitiste el DevID·AppID·CertID mediante Production [Create a keyset].",
+              "Cuando el conjunto de claves estaba deshabilitado, completaste el procedimiento de suscripción/rechazo de la notificación de eliminación de cuentas del marketplace.",
+              "Generaste un token de usuario OAuth e introdujiste el token de acceso OAuth en GenieGo [Registrar] y guardaste."
+            ] }
+          ]
+        }
+      ]
+    },
+    "fr": {
+      "titleType": "Manuel d'émission de la clé API",
+      "badge": "Guide pour débutants",
+      "intro": "Un guide pas à pas adapté aux débutants pour émettre un jeu de clés de production (Production) (DevID·AppID·CertID) dans le Programme pour développeurs eBay, générer un jeton utilisateur OAuth et l'enregistrer dans le GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Temps estimé", "Environ 10–20 min"],
+        ["Compte requis", "Compte eBay"],
+        ["Clés émises", "DevID · AppID · CertID + jeton OAuth"],
+        ["Résultat", "Jeton d'accès OAuth"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Avant de commencer",
+          "desc": "L'émission d'un jeu de clés eBay nécessite l'inscription au Programme pour développeurs.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requis", "h3": "Compte eBay", "p": "Pour procéder à l'émission, vous avez besoin d'un compte eBay. Utilisez ce compte pour vous inscrire au Programme pour développeurs sur developer.ebay.com." },
+              { "tag": "Clés émises", "h3": "DevID · AppID · CertID", "p": "La création d'un jeu de clés de production (Production) émet un DevID, un AppID et un CertID. Vous devez ensuite aussi générer un jeton utilisateur OAuth pour l'enregistrer auprès de GenieGo." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Remarque :</strong> Un jeu de clés de production peut afficher l'avis &quot;Your Keyset is currently disabled&quot;. Dans ce cas, il n'est activé qu'après avoir terminé la procédure d'abonnement/de refus de la notification de suppression de compte de la marketplace." }
+          ]
+        },
+        {
+          "h2": "2. Étapes d'émission",
+          "desc": "Émettez dans l'ordre ci-dessous et enregistrez dans GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "S'inscrire au Programme pour développeurs", "p": "Allez sur developer.ebay.com et inscrivez-vous au Programme pour développeurs avec votre compte eBay.", "path": "developer.ebay.com" },
+              { "h3": "Créer un jeu de clés de production", "p": "Sur la page [Application Keys], cliquez sur [Create a keyset] dans la section Production.", "path": "https://developer.ebay.com/my/keys" },
+              { "h3": "Procédure d'activation du jeu de clés", "p": "Si l'avis \"Your Keyset is currently disabled\" s'affiche, cliquez sur le lien pour terminer la procédure d'abonnement/de refus de la notification de suppression de compte de la marketplace.", "path": "Application Keys → Production" },
+              { "h3": "Vérifier les clés et générer un jeton OAuth", "p": "Vérifiez le DevID, l'AppID et le CertID émis, puis générez un jeton utilisateur OAuth." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Une fois le DevID·AppID·CertID émis et un jeton utilisateur OAuth généré, l'émission est terminée." }
+          ]
+        },
+        {
+          "h2": "3. Informations à enregistrer dans GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Champ", "Description"], "rows": [
+              ["Jeton d'accès OAuth", "Le jeton utilisateur OAuth que vous avez généré (à manipuler avec précaution)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Dans le GenieGo Integration Hub [Enregistrer], saisissez votre jeton d'accès OAuth et enregistrez. Les identifiants sont chiffrés au repos avec AES-256-GCM et masqués à la lecture." }
+          ]
+        },
+        {
+          "h2": "4. Problèmes fréquents",
+          "blocks": [
+            { "type": "table", "head": ["Problème", "Cause", "Solution"], "rows": [
+              ["Le jeu de clés est à l'état désactivé", "La procédure d'abonnement/de refus de la notification de suppression de compte de la marketplace n'est pas terminée", "Cliquez sur le lien de l'avis \"Your Keyset is currently disabled\" et terminez cette procédure."],
+              ["Impossible d'émettre le jeton OAuth", "Le jeu de clés de production (DevID·AppID·CertID) n'a pas encore été émis", "Dans [Application Keys], créez d'abord le jeu de clés de production, puis générez le jeton OAuth."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Liste de vérification finale",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Inscrit au Programme pour développeurs sur developer.ebay.com avec votre compte eBay.",
+              "Émis le DevID·AppID·CertID via Production [Create a keyset].",
+              "Lorsque le jeu de clés était désactivé, terminé la procédure d'abonnement/de refus de la notification de suppression de compte de la marketplace.",
+              "Généré un jeton utilisateur OAuth et saisi le jeton d'accès OAuth dans GenieGo [Enregistrer], puis enregistré."
+            ] }
+          ]
+        }
+      ]
+    },
+    "hi": {
+      "titleType": "API Key जारी करने की नियमावली",
+      "badge": "शुरुआती गाइड",
+      "intro": "eBay डेवलपर्स प्रोग्राम में प्रोडक्शन (Production) कीसेट (DevID·AppID·CertID) जारी करने, OAuth उपयोगकर्ता टोकन बनाने और इसे GenieGo Integration Hub में पंजीकृत करने की एक शुरुआती-अनुकूल, चरण-दर-चरण गाइड।",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["अनुमानित समय", "लगभग 10–20 मिनट"],
+        ["आवश्यक खाता", "eBay खाता"],
+        ["जारी की गई कीज़", "DevID · AppID · CertID + OAuth टोकन"],
+        ["परिणाम", "OAuth एक्सेस टोकन"]
+      ],
+      "sections": [
+        {
+          "h2": "1. शुरू करने से पहले",
+          "desc": "eBay कीसेट जारी करने के लिए डेवलपर्स प्रोग्राम में नामांकन आवश्यक है।",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "आवश्यक", "h3": "eBay खाता", "p": "जारी करने की प्रक्रिया आगे बढ़ाने के लिए आपके पास एक eBay खाता होना चाहिए। इस खाते से developer.ebay.com पर डेवलपर्स प्रोग्राम में नामांकन करें।" },
+              { "tag": "जारी की गई कीज़", "h3": "DevID · AppID · CertID", "p": "प्रोडक्शन (Production) कीसेट बनाने पर DevID, AppID और CertID जारी होते हैं। इसके बाद GenieGo में पंजीकरण के लिए आपको OAuth उपयोगकर्ता टोकन भी बनाना होगा।" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>नोट:</strong> प्रोडक्शन कीसेट पर &quot;Your Keyset is currently disabled&quot; सूचना दिख सकती है, ऐसी स्थिति में यह तभी सक्रिय होता है जब आप मार्केटप्लेस खाता विलोपन सूचना की सदस्यता/अस्वीकृति प्रक्रिया पूरी कर लेते हैं।" }
+          ]
+        },
+        {
+          "h2": "2. जारी करने के चरण",
+          "desc": "नीचे दिए गए क्रम में जारी करें और GenieGo में पंजीकृत करें।",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "डेवलपर्स प्रोग्राम में नामांकन करें", "p": "developer.ebay.com पर जाएँ और अपने eBay खाते से डेवलपर्स प्रोग्राम में नामांकन करें।", "path": "developer.ebay.com" },
+              { "h3": "प्रोडक्शन कीसेट बनाएँ", "p": "[Application Keys] पृष्ठ पर, Production अनुभाग में [Create a keyset] पर क्लिक करें।", "path": "https://developer.ebay.com/my/keys" },
+              { "h3": "कीसेट सक्रियण प्रक्रिया", "p": "यदि आपको \"Your Keyset is currently disabled\" सूचना दिखे, तो मार्केटप्लेस खाता विलोपन सूचना की सदस्यता/अस्वीकृति प्रक्रिया पूरी करने के लिए लिंक पर क्लिक करें।", "path": "Application Keys → Production" },
+              { "h3": "कीज़ की पुष्टि करें और OAuth टोकन बनाएँ", "p": "जारी किए गए DevID, AppID और CertID की पुष्टि करें और OAuth उपयोगकर्ता टोकन बनाएँ।" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "जब DevID·AppID·CertID जारी हो जाएँ और OAuth उपयोगकर्ता टोकन भी बन जाए, तो जारी करना पूरा हो गया है।" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo में पंजीकृत करने योग्य जानकारी",
+          "blocks": [
+            { "type": "table", "head": ["फ़ील्ड", "विवरण"], "rows": [
+              ["OAuth एक्सेस टोकन", "आपके द्वारा बनाया गया OAuth उपयोगकर्ता टोकन (सावधानी से संभालें)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo Integration Hub [पंजीकरण] में अपना OAuth एक्सेस टोकन दर्ज करें और सहेजें। प्रमाण-पत्र भंडारण के समय AES-256-GCM से एन्क्रिप्ट किए जाते हैं और पढ़ते समय मास्क किए जाते हैं।" }
+          ]
+        },
+        {
+          "h2": "4. अक्सर होने वाली समस्याएँ",
+          "blocks": [
+            { "type": "table", "head": ["समस्या", "कारण", "समाधान"], "rows": [
+              ["कीसेट निष्क्रिय स्थिति में है", "मार्केटप्लेस खाता विलोपन सूचना की सदस्यता/अस्वीकृति प्रक्रिया पूरी नहीं हुई", "\"Your Keyset is currently disabled\" सूचना लिंक पर क्लिक करें और उस प्रक्रिया को पूरा करें।"],
+              ["OAuth टोकन जारी नहीं किया जा सकता", "प्रोडक्शन कीसेट (DevID·AppID·CertID) अभी तक जारी नहीं हुआ", "[Application Keys] में पहले प्रोडक्शन कीसेट बनाएँ, फिर OAuth टोकन बनाएँ।"]
+            ] }
+          ]
+        },
+        {
+          "h2": "अंतिम जाँच सूची",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "अपने eBay खाते से developer.ebay.com पर डेवलपर्स प्रोग्राम में नामांकन किया।",
+              "Production [Create a keyset] के माध्यम से DevID·AppID·CertID जारी किया।",
+              "कीसेट निष्क्रिय होने पर मार्केटप्लेस खाता विलोपन सूचना की सदस्यता/अस्वीकृति प्रक्रिया पूरी की।",
+              "OAuth उपयोगकर्ता टोकन बनाया और GenieGo [पंजीकरण] में OAuth एक्सेस टोकन दर्ज करके सहेजा।"
+            ] }
+          ]
+        }
+      ]
+    },
+    "pt": {
+      "titleType": "Manual de emissão de API Key",
+      "badge": "Guia para iniciantes",
+      "intro": "Um guia passo a passo e amigável para iniciantes para emitir um conjunto de chaves de produção (Production) (DevID·AppID·CertID) no Programa de Desenvolvedores do eBay, gerar um token de usuário OAuth e registrá-lo no GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tempo estimado", "Cerca de 10–20 min"],
+        ["Conta necessária", "Conta do eBay"],
+        ["Chaves emitidas", "DevID · AppID · CertID + token OAuth"],
+        ["Resultado", "Token de acesso OAuth"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de começar",
+          "desc": "Emitir um conjunto de chaves do eBay exige a inscrição no Programa de Desenvolvedores.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Obrigatório", "h3": "Conta do eBay", "p": "Para prosseguir com a emissão, você precisa de uma conta do eBay. Use esta conta para se inscrever no Programa de Desenvolvedores em developer.ebay.com." },
+              { "tag": "Chaves emitidas", "h3": "DevID · AppID · CertID", "p": "Criar um conjunto de chaves de produção (Production) emite um DevID, um AppID e um CertID. Em seguida, você também deve gerar um token de usuário OAuth para registrá-lo no GenieGo." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Nota:</strong> Um conjunto de chaves de produção pode exibir o aviso &quot;Your Keyset is currently disabled&quot;. Nesse caso, ele só é ativado depois que você concluir o procedimento de assinatura/recusa da notificação de exclusão de contas do marketplace." }
+          ]
+        },
+        {
+          "h2": "2. Etapas de emissão",
+          "desc": "Emita na ordem abaixo e registre no GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Inscreva-se no Programa de Desenvolvedores", "p": "Acesse developer.ebay.com e inscreva-se no Programa de Desenvolvedores com sua conta do eBay.", "path": "developer.ebay.com" },
+              { "h3": "Crie um conjunto de chaves de produção", "p": "Na página [Application Keys], clique em [Create a keyset] na seção Production.", "path": "https://developer.ebay.com/my/keys" },
+              { "h3": "Procedimento de ativação do conjunto de chaves", "p": "Se você vir o aviso \"Your Keyset is currently disabled\", clique no link para concluir o procedimento de assinatura/recusa da notificação de exclusão de contas do marketplace.", "path": "Application Keys → Production" },
+              { "h3": "Verifique as chaves e gere um token OAuth", "p": "Verifique o DevID, o AppID e o CertID emitidos e gere um token de usuário OAuth." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Depois que o DevID·AppID·CertID forem emitidos e um token de usuário OAuth for gerado, a emissão está concluída." }
+          ]
+        },
+        {
+          "h2": "3. Informações para registrar no GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descrição"], "rows": [
+              ["Token de acesso OAuth", "O token de usuário OAuth que você gerou (manuseie com cuidado)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "No GenieGo Integration Hub [Registrar], insira seu token de acesso OAuth e salve. As credenciais são criptografadas em repouso com AES-256-GCM e mascaradas na leitura." }
+          ]
+        },
+        {
+          "h2": "4. Problemas comuns",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solução"], "rows": [
+              ["O conjunto de chaves está no estado desativado", "Procedimento de assinatura/recusa da notificação de exclusão de contas do marketplace não concluído", "Clique no link do aviso \"Your Keyset is currently disabled\" e conclua esse procedimento."],
+              ["Não é possível emitir o token OAuth", "O conjunto de chaves de produção (DevID·AppID·CertID) ainda não foi emitido", "Em [Application Keys], crie primeiro o conjunto de chaves de produção e, em seguida, gere o token OAuth."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificação final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Inscreveu-se no Programa de Desenvolvedores em developer.ebay.com com sua conta do eBay.",
+              "Emitiu o DevID·AppID·CertID via Production [Create a keyset].",
+              "Quando o conjunto de chaves estava desativado, concluiu o procedimento de assinatura/recusa da notificação de exclusão de contas do marketplace.",
+              "Gerou um token de usuário OAuth e inseriu o token de acesso OAuth no GenieGo [Registrar] e salvou."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ru": {
+      "titleType": "Руководство по выпуску API Key",
+      "badge": "Руководство для начинающих",
+      "intro": "Понятное новичкам пошаговое руководство по выпуску рабочего (Production) набора ключей (DevID·AppID·CertID) в Программе разработчиков eBay, созданию пользовательского токена OAuth и регистрации его в GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Примерное время", "Около 10–20 мин"],
+        ["Необходимая учётная запись", "Учётная запись eBay"],
+        ["Выпускаемые ключи", "DevID · AppID · CertID + токен OAuth"],
+        ["Результат", "Токен доступа OAuth"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Прежде чем начать",
+          "desc": "Для выпуска набора ключей eBay необходима регистрация в Программе разработчиков.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Необходимо", "h3": "Учётная запись eBay", "p": "Чтобы продолжить выпуск, вам нужна учётная запись eBay. Используйте её для регистрации в Программе разработчиков на developer.ebay.com." },
+              { "tag": "Выпускаемые ключи", "h3": "DevID · AppID · CertID", "p": "При создании рабочего (Production) набора ключей выпускаются DevID, AppID и CertID. После этого необходимо также создать пользовательский токен OAuth, чтобы зарегистрировать его в GenieGo." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Примечание:</strong> Для рабочего набора ключей может отображаться уведомление &quot;Your Keyset is currently disabled&quot;. В этом случае он активируется только после завершения процедуры подписки/отказа от уведомлений об удалении учётных записей маркетплейса." }
+          ]
+        },
+        {
+          "h2": "2. Этапы выпуска",
+          "desc": "Выпускайте в указанном ниже порядке и регистрируйте в GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Регистрация в Программе разработчиков", "p": "Перейдите на developer.ebay.com и зарегистрируйтесь в Программе разработчиков с помощью своей учётной записи eBay.", "path": "developer.ebay.com" },
+              { "h3": "Создание рабочего набора ключей", "p": "На странице [Application Keys] нажмите [Create a keyset] в разделе Production.", "path": "https://developer.ebay.com/my/keys" },
+              { "h3": "Процедура активации набора ключей", "p": "Если отображается уведомление \"Your Keyset is currently disabled\", нажмите ссылку, чтобы завершить процедуру подписки/отказа от уведомлений об удалении учётных записей маркетплейса.", "path": "Application Keys → Production" },
+              { "h3": "Проверка ключей и создание токена OAuth", "p": "Проверьте выпущенные DevID, AppID и CertID и создайте пользовательский токен OAuth." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Как только DevID·AppID·CertID выпущены и создан пользовательский токен OAuth, выпуск завершён." }
+          ]
+        },
+        {
+          "h2": "3. Информация для регистрации в GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Поле", "Описание"], "rows": [
+              ["Токен доступа OAuth", "Созданный вами пользовательский токен OAuth (обращайтесь осторожно)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "В GenieGo Integration Hub [Регистрация] введите токен доступа OAuth и сохраните. Учётные данные шифруются при хранении с помощью AES-256-GCM и маскируются при чтении." }
+          ]
+        },
+        {
+          "h2": "4. Частые проблемы",
+          "blocks": [
+            { "type": "table", "head": ["Проблема", "Причина", "Решение"], "rows": [
+              ["Набор ключей в отключённом состоянии", "Процедура подписки/отказа от уведомлений об удалении учётных записей маркетплейса не завершена", "Нажмите ссылку уведомления \"Your Keyset is currently disabled\" и завершите эту процедуру."],
+              ["Невозможно выпустить токен OAuth", "Рабочий набор ключей (DevID·AppID·CertID) ещё не выпущен", "В [Application Keys] сначала создайте рабочий набор ключей, затем создайте токен OAuth."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Итоговый контрольный список",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Зарегистрировались в Программе разработчиков на developer.ebay.com с помощью своей учётной записи eBay.",
+              "Выпустили DevID·AppID·CertID через Production [Create a keyset].",
+              "При отключённом наборе ключей завершили процедуру подписки/отказа от уведомлений об удалении учётных записей маркетплейса.",
+              "Создали пользовательский токен OAuth и ввели токен доступа OAuth в GenieGo [Регистрация] и сохранили."
+            ] }
+          ]
+        }
+      ]
+    }
+  }
+}

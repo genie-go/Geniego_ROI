@@ -1,0 +1,1356 @@
+{
+  "name": "Kakao",
+  "icon": "K",
+  "langs": {
+    "ko": {
+      "titleType": "알림톡 API 발급 매뉴얼",
+      "badge": "API 발급 초보자 매뉴얼",
+      "intro": "카카오톡 채널 비즈니스 인증, 발송 프로필 등록, 알림톡 템플릿 승인, API 인증 정보 확인까지의 실무 절차를 정리했습니다.",
+      "org": "실무 연동 초보자용 가이드",
+      "quick": [
+        ["핵심 구조", "채널 인증 + 템플릿 승인"],
+        ["필요 계정", "카카오비즈니스"],
+        ["주요 결과물", "Sender Profile / API Key"],
+        ["용도", "정보성 메시지"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Kakao 알림톡 발급 개념",
+          "desc": "알림톡은 주문, 예약, 배송, 결제 등 정보성 메시지를 카카오톡으로 발송하는 비즈메시지 서비스입니다. 일반 카카오 개발자 앱 키만으로 바로 발송하는 구조가 아니라, 비즈니스 채널 인증과 발송 대행사/플랫폼 설정이 필요합니다.",
+          "blocks": [
+            { "type": "notice", "kind": "danger", "html": "<strong>중요:</strong> 알림톡은 광고성 메시지가 아니라 정보성 메시지 중심이며, 템플릿 사전 심사가 필요합니다." }
+          ]
+        },
+        {
+          "h2": "2. 준비물",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "카카오 비즈니스 계정",
+              "카카오톡 채널",
+              "사업자등록증 등 비즈니스 인증 자료",
+              "발송할 알림톡 템플릿 문구",
+              "발송 대행사 또는 클라우드 메시징 서비스 계정",
+              "수신자 전화번호 수집 및 동의 관리 정책"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. 카카오톡 채널 준비",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "카카오비즈니스 접속", "p": "카카오비즈니스 관리자센터에 로그인합니다.", "path": "business.kakao.com" },
+              { "h3": "카카오톡 채널 생성", "p": "브랜드 또는 서비스 이름으로 채널을 생성합니다.", "path": "카카오톡 채널 관리자센터" },
+              { "h3": "비즈니스 인증 진행", "p": "사업자 정보와 증빙 자료를 제출해 비즈니스 채널 인증을 진행합니다.", "path": "비즈니스 인증" },
+              { "h3": "채널 검색용 ID 확인", "p": "알림톡 발송 설정에 필요한 채널 ID 또는 검색용 ID를 확인합니다.", "path": "채널 프로필 → 검색용 ID" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "비즈니스 인증이 완료되어야 알림톡 발송 프로필 등록을 진행할 수 있습니다." }
+          ]
+        },
+        {
+          "h2": "4. 발송 프로필 / Sender Profile 등록",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "발송 플랫폼 선택", "p": "NHN Cloud, Naver Cloud SENS, Infobank, Bizgo 등 알림톡 제공사를 선택합니다.", "path": "Messaging Provider" },
+              { "h3": "프로젝트 생성", "p": "선택한 플랫폼에서 알림톡 프로젝트를 생성합니다.", "path": "Project / Service" },
+              { "h3": "카카오톡 채널 연결", "p": "비즈니스 인증된 카카오톡 채널 정보를 등록합니다.", "path": "Sender Profile" },
+              { "h3": "발신 프로필 검수", "p": "채널 소유 확인과 발신 프로필 검수를 진행합니다.", "path": "Profile Review" },
+              { "h3": "API 인증 정보 확인", "p": "플랫폼에서 제공하는 App Key, Secret Key, API Key 등을 확인합니다.", "path": "API Key / Secret" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. 템플릿 등록 및 승인",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "템플릿 작성", "p": "주문 확인, 배송 안내 등 정보성 문구를 작성합니다.", "path": "Template Message" },
+              { "h3": "변수 설정", "p": "이름, 주문번호, 배송번호 등 동적으로 바뀌는 값을 변수로 설정합니다.", "path": "#{'{'}변수{'}'}" },
+              { "h3": "검수 요청", "p": "템플릿을 저장하고 카카오 검수 요청을 진행합니다.", "path": "Request Approval" },
+              { "h3": "승인 확인", "p": "승인된 템플릿 코드 또는 ID를 확인합니다.", "path": "Template Code" }
+            ] },
+            { "type": "notice", "kind": "danger", "html": "검수 전 문구와 실제 발송 문구가 다르면 발송 실패 또는 제재가 발생할 수 있습니다." }
+          ]
+        },
+        {
+          "h2": "6. API 발송 흐름 예시",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "1) 서버에서 알림톡 API Endpoint 호출<br>2) API Key 또는 Secret으로 인증<br>3) 수신자 전화번호, 템플릿 코드, 변수값 전달<br>4) 발송 결과 수신<br>5) 실패 시 SMS 대체 발송 여부 처리" }
+          ]
+        },
+        {
+          "h2": "7. 최종 체크리스트",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "카카오톡 채널을 생성했다.",
+              "비즈니스 인증을 완료했다.",
+              "알림톡 발송 플랫폼을 선택했다.",
+              "Sender Profile을 등록했다.",
+              "API Key 또는 Secret을 확인했다.",
+              "템플릿을 등록하고 승인받았다.",
+              "발송 실패 및 대체문자 정책을 준비했다."
+            ] }
+          ]
+        }
+      ]
+    },
+    "en": {
+      "titleType": "API Issuance Manual",
+      "badge": "Beginner API Issuance Guide",
+      "intro": "This manual walks you through the hands-on steps from Kakao Talk channel business verification, sender profile registration, and Alimtalk template approval to confirming your API credentials.",
+      "org": "Beginner-friendly integration guide",
+      "quick": [
+        ["Core structure", "Channel verification + template approval"],
+        ["Account needed", "Kakao Business"],
+        ["Key results", "Sender Profile / API Key"],
+        ["Use case", "Informational messages"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Kakao Alimtalk Concept",
+          "desc": "Alimtalk is a business-message service that sends informational messages such as orders, reservations, shipping, and payments via Kakao Talk. You cannot send directly with a regular Kakao developer app key alone; business channel verification and a sending agency/platform setup are required.",
+          "blocks": [
+            { "type": "notice", "kind": "danger", "html": "<strong>Important:</strong> Alimtalk is centered on informational messages rather than promotional ones, and templates require prior review." }
+          ]
+        },
+        {
+          "h2": "2. What You Need",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Kakao Business account",
+              "Kakao Talk channel",
+              "Business verification documents such as a business registration certificate",
+              "Alimtalk template wording to send",
+              "A sending agency or cloud messaging service account",
+              "A policy for collecting recipient phone numbers and managing consent"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. Preparing the Kakao Talk Channel",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Access Kakao Business", "p": "Log in to the Kakao Business admin center.", "path": "business.kakao.com" },
+              { "h3": "Create a Kakao Talk channel", "p": "Create a channel under your brand or service name.", "path": "Kakao Talk Channel Admin Center" },
+              { "h3": "Complete business verification", "p": "Submit your business information and supporting documents to verify the business channel.", "path": "Business Verification" },
+              { "h3": "Check the channel search ID", "p": "Check the channel ID or search ID required for Alimtalk sending settings.", "path": "Channel Profile → Search ID" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Business verification must be completed before you can register an Alimtalk sender profile." }
+          ]
+        },
+        {
+          "h2": "4. Registering the Sender Profile",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Choose a sending platform", "p": "Select an Alimtalk provider such as NHN Cloud, Naver Cloud SENS, Infobank, or Bizgo.", "path": "Messaging Provider" },
+              { "h3": "Create a project", "p": "Create an Alimtalk project on the platform you selected.", "path": "Project / Service" },
+              { "h3": "Connect the Kakao Talk channel", "p": "Register the details of your business-verified Kakao Talk channel.", "path": "Sender Profile" },
+              { "h3": "Sender profile review", "p": "Complete channel ownership confirmation and sender profile review.", "path": "Profile Review" },
+              { "h3": "Confirm API credentials", "p": "Check the App Key, Secret Key, API Key, and other values provided by the platform.", "path": "API Key / Secret" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. Registering and Approving Templates",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Write the template", "p": "Write informational wording such as order confirmations and shipping notices.", "path": "Template Message" },
+              { "h3": "Set variables", "p": "Set dynamically changing values such as name, order number, and tracking number as variables.", "path": "#{variable}" },
+              { "h3": "Request review", "p": "Save the template and submit it for Kakao review.", "path": "Request Approval" },
+              { "h3": "Confirm approval", "p": "Confirm the approved template code or ID.", "path": "Template Code" }
+            ] },
+            { "type": "notice", "kind": "danger", "html": "If the wording before review differs from the actually sent wording, sending may fail or sanctions may occur." }
+          ]
+        },
+        {
+          "h2": "6. Example API Sending Flow",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "1) Call the Alimtalk API Endpoint from your server<br>2) Authenticate with the API Key or Secret<br>3) Pass the recipient phone number, template code, and variable values<br>4) Receive the sending result<br>5) Handle whether to send an SMS fallback on failure" }
+          ]
+        },
+        {
+          "h2": "7. Final Checklist",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Created a Kakao Talk channel.",
+              "Completed business verification.",
+              "Selected an Alimtalk sending platform.",
+              "Registered a Sender Profile.",
+              "Confirmed the API Key or Secret.",
+              "Registered and got the template approved.",
+              "Prepared a sending-failure and fallback-SMS policy."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ja": {
+      "titleType": "API 発行マニュアル",
+      "badge": "API 発行 初心者マニュアル",
+      "intro": "カカオトークチャンネルのビジネス認証、送信プロフィール登録、アルリムトーク（通知トーク）テンプレート承認、API 認証情報の確認までの実務手順をまとめました。",
+      "org": "実務連携 初心者向けガイド",
+      "quick": [
+        ["コア構造", "チャンネル認証 + テンプレート承認"],
+        ["必要なアカウント", "カカオビジネス"],
+        ["主な成果物", "Sender Profile / API Key"],
+        ["用途", "情報系メッセージ"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Kakao アルリムトークの発行概念",
+          "desc": "アルリムトークは、注文・予約・配送・決済などの情報系メッセージをカカオトークで送信するビジネスメッセージサービスです。通常のカカオ開発者アプリキーだけで直接送信できる仕組みではなく、ビジネスチャンネル認証と送信代行会社/プラットフォームの設定が必要です。",
+          "blocks": [
+            { "type": "notice", "kind": "danger", "html": "<strong>重要:</strong> アルリムトークは広告系メッセージではなく情報系メッセージが中心であり、テンプレートの事前審査が必要です。" }
+          ]
+        },
+        {
+          "h2": "2. 準備物",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "カカオビジネスアカウント",
+              "カカオトークチャンネル",
+              "事業者登録証などのビジネス認証資料",
+              "送信するアルリムトークのテンプレート文言",
+              "送信代行会社またはクラウドメッセージングサービスのアカウント",
+              "受信者電話番号の収集および同意管理ポリシー"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. カカオトークチャンネルの準備",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "カカオビジネスにアクセス", "p": "カカオビジネス管理者センターにログインします。", "path": "business.kakao.com" },
+              { "h3": "カカオトークチャンネルの作成", "p": "ブランドまたはサービス名でチャンネルを作成します。", "path": "カカオトークチャンネル管理者センター" },
+              { "h3": "ビジネス認証の実施", "p": "事業者情報と証明資料を提出してビジネスチャンネル認証を行います。", "path": "ビジネス認証" },
+              { "h3": "チャンネル検索用 ID の確認", "p": "アルリムトーク送信設定に必要なチャンネル ID または検索用 ID を確認します。", "path": "チャンネルプロフィール → 検索用 ID" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "ビジネス認証が完了して初めて、アルリムトークの送信プロフィール登録を進められます。" }
+          ]
+        },
+        {
+          "h2": "4. 送信プロフィール / Sender Profile 登録",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "送信プラットフォームの選択", "p": "NHN Cloud、Naver Cloud SENS、Infobank、Bizgo などのアルリムトーク提供会社を選択します。", "path": "Messaging Provider" },
+              { "h3": "プロジェクトの作成", "p": "選択したプラットフォームでアルリムトークプロジェクトを作成します。", "path": "Project / Service" },
+              { "h3": "カカオトークチャンネルの連携", "p": "ビジネス認証されたカカオトークチャンネル情報を登録します。", "path": "Sender Profile" },
+              { "h3": "送信プロフィールの検収", "p": "チャンネル所有確認と送信プロフィールの検収を行います。", "path": "Profile Review" },
+              { "h3": "API 認証情報の確認", "p": "プラットフォームが提供する App Key、Secret Key、API Key などを確認します。", "path": "API Key / Secret" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. テンプレート登録および承認",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "テンプレートの作成", "p": "注文確認、配送案内などの情報系文言を作成します。", "path": "Template Message" },
+              { "h3": "変数の設定", "p": "氏名、注文番号、配送番号など動的に変わる値を変数として設定します。", "path": "#{変数}" },
+              { "h3": "検収依頼", "p": "テンプレートを保存し、カカオの検収依頼を行います。", "path": "Request Approval" },
+              { "h3": "承認の確認", "p": "承認されたテンプレートコードまたは ID を確認します。", "path": "Template Code" }
+            ] },
+            { "type": "notice", "kind": "danger", "html": "検収前の文言と実際の送信文言が異なると、送信失敗または制裁が発生する可能性があります。" }
+          ]
+        },
+        {
+          "h2": "6. API 送信フローの例",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "1) サーバーからアルリムトーク API Endpoint を呼び出し<br>2) API Key または Secret で認証<br>3) 受信者電話番号、テンプレートコード、変数値を渡す<br>4) 送信結果を受信<br>5) 失敗時に SMS 代替送信を行うかどうかを処理" }
+          ]
+        },
+        {
+          "h2": "7. 最終チェックリスト",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "カカオトークチャンネルを作成した。",
+              "ビジネス認証を完了した。",
+              "アルリムトーク送信プラットフォームを選択した。",
+              "Sender Profile を登録した。",
+              "API Key または Secret を確認した。",
+              "テンプレートを登録して承認を受けた。",
+              "送信失敗および代替メッセージのポリシーを準備した。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh": {
+      "titleType": "API 申请手册",
+      "badge": "API 申请新手手册",
+      "intro": "本手册整理了从 Kakao Talk 频道企业认证、发送配置文件注册、Alimtalk 通知模板审批，到确认 API 凭证的全部实操步骤。",
+      "org": "新手实操集成指南",
+      "quick": [
+        ["核心结构", "频道认证 + 模板审批"],
+        ["所需账户", "Kakao Business"],
+        ["主要成果", "Sender Profile / API Key"],
+        ["用途", "信息类消息"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Kakao Alimtalk 申请概念",
+          "desc": "Alimtalk 是一项通过 Kakao Talk 发送订单、预约、配送、支付等信息类消息的商务消息服务。它不是仅凭普通 Kakao 开发者应用密钥即可直接发送的结构，而是需要进行企业频道认证以及发送代理商/平台配置。",
+          "blocks": [
+            { "type": "notice", "kind": "danger", "html": "<strong>重要:</strong> Alimtalk 以信息类消息为主，而非广告类消息，且模板需要事先审核。" }
+          ]
+        },
+        {
+          "h2": "2. 准备物品",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Kakao Business 账户",
+              "Kakao Talk 频道",
+              "营业执照等企业认证资料",
+              "要发送的 Alimtalk 模板文案",
+              "发送代理商或云消息服务账户",
+              "收件人电话号码的收集及同意管理政策"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. 准备 Kakao Talk 频道",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "登录 Kakao Business", "p": "登录 Kakao Business 管理员中心。", "path": "business.kakao.com" },
+              { "h3": "创建 Kakao Talk 频道", "p": "以品牌或服务名称创建频道。", "path": "Kakao Talk 频道管理员中心" },
+              { "h3": "进行企业认证", "p": "提交企业信息和证明资料，进行企业频道认证。", "path": "企业认证" },
+              { "h3": "确认频道搜索 ID", "p": "确认 Alimtalk 发送设置所需的频道 ID 或搜索 ID。", "path": "频道资料 → 搜索 ID" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "只有完成企业认证后，才能进行 Alimtalk 发送配置文件的注册。" }
+          ]
+        },
+        {
+          "h2": "4. 发送配置文件 / Sender Profile 注册",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "选择发送平台", "p": "选择 NHN Cloud、Naver Cloud SENS、Infobank、Bizgo 等 Alimtalk 提供商。", "path": "Messaging Provider" },
+              { "h3": "创建项目", "p": "在所选平台上创建 Alimtalk 项目。", "path": "Project / Service" },
+              { "h3": "连接 Kakao Talk 频道", "p": "注册已通过企业认证的 Kakao Talk 频道信息。", "path": "Sender Profile" },
+              { "h3": "发送配置文件审核", "p": "进行频道所有权确认和发送配置文件审核。", "path": "Profile Review" },
+              { "h3": "确认 API 凭证", "p": "确认平台提供的 App Key、Secret Key、API Key 等。", "path": "API Key / Secret" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. 模板注册与审批",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "撰写模板", "p": "撰写订单确认、配送通知等信息类文案。", "path": "Template Message" },
+              { "h3": "设置变量", "p": "将姓名、订单编号、配送单号等动态变化的值设置为变量。", "path": "#{变量}" },
+              { "h3": "提交审核", "p": "保存模板并提交 Kakao 审核申请。", "path": "Request Approval" },
+              { "h3": "确认审批", "p": "确认已审批的模板代码或 ID。", "path": "Template Code" }
+            ] },
+            { "type": "notice", "kind": "danger", "html": "如果审核前的文案与实际发送的文案不一致，可能导致发送失败或受到处罚。" }
+          ]
+        },
+        {
+          "h2": "6. API 发送流程示例",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "1) 从服务器调用 Alimtalk API Endpoint<br>2) 使用 API Key 或 Secret 进行认证<br>3) 传递收件人电话号码、模板代码、变量值<br>4) 接收发送结果<br>5) 处理失败时是否进行 SMS 替代发送" }
+          ]
+        },
+        {
+          "h2": "7. 最终检查清单",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已创建 Kakao Talk 频道。",
+              "已完成企业认证。",
+              "已选择 Alimtalk 发送平台。",
+              "已注册 Sender Profile。",
+              "已确认 API Key 或 Secret。",
+              "已注册模板并获得审批。",
+              "已准备发送失败及替代短信政策。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh-TW": {
+      "titleType": "API 申請手冊",
+      "badge": "API 申請新手手冊",
+      "intro": "本手冊整理了從 Kakao Talk 頻道企業認證、發送設定檔註冊、Alimtalk 通知範本審核，到確認 API 憑證的全部實作步驟。",
+      "org": "新手實作整合指南",
+      "quick": [
+        ["核心結構", "頻道認證 + 範本審核"],
+        ["所需帳戶", "Kakao Business"],
+        ["主要成果", "Sender Profile / API Key"],
+        ["用途", "資訊類訊息"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Kakao Alimtalk 申請概念",
+          "desc": "Alimtalk 是一項透過 Kakao Talk 發送訂單、預約、配送、付款等資訊類訊息的商務訊息服務。它並非僅憑一般 Kakao 開發者應用程式金鑰即可直接發送的架構，而是需要進行企業頻道認證以及發送代理商/平台設定。",
+          "blocks": [
+            { "type": "notice", "kind": "danger", "html": "<strong>重要:</strong> Alimtalk 以資訊類訊息為主，而非廣告類訊息，且範本需要事先審查。" }
+          ]
+        },
+        {
+          "h2": "2. 準備物品",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Kakao Business 帳戶",
+              "Kakao Talk 頻道",
+              "營業執照等企業認證資料",
+              "要發送的 Alimtalk 範本文案",
+              "發送代理商或雲端訊息服務帳戶",
+              "收件人電話號碼的蒐集及同意管理政策"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. 準備 Kakao Talk 頻道",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "登入 Kakao Business", "p": "登入 Kakao Business 管理員中心。", "path": "business.kakao.com" },
+              { "h3": "建立 Kakao Talk 頻道", "p": "以品牌或服務名稱建立頻道。", "path": "Kakao Talk 頻道管理員中心" },
+              { "h3": "進行企業認證", "p": "提交企業資訊和證明資料，進行企業頻道認證。", "path": "企業認證" },
+              { "h3": "確認頻道搜尋 ID", "p": "確認 Alimtalk 發送設定所需的頻道 ID 或搜尋 ID。", "path": "頻道個人檔案 → 搜尋 ID" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "只有完成企業認證後，才能進行 Alimtalk 發送設定檔的註冊。" }
+          ]
+        },
+        {
+          "h2": "4. 發送設定檔 / Sender Profile 註冊",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "選擇發送平台", "p": "選擇 NHN Cloud、Naver Cloud SENS、Infobank、Bizgo 等 Alimtalk 供應商。", "path": "Messaging Provider" },
+              { "h3": "建立專案", "p": "在所選平台上建立 Alimtalk 專案。", "path": "Project / Service" },
+              { "h3": "連接 Kakao Talk 頻道", "p": "註冊已通過企業認證的 Kakao Talk 頻道資訊。", "path": "Sender Profile" },
+              { "h3": "發送設定檔審查", "p": "進行頻道所有權確認和發送設定檔審查。", "path": "Profile Review" },
+              { "h3": "確認 API 憑證", "p": "確認平台提供的 App Key、Secret Key、API Key 等。", "path": "API Key / Secret" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. 範本註冊與審核",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "撰寫範本", "p": "撰寫訂單確認、配送通知等資訊類文案。", "path": "Template Message" },
+              { "h3": "設定變數", "p": "將姓名、訂單編號、配送單號等動態變化的值設定為變數。", "path": "#{變數}" },
+              { "h3": "提交審查", "p": "儲存範本並提交 Kakao 審查申請。", "path": "Request Approval" },
+              { "h3": "確認審核", "p": "確認已審核的範本代碼或 ID。", "path": "Template Code" }
+            ] },
+            { "type": "notice", "kind": "danger", "html": "如果審查前的文案與實際發送的文案不一致，可能導致發送失敗或受到處罰。" }
+          ]
+        },
+        {
+          "h2": "6. API 發送流程範例",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "1) 從伺服器呼叫 Alimtalk API Endpoint<br>2) 使用 API Key 或 Secret 進行認證<br>3) 傳遞收件人電話號碼、範本代碼、變數值<br>4) 接收發送結果<br>5) 處理失敗時是否進行 SMS 替代發送" }
+          ]
+        },
+        {
+          "h2": "7. 最終檢查清單",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已建立 Kakao Talk 頻道。",
+              "已完成企業認證。",
+              "已選擇 Alimtalk 發送平台。",
+              "已註冊 Sender Profile。",
+              "已確認 API Key 或 Secret。",
+              "已註冊範本並獲得審核。",
+              "已準備發送失敗及替代簡訊政策。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "de": {
+      "titleType": "Anleitung zur API-Ausstellung",
+      "badge": "Einsteiger-Anleitung zur API-Ausstellung",
+      "intro": "Diese Anleitung führt Sie durch die praktischen Schritte von der Geschäftsverifizierung des Kakao-Talk-Kanals über die Registrierung des Absenderprofils und die Genehmigung der Alimtalk-Vorlage bis hin zur Bestätigung Ihrer API-Anmeldedaten.",
+      "org": "Einsteigerfreundlicher Integrationsleitfaden",
+      "quick": [
+        ["Kernstruktur", "Kanalverifizierung + Vorlagengenehmigung"],
+        ["Benötigtes Konto", "Kakao Business"],
+        ["Wichtigste Ergebnisse", "Sender Profile / API Key"],
+        ["Verwendung", "Informationsnachrichten"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Konzept der Kakao-Alimtalk-Ausstellung",
+          "desc": "Alimtalk ist ein Business-Messaging-Dienst, der Informationsnachrichten wie Bestellungen, Reservierungen, Versand und Zahlungen über Kakao Talk sendet. Es ist nicht möglich, allein mit einem regulären Kakao-Entwickler-App-Schlüssel direkt zu senden; eine Geschäftskanalverifizierung sowie die Einrichtung einer Versandagentur/Plattform sind erforderlich.",
+          "blocks": [
+            { "type": "notice", "kind": "danger", "html": "<strong>Wichtig:</strong> Alimtalk ist auf Informationsnachrichten ausgerichtet, nicht auf Werbenachrichten, und Vorlagen erfordern eine vorherige Prüfung." }
+          ]
+        },
+        {
+          "h2": "2. Voraussetzungen",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Kakao-Business-Konto",
+              "Kakao-Talk-Kanal",
+              "Geschäftsverifizierungsunterlagen wie ein Gewerbeanmeldungsnachweis",
+              "Zu sendender Alimtalk-Vorlagentext",
+              "Konto einer Versandagentur oder eines Cloud-Messaging-Dienstes",
+              "Richtlinie zur Erfassung von Empfängertelefonnummern und zur Einwilligungsverwaltung"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. Vorbereitung des Kakao-Talk-Kanals",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Auf Kakao Business zugreifen", "p": "Melden Sie sich beim Kakao-Business-Admin-Center an.", "path": "business.kakao.com" },
+              { "h3": "Kakao-Talk-Kanal erstellen", "p": "Erstellen Sie einen Kanal unter Ihrem Marken- oder Dienstnamen.", "path": "Kakao-Talk-Kanal-Admin-Center" },
+              { "h3": "Geschäftsverifizierung durchführen", "p": "Reichen Sie Ihre Geschäftsinformationen und Nachweise ein, um den Geschäftskanal zu verifizieren.", "path": "Geschäftsverifizierung" },
+              { "h3": "Such-ID des Kanals prüfen", "p": "Prüfen Sie die für die Alimtalk-Sendeeinstellungen erforderliche Kanal-ID oder Such-ID.", "path": "Kanalprofil → Such-ID" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Die Geschäftsverifizierung muss abgeschlossen sein, bevor Sie ein Alimtalk-Absenderprofil registrieren können." }
+          ]
+        },
+        {
+          "h2": "4. Absenderprofil / Sender Profile registrieren",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Sendeplattform auswählen", "p": "Wählen Sie einen Alimtalk-Anbieter wie NHN Cloud, Naver Cloud SENS, Infobank oder Bizgo.", "path": "Messaging Provider" },
+              { "h3": "Projekt erstellen", "p": "Erstellen Sie auf der ausgewählten Plattform ein Alimtalk-Projekt.", "path": "Project / Service" },
+              { "h3": "Kakao-Talk-Kanal verbinden", "p": "Registrieren Sie die Informationen Ihres geschäftsverifizierten Kakao-Talk-Kanals.", "path": "Sender Profile" },
+              { "h3": "Absenderprofil-Prüfung", "p": "Führen Sie die Bestätigung des Kanalbesitzes und die Prüfung des Absenderprofils durch.", "path": "Profile Review" },
+              { "h3": "API-Anmeldedaten bestätigen", "p": "Prüfen Sie den von der Plattform bereitgestellten App Key, Secret Key, API Key usw.", "path": "API Key / Secret" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. Vorlagen registrieren und genehmigen",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Vorlage verfassen", "p": "Verfassen Sie Informationstexte wie Bestellbestätigungen und Versandhinweise.", "path": "Template Message" },
+              { "h3": "Variablen festlegen", "p": "Legen Sie dynamisch wechselnde Werte wie Name, Bestellnummer und Sendungsnummer als Variablen fest.", "path": "#{Variable}" },
+              { "h3": "Prüfung anfordern", "p": "Speichern Sie die Vorlage und reichen Sie sie zur Kakao-Prüfung ein.", "path": "Request Approval" },
+              { "h3": "Genehmigung bestätigen", "p": "Bestätigen Sie den genehmigten Vorlagencode oder die ID.", "path": "Template Code" }
+            ] },
+            { "type": "notice", "kind": "danger", "html": "Wenn sich der Text vor der Prüfung vom tatsächlich gesendeten Text unterscheidet, kann der Versand fehlschlagen oder es können Sanktionen verhängt werden." }
+          ]
+        },
+        {
+          "h2": "6. Beispiel für den API-Sendeablauf",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "1) Rufen Sie den Alimtalk-API-Endpoint von Ihrem Server aus auf<br>2) Authentifizieren Sie sich mit dem API Key oder Secret<br>3) Übergeben Sie die Empfängertelefonnummer, den Vorlagencode und die Variablenwerte<br>4) Empfangen Sie das Sendeergebnis<br>5) Behandeln Sie, ob bei einem Fehler ein SMS-Fallback gesendet wird" }
+          ]
+        },
+        {
+          "h2": "7. Abschließende Checkliste",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Einen Kakao-Talk-Kanal erstellt.",
+              "Die Geschäftsverifizierung abgeschlossen.",
+              "Eine Alimtalk-Sendeplattform ausgewählt.",
+              "Ein Sender Profile registriert.",
+              "Den API Key oder Secret bestätigt.",
+              "Die Vorlage registriert und genehmigen lassen.",
+              "Eine Richtlinie für Sendefehler und Fallback-SMS vorbereitet."
+            ] }
+          ]
+        }
+      ]
+    },
+    "th": {
+      "titleType": "คู่มือการออก API",
+      "badge": "คู่มือการออก API สำหรับผู้เริ่มต้น",
+      "intro": "คู่มือนี้รวบรวมขั้นตอนเชิงปฏิบัติตั้งแต่การยืนยันธุรกิจของช่อง Kakao Talk การลงทะเบียนโปรไฟล์ผู้ส่ง การอนุมัติเทมเพลต Alimtalk ไปจนถึงการยืนยันข้อมูลรับรอง API",
+      "org": "คู่มือการเชื่อมต่อสำหรับผู้เริ่มต้น",
+      "quick": [
+        ["โครงสร้างหลัก", "การยืนยันช่อง + การอนุมัติเทมเพลต"],
+        ["บัญชีที่ต้องใช้", "Kakao Business"],
+        ["ผลลัพธ์หลัก", "Sender Profile / API Key"],
+        ["การใช้งาน", "ข้อความเชิงข้อมูล"]
+      ],
+      "sections": [
+        {
+          "h2": "1. แนวคิดการออก Kakao Alimtalk",
+          "desc": "Alimtalk เป็นบริการข้อความธุรกิจที่ส่งข้อความเชิงข้อมูล เช่น คำสั่งซื้อ การจอง การจัดส่ง และการชำระเงิน ผ่าน Kakao Talk ไม่ใช่โครงสร้างที่ส่งได้ทันทีด้วยคีย์แอปนักพัฒนา Kakao ทั่วไปเพียงอย่างเดียว แต่ต้องมีการยืนยันช่องธุรกิจและการตั้งค่าตัวแทนส่ง/แพลตฟอร์ม",
+          "blocks": [
+            { "type": "notice", "kind": "danger", "html": "<strong>สำคัญ:</strong> Alimtalk เน้นข้อความเชิงข้อมูลมากกว่าข้อความโฆษณา และเทมเพลตจำเป็นต้องผ่านการตรวจสอบล่วงหน้า" }
+          ]
+        },
+        {
+          "h2": "2. สิ่งที่ต้องเตรียม",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "บัญชี Kakao Business",
+              "ช่อง Kakao Talk",
+              "เอกสารยืนยันธุรกิจ เช่น ใบทะเบียนพาณิชย์",
+              "ข้อความเทมเพลต Alimtalk ที่จะส่ง",
+              "บัญชีตัวแทนส่งหรือบริการส่งข้อความบนคลาวด์",
+              "นโยบายการเก็บหมายเลขโทรศัพท์ผู้รับและการจัดการความยินยอม"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. การเตรียมช่อง Kakao Talk",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "เข้าสู่ Kakao Business", "p": "ลงชื่อเข้าใช้ศูนย์ผู้ดูแล Kakao Business", "path": "business.kakao.com" },
+              { "h3": "สร้างช่อง Kakao Talk", "p": "สร้างช่องด้วยชื่อแบรนด์หรือชื่อบริการ", "path": "ศูนย์ผู้ดูแลช่อง Kakao Talk" },
+              { "h3": "ดำเนินการยืนยันธุรกิจ", "p": "ส่งข้อมูลธุรกิจและเอกสารหลักฐานเพื่อยืนยันช่องธุรกิจ", "path": "การยืนยันธุรกิจ" },
+              { "h3": "ตรวจสอบ ID สำหรับค้นหาช่อง", "p": "ตรวจสอบ ID ช่องหรือ ID สำหรับค้นหาที่จำเป็นสำหรับการตั้งค่าการส่ง Alimtalk", "path": "โปรไฟล์ช่อง → ID สำหรับค้นหา" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "ต้องยืนยันธุรกิจให้เสร็จสมบูรณ์ก่อน จึงจะสามารถลงทะเบียนโปรไฟล์ผู้ส่ง Alimtalk ได้" }
+          ]
+        },
+        {
+          "h2": "4. การลงทะเบียนโปรไฟล์ผู้ส่ง / Sender Profile",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "เลือกแพลตฟอร์มการส่ง", "p": "เลือกผู้ให้บริการ Alimtalk เช่น NHN Cloud, Naver Cloud SENS, Infobank, Bizgo", "path": "Messaging Provider" },
+              { "h3": "สร้างโปรเจกต์", "p": "สร้างโปรเจกต์ Alimtalk บนแพลตฟอร์มที่คุณเลือก", "path": "Project / Service" },
+              { "h3": "เชื่อมต่อช่อง Kakao Talk", "p": "ลงทะเบียนข้อมูลช่อง Kakao Talk ที่ผ่านการยืนยันธุรกิจแล้ว", "path": "Sender Profile" },
+              { "h3": "ตรวจสอบโปรไฟล์ผู้ส่ง", "p": "ดำเนินการยืนยันความเป็นเจ้าของช่องและตรวจสอบโปรไฟล์ผู้ส่ง", "path": "Profile Review" },
+              { "h3": "ยืนยันข้อมูลรับรอง API", "p": "ตรวจสอบ App Key, Secret Key, API Key ฯลฯ ที่แพลตฟอร์มจัดให้", "path": "API Key / Secret" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. การลงทะเบียนและอนุมัติเทมเพลต",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "เขียนเทมเพลต", "p": "เขียนข้อความเชิงข้อมูล เช่น การยืนยันคำสั่งซื้อ การแจ้งการจัดส่ง", "path": "Template Message" },
+              { "h3": "ตั้งค่าตัวแปร", "p": "ตั้งค่าค่าที่เปลี่ยนแปลงแบบไดนามิก เช่น ชื่อ หมายเลขคำสั่งซื้อ หมายเลขการจัดส่ง เป็นตัวแปร", "path": "#{ตัวแปร}" },
+              { "h3": "ขอการตรวจสอบ", "p": "บันทึกเทมเพลตและส่งคำขอตรวจสอบไปยัง Kakao", "path": "Request Approval" },
+              { "h3": "ยืนยันการอนุมัติ", "p": "ยืนยันรหัสเทมเพลตหรือ ID ที่ได้รับการอนุมัติ", "path": "Template Code" }
+            ] },
+            { "type": "notice", "kind": "danger", "html": "หากข้อความก่อนการตรวจสอบแตกต่างจากข้อความที่ส่งจริง อาจทำให้การส่งล้มเหลวหรือถูกลงโทษได้" }
+          ]
+        },
+        {
+          "h2": "6. ตัวอย่างขั้นตอนการส่งผ่าน API",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "1) เรียก Alimtalk API Endpoint จากเซิร์ฟเวอร์<br>2) ยืนยันตัวตนด้วย API Key หรือ Secret<br>3) ส่งหมายเลขโทรศัพท์ผู้รับ รหัสเทมเพลต และค่าตัวแปร<br>4) รับผลการส่ง<br>5) จัดการว่าจะส่ง SMS สำรองหรือไม่เมื่อล้มเหลว" }
+          ]
+        },
+        {
+          "h2": "7. รายการตรวจสอบขั้นสุดท้าย",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "สร้างช่อง Kakao Talk แล้ว",
+              "ทำการยืนยันธุรกิจเสร็จสมบูรณ์แล้ว",
+              "เลือกแพลตฟอร์มการส่ง Alimtalk แล้ว",
+              "ลงทะเบียน Sender Profile แล้ว",
+              "ยืนยัน API Key หรือ Secret แล้ว",
+              "ลงทะเบียนเทมเพลตและได้รับการอนุมัติแล้ว",
+              "เตรียมนโยบายการส่งล้มเหลวและข้อความสำรองแล้ว"
+            ] }
+          ]
+        }
+      ]
+    },
+    "vi": {
+      "titleType": "Hướng dẫn cấp API",
+      "badge": "Hướng dẫn cấp API cho người mới",
+      "intro": "Hướng dẫn này tổng hợp các bước thực hành từ xác minh doanh nghiệp kênh Kakao Talk, đăng ký hồ sơ người gửi, phê duyệt mẫu Alimtalk đến xác nhận thông tin xác thực API.",
+      "org": "Hướng dẫn tích hợp cho người mới",
+      "quick": [
+        ["Cấu trúc cốt lõi", "Xác minh kênh + phê duyệt mẫu"],
+        ["Tài khoản cần thiết", "Kakao Business"],
+        ["Kết quả chính", "Sender Profile / API Key"],
+        ["Mục đích sử dụng", "Tin nhắn thông tin"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Khái niệm cấp Kakao Alimtalk",
+          "desc": "Alimtalk là dịch vụ tin nhắn doanh nghiệp gửi các tin nhắn thông tin như đơn hàng, đặt chỗ, vận chuyển và thanh toán qua Kakao Talk. Đây không phải là cấu trúc có thể gửi trực tiếp chỉ với khóa ứng dụng nhà phát triển Kakao thông thường, mà cần xác minh kênh doanh nghiệp và thiết lập đại lý gửi/nền tảng.",
+          "blocks": [
+            { "type": "notice", "kind": "danger", "html": "<strong>Quan trọng:</strong> Alimtalk tập trung vào tin nhắn thông tin chứ không phải tin nhắn quảng cáo, và các mẫu cần được xét duyệt trước." }
+          ]
+        },
+        {
+          "h2": "2. Những thứ cần chuẩn bị",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Tài khoản Kakao Business",
+              "Kênh Kakao Talk",
+              "Tài liệu xác minh doanh nghiệp như giấy đăng ký kinh doanh",
+              "Nội dung mẫu Alimtalk cần gửi",
+              "Tài khoản đại lý gửi hoặc dịch vụ nhắn tin trên đám mây",
+              "Chính sách thu thập số điện thoại người nhận và quản lý sự đồng ý"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. Chuẩn bị kênh Kakao Talk",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Truy cập Kakao Business", "p": "Đăng nhập vào trung tâm quản trị Kakao Business.", "path": "business.kakao.com" },
+              { "h3": "Tạo kênh Kakao Talk", "p": "Tạo một kênh theo tên thương hiệu hoặc tên dịch vụ của bạn.", "path": "Trung tâm quản trị kênh Kakao Talk" },
+              { "h3": "Tiến hành xác minh doanh nghiệp", "p": "Gửi thông tin doanh nghiệp và tài liệu chứng minh để xác minh kênh doanh nghiệp.", "path": "Xác minh doanh nghiệp" },
+              { "h3": "Kiểm tra ID tìm kiếm của kênh", "p": "Kiểm tra ID kênh hoặc ID tìm kiếm cần thiết cho cài đặt gửi Alimtalk.", "path": "Hồ sơ kênh → ID tìm kiếm" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Phải hoàn tất xác minh doanh nghiệp thì mới có thể đăng ký hồ sơ người gửi Alimtalk." }
+          ]
+        },
+        {
+          "h2": "4. Đăng ký hồ sơ người gửi / Sender Profile",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Chọn nền tảng gửi", "p": "Chọn nhà cung cấp Alimtalk như NHN Cloud, Naver Cloud SENS, Infobank, Bizgo.", "path": "Messaging Provider" },
+              { "h3": "Tạo dự án", "p": "Tạo dự án Alimtalk trên nền tảng bạn đã chọn.", "path": "Project / Service" },
+              { "h3": "Kết nối kênh Kakao Talk", "p": "Đăng ký thông tin kênh Kakao Talk đã được xác minh doanh nghiệp.", "path": "Sender Profile" },
+              { "h3": "Xét duyệt hồ sơ người gửi", "p": "Tiến hành xác nhận quyền sở hữu kênh và xét duyệt hồ sơ người gửi.", "path": "Profile Review" },
+              { "h3": "Xác nhận thông tin xác thực API", "p": "Kiểm tra App Key, Secret Key, API Key, v.v. do nền tảng cung cấp.", "path": "API Key / Secret" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. Đăng ký và phê duyệt mẫu",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Soạn mẫu", "p": "Soạn nội dung thông tin như xác nhận đơn hàng, thông báo vận chuyển.", "path": "Template Message" },
+              { "h3": "Thiết lập biến", "p": "Thiết lập các giá trị thay đổi động như tên, số đơn hàng, số vận đơn làm biến.", "path": "#{biến}" },
+              { "h3": "Yêu cầu xét duyệt", "p": "Lưu mẫu và gửi yêu cầu xét duyệt tới Kakao.", "path": "Request Approval" },
+              { "h3": "Xác nhận phê duyệt", "p": "Xác nhận mã mẫu hoặc ID đã được phê duyệt.", "path": "Template Code" }
+            ] },
+            { "type": "notice", "kind": "danger", "html": "Nếu nội dung trước khi xét duyệt khác với nội dung gửi thực tế, việc gửi có thể thất bại hoặc bị xử phạt." }
+          ]
+        },
+        {
+          "h2": "6. Ví dụ luồng gửi qua API",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "1) Gọi Alimtalk API Endpoint từ máy chủ của bạn<br>2) Xác thực bằng API Key hoặc Secret<br>3) Truyền số điện thoại người nhận, mã mẫu và giá trị biến<br>4) Nhận kết quả gửi<br>5) Xử lý việc có gửi SMS dự phòng khi thất bại hay không" }
+          ]
+        },
+        {
+          "h2": "7. Danh sách kiểm tra cuối cùng",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Đã tạo kênh Kakao Talk.",
+              "Đã hoàn tất xác minh doanh nghiệp.",
+              "Đã chọn nền tảng gửi Alimtalk.",
+              "Đã đăng ký Sender Profile.",
+              "Đã xác nhận API Key hoặc Secret.",
+              "Đã đăng ký mẫu và được phê duyệt.",
+              "Đã chuẩn bị chính sách gửi thất bại và SMS dự phòng."
+            ] }
+          ]
+        }
+      ]
+    },
+    "id": {
+      "titleType": "Panduan Penerbitan API",
+      "badge": "Panduan Penerbitan API untuk Pemula",
+      "intro": "Panduan ini merangkum langkah-langkah praktis mulai dari verifikasi bisnis saluran Kakao Talk, pendaftaran profil pengirim, persetujuan templat Alimtalk, hingga konfirmasi kredensial API.",
+      "org": "Panduan integrasi untuk pemula",
+      "quick": [
+        ["Struktur inti", "Verifikasi saluran + persetujuan templat"],
+        ["Akun yang dibutuhkan", "Kakao Business"],
+        ["Hasil utama", "Sender Profile / API Key"],
+        ["Penggunaan", "Pesan informasional"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Konsep Penerbitan Kakao Alimtalk",
+          "desc": "Alimtalk adalah layanan pesan bisnis yang mengirim pesan informasional seperti pesanan, reservasi, pengiriman, dan pembayaran melalui Kakao Talk. Ini bukan struktur yang dapat langsung mengirim hanya dengan kunci aplikasi developer Kakao biasa, melainkan memerlukan verifikasi saluran bisnis serta pengaturan agen pengirim/platform.",
+          "blocks": [
+            { "type": "notice", "kind": "danger", "html": "<strong>Penting:</strong> Alimtalk berfokus pada pesan informasional, bukan pesan promosi, dan templat memerlukan peninjauan terlebih dahulu." }
+          ]
+        },
+        {
+          "h2": "2. Yang Perlu Disiapkan",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Akun Kakao Business",
+              "Saluran Kakao Talk",
+              "Dokumen verifikasi bisnis seperti sertifikat pendaftaran usaha",
+              "Teks templat Alimtalk yang akan dikirim",
+              "Akun agen pengirim atau layanan pesan cloud",
+              "Kebijakan pengumpulan nomor telepon penerima dan pengelolaan persetujuan"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. Menyiapkan Saluran Kakao Talk",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Akses Kakao Business", "p": "Masuk ke pusat admin Kakao Business.", "path": "business.kakao.com" },
+              { "h3": "Buat saluran Kakao Talk", "p": "Buat saluran dengan nama merek atau layanan Anda.", "path": "Pusat Admin Saluran Kakao Talk" },
+              { "h3": "Lakukan verifikasi bisnis", "p": "Kirimkan informasi bisnis dan dokumen pendukung untuk memverifikasi saluran bisnis.", "path": "Verifikasi Bisnis" },
+              { "h3": "Periksa ID pencarian saluran", "p": "Periksa ID saluran atau ID pencarian yang diperlukan untuk pengaturan pengiriman Alimtalk.", "path": "Profil Saluran → ID Pencarian" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Verifikasi bisnis harus selesai sebelum Anda dapat mendaftarkan profil pengirim Alimtalk." }
+          ]
+        },
+        {
+          "h2": "4. Mendaftarkan Profil Pengirim / Sender Profile",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Pilih platform pengiriman", "p": "Pilih penyedia Alimtalk seperti NHN Cloud, Naver Cloud SENS, Infobank, atau Bizgo.", "path": "Messaging Provider" },
+              { "h3": "Buat proyek", "p": "Buat proyek Alimtalk pada platform yang Anda pilih.", "path": "Project / Service" },
+              { "h3": "Hubungkan saluran Kakao Talk", "p": "Daftarkan informasi saluran Kakao Talk yang telah terverifikasi bisnis.", "path": "Sender Profile" },
+              { "h3": "Peninjauan profil pengirim", "p": "Lakukan konfirmasi kepemilikan saluran dan peninjauan profil pengirim.", "path": "Profile Review" },
+              { "h3": "Konfirmasi kredensial API", "p": "Periksa App Key, Secret Key, API Key, dan lainnya yang disediakan platform.", "path": "API Key / Secret" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. Mendaftarkan dan Menyetujui Templat",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Tulis templat", "p": "Tulis teks informasional seperti konfirmasi pesanan dan pemberitahuan pengiriman.", "path": "Template Message" },
+              { "h3": "Atur variabel", "p": "Atur nilai yang berubah secara dinamis seperti nama, nomor pesanan, dan nomor pengiriman sebagai variabel.", "path": "#{variabel}" },
+              { "h3": "Minta peninjauan", "p": "Simpan templat dan ajukan permintaan peninjauan Kakao.", "path": "Request Approval" },
+              { "h3": "Konfirmasi persetujuan", "p": "Konfirmasi kode templat atau ID yang telah disetujui.", "path": "Template Code" }
+            ] },
+            { "type": "notice", "kind": "danger", "html": "Jika teks sebelum peninjauan berbeda dengan teks yang benar-benar dikirim, pengiriman dapat gagal atau sanksi dapat terjadi." }
+          ]
+        },
+        {
+          "h2": "6. Contoh Alur Pengiriman API",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "1) Panggil Alimtalk API Endpoint dari server Anda<br>2) Autentikasi dengan API Key atau Secret<br>3) Kirim nomor telepon penerima, kode templat, dan nilai variabel<br>4) Terima hasil pengiriman<br>5) Tangani apakah akan mengirim SMS cadangan saat gagal" }
+          ]
+        },
+        {
+          "h2": "7. Daftar Periksa Akhir",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Telah membuat saluran Kakao Talk.",
+              "Telah menyelesaikan verifikasi bisnis.",
+              "Telah memilih platform pengiriman Alimtalk.",
+              "Telah mendaftarkan Sender Profile.",
+              "Telah mengonfirmasi API Key atau Secret.",
+              "Telah mendaftarkan templat dan mendapatkan persetujuan.",
+              "Telah menyiapkan kebijakan kegagalan pengiriman dan SMS cadangan."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ar": {
+      "titleType": "دليل إصدار API",
+      "badge": "دليل إصدار API للمبتدئين",
+      "intro": "يلخّص هذا الدليل الخطوات العملية بدءًا من التحقق التجاري لقناة Kakao Talk وتسجيل ملف المُرسِل والموافقة على قالب Alimtalk وصولًا إلى تأكيد بيانات اعتماد API.",
+      "org": "دليل تكامل للمبتدئين",
+      "quick": [
+        ["البنية الأساسية", "التحقق من القناة + الموافقة على القالب"],
+        ["الحساب المطلوب", "Kakao Business"],
+        ["النتائج الرئيسية", "Sender Profile / API Key"],
+        ["الاستخدام", "رسائل معلوماتية"]
+      ],
+      "sections": [
+        {
+          "h2": "1. مفهوم إصدار Kakao Alimtalk",
+          "desc": "Alimtalk هي خدمة رسائل تجارية ترسل الرسائل المعلوماتية مثل الطلبات والحجوزات والشحن والمدفوعات عبر Kakao Talk. وهي ليست بنية يمكن الإرسال بها مباشرة باستخدام مفتاح تطبيق مطوّر Kakao العادي وحده، بل تتطلب التحقق من القناة التجارية وإعداد وكالة إرسال/منصة.",
+          "blocks": [
+            { "type": "notice", "kind": "danger", "html": "<strong>مهم:</strong> تركّز Alimtalk على الرسائل المعلوماتية وليست الرسائل الإعلانية، وتتطلب القوالب مراجعة مسبقة." }
+          ]
+        },
+        {
+          "h2": "2. المتطلبات",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "حساب Kakao Business",
+              "قناة Kakao Talk",
+              "مستندات التحقق التجاري مثل شهادة التسجيل التجاري",
+              "نص قالب Alimtalk المراد إرساله",
+              "حساب وكالة إرسال أو خدمة مراسلة سحابية",
+              "سياسة جمع أرقام هواتف المستلمين وإدارة الموافقة"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. تجهيز قناة Kakao Talk",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "الوصول إلى Kakao Business", "p": "سجّل الدخول إلى مركز إدارة Kakao Business.", "path": "business.kakao.com" },
+              { "h3": "إنشاء قناة Kakao Talk", "p": "أنشئ قناة باسم علامتك التجارية أو خدمتك.", "path": "مركز إدارة قناة Kakao Talk" },
+              { "h3": "إجراء التحقق التجاري", "p": "قدّم معلومات عملك والمستندات الداعمة للتحقق من القناة التجارية.", "path": "التحقق التجاري" },
+              { "h3": "التحقق من معرّف البحث للقناة", "p": "تحقق من معرّف القناة أو معرّف البحث اللازم لإعدادات إرسال Alimtalk.", "path": "ملف القناة ← معرّف البحث" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "يجب إكمال التحقق التجاري قبل أن تتمكن من تسجيل ملف مُرسِل Alimtalk." }
+          ]
+        },
+        {
+          "h2": "4. تسجيل ملف المُرسِل / Sender Profile",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "اختيار منصة الإرسال", "p": "اختر مزوّد Alimtalk مثل NHN Cloud أو Naver Cloud SENS أو Infobank أو Bizgo.", "path": "Messaging Provider" },
+              { "h3": "إنشاء مشروع", "p": "أنشئ مشروع Alimtalk على المنصة التي اخترتها.", "path": "Project / Service" },
+              { "h3": "ربط قناة Kakao Talk", "p": "سجّل معلومات قناة Kakao Talk التي تم التحقق منها تجاريًا.", "path": "Sender Profile" },
+              { "h3": "مراجعة ملف المُرسِل", "p": "أجرِ تأكيد ملكية القناة ومراجعة ملف المُرسِل.", "path": "Profile Review" },
+              { "h3": "تأكيد بيانات اعتماد API", "p": "تحقق من App Key وSecret Key وAPI Key وغيرها التي توفّرها المنصة.", "path": "API Key / Secret" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. تسجيل القوالب والموافقة عليها",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "كتابة القالب", "p": "اكتب نصوصًا معلوماتية مثل تأكيد الطلب وإشعار الشحن.", "path": "Template Message" },
+              { "h3": "ضبط المتغيرات", "p": "اضبط القيم المتغيرة ديناميكيًا مثل الاسم ورقم الطلب ورقم الشحن كمتغيرات.", "path": "#{متغير}" },
+              { "h3": "طلب المراجعة", "p": "احفظ القالب وأرسل طلب مراجعة إلى Kakao.", "path": "Request Approval" },
+              { "h3": "تأكيد الموافقة", "p": "أكّد رمز القالب أو المعرّف المعتمد.", "path": "Template Code" }
+            ] },
+            { "type": "notice", "kind": "danger", "html": "إذا اختلف النص قبل المراجعة عن النص المُرسَل فعليًا، فقد يفشل الإرسال أو تُفرَض عقوبات." }
+          ]
+        },
+        {
+          "h2": "6. مثال على مسار الإرسال عبر API",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "1) استدعِ Alimtalk API Endpoint من خادمك<br>2) صادِق باستخدام API Key أو Secret<br>3) مرّر رقم هاتف المستلم ورمز القالب وقيم المتغيرات<br>4) استقبل نتيجة الإرسال<br>5) عالِج ما إذا كان سيتم إرسال SMS بديلة عند الفشل" }
+          ]
+        },
+        {
+          "h2": "7. قائمة التحقق النهائية",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "أنشأتُ قناة Kakao Talk.",
+              "أكملتُ التحقق التجاري.",
+              "اخترتُ منصة إرسال Alimtalk.",
+              "سجّلتُ Sender Profile.",
+              "أكّدتُ API Key أو Secret.",
+              "سجّلتُ القالب وحصلتُ على الموافقة.",
+              "جهّزتُ سياسة فشل الإرسال والرسائل النصية البديلة."
+            ] }
+          ]
+        }
+      ]
+    },
+    "es": {
+      "titleType": "Manual de Emisión de API",
+      "badge": "Manual de emisión de API para principiantes",
+      "intro": "Este manual reúne los pasos prácticos desde la verificación comercial del canal de Kakao Talk, el registro del perfil de remitente y la aprobación de la plantilla de Alimtalk hasta la confirmación de tus credenciales de API.",
+      "org": "Guía de integración para principiantes",
+      "quick": [
+        ["Estructura central", "Verificación del canal + aprobación de plantilla"],
+        ["Cuenta necesaria", "Kakao Business"],
+        ["Resultados clave", "Sender Profile / API Key"],
+        ["Uso", "Mensajes informativos"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Concepto de emisión de Kakao Alimtalk",
+          "desc": "Alimtalk es un servicio de mensajería empresarial que envía mensajes informativos como pedidos, reservas, envíos y pagos a través de Kakao Talk. No es una estructura que permita enviar directamente solo con una clave de aplicación de desarrollador de Kakao común, sino que requiere la verificación comercial del canal y la configuración de una agencia de envío/plataforma.",
+          "blocks": [
+            { "type": "notice", "kind": "danger", "html": "<strong>Importante:</strong> Alimtalk se centra en mensajes informativos en lugar de promocionales, y las plantillas requieren una revisión previa." }
+          ]
+        },
+        {
+          "h2": "2. Requisitos",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Cuenta de Kakao Business",
+              "Canal de Kakao Talk",
+              "Documentos de verificación comercial, como un certificado de registro mercantil",
+              "El texto de la plantilla de Alimtalk que vas a enviar",
+              "Una cuenta de agencia de envío o de servicio de mensajería en la nube",
+              "Una política de recopilación de números de teléfono de destinatarios y gestión del consentimiento"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. Preparación del canal de Kakao Talk",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Acceder a Kakao Business", "p": "Inicia sesión en el centro de administración de Kakao Business.", "path": "business.kakao.com" },
+              { "h3": "Crear un canal de Kakao Talk", "p": "Crea un canal con el nombre de tu marca o servicio.", "path": "Centro de Administración de Canales de Kakao Talk" },
+              { "h3": "Realizar la verificación comercial", "p": "Envía la información de tu empresa y los documentos justificativos para verificar el canal comercial.", "path": "Verificación comercial" },
+              { "h3": "Comprobar el ID de búsqueda del canal", "p": "Comprueba el ID del canal o el ID de búsqueda necesarios para la configuración de envío de Alimtalk.", "path": "Perfil del canal → ID de búsqueda" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "La verificación comercial debe completarse antes de poder registrar un perfil de remitente de Alimtalk." }
+          ]
+        },
+        {
+          "h2": "4. Registro del perfil de remitente / Sender Profile",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Elegir una plataforma de envío", "p": "Selecciona un proveedor de Alimtalk como NHN Cloud, Naver Cloud SENS, Infobank o Bizgo.", "path": "Messaging Provider" },
+              { "h3": "Crear un proyecto", "p": "Crea un proyecto de Alimtalk en la plataforma que elegiste.", "path": "Project / Service" },
+              { "h3": "Conectar el canal de Kakao Talk", "p": "Registra la información de tu canal de Kakao Talk verificado comercialmente.", "path": "Sender Profile" },
+              { "h3": "Revisión del perfil de remitente", "p": "Realiza la confirmación de la propiedad del canal y la revisión del perfil de remitente.", "path": "Profile Review" },
+              { "h3": "Confirmar las credenciales de API", "p": "Comprueba el App Key, Secret Key, API Key, etc. que proporciona la plataforma.", "path": "API Key / Secret" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. Registro y aprobación de plantillas",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Redactar la plantilla", "p": "Redacta textos informativos como confirmaciones de pedido y avisos de envío.", "path": "Template Message" },
+              { "h3": "Definir variables", "p": "Define como variables los valores que cambian dinámicamente, como el nombre, el número de pedido y el número de envío.", "path": "#{variable}" },
+              { "h3": "Solicitar la revisión", "p": "Guarda la plantilla y envía la solicitud de revisión de Kakao.", "path": "Request Approval" },
+              { "h3": "Confirmar la aprobación", "p": "Confirma el código de plantilla o el ID aprobado.", "path": "Template Code" }
+            ] },
+            { "type": "notice", "kind": "danger", "html": "Si el texto antes de la revisión difiere del texto realmente enviado, el envío puede fallar o pueden aplicarse sanciones." }
+          ]
+        },
+        {
+          "h2": "6. Ejemplo de flujo de envío por API",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "1) Llama al Alimtalk API Endpoint desde tu servidor<br>2) Autentícate con la API Key o el Secret<br>3) Pasa el número de teléfono del destinatario, el código de plantilla y los valores de las variables<br>4) Recibe el resultado del envío<br>5) Gestiona si enviar un SMS de respaldo en caso de fallo" }
+          ]
+        },
+        {
+          "h2": "7. Lista de verificación final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Creé un canal de Kakao Talk.",
+              "Completé la verificación comercial.",
+              "Seleccioné una plataforma de envío de Alimtalk.",
+              "Registré un Sender Profile.",
+              "Confirmé la API Key o el Secret.",
+              "Registré la plantilla y obtuve su aprobación.",
+              "Preparé una política de fallos de envío y SMS de respaldo."
+            ] }
+          ]
+        }
+      ]
+    },
+    "fr": {
+      "titleType": "Manuel d'émission d'API",
+      "badge": "Manuel d'émission d'API pour débutants",
+      "intro": "Ce manuel rassemble les étapes pratiques, de la vérification commerciale du canal Kakao Talk à l'enregistrement du profil d'expéditeur et à l'approbation du modèle Alimtalk, jusqu'à la confirmation de vos identifiants d'API.",
+      "org": "Guide d'intégration pour débutants",
+      "quick": [
+        ["Structure principale", "Vérification du canal + approbation du modèle"],
+        ["Compte requis", "Kakao Business"],
+        ["Résultats clés", "Sender Profile / API Key"],
+        ["Utilisation", "Messages informatifs"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Concept d'émission de Kakao Alimtalk",
+          "desc": "Alimtalk est un service de messagerie professionnelle qui envoie des messages informatifs tels que des commandes, des réservations, des expéditions et des paiements via Kakao Talk. Ce n'est pas une structure permettant d'envoyer directement avec une simple clé d'application développeur Kakao ; elle nécessite la vérification commerciale du canal et la configuration d'une agence d'envoi/plateforme.",
+          "blocks": [
+            { "type": "notice", "kind": "danger", "html": "<strong>Important :</strong> Alimtalk est axé sur les messages informatifs plutôt que promotionnels, et les modèles nécessitent un examen préalable." }
+          ]
+        },
+        {
+          "h2": "2. Prérequis",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Compte Kakao Business",
+              "Canal Kakao Talk",
+              "Documents de vérification commerciale tels qu'un certificat d'immatriculation d'entreprise",
+              "Le texte du modèle Alimtalk à envoyer",
+              "Un compte auprès d'une agence d'envoi ou d'un service de messagerie cloud",
+              "Une politique de collecte des numéros de téléphone des destinataires et de gestion du consentement"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. Préparation du canal Kakao Talk",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Accéder à Kakao Business", "p": "Connectez-vous au centre d'administration Kakao Business.", "path": "business.kakao.com" },
+              { "h3": "Créer un canal Kakao Talk", "p": "Créez un canal au nom de votre marque ou de votre service.", "path": "Centre d'administration des canaux Kakao Talk" },
+              { "h3": "Effectuer la vérification commerciale", "p": "Soumettez les informations de votre entreprise et les documents justificatifs pour vérifier le canal commercial.", "path": "Vérification commerciale" },
+              { "h3": "Vérifier l'ID de recherche du canal", "p": "Vérifiez l'ID du canal ou l'ID de recherche requis pour les paramètres d'envoi Alimtalk.", "path": "Profil du canal → ID de recherche" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "La vérification commerciale doit être terminée avant de pouvoir enregistrer un profil d'expéditeur Alimtalk." }
+          ]
+        },
+        {
+          "h2": "4. Enregistrement du profil d'expéditeur / Sender Profile",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Choisir une plateforme d'envoi", "p": "Sélectionnez un fournisseur Alimtalk tel que NHN Cloud, Naver Cloud SENS, Infobank ou Bizgo.", "path": "Messaging Provider" },
+              { "h3": "Créer un projet", "p": "Créez un projet Alimtalk sur la plateforme que vous avez choisie.", "path": "Project / Service" },
+              { "h3": "Connecter le canal Kakao Talk", "p": "Enregistrez les informations de votre canal Kakao Talk vérifié commercialement.", "path": "Sender Profile" },
+              { "h3": "Examen du profil d'expéditeur", "p": "Effectuez la confirmation de la propriété du canal et l'examen du profil d'expéditeur.", "path": "Profile Review" },
+              { "h3": "Confirmer les identifiants d'API", "p": "Vérifiez l'App Key, le Secret Key, l'API Key, etc. fournis par la plateforme.", "path": "API Key / Secret" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. Enregistrement et approbation des modèles",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Rédiger le modèle", "p": "Rédigez des textes informatifs tels que des confirmations de commande et des avis d'expédition.", "path": "Template Message" },
+              { "h3": "Définir les variables", "p": "Définissez comme variables les valeurs changeant dynamiquement, telles que le nom, le numéro de commande et le numéro de suivi.", "path": "#{variable}" },
+              { "h3": "Demander l'examen", "p": "Enregistrez le modèle et soumettez la demande d'examen Kakao.", "path": "Request Approval" },
+              { "h3": "Confirmer l'approbation", "p": "Confirmez le code de modèle ou l'ID approuvé.", "path": "Template Code" }
+            ] },
+            { "type": "notice", "kind": "danger", "html": "Si le texte avant examen diffère du texte réellement envoyé, l'envoi peut échouer ou des sanctions peuvent s'appliquer." }
+          ]
+        },
+        {
+          "h2": "6. Exemple de flux d'envoi via API",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "1) Appelez l'Alimtalk API Endpoint depuis votre serveur<br>2) Authentifiez-vous avec l'API Key ou le Secret<br>3) Transmettez le numéro de téléphone du destinataire, le code de modèle et les valeurs des variables<br>4) Recevez le résultat de l'envoi<br>5) Gérez l'envoi ou non d'un SMS de secours en cas d'échec" }
+          ]
+        },
+        {
+          "h2": "7. Liste de contrôle finale",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "J'ai créé un canal Kakao Talk.",
+              "J'ai terminé la vérification commerciale.",
+              "J'ai sélectionné une plateforme d'envoi Alimtalk.",
+              "J'ai enregistré un Sender Profile.",
+              "J'ai confirmé l'API Key ou le Secret.",
+              "J'ai enregistré le modèle et obtenu son approbation.",
+              "J'ai préparé une politique d'échec d'envoi et de SMS de secours."
+            ] }
+          ]
+        }
+      ]
+    },
+    "hi": {
+      "titleType": "API जारी करने की नियमावली",
+      "badge": "शुरुआती लोगों के लिए API जारी करने की नियमावली",
+      "intro": "यह नियमावली Kakao Talk चैनल के व्यवसाय सत्यापन, प्रेषक प्रोफ़ाइल पंजीकरण और Alimtalk टेम्पलेट अनुमोदन से लेकर आपके API क्रेडेंशियल की पुष्टि तक के व्यावहारिक चरणों को संकलित करती है।",
+      "org": "शुरुआती लोगों के लिए एकीकरण मार्गदर्शिका",
+      "quick": [
+        ["मूल संरचना", "चैनल सत्यापन + टेम्पलेट अनुमोदन"],
+        ["आवश्यक खाता", "Kakao Business"],
+        ["मुख्य परिणाम", "Sender Profile / API Key"],
+        ["उपयोग", "सूचनात्मक संदेश"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Kakao Alimtalk जारी करने की अवधारणा",
+          "desc": "Alimtalk एक व्यावसायिक संदेश सेवा है जो ऑर्डर, आरक्षण, शिपिंग और भुगतान जैसे सूचनात्मक संदेश Kakao Talk के माध्यम से भेजती है। यह ऐसी संरचना नहीं है जिसमें केवल एक सामान्य Kakao डेवलपर ऐप कुंजी से सीधे भेजा जा सके; इसके लिए व्यवसाय चैनल सत्यापन और भेजने वाली एजेंसी/प्लेटफ़ॉर्म सेटअप आवश्यक है।",
+          "blocks": [
+            { "type": "notice", "kind": "danger", "html": "<strong>महत्वपूर्ण:</strong> Alimtalk विज्ञापन संदेशों के बजाय सूचनात्मक संदेशों पर केंद्रित है, और टेम्पलेट के लिए पूर्व समीक्षा आवश्यक है।" }
+          ]
+        },
+        {
+          "h2": "2. आवश्यक सामग्री",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Kakao Business खाता",
+              "Kakao Talk चैनल",
+              "व्यवसाय पंजीकरण प्रमाणपत्र जैसे व्यवसाय सत्यापन दस्तावेज़",
+              "भेजे जाने वाले Alimtalk टेम्पलेट का पाठ",
+              "भेजने वाली एजेंसी या क्लाउड मैसेजिंग सेवा का खाता",
+              "प्राप्तकर्ता फ़ोन नंबर संग्रह और सहमति प्रबंधन नीति"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. Kakao Talk चैनल तैयार करना",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Kakao Business तक पहुँचें", "p": "Kakao Business व्यवस्थापक केंद्र में लॉग इन करें।", "path": "business.kakao.com" },
+              { "h3": "Kakao Talk चैनल बनाएँ", "p": "अपने ब्रांड या सेवा के नाम से एक चैनल बनाएँ।", "path": "Kakao Talk चैनल व्यवस्थापक केंद्र" },
+              { "h3": "व्यवसाय सत्यापन करें", "p": "व्यवसाय चैनल को सत्यापित करने के लिए अपनी व्यावसायिक जानकारी और सहायक दस्तावेज़ जमा करें।", "path": "व्यवसाय सत्यापन" },
+              { "h3": "चैनल खोज ID जाँचें", "p": "Alimtalk भेजने की सेटिंग के लिए आवश्यक चैनल ID या खोज ID जाँचें।", "path": "चैनल प्रोफ़ाइल → खोज ID" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Alimtalk प्रेषक प्रोफ़ाइल पंजीकृत करने से पहले व्यवसाय सत्यापन पूरा होना आवश्यक है।" }
+          ]
+        },
+        {
+          "h2": "4. प्रेषक प्रोफ़ाइल / Sender Profile पंजीकरण",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "भेजने का प्लेटफ़ॉर्म चुनें", "p": "NHN Cloud, Naver Cloud SENS, Infobank, Bizgo जैसे Alimtalk प्रदाता का चयन करें।", "path": "Messaging Provider" },
+              { "h3": "प्रोजेक्ट बनाएँ", "p": "आपके द्वारा चुने गए प्लेटफ़ॉर्म पर एक Alimtalk प्रोजेक्ट बनाएँ।", "path": "Project / Service" },
+              { "h3": "Kakao Talk चैनल कनेक्ट करें", "p": "व्यवसाय-सत्यापित Kakao Talk चैनल की जानकारी पंजीकृत करें।", "path": "Sender Profile" },
+              { "h3": "प्रेषक प्रोफ़ाइल समीक्षा", "p": "चैनल स्वामित्व पुष्टि और प्रेषक प्रोफ़ाइल समीक्षा करें।", "path": "Profile Review" },
+              { "h3": "API क्रेडेंशियल की पुष्टि करें", "p": "प्लेटफ़ॉर्म द्वारा प्रदान किए गए App Key, Secret Key, API Key आदि की जाँच करें।", "path": "API Key / Secret" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. टेम्पलेट पंजीकरण और अनुमोदन",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "टेम्पलेट लिखें", "p": "ऑर्डर पुष्टि, शिपिंग सूचना जैसे सूचनात्मक पाठ लिखें।", "path": "Template Message" },
+              { "h3": "वेरिएबल सेट करें", "p": "नाम, ऑर्डर नंबर, शिपिंग नंबर जैसे गतिशील रूप से बदलने वाले मानों को वेरिएबल के रूप में सेट करें।", "path": "#{वेरिएबल}" },
+              { "h3": "समीक्षा का अनुरोध करें", "p": "टेम्पलेट सहेजें और Kakao समीक्षा अनुरोध करें।", "path": "Request Approval" },
+              { "h3": "अनुमोदन की पुष्टि करें", "p": "अनुमोदित टेम्पलेट कोड या ID की पुष्टि करें।", "path": "Template Code" }
+            ] },
+            { "type": "notice", "kind": "danger", "html": "यदि समीक्षा से पहले का पाठ वास्तव में भेजे गए पाठ से भिन्न है, तो भेजना विफल हो सकता है या प्रतिबंध लग सकते हैं।" }
+          ]
+        },
+        {
+          "h2": "6. API भेजने के प्रवाह का उदाहरण",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "1) अपने सर्वर से Alimtalk API Endpoint को कॉल करें<br>2) API Key या Secret से प्रमाणित करें<br>3) प्राप्तकर्ता फ़ोन नंबर, टेम्पलेट कोड और वेरिएबल मान भेजें<br>4) भेजने का परिणाम प्राप्त करें<br>5) विफलता पर SMS विकल्प भेजना है या नहीं, इसे संभालें" }
+          ]
+        },
+        {
+          "h2": "7. अंतिम जाँच सूची",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Kakao Talk चैनल बनाया।",
+              "व्यवसाय सत्यापन पूरा किया।",
+              "Alimtalk भेजने का प्लेटफ़ॉर्म चुना।",
+              "Sender Profile पंजीकृत किया।",
+              "API Key या Secret की पुष्टि की।",
+              "टेम्पलेट पंजीकृत किया और अनुमोदन प्राप्त किया।",
+              "भेजने की विफलता और विकल्प SMS नीति तैयार की।"
+            ] }
+          ]
+        }
+      ]
+    },
+    "pt": {
+      "titleType": "Manual de Emissão de API",
+      "badge": "Manual de emissão de API para iniciantes",
+      "intro": "Este manual reúne os passos práticos desde a verificação comercial do canal do Kakao Talk, o registro do perfil de remetente e a aprovação do modelo do Alimtalk até a confirmação das suas credenciais de API.",
+      "org": "Guia de integração para iniciantes",
+      "quick": [
+        ["Estrutura central", "Verificação do canal + aprovação do modelo"],
+        ["Conta necessária", "Kakao Business"],
+        ["Resultados principais", "Sender Profile / API Key"],
+        ["Uso", "Mensagens informativas"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Conceito de emissão do Kakao Alimtalk",
+          "desc": "O Alimtalk é um serviço de mensagens empresariais que envia mensagens informativas como pedidos, reservas, envios e pagamentos pelo Kakao Talk. Não é uma estrutura que permite enviar diretamente apenas com uma chave de aplicativo de desenvolvedor Kakao comum; é necessária a verificação comercial do canal e a configuração de uma agência de envio/plataforma.",
+          "blocks": [
+            { "type": "notice", "kind": "danger", "html": "<strong>Importante:</strong> O Alimtalk é focado em mensagens informativas e não promocionais, e os modelos exigem análise prévia." }
+          ]
+        },
+        {
+          "h2": "2. Pré-requisitos",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Conta do Kakao Business",
+              "Canal do Kakao Talk",
+              "Documentos de verificação comercial, como um certificado de registro comercial",
+              "O texto do modelo do Alimtalk a ser enviado",
+              "Uma conta de agência de envio ou de serviço de mensagens na nuvem",
+              "Uma política de coleta de números de telefone dos destinatários e gestão de consentimento"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. Preparação do canal do Kakao Talk",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Acessar o Kakao Business", "p": "Faça login no centro de administração do Kakao Business.", "path": "business.kakao.com" },
+              { "h3": "Criar um canal do Kakao Talk", "p": "Crie um canal com o nome da sua marca ou serviço.", "path": "Centro de Administração de Canais do Kakao Talk" },
+              { "h3": "Realizar a verificação comercial", "p": "Envie as informações da sua empresa e os documentos comprovativos para verificar o canal comercial.", "path": "Verificação comercial" },
+              { "h3": "Verificar o ID de pesquisa do canal", "p": "Verifique o ID do canal ou o ID de pesquisa necessário para as configurações de envio do Alimtalk.", "path": "Perfil do canal → ID de pesquisa" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "A verificação comercial deve ser concluída antes de você poder registrar um perfil de remetente do Alimtalk." }
+          ]
+        },
+        {
+          "h2": "4. Registro do perfil de remetente / Sender Profile",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Escolher uma plataforma de envio", "p": "Selecione um provedor de Alimtalk como NHN Cloud, Naver Cloud SENS, Infobank ou Bizgo.", "path": "Messaging Provider" },
+              { "h3": "Criar um projeto", "p": "Crie um projeto do Alimtalk na plataforma que você escolheu.", "path": "Project / Service" },
+              { "h3": "Conectar o canal do Kakao Talk", "p": "Registre as informações do seu canal do Kakao Talk verificado comercialmente.", "path": "Sender Profile" },
+              { "h3": "Análise do perfil de remetente", "p": "Realize a confirmação da propriedade do canal e a análise do perfil de remetente.", "path": "Profile Review" },
+              { "h3": "Confirmar as credenciais de API", "p": "Verifique o App Key, Secret Key, API Key, etc. fornecidos pela plataforma.", "path": "API Key / Secret" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. Registro e aprovação de modelos",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Escrever o modelo", "p": "Escreva textos informativos como confirmações de pedido e avisos de envio.", "path": "Template Message" },
+              { "h3": "Definir variáveis", "p": "Defina como variáveis os valores que mudam dinamicamente, como nome, número do pedido e número de rastreamento.", "path": "#{variável}" },
+              { "h3": "Solicitar a análise", "p": "Salve o modelo e envie a solicitação de análise do Kakao.", "path": "Request Approval" },
+              { "h3": "Confirmar a aprovação", "p": "Confirme o código do modelo ou o ID aprovado.", "path": "Template Code" }
+            ] },
+            { "type": "notice", "kind": "danger", "html": "Se o texto antes da análise diferir do texto realmente enviado, o envio pode falhar ou podem ocorrer sanções." }
+          ]
+        },
+        {
+          "h2": "6. Exemplo de fluxo de envio por API",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "1) Chame o Alimtalk API Endpoint a partir do seu servidor<br>2) Autentique-se com a API Key ou o Secret<br>3) Passe o número de telefone do destinatário, o código do modelo e os valores das variáveis<br>4) Receba o resultado do envio<br>5) Trate se deve enviar um SMS alternativo em caso de falha" }
+          ]
+        },
+        {
+          "h2": "7. Lista de verificação final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Criei um canal do Kakao Talk.",
+              "Concluí a verificação comercial.",
+              "Selecionei uma plataforma de envio do Alimtalk.",
+              "Registrei um Sender Profile.",
+              "Confirmei a API Key ou o Secret.",
+              "Registrei o modelo e obtive aprovação.",
+              "Preparei uma política de falha de envio e SMS alternativo."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ru": {
+      "titleType": "Руководство по выпуску API",
+      "badge": "Руководство по выпуску API для начинающих",
+      "intro": "Это руководство объединяет практические шаги — от бизнес-верификации канала Kakao Talk, регистрации профиля отправителя и одобрения шаблона Alimtalk до подтверждения ваших учётных данных API.",
+      "org": "Руководство по интеграции для начинающих",
+      "quick": [
+        ["Основная структура", "Верификация канала + одобрение шаблона"],
+        ["Требуемый аккаунт", "Kakao Business"],
+        ["Основные результаты", "Sender Profile / API Key"],
+        ["Назначение", "Информационные сообщения"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Концепция выпуска Kakao Alimtalk",
+          "desc": "Alimtalk — это сервис бизнес-сообщений, который отправляет информационные сообщения, такие как заказы, бронирования, доставка и платежи, через Kakao Talk. Это не структура, позволяющая отправлять напрямую только с помощью обычного ключа приложения разработчика Kakao; требуется бизнес-верификация канала и настройка агентства отправки/платформы.",
+          "blocks": [
+            { "type": "notice", "kind": "danger", "html": "<strong>Важно:</strong> Alimtalk ориентирован на информационные сообщения, а не на рекламные, и шаблоны требуют предварительной проверки." }
+          ]
+        },
+        {
+          "h2": "2. Что потребуется",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Аккаунт Kakao Business",
+              "Канал Kakao Talk",
+              "Документы для бизнес-верификации, например свидетельство о регистрации бизнеса",
+              "Текст шаблона Alimtalk для отправки",
+              "Аккаунт агентства отправки или облачного сервиса обмена сообщениями",
+              "Политика сбора номеров телефонов получателей и управления согласием"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. Подготовка канала Kakao Talk",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Доступ к Kakao Business", "p": "Войдите в центр администрирования Kakao Business.", "path": "business.kakao.com" },
+              { "h3": "Создание канала Kakao Talk", "p": "Создайте канал под именем вашего бренда или сервиса.", "path": "Центр администрирования каналов Kakao Talk" },
+              { "h3": "Проведение бизнес-верификации", "p": "Отправьте сведения о компании и подтверждающие документы для верификации бизнес-канала.", "path": "Бизнес-верификация" },
+              { "h3": "Проверка поискового ID канала", "p": "Проверьте ID канала или поисковый ID, необходимый для настроек отправки Alimtalk.", "path": "Профиль канала → Поисковый ID" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Бизнес-верификация должна быть завершена, прежде чем вы сможете зарегистрировать профиль отправителя Alimtalk." }
+          ]
+        },
+        {
+          "h2": "4. Регистрация профиля отправителя / Sender Profile",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Выбор платформы отправки", "p": "Выберите провайдера Alimtalk, например NHN Cloud, Naver Cloud SENS, Infobank или Bizgo.", "path": "Messaging Provider" },
+              { "h3": "Создание проекта", "p": "Создайте проект Alimtalk на выбранной вами платформе.", "path": "Project / Service" },
+              { "h3": "Подключение канала Kakao Talk", "p": "Зарегистрируйте сведения о вашем бизнес-верифицированном канале Kakao Talk.", "path": "Sender Profile" },
+              { "h3": "Проверка профиля отправителя", "p": "Выполните подтверждение владения каналом и проверку профиля отправителя.", "path": "Profile Review" },
+              { "h3": "Подтверждение учётных данных API", "p": "Проверьте App Key, Secret Key, API Key и другие данные, предоставленные платформой.", "path": "API Key / Secret" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. Регистрация и одобрение шаблонов",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Написание шаблона", "p": "Напишите информационные тексты, например подтверждения заказа и уведомления о доставке.", "path": "Template Message" },
+              { "h3": "Настройка переменных", "p": "Задайте как переменные динамически меняющиеся значения, такие как имя, номер заказа и номер отправления.", "path": "#{переменная}" },
+              { "h3": "Запрос проверки", "p": "Сохраните шаблон и отправьте запрос на проверку Kakao.", "path": "Request Approval" },
+              { "h3": "Подтверждение одобрения", "p": "Подтвердите одобренный код шаблона или ID.", "path": "Template Code" }
+            ] },
+            { "type": "notice", "kind": "danger", "html": "Если текст до проверки отличается от фактически отправленного текста, отправка может завершиться неудачей или могут быть применены санкции." }
+          ]
+        },
+        {
+          "h2": "6. Пример процесса отправки через API",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "1) Вызовите Alimtalk API Endpoint с вашего сервера<br>2) Выполните аутентификацию с помощью API Key или Secret<br>3) Передайте номер телефона получателя, код шаблона и значения переменных<br>4) Получите результат отправки<br>5) Обработайте, отправлять ли резервное SMS при неудаче" }
+          ]
+        },
+        {
+          "h2": "7. Финальный контрольный список",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Создан канал Kakao Talk.",
+              "Завершена бизнес-верификация.",
+              "Выбрана платформа отправки Alimtalk.",
+              "Зарегистрирован Sender Profile.",
+              "Подтверждён API Key или Secret.",
+              "Шаблон зарегистрирован и одобрен.",
+              "Подготовлена политика неудачной отправки и резервных SMS."
+            ] }
+          ]
+        }
+      ]
+    }
+  }
+}

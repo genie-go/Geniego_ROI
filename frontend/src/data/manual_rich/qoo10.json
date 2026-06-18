@@ -1,0 +1,1011 @@
+{
+  "name": "Qoo10",
+  "icon": "🟡",
+  "langs": {
+    "ko": {
+      "titleType": "API Key 발급 매뉴얼",
+      "badge": "Beginner Guide",
+      "intro": "Qoo10 QSM(판매자 콘솔)에서 API 인증키를 발급하고 GenieGo 연동 허브에 등록하는 과정을 초보자도 그대로 따라 할 수 있도록 정리한 매뉴얼입니다.",
+      "org": "GenieGo 연동 허브",
+      "quick": [
+        ["소요 시간", "약 5~10분"],
+        ["필요 계정", "Qoo10 판매자(QSM) 계정"],
+        ["발급 키", "QSM API 키"],
+        ["결과물", "API 자격증명"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 시작하기 전에",
+          "desc": "Qoo10 API 키는 판매자(QSM) 계정에서만 발급할 수 있습니다.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "필요", "h3": "Qoo10 판매자(QSM) 계정", "p": "Qoo10 판매자(QSM) 계정이 있어야 합니다. 일반 구매 회원 계정으로는 API 키를 발급할 수 없습니다." },
+              { "tag": "발급 키", "h3": "QSM API 키", "p": "QSM의 API 관리 메뉴에서 API 인증키를 발급하고, 본인의 셀러 ID를 함께 확인합니다." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. 발급 단계",
+          "desc": "아래 순서대로 발급하고 GenieGo에 등록합니다.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "QSM 로그인", "p": "Qoo10 판매자(QSM) 계정으로 로그인합니다.", "path": "https://qsm.qoo10.jp" },
+              { "h3": "API 관리 메뉴 이동", "p": "QSM에서 API 관리 메뉴로 이동합니다.", "path": "API 관리" },
+              { "h3": "API 인증키 발급", "p": "API 관리 메뉴에서 API 인증키를 발급받습니다." },
+              { "h3": "키 확인", "p": "발급된 QSM API 키와 본인의 셀러 ID를 확인합니다." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "API 관리 화면에 API 인증키가 표시되면 정상 발급된 것입니다." }
+          ]
+        },
+        {
+          "h2": "3. GenieGo에 등록할 정보",
+          "blocks": [
+            { "type": "table", "head": ["필드", "설명"], "rows": [
+              ["api_key", "발급된 QSM API 키(노출 주의)"],
+              ["seller_id", "본인의 셀러 ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 연동 허브 [등록]에 api_key·seller_id를 입력해 저장하면 자격증명은 AES-256-GCM으로 암호화 저장되고 조회 시 마스킹됩니다." }
+          ]
+        },
+        {
+          "h2": "4. 자주 발생하는 문제",
+          "blocks": [
+            { "type": "table", "head": ["문제", "원인", "해결"], "rows": [
+              ["API 관리 메뉴가 없음", "판매자(QSM) 계정이 아니거나 권한 부족", "Qoo10 판매자(QSM) 계정으로 로그인해 API 관리 메뉴를 확인합니다."],
+              ["인증 실패", "API 키 또는 셀러 ID 오기재", "QSM에서 발급한 API 키와 셀러 ID를 다시 확인해 입력합니다."]
+            ] }
+          ]
+        },
+        {
+          "h2": "최종 체크리스트",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Qoo10 판매자(QSM) 계정으로 로그인했다.",
+              "API 관리 메뉴에서 API 인증키를 발급했다.",
+              "본인의 셀러 ID를 확인했다.",
+              "GenieGo [등록]에 api_key·seller_id를 입력해 저장했다."
+            ] }
+          ]
+        }
+      ]
+    },
+    "en": {
+      "titleType": "API Key Issuance Manual",
+      "badge": "Beginner Guide",
+      "intro": "A beginner-friendly, step-by-step guide to issuing an API authentication key in Qoo10 QSM (the seller console) and registering it in the GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Est. time", "About 5–10 min"],
+        ["Account needed", "Qoo10 seller (QSM) account"],
+        ["Keys issued", "QSM API key"],
+        ["Result", "API credentials"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Before You Begin",
+          "desc": "A Qoo10 API key can only be issued from a seller (QSM) account.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Required", "h3": "Qoo10 seller (QSM) account", "p": "You need a Qoo10 seller (QSM) account. A regular buyer member account cannot issue an API key." },
+              { "tag": "Keys issued", "h3": "QSM API key", "p": "Issue an API authentication key from QSM's API management menu, and check your own seller ID at the same time." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Issuance Steps",
+          "desc": "Issue in the order below and register in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Sign in to QSM", "p": "Sign in with your Qoo10 seller (QSM) account.", "path": "https://qsm.qoo10.jp" },
+              { "h3": "Go to the API management menu", "p": "In QSM, go to the API management menu.", "path": "API management" },
+              { "h3": "Issue the API authentication key", "p": "Issue an API authentication key from the API management menu." },
+              { "h3": "Check the keys", "p": "Check the issued QSM API key and your own seller ID." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Once the API authentication key appears on the API management screen, it has been issued correctly." }
+          ]
+        },
+        {
+          "h2": "3. Information to Register in GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Field", "Description"], "rows": [
+              ["api_key", "The issued QSM API key (handle with care)"],
+              ["seller_id", "Your own seller ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "In the GenieGo Integration Hub [Register], enter api_key·seller_id and save. Credentials are encrypted at rest with AES-256-GCM and masked on read." }
+          ]
+        },
+        {
+          "h2": "4. Common Issues",
+          "blocks": [
+            { "type": "table", "head": ["Issue", "Cause", "Solution"], "rows": [
+              ["The API management menu is missing", "Not a seller (QSM) account, or insufficient permissions", "Sign in with a Qoo10 seller (QSM) account and check the API management menu."],
+              ["Authentication failure", "API key or seller ID entered incorrectly", "Recheck the API key and seller ID issued in QSM and enter them again."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Final Checklist",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Signed in with a Qoo10 seller (QSM) account.",
+              "Issued an API authentication key from the API management menu.",
+              "Checked my own seller ID.",
+              "Entered api_key·seller_id in GenieGo [Register] and saved."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ja": {
+      "titleType": "API Key 発行マニュアル",
+      "badge": "初心者ガイド",
+      "intro": "Qoo10 QSM(販売者コンソール)で API 認証キーを発行し、GenieGo 連携ハブに登録する手順を、初心者でもそのまま実行できるようにまとめたマニュアルです。",
+      "org": "GenieGo 連携ハブ",
+      "quick": [
+        ["所要時間", "約 5〜10 分"],
+        ["必要なアカウント", "Qoo10 販売者(QSM)アカウント"],
+        ["発行するキー", "QSM API キー"],
+        ["成果物", "API 認証情報"]
+      ],
+      "sections": [
+        {
+          "h2": "1. はじめる前に",
+          "desc": "Qoo10 API キーは販売者(QSM)アカウントでのみ発行できます。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必須", "h3": "Qoo10 販売者(QSM)アカウント", "p": "Qoo10 販売者(QSM)アカウントが必要です。一般の購入会員アカウントでは API キーを発行できません。" },
+              { "tag": "発行するキー", "h3": "QSM API キー", "p": "QSM の API 管理メニューで API 認証キーを発行し、ご自身のセラー ID も併せて確認します。" }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. 発行手順",
+          "desc": "以下の順序で発行し、GenieGo に登録します。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "QSM にログイン", "p": "Qoo10 販売者(QSM)アカウントでログインします。", "path": "https://qsm.qoo10.jp" },
+              { "h3": "API 管理メニューへ移動", "p": "QSM で API 管理メニューへ移動します。", "path": "API 管理" },
+              { "h3": "API 認証キーを発行", "p": "API 管理メニューで API 認証キーを発行します。" },
+              { "h3": "キーを確認", "p": "発行された QSM API キーとご自身のセラー ID を確認します。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "API 管理画面に API 認証キーが表示されれば、正常に発行されています。" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo に登録する情報",
+          "blocks": [
+            { "type": "table", "head": ["フィールド", "説明"], "rows": [
+              ["api_key", "発行された QSM API キー(取り扱い注意)"],
+              ["seller_id", "ご自身のセラー ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 連携ハブの [登録] に api_key·seller_id を入力して保存すると、認証情報は AES-256-GCM で暗号化して保存され、閲覧時にはマスキングされます。" }
+          ]
+        },
+        {
+          "h2": "4. よくある問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["API 管理メニューがない", "販売者(QSM)アカウントではない、または権限不足", "Qoo10 販売者(QSM)アカウントでログインし、API 管理メニューを確認します。"],
+              ["認証に失敗する", "API キーまたはセラー ID の記載ミス", "QSM で発行した API キーとセラー ID を再確認して入力します。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終チェックリスト",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Qoo10 販売者(QSM)アカウントでログインした。",
+              "API 管理メニューで API 認証キーを発行した。",
+              "ご自身のセラー ID を確認した。",
+              "GenieGo の [登録] に api_key·seller_id を入力して保存した。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh": {
+      "titleType": "API Key 申请手册",
+      "badge": "新手指南",
+      "intro": "本手册手把手指导新手在 Qoo10 QSM(卖家控制台)中签发 API 认证密钥，并注册到 GenieGo 集成中心。",
+      "org": "GenieGo 集成中心",
+      "quick": [
+        ["预计时间", "约 5~10 分钟"],
+        ["所需账户", "Qoo10 卖家(QSM)账户"],
+        ["签发密钥", "QSM API 密钥"],
+        ["成果", "API 凭证"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 开始之前",
+          "desc": "Qoo10 API 密钥只能从卖家(QSM)账户中签发。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "Qoo10 卖家(QSM)账户", "p": "您需要一个 Qoo10 卖家(QSM)账户。普通购买会员账户无法签发 API 密钥。" },
+              { "tag": "签发密钥", "h3": "QSM API 密钥", "p": "在 QSM 的 API 管理菜单中签发 API 认证密钥，并同时确认您本人的卖家 ID。" }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. 申请步骤",
+          "desc": "按以下顺序签发并在 GenieGo 中注册。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "登录 QSM", "p": "使用 Qoo10 卖家(QSM)账户登录。", "path": "https://qsm.qoo10.jp" },
+              { "h3": "进入 API 管理菜单", "p": "在 QSM 中进入 API 管理菜单。", "path": "API 管理" },
+              { "h3": "签发 API 认证密钥", "p": "在 API 管理菜单中签发 API 认证密钥。" },
+              { "h3": "确认密钥", "p": "确认签发的 QSM API 密钥和您本人的卖家 ID。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "当 API 认证密钥显示在 API 管理界面上时，即表示已正确签发。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中注册的信息",
+          "blocks": [
+            { "type": "table", "head": ["字段", "说明"], "rows": [
+              ["api_key", "签发的 QSM API 密钥(请妥善保管)"],
+              ["seller_id", "您本人的卖家 ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 集成中心的 [注册] 中输入 api_key·seller_id 并保存后，凭证将以 AES-256-GCM 加密存储，并在查询时进行掩码处理。" }
+          ]
+        },
+        {
+          "h2": "4. 常见问题",
+          "blocks": [
+            { "type": "table", "head": ["问题", "原因", "解决方法"], "rows": [
+              ["没有 API 管理菜单", "不是卖家(QSM)账户，或权限不足", "使用 Qoo10 卖家(QSM)账户登录并查看 API 管理菜单。"],
+              ["认证失败", "API 密钥或卖家 ID 填写错误", "重新确认 QSM 中签发的 API 密钥和卖家 ID 并输入。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最终检查清单",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已使用 Qoo10 卖家(QSM)账户登录。",
+              "已在 API 管理菜单中签发 API 认证密钥。",
+              "已确认本人的卖家 ID。",
+              "已在 GenieGo [注册] 中输入 api_key·seller_id 并保存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh-TW": {
+      "titleType": "API Key 申請手冊",
+      "badge": "新手指南",
+      "intro": "本手冊手把手指導新手在 Qoo10 QSM(賣家控制台)中簽發 API 認證金鑰，並註冊到 GenieGo 整合中心。",
+      "org": "GenieGo 整合中心",
+      "quick": [
+        ["預計時間", "約 5~10 分鐘"],
+        ["所需帳戶", "Qoo10 賣家(QSM)帳戶"],
+        ["簽發金鑰", "QSM API 金鑰"],
+        ["成果", "API 憑證"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 開始之前",
+          "desc": "Qoo10 API 金鑰只能從賣家(QSM)帳戶中簽發。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "Qoo10 賣家(QSM)帳戶", "p": "您需要一個 Qoo10 賣家(QSM)帳戶。一般購買會員帳戶無法簽發 API 金鑰。" },
+              { "tag": "簽發金鑰", "h3": "QSM API 金鑰", "p": "在 QSM 的 API 管理選單中簽發 API 認證金鑰，並同時確認您本人的賣家 ID。" }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. 簽發步驟",
+          "desc": "依以下順序簽發並在 GenieGo 中註冊。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "登入 QSM", "p": "使用 Qoo10 賣家(QSM)帳戶登入。", "path": "https://qsm.qoo10.jp" },
+              { "h3": "進入 API 管理選單", "p": "在 QSM 中進入 API 管理選單。", "path": "API 管理" },
+              { "h3": "簽發 API 認證金鑰", "p": "在 API 管理選單中簽發 API 認證金鑰。" },
+              { "h3": "確認金鑰", "p": "確認簽發的 QSM API 金鑰和您本人的賣家 ID。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "當 API 認證金鑰顯示在 API 管理畫面上時，即表示已正確簽發。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中註冊的資訊",
+          "blocks": [
+            { "type": "table", "head": ["欄位", "說明"], "rows": [
+              ["api_key", "簽發的 QSM API 金鑰(請妥善保管)"],
+              ["seller_id", "您本人的賣家 ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 整合中心的 [註冊] 中輸入 api_key·seller_id 並儲存後，憑證將以 AES-256-GCM 加密儲存，並在查詢時進行遮罩處理。" }
+          ]
+        },
+        {
+          "h2": "4. 常見問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["沒有 API 管理選單", "不是賣家(QSM)帳戶，或權限不足", "使用 Qoo10 賣家(QSM)帳戶登入並查看 API 管理選單。"],
+              ["認證失敗", "API 金鑰或賣家 ID 填寫錯誤", "重新確認 QSM 中簽發的 API 金鑰和賣家 ID 並輸入。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終檢查清單",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已使用 Qoo10 賣家(QSM)帳戶登入。",
+              "已在 API 管理選單中簽發 API 認證金鑰。",
+              "已確認本人的賣家 ID。",
+              "已在 GenieGo [註冊] 中輸入 api_key·seller_id 並儲存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "de": {
+      "titleType": "Anleitung zur API-Key-Ausstellung",
+      "badge": "Einsteigerleitfaden",
+      "intro": "Eine einsteigerfreundliche Schritt-für-Schritt-Anleitung zum Ausstellen eines API-Authentifizierungsschlüssels in Qoo10 QSM (der Verkäuferkonsole) und zum Registrieren im GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Geschätzte Zeit", "Etwa 5–10 Min."],
+        ["Benötigtes Konto", "Qoo10-Verkäuferkonto (QSM)"],
+        ["Ausgestellte Schlüssel", "QSM-API-Schlüssel"],
+        ["Ergebnis", "API-Anmeldedaten"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Bevor Sie beginnen",
+          "desc": "Ein Qoo10-API-Schlüssel kann nur über ein Verkäuferkonto (QSM) ausgestellt werden.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Erforderlich", "h3": "Qoo10-Verkäuferkonto (QSM)", "p": "Sie benötigen ein Qoo10-Verkäuferkonto (QSM). Mit einem normalen Käufer-Mitgliedskonto kann kein API-Schlüssel ausgestellt werden." },
+              { "tag": "Ausgestellte Schlüssel", "h3": "QSM-API-Schlüssel", "p": "Stellen Sie im API-Verwaltungsmenü von QSM einen API-Authentifizierungsschlüssel aus und prüfen Sie gleichzeitig Ihre eigene Verkäufer-ID." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Ausstellungsschritte",
+          "desc": "Stellen Sie in der unten angegebenen Reihenfolge aus und registrieren Sie in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Bei QSM anmelden", "p": "Melden Sie sich mit Ihrem Qoo10-Verkäuferkonto (QSM) an.", "path": "https://qsm.qoo10.jp" },
+              { "h3": "Zum API-Verwaltungsmenü wechseln", "p": "Wechseln Sie in QSM zum API-Verwaltungsmenü.", "path": "API-Verwaltung" },
+              { "h3": "API-Authentifizierungsschlüssel ausstellen", "p": "Stellen Sie im API-Verwaltungsmenü einen API-Authentifizierungsschlüssel aus." },
+              { "h3": "Schlüssel prüfen", "p": "Prüfen Sie den ausgestellten QSM-API-Schlüssel und Ihre eigene Verkäufer-ID." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Sobald der API-Authentifizierungsschlüssel im API-Verwaltungsbildschirm angezeigt wird, wurde er korrekt ausgestellt." }
+          ]
+        },
+        {
+          "h2": "3. In GenieGo zu registrierende Informationen",
+          "blocks": [
+            { "type": "table", "head": ["Feld", "Beschreibung"], "rows": [
+              ["api_key", "Der ausgestellte QSM-API-Schlüssel (vertraulich behandeln)"],
+              ["seller_id", "Ihre eigene Verkäufer-ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Geben Sie im GenieGo Integration Hub unter [Registrieren] api_key·seller_id ein und speichern Sie. Anmeldedaten werden im Ruhezustand mit AES-256-GCM verschlüsselt und beim Lesen maskiert." }
+          ]
+        },
+        {
+          "h2": "4. Häufige Probleme",
+          "blocks": [
+            { "type": "table", "head": ["Problem", "Ursache", "Lösung"], "rows": [
+              ["Das API-Verwaltungsmenü fehlt", "Kein Verkäuferkonto (QSM) oder unzureichende Berechtigungen", "Melden Sie sich mit einem Qoo10-Verkäuferkonto (QSM) an und prüfen Sie das API-Verwaltungsmenü."],
+              ["Authentifizierung fehlgeschlagen", "API-Schlüssel oder Verkäufer-ID falsch eingegeben", "Prüfen Sie den in QSM ausgestellten API-Schlüssel und die Verkäufer-ID erneut und geben Sie sie ein."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Abschließende Checkliste",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Mit einem Qoo10-Verkäuferkonto (QSM) angemeldet.",
+              "Einen API-Authentifizierungsschlüssel über das API-Verwaltungsmenü ausgestellt.",
+              "Die eigene Verkäufer-ID geprüft.",
+              "api_key·seller_id in GenieGo [Registrieren] eingegeben und gespeichert."
+            ] }
+          ]
+        }
+      ]
+    },
+    "th": {
+      "titleType": "คู่มือการออก API Key",
+      "badge": "คู่มือสำหรับผู้เริ่มต้น",
+      "intro": "คู่มือทีละขั้นตอนที่เป็นมิตรกับผู้เริ่มต้น สำหรับการออกคีย์ยืนยันตัวตน API ใน Qoo10 QSM (คอนโซลผู้ขาย) และลงทะเบียนใน GenieGo Integration Hub",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["เวลาโดยประมาณ", "ประมาณ 5–10 นาที"],
+        ["บัญชีที่ต้องใช้", "บัญชีผู้ขาย Qoo10 (QSM)"],
+        ["คีย์ที่ออก", "คีย์ API ของ QSM"],
+        ["ผลลัพธ์", "ข้อมูลรับรอง API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. ก่อนเริ่มต้น",
+          "desc": "คีย์ API ของ Qoo10 สามารถออกได้จากบัญชีผู้ขาย (QSM) เท่านั้น",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "จำเป็น", "h3": "บัญชีผู้ขาย Qoo10 (QSM)", "p": "คุณต้องมีบัญชีผู้ขาย Qoo10 (QSM) บัญชีสมาชิกผู้ซื้อทั่วไปไม่สามารถออกคีย์ API ได้" },
+              { "tag": "คีย์ที่ออก", "h3": "คีย์ API ของ QSM", "p": "ออกคีย์ยืนยันตัวตน API จากเมนูการจัดการ API ของ QSM และตรวจสอบ Seller ID ของคุณไปพร้อมกัน" }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. ขั้นตอนการออก",
+          "desc": "ออกตามลำดับด้านล่างและลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "เข้าสู่ระบบ QSM", "p": "เข้าสู่ระบบด้วยบัญชีผู้ขาย Qoo10 (QSM)", "path": "https://qsm.qoo10.jp" },
+              { "h3": "ไปที่เมนูการจัดการ API", "p": "ใน QSM ไปที่เมนูการจัดการ API", "path": "การจัดการ API" },
+              { "h3": "ออกคีย์ยืนยันตัวตน API", "p": "ออกคีย์ยืนยันตัวตน API จากเมนูการจัดการ API" },
+              { "h3": "ตรวจสอบคีย์", "p": "ตรวจสอบคีย์ API ของ QSM ที่ออกแล้วและ Seller ID ของคุณ" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "เมื่อคีย์ยืนยันตัวตน API ปรากฏบนหน้าจอการจัดการ API แสดงว่าออกอย่างถูกต้อง" }
+          ]
+        },
+        {
+          "h2": "3. ข้อมูลที่ต้องลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["ฟิลด์", "คำอธิบาย"], "rows": [
+              ["api_key", "คีย์ API ของ QSM ที่ออกแล้ว (จัดการด้วยความระมัดระวัง)"],
+              ["seller_id", "Seller ID ของคุณ"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "ใน GenieGo Integration Hub [ลงทะเบียน] ป้อน api_key·seller_id แล้วบันทึก ข้อมูลรับรองจะถูกเข้ารหัสขณะจัดเก็บด้วย AES-256-GCM และปิดบังเมื่ออ่าน" }
+          ]
+        },
+        {
+          "h2": "4. ปัญหาที่พบบ่อย",
+          "blocks": [
+            { "type": "table", "head": ["ปัญหา", "สาเหตุ", "วิธีแก้ไข"], "rows": [
+              ["ไม่มีเมนูการจัดการ API", "ไม่ใช่บัญชีผู้ขาย (QSM) หรือสิทธิ์ไม่เพียงพอ", "เข้าสู่ระบบด้วยบัญชีผู้ขาย Qoo10 (QSM) และตรวจสอบเมนูการจัดการ API"],
+              ["การยืนยันตัวตนล้มเหลว", "คีย์ API หรือ Seller ID ป้อนไม่ถูกต้อง", "ตรวจสอบคีย์ API และ Seller ID ที่ออกใน QSM อีกครั้งแล้วป้อนเข้าไป"]
+            ] }
+          ]
+        },
+        {
+          "h2": "รายการตรวจสอบขั้นสุดท้าย",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "เข้าสู่ระบบด้วยบัญชีผู้ขาย Qoo10 (QSM) แล้ว",
+              "ออกคีย์ยืนยันตัวตน API จากเมนูการจัดการ API แล้ว",
+              "ตรวจสอบ Seller ID ของคุณแล้ว",
+              "ป้อน api_key·seller_id ใน GenieGo [ลงทะเบียน] และบันทึกแล้ว"
+            ] }
+          ]
+        }
+      ]
+    },
+    "vi": {
+      "titleType": "Hướng dẫn cấp API Key",
+      "badge": "Hướng dẫn cho người mới",
+      "intro": "Hướng dẫn từng bước thân thiện với người mới về việc cấp khóa xác thực API trong Qoo10 QSM (bảng điều khiển người bán) và đăng ký trong GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Thời gian dự kiến", "Khoảng 5–10 phút"],
+        ["Tài khoản cần thiết", "Tài khoản người bán Qoo10 (QSM)"],
+        ["Khóa được cấp", "Khóa API của QSM"],
+        ["Kết quả", "Thông tin xác thực API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Trước khi bắt đầu",
+          "desc": "Khóa API của Qoo10 chỉ có thể được cấp từ tài khoản người bán (QSM).",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Bắt buộc", "h3": "Tài khoản người bán Qoo10 (QSM)", "p": "Bạn cần một tài khoản người bán Qoo10 (QSM). Tài khoản thành viên người mua thông thường không thể cấp khóa API." },
+              { "tag": "Khóa được cấp", "h3": "Khóa API của QSM", "p": "Cấp khóa xác thực API từ menu quản lý API của QSM, đồng thời kiểm tra Seller ID của chính bạn." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Các bước cấp",
+          "desc": "Cấp theo thứ tự dưới đây và đăng ký trong GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Đăng nhập QSM", "p": "Đăng nhập bằng tài khoản người bán Qoo10 (QSM).", "path": "https://qsm.qoo10.jp" },
+              { "h3": "Vào menu quản lý API", "p": "Trong QSM, vào menu quản lý API.", "path": "Quản lý API" },
+              { "h3": "Cấp khóa xác thực API", "p": "Cấp khóa xác thực API từ menu quản lý API." },
+              { "h3": "Kiểm tra khóa", "p": "Kiểm tra khóa API của QSM đã được cấp và Seller ID của chính bạn." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Khi khóa xác thực API xuất hiện trên màn hình quản lý API, nghĩa là nó đã được cấp đúng cách." }
+          ]
+        },
+        {
+          "h2": "3. Thông tin cần đăng ký trong GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Trường", "Mô tả"], "rows": [
+              ["api_key", "Khóa API của QSM đã được cấp (xử lý cẩn thận)"],
+              ["seller_id", "Seller ID của chính bạn"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Trong GenieGo Integration Hub [Đăng ký], nhập api_key·seller_id rồi lưu. Thông tin xác thực được mã hóa khi lưu trữ bằng AES-256-GCM và được che khi đọc." }
+          ]
+        },
+        {
+          "h2": "4. Sự cố thường gặp",
+          "blocks": [
+            { "type": "table", "head": ["Sự cố", "Nguyên nhân", "Giải pháp"], "rows": [
+              ["Thiếu menu quản lý API", "Không phải tài khoản người bán (QSM), hoặc không đủ quyền", "Đăng nhập bằng tài khoản người bán Qoo10 (QSM) và kiểm tra menu quản lý API."],
+              ["Xác thực thất bại", "Khóa API hoặc Seller ID nhập sai", "Kiểm tra lại khóa API và Seller ID đã cấp trong QSM rồi nhập lại."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Danh sách kiểm tra cuối cùng",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Đã đăng nhập bằng tài khoản người bán Qoo10 (QSM).",
+              "Đã cấp khóa xác thực API từ menu quản lý API.",
+              "Đã kiểm tra Seller ID của chính mình.",
+              "Đã nhập api_key·seller_id vào GenieGo [Đăng ký] và lưu."
+            ] }
+          ]
+        }
+      ]
+    },
+    "id": {
+      "titleType": "Panduan Penerbitan API Key",
+      "badge": "Panduan Pemula",
+      "intro": "Panduan langkah demi langkah yang ramah pemula untuk menerbitkan kunci autentikasi API di Qoo10 QSM (konsol penjual) dan mendaftarkannya di GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Perkiraan waktu", "Sekitar 5–10 menit"],
+        ["Akun yang dibutuhkan", "Akun penjual Qoo10 (QSM)"],
+        ["Kunci yang diterbitkan", "Kunci API QSM"],
+        ["Hasil", "Kredensial API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Sebelum Anda Mulai",
+          "desc": "Kunci API Qoo10 hanya dapat diterbitkan dari akun penjual (QSM).",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Diperlukan", "h3": "Akun penjual Qoo10 (QSM)", "p": "Anda memerlukan akun penjual Qoo10 (QSM). Akun anggota pembeli biasa tidak dapat menerbitkan kunci API." },
+              { "tag": "Kunci yang diterbitkan", "h3": "Kunci API QSM", "p": "Terbitkan kunci autentikasi API dari menu pengelolaan API di QSM, dan periksa Seller ID Anda sendiri sekaligus." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Langkah Penerbitan",
+          "desc": "Terbitkan sesuai urutan di bawah dan daftarkan di GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Masuk ke QSM", "p": "Masuk dengan akun penjual Qoo10 (QSM).", "path": "https://qsm.qoo10.jp" },
+              { "h3": "Buka menu pengelolaan API", "p": "Di QSM, buka menu pengelolaan API.", "path": "Pengelolaan API" },
+              { "h3": "Terbitkan kunci autentikasi API", "p": "Terbitkan kunci autentikasi API dari menu pengelolaan API." },
+              { "h3": "Periksa kunci", "p": "Periksa kunci API QSM yang diterbitkan dan Seller ID Anda sendiri." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Setelah kunci autentikasi API muncul di layar pengelolaan API, berarti kunci telah diterbitkan dengan benar." }
+          ]
+        },
+        {
+          "h2": "3. Informasi yang Harus Didaftarkan di GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Bidang", "Deskripsi"], "rows": [
+              ["api_key", "Kunci API QSM yang diterbitkan (tangani dengan hati-hati)"],
+              ["seller_id", "Seller ID Anda sendiri"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Di GenieGo Integration Hub [Daftar], masukkan api_key·seller_id lalu simpan. Kredensial dienkripsi saat disimpan dengan AES-256-GCM dan disamarkan saat dibaca." }
+          ]
+        },
+        {
+          "h2": "4. Masalah Umum",
+          "blocks": [
+            { "type": "table", "head": ["Masalah", "Penyebab", "Solusi"], "rows": [
+              ["Menu pengelolaan API tidak ada", "Bukan akun penjual (QSM), atau izin tidak mencukupi", "Masuk dengan akun penjual Qoo10 (QSM) dan periksa menu pengelolaan API."],
+              ["Autentikasi gagal", "Kunci API atau Seller ID salah dimasukkan", "Periksa kembali kunci API dan Seller ID yang diterbitkan di QSM lalu masukkan."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Daftar Periksa Akhir",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Masuk dengan akun penjual Qoo10 (QSM).",
+              "Menerbitkan kunci autentikasi API dari menu pengelolaan API.",
+              "Memeriksa Seller ID saya sendiri.",
+              "Memasukkan api_key·seller_id di GenieGo [Daftar] dan menyimpannya."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ar": {
+      "titleType": "دليل إصدار مفتاح API",
+      "badge": "دليل المبتدئين",
+      "intro": "دليل تفصيلي خطوة بخطوة مناسب للمبتدئين لإصدار مفتاح مصادقة API في Qoo10 QSM (وحدة تحكم البائع) وتسجيله في GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["الوقت المقدر", "حوالي 5–10 دقائق"],
+        ["الحساب المطلوب", "حساب بائع Qoo10 (QSM)"],
+        ["المفاتيح الصادرة", "مفتاح API الخاص بـ QSM"],
+        ["النتيجة", "بيانات اعتماد API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. قبل أن تبدأ",
+          "desc": "لا يمكن إصدار مفتاح API الخاص بـ Qoo10 إلا من حساب بائع (QSM).",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "مطلوب", "h3": "حساب بائع Qoo10 (QSM)", "p": "تحتاج إلى حساب بائع Qoo10 (QSM). لا يمكن لحساب عضو مشترٍ عادي إصدار مفتاح API." },
+              { "tag": "المفاتيح الصادرة", "h3": "مفتاح API الخاص بـ QSM", "p": "أصدر مفتاح مصادقة API من قائمة إدارة API في QSM، وتحقق من معرّف البائع (Seller ID) الخاص بك في الوقت نفسه." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. خطوات الإصدار",
+          "desc": "أصدر بالترتيب أدناه وسجّل في GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "تسجيل الدخول إلى QSM", "p": "سجّل الدخول باستخدام حساب بائع Qoo10 (QSM).", "path": "https://qsm.qoo10.jp" },
+              { "h3": "الانتقال إلى قائمة إدارة API", "p": "في QSM، انتقل إلى قائمة إدارة API.", "path": "إدارة API" },
+              { "h3": "إصدار مفتاح مصادقة API", "p": "أصدر مفتاح مصادقة API من قائمة إدارة API." },
+              { "h3": "التحقق من المفاتيح", "p": "تحقق من مفتاح API الصادر الخاص بـ QSM ومعرّف البائع (Seller ID) الخاص بك." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "بمجرد ظهور مفتاح مصادقة API في شاشة إدارة API، يكون قد تم إصداره بشكل صحيح." }
+          ]
+        },
+        {
+          "h2": "3. المعلومات التي يجب تسجيلها في GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["الحقل", "الوصف"], "rows": [
+              ["api_key", "مفتاح API الصادر الخاص بـ QSM (تعامل معه بحذر)"],
+              ["seller_id", "معرّف البائع (Seller ID) الخاص بك"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "في GenieGo Integration Hub [تسجيل]، أدخل api_key·seller_id ثم احفظ. تُشفَّر بيانات الاعتماد أثناء التخزين باستخدام AES-256-GCM وتُخفى عند القراءة." }
+          ]
+        },
+        {
+          "h2": "4. المشكلات الشائعة",
+          "blocks": [
+            { "type": "table", "head": ["المشكلة", "السبب", "الحل"], "rows": [
+              ["قائمة إدارة API غير موجودة", "ليس حساب بائع (QSM)، أو الصلاحيات غير كافية", "سجّل الدخول باستخدام حساب بائع Qoo10 (QSM) وتحقق من قائمة إدارة API."],
+              ["فشل المصادقة", "إدخال خاطئ لمفتاح API أو معرّف البائع (Seller ID)", "تحقق مرة أخرى من مفتاح API ومعرّف البائع الصادرين في QSM ثم أدخلهما."]
+            ] }
+          ]
+        },
+        {
+          "h2": "قائمة التحقق النهائية",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "سجّلت الدخول باستخدام حساب بائع Qoo10 (QSM).",
+              "أصدرت مفتاح مصادقة API من قائمة إدارة API.",
+              "تحققت من معرّف البائع (Seller ID) الخاص بي.",
+              "أدخلت api_key·seller_id في GenieGo [تسجيل] وحفظت."
+            ] }
+          ]
+        }
+      ]
+    },
+    "es": {
+      "titleType": "Manual de Emisión de API Key",
+      "badge": "Guía para Principiantes",
+      "intro": "Una guía paso a paso, apta para principiantes, para emitir una clave de autenticación de API en Qoo10 QSM (la consola del vendedor) y registrarla en el GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tiempo estimado", "Unos 5–10 min"],
+        ["Cuenta necesaria", "Cuenta de vendedor de Qoo10 (QSM)"],
+        ["Claves emitidas", "Clave API de QSM"],
+        ["Resultado", "Credenciales de API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de Empezar",
+          "desc": "Una clave API de Qoo10 solo puede emitirse desde una cuenta de vendedor (QSM).",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requerido", "h3": "Cuenta de vendedor de Qoo10 (QSM)", "p": "Necesita una cuenta de vendedor de Qoo10 (QSM). Una cuenta de miembro comprador normal no puede emitir una clave API." },
+              { "tag": "Claves emitidas", "h3": "Clave API de QSM", "p": "Emita una clave de autenticación de API desde el menú de gestión de API de QSM y compruebe al mismo tiempo su propio Seller ID." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Pasos de Emisión",
+          "desc": "Emita en el orden indicado a continuación y regístrelo en GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Iniciar sesión en QSM", "p": "Inicie sesión con su cuenta de vendedor de Qoo10 (QSM).", "path": "https://qsm.qoo10.jp" },
+              { "h3": "Ir al menú de gestión de API", "p": "En QSM, vaya al menú de gestión de API.", "path": "Gestión de API" },
+              { "h3": "Emitir la clave de autenticación de API", "p": "Emita una clave de autenticación de API desde el menú de gestión de API." },
+              { "h3": "Comprobar las claves", "p": "Compruebe la clave API de QSM emitida y su propio Seller ID." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Una vez que la clave de autenticación de API aparezca en la pantalla de gestión de API, se habrá emitido correctamente." }
+          ]
+        },
+        {
+          "h2": "3. Información para Registrar en GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descripción"], "rows": [
+              ["api_key", "La clave API de QSM emitida (manéjela con cuidado)"],
+              ["seller_id", "Su propio Seller ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "En el GenieGo Integration Hub [Registrar], introduzca api_key·seller_id y guarde. Las credenciales se cifran en reposo con AES-256-GCM y se enmascaran al leerlas." }
+          ]
+        },
+        {
+          "h2": "4. Problemas Frecuentes",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solución"], "rows": [
+              ["Falta el menú de gestión de API", "No es una cuenta de vendedor (QSM) o permisos insuficientes", "Inicie sesión con una cuenta de vendedor de Qoo10 (QSM) y compruebe el menú de gestión de API."],
+              ["Fallo de autenticación", "Clave API o Seller ID introducidos incorrectamente", "Vuelva a comprobar la clave API y el Seller ID emitidos en QSM e introdúzcalos."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de Verificación Final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Inicié sesión con una cuenta de vendedor de Qoo10 (QSM).",
+              "Emití una clave de autenticación de API desde el menú de gestión de API.",
+              "Comprobé mi propio Seller ID.",
+              "Introduje api_key·seller_id en GenieGo [Registrar] y guardé."
+            ] }
+          ]
+        }
+      ]
+    },
+    "fr": {
+      "titleType": "Manuel d'Émission de Clé API",
+      "badge": "Guide du Débutant",
+      "intro": "Un guide pas à pas, adapté aux débutants, pour émettre une clé d'authentification API dans Qoo10 QSM (la console vendeur) et l'enregistrer dans le GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Temps estimé", "Environ 5–10 min"],
+        ["Compte requis", "Compte vendeur Qoo10 (QSM)"],
+        ["Clés émises", "Clé API QSM"],
+        ["Résultat", "Identifiants API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Avant de Commencer",
+          "desc": "Une clé API Qoo10 ne peut être émise qu'à partir d'un compte vendeur (QSM).",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requis", "h3": "Compte vendeur Qoo10 (QSM)", "p": "Vous avez besoin d'un compte vendeur Qoo10 (QSM). Un compte de membre acheteur ordinaire ne peut pas émettre de clé API." },
+              { "tag": "Clés émises", "h3": "Clé API QSM", "p": "Émettez une clé d'authentification API depuis le menu de gestion API de QSM et vérifiez en même temps votre propre Seller ID." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Étapes d'Émission",
+          "desc": "Émettez dans l'ordre ci-dessous et enregistrez dans GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Se connecter à QSM", "p": "Connectez-vous avec votre compte vendeur Qoo10 (QSM).", "path": "https://qsm.qoo10.jp" },
+              { "h3": "Aller au menu de gestion API", "p": "Dans QSM, accédez au menu de gestion API.", "path": "Gestion API" },
+              { "h3": "Émettre la clé d'authentification API", "p": "Émettez une clé d'authentification API depuis le menu de gestion API." },
+              { "h3": "Vérifier les clés", "p": "Vérifiez la clé API QSM émise et votre propre Seller ID." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Une fois que la clé d'authentification API apparaît sur l'écran de gestion API, elle a été émise correctement." }
+          ]
+        },
+        {
+          "h2": "3. Informations à Enregistrer dans GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Champ", "Description"], "rows": [
+              ["api_key", "La clé API QSM émise (à manipuler avec précaution)"],
+              ["seller_id", "Votre propre Seller ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Dans le GenieGo Integration Hub [Enregistrer], saisissez api_key·seller_id et enregistrez. Les identifiants sont chiffrés au repos avec AES-256-GCM et masqués à la lecture." }
+          ]
+        },
+        {
+          "h2": "4. Problèmes Fréquents",
+          "blocks": [
+            { "type": "table", "head": ["Problème", "Cause", "Solution"], "rows": [
+              ["Le menu de gestion API est absent", "Pas un compte vendeur (QSM), ou autorisations insuffisantes", "Connectez-vous avec un compte vendeur Qoo10 (QSM) et vérifiez le menu de gestion API."],
+              ["Échec d'authentification", "Clé API ou Seller ID saisis incorrectement", "Revérifiez la clé API et le Seller ID émis dans QSM, puis saisissez-les."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Liste de Contrôle Finale",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Connecté avec un compte vendeur Qoo10 (QSM).",
+              "Émis une clé d'authentification API depuis le menu de gestion API.",
+              "Vérifié mon propre Seller ID.",
+              "Saisi api_key·seller_id dans GenieGo [Enregistrer] et enregistré."
+            ] }
+          ]
+        }
+      ]
+    },
+    "hi": {
+      "titleType": "API Key जारी करने की मार्गदर्शिका",
+      "badge": "शुरुआती गाइड",
+      "intro": "Qoo10 QSM (विक्रेता कंसोल) में API प्रमाणीकरण कुंजी जारी करने और उसे GenieGo Integration Hub में पंजीकृत करने के लिए शुरुआती-अनुकूल, चरण-दर-चरण मार्गदर्शिका।",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["अनुमानित समय", "लगभग 5–10 मिनट"],
+        ["आवश्यक खाता", "Qoo10 विक्रेता (QSM) खाता"],
+        ["जारी की गई कुंजियाँ", "QSM API कुंजी"],
+        ["परिणाम", "API क्रेडेंशियल"]
+      ],
+      "sections": [
+        {
+          "h2": "1. शुरू करने से पहले",
+          "desc": "Qoo10 API कुंजी केवल विक्रेता (QSM) खाते से ही जारी की जा सकती है।",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "आवश्यक", "h3": "Qoo10 विक्रेता (QSM) खाता", "p": "आपके पास एक Qoo10 विक्रेता (QSM) खाता होना चाहिए। एक सामान्य खरीदार सदस्य खाता API कुंजी जारी नहीं कर सकता।" },
+              { "tag": "जारी की गई कुंजियाँ", "h3": "QSM API कुंजी", "p": "QSM के API प्रबंधन मेनू से API प्रमाणीकरण कुंजी जारी करें, और साथ ही अपना Seller ID भी जाँच लें।" }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. जारी करने के चरण",
+          "desc": "नीचे दिए गए क्रम में जारी करें और GenieGo में पंजीकृत करें।",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "QSM में साइन इन करें", "p": "अपने Qoo10 विक्रेता (QSM) खाते से साइन इन करें।", "path": "https://qsm.qoo10.jp" },
+              { "h3": "API प्रबंधन मेनू पर जाएँ", "p": "QSM में, API प्रबंधन मेनू पर जाएँ।", "path": "API प्रबंधन" },
+              { "h3": "API प्रमाणीकरण कुंजी जारी करें", "p": "API प्रबंधन मेनू से API प्रमाणीकरण कुंजी जारी करें।" },
+              { "h3": "कुंजियाँ जाँचें", "p": "जारी की गई QSM API कुंजी और अपना Seller ID जाँचें।" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "जब API प्रमाणीकरण कुंजी API प्रबंधन स्क्रीन पर दिखाई दे, तो इसका अर्थ है कि यह सही ढंग से जारी हो गई है।" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo में पंजीकृत करने योग्य जानकारी",
+          "blocks": [
+            { "type": "table", "head": ["फ़ील्ड", "विवरण"], "rows": [
+              ["api_key", "जारी की गई QSM API कुंजी (सावधानी से संभालें)"],
+              ["seller_id", "आपका अपना Seller ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo Integration Hub [पंजीकरण] में api_key·seller_id दर्ज करें और सहेजें। क्रेडेंशियल को संग्रहण के समय AES-256-GCM से एन्क्रिप्ट किया जाता है और पढ़ते समय मास्क किया जाता है।" }
+          ]
+        },
+        {
+          "h2": "4. सामान्य समस्याएँ",
+          "blocks": [
+            { "type": "table", "head": ["समस्या", "कारण", "समाधान"], "rows": [
+              ["API प्रबंधन मेनू मौजूद नहीं है", "विक्रेता (QSM) खाता नहीं है, या अपर्याप्त अनुमतियाँ", "Qoo10 विक्रेता (QSM) खाते से साइन इन करें और API प्रबंधन मेनू जाँचें।"],
+              ["प्रमाणीकरण विफल", "API कुंजी या Seller ID गलत दर्ज किया गया", "QSM में जारी की गई API कुंजी और Seller ID फिर से जाँचें और दर्ज करें।"]
+            ] }
+          ]
+        },
+        {
+          "h2": "अंतिम जाँच सूची",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Qoo10 विक्रेता (QSM) खाते से साइन इन किया।",
+              "API प्रबंधन मेनू से API प्रमाणीकरण कुंजी जारी की।",
+              "अपना Seller ID जाँचा।",
+              "GenieGo [पंजीकरण] में api_key·seller_id दर्ज किया और सहेजा।"
+            ] }
+          ]
+        }
+      ]
+    },
+    "pt": {
+      "titleType": "Manual de Emissão de API Key",
+      "badge": "Guia para Iniciantes",
+      "intro": "Um guia passo a passo, ideal para iniciantes, para emitir uma chave de autenticação de API no Qoo10 QSM (o console do vendedor) e registrá-la no GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tempo estimado", "Cerca de 5–10 min"],
+        ["Conta necessária", "Conta de vendedor Qoo10 (QSM)"],
+        ["Chaves emitidas", "Chave API do QSM"],
+        ["Resultado", "Credenciais de API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de Começar",
+          "desc": "Uma chave API do Qoo10 só pode ser emitida a partir de uma conta de vendedor (QSM).",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Obrigatório", "h3": "Conta de vendedor Qoo10 (QSM)", "p": "Você precisa de uma conta de vendedor Qoo10 (QSM). Uma conta de membro comprador comum não pode emitir uma chave API." },
+              { "tag": "Chaves emitidas", "h3": "Chave API do QSM", "p": "Emita uma chave de autenticação de API no menu de gerenciamento de API do QSM e verifique ao mesmo tempo o seu próprio Seller ID." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Etapas de Emissão",
+          "desc": "Emita na ordem abaixo e registre no GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Fazer login no QSM", "p": "Faça login com a sua conta de vendedor Qoo10 (QSM).", "path": "https://qsm.qoo10.jp" },
+              { "h3": "Ir ao menu de gerenciamento de API", "p": "No QSM, vá até o menu de gerenciamento de API.", "path": "Gerenciamento de API" },
+              { "h3": "Emitir a chave de autenticação de API", "p": "Emita uma chave de autenticação de API no menu de gerenciamento de API." },
+              { "h3": "Verificar as chaves", "p": "Verifique a chave API do QSM emitida e o seu próprio Seller ID." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Assim que a chave de autenticação de API aparecer na tela de gerenciamento de API, ela foi emitida corretamente." }
+          ]
+        },
+        {
+          "h2": "3. Informações a Registrar no GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descrição"], "rows": [
+              ["api_key", "A chave API do QSM emitida (manuseie com cuidado)"],
+              ["seller_id", "O seu próprio Seller ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "No GenieGo Integration Hub [Registrar], insira api_key·seller_id e salve. As credenciais são criptografadas em repouso com AES-256-GCM e mascaradas na leitura." }
+          ]
+        },
+        {
+          "h2": "4. Problemas Comuns",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solução"], "rows": [
+              ["O menu de gerenciamento de API está ausente", "Não é uma conta de vendedor (QSM), ou permissões insuficientes", "Faça login com uma conta de vendedor Qoo10 (QSM) e verifique o menu de gerenciamento de API."],
+              ["Falha na autenticação", "Chave API ou Seller ID inseridos incorretamente", "Verifique novamente a chave API e o Seller ID emitidos no QSM e insira-os."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de Verificação Final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Fiz login com uma conta de vendedor Qoo10 (QSM).",
+              "Emiti uma chave de autenticação de API no menu de gerenciamento de API.",
+              "Verifiquei o meu próprio Seller ID.",
+              "Inseri api_key·seller_id no GenieGo [Registrar] e salvei."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ru": {
+      "titleType": "Руководство по выпуску API Key",
+      "badge": "Руководство для начинающих",
+      "intro": "Понятное для новичков пошаговое руководство по выпуску ключа аутентификации API в Qoo10 QSM (консоль продавца) и его регистрации в GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Примерное время", "Около 5–10 мин"],
+        ["Требуемая учётная запись", "Учётная запись продавца Qoo10 (QSM)"],
+        ["Выпускаемые ключи", "API-ключ QSM"],
+        ["Результат", "Учётные данные API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Прежде чем начать",
+          "desc": "API-ключ Qoo10 можно выпустить только из учётной записи продавца (QSM).",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Требуется", "h3": "Учётная запись продавца Qoo10 (QSM)", "p": "Вам нужна учётная запись продавца Qoo10 (QSM). Обычная учётная запись покупателя не может выпустить API-ключ." },
+              { "tag": "Выпускаемые ключи", "h3": "API-ключ QSM", "p": "Выпустите ключ аутентификации API в меню управления API в QSM и одновременно проверьте свой собственный Seller ID." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Шаги выпуска",
+          "desc": "Выпустите в указанном ниже порядке и зарегистрируйте в GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Войти в QSM", "p": "Войдите с помощью учётной записи продавца Qoo10 (QSM).", "path": "https://qsm.qoo10.jp" },
+              { "h3": "Перейти в меню управления API", "p": "В QSM перейдите в меню управления API.", "path": "Управление API" },
+              { "h3": "Выпустить ключ аутентификации API", "p": "Выпустите ключ аутентификации API в меню управления API." },
+              { "h3": "Проверить ключи", "p": "Проверьте выпущенный API-ключ QSM и свой собственный Seller ID." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Как только ключ аутентификации API появится на экране управления API, он выпущен корректно." }
+          ]
+        },
+        {
+          "h2": "3. Информация для регистрации в GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Поле", "Описание"], "rows": [
+              ["api_key", "Выпущенный API-ключ QSM (обращайтесь осторожно)"],
+              ["seller_id", "Ваш собственный Seller ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "В GenieGo Integration Hub [Регистрация] введите api_key·seller_id и сохраните. Учётные данные шифруются при хранении с помощью AES-256-GCM и маскируются при чтении." }
+          ]
+        },
+        {
+          "h2": "4. Частые проблемы",
+          "blocks": [
+            { "type": "table", "head": ["Проблема", "Причина", "Решение"], "rows": [
+              ["Меню управления API отсутствует", "Не учётная запись продавца (QSM) или недостаточно прав", "Войдите с помощью учётной записи продавца Qoo10 (QSM) и проверьте меню управления API."],
+              ["Сбой аутентификации", "API-ключ или Seller ID введены неверно", "Перепроверьте API-ключ и Seller ID, выпущенные в QSM, и введите их."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Итоговый контрольный список",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Вошёл с помощью учётной записи продавца Qoo10 (QSM).",
+              "Выпустил ключ аутентификации API в меню управления API.",
+              "Проверил свой собственный Seller ID.",
+              "Ввёл api_key·seller_id в GenieGo [Регистрация] и сохранил."
+            ] }
+          ]
+        }
+      ]
+    }
+  }
+}

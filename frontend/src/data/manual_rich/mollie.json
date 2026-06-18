@@ -1,0 +1,996 @@
+{
+  "name": "Mollie",
+  "icon": "💙",
+  "langs": {
+    "ko": {
+      "titleType": "API Key 발급 매뉴얼",
+      "badge": "Beginner Guide",
+      "intro": "Mollie 대시보드에서 Live API 키(live_로 시작)를 확인하고 GenieGo 연동 허브에 등록하는 과정을 초보자도 그대로 따라 할 수 있도록 정리한 매뉴얼입니다.",
+      "org": "GenieGo 연동 허브",
+      "quick": [
+        ["소요 시간", "약 5~10분"],
+        ["필요 계정", "Mollie 계정(유럽 중심)"],
+        ["발급 키", "Live API 키(live_)"],
+        ["결과물", "Live API 자격증명"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 시작하기 전에",
+          "desc": "Mollie API 키는 Mollie 계정의 대시보드에서 확인합니다.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "필요", "h3": "Mollie 계정", "p": "Mollie 계정이 필요합니다(유럽 중심). 계정으로 대시보드에 로그인할 수 있어야 합니다." },
+              { "tag": "발급 키", "h3": "Live API 키", "p": "대시보드의 Developers > API keys에서 live_로 시작하는 Live API 키를 확인합니다." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>참고:</strong> 반드시 <strong>live_</strong> 로 시작하는 Live API 키를 확인합니다. Test 키와 혼동하지 않도록 주의합니다." }
+          ]
+        },
+        {
+          "h2": "2. 발급 단계",
+          "desc": "아래 순서대로 발급하고 GenieGo에 등록합니다.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "대시보드 접속", "p": "Mollie 대시보드에 로그인합니다.", "path": "my.mollie.com" },
+              { "h3": "API keys 이동", "p": "[Developers] > [API keys]로 이동합니다.", "path": "https://my.mollie.com/dashboard/developers/api-keys" },
+              { "h3": "Live API 키 확인", "p": "live_로 시작하는 Live API 키를 확인합니다." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Developers &gt; API keys에서 live_로 시작하는 키가 보이면 정상입니다." }
+          ]
+        },
+        {
+          "h2": "3. GenieGo에 등록할 정보",
+          "blocks": [
+            { "type": "table", "head": ["필드", "설명"], "rows": [
+              ["api_key", "Live API 키(live_로 시작, 노출 주의)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 연동 허브 [등록]에 api_key를 입력해 저장하면 자격증명은 AES-256-GCM으로 암호화 저장되고 조회 시 마스킹됩니다." }
+          ]
+        },
+        {
+          "h2": "4. 자주 발생하는 문제",
+          "blocks": [
+            { "type": "table", "head": ["문제", "원인", "해결"], "rows": [
+              ["인증 실패", "Test 키를 사용", "live_로 시작하는 Live API 키인지 다시 확인합니다."],
+              ["API keys 메뉴에 키가 없음", "대시보드 로그인 계정 확인 필요", "Mollie 계정으로 my.mollie.com 대시보드에 로그인했는지 확인합니다."]
+            ] }
+          ]
+        },
+        {
+          "h2": "최종 체크리스트",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Mollie 계정으로 my.mollie.com 대시보드에 로그인했다.",
+              "Developers > API keys에서 Live API 키를 확인했다.",
+              "live_로 시작하는 Live API 키를 확인했다.",
+              "GenieGo [등록]에 api_key를 입력해 저장했다."
+            ] }
+          ]
+        }
+      ]
+    },
+    "en": {
+      "titleType": "API Key Issuance Manual",
+      "badge": "Beginner Guide",
+      "intro": "A beginner-friendly, step-by-step guide to finding your Live API key (starting with live_) in the Mollie Dashboard and registering it in the GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Est. time", "About 5–10 min"],
+        ["Account needed", "Mollie account (Europe-focused)"],
+        ["Key issued", "Live API key (live_)"],
+        ["Result", "Live API credentials"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Before You Begin",
+          "desc": "Your Mollie API key is found in your Mollie account's Dashboard.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Required", "h3": "Mollie account", "p": "You need a Mollie account (Europe-focused). You must be able to sign in to the Dashboard with it." },
+              { "tag": "Key issued", "h3": "Live API key", "p": "In the Dashboard, go to Developers > API keys and find the Live API key that starts with live_." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Note:</strong> Be sure to find the Live API key that starts with <strong>live_</strong>. Take care not to confuse it with the Test key." }
+          ]
+        },
+        {
+          "h2": "2. Issuance Steps",
+          "desc": "Issue in the order below and register in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Access the Dashboard", "p": "Sign in to the Mollie Dashboard.", "path": "my.mollie.com" },
+              { "h3": "Go to API keys", "p": "Navigate to [Developers] > [API keys].", "path": "https://my.mollie.com/dashboard/developers/api-keys" },
+              { "h3": "Find the Live API key", "p": "Find the Live API key that starts with live_." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "If you can see a key starting with live_ under Developers &gt; API keys, it is correct." }
+          ]
+        },
+        {
+          "h2": "3. Information to Register in GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Field", "Description"], "rows": [
+              ["api_key", "Live API key (starts with live_; handle with care)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "In the GenieGo Integration Hub [Register], enter your api_key and save. Credentials are encrypted at rest with AES-256-GCM and masked on read." }
+          ]
+        },
+        {
+          "h2": "4. Common Issues",
+          "blocks": [
+            { "type": "table", "head": ["Issue", "Cause", "Solution"], "rows": [
+              ["Authentication fails", "Using the Test key", "Double-check that it is the Live API key starting with live_."],
+              ["No key under the API keys menu", "Need to verify the Dashboard sign-in account", "Verify that you signed in to the my.mollie.com Dashboard with your Mollie account."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Final Checklist",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Signed in to the my.mollie.com Dashboard with my Mollie account.",
+              "Found the Live API key under Developers > API keys.",
+              "Found the Live API key that starts with live_.",
+              "Entered the api_key in GenieGo [Register] and saved."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ja": {
+      "titleType": "API Key 発行マニュアル",
+      "badge": "初心者ガイド",
+      "intro": "Mollie ダッシュボードで Live API キー(live_ で始まる)を確認し、GenieGo 連携ハブに登録する手順を、初心者でもそのまま実行できるようにまとめたマニュアルです。",
+      "org": "GenieGo 連携ハブ",
+      "quick": [
+        ["所要時間", "約 5〜10 分"],
+        ["必要なアカウント", "Mollie アカウント(欧州中心)"],
+        ["発行するキー", "Live API キー(live_)"],
+        ["成果物", "Live API 認証情報"]
+      ],
+      "sections": [
+        {
+          "h2": "1. はじめる前に",
+          "desc": "Mollie API キーは Mollie アカウントのダッシュボードで確認します。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必須", "h3": "Mollie アカウント", "p": "Mollie アカウントが必要です(欧州中心)。そのアカウントでダッシュボードにログインできる必要があります。" },
+              { "tag": "発行するキー", "h3": "Live API キー", "p": "ダッシュボードの Developers > API keys で、live_ で始まる Live API キーを確認します。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> 必ず <strong>live_</strong> で始まる Live API キーを確認します。Test キーと混同しないように注意します。" }
+          ]
+        },
+        {
+          "h2": "2. 発行手順",
+          "desc": "以下の順序で発行し、GenieGo に登録します。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "ダッシュボードへアクセス", "p": "Mollie ダッシュボードにログインします。", "path": "my.mollie.com" },
+              { "h3": "API keys へ移動", "p": "[Developers] > [API keys] に移動します。", "path": "https://my.mollie.com/dashboard/developers/api-keys" },
+              { "h3": "Live API キーを確認", "p": "live_ で始まる Live API キーを確認します。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Developers &gt; API keys で live_ で始まるキーが表示されれば正常です。" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo に登録する情報",
+          "blocks": [
+            { "type": "table", "head": ["フィールド", "説明"], "rows": [
+              ["api_key", "Live API キー(live_ で始まる、取り扱い注意)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 連携ハブの [登録] に api_key を入力して保存すると、認証情報は AES-256-GCM で暗号化して保存され、閲覧時にはマスキングされます。" }
+          ]
+        },
+        {
+          "h2": "4. よくある問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["認証に失敗する", "Test キーを使用している", "live_ で始まる Live API キーかどうかを再確認します。"],
+              ["API keys メニューにキーがない", "ダッシュボードのログインアカウントの確認が必要", "Mollie アカウントで my.mollie.com ダッシュボードにログインしているか確認します。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終チェックリスト",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Mollie アカウントで my.mollie.com ダッシュボードにログインした。",
+              "Developers > API keys で Live API キーを確認した。",
+              "live_ で始まる Live API キーを確認した。",
+              "GenieGo の [登録] に api_key を入力して保存した。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh": {
+      "titleType": "API Key 申请手册",
+      "badge": "新手指南",
+      "intro": "本手册手把手指导新手在 Mollie 仪表盘中查找 Live API 密钥(以 live_ 开头),并将其注册到 GenieGo 集成中心。",
+      "org": "GenieGo 集成中心",
+      "quick": [
+        ["预计时间", "约 5~10 分钟"],
+        ["所需账户", "Mollie 账户(以欧洲为主)"],
+        ["签发密钥", "Live API 密钥(live_)"],
+        ["成果", "Live API 凭证"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 开始之前",
+          "desc": "Mollie API 密钥可在 Mollie 账户的仪表盘中查看。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "Mollie 账户", "p": "您需要一个 Mollie 账户(以欧洲为主)。您必须能够使用该账户登录仪表盘。" },
+              { "tag": "签发密钥", "h3": "Live API 密钥", "p": "在仪表盘的 Developers > API keys 中查找以 live_ 开头的 Live API 密钥。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> 务必查找以 <strong>live_</strong> 开头的 Live API 密钥。注意不要与 Test 密钥混淆。" }
+          ]
+        },
+        {
+          "h2": "2. 申请步骤",
+          "desc": "按以下顺序签发并在 GenieGo 中注册。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "访问仪表盘", "p": "登录 Mollie 仪表盘。", "path": "my.mollie.com" },
+              { "h3": "前往 API keys", "p": "前往 [Developers] > [API keys]。", "path": "https://my.mollie.com/dashboard/developers/api-keys" },
+              { "h3": "查找 Live API 密钥", "p": "查找以 live_ 开头的 Live API 密钥。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 Developers &gt; API keys 中能看到以 live_ 开头的密钥即表示正常。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中注册的信息",
+          "blocks": [
+            { "type": "table", "head": ["字段", "说明"], "rows": [
+              ["api_key", "Live API 密钥(以 live_ 开头,请妥善保管)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 集成中心 [注册] 中输入 api_key 并保存后,凭证将以 AES-256-GCM 加密存储,并在查询时进行掩码处理。" }
+          ]
+        },
+        {
+          "h2": "4. 常见问题",
+          "blocks": [
+            { "type": "table", "head": ["问题", "原因", "解决方法"], "rows": [
+              ["认证失败", "使用了 Test 密钥", "再次确认是否为以 live_ 开头的 Live API 密钥。"],
+              ["API keys 菜单中没有密钥", "需要确认仪表盘登录账户", "确认是否已使用 Mollie 账户登录 my.mollie.com 仪表盘。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最终检查清单",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已使用 Mollie 账户登录 my.mollie.com 仪表盘。",
+              "已在 Developers > API keys 中查看 Live API 密钥。",
+              "已查找到以 live_ 开头的 Live API 密钥。",
+              "已在 GenieGo [注册] 中输入 api_key 并保存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh-TW": {
+      "titleType": "API Key 申請手冊",
+      "badge": "新手指南",
+      "intro": "本手冊手把手指導新手在 Mollie 儀表板中查詢 Live API 金鑰(以 live_ 開頭),並將其註冊到 GenieGo 整合中心。",
+      "org": "GenieGo 整合中心",
+      "quick": [
+        ["預計時間", "約 5~10 分鐘"],
+        ["所需帳戶", "Mollie 帳戶(以歐洲為主)"],
+        ["簽發金鑰", "Live API 金鑰(live_)"],
+        ["成果", "Live API 憑證"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 開始之前",
+          "desc": "Mollie API 金鑰可在 Mollie 帳戶的儀表板中查詢。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "Mollie 帳戶", "p": "您需要一個 Mollie 帳戶(以歐洲為主)。您必須能夠使用該帳戶登入儀表板。" },
+              { "tag": "簽發金鑰", "h3": "Live API 金鑰", "p": "在儀表板的 Developers > API keys 中查詢以 live_ 開頭的 Live API 金鑰。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> 務必查詢以 <strong>live_</strong> 開頭的 Live API 金鑰。注意不要與 Test 金鑰混淆。" }
+          ]
+        },
+        {
+          "h2": "2. 簽發步驟",
+          "desc": "依以下順序簽發並在 GenieGo 中註冊。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "存取儀表板", "p": "登入 Mollie 儀表板。", "path": "my.mollie.com" },
+              { "h3": "前往 API keys", "p": "前往 [Developers] > [API keys]。", "path": "https://my.mollie.com/dashboard/developers/api-keys" },
+              { "h3": "查詢 Live API 金鑰", "p": "查詢以 live_ 開頭的 Live API 金鑰。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 Developers &gt; API keys 中能看到以 live_ 開頭的金鑰即表示正常。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中註冊的資訊",
+          "blocks": [
+            { "type": "table", "head": ["欄位", "說明"], "rows": [
+              ["api_key", "Live API 金鑰(以 live_ 開頭,請妥善保管)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 整合中心 [註冊] 中輸入 api_key 並儲存後,憑證將以 AES-256-GCM 加密儲存,並在查詢時進行遮罩處理。" }
+          ]
+        },
+        {
+          "h2": "4. 常見問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["認證失敗", "使用了 Test 金鑰", "再次確認是否為以 live_ 開頭的 Live API 金鑰。"],
+              ["API keys 選單中沒有金鑰", "需要確認儀表板登入帳戶", "確認是否已使用 Mollie 帳戶登入 my.mollie.com 儀表板。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終檢查清單",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已使用 Mollie 帳戶登入 my.mollie.com 儀表板。",
+              "已在 Developers > API keys 中查詢 Live API 金鑰。",
+              "已查詢到以 live_ 開頭的 Live API 金鑰。",
+              "已在 GenieGo [註冊] 中輸入 api_key 並儲存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "de": {
+      "titleType": "Anleitung zur API-Key-Ausstellung",
+      "badge": "Einsteigerleitfaden",
+      "intro": "Eine einsteigerfreundliche Schritt-für-Schritt-Anleitung zum Auffinden Ihres Live-API-Schlüssels (beginnt mit live_) im Mollie Dashboard und zum Registrieren im GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Geschätzte Zeit", "Etwa 5–10 Min."],
+        ["Benötigtes Konto", "Mollie-Konto (Europa-fokussiert)"],
+        ["Ausgestellter Schlüssel", "Live-API-Schlüssel (live_)"],
+        ["Ergebnis", "Live-API-Anmeldedaten"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Bevor Sie beginnen",
+          "desc": "Ihren Mollie-API-Schlüssel finden Sie im Dashboard Ihres Mollie-Kontos.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Erforderlich", "h3": "Mollie-Konto", "p": "Sie benötigen ein Mollie-Konto (Europa-fokussiert). Sie müssen sich damit beim Dashboard anmelden können." },
+              { "tag": "Ausgestellter Schlüssel", "h3": "Live-API-Schlüssel", "p": "Gehen Sie im Dashboard zu Developers > API keys und finden Sie den Live-API-Schlüssel, der mit live_ beginnt." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Hinweis:</strong> Achten Sie darauf, den Live-API-Schlüssel zu finden, der mit <strong>live_</strong> beginnt. Verwechseln Sie ihn nicht mit dem Test-Schlüssel." }
+          ]
+        },
+        {
+          "h2": "2. Ausstellungsschritte",
+          "desc": "Stellen Sie in der unten angegebenen Reihenfolge aus und registrieren Sie in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Auf das Dashboard zugreifen", "p": "Melden Sie sich beim Mollie Dashboard an.", "path": "my.mollie.com" },
+              { "h3": "Zu API keys wechseln", "p": "Navigieren Sie zu [Developers] > [API keys].", "path": "https://my.mollie.com/dashboard/developers/api-keys" },
+              { "h3": "Live-API-Schlüssel finden", "p": "Finden Sie den Live-API-Schlüssel, der mit live_ beginnt." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Wenn Sie unter Developers &gt; API keys einen Schlüssel sehen, der mit live_ beginnt, ist alles korrekt." }
+          ]
+        },
+        {
+          "h2": "3. In GenieGo zu registrierende Informationen",
+          "blocks": [
+            { "type": "table", "head": ["Feld", "Beschreibung"], "rows": [
+              ["api_key", "Live-API-Schlüssel (beginnt mit live_; vertraulich behandeln)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Geben Sie im GenieGo Integration Hub [Registrieren] Ihren api_key ein und speichern Sie. Anmeldedaten werden im Ruhezustand mit AES-256-GCM verschlüsselt und beim Lesen maskiert." }
+          ]
+        },
+        {
+          "h2": "4. Häufige Probleme",
+          "blocks": [
+            { "type": "table", "head": ["Problem", "Ursache", "Lösung"], "rows": [
+              ["Authentifizierung schlägt fehl", "Verwendung des Test-Schlüssels", "Prüfen Sie erneut, ob es sich um den Live-API-Schlüssel handelt, der mit live_ beginnt."],
+              ["Kein Schlüssel im API-keys-Menü", "Anmeldekonto des Dashboards muss überprüft werden", "Überprüfen Sie, ob Sie sich mit Ihrem Mollie-Konto beim my.mollie.com Dashboard angemeldet haben."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Abschließende Checkliste",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Mit meinem Mollie-Konto beim my.mollie.com Dashboard angemeldet.",
+              "Den Live-API-Schlüssel unter Developers > API keys gefunden.",
+              "Den Live-API-Schlüssel gefunden, der mit live_ beginnt.",
+              "Den api_key in GenieGo [Registrieren] eingegeben und gespeichert."
+            ] }
+          ]
+        }
+      ]
+    },
+    "th": {
+      "titleType": "คู่มือการออก API Key",
+      "badge": "คู่มือสำหรับผู้เริ่มต้น",
+      "intro": "คู่มือทีละขั้นตอนที่เป็นมิตรกับผู้เริ่มต้น สำหรับการค้นหา Live API key (ขึ้นต้นด้วย live_) ในแดชบอร์ด Mollie และลงทะเบียนใน GenieGo Integration Hub",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["เวลาโดยประมาณ", "ประมาณ 5–10 นาที"],
+        ["บัญชีที่ต้องใช้", "บัญชี Mollie (เน้นยุโรป)"],
+        ["คีย์ที่ออก", "Live API key (live_)"],
+        ["ผลลัพธ์", "ข้อมูลรับรอง Live API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. ก่อนเริ่มต้น",
+          "desc": "คุณสามารถดู API key ของ Mollie ได้ในแดชบอร์ดของบัญชี Mollie",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "จำเป็น", "h3": "บัญชี Mollie", "p": "คุณต้องมีบัญชี Mollie (เน้นยุโรป) และต้องสามารถลงชื่อเข้าใช้แดชบอร์ดด้วยบัญชีนั้นได้" },
+              { "tag": "คีย์ที่ออก", "h3": "Live API key", "p": "ในแดชบอร์ด ไปที่ Developers > API keys และค้นหา Live API key ที่ขึ้นต้นด้วย live_" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>หมายเหตุ:</strong> ต้องค้นหา Live API key ที่ขึ้นต้นด้วย <strong>live_</strong> ระวังอย่าสับสนกับคีย์ Test" }
+          ]
+        },
+        {
+          "h2": "2. ขั้นตอนการออก",
+          "desc": "ออกตามลำดับด้านล่างและลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "เข้าสู่แดชบอร์ด", "p": "ลงชื่อเข้าใช้แดชบอร์ด Mollie", "path": "my.mollie.com" },
+              { "h3": "ไปที่ API keys", "p": "ไปที่ [Developers] > [API keys]", "path": "https://my.mollie.com/dashboard/developers/api-keys" },
+              { "h3": "ค้นหา Live API key", "p": "ค้นหา Live API key ที่ขึ้นต้นด้วย live_" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "หากคุณเห็นคีย์ที่ขึ้นต้นด้วย live_ ภายใต้ Developers &gt; API keys แสดงว่าถูกต้อง" }
+          ]
+        },
+        {
+          "h2": "3. ข้อมูลที่ต้องลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["ฟิลด์", "คำอธิบาย"], "rows": [
+              ["api_key", "Live API key (ขึ้นต้นด้วย live_ จัดการด้วยความระมัดระวัง)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "ใน GenieGo Integration Hub [ลงทะเบียน] ป้อน api_key แล้วบันทึก ข้อมูลรับรองจะถูกเข้ารหัสขณะจัดเก็บด้วย AES-256-GCM และปิดบังเมื่ออ่าน" }
+          ]
+        },
+        {
+          "h2": "4. ปัญหาที่พบบ่อย",
+          "blocks": [
+            { "type": "table", "head": ["ปัญหา", "สาเหตุ", "วิธีแก้ไข"], "rows": [
+              ["การยืนยันตัวตนล้มเหลว", "ใช้คีย์ Test", "ตรวจสอบอีกครั้งว่าเป็น Live API key ที่ขึ้นต้นด้วย live_ หรือไม่"],
+              ["ไม่มีคีย์ในเมนู API keys", "ต้องตรวจสอบบัญชีที่ลงชื่อเข้าใช้แดชบอร์ด", "ตรวจสอบว่าคุณได้ลงชื่อเข้าใช้แดชบอร์ด my.mollie.com ด้วยบัญชี Mollie ของคุณแล้วหรือไม่"]
+            ] }
+          ]
+        },
+        {
+          "h2": "รายการตรวจสอบขั้นสุดท้าย",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "ลงชื่อเข้าใช้แดชบอร์ด my.mollie.com ด้วยบัญชี Mollie แล้ว",
+              "ดู Live API key ภายใต้ Developers > API keys แล้ว",
+              "พบ Live API key ที่ขึ้นต้นด้วย live_ แล้ว",
+              "ป้อน api_key ใน GenieGo [ลงทะเบียน] และบันทึกแล้ว"
+            ] }
+          ]
+        }
+      ]
+    },
+    "vi": {
+      "titleType": "Hướng dẫn cấp API Key",
+      "badge": "Hướng dẫn cho người mới",
+      "intro": "Hướng dẫn từng bước thân thiện với người mới về việc tìm khóa Live API (bắt đầu bằng live_) trong Mollie Dashboard và đăng ký trong GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Thời gian dự kiến", "Khoảng 5–10 phút"],
+        ["Tài khoản cần thiết", "Tài khoản Mollie (tập trung ở châu Âu)"],
+        ["Khóa được cấp", "Khóa Live API (live_)"],
+        ["Kết quả", "Thông tin xác thực Live API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Trước khi bắt đầu",
+          "desc": "Khóa API Mollie của bạn được tìm thấy trong Dashboard của tài khoản Mollie.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Bắt buộc", "h3": "Tài khoản Mollie", "p": "Bạn cần một tài khoản Mollie (tập trung ở châu Âu). Bạn phải có thể đăng nhập vào Dashboard bằng tài khoản đó." },
+              { "tag": "Khóa được cấp", "h3": "Khóa Live API", "p": "Trong Dashboard, vào Developers > API keys và tìm khóa Live API bắt đầu bằng live_." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Lưu ý:</strong> Hãy chắc chắn tìm khóa Live API bắt đầu bằng <strong>live_</strong>. Cẩn thận không nhầm lẫn với khóa Test." }
+          ]
+        },
+        {
+          "h2": "2. Các bước cấp",
+          "desc": "Cấp theo thứ tự dưới đây và đăng ký trong GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Truy cập Dashboard", "p": "Đăng nhập vào Mollie Dashboard.", "path": "my.mollie.com" },
+              { "h3": "Đi đến API keys", "p": "Điều hướng đến [Developers] > [API keys].", "path": "https://my.mollie.com/dashboard/developers/api-keys" },
+              { "h3": "Tìm khóa Live API", "p": "Tìm khóa Live API bắt đầu bằng live_." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Nếu bạn thấy một khóa bắt đầu bằng live_ trong Developers &gt; API keys, nghĩa là đúng." }
+          ]
+        },
+        {
+          "h2": "3. Thông tin cần đăng ký trong GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Trường", "Mô tả"], "rows": [
+              ["api_key", "Khóa Live API (bắt đầu bằng live_; xử lý cẩn thận)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Trong GenieGo Integration Hub [Đăng ký], nhập api_key của bạn rồi lưu. Thông tin xác thực được mã hóa khi lưu trữ bằng AES-256-GCM và được che khi đọc." }
+          ]
+        },
+        {
+          "h2": "4. Sự cố thường gặp",
+          "blocks": [
+            { "type": "table", "head": ["Sự cố", "Nguyên nhân", "Giải pháp"], "rows": [
+              ["Xác thực thất bại", "Đang dùng khóa Test", "Kiểm tra lại xem đó có phải là khóa Live API bắt đầu bằng live_ hay không."],
+              ["Không có khóa trong menu API keys", "Cần xác minh tài khoản đăng nhập Dashboard", "Xác minh rằng bạn đã đăng nhập vào Dashboard my.mollie.com bằng tài khoản Mollie của mình."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Danh sách kiểm tra cuối cùng",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Đã đăng nhập vào Dashboard my.mollie.com bằng tài khoản Mollie.",
+              "Đã tìm thấy khóa Live API trong Developers > API keys.",
+              "Đã tìm thấy khóa Live API bắt đầu bằng live_.",
+              "Đã nhập api_key vào GenieGo [Đăng ký] và lưu."
+            ] }
+          ]
+        }
+      ]
+    },
+    "id": {
+      "titleType": "Panduan Penerbitan API Key",
+      "badge": "Panduan Pemula",
+      "intro": "Panduan langkah demi langkah yang ramah pemula untuk menemukan kunci Live API (diawali dengan live_) di Mollie Dashboard dan mendaftarkannya di GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Perkiraan waktu", "Sekitar 5–10 menit"],
+        ["Akun yang dibutuhkan", "Akun Mollie (berfokus pada Eropa)"],
+        ["Kunci yang diterbitkan", "Kunci Live API (live_)"],
+        ["Hasil", "Kredensial Live API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Sebelum Anda Mulai",
+          "desc": "Kunci API Mollie Anda ditemukan di Dashboard akun Mollie Anda.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Diperlukan", "h3": "Akun Mollie", "p": "Anda memerlukan akun Mollie (berfokus pada Eropa). Anda harus dapat masuk ke Dashboard dengan akun tersebut." },
+              { "tag": "Kunci yang diterbitkan", "h3": "Kunci Live API", "p": "Di Dashboard, buka Developers > API keys dan temukan kunci Live API yang diawali dengan live_." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Catatan:</strong> Pastikan menemukan kunci Live API yang diawali dengan <strong>live_</strong>. Hati-hati jangan sampai tertukar dengan kunci Test." }
+          ]
+        },
+        {
+          "h2": "2. Langkah Penerbitan",
+          "desc": "Terbitkan sesuai urutan di bawah dan daftarkan di GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Akses Dashboard", "p": "Masuk ke Mollie Dashboard.", "path": "my.mollie.com" },
+              { "h3": "Buka API keys", "p": "Navigasikan ke [Developers] > [API keys].", "path": "https://my.mollie.com/dashboard/developers/api-keys" },
+              { "h3": "Temukan kunci Live API", "p": "Temukan kunci Live API yang diawali dengan live_." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Jika Anda melihat kunci yang diawali dengan live_ di bawah Developers &gt; API keys, berarti sudah benar." }
+          ]
+        },
+        {
+          "h2": "3. Informasi yang Harus Didaftarkan di GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Bidang", "Deskripsi"], "rows": [
+              ["api_key", "Kunci Live API (diawali dengan live_; tangani dengan hati-hati)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Di GenieGo Integration Hub [Daftar], masukkan api_key Anda lalu simpan. Kredensial dienkripsi saat disimpan dengan AES-256-GCM dan disamarkan saat dibaca." }
+          ]
+        },
+        {
+          "h2": "4. Masalah Umum",
+          "blocks": [
+            { "type": "table", "head": ["Masalah", "Penyebab", "Solusi"], "rows": [
+              ["Autentikasi gagal", "Menggunakan kunci Test", "Periksa kembali apakah itu kunci Live API yang diawali dengan live_."],
+              ["Tidak ada kunci di menu API keys", "Perlu memverifikasi akun masuk Dashboard", "Verifikasi bahwa Anda telah masuk ke Dashboard my.mollie.com dengan akun Mollie Anda."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Daftar Periksa Akhir",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Telah masuk ke Dashboard my.mollie.com dengan akun Mollie.",
+              "Telah menemukan kunci Live API di Developers > API keys.",
+              "Telah menemukan kunci Live API yang diawali dengan live_.",
+              "Telah memasukkan api_key di GenieGo [Daftar] dan menyimpannya."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ar": {
+      "titleType": "دليل إصدار مفتاح API",
+      "badge": "دليل المبتدئين",
+      "intro": "دليل تفصيلي خطوة بخطوة مناسب للمبتدئين للعثور على مفتاح Live API (يبدأ بـ live_) في لوحة تحكم Mollie وتسجيله في GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["الوقت المقدر", "حوالي 5–10 دقائق"],
+        ["الحساب المطلوب", "حساب Mollie (يركز على أوروبا)"],
+        ["المفتاح الصادر", "مفتاح Live API ‏(live_)"],
+        ["النتيجة", "بيانات اعتماد Live API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. قبل أن تبدأ",
+          "desc": "يمكن العثور على مفتاح API الخاص بـ Mollie في لوحة تحكم حساب Mollie الخاص بك.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "مطلوب", "h3": "حساب Mollie", "p": "تحتاج إلى حساب Mollie (يركز على أوروبا). يجب أن تكون قادرًا على تسجيل الدخول إلى لوحة التحكم به." },
+              { "tag": "المفتاح الصادر", "h3": "مفتاح Live API", "p": "في لوحة التحكم، انتقل إلى Developers > API keys وابحث عن مفتاح Live API الذي يبدأ بـ live_." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>ملاحظة:</strong> تأكد من العثور على مفتاح Live API الذي يبدأ بـ <strong>live_</strong>. احرص على عدم الخلط بينه وبين مفتاح Test." }
+          ]
+        },
+        {
+          "h2": "2. خطوات الإصدار",
+          "desc": "أصدر بالترتيب أدناه وسجّل في GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "الوصول إلى لوحة التحكم", "p": "سجّل الدخول إلى لوحة تحكم Mollie.", "path": "my.mollie.com" },
+              { "h3": "الانتقال إلى API keys", "p": "انتقل إلى [Developers] > [API keys].", "path": "https://my.mollie.com/dashboard/developers/api-keys" },
+              { "h3": "العثور على مفتاح Live API", "p": "ابحث عن مفتاح Live API الذي يبدأ بـ live_." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "إذا رأيت مفتاحًا يبدأ بـ live_ ضمن Developers &gt; API keys، فهذا يعني أنه صحيح." }
+          ]
+        },
+        {
+          "h2": "3. المعلومات المطلوب تسجيلها في GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["الحقل", "الوصف"], "rows": [
+              ["api_key", "مفتاح Live API (يبدأ بـ live_؛ تعامل معه بعناية)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "في GenieGo Integration Hub [تسجيل]، أدخل api_key الخاص بك واحفظه. تُشفَّر بيانات الاعتماد أثناء التخزين باستخدام AES-256-GCM وتُخفى عند القراءة." }
+          ]
+        },
+        {
+          "h2": "4. المشكلات الشائعة",
+          "blocks": [
+            { "type": "table", "head": ["المشكلة", "السبب", "الحل"], "rows": [
+              ["فشل المصادقة", "استخدام مفتاح Test", "تحقق مرة أخرى من أنه مفتاح Live API الذي يبدأ بـ live_."],
+              ["لا يوجد مفتاح في قائمة API keys", "يلزم التحقق من حساب تسجيل الدخول إلى لوحة التحكم", "تحقق من أنك سجّلت الدخول إلى لوحة تحكم my.mollie.com بحساب Mollie الخاص بك."]
+            ] }
+          ]
+        },
+        {
+          "h2": "قائمة التحقق النهائية",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "سجّلت الدخول إلى لوحة تحكم my.mollie.com بحساب Mollie.",
+              "عثرت على مفتاح Live API ضمن Developers > API keys.",
+              "عثرت على مفتاح Live API الذي يبدأ بـ live_.",
+              "أدخلت api_key في GenieGo [تسجيل] وحفظته."
+            ] }
+          ]
+        }
+      ]
+    },
+    "es": {
+      "titleType": "Manual de emisión de API Key",
+      "badge": "Guía para principiantes",
+      "intro": "Una guía paso a paso fácil para principiantes para encontrar tu clave de Live API (que empieza por live_) en el Panel de Mollie y registrarla en el GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tiempo estimado", "Unos 5–10 min"],
+        ["Cuenta necesaria", "Cuenta de Mollie (enfocada en Europa)"],
+        ["Clave emitida", "Clave de Live API (live_)"],
+        ["Resultado", "Credenciales de Live API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de empezar",
+          "desc": "Tu clave de API de Mollie se encuentra en el Panel de tu cuenta de Mollie.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requerido", "h3": "Cuenta de Mollie", "p": "Necesitas una cuenta de Mollie (enfocada en Europa). Debes poder iniciar sesión en el Panel con ella." },
+              { "tag": "Clave emitida", "h3": "Clave de Live API", "p": "En el Panel, ve a Developers > API keys y busca la clave de Live API que empieza por live_." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Nota:</strong> Asegúrate de encontrar la clave de Live API que empieza por <strong>live_</strong>. Ten cuidado de no confundirla con la clave Test." }
+          ]
+        },
+        {
+          "h2": "2. Pasos de emisión",
+          "desc": "Emite en el orden siguiente y regístrala en GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Acceder al Panel", "p": "Inicia sesión en el Panel de Mollie.", "path": "my.mollie.com" },
+              { "h3": "Ir a API keys", "p": "Navega a [Developers] > [API keys].", "path": "https://my.mollie.com/dashboard/developers/api-keys" },
+              { "h3": "Encontrar la clave de Live API", "p": "Busca la clave de Live API que empieza por live_." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Si ves una clave que empieza por live_ en Developers &gt; API keys, es correcta." }
+          ]
+        },
+        {
+          "h2": "3. Información para registrar en GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descripción"], "rows": [
+              ["api_key", "Clave de Live API (empieza por live_; manéjala con cuidado)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "En el GenieGo Integration Hub [Registrar], introduce tu api_key y guárdalo. Las credenciales se cifran en reposo con AES-256-GCM y se enmascaran al leerlas." }
+          ]
+        },
+        {
+          "h2": "4. Problemas frecuentes",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solución"], "rows": [
+              ["La autenticación falla", "Uso de la clave Test", "Vuelve a comprobar que sea la clave de Live API que empieza por live_."],
+              ["No hay clave en el menú API keys", "Es necesario verificar la cuenta de inicio de sesión del Panel", "Verifica que hayas iniciado sesión en el Panel de my.mollie.com con tu cuenta de Mollie."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificación final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Inicié sesión en el Panel de my.mollie.com con mi cuenta de Mollie.",
+              "Encontré la clave de Live API en Developers > API keys.",
+              "Encontré la clave de Live API que empieza por live_.",
+              "Introduje el api_key en GenieGo [Registrar] y lo guardé."
+            ] }
+          ]
+        }
+      ]
+    },
+    "fr": {
+      "titleType": "Manuel d'émission de la clé API",
+      "badge": "Guide pour débutants",
+      "intro": "Un guide pas à pas adapté aux débutants pour trouver votre clé Live API (commençant par live_) dans le tableau de bord Mollie et l'enregistrer dans le GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Temps estimé", "Environ 5 à 10 min"],
+        ["Compte requis", "Compte Mollie (axé sur l'Europe)"],
+        ["Clé émise", "Clé Live API (live_)"],
+        ["Résultat", "Identifiants Live API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Avant de commencer",
+          "desc": "Votre clé API Mollie se trouve dans le tableau de bord de votre compte Mollie.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requis", "h3": "Compte Mollie", "p": "Vous avez besoin d'un compte Mollie (axé sur l'Europe). Vous devez pouvoir vous connecter au tableau de bord avec celui-ci." },
+              { "tag": "Clé émise", "h3": "Clé Live API", "p": "Dans le tableau de bord, allez dans Developers > API keys et trouvez la clé Live API qui commence par live_." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Remarque :</strong> Veillez à trouver la clé Live API qui commence par <strong>live_</strong>. Faites attention à ne pas la confondre avec la clé Test." }
+          ]
+        },
+        {
+          "h2": "2. Étapes d'émission",
+          "desc": "Émettez dans l'ordre ci-dessous et enregistrez dans GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Accéder au tableau de bord", "p": "Connectez-vous au tableau de bord Mollie.", "path": "my.mollie.com" },
+              { "h3": "Aller dans API keys", "p": "Accédez à [Developers] > [API keys].", "path": "https://my.mollie.com/dashboard/developers/api-keys" },
+              { "h3": "Trouver la clé Live API", "p": "Trouvez la clé Live API qui commence par live_." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Si vous voyez une clé qui commence par live_ sous Developers &gt; API keys, c'est correct." }
+          ]
+        },
+        {
+          "h2": "3. Informations à enregistrer dans GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Champ", "Description"], "rows": [
+              ["api_key", "Clé Live API (commence par live_ ; à manipuler avec précaution)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Dans le GenieGo Integration Hub [Enregistrer], saisissez votre api_key et enregistrez. Les identifiants sont chiffrés au repos avec AES-256-GCM et masqués à la lecture." }
+          ]
+        },
+        {
+          "h2": "4. Problèmes fréquents",
+          "blocks": [
+            { "type": "table", "head": ["Problème", "Cause", "Solution"], "rows": [
+              ["L'authentification échoue", "Utilisation de la clé Test", "Vérifiez à nouveau qu'il s'agit bien de la clé Live API qui commence par live_."],
+              ["Aucune clé dans le menu API keys", "Le compte de connexion au tableau de bord doit être vérifié", "Vérifiez que vous vous êtes connecté au tableau de bord my.mollie.com avec votre compte Mollie."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Liste de contrôle finale",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Connecté au tableau de bord my.mollie.com avec mon compte Mollie.",
+              "Trouvé la clé Live API dans Developers > API keys.",
+              "Trouvé la clé Live API qui commence par live_.",
+              "Saisi l'api_key dans GenieGo [Enregistrer] et enregistré."
+            ] }
+          ]
+        }
+      ]
+    },
+    "hi": {
+      "titleType": "API Key जारी करने की नियमावली",
+      "badge": "शुरुआती गाइड",
+      "intro": "Mollie डैशबोर्ड में अपनी Live API कुंजी (live_ से शुरू) ढूँढने और उसे GenieGo Integration Hub में पंजीकृत करने के लिए शुरुआती-अनुकूल चरण-दर-चरण मार्गदर्शिका।",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["अनुमानित समय", "लगभग 5–10 मिनट"],
+        ["आवश्यक खाता", "Mollie खाता (यूरोप-केंद्रित)"],
+        ["जारी कुंजी", "Live API कुंजी (live_)"],
+        ["परिणाम", "Live API क्रेडेंशियल"]
+      ],
+      "sections": [
+        {
+          "h2": "1. शुरू करने से पहले",
+          "desc": "आपकी Mollie API कुंजी आपके Mollie खाते के डैशबोर्ड में मिलती है।",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "आवश्यक", "h3": "Mollie खाता", "p": "आपको एक Mollie खाता (यूरोप-केंद्रित) चाहिए। आप उससे डैशबोर्ड में साइन इन कर सकने में सक्षम होने चाहिए।" },
+              { "tag": "जारी कुंजी", "h3": "Live API कुंजी", "p": "डैशबोर्ड में, Developers > API keys पर जाएँ और live_ से शुरू होने वाली Live API कुंजी ढूँढें।" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>ध्यान दें:</strong> सुनिश्चित करें कि आप <strong>live_</strong> से शुरू होने वाली Live API कुंजी ढूँढें। इसे Test कुंजी के साथ भ्रमित न करने का ध्यान रखें।" }
+          ]
+        },
+        {
+          "h2": "2. जारी करने के चरण",
+          "desc": "नीचे दिए क्रम में जारी करें और GenieGo में पंजीकृत करें।",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "डैशबोर्ड तक पहुँचें", "p": "Mollie डैशबोर्ड में साइन इन करें।", "path": "my.mollie.com" },
+              { "h3": "API keys पर जाएँ", "p": "[Developers] > [API keys] पर नेविगेट करें।", "path": "https://my.mollie.com/dashboard/developers/api-keys" },
+              { "h3": "Live API कुंजी ढूँढें", "p": "live_ से शुरू होने वाली Live API कुंजी ढूँढें।" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "यदि आपको Developers &gt; API keys के अंतर्गत live_ से शुरू होने वाली कुंजी दिखती है, तो यह सही है।" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo में पंजीकृत करने योग्य जानकारी",
+          "blocks": [
+            { "type": "table", "head": ["फ़ील्ड", "विवरण"], "rows": [
+              ["api_key", "Live API कुंजी (live_ से शुरू; सावधानी से संभालें)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo Integration Hub [पंजीकृत करें] में, अपनी api_key दर्ज करें और सहेजें। क्रेडेंशियल को संग्रहण के समय AES-256-GCM से एन्क्रिप्ट किया जाता है और पढ़ने पर मास्क किया जाता है।" }
+          ]
+        },
+        {
+          "h2": "4. आम समस्याएँ",
+          "blocks": [
+            { "type": "table", "head": ["समस्या", "कारण", "समाधान"], "rows": [
+              ["प्रमाणीकरण विफल", "Test कुंजी का उपयोग", "दोबारा जाँचें कि यह live_ से शुरू होने वाली Live API कुंजी है।"],
+              ["API keys मेनू में कोई कुंजी नहीं", "डैशबोर्ड साइन-इन खाते की पुष्टि करना आवश्यक", "पुष्टि करें कि आपने अपने Mollie खाते से my.mollie.com डैशबोर्ड में साइन इन किया है।"]
+            ] }
+          ]
+        },
+        {
+          "h2": "अंतिम जाँच सूची",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "अपने Mollie खाते से my.mollie.com डैशबोर्ड में साइन इन किया।",
+              "Developers > API keys में Live API कुंजी ढूँढी।",
+              "live_ से शुरू होने वाली Live API कुंजी ढूँढी।",
+              "GenieGo [पंजीकृत करें] में api_key दर्ज किया और सहेजा।"
+            ] }
+          ]
+        }
+      ]
+    },
+    "pt": {
+      "titleType": "Manual de emissão de API Key",
+      "badge": "Guia para iniciantes",
+      "intro": "Um guia passo a passo amigável para iniciantes para encontrar sua chave Live API (começando com live_) no Painel da Mollie e registrá-la no GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tempo estimado", "Cerca de 5–10 min"],
+        ["Conta necessária", "Conta Mollie (focada na Europa)"],
+        ["Chave emitida", "Chave Live API (live_)"],
+        ["Resultado", "Credenciais da Live API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de começar",
+          "desc": "Sua chave de API da Mollie é encontrada no Painel da sua conta Mollie.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Necessário", "h3": "Conta Mollie", "p": "Você precisa de uma conta Mollie (focada na Europa). Você deve conseguir fazer login no Painel com ela." },
+              { "tag": "Chave emitida", "h3": "Chave Live API", "p": "No Painel, vá em Developers > API keys e encontre a chave Live API que começa com live_." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Observação:</strong> Certifique-se de encontrar a chave Live API que começa com <strong>live_</strong>. Tenha cuidado para não confundi-la com a chave Test." }
+          ]
+        },
+        {
+          "h2": "2. Etapas de emissão",
+          "desc": "Emita na ordem abaixo e registre no GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Acessar o Painel", "p": "Faça login no Painel da Mollie.", "path": "my.mollie.com" },
+              { "h3": "Ir para API keys", "p": "Navegue até [Developers] > [API keys].", "path": "https://my.mollie.com/dashboard/developers/api-keys" },
+              { "h3": "Encontrar a chave Live API", "p": "Encontre a chave Live API que começa com live_." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Se você vir uma chave que começa com live_ em Developers &gt; API keys, está correto." }
+          ]
+        },
+        {
+          "h2": "3. Informações para registrar no GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descrição"], "rows": [
+              ["api_key", "Chave Live API (começa com live_; manuseie com cuidado)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "No GenieGo Integration Hub [Registrar], insira sua api_key e salve. As credenciais são criptografadas em repouso com AES-256-GCM e mascaradas na leitura." }
+          ]
+        },
+        {
+          "h2": "4. Problemas comuns",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solução"], "rows": [
+              ["Falha na autenticação", "Uso da chave Test", "Verifique novamente se é a chave Live API que começa com live_."],
+              ["Nenhuma chave no menu API keys", "É necessário verificar a conta de login do Painel", "Verifique se você fez login no Painel my.mollie.com com sua conta Mollie."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificação final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Fiz login no Painel my.mollie.com com minha conta Mollie.",
+              "Encontrei a chave Live API em Developers > API keys.",
+              "Encontrei a chave Live API que começa com live_.",
+              "Inseri a api_key no GenieGo [Registrar] e salvei."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ru": {
+      "titleType": "Руководство по выпуску API-ключа",
+      "badge": "Руководство для начинающих",
+      "intro": "Пошаговое руководство для начинающих по поиску вашего ключа Live API (начинается с live_) в панели управления Mollie и его регистрации в GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Примерное время", "Около 5–10 мин"],
+        ["Необходимая учётная запись", "Учётная запись Mollie (ориентирована на Европу)"],
+        ["Выпускаемый ключ", "Ключ Live API (live_)"],
+        ["Результат", "Учётные данные Live API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Прежде чем начать",
+          "desc": "Ваш API-ключ Mollie находится в панели управления вашей учётной записи Mollie.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Требуется", "h3": "Учётная запись Mollie", "p": "Вам нужна учётная запись Mollie (ориентирована на Европу). Вы должны иметь возможность войти в панель управления с её помощью." },
+              { "tag": "Выпускаемый ключ", "h3": "Ключ Live API", "p": "В панели управления перейдите в Developers > API keys и найдите ключ Live API, начинающийся с live_." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Примечание:</strong> Обязательно найдите ключ Live API, начинающийся с <strong>live_</strong>. Будьте осторожны, чтобы не перепутать его с ключом Test." }
+          ]
+        },
+        {
+          "h2": "2. Шаги выпуска",
+          "desc": "Выпустите в указанном ниже порядке и зарегистрируйте в GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Доступ к панели управления", "p": "Войдите в панель управления Mollie.", "path": "my.mollie.com" },
+              { "h3": "Перейти в API keys", "p": "Перейдите в [Developers] > [API keys].", "path": "https://my.mollie.com/dashboard/developers/api-keys" },
+              { "h3": "Найти ключ Live API", "p": "Найдите ключ Live API, начинающийся с live_." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Если в разделе Developers &gt; API keys вы видите ключ, начинающийся с live_, значит всё правильно." }
+          ]
+        },
+        {
+          "h2": "3. Информация для регистрации в GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Поле", "Описание"], "rows": [
+              ["api_key", "Ключ Live API (начинается с live_; обращайтесь осторожно)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "В GenieGo Integration Hub [Регистрация] введите ваш api_key и сохраните. Учётные данные шифруются при хранении с помощью AES-256-GCM и маскируются при чтении." }
+          ]
+        },
+        {
+          "h2": "4. Частые проблемы",
+          "blocks": [
+            { "type": "table", "head": ["Проблема", "Причина", "Решение"], "rows": [
+              ["Сбой аутентификации", "Используется ключ Test", "Ещё раз проверьте, что это ключ Live API, начинающийся с live_."],
+              ["Нет ключа в меню API keys", "Необходимо проверить учётную запись входа в панель управления", "Убедитесь, что вы вошли в панель управления my.mollie.com с вашей учётной записью Mollie."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Финальный контрольный список",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Вошёл в панель управления my.mollie.com с моей учётной записью Mollie.",
+              "Нашёл ключ Live API в Developers > API keys.",
+              "Нашёл ключ Live API, начинающийся с live_.",
+              "Ввёл api_key в GenieGo [Регистрация] и сохранил."
+            ] }
+          ]
+        }
+      ]
+    }
+  }
+}

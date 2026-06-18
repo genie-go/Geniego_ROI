@@ -1,0 +1,1011 @@
+{
+  "name": "Slack Webhook",
+  "icon": "💬",
+  "langs": {
+    "ko": {
+      "titleType": "API Key 발급 매뉴얼",
+      "badge": "Beginner Guide",
+      "intro": "Slack에서 앱을 만들어 Incoming Webhook URL을 발급하고 GenieGo 연동 허브에 등록해, 알림을 지정한 Slack 채널로 전송하도록 연동하는 과정을 정리한 매뉴얼입니다.",
+      "org": "GenieGo 연동 허브",
+      "quick": [
+        ["소요 시간", "약 5분"],
+        ["필요 계정", "Slack 워크스페이스 관리 권한"],
+        ["발급 키", "Webhook URL"],
+        ["결과물", "Incoming Webhook 자격증명"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 시작하기 전에",
+          "desc": "Slack Webhook은 워크스페이스 관리 권한이 있어야 만들 수 있습니다.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "필요", "h3": "워크스페이스 관리 권한", "p": "Slack 워크스페이스의 관리 권한이 있어야 앱을 만들고 Webhook을 활성화할 수 있습니다." },
+              { "tag": "발급 키", "h3": "Webhook URL", "p": "Incoming Webhook을 활성화한 뒤 채널을 선택하면 생성되는 Webhook URL을 확인합니다." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>참고:</strong> Webhook URL은 알림이 전송될 채널과 연결됩니다. 채널을 선택하는 단계에서 알림을 받을 채널을 지정하세요." }
+          ]
+        },
+        {
+          "h2": "2. 발급 단계",
+          "desc": "아래 순서대로 발급하고 GenieGo에 등록합니다.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "새 앱 만들기", "p": "[Create New App]을 누릅니다.", "path": "https://api.slack.com/apps" },
+              { "h3": "Incoming Webhooks 활성화", "p": "[Incoming Webhooks]를 활성화하고 [Add New Webhook to Workspace]를 누릅니다." },
+              { "h3": "채널 선택 · URL 생성", "p": "채널을 선택하면 Webhook URL이 생성됩니다." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "채널을 선택해 Webhook URL이 생성되면 정상 발급된 것입니다." }
+          ]
+        },
+        {
+          "h2": "3. GenieGo에 등록할 정보",
+          "blocks": [
+            { "type": "table", "head": ["필드", "설명"], "rows": [
+              ["webhook_url", "생성된 Incoming Webhook URL(노출 주의)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo [등록]에 webhook_url을 입력해 저장하면 자격증명은 AES-256-GCM으로 암호화 저장되고 조회 시 마스킹됩니다." }
+          ]
+        },
+        {
+          "h2": "4. 자주 발생하는 문제",
+          "blocks": [
+            { "type": "table", "head": ["문제", "원인", "해결"], "rows": [
+              ["앱을 만들 수 없음", "워크스페이스 관리 권한 부족", "Slack 워크스페이스 관리 권한이 있는 계정으로 진행합니다."],
+              ["알림이 오지 않음", "Webhook URL 오기재 또는 채널 선택 누락", "Incoming Webhook을 활성화하고 채널을 선택해 생성된 Webhook URL을 다시 확인합니다."]
+            ] }
+          ]
+        },
+        {
+          "h2": "최종 체크리스트",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Slack 워크스페이스 관리 권한으로 진행했다.",
+              "api.slack.com/apps에서 [Create New App]으로 앱을 만들었다.",
+              "Incoming Webhooks를 활성화하고 [Add New Webhook]을 눌렀다.",
+              "채널을 선택해 Webhook URL을 생성·복사했다.",
+              "GenieGo [등록]에 webhook_url을 입력해 저장했다."
+            ] }
+          ]
+        }
+      ]
+    },
+    "en": {
+      "titleType": "API Key Issuance Manual",
+      "badge": "Beginner Guide",
+      "intro": "A guide to creating an app in Slack, issuing an Incoming Webhook URL, and registering it in the GenieGo Integration Hub so notifications are delivered to the Slack channel you specify.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Est. time", "About 5 min"],
+        ["Account needed", "Slack workspace admin permission"],
+        ["Keys issued", "Webhook URL"],
+        ["Result", "Incoming Webhook credentials"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Before You Begin",
+          "desc": "A Slack Webhook can only be created with workspace admin permission.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Required", "h3": "Workspace admin permission", "p": "You need admin permission for the Slack workspace to create an app and enable the Webhook." },
+              { "tag": "Keys issued", "h3": "Webhook URL", "p": "After enabling Incoming Webhooks and selecting a channel, check the generated Webhook URL." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Note:</strong> The Webhook URL is tied to the channel that notifications are sent to. Specify the channel that should receive notifications during the channel-selection step." }
+          ]
+        },
+        {
+          "h2": "2. Issuance Steps",
+          "desc": "Issue in the order below and register in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Create a new app", "p": "Click [Create New App].", "path": "https://api.slack.com/apps" },
+              { "h3": "Enable Incoming Webhooks", "p": "Enable [Incoming Webhooks] and click [Add New Webhook to Workspace]." },
+              { "h3": "Select a channel · Generate URL", "p": "Selecting a channel generates the Webhook URL." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Once you select a channel and the Webhook URL is generated, it has been issued correctly." }
+          ]
+        },
+        {
+          "h2": "3. Information to Register in GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Field", "Description"], "rows": [
+              ["webhook_url", "The generated Incoming Webhook URL (handle with care)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Enter the webhook_url in GenieGo [Register] and save. Credentials are encrypted at rest with AES-256-GCM and masked on read." }
+          ]
+        },
+        {
+          "h2": "4. Common Issues",
+          "blocks": [
+            { "type": "table", "head": ["Issue", "Cause", "Solution"], "rows": [
+              ["Can't create an app", "Insufficient workspace admin permission", "Proceed with an account that has Slack workspace admin permission."],
+              ["Notifications don't arrive", "Wrong Webhook URL or no channel selected", "Enable Incoming Webhooks, select a channel, and re-check the generated Webhook URL."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Final Checklist",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Proceeded with Slack workspace admin permission.",
+              "Created an app at api.slack.com/apps via [Create New App].",
+              "Enabled Incoming Webhooks and clicked [Add New Webhook].",
+              "Selected a channel and generated and copied the Webhook URL.",
+              "Entered the webhook_url in GenieGo [Register] and saved."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ja": {
+      "titleType": "API Key 発行マニュアル",
+      "badge": "初心者ガイド",
+      "intro": "Slack でアプリを作成して Incoming Webhook URL を発行し、GenieGo 連携ハブに登録して、通知を指定した Slack チャンネルに送信できるように連携する手順をまとめたマニュアルです。",
+      "org": "GenieGo 連携ハブ",
+      "quick": [
+        ["所要時間", "約 5 分"],
+        ["必要なアカウント", "Slack ワークスペースの管理権限"],
+        ["発行するキー", "Webhook URL"],
+        ["成果物", "Incoming Webhook 認証情報"]
+      ],
+      "sections": [
+        {
+          "h2": "1. はじめる前に",
+          "desc": "Slack Webhook はワークスペースの管理権限がないと作成できません。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必須", "h3": "ワークスペースの管理権限", "p": "Slack ワークスペースの管理権限がないと、アプリを作成して Webhook を有効化できません。" },
+              { "tag": "発行するキー", "h3": "Webhook URL", "p": "Incoming Webhook を有効化してからチャンネルを選択すると生成される Webhook URL を確認します。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> Webhook URL は通知が送信されるチャンネルに紐づきます。チャンネルを選択するステップで、通知を受け取るチャンネルを指定してください。" }
+          ]
+        },
+        {
+          "h2": "2. 発行手順",
+          "desc": "以下の順序で発行し、GenieGo に登録します。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "新しいアプリを作成", "p": "[Create New App] をクリックします。", "path": "https://api.slack.com/apps" },
+              { "h3": "Incoming Webhooks を有効化", "p": "[Incoming Webhooks] を有効化し、[Add New Webhook to Workspace] をクリックします。" },
+              { "h3": "チャンネル選択 · URL 生成", "p": "チャンネルを選択すると Webhook URL が生成されます。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "チャンネルを選択して Webhook URL が生成されれば、正常に発行されています。" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo に登録する情報",
+          "blocks": [
+            { "type": "table", "head": ["フィールド", "説明"], "rows": [
+              ["webhook_url", "生成された Incoming Webhook URL(取り扱い注意)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo の [登録] に webhook_url を入力して保存すると、認証情報は AES-256-GCM で暗号化して保存され、閲覧時にはマスキングされます。" }
+          ]
+        },
+        {
+          "h2": "4. よくある問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["アプリを作成できない", "ワークスペースの管理権限不足", "Slack ワークスペースの管理権限があるアカウントで進めます。"],
+              ["通知が届かない", "Webhook URL の誤記載、またはチャンネル選択漏れ", "Incoming Webhook を有効化し、チャンネルを選択して生成された Webhook URL を再度確認します。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終チェックリスト",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Slack ワークスペースの管理権限で進めた。",
+              "api.slack.com/apps で [Create New App] からアプリを作成した。",
+              "Incoming Webhooks を有効化し、[Add New Webhook] をクリックした。",
+              "チャンネルを選択して Webhook URL を生成・コピーした。",
+              "GenieGo の [登録] に webhook_url を入力して保存した。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh": {
+      "titleType": "API Key 申请手册",
+      "badge": "新手指南",
+      "intro": "本手册介绍如何在 Slack 中创建应用、签发 Incoming Webhook URL，并将其注册到 GenieGo 集成中心，从而将通知发送到您指定的 Slack 频道。",
+      "org": "GenieGo 集成中心",
+      "quick": [
+        ["预计时间", "约 5 分钟"],
+        ["所需账户", "Slack workspace 管理权限"],
+        ["签发密钥", "Webhook URL"],
+        ["成果", "Incoming Webhook 凭证"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 开始之前",
+          "desc": "只有拥有 workspace 管理权限才能创建 Slack Webhook。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "workspace 管理权限", "p": "您需要拥有 Slack workspace 的管理权限，才能创建应用并启用 Webhook。" },
+              { "tag": "签发密钥", "h3": "Webhook URL", "p": "启用 Incoming Webhooks 并选择频道后，查看生成的 Webhook URL。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> Webhook URL 与接收通知的频道绑定。请在选择频道的步骤中指定要接收通知的频道。" }
+          ]
+        },
+        {
+          "h2": "2. 申请步骤",
+          "desc": "按以下顺序签发并在 GenieGo 中注册。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "创建新应用", "p": "点击 [Create New App]。", "path": "https://api.slack.com/apps" },
+              { "h3": "启用 Incoming Webhooks", "p": "启用 [Incoming Webhooks] 并点击 [Add New Webhook to Workspace]。" },
+              { "h3": "选择频道 · 生成 URL", "p": "选择频道后即会生成 Webhook URL。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "选择频道并生成 Webhook URL 后，即表示已正确签发。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中注册的信息",
+          "blocks": [
+            { "type": "table", "head": ["字段", "说明"], "rows": [
+              ["webhook_url", "生成的 Incoming Webhook URL(请妥善保管)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo [注册] 中输入 webhook_url 并保存后，凭证将以 AES-256-GCM 加密存储，并在查询时进行掩码处理。" }
+          ]
+        },
+        {
+          "h2": "4. 常见问题",
+          "blocks": [
+            { "type": "table", "head": ["问题", "原因", "解决方法"], "rows": [
+              ["无法创建应用", "workspace 管理权限不足", "请使用拥有 Slack workspace 管理权限的账户进行操作。"],
+              ["收不到通知", "Webhook URL 填写错误或未选择频道", "启用 Incoming Webhooks，选择频道，并重新核对生成的 Webhook URL。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最终检查清单",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已使用 Slack workspace 管理权限进行操作。",
+              "已在 api.slack.com/apps 通过 [Create New App] 创建应用。",
+              "已启用 Incoming Webhooks 并点击 [Add New Webhook]。",
+              "已选择频道并生成、复制 Webhook URL。",
+              "已在 GenieGo [注册] 中输入 webhook_url 并保存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh-TW": {
+      "titleType": "API Key 申請手冊",
+      "badge": "新手指南",
+      "intro": "本手冊介紹如何在 Slack 中建立應用程式、簽發 Incoming Webhook URL，並將其註冊到 GenieGo 整合中心，從而將通知傳送到您指定的 Slack 頻道。",
+      "org": "GenieGo 整合中心",
+      "quick": [
+        ["預計時間", "約 5 分鐘"],
+        ["所需帳戶", "Slack workspace 管理權限"],
+        ["簽發金鑰", "Webhook URL"],
+        ["成果", "Incoming Webhook 憑證"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 開始之前",
+          "desc": "只有擁有 workspace 管理權限才能建立 Slack Webhook。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "workspace 管理權限", "p": "您需要擁有 Slack workspace 的管理權限，才能建立應用程式並啟用 Webhook。" },
+              { "tag": "簽發金鑰", "h3": "Webhook URL", "p": "啟用 Incoming Webhooks 並選擇頻道後，查看生成的 Webhook URL。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> Webhook URL 與接收通知的頻道綁定。請在選擇頻道的步驟中指定要接收通知的頻道。" }
+          ]
+        },
+        {
+          "h2": "2. 簽發步驟",
+          "desc": "依以下順序簽發並在 GenieGo 中註冊。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "建立新應用程式", "p": "點擊 [Create New App]。", "path": "https://api.slack.com/apps" },
+              { "h3": "啟用 Incoming Webhooks", "p": "啟用 [Incoming Webhooks] 並點擊 [Add New Webhook to Workspace]。" },
+              { "h3": "選擇頻道 · 生成 URL", "p": "選擇頻道後即會生成 Webhook URL。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "選擇頻道並生成 Webhook URL 後，即表示已正確簽發。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中註冊的資訊",
+          "blocks": [
+            { "type": "table", "head": ["欄位", "說明"], "rows": [
+              ["webhook_url", "生成的 Incoming Webhook URL(請妥善保管)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo [註冊] 中輸入 webhook_url 並儲存後，憑證將以 AES-256-GCM 加密儲存，並在查詢時進行遮罩處理。" }
+          ]
+        },
+        {
+          "h2": "4. 常見問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["無法建立應用程式", "workspace 管理權限不足", "請使用擁有 Slack workspace 管理權限的帳戶進行操作。"],
+              ["收不到通知", "Webhook URL 填寫錯誤或未選擇頻道", "啟用 Incoming Webhooks，選擇頻道，並重新核對生成的 Webhook URL。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終檢查清單",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已使用 Slack workspace 管理權限進行操作。",
+              "已在 api.slack.com/apps 透過 [Create New App] 建立應用程式。",
+              "已啟用 Incoming Webhooks 並點擊 [Add New Webhook]。",
+              "已選擇頻道並生成、複製 Webhook URL。",
+              "已在 GenieGo [註冊] 中輸入 webhook_url 並儲存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "de": {
+      "titleType": "Anleitung zur API-Key-Ausstellung",
+      "badge": "Einsteigerleitfaden",
+      "intro": "Eine Anleitung zum Erstellen einer App in Slack, zum Ausstellen einer Incoming-Webhook-URL und zum Registrieren im GenieGo Integration Hub, damit Benachrichtigungen an den von Ihnen festgelegten Slack-Kanal gesendet werden.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Geschätzte Zeit", "Etwa 5 Min."],
+        ["Benötigtes Konto", "Slack-Workspace-Adminrechte"],
+        ["Ausgestellte Schlüssel", "Webhook URL"],
+        ["Ergebnis", "Incoming-Webhook-Anmeldedaten"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Bevor Sie beginnen",
+          "desc": "Ein Slack-Webhook kann nur mit Workspace-Adminrechten erstellt werden.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Erforderlich", "h3": "Workspace-Adminrechte", "p": "Sie benötigen Adminrechte für den Slack-Workspace, um eine App zu erstellen und den Webhook zu aktivieren." },
+              { "tag": "Ausgestellte Schlüssel", "h3": "Webhook URL", "p": "Nachdem Sie Incoming Webhooks aktiviert und einen Kanal ausgewählt haben, prüfen Sie die generierte Webhook-URL." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Hinweis:</strong> Die Webhook-URL ist mit dem Kanal verknüpft, an den Benachrichtigungen gesendet werden. Legen Sie im Schritt zur Kanalauswahl den Kanal fest, der Benachrichtigungen erhalten soll." }
+          ]
+        },
+        {
+          "h2": "2. Ausstellungsschritte",
+          "desc": "Stellen Sie in der unten angegebenen Reihenfolge aus und registrieren Sie in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Neue App erstellen", "p": "Klicken Sie auf [Create New App].", "path": "https://api.slack.com/apps" },
+              { "h3": "Incoming Webhooks aktivieren", "p": "Aktivieren Sie [Incoming Webhooks] und klicken Sie auf [Add New Webhook to Workspace]." },
+              { "h3": "Kanal auswählen · URL generieren", "p": "Durch Auswahl eines Kanals wird die Webhook-URL generiert." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Sobald Sie einen Kanal ausgewählt haben und die Webhook-URL generiert wurde, wurde sie korrekt ausgestellt." }
+          ]
+        },
+        {
+          "h2": "3. In GenieGo zu registrierende Informationen",
+          "blocks": [
+            { "type": "table", "head": ["Feld", "Beschreibung"], "rows": [
+              ["webhook_url", "Die generierte Incoming-Webhook-URL (vertraulich behandeln)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Geben Sie die webhook_url in GenieGo [Registrieren] ein und speichern Sie. Anmeldedaten werden im Ruhezustand mit AES-256-GCM verschlüsselt und beim Lesen maskiert." }
+          ]
+        },
+        {
+          "h2": "4. Häufige Probleme",
+          "blocks": [
+            { "type": "table", "head": ["Problem", "Ursache", "Lösung"], "rows": [
+              ["App kann nicht erstellt werden", "Unzureichende Workspace-Adminrechte", "Fahren Sie mit einem Konto fort, das Slack-Workspace-Adminrechte hat."],
+              ["Benachrichtigungen kommen nicht an", "Falsche Webhook-URL oder kein Kanal ausgewählt", "Aktivieren Sie Incoming Webhooks, wählen Sie einen Kanal aus und prüfen Sie die generierte Webhook-URL erneut."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Abschließende Checkliste",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Mit Slack-Workspace-Adminrechten vorgegangen.",
+              "Eine App unter api.slack.com/apps über [Create New App] erstellt.",
+              "Incoming Webhooks aktiviert und auf [Add New Webhook] geklickt.",
+              "Einen Kanal ausgewählt und die Webhook-URL generiert und kopiert.",
+              "Die webhook_url in GenieGo [Registrieren] eingegeben und gespeichert."
+            ] }
+          ]
+        }
+      ]
+    },
+    "th": {
+      "titleType": "คู่มือการออก API Key",
+      "badge": "คู่มือสำหรับผู้เริ่มต้น",
+      "intro": "คู่มือสำหรับการสร้างแอปใน Slack ออก Incoming Webhook URL และลงทะเบียนใน GenieGo Integration Hub เพื่อให้ส่งการแจ้งเตือนไปยังช่อง Slack ที่คุณกำหนด",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["เวลาโดยประมาณ", "ประมาณ 5 นาที"],
+        ["บัญชีที่ต้องใช้", "สิทธิ์ผู้ดูแล workspace ของ Slack"],
+        ["คีย์ที่ออก", "Webhook URL"],
+        ["ผลลัพธ์", "ข้อมูลรับรอง Incoming Webhook"]
+      ],
+      "sections": [
+        {
+          "h2": "1. ก่อนเริ่มต้น",
+          "desc": "Slack Webhook สามารถสร้างได้เฉพาะผู้ที่มีสิทธิ์ผู้ดูแล workspace เท่านั้น",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "จำเป็น", "h3": "สิทธิ์ผู้ดูแล workspace", "p": "คุณต้องมีสิทธิ์ผู้ดูแล workspace ของ Slack จึงจะสามารถสร้างแอปและเปิดใช้งาน Webhook ได้" },
+              { "tag": "คีย์ที่ออก", "h3": "Webhook URL", "p": "หลังจากเปิดใช้งาน Incoming Webhooks และเลือกช่องแล้ว ให้ตรวจสอบ Webhook URL ที่สร้างขึ้น" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>หมายเหตุ:</strong> Webhook URL จะเชื่อมโยงกับช่องที่จะส่งการแจ้งเตือน โปรดระบุช่องที่จะรับการแจ้งเตือนในขั้นตอนการเลือกช่อง" }
+          ]
+        },
+        {
+          "h2": "2. ขั้นตอนการออก",
+          "desc": "ออกตามลำดับด้านล่างและลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "สร้างแอปใหม่", "p": "คลิก [Create New App]", "path": "https://api.slack.com/apps" },
+              { "h3": "เปิดใช้งาน Incoming Webhooks", "p": "เปิดใช้งาน [Incoming Webhooks] และคลิก [Add New Webhook to Workspace]" },
+              { "h3": "เลือกช่อง · สร้าง URL", "p": "เมื่อเลือกช่องแล้ว Webhook URL จะถูกสร้างขึ้น" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "เมื่อเลือกช่องและสร้าง Webhook URL แล้ว แสดงว่าออกอย่างถูกต้อง" }
+          ]
+        },
+        {
+          "h2": "3. ข้อมูลที่ต้องลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["ฟิลด์", "คำอธิบาย"], "rows": [
+              ["webhook_url", "Incoming Webhook URL ที่สร้างขึ้น (จัดการด้วยความระมัดระวัง)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "ป้อน webhook_url ใน GenieGo [ลงทะเบียน] แล้วบันทึก ข้อมูลรับรองจะถูกเข้ารหัสขณะจัดเก็บด้วย AES-256-GCM และปิดบังเมื่ออ่าน" }
+          ]
+        },
+        {
+          "h2": "4. ปัญหาที่พบบ่อย",
+          "blocks": [
+            { "type": "table", "head": ["ปัญหา", "สาเหตุ", "วิธีแก้ไข"], "rows": [
+              ["ไม่สามารถสร้างแอปได้", "สิทธิ์ผู้ดูแล workspace ไม่เพียงพอ", "ดำเนินการด้วยบัญชีที่มีสิทธิ์ผู้ดูแล workspace ของ Slack"],
+              ["ไม่ได้รับการแจ้งเตือน", "Webhook URL ระบุผิดหรือไม่ได้เลือกช่อง", "เปิดใช้งาน Incoming Webhooks เลือกช่อง และตรวจสอบ Webhook URL ที่สร้างขึ้นอีกครั้ง"]
+            ] }
+          ]
+        },
+        {
+          "h2": "รายการตรวจสอบขั้นสุดท้าย",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "ดำเนินการด้วยสิทธิ์ผู้ดูแล workspace ของ Slack แล้ว",
+              "สร้างแอปที่ api.slack.com/apps ผ่าน [Create New App] แล้ว",
+              "เปิดใช้งาน Incoming Webhooks และคลิก [Add New Webhook] แล้ว",
+              "เลือกช่องและสร้าง คัดลอก Webhook URL แล้ว",
+              "ป้อน webhook_url ใน GenieGo [ลงทะเบียน] และบันทึกแล้ว"
+            ] }
+          ]
+        }
+      ]
+    },
+    "vi": {
+      "titleType": "Hướng dẫn cấp API Key",
+      "badge": "Hướng dẫn cho người mới",
+      "intro": "Hướng dẫn tạo một ứng dụng trong Slack, cấp Incoming Webhook URL và đăng ký trong GenieGo Integration Hub để các thông báo được gửi đến kênh Slack mà bạn chỉ định.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Thời gian dự kiến", "Khoảng 5 phút"],
+        ["Tài khoản cần thiết", "Quyền quản trị workspace Slack"],
+        ["Khóa được cấp", "Webhook URL"],
+        ["Kết quả", "Thông tin xác thực Incoming Webhook"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Trước khi bắt đầu",
+          "desc": "Chỉ có thể tạo Slack Webhook khi có quyền quản trị workspace.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Bắt buộc", "h3": "Quyền quản trị workspace", "p": "Bạn cần quyền quản trị workspace Slack để tạo ứng dụng và bật Webhook." },
+              { "tag": "Khóa được cấp", "h3": "Webhook URL", "p": "Sau khi bật Incoming Webhooks và chọn kênh, hãy kiểm tra Webhook URL được tạo." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Lưu ý:</strong> Webhook URL được liên kết với kênh mà thông báo sẽ được gửi đến. Hãy chỉ định kênh nhận thông báo trong bước chọn kênh." }
+          ]
+        },
+        {
+          "h2": "2. Các bước cấp",
+          "desc": "Cấp theo thứ tự dưới đây và đăng ký trong GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Tạo ứng dụng mới", "p": "Nhấp vào [Create New App].", "path": "https://api.slack.com/apps" },
+              { "h3": "Bật Incoming Webhooks", "p": "Bật [Incoming Webhooks] và nhấp vào [Add New Webhook to Workspace]." },
+              { "h3": "Chọn kênh · Tạo URL", "p": "Khi chọn một kênh, Webhook URL sẽ được tạo." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Khi bạn chọn một kênh và Webhook URL được tạo, nghĩa là nó đã được cấp đúng cách." }
+          ]
+        },
+        {
+          "h2": "3. Thông tin cần đăng ký trong GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Trường", "Mô tả"], "rows": [
+              ["webhook_url", "Incoming Webhook URL đã được tạo (xử lý cẩn thận)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Nhập webhook_url vào GenieGo [Đăng ký] rồi lưu. Thông tin xác thực được mã hóa khi lưu trữ bằng AES-256-GCM và được che khi đọc." }
+          ]
+        },
+        {
+          "h2": "4. Sự cố thường gặp",
+          "blocks": [
+            { "type": "table", "head": ["Sự cố", "Nguyên nhân", "Giải pháp"], "rows": [
+              ["Không thể tạo ứng dụng", "Không đủ quyền quản trị workspace", "Hãy tiến hành bằng tài khoản có quyền quản trị workspace Slack."],
+              ["Không nhận được thông báo", "Webhook URL sai hoặc chưa chọn kênh", "Bật Incoming Webhooks, chọn kênh và kiểm tra lại Webhook URL đã được tạo."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Danh sách kiểm tra cuối cùng",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Đã tiến hành với quyền quản trị workspace Slack.",
+              "Đã tạo ứng dụng tại api.slack.com/apps qua [Create New App].",
+              "Đã bật Incoming Webhooks và nhấp [Add New Webhook].",
+              "Đã chọn kênh và tạo, sao chép Webhook URL.",
+              "Đã nhập webhook_url vào GenieGo [Đăng ký] và lưu."
+            ] }
+          ]
+        }
+      ]
+    },
+    "id": {
+      "titleType": "Panduan Penerbitan API Key",
+      "badge": "Panduan Pemula",
+      "intro": "Panduan untuk membuat aplikasi di Slack, menerbitkan Incoming Webhook URL, dan mendaftarkannya di GenieGo Integration Hub agar notifikasi dikirim ke channel Slack yang Anda tentukan.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Perkiraan waktu", "Sekitar 5 menit"],
+        ["Akun yang dibutuhkan", "Izin admin workspace Slack"],
+        ["Kunci yang diterbitkan", "Webhook URL"],
+        ["Hasil", "Kredensial Incoming Webhook"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Sebelum Anda Mulai",
+          "desc": "Slack Webhook hanya dapat dibuat dengan izin admin workspace.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Diperlukan", "h3": "Izin admin workspace", "p": "Anda memerlukan izin admin workspace Slack untuk membuat aplikasi dan mengaktifkan Webhook." },
+              { "tag": "Kunci yang diterbitkan", "h3": "Webhook URL", "p": "Setelah mengaktifkan Incoming Webhooks dan memilih channel, periksa Webhook URL yang dihasilkan." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Catatan:</strong> Webhook URL terkait dengan channel tempat notifikasi dikirim. Tentukan channel yang akan menerima notifikasi pada langkah pemilihan channel." }
+          ]
+        },
+        {
+          "h2": "2. Langkah Penerbitan",
+          "desc": "Terbitkan sesuai urutan di bawah dan daftarkan di GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Buat aplikasi baru", "p": "Klik [Create New App].", "path": "https://api.slack.com/apps" },
+              { "h3": "Aktifkan Incoming Webhooks", "p": "Aktifkan [Incoming Webhooks] dan klik [Add New Webhook to Workspace]." },
+              { "h3": "Pilih channel · Hasilkan URL", "p": "Memilih channel akan menghasilkan Webhook URL." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Setelah Anda memilih channel dan Webhook URL dihasilkan, berarti telah diterbitkan dengan benar." }
+          ]
+        },
+        {
+          "h2": "3. Informasi yang Didaftarkan di GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Bidang", "Deskripsi"], "rows": [
+              ["webhook_url", "Incoming Webhook URL yang dihasilkan (tangani dengan hati-hati)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Masukkan webhook_url di GenieGo [Daftar] lalu simpan. Kredensial dienkripsi saat disimpan dengan AES-256-GCM dan disamarkan saat dibaca." }
+          ]
+        },
+        {
+          "h2": "4. Masalah Umum",
+          "blocks": [
+            { "type": "table", "head": ["Masalah", "Penyebab", "Solusi"], "rows": [
+              ["Tidak dapat membuat aplikasi", "Izin admin workspace tidak memadai", "Lanjutkan dengan akun yang memiliki izin admin workspace Slack."],
+              ["Notifikasi tidak masuk", "Webhook URL salah atau channel tidak dipilih", "Aktifkan Incoming Webhooks, pilih channel, dan periksa kembali Webhook URL yang dihasilkan."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Daftar Periksa Akhir",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Telah dilanjutkan dengan izin admin workspace Slack.",
+              "Telah membuat aplikasi di api.slack.com/apps melalui [Create New App].",
+              "Telah mengaktifkan Incoming Webhooks dan mengklik [Add New Webhook].",
+              "Telah memilih channel serta menghasilkan dan menyalin Webhook URL.",
+              "Telah memasukkan webhook_url di GenieGo [Daftar] dan menyimpannya."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ar": {
+      "titleType": "دليل إصدار مفتاح API",
+      "badge": "دليل المبتدئين",
+      "intro": "دليل لإنشاء تطبيق في Slack وإصدار عنوان Incoming Webhook URL وتسجيله في GenieGo Integration Hub بحيث يتم إرسال الإشعارات إلى قناة Slack التي تحددها.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["الوقت التقديري", "حوالي 5 دقائق"],
+        ["الحساب المطلوب", "صلاحية إدارة workspace في Slack"],
+        ["المفاتيح الصادرة", "Webhook URL"],
+        ["النتيجة", "بيانات اعتماد Incoming Webhook"]
+      ],
+      "sections": [
+        {
+          "h2": "1. قبل أن تبدأ",
+          "desc": "لا يمكن إنشاء Slack Webhook إلا بصلاحية إدارة workspace.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "مطلوب", "h3": "صلاحية إدارة workspace", "p": "تحتاج إلى صلاحية إدارة workspace في Slack لإنشاء تطبيق وتفعيل Webhook." },
+              { "tag": "المفاتيح الصادرة", "h3": "Webhook URL", "p": "بعد تفعيل Incoming Webhooks واختيار قناة، تحقق من عنوان Webhook URL الذي تم إنشاؤه." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>ملاحظة:</strong> يرتبط عنوان Webhook URL بالقناة التي تُرسَل إليها الإشعارات. حدِّد القناة التي ستتلقى الإشعارات في خطوة اختيار القناة." }
+          ]
+        },
+        {
+          "h2": "2. خطوات الإصدار",
+          "desc": "أصدِر حسب الترتيب أدناه وسجِّل في GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "إنشاء تطبيق جديد", "p": "انقر على [Create New App].", "path": "https://api.slack.com/apps" },
+              { "h3": "تفعيل Incoming Webhooks", "p": "فعِّل [Incoming Webhooks] وانقر على [Add New Webhook to Workspace]." },
+              { "h3": "اختيار قناة · إنشاء عنوان URL", "p": "عند اختيار قناة يتم إنشاء عنوان Webhook URL." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "بمجرد اختيار قناة وإنشاء عنوان Webhook URL، يكون قد تم إصداره بشكل صحيح." }
+          ]
+        },
+        {
+          "h2": "3. المعلومات المراد تسجيلها في GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["الحقل", "الوصف"], "rows": [
+              ["webhook_url", "عنوان Incoming Webhook URL الذي تم إنشاؤه (تعامل معه بحذر)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "أدخل webhook_url في GenieGo [تسجيل] واحفظه. تُشفَّر بيانات الاعتماد أثناء التخزين باستخدام AES-256-GCM ويتم إخفاؤها عند القراءة." }
+          ]
+        },
+        {
+          "h2": "4. المشكلات الشائعة",
+          "blocks": [
+            { "type": "table", "head": ["المشكلة", "السبب", "الحل"], "rows": [
+              ["تعذُّر إنشاء التطبيق", "صلاحية إدارة workspace غير كافية", "تابِع بحساب يملك صلاحية إدارة workspace في Slack."],
+              ["عدم وصول الإشعارات", "عنوان Webhook URL خاطئ أو لم يتم اختيار قناة", "فعِّل Incoming Webhooks واختر قناة وتحقق مرة أخرى من عنوان Webhook URL الذي تم إنشاؤه."]
+            ] }
+          ]
+        },
+        {
+          "h2": "قائمة التحقق النهائية",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "تابعتُ بصلاحية إدارة workspace في Slack.",
+              "أنشأتُ تطبيقًا على api.slack.com/apps عبر [Create New App].",
+              "فعّلتُ Incoming Webhooks ونقرتُ على [Add New Webhook].",
+              "اخترتُ قناة وأنشأتُ ونسختُ عنوان Webhook URL.",
+              "أدخلتُ webhook_url في GenieGo [تسجيل] وحفظتُه."
+            ] }
+          ]
+        }
+      ]
+    },
+    "es": {
+      "titleType": "Manual de emisión de la API Key",
+      "badge": "Guía para principiantes",
+      "intro": "Una guía para crear una app en Slack, emitir una URL de Incoming Webhook y registrarla en el GenieGo Integration Hub para que las notificaciones se envíen al canal de Slack que especifiques.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tiempo estimado", "Unos 5 min"],
+        ["Cuenta necesaria", "Permiso de administrador del workspace de Slack"],
+        ["Claves emitidas", "Webhook URL"],
+        ["Resultado", "Credenciales de Incoming Webhook"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de empezar",
+          "desc": "Un Webhook de Slack solo se puede crear con permiso de administrador del workspace.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Obligatorio", "h3": "Permiso de administrador del workspace", "p": "Necesitas permiso de administrador del workspace de Slack para crear una app y activar el Webhook." },
+              { "tag": "Claves emitidas", "h3": "Webhook URL", "p": "Después de activar Incoming Webhooks y seleccionar un canal, comprueba la Webhook URL generada." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Nota:</strong> La Webhook URL está vinculada al canal al que se envían las notificaciones. Especifica el canal que debe recibir las notificaciones en el paso de selección de canal." }
+          ]
+        },
+        {
+          "h2": "2. Pasos de emisión",
+          "desc": "Emite en el orden siguiente y regístrala en GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Crear una nueva app", "p": "Haz clic en [Create New App].", "path": "https://api.slack.com/apps" },
+              { "h3": "Activar Incoming Webhooks", "p": "Activa [Incoming Webhooks] y haz clic en [Add New Webhook to Workspace]." },
+              { "h3": "Seleccionar un canal · Generar URL", "p": "Al seleccionar un canal se genera la Webhook URL." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Una vez que seleccionas un canal y se genera la Webhook URL, se ha emitido correctamente." }
+          ]
+        },
+        {
+          "h2": "3. Información para registrar en GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descripción"], "rows": [
+              ["webhook_url", "La Incoming Webhook URL generada (manéjala con cuidado)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Introduce la webhook_url en GenieGo [Registrar] y guarda. Las credenciales se cifran en reposo con AES-256-GCM y se enmascaran al leerlas." }
+          ]
+        },
+        {
+          "h2": "4. Problemas frecuentes",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solución"], "rows": [
+              ["No se puede crear la app", "Permiso de administrador del workspace insuficiente", "Continúa con una cuenta que tenga permiso de administrador del workspace de Slack."],
+              ["No llegan las notificaciones", "Webhook URL incorrecta o canal no seleccionado", "Activa Incoming Webhooks, selecciona un canal y vuelve a comprobar la Webhook URL generada."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificación final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Continué con permiso de administrador del workspace de Slack.",
+              "Creé una app en api.slack.com/apps mediante [Create New App].",
+              "Activé Incoming Webhooks y hice clic en [Add New Webhook].",
+              "Seleccioné un canal y generé y copié la Webhook URL.",
+              "Introduje la webhook_url en GenieGo [Registrar] y la guardé."
+            ] }
+          ]
+        }
+      ]
+    },
+    "fr": {
+      "titleType": "Manuel d'émission de la clé API",
+      "badge": "Guide pour débutants",
+      "intro": "Un guide pour créer une app dans Slack, émettre une URL Incoming Webhook et l'enregistrer dans le GenieGo Integration Hub afin que les notifications soient envoyées au canal Slack que vous spécifiez.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Temps estimé", "Environ 5 min"],
+        ["Compte requis", "Droits d'administrateur du workspace Slack"],
+        ["Clés émises", "Webhook URL"],
+        ["Résultat", "Identifiants Incoming Webhook"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Avant de commencer",
+          "desc": "Un Webhook Slack ne peut être créé qu'avec des droits d'administrateur du workspace.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requis", "h3": "Droits d'administrateur du workspace", "p": "Vous avez besoin de droits d'administrateur du workspace Slack pour créer une app et activer le Webhook." },
+              { "tag": "Clés émises", "h3": "Webhook URL", "p": "Après avoir activé Incoming Webhooks et sélectionné un canal, vérifiez la Webhook URL générée." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Remarque :</strong> La Webhook URL est liée au canal auquel les notifications sont envoyées. Spécifiez le canal qui doit recevoir les notifications lors de l'étape de sélection du canal." }
+          ]
+        },
+        {
+          "h2": "2. Étapes d'émission",
+          "desc": "Émettez dans l'ordre ci-dessous et enregistrez dans GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Créer une nouvelle app", "p": "Cliquez sur [Create New App].", "path": "https://api.slack.com/apps" },
+              { "h3": "Activer Incoming Webhooks", "p": "Activez [Incoming Webhooks] et cliquez sur [Add New Webhook to Workspace]." },
+              { "h3": "Sélectionner un canal · Générer l'URL", "p": "La sélection d'un canal génère la Webhook URL." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Une fois que vous avez sélectionné un canal et que la Webhook URL est générée, elle a été émise correctement." }
+          ]
+        },
+        {
+          "h2": "3. Informations à enregistrer dans GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Champ", "Description"], "rows": [
+              ["webhook_url", "L'Incoming Webhook URL générée (à manipuler avec précaution)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Saisissez la webhook_url dans GenieGo [Enregistrer] et enregistrez. Les identifiants sont chiffrés au repos avec AES-256-GCM et masqués à la lecture." }
+          ]
+        },
+        {
+          "h2": "4. Problèmes fréquents",
+          "blocks": [
+            { "type": "table", "head": ["Problème", "Cause", "Solution"], "rows": [
+              ["Impossible de créer l'app", "Droits d'administrateur du workspace insuffisants", "Procédez avec un compte disposant des droits d'administrateur du workspace Slack."],
+              ["Les notifications n'arrivent pas", "Webhook URL erronée ou canal non sélectionné", "Activez Incoming Webhooks, sélectionnez un canal et vérifiez à nouveau la Webhook URL générée."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Liste de contrôle finale",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "J'ai procédé avec des droits d'administrateur du workspace Slack.",
+              "J'ai créé une app sur api.slack.com/apps via [Create New App].",
+              "J'ai activé Incoming Webhooks et cliqué sur [Add New Webhook].",
+              "J'ai sélectionné un canal et généré et copié la Webhook URL.",
+              "J'ai saisi la webhook_url dans GenieGo [Enregistrer] et enregistré."
+            ] }
+          ]
+        }
+      ]
+    },
+    "hi": {
+      "titleType": "API Key जारी करने की नियमावली",
+      "badge": "शुरुआती गाइड",
+      "intro": "Slack में एक ऐप बनाने, Incoming Webhook URL जारी करने और उसे GenieGo Integration Hub में पंजीकृत करने की गाइड, ताकि सूचनाएं आपके द्वारा निर्दिष्ट Slack चैनल पर भेजी जाएं।",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["अनुमानित समय", "लगभग 5 मिनट"],
+        ["आवश्यक खाता", "Slack workspace व्यवस्थापक अनुमति"],
+        ["जारी की गई कुंजियाँ", "Webhook URL"],
+        ["परिणाम", "Incoming Webhook क्रेडेंशियल"]
+      ],
+      "sections": [
+        {
+          "h2": "1. शुरू करने से पहले",
+          "desc": "Slack Webhook केवल workspace व्यवस्थापक अनुमति के साथ ही बनाया जा सकता है।",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "आवश्यक", "h3": "workspace व्यवस्थापक अनुमति", "p": "ऐप बनाने और Webhook सक्षम करने के लिए आपको Slack workspace की व्यवस्थापक अनुमति चाहिए।" },
+              { "tag": "जारी की गई कुंजियाँ", "h3": "Webhook URL", "p": "Incoming Webhooks सक्षम करने और चैनल चुनने के बाद, जनरेट हुए Webhook URL की जाँच करें।" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>नोट:</strong> Webhook URL उस चैनल से जुड़ा होता है जहाँ सूचनाएं भेजी जाती हैं। चैनल चयन चरण में वह चैनल निर्दिष्ट करें जिसे सूचनाएं प्राप्त करनी हैं।" }
+          ]
+        },
+        {
+          "h2": "2. जारी करने के चरण",
+          "desc": "नीचे दिए क्रम में जारी करें और GenieGo में पंजीकृत करें।",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "नया ऐप बनाएं", "p": "[Create New App] पर क्लिक करें।", "path": "https://api.slack.com/apps" },
+              { "h3": "Incoming Webhooks सक्षम करें", "p": "[Incoming Webhooks] सक्षम करें और [Add New Webhook to Workspace] पर क्लिक करें।" },
+              { "h3": "चैनल चुनें · URL जनरेट करें", "p": "चैनल चुनने पर Webhook URL जनरेट हो जाता है।" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "चैनल चुनकर Webhook URL जनरेट हो जाने पर, यह सही ढंग से जारी हो गया है।" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo में पंजीकृत करने की जानकारी",
+          "blocks": [
+            { "type": "table", "head": ["फ़ील्ड", "विवरण"], "rows": [
+              ["webhook_url", "जनरेट किया गया Incoming Webhook URL (सावधानी से संभालें)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo [पंजीकरण] में webhook_url दर्ज करें और सहेजें। क्रेडेंशियल भंडारण के समय AES-256-GCM से एन्क्रिप्ट किए जाते हैं और पढ़ते समय मास्क किए जाते हैं।" }
+          ]
+        },
+        {
+          "h2": "4. आम समस्याएँ",
+          "blocks": [
+            { "type": "table", "head": ["समस्या", "कारण", "समाधान"], "rows": [
+              ["ऐप नहीं बना सकते", "workspace व्यवस्थापक अनुमति अपर्याप्त", "ऐसे खाते से आगे बढ़ें जिसके पास Slack workspace व्यवस्थापक अनुमति हो।"],
+              ["सूचनाएं नहीं आतीं", "गलत Webhook URL या चैनल चयन छूट गया", "Incoming Webhooks सक्षम करें, चैनल चुनें और जनरेट किए गए Webhook URL की फिर से जाँच करें।"]
+            ] }
+          ]
+        },
+        {
+          "h2": "अंतिम जाँच सूची",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Slack workspace व्यवस्थापक अनुमति के साथ आगे बढ़ा।",
+              "api.slack.com/apps पर [Create New App] से ऐप बनाया।",
+              "Incoming Webhooks सक्षम किया और [Add New Webhook] पर क्लिक किया।",
+              "चैनल चुना और Webhook URL जनरेट कर कॉपी किया।",
+              "GenieGo [पंजीकरण] में webhook_url दर्ज कर सहेजा।"
+            ] }
+          ]
+        }
+      ]
+    },
+    "pt": {
+      "titleType": "Manual de emissão da API Key",
+      "badge": "Guia para iniciantes",
+      "intro": "Um guia para criar um app no Slack, emitir uma URL de Incoming Webhook e registrá-la no GenieGo Integration Hub para que as notificações sejam enviadas ao canal do Slack que você especificar.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tempo estimado", "Cerca de 5 min"],
+        ["Conta necessária", "Permissão de administrador do workspace do Slack"],
+        ["Chaves emitidas", "Webhook URL"],
+        ["Resultado", "Credenciais do Incoming Webhook"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de começar",
+          "desc": "Um Webhook do Slack só pode ser criado com permissão de administrador do workspace.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Obrigatório", "h3": "Permissão de administrador do workspace", "p": "Você precisa de permissão de administrador do workspace do Slack para criar um app e ativar o Webhook." },
+              { "tag": "Chaves emitidas", "h3": "Webhook URL", "p": "Depois de ativar o Incoming Webhooks e selecionar um canal, verifique a Webhook URL gerada." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Observação:</strong> A Webhook URL está vinculada ao canal para o qual as notificações são enviadas. Especifique o canal que deve receber as notificações na etapa de seleção de canal." }
+          ]
+        },
+        {
+          "h2": "2. Etapas de emissão",
+          "desc": "Emita na ordem abaixo e registre no GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Criar um novo app", "p": "Clique em [Create New App].", "path": "https://api.slack.com/apps" },
+              { "h3": "Ativar Incoming Webhooks", "p": "Ative [Incoming Webhooks] e clique em [Add New Webhook to Workspace]." },
+              { "h3": "Selecionar um canal · Gerar URL", "p": "Selecionar um canal gera a Webhook URL." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Depois de selecionar um canal e a Webhook URL ser gerada, ela foi emitida corretamente." }
+          ]
+        },
+        {
+          "h2": "3. Informações para registrar no GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descrição"], "rows": [
+              ["webhook_url", "A Incoming Webhook URL gerada (manuseie com cuidado)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Insira a webhook_url em GenieGo [Registrar] e salve. As credenciais são criptografadas em repouso com AES-256-GCM e mascaradas na leitura." }
+          ]
+        },
+        {
+          "h2": "4. Problemas comuns",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solução"], "rows": [
+              ["Não é possível criar o app", "Permissão de administrador do workspace insuficiente", "Prossiga com uma conta que tenha permissão de administrador do workspace do Slack."],
+              ["As notificações não chegam", "Webhook URL incorreta ou canal não selecionado", "Ative o Incoming Webhooks, selecione um canal e verifique novamente a Webhook URL gerada."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificação final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Prossegui com permissão de administrador do workspace do Slack.",
+              "Criei um app em api.slack.com/apps por meio de [Create New App].",
+              "Ativei o Incoming Webhooks e cliquei em [Add New Webhook].",
+              "Selecionei um canal e gerei e copiei a Webhook URL.",
+              "Inseri a webhook_url em GenieGo [Registrar] e salvei."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ru": {
+      "titleType": "Руководство по выпуску API-ключа",
+      "badge": "Руководство для начинающих",
+      "intro": "Руководство по созданию приложения в Slack, выпуску URL Incoming Webhook и его регистрации в GenieGo Integration Hub, чтобы уведомления отправлялись в указанный вами канал Slack.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Примерное время", "Около 5 мин"],
+        ["Требуемый аккаунт", "Права администратора workspace Slack"],
+        ["Выпускаемые ключи", "Webhook URL"],
+        ["Результат", "Учётные данные Incoming Webhook"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Прежде чем начать",
+          "desc": "Slack Webhook можно создать только с правами администратора workspace.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Обязательно", "h3": "Права администратора workspace", "p": "Для создания приложения и включения Webhook вам нужны права администратора workspace Slack." },
+              { "tag": "Выпускаемые ключи", "h3": "Webhook URL", "p": "После включения Incoming Webhooks и выбора канала проверьте сгенерированный Webhook URL." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Примечание:</strong> Webhook URL привязан к каналу, в который отправляются уведомления. Укажите канал, который должен получать уведомления, на шаге выбора канала." }
+          ]
+        },
+        {
+          "h2": "2. Шаги выпуска",
+          "desc": "Выпустите в указанном ниже порядке и зарегистрируйте в GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Создать новое приложение", "p": "Нажмите [Create New App].", "path": "https://api.slack.com/apps" },
+              { "h3": "Включить Incoming Webhooks", "p": "Включите [Incoming Webhooks] и нажмите [Add New Webhook to Workspace]." },
+              { "h3": "Выбрать канал · Сгенерировать URL", "p": "При выборе канала генерируется Webhook URL." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Как только вы выберете канал и Webhook URL будет сгенерирован, он выпущен корректно." }
+          ]
+        },
+        {
+          "h2": "3. Информация для регистрации в GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Поле", "Описание"], "rows": [
+              ["webhook_url", "Сгенерированный Incoming Webhook URL (обращайтесь осторожно)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Введите webhook_url в GenieGo [Регистрация] и сохраните. Учётные данные шифруются при хранении с помощью AES-256-GCM и маскируются при чтении." }
+          ]
+        },
+        {
+          "h2": "4. Частые проблемы",
+          "blocks": [
+            { "type": "table", "head": ["Проблема", "Причина", "Решение"], "rows": [
+              ["Не удаётся создать приложение", "Недостаточно прав администратора workspace", "Продолжайте с аккаунта, имеющего права администратора workspace Slack."],
+              ["Уведомления не приходят", "Неверный Webhook URL или канал не выбран", "Включите Incoming Webhooks, выберите канал и ещё раз проверьте сгенерированный Webhook URL."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Финальный чек-лист",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Продолжил с правами администратора workspace Slack.",
+              "Создал приложение на api.slack.com/apps через [Create New App].",
+              "Включил Incoming Webhooks и нажал [Add New Webhook].",
+              "Выбрал канал и сгенерировал и скопировал Webhook URL.",
+              "Ввёл webhook_url в GenieGo [Регистрация] и сохранил."
+            ] }
+          ]
+        }
+      ]
+    }
+  }
+}

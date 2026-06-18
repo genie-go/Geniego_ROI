@@ -1,0 +1,1041 @@
+{
+  "name": "11Street",
+  "icon": "🔶",
+  "langs": {
+    "ko": {
+      "titleType": "(11번가) API Key 발급 매뉴얼",
+      "badge": "Beginner Guide",
+      "intro": "11번가 오픈API센터(openapi.11st.co.kr)에서 오픈API 키를 발급받아 GenieGo 연동 허브에 등록하는 과정을 초보자도 그대로 따라 할 수 있도록 정리한 매뉴얼입니다.",
+      "org": "GenieGo 연동 허브",
+      "quick": [
+        ["소요 시간", "약 5~15분"],
+        ["필요 계정", "11번가 셀러(판매자) 계정"],
+        ["발급 키", "오픈API 키 · 셀러 ID"],
+        ["결과물", "오픈API 자격증명"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 시작하기 전에",
+          "desc": "11번가 오픈API는 셀러(판매자) 계정에서만 발급할 수 있습니다.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "필요", "h3": "11번가 셀러 계정", "p": "11번가 셀러(판매자) 계정이 있어야 합니다. 오픈API센터에 셀러 아이디로 로그인합니다." },
+              { "tag": "발급 키", "h3": "오픈API 키 · 셀러 ID", "p": "서비스 등록과 접근 IP 등록을 마치면 발급되는 오픈API 키와 셀러 ID를 함께 확인합니다." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>참고:</strong> API 접근이 가능한 서버 IP를 등록해야 키를 사용할 수 있습니다." }
+          ]
+        },
+        {
+          "h2": "2. 발급 단계",
+          "desc": "아래 순서대로 발급하고 GenieGo에 등록합니다.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "오픈API센터 로그인", "p": "셀러 아이디로 11번가 오픈API센터에 로그인합니다.", "path": "https://openapi.11st.co.kr/openapi/OpenApiFrontMain.tmall" },
+              { "h3": "서비스 등록", "p": "메뉴에서 [서비스 등록·확인]을 눌러 셀러 정보를 입력하고 약관에 동의해 등록합니다.", "path": "서비스 등록·확인" },
+              { "h3": "접근 IP 등록", "p": "[Seller API 정보] > [수정]에서 API 접근이 가능한 서버 IP를 등록합니다.", "path": "Seller API 정보 → 수정" },
+              { "h3": "API Key 복사", "p": "발급된 API Key를 복사합니다." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "서비스 등록과 접근 IP 등록을 마치면 API Key가 발급됩니다." }
+          ]
+        },
+        {
+          "h2": "3. GenieGo에 등록할 정보",
+          "blocks": [
+            { "type": "table", "head": ["필드", "설명"], "rows": [
+              ["api_key", "발급된 오픈API 키"],
+              ["seller_id", "셀러 ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 연동 허브 [등록]에 입력해 저장하면 자격증명은 AES-256-GCM으로 암호화 저장되고 조회 시 마스킹됩니다." }
+          ]
+        },
+        {
+          "h2": "4. 자주 발생하는 문제",
+          "blocks": [
+            { "type": "table", "head": ["문제", "원인", "해결"], "rows": [
+              ["API Key가 발급되지 않음", "서비스 등록 또는 접근 IP 등록 미완료", "[서비스 등록·확인]과 [Seller API 정보]의 접근 IP 등록을 완료합니다."],
+              ["호출 시 인증 오류", "접근 가능 서버 IP 미등록", "[Seller API 정보] > [수정]에서 접근 가능 서버 IP를 다시 확인합니다."]
+            ] }
+          ]
+        },
+        {
+          "h2": "최종 체크리스트",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "11번가 셀러 계정으로 오픈API센터에 로그인했다.",
+              "[서비스 등록·확인]에서 셀러 정보를 입력하고 약관에 동의했다.",
+              "[Seller API 정보]에서 접근 가능 서버 IP를 등록했다.",
+              "발급된 오픈API 키와 셀러 ID를 확인했다.",
+              "GenieGo [등록]에 api_key·seller_id를 입력해 저장했다."
+            ] }
+          ]
+        }
+      ]
+    },
+    "en": {
+      "titleType": "API Key Issuance Manual",
+      "badge": "Beginner Guide",
+      "intro": "A beginner-friendly, step-by-step guide to issuing an Open API key from the 11Street Open API Center (openapi.11st.co.kr) and registering it in the GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Est. time", "About 5–15 min"],
+        ["Account needed", "11Street seller account"],
+        ["Keys issued", "Open API key · Seller ID"],
+        ["Result", "Open API credentials"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Before You Begin",
+          "desc": "11Street Open API keys can only be issued from a seller account.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Required", "h3": "11Street seller account", "p": "You need an 11Street seller account. Sign in to the Open API Center with your seller ID." },
+              { "tag": "Keys issued", "h3": "Open API key · Seller ID", "p": "After completing service registration and access IP registration, check the issued Open API key together with your Seller ID." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Note:</strong> You must register a server IP that is allowed to access the API before you can use the key." }
+          ]
+        },
+        {
+          "h2": "2. Issuance Steps",
+          "desc": "Issue in the order below and register in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Sign in to the Open API Center", "p": "Sign in to the 11Street Open API Center with your seller ID.", "path": "https://openapi.11st.co.kr/openapi/OpenApiFrontMain.tmall" },
+              { "h3": "Register the service", "p": "From the menu, click [Service Registration & Verification], enter your seller details, agree to the terms, and register.", "path": "Service Registration & Verification" },
+              { "h3": "Register the access IP", "p": "Under [Seller API Info] > [Edit], register the server IP that is allowed to access the API.", "path": "Seller API Info → Edit" },
+              { "h3": "Copy the API Key", "p": "Copy the issued API Key." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Once service registration and access IP registration are complete, the API Key is issued." }
+          ]
+        },
+        {
+          "h2": "3. Information to Register in GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Field", "Description"], "rows": [
+              ["api_key", "The issued Open API key"],
+              ["seller_id", "Seller ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Enter and save it in the GenieGo Integration Hub [Register], and credentials are encrypted at rest with AES-256-GCM and masked on read." }
+          ]
+        },
+        {
+          "h2": "4. Common Issues",
+          "blocks": [
+            { "type": "table", "head": ["Issue", "Cause", "Solution"], "rows": [
+              ["API Key is not issued", "Service registration or access IP registration not completed", "Complete [Service Registration & Verification] and the access IP registration under [Seller API Info]."],
+              ["Authentication error on calls", "Allowed server IP not registered", "Re-check the allowed server IP under [Seller API Info] > [Edit]."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Final Checklist",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Signed in to the Open API Center with an 11Street seller account.",
+              "Entered seller details and agreed to the terms under [Service Registration & Verification].",
+              "Registered the allowed server IP under [Seller API Info].",
+              "Confirmed the issued Open API key and Seller ID.",
+              "Entered api_key·seller_id in GenieGo [Register] and saved."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ja": {
+      "titleType": "API Key 発行マニュアル",
+      "badge": "初心者ガイド",
+      "intro": "11Street オープンAPIセンター(openapi.11st.co.kr)でオープンAPI キーを発行し、GenieGo 連携ハブに登録する手順を、初心者でもそのまま実行できるようにまとめたマニュアルです。",
+      "org": "GenieGo 連携ハブ",
+      "quick": [
+        ["所要時間", "約 5〜15 分"],
+        ["必要なアカウント", "11Street セラー(販売者)アカウント"],
+        ["発行するキー", "オープンAPI キー · セラー ID"],
+        ["成果物", "オープンAPI 認証情報"]
+      ],
+      "sections": [
+        {
+          "h2": "1. はじめる前に",
+          "desc": "11Street オープンAPI は、セラー(販売者)アカウントからのみ発行できます。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必須", "h3": "11Street セラーアカウント", "p": "11Street セラー(販売者)アカウントが必要です。オープンAPIセンターにセラー ID でログインします。" },
+              { "tag": "発行するキー", "h3": "オープンAPI キー · セラー ID", "p": "サービス登録とアクセス IP 登録を完了すると発行されるオープンAPI キーとセラー ID を併せて確認します。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> API にアクセスできるサーバー IP を登録しないとキーを使用できません。" }
+          ]
+        },
+        {
+          "h2": "2. 発行手順",
+          "desc": "以下の順序で発行し、GenieGo に登録します。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "オープンAPIセンターにログイン", "p": "セラー ID で 11Street オープンAPIセンターにログインします。", "path": "https://openapi.11st.co.kr/openapi/OpenApiFrontMain.tmall" },
+              { "h3": "サービス登録", "p": "メニューで [サービス登録・確認] をクリックし、セラー情報を入力して規約に同意して登録します。", "path": "サービス登録・確認" },
+              { "h3": "アクセス IP 登録", "p": "[Seller API 情報] > [修正] で API にアクセスできるサーバー IP を登録します。", "path": "Seller API 情報 → 修正" },
+              { "h3": "API Key をコピー", "p": "発行された API Key をコピーします。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "サービス登録とアクセス IP 登録を完了すると、API Key が発行されます。" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo に登録する情報",
+          "blocks": [
+            { "type": "table", "head": ["フィールド", "説明"], "rows": [
+              ["api_key", "発行されたオープンAPI キー"],
+              ["seller_id", "セラー ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 連携ハブの [登録] に入力して保存すると、認証情報は AES-256-GCM で暗号化して保存され、閲覧時にはマスキングされます。" }
+          ]
+        },
+        {
+          "h2": "4. よくある問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["API Key が発行されない", "サービス登録またはアクセス IP 登録が未完了", "[サービス登録・確認] と [Seller API 情報] のアクセス IP 登録を完了します。"],
+              ["呼び出し時に認証エラー", "アクセス可能なサーバー IP が未登録", "[Seller API 情報] > [修正] でアクセス可能なサーバー IP を再確認します。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終チェックリスト",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "11Street セラーアカウントでオープンAPIセンターにログインした。",
+              "[サービス登録・確認] でセラー情報を入力し、規約に同意した。",
+              "[Seller API 情報] でアクセス可能なサーバー IP を登録した。",
+              "発行されたオープンAPI キーとセラー ID を確認した。",
+              "GenieGo の [登録] に api_key·seller_id を入力して保存した。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh": {
+      "titleType": "API Key 申请手册",
+      "badge": "新手指南",
+      "intro": "本手册手把手指导新手在 11Street 开放API中心(openapi.11st.co.kr)申请开放API 密钥，并注册到 GenieGo 集成中心。",
+      "org": "GenieGo 集成中心",
+      "quick": [
+        ["预计时间", "约 5~15 分钟"],
+        ["所需账户", "11Street 卖家(商家)账户"],
+        ["签发密钥", "开放API 密钥 · 卖家 ID"],
+        ["成果", "开放API 凭证"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 开始之前",
+          "desc": "11Street 开放API 只能从卖家(商家)账户签发。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "11Street 卖家账户", "p": "您需要一个 11Street 卖家(商家)账户。使用卖家 ID 登录开放API中心。" },
+              { "tag": "签发密钥", "h3": "开放API 密钥 · 卖家 ID", "p": "完成服务注册和访问 IP 注册后，一并确认签发的开放API 密钥和卖家 ID。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> 必须注册可访问 API 的服务器 IP 后才能使用密钥。" }
+          ]
+        },
+        {
+          "h2": "2. 申请步骤",
+          "desc": "按以下顺序签发并在 GenieGo 中注册。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "登录开放API中心", "p": "使用卖家 ID 登录 11Street 开放API中心。", "path": "https://openapi.11st.co.kr/openapi/OpenApiFrontMain.tmall" },
+              { "h3": "服务注册", "p": "在菜单中点击[服务注册·确认]，输入卖家信息并同意条款后注册。", "path": "服务注册·确认" },
+              { "h3": "访问 IP 注册", "p": "在[Seller API 信息] > [修改]中注册可访问 API 的服务器 IP。", "path": "Seller API 信息 → 修改" },
+              { "h3": "复制 API Key", "p": "复制签发的 API Key。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "完成服务注册和访问 IP 注册后，即会签发 API Key。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中注册的信息",
+          "blocks": [
+            { "type": "table", "head": ["字段", "说明"], "rows": [
+              ["api_key", "签发的开放API 密钥"],
+              ["seller_id", "卖家 ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 集成中心 [注册] 中输入并保存后，凭证将以 AES-256-GCM 加密存储，并在查询时进行掩码处理。" }
+          ]
+        },
+        {
+          "h2": "4. 常见问题",
+          "blocks": [
+            { "type": "table", "head": ["问题", "原因", "解决方法"], "rows": [
+              ["API Key 未签发", "服务注册或访问 IP 注册未完成", "完成[服务注册·确认]以及[Seller API 信息]中的访问 IP 注册。"],
+              ["调用时认证错误", "未注册可访问的服务器 IP", "在[Seller API 信息] > [修改]中重新确认可访问的服务器 IP。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最终检查清单",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已使用 11Street 卖家账户登录开放API中心。",
+              "已在[服务注册·确认]中输入卖家信息并同意条款。",
+              "已在[Seller API 信息]中注册可访问的服务器 IP。",
+              "已确认签发的开放API 密钥和卖家 ID。",
+              "已在 GenieGo [注册] 中输入 api_key·seller_id 并保存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh-TW": {
+      "titleType": "API Key 申請手冊",
+      "badge": "新手指南",
+      "intro": "本手冊手把手指導新手在 11Street 開放API中心(openapi.11st.co.kr)申請開放API 金鑰，並註冊到 GenieGo 整合中心。",
+      "org": "GenieGo 整合中心",
+      "quick": [
+        ["預計時間", "約 5~15 分鐘"],
+        ["所需帳戶", "11Street 賣家(商家)帳戶"],
+        ["簽發金鑰", "開放API 金鑰 · 賣家 ID"],
+        ["成果", "開放API 憑證"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 開始之前",
+          "desc": "11Street 開放API 只能從賣家(商家)帳戶簽發。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "11Street 賣家帳戶", "p": "您需要一個 11Street 賣家(商家)帳戶。使用賣家 ID 登入開放API中心。" },
+              { "tag": "簽發金鑰", "h3": "開放API 金鑰 · 賣家 ID", "p": "完成服務註冊和存取 IP 註冊後，一併確認簽發的開放API 金鑰和賣家 ID。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> 必須註冊可存取 API 的伺服器 IP 後才能使用金鑰。" }
+          ]
+        },
+        {
+          "h2": "2. 簽發步驟",
+          "desc": "依以下順序簽發並在 GenieGo 中註冊。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "登入開放API中心", "p": "使用賣家 ID 登入 11Street 開放API中心。", "path": "https://openapi.11st.co.kr/openapi/OpenApiFrontMain.tmall" },
+              { "h3": "服務註冊", "p": "在選單中點擊[服務註冊·確認]，輸入賣家資訊並同意條款後註冊。", "path": "服務註冊·確認" },
+              { "h3": "存取 IP 註冊", "p": "在[Seller API 資訊] > [修改]中註冊可存取 API 的伺服器 IP。", "path": "Seller API 資訊 → 修改" },
+              { "h3": "複製 API Key", "p": "複製簽發的 API Key。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "完成服務註冊和存取 IP 註冊後，即會簽發 API Key。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中註冊的資訊",
+          "blocks": [
+            { "type": "table", "head": ["欄位", "說明"], "rows": [
+              ["api_key", "簽發的開放API 金鑰"],
+              ["seller_id", "賣家 ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 整合中心 [註冊] 中輸入並儲存後，憑證將以 AES-256-GCM 加密儲存，並在查詢時進行遮罩處理。" }
+          ]
+        },
+        {
+          "h2": "4. 常見問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["API Key 未簽發", "服務註冊或存取 IP 註冊未完成", "完成[服務註冊·確認]以及[Seller API 資訊]中的存取 IP 註冊。"],
+              ["呼叫時認證錯誤", "未註冊可存取的伺服器 IP", "在[Seller API 資訊] > [修改]中重新確認可存取的伺服器 IP。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終檢查清單",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已使用 11Street 賣家帳戶登入開放API中心。",
+              "已在[服務註冊·確認]中輸入賣家資訊並同意條款。",
+              "已在[Seller API 資訊]中註冊可存取的伺服器 IP。",
+              "已確認簽發的開放API 金鑰和賣家 ID。",
+              "已在 GenieGo [註冊] 中輸入 api_key·seller_id 並儲存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "de": {
+      "titleType": "Anleitung zur API-Key-Ausstellung",
+      "badge": "Einsteigerleitfaden",
+      "intro": "Eine einsteigerfreundliche Schritt-für-Schritt-Anleitung zum Ausstellen eines Open-API-Schlüssels im 11Street Open API Center (openapi.11st.co.kr) und zum Registrieren im GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Geschätzte Zeit", "Etwa 5–15 Min."],
+        ["Benötigtes Konto", "11Street-Verkäuferkonto"],
+        ["Ausgestellte Schlüssel", "Open-API-Schlüssel · Verkäufer-ID"],
+        ["Ergebnis", "Open-API-Anmeldedaten"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Bevor Sie beginnen",
+          "desc": "Open-API-Schlüssel von 11Street können nur über ein Verkäuferkonto ausgestellt werden.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Erforderlich", "h3": "11Street-Verkäuferkonto", "p": "Sie benötigen ein 11Street-Verkäuferkonto. Melden Sie sich mit Ihrer Verkäufer-ID am Open API Center an." },
+              { "tag": "Ausgestellte Schlüssel", "h3": "Open-API-Schlüssel · Verkäufer-ID", "p": "Nach Abschluss der Dienstregistrierung und der Zugriffs-IP-Registrierung prüfen Sie den ausgestellten Open-API-Schlüssel zusammen mit Ihrer Verkäufer-ID." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Hinweis:</strong> Sie müssen eine Server-IP registrieren, die auf die API zugreifen darf, bevor Sie den Schlüssel verwenden können." }
+          ]
+        },
+        {
+          "h2": "2. Ausstellungsschritte",
+          "desc": "Stellen Sie in der unten angegebenen Reihenfolge aus und registrieren Sie in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Beim Open API Center anmelden", "p": "Melden Sie sich mit Ihrer Verkäufer-ID am 11Street Open API Center an.", "path": "https://openapi.11st.co.kr/openapi/OpenApiFrontMain.tmall" },
+              { "h3": "Dienst registrieren", "p": "Klicken Sie im Menü auf [Dienstregistrierung & Prüfung], geben Sie Ihre Verkäuferdaten ein, stimmen Sie den Bedingungen zu und registrieren Sie.", "path": "Dienstregistrierung & Prüfung" },
+              { "h3": "Zugriffs-IP registrieren", "p": "Registrieren Sie unter [Seller API Info] > [Bearbeiten] die Server-IP, die auf die API zugreifen darf.", "path": "Seller API Info → Bearbeiten" },
+              { "h3": "API Key kopieren", "p": "Kopieren Sie den ausgestellten API Key." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Sobald die Dienstregistrierung und die Zugriffs-IP-Registrierung abgeschlossen sind, wird der API Key ausgestellt." }
+          ]
+        },
+        {
+          "h2": "3. In GenieGo zu registrierende Informationen",
+          "blocks": [
+            { "type": "table", "head": ["Feld", "Beschreibung"], "rows": [
+              ["api_key", "Der ausgestellte Open-API-Schlüssel"],
+              ["seller_id", "Verkäufer-ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Geben Sie ihn im GenieGo Integration Hub [Registrieren] ein und speichern Sie. Anmeldedaten werden im Ruhezustand mit AES-256-GCM verschlüsselt und beim Lesen maskiert." }
+          ]
+        },
+        {
+          "h2": "4. Häufige Probleme",
+          "blocks": [
+            { "type": "table", "head": ["Problem", "Ursache", "Lösung"], "rows": [
+              ["API Key wird nicht ausgestellt", "Dienstregistrierung oder Zugriffs-IP-Registrierung nicht abgeschlossen", "Schließen Sie [Dienstregistrierung & Prüfung] und die Zugriffs-IP-Registrierung unter [Seller API Info] ab."],
+              ["Authentifizierungsfehler bei Aufrufen", "Zulässige Server-IP nicht registriert", "Prüfen Sie die zulässige Server-IP unter [Seller API Info] > [Bearbeiten] erneut."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Abschließende Checkliste",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Mit einem 11Street-Verkäuferkonto am Open API Center angemeldet.",
+              "Verkäuferdaten eingegeben und den Bedingungen unter [Dienstregistrierung & Prüfung] zugestimmt.",
+              "Die zulässige Server-IP unter [Seller API Info] registriert.",
+              "Den ausgestellten Open-API-Schlüssel und die Verkäufer-ID bestätigt.",
+              "api_key·seller_id in GenieGo [Registrieren] eingegeben und gespeichert."
+            ] }
+          ]
+        }
+      ]
+    },
+    "th": {
+      "titleType": "คู่มือการออก API Key",
+      "badge": "คู่มือสำหรับผู้เริ่มต้น",
+      "intro": "คู่มือทีละขั้นตอนที่เป็นมิตรกับผู้เริ่มต้น สำหรับการออกคีย์ Open API จาก 11Street Open API Center (openapi.11st.co.kr) และลงทะเบียนใน GenieGo Integration Hub",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["เวลาโดยประมาณ", "ประมาณ 5–15 นาที"],
+        ["บัญชีที่ต้องใช้", "บัญชีผู้ขาย 11Street"],
+        ["คีย์ที่ออก", "คีย์ Open API · Seller ID"],
+        ["ผลลัพธ์", "ข้อมูลรับรอง Open API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. ก่อนเริ่มต้น",
+          "desc": "คีย์ Open API ของ 11Street สามารถออกได้จากบัญชีผู้ขายเท่านั้น",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "จำเป็น", "h3": "บัญชีผู้ขาย 11Street", "p": "คุณต้องมีบัญชีผู้ขาย 11Street ลงชื่อเข้าใช้ Open API Center ด้วย Seller ID ของคุณ" },
+              { "tag": "คีย์ที่ออก", "h3": "คีย์ Open API · Seller ID", "p": "หลังจากลงทะเบียนบริการและลงทะเบียน IP การเข้าถึงเสร็จสิ้น ให้ตรวจสอบคีย์ Open API ที่ออกพร้อมกับ Seller ID ของคุณ" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>หมายเหตุ:</strong> คุณต้องลงทะเบียน IP ของเซิร์ฟเวอร์ที่ได้รับอนุญาตให้เข้าถึง API ก่อนจึงจะสามารถใช้คีย์ได้" }
+          ]
+        },
+        {
+          "h2": "2. ขั้นตอนการออก",
+          "desc": "ออกตามลำดับด้านล่างและลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "ลงชื่อเข้าใช้ Open API Center", "p": "ลงชื่อเข้าใช้ 11Street Open API Center ด้วย Seller ID ของคุณ", "path": "https://openapi.11st.co.kr/openapi/OpenApiFrontMain.tmall" },
+              { "h3": "ลงทะเบียนบริการ", "p": "จากเมนู คลิก [ลงทะเบียน·ยืนยันบริการ] ป้อนข้อมูลผู้ขาย ยอมรับข้อกำหนด แล้วลงทะเบียน", "path": "ลงทะเบียน·ยืนยันบริการ" },
+              { "h3": "ลงทะเบียน IP การเข้าถึง", "p": "ใน [ข้อมูล Seller API] > [แก้ไข] ลงทะเบียน IP ของเซิร์ฟเวอร์ที่ได้รับอนุญาตให้เข้าถึง API", "path": "ข้อมูล Seller API → แก้ไข" },
+              { "h3": "คัดลอก API Key", "p": "คัดลอก API Key ที่ออก" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "เมื่อลงทะเบียนบริการและลงทะเบียน IP การเข้าถึงเสร็จสิ้น API Key จะถูกออกให้" }
+          ]
+        },
+        {
+          "h2": "3. ข้อมูลที่ต้องลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["ฟิลด์", "คำอธิบาย"], "rows": [
+              ["api_key", "คีย์ Open API ที่ออก"],
+              ["seller_id", "Seller ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "ป้อนและบันทึกใน GenieGo Integration Hub [ลงทะเบียน] ข้อมูลรับรองจะถูกเข้ารหัสขณะจัดเก็บด้วย AES-256-GCM และปิดบังเมื่ออ่าน" }
+          ]
+        },
+        {
+          "h2": "4. ปัญหาที่พบบ่อย",
+          "blocks": [
+            { "type": "table", "head": ["ปัญหา", "สาเหตุ", "วิธีแก้ไข"], "rows": [
+              ["ไม่ได้ออก API Key", "ลงทะเบียนบริการหรือลงทะเบียน IP การเข้าถึงไม่เสร็จสมบูรณ์", "ดำเนินการ [ลงทะเบียน·ยืนยันบริการ] และการลงทะเบียน IP การเข้าถึงใน [ข้อมูล Seller API] ให้เสร็จสมบูรณ์"],
+              ["ข้อผิดพลาดการตรวจสอบสิทธิ์เมื่อเรียก", "ไม่ได้ลงทะเบียน IP ของเซิร์ฟเวอร์ที่อนุญาต", "ตรวจสอบ IP ของเซิร์ฟเวอร์ที่อนุญาตอีกครั้งใน [ข้อมูล Seller API] > [แก้ไข]"]
+            ] }
+          ]
+        },
+        {
+          "h2": "รายการตรวจสอบขั้นสุดท้าย",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "ลงชื่อเข้าใช้ Open API Center ด้วยบัญชีผู้ขาย 11Street แล้ว",
+              "ป้อนข้อมูลผู้ขายและยอมรับข้อกำหนดใน [ลงทะเบียน·ยืนยันบริการ] แล้ว",
+              "ลงทะเบียน IP ของเซิร์ฟเวอร์ที่อนุญาตใน [ข้อมูล Seller API] แล้ว",
+              "ยืนยันคีย์ Open API ที่ออกและ Seller ID แล้ว",
+              "ป้อน api_key·seller_id ใน GenieGo [ลงทะเบียน] และบันทึกแล้ว"
+            ] }
+          ]
+        }
+      ]
+    },
+    "vi": {
+      "titleType": "Hướng dẫn cấp API Key",
+      "badge": "Hướng dẫn cho người mới",
+      "intro": "Hướng dẫn từng bước thân thiện với người mới về việc cấp khóa Open API từ 11Street Open API Center (openapi.11st.co.kr) và đăng ký trong GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Thời gian dự kiến", "Khoảng 5–15 phút"],
+        ["Tài khoản cần thiết", "Tài khoản người bán 11Street"],
+        ["Khóa được cấp", "Khóa Open API · Seller ID"],
+        ["Kết quả", "Thông tin xác thực Open API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Trước khi bắt đầu",
+          "desc": "Khóa Open API của 11Street chỉ có thể được cấp từ tài khoản người bán.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Bắt buộc", "h3": "Tài khoản người bán 11Street", "p": "Bạn cần một tài khoản người bán 11Street. Đăng nhập vào Open API Center bằng Seller ID của bạn." },
+              { "tag": "Khóa được cấp", "h3": "Khóa Open API · Seller ID", "p": "Sau khi hoàn tất đăng ký dịch vụ và đăng ký IP truy cập, hãy kiểm tra khóa Open API được cấp cùng với Seller ID của bạn." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Lưu ý:</strong> Bạn phải đăng ký IP máy chủ được phép truy cập API trước khi có thể sử dụng khóa." }
+          ]
+        },
+        {
+          "h2": "2. Các bước cấp",
+          "desc": "Cấp theo thứ tự dưới đây và đăng ký trong GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Đăng nhập vào Open API Center", "p": "Đăng nhập vào 11Street Open API Center bằng Seller ID của bạn.", "path": "https://openapi.11st.co.kr/openapi/OpenApiFrontMain.tmall" },
+              { "h3": "Đăng ký dịch vụ", "p": "Từ menu, nhấp vào [Đăng ký·Xác minh dịch vụ], nhập thông tin người bán, đồng ý với điều khoản và đăng ký.", "path": "Đăng ký·Xác minh dịch vụ" },
+              { "h3": "Đăng ký IP truy cập", "p": "Trong [Thông tin Seller API] > [Chỉnh sửa], đăng ký IP máy chủ được phép truy cập API.", "path": "Thông tin Seller API → Chỉnh sửa" },
+              { "h3": "Sao chép API Key", "p": "Sao chép API Key được cấp." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Khi đăng ký dịch vụ và đăng ký IP truy cập hoàn tất, API Key sẽ được cấp." }
+          ]
+        },
+        {
+          "h2": "3. Thông tin cần đăng ký trong GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Trường", "Mô tả"], "rows": [
+              ["api_key", "Khóa Open API được cấp"],
+              ["seller_id", "Seller ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Nhập và lưu trong GenieGo Integration Hub [Đăng ký]. Thông tin xác thực được mã hóa khi lưu trữ bằng AES-256-GCM và được che khi đọc." }
+          ]
+        },
+        {
+          "h2": "4. Sự cố thường gặp",
+          "blocks": [
+            { "type": "table", "head": ["Sự cố", "Nguyên nhân", "Giải pháp"], "rows": [
+              ["API Key không được cấp", "Đăng ký dịch vụ hoặc đăng ký IP truy cập chưa hoàn tất", "Hoàn tất [Đăng ký·Xác minh dịch vụ] và việc đăng ký IP truy cập trong [Thông tin Seller API]."],
+              ["Lỗi xác thực khi gọi", "IP máy chủ được phép chưa được đăng ký", "Kiểm tra lại IP máy chủ được phép trong [Thông tin Seller API] > [Chỉnh sửa]."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Danh sách kiểm tra cuối cùng",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Đã đăng nhập vào Open API Center bằng tài khoản người bán 11Street.",
+              "Đã nhập thông tin người bán và đồng ý với điều khoản trong [Đăng ký·Xác minh dịch vụ].",
+              "Đã đăng ký IP máy chủ được phép trong [Thông tin Seller API].",
+              "Đã xác nhận khóa Open API được cấp và Seller ID.",
+              "Đã nhập api_key·seller_id vào GenieGo [Đăng ký] và lưu."
+            ] }
+          ]
+        }
+      ]
+    },
+    "id": {
+      "titleType": "Panduan Penerbitan API Key",
+      "badge": "Panduan Pemula",
+      "intro": "Panduan langkah demi langkah yang ramah pemula untuk menerbitkan kunci Open API dari 11Street Open API Center (openapi.11st.co.kr) dan mendaftarkannya di GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Perkiraan waktu", "Sekitar 5–15 menit"],
+        ["Akun yang dibutuhkan", "Akun penjual 11Street"],
+        ["Kunci yang diterbitkan", "Kunci Open API · Seller ID"],
+        ["Hasil", "Kredensial Open API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Sebelum Anda Mulai",
+          "desc": "Kunci Open API 11Street hanya dapat diterbitkan dari akun penjual.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Diperlukan", "h3": "Akun penjual 11Street", "p": "Anda memerlukan akun penjual 11Street. Masuk ke Open API Center dengan Seller ID Anda." },
+              { "tag": "Kunci yang diterbitkan", "h3": "Kunci Open API · Seller ID", "p": "Setelah menyelesaikan pendaftaran layanan dan pendaftaran IP akses, periksa kunci Open API yang diterbitkan bersama dengan Seller ID Anda." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Catatan:</strong> Anda harus mendaftarkan IP server yang diizinkan mengakses API sebelum dapat menggunakan kunci." }
+          ]
+        },
+        {
+          "h2": "2. Langkah Penerbitan",
+          "desc": "Terbitkan sesuai urutan di bawah dan daftarkan di GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Masuk ke Open API Center", "p": "Masuk ke 11Street Open API Center dengan Seller ID Anda.", "path": "https://openapi.11st.co.kr/openapi/OpenApiFrontMain.tmall" },
+              { "h3": "Daftarkan layanan", "p": "Dari menu, klik [Pendaftaran·Verifikasi Layanan], masukkan detail penjual, setujui ketentuan, dan daftarkan.", "path": "Pendaftaran·Verifikasi Layanan" },
+              { "h3": "Daftarkan IP akses", "p": "Di [Info Seller API] > [Edit], daftarkan IP server yang diizinkan mengakses API.", "path": "Info Seller API → Edit" },
+              { "h3": "Salin API Key", "p": "Salin API Key yang diterbitkan." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Setelah pendaftaran layanan dan pendaftaran IP akses selesai, API Key diterbitkan." }
+          ]
+        },
+        {
+          "h2": "3. Informasi yang Harus Didaftarkan di GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Bidang", "Deskripsi"], "rows": [
+              ["api_key", "Kunci Open API yang diterbitkan"],
+              ["seller_id", "Seller ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Masukkan dan simpan di GenieGo Integration Hub [Daftar]. Kredensial dienkripsi saat disimpan dengan AES-256-GCM dan disamarkan saat dibaca." }
+          ]
+        },
+        {
+          "h2": "4. Masalah Umum",
+          "blocks": [
+            { "type": "table", "head": ["Masalah", "Penyebab", "Solusi"], "rows": [
+              ["API Key tidak diterbitkan", "Pendaftaran layanan atau pendaftaran IP akses belum selesai", "Selesaikan [Pendaftaran·Verifikasi Layanan] dan pendaftaran IP akses di [Info Seller API]."],
+              ["Kesalahan autentikasi saat memanggil", "IP server yang diizinkan belum didaftarkan", "Periksa kembali IP server yang diizinkan di [Info Seller API] > [Edit]."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Daftar Periksa Akhir",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Masuk ke Open API Center dengan akun penjual 11Street.",
+              "Memasukkan detail penjual dan menyetujui ketentuan di [Pendaftaran·Verifikasi Layanan].",
+              "Mendaftarkan IP server yang diizinkan di [Info Seller API].",
+              "Mengonfirmasi kunci Open API yang diterbitkan dan Seller ID.",
+              "Memasukkan api_key·seller_id di GenieGo [Daftar] dan menyimpan."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ar": {
+      "titleType": "دليل إصدار مفتاح API",
+      "badge": "دليل المبتدئين",
+      "intro": "دليل تفصيلي خطوة بخطوة مناسب للمبتدئين لإصدار مفتاح Open API من مركز 11Street Open API (openapi.11st.co.kr) وتسجيله في GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["الوقت المقدّر", "حوالي 5–15 دقيقة"],
+        ["الحساب المطلوب", "حساب بائع 11Street"],
+        ["المفاتيح الصادرة", "مفتاح Open API · معرّف البائع (Seller ID)"],
+        ["النتيجة", "بيانات اعتماد Open API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. قبل أن تبدأ",
+          "desc": "لا يمكن إصدار مفاتيح Open API الخاصة بـ 11Street إلا من حساب بائع.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "مطلوب", "h3": "حساب بائع 11Street", "p": "تحتاج إلى حساب بائع 11Street. سجّل الدخول إلى مركز Open API باستخدام معرّف البائع الخاص بك." },
+              { "tag": "المفاتيح الصادرة", "h3": "مفتاح Open API · معرّف البائع (Seller ID)", "p": "بعد إكمال تسجيل الخدمة وتسجيل عنوان IP للوصول، تحقّق من مفتاح Open API الصادر مع معرّف البائع الخاص بك." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>ملاحظة:</strong> يجب تسجيل عنوان IP لخادم مسموح له بالوصول إلى API قبل أن تتمكن من استخدام المفتاح." }
+          ]
+        },
+        {
+          "h2": "2. خطوات الإصدار",
+          "desc": "أصدر بالترتيب أدناه وسجّل في GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "تسجيل الدخول إلى مركز Open API", "p": "سجّل الدخول إلى مركز 11Street Open API باستخدام معرّف البائع الخاص بك.", "path": "https://openapi.11st.co.kr/openapi/OpenApiFrontMain.tmall" },
+              { "h3": "تسجيل الخدمة", "p": "من القائمة، انقر على [تسجيل·التحقق من الخدمة]، وأدخل بيانات البائع، ووافق على الشروط ثم سجّل.", "path": "تسجيل·التحقق من الخدمة" },
+              { "h3": "تسجيل عنوان IP للوصول", "p": "في [معلومات Seller API] > [تعديل]، سجّل عنوان IP للخادم المسموح له بالوصول إلى API.", "path": "معلومات Seller API → تعديل" },
+              { "h3": "نسخ مفتاح API", "p": "انسخ مفتاح API الصادر." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "بمجرد اكتمال تسجيل الخدمة وتسجيل عنوان IP للوصول، يتم إصدار مفتاح API." }
+          ]
+        },
+        {
+          "h2": "3. المعلومات المطلوب تسجيلها في GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["الحقل", "الوصف"], "rows": [
+              ["api_key", "مفتاح Open API الصادر"],
+              ["seller_id", "معرّف البائع (Seller ID)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "أدخله واحفظه في GenieGo Integration Hub [تسجيل]. يتم تشفير بيانات الاعتماد أثناء التخزين باستخدام AES-256-GCM وإخفاؤها عند القراءة." }
+          ]
+        },
+        {
+          "h2": "4. المشكلات الشائعة",
+          "blocks": [
+            { "type": "table", "head": ["المشكلة", "السبب", "الحل"], "rows": [
+              ["لم يتم إصدار مفتاح API", "لم يكتمل تسجيل الخدمة أو تسجيل عنوان IP للوصول", "أكمل [تسجيل·التحقق من الخدمة] وتسجيل عنوان IP للوصول في [معلومات Seller API]."],
+              ["خطأ في المصادقة عند الاستدعاء", "لم يتم تسجيل عنوان IP للخادم المسموح به", "تحقّق مرة أخرى من عنوان IP للخادم المسموح به في [معلومات Seller API] > [تعديل]."]
+            ] }
+          ]
+        },
+        {
+          "h2": "قائمة التحقق النهائية",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "سجّلت الدخول إلى مركز Open API بحساب بائع 11Street.",
+              "أدخلت بيانات البائع ووافقت على الشروط في [تسجيل·التحقق من الخدمة].",
+              "سجّلت عنوان IP للخادم المسموح به في [معلومات Seller API].",
+              "تأكدت من مفتاح Open API الصادر ومعرّف البائع.",
+              "أدخلت api_key·seller_id في GenieGo [تسجيل] وحفظت."
+            ] }
+          ]
+        }
+      ]
+    },
+    "es": {
+      "titleType": "Manual de emisión de API Key",
+      "badge": "Guía para principiantes",
+      "intro": "Una guía paso a paso, apta para principiantes, para emitir una clave de Open API en el Centro de Open API de 11Street (openapi.11st.co.kr) y registrarla en el GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tiempo estimado", "Unos 5–15 min"],
+        ["Cuenta necesaria", "Cuenta de vendedor de 11Street"],
+        ["Claves emitidas", "Clave de Open API · Seller ID"],
+        ["Resultado", "Credenciales de Open API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de empezar",
+          "desc": "Las claves de Open API de 11Street solo se pueden emitir desde una cuenta de vendedor.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requerido", "h3": "Cuenta de vendedor de 11Street", "p": "Necesitas una cuenta de vendedor de 11Street. Inicia sesión en el Centro de Open API con tu Seller ID." },
+              { "tag": "Claves emitidas", "h3": "Clave de Open API · Seller ID", "p": "Tras completar el registro del servicio y el registro de la IP de acceso, comprueba la clave de Open API emitida junto con tu Seller ID." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Nota:</strong> Debes registrar una IP de servidor con permiso para acceder a la API antes de poder usar la clave." }
+          ]
+        },
+        {
+          "h2": "2. Pasos de emisión",
+          "desc": "Emite en el orden siguiente y registra en GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Inicia sesión en el Centro de Open API", "p": "Inicia sesión en el Centro de Open API de 11Street con tu Seller ID.", "path": "https://openapi.11st.co.kr/openapi/OpenApiFrontMain.tmall" },
+              { "h3": "Registra el servicio", "p": "En el menú, haz clic en [Registro·Verificación del servicio], introduce los datos del vendedor, acepta los términos y regístrate.", "path": "Registro·Verificación del servicio" },
+              { "h3": "Registra la IP de acceso", "p": "En [Información de Seller API] > [Editar], registra la IP del servidor con permiso para acceder a la API.", "path": "Información de Seller API → Editar" },
+              { "h3": "Copia la API Key", "p": "Copia la API Key emitida." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Una vez completados el registro del servicio y el registro de la IP de acceso, se emite la API Key." }
+          ]
+        },
+        {
+          "h2": "3. Información para registrar en GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descripción"], "rows": [
+              ["api_key", "La clave de Open API emitida"],
+              ["seller_id", "Seller ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Introdúcela y guárdala en el GenieGo Integration Hub [Registrar]. Las credenciales se cifran en reposo con AES-256-GCM y se enmascaran al leerlas." }
+          ]
+        },
+        {
+          "h2": "4. Problemas comunes",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solución"], "rows": [
+              ["La API Key no se emite", "Registro del servicio o registro de la IP de acceso sin completar", "Completa [Registro·Verificación del servicio] y el registro de la IP de acceso en [Información de Seller API]."],
+              ["Error de autenticación en las llamadas", "IP del servidor permitida no registrada", "Vuelve a comprobar la IP del servidor permitida en [Información de Seller API] > [Editar]."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificación final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Inicié sesión en el Centro de Open API con una cuenta de vendedor de 11Street.",
+              "Introduje los datos del vendedor y acepté los términos en [Registro·Verificación del servicio].",
+              "Registré la IP del servidor permitida en [Información de Seller API].",
+              "Confirmé la clave de Open API emitida y el Seller ID.",
+              "Introduje api_key·seller_id en GenieGo [Registrar] y guardé."
+            ] }
+          ]
+        }
+      ]
+    },
+    "fr": {
+      "titleType": "Manuel de délivrance de la clé API",
+      "badge": "Guide du débutant",
+      "intro": "Un guide pas à pas, adapté aux débutants, pour délivrer une clé Open API depuis le centre Open API de 11Street (openapi.11st.co.kr) et l'enregistrer dans le GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Temps estimé", "Environ 5–15 min"],
+        ["Compte requis", "Compte vendeur 11Street"],
+        ["Clés délivrées", "Clé Open API · Seller ID"],
+        ["Résultat", "Identifiants Open API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Avant de commencer",
+          "desc": "Les clés Open API de 11Street ne peuvent être délivrées que depuis un compte vendeur.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requis", "h3": "Compte vendeur 11Street", "p": "Vous avez besoin d'un compte vendeur 11Street. Connectez-vous au centre Open API avec votre Seller ID." },
+              { "tag": "Clés délivrées", "h3": "Clé Open API · Seller ID", "p": "Une fois l'enregistrement du service et l'enregistrement de l'IP d'accès terminés, vérifiez la clé Open API délivrée ainsi que votre Seller ID." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Remarque :</strong> Vous devez enregistrer une IP de serveur autorisée à accéder à l'API avant de pouvoir utiliser la clé." }
+          ]
+        },
+        {
+          "h2": "2. Étapes de délivrance",
+          "desc": "Délivrez dans l'ordre ci-dessous et enregistrez dans GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Connectez-vous au centre Open API", "p": "Connectez-vous au centre Open API de 11Street avec votre Seller ID.", "path": "https://openapi.11st.co.kr/openapi/OpenApiFrontMain.tmall" },
+              { "h3": "Enregistrez le service", "p": "Dans le menu, cliquez sur [Enregistrement·Vérification du service], saisissez les informations du vendeur, acceptez les conditions et enregistrez.", "path": "Enregistrement·Vérification du service" },
+              { "h3": "Enregistrez l'IP d'accès", "p": "Dans [Informations Seller API] > [Modifier], enregistrez l'IP du serveur autorisée à accéder à l'API.", "path": "Informations Seller API → Modifier" },
+              { "h3": "Copiez la clé API", "p": "Copiez la clé API délivrée." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Une fois l'enregistrement du service et l'enregistrement de l'IP d'accès terminés, la clé API est délivrée." }
+          ]
+        },
+        {
+          "h2": "3. Informations à enregistrer dans GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Champ", "Description"], "rows": [
+              ["api_key", "La clé Open API délivrée"],
+              ["seller_id", "Seller ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Saisissez-la et enregistrez-la dans le GenieGo Integration Hub [Enregistrer]. Les identifiants sont chiffrés au repos avec AES-256-GCM et masqués à la lecture." }
+          ]
+        },
+        {
+          "h2": "4. Problèmes fréquents",
+          "blocks": [
+            { "type": "table", "head": ["Problème", "Cause", "Solution"], "rows": [
+              ["La clé API n'est pas délivrée", "Enregistrement du service ou enregistrement de l'IP d'accès non terminé", "Terminez [Enregistrement·Vérification du service] et l'enregistrement de l'IP d'accès dans [Informations Seller API]."],
+              ["Erreur d'authentification lors des appels", "IP de serveur autorisée non enregistrée", "Vérifiez à nouveau l'IP du serveur autorisée dans [Informations Seller API] > [Modifier]."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Liste de contrôle finale",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Connecté au centre Open API avec un compte vendeur 11Street.",
+              "Saisi les informations du vendeur et accepté les conditions dans [Enregistrement·Vérification du service].",
+              "Enregistré l'IP du serveur autorisée dans [Informations Seller API].",
+              "Confirmé la clé Open API délivrée et le Seller ID.",
+              "Saisi api_key·seller_id dans GenieGo [Enregistrer] et enregistré."
+            ] }
+          ]
+        }
+      ]
+    },
+    "hi": {
+      "titleType": "API Key जारी करने की नियमावली",
+      "badge": "शुरुआती गाइड",
+      "intro": "11Street Open API Center (openapi.11st.co.kr) से Open API कुंजी जारी करने और उसे GenieGo Integration Hub में पंजीकृत करने के लिए शुरुआती-अनुकूल चरण-दर-चरण मार्गदर्शिका।",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["अनुमानित समय", "लगभग 5–15 मिनट"],
+        ["आवश्यक खाता", "11Street विक्रेता खाता"],
+        ["जारी कुंजियाँ", "Open API कुंजी · Seller ID"],
+        ["परिणाम", "Open API क्रेडेंशियल"]
+      ],
+      "sections": [
+        {
+          "h2": "1. शुरू करने से पहले",
+          "desc": "11Street Open API कुंजियाँ केवल विक्रेता खाते से ही जारी की जा सकती हैं।",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "आवश्यक", "h3": "11Street विक्रेता खाता", "p": "आपको एक 11Street विक्रेता खाते की आवश्यकता है। अपनी Seller ID से Open API Center में साइन इन करें।" },
+              { "tag": "जारी कुंजियाँ", "h3": "Open API कुंजी · Seller ID", "p": "सेवा पंजीकरण और एक्सेस IP पंजीकरण पूरा करने के बाद, जारी की गई Open API कुंजी को अपनी Seller ID के साथ जाँचें।" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>ध्यान दें:</strong> कुंजी का उपयोग करने से पहले आपको एक ऐसा सर्वर IP पंजीकृत करना होगा जिसे API तक पहुँचने की अनुमति हो।" }
+          ]
+        },
+        {
+          "h2": "2. जारी करने के चरण",
+          "desc": "नीचे दिए गए क्रम में जारी करें और GenieGo में पंजीकृत करें।",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Open API Center में साइन इन करें", "p": "अपनी Seller ID से 11Street Open API Center में साइन इन करें।", "path": "https://openapi.11st.co.kr/openapi/OpenApiFrontMain.tmall" },
+              { "h3": "सेवा पंजीकृत करें", "p": "मेनू से [सेवा पंजीकरण·सत्यापन] पर क्लिक करें, विक्रेता विवरण दर्ज करें, शर्तों से सहमत हों और पंजीकृत करें।", "path": "सेवा पंजीकरण·सत्यापन" },
+              { "h3": "एक्सेस IP पंजीकृत करें", "p": "[Seller API जानकारी] > [संपादित करें] में, API तक पहुँचने के लिए अनुमत सर्वर IP पंजीकृत करें।", "path": "Seller API जानकारी → संपादित करें" },
+              { "h3": "API Key कॉपी करें", "p": "जारी की गई API Key कॉपी करें।" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "सेवा पंजीकरण और एक्सेस IP पंजीकरण पूरा होते ही API Key जारी हो जाती है।" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo में पंजीकृत करने योग्य जानकारी",
+          "blocks": [
+            { "type": "table", "head": ["फ़ील्ड", "विवरण"], "rows": [
+              ["api_key", "जारी की गई Open API कुंजी"],
+              ["seller_id", "Seller ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "इसे GenieGo Integration Hub [पंजीकरण] में दर्ज करके सहेजें। क्रेडेंशियल को संग्रहण के समय AES-256-GCM से एन्क्रिप्ट किया जाता है और पढ़ते समय मास्क किया जाता है।" }
+          ]
+        },
+        {
+          "h2": "4. सामान्य समस्याएँ",
+          "blocks": [
+            { "type": "table", "head": ["समस्या", "कारण", "समाधान"], "rows": [
+              ["API Key जारी नहीं होती", "सेवा पंजीकरण या एक्सेस IP पंजीकरण पूरा नहीं हुआ", "[सेवा पंजीकरण·सत्यापन] और [Seller API जानकारी] में एक्सेस IP पंजीकरण पूरा करें।"],
+              ["कॉल करते समय प्रमाणीकरण त्रुटि", "अनुमत सर्वर IP पंजीकृत नहीं", "[Seller API जानकारी] > [संपादित करें] में अनुमत सर्वर IP को फिर से जाँचें।"]
+            ] }
+          ]
+        },
+        {
+          "h2": "अंतिम जाँच सूची",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "11Street विक्रेता खाते से Open API Center में साइन इन किया।",
+              "[सेवा पंजीकरण·सत्यापन] में विक्रेता विवरण दर्ज किए और शर्तों से सहमत हुए।",
+              "[Seller API जानकारी] में अनुमत सर्वर IP पंजीकृत किया।",
+              "जारी की गई Open API कुंजी और Seller ID की पुष्टि की।",
+              "GenieGo [पंजीकरण] में api_key·seller_id दर्ज करके सहेजा।"
+            ] }
+          ]
+        }
+      ]
+    },
+    "pt": {
+      "titleType": "Manual de emissão da API Key",
+      "badge": "Guia para iniciantes",
+      "intro": "Um guia passo a passo, adequado para iniciantes, para emitir uma chave de Open API no Centro de Open API da 11Street (openapi.11st.co.kr) e registrá-la no GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tempo estimado", "Cerca de 5–15 min"],
+        ["Conta necessária", "Conta de vendedor da 11Street"],
+        ["Chaves emitidas", "Chave de Open API · Seller ID"],
+        ["Resultado", "Credenciais de Open API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de começar",
+          "desc": "As chaves de Open API da 11Street só podem ser emitidas a partir de uma conta de vendedor.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Obrigatório", "h3": "Conta de vendedor da 11Street", "p": "Você precisa de uma conta de vendedor da 11Street. Faça login no Centro de Open API com seu Seller ID." },
+              { "tag": "Chaves emitidas", "h3": "Chave de Open API · Seller ID", "p": "Após concluir o registro do serviço e o registro do IP de acesso, verifique a chave de Open API emitida junto com seu Seller ID." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Nota:</strong> Você precisa registrar um IP de servidor autorizado a acessar a API antes de poder usar a chave." }
+          ]
+        },
+        {
+          "h2": "2. Etapas de emissão",
+          "desc": "Emita na ordem abaixo e registre no GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Faça login no Centro de Open API", "p": "Faça login no Centro de Open API da 11Street com seu Seller ID.", "path": "https://openapi.11st.co.kr/openapi/OpenApiFrontMain.tmall" },
+              { "h3": "Registre o serviço", "p": "No menu, clique em [Registro·Verificação do serviço], insira os dados do vendedor, aceite os termos e registre.", "path": "Registro·Verificação do serviço" },
+              { "h3": "Registre o IP de acesso", "p": "Em [Informações da Seller API] > [Editar], registre o IP do servidor autorizado a acessar a API.", "path": "Informações da Seller API → Editar" },
+              { "h3": "Copie a API Key", "p": "Copie a API Key emitida." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Assim que o registro do serviço e o registro do IP de acesso forem concluídos, a API Key é emitida." }
+          ]
+        },
+        {
+          "h2": "3. Informações para registrar no GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descrição"], "rows": [
+              ["api_key", "A chave de Open API emitida"],
+              ["seller_id", "Seller ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Insira e salve no GenieGo Integration Hub [Registrar]. As credenciais são criptografadas em repouso com AES-256-GCM e mascaradas na leitura." }
+          ]
+        },
+        {
+          "h2": "4. Problemas comuns",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solução"], "rows": [
+              ["A API Key não é emitida", "Registro do serviço ou registro do IP de acesso não concluído", "Conclua [Registro·Verificação do serviço] e o registro do IP de acesso em [Informações da Seller API]."],
+              ["Erro de autenticação nas chamadas", "IP de servidor autorizado não registrado", "Verifique novamente o IP do servidor autorizado em [Informações da Seller API] > [Editar]."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificação final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Fiz login no Centro de Open API com uma conta de vendedor da 11Street.",
+              "Inseri os dados do vendedor e aceitei os termos em [Registro·Verificação do serviço].",
+              "Registrei o IP do servidor autorizado em [Informações da Seller API].",
+              "Confirmei a chave de Open API emitida e o Seller ID.",
+              "Inseri api_key·seller_id no GenieGo [Registrar] e salvei."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ru": {
+      "titleType": "Руководство по выпуску API Key",
+      "badge": "Руководство для начинающих",
+      "intro": "Понятное новичкам пошаговое руководство по выпуску ключа Open API в Центре Open API 11Street (openapi.11st.co.kr) и его регистрации в GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Примерное время", "Около 5–15 мин"],
+        ["Требуемый аккаунт", "Аккаунт продавца 11Street"],
+        ["Выпускаемые ключи", "Ключ Open API · Seller ID"],
+        ["Результат", "Учётные данные Open API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Прежде чем начать",
+          "desc": "Ключи Open API 11Street можно выпустить только из аккаунта продавца.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Требуется", "h3": "Аккаунт продавца 11Street", "p": "Вам нужен аккаунт продавца 11Street. Войдите в Центр Open API, используя свой Seller ID." },
+              { "tag": "Выпускаемые ключи", "h3": "Ключ Open API · Seller ID", "p": "После завершения регистрации сервиса и регистрации IP-адреса доступа проверьте выпущенный ключ Open API вместе со своим Seller ID." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Примечание:</strong> Прежде чем использовать ключ, необходимо зарегистрировать IP-адрес сервера, которому разрешён доступ к API." }
+          ]
+        },
+        {
+          "h2": "2. Шаги выпуска",
+          "desc": "Выпустите в указанном ниже порядке и зарегистрируйте в GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Войдите в Центр Open API", "p": "Войдите в Центр Open API 11Street, используя свой Seller ID.", "path": "https://openapi.11st.co.kr/openapi/OpenApiFrontMain.tmall" },
+              { "h3": "Зарегистрируйте сервис", "p": "В меню нажмите [Регистрация·Проверка сервиса], введите данные продавца, примите условия и зарегистрируйтесь.", "path": "Регистрация·Проверка сервиса" },
+              { "h3": "Зарегистрируйте IP-адрес доступа", "p": "В разделе [Информация Seller API] > [Изменить] зарегистрируйте IP-адрес сервера, которому разрешён доступ к API.", "path": "Информация Seller API → Изменить" },
+              { "h3": "Скопируйте API Key", "p": "Скопируйте выпущенный API Key." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "После завершения регистрации сервиса и регистрации IP-адреса доступа API Key будет выпущен." }
+          ]
+        },
+        {
+          "h2": "3. Информация для регистрации в GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Поле", "Описание"], "rows": [
+              ["api_key", "Выпущенный ключ Open API"],
+              ["seller_id", "Seller ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Введите и сохраните в GenieGo Integration Hub [Регистрация]. Учётные данные шифруются при хранении с помощью AES-256-GCM и маскируются при чтении." }
+          ]
+        },
+        {
+          "h2": "4. Частые проблемы",
+          "blocks": [
+            { "type": "table", "head": ["Проблема", "Причина", "Решение"], "rows": [
+              ["API Key не выпускается", "Не завершена регистрация сервиса или регистрация IP-адреса доступа", "Завершите [Регистрация·Проверка сервиса] и регистрацию IP-адреса доступа в [Информация Seller API]."],
+              ["Ошибка аутентификации при вызовах", "Не зарегистрирован разрешённый IP-адрес сервера", "Повторно проверьте разрешённый IP-адрес сервера в [Информация Seller API] > [Изменить]."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Финальный контрольный список",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Вошёл в Центр Open API с аккаунтом продавца 11Street.",
+              "Ввёл данные продавца и принял условия в [Регистрация·Проверка сервиса].",
+              "Зарегистрировал разрешённый IP-адрес сервера в [Информация Seller API].",
+              "Подтвердил выпущенный ключ Open API и Seller ID.",
+              "Ввёл api_key·seller_id в GenieGo [Регистрация] и сохранил."
+            ] }
+          ]
+        }
+      ]
+    }
+  }
+}

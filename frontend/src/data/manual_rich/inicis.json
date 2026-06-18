@@ -1,0 +1,1041 @@
+{
+  "name": "KG Inicis",
+  "icon": "💳",
+  "langs": {
+    "ko": {
+      "titleType": "API Key 발급 매뉴얼",
+      "badge": "Beginner Guide",
+      "intro": "KG이니시스 상점관리자에서 INIAPI Key와 웹표준 사인키(SignKey)를 발급하고, 상점 ID(MID)와 함께 GenieGo 연동 허브에 등록하는 과정을 정리한 매뉴얼입니다.",
+      "org": "GenieGo 연동 허브",
+      "quick": [
+        ["소요 시간", "약 5~15분"],
+        ["필요 계정", "KG이니시스 가맹점 계약·상점관리자 계정"],
+        ["발급 키", "MID · API 키 · 사인키(SignKey)"],
+        ["결과물", "결제 연동 자격증명"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 시작하기 전에",
+          "desc": "KG이니시스는 가맹점 계약이 완료된 후에만 인증키를 발급할 수 있습니다.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "필요", "h3": "가맹점 계약·상점관리자 계정", "p": "KG이니시스 가맹점 계약이 체결되어 있어야 하며, 상점관리자 계정으로 로그인할 수 있어야 합니다." },
+              { "tag": "발급 키", "h3": "INIAPI Key · 웹표준 사인키", "p": "상점관리자에서 INIAPI Key를 생성하고, 웹결제 signkey 생성으로 웹표준 사인키를 함께 발급합니다." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>참고:</strong> 등록에는 상점 ID(MID)·사인키(SignKey)·API 키 세 가지가 필요합니다." }
+          ]
+        },
+        {
+          "h2": "2. 발급 단계",
+          "desc": "아래 순서대로 발급하고 GenieGo에 등록합니다.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "상점관리자 로그인", "p": "이니시스 상점관리자에 로그인합니다.", "path": "https://iniweb.inicis.com" },
+              { "h3": "부가정보 메뉴 이동", "p": "[상점정보] > [계약정보] > [부가정보]로 이동합니다.", "path": "상점정보 → 계약정보 → 부가정보" },
+              { "h3": "INIAPI Key 생성", "p": "INIAPI Key를 생성합니다." },
+              { "h3": "웹표준 사인키 생성", "p": "[웹결제 signkey 생성]을 눌러 웹표준 사인키(SignKey)를 발급합니다.", "path": "웹결제 signkey 생성" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "INIAPI Key와 웹표준 사인키가 모두 생성되면 정상 발급된 것입니다." }
+          ]
+        },
+        {
+          "h2": "3. GenieGo에 등록할 정보",
+          "blocks": [
+            { "type": "table", "head": ["필드", "설명"], "rows": [
+              ["MID", "상점 ID(MID)"],
+              ["sign_key", "발급된 웹표준 사인키(SignKey, 노출 주의)"],
+              ["api_key", "발급된 INIAPI Key"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 연동 허브 [등록]에 입력해 저장하면 자격증명은 AES-256-GCM으로 암호화 저장되고 조회 시 마스킹됩니다." }
+          ]
+        },
+        {
+          "h2": "4. 자주 발생하는 문제",
+          "blocks": [
+            { "type": "table", "head": ["문제", "원인", "해결"], "rows": [
+              ["부가정보 메뉴가 보이지 않음", "가맹점 계약 미완료 또는 권한 없는 계정", "가맹점 계약을 완료한 상점관리자 계정으로 로그인합니다."],
+              ["결제 인증 실패", "사인키 또는 API 키 오기재", "상점정보 > 계약정보 > 부가정보에서 발급한 사인키·INIAPI Key를 다시 확인합니다."]
+            ] }
+          ]
+        },
+        {
+          "h2": "최종 체크리스트",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "KG이니시스 가맹점 계약을 완료하고 상점관리자에 로그인했다.",
+              "상점정보 > 계약정보 > 부가정보에서 INIAPI Key를 생성했다.",
+              "[웹결제 signkey 생성]으로 웹표준 사인키를 발급했다.",
+              "GenieGo [등록]에 MID·sign_key·api_key를 입력해 저장했다."
+            ] }
+          ]
+        }
+      ]
+    },
+    "en": {
+      "titleType": "API Key Issuance Manual",
+      "badge": "Beginner Guide",
+      "intro": "A guide that walks you through issuing your INIAPI Key and Web Standard sign key (SignKey) in the KG Inicis merchant admin and registering them together with your store ID (MID) in the GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Est. time", "About 5–15 min"],
+        ["Account needed", "KG Inicis merchant contract · Merchant admin account"],
+        ["Keys issued", "MID · API key · Sign key (SignKey)"],
+        ["Result", "Payment integration credentials"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Before You Begin",
+          "desc": "KG Inicis can only issue authentication keys after the merchant contract is complete.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Required", "h3": "Merchant contract · Merchant admin account", "p": "You must have a signed KG Inicis merchant contract and be able to log in with a merchant admin account." },
+              { "tag": "Keys issued", "h3": "INIAPI Key · Web Standard sign key", "p": "Create an INIAPI Key in the merchant admin, and issue the Web Standard sign key together via Web Payment signkey generation." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Note:</strong> Registration requires three items: store ID (MID), sign key (SignKey), and API key." }
+          ]
+        },
+        {
+          "h2": "2. Issuance Steps",
+          "desc": "Issue in the order below and register in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Log in to the merchant admin", "p": "Log in to the Inicis merchant admin.", "path": "https://iniweb.inicis.com" },
+              { "h3": "Go to the Additional Info menu", "p": "Go to [Store Info] > [Contract Info] > [Additional Info].", "path": "Store Info → Contract Info → Additional Info" },
+              { "h3": "Create an INIAPI Key", "p": "Create an INIAPI Key." },
+              { "h3": "Create the Web Standard sign key", "p": "Click [Web Payment signkey generation] to issue the Web Standard sign key (SignKey).", "path": "Web Payment signkey generation" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Once both the INIAPI Key and the Web Standard sign key are created, issuance is complete." }
+          ]
+        },
+        {
+          "h2": "3. Information to Register in GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Field", "Description"], "rows": [
+              ["MID", "Store ID (MID)"],
+              ["sign_key", "The issued Web Standard sign key (SignKey, handle with care)"],
+              ["api_key", "The issued INIAPI Key"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Enter and save in the GenieGo Integration Hub [Register] and the credentials are encrypted at rest with AES-256-GCM and masked on read." }
+          ]
+        },
+        {
+          "h2": "4. Common Issues",
+          "blocks": [
+            { "type": "table", "head": ["Issue", "Cause", "Solution"], "rows": [
+              ["The Additional Info menu is not visible", "Merchant contract not completed, or an account without permissions", "Log in with a merchant admin account that has a completed merchant contract."],
+              ["Payment authentication fails", "Sign key or API key entered incorrectly", "Re-check the issued sign key and INIAPI Key in Store Info > Contract Info > Additional Info."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Final Checklist",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Completed the KG Inicis merchant contract and logged in to the merchant admin.",
+              "Created an INIAPI Key in Store Info > Contract Info > Additional Info.",
+              "Issued the Web Standard sign key via [Web Payment signkey generation].",
+              "Entered MID·sign_key·api_key in GenieGo [Register] and saved."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ja": {
+      "titleType": "API Key 発行マニュアル",
+      "badge": "初心者ガイド",
+      "intro": "KG Inicis の加盟店管理者で INIAPI Key とウェブ標準サインキー（SignKey）を発行し、加盟店 ID（MID）とともに GenieGo 連携ハブに登録する手順をまとめたマニュアルです。",
+      "org": "GenieGo 連携ハブ",
+      "quick": [
+        ["所要時間", "約 5〜15 分"],
+        ["必要なアカウント", "KGイニシス加盟店契約・加盟店管理者アカウント"],
+        ["発行するキー", "MID · API キー · サインキー（SignKey）"],
+        ["成果物", "決済連携の認証情報"]
+      ],
+      "sections": [
+        {
+          "h2": "1. はじめる前に",
+          "desc": "KGイニシスは加盟店契約が完了した後にのみ認証キーを発行できます。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必須", "h3": "加盟店契約・加盟店管理者アカウント", "p": "KGイニシスの加盟店契約が締結されている必要があり、加盟店管理者アカウントでログインできる必要があります。" },
+              { "tag": "発行するキー", "h3": "INIAPI Key · ウェブ標準サインキー", "p": "加盟店管理者で INIAPI Key を生成し、ウェブ決済 signkey 生成でウェブ標準サインキーを併せて発行します。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> 登録には加盟店 ID（MID）・サインキー（SignKey）・API キーの 3 つが必要です。" }
+          ]
+        },
+        {
+          "h2": "2. 発行手順",
+          "desc": "以下の順序で発行し、GenieGo に登録します。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "加盟店管理者にログイン", "p": "イニシス加盟店管理者にログインします。", "path": "https://iniweb.inicis.com" },
+              { "h3": "付加情報メニューへ移動", "p": "[加盟店情報] > [契約情報] > [付加情報] に移動します。", "path": "加盟店情報 → 契約情報 → 付加情報" },
+              { "h3": "INIAPI Key を生成", "p": "INIAPI Key を生成します。" },
+              { "h3": "ウェブ標準サインキーを生成", "p": "[ウェブ決済 signkey 生成] をクリックしてウェブ標準サインキー（SignKey）を発行します。", "path": "ウェブ決済 signkey 生成" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "INIAPI Key とウェブ標準サインキーの両方が生成されれば、正常に発行されています。" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo に登録する情報",
+          "blocks": [
+            { "type": "table", "head": ["フィールド", "説明"], "rows": [
+              ["MID", "加盟店 ID（MID）"],
+              ["sign_key", "発行されたウェブ標準サインキー（SignKey、取り扱い注意）"],
+              ["api_key", "発行された INIAPI Key"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 連携ハブ [登録] に入力して保存すると、認証情報は AES-256-GCM で暗号化して保存され、閲覧時にはマスキングされます。" }
+          ]
+        },
+        {
+          "h2": "4. よくある問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["付加情報メニューが表示されない", "加盟店契約が未完了、または権限のないアカウント", "加盟店契約が完了した加盟店管理者アカウントでログインします。"],
+              ["決済認証に失敗する", "サインキーまたは API キーの誤入力", "加盟店情報 > 契約情報 > 付加情報で発行したサインキー・INIAPI Key を再確認します。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終チェックリスト",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "KGイニシスの加盟店契約を完了し、加盟店管理者にログインした。",
+              "加盟店情報 > 契約情報 > 付加情報で INIAPI Key を生成した。",
+              "[ウェブ決済 signkey 生成] でウェブ標準サインキーを発行した。",
+              "GenieGo の [登録] に MID·sign_key·api_key を入力して保存した。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh": {
+      "titleType": "API Key 申请手册",
+      "badge": "新手指南",
+      "intro": "本手册整理了在 KG Inicis 商户管理后台中签发 INIAPI Key 和网页标准签名密钥（SignKey），并连同商户 ID（MID）一起注册到 GenieGo 集成中心的流程。",
+      "org": "GenieGo 集成中心",
+      "quick": [
+        ["预计时间", "约 5~15 分钟"],
+        ["所需账户", "KG Inicis 商户合同·商户管理后台账户"],
+        ["签发密钥", "MID · API 密钥 · 签名密钥（SignKey）"],
+        ["成果", "支付集成凭证"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 开始之前",
+          "desc": "KG Inicis 仅在商户合同完成后才能签发认证密钥。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "商户合同·商户管理后台账户", "p": "您必须已签订 KG Inicis 商户合同，并且能够使用商户管理后台账户登录。" },
+              { "tag": "签发密钥", "h3": "INIAPI Key · 网页标准签名密钥", "p": "在商户管理后台生成 INIAPI Key，并通过网页支付 signkey 生成功能一并签发网页标准签名密钥。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> 注册需要三项内容：商户 ID（MID）、签名密钥（SignKey）和 API 密钥。" }
+          ]
+        },
+        {
+          "h2": "2. 申请步骤",
+          "desc": "按以下顺序签发并在 GenieGo 中注册。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "登录商户管理后台", "p": "登录 Inicis 商户管理后台。", "path": "https://iniweb.inicis.com" },
+              { "h3": "进入附加信息菜单", "p": "进入 [商户信息] > [合同信息] > [附加信息]。", "path": "商户信息 → 合同信息 → 附加信息" },
+              { "h3": "生成 INIAPI Key", "p": "生成 INIAPI Key。" },
+              { "h3": "生成网页标准签名密钥", "p": "点击 [网页支付 signkey 生成] 以签发网页标准签名密钥（SignKey）。", "path": "网页支付 signkey 生成" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "当 INIAPI Key 和网页标准签名密钥均已生成时，即表示已正确签发。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中注册的信息",
+          "blocks": [
+            { "type": "table", "head": ["字段", "说明"], "rows": [
+              ["MID", "商户 ID（MID）"],
+              ["sign_key", "签发的网页标准签名密钥（SignKey，请妥善保管）"],
+              ["api_key", "签发的 INIAPI Key"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 集成中心 [注册] 中输入并保存后，凭证将以 AES-256-GCM 加密存储，并在查询时进行掩码处理。" }
+          ]
+        },
+        {
+          "h2": "4. 常见问题",
+          "blocks": [
+            { "type": "table", "head": ["问题", "原因", "解决方法"], "rows": [
+              ["看不到附加信息菜单", "商户合同未完成，或账户无权限", "使用已完成商户合同的商户管理后台账户登录。"],
+              ["支付认证失败", "签名密钥或 API 密钥填写错误", "在商户信息 > 合同信息 > 附加信息中重新确认所签发的签名密钥·INIAPI Key。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最终检查清单",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已完成 KG Inicis 商户合同并登录商户管理后台。",
+              "已在商户信息 > 合同信息 > 附加信息中生成 INIAPI Key。",
+              "已通过 [网页支付 signkey 生成] 签发网页标准签名密钥。",
+              "已在 GenieGo [注册] 中输入 MID·sign_key·api_key 并保存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh-TW": {
+      "titleType": "API Key 申請手冊",
+      "badge": "新手指南",
+      "intro": "本手冊整理了在 KG Inicis 商店管理後台中簽發 INIAPI Key 和網頁標準簽章金鑰（SignKey），並連同商店 ID（MID）一起註冊到 GenieGo 整合中心的流程。",
+      "org": "GenieGo 整合中心",
+      "quick": [
+        ["預計時間", "約 5~15 分鐘"],
+        ["所需帳戶", "KG Inicis 商店合約·商店管理後台帳戶"],
+        ["簽發金鑰", "MID · API 金鑰 · 簽章金鑰（SignKey）"],
+        ["成果", "支付整合憑證"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 開始之前",
+          "desc": "KG Inicis 僅在商店合約完成後才能簽發認證金鑰。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "商店合約·商店管理後台帳戶", "p": "您必須已簽訂 KG Inicis 商店合約，並且能夠使用商店管理後台帳戶登入。" },
+              { "tag": "簽發金鑰", "h3": "INIAPI Key · 網頁標準簽章金鑰", "p": "在商店管理後台產生 INIAPI Key，並透過網頁支付 signkey 產生功能一併簽發網頁標準簽章金鑰。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> 註冊需要三項內容：商店 ID（MID）、簽章金鑰（SignKey）和 API 金鑰。" }
+          ]
+        },
+        {
+          "h2": "2. 簽發步驟",
+          "desc": "依以下順序簽發並在 GenieGo 中註冊。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "登入商店管理後台", "p": "登入 Inicis 商店管理後台。", "path": "https://iniweb.inicis.com" },
+              { "h3": "進入附加資訊選單", "p": "進入 [商店資訊] > [合約資訊] > [附加資訊]。", "path": "商店資訊 → 合約資訊 → 附加資訊" },
+              { "h3": "產生 INIAPI Key", "p": "產生 INIAPI Key。" },
+              { "h3": "產生網頁標準簽章金鑰", "p": "點擊 [網頁支付 signkey 產生] 以簽發網頁標準簽章金鑰（SignKey）。", "path": "網頁支付 signkey 產生" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "當 INIAPI Key 和網頁標準簽章金鑰均已產生時，即表示已正確簽發。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中註冊的資訊",
+          "blocks": [
+            { "type": "table", "head": ["欄位", "說明"], "rows": [
+              ["MID", "商店 ID（MID）"],
+              ["sign_key", "簽發的網頁標準簽章金鑰（SignKey，請妥善保管）"],
+              ["api_key", "簽發的 INIAPI Key"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 整合中心 [註冊] 中輸入並儲存後，憑證將以 AES-256-GCM 加密儲存，並在查詢時進行遮罩處理。" }
+          ]
+        },
+        {
+          "h2": "4. 常見問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["看不到附加資訊選單", "商店合約未完成，或帳戶無權限", "使用已完成商店合約的商店管理後台帳戶登入。"],
+              ["支付認證失敗", "簽章金鑰或 API 金鑰填寫錯誤", "在商店資訊 > 合約資訊 > 附加資訊中重新確認所簽發的簽章金鑰·INIAPI Key。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終檢查清單",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已完成 KG Inicis 商店合約並登入商店管理後台。",
+              "已在商店資訊 > 合約資訊 > 附加資訊中產生 INIAPI Key。",
+              "已透過 [網頁支付 signkey 產生] 簽發網頁標準簽章金鑰。",
+              "已在 GenieGo [註冊] 中輸入 MID·sign_key·api_key 並儲存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "de": {
+      "titleType": "Anleitung zur API-Key-Ausstellung",
+      "badge": "Einsteigerleitfaden",
+      "intro": "Eine Anleitung, die den Prozess beschreibt, einen INIAPI Key und einen Web-Standard-Signaturschlüssel (SignKey) im KG-Inicis-Händler-Admin auszustellen und sie zusammen mit Ihrer Shop-ID (MID) im GenieGo Integration Hub zu registrieren.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Geschätzte Zeit", "Etwa 5–15 Min."],
+        ["Benötigtes Konto", "KG-Inicis-Händlervertrag · Händler-Admin-Konto"],
+        ["Ausgestellte Schlüssel", "MID · API-Schlüssel · Signaturschlüssel (SignKey)"],
+        ["Ergebnis", "Zahlungsintegrations-Anmeldedaten"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Bevor Sie beginnen",
+          "desc": "KG Inicis kann Authentifizierungsschlüssel erst nach Abschluss des Händlervertrags ausstellen.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Erforderlich", "h3": "Händlervertrag · Händler-Admin-Konto", "p": "Sie müssen einen abgeschlossenen KG-Inicis-Händlervertrag haben und sich mit einem Händler-Admin-Konto anmelden können." },
+              { "tag": "Ausgestellte Schlüssel", "h3": "INIAPI Key · Web-Standard-Signaturschlüssel", "p": "Erstellen Sie im Händler-Admin einen INIAPI Key und stellen Sie über die Web-Zahlungs-signkey-Generierung zugleich den Web-Standard-Signaturschlüssel aus." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Hinweis:</strong> Für die Registrierung sind drei Angaben erforderlich: Shop-ID (MID), Signaturschlüssel (SignKey) und API-Schlüssel." }
+          ]
+        },
+        {
+          "h2": "2. Ausstellungsschritte",
+          "desc": "Stellen Sie in der unten angegebenen Reihenfolge aus und registrieren Sie in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Beim Händler-Admin anmelden", "p": "Melden Sie sich beim Inicis-Händler-Admin an.", "path": "https://iniweb.inicis.com" },
+              { "h3": "Zum Menü Zusatzinformationen wechseln", "p": "Gehen Sie zu [Shop-Info] > [Vertragsinfo] > [Zusatzinformationen].", "path": "Shop-Info → Vertragsinfo → Zusatzinformationen" },
+              { "h3": "INIAPI Key erstellen", "p": "Erstellen Sie einen INIAPI Key." },
+              { "h3": "Web-Standard-Signaturschlüssel erstellen", "p": "Klicken Sie auf [Web-Zahlungs-signkey-Generierung], um den Web-Standard-Signaturschlüssel (SignKey) auszustellen.", "path": "Web-Zahlungs-signkey-Generierung" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Sobald sowohl der INIAPI Key als auch der Web-Standard-Signaturschlüssel erstellt sind, wurde die Ausstellung korrekt abgeschlossen." }
+          ]
+        },
+        {
+          "h2": "3. In GenieGo zu registrierende Informationen",
+          "blocks": [
+            { "type": "table", "head": ["Feld", "Beschreibung"], "rows": [
+              ["MID", "Shop-ID (MID)"],
+              ["sign_key", "Der ausgestellte Web-Standard-Signaturschlüssel (SignKey, vertraulich behandeln)"],
+              ["api_key", "Der ausgestellte INIAPI Key"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Geben Sie die Daten im GenieGo Integration Hub [Registrieren] ein und speichern Sie; die Anmeldedaten werden im Ruhezustand mit AES-256-GCM verschlüsselt und beim Lesen maskiert." }
+          ]
+        },
+        {
+          "h2": "4. Häufige Probleme",
+          "blocks": [
+            { "type": "table", "head": ["Problem", "Ursache", "Lösung"], "rows": [
+              ["Das Menü Zusatzinformationen ist nicht sichtbar", "Händlervertrag nicht abgeschlossen oder Konto ohne Berechtigungen", "Melden Sie sich mit einem Händler-Admin-Konto an, das über einen abgeschlossenen Händlervertrag verfügt."],
+              ["Zahlungsauthentifizierung schlägt fehl", "Signaturschlüssel oder API-Schlüssel falsch eingegeben", "Überprüfen Sie den ausgestellten Signaturschlüssel und INIAPI Key erneut unter Shop-Info > Vertragsinfo > Zusatzinformationen."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Abschließende Checkliste",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Den KG-Inicis-Händlervertrag abgeschlossen und sich beim Händler-Admin angemeldet.",
+              "Einen INIAPI Key unter Shop-Info > Vertragsinfo > Zusatzinformationen erstellt.",
+              "Den Web-Standard-Signaturschlüssel über [Web-Zahlungs-signkey-Generierung] ausgestellt.",
+              "MID·sign_key·api_key in GenieGo [Registrieren] eingegeben und gespeichert."
+            ] }
+          ]
+        }
+      ]
+    },
+    "th": {
+      "titleType": "คู่มือการออก API Key",
+      "badge": "คู่มือสำหรับผู้เริ่มต้น",
+      "intro": "คู่มือที่สรุปขั้นตอนการออก INIAPI Key และคีย์ลายเซ็นมาตรฐานเว็บ (SignKey) ในระบบจัดการร้านค้าของ KG Inicis และลงทะเบียนพร้อมกับรหัสร้านค้า (MID) ใน GenieGo Integration Hub",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["เวลาโดยประมาณ", "ประมาณ 5–15 นาที"],
+        ["บัญชีที่ต้องใช้", "สัญญาร้านค้า KG Inicis · บัญชีระบบจัดการร้านค้า"],
+        ["คีย์ที่ออก", "MID · คีย์ API · คีย์ลายเซ็น (SignKey)"],
+        ["ผลลัพธ์", "ข้อมูลรับรองการเชื่อมต่อการชำระเงิน"]
+      ],
+      "sections": [
+        {
+          "h2": "1. ก่อนเริ่มต้น",
+          "desc": "KG Inicis จะออกคีย์การยืนยันตัวตนได้ก็ต่อเมื่อสัญญาร้านค้าเสร็จสมบูรณ์แล้วเท่านั้น",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "จำเป็น", "h3": "สัญญาร้านค้า · บัญชีระบบจัดการร้านค้า", "p": "คุณต้องมีสัญญาร้านค้า KG Inicis ที่ลงนามแล้ว และสามารถเข้าสู่ระบบด้วยบัญชีระบบจัดการร้านค้าได้" },
+              { "tag": "คีย์ที่ออก", "h3": "INIAPI Key · คีย์ลายเซ็นมาตรฐานเว็บ", "p": "สร้าง INIAPI Key ในระบบจัดการร้านค้า และออกคีย์ลายเซ็นมาตรฐานเว็บไปพร้อมกันผ่านการสร้าง signkey การชำระเงินบนเว็บ" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>หมายเหตุ:</strong> การลงทะเบียนต้องใช้สามรายการ ได้แก่ รหัสร้านค้า (MID) คีย์ลายเซ็น (SignKey) และคีย์ API" }
+          ]
+        },
+        {
+          "h2": "2. ขั้นตอนการออก",
+          "desc": "ออกตามลำดับด้านล่างและลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "เข้าสู่ระบบจัดการร้านค้า", "p": "เข้าสู่ระบบจัดการร้านค้าของ Inicis", "path": "https://iniweb.inicis.com" },
+              { "h3": "ไปที่เมนูข้อมูลเพิ่มเติม", "p": "ไปที่ [ข้อมูลร้านค้า] > [ข้อมูลสัญญา] > [ข้อมูลเพิ่มเติม]", "path": "ข้อมูลร้านค้า → ข้อมูลสัญญา → ข้อมูลเพิ่มเติม" },
+              { "h3": "สร้าง INIAPI Key", "p": "สร้าง INIAPI Key" },
+              { "h3": "สร้างคีย์ลายเซ็นมาตรฐานเว็บ", "p": "คลิก [สร้าง signkey การชำระเงินบนเว็บ] เพื่อออกคีย์ลายเซ็นมาตรฐานเว็บ (SignKey)", "path": "สร้าง signkey การชำระเงินบนเว็บ" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "เมื่อสร้างทั้ง INIAPI Key และคีย์ลายเซ็นมาตรฐานเว็บแล้ว แสดงว่าออกอย่างถูกต้อง" }
+          ]
+        },
+        {
+          "h2": "3. ข้อมูลที่ต้องลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["ฟิลด์", "คำอธิบาย"], "rows": [
+              ["MID", "รหัสร้านค้า (MID)"],
+              ["sign_key", "คีย์ลายเซ็นมาตรฐานเว็บที่ออกแล้ว (SignKey, จัดการด้วยความระมัดระวัง)"],
+              ["api_key", "INIAPI Key ที่ออกแล้ว"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "ป้อนและบันทึกใน GenieGo Integration Hub [ลงทะเบียน] แล้วข้อมูลรับรองจะถูกเข้ารหัสขณะจัดเก็บด้วย AES-256-GCM และปิดบังเมื่ออ่าน" }
+          ]
+        },
+        {
+          "h2": "4. ปัญหาที่พบบ่อย",
+          "blocks": [
+            { "type": "table", "head": ["ปัญหา", "สาเหตุ", "วิธีแก้ไข"], "rows": [
+              ["ไม่เห็นเมนูข้อมูลเพิ่มเติม", "สัญญาร้านค้ายังไม่เสร็จสมบูรณ์ หรือบัญชีไม่มีสิทธิ์", "เข้าสู่ระบบด้วยบัญชีระบบจัดการร้านค้าที่มีสัญญาร้านค้าเสร็จสมบูรณ์แล้ว"],
+              ["การยืนยันการชำระเงินล้มเหลว", "ป้อนคีย์ลายเซ็นหรือคีย์ API ไม่ถูกต้อง", "ตรวจสอบคีย์ลายเซ็น·INIAPI Key ที่ออกอีกครั้งใน ข้อมูลร้านค้า > ข้อมูลสัญญา > ข้อมูลเพิ่มเติม"]
+            ] }
+          ]
+        },
+        {
+          "h2": "รายการตรวจสอบขั้นสุดท้าย",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "เสร็จสิ้นสัญญาร้านค้า KG Inicis และเข้าสู่ระบบจัดการร้านค้าแล้ว",
+              "สร้าง INIAPI Key ใน ข้อมูลร้านค้า > ข้อมูลสัญญา > ข้อมูลเพิ่มเติม แล้ว",
+              "ออกคีย์ลายเซ็นมาตรฐานเว็บผ่าน [สร้าง signkey การชำระเงินบนเว็บ] แล้ว",
+              "ป้อน MID·sign_key·api_key ใน GenieGo [ลงทะเบียน] และบันทึกแล้ว"
+            ] }
+          ]
+        }
+      ]
+    },
+    "vi": {
+      "titleType": "Hướng dẫn cấp API Key",
+      "badge": "Hướng dẫn cho người mới",
+      "intro": "Hướng dẫn tóm tắt quy trình cấp INIAPI Key và khóa chữ ký chuẩn web (SignKey) trong trang quản trị cửa hàng KG Inicis và đăng ký chúng cùng với ID cửa hàng (MID) trong GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Thời gian dự kiến", "Khoảng 5–15 phút"],
+        ["Tài khoản cần thiết", "Hợp đồng đối tác KG Inicis · Tài khoản quản trị cửa hàng"],
+        ["Khóa được cấp", "MID · Khóa API · Khóa chữ ký (SignKey)"],
+        ["Kết quả", "Thông tin xác thực tích hợp thanh toán"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Trước khi bắt đầu",
+          "desc": "KG Inicis chỉ có thể cấp khóa xác thực sau khi hợp đồng đối tác hoàn tất.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Bắt buộc", "h3": "Hợp đồng đối tác · Tài khoản quản trị cửa hàng", "p": "Bạn phải có hợp đồng đối tác KG Inicis đã ký và có thể đăng nhập bằng tài khoản quản trị cửa hàng." },
+              { "tag": "Khóa được cấp", "h3": "INIAPI Key · Khóa chữ ký chuẩn web", "p": "Tạo INIAPI Key trong trang quản trị cửa hàng và cấp khóa chữ ký chuẩn web cùng lúc thông qua chức năng tạo signkey thanh toán web." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Lưu ý:</strong> Việc đăng ký cần ba mục: ID cửa hàng (MID), khóa chữ ký (SignKey) và khóa API." }
+          ]
+        },
+        {
+          "h2": "2. Các bước cấp",
+          "desc": "Cấp theo thứ tự dưới đây và đăng ký trong GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Đăng nhập trang quản trị cửa hàng", "p": "Đăng nhập trang quản trị cửa hàng Inicis.", "path": "https://iniweb.inicis.com" },
+              { "h3": "Đi đến menu Thông tin bổ sung", "p": "Đi đến [Thông tin cửa hàng] > [Thông tin hợp đồng] > [Thông tin bổ sung].", "path": "Thông tin cửa hàng → Thông tin hợp đồng → Thông tin bổ sung" },
+              { "h3": "Tạo INIAPI Key", "p": "Tạo INIAPI Key." },
+              { "h3": "Tạo khóa chữ ký chuẩn web", "p": "Nhấp vào [Tạo signkey thanh toán web] để cấp khóa chữ ký chuẩn web (SignKey).", "path": "Tạo signkey thanh toán web" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Khi cả INIAPI Key và khóa chữ ký chuẩn web đều được tạo, nghĩa là đã được cấp đúng cách." }
+          ]
+        },
+        {
+          "h2": "3. Thông tin cần đăng ký trong GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Trường", "Mô tả"], "rows": [
+              ["MID", "ID cửa hàng (MID)"],
+              ["sign_key", "Khóa chữ ký chuẩn web đã được cấp (SignKey, xử lý cẩn thận)"],
+              ["api_key", "INIAPI Key đã được cấp"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Nhập và lưu trong GenieGo Integration Hub [Đăng ký] thì thông tin xác thực được mã hóa khi lưu trữ bằng AES-256-GCM và được che khi đọc." }
+          ]
+        },
+        {
+          "h2": "4. Sự cố thường gặp",
+          "blocks": [
+            { "type": "table", "head": ["Sự cố", "Nguyên nhân", "Giải pháp"], "rows": [
+              ["Không thấy menu Thông tin bổ sung", "Hợp đồng đối tác chưa hoàn tất, hoặc tài khoản không có quyền", "Đăng nhập bằng tài khoản quản trị cửa hàng có hợp đồng đối tác đã hoàn tất."],
+              ["Xác thực thanh toán thất bại", "Nhập sai khóa chữ ký hoặc khóa API", "Kiểm tra lại khóa chữ ký·INIAPI Key đã cấp trong Thông tin cửa hàng > Thông tin hợp đồng > Thông tin bổ sung."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Danh sách kiểm tra cuối cùng",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Đã hoàn tất hợp đồng đối tác KG Inicis và đăng nhập trang quản trị cửa hàng.",
+              "Đã tạo INIAPI Key trong Thông tin cửa hàng > Thông tin hợp đồng > Thông tin bổ sung.",
+              "Đã cấp khóa chữ ký chuẩn web qua [Tạo signkey thanh toán web].",
+              "Đã nhập MID·sign_key·api_key vào GenieGo [Đăng ký] và lưu."
+            ] }
+          ]
+        }
+      ]
+    },
+    "id": {
+      "titleType": "Panduan Penerbitan API Key",
+      "badge": "Panduan Pemula",
+      "intro": "Panduan yang merangkum proses menerbitkan INIAPI Key dan kunci tanda tangan standar web (SignKey) di admin merchant KG Inicis dan mendaftarkannya bersama ID toko (MID) di GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Perkiraan waktu", "Sekitar 5–15 menit"],
+        ["Akun yang dibutuhkan", "Kontrak merchant KG Inicis · Akun admin merchant"],
+        ["Kunci yang diterbitkan", "MID · Kunci API · Kunci tanda tangan (SignKey)"],
+        ["Hasil", "Kredensial integrasi pembayaran"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Sebelum Anda Mulai",
+          "desc": "KG Inicis hanya dapat menerbitkan kunci autentikasi setelah kontrak merchant selesai.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Diperlukan", "h3": "Kontrak merchant · Akun admin merchant", "p": "Anda harus memiliki kontrak merchant KG Inicis yang sudah ditandatangani dan dapat masuk dengan akun admin merchant." },
+              { "tag": "Kunci yang diterbitkan", "h3": "INIAPI Key · Kunci tanda tangan standar web", "p": "Buat INIAPI Key di admin merchant, dan terbitkan kunci tanda tangan standar web sekaligus melalui pembuatan signkey pembayaran web." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Catatan:</strong> Pendaftaran memerlukan tiga item: ID toko (MID), kunci tanda tangan (SignKey), dan kunci API." }
+          ]
+        },
+        {
+          "h2": "2. Langkah Penerbitan",
+          "desc": "Terbitkan sesuai urutan di bawah dan daftarkan di GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Masuk ke admin merchant", "p": "Masuk ke admin merchant Inicis.", "path": "https://iniweb.inicis.com" },
+              { "h3": "Buka menu Informasi Tambahan", "p": "Buka [Info Toko] > [Info Kontrak] > [Informasi Tambahan].", "path": "Info Toko → Info Kontrak → Informasi Tambahan" },
+              { "h3": "Buat INIAPI Key", "p": "Buat INIAPI Key." },
+              { "h3": "Buat kunci tanda tangan standar web", "p": "Klik [Pembuatan signkey pembayaran web] untuk menerbitkan kunci tanda tangan standar web (SignKey).", "path": "Pembuatan signkey pembayaran web" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Setelah INIAPI Key dan kunci tanda tangan standar web keduanya dibuat, berarti telah diterbitkan dengan benar." }
+          ]
+        },
+        {
+          "h2": "3. Informasi yang Akan Didaftarkan di GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Bidang", "Deskripsi"], "rows": [
+              ["MID", "ID toko (MID)"],
+              ["sign_key", "Kunci tanda tangan standar web yang diterbitkan (SignKey, tangani dengan hati-hati)"],
+              ["api_key", "INIAPI Key yang diterbitkan"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Masukkan dan simpan di GenieGo Integration Hub [Daftar], maka kredensial dienkripsi saat disimpan dengan AES-256-GCM dan disamarkan saat dibaca." }
+          ]
+        },
+        {
+          "h2": "4. Masalah Umum",
+          "blocks": [
+            { "type": "table", "head": ["Masalah", "Penyebab", "Solusi"], "rows": [
+              ["Menu Informasi Tambahan tidak terlihat", "Kontrak merchant belum selesai, atau akun tanpa izin", "Masuk dengan akun admin merchant yang memiliki kontrak merchant yang sudah selesai."],
+              ["Autentikasi pembayaran gagal", "Kunci tanda tangan atau kunci API salah dimasukkan", "Periksa kembali kunci tanda tangan·INIAPI Key yang diterbitkan di Info Toko > Info Kontrak > Informasi Tambahan."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Daftar Periksa Akhir",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Menyelesaikan kontrak merchant KG Inicis dan masuk ke admin merchant.",
+              "Membuat INIAPI Key di Info Toko > Info Kontrak > Informasi Tambahan.",
+              "Menerbitkan kunci tanda tangan standar web melalui [Pembuatan signkey pembayaran web].",
+              "Memasukkan MID·sign_key·api_key di GenieGo [Daftar] dan menyimpan."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ar": {
+      "titleType": "دليل إصدار مفتاح API",
+      "badge": "دليل المبتدئين",
+      "intro": "دليل يلخّص عملية إصدار INIAPI Key ومفتاح التوقيع القياسي للويب (SignKey) في لوحة إدارة متجر KG Inicis وتسجيلهما مع معرّف المتجر (MID) في GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["الوقت المقدّر", "حوالي 5–15 دقيقة"],
+        ["الحساب المطلوب", "عقد تاجر KG Inicis · حساب إدارة المتجر"],
+        ["المفاتيح المُصدرة", "MID · مفتاح API · مفتاح التوقيع (SignKey)"],
+        ["النتيجة", "بيانات اعتماد تكامل الدفع"]
+      ],
+      "sections": [
+        {
+          "h2": "1. قبل أن تبدأ",
+          "desc": "لا يمكن لـ KG Inicis إصدار مفاتيح المصادقة إلا بعد اكتمال عقد التاجر.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "مطلوب", "h3": "عقد تاجر · حساب إدارة المتجر", "p": "يجب أن يكون لديك عقد تاجر KG Inicis موقّع وأن تتمكن من تسجيل الدخول بحساب إدارة المتجر." },
+              { "tag": "المفاتيح المُصدرة", "h3": "INIAPI Key · مفتاح التوقيع القياسي للويب", "p": "أنشئ INIAPI Key في لوحة إدارة المتجر، وأصدر مفتاح التوقيع القياسي للويب في الوقت نفسه عبر إنشاء signkey لدفع الويب." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>ملاحظة:</strong> يتطلب التسجيل ثلاثة عناصر: معرّف المتجر (MID) ومفتاح التوقيع (SignKey) ومفتاح API." }
+          ]
+        },
+        {
+          "h2": "2. خطوات الإصدار",
+          "desc": "أصدِر بالترتيب أدناه وسجِّل في GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "تسجيل الدخول إلى لوحة إدارة المتجر", "p": "سجّل الدخول إلى لوحة إدارة متجر Inicis.", "path": "https://iniweb.inicis.com" },
+              { "h3": "الانتقال إلى قائمة المعلومات الإضافية", "p": "انتقل إلى [معلومات المتجر] > [معلومات العقد] > [المعلومات الإضافية].", "path": "معلومات المتجر → معلومات العقد → المعلومات الإضافية" },
+              { "h3": "إنشاء INIAPI Key", "p": "أنشئ INIAPI Key." },
+              { "h3": "إنشاء مفتاح التوقيع القياسي للويب", "p": "انقر على [إنشاء signkey لدفع الويب] لإصدار مفتاح التوقيع القياسي للويب (SignKey).", "path": "إنشاء signkey لدفع الويب" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "بمجرد إنشاء كل من INIAPI Key ومفتاح التوقيع القياسي للويب، يكون الإصدار قد اكتمل بشكل صحيح." }
+          ]
+        },
+        {
+          "h2": "3. المعلومات المطلوب تسجيلها في GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["الحقل", "الوصف"], "rows": [
+              ["MID", "معرّف المتجر (MID)"],
+              ["sign_key", "مفتاح التوقيع القياسي للويب المُصدر (SignKey، تعامل معه بحذر)"],
+              ["api_key", "INIAPI Key المُصدر"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "أدخل البيانات واحفظها في GenieGo Integration Hub [تسجيل]، وعندئذٍ تُشفَّر بيانات الاعتماد أثناء التخزين باستخدام AES-256-GCM وتُخفى عند القراءة." }
+          ]
+        },
+        {
+          "h2": "4. المشكلات الشائعة",
+          "blocks": [
+            { "type": "table", "head": ["المشكلة", "السبب", "الحل"], "rows": [
+              ["قائمة المعلومات الإضافية غير ظاهرة", "عقد التاجر لم يكتمل، أو حساب بدون صلاحيات", "سجّل الدخول بحساب إدارة متجر لديه عقد تاجر مكتمل."],
+              ["فشل مصادقة الدفع", "إدخال مفتاح التوقيع أو مفتاح API بشكل خاطئ", "أعد التحقق من مفتاح التوقيع·INIAPI Key المُصدر في معلومات المتجر > معلومات العقد > المعلومات الإضافية."]
+            ] }
+          ]
+        },
+        {
+          "h2": "قائمة التحقق النهائية",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "أكملت عقد تاجر KG Inicis وسجّلت الدخول إلى لوحة إدارة المتجر.",
+              "أنشأت INIAPI Key في معلومات المتجر > معلومات العقد > المعلومات الإضافية.",
+              "أصدرت مفتاح التوقيع القياسي للويب عبر [إنشاء signkey لدفع الويب].",
+              "أدخلت MID·sign_key·api_key في GenieGo [تسجيل] وحفظت."
+            ] }
+          ]
+        }
+      ]
+    },
+    "es": {
+      "titleType": "Manual de emisión de API Key",
+      "badge": "Guía para principiantes",
+      "intro": "Una guía que resume el proceso de emitir tu INIAPI Key y la clave de firma estándar web (SignKey) en el administrador de comercio de KG Inicis y registrarlas junto con tu ID de tienda (MID) en el GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tiempo estimado", "Unos 5–15 min"],
+        ["Cuenta necesaria", "Contrato de comercio de KG Inicis · Cuenta de administrador de comercio"],
+        ["Claves emitidas", "MID · Clave API · Clave de firma (SignKey)"],
+        ["Resultado", "Credenciales de integración de pagos"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de empezar",
+          "desc": "KG Inicis solo puede emitir claves de autenticación una vez completado el contrato de comercio.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requerido", "h3": "Contrato de comercio · Cuenta de administrador de comercio", "p": "Debes tener un contrato de comercio de KG Inicis firmado y poder iniciar sesión con una cuenta de administrador de comercio." },
+              { "tag": "Claves emitidas", "h3": "INIAPI Key · Clave de firma estándar web", "p": "Crea una INIAPI Key en el administrador de comercio y emite a la vez la clave de firma estándar web mediante la generación de signkey de pago web." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Nota:</strong> El registro requiere tres elementos: ID de tienda (MID), clave de firma (SignKey) y clave API." }
+          ]
+        },
+        {
+          "h2": "2. Pasos de emisión",
+          "desc": "Emite en el orden siguiente y registra en GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Iniciar sesión en el administrador de comercio", "p": "Inicia sesión en el administrador de comercio de Inicis.", "path": "https://iniweb.inicis.com" },
+              { "h3": "Ir al menú Información adicional", "p": "Ve a [Información de la tienda] > [Información del contrato] > [Información adicional].", "path": "Información de la tienda → Información del contrato → Información adicional" },
+              { "h3": "Crear una INIAPI Key", "p": "Crea una INIAPI Key." },
+              { "h3": "Crear la clave de firma estándar web", "p": "Haz clic en [Generación de signkey de pago web] para emitir la clave de firma estándar web (SignKey).", "path": "Generación de signkey de pago web" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Una vez creadas tanto la INIAPI Key como la clave de firma estándar web, la emisión se ha completado correctamente." }
+          ]
+        },
+        {
+          "h2": "3. Información para registrar en GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descripción"], "rows": [
+              ["MID", "ID de tienda (MID)"],
+              ["sign_key", "La clave de firma estándar web emitida (SignKey, manéjala con cuidado)"],
+              ["api_key", "La INIAPI Key emitida"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Introduce y guarda en el GenieGo Integration Hub [Registrar] y las credenciales se cifran en reposo con AES-256-GCM y se enmascaran al leerse." }
+          ]
+        },
+        {
+          "h2": "4. Problemas comunes",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solución"], "rows": [
+              ["El menú Información adicional no es visible", "Contrato de comercio no completado, o una cuenta sin permisos", "Inicia sesión con una cuenta de administrador de comercio que tenga un contrato de comercio completado."],
+              ["Falla la autenticación del pago", "Clave de firma o clave API introducida incorrectamente", "Vuelve a comprobar la clave de firma·INIAPI Key emitida en Información de la tienda > Información del contrato > Información adicional."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificación final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Completé el contrato de comercio de KG Inicis e inicié sesión en el administrador de comercio.",
+              "Creé una INIAPI Key en Información de la tienda > Información del contrato > Información adicional.",
+              "Emití la clave de firma estándar web mediante [Generación de signkey de pago web].",
+              "Introduje MID·sign_key·api_key en GenieGo [Registrar] y guardé."
+            ] }
+          ]
+        }
+      ]
+    },
+    "fr": {
+      "titleType": "Manuel d'émission de clé API",
+      "badge": "Guide du débutant",
+      "intro": "Un guide qui résume le processus d'émission de votre INIAPI Key et de votre clé de signature standard web (SignKey) dans l'administration marchand de KG Inicis, puis de leur enregistrement avec votre ID de boutique (MID) dans le GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Temps estimé", "Environ 5 à 15 min"],
+        ["Compte requis", "Contrat marchand KG Inicis · Compte d'administration marchand"],
+        ["Clés émises", "MID · Clé API · Clé de signature (SignKey)"],
+        ["Résultat", "Identifiants d'intégration de paiement"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Avant de commencer",
+          "desc": "KG Inicis ne peut émettre les clés d'authentification qu'une fois le contrat marchand finalisé.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requis", "h3": "Contrat marchand · Compte d'administration marchand", "p": "Vous devez avoir un contrat marchand KG Inicis signé et pouvoir vous connecter avec un compte d'administration marchand." },
+              { "tag": "Clés émises", "h3": "INIAPI Key · Clé de signature standard web", "p": "Créez une INIAPI Key dans l'administration marchand et émettez en même temps la clé de signature standard web via la génération de signkey de paiement web." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Remarque :</strong> L'enregistrement nécessite trois éléments : l'ID de boutique (MID), la clé de signature (SignKey) et la clé API." }
+          ]
+        },
+        {
+          "h2": "2. Étapes d'émission",
+          "desc": "Émettez dans l'ordre ci-dessous et enregistrez dans GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Se connecter à l'administration marchand", "p": "Connectez-vous à l'administration marchand Inicis.", "path": "https://iniweb.inicis.com" },
+              { "h3": "Aller au menu Informations complémentaires", "p": "Allez dans [Informations de la boutique] > [Informations du contrat] > [Informations complémentaires].", "path": "Informations de la boutique → Informations du contrat → Informations complémentaires" },
+              { "h3": "Créer une INIAPI Key", "p": "Créez une INIAPI Key." },
+              { "h3": "Créer la clé de signature standard web", "p": "Cliquez sur [Génération de signkey de paiement web] pour émettre la clé de signature standard web (SignKey).", "path": "Génération de signkey de paiement web" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Une fois que l'INIAPI Key et la clé de signature standard web sont toutes deux créées, l'émission est correctement terminée." }
+          ]
+        },
+        {
+          "h2": "3. Informations à enregistrer dans GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Champ", "Description"], "rows": [
+              ["MID", "ID de boutique (MID)"],
+              ["sign_key", "La clé de signature standard web émise (SignKey, à manipuler avec précaution)"],
+              ["api_key", "L'INIAPI Key émise"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Saisissez et enregistrez dans le GenieGo Integration Hub [Enregistrer] ; les identifiants sont chiffrés au repos avec AES-256-GCM et masqués à la lecture." }
+          ]
+        },
+        {
+          "h2": "4. Problèmes courants",
+          "blocks": [
+            { "type": "table", "head": ["Problème", "Cause", "Solution"], "rows": [
+              ["Le menu Informations complémentaires n'est pas visible", "Contrat marchand non finalisé, ou compte sans autorisations", "Connectez-vous avec un compte d'administration marchand disposant d'un contrat marchand finalisé."],
+              ["L'authentification du paiement échoue", "Clé de signature ou clé API mal saisie", "Vérifiez à nouveau la clé de signature·INIAPI Key émise dans Informations de la boutique > Informations du contrat > Informations complémentaires."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Liste de contrôle finale",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Finalisé le contrat marchand KG Inicis et connecté à l'administration marchand.",
+              "Créé une INIAPI Key dans Informations de la boutique > Informations du contrat > Informations complémentaires.",
+              "Émis la clé de signature standard web via [Génération de signkey de paiement web].",
+              "Saisi MID·sign_key·api_key dans GenieGo [Enregistrer] et enregistré."
+            ] }
+          ]
+        }
+      ]
+    },
+    "hi": {
+      "titleType": "API Key जारी करने की नियमावली",
+      "badge": "शुरुआती गाइड",
+      "intro": "एक गाइड जो KG Inicis मर्चेंट एडमिन में अपनी INIAPI Key और वेब स्टैंडर्ड साइन की (SignKey) जारी करने और उन्हें अपने स्टोर ID (MID) के साथ GenieGo Integration Hub में पंजीकृत करने की प्रक्रिया का सारांश देती है।",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["अनुमानित समय", "लगभग 5–15 मिनट"],
+        ["आवश्यक खाता", "KG Inicis मर्चेंट अनुबंध · मर्चेंट एडमिन खाता"],
+        ["जारी की गई कुंजियाँ", "MID · API कुंजी · साइन की (SignKey)"],
+        ["परिणाम", "भुगतान एकीकरण क्रेडेंशियल"]
+      ],
+      "sections": [
+        {
+          "h2": "1. शुरू करने से पहले",
+          "desc": "KG Inicis मर्चेंट अनुबंध पूरा होने के बाद ही प्रमाणीकरण कुंजियाँ जारी कर सकता है।",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "आवश्यक", "h3": "मर्चेंट अनुबंध · मर्चेंट एडमिन खाता", "p": "आपके पास एक हस्ताक्षरित KG Inicis मर्चेंट अनुबंध होना चाहिए और आप मर्चेंट एडमिन खाते से लॉग इन कर सकते हों।" },
+              { "tag": "जारी की गई कुंजियाँ", "h3": "INIAPI Key · वेब स्टैंडर्ड साइन की", "p": "मर्चेंट एडमिन में एक INIAPI Key बनाएँ, और वेब पेमेंट signkey जनरेशन के माध्यम से वेब स्टैंडर्ड साइन की को साथ ही जारी करें।" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>नोट:</strong> पंजीकरण के लिए तीन चीज़ों की आवश्यकता होती है: स्टोर ID (MID), साइन की (SignKey) और API कुंजी।" }
+          ]
+        },
+        {
+          "h2": "2. जारी करने के चरण",
+          "desc": "नीचे दिए गए क्रम में जारी करें और GenieGo में पंजीकृत करें।",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "मर्चेंट एडमिन में लॉग इन करें", "p": "Inicis मर्चेंट एडमिन में लॉग इन करें।", "path": "https://iniweb.inicis.com" },
+              { "h3": "अतिरिक्त जानकारी मेनू पर जाएँ", "p": "[स्टोर जानकारी] > [अनुबंध जानकारी] > [अतिरिक्त जानकारी] पर जाएँ।", "path": "स्टोर जानकारी → अनुबंध जानकारी → अतिरिक्त जानकारी" },
+              { "h3": "INIAPI Key बनाएँ", "p": "INIAPI Key बनाएँ।" },
+              { "h3": "वेब स्टैंडर्ड साइन की बनाएँ", "p": "वेब स्टैंडर्ड साइन की (SignKey) जारी करने के लिए [वेब पेमेंट signkey जनरेशन] पर क्लिक करें।", "path": "वेब पेमेंट signkey जनरेशन" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "जब INIAPI Key और वेब स्टैंडर्ड साइन की दोनों बन जाएँ, तो जारी करना सही ढंग से पूरा हो गया है।" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo में पंजीकृत करने योग्य जानकारी",
+          "blocks": [
+            { "type": "table", "head": ["फ़ील्ड", "विवरण"], "rows": [
+              ["MID", "स्टोर ID (MID)"],
+              ["sign_key", "जारी की गई वेब स्टैंडर्ड साइन की (SignKey, सावधानी से संभालें)"],
+              ["api_key", "जारी की गई INIAPI Key"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo Integration Hub [पंजीकरण] में दर्ज करें और सहेजें, तब क्रेडेंशियल AES-256-GCM के साथ रेस्ट पर एन्क्रिप्ट किए जाते हैं और पढ़ते समय मास्क किए जाते हैं।" }
+          ]
+        },
+        {
+          "h2": "4. आम समस्याएँ",
+          "blocks": [
+            { "type": "table", "head": ["समस्या", "कारण", "समाधान"], "rows": [
+              ["अतिरिक्त जानकारी मेनू दिखाई नहीं देता", "मर्चेंट अनुबंध पूरा नहीं हुआ, या बिना अनुमति वाला खाता", "ऐसे मर्चेंट एडमिन खाते से लॉग इन करें जिसका मर्चेंट अनुबंध पूरा हो।"],
+              ["भुगतान प्रमाणीकरण विफल", "साइन की या API कुंजी गलत दर्ज की गई", "स्टोर जानकारी > अनुबंध जानकारी > अतिरिक्त जानकारी में जारी की गई साइन की·INIAPI Key को फिर से जाँचें।"]
+            ] }
+          ]
+        },
+        {
+          "h2": "अंतिम चेकलिस्ट",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "KG Inicis मर्चेंट अनुबंध पूरा किया और मर्चेंट एडमिन में लॉग इन किया।",
+              "स्टोर जानकारी > अनुबंध जानकारी > अतिरिक्त जानकारी में एक INIAPI Key बनाई।",
+              "[वेब पेमेंट signkey जनरेशन] के माध्यम से वेब स्टैंडर्ड साइन की जारी की।",
+              "GenieGo [पंजीकरण] में MID·sign_key·api_key दर्ज किया और सहेजा।"
+            ] }
+          ]
+        }
+      ]
+    },
+    "pt": {
+      "titleType": "Manual de emissão de API Key",
+      "badge": "Guia para iniciantes",
+      "intro": "Um guia que resume o processo de emitir sua INIAPI Key e a chave de assinatura padrão web (SignKey) no admin de comerciante da KG Inicis e registrá-las junto com seu ID de loja (MID) no GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tempo estimado", "Cerca de 5–15 min"],
+        ["Conta necessária", "Contrato de comerciante da KG Inicis · Conta de admin de comerciante"],
+        ["Chaves emitidas", "MID · Chave de API · Chave de assinatura (SignKey)"],
+        ["Resultado", "Credenciais de integração de pagamento"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de começar",
+          "desc": "A KG Inicis só pode emitir chaves de autenticação após a conclusão do contrato de comerciante.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Obrigatório", "h3": "Contrato de comerciante · Conta de admin de comerciante", "p": "Você deve ter um contrato de comerciante da KG Inicis assinado e poder fazer login com uma conta de admin de comerciante." },
+              { "tag": "Chaves emitidas", "h3": "INIAPI Key · Chave de assinatura padrão web", "p": "Crie uma INIAPI Key no admin de comerciante e emita ao mesmo tempo a chave de assinatura padrão web por meio da geração de signkey de pagamento web." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Nota:</strong> O registro exige três itens: ID de loja (MID), chave de assinatura (SignKey) e chave de API." }
+          ]
+        },
+        {
+          "h2": "2. Etapas de emissão",
+          "desc": "Emita na ordem abaixo e registre no GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Fazer login no admin de comerciante", "p": "Faça login no admin de comerciante da Inicis.", "path": "https://iniweb.inicis.com" },
+              { "h3": "Ir ao menu Informações adicionais", "p": "Vá para [Informações da loja] > [Informações do contrato] > [Informações adicionais].", "path": "Informações da loja → Informações do contrato → Informações adicionais" },
+              { "h3": "Criar uma INIAPI Key", "p": "Crie uma INIAPI Key." },
+              { "h3": "Criar a chave de assinatura padrão web", "p": "Clique em [Geração de signkey de pagamento web] para emitir a chave de assinatura padrão web (SignKey).", "path": "Geração de signkey de pagamento web" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Quando tanto a INIAPI Key quanto a chave de assinatura padrão web forem criadas, a emissão foi concluída corretamente." }
+          ]
+        },
+        {
+          "h2": "3. Informações para registrar no GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descrição"], "rows": [
+              ["MID", "ID de loja (MID)"],
+              ["sign_key", "A chave de assinatura padrão web emitida (SignKey, manuseie com cuidado)"],
+              ["api_key", "A INIAPI Key emitida"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Insira e salve no GenieGo Integration Hub [Registrar] e as credenciais são criptografadas em repouso com AES-256-GCM e mascaradas na leitura." }
+          ]
+        },
+        {
+          "h2": "4. Problemas comuns",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solução"], "rows": [
+              ["O menu Informações adicionais não está visível", "Contrato de comerciante não concluído, ou conta sem permissões", "Faça login com uma conta de admin de comerciante que tenha um contrato de comerciante concluído."],
+              ["A autenticação do pagamento falha", "Chave de assinatura ou chave de API inserida incorretamente", "Verifique novamente a chave de assinatura·INIAPI Key emitida em Informações da loja > Informações do contrato > Informações adicionais."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificação final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Concluí o contrato de comerciante da KG Inicis e fiz login no admin de comerciante.",
+              "Criei uma INIAPI Key em Informações da loja > Informações do contrato > Informações adicionais.",
+              "Emiti a chave de assinatura padrão web por meio de [Geração de signkey de pagamento web].",
+              "Inseri MID·sign_key·api_key no GenieGo [Registrar] e salvei."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ru": {
+      "titleType": "Руководство по выпуску API-ключа",
+      "badge": "Руководство для начинающих",
+      "intro": "Руководство, описывающее процесс выпуска INIAPI Key и стандартного веб-ключа подписи (SignKey) в админ-панели продавца KG Inicis и их регистрации вместе с ID магазина (MID) в GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Примерное время", "Около 5–15 мин"],
+        ["Необходимая учётная запись", "Договор продавца KG Inicis · Учётная запись админ-панели продавца"],
+        ["Выпускаемые ключи", "MID · API-ключ · Ключ подписи (SignKey)"],
+        ["Результат", "Учётные данные интеграции платежей"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Прежде чем начать",
+          "desc": "KG Inicis может выпустить ключи аутентификации только после завершения договора продавца.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Требуется", "h3": "Договор продавца · Учётная запись админ-панели продавца", "p": "У вас должен быть подписанный договор продавца KG Inicis, и вы должны иметь возможность входить с учётной записью админ-панели продавца." },
+              { "tag": "Выпускаемые ключи", "h3": "INIAPI Key · Стандартный веб-ключ подписи", "p": "Создайте INIAPI Key в админ-панели продавца и одновременно выпустите стандартный веб-ключ подписи через генерацию signkey для веб-платежей." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Примечание:</strong> Для регистрации требуются три элемента: ID магазина (MID), ключ подписи (SignKey) и API-ключ." }
+          ]
+        },
+        {
+          "h2": "2. Шаги выпуска",
+          "desc": "Выпустите в порядке ниже и зарегистрируйте в GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Войти в админ-панель продавца", "p": "Войдите в админ-панель продавца Inicis.", "path": "https://iniweb.inicis.com" },
+              { "h3": "Перейти в меню Дополнительная информация", "p": "Перейдите в [Информация о магазине] > [Информация о договоре] > [Дополнительная информация].", "path": "Информация о магазине → Информация о договоре → Дополнительная информация" },
+              { "h3": "Создать INIAPI Key", "p": "Создайте INIAPI Key." },
+              { "h3": "Создать стандартный веб-ключ подписи", "p": "Нажмите [Генерация signkey для веб-платежей], чтобы выпустить стандартный веб-ключ подписи (SignKey).", "path": "Генерация signkey для веб-платежей" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Как только и INIAPI Key, и стандартный веб-ключ подписи созданы, выпуск выполнен правильно." }
+          ]
+        },
+        {
+          "h2": "3. Информация для регистрации в GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Поле", "Описание"], "rows": [
+              ["MID", "ID магазина (MID)"],
+              ["sign_key", "Выпущенный стандартный веб-ключ подписи (SignKey, обращайтесь осторожно)"],
+              ["api_key", "Выпущенный INIAPI Key"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Введите и сохраните в GenieGo Integration Hub [Регистрация], и учётные данные шифруются при хранении с помощью AES-256-GCM и маскируются при чтении." }
+          ]
+        },
+        {
+          "h2": "4. Частые проблемы",
+          "blocks": [
+            { "type": "table", "head": ["Проблема", "Причина", "Решение"], "rows": [
+              ["Меню Дополнительная информация не отображается", "Договор продавца не завершён или учётная запись без прав", "Войдите с учётной записью админ-панели продавца, у которой завершён договор продавца."],
+              ["Сбой аутентификации платежа", "Неправильно введён ключ подписи или API-ключ", "Повторно проверьте выпущенный ключ подписи·INIAPI Key в Информация о магазине > Информация о договоре > Дополнительная информация."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Итоговый контрольный список",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Завершил договор продавца KG Inicis и вошёл в админ-панель продавца.",
+              "Создал INIAPI Key в Информация о магазине > Информация о договоре > Дополнительная информация.",
+              "Выпустил стандартный веб-ключ подписи через [Генерация signkey для веб-платежей].",
+              "Ввёл MID·sign_key·api_key в GenieGo [Регистрация] и сохранил."
+            ] }
+          ]
+        }
+      ]
+    }
+  }
+}

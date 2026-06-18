@@ -1,0 +1,996 @@
+{
+  "name": "Google Analytics 4",
+  "icon": "📊",
+  "langs": {
+    "ko": {
+      "titleType": "API Key 발급 매뉴얼",
+      "badge": "Beginner Guide",
+      "intro": "Google Analytics 4 데이터 스트림에서 측정 ID(G-)와 Measurement Protocol API Secret을 발급해 GenieGo 연동 허브에 등록하는 과정을 초보자도 그대로 따라 할 수 있도록 정리한 매뉴얼입니다.",
+      "org": "GenieGo 연동 허브",
+      "quick": [
+        ["소요 시간", "약 5~10분"],
+        ["필요 계정", "GA4 속성 관리 권한"],
+        ["발급 키", "측정 ID(G-) · API Secret"],
+        ["결과물", "Measurement Protocol 자격증명"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 시작하기 전에",
+          "desc": "GA4 측정 ID와 API Secret은 속성 관리 권한이 있는 계정에서만 발급할 수 있습니다.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "필요", "h3": "GA4 속성 관리 권한", "p": "Google Analytics 4 속성을 관리할 수 있는 권한이 있어야 합니다. 보기 권한만으로는 API Secret을 생성할 수 없습니다." },
+              { "tag": "발급 키", "h3": "측정 ID(G-) · API Secret", "p": "웹 스트림의 측정 ID(G-로 시작)와 Measurement Protocol API Secret을 함께 확인합니다." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. 발급 단계",
+          "desc": "아래 순서대로 발급하고 GenieGo에 등록합니다.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "데이터 스트림 이동", "p": "Google Analytics에서 [관리] > [데이터 스트림]으로 이동합니다.", "path": "analytics.google.com → 관리 → 데이터 스트림" },
+              { "h3": "측정 ID 확인", "p": "웹 스트림을 선택해 측정 ID(G-로 시작)를 확인합니다." },
+              { "h3": "API Secret 생성", "p": "같은 화면에서 [Measurement Protocol API secret]을 생성합니다." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "측정 ID(G-)와 API Secret이 모두 확인되면 정상 발급된 것입니다." }
+          ]
+        },
+        {
+          "h2": "3. GenieGo에 등록할 정보",
+          "blocks": [
+            { "type": "table", "head": ["필드", "설명"], "rows": [
+              ["measurement_id", "측정 ID(G-로 시작)"],
+              ["api_secret", "생성된 Measurement Protocol API Secret(노출 주의)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 연동 허브 [등록]에 입력해 저장하면 자격증명은 AES-256-GCM으로 암호화 저장되고 조회 시 마스킹됩니다." }
+          ]
+        },
+        {
+          "h2": "4. 자주 발생하는 문제",
+          "blocks": [
+            { "type": "table", "head": ["문제", "원인", "해결"], "rows": [
+              ["API Secret을 생성할 수 없음", "속성 관리 권한 부족", "GA4 속성 관리 권한이 있는 계정으로 로그인합니다."],
+              ["데이터가 수집되지 않음", "측정 ID 또는 API Secret 오기재", "웹 스트림의 측정 ID(G-)와 API Secret을 다시 확인합니다."]
+            ] }
+          ]
+        },
+        {
+          "h2": "최종 체크리스트",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "GA4 속성 관리 권한이 있는 계정으로 로그인했다.",
+              "[관리 > 데이터 스트림]에서 웹 스트림의 측정 ID(G-)를 확인했다.",
+              "Measurement Protocol API Secret을 생성했다.",
+              "GenieGo [등록]에 measurement_id·api_secret을 입력해 저장했다."
+            ] }
+          ]
+        }
+      ]
+    },
+    "en": {
+      "titleType": "API Key Issuance Manual",
+      "badge": "Beginner Guide",
+      "intro": "A beginner-friendly, step-by-step guide to issuing a measurement ID (G-) and a Measurement Protocol API Secret from your Google Analytics 4 data stream and registering them in the GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Est. time", "About 5–10 min"],
+        ["Account needed", "GA4 property management permission"],
+        ["Keys issued", "Measurement ID (G-) · API Secret"],
+        ["Result", "Measurement Protocol credentials"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Before You Begin",
+          "desc": "The GA4 measurement ID and API Secret can only be issued from an account with property management permission.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Required", "h3": "GA4 property management permission", "p": "You need permission to manage the Google Analytics 4 property. View permission alone cannot create an API Secret." },
+              { "tag": "Keys issued", "h3": "Measurement ID (G-) · API Secret", "p": "Check both the web stream's measurement ID (starting with G-) and the Measurement Protocol API Secret." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Issuance Steps",
+          "desc": "Issue in the order below and register in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Go to Data Streams", "p": "In Google Analytics, go to [Admin] > [Data Streams].", "path": "analytics.google.com → Admin → Data Streams" },
+              { "h3": "Find the measurement ID", "p": "Select the web stream and find the measurement ID (starting with G-)." },
+              { "h3": "Create an API Secret", "p": "On the same screen, create a [Measurement Protocol API secret]." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Once both the measurement ID (G-) and the API Secret are confirmed, they have been issued correctly." }
+          ]
+        },
+        {
+          "h2": "3. Information to Register in GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Field", "Description"], "rows": [
+              ["measurement_id", "Measurement ID (starting with G-)"],
+              ["api_secret", "The created Measurement Protocol API Secret (handle with care)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Enter them in the GenieGo Integration Hub [Register] and save. Credentials are encrypted at rest with AES-256-GCM and masked on read." }
+          ]
+        },
+        {
+          "h2": "4. Common Issues",
+          "blocks": [
+            { "type": "table", "head": ["Issue", "Cause", "Solution"], "rows": [
+              ["Cannot create an API Secret", "Insufficient property management permission", "Sign in with an account that has GA4 property management permission."],
+              ["Data is not collected", "Measurement ID or API Secret entered incorrectly", "Re-check the web stream's measurement ID (G-) and the API Secret."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Final Checklist",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Signed in with an account that has GA4 property management permission.",
+              "Found the web stream's measurement ID (G-) under [Admin > Data Streams].",
+              "Created the Measurement Protocol API Secret.",
+              "Entered measurement_id·api_secret in GenieGo [Register] and saved."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ja": {
+      "titleType": "API Key 発行マニュアル",
+      "badge": "初心者ガイド",
+      "intro": "Google Analytics 4 のデータストリームで測定 ID(G-)と Measurement Protocol API Secret を発行し、GenieGo 連携ハブに登録する手順を、初心者でもそのまま実行できるようにまとめたマニュアルです。",
+      "org": "GenieGo 連携ハブ",
+      "quick": [
+        ["所要時間", "約 5〜10 分"],
+        ["必要なアカウント", "GA4 プロパティ管理権限"],
+        ["発行するキー", "測定 ID(G-) · API Secret"],
+        ["成果物", "Measurement Protocol 認証情報"]
+      ],
+      "sections": [
+        {
+          "h2": "1. はじめる前に",
+          "desc": "GA4 の測定 ID と API Secret は、プロパティ管理権限を持つアカウントでのみ発行できます。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必須", "h3": "GA4 プロパティ管理権限", "p": "Google Analytics 4 プロパティを管理できる権限が必要です。閲覧権限だけでは API Secret を作成できません。" },
+              { "tag": "発行するキー", "h3": "測定 ID(G-) · API Secret", "p": "ウェブストリームの測定 ID(G- で始まる)と Measurement Protocol API Secret を併せて確認します。" }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. 発行手順",
+          "desc": "以下の順序で発行し、GenieGo に登録します。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "データストリームへ移動", "p": "Google Analytics で [管理] > [データストリーム] に移動します。", "path": "analytics.google.com → 管理 → データストリーム" },
+              { "h3": "測定 ID を確認", "p": "ウェブストリームを選択して測定 ID(G- で始まる)を確認します。" },
+              { "h3": "API Secret を生成", "p": "同じ画面で [Measurement Protocol API secret] を生成します。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "測定 ID(G-)と API Secret の両方が確認できれば、正常に発行されています。" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo に登録する情報",
+          "blocks": [
+            { "type": "table", "head": ["フィールド", "説明"], "rows": [
+              ["measurement_id", "測定 ID(G- で始まる)"],
+              ["api_secret", "生成された Measurement Protocol API Secret(取り扱い注意)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 連携ハブの [登録] に入力して保存すると、認証情報は AES-256-GCM で暗号化して保存され、閲覧時にはマスキングされます。" }
+          ]
+        },
+        {
+          "h2": "4. よくある問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["API Secret を作成できない", "プロパティ管理権限の不足", "GA4 プロパティ管理権限を持つアカウントでログインします。"],
+              ["データが収集されない", "測定 ID または API Secret の記載ミス", "ウェブストリームの測定 ID(G-)と API Secret を再確認します。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終チェックリスト",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "GA4 プロパティ管理権限を持つアカウントでログインした。",
+              "[管理 > データストリーム] でウェブストリームの測定 ID(G-)を確認した。",
+              "Measurement Protocol API Secret を生成した。",
+              "GenieGo の [登録] に measurement_id·api_secret を入力して保存した。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh": {
+      "titleType": "API Key 申请手册",
+      "badge": "新手指南",
+      "intro": "本手册手把手指导新手在 Google Analytics 4 数据流中签发衡量 ID(G-)和 Measurement Protocol API Secret，并注册到 GenieGo 集成中心。",
+      "org": "GenieGo 集成中心",
+      "quick": [
+        ["预计时间", "约 5~10 分钟"],
+        ["所需账户", "GA4 媒体资源管理权限"],
+        ["签发密钥", "衡量 ID(G-) · API Secret"],
+        ["成果", "Measurement Protocol 凭证"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 开始之前",
+          "desc": "GA4 衡量 ID 和 API Secret 只能由拥有媒体资源管理权限的账户签发。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "GA4 媒体资源管理权限", "p": "您需要拥有管理 Google Analytics 4 媒体资源的权限。仅有查看权限无法创建 API Secret。" },
+              { "tag": "签发密钥", "h3": "衡量 ID(G-) · API Secret", "p": "请一并确认网站数据流的衡量 ID(以 G- 开头)和 Measurement Protocol API Secret。" }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. 申请步骤",
+          "desc": "按以下顺序签发并在 GenieGo 中注册。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "进入数据流", "p": "在 Google Analytics 中进入 [管理] > [数据流]。", "path": "analytics.google.com → 管理 → 数据流" },
+              { "h3": "确认衡量 ID", "p": "选择网站数据流并确认衡量 ID(以 G- 开头)。" },
+              { "h3": "创建 API Secret", "p": "在同一页面创建 [Measurement Protocol API secret]。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "当衡量 ID(G-)和 API Secret 都已确认时，即表示已正确签发。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中注册的信息",
+          "blocks": [
+            { "type": "table", "head": ["字段", "说明"], "rows": [
+              ["measurement_id", "衡量 ID(以 G- 开头)"],
+              ["api_secret", "已创建的 Measurement Protocol API Secret(请妥善保管)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 集成中心的 [注册] 中输入并保存后，凭证将以 AES-256-GCM 加密存储，并在查询时进行掩码处理。" }
+          ]
+        },
+        {
+          "h2": "4. 常见问题",
+          "blocks": [
+            { "type": "table", "head": ["问题", "原因", "解决方法"], "rows": [
+              ["无法创建 API Secret", "媒体资源管理权限不足", "使用拥有 GA4 媒体资源管理权限的账户登录。"],
+              ["未收集到数据", "衡量 ID 或 API Secret 填写错误", "重新确认网站数据流的衡量 ID(G-)和 API Secret。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最终检查清单",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已使用拥有 GA4 媒体资源管理权限的账户登录。",
+              "已在 [管理 > 数据流] 中确认网站数据流的衡量 ID(G-)。",
+              "已创建 Measurement Protocol API Secret。",
+              "已在 GenieGo 的 [注册] 中输入 measurement_id·api_secret 并保存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh-TW": {
+      "titleType": "API Key 申請手冊",
+      "badge": "新手指南",
+      "intro": "本手冊手把手指導新手在 Google Analytics 4 資料串流中簽發評估 ID(G-)和 Measurement Protocol API Secret，並註冊到 GenieGo 整合中心。",
+      "org": "GenieGo 整合中心",
+      "quick": [
+        ["預計時間", "約 5~10 分鐘"],
+        ["所需帳戶", "GA4 資源管理權限"],
+        ["簽發金鑰", "評估 ID(G-) · API Secret"],
+        ["成果", "Measurement Protocol 憑證"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 開始之前",
+          "desc": "GA4 評估 ID 和 API Secret 只能由擁有資源管理權限的帳戶簽發。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "GA4 資源管理權限", "p": "您需要擁有管理 Google Analytics 4 資源的權限。僅有檢視權限無法建立 API Secret。" },
+              { "tag": "簽發金鑰", "h3": "評估 ID(G-) · API Secret", "p": "請一併確認網站資料串流的評估 ID(以 G- 開頭)和 Measurement Protocol API Secret。" }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. 簽發步驟",
+          "desc": "依以下順序簽發並在 GenieGo 中註冊。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "進入資料串流", "p": "在 Google Analytics 中進入 [管理] > [資料串流]。", "path": "analytics.google.com → 管理 → 資料串流" },
+              { "h3": "確認評估 ID", "p": "選擇網站資料串流並確認評估 ID(以 G- 開頭)。" },
+              { "h3": "建立 API Secret", "p": "在同一畫面建立 [Measurement Protocol API secret]。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "當評估 ID(G-)和 API Secret 都已確認時，即表示已正確簽發。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中註冊的資訊",
+          "blocks": [
+            { "type": "table", "head": ["欄位", "說明"], "rows": [
+              ["measurement_id", "評估 ID(以 G- 開頭)"],
+              ["api_secret", "已建立的 Measurement Protocol API Secret(請妥善保管)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 整合中心的 [註冊] 中輸入並儲存後，憑證將以 AES-256-GCM 加密儲存，並在查詢時進行遮罩處理。" }
+          ]
+        },
+        {
+          "h2": "4. 常見問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["無法建立 API Secret", "資源管理權限不足", "使用擁有 GA4 資源管理權限的帳戶登入。"],
+              ["未收集到資料", "評估 ID 或 API Secret 填寫錯誤", "重新確認網站資料串流的評估 ID(G-)和 API Secret。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終檢查清單",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已使用擁有 GA4 資源管理權限的帳戶登入。",
+              "已在 [管理 > 資料串流] 中確認網站資料串流的評估 ID(G-)。",
+              "已建立 Measurement Protocol API Secret。",
+              "已在 GenieGo 的 [註冊] 中輸入 measurement_id·api_secret 並儲存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "de": {
+      "titleType": "Anleitung zur API-Key-Ausstellung",
+      "badge": "Einsteigerleitfaden",
+      "intro": "Eine einsteigerfreundliche Schritt-für-Schritt-Anleitung zum Ausstellen einer Mess-ID (G-) und eines Measurement-Protocol-API-Secrets aus Ihrem Google-Analytics-4-Datenstream und zum Registrieren im GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Geschätzte Zeit", "Etwa 5–10 Min."],
+        ["Benötigtes Konto", "GA4-Property-Verwaltungsberechtigung"],
+        ["Ausgestellte Schlüssel", "Mess-ID (G-) · API Secret"],
+        ["Ergebnis", "Measurement-Protocol-Anmeldedaten"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Bevor Sie beginnen",
+          "desc": "Die GA4-Mess-ID und das API Secret können nur von einem Konto mit Property-Verwaltungsberechtigung ausgestellt werden.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Erforderlich", "h3": "GA4-Property-Verwaltungsberechtigung", "p": "Sie benötigen die Berechtigung, die Google-Analytics-4-Property zu verwalten. Mit reiner Leseberechtigung können Sie kein API Secret erstellen." },
+              { "tag": "Ausgestellte Schlüssel", "h3": "Mess-ID (G-) · API Secret", "p": "Prüfen Sie sowohl die Mess-ID des Webstreams (beginnt mit G-) als auch das Measurement-Protocol-API-Secret." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Ausstellungsschritte",
+          "desc": "Stellen Sie in der unten angegebenen Reihenfolge aus und registrieren Sie in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Zu Datenstreams wechseln", "p": "Wechseln Sie in Google Analytics zu [Verwaltung] > [Datenstreams].", "path": "analytics.google.com → Verwaltung → Datenstreams" },
+              { "h3": "Mess-ID finden", "p": "Wählen Sie den Webstream aus und finden Sie die Mess-ID (beginnt mit G-)." },
+              { "h3": "API Secret erstellen", "p": "Erstellen Sie auf demselben Bildschirm ein [Measurement Protocol API secret]." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Sobald sowohl die Mess-ID (G-) als auch das API Secret bestätigt sind, wurden sie korrekt ausgestellt." }
+          ]
+        },
+        {
+          "h2": "3. In GenieGo zu registrierende Informationen",
+          "blocks": [
+            { "type": "table", "head": ["Feld", "Beschreibung"], "rows": [
+              ["measurement_id", "Mess-ID (beginnt mit G-)"],
+              ["api_secret", "Das erstellte Measurement-Protocol-API-Secret (vertraulich behandeln)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Geben Sie sie im GenieGo Integration Hub unter [Registrieren] ein und speichern Sie. Anmeldedaten werden im Ruhezustand mit AES-256-GCM verschlüsselt und beim Lesen maskiert." }
+          ]
+        },
+        {
+          "h2": "4. Häufige Probleme",
+          "blocks": [
+            { "type": "table", "head": ["Problem", "Ursache", "Lösung"], "rows": [
+              ["API Secret kann nicht erstellt werden", "Unzureichende Property-Verwaltungsberechtigung", "Melden Sie sich mit einem Konto an, das GA4-Property-Verwaltungsberechtigung hat."],
+              ["Es werden keine Daten erfasst", "Mess-ID oder API Secret falsch eingegeben", "Prüfen Sie die Mess-ID (G-) und das API Secret des Webstreams erneut."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Abschließende Checkliste",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Mit einem Konto angemeldet, das GA4-Property-Verwaltungsberechtigung hat.",
+              "Die Mess-ID (G-) des Webstreams unter [Verwaltung > Datenstreams] gefunden.",
+              "Das Measurement-Protocol-API-Secret erstellt.",
+              "measurement_id·api_secret in GenieGo [Registrieren] eingegeben und gespeichert."
+            ] }
+          ]
+        }
+      ]
+    },
+    "th": {
+      "titleType": "คู่มือการออก API Key",
+      "badge": "คู่มือสำหรับผู้เริ่มต้น",
+      "intro": "คู่มือทีละขั้นตอนที่เป็นมิตรกับผู้เริ่มต้น สำหรับการออกรหัสการวัด (G-) และ Measurement Protocol API Secret จากสตรีมข้อมูล Google Analytics 4 ของคุณ และลงทะเบียนใน GenieGo Integration Hub",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["เวลาโดยประมาณ", "ประมาณ 5–10 นาที"],
+        ["บัญชีที่ต้องใช้", "สิทธิ์จัดการพร็อพเพอร์ตี้ GA4"],
+        ["คีย์ที่ออก", "รหัสการวัด (G-) · API Secret"],
+        ["ผลลัพธ์", "ข้อมูลรับรอง Measurement Protocol"]
+      ],
+      "sections": [
+        {
+          "h2": "1. ก่อนเริ่มต้น",
+          "desc": "รหัสการวัด GA4 และ API Secret สามารถออกได้จากบัญชีที่มีสิทธิ์จัดการพร็อพเพอร์ตี้เท่านั้น",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "จำเป็น", "h3": "สิทธิ์จัดการพร็อพเพอร์ตี้ GA4", "p": "คุณต้องมีสิทธิ์ในการจัดการพร็อพเพอร์ตี้ Google Analytics 4 เพียงสิทธิ์การดูอย่างเดียวไม่สามารถสร้าง API Secret ได้" },
+              { "tag": "คีย์ที่ออก", "h3": "รหัสการวัด (G-) · API Secret", "p": "ตรวจสอบทั้งรหัสการวัดของสตรีมเว็บ (ขึ้นต้นด้วย G-) และ Measurement Protocol API Secret" }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. ขั้นตอนการออก",
+          "desc": "ออกตามลำดับด้านล่างและลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "ไปที่สตรีมข้อมูล", "p": "ใน Google Analytics ไปที่ [ผู้ดูแลระบบ] > [สตรีมข้อมูล]", "path": "analytics.google.com → ผู้ดูแลระบบ → สตรีมข้อมูล" },
+              { "h3": "ค้นหารหัสการวัด", "p": "เลือกสตรีมเว็บและค้นหารหัสการวัด (ขึ้นต้นด้วย G-)" },
+              { "h3": "สร้าง API Secret", "p": "บนหน้าจอเดียวกัน สร้าง [Measurement Protocol API secret]" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "เมื่อยืนยันทั้งรหัสการวัด (G-) และ API Secret แล้ว แสดงว่าออกอย่างถูกต้อง" }
+          ]
+        },
+        {
+          "h2": "3. ข้อมูลที่ต้องลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["ฟิลด์", "คำอธิบาย"], "rows": [
+              ["measurement_id", "รหัสการวัด (ขึ้นต้นด้วย G-)"],
+              ["api_secret", "Measurement Protocol API Secret ที่สร้างแล้ว (จัดการด้วยความระมัดระวัง)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "กรอกใน [ลงทะเบียน] ของ GenieGo Integration Hub แล้วบันทึก ข้อมูลรับรองจะถูกเข้ารหัสขณะจัดเก็บด้วย AES-256-GCM และปิดบังเมื่ออ่าน" }
+          ]
+        },
+        {
+          "h2": "4. ปัญหาที่พบบ่อย",
+          "blocks": [
+            { "type": "table", "head": ["ปัญหา", "สาเหตุ", "วิธีแก้ไข"], "rows": [
+              ["ไม่สามารถสร้าง API Secret ได้", "สิทธิ์จัดการพร็อพเพอร์ตี้ไม่เพียงพอ", "ลงชื่อเข้าใช้ด้วยบัญชีที่มีสิทธิ์จัดการพร็อพเพอร์ตี้ GA4"],
+              ["ไม่มีการเก็บรวบรวมข้อมูล", "กรอกรหัสการวัดหรือ API Secret ผิด", "ตรวจสอบรหัสการวัด (G-) และ API Secret ของสตรีมเว็บอีกครั้ง"]
+            ] }
+          ]
+        },
+        {
+          "h2": "รายการตรวจสอบขั้นสุดท้าย",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "ลงชื่อเข้าใช้ด้วยบัญชีที่มีสิทธิ์จัดการพร็อพเพอร์ตี้ GA4 แล้ว",
+              "พบรหัสการวัด (G-) ของสตรีมเว็บใน [ผู้ดูแลระบบ > สตรีมข้อมูล] แล้ว",
+              "สร้าง Measurement Protocol API Secret แล้ว",
+              "กรอก measurement_id·api_secret ใน GenieGo [ลงทะเบียน] และบันทึกแล้ว"
+            ] }
+          ]
+        }
+      ]
+    },
+    "vi": {
+      "titleType": "Hướng dẫn cấp API Key",
+      "badge": "Hướng dẫn cho người mới",
+      "intro": "Hướng dẫn từng bước thân thiện với người mới về việc cấp ID đo lường (G-) và Measurement Protocol API Secret từ luồng dữ liệu Google Analytics 4 của bạn và đăng ký trong GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Thời gian dự kiến", "Khoảng 5–10 phút"],
+        ["Tài khoản cần thiết", "Quyền quản lý thuộc tính GA4"],
+        ["Khóa được cấp", "ID đo lường (G-) · API Secret"],
+        ["Kết quả", "Thông tin xác thực Measurement Protocol"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Trước khi bắt đầu",
+          "desc": "ID đo lường GA4 và API Secret chỉ có thể được cấp từ tài khoản có quyền quản lý thuộc tính.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Bắt buộc", "h3": "Quyền quản lý thuộc tính GA4", "p": "Bạn cần quyền quản lý thuộc tính Google Analytics 4. Chỉ với quyền xem thì không thể tạo API Secret." },
+              { "tag": "Khóa được cấp", "h3": "ID đo lường (G-) · API Secret", "p": "Kiểm tra cả ID đo lường của luồng web (bắt đầu bằng G-) và Measurement Protocol API Secret." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Các bước cấp",
+          "desc": "Cấp theo thứ tự dưới đây và đăng ký trong GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Đi tới Luồng dữ liệu", "p": "Trong Google Analytics, đi tới [Quản trị] > [Luồng dữ liệu].", "path": "analytics.google.com → Quản trị → Luồng dữ liệu" },
+              { "h3": "Tìm ID đo lường", "p": "Chọn luồng web và tìm ID đo lường (bắt đầu bằng G-)." },
+              { "h3": "Tạo API Secret", "p": "Trên cùng màn hình, tạo [Measurement Protocol API secret]." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Khi cả ID đo lường (G-) và API Secret đều được xác nhận, nghĩa là chúng đã được cấp đúng cách." }
+          ]
+        },
+        {
+          "h2": "3. Thông tin cần đăng ký trong GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Trường", "Mô tả"], "rows": [
+              ["measurement_id", "ID đo lường (bắt đầu bằng G-)"],
+              ["api_secret", "Measurement Protocol API Secret đã tạo (xử lý cẩn thận)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Nhập chúng vào [Đăng ký] của GenieGo Integration Hub rồi lưu. Thông tin xác thực được mã hóa khi lưu trữ bằng AES-256-GCM và được che khi đọc." }
+          ]
+        },
+        {
+          "h2": "4. Sự cố thường gặp",
+          "blocks": [
+            { "type": "table", "head": ["Sự cố", "Nguyên nhân", "Giải pháp"], "rows": [
+              ["Không thể tạo API Secret", "Quyền quản lý thuộc tính không đủ", "Đăng nhập bằng tài khoản có quyền quản lý thuộc tính GA4."],
+              ["Dữ liệu không được thu thập", "ID đo lường hoặc API Secret nhập sai", "Kiểm tra lại ID đo lường (G-) và API Secret của luồng web."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Danh sách kiểm tra cuối cùng",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Đã đăng nhập bằng tài khoản có quyền quản lý thuộc tính GA4.",
+              "Đã tìm thấy ID đo lường (G-) của luồng web trong [Quản trị > Luồng dữ liệu].",
+              "Đã tạo Measurement Protocol API Secret.",
+              "Đã nhập measurement_id·api_secret vào GenieGo [Đăng ký] và lưu."
+            ] }
+          ]
+        }
+      ]
+    },
+    "id": {
+      "titleType": "Panduan Penerbitan API Key",
+      "badge": "Panduan Pemula",
+      "intro": "Panduan langkah demi langkah yang ramah pemula untuk menerbitkan ID pengukuran (G-) dan Measurement Protocol API Secret dari aliran data Google Analytics 4 Anda dan mendaftarkannya di GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Perkiraan waktu", "Sekitar 5–10 menit"],
+        ["Akun yang dibutuhkan", "Izin pengelolaan properti GA4"],
+        ["Kunci yang diterbitkan", "ID pengukuran (G-) · API Secret"],
+        ["Hasil", "Kredensial Measurement Protocol"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Sebelum Anda Mulai",
+          "desc": "ID pengukuran GA4 dan API Secret hanya dapat diterbitkan dari akun dengan izin pengelolaan properti.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Diperlukan", "h3": "Izin pengelolaan properti GA4", "p": "Anda memerlukan izin untuk mengelola properti Google Analytics 4. Izin lihat saja tidak dapat membuat API Secret." },
+              { "tag": "Kunci yang diterbitkan", "h3": "ID pengukuran (G-) · API Secret", "p": "Periksa baik ID pengukuran aliran web (diawali dengan G-) maupun Measurement Protocol API Secret." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Langkah Penerbitan",
+          "desc": "Terbitkan sesuai urutan di bawah dan daftarkan di GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Buka Aliran Data", "p": "Di Google Analytics, buka [Admin] > [Aliran Data].", "path": "analytics.google.com → Admin → Aliran Data" },
+              { "h3": "Temukan ID pengukuran", "p": "Pilih aliran web dan temukan ID pengukuran (diawali dengan G-)." },
+              { "h3": "Buat API Secret", "p": "Pada layar yang sama, buat [Measurement Protocol API secret]." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Setelah ID pengukuran (G-) dan API Secret keduanya dikonfirmasi, berarti keduanya telah diterbitkan dengan benar." }
+          ]
+        },
+        {
+          "h2": "3. Informasi yang Didaftarkan di GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Bidang", "Deskripsi"], "rows": [
+              ["measurement_id", "ID pengukuran (diawali dengan G-)"],
+              ["api_secret", "Measurement Protocol API Secret yang dibuat (tangani dengan hati-hati)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Masukkan di [Daftar] GenieGo Integration Hub lalu simpan. Kredensial dienkripsi saat disimpan dengan AES-256-GCM dan disamarkan saat dibaca." }
+          ]
+        },
+        {
+          "h2": "4. Masalah Umum",
+          "blocks": [
+            { "type": "table", "head": ["Masalah", "Penyebab", "Solusi"], "rows": [
+              ["Tidak dapat membuat API Secret", "Izin pengelolaan properti tidak memadai", "Masuk dengan akun yang memiliki izin pengelolaan properti GA4."],
+              ["Data tidak terkumpul", "ID pengukuran atau API Secret salah dimasukkan", "Periksa kembali ID pengukuran (G-) dan API Secret aliran web."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Daftar Periksa Akhir",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Masuk dengan akun yang memiliki izin pengelolaan properti GA4.",
+              "Menemukan ID pengukuran (G-) aliran web di [Admin > Aliran Data].",
+              "Membuat Measurement Protocol API Secret.",
+              "Memasukkan measurement_id·api_secret di GenieGo [Daftar] dan menyimpan."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ar": {
+      "titleType": "دليل إصدار مفتاح API",
+      "badge": "دليل المبتدئين",
+      "intro": "دليل تفصيلي خطوة بخطوة وملائم للمبتدئين لإصدار معرّف القياس (G-) وسرّ Measurement Protocol API من مصدر بيانات Google Analytics 4 الخاص بك وتسجيله في GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["الوقت المقدّر", "حوالي 5–10 دقائق"],
+        ["الحساب المطلوب", "صلاحية إدارة موقع GA4"],
+        ["المفاتيح المُصدَرة", "معرّف القياس (G-) · سرّ API"],
+        ["النتيجة", "بيانات اعتماد Measurement Protocol"]
+      ],
+      "sections": [
+        {
+          "h2": "1. قبل أن تبدأ",
+          "desc": "لا يمكن إصدار معرّف القياس وسرّ API في GA4 إلا من حساب يملك صلاحية إدارة الموقع.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "مطلوب", "h3": "صلاحية إدارة موقع GA4", "p": "تحتاج إلى صلاحية إدارة موقع Google Analytics 4. لا يمكن إنشاء سرّ API بصلاحية العرض وحدها." },
+              { "tag": "المفاتيح المُصدَرة", "h3": "معرّف القياس (G-) · سرّ API", "p": "تحقّق من كل من معرّف القياس لمصدر بيانات الويب (يبدأ بـ G-) وسرّ Measurement Protocol API." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. خطوات الإصدار",
+          "desc": "أصدِر بالترتيب أدناه وسجّل في GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "الانتقال إلى مصادر البيانات", "p": "في Google Analytics، انتقل إلى [المشرف] > [مصادر البيانات].", "path": "analytics.google.com → المشرف → مصادر البيانات" },
+              { "h3": "إيجاد معرّف القياس", "p": "اختر مصدر بيانات الويب وأوجِد معرّف القياس (يبدأ بـ G-)." },
+              { "h3": "إنشاء سرّ API", "p": "في الشاشة نفسها، أنشئ [Measurement Protocol API secret]." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "بمجرد تأكيد كل من معرّف القياس (G-) وسرّ API، يكون قد تم إصدارهما بشكل صحيح." }
+          ]
+        },
+        {
+          "h2": "3. المعلومات المطلوب تسجيلها في GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["الحقل", "الوصف"], "rows": [
+              ["measurement_id", "معرّف القياس (يبدأ بـ G-)"],
+              ["api_secret", "سرّ Measurement Protocol API الذي تم إنشاؤه (تعامل معه بحذر)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "أدخِلها في [تسجيل] ضمن GenieGo Integration Hub واحفظ. تُشفَّر بيانات الاعتماد عند التخزين باستخدام AES-256-GCM وتُخفى عند القراءة." }
+          ]
+        },
+        {
+          "h2": "4. المشكلات الشائعة",
+          "blocks": [
+            { "type": "table", "head": ["المشكلة", "السبب", "الحل"], "rows": [
+              ["تعذّر إنشاء سرّ API", "صلاحية إدارة الموقع غير كافية", "سجّل الدخول بحساب يملك صلاحية إدارة موقع GA4."],
+              ["لا يتم جمع البيانات", "إدخال معرّف القياس أو سرّ API بشكل خاطئ", "أعد التحقق من معرّف القياس (G-) وسرّ API لمصدر بيانات الويب."]
+            ] }
+          ]
+        },
+        {
+          "h2": "قائمة التحقق النهائية",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "سجّلت الدخول بحساب يملك صلاحية إدارة موقع GA4.",
+              "أوجدت معرّف القياس (G-) لمصدر بيانات الويب ضمن [المشرف > مصادر البيانات].",
+              "أنشأت سرّ Measurement Protocol API.",
+              "أدخلت measurement_id·api_secret في [تسجيل] بـ GenieGo وحفظت."
+            ] }
+          ]
+        }
+      ]
+    },
+    "es": {
+      "titleType": "Manual de emisión de la clave de API",
+      "badge": "Guía para principiantes",
+      "intro": "Una guía paso a paso y apta para principiantes para emitir un ID de medición (G-) y un secreto de API de Measurement Protocol desde tu flujo de datos de Google Analytics 4 y registrarlos en el GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tiempo estimado", "Unos 5–10 min"],
+        ["Cuenta necesaria", "Permiso de administración de la propiedad GA4"],
+        ["Claves emitidas", "ID de medición (G-) · Secreto de API"],
+        ["Resultado", "Credenciales de Measurement Protocol"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de empezar",
+          "desc": "El ID de medición de GA4 y el secreto de API solo pueden emitirse desde una cuenta con permiso de administración de la propiedad.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Obligatorio", "h3": "Permiso de administración de la propiedad GA4", "p": "Necesitas permiso para administrar la propiedad de Google Analytics 4. Con el permiso de solo lectura no es posible crear un secreto de API." },
+              { "tag": "Claves emitidas", "h3": "ID de medición (G-) · Secreto de API", "p": "Comprueba tanto el ID de medición del flujo web (empieza por G-) como el secreto de API de Measurement Protocol." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Pasos de emisión",
+          "desc": "Emite en el orden indicado a continuación y regístralo en GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Ir a Flujos de datos", "p": "En Google Analytics, ve a [Administrar] > [Flujos de datos].", "path": "analytics.google.com → Administrar → Flujos de datos" },
+              { "h3": "Encontrar el ID de medición", "p": "Selecciona el flujo web y encuentra el ID de medición (empieza por G-)." },
+              { "h3": "Crear un secreto de API", "p": "En la misma pantalla, crea un [Measurement Protocol API secret]." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Una vez confirmados tanto el ID de medición (G-) como el secreto de API, se han emitido correctamente." }
+          ]
+        },
+        {
+          "h2": "3. Información para registrar en GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descripción"], "rows": [
+              ["measurement_id", "ID de medición (empieza por G-)"],
+              ["api_secret", "El secreto de API de Measurement Protocol creado (manéjalo con cuidado)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Introdúcelos en [Registrar] del GenieGo Integration Hub y guarda. Las credenciales se cifran en reposo con AES-256-GCM y se enmascaran al leerlas." }
+          ]
+        },
+        {
+          "h2": "4. Problemas frecuentes",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solución"], "rows": [
+              ["No se puede crear un secreto de API", "Permiso de administración de la propiedad insuficiente", "Inicia sesión con una cuenta que tenga permiso de administración de la propiedad GA4."],
+              ["No se recopilan datos", "ID de medición o secreto de API introducidos incorrectamente", "Vuelve a comprobar el ID de medición (G-) y el secreto de API del flujo web."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de comprobación final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Iniciaste sesión con una cuenta con permiso de administración de la propiedad GA4.",
+              "Encontraste el ID de medición (G-) del flujo web en [Administrar > Flujos de datos].",
+              "Creaste el secreto de API de Measurement Protocol.",
+              "Introdujiste measurement_id·api_secret en [Registrar] de GenieGo y guardaste."
+            ] }
+          ]
+        }
+      ]
+    },
+    "fr": {
+      "titleType": "Manuel de délivrance de la clé d'API",
+      "badge": "Guide du débutant",
+      "intro": "Un guide pas à pas adapté aux débutants pour générer un ID de mesure (G-) et un secret d'API Measurement Protocol depuis votre flux de données Google Analytics 4 et les enregistrer dans le GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Temps estimé", "Environ 5–10 min"],
+        ["Compte requis", "Autorisation de gestion de la propriété GA4"],
+        ["Clés délivrées", "ID de mesure (G-) · Secret d'API"],
+        ["Résultat", "Identifiants Measurement Protocol"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Avant de commencer",
+          "desc": "L'ID de mesure GA4 et le secret d'API ne peuvent être générés que depuis un compte disposant de l'autorisation de gestion de la propriété.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requis", "h3": "Autorisation de gestion de la propriété GA4", "p": "Vous devez disposer de l'autorisation de gérer la propriété Google Analytics 4. L'autorisation de lecture seule ne permet pas de créer un secret d'API." },
+              { "tag": "Clés délivrées", "h3": "ID de mesure (G-) · Secret d'API", "p": "Vérifiez à la fois l'ID de mesure du flux Web (commençant par G-) et le secret d'API Measurement Protocol." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Étapes de délivrance",
+          "desc": "Générez dans l'ordre ci-dessous et enregistrez dans GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Accéder aux flux de données", "p": "Dans Google Analytics, accédez à [Administration] > [Flux de données].", "path": "analytics.google.com → Administration → Flux de données" },
+              { "h3": "Trouver l'ID de mesure", "p": "Sélectionnez le flux Web et trouvez l'ID de mesure (commençant par G-)." },
+              { "h3": "Créer un secret d'API", "p": "Sur le même écran, créez un [Measurement Protocol API secret]." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Une fois l'ID de mesure (G-) et le secret d'API confirmés, ils ont été générés correctement." }
+          ]
+        },
+        {
+          "h2": "3. Informations à enregistrer dans GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Champ", "Description"], "rows": [
+              ["measurement_id", "ID de mesure (commençant par G-)"],
+              ["api_secret", "Le secret d'API Measurement Protocol créé (à manipuler avec précaution)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Saisissez-les dans [Enregistrer] du GenieGo Integration Hub et enregistrez. Les identifiants sont chiffrés au repos avec AES-256-GCM et masqués à la lecture." }
+          ]
+        },
+        {
+          "h2": "4. Problèmes fréquents",
+          "blocks": [
+            { "type": "table", "head": ["Problème", "Cause", "Solution"], "rows": [
+              ["Impossible de créer un secret d'API", "Autorisation de gestion de la propriété insuffisante", "Connectez-vous avec un compte disposant de l'autorisation de gestion de la propriété GA4."],
+              ["Aucune donnée n'est collectée", "ID de mesure ou secret d'API saisi de façon incorrecte", "Vérifiez à nouveau l'ID de mesure (G-) et le secret d'API du flux Web."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Liste de vérification finale",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Connecté avec un compte disposant de l'autorisation de gestion de la propriété GA4.",
+              "Trouvé l'ID de mesure (G-) du flux Web dans [Administration > Flux de données].",
+              "Créé le secret d'API Measurement Protocol.",
+              "Saisi measurement_id·api_secret dans [Enregistrer] de GenieGo et enregistré."
+            ] }
+          ]
+        }
+      ]
+    },
+    "hi": {
+      "titleType": "API Key जारी करने की नियमावली",
+      "badge": "शुरुआती गाइड",
+      "intro": "आपकी Google Analytics 4 डेटा स्ट्रीम से मेज़रमेंट ID (G-) और Measurement Protocol API Secret जारी करने और उन्हें GenieGo Integration Hub में पंजीकृत करने की, शुरुआती-अनुकूल चरण-दर-चरण मार्गदर्शिका।",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["अनुमानित समय", "लगभग 5–10 मिनट"],
+        ["आवश्यक खाता", "GA4 प्रॉपर्टी प्रबंधन अनुमति"],
+        ["जारी की गई कुंजियाँ", "मेज़रमेंट ID (G-) · API Secret"],
+        ["परिणाम", "Measurement Protocol क्रेडेंशियल"]
+      ],
+      "sections": [
+        {
+          "h2": "1. शुरू करने से पहले",
+          "desc": "GA4 मेज़रमेंट ID और API Secret केवल प्रॉपर्टी प्रबंधन अनुमति वाले खाते से ही जारी किए जा सकते हैं।",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "आवश्यक", "h3": "GA4 प्रॉपर्टी प्रबंधन अनुमति", "p": "आपके पास Google Analytics 4 प्रॉपर्टी को प्रबंधित करने की अनुमति होनी चाहिए। केवल देखने की अनुमति से API Secret नहीं बनाया जा सकता।" },
+              { "tag": "जारी की गई कुंजियाँ", "h3": "मेज़रमेंट ID (G-) · API Secret", "p": "वेब स्ट्रीम की मेज़रमेंट ID (G- से शुरू) और Measurement Protocol API Secret दोनों की जाँच करें।" }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. जारी करने के चरण",
+          "desc": "नीचे दिए गए क्रम में जारी करें और GenieGo में पंजीकृत करें।",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "डेटा स्ट्रीम पर जाएँ", "p": "Google Analytics में [Admin] > [Data Streams] पर जाएँ।", "path": "analytics.google.com → Admin → Data Streams" },
+              { "h3": "मेज़रमेंट ID ढूँढें", "p": "वेब स्ट्रीम चुनें और मेज़रमेंट ID (G- से शुरू) ढूँढें।" },
+              { "h3": "API Secret बनाएँ", "p": "उसी स्क्रीन पर, एक [Measurement Protocol API secret] बनाएँ।" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "जब मेज़रमेंट ID (G-) और API Secret दोनों की पुष्टि हो जाए, तो वे सही ढंग से जारी हो गए हैं।" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo में पंजीकृत करने योग्य जानकारी",
+          "blocks": [
+            { "type": "table", "head": ["फ़ील्ड", "विवरण"], "rows": [
+              ["measurement_id", "मेज़रमेंट ID (G- से शुरू)"],
+              ["api_secret", "बनाया गया Measurement Protocol API Secret (सावधानी से संभालें)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "इन्हें GenieGo Integration Hub के [Register] में दर्ज करें और सहेजें। क्रेडेंशियल को संग्रहण के समय AES-256-GCM से एन्क्रिप्ट किया जाता है और पढ़ते समय मास्क किया जाता है।" }
+          ]
+        },
+        {
+          "h2": "4. सामान्य समस्याएँ",
+          "blocks": [
+            { "type": "table", "head": ["समस्या", "कारण", "समाधान"], "rows": [
+              ["API Secret नहीं बनाया जा सकता", "प्रॉपर्टी प्रबंधन अनुमति अपर्याप्त", "GA4 प्रॉपर्टी प्रबंधन अनुमति वाले खाते से साइन इन करें।"],
+              ["डेटा एकत्र नहीं हो रहा", "मेज़रमेंट ID या API Secret गलत दर्ज", "वेब स्ट्रीम की मेज़रमेंट ID (G-) और API Secret को फिर से जाँचें।"]
+            ] }
+          ]
+        },
+        {
+          "h2": "अंतिम जाँच-सूची",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "GA4 प्रॉपर्टी प्रबंधन अनुमति वाले खाते से साइन इन किया।",
+              "[Admin > Data Streams] में वेब स्ट्रीम की मेज़रमेंट ID (G-) ढूँढी।",
+              "Measurement Protocol API Secret बनाया।",
+              "GenieGo [Register] में measurement_id·api_secret दर्ज करके सहेजा।"
+            ] }
+          ]
+        }
+      ]
+    },
+    "pt": {
+      "titleType": "Manual de emissão da chave de API",
+      "badge": "Guia para iniciantes",
+      "intro": "Um guia passo a passo e voltado para iniciantes para emitir um ID de medição (G-) e um segredo de API do Measurement Protocol a partir do seu fluxo de dados do Google Analytics 4 e registrá-los no GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tempo estimado", "Cerca de 5–10 min"],
+        ["Conta necessária", "Permissão de gerenciamento da propriedade GA4"],
+        ["Chaves emitidas", "ID de medição (G-) · Segredo de API"],
+        ["Resultado", "Credenciais do Measurement Protocol"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de começar",
+          "desc": "O ID de medição do GA4 e o segredo de API só podem ser emitidos a partir de uma conta com permissão de gerenciamento da propriedade.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Obrigatório", "h3": "Permissão de gerenciamento da propriedade GA4", "p": "Você precisa de permissão para gerenciar a propriedade do Google Analytics 4. Apenas a permissão de visualização não permite criar um segredo de API." },
+              { "tag": "Chaves emitidas", "h3": "ID de medição (G-) · Segredo de API", "p": "Verifique tanto o ID de medição do fluxo da Web (começa com G-) quanto o segredo de API do Measurement Protocol." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Etapas de emissão",
+          "desc": "Emita na ordem abaixo e registre no GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Ir para Fluxos de dados", "p": "No Google Analytics, vá para [Administrador] > [Fluxos de dados].", "path": "analytics.google.com → Administrador → Fluxos de dados" },
+              { "h3": "Encontrar o ID de medição", "p": "Selecione o fluxo da Web e encontre o ID de medição (começa com G-)." },
+              { "h3": "Criar um segredo de API", "p": "Na mesma tela, crie um [Measurement Protocol API secret]." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Quando o ID de medição (G-) e o segredo de API forem ambos confirmados, eles foram emitidos corretamente." }
+          ]
+        },
+        {
+          "h2": "3. Informações para registrar no GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descrição"], "rows": [
+              ["measurement_id", "ID de medição (começa com G-)"],
+              ["api_secret", "O segredo de API do Measurement Protocol criado (manuseie com cuidado)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Insira-os em [Registrar] do GenieGo Integration Hub e salve. As credenciais são criptografadas em repouso com AES-256-GCM e mascaradas na leitura." }
+          ]
+        },
+        {
+          "h2": "4. Problemas comuns",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solução"], "rows": [
+              ["Não é possível criar um segredo de API", "Permissão de gerenciamento da propriedade insuficiente", "Faça login com uma conta que tenha permissão de gerenciamento da propriedade GA4."],
+              ["Os dados não são coletados", "ID de medição ou segredo de API inseridos incorretamente", "Verifique novamente o ID de medição (G-) e o segredo de API do fluxo da Web."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificação final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Fez login com uma conta que tem permissão de gerenciamento da propriedade GA4.",
+              "Encontrou o ID de medição (G-) do fluxo da Web em [Administrador > Fluxos de dados].",
+              "Criou o segredo de API do Measurement Protocol.",
+              "Inseriu measurement_id·api_secret em [Registrar] do GenieGo e salvou."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ru": {
+      "titleType": "Руководство по выпуску API-ключа",
+      "badge": "Руководство для новичков",
+      "intro": "Понятное новичкам пошаговое руководство по выпуску идентификатора оценки (G-) и секрета API Measurement Protocol из вашего потока данных Google Analytics 4 и их регистрации в GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Примерное время", "Около 5–10 мин"],
+        ["Требуемый аккаунт", "Право управления ресурсом GA4"],
+        ["Выпускаемые ключи", "Идентификатор оценки (G-) · Секрет API"],
+        ["Результат", "Учётные данные Measurement Protocol"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Прежде чем начать",
+          "desc": "Идентификатор оценки GA4 и секрет API можно выпустить только из аккаунта с правом управления ресурсом.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Требуется", "h3": "Право управления ресурсом GA4", "p": "Вам нужно право управлять ресурсом Google Analytics 4. Только с правом просмотра создать секрет API нельзя." },
+              { "tag": "Выпускаемые ключи", "h3": "Идентификатор оценки (G-) · Секрет API", "p": "Проверьте как идентификатор оценки веб-потока (начинается с G-), так и секрет API Measurement Protocol." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Шаги выпуска",
+          "desc": "Выпустите в указанном ниже порядке и зарегистрируйте в GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Перейти к потокам данных", "p": "В Google Analytics перейдите в [Администратор] > [Потоки данных].", "path": "analytics.google.com → Администратор → Потоки данных" },
+              { "h3": "Найти идентификатор оценки", "p": "Выберите веб-поток и найдите идентификатор оценки (начинается с G-)." },
+              { "h3": "Создать секрет API", "p": "На том же экране создайте [Measurement Protocol API secret]." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Как только подтверждены и идентификатор оценки (G-), и секрет API, они выпущены правильно." }
+          ]
+        },
+        {
+          "h2": "3. Информация для регистрации в GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Поле", "Описание"], "rows": [
+              ["measurement_id", "Идентификатор оценки (начинается с G-)"],
+              ["api_secret", "Созданный секрет API Measurement Protocol (обращайтесь осторожно)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Введите их в [Регистрация] в GenieGo Integration Hub и сохраните. Учётные данные шифруются при хранении с помощью AES-256-GCM и маскируются при чтении." }
+          ]
+        },
+        {
+          "h2": "4. Частые проблемы",
+          "blocks": [
+            { "type": "table", "head": ["Проблема", "Причина", "Решение"], "rows": [
+              ["Не удаётся создать секрет API", "Недостаточно прав управления ресурсом", "Войдите под аккаунтом с правом управления ресурсом GA4."],
+              ["Данные не собираются", "Идентификатор оценки или секрет API введены неверно", "Повторно проверьте идентификатор оценки (G-) и секрет API веб-потока."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Итоговый чек-лист",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Вошли под аккаунтом с правом управления ресурсом GA4.",
+              "Нашли идентификатор оценки (G-) веб-потока в [Администратор > Потоки данных].",
+              "Создали секрет API Measurement Protocol.",
+              "Ввели measurement_id·api_secret в [Регистрация] в GenieGo и сохранили."
+            ] }
+          ]
+        }
+      ]
+    }
+  }
+}

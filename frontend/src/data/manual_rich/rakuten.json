@@ -1,0 +1,1041 @@
+{
+  "name": "Rakuten",
+  "icon": "🛒",
+  "langs": {
+    "ko": {
+      "titleType": "API Key 발급 매뉴얼",
+      "badge": "Beginner Guide",
+      "intro": "Rakuten RMS 판매자 콘솔에서 RMS Web Service 인증키(Service Secret·License Key)를 발급하고 GenieGo 연동 허브에 등록하는 과정을 초보자도 그대로 따라 할 수 있도록 정리한 매뉴얼입니다.",
+      "org": "GenieGo 연동 허브",
+      "quick": [
+        ["소요 시간", "약 5~15분"],
+        ["필요 계정", "Rakuten 판매자(이치바) 계정"],
+        ["발급 키", "Service Secret · License Key"],
+        ["결과물", "RMS Web Service 자격증명"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 시작하기 전에",
+          "desc": "판매자(이치바)용 키는 RMS Web Service에서 발급합니다.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "필요", "h3": "Rakuten 판매자 계정", "p": "Rakuten 판매자(이치바) 계정이 있어야 합니다. RMS R-Login(glogin.rms.rakuten.co.jp)으로 로그인할 수 있는 계정이 필요합니다." },
+              { "tag": "발급 키", "h3": "Service Secret · License Key", "p": "RMS Web Service에서 serviceSecret과 licenseKey를 발급받습니다. License Key는 90일 만료가 있으며 재발급이 가능합니다." }
+            ] },
+            { "type": "notice", "kind": "danger", "html": "<strong>주의:</strong> 판매자(이치바) 키를 발급하는 RMS Web Service(glogin.rms.rakuten.co.jp)는 제휴/상품검색용 webservice.rakuten.co.jp와 다릅니다. 반드시 RMS 쪽에서 발급하세요." }
+          ]
+        },
+        {
+          "h2": "2. 발급 단계",
+          "desc": "아래 순서대로 발급하고 GenieGo에 등록합니다.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "RMS 개발자 포털 로그인", "p": "Rakuten 개발자 포털(RMS/Webservice)에 판매자 계정으로 로그인합니다.", "path": "https://glogin.rms.rakuten.co.jp" },
+              { "h3": "RMS Web Service 이동", "p": "RMS R-Login으로 로그인한 뒤 RMS Web Service 영역으로 이동합니다.", "path": "RMS R-Login → RMS Web Service" },
+              { "h3": "Service Secret · License Key 발급", "p": "RMS Web Service에서 Service Secret과 License Key를 발급받습니다. License Key는 90일 만료가 있어 만료 시 재발급합니다." },
+              { "h3": "키 확인", "p": "발급된 Service Secret과 License Key, 그리고 본인 상점의 Shop URL을 함께 확인합니다." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Service Secret과 License Key가 발급 화면에 표시되면 정상 발급된 것입니다." }
+          ]
+        },
+        {
+          "h2": "3. GenieGo에 등록할 정보",
+          "blocks": [
+            { "type": "table", "head": ["필드", "설명"], "rows": [
+              ["service_secret", "발급된 Service Secret"],
+              ["license_key", "발급된 License Key(90일 만료·재발급 가능, 노출 주의)"],
+              ["shop_url", "본인 상점의 Shop URL"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 연동 허브 [등록]에 service_secret·license_key·shop_url을 입력해 저장하면 자격증명은 AES-256-GCM으로 암호화 저장되고 조회 시 마스킹됩니다." }
+          ]
+        },
+        {
+          "h2": "4. 자주 발생하는 문제",
+          "blocks": [
+            { "type": "table", "head": ["문제", "원인", "해결"], "rows": [
+              ["엉뚱한 키가 발급됨", "webservice.rakuten.co.jp(제휴/상품검색용)에서 발급", "RMS R-Login(glogin.rms.rakuten.co.jp)의 RMS Web Service에서 다시 발급합니다."],
+              ["일정 기간 후 인증 실패", "License Key 90일 만료", "RMS Web Service에서 License Key를 재발급하고 [등록]에 다시 입력합니다."]
+            ] }
+          ]
+        },
+        {
+          "h2": "최종 체크리스트",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Rakuten 판매자(이치바) 계정으로 RMS R-Login에 로그인했다.",
+              "RMS Web Service에서 Service Secret·License Key를 발급했다.",
+              "본인 상점의 Shop URL을 확인했다.",
+              "GenieGo [등록]에 service_secret·license_key·shop_url을 입력해 저장했다."
+            ] }
+          ]
+        }
+      ]
+    },
+    "en": {
+      "titleType": "API Key Issuance Manual",
+      "badge": "Beginner Guide",
+      "intro": "A beginner-friendly, step-by-step guide to issuing RMS Web Service credentials (Service Secret and License Key) from the Rakuten RMS seller console and registering them in the GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Est. time", "About 5–15 min"],
+        ["Account needed", "Rakuten seller (Ichiba) account"],
+        ["Keys issued", "Service Secret · License Key"],
+        ["Result", "RMS Web Service credentials"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Before You Begin",
+          "desc": "Seller (Ichiba) keys are issued from the RMS Web Service.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Required", "h3": "Rakuten seller account", "p": "You need a Rakuten seller (Ichiba) account. You need an account that can sign in via RMS R-Login (glogin.rms.rakuten.co.jp)." },
+              { "tag": "Keys issued", "h3": "Service Secret · License Key", "p": "You will obtain a serviceSecret and a licenseKey from the RMS Web Service. The License Key expires after 90 days and can be reissued." }
+            ] },
+            { "type": "notice", "kind": "danger", "html": "<strong>Caution:</strong> The RMS Web Service (glogin.rms.rakuten.co.jp) that issues seller (Ichiba) keys is different from webservice.rakuten.co.jp, which is for affiliate/product search. Be sure to issue your keys on the RMS side." }
+          ]
+        },
+        {
+          "h2": "2. Issuance Steps",
+          "desc": "Issue in the order below and register in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Sign in to the RMS developer portal", "p": "Sign in to the Rakuten developer portal (RMS/Webservice) with your seller account.", "path": "https://glogin.rms.rakuten.co.jp" },
+              { "h3": "Go to the RMS Web Service", "p": "After signing in via RMS R-Login, navigate to the RMS Web Service area.", "path": "RMS R-Login → RMS Web Service" },
+              { "h3": "Issue the Service Secret · License Key", "p": "From the RMS Web Service, issue the Service Secret and License Key. The License Key expires after 90 days, so reissue it when it expires." },
+              { "h3": "Verify the keys", "p": "Verify the issued Service Secret and License Key, along with your store's Shop URL." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Once the Service Secret and License Key appear on the issuance screen, they have been issued correctly." }
+          ]
+        },
+        {
+          "h2": "3. Information to Register in GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Field", "Description"], "rows": [
+              ["service_secret", "The issued Service Secret"],
+              ["license_key", "The issued License Key (expires in 90 days, reissuable, handle with care)"],
+              ["shop_url", "Your store's Shop URL"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "In the GenieGo Integration Hub [Register], enter service_secret, license_key, and shop_url and save. Credentials are encrypted at rest with AES-256-GCM and masked on read." }
+          ]
+        },
+        {
+          "h2": "4. Common Issues",
+          "blocks": [
+            { "type": "table", "head": ["Issue", "Cause", "Solution"], "rows": [
+              ["The wrong keys were issued", "Issued from webservice.rakuten.co.jp (for affiliate/product search)", "Reissue from the RMS Web Service under RMS R-Login (glogin.rms.rakuten.co.jp)."],
+              ["Authentication fails after a while", "License Key expired after 90 days", "Reissue the License Key from the RMS Web Service and re-enter it in [Register]."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Final Checklist",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Signed in to RMS R-Login with a Rakuten seller (Ichiba) account.",
+              "Issued the Service Secret and License Key from the RMS Web Service.",
+              "Verified your store's Shop URL.",
+              "Entered service_secret, license_key, and shop_url in GenieGo [Register] and saved."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ja": {
+      "titleType": "API Key 発行マニュアル",
+      "badge": "初心者ガイド",
+      "intro": "Rakuten RMS 出店者コンソールで RMS Web Service の認証キー(Service Secret·License Key)を発行し、GenieGo 連携ハブに登録する手順を、初心者でもそのまま実行できるようにまとめたマニュアルです。",
+      "org": "GenieGo 連携ハブ",
+      "quick": [
+        ["所要時間", "約 5〜15 分"],
+        ["必要なアカウント", "Rakuten 出店者(楽天市場)アカウント"],
+        ["発行するキー", "Service Secret · License Key"],
+        ["成果物", "RMS Web Service 認証情報"]
+      ],
+      "sections": [
+        {
+          "h2": "1. はじめる前に",
+          "desc": "出店者(楽天市場)用のキーは RMS Web Service で発行します。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必須", "h3": "Rakuten 出店者アカウント", "p": "Rakuten 出店者(楽天市場)アカウントが必要です。RMS R-Login(glogin.rms.rakuten.co.jp)でログインできるアカウントが必要です。" },
+              { "tag": "発行するキー", "h3": "Service Secret · License Key", "p": "RMS Web Service で serviceSecret と licenseKey を発行します。License Key は 90 日で期限切れになり、再発行が可能です。" }
+            ] },
+            { "type": "notice", "kind": "danger", "html": "<strong>注意:</strong> 出店者(楽天市場)キーを発行する RMS Web Service(glogin.rms.rakuten.co.jp)は、アフィリエイト/商品検索用の webservice.rakuten.co.jp とは異なります。必ず RMS 側で発行してください。" }
+          ]
+        },
+        {
+          "h2": "2. 発行手順",
+          "desc": "以下の順序で発行し、GenieGo に登録します。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "RMS 開発者ポータルにログイン", "p": "Rakuten 開発者ポータル(RMS/Webservice)に出店者アカウントでログインします。", "path": "https://glogin.rms.rakuten.co.jp" },
+              { "h3": "RMS Web Service へ移動", "p": "RMS R-Login でログインした後、RMS Web Service の領域へ移動します。", "path": "RMS R-Login → RMS Web Service" },
+              { "h3": "Service Secret · License Key を発行", "p": "RMS Web Service で Service Secret と License Key を発行します。License Key は 90 日で期限切れになるため、期限切れ時に再発行します。" },
+              { "h3": "キーを確認", "p": "発行された Service Secret と License Key、そしてご自身の店舗の Shop URL を併せて確認します。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Service Secret と License Key が発行画面に表示されれば、正常に発行されています。" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo に登録する情報",
+          "blocks": [
+            { "type": "table", "head": ["フィールド", "説明"], "rows": [
+              ["service_secret", "発行された Service Secret"],
+              ["license_key", "発行された License Key(90 日で期限切れ·再発行可能、取り扱い注意)"],
+              ["shop_url", "ご自身の店舗の Shop URL"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 連携ハブの [登録] に service_secret·license_key·shop_url を入力して保存すると、認証情報は AES-256-GCM で暗号化して保存され、閲覧時にはマスキングされます。" }
+          ]
+        },
+        {
+          "h2": "4. よくある問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["誤ったキーが発行される", "webservice.rakuten.co.jp(アフィリエイト/商品検索用)で発行した", "RMS R-Login(glogin.rms.rakuten.co.jp)の RMS Web Service で発行し直します。"],
+              ["一定期間後に認証に失敗する", "License Key が 90 日で期限切れ", "RMS Web Service で License Key を再発行し、[登録] に入力し直します。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終チェックリスト",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Rakuten 出店者(楽天市場)アカウントで RMS R-Login にログインした。",
+              "RMS Web Service で Service Secret·License Key を発行した。",
+              "ご自身の店舗の Shop URL を確認した。",
+              "GenieGo の [登録] に service_secret·license_key·shop_url を入力して保存した。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh": {
+      "titleType": "API Key 申请手册",
+      "badge": "新手指南",
+      "intro": "本手册手把手指导新手在 Rakuten RMS 卖家控制台中签发 RMS Web Service 认证密钥(Service Secret·License Key),并注册到 GenieGo 集成中心。",
+      "org": "GenieGo 集成中心",
+      "quick": [
+        ["预计时间", "约 5~15 分钟"],
+        ["所需账户", "Rakuten 卖家(乐天市场)账户"],
+        ["签发密钥", "Service Secret · License Key"],
+        ["成果", "RMS Web Service 凭证"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 开始之前",
+          "desc": "卖家(乐天市场)密钥在 RMS Web Service 中签发。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "Rakuten 卖家账户", "p": "您需要一个 Rakuten 卖家(乐天市场)账户。您需要一个可以通过 RMS R-Login(glogin.rms.rakuten.co.jp)登录的账户。" },
+              { "tag": "签发密钥", "h3": "Service Secret · License Key", "p": "您将在 RMS Web Service 中签发 serviceSecret 和 licenseKey。License Key 有 90 天有效期，可以重新签发。" }
+            ] },
+            { "type": "notice", "kind": "danger", "html": "<strong>注意:</strong> 签发卖家(乐天市场)密钥的 RMS Web Service(glogin.rms.rakuten.co.jp)与用于联盟/商品搜索的 webservice.rakuten.co.jp 不同。请务必在 RMS 一侧签发。" }
+          ]
+        },
+        {
+          "h2": "2. 申请步骤",
+          "desc": "按以下顺序签发并在 GenieGo 中注册。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "登录 RMS 开发者门户", "p": "使用卖家账户登录 Rakuten 开发者门户(RMS/Webservice)。", "path": "https://glogin.rms.rakuten.co.jp" },
+              { "h3": "进入 RMS Web Service", "p": "通过 RMS R-Login 登录后，进入 RMS Web Service 区域。", "path": "RMS R-Login → RMS Web Service" },
+              { "h3": "签发 Service Secret · License Key", "p": "在 RMS Web Service 中签发 Service Secret 和 License Key。License Key 有 90 天有效期，到期时请重新签发。" },
+              { "h3": "确认密钥", "p": "确认已签发的 Service Secret 和 License Key，以及您本店的 Shop URL。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "当 Service Secret 和 License Key 显示在签发界面上时，即表示已正确签发。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中注册的信息",
+          "blocks": [
+            { "type": "table", "head": ["字段", "说明"], "rows": [
+              ["service_secret", "签发的 Service Secret"],
+              ["license_key", "签发的 License Key(90 天有效期·可重新签发，请妥善保管)"],
+              ["shop_url", "您本店的 Shop URL"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 集成中心 [注册] 中输入 service_secret·license_key·shop_url 并保存后，凭证将以 AES-256-GCM 加密存储，并在查询时进行掩码处理。" }
+          ]
+        },
+        {
+          "h2": "4. 常见问题",
+          "blocks": [
+            { "type": "table", "head": ["问题", "原因", "解决方法"], "rows": [
+              ["签发了错误的密钥", "在 webservice.rakuten.co.jp(用于联盟/商品搜索)中签发", "在 RMS R-Login(glogin.rms.rakuten.co.jp)的 RMS Web Service 中重新签发。"],
+              ["一段时间后认证失败", "License Key 90 天到期", "在 RMS Web Service 中重新签发 License Key，并在 [注册] 中重新输入。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最终检查清单",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已使用 Rakuten 卖家(乐天市场)账户登录 RMS R-Login。",
+              "已在 RMS Web Service 中签发 Service Secret·License Key。",
+              "已确认本店的 Shop URL。",
+              "已在 GenieGo [注册] 中输入 service_secret·license_key·shop_url 并保存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh-TW": {
+      "titleType": "API Key 申請手冊",
+      "badge": "新手指南",
+      "intro": "本手冊手把手指導新手在 Rakuten RMS 賣家控制台中簽發 RMS Web Service 認證金鑰(Service Secret·License Key),並註冊到 GenieGo 整合中心。",
+      "org": "GenieGo 整合中心",
+      "quick": [
+        ["預計時間", "約 5~15 分鐘"],
+        ["所需帳戶", "Rakuten 賣家(樂天市場)帳戶"],
+        ["簽發金鑰", "Service Secret · License Key"],
+        ["成果", "RMS Web Service 憑證"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 開始之前",
+          "desc": "賣家(樂天市場)金鑰在 RMS Web Service 中簽發。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "Rakuten 賣家帳戶", "p": "您需要一個 Rakuten 賣家(樂天市場)帳戶。您需要一個可以透過 RMS R-Login(glogin.rms.rakuten.co.jp)登入的帳戶。" },
+              { "tag": "簽發金鑰", "h3": "Service Secret · License Key", "p": "您將在 RMS Web Service 中簽發 serviceSecret 和 licenseKey。License Key 有 90 天有效期，可以重新簽發。" }
+            ] },
+            { "type": "notice", "kind": "danger", "html": "<strong>注意:</strong> 簽發賣家(樂天市場)金鑰的 RMS Web Service(glogin.rms.rakuten.co.jp)與用於聯盟/商品搜尋的 webservice.rakuten.co.jp 不同。請務必在 RMS 一側簽發。" }
+          ]
+        },
+        {
+          "h2": "2. 簽發步驟",
+          "desc": "依以下順序簽發並在 GenieGo 中註冊。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "登入 RMS 開發者入口網站", "p": "使用賣家帳戶登入 Rakuten 開發者入口網站(RMS/Webservice)。", "path": "https://glogin.rms.rakuten.co.jp" },
+              { "h3": "進入 RMS Web Service", "p": "透過 RMS R-Login 登入後，進入 RMS Web Service 區域。", "path": "RMS R-Login → RMS Web Service" },
+              { "h3": "簽發 Service Secret · License Key", "p": "在 RMS Web Service 中簽發 Service Secret 和 License Key。License Key 有 90 天有效期，到期時請重新簽發。" },
+              { "h3": "確認金鑰", "p": "確認已簽發的 Service Secret 和 License Key，以及您本店的 Shop URL。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "當 Service Secret 和 License Key 顯示在簽發畫面上時，即表示已正確簽發。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中註冊的資訊",
+          "blocks": [
+            { "type": "table", "head": ["欄位", "說明"], "rows": [
+              ["service_secret", "簽發的 Service Secret"],
+              ["license_key", "簽發的 License Key(90 天有效期·可重新簽發，請妥善保管)"],
+              ["shop_url", "您本店的 Shop URL"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 整合中心 [註冊] 中輸入 service_secret·license_key·shop_url 並儲存後，憑證將以 AES-256-GCM 加密儲存，並在查詢時進行遮罩處理。" }
+          ]
+        },
+        {
+          "h2": "4. 常見問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["簽發了錯誤的金鑰", "在 webservice.rakuten.co.jp(用於聯盟/商品搜尋)中簽發", "在 RMS R-Login(glogin.rms.rakuten.co.jp)的 RMS Web Service 中重新簽發。"],
+              ["一段時間後認證失敗", "License Key 90 天到期", "在 RMS Web Service 中重新簽發 License Key，並在 [註冊] 中重新輸入。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終檢查清單",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已使用 Rakuten 賣家(樂天市場)帳戶登入 RMS R-Login。",
+              "已在 RMS Web Service 中簽發 Service Secret·License Key。",
+              "已確認本店的 Shop URL。",
+              "已在 GenieGo [註冊] 中輸入 service_secret·license_key·shop_url 並儲存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "de": {
+      "titleType": "Anleitung zur API-Key-Ausstellung",
+      "badge": "Einsteigerleitfaden",
+      "intro": "Eine einsteigerfreundliche Schritt-für-Schritt-Anleitung zum Ausstellen von RMS-Web-Service-Anmeldedaten (Service Secret und License Key) über die Rakuten-RMS-Verkäuferkonsole und zur Registrierung im GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Geschätzte Zeit", "Etwa 5–15 Min."],
+        ["Benötigtes Konto", "Rakuten-Verkäuferkonto (Ichiba)"],
+        ["Ausgestellte Schlüssel", "Service Secret · License Key"],
+        ["Ergebnis", "RMS-Web-Service-Anmeldedaten"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Bevor Sie beginnen",
+          "desc": "Verkäuferschlüssel (Ichiba) werden über den RMS Web Service ausgestellt.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Erforderlich", "h3": "Rakuten-Verkäuferkonto", "p": "Sie benötigen ein Rakuten-Verkäuferkonto (Ichiba). Sie benötigen ein Konto, das sich über RMS R-Login (glogin.rms.rakuten.co.jp) anmelden kann." },
+              { "tag": "Ausgestellte Schlüssel", "h3": "Service Secret · License Key", "p": "Sie erhalten ein serviceSecret und einen licenseKey über den RMS Web Service. Der License Key läuft nach 90 Tagen ab und kann neu ausgestellt werden." }
+            ] },
+            { "type": "notice", "kind": "danger", "html": "<strong>Achtung:</strong> Der RMS Web Service (glogin.rms.rakuten.co.jp), der Verkäuferschlüssel (Ichiba) ausstellt, unterscheidet sich von webservice.rakuten.co.jp, das für Affiliate-/Produktsuche gedacht ist. Stellen Sie Ihre Schlüssel unbedingt auf der RMS-Seite aus." }
+          ]
+        },
+        {
+          "h2": "2. Ausstellungsschritte",
+          "desc": "Stellen Sie in der unten angegebenen Reihenfolge aus und registrieren Sie in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Beim RMS-Entwicklerportal anmelden", "p": "Melden Sie sich mit Ihrem Verkäuferkonto beim Rakuten-Entwicklerportal (RMS/Webservice) an.", "path": "https://glogin.rms.rakuten.co.jp" },
+              { "h3": "Zum RMS Web Service wechseln", "p": "Wechseln Sie nach der Anmeldung über RMS R-Login in den Bereich RMS Web Service.", "path": "RMS R-Login → RMS Web Service" },
+              { "h3": "Service Secret · License Key ausstellen", "p": "Stellen Sie über den RMS Web Service das Service Secret und den License Key aus. Der License Key läuft nach 90 Tagen ab, stellen Sie ihn also bei Ablauf neu aus." },
+              { "h3": "Schlüssel überprüfen", "p": "Überprüfen Sie das ausgestellte Service Secret und den License Key sowie die Shop URL Ihres Geschäfts." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Sobald das Service Secret und der License Key auf dem Ausstellungsbildschirm erscheinen, wurden sie korrekt ausgestellt." }
+          ]
+        },
+        {
+          "h2": "3. In GenieGo zu registrierende Informationen",
+          "blocks": [
+            { "type": "table", "head": ["Feld", "Beschreibung"], "rows": [
+              ["service_secret", "Das ausgestellte Service Secret"],
+              ["license_key", "Der ausgestellte License Key (läuft in 90 Tagen ab, neu ausstellbar, vertraulich behandeln)"],
+              ["shop_url", "Die Shop URL Ihres Geschäfts"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Geben Sie im GenieGo Integration Hub [Registrieren] service_secret, license_key und shop_url ein und speichern Sie. Anmeldedaten werden im Ruhezustand mit AES-256-GCM verschlüsselt und beim Lesen maskiert." }
+          ]
+        },
+        {
+          "h2": "4. Häufige Probleme",
+          "blocks": [
+            { "type": "table", "head": ["Problem", "Ursache", "Lösung"], "rows": [
+              ["Die falschen Schlüssel wurden ausgestellt", "Über webservice.rakuten.co.jp (für Affiliate-/Produktsuche) ausgestellt", "Stellen Sie sie über den RMS Web Service unter RMS R-Login (glogin.rms.rakuten.co.jp) neu aus."],
+              ["Authentifizierung schlägt nach einer Weile fehl", "License Key nach 90 Tagen abgelaufen", "Stellen Sie den License Key über den RMS Web Service neu aus und geben Sie ihn unter [Registrieren] erneut ein."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Abschließende Checkliste",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Mit einem Rakuten-Verkäuferkonto (Ichiba) bei RMS R-Login angemeldet.",
+              "Das Service Secret und den License Key über den RMS Web Service ausgestellt.",
+              "Die Shop URL Ihres Geschäfts überprüft.",
+              "service_secret, license_key und shop_url in GenieGo [Registrieren] eingegeben und gespeichert."
+            ] }
+          ]
+        }
+      ]
+    },
+    "th": {
+      "titleType": "คู่มือการออก API Key",
+      "badge": "คู่มือสำหรับผู้เริ่มต้น",
+      "intro": "คู่มือทีละขั้นตอนที่เป็นมิตรกับผู้เริ่มต้น สำหรับการออกข้อมูลรับรอง RMS Web Service (Service Secret และ License Key) จากคอนโซลผู้ขาย Rakuten RMS และลงทะเบียนใน GenieGo Integration Hub",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["เวลาโดยประมาณ", "ประมาณ 5–15 นาที"],
+        ["บัญชีที่ต้องใช้", "บัญชีผู้ขาย Rakuten (Ichiba)"],
+        ["คีย์ที่ออก", "Service Secret · License Key"],
+        ["ผลลัพธ์", "ข้อมูลรับรอง RMS Web Service"]
+      ],
+      "sections": [
+        {
+          "h2": "1. ก่อนเริ่มต้น",
+          "desc": "คีย์ผู้ขาย (Ichiba) จะออกจาก RMS Web Service",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "จำเป็น", "h3": "บัญชีผู้ขาย Rakuten", "p": "คุณต้องมีบัญชีผู้ขาย Rakuten (Ichiba) คุณต้องมีบัญชีที่สามารถลงชื่อเข้าใช้ผ่าน RMS R-Login (glogin.rms.rakuten.co.jp) ได้" },
+              { "tag": "คีย์ที่ออก", "h3": "Service Secret · License Key", "p": "คุณจะได้รับ serviceSecret และ licenseKey จาก RMS Web Service โดย License Key จะหมดอายุภายใน 90 วันและสามารถออกใหม่ได้" }
+            ] },
+            { "type": "notice", "kind": "danger", "html": "<strong>ข้อควรระวัง:</strong> RMS Web Service (glogin.rms.rakuten.co.jp) ที่ออกคีย์ผู้ขาย (Ichiba) แตกต่างจาก webservice.rakuten.co.jp ซึ่งใช้สำหรับพันธมิตร/การค้นหาสินค้า โปรดออกคีย์ของคุณจากฝั่ง RMS เท่านั้น" }
+          ]
+        },
+        {
+          "h2": "2. ขั้นตอนการออก",
+          "desc": "ออกตามลำดับด้านล่างและลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "ลงชื่อเข้าใช้พอร์ทัลนักพัฒนา RMS", "p": "ลงชื่อเข้าใช้พอร์ทัลนักพัฒนา Rakuten (RMS/Webservice) ด้วยบัญชีผู้ขายของคุณ", "path": "https://glogin.rms.rakuten.co.jp" },
+              { "h3": "ไปที่ RMS Web Service", "p": "หลังจากลงชื่อเข้าใช้ผ่าน RMS R-Login ให้ไปยังส่วน RMS Web Service", "path": "RMS R-Login → RMS Web Service" },
+              { "h3": "ออก Service Secret · License Key", "p": "ออก Service Secret และ License Key จาก RMS Web Service โดย License Key จะหมดอายุภายใน 90 วัน ดังนั้นให้ออกใหม่เมื่อหมดอายุ" },
+              { "h3": "ตรวจสอบคีย์", "p": "ตรวจสอบ Service Secret และ License Key ที่ออกแล้ว พร้อมกับ Shop URL ของร้านค้าของคุณ" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "เมื่อ Service Secret และ License Key ปรากฏบนหน้าจอการออก แสดงว่าออกอย่างถูกต้องแล้ว" }
+          ]
+        },
+        {
+          "h2": "3. ข้อมูลที่ต้องลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["ฟิลด์", "คำอธิบาย"], "rows": [
+              ["service_secret", "Service Secret ที่ออกแล้ว"],
+              ["license_key", "License Key ที่ออกแล้ว (หมดอายุใน 90 วัน·ออกใหม่ได้ จัดการด้วยความระมัดระวัง)"],
+              ["shop_url", "Shop URL ของร้านค้าของคุณ"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "ใน GenieGo Integration Hub [ลงทะเบียน] ป้อน service_secret·license_key·shop_url แล้วบันทึก ข้อมูลรับรองจะถูกเข้ารหัสขณะจัดเก็บด้วย AES-256-GCM และปิดบังเมื่ออ่าน" }
+          ]
+        },
+        {
+          "h2": "4. ปัญหาที่พบบ่อย",
+          "blocks": [
+            { "type": "table", "head": ["ปัญหา", "สาเหตุ", "วิธีแก้ไข"], "rows": [
+              ["ออกคีย์ที่ไม่ถูกต้อง", "ออกจาก webservice.rakuten.co.jp (สำหรับพันธมิตร/การค้นหาสินค้า)", "ออกใหม่จาก RMS Web Service ภายใต้ RMS R-Login (glogin.rms.rakuten.co.jp)"],
+              ["การยืนยันตัวตนล้มเหลวหลังผ่านไประยะหนึ่ง", "License Key หมดอายุหลัง 90 วัน", "ออก License Key ใหม่จาก RMS Web Service แล้วป้อนใหม่ใน [ลงทะเบียน]"]
+            ] }
+          ]
+        },
+        {
+          "h2": "รายการตรวจสอบขั้นสุดท้าย",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "ลงชื่อเข้าใช้ RMS R-Login ด้วยบัญชีผู้ขาย Rakuten (Ichiba) แล้ว",
+              "ออก Service Secret·License Key จาก RMS Web Service แล้ว",
+              "ตรวจสอบ Shop URL ของร้านค้าของคุณแล้ว",
+              "ป้อน service_secret·license_key·shop_url ใน GenieGo [ลงทะเบียน] และบันทึกแล้ว"
+            ] }
+          ]
+        }
+      ]
+    },
+    "vi": {
+      "titleType": "Hướng dẫn cấp API Key",
+      "badge": "Hướng dẫn cho người mới",
+      "intro": "Hướng dẫn từng bước thân thiện với người mới về việc cấp thông tin xác thực RMS Web Service (Service Secret và License Key) từ bảng điều khiển người bán Rakuten RMS và đăng ký trong GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Thời gian dự kiến", "Khoảng 5–15 phút"],
+        ["Tài khoản cần thiết", "Tài khoản người bán Rakuten (Ichiba)"],
+        ["Khóa được cấp", "Service Secret · License Key"],
+        ["Kết quả", "Thông tin xác thực RMS Web Service"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Trước khi bắt đầu",
+          "desc": "Khóa người bán (Ichiba) được cấp từ RMS Web Service.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Bắt buộc", "h3": "Tài khoản người bán Rakuten", "p": "Bạn cần một tài khoản người bán Rakuten (Ichiba). Bạn cần một tài khoản có thể đăng nhập qua RMS R-Login (glogin.rms.rakuten.co.jp)." },
+              { "tag": "Khóa được cấp", "h3": "Service Secret · License Key", "p": "Bạn sẽ nhận được serviceSecret và licenseKey từ RMS Web Service. License Key hết hạn sau 90 ngày và có thể được cấp lại." }
+            ] },
+            { "type": "notice", "kind": "danger", "html": "<strong>Lưu ý:</strong> RMS Web Service (glogin.rms.rakuten.co.jp) cấp khóa người bán (Ichiba) khác với webservice.rakuten.co.jp, vốn dành cho liên kết/tìm kiếm sản phẩm. Hãy đảm bảo cấp khóa của bạn ở phía RMS." }
+          ]
+        },
+        {
+          "h2": "2. Các bước cấp",
+          "desc": "Cấp theo thứ tự dưới đây và đăng ký trong GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Đăng nhập cổng nhà phát triển RMS", "p": "Đăng nhập cổng nhà phát triển Rakuten (RMS/Webservice) bằng tài khoản người bán của bạn.", "path": "https://glogin.rms.rakuten.co.jp" },
+              { "h3": "Đi đến RMS Web Service", "p": "Sau khi đăng nhập qua RMS R-Login, hãy điều hướng đến khu vực RMS Web Service.", "path": "RMS R-Login → RMS Web Service" },
+              { "h3": "Cấp Service Secret · License Key", "p": "Từ RMS Web Service, cấp Service Secret và License Key. License Key hết hạn sau 90 ngày, vì vậy hãy cấp lại khi nó hết hạn." },
+              { "h3": "Xác minh các khóa", "p": "Xác minh Service Secret và License Key đã được cấp, cùng với Shop URL của cửa hàng bạn." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Khi Service Secret và License Key xuất hiện trên màn hình cấp, nghĩa là chúng đã được cấp đúng cách." }
+          ]
+        },
+        {
+          "h2": "3. Thông tin cần đăng ký trong GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Trường", "Mô tả"], "rows": [
+              ["service_secret", "Service Secret đã được cấp"],
+              ["license_key", "License Key đã được cấp (hết hạn sau 90 ngày·có thể cấp lại, xử lý cẩn thận)"],
+              ["shop_url", "Shop URL của cửa hàng bạn"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Trong GenieGo Integration Hub [Đăng ký], nhập service_secret·license_key·shop_url rồi lưu. Thông tin xác thực được mã hóa khi lưu trữ bằng AES-256-GCM và được che khi đọc." }
+          ]
+        },
+        {
+          "h2": "4. Sự cố thường gặp",
+          "blocks": [
+            { "type": "table", "head": ["Sự cố", "Nguyên nhân", "Giải pháp"], "rows": [
+              ["Đã cấp sai khóa", "Cấp từ webservice.rakuten.co.jp (dành cho liên kết/tìm kiếm sản phẩm)", "Cấp lại từ RMS Web Service dưới RMS R-Login (glogin.rms.rakuten.co.jp)."],
+              ["Xác thực thất bại sau một thời gian", "License Key hết hạn sau 90 ngày", "Cấp lại License Key từ RMS Web Service và nhập lại vào [Đăng ký]."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Danh sách kiểm tra cuối cùng",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Đã đăng nhập RMS R-Login bằng tài khoản người bán Rakuten (Ichiba).",
+              "Đã cấp Service Secret·License Key từ RMS Web Service.",
+              "Đã xác minh Shop URL của cửa hàng bạn.",
+              "Đã nhập service_secret·license_key·shop_url vào GenieGo [Đăng ký] và lưu."
+            ] }
+          ]
+        }
+      ]
+    },
+    "id": {
+      "titleType": "Panduan Penerbitan API Key",
+      "badge": "Panduan Pemula",
+      "intro": "Panduan langkah demi langkah yang ramah pemula untuk menerbitkan kredensial RMS Web Service (Service Secret dan License Key) dari konsol penjual Rakuten RMS dan mendaftarkannya di GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Perkiraan waktu", "Sekitar 5–15 menit"],
+        ["Akun yang dibutuhkan", "Akun penjual Rakuten (Ichiba)"],
+        ["Kunci yang diterbitkan", "Service Secret · License Key"],
+        ["Hasil", "Kredensial RMS Web Service"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Sebelum Anda Mulai",
+          "desc": "Kunci penjual (Ichiba) diterbitkan dari RMS Web Service.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Diperlukan", "h3": "Akun penjual Rakuten", "p": "Anda memerlukan akun penjual Rakuten (Ichiba). Anda memerlukan akun yang dapat masuk melalui RMS R-Login (glogin.rms.rakuten.co.jp)." },
+              { "tag": "Kunci yang diterbitkan", "h3": "Service Secret · License Key", "p": "Anda akan memperoleh serviceSecret dan licenseKey dari RMS Web Service. License Key kedaluwarsa setelah 90 hari dan dapat diterbitkan ulang." }
+            ] },
+            { "type": "notice", "kind": "danger", "html": "<strong>Perhatian:</strong> RMS Web Service (glogin.rms.rakuten.co.jp) yang menerbitkan kunci penjual (Ichiba) berbeda dari webservice.rakuten.co.jp, yang ditujukan untuk afiliasi/pencarian produk. Pastikan untuk menerbitkan kunci Anda di sisi RMS." }
+          ]
+        },
+        {
+          "h2": "2. Langkah Penerbitan",
+          "desc": "Terbitkan sesuai urutan di bawah dan daftarkan di GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Masuk ke portal pengembang RMS", "p": "Masuk ke portal pengembang Rakuten (RMS/Webservice) dengan akun penjual Anda.", "path": "https://glogin.rms.rakuten.co.jp" },
+              { "h3": "Buka RMS Web Service", "p": "Setelah masuk melalui RMS R-Login, navigasikan ke area RMS Web Service.", "path": "RMS R-Login → RMS Web Service" },
+              { "h3": "Terbitkan Service Secret · License Key", "p": "Dari RMS Web Service, terbitkan Service Secret dan License Key. License Key kedaluwarsa setelah 90 hari, jadi terbitkan ulang saat kedaluwarsa." },
+              { "h3": "Verifikasi kunci", "p": "Verifikasi Service Secret dan License Key yang diterbitkan, beserta Shop URL toko Anda." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Setelah Service Secret dan License Key muncul di layar penerbitan, berarti keduanya telah diterbitkan dengan benar." }
+          ]
+        },
+        {
+          "h2": "3. Informasi yang Harus Didaftarkan di GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Bidang", "Deskripsi"], "rows": [
+              ["service_secret", "Service Secret yang diterbitkan"],
+              ["license_key", "License Key yang diterbitkan (kedaluwarsa dalam 90 hari·dapat diterbitkan ulang, tangani dengan hati-hati)"],
+              ["shop_url", "Shop URL toko Anda"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Di GenieGo Integration Hub [Daftar], masukkan service_secret·license_key·shop_url lalu simpan. Kredensial dienkripsi saat disimpan dengan AES-256-GCM dan disamarkan saat dibaca." }
+          ]
+        },
+        {
+          "h2": "4. Masalah Umum",
+          "blocks": [
+            { "type": "table", "head": ["Masalah", "Penyebab", "Solusi"], "rows": [
+              ["Kunci yang salah diterbitkan", "Diterbitkan dari webservice.rakuten.co.jp (untuk afiliasi/pencarian produk)", "Terbitkan ulang dari RMS Web Service di bawah RMS R-Login (glogin.rms.rakuten.co.jp)."],
+              ["Autentikasi gagal setelah beberapa waktu", "License Key kedaluwarsa setelah 90 hari", "Terbitkan ulang License Key dari RMS Web Service dan masukkan kembali di [Daftar]."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Daftar Periksa Akhir",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Masuk ke RMS R-Login dengan akun penjual Rakuten (Ichiba).",
+              "Menerbitkan Service Secret·License Key dari RMS Web Service.",
+              "Memverifikasi Shop URL toko Anda.",
+              "Memasukkan service_secret·license_key·shop_url di GenieGo [Daftar] dan menyimpan."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ar": {
+      "titleType": "دليل إصدار مفتاح API",
+      "badge": "دليل المبتدئين",
+      "intro": "دليل تفصيلي خطوة بخطوة مناسب للمبتدئين لإصدار بيانات اعتماد RMS Web Service (Service Secret و License Key) من وحدة تحكم البائع في Rakuten RMS وتسجيلها في GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["الوقت المقدّر", "حوالي 5–15 دقيقة"],
+        ["الحساب المطلوب", "حساب بائع Rakuten (Ichiba)"],
+        ["المفاتيح الصادرة", "Service Secret · License Key"],
+        ["النتيجة", "بيانات اعتماد RMS Web Service"]
+      ],
+      "sections": [
+        {
+          "h2": "1. قبل أن تبدأ",
+          "desc": "تُصدَر مفاتيح البائع (Ichiba) من RMS Web Service.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "مطلوب", "h3": "حساب بائع Rakuten", "p": "تحتاج إلى حساب بائع Rakuten (Ichiba). تحتاج إلى حساب يمكنه تسجيل الدخول عبر RMS R-Login (glogin.rms.rakuten.co.jp)." },
+              { "tag": "المفاتيح الصادرة", "h3": "Service Secret · License Key", "p": "ستحصل على serviceSecret و licenseKey من RMS Web Service. تنتهي صلاحية License Key بعد 90 يومًا ويمكن إعادة إصداره." }
+            ] },
+            { "type": "notice", "kind": "danger", "html": "<strong>تنبيه:</strong> يختلف RMS Web Service (glogin.rms.rakuten.co.jp) الذي يُصدر مفاتيح البائع (Ichiba) عن webservice.rakuten.co.jp المخصص للتسويق بالعمولة/البحث عن المنتجات. تأكد من إصدار مفاتيحك من جهة RMS." }
+          ]
+        },
+        {
+          "h2": "2. خطوات الإصدار",
+          "desc": "أصدر بالترتيب أدناه وسجّل في GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "تسجيل الدخول إلى بوابة مطوري RMS", "p": "سجّل الدخول إلى بوابة مطوري Rakuten (RMS/Webservice) باستخدام حساب البائع الخاص بك.", "path": "https://glogin.rms.rakuten.co.jp" },
+              { "h3": "الانتقال إلى RMS Web Service", "p": "بعد تسجيل الدخول عبر RMS R-Login، انتقل إلى منطقة RMS Web Service.", "path": "RMS R-Login → RMS Web Service" },
+              { "h3": "إصدار Service Secret · License Key", "p": "من RMS Web Service، أصدر Service Secret و License Key. تنتهي صلاحية License Key بعد 90 يومًا، لذا أعد إصداره عند انتهاء صلاحيته." },
+              { "h3": "التحقق من المفاتيح", "p": "تحقق من Service Secret و License Key الصادرين، إلى جانب Shop URL الخاص بمتجرك." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "بمجرد ظهور Service Secret و License Key على شاشة الإصدار، فهذا يعني أنهما صدرا بشكل صحيح." }
+          ]
+        },
+        {
+          "h2": "3. المعلومات المطلوب تسجيلها في GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["الحقل", "الوصف"], "rows": [
+              ["service_secret", "Service Secret الصادر"],
+              ["license_key", "License Key الصادر (تنتهي صلاحيته خلال 90 يومًا·قابل لإعادة الإصدار، تعامل معه بحذر)"],
+              ["shop_url", "Shop URL الخاص بمتجرك"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "في GenieGo Integration Hub [تسجيل]، أدخل service_secret·license_key·shop_url ثم احفظ. تُشفَّر بيانات الاعتماد أثناء التخزين باستخدام AES-256-GCM وتُخفى عند القراءة." }
+          ]
+        },
+        {
+          "h2": "4. المشكلات الشائعة",
+          "blocks": [
+            { "type": "table", "head": ["المشكلة", "السبب", "الحل"], "rows": [
+              ["تم إصدار مفاتيح خاطئة", "تم الإصدار من webservice.rakuten.co.jp (للتسويق بالعمولة/البحث عن المنتجات)", "أعد الإصدار من RMS Web Service ضمن RMS R-Login (glogin.rms.rakuten.co.jp)."],
+              ["فشل المصادقة بعد فترة", "انتهت صلاحية License Key بعد 90 يومًا", "أعد إصدار License Key من RMS Web Service وأعد إدخاله في [تسجيل]."]
+            ] }
+          ]
+        },
+        {
+          "h2": "قائمة التحقق النهائية",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "سجّلت الدخول إلى RMS R-Login بحساب بائع Rakuten (Ichiba).",
+              "أصدرت Service Secret·License Key من RMS Web Service.",
+              "تحققت من Shop URL الخاص بمتجرك.",
+              "أدخلت service_secret·license_key·shop_url في GenieGo [تسجيل] وحفظت."
+            ] }
+          ]
+        }
+      ]
+    },
+    "es": {
+      "titleType": "Manual de emisión de API Key",
+      "badge": "Guía para principiantes",
+      "intro": "Una guía paso a paso para principiantes sobre cómo emitir las credenciales del RMS Web Service (Service Secret y License Key) desde la consola de vendedor de Rakuten RMS y registrarlas en el GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tiempo estimado", "Unos 5–15 min"],
+        ["Cuenta necesaria", "Cuenta de vendedor de Rakuten (Ichiba)"],
+        ["Claves emitidas", "Service Secret · License Key"],
+        ["Resultado", "Credenciales del RMS Web Service"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de empezar",
+          "desc": "Las claves de vendedor (Ichiba) se emiten desde el RMS Web Service.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requerido", "h3": "Cuenta de vendedor de Rakuten", "p": "Necesitas una cuenta de vendedor de Rakuten (Ichiba). Necesitas una cuenta que pueda iniciar sesión mediante RMS R-Login (glogin.rms.rakuten.co.jp)." },
+              { "tag": "Claves emitidas", "h3": "Service Secret · License Key", "p": "Obtendrás un serviceSecret y un licenseKey del RMS Web Service. La License Key caduca a los 90 días y se puede volver a emitir." }
+            ] },
+            { "type": "notice", "kind": "danger", "html": "<strong>Atención:</strong> El RMS Web Service (glogin.rms.rakuten.co.jp) que emite las claves de vendedor (Ichiba) es distinto de webservice.rakuten.co.jp, que es para afiliados/búsqueda de productos. Asegúrate de emitir tus claves en el lado de RMS." }
+          ]
+        },
+        {
+          "h2": "2. Pasos de emisión",
+          "desc": "Emite en el orden indicado a continuación y regístralas en GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Inicia sesión en el portal de desarrolladores de RMS", "p": "Inicia sesión en el portal de desarrolladores de Rakuten (RMS/Webservice) con tu cuenta de vendedor.", "path": "https://glogin.rms.rakuten.co.jp" },
+              { "h3": "Ve al RMS Web Service", "p": "Tras iniciar sesión mediante RMS R-Login, navega al área del RMS Web Service.", "path": "RMS R-Login → RMS Web Service" },
+              { "h3": "Emite el Service Secret · License Key", "p": "Desde el RMS Web Service, emite el Service Secret y la License Key. La License Key caduca a los 90 días, así que vuelve a emitirla cuando caduque." },
+              { "h3": "Verifica las claves", "p": "Verifica el Service Secret y la License Key emitidos, junto con la Shop URL de tu tienda." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Una vez que el Service Secret y la License Key aparezcan en la pantalla de emisión, se han emitido correctamente." }
+          ]
+        },
+        {
+          "h2": "3. Información para registrar en GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descripción"], "rows": [
+              ["service_secret", "El Service Secret emitido"],
+              ["license_key", "La License Key emitida (caduca a los 90 días·se puede volver a emitir, manéjala con cuidado)"],
+              ["shop_url", "La Shop URL de tu tienda"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "En el GenieGo Integration Hub [Registrar], introduce service_secret·license_key·shop_url y guarda. Las credenciales se cifran en reposo con AES-256-GCM y se enmascaran al leerlas." }
+          ]
+        },
+        {
+          "h2": "4. Problemas frecuentes",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solución"], "rows": [
+              ["Se emitieron claves incorrectas", "Emitidas desde webservice.rakuten.co.jp (para afiliados/búsqueda de productos)", "Vuelve a emitirlas desde el RMS Web Service en RMS R-Login (glogin.rms.rakuten.co.jp)."],
+              ["La autenticación falla al cabo de un tiempo", "La License Key caducó a los 90 días", "Vuelve a emitir la License Key desde el RMS Web Service y reintrodúcela en [Registrar]."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificación final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Inicié sesión en RMS R-Login con una cuenta de vendedor de Rakuten (Ichiba).",
+              "Emití el Service Secret·License Key desde el RMS Web Service.",
+              "Verifiqué la Shop URL de mi tienda.",
+              "Introduje service_secret·license_key·shop_url en GenieGo [Registrar] y guardé."
+            ] }
+          ]
+        }
+      ]
+    },
+    "fr": {
+      "titleType": "Manuel d'émission de clé API",
+      "badge": "Guide du débutant",
+      "intro": "Un guide pas à pas convivial pour les débutants sur l'émission des identifiants du RMS Web Service (Service Secret et License Key) depuis la console vendeur Rakuten RMS et leur enregistrement dans le GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Temps estimé", "Environ 5–15 min"],
+        ["Compte nécessaire", "Compte vendeur Rakuten (Ichiba)"],
+        ["Clés émises", "Service Secret · License Key"],
+        ["Résultat", "Identifiants du RMS Web Service"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Avant de commencer",
+          "desc": "Les clés vendeur (Ichiba) sont émises depuis le RMS Web Service.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requis", "h3": "Compte vendeur Rakuten", "p": "Vous avez besoin d'un compte vendeur Rakuten (Ichiba). Vous avez besoin d'un compte capable de se connecter via RMS R-Login (glogin.rms.rakuten.co.jp)." },
+              { "tag": "Clés émises", "h3": "Service Secret · License Key", "p": "Vous obtiendrez un serviceSecret et une licenseKey depuis le RMS Web Service. La License Key expire au bout de 90 jours et peut être réémise." }
+            ] },
+            { "type": "notice", "kind": "danger", "html": "<strong>Attention :</strong> Le RMS Web Service (glogin.rms.rakuten.co.jp) qui émet les clés vendeur (Ichiba) est différent de webservice.rakuten.co.jp, destiné à l'affiliation/la recherche de produits. Veillez à émettre vos clés du côté RMS." }
+          ]
+        },
+        {
+          "h2": "2. Étapes d'émission",
+          "desc": "Émettez dans l'ordre ci-dessous et enregistrez dans GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Connectez-vous au portail développeur RMS", "p": "Connectez-vous au portail développeur Rakuten (RMS/Webservice) avec votre compte vendeur.", "path": "https://glogin.rms.rakuten.co.jp" },
+              { "h3": "Accédez au RMS Web Service", "p": "Après vous être connecté via RMS R-Login, accédez à la zone RMS Web Service.", "path": "RMS R-Login → RMS Web Service" },
+              { "h3": "Émettez le Service Secret · License Key", "p": "Depuis le RMS Web Service, émettez le Service Secret et la License Key. La License Key expire au bout de 90 jours, alors réémettez-la à son expiration." },
+              { "h3": "Vérifiez les clés", "p": "Vérifiez le Service Secret et la License Key émis, ainsi que la Shop URL de votre boutique." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Dès que le Service Secret et la License Key apparaissent sur l'écran d'émission, ils ont été émis correctement." }
+          ]
+        },
+        {
+          "h2": "3. Informations à enregistrer dans GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Champ", "Description"], "rows": [
+              ["service_secret", "Le Service Secret émis"],
+              ["license_key", "La License Key émise (expire au bout de 90 jours·réémettable, à manipuler avec soin)"],
+              ["shop_url", "La Shop URL de votre boutique"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Dans le GenieGo Integration Hub [Enregistrer], saisissez service_secret·license_key·shop_url puis enregistrez. Les identifiants sont chiffrés au repos avec AES-256-GCM et masqués à la lecture." }
+          ]
+        },
+        {
+          "h2": "4. Problèmes fréquents",
+          "blocks": [
+            { "type": "table", "head": ["Problème", "Cause", "Solution"], "rows": [
+              ["De mauvaises clés ont été émises", "Émises depuis webservice.rakuten.co.jp (pour l'affiliation/la recherche de produits)", "Réémettez-les depuis le RMS Web Service sous RMS R-Login (glogin.rms.rakuten.co.jp)."],
+              ["L'authentification échoue au bout d'un certain temps", "La License Key a expiré au bout de 90 jours", "Réémettez la License Key depuis le RMS Web Service et saisissez-la à nouveau dans [Enregistrer]."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Liste de contrôle finale",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Je me suis connecté à RMS R-Login avec un compte vendeur Rakuten (Ichiba).",
+              "J'ai émis le Service Secret·License Key depuis le RMS Web Service.",
+              "J'ai vérifié la Shop URL de ma boutique.",
+              "J'ai saisi service_secret·license_key·shop_url dans GenieGo [Enregistrer] et enregistré."
+            ] }
+          ]
+        }
+      ]
+    },
+    "hi": {
+      "titleType": "API Key जारी करने की मैनुअल",
+      "badge": "शुरुआती गाइड",
+      "intro": "Rakuten RMS विक्रेता कंसोल से RMS Web Service क्रेडेंशियल (Service Secret और License Key) जारी करने और उन्हें GenieGo Integration Hub में पंजीकृत करने के लिए शुरुआती-अनुकूल, चरण-दर-चरण मार्गदर्शिका।",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["अनुमानित समय", "लगभग 5–15 मिनट"],
+        ["आवश्यक खाता", "Rakuten विक्रेता (Ichiba) खाता"],
+        ["जारी की गई कुंजियाँ", "Service Secret · License Key"],
+        ["परिणाम", "RMS Web Service क्रेडेंशियल"]
+      ],
+      "sections": [
+        {
+          "h2": "1. शुरू करने से पहले",
+          "desc": "विक्रेता (Ichiba) कुंजियाँ RMS Web Service से जारी की जाती हैं।",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "आवश्यक", "h3": "Rakuten विक्रेता खाता", "p": "आपको एक Rakuten विक्रेता (Ichiba) खाता चाहिए। आपको एक ऐसा खाता चाहिए जो RMS R-Login (glogin.rms.rakuten.co.jp) के माध्यम से साइन इन कर सके।" },
+              { "tag": "जारी की गई कुंजियाँ", "h3": "Service Secret · License Key", "p": "आपको RMS Web Service से serviceSecret और licenseKey प्राप्त होंगे। License Key 90 दिनों के बाद समाप्त हो जाती है और इसे फिर से जारी किया जा सकता है।" }
+            ] },
+            { "type": "notice", "kind": "danger", "html": "<strong>सावधानी:</strong> विक्रेता (Ichiba) कुंजियाँ जारी करने वाला RMS Web Service (glogin.rms.rakuten.co.jp) एफिलिएट/उत्पाद खोज के लिए बने webservice.rakuten.co.jp से भिन्न है। अपनी कुंजियाँ अवश्य RMS की ओर से जारी करें।" }
+          ]
+        },
+        {
+          "h2": "2. जारी करने के चरण",
+          "desc": "नीचे दिए गए क्रम में जारी करें और GenieGo में पंजीकृत करें।",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "RMS डेवलपर पोर्टल में साइन इन करें", "p": "अपने विक्रेता खाते से Rakuten डेवलपर पोर्टल (RMS/Webservice) में साइन इन करें।", "path": "https://glogin.rms.rakuten.co.jp" },
+              { "h3": "RMS Web Service पर जाएँ", "p": "RMS R-Login के माध्यम से साइन इन करने के बाद, RMS Web Service क्षेत्र पर जाएँ।", "path": "RMS R-Login → RMS Web Service" },
+              { "h3": "Service Secret · License Key जारी करें", "p": "RMS Web Service से Service Secret और License Key जारी करें। License Key 90 दिनों के बाद समाप्त हो जाती है, इसलिए समाप्त होने पर इसे फिर से जारी करें।" },
+              { "h3": "कुंजियाँ सत्यापित करें", "p": "जारी किए गए Service Secret और License Key, साथ ही अपनी दुकान का Shop URL सत्यापित करें।" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "जब Service Secret और License Key जारी करने की स्क्रीन पर दिखाई दें, तो वे सही ढंग से जारी हो गए हैं।" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo में पंजीकृत करने योग्य जानकारी",
+          "blocks": [
+            { "type": "table", "head": ["फ़ील्ड", "विवरण"], "rows": [
+              ["service_secret", "जारी किया गया Service Secret"],
+              ["license_key", "जारी की गई License Key (90 दिनों में समाप्त·फिर से जारी करने योग्य, सावधानी से संभालें)"],
+              ["shop_url", "आपकी दुकान का Shop URL"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo Integration Hub [पंजीकृत करें] में service_secret·license_key·shop_url दर्ज करें और सहेजें। क्रेडेंशियल भंडारण के समय AES-256-GCM से एन्क्रिप्ट किए जाते हैं और पढ़ने पर मास्क किए जाते हैं।" }
+          ]
+        },
+        {
+          "h2": "4. आम समस्याएँ",
+          "blocks": [
+            { "type": "table", "head": ["समस्या", "कारण", "समाधान"], "rows": [
+              ["गलत कुंजियाँ जारी हुईं", "webservice.rakuten.co.jp (एफिलिएट/उत्पाद खोज के लिए) से जारी की गईं", "RMS R-Login (glogin.rms.rakuten.co.jp) के तहत RMS Web Service से फिर से जारी करें।"],
+              ["कुछ समय बाद प्रमाणीकरण विफल हो जाता है", "License Key 90 दिनों के बाद समाप्त हो गई", "RMS Web Service से License Key फिर से जारी करें और [पंजीकृत करें] में पुनः दर्ज करें।"]
+            ] }
+          ]
+        },
+        {
+          "h2": "अंतिम जाँच सूची",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Rakuten विक्रेता (Ichiba) खाते से RMS R-Login में साइन इन किया।",
+              "RMS Web Service से Service Secret·License Key जारी किया।",
+              "अपनी दुकान का Shop URL सत्यापित किया।",
+              "GenieGo [पंजीकृत करें] में service_secret·license_key·shop_url दर्ज किया और सहेजा।"
+            ] }
+          ]
+        }
+      ]
+    },
+    "pt": {
+      "titleType": "Manual de emissão de API Key",
+      "badge": "Guia para iniciantes",
+      "intro": "Um guia passo a passo, fácil para iniciantes, sobre como emitir as credenciais do RMS Web Service (Service Secret e License Key) a partir do console do vendedor Rakuten RMS e registrá-las no GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tempo estimado", "Cerca de 5–15 min"],
+        ["Conta necessária", "Conta de vendedor Rakuten (Ichiba)"],
+        ["Chaves emitidas", "Service Secret · License Key"],
+        ["Resultado", "Credenciais do RMS Web Service"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de começar",
+          "desc": "As chaves de vendedor (Ichiba) são emitidas pelo RMS Web Service.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Obrigatório", "h3": "Conta de vendedor Rakuten", "p": "Você precisa de uma conta de vendedor Rakuten (Ichiba). Você precisa de uma conta que possa fazer login via RMS R-Login (glogin.rms.rakuten.co.jp)." },
+              { "tag": "Chaves emitidas", "h3": "Service Secret · License Key", "p": "Você obterá um serviceSecret e uma licenseKey do RMS Web Service. A License Key expira após 90 dias e pode ser reemitida." }
+            ] },
+            { "type": "notice", "kind": "danger", "html": "<strong>Atenção:</strong> O RMS Web Service (glogin.rms.rakuten.co.jp) que emite as chaves de vendedor (Ichiba) é diferente do webservice.rakuten.co.jp, que é para afiliados/busca de produtos. Certifique-se de emitir suas chaves no lado do RMS." }
+          ]
+        },
+        {
+          "h2": "2. Etapas de emissão",
+          "desc": "Emita na ordem abaixo e registre no GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Faça login no portal do desenvolvedor RMS", "p": "Faça login no portal do desenvolvedor Rakuten (RMS/Webservice) com sua conta de vendedor.", "path": "https://glogin.rms.rakuten.co.jp" },
+              { "h3": "Vá para o RMS Web Service", "p": "Após fazer login via RMS R-Login, navegue até a área do RMS Web Service.", "path": "RMS R-Login → RMS Web Service" },
+              { "h3": "Emita o Service Secret · License Key", "p": "No RMS Web Service, emita o Service Secret e a License Key. A License Key expira após 90 dias, portanto reemita-a quando expirar." },
+              { "h3": "Verifique as chaves", "p": "Verifique o Service Secret e a License Key emitidos, juntamente com a Shop URL da sua loja." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Assim que o Service Secret e a License Key aparecerem na tela de emissão, eles foram emitidos corretamente." }
+          ]
+        },
+        {
+          "h2": "3. Informações para registrar no GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descrição"], "rows": [
+              ["service_secret", "O Service Secret emitido"],
+              ["license_key", "A License Key emitida (expira em 90 dias·reemitível, manuseie com cuidado)"],
+              ["shop_url", "A Shop URL da sua loja"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "No GenieGo Integration Hub [Registrar], insira service_secret·license_key·shop_url e salve. As credenciais são criptografadas em repouso com AES-256-GCM e mascaradas na leitura." }
+          ]
+        },
+        {
+          "h2": "4. Problemas comuns",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solução"], "rows": [
+              ["Chaves erradas foram emitidas", "Emitidas pelo webservice.rakuten.co.jp (para afiliados/busca de produtos)", "Reemita pelo RMS Web Service em RMS R-Login (glogin.rms.rakuten.co.jp)."],
+              ["A autenticação falha após algum tempo", "A License Key expirou após 90 dias", "Reemita a License Key pelo RMS Web Service e insira-a novamente em [Registrar]."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificação final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Fiz login no RMS R-Login com uma conta de vendedor Rakuten (Ichiba).",
+              "Emiti o Service Secret·License Key pelo RMS Web Service.",
+              "Verifiquei a Shop URL da minha loja.",
+              "Inseri service_secret·license_key·shop_url no GenieGo [Registrar] e salvei."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ru": {
+      "titleType": "Руководство по выпуску API Key",
+      "badge": "Руководство для начинающих",
+      "intro": "Понятное пошаговое руководство для начинающих по выпуску учётных данных RMS Web Service (Service Secret и License Key) из консоли продавца Rakuten RMS и их регистрации в GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Примерное время", "Около 5–15 мин."],
+        ["Требуемый аккаунт", "Аккаунт продавца Rakuten (Ichiba)"],
+        ["Выпускаемые ключи", "Service Secret · License Key"],
+        ["Результат", "Учётные данные RMS Web Service"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Прежде чем начать",
+          "desc": "Ключи продавца (Ichiba) выпускаются в RMS Web Service.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Требуется", "h3": "Аккаунт продавца Rakuten", "p": "Вам нужен аккаунт продавца Rakuten (Ichiba). Вам нужен аккаунт, который может войти через RMS R-Login (glogin.rms.rakuten.co.jp)." },
+              { "tag": "Выпускаемые ключи", "h3": "Service Secret · License Key", "p": "Вы получите serviceSecret и licenseKey в RMS Web Service. License Key истекает через 90 дней и может быть выпущен повторно." }
+            ] },
+            { "type": "notice", "kind": "danger", "html": "<strong>Внимание:</strong> RMS Web Service (glogin.rms.rakuten.co.jp), который выпускает ключи продавца (Ichiba), отличается от webservice.rakuten.co.jp, предназначенного для партнёрской программы/поиска товаров. Обязательно выпускайте свои ключи на стороне RMS." }
+          ]
+        },
+        {
+          "h2": "2. Шаги выпуска",
+          "desc": "Выпускайте в указанном ниже порядке и регистрируйте в GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Войдите в портал разработчика RMS", "p": "Войдите в портал разработчика Rakuten (RMS/Webservice) с помощью своего аккаунта продавца.", "path": "https://glogin.rms.rakuten.co.jp" },
+              { "h3": "Перейдите в RMS Web Service", "p": "После входа через RMS R-Login перейдите в раздел RMS Web Service.", "path": "RMS R-Login → RMS Web Service" },
+              { "h3": "Выпустите Service Secret · License Key", "p": "В RMS Web Service выпустите Service Secret и License Key. License Key истекает через 90 дней, поэтому выпускайте его повторно по истечении срока." },
+              { "h3": "Проверьте ключи", "p": "Проверьте выпущенные Service Secret и License Key, а также Shop URL вашего магазина." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Как только Service Secret и License Key появятся на экране выпуска, они выпущены правильно." }
+          ]
+        },
+        {
+          "h2": "3. Информация для регистрации в GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Поле", "Описание"], "rows": [
+              ["service_secret", "Выпущенный Service Secret"],
+              ["license_key", "Выпущенный License Key (истекает через 90 дней·можно выпустить повторно, обращайтесь осторожно)"],
+              ["shop_url", "Shop URL вашего магазина"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "В GenieGo Integration Hub [Регистрация] введите service_secret·license_key·shop_url и сохраните. Учётные данные шифруются при хранении с помощью AES-256-GCM и маскируются при чтении." }
+          ]
+        },
+        {
+          "h2": "4. Частые проблемы",
+          "blocks": [
+            { "type": "table", "head": ["Проблема", "Причина", "Решение"], "rows": [
+              ["Выпущены неправильные ключи", "Выпущены на webservice.rakuten.co.jp (для партнёрской программы/поиска товаров)", "Повторно выпустите в RMS Web Service под RMS R-Login (glogin.rms.rakuten.co.jp)."],
+              ["Аутентификация перестаёт работать через некоторое время", "License Key истёк через 90 дней", "Повторно выпустите License Key в RMS Web Service и снова введите его в [Регистрация]."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Итоговый контрольный список",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Вошёл в RMS R-Login с помощью аккаунта продавца Rakuten (Ichiba).",
+              "Выпустил Service Secret·License Key в RMS Web Service.",
+              "Проверил Shop URL своего магазина.",
+              "Ввёл service_secret·license_key·shop_url в GenieGo [Регистрация] и сохранил."
+            ] }
+          ]
+        }
+      ]
+    }
+  }
+}

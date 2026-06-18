@@ -1,0 +1,2856 @@
+{
+  "name": "Yahoo! Japan",
+  "icon": "Y!",
+  "langs": {
+    "ko": {
+      "titleType": "API 발급 매뉴얼",
+      "badge": "API 발급 초보자 매뉴얼",
+      "intro": "Yahoo! Japan 계열 서비스 연동을 위해 개발자 콘솔에서 애플리케이션을 등록하고 Client ID, Client Secret, OAuth Token을 준비하는 절차입니다.",
+      "org": "실무 연동 초보자용 가이드",
+      "quick": [
+        [
+          "인증 구조",
+          "OAuth 2.0 중심"
+        ],
+        [
+          "필요 계정",
+          "Yahoo! JAPAN ID"
+        ],
+        [
+          "주요 결과물",
+          "Client ID / Secret"
+        ],
+        [
+          "주의",
+          "API별 콘솔 상이"
+        ]
+      ],
+      "sections": [
+        {
+          "h2": "1. Yahoo! Japan API 발급 개념",
+          "desc": "Yahoo! Japan 계열 API는 서비스 종류에 따라 Yahoo! JAPAN Developers 또는 LY/Yahoo!広告 Developer Center에서 Client ID, Client Secret, OAuth 인증 정보를 발급받습니다.",
+          "blocks": [
+            {
+              "type": "notice",
+              "kind": "danger",
+              "html": "<strong>중요:</strong> “Yahoo! Japan”은 사용하려는 API가 무엇인지에 따라 발급 사이트와 심사 절차가 달라집니다. 쇼핑, 광고, 로그인, 검색 API를 구분해야 합니다."
+            }
+          ]
+        },
+        {
+          "h2": "2. 준비물",
+          "blocks": [
+            {
+              "type": "checklist",
+              "items": [
+                "Yahoo! JAPAN ID 또는 비즈니스 계정",
+                "사용하려는 API 종류 결정",
+                "앱 이름과 서비스 설명",
+                "Redirect URI",
+                "개인정보처리방침 URL",
+                "운영 도메인 또는 테스트 도메인"
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "3. 애플리케이션 등록 기본 순서",
+          "blocks": [
+            {
+              "type": "steps",
+              "items": [
+                {
+                  "h3": "개발자 사이트 접속",
+                  "p": "Yahoo! JAPAN Developers 또는 해당 API의 Developer Center에 로그인합니다.",
+                  "path": "developer.yahoo.co.jp / ads-developers.yahoo.co.jp"
+                },
+                {
+                  "h3": "애플리케이션 생성",
+                  "p": "새 애플리케이션 추가 메뉴를 클릭합니다.",
+                  "path": "Create Application / Add Application"
+                },
+                {
+                  "h3": "앱 정보 입력",
+                  "p": "앱 이름, 설명, 담당자 정보, 웹사이트 URL을 입력합니다.",
+                  "path": "Application Information"
+                },
+                {
+                  "h3": "Redirect URI 입력",
+                  "p": "OAuth 인증 후 돌아올 URL을 정확히 입력합니다.",
+                  "path": "Redirect URI"
+                },
+                {
+                  "h3": "권한 또는 API 선택",
+                  "p": "사용하려는 API 권한과 스코프를 선택합니다.",
+                  "path": "Scope / API Permission"
+                },
+                {
+                  "h3": "등록 완료",
+                  "p": "등록 후 Client ID와 Client Secret을 확인합니다.",
+                  "path": "Client ID / Client Secret"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "4. 서비스별 발급 위치",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "목적",
+                "발급/관리 위치",
+                "결과물"
+              ],
+              "rows": [
+                [
+                  "Yahoo! Japan 로그인 / OAuth",
+                  "Yahoo! JAPAN Developers",
+                  "Client ID, Client Secret"
+                ],
+                [
+                  "Yahoo!広告 API",
+                  "Yahoo!広告 Developer Center",
+                  "Client ID, Client Secret, OAuth Token"
+                ],
+                [
+                  "Yahoo! Shopping API",
+                  "Yahoo! JAPAN Developers 또는 Commerce 관련 콘솔",
+                  "Application ID 또는 OAuth 정보"
+                ],
+                [
+                  "사내 테스트",
+                  "각 서비스의 Sandbox/테스트 환경",
+                  "테스트용 인증 정보"
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "5. OAuth 토큰 발급 흐름",
+          "blocks": [
+            {
+              "type": "notice",
+              "kind": "",
+              "html": "1) Client ID로 사용자 인증 URL 생성\n2) 사용자가 Yahoo! 계정으로 로그인\n3) Redirect URI로 authorization code 수신\n4) authorization code + Client Secret으로 Access Token 요청\n5) Access Token으로 API 호출\n6) 필요 시 Refresh Token으로 갱신"
+            }
+          ]
+        },
+        {
+          "h2": "6. 자주 발생하는 문제",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "문제",
+                "원인",
+                "해결 방법"
+              ],
+              "rows": [
+                [
+                  "Redirect URI 오류",
+                  "등록한 URL과 호출 URL이 다름",
+                  "프로토콜, 도메인, 경로까지 동일하게 입력"
+                ],
+                [
+                  "Client Secret 확인 불가",
+                  "보안상 숨김 처리",
+                  "관리 화면의 View 또는 재발급 기능 확인"
+                ],
+                [
+                  "권한 부족",
+                  "필요 Scope 미선택",
+                  "앱 설정에서 Scope 추가 후 다시 인증"
+                ],
+                [
+                  "API 호출 실패",
+                  "사용 API와 발급받은 앱 유형 불일치",
+                  "API별 개발자 문서를 확인"
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "7. 최종 체크리스트",
+          "blocks": [
+            {
+              "type": "checklist",
+              "items": [
+                "사용할 Yahoo! Japan API 종류를 확정했다.",
+                "올바른 개발자 콘솔에 로그인했다.",
+                "애플리케이션을 등록했다.",
+                "Client ID와 Client Secret을 확인했다.",
+                "Redirect URI를 정확히 등록했다.",
+                "필요 Scope를 선택했다.",
+                "Access Token 발급 테스트를 완료했다."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "en": {
+      "titleType": "API Issuance Manual",
+      "badge": "Beginner API Issuance Manual",
+      "intro": "The procedure for registering an application in the developer console and preparing the Client ID, Client Secret, and OAuth Token to connect Yahoo! Japan family services.",
+      "org": "Beginner's guide for hands-on integration",
+      "quick": [
+        [
+          "Auth structure",
+          "OAuth 2.0-centric"
+        ],
+        [
+          "Account needed",
+          "Yahoo! JAPAN ID"
+        ],
+        [
+          "Main result",
+          "Client ID / Secret"
+        ],
+        [
+          "Caution",
+          "Console differs per API"
+        ]
+      ],
+      "sections": [
+        {
+          "h2": "1. Yahoo! Japan API Issuance Concept",
+          "desc": "Depending on the service type, Yahoo! Japan family APIs issue the Client ID, Client Secret, and OAuth credentials from Yahoo! JAPAN Developers or the LY/Yahoo!広告 Developer Center.",
+          "blocks": [
+            {
+              "type": "notice",
+              "kind": "danger",
+              "html": "<strong>Important:</strong> For \"Yahoo! Japan,\" the issuance site and review process vary depending on which API you intend to use. You must distinguish between the Shopping, Advertising, Login, and Search APIs."
+            }
+          ]
+        },
+        {
+          "h2": "2. Prerequisites",
+          "blocks": [
+            {
+              "type": "checklist",
+              "items": [
+                "Yahoo! JAPAN ID or business account",
+                "Decide which type of API to use",
+                "App name and service description",
+                "Redirect URI",
+                "Privacy policy URL",
+                "Production domain or test domain"
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "3. Basic Application Registration Sequence",
+          "blocks": [
+            {
+              "type": "steps",
+              "items": [
+                {
+                  "h3": "Access the developer site",
+                  "p": "Sign in to Yahoo! JAPAN Developers or the Developer Center for the relevant API.",
+                  "path": "developer.yahoo.co.jp / ads-developers.yahoo.co.jp"
+                },
+                {
+                  "h3": "Create an application",
+                  "p": "Click the menu to add a new application.",
+                  "path": "Create Application / Add Application"
+                },
+                {
+                  "h3": "Enter app information",
+                  "p": "Enter the app name, description, contact information, and website URL.",
+                  "path": "Application Information"
+                },
+                {
+                  "h3": "Enter the Redirect URI",
+                  "p": "Enter exactly the URL to return to after OAuth authentication.",
+                  "path": "Redirect URI"
+                },
+                {
+                  "h3": "Select permissions or API",
+                  "p": "Select the API permissions and scopes you intend to use.",
+                  "path": "Scope / API Permission"
+                },
+                {
+                  "h3": "Complete registration",
+                  "p": "After registration, check the Client ID and Client Secret.",
+                  "path": "Client ID / Client Secret"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "4. Issuance Location by Service",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "Purpose",
+                "Issuance/management location",
+                "Result"
+              ],
+              "rows": [
+                [
+                  "Yahoo! Japan Login / OAuth",
+                  "Yahoo! JAPAN Developers",
+                  "Client ID, Client Secret"
+                ],
+                [
+                  "Yahoo!広告 API",
+                  "Yahoo!広告 Developer Center",
+                  "Client ID, Client Secret, OAuth Token"
+                ],
+                [
+                  "Yahoo! Shopping API",
+                  "Yahoo! JAPAN Developers or a Commerce-related console",
+                  "Application ID or OAuth credentials"
+                ],
+                [
+                  "Internal testing",
+                  "Each service's Sandbox/test environment",
+                  "Test credentials"
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "5. OAuth Token Issuance Flow",
+          "blocks": [
+            {
+              "type": "notice",
+              "kind": "",
+              "html": "1) Generate the user authentication URL with the Client ID\n2) The user logs in with their Yahoo! account\n3) Receive the authorization code at the Redirect URI\n4) Request an Access Token with the authorization code + Client Secret\n5) Call the API with the Access Token\n6) Refresh with the Refresh Token when needed"
+            }
+          ]
+        },
+        {
+          "h2": "6. Common Issues",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "Issue",
+                "Cause",
+                "Solution"
+              ],
+              "rows": [
+                [
+                  "Redirect URI error",
+                  "The registered URL differs from the calling URL",
+                  "Enter it identically down to the protocol, domain, and path"
+                ],
+                [
+                  "Client Secret cannot be viewed",
+                  "Hidden for security",
+                  "Check the View or re-issue function on the management screen"
+                ],
+                [
+                  "Insufficient permissions",
+                  "Required Scope not selected",
+                  "Add the Scope in the app settings and re-authenticate"
+                ],
+                [
+                  "API call fails",
+                  "Mismatch between the API used and the issued app type",
+                  "Check the developer documentation for each API"
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "7. Final Checklist",
+          "blocks": [
+            {
+              "type": "checklist",
+              "items": [
+                "Confirmed which type of Yahoo! Japan API to use.",
+                "Signed in to the correct developer console.",
+                "Registered the application.",
+                "Checked the Client ID and Client Secret.",
+                "Registered the Redirect URI accurately.",
+                "Selected the required Scope.",
+                "Completed the Access Token issuance test."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "ja": {
+      "titleType": "API 発行マニュアル",
+      "badge": "API 発行 初心者マニュアル",
+      "intro": "Yahoo! Japan 系サービスとの連携のために、開発者コンソールでアプリケーションを登録し、Client ID、Client Secret、OAuth Token を準備する手順です。",
+      "org": "実務連携 初心者向けガイド",
+      "quick": [
+        [
+          "認証構造",
+          "OAuth 2.0 中心"
+        ],
+        [
+          "必要なアカウント",
+          "Yahoo! JAPAN ID"
+        ],
+        [
+          "主な成果物",
+          "Client ID / Secret"
+        ],
+        [
+          "注意",
+          "API ごとにコンソールが異なる"
+        ]
+      ],
+      "sections": [
+        {
+          "h2": "1. Yahoo! Japan API 発行の概念",
+          "desc": "Yahoo! Japan 系の API は、サービスの種類に応じて Yahoo! JAPAN Developers または LY/Yahoo!広告 Developer Center で Client ID、Client Secret、OAuth 認証情報を発行します。",
+          "blocks": [
+            {
+              "type": "notice",
+              "kind": "danger",
+              "html": "<strong>重要:</strong> 「Yahoo! Japan」は、利用する API が何であるかによって発行サイトと審査手続きが異なります。ショッピング、広告、ログイン、検索 API を区別する必要があります。"
+            }
+          ]
+        },
+        {
+          "h2": "2. 準備物",
+          "blocks": [
+            {
+              "type": "checklist",
+              "items": [
+                "Yahoo! JAPAN ID またはビジネスアカウント",
+                "利用する API の種類を決定",
+                "アプリ名とサービス説明",
+                "Redirect URI",
+                "プライバシーポリシー URL",
+                "運用ドメインまたはテストドメイン"
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "3. アプリケーション登録の基本手順",
+          "blocks": [
+            {
+              "type": "steps",
+              "items": [
+                {
+                  "h3": "開発者サイトにアクセス",
+                  "p": "Yahoo! JAPAN Developers または該当 API の Developer Center にログインします。",
+                  "path": "developer.yahoo.co.jp / ads-developers.yahoo.co.jp"
+                },
+                {
+                  "h3": "アプリケーションを作成",
+                  "p": "新規アプリケーション追加メニューをクリックします。",
+                  "path": "Create Application / Add Application"
+                },
+                {
+                  "h3": "アプリ情報を入力",
+                  "p": "アプリ名、説明、担当者情報、ウェブサイト URL を入力します。",
+                  "path": "Application Information"
+                },
+                {
+                  "h3": "Redirect URI を入力",
+                  "p": "OAuth 認証後に戻る URL を正確に入力します。",
+                  "path": "Redirect URI"
+                },
+                {
+                  "h3": "権限または API を選択",
+                  "p": "利用する API の権限とスコープを選択します。",
+                  "path": "Scope / API Permission"
+                },
+                {
+                  "h3": "登録完了",
+                  "p": "登録後、Client ID と Client Secret を確認します。",
+                  "path": "Client ID / Client Secret"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "4. サービス別の発行場所",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "目的",
+                "発行/管理場所",
+                "成果物"
+              ],
+              "rows": [
+                [
+                  "Yahoo! Japan ログイン / OAuth",
+                  "Yahoo! JAPAN Developers",
+                  "Client ID, Client Secret"
+                ],
+                [
+                  "Yahoo!広告 API",
+                  "Yahoo!広告 Developer Center",
+                  "Client ID, Client Secret, OAuth Token"
+                ],
+                [
+                  "Yahoo! Shopping API",
+                  "Yahoo! JAPAN Developers または Commerce 関連コンソール",
+                  "Application ID または OAuth 情報"
+                ],
+                [
+                  "社内テスト",
+                  "各サービスの Sandbox/テスト環境",
+                  "テスト用認証情報"
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "5. OAuth トークン発行フロー",
+          "blocks": [
+            {
+              "type": "notice",
+              "kind": "",
+              "html": "1) Client ID でユーザー認証 URL を生成\n2) ユーザーが Yahoo! アカウントでログイン\n3) Redirect URI で authorization code を受信\n4) authorization code + Client Secret で Access Token をリクエスト\n5) Access Token で API を呼び出し\n6) 必要に応じて Refresh Token で更新"
+            }
+          ]
+        },
+        {
+          "h2": "6. よくある問題",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "問題",
+                "原因",
+                "解決方法"
+              ],
+              "rows": [
+                [
+                  "Redirect URI エラー",
+                  "登録した URL と呼び出し URL が異なる",
+                  "プロトコル、ドメイン、パスまで同一に入力"
+                ],
+                [
+                  "Client Secret を確認できない",
+                  "セキュリティ上、非表示処理",
+                  "管理画面の View または再発行機能を確認"
+                ],
+                [
+                  "権限不足",
+                  "必要な Scope が未選択",
+                  "アプリ設定で Scope を追加してから再認証"
+                ],
+                [
+                  "API 呼び出し失敗",
+                  "利用 API と発行したアプリ種別の不一致",
+                  "API ごとの開発者ドキュメントを確認"
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "7. 最終チェックリスト",
+          "blocks": [
+            {
+              "type": "checklist",
+              "items": [
+                "利用する Yahoo! Japan API の種類を確定した。",
+                "正しい開発者コンソールにログインした。",
+                "アプリケーションを登録した。",
+                "Client ID と Client Secret を確認した。",
+                "Redirect URI を正確に登録した。",
+                "必要な Scope を選択した。",
+                "Access Token 発行テストを完了した。"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "zh": {
+      "titleType": "API 申请手册",
+      "badge": "API 申请新手手册",
+      "intro": "为接入 Yahoo! Japan 系列服务，在开发者控制台中注册应用程序并准备 Client ID、Client Secret 和 OAuth Token 的流程。",
+      "org": "面向实操接入的新手指南",
+      "quick": [
+        [
+          "认证结构",
+          "以 OAuth 2.0 为中心"
+        ],
+        [
+          "所需账户",
+          "Yahoo! JAPAN ID"
+        ],
+        [
+          "主要成果",
+          "Client ID / Secret"
+        ],
+        [
+          "注意",
+          "各 API 控制台不同"
+        ]
+      ],
+      "sections": [
+        {
+          "h2": "1. Yahoo! Japan API 申请概念",
+          "desc": "Yahoo! Japan 系列 API 会根据服务类型，在 Yahoo! JAPAN Developers 或 LY/Yahoo!広告 Developer Center 申请 Client ID、Client Secret 和 OAuth 认证信息。",
+          "blocks": [
+            {
+              "type": "notice",
+              "kind": "danger",
+              "html": "<strong>重要:</strong> 「Yahoo! Japan」会根据您要使用的 API 不同，其申请站点和审核流程也不同。需要区分购物、广告、登录和搜索 API。"
+            }
+          ]
+        },
+        {
+          "h2": "2. 准备物",
+          "blocks": [
+            {
+              "type": "checklist",
+              "items": [
+                "Yahoo! JAPAN ID 或企业账户",
+                "确定要使用的 API 类型",
+                "应用名称和服务说明",
+                "Redirect URI",
+                "隐私政策 URL",
+                "生产域名或测试域名"
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "3. 应用程序注册基本顺序",
+          "blocks": [
+            {
+              "type": "steps",
+              "items": [
+                {
+                  "h3": "访问开发者站点",
+                  "p": "登录 Yahoo! JAPAN Developers 或对应 API 的 Developer Center。",
+                  "path": "developer.yahoo.co.jp / ads-developers.yahoo.co.jp"
+                },
+                {
+                  "h3": "创建应用程序",
+                  "p": "点击新增应用程序菜单。",
+                  "path": "Create Application / Add Application"
+                },
+                {
+                  "h3": "输入应用信息",
+                  "p": "输入应用名称、说明、负责人信息和网站 URL。",
+                  "path": "Application Information"
+                },
+                {
+                  "h3": "输入 Redirect URI",
+                  "p": "准确输入 OAuth 认证后返回的 URL。",
+                  "path": "Redirect URI"
+                },
+                {
+                  "h3": "选择权限或 API",
+                  "p": "选择要使用的 API 权限和作用域。",
+                  "path": "Scope / API Permission"
+                },
+                {
+                  "h3": "完成注册",
+                  "p": "注册后确认 Client ID 和 Client Secret。",
+                  "path": "Client ID / Client Secret"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "4. 各服务的申请位置",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "目的",
+                "申请/管理位置",
+                "成果"
+              ],
+              "rows": [
+                [
+                  "Yahoo! Japan 登录 / OAuth",
+                  "Yahoo! JAPAN Developers",
+                  "Client ID, Client Secret"
+                ],
+                [
+                  "Yahoo!広告 API",
+                  "Yahoo!広告 Developer Center",
+                  "Client ID, Client Secret, OAuth Token"
+                ],
+                [
+                  "Yahoo! Shopping API",
+                  "Yahoo! JAPAN Developers 或 Commerce 相关控制台",
+                  "Application ID 或 OAuth 信息"
+                ],
+                [
+                  "内部测试",
+                  "各服务的 Sandbox/测试环境",
+                  "测试用认证信息"
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "5. OAuth 令牌申请流程",
+          "blocks": [
+            {
+              "type": "notice",
+              "kind": "",
+              "html": "1) 使用 Client ID 生成用户认证 URL\n2) 用户使用 Yahoo! 账户登录\n3) 在 Redirect URI 接收 authorization code\n4) 使用 authorization code + Client Secret 请求 Access Token\n5) 使用 Access Token 调用 API\n6) 必要时使用 Refresh Token 刷新"
+            }
+          ]
+        },
+        {
+          "h2": "6. 常见问题",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "问题",
+                "原因",
+                "解决方法"
+              ],
+              "rows": [
+                [
+                  "Redirect URI 错误",
+                  "注册的 URL 与调用 URL 不同",
+                  "连同协议、域名、路径都输入一致"
+                ],
+                [
+                  "无法查看 Client Secret",
+                  "出于安全考虑被隐藏",
+                  "查看管理界面的 View 或重新签发功能"
+                ],
+                [
+                  "权限不足",
+                  "未选择所需 Scope",
+                  "在应用设置中添加 Scope 后重新认证"
+                ],
+                [
+                  "API 调用失败",
+                  "所用 API 与申请的应用类型不匹配",
+                  "查看各 API 的开发者文档"
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "7. 最终检查清单",
+          "blocks": [
+            {
+              "type": "checklist",
+              "items": [
+                "已确定要使用的 Yahoo! Japan API 类型。",
+                "已登录正确的开发者控制台。",
+                "已注册应用程序。",
+                "已确认 Client ID 和 Client Secret。",
+                "已准确注册 Redirect URI。",
+                "已选择所需 Scope。",
+                "已完成 Access Token 申请测试。"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "zh-TW": {
+      "titleType": "API 申請手冊",
+      "badge": "API 申請新手手冊",
+      "intro": "為接入 Yahoo! Japan 系列服務，在開發者主控台中註冊應用程式並準備 Client ID、Client Secret 和 OAuth Token 的流程。",
+      "org": "面向實作接入的新手指南",
+      "quick": [
+        [
+          "認證結構",
+          "以 OAuth 2.0 為中心"
+        ],
+        [
+          "所需帳戶",
+          "Yahoo! JAPAN ID"
+        ],
+        [
+          "主要成果",
+          "Client ID / Secret"
+        ],
+        [
+          "注意",
+          "各 API 主控台不同"
+        ]
+      ],
+      "sections": [
+        {
+          "h2": "1. Yahoo! Japan API 申請概念",
+          "desc": "Yahoo! Japan 系列 API 會依服務類型，在 Yahoo! JAPAN Developers 或 LY/Yahoo!広告 Developer Center 申請 Client ID、Client Secret 和 OAuth 認證資訊。",
+          "blocks": [
+            {
+              "type": "notice",
+              "kind": "danger",
+              "html": "<strong>重要:</strong> 「Yahoo! Japan」會依您要使用的 API 不同，其申請站點和審查流程也不同。需要區分購物、廣告、登入和搜尋 API。"
+            }
+          ]
+        },
+        {
+          "h2": "2. 準備物",
+          "blocks": [
+            {
+              "type": "checklist",
+              "items": [
+                "Yahoo! JAPAN ID 或企業帳戶",
+                "確定要使用的 API 類型",
+                "應用名稱和服務說明",
+                "Redirect URI",
+                "隱私權政策 URL",
+                "正式環境網域或測試網域"
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "3. 應用程式註冊基本順序",
+          "blocks": [
+            {
+              "type": "steps",
+              "items": [
+                {
+                  "h3": "存取開發者站點",
+                  "p": "登入 Yahoo! JAPAN Developers 或對應 API 的 Developer Center。",
+                  "path": "developer.yahoo.co.jp / ads-developers.yahoo.co.jp"
+                },
+                {
+                  "h3": "建立應用程式",
+                  "p": "點擊新增應用程式選單。",
+                  "path": "Create Application / Add Application"
+                },
+                {
+                  "h3": "輸入應用資訊",
+                  "p": "輸入應用名稱、說明、負責人資訊和網站 URL。",
+                  "path": "Application Information"
+                },
+                {
+                  "h3": "輸入 Redirect URI",
+                  "p": "準確輸入 OAuth 認證後返回的 URL。",
+                  "path": "Redirect URI"
+                },
+                {
+                  "h3": "選擇權限或 API",
+                  "p": "選擇要使用的 API 權限和範圍。",
+                  "path": "Scope / API Permission"
+                },
+                {
+                  "h3": "完成註冊",
+                  "p": "註冊後確認 Client ID 和 Client Secret。",
+                  "path": "Client ID / Client Secret"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "4. 各服務的申請位置",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "目的",
+                "申請/管理位置",
+                "成果"
+              ],
+              "rows": [
+                [
+                  "Yahoo! Japan 登入 / OAuth",
+                  "Yahoo! JAPAN Developers",
+                  "Client ID, Client Secret"
+                ],
+                [
+                  "Yahoo!広告 API",
+                  "Yahoo!広告 Developer Center",
+                  "Client ID, Client Secret, OAuth Token"
+                ],
+                [
+                  "Yahoo! Shopping API",
+                  "Yahoo! JAPAN Developers 或 Commerce 相關主控台",
+                  "Application ID 或 OAuth 資訊"
+                ],
+                [
+                  "內部測試",
+                  "各服務的 Sandbox/測試環境",
+                  "測試用認證資訊"
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "5. OAuth 權杖申請流程",
+          "blocks": [
+            {
+              "type": "notice",
+              "kind": "",
+              "html": "1) 使用 Client ID 產生使用者認證 URL\n2) 使用者使用 Yahoo! 帳戶登入\n3) 在 Redirect URI 接收 authorization code\n4) 使用 authorization code + Client Secret 請求 Access Token\n5) 使用 Access Token 呼叫 API\n6) 必要時使用 Refresh Token 更新"
+            }
+          ]
+        },
+        {
+          "h2": "6. 常見問題",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "問題",
+                "原因",
+                "解決方法"
+              ],
+              "rows": [
+                [
+                  "Redirect URI 錯誤",
+                  "註冊的 URL 與呼叫 URL 不同",
+                  "連同通訊協定、網域、路徑都輸入一致"
+                ],
+                [
+                  "無法查看 Client Secret",
+                  "基於安全考量被隱藏",
+                  "查看管理介面的 View 或重新簽發功能"
+                ],
+                [
+                  "權限不足",
+                  "未選擇所需 Scope",
+                  "在應用設定中新增 Scope 後重新認證"
+                ],
+                [
+                  "API 呼叫失敗",
+                  "所用 API 與申請的應用類型不符",
+                  "查看各 API 的開發者文件"
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "7. 最終檢查清單",
+          "blocks": [
+            {
+              "type": "checklist",
+              "items": [
+                "已確定要使用的 Yahoo! Japan API 類型。",
+                "已登入正確的開發者主控台。",
+                "已註冊應用程式。",
+                "已確認 Client ID 和 Client Secret。",
+                "已準確註冊 Redirect URI。",
+                "已選擇所需 Scope。",
+                "已完成 Access Token 申請測試。"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "de": {
+      "titleType": "API-Ausstellungsanleitung",
+      "badge": "API-Ausstellung Einsteigeranleitung",
+      "intro": "Der Ablauf zum Registrieren einer Anwendung in der Entwicklerkonsole und zum Vorbereiten von Client ID, Client Secret und OAuth Token, um Dienste der Yahoo! Japan-Familie zu verbinden.",
+      "org": "Einsteigerleitfaden für die praktische Integration",
+      "quick": [
+        [
+          "Authentifizierungsstruktur",
+          "OAuth 2.0-zentriert"
+        ],
+        [
+          "Benötigtes Konto",
+          "Yahoo! JAPAN ID"
+        ],
+        [
+          "Hauptergebnis",
+          "Client ID / Secret"
+        ],
+        [
+          "Hinweis",
+          "Konsole unterscheidet sich je API"
+        ]
+      ],
+      "sections": [
+        {
+          "h2": "1. Konzept der Yahoo! Japan API-Ausstellung",
+          "desc": "Je nach Diensttyp stellen APIs der Yahoo! Japan-Familie die Client ID, das Client Secret und die OAuth-Anmeldedaten über Yahoo! JAPAN Developers oder das LY/Yahoo!広告 Developer Center aus.",
+          "blocks": [
+            {
+              "type": "notice",
+              "kind": "danger",
+              "html": "<strong>Wichtig:</strong> Bei \"Yahoo! Japan\" unterscheiden sich die Ausstellungsseite und das Prüfverfahren je nachdem, welche API Sie verwenden möchten. Sie müssen zwischen den Shopping-, Werbe-, Login- und Such-APIs unterscheiden."
+            }
+          ]
+        },
+        {
+          "h2": "2. Voraussetzungen",
+          "blocks": [
+            {
+              "type": "checklist",
+              "items": [
+                "Yahoo! JAPAN ID oder Geschäftskonto",
+                "Den zu verwendenden API-Typ festlegen",
+                "App-Name und Dienstbeschreibung",
+                "Redirect URI",
+                "URL der Datenschutzrichtlinie",
+                "Produktionsdomain oder Testdomain"
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "3. Grundlegende Reihenfolge der Anwendungsregistrierung",
+          "blocks": [
+            {
+              "type": "steps",
+              "items": [
+                {
+                  "h3": "Auf die Entwicklerseite zugreifen",
+                  "p": "Melden Sie sich bei Yahoo! JAPAN Developers oder dem Developer Center der jeweiligen API an.",
+                  "path": "developer.yahoo.co.jp / ads-developers.yahoo.co.jp"
+                },
+                {
+                  "h3": "Anwendung erstellen",
+                  "p": "Klicken Sie auf das Menü zum Hinzufügen einer neuen Anwendung.",
+                  "path": "Create Application / Add Application"
+                },
+                {
+                  "h3": "App-Informationen eingeben",
+                  "p": "Geben Sie App-Name, Beschreibung, Ansprechpartnerinformationen und Website-URL ein.",
+                  "path": "Application Information"
+                },
+                {
+                  "h3": "Redirect URI eingeben",
+                  "p": "Geben Sie die URL, zu der nach der OAuth-Authentifizierung zurückgekehrt wird, exakt ein.",
+                  "path": "Redirect URI"
+                },
+                {
+                  "h3": "Berechtigungen oder API auswählen",
+                  "p": "Wählen Sie die API-Berechtigungen und Scopes aus, die Sie verwenden möchten.",
+                  "path": "Scope / API Permission"
+                },
+                {
+                  "h3": "Registrierung abschließen",
+                  "p": "Überprüfen Sie nach der Registrierung die Client ID und das Client Secret.",
+                  "path": "Client ID / Client Secret"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "4. Ausstellungsort je Dienst",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "Zweck",
+                "Ausstellungs-/Verwaltungsort",
+                "Ergebnis"
+              ],
+              "rows": [
+                [
+                  "Yahoo! Japan Login / OAuth",
+                  "Yahoo! JAPAN Developers",
+                  "Client ID, Client Secret"
+                ],
+                [
+                  "Yahoo!広告 API",
+                  "Yahoo!広告 Developer Center",
+                  "Client ID, Client Secret, OAuth Token"
+                ],
+                [
+                  "Yahoo! Shopping API",
+                  "Yahoo! JAPAN Developers oder eine Commerce-bezogene Konsole",
+                  "Application ID oder OAuth-Anmeldedaten"
+                ],
+                [
+                  "Interne Tests",
+                  "Sandbox-/Testumgebung des jeweiligen Dienstes",
+                  "Test-Anmeldedaten"
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "5. Ablauf der OAuth-Token-Ausstellung",
+          "blocks": [
+            {
+              "type": "notice",
+              "kind": "",
+              "html": "1) Mit der Client ID die Benutzer-Authentifizierungs-URL generieren\n2) Der Benutzer meldet sich mit seinem Yahoo!-Konto an\n3) Den authorization code an der Redirect URI empfangen\n4) Mit authorization code + Client Secret ein Access Token anfordern\n5) Die API mit dem Access Token aufrufen\n6) Bei Bedarf mit dem Refresh Token erneuern"
+            }
+          ]
+        },
+        {
+          "h2": "6. Häufige Probleme",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "Problem",
+                "Ursache",
+                "Lösung"
+              ],
+              "rows": [
+                [
+                  "Redirect URI-Fehler",
+                  "Die registrierte URL weicht von der aufrufenden URL ab",
+                  "Identisch eingeben, einschließlich Protokoll, Domain und Pfad"
+                ],
+                [
+                  "Client Secret kann nicht eingesehen werden",
+                  "Aus Sicherheitsgründen ausgeblendet",
+                  "Die View- oder Neuausstellungsfunktion im Verwaltungsbildschirm prüfen"
+                ],
+                [
+                  "Unzureichende Berechtigungen",
+                  "Erforderlicher Scope nicht ausgewählt",
+                  "In den App-Einstellungen den Scope hinzufügen und erneut authentifizieren"
+                ],
+                [
+                  "API-Aufruf schlägt fehl",
+                  "Nichtübereinstimmung zwischen verwendeter API und ausgestelltem App-Typ",
+                  "Die Entwicklerdokumentation der jeweiligen API prüfen"
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "7. Abschließende Checkliste",
+          "blocks": [
+            {
+              "type": "checklist",
+              "items": [
+                "Den zu verwendenden Yahoo! Japan API-Typ festgelegt.",
+                "Bei der richtigen Entwicklerkonsole angemeldet.",
+                "Die Anwendung registriert.",
+                "Die Client ID und das Client Secret überprüft.",
+                "Die Redirect URI korrekt registriert.",
+                "Den erforderlichen Scope ausgewählt.",
+                "Den Test zur Access-Token-Ausstellung abgeschlossen."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "th": {
+      "titleType": "คู่มือการออก API",
+      "badge": "คู่มือการออก API สำหรับผู้เริ่มต้น",
+      "intro": "ขั้นตอนในการลงทะเบียนแอปพลิเคชันในคอนโซลนักพัฒนา และเตรียม Client ID, Client Secret และ OAuth Token เพื่อเชื่อมต่อบริการในเครือ Yahoo! Japan",
+      "org": "คู่มือสำหรับผู้เริ่มต้นในการเชื่อมต่อภาคปฏิบัติ",
+      "quick": [
+        [
+          "โครงสร้างการยืนยันตัวตน",
+          "เน้น OAuth 2.0"
+        ],
+        [
+          "บัญชีที่ต้องใช้",
+          "Yahoo! JAPAN ID"
+        ],
+        [
+          "ผลลัพธ์หลัก",
+          "Client ID / Secret"
+        ],
+        [
+          "ข้อควรระวัง",
+          "คอนโซลต่างกันตาม API"
+        ]
+      ],
+      "sections": [
+        {
+          "h2": "1. แนวคิดการออก API ของ Yahoo! Japan",
+          "desc": "API ในเครือ Yahoo! Japan จะออก Client ID, Client Secret และข้อมูลรับรอง OAuth จาก Yahoo! JAPAN Developers หรือ LY/Yahoo!広告 Developer Center ขึ้นอยู่กับประเภทของบริการ",
+          "blocks": [
+            {
+              "type": "notice",
+              "kind": "danger",
+              "html": "<strong>สำคัญ:</strong> \"Yahoo! Japan\" จะมีไซต์การออกและขั้นตอนการตรวจสอบที่แตกต่างกันขึ้นอยู่กับ API ที่คุณต้องการใช้ คุณต้องแยกแยะ API สำหรับการช้อปปิ้ง โฆษณา การเข้าสู่ระบบ และการค้นหา"
+            }
+          ]
+        },
+        {
+          "h2": "2. สิ่งที่ต้องเตรียม",
+          "blocks": [
+            {
+              "type": "checklist",
+              "items": [
+                "Yahoo! JAPAN ID หรือบัญชีธุรกิจ",
+                "ตัดสินใจประเภทของ API ที่จะใช้",
+                "ชื่อแอปและคำอธิบายบริการ",
+                "Redirect URI",
+                "URL นโยบายความเป็นส่วนตัว",
+                "โดเมนใช้งานจริงหรือโดเมนทดสอบ"
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "3. ลำดับพื้นฐานในการลงทะเบียนแอปพลิเคชัน",
+          "blocks": [
+            {
+              "type": "steps",
+              "items": [
+                {
+                  "h3": "เข้าถึงไซต์นักพัฒนา",
+                  "p": "ลงชื่อเข้าใช้ Yahoo! JAPAN Developers หรือ Developer Center ของ API ที่เกี่ยวข้อง",
+                  "path": "developer.yahoo.co.jp / ads-developers.yahoo.co.jp"
+                },
+                {
+                  "h3": "สร้างแอปพลิเคชัน",
+                  "p": "คลิกเมนูเพิ่มแอปพลิเคชันใหม่",
+                  "path": "Create Application / Add Application"
+                },
+                {
+                  "h3": "กรอกข้อมูลแอป",
+                  "p": "กรอกชื่อแอป คำอธิบาย ข้อมูลผู้รับผิดชอบ และ URL ของเว็บไซต์",
+                  "path": "Application Information"
+                },
+                {
+                  "h3": "กรอก Redirect URI",
+                  "p": "กรอก URL ที่จะกลับมาหลังการยืนยันตัวตน OAuth ให้ถูกต้อง",
+                  "path": "Redirect URI"
+                },
+                {
+                  "h3": "เลือกสิทธิ์หรือ API",
+                  "p": "เลือกสิทธิ์ API และขอบเขตที่คุณต้องการใช้",
+                  "path": "Scope / API Permission"
+                },
+                {
+                  "h3": "ลงทะเบียนเสร็จสมบูรณ์",
+                  "p": "หลังลงทะเบียน ให้ตรวจสอบ Client ID และ Client Secret",
+                  "path": "Client ID / Client Secret"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "4. ตำแหน่งการออกตามบริการ",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "วัตถุประสงค์",
+                "ตำแหน่งการออก/จัดการ",
+                "ผลลัพธ์"
+              ],
+              "rows": [
+                [
+                  "Yahoo! Japan Login / OAuth",
+                  "Yahoo! JAPAN Developers",
+                  "Client ID, Client Secret"
+                ],
+                [
+                  "Yahoo!広告 API",
+                  "Yahoo!広告 Developer Center",
+                  "Client ID, Client Secret, OAuth Token"
+                ],
+                [
+                  "Yahoo! Shopping API",
+                  "Yahoo! JAPAN Developers หรือคอนโซลที่เกี่ยวกับ Commerce",
+                  "Application ID หรือข้อมูล OAuth"
+                ],
+                [
+                  "การทดสอบภายใน",
+                  "สภาพแวดล้อม Sandbox/ทดสอบของแต่ละบริการ",
+                  "ข้อมูลรับรองสำหรับทดสอบ"
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "5. ขั้นตอนการออกโทเค็น OAuth",
+          "blocks": [
+            {
+              "type": "notice",
+              "kind": "",
+              "html": "1) สร้าง URL การยืนยันตัวตนผู้ใช้ด้วย Client ID\n2) ผู้ใช้เข้าสู่ระบบด้วยบัญชี Yahoo!\n3) รับ authorization code ที่ Redirect URI\n4) ขอ Access Token ด้วย authorization code + Client Secret\n5) เรียก API ด้วย Access Token\n6) รีเฟรชด้วย Refresh Token เมื่อจำเป็น"
+            }
+          ]
+        },
+        {
+          "h2": "6. ปัญหาที่พบบ่อย",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "ปัญหา",
+                "สาเหตุ",
+                "วิธีแก้ไข"
+              ],
+              "rows": [
+                [
+                  "ข้อผิดพลาด Redirect URI",
+                  "URL ที่ลงทะเบียนต่างจาก URL ที่เรียก",
+                  "กรอกให้เหมือนกันทั้งโปรโตคอล โดเมน และเส้นทาง"
+                ],
+                [
+                  "ดู Client Secret ไม่ได้",
+                  "ถูกซ่อนเพื่อความปลอดภัย",
+                  "ตรวจสอบฟังก์ชัน View หรือออกใหม่ในหน้าจัดการ"
+                ],
+                [
+                  "สิทธิ์ไม่เพียงพอ",
+                  "ไม่ได้เลือก Scope ที่จำเป็น",
+                  "เพิ่ม Scope ในการตั้งค่าแอปแล้วยืนยันตัวตนใหม่"
+                ],
+                [
+                  "เรียก API ไม่สำเร็จ",
+                  "API ที่ใช้ไม่ตรงกับประเภทแอปที่ออก",
+                  "ตรวจสอบเอกสารนักพัฒนาของแต่ละ API"
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "7. รายการตรวจสอบขั้นสุดท้าย",
+          "blocks": [
+            {
+              "type": "checklist",
+              "items": [
+                "ยืนยันประเภท API ของ Yahoo! Japan ที่จะใช้แล้ว",
+                "ลงชื่อเข้าใช้คอนโซลนักพัฒนาที่ถูกต้องแล้ว",
+                "ลงทะเบียนแอปพลิเคชันแล้ว",
+                "ตรวจสอบ Client ID และ Client Secret แล้ว",
+                "ลงทะเบียน Redirect URI อย่างถูกต้องแล้ว",
+                "เลือก Scope ที่จำเป็นแล้ว",
+                "ทำการทดสอบการออก Access Token เสร็จแล้ว"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "vi": {
+      "titleType": "Hướng dẫn cấp API",
+      "badge": "Hướng dẫn cấp API cho người mới",
+      "intro": "Quy trình đăng ký ứng dụng trong bảng điều khiển nhà phát triển và chuẩn bị Client ID, Client Secret và OAuth Token để kết nối các dịch vụ thuộc Yahoo! Japan.",
+      "org": "Hướng dẫn cho người mới về tích hợp thực tế",
+      "quick": [
+        [
+          "Cấu trúc xác thực",
+          "Lấy OAuth 2.0 làm trung tâm"
+        ],
+        [
+          "Tài khoản cần thiết",
+          "Yahoo! JAPAN ID"
+        ],
+        [
+          "Kết quả chính",
+          "Client ID / Secret"
+        ],
+        [
+          "Lưu ý",
+          "Bảng điều khiển khác nhau theo API"
+        ]
+      ],
+      "sections": [
+        {
+          "h2": "1. Khái niệm cấp API Yahoo! Japan",
+          "desc": "Tùy theo loại dịch vụ, các API thuộc Yahoo! Japan sẽ cấp Client ID, Client Secret và thông tin xác thực OAuth từ Yahoo! JAPAN Developers hoặc LY/Yahoo!広告 Developer Center.",
+          "blocks": [
+            {
+              "type": "notice",
+              "kind": "danger",
+              "html": "<strong>Quan trọng:</strong> \"Yahoo! Japan\" có trang cấp và quy trình xét duyệt khác nhau tùy theo API bạn muốn dùng. Bạn cần phân biệt các API Mua sắm, Quảng cáo, Đăng nhập và Tìm kiếm."
+            }
+          ]
+        },
+        {
+          "h2": "2. Vật chuẩn bị",
+          "blocks": [
+            {
+              "type": "checklist",
+              "items": [
+                "Yahoo! JAPAN ID hoặc tài khoản doanh nghiệp",
+                "Quyết định loại API sẽ sử dụng",
+                "Tên ứng dụng và mô tả dịch vụ",
+                "Redirect URI",
+                "URL chính sách quyền riêng tư",
+                "Tên miền vận hành hoặc tên miền thử nghiệm"
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "3. Trình tự cơ bản đăng ký ứng dụng",
+          "blocks": [
+            {
+              "type": "steps",
+              "items": [
+                {
+                  "h3": "Truy cập trang nhà phát triển",
+                  "p": "Đăng nhập vào Yahoo! JAPAN Developers hoặc Developer Center của API tương ứng.",
+                  "path": "developer.yahoo.co.jp / ads-developers.yahoo.co.jp"
+                },
+                {
+                  "h3": "Tạo ứng dụng",
+                  "p": "Nhấp vào menu thêm ứng dụng mới.",
+                  "path": "Create Application / Add Application"
+                },
+                {
+                  "h3": "Nhập thông tin ứng dụng",
+                  "p": "Nhập tên ứng dụng, mô tả, thông tin người phụ trách và URL trang web.",
+                  "path": "Application Information"
+                },
+                {
+                  "h3": "Nhập Redirect URI",
+                  "p": "Nhập chính xác URL sẽ quay về sau khi xác thực OAuth.",
+                  "path": "Redirect URI"
+                },
+                {
+                  "h3": "Chọn quyền hoặc API",
+                  "p": "Chọn quyền API và phạm vi (scope) bạn muốn sử dụng.",
+                  "path": "Scope / API Permission"
+                },
+                {
+                  "h3": "Hoàn tất đăng ký",
+                  "p": "Sau khi đăng ký, kiểm tra Client ID và Client Secret.",
+                  "path": "Client ID / Client Secret"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "4. Vị trí cấp theo dịch vụ",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "Mục đích",
+                "Vị trí cấp/quản lý",
+                "Kết quả"
+              ],
+              "rows": [
+                [
+                  "Yahoo! Japan Login / OAuth",
+                  "Yahoo! JAPAN Developers",
+                  "Client ID, Client Secret"
+                ],
+                [
+                  "Yahoo!広告 API",
+                  "Yahoo!広告 Developer Center",
+                  "Client ID, Client Secret, OAuth Token"
+                ],
+                [
+                  "Yahoo! Shopping API",
+                  "Yahoo! JAPAN Developers hoặc bảng điều khiển liên quan đến Commerce",
+                  "Application ID hoặc thông tin OAuth"
+                ],
+                [
+                  "Thử nghiệm nội bộ",
+                  "Môi trường Sandbox/thử nghiệm của từng dịch vụ",
+                  "Thông tin xác thực để thử nghiệm"
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "5. Luồng cấp OAuth Token",
+          "blocks": [
+            {
+              "type": "notice",
+              "kind": "",
+              "html": "1) Tạo URL xác thực người dùng bằng Client ID\n2) Người dùng đăng nhập bằng tài khoản Yahoo!\n3) Nhận authorization code tại Redirect URI\n4) Yêu cầu Access Token bằng authorization code + Client Secret\n5) Gọi API bằng Access Token\n6) Làm mới bằng Refresh Token khi cần"
+            }
+          ]
+        },
+        {
+          "h2": "6. Sự cố thường gặp",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "Sự cố",
+                "Nguyên nhân",
+                "Giải pháp"
+              ],
+              "rows": [
+                [
+                  "Lỗi Redirect URI",
+                  "URL đã đăng ký khác với URL gọi",
+                  "Nhập giống hệt nhau, bao gồm cả giao thức, tên miền và đường dẫn"
+                ],
+                [
+                  "Không thể xem Client Secret",
+                  "Bị ẩn vì lý do bảo mật",
+                  "Kiểm tra chức năng View hoặc cấp lại trên màn hình quản lý"
+                ],
+                [
+                  "Không đủ quyền",
+                  "Chưa chọn Scope cần thiết",
+                  "Thêm Scope trong cài đặt ứng dụng rồi xác thực lại"
+                ],
+                [
+                  "Gọi API thất bại",
+                  "API sử dụng không khớp với loại ứng dụng đã cấp",
+                  "Kiểm tra tài liệu nhà phát triển của từng API"
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "7. Danh sách kiểm tra cuối cùng",
+          "blocks": [
+            {
+              "type": "checklist",
+              "items": [
+                "Đã xác định loại API Yahoo! Japan sẽ sử dụng.",
+                "Đã đăng nhập vào bảng điều khiển nhà phát triển đúng.",
+                "Đã đăng ký ứng dụng.",
+                "Đã kiểm tra Client ID và Client Secret.",
+                "Đã đăng ký Redirect URI chính xác.",
+                "Đã chọn Scope cần thiết.",
+                "Đã hoàn tất thử nghiệm cấp Access Token."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "id": {
+      "titleType": "Panduan Penerbitan API",
+      "badge": "Panduan Penerbitan API untuk Pemula",
+      "intro": "Prosedur untuk mendaftarkan aplikasi di konsol pengembang dan menyiapkan Client ID, Client Secret, dan OAuth Token guna menghubungkan layanan keluarga Yahoo! Japan.",
+      "org": "Panduan pemula untuk integrasi praktis",
+      "quick": [
+        [
+          "Struktur autentikasi",
+          "Berpusat pada OAuth 2.0"
+        ],
+        [
+          "Akun yang dibutuhkan",
+          "Yahoo! JAPAN ID"
+        ],
+        [
+          "Hasil utama",
+          "Client ID / Secret"
+        ],
+        [
+          "Perhatian",
+          "Konsol berbeda per API"
+        ]
+      ],
+      "sections": [
+        {
+          "h2": "1. Konsep Penerbitan API Yahoo! Japan",
+          "desc": "Tergantung jenis layanannya, API keluarga Yahoo! Japan menerbitkan Client ID, Client Secret, dan kredensial OAuth dari Yahoo! JAPAN Developers atau LY/Yahoo!広告 Developer Center.",
+          "blocks": [
+            {
+              "type": "notice",
+              "kind": "danger",
+              "html": "<strong>Penting:</strong> \"Yahoo! Japan\" memiliki situs penerbitan dan proses peninjauan yang berbeda tergantung pada API yang ingin Anda gunakan. Anda harus membedakan API Belanja, Iklan, Login, dan Pencarian."
+            }
+          ]
+        },
+        {
+          "h2": "2. Persiapan",
+          "blocks": [
+            {
+              "type": "checklist",
+              "items": [
+                "Yahoo! JAPAN ID atau akun bisnis",
+                "Tentukan jenis API yang akan digunakan",
+                "Nama aplikasi dan deskripsi layanan",
+                "Redirect URI",
+                "URL kebijakan privasi",
+                "Domain produksi atau domain pengujian"
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "3. Urutan Dasar Pendaftaran Aplikasi",
+          "blocks": [
+            {
+              "type": "steps",
+              "items": [
+                {
+                  "h3": "Akses situs pengembang",
+                  "p": "Masuk ke Yahoo! JAPAN Developers atau Developer Center API terkait.",
+                  "path": "developer.yahoo.co.jp / ads-developers.yahoo.co.jp"
+                },
+                {
+                  "h3": "Buat aplikasi",
+                  "p": "Klik menu untuk menambahkan aplikasi baru.",
+                  "path": "Create Application / Add Application"
+                },
+                {
+                  "h3": "Masukkan informasi aplikasi",
+                  "p": "Masukkan nama aplikasi, deskripsi, informasi penanggung jawab, dan URL situs web.",
+                  "path": "Application Information"
+                },
+                {
+                  "h3": "Masukkan Redirect URI",
+                  "p": "Masukkan secara tepat URL yang akan dituju kembali setelah autentikasi OAuth.",
+                  "path": "Redirect URI"
+                },
+                {
+                  "h3": "Pilih izin atau API",
+                  "p": "Pilih izin API dan scope yang ingin Anda gunakan.",
+                  "path": "Scope / API Permission"
+                },
+                {
+                  "h3": "Selesaikan pendaftaran",
+                  "p": "Setelah pendaftaran, periksa Client ID dan Client Secret.",
+                  "path": "Client ID / Client Secret"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "4. Lokasi Penerbitan per Layanan",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "Tujuan",
+                "Lokasi penerbitan/pengelolaan",
+                "Hasil"
+              ],
+              "rows": [
+                [
+                  "Yahoo! Japan Login / OAuth",
+                  "Yahoo! JAPAN Developers",
+                  "Client ID, Client Secret"
+                ],
+                [
+                  "Yahoo!広告 API",
+                  "Yahoo!広告 Developer Center",
+                  "Client ID, Client Secret, OAuth Token"
+                ],
+                [
+                  "Yahoo! Shopping API",
+                  "Yahoo! JAPAN Developers atau konsol terkait Commerce",
+                  "Application ID atau informasi OAuth"
+                ],
+                [
+                  "Pengujian internal",
+                  "Lingkungan Sandbox/pengujian masing-masing layanan",
+                  "Kredensial untuk pengujian"
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "5. Alur Penerbitan OAuth Token",
+          "blocks": [
+            {
+              "type": "notice",
+              "kind": "",
+              "html": "1) Buat URL autentikasi pengguna dengan Client ID\n2) Pengguna masuk dengan akun Yahoo!\n3) Terima authorization code di Redirect URI\n4) Minta Access Token dengan authorization code + Client Secret\n5) Panggil API dengan Access Token\n6) Perbarui dengan Refresh Token bila diperlukan"
+            }
+          ]
+        },
+        {
+          "h2": "6. Masalah yang Sering Terjadi",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "Masalah",
+                "Penyebab",
+                "Solusi"
+              ],
+              "rows": [
+                [
+                  "Kesalahan Redirect URI",
+                  "URL yang didaftarkan berbeda dengan URL pemanggil",
+                  "Masukkan secara identik hingga protokol, domain, dan jalur"
+                ],
+                [
+                  "Client Secret tidak dapat dilihat",
+                  "Disembunyikan demi keamanan",
+                  "Periksa fungsi View atau penerbitan ulang di layar pengelolaan"
+                ],
+                [
+                  "Izin tidak mencukupi",
+                  "Scope yang diperlukan belum dipilih",
+                  "Tambahkan Scope di pengaturan aplikasi lalu autentikasi ulang"
+                ],
+                [
+                  "Pemanggilan API gagal",
+                  "Ketidakcocokan antara API yang digunakan dan jenis aplikasi yang diterbitkan",
+                  "Periksa dokumentasi pengembang untuk setiap API"
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "7. Daftar Periksa Akhir",
+          "blocks": [
+            {
+              "type": "checklist",
+              "items": [
+                "Telah menentukan jenis API Yahoo! Japan yang akan digunakan.",
+                "Telah masuk ke konsol pengembang yang benar.",
+                "Telah mendaftarkan aplikasi.",
+                "Telah memeriksa Client ID dan Client Secret.",
+                "Telah mendaftarkan Redirect URI dengan tepat.",
+                "Telah memilih Scope yang diperlukan.",
+                "Telah menyelesaikan pengujian penerbitan Access Token."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "ar": {
+      "titleType": "دليل إصدار واجهة برمجة التطبيقات",
+      "badge": "دليل إصدار API للمبتدئين",
+      "intro": "إجراء تسجيل تطبيق في وحدة تحكم المطوّرين وتحضير Client ID وClient Secret وOAuth Token لربط خدمات عائلة Yahoo! Japan.",
+      "org": "دليل المبتدئين للتكامل العملي",
+      "quick": [
+        [
+          "بنية المصادقة",
+          "تتمحور حول OAuth 2.0"
+        ],
+        [
+          "الحساب المطلوب",
+          "Yahoo! JAPAN ID"
+        ],
+        [
+          "النتيجة الرئيسية",
+          "Client ID / Secret"
+        ],
+        [
+          "تنبيه",
+          "تختلف وحدة التحكم حسب كل API"
+        ]
+      ],
+      "sections": [
+        {
+          "h2": "1. مفهوم إصدار واجهة Yahoo! Japan",
+          "desc": "بحسب نوع الخدمة، تُصدر واجهات عائلة Yahoo! Japan قيم Client ID وClient Secret وبيانات اعتماد OAuth من Yahoo! JAPAN Developers أو من LY/Yahoo!広告 Developer Center.",
+          "blocks": [
+            {
+              "type": "notice",
+              "kind": "danger",
+              "html": "<strong>مهم:</strong> يختلف موقع الإصدار وإجراء المراجعة في \"Yahoo! Japan\" بحسب الواجهة التي تنوي استخدامها. يجب التمييز بين واجهات التسوّق والإعلانات وتسجيل الدخول والبحث."
+            }
+          ]
+        },
+        {
+          "h2": "2. المتطلبات",
+          "blocks": [
+            {
+              "type": "checklist",
+              "items": [
+                "Yahoo! JAPAN ID أو حساب أعمال",
+                "تحديد نوع الواجهة المراد استخدامها",
+                "اسم التطبيق ووصف الخدمة",
+                "Redirect URI",
+                "رابط سياسة الخصوصية",
+                "نطاق التشغيل أو نطاق الاختبار"
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "3. الترتيب الأساسي لتسجيل التطبيق",
+          "blocks": [
+            {
+              "type": "steps",
+              "items": [
+                {
+                  "h3": "الوصول إلى موقع المطوّرين",
+                  "p": "سجّل الدخول إلى Yahoo! JAPAN Developers أو إلى Developer Center الخاص بالواجهة المعنية.",
+                  "path": "developer.yahoo.co.jp / ads-developers.yahoo.co.jp"
+                },
+                {
+                  "h3": "إنشاء تطبيق",
+                  "p": "انقر على قائمة إضافة تطبيق جديد.",
+                  "path": "Create Application / Add Application"
+                },
+                {
+                  "h3": "إدخال معلومات التطبيق",
+                  "p": "أدخل اسم التطبيق والوصف ومعلومات المسؤول ورابط الموقع الإلكتروني.",
+                  "path": "Application Information"
+                },
+                {
+                  "h3": "إدخال Redirect URI",
+                  "p": "أدخل بدقة الرابط الذي سيُعاد إليه بعد مصادقة OAuth.",
+                  "path": "Redirect URI"
+                },
+                {
+                  "h3": "اختيار الأذونات أو الواجهة",
+                  "p": "اختر أذونات الواجهة والنطاقات (Scope) التي تنوي استخدامها.",
+                  "path": "Scope / API Permission"
+                },
+                {
+                  "h3": "إتمام التسجيل",
+                  "p": "بعد التسجيل، تحقق من Client ID وClient Secret.",
+                  "path": "Client ID / Client Secret"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "4. موقع الإصدار حسب الخدمة",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "الغرض",
+                "موقع الإصدار/الإدارة",
+                "النتيجة"
+              ],
+              "rows": [
+                [
+                  "Yahoo! Japan تسجيل الدخول / OAuth",
+                  "Yahoo! JAPAN Developers",
+                  "Client ID, Client Secret"
+                ],
+                [
+                  "Yahoo!広告 API",
+                  "Yahoo!広告 Developer Center",
+                  "Client ID, Client Secret, OAuth Token"
+                ],
+                [
+                  "Yahoo! Shopping API",
+                  "Yahoo! JAPAN Developers أو وحدة تحكم متعلقة بالتجارة",
+                  "Application ID أو بيانات OAuth"
+                ],
+                [
+                  "الاختبار الداخلي",
+                  "بيئة Sandbox/الاختبار لكل خدمة",
+                  "بيانات اعتماد للاختبار"
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "5. تدفق إصدار رمز OAuth",
+          "blocks": [
+            {
+              "type": "notice",
+              "kind": "",
+              "html": "1) إنشاء رابط مصادقة المستخدم باستخدام Client ID\n2) يسجّل المستخدم الدخول بحساب Yahoo!‎\n3) استلام authorization code عند Redirect URI\n4) طلب Access Token باستخدام authorization code + Client Secret\n5) استدعاء الواجهة باستخدام Access Token\n6) التجديد باستخدام Refresh Token عند الحاجة"
+            }
+          ]
+        },
+        {
+          "h2": "6. المشكلات الشائعة",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "المشكلة",
+                "السبب",
+                "الحل"
+              ],
+              "rows": [
+                [
+                  "خطأ في Redirect URI",
+                  "الرابط المسجَّل يختلف عن الرابط المُستدعى",
+                  "أدخله مطابقًا تمامًا حتى البروتوكول والنطاق والمسار"
+                ],
+                [
+                  "تعذّر عرض Client Secret",
+                  "مُخفى لأسباب أمنية",
+                  "تحقق من وظيفة View أو إعادة الإصدار في شاشة الإدارة"
+                ],
+                [
+                  "أذونات غير كافية",
+                  "لم يُحدَّد النطاق (Scope) المطلوب",
+                  "أضف النطاق في إعدادات التطبيق ثم أعد المصادقة"
+                ],
+                [
+                  "فشل استدعاء الواجهة",
+                  "عدم تطابق الواجهة المستخدمة مع نوع التطبيق الذي تم إصداره",
+                  "راجع وثائق المطوّرين لكل واجهة"
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "7. قائمة التحقق النهائية",
+          "blocks": [
+            {
+              "type": "checklist",
+              "items": [
+                "حدّدت نوع واجهة Yahoo! Japan المراد استخدامها.",
+                "سجّلت الدخول إلى وحدة تحكم المطوّرين الصحيحة.",
+                "سجّلت التطبيق.",
+                "تحققت من Client ID وClient Secret.",
+                "سجّلت Redirect URI بدقة.",
+                "اخترت النطاق (Scope) المطلوب.",
+                "أكملت اختبار إصدار Access Token."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "es": {
+      "titleType": "Manual de emisión de API",
+      "badge": "Manual de emisión de API para principiantes",
+      "intro": "El procedimiento para registrar una aplicación en la consola de desarrolladores y preparar el Client ID, el Client Secret y el OAuth Token para conectar los servicios de la familia Yahoo! Japan.",
+      "org": "Guía para principiantes de integración práctica",
+      "quick": [
+        [
+          "Estructura de autenticación",
+          "Centrada en OAuth 2.0"
+        ],
+        [
+          "Cuenta necesaria",
+          "Yahoo! JAPAN ID"
+        ],
+        [
+          "Resultado principal",
+          "Client ID / Secret"
+        ],
+        [
+          "Precaución",
+          "La consola difiere según la API"
+        ]
+      ],
+      "sections": [
+        {
+          "h2": "1. Concepto de emisión de la API de Yahoo! Japan",
+          "desc": "Según el tipo de servicio, las API de la familia Yahoo! Japan emiten el Client ID, el Client Secret y las credenciales de OAuth desde Yahoo! JAPAN Developers o desde el LY/Yahoo!広告 Developer Center.",
+          "blocks": [
+            {
+              "type": "notice",
+              "kind": "danger",
+              "html": "<strong>Importante:</strong> En \"Yahoo! Japan\", el sitio de emisión y el proceso de revisión varían según la API que desee utilizar. Debe distinguir entre las API de Compras, Publicidad, Inicio de sesión y Búsqueda."
+            }
+          ]
+        },
+        {
+          "h2": "2. Requisitos previos",
+          "blocks": [
+            {
+              "type": "checklist",
+              "items": [
+                "Yahoo! JAPAN ID o cuenta de empresa",
+                "Decidir el tipo de API que se va a usar",
+                "Nombre de la aplicación y descripción del servicio",
+                "Redirect URI",
+                "URL de la política de privacidad",
+                "Dominio de producción o dominio de pruebas"
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "3. Orden básico de registro de la aplicación",
+          "blocks": [
+            {
+              "type": "steps",
+              "items": [
+                {
+                  "h3": "Acceder al sitio de desarrolladores",
+                  "p": "Inicie sesión en Yahoo! JAPAN Developers o en el Developer Center de la API correspondiente.",
+                  "path": "developer.yahoo.co.jp / ads-developers.yahoo.co.jp"
+                },
+                {
+                  "h3": "Crear una aplicación",
+                  "p": "Haga clic en el menú para agregar una nueva aplicación.",
+                  "path": "Create Application / Add Application"
+                },
+                {
+                  "h3": "Introducir la información de la aplicación",
+                  "p": "Introduzca el nombre de la aplicación, la descripción, la información del responsable y la URL del sitio web.",
+                  "path": "Application Information"
+                },
+                {
+                  "h3": "Introducir la Redirect URI",
+                  "p": "Introduzca con exactitud la URL a la que se regresará tras la autenticación OAuth.",
+                  "path": "Redirect URI"
+                },
+                {
+                  "h3": "Seleccionar permisos o API",
+                  "p": "Seleccione los permisos de API y los ámbitos (scope) que desea utilizar.",
+                  "path": "Scope / API Permission"
+                },
+                {
+                  "h3": "Completar el registro",
+                  "p": "Tras el registro, compruebe el Client ID y el Client Secret.",
+                  "path": "Client ID / Client Secret"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "4. Ubicación de emisión por servicio",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "Propósito",
+                "Ubicación de emisión/gestión",
+                "Resultado"
+              ],
+              "rows": [
+                [
+                  "Yahoo! Japan Inicio de sesión / OAuth",
+                  "Yahoo! JAPAN Developers",
+                  "Client ID, Client Secret"
+                ],
+                [
+                  "Yahoo!広告 API",
+                  "Yahoo!広告 Developer Center",
+                  "Client ID, Client Secret, OAuth Token"
+                ],
+                [
+                  "Yahoo! Shopping API",
+                  "Yahoo! JAPAN Developers o una consola relacionada con Commerce",
+                  "Application ID o credenciales OAuth"
+                ],
+                [
+                  "Pruebas internas",
+                  "Entorno Sandbox/de pruebas de cada servicio",
+                  "Credenciales de prueba"
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "5. Flujo de emisión del token OAuth",
+          "blocks": [
+            {
+              "type": "notice",
+              "kind": "",
+              "html": "1) Generar la URL de autenticación del usuario con el Client ID\n2) El usuario inicia sesión con su cuenta de Yahoo!\n3) Recibir el authorization code en la Redirect URI\n4) Solicitar un Access Token con el authorization code + Client Secret\n5) Llamar a la API con el Access Token\n6) Renovar con el Refresh Token cuando sea necesario"
+            }
+          ]
+        },
+        {
+          "h2": "6. Problemas frecuentes",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "Problema",
+                "Causa",
+                "Solución"
+              ],
+              "rows": [
+                [
+                  "Error de Redirect URI",
+                  "La URL registrada difiere de la URL de llamada",
+                  "Introdúzcala de forma idéntica, incluidos el protocolo, el dominio y la ruta"
+                ],
+                [
+                  "No se puede ver el Client Secret",
+                  "Oculto por seguridad",
+                  "Compruebe la función View o de reemisión en la pantalla de gestión"
+                ],
+                [
+                  "Permisos insuficientes",
+                  "No se seleccionó el Scope necesario",
+                  "Agregue el Scope en la configuración de la aplicación y vuelva a autenticarse"
+                ],
+                [
+                  "Fallo en la llamada a la API",
+                  "Discrepancia entre la API usada y el tipo de aplicación emitida",
+                  "Consulte la documentación para desarrolladores de cada API"
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "7. Lista de verificación final",
+          "blocks": [
+            {
+              "type": "checklist",
+              "items": [
+                "He confirmado el tipo de API de Yahoo! Japan que voy a usar.",
+                "He iniciado sesión en la consola de desarrolladores correcta.",
+                "He registrado la aplicación.",
+                "He comprobado el Client ID y el Client Secret.",
+                "He registrado la Redirect URI con exactitud.",
+                "He seleccionado el Scope necesario.",
+                "He completado la prueba de emisión del Access Token."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "fr": {
+      "titleType": "Manuel d’émission d’API",
+      "badge": "Manuel d'émission d'API pour débutants",
+      "intro": "La procédure pour enregistrer une application dans la console développeur et préparer le Client ID, le Client Secret et l'OAuth Token afin de connecter les services de la famille Yahoo! Japan.",
+      "org": "Guide pour débutants d'intégration pratique",
+      "quick": [
+        [
+          "Structure d'authentification",
+          "Centrée sur OAuth 2.0"
+        ],
+        [
+          "Compte requis",
+          "Yahoo! JAPAN ID"
+        ],
+        [
+          "Résultat principal",
+          "Client ID / Secret"
+        ],
+        [
+          "Attention",
+          "La console diffère selon l'API"
+        ]
+      ],
+      "sections": [
+        {
+          "h2": "1. Concept d'émission de l'API Yahoo! Japan",
+          "desc": "Selon le type de service, les API de la famille Yahoo! Japan émettent le Client ID, le Client Secret et les identifiants OAuth depuis Yahoo! JAPAN Developers ou depuis le LY/Yahoo!広告 Developer Center.",
+          "blocks": [
+            {
+              "type": "notice",
+              "kind": "danger",
+              "html": "<strong>Important :</strong> Pour « Yahoo! Japan », le site d'émission et la procédure d'examen varient selon l'API que vous comptez utiliser. Vous devez distinguer les API Shopping, Publicité, Connexion et Recherche."
+            }
+          ]
+        },
+        {
+          "h2": "2. Prérequis",
+          "blocks": [
+            {
+              "type": "checklist",
+              "items": [
+                "Yahoo! JAPAN ID ou compte professionnel",
+                "Décider du type d'API à utiliser",
+                "Nom de l'application et description du service",
+                "Redirect URI",
+                "URL de la politique de confidentialité",
+                "Domaine de production ou domaine de test"
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "3. Ordre de base d'enregistrement de l'application",
+          "blocks": [
+            {
+              "type": "steps",
+              "items": [
+                {
+                  "h3": "Accéder au site développeur",
+                  "p": "Connectez-vous à Yahoo! JAPAN Developers ou au Developer Center de l'API concernée.",
+                  "path": "developer.yahoo.co.jp / ads-developers.yahoo.co.jp"
+                },
+                {
+                  "h3": "Créer une application",
+                  "p": "Cliquez sur le menu d'ajout d'une nouvelle application.",
+                  "path": "Create Application / Add Application"
+                },
+                {
+                  "h3": "Saisir les informations de l'application",
+                  "p": "Saisissez le nom de l'application, la description, les informations du responsable et l'URL du site web.",
+                  "path": "Application Information"
+                },
+                {
+                  "h3": "Saisir le Redirect URI",
+                  "p": "Saisissez exactement l'URL de retour après l'authentification OAuth.",
+                  "path": "Redirect URI"
+                },
+                {
+                  "h3": "Sélectionner les autorisations ou l'API",
+                  "p": "Sélectionnez les autorisations d'API et les portées (scope) que vous comptez utiliser.",
+                  "path": "Scope / API Permission"
+                },
+                {
+                  "h3": "Terminer l'enregistrement",
+                  "p": "Après l'enregistrement, vérifiez le Client ID et le Client Secret.",
+                  "path": "Client ID / Client Secret"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "4. Emplacement d'émission par service",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "Objectif",
+                "Emplacement d'émission/de gestion",
+                "Résultat"
+              ],
+              "rows": [
+                [
+                  "Yahoo! Japan Connexion / OAuth",
+                  "Yahoo! JAPAN Developers",
+                  "Client ID, Client Secret"
+                ],
+                [
+                  "Yahoo!広告 API",
+                  "Yahoo!広告 Developer Center",
+                  "Client ID, Client Secret, OAuth Token"
+                ],
+                [
+                  "Yahoo! Shopping API",
+                  "Yahoo! JAPAN Developers ou une console liée au Commerce",
+                  "Application ID ou identifiants OAuth"
+                ],
+                [
+                  "Tests internes",
+                  "Environnement Sandbox/de test de chaque service",
+                  "Identifiants de test"
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "5. Flux d'émission du token OAuth",
+          "blocks": [
+            {
+              "type": "notice",
+              "kind": "",
+              "html": "1) Générer l'URL d'authentification de l'utilisateur avec le Client ID\n2) L'utilisateur se connecte avec son compte Yahoo!\n3) Recevoir l'authorization code sur le Redirect URI\n4) Demander un Access Token avec l'authorization code + Client Secret\n5) Appeler l'API avec l'Access Token\n6) Renouveler avec le Refresh Token si nécessaire"
+            }
+          ]
+        },
+        {
+          "h2": "6. Problèmes fréquents",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "Problème",
+                "Cause",
+                "Solution"
+              ],
+              "rows": [
+                [
+                  "Erreur de Redirect URI",
+                  "L'URL enregistrée diffère de l'URL d'appel",
+                  "Saisissez-la à l'identique, jusqu'au protocole, au domaine et au chemin"
+                ],
+                [
+                  "Impossible d'afficher le Client Secret",
+                  "Masqué pour des raisons de sécurité",
+                  "Vérifiez la fonction View ou de réémission sur l'écran de gestion"
+                ],
+                [
+                  "Autorisations insuffisantes",
+                  "Le Scope requis n'est pas sélectionné",
+                  "Ajoutez le Scope dans les paramètres de l'application puis ré-authentifiez-vous"
+                ],
+                [
+                  "Échec de l'appel d'API",
+                  "Incohérence entre l'API utilisée et le type d'application émis",
+                  "Consultez la documentation développeur de chaque API"
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "7. Liste de contrôle finale",
+          "blocks": [
+            {
+              "type": "checklist",
+              "items": [
+                "J'ai confirmé le type d'API Yahoo! Japan à utiliser.",
+                "Je me suis connecté à la bonne console développeur.",
+                "J'ai enregistré l'application.",
+                "J'ai vérifié le Client ID et le Client Secret.",
+                "J'ai enregistré le Redirect URI avec exactitude.",
+                "J'ai sélectionné le Scope requis.",
+                "J'ai terminé le test d'émission de l'Access Token."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "hi": {
+      "titleType": "API जारी करने की नियमावली",
+      "badge": "शुरुआती लोगों के लिए API जारी करने की नियमावली",
+      "intro": "Yahoo! Japan परिवार की सेवाओं को जोड़ने के लिए डेवलपर कंसोल में एक एप्लिकेशन पंजीकृत करने और Client ID, Client Secret तथा OAuth Token तैयार करने की प्रक्रिया।",
+      "org": "व्यावहारिक एकीकरण के लिए शुरुआती गाइड",
+      "quick": [
+        [
+          "प्रमाणीकरण संरचना",
+          "OAuth 2.0 केंद्रित"
+        ],
+        [
+          "आवश्यक खाता",
+          "Yahoo! JAPAN ID"
+        ],
+        [
+          "मुख्य परिणाम",
+          "Client ID / Secret"
+        ],
+        [
+          "सावधानी",
+          "प्रत्येक API के लिए कंसोल अलग"
+        ]
+      ],
+      "sections": [
+        {
+          "h2": "1. Yahoo! Japan API जारी करने की अवधारणा",
+          "desc": "सेवा के प्रकार के आधार पर, Yahoo! Japan परिवार की API, Client ID, Client Secret और OAuth प्रमाण-पत्र Yahoo! JAPAN Developers या LY/Yahoo!広告 Developer Center से जारी करती हैं।",
+          "blocks": [
+            {
+              "type": "notice",
+              "kind": "danger",
+              "html": "<strong>महत्वपूर्ण:</strong> \"Yahoo! Japan\" में, आप जिस API का उपयोग करना चाहते हैं उसके आधार पर जारी करने की साइट और समीक्षा प्रक्रिया अलग-अलग होती है। आपको Shopping, Advertising, Login और Search API के बीच अंतर करना होगा।"
+            }
+          ]
+        },
+        {
+          "h2": "2. आवश्यक सामग्री",
+          "blocks": [
+            {
+              "type": "checklist",
+              "items": [
+                "Yahoo! JAPAN ID या व्यावसायिक खाता",
+                "उपयोग की जाने वाली API का प्रकार तय करें",
+                "ऐप का नाम और सेवा विवरण",
+                "Redirect URI",
+                "गोपनीयता नीति URL",
+                "उत्पादन डोमेन या परीक्षण डोमेन"
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "3. एप्लिकेशन पंजीकरण का बुनियादी क्रम",
+          "blocks": [
+            {
+              "type": "steps",
+              "items": [
+                {
+                  "h3": "डेवलपर साइट तक पहुँचें",
+                  "p": "Yahoo! JAPAN Developers या संबंधित API के Developer Center में साइन इन करें।",
+                  "path": "developer.yahoo.co.jp / ads-developers.yahoo.co.jp"
+                },
+                {
+                  "h3": "एप्लिकेशन बनाएँ",
+                  "p": "नया एप्लिकेशन जोड़ने वाले मेनू पर क्लिक करें।",
+                  "path": "Create Application / Add Application"
+                },
+                {
+                  "h3": "ऐप जानकारी दर्ज करें",
+                  "p": "ऐप का नाम, विवरण, ज़िम्मेदार व्यक्ति की जानकारी और वेबसाइट URL दर्ज करें।",
+                  "path": "Application Information"
+                },
+                {
+                  "h3": "Redirect URI दर्ज करें",
+                  "p": "OAuth प्रमाणीकरण के बाद लौटने वाला URL ठीक-ठीक दर्ज करें।",
+                  "path": "Redirect URI"
+                },
+                {
+                  "h3": "अनुमतियाँ या API चुनें",
+                  "p": "जिस API की अनुमतियाँ और स्कोप का उपयोग करना है उन्हें चुनें।",
+                  "path": "Scope / API Permission"
+                },
+                {
+                  "h3": "पंजीकरण पूरा करें",
+                  "p": "पंजीकरण के बाद Client ID और Client Secret की जाँच करें।",
+                  "path": "Client ID / Client Secret"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "4. सेवा के अनुसार जारी करने का स्थान",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "उद्देश्य",
+                "जारी/प्रबंधन स्थान",
+                "परिणाम"
+              ],
+              "rows": [
+                [
+                  "Yahoo! Japan लॉगिन / OAuth",
+                  "Yahoo! JAPAN Developers",
+                  "Client ID, Client Secret"
+                ],
+                [
+                  "Yahoo!広告 API",
+                  "Yahoo!広告 Developer Center",
+                  "Client ID, Client Secret, OAuth Token"
+                ],
+                [
+                  "Yahoo! Shopping API",
+                  "Yahoo! JAPAN Developers या Commerce से संबंधित कंसोल",
+                  "Application ID या OAuth जानकारी"
+                ],
+                [
+                  "आंतरिक परीक्षण",
+                  "प्रत्येक सेवा का Sandbox/परीक्षण वातावरण",
+                  "परीक्षण के लिए प्रमाण-पत्र"
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "5. OAuth टोकन जारी करने का प्रवाह",
+          "blocks": [
+            {
+              "type": "notice",
+              "kind": "",
+              "html": "1) Client ID से उपयोगकर्ता प्रमाणीकरण URL बनाएँ\n2) उपयोगकर्ता अपने Yahoo! खाते से लॉगिन करता है\n3) Redirect URI पर authorization code प्राप्त करें\n4) authorization code + Client Secret से Access Token का अनुरोध करें\n5) Access Token से API को कॉल करें\n6) आवश्यकता होने पर Refresh Token से नवीनीकरण करें"
+            }
+          ]
+        },
+        {
+          "h2": "6. अक्सर आने वाली समस्याएँ",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "समस्या",
+                "कारण",
+                "समाधान"
+              ],
+              "rows": [
+                [
+                  "Redirect URI त्रुटि",
+                  "पंजीकृत URL और कॉल किए गए URL में अंतर",
+                  "प्रोटोकॉल, डोमेन और पथ तक समान दर्ज करें"
+                ],
+                [
+                  "Client Secret नहीं देखा जा सकता",
+                  "सुरक्षा कारणों से छिपा हुआ",
+                  "प्रबंधन स्क्रीन में View या पुनः जारी करने का फ़ंक्शन जाँचें"
+                ],
+                [
+                  "अपर्याप्त अनुमतियाँ",
+                  "आवश्यक Scope नहीं चुना गया",
+                  "ऐप सेटिंग्स में Scope जोड़ें और फिर से प्रमाणित करें"
+                ],
+                [
+                  "API कॉल विफल",
+                  "उपयोग की गई API और जारी किए गए ऐप प्रकार में बेमेल",
+                  "प्रत्येक API के डेवलपर दस्तावेज़ जाँचें"
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "7. अंतिम जाँच सूची",
+          "blocks": [
+            {
+              "type": "checklist",
+              "items": [
+                "उपयोग की जाने वाली Yahoo! Japan API का प्रकार तय कर लिया है।",
+                "सही डेवलपर कंसोल में साइन इन कर लिया है।",
+                "एप्लिकेशन पंजीकृत कर लिया है।",
+                "Client ID और Client Secret की जाँच कर ली है।",
+                "Redirect URI सही-सही पंजीकृत कर लिया है।",
+                "आवश्यक Scope चुन लिया है।",
+                "Access Token जारी करने का परीक्षण पूरा कर लिया है।"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "pt": {
+      "titleType": "Manual de emissão de API",
+      "badge": "Manual de emissão de API para iniciantes",
+      "intro": "O procedimento para registrar um aplicativo no console do desenvolvedor e preparar o Client ID, o Client Secret e o OAuth Token para conectar os serviços da família Yahoo! Japan.",
+      "org": "Guia para iniciantes de integração prática",
+      "quick": [
+        [
+          "Estrutura de autenticação",
+          "Centrada em OAuth 2.0"
+        ],
+        [
+          "Conta necessária",
+          "Yahoo! JAPAN ID"
+        ],
+        [
+          "Resultado principal",
+          "Client ID / Secret"
+        ],
+        [
+          "Atenção",
+          "O console difere por API"
+        ]
+      ],
+      "sections": [
+        {
+          "h2": "1. Conceito de emissão da API do Yahoo! Japan",
+          "desc": "Dependendo do tipo de serviço, as APIs da família Yahoo! Japan emitem o Client ID, o Client Secret e as credenciais OAuth a partir do Yahoo! JAPAN Developers ou do LY/Yahoo!広告 Developer Center.",
+          "blocks": [
+            {
+              "type": "notice",
+              "kind": "danger",
+              "html": "<strong>Importante:</strong> No \"Yahoo! Japan\", o site de emissão e o processo de análise variam conforme a API que você pretende usar. Você precisa distinguir entre as APIs de Compras, Publicidade, Login e Pesquisa."
+            }
+          ]
+        },
+        {
+          "h2": "2. Pré-requisitos",
+          "blocks": [
+            {
+              "type": "checklist",
+              "items": [
+                "Yahoo! JAPAN ID ou conta empresarial",
+                "Decidir o tipo de API a ser usada",
+                "Nome do aplicativo e descrição do serviço",
+                "Redirect URI",
+                "URL da política de privacidade",
+                "Domínio de produção ou domínio de teste"
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "3. Ordem básica de registro do aplicativo",
+          "blocks": [
+            {
+              "type": "steps",
+              "items": [
+                {
+                  "h3": "Acessar o site do desenvolvedor",
+                  "p": "Faça login no Yahoo! JAPAN Developers ou no Developer Center da API correspondente.",
+                  "path": "developer.yahoo.co.jp / ads-developers.yahoo.co.jp"
+                },
+                {
+                  "h3": "Criar um aplicativo",
+                  "p": "Clique no menu para adicionar um novo aplicativo.",
+                  "path": "Create Application / Add Application"
+                },
+                {
+                  "h3": "Inserir as informações do aplicativo",
+                  "p": "Insira o nome do aplicativo, a descrição, as informações do responsável e a URL do site.",
+                  "path": "Application Information"
+                },
+                {
+                  "h3": "Inserir o Redirect URI",
+                  "p": "Insira com exatidão a URL para a qual retornar após a autenticação OAuth.",
+                  "path": "Redirect URI"
+                },
+                {
+                  "h3": "Selecionar permissões ou API",
+                  "p": "Selecione as permissões de API e os escopos (scope) que você pretende usar.",
+                  "path": "Scope / API Permission"
+                },
+                {
+                  "h3": "Concluir o registro",
+                  "p": "Após o registro, verifique o Client ID e o Client Secret.",
+                  "path": "Client ID / Client Secret"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "4. Local de emissão por serviço",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "Finalidade",
+                "Local de emissão/gestão",
+                "Resultado"
+              ],
+              "rows": [
+                [
+                  "Yahoo! Japan Login / OAuth",
+                  "Yahoo! JAPAN Developers",
+                  "Client ID, Client Secret"
+                ],
+                [
+                  "Yahoo!広告 API",
+                  "Yahoo!広告 Developer Center",
+                  "Client ID, Client Secret, OAuth Token"
+                ],
+                [
+                  "Yahoo! Shopping API",
+                  "Yahoo! JAPAN Developers ou um console relacionado a Commerce",
+                  "Application ID ou credenciais OAuth"
+                ],
+                [
+                  "Teste interno",
+                  "Ambiente Sandbox/de teste de cada serviço",
+                  "Credenciais de teste"
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "5. Fluxo de emissão do token OAuth",
+          "blocks": [
+            {
+              "type": "notice",
+              "kind": "",
+              "html": "1) Gerar a URL de autenticação do usuário com o Client ID\n2) O usuário faz login com sua conta Yahoo!\n3) Receber o authorization code no Redirect URI\n4) Solicitar um Access Token com o authorization code + Client Secret\n5) Chamar a API com o Access Token\n6) Renovar com o Refresh Token quando necessário"
+            }
+          ]
+        },
+        {
+          "h2": "6. Problemas frequentes",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "Problema",
+                "Causa",
+                "Solução"
+              ],
+              "rows": [
+                [
+                  "Erro de Redirect URI",
+                  "A URL registrada difere da URL de chamada",
+                  "Insira de forma idêntica, incluindo protocolo, domínio e caminho"
+                ],
+                [
+                  "Não é possível ver o Client Secret",
+                  "Oculto por segurança",
+                  "Verifique a função View ou de reemissão na tela de gestão"
+                ],
+                [
+                  "Permissões insuficientes",
+                  "O Scope necessário não foi selecionado",
+                  "Adicione o Scope nas configurações do aplicativo e autentique novamente"
+                ],
+                [
+                  "Falha na chamada da API",
+                  "Incompatibilidade entre a API usada e o tipo de aplicativo emitido",
+                  "Consulte a documentação para desenvolvedores de cada API"
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "7. Lista de verificação final",
+          "blocks": [
+            {
+              "type": "checklist",
+              "items": [
+                "Confirmei o tipo de API do Yahoo! Japan a ser usada.",
+                "Fiz login no console do desenvolvedor correto.",
+                "Registrei o aplicativo.",
+                "Verifiquei o Client ID e o Client Secret.",
+                "Registrei o Redirect URI com exatidão.",
+                "Selecionei o Scope necessário.",
+                "Concluí o teste de emissão do Access Token."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "ru": {
+      "titleType": "Руководство по выпуску API",
+      "badge": "Руководство по выпуску API для начинающих",
+      "intro": "Процедура регистрации приложения в консоли разработчика и подготовки Client ID, Client Secret и OAuth Token для подключения сервисов семейства Yahoo! Japan.",
+      "org": "Руководство для начинающих по практической интеграции",
+      "quick": [
+        [
+          "Структура аутентификации",
+          "На основе OAuth 2.0"
+        ],
+        [
+          "Требуемая учётная запись",
+          "Yahoo! JAPAN ID"
+        ],
+        [
+          "Основной результат",
+          "Client ID / Secret"
+        ],
+        [
+          "Внимание",
+          "Консоль различается для каждого API"
+        ]
+      ],
+      "sections": [
+        {
+          "h2": "1. Концепция выпуска API Yahoo! Japan",
+          "desc": "В зависимости от типа сервиса API семейства Yahoo! Japan выпускают Client ID, Client Secret и учётные данные OAuth через Yahoo! JAPAN Developers или LY/Yahoo!広告 Developer Center.",
+          "blocks": [
+            {
+              "type": "notice",
+              "kind": "danger",
+              "html": "<strong>Важно:</strong> Для «Yahoo! Japan» сайт выпуска и процедура проверки различаются в зависимости от того, какой API вы собираетесь использовать. Необходимо различать API Покупок, Рекламы, Входа и Поиска."
+            }
+          ]
+        },
+        {
+          "h2": "2. Необходимое",
+          "blocks": [
+            {
+              "type": "checklist",
+              "items": [
+                "Yahoo! JAPAN ID или бизнес-аккаунт",
+                "Определить тип используемого API",
+                "Название приложения и описание сервиса",
+                "Redirect URI",
+                "URL политики конфиденциальности",
+                "Рабочий домен или тестовый домен"
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "3. Базовый порядок регистрации приложения",
+          "blocks": [
+            {
+              "type": "steps",
+              "items": [
+                {
+                  "h3": "Перейти на сайт разработчика",
+                  "p": "Войдите в Yahoo! JAPAN Developers или в Developer Center соответствующего API.",
+                  "path": "developer.yahoo.co.jp / ads-developers.yahoo.co.jp"
+                },
+                {
+                  "h3": "Создать приложение",
+                  "p": "Нажмите меню добавления нового приложения.",
+                  "path": "Create Application / Add Application"
+                },
+                {
+                  "h3": "Ввести информацию о приложении",
+                  "p": "Введите название приложения, описание, сведения об ответственном лице и URL веб-сайта.",
+                  "path": "Application Information"
+                },
+                {
+                  "h3": "Ввести Redirect URI",
+                  "p": "Точно введите URL, на который произойдёт возврат после аутентификации OAuth.",
+                  "path": "Redirect URI"
+                },
+                {
+                  "h3": "Выбрать разрешения или API",
+                  "p": "Выберите разрешения API и области (scope), которые вы собираетесь использовать.",
+                  "path": "Scope / API Permission"
+                },
+                {
+                  "h3": "Завершить регистрацию",
+                  "p": "После регистрации проверьте Client ID и Client Secret.",
+                  "path": "Client ID / Client Secret"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "4. Место выпуска по сервисам",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "Назначение",
+                "Место выпуска/управления",
+                "Результат"
+              ],
+              "rows": [
+                [
+                  "Yahoo! Japan Вход / OAuth",
+                  "Yahoo! JAPAN Developers",
+                  "Client ID, Client Secret"
+                ],
+                [
+                  "Yahoo!広告 API",
+                  "Yahoo!広告 Developer Center",
+                  "Client ID, Client Secret, OAuth Token"
+                ],
+                [
+                  "Yahoo! Shopping API",
+                  "Yahoo! JAPAN Developers или консоль, связанная с Commerce",
+                  "Application ID или данные OAuth"
+                ],
+                [
+                  "Внутреннее тестирование",
+                  "Среда Sandbox/тестирования каждого сервиса",
+                  "Тестовые учётные данные"
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "5. Процесс выпуска токена OAuth",
+          "blocks": [
+            {
+              "type": "notice",
+              "kind": "",
+              "html": "1) Сформировать URL аутентификации пользователя с помощью Client ID\n2) Пользователь входит со своей учётной записью Yahoo!\n3) Получить authorization code на Redirect URI\n4) Запросить Access Token с помощью authorization code + Client Secret\n5) Вызвать API с помощью Access Token\n6) При необходимости обновить с помощью Refresh Token"
+            }
+          ]
+        },
+        {
+          "h2": "6. Часто возникающие проблемы",
+          "blocks": [
+            {
+              "type": "table",
+              "head": [
+                "Проблема",
+                "Причина",
+                "Решение"
+              ],
+              "rows": [
+                [
+                  "Ошибка Redirect URI",
+                  "Зарегистрированный URL отличается от вызывающего URL",
+                  "Введите идентично, включая протокол, домен и путь"
+                ],
+                [
+                  "Не удаётся просмотреть Client Secret",
+                  "Скрыт в целях безопасности",
+                  "Проверьте функцию View или повторного выпуска на экране управления"
+                ],
+                [
+                  "Недостаточно разрешений",
+                  "Не выбран необходимый Scope",
+                  "Добавьте Scope в настройках приложения и пройдите аутентификацию заново"
+                ],
+                [
+                  "Сбой вызова API",
+                  "Несоответствие между используемым API и типом выпущенного приложения",
+                  "Проверьте документацию для разработчиков по каждому API"
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "h2": "7. Итоговый контрольный список",
+          "blocks": [
+            {
+              "type": "checklist",
+              "items": [
+                "Определён тип используемого API Yahoo! Japan.",
+                "Выполнен вход в правильную консоль разработчика.",
+                "Приложение зарегистрировано.",
+                "Проверены Client ID и Client Secret.",
+                "Redirect URI зарегистрирован точно.",
+                "Выбран необходимый Scope.",
+                "Завершён тест выпуска Access Token."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

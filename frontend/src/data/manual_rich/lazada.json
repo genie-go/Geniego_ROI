@@ -1,0 +1,1011 @@
+{
+  "name": "Lazada",
+  "icon": "🛒",
+  "langs": {
+    "ko": {
+      "titleType": "API Key 발급 매뉴얼",
+      "badge": "Beginner Guide",
+      "intro": "Lazada Open Platform에서 앱을 등록해 App Key·App Secret을 발급하고 샵 인가로 access_token까지 받아 GenieGo 연동 허브에 등록하는 과정을 초보자도 그대로 따라 할 수 있도록 정리한 매뉴얼입니다.",
+      "org": "GenieGo 연동 허브",
+      "quick": [
+        ["소요 시간", "약 5~15분"],
+        ["필요 계정", "Lazada 판매자 계정"],
+        ["발급 키", "App Key · App Secret"],
+        ["결과물", "API 자격증명"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 시작하기 전에",
+          "desc": "Lazada API 자격증명은 Open Platform에서 앱을 등록해 발급합니다.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "필요", "h3": "Lazada 판매자 계정", "p": "발급을 진행하려면 Lazada 판매자 계정이 있어야 합니다. 이 계정으로 Lazada Open Platform에 개발자로 등록합니다." },
+              { "tag": "발급 키", "h3": "App Key · App Secret", "p": "앱을 생성하면 App Key와 App Secret이 발급됩니다. 이후 샵 인가를 거쳐 access_token까지 받습니다." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. 발급 단계",
+          "desc": "아래 순서대로 발급하고 GenieGo에 등록합니다.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "개발자 등록", "p": "Lazada Open Platform(open.lazada.com)에 개발자로 등록합니다.", "path": "https://open.lazada.com" },
+              { "h3": "앱 생성", "p": "앱을 생성하면 App Key와 App Secret이 발급됩니다." },
+              { "h3": "샵 인가", "p": "샵 인가를 진행해 access_token을 발급받습니다." },
+              { "h3": "값 확인", "p": "발급된 app_key와 app_secret을 확인합니다." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "App Key·App Secret이 발급되고 샵 인가로 access_token까지 받으면 정상 발급된 것입니다." }
+          ]
+        },
+        {
+          "h2": "3. GenieGo에 등록할 정보",
+          "blocks": [
+            { "type": "table", "head": ["필드", "설명"], "rows": [
+              ["app_key", "발급된 App Key"],
+              ["app_secret", "발급된 App Secret(노출 주의)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 연동 허브 [등록]에 app_key와 app_secret을 입력해 저장하면 자격증명은 AES-256-GCM으로 암호화 저장되고 조회 시 마스킹됩니다." }
+          ]
+        },
+        {
+          "h2": "4. 자주 발생하는 문제",
+          "blocks": [
+            { "type": "table", "head": ["문제", "원인", "해결"], "rows": [
+              ["앱을 생성할 수 없음", "Lazada Open Platform 개발자 등록 미완료", "Lazada Open Platform(open.lazada.com)에 개발자로 등록한 뒤 앱을 생성합니다."],
+              ["인증 실패", "샵 인가 미완료 또는 access_token 미발급", "App Key·App Secret 발급 후 샵 인가를 진행해 access_token을 발급받습니다."]
+            ] }
+          ]
+        },
+        {
+          "h2": "최종 체크리스트",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Lazada 판매자 계정으로 Open Platform에 개발자 등록을 완료했다.",
+              "앱을 생성해 App Key·App Secret을 발급했다.",
+              "샵 인가를 진행해 access_token을 발급받았다.",
+              "GenieGo [등록]에 app_key와 app_secret을 입력해 저장했다."
+            ] }
+          ]
+        }
+      ]
+    },
+    "en": {
+      "titleType": "API Key Issuance Manual",
+      "badge": "Beginner Guide",
+      "intro": "A beginner-friendly, step-by-step guide to registering an app on the Lazada Open Platform to issue an App Key and App Secret, obtaining an access_token through shop authorization, and registering it in the GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Est. time", "About 5–15 min"],
+        ["Account needed", "Lazada seller account"],
+        ["Keys issued", "App Key · App Secret"],
+        ["Result", "API credentials"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Before You Begin",
+          "desc": "Lazada API credentials are issued by registering an app on the Open Platform.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Required", "h3": "Lazada seller account", "p": "To proceed with issuance, you need a Lazada seller account. Use this account to register as a developer on the Lazada Open Platform." },
+              { "tag": "Keys issued", "h3": "App Key · App Secret", "p": "When you create an app, an App Key and App Secret are issued. You then obtain an access_token through shop authorization." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Issuance Steps",
+          "desc": "Issue in the order below and register in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Register as a developer", "p": "Register as a developer on the Lazada Open Platform (open.lazada.com).", "path": "https://open.lazada.com" },
+              { "h3": "Create an app", "p": "When you create an app, an App Key and App Secret are issued." },
+              { "h3": "Shop authorization", "p": "Complete shop authorization to obtain an access_token." },
+              { "h3": "Verify the values", "p": "Verify the issued app_key and app_secret." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Once the App Key and App Secret are issued and you obtain an access_token through shop authorization, it has been issued correctly." }
+          ]
+        },
+        {
+          "h2": "3. Information to Register in GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Field", "Description"], "rows": [
+              ["app_key", "The issued App Key"],
+              ["app_secret", "The issued App Secret (handle with care)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "In the GenieGo Integration Hub [Register], enter your app_key and app_secret and save. Credentials are encrypted at rest with AES-256-GCM and masked on read." }
+          ]
+        },
+        {
+          "h2": "4. Common Issues",
+          "blocks": [
+            { "type": "table", "head": ["Issue", "Cause", "Solution"], "rows": [
+              ["Cannot create an app", "Developer registration on the Lazada Open Platform not completed", "Register as a developer on the Lazada Open Platform (open.lazada.com) and then create an app."],
+              ["Authentication failure", "Shop authorization not completed, or access_token not issued", "After issuing the App Key and App Secret, complete shop authorization to obtain an access_token."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Final Checklist",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Completed developer registration on the Open Platform with a Lazada seller account.",
+              "Created an app and issued the App Key and App Secret.",
+              "Completed shop authorization and obtained an access_token.",
+              "Entered app_key and app_secret in GenieGo [Register] and saved."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ja": {
+      "titleType": "API Key 発行マニュアル",
+      "badge": "初心者ガイド",
+      "intro": "Lazada Open Platform でアプリを登録して App Key・App Secret を発行し、ショップ認可で access_token まで取得して GenieGo 連携ハブに登録する手順を、初心者でもそのまま実行できるようにまとめたマニュアルです。",
+      "org": "GenieGo 連携ハブ",
+      "quick": [
+        ["所要時間", "約 5〜15 分"],
+        ["必要なアカウント", "Lazada 出品者アカウント"],
+        ["発行するキー", "App Key · App Secret"],
+        ["成果物", "API 認証情報"]
+      ],
+      "sections": [
+        {
+          "h2": "1. はじめる前に",
+          "desc": "Lazada の API 認証情報は、Open Platform でアプリを登録して発行します。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必須", "h3": "Lazada 出品者アカウント", "p": "発行を進めるには Lazada 出品者アカウントが必要です。このアカウントで Lazada Open Platform に開発者として登録します。" },
+              { "tag": "発行するキー", "h3": "App Key · App Secret", "p": "アプリを作成すると App Key と App Secret が発行されます。その後ショップ認可を経て access_token まで取得します。" }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. 発行手順",
+          "desc": "以下の順序で発行し、GenieGo に登録します。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "開発者登録", "p": "Lazada Open Platform(open.lazada.com)に開発者として登録します。", "path": "https://open.lazada.com" },
+              { "h3": "アプリ作成", "p": "アプリを作成すると App Key と App Secret が発行されます。" },
+              { "h3": "ショップ認可", "p": "ショップ認可を行って access_token を発行します。" },
+              { "h3": "値の確認", "p": "発行された app_key と app_secret を確認します。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "App Key・App Secret が発行され、ショップ認可で access_token まで取得できれば、正常に発行されています。" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo に登録する情報",
+          "blocks": [
+            { "type": "table", "head": ["フィールド", "説明"], "rows": [
+              ["app_key", "発行された App Key"],
+              ["app_secret", "発行された App Secret(取り扱い注意)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 連携ハブの [登録] に app_key と app_secret を入力して保存すると、認証情報は AES-256-GCM で暗号化して保存され、閲覧時にはマスキングされます。" }
+          ]
+        },
+        {
+          "h2": "4. よくある問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["アプリを作成できない", "Lazada Open Platform の開発者登録が未完了", "Lazada Open Platform(open.lazada.com)に開発者として登録してからアプリを作成します。"],
+              ["認証に失敗する", "ショップ認可が未完了、または access_token が未発行", "App Key・App Secret 発行後にショップ認可を行い、access_token を発行します。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終チェックリスト",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Lazada 出品者アカウントで Open Platform に開発者登録を完了した。",
+              "アプリを作成して App Key・App Secret を発行した。",
+              "ショップ認可を行って access_token を発行した。",
+              "GenieGo の [登録] に app_key と app_secret を入力して保存した。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh": {
+      "titleType": "API Key 申请手册",
+      "badge": "新手指南",
+      "intro": "本手册手把手指导新手在 Lazada Open Platform 注册应用以签发 App Key 和 App Secret，通过店铺授权获取 access_token，并注册到 GenieGo 集成中心。",
+      "org": "GenieGo 集成中心",
+      "quick": [
+        ["预计时间", "约 5~15 分钟"],
+        ["所需账户", "Lazada 卖家账户"],
+        ["签发密钥", "App Key · App Secret"],
+        ["成果", "API 凭证"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 开始之前",
+          "desc": "Lazada 的 API 凭证通过在 Open Platform 注册应用来签发。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "Lazada 卖家账户", "p": "要进行签发，您需要一个 Lazada 卖家账户。使用该账户在 Lazada Open Platform 注册为开发者。" },
+              { "tag": "签发密钥", "h3": "App Key · App Secret", "p": "创建应用后将签发 App Key 和 App Secret。随后通过店铺授权获取 access_token。" }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. 申请步骤",
+          "desc": "按以下顺序签发并在 GenieGo 中注册。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "注册为开发者", "p": "在 Lazada Open Platform(open.lazada.com)注册为开发者。", "path": "https://open.lazada.com" },
+              { "h3": "创建应用", "p": "创建应用后将签发 App Key 和 App Secret。" },
+              { "h3": "店铺授权", "p": "完成店铺授权以获取 access_token。" },
+              { "h3": "确认值", "p": "确认已签发的 app_key 和 app_secret。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "当 App Key 和 App Secret 已签发，并通过店铺授权获取到 access_token 时，即表示已正确签发。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中注册的信息",
+          "blocks": [
+            { "type": "table", "head": ["字段", "说明"], "rows": [
+              ["app_key", "已签发的 App Key"],
+              ["app_secret", "已签发的 App Secret(请妥善保管)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 集成中心的 [注册] 中，输入 app_key 和 app_secret 并保存后，凭证将以 AES-256-GCM 加密存储，并在查询时进行掩码处理。" }
+          ]
+        },
+        {
+          "h2": "4. 常见问题",
+          "blocks": [
+            { "type": "table", "head": ["问题", "原因", "解决方法"], "rows": [
+              ["无法创建应用", "未完成 Lazada Open Platform 开发者注册", "在 Lazada Open Platform(open.lazada.com)注册为开发者后再创建应用。"],
+              ["认证失败", "未完成店铺授权，或未签发 access_token", "签发 App Key 和 App Secret 后，完成店铺授权以获取 access_token。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最终检查清单",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已使用 Lazada 卖家账户在 Open Platform 完成开发者注册。",
+              "已创建应用并签发 App Key 和 App Secret。",
+              "已完成店铺授权并获取 access_token。",
+              "已在 GenieGo [注册] 中输入 app_key 和 app_secret 并保存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh-TW": {
+      "titleType": "API Key 申請手冊",
+      "badge": "新手指南",
+      "intro": "本手冊手把手指導新手在 Lazada Open Platform 註冊應用程式以簽發 App Key 和 App Secret，透過商店授權取得 access_token，並註冊到 GenieGo 整合中心。",
+      "org": "GenieGo 整合中心",
+      "quick": [
+        ["預計時間", "約 5~15 分鐘"],
+        ["所需帳戶", "Lazada 賣家帳戶"],
+        ["簽發金鑰", "App Key · App Secret"],
+        ["成果", "API 憑證"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 開始之前",
+          "desc": "Lazada 的 API 憑證透過在 Open Platform 註冊應用程式來簽發。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "Lazada 賣家帳戶", "p": "要進行簽發，您需要一個 Lazada 賣家帳戶。使用該帳戶在 Lazada Open Platform 註冊為開發者。" },
+              { "tag": "簽發金鑰", "h3": "App Key · App Secret", "p": "建立應用程式後將簽發 App Key 和 App Secret。隨後透過商店授權取得 access_token。" }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. 簽發步驟",
+          "desc": "依以下順序簽發並在 GenieGo 中註冊。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "註冊為開發者", "p": "在 Lazada Open Platform(open.lazada.com)註冊為開發者。", "path": "https://open.lazada.com" },
+              { "h3": "建立應用程式", "p": "建立應用程式後將簽發 App Key 和 App Secret。" },
+              { "h3": "商店授權", "p": "完成商店授權以取得 access_token。" },
+              { "h3": "確認值", "p": "確認已簽發的 app_key 和 app_secret。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "當 App Key 和 App Secret 已簽發，並透過商店授權取得 access_token 時，即表示已正確簽發。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中註冊的資訊",
+          "blocks": [
+            { "type": "table", "head": ["欄位", "說明"], "rows": [
+              ["app_key", "已簽發的 App Key"],
+              ["app_secret", "已簽發的 App Secret(請妥善保管)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 整合中心的 [註冊] 中，輸入 app_key 和 app_secret 並儲存後，憑證將以 AES-256-GCM 加密儲存，並在查詢時進行遮罩處理。" }
+          ]
+        },
+        {
+          "h2": "4. 常見問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["無法建立應用程式", "未完成 Lazada Open Platform 開發者註冊", "在 Lazada Open Platform(open.lazada.com)註冊為開發者後再建立應用程式。"],
+              ["認證失敗", "未完成商店授權，或未簽發 access_token", "簽發 App Key 和 App Secret 後，完成商店授權以取得 access_token。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終檢查清單",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已使用 Lazada 賣家帳戶在 Open Platform 完成開發者註冊。",
+              "已建立應用程式並簽發 App Key 和 App Secret。",
+              "已完成商店授權並取得 access_token。",
+              "已在 GenieGo [註冊] 中輸入 app_key 和 app_secret 並儲存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "de": {
+      "titleType": "Anleitung zur API-Key-Ausstellung",
+      "badge": "Einsteigerleitfaden",
+      "intro": "Eine einsteigerfreundliche Schritt-für-Schritt-Anleitung zum Registrieren einer App auf der Lazada Open Platform, um einen App Key und ein App Secret auszustellen, einen access_token über die Shop-Autorisierung zu erhalten und ihn im GenieGo Integration Hub zu registrieren.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Geschätzte Zeit", "Etwa 5–15 Min."],
+        ["Benötigtes Konto", "Lazada-Verkäuferkonto"],
+        ["Ausgestellte Schlüssel", "App Key · App Secret"],
+        ["Ergebnis", "API-Anmeldedaten"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Bevor Sie beginnen",
+          "desc": "Lazada-API-Anmeldedaten werden durch das Registrieren einer App auf der Open Platform ausgestellt.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Erforderlich", "h3": "Lazada-Verkäuferkonto", "p": "Um mit der Ausstellung fortzufahren, benötigen Sie ein Lazada-Verkäuferkonto. Verwenden Sie dieses Konto, um sich als Entwickler auf der Lazada Open Platform zu registrieren." },
+              { "tag": "Ausgestellte Schlüssel", "h3": "App Key · App Secret", "p": "Wenn Sie eine App erstellen, werden ein App Key und ein App Secret ausgestellt. Anschließend erhalten Sie über die Shop-Autorisierung einen access_token." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Ausstellungsschritte",
+          "desc": "Stellen Sie in der unten angegebenen Reihenfolge aus und registrieren Sie in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Als Entwickler registrieren", "p": "Registrieren Sie sich als Entwickler auf der Lazada Open Platform (open.lazada.com).", "path": "https://open.lazada.com" },
+              { "h3": "App erstellen", "p": "Wenn Sie eine App erstellen, werden ein App Key und ein App Secret ausgestellt." },
+              { "h3": "Shop-Autorisierung", "p": "Schließen Sie die Shop-Autorisierung ab, um einen access_token zu erhalten." },
+              { "h3": "Werte überprüfen", "p": "Überprüfen Sie den ausgestellten app_key und das app_secret." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Sobald der App Key und das App Secret ausgestellt sind und Sie über die Shop-Autorisierung einen access_token erhalten, wurde es korrekt ausgestellt." }
+          ]
+        },
+        {
+          "h2": "3. In GenieGo zu registrierende Informationen",
+          "blocks": [
+            { "type": "table", "head": ["Feld", "Beschreibung"], "rows": [
+              ["app_key", "Der ausgestellte App Key"],
+              ["app_secret", "Das ausgestellte App Secret (vertraulich behandeln)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Geben Sie im GenieGo Integration Hub [Registrieren] Ihren app_key und Ihr app_secret ein und speichern Sie. Anmeldedaten werden im Ruhezustand mit AES-256-GCM verschlüsselt und beim Lesen maskiert." }
+          ]
+        },
+        {
+          "h2": "4. Häufige Probleme",
+          "blocks": [
+            { "type": "table", "head": ["Problem", "Ursache", "Lösung"], "rows": [
+              ["App kann nicht erstellt werden", "Entwicklerregistrierung auf der Lazada Open Platform nicht abgeschlossen", "Registrieren Sie sich als Entwickler auf der Lazada Open Platform (open.lazada.com) und erstellen Sie dann eine App."],
+              ["Authentifizierungsfehler", "Shop-Autorisierung nicht abgeschlossen oder access_token nicht ausgestellt", "Schließen Sie nach der Ausstellung von App Key und App Secret die Shop-Autorisierung ab, um einen access_token zu erhalten."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Abschließende Checkliste",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Entwicklerregistrierung auf der Open Platform mit einem Lazada-Verkäuferkonto abgeschlossen.",
+              "Eine App erstellt und den App Key und das App Secret ausgestellt.",
+              "Die Shop-Autorisierung abgeschlossen und einen access_token erhalten.",
+              "app_key und app_secret in GenieGo [Registrieren] eingegeben und gespeichert."
+            ] }
+          ]
+        }
+      ]
+    },
+    "th": {
+      "titleType": "คู่มือการออก API Key",
+      "badge": "คู่มือสำหรับผู้เริ่มต้น",
+      "intro": "คู่มือทีละขั้นตอนที่เป็นมิตรกับผู้เริ่มต้น สำหรับการลงทะเบียนแอปบน Lazada Open Platform เพื่อออก App Key และ App Secret รับ access_token ผ่านการอนุญาตร้านค้า และลงทะเบียนใน GenieGo Integration Hub",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["เวลาโดยประมาณ", "ประมาณ 5–15 นาที"],
+        ["บัญชีที่ต้องใช้", "บัญชีผู้ขาย Lazada"],
+        ["คีย์ที่ออก", "App Key · App Secret"],
+        ["ผลลัพธ์", "ข้อมูลรับรอง API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. ก่อนเริ่มต้น",
+          "desc": "ข้อมูลรับรอง API ของ Lazada ออกได้โดยการลงทะเบียนแอปบน Open Platform",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "จำเป็น", "h3": "บัญชีผู้ขาย Lazada", "p": "ในการดำเนินการออกคีย์ คุณต้องมีบัญชีผู้ขาย Lazada ใช้บัญชีนี้เพื่อลงทะเบียนเป็นนักพัฒนาบน Lazada Open Platform" },
+              { "tag": "คีย์ที่ออก", "h3": "App Key · App Secret", "p": "เมื่อคุณสร้างแอป ระบบจะออก App Key และ App Secret จากนั้นคุณจะได้รับ access_token ผ่านการอนุญาตร้านค้า" }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. ขั้นตอนการออก",
+          "desc": "ออกตามลำดับด้านล่างและลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "ลงทะเบียนเป็นนักพัฒนา", "p": "ลงทะเบียนเป็นนักพัฒนาบน Lazada Open Platform (open.lazada.com)", "path": "https://open.lazada.com" },
+              { "h3": "สร้างแอป", "p": "เมื่อคุณสร้างแอป ระบบจะออก App Key และ App Secret" },
+              { "h3": "การอนุญาตร้านค้า", "p": "ดำเนินการอนุญาตร้านค้าให้เสร็จสมบูรณ์เพื่อรับ access_token" },
+              { "h3": "ตรวจสอบค่า", "p": "ตรวจสอบ app_key และ app_secret ที่ออกแล้ว" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "เมื่อออก App Key และ App Secret และคุณได้รับ access_token ผ่านการอนุญาตร้านค้าแล้ว แสดงว่าออกอย่างถูกต้อง" }
+          ]
+        },
+        {
+          "h2": "3. ข้อมูลที่ต้องลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["ฟิลด์", "คำอธิบาย"], "rows": [
+              ["app_key", "App Key ที่ออกแล้ว"],
+              ["app_secret", "App Secret ที่ออกแล้ว (จัดการด้วยความระมัดระวัง)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "ใน GenieGo Integration Hub [ลงทะเบียน] ป้อน app_key และ app_secret แล้วบันทึก ข้อมูลรับรองจะถูกเข้ารหัสขณะจัดเก็บด้วย AES-256-GCM และปิดบังเมื่ออ่าน" }
+          ]
+        },
+        {
+          "h2": "4. ปัญหาที่พบบ่อย",
+          "blocks": [
+            { "type": "table", "head": ["ปัญหา", "สาเหตุ", "วิธีแก้ไข"], "rows": [
+              ["ไม่สามารถสร้างแอปได้", "ยังไม่ได้ลงทะเบียนนักพัฒนาบน Lazada Open Platform", "ลงทะเบียนเป็นนักพัฒนาบน Lazada Open Platform (open.lazada.com) แล้วจึงสร้างแอป"],
+              ["การยืนยันตัวตนล้มเหลว", "ยังไม่ได้ดำเนินการอนุญาตร้านค้า หรือยังไม่ได้ออก access_token", "หลังจากออก App Key และ App Secret แล้ว ให้ดำเนินการอนุญาตร้านค้าเพื่อรับ access_token"]
+            ] }
+          ]
+        },
+        {
+          "h2": "รายการตรวจสอบขั้นสุดท้าย",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "ลงทะเบียนนักพัฒนาบน Open Platform ด้วยบัญชีผู้ขาย Lazada เสร็จสมบูรณ์แล้ว",
+              "สร้างแอปและออก App Key และ App Secret แล้ว",
+              "ดำเนินการอนุญาตร้านค้าและรับ access_token แล้ว",
+              "ป้อน app_key และ app_secret ใน GenieGo [ลงทะเบียน] และบันทึกแล้ว"
+            ] }
+          ]
+        }
+      ]
+    },
+    "vi": {
+      "titleType": "Hướng dẫn cấp API Key",
+      "badge": "Hướng dẫn cho người mới",
+      "intro": "Hướng dẫn từng bước thân thiện với người mới về việc đăng ký một ứng dụng trên Lazada Open Platform để cấp App Key và App Secret, lấy access_token thông qua ủy quyền cửa hàng, và đăng ký trong GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Thời gian dự kiến", "Khoảng 5–15 phút"],
+        ["Tài khoản cần thiết", "Tài khoản người bán Lazada"],
+        ["Khóa được cấp", "App Key · App Secret"],
+        ["Kết quả", "Thông tin xác thực API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Trước khi bắt đầu",
+          "desc": "Thông tin xác thực API của Lazada được cấp bằng cách đăng ký một ứng dụng trên Open Platform.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Bắt buộc", "h3": "Tài khoản người bán Lazada", "p": "Để tiến hành cấp khóa, bạn cần một tài khoản người bán Lazada. Sử dụng tài khoản này để đăng ký làm nhà phát triển trên Lazada Open Platform." },
+              { "tag": "Khóa được cấp", "h3": "App Key · App Secret", "p": "Khi bạn tạo một ứng dụng, App Key và App Secret sẽ được cấp. Sau đó bạn lấy access_token thông qua ủy quyền cửa hàng." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Các bước cấp",
+          "desc": "Cấp theo thứ tự dưới đây và đăng ký trong GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Đăng ký làm nhà phát triển", "p": "Đăng ký làm nhà phát triển trên Lazada Open Platform (open.lazada.com).", "path": "https://open.lazada.com" },
+              { "h3": "Tạo ứng dụng", "p": "Khi bạn tạo một ứng dụng, App Key và App Secret sẽ được cấp." },
+              { "h3": "Ủy quyền cửa hàng", "p": "Hoàn tất ủy quyền cửa hàng để lấy access_token." },
+              { "h3": "Xác minh các giá trị", "p": "Xác minh app_key và app_secret đã được cấp." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Khi App Key và App Secret đã được cấp và bạn lấy được access_token thông qua ủy quyền cửa hàng, nghĩa là nó đã được cấp đúng cách." }
+          ]
+        },
+        {
+          "h2": "3. Thông tin cần đăng ký trong GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Trường", "Mô tả"], "rows": [
+              ["app_key", "App Key đã được cấp"],
+              ["app_secret", "App Secret đã được cấp (xử lý cẩn thận)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Trong GenieGo Integration Hub [Đăng ký], nhập app_key và app_secret của bạn rồi lưu. Thông tin xác thực được mã hóa khi lưu trữ bằng AES-256-GCM và được che khi đọc." }
+          ]
+        },
+        {
+          "h2": "4. Sự cố thường gặp",
+          "blocks": [
+            { "type": "table", "head": ["Sự cố", "Nguyên nhân", "Giải pháp"], "rows": [
+              ["Không thể tạo ứng dụng", "Chưa hoàn tất đăng ký nhà phát triển trên Lazada Open Platform", "Đăng ký làm nhà phát triển trên Lazada Open Platform (open.lazada.com) rồi tạo ứng dụng."],
+              ["Xác thực thất bại", "Chưa hoàn tất ủy quyền cửa hàng, hoặc chưa cấp access_token", "Sau khi cấp App Key và App Secret, hãy hoàn tất ủy quyền cửa hàng để lấy access_token."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Danh sách kiểm tra cuối cùng",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Đã hoàn tất đăng ký nhà phát triển trên Open Platform bằng tài khoản người bán Lazada.",
+              "Đã tạo ứng dụng và cấp App Key và App Secret.",
+              "Đã hoàn tất ủy quyền cửa hàng và lấy được access_token.",
+              "Đã nhập app_key và app_secret vào GenieGo [Đăng ký] và lưu."
+            ] }
+          ]
+        }
+      ]
+    },
+    "id": {
+      "titleType": "Panduan Penerbitan API Key",
+      "badge": "Panduan Pemula",
+      "intro": "Panduan langkah demi langkah yang ramah pemula untuk mendaftarkan aplikasi di Lazada Open Platform guna menerbitkan App Key dan App Secret, memperoleh access_token melalui otorisasi toko, dan mendaftarkannya di GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Perkiraan waktu", "Sekitar 5–15 menit"],
+        ["Akun yang dibutuhkan", "Akun penjual Lazada"],
+        ["Kunci yang diterbitkan", "App Key · App Secret"],
+        ["Hasil", "Kredensial API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Sebelum Anda Mulai",
+          "desc": "Kredensial API Lazada diterbitkan dengan mendaftarkan aplikasi di Open Platform.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Diperlukan", "h3": "Akun penjual Lazada", "p": "Untuk melanjutkan penerbitan, Anda memerlukan akun penjual Lazada. Gunakan akun ini untuk mendaftar sebagai pengembang di Lazada Open Platform." },
+              { "tag": "Kunci yang diterbitkan", "h3": "App Key · App Secret", "p": "Saat Anda membuat aplikasi, App Key dan App Secret akan diterbitkan. Selanjutnya Anda memperoleh access_token melalui otorisasi toko." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Langkah Penerbitan",
+          "desc": "Terbitkan sesuai urutan di bawah dan daftarkan di GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Daftar sebagai pengembang", "p": "Daftar sebagai pengembang di Lazada Open Platform (open.lazada.com).", "path": "https://open.lazada.com" },
+              { "h3": "Buat aplikasi", "p": "Saat Anda membuat aplikasi, App Key dan App Secret akan diterbitkan." },
+              { "h3": "Otorisasi toko", "p": "Selesaikan otorisasi toko untuk memperoleh access_token." },
+              { "h3": "Verifikasi nilai", "p": "Verifikasi app_key dan app_secret yang diterbitkan." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Setelah App Key dan App Secret diterbitkan dan Anda memperoleh access_token melalui otorisasi toko, berarti telah diterbitkan dengan benar." }
+          ]
+        },
+        {
+          "h2": "3. Informasi yang Harus Didaftarkan di GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Bidang", "Deskripsi"], "rows": [
+              ["app_key", "App Key yang diterbitkan"],
+              ["app_secret", "App Secret yang diterbitkan (tangani dengan hati-hati)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Di GenieGo Integration Hub [Daftar], masukkan app_key dan app_secret Anda lalu simpan. Kredensial dienkripsi saat disimpan dengan AES-256-GCM dan disamarkan saat dibaca." }
+          ]
+        },
+        {
+          "h2": "4. Masalah Umum",
+          "blocks": [
+            { "type": "table", "head": ["Masalah", "Penyebab", "Solusi"], "rows": [
+              ["Tidak dapat membuat aplikasi", "Pendaftaran pengembang di Lazada Open Platform belum selesai", "Daftar sebagai pengembang di Lazada Open Platform (open.lazada.com) lalu buat aplikasi."],
+              ["Autentikasi gagal", "Otorisasi toko belum selesai, atau access_token belum diterbitkan", "Setelah menerbitkan App Key dan App Secret, selesaikan otorisasi toko untuk memperoleh access_token."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Daftar Periksa Akhir",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Menyelesaikan pendaftaran pengembang di Open Platform dengan akun penjual Lazada.",
+              "Membuat aplikasi dan menerbitkan App Key dan App Secret.",
+              "Menyelesaikan otorisasi toko dan memperoleh access_token.",
+              "Memasukkan app_key dan app_secret di GenieGo [Daftar] dan menyimpannya."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ar": {
+      "titleType": "دليل إصدار مفتاح API",
+      "badge": "دليل المبتدئين",
+      "intro": "دليل تفصيلي خطوة بخطوة مناسب للمبتدئين لتسجيل تطبيق على Lazada Open Platform لإصدار App Key و App Secret، والحصول على access_token عبر تفويض المتجر، وتسجيله في GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["الوقت التقديري", "حوالي 5–15 دقيقة"],
+        ["الحساب المطلوب", "حساب بائع Lazada"],
+        ["المفاتيح الصادرة", "App Key · App Secret"],
+        ["النتيجة", "بيانات اعتماد API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. قبل أن تبدأ",
+          "desc": "تُصدَر بيانات اعتماد API الخاصة بـ Lazada من خلال تسجيل تطبيق على Open Platform.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "مطلوب", "h3": "حساب بائع Lazada", "p": "للمتابعة في الإصدار، تحتاج إلى حساب بائع Lazada. استخدم هذا الحساب للتسجيل كمطور على Lazada Open Platform." },
+              { "tag": "المفاتيح الصادرة", "h3": "App Key · App Secret", "p": "عند إنشاء تطبيق، يتم إصدار App Key و App Secret. ثم تحصل على access_token عبر تفويض المتجر." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. خطوات الإصدار",
+          "desc": "أصدر بالترتيب أدناه وسجّل في GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "التسجيل كمطور", "p": "سجّل كمطور على Lazada Open Platform (open.lazada.com).", "path": "https://open.lazada.com" },
+              { "h3": "إنشاء تطبيق", "p": "عند إنشاء تطبيق، يتم إصدار App Key و App Secret." },
+              { "h3": "تفويض المتجر", "p": "أكمل تفويض المتجر للحصول على access_token." },
+              { "h3": "التحقق من القيم", "p": "تحقق من app_key و app_secret الصادرين." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "بمجرد إصدار App Key و App Secret وحصولك على access_token عبر تفويض المتجر، يكون قد تم إصداره بشكل صحيح." }
+          ]
+        },
+        {
+          "h2": "3. المعلومات المراد تسجيلها في GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["الحقل", "الوصف"], "rows": [
+              ["app_key", "App Key الصادر"],
+              ["app_secret", "App Secret الصادر (تعامل معه بحذر)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "في GenieGo Integration Hub [تسجيل]، أدخل app_key و app_secret الخاصين بك واحفظ. تُشفَّر بيانات الاعتماد أثناء التخزين باستخدام AES-256-GCM وتُخفى عند القراءة." }
+          ]
+        },
+        {
+          "h2": "4. المشكلات الشائعة",
+          "blocks": [
+            { "type": "table", "head": ["المشكلة", "السبب", "الحل"], "rows": [
+              ["تعذّر إنشاء تطبيق", "لم يكتمل تسجيل المطور على Lazada Open Platform", "سجّل كمطور على Lazada Open Platform (open.lazada.com) ثم أنشئ تطبيقًا."],
+              ["فشل المصادقة", "لم يكتمل تفويض المتجر، أو لم يُصدَر access_token", "بعد إصدار App Key و App Secret، أكمل تفويض المتجر للحصول على access_token."]
+            ] }
+          ]
+        },
+        {
+          "h2": "قائمة التحقق النهائية",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "أكملتُ تسجيل المطور على Open Platform بحساب بائع Lazada.",
+              "أنشأتُ تطبيقًا وأصدرتُ App Key و App Secret.",
+              "أكملتُ تفويض المتجر وحصلتُ على access_token.",
+              "أدخلتُ app_key و app_secret في GenieGo [تسجيل] وحفظتُ."
+            ] }
+          ]
+        }
+      ]
+    },
+    "es": {
+      "titleType": "Manual de emisión de API Key",
+      "badge": "Guía para principiantes",
+      "intro": "Una guía paso a paso y fácil para principiantes sobre cómo registrar una aplicación en la Lazada Open Platform para emitir una App Key y un App Secret, obtener un access_token mediante la autorización de la tienda y registrarlo en el GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tiempo estimado", "Unos 5–15 min"],
+        ["Cuenta necesaria", "Cuenta de vendedor de Lazada"],
+        ["Claves emitidas", "App Key · App Secret"],
+        ["Resultado", "Credenciales de API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de empezar",
+          "desc": "Las credenciales de la API de Lazada se emiten registrando una aplicación en la Open Platform.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requerido", "h3": "Cuenta de vendedor de Lazada", "p": "Para continuar con la emisión, necesita una cuenta de vendedor de Lazada. Use esta cuenta para registrarse como desarrollador en la Lazada Open Platform." },
+              { "tag": "Claves emitidas", "h3": "App Key · App Secret", "p": "Cuando crea una aplicación, se emiten una App Key y un App Secret. Luego obtiene un access_token mediante la autorización de la tienda." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Pasos de emisión",
+          "desc": "Emita en el orden siguiente y registre en GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Registrarse como desarrollador", "p": "Regístrese como desarrollador en la Lazada Open Platform (open.lazada.com).", "path": "https://open.lazada.com" },
+              { "h3": "Crear una aplicación", "p": "Cuando crea una aplicación, se emiten una App Key y un App Secret." },
+              { "h3": "Autorización de la tienda", "p": "Complete la autorización de la tienda para obtener un access_token." },
+              { "h3": "Verificar los valores", "p": "Verifique la app_key y el app_secret emitidos." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Una vez emitidos la App Key y el App Secret y obtenido un access_token mediante la autorización de la tienda, se ha emitido correctamente." }
+          ]
+        },
+        {
+          "h2": "3. Información para registrar en GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descripción"], "rows": [
+              ["app_key", "La App Key emitida"],
+              ["app_secret", "El App Secret emitido (manéjelo con cuidado)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "En el GenieGo Integration Hub [Registrar], ingrese su app_key y app_secret y guarde. Las credenciales se cifran en reposo con AES-256-GCM y se enmascaran al leerlas." }
+          ]
+        },
+        {
+          "h2": "4. Problemas comunes",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solución"], "rows": [
+              ["No se puede crear una aplicación", "Registro de desarrollador en la Lazada Open Platform no completado", "Regístrese como desarrollador en la Lazada Open Platform (open.lazada.com) y luego cree una aplicación."],
+              ["Error de autenticación", "Autorización de la tienda no completada, o access_token no emitido", "Después de emitir la App Key y el App Secret, complete la autorización de la tienda para obtener un access_token."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificación final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Completé el registro de desarrollador en la Open Platform con una cuenta de vendedor de Lazada.",
+              "Creé una aplicación y emití la App Key y el App Secret.",
+              "Completé la autorización de la tienda y obtuve un access_token.",
+              "Ingresé app_key y app_secret en GenieGo [Registrar] y guardé."
+            ] }
+          ]
+        }
+      ]
+    },
+    "fr": {
+      "titleType": "Manuel d'émission de la clé API",
+      "badge": "Guide du débutant",
+      "intro": "Un guide étape par étape adapté aux débutants pour enregistrer une application sur la Lazada Open Platform afin d'émettre une App Key et un App Secret, obtenir un access_token via l'autorisation de la boutique, et l'enregistrer dans le GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Temps estimé", "Environ 5–15 min"],
+        ["Compte requis", "Compte vendeur Lazada"],
+        ["Clés émises", "App Key · App Secret"],
+        ["Résultat", "Identifiants API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Avant de commencer",
+          "desc": "Les identifiants de l'API Lazada sont émis en enregistrant une application sur l'Open Platform.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requis", "h3": "Compte vendeur Lazada", "p": "Pour procéder à l'émission, vous avez besoin d'un compte vendeur Lazada. Utilisez ce compte pour vous inscrire en tant que développeur sur la Lazada Open Platform." },
+              { "tag": "Clés émises", "h3": "App Key · App Secret", "p": "Lorsque vous créez une application, une App Key et un App Secret sont émis. Vous obtenez ensuite un access_token via l'autorisation de la boutique." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Étapes d'émission",
+          "desc": "Émettez dans l'ordre ci-dessous et enregistrez dans GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "S'inscrire en tant que développeur", "p": "Inscrivez-vous en tant que développeur sur la Lazada Open Platform (open.lazada.com).", "path": "https://open.lazada.com" },
+              { "h3": "Créer une application", "p": "Lorsque vous créez une application, une App Key et un App Secret sont émis." },
+              { "h3": "Autorisation de la boutique", "p": "Effectuez l'autorisation de la boutique pour obtenir un access_token." },
+              { "h3": "Vérifier les valeurs", "p": "Vérifiez l'app_key et l'app_secret émis." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Une fois l'App Key et l'App Secret émis et un access_token obtenu via l'autorisation de la boutique, l'émission a été effectuée correctement." }
+          ]
+        },
+        {
+          "h2": "3. Informations à enregistrer dans GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Champ", "Description"], "rows": [
+              ["app_key", "L'App Key émise"],
+              ["app_secret", "L'App Secret émis (à manipuler avec précaution)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Dans le GenieGo Integration Hub [Enregistrer], saisissez votre app_key et votre app_secret puis enregistrez. Les identifiants sont chiffrés au repos avec AES-256-GCM et masqués à la lecture." }
+          ]
+        },
+        {
+          "h2": "4. Problèmes courants",
+          "blocks": [
+            { "type": "table", "head": ["Problème", "Cause", "Solution"], "rows": [
+              ["Impossible de créer une application", "Inscription développeur sur la Lazada Open Platform non terminée", "Inscrivez-vous en tant que développeur sur la Lazada Open Platform (open.lazada.com) puis créez une application."],
+              ["Échec de l'authentification", "Autorisation de la boutique non terminée, ou access_token non émis", "Après avoir émis l'App Key et l'App Secret, effectuez l'autorisation de la boutique pour obtenir un access_token."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Liste de vérification finale",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Terminé l'inscription développeur sur l'Open Platform avec un compte vendeur Lazada.",
+              "Créé une application et émis l'App Key et l'App Secret.",
+              "Effectué l'autorisation de la boutique et obtenu un access_token.",
+              "Saisi app_key et app_secret dans GenieGo [Enregistrer] et enregistré."
+            ] }
+          ]
+        }
+      ]
+    },
+    "hi": {
+      "titleType": "API Key जारी करने की मैनुअल",
+      "badge": "शुरुआती गाइड",
+      "intro": "App Key और App Secret जारी करने के लिए Lazada Open Platform पर एक ऐप पंजीकृत करने, शॉप ऑथराइज़ेशन के माध्यम से access_token प्राप्त करने, और उसे GenieGo Integration Hub में पंजीकृत करने की एक शुरुआती-अनुकूल, चरण-दर-चरण मार्गदर्शिका।",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["अनुमानित समय", "लगभग 5–15 मिनट"],
+        ["आवश्यक खाता", "Lazada विक्रेता खाता"],
+        ["जारी की गई कुंजियाँ", "App Key · App Secret"],
+        ["परिणाम", "API क्रेडेंशियल"]
+      ],
+      "sections": [
+        {
+          "h2": "1. शुरू करने से पहले",
+          "desc": "Lazada API क्रेडेंशियल Open Platform पर एक ऐप पंजीकृत करके जारी किए जाते हैं।",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "आवश्यक", "h3": "Lazada विक्रेता खाता", "p": "जारी करने की प्रक्रिया जारी रखने के लिए, आपके पास एक Lazada विक्रेता खाता होना चाहिए। इस खाते का उपयोग Lazada Open Platform पर डेवलपर के रूप में पंजीकरण करने के लिए करें।" },
+              { "tag": "जारी की गई कुंजियाँ", "h3": "App Key · App Secret", "p": "जब आप एक ऐप बनाते हैं, तो App Key और App Secret जारी किए जाते हैं। फिर आप शॉप ऑथराइज़ेशन के माध्यम से एक access_token प्राप्त करते हैं।" }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. जारी करने के चरण",
+          "desc": "नीचे दिए गए क्रम में जारी करें और GenieGo में पंजीकृत करें।",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "डेवलपर के रूप में पंजीकरण करें", "p": "Lazada Open Platform (open.lazada.com) पर डेवलपर के रूप में पंजीकरण करें।", "path": "https://open.lazada.com" },
+              { "h3": "एक ऐप बनाएँ", "p": "जब आप एक ऐप बनाते हैं, तो App Key और App Secret जारी किए जाते हैं।" },
+              { "h3": "शॉप ऑथराइज़ेशन", "p": "access_token प्राप्त करने के लिए शॉप ऑथराइज़ेशन पूरा करें।" },
+              { "h3": "मानों की पुष्टि करें", "p": "जारी किए गए app_key और app_secret की पुष्टि करें।" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "एक बार App Key और App Secret जारी हो जाने और शॉप ऑथराइज़ेशन के माध्यम से access_token प्राप्त हो जाने पर, यह सही ढंग से जारी कर दिया गया है।" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo में पंजीकृत करने योग्य जानकारी",
+          "blocks": [
+            { "type": "table", "head": ["फ़ील्ड", "विवरण"], "rows": [
+              ["app_key", "जारी की गई App Key"],
+              ["app_secret", "जारी किया गया App Secret (सावधानी से संभालें)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo Integration Hub [पंजीकृत करें] में, अपना app_key और app_secret दर्ज करें और सहेजें। क्रेडेंशियल को AES-256-GCM के साथ संग्रहण के समय एन्क्रिप्ट किया जाता है और पढ़ने पर मास्क किया जाता है।" }
+          ]
+        },
+        {
+          "h2": "4. सामान्य समस्याएँ",
+          "blocks": [
+            { "type": "table", "head": ["समस्या", "कारण", "समाधान"], "rows": [
+              ["ऐप नहीं बना सकते", "Lazada Open Platform पर डेवलपर पंजीकरण पूरा नहीं हुआ", "Lazada Open Platform (open.lazada.com) पर डेवलपर के रूप में पंजीकरण करें और फिर एक ऐप बनाएँ।"],
+              ["प्रमाणीकरण विफलता", "शॉप ऑथराइज़ेशन पूरा नहीं हुआ, या access_token जारी नहीं हुआ", "App Key और App Secret जारी करने के बाद, access_token प्राप्त करने के लिए शॉप ऑथराइज़ेशन पूरा करें।"]
+            ] }
+          ]
+        },
+        {
+          "h2": "अंतिम जाँच सूची",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Lazada विक्रेता खाते के साथ Open Platform पर डेवलपर पंजीकरण पूरा किया।",
+              "एक ऐप बनाया और App Key और App Secret जारी किए।",
+              "शॉप ऑथराइज़ेशन पूरा किया और एक access_token प्राप्त किया।",
+              "GenieGo [पंजीकृत करें] में app_key और app_secret दर्ज किया और सहेजा।"
+            ] }
+          ]
+        }
+      ]
+    },
+    "pt": {
+      "titleType": "Manual de emissão de API Key",
+      "badge": "Guia para iniciantes",
+      "intro": "Um guia passo a passo amigável para iniciantes sobre como registrar um aplicativo na Lazada Open Platform para emitir uma App Key e um App Secret, obter um access_token por meio da autorização da loja e registrá-lo no GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tempo estimado", "Cerca de 5–15 min"],
+        ["Conta necessária", "Conta de vendedor Lazada"],
+        ["Chaves emitidas", "App Key · App Secret"],
+        ["Resultado", "Credenciais de API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de começar",
+          "desc": "As credenciais da API da Lazada são emitidas registrando um aplicativo na Open Platform.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Necessário", "h3": "Conta de vendedor Lazada", "p": "Para prosseguir com a emissão, você precisa de uma conta de vendedor Lazada. Use esta conta para se registrar como desenvolvedor na Lazada Open Platform." },
+              { "tag": "Chaves emitidas", "h3": "App Key · App Secret", "p": "Ao criar um aplicativo, uma App Key e um App Secret são emitidos. Em seguida, você obtém um access_token por meio da autorização da loja." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Etapas de emissão",
+          "desc": "Emita na ordem abaixo e registre no GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Registrar-se como desenvolvedor", "p": "Registre-se como desenvolvedor na Lazada Open Platform (open.lazada.com).", "path": "https://open.lazada.com" },
+              { "h3": "Criar um aplicativo", "p": "Ao criar um aplicativo, uma App Key e um App Secret são emitidos." },
+              { "h3": "Autorização da loja", "p": "Conclua a autorização da loja para obter um access_token." },
+              { "h3": "Verificar os valores", "p": "Verifique a app_key e o app_secret emitidos." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Depois que a App Key e o App Secret forem emitidos e você obtiver um access_token por meio da autorização da loja, ela foi emitida corretamente." }
+          ]
+        },
+        {
+          "h2": "3. Informações a registrar no GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descrição"], "rows": [
+              ["app_key", "A App Key emitida"],
+              ["app_secret", "O App Secret emitido (manuseie com cuidado)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "No GenieGo Integration Hub [Registrar], insira sua app_key e app_secret e salve. As credenciais são criptografadas em repouso com AES-256-GCM e mascaradas na leitura." }
+          ]
+        },
+        {
+          "h2": "4. Problemas comuns",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solução"], "rows": [
+              ["Não é possível criar um aplicativo", "Registro de desenvolvedor na Lazada Open Platform não concluído", "Registre-se como desenvolvedor na Lazada Open Platform (open.lazada.com) e depois crie um aplicativo."],
+              ["Falha na autenticação", "Autorização da loja não concluída ou access_token não emitido", "Após emitir a App Key e o App Secret, conclua a autorização da loja para obter um access_token."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificação final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Concluí o registro de desenvolvedor na Open Platform com uma conta de vendedor Lazada.",
+              "Criei um aplicativo e emiti a App Key e o App Secret.",
+              "Concluí a autorização da loja e obtive um access_token.",
+              "Inseri app_key e app_secret no GenieGo [Registrar] e salvei."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ru": {
+      "titleType": "Руководство по выпуску API Key",
+      "badge": "Руководство для начинающих",
+      "intro": "Понятное для начинающих пошаговое руководство по регистрации приложения на Lazada Open Platform для выпуска App Key и App Secret, получению access_token через авторизацию магазина и регистрации в GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Примерное время", "Около 5–15 мин"],
+        ["Требуется аккаунт", "Аккаунт продавца Lazada"],
+        ["Выпущенные ключи", "App Key · App Secret"],
+        ["Результат", "Учётные данные API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Прежде чем начать",
+          "desc": "Учётные данные API Lazada выпускаются путём регистрации приложения на Open Platform.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Требуется", "h3": "Аккаунт продавца Lazada", "p": "Чтобы продолжить выпуск, вам нужен аккаунт продавца Lazada. Используйте этот аккаунт для регистрации в качестве разработчика на Lazada Open Platform." },
+              { "tag": "Выпущенные ключи", "h3": "App Key · App Secret", "p": "При создании приложения выпускаются App Key и App Secret. Затем вы получаете access_token через авторизацию магазина." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Шаги выпуска",
+          "desc": "Выпустите в указанном ниже порядке и зарегистрируйте в GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Зарегистрироваться как разработчик", "p": "Зарегистрируйтесь в качестве разработчика на Lazada Open Platform (open.lazada.com).", "path": "https://open.lazada.com" },
+              { "h3": "Создать приложение", "p": "При создании приложения выпускаются App Key и App Secret." },
+              { "h3": "Авторизация магазина", "p": "Завершите авторизацию магазина, чтобы получить access_token." },
+              { "h3": "Проверить значения", "p": "Проверьте выпущенные app_key и app_secret." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Как только App Key и App Secret выпущены и вы получили access_token через авторизацию магазина, выпуск выполнен правильно." }
+          ]
+        },
+        {
+          "h2": "3. Информация для регистрации в GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Поле", "Описание"], "rows": [
+              ["app_key", "Выпущенный App Key"],
+              ["app_secret", "Выпущенный App Secret (обращайтесь осторожно)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "В GenieGo Integration Hub [Регистрация] введите свои app_key и app_secret и сохраните. Учётные данные шифруются при хранении с помощью AES-256-GCM и маскируются при чтении." }
+          ]
+        },
+        {
+          "h2": "4. Частые проблемы",
+          "blocks": [
+            { "type": "table", "head": ["Проблема", "Причина", "Решение"], "rows": [
+              ["Не удаётся создать приложение", "Регистрация разработчика на Lazada Open Platform не завершена", "Зарегистрируйтесь в качестве разработчика на Lazada Open Platform (open.lazada.com), а затем создайте приложение."],
+              ["Ошибка аутентификации", "Авторизация магазина не завершена или access_token не выпущен", "После выпуска App Key и App Secret завершите авторизацию магазина, чтобы получить access_token."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Итоговый контрольный список",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Завершил регистрацию разработчика на Open Platform с аккаунтом продавца Lazada.",
+              "Создал приложение и выпустил App Key и App Secret.",
+              "Завершил авторизацию магазина и получил access_token.",
+              "Ввёл app_key и app_secret в GenieGo [Регистрация] и сохранил."
+            ] }
+          ]
+        }
+      ]
+    }
+  }
+}

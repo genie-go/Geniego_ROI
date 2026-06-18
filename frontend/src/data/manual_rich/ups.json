@@ -1,0 +1,1011 @@
+{
+  "name": "UPS",
+  "icon": "🟤",
+  "langs": {
+    "ko": {
+      "titleType": "API Key 발급 매뉴얼",
+      "badge": "Beginner Guide",
+      "intro": "UPS 개발자 포털(developer.ups.com)에서 앱을 생성해 client_id와 client_secret을 발급하고, UPS 계정번호와 함께 GenieGo 연동 허브에 등록하는 과정을 정리한 매뉴얼입니다.",
+      "org": "GenieGo 연동 허브",
+      "quick": [
+        ["소요 시간", "약 5~15분"],
+        ["필요 계정", "UPS 계정(계정번호)"],
+        ["발급 키", "Client ID · Client Secret"],
+        ["결과물", "OAuth 자격증명 · 계정번호"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 시작하기 전에",
+          "desc": "UPS 자격증명은 개발자 포털에서 앱을 생성해 발급하며, 계정번호가 필요합니다.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "준비물", "h3": "UPS 계정번호", "p": "UPS 계정번호가 필요합니다. 계정번호는 GenieGo 등록 시 함께 입력합니다." },
+              { "tag": "발급 키", "h3": "Client ID · Client Secret", "p": "개발자 포털에서 앱을 생성하면 client_id와 client_secret이 발급됩니다." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. 발급 단계",
+          "desc": "아래 순서대로 발급하고 GenieGo에 등록합니다.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "개발자 포털 가입·앱 생성", "p": "UPS 개발자 포털에 가입하고 앱을 생성합니다.", "path": "https://developer.ups.com" },
+              { "h3": "client_id·client_secret 발급", "p": "앱을 생성하면 client_id와 client_secret을 발급받습니다.", "path": "앱 생성" },
+              { "h3": "계정번호 확인", "p": "발급된 client_id·client_secret과 UPS 계정번호를 확인합니다." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "앱 생성 후 client_id·client_secret이 발급되면 정상입니다." }
+          ]
+        },
+        {
+          "h2": "3. GenieGo에 등록할 정보",
+          "blocks": [
+            { "type": "table", "head": ["필드", "설명"], "rows": [
+              ["client_id", "발급된 Client ID"],
+              ["client_secret", "발급된 Client Secret(노출 주의)"],
+              ["account_number", "UPS 계정번호"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 연동 허브 [등록]에 입력해 저장하면 자격증명은 AES-256-GCM으로 암호화 저장되고 조회 시 마스킹됩니다." }
+          ]
+        },
+        {
+          "h2": "4. 자주 발생하는 문제",
+          "blocks": [
+            { "type": "table", "head": ["문제", "원인", "해결"], "rows": [
+              ["앱에서 자격증명이 보이지 않음", "앱 생성 미완료", "developer.ups.com에서 앱을 생성하면 client_id·client_secret이 발급됩니다."],
+              ["호출 시 인증 오류", "client_secret 오기재 또는 계정번호 누락", "client_secret과 계정번호(account_number)를 다시 확인합니다."]
+            ] }
+          ]
+        },
+        {
+          "h2": "최종 체크리스트",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "UPS 계정번호를 확인했다.",
+              "developer.ups.com에 가입하고 앱을 생성했다.",
+              "client_id·client_secret을 발급받았다.",
+              "GenieGo [등록]에 client_id·client_secret·account_number를 입력해 저장했다."
+            ] }
+          ]
+        }
+      ]
+    },
+    "en": {
+      "titleType": "API Key Issuance Manual",
+      "badge": "Beginner Guide",
+      "intro": "A guide that walks you through creating an app on the UPS Developer Portal (developer.ups.com) to issue a client_id and client_secret, and registering them together with your UPS account number in the GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Est. time", "About 5–15 min"],
+        ["Account needed", "UPS account (account number)"],
+        ["Keys issued", "Client ID · Client Secret"],
+        ["Result", "OAuth credentials · account number"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Before You Begin",
+          "desc": "UPS credentials are issued by creating an app on the Developer Portal, and an account number is required.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requirements", "h3": "UPS account number", "p": "You need a UPS account number. The account number is entered together when registering in GenieGo." },
+              { "tag": "Keys issued", "h3": "Client ID · Client Secret", "p": "When you create an app on the Developer Portal, a client_id and client_secret are issued." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Issuance Steps",
+          "desc": "Issue in the order below and register in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Sign up for the Developer Portal and create an app", "p": "Sign up for the UPS Developer Portal and create an app.", "path": "https://developer.ups.com" },
+              { "h3": "Issue client_id and client_secret", "p": "When you create the app, you receive a client_id and client_secret.", "path": "Create app" },
+              { "h3": "Check the account number", "p": "Confirm the issued client_id and client_secret along with your UPS account number." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Once the client_id and client_secret are issued after creating the app, it is working correctly." }
+          ]
+        },
+        {
+          "h2": "3. Information to Register in GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Field", "Description"], "rows": [
+              ["client_id", "The issued Client ID"],
+              ["client_secret", "The issued Client Secret (handle with care)"],
+              ["account_number", "UPS account number"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Enter them in the GenieGo Integration Hub [Register] and save. Credentials are encrypted at rest with AES-256-GCM and masked on read." }
+          ]
+        },
+        {
+          "h2": "4. Common Issues",
+          "blocks": [
+            { "type": "table", "head": ["Issue", "Cause", "Solution"], "rows": [
+              ["Credentials are not visible in the app", "App creation not completed", "Create an app at developer.ups.com and the client_id and client_secret will be issued."],
+              ["Authentication error on calls", "Mistyped client_secret or missing account number", "Recheck the client_secret and the account number (account_number)."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Final Checklist",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Checked the UPS account number.",
+              "Signed up at developer.ups.com and created an app.",
+              "Issued the client_id and client_secret.",
+              "Entered client_id, client_secret, and account_number in GenieGo [Register] and saved."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ja": {
+      "titleType": "API Key 発行マニュアル",
+      "badge": "初心者ガイド",
+      "intro": "UPS 開発者ポータル(developer.ups.com)でアプリを作成して client_id と client_secret を発行し、UPS アカウント番号とともに GenieGo 連携ハブに登録する手順をまとめたマニュアルです。",
+      "org": "GenieGo 連携ハブ",
+      "quick": [
+        ["所要時間", "約 5〜15 分"],
+        ["必要なアカウント", "UPS アカウント(アカウント番号)"],
+        ["発行するキー", "Client ID · Client Secret"],
+        ["成果物", "OAuth 認証情報 · アカウント番号"]
+      ],
+      "sections": [
+        {
+          "h2": "1. はじめる前に",
+          "desc": "UPS の認証情報は開発者ポータルでアプリを作成して発行し、アカウント番号が必要です。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "準備物", "h3": "UPS アカウント番号", "p": "UPS アカウント番号が必要です。アカウント番号は GenieGo 登録時に一緒に入力します。" },
+              { "tag": "発行するキー", "h3": "Client ID · Client Secret", "p": "開発者ポータルでアプリを作成すると client_id と client_secret が発行されます。" }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. 発行手順",
+          "desc": "以下の順序で発行し、GenieGo に登録します。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "開発者ポータルに登録・アプリ作成", "p": "UPS 開発者ポータルに登録してアプリを作成します。", "path": "https://developer.ups.com" },
+              { "h3": "client_id·client_secret を発行", "p": "アプリを作成すると client_id と client_secret が発行されます。", "path": "アプリ作成" },
+              { "h3": "アカウント番号を確認", "p": "発行された client_id·client_secret と UPS アカウント番号を確認します。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "アプリ作成後に client_id·client_secret が発行されれば正常です。" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo に登録する情報",
+          "blocks": [
+            { "type": "table", "head": ["フィールド", "説明"], "rows": [
+              ["client_id", "発行された Client ID"],
+              ["client_secret", "発行された Client Secret(取り扱い注意)"],
+              ["account_number", "UPS アカウント番号"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 連携ハブ [登録] に入力して保存すると、認証情報は AES-256-GCM で暗号化して保存され、閲覧時にはマスキングされます。" }
+          ]
+        },
+        {
+          "h2": "4. よくある問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["アプリで認証情報が表示されない", "アプリ作成が未完了", "developer.ups.com でアプリを作成すると client_id·client_secret が発行されます。"],
+              ["呼び出し時に認証エラー", "client_secret の誤記、またはアカウント番号の欠落", "client_secret とアカウント番号(account_number)を再確認します。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終チェックリスト",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "UPS アカウント番号を確認した。",
+              "developer.ups.com に登録してアプリを作成した。",
+              "client_id·client_secret を発行した。",
+              "GenieGo の [登録] に client_id·client_secret·account_number を入力して保存した。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh": {
+      "titleType": "API Key 申请手册",
+      "badge": "新手指南",
+      "intro": "本手册整理了在 UPS 开发者门户(developer.ups.com)创建应用以签发 client_id 和 client_secret，并连同 UPS 账号一起注册到 GenieGo 集成中心的流程。",
+      "org": "GenieGo 集成中心",
+      "quick": [
+        ["预计时间", "约 5~15 分钟"],
+        ["所需账户", "UPS 账户(账号)"],
+        ["签发密钥", "Client ID · Client Secret"],
+        ["成果", "OAuth 凭证 · 账号"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 开始之前",
+          "desc": "UPS 凭证通过在开发者门户创建应用来签发，并且需要账号。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "准备事项", "h3": "UPS 账号", "p": "您需要一个 UPS 账号。账号将在注册到 GenieGo 时一并输入。" },
+              { "tag": "签发密钥", "h3": "Client ID · Client Secret", "p": "在开发者门户创建应用后，将签发 client_id 和 client_secret。" }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. 申请步骤",
+          "desc": "按以下顺序签发并在 GenieGo 中注册。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "注册开发者门户并创建应用", "p": "注册 UPS 开发者门户并创建应用。", "path": "https://developer.ups.com" },
+              { "h3": "签发 client_id·client_secret", "p": "创建应用后，将签发 client_id 和 client_secret。", "path": "创建应用" },
+              { "h3": "确认账号", "p": "确认已签发的 client_id·client_secret 以及 UPS 账号。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "创建应用后签发了 client_id·client_secret，即表示正常。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中注册的信息",
+          "blocks": [
+            { "type": "table", "head": ["字段", "说明"], "rows": [
+              ["client_id", "签发的 Client ID"],
+              ["client_secret", "签发的 Client Secret(请妥善保管)"],
+              ["account_number", "UPS 账号"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 集成中心 [注册] 中输入并保存后，凭证将以 AES-256-GCM 加密存储，并在查询时进行掩码处理。" }
+          ]
+        },
+        {
+          "h2": "4. 常见问题",
+          "blocks": [
+            { "type": "table", "head": ["问题", "原因", "解决方法"], "rows": [
+              ["应用中看不到凭证", "应用创建未完成", "在 developer.ups.com 创建应用后，将签发 client_id·client_secret。"],
+              ["调用时出现认证错误", "client_secret 填写错误或账号缺失", "重新确认 client_secret 和账号(account_number)。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最终检查清单",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已确认 UPS 账号。",
+              "已注册 developer.ups.com 并创建应用。",
+              "已签发 client_id·client_secret。",
+              "已在 GenieGo [注册] 中输入 client_id·client_secret·account_number 并保存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh-TW": {
+      "titleType": "API Key 申請手冊",
+      "badge": "新手指南",
+      "intro": "本手冊整理了在 UPS 開發者入口網站(developer.ups.com)建立應用程式以簽發 client_id 和 client_secret，並連同 UPS 帳號一起註冊到 GenieGo 整合中心的流程。",
+      "org": "GenieGo 整合中心",
+      "quick": [
+        ["預計時間", "約 5~15 分鐘"],
+        ["所需帳戶", "UPS 帳戶(帳號)"],
+        ["簽發金鑰", "Client ID · Client Secret"],
+        ["成果", "OAuth 憑證 · 帳號"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 開始之前",
+          "desc": "UPS 憑證透過在開發者入口網站建立應用程式來簽發，並且需要帳號。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "準備事項", "h3": "UPS 帳號", "p": "您需要一個 UPS 帳號。帳號將在註冊到 GenieGo 時一併輸入。" },
+              { "tag": "簽發金鑰", "h3": "Client ID · Client Secret", "p": "在開發者入口網站建立應用程式後，將簽發 client_id 和 client_secret。" }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. 簽發步驟",
+          "desc": "依以下順序簽發並在 GenieGo 中註冊。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "註冊開發者入口網站並建立應用程式", "p": "註冊 UPS 開發者入口網站並建立應用程式。", "path": "https://developer.ups.com" },
+              { "h3": "簽發 client_id·client_secret", "p": "建立應用程式後，將簽發 client_id 和 client_secret。", "path": "建立應用程式" },
+              { "h3": "確認帳號", "p": "確認已簽發的 client_id·client_secret 以及 UPS 帳號。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "建立應用程式後簽發了 client_id·client_secret，即表示正常。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中註冊的資訊",
+          "blocks": [
+            { "type": "table", "head": ["欄位", "說明"], "rows": [
+              ["client_id", "簽發的 Client ID"],
+              ["client_secret", "簽發的 Client Secret(請妥善保管)"],
+              ["account_number", "UPS 帳號"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 整合中心 [註冊] 中輸入並儲存後，憑證將以 AES-256-GCM 加密儲存，並在查詢時進行遮罩處理。" }
+          ]
+        },
+        {
+          "h2": "4. 常見問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["應用程式中看不到憑證", "應用程式建立未完成", "在 developer.ups.com 建立應用程式後，將簽發 client_id·client_secret。"],
+              ["呼叫時出現驗證錯誤", "client_secret 填寫錯誤或帳號缺失", "重新確認 client_secret 和帳號(account_number)。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終檢查清單",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已確認 UPS 帳號。",
+              "已註冊 developer.ups.com 並建立應用程式。",
+              "已簽發 client_id·client_secret。",
+              "已在 GenieGo [註冊] 中輸入 client_id·client_secret·account_number 並儲存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "de": {
+      "titleType": "Anleitung zur API-Key-Ausstellung",
+      "badge": "Einsteigerleitfaden",
+      "intro": "Eine Anleitung, die das Erstellen einer App im UPS Developer Portal (developer.ups.com) zur Ausstellung einer client_id und eines client_secret sowie deren Registrierung zusammen mit Ihrer UPS-Kontonummer im GenieGo Integration Hub beschreibt.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Geschätzte Zeit", "Etwa 5–15 Min."],
+        ["Benötigtes Konto", "UPS-Konto (Kontonummer)"],
+        ["Ausgestellte Schlüssel", "Client ID · Client Secret"],
+        ["Ergebnis", "OAuth-Anmeldedaten · Kontonummer"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Bevor Sie beginnen",
+          "desc": "UPS-Anmeldedaten werden durch das Erstellen einer App im Developer Portal ausgestellt, und eine Kontonummer ist erforderlich.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Voraussetzungen", "h3": "UPS-Kontonummer", "p": "Sie benötigen eine UPS-Kontonummer. Die Kontonummer wird bei der Registrierung in GenieGo zusammen eingegeben." },
+              { "tag": "Ausgestellte Schlüssel", "h3": "Client ID · Client Secret", "p": "Wenn Sie eine App im Developer Portal erstellen, werden eine client_id und ein client_secret ausgestellt." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Ausstellungsschritte",
+          "desc": "Stellen Sie in der unten angegebenen Reihenfolge aus und registrieren Sie in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Im Developer Portal registrieren und App erstellen", "p": "Registrieren Sie sich im UPS Developer Portal und erstellen Sie eine App.", "path": "https://developer.ups.com" },
+              { "h3": "client_id und client_secret ausstellen", "p": "Wenn Sie die App erstellen, erhalten Sie eine client_id und ein client_secret.", "path": "App erstellen" },
+              { "h3": "Kontonummer prüfen", "p": "Bestätigen Sie die ausgestellte client_id und das client_secret zusammen mit Ihrer UPS-Kontonummer." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Sobald nach dem Erstellen der App die client_id und das client_secret ausgestellt wurden, ist alles korrekt." }
+          ]
+        },
+        {
+          "h2": "3. In GenieGo zu registrierende Informationen",
+          "blocks": [
+            { "type": "table", "head": ["Feld", "Beschreibung"], "rows": [
+              ["client_id", "Die ausgestellte Client ID"],
+              ["client_secret", "Das ausgestellte Client Secret (vertraulich behandeln)"],
+              ["account_number", "UPS-Kontonummer"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Geben Sie sie im GenieGo Integration Hub [Registrieren] ein und speichern Sie. Anmeldedaten werden im Ruhezustand mit AES-256-GCM verschlüsselt und beim Lesen maskiert." }
+          ]
+        },
+        {
+          "h2": "4. Häufige Probleme",
+          "blocks": [
+            { "type": "table", "head": ["Problem", "Ursache", "Lösung"], "rows": [
+              ["Anmeldedaten sind in der App nicht sichtbar", "App-Erstellung nicht abgeschlossen", "Erstellen Sie eine App unter developer.ups.com, dann werden die client_id und das client_secret ausgestellt."],
+              ["Authentifizierungsfehler bei Aufrufen", "Falsch eingegebenes client_secret oder fehlende Kontonummer", "Überprüfen Sie das client_secret und die Kontonummer (account_number) erneut."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Abschließende Checkliste",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Die UPS-Kontonummer geprüft.",
+              "Bei developer.ups.com registriert und eine App erstellt.",
+              "Die client_id und das client_secret ausgestellt.",
+              "client_id, client_secret und account_number in GenieGo [Registrieren] eingegeben und gespeichert."
+            ] }
+          ]
+        }
+      ]
+    },
+    "th": {
+      "titleType": "คู่มือการออก API Key",
+      "badge": "คู่มือสำหรับผู้เริ่มต้น",
+      "intro": "คู่มือที่สรุปขั้นตอนการสร้างแอปบน UPS Developer Portal (developer.ups.com) เพื่อออก client_id และ client_secret และลงทะเบียนพร้อมกับหมายเลขบัญชี UPS ใน GenieGo Integration Hub",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["เวลาโดยประมาณ", "ประมาณ 5–15 นาที"],
+        ["บัญชีที่ต้องใช้", "บัญชี UPS (หมายเลขบัญชี)"],
+        ["คีย์ที่ออก", "Client ID · Client Secret"],
+        ["ผลลัพธ์", "ข้อมูลรับรอง OAuth · หมายเลขบัญชี"]
+      ],
+      "sections": [
+        {
+          "h2": "1. ก่อนเริ่มต้น",
+          "desc": "ข้อมูลรับรอง UPS ออกได้โดยการสร้างแอปบน Developer Portal และจำเป็นต้องมีหมายเลขบัญชี",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "สิ่งที่ต้องเตรียม", "h3": "หมายเลขบัญชี UPS", "p": "คุณต้องมีหมายเลขบัญชี UPS หมายเลขบัญชีจะถูกป้อนพร้อมกันเมื่อลงทะเบียนใน GenieGo" },
+              { "tag": "คีย์ที่ออก", "h3": "Client ID · Client Secret", "p": "เมื่อคุณสร้างแอปบน Developer Portal จะมีการออก client_id และ client_secret" }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. ขั้นตอนการออก",
+          "desc": "ออกตามลำดับด้านล่างและลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "ลงทะเบียน Developer Portal และสร้างแอป", "p": "ลงทะเบียน UPS Developer Portal และสร้างแอป", "path": "https://developer.ups.com" },
+              { "h3": "ออก client_id·client_secret", "p": "เมื่อสร้างแอป จะมีการออก client_id และ client_secret", "path": "สร้างแอป" },
+              { "h3": "ตรวจสอบหมายเลขบัญชี", "p": "ยืนยัน client_id·client_secret ที่ออกแล้ว พร้อมกับหมายเลขบัญชี UPS" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "เมื่อออก client_id·client_secret หลังจากสร้างแอปแล้ว ถือว่าปกติ" }
+          ]
+        },
+        {
+          "h2": "3. ข้อมูลที่ต้องลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["ฟิลด์", "คำอธิบาย"], "rows": [
+              ["client_id", "Client ID ที่ออกแล้ว"],
+              ["client_secret", "Client Secret ที่ออกแล้ว (จัดการด้วยความระมัดระวัง)"],
+              ["account_number", "หมายเลขบัญชี UPS"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "ป้อนใน GenieGo Integration Hub [ลงทะเบียน] แล้วบันทึก ข้อมูลรับรองจะถูกเข้ารหัสขณะจัดเก็บด้วย AES-256-GCM และปิดบังเมื่ออ่าน" }
+          ]
+        },
+        {
+          "h2": "4. ปัญหาที่พบบ่อย",
+          "blocks": [
+            { "type": "table", "head": ["ปัญหา", "สาเหตุ", "วิธีแก้ไข"], "rows": [
+              ["ไม่เห็นข้อมูลรับรองในแอป", "การสร้างแอปยังไม่เสร็จสมบูรณ์", "สร้างแอปที่ developer.ups.com แล้วจะมีการออก client_id·client_secret"],
+              ["ข้อผิดพลาดการตรวจสอบสิทธิ์เมื่อเรียกใช้", "client_secret ผิด หรือขาดหมายเลขบัญชี", "ตรวจสอบ client_secret และหมายเลขบัญชี (account_number) อีกครั้ง"]
+            ] }
+          ]
+        },
+        {
+          "h2": "รายการตรวจสอบขั้นสุดท้าย",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "ตรวจสอบหมายเลขบัญชี UPS แล้ว",
+              "ลงทะเบียน developer.ups.com และสร้างแอปแล้ว",
+              "ออก client_id·client_secret แล้ว",
+              "ป้อน client_id·client_secret·account_number ใน GenieGo [ลงทะเบียน] และบันทึกแล้ว"
+            ] }
+          ]
+        }
+      ]
+    },
+    "vi": {
+      "titleType": "Hướng dẫn cấp API Key",
+      "badge": "Hướng dẫn cho người mới",
+      "intro": "Hướng dẫn tổng hợp quy trình tạo ứng dụng trên UPS Developer Portal (developer.ups.com) để cấp client_id và client_secret, đồng thời đăng ký chúng cùng với số tài khoản UPS trong GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Thời gian dự kiến", "Khoảng 5–15 phút"],
+        ["Tài khoản cần thiết", "Tài khoản UPS (số tài khoản)"],
+        ["Khóa được cấp", "Client ID · Client Secret"],
+        ["Kết quả", "Thông tin xác thực OAuth · số tài khoản"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Trước khi bắt đầu",
+          "desc": "Thông tin xác thực UPS được cấp bằng cách tạo ứng dụng trên Developer Portal và cần có số tài khoản.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Chuẩn bị", "h3": "Số tài khoản UPS", "p": "Bạn cần một số tài khoản UPS. Số tài khoản được nhập cùng lúc khi đăng ký trong GenieGo." },
+              { "tag": "Khóa được cấp", "h3": "Client ID · Client Secret", "p": "Khi bạn tạo ứng dụng trên Developer Portal, một client_id và client_secret sẽ được cấp." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Các bước cấp",
+          "desc": "Cấp theo thứ tự dưới đây và đăng ký trong GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Đăng ký Developer Portal và tạo ứng dụng", "p": "Đăng ký UPS Developer Portal và tạo ứng dụng.", "path": "https://developer.ups.com" },
+              { "h3": "Cấp client_id·client_secret", "p": "Khi tạo ứng dụng, một client_id và client_secret sẽ được cấp.", "path": "Tạo ứng dụng" },
+              { "h3": "Kiểm tra số tài khoản", "p": "Xác nhận client_id·client_secret đã được cấp cùng với số tài khoản UPS của bạn." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Khi client_id·client_secret được cấp sau khi tạo ứng dụng, nghĩa là mọi thứ bình thường." }
+          ]
+        },
+        {
+          "h2": "3. Thông tin cần đăng ký trong GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Trường", "Mô tả"], "rows": [
+              ["client_id", "Client ID đã được cấp"],
+              ["client_secret", "Client Secret đã được cấp (xử lý cẩn thận)"],
+              ["account_number", "Số tài khoản UPS"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Nhập vào GenieGo Integration Hub [Đăng ký] rồi lưu. Thông tin xác thực được mã hóa khi lưu trữ bằng AES-256-GCM và được che khi đọc." }
+          ]
+        },
+        {
+          "h2": "4. Sự cố thường gặp",
+          "blocks": [
+            { "type": "table", "head": ["Sự cố", "Nguyên nhân", "Giải pháp"], "rows": [
+              ["Không thấy thông tin xác thực trong ứng dụng", "Việc tạo ứng dụng chưa hoàn tất", "Tạo ứng dụng tại developer.ups.com thì client_id·client_secret sẽ được cấp."],
+              ["Lỗi xác thực khi gọi", "client_secret nhập sai hoặc thiếu số tài khoản", "Kiểm tra lại client_secret và số tài khoản (account_number)."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Danh sách kiểm tra cuối cùng",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Đã kiểm tra số tài khoản UPS.",
+              "Đã đăng ký developer.ups.com và tạo ứng dụng.",
+              "Đã cấp client_id·client_secret.",
+              "Đã nhập client_id·client_secret·account_number vào GenieGo [Đăng ký] và lưu."
+            ] }
+          ]
+        }
+      ]
+    },
+    "id": {
+      "titleType": "Panduan Penerbitan API Key",
+      "badge": "Panduan Pemula",
+      "intro": "Panduan yang merangkum proses membuat aplikasi di UPS Developer Portal (developer.ups.com) untuk menerbitkan client_id dan client_secret, serta mendaftarkannya bersama nomor akun UPS di GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Perkiraan waktu", "Sekitar 5–15 menit"],
+        ["Akun yang dibutuhkan", "Akun UPS (nomor akun)"],
+        ["Kunci yang diterbitkan", "Client ID · Client Secret"],
+        ["Hasil", "Kredensial OAuth · nomor akun"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Sebelum Anda Mulai",
+          "desc": "Kredensial UPS diterbitkan dengan membuat aplikasi di Developer Portal, dan diperlukan nomor akun.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Persiapan", "h3": "Nomor akun UPS", "p": "Anda memerlukan nomor akun UPS. Nomor akun dimasukkan bersamaan saat mendaftar di GenieGo." },
+              { "tag": "Kunci yang diterbitkan", "h3": "Client ID · Client Secret", "p": "Saat Anda membuat aplikasi di Developer Portal, client_id dan client_secret akan diterbitkan." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Langkah Penerbitan",
+          "desc": "Terbitkan sesuai urutan di bawah dan daftarkan di GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Daftar Developer Portal dan buat aplikasi", "p": "Daftar UPS Developer Portal dan buat aplikasi.", "path": "https://developer.ups.com" },
+              { "h3": "Terbitkan client_id·client_secret", "p": "Saat membuat aplikasi, client_id dan client_secret akan diterbitkan.", "path": "Buat aplikasi" },
+              { "h3": "Periksa nomor akun", "p": "Konfirmasikan client_id·client_secret yang diterbitkan bersama nomor akun UPS Anda." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Setelah client_id·client_secret diterbitkan setelah membuat aplikasi, berarti sudah normal." }
+          ]
+        },
+        {
+          "h2": "3. Informasi untuk Didaftarkan di GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Bidang", "Deskripsi"], "rows": [
+              ["client_id", "Client ID yang diterbitkan"],
+              ["client_secret", "Client Secret yang diterbitkan (tangani dengan hati-hati)"],
+              ["account_number", "Nomor akun UPS"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Masukkan di GenieGo Integration Hub [Daftar] lalu simpan. Kredensial dienkripsi saat disimpan dengan AES-256-GCM dan disamarkan saat dibaca." }
+          ]
+        },
+        {
+          "h2": "4. Masalah Umum",
+          "blocks": [
+            { "type": "table", "head": ["Masalah", "Penyebab", "Solusi"], "rows": [
+              ["Kredensial tidak terlihat di aplikasi", "Pembuatan aplikasi belum selesai", "Buat aplikasi di developer.ups.com maka client_id·client_secret akan diterbitkan."],
+              ["Kesalahan autentikasi saat pemanggilan", "client_secret salah ketik atau nomor akun hilang", "Periksa kembali client_secret dan nomor akun (account_number)."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Daftar Periksa Akhir",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Memeriksa nomor akun UPS.",
+              "Mendaftar di developer.ups.com dan membuat aplikasi.",
+              "Menerbitkan client_id·client_secret.",
+              "Memasukkan client_id·client_secret·account_number di GenieGo [Daftar] dan menyimpannya."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ar": {
+      "titleType": "دليل إصدار مفتاح API",
+      "badge": "دليل المبتدئين",
+      "intro": "دليل يلخّص عملية إنشاء تطبيق على بوابة مطوّري UPS (developer.ups.com) لإصدار client_id و client_secret، وتسجيلهما مع رقم حساب UPS في GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["الوقت المقدّر", "حوالي 5–15 دقيقة"],
+        ["الحساب المطلوب", "حساب UPS (رقم الحساب)"],
+        ["المفاتيح المُصدَرة", "Client ID · Client Secret"],
+        ["النتيجة", "بيانات اعتماد OAuth · رقم الحساب"]
+      ],
+      "sections": [
+        {
+          "h2": "1. قبل أن تبدأ",
+          "desc": "تُصدَر بيانات اعتماد UPS عن طريق إنشاء تطبيق على بوابة المطوّرين، ويلزم وجود رقم حساب.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "المتطلبات", "h3": "رقم حساب UPS", "p": "تحتاج إلى رقم حساب UPS. يُدخَل رقم الحساب معًا عند التسجيل في GenieGo." },
+              { "tag": "المفاتيح المُصدَرة", "h3": "Client ID · Client Secret", "p": "عند إنشاء تطبيق على بوابة المطوّرين، يتم إصدار client_id و client_secret." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. خطوات الإصدار",
+          "desc": "أصدِر بالترتيب أدناه وسجّل في GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "التسجيل في بوابة المطوّرين وإنشاء تطبيق", "p": "سجّل في بوابة مطوّري UPS وأنشئ تطبيقًا.", "path": "https://developer.ups.com" },
+              { "h3": "إصدار client_id·client_secret", "p": "عند إنشاء التطبيق، يتم إصدار client_id و client_secret.", "path": "إنشاء تطبيق" },
+              { "h3": "التحقق من رقم الحساب", "p": "تأكّد من client_id·client_secret المُصدَرَين مع رقم حساب UPS الخاص بك." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "بمجرد إصدار client_id·client_secret بعد إنشاء التطبيق، فهذا يعني أنه يعمل بشكل صحيح." }
+          ]
+        },
+        {
+          "h2": "3. المعلومات المطلوب تسجيلها في GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["الحقل", "الوصف"], "rows": [
+              ["client_id", "معرّف Client ID المُصدَر"],
+              ["client_secret", "Client Secret المُصدَر (تعامل معه بحذر)"],
+              ["account_number", "رقم حساب UPS"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "أدخلها في GenieGo Integration Hub [تسجيل] ثم احفظ. تُشفَّر بيانات الاعتماد أثناء التخزين باستخدام AES-256-GCM وتُخفى عند القراءة." }
+          ]
+        },
+        {
+          "h2": "4. المشكلات الشائعة",
+          "blocks": [
+            { "type": "table", "head": ["المشكلة", "السبب", "الحل"], "rows": [
+              ["بيانات الاعتماد غير ظاهرة في التطبيق", "لم يكتمل إنشاء التطبيق", "أنشئ تطبيقًا على developer.ups.com وسيتم إصدار client_id·client_secret."],
+              ["خطأ في المصادقة عند الاستدعاء", "خطأ في كتابة client_secret أو فقدان رقم الحساب", "تحقّق مرة أخرى من client_secret ورقم الحساب (account_number)."]
+            ] }
+          ]
+        },
+        {
+          "h2": "قائمة التحقق النهائية",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "تحقّقت من رقم حساب UPS.",
+              "سجّلت في developer.ups.com وأنشأت تطبيقًا.",
+              "أصدرت client_id·client_secret.",
+              "أدخلت client_id·client_secret·account_number في GenieGo [تسجيل] وحفظت."
+            ] }
+          ]
+        }
+      ]
+    },
+    "es": {
+      "titleType": "Manual de emisión de API Key",
+      "badge": "Guía para principiantes",
+      "intro": "Una guía que resume el proceso de crear una aplicación en el Portal para Desarrolladores de UPS (developer.ups.com) para emitir un client_id y un client_secret, y registrarlos junto con su número de cuenta de UPS en el GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tiempo estimado", "Aproximadamente 5–15 min"],
+        ["Cuenta necesaria", "Cuenta de UPS (número de cuenta)"],
+        ["Claves emitidas", "Client ID · Client Secret"],
+        ["Resultado", "Credenciales OAuth · número de cuenta"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de empezar",
+          "desc": "Las credenciales de UPS se emiten creando una aplicación en el Portal para Desarrolladores, y se requiere un número de cuenta.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requisitos", "h3": "Número de cuenta de UPS", "p": "Necesita un número de cuenta de UPS. El número de cuenta se introduce junto al registrarse en GenieGo." },
+              { "tag": "Claves emitidas", "h3": "Client ID · Client Secret", "p": "Cuando crea una aplicación en el Portal para Desarrolladores, se emiten un client_id y un client_secret." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Pasos de emisión",
+          "desc": "Emita en el orden indicado a continuación y registre en GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Registrarse en el Portal para Desarrolladores y crear una aplicación", "p": "Regístrese en el Portal para Desarrolladores de UPS y cree una aplicación.", "path": "https://developer.ups.com" },
+              { "h3": "Emitir client_id·client_secret", "p": "Al crear la aplicación, se emiten un client_id y un client_secret.", "path": "Crear aplicación" },
+              { "h3": "Comprobar el número de cuenta", "p": "Confirme el client_id·client_secret emitidos junto con su número de cuenta de UPS." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Una vez que el client_id·client_secret se emiten tras crear la aplicación, todo está correcto." }
+          ]
+        },
+        {
+          "h2": "3. Información para registrar en GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descripción"], "rows": [
+              ["client_id", "El Client ID emitido"],
+              ["client_secret", "El Client Secret emitido (manéjelo con cuidado)"],
+              ["account_number", "Número de cuenta de UPS"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Introdúzcalos en el GenieGo Integration Hub [Registrar] y guarde. Las credenciales se cifran en reposo con AES-256-GCM y se enmascaran al leerlas." }
+          ]
+        },
+        {
+          "h2": "4. Problemas frecuentes",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solución"], "rows": [
+              ["Las credenciales no se ven en la aplicación", "Creación de la aplicación no completada", "Cree una aplicación en developer.ups.com y se emitirán el client_id·client_secret."],
+              ["Error de autenticación en las llamadas", "client_secret mal escrito o número de cuenta faltante", "Vuelva a comprobar el client_secret y el número de cuenta (account_number)."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificación final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Comprobé el número de cuenta de UPS.",
+              "Me registré en developer.ups.com y creé una aplicación.",
+              "Emití el client_id·client_secret.",
+              "Introduje client_id·client_secret·account_number en GenieGo [Registrar] y guardé."
+            ] }
+          ]
+        }
+      ]
+    },
+    "fr": {
+      "titleType": "Manuel d'émission de clé API",
+      "badge": "Guide du débutant",
+      "intro": "Un guide qui récapitule le processus de création d'une application sur le portail développeur UPS (developer.ups.com) pour émettre un client_id et un client_secret, et de les enregistrer avec votre numéro de compte UPS dans le GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Temps estimé", "Environ 5–15 min"],
+        ["Compte requis", "Compte UPS (numéro de compte)"],
+        ["Clés émises", "Client ID · Client Secret"],
+        ["Résultat", "Identifiants OAuth · numéro de compte"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Avant de commencer",
+          "desc": "Les identifiants UPS sont émis en créant une application sur le portail développeur, et un numéro de compte est requis.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Prérequis", "h3": "Numéro de compte UPS", "p": "Vous avez besoin d'un numéro de compte UPS. Le numéro de compte est saisi en même temps lors de l'enregistrement dans GenieGo." },
+              { "tag": "Clés émises", "h3": "Client ID · Client Secret", "p": "Lorsque vous créez une application sur le portail développeur, un client_id et un client_secret sont émis." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Étapes d'émission",
+          "desc": "Émettez dans l'ordre ci-dessous et enregistrez dans GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "S'inscrire au portail développeur et créer une application", "p": "Inscrivez-vous au portail développeur UPS et créez une application.", "path": "https://developer.ups.com" },
+              { "h3": "Émettre client_id·client_secret", "p": "Lorsque vous créez l'application, un client_id et un client_secret sont émis.", "path": "Créer une application" },
+              { "h3": "Vérifier le numéro de compte", "p": "Confirmez le client_id·client_secret émis ainsi que votre numéro de compte UPS." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Une fois que le client_id·client_secret sont émis après la création de l'application, tout est correct." }
+          ]
+        },
+        {
+          "h2": "3. Informations à enregistrer dans GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Champ", "Description"], "rows": [
+              ["client_id", "Le Client ID émis"],
+              ["client_secret", "Le Client Secret émis (à manipuler avec précaution)"],
+              ["account_number", "Numéro de compte UPS"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Saisissez-les dans le GenieGo Integration Hub [Enregistrer] et enregistrez. Les identifiants sont chiffrés au repos avec AES-256-GCM et masqués à la lecture." }
+          ]
+        },
+        {
+          "h2": "4. Problèmes fréquents",
+          "blocks": [
+            { "type": "table", "head": ["Problème", "Cause", "Solution"], "rows": [
+              ["Les identifiants ne sont pas visibles dans l'application", "Création de l'application non terminée", "Créez une application sur developer.ups.com et le client_id·client_secret seront émis."],
+              ["Erreur d'authentification lors des appels", "client_secret mal saisi ou numéro de compte manquant", "Vérifiez à nouveau le client_secret et le numéro de compte (account_number)."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Liste de contrôle finale",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Vérifié le numéro de compte UPS.",
+              "Inscrit sur developer.ups.com et créé une application.",
+              "Émis le client_id·client_secret.",
+              "Saisi client_id·client_secret·account_number dans GenieGo [Enregistrer] et enregistré."
+            ] }
+          ]
+        }
+      ]
+    },
+    "hi": {
+      "titleType": "API Key जारी करने की मार्गदर्शिका",
+      "badge": "शुरुआती गाइड",
+      "intro": "यह मार्गदर्शिका UPS डेवलपर पोर्टल (developer.ups.com) पर एक ऐप बनाकर client_id और client_secret जारी करने, और उन्हें आपके UPS खाता संख्या के साथ GenieGo Integration Hub में पंजीकृत करने की प्रक्रिया का सारांश देती है।",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["अनुमानित समय", "लगभग 5–15 मिनट"],
+        ["आवश्यक खाता", "UPS खाता (खाता संख्या)"],
+        ["जारी की गई कुंजियाँ", "Client ID · Client Secret"],
+        ["परिणाम", "OAuth क्रेडेंशियल · खाता संख्या"]
+      ],
+      "sections": [
+        {
+          "h2": "1. शुरू करने से पहले",
+          "desc": "UPS क्रेडेंशियल डेवलपर पोर्टल पर ऐप बनाकर जारी किए जाते हैं, और एक खाता संख्या आवश्यक है।",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "आवश्यकताएँ", "h3": "UPS खाता संख्या", "p": "आपको एक UPS खाता संख्या की आवश्यकता है। GenieGo में पंजीकरण करते समय खाता संख्या साथ में दर्ज की जाती है।" },
+              { "tag": "जारी की गई कुंजियाँ", "h3": "Client ID · Client Secret", "p": "जब आप डेवलपर पोर्टल पर एक ऐप बनाते हैं, तो client_id और client_secret जारी किए जाते हैं।" }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. जारी करने के चरण",
+          "desc": "नीचे दिए गए क्रम में जारी करें और GenieGo में पंजीकृत करें।",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "डेवलपर पोर्टल पर साइन अप करें और ऐप बनाएँ", "p": "UPS डेवलपर पोर्टल पर साइन अप करें और एक ऐप बनाएँ।", "path": "https://developer.ups.com" },
+              { "h3": "client_id·client_secret जारी करें", "p": "जब आप ऐप बनाते हैं, तो client_id और client_secret जारी किए जाते हैं।", "path": "ऐप बनाएँ" },
+              { "h3": "खाता संख्या जाँचें", "p": "जारी किए गए client_id·client_secret और अपने UPS खाता संख्या की पुष्टि करें।" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "ऐप बनाने के बाद client_id·client_secret जारी हो जाने पर, यह सामान्य है।" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo में पंजीकृत करने की जानकारी",
+          "blocks": [
+            { "type": "table", "head": ["फ़ील्ड", "विवरण"], "rows": [
+              ["client_id", "जारी किया गया Client ID"],
+              ["client_secret", "जारी किया गया Client Secret (सावधानी से संभालें)"],
+              ["account_number", "UPS खाता संख्या"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "इन्हें GenieGo Integration Hub [पंजीकरण] में दर्ज करें और सहेजें। क्रेडेंशियल को भंडारण के समय AES-256-GCM से एन्क्रिप्ट किया जाता है और पढ़ते समय मास्क किया जाता है।" }
+          ]
+        },
+        {
+          "h2": "4. सामान्य समस्याएँ",
+          "blocks": [
+            { "type": "table", "head": ["समस्या", "कारण", "समाधान"], "rows": [
+              ["ऐप में क्रेडेंशियल दिखाई नहीं देते", "ऐप निर्माण पूरा नहीं हुआ", "developer.ups.com पर ऐप बनाएँ तो client_id·client_secret जारी हो जाएँगे।"],
+              ["कॉल पर प्रमाणीकरण त्रुटि", "client_secret गलत टाइप किया गया या खाता संख्या गायब", "client_secret और खाता संख्या (account_number) को फिर से जाँचें।"]
+            ] }
+          ]
+        },
+        {
+          "h2": "अंतिम जाँच सूची",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "UPS खाता संख्या की जाँच की।",
+              "developer.ups.com पर साइन अप किया और एक ऐप बनाया।",
+              "client_id·client_secret जारी किए।",
+              "GenieGo [पंजीकरण] में client_id·client_secret·account_number दर्ज किया और सहेजा।"
+            ] }
+          ]
+        }
+      ]
+    },
+    "pt": {
+      "titleType": "Manual de emissão de API Key",
+      "badge": "Guia para iniciantes",
+      "intro": "Um guia que resume o processo de criar um aplicativo no Portal do Desenvolvedor UPS (developer.ups.com) para emitir um client_id e um client_secret, e registrá-los junto com o número da sua conta UPS no GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tempo estimado", "Cerca de 5–15 min"],
+        ["Conta necessária", "Conta UPS (número da conta)"],
+        ["Chaves emitidas", "Client ID · Client Secret"],
+        ["Resultado", "Credenciais OAuth · número da conta"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de começar",
+          "desc": "As credenciais da UPS são emitidas criando um aplicativo no Portal do Desenvolvedor, e é necessário um número de conta.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requisitos", "h3": "Número da conta UPS", "p": "Você precisa de um número de conta UPS. O número da conta é inserido em conjunto ao registrar no GenieGo." },
+              { "tag": "Chaves emitidas", "h3": "Client ID · Client Secret", "p": "Quando você cria um aplicativo no Portal do Desenvolvedor, um client_id e um client_secret são emitidos." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Etapas de emissão",
+          "desc": "Emita na ordem abaixo e registre no GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Cadastrar-se no Portal do Desenvolvedor e criar um aplicativo", "p": "Cadastre-se no Portal do Desenvolvedor UPS e crie um aplicativo.", "path": "https://developer.ups.com" },
+              { "h3": "Emitir client_id·client_secret", "p": "Ao criar o aplicativo, um client_id e um client_secret são emitidos.", "path": "Criar aplicativo" },
+              { "h3": "Verificar o número da conta", "p": "Confirme o client_id·client_secret emitidos junto com o número da sua conta UPS." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Assim que o client_id·client_secret forem emitidos após criar o aplicativo, está tudo correto." }
+          ]
+        },
+        {
+          "h2": "3. Informações para registrar no GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descrição"], "rows": [
+              ["client_id", "O Client ID emitido"],
+              ["client_secret", "O Client Secret emitido (manuseie com cuidado)"],
+              ["account_number", "Número da conta UPS"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Insira-os no GenieGo Integration Hub [Registrar] e salve. As credenciais são criptografadas em repouso com AES-256-GCM e mascaradas na leitura." }
+          ]
+        },
+        {
+          "h2": "4. Problemas comuns",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solução"], "rows": [
+              ["As credenciais não aparecem no aplicativo", "Criação do aplicativo não concluída", "Crie um aplicativo em developer.ups.com e o client_id·client_secret serão emitidos."],
+              ["Erro de autenticação nas chamadas", "client_secret digitado incorretamente ou número da conta ausente", "Verifique novamente o client_secret e o número da conta (account_number)."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificação final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Verifiquei o número da conta UPS.",
+              "Cadastrei-me em developer.ups.com e criei um aplicativo.",
+              "Emiti o client_id·client_secret.",
+              "Inseri client_id·client_secret·account_number no GenieGo [Registrar] e salvei."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ru": {
+      "titleType": "Руководство по выпуску API Key",
+      "badge": "Руководство для начинающих",
+      "intro": "Руководство, обобщающее процесс создания приложения на портале разработчиков UPS (developer.ups.com) для выпуска client_id и client_secret, а также их регистрации вместе с номером учётной записи UPS в GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Расчётное время", "Около 5–15 мин"],
+        ["Требуемая учётная запись", "Учётная запись UPS (номер учётной записи)"],
+        ["Выпускаемые ключи", "Client ID · Client Secret"],
+        ["Результат", "Учётные данные OAuth · номер учётной записи"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Прежде чем начать",
+          "desc": "Учётные данные UPS выпускаются путём создания приложения на портале разработчиков, и требуется номер учётной записи.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Требования", "h3": "Номер учётной записи UPS", "p": "Вам нужен номер учётной записи UPS. Номер учётной записи вводится вместе при регистрации в GenieGo." },
+              { "tag": "Выпускаемые ключи", "h3": "Client ID · Client Secret", "p": "При создании приложения на портале разработчиков выпускаются client_id и client_secret." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Шаги выпуска",
+          "desc": "Выпустите в указанном ниже порядке и зарегистрируйте в GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Зарегистрируйтесь на портале разработчиков и создайте приложение", "p": "Зарегистрируйтесь на портале разработчиков UPS и создайте приложение.", "path": "https://developer.ups.com" },
+              { "h3": "Выпустите client_id·client_secret", "p": "При создании приложения выпускаются client_id и client_secret.", "path": "Создать приложение" },
+              { "h3": "Проверьте номер учётной записи", "p": "Подтвердите выпущенные client_id·client_secret вместе с номером вашей учётной записи UPS." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Как только после создания приложения выпущены client_id·client_secret, всё работает правильно." }
+          ]
+        },
+        {
+          "h2": "3. Информация для регистрации в GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Поле", "Описание"], "rows": [
+              ["client_id", "Выпущенный Client ID"],
+              ["client_secret", "Выпущенный Client Secret (обращайтесь осторожно)"],
+              ["account_number", "Номер учётной записи UPS"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Введите их в GenieGo Integration Hub [Регистрация] и сохраните. Учётные данные шифруются при хранении с помощью AES-256-GCM и маскируются при чтении." }
+          ]
+        },
+        {
+          "h2": "4. Частые проблемы",
+          "blocks": [
+            { "type": "table", "head": ["Проблема", "Причина", "Решение"], "rows": [
+              ["Учётные данные не видны в приложении", "Создание приложения не завершено", "Создайте приложение на developer.ups.com, и client_id·client_secret будут выпущены."],
+              ["Ошибка аутентификации при вызовах", "Неверно введён client_secret или отсутствует номер учётной записи", "Повторно проверьте client_secret и номер учётной записи (account_number)."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Итоговый контрольный список",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Проверил номер учётной записи UPS.",
+              "Зарегистрировался на developer.ups.com и создал приложение.",
+              "Выпустил client_id·client_secret.",
+              "Ввёл client_id·client_secret·account_number в GenieGo [Регистрация] и сохранил."
+            ] }
+          ]
+        }
+      ]
+    }
+  }
+}

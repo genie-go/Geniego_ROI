@@ -1,0 +1,1011 @@
+{
+  "name": "KakaoPay",
+  "icon": "💛",
+  "langs": {
+    "ko": {
+      "titleType": "API Key 발급 매뉴얼",
+      "badge": "Beginner Guide",
+      "intro": "카카오페이 개발자센터(developers.kakaopay.com)에서 애플리케이션을 생성해 가맹점 코드(CID)와 Secret Key를 발급하고 GenieGo 연동 허브에 등록하는 과정을 정리한 매뉴얼입니다.",
+      "org": "GenieGo 연동 허브",
+      "quick": [
+        ["소요 시간", "약 5~15분"],
+        ["필요 계정", "카카오페이 가맹점 계약·개발자센터 계정"],
+        ["발급 키", "가맹점 코드(CID) · Secret Key"],
+        ["결과물", "결제 연동 자격증명"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 시작하기 전에",
+          "desc": "카카오페이는 가맹점 계약 후 개발자센터에서 자격증명을 발급합니다.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "필요", "h3": "가맹점 계약·개발자센터 계정", "p": "카카오페이 가맹점 계약이 완료되어 있어야 하며, 개발자센터(developers.kakaopay.com)에 가입·로그인할 수 있어야 합니다." },
+              { "tag": "발급 키", "h3": "CID · Secret Key", "p": "애플리케이션을 생성하면 가맹점 코드(CID)와 Secret Key가 발급됩니다." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>참고:</strong> 카카오페이 API 호출 시 인증 헤더는 Authorization: SECRET_KEY 형식을 사용합니다." }
+          ]
+        },
+        {
+          "h2": "2. 발급 단계",
+          "desc": "아래 순서대로 발급하고 GenieGo에 등록합니다.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "개발자센터 가입·로그인", "p": "카카오페이 개발자센터에 가입하고 로그인합니다.", "path": "https://developers.kakaopay.com" },
+              { "h3": "애플리케이션 생성", "p": "애플리케이션을 생성해 가맹점 코드(CID)와 Secret Key를 발급하거나 확인합니다." },
+              { "h3": "인증 헤더 확인", "p": "발급된 Secret Key는 인증 헤더 Authorization: SECRET_KEY 형식으로 사용됩니다.", "path": "Authorization: SECRET_KEY ${secret_key}" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "가맹점 코드(CID)와 Secret Key가 발급되면 정상적으로 준비된 것입니다." }
+          ]
+        },
+        {
+          "h2": "3. GenieGo에 등록할 정보",
+          "blocks": [
+            { "type": "table", "head": ["필드", "설명"], "rows": [
+              ["cid", "발급된 가맹점 코드(CID)"],
+              ["secret_key", "발급된 Secret Key(노출 주의, Authorization: SECRET_KEY)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 연동 허브 [등록]에 입력해 저장하면 자격증명은 AES-256-GCM으로 암호화 저장되고 조회 시 마스킹됩니다." }
+          ]
+        },
+        {
+          "h2": "4. 자주 발생하는 문제",
+          "blocks": [
+            { "type": "table", "head": ["문제", "원인", "해결"], "rows": [
+              ["인증 헤더 오류", "Authorization 헤더 형식이 맞지 않음", "Authorization: SECRET_KEY 형식으로 Secret Key를 전달하는지 확인합니다."],
+              ["애플리케이션 생성 불가", "가맹점 계약 미완료", "가맹점 계약을 완료한 후 개발자센터에서 애플리케이션을 생성합니다."]
+            ] }
+          ]
+        },
+        {
+          "h2": "최종 체크리스트",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "카카오페이 가맹점 계약을 완료하고 개발자센터(developers.kakaopay.com)에 가입했다.",
+              "애플리케이션을 생성해 가맹점 코드(CID)와 Secret Key를 발급했다.",
+              "인증 헤더 Authorization: SECRET_KEY 형식을 확인했다.",
+              "GenieGo [등록]에 cid·secret_key를 입력해 저장했다."
+            ] }
+          ]
+        }
+      ]
+    },
+    "en": {
+      "titleType": "API Key Issuance Manual",
+      "badge": "Beginner Guide",
+      "intro": "A guide that walks you through creating an application in the KakaoPay Developer Center (developers.kakaopay.com) to issue a merchant code (CID) and Secret Key, then registering them in the GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Est. time", "About 5–15 min"],
+        ["Account needed", "KakaoPay merchant contract · Developer Center account"],
+        ["Keys issued", "Merchant code (CID) · Secret Key"],
+        ["Result", "Payment integration credentials"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Before You Begin",
+          "desc": "KakaoPay issues credentials in the Developer Center after a merchant contract is in place.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Required", "h3": "Merchant contract · Developer Center account", "p": "Your KakaoPay merchant contract must be complete, and you must be able to sign up for and log in to the Developer Center (developers.kakaopay.com)." },
+              { "tag": "Keys issued", "h3": "CID · Secret Key", "p": "When you create an application, a merchant code (CID) and a Secret Key are issued." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Note:</strong> When calling the KakaoPay API, the authentication header uses the Authorization: SECRET_KEY format." }
+          ]
+        },
+        {
+          "h2": "2. Issuance Steps",
+          "desc": "Issue in the order below and register in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Sign up for and log in to the Developer Center", "p": "Sign up for the KakaoPay Developer Center and log in.", "path": "https://developers.kakaopay.com" },
+              { "h3": "Create an application", "p": "Create an application to issue or check the merchant code (CID) and Secret Key." },
+              { "h3": "Check the authentication header", "p": "The issued Secret Key is used in the authentication header in the Authorization: SECRET_KEY format.", "path": "Authorization: SECRET_KEY ${secret_key}" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Once the merchant code (CID) and Secret Key are issued, you are properly set up." }
+          ]
+        },
+        {
+          "h2": "3. Information to Register in GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Field", "Description"], "rows": [
+              ["cid", "The issued merchant code (CID)"],
+              ["secret_key", "The issued Secret Key (handle with care, Authorization: SECRET_KEY)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Enter and save them in the GenieGo Integration Hub [Register], and the credentials are encrypted at rest with AES-256-GCM and masked on read." }
+          ]
+        },
+        {
+          "h2": "4. Common Issues",
+          "blocks": [
+            { "type": "table", "head": ["Issue", "Cause", "Solution"], "rows": [
+              ["Authentication header error", "The Authorization header format is incorrect", "Check that the Secret Key is passed in the Authorization: SECRET_KEY format."],
+              ["Cannot create an application", "Merchant contract not completed", "Complete the merchant contract, then create the application in the Developer Center."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Final Checklist",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Completed the KakaoPay merchant contract and signed up for the Developer Center (developers.kakaopay.com).",
+              "Created an application and issued the merchant code (CID) and Secret Key.",
+              "Verified the Authorization: SECRET_KEY authentication header format.",
+              "Entered cid·secret_key in GenieGo [Register] and saved."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ja": {
+      "titleType": "API Key 発行マニュアル",
+      "badge": "初心者ガイド",
+      "intro": "KakaoPay デベロッパーセンター(developers.kakaopay.com)でアプリケーションを作成して加盟店コード(CID)と Secret Key を発行し、GenieGo 連携ハブに登録する手順をまとめたマニュアルです。",
+      "org": "GenieGo 連携ハブ",
+      "quick": [
+        ["所要時間", "約 5〜15 分"],
+        ["必要なアカウント", "KakaoPay 加盟店契約 · デベロッパーセンターアカウント"],
+        ["発行するキー", "加盟店コード(CID) · Secret Key"],
+        ["成果物", "決済連携の認証情報"]
+      ],
+      "sections": [
+        {
+          "h2": "1. はじめる前に",
+          "desc": "KakaoPay は加盟店契約後、デベロッパーセンターで認証情報を発行します。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必須", "h3": "加盟店契約 · デベロッパーセンターアカウント", "p": "KakaoPay の加盟店契約が完了している必要があり、デベロッパーセンター(developers.kakaopay.com)に登録・ログインできる必要があります。" },
+              { "tag": "発行するキー", "h3": "CID · Secret Key", "p": "アプリケーションを作成すると、加盟店コード(CID)と Secret Key が発行されます。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> KakaoPay API を呼び出す際、認証ヘッダーは Authorization: SECRET_KEY 形式を使用します。" }
+          ]
+        },
+        {
+          "h2": "2. 発行手順",
+          "desc": "以下の順序で発行し、GenieGo に登録します。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "デベロッパーセンターに登録・ログイン", "p": "KakaoPay デベロッパーセンターに登録してログインします。", "path": "https://developers.kakaopay.com" },
+              { "h3": "アプリケーションの作成", "p": "アプリケーションを作成して、加盟店コード(CID)と Secret Key を発行または確認します。" },
+              { "h3": "認証ヘッダーの確認", "p": "発行された Secret Key は、認証ヘッダー Authorization: SECRET_KEY 形式で使用されます。", "path": "Authorization: SECRET_KEY ${secret_key}" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "加盟店コード(CID)と Secret Key が発行されれば、正常に準備できています。" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo に登録する情報",
+          "blocks": [
+            { "type": "table", "head": ["フィールド", "説明"], "rows": [
+              ["cid", "発行された加盟店コード(CID)"],
+              ["secret_key", "発行された Secret Key(取り扱い注意、Authorization: SECRET_KEY)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 連携ハブの [登録] に入力して保存すると、認証情報は AES-256-GCM で暗号化して保存され、閲覧時にはマスキングされます。" }
+          ]
+        },
+        {
+          "h2": "4. よくある問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["認証ヘッダーエラー", "Authorization ヘッダーの形式が正しくない", "Authorization: SECRET_KEY 形式で Secret Key を渡しているか確認します。"],
+              ["アプリケーションを作成できない", "加盟店契約が未完了", "加盟店契約を完了した後、デベロッパーセンターでアプリケーションを作成します。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終チェックリスト",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "KakaoPay の加盟店契約を完了し、デベロッパーセンター(developers.kakaopay.com)に登録した。",
+              "アプリケーションを作成して加盟店コード(CID)と Secret Key を発行した。",
+              "認証ヘッダー Authorization: SECRET_KEY 形式を確認した。",
+              "GenieGo の [登録] に cid·secret_key を入力して保存した。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh": {
+      "titleType": "API Key 申请手册",
+      "badge": "新手指南",
+      "intro": "本手册整理了在 KakaoPay 开发者中心(developers.kakaopay.com)创建应用以签发商户代码(CID)和 Secret Key，并将其注册到 GenieGo 集成中心的流程。",
+      "org": "GenieGo 集成中心",
+      "quick": [
+        ["预计时间", "约 5~15 分钟"],
+        ["所需账户", "KakaoPay 商户合同 · 开发者中心账户"],
+        ["签发密钥", "商户代码(CID) · Secret Key"],
+        ["成果", "支付集成凭证"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 开始之前",
+          "desc": "KakaoPay 在签订商户合同后，在开发者中心签发凭证。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "商户合同 · 开发者中心账户", "p": "您的 KakaoPay 商户合同必须已完成，并且您必须能够注册并登录开发者中心(developers.kakaopay.com)。" },
+              { "tag": "签发密钥", "h3": "CID · Secret Key", "p": "创建应用后，将签发商户代码(CID)和 Secret Key。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> 调用 KakaoPay API 时，认证头使用 Authorization: SECRET_KEY 格式。" }
+          ]
+        },
+        {
+          "h2": "2. 申请步骤",
+          "desc": "按以下顺序签发并在 GenieGo 中注册。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "注册并登录开发者中心", "p": "注册 KakaoPay 开发者中心并登录。", "path": "https://developers.kakaopay.com" },
+              { "h3": "创建应用", "p": "创建应用以签发或查看商户代码(CID)和 Secret Key。" },
+              { "h3": "确认认证头", "p": "签发的 Secret Key 以认证头 Authorization: SECRET_KEY 格式使用。", "path": "Authorization: SECRET_KEY ${secret_key}" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "签发商户代码(CID)和 Secret Key 后，即表示已正常准备就绪。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中注册的信息",
+          "blocks": [
+            { "type": "table", "head": ["字段", "说明"], "rows": [
+              ["cid", "签发的商户代码(CID)"],
+              ["secret_key", "签发的 Secret Key(请妥善保管，Authorization: SECRET_KEY)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 集成中心 [注册] 中输入并保存后，凭证将以 AES-256-GCM 加密存储，并在查询时进行掩码处理。" }
+          ]
+        },
+        {
+          "h2": "4. 常见问题",
+          "blocks": [
+            { "type": "table", "head": ["问题", "原因", "解决方法"], "rows": [
+              ["认证头错误", "Authorization 头格式不正确", "确认是否以 Authorization: SECRET_KEY 格式传递 Secret Key。"],
+              ["无法创建应用", "商户合同未完成", "完成商户合同后，在开发者中心创建应用。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最终检查清单",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已完成 KakaoPay 商户合同并注册开发者中心(developers.kakaopay.com)。",
+              "已创建应用并签发商户代码(CID)和 Secret Key。",
+              "已确认 Authorization: SECRET_KEY 认证头格式。",
+              "已在 GenieGo [注册] 中输入 cid·secret_key 并保存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh-TW": {
+      "titleType": "API Key 申請手冊",
+      "badge": "新手指南",
+      "intro": "本手冊整理了在 KakaoPay 開發者中心(developers.kakaopay.com)建立應用程式以簽發商家代碼(CID)和 Secret Key，並將其註冊到 GenieGo 整合中心的流程。",
+      "org": "GenieGo 整合中心",
+      "quick": [
+        ["預計時間", "約 5~15 分鐘"],
+        ["所需帳戶", "KakaoPay 商家合約 · 開發者中心帳戶"],
+        ["簽發金鑰", "商家代碼(CID) · Secret Key"],
+        ["成果", "付款整合憑證"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 開始之前",
+          "desc": "KakaoPay 在簽訂商家合約後，於開發者中心簽發憑證。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "商家合約 · 開發者中心帳戶", "p": "您的 KakaoPay 商家合約必須已完成，且您必須能夠註冊並登入開發者中心(developers.kakaopay.com)。" },
+              { "tag": "簽發金鑰", "h3": "CID · Secret Key", "p": "建立應用程式後，將簽發商家代碼(CID)和 Secret Key。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> 呼叫 KakaoPay API 時，驗證標頭使用 Authorization: SECRET_KEY 格式。" }
+          ]
+        },
+        {
+          "h2": "2. 簽發步驟",
+          "desc": "依以下順序簽發並在 GenieGo 中註冊。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "註冊並登入開發者中心", "p": "註冊 KakaoPay 開發者中心並登入。", "path": "https://developers.kakaopay.com" },
+              { "h3": "建立應用程式", "p": "建立應用程式以簽發或查看商家代碼(CID)和 Secret Key。" },
+              { "h3": "確認驗證標頭", "p": "簽發的 Secret Key 以驗證標頭 Authorization: SECRET_KEY 格式使用。", "path": "Authorization: SECRET_KEY ${secret_key}" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "簽發商家代碼(CID)和 Secret Key 後，即表示已正常準備就緒。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中註冊的資訊",
+          "blocks": [
+            { "type": "table", "head": ["欄位", "說明"], "rows": [
+              ["cid", "簽發的商家代碼(CID)"],
+              ["secret_key", "簽發的 Secret Key(請妥善保管，Authorization: SECRET_KEY)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 整合中心 [註冊] 中輸入並儲存後，憑證將以 AES-256-GCM 加密儲存，並在查詢時進行遮罩處理。" }
+          ]
+        },
+        {
+          "h2": "4. 常見問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["驗證標頭錯誤", "Authorization 標頭格式不正確", "確認是否以 Authorization: SECRET_KEY 格式傳遞 Secret Key。"],
+              ["無法建立應用程式", "商家合約未完成", "完成商家合約後，在開發者中心建立應用程式。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終檢查清單",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已完成 KakaoPay 商家合約並註冊開發者中心(developers.kakaopay.com)。",
+              "已建立應用程式並簽發商家代碼(CID)和 Secret Key。",
+              "已確認 Authorization: SECRET_KEY 驗證標頭格式。",
+              "已在 GenieGo [註冊] 中輸入 cid·secret_key 並儲存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "de": {
+      "titleType": "Anleitung zur API-Key-Ausstellung",
+      "badge": "Einsteigerleitfaden",
+      "intro": "Eine Anleitung, die Sie durch das Erstellen einer Anwendung im KakaoPay Developer Center (developers.kakaopay.com) zum Ausstellen eines Händlercodes (CID) und eines Secret Key sowie deren Registrierung im GenieGo Integration Hub führt.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Geschätzte Zeit", "Etwa 5–15 Min."],
+        ["Benötigtes Konto", "KakaoPay-Händlervertrag · Developer-Center-Konto"],
+        ["Ausgestellte Schlüssel", "Händlercode (CID) · Secret Key"],
+        ["Ergebnis", "Zahlungsintegrations-Anmeldedaten"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Bevor Sie beginnen",
+          "desc": "KakaoPay stellt nach Abschluss eines Händlervertrags die Anmeldedaten im Developer Center aus.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Erforderlich", "h3": "Händlervertrag · Developer-Center-Konto", "p": "Ihr KakaoPay-Händlervertrag muss abgeschlossen sein, und Sie müssen sich im Developer Center (developers.kakaopay.com) registrieren und anmelden können." },
+              { "tag": "Ausgestellte Schlüssel", "h3": "CID · Secret Key", "p": "Wenn Sie eine Anwendung erstellen, werden ein Händlercode (CID) und ein Secret Key ausgestellt." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Hinweis:</strong> Beim Aufruf der KakaoPay-API verwendet der Authentifizierungs-Header das Format Authorization: SECRET_KEY." }
+          ]
+        },
+        {
+          "h2": "2. Ausstellungsschritte",
+          "desc": "Stellen Sie in der unten angegebenen Reihenfolge aus und registrieren Sie in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Im Developer Center registrieren und anmelden", "p": "Registrieren Sie sich im KakaoPay Developer Center und melden Sie sich an.", "path": "https://developers.kakaopay.com" },
+              { "h3": "Anwendung erstellen", "p": "Erstellen Sie eine Anwendung, um den Händlercode (CID) und den Secret Key auszustellen oder zu überprüfen." },
+              { "h3": "Authentifizierungs-Header prüfen", "p": "Der ausgestellte Secret Key wird im Authentifizierungs-Header im Format Authorization: SECRET_KEY verwendet.", "path": "Authorization: SECRET_KEY ${secret_key}" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Sobald der Händlercode (CID) und der Secret Key ausgestellt sind, ist alles korrekt vorbereitet." }
+          ]
+        },
+        {
+          "h2": "3. In GenieGo zu registrierende Informationen",
+          "blocks": [
+            { "type": "table", "head": ["Feld", "Beschreibung"], "rows": [
+              ["cid", "Der ausgestellte Händlercode (CID)"],
+              ["secret_key", "Der ausgestellte Secret Key (vertraulich behandeln, Authorization: SECRET_KEY)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Geben Sie sie im GenieGo Integration Hub [Registrieren] ein und speichern Sie; die Anmeldedaten werden im Ruhezustand mit AES-256-GCM verschlüsselt und beim Lesen maskiert." }
+          ]
+        },
+        {
+          "h2": "4. Häufige Probleme",
+          "blocks": [
+            { "type": "table", "head": ["Problem", "Ursache", "Lösung"], "rows": [
+              ["Fehler im Authentifizierungs-Header", "Das Format des Authorization-Headers ist falsch", "Prüfen Sie, ob der Secret Key im Format Authorization: SECRET_KEY übergeben wird."],
+              ["Anwendung kann nicht erstellt werden", "Händlervertrag nicht abgeschlossen", "Schließen Sie den Händlervertrag ab und erstellen Sie dann die Anwendung im Developer Center."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Abschließende Checkliste",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Den KakaoPay-Händlervertrag abgeschlossen und sich im Developer Center (developers.kakaopay.com) registriert.",
+              "Eine Anwendung erstellt und den Händlercode (CID) und den Secret Key ausgestellt.",
+              "Das Authentifizierungs-Header-Format Authorization: SECRET_KEY überprüft.",
+              "cid·secret_key in GenieGo [Registrieren] eingegeben und gespeichert."
+            ] }
+          ]
+        }
+      ]
+    },
+    "th": {
+      "titleType": "คู่มือการออก API Key",
+      "badge": "คู่มือสำหรับผู้เริ่มต้น",
+      "intro": "คู่มือที่อธิบายขั้นตอนการสร้างแอปพลิเคชันใน KakaoPay Developer Center (developers.kakaopay.com) เพื่อออกรหัสร้านค้า (CID) และ Secret Key แล้วลงทะเบียนใน GenieGo Integration Hub",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["เวลาโดยประมาณ", "ประมาณ 5–15 นาที"],
+        ["บัญชีที่ต้องใช้", "สัญญาร้านค้า KakaoPay · บัญชี Developer Center"],
+        ["คีย์ที่ออก", "รหัสร้านค้า (CID) · Secret Key"],
+        ["ผลลัพธ์", "ข้อมูลรับรองการเชื่อมต่อการชำระเงิน"]
+      ],
+      "sections": [
+        {
+          "h2": "1. ก่อนเริ่มต้น",
+          "desc": "KakaoPay จะออกข้อมูลรับรองใน Developer Center หลังจากมีสัญญาร้านค้าแล้ว",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "จำเป็น", "h3": "สัญญาร้านค้า · บัญชี Developer Center", "p": "สัญญาร้านค้า KakaoPay ของคุณต้องเสร็จสมบูรณ์ และคุณต้องสามารถสมัครและเข้าสู่ระบบ Developer Center (developers.kakaopay.com) ได้" },
+              { "tag": "คีย์ที่ออก", "h3": "CID · Secret Key", "p": "เมื่อคุณสร้างแอปพลิเคชัน จะมีการออกรหัสร้านค้า (CID) และ Secret Key" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>หมายเหตุ:</strong> เมื่อเรียกใช้ KakaoPay API ส่วนหัวการตรวจสอบสิทธิ์จะใช้รูปแบบ Authorization: SECRET_KEY" }
+          ]
+        },
+        {
+          "h2": "2. ขั้นตอนการออก",
+          "desc": "ออกตามลำดับด้านล่างและลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "สมัครและเข้าสู่ระบบ Developer Center", "p": "สมัคร KakaoPay Developer Center และเข้าสู่ระบบ", "path": "https://developers.kakaopay.com" },
+              { "h3": "สร้างแอปพลิเคชัน", "p": "สร้างแอปพลิเคชันเพื่อออกหรือตรวจสอบรหัสร้านค้า (CID) และ Secret Key" },
+              { "h3": "ตรวจสอบส่วนหัวการตรวจสอบสิทธิ์", "p": "Secret Key ที่ออกจะถูกใช้ในส่วนหัวการตรวจสอบสิทธิ์ในรูปแบบ Authorization: SECRET_KEY", "path": "Authorization: SECRET_KEY ${secret_key}" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "เมื่อออกรหัสร้านค้า (CID) และ Secret Key แล้ว แสดงว่าเตรียมการเรียบร้อยแล้ว" }
+          ]
+        },
+        {
+          "h2": "3. ข้อมูลที่ต้องลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["ฟิลด์", "คำอธิบาย"], "rows": [
+              ["cid", "รหัสร้านค้า (CID) ที่ออกแล้ว"],
+              ["secret_key", "Secret Key ที่ออกแล้ว (จัดการด้วยความระมัดระวัง, Authorization: SECRET_KEY)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "ป้อนและบันทึกใน GenieGo Integration Hub [ลงทะเบียน] ข้อมูลรับรองจะถูกเข้ารหัสขณะจัดเก็บด้วย AES-256-GCM และปิดบังเมื่ออ่าน" }
+          ]
+        },
+        {
+          "h2": "4. ปัญหาที่พบบ่อย",
+          "blocks": [
+            { "type": "table", "head": ["ปัญหา", "สาเหตุ", "วิธีแก้ไข"], "rows": [
+              ["ข้อผิดพลาดส่วนหัวการตรวจสอบสิทธิ์", "รูปแบบส่วนหัว Authorization ไม่ถูกต้อง", "ตรวจสอบว่าส่ง Secret Key ในรูปแบบ Authorization: SECRET_KEY หรือไม่"],
+              ["ไม่สามารถสร้างแอปพลิเคชันได้", "สัญญาร้านค้ายังไม่เสร็จสมบูรณ์", "ทำสัญญาร้านค้าให้เสร็จสมบูรณ์ จากนั้นสร้างแอปพลิเคชันใน Developer Center"]
+            ] }
+          ]
+        },
+        {
+          "h2": "รายการตรวจสอบขั้นสุดท้าย",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "ทำสัญญาร้านค้า KakaoPay เสร็จสมบูรณ์และสมัคร Developer Center (developers.kakaopay.com) แล้ว",
+              "สร้างแอปพลิเคชันและออกรหัสร้านค้า (CID) และ Secret Key แล้ว",
+              "ตรวจสอบรูปแบบส่วนหัวการตรวจสอบสิทธิ์ Authorization: SECRET_KEY แล้ว",
+              "ป้อน cid·secret_key ใน GenieGo [ลงทะเบียน] และบันทึกแล้ว"
+            ] }
+          ]
+        }
+      ]
+    },
+    "vi": {
+      "titleType": "Hướng dẫn cấp API Key",
+      "badge": "Hướng dẫn cho người mới",
+      "intro": "Hướng dẫn hướng dẫn bạn tạo một ứng dụng trong KakaoPay Developer Center (developers.kakaopay.com) để cấp mã người bán (CID) và Secret Key, sau đó đăng ký chúng trong GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Thời gian dự kiến", "Khoảng 5–15 phút"],
+        ["Tài khoản cần thiết", "Hợp đồng người bán KakaoPay · Tài khoản Developer Center"],
+        ["Khóa được cấp", "Mã người bán (CID) · Secret Key"],
+        ["Kết quả", "Thông tin xác thực tích hợp thanh toán"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Trước khi bắt đầu",
+          "desc": "KakaoPay cấp thông tin xác thực trong Developer Center sau khi đã có hợp đồng người bán.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Bắt buộc", "h3": "Hợp đồng người bán · Tài khoản Developer Center", "p": "Hợp đồng người bán KakaoPay của bạn phải hoàn tất, và bạn phải có thể đăng ký và đăng nhập vào Developer Center (developers.kakaopay.com)." },
+              { "tag": "Khóa được cấp", "h3": "CID · Secret Key", "p": "Khi bạn tạo một ứng dụng, mã người bán (CID) và Secret Key sẽ được cấp." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Lưu ý:</strong> Khi gọi KakaoPay API, tiêu đề xác thực sử dụng định dạng Authorization: SECRET_KEY." }
+          ]
+        },
+        {
+          "h2": "2. Các bước cấp",
+          "desc": "Cấp theo thứ tự dưới đây và đăng ký trong GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Đăng ký và đăng nhập vào Developer Center", "p": "Đăng ký KakaoPay Developer Center và đăng nhập.", "path": "https://developers.kakaopay.com" },
+              { "h3": "Tạo ứng dụng", "p": "Tạo một ứng dụng để cấp hoặc kiểm tra mã người bán (CID) và Secret Key." },
+              { "h3": "Kiểm tra tiêu đề xác thực", "p": "Secret Key đã cấp được sử dụng trong tiêu đề xác thực theo định dạng Authorization: SECRET_KEY.", "path": "Authorization: SECRET_KEY ${secret_key}" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Khi mã người bán (CID) và Secret Key được cấp, nghĩa là bạn đã chuẩn bị đúng cách." }
+          ]
+        },
+        {
+          "h2": "3. Thông tin cần đăng ký trong GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Trường", "Mô tả"], "rows": [
+              ["cid", "Mã người bán (CID) đã được cấp"],
+              ["secret_key", "Secret Key đã được cấp (xử lý cẩn thận, Authorization: SECRET_KEY)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Nhập và lưu chúng trong GenieGo Integration Hub [Đăng ký], thông tin xác thực được mã hóa khi lưu trữ bằng AES-256-GCM và được che khi đọc." }
+          ]
+        },
+        {
+          "h2": "4. Sự cố thường gặp",
+          "blocks": [
+            { "type": "table", "head": ["Sự cố", "Nguyên nhân", "Giải pháp"], "rows": [
+              ["Lỗi tiêu đề xác thực", "Định dạng tiêu đề Authorization không chính xác", "Kiểm tra xem Secret Key có được truyền theo định dạng Authorization: SECRET_KEY hay không."],
+              ["Không thể tạo ứng dụng", "Hợp đồng người bán chưa hoàn tất", "Hoàn tất hợp đồng người bán, sau đó tạo ứng dụng trong Developer Center."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Danh sách kiểm tra cuối cùng",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Đã hoàn tất hợp đồng người bán KakaoPay và đăng ký Developer Center (developers.kakaopay.com).",
+              "Đã tạo ứng dụng và cấp mã người bán (CID) và Secret Key.",
+              "Đã xác minh định dạng tiêu đề xác thực Authorization: SECRET_KEY.",
+              "Đã nhập cid·secret_key vào GenieGo [Đăng ký] và lưu."
+            ] }
+          ]
+        }
+      ]
+    },
+    "id": {
+      "titleType": "Panduan Penerbitan API Key",
+      "badge": "Panduan Pemula",
+      "intro": "Panduan yang memandu Anda membuat aplikasi di KakaoPay Developer Center (developers.kakaopay.com) untuk menerbitkan kode merchant (CID) dan Secret Key, lalu mendaftarkannya di GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Perkiraan waktu", "Sekitar 5–15 menit"],
+        ["Akun yang dibutuhkan", "Kontrak merchant KakaoPay · Akun Developer Center"],
+        ["Kunci yang diterbitkan", "Kode merchant (CID) · Secret Key"],
+        ["Hasil", "Kredensial integrasi pembayaran"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Sebelum Anda Mulai",
+          "desc": "KakaoPay menerbitkan kredensial di Developer Center setelah kontrak merchant tersedia.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Diperlukan", "h3": "Kontrak merchant · Akun Developer Center", "p": "Kontrak merchant KakaoPay Anda harus selesai, dan Anda harus dapat mendaftar serta masuk ke Developer Center (developers.kakaopay.com)." },
+              { "tag": "Kunci yang diterbitkan", "h3": "CID · Secret Key", "p": "Saat Anda membuat aplikasi, kode merchant (CID) dan Secret Key akan diterbitkan." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Catatan:</strong> Saat memanggil KakaoPay API, header autentikasi menggunakan format Authorization: SECRET_KEY." }
+          ]
+        },
+        {
+          "h2": "2. Langkah Penerbitan",
+          "desc": "Terbitkan sesuai urutan di bawah dan daftarkan di GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Daftar dan masuk ke Developer Center", "p": "Daftar ke KakaoPay Developer Center dan masuk.", "path": "https://developers.kakaopay.com" },
+              { "h3": "Buat aplikasi", "p": "Buat aplikasi untuk menerbitkan atau memeriksa kode merchant (CID) dan Secret Key." },
+              { "h3": "Periksa header autentikasi", "p": "Secret Key yang diterbitkan digunakan dalam header autentikasi dengan format Authorization: SECRET_KEY.", "path": "Authorization: SECRET_KEY ${secret_key}" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Setelah kode merchant (CID) dan Secret Key diterbitkan, berarti Anda telah siap dengan benar." }
+          ]
+        },
+        {
+          "h2": "3. Informasi yang Akan Didaftarkan di GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Bidang", "Deskripsi"], "rows": [
+              ["cid", "Kode merchant (CID) yang diterbitkan"],
+              ["secret_key", "Secret Key yang diterbitkan (tangani dengan hati-hati, Authorization: SECRET_KEY)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Masukkan dan simpan di GenieGo Integration Hub [Daftar], dan kredensial dienkripsi saat disimpan dengan AES-256-GCM serta disamarkan saat dibaca." }
+          ]
+        },
+        {
+          "h2": "4. Masalah Umum",
+          "blocks": [
+            { "type": "table", "head": ["Masalah", "Penyebab", "Solusi"], "rows": [
+              ["Kesalahan header autentikasi", "Format header Authorization tidak benar", "Periksa apakah Secret Key dikirim dalam format Authorization: SECRET_KEY."],
+              ["Tidak dapat membuat aplikasi", "Kontrak merchant belum selesai", "Selesaikan kontrak merchant, lalu buat aplikasi di Developer Center."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Daftar Periksa Akhir",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Menyelesaikan kontrak merchant KakaoPay dan mendaftar ke Developer Center (developers.kakaopay.com).",
+              "Membuat aplikasi dan menerbitkan kode merchant (CID) dan Secret Key.",
+              "Memverifikasi format header autentikasi Authorization: SECRET_KEY.",
+              "Memasukkan cid·secret_key di GenieGo [Daftar] dan menyimpannya."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ar": {
+      "titleType": "دليل إصدار مفتاح API",
+      "badge": "دليل المبتدئين",
+      "intro": "دليل يرشدك خلال إنشاء تطبيق في مركز مطوري KakaoPay (developers.kakaopay.com) لإصدار رمز التاجر (CID) ومفتاح Secret Key، ثم تسجيلهما في GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["الوقت المقدر", "حوالي 5–15 دقيقة"],
+        ["الحساب المطلوب", "عقد تاجر KakaoPay · حساب مركز المطورين"],
+        ["المفاتيح المُصدَرة", "رمز التاجر (CID) · مفتاح Secret Key"],
+        ["النتيجة", "بيانات اعتماد تكامل الدفع"]
+      ],
+      "sections": [
+        {
+          "h2": "1. قبل أن تبدأ",
+          "desc": "تُصدر KakaoPay بيانات الاعتماد في مركز المطورين بعد إبرام عقد التاجر.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "مطلوب", "h3": "عقد التاجر · حساب مركز المطورين", "p": "يجب أن يكون عقد تاجر KakaoPay الخاص بك مكتملًا، ويجب أن تكون قادرًا على التسجيل وتسجيل الدخول إلى مركز المطورين (developers.kakaopay.com)." },
+              { "tag": "المفاتيح المُصدَرة", "h3": "CID · Secret Key", "p": "عند إنشاء تطبيق، يتم إصدار رمز التاجر (CID) ومفتاح Secret Key." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>ملاحظة:</strong> عند استدعاء KakaoPay API، يستخدم رأس المصادقة تنسيق Authorization: SECRET_KEY." }
+          ]
+        },
+        {
+          "h2": "2. خطوات الإصدار",
+          "desc": "أصدر بالترتيب أدناه وسجّل في GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "التسجيل وتسجيل الدخول إلى مركز المطورين", "p": "سجّل في مركز مطوري KakaoPay وسجّل الدخول.", "path": "https://developers.kakaopay.com" },
+              { "h3": "إنشاء تطبيق", "p": "أنشئ تطبيقًا لإصدار أو التحقق من رمز التاجر (CID) ومفتاح Secret Key." },
+              { "h3": "التحقق من رأس المصادقة", "p": "يُستخدم مفتاح Secret Key المُصدَر في رأس المصادقة بتنسيق Authorization: SECRET_KEY.", "path": "Authorization: SECRET_KEY ${secret_key}" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "بمجرد إصدار رمز التاجر (CID) ومفتاح Secret Key، يكون الإعداد قد تم بشكل صحيح." }
+          ]
+        },
+        {
+          "h2": "3. المعلومات المطلوب تسجيلها في GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["الحقل", "الوصف"], "rows": [
+              ["cid", "رمز التاجر (CID) المُصدَر"],
+              ["secret_key", "مفتاح Secret Key المُصدَر (تعامل معه بحذر، Authorization: SECRET_KEY)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "أدخلها واحفظها في GenieGo Integration Hub [تسجيل]، ويتم تشفير بيانات الاعتماد أثناء التخزين باستخدام AES-256-GCM وإخفاؤها عند القراءة." }
+          ]
+        },
+        {
+          "h2": "4. المشكلات الشائعة",
+          "blocks": [
+            { "type": "table", "head": ["المشكلة", "السبب", "الحل"], "rows": [
+              ["خطأ في رأس المصادقة", "تنسيق رأس Authorization غير صحيح", "تحقق من أن مفتاح Secret Key يُمرَّر بتنسيق Authorization: SECRET_KEY."],
+              ["تعذّر إنشاء التطبيق", "عقد التاجر غير مكتمل", "أكمل عقد التاجر، ثم أنشئ التطبيق في مركز المطورين."]
+            ] }
+          ]
+        },
+        {
+          "h2": "قائمة التحقق النهائية",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "أكملت عقد تاجر KakaoPay وسجّلت في مركز المطورين (developers.kakaopay.com).",
+              "أنشأت تطبيقًا وأصدرت رمز التاجر (CID) ومفتاح Secret Key.",
+              "تحققت من تنسيق رأس المصادقة Authorization: SECRET_KEY.",
+              "أدخلت cid·secret_key في GenieGo [تسجيل] وحفظت."
+            ] }
+          ]
+        }
+      ]
+    },
+    "es": {
+      "titleType": "Manual de emisión de API Key",
+      "badge": "Guía para principiantes",
+      "intro": "Una guía que le explica cómo crear una aplicación en el Centro de Desarrolladores de KakaoPay (developers.kakaopay.com) para emitir un código de comercio (CID) y una Secret Key, y luego registrarlos en el GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tiempo estimado", "Unos 5–15 min"],
+        ["Cuenta necesaria", "Contrato de comercio KakaoPay · Cuenta del Centro de Desarrolladores"],
+        ["Claves emitidas", "Código de comercio (CID) · Secret Key"],
+        ["Resultado", "Credenciales de integración de pagos"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de empezar",
+          "desc": "KakaoPay emite las credenciales en el Centro de Desarrolladores una vez que existe un contrato de comercio.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requerido", "h3": "Contrato de comercio · Cuenta del Centro de Desarrolladores", "p": "Su contrato de comercio de KakaoPay debe estar completo, y debe poder registrarse e iniciar sesión en el Centro de Desarrolladores (developers.kakaopay.com)." },
+              { "tag": "Claves emitidas", "h3": "CID · Secret Key", "p": "Cuando crea una aplicación, se emiten un código de comercio (CID) y una Secret Key." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Nota:</strong> Al llamar a la API de KakaoPay, el encabezado de autenticación usa el formato Authorization: SECRET_KEY." }
+          ]
+        },
+        {
+          "h2": "2. Pasos de emisión",
+          "desc": "Emita en el orden siguiente y registre en GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Registrarse e iniciar sesión en el Centro de Desarrolladores", "p": "Regístrese en el Centro de Desarrolladores de KakaoPay e inicie sesión.", "path": "https://developers.kakaopay.com" },
+              { "h3": "Crear una aplicación", "p": "Cree una aplicación para emitir o comprobar el código de comercio (CID) y la Secret Key." },
+              { "h3": "Comprobar el encabezado de autenticación", "p": "La Secret Key emitida se usa en el encabezado de autenticación con el formato Authorization: SECRET_KEY.", "path": "Authorization: SECRET_KEY ${secret_key}" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Una vez emitidos el código de comercio (CID) y la Secret Key, todo está correctamente preparado." }
+          ]
+        },
+        {
+          "h2": "3. Información para registrar en GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descripción"], "rows": [
+              ["cid", "El código de comercio (CID) emitido"],
+              ["secret_key", "La Secret Key emitida (manéjela con cuidado, Authorization: SECRET_KEY)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Introdúzcalos y guárdelos en el GenieGo Integration Hub [Registrar], y las credenciales se cifran en reposo con AES-256-GCM y se enmascaran al leerlas." }
+          ]
+        },
+        {
+          "h2": "4. Problemas comunes",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solución"], "rows": [
+              ["Error en el encabezado de autenticación", "El formato del encabezado Authorization es incorrecto", "Compruebe que la Secret Key se pasa con el formato Authorization: SECRET_KEY."],
+              ["No se puede crear la aplicación", "Contrato de comercio no completado", "Complete el contrato de comercio y luego cree la aplicación en el Centro de Desarrolladores."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificación final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Completé el contrato de comercio de KakaoPay y me registré en el Centro de Desarrolladores (developers.kakaopay.com).",
+              "Creé una aplicación y emití el código de comercio (CID) y la Secret Key.",
+              "Verifiqué el formato del encabezado de autenticación Authorization: SECRET_KEY.",
+              "Introduje cid·secret_key en GenieGo [Registrar] y guardé."
+            ] }
+          ]
+        }
+      ]
+    },
+    "fr": {
+      "titleType": "Manuel de délivrance de la clé API",
+      "badge": "Guide du débutant",
+      "intro": "Un guide qui vous explique comment créer une application dans le Centre des développeurs KakaoPay (developers.kakaopay.com) pour délivrer un code marchand (CID) et une Secret Key, puis les enregistrer dans le GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Temps estimé", "Environ 5–15 min"],
+        ["Compte requis", "Contrat marchand KakaoPay · Compte du Centre des développeurs"],
+        ["Clés délivrées", "Code marchand (CID) · Secret Key"],
+        ["Résultat", "Identifiants d'intégration de paiement"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Avant de commencer",
+          "desc": "KakaoPay délivre les identifiants dans le Centre des développeurs une fois qu'un contrat marchand est en place.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requis", "h3": "Contrat marchand · Compte du Centre des développeurs", "p": "Votre contrat marchand KakaoPay doit être finalisé, et vous devez pouvoir vous inscrire et vous connecter au Centre des développeurs (developers.kakaopay.com)." },
+              { "tag": "Clés délivrées", "h3": "CID · Secret Key", "p": "Lorsque vous créez une application, un code marchand (CID) et une Secret Key sont délivrés." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Remarque :</strong> Lors de l'appel de l'API KakaoPay, l'en-tête d'authentification utilise le format Authorization: SECRET_KEY." }
+          ]
+        },
+        {
+          "h2": "2. Étapes de délivrance",
+          "desc": "Délivrez dans l'ordre ci-dessous et enregistrez dans GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "S'inscrire et se connecter au Centre des développeurs", "p": "Inscrivez-vous au Centre des développeurs KakaoPay et connectez-vous.", "path": "https://developers.kakaopay.com" },
+              { "h3": "Créer une application", "p": "Créez une application pour délivrer ou vérifier le code marchand (CID) et la Secret Key." },
+              { "h3": "Vérifier l'en-tête d'authentification", "p": "La Secret Key délivrée est utilisée dans l'en-tête d'authentification au format Authorization: SECRET_KEY.", "path": "Authorization: SECRET_KEY ${secret_key}" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Une fois le code marchand (CID) et la Secret Key délivrés, tout est correctement préparé." }
+          ]
+        },
+        {
+          "h2": "3. Informations à enregistrer dans GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Champ", "Description"], "rows": [
+              ["cid", "Le code marchand (CID) délivré"],
+              ["secret_key", "La Secret Key délivrée (à manipuler avec précaution, Authorization: SECRET_KEY)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Saisissez-les et enregistrez-les dans le GenieGo Integration Hub [Enregistrer] ; les identifiants sont chiffrés au repos avec AES-256-GCM et masqués à la lecture." }
+          ]
+        },
+        {
+          "h2": "4. Problèmes courants",
+          "blocks": [
+            { "type": "table", "head": ["Problème", "Cause", "Solution"], "rows": [
+              ["Erreur d'en-tête d'authentification", "Le format de l'en-tête Authorization est incorrect", "Vérifiez que la Secret Key est transmise au format Authorization: SECRET_KEY."],
+              ["Impossible de créer l'application", "Contrat marchand non finalisé", "Finalisez le contrat marchand, puis créez l'application dans le Centre des développeurs."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Liste de contrôle finale",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "J'ai finalisé le contrat marchand KakaoPay et je me suis inscrit au Centre des développeurs (developers.kakaopay.com).",
+              "J'ai créé une application et délivré le code marchand (CID) et la Secret Key.",
+              "J'ai vérifié le format de l'en-tête d'authentification Authorization: SECRET_KEY.",
+              "J'ai saisi cid·secret_key dans GenieGo [Enregistrer] et enregistré."
+            ] }
+          ]
+        }
+      ]
+    },
+    "hi": {
+      "titleType": "API Key जारी करने की नियमावली",
+      "badge": "शुरुआती गाइड",
+      "intro": "एक गाइड जो आपको KakaoPay डेवलपर सेंटर (developers.kakaopay.com) में एक एप्लिकेशन बनाकर मर्चेंट कोड (CID) और Secret Key जारी करने, और फिर उन्हें GenieGo Integration Hub में पंजीकृत करने की प्रक्रिया समझाती है।",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["अनुमानित समय", "लगभग 5–15 मिनट"],
+        ["आवश्यक खाता", "KakaoPay मर्चेंट अनुबंध · डेवलपर सेंटर खाता"],
+        ["जारी की गई कुंजियाँ", "मर्चेंट कोड (CID) · Secret Key"],
+        ["परिणाम", "भुगतान एकीकरण क्रेडेंशियल"]
+      ],
+      "sections": [
+        {
+          "h2": "1. शुरू करने से पहले",
+          "desc": "मर्चेंट अनुबंध हो जाने के बाद KakaoPay डेवलपर सेंटर में क्रेडेंशियल जारी करता है।",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "आवश्यक", "h3": "मर्चेंट अनुबंध · डेवलपर सेंटर खाता", "p": "आपका KakaoPay मर्चेंट अनुबंध पूरा होना चाहिए, और आपको डेवलपर सेंटर (developers.kakaopay.com) में साइन अप करने और लॉग इन करने में सक्षम होना चाहिए।" },
+              { "tag": "जारी की गई कुंजियाँ", "h3": "CID · Secret Key", "p": "जब आप एक एप्लिकेशन बनाते हैं, तो एक मर्चेंट कोड (CID) और एक Secret Key जारी की जाती है।" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>नोट:</strong> KakaoPay API को कॉल करते समय, प्रमाणीकरण हेडर Authorization: SECRET_KEY प्रारूप का उपयोग करता है।" }
+          ]
+        },
+        {
+          "h2": "2. जारी करने के चरण",
+          "desc": "नीचे दिए गए क्रम में जारी करें और GenieGo में पंजीकृत करें।",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "डेवलपर सेंटर में साइन अप और लॉग इन करें", "p": "KakaoPay डेवलपर सेंटर में साइन अप करें और लॉग इन करें।", "path": "https://developers.kakaopay.com" },
+              { "h3": "एक एप्लिकेशन बनाएँ", "p": "मर्चेंट कोड (CID) और Secret Key जारी करने या जाँचने के लिए एक एप्लिकेशन बनाएँ।" },
+              { "h3": "प्रमाणीकरण हेडर जाँचें", "p": "जारी की गई Secret Key का उपयोग प्रमाणीकरण हेडर में Authorization: SECRET_KEY प्रारूप में किया जाता है।", "path": "Authorization: SECRET_KEY ${secret_key}" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "जब मर्चेंट कोड (CID) और Secret Key जारी हो जाते हैं, तो आप सही ढंग से तैयार हो जाते हैं।" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo में पंजीकृत करने की जानकारी",
+          "blocks": [
+            { "type": "table", "head": ["फ़ील्ड", "विवरण"], "rows": [
+              ["cid", "जारी किया गया मर्चेंट कोड (CID)"],
+              ["secret_key", "जारी की गई Secret Key (सावधानी से संभालें, Authorization: SECRET_KEY)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "उन्हें GenieGo Integration Hub [पंजीकृत करें] में दर्ज करें और सहेजें; क्रेडेंशियल को AES-256-GCM के साथ संग्रहण में एन्क्रिप्ट किया जाता है और पढ़ते समय मास्क किया जाता है।" }
+          ]
+        },
+        {
+          "h2": "4. सामान्य समस्याएँ",
+          "blocks": [
+            { "type": "table", "head": ["समस्या", "कारण", "समाधान"], "rows": [
+              ["प्रमाणीकरण हेडर त्रुटि", "Authorization हेडर का प्रारूप सही नहीं है", "जाँचें कि Secret Key को Authorization: SECRET_KEY प्रारूप में पास किया गया है या नहीं।"],
+              ["एप्लिकेशन नहीं बना सकते", "मर्चेंट अनुबंध पूरा नहीं हुआ", "मर्चेंट अनुबंध पूरा करें, फिर डेवलपर सेंटर में एप्लिकेशन बनाएँ।"]
+            ] }
+          ]
+        },
+        {
+          "h2": "अंतिम जाँच सूची",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "KakaoPay मर्चेंट अनुबंध पूरा किया और डेवलपर सेंटर (developers.kakaopay.com) में साइन अप किया।",
+              "एक एप्लिकेशन बनाया और मर्चेंट कोड (CID) और Secret Key जारी की।",
+              "Authorization: SECRET_KEY प्रमाणीकरण हेडर प्रारूप सत्यापित किया।",
+              "GenieGo [पंजीकृत करें] में cid·secret_key दर्ज किया और सहेजा।"
+            ] }
+          ]
+        }
+      ]
+    },
+    "pt": {
+      "titleType": "Manual de emissão da API Key",
+      "badge": "Guia para iniciantes",
+      "intro": "Um guia que orienta você a criar um aplicativo no Centro de Desenvolvedores da KakaoPay (developers.kakaopay.com) para emitir um código de comerciante (CID) e uma Secret Key, e depois registrá-los no GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tempo estimado", "Cerca de 5–15 min"],
+        ["Conta necessária", "Contrato de comerciante KakaoPay · Conta do Centro de Desenvolvedores"],
+        ["Chaves emitidas", "Código de comerciante (CID) · Secret Key"],
+        ["Resultado", "Credenciais de integração de pagamento"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de começar",
+          "desc": "A KakaoPay emite as credenciais no Centro de Desenvolvedores depois que há um contrato de comerciante.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Obrigatório", "h3": "Contrato de comerciante · Conta do Centro de Desenvolvedores", "p": "Seu contrato de comerciante da KakaoPay deve estar concluído, e você deve conseguir se cadastrar e fazer login no Centro de Desenvolvedores (developers.kakaopay.com)." },
+              { "tag": "Chaves emitidas", "h3": "CID · Secret Key", "p": "Quando você cria um aplicativo, são emitidos um código de comerciante (CID) e uma Secret Key." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Nota:</strong> Ao chamar a API da KakaoPay, o cabeçalho de autenticação usa o formato Authorization: SECRET_KEY." }
+          ]
+        },
+        {
+          "h2": "2. Etapas de emissão",
+          "desc": "Emita na ordem abaixo e registre no GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Cadastrar-se e fazer login no Centro de Desenvolvedores", "p": "Cadastre-se no Centro de Desenvolvedores da KakaoPay e faça login.", "path": "https://developers.kakaopay.com" },
+              { "h3": "Criar um aplicativo", "p": "Crie um aplicativo para emitir ou verificar o código de comerciante (CID) e a Secret Key." },
+              { "h3": "Verificar o cabeçalho de autenticação", "p": "A Secret Key emitida é usada no cabeçalho de autenticação no formato Authorization: SECRET_KEY.", "path": "Authorization: SECRET_KEY ${secret_key}" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Assim que o código de comerciante (CID) e a Secret Key forem emitidos, tudo está corretamente preparado." }
+          ]
+        },
+        {
+          "h2": "3. Informações para registrar no GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descrição"], "rows": [
+              ["cid", "O código de comerciante (CID) emitido"],
+              ["secret_key", "A Secret Key emitida (manuseie com cuidado, Authorization: SECRET_KEY)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Insira-os e salve-os no GenieGo Integration Hub [Registrar]; as credenciais são criptografadas em repouso com AES-256-GCM e mascaradas na leitura." }
+          ]
+        },
+        {
+          "h2": "4. Problemas comuns",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solução"], "rows": [
+              ["Erro no cabeçalho de autenticação", "O formato do cabeçalho Authorization está incorreto", "Verifique se a Secret Key é passada no formato Authorization: SECRET_KEY."],
+              ["Não é possível criar o aplicativo", "Contrato de comerciante não concluído", "Conclua o contrato de comerciante e depois crie o aplicativo no Centro de Desenvolvedores."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificação final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Concluí o contrato de comerciante da KakaoPay e me cadastrei no Centro de Desenvolvedores (developers.kakaopay.com).",
+              "Criei um aplicativo e emiti o código de comerciante (CID) e a Secret Key.",
+              "Verifiquei o formato do cabeçalho de autenticação Authorization: SECRET_KEY.",
+              "Inseri cid·secret_key no GenieGo [Registrar] e salvei."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ru": {
+      "titleType": "Руководство по выпуску API-ключа",
+      "badge": "Руководство для начинающих",
+      "intro": "Руководство, которое проведёт вас через создание приложения в Центре разработчиков KakaoPay (developers.kakaopay.com) для выпуска кода продавца (CID) и Secret Key с последующей регистрацией их в GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Расчётное время", "Около 5–15 мин"],
+        ["Требуемый аккаунт", "Договор продавца KakaoPay · Аккаунт Центра разработчиков"],
+        ["Выпускаемые ключи", "Код продавца (CID) · Secret Key"],
+        ["Результат", "Учётные данные интеграции платежей"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Перед началом",
+          "desc": "KakaoPay выпускает учётные данные в Центре разработчиков после заключения договора продавца.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Требуется", "h3": "Договор продавца · Аккаунт Центра разработчиков", "p": "Ваш договор продавца KakaoPay должен быть заключён, и вы должны иметь возможность зарегистрироваться и войти в Центр разработчиков (developers.kakaopay.com)." },
+              { "tag": "Выпускаемые ключи", "h3": "CID · Secret Key", "p": "При создании приложения выпускаются код продавца (CID) и Secret Key." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Примечание:</strong> При вызове KakaoPay API заголовок аутентификации использует формат Authorization: SECRET_KEY." }
+          ]
+        },
+        {
+          "h2": "2. Шаги выпуска",
+          "desc": "Выпустите в указанном ниже порядке и зарегистрируйте в GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Регистрация и вход в Центр разработчиков", "p": "Зарегистрируйтесь в Центре разработчиков KakaoPay и войдите.", "path": "https://developers.kakaopay.com" },
+              { "h3": "Создание приложения", "p": "Создайте приложение, чтобы выпустить или проверить код продавца (CID) и Secret Key." },
+              { "h3": "Проверка заголовка аутентификации", "p": "Выпущенный Secret Key используется в заголовке аутентификации в формате Authorization: SECRET_KEY.", "path": "Authorization: SECRET_KEY ${secret_key}" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Как только код продавца (CID) и Secret Key выпущены, всё подготовлено правильно." }
+          ]
+        },
+        {
+          "h2": "3. Информация для регистрации в GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Поле", "Описание"], "rows": [
+              ["cid", "Выпущенный код продавца (CID)"],
+              ["secret_key", "Выпущенный Secret Key (обращайтесь осторожно, Authorization: SECRET_KEY)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Введите их и сохраните в GenieGo Integration Hub [Регистрация]; учётные данные шифруются при хранении с помощью AES-256-GCM и маскируются при чтении." }
+          ]
+        },
+        {
+          "h2": "4. Часто возникающие проблемы",
+          "blocks": [
+            { "type": "table", "head": ["Проблема", "Причина", "Решение"], "rows": [
+              ["Ошибка заголовка аутентификации", "Неверный формат заголовка Authorization", "Проверьте, что Secret Key передаётся в формате Authorization: SECRET_KEY."],
+              ["Невозможно создать приложение", "Договор продавца не заключён", "Заключите договор продавца, затем создайте приложение в Центре разработчиков."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Итоговый контрольный список",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Заключил договор продавца KakaoPay и зарегистрировался в Центре разработчиков (developers.kakaopay.com).",
+              "Создал приложение и выпустил код продавца (CID) и Secret Key.",
+              "Проверил формат заголовка аутентификации Authorization: SECRET_KEY.",
+              "Ввёл cid·secret_key в GenieGo [Регистрация] и сохранил."
+            ] }
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,996 @@
+{
+  "name": "Walmart Marketplace",
+  "icon": "🏪",
+  "langs": {
+    "ko": {
+      "titleType": "API Key 발급 매뉴얼",
+      "badge": "Beginner Guide",
+      "intro": "Walmart 마켓플레이스 셀러센터의 Developer Portal에서 client_id와 Client Secret을 생성해 GenieGo 연동 허브에 등록하는 과정을 초보자도 그대로 따라 할 수 있도록 정리한 매뉴얼입니다.",
+      "org": "GenieGo 연동 허브",
+      "quick": [
+        ["소요 시간", "약 5~15분"],
+        ["필요 계정", "Walmart 마켓플레이스 셀러 계정"],
+        ["발급 키", "Client ID · Client Secret"],
+        ["결과물", "API 자격증명"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 시작하기 전에",
+          "desc": "Walmart API 자격증명은 마켓플레이스 셀러센터의 Developer Portal에서 발급합니다.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "필요", "h3": "Walmart 마켓플레이스 셀러 계정", "p": "발급을 진행하려면 Walmart 마켓플레이스 셀러 계정이 있어야 합니다. 이 계정으로 셀러센터의 Developer Portal에 접속합니다." },
+              { "tag": "발급 키", "h3": "Client ID · Client Secret", "p": "Developer Portal에서 API Key(client_id)와 Client Secret을 생성합니다." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. 발급 단계",
+          "desc": "아래 순서대로 발급하고 GenieGo에 등록합니다.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Developer Portal 접속", "p": "Walmart 셀러센터 > Developer Portal에 접속합니다.", "path": "https://developer.walmart.com" },
+              { "h3": "자격증명 생성", "p": "API Key(client_id)와 Client Secret을 생성합니다." },
+              { "h3": "값 확인", "p": "발급된 client_id와 client_secret을 확인합니다." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "client_id와 Client Secret이 생성되면 정상 발급된 것입니다." }
+          ]
+        },
+        {
+          "h2": "3. GenieGo에 등록할 정보",
+          "blocks": [
+            { "type": "table", "head": ["필드", "설명"], "rows": [
+              ["client_id", "발급된 API Key(Client ID)"],
+              ["client_secret", "발급된 Client Secret(노출 주의)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 연동 허브 [등록]에 client_id와 client_secret을 입력해 저장하면 자격증명은 AES-256-GCM으로 암호화 저장되고 조회 시 마스킹됩니다." }
+          ]
+        },
+        {
+          "h2": "4. 자주 발생하는 문제",
+          "blocks": [
+            { "type": "table", "head": ["문제", "원인", "해결"], "rows": [
+              ["Developer Portal에 접속할 수 없음", "Walmart 마켓플레이스 셀러 계정이 아님", "Walmart 마켓플레이스 셀러 계정으로 셀러센터 > Developer Portal에 접속합니다."],
+              ["인증 실패", "client_id 또는 client_secret 오기재", "Developer Portal에서 발급한 client_id와 client_secret을 다시 확인합니다."]
+            ] }
+          ]
+        },
+        {
+          "h2": "최종 체크리스트",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Walmart 마켓플레이스 셀러 계정으로 셀러센터 > Developer Portal에 접속했다.",
+              "API Key(client_id)와 Client Secret을 생성했다.",
+              "client_id와 client_secret 값을 확인했다.",
+              "GenieGo [등록]에 client_id와 client_secret을 입력해 저장했다."
+            ] }
+          ]
+        }
+      ]
+    },
+    "en": {
+      "titleType": "API Key Issuance Manual",
+      "badge": "Beginner Guide",
+      "intro": "A beginner-friendly, step-by-step guide to creating a client_id and Client Secret in the Developer Portal of the Walmart Marketplace Seller Center and registering them in the GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Est. time", "About 5–15 min"],
+        ["Account needed", "Walmart Marketplace seller account"],
+        ["Keys issued", "Client ID · Client Secret"],
+        ["Result", "API credentials"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Before You Begin",
+          "desc": "Walmart API credentials are issued from the Developer Portal of the Marketplace Seller Center.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Required", "h3": "Walmart Marketplace seller account", "p": "To proceed with issuance, you need a Walmart Marketplace seller account. Use this account to access the Developer Portal in the Seller Center." },
+              { "tag": "Keys issued", "h3": "Client ID · Client Secret", "p": "Create an API Key (client_id) and a Client Secret in the Developer Portal." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Issuance Steps",
+          "desc": "Issue in the order below and register in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Access the Developer Portal", "p": "Go to Walmart Seller Center > Developer Portal.", "path": "https://developer.walmart.com" },
+              { "h3": "Create credentials", "p": "Create an API Key (client_id) and a Client Secret." },
+              { "h3": "Check the values", "p": "Verify the issued client_id and client_secret." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Once the client_id and Client Secret are created, they have been issued correctly." }
+          ]
+        },
+        {
+          "h2": "3. Information to Register in GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Field", "Description"], "rows": [
+              ["client_id", "The issued API Key (Client ID)"],
+              ["client_secret", "The issued Client Secret (handle with care)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Enter your client_id and client_secret in the GenieGo Integration Hub [Register] and save. Credentials are encrypted at rest with AES-256-GCM and masked on read." }
+          ]
+        },
+        {
+          "h2": "4. Common Issues",
+          "blocks": [
+            { "type": "table", "head": ["Issue", "Cause", "Solution"], "rows": [
+              ["Cannot access the Developer Portal", "Not a Walmart Marketplace seller account", "Access the Seller Center > Developer Portal with a Walmart Marketplace seller account."],
+              ["Authentication failure", "client_id or client_secret entered incorrectly", "Re-check the client_id and client_secret issued in the Developer Portal."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Final Checklist",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Accessed the Seller Center > Developer Portal with a Walmart Marketplace seller account.",
+              "Created an API Key (client_id) and a Client Secret.",
+              "Verified the client_id and client_secret values.",
+              "Entered client_id and client_secret in GenieGo [Register] and saved."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ja": {
+      "titleType": "API Key 発行マニュアル",
+      "badge": "初心者ガイド",
+      "intro": "Walmart マーケットプレイスのセラーセンターにある Developer Portal で client_id と Client Secret を生成し、GenieGo 連携ハブに登録する手順を、初心者でもそのまま実行できるようにまとめたマニュアルです。",
+      "org": "GenieGo 連携ハブ",
+      "quick": [
+        ["所要時間", "約 5〜15 分"],
+        ["必要なアカウント", "Walmart マーケットプレイスのセラーアカウント"],
+        ["発行するキー", "Client ID · Client Secret"],
+        ["成果物", "API 認証情報"]
+      ],
+      "sections": [
+        {
+          "h2": "1. はじめる前に",
+          "desc": "Walmart API の認証情報は、マーケットプレイスのセラーセンターにある Developer Portal で発行します。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必須", "h3": "Walmart マーケットプレイスのセラーアカウント", "p": "発行を進めるには Walmart マーケットプレイスのセラーアカウントが必要です。このアカウントでセラーセンターの Developer Portal にアクセスします。" },
+              { "tag": "発行するキー", "h3": "Client ID · Client Secret", "p": "Developer Portal で API Key(client_id)と Client Secret を生成します。" }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. 発行手順",
+          "desc": "以下の順序で発行し、GenieGo に登録します。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Developer Portal にアクセス", "p": "Walmart セラーセンター > Developer Portal にアクセスします。", "path": "https://developer.walmart.com" },
+              { "h3": "認証情報を生成", "p": "API Key(client_id)と Client Secret を生成します。" },
+              { "h3": "値を確認", "p": "発行された client_id と client_secret を確認します。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "client_id と Client Secret が生成されれば、正常に発行されています。" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo に登録する情報",
+          "blocks": [
+            { "type": "table", "head": ["フィールド", "説明"], "rows": [
+              ["client_id", "発行された API Key(Client ID)"],
+              ["client_secret", "発行された Client Secret(取り扱い注意)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 連携ハブの [登録] に client_id と client_secret を入力して保存すると、認証情報は AES-256-GCM で暗号化して保存され、閲覧時にはマスキングされます。" }
+          ]
+        },
+        {
+          "h2": "4. よくある問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["Developer Portal にアクセスできない", "Walmart マーケットプレイスのセラーアカウントではない", "Walmart マーケットプレイスのセラーアカウントでセラーセンター > Developer Portal にアクセスします。"],
+              ["認証失敗", "client_id または client_secret の記載ミス", "Developer Portal で発行した client_id と client_secret を再度確認します。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終チェックリスト",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Walmart マーケットプレイスのセラーアカウントでセラーセンター > Developer Portal にアクセスした。",
+              "API Key(client_id)と Client Secret を生成した。",
+              "client_id と client_secret の値を確認した。",
+              "GenieGo の [登録] に client_id と client_secret を入力して保存した。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh": {
+      "titleType": "API Key 申请手册",
+      "badge": "新手指南",
+      "intro": "本手册手把手指导新手在 Walmart 市场卖家中心的 Developer Portal 中生成 client_id 和 Client Secret，并将其注册到 GenieGo 集成中心。",
+      "org": "GenieGo 集成中心",
+      "quick": [
+        ["预计时间", "约 5~15 分钟"],
+        ["所需账户", "Walmart 市场卖家账户"],
+        ["签发密钥", "Client ID · Client Secret"],
+        ["成果", "API 凭证"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 开始之前",
+          "desc": "Walmart API 凭证在市场卖家中心的 Developer Portal 中签发。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "Walmart 市场卖家账户", "p": "要进行签发，您需要一个 Walmart 市场卖家账户。使用该账户访问卖家中心的 Developer Portal。" },
+              { "tag": "签发密钥", "h3": "Client ID · Client Secret", "p": "在 Developer Portal 中生成 API Key(client_id)和 Client Secret。" }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. 申请步骤",
+          "desc": "按以下顺序签发并在 GenieGo 中注册。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "访问 Developer Portal", "p": "进入 Walmart 卖家中心 > Developer Portal。", "path": "https://developer.walmart.com" },
+              { "h3": "生成凭证", "p": "生成 API Key(client_id)和 Client Secret。" },
+              { "h3": "确认值", "p": "确认签发的 client_id 和 client_secret。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "当 client_id 和 Client Secret 生成后，即表示已正确签发。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中注册的信息",
+          "blocks": [
+            { "type": "table", "head": ["字段", "说明"], "rows": [
+              ["client_id", "签发的 API Key(Client ID)"],
+              ["client_secret", "签发的 Client Secret(请妥善保管)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 集成中心 [注册] 中输入 client_id 和 client_secret 并保存后，凭证将以 AES-256-GCM 加密存储，并在查询时进行掩码处理。" }
+          ]
+        },
+        {
+          "h2": "4. 常见问题",
+          "blocks": [
+            { "type": "table", "head": ["问题", "原因", "解决方法"], "rows": [
+              ["无法访问 Developer Portal", "并非 Walmart 市场卖家账户", "使用 Walmart 市场卖家账户访问卖家中心 > Developer Portal。"],
+              ["认证失败", "client_id 或 client_secret 填写错误", "重新确认在 Developer Portal 中签发的 client_id 和 client_secret。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最终检查清单",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已使用 Walmart 市场卖家账户访问卖家中心 > Developer Portal。",
+              "已生成 API Key(client_id)和 Client Secret。",
+              "已确认 client_id 和 client_secret 的值。",
+              "已在 GenieGo [注册] 中输入 client_id 和 client_secret 并保存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh-TW": {
+      "titleType": "API Key 申請手冊",
+      "badge": "新手指南",
+      "intro": "本手冊手把手指導新手在 Walmart 市集賣家中心的 Developer Portal 中產生 client_id 和 Client Secret，並將其註冊到 GenieGo 整合中心。",
+      "org": "GenieGo 整合中心",
+      "quick": [
+        ["預計時間", "約 5~15 分鐘"],
+        ["所需帳戶", "Walmart 市集賣家帳戶"],
+        ["簽發金鑰", "Client ID · Client Secret"],
+        ["成果", "API 憑證"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 開始之前",
+          "desc": "Walmart API 憑證在市集賣家中心的 Developer Portal 中簽發。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "Walmart 市集賣家帳戶", "p": "要進行簽發，您需要一個 Walmart 市集賣家帳戶。使用該帳戶存取賣家中心的 Developer Portal。" },
+              { "tag": "簽發金鑰", "h3": "Client ID · Client Secret", "p": "在 Developer Portal 中產生 API Key(client_id)和 Client Secret。" }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. 簽發步驟",
+          "desc": "依以下順序簽發並在 GenieGo 中註冊。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "存取 Developer Portal", "p": "進入 Walmart 賣家中心 > Developer Portal。", "path": "https://developer.walmart.com" },
+              { "h3": "產生憑證", "p": "產生 API Key(client_id)和 Client Secret。" },
+              { "h3": "確認值", "p": "確認簽發的 client_id 和 client_secret。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "當 client_id 和 Client Secret 產生後，即表示已正確簽發。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中註冊的資訊",
+          "blocks": [
+            { "type": "table", "head": ["欄位", "說明"], "rows": [
+              ["client_id", "簽發的 API Key(Client ID)"],
+              ["client_secret", "簽發的 Client Secret(請妥善保管)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 整合中心 [註冊] 中輸入 client_id 和 client_secret 並儲存後，憑證將以 AES-256-GCM 加密儲存，並在查詢時進行遮罩處理。" }
+          ]
+        },
+        {
+          "h2": "4. 常見問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["無法存取 Developer Portal", "並非 Walmart 市集賣家帳戶", "使用 Walmart 市集賣家帳戶存取賣家中心 > Developer Portal。"],
+              ["認證失敗", "client_id 或 client_secret 填寫錯誤", "重新確認在 Developer Portal 中簽發的 client_id 和 client_secret。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終檢查清單",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已使用 Walmart 市集賣家帳戶存取賣家中心 > Developer Portal。",
+              "已產生 API Key(client_id)和 Client Secret。",
+              "已確認 client_id 和 client_secret 的值。",
+              "已在 GenieGo [註冊] 中輸入 client_id 和 client_secret 並儲存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "de": {
+      "titleType": "Anleitung zur API-Key-Ausstellung",
+      "badge": "Einsteigerleitfaden",
+      "intro": "Eine einsteigerfreundliche Schritt-für-Schritt-Anleitung zum Erstellen einer client_id und eines Client Secret im Developer Portal des Walmart-Marketplace-Seller-Centers und zum Registrieren im GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Geschätzte Zeit", "Etwa 5–15 Min."],
+        ["Benötigtes Konto", "Walmart-Marketplace-Verkäuferkonto"],
+        ["Ausgestellte Schlüssel", "Client ID · Client Secret"],
+        ["Ergebnis", "API-Anmeldedaten"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Bevor Sie beginnen",
+          "desc": "Walmart-API-Anmeldedaten werden im Developer Portal des Marketplace-Seller-Centers ausgestellt.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Erforderlich", "h3": "Walmart-Marketplace-Verkäuferkonto", "p": "Um mit der Ausstellung fortzufahren, benötigen Sie ein Walmart-Marketplace-Verkäuferkonto. Greifen Sie mit diesem Konto auf das Developer Portal im Seller Center zu." },
+              { "tag": "Ausgestellte Schlüssel", "h3": "Client ID · Client Secret", "p": "Erstellen Sie im Developer Portal einen API Key (client_id) und ein Client Secret." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Ausstellungsschritte",
+          "desc": "Stellen Sie in der unten angegebenen Reihenfolge aus und registrieren Sie in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Auf das Developer Portal zugreifen", "p": "Gehen Sie zum Walmart Seller Center > Developer Portal.", "path": "https://developer.walmart.com" },
+              { "h3": "Anmeldedaten erstellen", "p": "Erstellen Sie einen API Key (client_id) und ein Client Secret." },
+              { "h3": "Werte überprüfen", "p": "Überprüfen Sie die ausgestellte client_id und das client_secret." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Sobald die client_id und das Client Secret erstellt wurden, wurden sie korrekt ausgestellt." }
+          ]
+        },
+        {
+          "h2": "3. In GenieGo zu registrierende Informationen",
+          "blocks": [
+            { "type": "table", "head": ["Feld", "Beschreibung"], "rows": [
+              ["client_id", "Der ausgestellte API Key (Client ID)"],
+              ["client_secret", "Das ausgestellte Client Secret (vertraulich behandeln)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Geben Sie Ihre client_id und Ihr client_secret im GenieGo Integration Hub [Registrieren] ein und speichern Sie. Anmeldedaten werden im Ruhezustand mit AES-256-GCM verschlüsselt und beim Lesen maskiert." }
+          ]
+        },
+        {
+          "h2": "4. Häufige Probleme",
+          "blocks": [
+            { "type": "table", "head": ["Problem", "Ursache", "Lösung"], "rows": [
+              ["Zugriff auf das Developer Portal nicht möglich", "Kein Walmart-Marketplace-Verkäuferkonto", "Greifen Sie mit einem Walmart-Marketplace-Verkäuferkonto auf das Seller Center > Developer Portal zu."],
+              ["Authentifizierungsfehler", "client_id oder client_secret falsch eingegeben", "Überprüfen Sie die im Developer Portal ausgestellte client_id und das client_secret erneut."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Abschließende Checkliste",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Mit einem Walmart-Marketplace-Verkäuferkonto auf das Seller Center > Developer Portal zugegriffen.",
+              "Einen API Key (client_id) und ein Client Secret erstellt.",
+              "Die Werte von client_id und client_secret überprüft.",
+              "client_id und client_secret in GenieGo [Registrieren] eingegeben und gespeichert."
+            ] }
+          ]
+        }
+      ]
+    },
+    "th": {
+      "titleType": "คู่มือการออก API Key",
+      "badge": "คู่มือสำหรับผู้เริ่มต้น",
+      "intro": "คู่มือทีละขั้นตอนที่เป็นมิตรกับผู้เริ่มต้น สำหรับการสร้าง client_id และ Client Secret ใน Developer Portal ของ Seller Center ของ Walmart Marketplace และลงทะเบียนใน GenieGo Integration Hub",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["เวลาโดยประมาณ", "ประมาณ 5–15 นาที"],
+        ["บัญชีที่ต้องใช้", "บัญชีผู้ขาย Walmart Marketplace"],
+        ["คีย์ที่ออก", "Client ID · Client Secret"],
+        ["ผลลัพธ์", "ข้อมูลรับรอง API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. ก่อนเริ่มต้น",
+          "desc": "ข้อมูลรับรอง API ของ Walmart ออกจาก Developer Portal ของ Seller Center ใน Marketplace",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "จำเป็น", "h3": "บัญชีผู้ขาย Walmart Marketplace", "p": "ในการดำเนินการออก คุณต้องมีบัญชีผู้ขาย Walmart Marketplace ใช้บัญชีนี้เข้าถึง Developer Portal ใน Seller Center" },
+              { "tag": "คีย์ที่ออก", "h3": "Client ID · Client Secret", "p": "สร้าง API Key (client_id) และ Client Secret ใน Developer Portal" }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. ขั้นตอนการออก",
+          "desc": "ออกตามลำดับด้านล่างและลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "เข้าถึง Developer Portal", "p": "ไปที่ Walmart Seller Center > Developer Portal", "path": "https://developer.walmart.com" },
+              { "h3": "สร้างข้อมูลรับรอง", "p": "สร้าง API Key (client_id) และ Client Secret" },
+              { "h3": "ตรวจสอบค่า", "p": "ยืนยัน client_id และ client_secret ที่ออกแล้ว" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "เมื่อสร้าง client_id และ Client Secret แล้ว แสดงว่าออกอย่างถูกต้อง" }
+          ]
+        },
+        {
+          "h2": "3. ข้อมูลที่ต้องลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["ฟิลด์", "คำอธิบาย"], "rows": [
+              ["client_id", "API Key ที่ออกแล้ว (Client ID)"],
+              ["client_secret", "Client Secret ที่ออกแล้ว (จัดการด้วยความระมัดระวัง)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "ป้อน client_id และ client_secret ใน GenieGo Integration Hub [ลงทะเบียน] แล้วบันทึก ข้อมูลรับรองจะถูกเข้ารหัสขณะจัดเก็บด้วย AES-256-GCM และปิดบังเมื่ออ่าน" }
+          ]
+        },
+        {
+          "h2": "4. ปัญหาที่พบบ่อย",
+          "blocks": [
+            { "type": "table", "head": ["ปัญหา", "สาเหตุ", "วิธีแก้ไข"], "rows": [
+              ["ไม่สามารถเข้าถึง Developer Portal ได้", "ไม่ใช่บัญชีผู้ขาย Walmart Marketplace", "เข้าถึง Seller Center > Developer Portal ด้วยบัญชีผู้ขาย Walmart Marketplace"],
+              ["การยืนยันตัวตนล้มเหลว", "ป้อน client_id หรือ client_secret ไม่ถูกต้อง", "ตรวจสอบ client_id และ client_secret ที่ออกใน Developer Portal อีกครั้ง"]
+            ] }
+          ]
+        },
+        {
+          "h2": "รายการตรวจสอบขั้นสุดท้าย",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "เข้าถึง Seller Center > Developer Portal ด้วยบัญชีผู้ขาย Walmart Marketplace แล้ว",
+              "สร้าง API Key (client_id) และ Client Secret แล้ว",
+              "ยืนยันค่า client_id และ client_secret แล้ว",
+              "ป้อน client_id และ client_secret ใน GenieGo [ลงทะเบียน] และบันทึกแล้ว"
+            ] }
+          ]
+        }
+      ]
+    },
+    "vi": {
+      "titleType": "Hướng dẫn cấp API Key",
+      "badge": "Hướng dẫn cho người mới",
+      "intro": "Hướng dẫn từng bước thân thiện với người mới về việc tạo client_id và Client Secret trong Developer Portal của Seller Center trên Walmart Marketplace và đăng ký chúng trong GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Thời gian dự kiến", "Khoảng 5–15 phút"],
+        ["Tài khoản cần thiết", "Tài khoản người bán Walmart Marketplace"],
+        ["Khóa được cấp", "Client ID · Client Secret"],
+        ["Kết quả", "Thông tin xác thực API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Trước khi bắt đầu",
+          "desc": "Thông tin xác thực API của Walmart được cấp từ Developer Portal của Seller Center trên Marketplace.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Bắt buộc", "h3": "Tài khoản người bán Walmart Marketplace", "p": "Để tiến hành cấp, bạn cần một tài khoản người bán Walmart Marketplace. Dùng tài khoản này để truy cập Developer Portal trong Seller Center." },
+              { "tag": "Khóa được cấp", "h3": "Client ID · Client Secret", "p": "Tạo API Key (client_id) và Client Secret trong Developer Portal." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Các bước cấp",
+          "desc": "Cấp theo thứ tự dưới đây và đăng ký trong GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Truy cập Developer Portal", "p": "Vào Walmart Seller Center > Developer Portal.", "path": "https://developer.walmart.com" },
+              { "h3": "Tạo thông tin xác thực", "p": "Tạo API Key (client_id) và Client Secret." },
+              { "h3": "Kiểm tra các giá trị", "p": "Xác minh client_id và client_secret đã được cấp." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Khi client_id và Client Secret được tạo, nghĩa là chúng đã được cấp đúng cách." }
+          ]
+        },
+        {
+          "h2": "3. Thông tin cần đăng ký trong GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Trường", "Mô tả"], "rows": [
+              ["client_id", "API Key đã được cấp (Client ID)"],
+              ["client_secret", "Client Secret đã được cấp (xử lý cẩn thận)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Nhập client_id và client_secret của bạn vào GenieGo Integration Hub [Đăng ký] rồi lưu. Thông tin xác thực được mã hóa khi lưu trữ bằng AES-256-GCM và được che khi đọc." }
+          ]
+        },
+        {
+          "h2": "4. Sự cố thường gặp",
+          "blocks": [
+            { "type": "table", "head": ["Sự cố", "Nguyên nhân", "Giải pháp"], "rows": [
+              ["Không thể truy cập Developer Portal", "Không phải tài khoản người bán Walmart Marketplace", "Truy cập Seller Center > Developer Portal bằng tài khoản người bán Walmart Marketplace."],
+              ["Lỗi xác thực", "Nhập sai client_id hoặc client_secret", "Kiểm tra lại client_id và client_secret đã được cấp trong Developer Portal."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Danh sách kiểm tra cuối cùng",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Đã truy cập Seller Center > Developer Portal bằng tài khoản người bán Walmart Marketplace.",
+              "Đã tạo API Key (client_id) và Client Secret.",
+              "Đã xác minh các giá trị client_id và client_secret.",
+              "Đã nhập client_id và client_secret vào GenieGo [Đăng ký] và lưu."
+            ] }
+          ]
+        }
+      ]
+    },
+    "id": {
+      "titleType": "Panduan Penerbitan API Key",
+      "badge": "Panduan Pemula",
+      "intro": "Panduan langkah demi langkah yang ramah pemula untuk membuat client_id dan Client Secret di Developer Portal pada Seller Center Walmart Marketplace dan mendaftarkannya di GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Perkiraan waktu", "Sekitar 5–15 menit"],
+        ["Akun yang dibutuhkan", "Akun penjual Walmart Marketplace"],
+        ["Kunci yang diterbitkan", "Client ID · Client Secret"],
+        ["Hasil", "Kredensial API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Sebelum Anda Mulai",
+          "desc": "Kredensial API Walmart diterbitkan dari Developer Portal pada Seller Center Marketplace.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Diperlukan", "h3": "Akun penjual Walmart Marketplace", "p": "Untuk melanjutkan penerbitan, Anda memerlukan akun penjual Walmart Marketplace. Gunakan akun ini untuk mengakses Developer Portal di Seller Center." },
+              { "tag": "Kunci yang diterbitkan", "h3": "Client ID · Client Secret", "p": "Buat API Key (client_id) dan Client Secret di Developer Portal." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Langkah Penerbitan",
+          "desc": "Terbitkan sesuai urutan di bawah dan daftarkan di GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Akses Developer Portal", "p": "Buka Walmart Seller Center > Developer Portal.", "path": "https://developer.walmart.com" },
+              { "h3": "Buat kredensial", "p": "Buat API Key (client_id) dan Client Secret." },
+              { "h3": "Periksa nilainya", "p": "Verifikasi client_id dan client_secret yang diterbitkan." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Setelah client_id dan Client Secret dibuat, berarti keduanya telah diterbitkan dengan benar." }
+          ]
+        },
+        {
+          "h2": "3. Informasi yang Harus Didaftarkan di GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Bidang", "Deskripsi"], "rows": [
+              ["client_id", "API Key yang diterbitkan (Client ID)"],
+              ["client_secret", "Client Secret yang diterbitkan (tangani dengan hati-hati)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Masukkan client_id dan client_secret Anda di GenieGo Integration Hub [Daftar] lalu simpan. Kredensial dienkripsi saat disimpan dengan AES-256-GCM dan disamarkan saat dibaca." }
+          ]
+        },
+        {
+          "h2": "4. Masalah Umum",
+          "blocks": [
+            { "type": "table", "head": ["Masalah", "Penyebab", "Solusi"], "rows": [
+              ["Tidak dapat mengakses Developer Portal", "Bukan akun penjual Walmart Marketplace", "Akses Seller Center > Developer Portal dengan akun penjual Walmart Marketplace."],
+              ["Kegagalan autentikasi", "client_id atau client_secret dimasukkan dengan salah", "Periksa kembali client_id dan client_secret yang diterbitkan di Developer Portal."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Daftar Periksa Akhir",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Mengakses Seller Center > Developer Portal dengan akun penjual Walmart Marketplace.",
+              "Membuat API Key (client_id) dan Client Secret.",
+              "Memverifikasi nilai client_id dan client_secret.",
+              "Memasukkan client_id dan client_secret di GenieGo [Daftar] dan menyimpannya."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ar": {
+      "titleType": "دليل إصدار مفتاح API",
+      "badge": "دليل المبتدئين",
+      "intro": "دليل تفصيلي خطوة بخطوة وملائم للمبتدئين لإنشاء client_id و Client Secret في Developer Portal الخاص بمركز البائعين في Walmart Marketplace وتسجيلهما في GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["الوقت التقديري", "حوالي 5–15 دقيقة"],
+        ["الحساب المطلوب", "حساب بائع Walmart Marketplace"],
+        ["المفاتيح الصادرة", "Client ID · Client Secret"],
+        ["النتيجة", "بيانات اعتماد API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. قبل أن تبدأ",
+          "desc": "تُصدَر بيانات اعتماد Walmart API من Developer Portal الخاص بمركز البائعين في Marketplace.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "مطلوب", "h3": "حساب بائع Walmart Marketplace", "p": "للمتابعة في الإصدار، تحتاج إلى حساب بائع Walmart Marketplace. استخدم هذا الحساب للوصول إلى Developer Portal في مركز البائعين." },
+              { "tag": "المفاتيح الصادرة", "h3": "Client ID · Client Secret", "p": "أنشئ مفتاح API (client_id) و Client Secret في Developer Portal." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. خطوات الإصدار",
+          "desc": "أصدِر بالترتيب أدناه وسجّل في GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "الوصول إلى Developer Portal", "p": "انتقل إلى Walmart Seller Center > Developer Portal.", "path": "https://developer.walmart.com" },
+              { "h3": "إنشاء بيانات الاعتماد", "p": "أنشئ مفتاح API (client_id) و Client Secret." },
+              { "h3": "التحقق من القيم", "p": "تحقق من client_id و client_secret الصادرين." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "بمجرد إنشاء client_id و Client Secret، فهذا يعني أنه قد تم إصدارهما بشكل صحيح." }
+          ]
+        },
+        {
+          "h2": "3. المعلومات المطلوب تسجيلها في GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["الحقل", "الوصف"], "rows": [
+              ["client_id", "مفتاح API الصادر (Client ID)"],
+              ["client_secret", "Client Secret الصادر (تعامل معه بحذر)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "أدخل client_id و client_secret في GenieGo Integration Hub [تسجيل] واحفظ. تُشفَّر بيانات الاعتماد أثناء التخزين باستخدام AES-256-GCM ويتم إخفاؤها عند القراءة." }
+          ]
+        },
+        {
+          "h2": "4. المشكلات الشائعة",
+          "blocks": [
+            { "type": "table", "head": ["المشكلة", "السبب", "الحل"], "rows": [
+              ["تعذّر الوصول إلى Developer Portal", "ليس حساب بائع Walmart Marketplace", "ادخل إلى Seller Center > Developer Portal بحساب بائع Walmart Marketplace."],
+              ["فشل المصادقة", "إدخال client_id أو client_secret بشكل خاطئ", "تحقق مرة أخرى من client_id و client_secret الصادرين في Developer Portal."]
+            ] }
+          ]
+        },
+        {
+          "h2": "قائمة التحقق النهائية",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "الوصول إلى Seller Center > Developer Portal بحساب بائع Walmart Marketplace.",
+              "إنشاء مفتاح API (client_id) و Client Secret.",
+              "التحقق من قيم client_id و client_secret.",
+              "إدخال client_id و client_secret في GenieGo [تسجيل] والحفظ."
+            ] }
+          ]
+        }
+      ]
+    },
+    "es": {
+      "titleType": "Manual de emisión de API Key",
+      "badge": "Guía para principiantes",
+      "intro": "Una guía paso a paso y apta para principiantes para crear un client_id y un Client Secret en el Developer Portal del Seller Center de Walmart Marketplace y registrarlos en el GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tiempo estimado", "Unos 5–15 min"],
+        ["Cuenta necesaria", "Cuenta de vendedor de Walmart Marketplace"],
+        ["Claves emitidas", "Client ID · Client Secret"],
+        ["Resultado", "Credenciales de API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de empezar",
+          "desc": "Las credenciales de la API de Walmart se emiten desde el Developer Portal del Seller Center del Marketplace.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requerido", "h3": "Cuenta de vendedor de Walmart Marketplace", "p": "Para proceder con la emisión, necesita una cuenta de vendedor de Walmart Marketplace. Use esta cuenta para acceder al Developer Portal en el Seller Center." },
+              { "tag": "Claves emitidas", "h3": "Client ID · Client Secret", "p": "Cree una API Key (client_id) y un Client Secret en el Developer Portal." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Pasos de emisión",
+          "desc": "Emita en el orden siguiente y registre en GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Acceder al Developer Portal", "p": "Vaya a Walmart Seller Center > Developer Portal.", "path": "https://developer.walmart.com" },
+              { "h3": "Crear credenciales", "p": "Cree una API Key (client_id) y un Client Secret." },
+              { "h3": "Verificar los valores", "p": "Verifique el client_id y el client_secret emitidos." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Una vez creados el client_id y el Client Secret, se han emitido correctamente." }
+          ]
+        },
+        {
+          "h2": "3. Información para registrar en GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descripción"], "rows": [
+              ["client_id", "La API Key emitida (Client ID)"],
+              ["client_secret", "El Client Secret emitido (manéjelo con cuidado)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Introduzca su client_id y client_secret en el GenieGo Integration Hub [Registrar] y guarde. Las credenciales se cifran en reposo con AES-256-GCM y se enmascaran al leerse." }
+          ]
+        },
+        {
+          "h2": "4. Problemas frecuentes",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solución"], "rows": [
+              ["No se puede acceder al Developer Portal", "No es una cuenta de vendedor de Walmart Marketplace", "Acceda al Seller Center > Developer Portal con una cuenta de vendedor de Walmart Marketplace."],
+              ["Fallo de autenticación", "client_id o client_secret introducidos incorrectamente", "Vuelva a comprobar el client_id y el client_secret emitidos en el Developer Portal."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de comprobación final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Accedí al Seller Center > Developer Portal con una cuenta de vendedor de Walmart Marketplace.",
+              "Creé una API Key (client_id) y un Client Secret.",
+              "Verifiqué los valores de client_id y client_secret.",
+              "Introduje el client_id y el client_secret en GenieGo [Registrar] y guardé."
+            ] }
+          ]
+        }
+      ]
+    },
+    "fr": {
+      "titleType": "Manuel d'émission de clé API",
+      "badge": "Guide du débutant",
+      "intro": "Un guide pas à pas adapté aux débutants pour créer un client_id et un Client Secret dans le Developer Portal du Seller Center de Walmart Marketplace et les enregistrer dans le GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Temps estimé", "Environ 5–15 min"],
+        ["Compte requis", "Compte vendeur Walmart Marketplace"],
+        ["Clés émises", "Client ID · Client Secret"],
+        ["Résultat", "Identifiants API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Avant de commencer",
+          "desc": "Les identifiants de l'API Walmart sont émis depuis le Developer Portal du Seller Center du Marketplace.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requis", "h3": "Compte vendeur Walmart Marketplace", "p": "Pour procéder à l'émission, vous avez besoin d'un compte vendeur Walmart Marketplace. Utilisez ce compte pour accéder au Developer Portal dans le Seller Center." },
+              { "tag": "Clés émises", "h3": "Client ID · Client Secret", "p": "Créez une clé API (client_id) et un Client Secret dans le Developer Portal." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Étapes d'émission",
+          "desc": "Émettez dans l'ordre ci-dessous et enregistrez dans GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Accéder au Developer Portal", "p": "Allez dans Walmart Seller Center > Developer Portal.", "path": "https://developer.walmart.com" },
+              { "h3": "Créer les identifiants", "p": "Créez une clé API (client_id) et un Client Secret." },
+              { "h3": "Vérifier les valeurs", "p": "Vérifiez le client_id et le client_secret émis." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Une fois le client_id et le Client Secret créés, ils ont été émis correctement." }
+          ]
+        },
+        {
+          "h2": "3. Informations à enregistrer dans GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Champ", "Description"], "rows": [
+              ["client_id", "La clé API émise (Client ID)"],
+              ["client_secret", "Le Client Secret émis (à manipuler avec précaution)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Saisissez votre client_id et votre client_secret dans le GenieGo Integration Hub [Enregistrer] et enregistrez. Les identifiants sont chiffrés au repos avec AES-256-GCM et masqués à la lecture." }
+          ]
+        },
+        {
+          "h2": "4. Problèmes fréquents",
+          "blocks": [
+            { "type": "table", "head": ["Problème", "Cause", "Solution"], "rows": [
+              ["Impossible d'accéder au Developer Portal", "Pas un compte vendeur Walmart Marketplace", "Accédez au Seller Center > Developer Portal avec un compte vendeur Walmart Marketplace."],
+              ["Échec d'authentification", "client_id ou client_secret saisi incorrectement", "Vérifiez à nouveau le client_id et le client_secret émis dans le Developer Portal."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Liste de contrôle finale",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Accédé au Seller Center > Developer Portal avec un compte vendeur Walmart Marketplace.",
+              "Créé une clé API (client_id) et un Client Secret.",
+              "Vérifié les valeurs de client_id et client_secret.",
+              "Saisi le client_id et le client_secret dans GenieGo [Enregistrer] et enregistré."
+            ] }
+          ]
+        }
+      ]
+    },
+    "hi": {
+      "titleType": "API Key जारी करने की नियमावली",
+      "badge": "शुरुआती गाइड",
+      "intro": "Walmart Marketplace के Seller Center के Developer Portal में client_id और Client Secret बनाने और उन्हें GenieGo Integration Hub में पंजीकृत करने की एक शुरुआती-अनुकूल, चरण-दर-चरण मार्गदर्शिका।",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["अनुमानित समय", "लगभग 5–15 मिनट"],
+        ["आवश्यक खाता", "Walmart Marketplace विक्रेता खाता"],
+        ["जारी की गई कुंजियाँ", "Client ID · Client Secret"],
+        ["परिणाम", "API क्रेडेंशियल"]
+      ],
+      "sections": [
+        {
+          "h2": "1. शुरू करने से पहले",
+          "desc": "Walmart API क्रेडेंशियल Marketplace के Seller Center के Developer Portal से जारी किए जाते हैं।",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "आवश्यक", "h3": "Walmart Marketplace विक्रेता खाता", "p": "जारी करने की प्रक्रिया आगे बढ़ाने के लिए आपके पास एक Walmart Marketplace विक्रेता खाता होना चाहिए। इस खाते से Seller Center में Developer Portal तक पहुँचें।" },
+              { "tag": "जारी की गई कुंजियाँ", "h3": "Client ID · Client Secret", "p": "Developer Portal में एक API Key (client_id) और एक Client Secret बनाएँ।" }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. जारी करने के चरण",
+          "desc": "नीचे दिए गए क्रम में जारी करें और GenieGo में पंजीकृत करें।",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Developer Portal तक पहुँचें", "p": "Walmart Seller Center > Developer Portal पर जाएँ।", "path": "https://developer.walmart.com" },
+              { "h3": "क्रेडेंशियल बनाएँ", "p": "एक API Key (client_id) और एक Client Secret बनाएँ।" },
+              { "h3": "मानों की जाँच करें", "p": "जारी किए गए client_id और client_secret की पुष्टि करें।" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "जब client_id और Client Secret बन जाते हैं, तो वे सही ढंग से जारी हो चुके हैं।" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo में पंजीकृत करने की जानकारी",
+          "blocks": [
+            { "type": "table", "head": ["फ़ील्ड", "विवरण"], "rows": [
+              ["client_id", "जारी की गई API Key (Client ID)"],
+              ["client_secret", "जारी किया गया Client Secret (सावधानी से संभालें)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo Integration Hub [पंजीकरण] में अपना client_id और client_secret दर्ज करें और सहेजें। क्रेडेंशियल भंडारण के समय AES-256-GCM से एन्क्रिप्ट किए जाते हैं और पढ़ते समय मास्क किए जाते हैं।" }
+          ]
+        },
+        {
+          "h2": "4. आम समस्याएँ",
+          "blocks": [
+            { "type": "table", "head": ["समस्या", "कारण", "समाधान"], "rows": [
+              ["Developer Portal तक नहीं पहुँच सकते", "Walmart Marketplace विक्रेता खाता नहीं है", "Walmart Marketplace विक्रेता खाते से Seller Center > Developer Portal तक पहुँचें।"],
+              ["प्रमाणीकरण विफल", "client_id या client_secret गलत दर्ज किया गया", "Developer Portal में जारी किए गए client_id और client_secret की दोबारा जाँच करें।"]
+            ] }
+          ]
+        },
+        {
+          "h2": "अंतिम जाँच-सूची",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Walmart Marketplace विक्रेता खाते से Seller Center > Developer Portal तक पहुँचा।",
+              "एक API Key (client_id) और एक Client Secret बनाया।",
+              "client_id और client_secret के मानों की पुष्टि की।",
+              "GenieGo [पंजीकरण] में client_id और client_secret दर्ज किया और सहेजा।"
+            ] }
+          ]
+        }
+      ]
+    },
+    "pt": {
+      "titleType": "Manual de emissão de API Key",
+      "badge": "Guia para iniciantes",
+      "intro": "Um guia passo a passo e adequado para iniciantes para criar um client_id e um Client Secret no Developer Portal do Seller Center do Walmart Marketplace e registrá-los no GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tempo estimado", "Cerca de 5–15 min"],
+        ["Conta necessária", "Conta de vendedor do Walmart Marketplace"],
+        ["Chaves emitidas", "Client ID · Client Secret"],
+        ["Resultado", "Credenciais de API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de começar",
+          "desc": "As credenciais da API da Walmart são emitidas no Developer Portal do Seller Center do Marketplace.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Obrigatório", "h3": "Conta de vendedor do Walmart Marketplace", "p": "Para prosseguir com a emissão, você precisa de uma conta de vendedor do Walmart Marketplace. Use esta conta para acessar o Developer Portal no Seller Center." },
+              { "tag": "Chaves emitidas", "h3": "Client ID · Client Secret", "p": "Crie uma API Key (client_id) e um Client Secret no Developer Portal." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Etapas de emissão",
+          "desc": "Emita na ordem abaixo e registre no GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Acessar o Developer Portal", "p": "Vá para Walmart Seller Center > Developer Portal.", "path": "https://developer.walmart.com" },
+              { "h3": "Criar credenciais", "p": "Crie uma API Key (client_id) e um Client Secret." },
+              { "h3": "Verificar os valores", "p": "Verifique o client_id e o client_secret emitidos." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Depois que o client_id e o Client Secret forem criados, eles foram emitidos corretamente." }
+          ]
+        },
+        {
+          "h2": "3. Informações para registrar no GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descrição"], "rows": [
+              ["client_id", "A API Key emitida (Client ID)"],
+              ["client_secret", "O Client Secret emitido (manuseie com cuidado)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Insira seu client_id e client_secret no GenieGo Integration Hub [Registrar] e salve. As credenciais são criptografadas em repouso com AES-256-GCM e mascaradas na leitura." }
+          ]
+        },
+        {
+          "h2": "4. Problemas comuns",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solução"], "rows": [
+              ["Não é possível acessar o Developer Portal", "Não é uma conta de vendedor do Walmart Marketplace", "Acesse o Seller Center > Developer Portal com uma conta de vendedor do Walmart Marketplace."],
+              ["Falha de autenticação", "client_id ou client_secret inseridos incorretamente", "Verifique novamente o client_id e o client_secret emitidos no Developer Portal."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificação final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Acessei o Seller Center > Developer Portal com uma conta de vendedor do Walmart Marketplace.",
+              "Criei uma API Key (client_id) e um Client Secret.",
+              "Verifiquei os valores de client_id e client_secret.",
+              "Inseri o client_id e o client_secret no GenieGo [Registrar] e salvei."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ru": {
+      "titleType": "Руководство по выпуску API Key",
+      "badge": "Руководство для начинающих",
+      "intro": "Пошаговое руководство для начинающих по созданию client_id и Client Secret в Developer Portal Центра продавцов Walmart Marketplace и их регистрации в GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Расчётное время", "Около 5–15 мин"],
+        ["Требуемый аккаунт", "Аккаунт продавца Walmart Marketplace"],
+        ["Выпускаемые ключи", "Client ID · Client Secret"],
+        ["Результат", "Учётные данные API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Прежде чем начать",
+          "desc": "Учётные данные API Walmart выпускаются в Developer Portal Центра продавцов Marketplace.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Обязательно", "h3": "Аккаунт продавца Walmart Marketplace", "p": "Чтобы продолжить выпуск, вам нужен аккаунт продавца Walmart Marketplace. Используйте этот аккаунт для доступа к Developer Portal в Центре продавцов." },
+              { "tag": "Выпускаемые ключи", "h3": "Client ID · Client Secret", "p": "Создайте API Key (client_id) и Client Secret в Developer Portal." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Шаги выпуска",
+          "desc": "Выпустите в указанном ниже порядке и зарегистрируйте в GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Доступ к Developer Portal", "p": "Перейдите в Walmart Seller Center > Developer Portal.", "path": "https://developer.walmart.com" },
+              { "h3": "Создать учётные данные", "p": "Создайте API Key (client_id) и Client Secret." },
+              { "h3": "Проверить значения", "p": "Проверьте выпущенные client_id и client_secret." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "После того как client_id и Client Secret созданы, они выпущены корректно." }
+          ]
+        },
+        {
+          "h2": "3. Информация для регистрации в GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Поле", "Описание"], "rows": [
+              ["client_id", "Выпущенный API Key (Client ID)"],
+              ["client_secret", "Выпущенный Client Secret (обращайтесь осторожно)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Введите ваши client_id и client_secret в GenieGo Integration Hub [Регистрация] и сохраните. Учётные данные шифруются при хранении с помощью AES-256-GCM и маскируются при чтении." }
+          ]
+        },
+        {
+          "h2": "4. Частые проблемы",
+          "blocks": [
+            { "type": "table", "head": ["Проблема", "Причина", "Решение"], "rows": [
+              ["Не удаётся получить доступ к Developer Portal", "Это не аккаунт продавца Walmart Marketplace", "Войдите в Seller Center > Developer Portal с аккаунтом продавца Walmart Marketplace."],
+              ["Ошибка аутентификации", "client_id или client_secret введены неверно", "Повторно проверьте client_id и client_secret, выпущенные в Developer Portal."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Итоговый контрольный список",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Вошёл в Seller Center > Developer Portal с аккаунтом продавца Walmart Marketplace.",
+              "Создал API Key (client_id) и Client Secret.",
+              "Проверил значения client_id и client_secret.",
+              "Ввёл client_id и client_secret в GenieGo [Регистрация] и сохранил."
+            ] }
+          ]
+        }
+      ]
+    }
+  }
+}

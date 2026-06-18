@@ -1,0 +1,996 @@
+{
+  "name": "Paddle",
+  "icon": "🏓",
+  "langs": {
+    "ko": {
+      "titleType": "API Key 발급 매뉴얼",
+      "badge": "Beginner Guide",
+      "intro": "Paddle 대시보드의 개발자 도구에서 Billing(v2) API 키(Bearer, pdl_live_…)를 발급해 GenieGo 연동 허브에 등록하는 과정을 초보자도 그대로 따라 할 수 있도록 정리한 매뉴얼입니다.",
+      "org": "GenieGo 연동 허브",
+      "quick": [
+        ["소요 시간", "약 5~10분"],
+        ["필요 계정", "Paddle 계정"],
+        ["발급 키", "Billing API 키 (pdl_live_…)"],
+        ["결과물", "API 자격증명"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 시작하기 전에",
+          "desc": "Paddle은 SaaS·디지털 상품용 Merchant of Record형 결제 플랫폼(Billing v2)입니다.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "필요", "h3": "Paddle 계정", "p": "SaaS·디지털 상품 판매를 위한 Paddle 계정(Billing v2)이 있어야 합니다." },
+              { "tag": "발급 키", "h3": "Billing API 키", "p": "Bearer 형식의 Billing API 키(pdl_live_…)를 생성합니다. 구 Classic 방식의 vendor_id/auth_code가 아닙니다." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>참고:</strong> 발급할 키는 <strong>Billing(v2) API 키(Bearer, pdl_live_…)</strong> 입니다. 구 Classic vendor_id/auth_code 방식과 혼동하지 않습니다." }
+          ]
+        },
+        {
+          "h2": "2. 발급 단계",
+          "desc": "아래 순서대로 발급하고 GenieGo에 등록합니다.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Paddle 대시보드 로그인", "p": "준비한 Paddle 계정으로 대시보드에 로그인합니다.", "path": "https://vendors.paddle.com" },
+              { "h3": "API keys 메뉴 이동", "p": "[Developer Tools] > [Authentication] > [API keys]로 이동합니다.", "path": "Developer Tools → Authentication → API keys" },
+              { "h3": "Billing API 키 생성", "p": "Billing API 키(Bearer, pdl_live_…)를 생성합니다. 구 Classic vendor_id/auth_code 방식이 아닙니다." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "pdl_live_… 로 시작하는 Billing API 키가 생성되면 정상적으로 발급된 것입니다." }
+          ]
+        },
+        {
+          "h2": "3. GenieGo에 등록할 정보",
+          "blocks": [
+            { "type": "table", "head": ["필드", "설명"], "rows": [
+              ["api_key", "발급된 Billing(v2) API 키(Bearer, pdl_live_…, 노출 주의)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 연동 허브 [등록]에 api_key를 입력해 저장하면 자격증명은 AES-256-GCM으로 암호화 저장되고 조회 시 마스킹됩니다." }
+          ]
+        },
+        {
+          "h2": "4. 자주 발생하는 문제",
+          "blocks": [
+            { "type": "table", "head": ["문제", "원인", "해결"], "rows": [
+              ["인증 실패", "구 Classic vendor_id/auth_code를 사용함", "Developer Tools > Authentication > API keys에서 발급한 Billing(v2) API 키(pdl_live_…)를 사용합니다."],
+              ["키 형식이 다름", "테스트/구버전 키 사용", "pdl_live_… 형식의 Billing API 키인지 확인합니다."]
+            ] }
+          ]
+        },
+        {
+          "h2": "최종 체크리스트",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Paddle 계정으로 대시보드에 로그인했다.",
+              "Developer Tools > Authentication > API keys로 이동했다.",
+              "Billing(v2) API 키(Bearer, pdl_live_…)를 생성했다.",
+              "GenieGo [등록]에 api_key를 입력해 저장했다."
+            ] }
+          ]
+        }
+      ]
+    },
+    "en": {
+      "titleType": "API Key Issuance Manual",
+      "badge": "Beginner Guide",
+      "intro": "A beginner-friendly, step-by-step guide to issuing a Billing (v2) API key (Bearer, pdl_live_…) from the Developer Tools in your Paddle Dashboard and registering it in the GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Est. time", "About 5–10 min"],
+        ["Account needed", "Paddle account"],
+        ["Keys issued", "Billing API key (pdl_live_…)"],
+        ["Result", "API credentials"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Before You Begin",
+          "desc": "Paddle is a Merchant of Record payment platform for SaaS and digital products (Billing v2).",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Required", "h3": "Paddle account", "p": "You need a Paddle account (Billing v2) for selling SaaS and digital products." },
+              { "tag": "Keys issued", "h3": "Billing API key", "p": "You generate a Bearer-format Billing API key (pdl_live_…). It is not the legacy Classic vendor_id/auth_code." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Note:</strong> The key to issue is a <strong>Billing (v2) API key (Bearer, pdl_live_…)</strong>. Do not confuse it with the legacy Classic vendor_id/auth_code method." }
+          ]
+        },
+        {
+          "h2": "2. Issuance Steps",
+          "desc": "Issue in the order below and register in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Sign in to the Paddle Dashboard", "p": "Sign in to the Dashboard with your prepared Paddle account.", "path": "https://vendors.paddle.com" },
+              { "h3": "Go to the API keys menu", "p": "Go to [Developer Tools] > [Authentication] > [API keys].", "path": "Developer Tools → Authentication → API keys" },
+              { "h3": "Create a Billing API key", "p": "Create a Billing API key (Bearer, pdl_live_…). It is not the legacy Classic vendor_id/auth_code method." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Once a Billing API key starting with pdl_live_… is created, it has been issued correctly." }
+          ]
+        },
+        {
+          "h2": "3. Information to Register in GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Field", "Description"], "rows": [
+              ["api_key", "The issued Billing (v2) API key (Bearer, pdl_live_…, handle with care)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Enter api_key in the GenieGo Integration Hub [Register] and save. Credentials are encrypted at rest with AES-256-GCM and masked on read." }
+          ]
+        },
+        {
+          "h2": "4. Common Issues",
+          "blocks": [
+            { "type": "table", "head": ["Issue", "Cause", "Solution"], "rows": [
+              ["Authentication failure", "Using the legacy Classic vendor_id/auth_code", "Use the Billing (v2) API key (pdl_live_…) issued under Developer Tools > Authentication > API keys."],
+              ["Wrong key format", "Using a test/older key", "Verify it is a Billing API key in the pdl_live_… format."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Final Checklist",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Signed in to the Dashboard with a Paddle account.",
+              "Navigated to Developer Tools > Authentication > API keys.",
+              "Created a Billing (v2) API key (Bearer, pdl_live_…).",
+              "Entered api_key in GenieGo [Register] and saved."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ja": {
+      "titleType": "API Key 発行マニュアル",
+      "badge": "初心者ガイド",
+      "intro": "Paddle ダッシュボードの開発者ツールで Billing(v2) API キー(Bearer、pdl_live_…)を発行し、GenieGo 連携ハブに登録する手順を、初心者でもそのまま実行できるようにまとめたマニュアルです。",
+      "org": "GenieGo 連携ハブ",
+      "quick": [
+        ["所要時間", "約 5〜10 分"],
+        ["必要なアカウント", "Paddle アカウント"],
+        ["発行するキー", "Billing API キー (pdl_live_…)"],
+        ["成果物", "API 認証情報"]
+      ],
+      "sections": [
+        {
+          "h2": "1. はじめる前に",
+          "desc": "Paddle は SaaS・デジタル商品向けの Merchant of Record 型決済プラットフォーム(Billing v2)です。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必須", "h3": "Paddle アカウント", "p": "SaaS・デジタル商品の販売には Paddle アカウント(Billing v2)が必要です。" },
+              { "tag": "発行するキー", "h3": "Billing API キー", "p": "Bearer 形式の Billing API キー(pdl_live_…)を生成します。旧 Classic 方式の vendor_id/auth_code ではありません。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> 発行するキーは <strong>Billing(v2) API キー(Bearer、pdl_live_…)</strong> です。旧 Classic vendor_id/auth_code 方式と混同しないでください。" }
+          ]
+        },
+        {
+          "h2": "2. 発行手順",
+          "desc": "以下の順序で発行し、GenieGo に登録します。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Paddle ダッシュボードにログイン", "p": "用意した Paddle アカウントでダッシュボードにログインします。", "path": "https://vendors.paddle.com" },
+              { "h3": "API keys メニューへ移動", "p": "[Developer Tools] > [Authentication] > [API keys] へ移動します。", "path": "Developer Tools → Authentication → API keys" },
+              { "h3": "Billing API キーを生成", "p": "Billing API キー(Bearer、pdl_live_…)を生成します。旧 Classic vendor_id/auth_code 方式ではありません。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "pdl_live_… で始まる Billing API キーが生成されれば、正常に発行されています。" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo に登録する情報",
+          "blocks": [
+            { "type": "table", "head": ["フィールド", "説明"], "rows": [
+              ["api_key", "発行された Billing(v2) API キー(Bearer、pdl_live_…、取り扱い注意)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 連携ハブの [登録] に api_key を入力して保存すると、認証情報は AES-256-GCM で暗号化して保存され、閲覧時にはマスキングされます。" }
+          ]
+        },
+        {
+          "h2": "4. よくある問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["認証失敗", "旧 Classic vendor_id/auth_code を使用している", "Developer Tools > Authentication > API keys で発行した Billing(v2) API キー(pdl_live_…)を使用します。"],
+              ["キーの形式が異なる", "テスト/旧バージョンのキーを使用", "pdl_live_… 形式の Billing API キーかどうかを確認します。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終チェックリスト",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Paddle アカウントでダッシュボードにログインした。",
+              "Developer Tools > Authentication > API keys へ移動した。",
+              "Billing(v2) API キー(Bearer、pdl_live_…)を生成した。",
+              "GenieGo の [登録] に api_key を入力して保存した。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh": {
+      "titleType": "API Key 申请手册",
+      "badge": "新手指南",
+      "intro": "本手册手把手指导新手在 Paddle Dashboard 的开发者工具中签发 Billing(v2) API 密钥(Bearer，pdl_live_…),并注册到 GenieGo 集成中心。",
+      "org": "GenieGo 集成中心",
+      "quick": [
+        ["预计时间", "约 5~10 分钟"],
+        ["所需账户", "Paddle 账户"],
+        ["签发密钥", "Billing API 密钥 (pdl_live_…)"],
+        ["成果", "API 凭证"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 开始之前",
+          "desc": "Paddle 是面向 SaaS 和数字商品的 Merchant of Record 型支付平台(Billing v2)。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "Paddle 账户", "p": "销售 SaaS 和数字商品需要一个 Paddle 账户(Billing v2)。" },
+              { "tag": "签发密钥", "h3": "Billing API 密钥", "p": "生成 Bearer 格式的 Billing API 密钥(pdl_live_…)。它不是旧版 Classic 方式的 vendor_id/auth_code。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> 要签发的密钥是 <strong>Billing(v2) API 密钥(Bearer，pdl_live_…)</strong>。请勿与旧版 Classic vendor_id/auth_code 方式混淆。" }
+          ]
+        },
+        {
+          "h2": "2. 申请步骤",
+          "desc": "按以下顺序签发并在 GenieGo 中注册。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "登录 Paddle Dashboard", "p": "使用准备好的 Paddle 账户登录 Dashboard。", "path": "https://vendors.paddle.com" },
+              { "h3": "进入 API keys 菜单", "p": "进入 [Developer Tools] > [Authentication] > [API keys]。", "path": "Developer Tools → Authentication → API keys" },
+              { "h3": "创建 Billing API 密钥", "p": "创建 Billing API 密钥(Bearer，pdl_live_…)。它不是旧版 Classic vendor_id/auth_code 方式。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "当生成以 pdl_live_… 开头的 Billing API 密钥时，即表示已正确签发。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中注册的信息",
+          "blocks": [
+            { "type": "table", "head": ["字段", "说明"], "rows": [
+              ["api_key", "签发的 Billing(v2) API 密钥(Bearer，pdl_live_…，请妥善保管)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 集成中心 [注册] 中输入 api_key 并保存后，凭证将以 AES-256-GCM 加密存储，并在查询时进行掩码处理。" }
+          ]
+        },
+        {
+          "h2": "4. 常见问题",
+          "blocks": [
+            { "type": "table", "head": ["问题", "原因", "解决方法"], "rows": [
+              ["认证失败", "使用了旧版 Classic vendor_id/auth_code", "使用在 Developer Tools > Authentication > API keys 中签发的 Billing(v2) API 密钥(pdl_live_…)。"],
+              ["密钥格式不符", "使用了测试/旧版密钥", "确认是否为 pdl_live_… 格式的 Billing API 密钥。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最终检查清单",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已使用 Paddle 账户登录 Dashboard。",
+              "已进入 Developer Tools > Authentication > API keys。",
+              "已创建 Billing(v2) API 密钥(Bearer，pdl_live_…)。",
+              "已在 GenieGo [注册] 中输入 api_key 并保存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh-TW": {
+      "titleType": "API Key 申請手冊",
+      "badge": "新手指南",
+      "intro": "本手冊手把手指導新手在 Paddle Dashboard 的開發者工具中簽發 Billing(v2) API 金鑰(Bearer，pdl_live_…),並註冊到 GenieGo 整合中心。",
+      "org": "GenieGo 整合中心",
+      "quick": [
+        ["預計時間", "約 5~10 分鐘"],
+        ["所需帳戶", "Paddle 帳戶"],
+        ["簽發金鑰", "Billing API 金鑰 (pdl_live_…)"],
+        ["成果", "API 憑證"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 開始之前",
+          "desc": "Paddle 是面向 SaaS 與數位商品的 Merchant of Record 型支付平台(Billing v2)。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "Paddle 帳戶", "p": "銷售 SaaS 與數位商品需要一個 Paddle 帳戶(Billing v2)。" },
+              { "tag": "簽發金鑰", "h3": "Billing API 金鑰", "p": "產生 Bearer 格式的 Billing API 金鑰(pdl_live_…)。它不是舊版 Classic 方式的 vendor_id/auth_code。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> 要簽發的金鑰是 <strong>Billing(v2) API 金鑰(Bearer，pdl_live_…)</strong>。請勿與舊版 Classic vendor_id/auth_code 方式混淆。" }
+          ]
+        },
+        {
+          "h2": "2. 簽發步驟",
+          "desc": "依以下順序簽發並在 GenieGo 中註冊。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "登入 Paddle Dashboard", "p": "使用準備好的 Paddle 帳戶登入 Dashboard。", "path": "https://vendors.paddle.com" },
+              { "h3": "進入 API keys 選單", "p": "進入 [Developer Tools] > [Authentication] > [API keys]。", "path": "Developer Tools → Authentication → API keys" },
+              { "h3": "建立 Billing API 金鑰", "p": "建立 Billing API 金鑰(Bearer，pdl_live_…)。它不是舊版 Classic vendor_id/auth_code 方式。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "當產生以 pdl_live_… 開頭的 Billing API 金鑰時，即表示已正確簽發。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中註冊的資訊",
+          "blocks": [
+            { "type": "table", "head": ["欄位", "說明"], "rows": [
+              ["api_key", "簽發的 Billing(v2) API 金鑰(Bearer，pdl_live_…，請妥善保管)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 整合中心 [註冊] 中輸入 api_key 並儲存後，憑證將以 AES-256-GCM 加密儲存，並在查詢時進行遮罩處理。" }
+          ]
+        },
+        {
+          "h2": "4. 常見問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["認證失敗", "使用了舊版 Classic vendor_id/auth_code", "使用在 Developer Tools > Authentication > API keys 中簽發的 Billing(v2) API 金鑰(pdl_live_…)。"],
+              ["金鑰格式不符", "使用了測試/舊版金鑰", "確認是否為 pdl_live_… 格式的 Billing API 金鑰。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終檢查清單",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已使用 Paddle 帳戶登入 Dashboard。",
+              "已進入 Developer Tools > Authentication > API keys。",
+              "已建立 Billing(v2) API 金鑰(Bearer，pdl_live_…)。",
+              "已在 GenieGo [註冊] 中輸入 api_key 並儲存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "de": {
+      "titleType": "Anleitung zur API-Key-Ausstellung",
+      "badge": "Einsteigerleitfaden",
+      "intro": "Eine einsteigerfreundliche Schritt-für-Schritt-Anleitung zum Ausstellen eines Billing-(v2)-API-Keys (Bearer, pdl_live_…) über die Developer Tools in Ihrem Paddle Dashboard und zur Registrierung im GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Geschätzte Zeit", "Etwa 5–10 Min."],
+        ["Benötigtes Konto", "Paddle-Konto"],
+        ["Ausgestellte Schlüssel", "Billing-API-Key (pdl_live_…)"],
+        ["Ergebnis", "API-Anmeldedaten"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Bevor Sie beginnen",
+          "desc": "Paddle ist eine Merchant-of-Record-Zahlungsplattform für SaaS und digitale Produkte (Billing v2).",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Erforderlich", "h3": "Paddle-Konto", "p": "Für den Verkauf von SaaS und digitalen Produkten benötigen Sie ein Paddle-Konto (Billing v2)." },
+              { "tag": "Ausgestellte Schlüssel", "h3": "Billing-API-Key", "p": "Sie generieren einen Billing-API-Key im Bearer-Format (pdl_live_…). Es ist nicht die alte Classic-Methode mit vendor_id/auth_code." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Hinweis:</strong> Der auszustellende Schlüssel ist ein <strong>Billing-(v2)-API-Key (Bearer, pdl_live_…)</strong>. Verwechseln Sie ihn nicht mit der alten Classic-Methode vendor_id/auth_code." }
+          ]
+        },
+        {
+          "h2": "2. Ausstellungsschritte",
+          "desc": "Stellen Sie in der unten angegebenen Reihenfolge aus und registrieren Sie in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Beim Paddle Dashboard anmelden", "p": "Melden Sie sich mit Ihrem vorbereiteten Paddle-Konto beim Dashboard an.", "path": "https://vendors.paddle.com" },
+              { "h3": "Zum Menü API keys wechseln", "p": "Gehen Sie zu [Developer Tools] > [Authentication] > [API keys].", "path": "Developer Tools → Authentication → API keys" },
+              { "h3": "Billing-API-Key erstellen", "p": "Erstellen Sie einen Billing-API-Key (Bearer, pdl_live_…). Es ist nicht die alte Classic-Methode vendor_id/auth_code." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Sobald ein Billing-API-Key erstellt wurde, der mit pdl_live_… beginnt, wurde er korrekt ausgestellt." }
+          ]
+        },
+        {
+          "h2": "3. In GenieGo zu registrierende Informationen",
+          "blocks": [
+            { "type": "table", "head": ["Feld", "Beschreibung"], "rows": [
+              ["api_key", "Der ausgestellte Billing-(v2)-API-Key (Bearer, pdl_live_…, vertraulich behandeln)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Geben Sie api_key im GenieGo Integration Hub unter [Registrieren] ein und speichern Sie. Anmeldedaten werden im Ruhezustand mit AES-256-GCM verschlüsselt und beim Lesen maskiert." }
+          ]
+        },
+        {
+          "h2": "4. Häufige Probleme",
+          "blocks": [
+            { "type": "table", "head": ["Problem", "Ursache", "Lösung"], "rows": [
+              ["Authentifizierungsfehler", "Verwendung der alten Classic-Methode vendor_id/auth_code", "Verwenden Sie den unter Developer Tools > Authentication > API keys ausgestellten Billing-(v2)-API-Key (pdl_live_…)."],
+              ["Falsches Schlüsselformat", "Verwendung eines Test-/älteren Schlüssels", "Prüfen Sie, ob es sich um einen Billing-API-Key im Format pdl_live_… handelt."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Abschließende Checkliste",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Mit einem Paddle-Konto beim Dashboard angemeldet.",
+              "Zu Developer Tools > Authentication > API keys navigiert.",
+              "Einen Billing-(v2)-API-Key (Bearer, pdl_live_…) erstellt.",
+              "api_key in GenieGo [Registrieren] eingegeben und gespeichert."
+            ] }
+          ]
+        }
+      ]
+    },
+    "th": {
+      "titleType": "คู่มือการออก API Key",
+      "badge": "คู่มือสำหรับผู้เริ่มต้น",
+      "intro": "คู่มือทีละขั้นตอนที่เป็นมิตรกับผู้เริ่มต้น สำหรับการออก Billing (v2) API key (Bearer, pdl_live_…) จากเครื่องมือนักพัฒนาใน Paddle Dashboard ของคุณ และลงทะเบียนใน GenieGo Integration Hub",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["เวลาโดยประมาณ", "ประมาณ 5–10 นาที"],
+        ["บัญชีที่ต้องใช้", "บัญชี Paddle"],
+        ["คีย์ที่ออก", "Billing API key (pdl_live_…)"],
+        ["ผลลัพธ์", "ข้อมูลรับรอง API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. ก่อนเริ่มต้น",
+          "desc": "Paddle เป็นแพลตฟอร์มการชำระเงินแบบ Merchant of Record สำหรับ SaaS และสินค้าดิจิทัล (Billing v2)",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "จำเป็น", "h3": "บัญชี Paddle", "p": "การขาย SaaS และสินค้าดิจิทัลต้องมีบัญชี Paddle (Billing v2)" },
+              { "tag": "คีย์ที่ออก", "h3": "Billing API key", "p": "สร้าง Billing API key รูปแบบ Bearer (pdl_live_…) ซึ่งไม่ใช่ vendor_id/auth_code แบบ Classic รุ่นเก่า" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>หมายเหตุ:</strong> คีย์ที่จะออกคือ <strong>Billing (v2) API key (Bearer, pdl_live_…)</strong> อย่าสับสนกับวิธี vendor_id/auth_code แบบ Classic รุ่นเก่า" }
+          ]
+        },
+        {
+          "h2": "2. ขั้นตอนการออก",
+          "desc": "ออกตามลำดับด้านล่างและลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "เข้าสู่ระบบ Paddle Dashboard", "p": "เข้าสู่ระบบ Dashboard ด้วยบัญชี Paddle ที่คุณเตรียมไว้", "path": "https://vendors.paddle.com" },
+              { "h3": "ไปที่เมนู API keys", "p": "ไปที่ [Developer Tools] > [Authentication] > [API keys]", "path": "Developer Tools → Authentication → API keys" },
+              { "h3": "สร้าง Billing API key", "p": "สร้าง Billing API key (Bearer, pdl_live_…) ซึ่งไม่ใช่วิธี vendor_id/auth_code แบบ Classic รุ่นเก่า" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "เมื่อสร้าง Billing API key ที่ขึ้นต้นด้วย pdl_live_… แล้ว แสดงว่าออกอย่างถูกต้อง" }
+          ]
+        },
+        {
+          "h2": "3. ข้อมูลที่ต้องลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["ฟิลด์", "คำอธิบาย"], "rows": [
+              ["api_key", "Billing (v2) API key ที่ออกแล้ว (Bearer, pdl_live_…, จัดการด้วยความระมัดระวัง)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "ป้อน api_key ใน GenieGo Integration Hub [ลงทะเบียน] แล้วบันทึก ข้อมูลรับรองจะถูกเข้ารหัสขณะจัดเก็บด้วย AES-256-GCM และปิดบังเมื่ออ่าน" }
+          ]
+        },
+        {
+          "h2": "4. ปัญหาที่พบบ่อย",
+          "blocks": [
+            { "type": "table", "head": ["ปัญหา", "สาเหตุ", "วิธีแก้ไข"], "rows": [
+              ["การยืนยันตัวตนล้มเหลว", "ใช้ vendor_id/auth_code แบบ Classic รุ่นเก่า", "ใช้ Billing (v2) API key (pdl_live_…) ที่ออกภายใต้ Developer Tools > Authentication > API keys"],
+              ["รูปแบบคีย์ไม่ถูกต้อง", "ใช้คีย์ทดสอบ/รุ่นเก่า", "ตรวจสอบว่าเป็น Billing API key รูปแบบ pdl_live_… หรือไม่"]
+            ] }
+          ]
+        },
+        {
+          "h2": "รายการตรวจสอบขั้นสุดท้าย",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "เข้าสู่ระบบ Dashboard ด้วยบัญชี Paddle แล้ว",
+              "ไปที่ Developer Tools > Authentication > API keys แล้ว",
+              "สร้าง Billing (v2) API key (Bearer, pdl_live_…) แล้ว",
+              "ป้อน api_key ใน GenieGo [ลงทะเบียน] และบันทึกแล้ว"
+            ] }
+          ]
+        }
+      ]
+    },
+    "vi": {
+      "titleType": "Hướng dẫn cấp API Key",
+      "badge": "Hướng dẫn cho người mới",
+      "intro": "Hướng dẫn từng bước thân thiện với người mới về việc cấp khóa API Billing (v2) (Bearer, pdl_live_…) từ Developer Tools trong Paddle Dashboard của bạn và đăng ký trong GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Thời gian dự kiến", "Khoảng 5–10 phút"],
+        ["Tài khoản cần thiết", "Tài khoản Paddle"],
+        ["Khóa được cấp", "Khóa API Billing (pdl_live_…)"],
+        ["Kết quả", "Thông tin xác thực API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Trước khi bắt đầu",
+          "desc": "Paddle là một nền tảng thanh toán Merchant of Record dành cho SaaS và sản phẩm số (Billing v2).",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Bắt buộc", "h3": "Tài khoản Paddle", "p": "Việc bán SaaS và sản phẩm số yêu cầu một tài khoản Paddle (Billing v2)." },
+              { "tag": "Khóa được cấp", "h3": "Khóa API Billing", "p": "Bạn tạo một khóa API Billing định dạng Bearer (pdl_live_…). Đây không phải là phương thức vendor_id/auth_code Classic cũ." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Lưu ý:</strong> Khóa cần cấp là <strong>khóa API Billing (v2) (Bearer, pdl_live_…)</strong>. Đừng nhầm lẫn nó với phương thức vendor_id/auth_code Classic cũ." }
+          ]
+        },
+        {
+          "h2": "2. Các bước cấp",
+          "desc": "Cấp theo thứ tự dưới đây và đăng ký trong GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Đăng nhập Paddle Dashboard", "p": "Đăng nhập Dashboard bằng tài khoản Paddle đã chuẩn bị.", "path": "https://vendors.paddle.com" },
+              { "h3": "Vào menu API keys", "p": "Vào [Developer Tools] > [Authentication] > [API keys].", "path": "Developer Tools → Authentication → API keys" },
+              { "h3": "Tạo khóa API Billing", "p": "Tạo khóa API Billing (Bearer, pdl_live_…). Đây không phải là phương thức vendor_id/auth_code Classic cũ." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Khi khóa API Billing bắt đầu bằng pdl_live_… được tạo, nghĩa là nó đã được cấp đúng cách." }
+          ]
+        },
+        {
+          "h2": "3. Thông tin cần đăng ký trong GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Trường", "Mô tả"], "rows": [
+              ["api_key", "Khóa API Billing (v2) đã được cấp (Bearer, pdl_live_…, xử lý cẩn thận)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Nhập api_key vào GenieGo Integration Hub [Đăng ký] rồi lưu. Thông tin xác thực được mã hóa khi lưu trữ bằng AES-256-GCM và được che khi đọc." }
+          ]
+        },
+        {
+          "h2": "4. Sự cố thường gặp",
+          "blocks": [
+            { "type": "table", "head": ["Sự cố", "Nguyên nhân", "Giải pháp"], "rows": [
+              ["Xác thực thất bại", "Sử dụng vendor_id/auth_code Classic cũ", "Sử dụng khóa API Billing (v2) (pdl_live_…) được cấp trong Developer Tools > Authentication > API keys."],
+              ["Sai định dạng khóa", "Sử dụng khóa thử nghiệm/phiên bản cũ", "Xác nhận đó là khóa API Billing ở định dạng pdl_live_…."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Danh sách kiểm tra cuối cùng",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Đã đăng nhập Dashboard bằng tài khoản Paddle.",
+              "Đã vào Developer Tools > Authentication > API keys.",
+              "Đã tạo khóa API Billing (v2) (Bearer, pdl_live_…).",
+              "Đã nhập api_key vào GenieGo [Đăng ký] và lưu."
+            ] }
+          ]
+        }
+      ]
+    },
+    "id": {
+      "titleType": "Panduan Penerbitan API Key",
+      "badge": "Panduan Pemula",
+      "intro": "Panduan langkah demi langkah yang ramah pemula untuk menerbitkan kunci API Billing (v2) (Bearer, pdl_live_…) dari Developer Tools di Paddle Dashboard Anda dan mendaftarkannya di GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Perkiraan waktu", "Sekitar 5–10 menit"],
+        ["Akun yang dibutuhkan", "Akun Paddle"],
+        ["Kunci yang diterbitkan", "Kunci API Billing (pdl_live_…)"],
+        ["Hasil", "Kredensial API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Sebelum Anda Mulai",
+          "desc": "Paddle adalah platform pembayaran Merchant of Record untuk SaaS dan produk digital (Billing v2).",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Diperlukan", "h3": "Akun Paddle", "p": "Menjual SaaS dan produk digital memerlukan akun Paddle (Billing v2)." },
+              { "tag": "Kunci yang diterbitkan", "h3": "Kunci API Billing", "p": "Anda membuat kunci API Billing berformat Bearer (pdl_live_…). Ini bukan metode vendor_id/auth_code Classic lama." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Catatan:</strong> Kunci yang akan diterbitkan adalah <strong>kunci API Billing (v2) (Bearer, pdl_live_…)</strong>. Jangan bingung dengan metode vendor_id/auth_code Classic lama." }
+          ]
+        },
+        {
+          "h2": "2. Langkah Penerbitan",
+          "desc": "Terbitkan sesuai urutan di bawah dan daftarkan di GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Masuk ke Paddle Dashboard", "p": "Masuk ke Dashboard dengan akun Paddle yang telah Anda siapkan.", "path": "https://vendors.paddle.com" },
+              { "h3": "Buka menu API keys", "p": "Buka [Developer Tools] > [Authentication] > [API keys].", "path": "Developer Tools → Authentication → API keys" },
+              { "h3": "Buat kunci API Billing", "p": "Buat kunci API Billing (Bearer, pdl_live_…). Ini bukan metode vendor_id/auth_code Classic lama." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Setelah kunci API Billing yang diawali pdl_live_… dibuat, berarti kunci telah diterbitkan dengan benar." }
+          ]
+        },
+        {
+          "h2": "3. Informasi yang Didaftarkan di GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Bidang", "Deskripsi"], "rows": [
+              ["api_key", "Kunci API Billing (v2) yang diterbitkan (Bearer, pdl_live_…, tangani dengan hati-hati)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Masukkan api_key di GenieGo Integration Hub [Daftar] lalu simpan. Kredensial dienkripsi saat disimpan dengan AES-256-GCM dan disamarkan saat dibaca." }
+          ]
+        },
+        {
+          "h2": "4. Masalah Umum",
+          "blocks": [
+            { "type": "table", "head": ["Masalah", "Penyebab", "Solusi"], "rows": [
+              ["Autentikasi gagal", "Menggunakan vendor_id/auth_code Classic lama", "Gunakan kunci API Billing (v2) (pdl_live_…) yang diterbitkan di Developer Tools > Authentication > API keys."],
+              ["Format kunci salah", "Menggunakan kunci uji/versi lama", "Pastikan itu adalah kunci API Billing berformat pdl_live_…."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Daftar Periksa Akhir",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Masuk ke Dashboard dengan akun Paddle.",
+              "Membuka Developer Tools > Authentication > API keys.",
+              "Membuat kunci API Billing (v2) (Bearer, pdl_live_…).",
+              "Memasukkan api_key di GenieGo [Daftar] dan menyimpannya."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ar": {
+      "titleType": "دليل إصدار مفتاح API",
+      "badge": "دليل المبتدئين",
+      "intro": "دليل تفصيلي خطوة بخطوة وملائم للمبتدئين لإصدار مفتاح API الخاص بـ Billing (الإصدار v2) (Bearer، ‎pdl_live_…) من أدوات المطوّر في لوحة تحكم Paddle وتسجيله في GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["الوقت التقريبي", "حوالي 5–10 دقائق"],
+        ["الحساب المطلوب", "حساب Paddle"],
+        ["المفاتيح المُصدَرة", "مفتاح API الخاص بـ Billing ‏(pdl_live_…)"],
+        ["النتيجة", "بيانات اعتماد API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. قبل أن تبدأ",
+          "desc": "‏Paddle هي منصة دفع من نوع Merchant of Record لمنتجات SaaS والمنتجات الرقمية (Billing v2).",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "مطلوب", "h3": "حساب Paddle", "p": "يتطلب بيع منتجات SaaS والمنتجات الرقمية حساب Paddle (Billing v2)." },
+              { "tag": "المفاتيح المُصدَرة", "h3": "مفتاح API الخاص بـ Billing", "p": "تقوم بإنشاء مفتاح API الخاص بـ Billing بصيغة Bearer ‏(pdl_live_…). وهو ليس طريقة vendor_id/auth_code القديمة من Classic." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>ملاحظة:</strong> المفتاح المطلوب إصداره هو <strong>مفتاح API الخاص بـ Billing (الإصدار v2) (Bearer، ‎pdl_live_…)</strong>. لا تخلط بينه وبين طريقة vendor_id/auth_code القديمة من Classic." }
+          ]
+        },
+        {
+          "h2": "2. خطوات الإصدار",
+          "desc": "أصدر بالترتيب أدناه وسجّل في GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "تسجيل الدخول إلى لوحة تحكم Paddle", "p": "سجّل الدخول إلى لوحة التحكم باستخدام حساب Paddle الذي أعددته.", "path": "https://vendors.paddle.com" },
+              { "h3": "الانتقال إلى قائمة API keys", "p": "انتقل إلى [Developer Tools] > [Authentication] > [API keys].", "path": "Developer Tools → Authentication → API keys" },
+              { "h3": "إنشاء مفتاح API الخاص بـ Billing", "p": "أنشئ مفتاح API الخاص بـ Billing ‏(Bearer، ‎pdl_live_…). وهو ليس طريقة vendor_id/auth_code القديمة من Classic." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "بمجرد إنشاء مفتاح API الخاص بـ Billing يبدأ بـ pdl_live_…، يكون قد تم إصداره بشكل صحيح." }
+          ]
+        },
+        {
+          "h2": "3. المعلومات المطلوب تسجيلها في GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["الحقل", "الوصف"], "rows": [
+              ["api_key", "مفتاح API الخاص بـ Billing (الإصدار v2) المُصدَر (Bearer، ‎pdl_live_…، تعامل معه بحذر)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "أدخل api_key في GenieGo Integration Hub ضمن [تسجيل] واحفظ. تُشفَّر بيانات الاعتماد أثناء التخزين باستخدام AES-256-GCM وتُخفى عند القراءة." }
+          ]
+        },
+        {
+          "h2": "4. المشكلات الشائعة",
+          "blocks": [
+            { "type": "table", "head": ["المشكلة", "السبب", "الحل"], "rows": [
+              ["فشل المصادقة", "استخدام vendor_id/auth_code القديم من Classic", "استخدم مفتاح API الخاص بـ Billing (الإصدار v2) ‏(pdl_live_…) المُصدَر ضمن Developer Tools > Authentication > API keys."],
+              ["تنسيق المفتاح خاطئ", "استخدام مفتاح اختباري/إصدار قديم", "تحقق من أنه مفتاح API الخاص بـ Billing بصيغة pdl_live_…."]
+            ] }
+          ]
+        },
+        {
+          "h2": "قائمة التحقق النهائية",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "سجّلت الدخول إلى لوحة التحكم باستخدام حساب Paddle.",
+              "انتقلت إلى Developer Tools > Authentication > API keys.",
+              "أنشأت مفتاح API الخاص بـ Billing (الإصدار v2) (Bearer، ‎pdl_live_…).",
+              "أدخلت api_key في GenieGo [تسجيل] وحفظت."
+            ] }
+          ]
+        }
+      ]
+    },
+    "es": {
+      "titleType": "Manual de emisión de la API Key",
+      "badge": "Guía para principiantes",
+      "intro": "Una guía paso a paso para principiantes sobre cómo emitir una clave de API de Billing (v2) (Bearer, pdl_live_…) desde las Developer Tools de tu Paddle Dashboard y registrarla en el GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tiempo estimado", "Unos 5–10 min"],
+        ["Cuenta necesaria", "Cuenta de Paddle"],
+        ["Claves emitidas", "Clave de API de Billing (pdl_live_…)"],
+        ["Resultado", "Credenciales de API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de empezar",
+          "desc": "Paddle es una plataforma de pago de tipo Merchant of Record para SaaS y productos digitales (Billing v2).",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requerido", "h3": "Cuenta de Paddle", "p": "Vender SaaS y productos digitales requiere una cuenta de Paddle (Billing v2)." },
+              { "tag": "Claves emitidas", "h3": "Clave de API de Billing", "p": "Generas una clave de API de Billing en formato Bearer (pdl_live_…). No es el antiguo método Classic de vendor_id/auth_code." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Nota:</strong> La clave que se va a emitir es una <strong>clave de API de Billing (v2) (Bearer, pdl_live_…)</strong>. No la confundas con el antiguo método Classic de vendor_id/auth_code." }
+          ]
+        },
+        {
+          "h2": "2. Pasos de emisión",
+          "desc": "Emite en el orden de abajo y regístrala en GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Inicia sesión en el Paddle Dashboard", "p": "Inicia sesión en el Dashboard con la cuenta de Paddle que preparaste.", "path": "https://vendors.paddle.com" },
+              { "h3": "Ve al menú API keys", "p": "Ve a [Developer Tools] > [Authentication] > [API keys].", "path": "Developer Tools → Authentication → API keys" },
+              { "h3": "Crea una clave de API de Billing", "p": "Crea una clave de API de Billing (Bearer, pdl_live_…). No es el antiguo método Classic de vendor_id/auth_code." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Una vez que se crea una clave de API de Billing que empieza por pdl_live_…, se ha emitido correctamente." }
+          ]
+        },
+        {
+          "h2": "3. Información para registrar en GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descripción"], "rows": [
+              ["api_key", "La clave de API de Billing (v2) emitida (Bearer, pdl_live_…, manéjala con cuidado)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Introduce api_key en el GenieGo Integration Hub [Registrar] y guarda. Las credenciales se cifran en reposo con AES-256-GCM y se enmascaran al leerlas." }
+          ]
+        },
+        {
+          "h2": "4. Problemas frecuentes",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solución"], "rows": [
+              ["Fallo de autenticación", "Uso del antiguo método Classic vendor_id/auth_code", "Usa la clave de API de Billing (v2) (pdl_live_…) emitida en Developer Tools > Authentication > API keys."],
+              ["Formato de clave incorrecto", "Uso de una clave de prueba/antigua", "Verifica que sea una clave de API de Billing con el formato pdl_live_…."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificación final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Inicié sesión en el Dashboard con una cuenta de Paddle.",
+              "Fui a Developer Tools > Authentication > API keys.",
+              "Creé una clave de API de Billing (v2) (Bearer, pdl_live_…).",
+              "Introduje api_key en GenieGo [Registrar] y la guardé."
+            ] }
+          ]
+        }
+      ]
+    },
+    "fr": {
+      "titleType": "Manuel de délivrance de la clé API",
+      "badge": "Guide pour débutants",
+      "intro": "Un guide pas à pas pour débutants expliquant comment délivrer une clé API Billing (v2) (Bearer, pdl_live_…) depuis les Developer Tools de votre Paddle Dashboard et l'enregistrer dans le GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Temps estimé", "Environ 5–10 min"],
+        ["Compte requis", "Compte Paddle"],
+        ["Clés délivrées", "Clé API Billing (pdl_live_…)"],
+        ["Résultat", "Identifiants API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Avant de commencer",
+          "desc": "Paddle est une plateforme de paiement de type Merchant of Record pour les produits SaaS et numériques (Billing v2).",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requis", "h3": "Compte Paddle", "p": "La vente de produits SaaS et numériques nécessite un compte Paddle (Billing v2)." },
+              { "tag": "Clés délivrées", "h3": "Clé API Billing", "p": "Vous générez une clé API Billing au format Bearer (pdl_live_…). Ce n'est pas l'ancienne méthode Classic vendor_id/auth_code." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Remarque :</strong> La clé à délivrer est une <strong>clé API Billing (v2) (Bearer, pdl_live_…)</strong>. Ne la confondez pas avec l'ancienne méthode Classic vendor_id/auth_code." }
+          ]
+        },
+        {
+          "h2": "2. Étapes de délivrance",
+          "desc": "Délivrez dans l'ordre ci-dessous et enregistrez dans GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Connectez-vous au Paddle Dashboard", "p": "Connectez-vous au Dashboard avec le compte Paddle que vous avez préparé.", "path": "https://vendors.paddle.com" },
+              { "h3": "Accédez au menu API keys", "p": "Accédez à [Developer Tools] > [Authentication] > [API keys].", "path": "Developer Tools → Authentication → API keys" },
+              { "h3": "Créez une clé API Billing", "p": "Créez une clé API Billing (Bearer, pdl_live_…). Ce n'est pas l'ancienne méthode Classic vendor_id/auth_code." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Une fois qu'une clé API Billing commençant par pdl_live_… est créée, elle a été délivrée correctement." }
+          ]
+        },
+        {
+          "h2": "3. Informations à enregistrer dans GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Champ", "Description"], "rows": [
+              ["api_key", "La clé API Billing (v2) délivrée (Bearer, pdl_live_…, à manipuler avec précaution)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Saisissez api_key dans le GenieGo Integration Hub [Enregistrer] et enregistrez. Les identifiants sont chiffrés au repos avec AES-256-GCM et masqués à la lecture." }
+          ]
+        },
+        {
+          "h2": "4. Problèmes fréquents",
+          "blocks": [
+            { "type": "table", "head": ["Problème", "Cause", "Solution"], "rows": [
+              ["Échec de l'authentification", "Utilisation de l'ancienne méthode Classic vendor_id/auth_code", "Utilisez la clé API Billing (v2) (pdl_live_…) délivrée sous Developer Tools > Authentication > API keys."],
+              ["Format de clé incorrect", "Utilisation d'une clé de test/ancienne", "Vérifiez qu'il s'agit d'une clé API Billing au format pdl_live_…."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Liste de contrôle finale",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Je me suis connecté au Dashboard avec un compte Paddle.",
+              "J'ai accédé à Developer Tools > Authentication > API keys.",
+              "J'ai créé une clé API Billing (v2) (Bearer, pdl_live_…).",
+              "J'ai saisi api_key dans GenieGo [Enregistrer] et enregistré."
+            ] }
+          ]
+        }
+      ]
+    },
+    "hi": {
+      "titleType": "API Key जारी करने की मैनुअल",
+      "badge": "शुरुआती गाइड",
+      "intro": "आपके Paddle Dashboard के Developer Tools से Billing (v2) API key (Bearer, pdl_live_…) जारी करने और उसे GenieGo Integration Hub में पंजीकृत करने के लिए शुरुआती-अनुकूल चरण-दर-चरण गाइड।",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["अनुमानित समय", "लगभग 5–10 मिनट"],
+        ["आवश्यक खाता", "Paddle खाता"],
+        ["जारी की गई कुंजियाँ", "Billing API key (pdl_live_…)"],
+        ["परिणाम", "API क्रेडेंशियल"]
+      ],
+      "sections": [
+        {
+          "h2": "1. शुरू करने से पहले",
+          "desc": "Paddle, SaaS और डिजिटल उत्पादों के लिए एक Merchant of Record प्रकार का भुगतान प्लेटफ़ॉर्म है (Billing v2)।",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "आवश्यक", "h3": "Paddle खाता", "p": "SaaS और डिजिटल उत्पाद बेचने के लिए एक Paddle खाता (Billing v2) आवश्यक है।" },
+              { "tag": "जारी की गई कुंजियाँ", "h3": "Billing API key", "p": "आप Bearer प्रारूप की Billing API key (pdl_live_…) उत्पन्न करते हैं। यह पुराना Classic तरीका vendor_id/auth_code नहीं है।" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>नोट:</strong> जारी की जाने वाली कुंजी एक <strong>Billing (v2) API key (Bearer, pdl_live_…)</strong> है। इसे पुराने Classic vendor_id/auth_code तरीके से न मिलाएं।" }
+          ]
+        },
+        {
+          "h2": "2. जारी करने के चरण",
+          "desc": "नीचे दिए गए क्रम में जारी करें और GenieGo में पंजीकृत करें।",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Paddle Dashboard में साइन इन करें", "p": "अपने तैयार किए गए Paddle खाते से Dashboard में साइन इन करें।", "path": "https://vendors.paddle.com" },
+              { "h3": "API keys मेन्यू पर जाएँ", "p": "[Developer Tools] > [Authentication] > [API keys] पर जाएँ।", "path": "Developer Tools → Authentication → API keys" },
+              { "h3": "Billing API key बनाएँ", "p": "Billing API key (Bearer, pdl_live_…) बनाएँ। यह पुराना Classic vendor_id/auth_code तरीका नहीं है।" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "जब pdl_live_… से शुरू होने वाली Billing API key बन जाती है, तो यह सही ढंग से जारी हो गई है।" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo में पंजीकृत करने योग्य जानकारी",
+          "blocks": [
+            { "type": "table", "head": ["फ़ील्ड", "विवरण"], "rows": [
+              ["api_key", "जारी की गई Billing (v2) API key (Bearer, pdl_live_…, सावधानी से संभालें)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo Integration Hub के [पंजीकरण] में api_key दर्ज करें और सहेजें। क्रेडेंशियल को भंडारण के समय AES-256-GCM से एन्क्रिप्ट किया जाता है और पढ़ते समय मास्क किया जाता है।" }
+          ]
+        },
+        {
+          "h2": "4. सामान्य समस्याएँ",
+          "blocks": [
+            { "type": "table", "head": ["समस्या", "कारण", "समाधान"], "rows": [
+              ["प्रमाणीकरण विफल", "पुराने Classic vendor_id/auth_code का उपयोग", "Developer Tools > Authentication > API keys में जारी की गई Billing (v2) API key (pdl_live_…) का उपयोग करें।"],
+              ["कुंजी का प्रारूप गलत", "परीक्षण/पुराने संस्करण की कुंजी का उपयोग", "पुष्टि करें कि यह pdl_live_… प्रारूप की Billing API key है।"]
+            ] }
+          ]
+        },
+        {
+          "h2": "अंतिम चेकलिस्ट",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Paddle खाते से Dashboard में साइन इन किया।",
+              "Developer Tools > Authentication > API keys पर गया।",
+              "Billing (v2) API key (Bearer, pdl_live_…) बनाई।",
+              "GenieGo [पंजीकरण] में api_key दर्ज किया और सहेजा।"
+            ] }
+          ]
+        }
+      ]
+    },
+    "pt": {
+      "titleType": "Manual de emissão da API Key",
+      "badge": "Guia para iniciantes",
+      "intro": "Um guia passo a passo para iniciantes sobre como emitir uma chave de API Billing (v2) (Bearer, pdl_live_…) nas Developer Tools do seu Paddle Dashboard e registrá-la no GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tempo estimado", "Cerca de 5–10 min"],
+        ["Conta necessária", "Conta Paddle"],
+        ["Chaves emitidas", "Chave de API Billing (pdl_live_…)"],
+        ["Resultado", "Credenciais de API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de começar",
+          "desc": "O Paddle é uma plataforma de pagamento do tipo Merchant of Record para SaaS e produtos digitais (Billing v2).",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Obrigatório", "h3": "Conta Paddle", "p": "Vender SaaS e produtos digitais exige uma conta Paddle (Billing v2)." },
+              { "tag": "Chaves emitidas", "h3": "Chave de API Billing", "p": "Você gera uma chave de API Billing no formato Bearer (pdl_live_…). Não é o antigo método Classic vendor_id/auth_code." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Observação:</strong> A chave a ser emitida é uma <strong>chave de API Billing (v2) (Bearer, pdl_live_…)</strong>. Não a confunda com o antigo método Classic vendor_id/auth_code." }
+          ]
+        },
+        {
+          "h2": "2. Etapas de emissão",
+          "desc": "Emita na ordem abaixo e registre no GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Faça login no Paddle Dashboard", "p": "Faça login no Dashboard com a conta Paddle que você preparou.", "path": "https://vendors.paddle.com" },
+              { "h3": "Vá ao menu API keys", "p": "Vá em [Developer Tools] > [Authentication] > [API keys].", "path": "Developer Tools → Authentication → API keys" },
+              { "h3": "Crie uma chave de API Billing", "p": "Crie uma chave de API Billing (Bearer, pdl_live_…). Não é o antigo método Classic vendor_id/auth_code." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Quando uma chave de API Billing que começa com pdl_live_… for criada, ela foi emitida corretamente." }
+          ]
+        },
+        {
+          "h2": "3. Informações para registrar no GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descrição"], "rows": [
+              ["api_key", "A chave de API Billing (v2) emitida (Bearer, pdl_live_…, manuseie com cuidado)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Insira api_key no GenieGo Integration Hub [Registrar] e salve. As credenciais são criptografadas em repouso com AES-256-GCM e mascaradas na leitura." }
+          ]
+        },
+        {
+          "h2": "4. Problemas comuns",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solução"], "rows": [
+              ["Falha na autenticação", "Uso do antigo método Classic vendor_id/auth_code", "Use a chave de API Billing (v2) (pdl_live_…) emitida em Developer Tools > Authentication > API keys."],
+              ["Formato de chave incorreto", "Uso de uma chave de teste/antiga", "Verifique se é uma chave de API Billing no formato pdl_live_…."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificação final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Fiz login no Dashboard com uma conta Paddle.",
+              "Acessei Developer Tools > Authentication > API keys.",
+              "Criei uma chave de API Billing (v2) (Bearer, pdl_live_…).",
+              "Inseri api_key no GenieGo [Registrar] e salvei."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ru": {
+      "titleType": "Руководство по выпуску API-ключа",
+      "badge": "Руководство для начинающих",
+      "intro": "Пошаговое руководство для начинающих по выпуску API-ключа Billing (v2) (Bearer, pdl_live_…) в разделе Developer Tools вашей Paddle Dashboard и его регистрации в GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Примерное время", "Около 5–10 мин"],
+        ["Требуемая учётная запись", "Учётная запись Paddle"],
+        ["Выпускаемые ключи", "API-ключ Billing (pdl_live_…)"],
+        ["Результат", "Учётные данные API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Прежде чем начать",
+          "desc": "Paddle — это платёжная платформа типа Merchant of Record для SaaS и цифровых продуктов (Billing v2).",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Требуется", "h3": "Учётная запись Paddle", "p": "Для продажи SaaS и цифровых продуктов требуется учётная запись Paddle (Billing v2)." },
+              { "tag": "Выпускаемые ключи", "h3": "API-ключ Billing", "p": "Вы создаёте API-ключ Billing в формате Bearer (pdl_live_…). Это не устаревший метод Classic vendor_id/auth_code." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Примечание:</strong> Выпускаемый ключ — это <strong>API-ключ Billing (v2) (Bearer, pdl_live_…)</strong>. Не путайте его с устаревшим методом Classic vendor_id/auth_code." }
+          ]
+        },
+        {
+          "h2": "2. Этапы выпуска",
+          "desc": "Выпустите в указанном ниже порядке и зарегистрируйте в GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Войдите в Paddle Dashboard", "p": "Войдите в Dashboard с помощью подготовленной учётной записи Paddle.", "path": "https://vendors.paddle.com" },
+              { "h3": "Перейдите в меню API keys", "p": "Перейдите в [Developer Tools] > [Authentication] > [API keys].", "path": "Developer Tools → Authentication → API keys" },
+              { "h3": "Создайте API-ключ Billing", "p": "Создайте API-ключ Billing (Bearer, pdl_live_…). Это не устаревший метод Classic vendor_id/auth_code." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Как только создан API-ключ Billing, начинающийся с pdl_live_…, он выпущен корректно." }
+          ]
+        },
+        {
+          "h2": "3. Информация для регистрации в GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Поле", "Описание"], "rows": [
+              ["api_key", "Выпущенный API-ключ Billing (v2) (Bearer, pdl_live_…, обращайтесь осторожно)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Введите api_key в GenieGo Integration Hub [Регистрация] и сохраните. Учётные данные шифруются при хранении с помощью AES-256-GCM и маскируются при чтении." }
+          ]
+        },
+        {
+          "h2": "4. Частые проблемы",
+          "blocks": [
+            { "type": "table", "head": ["Проблема", "Причина", "Решение"], "rows": [
+              ["Сбой аутентификации", "Использование устаревшего метода Classic vendor_id/auth_code", "Используйте API-ключ Billing (v2) (pdl_live_…), выпущенный в Developer Tools > Authentication > API keys."],
+              ["Неверный формат ключа", "Использование тестового/устаревшего ключа", "Убедитесь, что это API-ключ Billing в формате pdl_live_…."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Итоговый контрольный список",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Вошёл в Dashboard с учётной записью Paddle.",
+              "Перешёл в Developer Tools > Authentication > API keys.",
+              "Создал API-ключ Billing (v2) (Bearer, pdl_live_…).",
+              "Ввёл api_key в GenieGo [Регистрация] и сохранил."
+            ] }
+          ]
+        }
+      ]
+    }
+  }
+}

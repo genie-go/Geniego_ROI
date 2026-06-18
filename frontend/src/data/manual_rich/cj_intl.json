@@ -1,0 +1,1026 @@
+{
+  "name": "CJ Logistics International",
+  "icon": "🌐",
+  "langs": {
+    "ko": {
+      "titleType": "API Key 발급 매뉴얼",
+      "badge": "Beginner Guide",
+      "intro": "CJ대한통운 국제특송 계약을 진행하고 발급받은 API 키·고객(계약) 코드를 GenieGo 연동 허브에 등록하는 과정을 정리한 매뉴얼입니다. 이 채널은 자가 콘솔 발급이 아닌 영업 계약을 통해 자격증명을 수령합니다.",
+      "org": "GenieGo 연동 허브",
+      "quick": [
+        ["소요 시간", "계약 진행에 따라 상이"],
+        ["필요 계정", "CJ대한통운 국제특송 계약"],
+        ["발급 키", "API 키 · 고객(계약) 코드"],
+        ["결과물", "국제특송 API 자격증명"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 시작하기 전에",
+          "desc": "CJ대한통운 국제특송은 영업 계약 후 고객(계약) 코드가 발급되는 계약형 채널입니다.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "필요", "h3": "국제특송 계약", "p": "CJ대한통운 국제특송을 이용하려면 영업 담당과의 계약이 선행되어야 합니다. 계약 없이는 고객(계약) 코드를 발급받을 수 없습니다." },
+              { "tag": "발급 키", "h3": "API 키 · 고객(계약) 코드", "p": "계약 완료 후 고객(계약) 코드와 API 키를 발급받습니다." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>참고:</strong> 이 채널은 셀프 콘솔에서 직접 발급하는 방식이 아니라, 영업 계약을 통해 자격증명을 수령하는 방식입니다." }
+          ]
+        },
+        {
+          "h2": "2. 발급 신청 절차",
+          "desc": "아래 순서대로 신청·수령한 뒤 GenieGo에 등록합니다.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "영업 담당 계약 진행", "p": "CJ대한통운 국제특송 영업 담당과 계약을 진행합니다." },
+              { "h3": "계약 체결", "p": "국제특송 이용 계약을 체결합니다." },
+              { "h3": "자격증명 수령", "p": "계약 완료 후 고객(계약) 코드와 API 키를 발급받습니다." },
+              { "h3": "GenieGo 등록", "p": "발급받은 api_key, cust_code 를 GenieGo [등록]에 입력해 저장합니다." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "영업 담당으로부터 고객(계약) 코드·API 키를 모두 수령했다면 정상적으로 발급된 것입니다." }
+          ]
+        },
+        {
+          "h2": "3. GenieGo에 등록할 정보",
+          "blocks": [
+            { "type": "table", "head": ["필드", "설명"], "rows": [
+              ["api_key", "발급받은 국제특송 API 키"],
+              ["cust_code", "발급받은 고객(계약) 코드"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 연동 허브 [등록]에 입력해 저장하면 자격증명은 AES-256-GCM으로 암호화 저장되고 조회 시 마스킹됩니다." }
+          ]
+        },
+        {
+          "h2": "4. 자주 발생하는 문제",
+          "blocks": [
+            { "type": "table", "head": ["문제", "원인", "해결"], "rows": [
+              ["고객(계약) 코드를 받지 못함", "국제특송 계약 미완료", "CJ대한통운 국제특송 영업 담당과 계약을 진행한 뒤 자격증명을 발급받습니다."],
+              ["국제특송 연동 오류", "고객(계약) 코드(cust_code) 오기재", "발급받은 고객(계약) 코드를 다시 확인해 정확히 입력합니다."]
+            ] }
+          ]
+        },
+        {
+          "h2": "최종 체크리스트",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "CJ대한통운 국제특송 영업 담당과 계약을 진행했다.",
+              "계약 완료 후 고객(계약) 코드와 API 키를 발급받았다.",
+              "api_key·cust_code 를 확인했다.",
+              "GenieGo [등록]에 api_key·cust_code 를 입력해 저장했다."
+            ] }
+          ]
+        }
+      ]
+    },
+    "en": {
+      "titleType": "API Key Issuance Manual",
+      "badge": "Beginner Guide",
+      "intro": "A manual covering the process of signing a CJ Logistics International Express contract and registering the issued API key and customer (contract) code in the GenieGo Integration Hub. This channel receives credentials through a sales contract rather than self-service console issuance.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Est. time", "Varies by contract progress"],
+        ["Account needed", "CJ Logistics International Express contract"],
+        ["Keys issued", "API key · Customer (contract) code"],
+        ["Result", "International Express API credentials"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Before You Begin",
+          "desc": "CJ Logistics International Express is a contract-based channel where the customer (contract) code is issued after a sales contract.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Required", "h3": "International Express contract", "p": "To use CJ Logistics International Express, a contract with a sales representative must come first. Without a contract, you cannot be issued a customer (contract) code." },
+              { "tag": "Keys issued", "h3": "API key · Customer (contract) code", "p": "After the contract is completed, you receive the customer (contract) code and API key." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Note:</strong> This channel is not issued directly from a self-service console; instead, credentials are received through a sales contract." }
+          ]
+        },
+        {
+          "h2": "2. Issuance Application Process",
+          "desc": "Apply and receive in the order below, then register in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Proceed with the sales representative contract", "p": "Proceed with a contract with the CJ Logistics International Express sales representative." },
+              { "h3": "Conclude the contract", "p": "Conclude the International Express usage contract." },
+              { "h3": "Receive credentials", "p": "After the contract is completed, you receive the customer (contract) code and API key." },
+              { "h3": "Register in GenieGo", "p": "Enter the issued api_key and cust_code in GenieGo [Register] and save." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "If you have received both the customer (contract) code and the API key from the sales representative, they have been issued correctly." }
+          ]
+        },
+        {
+          "h2": "3. Information to Register in GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Field", "Description"], "rows": [
+              ["api_key", "The issued International Express API key"],
+              ["cust_code", "The issued customer (contract) code"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "When you enter and save them in GenieGo Integration Hub [Register], credentials are encrypted at rest with AES-256-GCM and masked on read." }
+          ]
+        },
+        {
+          "h2": "4. Common Issues",
+          "blocks": [
+            { "type": "table", "head": ["Issue", "Cause", "Solution"], "rows": [
+              ["Customer (contract) code not received", "International Express contract not completed", "Proceed with a contract with the CJ Logistics International Express sales representative and then get the credentials issued."],
+              ["International Express integration error", "Customer (contract) code (cust_code) entered incorrectly", "Recheck the issued customer (contract) code and enter it correctly."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Final Checklist",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Proceeded with a contract with the CJ Logistics International Express sales representative.",
+              "Received the customer (contract) code and API key after the contract was completed.",
+              "Verified api_key·cust_code.",
+              "Entered api_key·cust_code in GenieGo [Register] and saved."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ja": {
+      "titleType": "API Key 発行マニュアル",
+      "badge": "初心者ガイド",
+      "intro": "CJ大韓通運 国際特急の契約を進め、発行された API キー・顧客(契約)コードを GenieGo 連携ハブに登録する手順をまとめたマニュアルです。このチャネルはセルフコンソールでの発行ではなく、営業契約を通じて認証情報を受領します。",
+      "org": "GenieGo 連携ハブ",
+      "quick": [
+        ["所要時間", "契約の進行により異なる"],
+        ["必要なアカウント", "CJ大韓通運 国際特急の契約"],
+        ["発行するキー", "API キー · 顧客(契約)コード"],
+        ["成果物", "国際特急 API 認証情報"]
+      ],
+      "sections": [
+        {
+          "h2": "1. はじめる前に",
+          "desc": "CJ大韓通運 国際特急は、営業契約後に顧客(契約)コードが発行される契約型チャネルです。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必須", "h3": "国際特急の契約", "p": "CJ大韓通運 国際特急を利用するには、営業担当との契約が先行して必要です。契約なしでは顧客(契約)コードを発行できません。" },
+              { "tag": "発行するキー", "h3": "API キー · 顧客(契約)コード", "p": "契約完了後に顧客(契約)コードと API キーを発行してもらいます。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> このチャネルはセルフコンソールから直接発行する方式ではなく、営業契約を通じて認証情報を受領する方式です。" }
+          ]
+        },
+        {
+          "h2": "2. 発行申請手順",
+          "desc": "以下の順序で申請・受領した後、GenieGo に登録します。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "営業担当との契約を進める", "p": "CJ大韓通運 国際特急の営業担当と契約を進めます。" },
+              { "h3": "契約締結", "p": "国際特急の利用契約を締結します。" },
+              { "h3": "認証情報の受領", "p": "契約完了後に顧客(契約)コードと API キーを発行してもらいます。" },
+              { "h3": "GenieGo 登録", "p": "発行された api_key、cust_code を GenieGo [登録] に入力して保存します。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "営業担当から顧客(契約)コードと API キーをすべて受領していれば、正常に発行されています。" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo に登録する情報",
+          "blocks": [
+            { "type": "table", "head": ["フィールド", "説明"], "rows": [
+              ["api_key", "発行された国際特急 API キー"],
+              ["cust_code", "発行された顧客(契約)コード"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 連携ハブ [登録] に入力して保存すると、認証情報は AES-256-GCM で暗号化して保存され、閲覧時にはマスキングされます。" }
+          ]
+        },
+        {
+          "h2": "4. よくある問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["顧客(契約)コードを受け取れない", "国際特急の契約が未完了", "CJ大韓通運 国際特急の営業担当と契約を進めた後、認証情報を発行してもらいます。"],
+              ["国際特急の連携エラー", "顧客(契約)コード(cust_code)の誤記", "発行された顧客(契約)コードを再確認し、正確に入力します。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終チェックリスト",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "CJ大韓通運 国際特急の営業担当と契約を進めた。",
+              "契約完了後に顧客(契約)コードと API キーを発行してもらった。",
+              "api_key·cust_code を確認した。",
+              "GenieGo [登録] に api_key·cust_code を入力して保存した。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh": {
+      "titleType": "API Key 申请手册",
+      "badge": "新手指南",
+      "intro": "本手册整理了签订 CJ大韩通运国际特快合同并将所获 API 密钥、客户(合同)代码注册到 GenieGo 集成中心的流程。该渠道不通过自助控制台签发，而是通过销售合同领取凭证。",
+      "org": "GenieGo 集成中心",
+      "quick": [
+        ["预计时间", "因合同进度而异"],
+        ["所需账户", "CJ大韩通运国际特快合同"],
+        ["签发密钥", "API 密钥 · 客户(合同)代码"],
+        ["成果", "国际特快 API 凭证"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 开始之前",
+          "desc": "CJ大韩通运国际特快是一种合同型渠道，在签订销售合同后才会签发客户(合同)代码。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "国际特快合同", "p": "要使用 CJ大韩通运国际特快，必须先与销售负责人签订合同。没有合同则无法获得客户(合同)代码。" },
+              { "tag": "签发密钥", "h3": "API 密钥 · 客户(合同)代码", "p": "合同完成后，将获得客户(合同)代码和 API 密钥。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> 该渠道不是从自助控制台直接签发的方式，而是通过销售合同领取凭证的方式。" }
+          ]
+        },
+        {
+          "h2": "2. 申请签发流程",
+          "desc": "按以下顺序申请并领取后，在 GenieGo 中注册。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "与销售负责人推进合同", "p": "与 CJ大韩通运国际特快的销售负责人推进合同。" },
+              { "h3": "签订合同", "p": "签订国际特快使用合同。" },
+              { "h3": "领取凭证", "p": "合同完成后，将获得客户(合同)代码和 API 密钥。" },
+              { "h3": "在 GenieGo 中注册", "p": "在 GenieGo [注册] 中输入所获的 api_key、cust_code 并保存。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "如果您已从销售负责人处领取到客户(合同)代码和 API 密钥，即表示已正确签发。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中注册的信息",
+          "blocks": [
+            { "type": "table", "head": ["字段", "说明"], "rows": [
+              ["api_key", "所获的国际特快 API 密钥"],
+              ["cust_code", "所获的客户(合同)代码"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 集成中心 [注册] 中输入并保存后，凭证将以 AES-256-GCM 加密存储，并在查询时进行掩码处理。" }
+          ]
+        },
+        {
+          "h2": "4. 常见问题",
+          "blocks": [
+            { "type": "table", "head": ["问题", "原因", "解决方法"], "rows": [
+              ["未收到客户(合同)代码", "国际特快合同未完成", "与 CJ大韩通运国际特快的销售负责人推进合同后，再获取凭证。"],
+              ["国际特快集成错误", "客户(合同)代码(cust_code)填写错误", "重新核对所获的客户(合同)代码并准确输入。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最终检查清单",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已与 CJ大韩通运国际特快的销售负责人推进合同。",
+              "合同完成后已获得客户(合同)代码和 API 密钥。",
+              "已确认 api_key·cust_code。",
+              "已在 GenieGo [注册] 中输入 api_key·cust_code 并保存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh-TW": {
+      "titleType": "API Key 申請手冊",
+      "badge": "新手指南",
+      "intro": "本手冊整理了簽訂 CJ大韓通運國際快遞合約並將所獲 API 金鑰、客戶(合約)代碼註冊到 GenieGo 整合中心的流程。此渠道不透過自助主控台簽發，而是透過業務合約領取憑證。",
+      "org": "GenieGo 整合中心",
+      "quick": [
+        ["預計時間", "依合約進度而異"],
+        ["所需帳戶", "CJ大韓通運國際快遞合約"],
+        ["簽發金鑰", "API 金鑰 · 客戶(合約)代碼"],
+        ["成果", "國際快遞 API 憑證"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 開始之前",
+          "desc": "CJ大韓通運國際快遞是一種合約型渠道，在簽訂業務合約後才會簽發客戶(合約)代碼。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "國際快遞合約", "p": "要使用 CJ大韓通運國際快遞，必須先與業務負責人簽訂合約。沒有合約則無法取得客戶(合約)代碼。" },
+              { "tag": "簽發金鑰", "h3": "API 金鑰 · 客戶(合約)代碼", "p": "合約完成後，將取得客戶(合約)代碼和 API 金鑰。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> 此渠道並非從自助主控台直接簽發的方式，而是透過業務合約領取憑證的方式。" }
+          ]
+        },
+        {
+          "h2": "2. 申請簽發流程",
+          "desc": "依以下順序申請並領取後，在 GenieGo 中註冊。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "與業務負責人推進合約", "p": "與 CJ大韓通運國際快遞的業務負責人推進合約。" },
+              { "h3": "簽訂合約", "p": "簽訂國際快遞使用合約。" },
+              { "h3": "領取憑證", "p": "合約完成後，將取得客戶(合約)代碼和 API 金鑰。" },
+              { "h3": "在 GenieGo 中註冊", "p": "在 GenieGo [註冊] 中輸入所獲的 api_key、cust_code 並儲存。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "如果您已從業務負責人處領取到客戶(合約)代碼和 API 金鑰，即表示已正確簽發。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中註冊的資訊",
+          "blocks": [
+            { "type": "table", "head": ["欄位", "說明"], "rows": [
+              ["api_key", "所獲的國際快遞 API 金鑰"],
+              ["cust_code", "所獲的客戶(合約)代碼"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 整合中心 [註冊] 中輸入並儲存後，憑證將以 AES-256-GCM 加密儲存，並在查詢時進行遮罩處理。" }
+          ]
+        },
+        {
+          "h2": "4. 常見問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["未收到客戶(合約)代碼", "國際快遞合約未完成", "與 CJ大韓通運國際快遞的業務負責人推進合約後，再取得憑證。"],
+              ["國際快遞整合錯誤", "客戶(合約)代碼(cust_code)填寫錯誤", "重新核對所獲的客戶(合約)代碼並準確輸入。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終檢查清單",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已與 CJ大韓通運國際快遞的業務負責人推進合約。",
+              "合約完成後已取得客戶(合約)代碼和 API 金鑰。",
+              "已確認 api_key·cust_code。",
+              "已在 GenieGo [註冊] 中輸入 api_key·cust_code 並儲存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "de": {
+      "titleType": "Anleitung zur API-Key-Ausstellung",
+      "badge": "Einsteigerleitfaden",
+      "intro": "Eine Anleitung, die den Prozess des Abschlusses eines CJ Logistics International Express-Vertrags und der Registrierung des ausgestellten API-Schlüssels und Kunden-(Vertrags-)Codes im GenieGo Integration Hub beschreibt. Dieser Kanal erhält die Anmeldedaten über einen Vertriebsvertrag und nicht über eine Selbstbedienungs-Konsolenausstellung.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Geschätzte Zeit", "Je nach Vertragsfortschritt unterschiedlich"],
+        ["Benötigtes Konto", "CJ Logistics International Express-Vertrag"],
+        ["Ausgestellte Schlüssel", "API-Schlüssel · Kunden-(Vertrags-)Code"],
+        ["Ergebnis", "International Express API-Anmeldedaten"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Bevor Sie beginnen",
+          "desc": "CJ Logistics International Express ist ein vertragsbasierter Kanal, bei dem der Kunden-(Vertrags-)Code nach einem Vertriebsvertrag ausgestellt wird.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Erforderlich", "h3": "International Express-Vertrag", "p": "Um CJ Logistics International Express zu nutzen, muss zuerst ein Vertrag mit einem Vertriebsmitarbeiter abgeschlossen werden. Ohne Vertrag kann kein Kunden-(Vertrags-)Code ausgestellt werden." },
+              { "tag": "Ausgestellte Schlüssel", "h3": "API-Schlüssel · Kunden-(Vertrags-)Code", "p": "Nach Abschluss des Vertrags erhalten Sie den Kunden-(Vertrags-)Code und den API-Schlüssel." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Hinweis:</strong> Dieser Kanal wird nicht direkt über eine Selbstbedienungskonsole ausgestellt, sondern die Anmeldedaten werden über einen Vertriebsvertrag empfangen." }
+          ]
+        },
+        {
+          "h2": "2. Antragsverfahren zur Ausstellung",
+          "desc": "Beantragen und erhalten Sie in der unten angegebenen Reihenfolge und registrieren Sie anschließend in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Vertrag mit dem Vertriebsmitarbeiter abwickeln", "p": "Wickeln Sie einen Vertrag mit dem Vertriebsmitarbeiter von CJ Logistics International Express ab." },
+              { "h3": "Vertrag abschließen", "p": "Schließen Sie den Nutzungsvertrag für International Express ab." },
+              { "h3": "Anmeldedaten erhalten", "p": "Nach Abschluss des Vertrags erhalten Sie den Kunden-(Vertrags-)Code und den API-Schlüssel." },
+              { "h3": "In GenieGo registrieren", "p": "Geben Sie den ausgestellten api_key und cust_code in GenieGo [Registrieren] ein und speichern Sie." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Wenn Sie sowohl den Kunden-(Vertrags-)Code als auch den API-Schlüssel vom Vertriebsmitarbeiter erhalten haben, wurden sie korrekt ausgestellt." }
+          ]
+        },
+        {
+          "h2": "3. In GenieGo zu registrierende Informationen",
+          "blocks": [
+            { "type": "table", "head": ["Feld", "Beschreibung"], "rows": [
+              ["api_key", "Der ausgestellte International Express API-Schlüssel"],
+              ["cust_code", "Der ausgestellte Kunden-(Vertrags-)Code"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Wenn Sie sie im GenieGo Integration Hub [Registrieren] eingeben und speichern, werden die Anmeldedaten im Ruhezustand mit AES-256-GCM verschlüsselt und beim Lesen maskiert." }
+          ]
+        },
+        {
+          "h2": "4. Häufige Probleme",
+          "blocks": [
+            { "type": "table", "head": ["Problem", "Ursache", "Lösung"], "rows": [
+              ["Kunden-(Vertrags-)Code nicht erhalten", "International Express-Vertrag nicht abgeschlossen", "Wickeln Sie einen Vertrag mit dem Vertriebsmitarbeiter von CJ Logistics International Express ab und lassen Sie sich anschließend die Anmeldedaten ausstellen."],
+              ["International Express-Integrationsfehler", "Kunden-(Vertrags-)Code (cust_code) falsch eingegeben", "Überprüfen Sie den ausgestellten Kunden-(Vertrags-)Code erneut und geben Sie ihn korrekt ein."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Abschließende Checkliste",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Einen Vertrag mit dem Vertriebsmitarbeiter von CJ Logistics International Express abgewickelt.",
+              "Nach Abschluss des Vertrags den Kunden-(Vertrags-)Code und den API-Schlüssel erhalten.",
+              "api_key·cust_code überprüft.",
+              "api_key·cust_code in GenieGo [Registrieren] eingegeben und gespeichert."
+            ] }
+          ]
+        }
+      ]
+    },
+    "th": {
+      "titleType": "คู่มือการออก API Key",
+      "badge": "คู่มือสำหรับผู้เริ่มต้น",
+      "intro": "คู่มือที่สรุปขั้นตอนการทำสัญญา CJ Logistics International Express และการลงทะเบียน API key กับรหัสลูกค้า (สัญญา) ที่ได้รับ ใน GenieGo Integration Hub ช่องทางนี้รับข้อมูลรับรองผ่านสัญญาการขาย ไม่ใช่การออกผ่านคอนโซลแบบบริการตนเอง",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["เวลาโดยประมาณ", "แตกต่างกันไปตามความคืบหน้าของสัญญา"],
+        ["บัญชีที่ต้องใช้", "สัญญา CJ Logistics International Express"],
+        ["คีย์ที่ออก", "API key · รหัสลูกค้า (สัญญา)"],
+        ["ผลลัพธ์", "ข้อมูลรับรอง International Express API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. ก่อนเริ่มต้น",
+          "desc": "CJ Logistics International Express เป็นช่องทางแบบสัญญาที่จะออกรหัสลูกค้า (สัญญา) หลังจากทำสัญญาการขาย",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "จำเป็น", "h3": "สัญญา International Express", "p": "ในการใช้ CJ Logistics International Express ต้องทำสัญญากับผู้ดูแลฝ่ายขายก่อน หากไม่มีสัญญา จะไม่สามารถออกรหัสลูกค้า (สัญญา) ได้" },
+              { "tag": "คีย์ที่ออก", "h3": "API key · รหัสลูกค้า (สัญญา)", "p": "หลังจากทำสัญญาเสร็จสมบูรณ์ คุณจะได้รับรหัสลูกค้า (สัญญา) และ API key" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>หมายเหตุ:</strong> ช่องทางนี้ไม่ใช่วิธีการออกโดยตรงจากคอนโซลแบบบริการตนเอง แต่เป็นวิธีการรับข้อมูลรับรองผ่านสัญญาการขาย" }
+          ]
+        },
+        {
+          "h2": "2. ขั้นตอนการยื่นขอออก",
+          "desc": "ยื่นขอและรับตามลำดับด้านล่าง จากนั้นลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "ดำเนินการทำสัญญากับผู้ดูแลฝ่ายขาย", "p": "ดำเนินการทำสัญญากับผู้ดูแลฝ่ายขายของ CJ Logistics International Express" },
+              { "h3": "ทำสัญญา", "p": "ทำสัญญาการใช้งาน International Express" },
+              { "h3": "รับข้อมูลรับรอง", "p": "หลังจากทำสัญญาเสร็จสมบูรณ์ คุณจะได้รับรหัสลูกค้า (สัญญา) และ API key" },
+              { "h3": "ลงทะเบียนใน GenieGo", "p": "ป้อน api_key, cust_code ที่ได้รับใน GenieGo [ลงทะเบียน] แล้วบันทึก" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "หากคุณได้รับทั้งรหัสลูกค้า (สัญญา) และ API key จากผู้ดูแลฝ่ายขายแล้ว แสดงว่าออกอย่างถูกต้อง" }
+          ]
+        },
+        {
+          "h2": "3. ข้อมูลที่ต้องลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["ฟิลด์", "คำอธิบาย"], "rows": [
+              ["api_key", "API key ของ International Express ที่ได้รับ"],
+              ["cust_code", "รหัสลูกค้า (สัญญา) ที่ได้รับ"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "เมื่อป้อนและบันทึกใน GenieGo Integration Hub [ลงทะเบียน] ข้อมูลรับรองจะถูกเข้ารหัสขณะจัดเก็บด้วย AES-256-GCM และปิดบังเมื่ออ่าน" }
+          ]
+        },
+        {
+          "h2": "4. ปัญหาที่พบบ่อย",
+          "blocks": [
+            { "type": "table", "head": ["ปัญหา", "สาเหตุ", "วิธีแก้ไข"], "rows": [
+              ["ไม่ได้รับรหัสลูกค้า (สัญญา)", "สัญญา International Express ยังไม่เสร็จสมบูรณ์", "ดำเนินการทำสัญญากับผู้ดูแลฝ่ายขายของ CJ Logistics International Express จากนั้นจึงรับข้อมูลรับรอง"],
+              ["ข้อผิดพลาดการเชื่อมต่อ International Express", "ป้อนรหัสลูกค้า (สัญญา) (cust_code) ผิด", "ตรวจสอบรหัสลูกค้า (สัญญา) ที่ได้รับอีกครั้งและป้อนให้ถูกต้อง"]
+            ] }
+          ]
+        },
+        {
+          "h2": "รายการตรวจสอบขั้นสุดท้าย",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "ดำเนินการทำสัญญากับผู้ดูแลฝ่ายขายของ CJ Logistics International Express แล้ว",
+              "ได้รับรหัสลูกค้า (สัญญา) และ API key หลังจากทำสัญญาเสร็จสมบูรณ์แล้ว",
+              "ตรวจสอบ api_key·cust_code แล้ว",
+              "ป้อน api_key·cust_code ใน GenieGo [ลงทะเบียน] และบันทึกแล้ว"
+            ] }
+          ]
+        }
+      ]
+    },
+    "vi": {
+      "titleType": "Hướng dẫn cấp API Key",
+      "badge": "Hướng dẫn cho người mới",
+      "intro": "Hướng dẫn tóm tắt quy trình ký hợp đồng CJ Logistics International Express và đăng ký khóa API cùng mã khách hàng (hợp đồng) đã được cấp vào GenieGo Integration Hub. Kênh này nhận thông tin xác thực thông qua hợp đồng bán hàng chứ không phải tự cấp qua bảng điều khiển tự phục vụ.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Thời gian dự kiến", "Tùy theo tiến độ hợp đồng"],
+        ["Tài khoản cần thiết", "Hợp đồng CJ Logistics International Express"],
+        ["Khóa được cấp", "Khóa API · Mã khách hàng (hợp đồng)"],
+        ["Kết quả", "Thông tin xác thực International Express API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Trước khi bắt đầu",
+          "desc": "CJ Logistics International Express là kênh dựa trên hợp đồng, trong đó mã khách hàng (hợp đồng) được cấp sau khi ký hợp đồng bán hàng.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Bắt buộc", "h3": "Hợp đồng International Express", "p": "Để sử dụng CJ Logistics International Express, trước tiên phải ký hợp đồng với người phụ trách bán hàng. Không có hợp đồng thì không thể được cấp mã khách hàng (hợp đồng)." },
+              { "tag": "Khóa được cấp", "h3": "Khóa API · Mã khách hàng (hợp đồng)", "p": "Sau khi hoàn tất hợp đồng, bạn sẽ nhận được mã khách hàng (hợp đồng) và khóa API." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Lưu ý:</strong> Kênh này không phải là phương thức cấp trực tiếp từ bảng điều khiển tự phục vụ, mà là phương thức nhận thông tin xác thực thông qua hợp đồng bán hàng." }
+          ]
+        },
+        {
+          "h2": "2. Quy trình nộp đơn xin cấp",
+          "desc": "Nộp đơn và nhận theo thứ tự dưới đây, sau đó đăng ký trong GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Tiến hành hợp đồng với người phụ trách bán hàng", "p": "Tiến hành hợp đồng với người phụ trách bán hàng của CJ Logistics International Express." },
+              { "h3": "Ký kết hợp đồng", "p": "Ký kết hợp đồng sử dụng International Express." },
+              { "h3": "Nhận thông tin xác thực", "p": "Sau khi hoàn tất hợp đồng, bạn sẽ nhận được mã khách hàng (hợp đồng) và khóa API." },
+              { "h3": "Đăng ký trong GenieGo", "p": "Nhập api_key, cust_code đã được cấp vào GenieGo [Đăng ký] rồi lưu." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Nếu bạn đã nhận được cả mã khách hàng (hợp đồng) và khóa API từ người phụ trách bán hàng, nghĩa là chúng đã được cấp đúng cách." }
+          ]
+        },
+        {
+          "h2": "3. Thông tin cần đăng ký trong GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Trường", "Mô tả"], "rows": [
+              ["api_key", "Khóa API International Express đã được cấp"],
+              ["cust_code", "Mã khách hàng (hợp đồng) đã được cấp"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Khi bạn nhập và lưu chúng trong GenieGo Integration Hub [Đăng ký], thông tin xác thực được mã hóa khi lưu trữ bằng AES-256-GCM và được che khi đọc." }
+          ]
+        },
+        {
+          "h2": "4. Sự cố thường gặp",
+          "blocks": [
+            { "type": "table", "head": ["Sự cố", "Nguyên nhân", "Giải pháp"], "rows": [
+              ["Không nhận được mã khách hàng (hợp đồng)", "Hợp đồng International Express chưa hoàn tất", "Tiến hành hợp đồng với người phụ trách bán hàng của CJ Logistics International Express rồi nhận thông tin xác thực."],
+              ["Lỗi tích hợp International Express", "Mã khách hàng (hợp đồng) (cust_code) nhập sai", "Kiểm tra lại mã khách hàng (hợp đồng) đã được cấp và nhập chính xác."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Danh sách kiểm tra cuối cùng",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Đã tiến hành hợp đồng với người phụ trách bán hàng của CJ Logistics International Express.",
+              "Đã nhận được mã khách hàng (hợp đồng) và khóa API sau khi hoàn tất hợp đồng.",
+              "Đã xác minh api_key·cust_code.",
+              "Đã nhập api_key·cust_code vào GenieGo [Đăng ký] và lưu."
+            ] }
+          ]
+        }
+      ]
+    },
+    "id": {
+      "titleType": "Panduan Penerbitan API Key",
+      "badge": "Panduan Pemula",
+      "intro": "Panduan yang merangkum proses penandatanganan kontrak CJ Logistics International Express dan pendaftaran kunci API serta kode pelanggan (kontrak) yang diterbitkan ke GenieGo Integration Hub. Saluran ini menerima kredensial melalui kontrak penjualan, bukan penerbitan melalui konsol swalayan.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Perkiraan waktu", "Bervariasi sesuai kemajuan kontrak"],
+        ["Akun yang dibutuhkan", "Kontrak CJ Logistics International Express"],
+        ["Kunci yang diterbitkan", "Kunci API · Kode pelanggan (kontrak)"],
+        ["Hasil", "Kredensial International Express API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Sebelum Anda Mulai",
+          "desc": "CJ Logistics International Express adalah saluran berbasis kontrak di mana kode pelanggan (kontrak) diterbitkan setelah kontrak penjualan.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Diperlukan", "h3": "Kontrak International Express", "p": "Untuk menggunakan CJ Logistics International Express, kontrak dengan perwakilan penjualan harus dilakukan terlebih dahulu. Tanpa kontrak, kode pelanggan (kontrak) tidak dapat diterbitkan." },
+              { "tag": "Kunci yang diterbitkan", "h3": "Kunci API · Kode pelanggan (kontrak)", "p": "Setelah kontrak selesai, Anda menerima kode pelanggan (kontrak) dan kunci API." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Catatan:</strong> Saluran ini bukan diterbitkan langsung dari konsol swalayan, melainkan kredensial diterima melalui kontrak penjualan." }
+          ]
+        },
+        {
+          "h2": "2. Proses Pengajuan Penerbitan",
+          "desc": "Ajukan dan terima sesuai urutan di bawah, lalu daftarkan di GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Lakukan kontrak dengan perwakilan penjualan", "p": "Lakukan kontrak dengan perwakilan penjualan CJ Logistics International Express." },
+              { "h3": "Tandatangani kontrak", "p": "Tandatangani kontrak penggunaan International Express." },
+              { "h3": "Terima kredensial", "p": "Setelah kontrak selesai, Anda menerima kode pelanggan (kontrak) dan kunci API." },
+              { "h3": "Daftarkan di GenieGo", "p": "Masukkan api_key, cust_code yang diterbitkan di GenieGo [Daftar] lalu simpan." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Jika Anda telah menerima baik kode pelanggan (kontrak) maupun kunci API dari perwakilan penjualan, berarti keduanya telah diterbitkan dengan benar." }
+          ]
+        },
+        {
+          "h2": "3. Informasi yang Didaftarkan di GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Bidang", "Deskripsi"], "rows": [
+              ["api_key", "Kunci API International Express yang diterbitkan"],
+              ["cust_code", "Kode pelanggan (kontrak) yang diterbitkan"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Saat Anda memasukkan dan menyimpannya di GenieGo Integration Hub [Daftar], kredensial dienkripsi saat disimpan dengan AES-256-GCM dan disamarkan saat dibaca." }
+          ]
+        },
+        {
+          "h2": "4. Masalah Umum",
+          "blocks": [
+            { "type": "table", "head": ["Masalah", "Penyebab", "Solusi"], "rows": [
+              ["Kode pelanggan (kontrak) tidak diterima", "Kontrak International Express belum selesai", "Lakukan kontrak dengan perwakilan penjualan CJ Logistics International Express lalu terbitkan kredensialnya."],
+              ["Kesalahan integrasi International Express", "Kode pelanggan (kontrak) (cust_code) salah dimasukkan", "Periksa kembali kode pelanggan (kontrak) yang diterbitkan dan masukkan dengan benar."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Daftar Periksa Akhir",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Telah melakukan kontrak dengan perwakilan penjualan CJ Logistics International Express.",
+              "Telah menerima kode pelanggan (kontrak) dan kunci API setelah kontrak selesai.",
+              "Telah memverifikasi api_key·cust_code.",
+              "Telah memasukkan api_key·cust_code di GenieGo [Daftar] dan menyimpannya."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ar": {
+      "titleType": "دليل إصدار مفتاح API",
+      "badge": "دليل المبتدئين",
+      "intro": "دليل يلخّص عملية إبرام عقد CJ Logistics International Express وتسجيل مفتاح API ورمز العميل (العقد) الصادرين في GenieGo Integration Hub. تستقبل هذه القناة بيانات الاعتماد من خلال عقد مبيعات وليس عبر الإصدار الذاتي من وحدة التحكم.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["الوقت المقدّر", "يختلف حسب تقدّم العقد"],
+        ["الحساب المطلوب", "عقد CJ Logistics International Express"],
+        ["المفاتيح الصادرة", "مفتاح API · رمز العميل (العقد)"],
+        ["النتيجة", "بيانات اعتماد International Express API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. قبل أن تبدأ",
+          "desc": "CJ Logistics International Express هي قناة قائمة على العقد، حيث يُصدر رمز العميل (العقد) بعد إبرام عقد المبيعات.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "مطلوب", "h3": "عقد International Express", "p": "لاستخدام CJ Logistics International Express، يجب أولاً إبرام عقد مع مندوب المبيعات. بدون عقد، لا يمكن إصدار رمز العميل (العقد)." },
+              { "tag": "المفاتيح الصادرة", "h3": "مفتاح API · رمز العميل (العقد)", "p": "بعد اكتمال العقد، تستلم رمز العميل (العقد) ومفتاح API." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>ملاحظة:</strong> هذه القناة ليست طريقة إصدار مباشرة من وحدة تحكم ذاتية الخدمة، بل طريقة استلام بيانات الاعتماد من خلال عقد مبيعات." }
+          ]
+        },
+        {
+          "h2": "2. إجراءات طلب الإصدار",
+          "desc": "قدّم الطلب واستلم بالترتيب أدناه، ثم سجّل في GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "إجراء العقد مع مندوب المبيعات", "p": "أجرِ العقد مع مندوب مبيعات CJ Logistics International Express." },
+              { "h3": "إبرام العقد", "p": "أبرم عقد استخدام International Express." },
+              { "h3": "استلام بيانات الاعتماد", "p": "بعد اكتمال العقد، تستلم رمز العميل (العقد) ومفتاح API." },
+              { "h3": "التسجيل في GenieGo", "p": "أدخل api_key وcust_code الصادرين في GenieGo [تسجيل] واحفظ." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "إذا كنت قد استلمت كلاً من رمز العميل (العقد) ومفتاح API من مندوب المبيعات، فهذا يعني أنهما صدرا بشكل صحيح." }
+          ]
+        },
+        {
+          "h2": "3. المعلومات المطلوب تسجيلها في GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["الحقل", "الوصف"], "rows": [
+              ["api_key", "مفتاح API الخاص بـ International Express الصادر"],
+              ["cust_code", "رمز العميل (العقد) الصادر"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "عند إدخالها وحفظها في GenieGo Integration Hub [تسجيل]، تُشفّر بيانات الاعتماد عند التخزين باستخدام AES-256-GCM وتُخفى عند القراءة." }
+          ]
+        },
+        {
+          "h2": "4. المشكلات الشائعة",
+          "blocks": [
+            { "type": "table", "head": ["المشكلة", "السبب", "الحل"], "rows": [
+              ["عدم استلام رمز العميل (العقد)", "عقد International Express غير مكتمل", "أجرِ العقد مع مندوب مبيعات CJ Logistics International Express ثم اطلب إصدار بيانات الاعتماد."],
+              ["خطأ في تكامل International Express", "إدخال رمز العميل (العقد) (cust_code) بشكل خاطئ", "تحقق مرة أخرى من رمز العميل (العقد) الصادر وأدخله بشكل صحيح."]
+            ] }
+          ]
+        },
+        {
+          "h2": "قائمة التحقق النهائية",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "تم إجراء العقد مع مندوب مبيعات CJ Logistics International Express.",
+              "تم استلام رمز العميل (العقد) ومفتاح API بعد اكتمال العقد.",
+              "تم التحقق من api_key·cust_code.",
+              "تم إدخال api_key·cust_code في GenieGo [تسجيل] وحفظه."
+            ] }
+          ]
+        }
+      ]
+    },
+    "es": {
+      "titleType": "Manual de emisión de la API Key",
+      "badge": "Guía para principiantes",
+      "intro": "Un manual que resume el proceso de firmar un contrato de CJ Logistics International Express y registrar la clave de API y el código de cliente (contrato) emitidos en el GenieGo Integration Hub. Este canal recibe las credenciales mediante un contrato comercial en lugar de una emisión por consola de autoservicio.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tiempo estimado", "Varía según el avance del contrato"],
+        ["Cuenta necesaria", "Contrato de CJ Logistics International Express"],
+        ["Claves emitidas", "Clave de API · Código de cliente (contrato)"],
+        ["Resultado", "Credenciales de la API de International Express"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de empezar",
+          "desc": "CJ Logistics International Express es un canal basado en contrato en el que el código de cliente (contrato) se emite tras un contrato comercial.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requerido", "h3": "Contrato de International Express", "p": "Para usar CJ Logistics International Express, primero debe firmarse un contrato con un representante comercial. Sin contrato, no se puede emitir el código de cliente (contrato)." },
+              { "tag": "Claves emitidas", "h3": "Clave de API · Código de cliente (contrato)", "p": "Una vez completado el contrato, recibe el código de cliente (contrato) y la clave de API." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Nota:</strong> Este canal no se emite directamente desde una consola de autoservicio, sino que las credenciales se reciben mediante un contrato comercial." }
+          ]
+        },
+        {
+          "h2": "2. Proceso de solicitud de emisión",
+          "desc": "Solicite y reciba en el orden siguiente y, a continuación, registre en GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Tramitar el contrato con el representante comercial", "p": "Tramite un contrato con el representante comercial de CJ Logistics International Express." },
+              { "h3": "Firmar el contrato", "p": "Firme el contrato de uso de International Express." },
+              { "h3": "Recibir las credenciales", "p": "Una vez completado el contrato, recibe el código de cliente (contrato) y la clave de API." },
+              { "h3": "Registrar en GenieGo", "p": "Introduzca el api_key y el cust_code emitidos en GenieGo [Registrar] y guarde." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Si ha recibido tanto el código de cliente (contrato) como la clave de API del representante comercial, se han emitido correctamente." }
+          ]
+        },
+        {
+          "h2": "3. Información para registrar en GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descripción"], "rows": [
+              ["api_key", "La clave de API de International Express emitida"],
+              ["cust_code", "El código de cliente (contrato) emitido"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Cuando los introduce y guarda en GenieGo Integration Hub [Registrar], las credenciales se cifran en reposo con AES-256-GCM y se enmascaran al leerlas." }
+          ]
+        },
+        {
+          "h2": "4. Problemas frecuentes",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solución"], "rows": [
+              ["No se recibe el código de cliente (contrato)", "Contrato de International Express no completado", "Tramite un contrato con el representante comercial de CJ Logistics International Express y luego solicite la emisión de las credenciales."],
+              ["Error de integración de International Express", "Código de cliente (contrato) (cust_code) introducido incorrectamente", "Vuelva a verificar el código de cliente (contrato) emitido e introdúzcalo correctamente."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificación final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Tramité un contrato con el representante comercial de CJ Logistics International Express.",
+              "Recibí el código de cliente (contrato) y la clave de API una vez completado el contrato.",
+              "Verifiqué api_key·cust_code.",
+              "Introduje api_key·cust_code en GenieGo [Registrar] y guardé."
+            ] }
+          ]
+        }
+      ]
+    },
+    "fr": {
+      "titleType": "Manuel d'émission de la clé API",
+      "badge": "Guide du débutant",
+      "intro": "Un manuel résumant le processus de signature d'un contrat CJ Logistics International Express et d'enregistrement de la clé API et du code client (contrat) émis dans le GenieGo Integration Hub. Ce canal reçoit les identifiants via un contrat commercial plutôt que par une émission en libre-service via une console.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Durée estimée", "Varie selon l'avancement du contrat"],
+        ["Compte requis", "Contrat CJ Logistics International Express"],
+        ["Clés émises", "Clé API · Code client (contrat)"],
+        ["Résultat", "Identifiants de l'API International Express"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Avant de commencer",
+          "desc": "CJ Logistics International Express est un canal basé sur un contrat, dans lequel le code client (contrat) est émis après un contrat commercial.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requis", "h3": "Contrat International Express", "p": "Pour utiliser CJ Logistics International Express, un contrat avec un commercial doit être conclu au préalable. Sans contrat, le code client (contrat) ne peut pas être émis." },
+              { "tag": "Clés émises", "h3": "Clé API · Code client (contrat)", "p": "Une fois le contrat finalisé, vous recevez le code client (contrat) et la clé API." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Remarque :</strong> Ce canal n'est pas émis directement depuis une console en libre-service ; les identifiants sont plutôt reçus via un contrat commercial." }
+          ]
+        },
+        {
+          "h2": "2. Procédure de demande d'émission",
+          "desc": "Faites la demande et recevez dans l'ordre ci-dessous, puis enregistrez dans GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Conclure le contrat avec le commercial", "p": "Concluez un contrat avec le commercial de CJ Logistics International Express." },
+              { "h3": "Signer le contrat", "p": "Signez le contrat d'utilisation d'International Express." },
+              { "h3": "Recevoir les identifiants", "p": "Une fois le contrat finalisé, vous recevez le code client (contrat) et la clé API." },
+              { "h3": "Enregistrer dans GenieGo", "p": "Saisissez l'api_key et le cust_code émis dans GenieGo [Enregistrer] et enregistrez." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Si vous avez reçu à la fois le code client (contrat) et la clé API du commercial, ils ont été émis correctement." }
+          ]
+        },
+        {
+          "h2": "3. Informations à enregistrer dans GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Champ", "Description"], "rows": [
+              ["api_key", "La clé API International Express émise"],
+              ["cust_code", "Le code client (contrat) émis"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Lorsque vous les saisissez et les enregistrez dans GenieGo Integration Hub [Enregistrer], les identifiants sont chiffrés au repos avec AES-256-GCM et masqués à la lecture." }
+          ]
+        },
+        {
+          "h2": "4. Problèmes fréquents",
+          "blocks": [
+            { "type": "table", "head": ["Problème", "Cause", "Solution"], "rows": [
+              ["Code client (contrat) non reçu", "Contrat International Express non finalisé", "Concluez un contrat avec le commercial de CJ Logistics International Express, puis faites émettre les identifiants."],
+              ["Erreur d'intégration International Express", "Code client (contrat) (cust_code) saisi incorrectement", "Vérifiez à nouveau le code client (contrat) émis et saisissez-le correctement."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Liste de vérification finale",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "J'ai conclu un contrat avec le commercial de CJ Logistics International Express.",
+              "J'ai reçu le code client (contrat) et la clé API une fois le contrat finalisé.",
+              "J'ai vérifié api_key·cust_code.",
+              "J'ai saisi api_key·cust_code dans GenieGo [Enregistrer] et enregistré."
+            ] }
+          ]
+        }
+      ]
+    },
+    "hi": {
+      "titleType": "API Key जारी करने की नियमावली",
+      "badge": "शुरुआती गाइड",
+      "intro": "यह नियमावली CJ Logistics International Express अनुबंध करने और जारी की गई API कुंजी एवं ग्राहक (अनुबंध) कोड को GenieGo Integration Hub में पंजीकृत करने की प्रक्रिया का सारांश देती है। यह चैनल स्व-सेवा कंसोल से जारी करने के बजाय बिक्री अनुबंध के माध्यम से क्रेडेंशियल प्राप्त करता है।",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["अनुमानित समय", "अनुबंध की प्रगति के अनुसार भिन्न"],
+        ["आवश्यक खाता", "CJ Logistics International Express अनुबंध"],
+        ["जारी की गई कुंजियाँ", "API कुंजी · ग्राहक (अनुबंध) कोड"],
+        ["परिणाम", "International Express API क्रेडेंशियल"]
+      ],
+      "sections": [
+        {
+          "h2": "1. शुरू करने से पहले",
+          "desc": "CJ Logistics International Express एक अनुबंध-आधारित चैनल है, जहाँ बिक्री अनुबंध के बाद ग्राहक (अनुबंध) कोड जारी किया जाता है।",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "आवश्यक", "h3": "International Express अनुबंध", "p": "CJ Logistics International Express का उपयोग करने के लिए पहले बिक्री प्रतिनिधि के साथ अनुबंध करना आवश्यक है। अनुबंध के बिना ग्राहक (अनुबंध) कोड जारी नहीं किया जा सकता।" },
+              { "tag": "जारी की गई कुंजियाँ", "h3": "API कुंजी · ग्राहक (अनुबंध) कोड", "p": "अनुबंध पूरा होने के बाद आपको ग्राहक (अनुबंध) कोड और API कुंजी प्राप्त होती है।" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>नोट:</strong> यह चैनल स्व-सेवा कंसोल से सीधे जारी करने का तरीका नहीं है, बल्कि बिक्री अनुबंध के माध्यम से क्रेडेंशियल प्राप्त करने का तरीका है।" }
+          ]
+        },
+        {
+          "h2": "2. जारी करने की आवेदन प्रक्रिया",
+          "desc": "नीचे दिए गए क्रम में आवेदन करें और प्राप्त करें, फिर GenieGo में पंजीकृत करें।",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "बिक्री प्रतिनिधि के साथ अनुबंध करें", "p": "CJ Logistics International Express के बिक्री प्रतिनिधि के साथ अनुबंध करें।" },
+              { "h3": "अनुबंध संपन्न करें", "p": "International Express उपयोग अनुबंध संपन्न करें।" },
+              { "h3": "क्रेडेंशियल प्राप्त करें", "p": "अनुबंध पूरा होने के बाद आपको ग्राहक (अनुबंध) कोड और API कुंजी प्राप्त होती है।" },
+              { "h3": "GenieGo में पंजीकृत करें", "p": "जारी की गई api_key, cust_code को GenieGo [पंजीकरण] में दर्ज करें और सहेजें।" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "यदि आपको बिक्री प्रतिनिधि से ग्राहक (अनुबंध) कोड और API कुंजी दोनों प्राप्त हो गए हैं, तो वे सही ढंग से जारी किए गए हैं।" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo में पंजीकृत की जाने वाली जानकारी",
+          "blocks": [
+            { "type": "table", "head": ["फ़ील्ड", "विवरण"], "rows": [
+              ["api_key", "जारी की गई International Express API कुंजी"],
+              ["cust_code", "जारी किया गया ग्राहक (अनुबंध) कोड"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "जब आप उन्हें GenieGo Integration Hub [पंजीकरण] में दर्ज करके सहेजते हैं, तो क्रेडेंशियल को संग्रहण के समय AES-256-GCM से एन्क्रिप्ट किया जाता है और पढ़ते समय मास्क किया जाता है।" }
+          ]
+        },
+        {
+          "h2": "4. सामान्य समस्याएँ",
+          "blocks": [
+            { "type": "table", "head": ["समस्या", "कारण", "समाधान"], "rows": [
+              ["ग्राहक (अनुबंध) कोड प्राप्त नहीं हुआ", "International Express अनुबंध पूरा नहीं हुआ", "CJ Logistics International Express के बिक्री प्रतिनिधि के साथ अनुबंध करें और फिर क्रेडेंशियल जारी करवाएँ।"],
+              ["International Express एकीकरण त्रुटि", "ग्राहक (अनुबंध) कोड (cust_code) गलत दर्ज किया गया", "जारी किए गए ग्राहक (अनुबंध) कोड की फिर से जाँच करें और सही ढंग से दर्ज करें।"]
+            ] }
+          ]
+        },
+        {
+          "h2": "अंतिम जाँच सूची",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "CJ Logistics International Express के बिक्री प्रतिनिधि के साथ अनुबंध किया।",
+              "अनुबंध पूरा होने के बाद ग्राहक (अनुबंध) कोड और API कुंजी प्राप्त की।",
+              "api_key·cust_code की पुष्टि की।",
+              "GenieGo [पंजीकरण] में api_key·cust_code दर्ज करके सहेजा।"
+            ] }
+          ]
+        }
+      ]
+    },
+    "pt": {
+      "titleType": "Manual de emissão da API Key",
+      "badge": "Guia para iniciantes",
+      "intro": "Um manual que resume o processo de assinatura de um contrato CJ Logistics International Express e de registro da chave de API e do código de cliente (contrato) emitidos no GenieGo Integration Hub. Este canal recebe as credenciais por meio de um contrato comercial, em vez de emissão por console de autoatendimento.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tempo estimado", "Varia conforme o andamento do contrato"],
+        ["Conta necessária", "Contrato CJ Logistics International Express"],
+        ["Chaves emitidas", "Chave de API · Código de cliente (contrato)"],
+        ["Resultado", "Credenciais da API do International Express"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de começar",
+          "desc": "O CJ Logistics International Express é um canal baseado em contrato, no qual o código de cliente (contrato) é emitido após um contrato comercial.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Obrigatório", "h3": "Contrato do International Express", "p": "Para usar o CJ Logistics International Express, é preciso primeiro firmar um contrato com um representante comercial. Sem contrato, o código de cliente (contrato) não pode ser emitido." },
+              { "tag": "Chaves emitidas", "h3": "Chave de API · Código de cliente (contrato)", "p": "Após a conclusão do contrato, você recebe o código de cliente (contrato) e a chave de API." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Observação:</strong> Este canal não é emitido diretamente em um console de autoatendimento; em vez disso, as credenciais são recebidas por meio de um contrato comercial." }
+          ]
+        },
+        {
+          "h2": "2. Processo de solicitação de emissão",
+          "desc": "Solicite e receba na ordem abaixo e, em seguida, registre no GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Tramitar o contrato com o representante comercial", "p": "Tramite um contrato com o representante comercial do CJ Logistics International Express." },
+              { "h3": "Firmar o contrato", "p": "Firme o contrato de uso do International Express." },
+              { "h3": "Receber as credenciais", "p": "Após a conclusão do contrato, você recebe o código de cliente (contrato) e a chave de API." },
+              { "h3": "Registrar no GenieGo", "p": "Insira o api_key e o cust_code emitidos no GenieGo [Registrar] e salve." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Se você recebeu tanto o código de cliente (contrato) quanto a chave de API do representante comercial, eles foram emitidos corretamente." }
+          ]
+        },
+        {
+          "h2": "3. Informações para registrar no GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descrição"], "rows": [
+              ["api_key", "A chave de API do International Express emitida"],
+              ["cust_code", "O código de cliente (contrato) emitido"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Ao inseri-los e salvá-los no GenieGo Integration Hub [Registrar], as credenciais são criptografadas em repouso com AES-256-GCM e mascaradas na leitura." }
+          ]
+        },
+        {
+          "h2": "4. Problemas comuns",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solução"], "rows": [
+              ["Código de cliente (contrato) não recebido", "Contrato do International Express não concluído", "Tramite um contrato com o representante comercial do CJ Logistics International Express e, em seguida, solicite a emissão das credenciais."],
+              ["Erro de integração do International Express", "Código de cliente (contrato) (cust_code) inserido incorretamente", "Verifique novamente o código de cliente (contrato) emitido e insira-o corretamente."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificação final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Tramitei um contrato com o representante comercial do CJ Logistics International Express.",
+              "Recebi o código de cliente (contrato) e a chave de API após a conclusão do contrato.",
+              "Verifiquei api_key·cust_code.",
+              "Inseri api_key·cust_code no GenieGo [Registrar] e salvei."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ru": {
+      "titleType": "Руководство по выпуску API Key",
+      "badge": "Руководство для начинающих",
+      "intro": "Руководство, описывающее процесс заключения договора CJ Logistics International Express и регистрации выданного ключа API и кода клиента (договора) в GenieGo Integration Hub. Этот канал получает учётные данные через договор с отделом продаж, а не путём самостоятельного выпуска через консоль.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Примерное время", "Зависит от хода заключения договора"],
+        ["Требуемый аккаунт", "Договор CJ Logistics International Express"],
+        ["Выданные ключи", "Ключ API · Код клиента (договора)"],
+        ["Результат", "Учётные данные International Express API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Перед началом",
+          "desc": "CJ Logistics International Express — это канал на основе договора, в котором код клиента (договора) выдаётся после заключения договора с отделом продаж.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Требуется", "h3": "Договор International Express", "p": "Чтобы использовать CJ Logistics International Express, сначала необходимо заключить договор с представителем отдела продаж. Без договора код клиента (договора) не может быть выдан." },
+              { "tag": "Выданные ключи", "h3": "Ключ API · Код клиента (договора)", "p": "После завершения договора вы получаете код клиента (договора) и ключ API." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Примечание:</strong> Этот канал не выпускается напрямую через консоль самообслуживания; вместо этого учётные данные получаются через договор с отделом продаж." }
+          ]
+        },
+        {
+          "h2": "2. Процедура подачи заявки на выпуск",
+          "desc": "Подайте заявку и получите в указанном ниже порядке, затем зарегистрируйте в GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Заключение договора с представителем отдела продаж", "p": "Заключите договор с представителем отдела продаж CJ Logistics International Express." },
+              { "h3": "Заключение договора", "p": "Заключите договор на использование International Express." },
+              { "h3": "Получение учётных данных", "p": "После завершения договора вы получаете код клиента (договора) и ключ API." },
+              { "h3": "Регистрация в GenieGo", "p": "Введите выданные api_key и cust_code в GenieGo [Регистрация] и сохраните." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Если вы получили от представителя отдела продаж как код клиента (договора), так и ключ API, значит они выданы корректно." }
+          ]
+        },
+        {
+          "h2": "3. Информация для регистрации в GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Поле", "Описание"], "rows": [
+              ["api_key", "Выданный ключ API International Express"],
+              ["cust_code", "Выданный код клиента (договора)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "При вводе и сохранении в GenieGo Integration Hub [Регистрация] учётные данные шифруются при хранении с помощью AES-256-GCM и маскируются при чтении." }
+          ]
+        },
+        {
+          "h2": "4. Часто возникающие проблемы",
+          "blocks": [
+            { "type": "table", "head": ["Проблема", "Причина", "Решение"], "rows": [
+              ["Код клиента (договора) не получен", "Договор International Express не завершён", "Заключите договор с представителем отдела продаж CJ Logistics International Express, а затем получите учётные данные."],
+              ["Ошибка интеграции International Express", "Код клиента (договора) (cust_code) введён неправильно", "Повторно проверьте выданный код клиента (договора) и введите его правильно."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Итоговый контрольный список",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Заключил договор с представителем отдела продаж CJ Logistics International Express.",
+              "Получил код клиента (договора) и ключ API после завершения договора.",
+              "Проверил api_key·cust_code.",
+              "Ввёл api_key·cust_code в GenieGo [Регистрация] и сохранил."
+            ] }
+          ]
+        }
+      ]
+    }
+  }
+}

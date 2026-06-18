@@ -1,0 +1,2106 @@
+{
+  "name": "Instagram",
+  "icon": "📸",
+  "langs": {
+    "ko": {
+      "titleType": "기업 Instagram 비즈니스 계정 전환 매뉴얼",
+      "badge": "Instagram Business Setup Manual",
+      "intro": "기업, 브랜드, 쇼핑몰, 라이브커머스 운영자가 Instagram 계정을 비즈니스/크리에이터 계정으로 전환하고 Meta Business Suite 및 API 연동 준비까지 할 수 있도록 정리한 초보자용 가이드입니다.",
+      "org": "초보자용 실무 가이드",
+      "quick": [
+        ["추천 계정", "기업은 비즈니스 계정"],
+        ["필요 앱", "Instagram / Facebook"],
+        ["연동 대상", "Facebook 페이지"],
+        ["API 준비", "Meta Business + Developer"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 비즈니스 계정과 크리에이터 계정 차이",
+          "desc": "기업 운영 목적이라면 대부분 비즈니스 계정을 선택하는 것이 가장 적합합니다.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Business Account", "h3": "비즈니스 계정", "p": "회사, 브랜드, 쇼핑몰, 물류 서비스, 라이브커머스, 온라인 판매에 적합합니다. 광고, 인사이트, Meta Business Suite, API 연동에 유리합니다." },
+              { "tag": "Creator Account", "h3": "크리에이터 계정", "p": "인플루언서, 콘텐츠 제작자, 개인 브랜드 운영자에게 적합합니다. 기업형 API·쇼핑·광고 운영에는 비즈니스 계정이 더 안정적입니다." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "<strong>추천:</strong> 기업 Instagram 계정은 <strong>비즈니스 계정</strong>으로 전환하세요." }
+          ]
+        },
+        {
+          "h2": "2. 계정 생성 전 준비물",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "기업용 이메일 주소",
+              "브랜드명 또는 회사명",
+              "Instagram 사용자 이름 후보",
+              "회사 로고 또는 프로필 이미지",
+              "회사 소개 문구",
+              "웹사이트 URL",
+              "Facebook 페이지 또는 생성 예정 페이지"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. Instagram 계정 만들기",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Instagram 앱 설치", "p": "스마트폰에서 Instagram 앱을 설치하고 실행합니다.", "path": "App Store / Google Play → Instagram" },
+              { "h3": "회원가입", "p": "기업용 이메일 또는 휴대폰 번호로 새 계정을 만듭니다.", "path": "새 계정 만들기" },
+              { "h3": "사용자 이름 설정", "p": "브랜드명과 일치하거나 검색하기 쉬운 사용자 이름을 입력합니다.", "path": "예: geniego_global / ocl_korea" },
+              { "h3": "프로필 기본 정보 입력", "p": "로고, 소개 문구, 웹사이트 URL을 입력합니다.", "path": "프로필 편집" }
+            ] }
+          ]
+        },
+        {
+          "h2": "4. 프로페셔널 계정으로 전환",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "프로필 메뉴 열기", "p": "Instagram 앱 하단의 프로필 아이콘을 누릅니다.", "path": "프로필" },
+              { "h3": "설정 및 개인정보 이동", "p": "오른쪽 상단 ☰ 메뉴를 누른 뒤 설정 및 개인정보로 이동합니다.", "path": "☰ → 설정 및 개인정보" },
+              { "h3": "계정 유형 및 도구 선택", "p": "계정 관리 메뉴에서 프로페셔널 계정 전환 메뉴를 찾습니다.", "path": "계정 유형 및 도구" },
+              { "h3": "프로페셔널 계정으로 전환", "p": "안내 화면을 넘기고 프로페셔널 계정 전환을 선택합니다.", "path": "프로페셔널 계정으로 전환" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. 비즈니스 계정 선택",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "계정 유형 선택", "p": "크리에이터와 비즈니스 중에서 비즈니스를 선택합니다.", "path": "비즈니스 선택" },
+              { "h3": "카테고리 선택", "p": "회사 성격에 맞는 카테고리를 고릅니다.", "path": "카테고리 선택" },
+              { "h3": "연락처 정보 입력", "p": "이메일, 전화번호, 주소 등 고객이 확인할 수 있는 정보를 입력합니다.", "path": "비즈니스 연락처 정보" },
+              { "h3": "전환 완료 확인", "p": "프로필에 프로페셔널 대시보드가 보이면 전환이 완료된 것입니다.", "path": "프로페셔널 대시보드" }
+            ] }
+          ]
+        },
+        {
+          "h2": "6. 추천 카테고리",
+          "blocks": [
+            { "type": "table", "head": ["사업 유형", "추천 카테고리", "설명"], "rows": [
+              ["물류/배송", "Logistics Company / Transportation Service / Cargo & Freight Company", "물류회사, 배송대행, 국제운송 서비스에 적합합니다."],
+              ["라이브커머스", "Shopping & Retail / E-commerce Website", "라이브 방송 판매, 온라인 쇼핑몰 운영에 적합합니다."],
+              ["화장품 판매", "Beauty, Cosmetic & Personal Care / Health Beauty", "K-뷰티, 화장품, 뷰티 브랜드 판매에 적합합니다."],
+              ["AI/IT 플랫폼", "Software Company / Internet Company", "SaaS, 플랫폼, IT 서비스 운영에 적합합니다."]
+            ] }
+          ]
+        },
+        {
+          "h2": "7. Facebook 페이지 연결",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "프로페셔널 대시보드 이동", "p": "Instagram 프로필에서 프로페셔널 대시보드를 엽니다.", "path": "프로필 → 프로페셔널 대시보드" },
+              { "h3": "Facebook 페이지 연결", "p": "기존 Facebook 페이지를 선택하거나 새 페이지를 만듭니다.", "path": "Facebook 페이지 연결" },
+              { "h3": "관리자 권한 확인", "p": "연결하려는 Facebook 페이지의 관리자 권한이 있는지 확인합니다.", "path": "Page Admin 권한" }
+            ] },
+            { "type": "notice", "kind": "", "html": "Facebook 페이지와 연결하면 광고 집행, 인사이트 확인, Meta Business Suite 관리가 쉬워집니다." }
+          ]
+        },
+        {
+          "h2": "8. Meta Business Suite 연결",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Meta Business Suite 접속", "p": "브라우저에서 Meta Business Suite에 접속합니다.", "path": "business.facebook.com" },
+              { "h3": "비즈니스 계정 생성", "p": "회사명, 이름, 이메일을 입력해 비즈니스 계정을 만듭니다.", "path": "비즈니스 만들기" },
+              { "h3": "Instagram 계정 추가", "p": "비즈니스 설정에서 Instagram 계정을 추가합니다.", "path": "비즈니스 설정 → 계정 → Instagram 계정" },
+              { "h3": "Facebook 페이지와 연결 확인", "p": "Instagram 계정이 올바른 Facebook 페이지와 연결되어 있는지 확인합니다.", "path": "연결된 자산 확인" }
+            ] }
+          ]
+        },
+        {
+          "h2": "9. 비즈니스 인증",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "비즈니스 설정 열기", "p": "Meta Business Suite에서 비즈니스 설정으로 이동합니다.", "path": "비즈니스 설정" },
+              { "h3": "보안 센터 이동", "p": "왼쪽 메뉴에서 보안 센터를 선택합니다.", "path": "보안 센터" },
+              { "h3": "사업자 인증 시작", "p": "사업자등록증, 회사명, 주소, 웹사이트 등을 입력합니다.", "path": "사업자 인증" },
+              { "h3": "검토 결과 확인", "p": "Meta 검토 완료 후 인증 상태를 확인합니다.", "path": "Verification Status" }
+            ] }
+          ]
+        },
+        {
+          "h2": "10. Instagram API 연동 준비 구조",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>Instagram Business Account</strong><br>        │<br>        ▼<br>Facebook Page<br>        │<br>        ▼<br>Meta Business Suite<br>        │<br>        ▼<br>Meta Developer App<br>        │<br>        ▼<br>Instagram Graph API<br>        │<br>        ▼<br>Access Token 발급" },
+            { "type": "notice", "kind": "danger", "html": "<strong>주의:</strong> Instagram API를 사용하려면 계정만 비즈니스로 바꾸는 것에서 끝나지 않고 Facebook 페이지 연결, Meta Business 설정, Developer App 생성, 권한 검수까지 필요할 수 있습니다." }
+          ]
+        },
+        {
+          "h2": "11. 최종 체크리스트",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "기업용 Instagram 계정을 생성했다.",
+              "프로필 이미지, 소개, 웹사이트를 입력했다.",
+              "프로페셔널 계정으로 전환했다.",
+              "계정 유형을 비즈니스로 선택했다.",
+              "사업에 맞는 카테고리를 선택했다.",
+              "연락처 정보를 입력했다.",
+              "Facebook 페이지와 연결했다.",
+              "Meta Business Suite에 Instagram 계정을 추가했다.",
+              "필요하면 비즈니스 인증을 진행했다.",
+              "API 연동을 위해 Meta Developer App을 준비한다."
+            ] }
+          ]
+        }
+      ]
+    },
+    "en": {
+      "titleType": "Corporate Instagram Business Account Conversion Manual",
+      "badge": "Instagram Business Setup Manual",
+      "intro": "A beginner-friendly guide that helps companies, brands, online stores, and live-commerce operators convert their Instagram account to a business/creator account and prepare for Meta Business Suite and API integration.",
+      "org": "Beginner Practical Guide",
+      "quick": [
+        ["Recommended account", "Business account for companies"],
+        ["Apps needed", "Instagram / Facebook"],
+        ["Integration target", "Facebook page"],
+        ["API prep", "Meta Business + Developer"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Business Account vs. Creator Account",
+          "desc": "For corporate use, a business account is usually the most suitable choice.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Business Account", "h3": "Business account", "p": "Suitable for companies, brands, online stores, logistics services, live commerce, and online sales. Advantageous for ads, insights, Meta Business Suite, and API integration." },
+              { "tag": "Creator Account", "h3": "Creator account", "p": "Suitable for influencers, content creators, and personal brand operators. For enterprise API, shopping, and ad operations, a business account is more stable." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "<strong>Recommendation:</strong> Convert your corporate Instagram account to a <strong>business account</strong>." }
+          ]
+        },
+        {
+          "h2": "2. What to Prepare Before Creating an Account",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Corporate email address",
+              "Brand name or company name",
+              "Candidate Instagram username",
+              "Company logo or profile image",
+              "Company introduction text",
+              "Website URL",
+              "An existing or to-be-created Facebook page"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. Create an Instagram Account",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Install the Instagram app", "p": "Install and launch the Instagram app on your smartphone.", "path": "App Store / Google Play → Instagram" },
+              { "h3": "Sign up", "p": "Create a new account with a corporate email or phone number.", "path": "Create new account" },
+              { "h3": "Set a username", "p": "Enter a username that matches your brand name or is easy to search.", "path": "e.g., geniego_global / ocl_korea" },
+              { "h3": "Enter basic profile information", "p": "Enter your logo, introduction text, and website URL.", "path": "Edit profile" }
+            ] }
+          ]
+        },
+        {
+          "h2": "4. Switch to a Professional Account",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Open the profile menu", "p": "Tap the profile icon at the bottom of the Instagram app.", "path": "Profile" },
+              { "h3": "Go to Settings and privacy", "p": "Tap the ☰ menu in the top right, then go to Settings and privacy.", "path": "☰ → Settings and privacy" },
+              { "h3": "Select Account type and tools", "p": "In the account management menu, find the option to switch to a professional account.", "path": "Account type and tools" },
+              { "h3": "Switch to a professional account", "p": "Skip past the intro screens and choose to switch to a professional account.", "path": "Switch to professional account" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. Choose a Business Account",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Select account type", "p": "Choose Business from Creator and Business.", "path": "Select Business" },
+              { "h3": "Select a category", "p": "Pick a category that matches your company's nature.", "path": "Select category" },
+              { "h3": "Enter contact information", "p": "Enter information customers can check, such as email, phone number, and address.", "path": "Business contact info" },
+              { "h3": "Confirm conversion is complete", "p": "When the Professional Dashboard appears on your profile, the conversion is complete.", "path": "Professional Dashboard" }
+            ] }
+          ]
+        },
+        {
+          "h2": "6. Recommended Categories",
+          "blocks": [
+            { "type": "table", "head": ["Business type", "Recommended category", "Description"], "rows": [
+              ["Logistics/Delivery", "Logistics Company / Transportation Service / Cargo & Freight Company", "Suitable for logistics companies, fulfillment, and international shipping services."],
+              ["Live commerce", "Shopping & Retail / E-commerce Website", "Suitable for live broadcast sales and online store operations."],
+              ["Cosmetics sales", "Beauty, Cosmetic & Personal Care / Health Beauty", "Suitable for K-beauty, cosmetics, and beauty brand sales."],
+              ["AI/IT platform", "Software Company / Internet Company", "Suitable for SaaS, platform, and IT service operations."]
+            ] }
+          ]
+        },
+        {
+          "h2": "7. Connect a Facebook Page",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Go to the Professional Dashboard", "p": "Open the Professional Dashboard from your Instagram profile.", "path": "Profile → Professional Dashboard" },
+              { "h3": "Connect a Facebook page", "p": "Select an existing Facebook page or create a new one.", "path": "Connect Facebook page" },
+              { "h3": "Check admin permissions", "p": "Make sure you have admin permission for the Facebook page you want to connect.", "path": "Page Admin permission" }
+            ] },
+            { "type": "notice", "kind": "", "html": "Connecting a Facebook page makes it easier to run ads, check insights, and manage Meta Business Suite." }
+          ]
+        },
+        {
+          "h2": "8. Connect Meta Business Suite",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Access Meta Business Suite", "p": "Open Meta Business Suite in your browser.", "path": "business.facebook.com" },
+              { "h3": "Create a business account", "p": "Enter your company name, name, and email to create a business account.", "path": "Create business" },
+              { "h3": "Add the Instagram account", "p": "Add your Instagram account in Business settings.", "path": "Business settings → Accounts → Instagram accounts" },
+              { "h3": "Verify the Facebook page connection", "p": "Confirm that your Instagram account is connected to the correct Facebook page.", "path": "Check connected assets" }
+            ] }
+          ]
+        },
+        {
+          "h2": "9. Business Verification",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Open Business settings", "p": "Go to Business settings in Meta Business Suite.", "path": "Business settings" },
+              { "h3": "Go to the Security Center", "p": "Select the Security Center from the left menu.", "path": "Security Center" },
+              { "h3": "Start business verification", "p": "Enter your business registration certificate, company name, address, website, and so on.", "path": "Business verification" },
+              { "h3": "Check the review result", "p": "After Meta completes its review, check the verification status.", "path": "Verification Status" }
+            ] }
+          ]
+        },
+        {
+          "h2": "10. Structure for Preparing Instagram API Integration",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>Instagram Business Account</strong><br>        │<br>        ▼<br>Facebook Page<br>        │<br>        ▼<br>Meta Business Suite<br>        │<br>        ▼<br>Meta Developer App<br>        │<br>        ▼<br>Instagram Graph API<br>        │<br>        ▼<br>Issue an access token" },
+            { "type": "notice", "kind": "danger", "html": "<strong>Caution:</strong> To use the Instagram API, simply switching the account to business is not enough — you may also need to connect a Facebook page, configure Meta Business, create a Developer App, and complete permission review." }
+          ]
+        },
+        {
+          "h2": "11. Final Checklist",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Created a corporate Instagram account.",
+              "Entered the profile image, introduction, and website.",
+              "Switched to a professional account.",
+              "Selected the business account type.",
+              "Selected a category that fits the business.",
+              "Entered contact information.",
+              "Connected a Facebook page.",
+              "Added the Instagram account to Meta Business Suite.",
+              "Completed business verification if needed.",
+              "Prepare a Meta Developer App for API integration."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ja": {
+      "titleType": "企業 Instagram ビジネスアカウント切り替えマニュアル",
+      "badge": "Instagram Business Setup Manual",
+      "intro": "企業、ブランド、ショッピングモール、ライブコマースの運営者が Instagram アカウントをビジネス/クリエイターアカウントに切り替え、Meta Business Suite および API 連携の準備まで行えるようにまとめた初心者向けガイドです。",
+      "org": "初心者向け実務ガイド",
+      "quick": [
+        ["推奨アカウント", "企業はビジネスアカウント"],
+        ["必要なアプリ", "Instagram / Facebook"],
+        ["連携対象", "Facebook ページ"],
+        ["API 準備", "Meta Business + Developer"]
+      ],
+      "sections": [
+        {
+          "h2": "1. ビジネスアカウントとクリエイターアカウントの違い",
+          "desc": "企業運営が目的であれば、ほとんどの場合ビジネスアカウントを選ぶのが最も適しています。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Business Account", "h3": "ビジネスアカウント", "p": "会社、ブランド、ショッピングモール、物流サービス、ライブコマース、オンライン販売に適しています。広告、インサイト、Meta Business Suite、API 連携に有利です。" },
+              { "tag": "Creator Account", "h3": "クリエイターアカウント", "p": "インフルエンサー、コンテンツ制作者、個人ブランド運営者に適しています。企業型の API・ショッピング・広告運用にはビジネスアカウントの方が安定しています。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "<strong>推奨:</strong> 企業の Instagram アカウントは <strong>ビジネスアカウント</strong> に切り替えてください。" }
+          ]
+        },
+        {
+          "h2": "2. アカウント作成前の準備物",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "企業用メールアドレス",
+              "ブランド名または会社名",
+              "Instagram ユーザーネームの候補",
+              "会社ロゴまたはプロフィール画像",
+              "会社紹介文",
+              "ウェブサイト URL",
+              "Facebook ページまたは作成予定のページ"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. Instagram アカウントを作成",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Instagram アプリをインストール", "p": "スマートフォンに Instagram アプリをインストールして起動します。", "path": "App Store / Google Play → Instagram" },
+              { "h3": "会員登録", "p": "企業用メールまたは携帯電話番号で新しいアカウントを作成します。", "path": "新しいアカウントを作成" },
+              { "h3": "ユーザーネームの設定", "p": "ブランド名と一致する、または検索しやすいユーザーネームを入力します。", "path": "例: geniego_global / ocl_korea" },
+              { "h3": "プロフィール基本情報の入力", "p": "ロゴ、紹介文、ウェブサイト URL を入力します。", "path": "プロフィールを編集" }
+            ] }
+          ]
+        },
+        {
+          "h2": "4. プロフェッショナルアカウントに切り替え",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "プロフィールメニューを開く", "p": "Instagram アプリ下部のプロフィールアイコンをタップします。", "path": "プロフィール" },
+              { "h3": "設定とプライバシーへ移動", "p": "右上の ☰ メニューをタップしてから設定とプライバシーへ移動します。", "path": "☰ → 設定とプライバシー" },
+              { "h3": "アカウントの種類とツールを選択", "p": "アカウント管理メニューでプロフェッショナルアカウント切り替えメニューを探します。", "path": "アカウントの種類とツール" },
+              { "h3": "プロフェッショナルアカウントに切り替え", "p": "案内画面を進め、プロフェッショナルアカウントへの切り替えを選択します。", "path": "プロフェッショナルアカウントに切り替え" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. ビジネスアカウントを選択",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "アカウントの種類を選択", "p": "クリエイターとビジネスの中からビジネスを選択します。", "path": "ビジネスを選択" },
+              { "h3": "カテゴリを選択", "p": "会社の性格に合うカテゴリを選びます。", "path": "カテゴリを選択" },
+              { "h3": "連絡先情報の入力", "p": "メール、電話番号、住所など顧客が確認できる情報を入力します。", "path": "ビジネス連絡先情報" },
+              { "h3": "切り替え完了の確認", "p": "プロフィールにプロフェッショナルダッシュボードが表示されれば切り替え完了です。", "path": "プロフェッショナルダッシュボード" }
+            ] }
+          ]
+        },
+        {
+          "h2": "6. 推奨カテゴリ",
+          "blocks": [
+            { "type": "table", "head": ["事業の種類", "推奨カテゴリ", "説明"], "rows": [
+              ["物流/配送", "Logistics Company / Transportation Service / Cargo & Freight Company", "物流会社、配送代行、国際輸送サービスに適しています。"],
+              ["ライブコマース", "Shopping & Retail / E-commerce Website", "ライブ配信販売、オンラインショッピングモール運営に適しています。"],
+              ["化粧品販売", "Beauty, Cosmetic & Personal Care / Health Beauty", "K-ビューティー、化粧品、ビューティーブランド販売に適しています。"],
+              ["AI/IT プラットフォーム", "Software Company / Internet Company", "SaaS、プラットフォーム、IT サービス運営に適しています。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "7. Facebook ページの連携",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "プロフェッショナルダッシュボードへ移動", "p": "Instagram プロフィールからプロフェッショナルダッシュボードを開きます。", "path": "プロフィール → プロフェッショナルダッシュボード" },
+              { "h3": "Facebook ページを連携", "p": "既存の Facebook ページを選択するか、新しいページを作成します。", "path": "Facebook ページを連携" },
+              { "h3": "管理者権限の確認", "p": "連携したい Facebook ページの管理者権限があるか確認します。", "path": "Page Admin 権限" }
+            ] },
+            { "type": "notice", "kind": "", "html": "Facebook ページと連携すると、広告配信、インサイトの確認、Meta Business Suite の管理が容易になります。" }
+          ]
+        },
+        {
+          "h2": "8. Meta Business Suite の連携",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Meta Business Suite にアクセス", "p": "ブラウザで Meta Business Suite にアクセスします。", "path": "business.facebook.com" },
+              { "h3": "ビジネスアカウントの作成", "p": "会社名、名前、メールを入力してビジネスアカウントを作成します。", "path": "ビジネスを作成" },
+              { "h3": "Instagram アカウントを追加", "p": "ビジネス設定で Instagram アカウントを追加します。", "path": "ビジネス設定 → アカウント → Instagram アカウント" },
+              { "h3": "Facebook ページとの連携を確認", "p": "Instagram アカウントが正しい Facebook ページと連携されているか確認します。", "path": "連携された資産を確認" }
+            ] }
+          ]
+        },
+        {
+          "h2": "9. ビジネス認証",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "ビジネス設定を開く", "p": "Meta Business Suite でビジネス設定へ移動します。", "path": "ビジネス設定" },
+              { "h3": "セキュリティセンターへ移動", "p": "左側メニューからセキュリティセンターを選択します。", "path": "セキュリティセンター" },
+              { "h3": "事業者認証を開始", "p": "事業者登録証、会社名、住所、ウェブサイトなどを入力します。", "path": "事業者認証" },
+              { "h3": "審査結果の確認", "p": "Meta の審査完了後、認証ステータスを確認します。", "path": "Verification Status" }
+            ] }
+          ]
+        },
+        {
+          "h2": "10. Instagram API 連携準備の構造",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>Instagram Business Account</strong><br>        │<br>        ▼<br>Facebook Page<br>        │<br>        ▼<br>Meta Business Suite<br>        │<br>        ▼<br>Meta Developer App<br>        │<br>        ▼<br>Instagram Graph API<br>        │<br>        ▼<br>アクセストークンの発行" },
+            { "type": "notice", "kind": "danger", "html": "<strong>注意:</strong> Instagram API を使用するには、アカウントをビジネスに変えるだけでは終わらず、Facebook ページの連携、Meta Business の設定、Developer App の作成、権限審査まで必要になる場合があります。" }
+          ]
+        },
+        {
+          "h2": "11. 最終チェックリスト",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "企業用 Instagram アカウントを作成した。",
+              "プロフィール画像、紹介、ウェブサイトを入力した。",
+              "プロフェッショナルアカウントに切り替えた。",
+              "アカウントの種類をビジネスに選択した。",
+              "事業に合うカテゴリを選択した。",
+              "連絡先情報を入力した。",
+              "Facebook ページと連携した。",
+              "Meta Business Suite に Instagram アカウントを追加した。",
+              "必要に応じてビジネス認証を行った。",
+              "API 連携のために Meta Developer App を準備する。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh": {
+      "titleType": "企业 Instagram 商业账户转换手册",
+      "badge": "Instagram Business Setup Manual",
+      "intro": "本指南帮助企业、品牌、商城和直播电商运营者将 Instagram 账户转换为商业/创作者账户，并完成 Meta Business Suite 及 API 集成的准备，面向新手整理而成。",
+      "org": "新手实操指南",
+      "quick": [
+        ["推荐账户", "企业选商业账户"],
+        ["所需应用", "Instagram / Facebook"],
+        ["集成对象", "Facebook 主页"],
+        ["API 准备", "Meta Business + Developer"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 商业账户与创作者账户的区别",
+          "desc": "如果以企业运营为目的，大多数情况下选择商业账户最为合适。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Business Account", "h3": "商业账户", "p": "适合公司、品牌、商城、物流服务、直播电商和在线销售。在广告、洞察、Meta Business Suite 和 API 集成方面更具优势。" },
+              { "tag": "Creator Account", "h3": "创作者账户", "p": "适合网红、内容创作者和个人品牌运营者。对于企业级 API、购物和广告运营，商业账户更稳定。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "<strong>推荐:</strong> 请将企业 Instagram 账户转换为 <strong>商业账户</strong>。" }
+          ]
+        },
+        {
+          "h2": "2. 创建账户前的准备物",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "企业用电子邮箱地址",
+              "品牌名或公司名",
+              "Instagram 用户名候选",
+              "公司徽标或头像",
+              "公司简介文案",
+              "网站 URL",
+              "Facebook 主页或计划创建的主页"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. 创建 Instagram 账户",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "安装 Instagram 应用", "p": "在智能手机上安装并启动 Instagram 应用。", "path": "App Store / Google Play → Instagram" },
+              { "h3": "注册", "p": "用企业邮箱或手机号创建新账户。", "path": "创建新账户" },
+              { "h3": "设置用户名", "p": "输入与品牌名一致或便于搜索的用户名。", "path": "例如: geniego_global / ocl_korea" },
+              { "h3": "填写资料基本信息", "p": "填写徽标、简介文案和网站 URL。", "path": "编辑主页资料" }
+            ] }
+          ]
+        },
+        {
+          "h2": "4. 转换为专业账户",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "打开个人主页菜单", "p": "点击 Instagram 应用底部的个人主页图标。", "path": "个人主页" },
+              { "h3": "进入设置和隐私", "p": "点击右上角的 ☰ 菜单，然后进入设置和隐私。", "path": "☰ → 设置和隐私" },
+              { "h3": "选择账户类型和工具", "p": "在账户管理菜单中找到转换为专业账户的选项。", "path": "账户类型和工具" },
+              { "h3": "转换为专业账户", "p": "跳过引导页面并选择转换为专业账户。", "path": "转换为专业账户" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. 选择商业账户",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "选择账户类型", "p": "在创作者和商业中选择商业。", "path": "选择商业" },
+              { "h3": "选择类别", "p": "选择符合公司性质的类别。", "path": "选择类别" },
+              { "h3": "填写联系信息", "p": "填写电子邮箱、电话、地址等客户可查看的信息。", "path": "商业联系信息" },
+              { "h3": "确认转换完成", "p": "当个人主页出现专业仪表盘时，即表示转换完成。", "path": "专业仪表盘" }
+            ] }
+          ]
+        },
+        {
+          "h2": "6. 推荐类别",
+          "blocks": [
+            { "type": "table", "head": ["业务类型", "推荐类别", "说明"], "rows": [
+              ["物流/配送", "Logistics Company / Transportation Service / Cargo & Freight Company", "适合物流公司、代发货、国际运输服务。"],
+              ["直播电商", "Shopping & Retail / E-commerce Website", "适合直播销售、在线商城运营。"],
+              ["化妆品销售", "Beauty, Cosmetic & Personal Care / Health Beauty", "适合 K-美妆、化妆品、美妆品牌销售。"],
+              ["AI/IT 平台", "Software Company / Internet Company", "适合 SaaS、平台、IT 服务运营。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "7. 连接 Facebook 主页",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "进入专业仪表盘", "p": "从 Instagram 个人主页打开专业仪表盘。", "path": "个人主页 → 专业仪表盘" },
+              { "h3": "连接 Facebook 主页", "p": "选择现有的 Facebook 主页或创建新主页。", "path": "连接 Facebook 主页" },
+              { "h3": "确认管理员权限", "p": "确认您对要连接的 Facebook 主页拥有管理员权限。", "path": "Page Admin 权限" }
+            ] },
+            { "type": "notice", "kind": "", "html": "连接 Facebook 主页后，投放广告、查看洞察和管理 Meta Business Suite 都会更方便。" }
+          ]
+        },
+        {
+          "h2": "8. 连接 Meta Business Suite",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "访问 Meta Business Suite", "p": "在浏览器中访问 Meta Business Suite。", "path": "business.facebook.com" },
+              { "h3": "创建商业账户", "p": "输入公司名、姓名和邮箱以创建商业账户。", "path": "创建商业账户" },
+              { "h3": "添加 Instagram 账户", "p": "在商业设置中添加 Instagram 账户。", "path": "商业设置 → 账户 → Instagram 账户" },
+              { "h3": "确认与 Facebook 主页的连接", "p": "确认 Instagram 账户已连接到正确的 Facebook 主页。", "path": "查看已连接的资产" }
+            ] }
+          ]
+        },
+        {
+          "h2": "9. 商业认证",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "打开商业设置", "p": "在 Meta Business Suite 中进入商业设置。", "path": "商业设置" },
+              { "h3": "进入安全中心", "p": "从左侧菜单中选择安全中心。", "path": "安全中心" },
+              { "h3": "开始企业认证", "p": "输入营业执照、公司名、地址、网站等信息。", "path": "企业认证" },
+              { "h3": "确认审核结果", "p": "Meta 审核完成后，确认认证状态。", "path": "Verification Status" }
+            ] }
+          ]
+        },
+        {
+          "h2": "10. Instagram API 集成准备结构",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>Instagram Business Account</strong><br>        │<br>        ▼<br>Facebook Page<br>        │<br>        ▼<br>Meta Business Suite<br>        │<br>        ▼<br>Meta Developer App<br>        │<br>        ▼<br>Instagram Graph API<br>        │<br>        ▼<br>签发访问令牌" },
+            { "type": "notice", "kind": "danger", "html": "<strong>注意:</strong> 要使用 Instagram API，仅将账户切换为商业账户还不够，可能还需要连接 Facebook 主页、配置 Meta Business、创建 Developer App 以及完成权限审核。" }
+          ]
+        },
+        {
+          "h2": "11. 最终检查清单",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已创建企业 Instagram 账户。",
+              "已填写头像、简介和网站。",
+              "已转换为专业账户。",
+              "已将账户类型选择为商业。",
+              "已选择符合业务的类别。",
+              "已填写联系信息。",
+              "已连接 Facebook 主页。",
+              "已在 Meta Business Suite 中添加 Instagram 账户。",
+              "如有需要，已进行商业认证。",
+              "为 API 集成准备 Meta Developer App。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh-TW": {
+      "titleType": "企業 Instagram 商業帳戶轉換手冊",
+      "badge": "Instagram Business Setup Manual",
+      "intro": "本指南協助企業、品牌、商城和直播電商營運者將 Instagram 帳戶轉換為商業/創作者帳戶，並完成 Meta Business Suite 及 API 整合的準備，專為新手整理而成。",
+      "org": "新手實作指南",
+      "quick": [
+        ["推薦帳戶", "企業選商業帳戶"],
+        ["所需應用程式", "Instagram / Facebook"],
+        ["整合對象", "Facebook 粉絲專頁"],
+        ["API 準備", "Meta Business + Developer"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 商業帳戶與創作者帳戶的差異",
+          "desc": "若以企業營運為目的，大多數情況下選擇商業帳戶最為合適。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Business Account", "h3": "商業帳戶", "p": "適合公司、品牌、商城、物流服務、直播電商和線上銷售。在廣告、洞察、Meta Business Suite 和 API 整合方面更具優勢。" },
+              { "tag": "Creator Account", "h3": "創作者帳戶", "p": "適合網紅、內容創作者和個人品牌營運者。對於企業級 API、購物和廣告營運，商業帳戶更穩定。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "<strong>推薦:</strong> 請將企業 Instagram 帳戶轉換為 <strong>商業帳戶</strong>。" }
+          ]
+        },
+        {
+          "h2": "2. 建立帳戶前的準備物",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "企業用電子郵件地址",
+              "品牌名或公司名",
+              "Instagram 使用者名稱候選",
+              "公司標誌或大頭貼",
+              "公司簡介文案",
+              "網站 URL",
+              "Facebook 粉絲專頁或計畫建立的專頁"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. 建立 Instagram 帳戶",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "安裝 Instagram 應用程式", "p": "在智慧型手機上安裝並啟動 Instagram 應用程式。", "path": "App Store / Google Play → Instagram" },
+              { "h3": "註冊", "p": "用企業電子郵件或手機號碼建立新帳戶。", "path": "建立新帳戶" },
+              { "h3": "設定使用者名稱", "p": "輸入與品牌名一致或便於搜尋的使用者名稱。", "path": "例如: geniego_global / ocl_korea" },
+              { "h3": "填寫個人檔案基本資訊", "p": "填寫標誌、簡介文案和網站 URL。", "path": "編輯個人檔案" }
+            ] }
+          ]
+        },
+        {
+          "h2": "4. 轉換為專業帳戶",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "開啟個人檔案選單", "p": "點擊 Instagram 應用程式底部的個人檔案圖示。", "path": "個人檔案" },
+              { "h3": "進入設定和隱私", "p": "點擊右上角的 ☰ 選單，然後進入設定和隱私。", "path": "☰ → 設定和隱私" },
+              { "h3": "選擇帳戶類型和工具", "p": "在帳戶管理選單中找到轉換為專業帳戶的選項。", "path": "帳戶類型和工具" },
+              { "h3": "轉換為專業帳戶", "p": "跳過導覽頁面並選擇轉換為專業帳戶。", "path": "轉換為專業帳戶" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. 選擇商業帳戶",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "選擇帳戶類型", "p": "在創作者和商業中選擇商業。", "path": "選擇商業" },
+              { "h3": "選擇類別", "p": "選擇符合公司性質的類別。", "path": "選擇類別" },
+              { "h3": "填寫聯絡資訊", "p": "填寫電子郵件、電話、地址等客戶可查看的資訊。", "path": "商業聯絡資訊" },
+              { "h3": "確認轉換完成", "p": "當個人檔案出現專業儀表板時，即表示轉換完成。", "path": "專業儀表板" }
+            ] }
+          ]
+        },
+        {
+          "h2": "6. 推薦類別",
+          "blocks": [
+            { "type": "table", "head": ["業務類型", "推薦類別", "說明"], "rows": [
+              ["物流/配送", "Logistics Company / Transportation Service / Cargo & Freight Company", "適合物流公司、代發貨、國際運輸服務。"],
+              ["直播電商", "Shopping & Retail / E-commerce Website", "適合直播銷售、線上商城營運。"],
+              ["化妝品銷售", "Beauty, Cosmetic & Personal Care / Health Beauty", "適合 K-美妝、化妝品、美妝品牌銷售。"],
+              ["AI/IT 平台", "Software Company / Internet Company", "適合 SaaS、平台、IT 服務營運。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "7. 連接 Facebook 粉絲專頁",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "進入專業儀表板", "p": "從 Instagram 個人檔案開啟專業儀表板。", "path": "個人檔案 → 專業儀表板" },
+              { "h3": "連接 Facebook 粉絲專頁", "p": "選擇現有的 Facebook 粉絲專頁或建立新專頁。", "path": "連接 Facebook 粉絲專頁" },
+              { "h3": "確認管理員權限", "p": "確認您對要連接的 Facebook 粉絲專頁擁有管理員權限。", "path": "Page Admin 權限" }
+            ] },
+            { "type": "notice", "kind": "", "html": "連接 Facebook 粉絲專頁後，投放廣告、查看洞察和管理 Meta Business Suite 都會更方便。" }
+          ]
+        },
+        {
+          "h2": "8. 連接 Meta Business Suite",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "存取 Meta Business Suite", "p": "在瀏覽器中存取 Meta Business Suite。", "path": "business.facebook.com" },
+              { "h3": "建立商業帳戶", "p": "輸入公司名、姓名和電子郵件以建立商業帳戶。", "path": "建立商業帳戶" },
+              { "h3": "新增 Instagram 帳戶", "p": "在商業設定中新增 Instagram 帳戶。", "path": "商業設定 → 帳戶 → Instagram 帳戶" },
+              { "h3": "確認與 Facebook 粉絲專頁的連接", "p": "確認 Instagram 帳戶已連接到正確的 Facebook 粉絲專頁。", "path": "查看已連接的資產" }
+            ] }
+          ]
+        },
+        {
+          "h2": "9. 商業認證",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "開啟商業設定", "p": "在 Meta Business Suite 中進入商業設定。", "path": "商業設定" },
+              { "h3": "進入安全中心", "p": "從左側選單中選擇安全中心。", "path": "安全中心" },
+              { "h3": "開始企業認證", "p": "輸入營業登記證、公司名、地址、網站等資訊。", "path": "企業認證" },
+              { "h3": "確認審查結果", "p": "Meta 審查完成後，確認認證狀態。", "path": "Verification Status" }
+            ] }
+          ]
+        },
+        {
+          "h2": "10. Instagram API 整合準備結構",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>Instagram Business Account</strong><br>        │<br>        ▼<br>Facebook Page<br>        │<br>        ▼<br>Meta Business Suite<br>        │<br>        ▼<br>Meta Developer App<br>        │<br>        ▼<br>Instagram Graph API<br>        │<br>        ▼<br>簽發存取權杖" },
+            { "type": "notice", "kind": "danger", "html": "<strong>注意:</strong> 要使用 Instagram API，僅將帳戶切換為商業帳戶還不夠，可能還需要連接 Facebook 粉絲專頁、設定 Meta Business、建立 Developer App 以及完成權限審查。" }
+          ]
+        },
+        {
+          "h2": "11. 最終檢查清單",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已建立企業 Instagram 帳戶。",
+              "已填寫大頭貼、簡介和網站。",
+              "已轉換為專業帳戶。",
+              "已將帳戶類型選擇為商業。",
+              "已選擇符合業務的類別。",
+              "已填寫聯絡資訊。",
+              "已連接 Facebook 粉絲專頁。",
+              "已在 Meta Business Suite 中新增 Instagram 帳戶。",
+              "如有需要，已進行商業認證。",
+              "為 API 整合準備 Meta Developer App。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "de": {
+      "titleType": "Anleitung zur Umstellung auf ein Instagram-Unternehmenskonto",
+      "badge": "Instagram Business Setup Manual",
+      "intro": "Ein einsteigerfreundlicher Leitfaden, der Unternehmen, Marken, Onlineshops und Live-Commerce-Betreibern hilft, ihr Instagram-Konto in ein Business-/Creator-Konto umzuwandeln und die Vorbereitung für Meta Business Suite und API-Integration abzuschließen.",
+      "org": "Praktischer Einsteigerleitfaden",
+      "quick": [
+        ["Empfohlenes Konto", "Business-Konto für Unternehmen"],
+        ["Benötigte Apps", "Instagram / Facebook"],
+        ["Integrationsziel", "Facebook-Seite"],
+        ["API-Vorbereitung", "Meta Business + Developer"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Business-Konto vs. Creator-Konto",
+          "desc": "Für den Unternehmensbetrieb ist in den meisten Fällen ein Business-Konto am besten geeignet.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Business Account", "h3": "Business-Konto", "p": "Geeignet für Unternehmen, Marken, Onlineshops, Logistikdienste, Live-Commerce und Onlineverkauf. Vorteilhaft für Werbung, Insights, Meta Business Suite und API-Integration." },
+              { "tag": "Creator Account", "h3": "Creator-Konto", "p": "Geeignet für Influencer, Content-Ersteller und Betreiber persönlicher Marken. Für Enterprise-API, Shopping und Werbebetrieb ist ein Business-Konto stabiler." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "<strong>Empfehlung:</strong> Wandeln Sie Ihr Instagram-Unternehmenskonto in ein <strong>Business-Konto</strong> um." }
+          ]
+        },
+        {
+          "h2": "2. Was vor der Kontoerstellung vorzubereiten ist",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Geschäftliche E-Mail-Adresse",
+              "Markenname oder Firmenname",
+              "Kandidat für den Instagram-Benutzernamen",
+              "Firmenlogo oder Profilbild",
+              "Unternehmensbeschreibung",
+              "Website-URL",
+              "Eine vorhandene oder zu erstellende Facebook-Seite"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. Ein Instagram-Konto erstellen",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Die Instagram-App installieren", "p": "Installieren und starten Sie die Instagram-App auf Ihrem Smartphone.", "path": "App Store / Google Play → Instagram" },
+              { "h3": "Registrieren", "p": "Erstellen Sie ein neues Konto mit einer geschäftlichen E-Mail-Adresse oder Telefonnummer.", "path": "Neues Konto erstellen" },
+              { "h3": "Einen Benutzernamen festlegen", "p": "Geben Sie einen Benutzernamen ein, der zu Ihrem Markennamen passt oder leicht zu finden ist.", "path": "z. B. geniego_global / ocl_korea" },
+              { "h3": "Grundlegende Profilinformationen eingeben", "p": "Geben Sie Ihr Logo, Ihren Einführungstext und Ihre Website-URL ein.", "path": "Profil bearbeiten" }
+            ] }
+          ]
+        },
+        {
+          "h2": "4. Zu einem professionellen Konto wechseln",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Das Profilmenü öffnen", "p": "Tippen Sie auf das Profilsymbol unten in der Instagram-App.", "path": "Profil" },
+              { "h3": "Zu Einstellungen und Privatsphäre gehen", "p": "Tippen Sie oben rechts auf das ☰-Menü und gehen Sie dann zu Einstellungen und Privatsphäre.", "path": "☰ → Einstellungen und Privatsphäre" },
+              { "h3": "Kontotyp und Tools auswählen", "p": "Suchen Sie im Kontoverwaltungsmenü die Option zum Wechsel zu einem professionellen Konto.", "path": "Kontotyp und Tools" },
+              { "h3": "Zu einem professionellen Konto wechseln", "p": "Überspringen Sie die Einführungsbildschirme und wählen Sie den Wechsel zu einem professionellen Konto.", "path": "Zu professionellem Konto wechseln" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. Ein Business-Konto wählen",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Kontotyp auswählen", "p": "Wählen Sie zwischen Creator und Business die Option Business.", "path": "Business auswählen" },
+              { "h3": "Eine Kategorie auswählen", "p": "Wählen Sie eine Kategorie, die zur Art Ihres Unternehmens passt.", "path": "Kategorie auswählen" },
+              { "h3": "Kontaktinformationen eingeben", "p": "Geben Sie Informationen ein, die Kunden einsehen können, z. B. E-Mail, Telefonnummer und Adresse.", "path": "Geschäftliche Kontaktinformationen" },
+              { "h3": "Abschluss der Umstellung bestätigen", "p": "Wenn das Professional Dashboard in Ihrem Profil erscheint, ist die Umstellung abgeschlossen.", "path": "Professional Dashboard" }
+            ] }
+          ]
+        },
+        {
+          "h2": "6. Empfohlene Kategorien",
+          "blocks": [
+            { "type": "table", "head": ["Geschäftsart", "Empfohlene Kategorie", "Beschreibung"], "rows": [
+              ["Logistik/Versand", "Logistics Company / Transportation Service / Cargo & Freight Company", "Geeignet für Logistikunternehmen, Fulfillment und internationale Versanddienste."],
+              ["Live-Commerce", "Shopping & Retail / E-commerce Website", "Geeignet für Live-Verkauf und den Betrieb von Onlineshops."],
+              ["Kosmetikverkauf", "Beauty, Cosmetic & Personal Care / Health Beauty", "Geeignet für K-Beauty, Kosmetik und den Verkauf von Beauty-Marken."],
+              ["KI/IT-Plattform", "Software Company / Internet Company", "Geeignet für SaaS, Plattform- und IT-Servicebetrieb."]
+            ] }
+          ]
+        },
+        {
+          "h2": "7. Eine Facebook-Seite verbinden",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Zum Professional Dashboard gehen", "p": "Öffnen Sie das Professional Dashboard über Ihr Instagram-Profil.", "path": "Profil → Professional Dashboard" },
+              { "h3": "Eine Facebook-Seite verbinden", "p": "Wählen Sie eine vorhandene Facebook-Seite aus oder erstellen Sie eine neue.", "path": "Facebook-Seite verbinden" },
+              { "h3": "Administratorberechtigungen prüfen", "p": "Stellen Sie sicher, dass Sie Administratorberechtigungen für die zu verbindende Facebook-Seite haben.", "path": "Page-Admin-Berechtigung" }
+            ] },
+            { "type": "notice", "kind": "", "html": "Durch das Verbinden einer Facebook-Seite werden das Schalten von Anzeigen, das Prüfen von Insights und die Verwaltung der Meta Business Suite einfacher." }
+          ]
+        },
+        {
+          "h2": "8. Meta Business Suite verbinden",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Auf Meta Business Suite zugreifen", "p": "Öffnen Sie Meta Business Suite in Ihrem Browser.", "path": "business.facebook.com" },
+              { "h3": "Ein Business-Konto erstellen", "p": "Geben Sie Firmenname, Name und E-Mail ein, um ein Business-Konto zu erstellen.", "path": "Unternehmen erstellen" },
+              { "h3": "Das Instagram-Konto hinzufügen", "p": "Fügen Sie Ihr Instagram-Konto in den Unternehmenseinstellungen hinzu.", "path": "Unternehmenseinstellungen → Konten → Instagram-Konten" },
+              { "h3": "Die Verbindung zur Facebook-Seite prüfen", "p": "Bestätigen Sie, dass Ihr Instagram-Konto mit der richtigen Facebook-Seite verbunden ist.", "path": "Verbundene Assets prüfen" }
+            ] }
+          ]
+        },
+        {
+          "h2": "9. Unternehmensverifizierung",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Unternehmenseinstellungen öffnen", "p": "Gehen Sie in der Meta Business Suite zu den Unternehmenseinstellungen.", "path": "Unternehmenseinstellungen" },
+              { "h3": "Zum Sicherheitscenter gehen", "p": "Wählen Sie das Sicherheitscenter im linken Menü aus.", "path": "Sicherheitscenter" },
+              { "h3": "Unternehmensverifizierung starten", "p": "Geben Sie Gewerbeanmeldung, Firmenname, Adresse, Website usw. ein.", "path": "Unternehmensverifizierung" },
+              { "h3": "Das Prüfergebnis kontrollieren", "p": "Prüfen Sie nach Abschluss der Meta-Prüfung den Verifizierungsstatus.", "path": "Verification Status" }
+            ] }
+          ]
+        },
+        {
+          "h2": "10. Struktur zur Vorbereitung der Instagram-API-Integration",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>Instagram Business Account</strong><br>        │<br>        ▼<br>Facebook Page<br>        │<br>        ▼<br>Meta Business Suite<br>        │<br>        ▼<br>Meta Developer App<br>        │<br>        ▼<br>Instagram Graph API<br>        │<br>        ▼<br>Zugriffstoken ausstellen" },
+            { "type": "notice", "kind": "danger", "html": "<strong>Achtung:</strong> Um die Instagram-API zu nutzen, reicht es nicht aus, das Konto nur auf Business umzustellen — Sie müssen möglicherweise auch eine Facebook-Seite verbinden, Meta Business konfigurieren, eine Developer App erstellen und die Berechtigungsprüfung abschließen." }
+          ]
+        },
+        {
+          "h2": "11. Abschließende Checkliste",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Ein Instagram-Unternehmenskonto erstellt.",
+              "Profilbild, Einführung und Website eingegeben.",
+              "Zu einem professionellen Konto gewechselt.",
+              "Den Kontotyp Business ausgewählt.",
+              "Eine zum Unternehmen passende Kategorie ausgewählt.",
+              "Kontaktinformationen eingegeben.",
+              "Eine Facebook-Seite verbunden.",
+              "Das Instagram-Konto zur Meta Business Suite hinzugefügt.",
+              "Bei Bedarf die Unternehmensverifizierung durchgeführt.",
+              "Eine Meta Developer App für die API-Integration vorbereiten."
+            ] }
+          ]
+        }
+      ]
+    },
+    "th": {
+      "titleType": "คู่มือการเปลี่ยนเป็นบัญชีธุรกิจ Instagram ขององค์กร",
+      "badge": "Instagram Business Setup Manual",
+      "intro": "คู่มือสำหรับผู้เริ่มต้นที่ช่วยให้บริษัท แบรนด์ ร้านค้าออนไลน์ และผู้ดำเนินการไลฟ์คอมเมิร์ซ เปลี่ยนบัญชี Instagram เป็นบัญชีธุรกิจ/ครีเอเตอร์ และเตรียมพร้อมสำหรับการเชื่อมต่อ Meta Business Suite และ API",
+      "org": "คู่มือปฏิบัติสำหรับผู้เริ่มต้น",
+      "quick": [
+        ["บัญชีที่แนะนำ", "องค์กรเลือกบัญชีธุรกิจ"],
+        ["แอปที่ต้องใช้", "Instagram / Facebook"],
+        ["เป้าหมายการเชื่อมต่อ", "เพจ Facebook"],
+        ["การเตรียม API", "Meta Business + Developer"]
+      ],
+      "sections": [
+        {
+          "h2": "1. ความแตกต่างระหว่างบัญชีธุรกิจกับบัญชีครีเอเตอร์",
+          "desc": "หากมีวัตถุประสงค์เพื่อการดำเนินงานขององค์กร ส่วนใหญ่แล้วการเลือกบัญชีธุรกิจจะเหมาะสมที่สุด",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Business Account", "h3": "บัญชีธุรกิจ", "p": "เหมาะสำหรับบริษัท แบรนด์ ร้านค้าออนไลน์ บริการโลจิสติกส์ ไลฟ์คอมเมิร์ซ และการขายออนไลน์ มีข้อได้เปรียบในด้านโฆษณา ข้อมูลเชิงลึก Meta Business Suite และการเชื่อมต่อ API" },
+              { "tag": "Creator Account", "h3": "บัญชีครีเอเตอร์", "p": "เหมาะสำหรับอินฟลูเอนเซอร์ ผู้สร้างคอนเทนต์ และผู้ดำเนินการแบรนด์ส่วนบุคคล สำหรับ API ระดับองค์กร การช้อปปิ้ง และการดำเนินงานโฆษณา บัญชีธุรกิจมีความเสถียรมากกว่า" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "<strong>คำแนะนำ:</strong> โปรดเปลี่ยนบัญชี Instagram ขององค์กรเป็น <strong>บัญชีธุรกิจ</strong>" }
+          ]
+        },
+        {
+          "h2": "2. สิ่งที่ต้องเตรียมก่อนสร้างบัญชี",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "ที่อยู่อีเมลสำหรับองค์กร",
+              "ชื่อแบรนด์หรือชื่อบริษัท",
+              "ชื่อผู้ใช้ Instagram ที่ต้องการ",
+              "โลโก้บริษัทหรือรูปโปรไฟล์",
+              "ข้อความแนะนำบริษัท",
+              "URL เว็บไซต์",
+              "เพจ Facebook หรือเพจที่วางแผนจะสร้าง"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. สร้างบัญชี Instagram",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "ติดตั้งแอป Instagram", "p": "ติดตั้งและเปิดแอป Instagram บนสมาร์ทโฟนของคุณ", "path": "App Store / Google Play → Instagram" },
+              { "h3": "สมัครสมาชิก", "p": "สร้างบัญชีใหม่ด้วยอีเมลองค์กรหรือหมายเลขโทรศัพท์", "path": "สร้างบัญชีใหม่" },
+              { "h3": "ตั้งชื่อผู้ใช้", "p": "ป้อนชื่อผู้ใช้ที่ตรงกับชื่อแบรนด์หรือค้นหาง่าย", "path": "เช่น: geniego_global / ocl_korea" },
+              { "h3": "ป้อนข้อมูลโปรไฟล์พื้นฐาน", "p": "ป้อนโลโก้ ข้อความแนะนำ และ URL เว็บไซต์", "path": "แก้ไขโปรไฟล์" }
+            ] }
+          ]
+        },
+        {
+          "h2": "4. เปลี่ยนเป็นบัญชีระดับมืออาชีพ",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "เปิดเมนูโปรไฟล์", "p": "แตะไอคอนโปรไฟล์ที่ด้านล่างของแอป Instagram", "path": "โปรไฟล์" },
+              { "h3": "ไปที่การตั้งค่าและความเป็นส่วนตัว", "p": "แตะเมนู ☰ ที่มุมขวาบน จากนั้นไปที่การตั้งค่าและความเป็นส่วนตัว", "path": "☰ → การตั้งค่าและความเป็นส่วนตัว" },
+              { "h3": "เลือกประเภทบัญชีและเครื่องมือ", "p": "ในเมนูจัดการบัญชี ค้นหาตัวเลือกเปลี่ยนเป็นบัญชีระดับมืออาชีพ", "path": "ประเภทบัญชีและเครื่องมือ" },
+              { "h3": "เปลี่ยนเป็นบัญชีระดับมืออาชีพ", "p": "ข้ามหน้าจอแนะนำและเลือกเปลี่ยนเป็นบัญชีระดับมืออาชีพ", "path": "เปลี่ยนเป็นบัญชีระดับมืออาชีพ" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. เลือกบัญชีธุรกิจ",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "เลือกประเภทบัญชี", "p": "เลือกธุรกิจจากครีเอเตอร์และธุรกิจ", "path": "เลือกธุรกิจ" },
+              { "h3": "เลือกหมวดหมู่", "p": "เลือกหมวดหมู่ที่ตรงกับลักษณะของบริษัท", "path": "เลือกหมวดหมู่" },
+              { "h3": "ป้อนข้อมูลติดต่อ", "p": "ป้อนข้อมูลที่ลูกค้าสามารถตรวจสอบได้ เช่น อีเมล หมายเลขโทรศัพท์ และที่อยู่", "path": "ข้อมูลติดต่อทางธุรกิจ" },
+              { "h3": "ยืนยันการเปลี่ยนเสร็จสมบูรณ์", "p": "เมื่อแดชบอร์ดมืออาชีพปรากฏบนโปรไฟล์ แสดงว่าการเปลี่ยนเสร็จสมบูรณ์", "path": "แดชบอร์ดมืออาชีพ" }
+            ] }
+          ]
+        },
+        {
+          "h2": "6. หมวดหมู่ที่แนะนำ",
+          "blocks": [
+            { "type": "table", "head": ["ประเภทธุรกิจ", "หมวดหมู่ที่แนะนำ", "คำอธิบาย"], "rows": [
+              ["โลจิสติกส์/จัดส่ง", "Logistics Company / Transportation Service / Cargo & Freight Company", "เหมาะสำหรับบริษัทโลจิสติกส์ ตัวแทนจัดส่ง และบริการขนส่งระหว่างประเทศ"],
+              ["ไลฟ์คอมเมิร์ซ", "Shopping & Retail / E-commerce Website", "เหมาะสำหรับการขายผ่านไลฟ์และการดำเนินงานร้านค้าออนไลน์"],
+              ["ขายเครื่องสำอาง", "Beauty, Cosmetic & Personal Care / Health Beauty", "เหมาะสำหรับ K-beauty เครื่องสำอาง และการขายแบรนด์ความงาม"],
+              ["แพลตฟอร์ม AI/IT", "Software Company / Internet Company", "เหมาะสำหรับ SaaS แพลตฟอร์ม และการดำเนินงานบริการ IT"]
+            ] }
+          ]
+        },
+        {
+          "h2": "7. เชื่อมต่อเพจ Facebook",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "ไปที่แดชบอร์ดมืออาชีพ", "p": "เปิดแดชบอร์ดมืออาชีพจากโปรไฟล์ Instagram ของคุณ", "path": "โปรไฟล์ → แดชบอร์ดมืออาชีพ" },
+              { "h3": "เชื่อมต่อเพจ Facebook", "p": "เลือกเพจ Facebook ที่มีอยู่หรือสร้างเพจใหม่", "path": "เชื่อมต่อเพจ Facebook" },
+              { "h3": "ตรวจสอบสิทธิ์ผู้ดูแล", "p": "ตรวจสอบว่าคุณมีสิทธิ์ผู้ดูแลสำหรับเพจ Facebook ที่ต้องการเชื่อมต่อ", "path": "สิทธิ์ Page Admin" }
+            ] },
+            { "type": "notice", "kind": "", "html": "การเชื่อมต่อเพจ Facebook ทำให้การลงโฆษณา การดูข้อมูลเชิงลึก และการจัดการ Meta Business Suite ง่ายขึ้น" }
+          ]
+        },
+        {
+          "h2": "8. เชื่อมต่อ Meta Business Suite",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "เข้าถึง Meta Business Suite", "p": "เปิด Meta Business Suite ในเบราว์เซอร์ของคุณ", "path": "business.facebook.com" },
+              { "h3": "สร้างบัญชีธุรกิจ", "p": "ป้อนชื่อบริษัท ชื่อ และอีเมลเพื่อสร้างบัญชีธุรกิจ", "path": "สร้างธุรกิจ" },
+              { "h3": "เพิ่มบัญชี Instagram", "p": "เพิ่มบัญชี Instagram ในการตั้งค่าธุรกิจ", "path": "การตั้งค่าธุรกิจ → บัญชี → บัญชี Instagram" },
+              { "h3": "ตรวจสอบการเชื่อมต่อกับเพจ Facebook", "p": "ยืนยันว่าบัญชี Instagram ของคุณเชื่อมต่อกับเพจ Facebook ที่ถูกต้อง", "path": "ตรวจสอบสินทรัพย์ที่เชื่อมต่อ" }
+            ] }
+          ]
+        },
+        {
+          "h2": "9. การยืนยันธุรกิจ",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "เปิดการตั้งค่าธุรกิจ", "p": "ไปที่การตั้งค่าธุรกิจใน Meta Business Suite", "path": "การตั้งค่าธุรกิจ" },
+              { "h3": "ไปที่ศูนย์ความปลอดภัย", "p": "เลือกศูนย์ความปลอดภัยจากเมนูด้านซ้าย", "path": "ศูนย์ความปลอดภัย" },
+              { "h3": "เริ่มการยืนยันธุรกิจ", "p": "ป้อนใบทะเบียนพาณิชย์ ชื่อบริษัท ที่อยู่ เว็บไซต์ เป็นต้น", "path": "การยืนยันธุรกิจ" },
+              { "h3": "ตรวจสอบผลการพิจารณา", "p": "หลังจาก Meta ตรวจสอบเสร็จสิ้น ให้ตรวจสอบสถานะการยืนยัน", "path": "Verification Status" }
+            ] }
+          ]
+        },
+        {
+          "h2": "10. โครงสร้างการเตรียมเชื่อมต่อ Instagram API",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>Instagram Business Account</strong><br>        │<br>        ▼<br>Facebook Page<br>        │<br>        ▼<br>Meta Business Suite<br>        │<br>        ▼<br>Meta Developer App<br>        │<br>        ▼<br>Instagram Graph API<br>        │<br>        ▼<br>ออกโทเค็นการเข้าถึง" },
+            { "type": "notice", "kind": "danger", "html": "<strong>ข้อควรระวัง:</strong> ในการใช้ Instagram API การเปลี่ยนบัญชีเป็นธุรกิจเพียงอย่างเดียวยังไม่เพียงพอ คุณอาจต้องเชื่อมต่อเพจ Facebook ตั้งค่า Meta Business สร้าง Developer App และผ่านการตรวจสอบสิทธิ์ด้วย" }
+          ]
+        },
+        {
+          "h2": "11. รายการตรวจสอบขั้นสุดท้าย",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "สร้างบัญชี Instagram ขององค์กรแล้ว",
+              "ป้อนรูปโปรไฟล์ คำแนะนำ และเว็บไซต์แล้ว",
+              "เปลี่ยนเป็นบัญชีระดับมืออาชีพแล้ว",
+              "เลือกประเภทบัญชีเป็นธุรกิจแล้ว",
+              "เลือกหมวดหมู่ที่เหมาะกับธุรกิจแล้ว",
+              "ป้อนข้อมูลติดต่อแล้ว",
+              "เชื่อมต่อเพจ Facebook แล้ว",
+              "เพิ่มบัญชี Instagram ใน Meta Business Suite แล้ว",
+              "ดำเนินการยืนยันธุรกิจหากจำเป็นแล้ว",
+              "เตรียม Meta Developer App สำหรับการเชื่อมต่อ API"
+            ] }
+          ]
+        }
+      ]
+    },
+    "vi": {
+      "titleType": "Hướng dẫn chuyển đổi tài khoản doanh nghiệp Instagram",
+      "badge": "Instagram Business Setup Manual",
+      "intro": "Hướng dẫn thân thiện với người mới giúp các công ty, thương hiệu, cửa hàng trực tuyến và nhà vận hành live commerce chuyển đổi tài khoản Instagram sang tài khoản doanh nghiệp/nhà sáng tạo và chuẩn bị cho việc tích hợp Meta Business Suite và API.",
+      "org": "Hướng dẫn thực hành cho người mới",
+      "quick": [
+        ["Tài khoản khuyến nghị", "Doanh nghiệp dùng tài khoản doanh nghiệp"],
+        ["Ứng dụng cần thiết", "Instagram / Facebook"],
+        ["Đối tượng tích hợp", "Trang Facebook"],
+        ["Chuẩn bị API", "Meta Business + Developer"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Sự khác biệt giữa tài khoản doanh nghiệp và tài khoản nhà sáng tạo",
+          "desc": "Nếu mục đích là vận hành doanh nghiệp, trong hầu hết các trường hợp, chọn tài khoản doanh nghiệp là phù hợp nhất.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Business Account", "h3": "Tài khoản doanh nghiệp", "p": "Phù hợp với công ty, thương hiệu, cửa hàng trực tuyến, dịch vụ logistics, live commerce và bán hàng trực tuyến. Có lợi thế về quảng cáo, thông tin chi tiết, Meta Business Suite và tích hợp API." },
+              { "tag": "Creator Account", "h3": "Tài khoản nhà sáng tạo", "p": "Phù hợp với người có ảnh hưởng, nhà sáng tạo nội dung và người vận hành thương hiệu cá nhân. Đối với API cấp doanh nghiệp, mua sắm và vận hành quảng cáo, tài khoản doanh nghiệp ổn định hơn." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "<strong>Khuyến nghị:</strong> Hãy chuyển đổi tài khoản Instagram doanh nghiệp của bạn sang <strong>tài khoản doanh nghiệp</strong>." }
+          ]
+        },
+        {
+          "h2": "2. Những thứ cần chuẩn bị trước khi tạo tài khoản",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Địa chỉ email doanh nghiệp",
+              "Tên thương hiệu hoặc tên công ty",
+              "Tên người dùng Instagram dự kiến",
+              "Logo công ty hoặc ảnh hồ sơ",
+              "Đoạn giới thiệu công ty",
+              "URL trang web",
+              "Trang Facebook hiện có hoặc dự kiến tạo"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. Tạo tài khoản Instagram",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Cài đặt ứng dụng Instagram", "p": "Cài đặt và khởi chạy ứng dụng Instagram trên điện thoại thông minh của bạn.", "path": "App Store / Google Play → Instagram" },
+              { "h3": "Đăng ký", "p": "Tạo tài khoản mới bằng email doanh nghiệp hoặc số điện thoại.", "path": "Tạo tài khoản mới" },
+              { "h3": "Đặt tên người dùng", "p": "Nhập tên người dùng khớp với tên thương hiệu hoặc dễ tìm kiếm.", "path": "Ví dụ: geniego_global / ocl_korea" },
+              { "h3": "Nhập thông tin hồ sơ cơ bản", "p": "Nhập logo, đoạn giới thiệu và URL trang web.", "path": "Chỉnh sửa hồ sơ" }
+            ] }
+          ]
+        },
+        {
+          "h2": "4. Chuyển sang tài khoản chuyên nghiệp",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Mở menu hồ sơ", "p": "Nhấn vào biểu tượng hồ sơ ở cuối ứng dụng Instagram.", "path": "Hồ sơ" },
+              { "h3": "Vào Cài đặt và quyền riêng tư", "p": "Nhấn menu ☰ ở góc trên bên phải, rồi vào Cài đặt và quyền riêng tư.", "path": "☰ → Cài đặt và quyền riêng tư" },
+              { "h3": "Chọn Loại tài khoản và công cụ", "p": "Trong menu quản lý tài khoản, tìm tùy chọn chuyển sang tài khoản chuyên nghiệp.", "path": "Loại tài khoản và công cụ" },
+              { "h3": "Chuyển sang tài khoản chuyên nghiệp", "p": "Bỏ qua các màn hình giới thiệu và chọn chuyển sang tài khoản chuyên nghiệp.", "path": "Chuyển sang tài khoản chuyên nghiệp" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. Chọn tài khoản doanh nghiệp",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Chọn loại tài khoản", "p": "Chọn Doanh nghiệp trong Nhà sáng tạo và Doanh nghiệp.", "path": "Chọn Doanh nghiệp" },
+              { "h3": "Chọn danh mục", "p": "Chọn danh mục phù hợp với tính chất của công ty.", "path": "Chọn danh mục" },
+              { "h3": "Nhập thông tin liên hệ", "p": "Nhập thông tin mà khách hàng có thể xem, chẳng hạn như email, số điện thoại và địa chỉ.", "path": "Thông tin liên hệ doanh nghiệp" },
+              { "h3": "Xác nhận hoàn tất chuyển đổi", "p": "Khi Bảng điều khiển chuyên nghiệp xuất hiện trên hồ sơ của bạn, việc chuyển đổi đã hoàn tất.", "path": "Bảng điều khiển chuyên nghiệp" }
+            ] }
+          ]
+        },
+        {
+          "h2": "6. Danh mục khuyến nghị",
+          "blocks": [
+            { "type": "table", "head": ["Loại hình kinh doanh", "Danh mục khuyến nghị", "Mô tả"], "rows": [
+              ["Logistics/Giao hàng", "Logistics Company / Transportation Service / Cargo & Freight Company", "Phù hợp với công ty logistics, dịch vụ hoàn tất đơn hàng và vận chuyển quốc tế."],
+              ["Live commerce", "Shopping & Retail / E-commerce Website", "Phù hợp với bán hàng phát trực tiếp và vận hành cửa hàng trực tuyến."],
+              ["Bán mỹ phẩm", "Beauty, Cosmetic & Personal Care / Health Beauty", "Phù hợp với K-beauty, mỹ phẩm và bán thương hiệu làm đẹp."],
+              ["Nền tảng AI/IT", "Software Company / Internet Company", "Phù hợp với SaaS, nền tảng và vận hành dịch vụ IT."]
+            ] }
+          ]
+        },
+        {
+          "h2": "7. Kết nối Trang Facebook",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Vào Bảng điều khiển chuyên nghiệp", "p": "Mở Bảng điều khiển chuyên nghiệp từ hồ sơ Instagram của bạn.", "path": "Hồ sơ → Bảng điều khiển chuyên nghiệp" },
+              { "h3": "Kết nối Trang Facebook", "p": "Chọn Trang Facebook hiện có hoặc tạo trang mới.", "path": "Kết nối Trang Facebook" },
+              { "h3": "Kiểm tra quyền quản trị viên", "p": "Đảm bảo bạn có quyền quản trị viên cho Trang Facebook bạn muốn kết nối.", "path": "Quyền Page Admin" }
+            ] },
+            { "type": "notice", "kind": "", "html": "Việc kết nối Trang Facebook giúp bạn dễ dàng chạy quảng cáo, kiểm tra thông tin chi tiết và quản lý Meta Business Suite hơn." }
+          ]
+        },
+        {
+          "h2": "8. Kết nối Meta Business Suite",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Truy cập Meta Business Suite", "p": "Mở Meta Business Suite trong trình duyệt của bạn.", "path": "business.facebook.com" },
+              { "h3": "Tạo tài khoản doanh nghiệp", "p": "Nhập tên công ty, tên và email để tạo tài khoản doanh nghiệp.", "path": "Tạo doanh nghiệp" },
+              { "h3": "Thêm tài khoản Instagram", "p": "Thêm tài khoản Instagram của bạn trong Cài đặt doanh nghiệp.", "path": "Cài đặt doanh nghiệp → Tài khoản → Tài khoản Instagram" },
+              { "h3": "Xác minh kết nối với Trang Facebook", "p": "Xác nhận rằng tài khoản Instagram của bạn đã kết nối với đúng Trang Facebook.", "path": "Kiểm tra tài sản đã kết nối" }
+            ] }
+          ]
+        },
+        {
+          "h2": "9. Xác minh doanh nghiệp",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Mở Cài đặt doanh nghiệp", "p": "Vào Cài đặt doanh nghiệp trong Meta Business Suite.", "path": "Cài đặt doanh nghiệp" },
+              { "h3": "Vào Trung tâm bảo mật", "p": "Chọn Trung tâm bảo mật từ menu bên trái.", "path": "Trung tâm bảo mật" },
+              { "h3": "Bắt đầu xác minh doanh nghiệp", "p": "Nhập giấy chứng nhận đăng ký kinh doanh, tên công ty, địa chỉ, trang web, v.v.", "path": "Xác minh doanh nghiệp" },
+              { "h3": "Kiểm tra kết quả xét duyệt", "p": "Sau khi Meta hoàn tất xét duyệt, hãy kiểm tra trạng thái xác minh.", "path": "Verification Status" }
+            ] }
+          ]
+        },
+        {
+          "h2": "10. Cấu trúc chuẩn bị tích hợp Instagram API",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>Instagram Business Account</strong><br>        │<br>        ▼<br>Facebook Page<br>        │<br>        ▼<br>Meta Business Suite<br>        │<br>        ▼<br>Meta Developer App<br>        │<br>        ▼<br>Instagram Graph API<br>        │<br>        ▼<br>Cấp mã thông báo truy cập" },
+            { "type": "notice", "kind": "danger", "html": "<strong>Lưu ý:</strong> Để sử dụng Instagram API, chỉ chuyển tài khoản sang doanh nghiệp là chưa đủ — bạn có thể cần kết nối Trang Facebook, cấu hình Meta Business, tạo Developer App và hoàn tất xét duyệt quyền." }
+          ]
+        },
+        {
+          "h2": "11. Danh sách kiểm tra cuối cùng",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Đã tạo tài khoản Instagram doanh nghiệp.",
+              "Đã nhập ảnh hồ sơ, giới thiệu và trang web.",
+              "Đã chuyển sang tài khoản chuyên nghiệp.",
+              "Đã chọn loại tài khoản doanh nghiệp.",
+              "Đã chọn danh mục phù hợp với doanh nghiệp.",
+              "Đã nhập thông tin liên hệ.",
+              "Đã kết nối Trang Facebook.",
+              "Đã thêm tài khoản Instagram vào Meta Business Suite.",
+              "Đã thực hiện xác minh doanh nghiệp nếu cần.",
+              "Chuẩn bị Meta Developer App để tích hợp API."
+            ] }
+          ]
+        }
+      ]
+    },
+    "id": {
+      "titleType": "Manual Konversi Akun Bisnis Instagram Perusahaan",
+      "badge": "Instagram Business Setup Manual",
+      "intro": "Panduan ramah pemula yang membantu perusahaan, merek, toko online, dan operator live commerce mengonversi akun Instagram mereka menjadi akun bisnis/kreator serta mempersiapkan integrasi Meta Business Suite dan API.",
+      "org": "Panduan Praktis Pemula",
+      "quick": [
+        ["Akun yang disarankan", "Perusahaan memakai akun bisnis"],
+        ["Aplikasi yang dibutuhkan", "Instagram / Facebook"],
+        ["Target integrasi", "Halaman Facebook"],
+        ["Persiapan API", "Meta Business + Developer"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Perbedaan Akun Bisnis dan Akun Kreator",
+          "desc": "Jika tujuannya untuk operasional perusahaan, dalam sebagian besar kasus memilih akun bisnis adalah yang paling sesuai.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Business Account", "h3": "Akun bisnis", "p": "Cocok untuk perusahaan, merek, toko online, layanan logistik, live commerce, dan penjualan online. Menguntungkan untuk iklan, insight, Meta Business Suite, dan integrasi API." },
+              { "tag": "Creator Account", "h3": "Akun kreator", "p": "Cocok untuk influencer, kreator konten, dan operator merek pribadi. Untuk API tingkat perusahaan, belanja, dan operasional iklan, akun bisnis lebih stabil." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "<strong>Rekomendasi:</strong> Konversikan akun Instagram perusahaan Anda menjadi <strong>akun bisnis</strong>." }
+          ]
+        },
+        {
+          "h2": "2. Yang Perlu Disiapkan Sebelum Membuat Akun",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Alamat email perusahaan",
+              "Nama merek atau nama perusahaan",
+              "Kandidat nama pengguna Instagram",
+              "Logo perusahaan atau gambar profil",
+              "Teks pengenalan perusahaan",
+              "URL situs web",
+              "Halaman Facebook yang ada atau yang akan dibuat"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. Membuat Akun Instagram",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Instal aplikasi Instagram", "p": "Instal dan jalankan aplikasi Instagram di ponsel pintar Anda.", "path": "App Store / Google Play → Instagram" },
+              { "h3": "Daftar", "p": "Buat akun baru dengan email perusahaan atau nomor telepon.", "path": "Buat akun baru" },
+              { "h3": "Tetapkan nama pengguna", "p": "Masukkan nama pengguna yang sesuai dengan nama merek atau mudah dicari.", "path": "Mis.: geniego_global / ocl_korea" },
+              { "h3": "Masukkan informasi profil dasar", "p": "Masukkan logo, teks pengenalan, dan URL situs web.", "path": "Edit profil" }
+            ] }
+          ]
+        },
+        {
+          "h2": "4. Beralih ke Akun Profesional",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Buka menu profil", "p": "Ketuk ikon profil di bagian bawah aplikasi Instagram.", "path": "Profil" },
+              { "h3": "Buka Pengaturan dan privasi", "p": "Ketuk menu ☰ di kanan atas, lalu buka Pengaturan dan privasi.", "path": "☰ → Pengaturan dan privasi" },
+              { "h3": "Pilih Jenis akun dan alat", "p": "Di menu pengelolaan akun, temukan opsi untuk beralih ke akun profesional.", "path": "Jenis akun dan alat" },
+              { "h3": "Beralih ke akun profesional", "p": "Lewati layar pengantar dan pilih beralih ke akun profesional.", "path": "Beralih ke akun profesional" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. Pilih Akun Bisnis",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Pilih jenis akun", "p": "Pilih Bisnis dari Kreator dan Bisnis.", "path": "Pilih Bisnis" },
+              { "h3": "Pilih kategori", "p": "Pilih kategori yang sesuai dengan sifat perusahaan Anda.", "path": "Pilih kategori" },
+              { "h3": "Masukkan informasi kontak", "p": "Masukkan informasi yang dapat dilihat pelanggan, seperti email, nomor telepon, dan alamat.", "path": "Informasi kontak bisnis" },
+              { "h3": "Konfirmasi konversi selesai", "p": "Ketika Dasbor Profesional muncul di profil Anda, konversi telah selesai.", "path": "Dasbor Profesional" }
+            ] }
+          ]
+        },
+        {
+          "h2": "6. Kategori yang Disarankan",
+          "blocks": [
+            { "type": "table", "head": ["Jenis usaha", "Kategori yang disarankan", "Deskripsi"], "rows": [
+              ["Logistik/Pengiriman", "Logistics Company / Transportation Service / Cargo & Freight Company", "Cocok untuk perusahaan logistik, pemenuhan pesanan, dan layanan pengiriman internasional."],
+              ["Live commerce", "Shopping & Retail / E-commerce Website", "Cocok untuk penjualan siaran langsung dan operasional toko online."],
+              ["Penjualan kosmetik", "Beauty, Cosmetic & Personal Care / Health Beauty", "Cocok untuk K-beauty, kosmetik, dan penjualan merek kecantikan."],
+              ["Platform AI/IT", "Software Company / Internet Company", "Cocok untuk SaaS, platform, dan operasional layanan IT."]
+            ] }
+          ]
+        },
+        {
+          "h2": "7. Menghubungkan Halaman Facebook",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Buka Dasbor Profesional", "p": "Buka Dasbor Profesional dari profil Instagram Anda.", "path": "Profil → Dasbor Profesional" },
+              { "h3": "Hubungkan Halaman Facebook", "p": "Pilih Halaman Facebook yang ada atau buat halaman baru.", "path": "Hubungkan Halaman Facebook" },
+              { "h3": "Periksa izin admin", "p": "Pastikan Anda memiliki izin admin untuk Halaman Facebook yang ingin Anda hubungkan.", "path": "Izin Page Admin" }
+            ] },
+            { "type": "notice", "kind": "", "html": "Menghubungkan Halaman Facebook mempermudah menjalankan iklan, memeriksa insight, dan mengelola Meta Business Suite." }
+          ]
+        },
+        {
+          "h2": "8. Menghubungkan Meta Business Suite",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Akses Meta Business Suite", "p": "Buka Meta Business Suite di browser Anda.", "path": "business.facebook.com" },
+              { "h3": "Buat akun bisnis", "p": "Masukkan nama perusahaan, nama, dan email untuk membuat akun bisnis.", "path": "Buat bisnis" },
+              { "h3": "Tambahkan akun Instagram", "p": "Tambahkan akun Instagram Anda di Pengaturan bisnis.", "path": "Pengaturan bisnis → Akun → Akun Instagram" },
+              { "h3": "Verifikasi koneksi Halaman Facebook", "p": "Konfirmasi bahwa akun Instagram Anda terhubung ke Halaman Facebook yang benar.", "path": "Periksa aset yang terhubung" }
+            ] }
+          ]
+        },
+        {
+          "h2": "9. Verifikasi Bisnis",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Buka Pengaturan bisnis", "p": "Buka Pengaturan bisnis di Meta Business Suite.", "path": "Pengaturan bisnis" },
+              { "h3": "Buka Pusat Keamanan", "p": "Pilih Pusat Keamanan dari menu kiri.", "path": "Pusat Keamanan" },
+              { "h3": "Mulai verifikasi bisnis", "p": "Masukkan sertifikat pendaftaran usaha, nama perusahaan, alamat, situs web, dan sebagainya.", "path": "Verifikasi bisnis" },
+              { "h3": "Periksa hasil peninjauan", "p": "Setelah Meta menyelesaikan peninjauan, periksa status verifikasi.", "path": "Verification Status" }
+            ] }
+          ]
+        },
+        {
+          "h2": "10. Struktur Persiapan Integrasi Instagram API",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>Instagram Business Account</strong><br>        │<br>        ▼<br>Facebook Page<br>        │<br>        ▼<br>Meta Business Suite<br>        │<br>        ▼<br>Meta Developer App<br>        │<br>        ▼<br>Instagram Graph API<br>        │<br>        ▼<br>Terbitkan token akses" },
+            { "type": "notice", "kind": "danger", "html": "<strong>Perhatian:</strong> Untuk menggunakan Instagram API, sekadar mengganti akun menjadi bisnis tidaklah cukup — Anda mungkin juga perlu menghubungkan Halaman Facebook, mengonfigurasi Meta Business, membuat Developer App, dan menyelesaikan peninjauan izin." }
+          ]
+        },
+        {
+          "h2": "11. Daftar Periksa Akhir",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Membuat akun Instagram perusahaan.",
+              "Memasukkan gambar profil, pengenalan, dan situs web.",
+              "Beralih ke akun profesional.",
+              "Memilih jenis akun bisnis.",
+              "Memilih kategori yang sesuai dengan usaha.",
+              "Memasukkan informasi kontak.",
+              "Menghubungkan Halaman Facebook.",
+              "Menambahkan akun Instagram ke Meta Business Suite.",
+              "Melakukan verifikasi bisnis jika diperlukan.",
+              "Siapkan Meta Developer App untuk integrasi API."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ar": {
+      "titleType": "دليل تحويل حساب Instagram التجاري للشركات",
+      "badge": "Instagram Business Setup Manual",
+      "intro": "دليل ملائم للمبتدئين يساعد الشركات والعلامات التجارية والمتاجر الإلكترونية ومشغلي التجارة المباشرة على تحويل حساب Instagram إلى حساب تجاري/منشئ محتوى والاستعداد لتكامل Meta Business Suite وواجهة API.",
+      "org": "دليل عملي للمبتدئين",
+      "quick": [
+        ["الحساب الموصى به", "الشركات تختار الحساب التجاري"],
+        ["التطبيقات المطلوبة", "Instagram / Facebook"],
+        ["هدف التكامل", "صفحة Facebook"],
+        ["تجهيز API", "Meta Business + Developer"]
+      ],
+      "sections": [
+        {
+          "h2": "1. الفرق بين الحساب التجاري وحساب منشئ المحتوى",
+          "desc": "إذا كان الهدف هو تشغيل الأعمال، فإن اختيار الحساب التجاري هو الأنسب في معظم الحالات.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Business Account", "h3": "الحساب التجاري", "p": "مناسب للشركات والعلامات التجارية والمتاجر الإلكترونية وخدمات الخدمات اللوجستية والتجارة المباشرة والبيع عبر الإنترنت. مفيد للإعلانات والرؤى وMeta Business Suite وتكامل API." },
+              { "tag": "Creator Account", "h3": "حساب منشئ المحتوى", "p": "مناسب للمؤثرين ومنشئي المحتوى ومشغلي العلامات الشخصية. بالنسبة لواجهة API على مستوى المؤسسات والتسوق وتشغيل الإعلانات، يكون الحساب التجاري أكثر استقرارًا." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "<strong>التوصية:</strong> حوّل حساب Instagram التجاري الخاص بشركتك إلى <strong>حساب تجاري</strong>." }
+          ]
+        },
+        {
+          "h2": "2. ما يجب تجهيزه قبل إنشاء الحساب",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "عنوان بريد إلكتروني للشركة",
+              "اسم العلامة التجارية أو اسم الشركة",
+              "اسم مستخدم مقترح لـ Instagram",
+              "شعار الشركة أو صورة الملف الشخصي",
+              "نص تعريفي بالشركة",
+              "عنوان URL للموقع الإلكتروني",
+              "صفحة Facebook موجودة أو مزمع إنشاؤها"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. إنشاء حساب Instagram",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "تثبيت تطبيق Instagram", "p": "ثبّت تطبيق Instagram على هاتفك الذكي وشغّله.", "path": "App Store / Google Play → Instagram" },
+              { "h3": "التسجيل", "p": "أنشئ حسابًا جديدًا باستخدام بريد إلكتروني للشركة أو رقم هاتف.", "path": "إنشاء حساب جديد" },
+              { "h3": "تعيين اسم المستخدم", "p": "أدخل اسم مستخدم يطابق اسم علامتك التجارية أو يسهل البحث عنه.", "path": "مثال: geniego_global / ocl_korea" },
+              { "h3": "إدخال معلومات الملف الشخصي الأساسية", "p": "أدخل الشعار والنص التعريفي وعنوان URL للموقع الإلكتروني.", "path": "تعديل الملف الشخصي" }
+            ] }
+          ]
+        },
+        {
+          "h2": "4. التحويل إلى حساب احترافي",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "فتح قائمة الملف الشخصي", "p": "اضغط على أيقونة الملف الشخصي في أسفل تطبيق Instagram.", "path": "الملف الشخصي" },
+              { "h3": "الانتقال إلى الإعدادات والخصوصية", "p": "اضغط على قائمة ☰ في أعلى اليمين، ثم انتقل إلى الإعدادات والخصوصية.", "path": "☰ → الإعدادات والخصوصية" },
+              { "h3": "اختيار نوع الحساب والأدوات", "p": "في قائمة إدارة الحساب، ابحث عن خيار التحويل إلى حساب احترافي.", "path": "نوع الحساب والأدوات" },
+              { "h3": "التحويل إلى حساب احترافي", "p": "تجاوز شاشات التعريف واختر التحويل إلى حساب احترافي.", "path": "التحويل إلى حساب احترافي" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. اختيار حساب تجاري",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "اختيار نوع الحساب", "p": "اختر التجاري من بين منشئ المحتوى والتجاري.", "path": "اختيار التجاري" },
+              { "h3": "اختيار الفئة", "p": "اختر فئة تناسب طبيعة شركتك.", "path": "اختيار الفئة" },
+              { "h3": "إدخال معلومات الاتصال", "p": "أدخل المعلومات التي يمكن للعملاء الاطلاع عليها، مثل البريد الإلكتروني ورقم الهاتف والعنوان.", "path": "معلومات الاتصال التجارية" },
+              { "h3": "تأكيد اكتمال التحويل", "p": "عند ظهور لوحة التحكم الاحترافية في ملفك الشخصي، يكون التحويل قد اكتمل.", "path": "لوحة التحكم الاحترافية" }
+            ] }
+          ]
+        },
+        {
+          "h2": "6. الفئات الموصى بها",
+          "blocks": [
+            { "type": "table", "head": ["نوع النشاط", "الفئة الموصى بها", "الوصف"], "rows": [
+              ["الخدمات اللوجستية/التوصيل", "Logistics Company / Transportation Service / Cargo & Freight Company", "مناسبة لشركات الخدمات اللوجستية وتنفيذ الطلبات وخدمات الشحن الدولي."],
+              ["التجارة المباشرة", "Shopping & Retail / E-commerce Website", "مناسبة للبيع عبر البث المباشر وتشغيل المتاجر الإلكترونية."],
+              ["بيع مستحضرات التجميل", "Beauty, Cosmetic & Personal Care / Health Beauty", "مناسبة لمنتجات K-beauty ومستحضرات التجميل وبيع علامات التجميل."],
+              ["منصة AI/IT", "Software Company / Internet Company", "مناسبة لتشغيل خدمات SaaS والمنصات وخدمات تقنية المعلومات."]
+            ] }
+          ]
+        },
+        {
+          "h2": "7. ربط صفحة Facebook",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "الانتقال إلى لوحة التحكم الاحترافية", "p": "افتح لوحة التحكم الاحترافية من ملفك الشخصي على Instagram.", "path": "الملف الشخصي → لوحة التحكم الاحترافية" },
+              { "h3": "ربط صفحة Facebook", "p": "اختر صفحة Facebook موجودة أو أنشئ صفحة جديدة.", "path": "ربط صفحة Facebook" },
+              { "h3": "التحقق من صلاحيات المسؤول", "p": "تأكد من أن لديك صلاحيات المسؤول لصفحة Facebook التي تريد ربطها.", "path": "صلاحية Page Admin" }
+            ] },
+            { "type": "notice", "kind": "", "html": "يؤدي ربط صفحة Facebook إلى تسهيل تشغيل الإعلانات والاطلاع على الرؤى وإدارة Meta Business Suite." }
+          ]
+        },
+        {
+          "h2": "8. ربط Meta Business Suite",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "الوصول إلى Meta Business Suite", "p": "افتح Meta Business Suite في متصفحك.", "path": "business.facebook.com" },
+              { "h3": "إنشاء حساب تجاري", "p": "أدخل اسم الشركة والاسم والبريد الإلكتروني لإنشاء حساب تجاري.", "path": "إنشاء نشاط تجاري" },
+              { "h3": "إضافة حساب Instagram", "p": "أضف حساب Instagram الخاص بك في إعدادات النشاط التجاري.", "path": "إعدادات النشاط التجاري → الحسابات → حسابات Instagram" },
+              { "h3": "التحقق من ربط صفحة Facebook", "p": "تأكد من أن حساب Instagram الخاص بك مرتبط بصفحة Facebook الصحيحة.", "path": "التحقق من الأصول المرتبطة" }
+            ] }
+          ]
+        },
+        {
+          "h2": "9. التحقق من النشاط التجاري",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "فتح إعدادات النشاط التجاري", "p": "انتقل إلى إعدادات النشاط التجاري في Meta Business Suite.", "path": "إعدادات النشاط التجاري" },
+              { "h3": "الانتقال إلى مركز الأمان", "p": "اختر مركز الأمان من القائمة اليسرى.", "path": "مركز الأمان" },
+              { "h3": "بدء التحقق من النشاط التجاري", "p": "أدخل السجل التجاري واسم الشركة والعنوان والموقع الإلكتروني وما إلى ذلك.", "path": "التحقق من النشاط التجاري" },
+              { "h3": "التحقق من نتيجة المراجعة", "p": "بعد أن تكمل Meta المراجعة، تحقق من حالة التحقق.", "path": "Verification Status" }
+            ] }
+          ]
+        },
+        {
+          "h2": "10. هيكل الإعداد لتكامل Instagram API",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>Instagram Business Account</strong><br>        │<br>        ▼<br>Facebook Page<br>        │<br>        ▼<br>Meta Business Suite<br>        │<br>        ▼<br>Meta Developer App<br>        │<br>        ▼<br>Instagram Graph API<br>        │<br>        ▼<br>إصدار رمز الوصول" },
+            { "type": "notice", "kind": "danger", "html": "<strong>تنبيه:</strong> لاستخدام Instagram API، لا يكفي مجرد تحويل الحساب إلى حساب تجاري — فقد تحتاج أيضًا إلى ربط صفحة Facebook وتهيئة Meta Business وإنشاء Developer App وإكمال مراجعة الصلاحيات." }
+          ]
+        },
+        {
+          "h2": "11. قائمة التحقق النهائية",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "أنشأت حساب Instagram للشركة.",
+              "أدخلت صورة الملف الشخصي والنص التعريفي والموقع الإلكتروني.",
+              "حوّلت إلى حساب احترافي.",
+              "اخترت نوع الحساب التجاري.",
+              "اخترت فئة تناسب النشاط التجاري.",
+              "أدخلت معلومات الاتصال.",
+              "ربطت صفحة Facebook.",
+              "أضفت حساب Instagram إلى Meta Business Suite.",
+              "أجريت التحقق من النشاط التجاري عند الحاجة.",
+              "جهّز Meta Developer App لتكامل API."
+            ] }
+          ]
+        }
+      ]
+    },
+    "es": {
+      "titleType": "Manual de conversión a cuenta de empresa de Instagram",
+      "badge": "Instagram Business Setup Manual",
+      "intro": "Una guía para principiantes que ayuda a empresas, marcas, tiendas en línea y operadores de live commerce a convertir su cuenta de Instagram en una cuenta de empresa/creador y a prepararse para la integración con Meta Business Suite y la API.",
+      "org": "Guía práctica para principiantes",
+      "quick": [
+        ["Cuenta recomendada", "Empresas: cuenta de empresa"],
+        ["Apps necesarias", "Instagram / Facebook"],
+        ["Objetivo de integración", "Página de Facebook"],
+        ["Preparación de la API", "Meta Business + Developer"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Cuenta de empresa frente a cuenta de creador",
+          "desc": "Si el propósito es el uso empresarial, en la mayoría de los casos elegir una cuenta de empresa es lo más adecuado.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Business Account", "h3": "Cuenta de empresa", "p": "Adecuada para empresas, marcas, tiendas en línea, servicios de logística, live commerce y ventas en línea. Ventajosa para anuncios, estadísticas, Meta Business Suite e integración con la API." },
+              { "tag": "Creator Account", "h3": "Cuenta de creador", "p": "Adecuada para influencers, creadores de contenido y operadores de marcas personales. Para la API empresarial, las compras y la gestión de anuncios, una cuenta de empresa es más estable." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "<strong>Recomendación:</strong> Convierte tu cuenta de Instagram de empresa en una <strong>cuenta de empresa</strong>." }
+          ]
+        },
+        {
+          "h2": "2. Qué preparar antes de crear la cuenta",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Dirección de correo electrónico corporativa",
+              "Nombre de la marca o de la empresa",
+              "Posible nombre de usuario de Instagram",
+              "Logotipo de la empresa o imagen de perfil",
+              "Texto de presentación de la empresa",
+              "URL del sitio web",
+              "Una página de Facebook existente o por crear"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. Crear una cuenta de Instagram",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Instalar la app de Instagram", "p": "Instala y abre la app de Instagram en tu smartphone.", "path": "App Store / Google Play → Instagram" },
+              { "h3": "Registrarse", "p": "Crea una cuenta nueva con un correo corporativo o un número de teléfono.", "path": "Crear cuenta nueva" },
+              { "h3": "Establecer un nombre de usuario", "p": "Introduce un nombre de usuario que coincida con tu marca o que sea fácil de buscar.", "path": "p. ej.: geniego_global / ocl_korea" },
+              { "h3": "Introducir la información básica del perfil", "p": "Introduce tu logotipo, el texto de presentación y la URL del sitio web.", "path": "Editar perfil" }
+            ] }
+          ]
+        },
+        {
+          "h2": "4. Cambiar a una cuenta profesional",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Abrir el menú del perfil", "p": "Toca el icono de perfil en la parte inferior de la app de Instagram.", "path": "Perfil" },
+              { "h3": "Ir a Configuración y privacidad", "p": "Toca el menú ☰ en la parte superior derecha y luego ve a Configuración y privacidad.", "path": "☰ → Configuración y privacidad" },
+              { "h3": "Seleccionar Tipo de cuenta y herramientas", "p": "En el menú de gestión de la cuenta, busca la opción para cambiar a una cuenta profesional.", "path": "Tipo de cuenta y herramientas" },
+              { "h3": "Cambiar a una cuenta profesional", "p": "Salta las pantallas de introducción y elige cambiar a una cuenta profesional.", "path": "Cambiar a cuenta profesional" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. Elegir una cuenta de empresa",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Seleccionar el tipo de cuenta", "p": "Elige Empresa entre Creador y Empresa.", "path": "Seleccionar Empresa" },
+              { "h3": "Seleccionar una categoría", "p": "Elige una categoría que coincida con la naturaleza de tu empresa.", "path": "Seleccionar categoría" },
+              { "h3": "Introducir la información de contacto", "p": "Introduce la información que los clientes pueden consultar, como correo electrónico, número de teléfono y dirección.", "path": "Información de contacto comercial" },
+              { "h3": "Confirmar que la conversión está completa", "p": "Cuando el Panel profesional aparezca en tu perfil, la conversión estará completa.", "path": "Panel profesional" }
+            ] }
+          ]
+        },
+        {
+          "h2": "6. Categorías recomendadas",
+          "blocks": [
+            { "type": "table", "head": ["Tipo de negocio", "Categoría recomendada", "Descripción"], "rows": [
+              ["Logística/Envío", "Logistics Company / Transportation Service / Cargo & Freight Company", "Adecuada para empresas de logística, fulfillment y servicios de envío internacional."],
+              ["Live commerce", "Shopping & Retail / E-commerce Website", "Adecuada para ventas en directo y la gestión de tiendas en línea."],
+              ["Venta de cosméticos", "Beauty, Cosmetic & Personal Care / Health Beauty", "Adecuada para K-beauty, cosméticos y la venta de marcas de belleza."],
+              ["Plataforma de IA/TI", "Software Company / Internet Company", "Adecuada para SaaS, plataformas y la gestión de servicios de TI."]
+            ] }
+          ]
+        },
+        {
+          "h2": "7. Conectar una página de Facebook",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Ir al Panel profesional", "p": "Abre el Panel profesional desde tu perfil de Instagram.", "path": "Perfil → Panel profesional" },
+              { "h3": "Conectar una página de Facebook", "p": "Selecciona una página de Facebook existente o crea una nueva.", "path": "Conectar página de Facebook" },
+              { "h3": "Verificar los permisos de administrador", "p": "Asegúrate de tener permisos de administrador para la página de Facebook que quieres conectar.", "path": "Permiso de Page Admin" }
+            ] },
+            { "type": "notice", "kind": "", "html": "Conectar una página de Facebook facilita publicar anuncios, consultar estadísticas y gestionar Meta Business Suite." }
+          ]
+        },
+        {
+          "h2": "8. Conectar Meta Business Suite",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Acceder a Meta Business Suite", "p": "Abre Meta Business Suite en tu navegador.", "path": "business.facebook.com" },
+              { "h3": "Crear una cuenta de empresa", "p": "Introduce el nombre de la empresa, tu nombre y el correo electrónico para crear una cuenta de empresa.", "path": "Crear empresa" },
+              { "h3": "Añadir la cuenta de Instagram", "p": "Añade tu cuenta de Instagram en la configuración de la empresa.", "path": "Configuración de la empresa → Cuentas → Cuentas de Instagram" },
+              { "h3": "Verificar la conexión con la página de Facebook", "p": "Confirma que tu cuenta de Instagram está conectada a la página de Facebook correcta.", "path": "Comprobar los activos conectados" }
+            ] }
+          ]
+        },
+        {
+          "h2": "9. Verificación de empresa",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Abrir la configuración de la empresa", "p": "Ve a la configuración de la empresa en Meta Business Suite.", "path": "Configuración de la empresa" },
+              { "h3": "Ir al Centro de seguridad", "p": "Selecciona el Centro de seguridad en el menú de la izquierda.", "path": "Centro de seguridad" },
+              { "h3": "Iniciar la verificación de empresa", "p": "Introduce el certificado de registro mercantil, el nombre de la empresa, la dirección, el sitio web, etc.", "path": "Verificación de empresa" },
+              { "h3": "Comprobar el resultado de la revisión", "p": "Tras completar Meta la revisión, comprueba el estado de verificación.", "path": "Verification Status" }
+            ] }
+          ]
+        },
+        {
+          "h2": "10. Estructura para preparar la integración de la API de Instagram",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>Instagram Business Account</strong><br>        │<br>        ▼<br>Facebook Page<br>        │<br>        ▼<br>Meta Business Suite<br>        │<br>        ▼<br>Meta Developer App<br>        │<br>        ▼<br>Instagram Graph API<br>        │<br>        ▼<br>Emitir un token de acceso" },
+            { "type": "notice", "kind": "danger", "html": "<strong>Precaución:</strong> Para usar la API de Instagram, simplemente cambiar la cuenta a empresa no es suficiente: es posible que también debas conectar una página de Facebook, configurar Meta Business, crear una Developer App y completar la revisión de permisos." }
+          ]
+        },
+        {
+          "h2": "11. Lista de verificación final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Creaste una cuenta de Instagram de empresa.",
+              "Introdujiste la imagen de perfil, la presentación y el sitio web.",
+              "Cambiaste a una cuenta profesional.",
+              "Seleccionaste el tipo de cuenta de empresa.",
+              "Seleccionaste una categoría acorde con el negocio.",
+              "Introdujiste la información de contacto.",
+              "Conectaste una página de Facebook.",
+              "Añadiste la cuenta de Instagram a Meta Business Suite.",
+              "Realizaste la verificación de empresa si fue necesario.",
+              "Prepara una Meta Developer App para la integración de la API."
+            ] }
+          ]
+        }
+      ]
+    },
+    "fr": {
+      "titleType": "Manuel de conversion en compte professionnel Instagram",
+      "badge": "Instagram Business Setup Manual",
+      "intro": "Un guide pour débutants qui aide les entreprises, les marques, les boutiques en ligne et les opérateurs de live commerce à convertir leur compte Instagram en compte professionnel/créateur et à préparer l'intégration de Meta Business Suite et de l'API.",
+      "org": "Guide pratique pour débutants",
+      "quick": [
+        ["Compte recommandé", "Entreprises : compte professionnel"],
+        ["Applis nécessaires", "Instagram / Facebook"],
+        ["Cible d'intégration", "Page Facebook"],
+        ["Préparation de l'API", "Meta Business + Developer"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Compte professionnel ou compte créateur",
+          "desc": "Si l'objectif est une utilisation professionnelle, choisir un compte professionnel est le plus adapté dans la plupart des cas.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Business Account", "h3": "Compte professionnel", "p": "Adapté aux entreprises, marques, boutiques en ligne, services logistiques, live commerce et vente en ligne. Avantageux pour les publicités, les statistiques, Meta Business Suite et l'intégration de l'API." },
+              { "tag": "Creator Account", "h3": "Compte créateur", "p": "Adapté aux influenceurs, créateurs de contenu et exploitants de marques personnelles. Pour l'API d'entreprise, le shopping et la gestion des publicités, un compte professionnel est plus stable." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "<strong>Recommandation :</strong> Convertissez le compte Instagram de votre entreprise en <strong>compte professionnel</strong>." }
+          ]
+        },
+        {
+          "h2": "2. Ce qu'il faut préparer avant de créer le compte",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Adresse e-mail professionnelle",
+              "Nom de marque ou nom de l'entreprise",
+              "Nom d'utilisateur Instagram envisagé",
+              "Logo de l'entreprise ou photo de profil",
+              "Texte de présentation de l'entreprise",
+              "URL du site web",
+              "Une page Facebook existante ou à créer"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. Créer un compte Instagram",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Installer l'appli Instagram", "p": "Installez et lancez l'appli Instagram sur votre smartphone.", "path": "App Store / Google Play → Instagram" },
+              { "h3": "S'inscrire", "p": "Créez un nouveau compte avec une adresse e-mail professionnelle ou un numéro de téléphone.", "path": "Créer un compte" },
+              { "h3": "Définir un nom d'utilisateur", "p": "Saisissez un nom d'utilisateur qui correspond à votre marque ou facile à rechercher.", "path": "ex. : geniego_global / ocl_korea" },
+              { "h3": "Saisir les informations de profil de base", "p": "Saisissez votre logo, le texte de présentation et l'URL du site web.", "path": "Modifier le profil" }
+            ] }
+          ]
+        },
+        {
+          "h2": "4. Passer à un compte professionnel",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Ouvrir le menu du profil", "p": "Touchez l'icône de profil en bas de l'appli Instagram.", "path": "Profil" },
+              { "h3": "Aller dans Paramètres et confidentialité", "p": "Touchez le menu ☰ en haut à droite, puis allez dans Paramètres et confidentialité.", "path": "☰ → Paramètres et confidentialité" },
+              { "h3": "Sélectionner Type de compte et outils", "p": "Dans le menu de gestion du compte, trouvez l'option pour passer à un compte professionnel.", "path": "Type de compte et outils" },
+              { "h3": "Passer à un compte professionnel", "p": "Passez les écrans d'introduction et choisissez de passer à un compte professionnel.", "path": "Passer à un compte professionnel" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. Choisir un compte professionnel",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Sélectionner le type de compte", "p": "Choisissez Entreprise parmi Créateur et Entreprise.", "path": "Sélectionner Entreprise" },
+              { "h3": "Sélectionner une catégorie", "p": "Choisissez une catégorie qui correspond à la nature de votre entreprise.", "path": "Sélectionner une catégorie" },
+              { "h3": "Saisir les coordonnées", "p": "Saisissez les informations que les clients peuvent consulter, telles que l'e-mail, le numéro de téléphone et l'adresse.", "path": "Coordonnées professionnelles" },
+              { "h3": "Confirmer que la conversion est terminée", "p": "Lorsque le Tableau de bord professionnel apparaît sur votre profil, la conversion est terminée.", "path": "Tableau de bord professionnel" }
+            ] }
+          ]
+        },
+        {
+          "h2": "6. Catégories recommandées",
+          "blocks": [
+            { "type": "table", "head": ["Type d'activité", "Catégorie recommandée", "Description"], "rows": [
+              ["Logistique/Livraison", "Logistics Company / Transportation Service / Cargo & Freight Company", "Adaptée aux entreprises de logistique, à la préparation de commandes et aux services d'expédition internationale."],
+              ["Live commerce", "Shopping & Retail / E-commerce Website", "Adaptée à la vente en direct et à la gestion de boutiques en ligne."],
+              ["Vente de cosmétiques", "Beauty, Cosmetic & Personal Care / Health Beauty", "Adaptée à la K-beauty, aux cosmétiques et à la vente de marques de beauté."],
+              ["Plateforme IA/IT", "Software Company / Internet Company", "Adaptée au SaaS, aux plateformes et à la gestion de services informatiques."]
+            ] }
+          ]
+        },
+        {
+          "h2": "7. Connecter une page Facebook",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Aller au Tableau de bord professionnel", "p": "Ouvrez le Tableau de bord professionnel depuis votre profil Instagram.", "path": "Profil → Tableau de bord professionnel" },
+              { "h3": "Connecter une page Facebook", "p": "Sélectionnez une page Facebook existante ou créez-en une nouvelle.", "path": "Connecter une page Facebook" },
+              { "h3": "Vérifier les autorisations d'administrateur", "p": "Assurez-vous d'avoir les autorisations d'administrateur de la page Facebook que vous souhaitez connecter.", "path": "Autorisation Page Admin" }
+            ] },
+            { "type": "notice", "kind": "", "html": "Connecter une page Facebook facilite la diffusion de publicités, la consultation des statistiques et la gestion de Meta Business Suite." }
+          ]
+        },
+        {
+          "h2": "8. Connecter Meta Business Suite",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Accéder à Meta Business Suite", "p": "Ouvrez Meta Business Suite dans votre navigateur.", "path": "business.facebook.com" },
+              { "h3": "Créer un compte professionnel", "p": "Saisissez le nom de l'entreprise, votre nom et votre e-mail pour créer un compte professionnel.", "path": "Créer une entreprise" },
+              { "h3": "Ajouter le compte Instagram", "p": "Ajoutez votre compte Instagram dans les paramètres de l'entreprise.", "path": "Paramètres de l'entreprise → Comptes → Comptes Instagram" },
+              { "h3": "Vérifier la connexion avec la page Facebook", "p": "Confirmez que votre compte Instagram est connecté à la bonne page Facebook.", "path": "Vérifier les ressources connectées" }
+            ] }
+          ]
+        },
+        {
+          "h2": "9. Vérification de l'entreprise",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Ouvrir les paramètres de l'entreprise", "p": "Accédez aux paramètres de l'entreprise dans Meta Business Suite.", "path": "Paramètres de l'entreprise" },
+              { "h3": "Aller au Centre de sécurité", "p": "Sélectionnez le Centre de sécurité dans le menu de gauche.", "path": "Centre de sécurité" },
+              { "h3": "Démarrer la vérification de l'entreprise", "p": "Saisissez l'extrait d'immatriculation, le nom de l'entreprise, l'adresse, le site web, etc.", "path": "Vérification de l'entreprise" },
+              { "h3": "Vérifier le résultat de l'examen", "p": "Une fois l'examen de Meta terminé, vérifiez le statut de vérification.", "path": "Verification Status" }
+            ] }
+          ]
+        },
+        {
+          "h2": "10. Structure de préparation à l'intégration de l'API Instagram",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>Instagram Business Account</strong><br>        │<br>        ▼<br>Facebook Page<br>        │<br>        ▼<br>Meta Business Suite<br>        │<br>        ▼<br>Meta Developer App<br>        │<br>        ▼<br>Instagram Graph API<br>        │<br>        ▼<br>Émettre un token d'accès" },
+            { "type": "notice", "kind": "danger", "html": "<strong>Attention :</strong> Pour utiliser l'API Instagram, il ne suffit pas de simplement convertir le compte en compte professionnel — vous devrez peut-être aussi connecter une page Facebook, configurer Meta Business, créer une Developer App et finaliser l'examen des autorisations." }
+          ]
+        },
+        {
+          "h2": "11. Liste de vérification finale",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Créé un compte Instagram d'entreprise.",
+              "Saisi la photo de profil, la présentation et le site web.",
+              "Passé à un compte professionnel.",
+              "Sélectionné le type de compte professionnel.",
+              "Sélectionné une catégorie adaptée à l'activité.",
+              "Saisi les coordonnées.",
+              "Connecté une page Facebook.",
+              "Ajouté le compte Instagram à Meta Business Suite.",
+              "Effectué la vérification de l'entreprise si nécessaire.",
+              "Préparez une Meta Developer App pour l'intégration de l'API."
+            ] }
+          ]
+        }
+      ]
+    },
+    "hi": {
+      "titleType": "कॉर्पोरेट Instagram बिज़नेस अकाउंट रूपांतरण मैनुअल",
+      "badge": "Instagram Business Setup Manual",
+      "intro": "एक शुरुआती-अनुकूल गाइड जो कंपनियों, ब्रांड्स, ऑनलाइन स्टोर और लाइव कॉमर्स संचालकों को अपने Instagram अकाउंट को बिज़नेस/क्रिएटर अकाउंट में बदलने और Meta Business Suite तथा API एकीकरण की तैयारी करने में मदद करती है।",
+      "org": "शुरुआती व्यावहारिक गाइड",
+      "quick": [
+        ["अनुशंसित अकाउंट", "कंपनियों के लिए बिज़नेस अकाउंट"],
+        ["आवश्यक ऐप्स", "Instagram / Facebook"],
+        ["एकीकरण लक्ष्य", "Facebook पेज"],
+        ["API तैयारी", "Meta Business + Developer"]
+      ],
+      "sections": [
+        {
+          "h2": "1. बिज़नेस अकाउंट और क्रिएटर अकाउंट में अंतर",
+          "desc": "यदि उद्देश्य व्यवसाय संचालन है, तो अधिकांश मामलों में बिज़नेस अकाउंट चुनना सबसे उपयुक्त है।",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Business Account", "h3": "बिज़नेस अकाउंट", "p": "कंपनियों, ब्रांड्स, ऑनलाइन स्टोर, लॉजिस्टिक्स सेवाओं, लाइव कॉमर्स और ऑनलाइन बिक्री के लिए उपयुक्त। विज्ञापन, इनसाइट्स, Meta Business Suite और API एकीकरण के लिए लाभकारी।" },
+              { "tag": "Creator Account", "h3": "क्रिएटर अकाउंट", "p": "इन्फ्लुएंसर, कंटेंट क्रिएटर और व्यक्तिगत ब्रांड संचालकों के लिए उपयुक्त। एंटरप्राइज़ API, शॉपिंग और विज्ञापन संचालन के लिए बिज़नेस अकाउंट अधिक स्थिर है।" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "<strong>अनुशंसा:</strong> अपने कॉर्पोरेट Instagram अकाउंट को <strong>बिज़नेस अकाउंट</strong> में बदलें।" }
+          ]
+        },
+        {
+          "h2": "2. अकाउंट बनाने से पहले क्या तैयार करें",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "कॉर्पोरेट ईमेल पता",
+              "ब्रांड नाम या कंपनी का नाम",
+              "संभावित Instagram उपयोगकर्ता नाम",
+              "कंपनी का लोगो या प्रोफ़ाइल चित्र",
+              "कंपनी परिचय पाठ",
+              "वेबसाइट URL",
+              "मौजूदा या बनाई जाने वाली Facebook पेज"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. Instagram अकाउंट बनाएँ",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Instagram ऐप इंस्टॉल करें", "p": "अपने स्मार्टफ़ोन पर Instagram ऐप इंस्टॉल करें और खोलें।", "path": "App Store / Google Play → Instagram" },
+              { "h3": "साइन अप करें", "p": "कॉर्पोरेट ईमेल या फ़ोन नंबर से नया अकाउंट बनाएँ।", "path": "नया अकाउंट बनाएँ" },
+              { "h3": "उपयोगकर्ता नाम सेट करें", "p": "ऐसा उपयोगकर्ता नाम दर्ज करें जो आपके ब्रांड नाम से मेल खाता हो या खोजना आसान हो।", "path": "उदा.: geniego_global / ocl_korea" },
+              { "h3": "प्रोफ़ाइल की बुनियादी जानकारी दर्ज करें", "p": "अपना लोगो, परिचय पाठ और वेबसाइट URL दर्ज करें।", "path": "प्रोफ़ाइल संपादित करें" }
+            ] }
+          ]
+        },
+        {
+          "h2": "4. प्रोफेशनल अकाउंट में बदलें",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "प्रोफ़ाइल मेनू खोलें", "p": "Instagram ऐप के नीचे प्रोफ़ाइल आइकन पर टैप करें।", "path": "प्रोफ़ाइल" },
+              { "h3": "सेटिंग्स और गोपनीयता पर जाएँ", "p": "ऊपर दाईं ओर ☰ मेनू पर टैप करें, फिर सेटिंग्स और गोपनीयता पर जाएँ।", "path": "☰ → सेटिंग्स और गोपनीयता" },
+              { "h3": "अकाउंट प्रकार और टूल चुनें", "p": "अकाउंट प्रबंधन मेनू में, प्रोफेशनल अकाउंट में बदलने का विकल्प खोजें।", "path": "अकाउंट प्रकार और टूल" },
+              { "h3": "प्रोफेशनल अकाउंट में बदलें", "p": "परिचय स्क्रीन को छोड़ें और प्रोफेशनल अकाउंट में बदलना चुनें।", "path": "प्रोफेशनल अकाउंट में बदलें" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. बिज़नेस अकाउंट चुनें",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "अकाउंट प्रकार चुनें", "p": "क्रिएटर और बिज़नेस में से बिज़नेस चुनें।", "path": "बिज़नेस चुनें" },
+              { "h3": "श्रेणी चुनें", "p": "अपनी कंपनी की प्रकृति से मेल खाने वाली श्रेणी चुनें।", "path": "श्रेणी चुनें" },
+              { "h3": "संपर्क जानकारी दर्ज करें", "p": "ईमेल, फ़ोन नंबर और पता जैसी जानकारी दर्ज करें जिसे ग्राहक देख सकें।", "path": "बिज़नेस संपर्क जानकारी" },
+              { "h3": "रूपांतरण पूर्ण होने की पुष्टि करें", "p": "जब आपके प्रोफ़ाइल पर प्रोफेशनल डैशबोर्ड दिखाई दे, तो रूपांतरण पूर्ण हो गया है।", "path": "प्रोफेशनल डैशबोर्ड" }
+            ] }
+          ]
+        },
+        {
+          "h2": "6. अनुशंसित श्रेणियाँ",
+          "blocks": [
+            { "type": "table", "head": ["व्यवसाय प्रकार", "अनुशंसित श्रेणी", "विवरण"], "rows": [
+              ["लॉजिस्टिक्स/डिलीवरी", "Logistics Company / Transportation Service / Cargo & Freight Company", "लॉजिस्टिक्स कंपनियों, फ़ुलफ़िलमेंट और अंतर्राष्ट्रीय शिपिंग सेवाओं के लिए उपयुक्त।"],
+              ["लाइव कॉमर्स", "Shopping & Retail / E-commerce Website", "लाइव प्रसारण बिक्री और ऑनलाइन स्टोर संचालन के लिए उपयुक्त।"],
+              ["कॉस्मेटिक्स बिक्री", "Beauty, Cosmetic & Personal Care / Health Beauty", "K-beauty, कॉस्मेटिक्स और ब्यूटी ब्रांड बिक्री के लिए उपयुक्त।"],
+              ["AI/IT प्लेटफ़ॉर्म", "Software Company / Internet Company", "SaaS, प्लेटफ़ॉर्म और IT सेवा संचालन के लिए उपयुक्त।"]
+            ] }
+          ]
+        },
+        {
+          "h2": "7. Facebook पेज कनेक्ट करें",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "प्रोफेशनल डैशबोर्ड पर जाएँ", "p": "अपने Instagram प्रोफ़ाइल से प्रोफेशनल डैशबोर्ड खोलें।", "path": "प्रोफ़ाइल → प्रोफेशनल डैशबोर्ड" },
+              { "h3": "Facebook पेज कनेक्ट करें", "p": "मौजूदा Facebook पेज चुनें या नया पेज बनाएँ।", "path": "Facebook पेज कनेक्ट करें" },
+              { "h3": "एडमिन अनुमति जाँचें", "p": "सुनिश्चित करें कि जिस Facebook पेज को आप कनेक्ट करना चाहते हैं, उसके लिए आपके पास एडमिन अनुमति है।", "path": "Page Admin अनुमति" }
+            ] },
+            { "type": "notice", "kind": "", "html": "Facebook पेज कनेक्ट करने से विज्ञापन चलाना, इनसाइट्स देखना और Meta Business Suite का प्रबंधन आसान हो जाता है।" }
+          ]
+        },
+        {
+          "h2": "8. Meta Business Suite कनेक्ट करें",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Meta Business Suite एक्सेस करें", "p": "अपने ब्राउज़र में Meta Business Suite खोलें।", "path": "business.facebook.com" },
+              { "h3": "बिज़नेस अकाउंट बनाएँ", "p": "बिज़नेस अकाउंट बनाने के लिए कंपनी का नाम, नाम और ईमेल दर्ज करें।", "path": "बिज़नेस बनाएँ" },
+              { "h3": "Instagram अकाउंट जोड़ें", "p": "बिज़नेस सेटिंग्स में अपना Instagram अकाउंट जोड़ें।", "path": "बिज़नेस सेटिंग्स → अकाउंट → Instagram अकाउंट" },
+              { "h3": "Facebook पेज कनेक्शन सत्यापित करें", "p": "पुष्टि करें कि आपका Instagram अकाउंट सही Facebook पेज से कनेक्ट है।", "path": "कनेक्टेड एसेट जाँचें" }
+            ] }
+          ]
+        },
+        {
+          "h2": "9. बिज़नेस सत्यापन",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "बिज़नेस सेटिंग्स खोलें", "p": "Meta Business Suite में बिज़नेस सेटिंग्स पर जाएँ।", "path": "बिज़नेस सेटिंग्स" },
+              { "h3": "सुरक्षा केंद्र पर जाएँ", "p": "बाएँ मेनू से सुरक्षा केंद्र चुनें।", "path": "सुरक्षा केंद्र" },
+              { "h3": "बिज़नेस सत्यापन शुरू करें", "p": "व्यवसाय पंजीकरण प्रमाणपत्र, कंपनी का नाम, पता, वेबसाइट आदि दर्ज करें।", "path": "बिज़नेस सत्यापन" },
+              { "h3": "समीक्षा परिणाम जाँचें", "p": "Meta द्वारा समीक्षा पूर्ण होने के बाद, सत्यापन स्थिति जाँचें।", "path": "Verification Status" }
+            ] }
+          ]
+        },
+        {
+          "h2": "10. Instagram API एकीकरण तैयारी संरचना",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>Instagram Business Account</strong><br>        │<br>        ▼<br>Facebook Page<br>        │<br>        ▼<br>Meta Business Suite<br>        │<br>        ▼<br>Meta Developer App<br>        │<br>        ▼<br>Instagram Graph API<br>        │<br>        ▼<br>एक्सेस टोकन जारी करें" },
+            { "type": "notice", "kind": "danger", "html": "<strong>सावधानी:</strong> Instagram API का उपयोग करने के लिए, केवल अकाउंट को बिज़नेस में बदलना ही पर्याप्त नहीं है — आपको Facebook पेज कनेक्ट करना, Meta Business कॉन्फ़िगर करना, Developer App बनाना और अनुमति समीक्षा पूर्ण करना भी पड़ सकता है।" }
+          ]
+        },
+        {
+          "h2": "11. अंतिम चेकलिस्ट",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "कॉर्पोरेट Instagram अकाउंट बनाया।",
+              "प्रोफ़ाइल चित्र, परिचय और वेबसाइट दर्ज की।",
+              "प्रोफेशनल अकाउंट में बदला।",
+              "बिज़नेस अकाउंट प्रकार चुना।",
+              "व्यवसाय के अनुकूल श्रेणी चुनी।",
+              "संपर्क जानकारी दर्ज की।",
+              "Facebook पेज कनेक्ट किया।",
+              "Meta Business Suite में Instagram अकाउंट जोड़ा।",
+              "आवश्यकता होने पर बिज़नेस सत्यापन किया।",
+              "API एकीकरण के लिए Meta Developer App तैयार करें।"
+            ] }
+          ]
+        }
+      ]
+    },
+    "pt": {
+      "titleType": "Manual de conversão para conta empresarial do Instagram",
+      "badge": "Instagram Business Setup Manual",
+      "intro": "Um guia para iniciantes que ajuda empresas, marcas, lojas online e operadores de live commerce a converter sua conta do Instagram em uma conta empresarial/de criador e a se preparar para a integração com o Meta Business Suite e a API.",
+      "org": "Guia prático para iniciantes",
+      "quick": [
+        ["Conta recomendada", "Empresas: conta empresarial"],
+        ["Apps necessários", "Instagram / Facebook"],
+        ["Alvo de integração", "Página do Facebook"],
+        ["Preparação da API", "Meta Business + Developer"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Conta empresarial vs. conta de criador",
+          "desc": "Se o objetivo for o uso empresarial, na maioria dos casos escolher uma conta empresarial é o mais adequado.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Business Account", "h3": "Conta empresarial", "p": "Adequada para empresas, marcas, lojas online, serviços de logística, live commerce e vendas online. Vantajosa para anúncios, insights, Meta Business Suite e integração com a API." },
+              { "tag": "Creator Account", "h3": "Conta de criador", "p": "Adequada para influenciadores, criadores de conteúdo e operadores de marcas pessoais. Para API empresarial, compras e gestão de anúncios, uma conta empresarial é mais estável." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "<strong>Recomendação:</strong> Converta a conta empresarial do Instagram da sua empresa em uma <strong>conta empresarial</strong>." }
+          ]
+        },
+        {
+          "h2": "2. O que preparar antes de criar a conta",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Endereço de e-mail corporativo",
+              "Nome da marca ou da empresa",
+              "Possível nome de usuário do Instagram",
+              "Logotipo da empresa ou imagem de perfil",
+              "Texto de apresentação da empresa",
+              "URL do site",
+              "Uma página do Facebook existente ou a ser criada"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. Criar uma conta do Instagram",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Instalar o app do Instagram", "p": "Instale e abra o app do Instagram no seu smartphone.", "path": "App Store / Google Play → Instagram" },
+              { "h3": "Cadastrar-se", "p": "Crie uma nova conta com um e-mail corporativo ou número de telefone.", "path": "Criar nova conta" },
+              { "h3": "Definir um nome de usuário", "p": "Insira um nome de usuário que combine com a sua marca ou que seja fácil de pesquisar.", "path": "ex.: geniego_global / ocl_korea" },
+              { "h3": "Inserir as informações básicas do perfil", "p": "Insira seu logotipo, o texto de apresentação e a URL do site.", "path": "Editar perfil" }
+            ] }
+          ]
+        },
+        {
+          "h2": "4. Mudar para uma conta profissional",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Abrir o menu do perfil", "p": "Toque no ícone de perfil na parte inferior do app do Instagram.", "path": "Perfil" },
+              { "h3": "Ir para Configurações e privacidade", "p": "Toque no menu ☰ no canto superior direito e vá para Configurações e privacidade.", "path": "☰ → Configurações e privacidade" },
+              { "h3": "Selecionar Tipo de conta e ferramentas", "p": "No menu de gerenciamento da conta, encontre a opção para mudar para uma conta profissional.", "path": "Tipo de conta e ferramentas" },
+              { "h3": "Mudar para uma conta profissional", "p": "Pule as telas de introdução e escolha mudar para uma conta profissional.", "path": "Mudar para conta profissional" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. Escolher uma conta empresarial",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Selecionar o tipo de conta", "p": "Escolha Empresa entre Criador e Empresa.", "path": "Selecionar Empresa" },
+              { "h3": "Selecionar uma categoria", "p": "Escolha uma categoria que combine com a natureza da sua empresa.", "path": "Selecionar categoria" },
+              { "h3": "Inserir informações de contato", "p": "Insira informações que os clientes podem consultar, como e-mail, número de telefone e endereço.", "path": "Informações de contato comercial" },
+              { "h3": "Confirmar que a conversão foi concluída", "p": "Quando o Painel profissional aparecer no seu perfil, a conversão estará concluída.", "path": "Painel profissional" }
+            ] }
+          ]
+        },
+        {
+          "h2": "6. Categorias recomendadas",
+          "blocks": [
+            { "type": "table", "head": ["Tipo de negócio", "Categoria recomendada", "Descrição"], "rows": [
+              ["Logística/Entrega", "Logistics Company / Transportation Service / Cargo & Freight Company", "Adequada para empresas de logística, fulfillment e serviços de envio internacional."],
+              ["Live commerce", "Shopping & Retail / E-commerce Website", "Adequada para vendas ao vivo e operação de lojas online."],
+              ["Venda de cosméticos", "Beauty, Cosmetic & Personal Care / Health Beauty", "Adequada para K-beauty, cosméticos e venda de marcas de beleza."],
+              ["Plataforma de IA/TI", "Software Company / Internet Company", "Adequada para SaaS, plataformas e operação de serviços de TI."]
+            ] }
+          ]
+        },
+        {
+          "h2": "7. Conectar uma página do Facebook",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Ir para o Painel profissional", "p": "Abra o Painel profissional a partir do seu perfil do Instagram.", "path": "Perfil → Painel profissional" },
+              { "h3": "Conectar uma página do Facebook", "p": "Selecione uma página do Facebook existente ou crie uma nova.", "path": "Conectar página do Facebook" },
+              { "h3": "Verificar as permissões de administrador", "p": "Verifique se você tem permissão de administrador da página do Facebook que deseja conectar.", "path": "Permissão de Page Admin" }
+            ] },
+            { "type": "notice", "kind": "", "html": "Conectar uma página do Facebook facilita veicular anúncios, consultar insights e gerenciar o Meta Business Suite." }
+          ]
+        },
+        {
+          "h2": "8. Conectar o Meta Business Suite",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Acessar o Meta Business Suite", "p": "Abra o Meta Business Suite no seu navegador.", "path": "business.facebook.com" },
+              { "h3": "Criar uma conta empresarial", "p": "Insira o nome da empresa, seu nome e e-mail para criar uma conta empresarial.", "path": "Criar empresa" },
+              { "h3": "Adicionar a conta do Instagram", "p": "Adicione sua conta do Instagram nas configurações da empresa.", "path": "Configurações da empresa → Contas → Contas do Instagram" },
+              { "h3": "Verificar a conexão com a página do Facebook", "p": "Confirme que sua conta do Instagram está conectada à página do Facebook correta.", "path": "Verificar ativos conectados" }
+            ] }
+          ]
+        },
+        {
+          "h2": "9. Verificação da empresa",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Abrir as configurações da empresa", "p": "Vá para as configurações da empresa no Meta Business Suite.", "path": "Configurações da empresa" },
+              { "h3": "Ir para a Central de Segurança", "p": "Selecione a Central de Segurança no menu à esquerda.", "path": "Central de Segurança" },
+              { "h3": "Iniciar a verificação da empresa", "p": "Insira o contrato social, o nome da empresa, o endereço, o site etc.", "path": "Verificação da empresa" },
+              { "h3": "Verificar o resultado da análise", "p": "Após o Meta concluir a análise, verifique o status de verificação.", "path": "Verification Status" }
+            ] }
+          ]
+        },
+        {
+          "h2": "10. Estrutura de preparação para a integração da API do Instagram",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>Instagram Business Account</strong><br>        │<br>        ▼<br>Facebook Page<br>        │<br>        ▼<br>Meta Business Suite<br>        │<br>        ▼<br>Meta Developer App<br>        │<br>        ▼<br>Instagram Graph API<br>        │<br>        ▼<br>Emitir um token de acesso" },
+            { "type": "notice", "kind": "danger", "html": "<strong>Atenção:</strong> Para usar a API do Instagram, apenas mudar a conta para empresarial não é suficiente — você também pode precisar conectar uma página do Facebook, configurar o Meta Business, criar um Developer App e concluir a análise de permissões." }
+          ]
+        },
+        {
+          "h2": "11. Lista de verificação final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Criou uma conta empresarial do Instagram.",
+              "Inseriu a imagem de perfil, a apresentação e o site.",
+              "Mudou para uma conta profissional.",
+              "Selecionou o tipo de conta empresarial.",
+              "Selecionou uma categoria adequada ao negócio.",
+              "Inseriu as informações de contato.",
+              "Conectou uma página do Facebook.",
+              "Adicionou a conta do Instagram ao Meta Business Suite.",
+              "Realizou a verificação da empresa, se necessário.",
+              "Prepare um Meta Developer App para a integração da API."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ru": {
+      "titleType": "Руководство по переводу аккаунта Instagram в бизнес-аккаунт компании",
+      "badge": "Instagram Business Setup Manual",
+      "intro": "Понятное для новичков руководство, которое помогает компаниям, брендам, интернет-магазинам и операторам лайв-коммерции перевести аккаунт Instagram в бизнес-аккаунт/аккаунт автора и подготовиться к интеграции с Meta Business Suite и API.",
+      "org": "Практическое руководство для новичков",
+      "quick": [
+        ["Рекомендуемый аккаунт", "Для компаний — бизнес-аккаунт"],
+        ["Необходимые приложения", "Instagram / Facebook"],
+        ["Цель интеграции", "Страница Facebook"],
+        ["Подготовка API", "Meta Business + Developer"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Разница между бизнес-аккаунтом и аккаунтом автора",
+          "desc": "Если цель — ведение бизнеса, в большинстве случаев наиболее подходящим вариантом является бизнес-аккаунт.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Business Account", "h3": "Бизнес-аккаунт", "p": "Подходит для компаний, брендов, интернет-магазинов, логистических служб, лайв-коммерции и онлайн-продаж. Выгоден для рекламы, аналитики, Meta Business Suite и интеграции с API." },
+              { "tag": "Creator Account", "h3": "Аккаунт автора", "p": "Подходит для блогеров, авторов контента и операторов личных брендов. Для корпоративного API, покупок и управления рекламой бизнес-аккаунт более стабилен." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "<strong>Рекомендация:</strong> Переведите корпоративный аккаунт Instagram в <strong>бизнес-аккаунт</strong>." }
+          ]
+        },
+        {
+          "h2": "2. Что подготовить перед созданием аккаунта",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Корпоративный адрес электронной почты",
+              "Название бренда или компании",
+              "Возможное имя пользователя Instagram",
+              "Логотип компании или изображение профиля",
+              "Текст с описанием компании",
+              "URL веб-сайта",
+              "Существующая или планируемая страница Facebook"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. Создание аккаунта Instagram",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Установите приложение Instagram", "p": "Установите и запустите приложение Instagram на смартфоне.", "path": "App Store / Google Play → Instagram" },
+              { "h3": "Зарегистрируйтесь", "p": "Создайте новый аккаунт с корпоративной электронной почтой или номером телефона.", "path": "Создать новый аккаунт" },
+              { "h3": "Задайте имя пользователя", "p": "Введите имя пользователя, которое соответствует вашему бренду или легко находится в поиске.", "path": "напр.: geniego_global / ocl_korea" },
+              { "h3": "Введите основную информацию профиля", "p": "Введите логотип, текст с описанием и URL веб-сайта.", "path": "Редактировать профиль" }
+            ] }
+          ]
+        },
+        {
+          "h2": "4. Переход на профессиональный аккаунт",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Откройте меню профиля", "p": "Нажмите значок профиля внизу приложения Instagram.", "path": "Профиль" },
+              { "h3": "Перейдите в Настройки и конфиденциальность", "p": "Нажмите меню ☰ в правом верхнем углу, затем перейдите в Настройки и конфиденциальность.", "path": "☰ → Настройки и конфиденциальность" },
+              { "h3": "Выберите Тип аккаунта и инструменты", "p": "В меню управления аккаунтом найдите опцию перехода на профессиональный аккаунт.", "path": "Тип аккаунта и инструменты" },
+              { "h3": "Перейдите на профессиональный аккаунт", "p": "Пропустите ознакомительные экраны и выберите переход на профессиональный аккаунт.", "path": "Перейти на профессиональный аккаунт" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. Выбор бизнес-аккаунта",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Выберите тип аккаунта", "p": "Выберите «Бизнес» из вариантов «Автор» и «Бизнес».", "path": "Выбрать «Бизнес»" },
+              { "h3": "Выберите категорию", "p": "Выберите категорию, соответствующую характеру вашей компании.", "path": "Выбрать категорию" },
+              { "h3": "Введите контактную информацию", "p": "Введите информацию, которую могут видеть клиенты: электронную почту, номер телефона и адрес.", "path": "Деловая контактная информация" },
+              { "h3": "Подтвердите завершение перехода", "p": "Когда в вашем профиле появится «Профессиональная панель», переход завершён.", "path": "Профессиональная панель" }
+            ] }
+          ]
+        },
+        {
+          "h2": "6. Рекомендуемые категории",
+          "blocks": [
+            { "type": "table", "head": ["Тип бизнеса", "Рекомендуемая категория", "Описание"], "rows": [
+              ["Логистика/Доставка", "Logistics Company / Transportation Service / Cargo & Freight Company", "Подходит для логистических компаний, фулфилмента и услуг международной доставки."],
+              ["Лайв-коммерция", "Shopping & Retail / E-commerce Website", "Подходит для продаж в прямом эфире и ведения интернет-магазинов."],
+              ["Продажа косметики", "Beauty, Cosmetic & Personal Care / Health Beauty", "Подходит для K-beauty, косметики и продажи бьюти-брендов."],
+              ["AI/IT-платформа", "Software Company / Internet Company", "Подходит для SaaS, платформ и ведения ИТ-сервисов."]
+            ] }
+          ]
+        },
+        {
+          "h2": "7. Подключение страницы Facebook",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Перейдите на профессиональную панель", "p": "Откройте профессиональную панель из своего профиля Instagram.", "path": "Профиль → Профессиональная панель" },
+              { "h3": "Подключите страницу Facebook", "p": "Выберите существующую страницу Facebook или создайте новую.", "path": "Подключить страницу Facebook" },
+              { "h3": "Проверьте права администратора", "p": "Убедитесь, что у вас есть права администратора страницы Facebook, которую вы хотите подключить.", "path": "Право Page Admin" }
+            ] },
+            { "type": "notice", "kind": "", "html": "Подключение страницы Facebook упрощает запуск рекламы, просмотр аналитики и управление Meta Business Suite." }
+          ]
+        },
+        {
+          "h2": "8. Подключение Meta Business Suite",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Откройте Meta Business Suite", "p": "Откройте Meta Business Suite в браузере.", "path": "business.facebook.com" },
+              { "h3": "Создайте бизнес-аккаунт", "p": "Введите название компании, имя и электронную почту, чтобы создать бизнес-аккаунт.", "path": "Создать компанию" },
+              { "h3": "Добавьте аккаунт Instagram", "p": "Добавьте свой аккаунт Instagram в настройках компании.", "path": "Настройки компании → Аккаунты → Аккаунты Instagram" },
+              { "h3": "Проверьте связь со страницей Facebook", "p": "Убедитесь, что ваш аккаунт Instagram связан с правильной страницей Facebook.", "path": "Проверить связанные ресурсы" }
+            ] }
+          ]
+        },
+        {
+          "h2": "9. Подтверждение компании",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Откройте настройки компании", "p": "Перейдите в настройки компании в Meta Business Suite.", "path": "Настройки компании" },
+              { "h3": "Перейдите в Центр безопасности", "p": "Выберите Центр безопасности в левом меню.", "path": "Центр безопасности" },
+              { "h3": "Начните подтверждение компании", "p": "Введите свидетельство о регистрации, название компании, адрес, веб-сайт и т. д.", "path": "Подтверждение компании" },
+              { "h3": "Проверьте результат проверки", "p": "После завершения проверки Meta проверьте статус подтверждения.", "path": "Verification Status" }
+            ] }
+          ]
+        },
+        {
+          "h2": "10. Структура подготовки к интеграции Instagram API",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>Instagram Business Account</strong><br>        │<br>        ▼<br>Facebook Page<br>        │<br>        ▼<br>Meta Business Suite<br>        │<br>        ▼<br>Meta Developer App<br>        │<br>        ▼<br>Instagram Graph API<br>        │<br>        ▼<br>Выпуск токена доступа" },
+            { "type": "notice", "kind": "danger", "html": "<strong>Внимание:</strong> Чтобы использовать Instagram API, недостаточно просто перевести аккаунт в бизнес — возможно, потребуется также подключить страницу Facebook, настроить Meta Business, создать Developer App и пройти проверку разрешений." }
+          ]
+        },
+        {
+          "h2": "11. Итоговый контрольный список",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Создан корпоративный аккаунт Instagram.",
+              "Введены изображение профиля, описание и веб-сайт.",
+              "Выполнен переход на профессиональный аккаунт.",
+              "Выбран тип бизнес-аккаунта.",
+              "Выбрана категория, подходящая для бизнеса.",
+              "Введена контактная информация.",
+              "Подключена страница Facebook.",
+              "Аккаунт Instagram добавлен в Meta Business Suite.",
+              "При необходимости проведено подтверждение компании.",
+              "Подготовьте Meta Developer App для интеграции API."
+            ] }
+          ]
+        }
+      ]
+    }
+  }
+}

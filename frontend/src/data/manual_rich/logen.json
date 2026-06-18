@@ -1,0 +1,1011 @@
+{
+  "name": "Logen",
+  "icon": "🚐",
+  "langs": {
+    "ko": {
+      "titleType": "API Key 발급 매뉴얼",
+      "badge": "Beginner Guide",
+      "intro": "로젠택배는 별도 발급 없이 스마트택배(스윗트래커) 통합 추적 키로 연동됩니다. tracking.sweettracker.co.kr에서 t_key를 발급해 [스마트택배(통합 추적)] 채널에 등록하면 로젠택배 배송추적이 연동됩니다.",
+      "org": "GenieGo 연동 허브",
+      "quick": [
+        ["소요 시간", "약 5~15분"],
+        ["필요 계정", "스마트택배(스윗트래커) 계정"],
+        ["발급 키", "스마트택배 추적 API 키(t_key)"],
+        ["결과물", "통합 배송추적 자격증명"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 시작하기 전에",
+          "desc": "로젠택배는 전용 발급 없이 스마트택배 통합 추적 키로 연동합니다.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "방식", "h3": "스마트택배(스윗트래커) 통합 추적", "p": "로젠택배는 별도 발급 없이 스마트택배(스윗트래커) 통합 추적 키로 연동됩니다. t_key 하나로 전 택배사 배송추적을 처리합니다." },
+              { "tag": "발급 키", "h3": "t_key (스마트택배 추적 API 키)", "p": "tracking.sweettracker.co.kr에 가입해 발급받는 통합 추적 키입니다. GenieGo에는 api_key 필드로 입력합니다." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>중요:</strong> 로젠택배 채널을 직접 선택하지 말고 [스마트택배(통합 추적)] 채널에 t_key를 등록하세요." }
+          ]
+        },
+        {
+          "h2": "2. 발급 단계",
+          "desc": "아래 순서대로 발급하고 GenieGo에 등록합니다.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "스윗트래커 가입", "p": "스마트택배(스윗트래커)에 가입합니다.", "path": "tracking.sweettracker.co.kr" },
+              { "h3": "t_key 발급", "p": "tracking.sweettracker.co.kr에서 t_key를 발급합니다." },
+              { "h3": "스마트택배 채널 선택", "p": "연동허브에서 로젠택배 채널 대신 [스마트택배(통합 추적)] 채널을 선택합니다." },
+              { "h3": "GenieGo 등록", "p": "GenieGo [등록]에 t_key(api_key)를 입력하면 로젠택배 배송추적이 연동됩니다." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "t_key를 발급받아 [스마트택배(통합 추적)] 채널에 등록하면 로젠택배 배송추적이 연동됩니다." }
+          ]
+        },
+        {
+          "h2": "3. GenieGo에 등록할 정보",
+          "blocks": [
+            { "type": "table", "head": ["필드", "설명"], "rows": [
+              ["api_key", "스윗트래커에서 발급한 t_key(스마트택배 추적 API 키)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 연동 허브 [등록]에 입력해 저장하면 자격증명은 AES-256-GCM으로 암호화 저장되고 조회 시 마스킹됩니다." }
+          ]
+        },
+        {
+          "h2": "4. 자주 발생하는 문제",
+          "blocks": [
+            { "type": "table", "head": ["문제", "원인", "해결"], "rows": [
+              ["로젠택배 채널에 키를 등록할 수 없음", "로젠택배는 전용 발급 없이 통합 추적 키로 연동됨", "[스마트택배(통합 추적)] 채널을 선택해 t_key를 등록합니다."],
+              ["배송추적이 연동되지 않음", "t_key 오기재 또는 미발급", "tracking.sweettracker.co.kr에서 발급한 t_key를 다시 확인합니다."]
+            ] }
+          ]
+        },
+        {
+          "h2": "최종 체크리스트",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "tracking.sweettracker.co.kr에 가입했다.",
+              "t_key(스마트택배 추적 API 키)를 발급받았다.",
+              "연동허브에서 [스마트택배(통합 추적)] 채널을 선택했다.",
+              "GenieGo [등록]에 t_key(api_key)를 입력해 저장했다."
+            ] }
+          ]
+        }
+      ]
+    },
+    "en": {
+      "titleType": "API Key Issuance Manual",
+      "badge": "Beginner Guide",
+      "intro": "Logen Logistics requires no separate issuance and is connected via the Smart Parcel (SweetTracker) unified tracking key. Issue a t_key at tracking.sweettracker.co.kr and register it on the [Smart Parcel (Unified Tracking)] channel to connect Logen Logistics delivery tracking.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Est. time", "About 5–15 min"],
+        ["Account needed", "Smart Parcel (SweetTracker) account"],
+        ["Keys issued", "Smart Parcel tracking API key (t_key)"],
+        ["Result", "Unified delivery-tracking credentials"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Before You Begin",
+          "desc": "Logen Logistics is connected via the Smart Parcel unified tracking key, with no dedicated issuance.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Method", "h3": "Smart Parcel (SweetTracker) unified tracking", "p": "Logen Logistics requires no separate issuance and is connected via the Smart Parcel (SweetTracker) unified tracking key. A single t_key handles delivery tracking for all carriers." },
+              { "tag": "Keys issued", "h3": "t_key (Smart Parcel tracking API key)", "p": "This is a unified tracking key issued after signing up at tracking.sweettracker.co.kr. In GenieGo, enter it in the api_key field." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Important:</strong> Do not select the Logen Logistics channel directly; register your t_key on the [Smart Parcel (Unified Tracking)] channel." }
+          ]
+        },
+        {
+          "h2": "2. Issuance Steps",
+          "desc": "Issue in the order below and register in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Sign up for SweetTracker", "p": "Sign up for Smart Parcel (SweetTracker).", "path": "tracking.sweettracker.co.kr" },
+              { "h3": "Issue a t_key", "p": "Issue a t_key at tracking.sweettracker.co.kr." },
+              { "h3": "Select the Smart Parcel channel", "p": "In the Integration Hub, select the [Smart Parcel (Unified Tracking)] channel instead of the Logen Logistics channel." },
+              { "h3": "Register in GenieGo", "p": "Enter the t_key (api_key) in GenieGo [Register], and Logen Logistics delivery tracking will be connected." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Once you issue a t_key and register it on the [Smart Parcel (Unified Tracking)] channel, Logen Logistics delivery tracking is connected." }
+          ]
+        },
+        {
+          "h2": "3. Information to Register in GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Field", "Description"], "rows": [
+              ["api_key", "The t_key issued by SweetTracker (Smart Parcel tracking API key)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Once you enter and save it in the GenieGo Integration Hub [Register], credentials are encrypted at rest with AES-256-GCM and masked on read." }
+          ]
+        },
+        {
+          "h2": "4. Common Issues",
+          "blocks": [
+            { "type": "table", "head": ["Issue", "Cause", "Solution"], "rows": [
+              ["Cannot register a key on the Logen Logistics channel", "Logen Logistics has no dedicated issuance and is connected via the unified tracking key", "Select the [Smart Parcel (Unified Tracking)] channel and register your t_key."],
+              ["Delivery tracking is not connected", "Incorrect or un-issued t_key", "Re-check the t_key issued at tracking.sweettracker.co.kr."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Final Checklist",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Signed up at tracking.sweettracker.co.kr.",
+              "Issued a t_key (Smart Parcel tracking API key).",
+              "Selected the [Smart Parcel (Unified Tracking)] channel in the Integration Hub.",
+              "Entered and saved the t_key (api_key) in GenieGo [Register]."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ja": {
+      "titleType": "API Key 発行マニュアル",
+      "badge": "初心者ガイド",
+      "intro": "ロジェン宅配は別途発行不要で、スマート宅配(スイートトラッカー)の統合追跡キーで連携します。tracking.sweettracker.co.kr で t_key を発行し、[スマート宅配(統合追跡)] チャネルに登録すると、ロジェン宅配の配送追跡が連携されます。",
+      "org": "GenieGo 連携ハブ",
+      "quick": [
+        ["所要時間", "約 5〜15 分"],
+        ["必要なアカウント", "スマート宅配(スイートトラッカー)アカウント"],
+        ["発行するキー", "スマート宅配 追跡 API キー(t_key)"],
+        ["成果物", "統合配送追跡の認証情報"]
+      ],
+      "sections": [
+        {
+          "h2": "1. はじめる前に",
+          "desc": "ロジェン宅配は専用発行なしで、スマート宅配の統合追跡キーで連携します。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "方式", "h3": "スマート宅配(スイートトラッカー)統合追跡", "p": "ロジェン宅配は別途発行不要で、スマート宅配(スイートトラッカー)の統合追跡キーで連携します。t_key 一つで全宅配会社の配送追跡を処理します。" },
+              { "tag": "発行するキー", "h3": "t_key (スマート宅配 追跡 API キー)", "p": "tracking.sweettracker.co.kr に登録して発行する統合追跡キーです。GenieGo には api_key フィールドに入力します。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>重要:</strong> ロジェン宅配チャネルを直接選択せず、[スマート宅配(統合追跡)] チャネルに t_key を登録してください。" }
+          ]
+        },
+        {
+          "h2": "2. 発行手順",
+          "desc": "以下の順序で発行し、GenieGo に登録します。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "スイートトラッカーに登録", "p": "スマート宅配(スイートトラッカー)に登録します。", "path": "tracking.sweettracker.co.kr" },
+              { "h3": "t_key を発行", "p": "tracking.sweettracker.co.kr で t_key を発行します。" },
+              { "h3": "スマート宅配チャネルを選択", "p": "連携ハブでロジェン宅配チャネルの代わりに [スマート宅配(統合追跡)] チャネルを選択します。" },
+              { "h3": "GenieGo に登録", "p": "GenieGo [登録] に t_key(api_key)を入力すると、ロジェン宅配の配送追跡が連携されます。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "t_key を発行して [スマート宅配(統合追跡)] チャネルに登録すると、ロジェン宅配の配送追跡が連携されます。" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo に登録する情報",
+          "blocks": [
+            { "type": "table", "head": ["フィールド", "説明"], "rows": [
+              ["api_key", "スイートトラッカーで発行した t_key(スマート宅配 追跡 API キー)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 連携ハブ [登録] に入力して保存すると、認証情報は AES-256-GCM で暗号化して保存され、閲覧時にはマスキングされます。" }
+          ]
+        },
+        {
+          "h2": "4. よくある問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["ロジェン宅配チャネルにキーを登録できない", "ロジェン宅配は専用発行なしで統合追跡キーで連携される", "[スマート宅配(統合追跡)] チャネルを選択して t_key を登録します。"],
+              ["配送追跡が連携されない", "t_key の誤記入または未発行", "tracking.sweettracker.co.kr で発行した t_key を再確認します。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終チェックリスト",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "tracking.sweettracker.co.kr に登録した。",
+              "t_key(スマート宅配 追跡 API キー)を発行した。",
+              "連携ハブで [スマート宅配(統合追跡)] チャネルを選択した。",
+              "GenieGo [登録] に t_key(api_key)を入力して保存した。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh": {
+      "titleType": "API Key 申请手册",
+      "badge": "新手指南",
+      "intro": "Logen 快递无需单独申请，通过智能快递(SweetTracker)统一追踪密钥进行连接。在 tracking.sweettracker.co.kr 申请 t_key，并将其注册到 [智能快递(统一追踪)] 渠道，即可连接 Logen 快递的配送追踪。",
+      "org": "GenieGo 集成中心",
+      "quick": [
+        ["预计时间", "约 5~15 分钟"],
+        ["所需账户", "智能快递(SweetTracker)账户"],
+        ["签发密钥", "智能快递追踪 API 密钥(t_key)"],
+        ["成果", "统一配送追踪凭证"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 开始之前",
+          "desc": "Logen 快递无需专用申请，通过智能快递统一追踪密钥进行连接。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "方式", "h3": "智能快递(SweetTracker)统一追踪", "p": "Logen 快递无需单独申请，通过智能快递(SweetTracker)统一追踪密钥进行连接。一个 t_key 即可处理所有快递公司的配送追踪。" },
+              { "tag": "签发密钥", "h3": "t_key (智能快递追踪 API 密钥)", "p": "这是在 tracking.sweettracker.co.kr 注册后申请的统一追踪密钥。在 GenieGo 中，请填入 api_key 字段。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>重要:</strong> 请勿直接选择 Logen 快递渠道，而应将 t_key 注册到 [智能快递(统一追踪)] 渠道。" }
+          ]
+        },
+        {
+          "h2": "2. 申请步骤",
+          "desc": "按以下顺序申请并在 GenieGo 中注册。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "注册 SweetTracker", "p": "注册智能快递(SweetTracker)。", "path": "tracking.sweettracker.co.kr" },
+              { "h3": "申请 t_key", "p": "在 tracking.sweettracker.co.kr 申请 t_key。" },
+              { "h3": "选择智能快递渠道", "p": "在集成中心，选择 [智能快递(统一追踪)] 渠道，而非 Logen 快递渠道。" },
+              { "h3": "在 GenieGo 中注册", "p": "在 GenieGo [注册] 中输入 t_key(api_key),即可连接 Logen 快递的配送追踪。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "申请 t_key 并将其注册到 [智能快递(统一追踪)] 渠道后，即可连接 Logen 快递的配送追踪。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中注册的信息",
+          "blocks": [
+            { "type": "table", "head": ["字段", "说明"], "rows": [
+              ["api_key", "由 SweetTracker 签发的 t_key(智能快递追踪 API 密钥)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 集成中心 [注册] 中输入并保存后，凭证将以 AES-256-GCM 加密存储，并在查询时进行掩码处理。" }
+          ]
+        },
+        {
+          "h2": "4. 常见问题",
+          "blocks": [
+            { "type": "table", "head": ["问题", "原因", "解决方法"], "rows": [
+              ["无法在 Logen 快递渠道注册密钥", "Logen 快递无专用申请，通过统一追踪密钥连接", "选择 [智能快递(统一追踪)] 渠道并注册 t_key。"],
+              ["配送追踪未连接", "t_key 填写错误或未申请", "请重新确认在 tracking.sweettracker.co.kr 申请的 t_key。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最终检查清单",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已在 tracking.sweettracker.co.kr 注册。",
+              "已申请 t_key(智能快递追踪 API 密钥)。",
+              "已在集成中心选择 [智能快递(统一追踪)] 渠道。",
+              "已在 GenieGo [注册] 中输入并保存 t_key(api_key)。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh-TW": {
+      "titleType": "API Key 申請手冊",
+      "badge": "新手指南",
+      "intro": "Logen 宅配無需單獨申請，透過智慧宅配(SweetTracker)統一追蹤金鑰進行連接。在 tracking.sweettracker.co.kr 申請 t_key，並將其註冊到 [智慧宅配(統一追蹤)] 渠道，即可連接 Logen 宅配的配送追蹤。",
+      "org": "GenieGo 整合中心",
+      "quick": [
+        ["預計時間", "約 5~15 分鐘"],
+        ["所需帳戶", "智慧宅配(SweetTracker)帳戶"],
+        ["簽發金鑰", "智慧宅配追蹤 API 金鑰(t_key)"],
+        ["成果", "統一配送追蹤憑證"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 開始之前",
+          "desc": "Logen 宅配無需專用申請，透過智慧宅配統一追蹤金鑰進行連接。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "方式", "h3": "智慧宅配(SweetTracker)統一追蹤", "p": "Logen 宅配無需單獨申請，透過智慧宅配(SweetTracker)統一追蹤金鑰進行連接。一個 t_key 即可處理所有宅配公司的配送追蹤。" },
+              { "tag": "簽發金鑰", "h3": "t_key (智慧宅配追蹤 API 金鑰)", "p": "這是在 tracking.sweettracker.co.kr 註冊後申請的統一追蹤金鑰。在 GenieGo 中，請填入 api_key 欄位。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>重要:</strong> 請勿直接選擇 Logen 宅配渠道，而應將 t_key 註冊到 [智慧宅配(統一追蹤)] 渠道。" }
+          ]
+        },
+        {
+          "h2": "2. 簽發步驟",
+          "desc": "依以下順序申請並在 GenieGo 中註冊。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "註冊 SweetTracker", "p": "註冊智慧宅配(SweetTracker)。", "path": "tracking.sweettracker.co.kr" },
+              { "h3": "申請 t_key", "p": "在 tracking.sweettracker.co.kr 申請 t_key。" },
+              { "h3": "選擇智慧宅配渠道", "p": "在整合中心，選擇 [智慧宅配(統一追蹤)] 渠道，而非 Logen 宅配渠道。" },
+              { "h3": "在 GenieGo 中註冊", "p": "在 GenieGo [註冊] 中輸入 t_key(api_key),即可連接 Logen 宅配的配送追蹤。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "申請 t_key 並將其註冊到 [智慧宅配(統一追蹤)] 渠道後，即可連接 Logen 宅配的配送追蹤。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中註冊的資訊",
+          "blocks": [
+            { "type": "table", "head": ["欄位", "說明"], "rows": [
+              ["api_key", "由 SweetTracker 簽發的 t_key(智慧宅配追蹤 API 金鑰)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 整合中心 [註冊] 中輸入並儲存後，憑證將以 AES-256-GCM 加密儲存，並在查詢時進行遮罩處理。" }
+          ]
+        },
+        {
+          "h2": "4. 常見問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["無法在 Logen 宅配渠道註冊金鑰", "Logen 宅配無專用申請，透過統一追蹤金鑰連接", "選擇 [智慧宅配(統一追蹤)] 渠道並註冊 t_key。"],
+              ["配送追蹤未連接", "t_key 填寫錯誤或未申請", "請重新確認在 tracking.sweettracker.co.kr 申請的 t_key。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終檢查清單",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已在 tracking.sweettracker.co.kr 註冊。",
+              "已申請 t_key(智慧宅配追蹤 API 金鑰)。",
+              "已在整合中心選擇 [智慧宅配(統一追蹤)] 渠道。",
+              "已在 GenieGo [註冊] 中輸入並儲存 t_key(api_key)。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "de": {
+      "titleType": "Anleitung zur API-Key-Ausstellung",
+      "badge": "Einsteigerleitfaden",
+      "intro": "Logen Logistics erfordert keine separate Ausstellung und wird über den einheitlichen Tracking-Schlüssel von Smart Parcel (SweetTracker) verbunden. Stellen Sie unter tracking.sweettracker.co.kr einen t_key aus und registrieren Sie ihn im Kanal [Smart Parcel (Einheitliches Tracking)], um die Sendungsverfolgung von Logen Logistics zu verbinden.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Geschätzte Zeit", "Etwa 5–15 Min."],
+        ["Benötigtes Konto", "Smart-Parcel-Konto (SweetTracker)"],
+        ["Ausgestellte Schlüssel", "Smart-Parcel-Tracking-API-Schlüssel (t_key)"],
+        ["Ergebnis", "Anmeldedaten für einheitliche Sendungsverfolgung"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Bevor Sie beginnen",
+          "desc": "Logen Logistics wird ohne dedizierte Ausstellung über den einheitlichen Tracking-Schlüssel von Smart Parcel verbunden.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Methode", "h3": "Einheitliches Tracking von Smart Parcel (SweetTracker)", "p": "Logen Logistics erfordert keine separate Ausstellung und wird über den einheitlichen Tracking-Schlüssel von Smart Parcel (SweetTracker) verbunden. Ein einziger t_key übernimmt die Sendungsverfolgung für alle Zusteller." },
+              { "tag": "Ausgestellte Schlüssel", "h3": "t_key (Smart-Parcel-Tracking-API-Schlüssel)", "p": "Dies ist ein einheitlicher Tracking-Schlüssel, der nach der Registrierung unter tracking.sweettracker.co.kr ausgestellt wird. Geben Sie ihn in GenieGo im Feld api_key ein." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Wichtig:</strong> Wählen Sie nicht den Kanal Logen Logistics direkt aus, sondern registrieren Sie Ihren t_key im Kanal [Smart Parcel (Einheitliches Tracking)]." }
+          ]
+        },
+        {
+          "h2": "2. Ausstellungsschritte",
+          "desc": "Stellen Sie in der unten angegebenen Reihenfolge aus und registrieren Sie in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Bei SweetTracker registrieren", "p": "Registrieren Sie sich bei Smart Parcel (SweetTracker).", "path": "tracking.sweettracker.co.kr" },
+              { "h3": "Einen t_key ausstellen", "p": "Stellen Sie unter tracking.sweettracker.co.kr einen t_key aus." },
+              { "h3": "Den Smart-Parcel-Kanal auswählen", "p": "Wählen Sie im Integration Hub den Kanal [Smart Parcel (Einheitliches Tracking)] anstelle des Kanals Logen Logistics." },
+              { "h3": "In GenieGo registrieren", "p": "Geben Sie den t_key (api_key) in GenieGo [Registrieren] ein, und die Sendungsverfolgung von Logen Logistics wird verbunden." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Sobald Sie einen t_key ausstellen und ihn im Kanal [Smart Parcel (Einheitliches Tracking)] registrieren, wird die Sendungsverfolgung von Logen Logistics verbunden." }
+          ]
+        },
+        {
+          "h2": "3. In GenieGo zu registrierende Informationen",
+          "blocks": [
+            { "type": "table", "head": ["Feld", "Beschreibung"], "rows": [
+              ["api_key", "Der von SweetTracker ausgestellte t_key (Smart-Parcel-Tracking-API-Schlüssel)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Sobald Sie ihn im GenieGo Integration Hub [Registrieren] eingeben und speichern, werden die Anmeldedaten im Ruhezustand mit AES-256-GCM verschlüsselt und beim Lesen maskiert." }
+          ]
+        },
+        {
+          "h2": "4. Häufige Probleme",
+          "blocks": [
+            { "type": "table", "head": ["Problem", "Ursache", "Lösung"], "rows": [
+              ["Auf dem Kanal Logen Logistics kann kein Schlüssel registriert werden", "Logen Logistics hat keine dedizierte Ausstellung und wird über den einheitlichen Tracking-Schlüssel verbunden", "Wählen Sie den Kanal [Smart Parcel (Einheitliches Tracking)] aus und registrieren Sie Ihren t_key."],
+              ["Die Sendungsverfolgung wird nicht verbunden", "Falsch eingegebener oder nicht ausgestellter t_key", "Überprüfen Sie den unter tracking.sweettracker.co.kr ausgestellten t_key erneut."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Abschließende Checkliste",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Bei tracking.sweettracker.co.kr registriert.",
+              "Einen t_key (Smart-Parcel-Tracking-API-Schlüssel) ausgestellt.",
+              "Im Integration Hub den Kanal [Smart Parcel (Einheitliches Tracking)] ausgewählt.",
+              "Den t_key (api_key) in GenieGo [Registrieren] eingegeben und gespeichert."
+            ] }
+          ]
+        }
+      ]
+    },
+    "th": {
+      "titleType": "คู่มือการออก API Key",
+      "badge": "คู่มือสำหรับผู้เริ่มต้น",
+      "intro": "Logen Logistics ไม่ต้องออกแยกต่างหาก แต่เชื่อมต่อผ่านคีย์การติดตามแบบรวมศูนย์ของ Smart Parcel (SweetTracker) ออก t_key ที่ tracking.sweettracker.co.kr และลงทะเบียนในช่องทาง [Smart Parcel (การติดตามแบบรวมศูนย์)] เพื่อเชื่อมต่อการติดตามการจัดส่งของ Logen Logistics",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["เวลาโดยประมาณ", "ประมาณ 5–15 นาที"],
+        ["บัญชีที่ต้องใช้", "บัญชี Smart Parcel (SweetTracker)"],
+        ["คีย์ที่ออก", "คีย์ API การติดตาม Smart Parcel (t_key)"],
+        ["ผลลัพธ์", "ข้อมูลรับรองการติดตามการจัดส่งแบบรวมศูนย์"]
+      ],
+      "sections": [
+        {
+          "h2": "1. ก่อนเริ่มต้น",
+          "desc": "Logen Logistics เชื่อมต่อผ่านคีย์การติดตามแบบรวมศูนย์ของ Smart Parcel โดยไม่ต้องออกเฉพาะ",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "วิธีการ", "h3": "การติดตามแบบรวมศูนย์ Smart Parcel (SweetTracker)", "p": "Logen Logistics ไม่ต้องออกแยกต่างหาก แต่เชื่อมต่อผ่านคีย์การติดตามแบบรวมศูนย์ของ Smart Parcel (SweetTracker) t_key เพียงตัวเดียวจัดการการติดตามการจัดส่งของบริษัทขนส่งทั้งหมด" },
+              { "tag": "คีย์ที่ออก", "h3": "t_key (คีย์ API การติดตาม Smart Parcel)", "p": "นี่คือคีย์การติดตามแบบรวมศูนย์ที่ออกหลังจากสมัครที่ tracking.sweettracker.co.kr ใน GenieGo ให้กรอกในฟิลด์ api_key" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>สำคัญ:</strong> อย่าเลือกช่องทาง Logen Logistics โดยตรง แต่ให้ลงทะเบียน t_key ของคุณในช่องทาง [Smart Parcel (การติดตามแบบรวมศูนย์)]" }
+          ]
+        },
+        {
+          "h2": "2. ขั้นตอนการออก",
+          "desc": "ออกตามลำดับด้านล่างและลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "สมัคร SweetTracker", "p": "สมัคร Smart Parcel (SweetTracker)", "path": "tracking.sweettracker.co.kr" },
+              { "h3": "ออก t_key", "p": "ออก t_key ที่ tracking.sweettracker.co.kr" },
+              { "h3": "เลือกช่องทาง Smart Parcel", "p": "ใน Integration Hub เลือกช่องทาง [Smart Parcel (การติดตามแบบรวมศูนย์)] แทนช่องทาง Logen Logistics" },
+              { "h3": "ลงทะเบียนใน GenieGo", "p": "ป้อน t_key (api_key) ใน GenieGo [ลงทะเบียน] แล้วการติดตามการจัดส่งของ Logen Logistics จะถูกเชื่อมต่อ" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "เมื่อคุณออก t_key และลงทะเบียนในช่องทาง [Smart Parcel (การติดตามแบบรวมศูนย์)] การติดตามการจัดส่งของ Logen Logistics จะถูกเชื่อมต่อ" }
+          ]
+        },
+        {
+          "h2": "3. ข้อมูลที่ต้องลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["ฟิลด์", "คำอธิบาย"], "rows": [
+              ["api_key", "t_key ที่ออกโดย SweetTracker (คีย์ API การติดตาม Smart Parcel)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "เมื่อคุณป้อนและบันทึกใน GenieGo Integration Hub [ลงทะเบียน] ข้อมูลรับรองจะถูกเข้ารหัสขณะจัดเก็บด้วย AES-256-GCM และปิดบังเมื่ออ่าน" }
+          ]
+        },
+        {
+          "h2": "4. ปัญหาที่พบบ่อย",
+          "blocks": [
+            { "type": "table", "head": ["ปัญหา", "สาเหตุ", "วิธีแก้ไข"], "rows": [
+              ["ไม่สามารถลงทะเบียนคีย์ในช่องทาง Logen Logistics ได้", "Logen Logistics ไม่มีการออกเฉพาะ แต่เชื่อมต่อผ่านคีย์การติดตามแบบรวมศูนย์", "เลือกช่องทาง [Smart Parcel (การติดตามแบบรวมศูนย์)] และลงทะเบียน t_key ของคุณ"],
+              ["การติดตามการจัดส่งไม่ถูกเชื่อมต่อ", "t_key ไม่ถูกต้องหรือยังไม่ได้ออก", "ตรวจสอบ t_key ที่ออกที่ tracking.sweettracker.co.kr อีกครั้ง"]
+            ] }
+          ]
+        },
+        {
+          "h2": "รายการตรวจสอบขั้นสุดท้าย",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "สมัครที่ tracking.sweettracker.co.kr แล้ว",
+              "ออก t_key (คีย์ API การติดตาม Smart Parcel) แล้ว",
+              "เลือกช่องทาง [Smart Parcel (การติดตามแบบรวมศูนย์)] ใน Integration Hub แล้ว",
+              "ป้อนและบันทึก t_key (api_key) ใน GenieGo [ลงทะเบียน] แล้ว"
+            ] }
+          ]
+        }
+      ]
+    },
+    "vi": {
+      "titleType": "Hướng dẫn cấp API Key",
+      "badge": "Hướng dẫn cho người mới",
+      "intro": "Logen Logistics không cần cấp riêng mà được kết nối qua khóa theo dõi hợp nhất của Smart Parcel (SweetTracker). Hãy cấp t_key tại tracking.sweettracker.co.kr và đăng ký trên kênh [Smart Parcel (Theo dõi hợp nhất)] để kết nối theo dõi giao hàng của Logen Logistics.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Thời gian dự kiến", "Khoảng 5–15 phút"],
+        ["Tài khoản cần thiết", "Tài khoản Smart Parcel (SweetTracker)"],
+        ["Khóa được cấp", "Khóa API theo dõi Smart Parcel (t_key)"],
+        ["Kết quả", "Thông tin xác thực theo dõi giao hàng hợp nhất"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Trước khi bắt đầu",
+          "desc": "Logen Logistics được kết nối qua khóa theo dõi hợp nhất của Smart Parcel, không cần cấp riêng.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Phương thức", "h3": "Theo dõi hợp nhất Smart Parcel (SweetTracker)", "p": "Logen Logistics không cần cấp riêng mà được kết nối qua khóa theo dõi hợp nhất của Smart Parcel (SweetTracker). Một t_key duy nhất xử lý theo dõi giao hàng cho tất cả các đơn vị vận chuyển." },
+              { "tag": "Khóa được cấp", "h3": "t_key (Khóa API theo dõi Smart Parcel)", "p": "Đây là khóa theo dõi hợp nhất được cấp sau khi đăng ký tại tracking.sweettracker.co.kr. Trong GenieGo, hãy nhập vào trường api_key." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Quan trọng:</strong> Đừng chọn trực tiếp kênh Logen Logistics; hãy đăng ký t_key của bạn trên kênh [Smart Parcel (Theo dõi hợp nhất)]." }
+          ]
+        },
+        {
+          "h2": "2. Các bước cấp",
+          "desc": "Cấp theo thứ tự dưới đây và đăng ký trong GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Đăng ký SweetTracker", "p": "Đăng ký Smart Parcel (SweetTracker).", "path": "tracking.sweettracker.co.kr" },
+              { "h3": "Cấp t_key", "p": "Cấp t_key tại tracking.sweettracker.co.kr." },
+              { "h3": "Chọn kênh Smart Parcel", "p": "Trong Integration Hub, chọn kênh [Smart Parcel (Theo dõi hợp nhất)] thay vì kênh Logen Logistics." },
+              { "h3": "Đăng ký trong GenieGo", "p": "Nhập t_key (api_key) vào GenieGo [Đăng ký], và theo dõi giao hàng của Logen Logistics sẽ được kết nối." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Khi bạn cấp t_key và đăng ký trên kênh [Smart Parcel (Theo dõi hợp nhất)], theo dõi giao hàng của Logen Logistics sẽ được kết nối." }
+          ]
+        },
+        {
+          "h2": "3. Thông tin cần đăng ký trong GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Trường", "Mô tả"], "rows": [
+              ["api_key", "t_key do SweetTracker cấp (Khóa API theo dõi Smart Parcel)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Khi bạn nhập và lưu trong GenieGo Integration Hub [Đăng ký], thông tin xác thực được mã hóa khi lưu trữ bằng AES-256-GCM và được che khi đọc." }
+          ]
+        },
+        {
+          "h2": "4. Sự cố thường gặp",
+          "blocks": [
+            { "type": "table", "head": ["Sự cố", "Nguyên nhân", "Giải pháp"], "rows": [
+              ["Không thể đăng ký khóa trên kênh Logen Logistics", "Logen Logistics không có cấp riêng mà được kết nối qua khóa theo dõi hợp nhất", "Chọn kênh [Smart Parcel (Theo dõi hợp nhất)] và đăng ký t_key của bạn."],
+              ["Theo dõi giao hàng không được kết nối", "t_key nhập sai hoặc chưa được cấp", "Kiểm tra lại t_key đã cấp tại tracking.sweettracker.co.kr."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Danh sách kiểm tra cuối cùng",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Đã đăng ký tại tracking.sweettracker.co.kr.",
+              "Đã cấp t_key (Khóa API theo dõi Smart Parcel).",
+              "Đã chọn kênh [Smart Parcel (Theo dõi hợp nhất)] trong Integration Hub.",
+              "Đã nhập và lưu t_key (api_key) trong GenieGo [Đăng ký]."
+            ] }
+          ]
+        }
+      ]
+    },
+    "id": {
+      "titleType": "Panduan Penerbitan API Key",
+      "badge": "Panduan Pemula",
+      "intro": "Logen Logistics tidak memerlukan penerbitan terpisah dan terhubung melalui kunci pelacakan terpadu Smart Parcel (SweetTracker). Terbitkan t_key di tracking.sweettracker.co.kr dan daftarkan pada saluran [Smart Parcel (Pelacakan Terpadu)] untuk menghubungkan pelacakan pengiriman Logen Logistics.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Perkiraan waktu", "Sekitar 5–15 menit"],
+        ["Akun yang dibutuhkan", "Akun Smart Parcel (SweetTracker)"],
+        ["Kunci yang diterbitkan", "Kunci API pelacakan Smart Parcel (t_key)"],
+        ["Hasil", "Kredensial pelacakan pengiriman terpadu"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Sebelum Anda Mulai",
+          "desc": "Logen Logistics terhubung melalui kunci pelacakan terpadu Smart Parcel, tanpa penerbitan khusus.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Metode", "h3": "Pelacakan terpadu Smart Parcel (SweetTracker)", "p": "Logen Logistics tidak memerlukan penerbitan terpisah dan terhubung melalui kunci pelacakan terpadu Smart Parcel (SweetTracker). Satu t_key menangani pelacakan pengiriman untuk semua kurir." },
+              { "tag": "Kunci yang diterbitkan", "h3": "t_key (Kunci API pelacakan Smart Parcel)", "p": "Ini adalah kunci pelacakan terpadu yang diterbitkan setelah mendaftar di tracking.sweettracker.co.kr. Di GenieGo, masukkan pada kolom api_key." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Penting:</strong> Jangan pilih saluran Logen Logistics secara langsung; daftarkan t_key Anda pada saluran [Smart Parcel (Pelacakan Terpadu)]." }
+          ]
+        },
+        {
+          "h2": "2. Langkah Penerbitan",
+          "desc": "Terbitkan sesuai urutan di bawah dan daftarkan di GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Daftar SweetTracker", "p": "Daftar Smart Parcel (SweetTracker).", "path": "tracking.sweettracker.co.kr" },
+              { "h3": "Terbitkan t_key", "p": "Terbitkan t_key di tracking.sweettracker.co.kr." },
+              { "h3": "Pilih saluran Smart Parcel", "p": "Di Integration Hub, pilih saluran [Smart Parcel (Pelacakan Terpadu)] alih-alih saluran Logen Logistics." },
+              { "h3": "Daftarkan di GenieGo", "p": "Masukkan t_key (api_key) di GenieGo [Daftar], dan pelacakan pengiriman Logen Logistics akan terhubung." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Setelah Anda menerbitkan t_key dan mendaftarkannya pada saluran [Smart Parcel (Pelacakan Terpadu)], pelacakan pengiriman Logen Logistics akan terhubung." }
+          ]
+        },
+        {
+          "h2": "3. Informasi yang Perlu Didaftarkan di GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Kolom", "Deskripsi"], "rows": [
+              ["api_key", "t_key yang diterbitkan oleh SweetTracker (Kunci API pelacakan Smart Parcel)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Setelah Anda memasukkan dan menyimpannya di GenieGo Integration Hub [Daftar], kredensial dienkripsi saat disimpan dengan AES-256-GCM dan disamarkan saat dibaca." }
+          ]
+        },
+        {
+          "h2": "4. Masalah yang Sering Terjadi",
+          "blocks": [
+            { "type": "table", "head": ["Masalah", "Penyebab", "Solusi"], "rows": [
+              ["Tidak dapat mendaftarkan kunci pada saluran Logen Logistics", "Logen Logistics tidak memiliki penerbitan khusus dan terhubung melalui kunci pelacakan terpadu", "Pilih saluran [Smart Parcel (Pelacakan Terpadu)] dan daftarkan t_key Anda."],
+              ["Pelacakan pengiriman tidak terhubung", "t_key salah ditulis atau belum diterbitkan", "Periksa kembali t_key yang diterbitkan di tracking.sweettracker.co.kr."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Daftar Periksa Akhir",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Telah mendaftar di tracking.sweettracker.co.kr.",
+              "Telah menerbitkan t_key (Kunci API pelacakan Smart Parcel).",
+              "Telah memilih saluran [Smart Parcel (Pelacakan Terpadu)] di Integration Hub.",
+              "Telah memasukkan dan menyimpan t_key (api_key) di GenieGo [Daftar]."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ar": {
+      "titleType": "دليل إصدار مفتاح API",
+      "badge": "دليل المبتدئين",
+      "intro": "لا تتطلب شركة Logen Logistics إصدارًا منفصلاً، بل يتم ربطها عبر مفتاح التتبع الموحد لخدمة Smart Parcel (SweetTracker). أصدر مفتاح t_key على tracking.sweettracker.co.kr وسجّله في قناة [Smart Parcel (التتبع الموحد)] لربط تتبع شحنات Logen Logistics.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["الوقت المقدر", "حوالي 5–15 دقيقة"],
+        ["الحساب المطلوب", "حساب Smart Parcel (SweetTracker)"],
+        ["المفاتيح المُصدرة", "مفتاح API لتتبع Smart Parcel (t_key)"],
+        ["النتيجة", "بيانات اعتماد تتبع الشحن الموحد"]
+      ],
+      "sections": [
+        {
+          "h2": "1. قبل أن تبدأ",
+          "desc": "يتم ربط Logen Logistics عبر مفتاح التتبع الموحد لخدمة Smart Parcel، دون إصدار مخصص.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "الطريقة", "h3": "التتبع الموحد لخدمة Smart Parcel (SweetTracker)", "p": "لا تتطلب شركة Logen Logistics إصدارًا منفصلاً، بل يتم ربطها عبر مفتاح التتبع الموحد لخدمة Smart Parcel (SweetTracker). يتعامل مفتاح t_key واحد مع تتبع الشحنات لجميع شركات النقل." },
+              { "tag": "المفاتيح المُصدرة", "h3": "t_key (مفتاح API لتتبع Smart Parcel)", "p": "هذا مفتاح تتبع موحد يتم إصداره بعد التسجيل في tracking.sweettracker.co.kr. في GenieGo، أدخله في حقل api_key." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>مهم:</strong> لا تختر قناة Logen Logistics مباشرةً؛ بل سجّل مفتاح t_key الخاص بك في قناة [Smart Parcel (التتبع الموحد)]." }
+          ]
+        },
+        {
+          "h2": "2. خطوات الإصدار",
+          "desc": "أصدر بالترتيب أدناه وسجّل في GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "التسجيل في SweetTracker", "p": "سجّل في Smart Parcel (SweetTracker).", "path": "tracking.sweettracker.co.kr" },
+              { "h3": "إصدار مفتاح t_key", "p": "أصدر مفتاح t_key على tracking.sweettracker.co.kr." },
+              { "h3": "اختيار قناة Smart Parcel", "p": "في Integration Hub، اختر قناة [Smart Parcel (التتبع الموحد)] بدلاً من قناة Logen Logistics." },
+              { "h3": "التسجيل في GenieGo", "p": "أدخل مفتاح t_key (api_key) في GenieGo [تسجيل]، وسيتم ربط تتبع شحنات Logen Logistics." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "بمجرد إصدار مفتاح t_key وتسجيله في قناة [Smart Parcel (التتبع الموحد)]، يتم ربط تتبع شحنات Logen Logistics." }
+          ]
+        },
+        {
+          "h2": "3. المعلومات المطلوب تسجيلها في GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["الحقل", "الوصف"], "rows": [
+              ["api_key", "مفتاح t_key الصادر عن SweetTracker (مفتاح API لتتبع Smart Parcel)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "بمجرد إدخاله وحفظه في GenieGo Integration Hub [تسجيل]، يتم تشفير بيانات الاعتماد أثناء التخزين باستخدام AES-256-GCM وإخفاؤها عند القراءة." }
+          ]
+        },
+        {
+          "h2": "4. المشكلات الشائعة",
+          "blocks": [
+            { "type": "table", "head": ["المشكلة", "السبب", "الحل"], "rows": [
+              ["تعذّر تسجيل مفتاح في قناة Logen Logistics", "لا يوجد إصدار مخصص لـ Logen Logistics، بل يتم ربطها عبر مفتاح التتبع الموحد", "اختر قناة [Smart Parcel (التتبع الموحد)] وسجّل مفتاح t_key الخاص بك."],
+              ["تتبع الشحن غير مرتبط", "مفتاح t_key مُدخل بشكل خاطئ أو غير صادر", "أعد التحقق من مفتاح t_key الصادر على tracking.sweettracker.co.kr."]
+            ] }
+          ]
+        },
+        {
+          "h2": "قائمة التحقق النهائية",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "تم التسجيل في tracking.sweettracker.co.kr.",
+              "تم إصدار مفتاح t_key (مفتاح API لتتبع Smart Parcel).",
+              "تم اختيار قناة [Smart Parcel (التتبع الموحد)] في Integration Hub.",
+              "تم إدخال مفتاح t_key (api_key) وحفظه في GenieGo [تسجيل]."
+            ] }
+          ]
+        }
+      ]
+    },
+    "es": {
+      "titleType": "Manual de emisión de la clave API",
+      "badge": "Guía para principiantes",
+      "intro": "Logen Logistics no requiere una emisión aparte y se conecta mediante la clave de seguimiento unificada de Smart Parcel (SweetTracker). Emite una t_key en tracking.sweettracker.co.kr y regístrala en el canal [Smart Parcel (Seguimiento unificado)] para conectar el seguimiento de envíos de Logen Logistics.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tiempo estimado", "Unos 5–15 min"],
+        ["Cuenta necesaria", "Cuenta de Smart Parcel (SweetTracker)"],
+        ["Claves emitidas", "Clave de API de seguimiento de Smart Parcel (t_key)"],
+        ["Resultado", "Credenciales de seguimiento de envíos unificado"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de empezar",
+          "desc": "Logen Logistics se conecta mediante la clave de seguimiento unificada de Smart Parcel, sin emisión dedicada.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Método", "h3": "Seguimiento unificado de Smart Parcel (SweetTracker)", "p": "Logen Logistics no requiere una emisión aparte y se conecta mediante la clave de seguimiento unificada de Smart Parcel (SweetTracker). Una sola t_key gestiona el seguimiento de envíos de todas las empresas de mensajería." },
+              { "tag": "Claves emitidas", "h3": "t_key (clave de API de seguimiento de Smart Parcel)", "p": "Es una clave de seguimiento unificada que se emite tras registrarse en tracking.sweettracker.co.kr. En GenieGo, introdúcela en el campo api_key." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Importante:</strong> No selecciones directamente el canal Logen Logistics; registra tu t_key en el canal [Smart Parcel (Seguimiento unificado)]." }
+          ]
+        },
+        {
+          "h2": "2. Pasos de emisión",
+          "desc": "Emite en el orden siguiente y regístralo en GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Regístrate en SweetTracker", "p": "Regístrate en Smart Parcel (SweetTracker).", "path": "tracking.sweettracker.co.kr" },
+              { "h3": "Emite una t_key", "p": "Emite una t_key en tracking.sweettracker.co.kr." },
+              { "h3": "Selecciona el canal Smart Parcel", "p": "En el Integration Hub, selecciona el canal [Smart Parcel (Seguimiento unificado)] en lugar del canal Logen Logistics." },
+              { "h3": "Regístrate en GenieGo", "p": "Introduce la t_key (api_key) en GenieGo [Registrar] y se conectará el seguimiento de envíos de Logen Logistics." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Una vez que emitas una t_key y la registres en el canal [Smart Parcel (Seguimiento unificado)], se conecta el seguimiento de envíos de Logen Logistics." }
+          ]
+        },
+        {
+          "h2": "3. Información que registrar en GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descripción"], "rows": [
+              ["api_key", "La t_key emitida por SweetTracker (clave de API de seguimiento de Smart Parcel)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Una vez que la introduzcas y la guardes en el GenieGo Integration Hub [Registrar], las credenciales se cifran en reposo con AES-256-GCM y se enmascaran al leerlas." }
+          ]
+        },
+        {
+          "h2": "4. Problemas frecuentes",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solución"], "rows": [
+              ["No se puede registrar una clave en el canal Logen Logistics", "Logen Logistics no tiene emisión dedicada y se conecta mediante la clave de seguimiento unificada", "Selecciona el canal [Smart Parcel (Seguimiento unificado)] y registra tu t_key."],
+              ["El seguimiento de envíos no se conecta", "t_key incorrecta o no emitida", "Vuelve a verificar la t_key emitida en tracking.sweettracker.co.kr."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificación final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Te registraste en tracking.sweettracker.co.kr.",
+              "Emitiste una t_key (clave de API de seguimiento de Smart Parcel).",
+              "Seleccionaste el canal [Smart Parcel (Seguimiento unificado)] en el Integration Hub.",
+              "Introdujiste y guardaste la t_key (api_key) en GenieGo [Registrar]."
+            ] }
+          ]
+        }
+      ]
+    },
+    "fr": {
+      "titleType": "Manuel de délivrance de la clé API",
+      "badge": "Guide pour débutants",
+      "intro": "Logen Logistics ne nécessite pas de délivrance distincte et se connecte via la clé de suivi unifiée de Smart Parcel (SweetTracker). Délivrez une t_key sur tracking.sweettracker.co.kr et enregistrez-la sur le canal [Smart Parcel (Suivi unifié)] pour connecter le suivi des livraisons de Logen Logistics.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Durée estimée", "Environ 5–15 min"],
+        ["Compte requis", "Compte Smart Parcel (SweetTracker)"],
+        ["Clés délivrées", "Clé d'API de suivi Smart Parcel (t_key)"],
+        ["Résultat", "Identifiants de suivi de livraison unifié"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Avant de commencer",
+          "desc": "Logen Logistics se connecte via la clé de suivi unifiée de Smart Parcel, sans délivrance dédiée.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Méthode", "h3": "Suivi unifié Smart Parcel (SweetTracker)", "p": "Logen Logistics ne nécessite pas de délivrance distincte et se connecte via la clé de suivi unifiée de Smart Parcel (SweetTracker). Une seule t_key gère le suivi des livraisons pour tous les transporteurs." },
+              { "tag": "Clés délivrées", "h3": "t_key (clé d'API de suivi Smart Parcel)", "p": "Il s'agit d'une clé de suivi unifiée délivrée après inscription sur tracking.sweettracker.co.kr. Dans GenieGo, saisissez-la dans le champ api_key." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Important :</strong> Ne sélectionnez pas directement le canal Logen Logistics ; enregistrez votre t_key sur le canal [Smart Parcel (Suivi unifié)]." }
+          ]
+        },
+        {
+          "h2": "2. Étapes de délivrance",
+          "desc": "Délivrez dans l'ordre ci-dessous et enregistrez dans GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Inscrivez-vous sur SweetTracker", "p": "Inscrivez-vous sur Smart Parcel (SweetTracker).", "path": "tracking.sweettracker.co.kr" },
+              { "h3": "Délivrez une t_key", "p": "Délivrez une t_key sur tracking.sweettracker.co.kr." },
+              { "h3": "Sélectionnez le canal Smart Parcel", "p": "Dans l'Integration Hub, sélectionnez le canal [Smart Parcel (Suivi unifié)] au lieu du canal Logen Logistics." },
+              { "h3": "Enregistrez dans GenieGo", "p": "Saisissez la t_key (api_key) dans GenieGo [Enregistrer], et le suivi des livraisons de Logen Logistics sera connecté." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Une fois que vous délivrez une t_key et l'enregistrez sur le canal [Smart Parcel (Suivi unifié)], le suivi des livraisons de Logen Logistics est connecté." }
+          ]
+        },
+        {
+          "h2": "3. Informations à enregistrer dans GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Champ", "Description"], "rows": [
+              ["api_key", "La t_key délivrée par SweetTracker (clé d'API de suivi Smart Parcel)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Une fois que vous l'avez saisie et enregistrée dans le GenieGo Integration Hub [Enregistrer], les identifiants sont chiffrés au repos avec AES-256-GCM et masqués à la lecture." }
+          ]
+        },
+        {
+          "h2": "4. Problèmes fréquents",
+          "blocks": [
+            { "type": "table", "head": ["Problème", "Cause", "Solution"], "rows": [
+              ["Impossible d'enregistrer une clé sur le canal Logen Logistics", "Logen Logistics n'a pas de délivrance dédiée et se connecte via la clé de suivi unifiée", "Sélectionnez le canal [Smart Parcel (Suivi unifié)] et enregistrez votre t_key."],
+              ["Le suivi des livraisons n'est pas connecté", "t_key mal saisie ou non délivrée", "Vérifiez à nouveau la t_key délivrée sur tracking.sweettracker.co.kr."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Liste de contrôle finale",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Inscrit sur tracking.sweettracker.co.kr.",
+              "Délivré une t_key (clé d'API de suivi Smart Parcel).",
+              "Sélectionné le canal [Smart Parcel (Suivi unifié)] dans l'Integration Hub.",
+              "Saisi et enregistré la t_key (api_key) dans GenieGo [Enregistrer]."
+            ] }
+          ]
+        }
+      ]
+    },
+    "hi": {
+      "titleType": "API Key जारी करने की नियमावली",
+      "badge": "शुरुआती गाइड",
+      "intro": "Logen Logistics के लिए अलग से जारी करने की आवश्यकता नहीं है, इसे Smart Parcel (SweetTracker) की एकीकृत ट्रैकिंग कुंजी के माध्यम से जोड़ा जाता है। tracking.sweettracker.co.kr पर एक t_key जारी करें और इसे [Smart Parcel (एकीकृत ट्रैकिंग)] चैनल पर पंजीकृत करें ताकि Logen Logistics की डिलीवरी ट्रैकिंग जुड़ जाए।",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["अनुमानित समय", "लगभग 5–15 मिनट"],
+        ["आवश्यक खाता", "Smart Parcel (SweetTracker) खाता"],
+        ["जारी की गई कुंजियाँ", "Smart Parcel ट्रैकिंग API कुंजी (t_key)"],
+        ["परिणाम", "एकीकृत डिलीवरी-ट्रैकिंग क्रेडेंशियल"]
+      ],
+      "sections": [
+        {
+          "h2": "1. शुरू करने से पहले",
+          "desc": "Logen Logistics को बिना समर्पित जारी किए, Smart Parcel की एकीकृत ट्रैकिंग कुंजी के माध्यम से जोड़ा जाता है।",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "तरीका", "h3": "Smart Parcel (SweetTracker) एकीकृत ट्रैकिंग", "p": "Logen Logistics के लिए अलग से जारी करने की आवश्यकता नहीं है, इसे Smart Parcel (SweetTracker) की एकीकृत ट्रैकिंग कुंजी के माध्यम से जोड़ा जाता है। एक ही t_key सभी कुरियर कंपनियों की डिलीवरी ट्रैकिंग को संभालती है।" },
+              { "tag": "जारी की गई कुंजियाँ", "h3": "t_key (Smart Parcel ट्रैकिंग API कुंजी)", "p": "यह एक एकीकृत ट्रैकिंग कुंजी है जो tracking.sweettracker.co.kr पर पंजीकरण के बाद जारी की जाती है। GenieGo में इसे api_key फ़ील्ड में दर्ज करें।" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>महत्वपूर्ण:</strong> Logen Logistics चैनल को सीधे न चुनें; अपनी t_key को [Smart Parcel (एकीकृत ट्रैकिंग)] चैनल पर पंजीकृत करें।" }
+          ]
+        },
+        {
+          "h2": "2. जारी करने के चरण",
+          "desc": "नीचे दिए गए क्रम में जारी करें और GenieGo में पंजीकृत करें।",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "SweetTracker पर पंजीकरण करें", "p": "Smart Parcel (SweetTracker) पर पंजीकरण करें।", "path": "tracking.sweettracker.co.kr" },
+              { "h3": "t_key जारी करें", "p": "tracking.sweettracker.co.kr पर एक t_key जारी करें।" },
+              { "h3": "Smart Parcel चैनल चुनें", "p": "Integration Hub में, Logen Logistics चैनल के बजाय [Smart Parcel (एकीकृत ट्रैकिंग)] चैनल चुनें।" },
+              { "h3": "GenieGo में पंजीकृत करें", "p": "GenieGo [पंजीकरण] में t_key (api_key) दर्ज करें, और Logen Logistics की डिलीवरी ट्रैकिंग जुड़ जाएगी।" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "एक बार जब आप t_key जारी कर लेते हैं और इसे [Smart Parcel (एकीकृत ट्रैकिंग)] चैनल पर पंजीकृत कर लेते हैं, तो Logen Logistics की डिलीवरी ट्रैकिंग जुड़ जाती है।" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo में पंजीकृत करने की जानकारी",
+          "blocks": [
+            { "type": "table", "head": ["फ़ील्ड", "विवरण"], "rows": [
+              ["api_key", "SweetTracker द्वारा जारी की गई t_key (Smart Parcel ट्रैकिंग API कुंजी)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "एक बार जब आप इसे GenieGo Integration Hub [पंजीकरण] में दर्ज करके सहेज लेते हैं, तो क्रेडेंशियल को AES-256-GCM के साथ संग्रहण के समय एन्क्रिप्ट किया जाता है और पढ़ते समय मास्क किया जाता है।" }
+          ]
+        },
+        {
+          "h2": "4. आम समस्याएँ",
+          "blocks": [
+            { "type": "table", "head": ["समस्या", "कारण", "समाधान"], "rows": [
+              ["Logen Logistics चैनल पर कुंजी पंजीकृत नहीं की जा सकती", "Logen Logistics के लिए कोई समर्पित जारी नहीं है, इसे एकीकृत ट्रैकिंग कुंजी के माध्यम से जोड़ा जाता है", "[Smart Parcel (एकीकृत ट्रैकिंग)] चैनल चुनें और अपनी t_key पंजीकृत करें।"],
+              ["डिलीवरी ट्रैकिंग जुड़ी नहीं है", "t_key गलत दर्ज या जारी नहीं की गई", "tracking.sweettracker.co.kr पर जारी की गई t_key को फिर से जाँचें।"]
+            ] }
+          ]
+        },
+        {
+          "h2": "अंतिम जाँच-सूची",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "tracking.sweettracker.co.kr पर पंजीकरण किया।",
+              "एक t_key (Smart Parcel ट्रैकिंग API कुंजी) जारी की।",
+              "Integration Hub में [Smart Parcel (एकीकृत ट्रैकिंग)] चैनल चुना।",
+              "GenieGo [पंजीकरण] में t_key (api_key) दर्ज करके सहेजा।"
+            ] }
+          ]
+        }
+      ]
+    },
+    "pt": {
+      "titleType": "Manual de emissão da chave de API",
+      "badge": "Guia para iniciantes",
+      "intro": "A Logen Logistics não requer emissão separada e é conectada por meio da chave de rastreamento unificada da Smart Parcel (SweetTracker). Emita uma t_key em tracking.sweettracker.co.kr e registre-a no canal [Smart Parcel (Rastreamento unificado)] para conectar o rastreamento de entregas da Logen Logistics.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tempo estimado", "Cerca de 5–15 min"],
+        ["Conta necessária", "Conta Smart Parcel (SweetTracker)"],
+        ["Chaves emitidas", "Chave de API de rastreamento Smart Parcel (t_key)"],
+        ["Resultado", "Credenciais de rastreamento de entregas unificado"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de começar",
+          "desc": "A Logen Logistics é conectada por meio da chave de rastreamento unificada da Smart Parcel, sem emissão dedicada.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Método", "h3": "Rastreamento unificado da Smart Parcel (SweetTracker)", "p": "A Logen Logistics não requer emissão separada e é conectada por meio da chave de rastreamento unificada da Smart Parcel (SweetTracker). Uma única t_key gerencia o rastreamento de entregas de todas as transportadoras." },
+              { "tag": "Chaves emitidas", "h3": "t_key (chave de API de rastreamento Smart Parcel)", "p": "É uma chave de rastreamento unificada emitida após o cadastro em tracking.sweettracker.co.kr. No GenieGo, insira-a no campo api_key." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Importante:</strong> Não selecione o canal Logen Logistics diretamente; registre sua t_key no canal [Smart Parcel (Rastreamento unificado)]." }
+          ]
+        },
+        {
+          "h2": "2. Etapas de emissão",
+          "desc": "Emita na ordem abaixo e registre no GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Cadastre-se na SweetTracker", "p": "Cadastre-se na Smart Parcel (SweetTracker).", "path": "tracking.sweettracker.co.kr" },
+              { "h3": "Emita uma t_key", "p": "Emita uma t_key em tracking.sweettracker.co.kr." },
+              { "h3": "Selecione o canal Smart Parcel", "p": "No Integration Hub, selecione o canal [Smart Parcel (Rastreamento unificado)] em vez do canal Logen Logistics." },
+              { "h3": "Registre no GenieGo", "p": "Insira a t_key (api_key) no GenieGo [Registrar], e o rastreamento de entregas da Logen Logistics será conectado." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Depois de emitir uma t_key e registrá-la no canal [Smart Parcel (Rastreamento unificado)], o rastreamento de entregas da Logen Logistics é conectado." }
+          ]
+        },
+        {
+          "h2": "3. Informações para registrar no GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descrição"], "rows": [
+              ["api_key", "A t_key emitida pela SweetTracker (chave de API de rastreamento Smart Parcel)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Depois de inseri-la e salvá-la no GenieGo Integration Hub [Registrar], as credenciais são criptografadas em repouso com AES-256-GCM e mascaradas na leitura." }
+          ]
+        },
+        {
+          "h2": "4. Problemas comuns",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solução"], "rows": [
+              ["Não é possível registrar uma chave no canal Logen Logistics", "A Logen Logistics não tem emissão dedicada e é conectada por meio da chave de rastreamento unificada", "Selecione o canal [Smart Parcel (Rastreamento unificado)] e registre sua t_key."],
+              ["O rastreamento de entregas não é conectado", "t_key incorreta ou não emitida", "Verifique novamente a t_key emitida em tracking.sweettracker.co.kr."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificação final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Cadastrou-se em tracking.sweettracker.co.kr.",
+              "Emitiu uma t_key (chave de API de rastreamento Smart Parcel).",
+              "Selecionou o canal [Smart Parcel (Rastreamento unificado)] no Integration Hub.",
+              "Inseriu e salvou a t_key (api_key) no GenieGo [Registrar]."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ru": {
+      "titleType": "Руководство по выпуску API-ключа",
+      "badge": "Руководство для начинающих",
+      "intro": "Logen Logistics не требует отдельного выпуска и подключается через единый ключ отслеживания Smart Parcel (SweetTracker). Выпустите t_key на tracking.sweettracker.co.kr и зарегистрируйте его в канале [Smart Parcel (Единое отслеживание)], чтобы подключить отслеживание доставок Logen Logistics.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Примерное время", "Около 5–15 мин"],
+        ["Требуемая учётная запись", "Учётная запись Smart Parcel (SweetTracker)"],
+        ["Выпускаемые ключи", "API-ключ отслеживания Smart Parcel (t_key)"],
+        ["Результат", "Учётные данные единого отслеживания доставок"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Перед началом",
+          "desc": "Logen Logistics подключается через единый ключ отслеживания Smart Parcel, без выделенного выпуска.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Способ", "h3": "Единое отслеживание Smart Parcel (SweetTracker)", "p": "Logen Logistics не требует отдельного выпуска и подключается через единый ключ отслеживания Smart Parcel (SweetTracker). Один t_key обрабатывает отслеживание доставок для всех перевозчиков." },
+              { "tag": "Выпускаемые ключи", "h3": "t_key (API-ключ отслеживания Smart Parcel)", "p": "Это единый ключ отслеживания, выпускаемый после регистрации на tracking.sweettracker.co.kr. В GenieGo введите его в поле api_key." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Важно:</strong> Не выбирайте канал Logen Logistics напрямую; зарегистрируйте свой t_key в канале [Smart Parcel (Единое отслеживание)]." }
+          ]
+        },
+        {
+          "h2": "2. Шаги выпуска",
+          "desc": "Выпустите в указанном ниже порядке и зарегистрируйте в GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Зарегистрируйтесь в SweetTracker", "p": "Зарегистрируйтесь в Smart Parcel (SweetTracker).", "path": "tracking.sweettracker.co.kr" },
+              { "h3": "Выпустите t_key", "p": "Выпустите t_key на tracking.sweettracker.co.kr." },
+              { "h3": "Выберите канал Smart Parcel", "p": "В Integration Hub выберите канал [Smart Parcel (Единое отслеживание)] вместо канала Logen Logistics." },
+              { "h3": "Зарегистрируйте в GenieGo", "p": "Введите t_key (api_key) в GenieGo [Регистрация], и отслеживание доставок Logen Logistics будет подключено." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "После того как вы выпустите t_key и зарегистрируете его в канале [Smart Parcel (Единое отслеживание)], отслеживание доставок Logen Logistics будет подключено." }
+          ]
+        },
+        {
+          "h2": "3. Информация для регистрации в GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Поле", "Описание"], "rows": [
+              ["api_key", "t_key, выпущенный SweetTracker (API-ключ отслеживания Smart Parcel)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "После того как вы введёте и сохраните его в GenieGo Integration Hub [Регистрация], учётные данные шифруются при хранении с помощью AES-256-GCM и маскируются при чтении." }
+          ]
+        },
+        {
+          "h2": "4. Часто возникающие проблемы",
+          "blocks": [
+            { "type": "table", "head": ["Проблема", "Причина", "Решение"], "rows": [
+              ["Невозможно зарегистрировать ключ в канале Logen Logistics", "У Logen Logistics нет выделенного выпуска, подключение выполняется через единый ключ отслеживания", "Выберите канал [Smart Parcel (Единое отслеживание)] и зарегистрируйте свой t_key."],
+              ["Отслеживание доставок не подключено", "Неверно введённый или невыпущенный t_key", "Повторно проверьте t_key, выпущенный на tracking.sweettracker.co.kr."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Итоговый контрольный список",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Зарегистрировались на tracking.sweettracker.co.kr.",
+              "Выпустили t_key (API-ключ отслеживания Smart Parcel).",
+              "Выбрали канал [Smart Parcel (Единое отслеживание)] в Integration Hub.",
+              "Ввели и сохранили t_key (api_key) в GenieGo [Регистрация]."
+            ] }
+          ]
+        }
+      ]
+    }
+  }
+}

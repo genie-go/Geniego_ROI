@@ -1,0 +1,1041 @@
+{
+  "name": "DHL Express",
+  "icon": "✈️",
+  "langs": {
+    "ko": {
+      "titleType": "API Key 발급 매뉴얼",
+      "badge": "Beginner Guide",
+      "intro": "DHL Express 개발자 포털(developer.dhl.com)에서 API Key와 Secret을 발급하고, DHL Express 고객 계정번호와 함께 GenieGo 연동 허브에 등록하는 과정을 초보자도 그대로 따라 할 수 있도록 정리한 매뉴얼입니다.",
+      "org": "GenieGo 연동 허브",
+      "quick": [
+        ["소요 시간", "약 10~15분(승인 대기 별도)"],
+        ["필요 계정", "DHL Express 고객 계정(계정번호)"],
+        ["발급 키", "API Key · Secret"],
+        ["결과물", "API 자격증명 · 계정번호"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 시작하기 전에",
+          "desc": "DHL Express 자격증명은 개발자 포털에서 신청하며, 고객 계정번호가 필요합니다.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "준비물", "h3": "DHL Express 고객 계정번호", "p": "DHL Express 고객 계정번호가 있으면 자격증명 신청이 수월합니다. 계정번호는 GenieGo 등록 시에도 함께 입력합니다." },
+              { "tag": "발급 키", "h3": "API Key · Secret", "p": "포털에서 본인 앱(회사명)을 통해 API Key와 Secret을 확인하게 됩니다." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>참고:</strong> [Get Access]로 고객 정보를 등록하고 자격증명을 신청하면, 보통 영업일 다음 날 Test/Production 승인 메일을 받습니다." }
+          ]
+        },
+        {
+          "h2": "2. 발급 단계",
+          "desc": "아래 순서대로 발급하고 GenieGo에 등록합니다.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "개발자 포털 가입", "p": "DHL Express 개발자 포털에 접속해 이메일로 가입하고 인증합니다.", "path": "https://developer.dhl.com" },
+              { "h3": "자격증명 신청", "p": "로그인 후 [Get Access] 섹션에서 고객 정보를 등록하고 자격증명을 신청합니다.", "path": "Get Access" },
+              { "h3": "승인 메일 수신", "p": "보통 영업일 다음 날 Test/Production 승인 메일을 받습니다." },
+              { "h3": "API Key·Secret 확인", "p": "포털에서 본인 앱(회사명) > [Show Key]로 API Key와 Secret을 확인합니다.", "path": "본인 앱(회사명) → Show Key" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "승인 메일을 받고 포털에서 API Key·Secret이 보이면 정상 발급된 것입니다." }
+          ]
+        },
+        {
+          "h2": "3. GenieGo에 등록할 정보",
+          "blocks": [
+            { "type": "table", "head": ["필드", "설명"], "rows": [
+              ["api_key", "포털에서 확인한 DHL API Key"],
+              ["account_number", "DHL Express 고객 계정번호"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 연동 허브 [등록]에 입력해 저장하면 자격증명은 AES-256-GCM으로 암호화 저장되고 조회 시 마스킹됩니다." }
+          ]
+        },
+        {
+          "h2": "4. 자주 발생하는 문제",
+          "blocks": [
+            { "type": "table", "head": ["문제", "원인", "해결"], "rows": [
+              ["승인 메일이 오지 않음", "영업일 익일 승인 처리 대기 또는 고객 정보 미등록", "[Get Access]에서 고객 정보 등록·자격증명 신청이 완료됐는지 확인하고 영업일 기준으로 기다립니다."],
+              ["호출 시 인증 오류", "Test/Production 환경 혼동 또는 계정번호 누락", "승인된 환경의 API Key·Secret과 계정번호(account_number)를 다시 확인합니다."]
+            ] }
+          ]
+        },
+        {
+          "h2": "최종 체크리스트",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "DHL Express 고객 계정번호를 확인했다.",
+              "developer.dhl.com에 가입하고 [Get Access]로 자격증명을 신청했다.",
+              "영업일 익일 Test/Production 승인 메일을 받았다.",
+              "포털에서 API Key·Secret을 확인했다.",
+              "GenieGo [등록]에 api_key·account_number를 입력해 저장했다."
+            ] }
+          ]
+        }
+      ]
+    },
+    "en": {
+      "titleType": "API Key Issuance Manual",
+      "badge": "Beginner Guide",
+      "intro": "A beginner-friendly, step-by-step guide to issuing an API Key and Secret on the DHL Express developer portal (developer.dhl.com) and registering them together with your DHL Express customer account number in the GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Est. time", "About 10–15 min (approval wait separate)"],
+        ["Account needed", "DHL Express customer account (account number)"],
+        ["Keys issued", "API Key · Secret"],
+        ["Result", "API credentials · account number"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Before You Begin",
+          "desc": "DHL Express credentials are requested on the developer portal, and a customer account number is required.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Prepare", "h3": "DHL Express customer account number", "p": "Having a DHL Express customer account number makes the credential request smoother. The account number is also entered when registering in GenieGo." },
+              { "tag": "Keys issued", "h3": "API Key · Secret", "p": "You will obtain the API Key and Secret through your own app (company name) on the portal." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Note:</strong> When you register your customer information via [Get Access] and request credentials, you usually receive the Test/Production approval email the next business day." }
+          ]
+        },
+        {
+          "h2": "2. Issuance Steps",
+          "desc": "Issue in the order below and register in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Sign up for the developer portal", "p": "Go to the DHL Express developer portal, sign up with your email, and verify it.", "path": "https://developer.dhl.com" },
+              { "h3": "Request credentials", "p": "After signing in, register your customer information in the [Get Access] section and request credentials.", "path": "Get Access" },
+              { "h3": "Receive the approval email", "p": "You usually receive the Test/Production approval email the next business day." },
+              { "h3": "Find the API Key and Secret", "p": "On the portal, go to your own app (company name) > [Show Key] to find the API Key and Secret.", "path": "Your app (company name) → Show Key" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Once you receive the approval email and the API Key and Secret are visible on the portal, they have been issued correctly." }
+          ]
+        },
+        {
+          "h2": "3. Information to Register in GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Field", "Description"], "rows": [
+              ["api_key", "The DHL API Key found on the portal"],
+              ["account_number", "DHL Express customer account number"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Once you enter them in the GenieGo Integration Hub [Register] and save, credentials are encrypted at rest with AES-256-GCM and masked on read." }
+          ]
+        },
+        {
+          "h2": "4. Common Issues",
+          "blocks": [
+            { "type": "table", "head": ["Issue", "Cause", "Solution"], "rows": [
+              ["Approval email does not arrive", "Awaiting next-business-day approval processing, or customer information not registered", "Check whether customer registration and the credential request are complete in [Get Access], and wait based on business days."],
+              ["Authentication error when calling", "Confusion between Test/Production environments, or missing account number", "Recheck the API Key and Secret of the approved environment and the account number (account_number)."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Final Checklist",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Confirmed the DHL Express customer account number.",
+              "Signed up at developer.dhl.com and requested credentials via [Get Access].",
+              "Received the Test/Production approval email the next business day.",
+              "Found the API Key and Secret on the portal.",
+              "Entered api_key·account_number in GenieGo [Register] and saved."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ja": {
+      "titleType": "API Key 発行マニュアル",
+      "badge": "初心者ガイド",
+      "intro": "DHL Express 開発者ポータル(developer.dhl.com)で API Key と Secret を発行し、DHL Express の顧客アカウント番号とともに GenieGo 連携ハブに登録する手順を、初心者でもそのまま実行できるようにまとめたマニュアルです。",
+      "org": "GenieGo 連携ハブ",
+      "quick": [
+        ["所要時間", "約 10〜15 分(承認待ちは別途)"],
+        ["必要なアカウント", "DHL Express 顧客アカウント(アカウント番号)"],
+        ["発行するキー", "API Key · Secret"],
+        ["成果物", "API 認証情報 · アカウント番号"]
+      ],
+      "sections": [
+        {
+          "h2": "1. はじめる前に",
+          "desc": "DHL Express の認証情報は開発者ポータルで申請し、顧客アカウント番号が必要です。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "準備物", "h3": "DHL Express 顧客アカウント番号", "p": "DHL Express の顧客アカウント番号があると認証情報の申請がスムーズです。アカウント番号は GenieGo の登録時にも併せて入力します。" },
+              { "tag": "発行するキー", "h3": "API Key · Secret", "p": "ポータルでご自身のアプリ(会社名)を通じて API Key と Secret を確認します。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> [Get Access]で顧客情報を登録して認証情報を申請すると、通常は翌営業日に Test/Production の承認メールが届きます。" }
+          ]
+        },
+        {
+          "h2": "2. 発行手順",
+          "desc": "以下の順序で発行し、GenieGo に登録します。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "開発者ポータルに登録", "p": "DHL Express 開発者ポータルにアクセスし、メールで登録して認証します。", "path": "https://developer.dhl.com" },
+              { "h3": "認証情報を申請", "p": "ログイン後、[Get Access]セクションで顧客情報を登録して認証情報を申請します。", "path": "Get Access" },
+              { "h3": "承認メールを受信", "p": "通常は翌営業日に Test/Production の承認メールが届きます。" },
+              { "h3": "API Key・Secret を確認", "p": "ポータルでご自身のアプリ(会社名) > [Show Key]から API Key と Secret を確認します。", "path": "ご自身のアプリ(会社名) → Show Key" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "承認メールを受け取り、ポータルで API Key・Secret が表示されれば、正常に発行されています。" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo に登録する情報",
+          "blocks": [
+            { "type": "table", "head": ["フィールド", "説明"], "rows": [
+              ["api_key", "ポータルで確認した DHL API Key"],
+              ["account_number", "DHL Express 顧客アカウント番号"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 連携ハブの[登録]に入力して保存すると、認証情報は AES-256-GCM で暗号化して保存され、閲覧時にはマスキングされます。" }
+          ]
+        },
+        {
+          "h2": "4. よくある問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["承認メールが届かない", "翌営業日の承認処理待ち、または顧客情報が未登録", "[Get Access]で顧客情報の登録・認証情報の申請が完了しているか確認し、営業日基準で待ちます。"],
+              ["呼び出し時の認証エラー", "Test/Production 環境の混同、またはアカウント番号の欠落", "承認された環境の API Key・Secret とアカウント番号(account_number)を再度確認します。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終チェックリスト",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "DHL Express 顧客アカウント番号を確認した。",
+              "developer.dhl.com に登録し、[Get Access]で認証情報を申請した。",
+              "翌営業日に Test/Production の承認メールを受け取った。",
+              "ポータルで API Key・Secret を確認した。",
+              "GenieGo の[登録]に api_key·account_number を入力して保存した。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh": {
+      "titleType": "API Key 申请手册",
+      "badge": "新手指南",
+      "intro": "本手册手把手指导新手在 DHL Express 开发者门户(developer.dhl.com)上签发 API Key 和 Secret，并连同 DHL Express 客户账号一起注册到 GenieGo 集成中心。",
+      "org": "GenieGo 集成中心",
+      "quick": [
+        ["预计时间", "约 10~15 分钟(审批等待另计)"],
+        ["所需账户", "DHL Express 客户账户(账号)"],
+        ["签发密钥", "API Key · Secret"],
+        ["成果", "API 凭证 · 账号"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 开始之前",
+          "desc": "DHL Express 凭证需在开发者门户上申请，并需要客户账号。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "准备物", "h3": "DHL Express 客户账号", "p": "拥有 DHL Express 客户账号可使凭证申请更顺畅。在 GenieGo 注册时也需一并输入账号。" },
+              { "tag": "签发密钥", "h3": "API Key · Secret", "p": "您将在门户上通过自己的应用(公司名称)查看 API Key 和 Secret。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> 通过 [Get Access] 注册客户信息并申请凭证后，通常会在下一个工作日收到 Test/Production 审批邮件。" }
+          ]
+        },
+        {
+          "h2": "2. 申请步骤",
+          "desc": "按以下顺序签发并在 GenieGo 中注册。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "注册开发者门户", "p": "访问 DHL Express 开发者门户，使用邮箱注册并验证。", "path": "https://developer.dhl.com" },
+              { "h3": "申请凭证", "p": "登录后，在 [Get Access] 部分注册客户信息并申请凭证。", "path": "Get Access" },
+              { "h3": "接收审批邮件", "p": "通常会在下一个工作日收到 Test/Production 审批邮件。" },
+              { "h3": "查看 API Key·Secret", "p": "在门户上进入自己的应用(公司名称) > [Show Key] 查看 API Key 和 Secret。", "path": "自己的应用(公司名称) → Show Key" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "收到审批邮件并在门户上看到 API Key·Secret 时，即表示已正确签发。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中注册的信息",
+          "blocks": [
+            { "type": "table", "head": ["字段", "说明"], "rows": [
+              ["api_key", "在门户上查看的 DHL API Key"],
+              ["account_number", "DHL Express 客户账号"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 集成中心 [注册] 中输入并保存后，凭证将以 AES-256-GCM 加密存储，并在查询时进行掩码处理。" }
+          ]
+        },
+        {
+          "h2": "4. 常见问题",
+          "blocks": [
+            { "type": "table", "head": ["问题", "原因", "解决方法"], "rows": [
+              ["收不到审批邮件", "等待下一个工作日审批处理，或未注册客户信息", "在 [Get Access] 中确认客户信息注册和凭证申请是否已完成，并按工作日等待。"],
+              ["调用时认证错误", "Test/Production 环境混淆，或缺少账号", "重新确认已审批环境的 API Key·Secret 和账号(account_number)。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最终检查清单",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已确认 DHL Express 客户账号。",
+              "已在 developer.dhl.com 注册并通过 [Get Access] 申请凭证。",
+              "已在下一个工作日收到 Test/Production 审批邮件。",
+              "已在门户上查看 API Key·Secret。",
+              "已在 GenieGo [注册] 中输入 api_key·account_number 并保存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh-TW": {
+      "titleType": "API Key 申請手冊",
+      "badge": "新手指南",
+      "intro": "本手冊手把手指導新手在 DHL Express 開發者入口網站(developer.dhl.com)上簽發 API Key 和 Secret，並連同 DHL Express 客戶帳號一起註冊到 GenieGo 整合中心。",
+      "org": "GenieGo 整合中心",
+      "quick": [
+        ["預計時間", "約 10~15 分鐘(審核等待另計)"],
+        ["所需帳戶", "DHL Express 客戶帳戶(帳號)"],
+        ["簽發金鑰", "API Key · Secret"],
+        ["成果", "API 憑證 · 帳號"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 開始之前",
+          "desc": "DHL Express 憑證需在開發者入口網站上申請，並需要客戶帳號。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "準備物", "h3": "DHL Express 客戶帳號", "p": "擁有 DHL Express 客戶帳號可使憑證申請更順暢。在 GenieGo 註冊時也需一併輸入帳號。" },
+              { "tag": "簽發金鑰", "h3": "API Key · Secret", "p": "您將在入口網站上透過自己的應用程式(公司名稱)查看 API Key 和 Secret。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> 透過 [Get Access] 註冊客戶資訊並申請憑證後，通常會在下一個工作日收到 Test/Production 審核郵件。" }
+          ]
+        },
+        {
+          "h2": "2. 簽發步驟",
+          "desc": "依以下順序簽發並在 GenieGo 中註冊。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "註冊開發者入口網站", "p": "存取 DHL Express 開發者入口網站，使用電子郵件註冊並驗證。", "path": "https://developer.dhl.com" },
+              { "h3": "申請憑證", "p": "登入後，在 [Get Access] 部分註冊客戶資訊並申請憑證。", "path": "Get Access" },
+              { "h3": "接收審核郵件", "p": "通常會在下一個工作日收到 Test/Production 審核郵件。" },
+              { "h3": "查看 API Key·Secret", "p": "在入口網站上進入自己的應用程式(公司名稱) > [Show Key] 查看 API Key 和 Secret。", "path": "自己的應用程式(公司名稱) → Show Key" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "收到審核郵件並在入口網站上看到 API Key·Secret 時，即表示已正確簽發。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中註冊的資訊",
+          "blocks": [
+            { "type": "table", "head": ["欄位", "說明"], "rows": [
+              ["api_key", "在入口網站上查看的 DHL API Key"],
+              ["account_number", "DHL Express 客戶帳號"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 整合中心 [註冊] 中輸入並儲存後，憑證將以 AES-256-GCM 加密儲存，並在查詢時進行遮罩處理。" }
+          ]
+        },
+        {
+          "h2": "4. 常見問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["收不到審核郵件", "等待下一個工作日審核處理，或未註冊客戶資訊", "在 [Get Access] 中確認客戶資訊註冊和憑證申請是否已完成，並依工作日等待。"],
+              ["呼叫時認證錯誤", "Test/Production 環境混淆，或缺少帳號", "重新確認已審核環境的 API Key·Secret 和帳號(account_number)。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終檢查清單",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已確認 DHL Express 客戶帳號。",
+              "已在 developer.dhl.com 註冊並透過 [Get Access] 申請憑證。",
+              "已在下一個工作日收到 Test/Production 審核郵件。",
+              "已在入口網站上查看 API Key·Secret。",
+              "已在 GenieGo [註冊] 中輸入 api_key·account_number 並儲存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "de": {
+      "titleType": "Anleitung zur API-Key-Ausstellung",
+      "badge": "Einsteigerleitfaden",
+      "intro": "Eine einsteigerfreundliche Schritt-für-Schritt-Anleitung zum Ausstellen eines API Key und Secret im DHL Express Entwicklerportal (developer.dhl.com) und zum Registrieren zusammen mit Ihrer DHL Express Kundenkontonummer im GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Geschätzte Zeit", "Etwa 10–15 Min. (Freigabewartezeit separat)"],
+        ["Benötigtes Konto", "DHL Express Kundenkonto (Kontonummer)"],
+        ["Ausgestellte Schlüssel", "API Key · Secret"],
+        ["Ergebnis", "API-Anmeldedaten · Kontonummer"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Bevor Sie beginnen",
+          "desc": "DHL Express Anmeldedaten werden im Entwicklerportal beantragt, und eine Kundenkontonummer ist erforderlich.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Vorbereitung", "h3": "DHL Express Kundenkontonummer", "p": "Mit einer DHL Express Kundenkontonummer verläuft der Antrag auf Anmeldedaten reibungsloser. Die Kontonummer wird auch bei der Registrierung in GenieGo eingegeben." },
+              { "tag": "Ausgestellte Schlüssel", "h3": "API Key · Secret", "p": "Sie erhalten den API Key und das Secret über Ihre eigene App (Firmenname) im Portal." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Hinweis:</strong> Wenn Sie Ihre Kundeninformationen über [Get Access] registrieren und Anmeldedaten beantragen, erhalten Sie die Test/Production-Freigabe-E-Mail in der Regel am nächsten Werktag." }
+          ]
+        },
+        {
+          "h2": "2. Ausstellungsschritte",
+          "desc": "Stellen Sie in der unten angegebenen Reihenfolge aus und registrieren Sie in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Im Entwicklerportal registrieren", "p": "Rufen Sie das DHL Express Entwicklerportal auf, registrieren Sie sich mit Ihrer E-Mail und verifizieren Sie diese.", "path": "https://developer.dhl.com" },
+              { "h3": "Anmeldedaten beantragen", "p": "Registrieren Sie nach der Anmeldung Ihre Kundeninformationen im Abschnitt [Get Access] und beantragen Sie Anmeldedaten.", "path": "Get Access" },
+              { "h3": "Freigabe-E-Mail erhalten", "p": "Sie erhalten die Test/Production-Freigabe-E-Mail in der Regel am nächsten Werktag." },
+              { "h3": "API Key·Secret finden", "p": "Gehen Sie im Portal zu Ihrer eigenen App (Firmenname) > [Show Key], um den API Key und das Secret zu finden.", "path": "Ihre App (Firmenname) → Show Key" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Sobald Sie die Freigabe-E-Mail erhalten haben und der API Key·Secret im Portal sichtbar ist, wurden sie korrekt ausgestellt." }
+          ]
+        },
+        {
+          "h2": "3. In GenieGo zu registrierende Informationen",
+          "blocks": [
+            { "type": "table", "head": ["Feld", "Beschreibung"], "rows": [
+              ["api_key", "Der im Portal gefundene DHL API Key"],
+              ["account_number", "DHL Express Kundenkontonummer"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Sobald Sie diese im GenieGo Integration Hub [Registrieren] eingeben und speichern, werden die Anmeldedaten im Ruhezustand mit AES-256-GCM verschlüsselt und beim Lesen maskiert." }
+          ]
+        },
+        {
+          "h2": "4. Häufige Probleme",
+          "blocks": [
+            { "type": "table", "head": ["Problem", "Ursache", "Lösung"], "rows": [
+              ["Freigabe-E-Mail kommt nicht an", "Warten auf die Freigabebearbeitung am nächsten Werktag oder Kundeninformationen nicht registriert", "Prüfen Sie unter [Get Access], ob die Kundenregistrierung und der Antrag auf Anmeldedaten abgeschlossen sind, und warten Sie nach Werktagen."],
+              ["Authentifizierungsfehler beim Aufruf", "Verwechslung zwischen Test/Production-Umgebungen oder fehlende Kontonummer", "Überprüfen Sie den API Key·Secret der freigegebenen Umgebung und die Kontonummer (account_number) erneut."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Abschließende Checkliste",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Die DHL Express Kundenkontonummer bestätigt.",
+              "Bei developer.dhl.com registriert und über [Get Access] Anmeldedaten beantragt.",
+              "Die Test/Production-Freigabe-E-Mail am nächsten Werktag erhalten.",
+              "Den API Key·Secret im Portal gefunden.",
+              "api_key·account_number in GenieGo [Registrieren] eingegeben und gespeichert."
+            ] }
+          ]
+        }
+      ]
+    },
+    "th": {
+      "titleType": "คู่มือการออก API Key",
+      "badge": "คู่มือสำหรับผู้เริ่มต้น",
+      "intro": "คู่มือทีละขั้นตอนที่เป็นมิตรกับผู้เริ่มต้น สำหรับการออก API Key และ Secret บนพอร์ทัลนักพัฒนา DHL Express (developer.dhl.com) และลงทะเบียนพร้อมกับหมายเลขบัญชีลูกค้า DHL Express ใน GenieGo Integration Hub",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["เวลาโดยประมาณ", "ประมาณ 10–15 นาที (รอการอนุมัติแยกต่างหาก)"],
+        ["บัญชีที่ต้องใช้", "บัญชีลูกค้า DHL Express (หมายเลขบัญชี)"],
+        ["คีย์ที่ออก", "API Key · Secret"],
+        ["ผลลัพธ์", "ข้อมูลรับรอง API · หมายเลขบัญชี"]
+      ],
+      "sections": [
+        {
+          "h2": "1. ก่อนเริ่มต้น",
+          "desc": "ข้อมูลรับรอง DHL Express ต้องยื่นคำขอบนพอร์ทัลนักพัฒนา และจำเป็นต้องมีหมายเลขบัญชีลูกค้า",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "สิ่งที่ต้องเตรียม", "h3": "หมายเลขบัญชีลูกค้า DHL Express", "p": "การมีหมายเลขบัญชีลูกค้า DHL Express ช่วยให้การยื่นขอข้อมูลรับรองราบรื่นขึ้น หมายเลขบัญชีจะถูกป้อนเมื่อลงทะเบียนใน GenieGo ด้วยเช่นกัน" },
+              { "tag": "คีย์ที่ออก", "h3": "API Key · Secret", "p": "คุณจะได้รับ API Key และ Secret ผ่านแอปของคุณเอง (ชื่อบริษัท) บนพอร์ทัล" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>หมายเหตุ:</strong> เมื่อคุณลงทะเบียนข้อมูลลูกค้าผ่าน [Get Access] และยื่นขอข้อมูลรับรอง โดยปกติคุณจะได้รับอีเมลอนุมัติ Test/Production ในวันทำการถัดไป" }
+          ]
+        },
+        {
+          "h2": "2. ขั้นตอนการออก",
+          "desc": "ออกตามลำดับด้านล่างและลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "สมัครพอร์ทัลนักพัฒนา", "p": "ไปที่พอร์ทัลนักพัฒนา DHL Express สมัครด้วยอีเมลและยืนยัน", "path": "https://developer.dhl.com" },
+              { "h3": "ยื่นขอข้อมูลรับรอง", "p": "หลังจากลงชื่อเข้าใช้ ลงทะเบียนข้อมูลลูกค้าของคุณในส่วน [Get Access] และยื่นขอข้อมูลรับรอง", "path": "Get Access" },
+              { "h3": "รับอีเมลอนุมัติ", "p": "โดยปกติคุณจะได้รับอีเมลอนุมัติ Test/Production ในวันทำการถัดไป" },
+              { "h3": "ค้นหา API Key·Secret", "p": "บนพอร์ทัล ไปที่แอปของคุณเอง (ชื่อบริษัท) > [Show Key] เพื่อค้นหา API Key และ Secret", "path": "แอปของคุณเอง (ชื่อบริษัท) → Show Key" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "เมื่อคุณได้รับอีเมลอนุมัติและเห็น API Key·Secret บนพอร์ทัล แสดงว่าออกอย่างถูกต้องแล้ว" }
+          ]
+        },
+        {
+          "h2": "3. ข้อมูลที่ต้องลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["ฟิลด์", "คำอธิบาย"], "rows": [
+              ["api_key", "DHL API Key ที่พบบนพอร์ทัล"],
+              ["account_number", "หมายเลขบัญชีลูกค้า DHL Express"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "เมื่อคุณป้อนข้อมูลใน GenieGo Integration Hub [ลงทะเบียน] และบันทึก ข้อมูลรับรองจะถูกเข้ารหัสขณะจัดเก็บด้วย AES-256-GCM และปิดบังเมื่ออ่าน" }
+          ]
+        },
+        {
+          "h2": "4. ปัญหาที่พบบ่อย",
+          "blocks": [
+            { "type": "table", "head": ["ปัญหา", "สาเหตุ", "วิธีแก้ไข"], "rows": [
+              ["ไม่ได้รับอีเมลอนุมัติ", "กำลังรอการประมวลผลอนุมัติในวันทำการถัดไป หรือยังไม่ได้ลงทะเบียนข้อมูลลูกค้า", "ตรวจสอบใน [Get Access] ว่าการลงทะเบียนข้อมูลลูกค้าและการยื่นขอข้อมูลรับรองเสร็จสมบูรณ์แล้ว และรอตามวันทำการ"],
+              ["ข้อผิดพลาดการยืนยันตัวตนเมื่อเรียกใช้", "สับสนระหว่างสภาพแวดล้อม Test/Production หรือขาดหมายเลขบัญชี", "ตรวจสอบ API Key·Secret ของสภาพแวดล้อมที่อนุมัติแล้วและหมายเลขบัญชี (account_number) อีกครั้ง"]
+            ] }
+          ]
+        },
+        {
+          "h2": "รายการตรวจสอบขั้นสุดท้าย",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "ยืนยันหมายเลขบัญชีลูกค้า DHL Express แล้ว",
+              "สมัครที่ developer.dhl.com และยื่นขอข้อมูลรับรองผ่าน [Get Access] แล้ว",
+              "ได้รับอีเมลอนุมัติ Test/Production ในวันทำการถัดไปแล้ว",
+              "พบ API Key·Secret บนพอร์ทัลแล้ว",
+              "ป้อน api_key·account_number ใน GenieGo [ลงทะเบียน] และบันทึกแล้ว"
+            ] }
+          ]
+        }
+      ]
+    },
+    "vi": {
+      "titleType": "Hướng dẫn cấp API Key",
+      "badge": "Hướng dẫn cho người mới",
+      "intro": "Hướng dẫn từng bước thân thiện với người mới về việc cấp API Key và Secret trên cổng nhà phát triển DHL Express (developer.dhl.com) và đăng ký cùng với số tài khoản khách hàng DHL Express trong GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Thời gian dự kiến", "Khoảng 10–15 phút (thời gian chờ phê duyệt tính riêng)"],
+        ["Tài khoản cần thiết", "Tài khoản khách hàng DHL Express (số tài khoản)"],
+        ["Khóa được cấp", "API Key · Secret"],
+        ["Kết quả", "Thông tin xác thực API · số tài khoản"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Trước khi bắt đầu",
+          "desc": "Thông tin xác thực DHL Express được yêu cầu trên cổng nhà phát triển, và cần có số tài khoản khách hàng.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Chuẩn bị", "h3": "Số tài khoản khách hàng DHL Express", "p": "Có số tài khoản khách hàng DHL Express giúp việc yêu cầu thông tin xác thực thuận lợi hơn. Số tài khoản cũng được nhập khi đăng ký trong GenieGo." },
+              { "tag": "Khóa được cấp", "h3": "API Key · Secret", "p": "Bạn sẽ nhận được API Key và Secret thông qua ứng dụng của riêng bạn (tên công ty) trên cổng." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Lưu ý:</strong> Khi bạn đăng ký thông tin khách hàng qua [Get Access] và yêu cầu thông tin xác thực, bạn thường nhận được email phê duyệt Test/Production vào ngày làm việc tiếp theo." }
+          ]
+        },
+        {
+          "h2": "2. Các bước cấp",
+          "desc": "Cấp theo thứ tự dưới đây và đăng ký trong GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Đăng ký cổng nhà phát triển", "p": "Truy cập cổng nhà phát triển DHL Express, đăng ký bằng email của bạn và xác minh.", "path": "https://developer.dhl.com" },
+              { "h3": "Yêu cầu thông tin xác thực", "p": "Sau khi đăng nhập, đăng ký thông tin khách hàng của bạn trong phần [Get Access] và yêu cầu thông tin xác thực.", "path": "Get Access" },
+              { "h3": "Nhận email phê duyệt", "p": "Bạn thường nhận được email phê duyệt Test/Production vào ngày làm việc tiếp theo." },
+              { "h3": "Tìm API Key·Secret", "p": "Trên cổng, vào ứng dụng của riêng bạn (tên công ty) > [Show Key] để tìm API Key và Secret.", "path": "Ứng dụng của bạn (tên công ty) → Show Key" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Khi bạn nhận được email phê duyệt và API Key·Secret hiển thị trên cổng, nghĩa là chúng đã được cấp đúng cách." }
+          ]
+        },
+        {
+          "h2": "3. Thông tin cần đăng ký trong GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Trường", "Mô tả"], "rows": [
+              ["api_key", "DHL API Key được tìm thấy trên cổng"],
+              ["account_number", "Số tài khoản khách hàng DHL Express"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Sau khi bạn nhập chúng vào GenieGo Integration Hub [Đăng ký] và lưu, thông tin xác thực được mã hóa khi lưu trữ bằng AES-256-GCM và được che khi đọc." }
+          ]
+        },
+        {
+          "h2": "4. Sự cố thường gặp",
+          "blocks": [
+            { "type": "table", "head": ["Sự cố", "Nguyên nhân", "Giải pháp"], "rows": [
+              ["Email phê duyệt không đến", "Đang chờ xử lý phê duyệt vào ngày làm việc tiếp theo, hoặc thông tin khách hàng chưa được đăng ký", "Kiểm tra trong [Get Access] xem việc đăng ký khách hàng và yêu cầu thông tin xác thực đã hoàn tất chưa, và chờ theo ngày làm việc."],
+              ["Lỗi xác thực khi gọi", "Nhầm lẫn giữa môi trường Test/Production, hoặc thiếu số tài khoản", "Kiểm tra lại API Key·Secret của môi trường đã phê duyệt và số tài khoản (account_number)."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Danh sách kiểm tra cuối cùng",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Đã xác nhận số tài khoản khách hàng DHL Express.",
+              "Đã đăng ký tại developer.dhl.com và yêu cầu thông tin xác thực qua [Get Access].",
+              "Đã nhận email phê duyệt Test/Production vào ngày làm việc tiếp theo.",
+              "Đã tìm thấy API Key·Secret trên cổng.",
+              "Đã nhập api_key·account_number vào GenieGo [Đăng ký] và lưu."
+            ] }
+          ]
+        }
+      ]
+    },
+    "id": {
+      "titleType": "Panduan Penerbitan API Key",
+      "badge": "Panduan Pemula",
+      "intro": "Panduan langkah demi langkah yang ramah pemula untuk menerbitkan API Key dan Secret di portal pengembang DHL Express (developer.dhl.com) dan mendaftarkannya bersama nomor akun pelanggan DHL Express di GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Perkiraan waktu", "Sekitar 10–15 menit (waktu tunggu persetujuan terpisah)"],
+        ["Akun yang dibutuhkan", "Akun pelanggan DHL Express (nomor akun)"],
+        ["Kunci yang diterbitkan", "API Key · Secret"],
+        ["Hasil", "Kredensial API · nomor akun"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Sebelum Anda Mulai",
+          "desc": "Kredensial DHL Express diminta di portal pengembang, dan nomor akun pelanggan diperlukan.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Persiapan", "h3": "Nomor akun pelanggan DHL Express", "p": "Memiliki nomor akun pelanggan DHL Express membuat permintaan kredensial lebih lancar. Nomor akun juga dimasukkan saat mendaftar di GenieGo." },
+              { "tag": "Kunci yang diterbitkan", "h3": "API Key · Secret", "p": "Anda akan memperoleh API Key dan Secret melalui aplikasi Anda sendiri (nama perusahaan) di portal." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Catatan:</strong> Saat Anda mendaftarkan informasi pelanggan melalui [Get Access] dan meminta kredensial, biasanya Anda menerima email persetujuan Test/Production pada hari kerja berikutnya." }
+          ]
+        },
+        {
+          "h2": "2. Langkah Penerbitan",
+          "desc": "Terbitkan sesuai urutan di bawah dan daftarkan di GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Daftar ke portal pengembang", "p": "Buka portal pengembang DHL Express, daftar dengan email Anda, dan verifikasi.", "path": "https://developer.dhl.com" },
+              { "h3": "Minta kredensial", "p": "Setelah masuk, daftarkan informasi pelanggan Anda di bagian [Get Access] dan minta kredensial.", "path": "Get Access" },
+              { "h3": "Terima email persetujuan", "p": "Biasanya Anda menerima email persetujuan Test/Production pada hari kerja berikutnya." },
+              { "h3": "Temukan API Key·Secret", "p": "Di portal, buka aplikasi Anda sendiri (nama perusahaan) > [Show Key] untuk menemukan API Key dan Secret.", "path": "Aplikasi Anda (nama perusahaan) → Show Key" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Setelah Anda menerima email persetujuan dan API Key·Secret terlihat di portal, berarti keduanya telah diterbitkan dengan benar." }
+          ]
+        },
+        {
+          "h2": "3. Informasi yang Harus Didaftarkan di GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Bidang", "Deskripsi"], "rows": [
+              ["api_key", "DHL API Key yang ditemukan di portal"],
+              ["account_number", "Nomor akun pelanggan DHL Express"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Setelah Anda memasukkannya di GenieGo Integration Hub [Daftar] dan menyimpan, kredensial dienkripsi saat disimpan dengan AES-256-GCM dan disamarkan saat dibaca." }
+          ]
+        },
+        {
+          "h2": "4. Masalah Umum",
+          "blocks": [
+            { "type": "table", "head": ["Masalah", "Penyebab", "Solusi"], "rows": [
+              ["Email persetujuan tidak datang", "Menunggu pemrosesan persetujuan pada hari kerja berikutnya, atau informasi pelanggan belum didaftarkan", "Periksa di [Get Access] apakah pendaftaran pelanggan dan permintaan kredensial sudah selesai, dan tunggu berdasarkan hari kerja."],
+              ["Kesalahan autentikasi saat memanggil", "Kebingungan antara lingkungan Test/Production, atau nomor akun hilang", "Periksa kembali API Key·Secret dari lingkungan yang disetujui dan nomor akun (account_number)."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Daftar Periksa Akhir",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Mengonfirmasi nomor akun pelanggan DHL Express.",
+              "Mendaftar di developer.dhl.com dan meminta kredensial melalui [Get Access].",
+              "Menerima email persetujuan Test/Production pada hari kerja berikutnya.",
+              "Menemukan API Key·Secret di portal.",
+              "Memasukkan api_key·account_number di GenieGo [Daftar] dan menyimpan."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ar": {
+      "titleType": "دليل إصدار API Key",
+      "badge": "دليل المبتدئين",
+      "intro": "دليل تفصيلي خطوة بخطوة مناسب للمبتدئين لإصدار API Key وSecret على بوابة مطوري DHL Express (developer.dhl.com) وتسجيلهما مع رقم حساب عميل DHL Express في GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["الوقت التقديري", "حوالي 10–15 دقيقة (انتظار الموافقة منفصل)"],
+        ["الحساب المطلوب", "حساب عميل DHL Express (رقم الحساب)"],
+        ["المفاتيح الصادرة", "API Key · Secret"],
+        ["النتيجة", "بيانات اعتماد API · رقم الحساب"]
+      ],
+      "sections": [
+        {
+          "h2": "1. قبل أن تبدأ",
+          "desc": "تُطلب بيانات اعتماد DHL Express على بوابة المطورين، ويلزم وجود رقم حساب عميل.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "التحضير", "h3": "رقم حساب عميل DHL Express", "p": "وجود رقم حساب عميل DHL Express يجعل طلب بيانات الاعتماد أكثر سلاسة. يُدخل رقم الحساب أيضًا عند التسجيل في GenieGo." },
+              { "tag": "المفاتيح الصادرة", "h3": "API Key · Secret", "p": "ستحصل على API Key وSecret من خلال تطبيقك الخاص (اسم الشركة) على البوابة." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>ملاحظة:</strong> عند تسجيل معلومات العميل عبر [Get Access] وطلب بيانات الاعتماد، تتلقى عادةً بريد موافقة Test/Production في يوم العمل التالي." }
+          ]
+        },
+        {
+          "h2": "2. خطوات الإصدار",
+          "desc": "أصدر بالترتيب أدناه وسجّل في GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "التسجيل في بوابة المطورين", "p": "انتقل إلى بوابة مطوري DHL Express، وسجّل ببريدك الإلكتروني وقم بالتحقق منه.", "path": "https://developer.dhl.com" },
+              { "h3": "طلب بيانات الاعتماد", "p": "بعد تسجيل الدخول، سجّل معلومات العميل الخاصة بك في قسم [Get Access] واطلب بيانات الاعتماد.", "path": "Get Access" },
+              { "h3": "استلام بريد الموافقة", "p": "تتلقى عادةً بريد موافقة Test/Production في يوم العمل التالي." },
+              { "h3": "العثور على API Key·Secret", "p": "في البوابة، انتقل إلى تطبيقك الخاص (اسم الشركة) > [Show Key] للعثور على API Key وSecret.", "path": "تطبيقك (اسم الشركة) → Show Key" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "بمجرد تلقي بريد الموافقة وظهور API Key·Secret على البوابة، يكون قد تم إصدارهما بشكل صحيح." }
+          ]
+        },
+        {
+          "h2": "3. المعلومات المطلوب تسجيلها في GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["الحقل", "الوصف"], "rows": [
+              ["api_key", "DHL API Key الذي تم العثور عليه على البوابة"],
+              ["account_number", "رقم حساب عميل DHL Express"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "بمجرد إدخالها في GenieGo Integration Hub [تسجيل] والحفظ، يتم تشفير بيانات الاعتماد أثناء التخزين باستخدام AES-256-GCM وإخفاؤها عند القراءة." }
+          ]
+        },
+        {
+          "h2": "4. المشكلات الشائعة",
+          "blocks": [
+            { "type": "table", "head": ["المشكلة", "السبب", "الحل"], "rows": [
+              ["بريد الموافقة لا يصل", "في انتظار معالجة الموافقة في يوم العمل التالي، أو لم يتم تسجيل معلومات العميل", "تحقق في [Get Access] مما إذا كان تسجيل العميل وطلب بيانات الاعتماد قد اكتملا، وانتظر على أساس أيام العمل."],
+              ["خطأ في المصادقة عند الاستدعاء", "الخلط بين بيئتي Test/Production، أو رقم الحساب مفقود", "أعد التحقق من API Key·Secret الخاصين بالبيئة المعتمدة ورقم الحساب (account_number)."]
+            ] }
+          ]
+        },
+        {
+          "h2": "قائمة التحقق النهائية",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "تم تأكيد رقم حساب عميل DHL Express.",
+              "تم التسجيل في developer.dhl.com وطلب بيانات الاعتماد عبر [Get Access].",
+              "تم استلام بريد موافقة Test/Production في يوم العمل التالي.",
+              "تم العثور على API Key·Secret على البوابة.",
+              "تم إدخال api_key·account_number في GenieGo [تسجيل] والحفظ."
+            ] }
+          ]
+        }
+      ]
+    },
+    "es": {
+      "titleType": "Manual de emisión de API Key",
+      "badge": "Guía para principiantes",
+      "intro": "Una guía paso a paso, apta para principiantes, para emitir una API Key y un Secret en el portal de desarrolladores de DHL Express (developer.dhl.com) y registrarlos junto con su número de cuenta de cliente de DHL Express en el GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tiempo estimado", "Unos 10–15 min (espera de aprobación aparte)"],
+        ["Cuenta necesaria", "Cuenta de cliente de DHL Express (número de cuenta)"],
+        ["Claves emitidas", "API Key · Secret"],
+        ["Resultado", "Credenciales de API · número de cuenta"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de empezar",
+          "desc": "Las credenciales de DHL Express se solicitan en el portal de desarrolladores y se requiere un número de cuenta de cliente.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Preparación", "h3": "Número de cuenta de cliente de DHL Express", "p": "Tener un número de cuenta de cliente de DHL Express facilita la solicitud de credenciales. El número de cuenta también se introduce al registrarse en GenieGo." },
+              { "tag": "Claves emitidas", "h3": "API Key · Secret", "p": "Obtendrá la API Key y el Secret a través de su propia app (nombre de la empresa) en el portal." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Nota:</strong> Cuando registra la información de su cliente mediante [Get Access] y solicita credenciales, normalmente recibe el correo de aprobación Test/Production al día hábil siguiente." }
+          ]
+        },
+        {
+          "h2": "2. Pasos de emisión",
+          "desc": "Emita en el orden siguiente y registre en GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Registrarse en el portal de desarrolladores", "p": "Vaya al portal de desarrolladores de DHL Express, regístrese con su correo electrónico y verifíquelo.", "path": "https://developer.dhl.com" },
+              { "h3": "Solicitar credenciales", "p": "Tras iniciar sesión, registre la información de su cliente en la sección [Get Access] y solicite credenciales.", "path": "Get Access" },
+              { "h3": "Recibir el correo de aprobación", "p": "Normalmente recibe el correo de aprobación Test/Production al día hábil siguiente." },
+              { "h3": "Encontrar la API Key·Secret", "p": "En el portal, vaya a su propia app (nombre de la empresa) > [Show Key] para encontrar la API Key y el Secret.", "path": "Su app (nombre de la empresa) → Show Key" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Una vez que reciba el correo de aprobación y la API Key·Secret sean visibles en el portal, se habrán emitido correctamente." }
+          ]
+        },
+        {
+          "h2": "3. Información para registrar en GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descripción"], "rows": [
+              ["api_key", "La DHL API Key encontrada en el portal"],
+              ["account_number", "Número de cuenta de cliente de DHL Express"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Una vez que las introduce en el GenieGo Integration Hub [Registrar] y guarda, las credenciales se cifran en reposo con AES-256-GCM y se enmascaran al leerse." }
+          ]
+        },
+        {
+          "h2": "4. Problemas frecuentes",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solución"], "rows": [
+              ["El correo de aprobación no llega", "A la espera del procesamiento de aprobación del día hábil siguiente, o información de cliente no registrada", "Compruebe en [Get Access] si el registro del cliente y la solicitud de credenciales están completos, y espere según los días hábiles."],
+              ["Error de autenticación al llamar", "Confusión entre los entornos Test/Production, o número de cuenta faltante", "Vuelva a comprobar la API Key·Secret del entorno aprobado y el número de cuenta (account_number)."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificación final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Confirmó el número de cuenta de cliente de DHL Express.",
+              "Se registró en developer.dhl.com y solicitó credenciales mediante [Get Access].",
+              "Recibió el correo de aprobación Test/Production al día hábil siguiente.",
+              "Encontró la API Key·Secret en el portal.",
+              "Introdujo api_key·account_number en GenieGo [Registrar] y guardó."
+            ] }
+          ]
+        }
+      ]
+    },
+    "fr": {
+      "titleType": "Manuel d'émission de l'API Key",
+      "badge": "Guide pour débutants",
+      "intro": "Un guide étape par étape adapté aux débutants pour émettre une API Key et un Secret sur le portail développeur de DHL Express (developer.dhl.com) et les enregistrer avec votre numéro de compte client DHL Express dans le GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Temps estimé", "Environ 10–15 min (attente d'approbation à part)"],
+        ["Compte nécessaire", "Compte client DHL Express (numéro de compte)"],
+        ["Clés émises", "API Key · Secret"],
+        ["Résultat", "Identifiants API · numéro de compte"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Avant de commencer",
+          "desc": "Les identifiants DHL Express sont demandés sur le portail développeur, et un numéro de compte client est requis.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Préparation", "h3": "Numéro de compte client DHL Express", "p": "Disposer d'un numéro de compte client DHL Express facilite la demande d'identifiants. Le numéro de compte est également saisi lors de l'enregistrement dans GenieGo." },
+              { "tag": "Clés émises", "h3": "API Key · Secret", "p": "Vous obtiendrez l'API Key et le Secret via votre propre application (nom de l'entreprise) sur le portail." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Remarque :</strong> Lorsque vous enregistrez vos informations client via [Get Access] et demandez des identifiants, vous recevez généralement l'e-mail d'approbation Test/Production le jour ouvré suivant." }
+          ]
+        },
+        {
+          "h2": "2. Étapes d'émission",
+          "desc": "Émettez dans l'ordre ci-dessous et enregistrez dans GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "S'inscrire sur le portail développeur", "p": "Accédez au portail développeur de DHL Express, inscrivez-vous avec votre e-mail et vérifiez-le.", "path": "https://developer.dhl.com" },
+              { "h3": "Demander des identifiants", "p": "Après vous être connecté, enregistrez vos informations client dans la section [Get Access] et demandez des identifiants.", "path": "Get Access" },
+              { "h3": "Recevoir l'e-mail d'approbation", "p": "Vous recevez généralement l'e-mail d'approbation Test/Production le jour ouvré suivant." },
+              { "h3": "Trouver l'API Key·Secret", "p": "Sur le portail, accédez à votre propre application (nom de l'entreprise) > [Show Key] pour trouver l'API Key et le Secret.", "path": "Votre application (nom de l'entreprise) → Show Key" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Une fois que vous avez reçu l'e-mail d'approbation et que l'API Key·Secret sont visibles sur le portail, ils ont été émis correctement." }
+          ]
+        },
+        {
+          "h2": "3. Informations à enregistrer dans GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Champ", "Description"], "rows": [
+              ["api_key", "L'API Key DHL trouvée sur le portail"],
+              ["account_number", "Numéro de compte client DHL Express"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Une fois que vous les saisissez dans le GenieGo Integration Hub [Enregistrer] et que vous enregistrez, les identifiants sont chiffrés au repos avec AES-256-GCM et masqués à la lecture." }
+          ]
+        },
+        {
+          "h2": "4. Problèmes fréquents",
+          "blocks": [
+            { "type": "table", "head": ["Problème", "Cause", "Solution"], "rows": [
+              ["L'e-mail d'approbation n'arrive pas", "En attente du traitement de l'approbation du jour ouvré suivant, ou informations client non enregistrées", "Vérifiez dans [Get Access] si l'enregistrement du client et la demande d'identifiants sont terminés, et attendez en fonction des jours ouvrés."],
+              ["Erreur d'authentification lors de l'appel", "Confusion entre les environnements Test/Production, ou numéro de compte manquant", "Revérifiez l'API Key·Secret de l'environnement approuvé et le numéro de compte (account_number)."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Liste de vérification finale",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Confirmé le numéro de compte client DHL Express.",
+              "Inscrit sur developer.dhl.com et demandé des identifiants via [Get Access].",
+              "Reçu l'e-mail d'approbation Test/Production le jour ouvré suivant.",
+              "Trouvé l'API Key·Secret sur le portail.",
+              "Saisi api_key·account_number dans GenieGo [Enregistrer] et enregistré."
+            ] }
+          ]
+        }
+      ]
+    },
+    "hi": {
+      "titleType": "API Key जारी करने की नियमावली",
+      "badge": "शुरुआती गाइड",
+      "intro": "DHL Express डेवलपर पोर्टल (developer.dhl.com) पर API Key और Secret जारी करने और उन्हें अपने DHL Express ग्राहक खाता संख्या के साथ GenieGo Integration Hub में पंजीकृत करने की एक शुरुआती-अनुकूल, चरण-दर-चरण नियमावली।",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["अनुमानित समय", "लगभग 10–15 मिनट (अनुमोदन प्रतीक्षा अलग)"],
+        ["आवश्यक खाता", "DHL Express ग्राहक खाता (खाता संख्या)"],
+        ["जारी की गई कुंजियाँ", "API Key · Secret"],
+        ["परिणाम", "API क्रेडेंशियल · खाता संख्या"]
+      ],
+      "sections": [
+        {
+          "h2": "1. शुरू करने से पहले",
+          "desc": "DHL Express क्रेडेंशियल डेवलपर पोर्टल पर अनुरोध किए जाते हैं, और एक ग्राहक खाता संख्या आवश्यक है।",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "तैयारी", "h3": "DHL Express ग्राहक खाता संख्या", "p": "DHL Express ग्राहक खाता संख्या होने से क्रेडेंशियल अनुरोध आसान हो जाता है। GenieGo में पंजीकरण करते समय भी खाता संख्या दर्ज की जाती है।" },
+              { "tag": "जारी की गई कुंजियाँ", "h3": "API Key · Secret", "p": "आप पोर्टल पर अपने स्वयं के ऐप (कंपनी का नाम) के माध्यम से API Key और Secret प्राप्त करेंगे।" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>नोट:</strong> जब आप [Get Access] के माध्यम से अपनी ग्राहक जानकारी पंजीकृत करते हैं और क्रेडेंशियल का अनुरोध करते हैं, तो आपको आमतौर पर अगले कार्यदिवस पर Test/Production अनुमोदन ईमेल प्राप्त होता है।" }
+          ]
+        },
+        {
+          "h2": "2. जारी करने के चरण",
+          "desc": "नीचे दिए गए क्रम में जारी करें और GenieGo में पंजीकृत करें।",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "डेवलपर पोर्टल पर साइन अप करें", "p": "DHL Express डेवलपर पोर्टल पर जाएँ, अपने ईमेल से साइन अप करें और इसे सत्यापित करें।", "path": "https://developer.dhl.com" },
+              { "h3": "क्रेडेंशियल का अनुरोध करें", "p": "साइन इन करने के बाद, [Get Access] अनुभाग में अपनी ग्राहक जानकारी पंजीकृत करें और क्रेडेंशियल का अनुरोध करें।", "path": "Get Access" },
+              { "h3": "अनुमोदन ईमेल प्राप्त करें", "p": "आपको आमतौर पर अगले कार्यदिवस पर Test/Production अनुमोदन ईमेल प्राप्त होता है।" },
+              { "h3": "API Key·Secret खोजें", "p": "पोर्टल पर, API Key और Secret खोजने के लिए अपने स्वयं के ऐप (कंपनी का नाम) > [Show Key] पर जाएँ।", "path": "आपका ऐप (कंपनी का नाम) → Show Key" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "एक बार जब आप अनुमोदन ईमेल प्राप्त कर लेते हैं और पोर्टल पर API Key·Secret दिखाई देते हैं, तो वे सही ढंग से जारी हो गए हैं।" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo में पंजीकृत करने की जानकारी",
+          "blocks": [
+            { "type": "table", "head": ["फ़ील्ड", "विवरण"], "rows": [
+              ["api_key", "पोर्टल पर मिली DHL API Key"],
+              ["account_number", "DHL Express ग्राहक खाता संख्या"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "एक बार जब आप उन्हें GenieGo Integration Hub [पंजीकरण] में दर्ज कर सहेजते हैं, तो क्रेडेंशियल को AES-256-GCM के साथ स्थिर अवस्था में एन्क्रिप्ट किया जाता है और पढ़ते समय मास्क किया जाता है।" }
+          ]
+        },
+        {
+          "h2": "4. सामान्य समस्याएँ",
+          "blocks": [
+            { "type": "table", "head": ["समस्या", "कारण", "समाधान"], "rows": [
+              ["अनुमोदन ईमेल नहीं आता", "अगले कार्यदिवस के अनुमोदन प्रसंस्करण की प्रतीक्षा, या ग्राहक जानकारी पंजीकृत नहीं", "[Get Access] में जाँचें कि क्या ग्राहक पंजीकरण और क्रेडेंशियल अनुरोध पूर्ण हैं, और कार्यदिवसों के आधार पर प्रतीक्षा करें।"],
+              ["कॉल करते समय प्रमाणीकरण त्रुटि", "Test/Production वातावरण के बीच भ्रम, या खाता संख्या गायब", "अनुमोदित वातावरण की API Key·Secret और खाता संख्या (account_number) को फिर से जाँचें।"]
+            ] }
+          ]
+        },
+        {
+          "h2": "अंतिम जाँच सूची",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "DHL Express ग्राहक खाता संख्या की पुष्टि की।",
+              "developer.dhl.com पर साइन अप किया और [Get Access] के माध्यम से क्रेडेंशियल का अनुरोध किया।",
+              "अगले कार्यदिवस पर Test/Production अनुमोदन ईमेल प्राप्त किया।",
+              "पोर्टल पर API Key·Secret खोजा।",
+              "GenieGo [पंजीकरण] में api_key·account_number दर्ज कर सहेजा।"
+            ] }
+          ]
+        }
+      ]
+    },
+    "pt": {
+      "titleType": "Manual de emissão de API Key",
+      "badge": "Guia para iniciantes",
+      "intro": "Um guia passo a passo, amigável para iniciantes, para emitir uma API Key e um Secret no portal de desenvolvedores da DHL Express (developer.dhl.com) e registrá-los junto com o seu número de conta de cliente DHL Express no GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tempo estimado", "Cerca de 10–15 min (espera de aprovação à parte)"],
+        ["Conta necessária", "Conta de cliente DHL Express (número de conta)"],
+        ["Chaves emitidas", "API Key · Secret"],
+        ["Resultado", "Credenciais de API · número de conta"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de começar",
+          "desc": "As credenciais da DHL Express são solicitadas no portal de desenvolvedores, e é necessário um número de conta de cliente.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Preparação", "h3": "Número de conta de cliente DHL Express", "p": "Ter um número de conta de cliente DHL Express torna a solicitação de credenciais mais tranquila. O número de conta também é inserido ao registrar no GenieGo." },
+              { "tag": "Chaves emitidas", "h3": "API Key · Secret", "p": "Você obterá a API Key e o Secret por meio do seu próprio app (nome da empresa) no portal." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Observação:</strong> Quando você registra suas informações de cliente via [Get Access] e solicita credenciais, geralmente recebe o e-mail de aprovação Test/Production no próximo dia útil." }
+          ]
+        },
+        {
+          "h2": "2. Etapas de emissão",
+          "desc": "Emita na ordem abaixo e registre no GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Cadastrar-se no portal de desenvolvedores", "p": "Acesse o portal de desenvolvedores da DHL Express, cadastre-se com o seu e-mail e verifique-o.", "path": "https://developer.dhl.com" },
+              { "h3": "Solicitar credenciais", "p": "Após fazer login, registre suas informações de cliente na seção [Get Access] e solicite credenciais.", "path": "Get Access" },
+              { "h3": "Receber o e-mail de aprovação", "p": "Você geralmente recebe o e-mail de aprovação Test/Production no próximo dia útil." },
+              { "h3": "Encontrar a API Key·Secret", "p": "No portal, acesse o seu próprio app (nome da empresa) > [Show Key] para encontrar a API Key e o Secret.", "path": "Seu app (nome da empresa) → Show Key" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Assim que você receber o e-mail de aprovação e a API Key·Secret estiverem visíveis no portal, eles foram emitidos corretamente." }
+          ]
+        },
+        {
+          "h2": "3. Informações a registrar no GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descrição"], "rows": [
+              ["api_key", "A API Key DHL encontrada no portal"],
+              ["account_number", "Número de conta de cliente DHL Express"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Assim que você inseri-las no GenieGo Integration Hub [Registrar] e salvar, as credenciais são criptografadas em repouso com AES-256-GCM e mascaradas na leitura." }
+          ]
+        },
+        {
+          "h2": "4. Problemas comuns",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solução"], "rows": [
+              ["O e-mail de aprovação não chega", "Aguardando o processamento da aprovação do próximo dia útil, ou informações de cliente não registradas", "Verifique em [Get Access] se o registro do cliente e a solicitação de credenciais estão concluídos, e aguarde com base nos dias úteis."],
+              ["Erro de autenticação ao chamar", "Confusão entre os ambientes Test/Production, ou número de conta ausente", "Verifique novamente a API Key·Secret do ambiente aprovado e o número de conta (account_number)."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificação final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Confirmou o número de conta de cliente DHL Express.",
+              "Cadastrou-se em developer.dhl.com e solicitou credenciais via [Get Access].",
+              "Recebeu o e-mail de aprovação Test/Production no próximo dia útil.",
+              "Encontrou a API Key·Secret no portal.",
+              "Inseriu api_key·account_number no GenieGo [Registrar] e salvou."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ru": {
+      "titleType": "Руководство по выпуску API Key",
+      "badge": "Руководство для начинающих",
+      "intro": "Понятное новичкам пошаговое руководство по выпуску API Key и Secret на портале разработчиков DHL Express (developer.dhl.com) и их регистрации вместе с номером клиентского счёта DHL Express в GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Примерное время", "Около 10–15 мин (ожидание одобрения отдельно)"],
+        ["Требуемая учётная запись", "Клиентский счёт DHL Express (номер счёта)"],
+        ["Выпускаемые ключи", "API Key · Secret"],
+        ["Результат", "Учётные данные API · номер счёта"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Прежде чем начать",
+          "desc": "Учётные данные DHL Express запрашиваются на портале разработчиков, и требуется номер клиентского счёта.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Подготовка", "h3": "Номер клиентского счёта DHL Express", "p": "Наличие номера клиентского счёта DHL Express упрощает запрос учётных данных. Номер счёта также вводится при регистрации в GenieGo." },
+              { "tag": "Выпускаемые ключи", "h3": "API Key · Secret", "p": "Вы получите API Key и Secret через своё собственное приложение (название компании) на портале." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Примечание:</strong> Когда вы регистрируете информацию о клиенте через [Get Access] и запрашиваете учётные данные, вы обычно получаете письмо об одобрении Test/Production на следующий рабочий день." }
+          ]
+        },
+        {
+          "h2": "2. Шаги выпуска",
+          "desc": "Выпустите в указанном ниже порядке и зарегистрируйте в GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Зарегистрируйтесь на портале разработчиков", "p": "Перейдите на портал разработчиков DHL Express, зарегистрируйтесь по электронной почте и подтвердите её.", "path": "https://developer.dhl.com" },
+              { "h3": "Запросите учётные данные", "p": "После входа зарегистрируйте информацию о клиенте в разделе [Get Access] и запросите учётные данные.", "path": "Get Access" },
+              { "h3": "Получите письмо об одобрении", "p": "Вы обычно получаете письмо об одобрении Test/Production на следующий рабочий день." },
+              { "h3": "Найдите API Key·Secret", "p": "На портале перейдите в своё собственное приложение (название компании) > [Show Key], чтобы найти API Key и Secret.", "path": "Ваше приложение (название компании) → Show Key" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "После того как вы получили письмо об одобрении и API Key·Secret отображаются на портале, они выпущены корректно." }
+          ]
+        },
+        {
+          "h2": "3. Информация для регистрации в GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Поле", "Описание"], "rows": [
+              ["api_key", "API Key DHL, найденный на портале"],
+              ["account_number", "Номер клиентского счёта DHL Express"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "После того как вы вводите их в GenieGo Integration Hub [Регистрация] и сохраняете, учётные данные шифруются при хранении с помощью AES-256-GCM и маскируются при чтении." }
+          ]
+        },
+        {
+          "h2": "4. Частые проблемы",
+          "blocks": [
+            { "type": "table", "head": ["Проблема", "Причина", "Решение"], "rows": [
+              ["Письмо об одобрении не приходит", "Ожидание обработки одобрения на следующий рабочий день или информация о клиенте не зарегистрирована", "Проверьте в [Get Access], завершены ли регистрация клиента и запрос учётных данных, и подождите с учётом рабочих дней."],
+              ["Ошибка аутентификации при вызове", "Путаница между средами Test/Production или отсутствует номер счёта", "Повторно проверьте API Key·Secret одобренной среды и номер счёта (account_number)."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Финальный контрольный список",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Подтвердил номер клиентского счёта DHL Express.",
+              "Зарегистрировался на developer.dhl.com и запросил учётные данные через [Get Access].",
+              "Получил письмо об одобрении Test/Production на следующий рабочий день.",
+              "Нашёл API Key·Secret на портале.",
+              "Ввёл api_key·account_number в GenieGo [Регистрация] и сохранил."
+            ] }
+          ]
+        }
+      ]
+    }
+  }
+}

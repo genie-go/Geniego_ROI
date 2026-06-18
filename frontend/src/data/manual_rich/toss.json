@@ -1,0 +1,1011 @@
+{
+  "name": "Toss Payments",
+  "icon": "🟦",
+  "langs": {
+    "ko": {
+      "titleType": "API Key 발급 매뉴얼",
+      "badge": "Beginner Guide",
+      "intro": "토스페이먼츠 상점관리자의 개발자센터에서 클라이언트 키와 시크릿 키를 확인하고 GenieGo 연동 허브에 등록하는 과정을 정리한 매뉴얼입니다.",
+      "org": "GenieGo 연동 허브",
+      "quick": [
+        ["소요 시간", "약 5~10분"],
+        ["필요 계정", "토스페이먼츠 가맹점 계약·상점관리자 계정"],
+        ["발급 키", "클라이언트 키 · 시크릿 키"],
+        ["결과물", "결제 연동 자격증명"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 시작하기 전에",
+          "desc": "토스페이먼츠는 가맹점 계약 후 상점관리자에서 키를 확인할 수 있습니다.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "필요", "h3": "가맹점 계약·상점관리자 계정", "p": "토스페이먼츠 가맹점 계약이 완료되어 있어야 하며, 상점관리자에 로그인할 수 있어야 합니다." },
+              { "tag": "발급 키", "h3": "클라이언트 키 · 시크릿 키", "p": "개발자센터에서 클라이언트 키와 시크릿 키를 세트로 확인해 함께 사용합니다." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>참고:</strong> 개발자센터에서 테스트와 라이브를 구분하므로, 실제 연동에는 라이브 키를 사용하는지 확인합니다." }
+          ]
+        },
+        {
+          "h2": "2. 발급 단계",
+          "desc": "아래 순서대로 확인하고 GenieGo에 등록합니다.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "상점관리자 로그인", "p": "토스페이먼츠 상점관리자에 로그인합니다.", "path": "https://dashboard.tosspayments.com" },
+              { "h3": "개발자센터 이동", "p": "좌측 하단 [개발자센터]로 이동합니다.", "path": "개발자센터" },
+              { "h3": "키 확인", "p": "테스트/라이브를 선택해 클라이언트 키와 시크릿 키를 확인합니다. 두 키는 세트로 사용합니다." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "클라이언트 키와 시크릿 키가 모두 확인되면 등록 준비가 완료된 것입니다." }
+          ]
+        },
+        {
+          "h2": "3. GenieGo에 등록할 정보",
+          "blocks": [
+            { "type": "table", "head": ["필드", "설명"], "rows": [
+              ["client_key", "개발자센터에서 확인한 클라이언트 키"],
+              ["secret_key", "개발자센터에서 확인한 시크릿 키(노출 주의)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 연동 허브 [등록]에 입력해 저장하면 자격증명은 AES-256-GCM으로 암호화 저장되고 조회 시 마스킹됩니다." }
+          ]
+        },
+        {
+          "h2": "4. 자주 발생하는 문제",
+          "blocks": [
+            { "type": "table", "head": ["문제", "원인", "해결"], "rows": [
+              ["인증 오류 발생", "테스트 키와 라이브 키를 혼동", "개발자센터에서 테스트/라이브 구분을 확인하고 환경에 맞는 키를 사용합니다."],
+              ["개발자센터 메뉴가 없음", "가맹점 계약 미완료", "가맹점 계약을 완료한 상점관리자 계정으로 로그인합니다."]
+            ] }
+          ]
+        },
+        {
+          "h2": "최종 체크리스트",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "토스페이먼츠 가맹점 계약을 완료하고 상점관리자에 로그인했다.",
+              "좌측 하단 [개발자센터]로 이동했다.",
+              "테스트/라이브를 구분해 클라이언트 키·시크릿 키를 확인했다.",
+              "GenieGo [등록]에 client_key·secret_key를 입력해 저장했다."
+            ] }
+          ]
+        }
+      ]
+    },
+    "en": {
+      "titleType": "API Key Issuance Manual",
+      "badge": "Beginner Guide",
+      "intro": "A manual covering how to look up your Client Key and Secret Key in the Developer Center of the Toss Payments merchant admin and register them in the GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Est. time", "About 5–10 min"],
+        ["Account needed", "Toss Payments merchant contract · merchant admin account"],
+        ["Keys issued", "Client Key · Secret Key"],
+        ["Result", "Payment integration credentials"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Before You Begin",
+          "desc": "With Toss Payments, you can look up your keys in the merchant admin after signing a merchant contract.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Required", "h3": "Merchant contract · merchant admin account", "p": "You must have completed a Toss Payments merchant contract and be able to sign in to the merchant admin." },
+              { "tag": "Keys issued", "h3": "Client Key · Secret Key", "p": "Look up the Client Key and Secret Key together as a set in the Developer Center and use them together." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Note:</strong> The Developer Center separates test and live, so make sure you use the live keys for the actual integration." }
+          ]
+        },
+        {
+          "h2": "2. Issuance Steps",
+          "desc": "Look them up in the order below and register them in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Sign in to the merchant admin", "p": "Sign in to the Toss Payments merchant admin.", "path": "https://dashboard.tosspayments.com" },
+              { "h3": "Go to the Developer Center", "p": "Go to [Developer Center] at the bottom left.", "path": "Developer Center" },
+              { "h3": "Look up the keys", "p": "Select test/live and look up the Client Key and Secret Key. The two keys are used together as a set." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Once you have confirmed both the Client Key and the Secret Key, you are ready to register." }
+          ]
+        },
+        {
+          "h2": "3. Information to Register in GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Field", "Description"], "rows": [
+              ["client_key", "The Client Key found in the Developer Center"],
+              ["secret_key", "The Secret Key found in the Developer Center (handle with care)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Enter them in the GenieGo Integration Hub [Register] and save. Credentials are encrypted at rest with AES-256-GCM and masked on read." }
+          ]
+        },
+        {
+          "h2": "4. Common Issues",
+          "blocks": [
+            { "type": "table", "head": ["Issue", "Cause", "Solution"], "rows": [
+              ["Authentication error occurs", "Confusing the test key with the live key", "Check the test/live distinction in the Developer Center and use the key that matches your environment."],
+              ["No Developer Center menu", "Merchant contract not completed", "Sign in with a merchant admin account whose merchant contract is complete."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Final Checklist",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Completed a Toss Payments merchant contract and signed in to the merchant admin.",
+              "Went to [Developer Center] at the bottom left.",
+              "Distinguished test/live and looked up the Client Key and Secret Key.",
+              "Entered client_key·secret_key in GenieGo [Register] and saved."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ja": {
+      "titleType": "API Key 発行マニュアル",
+      "badge": "初心者ガイド",
+      "intro": "トスペイメンツの加盟店管理ツールの開発者センターでクライアントキーとシークレットキーを確認し、GenieGo 連携ハブに登録する手順をまとめたマニュアルです。",
+      "org": "GenieGo 連携ハブ",
+      "quick": [
+        ["所要時間", "約 5〜10 分"],
+        ["必要なアカウント", "トスペイメンツ加盟店契約 · 加盟店管理アカウント"],
+        ["発行するキー", "クライアントキー · シークレットキー"],
+        ["成果物", "決済連携の認証情報"]
+      ],
+      "sections": [
+        {
+          "h2": "1. はじめる前に",
+          "desc": "トスペイメンツは加盟店契約後、加盟店管理ツールでキーを確認できます。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必須", "h3": "加盟店契約 · 加盟店管理アカウント", "p": "トスペイメンツの加盟店契約が完了しており、加盟店管理ツールにログインできる必要があります。" },
+              { "tag": "発行するキー", "h3": "クライアントキー · シークレットキー", "p": "開発者センターでクライアントキーとシークレットキーをセットで確認し、一緒に使用します。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> 開発者センターではテストとライブが区別されるため、実際の連携にはライブキーを使用しているか確認します。" }
+          ]
+        },
+        {
+          "h2": "2. 発行手順",
+          "desc": "以下の順序で確認し、GenieGo に登録します。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "加盟店管理ツールにログイン", "p": "トスペイメンツの加盟店管理ツールにログインします。", "path": "https://dashboard.tosspayments.com" },
+              { "h3": "開発者センターへ移動", "p": "左下の [開発者センター] へ移動します。", "path": "開発者センター" },
+              { "h3": "キーの確認", "p": "テスト/ライブを選択してクライアントキーとシークレットキーを確認します。2 つのキーはセットで使用します。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "クライアントキーとシークレットキーの両方が確認できれば、登録準備が完了です。" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo に登録する情報",
+          "blocks": [
+            { "type": "table", "head": ["フィールド", "説明"], "rows": [
+              ["client_key", "開発者センターで確認したクライアントキー"],
+              ["secret_key", "開発者センターで確認したシークレットキー(取り扱い注意)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 連携ハブ [登録] に入力して保存すると、認証情報は AES-256-GCM で暗号化して保存され、閲覧時にはマスキングされます。" }
+          ]
+        },
+        {
+          "h2": "4. よくある問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["認証エラーが発生する", "テストキーとライブキーを混同している", "開発者センターでテスト/ライブの区別を確認し、環境に合ったキーを使用します。"],
+              ["開発者センターのメニューがない", "加盟店契約が未完了", "加盟店契約が完了した加盟店管理アカウントでログインします。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終チェックリスト",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "トスペイメンツの加盟店契約を完了し、加盟店管理ツールにログインした。",
+              "左下の [開発者センター] へ移動した。",
+              "テスト/ライブを区別してクライアントキー · シークレットキーを確認した。",
+              "GenieGo [登録] に client_key · secret_key を入力して保存した。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh": {
+      "titleType": "API Key 申请手册",
+      "badge": "新手指南",
+      "intro": "本手册整理了在 Toss Payments 商户管理后台的开发者中心查看客户端密钥和密钥（Secret Key），并将其注册到 GenieGo 集成中心的流程。",
+      "org": "GenieGo 集成中心",
+      "quick": [
+        ["预计时间", "约 5~10 分钟"],
+        ["所需账户", "Toss Payments 商户合约 · 商户管理账户"],
+        ["签发密钥", "客户端密钥 · 密钥（Secret Key）"],
+        ["成果", "支付集成凭证"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 开始之前",
+          "desc": "Toss Payments 在签订商户合约后，可在商户管理后台查看密钥。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "商户合约 · 商户管理账户", "p": "您必须已完成 Toss Payments 商户合约，并且能够登录商户管理后台。" },
+              { "tag": "签发密钥", "h3": "客户端密钥 · 密钥（Secret Key）", "p": "在开发者中心成套查看客户端密钥和密钥（Secret Key），并配合使用。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> 开发者中心区分测试和正式（live）环境，因此请确认实际集成使用的是 live 密钥。" }
+          ]
+        },
+        {
+          "h2": "2. 申请步骤",
+          "desc": "按以下顺序查看并在 GenieGo 中注册。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "登录商户管理后台", "p": "登录 Toss Payments 商户管理后台。", "path": "https://dashboard.tosspayments.com" },
+              { "h3": "进入开发者中心", "p": "进入左下角的 [开发者中心]。", "path": "开发者中心" },
+              { "h3": "查看密钥", "p": "选择测试/正式（live）环境，查看客户端密钥和密钥（Secret Key）。两个密钥需配合使用。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "当客户端密钥和密钥（Secret Key）都已确认后，即表示已做好注册准备。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中注册的信息",
+          "blocks": [
+            { "type": "table", "head": ["字段", "说明"], "rows": [
+              ["client_key", "在开发者中心查看到的客户端密钥"],
+              ["secret_key", "在开发者中心查看到的密钥（Secret Key，请妥善保管）"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 集成中心 [注册] 中输入并保存后，凭证将以 AES-256-GCM 加密存储，并在查询时进行掩码处理。" }
+          ]
+        },
+        {
+          "h2": "4. 常见问题",
+          "blocks": [
+            { "type": "table", "head": ["问题", "原因", "解决方法"], "rows": [
+              ["出现认证错误", "混淆了测试密钥和 live 密钥", "在开发者中心确认测试/正式（live）的区分，并使用与环境匹配的密钥。"],
+              ["没有开发者中心菜单", "商户合约未完成", "使用已完成商户合约的商户管理账户登录。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最终检查清单",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已完成 Toss Payments 商户合约并登录商户管理后台。",
+              "已进入左下角的 [开发者中心]。",
+              "已区分测试/正式（live）环境并查看客户端密钥 · 密钥（Secret Key）。",
+              "已在 GenieGo [注册] 中输入 client_key · secret_key 并保存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh-TW": {
+      "titleType": "API Key 申請手冊",
+      "badge": "新手指南",
+      "intro": "本手冊整理了在 Toss Payments 商家管理後台的開發者中心查看用戶端金鑰與密鑰（Secret Key），並將其註冊到 GenieGo 整合中心的流程。",
+      "org": "GenieGo 整合中心",
+      "quick": [
+        ["預計時間", "約 5~10 分鐘"],
+        ["所需帳戶", "Toss Payments 商家合約 · 商家管理帳戶"],
+        ["簽發金鑰", "用戶端金鑰 · 密鑰（Secret Key）"],
+        ["成果", "支付整合憑證"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 開始之前",
+          "desc": "Toss Payments 在簽訂商家合約後，可在商家管理後台查看金鑰。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "商家合約 · 商家管理帳戶", "p": "您必須已完成 Toss Payments 商家合約，並且能夠登入商家管理後台。" },
+              { "tag": "簽發金鑰", "h3": "用戶端金鑰 · 密鑰（Secret Key）", "p": "在開發者中心成套查看用戶端金鑰與密鑰（Secret Key），並搭配使用。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> 開發者中心區分測試與正式（live）環境，因此請確認實際整合使用的是 live 金鑰。" }
+          ]
+        },
+        {
+          "h2": "2. 簽發步驟",
+          "desc": "依以下順序查看並在 GenieGo 中註冊。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "登入商家管理後台", "p": "登入 Toss Payments 商家管理後台。", "path": "https://dashboard.tosspayments.com" },
+              { "h3": "進入開發者中心", "p": "進入左下角的 [開發者中心]。", "path": "開發者中心" },
+              { "h3": "查看金鑰", "p": "選擇測試/正式（live）環境，查看用戶端金鑰與密鑰（Secret Key）。兩個金鑰需搭配使用。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "當用戶端金鑰與密鑰（Secret Key）皆已確認後，即表示已做好註冊準備。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中註冊的資訊",
+          "blocks": [
+            { "type": "table", "head": ["欄位", "說明"], "rows": [
+              ["client_key", "在開發者中心查看到的用戶端金鑰"],
+              ["secret_key", "在開發者中心查看到的密鑰（Secret Key，請妥善保管）"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 整合中心 [註冊] 中輸入並儲存後，憑證將以 AES-256-GCM 加密儲存，並在查詢時進行遮罩處理。" }
+          ]
+        },
+        {
+          "h2": "4. 常見問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["出現認證錯誤", "混淆了測試金鑰與 live 金鑰", "在開發者中心確認測試/正式（live）的區分，並使用與環境相符的金鑰。"],
+              ["沒有開發者中心選單", "商家合約未完成", "使用已完成商家合約的商家管理帳戶登入。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終檢查清單",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已完成 Toss Payments 商家合約並登入商家管理後台。",
+              "已進入左下角的 [開發者中心]。",
+              "已區分測試/正式（live）環境並查看用戶端金鑰 · 密鑰（Secret Key）。",
+              "已在 GenieGo [註冊] 中輸入 client_key · secret_key 並儲存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "de": {
+      "titleType": "Anleitung zur API-Key-Ausstellung",
+      "badge": "Einsteigerleitfaden",
+      "intro": "Eine Anleitung, die beschreibt, wie Sie Ihren Client Key und Secret Key im Developer Center der Toss-Payments-Händlerverwaltung nachschlagen und im GenieGo Integration Hub registrieren.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Geschätzte Zeit", "Etwa 5–10 Min."],
+        ["Benötigtes Konto", "Toss-Payments-Händlervertrag · Händlerverwaltungskonto"],
+        ["Ausgestellte Schlüssel", "Client Key · Secret Key"],
+        ["Ergebnis", "Anmeldedaten für die Zahlungsintegration"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Bevor Sie beginnen",
+          "desc": "Bei Toss Payments können Sie Ihre Schlüssel nach Abschluss eines Händlervertrags in der Händlerverwaltung nachschlagen.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Erforderlich", "h3": "Händlervertrag · Händlerverwaltungskonto", "p": "Sie müssen einen Toss-Payments-Händlervertrag abgeschlossen haben und sich in der Händlerverwaltung anmelden können." },
+              { "tag": "Ausgestellte Schlüssel", "h3": "Client Key · Secret Key", "p": "Schlagen Sie Client Key und Secret Key im Developer Center als Satz nach und verwenden Sie beide gemeinsam." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Hinweis:</strong> Das Developer Center unterscheidet zwischen Test und Live, stellen Sie daher sicher, dass Sie für die tatsächliche Integration die Live-Schlüssel verwenden." }
+          ]
+        },
+        {
+          "h2": "2. Ausstellungsschritte",
+          "desc": "Schlagen Sie sie in der unten angegebenen Reihenfolge nach und registrieren Sie sie in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Bei der Händlerverwaltung anmelden", "p": "Melden Sie sich bei der Toss-Payments-Händlerverwaltung an.", "path": "https://dashboard.tosspayments.com" },
+              { "h3": "Zum Developer Center wechseln", "p": "Wechseln Sie unten links zu [Developer Center].", "path": "Developer Center" },
+              { "h3": "Schlüssel nachschlagen", "p": "Wählen Sie Test/Live und schlagen Sie Client Key und Secret Key nach. Die beiden Schlüssel werden als Satz gemeinsam verwendet." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Sobald Sie sowohl den Client Key als auch den Secret Key bestätigt haben, sind Sie bereit zur Registrierung." }
+          ]
+        },
+        {
+          "h2": "3. In GenieGo zu registrierende Informationen",
+          "blocks": [
+            { "type": "table", "head": ["Feld", "Beschreibung"], "rows": [
+              ["client_key", "Der im Developer Center gefundene Client Key"],
+              ["secret_key", "Der im Developer Center gefundene Secret Key (vertraulich behandeln)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Geben Sie sie im GenieGo Integration Hub [Registrieren] ein und speichern Sie. Anmeldedaten werden im Ruhezustand mit AES-256-GCM verschlüsselt und beim Lesen maskiert." }
+          ]
+        },
+        {
+          "h2": "4. Häufige Probleme",
+          "blocks": [
+            { "type": "table", "head": ["Problem", "Ursache", "Lösung"], "rows": [
+              ["Authentifizierungsfehler tritt auf", "Verwechslung von Test- und Live-Schlüssel", "Überprüfen Sie im Developer Center die Unterscheidung zwischen Test/Live und verwenden Sie den zur Umgebung passenden Schlüssel."],
+              ["Kein Developer-Center-Menü", "Händlervertrag nicht abgeschlossen", "Melden Sie sich mit einem Händlerverwaltungskonto an, dessen Händlervertrag abgeschlossen ist."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Abschließende Checkliste",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Einen Toss-Payments-Händlervertrag abgeschlossen und bei der Händlerverwaltung angemeldet.",
+              "Unten links zu [Developer Center] gewechselt.",
+              "Test/Live unterschieden und Client Key sowie Secret Key nachgeschlagen.",
+              "client_key·secret_key in GenieGo [Registrieren] eingegeben und gespeichert."
+            ] }
+          ]
+        }
+      ]
+    },
+    "th": {
+      "titleType": "คู่มือการออก API Key",
+      "badge": "คู่มือสำหรับผู้เริ่มต้น",
+      "intro": "คู่มือที่สรุปขั้นตอนการดู Client Key และ Secret Key ในศูนย์นักพัฒนา (Developer Center) ของระบบจัดการร้านค้า Toss Payments และลงทะเบียนใน GenieGo Integration Hub",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["เวลาโดยประมาณ", "ประมาณ 5–10 นาที"],
+        ["บัญชีที่ต้องใช้", "สัญญาร้านค้า Toss Payments · บัญชีระบบจัดการร้านค้า"],
+        ["คีย์ที่ออก", "Client Key · Secret Key"],
+        ["ผลลัพธ์", "ข้อมูลรับรองการเชื่อมต่อการชำระเงิน"]
+      ],
+      "sections": [
+        {
+          "h2": "1. ก่อนเริ่มต้น",
+          "desc": "Toss Payments สามารถดูคีย์ได้ในระบบจัดการร้านค้าหลังจากทำสัญญาร้านค้าแล้ว",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "จำเป็น", "h3": "สัญญาร้านค้า · บัญชีระบบจัดการร้านค้า", "p": "คุณต้องทำสัญญาร้านค้า Toss Payments เสร็จสมบูรณ์ และสามารถลงชื่อเข้าใช้ระบบจัดการร้านค้าได้" },
+              { "tag": "คีย์ที่ออก", "h3": "Client Key · Secret Key", "p": "ดู Client Key และ Secret Key เป็นชุดในศูนย์นักพัฒนา และใช้งานร่วมกัน" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>หมายเหตุ:</strong> ศูนย์นักพัฒนาแยกระหว่างสภาพแวดล้อมทดสอบ (test) และจริง (live) ดังนั้นโปรดตรวจสอบว่าใช้คีย์ live สำหรับการเชื่อมต่อจริง" }
+          ]
+        },
+        {
+          "h2": "2. ขั้นตอนการออก",
+          "desc": "ดูตามลำดับด้านล่างและลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "ลงชื่อเข้าใช้ระบบจัดการร้านค้า", "p": "ลงชื่อเข้าใช้ระบบจัดการร้านค้า Toss Payments", "path": "https://dashboard.tosspayments.com" },
+              { "h3": "ไปที่ศูนย์นักพัฒนา", "p": "ไปที่ [ศูนย์นักพัฒนา] ที่มุมล่างซ้าย", "path": "ศูนย์นักพัฒนา" },
+              { "h3": "ดูคีย์", "p": "เลือกสภาพแวดล้อมทดสอบ/จริง (live) แล้วดู Client Key และ Secret Key คีย์ทั้งสองใช้งานเป็นชุดร่วมกัน" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "เมื่อยืนยันทั้ง Client Key และ Secret Key แล้ว แสดงว่าพร้อมสำหรับการลงทะเบียน" }
+          ]
+        },
+        {
+          "h2": "3. ข้อมูลที่ต้องลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["ฟิลด์", "คำอธิบาย"], "rows": [
+              ["client_key", "Client Key ที่ดูได้ในศูนย์นักพัฒนา"],
+              ["secret_key", "Secret Key ที่ดูได้ในศูนย์นักพัฒนา (จัดการด้วยความระมัดระวัง)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "ป้อนใน GenieGo Integration Hub [ลงทะเบียน] แล้วบันทึก ข้อมูลรับรองจะถูกเข้ารหัสขณะจัดเก็บด้วย AES-256-GCM และปิดบังเมื่ออ่าน" }
+          ]
+        },
+        {
+          "h2": "4. ปัญหาที่พบบ่อย",
+          "blocks": [
+            { "type": "table", "head": ["ปัญหา", "สาเหตุ", "วิธีแก้ไข"], "rows": [
+              ["เกิดข้อผิดพลาดในการยืนยันตัวตน", "สับสนระหว่างคีย์ทดสอบและคีย์ live", "ตรวจสอบการแยกทดสอบ/จริง (live) ในศูนย์นักพัฒนา และใช้คีย์ที่ตรงกับสภาพแวดล้อม"],
+              ["ไม่มีเมนูศูนย์นักพัฒนา", "ยังทำสัญญาร้านค้าไม่เสร็จสมบูรณ์", "ลงชื่อเข้าใช้ด้วยบัญชีระบบจัดการร้านค้าที่ทำสัญญาร้านค้าเสร็จสมบูรณ์แล้ว"]
+            ] }
+          ]
+        },
+        {
+          "h2": "รายการตรวจสอบขั้นสุดท้าย",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "ทำสัญญาร้านค้า Toss Payments เสร็จสมบูรณ์และลงชื่อเข้าใช้ระบบจัดการร้านค้าแล้ว",
+              "ไปที่ [ศูนย์นักพัฒนา] ที่มุมล่างซ้ายแล้ว",
+              "แยกทดสอบ/จริง (live) และดู Client Key · Secret Key แล้ว",
+              "ป้อน client_key · secret_key ใน GenieGo [ลงทะเบียน] และบันทึกแล้ว"
+            ] }
+          ]
+        }
+      ]
+    },
+    "vi": {
+      "titleType": "Hướng dẫn cấp API Key",
+      "badge": "Hướng dẫn cho người mới",
+      "intro": "Hướng dẫn tổng hợp quy trình tra cứu Client Key và Secret Key trong Developer Center của trang quản trị người bán Toss Payments và đăng ký chúng trong GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Thời gian dự kiến", "Khoảng 5–10 phút"],
+        ["Tài khoản cần thiết", "Hợp đồng người bán Toss Payments · tài khoản quản trị người bán"],
+        ["Khóa được cấp", "Client Key · Secret Key"],
+        ["Kết quả", "Thông tin xác thực tích hợp thanh toán"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Trước khi bắt đầu",
+          "desc": "Với Toss Payments, bạn có thể tra cứu khóa trong trang quản trị người bán sau khi ký hợp đồng người bán.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Bắt buộc", "h3": "Hợp đồng người bán · tài khoản quản trị người bán", "p": "Bạn phải đã hoàn tất hợp đồng người bán Toss Payments và có thể đăng nhập vào trang quản trị người bán." },
+              { "tag": "Khóa được cấp", "h3": "Client Key · Secret Key", "p": "Tra cứu Client Key và Secret Key thành một bộ trong Developer Center và sử dụng chúng cùng nhau." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Lưu ý:</strong> Developer Center phân biệt môi trường test và live, vì vậy hãy đảm bảo bạn sử dụng khóa live cho việc tích hợp thực tế." }
+          ]
+        },
+        {
+          "h2": "2. Các bước cấp",
+          "desc": "Tra cứu theo thứ tự dưới đây và đăng ký trong GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Đăng nhập vào trang quản trị người bán", "p": "Đăng nhập vào trang quản trị người bán Toss Payments.", "path": "https://dashboard.tosspayments.com" },
+              { "h3": "Vào Developer Center", "p": "Vào [Developer Center] ở góc dưới bên trái.", "path": "Developer Center" },
+              { "h3": "Tra cứu khóa", "p": "Chọn môi trường test/live và tra cứu Client Key và Secret Key. Hai khóa được sử dụng cùng nhau như một bộ." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Sau khi bạn đã xác nhận cả Client Key và Secret Key, bạn đã sẵn sàng để đăng ký." }
+          ]
+        },
+        {
+          "h2": "3. Thông tin cần đăng ký trong GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Trường", "Mô tả"], "rows": [
+              ["client_key", "Client Key tra cứu được trong Developer Center"],
+              ["secret_key", "Secret Key tra cứu được trong Developer Center (xử lý cẩn thận)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Nhập chúng vào GenieGo Integration Hub [Đăng ký] rồi lưu. Thông tin xác thực được mã hóa khi lưu trữ bằng AES-256-GCM và được che khi đọc." }
+          ]
+        },
+        {
+          "h2": "4. Sự cố thường gặp",
+          "blocks": [
+            { "type": "table", "head": ["Sự cố", "Nguyên nhân", "Giải pháp"], "rows": [
+              ["Xảy ra lỗi xác thực", "Nhầm lẫn giữa khóa test và khóa live", "Kiểm tra phân biệt test/live trong Developer Center và sử dụng khóa phù hợp với môi trường của bạn."],
+              ["Không có menu Developer Center", "Hợp đồng người bán chưa hoàn tất", "Đăng nhập bằng tài khoản quản trị người bán đã hoàn tất hợp đồng người bán."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Danh sách kiểm tra cuối cùng",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Đã hoàn tất hợp đồng người bán Toss Payments và đăng nhập vào trang quản trị người bán.",
+              "Đã vào [Developer Center] ở góc dưới bên trái.",
+              "Đã phân biệt test/live và tra cứu Client Key · Secret Key.",
+              "Đã nhập client_key · secret_key vào GenieGo [Đăng ký] và lưu."
+            ] }
+          ]
+        }
+      ]
+    },
+    "id": {
+      "titleType": "Panduan Penerbitan API Key",
+      "badge": "Panduan Pemula",
+      "intro": "Panduan yang merangkum proses melihat Client Key dan Secret Key di Developer Center pada admin merchant Toss Payments dan mendaftarkannya di GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Perkiraan waktu", "Sekitar 5–10 menit"],
+        ["Akun yang dibutuhkan", "Kontrak merchant Toss Payments · akun admin merchant"],
+        ["Kunci yang diterbitkan", "Client Key · Secret Key"],
+        ["Hasil", "Kredensial integrasi pembayaran"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Sebelum Anda Mulai",
+          "desc": "Dengan Toss Payments, Anda dapat melihat kunci di admin merchant setelah menandatangani kontrak merchant.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Diperlukan", "h3": "Kontrak merchant · akun admin merchant", "p": "Anda harus telah menyelesaikan kontrak merchant Toss Payments dan dapat masuk ke admin merchant." },
+              { "tag": "Kunci yang diterbitkan", "h3": "Client Key · Secret Key", "p": "Lihat Client Key dan Secret Key sebagai satu set di Developer Center dan gunakan keduanya bersama." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Catatan:</strong> Developer Center memisahkan lingkungan test dan live, jadi pastikan Anda menggunakan kunci live untuk integrasi yang sebenarnya." }
+          ]
+        },
+        {
+          "h2": "2. Langkah Penerbitan",
+          "desc": "Lihat sesuai urutan di bawah dan daftarkan di GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Masuk ke admin merchant", "p": "Masuk ke admin merchant Toss Payments.", "path": "https://dashboard.tosspayments.com" },
+              { "h3": "Buka Developer Center", "p": "Buka [Developer Center] di kiri bawah.", "path": "Developer Center" },
+              { "h3": "Lihat kunci", "p": "Pilih test/live dan lihat Client Key dan Secret Key. Kedua kunci digunakan bersama sebagai satu set." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Setelah Anda mengonfirmasi Client Key dan Secret Key, Anda siap untuk mendaftar." }
+          ]
+        },
+        {
+          "h2": "3. Informasi yang Harus Didaftarkan di GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Bidang", "Deskripsi"], "rows": [
+              ["client_key", "Client Key yang ditemukan di Developer Center"],
+              ["secret_key", "Secret Key yang ditemukan di Developer Center (tangani dengan hati-hati)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Masukkan di GenieGo Integration Hub [Daftar] lalu simpan. Kredensial dienkripsi saat disimpan dengan AES-256-GCM dan disamarkan saat dibaca." }
+          ]
+        },
+        {
+          "h2": "4. Masalah Umum",
+          "blocks": [
+            { "type": "table", "head": ["Masalah", "Penyebab", "Solusi"], "rows": [
+              ["Terjadi kesalahan autentikasi", "Tertukar antara kunci test dan kunci live", "Periksa pemisahan test/live di Developer Center dan gunakan kunci yang sesuai dengan lingkungan Anda."],
+              ["Tidak ada menu Developer Center", "Kontrak merchant belum selesai", "Masuk dengan akun admin merchant yang kontrak merchant-nya sudah selesai."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Daftar Periksa Akhir",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Menyelesaikan kontrak merchant Toss Payments dan masuk ke admin merchant.",
+              "Membuka [Developer Center] di kiri bawah.",
+              "Membedakan test/live dan melihat Client Key · Secret Key.",
+              "Memasukkan client_key · secret_key di GenieGo [Daftar] dan menyimpan."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ar": {
+      "titleType": "دليل إصدار مفتاح API",
+      "badge": "دليل المبتدئين",
+      "intro": "دليل يوضح كيفية الاطلاع على Client Key وSecret Key في مركز المطورين (Developer Center) بلوحة إدارة التاجر في Toss Payments وتسجيلهما في GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["الوقت المقدّر", "حوالي 5–10 دقائق"],
+        ["الحساب المطلوب", "عقد تاجر Toss Payments · حساب إدارة التاجر"],
+        ["المفاتيح الصادرة", "Client Key · Secret Key"],
+        ["النتيجة", "بيانات اعتماد تكامل الدفع"]
+      ],
+      "sections": [
+        {
+          "h2": "1. قبل أن تبدأ",
+          "desc": "مع Toss Payments، يمكنك الاطلاع على مفاتيحك في لوحة إدارة التاجر بعد توقيع عقد التاجر.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "مطلوب", "h3": "عقد التاجر · حساب إدارة التاجر", "p": "يجب أن تكون قد أكملت عقد تاجر Toss Payments وأن تتمكن من تسجيل الدخول إلى لوحة إدارة التاجر." },
+              { "tag": "المفاتيح الصادرة", "h3": "Client Key · Secret Key", "p": "اطّلع على Client Key وSecret Key كمجموعة واحدة في مركز المطورين واستخدمهما معًا." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>ملاحظة:</strong> يفصل مركز المطورين بين بيئتي الاختبار (test) والإنتاج (live)، لذا تأكد من استخدام مفاتيح live للتكامل الفعلي." }
+          ]
+        },
+        {
+          "h2": "2. خطوات الإصدار",
+          "desc": "اطّلع عليها بالترتيب أدناه وسجّلها في GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "تسجيل الدخول إلى لوحة إدارة التاجر", "p": "سجّل الدخول إلى لوحة إدارة التاجر في Toss Payments.", "path": "https://dashboard.tosspayments.com" },
+              { "h3": "الانتقال إلى مركز المطورين", "p": "انتقل إلى [مركز المطورين] في أسفل اليسار.", "path": "مركز المطورين" },
+              { "h3": "الاطلاع على المفاتيح", "p": "اختر بيئة الاختبار/الإنتاج (live) واطّلع على Client Key وSecret Key. يُستخدم المفتاحان معًا كمجموعة واحدة." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "بمجرد تأكيدك لكل من Client Key وSecret Key، تكون جاهزًا للتسجيل." }
+          ]
+        },
+        {
+          "h2": "3. المعلومات المطلوب تسجيلها في GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["الحقل", "الوصف"], "rows": [
+              ["client_key", "Client Key الذي تم العثور عليه في مركز المطورين"],
+              ["secret_key", "Secret Key الذي تم العثور عليه في مركز المطورين (تعامل معه بحذر)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "أدخلهما في GenieGo Integration Hub [تسجيل] واحفظ. تُشفَّر بيانات الاعتماد أثناء التخزين باستخدام AES-256-GCM وتُقنَّع عند القراءة." }
+          ]
+        },
+        {
+          "h2": "4. المشكلات الشائعة",
+          "blocks": [
+            { "type": "table", "head": ["المشكلة", "السبب", "الحل"], "rows": [
+              ["حدوث خطأ في المصادقة", "الخلط بين مفتاح الاختبار ومفتاح الإنتاج (live)", "تحقق من التمييز بين الاختبار/الإنتاج (live) في مركز المطورين واستخدم المفتاح المطابق لبيئتك."],
+              ["عدم وجود قائمة مركز المطورين", "عقد التاجر غير مكتمل", "سجّل الدخول بحساب إدارة تاجر اكتمل عقد التاجر الخاص به."]
+            ] }
+          ]
+        },
+        {
+          "h2": "قائمة التحقق النهائية",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "أكملت عقد تاجر Toss Payments وسجّلت الدخول إلى لوحة إدارة التاجر.",
+              "انتقلت إلى [مركز المطورين] في أسفل اليسار.",
+              "ميّزت بين الاختبار/الإنتاج (live) واطّلعت على Client Key · Secret Key.",
+              "أدخلت client_key · secret_key في GenieGo [تسجيل] وحفظت."
+            ] }
+          ]
+        }
+      ]
+    },
+    "es": {
+      "titleType": "Manual de emisión de API Key",
+      "badge": "Guía para principiantes",
+      "intro": "Un manual que explica cómo consultar tu Client Key y Secret Key en el Developer Center del panel de administración de comercio de Toss Payments y registrarlos en el GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tiempo estimado", "Unos 5–10 min"],
+        ["Cuenta necesaria", "Contrato de comercio de Toss Payments · cuenta de administración de comercio"],
+        ["Claves emitidas", "Client Key · Secret Key"],
+        ["Resultado", "Credenciales de integración de pagos"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de comenzar",
+          "desc": "Con Toss Payments, puedes consultar tus claves en el panel de administración de comercio tras firmar un contrato de comercio.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requerido", "h3": "Contrato de comercio · cuenta de administración de comercio", "p": "Debes haber completado un contrato de comercio de Toss Payments y poder iniciar sesión en el panel de administración de comercio." },
+              { "tag": "Claves emitidas", "h3": "Client Key · Secret Key", "p": "Consulta la Client Key y la Secret Key como un conjunto en el Developer Center y úsalas juntas." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Nota:</strong> El Developer Center separa los entornos de prueba (test) y producción (live), así que asegúrate de usar las claves live para la integración real." }
+          ]
+        },
+        {
+          "h2": "2. Pasos de emisión",
+          "desc": "Consúltalas en el orden siguiente y regístralas en GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Iniciar sesión en el panel de administración de comercio", "p": "Inicia sesión en el panel de administración de comercio de Toss Payments.", "path": "https://dashboard.tosspayments.com" },
+              { "h3": "Ir al Developer Center", "p": "Ve a [Developer Center] en la parte inferior izquierda.", "path": "Developer Center" },
+              { "h3": "Consultar las claves", "p": "Selecciona test/live y consulta la Client Key y la Secret Key. Las dos claves se usan juntas como un conjunto." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Una vez que hayas confirmado tanto la Client Key como la Secret Key, estás listo para registrarlas." }
+          ]
+        },
+        {
+          "h2": "3. Información a registrar en GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descripción"], "rows": [
+              ["client_key", "La Client Key encontrada en el Developer Center"],
+              ["secret_key", "La Secret Key encontrada en el Developer Center (manéjala con cuidado)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Introdúcelas en el GenieGo Integration Hub [Registrar] y guarda. Las credenciales se cifran en reposo con AES-256-GCM y se enmascaran al leerlas." }
+          ]
+        },
+        {
+          "h2": "4. Problemas frecuentes",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solución"], "rows": [
+              ["Se produce un error de autenticación", "Confusión entre la clave de prueba y la clave live", "Comprueba la distinción test/live en el Developer Center y usa la clave que coincida con tu entorno."],
+              ["No aparece el menú del Developer Center", "Contrato de comercio no completado", "Inicia sesión con una cuenta de administración de comercio cuyo contrato de comercio esté completo."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificación final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Completé un contrato de comercio de Toss Payments e inicié sesión en el panel de administración de comercio.",
+              "Fui a [Developer Center] en la parte inferior izquierda.",
+              "Distinguí test/live y consulté la Client Key · Secret Key.",
+              "Introduje client_key · secret_key en GenieGo [Registrar] y guardé."
+            ] }
+          ]
+        }
+      ]
+    },
+    "fr": {
+      "titleType": "Manuel d'émission de clé API",
+      "badge": "Guide pour débutants",
+      "intro": "Un manuel expliquant comment consulter votre Client Key et votre Secret Key dans le Developer Center de l'espace marchand de Toss Payments et les enregistrer dans le GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Temps estimé", "Environ 5–10 min"],
+        ["Compte requis", "Contrat marchand Toss Payments · compte d'administration marchand"],
+        ["Clés émises", "Client Key · Secret Key"],
+        ["Résultat", "Identifiants d'intégration de paiement"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Avant de commencer",
+          "desc": "Avec Toss Payments, vous pouvez consulter vos clés dans l'espace marchand après avoir signé un contrat marchand.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requis", "h3": "Contrat marchand · compte d'administration marchand", "p": "Vous devez avoir conclu un contrat marchand Toss Payments et pouvoir vous connecter à l'espace marchand." },
+              { "tag": "Clés émises", "h3": "Client Key · Secret Key", "p": "Consultez la Client Key et la Secret Key comme un ensemble dans le Developer Center et utilisez-les ensemble." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Remarque :</strong> Le Developer Center distingue les environnements de test et de production (live), assurez-vous donc d'utiliser les clés live pour l'intégration réelle." }
+          ]
+        },
+        {
+          "h2": "2. Étapes d'émission",
+          "desc": "Consultez-les dans l'ordre ci-dessous et enregistrez-les dans GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Se connecter à l'espace marchand", "p": "Connectez-vous à l'espace marchand de Toss Payments.", "path": "https://dashboard.tosspayments.com" },
+              { "h3": "Aller au Developer Center", "p": "Allez dans [Developer Center] en bas à gauche.", "path": "Developer Center" },
+              { "h3": "Consulter les clés", "p": "Sélectionnez test/live et consultez la Client Key et la Secret Key. Les deux clés s'utilisent ensemble comme un ensemble." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Une fois que vous avez confirmé à la fois la Client Key et la Secret Key, vous êtes prêt à les enregistrer." }
+          ]
+        },
+        {
+          "h2": "3. Informations à enregistrer dans GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Champ", "Description"], "rows": [
+              ["client_key", "La Client Key trouvée dans le Developer Center"],
+              ["secret_key", "La Secret Key trouvée dans le Developer Center (à manipuler avec précaution)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Saisissez-les dans le GenieGo Integration Hub [Enregistrer] et enregistrez. Les identifiants sont chiffrés au repos avec AES-256-GCM et masqués à la lecture." }
+          ]
+        },
+        {
+          "h2": "4. Problèmes courants",
+          "blocks": [
+            { "type": "table", "head": ["Problème", "Cause", "Solution"], "rows": [
+              ["Une erreur d'authentification se produit", "Confusion entre la clé de test et la clé live", "Vérifiez la distinction test/live dans le Developer Center et utilisez la clé correspondant à votre environnement."],
+              ["Pas de menu Developer Center", "Contrat marchand non finalisé", "Connectez-vous avec un compte d'administration marchand dont le contrat marchand est finalisé."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Liste de contrôle finale",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Conclu un contrat marchand Toss Payments et connecté à l'espace marchand.",
+              "Allé dans [Developer Center] en bas à gauche.",
+              "Distingué test/live et consulté la Client Key · Secret Key.",
+              "Saisi client_key · secret_key dans GenieGo [Enregistrer] et enregistré."
+            ] }
+          ]
+        }
+      ]
+    },
+    "hi": {
+      "titleType": "API Key जारी करने की मार्गदर्शिका",
+      "badge": "शुरुआती गाइड",
+      "intro": "एक मार्गदर्शिका जो बताती है कि Toss Payments मर्चेंट एडमिन के Developer Center में अपनी Client Key और Secret Key कैसे देखें और उन्हें GenieGo Integration Hub में कैसे पंजीकृत करें।",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["अनुमानित समय", "लगभग 5–10 मिनट"],
+        ["आवश्यक खाता", "Toss Payments मर्चेंट अनुबंध · मर्चेंट एडमिन खाता"],
+        ["जारी की गई कुंजियाँ", "Client Key · Secret Key"],
+        ["परिणाम", "भुगतान एकीकरण क्रेडेंशियल"]
+      ],
+      "sections": [
+        {
+          "h2": "1. शुरू करने से पहले",
+          "desc": "Toss Payments के साथ, मर्चेंट अनुबंध पर हस्ताक्षर करने के बाद आप मर्चेंट एडमिन में अपनी कुंजियाँ देख सकते हैं।",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "आवश्यक", "h3": "मर्चेंट अनुबंध · मर्चेंट एडमिन खाता", "p": "आपने Toss Payments मर्चेंट अनुबंध पूरा किया होना चाहिए और मर्चेंट एडमिन में साइन इन कर पाना चाहिए।" },
+              { "tag": "जारी की गई कुंजियाँ", "h3": "Client Key · Secret Key", "p": "Developer Center में Client Key और Secret Key को एक सेट के रूप में देखें और उन्हें एक साथ उपयोग करें।" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>ध्यान दें:</strong> Developer Center test और live को अलग करता है, इसलिए सुनिश्चित करें कि आप वास्तविक एकीकरण के लिए live कुंजियों का उपयोग कर रहे हैं।" }
+          ]
+        },
+        {
+          "h2": "2. जारी करने के चरण",
+          "desc": "नीचे दिए गए क्रम में देखें और GenieGo में पंजीकृत करें।",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "मर्चेंट एडमिन में साइन इन करें", "p": "Toss Payments मर्चेंट एडमिन में साइन इन करें।", "path": "https://dashboard.tosspayments.com" },
+              { "h3": "Developer Center पर जाएँ", "p": "नीचे बाईं ओर [Developer Center] पर जाएँ।", "path": "Developer Center" },
+              { "h3": "कुंजियाँ देखें", "p": "test/live चुनें और Client Key तथा Secret Key देखें। दोनों कुंजियाँ एक सेट के रूप में एक साथ उपयोग की जाती हैं।" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "एक बार जब आप Client Key और Secret Key दोनों की पुष्टि कर लेते हैं, तो आप पंजीकरण के लिए तैयार हैं।" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo में पंजीकृत करने की जानकारी",
+          "blocks": [
+            { "type": "table", "head": ["फ़ील्ड", "विवरण"], "rows": [
+              ["client_key", "Developer Center में मिली Client Key"],
+              ["secret_key", "Developer Center में मिली Secret Key (सावधानी से संभालें)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "इन्हें GenieGo Integration Hub [पंजीकृत करें] में दर्ज करें और सहेजें। क्रेडेंशियल को संग्रहण के समय AES-256-GCM से एन्क्रिप्ट किया जाता है और पढ़ते समय मास्क किया जाता है।" }
+          ]
+        },
+        {
+          "h2": "4. सामान्य समस्याएँ",
+          "blocks": [
+            { "type": "table", "head": ["समस्या", "कारण", "समाधान"], "rows": [
+              ["प्रमाणीकरण त्रुटि होती है", "test कुंजी और live कुंजी में भ्रम", "Developer Center में test/live के भेद की जाँच करें और अपने परिवेश से मेल खाती कुंजी का उपयोग करें।"],
+              ["Developer Center मेनू नहीं है", "मर्चेंट अनुबंध पूरा नहीं हुआ", "ऐसे मर्चेंट एडमिन खाते से साइन इन करें जिसका मर्चेंट अनुबंध पूरा हो।"]
+            ] }
+          ]
+        },
+        {
+          "h2": "अंतिम जाँच सूची",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Toss Payments मर्चेंट अनुबंध पूरा किया और मर्चेंट एडमिन में साइन इन किया।",
+              "नीचे बाईं ओर [Developer Center] पर गया।",
+              "test/live में अंतर किया और Client Key · Secret Key देखी।",
+              "GenieGo [पंजीकृत करें] में client_key · secret_key दर्ज किया और सहेजा।"
+            ] }
+          ]
+        }
+      ]
+    },
+    "pt": {
+      "titleType": "Manual de emissão de chave de API",
+      "badge": "Guia para iniciantes",
+      "intro": "Um manual que explica como consultar sua Client Key e Secret Key no Developer Center do painel administrativo de comerciante da Toss Payments e registrá-las no GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tempo estimado", "Cerca de 5–10 min"],
+        ["Conta necessária", "Contrato de comerciante Toss Payments · conta de administração de comerciante"],
+        ["Chaves emitidas", "Client Key · Secret Key"],
+        ["Resultado", "Credenciais de integração de pagamento"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de começar",
+          "desc": "Com a Toss Payments, você pode consultar suas chaves no painel administrativo de comerciante após assinar um contrato de comerciante.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Obrigatório", "h3": "Contrato de comerciante · conta de administração de comerciante", "p": "Você deve ter concluído um contrato de comerciante da Toss Payments e conseguir fazer login no painel administrativo de comerciante." },
+              { "tag": "Chaves emitidas", "h3": "Client Key · Secret Key", "p": "Consulte a Client Key e a Secret Key como um conjunto no Developer Center e use-as juntas." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Observação:</strong> O Developer Center separa os ambientes de teste (test) e produção (live), portanto certifique-se de usar as chaves live para a integração real." }
+          ]
+        },
+        {
+          "h2": "2. Etapas de emissão",
+          "desc": "Consulte-as na ordem abaixo e registre-as no GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Fazer login no painel administrativo de comerciante", "p": "Faça login no painel administrativo de comerciante da Toss Payments.", "path": "https://dashboard.tosspayments.com" },
+              { "h3": "Ir para o Developer Center", "p": "Vá para [Developer Center] no canto inferior esquerdo.", "path": "Developer Center" },
+              { "h3": "Consultar as chaves", "p": "Selecione test/live e consulte a Client Key e a Secret Key. As duas chaves são usadas juntas como um conjunto." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Assim que você confirmar tanto a Client Key quanto a Secret Key, estará pronto para o registro." }
+          ]
+        },
+        {
+          "h2": "3. Informações a registrar no GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descrição"], "rows": [
+              ["client_key", "A Client Key encontrada no Developer Center"],
+              ["secret_key", "A Secret Key encontrada no Developer Center (manuseie com cuidado)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Insira-as no GenieGo Integration Hub [Registrar] e salve. As credenciais são criptografadas em repouso com AES-256-GCM e mascaradas na leitura." }
+          ]
+        },
+        {
+          "h2": "4. Problemas comuns",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solução"], "rows": [
+              ["Ocorre erro de autenticação", "Confusão entre a chave de teste e a chave live", "Verifique a distinção test/live no Developer Center e use a chave correspondente ao seu ambiente."],
+              ["Não há menu do Developer Center", "Contrato de comerciante não concluído", "Faça login com uma conta de administração de comerciante cujo contrato de comerciante esteja concluído."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificação final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Concluí um contrato de comerciante da Toss Payments e fiz login no painel administrativo de comerciante.",
+              "Fui para [Developer Center] no canto inferior esquerdo.",
+              "Distingui test/live e consultei a Client Key · Secret Key.",
+              "Inseri client_key · secret_key no GenieGo [Registrar] e salvei."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ru": {
+      "titleType": "Руководство по выпуску API-ключа",
+      "badge": "Руководство для начинающих",
+      "intro": "Руководство, описывающее, как просмотреть Client Key и Secret Key в Developer Center в панели администрирования продавца Toss Payments и зарегистрировать их в GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Расчётное время", "Около 5–10 мин"],
+        ["Требуемая учётная запись", "Договор продавца Toss Payments · учётная запись администрирования продавца"],
+        ["Выпускаемые ключи", "Client Key · Secret Key"],
+        ["Результат", "Учётные данные для интеграции платежей"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Прежде чем начать",
+          "desc": "В Toss Payments вы можете просмотреть свои ключи в панели администрирования продавца после заключения договора продавца.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Требуется", "h3": "Договор продавца · учётная запись администрирования продавца", "p": "Вы должны заключить договор продавца Toss Payments и иметь возможность входить в панель администрирования продавца." },
+              { "tag": "Выпускаемые ключи", "h3": "Client Key · Secret Key", "p": "Просмотрите Client Key и Secret Key как комплект в Developer Center и используйте их вместе." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Примечание:</strong> Developer Center разделяет тестовую (test) и рабочую (live) среды, поэтому убедитесь, что для реальной интеграции вы используете ключи live." }
+          ]
+        },
+        {
+          "h2": "2. Шаги выпуска",
+          "desc": "Просмотрите их в указанном ниже порядке и зарегистрируйте в GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Войти в панель администрирования продавца", "p": "Войдите в панель администрирования продавца Toss Payments.", "path": "https://dashboard.tosspayments.com" },
+              { "h3": "Перейти в Developer Center", "p": "Перейдите в [Developer Center] в левом нижнем углу.", "path": "Developer Center" },
+              { "h3": "Просмотреть ключи", "p": "Выберите test/live и просмотрите Client Key и Secret Key. Оба ключа используются вместе как комплект." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Как только вы подтвердите и Client Key, и Secret Key, вы готовы к регистрации." }
+          ]
+        },
+        {
+          "h2": "3. Данные для регистрации в GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Поле", "Описание"], "rows": [
+              ["client_key", "Client Key, найденный в Developer Center"],
+              ["secret_key", "Secret Key, найденный в Developer Center (обращайтесь осторожно)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Введите их в GenieGo Integration Hub [Регистрация] и сохраните. Учётные данные шифруются при хранении с помощью AES-256-GCM и маскируются при чтении." }
+          ]
+        },
+        {
+          "h2": "4. Частые проблемы",
+          "blocks": [
+            { "type": "table", "head": ["Проблема", "Причина", "Решение"], "rows": [
+              ["Возникает ошибка аутентификации", "Путаница между тестовым ключом и ключом live", "Проверьте разделение test/live в Developer Center и используйте ключ, соответствующий вашей среде."],
+              ["Нет меню Developer Center", "Договор продавца не заключён", "Войдите с учётной записью администрирования продавца, у которой заключён договор продавца."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Итоговый контрольный список",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Заключил договор продавца Toss Payments и вошёл в панель администрирования продавца.",
+              "Перешёл в [Developer Center] в левом нижнем углу.",
+              "Различил test/live и просмотрел Client Key · Secret Key.",
+              "Ввёл client_key · secret_key в GenieGo [Регистрация] и сохранил."
+            ] }
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,1026 @@
+{
+  "name": "Checkout.com",
+  "icon": "✳️",
+  "langs": {
+    "ko": {
+      "titleType": "API Key 발급 매뉴얼",
+      "badge": "Beginner Guide",
+      "intro": "Checkout.com Dashboard에서 Live 환경의 API 키(Secret Key·Public Key)를 확인하고 GenieGo 연동 허브에 등록하는 과정을 초보자도 그대로 따라 할 수 있도록 정리한 매뉴얼입니다.",
+      "org": "GenieGo 연동 허브",
+      "quick": [
+        ["소요 시간", "약 5~10분"],
+        ["필요 계정", "Checkout.com 가맹 계정(계약·심사 승인 필요)"],
+        ["발급 키", "Secret Key(sk_) · Public Key(pk_)"],
+        ["결과물", "Live API 자격증명"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 시작하기 전에",
+          "desc": "Checkout.com 키는 가맹 계약·심사가 승인된 후 발급할 수 있습니다.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "필요", "h3": "Checkout.com 가맹 계약", "p": "먼저 Checkout.com 가맹 계약·심사 승인이 필요합니다. 승인이 완료되어야 Live 키를 발급할 수 있습니다." },
+              { "tag": "발급 키", "h3": "Secret Key · Public Key", "p": "Dashboard의 Developers > Keys에서 Live 환경의 Secret Key(sk_)와 Public Key(pk_)를 확인합니다." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>참고:</strong> Secret Key는 <strong>sk_</strong>, Public Key는 <strong>pk_</strong> 로 시작합니다. 반드시 <strong>Live</strong> 환경의 키를 확인합니다." }
+          ]
+        },
+        {
+          "h2": "2. 발급 신청 절차",
+          "desc": "계약·심사 승인 후 아래 순서대로 발급하고 GenieGo에 등록합니다.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "가맹 계약·심사 승인", "p": "Checkout.com 가맹 계약·심사 승인을 먼저 완료합니다. 승인이 완료되어야 다음 단계로 진행할 수 있습니다." },
+              { "h3": "Dashboard 로그인", "p": "Checkout.com Dashboard에 로그인합니다.", "path": "dashboard.checkout.com" },
+              { "h3": "Keys 이동", "p": "[Developers] > [Keys] 메뉴로 이동합니다.", "path": "Developers → Keys" },
+              { "h3": "키 확인", "p": "Live 환경의 Secret Key(sk_)와 Public Key(pk_)를 확인합니다." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Developers &gt; Keys에서 Live의 Secret Key(sk_)와 Public Key(pk_)가 보이면 정상 발급된 것입니다." }
+          ]
+        },
+        {
+          "h2": "3. GenieGo에 등록할 정보",
+          "blocks": [
+            { "type": "table", "head": ["필드", "설명"], "rows": [
+              ["secret_key", "Live Secret Key(sk_로 시작, 노출 주의)"],
+              ["public_key", "Live Public Key(pk_로 시작)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 연동 허브 [등록]에 secret_key·public_key를 입력해 저장하면 자격증명은 AES-256-GCM으로 암호화 저장되고 조회 시 마스킹됩니다." }
+          ]
+        },
+        {
+          "h2": "4. 자주 발생하는 문제",
+          "blocks": [
+            { "type": "table", "head": ["문제", "원인", "해결"], "rows": [
+              ["Keys 메뉴에 Live 키가 없음", "가맹 계약·심사 승인 미완료", "Checkout.com 가맹 계약·심사 승인을 먼저 완료합니다."],
+              ["인증 실패", "Test 키를 사용 또는 Secret Key 오기재", "Live 환경의 sk_ Secret Key와 pk_ Public Key를 다시 확인합니다."]
+            ] }
+          ]
+        },
+        {
+          "h2": "최종 체크리스트",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Checkout.com 가맹 계약·심사 승인이 완료되었다.",
+              "Dashboard의 Developers > Keys에서 Live 키를 확인했다.",
+              "Secret Key(sk_)·Public Key(pk_)를 확인했다.",
+              "GenieGo [등록]에 secret_key·public_key를 입력해 저장했다."
+            ] }
+          ]
+        }
+      ]
+    },
+    "en": {
+      "titleType": "API Key Issuance Manual",
+      "badge": "Beginner Guide",
+      "intro": "A beginner-friendly, step-by-step guide to finding your Live API keys (Secret Key and Public Key) in the Checkout.com Dashboard and registering them in the GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Est. time", "About 5–10 min"],
+        ["Account needed", "Checkout.com merchant account (contract and review approval required)"],
+        ["Keys issued", "Secret Key (sk_) · Public Key (pk_)"],
+        ["Result", "Live API credentials"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Before You Begin",
+          "desc": "Checkout.com keys can be issued only after your merchant contract and review are approved.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Required", "h3": "Checkout.com merchant contract", "p": "First, a Checkout.com merchant contract and review approval are required. Live keys can be issued only once approval is complete." },
+              { "tag": "Keys issued", "h3": "Secret Key · Public Key", "p": "In the Dashboard under Developers > Keys, find the Live Secret Key (sk_) and Public Key (pk_)." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Note:</strong> The Secret Key starts with <strong>sk_</strong> and the Public Key with <strong>pk_</strong>. Be sure to use the keys from the <strong>Live</strong> environment." }
+          ]
+        },
+        {
+          "h2": "2. Issuance Procedure",
+          "desc": "After contract and review approval, issue in the order below and register in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Merchant contract and review approval", "p": "First complete the Checkout.com merchant contract and review approval. You can proceed to the next step only once approval is complete." },
+              { "h3": "Log in to the Dashboard", "p": "Log in to the Checkout.com Dashboard.", "path": "dashboard.checkout.com" },
+              { "h3": "Go to Keys", "p": "Go to the [Developers] > [Keys] menu.", "path": "Developers → Keys" },
+              { "h3": "Check the keys", "p": "Check the Live environment's Secret Key (sk_) and Public Key (pk_)." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "If the Live Secret Key (sk_) and Public Key (pk_) are visible under Developers &gt; Keys, they have been issued correctly." }
+          ]
+        },
+        {
+          "h2": "3. Information to Register in GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Field", "Description"], "rows": [
+              ["secret_key", "Live Secret Key (starts with sk_, handle with care)"],
+              ["public_key", "Live Public Key (starts with pk_)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Enter secret_key and public_key in the GenieGo Integration Hub [Register] and save. Credentials are encrypted at rest with AES-256-GCM and masked on read." }
+          ]
+        },
+        {
+          "h2": "4. Common Issues",
+          "blocks": [
+            { "type": "table", "head": ["Issue", "Cause", "Solution"], "rows": [
+              ["No Live keys in the Keys menu", "Merchant contract and review approval not completed", "First complete the Checkout.com merchant contract and review approval."],
+              ["Authentication failure", "Using a Test key or mistyping the Secret Key", "Re-check the Live environment's sk_ Secret Key and pk_ Public Key."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Final Checklist",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "The Checkout.com merchant contract and review approval are complete.",
+              "Checked the Live keys under the Dashboard's Developers > Keys.",
+              "Confirmed the Secret Key (sk_) and Public Key (pk_).",
+              "Entered secret_key and public_key in GenieGo [Register] and saved."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ja": {
+      "titleType": "API Key 発行マニュアル",
+      "badge": "初心者ガイド",
+      "intro": "Checkout.com Dashboard で Live 環境の API キー(Secret Key・Public Key)を確認し、GenieGo 連携ハブに登録する手順を、初心者でもそのまま実行できるようにまとめたマニュアルです。",
+      "org": "GenieGo 連携ハブ",
+      "quick": [
+        ["所要時間", "約 5〜10 分"],
+        ["必要なアカウント", "Checkout.com 加盟アカウント(契約・審査の承認が必要)"],
+        ["発行するキー", "Secret Key(sk_) · Public Key(pk_)"],
+        ["成果物", "Live API 認証情報"]
+      ],
+      "sections": [
+        {
+          "h2": "1. はじめる前に",
+          "desc": "Checkout.com のキーは、加盟契約・審査の承認後に発行できます。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必須", "h3": "Checkout.com 加盟契約", "p": "まず Checkout.com の加盟契約・審査の承認が必要です。承認が完了して初めて Live キーを発行できます。" },
+              { "tag": "発行するキー", "h3": "Secret Key · Public Key", "p": "Dashboard の Developers > Keys で Live 環境の Secret Key(sk_)と Public Key(pk_)を確認します。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> Secret Key は <strong>sk_</strong>、Public Key は <strong>pk_</strong> で始まります。必ず <strong>Live</strong> 環境のキーを確認してください。" }
+          ]
+        },
+        {
+          "h2": "2. 発行申請の手順",
+          "desc": "契約・審査の承認後、以下の順序で発行し、GenieGo に登録します。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "加盟契約・審査の承認", "p": "Checkout.com の加盟契約・審査の承認をまず完了します。承認が完了して初めて次のステップに進めます。" },
+              { "h3": "Dashboard にログイン", "p": "Checkout.com Dashboard にログインします。", "path": "dashboard.checkout.com" },
+              { "h3": "Keys へ移動", "p": "[Developers] > [Keys] メニューへ移動します。", "path": "Developers → Keys" },
+              { "h3": "キーを確認", "p": "Live 環境の Secret Key(sk_)と Public Key(pk_)を確認します。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Developers &gt; Keys で Live の Secret Key(sk_)と Public Key(pk_)が表示されれば、正常に発行されています。" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo に登録する情報",
+          "blocks": [
+            { "type": "table", "head": ["フィールド", "説明"], "rows": [
+              ["secret_key", "Live Secret Key(sk_ で始まる、取り扱い注意)"],
+              ["public_key", "Live Public Key(pk_ で始まる)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 連携ハブの [登録] に secret_key·public_key を入力して保存すると、認証情報は AES-256-GCM で暗号化して保存され、閲覧時にはマスキングされます。" }
+          ]
+        },
+        {
+          "h2": "4. よくある問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["Keys メニューに Live キーがない", "加盟契約・審査の承認が未完了", "Checkout.com の加盟契約・審査の承認をまず完了します。"],
+              ["認証に失敗する", "Test キーを使用、または Secret Key の誤記", "Live 環境の sk_ Secret Key と pk_ Public Key を再確認します。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終チェックリスト",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Checkout.com の加盟契約・審査の承認が完了した。",
+              "Dashboard の Developers > Keys で Live キーを確認した。",
+              "Secret Key(sk_)·Public Key(pk_)を確認した。",
+              "GenieGo の [登録] に secret_key·public_key を入力して保存した。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh": {
+      "titleType": "API Key 申请手册",
+      "badge": "新手指南",
+      "intro": "本手册手把手指导新手在 Checkout.com Dashboard 中查看 Live 环境的 API 密钥(Secret Key·Public Key)，并将其注册到 GenieGo 集成中心。",
+      "org": "GenieGo 集成中心",
+      "quick": [
+        ["预计时间", "约 5~10 分钟"],
+        ["所需账户", "Checkout.com 商户账户(需通过合约·审核批准)"],
+        ["签发密钥", "Secret Key(sk_) · Public Key(pk_)"],
+        ["成果", "Live API 凭证"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 开始之前",
+          "desc": "Checkout.com 密钥需在商户合约·审核获批后才能签发。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "Checkout.com 商户合约", "p": "首先需要 Checkout.com 商户合约·审核获批。只有获批后才能签发 Live 密钥。" },
+              { "tag": "签发密钥", "h3": "Secret Key · Public Key", "p": "在 Dashboard 的 Developers > Keys 中查看 Live 环境的 Secret Key(sk_)和 Public Key(pk_)。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> Secret Key 以 <strong>sk_</strong> 开头，Public Key 以 <strong>pk_</strong> 开头。请务必查看 <strong>Live</strong> 环境的密钥。" }
+          ]
+        },
+        {
+          "h2": "2. 申请签发流程",
+          "desc": "在合约·审核获批后，按以下顺序签发并在 GenieGo 中注册。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "商户合约·审核获批", "p": "首先完成 Checkout.com 商户合约·审核获批。只有获批后才能进入下一步。" },
+              { "h3": "登录 Dashboard", "p": "登录 Checkout.com Dashboard。", "path": "dashboard.checkout.com" },
+              { "h3": "进入 Keys", "p": "进入 [Developers] > [Keys] 菜单。", "path": "Developers → Keys" },
+              { "h3": "查看密钥", "p": "查看 Live 环境的 Secret Key(sk_)和 Public Key(pk_)。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "如果在 Developers &gt; Keys 中能看到 Live 的 Secret Key(sk_)和 Public Key(pk_)，即表示已正确签发。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中注册的信息",
+          "blocks": [
+            { "type": "table", "head": ["字段", "说明"], "rows": [
+              ["secret_key", "Live Secret Key(以 sk_ 开头，请妥善保管)"],
+              ["public_key", "Live Public Key(以 pk_ 开头)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 集成中心 [注册] 中输入 secret_key·public_key 并保存后，凭证将以 AES-256-GCM 加密存储，并在查询时进行掩码处理。" }
+          ]
+        },
+        {
+          "h2": "4. 常见问题",
+          "blocks": [
+            { "type": "table", "head": ["问题", "原因", "解决方法"], "rows": [
+              ["Keys 菜单中没有 Live 密钥", "商户合约·审核未获批", "首先完成 Checkout.com 商户合约·审核获批。"],
+              ["认证失败", "使用了 Test 密钥或 Secret Key 填写错误", "重新核对 Live 环境的 sk_ Secret Key 和 pk_ Public Key。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最终检查清单",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Checkout.com 商户合约·审核已获批。",
+              "已在 Dashboard 的 Developers > Keys 中查看 Live 密钥。",
+              "已确认 Secret Key(sk_)·Public Key(pk_)。",
+              "已在 GenieGo [注册] 中输入 secret_key·public_key 并保存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh-TW": {
+      "titleType": "API Key 申請手冊",
+      "badge": "新手指南",
+      "intro": "本手冊手把手指導新手在 Checkout.com Dashboard 中查看 Live 環境的 API 金鑰(Secret Key·Public Key)，並將其註冊到 GenieGo 整合中心。",
+      "org": "GenieGo 整合中心",
+      "quick": [
+        ["預計時間", "約 5~10 分鐘"],
+        ["所需帳戶", "Checkout.com 商戶帳戶(需通過合約·審查核准)"],
+        ["簽發金鑰", "Secret Key(sk_) · Public Key(pk_)"],
+        ["成果", "Live API 憑證"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 開始之前",
+          "desc": "Checkout.com 金鑰需在商戶合約·審查核准後才能簽發。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "Checkout.com 商戶合約", "p": "首先需要 Checkout.com 商戶合約·審查核准。只有核准後才能簽發 Live 金鑰。" },
+              { "tag": "簽發金鑰", "h3": "Secret Key · Public Key", "p": "在 Dashboard 的 Developers > Keys 中查看 Live 環境的 Secret Key(sk_)和 Public Key(pk_)。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> Secret Key 以 <strong>sk_</strong> 開頭，Public Key 以 <strong>pk_</strong> 開頭。請務必查看 <strong>Live</strong> 環境的金鑰。" }
+          ]
+        },
+        {
+          "h2": "2. 申請簽發流程",
+          "desc": "在合約·審查核准後，依以下順序簽發並在 GenieGo 中註冊。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "商戶合約·審查核准", "p": "首先完成 Checkout.com 商戶合約·審查核准。只有核准後才能進入下一步。" },
+              { "h3": "登入 Dashboard", "p": "登入 Checkout.com Dashboard。", "path": "dashboard.checkout.com" },
+              { "h3": "進入 Keys", "p": "進入 [Developers] > [Keys] 選單。", "path": "Developers → Keys" },
+              { "h3": "查看金鑰", "p": "查看 Live 環境的 Secret Key(sk_)和 Public Key(pk_)。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "如果在 Developers &gt; Keys 中能看到 Live 的 Secret Key(sk_)和 Public Key(pk_)，即表示已正確簽發。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中註冊的資訊",
+          "blocks": [
+            { "type": "table", "head": ["欄位", "說明"], "rows": [
+              ["secret_key", "Live Secret Key(以 sk_ 開頭，請妥善保管)"],
+              ["public_key", "Live Public Key(以 pk_ 開頭)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 整合中心 [註冊] 中輸入 secret_key·public_key 並儲存後，憑證將以 AES-256-GCM 加密儲存，並在查詢時進行遮罩處理。" }
+          ]
+        },
+        {
+          "h2": "4. 常見問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["Keys 選單中沒有 Live 金鑰", "商戶合約·審查未核准", "首先完成 Checkout.com 商戶合約·審查核准。"],
+              ["驗證失敗", "使用了 Test 金鑰或 Secret Key 填寫錯誤", "重新核對 Live 環境的 sk_ Secret Key 和 pk_ Public Key。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終檢查清單",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Checkout.com 商戶合約·審查已核准。",
+              "已在 Dashboard 的 Developers > Keys 中查看 Live 金鑰。",
+              "已確認 Secret Key(sk_)·Public Key(pk_)。",
+              "已在 GenieGo [註冊] 中輸入 secret_key·public_key 並儲存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "de": {
+      "titleType": "Anleitung zur API-Key-Ausstellung",
+      "badge": "Einsteigerleitfaden",
+      "intro": "Eine einsteigerfreundliche Schritt-für-Schritt-Anleitung zum Auffinden Ihrer Live-API-Schlüssel (Secret Key und Public Key) im Checkout.com Dashboard und zum Registrieren im GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Geschätzte Zeit", "Etwa 5–10 Min."],
+        ["Benötigtes Konto", "Checkout.com-Händlerkonto (Vertrag und Prüfungsgenehmigung erforderlich)"],
+        ["Ausgestellte Schlüssel", "Secret Key (sk_) · Public Key (pk_)"],
+        ["Ergebnis", "Live-API-Anmeldedaten"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Bevor Sie beginnen",
+          "desc": "Checkout.com-Schlüssel können erst nach Genehmigung Ihres Händlervertrags und Ihrer Prüfung ausgestellt werden.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Erforderlich", "h3": "Checkout.com-Händlervertrag", "p": "Zunächst sind ein Checkout.com-Händlervertrag und eine Prüfungsgenehmigung erforderlich. Live-Schlüssel können erst nach Abschluss der Genehmigung ausgestellt werden." },
+              { "tag": "Ausgestellte Schlüssel", "h3": "Secret Key · Public Key", "p": "Suchen Sie im Dashboard unter Developers > Keys den Secret Key (sk_) und den Public Key (pk_) der Live-Umgebung." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Hinweis:</strong> Der Secret Key beginnt mit <strong>sk_</strong> und der Public Key mit <strong>pk_</strong>. Verwenden Sie unbedingt die Schlüssel der <strong>Live</strong>-Umgebung." }
+          ]
+        },
+        {
+          "h2": "2. Ablauf der Ausstellung",
+          "desc": "Stellen Sie nach Vertrags- und Prüfungsgenehmigung in der unten angegebenen Reihenfolge aus und registrieren Sie in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Händlervertrag und Prüfungsgenehmigung", "p": "Schließen Sie zuerst den Checkout.com-Händlervertrag und die Prüfungsgenehmigung ab. Sie können erst nach Abschluss der Genehmigung zum nächsten Schritt übergehen." },
+              { "h3": "Beim Dashboard anmelden", "p": "Melden Sie sich beim Checkout.com Dashboard an.", "path": "dashboard.checkout.com" },
+              { "h3": "Zu Keys gehen", "p": "Gehen Sie zum Menü [Developers] > [Keys].", "path": "Developers → Keys" },
+              { "h3": "Schlüssel prüfen", "p": "Prüfen Sie den Secret Key (sk_) und den Public Key (pk_) der Live-Umgebung." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Wenn der Secret Key (sk_) und der Public Key (pk_) der Live-Umgebung unter Developers &gt; Keys sichtbar sind, wurden sie korrekt ausgestellt." }
+          ]
+        },
+        {
+          "h2": "3. In GenieGo zu registrierende Informationen",
+          "blocks": [
+            { "type": "table", "head": ["Feld", "Beschreibung"], "rows": [
+              ["secret_key", "Live Secret Key (beginnt mit sk_, vertraulich behandeln)"],
+              ["public_key", "Live Public Key (beginnt mit pk_)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Geben Sie secret_key·public_key im GenieGo Integration Hub [Registrieren] ein und speichern Sie. Anmeldedaten werden im Ruhezustand mit AES-256-GCM verschlüsselt und beim Lesen maskiert." }
+          ]
+        },
+        {
+          "h2": "4. Häufige Probleme",
+          "blocks": [
+            { "type": "table", "head": ["Problem", "Ursache", "Lösung"], "rows": [
+              ["Keine Live-Schlüssel im Keys-Menü", "Händlervertrag und Prüfungsgenehmigung nicht abgeschlossen", "Schließen Sie zuerst den Checkout.com-Händlervertrag und die Prüfungsgenehmigung ab."],
+              ["Authentifizierungsfehler", "Verwendung eines Test-Schlüssels oder falsch eingegebener Secret Key", "Prüfen Sie erneut den sk_ Secret Key und den pk_ Public Key der Live-Umgebung."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Abschließende Checkliste",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Der Checkout.com-Händlervertrag und die Prüfungsgenehmigung sind abgeschlossen.",
+              "Die Live-Schlüssel unter Developers > Keys im Dashboard geprüft.",
+              "Den Secret Key (sk_) und Public Key (pk_) bestätigt.",
+              "secret_key·public_key in GenieGo [Registrieren] eingegeben und gespeichert."
+            ] }
+          ]
+        }
+      ]
+    },
+    "th": {
+      "titleType": "คู่มือการออก API Key",
+      "badge": "คู่มือสำหรับผู้เริ่มต้น",
+      "intro": "คู่มือทีละขั้นตอนที่เป็นมิตรกับผู้เริ่มต้น สำหรับการค้นหาคีย์ API สภาพแวดล้อม Live (Secret Key และ Public Key) ใน Checkout.com Dashboard และลงทะเบียนใน GenieGo Integration Hub",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["เวลาโดยประมาณ", "ประมาณ 5–10 นาที"],
+        ["บัญชีที่ต้องใช้", "บัญชีร้านค้า Checkout.com (ต้องผ่านการอนุมัติสัญญา·การตรวจสอบ)"],
+        ["คีย์ที่ออก", "Secret Key (sk_) · Public Key (pk_)"],
+        ["ผลลัพธ์", "ข้อมูลรับรอง Live API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. ก่อนเริ่มต้น",
+          "desc": "คีย์ Checkout.com สามารถออกได้หลังจากที่สัญญาร้านค้า·การตรวจสอบได้รับการอนุมัติแล้วเท่านั้น",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "จำเป็น", "h3": "สัญญาร้านค้า Checkout.com", "p": "ขั้นแรกจำเป็นต้องมีสัญญาร้านค้า Checkout.com·การอนุมัติการตรวจสอบ คีย์ Live จะออกได้ก็ต่อเมื่อการอนุมัติเสร็จสมบูรณ์แล้วเท่านั้น" },
+              { "tag": "คีย์ที่ออก", "h3": "Secret Key · Public Key", "p": "ใน Dashboard ที่ Developers > Keys ให้ค้นหา Secret Key (sk_) และ Public Key (pk_) ของสภาพแวดล้อม Live" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>หมายเหตุ:</strong> Secret Key ขึ้นต้นด้วย <strong>sk_</strong> และ Public Key ขึ้นต้นด้วย <strong>pk_</strong> โปรดตรวจสอบคีย์ของสภาพแวดล้อม <strong>Live</strong> ให้แน่ใจ" }
+          ]
+        },
+        {
+          "h2": "2. ขั้นตอนการยื่นขอออก",
+          "desc": "หลังจากการอนุมัติสัญญา·การตรวจสอบ ให้ออกตามลำดับด้านล่างและลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "การอนุมัติสัญญาร้านค้า·การตรวจสอบ", "p": "ทำการอนุมัติสัญญาร้านค้า Checkout.com·การตรวจสอบให้เสร็จสมบูรณ์ก่อน คุณจะดำเนินการขั้นตอนถัดไปได้ก็ต่อเมื่อการอนุมัติเสร็จสมบูรณ์แล้วเท่านั้น" },
+              { "h3": "เข้าสู่ระบบ Dashboard", "p": "เข้าสู่ระบบ Checkout.com Dashboard", "path": "dashboard.checkout.com" },
+              { "h3": "ไปที่ Keys", "p": "ไปที่เมนู [Developers] > [Keys]", "path": "Developers → Keys" },
+              { "h3": "ตรวจสอบคีย์", "p": "ตรวจสอบ Secret Key (sk_) และ Public Key (pk_) ของสภาพแวดล้อม Live" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "หากเห็น Secret Key (sk_) และ Public Key (pk_) ของ Live ที่ Developers &gt; Keys แสดงว่าออกอย่างถูกต้องแล้ว" }
+          ]
+        },
+        {
+          "h2": "3. ข้อมูลที่ต้องลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["ฟิลด์", "คำอธิบาย"], "rows": [
+              ["secret_key", "Live Secret Key (ขึ้นต้นด้วย sk_ จัดการด้วยความระมัดระวัง)"],
+              ["public_key", "Live Public Key (ขึ้นต้นด้วย pk_)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "ป้อน secret_key·public_key ใน GenieGo Integration Hub [ลงทะเบียน] แล้วบันทึก ข้อมูลรับรองจะถูกเข้ารหัสขณะจัดเก็บด้วย AES-256-GCM และปิดบังเมื่ออ่าน" }
+          ]
+        },
+        {
+          "h2": "4. ปัญหาที่พบบ่อย",
+          "blocks": [
+            { "type": "table", "head": ["ปัญหา", "สาเหตุ", "วิธีแก้ไข"], "rows": [
+              ["ไม่มีคีย์ Live ในเมนู Keys", "สัญญาร้านค้า·การตรวจสอบยังไม่ได้รับการอนุมัติ", "ทำการอนุมัติสัญญาร้านค้า Checkout.com·การตรวจสอบให้เสร็จสมบูรณ์ก่อน"],
+              ["การยืนยันตัวตนล้มเหลว", "ใช้คีย์ Test หรือกรอก Secret Key ผิด", "ตรวจสอบ sk_ Secret Key และ pk_ Public Key ของสภาพแวดล้อม Live อีกครั้ง"]
+            ] }
+          ]
+        },
+        {
+          "h2": "รายการตรวจสอบขั้นสุดท้าย",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "สัญญาร้านค้า Checkout.com·การตรวจสอบได้รับการอนุมัติเสร็จสมบูรณ์แล้ว",
+              "ตรวจสอบคีย์ Live ที่ Developers > Keys ใน Dashboard แล้ว",
+              "ยืนยัน Secret Key (sk_)·Public Key (pk_) แล้ว",
+              "ป้อน secret_key·public_key ใน GenieGo [ลงทะเบียน] และบันทึกแล้ว"
+            ] }
+          ]
+        }
+      ]
+    },
+    "vi": {
+      "titleType": "Hướng dẫn cấp API Key",
+      "badge": "Hướng dẫn cho người mới",
+      "intro": "Hướng dẫn từng bước thân thiện với người mới về việc tìm các khóa API môi trường Live (Secret Key và Public Key) trong Checkout.com Dashboard và đăng ký chúng trong GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Thời gian dự kiến", "Khoảng 5–10 phút"],
+        ["Tài khoản cần thiết", "Tài khoản người bán Checkout.com (cần được phê duyệt hợp đồng·xét duyệt)"],
+        ["Khóa được cấp", "Secret Key (sk_) · Public Key (pk_)"],
+        ["Kết quả", "Thông tin xác thực Live API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Trước khi bắt đầu",
+          "desc": "Khóa Checkout.com chỉ có thể được cấp sau khi hợp đồng người bán·xét duyệt được phê duyệt.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Bắt buộc", "h3": "Hợp đồng người bán Checkout.com", "p": "Trước tiên cần có hợp đồng người bán Checkout.com·phê duyệt xét duyệt. Khóa Live chỉ có thể được cấp sau khi việc phê duyệt hoàn tất." },
+              { "tag": "Khóa được cấp", "h3": "Secret Key · Public Key", "p": "Trong Dashboard tại Developers > Keys, tìm Secret Key (sk_) và Public Key (pk_) của môi trường Live." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Lưu ý:</strong> Secret Key bắt đầu bằng <strong>sk_</strong> và Public Key bắt đầu bằng <strong>pk_</strong>. Hãy chắc chắn sử dụng các khóa của môi trường <strong>Live</strong>." }
+          ]
+        },
+        {
+          "h2": "2. Quy trình yêu cầu cấp",
+          "desc": "Sau khi phê duyệt hợp đồng·xét duyệt, cấp theo thứ tự dưới đây và đăng ký trong GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Phê duyệt hợp đồng người bán·xét duyệt", "p": "Trước tiên hoàn tất hợp đồng người bán Checkout.com·phê duyệt xét duyệt. Bạn chỉ có thể chuyển sang bước tiếp theo sau khi việc phê duyệt hoàn tất." },
+              { "h3": "Đăng nhập Dashboard", "p": "Đăng nhập vào Checkout.com Dashboard.", "path": "dashboard.checkout.com" },
+              { "h3": "Đi tới Keys", "p": "Đi tới menu [Developers] > [Keys].", "path": "Developers → Keys" },
+              { "h3": "Kiểm tra khóa", "p": "Kiểm tra Secret Key (sk_) và Public Key (pk_) của môi trường Live." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Nếu Secret Key (sk_) và Public Key (pk_) của Live hiển thị tại Developers &gt; Keys, nghĩa là chúng đã được cấp đúng cách." }
+          ]
+        },
+        {
+          "h2": "3. Thông tin cần đăng ký trong GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Trường", "Mô tả"], "rows": [
+              ["secret_key", "Live Secret Key (bắt đầu bằng sk_, xử lý cẩn thận)"],
+              ["public_key", "Live Public Key (bắt đầu bằng pk_)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Nhập secret_key·public_key vào GenieGo Integration Hub [Đăng ký] rồi lưu. Thông tin xác thực được mã hóa khi lưu trữ bằng AES-256-GCM và được che khi đọc." }
+          ]
+        },
+        {
+          "h2": "4. Sự cố thường gặp",
+          "blocks": [
+            { "type": "table", "head": ["Sự cố", "Nguyên nhân", "Giải pháp"], "rows": [
+              ["Không có khóa Live trong menu Keys", "Hợp đồng người bán·xét duyệt chưa được phê duyệt", "Trước tiên hoàn tất hợp đồng người bán Checkout.com·phê duyệt xét duyệt."],
+              ["Xác thực thất bại", "Sử dụng khóa Test hoặc nhập sai Secret Key", "Kiểm tra lại sk_ Secret Key và pk_ Public Key của môi trường Live."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Danh sách kiểm tra cuối cùng",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Hợp đồng người bán Checkout.com·xét duyệt đã được phê duyệt.",
+              "Đã kiểm tra khóa Live tại Developers > Keys trong Dashboard.",
+              "Đã xác nhận Secret Key (sk_)·Public Key (pk_).",
+              "Đã nhập secret_key·public_key vào GenieGo [Đăng ký] và lưu."
+            ] }
+          ]
+        }
+      ]
+    },
+    "id": {
+      "titleType": "Panduan Penerbitan API Key",
+      "badge": "Panduan Pemula",
+      "intro": "Panduan langkah demi langkah yang ramah pemula untuk menemukan kunci API lingkungan Live (Secret Key dan Public Key) di Checkout.com Dashboard dan mendaftarkannya di GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Perkiraan waktu", "Sekitar 5–10 menit"],
+        ["Akun yang dibutuhkan", "Akun merchant Checkout.com (perlu persetujuan kontrak·peninjauan)"],
+        ["Kunci yang diterbitkan", "Secret Key (sk_) · Public Key (pk_)"],
+        ["Hasil", "Kredensial Live API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Sebelum Anda Mulai",
+          "desc": "Kunci Checkout.com hanya dapat diterbitkan setelah kontrak merchant·peninjauan Anda disetujui.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Diperlukan", "h3": "Kontrak merchant Checkout.com", "p": "Pertama, kontrak merchant Checkout.com·persetujuan peninjauan diperlukan. Kunci Live hanya dapat diterbitkan setelah persetujuan selesai." },
+              { "tag": "Kunci yang diterbitkan", "h3": "Secret Key · Public Key", "p": "Di Dashboard pada Developers > Keys, temukan Secret Key (sk_) dan Public Key (pk_) lingkungan Live." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Catatan:</strong> Secret Key diawali dengan <strong>sk_</strong> dan Public Key dengan <strong>pk_</strong>. Pastikan menggunakan kunci dari lingkungan <strong>Live</strong>." }
+          ]
+        },
+        {
+          "h2": "2. Prosedur Permohonan Penerbitan",
+          "desc": "Setelah persetujuan kontrak·peninjauan, terbitkan sesuai urutan di bawah dan daftarkan di GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Persetujuan kontrak merchant·peninjauan", "p": "Selesaikan terlebih dahulu kontrak merchant Checkout.com·persetujuan peninjauan. Anda hanya dapat melanjutkan ke langkah berikutnya setelah persetujuan selesai." },
+              { "h3": "Masuk ke Dashboard", "p": "Masuk ke Checkout.com Dashboard.", "path": "dashboard.checkout.com" },
+              { "h3": "Buka Keys", "p": "Buka menu [Developers] > [Keys].", "path": "Developers → Keys" },
+              { "h3": "Periksa kunci", "p": "Periksa Secret Key (sk_) dan Public Key (pk_) lingkungan Live." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Jika Secret Key (sk_) dan Public Key (pk_) Live terlihat di Developers &gt; Keys, berarti telah diterbitkan dengan benar." }
+          ]
+        },
+        {
+          "h2": "3. Informasi yang Harus Didaftarkan di GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Bidang", "Deskripsi"], "rows": [
+              ["secret_key", "Live Secret Key (diawali dengan sk_, tangani dengan hati-hati)"],
+              ["public_key", "Live Public Key (diawali dengan pk_)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Masukkan secret_key·public_key di GenieGo Integration Hub [Daftar] lalu simpan. Kredensial dienkripsi saat disimpan dengan AES-256-GCM dan disamarkan saat dibaca." }
+          ]
+        },
+        {
+          "h2": "4. Masalah Umum",
+          "blocks": [
+            { "type": "table", "head": ["Masalah", "Penyebab", "Solusi"], "rows": [
+              ["Tidak ada kunci Live di menu Keys", "Kontrak merchant·peninjauan belum disetujui", "Selesaikan terlebih dahulu kontrak merchant Checkout.com·persetujuan peninjauan."],
+              ["Otentikasi gagal", "Menggunakan kunci Test atau salah mengetik Secret Key", "Periksa kembali sk_ Secret Key dan pk_ Public Key lingkungan Live."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Daftar Periksa Akhir",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Kontrak merchant Checkout.com·peninjauan telah disetujui.",
+              "Memeriksa kunci Live di Developers > Keys pada Dashboard.",
+              "Mengonfirmasi Secret Key (sk_)·Public Key (pk_).",
+              "Memasukkan secret_key·public_key di GenieGo [Daftar] dan menyimpan."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ar": {
+      "titleType": "دليل إصدار مفتاح API",
+      "badge": "دليل المبتدئين",
+      "intro": "دليل خطوة بخطوة مناسب للمبتدئين للعثور على مفاتيح API لبيئة Live (Secret Key و Public Key) في Checkout.com Dashboard وتسجيلها في GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["الوقت المقدر", "حوالي 5–10 دقائق"],
+        ["الحساب المطلوب", "حساب تاجر Checkout.com (يتطلب الموافقة على العقد·المراجعة)"],
+        ["المفاتيح الصادرة", "Secret Key (sk_) · Public Key (pk_)"],
+        ["النتيجة", "بيانات اعتماد Live API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. قبل أن تبدأ",
+          "desc": "يمكن إصدار مفاتيح Checkout.com فقط بعد الموافقة على عقد التاجر·المراجعة.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "مطلوب", "h3": "عقد تاجر Checkout.com", "p": "أولاً، يلزم عقد تاجر Checkout.com·الموافقة على المراجعة. لا يمكن إصدار مفاتيح Live إلا بعد اكتمال الموافقة." },
+              { "tag": "المفاتيح الصادرة", "h3": "Secret Key · Public Key", "p": "في Dashboard ضمن Developers > Keys، ابحث عن Secret Key (sk_) و Public Key (pk_) لبيئة Live." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>ملاحظة:</strong> يبدأ Secret Key بـ <strong>sk_</strong> ويبدأ Public Key بـ <strong>pk_</strong>. تأكد من استخدام مفاتيح بيئة <strong>Live</strong>." }
+          ]
+        },
+        {
+          "h2": "2. إجراء طلب الإصدار",
+          "desc": "بعد الموافقة على العقد·المراجعة، قم بالإصدار بالترتيب أدناه وسجّل في GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "الموافقة على عقد التاجر·المراجعة", "p": "أكمل أولاً عقد تاجر Checkout.com·الموافقة على المراجعة. لا يمكنك الانتقال إلى الخطوة التالية إلا بعد اكتمال الموافقة." },
+              { "h3": "تسجيل الدخول إلى Dashboard", "p": "سجّل الدخول إلى Checkout.com Dashboard.", "path": "dashboard.checkout.com" },
+              { "h3": "الانتقال إلى Keys", "p": "انتقل إلى قائمة [Developers] > [Keys].", "path": "Developers → Keys" },
+              { "h3": "التحقق من المفاتيح", "p": "تحقق من Secret Key (sk_) و Public Key (pk_) لبيئة Live." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "إذا ظهر Secret Key (sk_) و Public Key (pk_) لبيئة Live ضمن Developers &gt; Keys، فهذا يعني أنه تم إصدارها بشكل صحيح." }
+          ]
+        },
+        {
+          "h2": "3. المعلومات التي يجب تسجيلها في GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["الحقل", "الوصف"], "rows": [
+              ["secret_key", "Live Secret Key (يبدأ بـ sk_، تعامل معه بحذر)"],
+              ["public_key", "Live Public Key (يبدأ بـ pk_)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "أدخل secret_key·public_key في GenieGo Integration Hub [تسجيل] واحفظ. تُشفَّر بيانات الاعتماد أثناء التخزين باستخدام AES-256-GCM وتُخفى عند القراءة." }
+          ]
+        },
+        {
+          "h2": "4. المشكلات الشائعة",
+          "blocks": [
+            { "type": "table", "head": ["المشكلة", "السبب", "الحل"], "rows": [
+              ["لا توجد مفاتيح Live في قائمة Keys", "لم تتم الموافقة على عقد التاجر·المراجعة", "أكمل أولاً عقد تاجر Checkout.com·الموافقة على المراجعة."],
+              ["فشل المصادقة", "استخدام مفتاح Test أو خطأ في كتابة Secret Key", "تحقق مرة أخرى من sk_ Secret Key و pk_ Public Key لبيئة Live."]
+            ] }
+          ]
+        },
+        {
+          "h2": "قائمة التحقق النهائية",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "تمت الموافقة على عقد تاجر Checkout.com·المراجعة.",
+              "تم التحقق من مفاتيح Live ضمن Developers > Keys في Dashboard.",
+              "تم تأكيد Secret Key (sk_)·Public Key (pk_).",
+              "تم إدخال secret_key·public_key في GenieGo [تسجيل] وحفظها."
+            ] }
+          ]
+        }
+      ]
+    },
+    "es": {
+      "titleType": "Manual de emisión de API Key",
+      "badge": "Guía para principiantes",
+      "intro": "Una guía paso a paso fácil para principiantes para encontrar tus claves de API del entorno Live (Secret Key y Public Key) en el Dashboard de Checkout.com y registrarlas en el GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tiempo estimado", "Unos 5–10 min"],
+        ["Cuenta necesaria", "Cuenta de comercio de Checkout.com (requiere aprobación de contrato·revisión)"],
+        ["Claves emitidas", "Secret Key (sk_) · Public Key (pk_)"],
+        ["Resultado", "Credenciales de Live API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de empezar",
+          "desc": "Las claves de Checkout.com solo se pueden emitir después de que se apruebe tu contrato de comercio·revisión.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requerido", "h3": "Contrato de comercio de Checkout.com", "p": "Primero se requiere un contrato de comercio de Checkout.com·aprobación de la revisión. Las claves Live solo se pueden emitir una vez completada la aprobación." },
+              { "tag": "Claves emitidas", "h3": "Secret Key · Public Key", "p": "En el Dashboard, en Developers > Keys, busca la Secret Key (sk_) y la Public Key (pk_) del entorno Live." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Nota:</strong> La Secret Key empieza por <strong>sk_</strong> y la Public Key por <strong>pk_</strong>. Asegúrate de usar las claves del entorno <strong>Live</strong>." }
+          ]
+        },
+        {
+          "h2": "2. Procedimiento de solicitud de emisión",
+          "desc": "Tras la aprobación del contrato·revisión, emite en el orden siguiente y regístralas en GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Aprobación del contrato de comercio·revisión", "p": "Primero completa el contrato de comercio de Checkout.com·aprobación de la revisión. Solo puedes pasar al siguiente paso una vez completada la aprobación." },
+              { "h3": "Iniciar sesión en el Dashboard", "p": "Inicia sesión en el Dashboard de Checkout.com.", "path": "dashboard.checkout.com" },
+              { "h3": "Ir a Keys", "p": "Ve al menú [Developers] > [Keys].", "path": "Developers → Keys" },
+              { "h3": "Comprobar las claves", "p": "Comprueba la Secret Key (sk_) y la Public Key (pk_) del entorno Live." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Si la Secret Key (sk_) y la Public Key (pk_) de Live aparecen en Developers &gt; Keys, se han emitido correctamente." }
+          ]
+        },
+        {
+          "h2": "3. Información para registrar en GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descripción"], "rows": [
+              ["secret_key", "Live Secret Key (empieza por sk_, manéjala con cuidado)"],
+              ["public_key", "Live Public Key (empieza por pk_)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Introduce secret_key·public_key en el GenieGo Integration Hub [Registrar] y guarda. Las credenciales se cifran en reposo con AES-256-GCM y se enmascaran al leerlas." }
+          ]
+        },
+        {
+          "h2": "4. Problemas frecuentes",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solución"], "rows": [
+              ["No hay claves Live en el menú Keys", "Contrato de comercio·revisión no aprobados", "Primero completa el contrato de comercio de Checkout.com·aprobación de la revisión."],
+              ["Error de autenticación", "Uso de una clave Test o escritura incorrecta de la Secret Key", "Vuelve a comprobar la sk_ Secret Key y la pk_ Public Key del entorno Live."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificación final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "El contrato de comercio de Checkout.com·revisión está aprobado.",
+              "Comprobé las claves Live en Developers > Keys del Dashboard.",
+              "Confirmé la Secret Key (sk_)·Public Key (pk_).",
+              "Introduje secret_key·public_key en GenieGo [Registrar] y guardé."
+            ] }
+          ]
+        }
+      ]
+    },
+    "fr": {
+      "titleType": "Manuel de délivrance de la clé API",
+      "badge": "Guide du débutant",
+      "intro": "Un guide pas à pas adapté aux débutants pour trouver vos clés API de l'environnement Live (Secret Key et Public Key) dans le Dashboard Checkout.com et les enregistrer dans le GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Temps estimé", "Environ 5–10 min"],
+        ["Compte requis", "Compte marchand Checkout.com (approbation du contrat·examen requise)"],
+        ["Clés délivrées", "Secret Key (sk_) · Public Key (pk_)"],
+        ["Résultat", "Identifiants Live API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Avant de commencer",
+          "desc": "Les clés Checkout.com ne peuvent être délivrées qu'après l'approbation de votre contrat marchand·examen.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requis", "h3": "Contrat marchand Checkout.com", "p": "Un contrat marchand Checkout.com·approbation de l'examen est d'abord requis. Les clés Live ne peuvent être délivrées qu'une fois l'approbation terminée." },
+              { "tag": "Clés délivrées", "h3": "Secret Key · Public Key", "p": "Dans le Dashboard, sous Developers > Keys, trouvez la Secret Key (sk_) et la Public Key (pk_) de l'environnement Live." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Remarque :</strong> La Secret Key commence par <strong>sk_</strong> et la Public Key par <strong>pk_</strong>. Veillez à utiliser les clés de l'environnement <strong>Live</strong>." }
+          ]
+        },
+        {
+          "h2": "2. Procédure de demande de délivrance",
+          "desc": "Après l'approbation du contrat·examen, délivrez dans l'ordre ci-dessous et enregistrez dans GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Approbation du contrat marchand·examen", "p": "Terminez d'abord le contrat marchand Checkout.com·approbation de l'examen. Vous ne pouvez passer à l'étape suivante qu'une fois l'approbation terminée." },
+              { "h3": "Se connecter au Dashboard", "p": "Connectez-vous au Dashboard Checkout.com.", "path": "dashboard.checkout.com" },
+              { "h3": "Aller dans Keys", "p": "Allez dans le menu [Developers] > [Keys].", "path": "Developers → Keys" },
+              { "h3": "Vérifier les clés", "p": "Vérifiez la Secret Key (sk_) et la Public Key (pk_) de l'environnement Live." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Si la Secret Key (sk_) et la Public Key (pk_) de Live sont visibles dans Developers &gt; Keys, elles ont été délivrées correctement." }
+          ]
+        },
+        {
+          "h2": "3. Informations à enregistrer dans GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Champ", "Description"], "rows": [
+              ["secret_key", "Live Secret Key (commence par sk_, à manipuler avec précaution)"],
+              ["public_key", "Live Public Key (commence par pk_)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Saisissez secret_key·public_key dans le GenieGo Integration Hub [Enregistrer] et enregistrez. Les identifiants sont chiffrés au repos avec AES-256-GCM et masqués à la lecture." }
+          ]
+        },
+        {
+          "h2": "4. Problèmes fréquents",
+          "blocks": [
+            { "type": "table", "head": ["Problème", "Cause", "Solution"], "rows": [
+              ["Aucune clé Live dans le menu Keys", "Contrat marchand·examen non approuvés", "Terminez d'abord le contrat marchand Checkout.com·approbation de l'examen."],
+              ["Échec de l'authentification", "Utilisation d'une clé Test ou erreur de saisie de la Secret Key", "Vérifiez à nouveau la sk_ Secret Key et la pk_ Public Key de l'environnement Live."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Liste de contrôle finale",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Le contrat marchand Checkout.com·examen est approuvé.",
+              "Vérifié les clés Live dans Developers > Keys du Dashboard.",
+              "Confirmé la Secret Key (sk_)·Public Key (pk_).",
+              "Saisi secret_key·public_key dans GenieGo [Enregistrer] et enregistré."
+            ] }
+          ]
+        }
+      ]
+    },
+    "hi": {
+      "titleType": "API Key जारी करने की नियमावली",
+      "badge": "शुरुआती गाइड",
+      "intro": "Checkout.com Dashboard में Live परिवेश की API कुंजियाँ (Secret Key और Public Key) खोजने और उन्हें GenieGo Integration Hub में पंजीकृत करने की एक शुरुआती-अनुकूल चरण-दर-चरण नियमावली।",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["अनुमानित समय", "लगभग 5–10 मिनट"],
+        ["आवश्यक खाता", "Checkout.com मर्चेंट खाता (अनुबंध·समीक्षा अनुमोदन आवश्यक)"],
+        ["जारी कुंजियाँ", "Secret Key (sk_) · Public Key (pk_)"],
+        ["परिणाम", "Live API क्रेडेंशियल"]
+      ],
+      "sections": [
+        {
+          "h2": "1. शुरू करने से पहले",
+          "desc": "Checkout.com कुंजियाँ केवल आपके मर्चेंट अनुबंध·समीक्षा के अनुमोदित होने के बाद ही जारी की जा सकती हैं।",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "आवश्यक", "h3": "Checkout.com मर्चेंट अनुबंध", "p": "सबसे पहले Checkout.com मर्चेंट अनुबंध·समीक्षा अनुमोदन आवश्यक है। अनुमोदन पूरा होने के बाद ही Live कुंजियाँ जारी की जा सकती हैं।" },
+              { "tag": "जारी कुंजियाँ", "h3": "Secret Key · Public Key", "p": "Dashboard में Developers > Keys के अंतर्गत, Live परिवेश की Secret Key (sk_) और Public Key (pk_) खोजें।" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>नोट:</strong> Secret Key <strong>sk_</strong> से और Public Key <strong>pk_</strong> से शुरू होती है। सुनिश्चित करें कि आप <strong>Live</strong> परिवेश की कुंजियाँ उपयोग करें।" }
+          ]
+        },
+        {
+          "h2": "2. जारी करने के अनुरोध की प्रक्रिया",
+          "desc": "अनुबंध·समीक्षा अनुमोदन के बाद, नीचे दिए क्रम में जारी करें और GenieGo में पंजीकृत करें।",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "मर्चेंट अनुबंध·समीक्षा अनुमोदन", "p": "पहले Checkout.com मर्चेंट अनुबंध·समीक्षा अनुमोदन पूरा करें। अनुमोदन पूरा होने के बाद ही आप अगले चरण पर जा सकते हैं।" },
+              { "h3": "Dashboard में लॉग इन करें", "p": "Checkout.com Dashboard में लॉग इन करें।", "path": "dashboard.checkout.com" },
+              { "h3": "Keys पर जाएँ", "p": "[Developers] > [Keys] मेनू पर जाएँ।", "path": "Developers → Keys" },
+              { "h3": "कुंजियाँ जाँचें", "p": "Live परिवेश की Secret Key (sk_) और Public Key (pk_) जाँचें।" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "यदि Developers &gt; Keys के अंतर्गत Live की Secret Key (sk_) और Public Key (pk_) दिखाई देती हैं, तो वे सही ढंग से जारी की गई हैं।" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo में पंजीकृत करने योग्य जानकारी",
+          "blocks": [
+            { "type": "table", "head": ["फ़ील्ड", "विवरण"], "rows": [
+              ["secret_key", "Live Secret Key (sk_ से शुरू, सावधानी से संभालें)"],
+              ["public_key", "Live Public Key (pk_ से शुरू)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo Integration Hub [पंजीकरण] में secret_key·public_key दर्ज करें और सहेजें। क्रेडेंशियल विश्राम अवस्था में AES-256-GCM से एन्क्रिप्ट किए जाते हैं और पढ़ते समय मास्क किए जाते हैं।" }
+          ]
+        },
+        {
+          "h2": "4. सामान्य समस्याएँ",
+          "blocks": [
+            { "type": "table", "head": ["समस्या", "कारण", "समाधान"], "rows": [
+              ["Keys मेनू में कोई Live कुंजी नहीं", "मर्चेंट अनुबंध·समीक्षा अनुमोदित नहीं", "पहले Checkout.com मर्चेंट अनुबंध·समीक्षा अनुमोदन पूरा करें।"],
+              ["प्रमाणीकरण विफल", "Test कुंजी का उपयोग या Secret Key गलत दर्ज करना", "Live परिवेश की sk_ Secret Key और pk_ Public Key फिर से जाँचें।"]
+            ] }
+          ]
+        },
+        {
+          "h2": "अंतिम जाँच सूची",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Checkout.com मर्चेंट अनुबंध·समीक्षा अनुमोदित हो गई है।",
+              "Dashboard के Developers > Keys में Live कुंजियाँ जाँच लीं।",
+              "Secret Key (sk_)·Public Key (pk_) की पुष्टि कर ली।",
+              "GenieGo [पंजीकरण] में secret_key·public_key दर्ज करके सहेज लिया।"
+            ] }
+          ]
+        }
+      ]
+    },
+    "pt": {
+      "titleType": "Manual de emissão de API Key",
+      "badge": "Guia para iniciantes",
+      "intro": "Um guia passo a passo amigável para iniciantes para encontrar suas chaves de API do ambiente Live (Secret Key e Public Key) no Dashboard da Checkout.com e registrá-las no GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tempo estimado", "Cerca de 5–10 min"],
+        ["Conta necessária", "Conta de comerciante Checkout.com (requer aprovação de contrato·análise)"],
+        ["Chaves emitidas", "Secret Key (sk_) · Public Key (pk_)"],
+        ["Resultado", "Credenciais Live API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de começar",
+          "desc": "As chaves da Checkout.com só podem ser emitidas após a aprovação do seu contrato de comerciante·análise.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Obrigatório", "h3": "Contrato de comerciante Checkout.com", "p": "Primeiro, é necessário um contrato de comerciante Checkout.com·aprovação da análise. As chaves Live só podem ser emitidas após a conclusão da aprovação." },
+              { "tag": "Chaves emitidas", "h3": "Secret Key · Public Key", "p": "No Dashboard, em Developers > Keys, encontre a Secret Key (sk_) e a Public Key (pk_) do ambiente Live." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Observação:</strong> A Secret Key começa com <strong>sk_</strong> e a Public Key com <strong>pk_</strong>. Certifique-se de usar as chaves do ambiente <strong>Live</strong>." }
+          ]
+        },
+        {
+          "h2": "2. Procedimento de solicitação de emissão",
+          "desc": "Após a aprovação do contrato·análise, emita na ordem abaixo e registre no GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Aprovação do contrato de comerciante·análise", "p": "Conclua primeiro o contrato de comerciante Checkout.com·aprovação da análise. Você só pode avançar para a próxima etapa após a conclusão da aprovação." },
+              { "h3": "Fazer login no Dashboard", "p": "Faça login no Dashboard da Checkout.com.", "path": "dashboard.checkout.com" },
+              { "h3": "Ir para Keys", "p": "Vá para o menu [Developers] > [Keys].", "path": "Developers → Keys" },
+              { "h3": "Verificar as chaves", "p": "Verifique a Secret Key (sk_) e a Public Key (pk_) do ambiente Live." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Se a Secret Key (sk_) e a Public Key (pk_) do Live aparecerem em Developers &gt; Keys, elas foram emitidas corretamente." }
+          ]
+        },
+        {
+          "h2": "3. Informações para registrar no GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descrição"], "rows": [
+              ["secret_key", "Live Secret Key (começa com sk_, manuseie com cuidado)"],
+              ["public_key", "Live Public Key (começa com pk_)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Insira secret_key·public_key no GenieGo Integration Hub [Registrar] e salve. As credenciais são criptografadas em repouso com AES-256-GCM e mascaradas na leitura." }
+          ]
+        },
+        {
+          "h2": "4. Problemas comuns",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solução"], "rows": [
+              ["Nenhuma chave Live no menu Keys", "Contrato de comerciante·análise não aprovados", "Conclua primeiro o contrato de comerciante Checkout.com·aprovação da análise."],
+              ["Falha de autenticação", "Uso de uma chave Test ou erro de digitação da Secret Key", "Verifique novamente a sk_ Secret Key e a pk_ Public Key do ambiente Live."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificação final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "O contrato de comerciante Checkout.com·análise está aprovado.",
+              "Verifiquei as chaves Live em Developers > Keys do Dashboard.",
+              "Confirmei a Secret Key (sk_)·Public Key (pk_).",
+              "Inseri secret_key·public_key no GenieGo [Registrar] e salvei."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ru": {
+      "titleType": "Руководство по выпуску API Key",
+      "badge": "Руководство для начинающих",
+      "intro": "Понятное пошаговое руководство для начинающих по поиску ваших ключей API среды Live (Secret Key и Public Key) в Checkout.com Dashboard и их регистрации в GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Примерное время", "Около 5–10 мин"],
+        ["Необходимый аккаунт", "Аккаунт продавца Checkout.com (требуется одобрение договора·проверки)"],
+        ["Выпускаемые ключи", "Secret Key (sk_) · Public Key (pk_)"],
+        ["Результат", "Учётные данные Live API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Прежде чем начать",
+          "desc": "Ключи Checkout.com можно выпустить только после одобрения вашего договора продавца·проверки.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Требуется", "h3": "Договор продавца Checkout.com", "p": "Сначала требуется договор продавца Checkout.com·одобрение проверки. Ключи Live можно выпустить только после завершения одобрения." },
+              { "tag": "Выпускаемые ключи", "h3": "Secret Key · Public Key", "p": "В Dashboard в разделе Developers > Keys найдите Secret Key (sk_) и Public Key (pk_) среды Live." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Примечание:</strong> Secret Key начинается с <strong>sk_</strong>, а Public Key — с <strong>pk_</strong>. Обязательно используйте ключи среды <strong>Live</strong>." }
+          ]
+        },
+        {
+          "h2": "2. Процедура запроса на выпуск",
+          "desc": "После одобрения договора·проверки выпустите в указанном ниже порядке и зарегистрируйте в GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Одобрение договора продавца·проверки", "p": "Сначала завершите договор продавца Checkout.com·одобрение проверки. Вы можете перейти к следующему шагу только после завершения одобрения." },
+              { "h3": "Войти в Dashboard", "p": "Войдите в Checkout.com Dashboard.", "path": "dashboard.checkout.com" },
+              { "h3": "Перейти в Keys", "p": "Перейдите в меню [Developers] > [Keys].", "path": "Developers → Keys" },
+              { "h3": "Проверить ключи", "p": "Проверьте Secret Key (sk_) и Public Key (pk_) среды Live." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Если Secret Key (sk_) и Public Key (pk_) среды Live видны в разделе Developers &gt; Keys, значит, они выпущены правильно." }
+          ]
+        },
+        {
+          "h2": "3. Информация для регистрации в GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Поле", "Описание"], "rows": [
+              ["secret_key", "Live Secret Key (начинается с sk_, обращайтесь осторожно)"],
+              ["public_key", "Live Public Key (начинается с pk_)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Введите secret_key·public_key в GenieGo Integration Hub [Регистрация] и сохраните. Учётные данные шифруются при хранении с помощью AES-256-GCM и маскируются при чтении." }
+          ]
+        },
+        {
+          "h2": "4. Частые проблемы",
+          "blocks": [
+            { "type": "table", "head": ["Проблема", "Причина", "Решение"], "rows": [
+              ["В меню Keys нет ключей Live", "Договор продавца·проверка не одобрены", "Сначала завершите договор продавца Checkout.com·одобрение проверки."],
+              ["Сбой аутентификации", "Использование ключа Test или ошибка при вводе Secret Key", "Повторно проверьте sk_ Secret Key и pk_ Public Key среды Live."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Итоговый контрольный список",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Договор продавца Checkout.com·проверка одобрены.",
+              "Проверил ключи Live в разделе Developers > Keys в Dashboard.",
+              "Подтвердил Secret Key (sk_)·Public Key (pk_).",
+              "Ввёл secret_key·public_key в GenieGo [Регистрация] и сохранил."
+            ] }
+          ]
+        }
+      ]
+    }
+  }
+}

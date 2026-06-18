@@ -1,0 +1,981 @@
+{
+  "name": "Naver Pay",
+  "icon": "🟢",
+  "langs": {
+    "ko": {
+      "titleType": "API Key 발급 매뉴얼",
+      "badge": "Beginner Guide",
+      "intro": "네이버페이는 가맹점 가입(계약) 완료 후 담당자로부터 자격증명을 전달받는 채널입니다. 전달받은 Client ID·Client Secret·Chain ID를 GenieGo 연동 허브에 등록하는 과정을 정리한 매뉴얼입니다.",
+      "org": "GenieGo 연동 허브",
+      "quick": [
+        ["소요 시간", "계약·심사 기간에 따라 상이"],
+        ["필요 계정", "네이버페이 비즈니스 센터 계정"],
+        ["발급 키", "Client ID · Client Secret · Chain ID"],
+        ["결과물", "결제 연동 자격증명"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 시작하기 전에",
+          "desc": "네이버페이는 자가 발급이 아니라 가맹 계약 완료 후 자격증명이 전달되는 방식입니다.",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "네이버페이는 직접 콘솔에서 키를 발급하는 방식이 <strong>아닙니다.</strong> 가맹점 가입(계약)이 완료된 뒤 담당자로부터 자격증명을 전달받습니다." },
+            { "type": "notice", "kind": "danger", "html": "<strong>중요:</strong> 일반 자가 발급이 아닙니다. 가맹점 가입(계약) 완료 후 파트너ID·Client ID/Secret이 전달됩니다." }
+          ]
+        },
+        {
+          "h2": "2. 발급 신청 절차",
+          "desc": "아래 순서로 계약을 진행하고 전달받은 자격증명을 등록합니다.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "가맹 계약 신청", "p": "네이버페이 비즈니스 센터에서 가맹 계약을 신청하고 완료합니다." },
+              { "h3": "심사·계약 완료", "p": "심사와 계약이 완료될 때까지 진행합니다. 기간은 심사 일정에 따라 달라질 수 있습니다." },
+              { "h3": "자격증명 수령", "p": "심사·계약 완료 후 담당자로부터 Client ID·Client Secret·Chain ID를 전달받습니다." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "담당자로부터 Client ID·Client Secret·Chain ID를 모두 전달받으면 등록 준비가 완료된 것입니다." }
+          ]
+        },
+        {
+          "h2": "3. GenieGo에 등록할 정보",
+          "blocks": [
+            { "type": "table", "head": ["필드", "설명"], "rows": [
+              ["client_id", "전달받은 Client ID"],
+              ["client_secret", "전달받은 Client Secret(노출 주의)"],
+              ["chain_id", "전달받은 Chain ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 연동 허브 [등록]에 입력해 저장하면 자격증명은 AES-256-GCM으로 암호화 저장되고 조회 시 마스킹됩니다." }
+          ]
+        },
+        {
+          "h2": "4. 자주 발생하는 문제",
+          "blocks": [
+            { "type": "table", "head": ["문제", "원인", "해결"], "rows": [
+              ["자격증명을 발급받을 메뉴를 찾을 수 없음", "네이버페이는 자가 발급 방식이 아님", "가맹 계약 완료 후 담당자로부터 전달받은 자격증명을 사용합니다."],
+              ["인증 실패", "Client Secret 또는 Chain ID 오기재", "담당자로부터 전달받은 Client ID·Client Secret·Chain ID를 다시 확인합니다."]
+            ] }
+          ]
+        },
+        {
+          "h2": "최종 체크리스트",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "네이버페이 비즈니스 센터에서 가맹 계약을 신청·완료했다.",
+              "심사·계약 완료 후 담당자로부터 Client ID·Client Secret·Chain ID를 전달받았다.",
+              "전달받은 세 가지 자격증명을 모두 확인했다.",
+              "GenieGo [등록]에 client_id·client_secret·chain_id를 입력해 저장했다."
+            ] }
+          ]
+        }
+      ]
+    },
+    "en": {
+      "titleType": "API Key Issuance Manual",
+      "badge": "Beginner Guide",
+      "intro": "Naver Pay is a channel where credentials are handed to you by a representative after your merchant sign-up (contract) is completed. This manual walks through registering the Client ID, Client Secret, and Chain ID you receive in the GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Est. time", "Varies with contract and review period"],
+        ["Account needed", "Naver Pay Business Center account"],
+        ["Keys issued", "Client ID · Client Secret · Chain ID"],
+        ["Result", "Payment integration credentials"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Before You Begin",
+          "desc": "With Naver Pay, you don't self-issue keys; credentials are delivered to you after the merchant contract is completed.",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "Naver Pay is <strong>not</strong> a method where you issue keys directly in a console. Once your merchant sign-up (contract) is completed, a representative hands the credentials to you." },
+            { "type": "notice", "kind": "danger", "html": "<strong>Important:</strong> This is not ordinary self-issuance. After the merchant sign-up (contract) is completed, the Partner ID and Client ID/Secret are delivered to you." }
+          ]
+        },
+        {
+          "h2": "2. Issuance Application Process",
+          "desc": "Proceed with the contract in the order below and register the credentials you receive.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Apply for the merchant contract", "p": "Apply for and complete the merchant contract at the Naver Pay Business Center." },
+              { "h3": "Complete review and contract", "p": "Continue until the review and contract are complete. The duration may vary depending on the review schedule." },
+              { "h3": "Receive credentials", "p": "After the review and contract are complete, a representative gives you the Client ID, Client Secret, and Chain ID." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Once you have received the Client ID, Client Secret, and Chain ID from the representative, you are ready to register." }
+          ]
+        },
+        {
+          "h2": "3. Information to Register in GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Field", "Description"], "rows": [
+              ["client_id", "The Client ID you received"],
+              ["client_secret", "The Client Secret you received (handle with care)"],
+              ["chain_id", "The Chain ID you received"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Enter these in the GenieGo Integration Hub [Register] and save; the credentials are encrypted at rest with AES-256-GCM and masked on read." }
+          ]
+        },
+        {
+          "h2": "4. Common Issues",
+          "blocks": [
+            { "type": "table", "head": ["Issue", "Cause", "Solution"], "rows": [
+              ["Can't find a menu to issue credentials", "Naver Pay is not a self-issuance method", "Use the credentials delivered to you by a representative after the merchant contract is completed."],
+              ["Authentication failure", "Client Secret or Chain ID entered incorrectly", "Re-check the Client ID, Client Secret, and Chain ID delivered by your representative."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Final Checklist",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Applied for and completed the merchant contract at the Naver Pay Business Center.",
+              "Received the Client ID, Client Secret, and Chain ID from a representative after the review and contract were complete.",
+              "Verified all three credentials you received.",
+              "Entered client_id·client_secret·chain_id in GenieGo [Register] and saved."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ja": {
+      "titleType": "API Key 発行マニュアル",
+      "badge": "初心者ガイド",
+      "intro": "ネイバーペイは、加盟店登録(契約)の完了後に担当者から認証情報を受け取るチャネルです。受け取った Client ID・Client Secret・Chain ID を GenieGo 連携ハブに登録する手順をまとめたマニュアルです。",
+      "org": "GenieGo 連携ハブ",
+      "quick": [
+        ["所要時間", "契約・審査期間によって異なる"],
+        ["必要なアカウント", "ネイバーペイ ビジネスセンター アカウント"],
+        ["発行するキー", "Client ID · Client Secret · Chain ID"],
+        ["成果物", "決済連携の認証情報"]
+      ],
+      "sections": [
+        {
+          "h2": "1. はじめる前に",
+          "desc": "ネイバーペイは自己発行ではなく、加盟契約の完了後に認証情報が渡される方式です。",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "ネイバーペイは、コンソールで直接キーを発行する方式では<strong>ありません。</strong> 加盟店登録(契約)が完了した後、担当者から認証情報を受け取ります。" },
+            { "type": "notice", "kind": "danger", "html": "<strong>重要:</strong> 通常の自己発行ではありません。加盟店登録(契約)の完了後に、パートナーID・Client ID/Secret が渡されます。" }
+          ]
+        },
+        {
+          "h2": "2. 発行申請の手順",
+          "desc": "以下の順序で契約を進め、受け取った認証情報を登録します。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "加盟契約の申請", "p": "ネイバーペイ ビジネスセンターで加盟契約を申請して完了します。" },
+              { "h3": "審査・契約の完了", "p": "審査と契約が完了するまで進めます。期間は審査スケジュールによって変わる場合があります。" },
+              { "h3": "認証情報の受領", "p": "審査・契約の完了後、担当者から Client ID・Client Secret・Chain ID を受け取ります。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "担当者から Client ID・Client Secret・Chain ID をすべて受け取れば、登録の準備が完了したことになります。" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo に登録する情報",
+          "blocks": [
+            { "type": "table", "head": ["フィールド", "説明"], "rows": [
+              ["client_id", "受け取った Client ID"],
+              ["client_secret", "受け取った Client Secret(取り扱い注意)"],
+              ["chain_id", "受け取った Chain ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 連携ハブの [登録] に入力して保存すると、認証情報は AES-256-GCM で暗号化して保存され、閲覧時にはマスキングされます。" }
+          ]
+        },
+        {
+          "h2": "4. よくある問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["認証情報を発行するメニューが見つからない", "ネイバーペイは自己発行方式ではない", "加盟契約の完了後に担当者から受け取った認証情報を使用します。"],
+              ["認証失敗", "Client Secret または Chain ID の記載ミス", "担当者から受け取った Client ID・Client Secret・Chain ID を再度確認します。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終チェックリスト",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "ネイバーペイ ビジネスセンターで加盟契約を申請・完了した。",
+              "審査・契約の完了後、担当者から Client ID・Client Secret・Chain ID を受け取った。",
+              "受け取った3つの認証情報をすべて確認した。",
+              "GenieGo の [登録] に client_id·client_secret·chain_id を入力して保存した。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh": {
+      "titleType": "API Key 申请手册",
+      "badge": "新手指南",
+      "intro": "Naver Pay 是一种在完成商户注册(签约)后由专员向您交付凭证的渠道。本手册整理了将收到的 Client ID、Client Secret 和 Chain ID 注册到 GenieGo 集成中心的流程。",
+      "org": "GenieGo 集成中心",
+      "quick": [
+        ["预计时间", "因签约与审核周期而异"],
+        ["所需账户", "Naver Pay 商家中心账户"],
+        ["签发密钥", "Client ID · Client Secret · Chain ID"],
+        ["成果", "支付集成凭证"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 开始之前",
+          "desc": "Naver Pay 不是自助签发，而是在完成商户签约后交付凭证的方式。",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "Naver Pay <strong>不是</strong>在控制台中直接签发密钥的方式。在商户注册(签约)完成后，由专员向您交付凭证。" },
+            { "type": "notice", "kind": "danger", "html": "<strong>重要:</strong> 这不是普通的自助签发。在商户注册(签约)完成后，会向您交付合作伙伴ID、Client ID/Secret。" }
+          ]
+        },
+        {
+          "h2": "2. 申请签发流程",
+          "desc": "按以下顺序进行签约，并注册收到的凭证。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "申请商户签约", "p": "在 Naver Pay 商家中心申请并完成商户签约。" },
+              { "h3": "完成审核与签约", "p": "持续进行直到审核与签约完成。周期可能因审核安排而有所不同。" },
+              { "h3": "接收凭证", "p": "审核与签约完成后，由专员向您交付 Client ID、Client Secret 和 Chain ID。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "当您从专员处收齐 Client ID、Client Secret 和 Chain ID 后，即表示已准备好进行注册。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中注册的信息",
+          "blocks": [
+            { "type": "table", "head": ["字段", "说明"], "rows": [
+              ["client_id", "收到的 Client ID"],
+              ["client_secret", "收到的 Client Secret(请妥善保管)"],
+              ["chain_id", "收到的 Chain ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 集成中心的[注册]中输入并保存后，凭证将以 AES-256-GCM 加密存储，并在查询时进行掩码处理。" }
+          ]
+        },
+        {
+          "h2": "4. 常见问题",
+          "blocks": [
+            { "type": "table", "head": ["问题", "原因", "解决方法"], "rows": [
+              ["找不到签发凭证的菜单", "Naver Pay 不是自助签发方式", "使用在商户签约完成后由专员交付给您的凭证。"],
+              ["认证失败", "Client Secret 或 Chain ID 填写错误", "重新确认专员交付给您的 Client ID、Client Secret 和 Chain ID。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最终检查清单",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已在 Naver Pay 商家中心申请并完成商户签约。",
+              "审核与签约完成后，已从专员处收到 Client ID、Client Secret 和 Chain ID。",
+              "已确认收到的全部三项凭证。",
+              "已在 GenieGo 的[注册]中输入 client_id·client_secret·chain_id 并保存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh-TW": {
+      "titleType": "API Key 申請手冊",
+      "badge": "新手指南",
+      "intro": "Naver Pay 是一種在完成商家註冊(簽約)後由專員向您交付憑證的渠道。本手冊整理了將收到的 Client ID、Client Secret 和 Chain ID 註冊到 GenieGo 整合中心的流程。",
+      "org": "GenieGo 整合中心",
+      "quick": [
+        ["預計時間", "因簽約與審查週期而異"],
+        ["所需帳戶", "Naver Pay 商家中心帳戶"],
+        ["簽發金鑰", "Client ID · Client Secret · Chain ID"],
+        ["成果", "支付整合憑證"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 開始之前",
+          "desc": "Naver Pay 不是自助簽發，而是在完成商家簽約後交付憑證的方式。",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "Naver Pay <strong>不是</strong>在控制台中直接簽發金鑰的方式。在商家註冊(簽約)完成後，由專員向您交付憑證。" },
+            { "type": "notice", "kind": "danger", "html": "<strong>重要:</strong> 這不是普通的自助簽發。在商家註冊(簽約)完成後，會向您交付合作夥伴ID、Client ID/Secret。" }
+          ]
+        },
+        {
+          "h2": "2. 申請簽發流程",
+          "desc": "依以下順序進行簽約，並註冊收到的憑證。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "申請商家簽約", "p": "在 Naver Pay 商家中心申請並完成商家簽約。" },
+              { "h3": "完成審查與簽約", "p": "持續進行直到審查與簽約完成。週期可能因審查安排而有所不同。" },
+              { "h3": "接收憑證", "p": "審查與簽約完成後，由專員向您交付 Client ID、Client Secret 和 Chain ID。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "當您從專員處收齊 Client ID、Client Secret 和 Chain ID 後，即表示已準備好進行註冊。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中註冊的資訊",
+          "blocks": [
+            { "type": "table", "head": ["欄位", "說明"], "rows": [
+              ["client_id", "收到的 Client ID"],
+              ["client_secret", "收到的 Client Secret(請妥善保管)"],
+              ["chain_id", "收到的 Chain ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 整合中心的[註冊]中輸入並儲存後，憑證將以 AES-256-GCM 加密儲存，並在查詢時進行遮罩處理。" }
+          ]
+        },
+        {
+          "h2": "4. 常見問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["找不到簽發憑證的選單", "Naver Pay 不是自助簽發方式", "使用在商家簽約完成後由專員交付給您的憑證。"],
+              ["認證失敗", "Client Secret 或 Chain ID 填寫錯誤", "重新確認專員交付給您的 Client ID、Client Secret 和 Chain ID。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終檢查清單",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已在 Naver Pay 商家中心申請並完成商家簽約。",
+              "審查與簽約完成後，已從專員處收到 Client ID、Client Secret 和 Chain ID。",
+              "已確認收到的全部三項憑證。",
+              "已在 GenieGo 的[註冊]中輸入 client_id·client_secret·chain_id 並儲存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "de": {
+      "titleType": "Anleitung zur API-Key-Ausstellung",
+      "badge": "Einsteigerleitfaden",
+      "intro": "Naver Pay ist ein Kanal, bei dem Ihnen die Anmeldedaten nach Abschluss der Händlerregistrierung (Vertrag) von einem Ansprechpartner übergeben werden. Diese Anleitung führt durch die Registrierung der erhaltenen Client ID, des Client Secret und der Chain ID im GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Geschätzte Zeit", "Variiert je nach Vertrags- und Prüfungszeitraum"],
+        ["Benötigtes Konto", "Naver Pay Business Center-Konto"],
+        ["Ausgestellte Schlüssel", "Client ID · Client Secret · Chain ID"],
+        ["Ergebnis", "Anmeldedaten für die Zahlungsintegration"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Bevor Sie beginnen",
+          "desc": "Bei Naver Pay stellen Sie die Schlüssel nicht selbst aus; die Anmeldedaten werden nach Abschluss des Händlervertrags übergeben.",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "Naver Pay ist <strong>keine</strong> Methode, bei der Sie Schlüssel direkt in einer Konsole ausstellen. Nach Abschluss der Händlerregistrierung (Vertrag) übergibt Ihnen ein Ansprechpartner die Anmeldedaten." },
+            { "type": "notice", "kind": "danger", "html": "<strong>Wichtig:</strong> Dies ist keine gewöhnliche Selbstausstellung. Nach Abschluss der Händlerregistrierung (Vertrag) werden Ihnen die Partner-ID sowie Client ID/Secret übergeben." }
+          ]
+        },
+        {
+          "h2": "2. Antragsverfahren zur Ausstellung",
+          "desc": "Führen Sie den Vertrag in der unten angegebenen Reihenfolge durch und registrieren Sie die erhaltenen Anmeldedaten.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Händlervertrag beantragen", "p": "Beantragen und schließen Sie den Händlervertrag im Naver Pay Business Center ab." },
+              { "h3": "Prüfung und Vertrag abschließen", "p": "Fahren Sie fort, bis Prüfung und Vertrag abgeschlossen sind. Die Dauer kann je nach Prüfungstermin variieren." },
+              { "h3": "Anmeldedaten erhalten", "p": "Nach Abschluss von Prüfung und Vertrag übergibt Ihnen ein Ansprechpartner die Client ID, das Client Secret und die Chain ID." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Sobald Sie Client ID, Client Secret und Chain ID vollständig vom Ansprechpartner erhalten haben, sind Sie bereit zur Registrierung." }
+          ]
+        },
+        {
+          "h2": "3. In GenieGo zu registrierende Informationen",
+          "blocks": [
+            { "type": "table", "head": ["Feld", "Beschreibung"], "rows": [
+              ["client_id", "Die erhaltene Client ID"],
+              ["client_secret", "Das erhaltene Client Secret (vertraulich behandeln)"],
+              ["chain_id", "Die erhaltene Chain ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Geben Sie diese im GenieGo Integration Hub unter [Registrieren] ein und speichern Sie; die Anmeldedaten werden im Ruhezustand mit AES-256-GCM verschlüsselt und beim Lesen maskiert." }
+          ]
+        },
+        {
+          "h2": "4. Häufige Probleme",
+          "blocks": [
+            { "type": "table", "head": ["Problem", "Ursache", "Lösung"], "rows": [
+              ["Kein Menü zum Ausstellen von Anmeldedaten zu finden", "Naver Pay ist keine Selbstausstellungsmethode", "Verwenden Sie die Anmeldedaten, die Ihnen nach Abschluss des Händlervertrags von einem Ansprechpartner übergeben wurden."],
+              ["Authentifizierungsfehler", "Client Secret oder Chain ID falsch eingegeben", "Überprüfen Sie die vom Ansprechpartner übergebene Client ID, Client Secret und Chain ID erneut."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Abschließende Checkliste",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Den Händlervertrag im Naver Pay Business Center beantragt und abgeschlossen.",
+              "Nach Abschluss von Prüfung und Vertrag Client ID, Client Secret und Chain ID von einem Ansprechpartner erhalten.",
+              "Alle drei erhaltenen Anmeldedaten überprüft.",
+              "client_id·client_secret·chain_id in GenieGo [Registrieren] eingegeben und gespeichert."
+            ] }
+          ]
+        }
+      ]
+    },
+    "th": {
+      "titleType": "คู่มือการออก API Key",
+      "badge": "คู่มือสำหรับผู้เริ่มต้น",
+      "intro": "Naver Pay เป็นช่องทางที่คุณจะได้รับข้อมูลรับรองจากเจ้าหน้าที่หลังจากการสมัครเป็นร้านค้า (สัญญา) เสร็จสมบูรณ์ คู่มือนี้อธิบายขั้นตอนการลงทะเบียน Client ID, Client Secret และ Chain ID ที่ได้รับ ใน GenieGo Integration Hub",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["เวลาโดยประมาณ", "แตกต่างกันตามระยะเวลาสัญญาและการตรวจสอบ"],
+        ["บัญชีที่ต้องใช้", "บัญชี Naver Pay Business Center"],
+        ["คีย์ที่ออก", "Client ID · Client Secret · Chain ID"],
+        ["ผลลัพธ์", "ข้อมูลรับรองการเชื่อมต่อการชำระเงิน"]
+      ],
+      "sections": [
+        {
+          "h2": "1. ก่อนเริ่มต้น",
+          "desc": "Naver Pay ไม่ใช่การออกคีย์ด้วยตนเอง แต่เป็นวิธีที่ส่งมอบข้อมูลรับรองหลังจากทำสัญญาร้านค้าเสร็จสมบูรณ์",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "Naver Pay <strong>ไม่ใช่</strong>วิธีที่คุณออกคีย์โดยตรงในคอนโซล หลังจากการสมัครเป็นร้านค้า (สัญญา) เสร็จสมบูรณ์ เจ้าหน้าที่จะส่งมอบข้อมูลรับรองให้คุณ" },
+            { "type": "notice", "kind": "danger", "html": "<strong>สำคัญ:</strong> นี่ไม่ใช่การออกด้วยตนเองแบบทั่วไป หลังจากการสมัครเป็นร้านค้า (สัญญา) เสร็จสมบูรณ์ คุณจะได้รับ Partner ID และ Client ID/Secret" }
+          ]
+        },
+        {
+          "h2": "2. ขั้นตอนการยื่นขอออก",
+          "desc": "ดำเนินการทำสัญญาตามลำดับด้านล่างและลงทะเบียนข้อมูลรับรองที่ได้รับ",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "ยื่นขอทำสัญญาร้านค้า", "p": "ยื่นขอและทำสัญญาร้านค้าให้เสร็จสมบูรณ์ที่ Naver Pay Business Center" },
+              { "h3": "ทำการตรวจสอบและสัญญาให้เสร็จสมบูรณ์", "p": "ดำเนินการต่อไปจนกว่าการตรวจสอบและสัญญาจะเสร็จสมบูรณ์ ระยะเวลาอาจแตกต่างกันไปตามกำหนดการตรวจสอบ" },
+              { "h3": "รับข้อมูลรับรอง", "p": "หลังจากการตรวจสอบและสัญญาเสร็จสมบูรณ์ เจ้าหน้าที่จะส่งมอบ Client ID, Client Secret และ Chain ID ให้คุณ" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "เมื่อคุณได้รับ Client ID, Client Secret และ Chain ID ครบทั้งหมดจากเจ้าหน้าที่แล้ว แสดงว่าพร้อมสำหรับการลงทะเบียน" }
+          ]
+        },
+        {
+          "h2": "3. ข้อมูลที่ต้องลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["ฟิลด์", "คำอธิบาย"], "rows": [
+              ["client_id", "Client ID ที่ได้รับ"],
+              ["client_secret", "Client Secret ที่ได้รับ (จัดการด้วยความระมัดระวัง)"],
+              ["chain_id", "Chain ID ที่ได้รับ"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "ป้อนข้อมูลเหล่านี้ใน [ลงทะเบียน] ของ GenieGo Integration Hub แล้วบันทึก ข้อมูลรับรองจะถูกเข้ารหัสขณะจัดเก็บด้วย AES-256-GCM และปิดบังเมื่ออ่าน" }
+          ]
+        },
+        {
+          "h2": "4. ปัญหาที่พบบ่อย",
+          "blocks": [
+            { "type": "table", "head": ["ปัญหา", "สาเหตุ", "วิธีแก้ไข"], "rows": [
+              ["ไม่พบเมนูสำหรับออกข้อมูลรับรอง", "Naver Pay ไม่ใช่วิธีออกด้วยตนเอง", "ใช้ข้อมูลรับรองที่เจ้าหน้าที่ส่งมอบให้คุณหลังจากทำสัญญาร้านค้าเสร็จสมบูรณ์"],
+              ["การยืนยันตัวตนล้มเหลว", "ป้อน Client Secret หรือ Chain ID ผิด", "ตรวจสอบ Client ID, Client Secret และ Chain ID ที่เจ้าหน้าที่ส่งมอบให้คุณอีกครั้ง"]
+            ] }
+          ]
+        },
+        {
+          "h2": "รายการตรวจสอบขั้นสุดท้าย",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "ยื่นขอและทำสัญญาร้านค้าเสร็จสมบูรณ์ที่ Naver Pay Business Center แล้ว",
+              "หลังจากการตรวจสอบและสัญญาเสร็จสมบูรณ์ ได้รับ Client ID, Client Secret และ Chain ID จากเจ้าหน้าที่แล้ว",
+              "ตรวจสอบข้อมูลรับรองที่ได้รับครบทั้งสามรายการแล้ว",
+              "ป้อน client_id·client_secret·chain_id ใน GenieGo [ลงทะเบียน] และบันทึกแล้ว"
+            ] }
+          ]
+        }
+      ]
+    },
+    "vi": {
+      "titleType": "Hướng dẫn cấp API Key",
+      "badge": "Hướng dẫn cho người mới",
+      "intro": "Naver Pay là một kênh mà thông tin xác thực được nhân viên phụ trách bàn giao cho bạn sau khi hoàn tất đăng ký người bán (hợp đồng). Hướng dẫn này trình bày quy trình đăng ký Client ID, Client Secret và Chain ID mà bạn nhận được trong GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Thời gian dự kiến", "Tùy theo thời gian hợp đồng và xét duyệt"],
+        ["Tài khoản cần thiết", "Tài khoản Naver Pay Business Center"],
+        ["Khóa được cấp", "Client ID · Client Secret · Chain ID"],
+        ["Kết quả", "Thông tin xác thực tích hợp thanh toán"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Trước khi bắt đầu",
+          "desc": "Với Naver Pay, bạn không tự cấp khóa; thông tin xác thực được bàn giao sau khi hoàn tất hợp đồng người bán.",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "Naver Pay <strong>không phải</strong> là phương thức bạn tự cấp khóa trực tiếp trong bảng điều khiển. Sau khi hoàn tất đăng ký người bán (hợp đồng), nhân viên phụ trách sẽ bàn giao thông tin xác thực cho bạn." },
+            { "type": "notice", "kind": "danger", "html": "<strong>Quan trọng:</strong> Đây không phải là việc tự cấp thông thường. Sau khi hoàn tất đăng ký người bán (hợp đồng), bạn sẽ được bàn giao Partner ID và Client ID/Secret." }
+          ]
+        },
+        {
+          "h2": "2. Quy trình nộp đơn cấp",
+          "desc": "Tiến hành hợp đồng theo thứ tự dưới đây và đăng ký thông tin xác thực bạn nhận được.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Nộp đơn hợp đồng người bán", "p": "Nộp đơn và hoàn tất hợp đồng người bán tại Naver Pay Business Center." },
+              { "h3": "Hoàn tất xét duyệt và hợp đồng", "p": "Tiếp tục cho đến khi xét duyệt và hợp đồng hoàn tất. Thời gian có thể thay đổi tùy theo lịch xét duyệt." },
+              { "h3": "Nhận thông tin xác thực", "p": "Sau khi xét duyệt và hợp đồng hoàn tất, nhân viên phụ trách sẽ bàn giao Client ID, Client Secret và Chain ID cho bạn." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Khi bạn đã nhận đầy đủ Client ID, Client Secret và Chain ID từ nhân viên phụ trách, nghĩa là bạn đã sẵn sàng để đăng ký." }
+          ]
+        },
+        {
+          "h2": "3. Thông tin cần đăng ký trong GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Trường", "Mô tả"], "rows": [
+              ["client_id", "Client ID bạn đã nhận"],
+              ["client_secret", "Client Secret bạn đã nhận (xử lý cẩn thận)"],
+              ["chain_id", "Chain ID bạn đã nhận"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Nhập các thông tin này vào [Đăng ký] của GenieGo Integration Hub rồi lưu; thông tin xác thực được mã hóa khi lưu trữ bằng AES-256-GCM và được che khi đọc." }
+          ]
+        },
+        {
+          "h2": "4. Sự cố thường gặp",
+          "blocks": [
+            { "type": "table", "head": ["Sự cố", "Nguyên nhân", "Giải pháp"], "rows": [
+              ["Không tìm thấy menu để cấp thông tin xác thực", "Naver Pay không phải là phương thức tự cấp", "Sử dụng thông tin xác thực được nhân viên phụ trách bàn giao cho bạn sau khi hoàn tất hợp đồng người bán."],
+              ["Xác thực thất bại", "Nhập sai Client Secret hoặc Chain ID", "Kiểm tra lại Client ID, Client Secret và Chain ID do nhân viên phụ trách bàn giao."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Danh sách kiểm tra cuối cùng",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Đã nộp đơn và hoàn tất hợp đồng người bán tại Naver Pay Business Center.",
+              "Sau khi xét duyệt và hợp đồng hoàn tất, đã nhận Client ID, Client Secret và Chain ID từ nhân viên phụ trách.",
+              "Đã xác minh đủ ba thông tin xác thực nhận được.",
+              "Đã nhập client_id·client_secret·chain_id vào GenieGo [Đăng ký] và lưu."
+            ] }
+          ]
+        }
+      ]
+    },
+    "id": {
+      "titleType": "Panduan Penerbitan API Key",
+      "badge": "Panduan Pemula",
+      "intro": "Naver Pay adalah saluran di mana kredensial diserahkan kepada Anda oleh perwakilan setelah pendaftaran merchant (kontrak) selesai. Panduan ini menjelaskan proses mendaftarkan Client ID, Client Secret, dan Chain ID yang Anda terima di GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Perkiraan waktu", "Bervariasi sesuai periode kontrak dan tinjauan"],
+        ["Akun yang dibutuhkan", "Akun Naver Pay Business Center"],
+        ["Kunci yang diterbitkan", "Client ID · Client Secret · Chain ID"],
+        ["Hasil", "Kredensial integrasi pembayaran"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Sebelum Anda Mulai",
+          "desc": "Pada Naver Pay, Anda tidak menerbitkan kunci sendiri; kredensial diserahkan setelah kontrak merchant selesai.",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "Naver Pay <strong>bukan</strong> metode di mana Anda menerbitkan kunci secara langsung di konsol. Setelah pendaftaran merchant (kontrak) selesai, seorang perwakilan menyerahkan kredensial kepada Anda." },
+            { "type": "notice", "kind": "danger", "html": "<strong>Penting:</strong> Ini bukan penerbitan mandiri biasa. Setelah pendaftaran merchant (kontrak) selesai, Partner ID serta Client ID/Secret diserahkan kepada Anda." }
+          ]
+        },
+        {
+          "h2": "2. Proses Pengajuan Penerbitan",
+          "desc": "Lakukan kontrak sesuai urutan di bawah dan daftarkan kredensial yang Anda terima.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Ajukan kontrak merchant", "p": "Ajukan dan selesaikan kontrak merchant di Naver Pay Business Center." },
+              { "h3": "Selesaikan tinjauan dan kontrak", "p": "Lanjutkan hingga tinjauan dan kontrak selesai. Durasinya dapat bervariasi tergantung jadwal tinjauan." },
+              { "h3": "Terima kredensial", "p": "Setelah tinjauan dan kontrak selesai, seorang perwakilan menyerahkan Client ID, Client Secret, dan Chain ID kepada Anda." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Setelah Anda menerima Client ID, Client Secret, dan Chain ID secara lengkap dari perwakilan, Anda siap untuk mendaftar." }
+          ]
+        },
+        {
+          "h2": "3. Informasi yang Didaftarkan di GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Bidang", "Deskripsi"], "rows": [
+              ["client_id", "Client ID yang Anda terima"],
+              ["client_secret", "Client Secret yang Anda terima (tangani dengan hati-hati)"],
+              ["chain_id", "Chain ID yang Anda terima"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Masukkan ini di [Daftar] GenieGo Integration Hub lalu simpan; kredensial dienkripsi saat disimpan dengan AES-256-GCM dan disamarkan saat dibaca." }
+          ]
+        },
+        {
+          "h2": "4. Masalah Umum",
+          "blocks": [
+            { "type": "table", "head": ["Masalah", "Penyebab", "Solusi"], "rows": [
+              ["Tidak dapat menemukan menu untuk menerbitkan kredensial", "Naver Pay bukan metode penerbitan mandiri", "Gunakan kredensial yang diserahkan kepada Anda oleh perwakilan setelah kontrak merchant selesai."],
+              ["Autentikasi gagal", "Client Secret atau Chain ID salah dimasukkan", "Periksa kembali Client ID, Client Secret, dan Chain ID yang diserahkan oleh perwakilan Anda."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Daftar Periksa Akhir",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Mengajukan dan menyelesaikan kontrak merchant di Naver Pay Business Center.",
+              "Setelah tinjauan dan kontrak selesai, menerima Client ID, Client Secret, dan Chain ID dari perwakilan.",
+              "Memverifikasi ketiga kredensial yang diterima.",
+              "Memasukkan client_id·client_secret·chain_id di GenieGo [Daftar] dan menyimpannya."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ar": {
+      "titleType": "دليل إصدار مفتاح API",
+      "badge": "دليل المبتدئين",
+      "intro": "Naver Pay قناة يتم فيها تسليم بيانات الاعتماد إليك من قبل ممثل بعد اكتمال تسجيل التاجر (العقد). يشرح هذا الدليل عملية تسجيل Client ID وClient Secret وChain ID التي تتلقاها في GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["الوقت المقدر", "يختلف حسب مدة العقد والمراجعة"],
+        ["الحساب المطلوب", "حساب Naver Pay Business Center"],
+        ["المفاتيح الصادرة", "Client ID · Client Secret · Chain ID"],
+        ["النتيجة", "بيانات اعتماد تكامل الدفع"]
+      ],
+      "sections": [
+        {
+          "h2": "1. قبل أن تبدأ",
+          "desc": "في Naver Pay، لا تُصدر المفاتيح بنفسك؛ بل تُسلَّم بيانات الاعتماد بعد اكتمال عقد التاجر.",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "Naver Pay <strong>ليست</strong> طريقة تُصدر فيها المفاتيح مباشرة في وحدة تحكم. بعد اكتمال تسجيل التاجر (العقد)، يسلّمك ممثل بيانات الاعتماد." },
+            { "type": "notice", "kind": "danger", "html": "<strong>هام:</strong> هذا ليس إصدارًا ذاتيًا عاديًا. بعد اكتمال تسجيل التاجر (العقد)، يتم تسليمك Partner ID وClient ID/Secret." }
+          ]
+        },
+        {
+          "h2": "2. عملية طلب الإصدار",
+          "desc": "أكمل العقد بالترتيب أدناه وسجّل بيانات الاعتماد التي تتلقاها.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "تقديم طلب عقد التاجر", "p": "قدّم طلب عقد التاجر وأكمله في Naver Pay Business Center." },
+              { "h3": "إكمال المراجعة والعقد", "p": "تابع حتى تكتمل المراجعة والعقد. قد تختلف المدة تبعًا لجدول المراجعة." },
+              { "h3": "استلام بيانات الاعتماد", "p": "بعد اكتمال المراجعة والعقد، يسلّمك ممثل Client ID وClient Secret وChain ID." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "بمجرد استلامك Client ID وClient Secret وChain ID بالكامل من الممثل، تكون جاهزًا للتسجيل." }
+          ]
+        },
+        {
+          "h2": "3. المعلومات المطلوب تسجيلها في GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["الحقل", "الوصف"], "rows": [
+              ["client_id", "Client ID الذي تلقيته"],
+              ["client_secret", "Client Secret الذي تلقيته (تعامل معه بحذر)"],
+              ["chain_id", "Chain ID الذي تلقيته"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "أدخل هذه البيانات في [تسجيل] ضمن GenieGo Integration Hub واحفظها؛ تُشفَّر بيانات الاعتماد أثناء التخزين باستخدام AES-256-GCM وتُخفى عند القراءة." }
+          ]
+        },
+        {
+          "h2": "4. المشكلات الشائعة",
+          "blocks": [
+            { "type": "table", "head": ["المشكلة", "السبب", "الحل"], "rows": [
+              ["تعذّر العثور على قائمة لإصدار بيانات الاعتماد", "Naver Pay ليست طريقة إصدار ذاتي", "استخدم بيانات الاعتماد التي سلّمها لك ممثل بعد اكتمال عقد التاجر."],
+              ["فشل المصادقة", "إدخال Client Secret أو Chain ID بشكل خاطئ", "تحقق مرة أخرى من Client ID وClient Secret وChain ID التي سلّمها لك ممثلك."]
+            ] }
+          ]
+        },
+        {
+          "h2": "قائمة التحقق النهائية",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "قدّمتُ طلب عقد التاجر وأكملته في Naver Pay Business Center.",
+              "بعد اكتمال المراجعة والعقد، تلقيتُ Client ID وClient Secret وChain ID من ممثل.",
+              "تحققتُ من بيانات الاعتماد الثلاثة التي تلقيتها جميعها.",
+              "أدخلتُ client_id·client_secret·chain_id في [تسجيل] ضمن GenieGo وحفظتُها."
+            ] }
+          ]
+        }
+      ]
+    },
+    "es": {
+      "titleType": "Manual de emisión de API Key",
+      "badge": "Guía para principiantes",
+      "intro": "Naver Pay es un canal en el que un representante le entrega las credenciales tras completar el registro de comercio (contrato). Este manual explica el proceso de registrar el Client ID, el Client Secret y el Chain ID que reciba en el GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tiempo estimado", "Varía según el período de contrato y revisión"],
+        ["Cuenta necesaria", "Cuenta de Naver Pay Business Center"],
+        ["Claves emitidas", "Client ID · Client Secret · Chain ID"],
+        ["Resultado", "Credenciales de integración de pagos"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de empezar",
+          "desc": "Con Naver Pay no emite las claves usted mismo; las credenciales se entregan tras completar el contrato de comercio.",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "Naver Pay <strong>no es</strong> un método en el que emita claves directamente en una consola. Una vez completado el registro de comercio (contrato), un representante le entrega las credenciales." },
+            { "type": "notice", "kind": "danger", "html": "<strong>Importante:</strong> No se trata de una emisión propia habitual. Tras completar el registro de comercio (contrato), se le entregan el Partner ID y el Client ID/Secret." }
+          ]
+        },
+        {
+          "h2": "2. Proceso de solicitud de emisión",
+          "desc": "Realice el contrato en el orden siguiente y registre las credenciales que reciba.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Solicitar el contrato de comercio", "p": "Solicite y complete el contrato de comercio en el Naver Pay Business Center." },
+              { "h3": "Completar la revisión y el contrato", "p": "Continúe hasta que se completen la revisión y el contrato. La duración puede variar según el calendario de revisión." },
+              { "h3": "Recibir las credenciales", "p": "Tras completar la revisión y el contrato, un representante le entrega el Client ID, el Client Secret y el Chain ID." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Una vez que haya recibido del representante el Client ID, el Client Secret y el Chain ID completos, estará listo para registrarse." }
+          ]
+        },
+        {
+          "h2": "3. Información para registrar en GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descripción"], "rows": [
+              ["client_id", "El Client ID que recibió"],
+              ["client_secret", "El Client Secret que recibió (manéjelo con cuidado)"],
+              ["chain_id", "El Chain ID que recibió"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Introdúzcalos en [Registrar] del GenieGo Integration Hub y guarde; las credenciales se cifran en reposo con AES-256-GCM y se enmascaran al leerlas." }
+          ]
+        },
+        {
+          "h2": "4. Problemas frecuentes",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solución"], "rows": [
+              ["No se encuentra un menú para emitir credenciales", "Naver Pay no es un método de emisión propia", "Use las credenciales que le entregó un representante tras completar el contrato de comercio."],
+              ["Error de autenticación", "Client Secret o Chain ID introducidos incorrectamente", "Vuelva a comprobar el Client ID, el Client Secret y el Chain ID entregados por su representante."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificación final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Solicité y completé el contrato de comercio en el Naver Pay Business Center.",
+              "Tras completar la revisión y el contrato, recibí el Client ID, el Client Secret y el Chain ID de un representante.",
+              "Verifiqué las tres credenciales recibidas.",
+              "Introduje client_id·client_secret·chain_id en GenieGo [Registrar] y guardé."
+            ] }
+          ]
+        }
+      ]
+    },
+    "fr": {
+      "titleType": "Manuel d'émission de la clé API",
+      "badge": "Guide du débutant",
+      "intro": "Naver Pay est un canal où les identifiants vous sont remis par un représentant une fois l'inscription marchande (contrat) terminée. Ce manuel détaille la procédure d'enregistrement des Client ID, Client Secret et Chain ID que vous recevez dans le GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Temps estimé", "Variable selon la durée du contrat et de l'examen"],
+        ["Compte requis", "Compte Naver Pay Business Center"],
+        ["Clés émises", "Client ID · Client Secret · Chain ID"],
+        ["Résultat", "Identifiants d'intégration de paiement"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Avant de commencer",
+          "desc": "Avec Naver Pay, vous n'émettez pas les clés vous-même ; les identifiants sont remis une fois le contrat marchand terminé.",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "Naver Pay <strong>n'est pas</strong> une méthode où vous émettez les clés directement dans une console. Une fois l'inscription marchande (contrat) terminée, un représentant vous remet les identifiants." },
+            { "type": "notice", "kind": "danger", "html": "<strong>Important :</strong> Il ne s'agit pas d'une émission autonome ordinaire. Une fois l'inscription marchande (contrat) terminée, le Partner ID et le Client ID/Secret vous sont remis." }
+          ]
+        },
+        {
+          "h2": "2. Procédure de demande d'émission",
+          "desc": "Effectuez le contrat dans l'ordre ci-dessous et enregistrez les identifiants reçus.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Demander le contrat marchand", "p": "Demandez et finalisez le contrat marchand au Naver Pay Business Center." },
+              { "h3": "Finaliser l'examen et le contrat", "p": "Poursuivez jusqu'à ce que l'examen et le contrat soient finalisés. La durée peut varier selon le calendrier d'examen." },
+              { "h3": "Recevoir les identifiants", "p": "Une fois l'examen et le contrat finalisés, un représentant vous remet le Client ID, le Client Secret et le Chain ID." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Une fois que vous avez reçu du représentant l'intégralité du Client ID, du Client Secret et du Chain ID, vous êtes prêt à enregistrer." }
+          ]
+        },
+        {
+          "h2": "3. Informations à enregistrer dans GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Champ", "Description"], "rows": [
+              ["client_id", "Le Client ID que vous avez reçu"],
+              ["client_secret", "Le Client Secret que vous avez reçu (à manipuler avec précaution)"],
+              ["chain_id", "Le Chain ID que vous avez reçu"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Saisissez-les dans [Enregistrer] du GenieGo Integration Hub et enregistrez ; les identifiants sont chiffrés au repos avec AES-256-GCM et masqués à la lecture." }
+          ]
+        },
+        {
+          "h2": "4. Problèmes fréquents",
+          "blocks": [
+            { "type": "table", "head": ["Problème", "Cause", "Solution"], "rows": [
+              ["Impossible de trouver un menu pour émettre les identifiants", "Naver Pay n'est pas une méthode d'émission autonome", "Utilisez les identifiants remis par un représentant une fois le contrat marchand finalisé."],
+              ["Échec d'authentification", "Client Secret ou Chain ID saisis incorrectement", "Revérifiez le Client ID, le Client Secret et le Chain ID remis par votre représentant."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Liste de vérification finale",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "J'ai demandé et finalisé le contrat marchand au Naver Pay Business Center.",
+              "Une fois l'examen et le contrat finalisés, j'ai reçu le Client ID, le Client Secret et le Chain ID d'un représentant.",
+              "J'ai vérifié les trois identifiants reçus.",
+              "J'ai saisi client_id·client_secret·chain_id dans GenieGo [Enregistrer] et enregistré."
+            ] }
+          ]
+        }
+      ]
+    },
+    "hi": {
+      "titleType": "API Key जारी करने की नियमावली",
+      "badge": "शुरुआती गाइड",
+      "intro": "Naver Pay एक ऐसा चैनल है जहाँ मर्चेंट साइन-अप (अनुबंध) पूरा होने के बाद एक प्रतिनिधि आपको क्रेडेंशियल सौंपता है। यह नियमावली आपको प्राप्त Client ID, Client Secret और Chain ID को GenieGo Integration Hub में पंजीकृत करने की प्रक्रिया बताती है।",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["अनुमानित समय", "अनुबंध और समीक्षा अवधि के अनुसार भिन्न"],
+        ["आवश्यक खाता", "Naver Pay Business Center खाता"],
+        ["जारी की गई कुंजियाँ", "Client ID · Client Secret · Chain ID"],
+        ["परिणाम", "भुगतान एकीकरण क्रेडेंशियल"]
+      ],
+      "sections": [
+        {
+          "h2": "1. शुरू करने से पहले",
+          "desc": "Naver Pay में आप स्वयं कुंजियाँ जारी नहीं करते; मर्चेंट अनुबंध पूरा होने के बाद क्रेडेंशियल सौंपे जाते हैं।",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "Naver Pay ऐसा तरीका <strong>नहीं</strong> है जिसमें आप किसी कंसोल में सीधे कुंजियाँ जारी करते हैं। मर्चेंट साइन-अप (अनुबंध) पूरा होने के बाद, एक प्रतिनिधि आपको क्रेडेंशियल सौंपता है।" },
+            { "type": "notice", "kind": "danger", "html": "<strong>महत्वपूर्ण:</strong> यह सामान्य स्व-जारीकरण नहीं है। मर्चेंट साइन-अप (अनुबंध) पूरा होने के बाद, आपको Partner ID और Client ID/Secret सौंपे जाते हैं।" }
+          ]
+        },
+        {
+          "h2": "2. जारी करने के आवेदन की प्रक्रिया",
+          "desc": "नीचे दिए गए क्रम में अनुबंध आगे बढ़ाएँ और प्राप्त क्रेडेंशियल पंजीकृत करें।",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "मर्चेंट अनुबंध के लिए आवेदन करें", "p": "Naver Pay Business Center में मर्चेंट अनुबंध के लिए आवेदन करें और उसे पूरा करें।" },
+              { "h3": "समीक्षा और अनुबंध पूरा करें", "p": "समीक्षा और अनुबंध पूरा होने तक जारी रखें। अवधि समीक्षा कार्यक्रम के अनुसार भिन्न हो सकती है।" },
+              { "h3": "क्रेडेंशियल प्राप्त करें", "p": "समीक्षा और अनुबंध पूरा होने के बाद, एक प्रतिनिधि आपको Client ID, Client Secret और Chain ID सौंपता है।" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "जब आप प्रतिनिधि से Client ID, Client Secret और Chain ID सभी प्राप्त कर लेते हैं, तो आप पंजीकरण के लिए तैयार हैं।" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo में पंजीकृत करने योग्य जानकारी",
+          "blocks": [
+            { "type": "table", "head": ["फ़ील्ड", "विवरण"], "rows": [
+              ["client_id", "आपको प्राप्त Client ID"],
+              ["client_secret", "आपको प्राप्त Client Secret (सावधानी से संभालें)"],
+              ["chain_id", "आपको प्राप्त Chain ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "इन्हें GenieGo Integration Hub के [पंजीकरण] में दर्ज करें और सहेजें; क्रेडेंशियल AES-256-GCM के साथ संग्रहण में एन्क्रिप्ट किए जाते हैं और पढ़ते समय मास्क किए जाते हैं।" }
+          ]
+        },
+        {
+          "h2": "4. आम समस्याएँ",
+          "blocks": [
+            { "type": "table", "head": ["समस्या", "कारण", "समाधान"], "rows": [
+              ["क्रेडेंशियल जारी करने के लिए मेनू नहीं मिल रहा", "Naver Pay स्व-जारीकरण विधि नहीं है", "मर्चेंट अनुबंध पूरा होने के बाद किसी प्रतिनिधि द्वारा सौंपे गए क्रेडेंशियल का उपयोग करें।"],
+              ["प्रमाणीकरण विफल", "Client Secret या Chain ID गलत दर्ज किया गया", "अपने प्रतिनिधि द्वारा सौंपे गए Client ID, Client Secret और Chain ID को फिर से जाँचें।"]
+            ] }
+          ]
+        },
+        {
+          "h2": "अंतिम जाँच सूची",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Naver Pay Business Center में मर्चेंट अनुबंध के लिए आवेदन किया और उसे पूरा किया।",
+              "समीक्षा और अनुबंध पूरा होने के बाद, एक प्रतिनिधि से Client ID, Client Secret और Chain ID प्राप्त किए।",
+              "प्राप्त तीनों क्रेडेंशियल की पुष्टि की।",
+              "GenieGo [पंजीकरण] में client_id·client_secret·chain_id दर्ज किया और सहेजा।"
+            ] }
+          ]
+        }
+      ]
+    },
+    "pt": {
+      "titleType": "Manual de emissão de API Key",
+      "badge": "Guia para iniciantes",
+      "intro": "O Naver Pay é um canal em que as credenciais são entregues a você por um representante após a conclusão do cadastro de comerciante (contrato). Este manual descreve o processo de registrar o Client ID, o Client Secret e o Chain ID que você recebe no GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tempo estimado", "Varia conforme o período de contrato e análise"],
+        ["Conta necessária", "Conta do Naver Pay Business Center"],
+        ["Chaves emitidas", "Client ID · Client Secret · Chain ID"],
+        ["Resultado", "Credenciais de integração de pagamento"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de começar",
+          "desc": "No Naver Pay, você não emite as chaves por conta própria; as credenciais são entregues após a conclusão do contrato de comerciante.",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "O Naver Pay <strong>não é</strong> um método em que você emite chaves diretamente em um console. Após a conclusão do cadastro de comerciante (contrato), um representante entrega as credenciais a você." },
+            { "type": "notice", "kind": "danger", "html": "<strong>Importante:</strong> Isto não é uma emissão própria comum. Após a conclusão do cadastro de comerciante (contrato), o Partner ID e o Client ID/Secret são entregues a você." }
+          ]
+        },
+        {
+          "h2": "2. Processo de solicitação de emissão",
+          "desc": "Realize o contrato na ordem abaixo e registre as credenciais recebidas.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Solicitar o contrato de comerciante", "p": "Solicite e conclua o contrato de comerciante no Naver Pay Business Center." },
+              { "h3": "Concluir a análise e o contrato", "p": "Prossiga até que a análise e o contrato sejam concluídos. A duração pode variar conforme o cronograma de análise." },
+              { "h3": "Receber as credenciais", "p": "Após a conclusão da análise e do contrato, um representante entrega a você o Client ID, o Client Secret e o Chain ID." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Assim que você receber do representante o Client ID, o Client Secret e o Chain ID por completo, estará pronto para registrar." }
+          ]
+        },
+        {
+          "h2": "3. Informações a registrar no GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descrição"], "rows": [
+              ["client_id", "O Client ID que você recebeu"],
+              ["client_secret", "O Client Secret que você recebeu (manuseie com cuidado)"],
+              ["chain_id", "O Chain ID que você recebeu"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Insira-os em [Registrar] do GenieGo Integration Hub e salve; as credenciais são criptografadas em repouso com AES-256-GCM e mascaradas na leitura." }
+          ]
+        },
+        {
+          "h2": "4. Problemas comuns",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solução"], "rows": [
+              ["Não é possível encontrar um menu para emitir credenciais", "O Naver Pay não é um método de emissão própria", "Use as credenciais entregues a você por um representante após a conclusão do contrato de comerciante."],
+              ["Falha de autenticação", "Client Secret ou Chain ID inseridos incorretamente", "Verifique novamente o Client ID, o Client Secret e o Chain ID entregues pelo seu representante."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificação final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Solicitei e concluí o contrato de comerciante no Naver Pay Business Center.",
+              "Após a conclusão da análise e do contrato, recebi o Client ID, o Client Secret e o Chain ID de um representante.",
+              "Verifiquei as três credenciais recebidas.",
+              "Inseri client_id·client_secret·chain_id no GenieGo [Registrar] e salvei."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ru": {
+      "titleType": "Руководство по выпуску API-ключа",
+      "badge": "Руководство для начинающих",
+      "intro": "Naver Pay — это канал, в котором учётные данные передаются вам представителем после завершения регистрации продавца (договора). В этом руководстве описан процесс регистрации полученных Client ID, Client Secret и Chain ID в GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Ориентировочное время", "Зависит от срока договора и проверки"],
+        ["Требуемый аккаунт", "Аккаунт Naver Pay Business Center"],
+        ["Выпускаемые ключи", "Client ID · Client Secret · Chain ID"],
+        ["Результат", "Учётные данные интеграции платежей"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Перед началом",
+          "desc": "В Naver Pay вы не выпускаете ключи самостоятельно; учётные данные передаются после завершения договора с продавцом.",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "Naver Pay <strong>не является</strong> способом, при котором вы выпускаете ключи напрямую в консоли. После завершения регистрации продавца (договора) представитель передаёт вам учётные данные." },
+            { "type": "notice", "kind": "danger", "html": "<strong>Важно:</strong> Это не обычный самостоятельный выпуск. После завершения регистрации продавца (договора) вам передаются Partner ID и Client ID/Secret." }
+          ]
+        },
+        {
+          "h2": "2. Процесс подачи заявки на выпуск",
+          "desc": "Оформите договор в указанном ниже порядке и зарегистрируйте полученные учётные данные.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Подать заявку на договор с продавцом", "p": "Подайте заявку и завершите договор с продавцом в Naver Pay Business Center." },
+              { "h3": "Завершить проверку и договор", "p": "Продолжайте, пока проверка и договор не будут завершены. Срок может различаться в зависимости от графика проверки." },
+              { "h3": "Получить учётные данные", "p": "После завершения проверки и договора представитель передаёт вам Client ID, Client Secret и Chain ID." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Как только вы получите от представителя все Client ID, Client Secret и Chain ID, вы готовы к регистрации." }
+          ]
+        },
+        {
+          "h2": "3. Сведения для регистрации в GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Поле", "Описание"], "rows": [
+              ["client_id", "Полученный вами Client ID"],
+              ["client_secret", "Полученный вами Client Secret (обращайтесь осторожно)"],
+              ["chain_id", "Полученный вами Chain ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Введите их в [Регистрация] в GenieGo Integration Hub и сохраните; учётные данные шифруются при хранении с помощью AES-256-GCM и маскируются при чтении." }
+          ]
+        },
+        {
+          "h2": "4. Частые проблемы",
+          "blocks": [
+            { "type": "table", "head": ["Проблема", "Причина", "Решение"], "rows": [
+              ["Не удаётся найти меню для выпуска учётных данных", "Naver Pay не является способом самостоятельного выпуска", "Используйте учётные данные, переданные вам представителем после завершения договора с продавцом."],
+              ["Сбой аутентификации", "Неверно введены Client Secret или Chain ID", "Повторно проверьте Client ID, Client Secret и Chain ID, переданные вашим представителем."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Финальный контрольный список",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Подал заявку и завершил договор с продавцом в Naver Pay Business Center.",
+              "После завершения проверки и договора получил Client ID, Client Secret и Chain ID от представителя.",
+              "Проверил все три полученных учётных данных.",
+              "Ввёл client_id·client_secret·chain_id в GenieGo [Регистрация] и сохранил."
+            ] }
+          ]
+        }
+      ]
+    }
+  }
+}

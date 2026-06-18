@@ -1,0 +1,1026 @@
+{
+  "name": "TNT Express",
+  "icon": "🧡",
+  "langs": {
+    "ko": {
+      "titleType": "API Key 발급 매뉴얼",
+      "badge": "Beginner Guide",
+      "intro": "TNT Express는 FedEx에 인수되어 FedEx 개발자 포털(developer.fedex.com)에서 발급한 API Key·Secret과 FedEx 계정번호를 사용합니다. 이 자격증명을 GenieGo 연동 허브에 등록하는 과정을 정리한 매뉴얼입니다.",
+      "org": "GenieGo 연동 허브",
+      "quick": [
+        ["소요 시간", "약 5~15분"],
+        ["필요 계정", "FedEx 계정(계정번호)"],
+        ["발급 키", "API Key · API Secret"],
+        ["결과물", "API 자격증명 · 계정번호"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 시작하기 전에",
+          "desc": "TNT는 FedEx에 통합되어 별도 TNT 개발자 포털이 없으며, FedEx Developer Portal 자격증명을 사용합니다.",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>안내:</strong> TNT는 FedEx에 인수되어 FedEx Developer Portal(developer.fedex.com)에서 자격증명(API Key/Secret)을 발급합니다. 별도 TNT 개발자 포털은 없으며 FedEx 계정번호가 필요합니다." },
+            { "type": "cards", "items": [
+              { "tag": "준비물", "h3": "FedEx 계정번호", "p": "FedEx 계정번호가 필요합니다. 계정번호는 GenieGo 등록 시 함께 입력합니다." },
+              { "tag": "발급 키", "h3": "API Key · API Secret", "p": "FedEx 개발자 포털에서 프로젝트를 생성하면 API Key와 Secret이 발급됩니다." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. 발급 단계",
+          "desc": "FedEx 개발자 포털에서 자격증명을 발급한 뒤 GenieGo에 등록합니다.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "FedEx 개발자 포털 가입·프로젝트 생성", "p": "FedEx 개발자 포털에 가입하고 프로젝트를 생성합니다.", "path": "https://developer.fedex.com" },
+              { "h3": "API Key·Secret 발급", "p": "프로젝트를 생성하면 API Key/Secret이 발급됩니다.", "path": "프로젝트 생성" },
+              { "h3": "계정번호 확인", "p": "FedEx 계정번호를 확인합니다." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "FedEx 개발자 포털에서 API Key·Secret이 발급되면 정상입니다." }
+          ]
+        },
+        {
+          "h2": "3. GenieGo에 등록할 정보",
+          "blocks": [
+            { "type": "table", "head": ["필드", "설명"], "rows": [
+              ["api_key", "발급된 API Key (Client ID)"],
+              ["api_secret", "발급된 API Secret (Client Secret, 노출 주의)"],
+              ["account_number", "FedEx 계정번호"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 연동 허브 [등록]에 입력해 저장하면 자격증명은 AES-256-GCM으로 암호화 저장되고 조회 시 마스킹됩니다." }
+          ]
+        },
+        {
+          "h2": "4. 자주 발생하는 문제",
+          "blocks": [
+            { "type": "table", "head": ["문제", "원인", "해결"], "rows": [
+              ["TNT 전용 개발자 포털을 찾을 수 없음", "TNT가 FedEx에 통합되어 별도 포털이 없음", "developer.fedex.com에서 프로젝트를 생성해 API Key/Secret을 발급합니다."],
+              ["호출 시 인증 오류", "Secret 오기재 또는 FedEx 계정번호 누락", "api_secret과 계정번호(account_number)를 다시 확인합니다."]
+            ] }
+          ]
+        },
+        {
+          "h2": "최종 체크리스트",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "TNT가 FedEx 자격증명을 사용한다는 점을 확인했다.",
+              "developer.fedex.com에 가입하고 프로젝트를 생성했다.",
+              "API Key·Secret과 FedEx 계정번호를 확인했다.",
+              "GenieGo [등록]에 api_key·api_secret·account_number를 입력해 저장했다."
+            ] }
+          ]
+        }
+      ]
+    },
+    "en": {
+      "titleType": "API Key Issuance Manual",
+      "badge": "Beginner Guide",
+      "intro": "TNT Express was acquired by FedEx and uses the API Key·Secret issued on the FedEx Developer Portal (developer.fedex.com) along with your FedEx account number. This manual walks you through registering those credentials in the GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Est. time", "About 5–15 min"],
+        ["Account needed", "FedEx account (account number)"],
+        ["Keys issued", "API Key · API Secret"],
+        ["Result", "API credentials · Account number"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Before You Begin",
+          "desc": "TNT has been merged into FedEx and has no separate TNT developer portal; it uses FedEx Developer Portal credentials.",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>Note:</strong> TNT was acquired by FedEx and issues credentials (API Key/Secret) on the FedEx Developer Portal (developer.fedex.com). There is no separate TNT developer portal, and a FedEx account number is required." },
+            { "type": "cards", "items": [
+              { "tag": "Requirements", "h3": "FedEx account number", "p": "You need a FedEx account number. The account number is entered together when registering in GenieGo." },
+              { "tag": "Keys issued", "h3": "API Key · API Secret", "p": "When you create a project on the FedEx Developer Portal, an API Key and Secret are issued." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Issuance Steps",
+          "desc": "Issue your credentials on the FedEx Developer Portal, then register them in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Sign up for the FedEx Developer Portal and create a project", "p": "Sign up for the FedEx Developer Portal and create a project.", "path": "https://developer.fedex.com" },
+              { "h3": "Issue the API Key·Secret", "p": "When you create a project, the API Key/Secret are issued.", "path": "Create project" },
+              { "h3": "Check your account number", "p": "Check your FedEx account number." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Once the API Key·Secret are issued on the FedEx Developer Portal, everything is in order." }
+          ]
+        },
+        {
+          "h2": "3. Information to Register in GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Field", "Description"], "rows": [
+              ["api_key", "The issued API Key (Client ID)"],
+              ["api_secret", "The issued API Secret (Client Secret, handle with care)"],
+              ["account_number", "FedEx account number"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Enter and save them in the GenieGo Integration Hub [Register], and the credentials are encrypted at rest with AES-256-GCM and masked on read." }
+          ]
+        },
+        {
+          "h2": "4. Common Issues",
+          "blocks": [
+            { "type": "table", "head": ["Issue", "Cause", "Solution"], "rows": [
+              ["Can't find a TNT-specific developer portal", "TNT was merged into FedEx, so there is no separate portal", "Create a project at developer.fedex.com to issue the API Key/Secret."],
+              ["Authentication error when making calls", "Mistyped Secret or missing FedEx account number", "Recheck the api_secret and account number (account_number)."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Final Checklist",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Confirmed that TNT uses FedEx credentials.",
+              "Signed up at developer.fedex.com and created a project.",
+              "Checked the API Key·Secret and FedEx account number.",
+              "Entered api_key·api_secret·account_number in GenieGo [Register] and saved."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ja": {
+      "titleType": "API Key 発行マニュアル",
+      "badge": "初心者ガイド",
+      "intro": "TNT Express は FedEx に買収され、FedEx 開発者ポータル(developer.fedex.com)で発行した API Key·Secret と FedEx アカウント番号を使用します。本マニュアルは、これらの認証情報を GenieGo 連携ハブに登録する手順をまとめたものです。",
+      "org": "GenieGo 連携ハブ",
+      "quick": [
+        ["所要時間", "約 5〜15 分"],
+        ["必要なアカウント", "FedEx アカウント(アカウント番号)"],
+        ["発行するキー", "API Key · API Secret"],
+        ["成果物", "API 認証情報 · アカウント番号"]
+      ],
+      "sections": [
+        {
+          "h2": "1. はじめる前に",
+          "desc": "TNT は FedEx に統合されており、独立した TNT 開発者ポータルはなく、FedEx Developer Portal の認証情報を使用します。",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>案内:</strong> TNT は FedEx に買収され、FedEx Developer Portal(developer.fedex.com)で認証情報(API Key/Secret)を発行します。独立した TNT 開発者ポータルはなく、FedEx アカウント番号が必要です。" },
+            { "type": "cards", "items": [
+              { "tag": "準備物", "h3": "FedEx アカウント番号", "p": "FedEx アカウント番号が必要です。アカウント番号は GenieGo 登録時に併せて入力します。" },
+              { "tag": "発行するキー", "h3": "API Key · API Secret", "p": "FedEx 開発者ポータルでプロジェクトを作成すると API Key と Secret が発行されます。" }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. 発行手順",
+          "desc": "FedEx 開発者ポータルで認証情報を発行した後、GenieGo に登録します。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "FedEx 開発者ポータルに登録・プロジェクト作成", "p": "FedEx 開発者ポータルに登録し、プロジェクトを作成します。", "path": "https://developer.fedex.com" },
+              { "h3": "API Key·Secret の発行", "p": "プロジェクトを作成すると API Key/Secret が発行されます。", "path": "プロジェクト作成" },
+              { "h3": "アカウント番号の確認", "p": "FedEx アカウント番号を確認します。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "FedEx 開発者ポータルで API Key·Secret が発行されれば正常です。" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo に登録する情報",
+          "blocks": [
+            { "type": "table", "head": ["フィールド", "説明"], "rows": [
+              ["api_key", "発行された API Key (Client ID)"],
+              ["api_secret", "発行された API Secret (Client Secret、取り扱い注意)"],
+              ["account_number", "FedEx アカウント番号"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 連携ハブの [登録] に入力して保存すると、認証情報は AES-256-GCM で暗号化して保存され、閲覧時にはマスキングされます。" }
+          ]
+        },
+        {
+          "h2": "4. よくある問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["TNT 専用の開発者ポータルが見つからない", "TNT が FedEx に統合され、独立したポータルがない", "developer.fedex.com でプロジェクトを作成し、API Key/Secret を発行します。"],
+              ["呼び出し時の認証エラー", "Secret の記載ミス、または FedEx アカウント番号の欠落", "api_secret とアカウント番号(account_number)を再確認します。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終チェックリスト",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "TNT が FedEx の認証情報を使用することを確認した。",
+              "developer.fedex.com に登録し、プロジェクトを作成した。",
+              "API Key·Secret と FedEx アカウント番号を確認した。",
+              "GenieGo の [登録] に api_key·api_secret·account_number を入力して保存した。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh": {
+      "titleType": "API Key 申请手册",
+      "badge": "新手指南",
+      "intro": "TNT Express 已被 FedEx 收购，使用在 FedEx 开发者门户(developer.fedex.com)签发的 API Key·Secret 以及 FedEx 账户编号。本手册整理了将这些凭证注册到 GenieGo 集成中心的流程。",
+      "org": "GenieGo 集成中心",
+      "quick": [
+        ["预计时间", "约 5~15 分钟"],
+        ["所需账户", "FedEx 账户(账户编号)"],
+        ["签发密钥", "API Key · API Secret"],
+        ["成果", "API 凭证 · 账户编号"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 开始之前",
+          "desc": "TNT 已整合到 FedEx，没有独立的 TNT 开发者门户，使用 FedEx Developer Portal 的凭证。",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>提示:</strong> TNT 已被 FedEx 收购，在 FedEx Developer Portal(developer.fedex.com)签发凭证(API Key/Secret)。没有独立的 TNT 开发者门户，并且需要 FedEx 账户编号。" },
+            { "type": "cards", "items": [
+              { "tag": "准备", "h3": "FedEx 账户编号", "p": "需要 FedEx 账户编号。账户编号在 GenieGo 注册时一并输入。" },
+              { "tag": "签发密钥", "h3": "API Key · API Secret", "p": "在 FedEx 开发者门户中创建项目后，会签发 API Key 和 Secret。" }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. 申请步骤",
+          "desc": "在 FedEx 开发者门户签发凭证后，在 GenieGo 中注册。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "注册 FedEx 开发者门户并创建项目", "p": "注册 FedEx 开发者门户并创建项目。", "path": "https://developer.fedex.com" },
+              { "h3": "签发 API Key·Secret", "p": "创建项目后，会签发 API Key/Secret。", "path": "创建项目" },
+              { "h3": "确认账户编号", "p": "确认 FedEx 账户编号。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 FedEx 开发者门户签发出 API Key·Secret 即为正常。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中注册的信息",
+          "blocks": [
+            { "type": "table", "head": ["字段", "说明"], "rows": [
+              ["api_key", "签发的 API Key (Client ID)"],
+              ["api_secret", "签发的 API Secret (Client Secret，请妥善保管)"],
+              ["account_number", "FedEx 账户编号"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 集成中心的 [注册] 中输入并保存后，凭证将以 AES-256-GCM 加密存储，并在查询时进行掩码处理。" }
+          ]
+        },
+        {
+          "h2": "4. 常见问题",
+          "blocks": [
+            { "type": "table", "head": ["问题", "原因", "解决方法"], "rows": [
+              ["找不到 TNT 专用开发者门户", "TNT 已整合到 FedEx，没有独立门户", "在 developer.fedex.com 创建项目以签发 API Key/Secret。"],
+              ["调用时出现认证错误", "Secret 填写错误，或缺少 FedEx 账户编号", "重新确认 api_secret 和账户编号(account_number)。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最终检查清单",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已确认 TNT 使用 FedEx 凭证。",
+              "已在 developer.fedex.com 注册并创建项目。",
+              "已确认 API Key·Secret 和 FedEx 账户编号。",
+              "已在 GenieGo 的 [注册] 中输入 api_key·api_secret·account_number 并保存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh-TW": {
+      "titleType": "API Key 申請手冊",
+      "badge": "新手指南",
+      "intro": "TNT Express 已被 FedEx 收購，使用在 FedEx 開發者入口網站(developer.fedex.com)簽發的 API Key·Secret 以及 FedEx 帳戶編號。本手冊整理了將這些憑證註冊到 GenieGo 整合中心的流程。",
+      "org": "GenieGo 整合中心",
+      "quick": [
+        ["預計時間", "約 5~15 分鐘"],
+        ["所需帳戶", "FedEx 帳戶(帳戶編號)"],
+        ["簽發金鑰", "API Key · API Secret"],
+        ["成果", "API 憑證 · 帳戶編號"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 開始之前",
+          "desc": "TNT 已整合到 FedEx，沒有獨立的 TNT 開發者入口網站，使用 FedEx Developer Portal 的憑證。",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>提示:</strong> TNT 已被 FedEx 收購，在 FedEx Developer Portal(developer.fedex.com)簽發憑證(API Key/Secret)。沒有獨立的 TNT 開發者入口網站，並且需要 FedEx 帳戶編號。" },
+            { "type": "cards", "items": [
+              { "tag": "準備", "h3": "FedEx 帳戶編號", "p": "需要 FedEx 帳戶編號。帳戶編號在 GenieGo 註冊時一併輸入。" },
+              { "tag": "簽發金鑰", "h3": "API Key · API Secret", "p": "在 FedEx 開發者入口網站中建立專案後，會簽發 API Key 和 Secret。" }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. 簽發步驟",
+          "desc": "在 FedEx 開發者入口網站簽發憑證後，在 GenieGo 中註冊。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "註冊 FedEx 開發者入口網站並建立專案", "p": "註冊 FedEx 開發者入口網站並建立專案。", "path": "https://developer.fedex.com" },
+              { "h3": "簽發 API Key·Secret", "p": "建立專案後，會簽發 API Key/Secret。", "path": "建立專案" },
+              { "h3": "確認帳戶編號", "p": "確認 FedEx 帳戶編號。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 FedEx 開發者入口網站簽發出 API Key·Secret 即為正常。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中註冊的資訊",
+          "blocks": [
+            { "type": "table", "head": ["欄位", "說明"], "rows": [
+              ["api_key", "簽發的 API Key (Client ID)"],
+              ["api_secret", "簽發的 API Secret (Client Secret，請妥善保管)"],
+              ["account_number", "FedEx 帳戶編號"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 整合中心的 [註冊] 中輸入並儲存後，憑證將以 AES-256-GCM 加密儲存，並在查詢時進行遮罩處理。" }
+          ]
+        },
+        {
+          "h2": "4. 常見問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["找不到 TNT 專用開發者入口網站", "TNT 已整合到 FedEx，沒有獨立入口網站", "在 developer.fedex.com 建立專案以簽發 API Key/Secret。"],
+              ["呼叫時出現認證錯誤", "Secret 填寫錯誤，或缺少 FedEx 帳戶編號", "重新確認 api_secret 和帳戶編號(account_number)。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終檢查清單",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已確認 TNT 使用 FedEx 憑證。",
+              "已在 developer.fedex.com 註冊並建立專案。",
+              "已確認 API Key·Secret 和 FedEx 帳戶編號。",
+              "已在 GenieGo 的 [註冊] 中輸入 api_key·api_secret·account_number 並儲存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "de": {
+      "titleType": "Anleitung zur API-Key-Ausstellung",
+      "badge": "Einsteigerleitfaden",
+      "intro": "TNT Express wurde von FedEx übernommen und verwendet den im FedEx Developer Portal (developer.fedex.com) ausgestellten API Key·Secret zusammen mit Ihrer FedEx-Kontonummer. Diese Anleitung führt Sie durch die Registrierung dieser Anmeldedaten im GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Geschätzte Zeit", "Etwa 5–15 Min."],
+        ["Benötigtes Konto", "FedEx-Konto (Kontonummer)"],
+        ["Ausgestellte Schlüssel", "API Key · API Secret"],
+        ["Ergebnis", "API-Anmeldedaten · Kontonummer"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Bevor Sie beginnen",
+          "desc": "TNT wurde in FedEx integriert und hat kein eigenes TNT-Entwicklerportal; es verwendet die Anmeldedaten des FedEx Developer Portals.",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>Hinweis:</strong> TNT wurde von FedEx übernommen und stellt Anmeldedaten (API Key/Secret) im FedEx Developer Portal (developer.fedex.com) aus. Es gibt kein eigenes TNT-Entwicklerportal, und eine FedEx-Kontonummer ist erforderlich." },
+            { "type": "cards", "items": [
+              { "tag": "Voraussetzungen", "h3": "FedEx-Kontonummer", "p": "Sie benötigen eine FedEx-Kontonummer. Die Kontonummer wird bei der Registrierung in GenieGo gemeinsam eingegeben." },
+              { "tag": "Ausgestellte Schlüssel", "h3": "API Key · API Secret", "p": "Wenn Sie im FedEx Developer Portal ein Projekt erstellen, werden ein API Key und ein Secret ausgestellt." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Ausstellungsschritte",
+          "desc": "Stellen Sie Ihre Anmeldedaten im FedEx Developer Portal aus und registrieren Sie sie dann in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Im FedEx Developer Portal registrieren und ein Projekt erstellen", "p": "Registrieren Sie sich im FedEx Developer Portal und erstellen Sie ein Projekt.", "path": "https://developer.fedex.com" },
+              { "h3": "API Key·Secret ausstellen", "p": "Wenn Sie ein Projekt erstellen, werden der API Key/Secret ausgestellt.", "path": "Projekt erstellen" },
+              { "h3": "Kontonummer prüfen", "p": "Prüfen Sie Ihre FedEx-Kontonummer." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Sobald der API Key·Secret im FedEx Developer Portal ausgestellt wurde, ist alles in Ordnung." }
+          ]
+        },
+        {
+          "h2": "3. In GenieGo zu registrierende Informationen",
+          "blocks": [
+            { "type": "table", "head": ["Feld", "Beschreibung"], "rows": [
+              ["api_key", "Der ausgestellte API Key (Client ID)"],
+              ["api_secret", "Das ausgestellte API Secret (Client Secret, vertraulich behandeln)"],
+              ["account_number", "FedEx-Kontonummer"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Geben Sie sie im GenieGo Integration Hub [Registrieren] ein und speichern Sie sie. Die Anmeldedaten werden im Ruhezustand mit AES-256-GCM verschlüsselt und beim Lesen maskiert." }
+          ]
+        },
+        {
+          "h2": "4. Häufige Probleme",
+          "blocks": [
+            { "type": "table", "head": ["Problem", "Ursache", "Lösung"], "rows": [
+              ["Kein TNT-spezifisches Entwicklerportal zu finden", "TNT wurde in FedEx integriert, daher gibt es kein eigenes Portal", "Erstellen Sie ein Projekt auf developer.fedex.com, um den API Key/Secret auszustellen."],
+              ["Authentifizierungsfehler bei Aufrufen", "Falsch eingegebenes Secret oder fehlende FedEx-Kontonummer", "Überprüfen Sie das api_secret und die Kontonummer (account_number) erneut."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Abschließende Checkliste",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Bestätigt, dass TNT die Anmeldedaten von FedEx verwendet.",
+              "Auf developer.fedex.com registriert und ein Projekt erstellt.",
+              "Den API Key·Secret und die FedEx-Kontonummer geprüft.",
+              "api_key·api_secret·account_number in GenieGo [Registrieren] eingegeben und gespeichert."
+            ] }
+          ]
+        }
+      ]
+    },
+    "th": {
+      "titleType": "คู่มือการออก API Key",
+      "badge": "คู่มือสำหรับผู้เริ่มต้น",
+      "intro": "TNT Express ถูกเข้าซื้อกิจการโดย FedEx และใช้ API Key·Secret ที่ออกจากพอร์ทัลนักพัฒนาของ FedEx (developer.fedex.com) ร่วมกับหมายเลขบัญชี FedEx ของคุณ คู่มือนี้จะแนะนำขั้นตอนการลงทะเบียนข้อมูลรับรองเหล่านี้ใน GenieGo Integration Hub",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["เวลาโดยประมาณ", "ประมาณ 5–15 นาที"],
+        ["บัญชีที่ต้องใช้", "บัญชี FedEx (หมายเลขบัญชี)"],
+        ["คีย์ที่ออก", "API Key · API Secret"],
+        ["ผลลัพธ์", "ข้อมูลรับรอง API · หมายเลขบัญชี"]
+      ],
+      "sections": [
+        {
+          "h2": "1. ก่อนเริ่มต้น",
+          "desc": "TNT ถูกรวมเข้ากับ FedEx และไม่มีพอร์ทัลนักพัฒนา TNT แยกต่างหาก โดยใช้ข้อมูลรับรองของ FedEx Developer Portal",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>คำแนะนำ:</strong> TNT ถูกเข้าซื้อกิจการโดย FedEx และออกข้อมูลรับรอง (API Key/Secret) ที่ FedEx Developer Portal (developer.fedex.com) ไม่มีพอร์ทัลนักพัฒนา TNT แยกต่างหาก และจำเป็นต้องมีหมายเลขบัญชี FedEx" },
+            { "type": "cards", "items": [
+              { "tag": "สิ่งที่ต้องเตรียม", "h3": "หมายเลขบัญชี FedEx", "p": "คุณต้องมีหมายเลขบัญชี FedEx หมายเลขบัญชีจะถูกป้อนพร้อมกันเมื่อลงทะเบียนใน GenieGo" },
+              { "tag": "คีย์ที่ออก", "h3": "API Key · API Secret", "p": "เมื่อคุณสร้างโปรเจกต์ในพอร์ทัลนักพัฒนาของ FedEx จะมีการออก API Key และ Secret" }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. ขั้นตอนการออก",
+          "desc": "ออกข้อมูลรับรองที่ FedEx Developer Portal จากนั้นลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "สมัครพอร์ทัลนักพัฒนาของ FedEx และสร้างโปรเจกต์", "p": "สมัครพอร์ทัลนักพัฒนาของ FedEx และสร้างโปรเจกต์", "path": "https://developer.fedex.com" },
+              { "h3": "ออก API Key·Secret", "p": "เมื่อสร้างโปรเจกต์ จะมีการออก API Key/Secret", "path": "สร้างโปรเจกต์" },
+              { "h3": "ตรวจสอบหมายเลขบัญชี", "p": "ตรวจสอบหมายเลขบัญชี FedEx ของคุณ" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "เมื่อมีการออก API Key·Secret ที่ FedEx Developer Portal แล้ว ถือว่าปกติ" }
+          ]
+        },
+        {
+          "h2": "3. ข้อมูลที่ต้องลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["ฟิลด์", "คำอธิบาย"], "rows": [
+              ["api_key", "API Key ที่ออกแล้ว (Client ID)"],
+              ["api_secret", "API Secret ที่ออกแล้ว (Client Secret, จัดการด้วยความระมัดระวัง)"],
+              ["account_number", "หมายเลขบัญชี FedEx"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "ป้อนและบันทึกใน [ลงทะเบียน] ของ GenieGo Integration Hub ข้อมูลรับรองจะถูกเข้ารหัสขณะจัดเก็บด้วย AES-256-GCM และปิดบังเมื่ออ่าน" }
+          ]
+        },
+        {
+          "h2": "4. ปัญหาที่พบบ่อย",
+          "blocks": [
+            { "type": "table", "head": ["ปัญหา", "สาเหตุ", "วิธีแก้ไข"], "rows": [
+              ["ไม่พบพอร์ทัลนักพัฒนาเฉพาะของ TNT", "TNT ถูกรวมเข้ากับ FedEx จึงไม่มีพอร์ทัลแยกต่างหาก", "สร้างโปรเจกต์ที่ developer.fedex.com เพื่อออก API Key/Secret"],
+              ["ข้อผิดพลาดการตรวจสอบสิทธิ์เมื่อเรียกใช้", "พิมพ์ Secret ผิด หรือขาดหมายเลขบัญชี FedEx", "ตรวจสอบ api_secret และหมายเลขบัญชี (account_number) อีกครั้ง"]
+            ] }
+          ]
+        },
+        {
+          "h2": "รายการตรวจสอบขั้นสุดท้าย",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "ยืนยันแล้วว่า TNT ใช้ข้อมูลรับรองของ FedEx",
+              "สมัครที่ developer.fedex.com และสร้างโปรเจกต์แล้ว",
+              "ตรวจสอบ API Key·Secret และหมายเลขบัญชี FedEx แล้ว",
+              "ป้อน api_key·api_secret·account_number ใน [ลงทะเบียน] ของ GenieGo และบันทึกแล้ว"
+            ] }
+          ]
+        }
+      ]
+    },
+    "vi": {
+      "titleType": "Hướng dẫn cấp API Key",
+      "badge": "Hướng dẫn cho người mới",
+      "intro": "TNT Express đã được FedEx mua lại và sử dụng API Key·Secret được cấp trên Cổng nhà phát triển FedEx (developer.fedex.com) cùng với số tài khoản FedEx của bạn. Hướng dẫn này sẽ chỉ cho bạn cách đăng ký các thông tin xác thực đó trong GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Thời gian dự kiến", "Khoảng 5–15 phút"],
+        ["Tài khoản cần thiết", "Tài khoản FedEx (số tài khoản)"],
+        ["Khóa được cấp", "API Key · API Secret"],
+        ["Kết quả", "Thông tin xác thực API · Số tài khoản"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Trước khi bắt đầu",
+          "desc": "TNT đã được sáp nhập vào FedEx và không có cổng nhà phát triển TNT riêng; nó sử dụng thông tin xác thực của FedEx Developer Portal.",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>Lưu ý:</strong> TNT đã được FedEx mua lại và cấp thông tin xác thực (API Key/Secret) trên FedEx Developer Portal (developer.fedex.com). Không có cổng nhà phát triển TNT riêng, và cần có số tài khoản FedEx." },
+            { "type": "cards", "items": [
+              { "tag": "Chuẩn bị", "h3": "Số tài khoản FedEx", "p": "Bạn cần một số tài khoản FedEx. Số tài khoản được nhập cùng lúc khi đăng ký trong GenieGo." },
+              { "tag": "Khóa được cấp", "h3": "API Key · API Secret", "p": "Khi bạn tạo một dự án trên Cổng nhà phát triển FedEx, một API Key và Secret sẽ được cấp." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Các bước cấp",
+          "desc": "Cấp thông tin xác thực trên FedEx Developer Portal, sau đó đăng ký trong GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Đăng ký FedEx Developer Portal và tạo dự án", "p": "Đăng ký FedEx Developer Portal và tạo một dự án.", "path": "https://developer.fedex.com" },
+              { "h3": "Cấp API Key·Secret", "p": "Khi bạn tạo một dự án, API Key/Secret sẽ được cấp.", "path": "Tạo dự án" },
+              { "h3": "Kiểm tra số tài khoản", "p": "Kiểm tra số tài khoản FedEx của bạn." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Khi API Key·Secret được cấp trên FedEx Developer Portal, mọi thứ đã ổn." }
+          ]
+        },
+        {
+          "h2": "3. Thông tin cần đăng ký trong GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Trường", "Mô tả"], "rows": [
+              ["api_key", "API Key đã được cấp (Client ID)"],
+              ["api_secret", "API Secret đã được cấp (Client Secret, xử lý cẩn thận)"],
+              ["account_number", "Số tài khoản FedEx"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Nhập và lưu trong [Đăng ký] của GenieGo Integration Hub, thông tin xác thực được mã hóa khi lưu trữ bằng AES-256-GCM và được che khi đọc." }
+          ]
+        },
+        {
+          "h2": "4. Sự cố thường gặp",
+          "blocks": [
+            { "type": "table", "head": ["Sự cố", "Nguyên nhân", "Giải pháp"], "rows": [
+              ["Không tìm thấy cổng nhà phát triển riêng của TNT", "TNT đã được sáp nhập vào FedEx nên không có cổng riêng", "Tạo một dự án tại developer.fedex.com để cấp API Key/Secret."],
+              ["Lỗi xác thực khi gọi", "Nhập sai Secret hoặc thiếu số tài khoản FedEx", "Kiểm tra lại api_secret và số tài khoản (account_number)."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Danh sách kiểm tra cuối cùng",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Đã xác nhận rằng TNT sử dụng thông tin xác thực của FedEx.",
+              "Đã đăng ký tại developer.fedex.com và tạo một dự án.",
+              "Đã kiểm tra API Key·Secret và số tài khoản FedEx.",
+              "Đã nhập api_key·api_secret·account_number vào GenieGo [Đăng ký] và lưu."
+            ] }
+          ]
+        }
+      ]
+    },
+    "id": {
+      "titleType": "Panduan Penerbitan API Key",
+      "badge": "Panduan Pemula",
+      "intro": "TNT Express telah diakuisisi oleh FedEx dan menggunakan API Key·Secret yang diterbitkan di FedEx Developer Portal (developer.fedex.com) bersama dengan nomor akun FedEx Anda. Panduan ini memandu Anda mendaftarkan kredensial tersebut di GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Perkiraan waktu", "Sekitar 5–15 menit"],
+        ["Akun yang dibutuhkan", "Akun FedEx (nomor akun)"],
+        ["Kunci yang diterbitkan", "API Key · API Secret"],
+        ["Hasil", "Kredensial API · Nomor akun"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Sebelum Anda Mulai",
+          "desc": "TNT telah digabungkan ke FedEx dan tidak memiliki portal pengembang TNT terpisah; ia menggunakan kredensial FedEx Developer Portal.",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>Catatan:</strong> TNT diakuisisi oleh FedEx dan menerbitkan kredensial (API Key/Secret) di FedEx Developer Portal (developer.fedex.com). Tidak ada portal pengembang TNT terpisah, dan nomor akun FedEx diperlukan." },
+            { "type": "cards", "items": [
+              { "tag": "Persiapan", "h3": "Nomor akun FedEx", "p": "Anda memerlukan nomor akun FedEx. Nomor akun dimasukkan bersamaan saat mendaftar di GenieGo." },
+              { "tag": "Kunci yang diterbitkan", "h3": "API Key · API Secret", "p": "Saat Anda membuat proyek di FedEx Developer Portal, API Key dan Secret akan diterbitkan." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Langkah Penerbitan",
+          "desc": "Terbitkan kredensial Anda di FedEx Developer Portal, lalu daftarkan di GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Daftar FedEx Developer Portal dan buat proyek", "p": "Daftar FedEx Developer Portal dan buat proyek.", "path": "https://developer.fedex.com" },
+              { "h3": "Terbitkan API Key·Secret", "p": "Saat Anda membuat proyek, API Key/Secret akan diterbitkan.", "path": "Buat proyek" },
+              { "h3": "Periksa nomor akun", "p": "Periksa nomor akun FedEx Anda." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Setelah API Key·Secret diterbitkan di FedEx Developer Portal, semuanya sudah benar." }
+          ]
+        },
+        {
+          "h2": "3. Informasi yang Harus Didaftarkan di GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Bidang", "Deskripsi"], "rows": [
+              ["api_key", "API Key yang diterbitkan (Client ID)"],
+              ["api_secret", "API Secret yang diterbitkan (Client Secret, tangani dengan hati-hati)"],
+              ["account_number", "Nomor akun FedEx"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Masukkan dan simpan di [Daftar] GenieGo Integration Hub, kredensial dienkripsi saat disimpan dengan AES-256-GCM dan disamarkan saat dibaca." }
+          ]
+        },
+        {
+          "h2": "4. Masalah Umum",
+          "blocks": [
+            { "type": "table", "head": ["Masalah", "Penyebab", "Solusi"], "rows": [
+              ["Tidak dapat menemukan portal pengembang khusus TNT", "TNT digabungkan ke FedEx, sehingga tidak ada portal terpisah", "Buat proyek di developer.fedex.com untuk menerbitkan API Key/Secret."],
+              ["Kesalahan autentikasi saat melakukan panggilan", "Salah ketik Secret atau nomor akun FedEx tidak ada", "Periksa kembali api_secret dan nomor akun (account_number)."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Daftar Periksa Akhir",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Mengonfirmasi bahwa TNT menggunakan kredensial FedEx.",
+              "Mendaftar di developer.fedex.com dan membuat proyek.",
+              "Memeriksa API Key·Secret dan nomor akun FedEx.",
+              "Memasukkan api_key·api_secret·account_number di GenieGo [Daftar] dan menyimpan."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ar": {
+      "titleType": "دليل إصدار مفتاح API",
+      "badge": "دليل المبتدئين",
+      "intro": "تم الاستحواذ على TNT Express من قبل FedEx وتستخدم مفتاح وسر API (API Key·Secret) الصادر في بوابة مطوري FedEx (developer.fedex.com) إلى جانب رقم حساب FedEx الخاص بك. يرشدك هذا الدليل إلى تسجيل بيانات الاعتماد هذه في GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["الوقت المقدر", "حوالي 5–15 دقيقة"],
+        ["الحساب المطلوب", "حساب FedEx (رقم الحساب)"],
+        ["المفاتيح الصادرة", "API Key · API Secret"],
+        ["النتيجة", "بيانات اعتماد API · رقم الحساب"]
+      ],
+      "sections": [
+        {
+          "h2": "1. قبل أن تبدأ",
+          "desc": "تم دمج TNT في FedEx ولا توجد بوابة مطورين منفصلة لـ TNT؛ فهي تستخدم بيانات اعتماد FedEx Developer Portal.",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>ملاحظة:</strong> تم الاستحواذ على TNT من قبل FedEx وتُصدر بيانات الاعتماد (API Key/Secret) في FedEx Developer Portal (developer.fedex.com). لا توجد بوابة مطورين منفصلة لـ TNT، ورقم حساب FedEx مطلوب." },
+            { "type": "cards", "items": [
+              { "tag": "المتطلبات", "h3": "رقم حساب FedEx", "p": "تحتاج إلى رقم حساب FedEx. يتم إدخال رقم الحساب معًا عند التسجيل في GenieGo." },
+              { "tag": "المفاتيح الصادرة", "h3": "API Key · API Secret", "p": "عند إنشاء مشروع في بوابة مطوري FedEx، يتم إصدار API Key وSecret." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. خطوات الإصدار",
+          "desc": "أصدر بيانات الاعتماد الخاصة بك في FedEx Developer Portal، ثم سجّلها في GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "التسجيل في FedEx Developer Portal وإنشاء مشروع", "p": "سجّل في FedEx Developer Portal وأنشئ مشروعًا.", "path": "https://developer.fedex.com" },
+              { "h3": "إصدار API Key·Secret", "p": "عند إنشاء مشروع، يتم إصدار API Key/Secret.", "path": "إنشاء مشروع" },
+              { "h3": "تحقق من رقم الحساب", "p": "تحقق من رقم حساب FedEx الخاص بك." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "بمجرد إصدار API Key·Secret في FedEx Developer Portal، يكون كل شيء على ما يرام." }
+          ]
+        },
+        {
+          "h2": "3. المعلومات التي يجب تسجيلها في GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["الحقل", "الوصف"], "rows": [
+              ["api_key", "مفتاح API الصادر (Client ID)"],
+              ["api_secret", "سر API الصادر (Client Secret، تعامل معه بحذر)"],
+              ["account_number", "رقم حساب FedEx"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "أدخلها واحفظها في [التسجيل] في GenieGo Integration Hub، ويتم تشفير بيانات الاعتماد أثناء التخزين باستخدام AES-256-GCM وإخفاؤها عند القراءة." }
+          ]
+        },
+        {
+          "h2": "4. المشكلات الشائعة",
+          "blocks": [
+            { "type": "table", "head": ["المشكلة", "السبب", "الحل"], "rows": [
+              ["تعذر العثور على بوابة مطورين خاصة بـ TNT", "تم دمج TNT في FedEx، لذا لا توجد بوابة منفصلة", "أنشئ مشروعًا على developer.fedex.com لإصدار API Key/Secret."],
+              ["خطأ في المصادقة عند إجراء الطلبات", "كتابة Secret بشكل خاطئ أو رقم حساب FedEx مفقود", "تحقق مرة أخرى من api_secret ورقم الحساب (account_number)."]
+            ] }
+          ]
+        },
+        {
+          "h2": "قائمة التحقق النهائية",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "تم التأكد من أن TNT تستخدم بيانات اعتماد FedEx.",
+              "تم التسجيل في developer.fedex.com وإنشاء مشروع.",
+              "تم التحقق من API Key·Secret ورقم حساب FedEx.",
+              "تم إدخال api_key·api_secret·account_number في GenieGo [التسجيل] وحفظها."
+            ] }
+          ]
+        }
+      ]
+    },
+    "es": {
+      "titleType": "Manual de emisión de API Key",
+      "badge": "Guía para principiantes",
+      "intro": "TNT Express fue adquirida por FedEx y utiliza la API Key·Secret emitida en el Portal de Desarrolladores de FedEx (developer.fedex.com) junto con tu número de cuenta de FedEx. Este manual te guía para registrar esas credenciales en el GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tiempo estimado", "Unos 5–15 min"],
+        ["Cuenta necesaria", "Cuenta de FedEx (número de cuenta)"],
+        ["Claves emitidas", "API Key · API Secret"],
+        ["Resultado", "Credenciales de API · Número de cuenta"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de empezar",
+          "desc": "TNT se ha integrado en FedEx y no tiene un portal de desarrolladores de TNT independiente; utiliza las credenciales del FedEx Developer Portal.",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>Aviso:</strong> TNT fue adquirida por FedEx y emite credenciales (API Key/Secret) en el FedEx Developer Portal (developer.fedex.com). No hay un portal de desarrolladores de TNT independiente y se requiere un número de cuenta de FedEx." },
+            { "type": "cards", "items": [
+              { "tag": "Requisitos", "h3": "Número de cuenta de FedEx", "p": "Necesitas un número de cuenta de FedEx. El número de cuenta se introduce junto con el registro en GenieGo." },
+              { "tag": "Claves emitidas", "h3": "API Key · API Secret", "p": "Cuando creas un proyecto en el Portal de Desarrolladores de FedEx, se emiten una API Key y un Secret." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Pasos de emisión",
+          "desc": "Emite tus credenciales en el FedEx Developer Portal y luego regístralas en GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Regístrate en el FedEx Developer Portal y crea un proyecto", "p": "Regístrate en el FedEx Developer Portal y crea un proyecto.", "path": "https://developer.fedex.com" },
+              { "h3": "Emite la API Key·Secret", "p": "Cuando creas un proyecto, se emiten la API Key/Secret.", "path": "Crear proyecto" },
+              { "h3": "Comprueba el número de cuenta", "p": "Comprueba tu número de cuenta de FedEx." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Una vez que se emiten la API Key·Secret en el FedEx Developer Portal, todo está en orden." }
+          ]
+        },
+        {
+          "h2": "3. Información para registrar en GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descripción"], "rows": [
+              ["api_key", "La API Key emitida (Client ID)"],
+              ["api_secret", "El API Secret emitido (Client Secret, manéjalo con cuidado)"],
+              ["account_number", "Número de cuenta de FedEx"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Introdúcelos y guárdalos en [Registrar] del GenieGo Integration Hub, y las credenciales se cifran en reposo con AES-256-GCM y se enmascaran al leerse." }
+          ]
+        },
+        {
+          "h2": "4. Problemas frecuentes",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solución"], "rows": [
+              ["No se encuentra un portal de desarrolladores específico de TNT", "TNT se integró en FedEx, por lo que no hay un portal independiente", "Crea un proyecto en developer.fedex.com para emitir la API Key/Secret."],
+              ["Error de autenticación al hacer llamadas", "Secret mal escrito o número de cuenta de FedEx ausente", "Vuelve a comprobar el api_secret y el número de cuenta (account_number)."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificación final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Confirmé que TNT usa credenciales de FedEx.",
+              "Me registré en developer.fedex.com y creé un proyecto.",
+              "Comprobé la API Key·Secret y el número de cuenta de FedEx.",
+              "Introduje api_key·api_secret·account_number en GenieGo [Registrar] y guardé."
+            ] }
+          ]
+        }
+      ]
+    },
+    "fr": {
+      "titleType": "Manuel d'émission de la clé API",
+      "badge": "Guide du débutant",
+      "intro": "TNT Express a été racheté par FedEx et utilise la clé et le secret API (API Key·Secret) émis sur le portail des développeurs FedEx (developer.fedex.com) ainsi que votre numéro de compte FedEx. Ce manuel vous guide pour enregistrer ces identifiants dans le GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Durée estimée", "Environ 5 à 15 min"],
+        ["Compte requis", "Compte FedEx (numéro de compte)"],
+        ["Clés émises", "API Key · API Secret"],
+        ["Résultat", "Identifiants API · Numéro de compte"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Avant de commencer",
+          "desc": "TNT a été intégré à FedEx et ne dispose pas de portail développeur TNT distinct ; il utilise les identifiants du FedEx Developer Portal.",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>Remarque :</strong> TNT a été racheté par FedEx et émet les identifiants (API Key/Secret) sur le FedEx Developer Portal (developer.fedex.com). Il n'existe pas de portail développeur TNT distinct, et un numéro de compte FedEx est requis." },
+            { "type": "cards", "items": [
+              { "tag": "Prérequis", "h3": "Numéro de compte FedEx", "p": "Vous avez besoin d'un numéro de compte FedEx. Le numéro de compte est saisi en même temps lors de l'enregistrement dans GenieGo." },
+              { "tag": "Clés émises", "h3": "API Key · API Secret", "p": "Lorsque vous créez un projet sur le portail des développeurs FedEx, une API Key et un Secret sont émis." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Étapes d'émission",
+          "desc": "Émettez vos identifiants sur le FedEx Developer Portal, puis enregistrez-les dans GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Inscrivez-vous au FedEx Developer Portal et créez un projet", "p": "Inscrivez-vous au FedEx Developer Portal et créez un projet.", "path": "https://developer.fedex.com" },
+              { "h3": "Émettez l'API Key·Secret", "p": "Lorsque vous créez un projet, l'API Key/Secret sont émis.", "path": "Créer un projet" },
+              { "h3": "Vérifiez le numéro de compte", "p": "Vérifiez votre numéro de compte FedEx." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Une fois l'API Key·Secret émis sur le FedEx Developer Portal, tout est en ordre." }
+          ]
+        },
+        {
+          "h2": "3. Informations à enregistrer dans GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Champ", "Description"], "rows": [
+              ["api_key", "L'API Key émise (Client ID)"],
+              ["api_secret", "L'API Secret émis (Client Secret, à manipuler avec précaution)"],
+              ["account_number", "Numéro de compte FedEx"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Saisissez-les et enregistrez-les dans [Enregistrer] du GenieGo Integration Hub ; les identifiants sont chiffrés au repos avec AES-256-GCM et masqués à la lecture." }
+          ]
+        },
+        {
+          "h2": "4. Problèmes fréquents",
+          "blocks": [
+            { "type": "table", "head": ["Problème", "Cause", "Solution"], "rows": [
+              ["Impossible de trouver un portail développeur spécifique à TNT", "TNT a été intégré à FedEx, il n'y a donc pas de portail distinct", "Créez un projet sur developer.fedex.com pour émettre l'API Key/Secret."],
+              ["Erreur d'authentification lors des appels", "Secret mal saisi ou numéro de compte FedEx manquant", "Vérifiez à nouveau l'api_secret et le numéro de compte (account_number)."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Liste de vérification finale",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Confirmé que TNT utilise les identifiants FedEx.",
+              "Inscrit sur developer.fedex.com et créé un projet.",
+              "Vérifié l'API Key·Secret et le numéro de compte FedEx.",
+              "Saisi api_key·api_secret·account_number dans GenieGo [Enregistrer] et enregistré."
+            ] }
+          ]
+        }
+      ]
+    },
+    "hi": {
+      "titleType": "API Key जारी करने की नियमावली",
+      "badge": "शुरुआती गाइड",
+      "intro": "TNT Express को FedEx ने अधिग्रहित कर लिया है और यह FedEx डेवलपर पोर्टल (developer.fedex.com) पर जारी API Key·Secret का उपयोग आपके FedEx खाता संख्या के साथ करता है। यह नियमावली आपको इन क्रेडेंशियल्स को GenieGo Integration Hub में पंजीकृत करने की प्रक्रिया बताती है।",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["अनुमानित समय", "लगभग 5–15 मिनट"],
+        ["आवश्यक खाता", "FedEx खाता (खाता संख्या)"],
+        ["जारी की गई कुंजियाँ", "API Key · API Secret"],
+        ["परिणाम", "API क्रेडेंशियल · खाता संख्या"]
+      ],
+      "sections": [
+        {
+          "h2": "1. शुरू करने से पहले",
+          "desc": "TNT को FedEx में मिला दिया गया है और इसका कोई अलग TNT डेवलपर पोर्टल नहीं है; यह FedEx Developer Portal के क्रेडेंशियल्स का उपयोग करता है।",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>सूचना:</strong> TNT को FedEx ने अधिग्रहित कर लिया है और यह FedEx Developer Portal (developer.fedex.com) पर क्रेडेंशियल्स (API Key/Secret) जारी करता है। कोई अलग TNT डेवलपर पोर्टल नहीं है, और एक FedEx खाता संख्या आवश्यक है।" },
+            { "type": "cards", "items": [
+              { "tag": "आवश्यकताएँ", "h3": "FedEx खाता संख्या", "p": "आपको एक FedEx खाता संख्या की आवश्यकता है। खाता संख्या GenieGo में पंजीकरण के समय साथ में दर्ज की जाती है।" },
+              { "tag": "जारी की गई कुंजियाँ", "h3": "API Key · API Secret", "p": "जब आप FedEx डेवलपर पोर्टल पर एक प्रोजेक्ट बनाते हैं, तो एक API Key और Secret जारी होते हैं।" }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. जारी करने के चरण",
+          "desc": "FedEx Developer Portal पर अपने क्रेडेंशियल्स जारी करें, फिर GenieGo में पंजीकृत करें।",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "FedEx Developer Portal के लिए साइन अप करें और एक प्रोजेक्ट बनाएँ", "p": "FedEx Developer Portal के लिए साइन अप करें और एक प्रोजेक्ट बनाएँ।", "path": "https://developer.fedex.com" },
+              { "h3": "API Key·Secret जारी करें", "p": "जब आप एक प्रोजेक्ट बनाते हैं, तो API Key/Secret जारी होते हैं।", "path": "प्रोजेक्ट बनाएँ" },
+              { "h3": "खाता संख्या जाँचें", "p": "अपनी FedEx खाता संख्या जाँचें।" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "जब FedEx Developer Portal पर API Key·Secret जारी हो जाते हैं, तो सब कुछ सही है।" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo में पंजीकृत करने योग्य जानकारी",
+          "blocks": [
+            { "type": "table", "head": ["फ़ील्ड", "विवरण"], "rows": [
+              ["api_key", "जारी की गई API Key (Client ID)"],
+              ["api_secret", "जारी किया गया API Secret (Client Secret, सावधानी से संभालें)"],
+              ["account_number", "FedEx खाता संख्या"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "इन्हें GenieGo Integration Hub के [पंजीकरण] में दर्ज करें और सहेजें; क्रेडेंशियल्स AES-256-GCM के साथ संग्रहण में एन्क्रिप्ट किए जाते हैं और पढ़ते समय मास्क किए जाते हैं।" }
+          ]
+        },
+        {
+          "h2": "4. आम समस्याएँ",
+          "blocks": [
+            { "type": "table", "head": ["समस्या", "कारण", "समाधान"], "rows": [
+              ["TNT-विशिष्ट डेवलपर पोर्टल नहीं मिल रहा", "TNT को FedEx में मिला दिया गया है, इसलिए कोई अलग पोर्टल नहीं है", "API Key/Secret जारी करने के लिए developer.fedex.com पर एक प्रोजेक्ट बनाएँ।"],
+              ["कॉल करते समय प्रमाणीकरण त्रुटि", "गलत टाइप किया गया Secret या अनुपस्थित FedEx खाता संख्या", "api_secret और खाता संख्या (account_number) की फिर से जाँच करें।"]
+            ] }
+          ]
+        },
+        {
+          "h2": "अंतिम जाँच सूची",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "पुष्टि की कि TNT FedEx क्रेडेंशियल्स का उपयोग करता है।",
+              "developer.fedex.com पर साइन अप किया और एक प्रोजेक्ट बनाया।",
+              "API Key·Secret और FedEx खाता संख्या की जाँच की।",
+              "GenieGo [पंजीकरण] में api_key·api_secret·account_number दर्ज किया और सहेजा।"
+            ] }
+          ]
+        }
+      ]
+    },
+    "pt": {
+      "titleType": "Manual de emissão de API Key",
+      "badge": "Guia para iniciantes",
+      "intro": "A TNT Express foi adquirida pela FedEx e utiliza a API Key·Secret emitida no Portal de Desenvolvedores da FedEx (developer.fedex.com) junto com o seu número de conta FedEx. Este manual orienta você no registro dessas credenciais no GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tempo estimado", "Cerca de 5–15 min"],
+        ["Conta necessária", "Conta FedEx (número da conta)"],
+        ["Chaves emitidas", "API Key · API Secret"],
+        ["Resultado", "Credenciais de API · Número da conta"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de começar",
+          "desc": "A TNT foi integrada à FedEx e não tem um portal de desenvolvedores TNT separado; ela usa as credenciais do FedEx Developer Portal.",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>Aviso:</strong> A TNT foi adquirida pela FedEx e emite credenciais (API Key/Secret) no FedEx Developer Portal (developer.fedex.com). Não há um portal de desenvolvedores TNT separado, e um número de conta FedEx é necessário." },
+            { "type": "cards", "items": [
+              { "tag": "Requisitos", "h3": "Número de conta FedEx", "p": "Você precisa de um número de conta FedEx. O número da conta é inserido junto no momento do registro no GenieGo." },
+              { "tag": "Chaves emitidas", "h3": "API Key · API Secret", "p": "Quando você cria um projeto no Portal de Desenvolvedores da FedEx, uma API Key e um Secret são emitidos." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Etapas de emissão",
+          "desc": "Emita suas credenciais no FedEx Developer Portal e depois registre-as no GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Cadastre-se no FedEx Developer Portal e crie um projeto", "p": "Cadastre-se no FedEx Developer Portal e crie um projeto.", "path": "https://developer.fedex.com" },
+              { "h3": "Emita a API Key·Secret", "p": "Quando você cria um projeto, a API Key/Secret são emitidos.", "path": "Criar projeto" },
+              { "h3": "Verifique o número da conta", "p": "Verifique o seu número de conta FedEx." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Assim que a API Key·Secret forem emitidos no FedEx Developer Portal, está tudo certo." }
+          ]
+        },
+        {
+          "h2": "3. Informações para registrar no GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descrição"], "rows": [
+              ["api_key", "A API Key emitida (Client ID)"],
+              ["api_secret", "O API Secret emitido (Client Secret, manuseie com cuidado)"],
+              ["account_number", "Número de conta FedEx"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Insira-os e salve-os em [Registrar] do GenieGo Integration Hub; as credenciais são criptografadas em repouso com AES-256-GCM e mascaradas na leitura." }
+          ]
+        },
+        {
+          "h2": "4. Problemas comuns",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solução"], "rows": [
+              ["Não é possível encontrar um portal de desenvolvedores específico da TNT", "A TNT foi integrada à FedEx, portanto não há um portal separado", "Crie um projeto em developer.fedex.com para emitir a API Key/Secret."],
+              ["Erro de autenticação ao fazer chamadas", "Secret digitado incorretamente ou número de conta FedEx ausente", "Verifique novamente o api_secret e o número da conta (account_number)."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificação final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Confirmei que a TNT usa credenciais da FedEx.",
+              "Cadastrei-me em developer.fedex.com e criei um projeto.",
+              "Verifiquei a API Key·Secret e o número de conta FedEx.",
+              "Inseri api_key·api_secret·account_number no GenieGo [Registrar] e salvei."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ru": {
+      "titleType": "Руководство по выпуску API Key",
+      "badge": "Руководство для начинающих",
+      "intro": "TNT Express была приобретена компанией FedEx и использует API Key·Secret, выпущенные на портале разработчиков FedEx (developer.fedex.com), вместе с вашим номером счёта FedEx. Это руководство покажет, как зарегистрировать эти учётные данные в GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Примерное время", "Около 5–15 мин"],
+        ["Необходимая учётная запись", "Учётная запись FedEx (номер счёта)"],
+        ["Выпускаемые ключи", "API Key · API Secret"],
+        ["Результат", "Учётные данные API · Номер счёта"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Прежде чем начать",
+          "desc": "TNT интегрирована в FedEx и не имеет отдельного портала разработчиков TNT; она использует учётные данные FedEx Developer Portal.",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>Примечание:</strong> TNT была приобретена компанией FedEx и выпускает учётные данные (API Key/Secret) на FedEx Developer Portal (developer.fedex.com). Отдельного портала разработчиков TNT нет, и требуется номер счёта FedEx." },
+            { "type": "cards", "items": [
+              { "tag": "Требования", "h3": "Номер счёта FedEx", "p": "Вам нужен номер счёта FedEx. Номер счёта вводится одновременно при регистрации в GenieGo." },
+              { "tag": "Выпускаемые ключи", "h3": "API Key · API Secret", "p": "Когда вы создаёте проект на портале разработчиков FedEx, выпускаются API Key и Secret." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Шаги выпуска",
+          "desc": "Выпустите учётные данные на FedEx Developer Portal, затем зарегистрируйте их в GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Зарегистрируйтесь на FedEx Developer Portal и создайте проект", "p": "Зарегистрируйтесь на FedEx Developer Portal и создайте проект.", "path": "https://developer.fedex.com" },
+              { "h3": "Выпустите API Key·Secret", "p": "Когда вы создаёте проект, выпускаются API Key/Secret.", "path": "Создать проект" },
+              { "h3": "Проверьте номер счёта", "p": "Проверьте свой номер счёта FedEx." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Как только API Key·Secret выпущены на FedEx Developer Portal, всё в порядке." }
+          ]
+        },
+        {
+          "h2": "3. Информация для регистрации в GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Поле", "Описание"], "rows": [
+              ["api_key", "Выпущенный API Key (Client ID)"],
+              ["api_secret", "Выпущенный API Secret (Client Secret, обращайтесь осторожно)"],
+              ["account_number", "Номер счёта FedEx"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Введите и сохраните их в [Регистрация] GenieGo Integration Hub; учётные данные шифруются при хранении с помощью AES-256-GCM и маскируются при чтении." }
+          ]
+        },
+        {
+          "h2": "4. Частые проблемы",
+          "blocks": [
+            { "type": "table", "head": ["Проблема", "Причина", "Решение"], "rows": [
+              ["Не удаётся найти специальный портал разработчиков TNT", "TNT интегрирована в FedEx, поэтому отдельного портала нет", "Создайте проект на developer.fedex.com, чтобы выпустить API Key/Secret."],
+              ["Ошибка аутентификации при вызовах", "Неверно введённый Secret или отсутствующий номер счёта FedEx", "Перепроверьте api_secret и номер счёта (account_number)."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Итоговый контрольный список",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Подтвердил, что TNT использует учётные данные FedEx.",
+              "Зарегистрировался на developer.fedex.com и создал проект.",
+              "Проверил API Key·Secret и номер счёта FedEx.",
+              "Ввёл api_key·api_secret·account_number в GenieGo [Регистрация] и сохранил."
+            ] }
+          ]
+        }
+      ]
+    }
+  }
+}

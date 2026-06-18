@@ -1,0 +1,996 @@
+{
+  "name": "NHN KCP",
+  "icon": "💳",
+  "langs": {
+    "ko": {
+      "titleType": "API Key 발급 매뉴얼",
+      "badge": "Beginner Guide",
+      "intro": "NHN KCP 가맹점 관리자에서 사이트코드(site_cd)와 사이트키를 발급·확인하고 GenieGo 연동 허브에 등록하는 과정을 정리한 매뉴얼입니다.",
+      "org": "GenieGo 연동 허브",
+      "quick": [
+        ["소요 시간", "약 5~10분"],
+        ["필요 계정", "NHN KCP 가맹점 계약·관리자 계정"],
+        ["발급 키", "사이트 코드 · 사이트 키"],
+        ["결과물", "결제 연동 자격증명"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 시작하기 전에",
+          "desc": "NHN KCP는 가맹점 계약 후 관리자에서 사이트 정보를 발급합니다.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "필요", "h3": "가맹점 계약·관리자 계정", "p": "NHN KCP 가맹점 계약이 완료되어 있어야 하며, 가맹점 관리자에 로그인할 수 있어야 합니다." },
+              { "tag": "발급 키", "h3": "사이트코드 · 사이트키", "p": "가맹점 관리자에서 사이트코드(site_cd)와 사이트키를 발급하거나 확인합니다." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>참고:</strong> 등록에는 사이트코드(site_cd)와 사이트키 두 가지가 필요합니다." }
+          ]
+        },
+        {
+          "h2": "2. 발급 단계",
+          "desc": "아래 순서대로 발급하고 GenieGo에 등록합니다.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "가맹점 관리자 로그인", "p": "NHN KCP 가맹점 관리자에 로그인합니다.", "path": "https://admin8.kcp.co.kr" },
+              { "h3": "사이트코드·사이트키 발급", "p": "사이트코드(site_cd)와 사이트키를 발급하거나 확인합니다." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "사이트코드와 사이트키가 확인되면 등록 준비가 완료된 것입니다." }
+          ]
+        },
+        {
+          "h2": "3. GenieGo에 등록할 정보",
+          "blocks": [
+            { "type": "table", "head": ["필드", "설명"], "rows": [
+              ["site_cd", "발급된 사이트코드"],
+              ["site_key", "발급된 사이트키(노출 주의)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 연동 허브 [등록]에 입력해 저장하면 자격증명은 AES-256-GCM으로 암호화 저장되고 조회 시 마스킹됩니다." }
+          ]
+        },
+        {
+          "h2": "4. 자주 발생하는 문제",
+          "blocks": [
+            { "type": "table", "head": ["문제", "원인", "해결"], "rows": [
+              ["관리자 로그인 불가", "가맹점 계약 미완료", "가맹점 계약을 완료한 관리자 계정으로 로그인합니다."],
+              ["결제 인증 실패", "사이트코드 또는 사이트키 오기재", "가맹점 관리자에서 발급한 site_cd·site_key를 다시 확인합니다."]
+            ] }
+          ]
+        },
+        {
+          "h2": "최종 체크리스트",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "NHN KCP 가맹점 계약을 완료하고 가맹점 관리자에 로그인했다.",
+              "사이트코드(site_cd)와 사이트키를 발급·확인했다.",
+              "GenieGo [등록]에 site_cd·site_key를 입력해 저장했다.",
+              "저장 후 자격증명이 마스킹되어 표시되는지 확인했다."
+            ] }
+          ]
+        }
+      ]
+    },
+    "en": {
+      "titleType": "API Key Issuance Manual",
+      "badge": "Beginner Guide",
+      "intro": "A guide that walks you through issuing and verifying your site code (site_cd) and site key in the NHN KCP merchant admin, and registering them in the GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Est. time", "About 5–10 min"],
+        ["Account needed", "NHN KCP merchant contract · admin account"],
+        ["Keys issued", "Site code · Site key"],
+        ["Result", "Payment integration credentials"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Before You Begin",
+          "desc": "With NHN KCP, you issue your site information in the admin after a merchant contract is in place.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Required", "h3": "Merchant contract · Admin account", "p": "Your NHN KCP merchant contract must be completed, and you must be able to sign in to the merchant admin." },
+              { "tag": "Keys issued", "h3": "Site code · Site key", "p": "In the merchant admin, issue or verify your site code (site_cd) and site key." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Note:</strong> Registration requires two values: the site code (site_cd) and the site key." }
+          ]
+        },
+        {
+          "h2": "2. Issuance Steps",
+          "desc": "Issue in the order below and register in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Sign in to the merchant admin", "p": "Sign in to the NHN KCP merchant admin.", "path": "https://admin8.kcp.co.kr" },
+              { "h3": "Issue your site code and site key", "p": "Issue or verify your site code (site_cd) and site key." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Once you have confirmed your site code and site key, you are ready to register." }
+          ]
+        },
+        {
+          "h2": "3. Information to Register in GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Field", "Description"], "rows": [
+              ["site_cd", "The issued site code"],
+              ["site_key", "The issued site key (handle with care)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Enter the values in the GenieGo Integration Hub [Register] and save. Credentials are encrypted at rest with AES-256-GCM and masked on read." }
+          ]
+        },
+        {
+          "h2": "4. Common Issues",
+          "blocks": [
+            { "type": "table", "head": ["Issue", "Cause", "Solution"], "rows": [
+              ["Cannot sign in to the admin", "Merchant contract not completed", "Sign in with an admin account whose merchant contract is completed."],
+              ["Payment authentication fails", "Site code or site key entered incorrectly", "Re-check the site_cd·site_key issued in the merchant admin."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Final Checklist",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Completed the NHN KCP merchant contract and signed in to the merchant admin.",
+              "Issued and verified the site code (site_cd) and site key.",
+              "Entered site_cd·site_key in GenieGo [Register] and saved.",
+              "Confirmed that the credentials are displayed masked after saving."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ja": {
+      "titleType": "API Key 発行マニュアル",
+      "badge": "初心者ガイド",
+      "intro": "NHN KCP 加盟店管理者でサイトコード(site_cd)とサイトキーを発行・確認し、GenieGo 連携ハブに登録する手順をまとめたマニュアルです。",
+      "org": "GenieGo 連携ハブ",
+      "quick": [
+        ["所要時間", "約 5〜10 分"],
+        ["必要なアカウント", "NHN KCP 加盟店契約・管理者アカウント"],
+        ["発行するキー", "サイトコード · サイトキー"],
+        ["成果物", "決済連携の認証情報"]
+      ],
+      "sections": [
+        {
+          "h2": "1. はじめる前に",
+          "desc": "NHN KCP は加盟店契約後、管理者でサイト情報を発行します。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必須", "h3": "加盟店契約・管理者アカウント", "p": "NHN KCP の加盟店契約が完了しており、加盟店管理者にログインできる必要があります。" },
+              { "tag": "発行するキー", "h3": "サイトコード · サイトキー", "p": "加盟店管理者でサイトコード(site_cd)とサイトキーを発行または確認します。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> 登録にはサイトコード(site_cd)とサイトキーの 2 つが必要です。" }
+          ]
+        },
+        {
+          "h2": "2. 発行手順",
+          "desc": "以下の順序で発行し、GenieGo に登録します。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "加盟店管理者にログイン", "p": "NHN KCP 加盟店管理者にログインします。", "path": "https://admin8.kcp.co.kr" },
+              { "h3": "サイトコード・サイトキーの発行", "p": "サイトコード(site_cd)とサイトキーを発行または確認します。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "サイトコードとサイトキーが確認できれば、登録の準備が完了です。" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo に登録する情報",
+          "blocks": [
+            { "type": "table", "head": ["フィールド", "説明"], "rows": [
+              ["site_cd", "発行されたサイトコード"],
+              ["site_key", "発行されたサイトキー(取り扱い注意)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 連携ハブの [登録] に入力して保存すると、認証情報は AES-256-GCM で暗号化して保存され、閲覧時にはマスキングされます。" }
+          ]
+        },
+        {
+          "h2": "4. よくある問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["管理者にログインできない", "加盟店契約が未完了", "加盟店契約が完了した管理者アカウントでログインします。"],
+              ["決済認証に失敗する", "サイトコードまたはサイトキーの誤記", "加盟店管理者で発行した site_cd·site_key を再度確認します。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終チェックリスト",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "NHN KCP 加盟店契約を完了し、加盟店管理者にログインした。",
+              "サイトコード(site_cd)とサイトキーを発行・確認した。",
+              "GenieGo の [登録] に site_cd·site_key を入力して保存した。",
+              "保存後、認証情報がマスキングされて表示されることを確認した。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh": {
+      "titleType": "API Key 申请手册",
+      "badge": "新手指南",
+      "intro": "本手册整理了在 NHN KCP 商户管理后台签发并确认站点代码(site_cd)和站点密钥，并将其注册到 GenieGo 集成中心的流程。",
+      "org": "GenieGo 集成中心",
+      "quick": [
+        ["预计时间", "约 5~10 分钟"],
+        ["所需账户", "NHN KCP 商户合同·管理员账户"],
+        ["签发密钥", "站点代码 · 站点密钥"],
+        ["成果", "支付集成凭证"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 开始之前",
+          "desc": "NHN KCP 在签订商户合同后，于管理后台签发站点信息。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "商户合同·管理员账户", "p": "您必须已完成 NHN KCP 商户合同，并能够登录商户管理后台。" },
+              { "tag": "签发密钥", "h3": "站点代码 · 站点密钥", "p": "在商户管理后台签发或确认站点代码(site_cd)和站点密钥。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> 注册需要站点代码(site_cd)和站点密钥两项内容。" }
+          ]
+        },
+        {
+          "h2": "2. 申请步骤",
+          "desc": "按以下顺序签发并在 GenieGo 中注册。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "登录商户管理后台", "p": "登录 NHN KCP 商户管理后台。", "path": "https://admin8.kcp.co.kr" },
+              { "h3": "签发站点代码·站点密钥", "p": "签发或确认站点代码(site_cd)和站点密钥。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "确认站点代码和站点密钥后，即表示注册准备已完成。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中注册的信息",
+          "blocks": [
+            { "type": "table", "head": ["字段", "说明"], "rows": [
+              ["site_cd", "签发的站点代码"],
+              ["site_key", "签发的站点密钥(请妥善保管)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 集成中心的 [注册] 中输入并保存后，凭证将以 AES-256-GCM 加密存储，并在查询时进行掩码处理。" }
+          ]
+        },
+        {
+          "h2": "4. 常见问题",
+          "blocks": [
+            { "type": "table", "head": ["问题", "原因", "解决方法"], "rows": [
+              ["无法登录管理后台", "商户合同未完成", "使用已完成商户合同的管理员账户登录。"],
+              ["支付认证失败", "站点代码或站点密钥填写有误", "在商户管理后台重新确认签发的 site_cd·site_key。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最终检查清单",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已完成 NHN KCP 商户合同并登录商户管理后台。",
+              "已签发并确认站点代码(site_cd)和站点密钥。",
+              "已在 GenieGo 的 [注册] 中输入 site_cd·site_key 并保存。",
+              "已确认保存后凭证以掩码形式显示。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh-TW": {
+      "titleType": "API Key 申請手冊",
+      "badge": "新手指南",
+      "intro": "本手冊整理了在 NHN KCP 商戶管理後台簽發並確認網站代碼(site_cd)和網站金鑰，並將其註冊到 GenieGo 整合中心的流程。",
+      "org": "GenieGo 整合中心",
+      "quick": [
+        ["預計時間", "約 5~10 分鐘"],
+        ["所需帳戶", "NHN KCP 商戶合約·管理員帳戶"],
+        ["簽發金鑰", "網站代碼 · 網站金鑰"],
+        ["成果", "支付整合憑證"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 開始之前",
+          "desc": "NHN KCP 在簽訂商戶合約後，於管理後台簽發網站資訊。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "商戶合約·管理員帳戶", "p": "您必須已完成 NHN KCP 商戶合約，並能夠登入商戶管理後台。" },
+              { "tag": "簽發金鑰", "h3": "網站代碼 · 網站金鑰", "p": "在商戶管理後台簽發或確認網站代碼(site_cd)和網站金鑰。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> 註冊需要網站代碼(site_cd)和網站金鑰兩項內容。" }
+          ]
+        },
+        {
+          "h2": "2. 簽發步驟",
+          "desc": "依以下順序簽發並在 GenieGo 中註冊。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "登入商戶管理後台", "p": "登入 NHN KCP 商戶管理後台。", "path": "https://admin8.kcp.co.kr" },
+              { "h3": "簽發網站代碼·網站金鑰", "p": "簽發或確認網站代碼(site_cd)和網站金鑰。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "確認網站代碼和網站金鑰後，即表示註冊準備已完成。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中註冊的資訊",
+          "blocks": [
+            { "type": "table", "head": ["欄位", "說明"], "rows": [
+              ["site_cd", "簽發的網站代碼"],
+              ["site_key", "簽發的網站金鑰(請妥善保管)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 整合中心的 [註冊] 中輸入並儲存後，憑證將以 AES-256-GCM 加密儲存，並在查詢時進行遮罩處理。" }
+          ]
+        },
+        {
+          "h2": "4. 常見問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["無法登入管理後台", "商戶合約未完成", "使用已完成商戶合約的管理員帳戶登入。"],
+              ["支付認證失敗", "網站代碼或網站金鑰填寫有誤", "在商戶管理後台重新確認簽發的 site_cd·site_key。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終檢查清單",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已完成 NHN KCP 商戶合約並登入商戶管理後台。",
+              "已簽發並確認網站代碼(site_cd)和網站金鑰。",
+              "已在 GenieGo 的 [註冊] 中輸入 site_cd·site_key 並儲存。",
+              "已確認儲存後憑證以遮罩形式顯示。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "de": {
+      "titleType": "Anleitung zur API-Key-Ausstellung",
+      "badge": "Einsteigerleitfaden",
+      "intro": "Eine Anleitung, die Sie durch das Ausstellen und Überprüfen Ihres Site-Codes (site_cd) und Site-Keys im NHN-KCP-Händler-Admin und das Registrieren im GenieGo Integration Hub führt.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Geschätzte Zeit", "Etwa 5–10 Min."],
+        ["Benötigtes Konto", "NHN-KCP-Händlervertrag · Admin-Konto"],
+        ["Ausgestellte Schlüssel", "Site-Code · Site-Key"],
+        ["Ergebnis", "Anmeldedaten für Zahlungsintegration"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Bevor Sie beginnen",
+          "desc": "Bei NHN KCP stellen Sie Ihre Site-Informationen nach Abschluss eines Händlervertrags im Admin aus.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Erforderlich", "h3": "Händlervertrag · Admin-Konto", "p": "Ihr NHN-KCP-Händlervertrag muss abgeschlossen sein, und Sie müssen sich beim Händler-Admin anmelden können." },
+              { "tag": "Ausgestellte Schlüssel", "h3": "Site-Code · Site-Key", "p": "Stellen Sie im Händler-Admin Ihren Site-Code (site_cd) und Site-Key aus oder überprüfen Sie ihn." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Hinweis:</strong> Für die Registrierung sind zwei Werte erforderlich: der Site-Code (site_cd) und der Site-Key." }
+          ]
+        },
+        {
+          "h2": "2. Ausstellungsschritte",
+          "desc": "Stellen Sie in der unten angegebenen Reihenfolge aus und registrieren Sie in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Beim Händler-Admin anmelden", "p": "Melden Sie sich beim NHN-KCP-Händler-Admin an.", "path": "https://admin8.kcp.co.kr" },
+              { "h3": "Site-Code und Site-Key ausstellen", "p": "Stellen Sie Ihren Site-Code (site_cd) und Site-Key aus oder überprüfen Sie ihn." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Sobald Sie Ihren Site-Code und Site-Key bestätigt haben, sind Sie bereit zur Registrierung." }
+          ]
+        },
+        {
+          "h2": "3. In GenieGo zu registrierende Informationen",
+          "blocks": [
+            { "type": "table", "head": ["Feld", "Beschreibung"], "rows": [
+              ["site_cd", "Der ausgestellte Site-Code"],
+              ["site_key", "Der ausgestellte Site-Key (vertraulich behandeln)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Geben Sie die Werte im GenieGo Integration Hub unter [Registrieren] ein und speichern Sie. Anmeldedaten werden im Ruhezustand mit AES-256-GCM verschlüsselt und beim Lesen maskiert." }
+          ]
+        },
+        {
+          "h2": "4. Häufige Probleme",
+          "blocks": [
+            { "type": "table", "head": ["Problem", "Ursache", "Lösung"], "rows": [
+              ["Anmeldung beim Admin nicht möglich", "Händlervertrag nicht abgeschlossen", "Melden Sie sich mit einem Admin-Konto an, dessen Händlervertrag abgeschlossen ist."],
+              ["Zahlungsauthentifizierung schlägt fehl", "Site-Code oder Site-Key falsch eingegeben", "Überprüfen Sie den im Händler-Admin ausgestellten site_cd·site_key erneut."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Abschließende Checkliste",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Den NHN-KCP-Händlervertrag abgeschlossen und sich beim Händler-Admin angemeldet.",
+              "Den Site-Code (site_cd) und Site-Key ausgestellt und überprüft.",
+              "site_cd·site_key in GenieGo [Registrieren] eingegeben und gespeichert.",
+              "Bestätigt, dass die Anmeldedaten nach dem Speichern maskiert angezeigt werden."
+            ] }
+          ]
+        }
+      ]
+    },
+    "th": {
+      "titleType": "คู่มือการออก API Key",
+      "badge": "คู่มือสำหรับผู้เริ่มต้น",
+      "intro": "คู่มือที่แนะนำขั้นตอนการออกและตรวจสอบรหัสไซต์ (site_cd) และคีย์ไซต์ในผู้ดูแลร้านค้า NHN KCP และลงทะเบียนใน GenieGo Integration Hub",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["เวลาโดยประมาณ", "ประมาณ 5–10 นาที"],
+        ["บัญชีที่ต้องใช้", "สัญญาร้านค้า NHN KCP · บัญชีผู้ดูแล"],
+        ["คีย์ที่ออก", "รหัสไซต์ · คีย์ไซต์"],
+        ["ผลลัพธ์", "ข้อมูลรับรองการเชื่อมต่อการชำระเงิน"]
+      ],
+      "sections": [
+        {
+          "h2": "1. ก่อนเริ่มต้น",
+          "desc": "NHN KCP จะออกข้อมูลไซต์ในส่วนผู้ดูแลหลังจากทำสัญญาร้านค้าแล้ว",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "จำเป็น", "h3": "สัญญาร้านค้า · บัญชีผู้ดูแล", "p": "สัญญาร้านค้า NHN KCP ของคุณต้องเสร็จสมบูรณ์ และคุณต้องสามารถลงชื่อเข้าใช้ผู้ดูแลร้านค้าได้" },
+              { "tag": "คีย์ที่ออก", "h3": "รหัสไซต์ · คีย์ไซต์", "p": "ออกหรือตรวจสอบรหัสไซต์ (site_cd) และคีย์ไซต์ในผู้ดูแลร้านค้า" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>หมายเหตุ:</strong> การลงทะเบียนต้องใช้สองค่า ได้แก่ รหัสไซต์ (site_cd) และคีย์ไซต์" }
+          ]
+        },
+        {
+          "h2": "2. ขั้นตอนการออก",
+          "desc": "ออกตามลำดับด้านล่างและลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "ลงชื่อเข้าใช้ผู้ดูแลร้านค้า", "p": "ลงชื่อเข้าใช้ผู้ดูแลร้านค้า NHN KCP", "path": "https://admin8.kcp.co.kr" },
+              { "h3": "ออกรหัสไซต์·คีย์ไซต์", "p": "ออกหรือตรวจสอบรหัสไซต์ (site_cd) และคีย์ไซต์" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "เมื่อคุณยืนยันรหัสไซต์และคีย์ไซต์แล้ว แสดงว่าพร้อมสำหรับการลงทะเบียน" }
+          ]
+        },
+        {
+          "h2": "3. ข้อมูลที่ต้องลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["ฟิลด์", "คำอธิบาย"], "rows": [
+              ["site_cd", "รหัสไซต์ที่ออกแล้ว"],
+              ["site_key", "คีย์ไซต์ที่ออกแล้ว (จัดการด้วยความระมัดระวัง)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "ป้อนค่าใน GenieGo Integration Hub ที่ [ลงทะเบียน] แล้วบันทึก ข้อมูลรับรองจะถูกเข้ารหัสขณะจัดเก็บด้วย AES-256-GCM และปิดบังเมื่ออ่าน" }
+          ]
+        },
+        {
+          "h2": "4. ปัญหาที่พบบ่อย",
+          "blocks": [
+            { "type": "table", "head": ["ปัญหา", "สาเหตุ", "วิธีแก้ไข"], "rows": [
+              ["ไม่สามารถลงชื่อเข้าใช้ผู้ดูแลได้", "สัญญาร้านค้ายังไม่เสร็จสมบูรณ์", "ลงชื่อเข้าใช้ด้วยบัญชีผู้ดูแลที่สัญญาร้านค้าเสร็จสมบูรณ์แล้ว"],
+              ["การยืนยันการชำระเงินล้มเหลว", "ป้อนรหัสไซต์หรือคีย์ไซต์ไม่ถูกต้อง", "ตรวจสอบ site_cd·site_key ที่ออกในผู้ดูแลร้านค้าอีกครั้ง"]
+            ] }
+          ]
+        },
+        {
+          "h2": "รายการตรวจสอบขั้นสุดท้าย",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "ทำสัญญาร้านค้า NHN KCP เสร็จสมบูรณ์และลงชื่อเข้าใช้ผู้ดูแลร้านค้าแล้ว",
+              "ออกและตรวจสอบรหัสไซต์ (site_cd) และคีย์ไซต์แล้ว",
+              "ป้อน site_cd·site_key ใน GenieGo [ลงทะเบียน] และบันทึกแล้ว",
+              "ยืนยันแล้วว่าข้อมูลรับรองแสดงแบบปิดบังหลังจากบันทึก"
+            ] }
+          ]
+        }
+      ]
+    },
+    "vi": {
+      "titleType": "Hướng dẫn cấp API Key",
+      "badge": "Hướng dẫn cho người mới",
+      "intro": "Hướng dẫn giúp bạn cấp và xác minh mã site (site_cd) và khóa site trong trang quản trị đại lý NHN KCP, rồi đăng ký chúng trong GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Thời gian dự kiến", "Khoảng 5–10 phút"],
+        ["Tài khoản cần thiết", "Hợp đồng đại lý NHN KCP · tài khoản quản trị"],
+        ["Khóa được cấp", "Mã site · Khóa site"],
+        ["Kết quả", "Thông tin xác thực tích hợp thanh toán"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Trước khi bắt đầu",
+          "desc": "Với NHN KCP, bạn cấp thông tin site trong trang quản trị sau khi đã có hợp đồng đại lý.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Bắt buộc", "h3": "Hợp đồng đại lý · Tài khoản quản trị", "p": "Hợp đồng đại lý NHN KCP của bạn phải được hoàn tất, và bạn phải đăng nhập được vào trang quản trị đại lý." },
+              { "tag": "Khóa được cấp", "h3": "Mã site · Khóa site", "p": "Trong trang quản trị đại lý, cấp hoặc xác minh mã site (site_cd) và khóa site." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Lưu ý:</strong> Việc đăng ký cần hai giá trị: mã site (site_cd) và khóa site." }
+          ]
+        },
+        {
+          "h2": "2. Các bước cấp",
+          "desc": "Cấp theo thứ tự dưới đây và đăng ký trong GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Đăng nhập vào trang quản trị đại lý", "p": "Đăng nhập vào trang quản trị đại lý NHN KCP.", "path": "https://admin8.kcp.co.kr" },
+              { "h3": "Cấp mã site và khóa site", "p": "Cấp hoặc xác minh mã site (site_cd) và khóa site." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Khi bạn đã xác nhận mã site và khóa site, bạn đã sẵn sàng để đăng ký." }
+          ]
+        },
+        {
+          "h2": "3. Thông tin cần đăng ký trong GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Trường", "Mô tả"], "rows": [
+              ["site_cd", "Mã site đã được cấp"],
+              ["site_key", "Khóa site đã được cấp (xử lý cẩn thận)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Nhập các giá trị trong GenieGo Integration Hub tại [Đăng ký] rồi lưu. Thông tin xác thực được mã hóa khi lưu trữ bằng AES-256-GCM và được che khi đọc." }
+          ]
+        },
+        {
+          "h2": "4. Sự cố thường gặp",
+          "blocks": [
+            { "type": "table", "head": ["Sự cố", "Nguyên nhân", "Giải pháp"], "rows": [
+              ["Không thể đăng nhập vào trang quản trị", "Hợp đồng đại lý chưa hoàn tất", "Đăng nhập bằng tài khoản quản trị có hợp đồng đại lý đã hoàn tất."],
+              ["Xác thực thanh toán thất bại", "Nhập sai mã site hoặc khóa site", "Kiểm tra lại site_cd·site_key đã cấp trong trang quản trị đại lý."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Danh sách kiểm tra cuối cùng",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Đã hoàn tất hợp đồng đại lý NHN KCP và đăng nhập vào trang quản trị đại lý.",
+              "Đã cấp và xác minh mã site (site_cd) và khóa site.",
+              "Đã nhập site_cd·site_key vào GenieGo [Đăng ký] và lưu.",
+              "Đã xác nhận thông tin xác thực được hiển thị che sau khi lưu."
+            ] }
+          ]
+        }
+      ]
+    },
+    "id": {
+      "titleType": "Panduan Penerbitan API Key",
+      "badge": "Panduan Pemula",
+      "intro": "Panduan yang memandu Anda menerbitkan dan memverifikasi kode situs (site_cd) dan kunci situs di admin merchant NHN KCP, lalu mendaftarkannya di GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Perkiraan waktu", "Sekitar 5–10 menit"],
+        ["Akun yang dibutuhkan", "Kontrak merchant NHN KCP · akun admin"],
+        ["Kunci yang diterbitkan", "Kode situs · Kunci situs"],
+        ["Hasil", "Kredensial integrasi pembayaran"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Sebelum Anda Mulai",
+          "desc": "Dengan NHN KCP, Anda menerbitkan informasi situs di admin setelah kontrak merchant selesai.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Diperlukan", "h3": "Kontrak merchant · Akun admin", "p": "Kontrak merchant NHN KCP Anda harus selesai, dan Anda harus dapat masuk ke admin merchant." },
+              { "tag": "Kunci yang diterbitkan", "h3": "Kode situs · Kunci situs", "p": "Di admin merchant, terbitkan atau verifikasi kode situs (site_cd) dan kunci situs Anda." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Catatan:</strong> Pendaftaran memerlukan dua nilai: kode situs (site_cd) dan kunci situs." }
+          ]
+        },
+        {
+          "h2": "2. Langkah Penerbitan",
+          "desc": "Terbitkan sesuai urutan di bawah dan daftarkan di GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Masuk ke admin merchant", "p": "Masuk ke admin merchant NHN KCP.", "path": "https://admin8.kcp.co.kr" },
+              { "h3": "Terbitkan kode situs dan kunci situs", "p": "Terbitkan atau verifikasi kode situs (site_cd) dan kunci situs." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Setelah Anda mengonfirmasi kode situs dan kunci situs, Anda siap untuk mendaftar." }
+          ]
+        },
+        {
+          "h2": "3. Informasi yang Akan Didaftarkan di GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Bidang", "Deskripsi"], "rows": [
+              ["site_cd", "Kode situs yang diterbitkan"],
+              ["site_key", "Kunci situs yang diterbitkan (tangani dengan hati-hati)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Masukkan nilai di GenieGo Integration Hub pada [Daftar] lalu simpan. Kredensial dienkripsi saat disimpan dengan AES-256-GCM dan disamarkan saat dibaca." }
+          ]
+        },
+        {
+          "h2": "4. Masalah Umum",
+          "blocks": [
+            { "type": "table", "head": ["Masalah", "Penyebab", "Solusi"], "rows": [
+              ["Tidak dapat masuk ke admin", "Kontrak merchant belum selesai", "Masuk dengan akun admin yang kontrak merchantnya sudah selesai."],
+              ["Autentikasi pembayaran gagal", "Kode situs atau kunci situs salah dimasukkan", "Periksa kembali site_cd·site_key yang diterbitkan di admin merchant."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Daftar Periksa Akhir",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Menyelesaikan kontrak merchant NHN KCP dan masuk ke admin merchant.",
+              "Menerbitkan dan memverifikasi kode situs (site_cd) dan kunci situs.",
+              "Memasukkan site_cd·site_key di GenieGo [Daftar] dan menyimpan.",
+              "Mengonfirmasi bahwa kredensial ditampilkan tersamar setelah disimpan."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ar": {
+      "titleType": "دليل إصدار مفتاح API",
+      "badge": "دليل المبتدئين",
+      "intro": "دليل يرشدك خلال إصدار رمز الموقع (site_cd) ومفتاح الموقع والتحقق منهما في لوحة إدارة التاجر في NHN KCP، ثم تسجيلهما في GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["الوقت التقديري", "حوالي 5–10 دقائق"],
+        ["الحساب المطلوب", "عقد تاجر NHN KCP · حساب المسؤول"],
+        ["المفاتيح الصادرة", "رمز الموقع · مفتاح الموقع"],
+        ["النتيجة", "بيانات اعتماد تكامل الدفع"]
+      ],
+      "sections": [
+        {
+          "h2": "1. قبل أن تبدأ",
+          "desc": "مع NHN KCP، تُصدر معلومات موقعك في لوحة الإدارة بعد إتمام عقد التاجر.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "مطلوب", "h3": "عقد التاجر · حساب المسؤول", "p": "يجب أن يكون عقد التاجر الخاص بك مع NHN KCP مكتملاً، ويجب أن تتمكن من تسجيل الدخول إلى لوحة إدارة التاجر." },
+              { "tag": "المفاتيح الصادرة", "h3": "رمز الموقع · مفتاح الموقع", "p": "في لوحة إدارة التاجر، أصدر رمز الموقع (site_cd) ومفتاح الموقع أو تحقق منهما." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>ملاحظة:</strong> يتطلب التسجيل قيمتين: رمز الموقع (site_cd) ومفتاح الموقع." }
+          ]
+        },
+        {
+          "h2": "2. خطوات الإصدار",
+          "desc": "أصدر بالترتيب أدناه وسجّل في GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "تسجيل الدخول إلى لوحة إدارة التاجر", "p": "سجّل الدخول إلى لوحة إدارة التاجر في NHN KCP.", "path": "https://admin8.kcp.co.kr" },
+              { "h3": "إصدار رمز الموقع ومفتاح الموقع", "p": "أصدر رمز الموقع (site_cd) ومفتاح الموقع أو تحقق منهما." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "بمجرد تأكيد رمز الموقع ومفتاح الموقع، تكون جاهزاً للتسجيل." }
+          ]
+        },
+        {
+          "h2": "3. المعلومات المطلوب تسجيلها في GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["الحقل", "الوصف"], "rows": [
+              ["site_cd", "رمز الموقع الصادر"],
+              ["site_key", "مفتاح الموقع الصادر (تعامل معه بحذر)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "أدخل القيم في GenieGo Integration Hub ضمن [تسجيل] ثم احفظ. تُشفَّر بيانات الاعتماد عند التخزين باستخدام AES-256-GCM ويتم إخفاؤها عند القراءة." }
+          ]
+        },
+        {
+          "h2": "4. المشكلات الشائعة",
+          "blocks": [
+            { "type": "table", "head": ["المشكلة", "السبب", "الحل"], "rows": [
+              ["تعذّر تسجيل الدخول إلى لوحة الإدارة", "عقد التاجر غير مكتمل", "سجّل الدخول بحساب مسؤول مكتمل عقد التاجر."],
+              ["فشل مصادقة الدفع", "إدخال رمز الموقع أو مفتاح الموقع بشكل خاطئ", "تحقق مرة أخرى من site_cd·site_key الصادر في لوحة إدارة التاجر."]
+            ] }
+          ]
+        },
+        {
+          "h2": "قائمة التحقق النهائية",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "أكملتُ عقد التاجر مع NHN KCP وسجّلتُ الدخول إلى لوحة إدارة التاجر.",
+              "أصدرتُ رمز الموقع (site_cd) ومفتاح الموقع وتحققتُ منهما.",
+              "أدخلتُ site_cd·site_key في GenieGo [تسجيل] وحفظتُ.",
+              "تأكدتُ من عرض بيانات الاعتماد مُخفاة بعد الحفظ."
+            ] }
+          ]
+        }
+      ]
+    },
+    "es": {
+      "titleType": "Manual de emisión de API Key",
+      "badge": "Guía para principiantes",
+      "intro": "Una guía que le acompaña en la emisión y verificación de su código de sitio (site_cd) y clave de sitio en el administrador de comercio de NHN KCP, y su registro en el GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tiempo estimado", "Unos 5–10 min"],
+        ["Cuenta necesaria", "Contrato de comercio NHN KCP · cuenta de administrador"],
+        ["Claves emitidas", "Código de sitio · Clave de sitio"],
+        ["Resultado", "Credenciales de integración de pagos"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de comenzar",
+          "desc": "Con NHN KCP, usted emite la información de su sitio en el administrador después de tener un contrato de comercio.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requerido", "h3": "Contrato de comercio · Cuenta de administrador", "p": "Su contrato de comercio con NHN KCP debe estar completo y debe poder iniciar sesión en el administrador de comercio." },
+              { "tag": "Claves emitidas", "h3": "Código de sitio · Clave de sitio", "p": "En el administrador de comercio, emita o verifique su código de sitio (site_cd) y clave de sitio." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Nota:</strong> El registro requiere dos valores: el código de sitio (site_cd) y la clave de sitio." }
+          ]
+        },
+        {
+          "h2": "2. Pasos de emisión",
+          "desc": "Emita en el orden siguiente y regístrelo en GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Iniciar sesión en el administrador de comercio", "p": "Inicie sesión en el administrador de comercio de NHN KCP.", "path": "https://admin8.kcp.co.kr" },
+              { "h3": "Emitir el código de sitio y la clave de sitio", "p": "Emita o verifique su código de sitio (site_cd) y clave de sitio." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Una vez que haya confirmado su código de sitio y clave de sitio, está listo para registrarse." }
+          ]
+        },
+        {
+          "h2": "3. Información para registrar en GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descripción"], "rows": [
+              ["site_cd", "El código de sitio emitido"],
+              ["site_key", "La clave de sitio emitida (manéjela con cuidado)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Introduzca los valores en el GenieGo Integration Hub en [Registrar] y guarde. Las credenciales se cifran en reposo con AES-256-GCM y se enmascaran al leerlas." }
+          ]
+        },
+        {
+          "h2": "4. Problemas comunes",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solución"], "rows": [
+              ["No se puede iniciar sesión en el administrador", "Contrato de comercio no completado", "Inicie sesión con una cuenta de administrador cuyo contrato de comercio esté completo."],
+              ["Falla la autenticación del pago", "Código de sitio o clave de sitio introducidos incorrectamente", "Vuelva a comprobar el site_cd·site_key emitido en el administrador de comercio."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificación final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Completé el contrato de comercio de NHN KCP e inicié sesión en el administrador de comercio.",
+              "Emití y verifiqué el código de sitio (site_cd) y la clave de sitio.",
+              "Introduje site_cd·site_key en GenieGo [Registrar] y guardé.",
+              "Confirmé que las credenciales se muestran enmascaradas después de guardar."
+            ] }
+          ]
+        }
+      ]
+    },
+    "fr": {
+      "titleType": "Manuel d'émission de la clé API",
+      "badge": "Guide pour débutants",
+      "intro": "Un guide qui vous accompagne dans l'émission et la vérification de votre code de site (site_cd) et de votre clé de site dans l'administration marchand NHN KCP, puis leur enregistrement dans le GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Temps estimé", "Environ 5–10 min"],
+        ["Compte requis", "Contrat marchand NHN KCP · compte administrateur"],
+        ["Clés émises", "Code de site · Clé de site"],
+        ["Résultat", "Identifiants d'intégration de paiement"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Avant de commencer",
+          "desc": "Avec NHN KCP, vous émettez les informations de votre site dans l'administration après la conclusion d'un contrat marchand.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requis", "h3": "Contrat marchand · Compte administrateur", "p": "Votre contrat marchand NHN KCP doit être conclu et vous devez pouvoir vous connecter à l'administration marchand." },
+              { "tag": "Clés émises", "h3": "Code de site · Clé de site", "p": "Dans l'administration marchand, émettez ou vérifiez votre code de site (site_cd) et votre clé de site." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Remarque :</strong> L'enregistrement nécessite deux valeurs : le code de site (site_cd) et la clé de site." }
+          ]
+        },
+        {
+          "h2": "2. Étapes d'émission",
+          "desc": "Émettez dans l'ordre ci-dessous et enregistrez dans GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Se connecter à l'administration marchand", "p": "Connectez-vous à l'administration marchand NHN KCP.", "path": "https://admin8.kcp.co.kr" },
+              { "h3": "Émettre le code de site et la clé de site", "p": "Émettez ou vérifiez votre code de site (site_cd) et votre clé de site." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Une fois votre code de site et votre clé de site confirmés, vous êtes prêt à vous enregistrer." }
+          ]
+        },
+        {
+          "h2": "3. Informations à enregistrer dans GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Champ", "Description"], "rows": [
+              ["site_cd", "Le code de site émis"],
+              ["site_key", "La clé de site émise (à manipuler avec précaution)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Saisissez les valeurs dans le GenieGo Integration Hub sous [Enregistrer] et enregistrez. Les identifiants sont chiffrés au repos avec AES-256-GCM et masqués à la lecture." }
+          ]
+        },
+        {
+          "h2": "4. Problèmes courants",
+          "blocks": [
+            { "type": "table", "head": ["Problème", "Cause", "Solution"], "rows": [
+              ["Impossible de se connecter à l'administration", "Contrat marchand non conclu", "Connectez-vous avec un compte administrateur dont le contrat marchand est conclu."],
+              ["Échec de l'authentification du paiement", "Code de site ou clé de site mal saisis", "Vérifiez à nouveau le site_cd·site_key émis dans l'administration marchand."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Liste de contrôle finale",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "J'ai conclu le contrat marchand NHN KCP et me suis connecté à l'administration marchand.",
+              "J'ai émis et vérifié le code de site (site_cd) et la clé de site.",
+              "J'ai saisi site_cd·site_key dans GenieGo [Enregistrer] et enregistré.",
+              "J'ai confirmé que les identifiants s'affichent masqués après l'enregistrement."
+            ] }
+          ]
+        }
+      ]
+    },
+    "hi": {
+      "titleType": "API Key जारी करने की नियमावली",
+      "badge": "शुरुआती गाइड",
+      "intro": "एक गाइड जो आपको NHN KCP मर्चेंट एडमिन में अपना साइट कोड (site_cd) और साइट की जारी करने व सत्यापित करने, और उन्हें GenieGo Integration Hub में पंजीकृत करने में मार्गदर्शन करती है।",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["अनुमानित समय", "लगभग 5–10 मिनट"],
+        ["आवश्यक खाता", "NHN KCP मर्चेंट अनुबंध · एडमिन खाता"],
+        ["जारी की गई कुंजियाँ", "साइट कोड · साइट की"],
+        ["परिणाम", "भुगतान एकीकरण क्रेडेंशियल"]
+      ],
+      "sections": [
+        {
+          "h2": "1. शुरू करने से पहले",
+          "desc": "NHN KCP के साथ, मर्चेंट अनुबंध पूरा होने के बाद आप एडमिन में अपनी साइट जानकारी जारी करते हैं।",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "आवश्यक", "h3": "मर्चेंट अनुबंध · एडमिन खाता", "p": "आपका NHN KCP मर्चेंट अनुबंध पूरा होना चाहिए, और आपको मर्चेंट एडमिन में साइन इन करने में सक्षम होना चाहिए।" },
+              { "tag": "जारी की गई कुंजियाँ", "h3": "साइट कोड · साइट की", "p": "मर्चेंट एडमिन में अपना साइट कोड (site_cd) और साइट की जारी करें या सत्यापित करें।" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>नोट:</strong> पंजीकरण के लिए दो मान आवश्यक हैं: साइट कोड (site_cd) और साइट की।" }
+          ]
+        },
+        {
+          "h2": "2. जारी करने के चरण",
+          "desc": "नीचे दिए क्रम में जारी करें और GenieGo में पंजीकृत करें।",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "मर्चेंट एडमिन में साइन इन करें", "p": "NHN KCP मर्चेंट एडमिन में साइन इन करें।", "path": "https://admin8.kcp.co.kr" },
+              { "h3": "साइट कोड और साइट की जारी करें", "p": "अपना साइट कोड (site_cd) और साइट की जारी करें या सत्यापित करें।" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "एक बार जब आप अपना साइट कोड और साइट की पुष्टि कर लें, तो आप पंजीकरण के लिए तैयार हैं।" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo में पंजीकृत करने योग्य जानकारी",
+          "blocks": [
+            { "type": "table", "head": ["फ़ील्ड", "विवरण"], "rows": [
+              ["site_cd", "जारी किया गया साइट कोड"],
+              ["site_key", "जारी की गई साइट की (सावधानी से संभालें)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo Integration Hub में [पंजीकरण] पर मान दर्ज करें और सहेजें। क्रेडेंशियल विश्राम अवस्था में AES-256-GCM से एन्क्रिप्ट किए जाते हैं और पढ़ते समय मास्क किए जाते हैं।" }
+          ]
+        },
+        {
+          "h2": "4. सामान्य समस्याएँ",
+          "blocks": [
+            { "type": "table", "head": ["समस्या", "कारण", "समाधान"], "rows": [
+              ["एडमिन में साइन इन नहीं हो पा रहा", "मर्चेंट अनुबंध पूरा नहीं हुआ", "ऐसे एडमिन खाते से साइन इन करें जिसका मर्चेंट अनुबंध पूरा हो।"],
+              ["भुगतान प्रमाणीकरण विफल", "साइट कोड या साइट की गलत दर्ज की गई", "मर्चेंट एडमिन में जारी किए गए site_cd·site_key की पुनः जाँच करें।"]
+            ] }
+          ]
+        },
+        {
+          "h2": "अंतिम चेकलिस्ट",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "NHN KCP मर्चेंट अनुबंध पूरा किया और मर्चेंट एडमिन में साइन इन किया।",
+              "साइट कोड (site_cd) और साइट की जारी की और सत्यापित की।",
+              "GenieGo [पंजीकरण] में site_cd·site_key दर्ज किया और सहेजा।",
+              "पुष्टि की कि सहेजने के बाद क्रेडेंशियल मास्क किए हुए दिखते हैं।"
+            ] }
+          ]
+        }
+      ]
+    },
+    "pt": {
+      "titleType": "Manual de emissão de API Key",
+      "badge": "Guia para iniciantes",
+      "intro": "Um guia que o orienta na emissão e verificação do seu código de site (site_cd) e chave de site no administrador de comerciante da NHN KCP, e no registro deles no GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tempo estimado", "Cerca de 5–10 min"],
+        ["Conta necessária", "Contrato de comerciante NHN KCP · conta de administrador"],
+        ["Chaves emitidas", "Código de site · Chave de site"],
+        ["Resultado", "Credenciais de integração de pagamento"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de começar",
+          "desc": "Com a NHN KCP, você emite as informações do seu site no administrador após ter um contrato de comerciante.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Obrigatório", "h3": "Contrato de comerciante · Conta de administrador", "p": "Seu contrato de comerciante com a NHN KCP deve estar concluído, e você deve conseguir fazer login no administrador de comerciante." },
+              { "tag": "Chaves emitidas", "h3": "Código de site · Chave de site", "p": "No administrador de comerciante, emita ou verifique seu código de site (site_cd) e chave de site." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Observação:</strong> O registro requer dois valores: o código de site (site_cd) e a chave de site." }
+          ]
+        },
+        {
+          "h2": "2. Etapas de emissão",
+          "desc": "Emita na ordem abaixo e registre no GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Fazer login no administrador de comerciante", "p": "Faça login no administrador de comerciante da NHN KCP.", "path": "https://admin8.kcp.co.kr" },
+              { "h3": "Emitir o código de site e a chave de site", "p": "Emita ou verifique seu código de site (site_cd) e chave de site." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Depois de confirmar seu código de site e chave de site, você está pronto para registrar." }
+          ]
+        },
+        {
+          "h2": "3. Informações a registrar no GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descrição"], "rows": [
+              ["site_cd", "O código de site emitido"],
+              ["site_key", "A chave de site emitida (manuseie com cuidado)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Insira os valores no GenieGo Integration Hub em [Registrar] e salve. As credenciais são criptografadas em repouso com AES-256-GCM e mascaradas na leitura." }
+          ]
+        },
+        {
+          "h2": "4. Problemas comuns",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solução"], "rows": [
+              ["Não é possível fazer login no administrador", "Contrato de comerciante não concluído", "Faça login com uma conta de administrador cujo contrato de comerciante esteja concluído."],
+              ["Falha na autenticação do pagamento", "Código de site ou chave de site inseridos incorretamente", "Verifique novamente o site_cd·site_key emitido no administrador de comerciante."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificação final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Concluí o contrato de comerciante da NHN KCP e fiz login no administrador de comerciante.",
+              "Emiti e verifiquei o código de site (site_cd) e a chave de site.",
+              "Inseri site_cd·site_key no GenieGo [Registrar] e salvei.",
+              "Confirmei que as credenciais são exibidas mascaradas após salvar."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ru": {
+      "titleType": "Руководство по выпуску API-ключа",
+      "badge": "Руководство для начинающих",
+      "intro": "Руководство, которое проведёт вас через выпуск и проверку кода сайта (site_cd) и ключа сайта в админ-панели мерчанта NHN KCP, а также их регистрацию в GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Примерное время", "Около 5–10 мин"],
+        ["Требуемый аккаунт", "Договор мерчанта NHN KCP · аккаунт администратора"],
+        ["Выпускаемые ключи", "Код сайта · Ключ сайта"],
+        ["Результат", "Учётные данные для интеграции платежей"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Перед началом",
+          "desc": "В NHN KCP вы выпускаете информацию о сайте в админ-панели после заключения договора мерчанта.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Обязательно", "h3": "Договор мерчанта · Аккаунт администратора", "p": "Ваш договор мерчанта с NHN KCP должен быть заключён, и вы должны иметь возможность войти в админ-панель мерчанта." },
+              { "tag": "Выпускаемые ключи", "h3": "Код сайта · Ключ сайта", "p": "В админ-панели мерчанта выпустите или проверьте код сайта (site_cd) и ключ сайта." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Примечание:</strong> Для регистрации требуются два значения: код сайта (site_cd) и ключ сайта." }
+          ]
+        },
+        {
+          "h2": "2. Шаги выпуска",
+          "desc": "Выпустите в указанном ниже порядке и зарегистрируйте в GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Войдите в админ-панель мерчанта", "p": "Войдите в админ-панель мерчанта NHN KCP.", "path": "https://admin8.kcp.co.kr" },
+              { "h3": "Выпустите код сайта и ключ сайта", "p": "Выпустите или проверьте код сайта (site_cd) и ключ сайта." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "После подтверждения кода сайта и ключа сайта вы готовы к регистрации." }
+          ]
+        },
+        {
+          "h2": "3. Информация для регистрации в GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Поле", "Описание"], "rows": [
+              ["site_cd", "Выпущенный код сайта"],
+              ["site_key", "Выпущенный ключ сайта (обращайтесь осторожно)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Введите значения в GenieGo Integration Hub в разделе [Регистрация] и сохраните. Учётные данные шифруются при хранении с помощью AES-256-GCM и маскируются при чтении." }
+          ]
+        },
+        {
+          "h2": "4. Частые проблемы",
+          "blocks": [
+            { "type": "table", "head": ["Проблема", "Причина", "Решение"], "rows": [
+              ["Невозможно войти в админ-панель", "Договор мерчанта не заключён", "Войдите с помощью аккаунта администратора, у которого заключён договор мерчанта."],
+              ["Сбой аутентификации платежа", "Код сайта или ключ сайта введены неверно", "Повторно проверьте site_cd·site_key, выпущенный в админ-панели мерчанта."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Итоговый контрольный список",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Заключил договор мерчанта NHN KCP и вошёл в админ-панель мерчанта.",
+              "Выпустил и проверил код сайта (site_cd) и ключ сайта.",
+              "Ввёл site_cd·site_key в GenieGo [Регистрация] и сохранил.",
+              "Подтвердил, что после сохранения учётные данные отображаются замаскированными."
+            ] }
+          ]
+        }
+      ]
+    }
+  }
+}

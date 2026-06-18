@@ -1,0 +1,1041 @@
+{
+  "name": "WooCommerce",
+  "icon": "🟣",
+  "langs": {
+    "ko": {
+      "titleType": "API Key 발급 매뉴얼",
+      "badge": "Beginner Guide",
+      "intro": "WooCommerce 관리자의 REST API 설정에서 Consumer Key·Consumer Secret을 발급하고 GenieGo 연동 허브에 등록하는 과정을 초보자도 그대로 따라 할 수 있도록 정리한 매뉴얼입니다.",
+      "org": "GenieGo 연동 허브",
+      "quick": [
+        ["소요 시간", "약 5~10분"],
+        ["필요 계정", "WordPress/WooCommerce 관리자 권한"],
+        ["발급 키", "Consumer Key · Consumer Secret"],
+        ["결과물", "REST API 자격증명"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 시작하기 전에",
+          "desc": "REST API 키는 관리자 권한에서만 발급할 수 있습니다.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "필요", "h3": "WooCommerce 관리자 권한", "p": "WordPress/WooCommerce 관리자 권한이 있어야 합니다. 일반 사용자 권한으로는 REST API 키를 발급할 수 없습니다." },
+              { "tag": "발급 키", "h3": "Consumer Key · Consumer Secret", "p": "REST API 설정에서 키를 추가하면 Consumer Key와 Consumer Secret이 발급됩니다." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. 발급 단계",
+          "desc": "아래 순서대로 발급하고 GenieGo에 등록합니다.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "REST API 설정 이동", "p": "WooCommerce에서 [설정] > [고급] > [REST API]로 이동합니다.", "path": "WooCommerce → 설정 → 고급 → REST API" },
+              { "h3": "키 추가", "p": "[키 추가]를 눌러 설명과 권한(읽기/쓰기)을 선택하고 생성합니다.", "path": "키 추가" },
+              { "h3": "키 복사", "p": "발급된 Consumer Key와 Consumer Secret을 복사합니다." },
+              { "h3": "정보 확인", "p": "복사한 Consumer Key·Consumer Secret과 본인 사이트 URL을 확인합니다." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "발급 화면에 Consumer Key와 Consumer Secret이 표시되면 정상 발급된 것입니다." },
+            { "type": "notice", "kind": "danger", "html": "<strong>주의:</strong> Consumer Secret은 발급 직후에만 전체가 표시되는 경우가 많으니 이때 안전하게 복사해 두세요." }
+          ]
+        },
+        {
+          "h2": "3. GenieGo에 등록할 정보",
+          "blocks": [
+            { "type": "table", "head": ["필드", "설명"], "rows": [
+              ["site_url", "사이트 URL"],
+              ["consumer_key", "발급된 Consumer Key"],
+              ["consumer_secret", "발급된 Consumer Secret(노출 주의)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 연동 허브 [등록]에 site_url·consumer_key·consumer_secret을 입력해 저장하면 자격증명은 AES-256-GCM으로 암호화 저장되고 조회 시 마스킹됩니다." }
+          ]
+        },
+        {
+          "h2": "4. 자주 발생하는 문제",
+          "blocks": [
+            { "type": "table", "head": ["문제", "원인", "해결"], "rows": [
+              ["REST API 메뉴가 없음", "관리자 권한 부족", "관리자 권한이 있는 계정으로 로그인해 설정 > 고급 > REST API를 확인합니다."],
+              ["쓰기 동작 실패", "키 생성 시 읽기 전용 권한 선택", "[키 추가] 시 읽기/쓰기 권한으로 다시 발급합니다."]
+            ] }
+          ]
+        },
+        {
+          "h2": "최종 체크리스트",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "WordPress/WooCommerce 관리자 권한으로 로그인했다.",
+              "설정 > 고급 > REST API에서 키를 추가했다.",
+              "권한(읽기/쓰기)을 선택하고 Consumer Key·Consumer Secret을 복사했다.",
+              "GenieGo [등록]에 site_url·consumer_key·consumer_secret을 입력해 저장했다."
+            ] }
+          ]
+        }
+      ]
+    },
+    "en": {
+      "titleType": "API Key Issuance Manual",
+      "badge": "Beginner Guide",
+      "intro": "A beginner-friendly, step-by-step guide to issuing a Consumer Key and Consumer Secret from the REST API settings in your WooCommerce admin and registering them in the GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Est. time", "About 5–10 min"],
+        ["Account needed", "WordPress/WooCommerce admin privileges"],
+        ["Keys issued", "Consumer Key · Consumer Secret"],
+        ["Result", "REST API credentials"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Before You Begin",
+          "desc": "REST API keys can only be issued with admin privileges.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Required", "h3": "WooCommerce admin privileges", "p": "You need WordPress/WooCommerce admin privileges. REST API keys cannot be issued with regular user privileges." },
+              { "tag": "Keys issued", "h3": "Consumer Key · Consumer Secret", "p": "Adding a key in the REST API settings issues a Consumer Key and a Consumer Secret." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Issuance Steps",
+          "desc": "Issue in the order below and register in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Go to the REST API settings", "p": "In WooCommerce, go to [Settings] > [Advanced] > [REST API].", "path": "WooCommerce → Settings → Advanced → REST API" },
+              { "h3": "Add a key", "p": "Click [Add key], enter a description, select the permissions (Read/Write), and generate.", "path": "Add key" },
+              { "h3": "Copy the keys", "p": "Copy the issued Consumer Key and Consumer Secret." },
+              { "h3": "Confirm the information", "p": "Confirm the copied Consumer Key, Consumer Secret, and your own store URL." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "If the Consumer Key and Consumer Secret are shown on the issuance screen, the keys have been issued correctly." },
+            { "type": "notice", "kind": "danger", "html": "<strong>Caution:</strong> The Consumer Secret is often shown in full only right after issuance, so be sure to copy it safely at that moment." }
+          ]
+        },
+        {
+          "h2": "3. Information to Register in GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Field", "Description"], "rows": [
+              ["site_url", "Store URL"],
+              ["consumer_key", "The issued Consumer Key"],
+              ["consumer_secret", "The issued Consumer Secret (handle with care)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Enter site_url·consumer_key·consumer_secret in the GenieGo Integration Hub [Register] and save. Credentials are encrypted at rest with AES-256-GCM and masked on read." }
+          ]
+        },
+        {
+          "h2": "4. Common Issues",
+          "blocks": [
+            { "type": "table", "head": ["Issue", "Cause", "Solution"], "rows": [
+              ["No REST API menu", "Insufficient admin privileges", "Sign in with an account that has admin privileges and check Settings > Advanced > REST API."],
+              ["Write operations fail", "Read-only permission selected when creating the key", "Re-issue with Read/Write permissions when you [Add key]."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Final Checklist",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Signed in with WordPress/WooCommerce admin privileges.",
+              "Added a key under Settings > Advanced > REST API.",
+              "Selected the permissions (Read/Write) and copied the Consumer Key·Consumer Secret.",
+              "Entered site_url·consumer_key·consumer_secret in GenieGo [Register] and saved."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ja": {
+      "titleType": "API Key 発行マニュアル",
+      "badge": "初心者ガイド",
+      "intro": "WooCommerce 管理画面の REST API 設定で Consumer Key・Consumer Secret を発行し、GenieGo 連携ハブに登録する手順を、初心者でもそのまま実行できるようにまとめたマニュアルです。",
+      "org": "GenieGo 連携ハブ",
+      "quick": [
+        ["所要時間", "約 5〜10 分"],
+        ["必要なアカウント", "WordPress/WooCommerce の管理者権限"],
+        ["発行するキー", "Consumer Key · Consumer Secret"],
+        ["成果物", "REST API 認証情報"]
+      ],
+      "sections": [
+        {
+          "h2": "1. はじめる前に",
+          "desc": "REST API キーは管理者権限でのみ発行できます。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必須", "h3": "WooCommerce の管理者権限", "p": "WordPress/WooCommerce の管理者権限が必要です。一般ユーザー権限では REST API キーを発行できません。" },
+              { "tag": "発行するキー", "h3": "Consumer Key · Consumer Secret", "p": "REST API 設定でキーを追加すると、Consumer Key と Consumer Secret が発行されます。" }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. 発行手順",
+          "desc": "以下の順序で発行し、GenieGo に登録します。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "REST API 設定へ移動", "p": "WooCommerce で [設定] > [詳細] > [REST API] へ移動します。", "path": "WooCommerce → 設定 → 詳細 → REST API" },
+              { "h3": "キーを追加", "p": "[キーを追加] をクリックし、説明と権限(読み取り/書き込み)を選択して生成します。", "path": "キーを追加" },
+              { "h3": "キーをコピー", "p": "発行された Consumer Key と Consumer Secret をコピーします。" },
+              { "h3": "情報を確認", "p": "コピーした Consumer Key・Consumer Secret と、ご自身のサイト URL を確認します。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "発行画面に Consumer Key と Consumer Secret が表示されれば、正常に発行されています。" },
+            { "type": "notice", "kind": "danger", "html": "<strong>注意:</strong> Consumer Secret は発行直後にのみ全体が表示される場合が多いため、このときに安全にコピーしておいてください。" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo に登録する情報",
+          "blocks": [
+            { "type": "table", "head": ["フィールド", "説明"], "rows": [
+              ["site_url", "サイト URL"],
+              ["consumer_key", "発行された Consumer Key"],
+              ["consumer_secret", "発行された Consumer Secret(取り扱い注意)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 連携ハブの [登録] に site_url·consumer_key·consumer_secret を入力して保存すると、認証情報は AES-256-GCM で暗号化して保存され、閲覧時にはマスキングされます。" }
+          ]
+        },
+        {
+          "h2": "4. よくある問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["REST API メニューがない", "管理者権限の不足", "管理者権限を持つアカウントでログインし、設定 > 詳細 > REST API を確認します。"],
+              ["書き込み操作が失敗する", "キー生成時に読み取り専用権限を選択", "[キーを追加] 時に読み取り/書き込み権限で再発行します。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終チェックリスト",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "WordPress/WooCommerce の管理者権限でログインした。",
+              "設定 > 詳細 > REST API でキーを追加した。",
+              "権限(読み取り/書き込み)を選択し、Consumer Key·Consumer Secret をコピーした。",
+              "GenieGo の [登録] に site_url·consumer_key·consumer_secret を入力して保存した。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh": {
+      "titleType": "API Key 申请手册",
+      "badge": "新手指南",
+      "intro": "本手册手把手指导新手在 WooCommerce 管理后台的 REST API 设置中签发 Consumer Key·Consumer Secret，并将其注册到 GenieGo 集成中心。",
+      "org": "GenieGo 集成中心",
+      "quick": [
+        ["预计时间", "约 5~10 分钟"],
+        ["所需账户", "WordPress/WooCommerce 管理员权限"],
+        ["签发密钥", "Consumer Key · Consumer Secret"],
+        ["成果", "REST API 凭证"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 开始之前",
+          "desc": "REST API 密钥只能在管理员权限下签发。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "WooCommerce 管理员权限", "p": "您需要拥有 WordPress/WooCommerce 管理员权限。普通用户权限无法签发 REST API 密钥。" },
+              { "tag": "签发密钥", "h3": "Consumer Key · Consumer Secret", "p": "在 REST API 设置中添加密钥后，将签发 Consumer Key 和 Consumer Secret。" }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. 申请步骤",
+          "desc": "按以下顺序签发并在 GenieGo 中注册。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "进入 REST API 设置", "p": "在 WooCommerce 中进入 [设置] > [高级] > [REST API]。", "path": "WooCommerce → 设置 → 高级 → REST API" },
+              { "h3": "添加密钥", "p": "点击[添加密钥]，输入描述并选择权限(读取/写入),然后生成。", "path": "添加密钥" },
+              { "h3": "复制密钥", "p": "复制签发的 Consumer Key 和 Consumer Secret。" },
+              { "h3": "确认信息", "p": "确认复制的 Consumer Key·Consumer Secret 以及您本人的 store URL。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "如果签发页面显示了 Consumer Key 和 Consumer Secret，即表示已正确签发。" },
+            { "type": "notice", "kind": "danger", "html": "<strong>注意:</strong> Consumer Secret 通常只在签发后立即完整显示，因此请在此时安全地复制保存。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中注册的信息",
+          "blocks": [
+            { "type": "table", "head": ["字段", "说明"], "rows": [
+              ["site_url", "store URL"],
+              ["consumer_key", "签发的 Consumer Key"],
+              ["consumer_secret", "签发的 Consumer Secret(请妥善保管)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 集成中心的[注册]中输入 site_url·consumer_key·consumer_secret 并保存后，凭证将以 AES-256-GCM 加密存储，并在查询时进行掩码处理。" }
+          ]
+        },
+        {
+          "h2": "4. 常见问题",
+          "blocks": [
+            { "type": "table", "head": ["问题", "原因", "解决方法"], "rows": [
+              ["没有 REST API 菜单", "管理员权限不足", "使用拥有管理员权限的账户登录，并查看设置 > 高级 > REST API。"],
+              ["写入操作失败", "创建密钥时选择了只读权限", "在[添加密钥]时以读取/写入权限重新签发。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最终检查清单",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已使用 WordPress/WooCommerce 管理员权限登录。",
+              "已在设置 > 高级 > REST API 中添加密钥。",
+              "已选择权限(读取/写入)并复制 Consumer Key·Consumer Secret。",
+              "已在 GenieGo 的[注册]中输入 site_url·consumer_key·consumer_secret 并保存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh-TW": {
+      "titleType": "API Key 申請手冊",
+      "badge": "新手指南",
+      "intro": "本手冊手把手指導新手在 WooCommerce 管理後台的 REST API 設定中簽發 Consumer Key·Consumer Secret，並將其註冊到 GenieGo 整合中心。",
+      "org": "GenieGo 整合中心",
+      "quick": [
+        ["預計時間", "約 5~10 分鐘"],
+        ["所需帳戶", "WordPress/WooCommerce 管理員權限"],
+        ["簽發金鑰", "Consumer Key · Consumer Secret"],
+        ["成果", "REST API 憑證"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 開始之前",
+          "desc": "REST API 金鑰只能在管理員權限下簽發。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "WooCommerce 管理員權限", "p": "您需要擁有 WordPress/WooCommerce 管理員權限。一般使用者權限無法簽發 REST API 金鑰。" },
+              { "tag": "簽發金鑰", "h3": "Consumer Key · Consumer Secret", "p": "在 REST API 設定中新增金鑰後，將簽發 Consumer Key 和 Consumer Secret。" }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. 簽發步驟",
+          "desc": "依以下順序簽發並在 GenieGo 中註冊。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "進入 REST API 設定", "p": "在 WooCommerce 中進入 [設定] > [進階] > [REST API]。", "path": "WooCommerce → 設定 → 進階 → REST API" },
+              { "h3": "新增金鑰", "p": "點擊[新增金鑰]，輸入描述並選擇權限(讀取/寫入),然後產生。", "path": "新增金鑰" },
+              { "h3": "複製金鑰", "p": "複製簽發的 Consumer Key 和 Consumer Secret。" },
+              { "h3": "確認資訊", "p": "確認複製的 Consumer Key·Consumer Secret 以及您本人的 store URL。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "如果簽發頁面顯示了 Consumer Key 和 Consumer Secret，即表示已正確簽發。" },
+            { "type": "notice", "kind": "danger", "html": "<strong>注意:</strong> Consumer Secret 通常只在簽發後立即完整顯示，因此請在此時安全地複製保存。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中註冊的資訊",
+          "blocks": [
+            { "type": "table", "head": ["欄位", "說明"], "rows": [
+              ["site_url", "store URL"],
+              ["consumer_key", "簽發的 Consumer Key"],
+              ["consumer_secret", "簽發的 Consumer Secret(請妥善保管)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 整合中心的[註冊]中輸入 site_url·consumer_key·consumer_secret 並儲存後，憑證將以 AES-256-GCM 加密儲存，並在查詢時進行遮罩處理。" }
+          ]
+        },
+        {
+          "h2": "4. 常見問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["沒有 REST API 選單", "管理員權限不足", "使用擁有管理員權限的帳戶登入，並查看設定 > 進階 > REST API。"],
+              ["寫入操作失敗", "建立金鑰時選擇了唯讀權限", "在[新增金鑰]時以讀取/寫入權限重新簽發。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終檢查清單",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已使用 WordPress/WooCommerce 管理員權限登入。",
+              "已在設定 > 進階 > REST API 中新增金鑰。",
+              "已選擇權限(讀取/寫入)並複製 Consumer Key·Consumer Secret。",
+              "已在 GenieGo 的[註冊]中輸入 site_url·consumer_key·consumer_secret 並儲存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "de": {
+      "titleType": "Anleitung zur API-Key-Ausstellung",
+      "badge": "Einsteigerleitfaden",
+      "intro": "Eine einsteigerfreundliche Schritt-für-Schritt-Anleitung zum Ausstellen eines Consumer Key und Consumer Secret in den REST-API-Einstellungen Ihres WooCommerce-Admins und zum Registrieren im GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Geschätzte Zeit", "Etwa 5–10 Min."],
+        ["Benötigtes Konto", "WordPress/WooCommerce-Administratorrechte"],
+        ["Ausgestellte Schlüssel", "Consumer Key · Consumer Secret"],
+        ["Ergebnis", "REST-API-Anmeldedaten"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Bevor Sie beginnen",
+          "desc": "REST-API-Schlüssel können nur mit Administratorrechten ausgestellt werden.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Erforderlich", "h3": "WooCommerce-Administratorrechte", "p": "Sie benötigen WordPress/WooCommerce-Administratorrechte. Mit normalen Benutzerrechten können keine REST-API-Schlüssel ausgestellt werden." },
+              { "tag": "Ausgestellte Schlüssel", "h3": "Consumer Key · Consumer Secret", "p": "Wenn Sie in den REST-API-Einstellungen einen Schlüssel hinzufügen, werden ein Consumer Key und ein Consumer Secret ausgestellt." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Ausstellungsschritte",
+          "desc": "Stellen Sie in der unten angegebenen Reihenfolge aus und registrieren Sie in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Zu den REST-API-Einstellungen wechseln", "p": "Gehen Sie in WooCommerce zu [Einstellungen] > [Erweitert] > [REST API].", "path": "WooCommerce → Einstellungen → Erweitert → REST API" },
+              { "h3": "Schlüssel hinzufügen", "p": "Klicken Sie auf [Schlüssel hinzufügen], geben Sie eine Beschreibung ein, wählen Sie die Berechtigungen (Lesen/Schreiben) und generieren Sie.", "path": "Schlüssel hinzufügen" },
+              { "h3": "Schlüssel kopieren", "p": "Kopieren Sie den ausgestellten Consumer Key und Consumer Secret." },
+              { "h3": "Informationen prüfen", "p": "Prüfen Sie den kopierten Consumer Key, Consumer Secret und Ihre eigene store URL." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Wenn der Consumer Key und das Consumer Secret auf dem Ausstellungsbildschirm angezeigt werden, wurden die Schlüssel korrekt ausgestellt." },
+            { "type": "notice", "kind": "danger", "html": "<strong>Achtung:</strong> Das Consumer Secret wird oft nur unmittelbar nach der Ausstellung vollständig angezeigt, kopieren Sie es daher in diesem Moment sicher." }
+          ]
+        },
+        {
+          "h2": "3. In GenieGo zu registrierende Informationen",
+          "blocks": [
+            { "type": "table", "head": ["Feld", "Beschreibung"], "rows": [
+              ["site_url", "store URL"],
+              ["consumer_key", "Der ausgestellte Consumer Key"],
+              ["consumer_secret", "Das ausgestellte Consumer Secret (vertraulich behandeln)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Geben Sie site_url·consumer_key·consumer_secret im GenieGo Integration Hub [Registrieren] ein und speichern Sie. Anmeldedaten werden im Ruhezustand mit AES-256-GCM verschlüsselt und beim Lesen maskiert." }
+          ]
+        },
+        {
+          "h2": "4. Häufige Probleme",
+          "blocks": [
+            { "type": "table", "head": ["Problem", "Ursache", "Lösung"], "rows": [
+              ["Kein REST-API-Menü", "Unzureichende Administratorrechte", "Melden Sie sich mit einem Konto mit Administratorrechten an und prüfen Sie Einstellungen > Erweitert > REST API."],
+              ["Schreibvorgänge schlagen fehl", "Beim Erstellen des Schlüssels wurde die schreibgeschützte Berechtigung gewählt", "Stellen Sie beim [Schlüssel hinzufügen] mit Lese-/Schreibberechtigungen erneut aus."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Abschließende Checkliste",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Mit WordPress/WooCommerce-Administratorrechten angemeldet.",
+              "Unter Einstellungen > Erweitert > REST API einen Schlüssel hinzugefügt.",
+              "Die Berechtigungen (Lesen/Schreiben) ausgewählt und den Consumer Key·Consumer Secret kopiert.",
+              "site_url·consumer_key·consumer_secret in GenieGo [Registrieren] eingegeben und gespeichert."
+            ] }
+          ]
+        }
+      ]
+    },
+    "th": {
+      "titleType": "คู่มือการออก API Key",
+      "badge": "คู่มือสำหรับผู้เริ่มต้น",
+      "intro": "คู่มือทีละขั้นตอนที่เป็นมิตรกับผู้เริ่มต้น สำหรับการออก Consumer Key·Consumer Secret จากการตั้งค่า REST API ในแอดมิน WooCommerce ของคุณ และลงทะเบียนใน GenieGo Integration Hub",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["เวลาโดยประมาณ", "ประมาณ 5–10 นาที"],
+        ["บัญชีที่ต้องใช้", "สิทธิ์ผู้ดูแลระบบ WordPress/WooCommerce"],
+        ["คีย์ที่ออก", "Consumer Key · Consumer Secret"],
+        ["ผลลัพธ์", "ข้อมูลรับรอง REST API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. ก่อนเริ่มต้น",
+          "desc": "คีย์ REST API สามารถออกได้เฉพาะด้วยสิทธิ์ผู้ดูแลระบบเท่านั้น",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "จำเป็น", "h3": "สิทธิ์ผู้ดูแลระบบ WooCommerce", "p": "คุณต้องมีสิทธิ์ผู้ดูแลระบบ WordPress/WooCommerce ไม่สามารถออกคีย์ REST API ด้วยสิทธิ์ผู้ใช้ทั่วไปได้" },
+              { "tag": "คีย์ที่ออก", "h3": "Consumer Key · Consumer Secret", "p": "เมื่อเพิ่มคีย์ในการตั้งค่า REST API ระบบจะออก Consumer Key และ Consumer Secret" }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. ขั้นตอนการออก",
+          "desc": "ออกตามลำดับด้านล่างและลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "ไปที่การตั้งค่า REST API", "p": "ใน WooCommerce ไปที่ [การตั้งค่า] > [ขั้นสูง] > [REST API]", "path": "WooCommerce → การตั้งค่า → ขั้นสูง → REST API" },
+              { "h3": "เพิ่มคีย์", "p": "คลิก [เพิ่มคีย์] ป้อนคำอธิบายและเลือกสิทธิ์ (อ่าน/เขียน) แล้วสร้าง", "path": "เพิ่มคีย์" },
+              { "h3": "คัดลอกคีย์", "p": "คัดลอก Consumer Key และ Consumer Secret ที่ออกแล้ว" },
+              { "h3": "ยืนยันข้อมูล", "p": "ยืนยัน Consumer Key·Consumer Secret ที่คัดลอกไว้ และ store URL ของคุณเอง" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "หากหน้าจอการออกแสดง Consumer Key และ Consumer Secret แสดงว่าออกคีย์อย่างถูกต้องแล้ว" },
+            { "type": "notice", "kind": "danger", "html": "<strong>ข้อควรระวัง:</strong> Consumer Secret มักจะแสดงแบบเต็มเฉพาะทันทีหลังออกเท่านั้น ดังนั้นโปรดคัดลอกเก็บไว้อย่างปลอดภัยในตอนนั้น" }
+          ]
+        },
+        {
+          "h2": "3. ข้อมูลที่ต้องลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["ฟิลด์", "คำอธิบาย"], "rows": [
+              ["site_url", "store URL"],
+              ["consumer_key", "Consumer Key ที่ออกแล้ว"],
+              ["consumer_secret", "Consumer Secret ที่ออกแล้ว (จัดการด้วยความระมัดระวัง)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "ป้อน site_url·consumer_key·consumer_secret ใน GenieGo Integration Hub [ลงทะเบียน] แล้วบันทึก ข้อมูลรับรองจะถูกเข้ารหัสขณะจัดเก็บด้วย AES-256-GCM และปิดบังเมื่ออ่าน" }
+          ]
+        },
+        {
+          "h2": "4. ปัญหาที่พบบ่อย",
+          "blocks": [
+            { "type": "table", "head": ["ปัญหา", "สาเหตุ", "วิธีแก้ไข"], "rows": [
+              ["ไม่มีเมนู REST API", "สิทธิ์ผู้ดูแลระบบไม่เพียงพอ", "ลงชื่อเข้าใช้ด้วยบัญชีที่มีสิทธิ์ผู้ดูแลระบบ แล้วตรวจสอบ การตั้งค่า > ขั้นสูง > REST API"],
+              ["การดำเนินการเขียนล้มเหลว", "เลือกสิทธิ์อ่านอย่างเดียวตอนสร้างคีย์", "ออกใหม่ด้วยสิทธิ์อ่าน/เขียนเมื่อ [เพิ่มคีย์]"]
+            ] }
+          ]
+        },
+        {
+          "h2": "รายการตรวจสอบขั้นสุดท้าย",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "ลงชื่อเข้าใช้ด้วยสิทธิ์ผู้ดูแลระบบ WordPress/WooCommerce แล้ว",
+              "เพิ่มคีย์ใน การตั้งค่า > ขั้นสูง > REST API แล้ว",
+              "เลือกสิทธิ์ (อ่าน/เขียน) และคัดลอก Consumer Key·Consumer Secret แล้ว",
+              "ป้อน site_url·consumer_key·consumer_secret ใน GenieGo [ลงทะเบียน] และบันทึกแล้ว"
+            ] }
+          ]
+        }
+      ]
+    },
+    "vi": {
+      "titleType": "Hướng dẫn cấp API Key",
+      "badge": "Hướng dẫn cho người mới",
+      "intro": "Hướng dẫn từng bước thân thiện với người mới về việc cấp Consumer Key·Consumer Secret từ phần cài đặt REST API trong trang quản trị WooCommerce của bạn và đăng ký trong GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Thời gian dự kiến", "Khoảng 5–10 phút"],
+        ["Tài khoản cần thiết", "Quyền quản trị WordPress/WooCommerce"],
+        ["Khóa được cấp", "Consumer Key · Consumer Secret"],
+        ["Kết quả", "Thông tin xác thực REST API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Trước khi bắt đầu",
+          "desc": "Khóa REST API chỉ có thể được cấp với quyền quản trị.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Bắt buộc", "h3": "Quyền quản trị WooCommerce", "p": "Bạn cần có quyền quản trị WordPress/WooCommerce. Không thể cấp khóa REST API với quyền người dùng thông thường." },
+              { "tag": "Khóa được cấp", "h3": "Consumer Key · Consumer Secret", "p": "Khi thêm một khóa trong phần cài đặt REST API, một Consumer Key và một Consumer Secret sẽ được cấp." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Các bước cấp",
+          "desc": "Cấp theo thứ tự dưới đây và đăng ký trong GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Vào phần cài đặt REST API", "p": "Trong WooCommerce, vào [Cài đặt] > [Nâng cao] > [REST API].", "path": "WooCommerce → Cài đặt → Nâng cao → REST API" },
+              { "h3": "Thêm khóa", "p": "Nhấp vào [Thêm khóa], nhập mô tả và chọn quyền (Đọc/Ghi), sau đó tạo.", "path": "Thêm khóa" },
+              { "h3": "Sao chép khóa", "p": "Sao chép Consumer Key và Consumer Secret đã được cấp." },
+              { "h3": "Xác nhận thông tin", "p": "Xác nhận Consumer Key·Consumer Secret đã sao chép và store URL của riêng bạn." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Nếu Consumer Key và Consumer Secret hiển thị trên màn hình cấp khóa, nghĩa là các khóa đã được cấp đúng cách." },
+            { "type": "notice", "kind": "danger", "html": "<strong>Lưu ý:</strong> Consumer Secret thường chỉ hiển thị đầy đủ ngay sau khi cấp, vì vậy hãy sao chép và lưu lại an toàn vào thời điểm đó." }
+          ]
+        },
+        {
+          "h2": "3. Thông tin cần đăng ký trong GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Trường", "Mô tả"], "rows": [
+              ["site_url", "store URL"],
+              ["consumer_key", "Consumer Key đã được cấp"],
+              ["consumer_secret", "Consumer Secret đã được cấp (xử lý cẩn thận)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Nhập site_url·consumer_key·consumer_secret vào GenieGo Integration Hub [Đăng ký] rồi lưu. Thông tin xác thực được mã hóa khi lưu trữ bằng AES-256-GCM và được che khi đọc." }
+          ]
+        },
+        {
+          "h2": "4. Sự cố thường gặp",
+          "blocks": [
+            { "type": "table", "head": ["Sự cố", "Nguyên nhân", "Giải pháp"], "rows": [
+              ["Không có menu REST API", "Quyền quản trị không đủ", "Đăng nhập bằng tài khoản có quyền quản trị và kiểm tra Cài đặt > Nâng cao > REST API."],
+              ["Thao tác ghi thất bại", "Đã chọn quyền chỉ đọc khi tạo khóa", "Cấp lại với quyền Đọc/Ghi khi bạn [Thêm khóa]."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Danh sách kiểm tra cuối cùng",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Đã đăng nhập với quyền quản trị WordPress/WooCommerce.",
+              "Đã thêm một khóa trong Cài đặt > Nâng cao > REST API.",
+              "Đã chọn quyền (Đọc/Ghi) và sao chép Consumer Key·Consumer Secret.",
+              "Đã nhập site_url·consumer_key·consumer_secret vào GenieGo [Đăng ký] và lưu."
+            ] }
+          ]
+        }
+      ]
+    },
+    "id": {
+      "titleType": "Panduan Penerbitan API Key",
+      "badge": "Panduan Pemula",
+      "intro": "Panduan langkah demi langkah yang ramah pemula untuk menerbitkan Consumer Key·Consumer Secret dari pengaturan REST API di admin WooCommerce Anda dan mendaftarkannya di GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Perkiraan waktu", "Sekitar 5–10 menit"],
+        ["Akun yang dibutuhkan", "Hak admin WordPress/WooCommerce"],
+        ["Kunci yang diterbitkan", "Consumer Key · Consumer Secret"],
+        ["Hasil", "Kredensial REST API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Sebelum Anda Mulai",
+          "desc": "Kunci REST API hanya dapat diterbitkan dengan hak admin.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Diperlukan", "h3": "Hak admin WooCommerce", "p": "Anda memerlukan hak admin WordPress/WooCommerce. Kunci REST API tidak dapat diterbitkan dengan hak pengguna biasa." },
+              { "tag": "Kunci yang diterbitkan", "h3": "Consumer Key · Consumer Secret", "p": "Menambahkan kunci di pengaturan REST API akan menerbitkan Consumer Key dan Consumer Secret." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Langkah Penerbitan",
+          "desc": "Terbitkan sesuai urutan di bawah dan daftarkan di GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Buka pengaturan REST API", "p": "Di WooCommerce, buka [Pengaturan] > [Lanjutan] > [REST API].", "path": "WooCommerce → Pengaturan → Lanjutan → REST API" },
+              { "h3": "Tambahkan kunci", "p": "Klik [Tambah kunci], masukkan deskripsi dan pilih izin (Baca/Tulis), lalu hasilkan.", "path": "Tambah kunci" },
+              { "h3": "Salin kunci", "p": "Salin Consumer Key dan Consumer Secret yang diterbitkan." },
+              { "h3": "Konfirmasi informasi", "p": "Konfirmasi Consumer Key·Consumer Secret yang disalin dan store URL Anda sendiri." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Jika Consumer Key dan Consumer Secret ditampilkan pada layar penerbitan, berarti kunci telah diterbitkan dengan benar." },
+            { "type": "notice", "kind": "danger", "html": "<strong>Perhatian:</strong> Consumer Secret sering kali hanya ditampilkan secara penuh tepat setelah penerbitan, jadi pastikan untuk menyalinnya dengan aman pada saat itu." }
+          ]
+        },
+        {
+          "h2": "3. Informasi yang Didaftarkan di GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Bidang", "Deskripsi"], "rows": [
+              ["site_url", "store URL"],
+              ["consumer_key", "Consumer Key yang diterbitkan"],
+              ["consumer_secret", "Consumer Secret yang diterbitkan (tangani dengan hati-hati)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Masukkan site_url·consumer_key·consumer_secret di GenieGo Integration Hub [Daftar] dan simpan. Kredensial dienkripsi saat disimpan dengan AES-256-GCM dan disamarkan saat dibaca." }
+          ]
+        },
+        {
+          "h2": "4. Masalah Umum",
+          "blocks": [
+            { "type": "table", "head": ["Masalah", "Penyebab", "Solusi"], "rows": [
+              ["Tidak ada menu REST API", "Hak admin tidak mencukupi", "Masuk dengan akun yang memiliki hak admin dan periksa Pengaturan > Lanjutan > REST API."],
+              ["Operasi tulis gagal", "Memilih izin hanya-baca saat membuat kunci", "Terbitkan ulang dengan izin Baca/Tulis saat Anda [Tambah kunci]."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Daftar Periksa Akhir",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Masuk dengan hak admin WordPress/WooCommerce.",
+              "Menambahkan kunci di Pengaturan > Lanjutan > REST API.",
+              "Memilih izin (Baca/Tulis) dan menyalin Consumer Key·Consumer Secret.",
+              "Memasukkan site_url·consumer_key·consumer_secret di GenieGo [Daftar] dan menyimpan."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ar": {
+      "titleType": "دليل إصدار مفتاح API",
+      "badge": "دليل المبتدئين",
+      "intro": "دليل تفصيلي خطوة بخطوة مناسب للمبتدئين لإصدار Consumer Key·Consumer Secret من إعدادات REST API في لوحة إدارة WooCommerce الخاصة بك وتسجيلها في GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["الوقت المقدر", "حوالي 5–10 دقائق"],
+        ["الحساب المطلوب", "صلاحيات مسؤول WordPress/WooCommerce"],
+        ["المفاتيح المُصدَرة", "Consumer Key · Consumer Secret"],
+        ["النتيجة", "بيانات اعتماد REST API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. قبل أن تبدأ",
+          "desc": "لا يمكن إصدار مفاتيح REST API إلا بصلاحيات المسؤول.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "مطلوب", "h3": "صلاحيات مسؤول WooCommerce", "p": "تحتاج إلى صلاحيات مسؤول WordPress/WooCommerce. لا يمكن إصدار مفاتيح REST API بصلاحيات المستخدم العادي." },
+              { "tag": "المفاتيح المُصدَرة", "h3": "Consumer Key · Consumer Secret", "p": "عند إضافة مفتاح في إعدادات REST API، يتم إصدار Consumer Key و Consumer Secret." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. خطوات الإصدار",
+          "desc": "أصدِر بالترتيب أدناه وسجِّل في GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "انتقل إلى إعدادات REST API", "p": "في WooCommerce، انتقل إلى [الإعدادات] > [متقدم] > [REST API].", "path": "WooCommerce → الإعدادات → متقدم → REST API" },
+              { "h3": "أضف مفتاحًا", "p": "انقر على [إضافة مفتاح]، وأدخل وصفًا واختر الأذونات (قراءة/كتابة)، ثم أنشِئه.", "path": "إضافة مفتاح" },
+              { "h3": "انسخ المفاتيح", "p": "انسخ Consumer Key و Consumer Secret المُصدَرين." },
+              { "h3": "تأكيد المعلومات", "p": "تأكد من Consumer Key·Consumer Secret المنسوخين و store URL الخاص بك." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "إذا ظهر Consumer Key و Consumer Secret على شاشة الإصدار، فهذا يعني أنه تم إصدار المفاتيح بشكل صحيح." },
+            { "type": "notice", "kind": "danger", "html": "<strong>تنبيه:</strong> غالبًا ما يُعرض Consumer Secret بالكامل فقط بعد الإصدار مباشرة، لذا تأكد من نسخه بأمان في تلك اللحظة." }
+          ]
+        },
+        {
+          "h2": "3. المعلومات المطلوب تسجيلها في GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["الحقل", "الوصف"], "rows": [
+              ["site_url", "store URL"],
+              ["consumer_key", "Consumer Key المُصدَر"],
+              ["consumer_secret", "Consumer Secret المُصدَر (تعامل معه بحذر)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "أدخل site_url·consumer_key·consumer_secret في GenieGo Integration Hub [تسجيل] واحفظ. يتم تشفير بيانات الاعتماد أثناء التخزين باستخدام AES-256-GCM وإخفاؤها عند القراءة." }
+          ]
+        },
+        {
+          "h2": "4. المشكلات الشائعة",
+          "blocks": [
+            { "type": "table", "head": ["المشكلة", "السبب", "الحل"], "rows": [
+              ["لا توجد قائمة REST API", "صلاحيات المسؤول غير كافية", "سجّل الدخول بحساب يملك صلاحيات المسؤول وتحقق من الإعدادات > متقدم > REST API."],
+              ["فشل عمليات الكتابة", "تم اختيار إذن القراءة فقط عند إنشاء المفتاح", "أعِد الإصدار بأذونات القراءة/الكتابة عند [إضافة مفتاح]."]
+            ] }
+          ]
+        },
+        {
+          "h2": "قائمة التحقق النهائية",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "سجّلتُ الدخول بصلاحيات مسؤول WordPress/WooCommerce.",
+              "أضفتُ مفتاحًا في الإعدادات > متقدم > REST API.",
+              "اخترتُ الأذونات (قراءة/كتابة) ونسختُ Consumer Key·Consumer Secret.",
+              "أدخلتُ site_url·consumer_key·consumer_secret في GenieGo [تسجيل] وحفظتُ."
+            ] }
+          ]
+        }
+      ]
+    },
+    "es": {
+      "titleType": "Manual de emisión de API Key",
+      "badge": "Guía para principiantes",
+      "intro": "Una guía paso a paso para principiantes sobre cómo emitir una Consumer Key y un Consumer Secret desde la configuración de REST API en tu administrador de WooCommerce y registrarlos en el GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tiempo estimado", "Unos 5–10 min"],
+        ["Cuenta necesaria", "Privilegios de administrador de WordPress/WooCommerce"],
+        ["Claves emitidas", "Consumer Key · Consumer Secret"],
+        ["Resultado", "Credenciales de REST API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de empezar",
+          "desc": "Las claves de REST API solo se pueden emitir con privilegios de administrador.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requerido", "h3": "Privilegios de administrador de WooCommerce", "p": "Necesitas privilegios de administrador de WordPress/WooCommerce. No se pueden emitir claves de REST API con privilegios de usuario normal." },
+              { "tag": "Claves emitidas", "h3": "Consumer Key · Consumer Secret", "p": "Al agregar una clave en la configuración de REST API, se emiten una Consumer Key y un Consumer Secret." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Pasos de emisión",
+          "desc": "Emite en el orden siguiente y regístralos en GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Ir a la configuración de REST API", "p": "En WooCommerce, ve a [Ajustes] > [Avanzado] > [REST API].", "path": "WooCommerce → Ajustes → Avanzado → REST API" },
+              { "h3": "Agregar una clave", "p": "Haz clic en [Agregar clave], introduce una descripción y selecciona los permisos (Lectura/Escritura), luego genérala.", "path": "Agregar clave" },
+              { "h3": "Copiar las claves", "p": "Copia la Consumer Key y el Consumer Secret emitidos." },
+              { "h3": "Confirmar la información", "p": "Confirma la Consumer Key·Consumer Secret copiados y tu propia store URL." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Si la Consumer Key y el Consumer Secret se muestran en la pantalla de emisión, las claves se han emitido correctamente." },
+            { "type": "notice", "kind": "danger", "html": "<strong>Precaución:</strong> El Consumer Secret a menudo se muestra completo solo justo después de la emisión, así que asegúrate de copiarlo de forma segura en ese momento." }
+          ]
+        },
+        {
+          "h2": "3. Información para registrar en GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descripción"], "rows": [
+              ["site_url", "store URL"],
+              ["consumer_key", "La Consumer Key emitida"],
+              ["consumer_secret", "El Consumer Secret emitido (manéjalo con cuidado)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Introduce site_url·consumer_key·consumer_secret en el GenieGo Integration Hub [Registrar] y guarda. Las credenciales se cifran en reposo con AES-256-GCM y se enmascaran al leerlas." }
+          ]
+        },
+        {
+          "h2": "4. Problemas comunes",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solución"], "rows": [
+              ["No aparece el menú de REST API", "Privilegios de administrador insuficientes", "Inicia sesión con una cuenta que tenga privilegios de administrador y comprueba Ajustes > Avanzado > REST API."],
+              ["Fallan las operaciones de escritura", "Se seleccionó el permiso de solo lectura al crear la clave", "Vuelve a emitirla con permisos de Lectura/Escritura al [Agregar clave]."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificación final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Inicié sesión con privilegios de administrador de WordPress/WooCommerce.",
+              "Agregué una clave en Ajustes > Avanzado > REST API.",
+              "Seleccioné los permisos (Lectura/Escritura) y copié la Consumer Key·Consumer Secret.",
+              "Introduje site_url·consumer_key·consumer_secret en GenieGo [Registrar] y guardé."
+            ] }
+          ]
+        }
+      ]
+    },
+    "fr": {
+      "titleType": "Manuel d'émission de clé API",
+      "badge": "Guide du débutant",
+      "intro": "Un guide étape par étape adapté aux débutants pour émettre une Consumer Key et un Consumer Secret depuis les paramètres REST API de votre administration WooCommerce et les enregistrer dans le GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Temps estimé", "Environ 5–10 min"],
+        ["Compte requis", "Droits d'administrateur WordPress/WooCommerce"],
+        ["Clés émises", "Consumer Key · Consumer Secret"],
+        ["Résultat", "Identifiants REST API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Avant de commencer",
+          "desc": "Les clés REST API ne peuvent être émises qu'avec des droits d'administrateur.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requis", "h3": "Droits d'administrateur WooCommerce", "p": "Vous avez besoin de droits d'administrateur WordPress/WooCommerce. Les clés REST API ne peuvent pas être émises avec des droits d'utilisateur ordinaire." },
+              { "tag": "Clés émises", "h3": "Consumer Key · Consumer Secret", "p": "L'ajout d'une clé dans les paramètres REST API émet une Consumer Key et un Consumer Secret." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Étapes d'émission",
+          "desc": "Émettez dans l'ordre ci-dessous et enregistrez dans GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Aller aux paramètres REST API", "p": "Dans WooCommerce, allez dans [Réglages] > [Avancé] > [REST API].", "path": "WooCommerce → Réglages → Avancé → REST API" },
+              { "h3": "Ajouter une clé", "p": "Cliquez sur [Ajouter une clé], saisissez une description et sélectionnez les autorisations (Lecture/Écriture), puis générez.", "path": "Ajouter une clé" },
+              { "h3": "Copier les clés", "p": "Copiez la Consumer Key et le Consumer Secret émis." },
+              { "h3": "Confirmer les informations", "p": "Confirmez la Consumer Key·Consumer Secret copiés et votre propre store URL." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Si la Consumer Key et le Consumer Secret s'affichent sur l'écran d'émission, les clés ont été émises correctement." },
+            { "type": "notice", "kind": "danger", "html": "<strong>Attention :</strong> Le Consumer Secret n'est souvent affiché en entier que juste après l'émission, veillez donc à le copier en toute sécurité à ce moment-là." }
+          ]
+        },
+        {
+          "h2": "3. Informations à enregistrer dans GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Champ", "Description"], "rows": [
+              ["site_url", "store URL"],
+              ["consumer_key", "La Consumer Key émise"],
+              ["consumer_secret", "Le Consumer Secret émis (à manipuler avec précaution)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Saisissez site_url·consumer_key·consumer_secret dans le GenieGo Integration Hub [Enregistrer] et enregistrez. Les identifiants sont chiffrés au repos avec AES-256-GCM et masqués à la lecture." }
+          ]
+        },
+        {
+          "h2": "4. Problèmes courants",
+          "blocks": [
+            { "type": "table", "head": ["Problème", "Cause", "Solution"], "rows": [
+              ["Pas de menu REST API", "Droits d'administrateur insuffisants", "Connectez-vous avec un compte disposant de droits d'administrateur et vérifiez Réglages > Avancé > REST API."],
+              ["Les opérations d'écriture échouent", "Autorisation en lecture seule sélectionnée lors de la création de la clé", "Réémettez avec des autorisations Lecture/Écriture lors de l'[Ajouter une clé]."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Liste de vérification finale",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Connecté avec des droits d'administrateur WordPress/WooCommerce.",
+              "Ajouté une clé dans Réglages > Avancé > REST API.",
+              "Sélectionné les autorisations (Lecture/Écriture) et copié la Consumer Key·Consumer Secret.",
+              "Saisi site_url·consumer_key·consumer_secret dans GenieGo [Enregistrer] et enregistré."
+            ] }
+          ]
+        }
+      ]
+    },
+    "hi": {
+      "titleType": "API Key जारी करने की नियमावली",
+      "badge": "शुरुआती गाइड",
+      "intro": "अपने WooCommerce एडमिन की REST API सेटिंग्स में Consumer Key·Consumer Secret जारी करने और उन्हें GenieGo Integration Hub में पंजीकृत करने के लिए शुरुआती-अनुकूल, चरण-दर-चरण मार्गदर्शिका।",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["अनुमानित समय", "लगभग 5–10 मिनट"],
+        ["आवश्यक खाता", "WordPress/WooCommerce एडमिन अधिकार"],
+        ["जारी की गई कुंजियाँ", "Consumer Key · Consumer Secret"],
+        ["परिणाम", "REST API क्रेडेंशियल"]
+      ],
+      "sections": [
+        {
+          "h2": "1. शुरू करने से पहले",
+          "desc": "REST API कुंजियाँ केवल एडमिन अधिकारों के साथ ही जारी की जा सकती हैं।",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "आवश्यक", "h3": "WooCommerce एडमिन अधिकार", "p": "आपको WordPress/WooCommerce एडमिन अधिकारों की आवश्यकता है। सामान्य उपयोगकर्ता अधिकारों के साथ REST API कुंजियाँ जारी नहीं की जा सकतीं।" },
+              { "tag": "जारी की गई कुंजियाँ", "h3": "Consumer Key · Consumer Secret", "p": "REST API सेटिंग्स में एक कुंजी जोड़ने पर एक Consumer Key और एक Consumer Secret जारी होते हैं।" }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. जारी करने के चरण",
+          "desc": "नीचे दिए गए क्रम में जारी करें और GenieGo में पंजीकृत करें।",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "REST API सेटिंग्स पर जाएँ", "p": "WooCommerce में, [सेटिंग्स] > [उन्नत] > [REST API] पर जाएँ।", "path": "WooCommerce → सेटिंग्स → उन्नत → REST API" },
+              { "h3": "कुंजी जोड़ें", "p": "[कुंजी जोड़ें] पर क्लिक करें, एक विवरण दर्ज करें और अनुमतियाँ (पढ़ना/लिखना) चुनें, फिर जनरेट करें।", "path": "कुंजी जोड़ें" },
+              { "h3": "कुंजियाँ कॉपी करें", "p": "जारी की गई Consumer Key और Consumer Secret को कॉपी करें।" },
+              { "h3": "जानकारी की पुष्टि करें", "p": "कॉपी की गई Consumer Key·Consumer Secret और अपनी store URL की पुष्टि करें।" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "यदि जारी करने वाली स्क्रीन पर Consumer Key और Consumer Secret दिखाई देते हैं, तो कुंजियाँ सही ढंग से जारी हो गई हैं।" },
+            { "type": "notice", "kind": "danger", "html": "<strong>सावधानी:</strong> Consumer Secret अक्सर जारी होने के तुरंत बाद ही पूरा दिखाया जाता है, इसलिए उसी समय इसे सुरक्षित रूप से कॉपी कर लें।" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo में पंजीकृत करने योग्य जानकारी",
+          "blocks": [
+            { "type": "table", "head": ["फ़ील्ड", "विवरण"], "rows": [
+              ["site_url", "store URL"],
+              ["consumer_key", "जारी की गई Consumer Key"],
+              ["consumer_secret", "जारी किया गया Consumer Secret (सावधानी से संभालें)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo Integration Hub [पंजीकृत करें] में site_url·consumer_key·consumer_secret दर्ज करें और सहेजें। क्रेडेंशियल को संग्रहण के समय AES-256-GCM से एन्क्रिप्ट किया जाता है और पढ़ते समय मास्क किया जाता है।" }
+          ]
+        },
+        {
+          "h2": "4. सामान्य समस्याएँ",
+          "blocks": [
+            { "type": "table", "head": ["समस्या", "कारण", "समाधान"], "rows": [
+              ["REST API मेनू नहीं है", "अपर्याप्त एडमिन अधिकार", "एडमिन अधिकार वाले खाते से लॉगिन करें और सेटिंग्स > उन्नत > REST API जाँचें।"],
+              ["लिखने की क्रियाएँ विफल", "कुंजी बनाते समय केवल-पढ़ने की अनुमति चुनी गई", "[कुंजी जोड़ें] करते समय पढ़ना/लिखना अनुमतियों के साथ फिर से जारी करें।"]
+            ] }
+          ]
+        },
+        {
+          "h2": "अंतिम जाँच सूची",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "WordPress/WooCommerce एडमिन अधिकारों के साथ लॉगिन किया।",
+              "सेटिंग्स > उन्नत > REST API में एक कुंजी जोड़ी।",
+              "अनुमतियाँ (पढ़ना/लिखना) चुनीं और Consumer Key·Consumer Secret कॉपी किया।",
+              "GenieGo [पंजीकृत करें] में site_url·consumer_key·consumer_secret दर्ज किया और सहेजा।"
+            ] }
+          ]
+        }
+      ]
+    },
+    "pt": {
+      "titleType": "Manual de emissão de API Key",
+      "badge": "Guia para iniciantes",
+      "intro": "Um guia passo a passo amigável para iniciantes sobre como emitir uma Consumer Key e um Consumer Secret nas configurações de REST API do seu administrador do WooCommerce e registrá-los no GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tempo estimado", "Cerca de 5–10 min"],
+        ["Conta necessária", "Privilégios de administrador do WordPress/WooCommerce"],
+        ["Chaves emitidas", "Consumer Key · Consumer Secret"],
+        ["Resultado", "Credenciais de REST API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de começar",
+          "desc": "As chaves de REST API só podem ser emitidas com privilégios de administrador.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Obrigatório", "h3": "Privilégios de administrador do WooCommerce", "p": "Você precisa de privilégios de administrador do WordPress/WooCommerce. Não é possível emitir chaves de REST API com privilégios de usuário comum." },
+              { "tag": "Chaves emitidas", "h3": "Consumer Key · Consumer Secret", "p": "Ao adicionar uma chave nas configurações de REST API, são emitidos uma Consumer Key e um Consumer Secret." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Passos de emissão",
+          "desc": "Emita na ordem abaixo e registre no GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Ir para as configurações de REST API", "p": "No WooCommerce, vá para [Configurações] > [Avançado] > [REST API].", "path": "WooCommerce → Configurações → Avançado → REST API" },
+              { "h3": "Adicionar uma chave", "p": "Clique em [Adicionar chave], insira uma descrição e selecione as permissões (Leitura/Escrita), depois gere.", "path": "Adicionar chave" },
+              { "h3": "Copiar as chaves", "p": "Copie a Consumer Key e o Consumer Secret emitidos." },
+              { "h3": "Confirmar as informações", "p": "Confirme a Consumer Key·Consumer Secret copiados e a sua própria store URL." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Se a Consumer Key e o Consumer Secret forem exibidos na tela de emissão, as chaves foram emitidas corretamente." },
+            { "type": "notice", "kind": "danger", "html": "<strong>Atenção:</strong> O Consumer Secret muitas vezes é exibido por completo apenas logo após a emissão, portanto, copie-o com segurança nesse momento." }
+          ]
+        },
+        {
+          "h2": "3. Informações para registrar no GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descrição"], "rows": [
+              ["site_url", "store URL"],
+              ["consumer_key", "A Consumer Key emitida"],
+              ["consumer_secret", "O Consumer Secret emitido (manuseie com cuidado)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Insira site_url·consumer_key·consumer_secret no GenieGo Integration Hub [Registrar] e salve. As credenciais são criptografadas em repouso com AES-256-GCM e mascaradas na leitura." }
+          ]
+        },
+        {
+          "h2": "4. Problemas comuns",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solução"], "rows": [
+              ["Sem menu de REST API", "Privilégios de administrador insuficientes", "Faça login com uma conta que tenha privilégios de administrador e verifique Configurações > Avançado > REST API."],
+              ["As operações de escrita falham", "Permissão somente leitura selecionada ao criar a chave", "Reemita com permissões de Leitura/Escrita ao [Adicionar chave]."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificação final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Fiz login com privilégios de administrador do WordPress/WooCommerce.",
+              "Adicionei uma chave em Configurações > Avançado > REST API.",
+              "Selecionei as permissões (Leitura/Escrita) e copiei a Consumer Key·Consumer Secret.",
+              "Inseri site_url·consumer_key·consumer_secret no GenieGo [Registrar] e salvei."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ru": {
+      "titleType": "Руководство по выпуску API Key",
+      "badge": "Руководство для новичков",
+      "intro": "Удобное для новичков пошаговое руководство по выпуску Consumer Key и Consumer Secret в настройках REST API панели администратора WooCommerce и их регистрации в GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Примерное время", "Около 5–10 мин"],
+        ["Требуемая учётная запись", "Права администратора WordPress/WooCommerce"],
+        ["Выпускаемые ключи", "Consumer Key · Consumer Secret"],
+        ["Результат", "Учётные данные REST API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Прежде чем начать",
+          "desc": "Ключи REST API можно выпустить только с правами администратора.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Требуется", "h3": "Права администратора WooCommerce", "p": "Вам нужны права администратора WordPress/WooCommerce. С правами обычного пользователя выпустить ключи REST API невозможно." },
+              { "tag": "Выпускаемые ключи", "h3": "Consumer Key · Consumer Secret", "p": "При добавлении ключа в настройках REST API выпускаются Consumer Key и Consumer Secret." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Шаги выпуска",
+          "desc": "Выпустите в указанном ниже порядке и зарегистрируйте в GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Перейдите к настройкам REST API", "p": "В WooCommerce перейдите в [Настройки] > [Дополнительно] > [REST API].", "path": "WooCommerce → Настройки → Дополнительно → REST API" },
+              { "h3": "Добавьте ключ", "p": "Нажмите [Добавить ключ], введите описание и выберите разрешения (Чтение/Запись), затем создайте.", "path": "Добавить ключ" },
+              { "h3": "Скопируйте ключи", "p": "Скопируйте выпущенные Consumer Key и Consumer Secret." },
+              { "h3": "Проверьте информацию", "p": "Проверьте скопированные Consumer Key·Consumer Secret и собственный store URL." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Если на экране выпуска отображаются Consumer Key и Consumer Secret, ключи выпущены правильно." },
+            { "type": "notice", "kind": "danger", "html": "<strong>Внимание:</strong> Consumer Secret часто отображается полностью только сразу после выпуска, поэтому обязательно безопасно скопируйте его в этот момент." }
+          ]
+        },
+        {
+          "h2": "3. Информация для регистрации в GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Поле", "Описание"], "rows": [
+              ["site_url", "store URL"],
+              ["consumer_key", "Выпущенный Consumer Key"],
+              ["consumer_secret", "Выпущенный Consumer Secret (обращайтесь осторожно)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Введите site_url·consumer_key·consumer_secret в GenieGo Integration Hub [Регистрация] и сохраните. Учётные данные шифруются при хранении с помощью AES-256-GCM и маскируются при чтении." }
+          ]
+        },
+        {
+          "h2": "4. Частые проблемы",
+          "blocks": [
+            { "type": "table", "head": ["Проблема", "Причина", "Решение"], "rows": [
+              ["Нет меню REST API", "Недостаточно прав администратора", "Войдите под учётной записью с правами администратора и проверьте Настройки > Дополнительно > REST API."],
+              ["Операции записи не выполняются", "При создании ключа выбрано разрешение «только чтение»", "Перевыпустите с разрешениями «Чтение/Запись» при [Добавить ключ]."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Финальный чек-лист",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Вошёл с правами администратора WordPress/WooCommerce.",
+              "Добавил ключ в Настройки > Дополнительно > REST API.",
+              "Выбрал разрешения (Чтение/Запись) и скопировал Consumer Key·Consumer Secret.",
+              "Ввёл site_url·consumer_key·consumer_secret в GenieGo [Регистрация] и сохранил."
+            ] }
+          ]
+        }
+      ]
+    }
+  }
+}

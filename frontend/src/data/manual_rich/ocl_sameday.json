@@ -1,0 +1,1041 @@
+{
+  "name": "GenieGo Same-Day Delivery",
+  "icon": "🚚",
+  "langs": {
+    "ko": {
+      "titleType": "API Key 발급 매뉴얼",
+      "badge": "Beginner Guide",
+      "intro": "지니고 당일배송 서비스를 계약하고 발급받은 당일배송 API 키·머천트 ID를 GenieGo 연동 허브에 등록하는 과정을 정리한 매뉴얼입니다. 이 채널은 자가 콘솔 발급이 아닌 운영팀과의 계약을 통해 자격증명을 수령합니다.",
+      "org": "GenieGo 연동 허브",
+      "quick": [
+        ["소요 시간", "계약 진행에 따라 상이"],
+        ["필요 계정", "지니고 당일배송 서비스 계약"],
+        ["발급 키", "당일배송 API 키 · 머천트 ID"],
+        ["결과물", "당일배송 API 자격증명"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 시작하기 전에",
+          "desc": "지니고 당일배송은 운영팀과의 서비스 계약 후 자격증명이 발급되는 계약형 채널입니다.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "필요", "h3": "당일배송 서비스 계약", "p": "지니고 당일배송을 이용하려면 운영팀과 서비스 이용 계약이 선행되어야 합니다. 계약 없이는 자격증명을 발급받을 수 없습니다." },
+              { "tag": "발급 키", "h3": "API 키 · 머천트 ID · 서비스 권역", "p": "계약 완료 후 운영팀으로부터 머천트 ID·API 키와 함께 서비스 권역을 발급받습니다." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>참고:</strong> 이 채널은 셀프 콘솔에서 직접 발급하는 방식이 아니라, 운영팀 계약을 통해 자격증명을 수령하는 방식입니다." }
+          ]
+        },
+        {
+          "h2": "2. 발급 신청 절차",
+          "desc": "아래 순서대로 신청·수령한 뒤 GenieGo에 등록합니다.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "당일배송 이용 신청", "p": "운영팀에 지니고 당일배송 이용을 신청하고 계약을 진행합니다." },
+              { "h3": "계약 체결", "p": "운영팀과 당일배송 서비스 이용 계약을 체결합니다." },
+              { "h3": "자격증명 수령", "p": "계약 완료 후 머천트 ID·API 키와 서비스 권역을 발급받습니다." },
+              { "h3": "GenieGo 등록", "p": "발급받은 api_key, merchant_id, region 을 GenieGo [등록]에 입력해 저장합니다." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "운영팀으로부터 머천트 ID·API 키·서비스 권역을 모두 수령했다면 정상적으로 발급된 것입니다." }
+          ]
+        },
+        {
+          "h2": "3. GenieGo에 등록할 정보",
+          "blocks": [
+            { "type": "table", "head": ["필드", "설명"], "rows": [
+              ["api_key", "발급받은 지니고 당일배송 API 키"],
+              ["merchant_id", "발급받은 머천트 ID"],
+              ["region", "서비스 권역(예: 수도권)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 연동 허브 [등록]에 입력해 저장하면 자격증명은 AES-256-GCM으로 암호화 저장되고 조회 시 마스킹됩니다." }
+          ]
+        },
+        {
+          "h2": "4. 자주 발생하는 문제",
+          "blocks": [
+            { "type": "table", "head": ["문제", "원인", "해결"], "rows": [
+              ["자격증명을 받지 못함", "당일배송 서비스 계약 미완료", "운영팀에 당일배송 이용을 신청·계약한 뒤 자격증명을 발급받습니다."],
+              ["등록 후 권역 처리 오류", "서비스 권역(region) 미입력 또는 오기재", "발급받은 서비스 권역을 다시 확인해 정확히 입력합니다."]
+            ] }
+          ]
+        },
+        {
+          "h2": "최종 체크리스트",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "운영팀에 지니고 당일배송 이용을 신청·계약했다.",
+              "계약 완료 후 머천트 ID·API 키·서비스 권역을 발급받았다.",
+              "api_key·merchant_id·region 을 확인했다.",
+              "GenieGo [등록]에 api_key·merchant_id·region 을 입력해 저장했다."
+            ] }
+          ]
+        }
+      ]
+    },
+    "en": {
+      "titleType": "API Key Issuance Manual",
+      "badge": "Beginner Guide",
+      "intro": "A manual covering how to register the Same-Day Delivery API key and merchant ID—issued after contracting the GenieGo Same-Day Delivery service—in the GenieGo Integration Hub. For this channel, credentials are received through a contract with the operations team rather than self-issued from a console.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Est. time", "Varies with contract progress"],
+        ["Account needed", "GenieGo Same-Day Delivery service contract"],
+        ["Keys issued", "Same-Day Delivery API key · Merchant ID"],
+        ["Result", "Same-Day Delivery API credentials"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Before You Begin",
+          "desc": "GenieGo Same-Day Delivery is a contract-based channel where credentials are issued after a service contract with the operations team.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Required", "h3": "Same-Day Delivery service contract", "p": "To use GenieGo Same-Day Delivery, a service usage contract with the operations team must come first. Without a contract, credentials cannot be issued." },
+              { "tag": "Keys issued", "h3": "API key · Merchant ID · Service region", "p": "After the contract is completed, the operations team issues you the merchant ID and API key along with a service region." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Note:</strong> This channel is not self-issued from a console; instead, credentials are received through a contract with the operations team." }
+          ]
+        },
+        {
+          "h2": "2. Issuance Request Procedure",
+          "desc": "Apply and receive in the order below, then register in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Apply for Same-Day Delivery", "p": "Apply to the operations team to use GenieGo Same-Day Delivery and proceed with the contract." },
+              { "h3": "Sign the contract", "p": "Sign the Same-Day Delivery service usage contract with the operations team." },
+              { "h3": "Receive credentials", "p": "After the contract is completed, you are issued the merchant ID, API key, and service region." },
+              { "h3": "Register in GenieGo", "p": "Enter the issued api_key, merchant_id, and region in GenieGo [Register] and save." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "If you have received the merchant ID, API key, and service region all from the operations team, issuance is complete." }
+          ]
+        },
+        {
+          "h2": "3. Information to Register in GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Field", "Description"], "rows": [
+              ["api_key", "The issued GenieGo Same-Day Delivery API key"],
+              ["merchant_id", "The issued merchant ID"],
+              ["region", "Service region (e.g., Seoul Metropolitan Area)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Once entered and saved in the GenieGo Integration Hub [Register], credentials are encrypted at rest with AES-256-GCM and masked on read." }
+          ]
+        },
+        {
+          "h2": "4. Common Issues",
+          "blocks": [
+            { "type": "table", "head": ["Issue", "Cause", "Solution"], "rows": [
+              ["Credentials not received", "Same-Day Delivery service contract not completed", "Apply for and contract Same-Day Delivery usage with the operations team, then receive the credentials."],
+              ["Region processing error after registration", "Service region (region) not entered or entered incorrectly", "Re-check the issued service region and enter it correctly."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Final Checklist",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Applied for and contracted GenieGo Same-Day Delivery usage with the operations team.",
+              "Received the merchant ID, API key, and service region after completing the contract.",
+              "Confirmed api_key, merchant_id, and region.",
+              "Entered api_key, merchant_id, and region in GenieGo [Register] and saved."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ja": {
+      "titleType": "API Key 発行マニュアル",
+      "badge": "初心者ガイド",
+      "intro": "ジニゴ当日配送サービスを契約して発行された当日配送 API キー・マーチャント ID を GenieGo 連携ハブに登録する手順をまとめたマニュアルです。このチャネルは自己コンソールでの発行ではなく、運営チームとの契約を通じて認証情報を受領します。",
+      "org": "GenieGo 連携ハブ",
+      "quick": [
+        ["所要時間", "契約の進行により異なる"],
+        ["必要なアカウント", "ジニゴ当日配送サービス契約"],
+        ["発行するキー", "当日配送 API キー · マーチャント ID"],
+        ["成果物", "当日配送 API 認証情報"]
+      ],
+      "sections": [
+        {
+          "h2": "1. はじめる前に",
+          "desc": "ジニゴ当日配送は、運営チームとのサービス契約後に認証情報が発行される契約型チャネルです。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必須", "h3": "当日配送サービス契約", "p": "ジニゴ当日配送を利用するには、運営チームとのサービス利用契約が先行して必要です。契約なしでは認証情報を発行できません。" },
+              { "tag": "発行するキー", "h3": "API キー · マーチャント ID · サービス圏域", "p": "契約完了後、運営チームからマーチャント ID・API キーとともにサービス圏域を発行してもらいます。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> このチャネルはセルフコンソールで直接発行する方式ではなく、運営チームとの契約を通じて認証情報を受領する方式です。" }
+          ]
+        },
+        {
+          "h2": "2. 発行申請手順",
+          "desc": "以下の順序で申請・受領した後、GenieGo に登録します。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "当日配送の利用申請", "p": "運営チームにジニゴ当日配送の利用を申請し、契約を進めます。" },
+              { "h3": "契約締結", "p": "運営チームと当日配送サービス利用契約を締結します。" },
+              { "h3": "認証情報の受領", "p": "契約完了後、マーチャント ID・API キーとサービス圏域を発行してもらいます。" },
+              { "h3": "GenieGo 登録", "p": "発行された api_key、merchant_id、region を GenieGo [登録] に入力して保存します。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "運営チームからマーチャント ID・API キー・サービス圏域をすべて受領していれば、正常に発行されています。" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo に登録する情報",
+          "blocks": [
+            { "type": "table", "head": ["フィールド", "説明"], "rows": [
+              ["api_key", "発行されたジニゴ当日配送 API キー"],
+              ["merchant_id", "発行されたマーチャント ID"],
+              ["region", "サービス圏域(例: 首都圏)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 連携ハブの [登録] に入力して保存すると、認証情報は AES-256-GCM で暗号化して保存され、閲覧時にはマスキングされます。" }
+          ]
+        },
+        {
+          "h2": "4. よくある問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["認証情報を受領できない", "当日配送サービス契約が未完了", "運営チームに当日配送の利用を申請・契約した後、認証情報を発行してもらいます。"],
+              ["登録後の圏域処理エラー", "サービス圏域(region)が未入力または誤記", "発行されたサービス圏域を再度確認して正確に入力します。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終チェックリスト",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "運営チームにジニゴ当日配送の利用を申請・契約した。",
+              "契約完了後、マーチャント ID・API キー・サービス圏域を発行してもらった。",
+              "api_key・merchant_id・region を確認した。",
+              "GenieGo [登録] に api_key・merchant_id・region を入力して保存した。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh": {
+      "titleType": "API Key 申请手册",
+      "badge": "新手指南",
+      "intro": "本手册介绍如何将签约 GenieGo 当日配送服务后所获得的当日配送 API 密钥和商户 ID 注册到 GenieGo 集成中心。该渠道并非通过自助控制台签发，而是通过与运营团队签约来获取凭证。",
+      "org": "GenieGo 集成中心",
+      "quick": [
+        ["预计时间", "因签约进度而异"],
+        ["所需账户", "GenieGo 当日配送服务合约"],
+        ["签发密钥", "当日配送 API 密钥 · 商户 ID"],
+        ["成果", "当日配送 API 凭证"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 开始之前",
+          "desc": "GenieGo 当日配送是一种合约型渠道，在与运营团队签订服务合约后才会签发凭证。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "当日配送服务合约", "p": "要使用 GenieGo 当日配送，必须先与运营团队签订服务使用合约。没有合约则无法签发凭证。" },
+              { "tag": "签发密钥", "h3": "API 密钥 · 商户 ID · 服务区域", "p": "合约完成后，运营团队会向您签发商户 ID、API 密钥以及服务区域。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> 该渠道并非在自助控制台中直接签发，而是通过与运营团队签约来获取凭证。" }
+          ]
+        },
+        {
+          "h2": "2. 申请签发流程",
+          "desc": "按以下顺序申请并接收后，在 GenieGo 中注册。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "申请使用当日配送", "p": "向运营团队申请使用 GenieGo 当日配送并推进签约。" },
+              { "h3": "签订合约", "p": "与运营团队签订当日配送服务使用合约。" },
+              { "h3": "接收凭证", "p": "合约完成后，获得商户 ID、API 密钥和服务区域。" },
+              { "h3": "在 GenieGo 中注册", "p": "将签发的 api_key、merchant_id、region 输入 GenieGo [注册] 并保存。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "如果您已从运营团队接收到商户 ID、API 密钥和服务区域，即表示已正确签发。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中注册的信息",
+          "blocks": [
+            { "type": "table", "head": ["字段", "说明"], "rows": [
+              ["api_key", "签发的 GenieGo 当日配送 API 密钥"],
+              ["merchant_id", "签发的商户 ID"],
+              ["region", "服务区域(例如：首都圈)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 集成中心 [注册] 中输入并保存后，凭证将以 AES-256-GCM 加密存储，并在查询时进行掩码处理。" }
+          ]
+        },
+        {
+          "h2": "4. 常见问题",
+          "blocks": [
+            { "type": "table", "head": ["问题", "原因", "解决方法"], "rows": [
+              ["未收到凭证", "当日配送服务合约未完成", "向运营团队申请并签订当日配送使用合约后，再获取凭证。"],
+              ["注册后区域处理错误", "未输入或错填服务区域(region)", "重新确认签发的服务区域并准确输入。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最终检查清单",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已向运营团队申请并签订 GenieGo 当日配送的使用合约。",
+              "合约完成后已获得商户 ID、API 密钥和服务区域。",
+              "已确认 api_key、merchant_id、region。",
+              "已在 GenieGo [注册] 中输入 api_key、merchant_id、region 并保存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh-TW": {
+      "titleType": "API Key 申請手冊",
+      "badge": "新手指南",
+      "intro": "本手冊介紹如何將簽約 GenieGo 當日配送服務後所取得的當日配送 API 金鑰和商戶 ID 註冊到 GenieGo 整合中心。此渠道並非透過自助控制台簽發，而是透過與營運團隊簽約來取得憑證。",
+      "org": "GenieGo 整合中心",
+      "quick": [
+        ["預計時間", "依簽約進度而異"],
+        ["所需帳戶", "GenieGo 當日配送服務合約"],
+        ["簽發金鑰", "當日配送 API 金鑰 · 商戶 ID"],
+        ["成果", "當日配送 API 憑證"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 開始之前",
+          "desc": "GenieGo 當日配送是一種合約型渠道，在與營運團隊簽訂服務合約後才會簽發憑證。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "當日配送服務合約", "p": "若要使用 GenieGo 當日配送，必須先與營運團隊簽訂服務使用合約。沒有合約則無法簽發憑證。" },
+              { "tag": "簽發金鑰", "h3": "API 金鑰 · 商戶 ID · 服務區域", "p": "合約完成後，營運團隊會向您簽發商戶 ID、API 金鑰以及服務區域。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> 此渠道並非在自助控制台中直接簽發，而是透過與營運團隊簽約來取得憑證。" }
+          ]
+        },
+        {
+          "h2": "2. 申請簽發流程",
+          "desc": "依以下順序申請並接收後，在 GenieGo 中註冊。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "申請使用當日配送", "p": "向營運團隊申請使用 GenieGo 當日配送並推進簽約。" },
+              { "h3": "簽訂合約", "p": "與營運團隊簽訂當日配送服務使用合約。" },
+              { "h3": "接收憑證", "p": "合約完成後，取得商戶 ID、API 金鑰和服務區域。" },
+              { "h3": "在 GenieGo 中註冊", "p": "將簽發的 api_key、merchant_id、region 輸入 GenieGo [註冊] 並儲存。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "如果您已從營運團隊接收到商戶 ID、API 金鑰和服務區域，即表示已正確簽發。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中註冊的資訊",
+          "blocks": [
+            { "type": "table", "head": ["欄位", "說明"], "rows": [
+              ["api_key", "簽發的 GenieGo 當日配送 API 金鑰"],
+              ["merchant_id", "簽發的商戶 ID"],
+              ["region", "服務區域(例如：首都圈)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 整合中心 [註冊] 中輸入並儲存後，憑證將以 AES-256-GCM 加密儲存，並在查詢時進行遮罩處理。" }
+          ]
+        },
+        {
+          "h2": "4. 常見問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["未收到憑證", "當日配送服務合約未完成", "向營運團隊申請並簽訂當日配送使用合約後，再取得憑證。"],
+              ["註冊後區域處理錯誤", "未輸入或誤填服務區域(region)", "重新確認簽發的服務區域並準確輸入。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終檢查清單",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已向營運團隊申請並簽訂 GenieGo 當日配送的使用合約。",
+              "合約完成後已取得商戶 ID、API 金鑰和服務區域。",
+              "已確認 api_key、merchant_id、region。",
+              "已在 GenieGo [註冊] 中輸入 api_key、merchant_id、region 並儲存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "de": {
+      "titleType": "Anleitung zur API-Key-Ausstellung",
+      "badge": "Einsteigerleitfaden",
+      "intro": "Eine Anleitung dazu, wie Sie den nach Vertragsabschluss für den GenieGo Same-Day-Delivery-Dienst ausgestellten Same-Day-Delivery-API-Schlüssel und die Händler-ID im GenieGo Integration Hub registrieren. Bei diesem Kanal werden die Anmeldedaten nicht über eine Selbstbedienungskonsole ausgestellt, sondern über einen Vertrag mit dem Betriebsteam empfangen.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Geschätzte Zeit", "Variiert je nach Vertragsfortschritt"],
+        ["Benötigtes Konto", "GenieGo Same-Day-Delivery-Dienstvertrag"],
+        ["Ausgestellte Schlüssel", "Same-Day-Delivery-API-Schlüssel · Händler-ID"],
+        ["Ergebnis", "Same-Day-Delivery-API-Anmeldedaten"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Bevor Sie beginnen",
+          "desc": "GenieGo Same-Day Delivery ist ein vertragsbasierter Kanal, bei dem die Anmeldedaten nach einem Dienstvertrag mit dem Betriebsteam ausgestellt werden.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Erforderlich", "h3": "Same-Day-Delivery-Dienstvertrag", "p": "Um GenieGo Same-Day Delivery zu nutzen, muss zunächst ein Nutzungsvertrag mit dem Betriebsteam vorliegen. Ohne Vertrag können keine Anmeldedaten ausgestellt werden." },
+              { "tag": "Ausgestellte Schlüssel", "h3": "API-Schlüssel · Händler-ID · Servicegebiet", "p": "Nach Vertragsabschluss stellt Ihnen das Betriebsteam die Händler-ID und den API-Schlüssel zusammen mit einem Servicegebiet aus." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Hinweis:</strong> Dieser Kanal wird nicht über eine Selbstbedienungskonsole ausgestellt; stattdessen werden die Anmeldedaten über einen Vertrag mit dem Betriebsteam empfangen." }
+          ]
+        },
+        {
+          "h2": "2. Verfahren zur Ausstellungsanfrage",
+          "desc": "Beantragen und empfangen Sie in der unten angegebenen Reihenfolge und registrieren Sie anschließend in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Same-Day Delivery beantragen", "p": "Beantragen Sie beim Betriebsteam die Nutzung von GenieGo Same-Day Delivery und gehen Sie den Vertrag an." },
+              { "h3": "Vertrag abschließen", "p": "Schließen Sie den Same-Day-Delivery-Nutzungsvertrag mit dem Betriebsteam ab." },
+              { "h3": "Anmeldedaten empfangen", "p": "Nach Vertragsabschluss erhalten Sie die Händler-ID, den API-Schlüssel und das Servicegebiet." },
+              { "h3": "In GenieGo registrieren", "p": "Geben Sie die ausgestellten api_key, merchant_id und region in GenieGo [Registrieren] ein und speichern Sie." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Wenn Sie die Händler-ID, den API-Schlüssel und das Servicegebiet allesamt vom Betriebsteam erhalten haben, wurde es korrekt ausgestellt." }
+          ]
+        },
+        {
+          "h2": "3. In GenieGo zu registrierende Informationen",
+          "blocks": [
+            { "type": "table", "head": ["Feld", "Beschreibung"], "rows": [
+              ["api_key", "Der ausgestellte GenieGo Same-Day-Delivery-API-Schlüssel"],
+              ["merchant_id", "Die ausgestellte Händler-ID"],
+              ["region", "Servicegebiet (z. B. Großraum der Hauptstadt)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Nach Eingabe und Speicherung im GenieGo Integration Hub [Registrieren] werden die Anmeldedaten im Ruhezustand mit AES-256-GCM verschlüsselt und beim Lesen maskiert." }
+          ]
+        },
+        {
+          "h2": "4. Häufige Probleme",
+          "blocks": [
+            { "type": "table", "head": ["Problem", "Ursache", "Lösung"], "rows": [
+              ["Anmeldedaten nicht erhalten", "Same-Day-Delivery-Dienstvertrag nicht abgeschlossen", "Beantragen und schließen Sie die Same-Day-Delivery-Nutzung mit dem Betriebsteam ab und erhalten Sie dann die Anmeldedaten."],
+              ["Gebietsverarbeitungsfehler nach der Registrierung", "Servicegebiet (region) nicht oder falsch eingegeben", "Überprüfen Sie das ausgestellte Servicegebiet erneut und geben Sie es korrekt ein."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Abschließende Checkliste",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Die Nutzung von GenieGo Same-Day Delivery beim Betriebsteam beantragt und vertraglich vereinbart.",
+              "Nach Vertragsabschluss die Händler-ID, den API-Schlüssel und das Servicegebiet erhalten.",
+              "api_key, merchant_id und region bestätigt.",
+              "api_key, merchant_id und region in GenieGo [Registrieren] eingegeben und gespeichert."
+            ] }
+          ]
+        }
+      ]
+    },
+    "th": {
+      "titleType": "คู่มือการออก API Key",
+      "badge": "คู่มือสำหรับผู้เริ่มต้น",
+      "intro": "คู่มือที่อธิบายวิธีลงทะเบียนคีย์ API การจัดส่งภายในวันและรหัสร้านค้า ที่ออกให้หลังจากทำสัญญาบริการ GenieGo Same-Day Delivery ลงใน GenieGo Integration Hub สำหรับช่องทางนี้ ข้อมูลรับรองจะได้รับผ่านสัญญากับทีมปฏิบัติการ ไม่ใช่การออกด้วยตนเองจากคอนโซล",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["เวลาโดยประมาณ", "แตกต่างกันตามความคืบหน้าของสัญญา"],
+        ["บัญชีที่ต้องใช้", "สัญญาบริการ GenieGo Same-Day Delivery"],
+        ["คีย์ที่ออก", "คีย์ API การจัดส่งภายในวัน · รหัสร้านค้า"],
+        ["ผลลัพธ์", "ข้อมูลรับรอง API การจัดส่งภายในวัน"]
+      ],
+      "sections": [
+        {
+          "h2": "1. ก่อนเริ่มต้น",
+          "desc": "GenieGo Same-Day Delivery เป็นช่องทางแบบทำสัญญา ซึ่งข้อมูลรับรองจะออกให้หลังจากทำสัญญาบริการกับทีมปฏิบัติการ",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "จำเป็น", "h3": "สัญญาบริการการจัดส่งภายในวัน", "p": "หากต้องการใช้ GenieGo Same-Day Delivery จำเป็นต้องมีสัญญาการใช้บริการกับทีมปฏิบัติการก่อน หากไม่มีสัญญาจะไม่สามารถออกข้อมูลรับรองได้" },
+              { "tag": "คีย์ที่ออก", "h3": "คีย์ API · รหัสร้านค้า · เขตพื้นที่บริการ", "p": "หลังจากทำสัญญาเสร็จสมบูรณ์ ทีมปฏิบัติการจะออกรหัสร้านค้าและคีย์ API พร้อมกับเขตพื้นที่บริการให้คุณ" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>หมายเหตุ:</strong> ช่องทางนี้ไม่ใช่การออกด้วยตนเองจากคอนโซล แต่เป็นการรับข้อมูลรับรองผ่านสัญญากับทีมปฏิบัติการ" }
+          ]
+        },
+        {
+          "h2": "2. ขั้นตอนการขอออก",
+          "desc": "ยื่นขอและรับตามลำดับด้านล่าง จากนั้นลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "ยื่นขอใช้การจัดส่งภายในวัน", "p": "ยื่นขอใช้ GenieGo Same-Day Delivery กับทีมปฏิบัติการและดำเนินการทำสัญญา" },
+              { "h3": "ลงนามในสัญญา", "p": "ลงนามในสัญญาการใช้บริการการจัดส่งภายในวันกับทีมปฏิบัติการ" },
+              { "h3": "รับข้อมูลรับรอง", "p": "หลังจากทำสัญญาเสร็จสมบูรณ์ คุณจะได้รับรหัสร้านค้า คีย์ API และเขตพื้นที่บริการ" },
+              { "h3": "ลงทะเบียนใน GenieGo", "p": "ป้อน api_key, merchant_id และ region ที่ออกให้ลงใน GenieGo [ลงทะเบียน] แล้วบันทึก" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "หากคุณได้รับรหัสร้านค้า คีย์ API และเขตพื้นที่บริการครบทั้งหมดจากทีมปฏิบัติการแล้ว แสดงว่าออกอย่างถูกต้อง" }
+          ]
+        },
+        {
+          "h2": "3. ข้อมูลที่ต้องลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["ฟิลด์", "คำอธิบาย"], "rows": [
+              ["api_key", "คีย์ API การจัดส่งภายในวันของ GenieGo ที่ออกให้"],
+              ["merchant_id", "รหัสร้านค้าที่ออกให้"],
+              ["region", "เขตพื้นที่บริการ (เช่น เขตเมืองหลวง)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "เมื่อป้อนและบันทึกใน GenieGo Integration Hub [ลงทะเบียน] แล้ว ข้อมูลรับรองจะถูกเข้ารหัสขณะจัดเก็บด้วย AES-256-GCM และปิดบังเมื่ออ่าน" }
+          ]
+        },
+        {
+          "h2": "4. ปัญหาที่พบบ่อย",
+          "blocks": [
+            { "type": "table", "head": ["ปัญหา", "สาเหตุ", "วิธีแก้ไข"], "rows": [
+              ["ไม่ได้รับข้อมูลรับรอง", "สัญญาบริการการจัดส่งภายในวันยังไม่เสร็จสมบูรณ์", "ยื่นขอและทำสัญญาการใช้การจัดส่งภายในวันกับทีมปฏิบัติการ จากนั้นรับข้อมูลรับรอง"],
+              ["ข้อผิดพลาดในการประมวลผลเขตพื้นที่หลังลงทะเบียน", "ไม่ได้ป้อนหรือป้อนเขตพื้นที่บริการ (region) ผิด", "ตรวจสอบเขตพื้นที่บริการที่ออกให้อีกครั้งและป้อนให้ถูกต้อง"]
+            ] }
+          ]
+        },
+        {
+          "h2": "รายการตรวจสอบขั้นสุดท้าย",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "ยื่นขอและทำสัญญาการใช้ GenieGo Same-Day Delivery กับทีมปฏิบัติการแล้ว",
+              "ได้รับรหัสร้านค้า คีย์ API และเขตพื้นที่บริการหลังจากทำสัญญาเสร็จสมบูรณ์แล้ว",
+              "ยืนยัน api_key, merchant_id และ region แล้ว",
+              "ป้อน api_key, merchant_id และ region ใน GenieGo [ลงทะเบียน] และบันทึกแล้ว"
+            ] }
+          ]
+        }
+      ]
+    },
+    "vi": {
+      "titleType": "Hướng dẫn cấp API Key",
+      "badge": "Hướng dẫn cho người mới",
+      "intro": "Hướng dẫn về cách đăng ký khóa API Giao hàng trong ngày và ID người bán—được cấp sau khi ký hợp đồng dịch vụ GenieGo Giao hàng trong ngày—trong GenieGo Integration Hub. Đối với kênh này, thông tin xác thực được nhận thông qua hợp đồng với đội vận hành thay vì tự cấp từ bảng điều khiển.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Thời gian dự kiến", "Thay đổi tùy theo tiến độ hợp đồng"],
+        ["Tài khoản cần thiết", "Hợp đồng dịch vụ GenieGo Giao hàng trong ngày"],
+        ["Khóa được cấp", "Khóa API Giao hàng trong ngày · ID người bán"],
+        ["Kết quả", "Thông tin xác thực API Giao hàng trong ngày"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Trước khi bắt đầu",
+          "desc": "GenieGo Giao hàng trong ngày là một kênh dựa trên hợp đồng, trong đó thông tin xác thực được cấp sau khi ký hợp đồng dịch vụ với đội vận hành.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Bắt buộc", "h3": "Hợp đồng dịch vụ Giao hàng trong ngày", "p": "Để sử dụng GenieGo Giao hàng trong ngày, trước tiên phải có hợp đồng sử dụng dịch vụ với đội vận hành. Không có hợp đồng thì không thể cấp thông tin xác thực." },
+              { "tag": "Khóa được cấp", "h3": "Khóa API · ID người bán · Khu vực dịch vụ", "p": "Sau khi hoàn tất hợp đồng, đội vận hành sẽ cấp cho bạn ID người bán và khóa API cùng với một khu vực dịch vụ." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Lưu ý:</strong> Kênh này không được tự cấp từ bảng điều khiển; thay vào đó, thông tin xác thực được nhận thông qua hợp đồng với đội vận hành." }
+          ]
+        },
+        {
+          "h2": "2. Quy trình yêu cầu cấp",
+          "desc": "Đăng ký và nhận theo thứ tự dưới đây, sau đó đăng ký trong GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Đăng ký sử dụng Giao hàng trong ngày", "p": "Đăng ký với đội vận hành để sử dụng GenieGo Giao hàng trong ngày và tiến hành hợp đồng." },
+              { "h3": "Ký hợp đồng", "p": "Ký hợp đồng sử dụng dịch vụ Giao hàng trong ngày với đội vận hành." },
+              { "h3": "Nhận thông tin xác thực", "p": "Sau khi hoàn tất hợp đồng, bạn được cấp ID người bán, khóa API và khu vực dịch vụ." },
+              { "h3": "Đăng ký trong GenieGo", "p": "Nhập api_key, merchant_id và region đã được cấp vào GenieGo [Đăng ký] và lưu." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Nếu bạn đã nhận được ID người bán, khóa API và khu vực dịch vụ từ đội vận hành, nghĩa là đã được cấp đúng cách." }
+          ]
+        },
+        {
+          "h2": "3. Thông tin cần đăng ký trong GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Trường", "Mô tả"], "rows": [
+              ["api_key", "Khóa API GenieGo Giao hàng trong ngày đã được cấp"],
+              ["merchant_id", "ID người bán đã được cấp"],
+              ["region", "Khu vực dịch vụ (ví dụ: Vùng Thủ đô)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Sau khi nhập và lưu trong GenieGo Integration Hub [Đăng ký], thông tin xác thực được mã hóa khi lưu trữ bằng AES-256-GCM và được che khi đọc." }
+          ]
+        },
+        {
+          "h2": "4. Sự cố thường gặp",
+          "blocks": [
+            { "type": "table", "head": ["Sự cố", "Nguyên nhân", "Giải pháp"], "rows": [
+              ["Không nhận được thông tin xác thực", "Hợp đồng dịch vụ Giao hàng trong ngày chưa hoàn tất", "Đăng ký và ký hợp đồng sử dụng Giao hàng trong ngày với đội vận hành, sau đó nhận thông tin xác thực."],
+              ["Lỗi xử lý khu vực sau khi đăng ký", "Khu vực dịch vụ (region) chưa nhập hoặc nhập sai", "Kiểm tra lại khu vực dịch vụ đã được cấp và nhập chính xác."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Danh sách kiểm tra cuối cùng",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Đã đăng ký và ký hợp đồng sử dụng GenieGo Giao hàng trong ngày với đội vận hành.",
+              "Đã nhận ID người bán, khóa API và khu vực dịch vụ sau khi hoàn tất hợp đồng.",
+              "Đã xác nhận api_key, merchant_id và region.",
+              "Đã nhập api_key, merchant_id và region vào GenieGo [Đăng ký] và lưu."
+            ] }
+          ]
+        }
+      ]
+    },
+    "id": {
+      "titleType": "Panduan Penerbitan API Key",
+      "badge": "Panduan Pemula",
+      "intro": "Panduan tentang cara mendaftarkan kunci API Pengiriman Hari Sama dan ID merchant—yang diterbitkan setelah membuat kontrak layanan GenieGo Pengiriman Hari Sama—di GenieGo Integration Hub. Untuk kanal ini, kredensial diterima melalui kontrak dengan tim operasional, bukan diterbitkan sendiri dari konsol.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Perkiraan waktu", "Bervariasi sesuai kemajuan kontrak"],
+        ["Akun yang dibutuhkan", "Kontrak layanan GenieGo Pengiriman Hari Sama"],
+        ["Kunci yang diterbitkan", "Kunci API Pengiriman Hari Sama · ID merchant"],
+        ["Hasil", "Kredensial API Pengiriman Hari Sama"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Sebelum Anda Mulai",
+          "desc": "GenieGo Pengiriman Hari Sama adalah kanal berbasis kontrak, di mana kredensial diterbitkan setelah kontrak layanan dengan tim operasional.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Diperlukan", "h3": "Kontrak layanan Pengiriman Hari Sama", "p": "Untuk menggunakan GenieGo Pengiriman Hari Sama, kontrak penggunaan layanan dengan tim operasional harus didahulukan. Tanpa kontrak, kredensial tidak dapat diterbitkan." },
+              { "tag": "Kunci yang diterbitkan", "h3": "Kunci API · ID merchant · Wilayah layanan", "p": "Setelah kontrak selesai, tim operasional menerbitkan ID merchant dan kunci API beserta wilayah layanan untuk Anda." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Catatan:</strong> Kanal ini tidak diterbitkan sendiri dari konsol; sebaliknya, kredensial diterima melalui kontrak dengan tim operasional." }
+          ]
+        },
+        {
+          "h2": "2. Prosedur Permintaan Penerbitan",
+          "desc": "Ajukan dan terima sesuai urutan di bawah, lalu daftarkan di GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Ajukan penggunaan Pengiriman Hari Sama", "p": "Ajukan kepada tim operasional untuk menggunakan GenieGo Pengiriman Hari Sama dan lanjutkan dengan kontrak." },
+              { "h3": "Tanda tangani kontrak", "p": "Tanda tangani kontrak penggunaan layanan Pengiriman Hari Sama dengan tim operasional." },
+              { "h3": "Terima kredensial", "p": "Setelah kontrak selesai, Anda diterbitkan ID merchant, kunci API, dan wilayah layanan." },
+              { "h3": "Daftarkan di GenieGo", "p": "Masukkan api_key, merchant_id, dan region yang diterbitkan ke GenieGo [Daftar] lalu simpan." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Jika Anda telah menerima ID merchant, kunci API, dan wilayah layanan semuanya dari tim operasional, berarti telah diterbitkan dengan benar." }
+          ]
+        },
+        {
+          "h2": "3. Informasi yang Perlu Didaftarkan di GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Bidang", "Deskripsi"], "rows": [
+              ["api_key", "Kunci API GenieGo Pengiriman Hari Sama yang diterbitkan"],
+              ["merchant_id", "ID merchant yang diterbitkan"],
+              ["region", "Wilayah layanan (mis. Wilayah Ibu Kota)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Setelah dimasukkan dan disimpan di GenieGo Integration Hub [Daftar], kredensial dienkripsi saat disimpan dengan AES-256-GCM dan disamarkan saat dibaca." }
+          ]
+        },
+        {
+          "h2": "4. Masalah Umum",
+          "blocks": [
+            { "type": "table", "head": ["Masalah", "Penyebab", "Solusi"], "rows": [
+              ["Kredensial tidak diterima", "Kontrak layanan Pengiriman Hari Sama belum selesai", "Ajukan dan buat kontrak penggunaan Pengiriman Hari Sama dengan tim operasional, lalu terima kredensialnya."],
+              ["Kesalahan pemrosesan wilayah setelah pendaftaran", "Wilayah layanan (region) tidak dimasukkan atau salah diisi", "Periksa kembali wilayah layanan yang diterbitkan dan masukkan dengan benar."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Daftar Periksa Akhir",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Mengajukan dan membuat kontrak penggunaan GenieGo Pengiriman Hari Sama dengan tim operasional.",
+              "Menerima ID merchant, kunci API, dan wilayah layanan setelah menyelesaikan kontrak.",
+              "Mengonfirmasi api_key, merchant_id, dan region.",
+              "Memasukkan api_key, merchant_id, dan region di GenieGo [Daftar] lalu menyimpannya."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ar": {
+      "titleType": "دليل إصدار مفتاح API",
+      "badge": "دليل المبتدئين",
+      "intro": "دليل يشرح كيفية تسجيل مفتاح API للتوصيل في نفس اليوم ومعرّف التاجر—الصادرين بعد التعاقد على خدمة GenieGo للتوصيل في نفس اليوم—في GenieGo Integration Hub. بالنسبة لهذه القناة، يتم استلام بيانات الاعتماد من خلال عقد مع فريق التشغيل بدلاً من إصدارها ذاتياً من وحدة التحكم.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["الوقت المقدّر", "يختلف حسب تقدّم العقد"],
+        ["الحساب المطلوب", "عقد خدمة GenieGo للتوصيل في نفس اليوم"],
+        ["المفاتيح الصادرة", "مفتاح API للتوصيل في نفس اليوم · معرّف التاجر"],
+        ["النتيجة", "بيانات اعتماد API للتوصيل في نفس اليوم"]
+      ],
+      "sections": [
+        {
+          "h2": "1. قبل أن تبدأ",
+          "desc": "GenieGo للتوصيل في نفس اليوم هي قناة قائمة على العقد، حيث يتم إصدار بيانات الاعتماد بعد عقد خدمة مع فريق التشغيل.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "مطلوب", "h3": "عقد خدمة التوصيل في نفس اليوم", "p": "لاستخدام GenieGo للتوصيل في نفس اليوم، يجب أولاً وجود عقد استخدام للخدمة مع فريق التشغيل. بدون عقد، لا يمكن إصدار بيانات الاعتماد." },
+              { "tag": "المفاتيح الصادرة", "h3": "مفتاح API · معرّف التاجر · منطقة الخدمة", "p": "بعد اكتمال العقد، يصدر لك فريق التشغيل معرّف التاجر ومفتاح API مع منطقة الخدمة." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>ملاحظة:</strong> لا يتم إصدار هذه القناة ذاتياً من وحدة التحكم؛ بل يتم استلام بيانات الاعتماد من خلال عقد مع فريق التشغيل." }
+          ]
+        },
+        {
+          "h2": "2. إجراء طلب الإصدار",
+          "desc": "قدّم الطلب واستلم بالترتيب أدناه، ثم سجّل في GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "تقديم طلب استخدام التوصيل في نفس اليوم", "p": "قدّم طلباً إلى فريق التشغيل لاستخدام GenieGo للتوصيل في نفس اليوم وتابع العقد." },
+              { "h3": "توقيع العقد", "p": "وقّع عقد استخدام خدمة التوصيل في نفس اليوم مع فريق التشغيل." },
+              { "h3": "استلام بيانات الاعتماد", "p": "بعد اكتمال العقد، يتم إصدار معرّف التاجر ومفتاح API ومنطقة الخدمة لك." },
+              { "h3": "التسجيل في GenieGo", "p": "أدخل api_key وmerchant_id وregion الصادرة في GenieGo [تسجيل] واحفظ." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "إذا استلمت معرّف التاجر ومفتاح API ومنطقة الخدمة جميعها من فريق التشغيل، فهذا يعني أنه تم الإصدار بشكل صحيح." }
+          ]
+        },
+        {
+          "h2": "3. المعلومات المطلوب تسجيلها في GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["الحقل", "الوصف"], "rows": [
+              ["api_key", "مفتاح API الصادر لخدمة GenieGo للتوصيل في نفس اليوم"],
+              ["merchant_id", "معرّف التاجر الصادر"],
+              ["region", "منطقة الخدمة (مثال: منطقة العاصمة)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "بمجرد إدخالها وحفظها في GenieGo Integration Hub [تسجيل]، يتم تشفير بيانات الاعتماد أثناء التخزين باستخدام AES-256-GCM وإخفاؤها عند القراءة." }
+          ]
+        },
+        {
+          "h2": "4. المشكلات الشائعة",
+          "blocks": [
+            { "type": "table", "head": ["المشكلة", "السبب", "الحل"], "rows": [
+              ["عدم استلام بيانات الاعتماد", "لم يكتمل عقد خدمة التوصيل في نفس اليوم", "قدّم طلباً وأبرم عقد استخدام التوصيل في نفس اليوم مع فريق التشغيل، ثم استلم بيانات الاعتماد."],
+              ["خطأ في معالجة المنطقة بعد التسجيل", "لم يتم إدخال منطقة الخدمة (region) أو أُدخلت بشكل خاطئ", "تحقق مرة أخرى من منطقة الخدمة الصادرة وأدخلها بشكل صحيح."]
+            ] }
+          ]
+        },
+        {
+          "h2": "قائمة التحقق النهائية",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "قدّمت طلباً وأبرمت عقد استخدام GenieGo للتوصيل في نفس اليوم مع فريق التشغيل.",
+              "استلمت معرّف التاجر ومفتاح API ومنطقة الخدمة بعد اكتمال العقد.",
+              "أكّدت api_key وmerchant_id وregion.",
+              "أدخلت api_key وmerchant_id وregion في GenieGo [تسجيل] وحفظت."
+            ] }
+          ]
+        }
+      ]
+    },
+    "es": {
+      "titleType": "Manual de emisión de API Key",
+      "badge": "Guía para principiantes",
+      "intro": "Un manual que explica cómo registrar la clave API de Entrega el Mismo Día y el ID de comerciante—emitidos tras contratar el servicio GenieGo Entrega el Mismo Día—en el GenieGo Integration Hub. Para este canal, las credenciales se reciben mediante un contrato con el equipo de operaciones en lugar de emitirse por cuenta propia desde una consola.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tiempo estimado", "Varía según el avance del contrato"],
+        ["Cuenta necesaria", "Contrato del servicio GenieGo Entrega el Mismo Día"],
+        ["Claves emitidas", "Clave API de Entrega el Mismo Día · ID de comerciante"],
+        ["Resultado", "Credenciales de la API de Entrega el Mismo Día"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de empezar",
+          "desc": "GenieGo Entrega el Mismo Día es un canal basado en contrato, donde las credenciales se emiten tras un contrato de servicio con el equipo de operaciones.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requerido", "h3": "Contrato del servicio de Entrega el Mismo Día", "p": "Para usar GenieGo Entrega el Mismo Día, primero debe existir un contrato de uso del servicio con el equipo de operaciones. Sin contrato, no se pueden emitir las credenciales." },
+              { "tag": "Claves emitidas", "h3": "Clave API · ID de comerciante · Región de servicio", "p": "Tras completar el contrato, el equipo de operaciones le emite el ID de comerciante y la clave API junto con una región de servicio." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Nota:</strong> Este canal no se emite por cuenta propia desde una consola; en cambio, las credenciales se reciben mediante un contrato con el equipo de operaciones." }
+          ]
+        },
+        {
+          "h2": "2. Procedimiento de solicitud de emisión",
+          "desc": "Solicite y reciba en el orden siguiente, luego registre en GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Solicitar Entrega el Mismo Día", "p": "Solicite al equipo de operaciones usar GenieGo Entrega el Mismo Día y avance con el contrato." },
+              { "h3": "Firmar el contrato", "p": "Firme el contrato de uso del servicio de Entrega el Mismo Día con el equipo de operaciones." },
+              { "h3": "Recibir las credenciales", "p": "Tras completar el contrato, se le emiten el ID de comerciante, la clave API y la región de servicio." },
+              { "h3": "Registrar en GenieGo", "p": "Introduzca el api_key, merchant_id y region emitidos en GenieGo [Registrar] y guarde." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Si ha recibido el ID de comerciante, la clave API y la región de servicio en su totalidad del equipo de operaciones, la emisión está completa." }
+          ]
+        },
+        {
+          "h2": "3. Información para registrar en GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descripción"], "rows": [
+              ["api_key", "La clave API de GenieGo Entrega el Mismo Día emitida"],
+              ["merchant_id", "El ID de comerciante emitido"],
+              ["region", "Región de servicio (p. ej., Área Metropolitana de la Capital)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Una vez introducidas y guardadas en el GenieGo Integration Hub [Registrar], las credenciales se cifran en reposo con AES-256-GCM y se enmascaran al leerse." }
+          ]
+        },
+        {
+          "h2": "4. Problemas frecuentes",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solución"], "rows": [
+              ["No se reciben las credenciales", "El contrato del servicio de Entrega el Mismo Día no se ha completado", "Solicite y contrate el uso de Entrega el Mismo Día con el equipo de operaciones, luego reciba las credenciales."],
+              ["Error de procesamiento de región tras el registro", "Región de servicio (region) no introducida o introducida incorrectamente", "Vuelva a comprobar la región de servicio emitida e introdúzcala correctamente."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificación final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Solicité y contraté el uso de GenieGo Entrega el Mismo Día con el equipo de operaciones.",
+              "Recibí el ID de comerciante, la clave API y la región de servicio tras completar el contrato.",
+              "Confirmé api_key, merchant_id y region.",
+              "Introduje api_key, merchant_id y region en GenieGo [Registrar] y guardé."
+            ] }
+          ]
+        }
+      ]
+    },
+    "fr": {
+      "titleType": "Manuel d'émission de la clé API",
+      "badge": "Guide du débutant",
+      "intro": "Un manuel expliquant comment enregistrer la clé API de Livraison le Jour Même et l'ID marchand—émis après la signature d'un contrat pour le service GenieGo Livraison le Jour Même—dans le GenieGo Integration Hub. Pour ce canal, les identifiants sont reçus via un contrat avec l'équipe d'exploitation plutôt qu'émis soi-même depuis une console.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Durée estimée", "Varie selon l'avancement du contrat"],
+        ["Compte requis", "Contrat de service GenieGo Livraison le Jour Même"],
+        ["Clés émises", "Clé API Livraison le Jour Même · ID marchand"],
+        ["Résultat", "Identifiants API Livraison le Jour Même"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Avant de commencer",
+          "desc": "GenieGo Livraison le Jour Même est un canal basé sur un contrat, où les identifiants sont émis après un contrat de service avec l'équipe d'exploitation.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requis", "h3": "Contrat de service Livraison le Jour Même", "p": "Pour utiliser GenieGo Livraison le Jour Même, un contrat d'utilisation du service avec l'équipe d'exploitation doit d'abord être en place. Sans contrat, les identifiants ne peuvent pas être émis." },
+              { "tag": "Clés émises", "h3": "Clé API · ID marchand · Région de service", "p": "Une fois le contrat finalisé, l'équipe d'exploitation vous émet l'ID marchand et la clé API ainsi qu'une région de service." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Remarque :</strong> Ce canal n'est pas émis soi-même depuis une console ; les identifiants sont plutôt reçus via un contrat avec l'équipe d'exploitation." }
+          ]
+        },
+        {
+          "h2": "2. Procédure de demande d'émission",
+          "desc": "Demandez et recevez dans l'ordre ci-dessous, puis enregistrez dans GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Demander la Livraison le Jour Même", "p": "Demandez à l'équipe d'exploitation d'utiliser GenieGo Livraison le Jour Même et avancez avec le contrat." },
+              { "h3": "Signer le contrat", "p": "Signez le contrat d'utilisation du service Livraison le Jour Même avec l'équipe d'exploitation." },
+              { "h3": "Recevoir les identifiants", "p": "Une fois le contrat finalisé, l'ID marchand, la clé API et la région de service vous sont émis." },
+              { "h3": "Enregistrer dans GenieGo", "p": "Saisissez les api_key, merchant_id et region émis dans GenieGo [Enregistrer] et enregistrez." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Si vous avez reçu l'ID marchand, la clé API et la région de service entièrement de l'équipe d'exploitation, l'émission est terminée." }
+          ]
+        },
+        {
+          "h2": "3. Informations à enregistrer dans GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Champ", "Description"], "rows": [
+              ["api_key", "La clé API GenieGo Livraison le Jour Même émise"],
+              ["merchant_id", "L'ID marchand émis"],
+              ["region", "Région de service (p. ex. Région de la capitale)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Une fois saisis et enregistrés dans le GenieGo Integration Hub [Enregistrer], les identifiants sont chiffrés au repos avec AES-256-GCM et masqués à la lecture." }
+          ]
+        },
+        {
+          "h2": "4. Problèmes fréquents",
+          "blocks": [
+            { "type": "table", "head": ["Problème", "Cause", "Solution"], "rows": [
+              ["Identifiants non reçus", "Le contrat de service Livraison le Jour Même n'est pas finalisé", "Demandez et contractez l'utilisation de la Livraison le Jour Même avec l'équipe d'exploitation, puis recevez les identifiants."],
+              ["Erreur de traitement de la région après l'enregistrement", "Région de service (region) non saisie ou saisie incorrectement", "Vérifiez à nouveau la région de service émise et saisissez-la correctement."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Liste de contrôle finale",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Demandé et contracté l'utilisation de GenieGo Livraison le Jour Même avec l'équipe d'exploitation.",
+              "Reçu l'ID marchand, la clé API et la région de service après la finalisation du contrat.",
+              "Confirmé api_key, merchant_id et region.",
+              "Saisi api_key, merchant_id et region dans GenieGo [Enregistrer] et enregistré."
+            ] }
+          ]
+        }
+      ]
+    },
+    "hi": {
+      "titleType": "API Key जारी करने की नियमावली",
+      "badge": "शुरुआती गाइड",
+      "intro": "यह नियमावली बताती है कि GenieGo सेम-डे डिलीवरी सेवा का अनुबंध करने के बाद जारी की गई सेम-डे डिलीवरी API कुंजी और मर्चेंट ID को GenieGo Integration Hub में कैसे पंजीकृत करें। इस चैनल के लिए, क्रेडेंशियल कंसोल से स्वयं जारी करने के बजाय संचालन टीम के साथ अनुबंध के माध्यम से प्राप्त होते हैं।",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["अनुमानित समय", "अनुबंध की प्रगति के अनुसार भिन्न"],
+        ["आवश्यक खाता", "GenieGo सेम-डे डिलीवरी सेवा अनुबंध"],
+        ["जारी की गई कुंजियाँ", "सेम-डे डिलीवरी API कुंजी · मर्चेंट ID"],
+        ["परिणाम", "सेम-डे डिलीवरी API क्रेडेंशियल"]
+      ],
+      "sections": [
+        {
+          "h2": "1. शुरू करने से पहले",
+          "desc": "GenieGo सेम-डे डिलीवरी एक अनुबंध-आधारित चैनल है, जहाँ संचालन टीम के साथ सेवा अनुबंध के बाद क्रेडेंशियल जारी किए जाते हैं।",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "आवश्यक", "h3": "सेम-डे डिलीवरी सेवा अनुबंध", "p": "GenieGo सेम-डे डिलीवरी का उपयोग करने के लिए, पहले संचालन टीम के साथ सेवा उपयोग अनुबंध होना चाहिए। अनुबंध के बिना क्रेडेंशियल जारी नहीं किए जा सकते।" },
+              { "tag": "जारी की गई कुंजियाँ", "h3": "API कुंजी · मर्चेंट ID · सेवा क्षेत्र", "p": "अनुबंध पूरा होने के बाद, संचालन टीम आपको मर्चेंट ID और API कुंजी के साथ एक सेवा क्षेत्र जारी करती है।" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>नोट:</strong> यह चैनल कंसोल से स्वयं जारी नहीं किया जाता; इसके बजाय, क्रेडेंशियल संचालन टीम के साथ अनुबंध के माध्यम से प्राप्त होते हैं।" }
+          ]
+        },
+        {
+          "h2": "2. जारी करने का अनुरोध प्रक्रिया",
+          "desc": "नीचे दिए गए क्रम में अनुरोध करें और प्राप्त करें, फिर GenieGo में पंजीकृत करें।",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "सेम-डे डिलीवरी के लिए आवेदन करें", "p": "GenieGo सेम-डे डिलीवरी का उपयोग करने के लिए संचालन टीम के पास आवेदन करें और अनुबंध के साथ आगे बढ़ें।" },
+              { "h3": "अनुबंध पर हस्ताक्षर करें", "p": "संचालन टीम के साथ सेम-डे डिलीवरी सेवा उपयोग अनुबंध पर हस्ताक्षर करें।" },
+              { "h3": "क्रेडेंशियल प्राप्त करें", "p": "अनुबंध पूरा होने के बाद, आपको मर्चेंट ID, API कुंजी और सेवा क्षेत्र जारी किए जाते हैं।" },
+              { "h3": "GenieGo में पंजीकृत करें", "p": "जारी की गई api_key, merchant_id और region को GenieGo [पंजीकरण] में दर्ज करें और सहेजें।" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "यदि आपने संचालन टीम से मर्चेंट ID, API कुंजी और सेवा क्षेत्र सभी प्राप्त कर लिए हैं, तो इसका अर्थ है कि यह सही ढंग से जारी हो गया है।" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo में पंजीकृत करने की जानकारी",
+          "blocks": [
+            { "type": "table", "head": ["फ़ील्ड", "विवरण"], "rows": [
+              ["api_key", "जारी की गई GenieGo सेम-डे डिलीवरी API कुंजी"],
+              ["merchant_id", "जारी की गई मर्चेंट ID"],
+              ["region", "सेवा क्षेत्र (उदा. राजधानी महानगर क्षेत्र)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo Integration Hub [पंजीकरण] में दर्ज और सहेजे जाने के बाद, क्रेडेंशियल को AES-256-GCM के साथ संग्रहण के दौरान एन्क्रिप्ट किया जाता है और पढ़ते समय मास्क किया जाता है।" }
+          ]
+        },
+        {
+          "h2": "4. आम समस्याएँ",
+          "blocks": [
+            { "type": "table", "head": ["समस्या", "कारण", "समाधान"], "rows": [
+              ["क्रेडेंशियल प्राप्त नहीं हुए", "सेम-डे डिलीवरी सेवा अनुबंध पूरा नहीं हुआ", "संचालन टीम के साथ सेम-डे डिलीवरी उपयोग के लिए आवेदन और अनुबंध करें, फिर क्रेडेंशियल प्राप्त करें।"],
+              ["पंजीकरण के बाद क्षेत्र प्रसंस्करण त्रुटि", "सेवा क्षेत्र (region) दर्ज नहीं किया गया या गलत दर्ज किया गया", "जारी किए गए सेवा क्षेत्र की फिर से जाँच करें और इसे सही ढंग से दर्ज करें।"]
+            ] }
+          ]
+        },
+        {
+          "h2": "अंतिम जाँच सूची",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "संचालन टीम के साथ GenieGo सेम-डे डिलीवरी उपयोग के लिए आवेदन और अनुबंध किया।",
+              "अनुबंध पूरा होने के बाद मर्चेंट ID, API कुंजी और सेवा क्षेत्र प्राप्त किए।",
+              "api_key, merchant_id और region की पुष्टि की।",
+              "GenieGo [पंजीकरण] में api_key, merchant_id और region दर्ज किए और सहेजे।"
+            ] }
+          ]
+        }
+      ]
+    },
+    "pt": {
+      "titleType": "Manual de emissão de API Key",
+      "badge": "Guia para iniciantes",
+      "intro": "Um manual que explica como registrar a chave de API de Entrega no Mesmo Dia e o ID do comerciante—emitidos após contratar o serviço GenieGo Entrega no Mesmo Dia—no GenieGo Integration Hub. Para este canal, as credenciais são recebidas por meio de um contrato com a equipe de operações em vez de emitidas por conta própria a partir de um console.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tempo estimado", "Varia conforme o andamento do contrato"],
+        ["Conta necessária", "Contrato do serviço GenieGo Entrega no Mesmo Dia"],
+        ["Chaves emitidas", "Chave de API de Entrega no Mesmo Dia · ID do comerciante"],
+        ["Resultado", "Credenciais da API de Entrega no Mesmo Dia"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de começar",
+          "desc": "O GenieGo Entrega no Mesmo Dia é um canal baseado em contrato, onde as credenciais são emitidas após um contrato de serviço com a equipe de operações.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Obrigatório", "h3": "Contrato do serviço de Entrega no Mesmo Dia", "p": "Para usar o GenieGo Entrega no Mesmo Dia, primeiro é necessário um contrato de uso do serviço com a equipe de operações. Sem contrato, as credenciais não podem ser emitidas." },
+              { "tag": "Chaves emitidas", "h3": "Chave de API · ID do comerciante · Região de serviço", "p": "Após a conclusão do contrato, a equipe de operações emite o ID do comerciante e a chave de API junto com uma região de serviço." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Observação:</strong> Este canal não é emitido por conta própria a partir de um console; em vez disso, as credenciais são recebidas por meio de um contrato com a equipe de operações." }
+          ]
+        },
+        {
+          "h2": "2. Procedimento de solicitação de emissão",
+          "desc": "Solicite e receba na ordem abaixo e, em seguida, registre no GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Solicitar Entrega no Mesmo Dia", "p": "Solicite à equipe de operações o uso do GenieGo Entrega no Mesmo Dia e prossiga com o contrato." },
+              { "h3": "Assinar o contrato", "p": "Assine o contrato de uso do serviço de Entrega no Mesmo Dia com a equipe de operações." },
+              { "h3": "Receber as credenciais", "p": "Após a conclusão do contrato, são emitidos para você o ID do comerciante, a chave de API e a região de serviço." },
+              { "h3": "Registrar no GenieGo", "p": "Insira a api_key, merchant_id e region emitidas no GenieGo [Registrar] e salve." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Se você recebeu o ID do comerciante, a chave de API e a região de serviço todos da equipe de operações, a emissão está concluída." }
+          ]
+        },
+        {
+          "h2": "3. Informações para registrar no GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descrição"], "rows": [
+              ["api_key", "A chave de API GenieGo Entrega no Mesmo Dia emitida"],
+              ["merchant_id", "O ID do comerciante emitido"],
+              ["region", "Região de serviço (ex.: Região Metropolitana da Capital)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Depois de inseridas e salvas no GenieGo Integration Hub [Registrar], as credenciais são criptografadas em repouso com AES-256-GCM e mascaradas na leitura." }
+          ]
+        },
+        {
+          "h2": "4. Problemas comuns",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solução"], "rows": [
+              ["Credenciais não recebidas", "Contrato do serviço de Entrega no Mesmo Dia não concluído", "Solicite e contrate o uso da Entrega no Mesmo Dia com a equipe de operações e, em seguida, receba as credenciais."],
+              ["Erro de processamento de região após o registro", "Região de serviço (region) não inserida ou inserida incorretamente", "Verifique novamente a região de serviço emitida e insira-a corretamente."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificação final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Solicitei e contratei o uso do GenieGo Entrega no Mesmo Dia com a equipe de operações.",
+              "Recebi o ID do comerciante, a chave de API e a região de serviço após concluir o contrato.",
+              "Confirmei api_key, merchant_id e region.",
+              "Inseri api_key, merchant_id e region no GenieGo [Registrar] e salvei."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ru": {
+      "titleType": "Руководство по выпуску API-ключа",
+      "badge": "Руководство для начинающих",
+      "intro": "Руководство о том, как зарегистрировать API-ключ доставки в тот же день и идентификатор продавца—выданные после заключения договора на услугу GenieGo Доставка в тот же день—в GenieGo Integration Hub. Для этого канала учётные данные получаются через договор с командой эксплуатации, а не выпускаются самостоятельно из консоли.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Примерное время", "Зависит от хода заключения договора"],
+        ["Требуемая учётная запись", "Договор на услугу GenieGo Доставка в тот же день"],
+        ["Выданные ключи", "API-ключ доставки в тот же день · Идентификатор продавца"],
+        ["Результат", "Учётные данные API доставки в тот же день"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Прежде чем начать",
+          "desc": "GenieGo Доставка в тот же день — это канал на основе договора, в котором учётные данные выдаются после договора на услугу с командой эксплуатации.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Требуется", "h3": "Договор на услугу доставки в тот же день", "p": "Чтобы использовать GenieGo Доставка в тот же день, сначала должен быть заключён договор на использование услуги с командой эксплуатации. Без договора учётные данные выдать невозможно." },
+              { "tag": "Выданные ключи", "h3": "API-ключ · Идентификатор продавца · Регион обслуживания", "p": "После заключения договора команда эксплуатации выдаёт вам идентификатор продавца и API-ключ вместе с регионом обслуживания." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Примечание:</strong> Этот канал не выпускается самостоятельно из консоли; вместо этого учётные данные получаются через договор с командой эксплуатации." }
+          ]
+        },
+        {
+          "h2": "2. Процедура запроса на выпуск",
+          "desc": "Подайте заявку и получите в указанном ниже порядке, затем зарегистрируйте в GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Подать заявку на доставку в тот же день", "p": "Подайте заявку команде эксплуатации на использование GenieGo Доставка в тот же день и приступите к договору." },
+              { "h3": "Заключить договор", "p": "Заключите договор на использование услуги доставки в тот же день с командой эксплуатации." },
+              { "h3": "Получить учётные данные", "p": "После заключения договора вам выдаются идентификатор продавца, API-ключ и регион обслуживания." },
+              { "h3": "Зарегистрировать в GenieGo", "p": "Введите выданные api_key, merchant_id и region в GenieGo [Регистрация] и сохраните." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Если вы получили идентификатор продавца, API-ключ и регион обслуживания полностью от команды эксплуатации, значит выпуск завершён правильно." }
+          ]
+        },
+        {
+          "h2": "3. Информация для регистрации в GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Поле", "Описание"], "rows": [
+              ["api_key", "Выданный API-ключ GenieGo Доставка в тот же день"],
+              ["merchant_id", "Выданный идентификатор продавца"],
+              ["region", "Регион обслуживания (напр., Столичный регион)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "После ввода и сохранения в GenieGo Integration Hub [Регистрация] учётные данные шифруются при хранении с помощью AES-256-GCM и маскируются при чтении." }
+          ]
+        },
+        {
+          "h2": "4. Часто возникающие проблемы",
+          "blocks": [
+            { "type": "table", "head": ["Проблема", "Причина", "Решение"], "rows": [
+              ["Учётные данные не получены", "Договор на услугу доставки в тот же день не заключён", "Подайте заявку и заключите договор на использование доставки в тот же день с командой эксплуатации, затем получите учётные данные."],
+              ["Ошибка обработки региона после регистрации", "Регион обслуживания (region) не введён или введён неверно", "Повторно проверьте выданный регион обслуживания и введите его правильно."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Итоговый контрольный список",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Подал заявку и заключил договор на использование GenieGo Доставка в тот же день с командой эксплуатации.",
+              "Получил идентификатор продавца, API-ключ и регион обслуживания после заключения договора.",
+              "Подтвердил api_key, merchant_id и region.",
+              "Ввёл api_key, merchant_id и region в GenieGo [Регистрация] и сохранил."
+            ] }
+          ]
+        }
+      ]
+    }
+  }
+}

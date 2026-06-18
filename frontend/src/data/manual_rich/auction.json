@@ -1,0 +1,1041 @@
+{
+  "name": "Auction",
+  "icon": "🅰️",
+  "langs": {
+    "ko": {
+      "titleType": "API Key 발급 매뉴얼",
+      "badge": "Beginner Guide",
+      "intro": "ESM Trading API(etapi.gmarket.com)에서 옥션·G마켓 공통 API 키를 발급받아 GenieGo 연동 허브에 등록하는 과정을 정리한 매뉴얼입니다. 옥션과 G마켓은 ESM Plus로 통합 운영되므로 하나의 API 키로 두 채널을 함께 연동합니다.",
+      "org": "GenieGo 연동 허브",
+      "quick": [
+        ["소요 시간", "승인 대기 포함 수일 소요(승인제)"],
+        ["필요 계정", "옥션·G마켓 판매자 계정 + ESM Plus 마스터 ID"],
+        ["발급 키", "API 키 · 셀러 ID"],
+        ["결과물", "ESM Trading API 자격증명"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 시작하기 전에",
+          "desc": "옥션·G마켓 모두에 판매자로 가입되어 있고 ESM Plus 마스터 ID가 있어야 합니다.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "필요", "h3": "판매자 계정 + ESM 마스터 ID", "p": "옥션과 G마켓 각각의 판매자 계정과 ESM Plus(esmplus.com)에서 생성한 마스터 ID가 모두 필요합니다." },
+              { "tag": "발급 키", "h3": "API 키 · 셀러 ID", "p": "ESM Trading API 승인 후 발급되는 API 키와 셀러 ID를 함께 확인합니다." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>참고:</strong> ESM Trading API는 승인제로, 신청이 거절될 수 있습니다. 신청 시 옥션 판매자ID·G마켓 판매자ID·ESM 마스터ID 3가지를 제출해야 합니다." }
+          ]
+        },
+        {
+          "h2": "2. 발급 단계",
+          "desc": "아래 순서대로 신청·발급하고 GenieGo에 등록합니다.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "판매자 가입 및 ESM 마스터 ID 생성", "p": "옥션과 G마켓에 각각 판매자로 가입한 뒤, ESM Plus에 로그인해 마스터 ID를 생성합니다.", "path": "esmplus.com" },
+              { "h3": "ESM Trading API 사용 신청", "p": "ESM Trading API에 접속해 API 사용을 신청합니다. 승인제이므로 거절될 수 있습니다.", "path": "https://etapi.gmarket.com" },
+              { "h3": "식별 정보 제출", "p": "신청 시 옥션 판매자ID, G마켓 판매자ID, ESM 마스터 ID 3가지를 제출합니다." },
+              { "h3": "키 발급", "p": "승인되면 API 키가 발급됩니다. 발급된 API 키와 셀러 ID를 확인합니다." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "승인 완료 후 API 키가 발급되면 정상 처리된 것입니다. 승인 관련 문의는 etapihelp@gmail.com 으로 연락합니다." }
+          ]
+        },
+        {
+          "h2": "3. GenieGo에 등록할 정보",
+          "blocks": [
+            { "type": "table", "head": ["필드", "설명"], "rows": [
+              ["api_key", "발급된 API 키"],
+              ["seller_id", "셀러 ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 연동 허브 [등록]에 입력해 저장하면 자격증명은 AES-256-GCM으로 암호화 저장되고 조회 시 마스킹됩니다." }
+          ]
+        },
+        {
+          "h2": "4. 자주 발생하는 문제",
+          "blocks": [
+            { "type": "table", "head": ["문제", "원인", "해결"], "rows": [
+              ["API 사용 신청 거절", "ESM Trading API는 승인제", "제출 정보를 확인하고 etapihelp@gmail.com 으로 문의합니다."],
+              ["신청 정보 불일치", "옥션·G마켓 판매자ID 또는 ESM 마스터ID 오기재", "옥션 판매자ID·G마켓 판매자ID·ESM 마스터ID 3가지를 다시 확인합니다."]
+            ] }
+          ]
+        },
+        {
+          "h2": "최종 체크리스트",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "옥션·G마켓 각각 판매자로 가입했다.",
+              "ESM Plus에서 마스터 ID를 생성했다.",
+              "etapi.gmarket.com에서 ESM Trading API 사용을 신청하고 승인받았다.",
+              "발급된 api_key와 seller_id를 확인했다.",
+              "GenieGo [등록]에 api_key·seller_id를 입력해 저장했다."
+            ] }
+          ]
+        }
+      ]
+    },
+    "en": {
+      "titleType": "API Key Issuance Manual",
+      "badge": "Beginner Guide",
+      "intro": "A guide covering how to obtain a shared Auction·Gmarket API key from the ESM Trading API (etapi.gmarket.com) and register it in the GenieGo Integration Hub. Because Auction and Gmarket are operated together through ESM Plus, a single API key connects both channels.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Est. time", "Several days incl. approval wait (approval required)"],
+        ["Account needed", "Auction·Gmarket seller account + ESM Plus master ID"],
+        ["Keys issued", "API key · Seller ID"],
+        ["Result", "ESM Trading API credentials"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Before You Begin",
+          "desc": "You must be registered as a seller on both Auction and Gmarket and have an ESM Plus master ID.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Required", "h3": "Seller account + ESM master ID", "p": "You need a seller account for each of Auction and Gmarket, as well as a master ID created on ESM Plus (esmplus.com)." },
+              { "tag": "Keys issued", "h3": "API key · Seller ID", "p": "After ESM Trading API approval, confirm the issued API key together with the Seller ID." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Note:</strong> The ESM Trading API requires approval, and applications may be rejected. When applying, you must submit three items: your Auction seller ID, Gmarket seller ID, and ESM master ID." }
+          ]
+        },
+        {
+          "h2": "2. Issuance Steps",
+          "desc": "Apply and obtain the key in the order below, then register in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Register as a seller and create an ESM master ID", "p": "Register as a seller on both Auction and Gmarket, then sign in to ESM Plus and create a master ID.", "path": "esmplus.com" },
+              { "h3": "Apply to use the ESM Trading API", "p": "Go to the ESM Trading API and apply for API access. Approval is required, so the application may be rejected.", "path": "https://etapi.gmarket.com" },
+              { "h3": "Submit identification information", "p": "When applying, submit three items: your Auction seller ID, Gmarket seller ID, and ESM master ID." },
+              { "h3": "Key issuance", "p": "Once approved, an API key is issued. Confirm the issued API key and Seller ID." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Once the API key is issued after approval is complete, the process has succeeded. For approval inquiries, contact etapihelp@gmail.com." }
+          ]
+        },
+        {
+          "h2": "3. Information to Register in GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Field", "Description"], "rows": [
+              ["api_key", "The issued API key"],
+              ["seller_id", "Seller ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Enter the values in the GenieGo Integration Hub [Register] and save. Credentials are encrypted at rest with AES-256-GCM and masked on read." }
+          ]
+        },
+        {
+          "h2": "4. Common Issues",
+          "blocks": [
+            { "type": "table", "head": ["Issue", "Cause", "Solution"], "rows": [
+              ["API access application rejected", "The ESM Trading API requires approval", "Check the submitted information and contact etapihelp@gmail.com."],
+              ["Application information mismatch", "Auction·Gmarket seller ID or ESM master ID entered incorrectly", "Recheck the three items: Auction seller ID, Gmarket seller ID, and ESM master ID."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Final Checklist",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Registered as a seller on both Auction and Gmarket.",
+              "Created a master ID on ESM Plus.",
+              "Applied for ESM Trading API access at etapi.gmarket.com and got approved.",
+              "Confirmed the issued api_key and seller_id.",
+              "Entered api_key·seller_id in GenieGo [Register] and saved."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ja": {
+      "titleType": "API Key 発行マニュアル",
+      "badge": "初心者ガイド",
+      "intro": "ESM Trading API(etapi.gmarket.com)で Auction・Gmarket 共通の API キーを発行し、GenieGo 連携ハブに登録する手順をまとめたマニュアルです。Auction と Gmarket は ESM Plus で統合運用されるため、1 つの API キーで両チャネルをまとめて連携します。",
+      "org": "GenieGo 連携ハブ",
+      "quick": [
+        ["所要時間", "承認待ちを含め数日(承認制)"],
+        ["必要なアカウント", "Auction・Gmarket 販売者アカウント + ESM Plus マスター ID"],
+        ["発行するキー", "API キー · セラー ID"],
+        ["成果物", "ESM Trading API 認証情報"]
+      ],
+      "sections": [
+        {
+          "h2": "1. はじめる前に",
+          "desc": "Auction・Gmarket の両方に販売者として登録されており、ESM Plus マスター ID が必要です。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必須", "h3": "販売者アカウント + ESM マスター ID", "p": "Auction と Gmarket それぞれの販売者アカウントと、ESM Plus(esmplus.com)で作成したマスター ID の両方が必要です。" },
+              { "tag": "発行するキー", "h3": "API キー · セラー ID", "p": "ESM Trading API の承認後に発行される API キーとセラー ID を一緒に確認します。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> ESM Trading API は承認制で、申請が却下される場合があります。申請時には Auction 販売者ID・Gmarket 販売者ID・ESM マスターID の 3 つを提出する必要があります。" }
+          ]
+        },
+        {
+          "h2": "2. 発行手順",
+          "desc": "以下の順序で申請・発行し、GenieGo に登録します。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "販売者登録および ESM マスター ID の作成", "p": "Auction と Gmarket にそれぞれ販売者として登録した後、ESM Plus にログインしてマスター ID を作成します。", "path": "esmplus.com" },
+              { "h3": "ESM Trading API 利用申請", "p": "ESM Trading API にアクセスして API 利用を申請します。承認制のため却下される場合があります。", "path": "https://etapi.gmarket.com" },
+              { "h3": "識別情報の提出", "p": "申請時に Auction 販売者ID、Gmarket 販売者ID、ESM マスター ID の 3 つを提出します。" },
+              { "h3": "キーの発行", "p": "承認されると API キーが発行されます。発行された API キーとセラー ID を確認します。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "承認完了後に API キーが発行されれば正常に処理されています。承認に関する問い合わせは etapihelp@gmail.com までご連絡ください。" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo に登録する情報",
+          "blocks": [
+            { "type": "table", "head": ["フィールド", "説明"], "rows": [
+              ["api_key", "発行された API キー"],
+              ["seller_id", "セラー ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 連携ハブの [登録] に入力して保存すると、認証情報は AES-256-GCM で暗号化して保存され、閲覧時にはマスキングされます。" }
+          ]
+        },
+        {
+          "h2": "4. よくある問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["API 利用申請が却下される", "ESM Trading API は承認制", "提出情報を確認し、etapihelp@gmail.com までお問い合わせください。"],
+              ["申請情報の不一致", "Auction・Gmarket 販売者ID または ESM マスターID の誤記", "Auction 販売者ID・Gmarket 販売者ID・ESM マスターID の 3 つを再確認します。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終チェックリスト",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Auction・Gmarket それぞれに販売者として登録した。",
+              "ESM Plus でマスター ID を作成した。",
+              "etapi.gmarket.com で ESM Trading API の利用を申請し、承認を受けた。",
+              "発行された api_key と seller_id を確認した。",
+              "GenieGo の [登録] に api_key·seller_id を入力して保存した。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh": {
+      "titleType": "API Key 申请手册",
+      "badge": "新手指南",
+      "intro": "本手册介绍如何在 ESM Trading API(etapi.gmarket.com)申请 Auction·Gmarket 通用 API 密钥并注册到 GenieGo 集成中心。由于 Auction 与 Gmarket 通过 ESM Plus 统一运营，因此用一个 API 密钥即可同时连接两个渠道。",
+      "org": "GenieGo 集成中心",
+      "quick": [
+        ["预计时间", "含审核等待需数日(需审核)"],
+        ["所需账户", "Auction·Gmarket 卖家账户 + ESM Plus 主 ID"],
+        ["签发密钥", "API 密钥 · 卖家 ID"],
+        ["成果", "ESM Trading API 凭证"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 开始之前",
+          "desc": "您必须在 Auction 和 Gmarket 上均已注册为卖家，并拥有 ESM Plus 主 ID。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "卖家账户 + ESM 主 ID", "p": "您需要分别拥有 Auction 和 Gmarket 的卖家账户，以及在 ESM Plus(esmplus.com)上创建的主 ID。" },
+              { "tag": "签发密钥", "h3": "API 密钥 · 卖家 ID", "p": "在 ESM Trading API 审核通过后，一并确认签发的 API 密钥和卖家 ID。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> ESM Trading API 采用审核制，申请可能被拒绝。申请时需提交三项内容：Auction 卖家ID、Gmarket 卖家ID 和 ESM 主ID。" }
+          ]
+        },
+        {
+          "h2": "2. 申请步骤",
+          "desc": "按以下顺序申请、签发，并在 GenieGo 中注册。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "注册为卖家并创建 ESM 主 ID", "p": "分别在 Auction 和 Gmarket 注册为卖家，然后登录 ESM Plus 创建主 ID。", "path": "esmplus.com" },
+              { "h3": "申请使用 ESM Trading API", "p": "访问 ESM Trading API 并申请 API 使用权限。因采用审核制，申请可能被拒绝。", "path": "https://etapi.gmarket.com" },
+              { "h3": "提交识别信息", "p": "申请时需提交三项内容：Auction 卖家ID、Gmarket 卖家ID 和 ESM 主 ID。" },
+              { "h3": "密钥签发", "p": "审核通过后将签发 API 密钥。确认签发的 API 密钥和卖家 ID。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "审核完成后签发 API 密钥即表示已正常处理。审核相关咨询请联系 etapihelp@gmail.com。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中注册的信息",
+          "blocks": [
+            { "type": "table", "head": ["字段", "说明"], "rows": [
+              ["api_key", "签发的 API 密钥"],
+              ["seller_id", "卖家 ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 集成中心 [注册] 中输入并保存后，凭证将以 AES-256-GCM 加密存储，并在查询时进行掩码处理。" }
+          ]
+        },
+        {
+          "h2": "4. 常见问题",
+          "blocks": [
+            { "type": "table", "head": ["问题", "原因", "解决方法"], "rows": [
+              ["API 使用申请被拒绝", "ESM Trading API 采用审核制", "请确认提交的信息并联系 etapihelp@gmail.com。"],
+              ["申请信息不一致", "Auction·Gmarket 卖家ID 或 ESM 主ID 填写错误", "重新确认 Auction 卖家ID、Gmarket 卖家ID 和 ESM 主ID 三项内容。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最终检查清单",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已分别在 Auction 和 Gmarket 注册为卖家。",
+              "已在 ESM Plus 创建主 ID。",
+              "已在 etapi.gmarket.com 申请使用 ESM Trading API 并获得审核通过。",
+              "已确认签发的 api_key 和 seller_id。",
+              "已在 GenieGo [注册] 中输入 api_key·seller_id 并保存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh-TW": {
+      "titleType": "API Key 申請手冊",
+      "badge": "新手指南",
+      "intro": "本手冊介紹如何在 ESM Trading API(etapi.gmarket.com)申請 Auction·Gmarket 通用 API 金鑰並註冊到 GenieGo 整合中心。由於 Auction 與 Gmarket 透過 ESM Plus 統一營運，因此用一個 API 金鑰即可同時連接兩個渠道。",
+      "org": "GenieGo 整合中心",
+      "quick": [
+        ["預計時間", "含審查等待需數日(需審查)"],
+        ["所需帳戶", "Auction·Gmarket 賣家帳戶 + ESM Plus 主 ID"],
+        ["簽發金鑰", "API 金鑰 · 賣家 ID"],
+        ["成果", "ESM Trading API 憑證"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 開始之前",
+          "desc": "您必須在 Auction 和 Gmarket 上均已註冊為賣家，並擁有 ESM Plus 主 ID。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "賣家帳戶 + ESM 主 ID", "p": "您需要分別擁有 Auction 和 Gmarket 的賣家帳戶，以及在 ESM Plus(esmplus.com)上建立的主 ID。" },
+              { "tag": "簽發金鑰", "h3": "API 金鑰 · 賣家 ID", "p": "在 ESM Trading API 審查通過後，一併確認簽發的 API 金鑰和賣家 ID。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> ESM Trading API 採用審查制，申請可能被拒絕。申請時需提交三項內容：Auction 賣家ID、Gmarket 賣家ID 和 ESM 主ID。" }
+          ]
+        },
+        {
+          "h2": "2. 申請步驟",
+          "desc": "依以下順序申請、簽發，並在 GenieGo 中註冊。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "註冊為賣家並建立 ESM 主 ID", "p": "分別在 Auction 和 Gmarket 註冊為賣家，然後登入 ESM Plus 建立主 ID。", "path": "esmplus.com" },
+              { "h3": "申請使用 ESM Trading API", "p": "存取 ESM Trading API 並申請 API 使用權限。因採用審查制，申請可能被拒絕。", "path": "https://etapi.gmarket.com" },
+              { "h3": "提交識別資訊", "p": "申請時需提交三項內容：Auction 賣家ID、Gmarket 賣家ID 和 ESM 主 ID。" },
+              { "h3": "金鑰簽發", "p": "審查通過後將簽發 API 金鑰。確認簽發的 API 金鑰和賣家 ID。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "審查完成後簽發 API 金鑰即表示已正常處理。審查相關諮詢請聯絡 etapihelp@gmail.com。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中註冊的資訊",
+          "blocks": [
+            { "type": "table", "head": ["欄位", "說明"], "rows": [
+              ["api_key", "簽發的 API 金鑰"],
+              ["seller_id", "賣家 ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 整合中心 [註冊] 中輸入並儲存後，憑證將以 AES-256-GCM 加密儲存，並在查詢時進行遮罩處理。" }
+          ]
+        },
+        {
+          "h2": "4. 常見問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["API 使用申請遭拒", "ESM Trading API 採用審查制", "請確認提交的資訊並聯絡 etapihelp@gmail.com。"],
+              ["申請資訊不一致", "Auction·Gmarket 賣家ID 或 ESM 主ID 填寫錯誤", "重新確認 Auction 賣家ID、Gmarket 賣家ID 和 ESM 主ID 三項內容。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終檢查清單",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已分別在 Auction 和 Gmarket 註冊為賣家。",
+              "已在 ESM Plus 建立主 ID。",
+              "已在 etapi.gmarket.com 申請使用 ESM Trading API 並獲得審查通過。",
+              "已確認簽發的 api_key 和 seller_id。",
+              "已在 GenieGo [註冊] 中輸入 api_key·seller_id 並儲存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "de": {
+      "titleType": "Anleitung zur API-Key-Ausstellung",
+      "badge": "Einsteigerleitfaden",
+      "intro": "Eine Anleitung, die beschreibt, wie Sie über die ESM Trading API (etapi.gmarket.com) einen gemeinsamen API-Schlüssel für Auction·Gmarket erhalten und im GenieGo Integration Hub registrieren. Da Auction und Gmarket über ESM Plus gemeinsam betrieben werden, verbindet ein einziger API-Schlüssel beide Kanäle.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Geschätzte Zeit", "Mehrere Tage inkl. Genehmigungswartezeit (genehmigungspflichtig)"],
+        ["Benötigtes Konto", "Auction·Gmarket-Verkäuferkonto + ESM Plus Master-ID"],
+        ["Ausgestellte Schlüssel", "API-Schlüssel · Seller-ID"],
+        ["Ergebnis", "ESM Trading API-Anmeldedaten"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Bevor Sie beginnen",
+          "desc": "Sie müssen sowohl bei Auction als auch bei Gmarket als Verkäufer registriert sein und eine ESM Plus Master-ID besitzen.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Erforderlich", "h3": "Verkäuferkonto + ESM Master-ID", "p": "Sie benötigen jeweils ein Verkäuferkonto für Auction und Gmarket sowie eine auf ESM Plus (esmplus.com) erstellte Master-ID." },
+              { "tag": "Ausgestellte Schlüssel", "h3": "API-Schlüssel · Seller-ID", "p": "Bestätigen Sie nach der ESM-Trading-API-Genehmigung den ausgestellten API-Schlüssel zusammen mit der Seller-ID." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Hinweis:</strong> Die ESM Trading API ist genehmigungspflichtig, und Anträge können abgelehnt werden. Beim Antrag müssen Sie drei Angaben einreichen: Ihre Auction-Verkäufer-ID, Gmarket-Verkäufer-ID und ESM-Master-ID." }
+          ]
+        },
+        {
+          "h2": "2. Ausstellungsschritte",
+          "desc": "Beantragen und erhalten Sie den Schlüssel in der unten angegebenen Reihenfolge und registrieren Sie ihn in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Als Verkäufer registrieren und ESM Master-ID erstellen", "p": "Registrieren Sie sich bei Auction und Gmarket jeweils als Verkäufer, melden Sie sich dann bei ESM Plus an und erstellen Sie eine Master-ID.", "path": "esmplus.com" },
+              { "h3": "Nutzung der ESM Trading API beantragen", "p": "Rufen Sie die ESM Trading API auf und beantragen Sie den API-Zugriff. Da sie genehmigungspflichtig ist, kann der Antrag abgelehnt werden.", "path": "https://etapi.gmarket.com" },
+              { "h3": "Identifikationsdaten einreichen", "p": "Reichen Sie beim Antrag drei Angaben ein: Ihre Auction-Verkäufer-ID, Gmarket-Verkäufer-ID und ESM-Master-ID." },
+              { "h3": "Schlüsselausstellung", "p": "Nach der Genehmigung wird ein API-Schlüssel ausgestellt. Bestätigen Sie den ausgestellten API-Schlüssel und die Seller-ID." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Sobald der API-Schlüssel nach abgeschlossener Genehmigung ausgestellt wird, wurde der Vorgang korrekt abgeschlossen. Für Fragen zur Genehmigung wenden Sie sich an etapihelp@gmail.com." }
+          ]
+        },
+        {
+          "h2": "3. In GenieGo zu registrierende Informationen",
+          "blocks": [
+            { "type": "table", "head": ["Feld", "Beschreibung"], "rows": [
+              ["api_key", "Der ausgestellte API-Schlüssel"],
+              ["seller_id", "Seller-ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Geben Sie die Werte im GenieGo Integration Hub [Registrieren] ein und speichern Sie. Anmeldedaten werden im Ruhezustand mit AES-256-GCM verschlüsselt und beim Lesen maskiert." }
+          ]
+        },
+        {
+          "h2": "4. Häufige Probleme",
+          "blocks": [
+            { "type": "table", "head": ["Problem", "Ursache", "Lösung"], "rows": [
+              ["API-Nutzungsantrag abgelehnt", "Die ESM Trading API ist genehmigungspflichtig", "Überprüfen Sie die eingereichten Angaben und wenden Sie sich an etapihelp@gmail.com."],
+              ["Antragsdaten stimmen nicht überein", "Auction·Gmarket-Verkäufer-ID oder ESM-Master-ID falsch eingegeben", "Überprüfen Sie die drei Angaben erneut: Auction-Verkäufer-ID, Gmarket-Verkäufer-ID und ESM-Master-ID."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Abschließende Checkliste",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Bei Auction und Gmarket jeweils als Verkäufer registriert.",
+              "Eine Master-ID auf ESM Plus erstellt.",
+              "Die Nutzung der ESM Trading API auf etapi.gmarket.com beantragt und genehmigt bekommen.",
+              "Den ausgestellten api_key und seller_id bestätigt.",
+              "api_key·seller_id in GenieGo [Registrieren] eingegeben und gespeichert."
+            ] }
+          ]
+        }
+      ]
+    },
+    "th": {
+      "titleType": "คู่มือการออก API Key",
+      "badge": "คู่มือสำหรับผู้เริ่มต้น",
+      "intro": "คู่มือที่อธิบายวิธีการขอ API key ที่ใช้ร่วมกันของ Auction·Gmarket จาก ESM Trading API (etapi.gmarket.com) และลงทะเบียนใน GenieGo Integration Hub เนื่องจาก Auction และ Gmarket ดำเนินการร่วมกันผ่าน ESM Plus จึงเชื่อมต่อทั้งสองช่องทางได้ด้วย API key เพียงตัวเดียว",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["เวลาโดยประมาณ", "หลายวันรวมการรออนุมัติ (ต้องได้รับอนุมัติ)"],
+        ["บัญชีที่ต้องใช้", "บัญชีผู้ขาย Auction·Gmarket + ESM Plus master ID"],
+        ["คีย์ที่ออก", "API key · Seller ID"],
+        ["ผลลัพธ์", "ข้อมูลรับรอง ESM Trading API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. ก่อนเริ่มต้น",
+          "desc": "คุณต้องลงทะเบียนเป็นผู้ขายทั้งใน Auction และ Gmarket และมี ESM Plus master ID",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "จำเป็น", "h3": "บัญชีผู้ขาย + ESM master ID", "p": "คุณต้องมีบัญชีผู้ขายของ Auction และ Gmarket แต่ละช่องทาง รวมถึง master ID ที่สร้างบน ESM Plus (esmplus.com)" },
+              { "tag": "คีย์ที่ออก", "h3": "API key · Seller ID", "p": "หลังจาก ESM Trading API อนุมัติแล้ว ให้ยืนยัน API key ที่ออกพร้อมกับ Seller ID" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>หมายเหตุ:</strong> ESM Trading API ใช้ระบบอนุมัติ และคำขออาจถูกปฏิเสธได้ เมื่อยื่นคำขอ คุณต้องส่งสามรายการ ได้แก่ Auction seller ID, Gmarket seller ID และ ESM master ID" }
+          ]
+        },
+        {
+          "h2": "2. ขั้นตอนการออก",
+          "desc": "ยื่นคำขอและออกคีย์ตามลำดับด้านล่าง จากนั้นลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "ลงทะเบียนเป็นผู้ขายและสร้าง ESM master ID", "p": "ลงทะเบียนเป็นผู้ขายทั้งใน Auction และ Gmarket จากนั้นลงชื่อเข้าใช้ ESM Plus และสร้าง master ID", "path": "esmplus.com" },
+              { "h3": "ยื่นขอใช้ ESM Trading API", "p": "เข้าไปที่ ESM Trading API และยื่นขอสิทธิ์การใช้งาน API เนื่องจากใช้ระบบอนุมัติ คำขออาจถูกปฏิเสธได้", "path": "https://etapi.gmarket.com" },
+              { "h3": "ส่งข้อมูลระบุตัวตน", "p": "เมื่อยื่นคำขอ ให้ส่งสามรายการ ได้แก่ Auction seller ID, Gmarket seller ID และ ESM master ID" },
+              { "h3": "การออกคีย์", "p": "เมื่อได้รับอนุมัติ จะมีการออก API key ให้ยืนยัน API key ที่ออกและ Seller ID" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "เมื่อมีการออก API key หลังจากการอนุมัติเสร็จสมบูรณ์ แสดงว่าดำเนินการถูกต้องแล้ว สำหรับคำถามเกี่ยวกับการอนุมัติ ติดต่อ etapihelp@gmail.com" }
+          ]
+        },
+        {
+          "h2": "3. ข้อมูลที่ต้องลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["ฟิลด์", "คำอธิบาย"], "rows": [
+              ["api_key", "API key ที่ออกแล้ว"],
+              ["seller_id", "Seller ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "ป้อนค่าใน GenieGo Integration Hub [ลงทะเบียน] แล้วบันทึก ข้อมูลรับรองจะถูกเข้ารหัสขณะจัดเก็บด้วย AES-256-GCM และปิดบังเมื่ออ่าน" }
+          ]
+        },
+        {
+          "h2": "4. ปัญหาที่พบบ่อย",
+          "blocks": [
+            { "type": "table", "head": ["ปัญหา", "สาเหตุ", "วิธีแก้ไข"], "rows": [
+              ["คำขอใช้งาน API ถูกปฏิเสธ", "ESM Trading API ใช้ระบบอนุมัติ", "ตรวจสอบข้อมูลที่ส่งและติดต่อ etapihelp@gmail.com"],
+              ["ข้อมูลคำขอไม่ตรงกัน", "ป้อน Auction·Gmarket seller ID หรือ ESM master ID ผิด", "ตรวจสอบสามรายการอีกครั้ง ได้แก่ Auction seller ID, Gmarket seller ID และ ESM master ID"]
+            ] }
+          ]
+        },
+        {
+          "h2": "รายการตรวจสอบขั้นสุดท้าย",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "ลงทะเบียนเป็นผู้ขายทั้งใน Auction และ Gmarket แล้ว",
+              "สร้าง master ID บน ESM Plus แล้ว",
+              "ยื่นขอใช้ ESM Trading API ที่ etapi.gmarket.com และได้รับอนุมัติแล้ว",
+              "ยืนยัน api_key และ seller_id ที่ออกแล้ว",
+              "ป้อน api_key·seller_id ใน GenieGo [ลงทะเบียน] และบันทึกแล้ว"
+            ] }
+          ]
+        }
+      ]
+    },
+    "vi": {
+      "titleType": "Hướng dẫn cấp API Key",
+      "badge": "Hướng dẫn cho người mới",
+      "intro": "Hướng dẫn về cách lấy khóa API dùng chung cho Auction·Gmarket từ ESM Trading API (etapi.gmarket.com) và đăng ký trong GenieGo Integration Hub. Vì Auction và Gmarket được vận hành chung qua ESM Plus, nên một khóa API duy nhất sẽ kết nối cả hai kênh.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Thời gian dự kiến", "Vài ngày bao gồm thời gian chờ phê duyệt (cần phê duyệt)"],
+        ["Tài khoản cần thiết", "Tài khoản người bán Auction·Gmarket + ESM Plus master ID"],
+        ["Khóa được cấp", "Khóa API · Seller ID"],
+        ["Kết quả", "Thông tin xác thực ESM Trading API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Trước khi bắt đầu",
+          "desc": "Bạn phải được đăng ký làm người bán trên cả Auction và Gmarket và có ESM Plus master ID.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Bắt buộc", "h3": "Tài khoản người bán + ESM master ID", "p": "Bạn cần tài khoản người bán cho từng kênh Auction và Gmarket, cùng với một master ID được tạo trên ESM Plus (esmplus.com)." },
+              { "tag": "Khóa được cấp", "h3": "Khóa API · Seller ID", "p": "Sau khi ESM Trading API được phê duyệt, hãy xác nhận khóa API được cấp cùng với Seller ID." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Lưu ý:</strong> ESM Trading API yêu cầu phê duyệt và đơn đăng ký có thể bị từ chối. Khi đăng ký, bạn phải nộp ba mục: Auction seller ID, Gmarket seller ID và ESM master ID." }
+          ]
+        },
+        {
+          "h2": "2. Các bước cấp",
+          "desc": "Đăng ký và lấy khóa theo thứ tự dưới đây, sau đó đăng ký trong GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Đăng ký làm người bán và tạo ESM master ID", "p": "Đăng ký làm người bán trên cả Auction và Gmarket, sau đó đăng nhập ESM Plus và tạo một master ID.", "path": "esmplus.com" },
+              { "h3": "Đăng ký sử dụng ESM Trading API", "p": "Truy cập ESM Trading API và đăng ký quyền truy cập API. Vì yêu cầu phê duyệt nên đơn đăng ký có thể bị từ chối.", "path": "https://etapi.gmarket.com" },
+              { "h3": "Nộp thông tin nhận dạng", "p": "Khi đăng ký, hãy nộp ba mục: Auction seller ID, Gmarket seller ID và ESM master ID." },
+              { "h3": "Cấp khóa", "p": "Sau khi được phê duyệt, một khóa API sẽ được cấp. Xác nhận khóa API được cấp và Seller ID." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Khi khóa API được cấp sau khi hoàn tất phê duyệt, nghĩa là quy trình đã thành công. Đối với các thắc mắc về phê duyệt, hãy liên hệ etapihelp@gmail.com." }
+          ]
+        },
+        {
+          "h2": "3. Thông tin cần đăng ký trong GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Trường", "Mô tả"], "rows": [
+              ["api_key", "Khóa API được cấp"],
+              ["seller_id", "Seller ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Nhập các giá trị vào GenieGo Integration Hub [Đăng ký] rồi lưu. Thông tin xác thực được mã hóa khi lưu trữ bằng AES-256-GCM và được che khi đọc." }
+          ]
+        },
+        {
+          "h2": "4. Sự cố thường gặp",
+          "blocks": [
+            { "type": "table", "head": ["Sự cố", "Nguyên nhân", "Giải pháp"], "rows": [
+              ["Đơn đăng ký sử dụng API bị từ chối", "ESM Trading API yêu cầu phê duyệt", "Kiểm tra thông tin đã nộp và liên hệ etapihelp@gmail.com."],
+              ["Thông tin đăng ký không khớp", "Nhập sai Auction·Gmarket seller ID hoặc ESM master ID", "Kiểm tra lại ba mục: Auction seller ID, Gmarket seller ID và ESM master ID."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Danh sách kiểm tra cuối cùng",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Đã đăng ký làm người bán trên cả Auction và Gmarket.",
+              "Đã tạo master ID trên ESM Plus.",
+              "Đã đăng ký sử dụng ESM Trading API tại etapi.gmarket.com và được phê duyệt.",
+              "Đã xác nhận api_key và seller_id được cấp.",
+              "Đã nhập api_key·seller_id vào GenieGo [Đăng ký] và lưu."
+            ] }
+          ]
+        }
+      ]
+    },
+    "id": {
+      "titleType": "Panduan Penerbitan API Key",
+      "badge": "Panduan Pemula",
+      "intro": "Panduan yang menjelaskan cara memperoleh kunci API bersama untuk Auction·Gmarket dari ESM Trading API (etapi.gmarket.com) dan mendaftarkannya di GenieGo Integration Hub. Karena Auction dan Gmarket dioperasikan bersama melalui ESM Plus, satu kunci API menghubungkan kedua saluran sekaligus.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Perkiraan waktu", "Beberapa hari termasuk masa tunggu persetujuan (perlu persetujuan)"],
+        ["Akun yang dibutuhkan", "Akun penjual Auction·Gmarket + ESM Plus master ID"],
+        ["Kunci yang diterbitkan", "Kunci API · Seller ID"],
+        ["Hasil", "Kredensial ESM Trading API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Sebelum Anda Mulai",
+          "desc": "Anda harus terdaftar sebagai penjual di Auction maupun Gmarket dan memiliki ESM Plus master ID.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Diperlukan", "h3": "Akun penjual + ESM master ID", "p": "Anda memerlukan akun penjual untuk masing-masing Auction dan Gmarket, serta master ID yang dibuat di ESM Plus (esmplus.com)." },
+              { "tag": "Kunci yang diterbitkan", "h3": "Kunci API · Seller ID", "p": "Setelah ESM Trading API disetujui, konfirmasikan kunci API yang diterbitkan bersama dengan Seller ID." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Catatan:</strong> ESM Trading API memerlukan persetujuan, dan pengajuan dapat ditolak. Saat mengajukan, Anda harus menyerahkan tiga item: Auction seller ID, Gmarket seller ID, dan ESM master ID." }
+          ]
+        },
+        {
+          "h2": "2. Langkah Penerbitan",
+          "desc": "Ajukan dan peroleh kunci sesuai urutan di bawah, lalu daftarkan di GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Daftar sebagai penjual dan buat ESM master ID", "p": "Daftar sebagai penjual di Auction maupun Gmarket, lalu masuk ke ESM Plus dan buat master ID.", "path": "esmplus.com" },
+              { "h3": "Ajukan penggunaan ESM Trading API", "p": "Buka ESM Trading API dan ajukan akses API. Karena memerlukan persetujuan, pengajuan dapat ditolak.", "path": "https://etapi.gmarket.com" },
+              { "h3": "Serahkan informasi identifikasi", "p": "Saat mengajukan, serahkan tiga item: Auction seller ID, Gmarket seller ID, dan ESM master ID." },
+              { "h3": "Penerbitan kunci", "p": "Setelah disetujui, kunci API akan diterbitkan. Konfirmasikan kunci API yang diterbitkan dan Seller ID." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Setelah kunci API diterbitkan begitu persetujuan selesai, berarti prosesnya telah berhasil. Untuk pertanyaan terkait persetujuan, hubungi etapihelp@gmail.com." }
+          ]
+        },
+        {
+          "h2": "3. Informasi yang Didaftarkan di GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Bidang", "Deskripsi"], "rows": [
+              ["api_key", "Kunci API yang diterbitkan"],
+              ["seller_id", "Seller ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Masukkan nilai di GenieGo Integration Hub [Daftar] lalu simpan. Kredensial dienkripsi saat disimpan dengan AES-256-GCM dan disamarkan saat dibaca." }
+          ]
+        },
+        {
+          "h2": "4. Masalah Umum",
+          "blocks": [
+            { "type": "table", "head": ["Masalah", "Penyebab", "Solusi"], "rows": [
+              ["Pengajuan akses API ditolak", "ESM Trading API memerlukan persetujuan", "Periksa informasi yang diserahkan dan hubungi etapihelp@gmail.com."],
+              ["Informasi pengajuan tidak cocok", "Auction·Gmarket seller ID atau ESM master ID salah dimasukkan", "Periksa kembali tiga item: Auction seller ID, Gmarket seller ID, dan ESM master ID."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Daftar Periksa Akhir",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Terdaftar sebagai penjual di Auction maupun Gmarket.",
+              "Membuat master ID di ESM Plus.",
+              "Mengajukan akses ESM Trading API di etapi.gmarket.com dan mendapat persetujuan.",
+              "Mengonfirmasi api_key dan seller_id yang diterbitkan.",
+              "Memasukkan api_key·seller_id di GenieGo [Daftar] dan menyimpan."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ar": {
+      "titleType": "دليل إصدار مفتاح API",
+      "badge": "دليل المبتدئين",
+      "intro": "دليل يشرح كيفية الحصول على مفتاح API مشترك لـ Auction·Gmarket من ESM Trading API ‏(etapi.gmarket.com)‎ وتسجيله في GenieGo Integration Hub. نظرًا لأن Auction وGmarket يُداران معًا عبر ESM Plus، فإن مفتاح API واحدًا يربط القناتين معًا.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["الوقت المقدر", "عدة أيام بما في ذلك انتظار الموافقة (يتطلب موافقة)"],
+        ["الحساب المطلوب", "حساب بائع Auction·Gmarket + معرّف ESM Plus الرئيسي"],
+        ["المفاتيح المُصدرة", "مفتاح API · معرّف البائع"],
+        ["النتيجة", "بيانات اعتماد ESM Trading API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. قبل أن تبدأ",
+          "desc": "يجب أن تكون مسجلاً كبائع في كل من Auction وGmarket وأن يكون لديك معرّف ESM Plus الرئيسي.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "مطلوب", "h3": "حساب بائع + معرّف ESM الرئيسي", "p": "تحتاج إلى حساب بائع لكل من Auction وGmarket، بالإضافة إلى معرّف رئيسي تم إنشاؤه على ESM Plus ‏(esmplus.com)‎." },
+              { "tag": "المفاتيح المُصدرة", "h3": "مفتاح API · معرّف البائع", "p": "بعد موافقة ESM Trading API، تأكد من مفتاح API المُصدر مع معرّف البائع." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>ملاحظة:</strong> يتطلب ESM Trading API موافقة، وقد يُرفض الطلب. عند التقديم، يجب عليك إرسال ثلاثة عناصر: معرّف بائع Auction، ومعرّف بائع Gmarket، ومعرّف ESM الرئيسي." }
+          ]
+        },
+        {
+          "h2": "2. خطوات الإصدار",
+          "desc": "قدّم الطلب واحصل على المفتاح بالترتيب أدناه، ثم سجّله في GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "التسجيل كبائع وإنشاء معرّف ESM الرئيسي", "p": "سجّل كبائع في كل من Auction وGmarket، ثم سجّل الدخول إلى ESM Plus وأنشئ معرّفًا رئيسيًا.", "path": "esmplus.com" },
+              { "h3": "التقدم لاستخدام ESM Trading API", "p": "انتقل إلى ESM Trading API وقدّم طلبًا للوصول إلى API. ولأنه يتطلب موافقة، فقد يُرفض الطلب.", "path": "https://etapi.gmarket.com" },
+              { "h3": "إرسال معلومات التعريف", "p": "عند التقديم، أرسل ثلاثة عناصر: معرّف بائع Auction، ومعرّف بائع Gmarket، ومعرّف ESM الرئيسي." },
+              { "h3": "إصدار المفتاح", "p": "بمجرد الموافقة، يتم إصدار مفتاح API. تأكد من مفتاح API المُصدر ومعرّف البائع." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "بمجرد إصدار مفتاح API بعد اكتمال الموافقة، تكون العملية قد نجحت. للاستفسارات المتعلقة بالموافقة، تواصل عبر etapihelp@gmail.com." }
+          ]
+        },
+        {
+          "h2": "3. المعلومات المطلوب تسجيلها في GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["الحقل", "الوصف"], "rows": [
+              ["api_key", "مفتاح API المُصدر"],
+              ["seller_id", "معرّف البائع"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "أدخل القيم في GenieGo Integration Hub [تسجيل] ثم احفظ. يتم تشفير بيانات الاعتماد أثناء التخزين باستخدام AES-256-GCM وإخفاؤها عند القراءة." }
+          ]
+        },
+        {
+          "h2": "4. المشكلات الشائعة",
+          "blocks": [
+            { "type": "table", "head": ["المشكلة", "السبب", "الحل"], "rows": [
+              ["رُفض طلب استخدام API", "ESM Trading API يتطلب موافقة", "تحقق من المعلومات المُرسلة وتواصل عبر etapihelp@gmail.com."],
+              ["عدم تطابق معلومات الطلب", "إدخال خاطئ لمعرّف بائع Auction·Gmarket أو معرّف ESM الرئيسي", "أعد التحقق من العناصر الثلاثة: معرّف بائع Auction، ومعرّف بائع Gmarket، ومعرّف ESM الرئيسي."]
+            ] }
+          ]
+        },
+        {
+          "h2": "قائمة التحقق النهائية",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "تم التسجيل كبائع في كل من Auction وGmarket.",
+              "تم إنشاء معرّف رئيسي على ESM Plus.",
+              "تم التقدم لاستخدام ESM Trading API على etapi.gmarket.com والحصول على الموافقة.",
+              "تم تأكيد api_key وseller_id المُصدرين.",
+              "تم إدخال api_key·seller_id في GenieGo [تسجيل] وحفظه."
+            ] }
+          ]
+        }
+      ]
+    },
+    "es": {
+      "titleType": "Manual de emisión de API Key",
+      "badge": "Guía para principiantes",
+      "intro": "Una guía que explica cómo obtener una clave de API compartida para Auction·Gmarket desde la ESM Trading API (etapi.gmarket.com) y registrarla en el GenieGo Integration Hub. Dado que Auction y Gmarket se operan conjuntamente a través de ESM Plus, una sola clave de API conecta ambos canales.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tiempo estimado", "Varios días incl. espera de aprobación (requiere aprobación)"],
+        ["Cuenta necesaria", "Cuenta de vendedor de Auction·Gmarket + ID maestro de ESM Plus"],
+        ["Claves emitidas", "Clave de API · ID de vendedor"],
+        ["Resultado", "Credenciales de ESM Trading API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de comenzar",
+          "desc": "Debe estar registrado como vendedor tanto en Auction como en Gmarket y tener un ID maestro de ESM Plus.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requerido", "h3": "Cuenta de vendedor + ID maestro de ESM", "p": "Necesita una cuenta de vendedor para cada uno de Auction y Gmarket, además de un ID maestro creado en ESM Plus (esmplus.com)." },
+              { "tag": "Claves emitidas", "h3": "Clave de API · ID de vendedor", "p": "Tras la aprobación de la ESM Trading API, confirme la clave de API emitida junto con el ID de vendedor." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Nota:</strong> La ESM Trading API requiere aprobación y las solicitudes pueden ser rechazadas. Al solicitarla, debe enviar tres elementos: su ID de vendedor de Auction, su ID de vendedor de Gmarket y su ID maestro de ESM." }
+          ]
+        },
+        {
+          "h2": "2. Pasos de emisión",
+          "desc": "Solicite y obtenga la clave en el orden indicado a continuación y luego regístrela en GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Registrarse como vendedor y crear un ID maestro de ESM", "p": "Regístrese como vendedor tanto en Auction como en Gmarket, luego inicie sesión en ESM Plus y cree un ID maestro.", "path": "esmplus.com" },
+              { "h3": "Solicitar el uso de la ESM Trading API", "p": "Vaya a la ESM Trading API y solicite el acceso a la API. Como requiere aprobación, la solicitud puede ser rechazada.", "path": "https://etapi.gmarket.com" },
+              { "h3": "Enviar información de identificación", "p": "Al solicitar, envíe tres elementos: su ID de vendedor de Auction, su ID de vendedor de Gmarket y su ID maestro de ESM." },
+              { "h3": "Emisión de la clave", "p": "Una vez aprobada, se emite una clave de API. Confirme la clave de API emitida y el ID de vendedor." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Una vez que se emite la clave de API tras completarse la aprobación, el proceso ha tenido éxito. Para consultas sobre la aprobación, contacte con etapihelp@gmail.com." }
+          ]
+        },
+        {
+          "h2": "3. Información para registrar en GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descripción"], "rows": [
+              ["api_key", "La clave de API emitida"],
+              ["seller_id", "ID de vendedor"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Introduzca los valores en el GenieGo Integration Hub [Registrar] y guarde. Las credenciales se cifran en reposo con AES-256-GCM y se enmascaran al leerlas." }
+          ]
+        },
+        {
+          "h2": "4. Problemas frecuentes",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solución"], "rows": [
+              ["Solicitud de uso de la API rechazada", "La ESM Trading API requiere aprobación", "Verifique la información enviada y contacte con etapihelp@gmail.com."],
+              ["La información de la solicitud no coincide", "ID de vendedor de Auction·Gmarket o ID maestro de ESM introducidos incorrectamente", "Vuelva a verificar los tres elementos: ID de vendedor de Auction, ID de vendedor de Gmarket e ID maestro de ESM."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificación final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Registrado como vendedor tanto en Auction como en Gmarket.",
+              "Creado un ID maestro en ESM Plus.",
+              "Solicitado el acceso a la ESM Trading API en etapi.gmarket.com y obtenida la aprobación.",
+              "Confirmados el api_key y el seller_id emitidos.",
+              "Introducido api_key·seller_id en GenieGo [Registrar] y guardado."
+            ] }
+          ]
+        }
+      ]
+    },
+    "fr": {
+      "titleType": "Manuel d'émission de clé API",
+      "badge": "Guide du débutant",
+      "intro": "Un guide expliquant comment obtenir une clé API partagée pour Auction·Gmarket via l'ESM Trading API (etapi.gmarket.com) et l'enregistrer dans le GenieGo Integration Hub. Comme Auction et Gmarket sont exploités conjointement via ESM Plus, une seule clé API connecte les deux canaux.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Temps estimé", "Plusieurs jours, attente d'approbation incluse (approbation requise)"],
+        ["Compte requis", "Compte vendeur Auction·Gmarket + ID maître ESM Plus"],
+        ["Clés émises", "Clé API · ID vendeur"],
+        ["Résultat", "Identifiants ESM Trading API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Avant de commencer",
+          "desc": "Vous devez être enregistré en tant que vendeur à la fois sur Auction et Gmarket et disposer d'un ID maître ESM Plus.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requis", "h3": "Compte vendeur + ID maître ESM", "p": "Vous avez besoin d'un compte vendeur pour Auction et pour Gmarket, ainsi que d'un ID maître créé sur ESM Plus (esmplus.com)." },
+              { "tag": "Clés émises", "h3": "Clé API · ID vendeur", "p": "Après l'approbation de l'ESM Trading API, confirmez la clé API émise ainsi que l'ID vendeur." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Remarque :</strong> L'ESM Trading API est soumise à approbation et les demandes peuvent être rejetées. Lors de la demande, vous devez soumettre trois éléments : votre ID vendeur Auction, votre ID vendeur Gmarket et votre ID maître ESM." }
+          ]
+        },
+        {
+          "h2": "2. Étapes d'émission",
+          "desc": "Faites la demande et obtenez la clé dans l'ordre ci-dessous, puis enregistrez-la dans GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "S'inscrire en tant que vendeur et créer un ID maître ESM", "p": "Inscrivez-vous en tant que vendeur sur Auction et Gmarket, puis connectez-vous à ESM Plus et créez un ID maître.", "path": "esmplus.com" },
+              { "h3": "Demander l'utilisation de l'ESM Trading API", "p": "Accédez à l'ESM Trading API et demandez l'accès à l'API. Comme elle est soumise à approbation, la demande peut être rejetée.", "path": "https://etapi.gmarket.com" },
+              { "h3": "Soumettre les informations d'identification", "p": "Lors de la demande, soumettez trois éléments : votre ID vendeur Auction, votre ID vendeur Gmarket et votre ID maître ESM." },
+              { "h3": "Émission de la clé", "p": "Une fois approuvée, une clé API est émise. Confirmez la clé API émise et l'ID vendeur." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Une fois la clé API émise après l'approbation, le processus a réussi. Pour les questions relatives à l'approbation, contactez etapihelp@gmail.com." }
+          ]
+        },
+        {
+          "h2": "3. Informations à enregistrer dans GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Champ", "Description"], "rows": [
+              ["api_key", "La clé API émise"],
+              ["seller_id", "ID vendeur"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Saisissez les valeurs dans le GenieGo Integration Hub [Enregistrer] et enregistrez. Les identifiants sont chiffrés au repos avec AES-256-GCM et masqués à la lecture." }
+          ]
+        },
+        {
+          "h2": "4. Problèmes fréquents",
+          "blocks": [
+            { "type": "table", "head": ["Problème", "Cause", "Solution"], "rows": [
+              ["Demande d'utilisation de l'API rejetée", "L'ESM Trading API est soumise à approbation", "Vérifiez les informations soumises et contactez etapihelp@gmail.com."],
+              ["Informations de demande non concordantes", "ID vendeur Auction·Gmarket ou ID maître ESM saisis de manière incorrecte", "Vérifiez à nouveau les trois éléments : ID vendeur Auction, ID vendeur Gmarket et ID maître ESM."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Liste de contrôle finale",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Inscrit en tant que vendeur sur Auction et Gmarket.",
+              "Créé un ID maître sur ESM Plus.",
+              "Demandé l'accès à l'ESM Trading API sur etapi.gmarket.com et obtenu l'approbation.",
+              "Confirmé l'api_key et le seller_id émis.",
+              "Saisi api_key·seller_id dans GenieGo [Enregistrer] et enregistré."
+            ] }
+          ]
+        }
+      ]
+    },
+    "hi": {
+      "titleType": "API Key जारी करने की नियमावली",
+      "badge": "शुरुआती गाइड",
+      "intro": "यह नियमावली बताती है कि ESM Trading API (etapi.gmarket.com) से Auction·Gmarket के लिए साझा API कुंजी कैसे प्राप्त करें और उसे GenieGo Integration Hub में कैसे पंजीकृत करें। चूँकि Auction और Gmarket को ESM Plus के माध्यम से एक साथ संचालित किया जाता है, इसलिए एक ही API कुंजी दोनों चैनलों को जोड़ती है।",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["अनुमानित समय", "स्वीकृति प्रतीक्षा सहित कई दिन (स्वीकृति आवश्यक)"],
+        ["आवश्यक खाता", "Auction·Gmarket विक्रेता खाता + ESM Plus मास्टर ID"],
+        ["जारी कुंजियाँ", "API कुंजी · Seller ID"],
+        ["परिणाम", "ESM Trading API प्रमाणपत्र"]
+      ],
+      "sections": [
+        {
+          "h2": "1. शुरू करने से पहले",
+          "desc": "आपको Auction और Gmarket दोनों पर विक्रेता के रूप में पंजीकृत होना चाहिए और ESM Plus मास्टर ID होना चाहिए।",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "आवश्यक", "h3": "विक्रेता खाता + ESM मास्टर ID", "p": "आपको Auction और Gmarket प्रत्येक के लिए एक विक्रेता खाता, साथ ही ESM Plus (esmplus.com) पर बनाई गई एक मास्टर ID की आवश्यकता है।" },
+              { "tag": "जारी कुंजियाँ", "h3": "API कुंजी · Seller ID", "p": "ESM Trading API की स्वीकृति के बाद, जारी की गई API कुंजी की Seller ID के साथ पुष्टि करें।" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>नोट:</strong> ESM Trading API के लिए स्वीकृति आवश्यक है, और आवेदन अस्वीकृत हो सकते हैं। आवेदन करते समय, आपको तीन चीज़ें जमा करनी होंगी: आपकी Auction seller ID, Gmarket seller ID और ESM master ID।" }
+          ]
+        },
+        {
+          "h2": "2. जारी करने के चरण",
+          "desc": "नीचे दिए गए क्रम में आवेदन करें और कुंजी प्राप्त करें, फिर GenieGo में पंजीकृत करें।",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "विक्रेता के रूप में पंजीकरण करें और ESM मास्टर ID बनाएँ", "p": "Auction और Gmarket दोनों पर विक्रेता के रूप में पंजीकरण करें, फिर ESM Plus में साइन इन करें और एक मास्टर ID बनाएँ।", "path": "esmplus.com" },
+              { "h3": "ESM Trading API के उपयोग के लिए आवेदन करें", "p": "ESM Trading API पर जाएँ और API एक्सेस के लिए आवेदन करें। चूँकि इसके लिए स्वीकृति आवश्यक है, आवेदन अस्वीकृत हो सकता है।", "path": "https://etapi.gmarket.com" },
+              { "h3": "पहचान जानकारी जमा करें", "p": "आवेदन करते समय, तीन चीज़ें जमा करें: आपकी Auction seller ID, Gmarket seller ID और ESM master ID।" },
+              { "h3": "कुंजी जारी करना", "p": "स्वीकृति मिलने पर, एक API कुंजी जारी की जाती है। जारी की गई API कुंजी और Seller ID की पुष्टि करें।" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "स्वीकृति पूरी होने के बाद API कुंजी जारी हो जाने पर, प्रक्रिया सफल हो गई है। स्वीकृति संबंधी पूछताछ के लिए etapihelp@gmail.com पर संपर्क करें।" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo में पंजीकृत की जाने वाली जानकारी",
+          "blocks": [
+            { "type": "table", "head": ["फ़ील्ड", "विवरण"], "rows": [
+              ["api_key", "जारी की गई API कुंजी"],
+              ["seller_id", "Seller ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo Integration Hub [पंजीकरण] में मान दर्ज करें और सहेजें। प्रमाणपत्र संग्रहण के समय AES-256-GCM से एन्क्रिप्ट किए जाते हैं और पढ़ते समय मास्क किए जाते हैं।" }
+          ]
+        },
+        {
+          "h2": "4. सामान्य समस्याएँ",
+          "blocks": [
+            { "type": "table", "head": ["समस्या", "कारण", "समाधान"], "rows": [
+              ["API उपयोग आवेदन अस्वीकृत", "ESM Trading API के लिए स्वीकृति आवश्यक है", "जमा की गई जानकारी जाँचें और etapihelp@gmail.com पर संपर्क करें।"],
+              ["आवेदन जानकारी का बेमेल", "Auction·Gmarket seller ID या ESM master ID गलत दर्ज", "तीन चीज़ें फिर से जाँचें: Auction seller ID, Gmarket seller ID और ESM master ID।"]
+            ] }
+          ]
+        },
+        {
+          "h2": "अंतिम जाँच सूची",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Auction और Gmarket दोनों पर विक्रेता के रूप में पंजीकरण किया।",
+              "ESM Plus पर एक मास्टर ID बनाई।",
+              "etapi.gmarket.com पर ESM Trading API के उपयोग के लिए आवेदन किया और स्वीकृति प्राप्त की।",
+              "जारी की गई api_key और seller_id की पुष्टि की।",
+              "GenieGo [पंजीकरण] में api_key·seller_id दर्ज किया और सहेजा।"
+            ] }
+          ]
+        }
+      ]
+    },
+    "pt": {
+      "titleType": "Manual de emissão de API Key",
+      "badge": "Guia para iniciantes",
+      "intro": "Um guia que explica como obter uma chave de API compartilhada para Auction·Gmarket a partir da ESM Trading API (etapi.gmarket.com) e registrá-la no GenieGo Integration Hub. Como Auction e Gmarket são operados em conjunto através do ESM Plus, uma única chave de API conecta ambos os canais.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tempo estimado", "Vários dias incl. espera de aprovação (requer aprovação)"],
+        ["Conta necessária", "Conta de vendedor Auction·Gmarket + ID mestre do ESM Plus"],
+        ["Chaves emitidas", "Chave de API · ID do vendedor"],
+        ["Resultado", "Credenciais da ESM Trading API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de começar",
+          "desc": "Você deve estar registrado como vendedor tanto no Auction quanto no Gmarket e possuir um ID mestre do ESM Plus.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Obrigatório", "h3": "Conta de vendedor + ID mestre do ESM", "p": "Você precisa de uma conta de vendedor para cada um, Auction e Gmarket, além de um ID mestre criado no ESM Plus (esmplus.com)." },
+              { "tag": "Chaves emitidas", "h3": "Chave de API · ID do vendedor", "p": "Após a aprovação da ESM Trading API, confirme a chave de API emitida junto com o ID do vendedor." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Nota:</strong> A ESM Trading API requer aprovação, e as solicitações podem ser rejeitadas. Ao solicitar, você deve enviar três itens: seu ID de vendedor do Auction, ID de vendedor do Gmarket e ID mestre do ESM." }
+          ]
+        },
+        {
+          "h2": "2. Etapas de emissão",
+          "desc": "Solicite e obtenha a chave na ordem abaixo e, em seguida, registre-a no GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Registrar-se como vendedor e criar um ID mestre do ESM", "p": "Registre-se como vendedor tanto no Auction quanto no Gmarket, depois faça login no ESM Plus e crie um ID mestre.", "path": "esmplus.com" },
+              { "h3": "Solicitar o uso da ESM Trading API", "p": "Acesse a ESM Trading API e solicite o acesso à API. Como requer aprovação, a solicitação pode ser rejeitada.", "path": "https://etapi.gmarket.com" },
+              { "h3": "Enviar informações de identificação", "p": "Ao solicitar, envie três itens: seu ID de vendedor do Auction, ID de vendedor do Gmarket e ID mestre do ESM." },
+              { "h3": "Emissão da chave", "p": "Uma vez aprovada, uma chave de API é emitida. Confirme a chave de API emitida e o ID do vendedor." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Quando a chave de API é emitida após a conclusão da aprovação, o processo foi bem-sucedido. Para dúvidas sobre a aprovação, entre em contato com etapihelp@gmail.com." }
+          ]
+        },
+        {
+          "h2": "3. Informações para registrar no GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descrição"], "rows": [
+              ["api_key", "A chave de API emitida"],
+              ["seller_id", "ID do vendedor"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Insira os valores no GenieGo Integration Hub [Registrar] e salve. As credenciais são criptografadas em repouso com AES-256-GCM e mascaradas na leitura." }
+          ]
+        },
+        {
+          "h2": "4. Problemas comuns",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solução"], "rows": [
+              ["Solicitação de uso da API rejeitada", "A ESM Trading API requer aprovação", "Verifique as informações enviadas e entre em contato com etapihelp@gmail.com."],
+              ["Informações da solicitação divergentes", "ID de vendedor do Auction·Gmarket ou ID mestre do ESM inseridos incorretamente", "Verifique novamente os três itens: ID de vendedor do Auction, ID de vendedor do Gmarket e ID mestre do ESM."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificação final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Registrado como vendedor tanto no Auction quanto no Gmarket.",
+              "Criado um ID mestre no ESM Plus.",
+              "Solicitado o acesso à ESM Trading API em etapi.gmarket.com e obtida a aprovação.",
+              "Confirmados o api_key e o seller_id emitidos.",
+              "Inserido api_key·seller_id no GenieGo [Registrar] e salvo."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ru": {
+      "titleType": "Руководство по выпуску API Key",
+      "badge": "Руководство для начинающих",
+      "intro": "Руководство, описывающее, как получить общий ключ API для Auction·Gmarket через ESM Trading API (etapi.gmarket.com) и зарегистрировать его в GenieGo Integration Hub. Поскольку Auction и Gmarket управляются совместно через ESM Plus, один ключ API подключает оба канала.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Примерное время", "Несколько дней, включая ожидание одобрения (требуется одобрение)"],
+        ["Требуемый аккаунт", "Аккаунт продавца Auction·Gmarket + мастер-ID ESM Plus"],
+        ["Выпускаемые ключи", "Ключ API · ID продавца"],
+        ["Результат", "Учётные данные ESM Trading API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Прежде чем начать",
+          "desc": "Вы должны быть зарегистрированы как продавец и в Auction, и в Gmarket и иметь мастер-ID ESM Plus.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Требуется", "h3": "Аккаунт продавца + мастер-ID ESM", "p": "Вам нужен аккаунт продавца для каждого из сервисов Auction и Gmarket, а также мастер-ID, созданный в ESM Plus (esmplus.com)." },
+              { "tag": "Выпускаемые ключи", "h3": "Ключ API · ID продавца", "p": "После одобрения ESM Trading API подтвердите выпущенный ключ API вместе с ID продавца." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Примечание:</strong> ESM Trading API требует одобрения, и заявки могут быть отклонены. При подаче заявки необходимо предоставить три элемента: ваш ID продавца Auction, ID продавца Gmarket и мастер-ID ESM." }
+          ]
+        },
+        {
+          "h2": "2. Шаги выпуска",
+          "desc": "Подайте заявку и получите ключ в указанном ниже порядке, затем зарегистрируйте его в GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Зарегистрироваться как продавец и создать мастер-ID ESM", "p": "Зарегистрируйтесь как продавец и в Auction, и в Gmarket, затем войдите в ESM Plus и создайте мастер-ID.", "path": "esmplus.com" },
+              { "h3": "Подать заявку на использование ESM Trading API", "p": "Перейдите в ESM Trading API и подайте заявку на доступ к API. Так как требуется одобрение, заявка может быть отклонена.", "path": "https://etapi.gmarket.com" },
+              { "h3": "Предоставить идентификационную информацию", "p": "При подаче заявки предоставьте три элемента: ваш ID продавца Auction, ID продавца Gmarket и мастер-ID ESM." },
+              { "h3": "Выпуск ключа", "p": "После одобрения выпускается ключ API. Подтвердите выпущенный ключ API и ID продавца." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Когда ключ API выпущен после завершения одобрения, процесс прошёл успешно. По вопросам, связанным с одобрением, обращайтесь по адресу etapihelp@gmail.com." }
+          ]
+        },
+        {
+          "h2": "3. Информация для регистрации в GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Поле", "Описание"], "rows": [
+              ["api_key", "Выпущенный ключ API"],
+              ["seller_id", "ID продавца"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Введите значения в GenieGo Integration Hub [Регистрация] и сохраните. Учётные данные шифруются при хранении с помощью AES-256-GCM и маскируются при чтении." }
+          ]
+        },
+        {
+          "h2": "4. Частые проблемы",
+          "blocks": [
+            { "type": "table", "head": ["Проблема", "Причина", "Решение"], "rows": [
+              ["Заявка на использование API отклонена", "ESM Trading API требует одобрения", "Проверьте предоставленную информацию и обратитесь по адресу etapihelp@gmail.com."],
+              ["Несоответствие информации в заявке", "Неверно введены ID продавца Auction·Gmarket или мастер-ID ESM", "Повторно проверьте три элемента: ID продавца Auction, ID продавца Gmarket и мастер-ID ESM."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Финальный чек-лист",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Зарегистрирован как продавец и в Auction, и в Gmarket.",
+              "Создан мастер-ID в ESM Plus.",
+              "Подана заявка на доступ к ESM Trading API на etapi.gmarket.com и получено одобрение.",
+              "Подтверждены выпущенные api_key и seller_id.",
+              "Введены api_key·seller_id в GenieGo [Регистрация] и сохранены."
+            ] }
+          ]
+        }
+      ]
+    }
+  }
+}

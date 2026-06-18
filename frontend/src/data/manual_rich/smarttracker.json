@@ -1,0 +1,1011 @@
+{
+  "name": "Smart Tracker (Unified Tracking)",
+  "icon": "📦",
+  "langs": {
+    "ko": {
+      "titleType": "API Key 발급 매뉴얼",
+      "badge": "Beginner Guide",
+      "intro": "스윗트래커(tracking.sweettracker.co.kr)에 가입하고 전 택배사 통합 추적 키(t_key)를 발급해 GenieGo 연동 허브에 등록하는 과정을 초보자도 그대로 따라 할 수 있도록 정리한 매뉴얼입니다. t_key 하나로 모든 택배사 배송추적이 연동됩니다.",
+      "org": "GenieGo 연동 허브",
+      "quick": [
+        ["소요 시간", "약 5~15분"],
+        ["필요 계정", "스윗트래커 가입 계정"],
+        ["발급 키", "t_key (전 택배사 통합 추적 키)"],
+        ["결과물", "통합 배송추적 API 자격증명"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 시작하기 전에",
+          "desc": "스마트택배(통합 추적)는 별도 계약 없이 가입만으로 사용할 수 있는 자가발급 채널입니다.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "필요", "h3": "스윗트래커 가입 계정", "p": "tracking.sweettracker.co.kr 에 가입한 계정이 있으면 됩니다. 별도 계약 없이 가입만으로 발급할 수 있습니다." },
+              { "tag": "발급 키", "h3": "t_key (통합 추적 키)", "p": "전 택배사 통합 추적 키인 t_key 하나를 발급하면 모든 택배사 배송추적이 연동됩니다." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>참고:</strong> t_key 는 GenieGo 등록 시 api_key 필드에 입력합니다." }
+          ]
+        },
+        {
+          "h2": "2. t_key 발급 단계",
+          "desc": "아래 순서대로 발급하고 GenieGo에 등록합니다.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "스윗트래커 가입·로그인", "p": "tracking.sweettracker.co.kr 에 접속해 가입하고 로그인합니다.", "path": "https://tracking.sweettracker.co.kr" },
+              { "h3": "t_key 발급 신청", "p": "t_key(전 택배사 통합 추적 키) 발급을 신청합니다." },
+              { "h3": "t_key 확인", "p": "발급된 t_key를 확인합니다." },
+              { "h3": "GenieGo 등록", "p": "GenieGo [등록]에 t_key(api_key)를 입력하면 모든 택배사 배송추적이 연동됩니다." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "t_key가 발급되면 정상 발급된 것이며, 등록 즉시 전 택배사 배송추적이 연동됩니다." }
+          ]
+        },
+        {
+          "h2": "3. GenieGo에 등록할 정보",
+          "blocks": [
+            { "type": "table", "head": ["필드", "설명"], "rows": [
+              ["api_key", "발급된 t_key (전 택배사 통합 추적 키)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 연동 허브 [등록]에 입력해 저장하면 자격증명은 AES-256-GCM으로 암호화 저장되고 조회 시 마스킹됩니다. 등록 즉시 모든 택배사 배송추적이 연동됩니다." }
+          ]
+        },
+        {
+          "h2": "4. 자주 발생하는 문제",
+          "blocks": [
+            { "type": "table", "head": ["문제", "원인", "해결"], "rows": [
+              ["t_key 발급 메뉴를 찾지 못함", "스윗트래커 미가입 또는 미로그인", "tracking.sweettracker.co.kr 에 가입·로그인한 뒤 t_key 발급을 신청합니다."],
+              ["배송추적이 연동되지 않음", "t_key 오기재 또는 미입력", "발급된 t_key를 api_key 필드에 정확히 입력했는지 다시 확인합니다."]
+            ] }
+          ]
+        },
+        {
+          "h2": "최종 체크리스트",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "tracking.sweettracker.co.kr 에 가입·로그인했다.",
+              "t_key(전 택배사 통합 추적 키) 발급을 신청했다.",
+              "발급된 t_key를 확인했다.",
+              "GenieGo [등록]에 t_key를 api_key 필드로 입력해 저장했다."
+            ] }
+          ]
+        }
+      ]
+    },
+    "en": {
+      "titleType": "API Key Issuance Manual",
+      "badge": "Beginner Guide",
+      "intro": "A beginner-friendly, step-by-step guide to signing up at SweetTracker (tracking.sweettracker.co.kr), issuing the all-carrier unified tracking key (t_key), and registering it in the GenieGo Integration Hub. A single t_key connects delivery tracking for every carrier.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Est. time", "About 5–15 min"],
+        ["Account needed", "SweetTracker account"],
+        ["Keys issued", "t_key (all-carrier unified tracking key)"],
+        ["Result", "Unified delivery-tracking API credentials"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Before You Begin",
+          "desc": "Smart Tracker (Unified Tracking) is a self-issued channel you can use just by signing up, with no separate contract.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Required", "h3": "SweetTracker account", "p": "You just need an account registered at tracking.sweettracker.co.kr. You can issue the key by signing up alone, with no separate contract." },
+              { "tag": "Keys issued", "h3": "t_key (unified tracking key)", "p": "Issue a single t_key, the all-carrier unified tracking key, and delivery tracking for every carrier is connected." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Note:</strong> Enter the t_key in the api_key field when registering in GenieGo." }
+          ]
+        },
+        {
+          "h2": "2. t_key Issuance Steps",
+          "desc": "Issue in the order below and register in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Sign up and log in to SweetTracker", "p": "Go to tracking.sweettracker.co.kr, sign up, and log in.", "path": "https://tracking.sweettracker.co.kr" },
+              { "h3": "Apply to issue a t_key", "p": "Apply to issue a t_key (the all-carrier unified tracking key)." },
+              { "h3": "Check the t_key", "p": "Check the issued t_key." },
+              { "h3": "Register in GenieGo", "p": "Enter the t_key (api_key) in GenieGo [Register], and delivery tracking for every carrier is connected." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Once the t_key is issued, it has been issued correctly, and delivery tracking for every carrier is connected immediately upon registration." }
+          ]
+        },
+        {
+          "h2": "3. Information to Register in GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Field", "Description"], "rows": [
+              ["api_key", "The issued t_key (all-carrier unified tracking key)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Enter and save it in the GenieGo Integration Hub [Register]. Credentials are encrypted at rest with AES-256-GCM and masked on read. Delivery tracking for every carrier is connected immediately upon registration." }
+          ]
+        },
+        {
+          "h2": "4. Common Issues",
+          "blocks": [
+            { "type": "table", "head": ["Issue", "Cause", "Solution"], "rows": [
+              ["Can't find the t_key issuance menu", "Not signed up or not logged in to SweetTracker", "Sign up and log in at tracking.sweettracker.co.kr, then apply to issue a t_key."],
+              ["Delivery tracking isn't connected", "t_key mistyped or not entered", "Recheck that you entered the issued t_key accurately in the api_key field."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Final Checklist",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Signed up and logged in at tracking.sweettracker.co.kr.",
+              "Applied to issue a t_key (the all-carrier unified tracking key).",
+              "Checked the issued t_key.",
+              "Entered the t_key in the api_key field in GenieGo [Register] and saved."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ja": {
+      "titleType": "API Key 発行マニュアル",
+      "badge": "初心者ガイド",
+      "intro": "スウィートトラッカー(tracking.sweettracker.co.kr)に登録し、全配送会社の統合追跡キー(t_key)を発行して GenieGo 連携ハブに登録する手順を、初心者でもそのまま実行できるようにまとめたマニュアルです。t_key 一つですべての配送会社の配送追跡が連携されます。",
+      "org": "GenieGo 連携ハブ",
+      "quick": [
+        ["所要時間", "約 5〜15 分"],
+        ["必要なアカウント", "スウィートトラッカー登録アカウント"],
+        ["発行するキー", "t_key (全配送会社の統合追跡キー)"],
+        ["成果物", "統合配送追跡 API 認証情報"]
+      ],
+      "sections": [
+        {
+          "h2": "1. はじめる前に",
+          "desc": "スマート配送(統合追跡)は、別途契約なしで登録のみで利用できる自己発行チャネルです。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必須", "h3": "スウィートトラッカー登録アカウント", "p": "tracking.sweettracker.co.kr に登録したアカウントがあれば大丈夫です。別途契約なしで登録のみで発行できます。" },
+              { "tag": "発行するキー", "h3": "t_key (統合追跡キー)", "p": "全配送会社の統合追跡キーである t_key を一つ発行すれば、すべての配送会社の配送追跡が連携されます。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> t_key は GenieGo 登録時に api_key フィールドに入力します。" }
+          ]
+        },
+        {
+          "h2": "2. t_key 発行手順",
+          "desc": "以下の順序で発行し、GenieGo に登録します。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "スウィートトラッカー登録・ログイン", "p": "tracking.sweettracker.co.kr にアクセスして登録し、ログインします。", "path": "https://tracking.sweettracker.co.kr" },
+              { "h3": "t_key 発行申請", "p": "t_key(全配送会社の統合追跡キー)の発行を申請します。" },
+              { "h3": "t_key を確認", "p": "発行された t_key を確認します。" },
+              { "h3": "GenieGo 登録", "p": "GenieGo の [登録] に t_key(api_key)を入力すると、すべての配送会社の配送追跡が連携されます。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "t_key が発行されれば正常に発行されたもので、登録後すぐに全配送会社の配送追跡が連携されます。" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo に登録する情報",
+          "blocks": [
+            { "type": "table", "head": ["フィールド", "説明"], "rows": [
+              ["api_key", "発行された t_key (全配送会社の統合追跡キー)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 連携ハブの [登録] に入力して保存すると、認証情報は AES-256-GCM で暗号化して保存され、閲覧時にはマスキングされます。登録後すぐにすべての配送会社の配送追跡が連携されます。" }
+          ]
+        },
+        {
+          "h2": "4. よくある問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["t_key 発行メニューが見つからない", "スウィートトラッカー未登録またはログインしていない", "tracking.sweettracker.co.kr に登録・ログインしてから t_key の発行を申請します。"],
+              ["配送追跡が連携されない", "t_key の誤記入または未入力", "発行された t_key を api_key フィールドに正確に入力したか再度確認します。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終チェックリスト",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "tracking.sweettracker.co.kr に登録・ログインした。",
+              "t_key(全配送会社の統合追跡キー)の発行を申請した。",
+              "発行された t_key を確認した。",
+              "GenieGo の [登録] に t_key を api_key フィールドとして入力して保存した。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh": {
+      "titleType": "API Key 申请手册",
+      "badge": "新手指南",
+      "intro": "本手册手把手指导新手在 SweetTracker(tracking.sweettracker.co.kr)注册，签发全快递公司统一追踪密钥(t_key)，并注册到 GenieGo 集成中心。一个 t_key 即可接入所有快递公司的物流追踪。",
+      "org": "GenieGo 集成中心",
+      "quick": [
+        ["预计时间", "约 5~15 分钟"],
+        ["所需账户", "SweetTracker 注册账户"],
+        ["签发密钥", "t_key (全快递公司统一追踪密钥)"],
+        ["成果", "统一物流追踪 API 凭证"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 开始之前",
+          "desc": "智能快递(统一追踪)是一个无需单独签约、仅注册即可使用的自助签发渠道。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "SweetTracker 注册账户", "p": "您只需在 tracking.sweettracker.co.kr 注册一个账户即可。无需单独签约，仅注册即可签发。" },
+              { "tag": "签发密钥", "h3": "t_key (统一追踪密钥)", "p": "签发一个全快递公司统一追踪密钥 t_key，即可接入所有快递公司的物流追踪。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> 在 GenieGo 注册时，将 t_key 填入 api_key 字段。" }
+          ]
+        },
+        {
+          "h2": "2. t_key 申请步骤",
+          "desc": "按以下顺序签发并在 GenieGo 中注册。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "注册并登录 SweetTracker", "p": "访问 tracking.sweettracker.co.kr，注册并登录。", "path": "https://tracking.sweettracker.co.kr" },
+              { "h3": "申请签发 t_key", "p": "申请签发 t_key(全快递公司统一追踪密钥)。" },
+              { "h3": "确认 t_key", "p": "确认已签发的 t_key。" },
+              { "h3": "在 GenieGo 中注册", "p": "在 GenieGo [注册] 中填入 t_key(api_key)，即可接入所有快递公司的物流追踪。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "t_key 签发后即表示已正确签发，注册后立即接入所有快递公司的物流追踪。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中注册的信息",
+          "blocks": [
+            { "type": "table", "head": ["字段", "说明"], "rows": [
+              ["api_key", "已签发的 t_key (全快递公司统一追踪密钥)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 集成中心 [注册] 中填入并保存后，凭证将以 AES-256-GCM 加密存储，并在查询时进行掩码处理。注册后立即接入所有快递公司的物流追踪。" }
+          ]
+        },
+        {
+          "h2": "4. 常见问题",
+          "blocks": [
+            { "type": "table", "head": ["问题", "原因", "解决方法"], "rows": [
+              ["找不到 t_key 签发菜单", "未注册或未登录 SweetTracker", "在 tracking.sweettracker.co.kr 注册并登录后，再申请签发 t_key。"],
+              ["物流追踪未接入", "t_key 填写错误或未填写", "请重新确认是否已将签发的 t_key 准确填入 api_key 字段。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最终检查清单",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已在 tracking.sweettracker.co.kr 注册并登录。",
+              "已申请签发 t_key(全快递公司统一追踪密钥)。",
+              "已确认签发的 t_key。",
+              "已在 GenieGo [注册] 中将 t_key 填入 api_key 字段并保存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh-TW": {
+      "titleType": "API Key 申請手冊",
+      "badge": "新手指南",
+      "intro": "本手冊手把手指導新手在 SweetTracker(tracking.sweettracker.co.kr)註冊，簽發全貨運公司統一追蹤金鑰(t_key),並註冊到 GenieGo 整合中心。一個 t_key 即可接入所有貨運公司的物流追蹤。",
+      "org": "GenieGo 整合中心",
+      "quick": [
+        ["預計時間", "約 5~15 分鐘"],
+        ["所需帳戶", "SweetTracker 註冊帳戶"],
+        ["簽發金鑰", "t_key (全貨運公司統一追蹤金鑰)"],
+        ["成果", "統一物流追蹤 API 憑證"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 開始之前",
+          "desc": "智慧貨運(統一追蹤)是一個無需另外簽約、僅註冊即可使用的自助簽發渠道。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "SweetTracker 註冊帳戶", "p": "您只需在 tracking.sweettracker.co.kr 註冊一個帳戶即可。無需另外簽約，僅註冊即可簽發。" },
+              { "tag": "簽發金鑰", "h3": "t_key (統一追蹤金鑰)", "p": "簽發一個全貨運公司統一追蹤金鑰 t_key，即可接入所有貨運公司的物流追蹤。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> 在 GenieGo 註冊時，將 t_key 填入 api_key 欄位。" }
+          ]
+        },
+        {
+          "h2": "2. t_key 申請步驟",
+          "desc": "依以下順序簽發並在 GenieGo 中註冊。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "註冊並登入 SweetTracker", "p": "前往 tracking.sweettracker.co.kr，註冊並登入。", "path": "https://tracking.sweettracker.co.kr" },
+              { "h3": "申請簽發 t_key", "p": "申請簽發 t_key(全貨運公司統一追蹤金鑰)。" },
+              { "h3": "確認 t_key", "p": "確認已簽發的 t_key。" },
+              { "h3": "在 GenieGo 中註冊", "p": "在 GenieGo [註冊] 中填入 t_key(api_key),即可接入所有貨運公司的物流追蹤。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "t_key 簽發後即表示已正確簽發，註冊後立即接入所有貨運公司的物流追蹤。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中註冊的資訊",
+          "blocks": [
+            { "type": "table", "head": ["欄位", "說明"], "rows": [
+              ["api_key", "已簽發的 t_key (全貨運公司統一追蹤金鑰)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 整合中心 [註冊] 中填入並儲存後，憑證將以 AES-256-GCM 加密儲存，並在查詢時進行遮罩處理。註冊後立即接入所有貨運公司的物流追蹤。" }
+          ]
+        },
+        {
+          "h2": "4. 常見問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["找不到 t_key 簽發選單", "未註冊或未登入 SweetTracker", "在 tracking.sweettracker.co.kr 註冊並登入後，再申請簽發 t_key。"],
+              ["物流追蹤未接入", "t_key 填寫錯誤或未填寫", "請重新確認是否已將簽發的 t_key 準確填入 api_key 欄位。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終檢查清單",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已在 tracking.sweettracker.co.kr 註冊並登入。",
+              "已申請簽發 t_key(全貨運公司統一追蹤金鑰)。",
+              "已確認簽發的 t_key。",
+              "已在 GenieGo [註冊] 中將 t_key 填入 api_key 欄位並儲存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "de": {
+      "titleType": "Anleitung zur API-Key-Ausstellung",
+      "badge": "Einsteigerleitfaden",
+      "intro": "Eine einsteigerfreundliche Schritt-für-Schritt-Anleitung zur Registrierung bei SweetTracker (tracking.sweettracker.co.kr), zum Ausstellen des einheitlichen Sendungsverfolgungsschlüssels für alle Versanddienstleister (t_key) und zur Registrierung im GenieGo Integration Hub. Ein einziger t_key verbindet die Sendungsverfolgung für jeden Versanddienstleister.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Geschätzte Zeit", "Etwa 5–15 Min."],
+        ["Benötigtes Konto", "SweetTracker-Konto"],
+        ["Ausgestellte Schlüssel", "t_key (einheitlicher Tracking-Schlüssel für alle Versanddienstleister)"],
+        ["Ergebnis", "Anmeldedaten für die einheitliche Sendungsverfolgungs-API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Bevor Sie beginnen",
+          "desc": "Smart Tracker (Unified Tracking) ist ein selbst auszustellender Kanal, den Sie allein durch die Registrierung ohne gesonderten Vertrag nutzen können.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Erforderlich", "h3": "SweetTracker-Konto", "p": "Sie benötigen lediglich ein bei tracking.sweettracker.co.kr registriertes Konto. Sie können den Schlüssel allein durch die Registrierung ohne gesonderten Vertrag ausstellen." },
+              { "tag": "Ausgestellte Schlüssel", "h3": "t_key (einheitlicher Tracking-Schlüssel)", "p": "Stellen Sie einen einzigen t_key aus, den einheitlichen Tracking-Schlüssel für alle Versanddienstleister, und die Sendungsverfolgung für jeden Versanddienstleister ist verbunden." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Hinweis:</strong> Geben Sie den t_key bei der Registrierung in GenieGo in das Feld api_key ein." }
+          ]
+        },
+        {
+          "h2": "2. Schritte zur t_key-Ausstellung",
+          "desc": "Stellen Sie in der unten angegebenen Reihenfolge aus und registrieren Sie in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Bei SweetTracker registrieren und anmelden", "p": "Gehen Sie zu tracking.sweettracker.co.kr, registrieren Sie sich und melden Sie sich an.", "path": "https://tracking.sweettracker.co.kr" },
+              { "h3": "Ausstellung eines t_key beantragen", "p": "Beantragen Sie die Ausstellung eines t_key (des einheitlichen Tracking-Schlüssels für alle Versanddienstleister)." },
+              { "h3": "t_key überprüfen", "p": "Überprüfen Sie den ausgestellten t_key." },
+              { "h3": "In GenieGo registrieren", "p": "Geben Sie den t_key (api_key) in GenieGo [Registrieren] ein, und die Sendungsverfolgung für jeden Versanddienstleister ist verbunden." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Sobald der t_key ausgestellt wurde, wurde er korrekt ausgestellt, und die Sendungsverfolgung für jeden Versanddienstleister ist unmittelbar nach der Registrierung verbunden." }
+          ]
+        },
+        {
+          "h2": "3. In GenieGo zu registrierende Informationen",
+          "blocks": [
+            { "type": "table", "head": ["Feld", "Beschreibung"], "rows": [
+              ["api_key", "Der ausgestellte t_key (einheitlicher Tracking-Schlüssel für alle Versanddienstleister)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Geben Sie ihn im GenieGo Integration Hub [Registrieren] ein und speichern Sie. Anmeldedaten werden im Ruhezustand mit AES-256-GCM verschlüsselt und beim Lesen maskiert. Die Sendungsverfolgung für jeden Versanddienstleister ist unmittelbar nach der Registrierung verbunden." }
+          ]
+        },
+        {
+          "h2": "4. Häufige Probleme",
+          "blocks": [
+            { "type": "table", "head": ["Problem", "Ursache", "Lösung"], "rows": [
+              ["Das Menü zur t_key-Ausstellung ist nicht auffindbar", "Nicht bei SweetTracker registriert oder nicht angemeldet", "Registrieren und melden Sie sich bei tracking.sweettracker.co.kr an und beantragen Sie dann die Ausstellung eines t_key."],
+              ["Die Sendungsverfolgung ist nicht verbunden", "t_key falsch eingegeben oder nicht eingegeben", "Überprüfen Sie erneut, ob Sie den ausgestellten t_key korrekt in das Feld api_key eingegeben haben."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Abschließende Checkliste",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Bei tracking.sweettracker.co.kr registriert und angemeldet.",
+              "Die Ausstellung eines t_key (des einheitlichen Tracking-Schlüssels für alle Versanddienstleister) beantragt.",
+              "Den ausgestellten t_key überprüft.",
+              "Den t_key im Feld api_key in GenieGo [Registrieren] eingegeben und gespeichert."
+            ] }
+          ]
+        }
+      ]
+    },
+    "th": {
+      "titleType": "คู่มือการออก API Key",
+      "badge": "คู่มือสำหรับผู้เริ่มต้น",
+      "intro": "คู่มือทีละขั้นตอนที่เป็นมิตรกับผู้เริ่มต้น สำหรับการสมัครที่ SweetTracker (tracking.sweettracker.co.kr) ออกคีย์ติดตามแบบรวมของทุกบริษัทขนส่ง (t_key) และลงทะเบียนใน GenieGo Integration Hub โดย t_key เพียงหนึ่งคีย์จะเชื่อมต่อการติดตามการจัดส่งของทุกบริษัทขนส่ง",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["เวลาโดยประมาณ", "ประมาณ 5–15 นาที"],
+        ["บัญชีที่ต้องใช้", "บัญชี SweetTracker"],
+        ["คีย์ที่ออก", "t_key (คีย์ติดตามแบบรวมของทุกบริษัทขนส่ง)"],
+        ["ผลลัพธ์", "ข้อมูลรับรอง API ติดตามการจัดส่งแบบรวม"]
+      ],
+      "sections": [
+        {
+          "h2": "1. ก่อนเริ่มต้น",
+          "desc": "Smart Tracker (Unified Tracking) เป็นช่องทางออกคีย์ด้วยตนเองที่ใช้งานได้เพียงสมัครสมาชิกโดยไม่ต้องทำสัญญาแยกต่างหาก",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "จำเป็น", "h3": "บัญชี SweetTracker", "p": "คุณเพียงต้องมีบัญชีที่ลงทะเบียนไว้ที่ tracking.sweettracker.co.kr สามารถออกคีย์ได้เพียงสมัครสมาชิกโดยไม่ต้องทำสัญญาแยกต่างหาก" },
+              { "tag": "คีย์ที่ออก", "h3": "t_key (คีย์ติดตามแบบรวม)", "p": "ออก t_key เพียงหนึ่งคีย์ ซึ่งเป็นคีย์ติดตามแบบรวมของทุกบริษัทขนส่ง แล้วการติดตามการจัดส่งของทุกบริษัทขนส่งก็จะเชื่อมต่อ" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>หมายเหตุ:</strong> ป้อน t_key ในฟิลด์ api_key เมื่อลงทะเบียนใน GenieGo" }
+          ]
+        },
+        {
+          "h2": "2. ขั้นตอนการออก t_key",
+          "desc": "ออกตามลำดับด้านล่างและลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "สมัครและเข้าสู่ระบบ SweetTracker", "p": "ไปที่ tracking.sweettracker.co.kr สมัครสมาชิกและเข้าสู่ระบบ", "path": "https://tracking.sweettracker.co.kr" },
+              { "h3": "ยื่นขอออก t_key", "p": "ยื่นขอออก t_key (คีย์ติดตามแบบรวมของทุกบริษัทขนส่ง)" },
+              { "h3": "ตรวจสอบ t_key", "p": "ตรวจสอบ t_key ที่ออกแล้ว" },
+              { "h3": "ลงทะเบียนใน GenieGo", "p": "ป้อน t_key (api_key) ใน GenieGo [ลงทะเบียน] แล้วการติดตามการจัดส่งของทุกบริษัทขนส่งจะเชื่อมต่อ" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "เมื่อออก t_key แล้ว แสดงว่าออกอย่างถูกต้อง และการติดตามการจัดส่งของทุกบริษัทขนส่งจะเชื่อมต่อทันทีเมื่อลงทะเบียน" }
+          ]
+        },
+        {
+          "h2": "3. ข้อมูลที่ต้องลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["ฟิลด์", "คำอธิบาย"], "rows": [
+              ["api_key", "t_key ที่ออกแล้ว (คีย์ติดตามแบบรวมของทุกบริษัทขนส่ง)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "ป้อนใน GenieGo Integration Hub [ลงทะเบียน] แล้วบันทึก ข้อมูลรับรองจะถูกเข้ารหัสขณะจัดเก็บด้วย AES-256-GCM และปิดบังเมื่ออ่าน การติดตามการจัดส่งของทุกบริษัทขนส่งจะเชื่อมต่อทันทีเมื่อลงทะเบียน" }
+          ]
+        },
+        {
+          "h2": "4. ปัญหาที่พบบ่อย",
+          "blocks": [
+            { "type": "table", "head": ["ปัญหา", "สาเหตุ", "วิธีแก้ไข"], "rows": [
+              ["ไม่พบเมนูการออก t_key", "ยังไม่สมัครหรือยังไม่เข้าสู่ระบบ SweetTracker", "สมัครและเข้าสู่ระบบที่ tracking.sweettracker.co.kr จากนั้นยื่นขอออก t_key"],
+              ["การติดตามการจัดส่งไม่เชื่อมต่อ", "ป้อน t_key ผิดหรือไม่ได้ป้อน", "ตรวจสอบอีกครั้งว่าได้ป้อน t_key ที่ออกแล้วในฟิลด์ api_key อย่างถูกต้องหรือไม่"]
+            ] }
+          ]
+        },
+        {
+          "h2": "รายการตรวจสอบขั้นสุดท้าย",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "สมัครและเข้าสู่ระบบที่ tracking.sweettracker.co.kr แล้ว",
+              "ยื่นขอออก t_key (คีย์ติดตามแบบรวมของทุกบริษัทขนส่ง) แล้ว",
+              "ตรวจสอบ t_key ที่ออกแล้ว",
+              "ป้อน t_key ในฟิลด์ api_key ใน GenieGo [ลงทะเบียน] และบันทึกแล้ว"
+            ] }
+          ]
+        }
+      ]
+    },
+    "vi": {
+      "titleType": "Hướng dẫn cấp API Key",
+      "badge": "Hướng dẫn cho người mới",
+      "intro": "Hướng dẫn từng bước thân thiện với người mới về việc đăng ký tại SweetTracker (tracking.sweettracker.co.kr), cấp khóa theo dõi hợp nhất cho mọi hãng vận chuyển (t_key) và đăng ký trong GenieGo Integration Hub. Chỉ một t_key kết nối tính năng theo dõi giao hàng cho mọi hãng vận chuyển.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Thời gian dự kiến", "Khoảng 5–15 phút"],
+        ["Tài khoản cần thiết", "Tài khoản SweetTracker"],
+        ["Khóa được cấp", "t_key (khóa theo dõi hợp nhất cho mọi hãng vận chuyển)"],
+        ["Kết quả", "Thông tin xác thực API theo dõi giao hàng hợp nhất"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Trước khi bắt đầu",
+          "desc": "Smart Tracker (Unified Tracking) là một kênh tự cấp mà bạn có thể sử dụng chỉ bằng cách đăng ký, không cần hợp đồng riêng.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Bắt buộc", "h3": "Tài khoản SweetTracker", "p": "Bạn chỉ cần một tài khoản đã đăng ký tại tracking.sweettracker.co.kr. Bạn có thể cấp khóa chỉ bằng cách đăng ký, không cần hợp đồng riêng." },
+              { "tag": "Khóa được cấp", "h3": "t_key (khóa theo dõi hợp nhất)", "p": "Cấp một t_key duy nhất, khóa theo dõi hợp nhất cho mọi hãng vận chuyển, và tính năng theo dõi giao hàng cho mọi hãng vận chuyển sẽ được kết nối." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Lưu ý:</strong> Nhập t_key vào trường api_key khi đăng ký trong GenieGo." }
+          ]
+        },
+        {
+          "h2": "2. Các bước cấp t_key",
+          "desc": "Cấp theo thứ tự dưới đây và đăng ký trong GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Đăng ký và đăng nhập SweetTracker", "p": "Truy cập tracking.sweettracker.co.kr, đăng ký và đăng nhập.", "path": "https://tracking.sweettracker.co.kr" },
+              { "h3": "Yêu cầu cấp t_key", "p": "Yêu cầu cấp t_key (khóa theo dõi hợp nhất cho mọi hãng vận chuyển)." },
+              { "h3": "Kiểm tra t_key", "p": "Kiểm tra t_key đã được cấp." },
+              { "h3": "Đăng ký trong GenieGo", "p": "Nhập t_key (api_key) vào GenieGo [Đăng ký], và tính năng theo dõi giao hàng cho mọi hãng vận chuyển sẽ được kết nối." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Khi t_key được cấp, nghĩa là nó đã được cấp đúng cách, và tính năng theo dõi giao hàng cho mọi hãng vận chuyển được kết nối ngay sau khi đăng ký." }
+          ]
+        },
+        {
+          "h2": "3. Thông tin cần đăng ký trong GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Trường", "Mô tả"], "rows": [
+              ["api_key", "t_key đã được cấp (khóa theo dõi hợp nhất cho mọi hãng vận chuyển)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Nhập vào GenieGo Integration Hub [Đăng ký] rồi lưu. Thông tin xác thực được mã hóa khi lưu trữ bằng AES-256-GCM và được che khi đọc. Tính năng theo dõi giao hàng cho mọi hãng vận chuyển được kết nối ngay sau khi đăng ký." }
+          ]
+        },
+        {
+          "h2": "4. Sự cố thường gặp",
+          "blocks": [
+            { "type": "table", "head": ["Sự cố", "Nguyên nhân", "Giải pháp"], "rows": [
+              ["Không tìm thấy menu cấp t_key", "Chưa đăng ký hoặc chưa đăng nhập SweetTracker", "Đăng ký và đăng nhập tại tracking.sweettracker.co.kr, sau đó yêu cầu cấp t_key."],
+              ["Tính năng theo dõi giao hàng không được kết nối", "t_key bị nhập sai hoặc chưa nhập", "Kiểm tra lại xem bạn đã nhập chính xác t_key đã cấp vào trường api_key chưa."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Danh sách kiểm tra cuối cùng",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Đã đăng ký và đăng nhập tại tracking.sweettracker.co.kr.",
+              "Đã yêu cầu cấp t_key (khóa theo dõi hợp nhất cho mọi hãng vận chuyển).",
+              "Đã kiểm tra t_key đã được cấp.",
+              "Đã nhập t_key vào trường api_key trong GenieGo [Đăng ký] và lưu."
+            ] }
+          ]
+        }
+      ]
+    },
+    "id": {
+      "titleType": "Panduan Penerbitan API Key",
+      "badge": "Panduan Pemula",
+      "intro": "Panduan langkah demi langkah yang ramah pemula untuk mendaftar di SweetTracker (tracking.sweettracker.co.kr), menerbitkan kunci pelacakan terpadu untuk semua jasa kurir (t_key), dan mendaftarkannya di GenieGo Integration Hub. Satu t_key menghubungkan pelacakan pengiriman untuk setiap jasa kurir.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Perkiraan waktu", "Sekitar 5–15 menit"],
+        ["Akun yang dibutuhkan", "Akun SweetTracker"],
+        ["Kunci yang diterbitkan", "t_key (kunci pelacakan terpadu untuk semua jasa kurir)"],
+        ["Hasil", "Kredensial API pelacakan pengiriman terpadu"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Sebelum Anda Mulai",
+          "desc": "Smart Tracker (Unified Tracking) adalah saluran terbitan mandiri yang bisa Anda gunakan cukup dengan mendaftar, tanpa kontrak terpisah.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Diperlukan", "h3": "Akun SweetTracker", "p": "Anda hanya memerlukan akun yang terdaftar di tracking.sweettracker.co.kr. Anda dapat menerbitkan kunci cukup dengan mendaftar, tanpa kontrak terpisah." },
+              { "tag": "Kunci yang diterbitkan", "h3": "t_key (kunci pelacakan terpadu)", "p": "Terbitkan satu t_key, kunci pelacakan terpadu untuk semua jasa kurir, dan pelacakan pengiriman untuk setiap jasa kurir akan terhubung." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Catatan:</strong> Masukkan t_key di kolom api_key saat mendaftar di GenieGo." }
+          ]
+        },
+        {
+          "h2": "2. Langkah Penerbitan t_key",
+          "desc": "Terbitkan sesuai urutan di bawah dan daftarkan di GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Daftar dan masuk ke SweetTracker", "p": "Buka tracking.sweettracker.co.kr, daftar, dan masuk.", "path": "https://tracking.sweettracker.co.kr" },
+              { "h3": "Ajukan penerbitan t_key", "p": "Ajukan penerbitan t_key (kunci pelacakan terpadu untuk semua jasa kurir)." },
+              { "h3": "Periksa t_key", "p": "Periksa t_key yang telah diterbitkan." },
+              { "h3": "Daftarkan di GenieGo", "p": "Masukkan t_key (api_key) di GenieGo [Daftar], dan pelacakan pengiriman untuk setiap jasa kurir akan terhubung." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Setelah t_key diterbitkan, berarti telah diterbitkan dengan benar, dan pelacakan pengiriman untuk setiap jasa kurir terhubung segera setelah pendaftaran." }
+          ]
+        },
+        {
+          "h2": "3. Informasi yang Harus Didaftarkan di GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Kolom", "Deskripsi"], "rows": [
+              ["api_key", "t_key yang telah diterbitkan (kunci pelacakan terpadu untuk semua jasa kurir)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Masukkan di GenieGo Integration Hub [Daftar] lalu simpan. Kredensial dienkripsi saat disimpan dengan AES-256-GCM dan disamarkan saat dibaca. Pelacakan pengiriman untuk setiap jasa kurir terhubung segera setelah pendaftaran." }
+          ]
+        },
+        {
+          "h2": "4. Masalah Umum",
+          "blocks": [
+            { "type": "table", "head": ["Masalah", "Penyebab", "Solusi"], "rows": [
+              ["Tidak dapat menemukan menu penerbitan t_key", "Belum mendaftar atau belum masuk ke SweetTracker", "Daftar dan masuk di tracking.sweettracker.co.kr, lalu ajukan penerbitan t_key."],
+              ["Pelacakan pengiriman tidak terhubung", "t_key salah ketik atau tidak dimasukkan", "Periksa kembali apakah Anda telah memasukkan t_key yang diterbitkan dengan benar di kolom api_key."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Daftar Periksa Akhir",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Telah mendaftar dan masuk di tracking.sweettracker.co.kr.",
+              "Telah mengajukan penerbitan t_key (kunci pelacakan terpadu untuk semua jasa kurir).",
+              "Telah memeriksa t_key yang diterbitkan.",
+              "Telah memasukkan t_key di kolom api_key di GenieGo [Daftar] dan menyimpannya."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ar": {
+      "titleType": "دليل إصدار مفتاح API",
+      "badge": "دليل المبتدئين",
+      "intro": "دليل خطوة بخطوة ملائم للمبتدئين للتسجيل في SweetTracker (tracking.sweettracker.co.kr) وإصدار مفتاح التتبع الموحد لجميع شركات الشحن (t_key) وتسجيله في GenieGo Integration Hub. يربط مفتاح t_key واحد تتبع الشحن لكل شركة شحن.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["الوقت المقدر", "حوالي 5–15 دقيقة"],
+        ["الحساب المطلوب", "حساب SweetTracker"],
+        ["المفاتيح الصادرة", "t_key (مفتاح التتبع الموحد لجميع شركات الشحن)"],
+        ["النتيجة", "بيانات اعتماد API لتتبع الشحن الموحد"]
+      ],
+      "sections": [
+        {
+          "h2": "1. قبل أن تبدأ",
+          "desc": "Smart Tracker (Unified Tracking) قناة ذاتية الإصدار يمكنك استخدامها بمجرد التسجيل فقط، دون عقد منفصل.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "مطلوب", "h3": "حساب SweetTracker", "p": "تحتاج فقط إلى حساب مسجل في tracking.sweettracker.co.kr. يمكنك إصدار المفتاح بمجرد التسجيل فقط، دون عقد منفصل." },
+              { "tag": "المفاتيح الصادرة", "h3": "t_key (مفتاح التتبع الموحد)", "p": "أصدر مفتاح t_key واحدًا، وهو مفتاح التتبع الموحد لجميع شركات الشحن، وسيتم ربط تتبع الشحن لكل شركة شحن." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>ملاحظة:</strong> أدخل t_key في حقل api_key عند التسجيل في GenieGo." }
+          ]
+        },
+        {
+          "h2": "2. خطوات إصدار t_key",
+          "desc": "أصدر بالترتيب أدناه وسجّل في GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "التسجيل وتسجيل الدخول في SweetTracker", "p": "انتقل إلى tracking.sweettracker.co.kr وسجّل وسجّل الدخول.", "path": "https://tracking.sweettracker.co.kr" },
+              { "h3": "تقديم طلب إصدار t_key", "p": "قدّم طلبًا لإصدار t_key (مفتاح التتبع الموحد لجميع شركات الشحن)." },
+              { "h3": "التحقق من t_key", "p": "تحقق من مفتاح t_key الذي تم إصداره." },
+              { "h3": "التسجيل في GenieGo", "p": "أدخل t_key (api_key) في GenieGo [تسجيل]، وسيتم ربط تتبع الشحن لكل شركة شحن." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "بمجرد إصدار t_key، يكون قد تم إصداره بشكل صحيح، ويتم ربط تتبع الشحن لكل شركة شحن فور التسجيل." }
+          ]
+        },
+        {
+          "h2": "3. المعلومات التي يجب تسجيلها في GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["الحقل", "الوصف"], "rows": [
+              ["api_key", "t_key الذي تم إصداره (مفتاح التتبع الموحد لجميع شركات الشحن)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "أدخله في GenieGo Integration Hub [تسجيل] واحفظه. يتم تشفير بيانات الاعتماد أثناء التخزين باستخدام AES-256-GCM وإخفاؤها عند القراءة. يتم ربط تتبع الشحن لكل شركة شحن فور التسجيل." }
+          ]
+        },
+        {
+          "h2": "4. المشكلات الشائعة",
+          "blocks": [
+            { "type": "table", "head": ["المشكلة", "السبب", "الحل"], "rows": [
+              ["تعذّر العثور على قائمة إصدار t_key", "عدم التسجيل أو عدم تسجيل الدخول في SweetTracker", "سجّل وسجّل الدخول في tracking.sweettracker.co.kr، ثم قدّم طلبًا لإصدار t_key."],
+              ["تتبع الشحن غير مرتبط", "t_key مكتوب بشكل خاطئ أو غير مُدخل", "تحقق مرة أخرى من أنك أدخلت t_key الذي تم إصداره بدقة في حقل api_key."]
+            ] }
+          ]
+        },
+        {
+          "h2": "قائمة التحقق النهائية",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "سجّلت وسجّلت الدخول في tracking.sweettracker.co.kr.",
+              "قدّمت طلبًا لإصدار t_key (مفتاح التتبع الموحد لجميع شركات الشحن).",
+              "تحققت من t_key الذي تم إصداره.",
+              "أدخلت t_key في حقل api_key في GenieGo [تسجيل] وحفظت."
+            ] }
+          ]
+        }
+      ]
+    },
+    "es": {
+      "titleType": "Manual de emisión de API Key",
+      "badge": "Guía para principiantes",
+      "intro": "Una guía paso a paso para principiantes para registrarse en SweetTracker (tracking.sweettracker.co.kr), emitir la clave de seguimiento unificado para todas las transportistas (t_key) y registrarla en el GenieGo Integration Hub. Una sola t_key conecta el seguimiento de envíos de todas las transportistas.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tiempo estimado", "Unos 5–15 min"],
+        ["Cuenta necesaria", "Cuenta de SweetTracker"],
+        ["Claves emitidas", "t_key (clave de seguimiento unificado para todas las transportistas)"],
+        ["Resultado", "Credenciales de la API de seguimiento de envíos unificado"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de empezar",
+          "desc": "Smart Tracker (Unified Tracking) es un canal de autoemisión que puede usar con solo registrarse, sin un contrato aparte.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requerido", "h3": "Cuenta de SweetTracker", "p": "Solo necesita una cuenta registrada en tracking.sweettracker.co.kr. Puede emitir la clave con solo registrarse, sin un contrato aparte." },
+              { "tag": "Claves emitidas", "h3": "t_key (clave de seguimiento unificado)", "p": "Emita una sola t_key, la clave de seguimiento unificado para todas las transportistas, y el seguimiento de envíos de todas las transportistas queda conectado." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Nota:</strong> Introduzca la t_key en el campo api_key al registrarse en GenieGo." }
+          ]
+        },
+        {
+          "h2": "2. Pasos de emisión de la t_key",
+          "desc": "Emita en el orden siguiente y regístrela en GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Regístrese e inicie sesión en SweetTracker", "p": "Vaya a tracking.sweettracker.co.kr, regístrese e inicie sesión.", "path": "https://tracking.sweettracker.co.kr" },
+              { "h3": "Solicite la emisión de una t_key", "p": "Solicite la emisión de una t_key (la clave de seguimiento unificado para todas las transportistas)." },
+              { "h3": "Compruebe la t_key", "p": "Compruebe la t_key emitida." },
+              { "h3": "Regístrela en GenieGo", "p": "Introduzca la t_key (api_key) en GenieGo [Registrar], y el seguimiento de envíos de todas las transportistas queda conectado." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Una vez emitida la t_key, se ha emitido correctamente, y el seguimiento de envíos de todas las transportistas queda conectado inmediatamente tras el registro." }
+          ]
+        },
+        {
+          "h2": "3. Información a registrar en GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descripción"], "rows": [
+              ["api_key", "La t_key emitida (clave de seguimiento unificado para todas las transportistas)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Introdúzcala y guárdela en el GenieGo Integration Hub [Registrar]. Las credenciales se cifran en reposo con AES-256-GCM y se enmascaran al leerlas. El seguimiento de envíos de todas las transportistas queda conectado inmediatamente tras el registro." }
+          ]
+        },
+        {
+          "h2": "4. Problemas frecuentes",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solución"], "rows": [
+              ["No se encuentra el menú de emisión de la t_key", "No se ha registrado o no ha iniciado sesión en SweetTracker", "Regístrese e inicie sesión en tracking.sweettracker.co.kr y luego solicite la emisión de una t_key."],
+              ["El seguimiento de envíos no se conecta", "t_key mal escrita o no introducida", "Vuelva a comprobar si ha introducido correctamente la t_key emitida en el campo api_key."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificación final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Se registró e inició sesión en tracking.sweettracker.co.kr.",
+              "Solicitó la emisión de una t_key (la clave de seguimiento unificado para todas las transportistas).",
+              "Comprobó la t_key emitida.",
+              "Introdujo la t_key en el campo api_key en GenieGo [Registrar] y la guardó."
+            ] }
+          ]
+        }
+      ]
+    },
+    "fr": {
+      "titleType": "Manuel de délivrance de la clé API",
+      "badge": "Guide du débutant",
+      "intro": "Un guide pas à pas convivial pour débutants permettant de s'inscrire sur SweetTracker (tracking.sweettracker.co.kr), de délivrer la clé de suivi unifié pour tous les transporteurs (t_key) et de l'enregistrer dans le GenieGo Integration Hub. Une seule t_key connecte le suivi des livraisons de chaque transporteur.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Temps estimé", "Environ 5–15 min"],
+        ["Compte requis", "Compte SweetTracker"],
+        ["Clés délivrées", "t_key (clé de suivi unifié pour tous les transporteurs)"],
+        ["Résultat", "Identifiants de l'API de suivi des livraisons unifié"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Avant de commencer",
+          "desc": "Smart Tracker (Unified Tracking) est un canal en libre-délivrance que vous pouvez utiliser simplement en vous inscrivant, sans contrat séparé.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requis", "h3": "Compte SweetTracker", "p": "Il vous suffit d'un compte enregistré sur tracking.sweettracker.co.kr. Vous pouvez délivrer la clé simplement en vous inscrivant, sans contrat séparé." },
+              { "tag": "Clés délivrées", "h3": "t_key (clé de suivi unifié)", "p": "Délivrez une seule t_key, la clé de suivi unifié pour tous les transporteurs, et le suivi des livraisons de chaque transporteur est connecté." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Remarque :</strong> Saisissez la t_key dans le champ api_key lors de l'enregistrement dans GenieGo." }
+          ]
+        },
+        {
+          "h2": "2. Étapes de délivrance de la t_key",
+          "desc": "Délivrez dans l'ordre ci-dessous et enregistrez dans GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "S'inscrire et se connecter à SweetTracker", "p": "Accédez à tracking.sweettracker.co.kr, inscrivez-vous et connectez-vous.", "path": "https://tracking.sweettracker.co.kr" },
+              { "h3": "Demander la délivrance d'une t_key", "p": "Demandez la délivrance d'une t_key (la clé de suivi unifié pour tous les transporteurs)." },
+              { "h3": "Vérifier la t_key", "p": "Vérifiez la t_key délivrée." },
+              { "h3": "Enregistrer dans GenieGo", "p": "Saisissez la t_key (api_key) dans GenieGo [Enregistrer], et le suivi des livraisons de chaque transporteur est connecté." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Une fois la t_key délivrée, elle a été délivrée correctement, et le suivi des livraisons de chaque transporteur est connecté immédiatement après l'enregistrement." }
+          ]
+        },
+        {
+          "h2": "3. Informations à enregistrer dans GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Champ", "Description"], "rows": [
+              ["api_key", "La t_key délivrée (clé de suivi unifié pour tous les transporteurs)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Saisissez-la et enregistrez-la dans le GenieGo Integration Hub [Enregistrer]. Les identifiants sont chiffrés au repos avec AES-256-GCM et masqués à la lecture. Le suivi des livraisons de chaque transporteur est connecté immédiatement après l'enregistrement." }
+          ]
+        },
+        {
+          "h2": "4. Problèmes fréquents",
+          "blocks": [
+            { "type": "table", "head": ["Problème", "Cause", "Solution"], "rows": [
+              ["Impossible de trouver le menu de délivrance de la t_key", "Non inscrit ou non connecté à SweetTracker", "Inscrivez-vous et connectez-vous sur tracking.sweettracker.co.kr, puis demandez la délivrance d'une t_key."],
+              ["Le suivi des livraisons n'est pas connecté", "t_key mal saisie ou non saisie", "Vérifiez à nouveau que vous avez saisi correctement la t_key délivrée dans le champ api_key."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Liste de vérification finale",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Inscrit et connecté sur tracking.sweettracker.co.kr.",
+              "Demandé la délivrance d'une t_key (la clé de suivi unifié pour tous les transporteurs).",
+              "Vérifié la t_key délivrée.",
+              "Saisi la t_key dans le champ api_key dans GenieGo [Enregistrer] et enregistré."
+            ] }
+          ]
+        }
+      ]
+    },
+    "hi": {
+      "titleType": "API Key जारी करने की मार्गदर्शिका",
+      "badge": "शुरुआती गाइड",
+      "intro": "SweetTracker (tracking.sweettracker.co.kr) पर साइन अप करने, सभी कूरियर कंपनियों के लिए एकीकृत ट्रैकिंग कुंजी (t_key) जारी करने और इसे GenieGo Integration Hub में पंजीकृत करने के लिए शुरुआती-अनुकूल चरण-दर-चरण मार्गदर्शिका। एक ही t_key हर कूरियर कंपनी के लिए डिलीवरी ट्रैकिंग को जोड़ देती है।",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["अनुमानित समय", "लगभग 5–15 मिनट"],
+        ["आवश्यक खाता", "SweetTracker खाता"],
+        ["जारी की गई कुंजियाँ", "t_key (सभी कूरियर कंपनियों के लिए एकीकृत ट्रैकिंग कुंजी)"],
+        ["परिणाम", "एकीकृत डिलीवरी-ट्रैकिंग API क्रेडेंशियल"]
+      ],
+      "sections": [
+        {
+          "h2": "1. शुरू करने से पहले",
+          "desc": "Smart Tracker (Unified Tracking) एक स्व-जारी चैनल है जिसे आप केवल साइन अप करके, बिना किसी अलग अनुबंध के उपयोग कर सकते हैं।",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "आवश्यक", "h3": "SweetTracker खाता", "p": "आपको केवल tracking.sweettracker.co.kr पर पंजीकृत एक खाता चाहिए। आप केवल साइन अप करके, बिना किसी अलग अनुबंध के कुंजी जारी कर सकते हैं।" },
+              { "tag": "जारी की गई कुंजियाँ", "h3": "t_key (एकीकृत ट्रैकिंग कुंजी)", "p": "एक ही t_key, सभी कूरियर कंपनियों के लिए एकीकृत ट्रैकिंग कुंजी, जारी करें और हर कूरियर कंपनी के लिए डिलीवरी ट्रैकिंग जुड़ जाती है।" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>नोट:</strong> GenieGo में पंजीकरण करते समय t_key को api_key फ़ील्ड में दर्ज करें।" }
+          ]
+        },
+        {
+          "h2": "2. t_key जारी करने के चरण",
+          "desc": "नीचे दिए गए क्रम में जारी करें और GenieGo में पंजीकृत करें।",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "SweetTracker पर साइन अप करें और लॉग इन करें", "p": "tracking.sweettracker.co.kr पर जाएँ, साइन अप करें और लॉग इन करें।", "path": "https://tracking.sweettracker.co.kr" },
+              { "h3": "t_key जारी करने के लिए आवेदन करें", "p": "t_key (सभी कूरियर कंपनियों के लिए एकीकृत ट्रैकिंग कुंजी) जारी करने के लिए आवेदन करें।" },
+              { "h3": "t_key जाँचें", "p": "जारी की गई t_key जाँचें।" },
+              { "h3": "GenieGo में पंजीकृत करें", "p": "GenieGo [पंजीकरण] में t_key (api_key) दर्ज करें, और हर कूरियर कंपनी के लिए डिलीवरी ट्रैकिंग जुड़ जाती है।" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "एक बार t_key जारी हो जाने पर, यह सही ढंग से जारी हो गई है, और पंजीकरण के तुरंत बाद हर कूरियर कंपनी के लिए डिलीवरी ट्रैकिंग जुड़ जाती है।" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo में पंजीकृत करने हेतु जानकारी",
+          "blocks": [
+            { "type": "table", "head": ["फ़ील्ड", "विवरण"], "rows": [
+              ["api_key", "जारी की गई t_key (सभी कूरियर कंपनियों के लिए एकीकृत ट्रैकिंग कुंजी)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "इसे GenieGo Integration Hub [पंजीकरण] में दर्ज करें और सहेजें। क्रेडेंशियल को संग्रहण के समय AES-256-GCM से एन्क्रिप्ट किया जाता है और पढ़ते समय मास्क किया जाता है। पंजीकरण के तुरंत बाद हर कूरियर कंपनी के लिए डिलीवरी ट्रैकिंग जुड़ जाती है।" }
+          ]
+        },
+        {
+          "h2": "4. आम समस्याएँ",
+          "blocks": [
+            { "type": "table", "head": ["समस्या", "कारण", "समाधान"], "rows": [
+              ["t_key जारी करने का मेनू नहीं मिल रहा", "SweetTracker पर साइन अप नहीं किया या लॉग इन नहीं किया", "tracking.sweettracker.co.kr पर साइन अप करें और लॉग इन करें, फिर t_key जारी करने के लिए आवेदन करें।"],
+              ["डिलीवरी ट्रैकिंग नहीं जुड़ रही", "t_key गलत दर्ज की गई या दर्ज नहीं की गई", "दोबारा जाँचें कि आपने जारी की गई t_key को api_key फ़ील्ड में सही ढंग से दर्ज किया है।"]
+            ] }
+          ]
+        },
+        {
+          "h2": "अंतिम जाँच सूची",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "tracking.sweettracker.co.kr पर साइन अप किया और लॉग इन किया।",
+              "t_key (सभी कूरियर कंपनियों के लिए एकीकृत ट्रैकिंग कुंजी) जारी करने के लिए आवेदन किया।",
+              "जारी की गई t_key जाँची।",
+              "GenieGo [पंजीकरण] में api_key फ़ील्ड में t_key दर्ज की और सहेजा।"
+            ] }
+          ]
+        }
+      ]
+    },
+    "pt": {
+      "titleType": "Manual de emissão de API Key",
+      "badge": "Guia para iniciantes",
+      "intro": "Um guia passo a passo amigável para iniciantes para se cadastrar no SweetTracker (tracking.sweettracker.co.kr), emitir a chave de rastreamento unificado para todas as transportadoras (t_key) e registrá-la no GenieGo Integration Hub. Uma única t_key conecta o rastreamento de entregas de todas as transportadoras.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tempo estimado", "Cerca de 5–15 min"],
+        ["Conta necessária", "Conta SweetTracker"],
+        ["Chaves emitidas", "t_key (chave de rastreamento unificado para todas as transportadoras)"],
+        ["Resultado", "Credenciais da API de rastreamento de entregas unificado"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de começar",
+          "desc": "O Smart Tracker (Unified Tracking) é um canal de autoemissão que você pode usar apenas se cadastrando, sem contrato separado.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Obrigatório", "h3": "Conta SweetTracker", "p": "Você só precisa de uma conta registrada em tracking.sweettracker.co.kr. Você pode emitir a chave apenas se cadastrando, sem contrato separado." },
+              { "tag": "Chaves emitidas", "h3": "t_key (chave de rastreamento unificado)", "p": "Emita uma única t_key, a chave de rastreamento unificado para todas as transportadoras, e o rastreamento de entregas de todas as transportadoras fica conectado." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Observação:</strong> Insira a t_key no campo api_key ao registrar no GenieGo." }
+          ]
+        },
+        {
+          "h2": "2. Etapas de emissão da t_key",
+          "desc": "Emita na ordem abaixo e registre no GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Cadastre-se e faça login no SweetTracker", "p": "Acesse tracking.sweettracker.co.kr, cadastre-se e faça login.", "path": "https://tracking.sweettracker.co.kr" },
+              { "h3": "Solicite a emissão de uma t_key", "p": "Solicite a emissão de uma t_key (a chave de rastreamento unificado para todas as transportadoras)." },
+              { "h3": "Verifique a t_key", "p": "Verifique a t_key emitida." },
+              { "h3": "Registre no GenieGo", "p": "Insira a t_key (api_key) no GenieGo [Registrar], e o rastreamento de entregas de todas as transportadoras fica conectado." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Uma vez emitida a t_key, ela foi emitida corretamente, e o rastreamento de entregas de todas as transportadoras fica conectado imediatamente após o registro." }
+          ]
+        },
+        {
+          "h2": "3. Informações a registrar no GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descrição"], "rows": [
+              ["api_key", "A t_key emitida (chave de rastreamento unificado para todas as transportadoras)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Insira-a e salve-a no GenieGo Integration Hub [Registrar]. As credenciais são criptografadas em repouso com AES-256-GCM e mascaradas na leitura. O rastreamento de entregas de todas as transportadoras fica conectado imediatamente após o registro." }
+          ]
+        },
+        {
+          "h2": "4. Problemas comuns",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solução"], "rows": [
+              ["Não é possível encontrar o menu de emissão da t_key", "Não cadastrado ou não logado no SweetTracker", "Cadastre-se e faça login em tracking.sweettracker.co.kr e, em seguida, solicite a emissão de uma t_key."],
+              ["O rastreamento de entregas não está conectado", "t_key digitada incorretamente ou não inserida", "Verifique novamente se você inseriu a t_key emitida corretamente no campo api_key."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificação final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Cadastrou-se e fez login em tracking.sweettracker.co.kr.",
+              "Solicitou a emissão de uma t_key (a chave de rastreamento unificado para todas as transportadoras).",
+              "Verificou a t_key emitida.",
+              "Inseriu a t_key no campo api_key no GenieGo [Registrar] e salvou."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ru": {
+      "titleType": "Руководство по выпуску API Key",
+      "badge": "Руководство для новичков",
+      "intro": "Понятное для новичков пошаговое руководство по регистрации в SweetTracker (tracking.sweettracker.co.kr), выпуску единого ключа отслеживания для всех служб доставки (t_key) и его регистрации в GenieGo Integration Hub. Один t_key подключает отслеживание доставки для каждой службы доставки.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Примерное время", "Около 5–15 мин"],
+        ["Требуется аккаунт", "Аккаунт SweetTracker"],
+        ["Выпускаемые ключи", "t_key (единый ключ отслеживания для всех служб доставки)"],
+        ["Результат", "Учётные данные API единого отслеживания доставки"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Прежде чем начать",
+          "desc": "Smart Tracker (Unified Tracking) — это канал самостоятельного выпуска, которым можно пользоваться, просто зарегистрировавшись, без отдельного договора.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Требуется", "h3": "Аккаунт SweetTracker", "p": "Вам нужен лишь аккаунт, зарегистрированный на tracking.sweettracker.co.kr. Вы можете выпустить ключ, просто зарегистрировавшись, без отдельного договора." },
+              { "tag": "Выпускаемые ключи", "h3": "t_key (единый ключ отслеживания)", "p": "Выпустите один t_key — единый ключ отслеживания для всех служб доставки, — и отслеживание доставки для каждой службы доставки будет подключено." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Примечание:</strong> Введите t_key в поле api_key при регистрации в GenieGo." }
+          ]
+        },
+        {
+          "h2": "2. Шаги выпуска t_key",
+          "desc": "Выпустите в указанном ниже порядке и зарегистрируйте в GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Зарегистрируйтесь и войдите в SweetTracker", "p": "Перейдите на tracking.sweettracker.co.kr, зарегистрируйтесь и войдите.", "path": "https://tracking.sweettracker.co.kr" },
+              { "h3": "Подайте заявку на выпуск t_key", "p": "Подайте заявку на выпуск t_key (единого ключа отслеживания для всех служб доставки)." },
+              { "h3": "Проверьте t_key", "p": "Проверьте выпущенный t_key." },
+              { "h3": "Зарегистрируйте в GenieGo", "p": "Введите t_key (api_key) в GenieGo [Регистрация], и отслеживание доставки для каждой службы доставки будет подключено." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Как только t_key выпущен, он выпущен корректно, и отслеживание доставки для каждой службы доставки подключается сразу после регистрации." }
+          ]
+        },
+        {
+          "h2": "3. Информация для регистрации в GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Поле", "Описание"], "rows": [
+              ["api_key", "Выпущенный t_key (единый ключ отслеживания для всех служб доставки)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Введите его и сохраните в GenieGo Integration Hub [Регистрация]. Учётные данные шифруются при хранении с помощью AES-256-GCM и маскируются при чтении. Отслеживание доставки для каждой службы доставки подключается сразу после регистрации." }
+          ]
+        },
+        {
+          "h2": "4. Частые проблемы",
+          "blocks": [
+            { "type": "table", "head": ["Проблема", "Причина", "Решение"], "rows": [
+              ["Не удаётся найти меню выпуска t_key", "Не зарегистрированы или не вошли в SweetTracker", "Зарегистрируйтесь и войдите на tracking.sweettracker.co.kr, затем подайте заявку на выпуск t_key."],
+              ["Отслеживание доставки не подключается", "t_key введён неверно или не введён", "Ещё раз проверьте, правильно ли вы ввели выпущенный t_key в поле api_key."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Итоговый контрольный список",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Зарегистрировались и вошли на tracking.sweettracker.co.kr.",
+              "Подали заявку на выпуск t_key (единого ключа отслеживания для всех служб доставки).",
+              "Проверили выпущенный t_key.",
+              "Ввели t_key в поле api_key в GenieGo [Регистрация] и сохранили."
+            ] }
+          ]
+        }
+      ]
+    }
+  }
+}

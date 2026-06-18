@@ -1,0 +1,1041 @@
+{
+  "name": "Braintree",
+  "icon": "🌳",
+  "langs": {
+    "ko": {
+      "titleType": "API Key 발급 매뉴얼",
+      "badge": "Beginner Guide",
+      "intro": "Braintree(PayPal) Control Panel에서 Production API 자격증명(Merchant ID·Public Key·Private Key)을 확인하고 GenieGo 연동 허브에 등록하는 과정을 초보자도 그대로 따라 할 수 있도록 정리한 매뉴얼입니다.",
+      "org": "GenieGo 연동 허브",
+      "quick": [
+        ["소요 시간", "약 5~10분"],
+        ["필요 계정", "Braintree(PayPal) 가맹 계정(승인 필요)"],
+        ["발급 키", "Merchant ID · Public Key · Private Key"],
+        ["결과물", "Production API 자격증명"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 시작하기 전에",
+          "desc": "Braintree(PayPal) 자격증명은 가맹 계정이 승인된 후 확인할 수 있습니다.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "필요", "h3": "Braintree(PayPal) 가맹 계정", "p": "먼저 Braintree(PayPal) 가맹 계정 승인이 필요합니다. 가맹 계정 승인이 완료되어야 Production 자격증명을 확인할 수 있습니다." },
+              { "tag": "발급 키", "h3": "Merchant ID · Public/Private Key", "p": "Control Panel의 Settings > API Keys에서 Production 환경의 Merchant ID·Public Key·Private Key를 확인합니다." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>참고:</strong> 반드시 <strong>Production</strong> 환경의 자격증명을 확인합니다. Sandbox 키와 혼동하지 않도록 주의합니다." }
+          ]
+        },
+        {
+          "h2": "2. 발급 신청 절차",
+          "desc": "가맹 계정 승인 후 아래 순서대로 자격증명을 확인하고 GenieGo에 등록합니다.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "가맹 계정 승인", "p": "Braintree(PayPal) 가맹 계정 승인을 먼저 완료합니다. 승인이 완료되어야 다음 단계로 진행할 수 있습니다." },
+              { "h3": "Control Panel 로그인", "p": "Braintree Control Panel에 로그인합니다.", "path": "braintreegateway.com" },
+              { "h3": "API Keys 이동", "p": "[Settings] > [API Keys] 메뉴로 이동합니다.", "path": "Settings → API Keys" },
+              { "h3": "자격증명 확인", "p": "Production 환경의 Merchant ID·Public Key·Private Key를 확인합니다." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Settings &gt; API Keys에서 Production의 Merchant ID·Public Key·Private Key가 보이면 정상입니다." }
+          ]
+        },
+        {
+          "h2": "3. GenieGo에 등록할 정보",
+          "blocks": [
+            { "type": "table", "head": ["필드", "설명"], "rows": [
+              ["merchant_id", "Production Merchant ID"],
+              ["public_key", "Production Public Key"],
+              ["private_key", "Production Private Key(노출 주의)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 연동 허브 [등록]에 merchant_id·public_key·private_key를 입력해 저장하면 자격증명은 AES-256-GCM으로 암호화 저장되고 조회 시 마스킹됩니다." }
+          ]
+        },
+        {
+          "h2": "4. 자주 발생하는 문제",
+          "blocks": [
+            { "type": "table", "head": ["문제", "원인", "해결"], "rows": [
+              ["API Keys 메뉴에 자격증명이 없음", "가맹 계정 승인 미완료", "Braintree(PayPal) 가맹 계정 승인을 먼저 완료합니다."],
+              ["인증 실패", "Sandbox 키를 사용 또는 Private Key 오기재", "Production 환경의 Merchant ID·Public Key·Private Key를 다시 확인합니다."]
+            ] }
+          ]
+        },
+        {
+          "h2": "최종 체크리스트",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Braintree(PayPal) 가맹 계정 승인이 완료되었다.",
+              "Control Panel의 Settings > API Keys에서 Production 자격증명을 확인했다.",
+              "Merchant ID·Public Key·Private Key를 확인했다.",
+              "GenieGo [등록]에 merchant_id·public_key·private_key를 입력해 저장했다."
+            ] }
+          ]
+        }
+      ]
+    },
+    "en": {
+      "titleType": "API Key Issuance Manual",
+      "badge": "Beginner Guide",
+      "intro": "A beginner-friendly, step-by-step guide to finding your Production API credentials (Merchant ID, Public Key, Private Key) in the Braintree (PayPal) Control Panel and registering them in the GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Est. time", "About 5–10 min"],
+        ["Account needed", "Braintree (PayPal) merchant account (approval required)"],
+        ["Keys issued", "Merchant ID · Public Key · Private Key"],
+        ["Result", "Production API credentials"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Before You Begin",
+          "desc": "Braintree (PayPal) credentials become available only after your merchant account is approved.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Required", "h3": "Braintree (PayPal) merchant account", "p": "You first need an approved Braintree (PayPal) merchant account. Production credentials are available only once your merchant account has been approved." },
+              { "tag": "Keys issued", "h3": "Merchant ID · Public/Private Key", "p": "In the Control Panel, go to Settings > API Keys to find the Production Merchant ID, Public Key, and Private Key." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Note:</strong> Be sure to use the credentials from the <strong>Production</strong> environment. Take care not to confuse them with Sandbox keys." }
+          ]
+        },
+        {
+          "h2": "2. Issuance Procedure",
+          "desc": "After your merchant account is approved, find the credentials in the order below and register them in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Get your merchant account approved", "p": "Complete the Braintree (PayPal) merchant account approval first. You can only proceed to the next step once approval is complete." },
+              { "h3": "Sign in to the Control Panel", "p": "Sign in to the Braintree Control Panel.", "path": "braintreegateway.com" },
+              { "h3": "Go to API Keys", "p": "Navigate to the [Settings] > [API Keys] menu.", "path": "Settings → API Keys" },
+              { "h3": "Find the credentials", "p": "Find the Merchant ID, Public Key, and Private Key for the Production environment." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "If the Production Merchant ID, Public Key, and Private Key appear under Settings &gt; API Keys, everything is in order." }
+          ]
+        },
+        {
+          "h2": "3. Information to Register in GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Field", "Description"], "rows": [
+              ["merchant_id", "Production Merchant ID"],
+              ["public_key", "Production Public Key"],
+              ["private_key", "Production Private Key (handle with care)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Enter merchant_id, public_key, and private_key under [Register] in the GenieGo Integration Hub and save. Credentials are encrypted at rest with AES-256-GCM and masked on read." }
+          ]
+        },
+        {
+          "h2": "4. Common Issues",
+          "blocks": [
+            { "type": "table", "head": ["Issue", "Cause", "Solution"], "rows": [
+              ["No credentials under the API Keys menu", "Merchant account approval not completed", "Complete the Braintree (PayPal) merchant account approval first."],
+              ["Authentication failure", "Sandbox keys used, or the Private Key was entered incorrectly", "Re-check the Production Merchant ID, Public Key, and Private Key."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Final Checklist",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "The Braintree (PayPal) merchant account has been approved.",
+              "Found the Production credentials under Settings > API Keys in the Control Panel.",
+              "Confirmed the Merchant ID, Public Key, and Private Key.",
+              "Entered merchant_id, public_key, and private_key in GenieGo [Register] and saved."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ja": {
+      "titleType": "API Key 発行マニュアル",
+      "badge": "初心者ガイド",
+      "intro": "Braintree(PayPal) Control Panel で Production API 認証情報(Merchant ID・Public Key・Private Key)を確認し、GenieGo 連携ハブに登録する手順を、初心者でもそのまま実行できるようにまとめたマニュアルです。",
+      "org": "GenieGo 連携ハブ",
+      "quick": [
+        ["所要時間", "約 5〜10 分"],
+        ["必要なアカウント", "Braintree(PayPal) 加盟店アカウント(承認が必要)"],
+        ["発行するキー", "Merchant ID · Public Key · Private Key"],
+        ["成果物", "Production API 認証情報"]
+      ],
+      "sections": [
+        {
+          "h2": "1. はじめる前に",
+          "desc": "Braintree(PayPal) の認証情報は、加盟店アカウントが承認された後に確認できます。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必須", "h3": "Braintree(PayPal) 加盟店アカウント", "p": "まず Braintree(PayPal) 加盟店アカウントの承認が必要です。加盟店アカウントの承認が完了して初めて Production 認証情報を確認できます。" },
+              { "tag": "発行するキー", "h3": "Merchant ID · Public/Private Key", "p": "Control Panel の Settings > API Keys で、Production 環境の Merchant ID・Public Key・Private Key を確認します。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> 必ず <strong>Production</strong> 環境の認証情報を確認してください。Sandbox キーと混同しないように注意します。" }
+          ]
+        },
+        {
+          "h2": "2. 発行申請手順",
+          "desc": "加盟店アカウントの承認後、以下の順序で認証情報を確認し、GenieGo に登録します。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "加盟店アカウントの承認", "p": "まず Braintree(PayPal) 加盟店アカウントの承認を完了します。承認が完了して初めて次のステップに進めます。" },
+              { "h3": "Control Panel にログイン", "p": "Braintree Control Panel にログインします。", "path": "braintreegateway.com" },
+              { "h3": "API Keys へ移動", "p": "[Settings] > [API Keys] メニューに移動します。", "path": "Settings → API Keys" },
+              { "h3": "認証情報を確認", "p": "Production 環境の Merchant ID・Public Key・Private Key を確認します。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Settings &gt; API Keys で Production の Merchant ID・Public Key・Private Key が表示されれば正常です。" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo に登録する情報",
+          "blocks": [
+            { "type": "table", "head": ["フィールド", "説明"], "rows": [
+              ["merchant_id", "Production Merchant ID"],
+              ["public_key", "Production Public Key"],
+              ["private_key", "Production Private Key(取り扱い注意)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 連携ハブの [登録] に merchant_id・public_key・private_key を入力して保存すると、認証情報は AES-256-GCM で暗号化して保存され、閲覧時にはマスキングされます。" }
+          ]
+        },
+        {
+          "h2": "4. よくある問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["API Keys メニューに認証情報がない", "加盟店アカウントの承認が未完了", "まず Braintree(PayPal) 加盟店アカウントの承認を完了します。"],
+              ["認証に失敗する", "Sandbox キーを使用、または Private Key の記載ミス", "Production 環境の Merchant ID・Public Key・Private Key を再度確認します。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終チェックリスト",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Braintree(PayPal) 加盟店アカウントの承認が完了した。",
+              "Control Panel の Settings > API Keys で Production 認証情報を確認した。",
+              "Merchant ID・Public Key・Private Key を確認した。",
+              "GenieGo の [登録] に merchant_id・public_key・private_key を入力して保存した。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh": {
+      "titleType": "API Key 申请手册",
+      "badge": "新手指南",
+      "intro": "本手册手把手指导新手在 Braintree(PayPal) Control Panel 中查看 Production API 凭证(Merchant ID·Public Key·Private Key),并将其注册到 GenieGo 集成中心。",
+      "org": "GenieGo 集成中心",
+      "quick": [
+        ["预计时间", "约 5~10 分钟"],
+        ["所需账户", "Braintree(PayPal) 商户账户(需审核通过)"],
+        ["签发密钥", "Merchant ID · Public Key · Private Key"],
+        ["成果", "Production API 凭证"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 开始之前",
+          "desc": "Braintree(PayPal) 凭证只有在商户账户审核通过后才能查看。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "Braintree(PayPal) 商户账户", "p": "首先需要通过 Braintree(PayPal) 商户账户审核。只有商户账户审核完成后，才能查看 Production 凭证。" },
+              { "tag": "签发密钥", "h3": "Merchant ID · Public/Private Key", "p": "在 Control Panel 的 Settings > API Keys 中查看 Production 环境的 Merchant ID·Public Key·Private Key。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> 请务必查看 <strong>Production</strong> 环境的凭证。注意不要与 Sandbox 密钥混淆。" }
+          ]
+        },
+        {
+          "h2": "2. 申请流程",
+          "desc": "商户账户审核通过后，按以下顺序查看凭证并在 GenieGo 中注册。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "商户账户审核", "p": "首先完成 Braintree(PayPal) 商户账户审核。只有审核完成后才能进入下一步。" },
+              { "h3": "登录 Control Panel", "p": "登录 Braintree Control Panel。", "path": "braintreegateway.com" },
+              { "h3": "前往 API Keys", "p": "进入 [Settings] > [API Keys] 菜单。", "path": "Settings → API Keys" },
+              { "h3": "查看凭证", "p": "查看 Production 环境的 Merchant ID·Public Key·Private Key。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "如果在 Settings &gt; API Keys 中能看到 Production 的 Merchant ID·Public Key·Private Key，即表示正常。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中注册的信息",
+          "blocks": [
+            { "type": "table", "head": ["字段", "说明"], "rows": [
+              ["merchant_id", "Production Merchant ID"],
+              ["public_key", "Production Public Key"],
+              ["private_key", "Production Private Key(请妥善保管)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 集成中心的 [注册] 中输入 merchant_id·public_key·private_key 并保存后，凭证将以 AES-256-GCM 加密存储，并在查询时进行掩码处理。" }
+          ]
+        },
+        {
+          "h2": "4. 常见问题",
+          "blocks": [
+            { "type": "table", "head": ["问题", "原因", "解决方法"], "rows": [
+              ["API Keys 菜单中没有凭证", "商户账户审核未完成", "请先完成 Braintree(PayPal) 商户账户审核。"],
+              ["认证失败", "使用了 Sandbox 密钥，或 Private Key 填写错误", "重新查看 Production 环境的 Merchant ID·Public Key·Private Key。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最终检查清单",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Braintree(PayPal) 商户账户审核已通过。",
+              "已在 Control Panel 的 Settings > API Keys 中查看 Production 凭证。",
+              "已确认 Merchant ID·Public Key·Private Key。",
+              "已在 GenieGo 的 [注册] 中输入 merchant_id·public_key·private_key 并保存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh-TW": {
+      "titleType": "API Key 申請手冊",
+      "badge": "新手指南",
+      "intro": "本手冊手把手指導新手在 Braintree(PayPal) Control Panel 中查看 Production API 憑證(Merchant ID·Public Key·Private Key),並將其註冊到 GenieGo 整合中心。",
+      "org": "GenieGo 整合中心",
+      "quick": [
+        ["預計時間", "約 5~10 分鐘"],
+        ["所需帳戶", "Braintree(PayPal) 商家帳戶(需審核通過)"],
+        ["簽發金鑰", "Merchant ID · Public Key · Private Key"],
+        ["成果", "Production API 憑證"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 開始之前",
+          "desc": "Braintree(PayPal) 憑證只有在商家帳戶審核通過後才能查看。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "Braintree(PayPal) 商家帳戶", "p": "首先需要通過 Braintree(PayPal) 商家帳戶審核。只有商家帳戶審核完成後，才能查看 Production 憑證。" },
+              { "tag": "簽發金鑰", "h3": "Merchant ID · Public/Private Key", "p": "在 Control Panel 的 Settings > API Keys 中查看 Production 環境的 Merchant ID·Public Key·Private Key。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> 請務必查看 <strong>Production</strong> 環境的憑證。注意不要與 Sandbox 金鑰混淆。" }
+          ]
+        },
+        {
+          "h2": "2. 申請流程",
+          "desc": "商家帳戶審核通過後，依以下順序查看憑證並在 GenieGo 中註冊。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "商家帳戶審核", "p": "首先完成 Braintree(PayPal) 商家帳戶審核。只有審核完成後才能進入下一步。" },
+              { "h3": "登入 Control Panel", "p": "登入 Braintree Control Panel。", "path": "braintreegateway.com" },
+              { "h3": "前往 API Keys", "p": "進入 [Settings] > [API Keys] 選單。", "path": "Settings → API Keys" },
+              { "h3": "查看憑證", "p": "查看 Production 環境的 Merchant ID·Public Key·Private Key。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "如果在 Settings &gt; API Keys 中能看到 Production 的 Merchant ID·Public Key·Private Key，即表示正常。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中註冊的資訊",
+          "blocks": [
+            { "type": "table", "head": ["欄位", "說明"], "rows": [
+              ["merchant_id", "Production Merchant ID"],
+              ["public_key", "Production Public Key"],
+              ["private_key", "Production Private Key(請妥善保管)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 整合中心的 [註冊] 中輸入 merchant_id·public_key·private_key 並儲存後，憑證將以 AES-256-GCM 加密儲存，並在查詢時進行遮罩處理。" }
+          ]
+        },
+        {
+          "h2": "4. 常見問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["API Keys 選單中沒有憑證", "商家帳戶審核未完成", "請先完成 Braintree(PayPal) 商家帳戶審核。"],
+              ["認證失敗", "使用了 Sandbox 金鑰，或 Private Key 填寫錯誤", "重新查看 Production 環境的 Merchant ID·Public Key·Private Key。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終檢查清單",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Braintree(PayPal) 商家帳戶審核已通過。",
+              "已在 Control Panel 的 Settings > API Keys 中查看 Production 憑證。",
+              "已確認 Merchant ID·Public Key·Private Key。",
+              "已在 GenieGo 的 [註冊] 中輸入 merchant_id·public_key·private_key 並儲存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "de": {
+      "titleType": "Anleitung zur API-Key-Ausstellung",
+      "badge": "Einsteigerleitfaden",
+      "intro": "Eine einsteigerfreundliche Schritt-für-Schritt-Anleitung zum Auffinden Ihrer Production-API-Anmeldedaten (Merchant ID, Public Key, Private Key) im Braintree-(PayPal-)Control Panel und zum Registrieren im GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Geschätzte Zeit", "Etwa 5–10 Min."],
+        ["Benötigtes Konto", "Braintree-(PayPal-)Händlerkonto (Genehmigung erforderlich)"],
+        ["Ausgestellte Schlüssel", "Merchant ID · Public Key · Private Key"],
+        ["Ergebnis", "Production-API-Anmeldedaten"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Bevor Sie beginnen",
+          "desc": "Braintree-(PayPal-)Anmeldedaten sind erst verfügbar, nachdem Ihr Händlerkonto genehmigt wurde.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Erforderlich", "h3": "Braintree-(PayPal-)Händlerkonto", "p": "Sie benötigen zunächst ein genehmigtes Braintree-(PayPal-)Händlerkonto. Production-Anmeldedaten sind erst verfügbar, sobald Ihr Händlerkonto genehmigt wurde." },
+              { "tag": "Ausgestellte Schlüssel", "h3": "Merchant ID · Public/Private Key", "p": "Gehen Sie im Control Panel zu Settings > API Keys, um die Merchant ID, den Public Key und den Private Key der Production-Umgebung zu finden." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Hinweis:</strong> Verwenden Sie unbedingt die Anmeldedaten der <strong>Production</strong>-Umgebung. Achten Sie darauf, sie nicht mit den Sandbox-Schlüsseln zu verwechseln." }
+          ]
+        },
+        {
+          "h2": "2. Ablauf der Ausstellung",
+          "desc": "Suchen Sie nach der Genehmigung Ihres Händlerkontos die Anmeldedaten in der unten angegebenen Reihenfolge und registrieren Sie sie in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Händlerkonto genehmigen lassen", "p": "Schließen Sie zuerst die Genehmigung des Braintree-(PayPal-)Händlerkontos ab. Sie können erst zum nächsten Schritt übergehen, wenn die Genehmigung abgeschlossen ist." },
+              { "h3": "Beim Control Panel anmelden", "p": "Melden Sie sich beim Braintree Control Panel an.", "path": "braintreegateway.com" },
+              { "h3": "Zu API Keys wechseln", "p": "Navigieren Sie zum Menü [Settings] > [API Keys].", "path": "Settings → API Keys" },
+              { "h3": "Anmeldedaten finden", "p": "Suchen Sie die Merchant ID, den Public Key und den Private Key der Production-Umgebung." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Wenn unter Settings &gt; API Keys die Merchant ID, der Public Key und der Private Key der Production angezeigt werden, ist alles in Ordnung." }
+          ]
+        },
+        {
+          "h2": "3. In GenieGo zu registrierende Informationen",
+          "blocks": [
+            { "type": "table", "head": ["Feld", "Beschreibung"], "rows": [
+              ["merchant_id", "Production Merchant ID"],
+              ["public_key", "Production Public Key"],
+              ["private_key", "Production Private Key (vertraulich behandeln)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Geben Sie unter [Registrieren] im GenieGo Integration Hub merchant_id, public_key und private_key ein und speichern Sie. Anmeldedaten werden im Ruhezustand mit AES-256-GCM verschlüsselt und beim Lesen maskiert." }
+          ]
+        },
+        {
+          "h2": "4. Häufige Probleme",
+          "blocks": [
+            { "type": "table", "head": ["Problem", "Ursache", "Lösung"], "rows": [
+              ["Keine Anmeldedaten im API-Keys-Menü", "Genehmigung des Händlerkontos nicht abgeschlossen", "Schließen Sie zuerst die Genehmigung des Braintree-(PayPal-)Händlerkontos ab."],
+              ["Authentifizierungsfehler", "Sandbox-Schlüssel verwendet oder Private Key falsch eingegeben", "Überprüfen Sie die Merchant ID, den Public Key und den Private Key der Production-Umgebung erneut."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Abschließende Checkliste",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Das Braintree-(PayPal-)Händlerkonto wurde genehmigt.",
+              "Die Production-Anmeldedaten unter Settings > API Keys im Control Panel gefunden.",
+              "Die Merchant ID, den Public Key und den Private Key bestätigt.",
+              "merchant_id, public_key und private_key in GenieGo [Registrieren] eingegeben und gespeichert."
+            ] }
+          ]
+        }
+      ]
+    },
+    "th": {
+      "titleType": "คู่มือการออก API Key",
+      "badge": "คู่มือสำหรับผู้เริ่มต้น",
+      "intro": "คู่มือทีละขั้นตอนที่เป็นมิตรกับผู้เริ่มต้น สำหรับการค้นหาข้อมูลรับรอง Production API (Merchant ID·Public Key·Private Key) ใน Braintree (PayPal) Control Panel และลงทะเบียนใน GenieGo Integration Hub",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["เวลาโดยประมาณ", "ประมาณ 5–10 นาที"],
+        ["บัญชีที่ต้องใช้", "บัญชีร้านค้า Braintree (PayPal) (ต้องได้รับการอนุมัติ)"],
+        ["คีย์ที่ออก", "Merchant ID · Public Key · Private Key"],
+        ["ผลลัพธ์", "ข้อมูลรับรอง Production API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. ก่อนเริ่มต้น",
+          "desc": "ข้อมูลรับรอง Braintree (PayPal) จะดูได้ก็ต่อเมื่อบัญชีร้านค้าของคุณได้รับการอนุมัติแล้วเท่านั้น",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "จำเป็น", "h3": "บัญชีร้านค้า Braintree (PayPal)", "p": "ก่อนอื่นคุณต้องมีบัญชีร้านค้า Braintree (PayPal) ที่ได้รับการอนุมัติ ข้อมูลรับรอง Production จะดูได้ก็ต่อเมื่อบัญชีร้านค้าของคุณได้รับการอนุมัติแล้วเท่านั้น" },
+              { "tag": "คีย์ที่ออก", "h3": "Merchant ID · Public/Private Key", "p": "ใน Control Panel ไปที่ Settings > API Keys เพื่อดู Merchant ID·Public Key·Private Key ของสภาพแวดล้อม Production" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>หมายเหตุ:</strong> ต้องใช้ข้อมูลรับรองของสภาพแวดล้อม <strong>Production</strong> เท่านั้น ระวังอย่าสับสนกับคีย์ Sandbox" }
+          ]
+        },
+        {
+          "h2": "2. ขั้นตอนการยื่นขอออก",
+          "desc": "หลังจากบัญชีร้านค้าได้รับการอนุมัติแล้ว ให้ดูข้อมูลรับรองตามลำดับด้านล่างและลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "การอนุมัติบัญชีร้านค้า", "p": "ดำเนินการอนุมัติบัญชีร้านค้า Braintree (PayPal) ให้เสร็จก่อน คุณจะไปยังขั้นตอนถัดไปได้ก็ต่อเมื่อการอนุมัติเสร็จสมบูรณ์แล้ว" },
+              { "h3": "เข้าสู่ระบบ Control Panel", "p": "เข้าสู่ระบบ Braintree Control Panel", "path": "braintreegateway.com" },
+              { "h3": "ไปที่ API Keys", "p": "ไปที่เมนู [Settings] > [API Keys]", "path": "Settings → API Keys" },
+              { "h3": "ดูข้อมูลรับรอง", "p": "ดู Merchant ID·Public Key·Private Key ของสภาพแวดล้อม Production" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "หากเห็น Merchant ID·Public Key·Private Key ของ Production ใน Settings &gt; API Keys แสดงว่าปกติ" }
+          ]
+        },
+        {
+          "h2": "3. ข้อมูลที่ต้องลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["ฟิลด์", "คำอธิบาย"], "rows": [
+              ["merchant_id", "Production Merchant ID"],
+              ["public_key", "Production Public Key"],
+              ["private_key", "Production Private Key (จัดการด้วยความระมัดระวัง)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "ป้อน merchant_id·public_key·private_key ใน [ลงทะเบียน] ของ GenieGo Integration Hub แล้วบันทึก ข้อมูลรับรองจะถูกเข้ารหัสขณะจัดเก็บด้วย AES-256-GCM และปิดบังเมื่ออ่าน" }
+          ]
+        },
+        {
+          "h2": "4. ปัญหาที่พบบ่อย",
+          "blocks": [
+            { "type": "table", "head": ["ปัญหา", "สาเหตุ", "วิธีแก้ไข"], "rows": [
+              ["ไม่มีข้อมูลรับรองในเมนู API Keys", "การอนุมัติบัญชีร้านค้ายังไม่เสร็จสมบูรณ์", "ดำเนินการอนุมัติบัญชีร้านค้า Braintree (PayPal) ให้เสร็จก่อน"],
+              ["การยืนยันตัวตนล้มเหลว", "ใช้คีย์ Sandbox หรือป้อน Private Key ผิด", "ตรวจสอบ Merchant ID·Public Key·Private Key ของสภาพแวดล้อม Production อีกครั้ง"]
+            ] }
+          ]
+        },
+        {
+          "h2": "รายการตรวจสอบขั้นสุดท้าย",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "บัญชีร้านค้า Braintree (PayPal) ได้รับการอนุมัติแล้ว",
+              "ดูข้อมูลรับรอง Production ใน Settings > API Keys ของ Control Panel แล้ว",
+              "ยืนยัน Merchant ID·Public Key·Private Key แล้ว",
+              "ป้อน merchant_id·public_key·private_key ใน GenieGo [ลงทะเบียน] และบันทึกแล้ว"
+            ] }
+          ]
+        }
+      ]
+    },
+    "vi": {
+      "titleType": "Hướng dẫn cấp API Key",
+      "badge": "Hướng dẫn cho người mới",
+      "intro": "Hướng dẫn từng bước thân thiện với người mới về việc tìm thông tin xác thực Production API (Merchant ID·Public Key·Private Key) trong Braintree (PayPal) Control Panel và đăng ký chúng trong GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Thời gian dự kiến", "Khoảng 5–10 phút"],
+        ["Tài khoản cần thiết", "Tài khoản người bán Braintree (PayPal) (cần được phê duyệt)"],
+        ["Khóa được cấp", "Merchant ID · Public Key · Private Key"],
+        ["Kết quả", "Thông tin xác thực Production API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Trước khi bắt đầu",
+          "desc": "Thông tin xác thực Braintree (PayPal) chỉ có sau khi tài khoản người bán của bạn được phê duyệt.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Bắt buộc", "h3": "Tài khoản người bán Braintree (PayPal)", "p": "Trước tiên bạn cần một tài khoản người bán Braintree (PayPal) đã được phê duyệt. Thông tin xác thực Production chỉ có sau khi tài khoản người bán của bạn được phê duyệt." },
+              { "tag": "Khóa được cấp", "h3": "Merchant ID · Public/Private Key", "p": "Trong Control Panel, vào Settings > API Keys để tìm Merchant ID·Public Key·Private Key của môi trường Production." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Lưu ý:</strong> Hãy chắc chắn dùng thông tin xác thực của môi trường <strong>Production</strong>. Cẩn thận đừng nhầm lẫn với các khóa Sandbox." }
+          ]
+        },
+        {
+          "h2": "2. Quy trình cấp",
+          "desc": "Sau khi tài khoản người bán được phê duyệt, hãy tìm thông tin xác thực theo thứ tự dưới đây và đăng ký trong GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Phê duyệt tài khoản người bán", "p": "Hoàn tất việc phê duyệt tài khoản người bán Braintree (PayPal) trước. Bạn chỉ có thể chuyển sang bước tiếp theo khi việc phê duyệt hoàn tất." },
+              { "h3": "Đăng nhập Control Panel", "p": "Đăng nhập vào Braintree Control Panel.", "path": "braintreegateway.com" },
+              { "h3": "Vào API Keys", "p": "Điều hướng đến menu [Settings] > [API Keys].", "path": "Settings → API Keys" },
+              { "h3": "Tìm thông tin xác thực", "p": "Tìm Merchant ID·Public Key·Private Key của môi trường Production." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Nếu Merchant ID·Public Key·Private Key của Production hiển thị trong Settings &gt; API Keys, nghĩa là mọi thứ đều ổn." }
+          ]
+        },
+        {
+          "h2": "3. Thông tin cần đăng ký trong GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Trường", "Mô tả"], "rows": [
+              ["merchant_id", "Production Merchant ID"],
+              ["public_key", "Production Public Key"],
+              ["private_key", "Production Private Key (xử lý cẩn thận)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Nhập merchant_id·public_key·private_key trong [Đăng ký] của GenieGo Integration Hub rồi lưu. Thông tin xác thực được mã hóa khi lưu trữ bằng AES-256-GCM và được che khi đọc." }
+          ]
+        },
+        {
+          "h2": "4. Sự cố thường gặp",
+          "blocks": [
+            { "type": "table", "head": ["Sự cố", "Nguyên nhân", "Giải pháp"], "rows": [
+              ["Không có thông tin xác thực trong menu API Keys", "Việc phê duyệt tài khoản người bán chưa hoàn tất", "Hoàn tất việc phê duyệt tài khoản người bán Braintree (PayPal) trước."],
+              ["Xác thực thất bại", "Dùng khóa Sandbox, hoặc nhập sai Private Key", "Kiểm tra lại Merchant ID·Public Key·Private Key của môi trường Production."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Danh sách kiểm tra cuối cùng",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Tài khoản người bán Braintree (PayPal) đã được phê duyệt.",
+              "Đã tìm thấy thông tin xác thực Production trong Settings > API Keys của Control Panel.",
+              "Đã xác nhận Merchant ID·Public Key·Private Key.",
+              "Đã nhập merchant_id·public_key·private_key vào GenieGo [Đăng ký] và lưu."
+            ] }
+          ]
+        }
+      ]
+    },
+    "id": {
+      "titleType": "Panduan Penerbitan API Key",
+      "badge": "Panduan Pemula",
+      "intro": "Panduan langkah demi langkah yang ramah pemula untuk menemukan kredensial Production API (Merchant ID·Public Key·Private Key) di Braintree (PayPal) Control Panel dan mendaftarkannya di GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Perkiraan waktu", "Sekitar 5–10 menit"],
+        ["Akun yang dibutuhkan", "Akun merchant Braintree (PayPal) (perlu disetujui)"],
+        ["Kunci yang diterbitkan", "Merchant ID · Public Key · Private Key"],
+        ["Hasil", "Kredensial Production API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Sebelum Anda Mulai",
+          "desc": "Kredensial Braintree (PayPal) baru tersedia setelah akun merchant Anda disetujui.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Diperlukan", "h3": "Akun merchant Braintree (PayPal)", "p": "Pertama-tama Anda memerlukan akun merchant Braintree (PayPal) yang sudah disetujui. Kredensial Production baru tersedia setelah akun merchant Anda disetujui." },
+              { "tag": "Kunci yang diterbitkan", "h3": "Merchant ID · Public/Private Key", "p": "Di Control Panel, buka Settings > API Keys untuk menemukan Merchant ID·Public Key·Private Key lingkungan Production." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Catatan:</strong> Pastikan menggunakan kredensial lingkungan <strong>Production</strong>. Hati-hati jangan sampai tertukar dengan kunci Sandbox." }
+          ]
+        },
+        {
+          "h2": "2. Prosedur Penerbitan",
+          "desc": "Setelah akun merchant Anda disetujui, temukan kredensial sesuai urutan di bawah dan daftarkan di GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Persetujuan akun merchant", "p": "Selesaikan persetujuan akun merchant Braintree (PayPal) terlebih dahulu. Anda baru bisa melanjutkan ke langkah berikutnya setelah persetujuan selesai." },
+              { "h3": "Masuk ke Control Panel", "p": "Masuk ke Braintree Control Panel.", "path": "braintreegateway.com" },
+              { "h3": "Buka API Keys", "p": "Navigasikan ke menu [Settings] > [API Keys].", "path": "Settings → API Keys" },
+              { "h3": "Temukan kredensial", "p": "Temukan Merchant ID·Public Key·Private Key lingkungan Production." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Jika Merchant ID·Public Key·Private Key Production muncul di Settings &gt; API Keys, berarti semuanya beres." }
+          ]
+        },
+        {
+          "h2": "3. Informasi yang Harus Didaftarkan di GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Field", "Deskripsi"], "rows": [
+              ["merchant_id", "Production Merchant ID"],
+              ["public_key", "Production Public Key"],
+              ["private_key", "Production Private Key (tangani dengan hati-hati)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Masukkan merchant_id·public_key·private_key di [Daftar] pada GenieGo Integration Hub lalu simpan. Kredensial dienkripsi saat disimpan dengan AES-256-GCM dan disamarkan saat dibaca." }
+          ]
+        },
+        {
+          "h2": "4. Masalah Umum",
+          "blocks": [
+            { "type": "table", "head": ["Masalah", "Penyebab", "Solusi"], "rows": [
+              ["Tidak ada kredensial di menu API Keys", "Persetujuan akun merchant belum selesai", "Selesaikan persetujuan akun merchant Braintree (PayPal) terlebih dahulu."],
+              ["Autentikasi gagal", "Menggunakan kunci Sandbox, atau Private Key salah dimasukkan", "Periksa kembali Merchant ID·Public Key·Private Key lingkungan Production."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Daftar Periksa Akhir",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Akun merchant Braintree (PayPal) telah disetujui.",
+              "Menemukan kredensial Production di Settings > API Keys pada Control Panel.",
+              "Mengonfirmasi Merchant ID·Public Key·Private Key.",
+              "Memasukkan merchant_id·public_key·private_key di GenieGo [Daftar] lalu menyimpannya."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ar": {
+      "titleType": "دليل إصدار مفتاح API",
+      "badge": "دليل المبتدئين",
+      "intro": "دليل سهل للمبتدئين خطوة بخطوة للعثور على بيانات اعتماد Production API (Merchant ID·Public Key·Private Key) في Braintree (PayPal) Control Panel وتسجيلها في GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["الوقت المقدر", "حوالي 5–10 دقائق"],
+        ["الحساب المطلوب", "حساب تاجر Braintree (PayPal) (يتطلب الموافقة)"],
+        ["المفاتيح المُصدَرة", "Merchant ID · Public Key · Private Key"],
+        ["النتيجة", "بيانات اعتماد Production API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. قبل أن تبدأ",
+          "desc": "تتوفر بيانات اعتماد Braintree (PayPal) فقط بعد الموافقة على حساب التاجر الخاص بك.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "مطلوب", "h3": "حساب تاجر Braintree (PayPal)", "p": "تحتاج أولاً إلى حساب تاجر Braintree (PayPal) تمت الموافقة عليه. لا تتوفر بيانات اعتماد Production إلا بعد الموافقة على حساب التاجر الخاص بك." },
+              { "tag": "المفاتيح المُصدَرة", "h3": "Merchant ID · Public/Private Key", "p": "في Control Panel، انتقل إلى Settings > API Keys للعثور على Merchant ID·Public Key·Private Key الخاصة ببيئة Production." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>ملاحظة:</strong> تأكد من استخدام بيانات اعتماد بيئة <strong>Production</strong>. احرص على عدم الخلط بينها وبين مفاتيح Sandbox." }
+          ]
+        },
+        {
+          "h2": "2. إجراءات الإصدار",
+          "desc": "بعد الموافقة على حساب التاجر، ابحث عن بيانات الاعتماد بالترتيب أدناه وسجّلها في GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "الموافقة على حساب التاجر", "p": "أكمل الموافقة على حساب تاجر Braintree (PayPal) أولاً. لا يمكنك الانتقال إلى الخطوة التالية إلا بعد اكتمال الموافقة." },
+              { "h3": "تسجيل الدخول إلى Control Panel", "p": "سجّل الدخول إلى Braintree Control Panel.", "path": "braintreegateway.com" },
+              { "h3": "الانتقال إلى API Keys", "p": "انتقل إلى قائمة [Settings] > [API Keys].", "path": "Settings → API Keys" },
+              { "h3": "العثور على بيانات الاعتماد", "p": "ابحث عن Merchant ID·Public Key·Private Key الخاصة ببيئة Production." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "إذا ظهرت Merchant ID·Public Key·Private Key الخاصة ببيئة Production ضمن Settings &gt; API Keys، فكل شيء على ما يرام." }
+          ]
+        },
+        {
+          "h2": "3. المعلومات المطلوب تسجيلها في GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["الحقل", "الوصف"], "rows": [
+              ["merchant_id", "Production Merchant ID"],
+              ["public_key", "Production Public Key"],
+              ["private_key", "Production Private Key (تعامل معه بحذر)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "أدخل merchant_id·public_key·private_key في [تسجيل] ضمن GenieGo Integration Hub واحفظها. تُشفَّر بيانات الاعتماد أثناء التخزين باستخدام AES-256-GCM ويتم إخفاؤها عند القراءة." }
+          ]
+        },
+        {
+          "h2": "4. المشكلات الشائعة",
+          "blocks": [
+            { "type": "table", "head": ["المشكلة", "السبب", "الحل"], "rows": [
+              ["لا توجد بيانات اعتماد في قائمة API Keys", "لم تكتمل الموافقة على حساب التاجر", "أكمل الموافقة على حساب تاجر Braintree (PayPal) أولاً."],
+              ["فشل المصادقة", "استخدام مفاتيح Sandbox، أو إدخال Private Key بشكل خاطئ", "تحقق مرة أخرى من Merchant ID·Public Key·Private Key الخاصة ببيئة Production."]
+            ] }
+          ]
+        },
+        {
+          "h2": "قائمة التحقق النهائية",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "تمت الموافقة على حساب تاجر Braintree (PayPal).",
+              "تم العثور على بيانات اعتماد Production ضمن Settings > API Keys في Control Panel.",
+              "تم تأكيد Merchant ID·Public Key·Private Key.",
+              "تم إدخال merchant_id·public_key·private_key في GenieGo [تسجيل] وحفظها."
+            ] }
+          ]
+        }
+      ]
+    },
+    "es": {
+      "titleType": "Manual de emisión de API Key",
+      "badge": "Guía para principiantes",
+      "intro": "Una guía paso a paso y apta para principiantes para encontrar tus credenciales de Production API (Merchant ID, Public Key, Private Key) en el Braintree (PayPal) Control Panel y registrarlas en el GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tiempo estimado", "Unos 5–10 min"],
+        ["Cuenta necesaria", "Cuenta de comercio de Braintree (PayPal) (requiere aprobación)"],
+        ["Claves emitidas", "Merchant ID · Public Key · Private Key"],
+        ["Resultado", "Credenciales de Production API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de empezar",
+          "desc": "Las credenciales de Braintree (PayPal) solo están disponibles después de que se apruebe tu cuenta de comercio.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requerido", "h3": "Cuenta de comercio de Braintree (PayPal)", "p": "Primero necesitas una cuenta de comercio de Braintree (PayPal) aprobada. Las credenciales de Production solo están disponibles una vez que tu cuenta de comercio ha sido aprobada." },
+              { "tag": "Claves emitidas", "h3": "Merchant ID · Public/Private Key", "p": "En el Control Panel, ve a Settings > API Keys para encontrar el Merchant ID, la Public Key y la Private Key del entorno Production." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Nota:</strong> Asegúrate de usar las credenciales del entorno <strong>Production</strong>. Ten cuidado de no confundirlas con las claves de Sandbox." }
+          ]
+        },
+        {
+          "h2": "2. Procedimiento de emisión",
+          "desc": "Tras la aprobación de tu cuenta de comercio, encuentra las credenciales en el orden siguiente y regístralas en GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Aprobación de la cuenta de comercio", "p": "Completa primero la aprobación de la cuenta de comercio de Braintree (PayPal). Solo puedes pasar al siguiente paso una vez que la aprobación se haya completado." },
+              { "h3": "Iniciar sesión en el Control Panel", "p": "Inicia sesión en el Braintree Control Panel.", "path": "braintreegateway.com" },
+              { "h3": "Ir a API Keys", "p": "Navega al menú [Settings] > [API Keys].", "path": "Settings → API Keys" },
+              { "h3": "Encontrar las credenciales", "p": "Encuentra el Merchant ID, la Public Key y la Private Key del entorno Production." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Si el Merchant ID, la Public Key y la Private Key de Production aparecen en Settings &gt; API Keys, todo está correcto." }
+          ]
+        },
+        {
+          "h2": "3. Información para registrar en GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descripción"], "rows": [
+              ["merchant_id", "Production Merchant ID"],
+              ["public_key", "Production Public Key"],
+              ["private_key", "Production Private Key (manéjala con cuidado)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Introduce merchant_id, public_key y private_key en [Registrar] del GenieGo Integration Hub y guarda. Las credenciales se cifran en reposo con AES-256-GCM y se enmascaran al leerlas." }
+          ]
+        },
+        {
+          "h2": "4. Problemas frecuentes",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solución"], "rows": [
+              ["No hay credenciales en el menú API Keys", "Aprobación de la cuenta de comercio no completada", "Completa primero la aprobación de la cuenta de comercio de Braintree (PayPal)."],
+              ["Fallo de autenticación", "Se usaron claves de Sandbox, o la Private Key se introdujo mal", "Vuelve a comprobar el Merchant ID, la Public Key y la Private Key del entorno Production."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificación final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "La cuenta de comercio de Braintree (PayPal) ha sido aprobada.",
+              "Encontradas las credenciales de Production en Settings > API Keys del Control Panel.",
+              "Confirmados el Merchant ID, la Public Key y la Private Key.",
+              "Introducidos merchant_id, public_key y private_key en GenieGo [Registrar] y guardados."
+            ] }
+          ]
+        }
+      ]
+    },
+    "fr": {
+      "titleType": "Manuel d'émission de clé API",
+      "badge": "Guide du débutant",
+      "intro": "Un guide pas à pas adapté aux débutants pour trouver vos identifiants Production API (Merchant ID, Public Key, Private Key) dans le Braintree (PayPal) Control Panel et les enregistrer dans le GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Temps estimé", "Environ 5–10 min"],
+        ["Compte requis", "Compte marchand Braintree (PayPal) (approbation requise)"],
+        ["Clés émises", "Merchant ID · Public Key · Private Key"],
+        ["Résultat", "Identifiants Production API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Avant de commencer",
+          "desc": "Les identifiants Braintree (PayPal) ne sont disponibles qu'après l'approbation de votre compte marchand.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requis", "h3": "Compte marchand Braintree (PayPal)", "p": "Vous avez d'abord besoin d'un compte marchand Braintree (PayPal) approuvé. Les identifiants Production ne sont disponibles qu'une fois votre compte marchand approuvé." },
+              { "tag": "Clés émises", "h3": "Merchant ID · Public/Private Key", "p": "Dans le Control Panel, allez dans Settings > API Keys pour trouver le Merchant ID, la Public Key et la Private Key de l'environnement Production." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Remarque :</strong> Veillez à utiliser les identifiants de l'environnement <strong>Production</strong>. Prenez soin de ne pas les confondre avec les clés Sandbox." }
+          ]
+        },
+        {
+          "h2": "2. Procédure d'émission",
+          "desc": "Après l'approbation de votre compte marchand, trouvez les identifiants dans l'ordre ci-dessous et enregistrez-les dans GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Approbation du compte marchand", "p": "Terminez d'abord l'approbation du compte marchand Braintree (PayPal). Vous ne pouvez passer à l'étape suivante qu'une fois l'approbation terminée." },
+              { "h3": "Se connecter au Control Panel", "p": "Connectez-vous au Braintree Control Panel.", "path": "braintreegateway.com" },
+              { "h3": "Aller dans API Keys", "p": "Accédez au menu [Settings] > [API Keys].", "path": "Settings → API Keys" },
+              { "h3": "Trouver les identifiants", "p": "Trouvez le Merchant ID, la Public Key et la Private Key de l'environnement Production." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Si le Merchant ID, la Public Key et la Private Key de Production apparaissent dans Settings &gt; API Keys, tout est en ordre." }
+          ]
+        },
+        {
+          "h2": "3. Informations à enregistrer dans GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Champ", "Description"], "rows": [
+              ["merchant_id", "Production Merchant ID"],
+              ["public_key", "Production Public Key"],
+              ["private_key", "Production Private Key (à manipuler avec précaution)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Saisissez merchant_id, public_key et private_key dans [Enregistrer] du GenieGo Integration Hub et enregistrez. Les identifiants sont chiffrés au repos avec AES-256-GCM et masqués à la lecture." }
+          ]
+        },
+        {
+          "h2": "4. Problèmes courants",
+          "blocks": [
+            { "type": "table", "head": ["Problème", "Cause", "Solution"], "rows": [
+              ["Aucun identifiant dans le menu API Keys", "Approbation du compte marchand non terminée", "Terminez d'abord l'approbation du compte marchand Braintree (PayPal)."],
+              ["Échec de l'authentification", "Clés Sandbox utilisées, ou Private Key mal saisie", "Vérifiez à nouveau le Merchant ID, la Public Key et la Private Key de l'environnement Production."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Liste de contrôle finale",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Le compte marchand Braintree (PayPal) a été approuvé.",
+              "Identifiants Production trouvés dans Settings > API Keys du Control Panel.",
+              "Merchant ID, Public Key et Private Key confirmés.",
+              "merchant_id, public_key et private_key saisis dans GenieGo [Enregistrer] et enregistrés."
+            ] }
+          ]
+        }
+      ]
+    },
+    "hi": {
+      "titleType": "API Key जारी करने की मैनुअल",
+      "badge": "शुरुआती गाइड",
+      "intro": "Braintree (PayPal) Control Panel में अपने Production API क्रेडेंशियल (Merchant ID·Public Key·Private Key) खोजने और उन्हें GenieGo Integration Hub में पंजीकृत करने के लिए शुरुआती-अनुकूल चरण-दर-चरण मार्गदर्शिका।",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["अनुमानित समय", "लगभग 5–10 मिनट"],
+        ["आवश्यक खाता", "Braintree (PayPal) मर्चेंट खाता (अनुमोदन आवश्यक)"],
+        ["जारी की गई कुंजियाँ", "Merchant ID · Public Key · Private Key"],
+        ["परिणाम", "Production API क्रेडेंशियल"]
+      ],
+      "sections": [
+        {
+          "h2": "1. शुरू करने से पहले",
+          "desc": "Braintree (PayPal) क्रेडेंशियल आपके मर्चेंट खाते के अनुमोदित होने के बाद ही उपलब्ध होते हैं।",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "आवश्यक", "h3": "Braintree (PayPal) मर्चेंट खाता", "p": "सबसे पहले आपको एक अनुमोदित Braintree (PayPal) मर्चेंट खाता चाहिए। Production क्रेडेंशियल केवल तभी उपलब्ध होते हैं जब आपका मर्चेंट खाता अनुमोदित हो जाता है।" },
+              { "tag": "जारी की गई कुंजियाँ", "h3": "Merchant ID · Public/Private Key", "p": "Control Panel में, Production वातावरण का Merchant ID·Public Key·Private Key खोजने के लिए Settings > API Keys पर जाएँ।" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>नोट:</strong> सुनिश्चित करें कि आप <strong>Production</strong> वातावरण के क्रेडेंशियल का उपयोग करें। उन्हें Sandbox कुंजियों के साथ भ्रमित न करने का ध्यान रखें।" }
+          ]
+        },
+        {
+          "h2": "2. जारी करने की प्रक्रिया",
+          "desc": "आपके मर्चेंट खाते के अनुमोदन के बाद, नीचे दिए गए क्रम में क्रेडेंशियल खोजें और उन्हें GenieGo में पंजीकृत करें।",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "मर्चेंट खाते का अनुमोदन", "p": "पहले Braintree (PayPal) मर्चेंट खाते का अनुमोदन पूरा करें। अनुमोदन पूरा होने के बाद ही आप अगले चरण पर आगे बढ़ सकते हैं।" },
+              { "h3": "Control Panel में साइन इन करें", "p": "Braintree Control Panel में साइन इन करें।", "path": "braintreegateway.com" },
+              { "h3": "API Keys पर जाएँ", "p": "[Settings] > [API Keys] मेनू पर नेविगेट करें।", "path": "Settings → API Keys" },
+              { "h3": "क्रेडेंशियल खोजें", "p": "Production वातावरण का Merchant ID·Public Key·Private Key खोजें।" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "यदि Settings &gt; API Keys में Production का Merchant ID·Public Key·Private Key दिखाई देता है, तो सब कुछ ठीक है।" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo में पंजीकृत करने योग्य जानकारी",
+          "blocks": [
+            { "type": "table", "head": ["फ़ील्ड", "विवरण"], "rows": [
+              ["merchant_id", "Production Merchant ID"],
+              ["public_key", "Production Public Key"],
+              ["private_key", "Production Private Key (सावधानी से संभालें)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo Integration Hub के [पंजीकरण] में merchant_id·public_key·private_key दर्ज करें और सहेजें। क्रेडेंशियल को संग्रहण के समय AES-256-GCM से एन्क्रिप्ट किया जाता है और पढ़ते समय मास्क किया जाता है।" }
+          ]
+        },
+        {
+          "h2": "4. सामान्य समस्याएँ",
+          "blocks": [
+            { "type": "table", "head": ["समस्या", "कारण", "समाधान"], "rows": [
+              ["API Keys मेनू में कोई क्रेडेंशियल नहीं", "मर्चेंट खाते का अनुमोदन पूरा नहीं हुआ", "पहले Braintree (PayPal) मर्चेंट खाते का अनुमोदन पूरा करें।"],
+              ["प्रमाणीकरण विफल", "Sandbox कुंजियों का उपयोग, या Private Key गलत दर्ज की गई", "Production वातावरण का Merchant ID·Public Key·Private Key फिर से जाँचें।"]
+            ] }
+          ]
+        },
+        {
+          "h2": "अंतिम चेकलिस्ट",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Braintree (PayPal) मर्चेंट खाता अनुमोदित हो गया है।",
+              "Control Panel के Settings > API Keys में Production क्रेडेंशियल खोज लिए।",
+              "Merchant ID·Public Key·Private Key की पुष्टि कर ली।",
+              "GenieGo [पंजीकरण] में merchant_id·public_key·private_key दर्ज करके सहेज लिया।"
+            ] }
+          ]
+        }
+      ]
+    },
+    "pt": {
+      "titleType": "Manual de emissão de API Key",
+      "badge": "Guia para iniciantes",
+      "intro": "Um guia passo a passo amigável para iniciantes para encontrar suas credenciais de Production API (Merchant ID·Public Key·Private Key) no Braintree (PayPal) Control Panel e registrá-las no GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tempo estimado", "Cerca de 5–10 min"],
+        ["Conta necessária", "Conta de comerciante Braintree (PayPal) (requer aprovação)"],
+        ["Chaves emitidas", "Merchant ID · Public Key · Private Key"],
+        ["Resultado", "Credenciais de Production API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de começar",
+          "desc": "As credenciais do Braintree (PayPal) só ficam disponíveis depois que sua conta de comerciante for aprovada.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Obrigatório", "h3": "Conta de comerciante Braintree (PayPal)", "p": "Primeiro você precisa de uma conta de comerciante Braintree (PayPal) aprovada. As credenciais de Production só ficam disponíveis depois que sua conta de comerciante for aprovada." },
+              { "tag": "Chaves emitidas", "h3": "Merchant ID · Public/Private Key", "p": "No Control Panel, vá em Settings > API Keys para encontrar o Merchant ID, a Public Key e a Private Key do ambiente Production." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Observação:</strong> Certifique-se de usar as credenciais do ambiente <strong>Production</strong>. Tome cuidado para não confundi-las com as chaves de Sandbox." }
+          ]
+        },
+        {
+          "h2": "2. Procedimento de emissão",
+          "desc": "Após a aprovação da sua conta de comerciante, encontre as credenciais na ordem abaixo e registre-as no GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Aprovação da conta de comerciante", "p": "Conclua primeiro a aprovação da conta de comerciante Braintree (PayPal). Você só pode avançar para a próxima etapa depois que a aprovação for concluída." },
+              { "h3": "Entrar no Control Panel", "p": "Entre no Braintree Control Panel.", "path": "braintreegateway.com" },
+              { "h3": "Ir para API Keys", "p": "Navegue até o menu [Settings] > [API Keys].", "path": "Settings → API Keys" },
+              { "h3": "Encontrar as credenciais", "p": "Encontre o Merchant ID, a Public Key e a Private Key do ambiente Production." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Se o Merchant ID, a Public Key e a Private Key de Production aparecerem em Settings &gt; API Keys, está tudo certo." }
+          ]
+        },
+        {
+          "h2": "3. Informações para registrar no GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descrição"], "rows": [
+              ["merchant_id", "Production Merchant ID"],
+              ["public_key", "Production Public Key"],
+              ["private_key", "Production Private Key (manuseie com cuidado)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Insira merchant_id·public_key·private_key em [Registrar] no GenieGo Integration Hub e salve. As credenciais são criptografadas em repouso com AES-256-GCM e mascaradas na leitura." }
+          ]
+        },
+        {
+          "h2": "4. Problemas comuns",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solução"], "rows": [
+              ["Nenhuma credencial no menu API Keys", "Aprovação da conta de comerciante não concluída", "Conclua primeiro a aprovação da conta de comerciante Braintree (PayPal)."],
+              ["Falha na autenticação", "Chaves de Sandbox usadas, ou Private Key inserida incorretamente", "Verifique novamente o Merchant ID, a Public Key e a Private Key do ambiente Production."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificação final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "A conta de comerciante Braintree (PayPal) foi aprovada.",
+              "Credenciais de Production encontradas em Settings > API Keys do Control Panel.",
+              "Merchant ID, Public Key e Private Key confirmados.",
+              "merchant_id·public_key·private_key inseridos em GenieGo [Registrar] e salvos."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ru": {
+      "titleType": "Руководство по выпуску API Key",
+      "badge": "Руководство для начинающих",
+      "intro": "Пошаговое руководство для начинающих по поиску учётных данных Production API (Merchant ID·Public Key·Private Key) в Braintree (PayPal) Control Panel и их регистрации в GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Примерное время", "Около 5–10 мин"],
+        ["Требуемый аккаунт", "Аккаунт продавца Braintree (PayPal) (требуется одобрение)"],
+        ["Выпущенные ключи", "Merchant ID · Public Key · Private Key"],
+        ["Результат", "Учётные данные Production API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Прежде чем начать",
+          "desc": "Учётные данные Braintree (PayPal) становятся доступны только после одобрения вашего аккаунта продавца.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Обязательно", "h3": "Аккаунт продавца Braintree (PayPal)", "p": "Сначала вам нужен одобренный аккаунт продавца Braintree (PayPal). Учётные данные Production доступны только после одобрения вашего аккаунта продавца." },
+              { "tag": "Выпущенные ключи", "h3": "Merchant ID · Public/Private Key", "p": "В Control Panel перейдите в Settings > API Keys, чтобы найти Merchant ID, Public Key и Private Key среды Production." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Примечание:</strong> Обязательно используйте учётные данные среды <strong>Production</strong>. Будьте внимательны, чтобы не перепутать их с ключами Sandbox." }
+          ]
+        },
+        {
+          "h2": "2. Процедура выпуска",
+          "desc": "После одобрения вашего аккаунта продавца найдите учётные данные в указанном ниже порядке и зарегистрируйте их в GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Одобрение аккаунта продавца", "p": "Сначала завершите одобрение аккаунта продавца Braintree (PayPal). Перейти к следующему шагу можно только после завершения одобрения." },
+              { "h3": "Войти в Control Panel", "p": "Войдите в Braintree Control Panel.", "path": "braintreegateway.com" },
+              { "h3": "Перейти в API Keys", "p": "Перейдите в меню [Settings] > [API Keys].", "path": "Settings → API Keys" },
+              { "h3": "Найти учётные данные", "p": "Найдите Merchant ID, Public Key и Private Key среды Production." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Если Merchant ID, Public Key и Private Key среды Production отображаются в Settings &gt; API Keys, значит всё в порядке." }
+          ]
+        },
+        {
+          "h2": "3. Информация для регистрации в GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Поле", "Описание"], "rows": [
+              ["merchant_id", "Production Merchant ID"],
+              ["public_key", "Production Public Key"],
+              ["private_key", "Production Private Key (обращайтесь осторожно)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Введите merchant_id·public_key·private_key в разделе [Регистрация] в GenieGo Integration Hub и сохраните. Учётные данные шифруются при хранении с помощью AES-256-GCM и маскируются при чтении." }
+          ]
+        },
+        {
+          "h2": "4. Частые проблемы",
+          "blocks": [
+            { "type": "table", "head": ["Проблема", "Причина", "Решение"], "rows": [
+              ["В меню API Keys нет учётных данных", "Одобрение аккаунта продавца не завершено", "Сначала завершите одобрение аккаунта продавца Braintree (PayPal)."],
+              ["Сбой аутентификации", "Использованы ключи Sandbox или неверно введён Private Key", "Ещё раз проверьте Merchant ID, Public Key и Private Key среды Production."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Итоговый контрольный список",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Аккаунт продавца Braintree (PayPal) одобрен.",
+              "Учётные данные Production найдены в Settings > API Keys в Control Panel.",
+              "Merchant ID, Public Key и Private Key подтверждены.",
+              "merchant_id·public_key·private_key введены в GenieGo [Регистрация] и сохранены."
+            ] }
+          ]
+        }
+      ]
+    }
+  }
+}

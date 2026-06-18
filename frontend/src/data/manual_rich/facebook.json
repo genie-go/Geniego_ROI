@@ -1,0 +1,1536 @@
+{
+  "name": "Facebook Live",
+  "icon": "f",
+  "langs": {
+    "ko": {
+      "titleType": "API 발급 매뉴얼",
+      "badge": "Facebook Live API Beginner Manual",
+      "intro": "Meta for Developers에서 앱을 만들고 Facebook 페이지 라이브 연동에 필요한 App ID, App Secret, 페이지 액세스 토큰(Page Access Token)을 준비하는 과정을 초보자도 따라 할 수 있도록 정리했습니다.",
+      "org": "GenieGo 연동허브 · Meta 연동 초보자용 가이드",
+      "quick": [
+        ["핵심 개념", "API Key가 아니라 Access Token"],
+        ["개발 사이트", "developers.facebook.com"],
+        ["사용 API", "Live Video API (Graph)"],
+        ["필요 권한", "페이지 관리자 + Page Token"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 먼저 알아야 할 핵심",
+          "desc": "YouTube는 API Key 한 개로 끝나지만, Facebook(Meta)은 App ID · App Secret · Access Token 구조로 동작합니다.",
+          "blocks": [
+            { "type": "notice", "kind": "danger", "html": "<strong>중요:</strong> Meta는 “API Key 하나 복사”로 끝나지 않습니다. 보통 <strong>앱 생성 → 제품 추가 → 권한 설정 → 페이지 액세스 토큰 발급 → 앱 검수</strong> 순서가 필요합니다." }
+          ]
+        },
+        {
+          "h2": "2. 준비물",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Meta/Facebook 계정",
+              "Meta for Developers 접속 권한",
+              "관리 권한이 있는 Facebook 페이지",
+              "실제 서비스용 개인정보처리방침 URL · 서비스 약관 URL"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. Meta Developer 앱 만들기",
+          "desc": "모든 Meta API 연동은 앱을 만드는 것에서 시작합니다.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Meta for Developers 접속", "p": "브라우저에서 Meta for Developers에 로그인합니다.", "path": "developers.facebook.com" },
+              { "h3": "내 앱 → 앱 만들기", "p": "상단 My Apps → Create App을 클릭합니다.", "path": "My Apps → Create App" },
+              { "h3": "앱 유형 선택", "p": "플랫폼 연동/라이브커머스는 비즈니스 목적에 가깝습니다.", "path": "Business 유형 선택" },
+              { "h3": "앱 이름·이메일 입력 → 생성", "p": "앱 이름, 연락 이메일을 입력하고 앱을 생성합니다.", "path": "App Name / Contact Email" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "앱 생성 후 대시보드 → 앱 설정 → 기본 설정에서 <strong>App ID</strong>와 <strong>App Secret</strong>을 확인합니다. (App Secret은 프론트엔드/공개 저장소에 절대 노출 금지)" }
+          ]
+        },
+        {
+          "h2": "4. Facebook Live API 설정 흐름",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "제품 추가", "p": "앱 대시보드에서 Facebook Login / Graph API 관련 설정을 준비합니다.", "path": "Add Product → Facebook Login" },
+              { "h3": "페이지 연결 + 페이지 토큰", "p": "라이브를 페이지에 송출하려면 페이지 관리자 권한과 Page Access Token이 필요합니다.", "path": "Page Access Token" },
+              { "h3": "필요 권한 신청(App Review)", "p": "콘텐츠 게시·페이지 관리·라이브 비디오 생성 목적의 권한(예: pages_read_engagement, pages_manage_posts)을 신청합니다.", "path": "Permissions → App Review" },
+              { "h3": "Graph API Explorer로 토큰 발급·테스트", "p": "권한이 포함된 토큰을 발급하고 API 호출을 테스트합니다.", "path": "Tools → Graph API Explorer" }
+            ] },
+            { "type": "notice", "kind": "", "html": "Facebook Live 생성 호출 예시<br><pre class=\"code\">POST /{page-id}/live_videos\naccess_token={PAGE_ACCESS_TOKEN}</pre>" },
+            { "type": "notice", "kind": "info", "html": "정상 생성되면 방송 ID·스트림 URL·스트림 키 등 라이브 송출 정보가 반환됩니다. 페이지 ID(page_id)는 페이지 정보에서 확인합니다." }
+          ]
+        },
+        {
+          "h2": "5. GenieGo 연동허브에 등록",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "페이지 액세스 토큰 복사", "p": "발급한 Page Access Token을 복사합니다(장기 토큰 권장).", "path": "access_token (Page token)" },
+              { "h3": "페이지 ID 확인", "p": "대상 Facebook 페이지의 ID(page_id)를 확인합니다.", "path": "page_id" },
+              { "h3": "연동허브에 등록", "p": "GenieGo 연동허브 → Facebook Live → [등록]에 아래 값을 입력해 저장합니다.", "path": "access_token · page_id" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "등록한 키는 AES-256-GCM으로 암호화 저장되며 조회 시 마스킹됩니다." }
+          ]
+        },
+        {
+          "h2": "6. Access Token 종류",
+          "blocks": [
+            { "type": "table", "head": ["토큰 종류", "용도", "주의사항"], "rows": [
+              ["User Access Token", "사용자 로그인 기반 API 호출", "권한 승인 범위에 따라 접근 데이터가 달라집니다."],
+              ["Page Access Token", "페이지 게시·페이지 라이브 생성", "페이지 관리자 권한과 관련 권한이 필요합니다."],
+              ["Long-Lived Token", "만료 시간을 늘린 장기 토큰", "운영 시 만료·갱신 로직이 필요합니다."]
+            ] }
+          ]
+        },
+        {
+          "h2": "7. 체크리스트",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Meta Developer 앱을 생성했다.",
+              "App ID와 App Secret을 확인했다.",
+              "Facebook 페이지를 연결하고 Page Access Token을 발급했다.",
+              "필요 권한(App Review)을 정리·신청했다.",
+              "GenieGo [등록]에 access_token·page_id를 입력해 저장했다.",
+              "토큰을 서버 환경변수에 안전하게 보관했다."
+            ] }
+          ]
+        },
+        {
+          "h2": "8. 자주 발생하는 문제",
+          "blocks": [
+            { "type": "table", "head": ["문제", "원인", "해결 방법"], "rows": [
+              ["API Key 메뉴가 없음", "Meta는 단일 API Key 구조가 아님", "App ID·App Secret·Access Token 구조로 진행합니다."],
+              ["권한 오류", "토큰에 필요한 권한 없음", "Graph API Explorer에서 권한 추가 후 토큰을 재발급합니다."],
+              ["페이지 라이브 생성 실패", "Page Access Token/관리자 권한 부족", "페이지 관리자 권한과 토큰 권한을 확인합니다."]
+            ] }
+          ]
+        }
+      ]
+    },
+    "en": {
+      "titleType": "API Issuance Manual",
+      "badge": "Facebook Live API Beginner Manual",
+      "intro": "A beginner-friendly walkthrough of creating an app on Meta for Developers and preparing the App ID, App Secret, and Page Access Token required to connect Facebook page live streaming.",
+      "org": "GenieGo Integration Hub · Beginner's guide to Meta integration",
+      "quick": [
+        ["Key concept", "Not an API Key, but an Access Token"],
+        ["Developer site", "developers.facebook.com"],
+        ["API used", "Live Video API (Graph)"],
+        ["Permissions needed", "Page admin + Page Token"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Key Things to Know First",
+          "desc": "YouTube is done with a single API Key, but Facebook (Meta) works with an App ID · App Secret · Access Token structure.",
+          "blocks": [
+            { "type": "notice", "kind": "danger", "html": "<strong>Important:</strong> With Meta, it does not end at \"copying a single API Key.\" You typically need the following order: <strong>create an app → add a product → set permissions → issue a Page Access Token → app review</strong>." }
+          ]
+        },
+        {
+          "h2": "2. What You Need",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "A Meta/Facebook account",
+              "Access to Meta for Developers",
+              "A Facebook page on which you have admin rights",
+              "A live-service privacy policy URL · terms of service URL"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. Creating a Meta Developer App",
+          "desc": "Every Meta API integration starts with creating an app.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Open Meta for Developers", "p": "Sign in to Meta for Developers in your browser.", "path": "developers.facebook.com" },
+              { "h3": "My Apps → Create App", "p": "Click My Apps → Create App at the top.", "path": "My Apps → Create App" },
+              { "h3": "Choose the app type", "p": "Platform integration / live commerce is closer to a business purpose.", "path": "Select the Business type" },
+              { "h3": "Enter app name and email → create", "p": "Enter the app name and a contact email, then create the app.", "path": "App Name / Contact Email" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "After creating the app, check the <strong>App ID</strong> and <strong>App Secret</strong> under Dashboard → App Settings → Basic. (Never expose the App Secret in the frontend or a public repository.)" }
+          ]
+        },
+        {
+          "h2": "4. Facebook Live API Setup Flow",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Add a product", "p": "On the app dashboard, prepare the Facebook Login / Graph API related settings.", "path": "Add Product → Facebook Login" },
+              { "h3": "Connect a page + page token", "p": "To broadcast a live stream to a page, you need page admin rights and a Page Access Token.", "path": "Page Access Token" },
+              { "h3": "Apply for required permissions (App Review)", "p": "Apply for permissions intended for publishing content, managing pages, and creating live videos (e.g., pages_read_engagement, pages_manage_posts).", "path": "Permissions → App Review" },
+              { "h3": "Issue and test a token with Graph API Explorer", "p": "Issue a token that includes the permissions and test the API calls.", "path": "Tools → Graph API Explorer" }
+            ] },
+            { "type": "notice", "kind": "", "html": "Example Facebook Live creation call<br><pre class=\"code\">POST /{page-id}/live_videos\naccess_token={PAGE_ACCESS_TOKEN}</pre>" },
+            { "type": "notice", "kind": "info", "html": "On successful creation, live broadcast information such as the broadcast ID, stream URL, and stream key is returned. Find the page ID (page_id) in the page information." }
+          ]
+        },
+        {
+          "h2": "5. Register in the GenieGo Integration Hub",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Copy the Page Access Token", "p": "Copy the Page Access Token you issued (a long-lived token is recommended).", "path": "access_token (Page token)" },
+              { "h3": "Confirm the page ID", "p": "Confirm the ID (page_id) of the target Facebook page.", "path": "page_id" },
+              { "h3": "Register in the Integration Hub", "p": "In GenieGo Integration Hub → Facebook Live → [Register], enter the values below and save.", "path": "access_token · page_id" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Registered keys are encrypted at rest with AES-256-GCM and masked on read." }
+          ]
+        },
+        {
+          "h2": "6. Access Token Types",
+          "blocks": [
+            { "type": "table", "head": ["Token type", "Use", "Notes"], "rows": [
+              ["User Access Token", "API calls based on user login", "The data you can access varies depending on the scope of granted permissions."],
+              ["Page Access Token", "Page publishing · page live creation", "Page admin rights and the relevant permissions are required."],
+              ["Long-Lived Token", "A long-lived token with an extended expiry", "In production, you need expiry/refresh logic."]
+            ] }
+          ]
+        },
+        {
+          "h2": "7. Checklist",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Created a Meta Developer app.",
+              "Confirmed the App ID and App Secret.",
+              "Connected a Facebook page and issued a Page Access Token.",
+              "Organized and applied for the required permissions (App Review).",
+              "Entered access_token·page_id in GenieGo [Register] and saved.",
+              "Stored the token securely in server environment variables."
+            ] }
+          ]
+        },
+        {
+          "h2": "8. Common Issues",
+          "blocks": [
+            { "type": "table", "head": ["Issue", "Cause", "Solution"], "rows": [
+              ["There is no API Key menu", "Meta does not use a single API Key structure", "Proceed with the App ID·App Secret·Access Token structure."],
+              ["Permission error", "The token lacks the required permissions", "Add the permissions in Graph API Explorer and reissue the token."],
+              ["Page live creation fails", "Insufficient Page Access Token / admin rights", "Check the page admin rights and the token permissions."]
+            ] }
+          ]
+        }
+      ]
+    },
+    "ja": {
+      "titleType": "API 発行マニュアル",
+      "badge": "Facebook Live API Beginner Manual",
+      "intro": "Meta for Developers でアプリを作成し、Facebook ページのライブ連携に必要な App ID、App Secret、ページアクセストークン(Page Access Token)を準備する手順を、初心者でもそのまま実行できるようにまとめました。",
+      "org": "GenieGo 連携ハブ · Meta 連携 初心者向けガイド",
+      "quick": [
+        ["核心概念", "API Key ではなく Access Token"],
+        ["開発サイト", "developers.facebook.com"],
+        ["使用 API", "Live Video API (Graph)"],
+        ["必要な権限", "ページ管理者 + Page Token"]
+      ],
+      "sections": [
+        {
+          "h2": "1. まず知っておくべき核心",
+          "desc": "YouTube は API Key 一つで完結しますが、Facebook(Meta)は App ID · App Secret · Access Token の構造で動作します。",
+          "blocks": [
+            { "type": "notice", "kind": "danger", "html": "<strong>重要:</strong> Meta は「API Key を一つコピーする」だけでは完結しません。通常は <strong>アプリ作成 → 製品追加 → 権限設定 → ページアクセストークン発行 → アプリ審査</strong> の順序が必要です。" }
+          ]
+        },
+        {
+          "h2": "2. 準備するもの",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Meta/Facebook アカウント",
+              "Meta for Developers へのアクセス権限",
+              "管理権限を持つ Facebook ページ",
+              "実サービス用のプライバシーポリシー URL · サービス利用規約 URL"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. Meta Developer アプリを作成",
+          "desc": "すべての Meta API 連携はアプリを作成することから始まります。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Meta for Developers にアクセス", "p": "ブラウザで Meta for Developers にログインします。", "path": "developers.facebook.com" },
+              { "h3": "マイアプリ → アプリを作成", "p": "上部の My Apps → Create App をクリックします。", "path": "My Apps → Create App" },
+              { "h3": "アプリの種類を選択", "p": "プラットフォーム連携/ライブコマースはビジネス目的に近いです。", "path": "Business タイプを選択" },
+              { "h3": "アプリ名·メール入力 → 作成", "p": "アプリ名、連絡先メールを入力してアプリを作成します。", "path": "App Name / Contact Email" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "アプリ作成後、ダッシュボード → アプリ設定 → 基本設定で <strong>App ID</strong> と <strong>App Secret</strong> を確認します。(App Secret はフロントエンド/公開リポジトリに絶対に公開しないでください)" }
+          ]
+        },
+        {
+          "h2": "4. Facebook Live API 設定の流れ",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "製品を追加", "p": "アプリのダッシュボードで Facebook Login / Graph API 関連の設定を準備します。", "path": "Add Product → Facebook Login" },
+              { "h3": "ページ連携 + ページトークン", "p": "ライブをページに配信するには、ページ管理者権限と Page Access Token が必要です。", "path": "Page Access Token" },
+              { "h3": "必要な権限を申請(App Review)", "p": "コンテンツ投稿·ページ管理·ライブビデオ作成を目的とする権限(例: pages_read_engagement, pages_manage_posts)を申請します。", "path": "Permissions → App Review" },
+              { "h3": "Graph API Explorer でトークン発行·テスト", "p": "権限を含むトークンを発行し、API 呼び出しをテストします。", "path": "Tools → Graph API Explorer" }
+            ] },
+            { "type": "notice", "kind": "", "html": "Facebook Live 作成呼び出しの例<br><pre class=\"code\">POST /{page-id}/live_videos\naccess_token={PAGE_ACCESS_TOKEN}</pre>" },
+            { "type": "notice", "kind": "info", "html": "正常に作成されると、配信 ID·ストリーム URL·ストリームキーなどのライブ配信情報が返されます。ページ ID(page_id)はページ情報で確認します。" }
+          ]
+        },
+        {
+          "h2": "5. GenieGo 連携ハブに登録",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "ページアクセストークンをコピー", "p": "発行した Page Access Token をコピーします(長期トークン推奨)。", "path": "access_token (Page token)" },
+              { "h3": "ページ ID を確認", "p": "対象の Facebook ページの ID(page_id)を確認します。", "path": "page_id" },
+              { "h3": "連携ハブに登録", "p": "GenieGo 連携ハブ → Facebook Live → [登録] に以下の値を入力して保存します。", "path": "access_token · page_id" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "登録したキーは AES-256-GCM で暗号化して保存され、閲覧時にはマスキングされます。" }
+          ]
+        },
+        {
+          "h2": "6. Access Token の種類",
+          "blocks": [
+            { "type": "table", "head": ["トークンの種類", "用途", "注意事項"], "rows": [
+              ["User Access Token", "ユーザーログインに基づく API 呼び出し", "権限の承認範囲によってアクセスできるデータが変わります。"],
+              ["Page Access Token", "ページ投稿·ページライブ作成", "ページ管理者権限と関連権限が必要です。"],
+              ["Long-Lived Token", "有効期限を延ばした長期トークン", "運用時には有効期限·更新ロジックが必要です。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "7. チェックリスト",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Meta Developer アプリを作成した。",
+              "App ID と App Secret を確認した。",
+              "Facebook ページを連携し、Page Access Token を発行した。",
+              "必要な権限(App Review)を整理·申請した。",
+              "GenieGo の [登録] に access_token·page_id を入力して保存した。",
+              "トークンをサーバーの環境変数に安全に保管した。"
+            ] }
+          ]
+        },
+        {
+          "h2": "8. よくある問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["API Key メニューがない", "Meta は単一の API Key 構造ではない", "App ID·App Secret·Access Token の構造で進めます。"],
+              ["権限エラー", "トークンに必要な権限がない", "Graph API Explorer で権限を追加した後、トークンを再発行します。"],
+              ["ページライブの作成に失敗", "Page Access Token/管理者権限が不足", "ページ管理者権限とトークンの権限を確認します。"]
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh": {
+      "titleType": "API 申请手册",
+      "badge": "Facebook Live API Beginner Manual",
+      "intro": "本手册手把手指导新手在 Meta for Developers 上创建应用，并准备连接 Facebook 主页直播所需的 App ID、App Secret 和主页访问令牌(Page Access Token)。",
+      "org": "GenieGo 集成中心 · Meta 集成新手指南",
+      "quick": [
+        ["核心概念", "不是 API Key，而是 Access Token"],
+        ["开发网站", "developers.facebook.com"],
+        ["使用的 API", "Live Video API (Graph)"],
+        ["所需权限", "主页管理员 + Page Token"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 首先要了解的核心",
+          "desc": "YouTube 用一个 API Key 即可，但 Facebook(Meta)采用 App ID · App Secret · Access Token 的结构运行。",
+          "blocks": [
+            { "type": "notice", "kind": "danger", "html": "<strong>重要:</strong> Meta 并非「复制一个 API Key」就能完成。通常需要按 <strong>创建应用 → 添加产品 → 设置权限 → 签发主页访问令牌 → 应用审核</strong> 的顺序进行。" }
+          ]
+        },
+        {
+          "h2": "2. 准备事项",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Meta/Facebook 账户",
+              "Meta for Developers 访问权限",
+              "拥有管理权限的 Facebook 主页",
+              "用于实际服务的隐私政策 URL · 服务条款 URL"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. 创建 Meta Developer 应用",
+          "desc": "所有 Meta API 集成都从创建应用开始。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "访问 Meta for Developers", "p": "在浏览器中登录 Meta for Developers。", "path": "developers.facebook.com" },
+              { "h3": "我的应用 → 创建应用", "p": "点击顶部的 My Apps → Create App。", "path": "My Apps → Create App" },
+              { "h3": "选择应用类型", "p": "平台集成/直播电商更接近企业用途。", "path": "选择 Business 类型" },
+              { "h3": "输入应用名称·邮箱 → 创建", "p": "输入应用名称和联系邮箱，然后创建应用。", "path": "App Name / Contact Email" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "创建应用后，在仪表板 → 应用设置 → 基本设置中查看 <strong>App ID</strong> 和 <strong>App Secret</strong>。(切勿在前端/公开仓库中暴露 App Secret)" }
+          ]
+        },
+        {
+          "h2": "4. Facebook Live API 设置流程",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "添加产品", "p": "在应用仪表板中准备 Facebook Login / Graph API 相关设置。", "path": "Add Product → Facebook Login" },
+              { "h3": "连接主页 + 主页令牌", "p": "若要将直播推送到主页，需要主页管理员权限和 Page Access Token。", "path": "Page Access Token" },
+              { "h3": "申请所需权限(App Review)", "p": "申请用于发布内容·管理主页·创建直播视频的权限(例如 pages_read_engagement、pages_manage_posts)。", "path": "Permissions → App Review" },
+              { "h3": "用 Graph API Explorer 签发并测试令牌", "p": "签发包含权限的令牌并测试 API 调用。", "path": "Tools → Graph API Explorer" }
+            ] },
+            { "type": "notice", "kind": "", "html": "Facebook Live 创建调用示例<br><pre class=\"code\">POST /{page-id}/live_videos\naccess_token={PAGE_ACCESS_TOKEN}</pre>" },
+            { "type": "notice", "kind": "info", "html": "创建成功后会返回直播 ID·推流 URL·推流密钥等直播推送信息。主页 ID(page_id)可在主页信息中查看。" }
+          ]
+        },
+        {
+          "h2": "5. 注册到 GenieGo 集成中心",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "复制主页访问令牌", "p": "复制您签发的 Page Access Token(建议使用长期令牌)。", "path": "access_token (Page token)" },
+              { "h3": "确认主页 ID", "p": "确认目标 Facebook 主页的 ID(page_id)。", "path": "page_id" },
+              { "h3": "注册到集成中心", "p": "在 GenieGo 集成中心 → Facebook Live → [注册] 中输入以下值并保存。", "path": "access_token · page_id" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "注册的密钥将以 AES-256-GCM 加密存储，并在查询时进行掩码处理。" }
+          ]
+        },
+        {
+          "h2": "6. Access Token 类型",
+          "blocks": [
+            { "type": "table", "head": ["令牌类型", "用途", "注意事项"], "rows": [
+              ["User Access Token", "基于用户登录的 API 调用", "可访问的数据因权限授权范围而异。"],
+              ["Page Access Token", "主页发布·主页直播创建", "需要主页管理员权限及相关权限。"],
+              ["Long-Lived Token", "延长了有效期的长期令牌", "运营时需要有效期·刷新逻辑。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "7. 检查清单",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已创建 Meta Developer 应用。",
+              "已确认 App ID 和 App Secret。",
+              "已连接 Facebook 主页并签发 Page Access Token。",
+              "已整理并申请所需权限(App Review)。",
+              "已在 GenieGo [注册] 中输入 access_token·page_id 并保存。",
+              "已将令牌安全地保存在服务器环境变量中。"
+            ] }
+          ]
+        },
+        {
+          "h2": "8. 常见问题",
+          "blocks": [
+            { "type": "table", "head": ["问题", "原因", "解决方法"], "rows": [
+              ["没有 API Key 菜单", "Meta 不是单一 API Key 结构", "按 App ID·App Secret·Access Token 的结构进行。"],
+              ["权限错误", "令牌缺少所需权限", "在 Graph API Explorer 中添加权限后重新签发令牌。"],
+              ["主页直播创建失败", "Page Access Token/管理员权限不足", "检查主页管理员权限和令牌权限。"]
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh-TW": {
+      "titleType": "API 申請手冊",
+      "badge": "Facebook Live API Beginner Manual",
+      "intro": "本手冊手把手指導新手在 Meta for Developers 上建立應用程式，並準備連接 Facebook 粉絲專頁直播所需的 App ID、App Secret 和粉絲專頁存取權杖(Page Access Token)。",
+      "org": "GenieGo 整合中心 · Meta 整合新手指南",
+      "quick": [
+        ["核心概念", "不是 API Key，而是 Access Token"],
+        ["開發網站", "developers.facebook.com"],
+        ["使用的 API", "Live Video API (Graph)"],
+        ["所需權限", "粉絲專頁管理員 + Page Token"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 首先要了解的核心",
+          "desc": "YouTube 用一個 API Key 即可，但 Facebook(Meta)採用 App ID · App Secret · Access Token 的結構運作。",
+          "blocks": [
+            { "type": "notice", "kind": "danger", "html": "<strong>重要:</strong> Meta 並非「複製一個 API Key」就能完成。通常需要依 <strong>建立應用程式 → 新增產品 → 設定權限 → 簽發粉絲專頁存取權杖 → 應用程式審查</strong> 的順序進行。" }
+          ]
+        },
+        {
+          "h2": "2. 準備事項",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Meta/Facebook 帳戶",
+              "Meta for Developers 存取權限",
+              "擁有管理權限的 Facebook 粉絲專頁",
+              "用於實際服務的隱私權政策 URL · 服務條款 URL"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. 建立 Meta Developer 應用程式",
+          "desc": "所有 Meta API 整合都從建立應用程式開始。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "存取 Meta for Developers", "p": "在瀏覽器中登入 Meta for Developers。", "path": "developers.facebook.com" },
+              { "h3": "我的應用程式 → 建立應用程式", "p": "點擊頂部的 My Apps → Create App。", "path": "My Apps → Create App" },
+              { "h3": "選擇應用程式類型", "p": "平台整合/直播電商更接近企業用途。", "path": "選擇 Business 類型" },
+              { "h3": "輸入應用程式名稱·電子郵件 → 建立", "p": "輸入應用程式名稱和聯絡電子郵件，然後建立應用程式。", "path": "App Name / Contact Email" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "建立應用程式後，在儀表板 → 應用程式設定 → 基本設定中查看 <strong>App ID</strong> 和 <strong>App Secret</strong>。(切勿在前端/公開儲存庫中暴露 App Secret)" }
+          ]
+        },
+        {
+          "h2": "4. Facebook Live API 設定流程",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "新增產品", "p": "在應用程式儀表板中準備 Facebook Login / Graph API 相關設定。", "path": "Add Product → Facebook Login" },
+              { "h3": "連接粉絲專頁 + 粉絲專頁權杖", "p": "若要將直播推送到粉絲專頁，需要粉絲專頁管理員權限和 Page Access Token。", "path": "Page Access Token" },
+              { "h3": "申請所需權限(App Review)", "p": "申請用於發布內容·管理粉絲專頁·建立直播影片的權限(例如 pages_read_engagement、pages_manage_posts)。", "path": "Permissions → App Review" },
+              { "h3": "用 Graph API Explorer 簽發並測試權杖", "p": "簽發包含權限的權杖並測試 API 呼叫。", "path": "Tools → Graph API Explorer" }
+            ] },
+            { "type": "notice", "kind": "", "html": "Facebook Live 建立呼叫範例<br><pre class=\"code\">POST /{page-id}/live_videos\naccess_token={PAGE_ACCESS_TOKEN}</pre>" },
+            { "type": "notice", "kind": "info", "html": "建立成功後會回傳直播 ID·串流 URL·串流金鑰等直播推送資訊。粉絲專頁 ID(page_id)可在粉絲專頁資訊中查看。" }
+          ]
+        },
+        {
+          "h2": "5. 註冊到 GenieGo 整合中心",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "複製粉絲專頁存取權杖", "p": "複製您簽發的 Page Access Token(建議使用長期權杖)。", "path": "access_token (Page token)" },
+              { "h3": "確認粉絲專頁 ID", "p": "確認目標 Facebook 粉絲專頁的 ID(page_id)。", "path": "page_id" },
+              { "h3": "註冊到整合中心", "p": "在 GenieGo 整合中心 → Facebook Live → [註冊] 中輸入以下值並儲存。", "path": "access_token · page_id" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "註冊的金鑰將以 AES-256-GCM 加密儲存，並在查詢時進行遮罩處理。" }
+          ]
+        },
+        {
+          "h2": "6. Access Token 類型",
+          "blocks": [
+            { "type": "table", "head": ["權杖類型", "用途", "注意事項"], "rows": [
+              ["User Access Token", "基於使用者登入的 API 呼叫", "可存取的資料因權限授權範圍而異。"],
+              ["Page Access Token", "粉絲專頁發布·粉絲專頁直播建立", "需要粉絲專頁管理員權限及相關權限。"],
+              ["Long-Lived Token", "延長了有效期的長期權杖", "營運時需要有效期·更新邏輯。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "7. 檢查清單",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已建立 Meta Developer 應用程式。",
+              "已確認 App ID 和 App Secret。",
+              "已連接 Facebook 粉絲專頁並簽發 Page Access Token。",
+              "已整理並申請所需權限(App Review)。",
+              "已在 GenieGo [註冊] 中輸入 access_token·page_id 並儲存。",
+              "已將權杖安全地保存在伺服器環境變數中。"
+            ] }
+          ]
+        },
+        {
+          "h2": "8. 常見問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["沒有 API Key 選單", "Meta 不是單一 API Key 結構", "依 App ID·App Secret·Access Token 的結構進行。"],
+              ["權限錯誤", "權杖缺少所需權限", "在 Graph API Explorer 中新增權限後重新簽發權杖。"],
+              ["粉絲專頁直播建立失敗", "Page Access Token/管理員權限不足", "檢查粉絲專頁管理員權限和權杖權限。"]
+            ] }
+          ]
+        }
+      ]
+    },
+    "de": {
+      "titleType": "API-Ausstellungsanleitung",
+      "badge": "Facebook Live API Beginner Manual",
+      "intro": "Eine einsteigerfreundliche Anleitung zum Erstellen einer App auf Meta for Developers und zum Vorbereiten der App ID, des App Secret und des Page Access Token, die für die Verbindung des Facebook-Seiten-Livestreams erforderlich sind.",
+      "org": "GenieGo Integration Hub · Einsteigerleitfaden zur Meta-Integration",
+      "quick": [
+        ["Kernkonzept", "Kein API Key, sondern ein Access Token"],
+        ["Entwicklerseite", "developers.facebook.com"],
+        ["Verwendete API", "Live Video API (Graph)"],
+        ["Erforderliche Berechtigungen", "Seiten-Admin + Page Token"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Das Wichtigste vorab",
+          "desc": "Bei YouTube reicht ein einziger API Key, aber Facebook (Meta) arbeitet mit einer Struktur aus App ID · App Secret · Access Token.",
+          "blocks": [
+            { "type": "notice", "kind": "danger", "html": "<strong>Wichtig:</strong> Bei Meta ist es nicht mit dem \"Kopieren eines einzigen API Key\" getan. Üblicherweise ist folgende Reihenfolge erforderlich: <strong>App erstellen → Produkt hinzufügen → Berechtigungen festlegen → Page Access Token ausstellen → App-Überprüfung</strong>." }
+          ]
+        },
+        {
+          "h2": "2. Voraussetzungen",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Ein Meta/Facebook-Konto",
+              "Zugang zu Meta for Developers",
+              "Eine Facebook-Seite, für die Sie Admin-Rechte haben",
+              "Eine Datenschutzerklärungs-URL · Nutzungsbedingungen-URL für den Live-Dienst"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. Eine Meta-Developer-App erstellen",
+          "desc": "Jede Meta-API-Integration beginnt mit dem Erstellen einer App.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Meta for Developers öffnen", "p": "Melden Sie sich in Ihrem Browser bei Meta for Developers an.", "path": "developers.facebook.com" },
+              { "h3": "Meine Apps → App erstellen", "p": "Klicken Sie oben auf My Apps → Create App.", "path": "My Apps → Create App" },
+              { "h3": "App-Typ auswählen", "p": "Plattformintegration/Live-Commerce kommt einem geschäftlichen Zweck näher.", "path": "Typ Business auswählen" },
+              { "h3": "App-Name·E-Mail eingeben → erstellen", "p": "Geben Sie den App-Namen und eine Kontakt-E-Mail ein und erstellen Sie die App.", "path": "App Name / Contact Email" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Prüfen Sie nach dem Erstellen der App unter Dashboard → App-Einstellungen → Grundeinstellungen die <strong>App ID</strong> und das <strong>App Secret</strong>. (Das App Secret darf niemals im Frontend oder in einem öffentlichen Repository offengelegt werden.)" }
+          ]
+        },
+        {
+          "h2": "4. Ablauf der Facebook-Live-API-Einrichtung",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Produkt hinzufügen", "p": "Bereiten Sie im App-Dashboard die Einstellungen rund um Facebook Login / Graph API vor.", "path": "Add Product → Facebook Login" },
+              { "h3": "Seite verbinden + Page Token", "p": "Um einen Livestream auf eine Seite zu übertragen, benötigen Sie Seiten-Admin-Rechte und ein Page Access Token.", "path": "Page Access Token" },
+              { "h3": "Erforderliche Berechtigungen beantragen (App Review)", "p": "Beantragen Sie Berechtigungen zum Veröffentlichen von Inhalten, Verwalten von Seiten und Erstellen von Live-Videos (z. B. pages_read_engagement, pages_manage_posts).", "path": "Permissions → App Review" },
+              { "h3": "Token mit Graph API Explorer ausstellen·testen", "p": "Stellen Sie ein Token aus, das die Berechtigungen enthält, und testen Sie die API-Aufrufe.", "path": "Tools → Graph API Explorer" }
+            ] },
+            { "type": "notice", "kind": "", "html": "Beispiel für einen Facebook-Live-Erstellungsaufruf<br><pre class=\"code\">POST /{page-id}/live_videos\naccess_token={PAGE_ACCESS_TOKEN}</pre>" },
+            { "type": "notice", "kind": "info", "html": "Bei erfolgreicher Erstellung werden Live-Übertragungsinformationen wie Broadcast-ID·Stream-URL·Stream-Key zurückgegeben. Die Seiten-ID (page_id) finden Sie in den Seiteninformationen." }
+          ]
+        },
+        {
+          "h2": "5. Im GenieGo Integration Hub registrieren",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Page Access Token kopieren", "p": "Kopieren Sie das ausgestellte Page Access Token (ein langlebiges Token wird empfohlen).", "path": "access_token (Page token)" },
+              { "h3": "Seiten-ID bestätigen", "p": "Bestätigen Sie die ID (page_id) der Ziel-Facebook-Seite.", "path": "page_id" },
+              { "h3": "Im Integration Hub registrieren", "p": "Geben Sie im GenieGo Integration Hub → Facebook Live → [Registrieren] die folgenden Werte ein und speichern Sie.", "path": "access_token · page_id" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Registrierte Schlüssel werden im Ruhezustand mit AES-256-GCM verschlüsselt und beim Lesen maskiert." }
+          ]
+        },
+        {
+          "h2": "6. Arten von Access Tokens",
+          "blocks": [
+            { "type": "table", "head": ["Token-Typ", "Verwendung", "Hinweise"], "rows": [
+              ["User Access Token", "API-Aufrufe auf Basis der Nutzeranmeldung", "Die zugänglichen Daten hängen vom Umfang der genehmigten Berechtigungen ab."],
+              ["Page Access Token", "Seitenveröffentlichung · Erstellung von Seiten-Livestreams", "Seiten-Admin-Rechte und die zugehörigen Berechtigungen sind erforderlich."],
+              ["Long-Lived Token", "Ein langlebiges Token mit verlängerter Ablaufzeit", "Im Betrieb ist eine Ablauf-/Erneuerungslogik erforderlich."]
+            ] }
+          ]
+        },
+        {
+          "h2": "7. Checkliste",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Eine Meta-Developer-App erstellt.",
+              "Die App ID und das App Secret bestätigt.",
+              "Eine Facebook-Seite verbunden und ein Page Access Token ausgestellt.",
+              "Die erforderlichen Berechtigungen (App Review) zusammengestellt·beantragt.",
+              "access_token·page_id in GenieGo [Registrieren] eingegeben und gespeichert.",
+              "Das Token sicher in den Server-Umgebungsvariablen gespeichert."
+            ] }
+          ]
+        },
+        {
+          "h2": "8. Häufige Probleme",
+          "blocks": [
+            { "type": "table", "head": ["Problem", "Ursache", "Lösung"], "rows": [
+              ["Es gibt kein API-Key-Menü", "Meta verwendet keine einzelne API-Key-Struktur", "Gehen Sie mit der Struktur App ID·App Secret·Access Token vor."],
+              ["Berechtigungsfehler", "Dem Token fehlen die erforderlichen Berechtigungen", "Fügen Sie die Berechtigungen im Graph API Explorer hinzu und stellen Sie das Token erneut aus."],
+              ["Erstellung des Seiten-Livestreams schlägt fehl", "Page Access Token / Admin-Rechte unzureichend", "Prüfen Sie die Seiten-Admin-Rechte und die Token-Berechtigungen."]
+            ] }
+          ]
+        }
+      ]
+    },
+    "th": {
+      "titleType": "คู่มือการออก API",
+      "badge": "Facebook Live API Beginner Manual",
+      "intro": "คู่มือที่เป็นมิตรกับผู้เริ่มต้น สำหรับการสร้างแอปบน Meta for Developers และเตรียม App ID, App Secret และโทเค็นการเข้าถึงเพจ (Page Access Token) ที่จำเป็นสำหรับการเชื่อมต่อการถ่ายทอดสดของเพจ Facebook",
+      "org": "GenieGo Integration Hub · คู่มือสำหรับผู้เริ่มต้นในการเชื่อมต่อ Meta",
+      "quick": [
+        ["แนวคิดหลัก", "ไม่ใช่ API Key แต่เป็น Access Token"],
+        ["เว็บไซต์นักพัฒนา", "developers.facebook.com"],
+        ["API ที่ใช้", "Live Video API (Graph)"],
+        ["สิทธิ์ที่ต้องใช้", "ผู้ดูแลเพจ + Page Token"]
+      ],
+      "sections": [
+        {
+          "h2": "1. สิ่งสำคัญที่ต้องรู้ก่อน",
+          "desc": "YouTube ใช้ API Key เพียงตัวเดียวก็จบ แต่ Facebook (Meta) ทำงานด้วยโครงสร้าง App ID · App Secret · Access Token",
+          "blocks": [
+            { "type": "notice", "kind": "danger", "html": "<strong>สำคัญ:</strong> สำหรับ Meta แค่ \"คัดลอก API Key ตัวเดียว\" ยังไม่จบ โดยทั่วไปต้องทำตามลำดับ <strong>สร้างแอป → เพิ่มผลิตภัณฑ์ → ตั้งค่าสิทธิ์ → ออก Page Access Token → ตรวจสอบแอป</strong>" }
+          ]
+        },
+        {
+          "h2": "2. สิ่งที่ต้องเตรียม",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "บัญชี Meta/Facebook",
+              "สิทธิ์การเข้าถึง Meta for Developers",
+              "เพจ Facebook ที่คุณมีสิทธิ์ผู้ดูแล",
+              "URL นโยบายความเป็นส่วนตัว · URL ข้อกำหนดในการให้บริการ สำหรับบริการจริง"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. สร้างแอป Meta Developer",
+          "desc": "การเชื่อมต่อ Meta API ทั้งหมดเริ่มต้นจากการสร้างแอป",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "เข้าถึง Meta for Developers", "p": "ลงชื่อเข้าใช้ Meta for Developers ในเบราว์เซอร์ของคุณ", "path": "developers.facebook.com" },
+              { "h3": "แอปของฉัน → สร้างแอป", "p": "คลิก My Apps → Create App ที่ด้านบน", "path": "My Apps → Create App" },
+              { "h3": "เลือกประเภทแอป", "p": "การเชื่อมต่อแพลตฟอร์ม/ไลฟ์คอมเมิร์ซใกล้เคียงกับวัตถุประสงค์ทางธุรกิจมากกว่า", "path": "เลือกประเภท Business" },
+              { "h3": "ป้อนชื่อแอป·อีเมล → สร้าง", "p": "ป้อนชื่อแอปและอีเมลติดต่อ แล้วสร้างแอป", "path": "App Name / Contact Email" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "หลังจากสร้างแอปแล้ว ดู <strong>App ID</strong> และ <strong>App Secret</strong> ที่ แดชบอร์ด → การตั้งค่าแอป → การตั้งค่าพื้นฐาน (ห้ามเปิดเผย App Secret ในฝั่งหน้าบ้าน/ที่เก็บโค้ดสาธารณะโดยเด็ดขาด)" }
+          ]
+        },
+        {
+          "h2": "4. ขั้นตอนการตั้งค่า Facebook Live API",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "เพิ่มผลิตภัณฑ์", "p": "บนแดชบอร์ดของแอป เตรียมการตั้งค่าที่เกี่ยวข้องกับ Facebook Login / Graph API", "path": "Add Product → Facebook Login" },
+              { "h3": "เชื่อมต่อเพจ + โทเค็นเพจ", "p": "หากต้องการถ่ายทอดสดไปยังเพจ คุณต้องมีสิทธิ์ผู้ดูแลเพจและ Page Access Token", "path": "Page Access Token" },
+              { "h3": "ขอสิทธิ์ที่จำเป็น (App Review)", "p": "ขอสิทธิ์สำหรับการเผยแพร่เนื้อหา·จัดการเพจ·สร้างวิดีโอถ่ายทอดสด (เช่น pages_read_engagement, pages_manage_posts)", "path": "Permissions → App Review" },
+              { "h3": "ออกและทดสอบโทเค็นด้วย Graph API Explorer", "p": "ออกโทเค็นที่มีสิทธิ์รวมอยู่และทดสอบการเรียก API", "path": "Tools → Graph API Explorer" }
+            ] },
+            { "type": "notice", "kind": "", "html": "ตัวอย่างการเรียกสร้าง Facebook Live<br><pre class=\"code\">POST /{page-id}/live_videos\naccess_token={PAGE_ACCESS_TOKEN}</pre>" },
+            { "type": "notice", "kind": "info", "html": "เมื่อสร้างสำเร็จ ระบบจะส่งคืนข้อมูลการถ่ายทอดสด เช่น ID การถ่ายทอด·URL สตรีม·คีย์สตรีม ดู ID เพจ (page_id) ได้ในข้อมูลเพจ" }
+          ]
+        },
+        {
+          "h2": "5. ลงทะเบียนใน GenieGo Integration Hub",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "คัดลอกโทเค็นการเข้าถึงเพจ", "p": "คัดลอก Page Access Token ที่คุณออก (แนะนำโทเค็นระยะยาว)", "path": "access_token (Page token)" },
+              { "h3": "ยืนยัน ID เพจ", "p": "ยืนยัน ID (page_id) ของเพจ Facebook เป้าหมาย", "path": "page_id" },
+              { "h3": "ลงทะเบียนใน Integration Hub", "p": "ใน GenieGo Integration Hub → Facebook Live → [ลงทะเบียน] ป้อนค่าด้านล่างแล้วบันทึก", "path": "access_token · page_id" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "คีย์ที่ลงทะเบียนจะถูกเข้ารหัสขณะจัดเก็บด้วย AES-256-GCM และปิดบังเมื่ออ่าน" }
+          ]
+        },
+        {
+          "h2": "6. ประเภทของ Access Token",
+          "blocks": [
+            { "type": "table", "head": ["ประเภทโทเค็น", "การใช้งาน", "ข้อควรระวัง"], "rows": [
+              ["User Access Token", "การเรียก API ตามการเข้าสู่ระบบของผู้ใช้", "ข้อมูลที่เข้าถึงได้จะแตกต่างกันตามขอบเขตสิทธิ์ที่อนุมัติ"],
+              ["Page Access Token", "การเผยแพร่เพจ·การสร้างไลฟ์ของเพจ", "ต้องมีสิทธิ์ผู้ดูแลเพจและสิทธิ์ที่เกี่ยวข้อง"],
+              ["Long-Lived Token", "โทเค็นระยะยาวที่ขยายเวลาหมดอายุ", "เมื่อใช้งานจริงต้องมีตรรกะการหมดอายุ·การต่ออายุ"]
+            ] }
+          ]
+        },
+        {
+          "h2": "7. รายการตรวจสอบ",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "สร้างแอป Meta Developer แล้ว",
+              "ยืนยัน App ID และ App Secret แล้ว",
+              "เชื่อมต่อเพจ Facebook และออก Page Access Token แล้ว",
+              "จัดระเบียบและขอสิทธิ์ที่จำเป็น (App Review) แล้ว",
+              "ป้อน access_token·page_id ใน GenieGo [ลงทะเบียน] และบันทึกแล้ว",
+              "จัดเก็บโทเค็นอย่างปลอดภัยในตัวแปรสภาพแวดล้อมของเซิร์ฟเวอร์แล้ว"
+            ] }
+          ]
+        },
+        {
+          "h2": "8. ปัญหาที่พบบ่อย",
+          "blocks": [
+            { "type": "table", "head": ["ปัญหา", "สาเหตุ", "วิธีแก้ไข"], "rows": [
+              ["ไม่มีเมนู API Key", "Meta ไม่ได้ใช้โครงสร้าง API Key เดียว", "ดำเนินการด้วยโครงสร้าง App ID·App Secret·Access Token"],
+              ["ข้อผิดพลาดด้านสิทธิ์", "โทเค็นไม่มีสิทธิ์ที่จำเป็น", "เพิ่มสิทธิ์ใน Graph API Explorer แล้วออกโทเค็นใหม่"],
+              ["สร้างไลฟ์ของเพจไม่สำเร็จ", "Page Access Token/สิทธิ์ผู้ดูแลไม่เพียงพอ", "ตรวจสอบสิทธิ์ผู้ดูแลเพจและสิทธิ์ของโทเค็น"]
+            ] }
+          ]
+        }
+      ]
+    },
+    "vi": {
+      "titleType": "Hướng dẫn cấp API",
+      "badge": "Facebook Live API Beginner Manual",
+      "intro": "Hướng dẫn thân thiện với người mới về cách tạo ứng dụng trên Meta for Developers và chuẩn bị App ID, App Secret cùng mã thông báo truy cập trang (Page Access Token) cần thiết để kết nối phát trực tiếp của trang Facebook.",
+      "org": "GenieGo Integration Hub · Hướng dẫn cho người mới về tích hợp Meta",
+      "quick": [
+        ["Khái niệm cốt lõi", "Không phải API Key, mà là Access Token"],
+        ["Trang nhà phát triển", "developers.facebook.com"],
+        ["API sử dụng", "Live Video API (Graph)"],
+        ["Quyền cần thiết", "Quản trị viên trang + Page Token"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Những điều cốt lõi cần biết trước",
+          "desc": "YouTube chỉ cần một API Key là xong, nhưng Facebook (Meta) hoạt động với cấu trúc App ID · App Secret · Access Token.",
+          "blocks": [
+            { "type": "notice", "kind": "danger", "html": "<strong>Quan trọng:</strong> Với Meta, việc \"sao chép một API Key\" là chưa đủ. Thông thường bạn cần theo thứ tự sau: <strong>tạo ứng dụng → thêm sản phẩm → thiết lập quyền → cấp Page Access Token → xét duyệt ứng dụng</strong>." }
+          ]
+        },
+        {
+          "h2": "2. Những thứ cần chuẩn bị",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Tài khoản Meta/Facebook",
+              "Quyền truy cập Meta for Developers",
+              "Một trang Facebook mà bạn có quyền quản trị",
+              "URL chính sách quyền riêng tư · URL điều khoản dịch vụ cho dịch vụ thực tế"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. Tạo ứng dụng Meta Developer",
+          "desc": "Mọi tích hợp Meta API đều bắt đầu từ việc tạo ứng dụng.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Truy cập Meta for Developers", "p": "Đăng nhập vào Meta for Developers trên trình duyệt của bạn.", "path": "developers.facebook.com" },
+              { "h3": "Ứng dụng của tôi → Tạo ứng dụng", "p": "Nhấp vào My Apps → Create App ở phía trên.", "path": "My Apps → Create App" },
+              { "h3": "Chọn loại ứng dụng", "p": "Tích hợp nền tảng/thương mại trực tiếp gần với mục đích doanh nghiệp hơn.", "path": "Chọn loại Business" },
+              { "h3": "Nhập tên ứng dụng·email → tạo", "p": "Nhập tên ứng dụng và email liên hệ, sau đó tạo ứng dụng.", "path": "App Name / Contact Email" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Sau khi tạo ứng dụng, hãy kiểm tra <strong>App ID</strong> và <strong>App Secret</strong> tại Bảng điều khiển → Cài đặt ứng dụng → Cài đặt cơ bản. (Tuyệt đối không để lộ App Secret ở giao diện người dùng/kho lưu trữ công khai.)" }
+          ]
+        },
+        {
+          "h2": "4. Quy trình thiết lập Facebook Live API",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Thêm sản phẩm", "p": "Trên bảng điều khiển ứng dụng, chuẩn bị các cài đặt liên quan đến Facebook Login / Graph API.", "path": "Add Product → Facebook Login" },
+              { "h3": "Kết nối trang + mã thông báo trang", "p": "Để phát trực tiếp lên một trang, bạn cần quyền quản trị viên trang và Page Access Token.", "path": "Page Access Token" },
+              { "h3": "Đăng ký các quyền cần thiết (App Review)", "p": "Đăng ký các quyền nhằm mục đích đăng nội dung·quản lý trang·tạo video trực tiếp (ví dụ: pages_read_engagement, pages_manage_posts).", "path": "Permissions → App Review" },
+              { "h3": "Cấp·kiểm thử mã thông báo bằng Graph API Explorer", "p": "Cấp mã thông báo có chứa các quyền và kiểm thử các lệnh gọi API.", "path": "Tools → Graph API Explorer" }
+            ] },
+            { "type": "notice", "kind": "", "html": "Ví dụ lệnh gọi tạo Facebook Live<br><pre class=\"code\">POST /{page-id}/live_videos\naccess_token={PAGE_ACCESS_TOKEN}</pre>" },
+            { "type": "notice", "kind": "info", "html": "Khi tạo thành công, thông tin phát trực tiếp như ID phát sóng·URL luồng·khóa luồng sẽ được trả về. Xem ID trang (page_id) trong thông tin trang." }
+          ]
+        },
+        {
+          "h2": "5. Đăng ký trong GenieGo Integration Hub",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Sao chép Page Access Token", "p": "Sao chép Page Access Token bạn đã cấp (khuyến nghị dùng mã thông báo dài hạn).", "path": "access_token (Page token)" },
+              { "h3": "Xác nhận ID trang", "p": "Xác nhận ID (page_id) của trang Facebook mục tiêu.", "path": "page_id" },
+              { "h3": "Đăng ký trong Integration Hub", "p": "Trong GenieGo Integration Hub → Facebook Live → [Đăng ký], nhập các giá trị bên dưới rồi lưu.", "path": "access_token · page_id" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Các khóa đã đăng ký được mã hóa khi lưu trữ bằng AES-256-GCM và được che khi đọc." }
+          ]
+        },
+        {
+          "h2": "6. Các loại Access Token",
+          "blocks": [
+            { "type": "table", "head": ["Loại mã thông báo", "Công dụng", "Lưu ý"], "rows": [
+              ["User Access Token", "Lệnh gọi API dựa trên đăng nhập của người dùng", "Dữ liệu có thể truy cập thay đổi tùy theo phạm vi quyền được cấp."],
+              ["Page Access Token", "Đăng trang · tạo phát trực tiếp của trang", "Cần quyền quản trị viên trang và các quyền liên quan."],
+              ["Long-Lived Token", "Mã thông báo dài hạn có thời hạn kéo dài", "Khi vận hành cần có logic hết hạn·làm mới."]
+            ] }
+          ]
+        },
+        {
+          "h2": "7. Danh sách kiểm tra",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Đã tạo ứng dụng Meta Developer.",
+              "Đã xác nhận App ID và App Secret.",
+              "Đã kết nối trang Facebook và cấp Page Access Token.",
+              "Đã sắp xếp·đăng ký các quyền cần thiết (App Review).",
+              "Đã nhập access_token·page_id vào GenieGo [Đăng ký] và lưu.",
+              "Đã lưu trữ mã thông báo an toàn trong biến môi trường máy chủ."
+            ] }
+          ]
+        },
+        {
+          "h2": "8. Sự cố thường gặp",
+          "blocks": [
+            { "type": "table", "head": ["Sự cố", "Nguyên nhân", "Giải pháp"], "rows": [
+              ["Không có menu API Key", "Meta không dùng cấu trúc API Key đơn lẻ", "Tiến hành theo cấu trúc App ID·App Secret·Access Token."],
+              ["Lỗi quyền", "Mã thông báo thiếu các quyền cần thiết", "Thêm quyền trong Graph API Explorer rồi cấp lại mã thông báo."],
+              ["Tạo phát trực tiếp của trang thất bại", "Page Access Token/quyền quản trị viên không đủ", "Kiểm tra quyền quản trị viên trang và quyền của mã thông báo."]
+            ] }
+          ]
+        }
+      ]
+    },
+    "id": {
+      "titleType": "Panduan Penerbitan API",
+      "badge": "Facebook Live API Beginner Manual",
+      "intro": "Panduan yang ramah pemula tentang cara membuat aplikasi di Meta for Developers dan menyiapkan App ID, App Secret, serta token akses halaman (Page Access Token) yang diperlukan untuk menghubungkan siaran langsung halaman Facebook.",
+      "org": "GenieGo Integration Hub · Panduan pemula untuk integrasi Meta",
+      "quick": [
+        ["Konsep inti", "Bukan API Key, melainkan Access Token"],
+        ["Situs pengembang", "developers.facebook.com"],
+        ["API yang digunakan", "Live Video API (Graph)"],
+        ["Izin yang diperlukan", "Admin halaman + Page Token"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Hal Inti yang Harus Diketahui Lebih Dulu",
+          "desc": "YouTube cukup dengan satu API Key, tetapi Facebook (Meta) bekerja dengan struktur App ID · App Secret · Access Token.",
+          "blocks": [
+            { "type": "notice", "kind": "danger", "html": "<strong>Penting:</strong> Dengan Meta, \"menyalin satu API Key\" saja belum cukup. Biasanya Anda perlu mengikuti urutan: <strong>buat aplikasi → tambahkan produk → atur izin → terbitkan Page Access Token → tinjauan aplikasi</strong>." }
+          ]
+        },
+        {
+          "h2": "2. Yang Perlu Disiapkan",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Akun Meta/Facebook",
+              "Akses ke Meta for Developers",
+              "Halaman Facebook tempat Anda memiliki hak admin",
+              "URL kebijakan privasi · URL ketentuan layanan untuk layanan nyata"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. Membuat Aplikasi Meta Developer",
+          "desc": "Setiap integrasi Meta API dimulai dengan membuat aplikasi.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Akses Meta for Developers", "p": "Masuk ke Meta for Developers di browser Anda.", "path": "developers.facebook.com" },
+              { "h3": "Aplikasi Saya → Buat Aplikasi", "p": "Klik My Apps → Create App di bagian atas.", "path": "My Apps → Create App" },
+              { "h3": "Pilih jenis aplikasi", "p": "Integrasi platform/live commerce lebih dekat ke tujuan bisnis.", "path": "Pilih jenis Business" },
+              { "h3": "Masukkan nama aplikasi·email → buat", "p": "Masukkan nama aplikasi dan email kontak, lalu buat aplikasi.", "path": "App Name / Contact Email" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Setelah membuat aplikasi, periksa <strong>App ID</strong> dan <strong>App Secret</strong> di Dasbor → Pengaturan Aplikasi → Pengaturan Dasar. (Jangan pernah mengekspos App Secret di frontend/repositori publik.)" }
+          ]
+        },
+        {
+          "h2": "4. Alur Penyiapan Facebook Live API",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Tambahkan produk", "p": "Pada dasbor aplikasi, siapkan pengaturan terkait Facebook Login / Graph API.", "path": "Add Product → Facebook Login" },
+              { "h3": "Hubungkan halaman + token halaman", "p": "Untuk menyiarkan siaran langsung ke halaman, Anda memerlukan hak admin halaman dan Page Access Token.", "path": "Page Access Token" },
+              { "h3": "Ajukan izin yang diperlukan (App Review)", "p": "Ajukan izin untuk tujuan memublikasikan konten·mengelola halaman·membuat video langsung (mis. pages_read_engagement, pages_manage_posts).", "path": "Permissions → App Review" },
+              { "h3": "Terbitkan·uji token dengan Graph API Explorer", "p": "Terbitkan token yang menyertakan izin dan uji pemanggilan API.", "path": "Tools → Graph API Explorer" }
+            ] },
+            { "type": "notice", "kind": "", "html": "Contoh pemanggilan pembuatan Facebook Live<br><pre class=\"code\">POST /{page-id}/live_videos\naccess_token={PAGE_ACCESS_TOKEN}</pre>" },
+            { "type": "notice", "kind": "info", "html": "Jika berhasil dibuat, informasi siaran langsung seperti ID siaran·URL streaming·kunci streaming akan dikembalikan. Lihat ID halaman (page_id) di informasi halaman." }
+          ]
+        },
+        {
+          "h2": "5. Daftarkan di GenieGo Integration Hub",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Salin Page Access Token", "p": "Salin Page Access Token yang Anda terbitkan (token jangka panjang disarankan).", "path": "access_token (Page token)" },
+              { "h3": "Konfirmasi ID halaman", "p": "Konfirmasi ID (page_id) halaman Facebook target.", "path": "page_id" },
+              { "h3": "Daftarkan di Integration Hub", "p": "Di GenieGo Integration Hub → Facebook Live → [Daftar], masukkan nilai di bawah ini lalu simpan.", "path": "access_token · page_id" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Kunci yang terdaftar dienkripsi saat disimpan dengan AES-256-GCM dan disamarkan saat dibaca." }
+          ]
+        },
+        {
+          "h2": "6. Jenis Access Token",
+          "blocks": [
+            { "type": "table", "head": ["Jenis token", "Kegunaan", "Catatan"], "rows": [
+              ["User Access Token", "Pemanggilan API berbasis login pengguna", "Data yang dapat diakses bervariasi tergantung cakupan izin yang disetujui."],
+              ["Page Access Token", "Publikasi halaman · pembuatan siaran langsung halaman", "Memerlukan hak admin halaman dan izin terkait."],
+              ["Long-Lived Token", "Token jangka panjang dengan masa berlaku diperpanjang", "Saat dioperasikan memerlukan logika kedaluwarsa·penyegaran."]
+            ] }
+          ]
+        },
+        {
+          "h2": "7. Daftar Periksa",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Membuat aplikasi Meta Developer.",
+              "Mengonfirmasi App ID dan App Secret.",
+              "Menghubungkan halaman Facebook dan menerbitkan Page Access Token.",
+              "Menyusun·mengajukan izin yang diperlukan (App Review).",
+              "Memasukkan access_token·page_id di GenieGo [Daftar] dan menyimpan.",
+              "Menyimpan token dengan aman di variabel lingkungan server."
+            ] }
+          ]
+        },
+        {
+          "h2": "8. Masalah yang Sering Terjadi",
+          "blocks": [
+            { "type": "table", "head": ["Masalah", "Penyebab", "Solusi"], "rows": [
+              ["Tidak ada menu API Key", "Meta tidak menggunakan struktur API Key tunggal", "Lanjutkan dengan struktur App ID·App Secret·Access Token."],
+              ["Kesalahan izin", "Token tidak memiliki izin yang diperlukan", "Tambahkan izin di Graph API Explorer lalu terbitkan ulang token."],
+              ["Pembuatan siaran langsung halaman gagal", "Page Access Token/hak admin tidak memadai", "Periksa hak admin halaman dan izin token."]
+            ] }
+          ]
+        }
+      ]
+    },
+    "ar": {
+      "titleType": "دليل إصدار API",
+      "badge": "Facebook Live API Beginner Manual",
+      "intro": "دليل ملائم للمبتدئين حول كيفية إنشاء تطبيق على Meta for Developers وتجهيز App ID وApp Secret ورمز الوصول إلى الصفحة (Page Access Token) اللازمة لربط البث المباشر لصفحة Facebook.",
+      "org": "GenieGo Integration Hub · دليل المبتدئين لتكامل Meta",
+      "quick": [
+        ["المفهوم الأساسي", "ليس API Key بل Access Token"],
+        ["موقع المطورين", "developers.facebook.com"],
+        ["واجهة API المستخدمة", "Live Video API (Graph)"],
+        ["الأذونات المطلوبة", "مسؤول الصفحة + Page Token"]
+      ],
+      "sections": [
+        {
+          "h2": "1. أهم ما يجب معرفته أولاً",
+          "desc": "يكفي في YouTube مفتاح API واحد، لكن Facebook (Meta) يعمل بهيكل App ID · App Secret · Access Token.",
+          "blocks": [
+            { "type": "notice", "kind": "danger", "html": "<strong>هام:</strong> في Meta لا ينتهي الأمر بـ \"نسخ مفتاح API واحد\". عادةً تحتاج إلى الترتيب التالي: <strong>إنشاء تطبيق ← إضافة منتج ← ضبط الأذونات ← إصدار Page Access Token ← مراجعة التطبيق</strong>." }
+          ]
+        },
+        {
+          "h2": "2. المتطلبات",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "حساب Meta/Facebook",
+              "صلاحية الوصول إلى Meta for Developers",
+              "صفحة Facebook لديك فيها صلاحيات المسؤول",
+              "رابط سياسة الخصوصية · رابط شروط الخدمة للخدمة الفعلية"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. إنشاء تطبيق Meta Developer",
+          "desc": "كل تكامل مع Meta API يبدأ بإنشاء تطبيق.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "الدخول إلى Meta for Developers", "p": "سجّل الدخول إلى Meta for Developers في متصفحك.", "path": "developers.facebook.com" },
+              { "h3": "تطبيقاتي ← إنشاء تطبيق", "p": "انقر على My Apps ← Create App في الأعلى.", "path": "My Apps → Create App" },
+              { "h3": "اختيار نوع التطبيق", "p": "تكامل المنصات/التجارة المباشرة أقرب إلى الغرض التجاري.", "path": "اختر نوع Business" },
+              { "h3": "إدخال اسم التطبيق·البريد الإلكتروني ← إنشاء", "p": "أدخل اسم التطبيق وبريد التواصل، ثم أنشئ التطبيق.", "path": "App Name / Contact Email" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "بعد إنشاء التطبيق، تحقق من <strong>App ID</strong> و<strong>App Secret</strong> في لوحة التحكم ← إعدادات التطبيق ← الإعدادات الأساسية. (يُمنع منعًا باتًا كشف App Secret في الواجهة الأمامية/المستودع العام.)" }
+          ]
+        },
+        {
+          "h2": "4. مسار إعداد Facebook Live API",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "إضافة منتج", "p": "في لوحة تحكم التطبيق، جهّز الإعدادات المتعلقة بـ Facebook Login / Graph API.", "path": "Add Product → Facebook Login" },
+              { "h3": "ربط الصفحة + رمز الصفحة", "p": "لبث المحتوى المباشر إلى صفحة، تحتاج إلى صلاحيات مسؤول الصفحة و Page Access Token.", "path": "Page Access Token" },
+              { "h3": "التقدم بطلب الأذونات المطلوبة (App Review)", "p": "تقدّم بطلب أذونات لأغراض نشر المحتوى·إدارة الصفحات·إنشاء فيديوهات مباشرة (مثل pages_read_engagement وpages_manage_posts).", "path": "Permissions → App Review" },
+              { "h3": "إصدار·اختبار الرمز عبر Graph API Explorer", "p": "أصدر رمزًا يتضمن الأذونات واختبر استدعاءات API.", "path": "Tools → Graph API Explorer" }
+            ] },
+            { "type": "notice", "kind": "", "html": "مثال على استدعاء إنشاء Facebook Live<br><pre class=\"code\">POST /{page-id}/live_videos\naccess_token={PAGE_ACCESS_TOKEN}</pre>" },
+            { "type": "notice", "kind": "info", "html": "عند الإنشاء بنجاح، تُعاد معلومات البث المباشر مثل معرّف البث·رابط التدفق·مفتاح التدفق. اطّلع على معرّف الصفحة (page_id) في معلومات الصفحة." }
+          ]
+        },
+        {
+          "h2": "5. التسجيل في GenieGo Integration Hub",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "نسخ رمز الوصول إلى الصفحة", "p": "انسخ Page Access Token الذي أصدرته (يُوصى برمز طويل الأمد).", "path": "access_token (Page token)" },
+              { "h3": "تأكيد معرّف الصفحة", "p": "تأكّد من معرّف (page_id) صفحة Facebook المستهدفة.", "path": "page_id" },
+              { "h3": "التسجيل في Integration Hub", "p": "في GenieGo Integration Hub ← Facebook Live ← [تسجيل]، أدخل القيم أدناه واحفظ.", "path": "access_token · page_id" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "تُخزَّن المفاتيح المسجَّلة مشفّرة في حالة السكون باستخدام AES-256-GCM وتُخفى عند القراءة." }
+          ]
+        },
+        {
+          "h2": "6. أنواع Access Token",
+          "blocks": [
+            { "type": "table", "head": ["نوع الرمز", "الاستخدام", "ملاحظات"], "rows": [
+              ["User Access Token", "استدعاءات API المستندة إلى تسجيل دخول المستخدم", "تختلف البيانات التي يمكن الوصول إليها حسب نطاق الأذونات الممنوحة."],
+              ["Page Access Token", "نشر الصفحة · إنشاء بث مباشر للصفحة", "تتطلب صلاحيات مسؤول الصفحة والأذونات ذات الصلة."],
+              ["Long-Lived Token", "رمز طويل الأمد بمدة صلاحية ممتدة", "عند التشغيل يلزم منطق انتهاء الصلاحية·التجديد."]
+            ] }
+          ]
+        },
+        {
+          "h2": "7. قائمة التحقق",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "أنشأت تطبيق Meta Developer.",
+              "تحققت من App ID و App Secret.",
+              "ربطت صفحة Facebook وأصدرت Page Access Token.",
+              "نظّمت·قدّمت طلب الأذونات المطلوبة (App Review).",
+              "أدخلت access_token·page_id في GenieGo [تسجيل] وحفظت.",
+              "خزّنت الرمز بأمان في متغيرات بيئة الخادم."
+            ] }
+          ]
+        },
+        {
+          "h2": "8. المشكلات الشائعة",
+          "blocks": [
+            { "type": "table", "head": ["المشكلة", "السبب", "الحل"], "rows": [
+              ["لا توجد قائمة API Key", "Meta لا يستخدم هيكل API Key مفردًا", "تابع بهيكل App ID·App Secret·Access Token."],
+              ["خطأ في الأذونات", "الرمز يفتقر إلى الأذونات المطلوبة", "أضف الأذونات في Graph API Explorer ثم أعد إصدار الرمز."],
+              ["فشل إنشاء بث مباشر للصفحة", "Page Access Token/صلاحيات المسؤول غير كافية", "تحقق من صلاحيات مسؤول الصفحة وأذونات الرمز."]
+            ] }
+          ]
+        }
+      ]
+    },
+    "es": {
+      "titleType": "Manual de Emisión de API",
+      "badge": "Facebook Live API Beginner Manual",
+      "intro": "Una guía apta para principiantes sobre cómo crear una app en Meta for Developers y preparar el App ID, el App Secret y el token de acceso de página (Page Access Token) necesarios para conectar la transmisión en vivo de una página de Facebook.",
+      "org": "GenieGo Integration Hub · Guía para principiantes sobre la integración con Meta",
+      "quick": [
+        ["Concepto clave", "No es un API Key, sino un Access Token"],
+        ["Sitio de desarrolladores", "developers.facebook.com"],
+        ["API utilizada", "Live Video API (Graph)"],
+        ["Permisos necesarios", "Administrador de página + Page Token"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Lo esencial que debe saber primero",
+          "desc": "Con YouTube basta un único API Key, pero Facebook (Meta) funciona con una estructura de App ID · App Secret · Access Token.",
+          "blocks": [
+            { "type": "notice", "kind": "danger", "html": "<strong>Importante:</strong> Con Meta no basta con \"copiar un único API Key\". Por lo general se necesita el siguiente orden: <strong>crear una app → agregar un producto → configurar permisos → emitir un Page Access Token → revisión de la app</strong>." }
+          ]
+        },
+        {
+          "h2": "2. Requisitos",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Una cuenta de Meta/Facebook",
+              "Acceso a Meta for Developers",
+              "Una página de Facebook en la que tengas permisos de administrador",
+              "URL de política de privacidad · URL de términos del servicio para el servicio real"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. Crear una app de Meta Developer",
+          "desc": "Toda integración con la API de Meta comienza con la creación de una app.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Acceder a Meta for Developers", "p": "Inicia sesión en Meta for Developers en tu navegador.", "path": "developers.facebook.com" },
+              { "h3": "Mis apps → Crear app", "p": "Haz clic en My Apps → Create App en la parte superior.", "path": "My Apps → Create App" },
+              { "h3": "Elegir el tipo de app", "p": "La integración de plataformas/comercio en vivo se aproxima más a un propósito empresarial.", "path": "Seleccionar el tipo Business" },
+              { "h3": "Introducir nombre de la app·correo → crear", "p": "Introduce el nombre de la app y un correo de contacto, y crea la app.", "path": "App Name / Contact Email" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Tras crear la app, consulta el <strong>App ID</strong> y el <strong>App Secret</strong> en Panel → Configuración de la app → Configuración básica. (Nunca expongas el App Secret en el frontend ni en un repositorio público.)" }
+          ]
+        },
+        {
+          "h2": "4. Flujo de configuración de la API de Facebook Live",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Agregar un producto", "p": "En el panel de la app, prepara la configuración relacionada con Facebook Login / Graph API.", "path": "Add Product → Facebook Login" },
+              { "h3": "Conectar una página + token de página", "p": "Para transmitir en vivo a una página, necesitas permisos de administrador de página y un Page Access Token.", "path": "Page Access Token" },
+              { "h3": "Solicitar los permisos necesarios (App Review)", "p": "Solicita permisos destinados a publicar contenido·administrar páginas·crear videos en vivo (p. ej., pages_read_engagement, pages_manage_posts).", "path": "Permissions → App Review" },
+              { "h3": "Emitir·probar el token con Graph API Explorer", "p": "Emite un token que incluya los permisos y prueba las llamadas a la API.", "path": "Tools → Graph API Explorer" }
+            ] },
+            { "type": "notice", "kind": "", "html": "Ejemplo de llamada de creación de Facebook Live<br><pre class=\"code\">POST /{page-id}/live_videos\naccess_token={PAGE_ACCESS_TOKEN}</pre>" },
+            { "type": "notice", "kind": "info", "html": "Si se crea correctamente, se devuelve la información de transmisión en vivo, como el ID de la transmisión·la URL del stream·la clave del stream. Consulta el ID de página (page_id) en la información de la página." }
+          ]
+        },
+        {
+          "h2": "5. Registrar en el GenieGo Integration Hub",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Copiar el Page Access Token", "p": "Copia el Page Access Token que emitiste (se recomienda un token de larga duración).", "path": "access_token (Page token)" },
+              { "h3": "Confirmar el ID de página", "p": "Confirma el ID (page_id) de la página de Facebook de destino.", "path": "page_id" },
+              { "h3": "Registrar en el Integration Hub", "p": "En GenieGo Integration Hub → Facebook Live → [Registrar], introduce los valores siguientes y guarda.", "path": "access_token · page_id" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Las claves registradas se cifran en reposo con AES-256-GCM y se enmascaran al consultarlas." }
+          ]
+        },
+        {
+          "h2": "6. Tipos de Access Token",
+          "blocks": [
+            { "type": "table", "head": ["Tipo de token", "Uso", "Notas"], "rows": [
+              ["User Access Token", "Llamadas a la API basadas en el inicio de sesión del usuario", "Los datos accesibles varían según el alcance de los permisos otorgados."],
+              ["Page Access Token", "Publicación en página · creación de transmisiones en vivo de página", "Se requieren permisos de administrador de página y los permisos relacionados."],
+              ["Long-Lived Token", "Un token de larga duración con caducidad ampliada", "En producción se necesita lógica de caducidad·renovación."]
+            ] }
+          ]
+        },
+        {
+          "h2": "7. Lista de verificación",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Creé una app de Meta Developer.",
+              "Confirmé el App ID y el App Secret.",
+              "Conecté una página de Facebook y emití un Page Access Token.",
+              "Organicé·solicité los permisos necesarios (App Review).",
+              "Introduje access_token·page_id en GenieGo [Registrar] y guardé.",
+              "Almacené el token de forma segura en las variables de entorno del servidor."
+            ] }
+          ]
+        },
+        {
+          "h2": "8. Problemas frecuentes",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solución"], "rows": [
+              ["No hay menú de API Key", "Meta no usa una estructura de API Key único", "Procede con la estructura App ID·App Secret·Access Token."],
+              ["Error de permisos", "El token carece de los permisos necesarios", "Agrega los permisos en Graph API Explorer y vuelve a emitir el token."],
+              ["Falla la creación de la transmisión en vivo de la página", "Page Access Token/permisos de administrador insuficientes", "Verifica los permisos de administrador de página y los permisos del token."]
+            ] }
+          ]
+        }
+      ]
+    },
+    "fr": {
+      "titleType": "Manuel d'Émission d'API",
+      "badge": "Facebook Live API Beginner Manual",
+      "intro": "Un guide adapté aux débutants pour créer une application sur Meta for Developers et préparer l'App ID, l'App Secret et le jeton d'accès à la Page (Page Access Token) nécessaires pour connecter la diffusion en direct d'une page Facebook.",
+      "org": "GenieGo Integration Hub · Guide débutant pour l'intégration Meta",
+      "quick": [
+        ["Concept clé", "Pas une API Key, mais un Access Token"],
+        ["Site développeurs", "developers.facebook.com"],
+        ["API utilisée", "Live Video API (Graph)"],
+        ["Autorisations requises", "Administrateur de page + Page Token"]
+      ],
+      "sections": [
+        {
+          "h2": "1. L'essentiel à connaître d'abord",
+          "desc": "Sur YouTube, une seule API Key suffit, mais Facebook (Meta) fonctionne avec une structure App ID · App Secret · Access Token.",
+          "blocks": [
+            { "type": "notice", "kind": "danger", "html": "<strong>Important :</strong> Avec Meta, il ne suffit pas de \"copier une seule API Key\". Vous devez généralement suivre l'ordre suivant : <strong>créer une application → ajouter un produit → configurer les autorisations → émettre un Page Access Token → examen de l'application</strong>." }
+          ]
+        },
+        {
+          "h2": "2. Prérequis",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Un compte Meta/Facebook",
+              "Un accès à Meta for Developers",
+              "Une page Facebook sur laquelle vous avez des droits d'administrateur",
+              "Une URL de politique de confidentialité · une URL de conditions d'utilisation pour le service réel"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. Créer une application Meta Developer",
+          "desc": "Toute intégration de l'API Meta commence par la création d'une application.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Accéder à Meta for Developers", "p": "Connectez-vous à Meta for Developers dans votre navigateur.", "path": "developers.facebook.com" },
+              { "h3": "Mes applications → Créer une application", "p": "Cliquez sur My Apps → Create App en haut.", "path": "My Apps → Create App" },
+              { "h3": "Choisir le type d'application", "p": "L'intégration de plateformes/le live commerce se rapproche davantage d'un objectif professionnel.", "path": "Sélectionner le type Business" },
+              { "h3": "Saisir le nom de l'application·l'e-mail → créer", "p": "Saisissez le nom de l'application et un e-mail de contact, puis créez l'application.", "path": "App Name / Contact Email" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Après avoir créé l'application, vérifiez l'<strong>App ID</strong> et l'<strong>App Secret</strong> dans Tableau de bord → Paramètres de l'application → Paramètres de base. (N'exposez jamais l'App Secret dans le frontend ou un dépôt public.)" }
+          ]
+        },
+        {
+          "h2": "4. Flux de configuration de l'API Facebook Live",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Ajouter un produit", "p": "Sur le tableau de bord de l'application, préparez les paramètres liés à Facebook Login / Graph API.", "path": "Add Product → Facebook Login" },
+              { "h3": "Connecter une page + jeton de page", "p": "Pour diffuser un direct sur une page, vous avez besoin de droits d'administrateur de page et d'un Page Access Token.", "path": "Page Access Token" },
+              { "h3": "Demander les autorisations requises (App Review)", "p": "Demandez des autorisations destinées à publier du contenu·gérer des pages·créer des vidéos en direct (p. ex. pages_read_engagement, pages_manage_posts).", "path": "Permissions → App Review" },
+              { "h3": "Émettre·tester le jeton avec Graph API Explorer", "p": "Émettez un jeton incluant les autorisations et testez les appels d'API.", "path": "Tools → Graph API Explorer" }
+            ] },
+            { "type": "notice", "kind": "", "html": "Exemple d'appel de création Facebook Live<br><pre class=\"code\">POST /{page-id}/live_videos\naccess_token={PAGE_ACCESS_TOKEN}</pre>" },
+            { "type": "notice", "kind": "info", "html": "En cas de création réussie, les informations de diffusion en direct telles que l'ID de diffusion·l'URL du flux·la clé de flux sont renvoyées. Consultez l'ID de page (page_id) dans les informations de la page." }
+          ]
+        },
+        {
+          "h2": "5. Enregistrer dans le GenieGo Integration Hub",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Copier le Page Access Token", "p": "Copiez le Page Access Token que vous avez émis (un jeton de longue durée est recommandé).", "path": "access_token (Page token)" },
+              { "h3": "Confirmer l'ID de page", "p": "Confirmez l'ID (page_id) de la page Facebook cible.", "path": "page_id" },
+              { "h3": "Enregistrer dans l'Integration Hub", "p": "Dans GenieGo Integration Hub → Facebook Live → [Enregistrer], saisissez les valeurs ci-dessous et enregistrez.", "path": "access_token · page_id" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Les clés enregistrées sont chiffrées au repos avec AES-256-GCM et masquées à la lecture." }
+          ]
+        },
+        {
+          "h2": "6. Types d'Access Token",
+          "blocks": [
+            { "type": "table", "head": ["Type de jeton", "Usage", "Remarques"], "rows": [
+              ["User Access Token", "Appels d'API basés sur la connexion de l'utilisateur", "Les données accessibles varient selon l'étendue des autorisations accordées."],
+              ["Page Access Token", "Publication sur une page · création de directs de page", "Des droits d'administrateur de page et les autorisations associées sont requis."],
+              ["Long-Lived Token", "Un jeton de longue durée avec une expiration prolongée", "En production, une logique d'expiration·de renouvellement est nécessaire."]
+            ] }
+          ]
+        },
+        {
+          "h2": "7. Liste de contrôle",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Créé une application Meta Developer.",
+              "Confirmé l'App ID et l'App Secret.",
+              "Connecté une page Facebook et émis un Page Access Token.",
+              "Organisé·demandé les autorisations requises (App Review).",
+              "Saisi access_token·page_id dans GenieGo [Enregistrer] et enregistré.",
+              "Stocké le jeton en toute sécurité dans les variables d'environnement du serveur."
+            ] }
+          ]
+        },
+        {
+          "h2": "8. Problèmes fréquents",
+          "blocks": [
+            { "type": "table", "head": ["Problème", "Cause", "Solution"], "rows": [
+              ["Aucun menu API Key", "Meta n'utilise pas une structure d'API Key unique", "Procédez avec la structure App ID·App Secret·Access Token."],
+              ["Erreur d'autorisation", "Le jeton ne dispose pas des autorisations requises", "Ajoutez les autorisations dans Graph API Explorer puis réémettez le jeton."],
+              ["Échec de la création du direct de page", "Page Access Token/droits d'administrateur insuffisants", "Vérifiez les droits d'administrateur de page et les autorisations du jeton."]
+            ] }
+          ]
+        }
+      ]
+    },
+    "hi": {
+      "titleType": "API जारी करने की मार्गदर्शिका",
+      "badge": "Facebook Live API Beginner Manual",
+      "intro": "Meta for Developers पर एक ऐप बनाने और Facebook पेज लाइव कनेक्शन के लिए आवश्यक App ID, App Secret तथा पेज एक्सेस टोकन (Page Access Token) तैयार करने की, शुरुआती लोगों के लिए अनुकूल मार्गदर्शिका।",
+      "org": "GenieGo Integration Hub · Meta एकीकरण के लिए शुरुआती मार्गदर्शिका",
+      "quick": [
+        ["मुख्य अवधारणा", "API Key नहीं, बल्कि Access Token"],
+        ["डेवलपर साइट", "developers.facebook.com"],
+        ["उपयोग की गई API", "Live Video API (Graph)"],
+        ["आवश्यक अनुमतियाँ", "पेज एडमिन + Page Token"]
+      ],
+      "sections": [
+        {
+          "h2": "1. सबसे पहले जानने योग्य मुख्य बातें",
+          "desc": "YouTube में एक ही API Key से काम चल जाता है, लेकिन Facebook (Meta) App ID · App Secret · Access Token संरचना के साथ काम करता है।",
+          "blocks": [
+            { "type": "notice", "kind": "danger", "html": "<strong>महत्वपूर्ण:</strong> Meta में \"एक API Key कॉपी करना\" से काम पूरा नहीं होता। आमतौर पर इस क्रम की आवश्यकता होती है: <strong>ऐप बनाना → उत्पाद जोड़ना → अनुमतियाँ सेट करना → Page Access Token जारी करना → ऐप समीक्षा</strong>।" }
+          ]
+        },
+        {
+          "h2": "2. आवश्यक चीज़ें",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "एक Meta/Facebook खाता",
+              "Meta for Developers तक पहुँच",
+              "एक Facebook पेज जिस पर आपके पास एडमिन अधिकार हों",
+              "वास्तविक सेवा के लिए गोपनीयता नीति URL · सेवा की शर्तें URL"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. Meta Developer ऐप बनाना",
+          "desc": "हर Meta API एकीकरण एक ऐप बनाने से शुरू होता है।",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Meta for Developers पर पहुँचें", "p": "अपने ब्राउज़र में Meta for Developers में साइन इन करें।", "path": "developers.facebook.com" },
+              { "h3": "मेरे ऐप → ऐप बनाएँ", "p": "ऊपर My Apps → Create App पर क्लिक करें।", "path": "My Apps → Create App" },
+              { "h3": "ऐप प्रकार चुनें", "p": "प्लेटफ़ॉर्म एकीकरण/लाइव कॉमर्स व्यावसायिक उद्देश्य के अधिक निकट है।", "path": "Business प्रकार चुनें" },
+              { "h3": "ऐप नाम·ईमेल दर्ज करें → बनाएँ", "p": "ऐप का नाम और संपर्क ईमेल दर्ज करें, फिर ऐप बनाएँ।", "path": "App Name / Contact Email" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "ऐप बनाने के बाद, डैशबोर्ड → ऐप सेटिंग्स → मूल सेटिंग्स में <strong>App ID</strong> और <strong>App Secret</strong> देखें। (App Secret को फ्रंटएंड/सार्वजनिक रिपॉज़िटरी में कभी उजागर न करें।)" }
+          ]
+        },
+        {
+          "h2": "4. Facebook Live API सेटअप प्रवाह",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "उत्पाद जोड़ें", "p": "ऐप डैशबोर्ड में Facebook Login / Graph API से संबंधित सेटिंग्स तैयार करें।", "path": "Add Product → Facebook Login" },
+              { "h3": "पेज कनेक्ट करें + पेज टोकन", "p": "किसी पेज पर लाइव प्रसारण करने के लिए, आपको पेज एडमिन अधिकार और Page Access Token की आवश्यकता होती है।", "path": "Page Access Token" },
+              { "h3": "आवश्यक अनुमतियों के लिए आवेदन करें (App Review)", "p": "सामग्री प्रकाशित करने·पेज प्रबंधित करने·लाइव वीडियो बनाने के उद्देश्य से अनुमतियों (जैसे pages_read_engagement, pages_manage_posts) के लिए आवेदन करें।", "path": "Permissions → App Review" },
+              { "h3": "Graph API Explorer से टोकन जारी·परीक्षण करें", "p": "अनुमतियों सहित एक टोकन जारी करें और API कॉल का परीक्षण करें।", "path": "Tools → Graph API Explorer" }
+            ] },
+            { "type": "notice", "kind": "", "html": "Facebook Live निर्माण कॉल का उदाहरण<br><pre class=\"code\">POST /{page-id}/live_videos\naccess_token={PAGE_ACCESS_TOKEN}</pre>" },
+            { "type": "notice", "kind": "info", "html": "सफलतापूर्वक बनने पर, प्रसारण ID·स्ट्रीम URL·स्ट्रीम कुंजी जैसी लाइव प्रसारण जानकारी लौटाई जाती है। पेज ID (page_id) पेज जानकारी में देखें।" }
+          ]
+        },
+        {
+          "h2": "5. GenieGo Integration Hub में पंजीकृत करें",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Page Access Token कॉपी करें", "p": "आपके द्वारा जारी किया गया Page Access Token कॉपी करें (दीर्घकालिक टोकन अनुशंसित)।", "path": "access_token (Page token)" },
+              { "h3": "पेज ID की पुष्टि करें", "p": "लक्षित Facebook पेज की ID (page_id) की पुष्टि करें।", "path": "page_id" },
+              { "h3": "Integration Hub में पंजीकृत करें", "p": "GenieGo Integration Hub → Facebook Live → [पंजीकृत करें] में नीचे दिए गए मान दर्ज करें और सहेजें।", "path": "access_token · page_id" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "पंजीकृत कुंजियाँ AES-256-GCM के साथ विश्राम में एन्क्रिप्ट की जाती हैं और पढ़ते समय मास्क की जाती हैं।" }
+          ]
+        },
+        {
+          "h2": "6. Access Token के प्रकार",
+          "blocks": [
+            { "type": "table", "head": ["टोकन प्रकार", "उपयोग", "ध्यान देने योग्य बातें"], "rows": [
+              ["User Access Token", "उपयोगकर्ता लॉगिन पर आधारित API कॉल", "जिन डेटा तक पहुँच संभव है वे प्रदान की गई अनुमतियों के दायरे के अनुसार बदलते हैं।"],
+              ["Page Access Token", "पेज प्रकाशन · पेज लाइव निर्माण", "पेज एडमिन अधिकार और संबंधित अनुमतियाँ आवश्यक हैं।"],
+              ["Long-Lived Token", "विस्तारित समाप्ति वाला दीर्घकालिक टोकन", "संचालन के समय समाप्ति·नवीनीकरण लॉजिक आवश्यक है।"]
+            ] }
+          ]
+        },
+        {
+          "h2": "7. चेकलिस्ट",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Meta Developer ऐप बनाया।",
+              "App ID और App Secret की पुष्टि की।",
+              "Facebook पेज कनेक्ट किया और Page Access Token जारी किया।",
+              "आवश्यक अनुमतियाँ (App Review) व्यवस्थित·आवेदित कीं।",
+              "GenieGo [पंजीकृत करें] में access_token·page_id दर्ज किया और सहेजा।",
+              "टोकन को सर्वर पर्यावरण चर में सुरक्षित रूप से संग्रहीत किया।"
+            ] }
+          ]
+        },
+        {
+          "h2": "8. अक्सर होने वाली समस्याएँ",
+          "blocks": [
+            { "type": "table", "head": ["समस्या", "कारण", "समाधान"], "rows": [
+              ["कोई API Key मेन्यू नहीं है", "Meta एकल API Key संरचना का उपयोग नहीं करता", "App ID·App Secret·Access Token संरचना के साथ आगे बढ़ें।"],
+              ["अनुमति त्रुटि", "टोकन में आवश्यक अनुमतियाँ नहीं हैं", "Graph API Explorer में अनुमतियाँ जोड़ें और टोकन फिर से जारी करें।"],
+              ["पेज लाइव निर्माण विफल", "Page Access Token/एडमिन अधिकार अपर्याप्त", "पेज एडमिन अधिकार और टोकन अनुमतियाँ जाँचें।"]
+            ] }
+          ]
+        }
+      ]
+    },
+    "pt": {
+      "titleType": "Manual de Emissão de API",
+      "badge": "Facebook Live API Beginner Manual",
+      "intro": "Um guia amigável para iniciantes sobre como criar um app no Meta for Developers e preparar o App ID, o App Secret e o token de acesso de página (Page Access Token) necessários para conectar a transmissão ao vivo de uma página do Facebook.",
+      "org": "GenieGo Integration Hub · Guia para iniciantes sobre a integração com a Meta",
+      "quick": [
+        ["Conceito central", "Não é uma API Key, mas um Access Token"],
+        ["Site de desenvolvedores", "developers.facebook.com"],
+        ["API utilizada", "Live Video API (Graph)"],
+        ["Permissões necessárias", "Administrador da página + Page Token"]
+      ],
+      "sections": [
+        {
+          "h2": "1. O essencial a saber primeiro",
+          "desc": "No YouTube basta uma única API Key, mas o Facebook (Meta) funciona com uma estrutura de App ID · App Secret · Access Token.",
+          "blocks": [
+            { "type": "notice", "kind": "danger", "html": "<strong>Importante:</strong> Com a Meta não basta \"copiar uma única API Key\". Normalmente você precisa da seguinte ordem: <strong>criar um app → adicionar um produto → configurar permissões → emitir um Page Access Token → revisão do app</strong>." }
+          ]
+        },
+        {
+          "h2": "2. Pré-requisitos",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Uma conta Meta/Facebook",
+              "Acesso ao Meta for Developers",
+              "Uma página do Facebook na qual você tenha direitos de administrador",
+              "Uma URL de política de privacidade · uma URL de termos de serviço para o serviço real"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. Criar um app do Meta Developer",
+          "desc": "Toda integração com a API da Meta começa com a criação de um app.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Acessar o Meta for Developers", "p": "Faça login no Meta for Developers no seu navegador.", "path": "developers.facebook.com" },
+              { "h3": "Meus apps → Criar app", "p": "Clique em My Apps → Create App na parte superior.", "path": "My Apps → Create App" },
+              { "h3": "Escolher o tipo de app", "p": "A integração de plataformas/live commerce está mais próxima de um propósito empresarial.", "path": "Selecionar o tipo Business" },
+              { "h3": "Inserir nome do app·e-mail → criar", "p": "Insira o nome do app e um e-mail de contato e crie o app.", "path": "App Name / Contact Email" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Após criar o app, verifique o <strong>App ID</strong> e o <strong>App Secret</strong> em Painel → Configurações do app → Configurações básicas. (Nunca exponha o App Secret no frontend ou em um repositório público.)" }
+          ]
+        },
+        {
+          "h2": "4. Fluxo de configuração da API do Facebook Live",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Adicionar um produto", "p": "No painel do app, prepare as configurações relacionadas ao Facebook Login / Graph API.", "path": "Add Product → Facebook Login" },
+              { "h3": "Conectar uma página + token de página", "p": "Para transmitir ao vivo em uma página, você precisa de direitos de administrador da página e de um Page Access Token.", "path": "Page Access Token" },
+              { "h3": "Solicitar as permissões necessárias (App Review)", "p": "Solicite permissões destinadas a publicar conteúdo·gerenciar páginas·criar vídeos ao vivo (por exemplo, pages_read_engagement, pages_manage_posts).", "path": "Permissions → App Review" },
+              { "h3": "Emitir·testar o token com o Graph API Explorer", "p": "Emita um token que inclua as permissões e teste as chamadas à API.", "path": "Tools → Graph API Explorer" }
+            ] },
+            { "type": "notice", "kind": "", "html": "Exemplo de chamada de criação do Facebook Live<br><pre class=\"code\">POST /{page-id}/live_videos\naccess_token={PAGE_ACCESS_TOKEN}</pre>" },
+            { "type": "notice", "kind": "info", "html": "Em caso de criação bem-sucedida, são retornadas informações de transmissão ao vivo, como ID da transmissão·URL do stream·chave do stream. Consulte o ID da página (page_id) nas informações da página." }
+          ]
+        },
+        {
+          "h2": "5. Registrar no GenieGo Integration Hub",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Copiar o Page Access Token", "p": "Copie o Page Access Token que você emitiu (recomenda-se um token de longa duração).", "path": "access_token (Page token)" },
+              { "h3": "Confirmar o ID da página", "p": "Confirme o ID (page_id) da página do Facebook de destino.", "path": "page_id" },
+              { "h3": "Registrar no Integration Hub", "p": "No GenieGo Integration Hub → Facebook Live → [Registrar], insira os valores abaixo e salve.", "path": "access_token · page_id" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "As chaves registradas são criptografadas em repouso com AES-256-GCM e mascaradas na leitura." }
+          ]
+        },
+        {
+          "h2": "6. Tipos de Access Token",
+          "blocks": [
+            { "type": "table", "head": ["Tipo de token", "Uso", "Observações"], "rows": [
+              ["User Access Token", "Chamadas de API baseadas no login do usuário", "Os dados acessíveis variam conforme o escopo das permissões concedidas."],
+              ["Page Access Token", "Publicação na página · criação de transmissões ao vivo da página", "São necessários direitos de administrador da página e as permissões relacionadas."],
+              ["Long-Lived Token", "Um token de longa duração com expiração estendida", "Em produção, é necessária lógica de expiração·renovação."]
+            ] }
+          ]
+        },
+        {
+          "h2": "7. Lista de verificação",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Criei um app do Meta Developer.",
+              "Confirmei o App ID e o App Secret.",
+              "Conectei uma página do Facebook e emiti um Page Access Token.",
+              "Organizei·solicitei as permissões necessárias (App Review).",
+              "Inseri access_token·page_id no GenieGo [Registrar] e salvei.",
+              "Armazenei o token com segurança nas variáveis de ambiente do servidor."
+            ] }
+          ]
+        },
+        {
+          "h2": "8. Problemas frequentes",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solução"], "rows": [
+              ["Não há menu de API Key", "A Meta não usa uma estrutura de API Key único", "Prossiga com a estrutura App ID·App Secret·Access Token."],
+              ["Erro de permissão", "O token não tem as permissões necessárias", "Adicione as permissões no Graph API Explorer e reemita o token."],
+              ["Falha na criação da transmissão ao vivo da página", "Page Access Token/direitos de administrador insuficientes", "Verifique os direitos de administrador da página e as permissões do token."]
+            ] }
+          ]
+        }
+      ]
+    },
+    "ru": {
+      "titleType": "Руководство по выпуску API",
+      "badge": "Facebook Live API Beginner Manual",
+      "intro": "Понятное для новичков руководство по созданию приложения на Meta for Developers и подготовке App ID, App Secret и токена доступа страницы (Page Access Token), необходимых для подключения прямой трансляции страницы Facebook.",
+      "org": "GenieGo Integration Hub · Руководство для новичков по интеграции с Meta",
+      "quick": [
+        ["Ключевая концепция", "Не API Key, а Access Token"],
+        ["Сайт для разработчиков", "developers.facebook.com"],
+        ["Используемый API", "Live Video API (Graph)"],
+        ["Необходимые разрешения", "Администратор страницы + Page Token"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Главное, что нужно знать сначала",
+          "desc": "В YouTube достаточно одного API Key, но Facebook (Meta) работает по структуре App ID · App Secret · Access Token.",
+          "blocks": [
+            { "type": "notice", "kind": "danger", "html": "<strong>Важно:</strong> В Meta дело не ограничивается «копированием одного API Key». Обычно требуется следующий порядок: <strong>создать приложение → добавить продукт → настроить разрешения → выпустить Page Access Token → проверка приложения</strong>." }
+          ]
+        },
+        {
+          "h2": "2. Что потребуется",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Учётная запись Meta/Facebook",
+              "Доступ к Meta for Developers",
+              "Страница Facebook, на которой у вас есть права администратора",
+              "URL политики конфиденциальности · URL условий обслуживания для реального сервиса"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. Создание приложения Meta Developer",
+          "desc": "Любая интеграция с API Meta начинается с создания приложения.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Войдите в Meta for Developers", "p": "Войдите в Meta for Developers в вашем браузере.", "path": "developers.facebook.com" },
+              { "h3": "Мои приложения → Создать приложение", "p": "Нажмите My Apps → Create App вверху.", "path": "My Apps → Create App" },
+              { "h3": "Выберите тип приложения", "p": "Интеграция платформ/прямая коммерция ближе к бизнес-цели.", "path": "Выберите тип Business" },
+              { "h3": "Введите имя приложения·email → создать", "p": "Введите имя приложения и контактный email, затем создайте приложение.", "path": "App Name / Contact Email" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "После создания приложения проверьте <strong>App ID</strong> и <strong>App Secret</strong> в разделе Панель → Настройки приложения → Основные настройки. (Никогда не раскрывайте App Secret во фронтенде/публичном репозитории.)" }
+          ]
+        },
+        {
+          "h2": "4. Процесс настройки Facebook Live API",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Добавьте продукт", "p": "На панели приложения подготовьте настройки, связанные с Facebook Login / Graph API.", "path": "Add Product → Facebook Login" },
+              { "h3": "Подключите страницу + токен страницы", "p": "Чтобы транслировать прямой эфир на страницу, нужны права администратора страницы и Page Access Token.", "path": "Page Access Token" },
+              { "h3": "Запросите необходимые разрешения (App Review)", "p": "Запросите разрешения для публикации контента·управления страницами·создания прямых трансляций (например, pages_read_engagement, pages_manage_posts).", "path": "Permissions → App Review" },
+              { "h3": "Выпустите·протестируйте токен через Graph API Explorer", "p": "Выпустите токен с включёнными разрешениями и протестируйте вызовы API.", "path": "Tools → Graph API Explorer" }
+            ] },
+            { "type": "notice", "kind": "", "html": "Пример вызова создания Facebook Live<br><pre class=\"code\">POST /{page-id}/live_videos\naccess_token={PAGE_ACCESS_TOKEN}</pre>" },
+            { "type": "notice", "kind": "info", "html": "При успешном создании возвращается информация о прямой трансляции: ID трансляции·URL потока·ключ потока. ID страницы (page_id) смотрите в информации о странице." }
+          ]
+        },
+        {
+          "h2": "5. Регистрация в GenieGo Integration Hub",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Скопируйте Page Access Token", "p": "Скопируйте выпущенный вами Page Access Token (рекомендуется долгоживущий токен).", "path": "access_token (Page token)" },
+              { "h3": "Подтвердите ID страницы", "p": "Подтвердите ID (page_id) целевой страницы Facebook.", "path": "page_id" },
+              { "h3": "Зарегистрируйте в Integration Hub", "p": "В GenieGo Integration Hub → Facebook Live → [Зарегистрировать] введите указанные ниже значения и сохраните.", "path": "access_token · page_id" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Зарегистрированные ключи шифруются при хранении с помощью AES-256-GCM и маскируются при чтении." }
+          ]
+        },
+        {
+          "h2": "6. Типы Access Token",
+          "blocks": [
+            { "type": "table", "head": ["Тип токена", "Назначение", "Примечания"], "rows": [
+              ["User Access Token", "Вызовы API на основе входа пользователя", "Доступные данные зависят от объёма предоставленных разрешений."],
+              ["Page Access Token", "Публикация на странице · создание прямых трансляций страницы", "Требуются права администратора страницы и соответствующие разрешения."],
+              ["Long-Lived Token", "Долгоживущий токен с увеличенным сроком действия", "При эксплуатации нужна логика истечения·обновления."]
+            ] }
+          ]
+        },
+        {
+          "h2": "7. Контрольный список",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Создал приложение Meta Developer.",
+              "Подтвердил App ID и App Secret.",
+              "Подключил страницу Facebook и выпустил Page Access Token.",
+              "Систематизировал·запросил необходимые разрешения (App Review).",
+              "Ввёл access_token·page_id в GenieGo [Зарегистрировать] и сохранил.",
+              "Надёжно сохранил токен в переменных окружения сервера."
+            ] }
+          ]
+        },
+        {
+          "h2": "8. Часто возникающие проблемы",
+          "blocks": [
+            { "type": "table", "head": ["Проблема", "Причина", "Решение"], "rows": [
+              ["Нет меню API Key", "Meta не использует структуру с единым API Key", "Действуйте по структуре App ID·App Secret·Access Token."],
+              ["Ошибка разрешений", "У токена нет необходимых разрешений", "Добавьте разрешения в Graph API Explorer и заново выпустите токен."],
+              ["Не удаётся создать прямую трансляцию страницы", "Недостаточно Page Access Token/прав администратора", "Проверьте права администратора страницы и разрешения токена."]
+            ] }
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,1041 @@
+{
+  "name": "Klarna",
+  "icon": "🛍️",
+  "langs": {
+    "ko": {
+      "titleType": "API Key 발급 매뉴얼",
+      "badge": "Beginner Guide",
+      "intro": "Klarna Merchant Portal에서 API 자격증명(username·password)을 생성하고 리전과 함께 GenieGo 연동 허브에 등록하는 과정을 초보자도 그대로 따라 할 수 있도록 정리한 매뉴얼입니다.",
+      "org": "GenieGo 연동 허브",
+      "quick": [
+        ["소요 시간", "약 5~10분"],
+        ["필요 계정", "Klarna 가맹 계정(BNPL, 계약 필요)"],
+        ["발급 키", "API username · password · 리전"],
+        ["결과물", "API 자격증명"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 시작하기 전에",
+          "desc": "Klarna 자격증명은 가맹 계약이 완료된 후 발급할 수 있습니다.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "필요", "h3": "Klarna 가맹 계정", "p": "먼저 Klarna(BNPL) 가맹 계약이 필요합니다. 계약이 완료되어야 Merchant Portal에서 API 자격증명을 발급할 수 있습니다." },
+              { "tag": "발급 키", "h3": "API username · password · 리전", "p": "Merchant Portal의 Settings > Klarna API credentials에서 API username·password를 생성하고 리전(eu/na/oc)을 확인합니다." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>참고:</strong> 리전은 <strong>eu / na / oc</strong> 중 하나이며, 등록 시 함께 입력해야 합니다." }
+          ]
+        },
+        {
+          "h2": "2. 발급 신청 절차",
+          "desc": "가맹 계약 후 아래 순서대로 발급하고 GenieGo에 등록합니다.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "가맹 계약", "p": "Klarna(BNPL) 가맹 계약을 먼저 완료합니다. 계약이 완료되어야 다음 단계로 진행할 수 있습니다." },
+              { "h3": "Merchant Portal 로그인", "p": "Klarna Merchant Portal에 로그인합니다.", "path": "portal.klarna.com" },
+              { "h3": "API credentials 이동", "p": "[Settings] > [Klarna API credentials] 메뉴로 이동합니다.", "path": "Settings → Klarna API credentials" },
+              { "h3": "자격증명 생성·확인", "p": "API username·password를 생성하고 리전(eu/na/oc)을 확인합니다." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Settings &gt; Klarna API credentials에서 API username·password가 생성되고 리전을 확인했다면 정상입니다." }
+          ]
+        },
+        {
+          "h2": "3. GenieGo에 등록할 정보",
+          "blocks": [
+            { "type": "table", "head": ["필드", "설명"], "rows": [
+              ["username", "API Username(MID/PID)"],
+              ["password", "API Password(노출 주의)"],
+              ["region", "리전(eu / na / oc)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 연동 허브 [등록]에 username·password·region을 입력해 저장하면 자격증명은 AES-256-GCM으로 암호화 저장되고 조회 시 마스킹됩니다." }
+          ]
+        },
+        {
+          "h2": "4. 자주 발생하는 문제",
+          "blocks": [
+            { "type": "table", "head": ["문제", "원인", "해결"], "rows": [
+              ["API credentials 메뉴에 발급 항목이 없음", "가맹 계약 미완료", "Klarna 가맹 계약을 먼저 완료합니다."],
+              ["인증 실패", "리전(eu/na/oc) 불일치 또는 password 오기재", "Merchant Portal에서 확인한 리전과 username·password를 다시 확인합니다."]
+            ] }
+          ]
+        },
+        {
+          "h2": "최종 체크리스트",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Klarna(BNPL) 가맹 계약이 완료되었다.",
+              "Merchant Portal의 Settings > Klarna API credentials에서 자격증명을 생성했다.",
+              "API username·password와 리전(eu/na/oc)을 확인했다.",
+              "GenieGo [등록]에 username·password·region을 입력해 저장했다."
+            ] }
+          ]
+        }
+      ]
+    },
+    "en": {
+      "titleType": "API Key Issuance Manual",
+      "badge": "Beginner Guide",
+      "intro": "A beginner-friendly, step-by-step guide to creating API credentials (username and password) in the Klarna Merchant Portal and registering them together with your region in the GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Est. time", "About 5–10 min"],
+        ["Account needed", "Klarna merchant account (BNPL, contract required)"],
+        ["Keys issued", "API username · password · region"],
+        ["Result", "API credentials"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Before You Begin",
+          "desc": "Klarna credentials can be issued only after your merchant contract is finalized.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Required", "h3": "Klarna merchant account", "p": "You first need a Klarna (BNPL) merchant contract. Only once the contract is finalized can you issue API credentials in the Merchant Portal." },
+              { "tag": "Keys issued", "h3": "API username · password · region", "p": "In the Merchant Portal under Settings > Klarna API credentials, create the API username and password and confirm your region (eu/na/oc)." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Note:</strong> The region is one of <strong>eu / na / oc</strong>, and must be entered together when registering." }
+          ]
+        },
+        {
+          "h2": "2. Issuance Steps",
+          "desc": "After your merchant contract, issue in the order below and register in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Merchant contract", "p": "First complete your Klarna (BNPL) merchant contract. You can proceed to the next step only once the contract is finalized." },
+              { "h3": "Sign in to the Merchant Portal", "p": "Sign in to the Klarna Merchant Portal.", "path": "portal.klarna.com" },
+              { "h3": "Go to API credentials", "p": "Navigate to the [Settings] > [Klarna API credentials] menu.", "path": "Settings → Klarna API credentials" },
+              { "h3": "Create and confirm credentials", "p": "Create the API username and password and confirm your region (eu/na/oc)." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "If the API username and password are created under Settings &gt; Klarna API credentials and you have confirmed the region, everything is in order." }
+          ]
+        },
+        {
+          "h2": "3. Information to Register in GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Field", "Description"], "rows": [
+              ["username", "API Username (MID/PID)"],
+              ["password", "API Password (handle with care)"],
+              ["region", "Region (eu / na / oc)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Enter the username, password, and region in the GenieGo Integration Hub [Register] and save. Credentials are encrypted at rest with AES-256-GCM and masked on read." }
+          ]
+        },
+        {
+          "h2": "4. Common Issues",
+          "blocks": [
+            { "type": "table", "head": ["Issue", "Cause", "Solution"], "rows": [
+              ["No issuance option in the API credentials menu", "Merchant contract not finalized", "First complete your Klarna merchant contract."],
+              ["Authentication failure", "Region (eu/na/oc) mismatch or password entered incorrectly", "Recheck the region and the username and password you confirmed in the Merchant Portal."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Final Checklist",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Completed the Klarna (BNPL) merchant contract.",
+              "Created credentials under Settings > Klarna API credentials in the Merchant Portal.",
+              "Confirmed the API username, password, and region (eu/na/oc).",
+              "Entered the username, password, and region in GenieGo [Register] and saved."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ja": {
+      "titleType": "API Key 発行マニュアル",
+      "badge": "初心者ガイド",
+      "intro": "Klarna Merchant Portal で API 認証情報(username·password)を作成し、リージョンとともに GenieGo 連携ハブに登録する手順を、初心者でもそのまま実行できるようにまとめたマニュアルです。",
+      "org": "GenieGo 連携ハブ",
+      "quick": [
+        ["所要時間", "約 5〜10 分"],
+        ["必要なアカウント", "Klarna 加盟アカウント(BNPL、契約が必要)"],
+        ["発行するキー", "API username · password · リージョン"],
+        ["成果物", "API 認証情報"]
+      ],
+      "sections": [
+        {
+          "h2": "1. はじめる前に",
+          "desc": "Klarna の認証情報は、加盟契約が完了した後に発行できます。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必須", "h3": "Klarna 加盟アカウント", "p": "まず Klarna(BNPL)の加盟契約が必要です。契約が完了して初めて、Merchant Portal で API 認証情報を発行できます。" },
+              { "tag": "発行するキー", "h3": "API username · password · リージョン", "p": "Merchant Portal の Settings > Klarna API credentials で API username·password を作成し、リージョン(eu/na/oc)を確認します。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> リージョンは <strong>eu / na / oc</strong> のいずれかで、登録時に併せて入力する必要があります。" }
+          ]
+        },
+        {
+          "h2": "2. 発行申請の手順",
+          "desc": "加盟契約後、以下の順序で発行し、GenieGo に登録します。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "加盟契約", "p": "まず Klarna(BNPL)の加盟契約を完了します。契約が完了して初めて次のステップに進めます。" },
+              { "h3": "Merchant Portal にログイン", "p": "Klarna Merchant Portal にログインします。", "path": "portal.klarna.com" },
+              { "h3": "API credentials へ移動", "p": "[Settings] > [Klarna API credentials] メニューへ移動します。", "path": "Settings → Klarna API credentials" },
+              { "h3": "認証情報の作成・確認", "p": "API username·password を作成し、リージョン(eu/na/oc)を確認します。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Settings &gt; Klarna API credentials で API username·password が作成され、リージョンを確認できていれば正常です。" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo に登録する情報",
+          "blocks": [
+            { "type": "table", "head": ["フィールド", "説明"], "rows": [
+              ["username", "API Username(MID/PID)"],
+              ["password", "API Password(取り扱い注意)"],
+              ["region", "リージョン(eu / na / oc)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 連携ハブの [登録] に username·password·region を入力して保存すると、認証情報は AES-256-GCM で暗号化して保存され、閲覧時にはマスキングされます。" }
+          ]
+        },
+        {
+          "h2": "4. よくある問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["API credentials メニューに発行項目がない", "加盟契約が未完了", "まず Klarna の加盟契約を完了します。"],
+              ["認証失敗", "リージョン(eu/na/oc)の不一致、または password の誤入力", "Merchant Portal で確認したリージョンと username·password を再確認します。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終チェックリスト",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Klarna(BNPL)の加盟契約が完了した。",
+              "Merchant Portal の Settings > Klarna API credentials で認証情報を作成した。",
+              "API username·password とリージョン(eu/na/oc)を確認した。",
+              "GenieGo の [登録] に username·password·region を入力して保存した。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh": {
+      "titleType": "API Key 申请手册",
+      "badge": "新手指南",
+      "intro": "本手册手把手指导新手在 Klarna Merchant Portal 中创建 API 凭证(username·password),并连同区域一起注册到 GenieGo 集成中心。",
+      "org": "GenieGo 集成中心",
+      "quick": [
+        ["预计时间", "约 5~10 分钟"],
+        ["所需账户", "Klarna 商户账户(BNPL，需签约)"],
+        ["签发密钥", "API username · password · 区域"],
+        ["成果", "API 凭证"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 开始之前",
+          "desc": "Klarna 凭证只能在商户合约完成签订后才能签发。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "Klarna 商户账户", "p": "首先需要签订 Klarna(BNPL)商户合约。合约完成后才能在 Merchant Portal 中签发 API 凭证。" },
+              { "tag": "签发密钥", "h3": "API username · password · 区域", "p": "在 Merchant Portal 的 Settings > Klarna API credentials 中创建 API username·password,并确认区域(eu/na/oc)。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> 区域为 <strong>eu / na / oc</strong> 之一，注册时需一并输入。" }
+          ]
+        },
+        {
+          "h2": "2. 申请步骤",
+          "desc": "签约后，按以下顺序签发并在 GenieGo 中注册。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "商户签约", "p": "首先完成 Klarna(BNPL)商户合约。合约完成后才能进入下一步。" },
+              { "h3": "登录 Merchant Portal", "p": "登录 Klarna Merchant Portal。", "path": "portal.klarna.com" },
+              { "h3": "前往 API credentials", "p": "进入 [Settings] > [Klarna API credentials] 菜单。", "path": "Settings → Klarna API credentials" },
+              { "h3": "创建并确认凭证", "p": "创建 API username·password,并确认区域(eu/na/oc)。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "如果在 Settings &gt; Klarna API credentials 中创建了 API username·password 并确认了区域，即表示正常。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中注册的信息",
+          "blocks": [
+            { "type": "table", "head": ["字段", "说明"], "rows": [
+              ["username", "API Username(MID/PID)"],
+              ["password", "API Password(请妥善保管)"],
+              ["region", "区域(eu / na / oc)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 集成中心的 [注册] 中输入 username·password·region 并保存后，凭证将以 AES-256-GCM 加密存储，并在查询时进行掩码处理。" }
+          ]
+        },
+        {
+          "h2": "4. 常见问题",
+          "blocks": [
+            { "type": "table", "head": ["问题", "原因", "解决方法"], "rows": [
+              ["API credentials 菜单中没有签发项", "商户合约未完成", "请先完成 Klarna 商户合约。"],
+              ["认证失败", "区域(eu/na/oc)不匹配或 password 填写错误", "重新确认在 Merchant Portal 中确认的区域以及 username·password。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最终检查清单",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已完成 Klarna(BNPL)商户合约。",
+              "已在 Merchant Portal 的 Settings > Klarna API credentials 中创建凭证。",
+              "已确认 API username·password 和区域(eu/na/oc)。",
+              "已在 GenieGo [注册] 中输入 username·password·region 并保存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh-TW": {
+      "titleType": "API Key 申請手冊",
+      "badge": "新手指南",
+      "intro": "本手冊手把手指導新手在 Klarna Merchant Portal 中建立 API 憑證(username·password),並連同區域一起註冊到 GenieGo 整合中心。",
+      "org": "GenieGo 整合中心",
+      "quick": [
+        ["預計時間", "約 5~10 分鐘"],
+        ["所需帳戶", "Klarna 商戶帳戶(BNPL，需簽約)"],
+        ["簽發金鑰", "API username · password · 區域"],
+        ["成果", "API 憑證"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 開始之前",
+          "desc": "Klarna 憑證只能在商戶合約完成簽訂後才能簽發。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "Klarna 商戶帳戶", "p": "首先需要簽訂 Klarna(BNPL)商戶合約。合約完成後才能在 Merchant Portal 中簽發 API 憑證。" },
+              { "tag": "簽發金鑰", "h3": "API username · password · 區域", "p": "在 Merchant Portal 的 Settings > Klarna API credentials 中建立 API username·password,並確認區域(eu/na/oc)。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> 區域為 <strong>eu / na / oc</strong> 之一，註冊時需一併輸入。" }
+          ]
+        },
+        {
+          "h2": "2. 申請步驟",
+          "desc": "簽約後，依以下順序簽發並在 GenieGo 中註冊。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "商戶簽約", "p": "首先完成 Klarna(BNPL)商戶合約。合約完成後才能進入下一步。" },
+              { "h3": "登入 Merchant Portal", "p": "登入 Klarna Merchant Portal。", "path": "portal.klarna.com" },
+              { "h3": "前往 API credentials", "p": "進入 [Settings] > [Klarna API credentials] 選單。", "path": "Settings → Klarna API credentials" },
+              { "h3": "建立並確認憑證", "p": "建立 API username·password,並確認區域(eu/na/oc)。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "如果在 Settings &gt; Klarna API credentials 中建立了 API username·password 並確認了區域，即表示正常。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中註冊的資訊",
+          "blocks": [
+            { "type": "table", "head": ["欄位", "說明"], "rows": [
+              ["username", "API Username(MID/PID)"],
+              ["password", "API Password(請妥善保管)"],
+              ["region", "區域(eu / na / oc)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 整合中心的 [註冊] 中輸入 username·password·region 並儲存後，憑證將以 AES-256-GCM 加密儲存，並在查詢時進行遮罩處理。" }
+          ]
+        },
+        {
+          "h2": "4. 常見問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["API credentials 選單中沒有簽發項", "商戶合約未完成", "請先完成 Klarna 商戶合約。"],
+              ["認證失敗", "區域(eu/na/oc)不匹配或 password 填寫錯誤", "重新確認在 Merchant Portal 中確認的區域以及 username·password。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終檢查清單",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已完成 Klarna(BNPL)商戶合約。",
+              "已在 Merchant Portal 的 Settings > Klarna API credentials 中建立憑證。",
+              "已確認 API username·password 和區域(eu/na/oc)。",
+              "已在 GenieGo [註冊] 中輸入 username·password·region 並儲存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "de": {
+      "titleType": "Anleitung zur API-Key-Ausstellung",
+      "badge": "Einsteigerleitfaden",
+      "intro": "Eine einsteigerfreundliche Schritt-für-Schritt-Anleitung zum Erstellen von API-Anmeldedaten (username und password) im Klarna Merchant Portal und zum Registrieren zusammen mit Ihrer Region im GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Geschätzte Zeit", "Etwa 5–10 Min."],
+        ["Benötigtes Konto", "Klarna-Händlerkonto (BNPL, Vertrag erforderlich)"],
+        ["Ausgestellte Schlüssel", "API username · password · Region"],
+        ["Ergebnis", "API-Anmeldedaten"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Bevor Sie beginnen",
+          "desc": "Klarna-Anmeldedaten können erst nach Abschluss Ihres Händlervertrags ausgestellt werden.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Erforderlich", "h3": "Klarna-Händlerkonto", "p": "Sie benötigen zunächst einen Klarna-(BNPL-)Händlervertrag. Erst nach Abschluss des Vertrags können Sie API-Anmeldedaten im Merchant Portal ausstellen." },
+              { "tag": "Ausgestellte Schlüssel", "h3": "API username · password · Region", "p": "Erstellen Sie im Merchant Portal unter Settings > Klarna API credentials das API username und password und bestätigen Sie Ihre Region (eu/na/oc)." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Hinweis:</strong> Die Region ist eine von <strong>eu / na / oc</strong> und muss bei der Registrierung mit angegeben werden." }
+          ]
+        },
+        {
+          "h2": "2. Ausstellungsschritte",
+          "desc": "Stellen Sie nach Ihrem Händlervertrag in der unten angegebenen Reihenfolge aus und registrieren Sie in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Händlervertrag", "p": "Schließen Sie zunächst Ihren Klarna-(BNPL-)Händlervertrag ab. Erst nach Abschluss des Vertrags können Sie zum nächsten Schritt fortfahren." },
+              { "h3": "Beim Merchant Portal anmelden", "p": "Melden Sie sich beim Klarna Merchant Portal an.", "path": "portal.klarna.com" },
+              { "h3": "Zu API credentials wechseln", "p": "Wechseln Sie zum Menü [Settings] > [Klarna API credentials].", "path": "Settings → Klarna API credentials" },
+              { "h3": "Anmeldedaten erstellen und bestätigen", "p": "Erstellen Sie das API username und password und bestätigen Sie Ihre Region (eu/na/oc)." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Wenn unter Settings &gt; Klarna API credentials das API username und password erstellt wurden und Sie die Region bestätigt haben, ist alles in Ordnung." }
+          ]
+        },
+        {
+          "h2": "3. In GenieGo zu registrierende Informationen",
+          "blocks": [
+            { "type": "table", "head": ["Feld", "Beschreibung"], "rows": [
+              ["username", "API Username (MID/PID)"],
+              ["password", "API Password (vertraulich behandeln)"],
+              ["region", "Region (eu / na / oc)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Geben Sie im GenieGo Integration Hub unter [Registrieren] username, password und region ein und speichern Sie. Anmeldedaten werden im Ruhezustand mit AES-256-GCM verschlüsselt und beim Lesen maskiert." }
+          ]
+        },
+        {
+          "h2": "4. Häufige Probleme",
+          "blocks": [
+            { "type": "table", "head": ["Problem", "Ursache", "Lösung"], "rows": [
+              ["Keine Ausstellungsoption im Menü API credentials", "Händlervertrag nicht abgeschlossen", "Schließen Sie zunächst Ihren Klarna-Händlervertrag ab."],
+              ["Authentifizierungsfehler", "Region (eu/na/oc) stimmt nicht überein oder password falsch eingegeben", "Überprüfen Sie die Region sowie username und password erneut, die Sie im Merchant Portal bestätigt haben."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Abschließende Checkliste",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Den Klarna-(BNPL-)Händlervertrag abgeschlossen.",
+              "Anmeldedaten unter Settings > Klarna API credentials im Merchant Portal erstellt.",
+              "API username, password und Region (eu/na/oc) bestätigt.",
+              "username, password und region in GenieGo [Registrieren] eingegeben und gespeichert."
+            ] }
+          ]
+        }
+      ]
+    },
+    "th": {
+      "titleType": "คู่มือการออก API Key",
+      "badge": "คู่มือสำหรับผู้เริ่มต้น",
+      "intro": "คู่มือทีละขั้นตอนที่เป็นมิตรกับผู้เริ่มต้น สำหรับการสร้างข้อมูลรับรอง API (username และ password) ใน Klarna Merchant Portal และลงทะเบียนพร้อมกับภูมิภาคของคุณใน GenieGo Integration Hub",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["เวลาโดยประมาณ", "ประมาณ 5–10 นาที"],
+        ["บัญชีที่ต้องใช้", "บัญชีร้านค้า Klarna (BNPL, ต้องทำสัญญา)"],
+        ["คีย์ที่ออก", "API username · password · ภูมิภาค"],
+        ["ผลลัพธ์", "ข้อมูลรับรอง API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. ก่อนเริ่มต้น",
+          "desc": "ข้อมูลรับรอง Klarna จะออกได้หลังจากที่สัญญาร้านค้าของคุณเสร็จสมบูรณ์แล้วเท่านั้น",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "จำเป็น", "h3": "บัญชีร้านค้า Klarna", "p": "ก่อนอื่นคุณต้องมีสัญญาร้านค้า Klarna (BNPL) เมื่อสัญญาเสร็จสมบูรณ์แล้วเท่านั้น จึงจะออกข้อมูลรับรอง API ใน Merchant Portal ได้" },
+              { "tag": "คีย์ที่ออก", "h3": "API username · password · ภูมิภาค", "p": "ใน Merchant Portal ที่ Settings > Klarna API credentials สร้าง API username·password และยืนยันภูมิภาค (eu/na/oc)" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>หมายเหตุ:</strong> ภูมิภาคคือหนึ่งใน <strong>eu / na / oc</strong> และต้องป้อนพร้อมกันเมื่อลงทะเบียน" }
+          ]
+        },
+        {
+          "h2": "2. ขั้นตอนการขอออก",
+          "desc": "หลังจากทำสัญญาร้านค้าแล้ว ให้ออกตามลำดับด้านล่างและลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "สัญญาร้านค้า", "p": "ก่อนอื่นให้ทำสัญญาร้านค้า Klarna (BNPL) ให้เสร็จสมบูรณ์ เมื่อสัญญาเสร็จสมบูรณ์แล้วเท่านั้นจึงจะดำเนินไปยังขั้นตอนถัดไปได้" },
+              { "h3": "ลงชื่อเข้าใช้ Merchant Portal", "p": "ลงชื่อเข้าใช้ Klarna Merchant Portal", "path": "portal.klarna.com" },
+              { "h3": "ไปที่ API credentials", "p": "ไปที่เมนู [Settings] > [Klarna API credentials]", "path": "Settings → Klarna API credentials" },
+              { "h3": "สร้างและยืนยันข้อมูลรับรอง", "p": "สร้าง API username·password และยืนยันภูมิภาค (eu/na/oc)" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "หากสร้าง API username·password ที่ Settings &gt; Klarna API credentials และยืนยันภูมิภาคแล้ว แสดงว่าปกติ" }
+          ]
+        },
+        {
+          "h2": "3. ข้อมูลที่ต้องลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["ฟิลด์", "คำอธิบาย"], "rows": [
+              ["username", "API Username (MID/PID)"],
+              ["password", "API Password (จัดการด้วยความระมัดระวัง)"],
+              ["region", "ภูมิภาค (eu / na / oc)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "ป้อน username·password·region ใน [ลงทะเบียน] ของ GenieGo Integration Hub แล้วบันทึก ข้อมูลรับรองจะถูกเข้ารหัสขณะจัดเก็บด้วย AES-256-GCM และปิดบังเมื่ออ่าน" }
+          ]
+        },
+        {
+          "h2": "4. ปัญหาที่พบบ่อย",
+          "blocks": [
+            { "type": "table", "head": ["ปัญหา", "สาเหตุ", "วิธีแก้ไข"], "rows": [
+              ["ไม่มีรายการออกในเมนู API credentials", "สัญญาร้านค้ายังไม่เสร็จสมบูรณ์", "โปรดทำสัญญาร้านค้า Klarna ให้เสร็จสมบูรณ์ก่อน"],
+              ["การยืนยันตัวตนล้มเหลว", "ภูมิภาค (eu/na/oc) ไม่ตรงกัน หรือป้อน password ไม่ถูกต้อง", "ตรวจสอบภูมิภาคและ username·password ที่ยืนยันใน Merchant Portal อีกครั้ง"]
+            ] }
+          ]
+        },
+        {
+          "h2": "รายการตรวจสอบขั้นสุดท้าย",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "ทำสัญญาร้านค้า Klarna (BNPL) เสร็จสมบูรณ์แล้ว",
+              "สร้างข้อมูลรับรองที่ Settings > Klarna API credentials ใน Merchant Portal แล้ว",
+              "ยืนยัน API username·password และภูมิภาค (eu/na/oc) แล้ว",
+              "ป้อน username·password·region ใน GenieGo [ลงทะเบียน] และบันทึกแล้ว"
+            ] }
+          ]
+        }
+      ]
+    },
+    "vi": {
+      "titleType": "Hướng dẫn cấp API Key",
+      "badge": "Hướng dẫn cho người mới",
+      "intro": "Hướng dẫn từng bước thân thiện với người mới về việc tạo thông tin xác thực API (username và password) trong Klarna Merchant Portal và đăng ký cùng với khu vực của bạn trong GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Thời gian dự kiến", "Khoảng 5–10 phút"],
+        ["Tài khoản cần thiết", "Tài khoản người bán Klarna (BNPL, cần hợp đồng)"],
+        ["Khóa được cấp", "API username · password · khu vực"],
+        ["Kết quả", "Thông tin xác thực API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Trước khi bắt đầu",
+          "desc": "Thông tin xác thực Klarna chỉ có thể được cấp sau khi hợp đồng người bán của bạn được hoàn tất.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Bắt buộc", "h3": "Tài khoản người bán Klarna", "p": "Trước tiên bạn cần một hợp đồng người bán Klarna (BNPL). Chỉ khi hợp đồng được hoàn tất, bạn mới có thể cấp thông tin xác thực API trong Merchant Portal." },
+              { "tag": "Khóa được cấp", "h3": "API username · password · khu vực", "p": "Trong Merchant Portal tại Settings > Klarna API credentials, tạo API username·password và xác nhận khu vực của bạn (eu/na/oc)." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Lưu ý:</strong> Khu vực là một trong <strong>eu / na / oc</strong>, và phải được nhập cùng nhau khi đăng ký." }
+          ]
+        },
+        {
+          "h2": "2. Các bước cấp",
+          "desc": "Sau khi có hợp đồng người bán, hãy cấp theo thứ tự dưới đây và đăng ký trong GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Hợp đồng người bán", "p": "Trước tiên hãy hoàn tất hợp đồng người bán Klarna (BNPL). Bạn chỉ có thể chuyển sang bước tiếp theo khi hợp đồng được hoàn tất." },
+              { "h3": "Đăng nhập vào Merchant Portal", "p": "Đăng nhập vào Klarna Merchant Portal.", "path": "portal.klarna.com" },
+              { "h3": "Vào API credentials", "p": "Điều hướng đến menu [Settings] > [Klarna API credentials].", "path": "Settings → Klarna API credentials" },
+              { "h3": "Tạo và xác nhận thông tin xác thực", "p": "Tạo API username·password và xác nhận khu vực của bạn (eu/na/oc)." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Nếu API username·password được tạo tại Settings &gt; Klarna API credentials và bạn đã xác nhận khu vực, mọi thứ đều ổn." }
+          ]
+        },
+        {
+          "h2": "3. Thông tin cần đăng ký trong GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Trường", "Mô tả"], "rows": [
+              ["username", "API Username (MID/PID)"],
+              ["password", "API Password (xử lý cẩn thận)"],
+              ["region", "Khu vực (eu / na / oc)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Nhập username·password·region trong [Đăng ký] của GenieGo Integration Hub rồi lưu. Thông tin xác thực được mã hóa khi lưu trữ bằng AES-256-GCM và được che khi đọc." }
+          ]
+        },
+        {
+          "h2": "4. Sự cố thường gặp",
+          "blocks": [
+            { "type": "table", "head": ["Sự cố", "Nguyên nhân", "Giải pháp"], "rows": [
+              ["Không có tùy chọn cấp trong menu API credentials", "Hợp đồng người bán chưa hoàn tất", "Trước tiên hãy hoàn tất hợp đồng người bán Klarna."],
+              ["Xác thực thất bại", "Khu vực (eu/na/oc) không khớp hoặc password nhập sai", "Kiểm tra lại khu vực cùng username·password mà bạn đã xác nhận trong Merchant Portal."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Danh sách kiểm tra cuối cùng",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Đã hoàn tất hợp đồng người bán Klarna (BNPL).",
+              "Đã tạo thông tin xác thực tại Settings > Klarna API credentials trong Merchant Portal.",
+              "Đã xác nhận API username·password và khu vực (eu/na/oc).",
+              "Đã nhập username·password·region vào GenieGo [Đăng ký] và lưu."
+            ] }
+          ]
+        }
+      ]
+    },
+    "id": {
+      "titleType": "Panduan Penerbitan API Key",
+      "badge": "Panduan Pemula",
+      "intro": "Panduan langkah demi langkah yang ramah pemula untuk membuat kredensial API (username dan password) di Klarna Merchant Portal dan mendaftarkannya bersama wilayah Anda di GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Perkiraan waktu", "Sekitar 5–10 menit"],
+        ["Akun yang dibutuhkan", "Akun merchant Klarna (BNPL, perlu kontrak)"],
+        ["Kunci yang diterbitkan", "API username · password · wilayah"],
+        ["Hasil", "Kredensial API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Sebelum Anda Mulai",
+          "desc": "Kredensial Klarna hanya dapat diterbitkan setelah kontrak merchant Anda selesai.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Diperlukan", "h3": "Akun merchant Klarna", "p": "Pertama-tama Anda memerlukan kontrak merchant Klarna (BNPL). Hanya setelah kontrak selesai, Anda dapat menerbitkan kredensial API di Merchant Portal." },
+              { "tag": "Kunci yang diterbitkan", "h3": "API username · password · wilayah", "p": "Di Merchant Portal pada Settings > Klarna API credentials, buat API username·password dan konfirmasikan wilayah Anda (eu/na/oc)." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Catatan:</strong> Wilayah adalah salah satu dari <strong>eu / na / oc</strong>, dan harus dimasukkan bersamaan saat mendaftar." }
+          ]
+        },
+        {
+          "h2": "2. Langkah Penerbitan",
+          "desc": "Setelah kontrak merchant, terbitkan sesuai urutan di bawah dan daftarkan di GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Kontrak merchant", "p": "Pertama, selesaikan kontrak merchant Klarna (BNPL) Anda. Anda baru dapat melanjutkan ke langkah berikutnya setelah kontrak selesai." },
+              { "h3": "Masuk ke Merchant Portal", "p": "Masuk ke Klarna Merchant Portal.", "path": "portal.klarna.com" },
+              { "h3": "Buka API credentials", "p": "Buka menu [Settings] > [Klarna API credentials].", "path": "Settings → Klarna API credentials" },
+              { "h3": "Buat dan konfirmasi kredensial", "p": "Buat API username·password dan konfirmasikan wilayah Anda (eu/na/oc)." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Jika API username·password dibuat di Settings &gt; Klarna API credentials dan Anda telah mengonfirmasi wilayah, berarti semuanya beres." }
+          ]
+        },
+        {
+          "h2": "3. Informasi yang Harus Didaftarkan di GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Bidang", "Deskripsi"], "rows": [
+              ["username", "API Username (MID/PID)"],
+              ["password", "API Password (tangani dengan hati-hati)"],
+              ["region", "Wilayah (eu / na / oc)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Masukkan username·password·region di [Daftar] GenieGo Integration Hub lalu simpan. Kredensial dienkripsi saat disimpan dengan AES-256-GCM dan disamarkan saat dibaca." }
+          ]
+        },
+        {
+          "h2": "4. Masalah Umum",
+          "blocks": [
+            { "type": "table", "head": ["Masalah", "Penyebab", "Solusi"], "rows": [
+              ["Tidak ada opsi penerbitan di menu API credentials", "Kontrak merchant belum selesai", "Selesaikan dulu kontrak merchant Klarna Anda."],
+              ["Autentikasi gagal", "Wilayah (eu/na/oc) tidak cocok atau password salah dimasukkan", "Periksa kembali wilayah serta username·password yang Anda konfirmasi di Merchant Portal."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Daftar Periksa Akhir",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Menyelesaikan kontrak merchant Klarna (BNPL).",
+              "Membuat kredensial di Settings > Klarna API credentials dalam Merchant Portal.",
+              "Mengonfirmasi API username·password dan wilayah (eu/na/oc).",
+              "Memasukkan username·password·region di GenieGo [Daftar] dan menyimpannya."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ar": {
+      "titleType": "دليل إصدار مفتاح API",
+      "badge": "دليل المبتدئين",
+      "intro": "دليل تفصيلي مناسب للمبتدئين لإنشاء بيانات اعتماد API (username وpassword) في Klarna Merchant Portal وتسجيلها مع منطقتك في GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["الوقت التقديري", "حوالي 5–10 دقائق"],
+        ["الحساب المطلوب", "حساب تاجر Klarna (BNPL، يتطلب عقدًا)"],
+        ["المفاتيح المُصدرة", "API username · password · المنطقة"],
+        ["النتيجة", "بيانات اعتماد API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. قبل أن تبدأ",
+          "desc": "لا يمكن إصدار بيانات اعتماد Klarna إلا بعد اكتمال عقد التاجر الخاص بك.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "مطلوب", "h3": "حساب تاجر Klarna", "p": "تحتاج أولاً إلى عقد تاجر Klarna (BNPL). لا يمكنك إصدار بيانات اعتماد API في Merchant Portal إلا بعد اكتمال العقد." },
+              { "tag": "المفاتيح المُصدرة", "h3": "API username · password · المنطقة", "p": "في Merchant Portal ضمن Settings > Klarna API credentials، أنشئ API username·password وأكّد منطقتك (eu/na/oc)." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>ملاحظة:</strong> المنطقة هي واحدة من <strong>eu / na / oc</strong>، ويجب إدخالها معًا عند التسجيل." }
+          ]
+        },
+        {
+          "h2": "2. خطوات الإصدار",
+          "desc": "بعد عقد التاجر، أصدر بالترتيب أدناه وسجّل في GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "عقد التاجر", "p": "أكمل أولاً عقد تاجر Klarna (BNPL). لا يمكنك الانتقال إلى الخطوة التالية إلا بعد اكتمال العقد." },
+              { "h3": "تسجيل الدخول إلى Merchant Portal", "p": "سجّل الدخول إلى Klarna Merchant Portal.", "path": "portal.klarna.com" },
+              { "h3": "الانتقال إلى API credentials", "p": "انتقل إلى قائمة [Settings] > [Klarna API credentials].", "path": "Settings → Klarna API credentials" },
+              { "h3": "إنشاء بيانات الاعتماد وتأكيدها", "p": "أنشئ API username·password وأكّد منطقتك (eu/na/oc)." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "إذا تم إنشاء API username·password ضمن Settings &gt; Klarna API credentials وأكّدت المنطقة، فكل شيء على ما يرام." }
+          ]
+        },
+        {
+          "h2": "3. المعلومات المطلوب تسجيلها في GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["الحقل", "الوصف"], "rows": [
+              ["username", "API Username (MID/PID)"],
+              ["password", "API Password (تعامل معه بحذر)"],
+              ["region", "المنطقة (eu / na / oc)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "أدخل username·password·region في [التسجيل] بـ GenieGo Integration Hub ثم احفظ. تُشفَّر بيانات الاعتماد أثناء التخزين باستخدام AES-256-GCM وتُخفى عند القراءة." }
+          ]
+        },
+        {
+          "h2": "4. المشكلات الشائعة",
+          "blocks": [
+            { "type": "table", "head": ["المشكلة", "السبب", "الحل"], "rows": [
+              ["لا يوجد خيار إصدار في قائمة API credentials", "عقد التاجر غير مكتمل", "أكمل أولاً عقد تاجر Klarna الخاص بك."],
+              ["فشل المصادقة", "عدم تطابق المنطقة (eu/na/oc) أو إدخال password بشكل خاطئ", "تحقق مجددًا من المنطقة ومن username·password اللذين أكّدتهما في Merchant Portal."]
+            ] }
+          ]
+        },
+        {
+          "h2": "قائمة التحقق النهائية",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "اكتمل عقد تاجر Klarna (BNPL).",
+              "أنشأت بيانات الاعتماد ضمن Settings > Klarna API credentials في Merchant Portal.",
+              "أكّدت API username·password والمنطقة (eu/na/oc).",
+              "أدخلت username·password·region في GenieGo [التسجيل] وحفظت."
+            ] }
+          ]
+        }
+      ]
+    },
+    "es": {
+      "titleType": "Manual de emisión de la API Key",
+      "badge": "Guía para principiantes",
+      "intro": "Una guía paso a paso, apta para principiantes, para crear credenciales de API (username y password) en el Klarna Merchant Portal y registrarlas junto con tu región en el GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tiempo estimado", "Unos 5–10 min"],
+        ["Cuenta necesaria", "Cuenta de comerciante Klarna (BNPL, se requiere contrato)"],
+        ["Claves emitidas", "API username · password · región"],
+        ["Resultado", "Credenciales de API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de empezar",
+          "desc": "Las credenciales de Klarna solo pueden emitirse una vez finalizado tu contrato de comerciante.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requerido", "h3": "Cuenta de comerciante Klarna", "p": "Primero necesitas un contrato de comerciante Klarna (BNPL). Solo una vez finalizado el contrato podrás emitir credenciales de API en el Merchant Portal." },
+              { "tag": "Claves emitidas", "h3": "API username · password · región", "p": "En el Merchant Portal, en Settings > Klarna API credentials, crea el API username·password y confirma tu región (eu/na/oc)." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Nota:</strong> La región es una de <strong>eu / na / oc</strong>, y debe introducirse junto con los demás datos al registrarse." }
+          ]
+        },
+        {
+          "h2": "2. Pasos de emisión",
+          "desc": "Tras tu contrato de comerciante, emite en el orden siguiente y regístralo en GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Contrato de comerciante", "p": "Primero completa tu contrato de comerciante Klarna (BNPL). Solo podrás pasar al siguiente paso una vez finalizado el contrato." },
+              { "h3": "Inicia sesión en el Merchant Portal", "p": "Inicia sesión en el Klarna Merchant Portal.", "path": "portal.klarna.com" },
+              { "h3": "Ve a API credentials", "p": "Navega al menú [Settings] > [Klarna API credentials].", "path": "Settings → Klarna API credentials" },
+              { "h3": "Crea y confirma las credenciales", "p": "Crea el API username·password y confirma tu región (eu/na/oc)." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Si el API username·password se crea en Settings &gt; Klarna API credentials y has confirmado la región, todo está en orden." }
+          ]
+        },
+        {
+          "h2": "3. Información a registrar en GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descripción"], "rows": [
+              ["username", "API Username (MID/PID)"],
+              ["password", "API Password (manéjalo con cuidado)"],
+              ["region", "Región (eu / na / oc)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Introduce username·password·region en [Registrar] del GenieGo Integration Hub y guarda. Las credenciales se cifran en reposo con AES-256-GCM y se enmascaran al leerlas." }
+          ]
+        },
+        {
+          "h2": "4. Problemas frecuentes",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solución"], "rows": [
+              ["No hay opción de emisión en el menú API credentials", "Contrato de comerciante no finalizado", "Primero completa tu contrato de comerciante Klarna."],
+              ["Fallo de autenticación", "La región (eu/na/oc) no coincide o el password se introdujo mal", "Vuelve a comprobar la región y el username·password que confirmaste en el Merchant Portal."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificación final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Completaste el contrato de comerciante Klarna (BNPL).",
+              "Creaste las credenciales en Settings > Klarna API credentials en el Merchant Portal.",
+              "Confirmaste el API username·password y la región (eu/na/oc).",
+              "Introdujiste username·password·region en GenieGo [Registrar] y guardaste."
+            ] }
+          ]
+        }
+      ]
+    },
+    "fr": {
+      "titleType": "Manuel d'émission de la clé API",
+      "badge": "Guide pour débutants",
+      "intro": "Un guide pas à pas, adapté aux débutants, pour créer des identifiants API (username et password) dans le Klarna Merchant Portal et les enregistrer avec votre région dans le GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Temps estimé", "Environ 5–10 min"],
+        ["Compte requis", "Compte marchand Klarna (BNPL, contrat requis)"],
+        ["Clés émises", "API username · password · région"],
+        ["Résultat", "Identifiants API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Avant de commencer",
+          "desc": "Les identifiants Klarna ne peuvent être émis qu'une fois votre contrat marchand finalisé.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requis", "h3": "Compte marchand Klarna", "p": "Vous avez d'abord besoin d'un contrat marchand Klarna (BNPL). Ce n'est qu'une fois le contrat finalisé que vous pourrez émettre des identifiants API dans le Merchant Portal." },
+              { "tag": "Clés émises", "h3": "API username · password · région", "p": "Dans le Merchant Portal, sous Settings > Klarna API credentials, créez le API username·password et confirmez votre région (eu/na/oc)." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Remarque :</strong> La région est l'une des suivantes : <strong>eu / na / oc</strong>, et doit être saisie en même temps lors de l'enregistrement." }
+          ]
+        },
+        {
+          "h2": "2. Étapes d'émission",
+          "desc": "Après votre contrat marchand, émettez dans l'ordre ci-dessous et enregistrez dans GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Contrat marchand", "p": "Finalisez d'abord votre contrat marchand Klarna (BNPL). Vous ne pourrez passer à l'étape suivante qu'une fois le contrat finalisé." },
+              { "h3": "Connectez-vous au Merchant Portal", "p": "Connectez-vous au Klarna Merchant Portal.", "path": "portal.klarna.com" },
+              { "h3": "Accédez à API credentials", "p": "Accédez au menu [Settings] > [Klarna API credentials].", "path": "Settings → Klarna API credentials" },
+              { "h3": "Créez et confirmez les identifiants", "p": "Créez le API username·password et confirmez votre région (eu/na/oc)." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Si le API username·password est créé sous Settings &gt; Klarna API credentials et que vous avez confirmé la région, tout est en ordre." }
+          ]
+        },
+        {
+          "h2": "3. Informations à enregistrer dans GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Champ", "Description"], "rows": [
+              ["username", "API Username (MID/PID)"],
+              ["password", "API Password (à manipuler avec précaution)"],
+              ["region", "Région (eu / na / oc)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Saisissez username·password·region dans [Enregistrer] du GenieGo Integration Hub et enregistrez. Les identifiants sont chiffrés au repos avec AES-256-GCM et masqués à la lecture." }
+          ]
+        },
+        {
+          "h2": "4. Problèmes fréquents",
+          "blocks": [
+            { "type": "table", "head": ["Problème", "Cause", "Solution"], "rows": [
+              ["Aucune option d'émission dans le menu API credentials", "Contrat marchand non finalisé", "Finalisez d'abord votre contrat marchand Klarna."],
+              ["Échec d'authentification", "Région (eu/na/oc) incohérente ou password mal saisi", "Vérifiez à nouveau la région ainsi que le username·password que vous avez confirmés dans le Merchant Portal."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Liste de contrôle finale",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Finalisé le contrat marchand Klarna (BNPL).",
+              "Créé les identifiants sous Settings > Klarna API credentials dans le Merchant Portal.",
+              "Confirmé le API username·password et la région (eu/na/oc).",
+              "Saisi username·password·region dans GenieGo [Enregistrer] et enregistré."
+            ] }
+          ]
+        }
+      ]
+    },
+    "hi": {
+      "titleType": "API Key जारी करने की नियमावली",
+      "badge": "शुरुआती गाइड",
+      "intro": "Klarna Merchant Portal में API क्रेडेंशियल (username और password) बनाने और उन्हें अपने region के साथ GenieGo Integration Hub में पंजीकृत करने की चरण-दर-चरण, शुरुआती-अनुकूल नियमावली।",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["अनुमानित समय", "लगभग 5–10 मिनट"],
+        ["आवश्यक खाता", "Klarna मर्चेंट खाता (BNPL, अनुबंध आवश्यक)"],
+        ["जारी की गई कुंजियाँ", "API username · password · region"],
+        ["परिणाम", "API क्रेडेंशियल"]
+      ],
+      "sections": [
+        {
+          "h2": "1. शुरू करने से पहले",
+          "desc": "Klarna क्रेडेंशियल केवल आपके मर्चेंट अनुबंध के पूर्ण होने के बाद ही जारी किए जा सकते हैं।",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "आवश्यक", "h3": "Klarna मर्चेंट खाता", "p": "सबसे पहले आपको Klarna (BNPL) मर्चेंट अनुबंध की आवश्यकता है। अनुबंध पूर्ण होने पर ही आप Merchant Portal में API क्रेडेंशियल जारी कर सकते हैं।" },
+              { "tag": "जारी की गई कुंजियाँ", "h3": "API username · password · region", "p": "Merchant Portal में Settings > Klarna API credentials के अंतर्गत API username·password बनाएं और अपना region (eu/na/oc) पुष्टि करें।" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>नोट:</strong> region <strong>eu / na / oc</strong> में से एक होता है, और पंजीकरण के समय इसे साथ में दर्ज करना आवश्यक है।" }
+          ]
+        },
+        {
+          "h2": "2. जारी करने के चरण",
+          "desc": "अपने मर्चेंट अनुबंध के बाद, नीचे दिए गए क्रम में जारी करें और GenieGo में पंजीकृत करें।",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "मर्चेंट अनुबंध", "p": "सबसे पहले अपना Klarna (BNPL) मर्चेंट अनुबंध पूर्ण करें। अनुबंध पूर्ण होने पर ही आप अगले चरण पर जा सकते हैं।" },
+              { "h3": "Merchant Portal में साइन इन करें", "p": "Klarna Merchant Portal में साइन इन करें।", "path": "portal.klarna.com" },
+              { "h3": "API credentials पर जाएँ", "p": "[Settings] > [Klarna API credentials] मेनू पर जाएँ।", "path": "Settings → Klarna API credentials" },
+              { "h3": "क्रेडेंशियल बनाएं और पुष्टि करें", "p": "API username·password बनाएं और अपना region (eu/na/oc) पुष्टि करें।" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "यदि Settings &gt; Klarna API credentials में API username·password बन गया है और आपने region की पुष्टि कर ली है, तो सब कुछ ठीक है।" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo में पंजीकृत करने योग्य जानकारी",
+          "blocks": [
+            { "type": "table", "head": ["फ़ील्ड", "विवरण"], "rows": [
+              ["username", "API Username (MID/PID)"],
+              ["password", "API Password (सावधानी से संभालें)"],
+              ["region", "Region (eu / na / oc)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo Integration Hub के [पंजीकरण] में username·password·region दर्ज करके सहेजें। क्रेडेंशियल को संग्रहण के समय AES-256-GCM से एन्क्रिप्ट किया जाता है और पढ़ते समय मास्क किया जाता है।" }
+          ]
+        },
+        {
+          "h2": "4. सामान्य समस्याएँ",
+          "blocks": [
+            { "type": "table", "head": ["समस्या", "कारण", "समाधान"], "rows": [
+              ["API credentials मेनू में जारी करने का विकल्प नहीं है", "मर्चेंट अनुबंध पूर्ण नहीं हुआ", "सबसे पहले अपना Klarna मर्चेंट अनुबंध पूर्ण करें।"],
+              ["प्रमाणीकरण विफल", "region (eu/na/oc) का बेमेल या password गलत दर्ज", "Merchant Portal में पुष्टि किए गए region और username·password की पुनः जाँच करें।"]
+            ] }
+          ]
+        },
+        {
+          "h2": "अंतिम जाँच-सूची",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Klarna (BNPL) मर्चेंट अनुबंध पूर्ण हो गया।",
+              "Merchant Portal में Settings > Klarna API credentials में क्रेडेंशियल बनाए।",
+              "API username·password और region (eu/na/oc) की पुष्टि की।",
+              "GenieGo [पंजीकरण] में username·password·region दर्ज करके सहेजा।"
+            ] }
+          ]
+        }
+      ]
+    },
+    "pt": {
+      "titleType": "Manual de emissão da API Key",
+      "badge": "Guia para iniciantes",
+      "intro": "Um guia passo a passo, amigável para iniciantes, para criar credenciais de API (username e password) no Klarna Merchant Portal e registrá-las junto com a sua região no GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tempo estimado", "Cerca de 5–10 min"],
+        ["Conta necessária", "Conta de comerciante Klarna (BNPL, contrato necessário)"],
+        ["Chaves emitidas", "API username · password · região"],
+        ["Resultado", "Credenciais de API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de começar",
+          "desc": "As credenciais da Klarna só podem ser emitidas após a conclusão do seu contrato de comerciante.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Obrigatório", "h3": "Conta de comerciante Klarna", "p": "Primeiro você precisa de um contrato de comerciante Klarna (BNPL). Somente após a conclusão do contrato é possível emitir credenciais de API no Merchant Portal." },
+              { "tag": "Chaves emitidas", "h3": "API username · password · região", "p": "No Merchant Portal, em Settings > Klarna API credentials, crie o API username·password e confirme a sua região (eu/na/oc)." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Observação:</strong> A região é uma de <strong>eu / na / oc</strong> e deve ser inserida junto ao registrar." }
+          ]
+        },
+        {
+          "h2": "2. Etapas de emissão",
+          "desc": "Após o seu contrato de comerciante, emita na ordem abaixo e registre no GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Contrato de comerciante", "p": "Primeiro conclua o seu contrato de comerciante Klarna (BNPL). Você só poderá avançar para a próxima etapa após a conclusão do contrato." },
+              { "h3": "Faça login no Merchant Portal", "p": "Faça login no Klarna Merchant Portal.", "path": "portal.klarna.com" },
+              { "h3": "Vá para API credentials", "p": "Navegue até o menu [Settings] > [Klarna API credentials].", "path": "Settings → Klarna API credentials" },
+              { "h3": "Crie e confirme as credenciais", "p": "Crie o API username·password e confirme a sua região (eu/na/oc)." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Se o API username·password for criado em Settings &gt; Klarna API credentials e você tiver confirmado a região, está tudo certo." }
+          ]
+        },
+        {
+          "h2": "3. Informações a registrar no GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descrição"], "rows": [
+              ["username", "API Username (MID/PID)"],
+              ["password", "API Password (manuseie com cuidado)"],
+              ["region", "Região (eu / na / oc)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Insira username·password·region em [Registrar] do GenieGo Integration Hub e salve. As credenciais são criptografadas em repouso com AES-256-GCM e mascaradas na leitura." }
+          ]
+        },
+        {
+          "h2": "4. Problemas comuns",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solução"], "rows": [
+              ["Sem opção de emissão no menu API credentials", "Contrato de comerciante não concluído", "Primeiro conclua o seu contrato de comerciante Klarna."],
+              ["Falha de autenticação", "Região (eu/na/oc) incompatível ou password inserido incorretamente", "Verifique novamente a região e o username·password que você confirmou no Merchant Portal."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificação final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Concluiu o contrato de comerciante Klarna (BNPL).",
+              "Criou as credenciais em Settings > Klarna API credentials no Merchant Portal.",
+              "Confirmou o API username·password e a região (eu/na/oc).",
+              "Inseriu username·password·region em GenieGo [Registrar] e salvou."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ru": {
+      "titleType": "Руководство по выпуску API Key",
+      "badge": "Руководство для начинающих",
+      "intro": "Понятное новичкам пошаговое руководство по созданию учётных данных API (username и password) в Klarna Merchant Portal и их регистрации вместе с регионом в GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Примерное время", "Около 5–10 мин"],
+        ["Требуемый аккаунт", "Аккаунт продавца Klarna (BNPL, требуется договор)"],
+        ["Выпускаемые ключи", "API username · password · регион"],
+        ["Результат", "Учётные данные API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Прежде чем начать",
+          "desc": "Учётные данные Klarna можно выпустить только после заключения вашего договора продавца.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Требуется", "h3": "Аккаунт продавца Klarna", "p": "Сначала вам нужен договор продавца Klarna (BNPL). Только после заключения договора вы сможете выпустить учётные данные API в Merchant Portal." },
+              { "tag": "Выпускаемые ключи", "h3": "API username · password · регион", "p": "В Merchant Portal в разделе Settings > Klarna API credentials создайте API username·password и подтвердите свой регион (eu/na/oc)." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Примечание:</strong> Регион — это один из <strong>eu / na / oc</strong>, и его необходимо указывать вместе с остальными данными при регистрации." }
+          ]
+        },
+        {
+          "h2": "2. Этапы выпуска",
+          "desc": "После заключения договора продавца выпустите в указанном ниже порядке и зарегистрируйте в GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Договор продавца", "p": "Сначала заключите договор продавца Klarna (BNPL). Перейти к следующему шагу можно только после заключения договора." },
+              { "h3": "Войдите в Merchant Portal", "p": "Войдите в Klarna Merchant Portal.", "path": "portal.klarna.com" },
+              { "h3": "Перейдите в API credentials", "p": "Перейдите в меню [Settings] > [Klarna API credentials].", "path": "Settings → Klarna API credentials" },
+              { "h3": "Создайте и подтвердите учётные данные", "p": "Создайте API username·password и подтвердите свой регион (eu/na/oc)." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Если в разделе Settings &gt; Klarna API credentials созданы API username·password и вы подтвердили регион, всё в порядке." }
+          ]
+        },
+        {
+          "h2": "3. Информация для регистрации в GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Поле", "Описание"], "rows": [
+              ["username", "API Username (MID/PID)"],
+              ["password", "API Password (обращайтесь осторожно)"],
+              ["region", "Регион (eu / na / oc)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Введите username·password·region в [Регистрация] GenieGo Integration Hub и сохраните. Учётные данные шифруются при хранении с помощью AES-256-GCM и маскируются при чтении." }
+          ]
+        },
+        {
+          "h2": "4. Частые проблемы",
+          "blocks": [
+            { "type": "table", "head": ["Проблема", "Причина", "Решение"], "rows": [
+              ["В меню API credentials нет пункта выпуска", "Договор продавца не заключён", "Сначала заключите договор продавца Klarna."],
+              ["Ошибка аутентификации", "Несоответствие региона (eu/na/oc) или неверно введён password", "Повторно проверьте регион и username·password, которые вы подтвердили в Merchant Portal."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Итоговый контрольный список",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Договор продавца Klarna (BNPL) заключён.",
+              "Учётные данные созданы в разделе Settings > Klarna API credentials в Merchant Portal.",
+              "API username·password и регион (eu/na/oc) подтверждены.",
+              "username·password·region введены в GenieGo [Регистрация] и сохранены."
+            ] }
+          ]
+        }
+      ]
+    }
+  }
+}

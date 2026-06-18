@@ -1,0 +1,1011 @@
+{
+  "name": "Korea Post",
+  "icon": "📮",
+  "langs": {
+    "ko": {
+      "titleType": "API Key 발급 매뉴얼",
+      "badge": "Beginner Guide",
+      "intro": "우체국택배는 별도 발급 없이 스마트택배(스윗트래커) 통합 추적 키로 연동됩니다. tracking.sweettracker.co.kr에서 t_key를 발급해 [스마트택배(통합 추적)] 채널에 등록하면 우체국택배 배송추적이 연동됩니다.",
+      "org": "GenieGo 연동 허브",
+      "quick": [
+        ["소요 시간", "약 5~15분"],
+        ["필요 계정", "스마트택배(스윗트래커) 계정"],
+        ["발급 키", "스마트택배 추적 API 키(t_key)"],
+        ["결과물", "통합 배송추적 자격증명"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 시작하기 전에",
+          "desc": "우체국택배는 전용 발급 없이 스마트택배 통합 추적 키로 연동합니다.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "방식", "h3": "스마트택배(스윗트래커) 통합 추적", "p": "우체국택배는 별도 발급 없이 스마트택배(스윗트래커) 통합 추적 키로 연동됩니다. t_key 하나로 전 택배사 배송추적을 처리합니다." },
+              { "tag": "발급 키", "h3": "t_key (스마트택배 추적 API 키)", "p": "tracking.sweettracker.co.kr에 가입해 발급받는 통합 추적 키입니다. GenieGo에는 api_key 필드로 입력합니다." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>중요:</strong> 우체국택배 채널을 직접 선택하지 말고 [스마트택배(통합 추적)] 채널에 t_key를 등록하세요." }
+          ]
+        },
+        {
+          "h2": "2. 발급 단계",
+          "desc": "아래 순서대로 발급하고 GenieGo에 등록합니다.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "스윗트래커 가입", "p": "스마트택배(스윗트래커)에 가입합니다.", "path": "tracking.sweettracker.co.kr" },
+              { "h3": "t_key 발급", "p": "tracking.sweettracker.co.kr에서 t_key를 발급합니다." },
+              { "h3": "스마트택배 채널 선택", "p": "연동허브에서 우체국택배 채널 대신 [스마트택배(통합 추적)] 채널을 선택합니다." },
+              { "h3": "GenieGo 등록", "p": "GenieGo [등록]에 t_key(api_key)를 입력하면 우체국택배 배송추적이 연동됩니다." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "t_key를 발급받아 [스마트택배(통합 추적)] 채널에 등록하면 우체국택배 배송추적이 연동됩니다." }
+          ]
+        },
+        {
+          "h2": "3. GenieGo에 등록할 정보",
+          "blocks": [
+            { "type": "table", "head": ["필드", "설명"], "rows": [
+              ["api_key", "스윗트래커에서 발급한 t_key(우체국택배 스마트택배 추적 API 키)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 연동 허브 [등록]에 입력해 저장하면 자격증명은 AES-256-GCM으로 암호화 저장되고 조회 시 마스킹됩니다." }
+          ]
+        },
+        {
+          "h2": "4. 자주 발생하는 문제",
+          "blocks": [
+            { "type": "table", "head": ["문제", "원인", "해결"], "rows": [
+              ["우체국택배 채널에 키를 등록할 수 없음", "우체국택배는 전용 발급 없이 통합 추적 키로 연동됨", "[스마트택배(통합 추적)] 채널을 선택해 t_key를 등록합니다."],
+              ["배송추적이 연동되지 않음", "t_key 오기재 또는 미발급", "tracking.sweettracker.co.kr에서 발급한 t_key를 다시 확인합니다."]
+            ] }
+          ]
+        },
+        {
+          "h2": "최종 체크리스트",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "tracking.sweettracker.co.kr에 가입했다.",
+              "t_key(스마트택배 추적 API 키)를 발급받았다.",
+              "연동허브에서 [스마트택배(통합 추적)] 채널을 선택했다.",
+              "GenieGo [등록]에 t_key(api_key)를 입력해 저장했다."
+            ] }
+          ]
+        }
+      ]
+    },
+    "en": {
+      "titleType": "API Key Issuance Manual",
+      "badge": "Beginner Guide",
+      "intro": "Korea Post parcel delivery is connected without a separate issuance, using the Smart Delivery (Sweet Tracker) unified tracking key. Issue a t_key at tracking.sweettracker.co.kr and register it on the [Smart Delivery (Unified Tracking)] channel to connect Korea Post delivery tracking.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Est. time", "About 5–15 min"],
+        ["Account needed", "Smart Delivery (Sweet Tracker) account"],
+        ["Key issued", "Smart Delivery tracking API key (t_key)"],
+        ["Result", "Unified delivery-tracking credentials"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Before You Begin",
+          "desc": "Korea Post parcel is connected via the Smart Delivery unified tracking key, without a dedicated issuance.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Method", "h3": "Smart Delivery (Sweet Tracker) unified tracking", "p": "Korea Post parcel is connected without a separate issuance, using the Smart Delivery (Sweet Tracker) unified tracking key. A single t_key handles delivery tracking across all carriers." },
+              { "tag": "Key issued", "h3": "t_key (Smart Delivery tracking API key)", "p": "This is a unified tracking key obtained by signing up at tracking.sweettracker.co.kr. In GenieGo, enter it in the api_key field." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Important:</strong> Do not select the Korea Post channel directly; register the t_key on the [Smart Delivery (Unified Tracking)] channel." }
+          ]
+        },
+        {
+          "h2": "2. Issuance Steps",
+          "desc": "Issue in the order below and register in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Sign up for Sweet Tracker", "p": "Sign up for Smart Delivery (Sweet Tracker).", "path": "tracking.sweettracker.co.kr" },
+              { "h3": "Issue a t_key", "p": "Issue a t_key at tracking.sweettracker.co.kr." },
+              { "h3": "Select the Smart Delivery channel", "p": "In the Integration Hub, select the [Smart Delivery (Unified Tracking)] channel instead of the Korea Post channel." },
+              { "h3": "Register in GenieGo", "p": "Enter the t_key (api_key) in GenieGo [Register] to connect Korea Post delivery tracking." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Once you obtain a t_key and register it on the [Smart Delivery (Unified Tracking)] channel, Korea Post delivery tracking is connected." }
+          ]
+        },
+        {
+          "h2": "3. Information to Register in GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Field", "Description"], "rows": [
+              ["api_key", "The t_key issued by Sweet Tracker (Korea Post Smart Delivery tracking API key)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Enter it in the GenieGo Integration Hub [Register] and save. Credentials are encrypted at rest with AES-256-GCM and masked on read." }
+          ]
+        },
+        {
+          "h2": "4. Common Issues",
+          "blocks": [
+            { "type": "table", "head": ["Issue", "Cause", "Solution"], "rows": [
+              ["Cannot register a key on the Korea Post channel", "Korea Post is connected via the unified tracking key, without a dedicated issuance", "Select the [Smart Delivery (Unified Tracking)] channel and register the t_key."],
+              ["Delivery tracking is not connected", "t_key entered incorrectly or not issued", "Recheck the t_key issued at tracking.sweettracker.co.kr."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Final Checklist",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Signed up at tracking.sweettracker.co.kr.",
+              "Issued a t_key (Smart Delivery tracking API key).",
+              "Selected the [Smart Delivery (Unified Tracking)] channel in the Integration Hub.",
+              "Entered the t_key (api_key) in GenieGo [Register] and saved."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ja": {
+      "titleType": "API Key 発行マニュアル",
+      "badge": "初心者ガイド",
+      "intro": "郵便局宅配は別途発行なしで、スマート宅配(スウィートトラッカー)の統合追跡キーで連携します。tracking.sweettracker.co.kr で t_key を発行し、[スマート宅配(統合追跡)] チャネルに登録すると、郵便局宅配の配送追跡が連携されます。",
+      "org": "GenieGo 連携ハブ",
+      "quick": [
+        ["所要時間", "約 5〜15 分"],
+        ["必要なアカウント", "スマート宅配(スウィートトラッカー)アカウント"],
+        ["発行するキー", "スマート宅配 追跡 API キー(t_key)"],
+        ["成果物", "統合配送追跡の認証情報"]
+      ],
+      "sections": [
+        {
+          "h2": "1. はじめる前に",
+          "desc": "郵便局宅配は専用発行なしで、スマート宅配の統合追跡キーで連携します。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "方式", "h3": "スマート宅配(スウィートトラッカー)統合追跡", "p": "郵便局宅配は別途発行なしで、スマート宅配(スウィートトラッカー)の統合追跡キーで連携します。t_key 1 つで全宅配会社の配送追跡を処理します。" },
+              { "tag": "発行するキー", "h3": "t_key (スマート宅配 追跡 API キー)", "p": "tracking.sweettracker.co.kr に登録して発行する統合追跡キーです。GenieGo には api_key フィールドで入力します。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>重要:</strong> 郵便局宅配チャネルを直接選択せず、[スマート宅配(統合追跡)] チャネルに t_key を登録してください。" }
+          ]
+        },
+        {
+          "h2": "2. 発行手順",
+          "desc": "以下の順序で発行し、GenieGo に登録します。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "スウィートトラッカーに登録", "p": "スマート宅配(スウィートトラッカー)に登録します。", "path": "tracking.sweettracker.co.kr" },
+              { "h3": "t_key を発行", "p": "tracking.sweettracker.co.kr で t_key を発行します。" },
+              { "h3": "スマート宅配チャネルを選択", "p": "連携ハブで郵便局宅配チャネルの代わりに [スマート宅配(統合追跡)] チャネルを選択します。" },
+              { "h3": "GenieGo に登録", "p": "GenieGo の [登録] に t_key(api_key)を入力すると、郵便局宅配の配送追跡が連携されます。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "t_key を発行して [スマート宅配(統合追跡)] チャネルに登録すると、郵便局宅配の配送追跡が連携されます。" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo に登録する情報",
+          "blocks": [
+            { "type": "table", "head": ["フィールド", "説明"], "rows": [
+              ["api_key", "スウィートトラッカーで発行した t_key(郵便局宅配 スマート宅配 追跡 API キー)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 連携ハブの [登録] に入力して保存すると、認証情報は AES-256-GCM で暗号化して保存され、閲覧時にはマスキングされます。" }
+          ]
+        },
+        {
+          "h2": "4. よくある問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["郵便局宅配チャネルにキーを登録できない", "郵便局宅配は専用発行なしで統合追跡キーで連携される", "[スマート宅配(統合追跡)] チャネルを選択して t_key を登録します。"],
+              ["配送追跡が連携されない", "t_key の誤記入または未発行", "tracking.sweettracker.co.kr で発行した t_key を再確認します。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終チェックリスト",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "tracking.sweettracker.co.kr に登録した。",
+              "t_key(スマート宅配 追跡 API キー)を発行した。",
+              "連携ハブで [スマート宅配(統合追跡)] チャネルを選択した。",
+              "GenieGo の [登録] に t_key(api_key)を入力して保存した。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh": {
+      "titleType": "API Key 申请手册",
+      "badge": "新手指南",
+      "intro": "邮政快递无需单独申请，通过智能快递(Sweet Tracker)统一追踪密钥进行接入。在 tracking.sweettracker.co.kr 申请 t_key，并将其注册到[智能快递(统一追踪)]渠道，即可接入邮政快递配送追踪。",
+      "org": "GenieGo 集成中心",
+      "quick": [
+        ["预计时间", "约 5~15 分钟"],
+        ["所需账户", "智能快递(Sweet Tracker)账户"],
+        ["申请密钥", "智能快递追踪 API 密钥(t_key)"],
+        ["成果", "统一配送追踪凭证"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 开始之前",
+          "desc": "邮政快递无需专用申请，通过智能快递统一追踪密钥进行接入。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "方式", "h3": "智能快递(Sweet Tracker)统一追踪", "p": "邮政快递无需单独申请，通过智能快递(Sweet Tracker)统一追踪密钥进行接入。一个 t_key 即可处理所有快递公司的配送追踪。" },
+              { "tag": "申请密钥", "h3": "t_key (智能快递追踪 API 密钥)", "p": "这是在 tracking.sweettracker.co.kr 注册后申请的统一追踪密钥。在 GenieGo 中请填入 api_key 字段。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>重要:</strong> 请勿直接选择邮政快递渠道，而应在[智能快递(统一追踪)]渠道注册 t_key。" }
+          ]
+        },
+        {
+          "h2": "2. 申请步骤",
+          "desc": "按以下顺序申请并在 GenieGo 中注册。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "注册 Sweet Tracker", "p": "注册智能快递(Sweet Tracker)。", "path": "tracking.sweettracker.co.kr" },
+              { "h3": "申请 t_key", "p": "在 tracking.sweettracker.co.kr 申请 t_key。" },
+              { "h3": "选择智能快递渠道", "p": "在集成中心选择[智能快递(统一追踪)]渠道，而非邮政快递渠道。" },
+              { "h3": "在 GenieGo 注册", "p": "在 GenieGo 的[注册]中填入 t_key(api_key)，即可接入邮政快递配送追踪。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "申请 t_key 并将其注册到[智能快递(统一追踪)]渠道后，邮政快递配送追踪即被接入。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中注册的信息",
+          "blocks": [
+            { "type": "table", "head": ["字段", "说明"], "rows": [
+              ["api_key", "由 Sweet Tracker 申请的 t_key(邮政快递智能快递追踪 API 密钥)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 集成中心的[注册]中填入并保存后，凭证将以 AES-256-GCM 加密存储，并在查询时进行掩码处理。" }
+          ]
+        },
+        {
+          "h2": "4. 常见问题",
+          "blocks": [
+            { "type": "table", "head": ["问题", "原因", "解决方法"], "rows": [
+              ["无法在邮政快递渠道注册密钥", "邮政快递无需专用申请，通过统一追踪密钥接入", "选择[智能快递(统一追踪)]渠道并注册 t_key。"],
+              ["配送追踪未接入", "t_key 填写错误或未申请", "重新核对在 tracking.sweettracker.co.kr 申请的 t_key。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最终检查清单",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已在 tracking.sweettracker.co.kr 注册。",
+              "已申请 t_key(智能快递追踪 API 密钥)。",
+              "已在集成中心选择[智能快递(统一追踪)]渠道。",
+              "已在 GenieGo 的[注册]中填入 t_key(api_key)并保存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh-TW": {
+      "titleType": "API Key 申請手冊",
+      "badge": "新手指南",
+      "intro": "郵局宅配無需單獨申請，透過智慧宅配(Sweet Tracker)整合追蹤金鑰進行接入。在 tracking.sweettracker.co.kr 申請 t_key，並將其註冊到[智慧宅配(整合追蹤)]渠道，即可接入郵局宅配配送追蹤。",
+      "org": "GenieGo 整合中心",
+      "quick": [
+        ["預計時間", "約 5~15 分鐘"],
+        ["所需帳戶", "智慧宅配(Sweet Tracker)帳戶"],
+        ["申請金鑰", "智慧宅配追蹤 API 金鑰(t_key)"],
+        ["成果", "整合配送追蹤憑證"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 開始之前",
+          "desc": "郵局宅配無需專用申請，透過智慧宅配整合追蹤金鑰進行接入。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "方式", "h3": "智慧宅配(Sweet Tracker)整合追蹤", "p": "郵局宅配無需單獨申請，透過智慧宅配(Sweet Tracker)整合追蹤金鑰進行接入。一個 t_key 即可處理所有宅配公司的配送追蹤。" },
+              { "tag": "申請金鑰", "h3": "t_key (智慧宅配追蹤 API 金鑰)", "p": "這是在 tracking.sweettracker.co.kr 註冊後申請的整合追蹤金鑰。在 GenieGo 中請填入 api_key 欄位。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>重要:</strong> 請勿直接選擇郵局宅配渠道，而應在[智慧宅配(整合追蹤)]渠道註冊 t_key。" }
+          ]
+        },
+        {
+          "h2": "2. 申請步驟",
+          "desc": "依以下順序申請並在 GenieGo 中註冊。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "註冊 Sweet Tracker", "p": "註冊智慧宅配(Sweet Tracker)。", "path": "tracking.sweettracker.co.kr" },
+              { "h3": "申請 t_key", "p": "在 tracking.sweettracker.co.kr 申請 t_key。" },
+              { "h3": "選擇智慧宅配渠道", "p": "在整合中心選擇[智慧宅配(整合追蹤)]渠道，而非郵局宅配渠道。" },
+              { "h3": "在 GenieGo 註冊", "p": "在 GenieGo 的[註冊]中填入 t_key(api_key)，即可接入郵局宅配配送追蹤。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "申請 t_key 並將其註冊到[智慧宅配(整合追蹤)]渠道後，郵局宅配配送追蹤即被接入。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中註冊的資訊",
+          "blocks": [
+            { "type": "table", "head": ["欄位", "說明"], "rows": [
+              ["api_key", "由 Sweet Tracker 申請的 t_key(郵局宅配智慧宅配追蹤 API 金鑰)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 整合中心的[註冊]中填入並儲存後，憑證將以 AES-256-GCM 加密儲存，並在查詢時進行遮罩處理。" }
+          ]
+        },
+        {
+          "h2": "4. 常見問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["無法在郵局宅配渠道註冊金鑰", "郵局宅配無需專用申請，透過整合追蹤金鑰接入", "選擇[智慧宅配(整合追蹤)]渠道並註冊 t_key。"],
+              ["配送追蹤未接入", "t_key 填寫錯誤或未申請", "重新核對在 tracking.sweettracker.co.kr 申請的 t_key。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終檢查清單",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已在 tracking.sweettracker.co.kr 註冊。",
+              "已申請 t_key(智慧宅配追蹤 API 金鑰)。",
+              "已在整合中心選擇[智慧宅配(整合追蹤)]渠道。",
+              "已在 GenieGo 的[註冊]中填入 t_key(api_key)並儲存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "de": {
+      "titleType": "Anleitung zur API-Key-Ausstellung",
+      "badge": "Einsteigerleitfaden",
+      "intro": "Der Paketdienst von Korea Post wird ohne separate Ausstellung über den einheitlichen Tracking-Schlüssel von Smart Delivery (Sweet Tracker) verbunden. Stellen Sie unter tracking.sweettracker.co.kr einen t_key aus und registrieren Sie ihn im Kanal [Smart Delivery (Einheitliches Tracking)], um die Sendungsverfolgung von Korea Post zu verbinden.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Geschätzte Zeit", "Etwa 5–15 Min."],
+        ["Benötigtes Konto", "Smart Delivery (Sweet Tracker) Konto"],
+        ["Ausgestellter Schlüssel", "Smart-Delivery-Tracking-API-Schlüssel (t_key)"],
+        ["Ergebnis", "Anmeldedaten für einheitliche Sendungsverfolgung"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Bevor Sie beginnen",
+          "desc": "Der Paketdienst von Korea Post wird ohne dedizierte Ausstellung über den einheitlichen Tracking-Schlüssel von Smart Delivery verbunden.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Methode", "h3": "Smart Delivery (Sweet Tracker) einheitliches Tracking", "p": "Der Paketdienst von Korea Post wird ohne separate Ausstellung über den einheitlichen Tracking-Schlüssel von Smart Delivery (Sweet Tracker) verbunden. Ein einziger t_key übernimmt die Sendungsverfolgung über alle Zusteller hinweg." },
+              { "tag": "Ausgestellter Schlüssel", "h3": "t_key (Smart-Delivery-Tracking-API-Schlüssel)", "p": "Dies ist ein einheitlicher Tracking-Schlüssel, den Sie durch Registrierung unter tracking.sweettracker.co.kr erhalten. Geben Sie ihn in GenieGo im Feld api_key ein." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Wichtig:</strong> Wählen Sie nicht direkt den Korea-Post-Kanal aus; registrieren Sie den t_key im Kanal [Smart Delivery (Einheitliches Tracking)]." }
+          ]
+        },
+        {
+          "h2": "2. Ausstellungsschritte",
+          "desc": "Stellen Sie in der unten angegebenen Reihenfolge aus und registrieren Sie in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Bei Sweet Tracker registrieren", "p": "Registrieren Sie sich bei Smart Delivery (Sweet Tracker).", "path": "tracking.sweettracker.co.kr" },
+              { "h3": "Einen t_key ausstellen", "p": "Stellen Sie unter tracking.sweettracker.co.kr einen t_key aus." },
+              { "h3": "Den Smart-Delivery-Kanal auswählen", "p": "Wählen Sie im Integration Hub den Kanal [Smart Delivery (Einheitliches Tracking)] anstelle des Korea-Post-Kanals." },
+              { "h3": "In GenieGo registrieren", "p": "Geben Sie den t_key (api_key) in GenieGo [Registrieren] ein, um die Sendungsverfolgung von Korea Post zu verbinden." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Sobald Sie einen t_key ausgestellt und im Kanal [Smart Delivery (Einheitliches Tracking)] registriert haben, ist die Sendungsverfolgung von Korea Post verbunden." }
+          ]
+        },
+        {
+          "h2": "3. In GenieGo zu registrierende Informationen",
+          "blocks": [
+            { "type": "table", "head": ["Feld", "Beschreibung"], "rows": [
+              ["api_key", "Der von Sweet Tracker ausgestellte t_key (Korea-Post-Smart-Delivery-Tracking-API-Schlüssel)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Geben Sie ihn im GenieGo Integration Hub [Registrieren] ein und speichern Sie. Anmeldedaten werden im Ruhezustand mit AES-256-GCM verschlüsselt und beim Lesen maskiert." }
+          ]
+        },
+        {
+          "h2": "4. Häufige Probleme",
+          "blocks": [
+            { "type": "table", "head": ["Problem", "Ursache", "Lösung"], "rows": [
+              ["Auf dem Korea-Post-Kanal kann kein Schlüssel registriert werden", "Korea Post wird über den einheitlichen Tracking-Schlüssel ohne dedizierte Ausstellung verbunden", "Wählen Sie den Kanal [Smart Delivery (Einheitliches Tracking)] und registrieren Sie den t_key."],
+              ["Sendungsverfolgung wird nicht verbunden", "t_key falsch eingegeben oder nicht ausgestellt", "Überprüfen Sie erneut den unter tracking.sweettracker.co.kr ausgestellten t_key."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Abschließende Checkliste",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Bei tracking.sweettracker.co.kr registriert.",
+              "Einen t_key (Smart-Delivery-Tracking-API-Schlüssel) ausgestellt.",
+              "Im Integration Hub den Kanal [Smart Delivery (Einheitliches Tracking)] ausgewählt.",
+              "Den t_key (api_key) in GenieGo [Registrieren] eingegeben und gespeichert."
+            ] }
+          ]
+        }
+      ]
+    },
+    "th": {
+      "titleType": "คู่มือการออก API Key",
+      "badge": "คู่มือสำหรับผู้เริ่มต้น",
+      "intro": "พัสดุ Korea Post เชื่อมต่อโดยไม่ต้องออกแยกต่างหาก ผ่านคีย์ติดตามแบบรวม Smart Delivery (Sweet Tracker) ออก t_key ที่ tracking.sweettracker.co.kr แล้วลงทะเบียนในช่องทาง [Smart Delivery (การติดตามแบบรวม)] เพื่อเชื่อมต่อการติดตามการจัดส่งของ Korea Post",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["เวลาโดยประมาณ", "ประมาณ 5–15 นาที"],
+        ["บัญชีที่ต้องใช้", "บัญชี Smart Delivery (Sweet Tracker)"],
+        ["คีย์ที่ออก", "คีย์ API การติดตาม Smart Delivery (t_key)"],
+        ["ผลลัพธ์", "ข้อมูลรับรองการติดตามการจัดส่งแบบรวม"]
+      ],
+      "sections": [
+        {
+          "h2": "1. ก่อนเริ่มต้น",
+          "desc": "พัสดุ Korea Post เชื่อมต่อผ่านคีย์ติดตามแบบรวม Smart Delivery โดยไม่ต้องออกเฉพาะ",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "วิธีการ", "h3": "การติดตามแบบรวม Smart Delivery (Sweet Tracker)", "p": "พัสดุ Korea Post เชื่อมต่อโดยไม่ต้องออกแยกต่างหาก ผ่านคีย์ติดตามแบบรวม Smart Delivery (Sweet Tracker) คีย์ t_key เพียงคีย์เดียวจัดการการติดตามการจัดส่งของบริษัทขนส่งทุกราย" },
+              { "tag": "คีย์ที่ออก", "h3": "t_key (คีย์ API การติดตาม Smart Delivery)", "p": "เป็นคีย์ติดตามแบบรวมที่ได้รับจากการสมัครที่ tracking.sweettracker.co.kr ใน GenieGo ให้ป้อนในฟิลด์ api_key" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>สำคัญ:</strong> อย่าเลือกช่องทาง Korea Post โดยตรง ให้ลงทะเบียน t_key ในช่องทาง [Smart Delivery (การติดตามแบบรวม)]" }
+          ]
+        },
+        {
+          "h2": "2. ขั้นตอนการออก",
+          "desc": "ออกตามลำดับด้านล่างและลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "สมัคร Sweet Tracker", "p": "สมัคร Smart Delivery (Sweet Tracker)", "path": "tracking.sweettracker.co.kr" },
+              { "h3": "ออก t_key", "p": "ออก t_key ที่ tracking.sweettracker.co.kr" },
+              { "h3": "เลือกช่องทาง Smart Delivery", "p": "ใน Integration Hub เลือกช่องทาง [Smart Delivery (การติดตามแบบรวม)] แทนช่องทาง Korea Post" },
+              { "h3": "ลงทะเบียนใน GenieGo", "p": "ป้อน t_key (api_key) ใน GenieGo [ลงทะเบียน] เพื่อเชื่อมต่อการติดตามการจัดส่งของ Korea Post" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "เมื่อออก t_key และลงทะเบียนในช่องทาง [Smart Delivery (การติดตามแบบรวม)] แล้ว การติดตามการจัดส่งของ Korea Post จะถูกเชื่อมต่อ" }
+          ]
+        },
+        {
+          "h2": "3. ข้อมูลที่ต้องลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["ฟิลด์", "คำอธิบาย"], "rows": [
+              ["api_key", "t_key ที่ออกโดย Sweet Tracker (คีย์ API การติดตาม Smart Delivery ของ Korea Post)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "ป้อนใน GenieGo Integration Hub [ลงทะเบียน] แล้วบันทึก ข้อมูลรับรองจะถูกเข้ารหัสขณะจัดเก็บด้วย AES-256-GCM และปิดบังเมื่ออ่าน" }
+          ]
+        },
+        {
+          "h2": "4. ปัญหาที่พบบ่อย",
+          "blocks": [
+            { "type": "table", "head": ["ปัญหา", "สาเหตุ", "วิธีแก้ไข"], "rows": [
+              ["ไม่สามารถลงทะเบียนคีย์ในช่องทาง Korea Post ได้", "Korea Post เชื่อมต่อผ่านคีย์ติดตามแบบรวมโดยไม่ต้องออกเฉพาะ", "เลือกช่องทาง [Smart Delivery (การติดตามแบบรวม)] และลงทะเบียน t_key"],
+              ["การติดตามการจัดส่งไม่ถูกเชื่อมต่อ", "ป้อน t_key ผิดหรือยังไม่ได้ออก", "ตรวจสอบ t_key ที่ออกที่ tracking.sweettracker.co.kr อีกครั้ง"]
+            ] }
+          ]
+        },
+        {
+          "h2": "รายการตรวจสอบขั้นสุดท้าย",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "สมัครที่ tracking.sweettracker.co.kr แล้ว",
+              "ออก t_key (คีย์ API การติดตาม Smart Delivery) แล้ว",
+              "เลือกช่องทาง [Smart Delivery (การติดตามแบบรวม)] ใน Integration Hub แล้ว",
+              "ป้อน t_key (api_key) ใน GenieGo [ลงทะเบียน] และบันทึกแล้ว"
+            ] }
+          ]
+        }
+      ]
+    },
+    "vi": {
+      "titleType": "Hướng dẫn cấp API Key",
+      "badge": "Hướng dẫn cho người mới",
+      "intro": "Dịch vụ bưu kiện Korea Post được kết nối mà không cần cấp riêng, thông qua khóa theo dõi hợp nhất Smart Delivery (Sweet Tracker). Hãy cấp t_key tại tracking.sweettracker.co.kr và đăng ký nó trên kênh [Smart Delivery (Theo dõi hợp nhất)] để kết nối theo dõi giao hàng của Korea Post.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Thời gian dự kiến", "Khoảng 5–15 phút"],
+        ["Tài khoản cần thiết", "Tài khoản Smart Delivery (Sweet Tracker)"],
+        ["Khóa được cấp", "Khóa API theo dõi Smart Delivery (t_key)"],
+        ["Kết quả", "Thông tin xác thực theo dõi giao hàng hợp nhất"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Trước khi bắt đầu",
+          "desc": "Dịch vụ bưu kiện Korea Post được kết nối thông qua khóa theo dõi hợp nhất Smart Delivery, mà không cần cấp chuyên dụng.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Phương thức", "h3": "Theo dõi hợp nhất Smart Delivery (Sweet Tracker)", "p": "Dịch vụ bưu kiện Korea Post được kết nối mà không cần cấp riêng, thông qua khóa theo dõi hợp nhất Smart Delivery (Sweet Tracker). Một t_key duy nhất xử lý theo dõi giao hàng trên tất cả các hãng vận chuyển." },
+              { "tag": "Khóa được cấp", "h3": "t_key (Khóa API theo dõi Smart Delivery)", "p": "Đây là khóa theo dõi hợp nhất nhận được bằng cách đăng ký tại tracking.sweettracker.co.kr. Trong GenieGo, hãy nhập nó vào trường api_key." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Quan trọng:</strong> Đừng chọn trực tiếp kênh Korea Post; hãy đăng ký t_key trên kênh [Smart Delivery (Theo dõi hợp nhất)]." }
+          ]
+        },
+        {
+          "h2": "2. Các bước cấp",
+          "desc": "Cấp theo thứ tự dưới đây và đăng ký trong GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Đăng ký Sweet Tracker", "p": "Đăng ký Smart Delivery (Sweet Tracker).", "path": "tracking.sweettracker.co.kr" },
+              { "h3": "Cấp t_key", "p": "Cấp t_key tại tracking.sweettracker.co.kr." },
+              { "h3": "Chọn kênh Smart Delivery", "p": "Trong Integration Hub, chọn kênh [Smart Delivery (Theo dõi hợp nhất)] thay vì kênh Korea Post." },
+              { "h3": "Đăng ký trong GenieGo", "p": "Nhập t_key (api_key) vào GenieGo [Đăng ký] để kết nối theo dõi giao hàng của Korea Post." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Khi bạn cấp một t_key và đăng ký nó trên kênh [Smart Delivery (Theo dõi hợp nhất)], theo dõi giao hàng của Korea Post sẽ được kết nối." }
+          ]
+        },
+        {
+          "h2": "3. Thông tin cần đăng ký trong GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Trường", "Mô tả"], "rows": [
+              ["api_key", "t_key do Sweet Tracker cấp (khóa API theo dõi Smart Delivery của Korea Post)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Nhập vào GenieGo Integration Hub [Đăng ký] rồi lưu. Thông tin xác thực được mã hóa khi lưu trữ bằng AES-256-GCM và được che khi đọc." }
+          ]
+        },
+        {
+          "h2": "4. Sự cố thường gặp",
+          "blocks": [
+            { "type": "table", "head": ["Sự cố", "Nguyên nhân", "Giải pháp"], "rows": [
+              ["Không thể đăng ký khóa trên kênh Korea Post", "Korea Post được kết nối qua khóa theo dõi hợp nhất, không có cấp chuyên dụng", "Chọn kênh [Smart Delivery (Theo dõi hợp nhất)] và đăng ký t_key."],
+              ["Theo dõi giao hàng không được kết nối", "t_key nhập sai hoặc chưa được cấp", "Kiểm tra lại t_key đã cấp tại tracking.sweettracker.co.kr."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Danh sách kiểm tra cuối cùng",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Đã đăng ký tại tracking.sweettracker.co.kr.",
+              "Đã cấp t_key (khóa API theo dõi Smart Delivery).",
+              "Đã chọn kênh [Smart Delivery (Theo dõi hợp nhất)] trong Integration Hub.",
+              "Đã nhập t_key (api_key) vào GenieGo [Đăng ký] và lưu."
+            ] }
+          ]
+        }
+      ]
+    },
+    "id": {
+      "titleType": "Panduan Penerbitan API Key",
+      "badge": "Panduan Pemula",
+      "intro": "Layanan paket Korea Post terhubung tanpa penerbitan terpisah, melalui kunci pelacakan terpadu Smart Delivery (Sweet Tracker). Terbitkan t_key di tracking.sweettracker.co.kr dan daftarkan pada saluran [Smart Delivery (Pelacakan Terpadu)] untuk menghubungkan pelacakan pengiriman Korea Post.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Perkiraan waktu", "Sekitar 5–15 menit"],
+        ["Akun yang dibutuhkan", "Akun Smart Delivery (Sweet Tracker)"],
+        ["Kunci yang diterbitkan", "Kunci API pelacakan Smart Delivery (t_key)"],
+        ["Hasil", "Kredensial pelacakan pengiriman terpadu"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Sebelum Anda Mulai",
+          "desc": "Layanan paket Korea Post terhubung melalui kunci pelacakan terpadu Smart Delivery, tanpa penerbitan khusus.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Metode", "h3": "Pelacakan terpadu Smart Delivery (Sweet Tracker)", "p": "Layanan paket Korea Post terhubung tanpa penerbitan terpisah, melalui kunci pelacakan terpadu Smart Delivery (Sweet Tracker). Satu t_key menangani pelacakan pengiriman di semua kurir." },
+              { "tag": "Kunci yang diterbitkan", "h3": "t_key (Kunci API pelacakan Smart Delivery)", "p": "Ini adalah kunci pelacakan terpadu yang diperoleh dengan mendaftar di tracking.sweettracker.co.kr. Di GenieGo, masukkan pada bidang api_key." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Penting:</strong> Jangan pilih saluran Korea Post secara langsung; daftarkan t_key pada saluran [Smart Delivery (Pelacakan Terpadu)]." }
+          ]
+        },
+        {
+          "h2": "2. Langkah Penerbitan",
+          "desc": "Terbitkan sesuai urutan di bawah dan daftarkan di GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Daftar Sweet Tracker", "p": "Daftar Smart Delivery (Sweet Tracker).", "path": "tracking.sweettracker.co.kr" },
+              { "h3": "Terbitkan t_key", "p": "Terbitkan t_key di tracking.sweettracker.co.kr." },
+              { "h3": "Pilih saluran Smart Delivery", "p": "Di Integration Hub, pilih saluran [Smart Delivery (Pelacakan Terpadu)] alih-alih saluran Korea Post." },
+              { "h3": "Daftarkan di GenieGo", "p": "Masukkan t_key (api_key) di GenieGo [Daftar] untuk menghubungkan pelacakan pengiriman Korea Post." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Setelah Anda menerbitkan t_key dan mendaftarkannya pada saluran [Smart Delivery (Pelacakan Terpadu)], pelacakan pengiriman Korea Post terhubung." }
+          ]
+        },
+        {
+          "h2": "3. Informasi yang Didaftarkan di GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Bidang", "Deskripsi"], "rows": [
+              ["api_key", "t_key yang diterbitkan oleh Sweet Tracker (kunci API pelacakan Smart Delivery Korea Post)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Masukkan di GenieGo Integration Hub [Daftar] lalu simpan. Kredensial dienkripsi saat disimpan dengan AES-256-GCM dan disamarkan saat dibaca." }
+          ]
+        },
+        {
+          "h2": "4. Masalah Umum",
+          "blocks": [
+            { "type": "table", "head": ["Masalah", "Penyebab", "Solusi"], "rows": [
+              ["Tidak dapat mendaftarkan kunci pada saluran Korea Post", "Korea Post terhubung melalui kunci pelacakan terpadu, tanpa penerbitan khusus", "Pilih saluran [Smart Delivery (Pelacakan Terpadu)] dan daftarkan t_key."],
+              ["Pelacakan pengiriman tidak terhubung", "t_key salah dimasukkan atau belum diterbitkan", "Periksa kembali t_key yang diterbitkan di tracking.sweettracker.co.kr."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Daftar Periksa Akhir",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Mendaftar di tracking.sweettracker.co.kr.",
+              "Menerbitkan t_key (kunci API pelacakan Smart Delivery).",
+              "Memilih saluran [Smart Delivery (Pelacakan Terpadu)] di Integration Hub.",
+              "Memasukkan t_key (api_key) di GenieGo [Daftar] dan menyimpannya."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ar": {
+      "titleType": "دليل إصدار مفتاح API",
+      "badge": "دليل المبتدئين",
+      "intro": "يتم ربط خدمة طرود Korea Post دون إصدار منفصل، عبر مفتاح التتبع الموحد لـ Smart Delivery ‏(Sweet Tracker). أصدر t_key على tracking.sweettracker.co.kr وسجّله في قناة [Smart Delivery (التتبع الموحد)] لربط تتبع شحنات Korea Post.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["الوقت التقريبي", "حوالي 5–15 دقيقة"],
+        ["الحساب المطلوب", "حساب Smart Delivery ‏(Sweet Tracker)"],
+        ["المفتاح المُصدَر", "مفتاح API لتتبع Smart Delivery ‏(t_key)"],
+        ["النتيجة", "بيانات اعتماد تتبع الشحن الموحد"]
+      ],
+      "sections": [
+        {
+          "h2": "1. قبل أن تبدأ",
+          "desc": "يتم ربط خدمة طرود Korea Post عبر مفتاح التتبع الموحد لـ Smart Delivery، دون إصدار مخصص.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "الطريقة", "h3": "التتبع الموحد لـ Smart Delivery ‏(Sweet Tracker)", "p": "يتم ربط خدمة طرود Korea Post دون إصدار منفصل، عبر مفتاح التتبع الموحد لـ Smart Delivery ‏(Sweet Tracker). يتولى مفتاح t_key واحد تتبع الشحن لدى جميع شركات الشحن." },
+              { "tag": "المفتاح المُصدَر", "h3": "t_key (مفتاح API لتتبع Smart Delivery)", "p": "هو مفتاح تتبع موحد يتم الحصول عليه بالتسجيل في tracking.sweettracker.co.kr. في GenieGo، أدخله في حقل api_key." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>هام:</strong> لا تختر قناة Korea Post مباشرةً؛ سجّل t_key في قناة [Smart Delivery (التتبع الموحد)]." }
+          ]
+        },
+        {
+          "h2": "2. خطوات الإصدار",
+          "desc": "أصدر بالترتيب أدناه وسجّل في GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "التسجيل في Sweet Tracker", "p": "سجّل في Smart Delivery ‏(Sweet Tracker).", "path": "tracking.sweettracker.co.kr" },
+              { "h3": "إصدار t_key", "p": "أصدر t_key على tracking.sweettracker.co.kr." },
+              { "h3": "اختيار قناة Smart Delivery", "p": "في Integration Hub، اختر قناة [Smart Delivery (التتبع الموحد)] بدلًا من قناة Korea Post." },
+              { "h3": "التسجيل في GenieGo", "p": "أدخل t_key ‏(api_key) في GenieGo [تسجيل] لربط تتبع شحنات Korea Post." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "بمجرد إصدار t_key وتسجيله في قناة [Smart Delivery (التتبع الموحد)]، يتم ربط تتبع شحنات Korea Post." }
+          ]
+        },
+        {
+          "h2": "3. المعلومات المطلوب تسجيلها في GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["الحقل", "الوصف"], "rows": [
+              ["api_key", "مفتاح t_key الصادر عن Sweet Tracker (مفتاح API لتتبع Smart Delivery الخاص بـ Korea Post)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "أدخله في GenieGo Integration Hub [تسجيل] واحفظ. تُشفَّر بيانات الاعتماد أثناء التخزين باستخدام AES-256-GCM وتُحجب عند القراءة." }
+          ]
+        },
+        {
+          "h2": "4. المشكلات الشائعة",
+          "blocks": [
+            { "type": "table", "head": ["المشكلة", "السبب", "الحل"], "rows": [
+              ["لا يمكن تسجيل مفتاح في قناة Korea Post", "يتم ربط Korea Post عبر مفتاح التتبع الموحد، دون إصدار مخصص", "اختر قناة [Smart Delivery (التتبع الموحد)] وسجّل t_key."],
+              ["تتبع الشحن غير مرتبط", "إدخال t_key بشكل خاطئ أو عدم إصداره", "أعد التحقق من t_key الصادر على tracking.sweettracker.co.kr."]
+            ] }
+          ]
+        },
+        {
+          "h2": "قائمة التحقق النهائية",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "تم التسجيل في tracking.sweettracker.co.kr.",
+              "تم إصدار t_key (مفتاح API لتتبع Smart Delivery).",
+              "تم اختيار قناة [Smart Delivery (التتبع الموحد)] في Integration Hub.",
+              "تم إدخال t_key ‏(api_key) في GenieGo [تسجيل] وحفظه."
+            ] }
+          ]
+        }
+      ]
+    },
+    "es": {
+      "titleType": "Manual de emisión de API Key",
+      "badge": "Guía para principiantes",
+      "intro": "El servicio de paquetería de Korea Post se conecta sin una emisión independiente, mediante la clave de seguimiento unificado de Smart Delivery (Sweet Tracker). Emita una t_key en tracking.sweettracker.co.kr y regístrela en el canal [Smart Delivery (Seguimiento unificado)] para conectar el seguimiento de envíos de Korea Post.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tiempo estimado", "Unos 5–15 min"],
+        ["Cuenta necesaria", "Cuenta de Smart Delivery (Sweet Tracker)"],
+        ["Clave emitida", "Clave de API de seguimiento de Smart Delivery (t_key)"],
+        ["Resultado", "Credenciales de seguimiento de envíos unificado"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de empezar",
+          "desc": "El servicio de paquetería de Korea Post se conecta mediante la clave de seguimiento unificado de Smart Delivery, sin una emisión dedicada.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Método", "h3": "Seguimiento unificado de Smart Delivery (Sweet Tracker)", "p": "El servicio de paquetería de Korea Post se conecta sin una emisión independiente, mediante la clave de seguimiento unificado de Smart Delivery (Sweet Tracker). Una sola t_key gestiona el seguimiento de envíos de todas las transportistas." },
+              { "tag": "Clave emitida", "h3": "t_key (clave de API de seguimiento de Smart Delivery)", "p": "Es una clave de seguimiento unificado que se obtiene registrándose en tracking.sweettracker.co.kr. En GenieGo, introdúzcala en el campo api_key." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Importante:</strong> No seleccione el canal de Korea Post directamente; registre la t_key en el canal [Smart Delivery (Seguimiento unificado)]." }
+          ]
+        },
+        {
+          "h2": "2. Pasos de emisión",
+          "desc": "Emita en el orden siguiente y regístrelo en GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Registrarse en Sweet Tracker", "p": "Regístrese en Smart Delivery (Sweet Tracker).", "path": "tracking.sweettracker.co.kr" },
+              { "h3": "Emitir una t_key", "p": "Emita una t_key en tracking.sweettracker.co.kr." },
+              { "h3": "Seleccionar el canal de Smart Delivery", "p": "En el Integration Hub, seleccione el canal [Smart Delivery (Seguimiento unificado)] en lugar del canal de Korea Post." },
+              { "h3": "Registrar en GenieGo", "p": "Introduzca la t_key (api_key) en GenieGo [Registrar] para conectar el seguimiento de envíos de Korea Post." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Una vez que obtenga una t_key y la registre en el canal [Smart Delivery (Seguimiento unificado)], el seguimiento de envíos de Korea Post quedará conectado." }
+          ]
+        },
+        {
+          "h2": "3. Información para registrar en GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descripción"], "rows": [
+              ["api_key", "La t_key emitida por Sweet Tracker (clave de API de seguimiento de Smart Delivery de Korea Post)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Introdúzcala en el GenieGo Integration Hub [Registrar] y guarde. Las credenciales se cifran en reposo con AES-256-GCM y se enmascaran al leerlas." }
+          ]
+        },
+        {
+          "h2": "4. Problemas frecuentes",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solución"], "rows": [
+              ["No se puede registrar una clave en el canal de Korea Post", "Korea Post se conecta mediante la clave de seguimiento unificado, sin una emisión dedicada", "Seleccione el canal [Smart Delivery (Seguimiento unificado)] y registre la t_key."],
+              ["El seguimiento de envíos no se conecta", "t_key introducida incorrectamente o no emitida", "Vuelva a verificar la t_key emitida en tracking.sweettracker.co.kr."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificación final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Se registró en tracking.sweettracker.co.kr.",
+              "Emitió una t_key (clave de API de seguimiento de Smart Delivery).",
+              "Seleccionó el canal [Smart Delivery (Seguimiento unificado)] en el Integration Hub.",
+              "Introdujo la t_key (api_key) en GenieGo [Registrar] y la guardó."
+            ] }
+          ]
+        }
+      ]
+    },
+    "fr": {
+      "titleType": "Manuel d'émission de la clé API",
+      "badge": "Guide pour débutants",
+      "intro": "Le service de colis Korea Post se connecte sans émission distincte, via la clé de suivi unifié de Smart Delivery (Sweet Tracker). Émettez une t_key sur tracking.sweettracker.co.kr et enregistrez-la sur le canal [Smart Delivery (Suivi unifié)] pour connecter le suivi des livraisons Korea Post.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Temps estimé", "Environ 5–15 min"],
+        ["Compte requis", "Compte Smart Delivery (Sweet Tracker)"],
+        ["Clé émise", "Clé API de suivi Smart Delivery (t_key)"],
+        ["Résultat", "Identifiants de suivi des livraisons unifié"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Avant de commencer",
+          "desc": "Le service de colis Korea Post se connecte via la clé de suivi unifié de Smart Delivery, sans émission dédiée.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Méthode", "h3": "Suivi unifié Smart Delivery (Sweet Tracker)", "p": "Le service de colis Korea Post se connecte sans émission distincte, via la clé de suivi unifié de Smart Delivery (Sweet Tracker). Une seule t_key gère le suivi des livraisons de tous les transporteurs." },
+              { "tag": "Clé émise", "h3": "t_key (clé API de suivi Smart Delivery)", "p": "Il s'agit d'une clé de suivi unifié obtenue en s'inscrivant sur tracking.sweettracker.co.kr. Dans GenieGo, saisissez-la dans le champ api_key." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Important :</strong> Ne sélectionnez pas directement le canal Korea Post ; enregistrez la t_key sur le canal [Smart Delivery (Suivi unifié)]." }
+          ]
+        },
+        {
+          "h2": "2. Étapes d'émission",
+          "desc": "Émettez dans l'ordre ci-dessous et enregistrez dans GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "S'inscrire à Sweet Tracker", "p": "Inscrivez-vous à Smart Delivery (Sweet Tracker).", "path": "tracking.sweettracker.co.kr" },
+              { "h3": "Émettre une t_key", "p": "Émettez une t_key sur tracking.sweettracker.co.kr." },
+              { "h3": "Sélectionner le canal Smart Delivery", "p": "Dans l'Integration Hub, sélectionnez le canal [Smart Delivery (Suivi unifié)] au lieu du canal Korea Post." },
+              { "h3": "Enregistrer dans GenieGo", "p": "Saisissez la t_key (api_key) dans GenieGo [Enregistrer] pour connecter le suivi des livraisons Korea Post." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Une fois que vous avez émis une t_key et l'avez enregistrée sur le canal [Smart Delivery (Suivi unifié)], le suivi des livraisons Korea Post est connecté." }
+          ]
+        },
+        {
+          "h2": "3. Informations à enregistrer dans GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Champ", "Description"], "rows": [
+              ["api_key", "La t_key émise par Sweet Tracker (clé API de suivi Smart Delivery de Korea Post)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Saisissez-la dans le GenieGo Integration Hub [Enregistrer] et enregistrez. Les identifiants sont chiffrés au repos avec AES-256-GCM et masqués à la lecture." }
+          ]
+        },
+        {
+          "h2": "4. Problèmes fréquents",
+          "blocks": [
+            { "type": "table", "head": ["Problème", "Cause", "Solution"], "rows": [
+              ["Impossible d'enregistrer une clé sur le canal Korea Post", "Korea Post se connecte via la clé de suivi unifié, sans émission dédiée", "Sélectionnez le canal [Smart Delivery (Suivi unifié)] et enregistrez la t_key."],
+              ["Le suivi des livraisons n'est pas connecté", "t_key mal saisie ou non émise", "Vérifiez à nouveau la t_key émise sur tracking.sweettracker.co.kr."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Liste de vérification finale",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Inscrit sur tracking.sweettracker.co.kr.",
+              "Émis une t_key (clé API de suivi Smart Delivery).",
+              "Sélectionné le canal [Smart Delivery (Suivi unifié)] dans l'Integration Hub.",
+              "Saisi la t_key (api_key) dans GenieGo [Enregistrer] et enregistré."
+            ] }
+          ]
+        }
+      ]
+    },
+    "hi": {
+      "titleType": "API Key जारी करने की मार्गदर्शिका",
+      "badge": "शुरुआती गाइड",
+      "intro": "Korea Post पार्सल सेवा बिना अलग जारी किए, Smart Delivery (Sweet Tracker) के एकीकृत ट्रैकिंग की के माध्यम से कनेक्ट होती है। tracking.sweettracker.co.kr पर t_key जारी करें और इसे [Smart Delivery (एकीकृत ट्रैकिंग)] चैनल पर पंजीकृत करें ताकि Korea Post की डिलीवरी ट्रैकिंग कनेक्ट हो जाए।",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["अनुमानित समय", "लगभग 5–15 मिनट"],
+        ["आवश्यक खाता", "Smart Delivery (Sweet Tracker) खाता"],
+        ["जारी की गई की", "Smart Delivery ट्रैकिंग API की (t_key)"],
+        ["परिणाम", "एकीकृत डिलीवरी-ट्रैकिंग क्रेडेंशियल"]
+      ],
+      "sections": [
+        {
+          "h2": "1. शुरू करने से पहले",
+          "desc": "Korea Post पार्सल बिना समर्पित जारी किए, Smart Delivery की एकीकृत ट्रैकिंग की के माध्यम से कनेक्ट होता है।",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "तरीका", "h3": "Smart Delivery (Sweet Tracker) एकीकृत ट्रैकिंग", "p": "Korea Post पार्सल बिना अलग जारी किए, Smart Delivery (Sweet Tracker) के एकीकृत ट्रैकिंग की के माध्यम से कनेक्ट होता है। एक ही t_key सभी कूरियर कंपनियों की डिलीवरी ट्रैकिंग संभालती है।" },
+              { "tag": "जारी की गई की", "h3": "t_key (Smart Delivery ट्रैकिंग API की)", "p": "यह tracking.sweettracker.co.kr पर साइन अप करके प्राप्त की जाने वाली एकीकृत ट्रैकिंग की है। GenieGo में इसे api_key फ़ील्ड में दर्ज करें।" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>महत्वपूर्ण:</strong> Korea Post चैनल को सीधे न चुनें; t_key को [Smart Delivery (एकीकृत ट्रैकिंग)] चैनल पर पंजीकृत करें।" }
+          ]
+        },
+        {
+          "h2": "2. जारी करने के चरण",
+          "desc": "नीचे दिए क्रम में जारी करें और GenieGo में पंजीकृत करें।",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Sweet Tracker पर साइन अप करें", "p": "Smart Delivery (Sweet Tracker) पर साइन अप करें।", "path": "tracking.sweettracker.co.kr" },
+              { "h3": "t_key जारी करें", "p": "tracking.sweettracker.co.kr पर t_key जारी करें।" },
+              { "h3": "Smart Delivery चैनल चुनें", "p": "Integration Hub में Korea Post चैनल के बजाय [Smart Delivery (एकीकृत ट्रैकिंग)] चैनल चुनें।" },
+              { "h3": "GenieGo में पंजीकृत करें", "p": "Korea Post की डिलीवरी ट्रैकिंग कनेक्ट करने के लिए GenieGo [पंजीकरण] में t_key (api_key) दर्ज करें।" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "एक बार जब आप t_key जारी कर लें और उसे [Smart Delivery (एकीकृत ट्रैकिंग)] चैनल पर पंजीकृत कर लें, तो Korea Post की डिलीवरी ट्रैकिंग कनेक्ट हो जाती है।" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo में पंजीकृत करने की जानकारी",
+          "blocks": [
+            { "type": "table", "head": ["फ़ील्ड", "विवरण"], "rows": [
+              ["api_key", "Sweet Tracker द्वारा जारी की गई t_key (Korea Post की Smart Delivery ट्रैकिंग API की)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "इसे GenieGo Integration Hub [पंजीकरण] में दर्ज करें और सहेजें। क्रेडेंशियल को संग्रहण के समय AES-256-GCM से एन्क्रिप्ट किया जाता है और पढ़ने पर मास्क किया जाता है।" }
+          ]
+        },
+        {
+          "h2": "4. आम समस्याएँ",
+          "blocks": [
+            { "type": "table", "head": ["समस्या", "कारण", "समाधान"], "rows": [
+              ["Korea Post चैनल पर की पंजीकृत नहीं हो पा रही", "Korea Post समर्पित जारी किए बिना एकीकृत ट्रैकिंग की के माध्यम से कनेक्ट होता है", "[Smart Delivery (एकीकृत ट्रैकिंग)] चैनल चुनें और t_key पंजीकृत करें।"],
+              ["डिलीवरी ट्रैकिंग कनेक्ट नहीं हो रही", "t_key गलत दर्ज किया गया या जारी नहीं किया गया", "tracking.sweettracker.co.kr पर जारी की गई t_key को फिर से जाँचें।"]
+            ] }
+          ]
+        },
+        {
+          "h2": "अंतिम जाँच-सूची",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "tracking.sweettracker.co.kr पर साइन अप किया।",
+              "t_key (Smart Delivery ट्रैकिंग API की) जारी की।",
+              "Integration Hub में [Smart Delivery (एकीकृत ट्रैकिंग)] चैनल चुना।",
+              "GenieGo [पंजीकरण] में t_key (api_key) दर्ज की और सहेजा।"
+            ] }
+          ]
+        }
+      ]
+    },
+    "pt": {
+      "titleType": "Manual de emissão da API Key",
+      "badge": "Guia para iniciantes",
+      "intro": "O serviço de encomendas da Korea Post é conectado sem uma emissão separada, por meio da chave de rastreamento unificado do Smart Delivery (Sweet Tracker). Emita uma t_key em tracking.sweettracker.co.kr e registre-a no canal [Smart Delivery (Rastreamento unificado)] para conectar o rastreamento de entregas da Korea Post.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tempo estimado", "Cerca de 5–15 min"],
+        ["Conta necessária", "Conta do Smart Delivery (Sweet Tracker)"],
+        ["Chave emitida", "Chave de API de rastreamento do Smart Delivery (t_key)"],
+        ["Resultado", "Credenciais de rastreamento de entregas unificado"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de começar",
+          "desc": "O serviço de encomendas da Korea Post é conectado por meio da chave de rastreamento unificado do Smart Delivery, sem uma emissão dedicada.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Método", "h3": "Rastreamento unificado do Smart Delivery (Sweet Tracker)", "p": "O serviço de encomendas da Korea Post é conectado sem uma emissão separada, por meio da chave de rastreamento unificado do Smart Delivery (Sweet Tracker). Uma única t_key trata do rastreamento de entregas de todas as transportadoras." },
+              { "tag": "Chave emitida", "h3": "t_key (chave de API de rastreamento do Smart Delivery)", "p": "É uma chave de rastreamento unificado obtida ao se cadastrar em tracking.sweettracker.co.kr. No GenieGo, insira-a no campo api_key." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Importante:</strong> Não selecione o canal da Korea Post diretamente; registre a t_key no canal [Smart Delivery (Rastreamento unificado)]." }
+          ]
+        },
+        {
+          "h2": "2. Etapas de emissão",
+          "desc": "Emita na ordem abaixo e registre no GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Cadastre-se no Sweet Tracker", "p": "Cadastre-se no Smart Delivery (Sweet Tracker).", "path": "tracking.sweettracker.co.kr" },
+              { "h3": "Emita uma t_key", "p": "Emita uma t_key em tracking.sweettracker.co.kr." },
+              { "h3": "Selecione o canal do Smart Delivery", "p": "No Integration Hub, selecione o canal [Smart Delivery (Rastreamento unificado)] em vez do canal da Korea Post." },
+              { "h3": "Registre no GenieGo", "p": "Insira a t_key (api_key) no GenieGo [Registrar] para conectar o rastreamento de entregas da Korea Post." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Depois de emitir uma t_key e registrá-la no canal [Smart Delivery (Rastreamento unificado)], o rastreamento de entregas da Korea Post fica conectado." }
+          ]
+        },
+        {
+          "h2": "3. Informações a registrar no GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descrição"], "rows": [
+              ["api_key", "A t_key emitida pelo Sweet Tracker (chave de API de rastreamento do Smart Delivery da Korea Post)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Insira-a no GenieGo Integration Hub [Registrar] e salve. As credenciais são criptografadas em repouso com AES-256-GCM e mascaradas na leitura." }
+          ]
+        },
+        {
+          "h2": "4. Problemas comuns",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solução"], "rows": [
+              ["Não é possível registrar uma chave no canal da Korea Post", "A Korea Post é conectada por meio da chave de rastreamento unificado, sem uma emissão dedicada", "Selecione o canal [Smart Delivery (Rastreamento unificado)] e registre a t_key."],
+              ["O rastreamento de entregas não é conectado", "t_key inserida incorretamente ou não emitida", "Verifique novamente a t_key emitida em tracking.sweettracker.co.kr."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificação final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Cadastrou-se em tracking.sweettracker.co.kr.",
+              "Emitiu uma t_key (chave de API de rastreamento do Smart Delivery).",
+              "Selecionou o canal [Smart Delivery (Rastreamento unificado)] no Integration Hub.",
+              "Inseriu a t_key (api_key) no GenieGo [Registrar] e salvou."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ru": {
+      "titleType": "Руководство по выпуску API-ключа",
+      "badge": "Руководство для начинающих",
+      "intro": "Служба посылок Korea Post подключается без отдельного выпуска — через единый ключ отслеживания Smart Delivery (Sweet Tracker). Выпустите t_key на tracking.sweettracker.co.kr и зарегистрируйте его в канале [Smart Delivery (Единое отслеживание)], чтобы подключить отслеживание доставки Korea Post.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Примерное время", "Около 5–15 мин"],
+        ["Необходимый аккаунт", "Аккаунт Smart Delivery (Sweet Tracker)"],
+        ["Выпускаемый ключ", "API-ключ отслеживания Smart Delivery (t_key)"],
+        ["Результат", "Учётные данные единого отслеживания доставки"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Перед началом",
+          "desc": "Служба посылок Korea Post подключается через единый ключ отслеживания Smart Delivery, без выделенного выпуска.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Способ", "h3": "Единое отслеживание Smart Delivery (Sweet Tracker)", "p": "Служба посылок Korea Post подключается без отдельного выпуска — через единый ключ отслеживания Smart Delivery (Sweet Tracker). Один t_key обрабатывает отслеживание доставки у всех перевозчиков." },
+              { "tag": "Выпускаемый ключ", "h3": "t_key (API-ключ отслеживания Smart Delivery)", "p": "Это единый ключ отслеживания, который выдаётся при регистрации на tracking.sweettracker.co.kr. В GenieGo введите его в поле api_key." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Важно:</strong> Не выбирайте канал Korea Post напрямую; зарегистрируйте t_key в канале [Smart Delivery (Единое отслеживание)]." }
+          ]
+        },
+        {
+          "h2": "2. Шаги выпуска",
+          "desc": "Выпускайте в порядке ниже и регистрируйте в GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Зарегистрироваться в Sweet Tracker", "p": "Зарегистрируйтесь в Smart Delivery (Sweet Tracker).", "path": "tracking.sweettracker.co.kr" },
+              { "h3": "Выпустить t_key", "p": "Выпустите t_key на tracking.sweettracker.co.kr." },
+              { "h3": "Выбрать канал Smart Delivery", "p": "В Integration Hub выберите канал [Smart Delivery (Единое отслеживание)] вместо канала Korea Post." },
+              { "h3": "Зарегистрировать в GenieGo", "p": "Введите t_key (api_key) в GenieGo [Регистрация], чтобы подключить отслеживание доставки Korea Post." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "После того как вы выпустите t_key и зарегистрируете его в канале [Smart Delivery (Единое отслеживание)], отслеживание доставки Korea Post будет подключено." }
+          ]
+        },
+        {
+          "h2": "3. Информация для регистрации в GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Поле", "Описание"], "rows": [
+              ["api_key", "t_key, выпущенный Sweet Tracker (API-ключ отслеживания Smart Delivery для Korea Post)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Введите его в GenieGo Integration Hub [Регистрация] и сохраните. Учётные данные шифруются при хранении с помощью AES-256-GCM и маскируются при чтении." }
+          ]
+        },
+        {
+          "h2": "4. Частые проблемы",
+          "blocks": [
+            { "type": "table", "head": ["Проблема", "Причина", "Решение"], "rows": [
+              ["Невозможно зарегистрировать ключ в канале Korea Post", "Korea Post подключается через единый ключ отслеживания, без выделенного выпуска", "Выберите канал [Smart Delivery (Единое отслеживание)] и зарегистрируйте t_key."],
+              ["Отслеживание доставки не подключается", "t_key введён неверно или не выпущен", "Повторно проверьте t_key, выпущенный на tracking.sweettracker.co.kr."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Итоговый контрольный список",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Зарегистрировался на tracking.sweettracker.co.kr.",
+              "Выпустил t_key (API-ключ отслеживания Smart Delivery).",
+              "Выбрал канал [Smart Delivery (Единое отслеживание)] в Integration Hub.",
+              "Ввёл t_key (api_key) в GenieGo [Регистрация] и сохранил."
+            ] }
+          ]
+        }
+      ]
+    }
+  }
+}

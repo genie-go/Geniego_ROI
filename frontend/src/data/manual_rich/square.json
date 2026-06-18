@@ -1,0 +1,1011 @@
+{
+  "name": "Square",
+  "icon": "⬛",
+  "langs": {
+    "ko": {
+      "titleType": "API Key 발급 매뉴얼",
+      "badge": "Beginner Guide",
+      "intro": "Square 개발자 포털에서 앱을 생성해 Access Token과 Location ID를 발급하고 GenieGo 연동 허브에 등록하는 과정을 초보자도 그대로 따라 할 수 있도록 정리한 매뉴얼입니다.",
+      "org": "GenieGo 연동 허브",
+      "quick": [
+        ["소요 시간", "약 5~10분"],
+        ["필요 계정", "Square 계정"],
+        ["발급 키", "Access Token · Location ID"],
+        ["결과물", "API 자격증명"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 시작하기 전에",
+          "desc": "Square API 자격증명은 개발자 포털에서 앱을 만들어 발급합니다.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "필요", "h3": "Square 계정", "p": "developer.squareup.com/apps 에서 앱을 생성할 수 있는 Square 계정이 있어야 합니다." },
+              { "tag": "발급 키", "h3": "Access Token · Location ID", "p": "Production 탭에서 Access Token을, [Locations]에서 Location ID를 확인합니다." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>참고:</strong> 실제 연동에는 Sandbox가 아닌 <strong>Production</strong> 토큰을 사용합니다." }
+          ]
+        },
+        {
+          "h2": "2. 발급 단계",
+          "desc": "아래 순서대로 발급하고 GenieGo에 등록합니다.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "앱 생성", "p": "Square 개발자 포털에서 앱을 생성합니다.", "path": "developer.squareup.com/apps" },
+              { "h3": "Access Token 확인", "p": "Production 탭에서 Access Token을 확인합니다.", "path": "Production" },
+              { "h3": "Location ID 확인", "p": "[Locations]에서 Location ID를 확인합니다.", "path": "Locations" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Production Access Token과 Location ID가 확인되면 정상적으로 발급된 것입니다." }
+          ]
+        },
+        {
+          "h2": "3. GenieGo에 등록할 정보",
+          "blocks": [
+            { "type": "table", "head": ["필드", "설명"], "rows": [
+              ["access_token", "Production 탭에서 확인한 Access Token(노출 주의)"],
+              ["location_id", "[Locations]에서 확인한 Location ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 연동 허브 [등록]에 access_token·location_id를 입력해 저장하면 자격증명은 AES-256-GCM으로 암호화 저장되고 조회 시 마스킹됩니다." }
+          ]
+        },
+        {
+          "h2": "4. 자주 발생하는 문제",
+          "blocks": [
+            { "type": "table", "head": ["문제", "원인", "해결"], "rows": [
+              ["인증 실패", "Sandbox 토큰을 사용함", "Production 탭에서 확인한 Access Token을 사용합니다."],
+              ["주문이 동기화되지 않음", "Location ID 오기재", "[Locations]에서 확인한 Location ID를 다시 확인합니다."]
+            ] }
+          ]
+        },
+        {
+          "h2": "최종 체크리스트",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "developer.squareup.com/apps 에서 앱을 생성했다.",
+              "Production 탭에서 Access Token을 확인했다.",
+              "[Locations]에서 Location ID를 확인했다.",
+              "GenieGo [등록]에 access_token·location_id를 입력해 저장했다."
+            ] }
+          ]
+        }
+      ]
+    },
+    "en": {
+      "titleType": "API Key Issuance Manual",
+      "badge": "Beginner Guide",
+      "intro": "A beginner-friendly, step-by-step guide to creating an app in the Square Developer Portal to issue an Access Token and Location ID, and registering them in the GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Est. time", "About 5–10 min"],
+        ["Account needed", "Square account"],
+        ["Keys issued", "Access Token · Location ID"],
+        ["Result", "API credentials"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Before You Begin",
+          "desc": "Square API credentials are issued by creating an app in the Developer Portal.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Required", "h3": "Square account", "p": "You need a Square account that can create an app at developer.squareup.com/apps." },
+              { "tag": "Keys issued", "h3": "Access Token · Location ID", "p": "Find your Access Token on the Production tab and your Location ID under [Locations]." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Note:</strong> For real integration, use the <strong>Production</strong> token, not the Sandbox one." }
+          ]
+        },
+        {
+          "h2": "2. Issuance Steps",
+          "desc": "Issue in the order below and register in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Create an app", "p": "Create an app in the Square Developer Portal.", "path": "developer.squareup.com/apps" },
+              { "h3": "Find the Access Token", "p": "Find the Access Token on the Production tab.", "path": "Production" },
+              { "h3": "Find the Location ID", "p": "Find the Location ID under [Locations].", "path": "Locations" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Once you have confirmed the Production Access Token and Location ID, they have been issued correctly." }
+          ]
+        },
+        {
+          "h2": "3. Information to Register in GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Field", "Description"], "rows": [
+              ["access_token", "The Access Token found on the Production tab (handle with care)"],
+              ["location_id", "The Location ID found under [Locations]"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Enter access_token·location_id in the GenieGo Integration Hub [Register] and save. Credentials are encrypted at rest with AES-256-GCM and masked on read." }
+          ]
+        },
+        {
+          "h2": "4. Common Issues",
+          "blocks": [
+            { "type": "table", "head": ["Issue", "Cause", "Solution"], "rows": [
+              ["Authentication failure", "A Sandbox token is being used", "Use the Access Token found on the Production tab."],
+              ["Orders not syncing", "Incorrect Location ID", "Recheck the Location ID found under [Locations]."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Final Checklist",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Created an app at developer.squareup.com/apps.",
+              "Found the Access Token on the Production tab.",
+              "Found the Location ID under [Locations].",
+              "Entered access_token·location_id in GenieGo [Register] and saved."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ja": {
+      "titleType": "API Key 発行マニュアル",
+      "badge": "初心者ガイド",
+      "intro": "Square 開発者ポータルでアプリを作成して Access Token と Location ID を発行し、GenieGo 連携ハブに登録する手順を、初心者でもそのまま実行できるようにまとめたマニュアルです。",
+      "org": "GenieGo 連携ハブ",
+      "quick": [
+        ["所要時間", "約 5〜10 分"],
+        ["必要なアカウント", "Square アカウント"],
+        ["発行するキー", "Access Token · Location ID"],
+        ["成果物", "API 認証情報"]
+      ],
+      "sections": [
+        {
+          "h2": "1. はじめる前に",
+          "desc": "Square API 認証情報は、開発者ポータルでアプリを作成して発行します。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必須", "h3": "Square アカウント", "p": "developer.squareup.com/apps でアプリを作成できる Square アカウントが必要です。" },
+              { "tag": "発行するキー", "h3": "Access Token · Location ID", "p": "Production タブで Access Token を、[Locations] で Location ID を確認します。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> 実際の連携には Sandbox ではなく <strong>Production</strong> トークンを使用します。" }
+          ]
+        },
+        {
+          "h2": "2. 発行手順",
+          "desc": "以下の順序で発行し、GenieGo に登録します。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "アプリを作成", "p": "Square 開発者ポータルでアプリを作成します。", "path": "developer.squareup.com/apps" },
+              { "h3": "Access Token を確認", "p": "Production タブで Access Token を確認します。", "path": "Production" },
+              { "h3": "Location ID を確認", "p": "[Locations] で Location ID を確認します。", "path": "Locations" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Production の Access Token と Location ID が確認できれば、正常に発行されています。" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo に登録する情報",
+          "blocks": [
+            { "type": "table", "head": ["フィールド", "説明"], "rows": [
+              ["access_token", "Production タブで確認した Access Token(取り扱い注意)"],
+              ["location_id", "[Locations] で確認した Location ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 連携ハブの [登録] に access_token·location_id を入力して保存すると、認証情報は AES-256-GCM で暗号化して保存され、閲覧時にはマスキングされます。" }
+          ]
+        },
+        {
+          "h2": "4. よくある問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["認証に失敗する", "Sandbox トークンを使用している", "Production タブで確認した Access Token を使用します。"],
+              ["注文が同期されない", "Location ID の記載ミス", "[Locations] で確認した Location ID を再確認します。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終チェックリスト",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "developer.squareup.com/apps でアプリを作成した。",
+              "Production タブで Access Token を確認した。",
+              "[Locations] で Location ID を確認した。",
+              "GenieGo の [登録] に access_token·location_id を入力して保存した。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh": {
+      "titleType": "API Key 申请手册",
+      "badge": "新手指南",
+      "intro": "本手册手把手指导新手在 Square 开发者门户中创建应用以签发 Access Token 和 Location ID，并将其注册到 GenieGo 集成中心。",
+      "org": "GenieGo 集成中心",
+      "quick": [
+        ["预计时间", "约 5~10 分钟"],
+        ["所需账户", "Square 账户"],
+        ["签发密钥", "Access Token · Location ID"],
+        ["成果", "API 凭证"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 开始之前",
+          "desc": "Square API 凭证通过在开发者门户中创建应用来签发。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "Square 账户", "p": "您需要一个可以在 developer.squareup.com/apps 创建应用的 Square 账户。" },
+              { "tag": "签发密钥", "h3": "Access Token · Location ID", "p": "在 Production 选项卡中查看 Access Token，在 [Locations] 中查看 Location ID。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> 实际集成请使用 <strong>Production</strong> 令牌，而非 Sandbox 令牌。" }
+          ]
+        },
+        {
+          "h2": "2. 申请步骤",
+          "desc": "按以下顺序签发并在 GenieGo 中注册。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "创建应用", "p": "在 Square 开发者门户中创建应用。", "path": "developer.squareup.com/apps" },
+              { "h3": "查看 Access Token", "p": "在 Production 选项卡中查看 Access Token。", "path": "Production" },
+              { "h3": "查看 Location ID", "p": "在 [Locations] 中查看 Location ID。", "path": "Locations" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "确认了 Production 的 Access Token 和 Location ID 后，即表示已正确签发。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中注册的信息",
+          "blocks": [
+            { "type": "table", "head": ["字段", "说明"], "rows": [
+              ["access_token", "在 Production 选项卡中查看到的 Access Token(请妥善保管)"],
+              ["location_id", "在 [Locations] 中查看到的 Location ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 集成中心的 [注册] 中输入 access_token·location_id 并保存后，凭证将以 AES-256-GCM 加密存储，并在查询时进行掩码处理。" }
+          ]
+        },
+        {
+          "h2": "4. 常见问题",
+          "blocks": [
+            { "type": "table", "head": ["问题", "原因", "解决方法"], "rows": [
+              ["认证失败", "使用了 Sandbox 令牌", "请使用在 Production 选项卡中查看到的 Access Token。"],
+              ["订单未同步", "Location ID 填写错误", "重新确认在 [Locations] 中查看到的 Location ID。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最终检查清单",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已在 developer.squareup.com/apps 创建应用。",
+              "已在 Production 选项卡中查看 Access Token。",
+              "已在 [Locations] 中查看 Location ID。",
+              "已在 GenieGo 的 [注册] 中输入 access_token·location_id 并保存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh-TW": {
+      "titleType": "API Key 申請手冊",
+      "badge": "新手指南",
+      "intro": "本手冊手把手指導新手在 Square 開發者入口網站中建立應用程式以簽發 Access Token 和 Location ID，並將其註冊到 GenieGo 整合中心。",
+      "org": "GenieGo 整合中心",
+      "quick": [
+        ["預計時間", "約 5~10 分鐘"],
+        ["所需帳戶", "Square 帳戶"],
+        ["簽發金鑰", "Access Token · Location ID"],
+        ["成果", "API 憑證"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 開始之前",
+          "desc": "Square API 憑證透過在開發者入口網站中建立應用程式來簽發。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "Square 帳戶", "p": "您需要一個可以在 developer.squareup.com/apps 建立應用程式的 Square 帳戶。" },
+              { "tag": "簽發金鑰", "h3": "Access Token · Location ID", "p": "在 Production 分頁中查看 Access Token，在 [Locations] 中查看 Location ID。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> 實際整合請使用 <strong>Production</strong> 權杖，而非 Sandbox 權杖。" }
+          ]
+        },
+        {
+          "h2": "2. 簽發步驟",
+          "desc": "依以下順序簽發並在 GenieGo 中註冊。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "建立應用程式", "p": "在 Square 開發者入口網站中建立應用程式。", "path": "developer.squareup.com/apps" },
+              { "h3": "查看 Access Token", "p": "在 Production 分頁中查看 Access Token。", "path": "Production" },
+              { "h3": "查看 Location ID", "p": "在 [Locations] 中查看 Location ID。", "path": "Locations" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "確認了 Production 的 Access Token 和 Location ID 後，即表示已正確簽發。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中註冊的資訊",
+          "blocks": [
+            { "type": "table", "head": ["欄位", "說明"], "rows": [
+              ["access_token", "在 Production 分頁中查看到的 Access Token(請妥善保管)"],
+              ["location_id", "在 [Locations] 中查看到的 Location ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 整合中心的 [註冊] 中輸入 access_token·location_id 並儲存後，憑證將以 AES-256-GCM 加密儲存，並在查詢時進行遮罩處理。" }
+          ]
+        },
+        {
+          "h2": "4. 常見問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["認證失敗", "使用了 Sandbox 權杖", "請使用在 Production 分頁中查看到的 Access Token。"],
+              ["訂單未同步", "Location ID 填寫錯誤", "重新確認在 [Locations] 中查看到的 Location ID。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終檢查清單",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已在 developer.squareup.com/apps 建立應用程式。",
+              "已在 Production 分頁中查看 Access Token。",
+              "已在 [Locations] 中查看 Location ID。",
+              "已在 GenieGo 的 [註冊] 中輸入 access_token·location_id 並儲存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "de": {
+      "titleType": "Anleitung zur API-Key-Ausstellung",
+      "badge": "Einsteigerleitfaden",
+      "intro": "Eine einsteigerfreundliche Schritt-für-Schritt-Anleitung zum Erstellen einer App im Square Developer Portal, um ein Access Token und eine Location ID auszustellen und diese im GenieGo Integration Hub zu registrieren.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Geschätzte Zeit", "Etwa 5–10 Min."],
+        ["Benötigtes Konto", "Square-Konto"],
+        ["Ausgestellte Schlüssel", "Access Token · Location ID"],
+        ["Ergebnis", "API-Anmeldedaten"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Bevor Sie beginnen",
+          "desc": "Square-API-Anmeldedaten werden durch das Erstellen einer App im Developer Portal ausgestellt.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Erforderlich", "h3": "Square-Konto", "p": "Sie benötigen ein Square-Konto, mit dem Sie unter developer.squareup.com/apps eine App erstellen können." },
+              { "tag": "Ausgestellte Schlüssel", "h3": "Access Token · Location ID", "p": "Finden Sie das Access Token auf dem Tab Production und die Location ID unter [Locations]." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Hinweis:</strong> Für die echte Integration verwenden Sie das <strong>Production</strong>-Token, nicht das Sandbox-Token." }
+          ]
+        },
+        {
+          "h2": "2. Ausstellungsschritte",
+          "desc": "Stellen Sie in der unten angegebenen Reihenfolge aus und registrieren Sie in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "App erstellen", "p": "Erstellen Sie eine App im Square Developer Portal.", "path": "developer.squareup.com/apps" },
+              { "h3": "Access Token finden", "p": "Finden Sie das Access Token auf dem Tab Production.", "path": "Production" },
+              { "h3": "Location ID finden", "p": "Finden Sie die Location ID unter [Locations].", "path": "Locations" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Sobald Sie das Production Access Token und die Location ID bestätigt haben, wurden sie korrekt ausgestellt." }
+          ]
+        },
+        {
+          "h2": "3. In GenieGo zu registrierende Informationen",
+          "blocks": [
+            { "type": "table", "head": ["Feld", "Beschreibung"], "rows": [
+              ["access_token", "Das auf dem Tab Production gefundene Access Token (vertraulich behandeln)"],
+              ["location_id", "Die unter [Locations] gefundene Location ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Geben Sie access_token·location_id im GenieGo Integration Hub [Registrieren] ein und speichern Sie. Anmeldedaten werden im Ruhezustand mit AES-256-GCM verschlüsselt und beim Lesen maskiert." }
+          ]
+        },
+        {
+          "h2": "4. Häufige Probleme",
+          "blocks": [
+            { "type": "table", "head": ["Problem", "Ursache", "Lösung"], "rows": [
+              ["Authentifizierung fehlgeschlagen", "Ein Sandbox-Token wird verwendet", "Verwenden Sie das auf dem Tab Production gefundene Access Token."],
+              ["Bestellungen werden nicht synchronisiert", "Falsche Location ID", "Überprüfen Sie die unter [Locations] gefundene Location ID erneut."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Abschließende Checkliste",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Eine App unter developer.squareup.com/apps erstellt.",
+              "Das Access Token auf dem Tab Production gefunden.",
+              "Die Location ID unter [Locations] gefunden.",
+              "access_token·location_id in GenieGo [Registrieren] eingegeben und gespeichert."
+            ] }
+          ]
+        }
+      ]
+    },
+    "th": {
+      "titleType": "คู่มือการออก API Key",
+      "badge": "คู่มือสำหรับผู้เริ่มต้น",
+      "intro": "คู่มือทีละขั้นตอนที่เป็นมิตรกับผู้เริ่มต้น สำหรับการสร้างแอปใน Square Developer Portal เพื่อออก Access Token และ Location ID และลงทะเบียนใน GenieGo Integration Hub",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["เวลาโดยประมาณ", "ประมาณ 5–10 นาที"],
+        ["บัญชีที่ต้องใช้", "บัญชี Square"],
+        ["คีย์ที่ออก", "Access Token · Location ID"],
+        ["ผลลัพธ์", "ข้อมูลรับรอง API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. ก่อนเริ่มต้น",
+          "desc": "ข้อมูลรับรอง Square API ออกได้โดยการสร้างแอปใน Developer Portal",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "จำเป็น", "h3": "บัญชี Square", "p": "คุณต้องมีบัญชี Square ที่สามารถสร้างแอปได้ที่ developer.squareup.com/apps" },
+              { "tag": "คีย์ที่ออก", "h3": "Access Token · Location ID", "p": "ดู Access Token ในแท็บ Production และดู Location ID ใน [Locations]" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>หมายเหตุ:</strong> สำหรับการเชื่อมต่อจริง ให้ใช้โทเค็น <strong>Production</strong> ไม่ใช่ Sandbox" }
+          ]
+        },
+        {
+          "h2": "2. ขั้นตอนการออก",
+          "desc": "ออกตามลำดับด้านล่างและลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "สร้างแอป", "p": "สร้างแอปใน Square Developer Portal", "path": "developer.squareup.com/apps" },
+              { "h3": "ดู Access Token", "p": "ดู Access Token ในแท็บ Production", "path": "Production" },
+              { "h3": "ดู Location ID", "p": "ดู Location ID ใน [Locations]", "path": "Locations" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "เมื่อยืนยัน Production Access Token และ Location ID แล้ว แสดงว่าออกอย่างถูกต้อง" }
+          ]
+        },
+        {
+          "h2": "3. ข้อมูลที่ต้องลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["ฟิลด์", "คำอธิบาย"], "rows": [
+              ["access_token", "Access Token ที่พบในแท็บ Production (จัดการด้วยความระมัดระวัง)"],
+              ["location_id", "Location ID ที่พบใน [Locations]"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "ป้อน access_token·location_id ใน [ลงทะเบียน] ของ GenieGo Integration Hub แล้วบันทึก ข้อมูลรับรองจะถูกเข้ารหัสขณะจัดเก็บด้วย AES-256-GCM และปิดบังเมื่ออ่าน" }
+          ]
+        },
+        {
+          "h2": "4. ปัญหาที่พบบ่อย",
+          "blocks": [
+            { "type": "table", "head": ["ปัญหา", "สาเหตุ", "วิธีแก้ไข"], "rows": [
+              ["การยืนยันตัวตนล้มเหลว", "กำลังใช้โทเค็น Sandbox", "ใช้ Access Token ที่พบในแท็บ Production"],
+              ["คำสั่งซื้อไม่ซิงค์", "Location ID ระบุผิด", "ตรวจสอบ Location ID ที่พบใน [Locations] อีกครั้ง"]
+            ] }
+          ]
+        },
+        {
+          "h2": "รายการตรวจสอบขั้นสุดท้าย",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "สร้างแอปที่ developer.squareup.com/apps แล้ว",
+              "ดู Access Token ในแท็บ Production แล้ว",
+              "ดู Location ID ใน [Locations] แล้ว",
+              "ป้อน access_token·location_id ใน GenieGo [ลงทะเบียน] และบันทึกแล้ว"
+            ] }
+          ]
+        }
+      ]
+    },
+    "vi": {
+      "titleType": "Hướng dẫn cấp API Key",
+      "badge": "Hướng dẫn cho người mới",
+      "intro": "Hướng dẫn từng bước thân thiện với người mới về việc tạo ứng dụng trong Square Developer Portal để cấp Access Token và Location ID, rồi đăng ký chúng trong GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Thời gian dự kiến", "Khoảng 5–10 phút"],
+        ["Tài khoản cần thiết", "Tài khoản Square"],
+        ["Khóa được cấp", "Access Token · Location ID"],
+        ["Kết quả", "Thông tin xác thực API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Trước khi bắt đầu",
+          "desc": "Thông tin xác thực Square API được cấp bằng cách tạo một ứng dụng trong Developer Portal.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Bắt buộc", "h3": "Tài khoản Square", "p": "Bạn cần một tài khoản Square có thể tạo ứng dụng tại developer.squareup.com/apps." },
+              { "tag": "Khóa được cấp", "h3": "Access Token · Location ID", "p": "Tìm Access Token trên tab Production và Location ID trong mục [Locations]." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Lưu ý:</strong> Để tích hợp thực tế, hãy dùng mã thông báo <strong>Production</strong>, không phải Sandbox." }
+          ]
+        },
+        {
+          "h2": "2. Các bước cấp",
+          "desc": "Cấp theo thứ tự dưới đây và đăng ký trong GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Tạo ứng dụng", "p": "Tạo một ứng dụng trong Square Developer Portal.", "path": "developer.squareup.com/apps" },
+              { "h3": "Tìm Access Token", "p": "Tìm Access Token trên tab Production.", "path": "Production" },
+              { "h3": "Tìm Location ID", "p": "Tìm Location ID trong mục [Locations].", "path": "Locations" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Khi bạn đã xác nhận Production Access Token và Location ID, nghĩa là chúng đã được cấp đúng cách." }
+          ]
+        },
+        {
+          "h2": "3. Thông tin cần đăng ký trong GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Trường", "Mô tả"], "rows": [
+              ["access_token", "Access Token tìm thấy trên tab Production (xử lý cẩn thận)"],
+              ["location_id", "Location ID tìm thấy trong mục [Locations]"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Nhập access_token·location_id vào [Đăng ký] của GenieGo Integration Hub rồi lưu. Thông tin xác thực được mã hóa khi lưu trữ bằng AES-256-GCM và được che khi đọc." }
+          ]
+        },
+        {
+          "h2": "4. Sự cố thường gặp",
+          "blocks": [
+            { "type": "table", "head": ["Sự cố", "Nguyên nhân", "Giải pháp"], "rows": [
+              ["Xác thực thất bại", "Đang sử dụng mã thông báo Sandbox", "Hãy dùng Access Token tìm thấy trên tab Production."],
+              ["Đơn hàng không đồng bộ", "Location ID nhập sai", "Kiểm tra lại Location ID tìm thấy trong mục [Locations]."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Danh sách kiểm tra cuối cùng",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Đã tạo ứng dụng tại developer.squareup.com/apps.",
+              "Đã tìm Access Token trên tab Production.",
+              "Đã tìm Location ID trong mục [Locations].",
+              "Đã nhập access_token·location_id vào GenieGo [Đăng ký] và lưu."
+            ] }
+          ]
+        }
+      ]
+    },
+    "id": {
+      "titleType": "Panduan Penerbitan API Key",
+      "badge": "Panduan Pemula",
+      "intro": "Panduan langkah demi langkah yang ramah pemula untuk membuat aplikasi di Square Developer Portal guna menerbitkan Access Token dan Location ID, lalu mendaftarkannya di GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Perkiraan waktu", "Sekitar 5–10 menit"],
+        ["Akun yang dibutuhkan", "Akun Square"],
+        ["Kunci yang diterbitkan", "Access Token · Location ID"],
+        ["Hasil", "Kredensial API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Sebelum Anda Mulai",
+          "desc": "Kredensial Square API diterbitkan dengan membuat aplikasi di Developer Portal.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Diperlukan", "h3": "Akun Square", "p": "Anda memerlukan akun Square yang dapat membuat aplikasi di developer.squareup.com/apps." },
+              { "tag": "Kunci yang diterbitkan", "h3": "Access Token · Location ID", "p": "Temukan Access Token di tab Production dan Location ID di bagian [Locations]." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Catatan:</strong> Untuk integrasi sesungguhnya, gunakan token <strong>Production</strong>, bukan Sandbox." }
+          ]
+        },
+        {
+          "h2": "2. Langkah Penerbitan",
+          "desc": "Terbitkan sesuai urutan di bawah dan daftarkan di GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Buat aplikasi", "p": "Buat aplikasi di Square Developer Portal.", "path": "developer.squareup.com/apps" },
+              { "h3": "Temukan Access Token", "p": "Temukan Access Token di tab Production.", "path": "Production" },
+              { "h3": "Temukan Location ID", "p": "Temukan Location ID di bagian [Locations].", "path": "Locations" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Setelah Anda mengonfirmasi Production Access Token dan Location ID, berarti keduanya telah diterbitkan dengan benar." }
+          ]
+        },
+        {
+          "h2": "3. Informasi yang Perlu Didaftarkan di GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Bidang", "Deskripsi"], "rows": [
+              ["access_token", "Access Token yang ditemukan di tab Production (tangani dengan hati-hati)"],
+              ["location_id", "Location ID yang ditemukan di bagian [Locations]"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Masukkan access_token·location_id di [Daftar] GenieGo Integration Hub lalu simpan. Kredensial dienkripsi saat disimpan dengan AES-256-GCM dan disamarkan saat dibaca." }
+          ]
+        },
+        {
+          "h2": "4. Masalah Umum",
+          "blocks": [
+            { "type": "table", "head": ["Masalah", "Penyebab", "Solusi"], "rows": [
+              ["Autentikasi gagal", "Menggunakan token Sandbox", "Gunakan Access Token yang ditemukan di tab Production."],
+              ["Pesanan tidak tersinkron", "Location ID salah", "Periksa kembali Location ID yang ditemukan di bagian [Locations]."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Daftar Periksa Akhir",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Membuat aplikasi di developer.squareup.com/apps.",
+              "Menemukan Access Token di tab Production.",
+              "Menemukan Location ID di bagian [Locations].",
+              "Memasukkan access_token·location_id di GenieGo [Daftar] dan menyimpannya."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ar": {
+      "titleType": "دليل إصدار مفتاح API",
+      "badge": "دليل المبتدئين",
+      "intro": "دليل تفصيلي خطوة بخطوة ومناسب للمبتدئين لإنشاء تطبيق في Square Developer Portal لإصدار Access Token و Location ID وتسجيلهما في GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["الوقت التقديري", "حوالي 5–10 دقائق"],
+        ["الحساب المطلوب", "حساب Square"],
+        ["المفاتيح الصادرة", "Access Token · Location ID"],
+        ["النتيجة", "بيانات اعتماد API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. قبل أن تبدأ",
+          "desc": "تُصدَر بيانات اعتماد Square API من خلال إنشاء تطبيق في Developer Portal.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "مطلوب", "h3": "حساب Square", "p": "تحتاج إلى حساب Square يمكنه إنشاء تطبيق على developer.squareup.com/apps." },
+              { "tag": "المفاتيح الصادرة", "h3": "Access Token · Location ID", "p": "ابحث عن Access Token في علامة التبويب Production وعن Location ID ضمن [Locations]." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>ملاحظة:</strong> للتكامل الفعلي، استخدم رمز <strong>Production</strong> وليس Sandbox." }
+          ]
+        },
+        {
+          "h2": "2. خطوات الإصدار",
+          "desc": "أصدِر بالترتيب أدناه وسجِّل في GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "إنشاء تطبيق", "p": "أنشئ تطبيقًا في Square Developer Portal.", "path": "developer.squareup.com/apps" },
+              { "h3": "البحث عن Access Token", "p": "ابحث عن Access Token في علامة التبويب Production.", "path": "Production" },
+              { "h3": "البحث عن Location ID", "p": "ابحث عن Location ID ضمن [Locations].", "path": "Locations" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "بمجرد تأكيدك على Production Access Token و Location ID، يكون قد تم إصدارهما بشكل صحيح." }
+          ]
+        },
+        {
+          "h2": "3. المعلومات المطلوب تسجيلها في GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["الحقل", "الوصف"], "rows": [
+              ["access_token", "Access Token الذي عُثر عليه في علامة التبويب Production (تعامل معه بحذر)"],
+              ["location_id", "Location ID الذي عُثر عليه ضمن [Locations]"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "أدخل access_token·location_id في [تسجيل] في GenieGo Integration Hub واحفظ. تُشفَّر بيانات الاعتماد عند التخزين باستخدام AES-256-GCM وتُخفى عند القراءة." }
+          ]
+        },
+        {
+          "h2": "4. المشكلات الشائعة",
+          "blocks": [
+            { "type": "table", "head": ["المشكلة", "السبب", "الحل"], "rows": [
+              ["فشل المصادقة", "يُستخدم رمز Sandbox", "استخدم Access Token الذي عُثر عليه في علامة التبويب Production."],
+              ["الطلبات لا تتزامن", "Location ID مُدخَل بشكل خاطئ", "أعد التحقق من Location ID الذي عُثر عليه ضمن [Locations]."]
+            ] }
+          ]
+        },
+        {
+          "h2": "قائمة التحقق النهائية",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "أنشأتُ تطبيقًا على developer.squareup.com/apps.",
+              "عثرتُ على Access Token في علامة التبويب Production.",
+              "عثرتُ على Location ID ضمن [Locations].",
+              "أدخلتُ access_token·location_id في GenieGo [تسجيل] وحفظتُ."
+            ] }
+          ]
+        }
+      ]
+    },
+    "es": {
+      "titleType": "Manual de emisión de la API Key",
+      "badge": "Guía para principiantes",
+      "intro": "Una guía paso a paso y apta para principiantes sobre cómo crear una aplicación en el Square Developer Portal para emitir un Access Token y un Location ID, y registrarlos en el GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tiempo estimado", "Unos 5–10 min"],
+        ["Cuenta necesaria", "Cuenta de Square"],
+        ["Claves emitidas", "Access Token · Location ID"],
+        ["Resultado", "Credenciales de API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de empezar",
+          "desc": "Las credenciales de la API de Square se emiten creando una aplicación en el Developer Portal.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requerido", "h3": "Cuenta de Square", "p": "Necesitas una cuenta de Square que pueda crear una aplicación en developer.squareup.com/apps." },
+              { "tag": "Claves emitidas", "h3": "Access Token · Location ID", "p": "Encuentra el Access Token en la pestaña Production y el Location ID en [Locations]." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Nota:</strong> Para la integración real, usa el token de <strong>Production</strong>, no el de Sandbox." }
+          ]
+        },
+        {
+          "h2": "2. Pasos de emisión",
+          "desc": "Emite en el orden siguiente y regístralo en GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Crear una aplicación", "p": "Crea una aplicación en el Square Developer Portal.", "path": "developer.squareup.com/apps" },
+              { "h3": "Encontrar el Access Token", "p": "Encuentra el Access Token en la pestaña Production.", "path": "Production" },
+              { "h3": "Encontrar el Location ID", "p": "Encuentra el Location ID en [Locations].", "path": "Locations" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Una vez que hayas confirmado el Production Access Token y el Location ID, se han emitido correctamente." }
+          ]
+        },
+        {
+          "h2": "3. Información para registrar en GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descripción"], "rows": [
+              ["access_token", "El Access Token encontrado en la pestaña Production (manéjalo con cuidado)"],
+              ["location_id", "El Location ID encontrado en [Locations]"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Introduce access_token·location_id en [Registrar] del GenieGo Integration Hub y guarda. Las credenciales se cifran en reposo con AES-256-GCM y se enmascaran al leerlas." }
+          ]
+        },
+        {
+          "h2": "4. Problemas frecuentes",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solución"], "rows": [
+              ["Fallo de autenticación", "Se está usando un token de Sandbox", "Usa el Access Token encontrado en la pestaña Production."],
+              ["Los pedidos no se sincronizan", "Location ID introducido incorrectamente", "Vuelve a verificar el Location ID encontrado en [Locations]."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificación final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Creé una aplicación en developer.squareup.com/apps.",
+              "Encontré el Access Token en la pestaña Production.",
+              "Encontré el Location ID en [Locations].",
+              "Introduje access_token·location_id en GenieGo [Registrar] y guardé."
+            ] }
+          ]
+        }
+      ]
+    },
+    "fr": {
+      "titleType": "Manuel de délivrance de la clé API",
+      "badge": "Guide pour débutants",
+      "intro": "Un guide pas à pas adapté aux débutants pour créer une application dans le Square Developer Portal afin de délivrer un Access Token et un Location ID, puis les enregistrer dans le GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Temps estimé", "Environ 5–10 min"],
+        ["Compte nécessaire", "Compte Square"],
+        ["Clés délivrées", "Access Token · Location ID"],
+        ["Résultat", "Identifiants d'API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Avant de commencer",
+          "desc": "Les identifiants de l'API Square sont délivrés en créant une application dans le Developer Portal.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requis", "h3": "Compte Square", "p": "Vous avez besoin d'un compte Square capable de créer une application sur developer.squareup.com/apps." },
+              { "tag": "Clés délivrées", "h3": "Access Token · Location ID", "p": "Trouvez l'Access Token dans l'onglet Production et le Location ID dans [Locations]." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Remarque :</strong> Pour l'intégration réelle, utilisez le jeton <strong>Production</strong>, et non celui de Sandbox." }
+          ]
+        },
+        {
+          "h2": "2. Étapes de délivrance",
+          "desc": "Délivrez dans l'ordre ci-dessous et enregistrez dans GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Créer une application", "p": "Créez une application dans le Square Developer Portal.", "path": "developer.squareup.com/apps" },
+              { "h3": "Trouver l'Access Token", "p": "Trouvez l'Access Token dans l'onglet Production.", "path": "Production" },
+              { "h3": "Trouver le Location ID", "p": "Trouvez le Location ID dans [Locations].", "path": "Locations" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Une fois que vous avez confirmé le Production Access Token et le Location ID, ils ont été délivrés correctement." }
+          ]
+        },
+        {
+          "h2": "3. Informations à enregistrer dans GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Champ", "Description"], "rows": [
+              ["access_token", "L'Access Token trouvé dans l'onglet Production (à manipuler avec précaution)"],
+              ["location_id", "Le Location ID trouvé dans [Locations]"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Saisissez access_token·location_id dans [Enregistrer] du GenieGo Integration Hub et enregistrez. Les identifiants sont chiffrés au repos avec AES-256-GCM et masqués à la lecture." }
+          ]
+        },
+        {
+          "h2": "4. Problèmes fréquents",
+          "blocks": [
+            { "type": "table", "head": ["Problème", "Cause", "Solution"], "rows": [
+              ["Échec de l'authentification", "Un jeton Sandbox est utilisé", "Utilisez l'Access Token trouvé dans l'onglet Production."],
+              ["Les commandes ne se synchronisent pas", "Location ID mal saisi", "Vérifiez à nouveau le Location ID trouvé dans [Locations]."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Liste de vérification finale",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "J'ai créé une application sur developer.squareup.com/apps.",
+              "J'ai trouvé l'Access Token dans l'onglet Production.",
+              "J'ai trouvé le Location ID dans [Locations].",
+              "J'ai saisi access_token·location_id dans GenieGo [Enregistrer] et enregistré."
+            ] }
+          ]
+        }
+      ]
+    },
+    "hi": {
+      "titleType": "API Key जारी करने की मैनुअल",
+      "badge": "शुरुआती गाइड",
+      "intro": "Square Developer Portal में ऐप बनाकर Access Token और Location ID जारी करने और उन्हें GenieGo Integration Hub में पंजीकृत करने की एक शुरुआती-अनुकूल, चरण-दर-चरण मार्गदर्शिका।",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["अनुमानित समय", "लगभग 5–10 मिनट"],
+        ["आवश्यक खाता", "Square खाता"],
+        ["जारी की गई कुंजियाँ", "Access Token · Location ID"],
+        ["परिणाम", "API क्रेडेंशियल"]
+      ],
+      "sections": [
+        {
+          "h2": "1. शुरू करने से पहले",
+          "desc": "Square API क्रेडेंशियल Developer Portal में एक ऐप बनाकर जारी किए जाते हैं।",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "आवश्यक", "h3": "Square खाता", "p": "आपके पास एक Square खाता होना चाहिए जो developer.squareup.com/apps पर ऐप बना सके।" },
+              { "tag": "जारी की गई कुंजियाँ", "h3": "Access Token · Location ID", "p": "Production टैब में Access Token और [Locations] में Location ID देखें।" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>नोट:</strong> वास्तविक एकीकरण के लिए, Sandbox नहीं बल्कि <strong>Production</strong> टोकन का उपयोग करें।" }
+          ]
+        },
+        {
+          "h2": "2. जारी करने के चरण",
+          "desc": "नीचे दिए गए क्रम में जारी करें और GenieGo में पंजीकृत करें।",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "ऐप बनाएँ", "p": "Square Developer Portal में एक ऐप बनाएँ।", "path": "developer.squareup.com/apps" },
+              { "h3": "Access Token देखें", "p": "Production टैब में Access Token देखें।", "path": "Production" },
+              { "h3": "Location ID देखें", "p": "[Locations] में Location ID देखें।", "path": "Locations" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "जब आप Production Access Token और Location ID की पुष्टि कर लेते हैं, तो वे सही ढंग से जारी हो गए हैं।" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo में पंजीकृत करने की जानकारी",
+          "blocks": [
+            { "type": "table", "head": ["फ़ील्ड", "विवरण"], "rows": [
+              ["access_token", "Production टैब में मिला Access Token (सावधानी से संभालें)"],
+              ["location_id", "[Locations] में मिला Location ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo Integration Hub के [पंजीकरण] में access_token·location_id दर्ज करें और सहेजें। क्रेडेंशियल को संग्रहण के समय AES-256-GCM से एन्क्रिप्ट किया जाता है और पढ़ते समय मास्क किया जाता है।" }
+          ]
+        },
+        {
+          "h2": "4. आम समस्याएँ",
+          "blocks": [
+            { "type": "table", "head": ["समस्या", "कारण", "समाधान"], "rows": [
+              ["प्रमाणीकरण विफल", "Sandbox टोकन का उपयोग किया जा रहा है", "Production टैब में मिले Access Token का उपयोग करें।"],
+              ["ऑर्डर सिंक नहीं हो रहे", "Location ID गलत दर्ज किया गया", "[Locations] में मिले Location ID को फिर से जाँचें।"]
+            ] }
+          ]
+        },
+        {
+          "h2": "अंतिम जाँच सूची",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "developer.squareup.com/apps पर एक ऐप बनाया।",
+              "Production टैब में Access Token देखा।",
+              "[Locations] में Location ID देखा।",
+              "GenieGo [पंजीकरण] में access_token·location_id दर्ज किया और सहेजा।"
+            ] }
+          ]
+        }
+      ]
+    },
+    "pt": {
+      "titleType": "Manual de emissão da API Key",
+      "badge": "Guia para iniciantes",
+      "intro": "Um guia passo a passo e amigável para iniciantes sobre como criar um aplicativo no Square Developer Portal para emitir um Access Token e um Location ID, e registrá-los no GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tempo estimado", "Cerca de 5–10 min"],
+        ["Conta necessária", "Conta Square"],
+        ["Chaves emitidas", "Access Token · Location ID"],
+        ["Resultado", "Credenciais de API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de começar",
+          "desc": "As credenciais da API do Square são emitidas criando um aplicativo no Developer Portal.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Obrigatório", "h3": "Conta Square", "p": "Você precisa de uma conta Square capaz de criar um aplicativo em developer.squareup.com/apps." },
+              { "tag": "Chaves emitidas", "h3": "Access Token · Location ID", "p": "Encontre o Access Token na aba Production e o Location ID em [Locations]." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Observação:</strong> Para a integração real, use o token de <strong>Production</strong>, não o de Sandbox." }
+          ]
+        },
+        {
+          "h2": "2. Etapas de emissão",
+          "desc": "Emita na ordem abaixo e registre no GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Criar um aplicativo", "p": "Crie um aplicativo no Square Developer Portal.", "path": "developer.squareup.com/apps" },
+              { "h3": "Encontrar o Access Token", "p": "Encontre o Access Token na aba Production.", "path": "Production" },
+              { "h3": "Encontrar o Location ID", "p": "Encontre o Location ID em [Locations].", "path": "Locations" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Depois de confirmar o Production Access Token e o Location ID, eles foram emitidos corretamente." }
+          ]
+        },
+        {
+          "h2": "3. Informações para registrar no GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descrição"], "rows": [
+              ["access_token", "O Access Token encontrado na aba Production (manuseie com cuidado)"],
+              ["location_id", "O Location ID encontrado em [Locations]"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Insira access_token·location_id em [Registrar] do GenieGo Integration Hub e salve. As credenciais são criptografadas em repouso com AES-256-GCM e mascaradas na leitura." }
+          ]
+        },
+        {
+          "h2": "4. Problemas comuns",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solução"], "rows": [
+              ["Falha na autenticação", "Está sendo usado um token de Sandbox", "Use o Access Token encontrado na aba Production."],
+              ["Os pedidos não sincronizam", "Location ID inserido incorretamente", "Verifique novamente o Location ID encontrado em [Locations]."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificação final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Criei um aplicativo em developer.squareup.com/apps.",
+              "Encontrei o Access Token na aba Production.",
+              "Encontrei o Location ID em [Locations].",
+              "Inseri access_token·location_id no GenieGo [Registrar] e salvei."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ru": {
+      "titleType": "Руководство по выпуску API Key",
+      "badge": "Руководство для начинающих",
+      "intro": "Понятное новичкам пошаговое руководство по созданию приложения в Square Developer Portal для выпуска Access Token и Location ID и их регистрации в GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Примерное время", "Около 5–10 мин"],
+        ["Необходимый аккаунт", "Аккаунт Square"],
+        ["Выпускаемые ключи", "Access Token · Location ID"],
+        ["Результат", "Учётные данные API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Прежде чем начать",
+          "desc": "Учётные данные Square API выпускаются путём создания приложения в Developer Portal.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Требуется", "h3": "Аккаунт Square", "p": "Вам нужен аккаунт Square, позволяющий создать приложение на developer.squareup.com/apps." },
+              { "tag": "Выпускаемые ключи", "h3": "Access Token · Location ID", "p": "Найдите Access Token на вкладке Production и Location ID в разделе [Locations]." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Примечание:</strong> Для реальной интеграции используйте токен <strong>Production</strong>, а не Sandbox." }
+          ]
+        },
+        {
+          "h2": "2. Шаги выпуска",
+          "desc": "Выпустите в указанном ниже порядке и зарегистрируйте в GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Создать приложение", "p": "Создайте приложение в Square Developer Portal.", "path": "developer.squareup.com/apps" },
+              { "h3": "Найти Access Token", "p": "Найдите Access Token на вкладке Production.", "path": "Production" },
+              { "h3": "Найти Location ID", "p": "Найдите Location ID в разделе [Locations].", "path": "Locations" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "После того как вы подтвердили Production Access Token и Location ID, они выпущены правильно." }
+          ]
+        },
+        {
+          "h2": "3. Информация для регистрации в GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Поле", "Описание"], "rows": [
+              ["access_token", "Access Token, найденный на вкладке Production (обращайтесь осторожно)"],
+              ["location_id", "Location ID, найденный в разделе [Locations]"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Введите access_token·location_id в [Регистрация] GenieGo Integration Hub и сохраните. Учётные данные шифруются при хранении с помощью AES-256-GCM и маскируются при чтении." }
+          ]
+        },
+        {
+          "h2": "4. Частые проблемы",
+          "blocks": [
+            { "type": "table", "head": ["Проблема", "Причина", "Решение"], "rows": [
+              ["Сбой аутентификации", "Используется токен Sandbox", "Используйте Access Token, найденный на вкладке Production."],
+              ["Заказы не синхронизируются", "Неверно указан Location ID", "Перепроверьте Location ID, найденный в разделе [Locations]."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Итоговый контрольный список",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Создал приложение на developer.squareup.com/apps.",
+              "Нашёл Access Token на вкладке Production.",
+              "Нашёл Location ID в разделе [Locations].",
+              "Ввёл access_token·location_id в GenieGo [Регистрация] и сохранил."
+            ] }
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,1041 @@
+{
+  "name": "Shopee",
+  "icon": "🦐",
+  "langs": {
+    "ko": {
+      "titleType": "API Key 발급 매뉴얼",
+      "badge": "Beginner Guide",
+      "intro": "Shopee Open Platform에서 개발자 등록·승인 후 앱을 생성해 Partner ID·Partner Key를 발급하고, 샵 인가를 거쳐 GenieGo 연동 허브에 등록하는 과정을 초보자도 그대로 따라 할 수 있도록 정리한 매뉴얼입니다.",
+      "org": "GenieGo 연동 허브",
+      "quick": [
+        ["소요 시간", "약 10~20분(승인 대기 별도)"],
+        ["필요 계정", "Shopee 판매자 계정"],
+        ["발급 키", "Partner ID · Partner Key · Shop ID"],
+        ["결과물", "API 자격증명"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 시작하기 전에",
+          "desc": "Shopee Open Platform은 개발자 등록·승인과 샵 인가 절차가 필요합니다.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "필요", "h3": "Shopee 판매자 계정", "p": "발급을 진행하려면 Shopee 판매자 계정이 있어야 합니다. 이 계정으로 Shopee Open Platform에 개발자로 등록합니다." },
+              { "tag": "발급 키", "h3": "Partner ID · Partner Key", "p": "앱을 생성하면 Partner ID와 Partner Key가 발급됩니다. 이후 샵 인가를 거쳐 access_token까지 받습니다." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>참고:</strong> Shopee Open Platform 개발자 등록 후에는 승인을 기다려야 하며, 발급된 access_token은 4시간마다 갱신됩니다." }
+          ]
+        },
+        {
+          "h2": "2. 발급 단계",
+          "desc": "아래 순서대로 발급하고 GenieGo에 등록합니다.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "개발자 등록·승인", "p": "Shopee Open Platform(open.shopee.com)에서 개발자로 등록하고 승인을 기다립니다.", "path": "https://open.shopee.com" },
+              { "h3": "앱 생성", "p": "[App Management] > [App List]에서 앱을 만들면 Partner ID와 Partner Key가 발급됩니다.", "path": "App Management → App List" },
+              { "h3": "샵 인가", "p": "샵 인가(authorization) 링크를 생성해 판매자 샵을 인가하면 code가 발급됩니다." },
+              { "h3": "access_token 발급", "p": "code로 access_token을 발급받습니다. access_token은 4시간마다 갱신됩니다." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Partner ID·Partner Key가 발급되고 샵 인가로 access_token까지 받으면 정상 발급된 것입니다." }
+          ]
+        },
+        {
+          "h2": "3. GenieGo에 등록할 정보",
+          "blocks": [
+            { "type": "table", "head": ["필드", "설명"], "rows": [
+              ["partner_id", "발급된 Partner ID"],
+              ["partner_key", "발급된 Partner Key(노출 주의)"],
+              ["shop_id", "인가한 판매자 샵의 Shop ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 연동 허브 [등록]에 partner_id, partner_key, shop_id를 입력해 저장하면 자격증명은 AES-256-GCM으로 암호화 저장되고 조회 시 마스킹됩니다." }
+          ]
+        },
+        {
+          "h2": "4. 자주 발생하는 문제",
+          "blocks": [
+            { "type": "table", "head": ["문제", "원인", "해결"], "rows": [
+              ["앱을 생성할 수 없음", "개발자 등록 승인 미완료", "Shopee Open Platform 개발자 등록 후 승인을 기다린 뒤 앱을 생성합니다."],
+              ["인증/호출 실패", "샵 인가 미완료 또는 access_token 만료", "샵 인가 링크로 샵을 인가하고, 4시간마다 access_token을 갱신합니다."]
+            ] }
+          ]
+        },
+        {
+          "h2": "최종 체크리스트",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Shopee 판매자 계정으로 Open Platform 개발자 등록·승인을 완료했다.",
+              "App Management > App List에서 앱을 만들어 Partner ID·Partner Key를 발급했다.",
+              "샵 인가 링크로 샵을 인가하고 access_token을 발급받았다.",
+              "GenieGo [등록]에 partner_id·partner_key·shop_id를 입력해 저장했다."
+            ] }
+          ]
+        }
+      ]
+    },
+    "en": {
+      "titleType": "API Key Issuance Manual",
+      "badge": "Beginner Guide",
+      "intro": "A beginner-friendly, step-by-step guide to registering and getting approved as a developer on the Shopee Open Platform, creating an app to issue your Partner ID and Partner Key, authorizing your shop, and registering everything in the GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Est. time", "About 10–20 min (approval wait separate)"],
+        ["Account needed", "Shopee seller account"],
+        ["Keys issued", "Partner ID · Partner Key · Shop ID"],
+        ["Result", "API credentials"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Before You Begin",
+          "desc": "The Shopee Open Platform requires developer registration and approval, plus a shop authorization step.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Required", "h3": "Shopee seller account", "p": "To proceed with issuance, you need a Shopee seller account. You register as a developer on the Shopee Open Platform with this account." },
+              { "tag": "Keys issued", "h3": "Partner ID · Partner Key", "p": "When you create an app, a Partner ID and Partner Key are issued. After that, you authorize your shop and obtain an access_token." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Note:</strong> After registering as a developer on the Shopee Open Platform, you must wait for approval, and the issued access_token is refreshed every 4 hours." }
+          ]
+        },
+        {
+          "h2": "2. Issuance Steps",
+          "desc": "Issue in the order below and register in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Register and get approved as a developer", "p": "Register as a developer on the Shopee Open Platform (open.shopee.com) and wait for approval.", "path": "https://open.shopee.com" },
+              { "h3": "Create an app", "p": "Create an app under [App Management] > [App List], and a Partner ID and Partner Key are issued.", "path": "App Management → App List" },
+              { "h3": "Authorize the shop", "p": "Generate a shop authorization link and authorize the seller shop; a code is then issued." },
+              { "h3": "Issue the access_token", "p": "Use the code to obtain an access_token. The access_token is refreshed every 4 hours." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Once the Partner ID and Partner Key are issued and you obtain an access_token through shop authorization, it has been issued correctly." }
+          ]
+        },
+        {
+          "h2": "3. Information to Register in GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Field", "Description"], "rows": [
+              ["partner_id", "The issued Partner ID"],
+              ["partner_key", "The issued Partner Key (handle with care)"],
+              ["shop_id", "The Shop ID of the authorized seller shop"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "In the GenieGo Integration Hub [Register], enter partner_id, partner_key, and shop_id and save. Credentials are encrypted at rest with AES-256-GCM and masked on read." }
+          ]
+        },
+        {
+          "h2": "4. Common Issues",
+          "blocks": [
+            { "type": "table", "head": ["Issue", "Cause", "Solution"], "rows": [
+              ["Cannot create an app", "Developer registration not yet approved", "Register as a developer on the Shopee Open Platform, wait for approval, then create the app."],
+              ["Authentication / call failure", "Shop authorization incomplete, or access_token expired", "Authorize the shop via the shop authorization link, and refresh the access_token every 4 hours."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Final Checklist",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Completed Open Platform developer registration and approval with a Shopee seller account.",
+              "Created an app under App Management > App List and issued a Partner ID and Partner Key.",
+              "Authorized the shop via the shop authorization link and obtained an access_token.",
+              "Entered partner_id, partner_key, and shop_id in GenieGo [Register] and saved."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ja": {
+      "titleType": "API Key 発行マニュアル",
+      "badge": "初心者ガイド",
+      "intro": "Shopee Open Platform で開発者登録・承認の後にアプリを作成して Partner ID・Partner Key を発行し、ショップ認可を経て GenieGo 連携ハブに登録する手順を、初心者でもそのまま実行できるようにまとめたマニュアルです。",
+      "org": "GenieGo 連携ハブ",
+      "quick": [
+        ["所要時間", "約 10〜20 分(承認待ちは別途)"],
+        ["必要なアカウント", "Shopee 販売者アカウント"],
+        ["発行するキー", "Partner ID · Partner Key · Shop ID"],
+        ["成果物", "API 認証情報"]
+      ],
+      "sections": [
+        {
+          "h2": "1. はじめる前に",
+          "desc": "Shopee Open Platform では、開発者登録・承認と、ショップ認可の手続きが必要です。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必須", "h3": "Shopee 販売者アカウント", "p": "発行を進めるには Shopee 販売者アカウントが必要です。このアカウントで Shopee Open Platform に開発者として登録します。" },
+              { "tag": "発行するキー", "h3": "Partner ID · Partner Key", "p": "アプリを作成すると Partner ID と Partner Key が発行されます。その後、ショップ認可を経て access_token まで取得します。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> Shopee Open Platform で開発者登録を行った後は承認を待つ必要があり、発行された access_token は 4 時間ごとに更新されます。" }
+          ]
+        },
+        {
+          "h2": "2. 発行手順",
+          "desc": "以下の順序で発行し、GenieGo に登録します。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "開発者登録・承認", "p": "Shopee Open Platform(open.shopee.com)で開発者として登録し、承認を待ちます。", "path": "https://open.shopee.com" },
+              { "h3": "アプリ作成", "p": "[App Management] > [App List] でアプリを作成すると、Partner ID と Partner Key が発行されます。", "path": "App Management → App List" },
+              { "h3": "ショップ認可", "p": "ショップ認可(authorization)リンクを生成して販売者ショップを認可すると、code が発行されます。" },
+              { "h3": "access_token 発行", "p": "code を使って access_token を発行します。access_token は 4 時間ごとに更新されます。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Partner ID・Partner Key が発行され、ショップ認可で access_token まで取得できれば、正常に発行されています。" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo に登録する情報",
+          "blocks": [
+            { "type": "table", "head": ["フィールド", "説明"], "rows": [
+              ["partner_id", "発行された Partner ID"],
+              ["partner_key", "発行された Partner Key(取り扱い注意)"],
+              ["shop_id", "認可した販売者ショップの Shop ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 連携ハブの [登録] に partner_id、partner_key、shop_id を入力して保存すると、認証情報は AES-256-GCM で暗号化して保存され、閲覧時にはマスキングされます。" }
+          ]
+        },
+        {
+          "h2": "4. よくある問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["アプリを作成できない", "開発者登録の承認が未完了", "Shopee Open Platform で開発者登録を行い、承認を待ってからアプリを作成します。"],
+              ["認証/呼び出しの失敗", "ショップ認可が未完了、または access_token の期限切れ", "ショップ認可リンクでショップを認可し、4 時間ごとに access_token を更新します。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終チェックリスト",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Shopee 販売者アカウントで Open Platform の開発者登録・承認を完了した。",
+              "App Management > App List でアプリを作成し、Partner ID・Partner Key を発行した。",
+              "ショップ認可リンクでショップを認可し、access_token を発行した。",
+              "GenieGo の [登録] に partner_id・partner_key・shop_id を入力して保存した。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh": {
+      "titleType": "API Key 申请手册",
+      "badge": "新手指南",
+      "intro": "本手册手把手指导新手在 Shopee Open Platform 完成开发者注册与审核后创建应用以签发 Partner ID 和 Partner Key，经店铺授权后注册到 GenieGo 集成中心的整个流程。",
+      "org": "GenieGo 集成中心",
+      "quick": [
+        ["预计时间", "约 10~20 分钟(审核等待另计)"],
+        ["所需账户", "Shopee 卖家账户"],
+        ["签发密钥", "Partner ID · Partner Key · Shop ID"],
+        ["成果", "API 凭证"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 开始之前",
+          "desc": "Shopee Open Platform 需要开发者注册与审核，以及店铺授权步骤。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "Shopee 卖家账户", "p": "要进行签发，您需要一个 Shopee 卖家账户。使用该账户在 Shopee Open Platform 上注册为开发者。" },
+              { "tag": "签发密钥", "h3": "Partner ID · Partner Key", "p": "创建应用后会签发 Partner ID 和 Partner Key。随后经店铺授权并获取 access_token。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> 在 Shopee Open Platform 完成开发者注册后需要等待审核，且签发的 access_token 每 4 小时刷新一次。" }
+          ]
+        },
+        {
+          "h2": "2. 申请步骤",
+          "desc": "按以下顺序签发并在 GenieGo 中注册。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "开发者注册与审核", "p": "在 Shopee Open Platform(open.shopee.com)上注册为开发者并等待审核。", "path": "https://open.shopee.com" },
+              { "h3": "创建应用", "p": "在 [App Management] > [App List] 中创建应用，即可签发 Partner ID 和 Partner Key。", "path": "App Management → App List" },
+              { "h3": "店铺授权", "p": "生成店铺授权(authorization)链接并授权卖家店铺，随后会签发 code。" },
+              { "h3": "签发 access_token", "p": "使用 code 获取 access_token。access_token 每 4 小时刷新一次。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "当签发了 Partner ID 和 Partner Key，并通过店铺授权获取到 access_token 时，即表示已正确签发。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中注册的信息",
+          "blocks": [
+            { "type": "table", "head": ["字段", "说明"], "rows": [
+              ["partner_id", "签发的 Partner ID"],
+              ["partner_key", "签发的 Partner Key(请妥善保管)"],
+              ["shop_id", "已授权卖家店铺的 Shop ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 集成中心 [注册] 中输入 partner_id、partner_key、shop_id 并保存后，凭证将以 AES-256-GCM 加密存储，并在查询时进行掩码处理。" }
+          ]
+        },
+        {
+          "h2": "4. 常见问题",
+          "blocks": [
+            { "type": "table", "head": ["问题", "原因", "解决方法"], "rows": [
+              ["无法创建应用", "开发者注册尚未通过审核", "在 Shopee Open Platform 注册为开发者，等待审核通过后再创建应用。"],
+              ["认证/调用失败", "店铺授权未完成，或 access_token 已过期", "通过店铺授权链接授权店铺，并每 4 小时刷新一次 access_token。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最终检查清单",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已使用 Shopee 卖家账户完成 Open Platform 开发者注册与审核。",
+              "已在 App Management > App List 中创建应用并签发 Partner ID 和 Partner Key。",
+              "已通过店铺授权链接授权店铺并获取 access_token。",
+              "已在 GenieGo [注册] 中输入 partner_id、partner_key、shop_id 并保存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh-TW": {
+      "titleType": "API Key 申請手冊",
+      "badge": "新手指南",
+      "intro": "本手冊手把手指導新手在 Shopee Open Platform 完成開發者註冊與審查後建立應用程式以簽發 Partner ID 和 Partner Key，經商店授權後註冊到 GenieGo 整合中心的整個流程。",
+      "org": "GenieGo 整合中心",
+      "quick": [
+        ["預計時間", "約 10~20 分鐘(審查等待另計)"],
+        ["所需帳戶", "Shopee 賣家帳戶"],
+        ["簽發金鑰", "Partner ID · Partner Key · Shop ID"],
+        ["成果", "API 憑證"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 開始之前",
+          "desc": "Shopee Open Platform 需要開發者註冊與審查，以及商店授權步驟。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "Shopee 賣家帳戶", "p": "若要進行簽發，您需要一個 Shopee 賣家帳戶。使用該帳戶在 Shopee Open Platform 上註冊為開發者。" },
+              { "tag": "簽發金鑰", "h3": "Partner ID · Partner Key", "p": "建立應用程式後會簽發 Partner ID 和 Partner Key。隨後經商店授權並取得 access_token。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> 在 Shopee Open Platform 完成開發者註冊後需要等待審查，且簽發的 access_token 每 4 小時更新一次。" }
+          ]
+        },
+        {
+          "h2": "2. 簽發步驟",
+          "desc": "依以下順序簽發並在 GenieGo 中註冊。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "開發者註冊與審查", "p": "在 Shopee Open Platform(open.shopee.com)上註冊為開發者並等待審查。", "path": "https://open.shopee.com" },
+              { "h3": "建立應用程式", "p": "在 [App Management] > [App List] 中建立應用程式，即可簽發 Partner ID 和 Partner Key。", "path": "App Management → App List" },
+              { "h3": "商店授權", "p": "產生商店授權(authorization)連結並授權賣家商店，隨後會簽發 code。" },
+              { "h3": "簽發 access_token", "p": "使用 code 取得 access_token。access_token 每 4 小時更新一次。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "當簽發了 Partner ID 和 Partner Key，並透過商店授權取得 access_token 時，即表示已正確簽發。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中註冊的資訊",
+          "blocks": [
+            { "type": "table", "head": ["欄位", "說明"], "rows": [
+              ["partner_id", "簽發的 Partner ID"],
+              ["partner_key", "簽發的 Partner Key(請妥善保管)"],
+              ["shop_id", "已授權賣家商店的 Shop ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 整合中心 [註冊] 中輸入 partner_id、partner_key、shop_id 並儲存後，憑證將以 AES-256-GCM 加密儲存，並在查詢時進行遮罩處理。" }
+          ]
+        },
+        {
+          "h2": "4. 常見問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["無法建立應用程式", "開發者註冊尚未通過審查", "在 Shopee Open Platform 註冊為開發者，等待審查通過後再建立應用程式。"],
+              ["認證/呼叫失敗", "商店授權未完成，或 access_token 已過期", "透過商店授權連結授權商店，並每 4 小時更新一次 access_token。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終檢查清單",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已使用 Shopee 賣家帳戶完成 Open Platform 開發者註冊與審查。",
+              "已在 App Management > App List 中建立應用程式並簽發 Partner ID 和 Partner Key。",
+              "已透過商店授權連結授權商店並取得 access_token。",
+              "已在 GenieGo [註冊] 中輸入 partner_id、partner_key、shop_id 並儲存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "de": {
+      "titleType": "Anleitung zur API-Key-Ausstellung",
+      "badge": "Einsteigerleitfaden",
+      "intro": "Eine einsteigerfreundliche Schritt-für-Schritt-Anleitung, um sich auf der Shopee Open Platform als Entwickler zu registrieren und freischalten zu lassen, eine App zu erstellen, um Ihre Partner ID und Ihren Partner Key auszustellen, Ihren Shop zu autorisieren und alles im GenieGo Integration Hub zu registrieren.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Geschätzte Zeit", "Etwa 10–20 Min. (Wartezeit für Freigabe separat)"],
+        ["Benötigtes Konto", "Shopee-Verkäuferkonto"],
+        ["Ausgestellte Schlüssel", "Partner ID · Partner Key · Shop ID"],
+        ["Ergebnis", "API-Anmeldedaten"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Bevor Sie beginnen",
+          "desc": "Die Shopee Open Platform erfordert eine Entwicklerregistrierung und -freigabe sowie einen Schritt zur Shop-Autorisierung.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Erforderlich", "h3": "Shopee-Verkäuferkonto", "p": "Um mit der Ausstellung fortzufahren, benötigen Sie ein Shopee-Verkäuferkonto. Mit diesem Konto registrieren Sie sich als Entwickler auf der Shopee Open Platform." },
+              { "tag": "Ausgestellte Schlüssel", "h3": "Partner ID · Partner Key", "p": "Wenn Sie eine App erstellen, werden eine Partner ID und ein Partner Key ausgestellt. Danach autorisieren Sie Ihren Shop und erhalten ein access_token." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Hinweis:</strong> Nach der Registrierung als Entwickler auf der Shopee Open Platform müssen Sie auf die Freigabe warten, und das ausgestellte access_token wird alle 4 Stunden erneuert." }
+          ]
+        },
+        {
+          "h2": "2. Ausstellungsschritte",
+          "desc": "Stellen Sie in der unten angegebenen Reihenfolge aus und registrieren Sie in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Als Entwickler registrieren und freischalten lassen", "p": "Registrieren Sie sich auf der Shopee Open Platform (open.shopee.com) als Entwickler und warten Sie auf die Freigabe.", "path": "https://open.shopee.com" },
+              { "h3": "App erstellen", "p": "Erstellen Sie unter [App Management] > [App List] eine App; dabei werden eine Partner ID und ein Partner Key ausgestellt.", "path": "App Management → App List" },
+              { "h3": "Shop autorisieren", "p": "Generieren Sie einen Shop-Autorisierungslink (authorization) und autorisieren Sie den Verkäufershop; anschließend wird ein code ausgestellt." },
+              { "h3": "access_token ausstellen", "p": "Verwenden Sie den code, um ein access_token zu erhalten. Das access_token wird alle 4 Stunden erneuert." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Sobald die Partner ID und der Partner Key ausgestellt sind und Sie über die Shop-Autorisierung ein access_token erhalten haben, wurde es korrekt ausgestellt." }
+          ]
+        },
+        {
+          "h2": "3. In GenieGo zu registrierende Informationen",
+          "blocks": [
+            { "type": "table", "head": ["Feld", "Beschreibung"], "rows": [
+              ["partner_id", "Die ausgestellte Partner ID"],
+              ["partner_key", "Der ausgestellte Partner Key (vertraulich behandeln)"],
+              ["shop_id", "Die Shop ID des autorisierten Verkäufershops"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Geben Sie im GenieGo Integration Hub [Registrieren] partner_id, partner_key und shop_id ein und speichern Sie. Anmeldedaten werden im Ruhezustand mit AES-256-GCM verschlüsselt und beim Lesen maskiert." }
+          ]
+        },
+        {
+          "h2": "4. Häufige Probleme",
+          "blocks": [
+            { "type": "table", "head": ["Problem", "Ursache", "Lösung"], "rows": [
+              ["App kann nicht erstellt werden", "Entwicklerregistrierung noch nicht freigegeben", "Registrieren Sie sich auf der Shopee Open Platform als Entwickler, warten Sie auf die Freigabe und erstellen Sie dann die App."],
+              ["Authentifizierungs-/Aufruffehler", "Shop-Autorisierung unvollständig oder access_token abgelaufen", "Autorisieren Sie den Shop über den Shop-Autorisierungslink und erneuern Sie das access_token alle 4 Stunden."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Abschließende Checkliste",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Die Entwicklerregistrierung und -freigabe auf der Open Platform mit einem Shopee-Verkäuferkonto abgeschlossen.",
+              "Unter App Management > App List eine App erstellt und eine Partner ID und einen Partner Key ausgestellt.",
+              "Den Shop über den Shop-Autorisierungslink autorisiert und ein access_token erhalten.",
+              "partner_id, partner_key und shop_id in GenieGo [Registrieren] eingegeben und gespeichert."
+            ] }
+          ]
+        }
+      ]
+    },
+    "th": {
+      "titleType": "คู่มือการออก API Key",
+      "badge": "คู่มือสำหรับผู้เริ่มต้น",
+      "intro": "คู่มือทีละขั้นตอนที่เป็นมิตรกับผู้เริ่มต้น สำหรับการลงทะเบียนและขออนุมัติเป็นนักพัฒนาบน Shopee Open Platform สร้างแอปเพื่อออก Partner ID และ Partner Key อนุญาตร้านค้าของคุณ และลงทะเบียนทุกอย่างใน GenieGo Integration Hub",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["เวลาโดยประมาณ", "ประมาณ 10–20 นาที (ไม่รวมเวลารออนุมัติ)"],
+        ["บัญชีที่ต้องใช้", "บัญชีผู้ขาย Shopee"],
+        ["คีย์ที่ออก", "Partner ID · Partner Key · Shop ID"],
+        ["ผลลัพธ์", "ข้อมูลรับรอง API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. ก่อนเริ่มต้น",
+          "desc": "Shopee Open Platform ต้องมีการลงทะเบียนและอนุมัตินักพัฒนา รวมถึงขั้นตอนการอนุญาตร้านค้า",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "จำเป็น", "h3": "บัญชีผู้ขาย Shopee", "p": "หากต้องการดำเนินการออกคีย์ คุณต้องมีบัญชีผู้ขาย Shopee ใช้บัญชีนี้ลงทะเบียนเป็นนักพัฒนาบน Shopee Open Platform" },
+              { "tag": "คีย์ที่ออก", "h3": "Partner ID · Partner Key", "p": "เมื่อคุณสร้างแอป ระบบจะออก Partner ID และ Partner Key หลังจากนั้นคุณจะอนุญาตร้านค้าและได้รับ access_token" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>หมายเหตุ:</strong> หลังจากลงทะเบียนเป็นนักพัฒนาบน Shopee Open Platform คุณต้องรอการอนุมัติ และ access_token ที่ออกมาจะถูกรีเฟรชทุก 4 ชั่วโมง" }
+          ]
+        },
+        {
+          "h2": "2. ขั้นตอนการออก",
+          "desc": "ออกตามลำดับด้านล่างและลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "ลงทะเบียนและขออนุมัติเป็นนักพัฒนา", "p": "ลงทะเบียนเป็นนักพัฒนาบน Shopee Open Platform (open.shopee.com) และรอการอนุมัติ", "path": "https://open.shopee.com" },
+              { "h3": "สร้างแอป", "p": "สร้างแอปใน [App Management] > [App List] แล้วระบบจะออก Partner ID และ Partner Key", "path": "App Management → App List" },
+              { "h3": "อนุญาตร้านค้า", "p": "สร้างลิงก์อนุญาต (authorization) ร้านค้าและอนุญาตร้านค้าผู้ขาย จากนั้นระบบจะออก code" },
+              { "h3": "ออก access_token", "p": "ใช้ code เพื่อขอรับ access_token โดย access_token จะถูกรีเฟรชทุก 4 ชั่วโมง" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "เมื่อออก Partner ID และ Partner Key แล้ว และได้รับ access_token ผ่านการอนุญาตร้านค้า แสดงว่าออกอย่างถูกต้อง" }
+          ]
+        },
+        {
+          "h2": "3. ข้อมูลที่ต้องลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["ฟิลด์", "คำอธิบาย"], "rows": [
+              ["partner_id", "Partner ID ที่ออกแล้ว"],
+              ["partner_key", "Partner Key ที่ออกแล้ว (จัดการด้วยความระมัดระวัง)"],
+              ["shop_id", "Shop ID ของร้านค้าผู้ขายที่ได้รับการอนุญาต"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "ใน GenieGo Integration Hub [ลงทะเบียน] ป้อน partner_id, partner_key และ shop_id แล้วบันทึก ข้อมูลรับรองจะถูกเข้ารหัสขณะจัดเก็บด้วย AES-256-GCM และปิดบังเมื่ออ่าน" }
+          ]
+        },
+        {
+          "h2": "4. ปัญหาที่พบบ่อย",
+          "blocks": [
+            { "type": "table", "head": ["ปัญหา", "สาเหตุ", "วิธีแก้ไข"], "rows": [
+              ["ไม่สามารถสร้างแอปได้", "การลงทะเบียนนักพัฒนายังไม่ได้รับการอนุมัติ", "ลงทะเบียนเป็นนักพัฒนาบน Shopee Open Platform รอการอนุมัติ แล้วจึงสร้างแอป"],
+              ["การยืนยันตัวตน/การเรียกใช้ล้มเหลว", "การอนุญาตร้านค้ายังไม่เสร็จสมบูรณ์ หรือ access_token หมดอายุ", "อนุญาตร้านค้าผ่านลิงก์อนุญาตร้านค้า และรีเฟรช access_token ทุก 4 ชั่วโมง"]
+            ] }
+          ]
+        },
+        {
+          "h2": "รายการตรวจสอบขั้นสุดท้าย",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "ทำการลงทะเบียนและอนุมัตินักพัฒนาบน Open Platform ด้วยบัญชีผู้ขาย Shopee เสร็จสมบูรณ์แล้ว",
+              "สร้างแอปใน App Management > App List และออก Partner ID และ Partner Key แล้ว",
+              "อนุญาตร้านค้าผ่านลิงก์อนุญาตร้านค้าและได้รับ access_token แล้ว",
+              "ป้อน partner_id, partner_key และ shop_id ใน GenieGo [ลงทะเบียน] และบันทึกแล้ว"
+            ] }
+          ]
+        }
+      ]
+    },
+    "vi": {
+      "titleType": "Hướng dẫn cấp API Key",
+      "badge": "Hướng dẫn cho người mới",
+      "intro": "Hướng dẫn từng bước thân thiện với người mới về việc đăng ký và được phê duyệt làm nhà phát triển trên Shopee Open Platform, tạo ứng dụng để cấp Partner ID và Partner Key, ủy quyền cửa hàng của bạn và đăng ký mọi thứ trong GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Thời gian dự kiến", "Khoảng 10–20 phút (chờ phê duyệt riêng)"],
+        ["Tài khoản cần thiết", "Tài khoản người bán Shopee"],
+        ["Khóa được cấp", "Partner ID · Partner Key · Shop ID"],
+        ["Kết quả", "Thông tin xác thực API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Trước khi bắt đầu",
+          "desc": "Shopee Open Platform yêu cầu đăng ký và phê duyệt nhà phát triển, cùng với bước ủy quyền cửa hàng.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Bắt buộc", "h3": "Tài khoản người bán Shopee", "p": "Để tiến hành cấp khóa, bạn cần một tài khoản người bán Shopee. Bạn đăng ký làm nhà phát triển trên Shopee Open Platform bằng tài khoản này." },
+              { "tag": "Khóa được cấp", "h3": "Partner ID · Partner Key", "p": "Khi bạn tạo ứng dụng, Partner ID và Partner Key sẽ được cấp. Sau đó, bạn ủy quyền cửa hàng và nhận được access_token." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Lưu ý:</strong> Sau khi đăng ký làm nhà phát triển trên Shopee Open Platform, bạn phải chờ phê duyệt, và access_token được cấp sẽ được làm mới sau mỗi 4 giờ." }
+          ]
+        },
+        {
+          "h2": "2. Các bước cấp",
+          "desc": "Cấp theo thứ tự dưới đây và đăng ký trong GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Đăng ký và được phê duyệt làm nhà phát triển", "p": "Đăng ký làm nhà phát triển trên Shopee Open Platform (open.shopee.com) và chờ phê duyệt.", "path": "https://open.shopee.com" },
+              { "h3": "Tạo ứng dụng", "p": "Tạo ứng dụng trong [App Management] > [App List], và Partner ID cùng Partner Key sẽ được cấp.", "path": "App Management → App List" },
+              { "h3": "Ủy quyền cửa hàng", "p": "Tạo liên kết ủy quyền (authorization) cửa hàng và ủy quyền cửa hàng người bán; sau đó một code sẽ được cấp." },
+              { "h3": "Cấp access_token", "p": "Dùng code để nhận access_token. access_token được làm mới sau mỗi 4 giờ." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Khi Partner ID và Partner Key đã được cấp và bạn nhận được access_token thông qua ủy quyền cửa hàng, nghĩa là nó đã được cấp đúng cách." }
+          ]
+        },
+        {
+          "h2": "3. Thông tin cần đăng ký trong GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Trường", "Mô tả"], "rows": [
+              ["partner_id", "Partner ID đã được cấp"],
+              ["partner_key", "Partner Key đã được cấp (xử lý cẩn thận)"],
+              ["shop_id", "Shop ID của cửa hàng người bán đã được ủy quyền"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Trong GenieGo Integration Hub [Đăng ký], nhập partner_id, partner_key và shop_id rồi lưu. Thông tin xác thực được mã hóa khi lưu trữ bằng AES-256-GCM và được che khi đọc." }
+          ]
+        },
+        {
+          "h2": "4. Sự cố thường gặp",
+          "blocks": [
+            { "type": "table", "head": ["Sự cố", "Nguyên nhân", "Giải pháp"], "rows": [
+              ["Không thể tạo ứng dụng", "Đăng ký nhà phát triển chưa được phê duyệt", "Đăng ký làm nhà phát triển trên Shopee Open Platform, chờ phê duyệt rồi tạo ứng dụng."],
+              ["Lỗi xác thực / gọi API", "Ủy quyền cửa hàng chưa hoàn tất, hoặc access_token đã hết hạn", "Ủy quyền cửa hàng qua liên kết ủy quyền cửa hàng, và làm mới access_token sau mỗi 4 giờ."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Danh sách kiểm tra cuối cùng",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Đã hoàn tất đăng ký và phê duyệt nhà phát triển trên Open Platform bằng tài khoản người bán Shopee.",
+              "Đã tạo ứng dụng trong App Management > App List và cấp Partner ID cùng Partner Key.",
+              "Đã ủy quyền cửa hàng qua liên kết ủy quyền cửa hàng và nhận được access_token.",
+              "Đã nhập partner_id, partner_key và shop_id vào GenieGo [Đăng ký] và lưu."
+            ] }
+          ]
+        }
+      ]
+    },
+    "id": {
+      "titleType": "Panduan Penerbitan API Key",
+      "badge": "Panduan Pemula",
+      "intro": "Panduan langkah demi langkah yang ramah pemula untuk mendaftar dan disetujui sebagai pengembang di Shopee Open Platform, membuat aplikasi untuk menerbitkan Partner ID dan Partner Key Anda, mengotorisasi toko Anda, dan mendaftarkan semuanya di GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Perkiraan waktu", "Sekitar 10–20 menit (waktu tunggu persetujuan terpisah)"],
+        ["Akun yang dibutuhkan", "Akun penjual Shopee"],
+        ["Kunci yang diterbitkan", "Partner ID · Partner Key · Shop ID"],
+        ["Hasil", "Kredensial API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Sebelum Anda Mulai",
+          "desc": "Shopee Open Platform memerlukan pendaftaran dan persetujuan pengembang, serta langkah otorisasi toko.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Diperlukan", "h3": "Akun penjual Shopee", "p": "Untuk melanjutkan penerbitan, Anda memerlukan akun penjual Shopee. Anda mendaftar sebagai pengembang di Shopee Open Platform dengan akun ini." },
+              { "tag": "Kunci yang diterbitkan", "h3": "Partner ID · Partner Key", "p": "Saat Anda membuat aplikasi, Partner ID dan Partner Key diterbitkan. Setelah itu, Anda mengotorisasi toko dan memperoleh access_token." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Catatan:</strong> Setelah mendaftar sebagai pengembang di Shopee Open Platform, Anda harus menunggu persetujuan, dan access_token yang diterbitkan disegarkan setiap 4 jam." }
+          ]
+        },
+        {
+          "h2": "2. Langkah Penerbitan",
+          "desc": "Terbitkan sesuai urutan di bawah dan daftarkan di GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Daftar dan dapatkan persetujuan sebagai pengembang", "p": "Daftar sebagai pengembang di Shopee Open Platform (open.shopee.com) dan tunggu persetujuan.", "path": "https://open.shopee.com" },
+              { "h3": "Buat aplikasi", "p": "Buat aplikasi di [App Management] > [App List], dan Partner ID serta Partner Key akan diterbitkan.", "path": "App Management → App List" },
+              { "h3": "Otorisasi toko", "p": "Hasilkan tautan otorisasi (authorization) toko dan otorisasi toko penjual; selanjutnya sebuah code akan diterbitkan." },
+              { "h3": "Terbitkan access_token", "p": "Gunakan code untuk memperoleh access_token. access_token disegarkan setiap 4 jam." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Setelah Partner ID dan Partner Key diterbitkan serta Anda memperoleh access_token melalui otorisasi toko, berarti telah diterbitkan dengan benar." }
+          ]
+        },
+        {
+          "h2": "3. Informasi untuk Didaftarkan di GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Bidang", "Deskripsi"], "rows": [
+              ["partner_id", "Partner ID yang diterbitkan"],
+              ["partner_key", "Partner Key yang diterbitkan (tangani dengan hati-hati)"],
+              ["shop_id", "Shop ID dari toko penjual yang diotorisasi"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Di GenieGo Integration Hub [Daftar], masukkan partner_id, partner_key, dan shop_id lalu simpan. Kredensial dienkripsi saat disimpan dengan AES-256-GCM dan disamarkan saat dibaca." }
+          ]
+        },
+        {
+          "h2": "4. Masalah Umum",
+          "blocks": [
+            { "type": "table", "head": ["Masalah", "Penyebab", "Solusi"], "rows": [
+              ["Tidak dapat membuat aplikasi", "Pendaftaran pengembang belum disetujui", "Daftar sebagai pengembang di Shopee Open Platform, tunggu persetujuan, lalu buat aplikasi."],
+              ["Kegagalan autentikasi / pemanggilan", "Otorisasi toko belum selesai, atau access_token kedaluwarsa", "Otorisasi toko melalui tautan otorisasi toko, dan segarkan access_token setiap 4 jam."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Daftar Periksa Akhir",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Menyelesaikan pendaftaran dan persetujuan pengembang Open Platform dengan akun penjual Shopee.",
+              "Membuat aplikasi di App Management > App List dan menerbitkan Partner ID serta Partner Key.",
+              "Mengotorisasi toko melalui tautan otorisasi toko dan memperoleh access_token.",
+              "Memasukkan partner_id, partner_key, dan shop_id di GenieGo [Daftar] dan menyimpannya."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ar": {
+      "titleType": "دليل إصدار مفتاح API",
+      "badge": "دليل المبتدئين",
+      "intro": "دليل تفصيلي خطوة بخطوة وملائم للمبتدئين للتسجيل والحصول على الموافقة كمطوّر على Shopee Open Platform، وإنشاء تطبيق لإصدار Partner ID و Partner Key، وتفويض متجرك، وتسجيل كل ذلك في GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["الوقت المقدر", "حوالي 10–20 دقيقة (انتظار الموافقة منفصل)"],
+        ["الحساب المطلوب", "حساب بائع Shopee"],
+        ["المفاتيح المُصدرة", "Partner ID · Partner Key · Shop ID"],
+        ["النتيجة", "بيانات اعتماد API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. قبل أن تبدأ",
+          "desc": "تتطلب Shopee Open Platform تسجيل المطوّر والموافقة عليه، بالإضافة إلى خطوة تفويض المتجر.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "مطلوب", "h3": "حساب بائع Shopee", "p": "للمتابعة في الإصدار، تحتاج إلى حساب بائع Shopee. تسجّل بهذا الحساب كمطوّر على Shopee Open Platform." },
+              { "tag": "المفاتيح المُصدرة", "h3": "Partner ID · Partner Key", "p": "عند إنشاء تطبيق، يُصدر Partner ID و Partner Key. بعد ذلك، تفوّض متجرك وتحصل على access_token." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>ملاحظة:</strong> بعد التسجيل كمطوّر على Shopee Open Platform، يجب الانتظار للحصول على الموافقة، ويتم تحديث access_token المُصدر كل 4 ساعات." }
+          ]
+        },
+        {
+          "h2": "2. خطوات الإصدار",
+          "desc": "أصدر بالترتيب أدناه وسجّل في GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "التسجيل والحصول على الموافقة كمطوّر", "p": "سجّل كمطوّر على Shopee Open Platform (open.shopee.com) وانتظر الموافقة.", "path": "https://open.shopee.com" },
+              { "h3": "إنشاء تطبيق", "p": "أنشئ تطبيقًا ضمن [App Management] > [App List]، فيُصدر Partner ID و Partner Key.", "path": "App Management → App List" },
+              { "h3": "تفويض المتجر", "p": "أنشئ رابط تفويض (authorization) المتجر وفوّض متجر البائع؛ بعد ذلك يُصدر code." },
+              { "h3": "إصدار access_token", "p": "استخدم الـ code للحصول على access_token. يتم تحديث access_token كل 4 ساعات." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "بمجرد إصدار Partner ID و Partner Key وحصولك على access_token عبر تفويض المتجر، يكون قد تم إصداره بشكل صحيح." }
+          ]
+        },
+        {
+          "h2": "3. المعلومات المطلوب تسجيلها في GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["الحقل", "الوصف"], "rows": [
+              ["partner_id", "Partner ID المُصدر"],
+              ["partner_key", "Partner Key المُصدر (تعامل معه بحذر)"],
+              ["shop_id", "Shop ID لمتجر البائع المُفوَّض"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "في GenieGo Integration Hub [تسجيل]، أدخل partner_id و partner_key و shop_id واحفظ. تُشفّر بيانات الاعتماد أثناء التخزين باستخدام AES-256-GCM ويتم إخفاؤها عند القراءة." }
+          ]
+        },
+        {
+          "h2": "4. المشكلات الشائعة",
+          "blocks": [
+            { "type": "table", "head": ["المشكلة", "السبب", "الحل"], "rows": [
+              ["تعذّر إنشاء التطبيق", "لم تتم الموافقة على تسجيل المطوّر بعد", "سجّل كمطوّر على Shopee Open Platform، وانتظر الموافقة، ثم أنشئ التطبيق."],
+              ["فشل المصادقة / الاستدعاء", "تفويض المتجر غير مكتمل، أو انتهت صلاحية access_token", "فوّض المتجر عبر رابط تفويض المتجر، وحدّث access_token كل 4 ساعات."]
+            ] }
+          ]
+        },
+        {
+          "h2": "قائمة التحقق النهائية",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "أكملتُ تسجيل المطوّر والموافقة عليه على Open Platform باستخدام حساب بائع Shopee.",
+              "أنشأتُ تطبيقًا ضمن App Management > App List وأصدرتُ Partner ID و Partner Key.",
+              "فوّضتُ المتجر عبر رابط تفويض المتجر وحصلتُ على access_token.",
+              "أدخلتُ partner_id و partner_key و shop_id في GenieGo [تسجيل] وحفظتُها."
+            ] }
+          ]
+        }
+      ]
+    },
+    "es": {
+      "titleType": "Manual de emisión de la API Key",
+      "badge": "Guía para principiantes",
+      "intro": "Una guía paso a paso para principiantes sobre cómo registrarte y obtener la aprobación como desarrollador en la Shopee Open Platform, crear una app para emitir tu Partner ID y Partner Key, autorizar tu tienda y registrar todo en el GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tiempo estimado", "Unos 10–20 min (espera de aprobación aparte)"],
+        ["Cuenta necesaria", "Cuenta de vendedor de Shopee"],
+        ["Claves emitidas", "Partner ID · Partner Key · Shop ID"],
+        ["Resultado", "Credenciales de API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de empezar",
+          "desc": "La Shopee Open Platform requiere registro y aprobación como desarrollador, además de un paso de autorización de la tienda.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requerido", "h3": "Cuenta de vendedor de Shopee", "p": "Para continuar con la emisión, necesitas una cuenta de vendedor de Shopee. Con esta cuenta te registras como desarrollador en la Shopee Open Platform." },
+              { "tag": "Claves emitidas", "h3": "Partner ID · Partner Key", "p": "Cuando creas una app, se emiten un Partner ID y un Partner Key. Después, autorizas tu tienda y obtienes un access_token." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Nota:</strong> Tras registrarte como desarrollador en la Shopee Open Platform, debes esperar la aprobación, y el access_token emitido se renueva cada 4 horas." }
+          ]
+        },
+        {
+          "h2": "2. Pasos de emisión",
+          "desc": "Emite en el orden indicado a continuación y regístralo en GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Registrarte y obtener la aprobación como desarrollador", "p": "Regístrate como desarrollador en la Shopee Open Platform (open.shopee.com) y espera la aprobación.", "path": "https://open.shopee.com" },
+              { "h3": "Crear una app", "p": "Crea una app en [App Management] > [App List], y se emitirán un Partner ID y un Partner Key.", "path": "App Management → App List" },
+              { "h3": "Autorizar la tienda", "p": "Genera un enlace de autorización (authorization) de la tienda y autoriza la tienda del vendedor; a continuación se emite un code." },
+              { "h3": "Emitir el access_token", "p": "Usa el code para obtener un access_token. El access_token se renueva cada 4 horas." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Una vez que se emiten el Partner ID y el Partner Key y obtienes un access_token mediante la autorización de la tienda, se ha emitido correctamente." }
+          ]
+        },
+        {
+          "h2": "3. Información para registrar en GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descripción"], "rows": [
+              ["partner_id", "El Partner ID emitido"],
+              ["partner_key", "El Partner Key emitido (manéjalo con cuidado)"],
+              ["shop_id", "El Shop ID de la tienda del vendedor autorizada"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "En el GenieGo Integration Hub [Registrar], ingresa partner_id, partner_key y shop_id y guarda. Las credenciales se cifran en reposo con AES-256-GCM y se enmascaran al consultarlas." }
+          ]
+        },
+        {
+          "h2": "4. Problemas comunes",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solución"], "rows": [
+              ["No se puede crear la app", "Registro de desarrollador aún no aprobado", "Regístrate como desarrollador en la Shopee Open Platform, espera la aprobación y luego crea la app."],
+              ["Fallo de autenticación / llamada", "Autorización de la tienda incompleta, o access_token expirado", "Autoriza la tienda mediante el enlace de autorización de la tienda y renueva el access_token cada 4 horas."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificación final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Completé el registro y la aprobación de desarrollador de la Open Platform con una cuenta de vendedor de Shopee.",
+              "Creé una app en App Management > App List y emití un Partner ID y un Partner Key.",
+              "Autoricé la tienda mediante el enlace de autorización de la tienda y obtuve un access_token.",
+              "Ingresé partner_id, partner_key y shop_id en GenieGo [Registrar] y guardé."
+            ] }
+          ]
+        }
+      ]
+    },
+    "fr": {
+      "titleType": "Manuel d'émission de la clé API",
+      "badge": "Guide pour débutants",
+      "intro": "Un guide pas à pas adapté aux débutants pour s'inscrire et être approuvé en tant que développeur sur la Shopee Open Platform, créer une application afin d'émettre votre Partner ID et votre Partner Key, autoriser votre boutique et tout enregistrer dans le GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Durée estimée", "Environ 10–20 min (attente d'approbation à part)"],
+        ["Compte requis", "Compte vendeur Shopee"],
+        ["Clés émises", "Partner ID · Partner Key · Shop ID"],
+        ["Résultat", "Identifiants API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Avant de commencer",
+          "desc": "La Shopee Open Platform nécessite une inscription et une approbation en tant que développeur, ainsi qu'une étape d'autorisation de la boutique.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requis", "h3": "Compte vendeur Shopee", "p": "Pour procéder à l'émission, vous avez besoin d'un compte vendeur Shopee. C'est avec ce compte que vous vous inscrivez en tant que développeur sur la Shopee Open Platform." },
+              { "tag": "Clés émises", "h3": "Partner ID · Partner Key", "p": "Lorsque vous créez une application, un Partner ID et un Partner Key sont émis. Ensuite, vous autorisez votre boutique et obtenez un access_token." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Remarque :</strong> Après votre inscription en tant que développeur sur la Shopee Open Platform, vous devez attendre l'approbation, et l'access_token émis est renouvelé toutes les 4 heures." }
+          ]
+        },
+        {
+          "h2": "2. Étapes d'émission",
+          "desc": "Émettez dans l'ordre ci-dessous et enregistrez dans GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "S'inscrire et être approuvé en tant que développeur", "p": "Inscrivez-vous en tant que développeur sur la Shopee Open Platform (open.shopee.com) et attendez l'approbation.", "path": "https://open.shopee.com" },
+              { "h3": "Créer une application", "p": "Créez une application dans [App Management] > [App List], et un Partner ID ainsi qu'un Partner Key sont émis.", "path": "App Management → App List" },
+              { "h3": "Autoriser la boutique", "p": "Générez un lien d'autorisation (authorization) de la boutique et autorisez la boutique du vendeur ; un code est alors émis." },
+              { "h3": "Émettre l'access_token", "p": "Utilisez le code pour obtenir un access_token. L'access_token est renouvelé toutes les 4 heures." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Une fois que le Partner ID et le Partner Key sont émis et que vous obtenez un access_token via l'autorisation de la boutique, il a été émis correctement." }
+          ]
+        },
+        {
+          "h2": "3. Informations à enregistrer dans GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Champ", "Description"], "rows": [
+              ["partner_id", "Le Partner ID émis"],
+              ["partner_key", "Le Partner Key émis (à manipuler avec précaution)"],
+              ["shop_id", "Le Shop ID de la boutique du vendeur autorisée"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Dans le GenieGo Integration Hub [Enregistrer], saisissez partner_id, partner_key et shop_id, puis enregistrez. Les identifiants sont chiffrés au repos avec AES-256-GCM et masqués à la lecture." }
+          ]
+        },
+        {
+          "h2": "4. Problèmes courants",
+          "blocks": [
+            { "type": "table", "head": ["Problème", "Cause", "Solution"], "rows": [
+              ["Impossible de créer l'application", "Inscription du développeur pas encore approuvée", "Inscrivez-vous en tant que développeur sur la Shopee Open Platform, attendez l'approbation, puis créez l'application."],
+              ["Échec d'authentification / d'appel", "Autorisation de la boutique incomplète, ou access_token expiré", "Autorisez la boutique via le lien d'autorisation de la boutique et renouvelez l'access_token toutes les 4 heures."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Liste de vérification finale",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Terminé l'inscription et l'approbation du développeur sur l'Open Platform avec un compte vendeur Shopee.",
+              "Créé une application dans App Management > App List et émis un Partner ID et un Partner Key.",
+              "Autorisé la boutique via le lien d'autorisation de la boutique et obtenu un access_token.",
+              "Saisi partner_id, partner_key et shop_id dans GenieGo [Enregistrer] et enregistré."
+            ] }
+          ]
+        }
+      ]
+    },
+    "hi": {
+      "titleType": "API Key जारी करने की मार्गदर्शिका",
+      "badge": "शुरुआती गाइड",
+      "intro": "Shopee Open Platform पर एक डेवलपर के रूप में पंजीकरण और अनुमोदन प्राप्त करने, अपने Partner ID और Partner Key जारी करने के लिए एक ऐप बनाने, अपनी दुकान को अधिकृत करने और सब कुछ GenieGo Integration Hub में पंजीकृत करने की एक शुरुआती-अनुकूल, चरण-दर-चरण मार्गदर्शिका।",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["अनुमानित समय", "लगभग 10–20 मिनट (अनुमोदन प्रतीक्षा अलग से)"],
+        ["आवश्यक खाता", "Shopee विक्रेता खाता"],
+        ["जारी की गई कुंजियाँ", "Partner ID · Partner Key · Shop ID"],
+        ["परिणाम", "API क्रेडेंशियल"]
+      ],
+      "sections": [
+        {
+          "h2": "1. शुरू करने से पहले",
+          "desc": "Shopee Open Platform के लिए डेवलपर पंजीकरण और अनुमोदन, साथ ही एक दुकान अधिकृत करने का चरण आवश्यक है।",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "आवश्यक", "h3": "Shopee विक्रेता खाता", "p": "जारी करने के साथ आगे बढ़ने के लिए, आपको एक Shopee विक्रेता खाता चाहिए। इस खाते से आप Shopee Open Platform पर एक डेवलपर के रूप में पंजीकरण करते हैं।" },
+              { "tag": "जारी की गई कुंजियाँ", "h3": "Partner ID · Partner Key", "p": "जब आप एक ऐप बनाते हैं, तो एक Partner ID और Partner Key जारी किए जाते हैं। उसके बाद, आप अपनी दुकान को अधिकृत करते हैं और एक access_token प्राप्त करते हैं।" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>नोट:</strong> Shopee Open Platform पर डेवलपर के रूप में पंजीकरण करने के बाद, आपको अनुमोदन की प्रतीक्षा करनी होगी, और जारी किया गया access_token हर 4 घंटे में रीफ़्रेश होता है।" }
+          ]
+        },
+        {
+          "h2": "2. जारी करने के चरण",
+          "desc": "नीचे दिए गए क्रम में जारी करें और GenieGo में पंजीकृत करें।",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "एक डेवलपर के रूप में पंजीकरण करें और अनुमोदन प्राप्त करें", "p": "Shopee Open Platform (open.shopee.com) पर एक डेवलपर के रूप में पंजीकरण करें और अनुमोदन की प्रतीक्षा करें।", "path": "https://open.shopee.com" },
+              { "h3": "एक ऐप बनाएँ", "p": "[App Management] > [App List] में एक ऐप बनाएँ, और एक Partner ID तथा Partner Key जारी किए जाते हैं।", "path": "App Management → App List" },
+              { "h3": "दुकान को अधिकृत करें", "p": "एक दुकान अधिकृति (authorization) लिंक जनरेट करें और विक्रेता दुकान को अधिकृत करें; इसके बाद एक code जारी किया जाता है।" },
+              { "h3": "access_token जारी करें", "p": "access_token प्राप्त करने के लिए code का उपयोग करें। access_token हर 4 घंटे में रीफ़्रेश होता है।" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "एक बार Partner ID और Partner Key जारी हो जाने और दुकान अधिकृति के माध्यम से access_token प्राप्त हो जाने पर, इसे सही ढंग से जारी कर दिया गया है।" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo में पंजीकृत करने योग्य जानकारी",
+          "blocks": [
+            { "type": "table", "head": ["फ़ील्ड", "विवरण"], "rows": [
+              ["partner_id", "जारी किया गया Partner ID"],
+              ["partner_key", "जारी किया गया Partner Key (सावधानी से संभालें)"],
+              ["shop_id", "अधिकृत विक्रेता दुकान का Shop ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo Integration Hub [पंजीकृत करें] में, partner_id, partner_key और shop_id दर्ज करें और सहेजें। क्रेडेंशियल को संग्रहण के समय AES-256-GCM से एन्क्रिप्ट किया जाता है और पढ़ते समय मास्क किया जाता है।" }
+          ]
+        },
+        {
+          "h2": "4. आम समस्याएँ",
+          "blocks": [
+            { "type": "table", "head": ["समस्या", "कारण", "समाधान"], "rows": [
+              ["ऐप नहीं बनाया जा सकता", "डेवलपर पंजीकरण अभी तक अनुमोदित नहीं", "Shopee Open Platform पर एक डेवलपर के रूप में पंजीकरण करें, अनुमोदन की प्रतीक्षा करें, फिर ऐप बनाएँ।"],
+              ["प्रमाणीकरण / कॉल विफलता", "दुकान अधिकृति अधूरी, या access_token समाप्त हो गया", "दुकान अधिकृति लिंक के माध्यम से दुकान को अधिकृत करें, और हर 4 घंटे में access_token रीफ़्रेश करें।"]
+            ] }
+          ]
+        },
+        {
+          "h2": "अंतिम चेकलिस्ट",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "एक Shopee विक्रेता खाते से Open Platform डेवलपर पंजीकरण और अनुमोदन पूरा किया।",
+              "App Management > App List में एक ऐप बनाया और एक Partner ID तथा Partner Key जारी किया।",
+              "दुकान अधिकृति लिंक के माध्यम से दुकान को अधिकृत किया और एक access_token प्राप्त किया।",
+              "GenieGo [पंजीकृत करें] में partner_id, partner_key और shop_id दर्ज किया और सहेजा।"
+            ] }
+          ]
+        }
+      ]
+    },
+    "pt": {
+      "titleType": "Manual de emissão da API Key",
+      "badge": "Guia para iniciantes",
+      "intro": "Um guia passo a passo voltado para iniciantes sobre como se registrar e ser aprovado como desenvolvedor na Shopee Open Platform, criar um app para emitir seu Partner ID e Partner Key, autorizar sua loja e registrar tudo no GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tempo estimado", "Cerca de 10–20 min (espera de aprovação à parte)"],
+        ["Conta necessária", "Conta de vendedor da Shopee"],
+        ["Chaves emitidas", "Partner ID · Partner Key · Shop ID"],
+        ["Resultado", "Credenciais de API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de começar",
+          "desc": "A Shopee Open Platform requer registro e aprovação como desenvolvedor, além de uma etapa de autorização da loja.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Obrigatório", "h3": "Conta de vendedor da Shopee", "p": "Para prosseguir com a emissão, você precisa de uma conta de vendedor da Shopee. Com essa conta, você se registra como desenvolvedor na Shopee Open Platform." },
+              { "tag": "Chaves emitidas", "h3": "Partner ID · Partner Key", "p": "Quando você cria um app, são emitidos um Partner ID e um Partner Key. Depois disso, você autoriza sua loja e obtém um access_token." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Observação:</strong> Após se registrar como desenvolvedor na Shopee Open Platform, você precisa aguardar a aprovação, e o access_token emitido é renovado a cada 4 horas." }
+          ]
+        },
+        {
+          "h2": "2. Etapas de emissão",
+          "desc": "Emita na ordem abaixo e registre no GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Registrar-se e ser aprovado como desenvolvedor", "p": "Registre-se como desenvolvedor na Shopee Open Platform (open.shopee.com) e aguarde a aprovação.", "path": "https://open.shopee.com" },
+              { "h3": "Criar um app", "p": "Crie um app em [App Management] > [App List], e um Partner ID e um Partner Key são emitidos.", "path": "App Management → App List" },
+              { "h3": "Autorizar a loja", "p": "Gere um link de autorização (authorization) da loja e autorize a loja do vendedor; em seguida, um code é emitido." },
+              { "h3": "Emitir o access_token", "p": "Use o code para obter um access_token. O access_token é renovado a cada 4 horas." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Depois que o Partner ID e o Partner Key forem emitidos e você obtiver um access_token por meio da autorização da loja, ele terá sido emitido corretamente." }
+          ]
+        },
+        {
+          "h2": "3. Informações para registrar no GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descrição"], "rows": [
+              ["partner_id", "O Partner ID emitido"],
+              ["partner_key", "O Partner Key emitido (manuseie com cuidado)"],
+              ["shop_id", "O Shop ID da loja do vendedor autorizada"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "No GenieGo Integration Hub [Registrar], insira partner_id, partner_key e shop_id e salve. As credenciais são criptografadas em repouso com AES-256-GCM e mascaradas na leitura." }
+          ]
+        },
+        {
+          "h2": "4. Problemas comuns",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solução"], "rows": [
+              ["Não é possível criar o app", "Registro de desenvolvedor ainda não aprovado", "Registre-se como desenvolvedor na Shopee Open Platform, aguarde a aprovação e, em seguida, crie o app."],
+              ["Falha de autenticação / chamada", "Autorização da loja incompleta, ou access_token expirado", "Autorize a loja por meio do link de autorização da loja e renove o access_token a cada 4 horas."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificação final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Concluí o registro e a aprovação de desenvolvedor da Open Platform com uma conta de vendedor da Shopee.",
+              "Criei um app em App Management > App List e emiti um Partner ID e um Partner Key.",
+              "Autorizei a loja por meio do link de autorização da loja e obtive um access_token.",
+              "Inseri partner_id, partner_key e shop_id no GenieGo [Registrar] e salvei."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ru": {
+      "titleType": "Руководство по выпуску API Key",
+      "badge": "Руководство для начинающих",
+      "intro": "Пошаговое руководство для начинающих по регистрации и получению одобрения в качестве разработчика на Shopee Open Platform, созданию приложения для выпуска Partner ID и Partner Key, авторизации вашего магазина и регистрации всего этого в GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Примерное время", "Около 10–20 мин (ожидание одобрения отдельно)"],
+        ["Необходимый аккаунт", "Аккаунт продавца Shopee"],
+        ["Выпускаемые ключи", "Partner ID · Partner Key · Shop ID"],
+        ["Результат", "Учётные данные API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Перед началом",
+          "desc": "Shopee Open Platform требует регистрации и одобрения разработчика, а также шага авторизации магазина.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Требуется", "h3": "Аккаунт продавца Shopee", "p": "Чтобы продолжить выпуск, вам нужен аккаунт продавца Shopee. С этим аккаунтом вы регистрируетесь как разработчик на Shopee Open Platform." },
+              { "tag": "Выпускаемые ключи", "h3": "Partner ID · Partner Key", "p": "Когда вы создаёте приложение, выпускаются Partner ID и Partner Key. После этого вы авторизуете свой магазин и получаете access_token." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Примечание:</strong> После регистрации в качестве разработчика на Shopee Open Platform необходимо дождаться одобрения, и выпущенный access_token обновляется каждые 4 часа." }
+          ]
+        },
+        {
+          "h2": "2. Шаги выпуска",
+          "desc": "Выпускайте в указанном ниже порядке и зарегистрируйте в GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Регистрация и получение одобрения как разработчик", "p": "Зарегистрируйтесь как разработчик на Shopee Open Platform (open.shopee.com) и дождитесь одобрения.", "path": "https://open.shopee.com" },
+              { "h3": "Создание приложения", "p": "Создайте приложение в разделе [App Management] > [App List], при этом выпускаются Partner ID и Partner Key.", "path": "App Management → App List" },
+              { "h3": "Авторизация магазина", "p": "Сгенерируйте ссылку авторизации (authorization) магазина и авторизуйте магазин продавца; после этого выпускается code." },
+              { "h3": "Выпуск access_token", "p": "Используйте code для получения access_token. access_token обновляется каждые 4 часа." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "После того как Partner ID и Partner Key выпущены и вы получили access_token через авторизацию магазина, он выпущен правильно." }
+          ]
+        },
+        {
+          "h2": "3. Информация для регистрации в GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Поле", "Описание"], "rows": [
+              ["partner_id", "Выпущенный Partner ID"],
+              ["partner_key", "Выпущенный Partner Key (обращайтесь осторожно)"],
+              ["shop_id", "Shop ID авторизованного магазина продавца"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "В GenieGo Integration Hub [Зарегистрировать] введите partner_id, partner_key и shop_id и сохраните. Учётные данные шифруются при хранении с помощью AES-256-GCM и маскируются при чтении." }
+          ]
+        },
+        {
+          "h2": "4. Частые проблемы",
+          "blocks": [
+            { "type": "table", "head": ["Проблема", "Причина", "Решение"], "rows": [
+              ["Не удаётся создать приложение", "Регистрация разработчика ещё не одобрена", "Зарегистрируйтесь как разработчик на Shopee Open Platform, дождитесь одобрения, затем создайте приложение."],
+              ["Сбой аутентификации / вызова", "Авторизация магазина не завершена или истёк срок действия access_token", "Авторизуйте магазин по ссылке авторизации магазина и обновляйте access_token каждые 4 часа."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Итоговый контрольный список",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Завершена регистрация и одобрение разработчика на Open Platform с аккаунтом продавца Shopee.",
+              "Создано приложение в App Management > App List и выпущены Partner ID и Partner Key.",
+              "Авторизован магазин по ссылке авторизации магазина и получен access_token.",
+              "Введены partner_id, partner_key и shop_id в GenieGo [Зарегистрировать] и сохранены."
+            ] }
+          ]
+        }
+      ]
+    }
+  }
+}

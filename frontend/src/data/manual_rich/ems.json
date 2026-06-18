@@ -1,0 +1,1011 @@
+{
+  "name": "EMS (Korea Post)",
+  "icon": "📯",
+  "langs": {
+    "ko": {
+      "titleType": "API Key 발급 매뉴얼",
+      "badge": "Beginner Guide",
+      "intro": "우체국 국제특송(EMS)은 계약(고객) 코드 기반의 계약형 서비스입니다. EMS 계약 후 발급받은 우체국 API 키와 고객(계약) 코드를 GenieGo 연동 허브에 등록하는 절차를 정리한 매뉴얼입니다.",
+      "org": "GenieGo 연동 허브",
+      "quick": [
+        ["소요 시간", "계약 처리 기간에 따라 상이"],
+        ["필요 계정", "우체국 EMS 계약(고객 코드)"],
+        ["발급 키", "우체국 API 키 · 고객(계약) 코드"],
+        ["결과물", "API 자격증명 · 계약 코드"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 시작하기 전에",
+          "desc": "EMS는 자가 콘솔 발급이 아닌 계약(고객) 코드 기반의 계약형 서비스입니다.",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>안내:</strong> 우체국 국제특송(EMS)은 계약(고객) 코드 기반입니다. 자격증명을 자체 발급하는 방식이 아니라 EMS 계약을 진행한 뒤 고객(계약) 코드와 우체국 API 키를 받는 절차로 진행됩니다." },
+            { "type": "cards", "items": [
+              { "tag": "준비물", "h3": "우체국 EMS 계약(고객 코드)", "p": "우체국 국제특송(EMS) 계약(고객) 코드가 필요합니다. 계약을 통해서만 발급됩니다." },
+              { "tag": "수령 자격증명", "h3": "우체국 API 키 · 고객(계약) 코드", "p": "계약 완료 후 고객(계약) 코드와 우체국 API 키를 발급받습니다." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. 발급 신청 절차",
+          "desc": "계약형 서비스이므로 아래 순서로 계약·자격증명 수령 후 등록합니다.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "EMS 계약 진행", "p": "인터넷우체국 또는 계약창구에서 EMS 계약을 진행합니다." },
+              { "h3": "고객 코드·API 키 수령", "p": "계약 완료 후 고객(계약) 코드와 우체국 API 키를 발급받습니다." },
+              { "h3": "GenieGo에 등록", "p": "수령한 자격증명을 GenieGo [등록]에 입력해 저장합니다." }
+            ] },
+            { "type": "notice", "kind": "", "html": "계약형 서비스이므로 계약 처리 상태에 따라 자격증명 수령까지 시간이 소요될 수 있습니다." }
+          ]
+        },
+        {
+          "h2": "3. GenieGo에 등록할 정보",
+          "blocks": [
+            { "type": "table", "head": ["필드", "설명"], "rows": [
+              ["api_key", "발급받은 우체국 API 키"],
+              ["cust_code", "고객(계약) 코드"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 연동 허브 [등록]에 입력해 저장하면 자격증명은 AES-256-GCM으로 암호화 저장되고 조회 시 마스킹됩니다." }
+          ]
+        },
+        {
+          "h2": "4. 자주 발생하는 문제",
+          "blocks": [
+            { "type": "table", "head": ["문제", "원인", "해결"], "rows": [
+              ["자격증명을 발급받을 수 없음", "EMS 계약 미완료", "인터넷우체국 또는 계약창구에서 EMS 계약을 먼저 완료합니다."],
+              ["등록 후 인증 오류", "API 키 또는 고객(계약) 코드 오기재", "발급받은 api_key와 cust_code를 다시 확인합니다."]
+            ] }
+          ]
+        },
+        {
+          "h2": "최종 체크리스트",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "우체국 국제특송(EMS) 계약을 진행했다.",
+              "고객(계약) 코드와 우체국 API 키를 발급받았다.",
+              "발급받은 자격증명을 확인했다.",
+              "GenieGo [등록]에 api_key·cust_code를 입력해 저장했다."
+            ] }
+          ]
+        }
+      ]
+    },
+    "en": {
+      "titleType": "API Key Issuance Manual",
+      "badge": "Beginner Guide",
+      "intro": "Korea Post International Express (EMS) is a contract-based service that relies on a contract (customer) code. This manual outlines the procedure for registering the Korea Post API key and customer (contract) code you receive after signing an EMS contract in the GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Est. time", "Varies by contract processing time"],
+        ["Account needed", "Korea Post EMS contract (customer code)"],
+        ["Keys issued", "Korea Post API key · Customer (contract) code"],
+        ["Result", "API credentials · Contract code"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Before You Begin",
+          "desc": "EMS is not a self-service console issuance; it is a contract-based service that relies on a contract (customer) code.",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>Note:</strong> Korea Post International Express (EMS) is based on a contract (customer) code. Rather than issuing credentials yourself, you sign an EMS contract and then receive a customer (contract) code and a Korea Post API key." },
+            { "type": "cards", "items": [
+              { "tag": "Requirement", "h3": "Korea Post EMS contract (customer code)", "p": "You need a Korea Post International Express (EMS) contract (customer) code. It is issued only through a contract." },
+              { "tag": "Credentials received", "h3": "Korea Post API key · Customer (contract) code", "p": "After the contract is completed, you receive a customer (contract) code and a Korea Post API key." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Issuance Application Procedure",
+          "desc": "Since this is a contract-based service, sign the contract, receive your credentials, and register them in the order below.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Sign the EMS contract", "p": "Sign an EMS contract through Internet Post Office or a contract counter." },
+              { "h3": "Receive the customer code and API key", "p": "After the contract is completed, you receive a customer (contract) code and a Korea Post API key." },
+              { "h3": "Register in GenieGo", "p": "Enter the credentials you received into GenieGo [Register] and save." }
+            ] },
+            { "type": "notice", "kind": "", "html": "Because this is a contract-based service, it may take some time to receive your credentials depending on the contract processing status." }
+          ]
+        },
+        {
+          "h2": "3. Information to Register in GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Field", "Description"], "rows": [
+              ["api_key", "The issued Korea Post API key"],
+              ["cust_code", "Customer (contract) code"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "When you enter and save them in the GenieGo Integration Hub [Register], credentials are encrypted at rest with AES-256-GCM and masked on read." }
+          ]
+        },
+        {
+          "h2": "4. Common Issues",
+          "blocks": [
+            { "type": "table", "head": ["Issue", "Cause", "Solution"], "rows": [
+              ["Credentials cannot be issued", "EMS contract not completed", "Complete the EMS contract first through Internet Post Office or a contract counter."],
+              ["Authentication error after registration", "API key or customer (contract) code entered incorrectly", "Double-check the issued api_key and cust_code."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Final Checklist",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Signed a Korea Post International Express (EMS) contract.",
+              "Received the customer (contract) code and Korea Post API key.",
+              "Verified the issued credentials.",
+              "Entered api_key·cust_code in GenieGo [Register] and saved."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ja": {
+      "titleType": "API Key 発行マニュアル",
+      "badge": "初心者ガイド",
+      "intro": "郵便局国際スピード郵便（EMS）は契約（顧客）コードに基づく契約型サービスです。EMS 契約後に発行される郵便局 API キーと顧客（契約）コードを GenieGo 連携ハブに登録する手順をまとめたマニュアルです。",
+      "org": "GenieGo 連携ハブ",
+      "quick": [
+        ["所要時間", "契約処理期間により異なる"],
+        ["必要なアカウント", "郵便局 EMS 契約（顧客コード）"],
+        ["発行するキー", "郵便局 API キー · 顧客（契約）コード"],
+        ["成果物", "API 認証情報 · 契約コード"]
+      ],
+      "sections": [
+        {
+          "h2": "1. はじめる前に",
+          "desc": "EMS はセルフコンソールでの発行ではなく、契約（顧客）コードに基づく契約型サービスです。",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>案内:</strong> 郵便局国際スピード郵便（EMS）は契約（顧客）コードに基づきます。認証情報を自分で発行する方式ではなく、EMS 契約を進めた後に顧客（契約）コードと郵便局 API キーを受け取る手順で進めます。" },
+            { "type": "cards", "items": [
+              { "tag": "準備物", "h3": "郵便局 EMS 契約（顧客コード）", "p": "郵便局国際スピード郵便（EMS）契約（顧客）コードが必要です。契約を通じてのみ発行されます。" },
+              { "tag": "受領する認証情報", "h3": "郵便局 API キー · 顧客（契約）コード", "p": "契約完了後に顧客（契約）コードと郵便局 API キーを発行してもらいます。" }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. 発行申請手順",
+          "desc": "契約型サービスのため、以下の順序で契約・認証情報の受領後に登録します。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "EMS 契約を進める", "p": "インターネット郵便局または契約窓口で EMS 契約を進めます。" },
+              { "h3": "顧客コード・API キーの受領", "p": "契約完了後に顧客（契約）コードと郵便局 API キーを発行してもらいます。" },
+              { "h3": "GenieGo に登録", "p": "受け取った認証情報を GenieGo [登録] に入力して保存します。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "契約型サービスのため、契約処理状況によっては認証情報の受領までに時間がかかる場合があります。" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo に登録する情報",
+          "blocks": [
+            { "type": "table", "head": ["フィールド", "説明"], "rows": [
+              ["api_key", "発行された郵便局 API キー"],
+              ["cust_code", "顧客（契約）コード"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 連携ハブ [登録] に入力して保存すると、認証情報は AES-256-GCM で暗号化して保存され、閲覧時にはマスキングされます。" }
+          ]
+        },
+        {
+          "h2": "4. よくある問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["認証情報を発行してもらえない", "EMS 契約が未完了", "インターネット郵便局または契約窓口で EMS 契約をまず完了します。"],
+              ["登録後に認証エラー", "API キーまたは顧客（契約）コードの誤記入", "発行された api_key と cust_code を再度確認します。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終チェックリスト",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "郵便局国際スピード郵便（EMS）契約を進めた。",
+              "顧客（契約）コードと郵便局 API キーを発行してもらった。",
+              "発行された認証情報を確認した。",
+              "GenieGo [登録] に api_key·cust_code を入力して保存した。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh": {
+      "titleType": "API Key 申请手册",
+      "badge": "新手指南",
+      "intro": "邮局国际特快专递（EMS）是基于合同（客户）代码的合同型服务。本手册整理了在签订 EMS 合同后，将获得的邮局 API 密钥和客户（合同）代码注册到 GenieGo 集成中心的流程。",
+      "org": "GenieGo 集成中心",
+      "quick": [
+        ["预计时间", "因合同处理周期而异"],
+        ["所需账户", "邮局 EMS 合同（客户代码）"],
+        ["签发密钥", "邮局 API 密钥 · 客户（合同）代码"],
+        ["成果", "API 凭证 · 合同代码"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 开始之前",
+          "desc": "EMS 并非自助控制台签发，而是基于合同（客户）代码的合同型服务。",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>说明:</strong> 邮局国际特快专递（EMS）基于合同（客户）代码。它不是由您自行签发凭证的方式，而是在签订 EMS 合同后再领取客户（合同）代码和邮局 API 密钥的流程。" },
+            { "type": "cards", "items": [
+              { "tag": "准备物", "h3": "邮局 EMS 合同（客户代码）", "p": "您需要邮局国际特快专递（EMS）合同（客户）代码。该代码仅通过合同签发。" },
+              { "tag": "领取的凭证", "h3": "邮局 API 密钥 · 客户（合同）代码", "p": "合同完成后，您将获得客户（合同）代码和邮局 API 密钥。" }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. 申请签发流程",
+          "desc": "由于是合同型服务，请按以下顺序签订合同、领取凭证后再注册。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "签订 EMS 合同", "p": "通过网上邮局或合同窗口签订 EMS 合同。" },
+              { "h3": "领取客户代码和 API 密钥", "p": "合同完成后，您将获得客户（合同）代码和邮局 API 密钥。" },
+              { "h3": "注册到 GenieGo", "p": "将领取的凭证输入到 GenieGo [注册] 中并保存。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "由于是合同型服务，根据合同处理状态，领取凭证可能需要一些时间。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中注册的信息",
+          "blocks": [
+            { "type": "table", "head": ["字段", "说明"], "rows": [
+              ["api_key", "签发的邮局 API 密钥"],
+              ["cust_code", "客户（合同）代码"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 集成中心 [注册] 中输入并保存后，凭证将以 AES-256-GCM 加密存储，并在查询时进行掩码处理。" }
+          ]
+        },
+        {
+          "h2": "4. 常见问题",
+          "blocks": [
+            { "type": "table", "head": ["问题", "原因", "解决方法"], "rows": [
+              ["无法签发凭证", "EMS 合同未完成", "请先通过网上邮局或合同窗口完成 EMS 合同。"],
+              ["注册后出现认证错误", "API 密钥或客户（合同）代码填写错误", "重新确认签发的 api_key 和 cust_code。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最终检查清单",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已签订邮局国际特快专递（EMS）合同。",
+              "已获得客户（合同）代码和邮局 API 密钥。",
+              "已确认签发的凭证。",
+              "已在 GenieGo [注册] 中输入 api_key·cust_code 并保存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh-TW": {
+      "titleType": "API Key 申請手冊",
+      "badge": "新手指南",
+      "intro": "郵局國際快捷郵件（EMS）是基於合約（客戶）代碼的合約型服務。本手冊整理了在簽訂 EMS 合約後，將取得的郵局 API 金鑰和客戶（合約）代碼註冊到 GenieGo 整合中心的流程。",
+      "org": "GenieGo 整合中心",
+      "quick": [
+        ["預計時間", "因合約處理週期而異"],
+        ["所需帳戶", "郵局 EMS 合約（客戶代碼）"],
+        ["簽發金鑰", "郵局 API 金鑰 · 客戶（合約）代碼"],
+        ["成果", "API 憑證 · 合約代碼"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 開始之前",
+          "desc": "EMS 並非自助主控台簽發，而是基於合約（客戶）代碼的合約型服務。",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>說明:</strong> 郵局國際快捷郵件（EMS）基於合約（客戶）代碼。它不是由您自行簽發憑證的方式，而是在簽訂 EMS 合約後再領取客戶（合約）代碼和郵局 API 金鑰的流程。" },
+            { "type": "cards", "items": [
+              { "tag": "準備物", "h3": "郵局 EMS 合約（客戶代碼）", "p": "您需要郵局國際快捷郵件（EMS）合約（客戶）代碼。該代碼僅透過合約簽發。" },
+              { "tag": "領取的憑證", "h3": "郵局 API 金鑰 · 客戶（合約）代碼", "p": "合約完成後，您將取得客戶（合約）代碼和郵局 API 金鑰。" }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. 申請簽發流程",
+          "desc": "由於是合約型服務，請依以下順序簽訂合約、領取憑證後再註冊。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "簽訂 EMS 合約", "p": "透過網路郵局或合約窗口簽訂 EMS 合約。" },
+              { "h3": "領取客戶代碼和 API 金鑰", "p": "合約完成後，您將取得客戶（合約）代碼和郵局 API 金鑰。" },
+              { "h3": "註冊到 GenieGo", "p": "將領取的憑證輸入到 GenieGo [註冊] 中並儲存。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "由於是合約型服務，根據合約處理狀態，領取憑證可能需要一些時間。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中註冊的資訊",
+          "blocks": [
+            { "type": "table", "head": ["欄位", "說明"], "rows": [
+              ["api_key", "簽發的郵局 API 金鑰"],
+              ["cust_code", "客戶（合約）代碼"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 整合中心 [註冊] 中輸入並儲存後，憑證將以 AES-256-GCM 加密儲存，並在查詢時進行遮罩處理。" }
+          ]
+        },
+        {
+          "h2": "4. 常見問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["無法簽發憑證", "EMS 合約未完成", "請先透過網路郵局或合約窗口完成 EMS 合約。"],
+              ["註冊後出現認證錯誤", "API 金鑰或客戶（合約）代碼填寫錯誤", "重新確認簽發的 api_key 和 cust_code。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終檢查清單",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已簽訂郵局國際快捷郵件（EMS）合約。",
+              "已取得客戶（合約）代碼和郵局 API 金鑰。",
+              "已確認簽發的憑證。",
+              "已在 GenieGo [註冊] 中輸入 api_key·cust_code 並儲存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "de": {
+      "titleType": "Anleitung zur API-Key-Ausstellung",
+      "badge": "Einsteigerleitfaden",
+      "intro": "Korea Post International Express (EMS) ist ein vertragsbasierter Dienst, der auf einem Vertrags-(Kunden-)Code beruht. Diese Anleitung beschreibt das Verfahren zur Registrierung des Korea-Post-API-Schlüssels und des Kunden-(Vertrags-)Codes, die Sie nach Abschluss eines EMS-Vertrags erhalten, im GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Geschätzte Zeit", "Je nach Vertragsbearbeitungszeit unterschiedlich"],
+        ["Benötigtes Konto", "Korea-Post-EMS-Vertrag (Kundencode)"],
+        ["Ausgestellte Schlüssel", "Korea-Post-API-Schlüssel · Kunden-(Vertrags-)Code"],
+        ["Ergebnis", "API-Anmeldedaten · Vertragscode"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Bevor Sie beginnen",
+          "desc": "EMS ist keine Self-Service-Ausstellung über eine Konsole, sondern ein vertragsbasierter Dienst, der auf einem Vertrags-(Kunden-)Code beruht.",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>Hinweis:</strong> Korea Post International Express (EMS) beruht auf einem Vertrags-(Kunden-)Code. Sie stellen die Anmeldedaten nicht selbst aus, sondern schließen einen EMS-Vertrag ab und erhalten anschließend einen Kunden-(Vertrags-)Code und einen Korea-Post-API-Schlüssel." },
+            { "type": "cards", "items": [
+              { "tag": "Voraussetzung", "h3": "Korea-Post-EMS-Vertrag (Kundencode)", "p": "Sie benötigen einen Vertrags-(Kunden-)Code für Korea Post International Express (EMS). Er wird ausschließlich über einen Vertrag ausgestellt." },
+              { "tag": "Erhaltene Anmeldedaten", "h3": "Korea-Post-API-Schlüssel · Kunden-(Vertrags-)Code", "p": "Nach Abschluss des Vertrags erhalten Sie einen Kunden-(Vertrags-)Code und einen Korea-Post-API-Schlüssel." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Verfahren zur Ausstellungsbeantragung",
+          "desc": "Da es sich um einen vertragsbasierten Dienst handelt, schließen Sie den Vertrag ab, erhalten Ihre Anmeldedaten und registrieren sie in der unten angegebenen Reihenfolge.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "EMS-Vertrag abschließen", "p": "Schließen Sie einen EMS-Vertrag über das Internet-Postamt oder einen Vertragsschalter ab." },
+              { "h3": "Kundencode und API-Schlüssel erhalten", "p": "Nach Abschluss des Vertrags erhalten Sie einen Kunden-(Vertrags-)Code und einen Korea-Post-API-Schlüssel." },
+              { "h3": "In GenieGo registrieren", "p": "Geben Sie die erhaltenen Anmeldedaten in GenieGo [Registrieren] ein und speichern Sie." }
+            ] },
+            { "type": "notice", "kind": "", "html": "Da es sich um einen vertragsbasierten Dienst handelt, kann der Erhalt Ihrer Anmeldedaten je nach Vertragsbearbeitungsstatus einige Zeit in Anspruch nehmen." }
+          ]
+        },
+        {
+          "h2": "3. In GenieGo zu registrierende Informationen",
+          "blocks": [
+            { "type": "table", "head": ["Feld", "Beschreibung"], "rows": [
+              ["api_key", "Der ausgestellte Korea-Post-API-Schlüssel"],
+              ["cust_code", "Kunden-(Vertrags-)Code"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Wenn Sie sie im GenieGo Integration Hub [Registrieren] eingeben und speichern, werden die Anmeldedaten im Ruhezustand mit AES-256-GCM verschlüsselt und beim Lesen maskiert." }
+          ]
+        },
+        {
+          "h2": "4. Häufige Probleme",
+          "blocks": [
+            { "type": "table", "head": ["Problem", "Ursache", "Lösung"], "rows": [
+              ["Anmeldedaten können nicht ausgestellt werden", "EMS-Vertrag nicht abgeschlossen", "Schließen Sie zuerst den EMS-Vertrag über das Internet-Postamt oder einen Vertragsschalter ab."],
+              ["Authentifizierungsfehler nach der Registrierung", "API-Schlüssel oder Kunden-(Vertrags-)Code falsch eingegeben", "Überprüfen Sie den ausgestellten api_key und cust_code erneut."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Abschließende Checkliste",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Einen Korea-Post-International-Express-(EMS-)Vertrag abgeschlossen.",
+              "Den Kunden-(Vertrags-)Code und den Korea-Post-API-Schlüssel erhalten.",
+              "Die ausgestellten Anmeldedaten überprüft.",
+              "api_key·cust_code in GenieGo [Registrieren] eingegeben und gespeichert."
+            ] }
+          ]
+        }
+      ]
+    },
+    "th": {
+      "titleType": "คู่มือการออก API Key",
+      "badge": "คู่มือสำหรับผู้เริ่มต้น",
+      "intro": "Korea Post International Express (EMS) เป็นบริการแบบสัญญาที่อ้างอิงจากรหัสสัญญา (ลูกค้า) คู่มือนี้สรุปขั้นตอนการลงทะเบียนคีย์ API ของไปรษณีย์เกาหลีและรหัสลูกค้า (สัญญา) ที่คุณได้รับหลังทำสัญญา EMS ไว้ใน GenieGo Integration Hub",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["เวลาโดยประมาณ", "แตกต่างกันตามระยะเวลาดำเนินการสัญญา"],
+        ["บัญชีที่ต้องใช้", "สัญญา EMS ของไปรษณีย์ (รหัสลูกค้า)"],
+        ["คีย์ที่ออก", "คีย์ API ของไปรษณีย์ · รหัสลูกค้า (สัญญา)"],
+        ["ผลลัพธ์", "ข้อมูลรับรอง API · รหัสสัญญา"]
+      ],
+      "sections": [
+        {
+          "h2": "1. ก่อนเริ่มต้น",
+          "desc": "EMS ไม่ใช่การออกผ่านคอนโซลแบบบริการตนเอง แต่เป็นบริการแบบสัญญาที่อ้างอิงจากรหัสสัญญา (ลูกค้า)",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>หมายเหตุ:</strong> Korea Post International Express (EMS) อ้างอิงจากรหัสสัญญา (ลูกค้า) ไม่ใช่วิธีที่คุณออกข้อมูลรับรองด้วยตนเอง แต่เป็นขั้นตอนที่คุณทำสัญญา EMS ก่อน แล้วจึงรับรหัสลูกค้า (สัญญา) และคีย์ API ของไปรษณีย์" },
+            { "type": "cards", "items": [
+              { "tag": "สิ่งที่ต้องเตรียม", "h3": "สัญญา EMS ของไปรษณีย์ (รหัสลูกค้า)", "p": "คุณต้องมีรหัสสัญญา (ลูกค้า) ของ Korea Post International Express (EMS) ซึ่งออกได้ผ่านสัญญาเท่านั้น" },
+              { "tag": "ข้อมูลรับรองที่ได้รับ", "h3": "คีย์ API ของไปรษณีย์ · รหัสลูกค้า (สัญญา)", "p": "หลังจากทำสัญญาเสร็จสิ้น คุณจะได้รับรหัสลูกค้า (สัญญา) และคีย์ API ของไปรษณีย์" }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. ขั้นตอนการยื่นขอออก",
+          "desc": "เนื่องจากเป็นบริการแบบสัญญา ให้ทำสัญญา รับข้อมูลรับรอง แล้วลงทะเบียนตามลำดับด้านล่าง",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "ทำสัญญา EMS", "p": "ทำสัญญา EMS ผ่านไปรษณีย์ออนไลน์หรือเคาน์เตอร์ทำสัญญา" },
+              { "h3": "รับรหัสลูกค้าและคีย์ API", "p": "หลังจากทำสัญญาเสร็จสิ้น คุณจะได้รับรหัสลูกค้า (สัญญา) และคีย์ API ของไปรษณีย์" },
+              { "h3": "ลงทะเบียนใน GenieGo", "p": "ป้อนข้อมูลรับรองที่ได้รับลงใน GenieGo [ลงทะเบียน] แล้วบันทึก" }
+            ] },
+            { "type": "notice", "kind": "", "html": "เนื่องจากเป็นบริการแบบสัญญา การรับข้อมูลรับรองอาจใช้เวลาขึ้นอยู่กับสถานะการดำเนินการสัญญา" }
+          ]
+        },
+        {
+          "h2": "3. ข้อมูลที่ต้องลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["ฟิลด์", "คำอธิบาย"], "rows": [
+              ["api_key", "คีย์ API ของไปรษณีย์ที่ออกแล้ว"],
+              ["cust_code", "รหัสลูกค้า (สัญญา)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "เมื่อป้อนและบันทึกใน GenieGo Integration Hub [ลงทะเบียน] ข้อมูลรับรองจะถูกเข้ารหัสขณะจัดเก็บด้วย AES-256-GCM และปิดบังเมื่ออ่าน" }
+          ]
+        },
+        {
+          "h2": "4. ปัญหาที่พบบ่อย",
+          "blocks": [
+            { "type": "table", "head": ["ปัญหา", "สาเหตุ", "วิธีแก้ไข"], "rows": [
+              ["ไม่สามารถออกข้อมูลรับรองได้", "สัญญา EMS ยังไม่เสร็จสมบูรณ์", "ทำสัญญา EMS ให้เสร็จก่อนผ่านไปรษณีย์ออนไลน์หรือเคาน์เตอร์ทำสัญญา"],
+              ["เกิดข้อผิดพลาดการยืนยันตัวตนหลังลงทะเบียน", "ป้อนคีย์ API หรือรหัสลูกค้า (สัญญา) ผิด", "ตรวจสอบ api_key และ cust_code ที่ออกแล้วอีกครั้ง"]
+            ] }
+          ]
+        },
+        {
+          "h2": "รายการตรวจสอบขั้นสุดท้าย",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "ทำสัญญา Korea Post International Express (EMS) แล้ว",
+              "ได้รับรหัสลูกค้า (สัญญา) และคีย์ API ของไปรษณีย์แล้ว",
+              "ตรวจสอบข้อมูลรับรองที่ออกแล้ว",
+              "ป้อน api_key·cust_code ใน GenieGo [ลงทะเบียน] และบันทึกแล้ว"
+            ] }
+          ]
+        }
+      ]
+    },
+    "vi": {
+      "titleType": "Hướng dẫn cấp API Key",
+      "badge": "Hướng dẫn cho người mới",
+      "intro": "Korea Post International Express (EMS) là dịch vụ theo hợp đồng dựa trên mã hợp đồng (khách hàng). Hướng dẫn này trình bày quy trình đăng ký khóa API của Korea Post và mã khách hàng (hợp đồng) mà bạn nhận được sau khi ký hợp đồng EMS vào GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Thời gian dự kiến", "Khác nhau tùy thời gian xử lý hợp đồng"],
+        ["Tài khoản cần thiết", "Hợp đồng EMS Korea Post (mã khách hàng)"],
+        ["Khóa được cấp", "Khóa API Korea Post · Mã khách hàng (hợp đồng)"],
+        ["Kết quả", "Thông tin xác thực API · Mã hợp đồng"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Trước khi bắt đầu",
+          "desc": "EMS không phải là việc tự cấp qua bảng điều khiển, mà là dịch vụ theo hợp đồng dựa trên mã hợp đồng (khách hàng).",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>Lưu ý:</strong> Korea Post International Express (EMS) dựa trên mã hợp đồng (khách hàng). Đây không phải là cách bạn tự cấp thông tin xác thực, mà là quy trình bạn ký hợp đồng EMS rồi sau đó nhận mã khách hàng (hợp đồng) và khóa API Korea Post." },
+            { "type": "cards", "items": [
+              { "tag": "Vật chuẩn bị", "h3": "Hợp đồng EMS Korea Post (mã khách hàng)", "p": "Bạn cần mã hợp đồng (khách hàng) của Korea Post International Express (EMS). Mã này chỉ được cấp thông qua hợp đồng." },
+              { "tag": "Thông tin xác thực nhận được", "h3": "Khóa API Korea Post · Mã khách hàng (hợp đồng)", "p": "Sau khi hoàn tất hợp đồng, bạn nhận được mã khách hàng (hợp đồng) và khóa API Korea Post." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Quy trình đăng ký cấp",
+          "desc": "Vì đây là dịch vụ theo hợp đồng, hãy ký hợp đồng, nhận thông tin xác thực rồi đăng ký theo thứ tự dưới đây.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Ký hợp đồng EMS", "p": "Ký hợp đồng EMS qua Bưu điện Internet hoặc quầy hợp đồng." },
+              { "h3": "Nhận mã khách hàng và khóa API", "p": "Sau khi hoàn tất hợp đồng, bạn nhận được mã khách hàng (hợp đồng) và khóa API Korea Post." },
+              { "h3": "Đăng ký trong GenieGo", "p": "Nhập thông tin xác thực bạn đã nhận vào GenieGo [Đăng ký] rồi lưu." }
+            ] },
+            { "type": "notice", "kind": "", "html": "Vì đây là dịch vụ theo hợp đồng, việc nhận thông tin xác thực có thể mất một thời gian tùy theo trạng thái xử lý hợp đồng." }
+          ]
+        },
+        {
+          "h2": "3. Thông tin cần đăng ký trong GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Trường", "Mô tả"], "rows": [
+              ["api_key", "Khóa API Korea Post đã được cấp"],
+              ["cust_code", "Mã khách hàng (hợp đồng)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Khi bạn nhập và lưu chúng trong GenieGo Integration Hub [Đăng ký], thông tin xác thực được mã hóa khi lưu trữ bằng AES-256-GCM và được che khi đọc." }
+          ]
+        },
+        {
+          "h2": "4. Sự cố thường gặp",
+          "blocks": [
+            { "type": "table", "head": ["Sự cố", "Nguyên nhân", "Giải pháp"], "rows": [
+              ["Không thể cấp thông tin xác thực", "Hợp đồng EMS chưa hoàn tất", "Hãy hoàn tất hợp đồng EMS trước qua Bưu điện Internet hoặc quầy hợp đồng."],
+              ["Lỗi xác thực sau khi đăng ký", "Nhập sai khóa API hoặc mã khách hàng (hợp đồng)", "Kiểm tra lại api_key và cust_code đã được cấp."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Danh sách kiểm tra cuối cùng",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Đã ký hợp đồng Korea Post International Express (EMS).",
+              "Đã nhận mã khách hàng (hợp đồng) và khóa API Korea Post.",
+              "Đã xác minh thông tin xác thực đã được cấp.",
+              "Đã nhập api_key·cust_code vào GenieGo [Đăng ký] và lưu."
+            ] }
+          ]
+        }
+      ]
+    },
+    "id": {
+      "titleType": "Panduan Penerbitan API Key",
+      "badge": "Panduan Pemula",
+      "intro": "Korea Post International Express (EMS) adalah layanan berbasis kontrak yang mengandalkan kode kontrak (pelanggan). Panduan ini menguraikan prosedur untuk mendaftarkan kunci API Korea Post dan kode pelanggan (kontrak) yang Anda terima setelah menandatangani kontrak EMS di GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Perkiraan waktu", "Bervariasi tergantung waktu pemrosesan kontrak"],
+        ["Akun yang dibutuhkan", "Kontrak EMS Korea Post (kode pelanggan)"],
+        ["Kunci yang diterbitkan", "Kunci API Korea Post · Kode pelanggan (kontrak)"],
+        ["Hasil", "Kredensial API · Kode kontrak"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Sebelum Anda Mulai",
+          "desc": "EMS bukan penerbitan mandiri melalui konsol, melainkan layanan berbasis kontrak yang mengandalkan kode kontrak (pelanggan).",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>Catatan:</strong> Korea Post International Express (EMS) berbasis kode kontrak (pelanggan). Ini bukan cara Anda menerbitkan kredensial sendiri, melainkan prosedur di mana Anda menandatangani kontrak EMS lalu menerima kode pelanggan (kontrak) dan kunci API Korea Post." },
+            { "type": "cards", "items": [
+              { "tag": "Persyaratan", "h3": "Kontrak EMS Korea Post (kode pelanggan)", "p": "Anda memerlukan kode kontrak (pelanggan) Korea Post International Express (EMS). Kode ini hanya diterbitkan melalui kontrak." },
+              { "tag": "Kredensial yang diterima", "h3": "Kunci API Korea Post · Kode pelanggan (kontrak)", "p": "Setelah kontrak selesai, Anda menerima kode pelanggan (kontrak) dan kunci API Korea Post." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Prosedur Pengajuan Penerbitan",
+          "desc": "Karena ini layanan berbasis kontrak, tandatangani kontrak, terima kredensial Anda, lalu daftarkan sesuai urutan di bawah.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Tandatangani kontrak EMS", "p": "Tandatangani kontrak EMS melalui Kantor Pos Internet atau loket kontrak." },
+              { "h3": "Terima kode pelanggan dan kunci API", "p": "Setelah kontrak selesai, Anda menerima kode pelanggan (kontrak) dan kunci API Korea Post." },
+              { "h3": "Daftarkan di GenieGo", "p": "Masukkan kredensial yang Anda terima ke GenieGo [Daftar] dan simpan." }
+            ] },
+            { "type": "notice", "kind": "", "html": "Karena ini layanan berbasis kontrak, penerimaan kredensial Anda mungkin memerlukan waktu tergantung status pemrosesan kontrak." }
+          ]
+        },
+        {
+          "h2": "3. Informasi untuk Didaftarkan di GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Bidang", "Deskripsi"], "rows": [
+              ["api_key", "Kunci API Korea Post yang diterbitkan"],
+              ["cust_code", "Kode pelanggan (kontrak)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Saat Anda memasukkan dan menyimpannya di GenieGo Integration Hub [Daftar], kredensial dienkripsi saat disimpan dengan AES-256-GCM dan disamarkan saat dibaca." }
+          ]
+        },
+        {
+          "h2": "4. Masalah Umum",
+          "blocks": [
+            { "type": "table", "head": ["Masalah", "Penyebab", "Solusi"], "rows": [
+              ["Kredensial tidak dapat diterbitkan", "Kontrak EMS belum selesai", "Selesaikan dulu kontrak EMS melalui Kantor Pos Internet atau loket kontrak."],
+              ["Kesalahan autentikasi setelah pendaftaran", "Kunci API atau kode pelanggan (kontrak) salah dimasukkan", "Periksa kembali api_key dan cust_code yang diterbitkan."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Daftar Periksa Akhir",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Menandatangani kontrak Korea Post International Express (EMS).",
+              "Menerima kode pelanggan (kontrak) dan kunci API Korea Post.",
+              "Memverifikasi kredensial yang diterbitkan.",
+              "Memasukkan api_key·cust_code di GenieGo [Daftar] dan menyimpannya."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ar": {
+      "titleType": "دليل إصدار مفتاح API",
+      "badge": "دليل المبتدئين",
+      "intro": "‏Korea Post International Express ‏(EMS) هي خدمة قائمة على عقد تعتمد على رمز العقد (العميل). يوضح هذا الدليل إجراءات تسجيل مفتاح API الخاص بـ Korea Post ورمز العميل (العقد) الذي تحصل عليه بعد توقيع عقد EMS في GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["الوقت المقدر", "يختلف حسب مدة معالجة العقد"],
+        ["الحساب المطلوب", "عقد EMS من Korea Post (رمز العميل)"],
+        ["المفاتيح المُصدرة", "مفتاح API الخاص بـ Korea Post · رمز العميل (العقد)"],
+        ["النتيجة", "بيانات اعتماد API · رمز العقد"]
+      ],
+      "sections": [
+        {
+          "h2": "1. قبل أن تبدأ",
+          "desc": "‏EMS ليست إصدارًا ذاتيًا عبر وحدة تحكم، بل هي خدمة قائمة على عقد تعتمد على رمز العقد (العميل).",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>ملاحظة:</strong> ‏Korea Post International Express ‏(EMS) تعتمد على رمز العقد (العميل). ليست طريقة تُصدر فيها بيانات الاعتماد بنفسك، بل هي إجراء توقّع فيه عقد EMS ثم تتلقى رمز العميل (العقد) ومفتاح API الخاص بـ Korea Post." },
+            { "type": "cards", "items": [
+              { "tag": "المتطلبات", "h3": "عقد EMS من Korea Post (رمز العميل)", "p": "تحتاج إلى رمز عقد (عميل) لخدمة Korea Post International Express ‏(EMS). ولا يُصدر إلا من خلال عقد." },
+              { "tag": "بيانات الاعتماد المُستلمة", "h3": "مفتاح API الخاص بـ Korea Post · رمز العميل (العقد)", "p": "بعد إتمام العقد، تتلقى رمز العميل (العقد) ومفتاح API الخاص بـ Korea Post." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. إجراءات طلب الإصدار",
+          "desc": "بما أنها خدمة قائمة على عقد، وقّع العقد، واستلم بيانات الاعتماد، ثم سجّلها بالترتيب أدناه.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "توقيع عقد EMS", "p": "وقّع عقد EMS عبر مكتب البريد على الإنترنت أو مكتب العقود." },
+              { "h3": "استلام رمز العميل ومفتاح API", "p": "بعد إتمام العقد، تتلقى رمز العميل (العقد) ومفتاح API الخاص بـ Korea Post." },
+              { "h3": "التسجيل في GenieGo", "p": "أدخل بيانات الاعتماد التي استلمتها في GenieGo [تسجيل] واحفظها." }
+            ] },
+            { "type": "notice", "kind": "", "html": "بما أنها خدمة قائمة على عقد، قد يستغرق استلام بيانات الاعتماد بعض الوقت حسب حالة معالجة العقد." }
+          ]
+        },
+        {
+          "h2": "3. المعلومات المطلوب تسجيلها في GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["الحقل", "الوصف"], "rows": [
+              ["api_key", "مفتاح API الصادر من Korea Post"],
+              ["cust_code", "رمز العميل (العقد)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "عند إدخالها وحفظها في GenieGo Integration Hub [تسجيل]، تُشفَّر بيانات الاعتماد أثناء التخزين باستخدام AES-256-GCM وتُخفى عند القراءة." }
+          ]
+        },
+        {
+          "h2": "4. المشكلات الشائعة",
+          "blocks": [
+            { "type": "table", "head": ["المشكلة", "السبب", "الحل"], "rows": [
+              ["تعذّر إصدار بيانات الاعتماد", "عقد EMS غير مكتمل", "أكمل عقد EMS أولًا عبر مكتب البريد على الإنترنت أو مكتب العقود."],
+              ["خطأ في المصادقة بعد التسجيل", "إدخال مفتاح API أو رمز العميل (العقد) بشكل خاطئ", "تحقق مرة أخرى من api_key و cust_code الصادرين."]
+            ] }
+          ]
+        },
+        {
+          "h2": "قائمة التحقق النهائية",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "وقّعت عقد Korea Post International Express ‏(EMS).",
+              "استلمت رمز العميل (العقد) ومفتاح API الخاص بـ Korea Post.",
+              "تحققت من بيانات الاعتماد الصادرة.",
+              "أدخلت api_key·cust_code في GenieGo [تسجيل] وحفظتها."
+            ] }
+          ]
+        }
+      ]
+    },
+    "es": {
+      "titleType": "Manual de emisión de API Key",
+      "badge": "Guía para principiantes",
+      "intro": "Korea Post International Express (EMS) es un servicio basado en contrato que depende de un código de contrato (cliente). Este manual describe el procedimiento para registrar la clave API de Korea Post y el código de cliente (contrato) que recibe tras firmar un contrato EMS en el GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tiempo estimado", "Varía según el tiempo de tramitación del contrato"],
+        ["Cuenta necesaria", "Contrato EMS de Korea Post (código de cliente)"],
+        ["Claves emitidas", "Clave API de Korea Post · Código de cliente (contrato)"],
+        ["Resultado", "Credenciales de API · Código de contrato"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de empezar",
+          "desc": "EMS no es una emisión de autoservicio mediante consola, sino un servicio basado en contrato que depende de un código de contrato (cliente).",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>Nota:</strong> Korea Post International Express (EMS) se basa en un código de contrato (cliente). No es una forma en la que usted mismo emite las credenciales, sino un procedimiento en el que firma un contrato EMS y luego recibe un código de cliente (contrato) y una clave API de Korea Post." },
+            { "type": "cards", "items": [
+              { "tag": "Requisito", "h3": "Contrato EMS de Korea Post (código de cliente)", "p": "Necesita un código de contrato (cliente) de Korea Post International Express (EMS). Solo se emite mediante un contrato." },
+              { "tag": "Credenciales recibidas", "h3": "Clave API de Korea Post · Código de cliente (contrato)", "p": "Tras completar el contrato, recibe un código de cliente (contrato) y una clave API de Korea Post." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Procedimiento de solicitud de emisión",
+          "desc": "Dado que es un servicio basado en contrato, firme el contrato, reciba sus credenciales y regístrelas en el orden indicado a continuación.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Firmar el contrato EMS", "p": "Firme un contrato EMS a través de la Oficina de Correos por Internet o de una ventanilla de contratos." },
+              { "h3": "Recibir el código de cliente y la clave API", "p": "Tras completar el contrato, recibe un código de cliente (contrato) y una clave API de Korea Post." },
+              { "h3": "Registrar en GenieGo", "p": "Introduzca las credenciales que recibió en GenieGo [Registrar] y guarde." }
+            ] },
+            { "type": "notice", "kind": "", "html": "Dado que es un servicio basado en contrato, recibir sus credenciales puede tardar un tiempo según el estado de tramitación del contrato." }
+          ]
+        },
+        {
+          "h2": "3. Información para registrar en GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descripción"], "rows": [
+              ["api_key", "La clave API de Korea Post emitida"],
+              ["cust_code", "Código de cliente (contrato)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Cuando las introduce y guarda en GenieGo Integration Hub [Registrar], las credenciales se cifran en reposo con AES-256-GCM y se enmascaran al leerlas." }
+          ]
+        },
+        {
+          "h2": "4. Problemas frecuentes",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solución"], "rows": [
+              ["No se pueden emitir las credenciales", "Contrato EMS no completado", "Complete primero el contrato EMS a través de la Oficina de Correos por Internet o una ventanilla de contratos."],
+              ["Error de autenticación tras el registro", "Clave API o código de cliente (contrato) introducidos incorrectamente", "Vuelva a verificar el api_key y el cust_code emitidos."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificación final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Firmé un contrato de Korea Post International Express (EMS).",
+              "Recibí el código de cliente (contrato) y la clave API de Korea Post.",
+              "Verifiqué las credenciales emitidas.",
+              "Introduje api_key·cust_code en GenieGo [Registrar] y guardé."
+            ] }
+          ]
+        }
+      ]
+    },
+    "fr": {
+      "titleType": "Manuel de délivrance de la clé API",
+      "badge": "Guide du débutant",
+      "intro": "Korea Post International Express (EMS) est un service sous contrat reposant sur un code de contrat (client). Ce manuel décrit la procédure d'enregistrement de la clé API Korea Post et du code client (contrat) que vous recevez après la signature d'un contrat EMS dans le GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Durée estimée", "Variable selon le délai de traitement du contrat"],
+        ["Compte requis", "Contrat EMS Korea Post (code client)"],
+        ["Clés délivrées", "Clé API Korea Post · Code client (contrat)"],
+        ["Résultat", "Identifiants API · Code de contrat"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Avant de commencer",
+          "desc": "EMS n'est pas une délivrance en libre-service via une console, mais un service sous contrat reposant sur un code de contrat (client).",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>Remarque :</strong> Korea Post International Express (EMS) repose sur un code de contrat (client). Ce n'est pas une méthode où vous délivrez vous-même les identifiants, mais une procédure où vous signez un contrat EMS puis recevez un code client (contrat) et une clé API Korea Post." },
+            { "type": "cards", "items": [
+              { "tag": "Prérequis", "h3": "Contrat EMS Korea Post (code client)", "p": "Vous avez besoin d'un code de contrat (client) Korea Post International Express (EMS). Il n'est délivré que par contrat." },
+              { "tag": "Identifiants reçus", "h3": "Clé API Korea Post · Code client (contrat)", "p": "Une fois le contrat conclu, vous recevez un code client (contrat) et une clé API Korea Post." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Procédure de demande de délivrance",
+          "desc": "Comme il s'agit d'un service sous contrat, signez le contrat, recevez vos identifiants, puis enregistrez-les dans l'ordre ci-dessous.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Signer le contrat EMS", "p": "Signez un contrat EMS via le Bureau de poste en ligne ou un guichet de contrats." },
+              { "h3": "Recevoir le code client et la clé API", "p": "Une fois le contrat conclu, vous recevez un code client (contrat) et une clé API Korea Post." },
+              { "h3": "Enregistrer dans GenieGo", "p": "Saisissez les identifiants reçus dans GenieGo [Enregistrer] et enregistrez." }
+            ] },
+            { "type": "notice", "kind": "", "html": "Comme il s'agit d'un service sous contrat, la réception de vos identifiants peut prendre un certain temps selon l'état de traitement du contrat." }
+          ]
+        },
+        {
+          "h2": "3. Informations à enregistrer dans GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Champ", "Description"], "rows": [
+              ["api_key", "La clé API Korea Post délivrée"],
+              ["cust_code", "Code client (contrat)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Lorsque vous les saisissez et les enregistrez dans GenieGo Integration Hub [Enregistrer], les identifiants sont chiffrés au repos avec AES-256-GCM et masqués à la lecture." }
+          ]
+        },
+        {
+          "h2": "4. Problèmes fréquents",
+          "blocks": [
+            { "type": "table", "head": ["Problème", "Cause", "Solution"], "rows": [
+              ["Impossible de délivrer les identifiants", "Contrat EMS non conclu", "Concluez d'abord le contrat EMS via le Bureau de poste en ligne ou un guichet de contrats."],
+              ["Erreur d'authentification après l'enregistrement", "Clé API ou code client (contrat) saisis incorrectement", "Vérifiez à nouveau l'api_key et le cust_code délivrés."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Liste de contrôle finale",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Signé un contrat Korea Post International Express (EMS).",
+              "Reçu le code client (contrat) et la clé API Korea Post.",
+              "Vérifié les identifiants délivrés.",
+              "Saisi api_key·cust_code dans GenieGo [Enregistrer] et enregistré."
+            ] }
+          ]
+        }
+      ]
+    },
+    "hi": {
+      "titleType": "API Key जारी करने की मार्गदर्शिका",
+      "badge": "शुरुआती गाइड",
+      "intro": "Korea Post International Express (EMS) एक अनुबंध-आधारित सेवा है जो अनुबंध (ग्राहक) कोड पर निर्भर करती है। यह मार्गदर्शिका EMS अनुबंध करने के बाद प्राप्त होने वाली Korea Post API कुंजी और ग्राहक (अनुबंध) कोड को GenieGo Integration Hub में पंजीकृत करने की प्रक्रिया का वर्णन करती है।",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["अनुमानित समय", "अनुबंध प्रसंस्करण अवधि के अनुसार भिन्न"],
+        ["आवश्यक खाता", "Korea Post EMS अनुबंध (ग्राहक कोड)"],
+        ["जारी की गई कुंजियाँ", "Korea Post API कुंजी · ग्राहक (अनुबंध) कोड"],
+        ["परिणाम", "API क्रेडेंशियल · अनुबंध कोड"]
+      ],
+      "sections": [
+        {
+          "h2": "1. आरंभ करने से पहले",
+          "desc": "EMS कंसोल के माध्यम से स्वयं-सेवा जारी करने वाली सेवा नहीं है, बल्कि अनुबंध (ग्राहक) कोड पर निर्भर एक अनुबंध-आधारित सेवा है।",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>सूचना:</strong> Korea Post International Express (EMS) अनुबंध (ग्राहक) कोड पर आधारित है। यह वह तरीका नहीं है जिसमें आप स्वयं क्रेडेंशियल जारी करते हैं, बल्कि एक प्रक्रिया है जिसमें आप EMS अनुबंध करते हैं और फिर ग्राहक (अनुबंध) कोड तथा Korea Post API कुंजी प्राप्त करते हैं।" },
+            { "type": "cards", "items": [
+              { "tag": "आवश्यकता", "h3": "Korea Post EMS अनुबंध (ग्राहक कोड)", "p": "आपको Korea Post International Express (EMS) का अनुबंध (ग्राहक) कोड चाहिए। यह केवल अनुबंध के माध्यम से ही जारी किया जाता है।" },
+              { "tag": "प्राप्त क्रेडेंशियल", "h3": "Korea Post API कुंजी · ग्राहक (अनुबंध) कोड", "p": "अनुबंध पूरा होने के बाद, आपको ग्राहक (अनुबंध) कोड और Korea Post API कुंजी प्राप्त होती है।" }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. जारी करने के लिए आवेदन प्रक्रिया",
+          "desc": "चूंकि यह एक अनुबंध-आधारित सेवा है, अनुबंध करें, अपने क्रेडेंशियल प्राप्त करें, और उन्हें नीचे दिए गए क्रम में पंजीकृत करें।",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "EMS अनुबंध करें", "p": "इंटरनेट डाकघर या अनुबंध काउंटर के माध्यम से EMS अनुबंध करें।" },
+              { "h3": "ग्राहक कोड और API कुंजी प्राप्त करें", "p": "अनुबंध पूरा होने के बाद, आपको ग्राहक (अनुबंध) कोड और Korea Post API कुंजी प्राप्त होती है।" },
+              { "h3": "GenieGo में पंजीकृत करें", "p": "प्राप्त क्रेडेंशियल को GenieGo [पंजीकरण] में दर्ज करें और सहेजें।" }
+            ] },
+            { "type": "notice", "kind": "", "html": "चूंकि यह एक अनुबंध-आधारित सेवा है, अनुबंध प्रसंस्करण स्थिति के अनुसार आपके क्रेडेंशियल प्राप्त करने में कुछ समय लग सकता है।" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo में पंजीकृत करने योग्य जानकारी",
+          "blocks": [
+            { "type": "table", "head": ["फ़ील्ड", "विवरण"], "rows": [
+              ["api_key", "जारी की गई Korea Post API कुंजी"],
+              ["cust_code", "ग्राहक (अनुबंध) कोड"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "जब आप उन्हें GenieGo Integration Hub [पंजीकरण] में दर्ज करके सहेजते हैं, तो क्रेडेंशियल को AES-256-GCM के साथ रेस्ट पर एन्क्रिप्ट किया जाता है और पढ़ते समय मास्क किया जाता है।" }
+          ]
+        },
+        {
+          "h2": "4. सामान्य समस्याएँ",
+          "blocks": [
+            { "type": "table", "head": ["समस्या", "कारण", "समाधान"], "rows": [
+              ["क्रेडेंशियल जारी नहीं किए जा सकते", "EMS अनुबंध पूरा नहीं हुआ", "इंटरनेट डाकघर या अनुबंध काउंटर के माध्यम से पहले EMS अनुबंध पूरा करें।"],
+              ["पंजीकरण के बाद प्रमाणीकरण त्रुटि", "API कुंजी या ग्राहक (अनुबंध) कोड गलत दर्ज किया गया", "जारी किए गए api_key और cust_code को फिर से जांचें।"]
+            ] }
+          ]
+        },
+        {
+          "h2": "अंतिम जांच सूची",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Korea Post International Express (EMS) अनुबंध किया।",
+              "ग्राहक (अनुबंध) कोड और Korea Post API कुंजी प्राप्त की।",
+              "जारी किए गए क्रेडेंशियल की पुष्टि की।",
+              "GenieGo [पंजीकरण] में api_key·cust_code दर्ज किया और सहेजा।"
+            ] }
+          ]
+        }
+      ]
+    },
+    "pt": {
+      "titleType": "Manual de emissão de API Key",
+      "badge": "Guia para iniciantes",
+      "intro": "O Korea Post International Express (EMS) é um serviço baseado em contrato que depende de um código de contrato (cliente). Este manual descreve o procedimento para registrar a chave de API do Korea Post e o código de cliente (contrato) que você recebe após assinar um contrato EMS no GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tempo estimado", "Varia conforme o prazo de processamento do contrato"],
+        ["Conta necessária", "Contrato EMS do Korea Post (código de cliente)"],
+        ["Chaves emitidas", "Chave de API do Korea Post · Código de cliente (contrato)"],
+        ["Resultado", "Credenciais de API · Código de contrato"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de começar",
+          "desc": "O EMS não é uma emissão de autoatendimento por console, mas um serviço baseado em contrato que depende de um código de contrato (cliente).",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>Observação:</strong> O Korea Post International Express (EMS) baseia-se em um código de contrato (cliente). Não é uma forma em que você mesmo emite as credenciais, mas um procedimento em que você assina um contrato EMS e depois recebe um código de cliente (contrato) e uma chave de API do Korea Post." },
+            { "type": "cards", "items": [
+              { "tag": "Requisito", "h3": "Contrato EMS do Korea Post (código de cliente)", "p": "Você precisa de um código de contrato (cliente) do Korea Post International Express (EMS). Ele é emitido somente por meio de contrato." },
+              { "tag": "Credenciais recebidas", "h3": "Chave de API do Korea Post · Código de cliente (contrato)", "p": "Após concluir o contrato, você recebe um código de cliente (contrato) e uma chave de API do Korea Post." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Procedimento de solicitação de emissão",
+          "desc": "Como é um serviço baseado em contrato, assine o contrato, receba suas credenciais e registre-as na ordem abaixo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Assinar o contrato EMS", "p": "Assine um contrato EMS pelo Correio na Internet ou em um balcão de contratos." },
+              { "h3": "Receber o código de cliente e a chave de API", "p": "Após concluir o contrato, você recebe um código de cliente (contrato) e uma chave de API do Korea Post." },
+              { "h3": "Registrar no GenieGo", "p": "Insira as credenciais que você recebeu no GenieGo [Registrar] e salve." }
+            ] },
+            { "type": "notice", "kind": "", "html": "Como é um serviço baseado em contrato, receber suas credenciais pode levar algum tempo dependendo do status de processamento do contrato." }
+          ]
+        },
+        {
+          "h2": "3. Informações para registrar no GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descrição"], "rows": [
+              ["api_key", "A chave de API do Korea Post emitida"],
+              ["cust_code", "Código de cliente (contrato)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Quando você as insere e salva no GenieGo Integration Hub [Registrar], as credenciais são criptografadas em repouso com AES-256-GCM e mascaradas na leitura." }
+          ]
+        },
+        {
+          "h2": "4. Problemas comuns",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solução"], "rows": [
+              ["Não é possível emitir as credenciais", "Contrato EMS não concluído", "Conclua primeiro o contrato EMS pelo Correio na Internet ou em um balcão de contratos."],
+              ["Erro de autenticação após o registro", "Chave de API ou código de cliente (contrato) inseridos incorretamente", "Verifique novamente o api_key e o cust_code emitidos."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificação final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Assinei um contrato do Korea Post International Express (EMS).",
+              "Recebi o código de cliente (contrato) e a chave de API do Korea Post.",
+              "Verifiquei as credenciais emitidas.",
+              "Inseri api_key·cust_code no GenieGo [Registrar] e salvei."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ru": {
+      "titleType": "Руководство по выпуску API-ключа",
+      "badge": "Руководство для начинающих",
+      "intro": "Korea Post International Express (EMS) — это договорная услуга, основанная на коде договора (клиента). В этом руководстве описана процедура регистрации API-ключа Korea Post и кода клиента (договора), которые вы получаете после заключения договора EMS, в GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Примерное время", "Зависит от срока обработки договора"],
+        ["Требуемая учётная запись", "Договор EMS Korea Post (код клиента)"],
+        ["Выпускаемые ключи", "API-ключ Korea Post · Код клиента (договора)"],
+        ["Результат", "Учётные данные API · Код договора"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Прежде чем начать",
+          "desc": "EMS — это не самостоятельный выпуск через консоль, а договорная услуга, основанная на коде договора (клиента).",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "<strong>Примечание:</strong> Korea Post International Express (EMS) основана на коде договора (клиента). Это не способ, при котором вы сами выпускаете учётные данные, а процедура, при которой вы заключаете договор EMS, а затем получаете код клиента (договора) и API-ключ Korea Post." },
+            { "type": "cards", "items": [
+              { "tag": "Требование", "h3": "Договор EMS Korea Post (код клиента)", "p": "Вам нужен код договора (клиента) Korea Post International Express (EMS). Он выпускается только по договору." },
+              { "tag": "Полученные учётные данные", "h3": "API-ключ Korea Post · Код клиента (договора)", "p": "После заключения договора вы получаете код клиента (договора) и API-ключ Korea Post." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Процедура подачи заявки на выпуск",
+          "desc": "Поскольку это договорная услуга, заключите договор, получите учётные данные и зарегистрируйте их в указанном ниже порядке.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Заключить договор EMS", "p": "Заключите договор EMS через интернет-почту или в окне оформления договоров." },
+              { "h3": "Получить код клиента и API-ключ", "p": "После заключения договора вы получаете код клиента (договора) и API-ключ Korea Post." },
+              { "h3": "Зарегистрировать в GenieGo", "p": "Введите полученные учётные данные в GenieGo [Регистрация] и сохраните." }
+            ] },
+            { "type": "notice", "kind": "", "html": "Поскольку это договорная услуга, получение учётных данных может занять некоторое время в зависимости от статуса обработки договора." }
+          ]
+        },
+        {
+          "h2": "3. Информация для регистрации в GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Поле", "Описание"], "rows": [
+              ["api_key", "Выпущенный API-ключ Korea Post"],
+              ["cust_code", "Код клиента (договора)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Когда вы вводите и сохраняете их в GenieGo Integration Hub [Регистрация], учётные данные шифруются при хранении с помощью AES-256-GCM и маскируются при чтении." }
+          ]
+        },
+        {
+          "h2": "4. Частые проблемы",
+          "blocks": [
+            { "type": "table", "head": ["Проблема", "Причина", "Решение"], "rows": [
+              ["Не удаётся выпустить учётные данные", "Договор EMS не завершён", "Сначала заключите договор EMS через интернет-почту или в окне оформления договоров."],
+              ["Ошибка аутентификации после регистрации", "Неверно введён API-ключ или код клиента (договора)", "Ещё раз проверьте выпущенные api_key и cust_code."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Итоговый контрольный список",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Заключил договор Korea Post International Express (EMS).",
+              "Получил код клиента (договора) и API-ключ Korea Post.",
+              "Проверил выпущенные учётные данные.",
+              "Ввёл api_key·cust_code в GenieGo [Регистрация] и сохранил."
+            ] }
+          ]
+        }
+      ]
+    }
+  }
+}

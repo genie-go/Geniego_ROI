@@ -1,0 +1,1041 @@
+{
+  "name": "Lotte Global Logistics",
+  "icon": "🚚",
+  "langs": {
+    "ko": {
+      "titleType": "API Key 발급 매뉴얼",
+      "badge": "Beginner Guide",
+      "intro": "롯데글로벌로지스 전용 API는 계약(고객) 코드 기반으로 발급되며, 영업 담당으로 계약(고객) 코드와 API 키를 발급받아 GenieGo 연동 허브에 등록하는 과정을 정리한 매뉴얼입니다.",
+      "org": "GenieGo 연동 허브",
+      "quick": [
+        ["소요 시간", "계약 진행에 따라 수일~수주"],
+        ["필요 계정", "롯데글로벌로지스 계약(고객사)"],
+        ["발급 키", "API 키 · 고객(계약) 코드"],
+        ["결과물", "API 자격증명"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 시작하기 전에",
+          "desc": "롯데글로벌로지스 전용 API는 자가 콘솔에서 즉시 발급되지 않는 계약형 채널입니다.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "필요", "h3": "롯데글로벌로지스 계약(고객) 코드", "p": "롯데글로벌로지스와의 계약을 통해 발급되는 계약(고객) 코드가 있어야 합니다. 별도의 콘솔에서 직접 발급하는 방식이 아닙니다." },
+              { "tag": "권장", "h3": "스마트택배(통합 추적)", "p": "배송 추적만 필요하다면 [스마트택배(통합 추적)] 채널에 t_key 하나로 전 택배사를 연동할 수 있습니다." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>참고:</strong> 배송 추적이 목적이라면 전용 API 계약 없이 스마트택배 통합 키로 연동하는 방법을 권장합니다." }
+          ]
+        },
+        {
+          "h2": "2. 발급 신청 절차",
+          "desc": "아래 순서대로 신청·등록합니다.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "계약(고객) 코드 준비", "p": "롯데글로벌로지스 계약(고객) 코드를 준비합니다. 전용 API는 계약형으로 제공됩니다." },
+              { "h3": "통합 추적 여부 판단", "p": "배송 추적만 필요하면 롯데글로벌로지스 전용 채널 대신 [스마트택배(통합 추적)] 채널에 t_key 하나로 전 택배사를 연동할 수 있습니다." },
+              { "h3": "전용 API 발급 신청", "p": "전용 API가 필요하면 영업 담당으로 계약(고객) 코드와 API 키를 발급받습니다." },
+              { "h3": "GenieGo 등록", "p": "GenieGo 연동 허브 [등록]에 api_key와 cust_code를 입력해 저장합니다." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "영업 담당으로부터 API 키와 계약(고객) 코드를 수령하면 등록 준비가 완료된 것입니다." }
+          ]
+        },
+        {
+          "h2": "3. GenieGo에 등록할 정보",
+          "blocks": [
+            { "type": "table", "head": ["필드", "설명"], "rows": [
+              ["api_key", "발급받은 롯데글로벌로지스 전용 API 키"],
+              ["cust_code", "롯데글로벌로지스 계약(고객) 코드"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 연동 허브 [등록]에 입력해 저장하면 자격증명은 AES-256-GCM으로 암호화 저장되고 조회 시 마스킹됩니다." }
+          ]
+        },
+        {
+          "h2": "4. 자주 발생하는 문제",
+          "blocks": [
+            { "type": "table", "head": ["문제", "원인", "해결"], "rows": [
+              ["콘솔에서 발급 메뉴를 찾을 수 없음", "롯데글로벌로지스 전용 API는 계약형으로 자가 콘솔 발급이 아님", "영업 담당으로 계약(고객) 코드와 API 키를 발급받습니다."],
+              ["배송 추적만 필요한데 절차가 복잡함", "전용 API 계약이 추적 목적에는 과함", "[스마트택배(통합 추적)] 채널에 t_key를 등록해 연동합니다."],
+              ["등록 후 인증 오류", "api_key 또는 cust_code 오기재", "발급받은 api_key와 계약(고객) 코드를 다시 확인합니다."]
+            ] }
+          ]
+        },
+        {
+          "h2": "최종 체크리스트",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "롯데글로벌로지스 계약(고객) 코드를 확보했다.",
+              "배송 추적만 필요한 경우 스마트택배(통합 추적) 연동을 검토했다.",
+              "영업 담당으로 API 키와 계약(고객) 코드를 발급받았다.",
+              "GenieGo [등록]에 api_key·cust_code를 입력해 저장했다."
+            ] }
+          ]
+        }
+      ]
+    },
+    "en": {
+      "titleType": "API Key Issuance Manual",
+      "badge": "Beginner Guide",
+      "intro": "The Lotte Global Logistics dedicated API is issued based on a contract (customer) code. This manual outlines the process of obtaining the contract (customer) code and API key from a sales representative and registering them in the GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Est. time", "Several days to weeks, depending on contract"],
+        ["Account needed", "Lotte Global Logistics contract (client)"],
+        ["Keys issued", "API key · Customer (contract) code"],
+        ["Result", "API credentials"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Before You Begin",
+          "desc": "The Lotte Global Logistics dedicated API is a contract-based channel, not one issued instantly from a self-service console.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Required", "h3": "Lotte Global Logistics contract (customer) code", "p": "You need a contract (customer) code issued through a contract with Lotte Global Logistics. It is not issued directly from a separate console." },
+              { "tag": "Recommended", "h3": "Smart Parcel (unified tracking)", "p": "If you only need delivery tracking, you can connect all carriers with a single t_key on the [Smart Parcel (unified tracking)] channel." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Note:</strong> If your goal is delivery tracking, we recommend connecting via the Smart Parcel unified key without a dedicated API contract." }
+          ]
+        },
+        {
+          "h2": "2. Issuance Application Procedure",
+          "desc": "Apply and register in the order below.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Prepare the contract (customer) code", "p": "Prepare your Lotte Global Logistics contract (customer) code. The dedicated API is provided under a contract." },
+              { "h3": "Decide whether to use unified tracking", "p": "If you only need delivery tracking, instead of the Lotte Global Logistics dedicated channel you can connect all carriers with a single t_key on the [Smart Parcel (unified tracking)] channel." },
+              { "h3": "Apply for the dedicated API", "p": "If you need the dedicated API, obtain the contract (customer) code and API key from a sales representative." },
+              { "h3": "Register in GenieGo", "p": "Enter your api_key and cust_code in [Register] in the GenieGo Integration Hub and save." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Once you receive the API key and contract (customer) code from a sales representative, you are ready to register." }
+          ]
+        },
+        {
+          "h2": "3. Information to Register in GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Field", "Description"], "rows": [
+              ["api_key", "The issued Lotte Global Logistics dedicated API key"],
+              ["cust_code", "Lotte Global Logistics contract (customer) code"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Enter the values in [Register] in the GenieGo Integration Hub and save. Credentials are encrypted at rest with AES-256-GCM and masked on read." }
+          ]
+        },
+        {
+          "h2": "4. Common Issues",
+          "blocks": [
+            { "type": "table", "head": ["Issue", "Cause", "Solution"], "rows": [
+              ["Can't find the issuance menu in the console", "The Lotte Global Logistics dedicated API is contract-based, not self-service console issuance", "Obtain the contract (customer) code and API key from a sales representative."],
+              ["The procedure is complex when you only need delivery tracking", "A dedicated API contract is excessive for tracking purposes", "Register a t_key on the [Smart Parcel (unified tracking)] channel to connect."],
+              ["Authentication error after registration", "api_key or cust_code entered incorrectly", "Re-check the issued api_key and contract (customer) code."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Final Checklist",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Secured the Lotte Global Logistics contract (customer) code.",
+              "Reviewed Smart Parcel (unified tracking) integration if you only need delivery tracking.",
+              "Obtained the API key and contract (customer) code from a sales representative.",
+              "Entered api_key·cust_code in GenieGo [Register] and saved."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ja": {
+      "titleType": "API Key 発行マニュアル",
+      "badge": "初心者ガイド",
+      "intro": "ロッテグローバルロジスティクス専用 API は契約(顧客)コードに基づいて発行され、営業担当から契約(顧客)コードと API キーの発行を受け、GenieGo 連携ハブに登録する手順をまとめたマニュアルです。",
+      "org": "GenieGo 連携ハブ",
+      "quick": [
+        ["所要時間", "契約の進行に応じて数日〜数週間"],
+        ["必要なアカウント", "ロッテグローバルロジスティクス契約(顧客)"],
+        ["発行するキー", "API キー · 顧客(契約)コード"],
+        ["成果物", "API 認証情報"]
+      ],
+      "sections": [
+        {
+          "h2": "1. はじめる前に",
+          "desc": "ロッテグローバルロジスティクス専用 API は、セルフコンソールから即時発行されない契約型チャネルです。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必須", "h3": "ロッテグローバルロジスティクス契約(顧客)コード", "p": "ロッテグローバルロジスティクスとの契約を通じて発行される契約(顧客)コードが必要です。別途のコンソールから直接発行する方式ではありません。" },
+              { "tag": "推奨", "h3": "スマート宅配(統合追跡)", "p": "配送追跡のみが必要な場合は、[スマート宅配(統合追跡)]チャネルに t_key 一つで全配送会社を連携できます。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> 配送追跡が目的であれば、専用 API 契約なしでスマート宅配の統合キーで連携する方法を推奨します。" }
+          ]
+        },
+        {
+          "h2": "2. 発行申請手順",
+          "desc": "以下の順序で申請・登録します。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "契約(顧客)コードの準備", "p": "ロッテグローバルロジスティクス契約(顧客)コードを準備します。専用 API は契約型で提供されます。" },
+              { "h3": "統合追跡の要否を判断", "p": "配送追跡のみが必要な場合は、ロッテグローバルロジスティクス専用チャネルの代わりに[スマート宅配(統合追跡)]チャネルに t_key 一つで全配送会社を連携できます。" },
+              { "h3": "専用 API の発行申請", "p": "専用 API が必要な場合は、営業担当から契約(顧客)コードと API キーの発行を受けます。" },
+              { "h3": "GenieGo に登録", "p": "GenieGo 連携ハブの[登録]に api_key と cust_code を入力して保存します。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "営業担当から API キーと契約(顧客)コードを受領すれば、登録の準備が完了です。" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo に登録する情報",
+          "blocks": [
+            { "type": "table", "head": ["フィールド", "説明"], "rows": [
+              ["api_key", "発行されたロッテグローバルロジスティクス専用 API キー"],
+              ["cust_code", "ロッテグローバルロジスティクス契約(顧客)コード"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 連携ハブの[登録]に入力して保存すると、認証情報は AES-256-GCM で暗号化して保存され、閲覧時にはマスキングされます。" }
+          ]
+        },
+        {
+          "h2": "4. よくある問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["コンソールで発行メニューが見つからない", "ロッテグローバルロジスティクス専用 API は契約型で、セルフコンソール発行ではない", "営業担当から契約(顧客)コードと API キーの発行を受けます。"],
+              ["配送追跡のみ必要なのに手続きが複雑", "専用 API 契約は追跡目的には過剰", "[スマート宅配(統合追跡)]チャネルに t_key を登録して連携します。"],
+              ["登録後の認証エラー", "api_key または cust_code の誤記", "発行された api_key と契約(顧客)コードを再度確認します。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終チェックリスト",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "ロッテグローバルロジスティクス契約(顧客)コードを確保した。",
+              "配送追跡のみ必要な場合、スマート宅配(統合追跡)連携を検討した。",
+              "営業担当から API キーと契約(顧客)コードの発行を受けた。",
+              "GenieGo の[登録]に api_key·cust_code を入力して保存した。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh": {
+      "titleType": "API Key 申请手册",
+      "badge": "新手指南",
+      "intro": "乐天全球物流专用 API 基于合同(客户)代码签发，本手册整理了从销售负责人处获取合同(客户)代码和 API 密钥并注册到 GenieGo 集成中心的流程。",
+      "org": "GenieGo 集成中心",
+      "quick": [
+        ["预计时间", "视合同进度，数天至数周"],
+        ["所需账户", "乐天全球物流合同(客户)"],
+        ["签发密钥", "API 密钥 · 客户(合同)代码"],
+        ["成果", "API 凭证"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 开始之前",
+          "desc": "乐天全球物流专用 API 是一种合同型渠道，无法在自助控制台中即时签发。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "乐天全球物流合同(客户)代码", "p": "您需要通过与乐天全球物流签订合同而获得的合同(客户)代码。它不是通过单独的控制台直接签发的。" },
+              { "tag": "推荐", "h3": "智能快递(统一追踪)", "p": "如果您只需要配送追踪，可以在[智能快递(统一追踪)]渠道使用一个 t_key 连接所有快递公司。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> 如果目的是配送追踪，建议无需专用 API 合同，使用智能快递统一密钥进行连接。" }
+          ]
+        },
+        {
+          "h2": "2. 申请签发流程",
+          "desc": "按以下顺序申请并注册。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "准备合同(客户)代码", "p": "准备乐天全球物流合同(客户)代码。专用 API 以合同形式提供。" },
+              { "h3": "判断是否使用统一追踪", "p": "如果只需要配送追踪，可以不使用乐天全球物流专用渠道，而在[智能快递(统一追踪)]渠道使用一个 t_key 连接所有快递公司。" },
+              { "h3": "申请签发专用 API", "p": "如需专用 API，请从销售负责人处获取合同(客户)代码和 API 密钥。" },
+              { "h3": "在 GenieGo 注册", "p": "在 GenieGo 集成中心的[注册]中输入 api_key 和 cust_code 并保存。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "从销售负责人处收到 API 密钥和合同(客户)代码后，即表示已准备好注册。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中注册的信息",
+          "blocks": [
+            { "type": "table", "head": ["字段", "说明"], "rows": [
+              ["api_key", "签发的乐天全球物流专用 API 密钥"],
+              ["cust_code", "乐天全球物流合同(客户)代码"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 集成中心的[注册]中输入并保存后，凭证将以 AES-256-GCM 加密存储，并在查询时进行掩码处理。" }
+          ]
+        },
+        {
+          "h2": "4. 常见问题",
+          "blocks": [
+            { "type": "table", "head": ["问题", "原因", "解决方法"], "rows": [
+              ["在控制台中找不到签发菜单", "乐天全球物流专用 API 为合同型，并非自助控制台签发", "从销售负责人处获取合同(客户)代码和 API 密钥。"],
+              ["仅需配送追踪但流程复杂", "对于追踪目的而言，专用 API 合同过于繁琐", "在[智能快递(统一追踪)]渠道注册 t_key 进行连接。"],
+              ["注册后出现认证错误", "api_key 或 cust_code 填写错误", "重新核对签发的 api_key 和合同(客户)代码。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最终检查清单",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已获取乐天全球物流合同(客户)代码。",
+              "如仅需配送追踪，已考虑智能快递(统一追踪)集成。",
+              "已从销售负责人处获取 API 密钥和合同(客户)代码。",
+              "已在 GenieGo 的[注册]中输入 api_key·cust_code 并保存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh-TW": {
+      "titleType": "API Key 申請手冊",
+      "badge": "新手指南",
+      "intro": "樂天全球物流專用 API 依據合約(客戶)代碼簽發，本手冊整理了從業務負責人處取得合約(客戶)代碼和 API 金鑰並註冊到 GenieGo 整合中心的流程。",
+      "org": "GenieGo 整合中心",
+      "quick": [
+        ["預計時間", "視合約進度，數天至數週"],
+        ["所需帳戶", "樂天全球物流合約(客戶)"],
+        ["簽發金鑰", "API 金鑰 · 客戶(合約)代碼"],
+        ["成果", "API 憑證"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 開始之前",
+          "desc": "樂天全球物流專用 API 是一種合約型渠道，無法在自助控制台中即時簽發。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "樂天全球物流合約(客戶)代碼", "p": "您需要透過與樂天全球物流簽訂合約而取得的合約(客戶)代碼。它並非透過單獨的控制台直接簽發。" },
+              { "tag": "推薦", "h3": "智慧快遞(統一追蹤)", "p": "如果您只需要配送追蹤，可以在[智慧快遞(統一追蹤)]渠道使用一個 t_key 連接所有快遞公司。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> 如果目的是配送追蹤，建議無需專用 API 合約，使用智慧快遞統一金鑰進行連接。" }
+          ]
+        },
+        {
+          "h2": "2. 申請簽發流程",
+          "desc": "依以下順序申請並註冊。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "準備合約(客戶)代碼", "p": "準備樂天全球物流合約(客戶)代碼。專用 API 以合約形式提供。" },
+              { "h3": "判斷是否使用統一追蹤", "p": "如果只需要配送追蹤，可以不使用樂天全球物流專用渠道，而在[智慧快遞(統一追蹤)]渠道使用一個 t_key 連接所有快遞公司。" },
+              { "h3": "申請簽發專用 API", "p": "如需專用 API，請從業務負責人處取得合約(客戶)代碼和 API 金鑰。" },
+              { "h3": "在 GenieGo 註冊", "p": "在 GenieGo 整合中心的[註冊]中輸入 api_key 和 cust_code 並儲存。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "從業務負責人處收到 API 金鑰和合約(客戶)代碼後，即表示已準備好註冊。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中註冊的資訊",
+          "blocks": [
+            { "type": "table", "head": ["欄位", "說明"], "rows": [
+              ["api_key", "簽發的樂天全球物流專用 API 金鑰"],
+              ["cust_code", "樂天全球物流合約(客戶)代碼"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 整合中心的[註冊]中輸入並儲存後，憑證將以 AES-256-GCM 加密儲存，並在查詢時進行遮罩處理。" }
+          ]
+        },
+        {
+          "h2": "4. 常見問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["在控制台中找不到簽發選單", "樂天全球物流專用 API 為合約型，並非自助控制台簽發", "從業務負責人處取得合約(客戶)代碼和 API 金鑰。"],
+              ["僅需配送追蹤但流程複雜", "對於追蹤目的而言，專用 API 合約過於繁瑣", "在[智慧快遞(統一追蹤)]渠道註冊 t_key 進行連接。"],
+              ["註冊後出現認證錯誤", "api_key 或 cust_code 填寫錯誤", "重新核對簽發的 api_key 和合約(客戶)代碼。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終檢查清單",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已取得樂天全球物流合約(客戶)代碼。",
+              "如僅需配送追蹤，已考慮智慧快遞(統一追蹤)整合。",
+              "已從業務負責人處取得 API 金鑰和合約(客戶)代碼。",
+              "已在 GenieGo 的[註冊]中輸入 api_key·cust_code 並儲存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "de": {
+      "titleType": "Anleitung zur API-Key-Ausstellung",
+      "badge": "Einsteigerleitfaden",
+      "intro": "Die dedizierte API von Lotte Global Logistics wird auf Basis eines Vertrags-(Kunden-)Codes ausgestellt. Diese Anleitung beschreibt den Prozess, den Vertrags-(Kunden-)Code und API-Schlüssel von einem Vertriebsmitarbeiter zu erhalten und sie im GenieGo Integration Hub zu registrieren.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Geschätzte Zeit", "Mehrere Tage bis Wochen, je nach Vertrag"],
+        ["Benötigtes Konto", "Lotte-Global-Logistics-Vertrag (Kunde)"],
+        ["Ausgestellte Schlüssel", "API-Schlüssel · Kunden-(Vertrags-)Code"],
+        ["Ergebnis", "API-Anmeldedaten"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Bevor Sie beginnen",
+          "desc": "Die dedizierte API von Lotte Global Logistics ist ein vertragsbasierter Kanal, der nicht sofort über eine Self-Service-Konsole ausgestellt wird.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Erforderlich", "h3": "Lotte-Global-Logistics-Vertrags-(Kunden-)Code", "p": "Sie benötigen einen Vertrags-(Kunden-)Code, der über einen Vertrag mit Lotte Global Logistics ausgestellt wird. Er wird nicht direkt über eine separate Konsole ausgestellt." },
+              { "tag": "Empfohlen", "h3": "Smart Parcel (einheitliche Sendungsverfolgung)", "p": "Wenn Sie nur die Sendungsverfolgung benötigen, können Sie alle Transportunternehmen mit einem einzigen t_key über den Kanal [Smart Parcel (einheitliche Sendungsverfolgung)] verbinden." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Hinweis:</strong> Wenn Ihr Ziel die Sendungsverfolgung ist, empfehlen wir die Verbindung über den einheitlichen Smart-Parcel-Schlüssel ohne dedizierten API-Vertrag." }
+          ]
+        },
+        {
+          "h2": "2. Antragsverfahren für die Ausstellung",
+          "desc": "Beantragen und registrieren Sie in der unten angegebenen Reihenfolge.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Vertrags-(Kunden-)Code vorbereiten", "p": "Bereiten Sie Ihren Lotte-Global-Logistics-Vertrags-(Kunden-)Code vor. Die dedizierte API wird im Rahmen eines Vertrags bereitgestellt." },
+              { "h3": "Über einheitliche Sendungsverfolgung entscheiden", "p": "Wenn Sie nur die Sendungsverfolgung benötigen, können Sie statt des dedizierten Lotte-Global-Logistics-Kanals alle Transportunternehmen mit einem einzigen t_key über den Kanal [Smart Parcel (einheitliche Sendungsverfolgung)] verbinden." },
+              { "h3": "Dedizierte API beantragen", "p": "Wenn Sie die dedizierte API benötigen, erhalten Sie den Vertrags-(Kunden-)Code und API-Schlüssel von einem Vertriebsmitarbeiter." },
+              { "h3": "In GenieGo registrieren", "p": "Geben Sie Ihren api_key und cust_code unter [Registrieren] im GenieGo Integration Hub ein und speichern Sie." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Sobald Sie den API-Schlüssel und den Vertrags-(Kunden-)Code von einem Vertriebsmitarbeiter erhalten haben, sind Sie zur Registrierung bereit." }
+          ]
+        },
+        {
+          "h2": "3. In GenieGo zu registrierende Informationen",
+          "blocks": [
+            { "type": "table", "head": ["Feld", "Beschreibung"], "rows": [
+              ["api_key", "Der ausgestellte dedizierte API-Schlüssel von Lotte Global Logistics"],
+              ["cust_code", "Lotte-Global-Logistics-Vertrags-(Kunden-)Code"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Geben Sie die Werte unter [Registrieren] im GenieGo Integration Hub ein und speichern Sie. Anmeldedaten werden im Ruhezustand mit AES-256-GCM verschlüsselt und beim Lesen maskiert." }
+          ]
+        },
+        {
+          "h2": "4. Häufige Probleme",
+          "blocks": [
+            { "type": "table", "head": ["Problem", "Ursache", "Lösung"], "rows": [
+              ["Das Ausstellungsmenü ist in der Konsole nicht zu finden", "Die dedizierte API von Lotte Global Logistics ist vertragsbasiert und keine Self-Service-Konsolen-Ausstellung", "Erhalten Sie den Vertrags-(Kunden-)Code und API-Schlüssel von einem Vertriebsmitarbeiter."],
+              ["Das Verfahren ist komplex, obwohl Sie nur die Sendungsverfolgung benötigen", "Ein dedizierter API-Vertrag ist für Verfolgungszwecke überdimensioniert", "Registrieren Sie einen t_key über den Kanal [Smart Parcel (einheitliche Sendungsverfolgung)], um die Verbindung herzustellen."],
+              ["Authentifizierungsfehler nach der Registrierung", "api_key oder cust_code falsch eingegeben", "Überprüfen Sie den ausgestellten api_key und den Vertrags-(Kunden-)Code erneut."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Abschließende Checkliste",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Den Lotte-Global-Logistics-Vertrags-(Kunden-)Code gesichert.",
+              "Die Smart-Parcel-Integration (einheitliche Sendungsverfolgung) geprüft, falls Sie nur die Sendungsverfolgung benötigen.",
+              "Den API-Schlüssel und Vertrags-(Kunden-)Code von einem Vertriebsmitarbeiter erhalten.",
+              "api_key·cust_code in GenieGo [Registrieren] eingegeben und gespeichert."
+            ] }
+          ]
+        }
+      ]
+    },
+    "th": {
+      "titleType": "คู่มือการออก API Key",
+      "badge": "คู่มือสำหรับผู้เริ่มต้น",
+      "intro": "API เฉพาะของ Lotte Global Logistics ออกตามรหัสสัญญา (ลูกค้า) คู่มือนี้สรุปขั้นตอนการขอรับรหัสสัญญา (ลูกค้า) และคีย์ API จากเจ้าหน้าที่ฝ่ายขาย แล้วลงทะเบียนใน GenieGo Integration Hub",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["เวลาโดยประมาณ", "หลายวันถึงหลายสัปดาห์ ขึ้นอยู่กับสัญญา"],
+        ["บัญชีที่ต้องใช้", "สัญญา (ลูกค้า) ของ Lotte Global Logistics"],
+        ["คีย์ที่ออก", "คีย์ API · รหัสลูกค้า (สัญญา)"],
+        ["ผลลัพธ์", "ข้อมูลรับรอง API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. ก่อนเริ่มต้น",
+          "desc": "API เฉพาะของ Lotte Global Logistics เป็นช่องทางแบบสัญญา ไม่ใช่ช่องทางที่ออกได้ทันทีจากคอนโซลบริการตนเอง",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "จำเป็น", "h3": "รหัสสัญญา (ลูกค้า) ของ Lotte Global Logistics", "p": "คุณต้องมีรหัสสัญญา (ลูกค้า) ที่ออกผ่านสัญญากับ Lotte Global Logistics ไม่ใช่การออกโดยตรงจากคอนโซลแยกต่างหาก" },
+              { "tag": "แนะนำ", "h3": "Smart Parcel (การติดตามแบบรวม)", "p": "หากคุณต้องการเพียงการติดตามการจัดส่ง คุณสามารถเชื่อมต่อบริษัทขนส่งทั้งหมดด้วย t_key เพียงตัวเดียวบนช่องทาง [Smart Parcel (การติดตามแบบรวม)]" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>หมายเหตุ:</strong> หากเป้าหมายของคุณคือการติดตามการจัดส่ง เราแนะนำให้เชื่อมต่อผ่านคีย์รวมของ Smart Parcel โดยไม่ต้องมีสัญญา API เฉพาะ" }
+          ]
+        },
+        {
+          "h2": "2. ขั้นตอนการยื่นขอออก",
+          "desc": "ยื่นขอและลงทะเบียนตามลำดับด้านล่าง",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "เตรียมรหัสสัญญา (ลูกค้า)", "p": "เตรียมรหัสสัญญา (ลูกค้า) ของ Lotte Global Logistics โดย API เฉพาะนี้ให้บริการในรูปแบบสัญญา" },
+              { "h3": "พิจารณาว่าจะใช้การติดตามแบบรวมหรือไม่", "p": "หากคุณต้องการเพียงการติดตามการจัดส่ง คุณสามารถใช้ t_key เพียงตัวเดียวบนช่องทาง [Smart Parcel (การติดตามแบบรวม)] เพื่อเชื่อมต่อบริษัทขนส่งทั้งหมด แทนที่จะใช้ช่องทางเฉพาะของ Lotte Global Logistics" },
+              { "h3": "ยื่นขอออก API เฉพาะ", "p": "หากคุณต้องการ API เฉพาะ โปรดขอรับรหัสสัญญา (ลูกค้า) และคีย์ API จากเจ้าหน้าที่ฝ่ายขาย" },
+              { "h3": "ลงทะเบียนใน GenieGo", "p": "ป้อน api_key และ cust_code ใน [ลงทะเบียน] ของ GenieGo Integration Hub แล้วบันทึก" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "เมื่อคุณได้รับคีย์ API และรหัสสัญญา (ลูกค้า) จากเจ้าหน้าที่ฝ่ายขายแล้ว แสดงว่าพร้อมลงทะเบียน" }
+          ]
+        },
+        {
+          "h2": "3. ข้อมูลที่ต้องลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["ฟิลด์", "คำอธิบาย"], "rows": [
+              ["api_key", "คีย์ API เฉพาะของ Lotte Global Logistics ที่ออกแล้ว"],
+              ["cust_code", "รหัสสัญญา (ลูกค้า) ของ Lotte Global Logistics"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "ป้อนค่าใน [ลงทะเบียน] ของ GenieGo Integration Hub แล้วบันทึก ข้อมูลรับรองจะถูกเข้ารหัสขณะจัดเก็บด้วย AES-256-GCM และปิดบังเมื่ออ่าน" }
+          ]
+        },
+        {
+          "h2": "4. ปัญหาที่พบบ่อย",
+          "blocks": [
+            { "type": "table", "head": ["ปัญหา", "สาเหตุ", "วิธีแก้ไข"], "rows": [
+              ["ไม่พบเมนูการออกในคอนโซล", "API เฉพาะของ Lotte Global Logistics เป็นแบบสัญญา ไม่ใช่การออกจากคอนโซลบริการตนเอง", "ขอรับรหัสสัญญา (ลูกค้า) และคีย์ API จากเจ้าหน้าที่ฝ่ายขาย"],
+              ["ต้องการเพียงการติดตามการจัดส่งแต่ขั้นตอนซับซ้อน", "สัญญา API เฉพาะมากเกินไปสำหรับวัตถุประสงค์ในการติดตาม", "ลงทะเบียน t_key บนช่องทาง [Smart Parcel (การติดตามแบบรวม)] เพื่อเชื่อมต่อ"],
+              ["เกิดข้อผิดพลาดในการยืนยันตัวตนหลังลงทะเบียน", "ป้อน api_key หรือ cust_code ไม่ถูกต้อง", "ตรวจสอบ api_key และรหัสสัญญา (ลูกค้า) ที่ออกแล้วอีกครั้ง"]
+            ] }
+          ]
+        },
+        {
+          "h2": "รายการตรวจสอบขั้นสุดท้าย",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "ได้รับรหัสสัญญา (ลูกค้า) ของ Lotte Global Logistics แล้ว",
+              "พิจารณาการเชื่อมต่อ Smart Parcel (การติดตามแบบรวม) แล้ว หากต้องการเพียงการติดตามการจัดส่ง",
+              "ได้รับคีย์ API และรหัสสัญญา (ลูกค้า) จากเจ้าหน้าที่ฝ่ายขายแล้ว",
+              "ป้อน api_key·cust_code ใน GenieGo [ลงทะเบียน] และบันทึกแล้ว"
+            ] }
+          ]
+        }
+      ]
+    },
+    "vi": {
+      "titleType": "Hướng dẫn cấp API Key",
+      "badge": "Hướng dẫn cho người mới",
+      "intro": "API chuyên dụng của Lotte Global Logistics được cấp dựa trên mã hợp đồng (khách hàng). Hướng dẫn này tóm tắt quy trình nhận mã hợp đồng (khách hàng) và khóa API từ nhân viên kinh doanh rồi đăng ký vào GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Thời gian dự kiến", "Vài ngày đến vài tuần, tùy theo hợp đồng"],
+        ["Tài khoản cần thiết", "Hợp đồng (khách hàng) Lotte Global Logistics"],
+        ["Khóa được cấp", "Khóa API · Mã khách hàng (hợp đồng)"],
+        ["Kết quả", "Thông tin xác thực API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Trước khi bắt đầu",
+          "desc": "API chuyên dụng của Lotte Global Logistics là một kênh dựa trên hợp đồng, không phải kênh được cấp tức thì từ bảng điều khiển tự phục vụ.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Bắt buộc", "h3": "Mã hợp đồng (khách hàng) Lotte Global Logistics", "p": "Bạn cần một mã hợp đồng (khách hàng) được cấp thông qua hợp đồng với Lotte Global Logistics. Mã này không được cấp trực tiếp từ một bảng điều khiển riêng." },
+              { "tag": "Khuyến nghị", "h3": "Smart Parcel (theo dõi hợp nhất)", "p": "Nếu bạn chỉ cần theo dõi vận chuyển, bạn có thể kết nối tất cả các đơn vị vận chuyển bằng một t_key duy nhất trên kênh [Smart Parcel (theo dõi hợp nhất)]." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Lưu ý:</strong> Nếu mục tiêu của bạn là theo dõi vận chuyển, chúng tôi khuyến nghị kết nối qua khóa hợp nhất Smart Parcel mà không cần hợp đồng API chuyên dụng." }
+          ]
+        },
+        {
+          "h2": "2. Quy trình đăng ký cấp",
+          "desc": "Đăng ký và đăng ký theo thứ tự dưới đây.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Chuẩn bị mã hợp đồng (khách hàng)", "p": "Chuẩn bị mã hợp đồng (khách hàng) Lotte Global Logistics của bạn. API chuyên dụng được cung cấp theo hợp đồng." },
+              { "h3": "Quyết định có dùng theo dõi hợp nhất hay không", "p": "Nếu bạn chỉ cần theo dõi vận chuyển, thay vì kênh chuyên dụng của Lotte Global Logistics, bạn có thể kết nối tất cả các đơn vị vận chuyển bằng một t_key duy nhất trên kênh [Smart Parcel (theo dõi hợp nhất)]." },
+              { "h3": "Đăng ký cấp API chuyên dụng", "p": "Nếu bạn cần API chuyên dụng, hãy nhận mã hợp đồng (khách hàng) và khóa API từ nhân viên kinh doanh." },
+              { "h3": "Đăng ký trong GenieGo", "p": "Nhập api_key và cust_code của bạn vào [Đăng ký] trong GenieGo Integration Hub rồi lưu." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Sau khi bạn nhận được khóa API và mã hợp đồng (khách hàng) từ nhân viên kinh doanh, bạn đã sẵn sàng đăng ký." }
+          ]
+        },
+        {
+          "h2": "3. Thông tin cần đăng ký trong GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Trường", "Mô tả"], "rows": [
+              ["api_key", "Khóa API chuyên dụng Lotte Global Logistics đã được cấp"],
+              ["cust_code", "Mã hợp đồng (khách hàng) Lotte Global Logistics"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Nhập các giá trị vào [Đăng ký] trong GenieGo Integration Hub rồi lưu. Thông tin xác thực được mã hóa khi lưu trữ bằng AES-256-GCM và được che khi đọc." }
+          ]
+        },
+        {
+          "h2": "4. Sự cố thường gặp",
+          "blocks": [
+            { "type": "table", "head": ["Sự cố", "Nguyên nhân", "Giải pháp"], "rows": [
+              ["Không tìm thấy menu cấp trong bảng điều khiển", "API chuyên dụng của Lotte Global Logistics dựa trên hợp đồng, không phải cấp qua bảng điều khiển tự phục vụ", "Nhận mã hợp đồng (khách hàng) và khóa API từ nhân viên kinh doanh."],
+              ["Chỉ cần theo dõi vận chuyển nhưng quy trình phức tạp", "Hợp đồng API chuyên dụng là quá mức cho mục đích theo dõi", "Đăng ký một t_key trên kênh [Smart Parcel (theo dõi hợp nhất)] để kết nối."],
+              ["Lỗi xác thực sau khi đăng ký", "api_key hoặc cust_code nhập sai", "Kiểm tra lại api_key đã cấp và mã hợp đồng (khách hàng)."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Danh sách kiểm tra cuối cùng",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Đã có mã hợp đồng (khách hàng) Lotte Global Logistics.",
+              "Đã xem xét tích hợp Smart Parcel (theo dõi hợp nhất) nếu bạn chỉ cần theo dõi vận chuyển.",
+              "Đã nhận khóa API và mã hợp đồng (khách hàng) từ nhân viên kinh doanh.",
+              "Đã nhập api_key·cust_code vào GenieGo [Đăng ký] và lưu."
+            ] }
+          ]
+        }
+      ]
+    },
+    "id": {
+      "titleType": "Panduan Penerbitan API Key",
+      "badge": "Panduan Pemula",
+      "intro": "API khusus Lotte Global Logistics diterbitkan berdasarkan kode kontrak (pelanggan). Panduan ini menguraikan proses memperoleh kode kontrak (pelanggan) dan kunci API dari perwakilan penjualan serta mendaftarkannya di GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Perkiraan waktu", "Beberapa hari hingga minggu, tergantung kontrak"],
+        ["Akun yang dibutuhkan", "Kontrak (klien) Lotte Global Logistics"],
+        ["Kunci yang diterbitkan", "Kunci API · Kode pelanggan (kontrak)"],
+        ["Hasil", "Kredensial API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Sebelum Anda Mulai",
+          "desc": "API khusus Lotte Global Logistics adalah saluran berbasis kontrak, bukan yang diterbitkan secara instan dari konsol layanan mandiri.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Diperlukan", "h3": "Kode kontrak (pelanggan) Lotte Global Logistics", "p": "Anda memerlukan kode kontrak (pelanggan) yang diterbitkan melalui kontrak dengan Lotte Global Logistics. Kode ini tidak diterbitkan langsung dari konsol terpisah." },
+              { "tag": "Disarankan", "h3": "Smart Parcel (pelacakan terpadu)", "p": "Jika Anda hanya memerlukan pelacakan pengiriman, Anda dapat menghubungkan semua perusahaan kurir dengan satu t_key pada saluran [Smart Parcel (pelacakan terpadu)]." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Catatan:</strong> Jika tujuan Anda adalah pelacakan pengiriman, kami menyarankan untuk menghubungkan melalui kunci terpadu Smart Parcel tanpa kontrak API khusus." }
+          ]
+        },
+        {
+          "h2": "2. Prosedur Pengajuan Penerbitan",
+          "desc": "Ajukan dan daftarkan sesuai urutan di bawah.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Siapkan kode kontrak (pelanggan)", "p": "Siapkan kode kontrak (pelanggan) Lotte Global Logistics Anda. API khusus disediakan berdasarkan kontrak." },
+              { "h3": "Putuskan apakah akan menggunakan pelacakan terpadu", "p": "Jika Anda hanya memerlukan pelacakan pengiriman, alih-alih saluran khusus Lotte Global Logistics, Anda dapat menghubungkan semua perusahaan kurir dengan satu t_key pada saluran [Smart Parcel (pelacakan terpadu)]." },
+              { "h3": "Ajukan penerbitan API khusus", "p": "Jika Anda memerlukan API khusus, peroleh kode kontrak (pelanggan) dan kunci API dari perwakilan penjualan." },
+              { "h3": "Daftar di GenieGo", "p": "Masukkan api_key dan cust_code Anda di [Daftar] dalam GenieGo Integration Hub lalu simpan." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Setelah Anda menerima kunci API dan kode kontrak (pelanggan) dari perwakilan penjualan, Anda siap untuk mendaftar." }
+          ]
+        },
+        {
+          "h2": "3. Informasi yang Harus Didaftarkan di GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Bidang", "Deskripsi"], "rows": [
+              ["api_key", "Kunci API khusus Lotte Global Logistics yang diterbitkan"],
+              ["cust_code", "Kode kontrak (pelanggan) Lotte Global Logistics"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Masukkan nilai di [Daftar] dalam GenieGo Integration Hub lalu simpan. Kredensial dienkripsi saat disimpan dengan AES-256-GCM dan disamarkan saat dibaca." }
+          ]
+        },
+        {
+          "h2": "4. Masalah Umum",
+          "blocks": [
+            { "type": "table", "head": ["Masalah", "Penyebab", "Solusi"], "rows": [
+              ["Tidak dapat menemukan menu penerbitan di konsol", "API khusus Lotte Global Logistics berbasis kontrak, bukan penerbitan konsol layanan mandiri", "Peroleh kode kontrak (pelanggan) dan kunci API dari perwakilan penjualan."],
+              ["Prosedur rumit padahal hanya perlu pelacakan pengiriman", "Kontrak API khusus berlebihan untuk tujuan pelacakan", "Daftarkan t_key pada saluran [Smart Parcel (pelacakan terpadu)] untuk terhubung."],
+              ["Kesalahan autentikasi setelah pendaftaran", "api_key atau cust_code salah dimasukkan", "Periksa kembali api_key yang diterbitkan dan kode kontrak (pelanggan)."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Daftar Periksa Akhir",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Telah mengamankan kode kontrak (pelanggan) Lotte Global Logistics.",
+              "Telah mempertimbangkan integrasi Smart Parcel (pelacakan terpadu) jika hanya memerlukan pelacakan pengiriman.",
+              "Telah memperoleh kunci API dan kode kontrak (pelanggan) dari perwakilan penjualan.",
+              "Telah memasukkan api_key·cust_code di GenieGo [Daftar] dan menyimpannya."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ar": {
+      "titleType": "دليل إصدار مفتاح API",
+      "badge": "دليل المبتدئين",
+      "intro": "يتم إصدار واجهة برمجة التطبيقات (API) المخصصة لشركة Lotte Global Logistics بناءً على رمز العقد (العميل). يوضح هذا الدليل عملية الحصول على رمز العقد (العميل) ومفتاح API من مندوب المبيعات وتسجيلهما في GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["الوقت المقدر", "من عدة أيام إلى أسابيع، حسب العقد"],
+        ["الحساب المطلوب", "عقد (عميل) Lotte Global Logistics"],
+        ["المفاتيح المُصدرة", "مفتاح API · رمز العميل (العقد)"],
+        ["النتيجة", "بيانات اعتماد API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. قبل أن تبدأ",
+          "desc": "واجهة برمجة التطبيقات المخصصة لشركة Lotte Global Logistics هي قناة قائمة على العقد، وليست قناة تُصدر فوريًا من وحدة تحكم الخدمة الذاتية.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "مطلوب", "h3": "رمز العقد (العميل) لشركة Lotte Global Logistics", "p": "تحتاج إلى رمز عقد (عميل) يتم إصداره من خلال عقد مع Lotte Global Logistics. ولا يتم إصداره مباشرة من وحدة تحكم منفصلة." },
+              { "tag": "موصى به", "h3": "Smart Parcel (التتبع الموحد)", "p": "إذا كنت بحاجة إلى تتبع الشحنات فقط، يمكنك ربط جميع شركات الشحن بمفتاح t_key واحد على قناة [Smart Parcel (التتبع الموحد)]." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>ملاحظة:</strong> إذا كان هدفك هو تتبع الشحنات، نوصي بالربط عبر مفتاح Smart Parcel الموحد دون الحاجة إلى عقد API مخصص." }
+          ]
+        },
+        {
+          "h2": "2. إجراءات طلب الإصدار",
+          "desc": "قدّم الطلب وسجّل بالترتيب أدناه.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "تجهيز رمز العقد (العميل)", "p": "جهّز رمز العقد (العميل) الخاص بشركة Lotte Global Logistics. يتم توفير واجهة برمجة التطبيقات المخصصة بموجب عقد." },
+              { "h3": "تحديد ما إذا كنت ستستخدم التتبع الموحد", "p": "إذا كنت بحاجة إلى تتبع الشحنات فقط، فبدلاً من القناة المخصصة لشركة Lotte Global Logistics يمكنك ربط جميع شركات الشحن بمفتاح t_key واحد على قناة [Smart Parcel (التتبع الموحد)]." },
+              { "h3": "تقديم طلب إصدار واجهة برمجة التطبيقات المخصصة", "p": "إذا كنت بحاجة إلى واجهة برمجة التطبيقات المخصصة، فاحصل على رمز العقد (العميل) ومفتاح API من مندوب المبيعات." },
+              { "h3": "التسجيل في GenieGo", "p": "أدخل api_key و cust_code في [التسجيل] داخل GenieGo Integration Hub واحفظ." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "بمجرد استلامك لمفتاح API ورمز العقد (العميل) من مندوب المبيعات، تكون جاهزًا للتسجيل." }
+          ]
+        },
+        {
+          "h2": "3. المعلومات المطلوب تسجيلها في GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["الحقل", "الوصف"], "rows": [
+              ["api_key", "مفتاح API المخصص الصادر لشركة Lotte Global Logistics"],
+              ["cust_code", "رمز العقد (العميل) لشركة Lotte Global Logistics"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "أدخل القيم في [التسجيل] داخل GenieGo Integration Hub واحفظ. يتم تشفير بيانات الاعتماد أثناء التخزين باستخدام AES-256-GCM وإخفاؤها عند القراءة." }
+          ]
+        },
+        {
+          "h2": "4. المشكلات الشائعة",
+          "blocks": [
+            { "type": "table", "head": ["المشكلة", "السبب", "الحل"], "rows": [
+              ["تعذر العثور على قائمة الإصدار في وحدة التحكم", "واجهة برمجة التطبيقات المخصصة لشركة Lotte Global Logistics قائمة على العقد، وليست إصدارًا عبر وحدة تحكم الخدمة الذاتية", "احصل على رمز العقد (العميل) ومفتاح API من مندوب المبيعات."],
+              ["الإجراء معقد رغم أنك تحتاج إلى تتبع الشحنات فقط", "عقد API المخصص مبالغ فيه لأغراض التتبع", "سجّل مفتاح t_key على قناة [Smart Parcel (التتبع الموحد)] للربط."],
+              ["خطأ في المصادقة بعد التسجيل", "إدخال api_key أو cust_code بشكل خاطئ", "تحقق مرة أخرى من api_key الصادر ورمز العقد (العميل)."]
+            ] }
+          ]
+        },
+        {
+          "h2": "قائمة التحقق النهائية",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "حصلت على رمز العقد (العميل) لشركة Lotte Global Logistics.",
+              "راجعت تكامل Smart Parcel (التتبع الموحد) إذا كنت بحاجة إلى تتبع الشحنات فقط.",
+              "حصلت على مفتاح API ورمز العقد (العميل) من مندوب المبيعات.",
+              "أدخلت api_key·cust_code في [التسجيل] بـ GenieGo وحفظت."
+            ] }
+          ]
+        }
+      ]
+    },
+    "es": {
+      "titleType": "Manual de emisión de API Key",
+      "badge": "Guía para principiantes",
+      "intro": "La API dedicada de Lotte Global Logistics se emite en función de un código de contrato (cliente). Este manual describe el proceso de obtener el código de contrato (cliente) y la clave API de un representante de ventas y registrarlos en el GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tiempo estimado", "De varios días a semanas, según el contrato"],
+        ["Cuenta necesaria", "Contrato (cliente) de Lotte Global Logistics"],
+        ["Claves emitidas", "Clave API · Código de cliente (contrato)"],
+        ["Resultado", "Credenciales de API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de comenzar",
+          "desc": "La API dedicada de Lotte Global Logistics es un canal basado en contrato, no uno que se emite al instante desde una consola de autoservicio.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requerido", "h3": "Código de contrato (cliente) de Lotte Global Logistics", "p": "Necesita un código de contrato (cliente) emitido a través de un contrato con Lotte Global Logistics. No se emite directamente desde una consola independiente." },
+              { "tag": "Recomendado", "h3": "Smart Parcel (seguimiento unificado)", "p": "Si solo necesita el seguimiento de envíos, puede conectar todas las empresas de transporte con una única t_key en el canal [Smart Parcel (seguimiento unificado)]." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Nota:</strong> Si su objetivo es el seguimiento de envíos, recomendamos conectarse mediante la clave unificada de Smart Parcel sin un contrato de API dedicada." }
+          ]
+        },
+        {
+          "h2": "2. Procedimiento de solicitud de emisión",
+          "desc": "Solicite y registre en el orden indicado a continuación.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Preparar el código de contrato (cliente)", "p": "Prepare su código de contrato (cliente) de Lotte Global Logistics. La API dedicada se proporciona bajo contrato." },
+              { "h3": "Decidir si usar el seguimiento unificado", "p": "Si solo necesita el seguimiento de envíos, en lugar del canal dedicado de Lotte Global Logistics puede conectar todas las empresas de transporte con una única t_key en el canal [Smart Parcel (seguimiento unificado)]." },
+              { "h3": "Solicitar la emisión de la API dedicada", "p": "Si necesita la API dedicada, obtenga el código de contrato (cliente) y la clave API de un representante de ventas." },
+              { "h3": "Registrar en GenieGo", "p": "Introduzca su api_key y cust_code en [Registrar] en el GenieGo Integration Hub y guarde." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Una vez que reciba la clave API y el código de contrato (cliente) de un representante de ventas, estará listo para registrarse." }
+          ]
+        },
+        {
+          "h2": "3. Información para registrar en GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descripción"], "rows": [
+              ["api_key", "La clave API dedicada de Lotte Global Logistics emitida"],
+              ["cust_code", "Código de contrato (cliente) de Lotte Global Logistics"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Introduzca los valores en [Registrar] en el GenieGo Integration Hub y guarde. Las credenciales se cifran en reposo con AES-256-GCM y se enmascaran al leerlas." }
+          ]
+        },
+        {
+          "h2": "4. Problemas frecuentes",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solución"], "rows": [
+              ["No se encuentra el menú de emisión en la consola", "La API dedicada de Lotte Global Logistics es basada en contrato, no una emisión de consola de autoservicio", "Obtenga el código de contrato (cliente) y la clave API de un representante de ventas."],
+              ["El procedimiento es complejo cuando solo necesita el seguimiento de envíos", "Un contrato de API dedicada es excesivo para fines de seguimiento", "Registre una t_key en el canal [Smart Parcel (seguimiento unificado)] para conectarse."],
+              ["Error de autenticación tras el registro", "api_key o cust_code introducidos incorrectamente", "Vuelva a verificar la api_key emitida y el código de contrato (cliente)."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificación final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Obtuve el código de contrato (cliente) de Lotte Global Logistics.",
+              "Revisé la integración con Smart Parcel (seguimiento unificado) si solo necesito el seguimiento de envíos.",
+              "Obtuve la clave API y el código de contrato (cliente) de un representante de ventas.",
+              "Introduje api_key·cust_code en GenieGo [Registrar] y guardé."
+            ] }
+          ]
+        }
+      ]
+    },
+    "fr": {
+      "titleType": "Manuel d'émission de la clé API",
+      "badge": "Guide du débutant",
+      "intro": "L'API dédiée de Lotte Global Logistics est émise sur la base d'un code de contrat (client). Ce manuel décrit le processus d'obtention du code de contrat (client) et de la clé API auprès d'un représentant commercial, puis leur enregistrement dans le GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Durée estimée", "De plusieurs jours à plusieurs semaines, selon le contrat"],
+        ["Compte requis", "Contrat (client) Lotte Global Logistics"],
+        ["Clés émises", "Clé API · Code client (contrat)"],
+        ["Résultat", "Identifiants API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Avant de commencer",
+          "desc": "L'API dédiée de Lotte Global Logistics est un canal basé sur contrat, et non un canal émis instantanément depuis une console en libre-service.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requis", "h3": "Code de contrat (client) Lotte Global Logistics", "p": "Vous avez besoin d'un code de contrat (client) émis dans le cadre d'un contrat avec Lotte Global Logistics. Il n'est pas émis directement depuis une console distincte." },
+              { "tag": "Recommandé", "h3": "Smart Parcel (suivi unifié)", "p": "Si vous n'avez besoin que du suivi des expéditions, vous pouvez connecter tous les transporteurs avec une seule t_key sur le canal [Smart Parcel (suivi unifié)]." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Remarque :</strong> Si votre objectif est le suivi des expéditions, nous recommandons de vous connecter via la clé unifiée Smart Parcel sans contrat d'API dédiée." }
+          ]
+        },
+        {
+          "h2": "2. Procédure de demande d'émission",
+          "desc": "Effectuez la demande et l'enregistrement dans l'ordre ci-dessous.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Préparer le code de contrat (client)", "p": "Préparez votre code de contrat (client) Lotte Global Logistics. L'API dédiée est fournie dans le cadre d'un contrat." },
+              { "h3": "Décider d'utiliser ou non le suivi unifié", "p": "Si vous n'avez besoin que du suivi des expéditions, au lieu du canal dédié Lotte Global Logistics, vous pouvez connecter tous les transporteurs avec une seule t_key sur le canal [Smart Parcel (suivi unifié)]." },
+              { "h3": "Demander l'émission de l'API dédiée", "p": "Si vous avez besoin de l'API dédiée, obtenez le code de contrat (client) et la clé API auprès d'un représentant commercial." },
+              { "h3": "Enregistrer dans GenieGo", "p": "Saisissez votre api_key et votre cust_code dans [Enregistrer] du GenieGo Integration Hub et enregistrez." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Une fois que vous avez reçu la clé API et le code de contrat (client) d'un représentant commercial, vous êtes prêt à vous enregistrer." }
+          ]
+        },
+        {
+          "h2": "3. Informations à enregistrer dans GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Champ", "Description"], "rows": [
+              ["api_key", "La clé API dédiée Lotte Global Logistics émise"],
+              ["cust_code", "Code de contrat (client) Lotte Global Logistics"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Saisissez les valeurs dans [Enregistrer] du GenieGo Integration Hub et enregistrez. Les identifiants sont chiffrés au repos avec AES-256-GCM et masqués à la lecture." }
+          ]
+        },
+        {
+          "h2": "4. Problèmes courants",
+          "blocks": [
+            { "type": "table", "head": ["Problème", "Cause", "Solution"], "rows": [
+              ["Impossible de trouver le menu d'émission dans la console", "L'API dédiée de Lotte Global Logistics est basée sur contrat, et non une émission via console en libre-service", "Obtenez le code de contrat (client) et la clé API auprès d'un représentant commercial."],
+              ["La procédure est complexe alors que vous n'avez besoin que du suivi des expéditions", "Un contrat d'API dédiée est excessif à des fins de suivi", "Enregistrez une t_key sur le canal [Smart Parcel (suivi unifié)] pour vous connecter."],
+              ["Erreur d'authentification après l'enregistrement", "api_key ou cust_code saisis de manière incorrecte", "Vérifiez de nouveau l'api_key émise et le code de contrat (client)."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Liste de contrôle finale",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Obtenu le code de contrat (client) Lotte Global Logistics.",
+              "Examiné l'intégration Smart Parcel (suivi unifié) si vous n'avez besoin que du suivi des expéditions.",
+              "Obtenu la clé API et le code de contrat (client) auprès d'un représentant commercial.",
+              "Saisi api_key·cust_code dans GenieGo [Enregistrer] et enregistré."
+            ] }
+          ]
+        }
+      ]
+    },
+    "hi": {
+      "titleType": "API Key जारी करने की नियमावली",
+      "badge": "शुरुआती गाइड",
+      "intro": "Lotte Global Logistics की समर्पित API एक अनुबंध (ग्राहक) कोड के आधार पर जारी की जाती है। यह नियमावली बिक्री प्रतिनिधि से अनुबंध (ग्राहक) कोड और API कुंजी प्राप्त करने और उन्हें GenieGo Integration Hub में पंजीकृत करने की प्रक्रिया का वर्णन करती है।",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["अनुमानित समय", "अनुबंध की प्रगति के अनुसार कुछ दिनों से सप्ताह"],
+        ["आवश्यक खाता", "Lotte Global Logistics अनुबंध (ग्राहक)"],
+        ["जारी की गई कुंजियाँ", "API कुंजी · ग्राहक (अनुबंध) कोड"],
+        ["परिणाम", "API क्रेडेंशियल"]
+      ],
+      "sections": [
+        {
+          "h2": "1. शुरू करने से पहले",
+          "desc": "Lotte Global Logistics की समर्पित API एक अनुबंध-आधारित चैनल है, यह सेल्फ-सर्विस कंसोल से तुरंत जारी नहीं होती।",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "आवश्यक", "h3": "Lotte Global Logistics अनुबंध (ग्राहक) कोड", "p": "आपको Lotte Global Logistics के साथ अनुबंध के माध्यम से जारी किया गया अनुबंध (ग्राहक) कोड चाहिए। यह किसी अलग कंसोल से सीधे जारी नहीं किया जाता।" },
+              { "tag": "अनुशंसित", "h3": "Smart Parcel (एकीकृत ट्रैकिंग)", "p": "यदि आपको केवल डिलीवरी ट्रैकिंग की आवश्यकता है, तो आप [Smart Parcel (एकीकृत ट्रैकिंग)] चैनल पर एक ही t_key से सभी कूरियर कंपनियों को जोड़ सकते हैं।" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>नोट:</strong> यदि आपका उद्देश्य डिलीवरी ट्रैकिंग है, तो हम समर्पित API अनुबंध के बिना Smart Parcel एकीकृत कुंजी के माध्यम से जुड़ने की अनुशंसा करते हैं।" }
+          ]
+        },
+        {
+          "h2": "2. जारी करने की आवेदन प्रक्रिया",
+          "desc": "नीचे दिए गए क्रम में आवेदन करें और पंजीकृत करें।",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "अनुबंध (ग्राहक) कोड तैयार करें", "p": "अपना Lotte Global Logistics अनुबंध (ग्राहक) कोड तैयार करें। समर्पित API अनुबंध के तहत प्रदान की जाती है।" },
+              { "h3": "तय करें कि एकीकृत ट्रैकिंग का उपयोग करना है या नहीं", "p": "यदि आपको केवल डिलीवरी ट्रैकिंग की आवश्यकता है, तो Lotte Global Logistics समर्पित चैनल के बजाय आप [Smart Parcel (एकीकृत ट्रैकिंग)] चैनल पर एक ही t_key से सभी कूरियर कंपनियों को जोड़ सकते हैं।" },
+              { "h3": "समर्पित API जारी करने के लिए आवेदन करें", "p": "यदि आपको समर्पित API चाहिए, तो बिक्री प्रतिनिधि से अनुबंध (ग्राहक) कोड और API कुंजी प्राप्त करें।" },
+              { "h3": "GenieGo में पंजीकृत करें", "p": "GenieGo Integration Hub के [पंजीकरण] में अपना api_key और cust_code दर्ज करें और सहेजें।" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "जब आप बिक्री प्रतिनिधि से API कुंजी और अनुबंध (ग्राहक) कोड प्राप्त कर लेते हैं, तो आप पंजीकरण के लिए तैयार हैं।" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo में पंजीकृत करने की जानकारी",
+          "blocks": [
+            { "type": "table", "head": ["फ़ील्ड", "विवरण"], "rows": [
+              ["api_key", "जारी की गई Lotte Global Logistics समर्पित API कुंजी"],
+              ["cust_code", "Lotte Global Logistics अनुबंध (ग्राहक) कोड"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo Integration Hub के [पंजीकरण] में मान दर्ज करें और सहेजें। क्रेडेंशियल AES-256-GCM के साथ संग्रहण के समय एन्क्रिप्ट किए जाते हैं और पढ़ने के समय मास्क किए जाते हैं।" }
+          ]
+        },
+        {
+          "h2": "4. अक्सर होने वाली समस्याएँ",
+          "blocks": [
+            { "type": "table", "head": ["समस्या", "कारण", "समाधान"], "rows": [
+              ["कंसोल में जारी करने का मेनू नहीं मिल रहा", "Lotte Global Logistics समर्पित API अनुबंध-आधारित है, सेल्फ-सर्विस कंसोल जारी नहीं", "बिक्री प्रतिनिधि से अनुबंध (ग्राहक) कोड और API कुंजी प्राप्त करें।"],
+              ["केवल डिलीवरी ट्रैकिंग चाहिए पर प्रक्रिया जटिल है", "ट्रैकिंग उद्देश्य के लिए समर्पित API अनुबंध अत्यधिक है", "जुड़ने के लिए [Smart Parcel (एकीकृत ट्रैकिंग)] चैनल पर t_key पंजीकृत करें।"],
+              ["पंजीकरण के बाद प्रमाणीकरण त्रुटि", "api_key या cust_code गलत दर्ज", "जारी की गई api_key और अनुबंध (ग्राहक) कोड की फिर से जाँच करें।"]
+            ] }
+          ]
+        },
+        {
+          "h2": "अंतिम जाँच सूची",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Lotte Global Logistics अनुबंध (ग्राहक) कोड प्राप्त किया।",
+              "यदि केवल डिलीवरी ट्रैकिंग चाहिए तो Smart Parcel (एकीकृत ट्रैकिंग) एकीकरण पर विचार किया।",
+              "बिक्री प्रतिनिधि से API कुंजी और अनुबंध (ग्राहक) कोड प्राप्त किया।",
+              "GenieGo [पंजीकरण] में api_key·cust_code दर्ज किया और सहेजा।"
+            ] }
+          ]
+        }
+      ]
+    },
+    "pt": {
+      "titleType": "Manual de emissão de API Key",
+      "badge": "Guia para iniciantes",
+      "intro": "A API dedicada da Lotte Global Logistics é emitida com base em um código de contrato (cliente). Este manual descreve o processo de obter o código de contrato (cliente) e a chave API junto a um representante de vendas e registrá-los no GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tempo estimado", "De vários dias a semanas, dependendo do contrato"],
+        ["Conta necessária", "Contrato (cliente) da Lotte Global Logistics"],
+        ["Chaves emitidas", "Chave API · Código de cliente (contrato)"],
+        ["Resultado", "Credenciais da API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de começar",
+          "desc": "A API dedicada da Lotte Global Logistics é um canal baseado em contrato, não um canal emitido instantaneamente a partir de um console de autoatendimento.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Obrigatório", "h3": "Código de contrato (cliente) da Lotte Global Logistics", "p": "Você precisa de um código de contrato (cliente) emitido por meio de um contrato com a Lotte Global Logistics. Ele não é emitido diretamente a partir de um console separado." },
+              { "tag": "Recomendado", "h3": "Smart Parcel (rastreamento unificado)", "p": "Se você precisar apenas do rastreamento de entregas, pode conectar todas as transportadoras com uma única t_key no canal [Smart Parcel (rastreamento unificado)]." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Nota:</strong> Se o seu objetivo for o rastreamento de entregas, recomendamos conectar por meio da chave unificada do Smart Parcel sem um contrato de API dedicada." }
+          ]
+        },
+        {
+          "h2": "2. Procedimento de solicitação de emissão",
+          "desc": "Solicite e registre na ordem abaixo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Preparar o código de contrato (cliente)", "p": "Prepare o seu código de contrato (cliente) da Lotte Global Logistics. A API dedicada é fornecida sob contrato." },
+              { "h3": "Decidir se vai usar o rastreamento unificado", "p": "Se você precisar apenas do rastreamento de entregas, em vez do canal dedicado da Lotte Global Logistics, pode conectar todas as transportadoras com uma única t_key no canal [Smart Parcel (rastreamento unificado)]." },
+              { "h3": "Solicitar a emissão da API dedicada", "p": "Se você precisar da API dedicada, obtenha o código de contrato (cliente) e a chave API junto a um representante de vendas." },
+              { "h3": "Registrar no GenieGo", "p": "Insira o seu api_key e cust_code em [Registrar] no GenieGo Integration Hub e salve." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Assim que receber a chave API e o código de contrato (cliente) de um representante de vendas, você estará pronto para registrar." }
+          ]
+        },
+        {
+          "h2": "3. Informações a registrar no GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descrição"], "rows": [
+              ["api_key", "A chave API dedicada da Lotte Global Logistics emitida"],
+              ["cust_code", "Código de contrato (cliente) da Lotte Global Logistics"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Insira os valores em [Registrar] no GenieGo Integration Hub e salve. As credenciais são criptografadas em repouso com AES-256-GCM e mascaradas na leitura." }
+          ]
+        },
+        {
+          "h2": "4. Problemas comuns",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solução"], "rows": [
+              ["Não é possível encontrar o menu de emissão no console", "A API dedicada da Lotte Global Logistics é baseada em contrato, não uma emissão via console de autoatendimento", "Obtenha o código de contrato (cliente) e a chave API junto a um representante de vendas."],
+              ["O procedimento é complexo quando você só precisa do rastreamento de entregas", "Um contrato de API dedicada é excessivo para fins de rastreamento", "Registre uma t_key no canal [Smart Parcel (rastreamento unificado)] para conectar."],
+              ["Erro de autenticação após o registro", "api_key ou cust_code inseridos incorretamente", "Verifique novamente o api_key emitido e o código de contrato (cliente)."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificação final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Obtive o código de contrato (cliente) da Lotte Global Logistics.",
+              "Avaliei a integração com o Smart Parcel (rastreamento unificado) se precisar apenas do rastreamento de entregas.",
+              "Obtive a chave API e o código de contrato (cliente) junto a um representante de vendas.",
+              "Inseri api_key·cust_code em GenieGo [Registrar] e salvei."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ru": {
+      "titleType": "Руководство по выпуску API Key",
+      "badge": "Руководство для начинающих",
+      "intro": "Выделенный API Lotte Global Logistics выдаётся на основе кода договора (клиента). В этом руководстве описан процесс получения кода договора (клиента) и ключа API у менеджера по продажам и их регистрации в GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Расчётное время", "От нескольких дней до недель, в зависимости от договора"],
+        ["Требуемая учётная запись", "Договор (клиент) Lotte Global Logistics"],
+        ["Выдаваемые ключи", "Ключ API · Код клиента (договора)"],
+        ["Результат", "Учётные данные API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Прежде чем начать",
+          "desc": "Выделенный API Lotte Global Logistics — это канал на основе договора, а не канал, выдаваемый мгновенно из консоли самообслуживания.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Обязательно", "h3": "Код договора (клиента) Lotte Global Logistics", "p": "Вам нужен код договора (клиента), выданный по договору с Lotte Global Logistics. Он не выдаётся напрямую из отдельной консоли." },
+              { "tag": "Рекомендуется", "h3": "Smart Parcel (единое отслеживание)", "p": "Если вам нужно только отслеживание доставки, вы можете подключить все службы доставки с помощью одного t_key на канале [Smart Parcel (единое отслеживание)]." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Примечание:</strong> Если ваша цель — отслеживание доставки, рекомендуем подключаться через единый ключ Smart Parcel без выделенного договора API." }
+          ]
+        },
+        {
+          "h2": "2. Процедура подачи заявки на выпуск",
+          "desc": "Подайте заявку и зарегистрируйте в указанном ниже порядке.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Подготовьте код договора (клиента)", "p": "Подготовьте свой код договора (клиента) Lotte Global Logistics. Выделенный API предоставляется по договору." },
+              { "h3": "Решите, использовать ли единое отслеживание", "p": "Если вам нужно только отслеживание доставки, вместо выделенного канала Lotte Global Logistics вы можете подключить все службы доставки с помощью одного t_key на канале [Smart Parcel (единое отслеживание)]." },
+              { "h3": "Подайте заявку на выпуск выделенного API", "p": "Если вам нужен выделенный API, получите код договора (клиента) и ключ API у менеджера по продажам." },
+              { "h3": "Зарегистрируйте в GenieGo", "p": "Введите свой api_key и cust_code в разделе [Регистрация] в GenieGo Integration Hub и сохраните." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Как только вы получите ключ API и код договора (клиента) у менеджера по продажам, вы будете готовы к регистрации." }
+          ]
+        },
+        {
+          "h2": "3. Информация для регистрации в GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Поле", "Описание"], "rows": [
+              ["api_key", "Выданный выделенный ключ API Lotte Global Logistics"],
+              ["cust_code", "Код договора (клиента) Lotte Global Logistics"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Введите значения в разделе [Регистрация] в GenieGo Integration Hub и сохраните. Учётные данные шифруются при хранении с помощью AES-256-GCM и маскируются при чтении." }
+          ]
+        },
+        {
+          "h2": "4. Частые проблемы",
+          "blocks": [
+            { "type": "table", "head": ["Проблема", "Причина", "Решение"], "rows": [
+              ["Не удаётся найти меню выпуска в консоли", "Выделенный API Lotte Global Logistics основан на договоре, а не на выпуске через консоль самообслуживания", "Получите код договора (клиента) и ключ API у менеджера по продажам."],
+              ["Процедура сложна, хотя вам нужно только отслеживание доставки", "Договор на выделенный API избыточен для целей отслеживания", "Зарегистрируйте t_key на канале [Smart Parcel (единое отслеживание)] для подключения."],
+              ["Ошибка аутентификации после регистрации", "api_key или cust_code введены неверно", "Повторно проверьте выданный api_key и код договора (клиента)."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Итоговый контрольный список",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Получен код договора (клиента) Lotte Global Logistics.",
+              "Рассмотрена интеграция Smart Parcel (единое отслеживание), если нужно только отслеживание доставки.",
+              "Получены ключ API и код договора (клиента) у менеджера по продажам.",
+              "Введены api_key·cust_code в GenieGo [Регистрация] и сохранены."
+            ] }
+          ]
+        }
+      ]
+    }
+  }
+}

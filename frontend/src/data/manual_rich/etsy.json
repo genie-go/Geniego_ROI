@@ -1,0 +1,1026 @@
+{
+  "name": "Etsy",
+  "icon": "🧶",
+  "langs": {
+    "ko": {
+      "titleType": "API Key 발급 매뉴얼",
+      "badge": "Beginner Guide",
+      "intro": "Etsy 개발자 포털에서 앱을 등록해 API Key(keystring)를 발급하고 OAuth 인가로 access token까지 받아 GenieGo 연동 허브에 등록하는 과정을 초보자도 그대로 따라 할 수 있도록 정리한 매뉴얼입니다.",
+      "org": "GenieGo 연동 허브",
+      "quick": [
+        ["소요 시간", "약 5~15분"],
+        ["필요 계정", "Etsy 셀러 계정"],
+        ["발급 키", "API Key(keystring) · Shop ID"],
+        ["결과물", "API 자격증명"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 시작하기 전에",
+          "desc": "Etsy API Key는 셀러 계정에서 앱을 등록해 발급합니다.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "필요", "h3": "Etsy 셀러 계정", "p": "발급을 진행하려면 Etsy 셀러 계정이 있어야 합니다. 이 계정으로 Etsy 개발자 포털에 접속합니다." },
+              { "tag": "발급 키", "h3": "API Key(keystring)", "p": "앱 정보를 입력하면 API Key(keystring)가 발급됩니다. 이후 OAuth 인가를 거쳐 access token까지 받습니다." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>참고:</strong> GenieGo 등록에는 발급한 api_key와 함께 상점 식별자인 shop_id가 필요합니다." }
+          ]
+        },
+        {
+          "h2": "2. 발급 단계",
+          "desc": "아래 순서대로 발급하고 GenieGo에 등록합니다.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "새 앱 만들기", "p": "etsy.com/developers에 접속해 [Create a New App]을 누릅니다.", "path": "etsy.com/developers" },
+              { "h3": "앱 정보 입력 및 키 발급", "p": "앱 정보를 입력하면 API Key(keystring)가 발급됩니다.", "path": "https://www.etsy.com/developers/your-apps" },
+              { "h3": "OAuth 인가", "p": "OAuth 인가를 거쳐 access token을 발급받습니다." },
+              { "h3": "등록 정보 확인", "p": "발급된 api_key와 상점의 shop_id를 확인합니다." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "API Key(keystring)가 발급되고 OAuth 인가로 access token까지 받으면 정상 발급된 것입니다." }
+          ]
+        },
+        {
+          "h2": "3. GenieGo에 등록할 정보",
+          "blocks": [
+            { "type": "table", "head": ["필드", "설명"], "rows": [
+              ["api_key", "발급된 API Key(keystring)"],
+              ["shop_id", "연동할 Etsy 상점의 Shop ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 연동 허브 [등록]에 api_key와 shop_id를 입력해 저장하면 자격증명은 AES-256-GCM으로 암호화 저장되고 조회 시 마스킹됩니다." }
+          ]
+        },
+        {
+          "h2": "4. 자주 발생하는 문제",
+          "blocks": [
+            { "type": "table", "head": ["문제", "원인", "해결"], "rows": [
+              ["앱을 만들 수 없음", "Etsy 셀러 계정이 아니거나 개발자 포털 미접속", "Etsy 셀러 계정으로 etsy.com/developers에 접속해 [Create a New App]을 진행합니다."],
+              ["인증 실패", "OAuth 인가 미완료 또는 access token 미발급", "API Key(keystring) 발급 후 OAuth 인가를 거쳐 access token을 발급받습니다."]
+            ] }
+          ]
+        },
+        {
+          "h2": "최종 체크리스트",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Etsy 셀러 계정으로 etsy.com/developers에 접속했다.",
+              "[Create a New App]으로 API Key(keystring)를 발급했다.",
+              "OAuth 인가를 거쳐 access token을 발급받았다.",
+              "GenieGo [등록]에 api_key와 shop_id를 입력해 저장했다."
+            ] }
+          ]
+        }
+      ]
+    },
+    "en": {
+      "titleType": "API Key Issuance Manual",
+      "badge": "Beginner Guide",
+      "intro": "A beginner-friendly, step-by-step guide to registering an app in the Etsy developer portal to issue an API Key (keystring), obtaining an access token via OAuth authorization, and registering it in the GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Est. time", "About 5–15 min"],
+        ["Account needed", "Etsy seller account"],
+        ["Keys issued", "API Key (keystring) · Shop ID"],
+        ["Result", "API credentials"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Before You Begin",
+          "desc": "The Etsy API Key is issued by registering an app under your seller account.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Required", "h3": "Etsy seller account", "p": "You need an Etsy seller account to proceed with issuance. You will use this account to access the Etsy developer portal." },
+              { "tag": "Keys issued", "h3": "API Key (keystring)", "p": "Once you enter your app information, an API Key (keystring) is issued. You then obtain an access token through OAuth authorization." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Note:</strong> GenieGo registration requires the issued api_key together with the shop_id, which identifies your shop." }
+          ]
+        },
+        {
+          "h2": "2. Issuance Steps",
+          "desc": "Issue in the order below and register in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Create a new app", "p": "Go to etsy.com/developers and click [Create a New App].", "path": "etsy.com/developers" },
+              { "h3": "Enter app info and issue the key", "p": "Once you enter your app information, an API Key (keystring) is issued.", "path": "https://www.etsy.com/developers/your-apps" },
+              { "h3": "OAuth authorization", "p": "Obtain an access token through OAuth authorization." },
+              { "h3": "Confirm registration info", "p": "Check the issued api_key and your shop's shop_id." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Once the API Key (keystring) is issued and you have obtained an access token via OAuth authorization, it has been issued correctly." }
+          ]
+        },
+        {
+          "h2": "3. Information to Register in GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Field", "Description"], "rows": [
+              ["api_key", "The issued API Key (keystring)"],
+              ["shop_id", "The Shop ID of the Etsy shop you want to connect"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "In the GenieGo Integration Hub [Register], enter your api_key and shop_id and save. Credentials are encrypted at rest with AES-256-GCM and masked on read." }
+          ]
+        },
+        {
+          "h2": "4. Common Issues",
+          "blocks": [
+            { "type": "table", "head": ["Issue", "Cause", "Solution"], "rows": [
+              ["Cannot create an app", "Not an Etsy seller account, or the developer portal was not accessed", "Access etsy.com/developers with your Etsy seller account and proceed with [Create a New App]."],
+              ["Authentication failure", "OAuth authorization not completed, or access token not issued", "After issuing the API Key (keystring), obtain an access token through OAuth authorization."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Final Checklist",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Accessed etsy.com/developers with my Etsy seller account.",
+              "Issued an API Key (keystring) via [Create a New App].",
+              "Obtained an access token through OAuth authorization.",
+              "Entered api_key and shop_id in GenieGo [Register] and saved."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ja": {
+      "titleType": "API Key 発行マニュアル",
+      "badge": "初心者ガイド",
+      "intro": "Etsy 開発者ポータルでアプリを登録して API Key(keystring)を発行し、OAuth 認可で access token まで取得して GenieGo 連携ハブに登録する手順を、初心者でもそのまま実行できるようにまとめたマニュアルです。",
+      "org": "GenieGo 連携ハブ",
+      "quick": [
+        ["所要時間", "約 5〜15 分"],
+        ["必要なアカウント", "Etsy セラーアカウント"],
+        ["発行するキー", "API Key(keystring) · Shop ID"],
+        ["成果物", "API 認証情報"]
+      ],
+      "sections": [
+        {
+          "h2": "1. はじめる前に",
+          "desc": "Etsy API Key は、セラーアカウントでアプリを登録して発行します。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必須", "h3": "Etsy セラーアカウント", "p": "発行を進めるには Etsy セラーアカウントが必要です。このアカウントで Etsy 開発者ポータルにアクセスします。" },
+              { "tag": "発行するキー", "h3": "API Key(keystring)", "p": "アプリ情報を入力すると API Key(keystring)が発行されます。その後 OAuth 認可を経て access token まで取得します。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> GenieGo の登録には、発行した api_key とあわせて、店舗の識別子である shop_id が必要です。" }
+          ]
+        },
+        {
+          "h2": "2. 発行手順",
+          "desc": "以下の順序で発行し、GenieGo に登録します。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "新しいアプリを作成", "p": "etsy.com/developers にアクセスし、[Create a New App] をクリックします。", "path": "etsy.com/developers" },
+              { "h3": "アプリ情報の入力とキーの発行", "p": "アプリ情報を入力すると API Key(keystring)が発行されます。", "path": "https://www.etsy.com/developers/your-apps" },
+              { "h3": "OAuth 認可", "p": "OAuth 認可を経て access token を発行します。" },
+              { "h3": "登録情報の確認", "p": "発行された api_key と店舗の shop_id を確認します。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "API Key(keystring)が発行され、OAuth 認可で access token まで取得できれば、正常に発行されています。" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo に登録する情報",
+          "blocks": [
+            { "type": "table", "head": ["フィールド", "説明"], "rows": [
+              ["api_key", "発行された API Key(keystring)"],
+              ["shop_id", "連携する Etsy 店舗の Shop ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 連携ハブの [登録] に api_key と shop_id を入力して保存すると、認証情報は AES-256-GCM で暗号化して保存され、閲覧時にはマスキングされます。" }
+          ]
+        },
+        {
+          "h2": "4. よくある問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["アプリを作成できない", "Etsy セラーアカウントではない、または開発者ポータルに未アクセス", "Etsy セラーアカウントで etsy.com/developers にアクセスし、[Create a New App] を進めます。"],
+              ["認証に失敗する", "OAuth 認可が未完了、または access token が未発行", "API Key(keystring)の発行後、OAuth 認可を経て access token を発行します。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終チェックリスト",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Etsy セラーアカウントで etsy.com/developers にアクセスした。",
+              "[Create a New App] で API Key(keystring)を発行した。",
+              "OAuth 認可を経て access token を発行した。",
+              "GenieGo の [登録] に api_key と shop_id を入力して保存した。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh": {
+      "titleType": "API Key 申请手册",
+      "badge": "新手指南",
+      "intro": "本手册手把手指导新手在 Etsy 开发者门户中注册应用以签发 API Key(keystring)，通过 OAuth 授权获取 access token，并注册到 GenieGo 集成中心。",
+      "org": "GenieGo 集成中心",
+      "quick": [
+        ["预计时间", "约 5~15 分钟"],
+        ["所需账户", "Etsy 卖家账户"],
+        ["签发密钥", "API Key(keystring) · Shop ID"],
+        ["成果", "API 凭证"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 开始之前",
+          "desc": "Etsy API Key 通过在卖家账户下注册应用来签发。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "Etsy 卖家账户", "p": "要进行签发，您需要一个 Etsy 卖家账户。您将使用该账户访问 Etsy 开发者门户。" },
+              { "tag": "签发密钥", "h3": "API Key(keystring)", "p": "输入应用信息后即可签发 API Key(keystring)。随后通过 OAuth 授权获取 access token。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> GenieGo 注册需要已签发的 api_key 以及作为店铺标识符的 shop_id。" }
+          ]
+        },
+        {
+          "h2": "2. 申请步骤",
+          "desc": "按以下顺序签发并在 GenieGo 中注册。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "创建新应用", "p": "访问 etsy.com/developers 并点击 [Create a New App]。", "path": "etsy.com/developers" },
+              { "h3": "输入应用信息并签发密钥", "p": "输入应用信息后即可签发 API Key(keystring)。", "path": "https://www.etsy.com/developers/your-apps" },
+              { "h3": "OAuth 授权", "p": "通过 OAuth 授权获取 access token。" },
+              { "h3": "确认注册信息", "p": "确认已签发的 api_key 和店铺的 shop_id。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "当 API Key(keystring)已签发，并通过 OAuth 授权获取到 access token 时，即表示已正确签发。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中注册的信息",
+          "blocks": [
+            { "type": "table", "head": ["字段", "说明"], "rows": [
+              ["api_key", "已签发的 API Key(keystring)"],
+              ["shop_id", "要连接的 Etsy 店铺的 Shop ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 集成中心 [注册] 中输入 api_key 和 shop_id 并保存后，凭证将以 AES-256-GCM 加密存储，并在查询时进行掩码处理。" }
+          ]
+        },
+        {
+          "h2": "4. 常见问题",
+          "blocks": [
+            { "type": "table", "head": ["问题", "原因", "解决方法"], "rows": [
+              ["无法创建应用", "不是 Etsy 卖家账户，或未访问开发者门户", "使用 Etsy 卖家账户访问 etsy.com/developers 并进行 [Create a New App]。"],
+              ["认证失败", "OAuth 授权未完成，或未签发 access token", "签发 API Key(keystring) 后，通过 OAuth 授权获取 access token。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最终检查清单",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已使用 Etsy 卖家账户访问 etsy.com/developers。",
+              "已通过 [Create a New App] 签发 API Key(keystring)。",
+              "已通过 OAuth 授权获取 access token。",
+              "已在 GenieGo [注册] 中输入 api_key 和 shop_id 并保存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh-TW": {
+      "titleType": "API Key 申請手冊",
+      "badge": "新手指南",
+      "intro": "本手冊手把手指導新手在 Etsy 開發者入口網站中註冊應用程式以簽發 API Key(keystring)，透過 OAuth 授權取得 access token，並註冊到 GenieGo 整合中心。",
+      "org": "GenieGo 整合中心",
+      "quick": [
+        ["預計時間", "約 5~15 分鐘"],
+        ["所需帳戶", "Etsy 賣家帳戶"],
+        ["簽發金鑰", "API Key(keystring) · Shop ID"],
+        ["成果", "API 憑證"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 開始之前",
+          "desc": "Etsy API Key 透過在賣家帳戶下註冊應用程式來簽發。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "Etsy 賣家帳戶", "p": "要進行簽發，您需要一個 Etsy 賣家帳戶。您將使用該帳戶存取 Etsy 開發者入口網站。" },
+              { "tag": "簽發金鑰", "h3": "API Key(keystring)", "p": "輸入應用程式資訊後即可簽發 API Key(keystring)。隨後透過 OAuth 授權取得 access token。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> GenieGo 註冊需要已簽發的 api_key 以及作為店鋪識別碼的 shop_id。" }
+          ]
+        },
+        {
+          "h2": "2. 簽發步驟",
+          "desc": "依以下順序簽發並在 GenieGo 中註冊。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "建立新應用程式", "p": "存取 etsy.com/developers 並點擊 [Create a New App]。", "path": "etsy.com/developers" },
+              { "h3": "輸入應用程式資訊並簽發金鑰", "p": "輸入應用程式資訊後即可簽發 API Key(keystring)。", "path": "https://www.etsy.com/developers/your-apps" },
+              { "h3": "OAuth 授權", "p": "透過 OAuth 授權取得 access token。" },
+              { "h3": "確認註冊資訊", "p": "確認已簽發的 api_key 和店鋪的 shop_id。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "當 API Key(keystring)已簽發，並透過 OAuth 授權取得 access token 時，即表示已正確簽發。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中註冊的資訊",
+          "blocks": [
+            { "type": "table", "head": ["欄位", "說明"], "rows": [
+              ["api_key", "已簽發的 API Key(keystring)"],
+              ["shop_id", "要連接的 Etsy 店鋪的 Shop ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 整合中心 [註冊] 中輸入 api_key 和 shop_id 並儲存後，憑證將以 AES-256-GCM 加密儲存，並在查詢時進行遮罩處理。" }
+          ]
+        },
+        {
+          "h2": "4. 常見問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["無法建立應用程式", "不是 Etsy 賣家帳戶，或未存取開發者入口網站", "使用 Etsy 賣家帳戶存取 etsy.com/developers 並進行 [Create a New App]。"],
+              ["驗證失敗", "OAuth 授權未完成，或未簽發 access token", "簽發 API Key(keystring) 後，透過 OAuth 授權取得 access token。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終檢查清單",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已使用 Etsy 賣家帳戶存取 etsy.com/developers。",
+              "已透過 [Create a New App] 簽發 API Key(keystring)。",
+              "已透過 OAuth 授權取得 access token。",
+              "已在 GenieGo [註冊] 中輸入 api_key 和 shop_id 並儲存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "de": {
+      "titleType": "Anleitung zur API-Key-Ausstellung",
+      "badge": "Einsteigerleitfaden",
+      "intro": "Eine einsteigerfreundliche Schritt-für-Schritt-Anleitung zur Registrierung einer App im Etsy-Entwicklerportal, um einen API Key (keystring) auszustellen, ein access token per OAuth-Autorisierung zu erhalten und es im GenieGo Integration Hub zu registrieren.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Geschätzte Zeit", "Etwa 5–15 Min."],
+        ["Benötigtes Konto", "Etsy-Verkäuferkonto"],
+        ["Ausgestellte Schlüssel", "API Key (keystring) · Shop ID"],
+        ["Ergebnis", "API-Anmeldedaten"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Bevor Sie beginnen",
+          "desc": "Der Etsy API Key wird durch die Registrierung einer App unter Ihrem Verkäuferkonto ausgestellt.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Erforderlich", "h3": "Etsy-Verkäuferkonto", "p": "Für die Ausstellung benötigen Sie ein Etsy-Verkäuferkonto. Mit diesem Konto greifen Sie auf das Etsy-Entwicklerportal zu." },
+              { "tag": "Ausgestellte Schlüssel", "h3": "API Key (keystring)", "p": "Sobald Sie Ihre App-Informationen eingeben, wird ein API Key (keystring) ausgestellt. Anschließend erhalten Sie über die OAuth-Autorisierung ein access token." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Hinweis:</strong> Die GenieGo-Registrierung erfordert den ausgestellten api_key zusammen mit der shop_id, die Ihren Shop identifiziert." }
+          ]
+        },
+        {
+          "h2": "2. Ausstellungsschritte",
+          "desc": "Stellen Sie in der unten angegebenen Reihenfolge aus und registrieren Sie in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Neue App erstellen", "p": "Gehen Sie zu etsy.com/developers und klicken Sie auf [Create a New App].", "path": "etsy.com/developers" },
+              { "h3": "App-Informationen eingeben und Schlüssel ausstellen", "p": "Sobald Sie Ihre App-Informationen eingeben, wird ein API Key (keystring) ausgestellt.", "path": "https://www.etsy.com/developers/your-apps" },
+              { "h3": "OAuth-Autorisierung", "p": "Erhalten Sie über die OAuth-Autorisierung ein access token." },
+              { "h3": "Registrierungsinformationen bestätigen", "p": "Überprüfen Sie den ausgestellten api_key und die shop_id Ihres Shops." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Sobald der API Key (keystring) ausgestellt wurde und Sie über die OAuth-Autorisierung ein access token erhalten haben, wurde es korrekt ausgestellt." }
+          ]
+        },
+        {
+          "h2": "3. In GenieGo zu registrierende Informationen",
+          "blocks": [
+            { "type": "table", "head": ["Feld", "Beschreibung"], "rows": [
+              ["api_key", "Der ausgestellte API Key (keystring)"],
+              ["shop_id", "Die Shop ID des Etsy-Shops, den Sie verbinden möchten"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Geben Sie im GenieGo Integration Hub unter [Registrieren] Ihren api_key und Ihre shop_id ein und speichern Sie. Anmeldedaten werden im Ruhezustand mit AES-256-GCM verschlüsselt und beim Lesen maskiert." }
+          ]
+        },
+        {
+          "h2": "4. Häufige Probleme",
+          "blocks": [
+            { "type": "table", "head": ["Problem", "Ursache", "Lösung"], "rows": [
+              ["App kann nicht erstellt werden", "Kein Etsy-Verkäuferkonto oder kein Zugriff auf das Entwicklerportal", "Greifen Sie mit Ihrem Etsy-Verkäuferkonto auf etsy.com/developers zu und fahren Sie mit [Create a New App] fort."],
+              ["Authentifizierung fehlgeschlagen", "OAuth-Autorisierung nicht abgeschlossen oder access token nicht ausgestellt", "Erhalten Sie nach der Ausstellung des API Key (keystring) über die OAuth-Autorisierung ein access token."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Abschließende Checkliste",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Mit meinem Etsy-Verkäuferkonto auf etsy.com/developers zugegriffen.",
+              "Über [Create a New App] einen API Key (keystring) ausgestellt.",
+              "Über die OAuth-Autorisierung ein access token erhalten.",
+              "api_key und shop_id in GenieGo [Registrieren] eingegeben und gespeichert."
+            ] }
+          ]
+        }
+      ]
+    },
+    "th": {
+      "titleType": "คู่มือการออก API Key",
+      "badge": "คู่มือสำหรับผู้เริ่มต้น",
+      "intro": "คู่มือทีละขั้นตอนที่เป็นมิตรกับผู้เริ่มต้น สำหรับการลงทะเบียนแอปในพอร์ทัลนักพัฒนา Etsy เพื่อออก API Key (keystring) รับ access token ผ่านการอนุญาต OAuth และลงทะเบียนใน GenieGo Integration Hub",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["เวลาโดยประมาณ", "ประมาณ 5–15 นาที"],
+        ["บัญชีที่ต้องใช้", "บัญชีผู้ขาย Etsy"],
+        ["คีย์ที่ออก", "API Key (keystring) · Shop ID"],
+        ["ผลลัพธ์", "ข้อมูลรับรอง API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. ก่อนเริ่มต้น",
+          "desc": "API Key ของ Etsy ออกโดยการลงทะเบียนแอปภายใต้บัญชีผู้ขายของคุณ",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "จำเป็น", "h3": "บัญชีผู้ขาย Etsy", "p": "ในการออกคีย์ คุณต้องมีบัญชีผู้ขาย Etsy คุณจะใช้บัญชีนี้เพื่อเข้าถึงพอร์ทัลนักพัฒนา Etsy" },
+              { "tag": "คีย์ที่ออก", "h3": "API Key (keystring)", "p": "เมื่อคุณป้อนข้อมูลแอป ระบบจะออก API Key (keystring) จากนั้นคุณจะได้รับ access token ผ่านการอนุญาต OAuth" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>หมายเหตุ:</strong> การลงทะเบียน GenieGo ต้องใช้ api_key ที่ออกแล้วพร้อมกับ shop_id ซึ่งเป็นตัวระบุร้านค้าของคุณ" }
+          ]
+        },
+        {
+          "h2": "2. ขั้นตอนการออก",
+          "desc": "ออกตามลำดับด้านล่างและลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "สร้างแอปใหม่", "p": "ไปที่ etsy.com/developers และคลิก [Create a New App]", "path": "etsy.com/developers" },
+              { "h3": "ป้อนข้อมูลแอปและออกคีย์", "p": "เมื่อคุณป้อนข้อมูลแอป ระบบจะออก API Key (keystring)", "path": "https://www.etsy.com/developers/your-apps" },
+              { "h3": "การอนุญาต OAuth", "p": "รับ access token ผ่านการอนุญาต OAuth" },
+              { "h3": "ยืนยันข้อมูลการลงทะเบียน", "p": "ตรวจสอบ api_key ที่ออกแล้วและ shop_id ของร้านค้าคุณ" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "เมื่อออก API Key (keystring) แล้วและคุณได้รับ access token ผ่านการอนุญาต OAuth แสดงว่าออกอย่างถูกต้อง" }
+          ]
+        },
+        {
+          "h2": "3. ข้อมูลที่ต้องลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["ฟิลด์", "คำอธิบาย"], "rows": [
+              ["api_key", "API Key (keystring) ที่ออกแล้ว"],
+              ["shop_id", "Shop ID ของร้านค้า Etsy ที่คุณต้องการเชื่อมต่อ"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "ใน GenieGo Integration Hub [ลงทะเบียน] ป้อน api_key และ shop_id แล้วบันทึก ข้อมูลรับรองจะถูกเข้ารหัสขณะจัดเก็บด้วย AES-256-GCM และปิดบังเมื่ออ่าน" }
+          ]
+        },
+        {
+          "h2": "4. ปัญหาที่พบบ่อย",
+          "blocks": [
+            { "type": "table", "head": ["ปัญหา", "สาเหตุ", "วิธีแก้ไข"], "rows": [
+              ["ไม่สามารถสร้างแอปได้", "ไม่ใช่บัญชีผู้ขาย Etsy หรือไม่ได้เข้าถึงพอร์ทัลนักพัฒนา", "เข้าถึง etsy.com/developers ด้วยบัญชีผู้ขาย Etsy ของคุณและดำเนินการ [Create a New App]"],
+              ["การยืนยันตัวตนล้มเหลว", "การอนุญาต OAuth ยังไม่เสร็จสมบูรณ์ หรือไม่ได้ออก access token", "หลังจากออก API Key (keystring) ให้รับ access token ผ่านการอนุญาต OAuth"]
+            ] }
+          ]
+        },
+        {
+          "h2": "รายการตรวจสอบขั้นสุดท้าย",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "เข้าถึง etsy.com/developers ด้วยบัญชีผู้ขาย Etsy แล้ว",
+              "ออก API Key (keystring) ผ่าน [Create a New App] แล้ว",
+              "รับ access token ผ่านการอนุญาต OAuth แล้ว",
+              "ป้อน api_key และ shop_id ใน GenieGo [ลงทะเบียน] และบันทึกแล้ว"
+            ] }
+          ]
+        }
+      ]
+    },
+    "vi": {
+      "titleType": "Hướng dẫn cấp API Key",
+      "badge": "Hướng dẫn cho người mới",
+      "intro": "Hướng dẫn từng bước thân thiện với người mới về việc đăng ký ứng dụng trong cổng nhà phát triển Etsy để cấp API Key (keystring), nhận access token qua ủy quyền OAuth và đăng ký trong GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Thời gian dự kiến", "Khoảng 5–15 phút"],
+        ["Tài khoản cần thiết", "Tài khoản người bán Etsy"],
+        ["Khóa được cấp", "API Key (keystring) · Shop ID"],
+        ["Kết quả", "Thông tin xác thực API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Trước khi bắt đầu",
+          "desc": "API Key của Etsy được cấp bằng cách đăng ký một ứng dụng dưới tài khoản người bán của bạn.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Bắt buộc", "h3": "Tài khoản người bán Etsy", "p": "Để tiến hành cấp, bạn cần một tài khoản người bán Etsy. Bạn sẽ dùng tài khoản này để truy cập cổng nhà phát triển Etsy." },
+              { "tag": "Khóa được cấp", "h3": "API Key (keystring)", "p": "Sau khi bạn nhập thông tin ứng dụng, một API Key (keystring) sẽ được cấp. Sau đó bạn nhận access token qua ủy quyền OAuth." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Lưu ý:</strong> Việc đăng ký GenieGo yêu cầu api_key đã cấp cùng với shop_id, định danh cửa hàng của bạn." }
+          ]
+        },
+        {
+          "h2": "2. Các bước cấp",
+          "desc": "Cấp theo thứ tự dưới đây và đăng ký trong GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Tạo ứng dụng mới", "p": "Truy cập etsy.com/developers và nhấp vào [Create a New App].", "path": "etsy.com/developers" },
+              { "h3": "Nhập thông tin ứng dụng và cấp khóa", "p": "Sau khi bạn nhập thông tin ứng dụng, một API Key (keystring) sẽ được cấp.", "path": "https://www.etsy.com/developers/your-apps" },
+              { "h3": "Ủy quyền OAuth", "p": "Nhận access token qua ủy quyền OAuth." },
+              { "h3": "Xác nhận thông tin đăng ký", "p": "Kiểm tra api_key đã cấp và shop_id của cửa hàng bạn." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Khi API Key (keystring) được cấp và bạn đã nhận access token qua ủy quyền OAuth, nghĩa là nó đã được cấp đúng cách." }
+          ]
+        },
+        {
+          "h2": "3. Thông tin cần đăng ký trong GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Trường", "Mô tả"], "rows": [
+              ["api_key", "API Key (keystring) đã được cấp"],
+              ["shop_id", "Shop ID của cửa hàng Etsy bạn muốn kết nối"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Trong GenieGo Integration Hub [Đăng ký], nhập api_key và shop_id của bạn rồi lưu. Thông tin xác thực được mã hóa khi lưu trữ bằng AES-256-GCM và được che khi đọc." }
+          ]
+        },
+        {
+          "h2": "4. Sự cố thường gặp",
+          "blocks": [
+            { "type": "table", "head": ["Sự cố", "Nguyên nhân", "Giải pháp"], "rows": [
+              ["Không thể tạo ứng dụng", "Không phải tài khoản người bán Etsy, hoặc chưa truy cập cổng nhà phát triển", "Truy cập etsy.com/developers bằng tài khoản người bán Etsy của bạn và tiến hành [Create a New App]."],
+              ["Xác thực thất bại", "Ủy quyền OAuth chưa hoàn tất, hoặc access token chưa được cấp", "Sau khi cấp API Key (keystring), nhận access token qua ủy quyền OAuth."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Danh sách kiểm tra cuối cùng",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Đã truy cập etsy.com/developers bằng tài khoản người bán Etsy.",
+              "Đã cấp API Key (keystring) qua [Create a New App].",
+              "Đã nhận access token qua ủy quyền OAuth.",
+              "Đã nhập api_key và shop_id vào GenieGo [Đăng ký] và lưu."
+            ] }
+          ]
+        }
+      ]
+    },
+    "id": {
+      "titleType": "Panduan Penerbitan API Key",
+      "badge": "Panduan Pemula",
+      "intro": "Panduan langkah demi langkah yang ramah pemula untuk mendaftarkan aplikasi di portal developer Etsy guna menerbitkan API Key (keystring), memperoleh access token melalui otorisasi OAuth, dan mendaftarkannya di GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Perkiraan waktu", "Sekitar 5–15 menit"],
+        ["Akun yang dibutuhkan", "Akun penjual Etsy"],
+        ["Kunci yang diterbitkan", "API Key (keystring) · Shop ID"],
+        ["Hasil", "Kredensial API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Sebelum Anda Mulai",
+          "desc": "API Key Etsy diterbitkan dengan mendaftarkan aplikasi di bawah akun penjual Anda.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Diperlukan", "h3": "Akun penjual Etsy", "p": "Untuk melanjutkan penerbitan, Anda memerlukan akun penjual Etsy. Anda akan menggunakan akun ini untuk mengakses portal developer Etsy." },
+              { "tag": "Kunci yang diterbitkan", "h3": "API Key (keystring)", "p": "Setelah Anda memasukkan informasi aplikasi, API Key (keystring) akan diterbitkan. Selanjutnya Anda memperoleh access token melalui otorisasi OAuth." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Catatan:</strong> Pendaftaran GenieGo memerlukan api_key yang diterbitkan beserta shop_id, yang mengidentifikasi toko Anda." }
+          ]
+        },
+        {
+          "h2": "2. Langkah Penerbitan",
+          "desc": "Terbitkan sesuai urutan di bawah dan daftarkan di GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Buat aplikasi baru", "p": "Buka etsy.com/developers dan klik [Create a New App].", "path": "etsy.com/developers" },
+              { "h3": "Masukkan info aplikasi dan terbitkan kunci", "p": "Setelah Anda memasukkan informasi aplikasi, API Key (keystring) akan diterbitkan.", "path": "https://www.etsy.com/developers/your-apps" },
+              { "h3": "Otorisasi OAuth", "p": "Peroleh access token melalui otorisasi OAuth." },
+              { "h3": "Konfirmasi info pendaftaran", "p": "Periksa api_key yang diterbitkan dan shop_id toko Anda." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Setelah API Key (keystring) diterbitkan dan Anda memperoleh access token melalui otorisasi OAuth, berarti telah diterbitkan dengan benar." }
+          ]
+        },
+        {
+          "h2": "3. Informasi yang Harus Didaftarkan di GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Bidang", "Deskripsi"], "rows": [
+              ["api_key", "API Key (keystring) yang diterbitkan"],
+              ["shop_id", "Shop ID toko Etsy yang ingin Anda hubungkan"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Di GenieGo Integration Hub [Daftar], masukkan api_key dan shop_id Anda lalu simpan. Kredensial dienkripsi saat disimpan dengan AES-256-GCM dan disamarkan saat dibaca." }
+          ]
+        },
+        {
+          "h2": "4. Masalah Umum",
+          "blocks": [
+            { "type": "table", "head": ["Masalah", "Penyebab", "Solusi"], "rows": [
+              ["Tidak dapat membuat aplikasi", "Bukan akun penjual Etsy, atau portal developer belum diakses", "Akses etsy.com/developers dengan akun penjual Etsy Anda dan lanjutkan dengan [Create a New App]."],
+              ["Autentikasi gagal", "Otorisasi OAuth belum selesai, atau access token belum diterbitkan", "Setelah menerbitkan API Key (keystring), peroleh access token melalui otorisasi OAuth."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Daftar Periksa Akhir",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Mengakses etsy.com/developers dengan akun penjual Etsy saya.",
+              "Menerbitkan API Key (keystring) melalui [Create a New App].",
+              "Memperoleh access token melalui otorisasi OAuth.",
+              "Memasukkan api_key dan shop_id di GenieGo [Daftar] dan menyimpannya."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ar": {
+      "titleType": "دليل إصدار مفتاح API",
+      "badge": "دليل المبتدئين",
+      "intro": "دليل تفصيلي خطوة بخطوة سهل للمبتدئين لتسجيل تطبيق في بوابة مطوري Etsy لإصدار API Key (keystring)، والحصول على access token عبر تفويض OAuth، وتسجيله في GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["الوقت المقدر", "حوالي 5–15 دقيقة"],
+        ["الحساب المطلوب", "حساب بائع Etsy"],
+        ["المفاتيح المُصدَرة", "API Key (keystring) · Shop ID"],
+        ["النتيجة", "بيانات اعتماد API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. قبل أن تبدأ",
+          "desc": "يتم إصدار مفتاح API الخاص بـ Etsy عن طريق تسجيل تطبيق ضمن حساب البائع الخاص بك.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "مطلوب", "h3": "حساب بائع Etsy", "p": "للمتابعة في الإصدار، تحتاج إلى حساب بائع Etsy. ستستخدم هذا الحساب للوصول إلى بوابة مطوري Etsy." },
+              { "tag": "المفاتيح المُصدَرة", "h3": "API Key (keystring)", "p": "بمجرد إدخال معلومات تطبيقك، يتم إصدار API Key (keystring). ثم تحصل على access token عبر تفويض OAuth." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>ملاحظة:</strong> يتطلب التسجيل في GenieGo مفتاح api_key المُصدَر إلى جانب shop_id الذي يحدد متجرك." }
+          ]
+        },
+        {
+          "h2": "2. خطوات الإصدار",
+          "desc": "أصدر بالترتيب أدناه وسجّل في GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "إنشاء تطبيق جديد", "p": "انتقل إلى etsy.com/developers وانقر على [Create a New App].", "path": "etsy.com/developers" },
+              { "h3": "إدخال معلومات التطبيق وإصدار المفتاح", "p": "بمجرد إدخال معلومات تطبيقك، يتم إصدار API Key (keystring).", "path": "https://www.etsy.com/developers/your-apps" },
+              { "h3": "تفويض OAuth", "p": "احصل على access token عبر تفويض OAuth." },
+              { "h3": "تأكيد معلومات التسجيل", "p": "تحقق من api_key المُصدَر و shop_id الخاص بمتجرك." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "بمجرد إصدار API Key (keystring) وحصولك على access token عبر تفويض OAuth، يكون قد تم إصداره بشكل صحيح." }
+          ]
+        },
+        {
+          "h2": "3. المعلومات المطلوب تسجيلها في GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["الحقل", "الوصف"], "rows": [
+              ["api_key", "مفتاح API Key (keystring) المُصدَر"],
+              ["shop_id", "معرّف المتجر Shop ID لمتجر Etsy الذي تريد ربطه"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "في GenieGo Integration Hub [تسجيل]، أدخل api_key و shop_id ثم احفظ. يتم تشفير بيانات الاعتماد أثناء التخزين باستخدام AES-256-GCM وإخفاؤها عند القراءة." }
+          ]
+        },
+        {
+          "h2": "4. المشكلات الشائعة",
+          "blocks": [
+            { "type": "table", "head": ["المشكلة", "السبب", "الحل"], "rows": [
+              ["تعذر إنشاء تطبيق", "ليس حساب بائع Etsy، أو لم يتم الوصول إلى بوابة المطورين", "ادخل إلى etsy.com/developers بحساب بائع Etsy الخاص بك وتابع مع [Create a New App]."],
+              ["فشل المصادقة", "لم يكتمل تفويض OAuth، أو لم يتم إصدار access token", "بعد إصدار API Key (keystring)، احصل على access token عبر تفويض OAuth."]
+            ] }
+          ]
+        },
+        {
+          "h2": "قائمة التحقق النهائية",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "دخلت إلى etsy.com/developers بحساب بائع Etsy الخاص بي.",
+              "أصدرت API Key (keystring) عبر [Create a New App].",
+              "حصلت على access token عبر تفويض OAuth.",
+              "أدخلت api_key و shop_id في GenieGo [تسجيل] وحفظت."
+            ] }
+          ]
+        }
+      ]
+    },
+    "es": {
+      "titleType": "Manual de Emisión de API Key",
+      "badge": "Guía para principiantes",
+      "intro": "Una guía paso a paso apta para principiantes para registrar una app en el portal de desarrolladores de Etsy con el fin de emitir una API Key (keystring), obtener un access token mediante la autorización OAuth y registrarlo en el GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tiempo estimado", "Unos 5–15 min"],
+        ["Cuenta necesaria", "Cuenta de vendedor de Etsy"],
+        ["Claves emitidas", "API Key (keystring) · Shop ID"],
+        ["Resultado", "Credenciales de API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de empezar",
+          "desc": "La API Key de Etsy se emite registrando una app bajo tu cuenta de vendedor.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requerido", "h3": "Cuenta de vendedor de Etsy", "p": "Para proceder con la emisión, necesitas una cuenta de vendedor de Etsy. Usarás esta cuenta para acceder al portal de desarrolladores de Etsy." },
+              { "tag": "Claves emitidas", "h3": "API Key (keystring)", "p": "Una vez que ingreses la información de tu app, se emite una API Key (keystring). Luego obtienes un access token mediante la autorización OAuth." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Nota:</strong> El registro en GenieGo requiere la api_key emitida junto con el shop_id, que identifica tu tienda." }
+          ]
+        },
+        {
+          "h2": "2. Pasos de emisión",
+          "desc": "Emite en el orden siguiente y registra en GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Crear una nueva app", "p": "Ve a etsy.com/developers y haz clic en [Create a New App].", "path": "etsy.com/developers" },
+              { "h3": "Ingresar la información de la app y emitir la clave", "p": "Una vez que ingreses la información de tu app, se emite una API Key (keystring).", "path": "https://www.etsy.com/developers/your-apps" },
+              { "h3": "Autorización OAuth", "p": "Obtén un access token mediante la autorización OAuth." },
+              { "h3": "Confirmar la información de registro", "p": "Verifica la api_key emitida y el shop_id de tu tienda." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Una vez que se emite la API Key (keystring) y has obtenido un access token mediante la autorización OAuth, se ha emitido correctamente." }
+          ]
+        },
+        {
+          "h2": "3. Información para registrar en GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descripción"], "rows": [
+              ["api_key", "La API Key (keystring) emitida"],
+              ["shop_id", "El Shop ID de la tienda de Etsy que quieres conectar"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "En el GenieGo Integration Hub [Registrar], ingresa tu api_key y shop_id y guarda. Las credenciales se cifran en reposo con AES-256-GCM y se enmascaran al leerlas." }
+          ]
+        },
+        {
+          "h2": "4. Problemas frecuentes",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solución"], "rows": [
+              ["No se puede crear la app", "No es una cuenta de vendedor de Etsy, o no se accedió al portal de desarrolladores", "Accede a etsy.com/developers con tu cuenta de vendedor de Etsy y procede con [Create a New App]."],
+              ["Fallo de autenticación", "Autorización OAuth no completada, o access token no emitido", "Tras emitir la API Key (keystring), obtén un access token mediante la autorización OAuth."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificación final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Accedí a etsy.com/developers con mi cuenta de vendedor de Etsy.",
+              "Emití una API Key (keystring) mediante [Create a New App].",
+              "Obtuve un access token mediante la autorización OAuth.",
+              "Ingresé api_key y shop_id en GenieGo [Registrar] y guardé."
+            ] }
+          ]
+        }
+      ]
+    },
+    "fr": {
+      "titleType": "Manuel de Délivrance de la Clé API",
+      "badge": "Guide du débutant",
+      "intro": "Un guide pas à pas adapté aux débutants pour enregistrer une application dans le portail développeur d'Etsy afin de délivrer une API Key (keystring), obtenir un access token via l'autorisation OAuth et l'enregistrer dans le GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Temps estimé", "Environ 5–15 min"],
+        ["Compte requis", "Compte vendeur Etsy"],
+        ["Clés délivrées", "API Key (keystring) · Shop ID"],
+        ["Résultat", "Identifiants d'API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Avant de commencer",
+          "desc": "La clé API d'Etsy est délivrée en enregistrant une application sous votre compte vendeur.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requis", "h3": "Compte vendeur Etsy", "p": "Pour procéder à la délivrance, vous avez besoin d'un compte vendeur Etsy. Vous utiliserez ce compte pour accéder au portail développeur d'Etsy." },
+              { "tag": "Clés délivrées", "h3": "API Key (keystring)", "p": "Une fois que vous avez saisi les informations de votre application, une API Key (keystring) est délivrée. Vous obtenez ensuite un access token via l'autorisation OAuth." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Remarque :</strong> L'enregistrement dans GenieGo nécessite l'api_key délivrée ainsi que le shop_id, qui identifie votre boutique." }
+          ]
+        },
+        {
+          "h2": "2. Étapes de délivrance",
+          "desc": "Délivrez dans l'ordre ci-dessous et enregistrez dans GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Créer une nouvelle application", "p": "Rendez-vous sur etsy.com/developers et cliquez sur [Create a New App].", "path": "etsy.com/developers" },
+              { "h3": "Saisir les informations de l'application et délivrer la clé", "p": "Une fois que vous avez saisi les informations de votre application, une API Key (keystring) est délivrée.", "path": "https://www.etsy.com/developers/your-apps" },
+              { "h3": "Autorisation OAuth", "p": "Obtenez un access token via l'autorisation OAuth." },
+              { "h3": "Confirmer les informations d'enregistrement", "p": "Vérifiez l'api_key délivrée et le shop_id de votre boutique." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Une fois l'API Key (keystring) délivrée et un access token obtenu via l'autorisation OAuth, elle a été délivrée correctement." }
+          ]
+        },
+        {
+          "h2": "3. Informations à enregistrer dans GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Champ", "Description"], "rows": [
+              ["api_key", "L'API Key (keystring) délivrée"],
+              ["shop_id", "Le Shop ID de la boutique Etsy que vous souhaitez connecter"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Dans le GenieGo Integration Hub [Enregistrer], saisissez votre api_key et votre shop_id puis enregistrez. Les identifiants sont chiffrés au repos avec AES-256-GCM et masqués à la lecture." }
+          ]
+        },
+        {
+          "h2": "4. Problèmes fréquents",
+          "blocks": [
+            { "type": "table", "head": ["Problème", "Cause", "Solution"], "rows": [
+              ["Impossible de créer l'application", "Pas un compte vendeur Etsy, ou portail développeur non accédé", "Accédez à etsy.com/developers avec votre compte vendeur Etsy et procédez avec [Create a New App]."],
+              ["Échec d'authentification", "Autorisation OAuth non terminée, ou access token non délivré", "Après avoir délivré l'API Key (keystring), obtenez un access token via l'autorisation OAuth."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Liste de vérification finale",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Accédé à etsy.com/developers avec mon compte vendeur Etsy.",
+              "Délivré une API Key (keystring) via [Create a New App].",
+              "Obtenu un access token via l'autorisation OAuth.",
+              "Saisi api_key et shop_id dans GenieGo [Enregistrer] et enregistré."
+            ] }
+          ]
+        }
+      ]
+    },
+    "hi": {
+      "titleType": "API Key जारी करने की मैनुअल",
+      "badge": "शुरुआती गाइड",
+      "intro": "Etsy डेवलपर पोर्टल में एक ऐप पंजीकृत करके API Key (keystring) जारी करने, OAuth प्राधिकरण के माध्यम से access token प्राप्त करने और इसे GenieGo Integration Hub में पंजीकृत करने के लिए शुरुआती-अनुकूल चरण-दर-चरण गाइड।",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["अनुमानित समय", "लगभग 5–15 मिनट"],
+        ["आवश्यक खाता", "Etsy विक्रेता खाता"],
+        ["जारी की गई कुंजियाँ", "API Key (keystring) · Shop ID"],
+        ["परिणाम", "API क्रेडेंशियल"]
+      ],
+      "sections": [
+        {
+          "h2": "1. शुरू करने से पहले",
+          "desc": "Etsy API Key आपके विक्रेता खाते के तहत एक ऐप पंजीकृत करके जारी की जाती है।",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "आवश्यक", "h3": "Etsy विक्रेता खाता", "p": "जारी करने की प्रक्रिया आगे बढ़ाने के लिए, आपको एक Etsy विक्रेता खाते की आवश्यकता है। आप इस खाते से Etsy डेवलपर पोर्टल तक पहुँचेंगे।" },
+              { "tag": "जारी की गई कुंजियाँ", "h3": "API Key (keystring)", "p": "जब आप अपनी ऐप जानकारी दर्ज करते हैं, तो एक API Key (keystring) जारी हो जाती है। इसके बाद आप OAuth प्राधिकरण के माध्यम से access token प्राप्त करते हैं।" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>नोट:</strong> GenieGo पंजीकरण के लिए जारी की गई api_key के साथ-साथ shop_id की आवश्यकता होती है, जो आपकी दुकान की पहचान करती है।" }
+          ]
+        },
+        {
+          "h2": "2. जारी करने के चरण",
+          "desc": "नीचे दिए गए क्रम में जारी करें और GenieGo में पंजीकृत करें।",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "नई ऐप बनाएँ", "p": "etsy.com/developers पर जाएँ और [Create a New App] पर क्लिक करें।", "path": "etsy.com/developers" },
+              { "h3": "ऐप जानकारी दर्ज करें और कुंजी जारी करें", "p": "जब आप अपनी ऐप जानकारी दर्ज करते हैं, तो एक API Key (keystring) जारी हो जाती है।", "path": "https://www.etsy.com/developers/your-apps" },
+              { "h3": "OAuth प्राधिकरण", "p": "OAuth प्राधिकरण के माध्यम से access token प्राप्त करें।" },
+              { "h3": "पंजीकरण जानकारी की पुष्टि करें", "p": "जारी की गई api_key और अपनी दुकान की shop_id की जाँच करें।" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "जब API Key (keystring) जारी हो जाती है और आप OAuth प्राधिकरण के माध्यम से access token प्राप्त कर लेते हैं, तो यह सही ढंग से जारी की गई है।" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo में पंजीकृत करने की जानकारी",
+          "blocks": [
+            { "type": "table", "head": ["फ़ील्ड", "विवरण"], "rows": [
+              ["api_key", "जारी की गई API Key (keystring)"],
+              ["shop_id", "जिस Etsy दुकान को आप जोड़ना चाहते हैं उसकी Shop ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo Integration Hub [पंजीकृत करें] में अपनी api_key और shop_id दर्ज करें और सहेजें। क्रेडेंशियल को संग्रहण के समय AES-256-GCM से एन्क्रिप्ट किया जाता है और पढ़ते समय मास्क किया जाता है।" }
+          ]
+        },
+        {
+          "h2": "4. आम समस्याएँ",
+          "blocks": [
+            { "type": "table", "head": ["समस्या", "कारण", "समाधान"], "rows": [
+              ["ऐप नहीं बना सकते", "Etsy विक्रेता खाता नहीं है, या डेवलपर पोर्टल तक पहुँच नहीं", "अपने Etsy विक्रेता खाते से etsy.com/developers तक पहुँचें और [Create a New App] के साथ आगे बढ़ें।"],
+              ["प्रमाणीकरण विफल", "OAuth प्राधिकरण पूरा नहीं हुआ, या access token जारी नहीं हुआ", "API Key (keystring) जारी करने के बाद, OAuth प्राधिकरण के माध्यम से access token प्राप्त करें।"]
+            ] }
+          ]
+        },
+        {
+          "h2": "अंतिम जाँच सूची",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "अपने Etsy विक्रेता खाते से etsy.com/developers तक पहुँचा।",
+              "[Create a New App] के माध्यम से एक API Key (keystring) जारी की।",
+              "OAuth प्राधिकरण के माध्यम से access token प्राप्त किया।",
+              "GenieGo [पंजीकृत करें] में api_key और shop_id दर्ज किया और सहेजा।"
+            ] }
+          ]
+        }
+      ]
+    },
+    "pt": {
+      "titleType": "Manual de Emissão de API Key",
+      "badge": "Guia para iniciantes",
+      "intro": "Um guia passo a passo amigável para iniciantes sobre como registrar um app no portal de desenvolvedores da Etsy para emitir uma API Key (keystring), obter um access token via autorização OAuth e registrá-lo no GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tempo estimado", "Cerca de 5–15 min"],
+        ["Conta necessária", "Conta de vendedor da Etsy"],
+        ["Chaves emitidas", "API Key (keystring) · Shop ID"],
+        ["Resultado", "Credenciais de API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de começar",
+          "desc": "A API Key da Etsy é emitida registrando um app sob a sua conta de vendedor.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Obrigatório", "h3": "Conta de vendedor da Etsy", "p": "Para prosseguir com a emissão, você precisa de uma conta de vendedor da Etsy. Você usará esta conta para acessar o portal de desenvolvedores da Etsy." },
+              { "tag": "Chaves emitidas", "h3": "API Key (keystring)", "p": "Assim que você inserir as informações do seu app, uma API Key (keystring) é emitida. Em seguida, você obtém um access token via autorização OAuth." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Nota:</strong> O registro no GenieGo exige a api_key emitida juntamente com o shop_id, que identifica a sua loja." }
+          ]
+        },
+        {
+          "h2": "2. Etapas de emissão",
+          "desc": "Emita na ordem abaixo e registre no GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Criar um novo app", "p": "Acesse etsy.com/developers e clique em [Create a New App].", "path": "etsy.com/developers" },
+              { "h3": "Inserir informações do app e emitir a chave", "p": "Assim que você inserir as informações do seu app, uma API Key (keystring) é emitida.", "path": "https://www.etsy.com/developers/your-apps" },
+              { "h3": "Autorização OAuth", "p": "Obtenha um access token via autorização OAuth." },
+              { "h3": "Confirmar informações de registro", "p": "Verifique a api_key emitida e o shop_id da sua loja." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Assim que a API Key (keystring) for emitida e você obtiver um access token via autorização OAuth, ela foi emitida corretamente." }
+          ]
+        },
+        {
+          "h2": "3. Informações para registrar no GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descrição"], "rows": [
+              ["api_key", "A API Key (keystring) emitida"],
+              ["shop_id", "O Shop ID da loja Etsy que você deseja conectar"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "No GenieGo Integration Hub [Registrar], insira sua api_key e shop_id e salve. As credenciais são criptografadas em repouso com AES-256-GCM e mascaradas na leitura." }
+          ]
+        },
+        {
+          "h2": "4. Problemas comuns",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solução"], "rows": [
+              ["Não é possível criar o app", "Não é uma conta de vendedor da Etsy, ou o portal de desenvolvedores não foi acessado", "Acesse etsy.com/developers com sua conta de vendedor da Etsy e prossiga com [Create a New App]."],
+              ["Falha de autenticação", "Autorização OAuth não concluída, ou access token não emitido", "Após emitir a API Key (keystring), obtenha um access token via autorização OAuth."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificação final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Acessei etsy.com/developers com minha conta de vendedor da Etsy.",
+              "Emiti uma API Key (keystring) via [Create a New App].",
+              "Obtive um access token via autorização OAuth.",
+              "Inseri api_key e shop_id no GenieGo [Registrar] e salvei."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ru": {
+      "titleType": "Руководство по выпуску API Key",
+      "badge": "Руководство для новичков",
+      "intro": "Пошаговое руководство для начинающих по регистрации приложения в портале разработчиков Etsy для выпуска API Key (keystring), получению access token через авторизацию OAuth и регистрации его в GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Примерное время", "Около 5–15 мин"],
+        ["Требуемый аккаунт", "Аккаунт продавца Etsy"],
+        ["Выпускаемые ключи", "API Key (keystring) · Shop ID"],
+        ["Результат", "Учётные данные API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Прежде чем начать",
+          "desc": "API Key для Etsy выпускается путём регистрации приложения под вашим аккаунтом продавца.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Требуется", "h3": "Аккаунт продавца Etsy", "p": "Для выпуска вам нужен аккаунт продавца Etsy. С этого аккаунта вы войдёте в портал разработчиков Etsy." },
+              { "tag": "Выпускаемые ключи", "h3": "API Key (keystring)", "p": "После ввода информации о приложении выпускается API Key (keystring). Затем вы получаете access token через авторизацию OAuth." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Примечание:</strong> Для регистрации в GenieGo требуется выпущенный api_key вместе с shop_id, который идентифицирует ваш магазин." }
+          ]
+        },
+        {
+          "h2": "2. Шаги выпуска",
+          "desc": "Выпустите в указанном ниже порядке и зарегистрируйте в GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Создать новое приложение", "p": "Перейдите на etsy.com/developers и нажмите [Create a New App].", "path": "etsy.com/developers" },
+              { "h3": "Ввести информацию о приложении и выпустить ключ", "p": "После ввода информации о приложении выпускается API Key (keystring).", "path": "https://www.etsy.com/developers/your-apps" },
+              { "h3": "Авторизация OAuth", "p": "Получите access token через авторизацию OAuth." },
+              { "h3": "Подтвердить регистрационные данные", "p": "Проверьте выпущенный api_key и shop_id вашего магазина." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Как только API Key (keystring) выпущен и вы получили access token через авторизацию OAuth, он выпущен корректно." }
+          ]
+        },
+        {
+          "h2": "3. Информация для регистрации в GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Поле", "Описание"], "rows": [
+              ["api_key", "Выпущенный API Key (keystring)"],
+              ["shop_id", "Shop ID магазина Etsy, который вы хотите подключить"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "В GenieGo Integration Hub [Регистрация] введите ваш api_key и shop_id и сохраните. Учётные данные шифруются при хранении с помощью AES-256-GCM и маскируются при чтении." }
+          ]
+        },
+        {
+          "h2": "4. Частые проблемы",
+          "blocks": [
+            { "type": "table", "head": ["Проблема", "Причина", "Решение"], "rows": [
+              ["Не удаётся создать приложение", "Это не аккаунт продавца Etsy или не выполнен вход в портал разработчиков", "Войдите на etsy.com/developers с аккаунтом продавца Etsy и продолжите с [Create a New App]."],
+              ["Сбой аутентификации", "Авторизация OAuth не завершена или access token не выпущен", "После выпуска API Key (keystring) получите access token через авторизацию OAuth."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Итоговый чек-лист",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Вошёл на etsy.com/developers с аккаунтом продавца Etsy.",
+              "Выпустил API Key (keystring) через [Create a New App].",
+              "Получил access token через авторизацию OAuth.",
+              "Ввёл api_key и shop_id в GenieGo [Регистрация] и сохранил."
+            ] }
+          ]
+        }
+      ]
+    }
+  }
+}

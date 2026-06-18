@@ -1,0 +1,1011 @@
+{
+  "name": "Magento (Adobe Commerce)",
+  "icon": "🟧",
+  "langs": {
+    "ko": {
+      "titleType": "API Key 발급 매뉴얼",
+      "badge": "Beginner Guide",
+      "intro": "Magento(Adobe Commerce) 관리자에서 통합(Integration)을 만들어 액세스 토큰을 발급하고 GenieGo 연동 허브에 등록하는 과정을 초보자도 그대로 따라 할 수 있도록 정리한 매뉴얼입니다.",
+      "org": "GenieGo 연동 허브",
+      "quick": [
+        ["소요 시간", "약 5~15분"],
+        ["필요 계정", "Magento(Adobe Commerce) 관리자 권한"],
+        ["발급 키", "Integration 액세스 토큰"],
+        ["결과물", "REST API 자격증명"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 시작하기 전에",
+          "desc": "통합(Integration)은 관리자 권한에서만 만들 수 있습니다.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "필요", "h3": "Magento 관리자 권한", "p": "Magento(Adobe Commerce) 관리자 권한이 있어야 합니다. 일반 사용자 권한으로는 통합을 생성할 수 없습니다." },
+              { "tag": "발급 키", "h3": "Integration 액세스 토큰", "p": "통합(Integration)을 만들고 Activate하면 액세스 토큰이 발급됩니다." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. 발급 단계",
+          "desc": "아래 순서대로 발급하고 GenieGo에 등록합니다.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "통합(Integration) 메뉴 이동", "p": "Magento 관리자에서 [시스템] > [통합(Integration)]으로 이동합니다.", "path": "관리자 → 시스템 → 통합(Integration)" },
+              { "h3": "통합 생성", "p": "[Add New Integration]으로 통합을 만들고 리소스 권한을 설정합니다.", "path": "Add New Integration" },
+              { "h3": "Activate로 토큰 발급", "p": "[Activate]를 눌러 액세스 토큰을 발급받습니다.", "path": "Activate" },
+              { "h3": "정보 확인", "p": "발급된 액세스 토큰과 스토어 URL(base_url)을 확인합니다." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Activate 후 액세스 토큰이 표시되면 정상 발급된 것입니다." }
+          ]
+        },
+        {
+          "h2": "3. GenieGo에 등록할 정보",
+          "blocks": [
+            { "type": "table", "head": ["필드", "설명"], "rows": [
+              ["base_url", "스토어 URL"],
+              ["access_token", "발급된 Integration 액세스 토큰(노출 주의)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 연동 허브 [등록]에 base_url·access_token을 입력해 저장하면 자격증명은 AES-256-GCM으로 암호화 저장되고 조회 시 마스킹됩니다." }
+          ]
+        },
+        {
+          "h2": "4. 자주 발생하는 문제",
+          "blocks": [
+            { "type": "table", "head": ["문제", "원인", "해결"], "rows": [
+              ["통합 메뉴가 없음", "관리자 권한 부족", "통합 생성 권한이 있는 관리자 계정으로 로그인합니다."],
+              ["호출 시 권한 오류", "통합의 리소스 권한 미설정 또는 Activate 미완료", "통합의 리소스 권한을 설정하고 Activate를 완료해 토큰을 발급합니다."]
+            ] }
+          ]
+        },
+        {
+          "h2": "최종 체크리스트",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Magento(Adobe Commerce) 관리자 권한으로 로그인했다.",
+              "시스템 > 통합(Integration)에서 Add New Integration으로 통합을 만들었다.",
+              "리소스 권한을 설정하고 Activate로 액세스 토큰을 발급했다.",
+              "GenieGo [등록]에 base_url·access_token을 입력해 저장했다."
+            ] }
+          ]
+        }
+      ]
+    },
+    "en": {
+      "titleType": "API Key Issuance Manual",
+      "badge": "Beginner Guide",
+      "intro": "A beginner-friendly, step-by-step guide to creating an Integration in the Magento (Adobe Commerce) admin to issue an access token and registering it in the GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Est. time", "About 5–15 min"],
+        ["Account needed", "Magento (Adobe Commerce) admin privileges"],
+        ["Keys issued", "Integration access token"],
+        ["Result", "REST API credentials"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Before You Begin",
+          "desc": "An Integration can only be created with admin privileges.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Required", "h3": "Magento admin privileges", "p": "You need Magento (Adobe Commerce) admin privileges. An Integration cannot be created with regular user privileges." },
+              { "tag": "Keys issued", "h3": "Integration access token", "p": "When you create an Integration and click Activate, an access token is issued." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Issuance Steps",
+          "desc": "Issue in the order below and register in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Go to the Integration menu", "p": "In the Magento admin, go to [System] > [Integrations].", "path": "Admin → System → Integrations" },
+              { "h3": "Create an Integration", "p": "Create an Integration with [Add New Integration] and configure resource permissions.", "path": "Add New Integration" },
+              { "h3": "Issue the token via Activate", "p": "Click [Activate] to obtain the access token.", "path": "Activate" },
+              { "h3": "Verify the information", "p": "Confirm the issued access token and your store URL (base_url)." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Once the access token is shown after Activate, it has been issued correctly." }
+          ]
+        },
+        {
+          "h2": "3. Information to Register in GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Field", "Description"], "rows": [
+              ["base_url", "Store URL"],
+              ["access_token", "The issued Integration access token (handle with care)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Enter base_url·access_token in the GenieGo Integration Hub [Register] and save. Credentials are encrypted at rest with AES-256-GCM and masked on read." }
+          ]
+        },
+        {
+          "h2": "4. Common Issues",
+          "blocks": [
+            { "type": "table", "head": ["Issue", "Cause", "Solution"], "rows": [
+              ["The Integrations menu is missing", "Insufficient admin privileges", "Sign in with an admin account that has permission to create Integrations."],
+              ["Permission error on API calls", "Integration resource permissions not set, or Activate not completed", "Set the Integration's resource permissions and complete Activate to issue the token."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Final Checklist",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Signed in with Magento (Adobe Commerce) admin privileges.",
+              "Created an Integration via Add New Integration under System > Integrations.",
+              "Set resource permissions and issued the access token via Activate.",
+              "Entered base_url·access_token in GenieGo [Register] and saved."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ja": {
+      "titleType": "API Key 発行マニュアル",
+      "badge": "初心者ガイド",
+      "intro": "Magento(Adobe Commerce)管理者で統合(Integration)を作成してアクセストークンを発行し、GenieGo 連携ハブに登録する手順を、初心者でもそのまま実行できるようにまとめたマニュアルです。",
+      "org": "GenieGo 連携ハブ",
+      "quick": [
+        ["所要時間", "約 5〜15 分"],
+        ["必要なアカウント", "Magento(Adobe Commerce)管理者権限"],
+        ["発行するキー", "Integration アクセストークン"],
+        ["成果物", "REST API 認証情報"]
+      ],
+      "sections": [
+        {
+          "h2": "1. はじめる前に",
+          "desc": "統合(Integration)は管理者権限でのみ作成できます。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必須", "h3": "Magento 管理者権限", "p": "Magento(Adobe Commerce)の管理者権限が必要です。一般ユーザー権限では統合を作成できません。" },
+              { "tag": "発行するキー", "h3": "Integration アクセストークン", "p": "統合(Integration)を作成して Activate すると、アクセストークンが発行されます。" }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. 発行手順",
+          "desc": "以下の順序で発行し、GenieGo に登録します。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "統合(Integration)メニューへ移動", "p": "Magento 管理者で [システム] > [統合(Integration)] に移動します。", "path": "管理者 → システム → 統合(Integration)" },
+              { "h3": "統合を作成", "p": "[Add New Integration] で統合を作成し、リソース権限を設定します。", "path": "Add New Integration" },
+              { "h3": "Activate でトークン発行", "p": "[Activate] をクリックしてアクセストークンを発行します。", "path": "Activate" },
+              { "h3": "情報を確認", "p": "発行されたアクセストークンとストア URL(base_url)を確認します。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Activate 後にアクセストークンが表示されれば、正常に発行されています。" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo に登録する情報",
+          "blocks": [
+            { "type": "table", "head": ["フィールド", "説明"], "rows": [
+              ["base_url", "ストア URL"],
+              ["access_token", "発行された Integration アクセストークン(取り扱い注意)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 連携ハブの [登録] に base_url·access_token を入力して保存すると、認証情報は AES-256-GCM で暗号化して保存され、閲覧時にはマスキングされます。" }
+          ]
+        },
+        {
+          "h2": "4. よくある問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["統合メニューがない", "管理者権限の不足", "統合作成権限を持つ管理者アカウントでログインします。"],
+              ["呼び出し時の権限エラー", "統合のリソース権限が未設定、または Activate 未完了", "統合のリソース権限を設定し、Activate を完了してトークンを発行します。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終チェックリスト",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Magento(Adobe Commerce)管理者権限でログインした。",
+              "システム > 統合(Integration)で Add New Integration から統合を作成した。",
+              "リソース権限を設定し、Activate でアクセストークンを発行した。",
+              "GenieGo の [登録] に base_url·access_token を入力して保存した。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh": {
+      "titleType": "API Key 申请手册",
+      "badge": "新手指南",
+      "intro": "本手册手把手指导新手在 Magento(Adobe Commerce)管理后台中创建集成(Integration)以签发访问令牌，并将其注册到 GenieGo 集成中心。",
+      "org": "GenieGo 集成中心",
+      "quick": [
+        ["预计时间", "约 5~15 分钟"],
+        ["所需账户", "Magento(Adobe Commerce)管理员权限"],
+        ["签发密钥", "Integration 访问令牌"],
+        ["成果", "REST API 凭证"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 开始之前",
+          "desc": "集成(Integration)只能在管理员权限下创建。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "Magento 管理员权限", "p": "您需要 Magento(Adobe Commerce)管理员权限。使用普通用户权限无法创建集成。" },
+              { "tag": "签发密钥", "h3": "Integration 访问令牌", "p": "创建集成(Integration)并 Activate 后，即会签发访问令牌。" }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. 申请步骤",
+          "desc": "按以下顺序签发并在 GenieGo 中注册。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "进入集成(Integration)菜单", "p": "在 Magento 管理后台中，进入 [系统] > [集成(Integration)]。", "path": "管理后台 → 系统 → 集成(Integration)" },
+              { "h3": "创建集成", "p": "通过 [Add New Integration] 创建集成并设置资源权限。", "path": "Add New Integration" },
+              { "h3": "通过 Activate 签发令牌", "p": "点击 [Activate] 以获取访问令牌。", "path": "Activate" },
+              { "h3": "确认信息", "p": "确认签发的访问令牌和店铺 URL(base_url)。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Activate 后显示访问令牌时，即表示已正确签发。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中注册的信息",
+          "blocks": [
+            { "type": "table", "head": ["字段", "说明"], "rows": [
+              ["base_url", "店铺 URL"],
+              ["access_token", "签发的 Integration 访问令牌(请妥善保管)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 集成中心的 [注册] 中输入 base_url·access_token 并保存后，凭证将以 AES-256-GCM 加密存储，并在查询时进行掩码处理。" }
+          ]
+        },
+        {
+          "h2": "4. 常见问题",
+          "blocks": [
+            { "type": "table", "head": ["问题", "原因", "解决方法"], "rows": [
+              ["没有集成菜单", "管理员权限不足", "使用具有创建集成权限的管理员账户登录。"],
+              ["调用时权限错误", "未设置集成的资源权限，或未完成 Activate", "设置集成的资源权限并完成 Activate 以签发令牌。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最终检查清单",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已使用 Magento(Adobe Commerce)管理员权限登录。",
+              "已在 系统 > 集成(Integration) 中通过 Add New Integration 创建集成。",
+              "已设置资源权限并通过 Activate 签发访问令牌。",
+              "已在 GenieGo 的 [注册] 中输入 base_url·access_token 并保存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh-TW": {
+      "titleType": "API Key 申請手冊",
+      "badge": "新手指南",
+      "intro": "本手冊手把手指導新手在 Magento(Adobe Commerce)管理後台中建立整合(Integration)以簽發存取權杖，並將其註冊到 GenieGo 整合中心。",
+      "org": "GenieGo 整合中心",
+      "quick": [
+        ["預計時間", "約 5~15 分鐘"],
+        ["所需帳戶", "Magento(Adobe Commerce)管理員權限"],
+        ["簽發金鑰", "Integration 存取權杖"],
+        ["成果", "REST API 憑證"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 開始之前",
+          "desc": "整合(Integration)只能在管理員權限下建立。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "Magento 管理員權限", "p": "您需要 Magento(Adobe Commerce)管理員權限。使用一般使用者權限無法建立整合。" },
+              { "tag": "簽發金鑰", "h3": "Integration 存取權杖", "p": "建立整合(Integration)並 Activate 後，即會簽發存取權杖。" }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. 簽發步驟",
+          "desc": "依以下順序簽發並在 GenieGo 中註冊。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "進入整合(Integration)選單", "p": "在 Magento 管理後台中，進入 [系統] > [整合(Integration)]。", "path": "管理後台 → 系統 → 整合(Integration)" },
+              { "h3": "建立整合", "p": "透過 [Add New Integration] 建立整合並設定資源權限。", "path": "Add New Integration" },
+              { "h3": "透過 Activate 簽發權杖", "p": "點擊 [Activate] 以取得存取權杖。", "path": "Activate" },
+              { "h3": "確認資訊", "p": "確認簽發的存取權杖和商店 URL(base_url)。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Activate 後顯示存取權杖時，即表示已正確簽發。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中註冊的資訊",
+          "blocks": [
+            { "type": "table", "head": ["欄位", "說明"], "rows": [
+              ["base_url", "商店 URL"],
+              ["access_token", "簽發的 Integration 存取權杖(請妥善保管)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 整合中心的 [註冊] 中輸入 base_url·access_token 並儲存後，憑證將以 AES-256-GCM 加密儲存，並在查詢時進行遮罩處理。" }
+          ]
+        },
+        {
+          "h2": "4. 常見問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["沒有整合選單", "管理員權限不足", "使用具有建立整合權限的管理員帳戶登入。"],
+              ["呼叫時權限錯誤", "未設定整合的資源權限，或未完成 Activate", "設定整合的資源權限並完成 Activate 以簽發權杖。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終檢查清單",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已使用 Magento(Adobe Commerce)管理員權限登入。",
+              "已在 系統 > 整合(Integration) 中透過 Add New Integration 建立整合。",
+              "已設定資源權限並透過 Activate 簽發存取權杖。",
+              "已在 GenieGo 的 [註冊] 中輸入 base_url·access_token 並儲存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "de": {
+      "titleType": "Anleitung zur API-Key-Ausstellung",
+      "badge": "Einsteigerleitfaden",
+      "intro": "Eine einsteigerfreundliche Schritt-für-Schritt-Anleitung zum Erstellen einer Integration in der Magento-(Adobe Commerce)-Verwaltung, um ein Zugriffstoken auszustellen und es im GenieGo Integration Hub zu registrieren.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Geschätzte Zeit", "Etwa 5–15 Min."],
+        ["Benötigtes Konto", "Magento-(Adobe Commerce)-Administratorrechte"],
+        ["Ausgestellte Schlüssel", "Integration-Zugriffstoken"],
+        ["Ergebnis", "REST-API-Anmeldedaten"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Bevor Sie beginnen",
+          "desc": "Eine Integration kann nur mit Administratorrechten erstellt werden.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Erforderlich", "h3": "Magento-Administratorrechte", "p": "Sie benötigen Magento-(Adobe Commerce)-Administratorrechte. Mit normalen Benutzerrechten kann keine Integration erstellt werden." },
+              { "tag": "Ausgestellte Schlüssel", "h3": "Integration-Zugriffstoken", "p": "Wenn Sie eine Integration erstellen und auf Activate klicken, wird ein Zugriffstoken ausgestellt." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Ausstellungsschritte",
+          "desc": "Stellen Sie in der unten angegebenen Reihenfolge aus und registrieren Sie in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Zum Integrations-Menü gehen", "p": "Gehen Sie in der Magento-Verwaltung zu [System] > [Integrationen].", "path": "Verwaltung → System → Integrationen" },
+              { "h3": "Integration erstellen", "p": "Erstellen Sie eine Integration über [Add New Integration] und konfigurieren Sie die Ressourcenberechtigungen.", "path": "Add New Integration" },
+              { "h3": "Token über Activate ausstellen", "p": "Klicken Sie auf [Activate], um das Zugriffstoken zu erhalten.", "path": "Activate" },
+              { "h3": "Informationen überprüfen", "p": "Überprüfen Sie das ausgestellte Zugriffstoken und Ihre Store-URL (base_url)." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Sobald das Zugriffstoken nach Activate angezeigt wird, wurde es korrekt ausgestellt." }
+          ]
+        },
+        {
+          "h2": "3. In GenieGo zu registrierende Informationen",
+          "blocks": [
+            { "type": "table", "head": ["Feld", "Beschreibung"], "rows": [
+              ["base_url", "Store-URL"],
+              ["access_token", "Das ausgestellte Integration-Zugriffstoken (vertraulich behandeln)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Geben Sie im GenieGo Integration Hub unter [Registrieren] base_url·access_token ein und speichern Sie. Anmeldedaten werden im Ruhezustand mit AES-256-GCM verschlüsselt und beim Lesen maskiert." }
+          ]
+        },
+        {
+          "h2": "4. Häufige Probleme",
+          "blocks": [
+            { "type": "table", "head": ["Problem", "Ursache", "Lösung"], "rows": [
+              ["Das Integrations-Menü fehlt", "Unzureichende Administratorrechte", "Melden Sie sich mit einem Administratorkonto an, das die Berechtigung zum Erstellen von Integrationen hat."],
+              ["Berechtigungsfehler bei API-Aufrufen", "Ressourcenberechtigungen der Integration nicht gesetzt oder Activate nicht abgeschlossen", "Legen Sie die Ressourcenberechtigungen der Integration fest und schließen Sie Activate ab, um das Token auszustellen."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Abschließende Checkliste",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Mit Magento-(Adobe Commerce)-Administratorrechten angemeldet.",
+              "Eine Integration über Add New Integration unter System > Integrationen erstellt.",
+              "Ressourcenberechtigungen festgelegt und das Zugriffstoken über Activate ausgestellt.",
+              "base_url·access_token in GenieGo [Registrieren] eingegeben und gespeichert."
+            ] }
+          ]
+        }
+      ]
+    },
+    "th": {
+      "titleType": "คู่มือการออก API Key",
+      "badge": "คู่มือสำหรับผู้เริ่มต้น",
+      "intro": "คู่มือทีละขั้นตอนที่เป็นมิตรกับผู้เริ่มต้น สำหรับการสร้างการผสานรวม (Integration) ในหน้าผู้ดูแลระบบ Magento (Adobe Commerce) เพื่อออกโทเค็นการเข้าถึง และลงทะเบียนใน GenieGo Integration Hub",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["เวลาโดยประมาณ", "ประมาณ 5–15 นาที"],
+        ["บัญชีที่ต้องใช้", "สิทธิ์ผู้ดูแลระบบ Magento (Adobe Commerce)"],
+        ["คีย์ที่ออก", "โทเค็นการเข้าถึง Integration"],
+        ["ผลลัพธ์", "ข้อมูลรับรอง REST API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. ก่อนเริ่มต้น",
+          "desc": "การผสานรวม (Integration) สามารถสร้างได้เฉพาะด้วยสิทธิ์ผู้ดูแลระบบเท่านั้น",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "จำเป็น", "h3": "สิทธิ์ผู้ดูแลระบบ Magento", "p": "คุณต้องมีสิทธิ์ผู้ดูแลระบบ Magento (Adobe Commerce) ไม่สามารถสร้างการผสานรวมด้วยสิทธิ์ผู้ใช้ทั่วไปได้" },
+              { "tag": "คีย์ที่ออก", "h3": "โทเค็นการเข้าถึง Integration", "p": "เมื่อคุณสร้างการผสานรวม (Integration) และ Activate ระบบจะออกโทเค็นการเข้าถึงให้" }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. ขั้นตอนการออก",
+          "desc": "ออกตามลำดับด้านล่างและลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "ไปที่เมนูการผสานรวม (Integration)", "p": "ในหน้าผู้ดูแลระบบ Magento ไปที่ [ระบบ] > [การผสานรวม (Integration)]", "path": "ผู้ดูแลระบบ → ระบบ → การผสานรวม (Integration)" },
+              { "h3": "สร้างการผสานรวม", "p": "สร้างการผสานรวมด้วย [Add New Integration] และกำหนดสิทธิ์ทรัพยากร", "path": "Add New Integration" },
+              { "h3": "ออกโทเค็นด้วย Activate", "p": "คลิก [Activate] เพื่อรับโทเค็นการเข้าถึง", "path": "Activate" },
+              { "h3": "ตรวจสอบข้อมูล", "p": "ตรวจสอบโทเค็นการเข้าถึงที่ออกและ URL ของร้านค้า (base_url)" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "เมื่อโทเค็นการเข้าถึงแสดงขึ้นหลังจาก Activate แสดงว่าออกอย่างถูกต้อง" }
+          ]
+        },
+        {
+          "h2": "3. ข้อมูลที่ต้องลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["ฟิลด์", "คำอธิบาย"], "rows": [
+              ["base_url", "URL ของร้านค้า"],
+              ["access_token", "โทเค็นการเข้าถึง Integration ที่ออกแล้ว (จัดการด้วยความระมัดระวัง)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "ป้อน base_url·access_token ใน [ลงทะเบียน] ของ GenieGo Integration Hub แล้วบันทึก ข้อมูลรับรองจะถูกเข้ารหัสขณะจัดเก็บด้วย AES-256-GCM และปิดบังเมื่ออ่าน" }
+          ]
+        },
+        {
+          "h2": "4. ปัญหาที่พบบ่อย",
+          "blocks": [
+            { "type": "table", "head": ["ปัญหา", "สาเหตุ", "วิธีแก้ไข"], "rows": [
+              ["ไม่มีเมนูการผสานรวม", "สิทธิ์ผู้ดูแลระบบไม่เพียงพอ", "เข้าสู่ระบบด้วยบัญชีผู้ดูแลระบบที่มีสิทธิ์สร้างการผสานรวม"],
+              ["ข้อผิดพลาดด้านสิทธิ์เมื่อเรียกใช้", "ยังไม่ได้ตั้งค่าสิทธิ์ทรัพยากรของการผสานรวม หรือยังไม่ได้ทำ Activate", "ตั้งค่าสิทธิ์ทรัพยากรของการผสานรวมและทำ Activate ให้เสร็จเพื่อออกโทเค็น"]
+            ] }
+          ]
+        },
+        {
+          "h2": "รายการตรวจสอบขั้นสุดท้าย",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "เข้าสู่ระบบด้วยสิทธิ์ผู้ดูแลระบบ Magento (Adobe Commerce) แล้ว",
+              "สร้างการผสานรวมด้วย Add New Integration ที่ ระบบ > การผสานรวม (Integration) แล้ว",
+              "ตั้งค่าสิทธิ์ทรัพยากรและออกโทเค็นการเข้าถึงด้วย Activate แล้ว",
+              "ป้อน base_url·access_token ใน GenieGo [ลงทะเบียน] และบันทึกแล้ว"
+            ] }
+          ]
+        }
+      ]
+    },
+    "vi": {
+      "titleType": "Hướng dẫn cấp API Key",
+      "badge": "Hướng dẫn cho người mới",
+      "intro": "Hướng dẫn từng bước thân thiện với người mới về việc tạo một Integration trong trang quản trị Magento (Adobe Commerce) để cấp mã thông báo truy cập và đăng ký nó trong GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Thời gian dự kiến", "Khoảng 5–15 phút"],
+        ["Tài khoản cần thiết", "Quyền quản trị Magento (Adobe Commerce)"],
+        ["Khóa được cấp", "Mã thông báo truy cập Integration"],
+        ["Kết quả", "Thông tin xác thực REST API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Trước khi bắt đầu",
+          "desc": "Một Integration chỉ có thể được tạo với quyền quản trị.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Bắt buộc", "h3": "Quyền quản trị Magento", "p": "Bạn cần quyền quản trị Magento (Adobe Commerce). Không thể tạo Integration với quyền người dùng thông thường." },
+              { "tag": "Khóa được cấp", "h3": "Mã thông báo truy cập Integration", "p": "Khi bạn tạo một Integration và nhấp Activate, một mã thông báo truy cập sẽ được cấp." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Các bước cấp",
+          "desc": "Cấp theo thứ tự dưới đây và đăng ký trong GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Đi tới menu Integration", "p": "Trong trang quản trị Magento, đi tới [Hệ thống] > [Integrations].", "path": "Quản trị → Hệ thống → Integrations" },
+              { "h3": "Tạo một Integration", "p": "Tạo một Integration bằng [Add New Integration] và cấu hình quyền tài nguyên.", "path": "Add New Integration" },
+              { "h3": "Cấp mã thông báo qua Activate", "p": "Nhấp [Activate] để nhận mã thông báo truy cập.", "path": "Activate" },
+              { "h3": "Xác minh thông tin", "p": "Xác nhận mã thông báo truy cập đã cấp và URL cửa hàng (base_url) của bạn." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Khi mã thông báo truy cập hiển thị sau khi Activate, nghĩa là nó đã được cấp đúng cách." }
+          ]
+        },
+        {
+          "h2": "3. Thông tin cần đăng ký trong GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Trường", "Mô tả"], "rows": [
+              ["base_url", "URL cửa hàng"],
+              ["access_token", "Mã thông báo truy cập Integration đã được cấp (xử lý cẩn thận)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Nhập base_url·access_token trong [Đăng ký] của GenieGo Integration Hub rồi lưu. Thông tin xác thực được mã hóa khi lưu trữ bằng AES-256-GCM và được che khi đọc." }
+          ]
+        },
+        {
+          "h2": "4. Sự cố thường gặp",
+          "blocks": [
+            { "type": "table", "head": ["Sự cố", "Nguyên nhân", "Giải pháp"], "rows": [
+              ["Menu Integrations bị thiếu", "Quyền quản trị không đủ", "Đăng nhập bằng tài khoản quản trị có quyền tạo Integration."],
+              ["Lỗi quyền khi gọi API", "Quyền tài nguyên của Integration chưa được đặt, hoặc Activate chưa hoàn tất", "Đặt quyền tài nguyên của Integration và hoàn tất Activate để cấp mã thông báo."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Danh sách kiểm tra cuối cùng",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Đã đăng nhập với quyền quản trị Magento (Adobe Commerce).",
+              "Đã tạo một Integration qua Add New Integration trong Hệ thống > Integrations.",
+              "Đã đặt quyền tài nguyên và cấp mã thông báo truy cập qua Activate.",
+              "Đã nhập base_url·access_token vào GenieGo [Đăng ký] và lưu."
+            ] }
+          ]
+        }
+      ]
+    },
+    "id": {
+      "titleType": "Panduan Penerbitan API Key",
+      "badge": "Panduan Pemula",
+      "intro": "Panduan langkah demi langkah yang ramah pemula untuk membuat Integration di panel admin Magento (Adobe Commerce) guna menerbitkan token akses dan mendaftarkannya di GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Perkiraan waktu", "Sekitar 5–15 menit"],
+        ["Akun yang dibutuhkan", "Hak admin Magento (Adobe Commerce)"],
+        ["Kunci yang diterbitkan", "Token akses Integration"],
+        ["Hasil", "Kredensial REST API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Sebelum Anda Mulai",
+          "desc": "Integration hanya dapat dibuat dengan hak admin.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Diperlukan", "h3": "Hak admin Magento", "p": "Anda memerlukan hak admin Magento (Adobe Commerce). Integration tidak dapat dibuat dengan hak pengguna biasa." },
+              { "tag": "Kunci yang diterbitkan", "h3": "Token akses Integration", "p": "Saat Anda membuat Integration dan mengklik Activate, token akses akan diterbitkan." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Langkah Penerbitan",
+          "desc": "Terbitkan sesuai urutan di bawah dan daftarkan di GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Buka menu Integration", "p": "Di panel admin Magento, buka [Sistem] > [Integrations].", "path": "Admin → Sistem → Integrations" },
+              { "h3": "Buat Integration", "p": "Buat Integration dengan [Add New Integration] dan konfigurasikan izin sumber daya.", "path": "Add New Integration" },
+              { "h3": "Terbitkan token melalui Activate", "p": "Klik [Activate] untuk memperoleh token akses.", "path": "Activate" },
+              { "h3": "Verifikasi informasi", "p": "Konfirmasikan token akses yang diterbitkan dan URL toko (base_url) Anda." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Setelah token akses ditampilkan setelah Activate, berarti token telah diterbitkan dengan benar." }
+          ]
+        },
+        {
+          "h2": "3. Informasi yang Perlu Didaftarkan di GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Bidang", "Deskripsi"], "rows": [
+              ["base_url", "URL toko"],
+              ["access_token", "Token akses Integration yang diterbitkan (tangani dengan hati-hati)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Masukkan base_url·access_token di [Daftar] pada GenieGo Integration Hub lalu simpan. Kredensial dienkripsi saat disimpan dengan AES-256-GCM dan disamarkan saat dibaca." }
+          ]
+        },
+        {
+          "h2": "4. Masalah Umum",
+          "blocks": [
+            { "type": "table", "head": ["Masalah", "Penyebab", "Solusi"], "rows": [
+              ["Menu Integrations tidak ada", "Hak admin tidak memadai", "Masuk dengan akun admin yang memiliki izin untuk membuat Integration."],
+              ["Kesalahan izin saat pemanggilan", "Izin sumber daya Integration belum diatur, atau Activate belum selesai", "Atur izin sumber daya Integration dan selesaikan Activate untuk menerbitkan token."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Daftar Periksa Akhir",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Masuk dengan hak admin Magento (Adobe Commerce).",
+              "Membuat Integration melalui Add New Integration di Sistem > Integrations.",
+              "Mengatur izin sumber daya dan menerbitkan token akses melalui Activate.",
+              "Memasukkan base_url·access_token di GenieGo [Daftar] dan menyimpannya."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ar": {
+      "titleType": "دليل إصدار مفتاح API",
+      "badge": "دليل المبتدئين",
+      "intro": "دليل تفصيلي خطوة بخطوة مناسب للمبتدئين لإنشاء تكامل (Integration) في لوحة إدارة Magento (Adobe Commerce) لإصدار رمز وصول وتسجيله في GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["الوقت المقدّر", "حوالي 5–15 دقيقة"],
+        ["الحساب المطلوب", "صلاحيات مسؤول Magento (Adobe Commerce)"],
+        ["المفاتيح الصادرة", "رمز وصول Integration"],
+        ["النتيجة", "بيانات اعتماد REST API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. قبل أن تبدأ",
+          "desc": "لا يمكن إنشاء التكامل (Integration) إلا بصلاحيات المسؤول.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "مطلوب", "h3": "صلاحيات مسؤول Magento", "p": "تحتاج إلى صلاحيات مسؤول Magento (Adobe Commerce). لا يمكن إنشاء التكامل بصلاحيات المستخدم العادي." },
+              { "tag": "المفاتيح الصادرة", "h3": "رمز وصول Integration", "p": "عند إنشاء تكامل (Integration) والنقر على Activate، يتم إصدار رمز وصول." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. خطوات الإصدار",
+          "desc": "أصدِر بالترتيب أدناه وسجّل في GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "انتقل إلى قائمة Integration", "p": "في لوحة إدارة Magento، انتقل إلى [النظام] > [Integrations].", "path": "المسؤول → النظام → Integrations" },
+              { "h3": "إنشاء تكامل", "p": "أنشئ تكاملًا باستخدام [Add New Integration] واضبط أذونات الموارد.", "path": "Add New Integration" },
+              { "h3": "إصدار الرمز عبر Activate", "p": "انقر على [Activate] للحصول على رمز الوصول.", "path": "Activate" },
+              { "h3": "التحقق من المعلومات", "p": "تأكد من رمز الوصول الصادر وعنوان URL لمتجرك (base_url)." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "بمجرد ظهور رمز الوصول بعد Activate، يكون قد تم إصداره بشكل صحيح." }
+          ]
+        },
+        {
+          "h2": "3. المعلومات المراد تسجيلها في GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["الحقل", "الوصف"], "rows": [
+              ["base_url", "عنوان URL للمتجر"],
+              ["access_token", "رمز وصول Integration الصادر (تعامل معه بحذر)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "أدخل base_url·access_token في [تسجيل] ضمن GenieGo Integration Hub ثم احفظ. يتم تشفير بيانات الاعتماد أثناء التخزين باستخدام AES-256-GCM وإخفاؤها عند القراءة." }
+          ]
+        },
+        {
+          "h2": "4. المشكلات الشائعة",
+          "blocks": [
+            { "type": "table", "head": ["المشكلة", "السبب", "الحل"], "rows": [
+              ["قائمة Integrations غير موجودة", "صلاحيات المسؤول غير كافية", "سجّل الدخول بحساب مسؤول لديه إذن إنشاء عمليات التكامل."],
+              ["خطأ في الأذونات عند الاستدعاء", "لم تُضبط أذونات موارد التكامل، أو لم يكتمل Activate", "اضبط أذونات موارد التكامل وأكمل Activate لإصدار الرمز."]
+            ] }
+          ]
+        },
+        {
+          "h2": "قائمة التحقق النهائية",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "سجّلت الدخول بصلاحيات مسؤول Magento (Adobe Commerce).",
+              "أنشأت تكاملًا عبر Add New Integration ضمن النظام > Integrations.",
+              "ضبطت أذونات الموارد وأصدرت رمز الوصول عبر Activate.",
+              "أدخلت base_url·access_token في GenieGo [تسجيل] وحفظت."
+            ] }
+          ]
+        }
+      ]
+    },
+    "es": {
+      "titleType": "Manual de emisión de API Key",
+      "badge": "Guía para principiantes",
+      "intro": "Una guía paso a paso para principiantes para crear una Integración (Integration) en el administrador de Magento (Adobe Commerce) y emitir un token de acceso, y registrarlo en el GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tiempo estimado", "Unos 5–15 min"],
+        ["Cuenta necesaria", "Privilegios de administrador de Magento (Adobe Commerce)"],
+        ["Claves emitidas", "Token de acceso de Integration"],
+        ["Resultado", "Credenciales de REST API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de empezar",
+          "desc": "Una Integración solo se puede crear con privilegios de administrador.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requerido", "h3": "Privilegios de administrador de Magento", "p": "Necesita privilegios de administrador de Magento (Adobe Commerce). No se puede crear una Integración con privilegios de usuario normal." },
+              { "tag": "Claves emitidas", "h3": "Token de acceso de Integration", "p": "Cuando crea una Integración y hace clic en Activate, se emite un token de acceso." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Pasos de emisión",
+          "desc": "Emita en el orden siguiente y registre en GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Ir al menú Integration", "p": "En el administrador de Magento, vaya a [Sistema] > [Integrations].", "path": "Administrador → Sistema → Integrations" },
+              { "h3": "Crear una Integración", "p": "Cree una Integración con [Add New Integration] y configure los permisos de recursos.", "path": "Add New Integration" },
+              { "h3": "Emitir el token con Activate", "p": "Haga clic en [Activate] para obtener el token de acceso.", "path": "Activate" },
+              { "h3": "Verificar la información", "p": "Confirme el token de acceso emitido y la URL de su tienda (base_url)." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Una vez que el token de acceso se muestra tras Activate, se ha emitido correctamente." }
+          ]
+        },
+        {
+          "h2": "3. Información para registrar en GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descripción"], "rows": [
+              ["base_url", "URL de la tienda"],
+              ["access_token", "El token de acceso de Integration emitido (manéjelo con cuidado)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Introduzca base_url·access_token en [Registrar] del GenieGo Integration Hub y guarde. Las credenciales se cifran en reposo con AES-256-GCM y se enmascaran al leer." }
+          ]
+        },
+        {
+          "h2": "4. Problemas comunes",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solución"], "rows": [
+              ["Falta el menú Integrations", "Privilegios de administrador insuficientes", "Inicie sesión con una cuenta de administrador que tenga permiso para crear Integraciones."],
+              ["Error de permisos en las llamadas", "Permisos de recursos de la Integración no establecidos, o Activate no completado", "Establezca los permisos de recursos de la Integración y complete Activate para emitir el token."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificación final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Inició sesión con privilegios de administrador de Magento (Adobe Commerce).",
+              "Creó una Integración mediante Add New Integration en Sistema > Integrations.",
+              "Estableció los permisos de recursos y emitió el token de acceso con Activate.",
+              "Introdujo base_url·access_token en GenieGo [Registrar] y guardó."
+            ] }
+          ]
+        }
+      ]
+    },
+    "fr": {
+      "titleType": "Manuel d'émission de clé API",
+      "badge": "Guide du débutant",
+      "intro": "Un guide pas à pas convivial pour les débutants permettant de créer une intégration (Integration) dans l'administration Magento (Adobe Commerce) afin d'émettre un jeton d'accès et de l'enregistrer dans le GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Temps estimé", "Environ 5–15 min"],
+        ["Compte nécessaire", "Droits d'administrateur Magento (Adobe Commerce)"],
+        ["Clés émises", "Jeton d'accès Integration"],
+        ["Résultat", "Identifiants REST API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Avant de commencer",
+          "desc": "Une intégration ne peut être créée qu'avec des droits d'administrateur.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requis", "h3": "Droits d'administrateur Magento", "p": "Vous avez besoin de droits d'administrateur Magento (Adobe Commerce). Une intégration ne peut pas être créée avec des droits d'utilisateur ordinaire." },
+              { "tag": "Clés émises", "h3": "Jeton d'accès Integration", "p": "Lorsque vous créez une intégration et cliquez sur Activate, un jeton d'accès est émis." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Étapes d'émission",
+          "desc": "Émettez dans l'ordre ci-dessous et enregistrez dans GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Accéder au menu Integration", "p": "Dans l'administration Magento, allez dans [Système] > [Integrations].", "path": "Administration → Système → Integrations" },
+              { "h3": "Créer une intégration", "p": "Créez une intégration avec [Add New Integration] et configurez les autorisations de ressources.", "path": "Add New Integration" },
+              { "h3": "Émettre le jeton via Activate", "p": "Cliquez sur [Activate] pour obtenir le jeton d'accès.", "path": "Activate" },
+              { "h3": "Vérifier les informations", "p": "Confirmez le jeton d'accès émis et l'URL de votre boutique (base_url)." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Une fois que le jeton d'accès s'affiche après Activate, il a été émis correctement." }
+          ]
+        },
+        {
+          "h2": "3. Informations à enregistrer dans GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Champ", "Description"], "rows": [
+              ["base_url", "URL de la boutique"],
+              ["access_token", "Le jeton d'accès Integration émis (à manipuler avec soin)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Saisissez base_url·access_token dans [Enregistrer] du GenieGo Integration Hub et enregistrez. Les identifiants sont chiffrés au repos avec AES-256-GCM et masqués à la lecture." }
+          ]
+        },
+        {
+          "h2": "4. Problèmes fréquents",
+          "blocks": [
+            { "type": "table", "head": ["Problème", "Cause", "Solution"], "rows": [
+              ["Le menu Integrations est absent", "Droits d'administrateur insuffisants", "Connectez-vous avec un compte administrateur disposant de l'autorisation de créer des intégrations."],
+              ["Erreur d'autorisation lors des appels", "Autorisations de ressources de l'intégration non définies, ou Activate non terminé", "Définissez les autorisations de ressources de l'intégration et terminez Activate pour émettre le jeton."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Liste de vérification finale",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Connecté avec des droits d'administrateur Magento (Adobe Commerce).",
+              "Créé une intégration via Add New Integration dans Système > Integrations.",
+              "Défini les autorisations de ressources et émis le jeton d'accès via Activate.",
+              "Saisi base_url·access_token dans GenieGo [Enregistrer] et enregistré."
+            ] }
+          ]
+        }
+      ]
+    },
+    "hi": {
+      "titleType": "API Key जारी करने की मैनुअल",
+      "badge": "शुरुआती गाइड",
+      "intro": "एक्सेस टोकन जारी करने के लिए Magento (Adobe Commerce) एडमिन में एक इंटीग्रेशन (Integration) बनाने और उसे GenieGo Integration Hub में पंजीकृत करने की एक शुरुआती-अनुकूल, चरण-दर-चरण मार्गदर्शिका।",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["अनुमानित समय", "लगभग 5–15 मिनट"],
+        ["आवश्यक खाता", "Magento (Adobe Commerce) एडमिन अधिकार"],
+        ["जारी की गई कुंजियाँ", "Integration एक्सेस टोकन"],
+        ["परिणाम", "REST API क्रेडेंशियल"]
+      ],
+      "sections": [
+        {
+          "h2": "1. शुरू करने से पहले",
+          "desc": "इंटीग्रेशन (Integration) केवल एडमिन अधिकारों के साथ ही बनाया जा सकता है।",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "आवश्यक", "h3": "Magento एडमिन अधिकार", "p": "आपको Magento (Adobe Commerce) एडमिन अधिकारों की आवश्यकता है। सामान्य उपयोगकर्ता अधिकारों से इंटीग्रेशन नहीं बनाया जा सकता।" },
+              { "tag": "जारी की गई कुंजियाँ", "h3": "Integration एक्सेस टोकन", "p": "जब आप एक इंटीग्रेशन (Integration) बनाते हैं और Activate पर क्लिक करते हैं, तो एक एक्सेस टोकन जारी हो जाता है।" }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. जारी करने के चरण",
+          "desc": "नीचे दिए गए क्रम में जारी करें और GenieGo में पंजीकृत करें।",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Integration मेनू पर जाएँ", "p": "Magento एडमिन में, [सिस्टम] > [Integrations] पर जाएँ।", "path": "एडमिन → सिस्टम → Integrations" },
+              { "h3": "इंटीग्रेशन बनाएँ", "p": "[Add New Integration] से एक इंटीग्रेशन बनाएँ और संसाधन अनुमतियाँ कॉन्फ़िगर करें।", "path": "Add New Integration" },
+              { "h3": "Activate से टोकन जारी करें", "p": "एक्सेस टोकन प्राप्त करने के लिए [Activate] पर क्लिक करें।", "path": "Activate" },
+              { "h3": "जानकारी सत्यापित करें", "p": "जारी किए गए एक्सेस टोकन और अपने स्टोर URL (base_url) की पुष्टि करें।" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Activate के बाद जब एक्सेस टोकन दिखता है, तो इसका मतलब है कि यह सही ढंग से जारी हो गया है।" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo में पंजीकृत करने की जानकारी",
+          "blocks": [
+            { "type": "table", "head": ["फ़ील्ड", "विवरण"], "rows": [
+              ["base_url", "स्टोर URL"],
+              ["access_token", "जारी किया गया Integration एक्सेस टोकन (सावधानी से संभालें)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo Integration Hub के [पंजीकरण] में base_url·access_token दर्ज करें और सहेजें। क्रेडेंशियल को संग्रहण के समय AES-256-GCM से एन्क्रिप्ट किया जाता है और पढ़ते समय मास्क किया जाता है।" }
+          ]
+        },
+        {
+          "h2": "4. सामान्य समस्याएँ",
+          "blocks": [
+            { "type": "table", "head": ["समस्या", "कारण", "समाधान"], "rows": [
+              ["Integrations मेनू मौजूद नहीं है", "अपर्याप्त एडमिन अधिकार", "ऐसे एडमिन खाते से लॉग इन करें जिसके पास इंटीग्रेशन बनाने की अनुमति हो।"],
+              ["कॉल करते समय अनुमति त्रुटि", "इंटीग्रेशन की संसाधन अनुमतियाँ सेट नहीं हैं, या Activate पूरा नहीं हुआ", "इंटीग्रेशन की संसाधन अनुमतियाँ सेट करें और टोकन जारी करने के लिए Activate पूरा करें।"]
+            ] }
+          ]
+        },
+        {
+          "h2": "अंतिम चेकलिस्ट",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Magento (Adobe Commerce) एडमिन अधिकारों से लॉग इन किया।",
+              "सिस्टम > Integrations में Add New Integration के माध्यम से एक इंटीग्रेशन बनाया।",
+              "संसाधन अनुमतियाँ सेट कीं और Activate से एक्सेस टोकन जारी किया।",
+              "GenieGo [पंजीकरण] में base_url·access_token दर्ज किया और सहेजा।"
+            ] }
+          ]
+        }
+      ]
+    },
+    "pt": {
+      "titleType": "Manual de emissão de API Key",
+      "badge": "Guia para iniciantes",
+      "intro": "Um guia passo a passo amigável para iniciantes para criar uma Integração (Integration) no administrador do Magento (Adobe Commerce) a fim de emitir um token de acesso e registrá-lo no GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tempo estimado", "Cerca de 5–15 min"],
+        ["Conta necessária", "Privilégios de administrador do Magento (Adobe Commerce)"],
+        ["Chaves emitidas", "Token de acesso de Integration"],
+        ["Resultado", "Credenciais de REST API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de começar",
+          "desc": "Uma Integração só pode ser criada com privilégios de administrador.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Obrigatório", "h3": "Privilégios de administrador do Magento", "p": "Você precisa de privilégios de administrador do Magento (Adobe Commerce). Uma Integração não pode ser criada com privilégios de usuário comum." },
+              { "tag": "Chaves emitidas", "h3": "Token de acesso de Integration", "p": "Quando você cria uma Integração e clica em Activate, um token de acesso é emitido." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Etapas de emissão",
+          "desc": "Emita na ordem abaixo e registre no GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Ir ao menu Integration", "p": "No administrador do Magento, vá em [Sistema] > [Integrations].", "path": "Administrador → Sistema → Integrations" },
+              { "h3": "Criar uma Integração", "p": "Crie uma Integração com [Add New Integration] e configure as permissões de recursos.", "path": "Add New Integration" },
+              { "h3": "Emitir o token via Activate", "p": "Clique em [Activate] para obter o token de acesso.", "path": "Activate" },
+              { "h3": "Verificar as informações", "p": "Confirme o token de acesso emitido e o URL da sua loja (base_url)." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Assim que o token de acesso for exibido após Activate, ele foi emitido corretamente." }
+          ]
+        },
+        {
+          "h2": "3. Informações para registrar no GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descrição"], "rows": [
+              ["base_url", "URL da loja"],
+              ["access_token", "O token de acesso de Integration emitido (manuseie com cuidado)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Insira base_url·access_token em [Registrar] no GenieGo Integration Hub e salve. As credenciais são criptografadas em repouso com AES-256-GCM e mascaradas na leitura." }
+          ]
+        },
+        {
+          "h2": "4. Problemas comuns",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solução"], "rows": [
+              ["O menu Integrations está ausente", "Privilégios de administrador insuficientes", "Faça login com uma conta de administrador que tenha permissão para criar Integrações."],
+              ["Erro de permissão nas chamadas", "Permissões de recursos da Integração não definidas, ou Activate não concluído", "Defina as permissões de recursos da Integração e conclua o Activate para emitir o token."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificação final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Fez login com privilégios de administrador do Magento (Adobe Commerce).",
+              "Criou uma Integração via Add New Integration em Sistema > Integrations.",
+              "Definiu as permissões de recursos e emitiu o token de acesso via Activate.",
+              "Inseriu base_url·access_token em GenieGo [Registrar] e salvou."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ru": {
+      "titleType": "Руководство по выпуску API Key",
+      "badge": "Руководство для начинающих",
+      "intro": "Пошаговое руководство для начинающих по созданию интеграции (Integration) в админ-панели Magento (Adobe Commerce) для выпуска токена доступа и его регистрации в GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Примерное время", "Около 5–15 мин"],
+        ["Требуемая учётная запись", "Права администратора Magento (Adobe Commerce)"],
+        ["Выпускаемые ключи", "Токен доступа Integration"],
+        ["Результат", "Учётные данные REST API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Перед началом",
+          "desc": "Интеграцию можно создать только с правами администратора.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Требуется", "h3": "Права администратора Magento", "p": "Вам нужны права администратора Magento (Adobe Commerce). С правами обычного пользователя создать интеграцию нельзя." },
+              { "tag": "Выпускаемые ключи", "h3": "Токен доступа Integration", "p": "Когда вы создаёте интеграцию (Integration) и нажимаете Activate, выпускается токен доступа." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Шаги выпуска",
+          "desc": "Выпустите в указанном ниже порядке и зарегистрируйте в GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Перейдите в меню Integration", "p": "В админ-панели Magento перейдите в [Система] > [Integrations].", "path": "Администратор → Система → Integrations" },
+              { "h3": "Создайте интеграцию", "p": "Создайте интеграцию с помощью [Add New Integration] и настройте разрешения ресурсов.", "path": "Add New Integration" },
+              { "h3": "Выпустите токен через Activate", "p": "Нажмите [Activate], чтобы получить токен доступа.", "path": "Activate" },
+              { "h3": "Проверьте информацию", "p": "Подтвердите выпущенный токен доступа и URL вашего магазина (base_url)." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Как только токен доступа отображается после Activate, он выпущен правильно." }
+          ]
+        },
+        {
+          "h2": "3. Информация для регистрации в GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Поле", "Описание"], "rows": [
+              ["base_url", "URL магазина"],
+              ["access_token", "Выпущенный токен доступа Integration (обращайтесь осторожно)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Введите base_url·access_token в [Регистрация] в GenieGo Integration Hub и сохраните. Учётные данные шифруются при хранении с помощью AES-256-GCM и маскируются при чтении." }
+          ]
+        },
+        {
+          "h2": "4. Частые проблемы",
+          "blocks": [
+            { "type": "table", "head": ["Проблема", "Причина", "Решение"], "rows": [
+              ["Меню Integrations отсутствует", "Недостаточно прав администратора", "Войдите под учётной записью администратора, имеющей разрешение на создание интеграций."],
+              ["Ошибка разрешений при вызове", "Не заданы разрешения ресурсов интеграции, или не завершён Activate", "Задайте разрешения ресурсов интеграции и завершите Activate, чтобы выпустить токен."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Итоговый контрольный список",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Вошёл с правами администратора Magento (Adobe Commerce).",
+              "Создал интеграцию через Add New Integration в разделе Система > Integrations.",
+              "Задал разрешения ресурсов и выпустил токен доступа через Activate.",
+              "Ввёл base_url·access_token в GenieGo [Регистрация] и сохранил."
+            ] }
+          ]
+        }
+      ]
+    }
+  }
+}

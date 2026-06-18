@@ -1,0 +1,1011 @@
+{
+  "name": "FedEx",
+  "icon": "📮",
+  "langs": {
+    "ko": {
+      "titleType": "API Key 발급 매뉴얼",
+      "badge": "Beginner Guide",
+      "intro": "FedEx 개발자 포털(developer.fedex.com)에서 프로젝트를 생성해 API Key와 Secret Key를 발급하고, FedEx 계정번호와 함께 GenieGo 연동 허브에 등록하는 과정을 정리한 매뉴얼입니다.",
+      "org": "GenieGo 연동 허브",
+      "quick": [
+        ["소요 시간", "약 5~15분"],
+        ["필요 계정", "FedEx 계정(계정번호)"],
+        ["발급 키", "API Key · Secret Key"],
+        ["결과물", "API 자격증명 · 계정번호"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 시작하기 전에",
+          "desc": "FedEx 자격증명은 개발자 포털에서 프로젝트를 생성해 발급하며, 계정번호가 필요합니다.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "준비물", "h3": "FedEx 계정번호", "p": "FedEx 계정번호가 필요합니다. 계정번호는 GenieGo 등록 시 함께 입력합니다." },
+              { "tag": "발급 키", "h3": "API Key · Secret Key", "p": "개발자 포털에서 프로젝트를 생성하면 API Key와 Secret Key가 발급됩니다." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. 발급 단계",
+          "desc": "아래 순서대로 발급하고 GenieGo에 등록합니다.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "개발자 포털 가입·로그인", "p": "FedEx 개발자 포털에 가입하고 로그인합니다.", "path": "https://developer.fedex.com" },
+              { "h3": "프로젝트 생성", "p": "프로젝트를 생성하면 API Key와 Secret Key가 발급됩니다.", "path": "프로젝트 생성" },
+              { "h3": "키·계정번호 확인", "p": "발급된 API Key·Secret Key와 FedEx 계정번호를 확인합니다." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "프로젝트 생성 후 API Key·Secret Key가 발급되면 정상입니다." }
+          ]
+        },
+        {
+          "h2": "3. GenieGo에 등록할 정보",
+          "blocks": [
+            { "type": "table", "head": ["필드", "설명"], "rows": [
+              ["api_key", "발급된 API Key"],
+              ["api_secret", "발급된 Secret Key(노출 주의)"],
+              ["account_number", "FedEx 계정번호"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 연동 허브 [등록]에 입력해 저장하면 자격증명은 AES-256-GCM으로 암호화 저장되고 조회 시 마스킹됩니다." }
+          ]
+        },
+        {
+          "h2": "4. 자주 발생하는 문제",
+          "blocks": [
+            { "type": "table", "head": ["문제", "원인", "해결"], "rows": [
+              ["프로젝트에서 키가 보이지 않음", "프로젝트 생성 미완료", "developer.fedex.com에서 프로젝트를 생성하면 API Key·Secret Key가 발급됩니다."],
+              ["호출 시 인증 오류", "Secret Key 오기재 또는 계정번호 누락", "api_secret과 계정번호(account_number)를 다시 확인합니다."]
+            ] }
+          ]
+        },
+        {
+          "h2": "최종 체크리스트",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "FedEx 계정번호를 확인했다.",
+              "developer.fedex.com에 가입하고 프로젝트를 생성했다.",
+              "API Key·Secret Key를 발급받았다.",
+              "GenieGo [등록]에 api_key·api_secret·account_number를 입력해 저장했다."
+            ] }
+          ]
+        }
+      ]
+    },
+    "en": {
+      "titleType": "API Key Issuance Manual",
+      "badge": "Beginner Guide",
+      "intro": "A guide covering how to create a project on the FedEx Developer Portal (developer.fedex.com) to issue an API Key and Secret Key, and register them together with your FedEx account number in the GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Est. time", "About 5–15 min"],
+        ["Account needed", "FedEx account (account number)"],
+        ["Keys issued", "API Key · Secret Key"],
+        ["Result", "API credentials · account number"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Before You Begin",
+          "desc": "FedEx credentials are issued by creating a project on the Developer Portal, and an account number is required.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Prerequisite", "h3": "FedEx account number", "p": "You need a FedEx account number. The account number is entered together when registering in GenieGo." },
+              { "tag": "Keys issued", "h3": "API Key · Secret Key", "p": "When you create a project on the Developer Portal, an API Key and Secret Key are issued." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Issuance Steps",
+          "desc": "Issue in the order below and register in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Sign up and log in to the Developer Portal", "p": "Sign up for the FedEx Developer Portal and log in.", "path": "https://developer.fedex.com" },
+              { "h3": "Create a project", "p": "When you create a project, an API Key and Secret Key are issued.", "path": "Create project" },
+              { "h3": "Verify the keys and account number", "p": "Verify the issued API Key, Secret Key, and your FedEx account number." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Once the API Key and Secret Key are issued after creating the project, it is working correctly." }
+          ]
+        },
+        {
+          "h2": "3. Information to Register in GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Field", "Description"], "rows": [
+              ["api_key", "The issued API Key"],
+              ["api_secret", "The issued Secret Key (handle with care)"],
+              ["account_number", "FedEx account number"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Enter and save them in the GenieGo Integration Hub [Register], and the credentials are encrypted at rest with AES-256-GCM and masked on read." }
+          ]
+        },
+        {
+          "h2": "4. Common Issues",
+          "blocks": [
+            { "type": "table", "head": ["Issue", "Cause", "Solution"], "rows": [
+              ["Keys are not visible in the project", "Project creation not completed", "Create a project on developer.fedex.com and the API Key and Secret Key will be issued."],
+              ["Authentication error when calling", "Secret Key entered incorrectly, or account number missing", "Re-check api_secret and the account number (account_number)."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Final Checklist",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Verified the FedEx account number.",
+              "Signed up at developer.fedex.com and created a project.",
+              "Issued the API Key and Secret Key.",
+              "Entered api_key·api_secret·account_number in GenieGo [Register] and saved."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ja": {
+      "titleType": "API Key 発行マニュアル",
+      "badge": "初心者ガイド",
+      "intro": "FedEx 開発者ポータル(developer.fedex.com)でプロジェクトを作成して API Key と Secret Key を発行し、FedEx アカウント番号とともに GenieGo 連携ハブに登録する手順をまとめたマニュアルです。",
+      "org": "GenieGo 連携ハブ",
+      "quick": [
+        ["所要時間", "約 5〜15 分"],
+        ["必要なアカウント", "FedEx アカウント(アカウント番号)"],
+        ["発行するキー", "API Key · Secret Key"],
+        ["成果物", "API 認証情報 · アカウント番号"]
+      ],
+      "sections": [
+        {
+          "h2": "1. はじめる前に",
+          "desc": "FedEx の認証情報は開発者ポータルでプロジェクトを作成して発行し、アカウント番号が必要です。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "準備物", "h3": "FedEx アカウント番号", "p": "FedEx アカウント番号が必要です。アカウント番号は GenieGo 登録時に一緒に入力します。" },
+              { "tag": "発行するキー", "h3": "API Key · Secret Key", "p": "開発者ポータルでプロジェクトを作成すると API Key と Secret Key が発行されます。" }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. 発行手順",
+          "desc": "以下の順序で発行し、GenieGo に登録します。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "開発者ポータルに登録・ログイン", "p": "FedEx 開発者ポータルに登録してログインします。", "path": "https://developer.fedex.com" },
+              { "h3": "プロジェクトの作成", "p": "プロジェクトを作成すると API Key と Secret Key が発行されます。", "path": "プロジェクトを作成" },
+              { "h3": "キー・アカウント番号の確認", "p": "発行された API Key・Secret Key と FedEx アカウント番号を確認します。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "プロジェクト作成後に API Key・Secret Key が発行されれば正常です。" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo に登録する情報",
+          "blocks": [
+            { "type": "table", "head": ["フィールド", "説明"], "rows": [
+              ["api_key", "発行された API Key"],
+              ["api_secret", "発行された Secret Key(取り扱い注意)"],
+              ["account_number", "FedEx アカウント番号"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 連携ハブ [登録] に入力して保存すると、認証情報は AES-256-GCM で暗号化して保存され、閲覧時にはマスキングされます。" }
+          ]
+        },
+        {
+          "h2": "4. よくある問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["プロジェクトでキーが表示されない", "プロジェクト作成が未完了", "developer.fedex.com でプロジェクトを作成すると API Key・Secret Key が発行されます。"],
+              ["呼び出し時に認証エラー", "Secret Key の誤記、またはアカウント番号の欠落", "api_secret とアカウント番号(account_number)を再度確認します。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終チェックリスト",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "FedEx アカウント番号を確認した。",
+              "developer.fedex.com に登録してプロジェクトを作成した。",
+              "API Key・Secret Key を発行した。",
+              "GenieGo [登録] に api_key·api_secret·account_number を入力して保存した。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh": {
+      "titleType": "API Key 申请手册",
+      "badge": "新手指南",
+      "intro": "本手册整理了在 FedEx 开发者门户(developer.fedex.com)创建项目以签发 API Key 和 Secret Key，并连同 FedEx 账户编号一起注册到 GenieGo 集成中心的流程。",
+      "org": "GenieGo 集成中心",
+      "quick": [
+        ["预计时间", "约 5~15 分钟"],
+        ["所需账户", "FedEx 账户(账户编号)"],
+        ["签发密钥", "API Key · Secret Key"],
+        ["成果", "API 凭证 · 账户编号"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 开始之前",
+          "desc": "FedEx 凭证通过在开发者门户创建项目来签发，并且需要账户编号。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "准备物", "h3": "FedEx 账户编号", "p": "您需要一个 FedEx 账户编号。账户编号需在注册 GenieGo 时一并输入。" },
+              { "tag": "签发密钥", "h3": "API Key · Secret Key", "p": "在开发者门户创建项目后，将签发 API Key 和 Secret Key。" }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. 申请步骤",
+          "desc": "按以下顺序签发并在 GenieGo 中注册。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "注册并登录开发者门户", "p": "注册 FedEx 开发者门户并登录。", "path": "https://developer.fedex.com" },
+              { "h3": "创建项目", "p": "创建项目后，将签发 API Key 和 Secret Key。", "path": "创建项目" },
+              { "h3": "确认密钥与账户编号", "p": "确认已签发的 API Key·Secret Key 以及 FedEx 账户编号。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "创建项目后签发 API Key·Secret Key 即表示正常。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中注册的信息",
+          "blocks": [
+            { "type": "table", "head": ["字段", "说明"], "rows": [
+              ["api_key", "签发的 API Key"],
+              ["api_secret", "签发的 Secret Key(请妥善保管)"],
+              ["account_number", "FedEx 账户编号"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 集成中心 [注册] 中输入并保存后，凭证将以 AES-256-GCM 加密存储，并在查询时进行掩码处理。" }
+          ]
+        },
+        {
+          "h2": "4. 常见问题",
+          "blocks": [
+            { "type": "table", "head": ["问题", "原因", "解决方法"], "rows": [
+              ["项目中看不到密钥", "项目创建未完成", "在 developer.fedex.com 创建项目后，将签发 API Key·Secret Key。"],
+              ["调用时出现认证错误", "Secret Key 填写错误或缺少账户编号", "重新确认 api_secret 和账户编号(account_number)。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最终检查清单",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已确认 FedEx 账户编号。",
+              "已在 developer.fedex.com 注册并创建项目。",
+              "已签发 API Key·Secret Key。",
+              "已在 GenieGo [注册] 中输入 api_key·api_secret·account_number 并保存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh-TW": {
+      "titleType": "API Key 申請手冊",
+      "badge": "新手指南",
+      "intro": "本手冊整理了在 FedEx 開發者入口網站(developer.fedex.com)建立專案以簽發 API Key 和 Secret Key，並連同 FedEx 帳號編號一起註冊到 GenieGo 整合中心的流程。",
+      "org": "GenieGo 整合中心",
+      "quick": [
+        ["預計時間", "約 5~15 分鐘"],
+        ["所需帳戶", "FedEx 帳戶(帳號編號)"],
+        ["簽發金鑰", "API Key · Secret Key"],
+        ["成果", "API 憑證 · 帳號編號"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 開始之前",
+          "desc": "FedEx 憑證透過在開發者入口網站建立專案來簽發，並且需要帳號編號。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "準備物", "h3": "FedEx 帳號編號", "p": "您需要一個 FedEx 帳號編號。帳號編號需在註冊 GenieGo 時一併輸入。" },
+              { "tag": "簽發金鑰", "h3": "API Key · Secret Key", "p": "在開發者入口網站建立專案後，將簽發 API Key 和 Secret Key。" }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. 簽發步驟",
+          "desc": "依以下順序簽發並在 GenieGo 中註冊。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "註冊並登入開發者入口網站", "p": "註冊 FedEx 開發者入口網站並登入。", "path": "https://developer.fedex.com" },
+              { "h3": "建立專案", "p": "建立專案後，將簽發 API Key 和 Secret Key。", "path": "建立專案" },
+              { "h3": "確認金鑰與帳號編號", "p": "確認已簽發的 API Key·Secret Key 以及 FedEx 帳號編號。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "建立專案後簽發 API Key·Secret Key 即表示正常。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中註冊的資訊",
+          "blocks": [
+            { "type": "table", "head": ["欄位", "說明"], "rows": [
+              ["api_key", "簽發的 API Key"],
+              ["api_secret", "簽發的 Secret Key(請妥善保管)"],
+              ["account_number", "FedEx 帳號編號"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 整合中心 [註冊] 中輸入並儲存後，憑證將以 AES-256-GCM 加密儲存，並在查詢時進行遮罩處理。" }
+          ]
+        },
+        {
+          "h2": "4. 常見問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["專案中看不到金鑰", "專案建立未完成", "在 developer.fedex.com 建立專案後，將簽發 API Key·Secret Key。"],
+              ["呼叫時出現驗證錯誤", "Secret Key 填寫錯誤或缺少帳號編號", "重新確認 api_secret 和帳號編號(account_number)。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終檢查清單",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已確認 FedEx 帳號編號。",
+              "已在 developer.fedex.com 註冊並建立專案。",
+              "已簽發 API Key·Secret Key。",
+              "已在 GenieGo [註冊] 中輸入 api_key·api_secret·account_number 並儲存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "de": {
+      "titleType": "Anleitung zur API-Key-Ausstellung",
+      "badge": "Einsteigerleitfaden",
+      "intro": "Eine Anleitung, die beschreibt, wie Sie im FedEx-Entwicklerportal (developer.fedex.com) ein Projekt erstellen, um einen API Key und einen Secret Key auszustellen, und diese zusammen mit Ihrer FedEx-Kontonummer im GenieGo Integration Hub registrieren.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Geschätzte Zeit", "Etwa 5–15 Min."],
+        ["Benötigtes Konto", "FedEx-Konto (Kontonummer)"],
+        ["Ausgestellte Schlüssel", "API Key · Secret Key"],
+        ["Ergebnis", "API-Anmeldedaten · Kontonummer"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Bevor Sie beginnen",
+          "desc": "FedEx-Anmeldedaten werden durch das Erstellen eines Projekts im Entwicklerportal ausgestellt, und eine Kontonummer ist erforderlich.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Voraussetzung", "h3": "FedEx-Kontonummer", "p": "Sie benötigen eine FedEx-Kontonummer. Die Kontonummer wird bei der Registrierung in GenieGo zusammen eingegeben." },
+              { "tag": "Ausgestellte Schlüssel", "h3": "API Key · Secret Key", "p": "Wenn Sie im Entwicklerportal ein Projekt erstellen, werden ein API Key und ein Secret Key ausgestellt." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Ausstellungsschritte",
+          "desc": "Stellen Sie in der unten angegebenen Reihenfolge aus und registrieren Sie in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Im Entwicklerportal registrieren und anmelden", "p": "Registrieren Sie sich im FedEx-Entwicklerportal und melden Sie sich an.", "path": "https://developer.fedex.com" },
+              { "h3": "Projekt erstellen", "p": "Wenn Sie ein Projekt erstellen, werden ein API Key und ein Secret Key ausgestellt.", "path": "Projekt erstellen" },
+              { "h3": "Schlüssel und Kontonummer überprüfen", "p": "Überprüfen Sie den ausgestellten API Key, den Secret Key und Ihre FedEx-Kontonummer." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Sobald nach dem Erstellen des Projekts der API Key und der Secret Key ausgestellt wurden, funktioniert es korrekt." }
+          ]
+        },
+        {
+          "h2": "3. In GenieGo zu registrierende Informationen",
+          "blocks": [
+            { "type": "table", "head": ["Feld", "Beschreibung"], "rows": [
+              ["api_key", "Der ausgestellte API Key"],
+              ["api_secret", "Der ausgestellte Secret Key (vertraulich behandeln)"],
+              ["account_number", "FedEx-Kontonummer"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Geben Sie sie im GenieGo Integration Hub [Registrieren] ein und speichern Sie; die Anmeldedaten werden im Ruhezustand mit AES-256-GCM verschlüsselt und beim Lesen maskiert." }
+          ]
+        },
+        {
+          "h2": "4. Häufige Probleme",
+          "blocks": [
+            { "type": "table", "head": ["Problem", "Ursache", "Lösung"], "rows": [
+              ["Schlüssel sind im Projekt nicht sichtbar", "Projekterstellung nicht abgeschlossen", "Erstellen Sie ein Projekt auf developer.fedex.com, und der API Key und der Secret Key werden ausgestellt."],
+              ["Authentifizierungsfehler beim Aufruf", "Secret Key falsch eingegeben oder Kontonummer fehlt", "Überprüfen Sie api_secret und die Kontonummer (account_number) erneut."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Abschließende Checkliste",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Die FedEx-Kontonummer überprüft.",
+              "Bei developer.fedex.com registriert und ein Projekt erstellt.",
+              "Den API Key und den Secret Key ausgestellt.",
+              "api_key·api_secret·account_number in GenieGo [Registrieren] eingegeben und gespeichert."
+            ] }
+          ]
+        }
+      ]
+    },
+    "th": {
+      "titleType": "คู่มือการออก API Key",
+      "badge": "คู่มือสำหรับผู้เริ่มต้น",
+      "intro": "คู่มือที่สรุปขั้นตอนการสร้างโปรเจกต์บนพอร์ทัลนักพัฒนา FedEx (developer.fedex.com) เพื่อออก API Key และ Secret Key และลงทะเบียนพร้อมกับหมายเลขบัญชี FedEx ใน GenieGo Integration Hub",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["เวลาโดยประมาณ", "ประมาณ 5–15 นาที"],
+        ["บัญชีที่ต้องใช้", "บัญชี FedEx (หมายเลขบัญชี)"],
+        ["คีย์ที่ออก", "API Key · Secret Key"],
+        ["ผลลัพธ์", "ข้อมูลรับรอง API · หมายเลขบัญชี"]
+      ],
+      "sections": [
+        {
+          "h2": "1. ก่อนเริ่มต้น",
+          "desc": "ข้อมูลรับรอง FedEx ออกโดยการสร้างโปรเจกต์บนพอร์ทัลนักพัฒนา และจำเป็นต้องมีหมายเลขบัญชี",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "สิ่งที่ต้องเตรียม", "h3": "หมายเลขบัญชี FedEx", "p": "คุณต้องมีหมายเลขบัญชี FedEx หมายเลขบัญชีจะกรอกพร้อมกันตอนลงทะเบียนใน GenieGo" },
+              { "tag": "คีย์ที่ออก", "h3": "API Key · Secret Key", "p": "เมื่อคุณสร้างโปรเจกต์บนพอร์ทัลนักพัฒนา จะมีการออก API Key และ Secret Key" }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. ขั้นตอนการออก",
+          "desc": "ออกตามลำดับด้านล่างและลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "ลงทะเบียนและเข้าสู่ระบบพอร์ทัลนักพัฒนา", "p": "ลงทะเบียนพอร์ทัลนักพัฒนา FedEx และเข้าสู่ระบบ", "path": "https://developer.fedex.com" },
+              { "h3": "สร้างโปรเจกต์", "p": "เมื่อสร้างโปรเจกต์ จะมีการออก API Key และ Secret Key", "path": "สร้างโปรเจกต์" },
+              { "h3": "ตรวจสอบคีย์และหมายเลขบัญชี", "p": "ตรวจสอบ API Key·Secret Key ที่ออกแล้ว และหมายเลขบัญชี FedEx" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "เมื่อออก API Key·Secret Key หลังจากสร้างโปรเจกต์แล้ว แสดงว่าทำงานได้ถูกต้อง" }
+          ]
+        },
+        {
+          "h2": "3. ข้อมูลที่ต้องลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["ฟิลด์", "คำอธิบาย"], "rows": [
+              ["api_key", "API Key ที่ออกแล้ว"],
+              ["api_secret", "Secret Key ที่ออกแล้ว (จัดการด้วยความระมัดระวัง)"],
+              ["account_number", "หมายเลขบัญชี FedEx"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "กรอกและบันทึกใน GenieGo Integration Hub [ลงทะเบียน] แล้ว ข้อมูลรับรองจะถูกเข้ารหัสขณะจัดเก็บด้วย AES-256-GCM และปิดบังเมื่ออ่าน" }
+          ]
+        },
+        {
+          "h2": "4. ปัญหาที่พบบ่อย",
+          "blocks": [
+            { "type": "table", "head": ["ปัญหา", "สาเหตุ", "วิธีแก้ไข"], "rows": [
+              ["ไม่เห็นคีย์ในโปรเจกต์", "การสร้างโปรเจกต์ยังไม่เสร็จสมบูรณ์", "สร้างโปรเจกต์ที่ developer.fedex.com แล้ว API Key·Secret Key จะถูกออก"],
+              ["เกิดข้อผิดพลาดการยืนยันตัวตนเมื่อเรียกใช้", "กรอก Secret Key ผิด หรือขาดหมายเลขบัญชี", "ตรวจสอบ api_secret และหมายเลขบัญชี (account_number) อีกครั้ง"]
+            ] }
+          ]
+        },
+        {
+          "h2": "รายการตรวจสอบขั้นสุดท้าย",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "ตรวจสอบหมายเลขบัญชี FedEx แล้ว",
+              "ลงทะเบียนที่ developer.fedex.com และสร้างโปรเจกต์แล้ว",
+              "ออก API Key·Secret Key แล้ว",
+              "กรอก api_key·api_secret·account_number ใน GenieGo [ลงทะเบียน] และบันทึกแล้ว"
+            ] }
+          ]
+        }
+      ]
+    },
+    "vi": {
+      "titleType": "Hướng dẫn cấp API Key",
+      "badge": "Hướng dẫn cho người mới",
+      "intro": "Hướng dẫn tổng hợp quy trình tạo dự án trên Cổng nhà phát triển FedEx (developer.fedex.com) để cấp API Key và Secret Key, rồi đăng ký cùng với số tài khoản FedEx trong GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Thời gian dự kiến", "Khoảng 5–15 phút"],
+        ["Tài khoản cần thiết", "Tài khoản FedEx (số tài khoản)"],
+        ["Khóa được cấp", "API Key · Secret Key"],
+        ["Kết quả", "Thông tin xác thực API · số tài khoản"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Trước khi bắt đầu",
+          "desc": "Thông tin xác thực FedEx được cấp bằng cách tạo một dự án trên Cổng nhà phát triển, và cần có số tài khoản.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Cần chuẩn bị", "h3": "Số tài khoản FedEx", "p": "Bạn cần một số tài khoản FedEx. Số tài khoản được nhập cùng lúc khi đăng ký trong GenieGo." },
+              { "tag": "Khóa được cấp", "h3": "API Key · Secret Key", "p": "Khi bạn tạo một dự án trên Cổng nhà phát triển, API Key và Secret Key sẽ được cấp." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Các bước cấp",
+          "desc": "Cấp theo thứ tự dưới đây và đăng ký trong GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Đăng ký và đăng nhập Cổng nhà phát triển", "p": "Đăng ký Cổng nhà phát triển FedEx và đăng nhập.", "path": "https://developer.fedex.com" },
+              { "h3": "Tạo dự án", "p": "Khi bạn tạo một dự án, API Key và Secret Key sẽ được cấp.", "path": "Tạo dự án" },
+              { "h3": "Xác minh khóa và số tài khoản", "p": "Xác minh API Key·Secret Key đã được cấp và số tài khoản FedEx." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Khi API Key·Secret Key được cấp sau khi tạo dự án, nghĩa là nó đang hoạt động đúng cách." }
+          ]
+        },
+        {
+          "h2": "3. Thông tin cần đăng ký trong GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Trường", "Mô tả"], "rows": [
+              ["api_key", "API Key đã được cấp"],
+              ["api_secret", "Secret Key đã được cấp (xử lý cẩn thận)"],
+              ["account_number", "Số tài khoản FedEx"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Nhập và lưu chúng trong GenieGo Integration Hub [Đăng ký]; thông tin xác thực được mã hóa khi lưu trữ bằng AES-256-GCM và được che khi đọc." }
+          ]
+        },
+        {
+          "h2": "4. Sự cố thường gặp",
+          "blocks": [
+            { "type": "table", "head": ["Sự cố", "Nguyên nhân", "Giải pháp"], "rows": [
+              ["Không thấy khóa trong dự án", "Việc tạo dự án chưa hoàn tất", "Tạo một dự án trên developer.fedex.com và API Key·Secret Key sẽ được cấp."],
+              ["Lỗi xác thực khi gọi", "Nhập sai Secret Key hoặc thiếu số tài khoản", "Kiểm tra lại api_secret và số tài khoản (account_number)."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Danh sách kiểm tra cuối cùng",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Đã xác minh số tài khoản FedEx.",
+              "Đã đăng ký tại developer.fedex.com và tạo một dự án.",
+              "Đã cấp API Key·Secret Key.",
+              "Đã nhập api_key·api_secret·account_number vào GenieGo [Đăng ký] và lưu."
+            ] }
+          ]
+        }
+      ]
+    },
+    "id": {
+      "titleType": "Panduan Penerbitan API Key",
+      "badge": "Panduan Pemula",
+      "intro": "Panduan yang merangkum proses membuat proyek di Portal Developer FedEx (developer.fedex.com) untuk menerbitkan API Key dan Secret Key, lalu mendaftarkannya bersama nomor akun FedEx di GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Perkiraan waktu", "Sekitar 5–15 menit"],
+        ["Akun yang dibutuhkan", "Akun FedEx (nomor akun)"],
+        ["Kunci yang diterbitkan", "API Key · Secret Key"],
+        ["Hasil", "Kredensial API · nomor akun"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Sebelum Anda Mulai",
+          "desc": "Kredensial FedEx diterbitkan dengan membuat proyek di Portal Developer, dan diperlukan nomor akun.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Persiapan", "h3": "Nomor akun FedEx", "p": "Anda memerlukan nomor akun FedEx. Nomor akun dimasukkan bersamaan saat mendaftar di GenieGo." },
+              { "tag": "Kunci yang diterbitkan", "h3": "API Key · Secret Key", "p": "Saat Anda membuat proyek di Portal Developer, API Key dan Secret Key akan diterbitkan." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Langkah Penerbitan",
+          "desc": "Terbitkan sesuai urutan di bawah dan daftarkan di GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Daftar dan masuk ke Portal Developer", "p": "Daftar ke Portal Developer FedEx dan masuk.", "path": "https://developer.fedex.com" },
+              { "h3": "Buat proyek", "p": "Saat Anda membuat proyek, API Key dan Secret Key akan diterbitkan.", "path": "Buat proyek" },
+              { "h3": "Verifikasi kunci dan nomor akun", "p": "Verifikasi API Key·Secret Key yang diterbitkan dan nomor akun FedEx Anda." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Setelah API Key·Secret Key diterbitkan setelah membuat proyek, berarti sudah berfungsi dengan benar." }
+          ]
+        },
+        {
+          "h2": "3. Informasi yang Didaftarkan di GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Bidang", "Deskripsi"], "rows": [
+              ["api_key", "API Key yang diterbitkan"],
+              ["api_secret", "Secret Key yang diterbitkan (tangani dengan hati-hati)"],
+              ["account_number", "Nomor akun FedEx"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Masukkan dan simpan di GenieGo Integration Hub [Daftar]; kredensial dienkripsi saat disimpan dengan AES-256-GCM dan disamarkan saat dibaca." }
+          ]
+        },
+        {
+          "h2": "4. Masalah yang Sering Terjadi",
+          "blocks": [
+            { "type": "table", "head": ["Masalah", "Penyebab", "Solusi"], "rows": [
+              ["Kunci tidak terlihat di proyek", "Pembuatan proyek belum selesai", "Buat proyek di developer.fedex.com dan API Key·Secret Key akan diterbitkan."],
+              ["Kesalahan autentikasi saat memanggil", "Secret Key salah dimasukkan atau nomor akun tidak ada", "Periksa kembali api_secret dan nomor akun (account_number)."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Daftar Periksa Akhir",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Memverifikasi nomor akun FedEx.",
+              "Mendaftar di developer.fedex.com dan membuat proyek.",
+              "Menerbitkan API Key·Secret Key.",
+              "Memasukkan api_key·api_secret·account_number di GenieGo [Daftar] dan menyimpannya."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ar": {
+      "titleType": "دليل إصدار API Key",
+      "badge": "دليل المبتدئين",
+      "intro": "دليل يلخص عملية إنشاء مشروع على بوابة مطوري FedEx (developer.fedex.com) لإصدار API Key وSecret Key، وتسجيلهما مع رقم حساب FedEx في GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["الوقت المقدر", "حوالي 5–15 دقيقة"],
+        ["الحساب المطلوب", "حساب FedEx (رقم الحساب)"],
+        ["المفاتيح الصادرة", "API Key · Secret Key"],
+        ["النتيجة", "بيانات اعتماد API · رقم الحساب"]
+      ],
+      "sections": [
+        {
+          "h2": "1. قبل أن تبدأ",
+          "desc": "تُصدر بيانات اعتماد FedEx عن طريق إنشاء مشروع على بوابة المطورين، ويلزم وجود رقم حساب.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "المتطلبات", "h3": "رقم حساب FedEx", "p": "تحتاج إلى رقم حساب FedEx. يُدخل رقم الحساب معًا عند التسجيل في GenieGo." },
+              { "tag": "المفاتيح الصادرة", "h3": "API Key · Secret Key", "p": "عند إنشاء مشروع على بوابة المطورين، يتم إصدار API Key وSecret Key." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. خطوات الإصدار",
+          "desc": "أصدر حسب الترتيب أدناه وسجّل في GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "التسجيل وتسجيل الدخول إلى بوابة المطورين", "p": "سجّل في بوابة مطوري FedEx وسجّل الدخول.", "path": "https://developer.fedex.com" },
+              { "h3": "إنشاء مشروع", "p": "عند إنشاء مشروع، يتم إصدار API Key وSecret Key.", "path": "إنشاء مشروع" },
+              { "h3": "التحقق من المفاتيح ورقم الحساب", "p": "تحقق من API Key·Secret Key الصادرين ورقم حساب FedEx الخاص بك." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "بمجرد إصدار API Key·Secret Key بعد إنشاء المشروع، فهذا يعني أنه يعمل بشكل صحيح." }
+          ]
+        },
+        {
+          "h2": "3. المعلومات المراد تسجيلها في GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["الحقل", "الوصف"], "rows": [
+              ["api_key", "API Key الصادر"],
+              ["api_secret", "Secret Key الصادر (تعامل معه بحذر)"],
+              ["account_number", "رقم حساب FedEx"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "أدخلها واحفظها في GenieGo Integration Hub [تسجيل]؛ تُشفَّر بيانات الاعتماد أثناء التخزين باستخدام AES-256-GCM وتُخفى عند القراءة." }
+          ]
+        },
+        {
+          "h2": "4. المشكلات الشائعة",
+          "blocks": [
+            { "type": "table", "head": ["المشكلة", "السبب", "الحل"], "rows": [
+              ["المفاتيح غير مرئية في المشروع", "لم يكتمل إنشاء المشروع", "أنشئ مشروعًا على developer.fedex.com وسيتم إصدار API Key·Secret Key."],
+              ["خطأ في المصادقة عند الاستدعاء", "إدخال Secret Key بشكل خاطئ أو غياب رقم الحساب", "أعد التحقق من api_secret ورقم الحساب (account_number)."]
+            ] }
+          ]
+        },
+        {
+          "h2": "قائمة التحقق النهائية",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "تم التحقق من رقم حساب FedEx.",
+              "تم التسجيل في developer.fedex.com وإنشاء مشروع.",
+              "تم إصدار API Key·Secret Key.",
+              "تم إدخال api_key·api_secret·account_number في GenieGo [تسجيل] وحفظه."
+            ] }
+          ]
+        }
+      ]
+    },
+    "es": {
+      "titleType": "Manual de emisión de API Key",
+      "badge": "Guía para principiantes",
+      "intro": "Una guía que resume el proceso de crear un proyecto en el Portal de Desarrolladores de FedEx (developer.fedex.com) para emitir una API Key y una Secret Key, y registrarlas junto con su número de cuenta de FedEx en el GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tiempo estimado", "Unos 5–15 min"],
+        ["Cuenta necesaria", "Cuenta de FedEx (número de cuenta)"],
+        ["Claves emitidas", "API Key · Secret Key"],
+        ["Resultado", "Credenciales de API · número de cuenta"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de empezar",
+          "desc": "Las credenciales de FedEx se emiten creando un proyecto en el Portal de Desarrolladores, y se requiere un número de cuenta.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requisito", "h3": "Número de cuenta de FedEx", "p": "Necesita un número de cuenta de FedEx. El número de cuenta se introduce junto al registrarse en GenieGo." },
+              { "tag": "Claves emitidas", "h3": "API Key · Secret Key", "p": "Cuando crea un proyecto en el Portal de Desarrolladores, se emiten una API Key y una Secret Key." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Pasos de emisión",
+          "desc": "Emita en el orden siguiente y regístrelas en GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Registrarse e iniciar sesión en el Portal de Desarrolladores", "p": "Regístrese en el Portal de Desarrolladores de FedEx e inicie sesión.", "path": "https://developer.fedex.com" },
+              { "h3": "Crear un proyecto", "p": "Cuando crea un proyecto, se emiten una API Key y una Secret Key.", "path": "Crear proyecto" },
+              { "h3": "Verificar las claves y el número de cuenta", "p": "Verifique la API Key y la Secret Key emitidas y su número de cuenta de FedEx." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Una vez que se emiten la API Key y la Secret Key tras crear el proyecto, funciona correctamente." }
+          ]
+        },
+        {
+          "h2": "3. Información para registrar en GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descripción"], "rows": [
+              ["api_key", "La API Key emitida"],
+              ["api_secret", "La Secret Key emitida (manéjela con cuidado)"],
+              ["account_number", "Número de cuenta de FedEx"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Introdúzcalas y guárdelas en el GenieGo Integration Hub [Registrar]; las credenciales se cifran en reposo con AES-256-GCM y se enmascaran al leerlas." }
+          ]
+        },
+        {
+          "h2": "4. Problemas frecuentes",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solución"], "rows": [
+              ["Las claves no son visibles en el proyecto", "Creación del proyecto no completada", "Cree un proyecto en developer.fedex.com y se emitirán la API Key y la Secret Key."],
+              ["Error de autenticación al llamar", "Secret Key introducida incorrectamente o número de cuenta faltante", "Vuelva a comprobar api_secret y el número de cuenta (account_number)."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificación final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Verificó el número de cuenta de FedEx.",
+              "Se registró en developer.fedex.com y creó un proyecto.",
+              "Emitió la API Key y la Secret Key.",
+              "Introdujo api_key·api_secret·account_number en GenieGo [Registrar] y los guardó."
+            ] }
+          ]
+        }
+      ]
+    },
+    "fr": {
+      "titleType": "Manuel d'émission de la clé API",
+      "badge": "Guide pour débutants",
+      "intro": "Un guide qui résume le processus de création d'un projet sur le portail développeur FedEx (developer.fedex.com) pour émettre une API Key et une Secret Key, puis de les enregistrer avec votre numéro de compte FedEx dans le GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Temps estimé", "Environ 5–15 min"],
+        ["Compte nécessaire", "Compte FedEx (numéro de compte)"],
+        ["Clés émises", "API Key · Secret Key"],
+        ["Résultat", "Identifiants API · numéro de compte"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Avant de commencer",
+          "desc": "Les identifiants FedEx sont émis en créant un projet sur le portail développeur, et un numéro de compte est requis.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Prérequis", "h3": "Numéro de compte FedEx", "p": "Vous avez besoin d'un numéro de compte FedEx. Le numéro de compte est saisi en même temps lors de l'enregistrement dans GenieGo." },
+              { "tag": "Clés émises", "h3": "API Key · Secret Key", "p": "Lorsque vous créez un projet sur le portail développeur, une API Key et une Secret Key sont émises." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Étapes d'émission",
+          "desc": "Émettez dans l'ordre ci-dessous et enregistrez dans GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "S'inscrire et se connecter au portail développeur", "p": "Inscrivez-vous au portail développeur FedEx et connectez-vous.", "path": "https://developer.fedex.com" },
+              { "h3": "Créer un projet", "p": "Lorsque vous créez un projet, une API Key et une Secret Key sont émises.", "path": "Créer un projet" },
+              { "h3": "Vérifier les clés et le numéro de compte", "p": "Vérifiez l'API Key et la Secret Key émises ainsi que votre numéro de compte FedEx." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Une fois l'API Key et la Secret Key émises après la création du projet, tout fonctionne correctement." }
+          ]
+        },
+        {
+          "h2": "3. Informations à enregistrer dans GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Champ", "Description"], "rows": [
+              ["api_key", "L'API Key émise"],
+              ["api_secret", "La Secret Key émise (à manipuler avec précaution)"],
+              ["account_number", "Numéro de compte FedEx"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Saisissez-les et enregistrez-les dans le GenieGo Integration Hub [Enregistrer] ; les identifiants sont chiffrés au repos avec AES-256-GCM et masqués à la lecture." }
+          ]
+        },
+        {
+          "h2": "4. Problèmes fréquents",
+          "blocks": [
+            { "type": "table", "head": ["Problème", "Cause", "Solution"], "rows": [
+              ["Les clés ne sont pas visibles dans le projet", "Création du projet non terminée", "Créez un projet sur developer.fedex.com et l'API Key et la Secret Key seront émises."],
+              ["Erreur d'authentification lors de l'appel", "Secret Key mal saisie ou numéro de compte manquant", "Vérifiez à nouveau api_secret et le numéro de compte (account_number)."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Liste de contrôle finale",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Vérifié le numéro de compte FedEx.",
+              "Inscrit sur developer.fedex.com et créé un projet.",
+              "Émis l'API Key et la Secret Key.",
+              "Saisi api_key·api_secret·account_number dans GenieGo [Enregistrer] et enregistré."
+            ] }
+          ]
+        }
+      ]
+    },
+    "hi": {
+      "titleType": "API Key जारी करने की नियमावली",
+      "badge": "शुरुआती गाइड",
+      "intro": "एक गाइड जो FedEx डेवलपर पोर्टल (developer.fedex.com) पर एक प्रोजेक्ट बनाकर API Key और Secret Key जारी करने, और उन्हें अपने FedEx खाता संख्या के साथ GenieGo Integration Hub में पंजीकृत करने की प्रक्रिया को संक्षेप में बताती है।",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["अनुमानित समय", "लगभग 5–15 मिनट"],
+        ["आवश्यक खाता", "FedEx खाता (खाता संख्या)"],
+        ["जारी की गई कुंजियाँ", "API Key · Secret Key"],
+        ["परिणाम", "API क्रेडेंशियल · खाता संख्या"]
+      ],
+      "sections": [
+        {
+          "h2": "1. शुरू करने से पहले",
+          "desc": "FedEx क्रेडेंशियल डेवलपर पोर्टल पर एक प्रोजेक्ट बनाकर जारी किए जाते हैं, और एक खाता संख्या आवश्यक है।",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "आवश्यकता", "h3": "FedEx खाता संख्या", "p": "आपको एक FedEx खाता संख्या की आवश्यकता है। खाता संख्या GenieGo में पंजीकरण करते समय साथ में दर्ज की जाती है।" },
+              { "tag": "जारी की गई कुंजियाँ", "h3": "API Key · Secret Key", "p": "जब आप डेवलपर पोर्टल पर एक प्रोजेक्ट बनाते हैं, तो API Key और Secret Key जारी की जाती हैं।" }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. जारी करने के चरण",
+          "desc": "नीचे दिए गए क्रम में जारी करें और GenieGo में पंजीकृत करें।",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "डेवलपर पोर्टल पर साइन अप करें और लॉग इन करें", "p": "FedEx डेवलपर पोर्टल पर साइन अप करें और लॉग इन करें।", "path": "https://developer.fedex.com" },
+              { "h3": "एक प्रोजेक्ट बनाएं", "p": "जब आप एक प्रोजेक्ट बनाते हैं, तो API Key और Secret Key जारी की जाती हैं।", "path": "प्रोजेक्ट बनाएं" },
+              { "h3": "कुंजियों और खाता संख्या की पुष्टि करें", "p": "जारी की गई API Key·Secret Key और अपनी FedEx खाता संख्या की पुष्टि करें।" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "प्रोजेक्ट बनाने के बाद जब API Key·Secret Key जारी हो जाती हैं, तो यह सही ढंग से काम कर रहा है।" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo में पंजीकृत करने योग्य जानकारी",
+          "blocks": [
+            { "type": "table", "head": ["फ़ील्ड", "विवरण"], "rows": [
+              ["api_key", "जारी की गई API Key"],
+              ["api_secret", "जारी की गई Secret Key (सावधानी से संभालें)"],
+              ["account_number", "FedEx खाता संख्या"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "उन्हें GenieGo Integration Hub [पंजीकरण] में दर्ज करें और सहेजें; क्रेडेंशियल को AES-256-GCM के साथ संग्रहण में एन्क्रिप्ट किया जाता है और पढ़ते समय मास्क किया जाता है।" }
+          ]
+        },
+        {
+          "h2": "4. अक्सर होने वाली समस्याएं",
+          "blocks": [
+            { "type": "table", "head": ["समस्या", "कारण", "समाधान"], "rows": [
+              ["प्रोजेक्ट में कुंजियाँ दिखाई नहीं देतीं", "प्रोजेक्ट निर्माण पूरा नहीं हुआ", "developer.fedex.com पर एक प्रोजेक्ट बनाएं और API Key·Secret Key जारी हो जाएंगी।"],
+              ["कॉल करते समय प्रमाणीकरण त्रुटि", "Secret Key गलत दर्ज की गई या खाता संख्या गायब", "api_secret और खाता संख्या (account_number) को फिर से जांचें।"]
+            ] }
+          ]
+        },
+        {
+          "h2": "अंतिम जाँच सूची",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "FedEx खाता संख्या की पुष्टि की।",
+              "developer.fedex.com पर साइन अप किया और एक प्रोजेक्ट बनाया।",
+              "API Key·Secret Key जारी की।",
+              "GenieGo [पंजीकरण] में api_key·api_secret·account_number दर्ज किया और सहेजा।"
+            ] }
+          ]
+        }
+      ]
+    },
+    "pt": {
+      "titleType": "Manual de emissão de API Key",
+      "badge": "Guia para iniciantes",
+      "intro": "Um guia que resume o processo de criar um projeto no Portal do Desenvolvedor FedEx (developer.fedex.com) para emitir uma API Key e uma Secret Key, e registrá-las junto com o número da sua conta FedEx no GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tempo estimado", "Cerca de 5–15 min"],
+        ["Conta necessária", "Conta FedEx (número da conta)"],
+        ["Chaves emitidas", "API Key · Secret Key"],
+        ["Resultado", "Credenciais de API · número da conta"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de começar",
+          "desc": "As credenciais FedEx são emitidas criando um projeto no Portal do Desenvolvedor, e é necessário um número de conta.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Pré-requisito", "h3": "Número da conta FedEx", "p": "Você precisa de um número de conta FedEx. O número da conta é inserido junto ao registrar no GenieGo." },
+              { "tag": "Chaves emitidas", "h3": "API Key · Secret Key", "p": "Quando você cria um projeto no Portal do Desenvolvedor, uma API Key e uma Secret Key são emitidas." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Etapas de emissão",
+          "desc": "Emita na ordem abaixo e registre no GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Cadastrar-se e fazer login no Portal do Desenvolvedor", "p": "Cadastre-se no Portal do Desenvolvedor FedEx e faça login.", "path": "https://developer.fedex.com" },
+              { "h3": "Criar um projeto", "p": "Quando você cria um projeto, uma API Key e uma Secret Key são emitidas.", "path": "Criar projeto" },
+              { "h3": "Verificar as chaves e o número da conta", "p": "Verifique a API Key e a Secret Key emitidas e o número da sua conta FedEx." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Assim que a API Key e a Secret Key forem emitidas após criar o projeto, está funcionando corretamente." }
+          ]
+        },
+        {
+          "h2": "3. Informações para registrar no GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descrição"], "rows": [
+              ["api_key", "A API Key emitida"],
+              ["api_secret", "A Secret Key emitida (manuseie com cuidado)"],
+              ["account_number", "Número da conta FedEx"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Insira-as e salve no GenieGo Integration Hub [Registrar]; as credenciais são criptografadas em repouso com AES-256-GCM e mascaradas na leitura." }
+          ]
+        },
+        {
+          "h2": "4. Problemas frequentes",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solução"], "rows": [
+              ["As chaves não estão visíveis no projeto", "Criação do projeto não concluída", "Crie um projeto em developer.fedex.com e a API Key e a Secret Key serão emitidas."],
+              ["Erro de autenticação ao chamar", "Secret Key inserida incorretamente ou número da conta ausente", "Verifique novamente api_secret e o número da conta (account_number)."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificação final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Verificou o número da conta FedEx.",
+              "Cadastrou-se em developer.fedex.com e criou um projeto.",
+              "Emitiu a API Key e a Secret Key.",
+              "Inseriu api_key·api_secret·account_number no GenieGo [Registrar] e salvou."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ru": {
+      "titleType": "Руководство по выпуску API Key",
+      "badge": "Руководство для начинающих",
+      "intro": "Руководство, в котором описан процесс создания проекта на портале разработчиков FedEx (developer.fedex.com) для выпуска API Key и Secret Key и их регистрации вместе с номером счёта FedEx в GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Примерное время", "Около 5–15 мин"],
+        ["Необходимая учётная запись", "Учётная запись FedEx (номер счёта)"],
+        ["Выпускаемые ключи", "API Key · Secret Key"],
+        ["Результат", "Учётные данные API · номер счёта"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Прежде чем начать",
+          "desc": "Учётные данные FedEx выпускаются путём создания проекта на портале разработчиков, и требуется номер счёта.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Требуется", "h3": "Номер счёта FedEx", "p": "Вам нужен номер счёта FedEx. Номер счёта вводится вместе при регистрации в GenieGo." },
+              { "tag": "Выпускаемые ключи", "h3": "API Key · Secret Key", "p": "Когда вы создаёте проект на портале разработчиков, выпускаются API Key и Secret Key." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Шаги выпуска",
+          "desc": "Выпустите в порядке ниже и зарегистрируйте в GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Зарегистрируйтесь и войдите на портал разработчиков", "p": "Зарегистрируйтесь на портале разработчиков FedEx и войдите в систему.", "path": "https://developer.fedex.com" },
+              { "h3": "Создайте проект", "p": "Когда вы создаёте проект, выпускаются API Key и Secret Key.", "path": "Создать проект" },
+              { "h3": "Проверьте ключи и номер счёта", "p": "Проверьте выпущенные API Key и Secret Key, а также ваш номер счёта FedEx." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Как только после создания проекта выпущены API Key и Secret Key, всё работает правильно." }
+          ]
+        },
+        {
+          "h2": "3. Информация для регистрации в GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Поле", "Описание"], "rows": [
+              ["api_key", "Выпущенный API Key"],
+              ["api_secret", "Выпущенный Secret Key (обращайтесь осторожно)"],
+              ["account_number", "Номер счёта FedEx"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Введите и сохраните их в GenieGo Integration Hub [Регистрация]; учётные данные шифруются при хранении с помощью AES-256-GCM и маскируются при чтении." }
+          ]
+        },
+        {
+          "h2": "4. Часто возникающие проблемы",
+          "blocks": [
+            { "type": "table", "head": ["Проблема", "Причина", "Решение"], "rows": [
+              ["Ключи не видны в проекте", "Создание проекта не завершено", "Создайте проект на developer.fedex.com, и API Key и Secret Key будут выпущены."],
+              ["Ошибка аутентификации при вызове", "Неверно введён Secret Key или отсутствует номер счёта", "Повторно проверьте api_secret и номер счёта (account_number)."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Итоговый контрольный список",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Проверили номер счёта FedEx.",
+              "Зарегистрировались на developer.fedex.com и создали проект.",
+              "Выпустили API Key и Secret Key.",
+              "Ввели api_key·api_secret·account_number в GenieGo [Регистрация] и сохранили."
+            ] }
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,1011 @@
+{
+  "name": "LOTTE ON",
+  "icon": "🛒",
+  "langs": {
+    "ko": {
+      "titleType": "API Key 발급 매뉴얼",
+      "badge": "Beginner Guide",
+      "intro": "롯데온 셀러 스토어센터(store.lotteon.com)에서 OpenAPI 인증키를 발급받아 GenieGo 연동 허브에 등록하는 과정을 정리한 매뉴얼입니다.",
+      "org": "GenieGo 연동 허브",
+      "quick": [
+        ["소요 시간", "약 5~15분"],
+        ["필요 계정", "롯데온 입점(사업자 인증 완료) 셀러 계정"],
+        ["발급 키", "OpenAPI 인증키 · 판매자(셀러) ID"],
+        ["결과물", "OpenAPI 자격증명"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 시작하기 전에",
+          "desc": "OpenAPI 인증키는 사업자 인증이 완료된 입점 셀러 계정에서만 발급할 수 있습니다.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "필요", "h3": "입점 셀러 계정", "p": "롯데온 입점(사업자 인증 완료) 셀러 계정이 있어야 합니다. 사업자 인증 미완료 시 발급할 수 없습니다." },
+              { "tag": "발급 키", "h3": "OpenAPI 인증키 · 셀러 ID", "p": "[키발급]으로 발급되는 OpenAPI 인증키와 판매자(셀러) ID를 함께 확인합니다." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>참고:</strong> 키발급 전에 호출 서버 IP를 먼저 등록해야 합니다." }
+          ]
+        },
+        {
+          "h2": "2. 발급 단계",
+          "desc": "아래 순서대로 발급하고 GenieGo에 등록합니다.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "셀러 스토어센터 로그인", "p": "롯데온 셀러 스토어센터에 로그인합니다.", "path": "https://store.lotteon.com" },
+              { "h3": "OpenAPI관리 진입 및 IP 등록", "p": "[판매자정보] > [OpenAPI관리] > [정보설정]에서 호출 서버 IP를 등록합니다.", "path": "판매자정보 → OpenAPI관리 → 정보설정" },
+              { "h3": "키발급", "p": "[키발급] 버튼을 눌러 OpenAPI 인증키를 발급하고 판매자(셀러) ID를 확인합니다.", "path": "키발급" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "[키발급] 후 OpenAPI 인증키가 발급되면 정상 처리된 것입니다." }
+          ]
+        },
+        {
+          "h2": "3. GenieGo에 등록할 정보",
+          "blocks": [
+            { "type": "table", "head": ["필드", "설명"], "rows": [
+              ["api_key", "발급된 OpenAPI 인증키"],
+              ["seller_id", "판매자(셀러) ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 연동 허브 [등록]에 입력해 저장하면 자격증명은 AES-256-GCM으로 암호화 저장되고 조회 시 마스킹됩니다." }
+          ]
+        },
+        {
+          "h2": "4. 자주 발생하는 문제",
+          "blocks": [
+            { "type": "table", "head": ["문제", "원인", "해결"], "rows": [
+              ["[키발급] 버튼이 보이지 않음", "사업자 인증 미완료 또는 입점 미완료", "사업자 인증이 완료된 입점 셀러 계정으로 로그인합니다."],
+              ["호출 시 인증 오류", "호출 서버 IP 미등록", "[OpenAPI관리] > [정보설정]에서 호출 서버 IP를 다시 확인합니다."]
+            ] }
+          ]
+        },
+        {
+          "h2": "최종 체크리스트",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "사업자 인증이 완료된 롯데온 입점 셀러 계정으로 로그인했다.",
+              "[OpenAPI관리] > [정보설정]에서 호출 서버 IP를 등록했다.",
+              "[키발급]으로 OpenAPI 인증키를 발급하고 판매자(셀러) ID를 확인했다.",
+              "GenieGo [등록]에 api_key·seller_id를 입력해 저장했다."
+            ] }
+          ]
+        }
+      ]
+    },
+    "en": {
+      "titleType": "API Key Issuance Manual",
+      "badge": "Beginner Guide",
+      "intro": "A manual that walks you through issuing an OpenAPI authentication key from the LOTTE ON Seller Store Center (store.lotteon.com) and registering it in the GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Est. time", "About 5–15 min"],
+        ["Account needed", "LOTTE ON registered seller account (business verification completed)"],
+        ["Keys issued", "OpenAPI authentication key · Seller ID"],
+        ["Result", "OpenAPI credentials"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Before You Begin",
+          "desc": "The OpenAPI authentication key can only be issued from a registered seller account that has completed business verification.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Required", "h3": "Registered seller account", "p": "You need a LOTTE ON registered seller account with business verification completed. If business verification is not complete, the key cannot be issued." },
+              { "tag": "Keys issued", "h3": "OpenAPI authentication key · Seller ID", "p": "Check both the OpenAPI authentication key issued via [Issue Key] and your Seller ID." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Note:</strong> You must register your calling server IP before issuing the key." }
+          ]
+        },
+        {
+          "h2": "2. Issuance Steps",
+          "desc": "Issue in the order below and register in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Sign in to the Seller Store Center", "p": "Sign in to the LOTTE ON Seller Store Center.", "path": "https://store.lotteon.com" },
+              { "h3": "Open OpenAPI Management and register your IP", "p": "Under [Seller Info] > [OpenAPI Management] > [Information Settings], register your calling server IP.", "path": "Seller Info → OpenAPI Management → Information Settings" },
+              { "h3": "Issue the key", "p": "Click the [Issue Key] button to issue the OpenAPI authentication key and confirm your Seller ID.", "path": "Issue Key" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Once the OpenAPI authentication key is issued after [Issue Key], it has been processed correctly." }
+          ]
+        },
+        {
+          "h2": "3. Information to Register in GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Field", "Description"], "rows": [
+              ["api_key", "The issued OpenAPI authentication key"],
+              ["seller_id", "Seller ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Once you enter and save it in the GenieGo Integration Hub [Register], the credentials are encrypted at rest with AES-256-GCM and masked on read." }
+          ]
+        },
+        {
+          "h2": "4. Common Issues",
+          "blocks": [
+            { "type": "table", "head": ["Issue", "Cause", "Solution"], "rows": [
+              ["The [Issue Key] button is not visible", "Business verification not completed, or store registration not completed", "Sign in with a registered seller account that has completed business verification."],
+              ["Authentication error when calling", "Calling server IP not registered", "Recheck the calling server IP under [OpenAPI Management] > [Information Settings]."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Final Checklist",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Signed in with a LOTTE ON registered seller account that has completed business verification.",
+              "Registered the calling server IP under [OpenAPI Management] > [Information Settings].",
+              "Issued the OpenAPI authentication key via [Issue Key] and confirmed the Seller ID.",
+              "Entered api_key·seller_id in GenieGo [Register] and saved."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ja": {
+      "titleType": "API Key 発行マニュアル",
+      "badge": "初心者ガイド",
+      "intro": "ロッテオン セラーストアセンター(store.lotteon.com)で OpenAPI 認証キーを発行し、GenieGo 連携ハブに登録する手順をまとめたマニュアルです。",
+      "org": "GenieGo 連携ハブ",
+      "quick": [
+        ["所要時間", "約 5〜15 分"],
+        ["必要なアカウント", "ロッテオン出店(事業者認証完了)セラーアカウント"],
+        ["発行するキー", "OpenAPI 認証キー · 販売者(セラー)ID"],
+        ["成果物", "OpenAPI 認証情報"]
+      ],
+      "sections": [
+        {
+          "h2": "1. はじめる前に",
+          "desc": "OpenAPI 認証キーは、事業者認証が完了した出店セラーアカウントでのみ発行できます。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必須", "h3": "出店セラーアカウント", "p": "ロッテオン出店(事業者認証完了)セラーアカウントが必要です。事業者認証が未完了の場合は発行できません。" },
+              { "tag": "発行するキー", "h3": "OpenAPI 認証キー · セラー ID", "p": "[キー発行]で発行される OpenAPI 認証キーと販売者(セラー)ID をあわせて確認します。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> キー発行の前に、呼び出しサーバーの IP を先に登録する必要があります。" }
+          ]
+        },
+        {
+          "h2": "2. 発行手順",
+          "desc": "以下の順序で発行し、GenieGo に登録します。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "セラーストアセンターにログイン", "p": "ロッテオン セラーストアセンターにログインします。", "path": "https://store.lotteon.com" },
+              { "h3": "OpenAPI 管理に入り IP を登録", "p": "[販売者情報] > [OpenAPI 管理] > [情報設定]で、呼び出しサーバーの IP を登録します。", "path": "販売者情報 → OpenAPI 管理 → 情報設定" },
+              { "h3": "キー発行", "p": "[キー発行]ボタンを押して OpenAPI 認証キーを発行し、販売者(セラー)ID を確認します。", "path": "キー発行" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "[キー発行]の後に OpenAPI 認証キーが発行されれば、正常に処理されています。" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo に登録する情報",
+          "blocks": [
+            { "type": "table", "head": ["フィールド", "説明"], "rows": [
+              ["api_key", "発行された OpenAPI 認証キー"],
+              ["seller_id", "販売者(セラー)ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 連携ハブの [登録] に入力して保存すると、認証情報は AES-256-GCM で暗号化して保存され、閲覧時にはマスキングされます。" }
+          ]
+        },
+        {
+          "h2": "4. よくある問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["[キー発行]ボタンが表示されない", "事業者認証が未完了、または出店が未完了", "事業者認証が完了した出店セラーアカウントでログインします。"],
+              ["呼び出し時に認証エラー", "呼び出しサーバーの IP が未登録", "[OpenAPI 管理] > [情報設定]で、呼び出しサーバーの IP を再度確認します。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終チェックリスト",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "事業者認証が完了したロッテオン出店セラーアカウントでログインした。",
+              "[OpenAPI 管理] > [情報設定]で、呼び出しサーバーの IP を登録した。",
+              "[キー発行]で OpenAPI 認証キーを発行し、販売者(セラー)ID を確認した。",
+              "GenieGo の [登録] に api_key·seller_id を入力して保存した。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh": {
+      "titleType": "API Key 申请手册",
+      "badge": "新手指南",
+      "intro": "本手册介绍在乐天ON 卖家商店中心(store.lotteon.com)申请 OpenAPI 认证密钥并注册到 GenieGo 集成中心的流程。",
+      "org": "GenieGo 集成中心",
+      "quick": [
+        ["预计时间", "约 5~15 分钟"],
+        ["所需账户", "乐天ON 入驻(已完成企业认证)卖家账户"],
+        ["签发密钥", "OpenAPI 认证密钥 · 卖家 ID"],
+        ["成果", "OpenAPI 凭证"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 开始之前",
+          "desc": "OpenAPI 认证密钥只能在已完成企业认证的入驻卖家账户中申请。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "入驻卖家账户", "p": "您需要拥有乐天ON 入驻(已完成企业认证)的卖家账户。如果企业认证未完成，则无法申请密钥。" },
+              { "tag": "签发密钥", "h3": "OpenAPI 认证密钥 · 卖家 ID", "p": "请同时确认通过[密钥签发]签发的 OpenAPI 认证密钥和卖家 ID。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> 在签发密钥之前，必须先注册调用服务器 IP。" }
+          ]
+        },
+        {
+          "h2": "2. 申请步骤",
+          "desc": "按以下顺序签发并在 GenieGo 中注册。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "登录卖家商店中心", "p": "登录乐天ON 卖家商店中心。", "path": "https://store.lotteon.com" },
+              { "h3": "进入 OpenAPI 管理并注册 IP", "p": "在[卖家信息] > [OpenAPI 管理] > [信息设置]中注册调用服务器 IP。", "path": "卖家信息 → OpenAPI 管理 → 信息设置" },
+              { "h3": "签发密钥", "p": "点击[密钥签发]按钮签发 OpenAPI 认证密钥，并确认卖家 ID。", "path": "密钥签发" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "在[密钥签发]之后成功签发 OpenAPI 认证密钥，即表示处理正常。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中注册的信息",
+          "blocks": [
+            { "type": "table", "head": ["字段", "说明"], "rows": [
+              ["api_key", "签发的 OpenAPI 认证密钥"],
+              ["seller_id", "卖家 ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 集成中心的[注册]中输入并保存后，凭证将以 AES-256-GCM 加密存储，并在查询时进行掩码处理。" }
+          ]
+        },
+        {
+          "h2": "4. 常见问题",
+          "blocks": [
+            { "type": "table", "head": ["问题", "原因", "解决方法"], "rows": [
+              ["看不到[密钥签发]按钮", "企业认证未完成，或入驻未完成", "使用已完成企业认证的入驻卖家账户登录。"],
+              ["调用时出现认证错误", "未注册调用服务器 IP", "在[OpenAPI 管理] > [信息设置]中重新确认调用服务器 IP。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最终检查清单",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已使用已完成企业认证的乐天ON 入驻卖家账户登录。",
+              "已在[OpenAPI 管理] > [信息设置]中注册调用服务器 IP。",
+              "已通过[密钥签发]签发 OpenAPI 认证密钥并确认卖家 ID。",
+              "已在 GenieGo 的[注册]中输入 api_key·seller_id 并保存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh-TW": {
+      "titleType": "API Key 申請手冊",
+      "badge": "新手指南",
+      "intro": "本手冊介紹在樂天ON 賣家商店中心(store.lotteon.com)申請 OpenAPI 認證金鑰並註冊到 GenieGo 整合中心的流程。",
+      "org": "GenieGo 整合中心",
+      "quick": [
+        ["預計時間", "約 5~15 分鐘"],
+        ["所需帳戶", "樂天ON 進駐(已完成企業認證)賣家帳戶"],
+        ["簽發金鑰", "OpenAPI 認證金鑰 · 賣家 ID"],
+        ["成果", "OpenAPI 憑證"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 開始之前",
+          "desc": "OpenAPI 認證金鑰只能在已完成企業認證的進駐賣家帳戶中申請。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "進駐賣家帳戶", "p": "您需要擁有樂天ON 進駐(已完成企業認證)的賣家帳戶。如果企業認證未完成，則無法申請金鑰。" },
+              { "tag": "簽發金鑰", "h3": "OpenAPI 認證金鑰 · 賣家 ID", "p": "請同時確認透過[金鑰簽發]簽發的 OpenAPI 認證金鑰和賣家 ID。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> 在簽發金鑰之前，必須先註冊呼叫伺服器 IP。" }
+          ]
+        },
+        {
+          "h2": "2. 簽發步驟",
+          "desc": "依以下順序簽發並在 GenieGo 中註冊。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "登入賣家商店中心", "p": "登入樂天ON 賣家商店中心。", "path": "https://store.lotteon.com" },
+              { "h3": "進入 OpenAPI 管理並註冊 IP", "p": "在[賣家資訊] > [OpenAPI 管理] > [資訊設定]中註冊呼叫伺服器 IP。", "path": "賣家資訊 → OpenAPI 管理 → 資訊設定" },
+              { "h3": "簽發金鑰", "p": "點擊[金鑰簽發]按鈕簽發 OpenAPI 認證金鑰，並確認賣家 ID。", "path": "金鑰簽發" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "在[金鑰簽發]之後成功簽發 OpenAPI 認證金鑰，即表示處理正常。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中註冊的資訊",
+          "blocks": [
+            { "type": "table", "head": ["欄位", "說明"], "rows": [
+              ["api_key", "簽發的 OpenAPI 認證金鑰"],
+              ["seller_id", "賣家 ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 整合中心的[註冊]中輸入並儲存後，憑證將以 AES-256-GCM 加密儲存，並在查詢時進行遮罩處理。" }
+          ]
+        },
+        {
+          "h2": "4. 常見問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["看不到[金鑰簽發]按鈕", "企業認證未完成，或進駐未完成", "使用已完成企業認證的進駐賣家帳戶登入。"],
+              ["呼叫時出現認證錯誤", "未註冊呼叫伺服器 IP", "在[OpenAPI 管理] > [資訊設定]中重新確認呼叫伺服器 IP。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終檢查清單",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已使用已完成企業認證的樂天ON 進駐賣家帳戶登入。",
+              "已在[OpenAPI 管理] > [資訊設定]中註冊呼叫伺服器 IP。",
+              "已透過[金鑰簽發]簽發 OpenAPI 認證金鑰並確認賣家 ID。",
+              "已在 GenieGo 的[註冊]中輸入 api_key·seller_id 並儲存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "de": {
+      "titleType": "Anleitung zur API-Key-Ausstellung",
+      "badge": "Einsteigerleitfaden",
+      "intro": "Eine Anleitung, die Sie durch die Ausstellung eines OpenAPI-Authentifizierungsschlüssels im LOTTE ON Seller Store Center (store.lotteon.com) und die Registrierung im GenieGo Integration Hub führt.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Geschätzte Zeit", "Etwa 5–15 Min."],
+        ["Benötigtes Konto", "LOTTE ON registriertes Verkäuferkonto (Geschäftsverifizierung abgeschlossen)"],
+        ["Ausgestellte Schlüssel", "OpenAPI-Authentifizierungsschlüssel · Verkäufer-ID"],
+        ["Ergebnis", "OpenAPI-Anmeldedaten"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Bevor Sie beginnen",
+          "desc": "Der OpenAPI-Authentifizierungsschlüssel kann nur über ein registriertes Verkäuferkonto ausgestellt werden, das die Geschäftsverifizierung abgeschlossen hat.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Erforderlich", "h3": "Registriertes Verkäuferkonto", "p": "Sie benötigen ein bei LOTTE ON registriertes Verkäuferkonto mit abgeschlossener Geschäftsverifizierung. Ist die Geschäftsverifizierung nicht abgeschlossen, kann der Schlüssel nicht ausgestellt werden." },
+              { "tag": "Ausgestellte Schlüssel", "h3": "OpenAPI-Authentifizierungsschlüssel · Verkäufer-ID", "p": "Prüfen Sie sowohl den über [Schlüssel ausstellen] ausgestellten OpenAPI-Authentifizierungsschlüssel als auch Ihre Verkäufer-ID." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Hinweis:</strong> Sie müssen die IP Ihres aufrufenden Servers registrieren, bevor Sie den Schlüssel ausstellen." }
+          ]
+        },
+        {
+          "h2": "2. Ausstellungsschritte",
+          "desc": "Stellen Sie in der unten angegebenen Reihenfolge aus und registrieren Sie in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Beim Seller Store Center anmelden", "p": "Melden Sie sich beim LOTTE ON Seller Store Center an.", "path": "https://store.lotteon.com" },
+              { "h3": "OpenAPI-Verwaltung öffnen und IP registrieren", "p": "Registrieren Sie unter [Verkäuferinfo] > [OpenAPI-Verwaltung] > [Informationseinstellungen] die IP Ihres aufrufenden Servers.", "path": "Verkäuferinfo → OpenAPI-Verwaltung → Informationseinstellungen" },
+              { "h3": "Schlüssel ausstellen", "p": "Klicken Sie auf die Schaltfläche [Schlüssel ausstellen], um den OpenAPI-Authentifizierungsschlüssel auszustellen, und bestätigen Sie Ihre Verkäufer-ID.", "path": "Schlüssel ausstellen" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Sobald der OpenAPI-Authentifizierungsschlüssel nach [Schlüssel ausstellen] ausgestellt wurde, wurde er korrekt verarbeitet." }
+          ]
+        },
+        {
+          "h2": "3. In GenieGo zu registrierende Informationen",
+          "blocks": [
+            { "type": "table", "head": ["Feld", "Beschreibung"], "rows": [
+              ["api_key", "Der ausgestellte OpenAPI-Authentifizierungsschlüssel"],
+              ["seller_id", "Verkäufer-ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Sobald Sie ihn im GenieGo Integration Hub unter [Registrieren] eingeben und speichern, werden die Anmeldedaten im Ruhezustand mit AES-256-GCM verschlüsselt und beim Lesen maskiert." }
+          ]
+        },
+        {
+          "h2": "4. Häufige Probleme",
+          "blocks": [
+            { "type": "table", "head": ["Problem", "Ursache", "Lösung"], "rows": [
+              ["Die Schaltfläche [Schlüssel ausstellen] ist nicht sichtbar", "Geschäftsverifizierung nicht abgeschlossen oder Shop-Registrierung nicht abgeschlossen", "Melden Sie sich mit einem registrierten Verkäuferkonto an, das die Geschäftsverifizierung abgeschlossen hat."],
+              ["Authentifizierungsfehler beim Aufruf", "IP des aufrufenden Servers nicht registriert", "Überprüfen Sie die IP des aufrufenden Servers erneut unter [OpenAPI-Verwaltung] > [Informationseinstellungen]."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Abschließende Checkliste",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Mit einem bei LOTTE ON registrierten Verkäuferkonto angemeldet, das die Geschäftsverifizierung abgeschlossen hat.",
+              "Die IP des aufrufenden Servers unter [OpenAPI-Verwaltung] > [Informationseinstellungen] registriert.",
+              "Den OpenAPI-Authentifizierungsschlüssel über [Schlüssel ausstellen] ausgestellt und die Verkäufer-ID bestätigt.",
+              "api_key·seller_id in GenieGo [Registrieren] eingegeben und gespeichert."
+            ] }
+          ]
+        }
+      ]
+    },
+    "th": {
+      "titleType": "คู่มือการออก API Key",
+      "badge": "คู่มือสำหรับผู้เริ่มต้น",
+      "intro": "คู่มือที่จะแนะนำคุณตลอดขั้นตอนการออกคีย์การยืนยันตัวตน OpenAPI จาก LOTTE ON Seller Store Center (store.lotteon.com) และลงทะเบียนใน GenieGo Integration Hub",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["เวลาโดยประมาณ", "ประมาณ 5–15 นาที"],
+        ["บัญชีที่ต้องใช้", "บัญชีผู้ขายที่ลงทะเบียนกับ LOTTE ON (ยืนยันตัวตนธุรกิจเสร็จสมบูรณ์แล้ว)"],
+        ["คีย์ที่ออก", "คีย์การยืนยันตัวตน OpenAPI · รหัสผู้ขาย"],
+        ["ผลลัพธ์", "ข้อมูลรับรอง OpenAPI"]
+      ],
+      "sections": [
+        {
+          "h2": "1. ก่อนเริ่มต้น",
+          "desc": "คีย์การยืนยันตัวตน OpenAPI สามารถออกได้จากบัญชีผู้ขายที่ลงทะเบียนและยืนยันตัวตนธุรกิจเสร็จสมบูรณ์แล้วเท่านั้น",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "จำเป็น", "h3": "บัญชีผู้ขายที่ลงทะเบียน", "p": "คุณต้องมีบัญชีผู้ขายที่ลงทะเบียนกับ LOTTE ON (ยืนยันตัวตนธุรกิจเสร็จสมบูรณ์แล้ว) หากยังยืนยันตัวตนธุรกิจไม่เสร็จสมบูรณ์ จะไม่สามารถออกคีย์ได้" },
+              { "tag": "คีย์ที่ออก", "h3": "คีย์การยืนยันตัวตน OpenAPI · รหัสผู้ขาย", "p": "ตรวจสอบทั้งคีย์การยืนยันตัวตน OpenAPI ที่ออกผ่าน [ออกคีย์] และรหัสผู้ขายของคุณ" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>หมายเหตุ:</strong> คุณต้องลงทะเบียน IP ของเซิร์ฟเวอร์ที่เรียกใช้ก่อนการออกคีย์" }
+          ]
+        },
+        {
+          "h2": "2. ขั้นตอนการออก",
+          "desc": "ออกตามลำดับด้านล่างและลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "ลงชื่อเข้าใช้ Seller Store Center", "p": "ลงชื่อเข้าใช้ LOTTE ON Seller Store Center", "path": "https://store.lotteon.com" },
+              { "h3": "เข้าสู่การจัดการ OpenAPI และลงทะเบียน IP", "p": "ลงทะเบียน IP ของเซิร์ฟเวอร์ที่เรียกใช้ในส่วน [ข้อมูลผู้ขาย] > [การจัดการ OpenAPI] > [การตั้งค่าข้อมูล]", "path": "ข้อมูลผู้ขาย → การจัดการ OpenAPI → การตั้งค่าข้อมูล" },
+              { "h3": "ออกคีย์", "p": "คลิกปุ่ม [ออกคีย์] เพื่อออกคีย์การยืนยันตัวตน OpenAPI และยืนยันรหัสผู้ขายของคุณ", "path": "ออกคีย์" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "เมื่อออกคีย์การยืนยันตัวตน OpenAPI หลังจาก [ออกคีย์] แล้ว แสดงว่าดำเนินการอย่างถูกต้อง" }
+          ]
+        },
+        {
+          "h2": "3. ข้อมูลที่ต้องลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["ฟิลด์", "คำอธิบาย"], "rows": [
+              ["api_key", "คีย์การยืนยันตัวตน OpenAPI ที่ออกแล้ว"],
+              ["seller_id", "รหัสผู้ขาย"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "เมื่อคุณป้อนและบันทึกใน GenieGo Integration Hub [ลงทะเบียน] แล้ว ข้อมูลรับรองจะถูกเข้ารหัสขณะจัดเก็บด้วย AES-256-GCM และปิดบังเมื่ออ่าน" }
+          ]
+        },
+        {
+          "h2": "4. ปัญหาที่พบบ่อย",
+          "blocks": [
+            { "type": "table", "head": ["ปัญหา", "สาเหตุ", "วิธีแก้ไข"], "rows": [
+              ["ไม่เห็นปุ่ม [ออกคีย์]", "ยังยืนยันตัวตนธุรกิจไม่เสร็จสมบูรณ์ หรือลงทะเบียนร้านค้าไม่เสร็จสมบูรณ์", "ลงชื่อเข้าใช้ด้วยบัญชีผู้ขายที่ลงทะเบียนและยืนยันตัวตนธุรกิจเสร็จสมบูรณ์แล้ว"],
+              ["ข้อผิดพลาดการยืนยันตัวตนเมื่อเรียกใช้", "ยังไม่ได้ลงทะเบียน IP ของเซิร์ฟเวอร์ที่เรียกใช้", "ตรวจสอบ IP ของเซิร์ฟเวอร์ที่เรียกใช้อีกครั้งในส่วน [การจัดการ OpenAPI] > [การตั้งค่าข้อมูล]"]
+            ] }
+          ]
+        },
+        {
+          "h2": "รายการตรวจสอบขั้นสุดท้าย",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "ลงชื่อเข้าใช้ด้วยบัญชีผู้ขายที่ลงทะเบียนกับ LOTTE ON และยืนยันตัวตนธุรกิจเสร็จสมบูรณ์แล้ว",
+              "ลงทะเบียน IP ของเซิร์ฟเวอร์ที่เรียกใช้ในส่วน [การจัดการ OpenAPI] > [การตั้งค่าข้อมูล] แล้ว",
+              "ออกคีย์การยืนยันตัวตน OpenAPI ผ่าน [ออกคีย์] และยืนยันรหัสผู้ขายแล้ว",
+              "ป้อน api_key·seller_id ใน GenieGo [ลงทะเบียน] และบันทึกแล้ว"
+            ] }
+          ]
+        }
+      ]
+    },
+    "vi": {
+      "titleType": "Hướng dẫn cấp API Key",
+      "badge": "Hướng dẫn cho người mới",
+      "intro": "Hướng dẫn giúp bạn cấp khóa xác thực OpenAPI từ LOTTE ON Seller Store Center (store.lotteon.com) và đăng ký trong GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Thời gian dự kiến", "Khoảng 5–15 phút"],
+        ["Tài khoản cần thiết", "Tài khoản người bán đã đăng ký LOTTE ON (đã hoàn tất xác minh doanh nghiệp)"],
+        ["Khóa được cấp", "Khóa xác thực OpenAPI · ID người bán"],
+        ["Kết quả", "Thông tin xác thực OpenAPI"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Trước khi bắt đầu",
+          "desc": "Khóa xác thực OpenAPI chỉ có thể được cấp từ tài khoản người bán đã đăng ký và hoàn tất xác minh doanh nghiệp.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Bắt buộc", "h3": "Tài khoản người bán đã đăng ký", "p": "Bạn cần một tài khoản người bán đã đăng ký LOTTE ON (đã hoàn tất xác minh doanh nghiệp). Nếu xác minh doanh nghiệp chưa hoàn tất, bạn không thể cấp khóa." },
+              { "tag": "Khóa được cấp", "h3": "Khóa xác thực OpenAPI · ID người bán", "p": "Kiểm tra cả khóa xác thực OpenAPI được cấp qua [Cấp khóa] và ID người bán của bạn." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Lưu ý:</strong> Bạn phải đăng ký IP máy chủ gọi trước khi cấp khóa." }
+          ]
+        },
+        {
+          "h2": "2. Các bước cấp",
+          "desc": "Cấp theo thứ tự dưới đây và đăng ký trong GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Đăng nhập vào Seller Store Center", "p": "Đăng nhập vào LOTTE ON Seller Store Center.", "path": "https://store.lotteon.com" },
+              { "h3": "Mở quản lý OpenAPI và đăng ký IP", "p": "Trong [Thông tin người bán] > [Quản lý OpenAPI] > [Cài đặt thông tin], đăng ký IP máy chủ gọi.", "path": "Thông tin người bán → Quản lý OpenAPI → Cài đặt thông tin" },
+              { "h3": "Cấp khóa", "p": "Nhấp vào nút [Cấp khóa] để cấp khóa xác thực OpenAPI và xác nhận ID người bán của bạn.", "path": "Cấp khóa" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Sau khi khóa xác thực OpenAPI được cấp qua [Cấp khóa], nghĩa là nó đã được xử lý đúng cách." }
+          ]
+        },
+        {
+          "h2": "3. Thông tin cần đăng ký trong GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Trường", "Mô tả"], "rows": [
+              ["api_key", "Khóa xác thực OpenAPI đã được cấp"],
+              ["seller_id", "ID người bán"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Sau khi bạn nhập và lưu trong GenieGo Integration Hub [Đăng ký], thông tin xác thực được mã hóa khi lưu trữ bằng AES-256-GCM và được che khi đọc." }
+          ]
+        },
+        {
+          "h2": "4. Sự cố thường gặp",
+          "blocks": [
+            { "type": "table", "head": ["Sự cố", "Nguyên nhân", "Giải pháp"], "rows": [
+              ["Không thấy nút [Cấp khóa]", "Xác minh doanh nghiệp chưa hoàn tất, hoặc đăng ký gian hàng chưa hoàn tất", "Đăng nhập bằng tài khoản người bán đã đăng ký và hoàn tất xác minh doanh nghiệp."],
+              ["Lỗi xác thực khi gọi", "IP máy chủ gọi chưa được đăng ký", "Kiểm tra lại IP máy chủ gọi trong [Quản lý OpenAPI] > [Cài đặt thông tin]."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Danh sách kiểm tra cuối cùng",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Đã đăng nhập bằng tài khoản người bán đã đăng ký LOTTE ON và hoàn tất xác minh doanh nghiệp.",
+              "Đã đăng ký IP máy chủ gọi trong [Quản lý OpenAPI] > [Cài đặt thông tin].",
+              "Đã cấp khóa xác thực OpenAPI qua [Cấp khóa] và xác nhận ID người bán.",
+              "Đã nhập api_key·seller_id vào GenieGo [Đăng ký] và lưu."
+            ] }
+          ]
+        }
+      ]
+    },
+    "id": {
+      "titleType": "Panduan Penerbitan API Key",
+      "badge": "Panduan Pemula",
+      "intro": "Panduan yang memandu Anda menerbitkan kunci autentikasi OpenAPI dari LOTTE ON Seller Store Center (store.lotteon.com) dan mendaftarkannya di GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Perkiraan waktu", "Sekitar 5–15 menit"],
+        ["Akun yang dibutuhkan", "Akun penjual terdaftar LOTTE ON (verifikasi bisnis selesai)"],
+        ["Kunci yang diterbitkan", "Kunci autentikasi OpenAPI · ID penjual"],
+        ["Hasil", "Kredensial OpenAPI"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Sebelum Anda Mulai",
+          "desc": "Kunci autentikasi OpenAPI hanya dapat diterbitkan dari akun penjual terdaftar yang telah menyelesaikan verifikasi bisnis.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Diperlukan", "h3": "Akun penjual terdaftar", "p": "Anda memerlukan akun penjual terdaftar LOTTE ON dengan verifikasi bisnis selesai. Jika verifikasi bisnis belum selesai, kunci tidak dapat diterbitkan." },
+              { "tag": "Kunci yang diterbitkan", "h3": "Kunci autentikasi OpenAPI · ID penjual", "p": "Periksa baik kunci autentikasi OpenAPI yang diterbitkan melalui [Terbitkan Kunci] maupun ID penjual Anda." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Catatan:</strong> Anda harus mendaftarkan IP server pemanggil sebelum menerbitkan kunci." }
+          ]
+        },
+        {
+          "h2": "2. Langkah Penerbitan",
+          "desc": "Terbitkan sesuai urutan di bawah dan daftarkan di GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Masuk ke Seller Store Center", "p": "Masuk ke LOTTE ON Seller Store Center.", "path": "https://store.lotteon.com" },
+              { "h3": "Buka Manajemen OpenAPI dan daftarkan IP", "p": "Di [Info Penjual] > [Manajemen OpenAPI] > [Pengaturan Informasi], daftarkan IP server pemanggil.", "path": "Info Penjual → Manajemen OpenAPI → Pengaturan Informasi" },
+              { "h3": "Terbitkan kunci", "p": "Klik tombol [Terbitkan Kunci] untuk menerbitkan kunci autentikasi OpenAPI dan konfirmasi ID penjual Anda.", "path": "Terbitkan Kunci" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Setelah kunci autentikasi OpenAPI diterbitkan melalui [Terbitkan Kunci], berarti telah diproses dengan benar." }
+          ]
+        },
+        {
+          "h2": "3. Informasi untuk Didaftarkan di GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Bidang", "Deskripsi"], "rows": [
+              ["api_key", "Kunci autentikasi OpenAPI yang diterbitkan"],
+              ["seller_id", "ID penjual"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Setelah Anda memasukkan dan menyimpannya di GenieGo Integration Hub [Daftar], kredensial dienkripsi saat disimpan dengan AES-256-GCM dan disamarkan saat dibaca." }
+          ]
+        },
+        {
+          "h2": "4. Masalah Umum",
+          "blocks": [
+            { "type": "table", "head": ["Masalah", "Penyebab", "Solusi"], "rows": [
+              ["Tombol [Terbitkan Kunci] tidak terlihat", "Verifikasi bisnis belum selesai, atau pendaftaran toko belum selesai", "Masuk dengan akun penjual terdaftar yang telah menyelesaikan verifikasi bisnis."],
+              ["Kesalahan autentikasi saat pemanggilan", "IP server pemanggil belum terdaftar", "Periksa kembali IP server pemanggil di [Manajemen OpenAPI] > [Pengaturan Informasi]."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Daftar Periksa Akhir",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Masuk dengan akun penjual terdaftar LOTTE ON yang telah menyelesaikan verifikasi bisnis.",
+              "Mendaftarkan IP server pemanggil di [Manajemen OpenAPI] > [Pengaturan Informasi].",
+              "Menerbitkan kunci autentikasi OpenAPI melalui [Terbitkan Kunci] dan mengonfirmasi ID penjual.",
+              "Memasukkan api_key·seller_id di GenieGo [Daftar] dan menyimpannya."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ar": {
+      "titleType": "دليل إصدار مفتاح API",
+      "badge": "دليل المبتدئين",
+      "intro": "دليل يرشدك خلال إصدار مفتاح مصادقة OpenAPI من LOTTE ON Seller Store Center ‏(store.lotteon.com) وتسجيله في GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["الوقت المقدّر", "حوالي 5–15 دقيقة"],
+        ["الحساب المطلوب", "حساب بائع مُسجّل في LOTTE ON (اكتمل التحقق من النشاط التجاري)"],
+        ["المفاتيح الصادرة", "مفتاح مصادقة OpenAPI · معرّف البائع"],
+        ["النتيجة", "بيانات اعتماد OpenAPI"]
+      ],
+      "sections": [
+        {
+          "h2": "1. قبل أن تبدأ",
+          "desc": "لا يمكن إصدار مفتاح مصادقة OpenAPI إلا من حساب بائع مُسجّل أكمل التحقق من النشاط التجاري.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "مطلوب", "h3": "حساب بائع مُسجّل", "p": "تحتاج إلى حساب بائع مُسجّل في LOTTE ON مع اكتمال التحقق من النشاط التجاري. إذا لم يكتمل التحقق من النشاط التجاري، فلا يمكن إصدار المفتاح." },
+              { "tag": "المفاتيح الصادرة", "h3": "مفتاح مصادقة OpenAPI · معرّف البائع", "p": "تحقّق من كل من مفتاح مصادقة OpenAPI الصادر عبر [إصدار المفتاح] ومعرّف البائع الخاص بك." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>ملاحظة:</strong> يجب عليك تسجيل عنوان IP لخادم الاستدعاء قبل إصدار المفتاح." }
+          ]
+        },
+        {
+          "h2": "2. خطوات الإصدار",
+          "desc": "أصدر بالترتيب أدناه وسجّل في GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "تسجيل الدخول إلى Seller Store Center", "p": "سجّل الدخول إلى LOTTE ON Seller Store Center.", "path": "https://store.lotteon.com" },
+              { "h3": "افتح إدارة OpenAPI وسجّل عنوان IP", "p": "ضمن [معلومات البائع] > [إدارة OpenAPI] > [إعدادات المعلومات]، سجّل عنوان IP لخادم الاستدعاء.", "path": "معلومات البائع → إدارة OpenAPI → إعدادات المعلومات" },
+              { "h3": "إصدار المفتاح", "p": "انقر على زر [إصدار المفتاح] لإصدار مفتاح مصادقة OpenAPI وتأكيد معرّف البائع الخاص بك.", "path": "إصدار المفتاح" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "بمجرد إصدار مفتاح مصادقة OpenAPI بعد [إصدار المفتاح]، فهذا يعني أنه تمت معالجته بشكل صحيح." }
+          ]
+        },
+        {
+          "h2": "3. المعلومات المطلوب تسجيلها في GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["الحقل", "الوصف"], "rows": [
+              ["api_key", "مفتاح مصادقة OpenAPI الصادر"],
+              ["seller_id", "معرّف البائع"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "بمجرد إدخاله وحفظه في GenieGo Integration Hub ‏[تسجيل]، يتم تشفير بيانات الاعتماد أثناء التخزين باستخدام AES-256-GCM وإخفاؤها عند القراءة." }
+          ]
+        },
+        {
+          "h2": "4. المشكلات الشائعة",
+          "blocks": [
+            { "type": "table", "head": ["المشكلة", "السبب", "الحل"], "rows": [
+              ["زر [إصدار المفتاح] غير ظاهر", "لم يكتمل التحقق من النشاط التجاري، أو لم يكتمل تسجيل المتجر", "سجّل الدخول بحساب بائع مُسجّل أكمل التحقق من النشاط التجاري."],
+              ["خطأ مصادقة عند الاستدعاء", "لم يتم تسجيل عنوان IP لخادم الاستدعاء", "أعد التحقق من عنوان IP لخادم الاستدعاء ضمن [إدارة OpenAPI] > [إعدادات المعلومات]."]
+            ] }
+          ]
+        },
+        {
+          "h2": "قائمة التحقق النهائية",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "سجّلتُ الدخول بحساب بائع مُسجّل في LOTTE ON أكمل التحقق من النشاط التجاري.",
+              "سجّلتُ عنوان IP لخادم الاستدعاء ضمن [إدارة OpenAPI] > [إعدادات المعلومات].",
+              "أصدرتُ مفتاح مصادقة OpenAPI عبر [إصدار المفتاح] وأكّدتُ معرّف البائع.",
+              "أدخلتُ api_key·seller_id في GenieGo [تسجيل] وحفظتُه."
+            ] }
+          ]
+        }
+      ]
+    },
+    "es": {
+      "titleType": "Manual de emisión de la clave API",
+      "badge": "Guía para principiantes",
+      "intro": "Un manual que le guía para emitir una clave de autenticación OpenAPI desde el LOTTE ON Seller Store Center (store.lotteon.com) y registrarla en el GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tiempo est.", "Unos 5–15 min"],
+        ["Cuenta necesaria", "Cuenta de vendedor registrada en LOTTE ON (verificación de empresa completada)"],
+        ["Claves emitidas", "Clave de autenticación OpenAPI · ID de vendedor"],
+        ["Resultado", "Credenciales de OpenAPI"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de empezar",
+          "desc": "La clave de autenticación OpenAPI solo puede emitirse desde una cuenta de vendedor registrada que haya completado la verificación de empresa.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requerido", "h3": "Cuenta de vendedor registrada", "p": "Necesita una cuenta de vendedor registrada en LOTTE ON con la verificación de empresa completada. Si la verificación de empresa no está completa, no se puede emitir la clave." },
+              { "tag": "Claves emitidas", "h3": "Clave de autenticación OpenAPI · ID de vendedor", "p": "Compruebe tanto la clave de autenticación OpenAPI emitida mediante [Emitir clave] como su ID de vendedor." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Nota:</strong> Debe registrar la IP de su servidor de llamada antes de emitir la clave." }
+          ]
+        },
+        {
+          "h2": "2. Pasos de emisión",
+          "desc": "Emita en el orden siguiente y registre en GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Inicie sesión en el Seller Store Center", "p": "Inicie sesión en el LOTTE ON Seller Store Center.", "path": "https://store.lotteon.com" },
+              { "h3": "Abra la gestión de OpenAPI y registre su IP", "p": "En [Información del vendedor] > [Gestión de OpenAPI] > [Configuración de información], registre la IP de su servidor de llamada.", "path": "Información del vendedor → Gestión de OpenAPI → Configuración de información" },
+              { "h3": "Emita la clave", "p": "Haga clic en el botón [Emitir clave] para emitir la clave de autenticación OpenAPI y confirme su ID de vendedor.", "path": "Emitir clave" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Una vez emitida la clave de autenticación OpenAPI tras [Emitir clave], significa que se ha procesado correctamente." }
+          ]
+        },
+        {
+          "h2": "3. Información para registrar en GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descripción"], "rows": [
+              ["api_key", "La clave de autenticación OpenAPI emitida"],
+              ["seller_id", "ID de vendedor"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Una vez que la introduzca y guarde en el GenieGo Integration Hub [Registrar], las credenciales se cifran en reposo con AES-256-GCM y se enmascaran al leerlas." }
+          ]
+        },
+        {
+          "h2": "4. Problemas frecuentes",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solución"], "rows": [
+              ["El botón [Emitir clave] no aparece", "Verificación de empresa no completada, o registro de tienda no completado", "Inicie sesión con una cuenta de vendedor registrada que haya completado la verificación de empresa."],
+              ["Error de autenticación al llamar", "IP del servidor de llamada no registrada", "Vuelva a comprobar la IP del servidor de llamada en [Gestión de OpenAPI] > [Configuración de información]."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de comprobación final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Inició sesión con una cuenta de vendedor registrada en LOTTE ON que ha completado la verificación de empresa.",
+              "Registró la IP del servidor de llamada en [Gestión de OpenAPI] > [Configuración de información].",
+              "Emitió la clave de autenticación OpenAPI mediante [Emitir clave] y confirmó el ID de vendedor.",
+              "Introdujo api_key·seller_id en GenieGo [Registrar] y lo guardó."
+            ] }
+          ]
+        }
+      ]
+    },
+    "fr": {
+      "titleType": "Manuel d'émission de la clé API",
+      "badge": "Guide du débutant",
+      "intro": "Un manuel qui vous guide pour émettre une clé d'authentification OpenAPI depuis le LOTTE ON Seller Store Center (store.lotteon.com) et l'enregistrer dans le GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Temps estimé", "Environ 5–15 min"],
+        ["Compte requis", "Compte vendeur enregistré sur LOTTE ON (vérification d'entreprise terminée)"],
+        ["Clés émises", "Clé d'authentification OpenAPI · ID vendeur"],
+        ["Résultat", "Identifiants OpenAPI"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Avant de commencer",
+          "desc": "La clé d'authentification OpenAPI ne peut être émise que depuis un compte vendeur enregistré ayant terminé la vérification d'entreprise.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requis", "h3": "Compte vendeur enregistré", "p": "Vous avez besoin d'un compte vendeur enregistré sur LOTTE ON avec la vérification d'entreprise terminée. Si la vérification d'entreprise n'est pas terminée, la clé ne peut pas être émise." },
+              { "tag": "Clés émises", "h3": "Clé d'authentification OpenAPI · ID vendeur", "p": "Vérifiez à la fois la clé d'authentification OpenAPI émise via [Émettre la clé] et votre ID vendeur." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Remarque :</strong> Vous devez enregistrer l'IP de votre serveur d'appel avant d'émettre la clé." }
+          ]
+        },
+        {
+          "h2": "2. Étapes d'émission",
+          "desc": "Émettez dans l'ordre ci-dessous et enregistrez dans GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Connectez-vous au Seller Store Center", "p": "Connectez-vous au LOTTE ON Seller Store Center.", "path": "https://store.lotteon.com" },
+              { "h3": "Ouvrez la gestion OpenAPI et enregistrez votre IP", "p": "Dans [Infos vendeur] > [Gestion OpenAPI] > [Paramètres d'information], enregistrez l'IP de votre serveur d'appel.", "path": "Infos vendeur → Gestion OpenAPI → Paramètres d'information" },
+              { "h3": "Émettez la clé", "p": "Cliquez sur le bouton [Émettre la clé] pour émettre la clé d'authentification OpenAPI et confirmez votre ID vendeur.", "path": "Émettre la clé" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Une fois la clé d'authentification OpenAPI émise après [Émettre la clé], cela signifie qu'elle a été traitée correctement." }
+          ]
+        },
+        {
+          "h2": "3. Informations à enregistrer dans GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Champ", "Description"], "rows": [
+              ["api_key", "La clé d'authentification OpenAPI émise"],
+              ["seller_id", "ID vendeur"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Une fois que vous l'avez saisie et enregistrée dans le GenieGo Integration Hub [Enregistrer], les identifiants sont chiffrés au repos avec AES-256-GCM et masqués à la lecture." }
+          ]
+        },
+        {
+          "h2": "4. Problèmes fréquents",
+          "blocks": [
+            { "type": "table", "head": ["Problème", "Cause", "Solution"], "rows": [
+              ["Le bouton [Émettre la clé] n'est pas visible", "Vérification d'entreprise non terminée, ou inscription de la boutique non terminée", "Connectez-vous avec un compte vendeur enregistré ayant terminé la vérification d'entreprise."],
+              ["Erreur d'authentification lors de l'appel", "IP du serveur d'appel non enregistrée", "Vérifiez à nouveau l'IP du serveur d'appel dans [Gestion OpenAPI] > [Paramètres d'information]."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Liste de contrôle finale",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Connecté avec un compte vendeur enregistré sur LOTTE ON ayant terminé la vérification d'entreprise.",
+              "Enregistré l'IP du serveur d'appel dans [Gestion OpenAPI] > [Paramètres d'information].",
+              "Émis la clé d'authentification OpenAPI via [Émettre la clé] et confirmé l'ID vendeur.",
+              "Saisi api_key·seller_id dans GenieGo [Enregistrer] et enregistré."
+            ] }
+          ]
+        }
+      ]
+    },
+    "hi": {
+      "titleType": "API Key जारी करने की नियमावली",
+      "badge": "शुरुआती मार्गदर्शिका",
+      "intro": "एक नियमावली जो आपको LOTTE ON Seller Store Center (store.lotteon.com) से OpenAPI प्रमाणीकरण कुंजी जारी करने और इसे GenieGo Integration Hub में पंजीकृत करने के दौरान मार्गदर्शन करती है।",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["अनुमानित समय", "लगभग 5–15 मिनट"],
+        ["आवश्यक खाता", "LOTTE ON पंजीकृत विक्रेता खाता (व्यवसाय सत्यापन पूर्ण)"],
+        ["जारी की गई कुंजियाँ", "OpenAPI प्रमाणीकरण कुंजी · विक्रेता ID"],
+        ["परिणाम", "OpenAPI क्रेडेंशियल"]
+      ],
+      "sections": [
+        {
+          "h2": "1. शुरू करने से पहले",
+          "desc": "OpenAPI प्रमाणीकरण कुंजी केवल उस पंजीकृत विक्रेता खाते से जारी की जा सकती है जिसका व्यवसाय सत्यापन पूर्ण हो।",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "आवश्यक", "h3": "पंजीकृत विक्रेता खाता", "p": "आपको व्यवसाय सत्यापन पूर्ण वाला LOTTE ON पंजीकृत विक्रेता खाता चाहिए। यदि व्यवसाय सत्यापन पूर्ण नहीं है, तो कुंजी जारी नहीं की जा सकती।" },
+              { "tag": "जारी की गई कुंजियाँ", "h3": "OpenAPI प्रमाणीकरण कुंजी · विक्रेता ID", "p": "[कुंजी जारी करें] के माध्यम से जारी की गई OpenAPI प्रमाणीकरण कुंजी और अपनी विक्रेता ID दोनों की जाँच करें।" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>नोट:</strong> कुंजी जारी करने से पहले आपको अपने कॉलिंग सर्वर का IP पंजीकृत करना होगा।" }
+          ]
+        },
+        {
+          "h2": "2. जारी करने के चरण",
+          "desc": "नीचे दिए गए क्रम में जारी करें और GenieGo में पंजीकृत करें।",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Seller Store Center में साइन इन करें", "p": "LOTTE ON Seller Store Center में साइन इन करें।", "path": "https://store.lotteon.com" },
+              { "h3": "OpenAPI प्रबंधन खोलें और अपना IP पंजीकृत करें", "p": "[विक्रेता जानकारी] > [OpenAPI प्रबंधन] > [जानकारी सेटिंग] में, अपने कॉलिंग सर्वर का IP पंजीकृत करें।", "path": "विक्रेता जानकारी → OpenAPI प्रबंधन → जानकारी सेटिंग" },
+              { "h3": "कुंजी जारी करें", "p": "OpenAPI प्रमाणीकरण कुंजी जारी करने के लिए [कुंजी जारी करें] बटन पर क्लिक करें और अपनी विक्रेता ID की पुष्टि करें।", "path": "कुंजी जारी करें" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "[कुंजी जारी करें] के बाद OpenAPI प्रमाणीकरण कुंजी जारी हो जाने पर, इसका मतलब है कि इसे सही ढंग से संसाधित किया गया है।" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo में पंजीकृत करने योग्य जानकारी",
+          "blocks": [
+            { "type": "table", "head": ["फ़ील्ड", "विवरण"], "rows": [
+              ["api_key", "जारी की गई OpenAPI प्रमाणीकरण कुंजी"],
+              ["seller_id", "विक्रेता ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "जब आप इसे GenieGo Integration Hub [पंजीकरण] में दर्ज करके सहेजते हैं, तो क्रेडेंशियल को संग्रहण के समय AES-256-GCM से एन्क्रिप्ट किया जाता है और पढ़ते समय मास्क किया जाता है।" }
+          ]
+        },
+        {
+          "h2": "4. आम समस्याएँ",
+          "blocks": [
+            { "type": "table", "head": ["समस्या", "कारण", "समाधान"], "rows": [
+              ["[कुंजी जारी करें] बटन दिखाई नहीं देता", "व्यवसाय सत्यापन पूर्ण नहीं, या स्टोर पंजीकरण पूर्ण नहीं", "ऐसे पंजीकृत विक्रेता खाते से साइन इन करें जिसका व्यवसाय सत्यापन पूर्ण हो।"],
+              ["कॉल करते समय प्रमाणीकरण त्रुटि", "कॉलिंग सर्वर का IP पंजीकृत नहीं", "[OpenAPI प्रबंधन] > [जानकारी सेटिंग] में कॉलिंग सर्वर के IP की फिर से जाँच करें।"]
+            ] }
+          ]
+        },
+        {
+          "h2": "अंतिम जाँच सूची",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "व्यवसाय सत्यापन पूर्ण वाले LOTTE ON पंजीकृत विक्रेता खाते से साइन इन किया।",
+              "[OpenAPI प्रबंधन] > [जानकारी सेटिंग] में कॉलिंग सर्वर का IP पंजीकृत किया।",
+              "[कुंजी जारी करें] के माध्यम से OpenAPI प्रमाणीकरण कुंजी जारी की और विक्रेता ID की पुष्टि की।",
+              "GenieGo [पंजीकरण] में api_key·seller_id दर्ज किया और सहेजा।"
+            ] }
+          ]
+        }
+      ]
+    },
+    "pt": {
+      "titleType": "Manual de emissão da chave API",
+      "badge": "Guia para iniciantes",
+      "intro": "Um manual que orienta você na emissão de uma chave de autenticação OpenAPI no LOTTE ON Seller Store Center (store.lotteon.com) e no registro dela no GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tempo est.", "Cerca de 5–15 min"],
+        ["Conta necessária", "Conta de vendedor registrada no LOTTE ON (verificação de empresa concluída)"],
+        ["Chaves emitidas", "Chave de autenticação OpenAPI · ID do vendedor"],
+        ["Resultado", "Credenciais OpenAPI"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de começar",
+          "desc": "A chave de autenticação OpenAPI só pode ser emitida em uma conta de vendedor registrada que tenha concluído a verificação de empresa.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Obrigatório", "h3": "Conta de vendedor registrada", "p": "Você precisa de uma conta de vendedor registrada no LOTTE ON com a verificação de empresa concluída. Se a verificação de empresa não estiver concluída, a chave não pode ser emitida." },
+              { "tag": "Chaves emitidas", "h3": "Chave de autenticação OpenAPI · ID do vendedor", "p": "Verifique tanto a chave de autenticação OpenAPI emitida via [Emitir chave] quanto o seu ID de vendedor." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Observação:</strong> Você deve registrar o IP do seu servidor de chamada antes de emitir a chave." }
+          ]
+        },
+        {
+          "h2": "2. Etapas de emissão",
+          "desc": "Emita na ordem abaixo e registre no GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Faça login no Seller Store Center", "p": "Faça login no LOTTE ON Seller Store Center.", "path": "https://store.lotteon.com" },
+              { "h3": "Abra o gerenciamento de OpenAPI e registre seu IP", "p": "Em [Informações do vendedor] > [Gerenciamento de OpenAPI] > [Configurações de informações], registre o IP do seu servidor de chamada.", "path": "Informações do vendedor → Gerenciamento de OpenAPI → Configurações de informações" },
+              { "h3": "Emita a chave", "p": "Clique no botão [Emitir chave] para emitir a chave de autenticação OpenAPI e confirme o seu ID de vendedor.", "path": "Emitir chave" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Assim que a chave de autenticação OpenAPI for emitida após [Emitir chave], significa que foi processada corretamente." }
+          ]
+        },
+        {
+          "h2": "3. Informações para registrar no GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descrição"], "rows": [
+              ["api_key", "A chave de autenticação OpenAPI emitida"],
+              ["seller_id", "ID do vendedor"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Depois de inseri-la e salvá-la no GenieGo Integration Hub [Registrar], as credenciais são criptografadas em repouso com AES-256-GCM e mascaradas na leitura." }
+          ]
+        },
+        {
+          "h2": "4. Problemas comuns",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solução"], "rows": [
+              ["O botão [Emitir chave] não aparece", "Verificação de empresa não concluída, ou registro da loja não concluído", "Faça login com uma conta de vendedor registrada que tenha concluído a verificação de empresa."],
+              ["Erro de autenticação ao chamar", "IP do servidor de chamada não registrado", "Verifique novamente o IP do servidor de chamada em [Gerenciamento de OpenAPI] > [Configurações de informações]."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificação final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Fez login com uma conta de vendedor registrada no LOTTE ON que concluiu a verificação de empresa.",
+              "Registrou o IP do servidor de chamada em [Gerenciamento de OpenAPI] > [Configurações de informações].",
+              "Emitiu a chave de autenticação OpenAPI via [Emitir chave] e confirmou o ID do vendedor.",
+              "Inseriu api_key·seller_id no GenieGo [Registrar] e salvou."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ru": {
+      "titleType": "Руководство по выпуску ключа API",
+      "badge": "Руководство для начинающих",
+      "intro": "Руководство, которое проведёт вас через выпуск ключа аутентификации OpenAPI в LOTTE ON Seller Store Center (store.lotteon.com) и его регистрацию в GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Примерное время", "Около 5–15 мин"],
+        ["Требуемая учётная запись", "Зарегистрированная учётная запись продавца LOTTE ON (проверка компании завершена)"],
+        ["Выпускаемые ключи", "Ключ аутентификации OpenAPI · ID продавца"],
+        ["Результат", "Учётные данные OpenAPI"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Прежде чем начать",
+          "desc": "Ключ аутентификации OpenAPI можно выпустить только из зарегистрированной учётной записи продавца, прошедшей проверку компании.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Обязательно", "h3": "Зарегистрированная учётная запись продавца", "p": "Вам нужна зарегистрированная учётная запись продавца LOTTE ON с завершённой проверкой компании. Если проверка компании не завершена, ключ выпустить нельзя." },
+              { "tag": "Выпускаемые ключи", "h3": "Ключ аутентификации OpenAPI · ID продавца", "p": "Проверьте как ключ аутентификации OpenAPI, выпущенный через [Выпустить ключ], так и ваш ID продавца." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Примечание:</strong> Перед выпуском ключа необходимо зарегистрировать IP-адрес вызывающего сервера." }
+          ]
+        },
+        {
+          "h2": "2. Этапы выпуска",
+          "desc": "Выпустите в указанном ниже порядке и зарегистрируйте в GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Войдите в Seller Store Center", "p": "Войдите в LOTTE ON Seller Store Center.", "path": "https://store.lotteon.com" },
+              { "h3": "Откройте управление OpenAPI и зарегистрируйте IP", "p": "В разделе [Информация о продавце] > [Управление OpenAPI] > [Настройки информации] зарегистрируйте IP-адрес вызывающего сервера.", "path": "Информация о продавце → Управление OpenAPI → Настройки информации" },
+              { "h3": "Выпустите ключ", "p": "Нажмите кнопку [Выпустить ключ], чтобы выпустить ключ аутентификации OpenAPI, и подтвердите ваш ID продавца.", "path": "Выпустить ключ" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Как только ключ аутентификации OpenAPI выпущен после [Выпустить ключ], это означает, что он обработан корректно." }
+          ]
+        },
+        {
+          "h2": "3. Информация для регистрации в GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Поле", "Описание"], "rows": [
+              ["api_key", "Выпущенный ключ аутентификации OpenAPI"],
+              ["seller_id", "ID продавца"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "После того как вы введёте и сохраните их в GenieGo Integration Hub [Регистрация], учётные данные шифруются при хранении с помощью AES-256-GCM и маскируются при чтении." }
+          ]
+        },
+        {
+          "h2": "4. Частые проблемы",
+          "blocks": [
+            { "type": "table", "head": ["Проблема", "Причина", "Решение"], "rows": [
+              ["Кнопка [Выпустить ключ] не отображается", "Проверка компании не завершена или регистрация магазина не завершена", "Войдите с зарегистрированной учётной записью продавца, прошедшей проверку компании."],
+              ["Ошибка аутентификации при вызове", "IP-адрес вызывающего сервера не зарегистрирован", "Повторно проверьте IP-адрес вызывающего сервера в разделе [Управление OpenAPI] > [Настройки информации]."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Итоговый контрольный список",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Вошёл с зарегистрированной учётной записью продавца LOTTE ON, прошедшей проверку компании.",
+              "Зарегистрировал IP-адрес вызывающего сервера в разделе [Управление OpenAPI] > [Настройки информации].",
+              "Выпустил ключ аутентификации OpenAPI через [Выпустить ключ] и подтвердил ID продавца.",
+              "Ввёл api_key·seller_id в GenieGo [Регистрация] и сохранил."
+            ] }
+          ]
+        }
+      ]
+    }
+  }
+}

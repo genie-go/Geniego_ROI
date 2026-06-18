@@ -1,0 +1,1011 @@
+{
+  "name": "Razorpay",
+  "icon": "🔷",
+  "langs": {
+    "ko": {
+      "titleType": "API Key 발급 매뉴얼",
+      "badge": "Beginner Guide",
+      "intro": "Razorpay Dashboard에서 Live 모드 API 키(Key ID·Key Secret)를 생성·확인하고 GenieGo 연동 허브에 등록하는 과정을 초보자도 그대로 따라 할 수 있도록 정리한 매뉴얼입니다.",
+      "org": "GenieGo 연동 허브",
+      "quick": [
+        ["소요 시간", "약 5~10분"],
+        ["필요 계정", "Razorpay 계정(인도 중심)"],
+        ["발급 키", "Key ID(rzp_live_) · Key Secret"],
+        ["결과물", "Live API 자격증명"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 시작하기 전에",
+          "desc": "Razorpay API 키는 Dashboard의 Live 모드에서 생성합니다.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "필요", "h3": "Razorpay 계정", "p": "Razorpay 계정이 필요합니다(인도 중심). 계정으로 Dashboard에 로그인할 수 있어야 합니다." },
+              { "tag": "발급 키", "h3": "Key ID · Key Secret", "p": "Dashboard의 Settings > API Keys에서 Live 모드의 Key ID와 Key Secret을 생성·확인합니다." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>참고:</strong> 반드시 <strong>Live 모드</strong>에서 키를 생성합니다. Key ID는 rzp_live_ 로 시작합니다." }
+          ]
+        },
+        {
+          "h2": "2. 발급 단계",
+          "desc": "아래 순서대로 발급하고 GenieGo에 등록합니다.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Dashboard 접속", "p": "Razorpay Dashboard에 로그인합니다.", "path": "dashboard.razorpay.com" },
+              { "h3": "API Keys 이동", "p": "[Settings] > [API Keys]로 이동합니다.", "path": "Settings → API Keys" },
+              { "h3": "키 생성·확인", "p": "Live 모드에서 Key ID와 Key Secret을 생성·확인합니다." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Settings &gt; API Keys에서 Live 모드의 Key ID(rzp_live_)와 Key Secret이 보이면 정상 생성된 것입니다." }
+          ]
+        },
+        {
+          "h2": "3. GenieGo에 등록할 정보",
+          "blocks": [
+            { "type": "table", "head": ["필드", "설명"], "rows": [
+              ["key_id", "Live 모드 Key ID(rzp_live_로 시작)"],
+              ["key_secret", "Live 모드 Key Secret(노출 주의)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 연동 허브 [등록]에 key_id·key_secret을 입력해 저장하면 자격증명은 AES-256-GCM으로 암호화 저장되고 조회 시 마스킹됩니다." }
+          ]
+        },
+        {
+          "h2": "4. 자주 발생하는 문제",
+          "blocks": [
+            { "type": "table", "head": ["문제", "원인", "해결"], "rows": [
+              ["인증 실패", "Test 모드 키를 사용", "Live 모드에서 생성한 Key ID(rzp_live_)·Key Secret인지 확인합니다."],
+              ["Key Secret을 다시 볼 수 없음", "Key Secret은 생성 시 1회만 표시", "생성 시 Key Secret을 안전하게 보관하고, 분실 시 새로 생성합니다."]
+            ] }
+          ]
+        },
+        {
+          "h2": "최종 체크리스트",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Razorpay 계정으로 dashboard.razorpay.com에 로그인했다.",
+              "Settings > API Keys에서 Live 모드 키를 생성했다.",
+              "Key ID(rzp_live_)·Key Secret을 확인했다.",
+              "GenieGo [등록]에 key_id·key_secret을 입력해 저장했다."
+            ] }
+          ]
+        }
+      ]
+    },
+    "en": {
+      "titleType": "API Key Issuance Manual",
+      "badge": "Beginner Guide",
+      "intro": "A beginner-friendly, step-by-step guide to creating and confirming Live mode API keys (Key ID·Key Secret) in the Razorpay Dashboard and registering them in the GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Est. time", "About 5–10 min"],
+        ["Account needed", "Razorpay account (India-focused)"],
+        ["Keys issued", "Key ID (rzp_live_) · Key Secret"],
+        ["Result", "Live API credentials"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Before You Begin",
+          "desc": "Razorpay API keys are created in the Dashboard's Live mode.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Required", "h3": "Razorpay account", "p": "You need a Razorpay account (India-focused). You must be able to sign in to the Dashboard with it." },
+              { "tag": "Keys issued", "h3": "Key ID · Key Secret", "p": "Create and confirm the Live mode Key ID and Key Secret in the Dashboard under Settings > API Keys." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Note:</strong> Be sure to create the keys in <strong>Live mode</strong>. The Key ID starts with rzp_live_." }
+          ]
+        },
+        {
+          "h2": "2. Issuance Steps",
+          "desc": "Issue in the order below and register in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Open the Dashboard", "p": "Sign in to the Razorpay Dashboard.", "path": "dashboard.razorpay.com" },
+              { "h3": "Go to API Keys", "p": "Go to [Settings] > [API Keys].", "path": "Settings → API Keys" },
+              { "h3": "Create and confirm keys", "p": "In Live mode, create and confirm the Key ID and Key Secret." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "If you can see the Live mode Key ID (rzp_live_) and Key Secret under Settings &gt; API Keys, they have been created correctly." }
+          ]
+        },
+        {
+          "h2": "3. Information to Register in GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Field", "Description"], "rows": [
+              ["key_id", "Live mode Key ID (starts with rzp_live_)"],
+              ["key_secret", "Live mode Key Secret (handle with care)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "In the GenieGo Integration Hub [Register], enter your key_id·key_secret and save. Credentials are encrypted at rest with AES-256-GCM and masked on read." }
+          ]
+        },
+        {
+          "h2": "4. Common Issues",
+          "blocks": [
+            { "type": "table", "head": ["Issue", "Cause", "Solution"], "rows": [
+              ["Authentication failure", "Using a Test mode key", "Check that you are using a Key ID (rzp_live_)·Key Secret created in Live mode."],
+              ["Cannot view the Key Secret again", "The Key Secret is shown only once at creation", "Store the Key Secret safely at creation; if lost, create a new one."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Final Checklist",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Signed in to dashboard.razorpay.com with a Razorpay account.",
+              "Created Live mode keys under Settings > API Keys.",
+              "Confirmed the Key ID (rzp_live_)·Key Secret.",
+              "Entered key_id·key_secret in GenieGo [Register] and saved."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ja": {
+      "titleType": "API Key 発行マニュアル",
+      "badge": "初心者ガイド",
+      "intro": "Razorpay Dashboard で Live モードの API キー(Key ID·Key Secret)を作成・確認し、GenieGo 連携ハブに登録する手順を、初心者でもそのまま実行できるようにまとめたマニュアルです。",
+      "org": "GenieGo 連携ハブ",
+      "quick": [
+        ["所要時間", "約 5〜10 分"],
+        ["必要なアカウント", "Razorpay アカウント(インド中心)"],
+        ["発行するキー", "Key ID(rzp_live_) · Key Secret"],
+        ["成果物", "Live API 認証情報"]
+      ],
+      "sections": [
+        {
+          "h2": "1. はじめる前に",
+          "desc": "Razorpay の API キーは Dashboard の Live モードで作成します。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必須", "h3": "Razorpay アカウント", "p": "Razorpay アカウントが必要です(インド中心)。そのアカウントで Dashboard にログインできる必要があります。" },
+              { "tag": "発行するキー", "h3": "Key ID · Key Secret", "p": "Dashboard の Settings > API Keys で Live モードの Key ID と Key Secret を作成・確認します。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> 必ず <strong>Live モード</strong>でキーを作成します。Key ID は rzp_live_ で始まります。" }
+          ]
+        },
+        {
+          "h2": "2. 発行手順",
+          "desc": "以下の順序で発行し、GenieGo に登録します。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Dashboard にアクセス", "p": "Razorpay Dashboard にログインします。", "path": "dashboard.razorpay.com" },
+              { "h3": "API Keys へ移動", "p": "[Settings] > [API Keys] へ移動します。", "path": "Settings → API Keys" },
+              { "h3": "キーの作成・確認", "p": "Live モードで Key ID と Key Secret を作成・確認します。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Settings &gt; API Keys で Live モードの Key ID(rzp_live_)と Key Secret が表示されれば、正常に作成されています。" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo に登録する情報",
+          "blocks": [
+            { "type": "table", "head": ["フィールド", "説明"], "rows": [
+              ["key_id", "Live モードの Key ID(rzp_live_ で始まる)"],
+              ["key_secret", "Live モードの Key Secret(取り扱い注意)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 連携ハブ [登録] に key_id·key_secret を入力して保存すると、認証情報は AES-256-GCM で暗号化して保存され、閲覧時にはマスキングされます。" }
+          ]
+        },
+        {
+          "h2": "4. よくある問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["認証に失敗する", "Test モードのキーを使用している", "Live モードで作成した Key ID(rzp_live_)·Key Secret かどうかを確認します。"],
+              ["Key Secret を再表示できない", "Key Secret は作成時に 1 回だけ表示される", "作成時に Key Secret を安全に保管し、紛失した場合は新しく作成します。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終チェックリスト",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Razorpay アカウントで dashboard.razorpay.com にログインした。",
+              "Settings > API Keys で Live モードのキーを作成した。",
+              "Key ID(rzp_live_)·Key Secret を確認した。",
+              "GenieGo の [登録] に key_id·key_secret を入力して保存した。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh": {
+      "titleType": "API Key 申请手册",
+      "badge": "新手指南",
+      "intro": "本手册手把手指导新手在 Razorpay Dashboard 中创建并确认 Live 模式 API 密钥(Key ID·Key Secret),并将其注册到 GenieGo 集成中心。",
+      "org": "GenieGo 集成中心",
+      "quick": [
+        ["预计时间", "约 5~10 分钟"],
+        ["所需账户", "Razorpay 账户(以印度为主)"],
+        ["签发密钥", "Key ID(rzp_live_) · Key Secret"],
+        ["成果", "Live API 凭证"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 开始之前",
+          "desc": "Razorpay API 密钥在 Dashboard 的 Live 模式中创建。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "Razorpay 账户", "p": "您需要一个 Razorpay 账户(以印度为主)。您必须能够使用该账户登录 Dashboard。" },
+              { "tag": "签发密钥", "h3": "Key ID · Key Secret", "p": "在 Dashboard 的 Settings > API Keys 中创建并确认 Live 模式的 Key ID 和 Key Secret。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> 务必在 <strong>Live 模式</strong>下创建密钥。Key ID 以 rzp_live_ 开头。" }
+          ]
+        },
+        {
+          "h2": "2. 申请步骤",
+          "desc": "按以下顺序签发并在 GenieGo 中注册。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "访问 Dashboard", "p": "登录 Razorpay Dashboard。", "path": "dashboard.razorpay.com" },
+              { "h3": "进入 API Keys", "p": "进入 [Settings] > [API Keys]。", "path": "Settings → API Keys" },
+              { "h3": "创建并确认密钥", "p": "在 Live 模式下创建并确认 Key ID 和 Key Secret。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "如果在 Settings &gt; API Keys 中能看到 Live 模式的 Key ID(rzp_live_)和 Key Secret，即表示已正确创建。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中注册的信息",
+          "blocks": [
+            { "type": "table", "head": ["字段", "说明"], "rows": [
+              ["key_id", "Live 模式 Key ID(以 rzp_live_ 开头)"],
+              ["key_secret", "Live 模式 Key Secret(请妥善保管)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 集成中心 [注册] 中输入 key_id·key_secret 并保存后，凭证将以 AES-256-GCM 加密存储，并在查询时进行掩码处理。" }
+          ]
+        },
+        {
+          "h2": "4. 常见问题",
+          "blocks": [
+            { "type": "table", "head": ["问题", "原因", "解决方法"], "rows": [
+              ["认证失败", "使用了 Test 模式的密钥", "确认所使用的是在 Live 模式下创建的 Key ID(rzp_live_)·Key Secret。"],
+              ["无法再次查看 Key Secret", "Key Secret 仅在创建时显示一次", "创建时请妥善保管 Key Secret，丢失时请重新创建。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最终检查清单",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已使用 Razorpay 账户登录 dashboard.razorpay.com。",
+              "已在 Settings > API Keys 中创建 Live 模式密钥。",
+              "已确认 Key ID(rzp_live_)·Key Secret。",
+              "已在 GenieGo [注册] 中输入 key_id·key_secret 并保存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh-TW": {
+      "titleType": "API Key 申請手冊",
+      "badge": "新手指南",
+      "intro": "本手冊手把手指導新手在 Razorpay Dashboard 中建立並確認 Live 模式 API 金鑰(Key ID·Key Secret),並將其註冊到 GenieGo 整合中心。",
+      "org": "GenieGo 整合中心",
+      "quick": [
+        ["預計時間", "約 5~10 分鐘"],
+        ["所需帳戶", "Razorpay 帳戶(以印度為主)"],
+        ["簽發金鑰", "Key ID(rzp_live_) · Key Secret"],
+        ["成果", "Live API 憑證"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 開始之前",
+          "desc": "Razorpay API 金鑰在 Dashboard 的 Live 模式中建立。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "Razorpay 帳戶", "p": "您需要一個 Razorpay 帳戶(以印度為主)。您必須能夠使用該帳戶登入 Dashboard。" },
+              { "tag": "簽發金鑰", "h3": "Key ID · Key Secret", "p": "在 Dashboard 的 Settings > API Keys 中建立並確認 Live 模式的 Key ID 和 Key Secret。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> 務必在 <strong>Live 模式</strong>下建立金鑰。Key ID 以 rzp_live_ 開頭。" }
+          ]
+        },
+        {
+          "h2": "2. 簽發步驟",
+          "desc": "依以下順序簽發並在 GenieGo 中註冊。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "存取 Dashboard", "p": "登入 Razorpay Dashboard。", "path": "dashboard.razorpay.com" },
+              { "h3": "進入 API Keys", "p": "進入 [Settings] > [API Keys]。", "path": "Settings → API Keys" },
+              { "h3": "建立並確認金鑰", "p": "在 Live 模式下建立並確認 Key ID 和 Key Secret。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "如果在 Settings &gt; API Keys 中能看到 Live 模式的 Key ID(rzp_live_)和 Key Secret，即表示已正確建立。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中註冊的資訊",
+          "blocks": [
+            { "type": "table", "head": ["欄位", "說明"], "rows": [
+              ["key_id", "Live 模式 Key ID(以 rzp_live_ 開頭)"],
+              ["key_secret", "Live 模式 Key Secret(請妥善保管)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 整合中心 [註冊] 中輸入 key_id·key_secret 並儲存後，憑證將以 AES-256-GCM 加密儲存，並在查詢時進行遮罩處理。" }
+          ]
+        },
+        {
+          "h2": "4. 常見問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["認證失敗", "使用了 Test 模式的金鑰", "確認所使用的是在 Live 模式下建立的 Key ID(rzp_live_)·Key Secret。"],
+              ["無法再次查看 Key Secret", "Key Secret 僅在建立時顯示一次", "建立時請妥善保管 Key Secret，遺失時請重新建立。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終檢查清單",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已使用 Razorpay 帳戶登入 dashboard.razorpay.com。",
+              "已在 Settings > API Keys 中建立 Live 模式金鑰。",
+              "已確認 Key ID(rzp_live_)·Key Secret。",
+              "已在 GenieGo [註冊] 中輸入 key_id·key_secret 並儲存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "de": {
+      "titleType": "Anleitung zur API-Key-Ausstellung",
+      "badge": "Einsteigerleitfaden",
+      "intro": "Eine einsteigerfreundliche Schritt-für-Schritt-Anleitung zum Erstellen und Überprüfen von Live-Modus-API-Schlüsseln (Key ID·Key Secret) im Razorpay Dashboard und zum Registrieren im GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Geschätzte Zeit", "Etwa 5–10 Min."],
+        ["Benötigtes Konto", "Razorpay-Konto (mit Fokus auf Indien)"],
+        ["Ausgestellte Schlüssel", "Key ID (rzp_live_) · Key Secret"],
+        ["Ergebnis", "Live-API-Anmeldedaten"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Bevor Sie beginnen",
+          "desc": "Razorpay-API-Schlüssel werden im Live-Modus des Dashboards erstellt.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Erforderlich", "h3": "Razorpay-Konto", "p": "Sie benötigen ein Razorpay-Konto (mit Fokus auf Indien). Sie müssen sich damit beim Dashboard anmelden können." },
+              { "tag": "Ausgestellte Schlüssel", "h3": "Key ID · Key Secret", "p": "Erstellen und überprüfen Sie die Live-Modus-Key-ID und das Key Secret im Dashboard unter Settings > API Keys." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Hinweis:</strong> Erstellen Sie die Schlüssel unbedingt im <strong>Live-Modus</strong>. Die Key ID beginnt mit rzp_live_." }
+          ]
+        },
+        {
+          "h2": "2. Ausstellungsschritte",
+          "desc": "Stellen Sie in der unten angegebenen Reihenfolge aus und registrieren Sie in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Dashboard öffnen", "p": "Melden Sie sich beim Razorpay Dashboard an.", "path": "dashboard.razorpay.com" },
+              { "h3": "Zu API Keys wechseln", "p": "Gehen Sie zu [Settings] > [API Keys].", "path": "Settings → API Keys" },
+              { "h3": "Schlüssel erstellen und überprüfen", "p": "Erstellen und überprüfen Sie im Live-Modus die Key ID und das Key Secret." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Wenn Sie unter Settings &gt; API Keys die Live-Modus-Key-ID (rzp_live_) und das Key Secret sehen, wurden sie korrekt erstellt." }
+          ]
+        },
+        {
+          "h2": "3. In GenieGo zu registrierende Informationen",
+          "blocks": [
+            { "type": "table", "head": ["Feld", "Beschreibung"], "rows": [
+              ["key_id", "Live-Modus-Key-ID (beginnt mit rzp_live_)"],
+              ["key_secret", "Live-Modus-Key-Secret (vertraulich behandeln)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Geben Sie im GenieGo Integration Hub [Registrieren] Ihre key_id·key_secret ein und speichern Sie. Anmeldedaten werden im Ruhezustand mit AES-256-GCM verschlüsselt und beim Lesen maskiert." }
+          ]
+        },
+        {
+          "h2": "4. Häufige Probleme",
+          "blocks": [
+            { "type": "table", "head": ["Problem", "Ursache", "Lösung"], "rows": [
+              ["Authentifizierung fehlgeschlagen", "Verwendung eines Test-Modus-Schlüssels", "Prüfen Sie, ob Sie eine im Live-Modus erstellte Key ID (rzp_live_)·Key Secret verwenden."],
+              ["Key Secret kann nicht erneut angezeigt werden", "Das Key Secret wird nur einmal bei der Erstellung angezeigt", "Bewahren Sie das Key Secret bei der Erstellung sicher auf; bei Verlust erstellen Sie ein neues."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Abschließende Checkliste",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Mit einem Razorpay-Konto bei dashboard.razorpay.com angemeldet.",
+              "Live-Modus-Schlüssel unter Settings > API Keys erstellt.",
+              "Die Key ID (rzp_live_)·Key Secret überprüft.",
+              "key_id·key_secret in GenieGo [Registrieren] eingegeben und gespeichert."
+            ] }
+          ]
+        }
+      ]
+    },
+    "th": {
+      "titleType": "คู่มือการออก API Key",
+      "badge": "คู่มือสำหรับผู้เริ่มต้น",
+      "intro": "คู่มือทีละขั้นตอนที่เป็นมิตรกับผู้เริ่มต้น สำหรับการสร้างและตรวจสอบคีย์ API โหมด Live (Key ID·Key Secret) ใน Razorpay Dashboard และลงทะเบียนใน GenieGo Integration Hub",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["เวลาโดยประมาณ", "ประมาณ 5–10 นาที"],
+        ["บัญชีที่ต้องใช้", "บัญชี Razorpay (เน้นอินเดีย)"],
+        ["คีย์ที่ออก", "Key ID (rzp_live_) · Key Secret"],
+        ["ผลลัพธ์", "ข้อมูลรับรอง Live API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. ก่อนเริ่มต้น",
+          "desc": "คีย์ API ของ Razorpay สร้างในโหมด Live ของ Dashboard",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "จำเป็น", "h3": "บัญชี Razorpay", "p": "คุณต้องมีบัญชี Razorpay (เน้นอินเดีย) และต้องสามารถลงชื่อเข้าใช้ Dashboard ด้วยบัญชีนั้นได้" },
+              { "tag": "คีย์ที่ออก", "h3": "Key ID · Key Secret", "p": "สร้างและตรวจสอบ Key ID และ Key Secret ของโหมด Live ใน Dashboard ที่ Settings > API Keys" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>หมายเหตุ:</strong> ต้องสร้างคีย์ใน<strong>โหมด Live</strong>เท่านั้น Key ID ขึ้นต้นด้วย rzp_live_" }
+          ]
+        },
+        {
+          "h2": "2. ขั้นตอนการออก",
+          "desc": "ออกตามลำดับด้านล่างและลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "เข้าสู่ Dashboard", "p": "ลงชื่อเข้าใช้ Razorpay Dashboard", "path": "dashboard.razorpay.com" },
+              { "h3": "ไปที่ API Keys", "p": "ไปที่ [Settings] > [API Keys]", "path": "Settings → API Keys" },
+              { "h3": "สร้างและตรวจสอบคีย์", "p": "สร้างและตรวจสอบ Key ID และ Key Secret ในโหมด Live" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "หากคุณเห็น Key ID โหมด Live (rzp_live_) และ Key Secret ที่ Settings &gt; API Keys แสดงว่าสร้างอย่างถูกต้องแล้ว" }
+          ]
+        },
+        {
+          "h2": "3. ข้อมูลที่ต้องลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["ฟิลด์", "คำอธิบาย"], "rows": [
+              ["key_id", "Key ID โหมด Live (ขึ้นต้นด้วย rzp_live_)"],
+              ["key_secret", "Key Secret โหมด Live (จัดการด้วยความระมัดระวัง)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "ใน GenieGo Integration Hub [ลงทะเบียน] ป้อน key_id·key_secret แล้วบันทึก ข้อมูลรับรองจะถูกเข้ารหัสขณะจัดเก็บด้วย AES-256-GCM และปิดบังเมื่ออ่าน" }
+          ]
+        },
+        {
+          "h2": "4. ปัญหาที่พบบ่อย",
+          "blocks": [
+            { "type": "table", "head": ["ปัญหา", "สาเหตุ", "วิธีแก้ไข"], "rows": [
+              ["การยืนยันตัวตนล้มเหลว", "ใช้คีย์โหมด Test", "ตรวจสอบว่าคุณใช้ Key ID (rzp_live_)·Key Secret ที่สร้างในโหมด Live"],
+              ["ไม่สามารถดู Key Secret ได้อีก", "Key Secret จะแสดงเพียงครั้งเดียวตอนสร้าง", "เก็บ Key Secret ไว้อย่างปลอดภัยตอนสร้าง หากสูญหายให้สร้างใหม่"]
+            ] }
+          ]
+        },
+        {
+          "h2": "รายการตรวจสอบขั้นสุดท้าย",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "ลงชื่อเข้าใช้ dashboard.razorpay.com ด้วยบัญชี Razorpay แล้ว",
+              "สร้างคีย์โหมด Live ที่ Settings > API Keys แล้ว",
+              "ตรวจสอบ Key ID (rzp_live_)·Key Secret แล้ว",
+              "ป้อน key_id·key_secret ใน GenieGo [ลงทะเบียน] และบันทึกแล้ว"
+            ] }
+          ]
+        }
+      ]
+    },
+    "vi": {
+      "titleType": "Hướng dẫn cấp API Key",
+      "badge": "Hướng dẫn cho người mới",
+      "intro": "Hướng dẫn từng bước thân thiện với người mới về việc tạo và xác nhận khóa API ở chế độ Live (Key ID·Key Secret) trong Razorpay Dashboard và đăng ký trong GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Thời gian dự kiến", "Khoảng 5–10 phút"],
+        ["Tài khoản cần thiết", "Tài khoản Razorpay (tập trung vào Ấn Độ)"],
+        ["Khóa được cấp", "Key ID (rzp_live_) · Key Secret"],
+        ["Kết quả", "Thông tin xác thực Live API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Trước khi bắt đầu",
+          "desc": "Khóa API Razorpay được tạo trong chế độ Live của Dashboard.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Bắt buộc", "h3": "Tài khoản Razorpay", "p": "Bạn cần một tài khoản Razorpay (tập trung vào Ấn Độ). Bạn phải có thể đăng nhập vào Dashboard bằng tài khoản đó." },
+              { "tag": "Khóa được cấp", "h3": "Key ID · Key Secret", "p": "Tạo và xác nhận Key ID và Key Secret ở chế độ Live trong Dashboard tại Settings > API Keys." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Lưu ý:</strong> Hãy chắc chắn tạo khóa ở <strong>chế độ Live</strong>. Key ID bắt đầu bằng rzp_live_." }
+          ]
+        },
+        {
+          "h2": "2. Các bước cấp",
+          "desc": "Cấp theo thứ tự dưới đây và đăng ký trong GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Mở Dashboard", "p": "Đăng nhập vào Razorpay Dashboard.", "path": "dashboard.razorpay.com" },
+              { "h3": "Đi tới API Keys", "p": "Đi tới [Settings] > [API Keys].", "path": "Settings → API Keys" },
+              { "h3": "Tạo và xác nhận khóa", "p": "Ở chế độ Live, tạo và xác nhận Key ID và Key Secret." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Nếu bạn thấy Key ID chế độ Live (rzp_live_) và Key Secret tại Settings &gt; API Keys, nghĩa là chúng đã được tạo đúng cách." }
+          ]
+        },
+        {
+          "h2": "3. Thông tin cần đăng ký trong GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Trường", "Mô tả"], "rows": [
+              ["key_id", "Key ID chế độ Live (bắt đầu bằng rzp_live_)"],
+              ["key_secret", "Key Secret chế độ Live (xử lý cẩn thận)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Trong GenieGo Integration Hub [Đăng ký], nhập key_id·key_secret của bạn rồi lưu. Thông tin xác thực được mã hóa khi lưu trữ bằng AES-256-GCM và được che khi đọc." }
+          ]
+        },
+        {
+          "h2": "4. Sự cố thường gặp",
+          "blocks": [
+            { "type": "table", "head": ["Sự cố", "Nguyên nhân", "Giải pháp"], "rows": [
+              ["Xác thực thất bại", "Sử dụng khóa chế độ Test", "Kiểm tra rằng bạn đang dùng Key ID (rzp_live_)·Key Secret được tạo ở chế độ Live."],
+              ["Không thể xem lại Key Secret", "Key Secret chỉ hiển thị một lần khi tạo", "Lưu Key Secret an toàn khi tạo; nếu mất, hãy tạo khóa mới."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Danh sách kiểm tra cuối cùng",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Đã đăng nhập vào dashboard.razorpay.com bằng tài khoản Razorpay.",
+              "Đã tạo khóa chế độ Live tại Settings > API Keys.",
+              "Đã xác nhận Key ID (rzp_live_)·Key Secret.",
+              "Đã nhập key_id·key_secret vào GenieGo [Đăng ký] và lưu."
+            ] }
+          ]
+        }
+      ]
+    },
+    "id": {
+      "titleType": "Panduan Penerbitan API Key",
+      "badge": "Panduan Pemula",
+      "intro": "Panduan langkah demi langkah yang ramah pemula untuk membuat dan memverifikasi kunci API mode Live (Key ID·Key Secret) di Razorpay Dashboard dan mendaftarkannya di GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Perkiraan waktu", "Sekitar 5–10 menit"],
+        ["Akun yang dibutuhkan", "Akun Razorpay (berfokus pada India)"],
+        ["Kunci yang diterbitkan", "Key ID (rzp_live_) · Key Secret"],
+        ["Hasil", "Kredensial Live API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Sebelum Anda Mulai",
+          "desc": "Kunci API Razorpay dibuat di mode Live pada Dashboard.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Diperlukan", "h3": "Akun Razorpay", "p": "Anda memerlukan akun Razorpay (berfokus pada India). Anda harus dapat masuk ke Dashboard dengan akun tersebut." },
+              { "tag": "Kunci yang diterbitkan", "h3": "Key ID · Key Secret", "p": "Buat dan verifikasi Key ID dan Key Secret mode Live di Dashboard pada Settings > API Keys." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Catatan:</strong> Pastikan membuat kunci di <strong>mode Live</strong>. Key ID diawali dengan rzp_live_." }
+          ]
+        },
+        {
+          "h2": "2. Langkah Penerbitan",
+          "desc": "Terbitkan sesuai urutan di bawah dan daftarkan di GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Buka Dashboard", "p": "Masuk ke Razorpay Dashboard.", "path": "dashboard.razorpay.com" },
+              { "h3": "Buka API Keys", "p": "Buka [Settings] > [API Keys].", "path": "Settings → API Keys" },
+              { "h3": "Buat dan verifikasi kunci", "p": "Di mode Live, buat dan verifikasi Key ID dan Key Secret." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Jika Anda dapat melihat Key ID mode Live (rzp_live_) dan Key Secret di Settings &gt; API Keys, berarti keduanya telah dibuat dengan benar." }
+          ]
+        },
+        {
+          "h2": "3. Informasi yang Harus Didaftarkan di GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Bidang", "Deskripsi"], "rows": [
+              ["key_id", "Key ID mode Live (diawali dengan rzp_live_)"],
+              ["key_secret", "Key Secret mode Live (tangani dengan hati-hati)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Di GenieGo Integration Hub [Daftar], masukkan key_id·key_secret Anda lalu simpan. Kredensial dienkripsi saat disimpan dengan AES-256-GCM dan ditutupi saat dibaca." }
+          ]
+        },
+        {
+          "h2": "4. Masalah Umum",
+          "blocks": [
+            { "type": "table", "head": ["Masalah", "Penyebab", "Solusi"], "rows": [
+              ["Autentikasi gagal", "Menggunakan kunci mode Test", "Periksa bahwa Anda menggunakan Key ID (rzp_live_)·Key Secret yang dibuat di mode Live."],
+              ["Tidak dapat melihat Key Secret lagi", "Key Secret hanya ditampilkan sekali saat pembuatan", "Simpan Key Secret dengan aman saat pembuatan; jika hilang, buat yang baru."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Daftar Periksa Akhir",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Telah masuk ke dashboard.razorpay.com dengan akun Razorpay.",
+              "Telah membuat kunci mode Live di Settings > API Keys.",
+              "Telah memverifikasi Key ID (rzp_live_)·Key Secret.",
+              "Telah memasukkan key_id·key_secret di GenieGo [Daftar] dan menyimpannya."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ar": {
+      "titleType": "دليل إصدار مفتاح API",
+      "badge": "دليل المبتدئين",
+      "intro": "دليل تفصيلي ملائم للمبتدئين لإنشاء مفاتيح API في وضع Live (Key ID·Key Secret) والتحقق منها في Razorpay Dashboard وتسجيلها في GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["الوقت المقدّر", "حوالي 5–10 دقائق"],
+        ["الحساب المطلوب", "حساب Razorpay (يركّز على الهند)"],
+        ["المفاتيح المُصدَرة", "Key ID (rzp_live_) · Key Secret"],
+        ["النتيجة", "بيانات اعتماد Live API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. قبل أن تبدأ",
+          "desc": "يتم إنشاء مفاتيح API الخاصة بـ Razorpay في وضع Live على Dashboard.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "مطلوب", "h3": "حساب Razorpay", "p": "أنت بحاجة إلى حساب Razorpay (يركّز على الهند). يجب أن تتمكن من تسجيل الدخول إلى Dashboard باستخدامه." },
+              { "tag": "المفاتيح المُصدَرة", "h3": "Key ID · Key Secret", "p": "أنشئ وتحقق من Key ID وKey Secret لوضع Live في Dashboard ضمن Settings > API Keys." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>ملاحظة:</strong> احرص على إنشاء المفاتيح في <strong>وضع Live</strong>. يبدأ Key ID بـ rzp_live_." }
+          ]
+        },
+        {
+          "h2": "2. خطوات الإصدار",
+          "desc": "أصدر بالترتيب أدناه وسجّل في GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "افتح Dashboard", "p": "سجّل الدخول إلى Razorpay Dashboard.", "path": "dashboard.razorpay.com" },
+              { "h3": "انتقل إلى API Keys", "p": "انتقل إلى [Settings] > [API Keys].", "path": "Settings → API Keys" },
+              { "h3": "أنشئ المفاتيح وتحقق منها", "p": "في وضع Live، أنشئ Key ID وKey Secret وتحقق منهما." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "إذا كنت ترى Key ID لوضع Live (rzp_live_) وKey Secret ضمن Settings &gt; API Keys، فهذا يعني أنه تم إنشاؤهما بشكل صحيح." }
+          ]
+        },
+        {
+          "h2": "3. المعلومات المطلوب تسجيلها في GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["الحقل", "الوصف"], "rows": [
+              ["key_id", "Key ID لوضع Live (يبدأ بـ rzp_live_)"],
+              ["key_secret", "Key Secret لوضع Live (تعامل معه بحذر)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "في GenieGo Integration Hub [التسجيل]، أدخل key_id·key_secret ثم احفظ. تُشفَّر بيانات الاعتماد أثناء التخزين باستخدام AES-256-GCM ويتم إخفاؤها عند القراءة." }
+          ]
+        },
+        {
+          "h2": "4. المشكلات الشائعة",
+          "blocks": [
+            { "type": "table", "head": ["المشكلة", "السبب", "الحل"], "rows": [
+              ["فشل المصادقة", "استخدام مفتاح وضع Test", "تحقق من أنك تستخدم Key ID (rzp_live_)·Key Secret تم إنشاؤه في وضع Live."],
+              ["تعذّر عرض Key Secret مرة أخرى", "يُعرض Key Secret مرة واحدة فقط عند الإنشاء", "احفظ Key Secret بأمان عند الإنشاء؛ وإذا فُقد، أنشئ مفتاحًا جديدًا."]
+            ] }
+          ]
+        },
+        {
+          "h2": "قائمة التحقق النهائية",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "سجّلت الدخول إلى dashboard.razorpay.com بحساب Razorpay.",
+              "أنشأت مفاتيح وضع Live ضمن Settings > API Keys.",
+              "تحققت من Key ID (rzp_live_)·Key Secret.",
+              "أدخلت key_id·key_secret في GenieGo [التسجيل] وحفظت."
+            ] }
+          ]
+        }
+      ]
+    },
+    "es": {
+      "titleType": "Manual de emisión de API Key",
+      "badge": "Guía para principiantes",
+      "intro": "Una guía paso a paso, apta para principiantes, para crear y verificar claves de API en modo Live (Key ID·Key Secret) en el Razorpay Dashboard y registrarlas en el GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tiempo estimado", "Unos 5–10 min"],
+        ["Cuenta necesaria", "Cuenta de Razorpay (centrada en India)"],
+        ["Claves emitidas", "Key ID (rzp_live_) · Key Secret"],
+        ["Resultado", "Credenciales de Live API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de empezar",
+          "desc": "Las claves de API de Razorpay se crean en el modo Live del Dashboard.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requerido", "h3": "Cuenta de Razorpay", "p": "Necesitas una cuenta de Razorpay (centrada en India). Debes poder iniciar sesión en el Dashboard con ella." },
+              { "tag": "Claves emitidas", "h3": "Key ID · Key Secret", "p": "Crea y verifica el Key ID y el Key Secret en modo Live en el Dashboard, en Settings > API Keys." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Nota:</strong> Asegúrate de crear las claves en <strong>modo Live</strong>. El Key ID comienza con rzp_live_." }
+          ]
+        },
+        {
+          "h2": "2. Pasos de emisión",
+          "desc": "Emite en el orden indicado a continuación y regístralas en GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Abrir el Dashboard", "p": "Inicia sesión en el Razorpay Dashboard.", "path": "dashboard.razorpay.com" },
+              { "h3": "Ir a API Keys", "p": "Ve a [Settings] > [API Keys].", "path": "Settings → API Keys" },
+              { "h3": "Crear y verificar las claves", "p": "En modo Live, crea y verifica el Key ID y el Key Secret." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Si puedes ver el Key ID de modo Live (rzp_live_) y el Key Secret en Settings &gt; API Keys, se han creado correctamente." }
+          ]
+        },
+        {
+          "h2": "3. Información para registrar en GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descripción"], "rows": [
+              ["key_id", "Key ID de modo Live (comienza con rzp_live_)"],
+              ["key_secret", "Key Secret de modo Live (manéjalo con cuidado)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "En el GenieGo Integration Hub [Registrar], introduce tu key_id·key_secret y guarda. Las credenciales se cifran en reposo con AES-256-GCM y se enmascaran al leerlas." }
+          ]
+        },
+        {
+          "h2": "4. Problemas frecuentes",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solución"], "rows": [
+              ["Error de autenticación", "Uso de una clave de modo Test", "Comprueba que estás usando un Key ID (rzp_live_)·Key Secret creado en modo Live."],
+              ["No se puede volver a ver el Key Secret", "El Key Secret solo se muestra una vez al crearlo", "Guarda el Key Secret de forma segura al crearlo; si lo pierdes, crea uno nuevo."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de comprobación final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Inicié sesión en dashboard.razorpay.com con una cuenta de Razorpay.",
+              "Creé claves de modo Live en Settings > API Keys.",
+              "Verifiqué el Key ID (rzp_live_)·Key Secret.",
+              "Introduje key_id·key_secret en GenieGo [Registrar] y guardé."
+            ] }
+          ]
+        }
+      ]
+    },
+    "fr": {
+      "titleType": "Manuel d'émission de clé API",
+      "badge": "Guide du débutant",
+      "intro": "Un guide pas à pas, adapté aux débutants, pour créer et vérifier des clés d'API en mode Live (Key ID·Key Secret) dans le Razorpay Dashboard et les enregistrer dans le GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Temps estimé", "Environ 5–10 min"],
+        ["Compte requis", "Compte Razorpay (axé sur l'Inde)"],
+        ["Clés émises", "Key ID (rzp_live_) · Key Secret"],
+        ["Résultat", "Identifiants Live API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Avant de commencer",
+          "desc": "Les clés d'API Razorpay sont créées dans le mode Live du Dashboard.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requis", "h3": "Compte Razorpay", "p": "Vous avez besoin d'un compte Razorpay (axé sur l'Inde). Vous devez pouvoir vous connecter au Dashboard avec ce compte." },
+              { "tag": "Clés émises", "h3": "Key ID · Key Secret", "p": "Créez et vérifiez le Key ID et le Key Secret en mode Live dans le Dashboard, sous Settings > API Keys." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Remarque :</strong> Veillez à créer les clés en <strong>mode Live</strong>. Le Key ID commence par rzp_live_." }
+          ]
+        },
+        {
+          "h2": "2. Étapes d'émission",
+          "desc": "Émettez dans l'ordre ci-dessous et enregistrez dans GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Ouvrir le Dashboard", "p": "Connectez-vous au Razorpay Dashboard.", "path": "dashboard.razorpay.com" },
+              { "h3": "Aller dans API Keys", "p": "Allez dans [Settings] > [API Keys].", "path": "Settings → API Keys" },
+              { "h3": "Créer et vérifier les clés", "p": "En mode Live, créez et vérifiez le Key ID et le Key Secret." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Si vous voyez le Key ID de mode Live (rzp_live_) et le Key Secret sous Settings &gt; API Keys, ils ont été créés correctement." }
+          ]
+        },
+        {
+          "h2": "3. Informations à enregistrer dans GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Champ", "Description"], "rows": [
+              ["key_id", "Key ID de mode Live (commence par rzp_live_)"],
+              ["key_secret", "Key Secret de mode Live (à manipuler avec précaution)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Dans le GenieGo Integration Hub [Enregistrer], saisissez votre key_id·key_secret et enregistrez. Les identifiants sont chiffrés au repos avec AES-256-GCM et masqués à la lecture." }
+          ]
+        },
+        {
+          "h2": "4. Problèmes fréquents",
+          "blocks": [
+            { "type": "table", "head": ["Problème", "Cause", "Solution"], "rows": [
+              ["Échec de l'authentification", "Utilisation d'une clé de mode Test", "Vérifiez que vous utilisez un Key ID (rzp_live_)·Key Secret créé en mode Live."],
+              ["Impossible de revoir le Key Secret", "Le Key Secret n'est affiché qu'une seule fois à la création", "Conservez le Key Secret en lieu sûr lors de la création ; en cas de perte, créez-en un nouveau."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Liste de contrôle finale",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Connecté à dashboard.razorpay.com avec un compte Razorpay.",
+              "Créé des clés de mode Live sous Settings > API Keys.",
+              "Vérifié le Key ID (rzp_live_)·Key Secret.",
+              "Saisi key_id·key_secret dans GenieGo [Enregistrer] et enregistré."
+            ] }
+          ]
+        }
+      ]
+    },
+    "hi": {
+      "titleType": "API Key जारी करने की नियमावली",
+      "badge": "शुरुआती गाइड",
+      "intro": "Razorpay Dashboard में Live मोड की API कुंजियाँ (Key ID·Key Secret) बनाने और सत्यापित करने तथा उन्हें GenieGo Integration Hub में पंजीकृत करने की चरण-दर-चरण, शुरुआती-अनुकूल नियमावली।",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["अनुमानित समय", "लगभग 5–10 मिनट"],
+        ["आवश्यक खाता", "Razorpay खाता (भारत-केंद्रित)"],
+        ["जारी कुंजियाँ", "Key ID (rzp_live_) · Key Secret"],
+        ["परिणाम", "Live API क्रेडेंशियल"]
+      ],
+      "sections": [
+        {
+          "h2": "1. शुरू करने से पहले",
+          "desc": "Razorpay API कुंजियाँ Dashboard के Live मोड में बनाई जाती हैं।",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "आवश्यक", "h3": "Razorpay खाता", "p": "आपको एक Razorpay खाता चाहिए (भारत-केंद्रित)। आपको उससे Dashboard में लॉगिन करने में सक्षम होना चाहिए।" },
+              { "tag": "जारी कुंजियाँ", "h3": "Key ID · Key Secret", "p": "Dashboard में Settings > API Keys के अंतर्गत Live मोड की Key ID और Key Secret बनाएँ और सत्यापित करें।" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>नोट:</strong> कुंजियाँ अवश्य <strong>Live मोड</strong> में ही बनाएँ। Key ID rzp_live_ से शुरू होती है।" }
+          ]
+        },
+        {
+          "h2": "2. जारी करने के चरण",
+          "desc": "नीचे दिए गए क्रम में जारी करें और GenieGo में पंजीकृत करें।",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Dashboard खोलें", "p": "Razorpay Dashboard में लॉगिन करें।", "path": "dashboard.razorpay.com" },
+              { "h3": "API Keys पर जाएँ", "p": "[Settings] > [API Keys] पर जाएँ।", "path": "Settings → API Keys" },
+              { "h3": "कुंजियाँ बनाएँ और सत्यापित करें", "p": "Live मोड में Key ID और Key Secret बनाएँ और सत्यापित करें।" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "यदि आपको Settings &gt; API Keys के अंतर्गत Live मोड की Key ID (rzp_live_) और Key Secret दिखाई देती हैं, तो वे सही ढंग से बन गई हैं।" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo में पंजीकृत की जाने वाली जानकारी",
+          "blocks": [
+            { "type": "table", "head": ["फ़ील्ड", "विवरण"], "rows": [
+              ["key_id", "Live मोड की Key ID (rzp_live_ से शुरू)"],
+              ["key_secret", "Live मोड की Key Secret (सावधानी से संभालें)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo Integration Hub [पंजीकरण] में अपनी key_id·key_secret दर्ज करें और सहेजें। क्रेडेंशियल विश्राम में AES-256-GCM से एन्क्रिप्ट किए जाते हैं और पढ़ते समय मास्क किए जाते हैं।" }
+          ]
+        },
+        {
+          "h2": "4. आम समस्याएँ",
+          "blocks": [
+            { "type": "table", "head": ["समस्या", "कारण", "समाधान"], "rows": [
+              ["प्रमाणीकरण विफल", "Test मोड की कुंजी का उपयोग", "जाँचें कि आप Live मोड में बनाई गई Key ID (rzp_live_)·Key Secret का उपयोग कर रहे हैं।"],
+              ["Key Secret को दोबारा नहीं देखा जा सकता", "Key Secret केवल बनाते समय एक बार दिखाई जाती है", "बनाते समय Key Secret को सुरक्षित रखें; खो जाने पर नई बनाएँ।"]
+            ] }
+          ]
+        },
+        {
+          "h2": "अंतिम जाँच-सूची",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Razorpay खाते से dashboard.razorpay.com में लॉगिन किया।",
+              "Settings > API Keys में Live मोड की कुंजियाँ बनाईं।",
+              "Key ID (rzp_live_)·Key Secret सत्यापित की।",
+              "GenieGo [पंजीकरण] में key_id·key_secret दर्ज करके सहेजा।"
+            ] }
+          ]
+        }
+      ]
+    },
+    "pt": {
+      "titleType": "Manual de emissão de API Key",
+      "badge": "Guia para iniciantes",
+      "intro": "Um guia passo a passo, adequado para iniciantes, para criar e verificar chaves de API no modo Live (Key ID·Key Secret) no Razorpay Dashboard e registrá-las no GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tempo estimado", "Cerca de 5–10 min"],
+        ["Conta necessária", "Conta Razorpay (focada na Índia)"],
+        ["Chaves emitidas", "Key ID (rzp_live_) · Key Secret"],
+        ["Resultado", "Credenciais da Live API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de começar",
+          "desc": "As chaves de API do Razorpay são criadas no modo Live do Dashboard.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Necessário", "h3": "Conta Razorpay", "p": "Você precisa de uma conta Razorpay (focada na Índia). Você deve conseguir fazer login no Dashboard com ela." },
+              { "tag": "Chaves emitidas", "h3": "Key ID · Key Secret", "p": "Crie e verifique o Key ID e o Key Secret do modo Live no Dashboard, em Settings > API Keys." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Nota:</strong> Certifique-se de criar as chaves no <strong>modo Live</strong>. O Key ID começa com rzp_live_." }
+          ]
+        },
+        {
+          "h2": "2. Etapas de emissão",
+          "desc": "Emita na ordem abaixo e registre no GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Abrir o Dashboard", "p": "Faça login no Razorpay Dashboard.", "path": "dashboard.razorpay.com" },
+              { "h3": "Ir para API Keys", "p": "Vá para [Settings] > [API Keys].", "path": "Settings → API Keys" },
+              { "h3": "Criar e verificar as chaves", "p": "No modo Live, crie e verifique o Key ID e o Key Secret." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Se você conseguir ver o Key ID do modo Live (rzp_live_) e o Key Secret em Settings &gt; API Keys, eles foram criados corretamente." }
+          ]
+        },
+        {
+          "h2": "3. Informações a registrar no GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descrição"], "rows": [
+              ["key_id", "Key ID do modo Live (começa com rzp_live_)"],
+              ["key_secret", "Key Secret do modo Live (manuseie com cuidado)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "No GenieGo Integration Hub [Registrar], insira seu key_id·key_secret e salve. As credenciais são criptografadas em repouso com AES-256-GCM e mascaradas na leitura." }
+          ]
+        },
+        {
+          "h2": "4. Problemas comuns",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solução"], "rows": [
+              ["Falha de autenticação", "Uso de uma chave do modo Test", "Verifique se você está usando um Key ID (rzp_live_)·Key Secret criado no modo Live."],
+              ["Não é possível ver o Key Secret novamente", "O Key Secret é exibido apenas uma vez na criação", "Guarde o Key Secret com segurança na criação; se perdê-lo, crie um novo."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificação final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Fiz login em dashboard.razorpay.com com uma conta Razorpay.",
+              "Criei chaves do modo Live em Settings > API Keys.",
+              "Verifiquei o Key ID (rzp_live_)·Key Secret.",
+              "Inseri key_id·key_secret no GenieGo [Registrar] e salvei."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ru": {
+      "titleType": "Руководство по выпуску API Key",
+      "badge": "Руководство для начинающих",
+      "intro": "Понятное для новичков пошаговое руководство по созданию и проверке API-ключей режима Live (Key ID·Key Secret) в Razorpay Dashboard и их регистрации в GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Примерное время", "Около 5–10 мин"],
+        ["Требуемый аккаунт", "Аккаунт Razorpay (ориентирован на Индию)"],
+        ["Выпускаемые ключи", "Key ID (rzp_live_) · Key Secret"],
+        ["Результат", "Учётные данные Live API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Перед началом",
+          "desc": "API-ключи Razorpay создаются в режиме Live в Dashboard.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Требуется", "h3": "Аккаунт Razorpay", "p": "Вам нужен аккаунт Razorpay (ориентирован на Индию). С ним вы должны иметь возможность войти в Dashboard." },
+              { "tag": "Выпускаемые ключи", "h3": "Key ID · Key Secret", "p": "Создайте и проверьте Key ID и Key Secret режима Live в Dashboard в разделе Settings > API Keys." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Примечание:</strong> Обязательно создавайте ключи в <strong>режиме Live</strong>. Key ID начинается с rzp_live_." }
+          ]
+        },
+        {
+          "h2": "2. Шаги выпуска",
+          "desc": "Выпустите в указанном ниже порядке и зарегистрируйте в GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Откройте Dashboard", "p": "Войдите в Razorpay Dashboard.", "path": "dashboard.razorpay.com" },
+              { "h3": "Перейдите в API Keys", "p": "Перейдите в [Settings] > [API Keys].", "path": "Settings → API Keys" },
+              { "h3": "Создайте и проверьте ключи", "p": "В режиме Live создайте и проверьте Key ID и Key Secret." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Если в разделе Settings &gt; API Keys вы видите Key ID режима Live (rzp_live_) и Key Secret, значит они созданы правильно." }
+          ]
+        },
+        {
+          "h2": "3. Информация для регистрации в GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Поле", "Описание"], "rows": [
+              ["key_id", "Key ID режима Live (начинается с rzp_live_)"],
+              ["key_secret", "Key Secret режима Live (обращайтесь осторожно)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "В GenieGo Integration Hub [Регистрация] введите ваши key_id·key_secret и сохраните. Учётные данные шифруются при хранении с помощью AES-256-GCM и маскируются при чтении." }
+          ]
+        },
+        {
+          "h2": "4. Частые проблемы",
+          "blocks": [
+            { "type": "table", "head": ["Проблема", "Причина", "Решение"], "rows": [
+              ["Сбой аутентификации", "Используется ключ режима Test", "Проверьте, что вы используете Key ID (rzp_live_)·Key Secret, созданный в режиме Live."],
+              ["Невозможно снова увидеть Key Secret", "Key Secret показывается только один раз при создании", "Сохраните Key Secret в надёжном месте при создании; если он утерян, создайте новый."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Финальный чек-лист",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Вошёл на dashboard.razorpay.com с аккаунтом Razorpay.",
+              "Создал ключи режима Live в Settings > API Keys.",
+              "Проверил Key ID (rzp_live_)·Key Secret.",
+              "Ввёл key_id·key_secret в GenieGo [Регистрация] и сохранил."
+            ] }
+          ]
+        }
+      ]
+    }
+  }
+}
