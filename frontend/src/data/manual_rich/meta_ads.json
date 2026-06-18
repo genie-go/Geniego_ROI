@@ -1,0 +1,152 @@
+{
+  "name": "Meta Ads",
+  "icon": "📘",
+  "langs": {
+    "ko": {
+      "titleType": "API Key 발급 매뉴얼",
+      "badge": "Beginner Guide",
+      "intro": "Meta 비즈니스 앱에서 시스템 사용자 액세스 토큰을 발급하고, 광고 계정 ID(act_)와 함께 GenieGo 연동 허브에 등록해 Meta Ads 광고 데이터를 연동하는 과정을 초보자도 그대로 따라 할 수 있도록 정리한 매뉴얼입니다.",
+      "org": "GenieGo 연동 허브",
+      "quick": [
+        ["소요 시간", "약 10~20분"],
+        ["필요 계정", "Facebook 개인 계정 · Meta 광고 계정"],
+        ["발급 키", "액세스 토큰 · 광고 계정 ID(act_)"],
+        ["결과물", "Marketing API 자격증명"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 시작하기 전에",
+          "desc": "Meta Ads 연동에는 비즈니스 계정과 광고를 집행 중인 광고 계정이 필요합니다.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "필요", "h3": "Facebook 개인 계정 · 광고 계정", "p": "Facebook 개인 계정과, 실제로 광고를 집행 중인 Meta 광고 계정이 있어야 합니다." },
+              { "tag": "발급 키", "h3": "액세스 토큰 · 광고 계정 ID(act_)", "p": "시스템 사용자 토큰(액세스 토큰)과, act_로 시작하는 숫자형 광고 계정 ID를 확인합니다." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>참고:</strong> 본인 비즈니스 외의 데이터에 접근하려면 앱 심사(App Review)가 필요합니다. 본인 비즈니스의 광고 계정만 연동한다면 심사 없이 진행할 수 있습니다." }
+          ]
+        },
+        {
+          "h2": "2. 발급 단계",
+          "desc": "아래 순서대로 발급하고 GenieGo에 등록합니다.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "비즈니스 계정 생성·인증", "p": "브라우저에서 접속해 로그인한 뒤 [비즈니스 만들기]로 비즈니스 계정을 만들고 이메일 인증을 완료합니다.", "path": "business.facebook.com" },
+              { "h3": "앱 만들기", "p": "우측 상단 [내 앱] > [앱 만들기]를 누르고 유형은 \"비즈니스\"를 선택해 앱을 만듭니다.", "path": "developers.facebook.com → 내 앱 → 앱 만들기" },
+              { "h3": "Marketing API 추가", "p": "앱 대시보드에서 \"Marketing API\" 카드를 찾아 [설정]을 눌러 제품으로 추가합니다." },
+              { "h3": "시스템 사용자 생성·권한 할당", "p": "비즈니스 설정 > [사용자] > [시스템 사용자] > [추가]로 시스템 사용자를 만들고, [자산 할당]에서 광고 계정에 대한 권한을 줍니다.", "path": "business.facebook.com/settings → 사용자 → 시스템 사용자" },
+              { "h3": "액세스 토큰 생성", "p": "같은 화면에서 [토큰 생성]을 눌러 앱을 선택하고 권한(ads_read, ads_management)을 체크한 뒤 토큰을 생성하고 그 값을 복사합니다." },
+              { "h3": "광고 계정 ID 확인", "p": "광고 계정 관리자에서 act_로 시작하는 숫자형 광고 계정 ID를 확인합니다.", "path": "adsmanager.facebook.com" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "ads_read, ads_management 권한이 체크된 상태로 토큰이 생성되면 정상 발급된 것입니다." }
+          ]
+        },
+        {
+          "h2": "3. GenieGo에 등록할 정보",
+          "blocks": [
+            { "type": "table", "head": ["필드", "설명"], "rows": [
+              ["access_token", "발급된 시스템 사용자 액세스 토큰(노출 주의)"],
+              ["ad_account_id", "act_로 시작하는 광고 계정 ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 연동허브 &gt; 해당 채널 [등록]에 액세스 토큰과 광고 계정 ID(act_)를 붙여넣고 저장하면 자격증명은 AES-256-GCM으로 암호화 저장되고 조회 시 마스킹됩니다." }
+          ]
+        },
+        {
+          "h2": "4. 자주 발생하는 문제",
+          "blocks": [
+            { "type": "table", "head": ["문제", "원인", "해결"], "rows": [
+              ["권한 오류로 데이터 조회 안 됨", "토큰 권한(ads_read·ads_management) 미체크 또는 광고 계정 권한 미할당", "시스템 사용자에 광고 계정 권한을 할당하고, 토큰 생성 시 ads_read·ads_management 권한을 체크합니다."],
+              ["타 비즈니스 데이터 접근 거부", "앱 심사(App Review) 미완료", "본인 비즈니스 외 데이터에 접근하려면 앱 심사를 신청·완료합니다."],
+              ["광고 계정 ID 형식 오류", "act_ 접두어 누락 또는 숫자만 입력", "광고 계정 관리자에서 act_로 시작하는 ID 전체를 확인해 입력합니다."]
+            ] }
+          ]
+        },
+        {
+          "h2": "최종 체크리스트",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "business.facebook.com에서 비즈니스 계정을 만들고 이메일 인증을 완료했다.",
+              "developers.facebook.com에서 비즈니스 유형 앱을 만들고 Marketing API를 추가했다.",
+              "시스템 사용자를 만들고 광고 계정 권한을 할당했다.",
+              "ads_read·ads_management 권한으로 액세스 토큰을 생성·복사했다.",
+              "act_로 시작하는 광고 계정 ID를 확인했다.",
+              "GenieGo [등록]에 access_token·ad_account_id를 입력해 저장했다."
+            ] }
+          ]
+        }
+      ]
+    },
+    "en": {
+      "titleType": "API Key Issuance Manual",
+      "badge": "Beginner Guide",
+      "intro": "A beginner-friendly, step-by-step guide to issuing a system user access token from your Meta business app and registering it together with your ad account ID (act_) in the GenieGo Integration Hub to connect your Meta Ads advertising data.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Est. time", "About 10–20 min"],
+        ["Account needed", "Facebook personal account · Meta ad account"],
+        ["Keys issued", "Access token · Ad account ID (act_)"],
+        ["Result", "Marketing API credentials"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Before You Begin",
+          "desc": "Meta Ads integration requires a business account and an ad account that is actively running ads.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Required", "h3": "Facebook personal account · Ad account", "p": "You need a Facebook personal account and a Meta ad account that is actively running ads." },
+              { "tag": "Keys issued", "h3": "Access token · Ad account ID (act_)", "p": "You will obtain a system user token (access token) and a numeric ad account ID that starts with act_." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Note:</strong> Accessing data outside your own business requires App Review. If you only connect ad accounts within your own business, you can proceed without review." }
+          ]
+        },
+        {
+          "h2": "2. Issuance Steps",
+          "desc": "Issue in the order below and register in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Create and verify a business account", "p": "Open the site in your browser, sign in, then create a business account via [Create Business] and complete email verification.", "path": "business.facebook.com" },
+              { "h3": "Create an app", "p": "Click [My Apps] > [Create App] in the top right, choose the \"Business\" type, and create the app.", "path": "developers.facebook.com → My Apps → Create App" },
+              { "h3": "Add the Marketing API", "p": "On the app dashboard, find the \"Marketing API\" card and click [Set up] to add it as a product." },
+              { "h3": "Create a system user and assign permissions", "p": "Go to Business Settings > [Users] > [System Users] > [Add] to create a system user, then grant ad-account permissions under [Assign Assets].", "path": "business.facebook.com/settings → Users → System Users" },
+              { "h3": "Generate an access token", "p": "On the same screen, click [Generate Token], select your app, check the permissions (ads_read, ads_management), generate the token, and copy its value." },
+              { "h3": "Find your ad account ID", "p": "In Ads Manager, find the numeric ad account ID that starts with act_.", "path": "adsmanager.facebook.com" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Once the token is generated with the ads_read and ads_management permissions checked, it has been issued correctly." }
+          ]
+        },
+        {
+          "h2": "3. Information to Register in GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Field", "Description"], "rows": [
+              ["access_token", "The issued system user access token (handle with care)"],
+              ["ad_account_id", "Ad account ID that starts with act_"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "In the GenieGo Integration Hub &gt; the channel's [Register], paste your access token and ad account ID (act_) and save. Credentials are encrypted at rest with AES-256-GCM and masked on read." }
+          ]
+        },
+        {
+          "h2": "4. Common Issues",
+          "blocks": [
+            { "type": "table", "head": ["Issue", "Cause", "Solution"], "rows": [
+              ["Data can't be queried due to permission errors", "Token permissions (ads_read·ads_management) not checked, or ad account permission not assigned", "Assign ad-account permission to the system user, and check the ads_read·ads_management permissions when generating the token."],
+              ["Access to another business's data is denied", "App Review not completed", "To access data outside your own business, apply for and complete App Review."],
+              ["Ad account ID format error", "Missing act_ prefix, or numbers only", "In Ads Manager, find the full ID that starts with act_ and enter it."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Final Checklist",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Created a business account at business.facebook.com and completed email verification.",
+              "Created a Business-type app at developers.facebook.com and added the Marketing API.",
+              "Created a system user and assigned ad-account permission.",
+              "Generated and copied an access token with the ads_read·ads_management permissions.",
+              "Found the ad account ID that starts with act_.",
+              "Entered access_token·ad_account_id in GenieGo [Register] and saved."
+            ] }
+          ]
+        }
+      ]
+    }
+  }
+}

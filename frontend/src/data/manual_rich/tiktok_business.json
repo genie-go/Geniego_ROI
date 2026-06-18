@@ -1,0 +1,152 @@
+{
+  "name": "TikTok Business",
+  "icon": "🎶",
+  "langs": {
+    "ko": {
+      "titleType": "API Key 발급 매뉴얼",
+      "badge": "Beginner Guide",
+      "intro": "TikTok for Business 개발자 포털에서 앱을 만들어 액세스 토큰을 발급하고, 광고주 ID(advertiser_id)와 함께 GenieGo 연동 허브에 등록해 TikTok Business 광고 데이터를 연동하는 과정을 정리한 매뉴얼입니다.",
+      "org": "GenieGo 연동 허브",
+      "quick": [
+        ["소요 시간", "약 10~20분(운영 전환 심사 별도)"],
+        ["필요 계정", "TikTok For Business 광고 계정"],
+        ["발급 키", "액세스 토큰 · 광고주 ID"],
+        ["결과물", "TikTok Business API 자격증명"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 시작하기 전에",
+          "desc": "TikTok Business 연동에는 광고 계정과 개발자(조직) 등록이 필요합니다.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "필요", "h3": "TikTok For Business 광고 계정", "p": "광고를 집행 중인 TikTok For Business 광고 계정이 있어야 합니다." },
+              { "tag": "발급 키", "h3": "액세스 토큰 · 광고주 ID", "p": "앱의 App ID·Secret으로 광고주 인가를 거쳐 액세스 토큰을 얻고, 연결된 advertiser_id를 확인합니다." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>참고:</strong> 신규 앱은 샌드박스 상태로 시작하며, 운영(Production)으로 전환할 때 심사가 필요합니다." }
+          ]
+        },
+        {
+          "h2": "2. 발급 단계",
+          "desc": "아래 순서대로 발급하고 GenieGo에 등록합니다.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "개발자 등록", "p": "TikTok for Business 개발자 포털에 로그인하고 개발자(조직) 등록을 완료합니다.", "path": "developers.tiktok.com" },
+              { "h3": "앱 만들기", "p": "[My Apps] > [Create an App]을 눌러 앱 이름과 용도 설명을 입력하고 앱을 만듭니다.", "path": "My Apps → Create an App" },
+              { "h3": "App ID · Secret 확인", "p": "앱 상세 페이지에서 App ID와 Secret을 확인합니다." },
+              { "h3": "광고주 인가", "p": "광고주 인가(authorization) 링크로 광고 계정 접근을 승인하면 auth_code가 발급됩니다." },
+              { "h3": "액세스 토큰 교환", "p": "auth_code를 access_token으로 교환합니다(앱이 자동 처리하거나 포털 가이드 참고)." },
+              { "h3": "광고주 ID 확인", "p": "연결된 advertiser_id(광고주 ID)를 확인합니다." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "광고주 인가 후 auth_code가 access_token으로 교환되고 advertiser_id가 확인되면 정상 발급된 것입니다." }
+          ]
+        },
+        {
+          "h2": "3. GenieGo에 등록할 정보",
+          "blocks": [
+            { "type": "table", "head": ["필드", "설명"], "rows": [
+              ["access_token", "auth_code를 교환해 얻은 액세스 토큰(노출 주의)"],
+              ["advertiser_id", "연결된 광고주 ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo [등록]에 access_token과 advertiser_id를 입력해 저장하면 자격증명은 AES-256-GCM으로 암호화 저장되고 조회 시 마스킹됩니다." }
+          ]
+        },
+        {
+          "h2": "4. 자주 발생하는 문제",
+          "blocks": [
+            { "type": "table", "head": ["문제", "원인", "해결"], "rows": [
+              ["운영 데이터 호출 안 됨", "신규 앱이 샌드박스 상태", "운영(Production) 전환 심사를 신청·완료한 뒤 호출합니다."],
+              ["광고주 인가 실패", "광고 계정 접근 미승인 또는 잘못된 인가 링크", "광고주 인가 링크로 광고 계정 접근을 다시 승인해 auth_code를 발급받습니다."],
+              ["토큰 교환 실패", "auth_code 만료 또는 재사용", "광고주 인가를 다시 진행해 새 auth_code로 access_token을 교환합니다."]
+            ] }
+          ]
+        },
+        {
+          "h2": "최종 체크리스트",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "developers.tiktok.com에서 개발자(조직) 등록을 완료했다.",
+              "My Apps > Create an App으로 앱을 만들고 용도 설명을 입력했다.",
+              "앱 상세에서 App ID·Secret을 확인했다.",
+              "광고주 인가로 auth_code를 받아 access_token으로 교환했다.",
+              "연결된 advertiser_id를 확인했다.",
+              "GenieGo [등록]에 access_token·advertiser_id를 입력해 저장했다."
+            ] }
+          ]
+        }
+      ]
+    },
+    "en": {
+      "titleType": "API Key Issuance Manual",
+      "badge": "Beginner Guide",
+      "intro": "A step-by-step guide to creating an app in the TikTok for Business developer portal to issue an access token and registering it together with your advertiser ID (advertiser_id) in the GenieGo Integration Hub to connect your TikTok Business advertising data.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Est. time", "About 10–20 min (production review separate)"],
+        ["Account needed", "TikTok For Business ad account"],
+        ["Keys issued", "Access token · Advertiser ID"],
+        ["Result", "TikTok Business API credentials"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Before You Begin",
+          "desc": "TikTok Business integration requires an ad account and developer (organization) registration.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Required", "h3": "TikTok For Business ad account", "p": "You need a TikTok For Business ad account that is actively running ads." },
+              { "tag": "Keys issued", "h3": "Access token · Advertiser ID", "p": "Use the app's App ID and Secret to authorize the advertiser, obtain an access token, and confirm the connected advertiser_id." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Note:</strong> New apps start in sandbox state, and review is required when switching to Production." }
+          ]
+        },
+        {
+          "h2": "2. Issuance Steps",
+          "desc": "Issue in the order below and register in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Register as a developer", "p": "Sign in to the TikTok for Business developer portal and complete developer (organization) registration.", "path": "developers.tiktok.com" },
+              { "h3": "Create an app", "p": "Click [My Apps] > [Create an App], enter the app name and a description of its purpose, and create the app.", "path": "My Apps → Create an App" },
+              { "h3": "Find your App ID and Secret", "p": "On the app detail page, find the App ID and Secret." },
+              { "h3": "Authorize the advertiser", "p": "Approve ad account access via the advertiser authorization link, and an auth_code is issued." },
+              { "h3": "Exchange for an access token", "p": "Exchange the auth_code for an access_token (handled automatically by the app, or refer to the portal guide)." },
+              { "h3": "Confirm your advertiser ID", "p": "Confirm the connected advertiser_id (advertiser ID)." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Once the auth_code is exchanged for an access_token after advertiser authorization and the advertiser_id is confirmed, it has been issued correctly." }
+          ]
+        },
+        {
+          "h2": "3. Information to Register in GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Field", "Description"], "rows": [
+              ["access_token", "The access token obtained by exchanging the auth_code (handle with care)"],
+              ["advertiser_id", "The connected advertiser ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Enter your access_token and advertiser_id in GenieGo [Register] and save. Credentials are encrypted at rest with AES-256-GCM and masked on read." }
+          ]
+        },
+        {
+          "h2": "4. Common Issues",
+          "blocks": [
+            { "type": "table", "head": ["Issue", "Cause", "Solution"], "rows": [
+              ["Production data can't be called", "New app is in sandbox state", "Apply for and complete the Production switch review, then make the calls."],
+              ["Advertiser authorization fails", "Ad account access not approved, or wrong authorization link", "Re-approve ad account access via the advertiser authorization link to obtain an auth_code."],
+              ["Token exchange fails", "auth_code expired or reused", "Repeat advertiser authorization and exchange a new auth_code for an access_token."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Final Checklist",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Completed developer (organization) registration at developers.tiktok.com.",
+              "Created an app via My Apps > Create an App and entered a description of its purpose.",
+              "Found the App ID and Secret in the app details.",
+              "Received an auth_code through advertiser authorization and exchanged it for an access_token.",
+              "Confirmed the connected advertiser_id.",
+              "Entered access_token·advertiser_id in GenieGo [Register] and saved."
+            ] }
+          ]
+        }
+      ]
+    }
+  }
+}

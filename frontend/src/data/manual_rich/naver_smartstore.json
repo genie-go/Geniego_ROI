@@ -1,0 +1,144 @@
+{
+  "name": "Naver Smart Store",
+  "icon": "🟢",
+  "langs": {
+    "ko": {
+      "titleType": "API Key 발급 매뉴얼",
+      "badge": "Beginner Guide",
+      "intro": "네이버 커머스 API 센터(apicenter.commerce.naver.com)에서 애플리케이션을 등록해 Client ID·Client Secret을 발급받고 GenieGo 연동 허브에 등록하는 과정을 정리한 매뉴얼입니다.",
+      "org": "GenieGo 연동 허브",
+      "quick": [
+        ["소요 시간", "약 10~15분"],
+        ["필요 계정", "스마트스토어 \"통합매니저\" 권한 계정"],
+        ["발급 키", "Client ID · Client Secret"],
+        ["결과물", "커머스 API 자격증명"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 시작하기 전에",
+          "desc": "발급은 스마트스토어 판매자 계정의 통합매니저 권한에서만 가능합니다.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "필요", "h3": "통합매니저 권한", "p": "스마트스토어 판매자 계정의 \"통합매니저\" 권한이 있어야 합니다. 통합매니저만 발급할 수 있습니다." },
+              { "tag": "발급 키", "h3": "Client ID · Client Secret", "p": "애플리케이션을 등록하면 애플리케이션 ID(Client ID)와 Secret(Client Secret)이 발급됩니다." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>참고:</strong> API를 호출할 서버 IP 등록과 주기적인 애플리케이션 인증 갱신이 필수입니다." }
+          ]
+        },
+        {
+          "h2": "2. 발급 단계",
+          "desc": "아래 순서대로 발급하고 GenieGo에 등록합니다.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "커머스 API 센터 접속", "p": "통합매니저 계정으로 네이버 커머스 API 센터에 접속합니다.", "path": "https://apicenter.commerce.naver.com" },
+              { "h3": "계정생성", "p": "우측 상단 [계정생성]을 눌러 개발업체 계정명·장애대응 연락처를 입력하고 약관에 동의해 가입합니다.", "path": "계정생성" },
+              { "h3": "애플리케이션 등록", "p": "[내 스토어 애플리케이션]에서 애플리케이션을 등록하면 애플리케이션 ID와 Secret이 발급됩니다.", "path": "내 스토어 애플리케이션" },
+              { "h3": "IP 등록 및 인증 갱신", "p": "API를 호출할 서버 IP를 등록하고, 안내에 따라 주기적으로 애플리케이션 인증을 갱신합니다." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "애플리케이션 등록 후 애플리케이션 ID와 Secret이 발급되면 정상 처리된 것입니다." }
+          ]
+        },
+        {
+          "h2": "3. GenieGo에 등록할 정보",
+          "blocks": [
+            { "type": "table", "head": ["필드", "설명"], "rows": [
+              ["client_id", "발급된 애플리케이션 ID(Client ID)"],
+              ["client_secret", "발급된 Secret(Client Secret, 노출 주의)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 연동 허브 [등록]에 입력해 저장하면 자격증명은 AES-256-GCM으로 암호화 저장되고 조회 시 마스킹됩니다." }
+          ]
+        },
+        {
+          "h2": "4. 자주 발생하는 문제",
+          "blocks": [
+            { "type": "table", "head": ["문제", "원인", "해결"], "rows": [
+              ["애플리케이션을 등록할 수 없음", "통합매니저 권한이 아닌 계정", "통합매니저 권한 계정으로 apicenter.commerce.naver.com에 접속합니다."],
+              ["호출 시 인증 오류", "호출 IP 미등록 또는 인증 갱신 누락", "호출 서버 IP를 등록하고 주기적으로 애플리케이션 인증을 갱신합니다."]
+            ] }
+          ]
+        },
+        {
+          "h2": "최종 체크리스트",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "통합매니저 권한 계정으로 커머스 API 센터에 접속했다.",
+              "[계정생성]으로 개발업체 정보·장애대응 연락처를 입력하고 약관에 동의했다.",
+              "[내 스토어 애플리케이션]에서 애플리케이션을 등록해 ID/Secret을 발급받았다.",
+              "호출 서버 IP를 등록하고 주기적 인증을 설정했다.",
+              "GenieGo [등록]에 client_id·client_secret을 입력해 저장했다."
+            ] }
+          ]
+        }
+      ]
+    },
+    "en": {
+      "titleType": "API Key Issuance Manual",
+      "badge": "Beginner Guide",
+      "intro": "A step-by-step guide to registering an application in the Naver Commerce API Center (apicenter.commerce.naver.com) to obtain a Client ID and Client Secret, then registering them in the GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Est. time", "About 10–15 min"],
+        ["Account needed", "Smart Store account with \"Integrated Manager\" permission"],
+        ["Keys issued", "Client ID · Client Secret"],
+        ["Result", "Commerce API credentials"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Before You Begin",
+          "desc": "Issuance is only possible with the Integrated Manager permission on a Smart Store seller account.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Required", "h3": "Integrated Manager permission", "p": "You must have the \"Integrated Manager\" permission on a Smart Store seller account. Only an Integrated Manager can issue the keys." },
+              { "tag": "Keys issued", "h3": "Client ID · Client Secret", "p": "When you register an application, an application ID (Client ID) and a Secret (Client Secret) are issued." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Note:</strong> Registering the server IP that will call the API and periodically renewing the application authentication are required." }
+          ]
+        },
+        {
+          "h2": "2. Issuance Steps",
+          "desc": "Issue in the order below and register in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Access the Commerce API Center", "p": "Sign in to the Naver Commerce API Center with your Integrated Manager account.", "path": "https://apicenter.commerce.naver.com" },
+              { "h3": "Create an account", "p": "Click [Create Account] in the top right, enter the developer company account name and an incident-response contact, agree to the terms, and sign up.", "path": "Create Account" },
+              { "h3": "Register an application", "p": "Under [My Store Applications], register an application; an application ID and Secret are then issued.", "path": "My Store Applications" },
+              { "h3": "Register IP and renew authentication", "p": "Register the server IP that will call the API, and periodically renew the application authentication as guided." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Once the application is registered and the application ID and Secret are issued, it has been processed correctly." }
+          ]
+        },
+        {
+          "h2": "3. Information to Register in GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Field", "Description"], "rows": [
+              ["client_id", "The issued application ID (Client ID)"],
+              ["client_secret", "The issued Secret (Client Secret, handle with care)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Enter them in the GenieGo Integration Hub [Register] and save; credentials are encrypted at rest with AES-256-GCM and masked on read." }
+          ]
+        },
+        {
+          "h2": "4. Common Issues",
+          "blocks": [
+            { "type": "table", "head": ["Issue", "Cause", "Solution"], "rows": [
+              ["Cannot register an application", "Account does not have Integrated Manager permission", "Access apicenter.commerce.naver.com with an account that has Integrated Manager permission."],
+              ["Authentication error on call", "Caller IP not registered or authentication renewal missed", "Register the caller server IP and periodically renew the application authentication."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Final Checklist",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Accessed the Commerce API Center with an Integrated Manager account.",
+              "Entered developer company info and an incident-response contact via [Create Account] and agreed to the terms.",
+              "Registered an application under [My Store Applications] and obtained the ID/Secret.",
+              "Registered the caller server IP and set up periodic authentication.",
+              "Entered client_id·client_secret in GenieGo [Register] and saved."
+            ] }
+          ]
+        }
+      ]
+    }
+  }
+}

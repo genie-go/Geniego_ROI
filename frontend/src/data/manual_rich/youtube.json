@@ -1,0 +1,204 @@
+{
+  "name": "YouTube API Key",
+  "icon": " ",
+  "langs": {
+    "ko": {
+      "titleType": "발급 매뉴얼",
+      "badge": "Beginner Guide",
+      "intro": "Google Cloud Console에서 YouTube Data API v3를 활성화하고 API Key를 만드는 과정을 초보자도 그대로 따라 할 수 있도록 정리한 실전 매뉴얼입니다.",
+      "org": "초보자용 실무 가이드",
+      "quick": [
+        ["소요 시간", "약 5~10분"],
+        ["필요 계정", "Google 계정"],
+        ["사용 API", "YouTube Data API v3"],
+        ["결과물", "AIzaSy... 형식의 API Key"]
+      ],
+      "sections": [
+        {
+          "h2": "1. API Key와 OAuth의 차이",
+          "desc": "처음 시작할 때 가장 많이 헷갈리는 부분입니다.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "API Key", "h3": "공개 데이터 조회용", "p": "영상 검색, 채널 정보 조회, 재생목록 조회, 댓글 조회 등 공개 YouTube 데이터를 가져올 때 사용합니다." },
+              { "tag": "OAuth 2.0", "h3": "내 계정 권한이 필요한 작업용", "p": "영상 업로드, 내 채널 관리, 비공개 데이터 접근 등 사용자의 승인이 필요한 작업에 사용합니다." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>중요:</strong> 영상 자동 업로드를 하려면 API Key만으로는 부족하며 OAuth 2.0 인증이 필요합니다." }
+          ]
+        },
+        {
+          "h2": "2. YouTube Data API v3 활성화",
+          "desc": "API Key를 만들기 전에 먼저 사용할 API를 프로젝트에 켜야 합니다.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Google Cloud Console 접속", "p": "Google Cloud Console에 로그인합니다.", "path": "console.cloud.google.com" },
+              { "h3": "프로젝트 선택 또는 생성", "p": "상단 프로젝트 선택 영역에서 기존 프로젝트를 선택하거나 새 프로젝트를 만듭니다.", "path": "예: Geniego ROI" },
+              { "h3": "API 라이브러리 이동", "p": "왼쪽 메뉴에서 API 및 서비스 → 라이브러리로 이동합니다.", "path": "API 및 서비스 → 라이브러리" },
+              { "h3": "YouTube Data API v3 검색 후 사용", "p": "검색창에 YouTube Data API v3를 입력하고 해당 API를 선택한 뒤 사용 버튼을 클릭합니다.", "path": "YouTube Data API v3 → 사용" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "화면에 <strong>상태: 사용 설정됨</strong> 이 보이면 정상적으로 활성화된 것입니다." }
+          ]
+        },
+        {
+          "h2": "3. API Key 생성하기",
+          "desc": "YouTube Data API v3가 활성화되면 사용자 인증 정보 화면에서 API Key를 만들 수 있습니다.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "사용자 인증 정보 메뉴 이동", "p": "왼쪽 메뉴에서 API 및 서비스 → 사용자 인증 정보로 이동합니다.", "path": "API 및 서비스 → 사용자 인증 정보" },
+              { "h3": "사용자 인증 정보 만들기 클릭", "p": "상단의 + 사용자 인증 정보 만들기 버튼을 누릅니다.", "path": "+ 사용자 인증 정보 만들기" },
+              { "h3": "API 키 선택", "p": "나오는 메뉴에서 API 키를 선택합니다.", "path": "API 키" },
+              { "h3": "접근 가능한 API 선택", "p": "API 제한사항에서 YouTube Data API v3가 선택되어 있는지 확인합니다.", "path": "선택한 API: YouTube Data API v3" },
+              { "h3": "만들기 버튼 클릭", "p": "하단의 만들기 버튼을 누르면 API Key가 생성됩니다.", "path": "만들기" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "생성된 키는 보통 <strong>AIzaSy...</strong> 로 시작합니다. 이 문자열이 YouTube API Key입니다." }
+          ]
+        },
+        {
+          "h2": "4. 생성 화면에서 어떤 옵션을 선택해야 하나요?",
+          "blocks": [
+            { "type": "table", "head": ["항목", "초보자 권장 설정", "설명"], "rows": [
+              ["이름", "YouTube API Key", "나중에 알아보기 쉬운 이름으로 입력합니다."],
+              ["API 제한사항", "YouTube Data API v3", "이 키가 YouTube API에만 사용되도록 제한합니다."],
+              ["서비스 계정 인증", "체크하지 않음", "YouTube Data API Key 생성에는 일반적으로 필요하지 않습니다."],
+              ["애플리케이션 제한사항", "처음 테스트는 없음", "정상 작동 확인 후 웹사이트 또는 IP 주소 제한을 설정하는 것을 권장합니다."]
+            ] },
+            { "type": "notice", "kind": "danger", "html": "실제 서비스에 배포할 때는 반드시 키 제한을 설정하세요. 제한 없이 공개되면 다른 사람이 키를 사용할 수 있습니다." }
+          ]
+        },
+        {
+          "h2": "5. API Key 사용 예시",
+          "desc": "생성한 키를 YOUR_API_KEY 부분에 넣어 테스트할 수 있습니다.",
+          "blocks": [
+            { "type": "table", "head": ["", ""], "rows": [
+              ["영상 검색 예시", "https://www.googleapis.com/youtube/v3/search?part=snippet&q=korea&type=video&key=YOUR_API_KEY"],
+              ["채널 정보 조회 예시", "https://www.googleapis.com/youtube/v3/channels?part=snippet&id=CHANNEL_ID&key=YOUR_API_KEY"]
+            ] },
+            { "type": "notice", "kind": "", "html": "브라우저 주소창에 위 주소를 입력했을 때 JSON 형태의 결과가 나오면 API Key가 정상 작동하는 것입니다." }
+          ]
+        },
+        {
+          "h2": "6. 자주 발생하는 문제 해결",
+          "blocks": [
+            { "type": "table", "head": ["문제", "원인", "해결 방법"], "rows": [
+              ["선택된 API가 없습니다", "YouTube Data API v3가 아직 활성화되지 않았거나 API 제한에서 선택하지 않음", "API 라이브러리에서 YouTube Data API v3를 사용 설정 후 다시 선택합니다."],
+              ["표시할 API 키가 없습니다", "아직 API Key를 만들지 않음", "사용자 인증 정보 만들기 → API 키를 클릭합니다."],
+              ["403 오류", "API 제한, 할당량 초과, 권한 문제", "API 제한사항, 할당량, 활성화 상태를 확인합니다."],
+              ["업로드가 안 됨", "API Key만 사용함", "영상 업로드는 OAuth 2.0 인증을 사용해야 합니다."]
+            ] }
+          ]
+        },
+        {
+          "h2": "7. 최종 체크리스트",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Google Cloud 프로젝트를 선택했다.",
+              "YouTube Data API v3를 사용 설정했다.",
+              "사용자 인증 정보에서 API Key를 생성했다.",
+              "생성된 API Key가 AIzaSy로 시작하는지 확인했다.",
+              "API 제한사항을 YouTube Data API v3로 설정했다.",
+              "실제 서비스 배포 전 웹사이트 또는 IP 제한을 설정한다."
+            ] }
+          ]
+        }
+      ]
+    },
+    "en": {
+      "titleType": "Issuance Manual",
+      "badge": "Beginner Guide",
+      "intro": "A hands-on, step-by-step guide that even beginners can follow to enable the YouTube Data API v3 in the Google Cloud Console and create an API Key.",
+      "org": "Beginner-friendly practical guide",
+      "quick": [
+        ["Est. time", "About 5–10 min"],
+        ["Account needed", "Google account"],
+        ["API used", "YouTube Data API v3"],
+        ["Result", "An API Key in the AIzaSy... format"]
+      ],
+      "sections": [
+        {
+          "h2": "1. API Key vs OAuth",
+          "desc": "This is the part people are most confused about when getting started.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "API Key", "h3": "For querying public data", "p": "Used to fetch public YouTube data such as searching videos, looking up channel information, retrieving playlists, and reading comments." },
+              { "tag": "OAuth 2.0", "h3": "For tasks that need your account's permissions", "p": "Used for tasks that require the user's approval, such as uploading videos, managing your own channel, and accessing private data." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Important:</strong> To upload videos automatically, an API Key alone is not enough; OAuth 2.0 authentication is required." }
+          ]
+        },
+        {
+          "h2": "2. Enable the YouTube Data API v3",
+          "desc": "Before creating an API Key, you must first turn on the API you want to use in your project.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Access the Google Cloud Console", "p": "Sign in to the Google Cloud Console.", "path": "console.cloud.google.com" },
+              { "h3": "Select or create a project", "p": "In the project selector at the top, choose an existing project or create a new one.", "path": "e.g., Geniego ROI" },
+              { "h3": "Go to the API Library", "p": "In the left menu, go to APIs & Services → Library.", "path": "APIs & Services → Library" },
+              { "h3": "Search for the YouTube Data API v3 and enable it", "p": "Type YouTube Data API v3 in the search box, select that API, and click the Enable button.", "path": "YouTube Data API v3 → Enable" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "If you see <strong>Status: Enabled</strong> on the screen, it has been enabled correctly." }
+          ]
+        },
+        {
+          "h2": "3. Create an API Key",
+          "desc": "Once the YouTube Data API v3 is enabled, you can create an API Key on the Credentials screen.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Go to the Credentials menu", "p": "In the left menu, go to APIs & Services → Credentials.", "path": "APIs & Services → Credentials" },
+              { "h3": "Click Create Credentials", "p": "Click the + Create Credentials button at the top.", "path": "+ Create Credentials" },
+              { "h3": "Select API key", "p": "In the menu that appears, select API key.", "path": "API key" },
+              { "h3": "Select the accessible API", "p": "Under API restrictions, confirm that the YouTube Data API v3 is selected.", "path": "Selected API: YouTube Data API v3" },
+              { "h3": "Click the Create button", "p": "Click the Create button at the bottom to generate the API Key.", "path": "Create" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "The generated key usually starts with <strong>AIzaSy...</strong>. This string is your YouTube API Key." }
+          ]
+        },
+        {
+          "h2": "4. Which Options Should You Choose on the Creation Screen?",
+          "blocks": [
+            { "type": "table", "head": ["Item", "Recommended setting for beginners", "Description"], "rows": [
+              ["Name", "YouTube API Key", "Enter a name that is easy to recognize later."],
+              ["API restrictions", "YouTube Data API v3", "Restrict this key so it is used only with the YouTube API."],
+              ["Service account authentication", "Leave unchecked", "Generally not required for creating a YouTube Data API Key."],
+              ["Application restrictions", "None for initial testing", "After confirming it works correctly, we recommend setting website or IP address restrictions."]
+            ] },
+            { "type": "notice", "kind": "danger", "html": "When deploying to a real service, be sure to set key restrictions. If it is exposed without restrictions, others can use your key." }
+          ]
+        },
+        {
+          "h2": "5. API Key Usage Examples",
+          "desc": "You can test by placing your generated key in the YOUR_API_KEY part.",
+          "blocks": [
+            { "type": "table", "head": ["", ""], "rows": [
+              ["Video search example", "https://www.googleapis.com/youtube/v3/search?part=snippet&q=korea&type=video&key=YOUR_API_KEY"],
+              ["Channel info lookup example", "https://www.googleapis.com/youtube/v3/channels?part=snippet&id=CHANNEL_ID&key=YOUR_API_KEY"]
+            ] },
+            { "type": "notice", "kind": "", "html": "If a JSON result appears when you enter the URL above in your browser's address bar, the API Key is working correctly." }
+          ]
+        },
+        {
+          "h2": "6. Troubleshooting Common Issues",
+          "blocks": [
+            { "type": "table", "head": ["Issue", "Cause", "Solution"], "rows": [
+              ["No API selected", "The YouTube Data API v3 has not been enabled yet, or it was not selected under API restrictions", "Enable the YouTube Data API v3 in the API Library, then select it again."],
+              ["No API keys to display", "You haven't created an API Key yet", "Click Create Credentials → API key."],
+              ["403 error", "API restrictions, quota exceeded, or permission issues", "Check the API restrictions, quota, and enablement status."],
+              ["Uploads don't work", "Using only an API Key", "Video uploads must use OAuth 2.0 authentication."]
+            ] }
+          ]
+        },
+        {
+          "h2": "7. Final Checklist",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Selected a Google Cloud project.",
+              "Enabled the YouTube Data API v3.",
+              "Created an API Key under Credentials.",
+              "Confirmed that the generated API Key starts with AIzaSy.",
+              "Set the API restrictions to the YouTube Data API v3.",
+              "Set website or IP restrictions before deploying to a real service."
+            ] }
+          ]
+        }
+      ]
+    }
+  }
+}

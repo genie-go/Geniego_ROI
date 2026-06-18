@@ -1,0 +1,140 @@
+{
+  "name": "Kakao Moment",
+  "icon": "💛",
+  "langs": {
+    "ko": {
+      "titleType": "API Key 발급 매뉴얼",
+      "badge": "Beginner Guide",
+      "intro": "카카오모먼트 오픈API 권한을 신청해 액세스 토큰·광고계정 ID를 발급받아 GenieGo 연동 허브에 등록하는 과정을 안내하는 매뉴얼입니다. 오픈API 권한은 카카오 공식 광고대행사에만 부여됩니다.",
+      "org": "GenieGo 연동 허브",
+      "quick": [
+        ["소요 시간", "자격 검토 기간에 따라 상이"],
+        ["필요 계정", "카카오모먼트 광고계정 + 카카오 비즈니스 채널"],
+        ["발급 키", "액세스 토큰 · 광고계정 ID"],
+        ["결과물", "오픈API 자격증명"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 시작하기 전에",
+          "desc": "카카오모먼트 오픈API는 자가발급이 아니라 권한 신청·검토 절차를 거칩니다.",
+          "blocks": [
+            { "type": "notice", "kind": "danger", "html": "<strong>중요:</strong> 카카오모먼트 오픈API 권한은 카카오 공식 광고대행사에 한해 부여됩니다. 일반 광고주는 자가발급할 수 없습니다." },
+            { "type": "cards", "items": [
+              { "tag": "필요", "h3": "광고계정 + 비즈니스 채널", "p": "카카오모먼트 광고계정과 카카오 비즈니스 채널이 있어야 합니다." },
+              { "tag": "발급 키", "h3": "액세스 토큰 · 광고계정 ID", "p": "권한 승인 후 OAuth 인가로 액세스 토큰을 발급하고 광고계정 ID를 확인합니다." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. 발급 신청 절차",
+          "desc": "오픈API 권한 신청 → 검토·승인 → 토큰 발급 → 등록 순으로 진행합니다.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "앱 생성·비즈 앱 전환", "p": "developers.kakao.com에서 앱을 생성하고 [비즈니스 앱]으로 전환합니다.", "path": "developers.kakao.com" },
+              { "h3": "오픈API 권한 신청", "p": "카카오모먼트 오픈API [추가기능 신청]을 진행합니다. 공식 대행사 자격 검토 후 권한이 부여됩니다.", "path": "추가기능 신청" },
+              { "h3": "토큰 발급", "p": "권한 승인 후 OAuth 인가로 액세스 토큰을 발급하고 광고계정 ID를 확인합니다. GenieGo 연동 허브의 OAuth 원클릭을 이용할 수 있습니다." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "권한이 승인되고 액세스 토큰·광고계정 ID가 확인되면 등록을 진행할 수 있습니다." }
+          ]
+        },
+        {
+          "h2": "3. GenieGo에 등록할 정보",
+          "blocks": [
+            { "type": "table", "head": ["필드", "설명"], "rows": [
+              ["access_token", "OAuth 인가로 발급된 액세스 토큰(노출 주의)"],
+              ["ad_account_id", "카카오모먼트 광고계정 ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 연동 허브 [등록]에 입력해 저장하면 자격증명은 AES-256-GCM으로 암호화 저장되고 조회 시 마스킹됩니다." }
+          ]
+        },
+        {
+          "h2": "4. 자주 발생하는 문제",
+          "blocks": [
+            { "type": "table", "head": ["문제", "원인", "해결"], "rows": [
+              ["오픈API 권한을 받을 수 없음", "공식 광고대행사 자격이 아님", "오픈API 권한은 카카오 공식 광고대행사에만 부여됩니다. 대행사를 통해 신청합니다."],
+              ["[추가기능 신청]을 진행할 수 없음", "앱이 비즈니스 앱으로 전환되지 않음", "앱을 먼저 [비즈니스 앱]으로 전환한 뒤 추가기능을 신청합니다."]
+            ] }
+          ]
+        },
+        {
+          "h2": "최종 체크리스트",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "카카오모먼트 광고계정과 카카오 비즈니스 채널을 준비했다.",
+              "앱을 [비즈니스 앱]으로 전환하고 오픈API [추가기능 신청]을 진행했다.",
+              "권한 승인 후 OAuth 인가로 액세스 토큰과 광고계정 ID를 확인했다.",
+              "GenieGo [등록]에 access_token·ad_account_id를 입력해 저장했다."
+            ] }
+          ]
+        }
+      ]
+    },
+    "en": {
+      "titleType": "API Key Issuance Manual",
+      "badge": "Beginner Guide",
+      "intro": "A guide to applying for Kakao Moment Open API permission, obtaining your access token and ad account ID, and registering them in the GenieGo Integration Hub. Open API permission is granted only to official Kakao advertising agencies.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Est. time", "Varies by eligibility review period"],
+        ["Account needed", "Kakao Moment ad account + Kakao Business Channel"],
+        ["Keys issued", "Access token · Ad account ID"],
+        ["Result", "Open API credentials"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Before You Begin",
+          "desc": "Kakao Moment Open API is not self-issued; it goes through a permission application and review process.",
+          "blocks": [
+            { "type": "notice", "kind": "danger", "html": "<strong>Important:</strong> Kakao Moment Open API permission is granted only to official Kakao advertising agencies. Regular advertisers cannot self-issue it." },
+            { "type": "cards", "items": [
+              { "tag": "Required", "h3": "Ad account + Business Channel", "p": "You need a Kakao Moment ad account and a Kakao Business Channel." },
+              { "tag": "Keys issued", "h3": "Access token · Ad account ID", "p": "After permission is approved, you obtain an access token via OAuth authorization and confirm your ad account ID." }
+            ] }
+          ]
+        },
+        {
+          "h2": "2. Issuance Application Process",
+          "desc": "Proceed in order: Open API permission application → review/approval → token issuance → registration.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Create an app and switch to a Business app", "p": "Create an app at developers.kakao.com and switch it to a [Business App].", "path": "developers.kakao.com" },
+              { "h3": "Apply for Open API permission", "p": "Submit the Kakao Moment Open API [Additional Feature Application]. Permission is granted after your official agency eligibility is reviewed.", "path": "Additional Feature Application" },
+              { "h3": "Issue the token", "p": "After permission is approved, obtain an access token via OAuth authorization and confirm your ad account ID. You can use the one-click OAuth in the GenieGo Integration Hub." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Once permission is approved and your access token and ad account ID are confirmed, you can proceed with registration." }
+          ]
+        },
+        {
+          "h2": "3. Information to Register in GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Field", "Description"], "rows": [
+              ["access_token", "The access token issued via OAuth authorization (handle with care)"],
+              ["ad_account_id", "Kakao Moment ad account ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Enter and save them in the GenieGo Integration Hub [Register], and the credentials are encrypted at rest with AES-256-GCM and masked on read." }
+          ]
+        },
+        {
+          "h2": "4. Common Issues",
+          "blocks": [
+            { "type": "table", "head": ["Issue", "Cause", "Solution"], "rows": [
+              ["Cannot obtain Open API permission", "Not an official advertising agency", "Open API permission is granted only to official Kakao advertising agencies. Apply through an agency."],
+              ["Cannot proceed with [Additional Feature Application]", "The app has not been switched to a Business app", "Switch the app to a [Business App] first, then apply for the additional feature."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Final Checklist",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Prepared a Kakao Moment ad account and a Kakao Business Channel.",
+              "Switched the app to a [Business App] and submitted the Open API [Additional Feature Application].",
+              "After permission approval, confirmed the access token and ad account ID via OAuth authorization.",
+              "Entered access_token·ad_account_id in GenieGo [Register] and saved."
+            ] }
+          ]
+        }
+      ]
+    }
+  }
+}

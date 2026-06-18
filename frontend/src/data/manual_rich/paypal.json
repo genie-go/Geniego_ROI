@@ -1,0 +1,140 @@
+{
+  "name": "PayPal",
+  "icon": "🅿️",
+  "langs": {
+    "ko": {
+      "titleType": "API Key 발급 매뉴얼",
+      "badge": "Beginner Guide",
+      "intro": "PayPal 개발자 포털에서 앱(App)을 생성해 Client ID·Secret을 발급하고 GenieGo 연동 허브에 등록하는 과정을 초보자도 그대로 따라 할 수 있도록 정리한 매뉴얼입니다.",
+      "org": "GenieGo 연동 허브",
+      "quick": [
+        ["소요 시간", "약 5~10분"],
+        ["필요 계정", "PayPal 비즈니스 계정"],
+        ["발급 키", "Client ID · Secret"],
+        ["결과물", "API 자격증명"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 시작하기 전에",
+          "desc": "PayPal API 자격증명은 비즈니스 계정으로 개발자 포털에서 앱을 만들어 발급합니다.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "필요", "h3": "PayPal 비즈니스 계정", "p": "developer.paypal.com 에 로그인할 수 있는 PayPal 비즈니스 계정이 있어야 합니다." },
+              { "tag": "발급 키", "h3": "Client ID · Secret", "p": "Live 앱을 생성하면 Client ID와 Secret이 발급됩니다." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>참고:</strong> 실제 연동에는 Sandbox가 아닌 <strong>[Live]</strong> 탭에서 앱을 생성합니다." }
+          ]
+        },
+        {
+          "h2": "2. 발급 단계",
+          "desc": "아래 순서대로 발급하고 GenieGo에 등록합니다.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "개발자 포털 로그인", "p": "PayPal 비즈니스 계정으로 로그인한 뒤 [Apps & Credentials]로 이동합니다.", "path": "developer.paypal.com → Apps & Credentials" },
+              { "h3": "Live 앱 생성", "p": "[Live] 탭에서 [Create App]을 눌러 앱을 만듭니다.", "path": "Live → Create App" },
+              { "h3": "자격증명 확인", "p": "발급된 Client ID와 Secret을 확인합니다." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Client ID와 Secret이 표시되면 정상적으로 발급된 것입니다." }
+          ]
+        },
+        {
+          "h2": "3. GenieGo에 등록할 정보",
+          "blocks": [
+            { "type": "table", "head": ["필드", "설명"], "rows": [
+              ["client_id", "발급된 Client ID"],
+              ["client_secret", "발급된 Secret(노출 주의)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 연동 허브 [등록]에 client_id·client_secret을 입력해 저장하면 자격증명은 AES-256-GCM으로 암호화 저장되고 조회 시 마스킹됩니다." }
+          ]
+        },
+        {
+          "h2": "4. 자주 발생하는 문제",
+          "blocks": [
+            { "type": "table", "head": ["문제", "원인", "해결"], "rows": [
+              ["인증 실패", "Sandbox 앱의 자격증명을 사용함", "[Live] 탭에서 생성한 앱의 Client ID·Secret을 사용합니다."],
+              ["앱을 만들 수 없음", "일반(개인) 계정으로 로그인함", "PayPal 비즈니스 계정으로 로그인합니다."]
+            ] }
+          ]
+        },
+        {
+          "h2": "최종 체크리스트",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "PayPal 비즈니스 계정으로 developer.paypal.com 에 로그인했다.",
+              "[Apps & Credentials]에서 [Live] 탭으로 이동했다.",
+              "[Create App]으로 앱을 생성하고 Client ID·Secret을 확인했다.",
+              "GenieGo [등록]에 client_id·client_secret을 입력해 저장했다."
+            ] }
+          ]
+        }
+      ]
+    },
+    "en": {
+      "titleType": "API Key Issuance Manual",
+      "badge": "Beginner Guide",
+      "intro": "A beginner-friendly, step-by-step guide to creating an app in the PayPal Developer Portal to issue a Client ID and Secret, and registering them in the GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Est. time", "About 5–10 min"],
+        ["Account needed", "PayPal business account"],
+        ["Keys issued", "Client ID · Secret"],
+        ["Result", "API credentials"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Before You Begin",
+          "desc": "PayPal API credentials are issued by creating an app in the Developer Portal with a business account.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Required", "h3": "PayPal business account", "p": "You need a PayPal business account that can log in to developer.paypal.com." },
+              { "tag": "Keys issued", "h3": "Client ID · Secret", "p": "Creating a Live app issues a Client ID and Secret." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Note:</strong> For actual integration, create the app on the <strong>[Live]</strong> tab, not Sandbox." }
+          ]
+        },
+        {
+          "h2": "2. Issuance Steps",
+          "desc": "Issue in the order below and register in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Log in to the Developer Portal", "p": "Log in with your PayPal business account, then go to [Apps & Credentials].", "path": "developer.paypal.com → Apps & Credentials" },
+              { "h3": "Create a Live app", "p": "On the [Live] tab, click [Create App] to create the app.", "path": "Live → Create App" },
+              { "h3": "Check your credentials", "p": "Check the issued Client ID and Secret." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Once the Client ID and Secret are displayed, they have been issued correctly." }
+          ]
+        },
+        {
+          "h2": "3. Information to Register in GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Field", "Description"], "rows": [
+              ["client_id", "The issued Client ID"],
+              ["client_secret", "The issued Secret (handle with care)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "In the GenieGo Integration Hub [Register], enter your client_id·client_secret and save. Credentials are encrypted at rest with AES-256-GCM and masked on read." }
+          ]
+        },
+        {
+          "h2": "4. Common Issues",
+          "blocks": [
+            { "type": "table", "head": ["Issue", "Cause", "Solution"], "rows": [
+              ["Authentication failed", "Using credentials from a Sandbox app", "Use the Client ID·Secret from an app created on the [Live] tab."],
+              ["Can't create an app", "Logged in with a regular (personal) account", "Log in with a PayPal business account."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Final Checklist",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Logged in to developer.paypal.com with a PayPal business account.",
+              "Moved to the [Live] tab in [Apps & Credentials].",
+              "Created an app via [Create App] and checked the Client ID·Secret.",
+              "Entered client_id·client_secret in GenieGo [Register] and saved."
+            ] }
+          ]
+        }
+      ]
+    }
+  }
+}

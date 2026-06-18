@@ -1,0 +1,144 @@
+{
+  "name": "Coupang Wing",
+  "icon": "🛒",
+  "langs": {
+    "ko": {
+      "titleType": "API Key 발급 매뉴얼",
+      "badge": "Beginner Guide",
+      "intro": "쿠팡 WING 판매자 콘솔에서 Open API 인증키(Access Key·Secret Key)를 발급하고 GenieGo 연동 허브에 등록하는 과정을 초보자도 그대로 따라 할 수 있도록 정리한 매뉴얼입니다.",
+      "org": "GenieGo 연동 허브",
+      "quick": [
+        ["소요 시간", "약 5~10분"],
+        ["필요 계정", "쿠팡 WING 판매자 계정"],
+        ["발급 키", "Access Key · Secret Key"],
+        ["결과물", "Open API 자격증명"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 시작하기 전에",
+          "desc": "쿠팡 Open API는 판매자 계정에서만 발급할 수 있습니다.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "필요", "h3": "WING 판매자 계정", "p": "사업자 인증이 완료된 쿠팡 WING 판매자 계정이 있어야 합니다. 일반 구매 회원 계정으로는 발급할 수 없습니다." },
+              { "tag": "발급 키", "h3": "Access Key · Secret Key", "p": "발급 완료 화면에서 Access Key와 Secret Key를 확인하고, 판매자(Vendor) ID도 함께 확인합니다." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>참고:</strong> 발급 시 회사명·홈페이지/서비스 URL(없으면 wing.coupang.com)·접근 IP(최대 10개)를 입력해야 합니다." }
+          ]
+        },
+        {
+          "h2": "2. Open API Key 발급 단계",
+          "desc": "아래 순서대로 발급하고 GenieGo에 등록합니다.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "WING 로그인", "p": "판매자 계정으로 로그인합니다.", "path": "wing.coupang.com" },
+              { "h3": "Open API 메뉴 이동", "p": "상단/설정 영역의 [Open API] 또는 [API 인증키 관리] 메뉴로 이동합니다.", "path": "Open API → API 인증키 관리" },
+              { "h3": "Open API Key 발급", "p": "[Open API Key 발급]을 누르고 회사명·홈페이지 URL·접근 IP(최대 10개)를 입력합니다.", "path": "Open API Key 발급" },
+              { "h3": "키 확인", "p": "발급 완료 화면에서 Access Key·Secret Key와 판매자(Vendor) ID를 확인합니다." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "발급 완료 화면에 Access Key·Secret Key가 보이면 정상 발급된 것입니다." }
+          ]
+        },
+        {
+          "h2": "3. GenieGo에 등록할 정보",
+          "blocks": [
+            { "type": "table", "head": ["필드", "설명"], "rows": [
+              ["access_key", "발급된 Access Key"],
+              ["secret_key", "발급된 Secret Key(노출 주의)"],
+              ["vendor_id", "판매자(Vendor) ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 연동 허브 [등록]에 입력해 저장하면 자격증명은 AES-256-GCM으로 암호화 저장되고 조회 시 마스킹됩니다. 등록 즉시 주문 동기화가 시작됩니다." }
+          ]
+        },
+        {
+          "h2": "4. 자주 발생하는 문제",
+          "blocks": [
+            { "type": "table", "head": ["문제", "원인", "해결"], "rows": [
+              ["발급 메뉴가 없음", "일반 회원 계정 또는 사업자 인증 미완료", "사업자 인증을 완료한 WING 판매자 계정으로 로그인합니다."],
+              ["호출 시 401 오류", "접근 IP 미등록 또는 Secret Key 오기재", "발급 시 입력한 접근 IP와 Secret Key를 다시 확인합니다."]
+            ] }
+          ]
+        },
+        {
+          "h2": "최종 체크리스트",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "사업자 인증이 완료된 WING 판매자 계정으로 로그인했다.",
+              "Open API Key를 발급하고 접근 IP를 등록했다.",
+              "Access Key·Secret Key·Vendor ID를 확인했다.",
+              "GenieGo [등록]에 access_key·secret_key·vendor_id를 입력해 저장했다."
+            ] }
+          ]
+        }
+      ]
+    },
+    "en": {
+      "titleType": "API Key Issuance Manual",
+      "badge": "Beginner Guide",
+      "intro": "A beginner-friendly, step-by-step guide to issuing Open API credentials (Access Key·Secret Key) in the Coupang WING seller console and registering them in the GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Est. time", "About 5–10 min"],
+        ["Account needed", "Coupang WING seller account"],
+        ["Keys issued", "Access Key · Secret Key"],
+        ["Result", "Open API credentials"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Before You Begin",
+          "desc": "The Coupang Open API can only be issued from a seller account.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Required", "h3": "WING seller account", "p": "You need a Coupang WING seller account with completed business verification. It cannot be issued with a regular buyer member account." },
+              { "tag": "Keys issued", "h3": "Access Key · Secret Key", "p": "On the issuance completion screen, find the Access Key and Secret Key, and also check the vendor ID." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Note:</strong> When issuing, you must enter your company name, homepage/service URL (use wing.coupang.com if none), and access IPs (up to 10)." }
+          ]
+        },
+        {
+          "h2": "2. Open API Key Issuance Steps",
+          "desc": "Issue in the order below and register in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Sign in to WING", "p": "Sign in with your seller account.", "path": "wing.coupang.com" },
+              { "h3": "Go to the Open API menu", "p": "Go to the [Open API] or [API Key Management] menu in the top/settings area.", "path": "Open API → API Key Management" },
+              { "h3": "Issue an Open API Key", "p": "Click [Issue Open API Key] and enter your company name, homepage URL, and access IPs (up to 10).", "path": "Issue Open API Key" },
+              { "h3": "Check the keys", "p": "On the issuance completion screen, find the Access Key·Secret Key and the vendor ID." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Once the Access Key·Secret Key appear on the issuance completion screen, they have been issued correctly." }
+          ]
+        },
+        {
+          "h2": "3. Information to Register in GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Field", "Description"], "rows": [
+              ["access_key", "The issued Access Key"],
+              ["secret_key", "The issued Secret Key (handle with care)"],
+              ["vendor_id", "Vendor ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Enter them in the GenieGo Integration Hub [Register] and save. Credentials are encrypted at rest with AES-256-GCM and masked on read. Order synchronization starts immediately upon registration." }
+          ]
+        },
+        {
+          "h2": "4. Common Issues",
+          "blocks": [
+            { "type": "table", "head": ["Issue", "Cause", "Solution"], "rows": [
+              ["The issuance menu is missing", "Regular member account, or business verification not completed", "Sign in with a WING seller account that has completed business verification."],
+              ["401 error on call", "Access IP not registered, or Secret Key entered incorrectly", "Re-check the access IPs you entered at issuance and the Secret Key."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Final Checklist",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Signed in with a WING seller account that has completed business verification.",
+              "Issued an Open API Key and registered the access IPs.",
+              "Checked the Access Key·Secret Key·Vendor ID.",
+              "Entered access_key·secret_key·vendor_id in GenieGo [Register] and saved."
+            ] }
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,144 @@
+{
+  "name": "Naver Search Ads",
+  "icon": "🟩",
+  "langs": {
+    "ko": {
+      "titleType": "API Key 발급 매뉴얼",
+      "badge": "Beginner Guide",
+      "intro": "네이버 검색광고 관리도구에서 API 인증 정보(액세스라이선스·비밀키)와 CUSTOMER_ID를 발급해 GenieGo 연동 허브에 등록하는 과정을 초보자도 그대로 따라 할 수 있도록 정리한 매뉴얼입니다.",
+      "org": "GenieGo 연동 허브",
+      "quick": [
+        ["소요 시간", "약 5~10분"],
+        ["필요 계정", "네이버 검색광고 광고주 계정"],
+        ["발급 키", "액세스라이선스 · 비밀키 · CUSTOMER_ID"],
+        ["결과물", "검색광고 API 자격증명"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 시작하기 전에",
+          "desc": "네이버 검색광고 API는 광고주 계정에서만 신청할 수 있습니다.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "필요", "h3": "검색광고 광고주 계정", "p": "네이버 검색광고 관리도구를 사용하는 광고주 계정이 있어야 합니다. 일반 네이버 회원 계정으로는 API 사용을 신청할 수 없습니다." },
+              { "tag": "발급 키", "h3": "액세스라이선스 · 비밀키 · CUSTOMER_ID", "p": "API 사용 신청 후 발급되는 CUSTOMER_ID, 액세스라이선스, 비밀키를 함께 확인합니다." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>참고:</strong> 비밀키는 발급 시점에만 확인할 수 있으므로 발급 직후 안전하게 보관하시기 바랍니다." }
+          ]
+        },
+        {
+          "h2": "2. API 키 발급 단계",
+          "desc": "아래 순서대로 발급하고 GenieGo에 등록합니다.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "검색광고 로그인", "p": "네이버 검색광고 관리도구에 광고주 계정으로 로그인합니다.", "path": "searchad.naver.com" },
+              { "h3": "API 사용 관리 이동", "p": "상단 [도구] 메뉴에서 [API 사용 관리]로 이동합니다.", "path": "도구 → API 사용 관리" },
+              { "h3": "API 서비스 신청", "p": "[네이버 검색광고 API 서비스 신청] 버튼을 눌러 신청합니다.", "path": "네이버 검색광고 API 서비스 신청" },
+              { "h3": "발급 정보 확인", "p": "발급된 CUSTOMER_ID, 액세스라이선스, 비밀키를 확인합니다." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "CUSTOMER_ID·액세스라이선스·비밀키가 모두 확인되면 정상 발급된 것입니다." }
+          ]
+        },
+        {
+          "h2": "3. GenieGo에 등록할 정보",
+          "blocks": [
+            { "type": "table", "head": ["필드", "설명"], "rows": [
+              ["api_key", "발급된 액세스라이선스"],
+              ["api_secret", "발급된 비밀키(노출 주의)"],
+              ["customer_id", "발급된 CUSTOMER_ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 연동 허브 [등록]에 입력해 저장하면 자격증명은 AES-256-GCM으로 암호화 저장되고 조회 시 마스킹됩니다." }
+          ]
+        },
+        {
+          "h2": "4. 자주 발생하는 문제",
+          "blocks": [
+            { "type": "table", "head": ["문제", "원인", "해결"], "rows": [
+              ["[API 사용 관리] 메뉴가 없음", "광고주 계정이 아니거나 권한 부족", "검색광고 관리도구를 사용하는 광고주 계정으로 로그인합니다."],
+              ["인증 오류 발생", "액세스라이선스·비밀키 오기재", "발급 화면의 액세스라이선스·비밀키와 CUSTOMER_ID를 다시 확인합니다."]
+            ] }
+          ]
+        },
+        {
+          "h2": "최종 체크리스트",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "네이버 검색광고 광고주 계정으로 로그인했다.",
+              "[도구 > API 사용 관리]에서 API 서비스 신청을 완료했다.",
+              "CUSTOMER_ID·액세스라이선스·비밀키를 확인했다.",
+              "GenieGo [등록]에 api_key·api_secret·customer_id를 입력해 저장했다."
+            ] }
+          ]
+        }
+      ]
+    },
+    "en": {
+      "titleType": "API Key Issuance Manual",
+      "badge": "Beginner Guide",
+      "intro": "A beginner-friendly, step-by-step guide to issuing API credentials (access license, secret key) and your CUSTOMER_ID from the Naver Search Ad management tool and registering them in the GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Est. time", "About 5–10 min"],
+        ["Account needed", "Naver Search Ad advertiser account"],
+        ["Keys issued", "Access license · Secret key · CUSTOMER_ID"],
+        ["Result", "Search Ad API credentials"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Before You Begin",
+          "desc": "The Naver Search Ad API can only be requested from an advertiser account.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Required", "h3": "Search Ad advertiser account", "p": "You need an advertiser account that uses the Naver Search Ad management tool. You cannot apply for API access with an ordinary Naver member account." },
+              { "tag": "Keys issued", "h3": "Access license · Secret key · CUSTOMER_ID", "p": "Confirm the CUSTOMER_ID, access license, and secret key issued together after you apply for API access." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Note:</strong> The secret key can only be viewed at the moment of issuance, so store it safely right after it is issued." }
+          ]
+        },
+        {
+          "h2": "2. API Key Issuance Steps",
+          "desc": "Issue in the order below and register in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Sign in to Search Ads", "p": "Sign in to the Naver Search Ad management tool with your advertiser account.", "path": "searchad.naver.com" },
+              { "h3": "Go to API usage management", "p": "From the top [Tools] menu, go to [API Usage Management].", "path": "Tools → API Usage Management" },
+              { "h3": "Apply for the API service", "p": "Click the [Apply for Naver Search Ad API Service] button to apply.", "path": "Apply for Naver Search Ad API Service" },
+              { "h3": "Check the issued information", "p": "Confirm the issued CUSTOMER_ID, access license, and secret key." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Once the CUSTOMER_ID, access license, and secret key are all confirmed, they have been issued correctly." }
+          ]
+        },
+        {
+          "h2": "3. Information to Register in GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Field", "Description"], "rows": [
+              ["api_key", "The issued access license"],
+              ["api_secret", "The issued secret key (handle with care)"],
+              ["customer_id", "The issued CUSTOMER_ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Enter and save them in the GenieGo Integration Hub [Register], and credentials are encrypted at rest with AES-256-GCM and masked on read." }
+          ]
+        },
+        {
+          "h2": "4. Common Issues",
+          "blocks": [
+            { "type": "table", "head": ["Issue", "Cause", "Solution"], "rows": [
+              ["No [API Usage Management] menu", "Not an advertiser account, or insufficient permissions", "Sign in with an advertiser account that uses the Search Ad management tool."],
+              ["Authentication error occurs", "Access license or secret key entered incorrectly", "Recheck the access license, secret key, and CUSTOMER_ID from the issuance screen."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Final Checklist",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Signed in with a Naver Search Ad advertiser account.",
+              "Completed the API service application under [Tools > API Usage Management].",
+              "Confirmed the CUSTOMER_ID, access license, and secret key.",
+              "Entered api_key·api_secret·customer_id in GenieGo [Register] and saved."
+            ] }
+          ]
+        }
+      ]
+    }
+  }
+}

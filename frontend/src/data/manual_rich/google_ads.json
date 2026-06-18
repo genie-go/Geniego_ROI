@@ -1,0 +1,158 @@
+{
+  "name": "Google Ads",
+  "icon": "🔵",
+  "langs": {
+    "ko": {
+      "titleType": "API Key 발급 매뉴얼",
+      "badge": "Beginner Guide",
+      "intro": "Google Ads 관리자(MCC) 계정의 API 센터에서 개발자 토큰을 발급하고, Google Cloud에서 OAuth 클라이언트를 만들어 refresh token을 획득한 뒤 GenieGo 연동 허브에 등록하는 과정을 정리한 매뉴얼입니다.",
+      "org": "GenieGo 연동 허브",
+      "quick": [
+        ["소요 시간", "약 20~40분(개발자 토큰 심사 별도)"],
+        ["필요 계정", "Google Ads 관리자(MCC) 계정 · Google 계정"],
+        ["발급 키", "개발자 토큰 · client_id/secret · refresh_token · customer_id"],
+        ["결과물", "Google Ads API 자격증명"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 시작하기 전에",
+          "desc": "Google Ads 연동은 관리자(MCC) 계정과 Google Cloud의 OAuth 설정이 모두 필요합니다.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "개발자 토큰", "h3": "MCC API 센터", "p": "Google Ads 관리자(MCC) 계정의 API 센터에서 개발자 토큰을 신청합니다. 기본(Basic) 액세스는 Google 심사를 거쳐 승인됩니다." },
+              { "tag": "OAuth", "h3": "Google Cloud 클라이언트", "p": "console.cloud.google.com에서 OAuth 클라이언트(client_id·client_secret)를 만들고 인증해 refresh token을 획득합니다." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>참고:</strong> 개발자 토큰의 기본 액세스는 Google 심사를 거쳐 승인되며, 승인 전에는 테스트 계정만 호출됩니다. 관리자(MCC) 계정이 없으면 ads.google.com에서 먼저 만드세요." }
+          ]
+        },
+        {
+          "h2": "2. 발급 단계",
+          "desc": "아래 순서대로 발급하고 GenieGo에 등록합니다.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "관리자 계정 로그인 · API 센터 이동", "p": "Google Ads 관리자 계정에 로그인한 뒤 상단 [도구 및 설정] > [설정] > [API 센터]로 이동합니다.", "path": "도구 및 설정 → 설정 → API 센터" },
+              { "h3": "개발자 토큰 신청", "p": "API 센터에서 [개발자 토큰]을 신청합니다. 기본(Basic) 액세스는 Google 심사를 거쳐 승인되며, 승인 전에는 테스트 계정만 호출됩니다." },
+              { "h3": "Cloud 프로젝트 · OAuth 동의 화면 구성", "p": "프로젝트를 만들고 [API 및 서비스] > [OAuth 동의 화면]을 구성합니다.", "path": "console.cloud.google.com → API 및 서비스 → OAuth 동의 화면" },
+              { "h3": "OAuth 클라이언트 ID 생성", "p": "[사용자 인증 정보] > [사용자 인증 정보 만들기] > [OAuth 클라이언트 ID]를 만들어 client_id와 client_secret을 발급받습니다(범위 scope: adwords).", "path": "사용자 인증 정보 → 사용자 인증 정보 만들기 → OAuth 클라이언트 ID" },
+              { "h3": "refresh token 발급", "p": "OAuth 인증 절차로 refresh token을 발급받습니다(Google OAuth Playground 또는 자체 인증 사용)." },
+              { "h3": "고객 ID 확인", "p": "호출 대상 광고 계정의 10자리 고객 ID(customer_id)를 확인합니다." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "개발자 토큰 승인 + client_id·client_secret·refresh_token·customer_id가 모두 준비되면 정상 발급된 것입니다." }
+          ]
+        },
+        {
+          "h2": "3. GenieGo에 등록할 정보",
+          "blocks": [
+            { "type": "table", "head": ["필드", "설명"], "rows": [
+              ["developer_token", "API 센터에서 발급된 개발자 토큰"],
+              ["client_id", "OAuth 클라이언트 ID"],
+              ["client_secret", "OAuth 클라이언트 시크릿(노출 주의)"],
+              ["refresh_token", "OAuth 인증으로 발급된 refresh token([액세스 토큰] 칸에 입력)"],
+              ["customer_id", "대상 광고 계정의 10자리 고객 ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo [등록]에 개발자 토큰, client_id, client_secret, refresh_token, customer_id를 입력해 저장하면 자격증명은 AES-256-GCM으로 암호화 저장되고 조회 시 마스킹됩니다." }
+          ]
+        },
+        {
+          "h2": "4. 자주 발생하는 문제",
+          "blocks": [
+            { "type": "table", "head": ["문제", "원인", "해결"], "rows": [
+              ["테스트 계정만 호출됨", "개발자 토큰 기본 액세스 심사 미승인", "API 센터에서 신청한 개발자 토큰의 Google 심사가 승인될 때까지 기다린 뒤 운영 계정을 호출합니다."],
+              ["인증 실패", "scope(adwords) 누락 또는 refresh_token 오기재", "OAuth 클라이언트에 adwords 범위를 포함해 다시 인증하고 refresh_token을 재확인합니다."],
+              ["고객 ID 형식 오류", "10자리 customer_id 오기재", "대상 광고 계정의 10자리 고객 ID를 다시 확인해 입력합니다."]
+            ] }
+          ]
+        },
+        {
+          "h2": "최종 체크리스트",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Google Ads 관리자(MCC) 계정을 준비하고 로그인했다.",
+              "API 센터에서 개발자 토큰을 신청했다(기본 액세스는 Google 심사).",
+              "console.cloud.google.com에서 OAuth 동의 화면과 OAuth 클라이언트 ID/Secret을 만들었다(scope: adwords).",
+              "OAuth 인증으로 refresh token을 발급받았다.",
+              "대상 계정의 10자리 customer_id를 확인했다.",
+              "GenieGo [등록]에 개발자 토큰·client_id/secret·refresh_token·customer_id를 입력해 저장했다."
+            ] }
+          ]
+        }
+      ]
+    },
+    "en": {
+      "titleType": "API Key Issuance Manual",
+      "badge": "Beginner Guide",
+      "intro": "A guide that walks you through issuing a developer token in the API Center of your Google Ads manager (MCC) account, creating an OAuth client in Google Cloud to obtain a refresh token, and registering everything in the GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Est. time", "About 20–40 min (developer token review separate)"],
+        ["Account needed", "Google Ads manager (MCC) account · Google account"],
+        ["Keys issued", "Developer token · client_id/secret · refresh_token · customer_id"],
+        ["Result", "Google Ads API credentials"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Before You Begin",
+          "desc": "Google Ads integration requires both a manager (MCC) account and OAuth setup in Google Cloud.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Developer token", "h3": "MCC API Center", "p": "Apply for a developer token in the API Center of your Google Ads manager (MCC) account. Basic access is approved after a Google review." },
+              { "tag": "OAuth", "h3": "Google Cloud client", "p": "On console.cloud.google.com, create an OAuth client (client_id·client_secret) and authenticate to obtain a refresh token." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Note:</strong> Basic access for the developer token is approved after a Google review, and before approval only test accounts can be called. If you don't have a manager (MCC) account, create one first at ads.google.com." }
+          ]
+        },
+        {
+          "h2": "2. Issuance Steps",
+          "desc": "Issue in the order below and register in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Sign in to the manager account · Go to the API Center", "p": "Sign in to your Google Ads manager account, then go to [Tools & Settings] > [Setup] > [API Center] at the top.", "path": "Tools & Settings → Setup → API Center" },
+              { "h3": "Apply for a developer token", "p": "Apply for a [Developer token] in the API Center. Basic access is approved after a Google review, and before approval only test accounts can be called." },
+              { "h3": "Set up a Cloud project · OAuth consent screen", "p": "Create a project and configure [APIs & Services] > [OAuth consent screen].", "path": "console.cloud.google.com → APIs & Services → OAuth consent screen" },
+              { "h3": "Create an OAuth client ID", "p": "Create [Credentials] > [Create credentials] > [OAuth client ID] to obtain a client_id and client_secret (scope: adwords).", "path": "Credentials → Create credentials → OAuth client ID" },
+              { "h3": "Issue a refresh token", "p": "Obtain a refresh token through the OAuth authentication process (use Google OAuth Playground or your own authentication)." },
+              { "h3": "Find the customer ID", "p": "Find the 10-digit customer ID (customer_id) of the ad account you will call." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Once the developer token is approved and client_id·client_secret·refresh_token·customer_id are all ready, issuance is complete." }
+          ]
+        },
+        {
+          "h2": "3. Information to Register in GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Field", "Description"], "rows": [
+              ["developer_token", "The developer token issued in the API Center"],
+              ["client_id", "OAuth client ID"],
+              ["client_secret", "OAuth client secret (handle with care)"],
+              ["refresh_token", "The refresh token issued via OAuth authentication (enter it in the [Access token] field)"],
+              ["customer_id", "The 10-digit customer ID of the target ad account"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Enter the developer token, client_id, client_secret, refresh_token, and customer_id in GenieGo [Register] and save. Credentials are encrypted at rest with AES-256-GCM and masked on read." }
+          ]
+        },
+        {
+          "h2": "4. Common Issues",
+          "blocks": [
+            { "type": "table", "head": ["Issue", "Cause", "Solution"], "rows": [
+              ["Only test accounts can be called", "Developer token Basic access review not approved", "Wait until the Google review of the developer token you applied for in the API Center is approved, then call production accounts."],
+              ["Authentication fails", "Missing scope (adwords) or incorrect refresh_token", "Authenticate again with the adwords scope included in the OAuth client, and recheck the refresh_token."],
+              ["Customer ID format error", "Incorrect 10-digit customer_id", "Recheck the 10-digit customer ID of the target ad account and enter it."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Final Checklist",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Prepared a Google Ads manager (MCC) account and signed in.",
+              "Applied for a developer token in the API Center (Basic access goes through a Google review).",
+              "Created an OAuth consent screen and OAuth client ID/Secret on console.cloud.google.com (scope: adwords).",
+              "Obtained a refresh token via OAuth authentication.",
+              "Found the 10-digit customer_id of the target account.",
+              "Entered the developer token·client_id/secret·refresh_token·customer_id in GenieGo [Register] and saved."
+            ] }
+          ]
+        }
+      ]
+    }
+  }
+}

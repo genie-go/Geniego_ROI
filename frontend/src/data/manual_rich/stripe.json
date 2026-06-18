@@ -1,0 +1,140 @@
+{
+  "name": "Stripe",
+  "icon": "💜",
+  "langs": {
+    "ko": {
+      "titleType": "API Key 발급 매뉴얼",
+      "badge": "Beginner Guide",
+      "intro": "Stripe 대시보드의 개발자(Developers) 메뉴에서 API 키(Publishable Key·Secret Key)를 발급해 GenieGo 연동 허브에 등록하는 과정을 초보자도 그대로 따라 할 수 있도록 정리한 매뉴얼입니다.",
+      "org": "GenieGo 연동 허브",
+      "quick": [
+        ["소요 시간", "약 5~10분"],
+        ["필요 계정", "Stripe 계정"],
+        ["발급 키", "Publishable Key · Secret Key"],
+        ["결과물", "API 자격증명"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 시작하기 전에",
+          "desc": "Stripe API 키는 Stripe 계정의 대시보드에서 발급합니다.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "필요", "h3": "Stripe 계정", "p": "Stripe 계정으로 dashboard.stripe.com 에 로그인할 수 있어야 합니다." },
+              { "tag": "발급 키", "h3": "Publishable Key · Secret Key", "p": "개발자(Developers) > API 키(API keys) 화면에서 Publishable key와 Secret key를 확인합니다." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>참고:</strong> 실제 결제 연동에는 테스트 키가 아닌 <strong>라이브 키</strong>를 사용합니다." }
+          ]
+        },
+        {
+          "h2": "2. 발급 단계",
+          "desc": "아래 순서대로 발급하고 GenieGo에 등록합니다.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Stripe 로그인", "p": "준비한 Stripe 계정으로 대시보드에 로그인합니다.", "path": "dashboard.stripe.com" },
+              { "h3": "API 키 메뉴 이동", "p": "[개발자(Developers)] > [API 키(API keys)] 메뉴로 이동합니다.", "path": "개발자(Developers) → API 키(API keys)" },
+              { "h3": "키 확인", "p": "Publishable key와 Secret key를 확인합니다. 라이브 키를 사용합니다.", "path": "https://dashboard.stripe.com/apikeys" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Publishable key와 Secret key가 모두 확인되면 정상적으로 발급된 것입니다." }
+          ]
+        },
+        {
+          "h2": "3. GenieGo에 등록할 정보",
+          "blocks": [
+            { "type": "table", "head": ["필드", "설명"], "rows": [
+              ["publishable_key", "발급된 Publishable Key"],
+              ["secret_key", "발급된 Secret Key(노출 주의)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 연동 허브 [등록]에 publishable_key·secret_key를 입력해 저장하면 자격증명은 AES-256-GCM으로 암호화 저장되고 조회 시 마스킹됩니다." }
+          ]
+        },
+        {
+          "h2": "4. 자주 발생하는 문제",
+          "blocks": [
+            { "type": "table", "head": ["문제", "원인", "해결"], "rows": [
+              ["인증 실패", "테스트 키를 입력함", "라이브 키(Publishable·Secret)를 사용하는지 확인합니다."],
+              ["Secret key가 보이지 않음", "키가 한 번만 표시되거나 가려진 상태", "개발자(Developers) > API 키 화면에서 다시 확인하거나 새로 발급합니다."]
+            ] }
+          ]
+        },
+        {
+          "h2": "최종 체크리스트",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Stripe 계정으로 dashboard.stripe.com 에 로그인했다.",
+              "개발자(Developers) > API 키(API keys)로 이동했다.",
+              "라이브 Publishable Key·Secret Key를 확인했다.",
+              "GenieGo [등록]에 publishable_key·secret_key를 입력해 저장했다."
+            ] }
+          ]
+        }
+      ]
+    },
+    "en": {
+      "titleType": "API Key Issuance Manual",
+      "badge": "Beginner Guide",
+      "intro": "A beginner-friendly, step-by-step guide to issuing API keys (Publishable Key·Secret Key) from the Developers menu of the Stripe dashboard and registering them in the GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Est. time", "About 5–10 min"],
+        ["Account needed", "Stripe account"],
+        ["Keys issued", "Publishable Key · Secret Key"],
+        ["Result", "API credentials"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Before You Begin",
+          "desc": "Stripe API keys are issued from your Stripe account dashboard.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Required", "h3": "Stripe account", "p": "You must be able to sign in to dashboard.stripe.com with your Stripe account." },
+              { "tag": "Keys issued", "h3": "Publishable Key · Secret Key", "p": "Find your Publishable key and Secret key on the Developers > API keys screen." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Note:</strong> For real payment integration, use <strong>live keys</strong> rather than test keys." }
+          ]
+        },
+        {
+          "h2": "2. Issuance Steps",
+          "desc": "Issue in the order below and register in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Sign in to Stripe", "p": "Sign in to the dashboard with the Stripe account you prepared.", "path": "dashboard.stripe.com" },
+              { "h3": "Go to the API keys menu", "p": "Go to the [Developers] > [API keys] menu.", "path": "Developers → API keys" },
+              { "h3": "Check the keys", "p": "Find your Publishable key and Secret key. Use the live keys.", "path": "https://dashboard.stripe.com/apikeys" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Once both the Publishable key and the Secret key are confirmed, they have been issued correctly." }
+          ]
+        },
+        {
+          "h2": "3. Information to Register in GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Field", "Description"], "rows": [
+              ["publishable_key", "The issued Publishable Key"],
+              ["secret_key", "The issued Secret Key (handle with care)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "In the GenieGo Integration Hub [Register], enter publishable_key·secret_key and save. Credentials are encrypted at rest with AES-256-GCM and masked on read." }
+          ]
+        },
+        {
+          "h2": "4. Common Issues",
+          "blocks": [
+            { "type": "table", "head": ["Issue", "Cause", "Solution"], "rows": [
+              ["Authentication failure", "A test key was entered", "Check whether you are using the live keys (Publishable·Secret)."],
+              ["Secret key is not visible", "The key is shown only once or is hidden", "Check again on the Developers > API keys screen or issue a new one."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Final Checklist",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Signed in to dashboard.stripe.com with your Stripe account.",
+              "Went to Developers > API keys.",
+              "Confirmed the live Publishable Key·Secret Key.",
+              "Entered publishable_key·secret_key in GenieGo [Register] and saved."
+            ] }
+          ]
+        }
+      ]
+    }
+  }
+}
