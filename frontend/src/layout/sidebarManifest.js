@@ -84,6 +84,7 @@ export const MEMBER_MENU = [
       { to: "/wms-manager",     icon: "🏭", labelKey: "gNav.wmsLabel",              menuKey: "ops" },
       { to: "/price-opt",       icon: "💡", labelKey: "gNav.priceOptLabel",         menuKey: "ops" },
       { to: "/supply-chain",    icon: "🔭", labelKey: "gNav.supplyChainLabel",      menuKey: "ops" },
+      { to: "/demand-forecast", icon: "📈", labelKey: "gNav.demandForecastLabel",   menuKey: "ops" },
       { to: "/returns-portal",  icon: "🔄", labelKey: "gNav.returnsPortalLabel",    menuKey: "ops" },
     ],
   },
