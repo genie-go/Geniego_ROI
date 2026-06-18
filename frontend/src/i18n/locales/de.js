@@ -6886,7 +6886,7 @@ export default {
     },
     gNav: {
     pmGroup: "Projektmanagement",
-    pmOverviewLabel: "Projektliste","pmPortfolioLabel":"Portfolio","pmResourcesLabel":"Ressourcen",
+    pmOverviewLabel: "Projektliste","marketingMixLabel":"Marketing-Mix-Modell","pmPortfolioLabel":"Portfolio","pmResourcesLabel":"Ressourcen",
       home: "Startseite",
       aiMarketing: "KI-Marketing-Automatisierung",
       adAnalytics: "Anzeigen- & Kanalanalyse",

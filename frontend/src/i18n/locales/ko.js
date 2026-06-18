@@ -5079,7 +5079,7 @@ export default {
   
   "gNav": {
     pmGroup: "프로젝트 관리",
-    pmOverviewLabel: "프로젝트 목록","pmPortfolioLabel":"포트폴리오","pmResourcesLabel":"리소스",
+    pmOverviewLabel: "프로젝트 목록","marketingMixLabel":"마케팅 믹스 모델","pmPortfolioLabel":"포트폴리오","pmResourcesLabel":"리소스",
 
     "home": "홈",
 
