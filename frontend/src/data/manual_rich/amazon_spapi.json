@@ -223,6 +223,1449 @@
           ]
         }
       ]
+    },
+    "ja": {
+      "titleType": "発行マニュアル",
+      "badge": "API発行 初心者向けマニュアル",
+      "intro": "Amazonの出品者データを注文・在庫・商品・配送システムと連携するための、SP-API開発者登録、アプリ作成、OAuth・LWA設定の流れをまとめました。",
+      "org": "GenieGo 連携ハブ · 実務連携 初心者向けガイド",
+      "quick": [
+        ["認証方式", "LWA(OAuth) — 5つの認証情報"],
+        ["必要なアカウント", "Seller/Vendor Central(プロフェッショナル)"],
+        ["GenieGo 登録値", "refresh_token·client_id·secret·marketplace_id·seller_id"],
+        ["難易度", "中級以上"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Amazon SP-APIとは?",
+          "desc": "Amazon Selling Partner APIは、注文、在庫、商品、配送、精算などの出品者データをプログラムから連携するためのAPIです。",
+          "blocks": [
+            { "type": "notice", "kind": "danger", "html": "<strong>重要:</strong> SP-APIは単純なAPI Key方式ではありません。一般的に <strong>Amazon Developer登録、アプリ登録、Login with Amazon(LWA)、OAuth承認</strong> が併せて必要です。" },
+            { "type": "notice", "kind": "", "html": "<strong>★GenieGo連携に必要な値は5つです:</strong> <strong>refresh_token, client_id, client_secret, marketplace_id, seller_id</strong>。(現在のSP-APIはLWAトークンのみで呼び出され、AWS IAM/SigV4署名はGenieGoが内部で処理するため、登録欄には入力しません。)" }
+          ]
+        },
+        {
+          "h2": "2. 準備するもの",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Amazon Seller Central または Vendor Central のプロフェッショナル出品者アカウント",
+              "開発者登録に使用する会社/担当者情報",
+              "アプリ名、アプリ説明、利用目的",
+              "プライバシーポリシーURL",
+              "OAuth Redirect URL"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. 開発者登録",
+          "desc": "まずSeller CentralでSP-API開発者プロフィールを登録します。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Seller Centralにログイン", "p": "Amazon出品者アカウントでSeller Centralにログインします。", "path": "Seller Central → Apps & Services" },
+              { "h3": "Develop Appsメニューへ移動", "p": "Apps & Servicesメニューから開発者またはアプリ開発メニューへ移動します。", "path": "Apps & Services → Develop Apps" },
+              { "h3": "Developer Profileを記入", "p": "会社情報、担当者情報、API利用目的、データ保護計画を入力します。", "path": "Developer Profile" },
+              { "h3": "審査に提出", "p": "Amazonの審査のために開発者登録情報を提出します。", "path": "Submit for review" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "承認が完了して初めて、本番運用用のSP-APIアプリ登録と権限の利用が可能になります。" }
+          ]
+        },
+        {
+          "h2": "4. SP-APIアプリ登録 → Client ID / Client Secret",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "新規アプリケーション作成", "p": "Develop Appsで新しいアプリを作成します。", "path": "Add new app" },
+              { "h3": "アプリ種別の選択", "p": "自社アカウントのみ連携する場合はPrivate App、外部出品者に提供する場合はPublic Appの性質になります。", "path": "Private / Public App" },
+              { "h3": "API役割の選択", "p": "Orders、Catalog、Inventoryなど必要な役割を選択します。", "path": "API Roles" },
+              { "h3": "OAuth Redirect URLの入力", "p": "承認完了後に戻るサーバーURLを入力します。", "path": "Redirect URI" },
+              { "h3": "保存後にClient情報を確認", "p": "アプリ作成後、client_id (LWA Client ID)、client_secret (Client Secret)を確認します。", "path": "client_id / client_secret" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. OAuth承認 → Refresh Token発行",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "1) 出品者OAuth承認URLにアクセス 2) Redirect URLでauthorization codeを受信 3) authorization codeをLWA Token Endpointに渡す 4) refresh_token / access_tokenを受信" },
+            { "type": "notice", "kind": "", "html": "<strong>refresh_token</strong>は出品者承認後の長期呼び出しに使用されます。GenieGoはこのrefresh_tokenでaccess_tokenを自動更新してSP-APIを呼び出すため、別途のAWS署名設定なしにrefresh_tokenだけを登録すれば十分です。" }
+          ]
+        },
+        {
+          "h2": "6. Marketplace ID · Seller IDの確認",
+          "desc": "GenieGo登録に必要な残り2つの識別子を確認します。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "marketplace_id", "h3": "販売対象のマーケットプレイスID", "p": "連携する国のMarketplace IDです。US: ATVPDKIKX0DER · JP: A1VC38T7YXB528 · DE: A1PA6795UKMFR9" },
+              { "tag": "seller_id", "h3": "出品者ID / Merchant Token", "p": "商品登録・注文照会に必要です。Seller Centralのアカウント情報で確認します。Seller Central → 設定 → アカウント情報 → Merchant Token" }
+            ] }
+          ]
+        },
+        {
+          "h2": "7. GenieGo 連携ハブに登録",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "5つの値を準備", "p": "refresh_token · client_id · client_secret · marketplace_id · seller_idを準備します。", "path": "5つの認証情報" },
+              { "h3": "連携ハブ → Amazon SP-API → [登録]", "p": "各欄に該当する値を入力して保存します(空欄は既存の値を維持)。", "path": "refresh_token · client_id · client_secret · marketplace_id · seller_id" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "登録した値は <strong>AES-256-GCMで暗号化保存</strong> され、照会時にマスキングされます。保存直後に自動同期が開始されます。" },
+            { "type": "notice", "kind": "danger", "html": "client_secret·refresh_tokenは絶対にフロントエンドコード、HTML、公開リポジトリに公開してはいけません。" }
+          ]
+        },
+        {
+          "h2": "8. 最終チェックリスト",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Developer Profileを提出し承認を受けた。",
+              "SP-APIアプリを作成しclient_id·client_secretを確認した。",
+              "OAuth承認でrefresh_tokenを発行した。",
+              "連携対象のmarketplace_idを確認した。",
+              "Seller Centralでseller_id(Merchant Token)を確認した。",
+              "GenieGo [登録]に5つの値(refresh_token·client_id·client_secret·marketplace_id·seller_id)を入力して保存した。"
+            ] }
+          ]
+        },
+        {
+          "h2": "9. よくある問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["API Keyメニューがない", "SP-APIは単一のAPI Key構造ではない", "LWA(client_id·client_secret·refresh_token)構造で進めます。"],
+              ["商品登録に失敗", "seller_id(Merchant Token)が未登録", "Seller Centralのアカウント情報のMerchant Tokenを登録します。"],
+              ["国データが誤っている", "marketplace_idの不一致", "連携国の正確なMarketplace IDを登録します。"],
+              ["権限エラー", "アプリのAPI Role不足またはトークン期限切れ", "API Roleを確認し、refresh_tokenでトークンを更新します。"]
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh": {
+      "titleType": "申请手册",
+      "badge": "API申请新手手册",
+      "intro": "整理了将 Amazon 卖家数据与订单、库存、商品、配送系统对接所需的 SP-API 开发者注册、应用创建以及 OAuth·LWA 设置流程。",
+      "org": "GenieGo 集成中心 · 面向新手的实操对接指南",
+      "quick": [
+        ["认证结构", "LWA(OAuth) — 5项凭据"],
+        ["所需账户", "Seller/Vendor Central(专业版)"],
+        ["GenieGo 注册值", "refresh_token·client_id·secret·marketplace_id·seller_id"],
+        ["难度", "中级以上"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 什么是 Amazon SP-API?",
+          "desc": "Amazon Selling Partner API 是用于通过程序对接订单、库存、商品、配送、结算等卖家数据的 API。",
+          "blocks": [
+            { "type": "notice", "kind": "danger", "html": "<strong>重要:</strong> SP-API 不是简单的 API Key 方式。通常需要同时进行 <strong>Amazon Developer 注册、应用注册、Login with Amazon(LWA)、OAuth 授权</strong>。" },
+            { "type": "notice", "kind": "", "html": "<strong>★GenieGo 对接需要 5 个值:</strong> <strong>refresh_token, client_id, client_secret, marketplace_id, seller_id</strong>。(当前 SP-API 仅凭 LWA 令牌即可调用,AWS IAM/SigV4 签名由 GenieGo 内部处理,因此无需在注册栏中填写。)" }
+          ]
+        },
+        {
+          "h2": "2. 准备事项",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Amazon Seller Central 或 Vendor Central 专业版卖家账户",
+              "用于开发者注册的公司/负责人信息",
+              "应用名称、应用说明、使用目的",
+              "隐私政策 URL",
+              "OAuth Redirect URL"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. 开发者注册",
+          "desc": "首先在 Seller Central 中注册 SP-API 开发者资料。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "登录 Seller Central", "p": "使用 Amazon 卖家账户登录 Seller Central。", "path": "Seller Central → Apps & Services" },
+              { "h3": "进入 Develop Apps 菜单", "p": "在 Apps & Services 菜单中,进入开发者或应用开发菜单。", "path": "Apps & Services → Develop Apps" },
+              { "h3": "填写 Developer Profile", "p": "填写公司信息、负责人信息、API 使用目的和数据保护计划。", "path": "Developer Profile" },
+              { "h3": "提交审核", "p": "为通过 Amazon 审核,提交开发者注册信息。", "path": "Submit for review" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "只有审核通过后,才能注册正式运营用的 SP-API 应用并使用其权限。" }
+          ]
+        },
+        {
+          "h2": "4. 注册 SP-API 应用 → Client ID / Client Secret",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "创建新应用", "p": "在 Develop Apps 中创建新应用。", "path": "Add new app" },
+              { "h3": "选择应用类型", "p": "若仅对接自有账户则为 Private App;若提供给外部卖家则属于 Public App。", "path": "Private / Public App" },
+              { "h3": "选择 API 角色", "p": "选择 Orders、Catalog、Inventory 等所需角色。", "path": "API Roles" },
+              { "h3": "输入 OAuth Redirect URL", "p": "输入授权完成后返回的服务器 URL。", "path": "Redirect URI" },
+              { "h3": "保存后确认 Client 信息", "p": "创建应用后,确认 client_id (LWA Client ID)、client_secret (Client Secret)。", "path": "client_id / client_secret" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. OAuth 授权 → 发行 Refresh Token",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "1) 访问卖家 OAuth 授权 URL 2) 在 Redirect URL 接收 authorization code 3) 将 authorization code 传递给 LWA Token Endpoint 4) 接收 refresh_token / access_token" },
+            { "type": "notice", "kind": "", "html": "<strong>refresh_token</strong> 用于卖家授权后的长期调用。GenieGo 使用该 refresh_token 自动刷新 access_token 来调用 SP-API,因此无需单独的 AWS 签名设置,只需注册 refresh_token 即可。" }
+          ]
+        },
+        {
+          "h2": "6. 确认 Marketplace ID · Seller ID",
+          "desc": "确认 GenieGo 注册所需的其余两个标识符。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "marketplace_id", "h3": "销售目标的市场 ID", "p": "要对接国家的 Marketplace ID。US: ATVPDKIKX0DER · JP: A1VC38T7YXB528 · DE: A1PA6795UKMFR9" },
+              { "tag": "seller_id", "h3": "卖家 ID / Merchant Token", "p": "商品登记、订单查询所需。在 Seller Central 账户信息中查看。Seller Central → 设置 → 账户信息 → Merchant Token" }
+            ] }
+          ]
+        },
+        {
+          "h2": "7. 在 GenieGo 集成中心注册",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "准备 5 个值", "p": "准备 refresh_token · client_id · client_secret · marketplace_id · seller_id。", "path": "5 项凭据" },
+              { "h3": "集成中心 → Amazon SP-API → [注册]", "p": "在各栏输入对应的值并保存(空栏保留原有值)。", "path": "refresh_token · client_id · client_secret · marketplace_id · seller_id" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "注册的值会 <strong>以 AES-256-GCM 加密存储</strong>,查询时进行掩码处理。保存后立即开始自动同步。" },
+            { "type": "notice", "kind": "danger", "html": "client_secret·refresh_token 绝不能暴露在前端代码、HTML 或公开仓库中。" }
+          ]
+        },
+        {
+          "h2": "8. 最终检查清单",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已提交 Developer Profile 并获得批准。",
+              "已创建 SP-API 应用并确认 client_id·client_secret。",
+              "已通过 OAuth 授权发行 refresh_token。",
+              "已确认要对接的 marketplace_id。",
+              "已在 Seller Central 确认 seller_id(Merchant Token)。",
+              "已在 GenieGo [注册] 中输入 5 个值(refresh_token·client_id·client_secret·marketplace_id·seller_id)并保存。"
+            ] }
+          ]
+        },
+        {
+          "h2": "9. 常见问题",
+          "blocks": [
+            { "type": "table", "head": ["问题", "原因", "解决方法"], "rows": [
+              ["没有 API Key 菜单", "SP-API 不是单一 API Key 结构", "按 LWA(client_id·client_secret·refresh_token)结构进行。"],
+              ["商品登记失败", "未注册 seller_id(Merchant Token)", "注册 Seller Central 账户信息中的 Merchant Token。"],
+              ["国家数据错误", "marketplace_id 不匹配", "注册对接国家正确的 Marketplace ID。"],
+              ["权限错误", "应用 API Role 不足或令牌过期", "确认 API Role 并使用 refresh_token 刷新令牌。"]
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh-TW": {
+      "titleType": "申請手冊",
+      "badge": "API申請新手手冊",
+      "intro": "整理了將 Amazon 賣家資料與訂單、庫存、商品、配送系統對接所需的 SP-API 開發者註冊、應用程式建立以及 OAuth·LWA 設定流程。",
+      "org": "GenieGo 整合中心 · 給新手的實務對接指南",
+      "quick": [
+        ["認證結構", "LWA(OAuth) — 5項憑證"],
+        ["所需帳戶", "Seller/Vendor Central(專業版)"],
+        ["GenieGo 註冊值", "refresh_token·client_id·secret·marketplace_id·seller_id"],
+        ["難度", "中級以上"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 什麼是 Amazon SP-API?",
+          "desc": "Amazon Selling Partner API 是用於透過程式對接訂單、庫存、商品、配送、結算等賣家資料的 API。",
+          "blocks": [
+            { "type": "notice", "kind": "danger", "html": "<strong>重要:</strong> SP-API 並非單純的 API Key 方式。通常需要同時進行 <strong>Amazon Developer 註冊、應用程式註冊、Login with Amazon(LWA)、OAuth 授權</strong>。" },
+            { "type": "notice", "kind": "", "html": "<strong>★GenieGo 對接需要 5 個值:</strong> <strong>refresh_token, client_id, client_secret, marketplace_id, seller_id</strong>。(目前 SP-API 僅憑 LWA 權杖即可呼叫,AWS IAM/SigV4 簽章由 GenieGo 內部處理,因此無需在註冊欄中填寫。)" }
+          ]
+        },
+        {
+          "h2": "2. 準備事項",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Amazon Seller Central 或 Vendor Central 專業版賣家帳戶",
+              "用於開發者註冊的公司/負責人資訊",
+              "應用程式名稱、應用程式說明、使用目的",
+              "隱私權政策 URL",
+              "OAuth Redirect URL"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. 開發者註冊",
+          "desc": "首先在 Seller Central 中註冊 SP-API 開發者資料。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "登入 Seller Central", "p": "使用 Amazon 賣家帳戶登入 Seller Central。", "path": "Seller Central → Apps & Services" },
+              { "h3": "進入 Develop Apps 選單", "p": "在 Apps & Services 選單中,進入開發者或應用程式開發選單。", "path": "Apps & Services → Develop Apps" },
+              { "h3": "填寫 Developer Profile", "p": "填寫公司資訊、負責人資訊、API 使用目的與資料保護計畫。", "path": "Developer Profile" },
+              { "h3": "提交審核", "p": "為通過 Amazon 審核,提交開發者註冊資訊。", "path": "Submit for review" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "只有審核通過後,才能註冊正式營運用的 SP-API 應用程式並使用其權限。" }
+          ]
+        },
+        {
+          "h2": "4. 註冊 SP-API 應用程式 → Client ID / Client Secret",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "建立新應用程式", "p": "在 Develop Apps 中建立新應用程式。", "path": "Add new app" },
+              { "h3": "選擇應用程式類型", "p": "若僅對接自有帳戶則為 Private App;若提供給外部賣家則屬於 Public App。", "path": "Private / Public App" },
+              { "h3": "選擇 API 角色", "p": "選擇 Orders、Catalog、Inventory 等所需角色。", "path": "API Roles" },
+              { "h3": "輸入 OAuth Redirect URL", "p": "輸入授權完成後返回的伺服器 URL。", "path": "Redirect URI" },
+              { "h3": "儲存後確認 Client 資訊", "p": "建立應用程式後,確認 client_id (LWA Client ID)、client_secret (Client Secret)。", "path": "client_id / client_secret" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. OAuth 授權 → 發行 Refresh Token",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "1) 存取賣家 OAuth 授權 URL 2) 在 Redirect URL 接收 authorization code 3) 將 authorization code 傳遞給 LWA Token Endpoint 4) 接收 refresh_token / access_token" },
+            { "type": "notice", "kind": "", "html": "<strong>refresh_token</strong> 用於賣家授權後的長期呼叫。GenieGo 使用該 refresh_token 自動更新 access_token 來呼叫 SP-API,因此無需另外的 AWS 簽章設定,只需註冊 refresh_token 即可。" }
+          ]
+        },
+        {
+          "h2": "6. 確認 Marketplace ID · Seller ID",
+          "desc": "確認 GenieGo 註冊所需的其餘兩個識別碼。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "marketplace_id", "h3": "銷售目標的市場 ID", "p": "要對接國家的 Marketplace ID。US: ATVPDKIKX0DER · JP: A1VC38T7YXB528 · DE: A1PA6795UKMFR9" },
+              { "tag": "seller_id", "h3": "賣家 ID / Merchant Token", "p": "商品登錄、訂單查詢所需。在 Seller Central 帳戶資訊中查看。Seller Central → 設定 → 帳戶資訊 → Merchant Token" }
+            ] }
+          ]
+        },
+        {
+          "h2": "7. 在 GenieGo 整合中心註冊",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "準備 5 個值", "p": "準備 refresh_token · client_id · client_secret · marketplace_id · seller_id。", "path": "5 項憑證" },
+              { "h3": "整合中心 → Amazon SP-API → [註冊]", "p": "在各欄輸入對應的值並儲存(空欄保留原有值)。", "path": "refresh_token · client_id · client_secret · marketplace_id · seller_id" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "註冊的值會 <strong>以 AES-256-GCM 加密儲存</strong>,查詢時進行遮罩處理。儲存後立即開始自動同步。" },
+            { "type": "notice", "kind": "danger", "html": "client_secret·refresh_token 絕不能暴露在前端程式碼、HTML 或公開儲存庫中。" }
+          ]
+        },
+        {
+          "h2": "8. 最終檢查清單",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已提交 Developer Profile 並獲得核准。",
+              "已建立 SP-API 應用程式並確認 client_id·client_secret。",
+              "已透過 OAuth 授權發行 refresh_token。",
+              "已確認要對接的 marketplace_id。",
+              "已在 Seller Central 確認 seller_id(Merchant Token)。",
+              "已在 GenieGo [註冊] 中輸入 5 個值(refresh_token·client_id·client_secret·marketplace_id·seller_id)並儲存。"
+            ] }
+          ]
+        },
+        {
+          "h2": "9. 常見問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["沒有 API Key 選單", "SP-API 並非單一 API Key 結構", "依 LWA(client_id·client_secret·refresh_token)結構進行。"],
+              ["商品登錄失敗", "未註冊 seller_id(Merchant Token)", "註冊 Seller Central 帳戶資訊中的 Merchant Token。"],
+              ["國家資料錯誤", "marketplace_id 不一致", "註冊對接國家正確的 Marketplace ID。"],
+              ["權限錯誤", "應用程式 API Role 不足或權杖過期", "確認 API Role 並使用 refresh_token 更新權杖。"]
+            ] }
+          ]
+        }
+      ]
+    },
+    "de": {
+      "titleType": "Ausstellungshandbuch",
+      "badge": "API-Ausstellungshandbuch für Einsteiger",
+      "intro": "Eine Anleitung zum Ablauf der SP-API-Entwicklerregistrierung, App-Erstellung und OAuth·LWA-Einrichtung, um Ihre Amazon-Verkäuferdaten mit Bestell-, Bestands-, Produkt- und Versandsystemen zu verbinden.",
+      "org": "GenieGo Integration Hub · Praxisnahe Integrationsanleitung für Einsteiger",
+      "quick": [
+        ["Authentifizierungsstruktur", "LWA(OAuth) — 5 Anmeldedaten"],
+        ["Benötigtes Konto", "Seller/Vendor Central (Professional)"],
+        ["GenieGo-Werte", "refresh_token·client_id·secret·marketplace_id·seller_id"],
+        ["Schwierigkeit", "Fortgeschritten oder höher"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Was ist die Amazon SP-API?",
+          "desc": "Die Amazon Selling Partner API ist eine API zur programmatischen Integration von Verkäuferdaten wie Bestellungen, Bestand, Produkten, Versand und Abrechnungen.",
+          "blocks": [
+            { "type": "notice", "kind": "danger", "html": "<strong>Wichtig:</strong> Die SP-API ist kein einfaches API-Key-Verfahren. In der Regel sind gemeinsam <strong>Amazon-Developer-Registrierung, App-Registrierung, Login with Amazon(LWA) und OAuth-Autorisierung</strong> erforderlich." },
+            { "type": "notice", "kind": "", "html": "<strong>★Für die GenieGo-Integration sind 5 Werte erforderlich:</strong> <strong>refresh_token, client_id, client_secret, marketplace_id, seller_id</strong>. (Die aktuelle SP-API wird allein mit dem LWA-Token aufgerufen, und die AWS-IAM/SigV4-Signierung wird intern von GenieGo verarbeitet, sodass Sie sie nicht in die Registrierungsfelder eingeben.)" }
+          ]
+        },
+        {
+          "h2": "2. Voraussetzungen",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Ein Amazon-Seller-Central- oder Vendor-Central-Konto als Professional-Verkäufer",
+              "Firmen-/Kontaktinformationen für die Entwicklerregistrierung",
+              "App-Name, App-Beschreibung und Verwendungszweck",
+              "URL der Datenschutzrichtlinie",
+              "OAuth Redirect URL"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. Entwicklerregistrierung",
+          "desc": "Registrieren Sie zunächst Ihr SP-API-Entwicklerprofil in Seller Central.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Bei Seller Central anmelden", "p": "Melden Sie sich mit Ihrem Amazon-Verkäuferkonto bei Seller Central an.", "path": "Seller Central → Apps & Services" },
+              { "h3": "Zum Menü Develop Apps gehen", "p": "Gehen Sie im Menü Apps & Services zum Entwickler- oder App-Entwicklungsmenü.", "path": "Apps & Services → Develop Apps" },
+              { "h3": "Developer Profile ausfüllen", "p": "Geben Sie Firmeninformationen, Kontaktinformationen, API-Verwendungszweck und Datenschutzplan ein.", "path": "Developer Profile" },
+              { "h3": "Zur Prüfung einreichen", "p": "Reichen Sie Ihre Entwicklerregistrierungsdaten zur Prüfung durch Amazon ein.", "path": "Submit for review" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Erst nach abgeschlossener Genehmigung können Sie eine produktive SP-API-App registrieren und deren Berechtigungen nutzen." }
+          ]
+        },
+        {
+          "h2": "4. SP-API-App registrieren → Client ID / Client Secret",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Neue Anwendung erstellen", "p": "Erstellen Sie in Develop Apps eine neue App.", "path": "Add new app" },
+              { "h3": "App-Typ wählen", "p": "Wenn Sie nur Ihr eigenes Konto verbinden, ist es eine Private App; wenn Sie sie externen Verkäufern bereitstellen, ist es eine Public App.", "path": "Private / Public App" },
+              { "h3": "API-Rollen auswählen", "p": "Wählen Sie die benötigten Rollen wie Orders, Catalog und Inventory aus.", "path": "API Roles" },
+              { "h3": "OAuth Redirect URL eingeben", "p": "Geben Sie die Server-URL ein, zu der nach abgeschlossener Autorisierung zurückgekehrt werden soll.", "path": "Redirect URI" },
+              { "h3": "Speichern und Client-Infos prüfen", "p": "Prüfen Sie nach dem Erstellen der App die client_id (LWA Client ID) und das client_secret (Client Secret).", "path": "client_id / client_secret" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. OAuth-Autorisierung → Refresh Token ausstellen",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "1) Auf die OAuth-Autorisierungs-URL des Verkäufers zugreifen 2) Den authorization code an der Redirect URL empfangen 3) Den authorization code an den LWA Token Endpoint übergeben 4) Das refresh_token / access_token empfangen" },
+            { "type": "notice", "kind": "", "html": "Das <strong>refresh_token</strong> wird für langfristige Aufrufe nach der Verkäuferautorisierung verwendet. GenieGo aktualisiert mit diesem refresh_token automatisch das access_token, um die SP-API aufzurufen, sodass Sie ohne separate AWS-Signierungseinrichtung lediglich das refresh_token registrieren müssen." }
+          ]
+        },
+        {
+          "h2": "6. Marketplace ID · Seller ID prüfen",
+          "desc": "Prüfen Sie die beiden verbleibenden Kennungen, die für die GenieGo-Registrierung benötigt werden.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "marketplace_id", "h3": "Ziel-Marketplace-ID", "p": "Die Marketplace ID des Landes, das Sie verbinden. US: ATVPDKIKX0DER · JP: A1VC38T7YXB528 · DE: A1PA6795UKMFR9" },
+              { "tag": "seller_id", "h3": "Seller ID / Merchant Token", "p": "Erforderlich für die Produktregistrierung und Bestellabfrage. Prüfen Sie ihn in Ihren Seller-Central-Kontoinformationen. Seller Central → Einstellungen → Kontoinformationen → Merchant Token" }
+            ] }
+          ]
+        },
+        {
+          "h2": "7. Im GenieGo Integration Hub registrieren",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Die 5 Werte vorbereiten", "p": "Bereiten Sie refresh_token · client_id · client_secret · marketplace_id · seller_id vor.", "path": "5 Anmeldedaten" },
+              { "h3": "Integration Hub → Amazon SP-API → [Registrieren]", "p": "Geben Sie jeden Wert in das entsprechende Feld ein und speichern Sie (leere Felder behalten die vorhandenen Werte).", "path": "refresh_token · client_id · client_secret · marketplace_id · seller_id" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Die registrierten Werte werden <strong>mit AES-256-GCM verschlüsselt gespeichert</strong> und beim Abruf maskiert. Die automatische Synchronisierung beginnt unmittelbar nach dem Speichern." },
+            { "type": "notice", "kind": "danger", "html": "Das client_secret·refresh_token darf niemals in Frontend-Code, HTML oder öffentlichen Repositories offengelegt werden." }
+          ]
+        },
+        {
+          "h2": "8. Abschließende Checkliste",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Das Developer Profile eingereicht und genehmigt bekommen.",
+              "Die SP-API-App erstellt und die client_id·client_secret geprüft.",
+              "Ein refresh_token per OAuth-Autorisierung ausgestellt.",
+              "Die zu verbindende marketplace_id geprüft.",
+              "Die seller_id (Merchant Token) in Seller Central geprüft.",
+              "Die 5 Werte (refresh_token·client_id·client_secret·marketplace_id·seller_id) in GenieGo [Registrieren] eingegeben und gespeichert."
+            ] }
+          ]
+        },
+        {
+          "h2": "9. Häufige Probleme",
+          "blocks": [
+            { "type": "table", "head": ["Problem", "Ursache", "Lösung"], "rows": [
+              ["Es gibt kein API-Key-Menü", "Die SP-API ist keine einzelne API-Key-Struktur", "Gehen Sie mit der LWA-Struktur (client_id·client_secret·refresh_token) vor."],
+              ["Produktregistrierung schlägt fehl", "seller_id (Merchant Token) nicht registriert", "Registrieren Sie den Merchant Token aus Ihren Seller-Central-Kontoinformationen."],
+              ["Falsche Länderdaten", "marketplace_id stimmt nicht überein", "Registrieren Sie die korrekte Marketplace ID für das Land, das Sie verbinden."],
+              ["Berechtigungsfehler", "Unzureichende App-API-Rolle oder abgelaufenes Token", "Prüfen Sie die API Role und aktualisieren Sie das Token mit dem refresh_token."]
+            ] }
+          ]
+        }
+      ]
+    },
+    "th": {
+      "titleType": "คู่มือการขอใช้งาน",
+      "badge": "คู่มือการขอใช้งาน API สำหรับผู้เริ่มต้น",
+      "intro": "คู่มือเกี่ยวกับขั้นตอนการลงทะเบียนนักพัฒนา SP-API การสร้างแอป และการตั้งค่า OAuth·LWA เพื่อเชื่อมต่อข้อมูลผู้ขายบน Amazon กับระบบคำสั่งซื้อ สินค้าคงคลัง สินค้า และการจัดส่ง",
+      "org": "GenieGo Integration Hub · คู่มือเชื่อมต่อเชิงปฏิบัติสำหรับผู้เริ่มต้น",
+      "quick": [
+        ["โครงสร้างการยืนยันตัวตน", "LWA(OAuth) — ข้อมูลรับรอง 5 รายการ"],
+        ["บัญชีที่ต้องใช้", "Seller/Vendor Central (Professional)"],
+        ["ค่าที่ลงทะเบียนใน GenieGo", "refresh_token·client_id·secret·marketplace_id·seller_id"],
+        ["ระดับความยาก", "ระดับกลางขึ้นไป"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Amazon SP-API คืออะไร?",
+          "desc": "Amazon Selling Partner API คือ API สำหรับเชื่อมต่อข้อมูลผู้ขาย เช่น คำสั่งซื้อ สินค้าคงคลัง สินค้า การจัดส่ง และการชำระบัญชี ผ่านโปรแกรม",
+          "blocks": [
+            { "type": "notice", "kind": "danger", "html": "<strong>สำคัญ:</strong> SP-API ไม่ใช่รูปแบบ API Key อย่างง่าย โดยทั่วไปต้องใช้ <strong>การลงทะเบียน Amazon Developer การลงทะเบียนแอป Login with Amazon(LWA) และการอนุญาต OAuth</strong> ร่วมกัน" },
+            { "type": "notice", "kind": "", "html": "<strong>★การเชื่อมต่อ GenieGo ต้องใช้ค่า 5 รายการ:</strong> <strong>refresh_token, client_id, client_secret, marketplace_id, seller_id</strong> (SP-API ปัจจุบันเรียกใช้ด้วยโทเค็น LWA เพียงอย่างเดียว และการลงนาม AWS IAM/SigV4 จัดการภายในโดย GenieGo จึงไม่ต้องกรอกในช่องลงทะเบียน)" }
+          ]
+        },
+        {
+          "h2": "2. สิ่งที่ต้องเตรียม",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "บัญชีผู้ขายระดับ Professional ของ Amazon Seller Central หรือ Vendor Central",
+              "ข้อมูลบริษัท/ผู้ติดต่อที่จะใช้ลงทะเบียนนักพัฒนา",
+              "ชื่อแอป คำอธิบายแอป และวัตถุประสงค์การใช้งาน",
+              "URL นโยบายความเป็นส่วนตัว",
+              "OAuth Redirect URL"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. การลงทะเบียนนักพัฒนา",
+          "desc": "อันดับแรก ลงทะเบียนโปรไฟล์นักพัฒนา SP-API ใน Seller Central",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "เข้าสู่ระบบ Seller Central", "p": "เข้าสู่ระบบ Seller Central ด้วยบัญชีผู้ขาย Amazon ของคุณ", "path": "Seller Central → Apps & Services" },
+              { "h3": "ไปที่เมนู Develop Apps", "p": "จากเมนู Apps & Services ไปที่เมนูนักพัฒนาหรือการพัฒนาแอป", "path": "Apps & Services → Develop Apps" },
+              { "h3": "กรอก Developer Profile", "p": "กรอกข้อมูลบริษัท ข้อมูลผู้ติดต่อ วัตถุประสงค์การใช้ API และแผนการปกป้องข้อมูล", "path": "Developer Profile" },
+              { "h3": "ส่งเพื่อตรวจสอบ", "p": "ส่งข้อมูลการลงทะเบียนนักพัฒนาเพื่อให้ Amazon ตรวจสอบ", "path": "Submit for review" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "หลังจากได้รับการอนุมัติเรียบร้อยแล้วเท่านั้น จึงจะสามารถลงทะเบียนแอป SP-API สำหรับใช้งานจริงและใช้สิทธิ์ของแอปได้" }
+          ]
+        },
+        {
+          "h2": "4. ลงทะเบียนแอป SP-API → Client ID / Client Secret",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "สร้างแอปพลิเคชันใหม่", "p": "สร้างแอปใหม่ใน Develop Apps", "path": "Add new app" },
+              { "h3": "เลือกประเภทแอป", "p": "หากเชื่อมต่อเฉพาะบัญชีของคุณเองจะเป็น Private App; หากให้บริการแก่ผู้ขายภายนอกจะเป็น Public App", "path": "Private / Public App" },
+              { "h3": "เลือกบทบาท API", "p": "เลือกบทบาทที่ต้องการ เช่น Orders, Catalog และ Inventory", "path": "API Roles" },
+              { "h3": "กรอก OAuth Redirect URL", "p": "กรอก URL ของเซิร์ฟเวอร์ที่จะกลับมาหลังจากการอนุญาตเสร็จสิ้น", "path": "Redirect URI" },
+              { "h3": "บันทึกแล้วตรวจสอบข้อมูล Client", "p": "หลังจากสร้างแอป ให้ตรวจสอบ client_id (LWA Client ID) และ client_secret (Client Secret)", "path": "client_id / client_secret" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. การอนุญาต OAuth → ออก Refresh Token",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "1) เข้าถึง URL การอนุญาต OAuth ของผู้ขาย 2) รับ authorization code ที่ Redirect URL 3) ส่ง authorization code ไปยัง LWA Token Endpoint 4) รับ refresh_token / access_token" },
+            { "type": "notice", "kind": "", "html": "<strong>refresh_token</strong> ใช้สำหรับการเรียกใช้งานระยะยาวหลังจากผู้ขายอนุญาต GenieGo จะรีเฟรช access_token โดยอัตโนมัติด้วย refresh_token นี้เพื่อเรียก SP-API ดังนั้นคุณเพียงลงทะเบียน refresh_token โดยไม่ต้องตั้งค่าการลงนาม AWS แยกต่างหาก" }
+          ]
+        },
+        {
+          "h2": "6. ตรวจสอบ Marketplace ID · Seller ID",
+          "desc": "ตรวจสอบตัวระบุที่เหลืออีกสองรายการที่จำเป็นสำหรับการลงทะเบียน GenieGo",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "marketplace_id", "h3": "Marketplace ID เป้าหมายการขาย", "p": "Marketplace ID ของประเทศที่คุณกำลังเชื่อมต่อ US: ATVPDKIKX0DER · JP: A1VC38T7YXB528 · DE: A1PA6795UKMFR9" },
+              { "tag": "seller_id", "h3": "Seller ID / Merchant Token", "p": "จำเป็นสำหรับการลงทะเบียนสินค้าและการค้นหาคำสั่งซื้อ ตรวจสอบได้ในข้อมูลบัญชี Seller Central ของคุณ Seller Central → การตั้งค่า → ข้อมูลบัญชี → Merchant Token" }
+            ] }
+          ]
+        },
+        {
+          "h2": "7. ลงทะเบียนใน GenieGo Integration Hub",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "เตรียมค่า 5 รายการ", "p": "เตรียม refresh_token · client_id · client_secret · marketplace_id · seller_id", "path": "ข้อมูลรับรอง 5 รายการ" },
+              { "h3": "Integration Hub → Amazon SP-API → [ลงทะเบียน]", "p": "กรอกค่าแต่ละรายการในช่องของมันแล้วบันทึก (ช่องที่ว่างจะคงค่าเดิมไว้)", "path": "refresh_token · client_id · client_secret · marketplace_id · seller_id" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "ค่าที่ลงทะเบียนจะถูก <strong>เข้ารหัสจัดเก็บด้วย AES-256-GCM</strong> และปิดบังเมื่อมีการเรียกดู การซิงค์อัตโนมัติจะเริ่มทันทีหลังบันทึก" },
+            { "type": "notice", "kind": "danger", "html": "ห้ามเปิดเผย client_secret·refresh_token ในโค้ดฟรอนต์เอนด์ HTML หรือที่เก็บโค้ดสาธารณะโดยเด็ดขาด" }
+          ]
+        },
+        {
+          "h2": "8. รายการตรวจสอบขั้นสุดท้าย",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "ส่ง Developer Profile และได้รับการอนุมัติแล้ว",
+              "สร้างแอป SP-API และตรวจสอบ client_id·client_secret แล้ว",
+              "ออก refresh_token ผ่านการอนุญาต OAuth แล้ว",
+              "ตรวจสอบ marketplace_id ที่จะเชื่อมต่อแล้ว",
+              "ตรวจสอบ seller_id (Merchant Token) ใน Seller Central แล้ว",
+              "กรอกค่า 5 รายการ (refresh_token·client_id·client_secret·marketplace_id·seller_id) ใน GenieGo [ลงทะเบียน] และบันทึกแล้ว"
+            ] }
+          ]
+        },
+        {
+          "h2": "9. ปัญหาที่พบบ่อย",
+          "blocks": [
+            { "type": "table", "head": ["ปัญหา", "สาเหตุ", "วิธีแก้ไข"], "rows": [
+              ["ไม่มีเมนู API Key", "SP-API ไม่ใช่โครงสร้าง API Key เดี่ยว", "ดำเนินการด้วยโครงสร้าง LWA (client_id·client_secret·refresh_token)"],
+              ["ลงทะเบียนสินค้าล้มเหลว", "ยังไม่ได้ลงทะเบียน seller_id (Merchant Token)", "ลงทะเบียน Merchant Token จากข้อมูลบัญชี Seller Central ของคุณ"],
+              ["ข้อมูลประเทศผิด", "marketplace_id ไม่ตรงกัน", "ลงทะเบียน Marketplace ID ที่ถูกต้องสำหรับประเทศที่คุณเชื่อมต่อ"],
+              ["ข้อผิดพลาดด้านสิทธิ์", "API Role ของแอปไม่เพียงพอหรือโทเค็นหมดอายุ", "ตรวจสอบ API Role และรีเฟรชโทเค็นด้วย refresh_token"]
+            ] }
+          ]
+        }
+      ]
+    },
+    "vi": {
+      "titleType": "Hướng dẫn cấp phát",
+      "badge": "Hướng dẫn cấp phát API cho người mới",
+      "intro": "Hướng dẫn về quy trình đăng ký nhà phát triển SP-API, tạo ứng dụng và thiết lập OAuth·LWA để kết nối dữ liệu người bán Amazon với hệ thống đơn hàng, tồn kho, sản phẩm và vận chuyển.",
+      "org": "GenieGo Integration Hub · Hướng dẫn tích hợp thực hành cho người mới",
+      "quick": [
+        ["Cấu trúc xác thực", "LWA(OAuth) — 5 thông tin xác thực"],
+        ["Tài khoản cần có", "Seller/Vendor Central (Professional)"],
+        ["Giá trị GenieGo", "refresh_token·client_id·secret·marketplace_id·seller_id"],
+        ["Độ khó", "Trung cấp trở lên"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Amazon SP-API là gì?",
+          "desc": "Amazon Selling Partner API là API để tích hợp bằng chương trình các dữ liệu người bán như đơn hàng, tồn kho, sản phẩm, vận chuyển và quyết toán.",
+          "blocks": [
+            { "type": "notice", "kind": "danger", "html": "<strong>Quan trọng:</strong> SP-API không phải là phương thức API Key đơn giản. Thông thường cần đồng thời <strong>đăng ký Amazon Developer, đăng ký ứng dụng, Login with Amazon(LWA) và ủy quyền OAuth</strong>." },
+            { "type": "notice", "kind": "", "html": "<strong>★Tích hợp GenieGo cần 5 giá trị:</strong> <strong>refresh_token, client_id, client_secret, marketplace_id, seller_id</strong>. (SP-API hiện tại chỉ được gọi bằng token LWA, và việc ký AWS IAM/SigV4 do GenieGo xử lý nội bộ, nên bạn không nhập vào các trường đăng ký.)" }
+          ]
+        },
+        {
+          "h2": "2. Chuẩn bị",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Tài khoản người bán Professional của Amazon Seller Central hoặc Vendor Central",
+              "Thông tin công ty/người liên hệ dùng để đăng ký nhà phát triển",
+              "Tên ứng dụng, mô tả ứng dụng và mục đích sử dụng",
+              "URL chính sách quyền riêng tư",
+              "OAuth Redirect URL"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. Đăng ký nhà phát triển",
+          "desc": "Trước tiên, hãy đăng ký hồ sơ nhà phát triển SP-API trong Seller Central.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Đăng nhập Seller Central", "p": "Đăng nhập Seller Central bằng tài khoản người bán Amazon của bạn.", "path": "Seller Central → Apps & Services" },
+              { "h3": "Vào menu Develop Apps", "p": "Từ menu Apps & Services, vào menu nhà phát triển hoặc phát triển ứng dụng.", "path": "Apps & Services → Develop Apps" },
+              { "h3": "Điền Developer Profile", "p": "Nhập thông tin công ty, thông tin người liên hệ, mục đích sử dụng API và kế hoạch bảo vệ dữ liệu.", "path": "Developer Profile" },
+              { "h3": "Gửi để xét duyệt", "p": "Gửi thông tin đăng ký nhà phát triển để Amazon xét duyệt.", "path": "Submit for review" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Chỉ sau khi được phê duyệt hoàn tất, bạn mới có thể đăng ký ứng dụng SP-API vận hành chính thức và sử dụng quyền của nó." }
+          ]
+        },
+        {
+          "h2": "4. Đăng ký ứng dụng SP-API → Client ID / Client Secret",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Tạo ứng dụng mới", "p": "Tạo ứng dụng mới trong Develop Apps.", "path": "Add new app" },
+              { "h3": "Chọn loại ứng dụng", "p": "Nếu chỉ kết nối tài khoản của riêng bạn thì là Private App; nếu cung cấp cho người bán bên ngoài thì là Public App.", "path": "Private / Public App" },
+              { "h3": "Chọn vai trò API", "p": "Chọn các vai trò bạn cần, chẳng hạn như Orders, Catalog và Inventory.", "path": "API Roles" },
+              { "h3": "Nhập OAuth Redirect URL", "p": "Nhập URL máy chủ sẽ quay lại sau khi hoàn tất ủy quyền.", "path": "Redirect URI" },
+              { "h3": "Lưu và kiểm tra thông tin Client", "p": "Sau khi tạo ứng dụng, kiểm tra client_id (LWA Client ID) và client_secret (Client Secret).", "path": "client_id / client_secret" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. Ủy quyền OAuth → Cấp Refresh Token",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "1) Truy cập URL ủy quyền OAuth của người bán 2) Nhận authorization code tại Redirect URL 3) Chuyển authorization code đến LWA Token Endpoint 4) Nhận refresh_token / access_token" },
+            { "type": "notice", "kind": "", "html": "<strong>refresh_token</strong> được dùng cho các lệnh gọi dài hạn sau khi người bán ủy quyền. GenieGo tự động làm mới access_token bằng refresh_token này để gọi SP-API, nên bạn chỉ cần đăng ký refresh_token mà không cần thiết lập ký AWS riêng." }
+          ]
+        },
+        {
+          "h2": "6. Kiểm tra Marketplace ID · Seller ID",
+          "desc": "Kiểm tra hai mã định danh còn lại cần cho việc đăng ký GenieGo.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "marketplace_id", "h3": "Marketplace ID mục tiêu bán hàng", "p": "Marketplace ID của quốc gia bạn đang kết nối. US: ATVPDKIKX0DER · JP: A1VC38T7YXB528 · DE: A1PA6795UKMFR9" },
+              { "tag": "seller_id", "h3": "Seller ID / Merchant Token", "p": "Cần cho việc đăng ký sản phẩm và tra cứu đơn hàng. Kiểm tra trong thông tin tài khoản Seller Central của bạn. Seller Central → Cài đặt → Thông tin tài khoản → Merchant Token" }
+            ] }
+          ]
+        },
+        {
+          "h2": "7. Đăng ký trong GenieGo Integration Hub",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Chuẩn bị 5 giá trị", "p": "Chuẩn bị refresh_token · client_id · client_secret · marketplace_id · seller_id.", "path": "5 thông tin xác thực" },
+              { "h3": "Integration Hub → Amazon SP-API → [Đăng ký]", "p": "Nhập từng giá trị vào trường tương ứng và lưu (trường để trống sẽ giữ giá trị hiện có).", "path": "refresh_token · client_id · client_secret · marketplace_id · seller_id" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Các giá trị đã đăng ký được <strong>mã hóa lưu trữ bằng AES-256-GCM</strong> và bị che khi truy vấn. Đồng bộ tự động bắt đầu ngay sau khi lưu." },
+            { "type": "notice", "kind": "danger", "html": "Tuyệt đối không được để lộ client_secret·refresh_token trong mã frontend, HTML hoặc kho lưu trữ công khai." }
+          ]
+        },
+        {
+          "h2": "8. Danh sách kiểm tra cuối cùng",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Đã gửi Developer Profile và được phê duyệt.",
+              "Đã tạo ứng dụng SP-API và kiểm tra client_id·client_secret.",
+              "Đã cấp refresh_token qua ủy quyền OAuth.",
+              "Đã kiểm tra marketplace_id để kết nối.",
+              "Đã kiểm tra seller_id (Merchant Token) trong Seller Central.",
+              "Đã nhập 5 giá trị (refresh_token·client_id·client_secret·marketplace_id·seller_id) vào GenieGo [Đăng ký] và lưu."
+            ] }
+          ]
+        },
+        {
+          "h2": "9. Sự cố thường gặp",
+          "blocks": [
+            { "type": "table", "head": ["Sự cố", "Nguyên nhân", "Cách khắc phục"], "rows": [
+              ["Không có menu API Key", "SP-API không phải là cấu trúc API Key đơn lẻ", "Tiến hành theo cấu trúc LWA (client_id·client_secret·refresh_token)."],
+              ["Đăng ký sản phẩm thất bại", "Chưa đăng ký seller_id (Merchant Token)", "Đăng ký Merchant Token từ thông tin tài khoản Seller Central của bạn."],
+              ["Dữ liệu quốc gia sai", "marketplace_id không khớp", "Đăng ký đúng Marketplace ID cho quốc gia bạn đang kết nối."],
+              ["Lỗi quyền", "Vai trò API của ứng dụng không đủ hoặc token hết hạn", "Kiểm tra API Role và làm mới token bằng refresh_token."]
+            ] }
+          ]
+        }
+      ]
+    },
+    "id": {
+      "titleType": "Manual Penerbitan",
+      "badge": "Manual Penerbitan API untuk Pemula",
+      "intro": "Panduan tentang alur registrasi developer SP-API, pembuatan aplikasi, dan penyiapan OAuth·LWA untuk menghubungkan data penjual Amazon Anda dengan sistem pesanan, inventaris, produk, dan pengiriman.",
+      "org": "GenieGo Integration Hub · Panduan integrasi praktis untuk pemula",
+      "quick": [
+        ["Struktur autentikasi", "LWA(OAuth) — 5 kredensial"],
+        ["Akun yang dibutuhkan", "Seller/Vendor Central (Professional)"],
+        ["Nilai GenieGo", "refresh_token·client_id·secret·marketplace_id·seller_id"],
+        ["Tingkat kesulitan", "Menengah ke atas"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Apa itu Amazon SP-API?",
+          "desc": "Amazon Selling Partner API adalah API untuk mengintegrasikan data penjual secara terprogram seperti pesanan, inventaris, produk, pengiriman, dan penyelesaian.",
+          "blocks": [
+            { "type": "notice", "kind": "danger", "html": "<strong>Penting:</strong> SP-API bukan skema API Key sederhana. Umumnya memerlukan <strong>registrasi Amazon Developer, registrasi aplikasi, Login with Amazon(LWA), dan otorisasi OAuth</strong> secara bersamaan." },
+            { "type": "notice", "kind": "", "html": "<strong>★Integrasi GenieGo memerlukan 5 nilai:</strong> <strong>refresh_token, client_id, client_secret, marketplace_id, seller_id</strong>. (SP-API saat ini dipanggil hanya dengan token LWA, dan penandatanganan AWS IAM/SigV4 ditangani secara internal oleh GenieGo, sehingga Anda tidak memasukkannya di kolom registrasi.)" }
+          ]
+        },
+        {
+          "h2": "2. Prasyarat",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Akun penjual Professional Amazon Seller Central atau Vendor Central",
+              "Informasi perusahaan/kontak untuk registrasi developer",
+              "Nama aplikasi, deskripsi aplikasi, dan tujuan penggunaan",
+              "URL kebijakan privasi",
+              "OAuth Redirect URL"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. Registrasi Developer",
+          "desc": "Pertama, daftarkan profil developer SP-API Anda di Seller Central.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Masuk ke Seller Central", "p": "Masuk ke Seller Central dengan akun penjual Amazon Anda.", "path": "Seller Central → Apps & Services" },
+              { "h3": "Buka menu Develop Apps", "p": "Dari menu Apps & Services, buka menu developer atau pengembangan aplikasi.", "path": "Apps & Services → Develop Apps" },
+              { "h3": "Isi Developer Profile", "p": "Masukkan informasi perusahaan, informasi kontak, tujuan penggunaan API, dan rencana perlindungan data.", "path": "Developer Profile" },
+              { "h3": "Kirim untuk ditinjau", "p": "Kirim informasi registrasi developer Anda untuk ditinjau Amazon.", "path": "Submit for review" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Hanya setelah persetujuan selesai, Anda dapat mendaftarkan aplikasi SP-API produksi dan menggunakan izinnya." }
+          ]
+        },
+        {
+          "h2": "4. Daftarkan Aplikasi SP-API → Client ID / Client Secret",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Buat aplikasi baru", "p": "Buat aplikasi baru di Develop Apps.", "path": "Add new app" },
+              { "h3": "Pilih jenis aplikasi", "p": "Jika Anda hanya menghubungkan akun sendiri, itu adalah Private App; jika Anda menyediakannya untuk penjual eksternal, itu adalah Public App.", "path": "Private / Public App" },
+              { "h3": "Pilih peran API", "p": "Pilih peran yang Anda butuhkan, seperti Orders, Catalog, dan Inventory.", "path": "API Roles" },
+              { "h3": "Masukkan OAuth Redirect URL", "p": "Masukkan URL server tempat kembali setelah otorisasi selesai.", "path": "Redirect URI" },
+              { "h3": "Simpan dan periksa info Client", "p": "Setelah membuat aplikasi, periksa client_id (LWA Client ID) dan client_secret (Client Secret).", "path": "client_id / client_secret" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. Otorisasi OAuth → Terbitkan Refresh Token",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "1) Akses URL otorisasi OAuth penjual 2) Terima authorization code di Redirect URL 3) Teruskan authorization code ke LWA Token Endpoint 4) Terima refresh_token / access_token" },
+            { "type": "notice", "kind": "", "html": "<strong>refresh_token</strong> digunakan untuk panggilan jangka panjang setelah otorisasi penjual. GenieGo secara otomatis menyegarkan access_token menggunakan refresh_token ini untuk memanggil SP-API, jadi Anda hanya perlu mendaftarkan refresh_token tanpa penyiapan penandatanganan AWS terpisah." }
+          ]
+        },
+        {
+          "h2": "6. Periksa Marketplace ID · Seller ID",
+          "desc": "Periksa dua pengenal yang tersisa yang dibutuhkan untuk registrasi GenieGo.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "marketplace_id", "h3": "Marketplace ID target penjualan", "p": "Marketplace ID negara yang Anda hubungkan. US: ATVPDKIKX0DER · JP: A1VC38T7YXB528 · DE: A1PA6795UKMFR9" },
+              { "tag": "seller_id", "h3": "Seller ID / Merchant Token", "p": "Dibutuhkan untuk registrasi produk dan pencarian pesanan. Periksa di informasi akun Seller Central Anda. Seller Central → Pengaturan → Info Akun → Merchant Token" }
+            ] }
+          ]
+        },
+        {
+          "h2": "7. Daftarkan di GenieGo Integration Hub",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Siapkan 5 nilai", "p": "Siapkan refresh_token · client_id · client_secret · marketplace_id · seller_id.", "path": "5 kredensial" },
+              { "h3": "Integration Hub → Amazon SP-API → [Daftar]", "p": "Masukkan setiap nilai di kolomnya dan simpan (kolom kosong mempertahankan nilai yang ada).", "path": "refresh_token · client_id · client_secret · marketplace_id · seller_id" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Nilai yang terdaftar <strong>dienkripsi saat disimpan dengan AES-256-GCM</strong> dan disamarkan saat dibaca. Sinkronisasi otomatis dimulai segera setelah menyimpan." },
+            { "type": "notice", "kind": "danger", "html": "client_secret·refresh_token tidak boleh diekspos di kode frontend, HTML, atau repositori publik." }
+          ]
+        },
+        {
+          "h2": "8. Daftar Periksa Akhir",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Telah mengirimkan Developer Profile dan disetujui.",
+              "Telah membuat aplikasi SP-API dan memeriksa client_id·client_secret.",
+              "Telah menerbitkan refresh_token melalui otorisasi OAuth.",
+              "Telah memeriksa marketplace_id untuk dihubungkan.",
+              "Telah memeriksa seller_id (Merchant Token) di Seller Central.",
+              "Telah memasukkan 5 nilai (refresh_token·client_id·client_secret·marketplace_id·seller_id) di GenieGo [Daftar] dan menyimpannya."
+            ] }
+          ]
+        },
+        {
+          "h2": "9. Masalah Umum",
+          "blocks": [
+            { "type": "table", "head": ["Masalah", "Penyebab", "Solusi"], "rows": [
+              ["Tidak ada menu API Key", "SP-API bukan struktur API Key tunggal", "Lanjutkan dengan struktur LWA (client_id·client_secret·refresh_token)."],
+              ["Registrasi produk gagal", "seller_id (Merchant Token) belum terdaftar", "Daftarkan Merchant Token dari informasi akun Seller Central Anda."],
+              ["Data negara salah", "marketplace_id tidak cocok", "Daftarkan Marketplace ID yang benar untuk negara yang Anda hubungkan."],
+              ["Kesalahan izin", "API Role aplikasi tidak cukup atau token kedaluwarsa", "Periksa API Role dan segarkan token dengan refresh_token."]
+            ] }
+          ]
+        }
+      ]
+    },
+    "ar": {
+      "titleType": "دليل الإصدار",
+      "badge": "دليل إصدار API للمبتدئين",
+      "intro": "دليل لتدفق تسجيل مطور SP-API وإنشاء التطبيق وإعداد OAuth·LWA لربط بيانات البائع على Amazon بأنظمة الطلبات والمخزون والمنتجات والشحن.",
+      "org": "GenieGo Integration Hub · دليل تكامل عملي للمبتدئين",
+      "quick": [
+        ["بنية المصادقة", "LWA(OAuth) — 5 بيانات اعتماد"],
+        ["الحساب المطلوب", "Seller/Vendor Central (احترافي)"],
+        ["قيم GenieGo", "refresh_token·client_id·secret·marketplace_id·seller_id"],
+        ["مستوى الصعوبة", "متوسط أو أعلى"]
+      ],
+      "sections": [
+        {
+          "h2": "1. ما هي Amazon SP-API؟",
+          "desc": "إن Amazon Selling Partner API هي واجهة برمجة تطبيقات لدمج بيانات البائع برمجياً مثل الطلبات والمخزون والمنتجات والشحن والتسويات.",
+          "blocks": [
+            { "type": "notice", "kind": "danger", "html": "<strong>مهم:</strong> إن SP-API ليست مجرد مخطط API Key بسيط. وعادةً ما تتطلب معاً <strong>تسجيل Amazon Developer وتسجيل التطبيق وLogin with Amazon(LWA) وتفويض OAuth</strong>." },
+            { "type": "notice", "kind": "", "html": "<strong>★يتطلب التكامل مع GenieGo 5 قيم:</strong> <strong>refresh_token, client_id, client_secret, marketplace_id, seller_id</strong>. (يتم استدعاء SP-API الحالية باستخدام رمز LWA وحده، ويتم التعامل مع توقيع AWS IAM/SigV4 داخلياً بواسطة GenieGo، لذا لا تُدخله في حقول التسجيل.)" }
+          ]
+        },
+        {
+          "h2": "2. المتطلبات الأساسية",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "حساب بائع احترافي على Amazon Seller Central أو Vendor Central",
+              "معلومات الشركة/جهة الاتصال المستخدمة لتسجيل المطور",
+              "اسم التطبيق ووصف التطبيق والغرض من الاستخدام",
+              "رابط سياسة الخصوصية",
+              "OAuth Redirect URL"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. تسجيل المطور",
+          "desc": "أولاً، سجّل ملف تعريف مطور SP-API الخاص بك في Seller Central.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "تسجيل الدخول إلى Seller Central", "p": "سجّل الدخول إلى Seller Central باستخدام حساب البائع على Amazon.", "path": "Seller Central → Apps & Services" },
+              { "h3": "الانتقال إلى قائمة Develop Apps", "p": "من قائمة Apps & Services، انتقل إلى قائمة المطور أو تطوير التطبيقات.", "path": "Apps & Services → Develop Apps" },
+              { "h3": "تعبئة Developer Profile", "p": "أدخل معلومات الشركة ومعلومات جهة الاتصال والغرض من استخدام API وخطة حماية البيانات.", "path": "Developer Profile" },
+              { "h3": "الإرسال للمراجعة", "p": "أرسل معلومات تسجيل المطور لمراجعة Amazon.", "path": "Submit for review" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "بعد اكتمال الموافقة فقط يمكنك تسجيل تطبيق SP-API للإنتاج واستخدام أذوناته." }
+          ]
+        },
+        {
+          "h2": "4. تسجيل تطبيق SP-API → Client ID / Client Secret",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "إنشاء تطبيق جديد", "p": "أنشئ تطبيقاً جديداً في Develop Apps.", "path": "Add new app" },
+              { "h3": "اختيار نوع التطبيق", "p": "إذا كنت تربط حسابك فقط فهو Private App؛ وإذا قدمته لبائعين خارجيين فهو Public App.", "path": "Private / Public App" },
+              { "h3": "اختيار أدوار API", "p": "اختر الأدوار التي تحتاجها، مثل Orders وCatalog وInventory.", "path": "API Roles" },
+              { "h3": "إدخال OAuth Redirect URL", "p": "أدخل عنوان URL الخادم الذي سيعود إليه بعد اكتمال التفويض.", "path": "Redirect URI" },
+              { "h3": "الحفظ والتحقق من معلومات Client", "p": "بعد إنشاء التطبيق، تحقق من client_id (LWA Client ID) وclient_secret (Client Secret).", "path": "client_id / client_secret" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. تفويض OAuth → إصدار Refresh Token",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "1) الوصول إلى عنوان URL تفويض OAuth الخاص بالبائع 2) استلام authorization code عند Redirect URL 3) تمرير authorization code إلى LWA Token Endpoint 4) استلام refresh_token / access_token" },
+            { "type": "notice", "kind": "", "html": "يُستخدم <strong>refresh_token</strong> للاستدعاءات طويلة المدى بعد تفويض البائع. تقوم GenieGo تلقائياً بتحديث access_token باستخدام هذا refresh_token لاستدعاء SP-API، لذا تحتاج فقط إلى تسجيل refresh_token دون أي إعداد منفصل لتوقيع AWS." }
+          ]
+        },
+        {
+          "h2": "6. التحقق من Marketplace ID · Seller ID",
+          "desc": "تحقق من المعرّفين المتبقيين اللازمين لتسجيل GenieGo.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "marketplace_id", "h3": "معرّف السوق المستهدف للبيع", "p": "إنه Marketplace ID للبلد الذي تتصل به. US: ATVPDKIKX0DER · JP: A1VC38T7YXB528 · DE: A1PA6795UKMFR9" },
+              { "tag": "seller_id", "h3": "Seller ID / Merchant Token", "p": "مطلوب لتسجيل المنتج والبحث عن الطلبات. تحقق منه في معلومات حساب Seller Central الخاص بك. Seller Central → الإعدادات → معلومات الحساب → Merchant Token" }
+            ] }
+          ]
+        },
+        {
+          "h2": "7. التسجيل في GenieGo Integration Hub",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "تجهيز القيم الـ 5", "p": "جهّز refresh_token · client_id · client_secret · marketplace_id · seller_id.", "path": "5 بيانات اعتماد" },
+              { "h3": "Integration Hub → Amazon SP-API → [تسجيل]", "p": "أدخل كل قيمة في حقلها واحفظ (الحقول الفارغة تحتفظ بالقيم الحالية).", "path": "refresh_token · client_id · client_secret · marketplace_id · seller_id" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "يتم <strong>تشفير القيم المسجّلة عند التخزين باستخدام AES-256-GCM</strong> وإخفاؤها عند القراءة. تبدأ المزامنة التلقائية فور الحفظ." },
+            { "type": "notice", "kind": "danger", "html": "يجب عدم كشف client_secret·refresh_token مطلقاً في كود الواجهة الأمامية أو HTML أو المستودعات العامة." }
+          ]
+        },
+        {
+          "h2": "8. قائمة التحقق النهائية",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "تم إرسال Developer Profile والحصول على الموافقة عليه.",
+              "تم إنشاء تطبيق SP-API والتحقق من client_id·client_secret.",
+              "تم إصدار refresh_token عبر تفويض OAuth.",
+              "تم التحقق من marketplace_id المراد ربطه.",
+              "تم التحقق من seller_id (Merchant Token) في Seller Central.",
+              "تم إدخال القيم الـ 5 (refresh_token·client_id·client_secret·marketplace_id·seller_id) في GenieGo [تسجيل] وحفظها."
+            ] }
+          ]
+        },
+        {
+          "h2": "9. المشكلات الشائعة",
+          "blocks": [
+            { "type": "table", "head": ["المشكلة", "السبب", "الحل"], "rows": [
+              ["لا توجد قائمة API Key", "إن SP-API ليست بنية API Key واحدة", "تابع باستخدام بنية LWA (client_id·client_secret·refresh_token)."],
+              ["فشل تسجيل المنتج", "seller_id (Merchant Token) غير مسجّل", "سجّل Merchant Token من معلومات حساب Seller Central الخاص بك."],
+              ["بيانات بلد خاطئة", "عدم تطابق marketplace_id", "سجّل Marketplace ID الصحيح للبلد الذي تتصل به."],
+              ["خطأ في الأذونات", "دور API للتطبيق غير كافٍ أو انتهت صلاحية الرمز", "تحقق من API Role وحدّث الرمز باستخدام refresh_token."]
+            ] }
+          ]
+        }
+      ]
+    },
+    "es": {
+      "titleType": "Manual de emisión",
+      "badge": "Manual de emisión de API para principiantes",
+      "intro": "Una guía sobre el flujo de registro de desarrollador de SP-API, creación de la aplicación y configuración de OAuth·LWA para conectar tus datos de vendedor de Amazon con los sistemas de pedidos, inventario, productos y envíos.",
+      "org": "GenieGo Integration Hub · Guía práctica de integración para principiantes",
+      "quick": [
+        ["Estructura de autenticación", "LWA(OAuth) — 5 credenciales"],
+        ["Cuenta necesaria", "Seller/Vendor Central (Professional)"],
+        ["Valores de GenieGo", "refresh_token·client_id·secret·marketplace_id·seller_id"],
+        ["Dificultad", "Intermedia o superior"]
+      ],
+      "sections": [
+        {
+          "h2": "1. ¿Qué es la Amazon SP-API?",
+          "desc": "La Amazon Selling Partner API es una API para integrar mediante programación los datos del vendedor, como pedidos, inventario, productos, envíos y liquidaciones.",
+          "blocks": [
+            { "type": "notice", "kind": "danger", "html": "<strong>Importante:</strong> La SP-API no es un esquema simple de API Key. Generalmente requiere en conjunto <strong>el registro de Amazon Developer, el registro de la aplicación, Login with Amazon(LWA) y la autorización OAuth</strong>." },
+            { "type": "notice", "kind": "", "html": "<strong>★La integración con GenieGo requiere 5 valores:</strong> <strong>refresh_token, client_id, client_secret, marketplace_id, seller_id</strong>. (La SP-API actual se invoca solo con el token LWA, y la firma AWS IAM/SigV4 la gestiona internamente GenieGo, por lo que no la introduces en los campos de registro.)" }
+          ]
+        },
+        {
+          "h2": "2. Requisitos previos",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Una cuenta de vendedor Professional de Amazon Seller Central o Vendor Central",
+              "Información de la empresa/contacto para el registro de desarrollador",
+              "Nombre de la aplicación, descripción de la aplicación y uso previsto",
+              "URL de la política de privacidad",
+              "OAuth Redirect URL"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. Registro de desarrollador",
+          "desc": "Primero, registra tu perfil de desarrollador de SP-API en Seller Central.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Inicia sesión en Seller Central", "p": "Inicia sesión en Seller Central con tu cuenta de vendedor de Amazon.", "path": "Seller Central → Apps & Services" },
+              { "h3": "Ve al menú Develop Apps", "p": "Desde el menú Apps & Services, ve al menú de desarrollador o de desarrollo de aplicaciones.", "path": "Apps & Services → Develop Apps" },
+              { "h3": "Completa el Developer Profile", "p": "Introduce la información de la empresa, la información de contacto, el propósito de uso de la API y el plan de protección de datos.", "path": "Developer Profile" },
+              { "h3": "Enviar para revisión", "p": "Envía tu información de registro de desarrollador para la revisión de Amazon.", "path": "Submit for review" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Solo después de completar la aprobación podrás registrar una aplicación SP-API de producción y usar sus permisos." }
+          ]
+        },
+        {
+          "h2": "4. Registrar una aplicación SP-API → Client ID / Client Secret",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Crea una nueva aplicación", "p": "Crea una nueva aplicación en Develop Apps.", "path": "Add new app" },
+              { "h3": "Elige el tipo de aplicación", "p": "Si conectas solo tu propia cuenta, es una Private App; si la proporcionas a vendedores externos, es una Public App.", "path": "Private / Public App" },
+              { "h3": "Selecciona los roles de API", "p": "Selecciona los roles que necesitas, como Orders, Catalog e Inventory.", "path": "API Roles" },
+              { "h3": "Introduce la OAuth Redirect URL", "p": "Introduce la URL del servidor a la que volver después de completar la autorización.", "path": "Redirect URI" },
+              { "h3": "Guarda y comprueba la info de Client", "p": "Tras crear la aplicación, comprueba el client_id (LWA Client ID) y el client_secret (Client Secret).", "path": "client_id / client_secret" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. Autorización OAuth → Emitir un Refresh Token",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "1) Accede a la URL de autorización OAuth del vendedor 2) Recibe el authorization code en la Redirect URL 3) Pasa el authorization code al LWA Token Endpoint 4) Recibe el refresh_token / access_token" },
+            { "type": "notice", "kind": "", "html": "El <strong>refresh_token</strong> se usa para llamadas a largo plazo tras la autorización del vendedor. GenieGo actualiza automáticamente el access_token usando este refresh_token para llamar a la SP-API, por lo que solo necesitas registrar el refresh_token sin ninguna configuración de firma de AWS por separado." }
+          ]
+        },
+        {
+          "h2": "6. Comprueba el Marketplace ID · Seller ID",
+          "desc": "Comprueba los dos identificadores restantes necesarios para el registro en GenieGo.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "marketplace_id", "h3": "ID del marketplace de destino", "p": "El Marketplace ID del país que estás conectando. US: ATVPDKIKX0DER · JP: A1VC38T7YXB528 · DE: A1PA6795UKMFR9" },
+              { "tag": "seller_id", "h3": "Seller ID / Merchant Token", "p": "Necesario para el registro de productos y la consulta de pedidos. Compruébalo en la información de tu cuenta de Seller Central. Seller Central → Configuración → Información de la cuenta → Merchant Token" }
+            ] }
+          ]
+        },
+        {
+          "h2": "7. Registrar en el GenieGo Integration Hub",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Prepara los 5 valores", "p": "Prepara refresh_token · client_id · client_secret · marketplace_id · seller_id.", "path": "5 credenciales" },
+              { "h3": "Integration Hub → Amazon SP-API → [Registrar]", "p": "Introduce cada valor en su campo y guarda (los campos en blanco mantienen los valores existentes).", "path": "refresh_token · client_id · client_secret · marketplace_id · seller_id" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Los valores registrados se <strong>almacenan cifrados con AES-256-GCM</strong> y se enmascaran al consultarlos. La sincronización automática comienza inmediatamente después de guardar." },
+            { "type": "notice", "kind": "danger", "html": "El client_secret·refresh_token nunca debe exponerse en el código del frontend, HTML ni repositorios públicos." }
+          ]
+        },
+        {
+          "h2": "8. Lista de verificación final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Envié el Developer Profile y obtuve su aprobación.",
+              "Creé la aplicación SP-API y comprobé el client_id·client_secret.",
+              "Emití un refresh_token mediante la autorización OAuth.",
+              "Comprobé el marketplace_id a conectar.",
+              "Comprobé el seller_id (Merchant Token) en Seller Central.",
+              "Introduje los 5 valores (refresh_token·client_id·client_secret·marketplace_id·seller_id) en GenieGo [Registrar] y los guardé."
+            ] }
+          ]
+        },
+        {
+          "h2": "9. Problemas frecuentes",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solución"], "rows": [
+              ["No hay menú de API Key", "La SP-API no es una estructura de API Key única", "Procede con la estructura LWA (client_id·client_secret·refresh_token)."],
+              ["El registro de productos falla", "seller_id (Merchant Token) no registrado", "Registra el Merchant Token desde la información de tu cuenta de Seller Central."],
+              ["Datos de país incorrectos", "marketplace_id no coincide", "Registra el Marketplace ID correcto para el país que estás conectando."],
+              ["Error de permisos", "API Role de la aplicación insuficiente o token caducado", "Comprueba el API Role y actualiza el token con el refresh_token."]
+            ] }
+          ]
+        }
+      ]
+    },
+    "fr": {
+      "titleType": "Manuel d'émission",
+      "badge": "Manuel d'émission d'API pour débutants",
+      "intro": "Un guide sur le flux d'enregistrement développeur SP-API, de création d'application et de configuration OAuth·LWA pour connecter vos données vendeur Amazon aux systèmes de commandes, de stock, de produits et d'expédition.",
+      "org": "GenieGo Integration Hub · Guide d'intégration pratique pour débutants",
+      "quick": [
+        ["Structure d'authentification", "LWA(OAuth) — 5 identifiants"],
+        ["Compte nécessaire", "Seller/Vendor Central (Professional)"],
+        ["Valeurs GenieGo", "refresh_token·client_id·secret·marketplace_id·seller_id"],
+        ["Difficulté", "Intermédiaire ou supérieure"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Qu'est-ce que l'Amazon SP-API ?",
+          "desc": "L'Amazon Selling Partner API est une API permettant d'intégrer par programmation les données vendeur telles que les commandes, le stock, les produits, l'expédition et les règlements.",
+          "blocks": [
+            { "type": "notice", "kind": "danger", "html": "<strong>Important :</strong> La SP-API n'est pas un simple schéma d'API Key. Elle nécessite généralement ensemble <strong>l'enregistrement Amazon Developer, l'enregistrement de l'application, Login with Amazon(LWA) et l'autorisation OAuth</strong>." },
+            { "type": "notice", "kind": "", "html": "<strong>★L'intégration GenieGo nécessite 5 valeurs :</strong> <strong>refresh_token, client_id, client_secret, marketplace_id, seller_id</strong>. (La SP-API actuelle est appelée avec le seul token LWA, et la signature AWS IAM/SigV4 est gérée en interne par GenieGo, vous ne la saisissez donc pas dans les champs d'enregistrement.)" }
+          ]
+        },
+        {
+          "h2": "2. Prérequis",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Un compte vendeur Professional Amazon Seller Central ou Vendor Central",
+              "Les informations entreprise/contact à utiliser pour l'enregistrement développeur",
+              "Le nom de l'application, la description de l'application et l'usage prévu",
+              "L'URL de la politique de confidentialité",
+              "OAuth Redirect URL"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. Enregistrement développeur",
+          "desc": "D'abord, enregistrez votre profil développeur SP-API dans Seller Central.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Connectez-vous à Seller Central", "p": "Connectez-vous à Seller Central avec votre compte vendeur Amazon.", "path": "Seller Central → Apps & Services" },
+              { "h3": "Accédez au menu Develop Apps", "p": "Depuis le menu Apps & Services, accédez au menu développeur ou de développement d'applications.", "path": "Apps & Services → Develop Apps" },
+              { "h3": "Remplissez le Developer Profile", "p": "Saisissez les informations de l'entreprise, les informations de contact, l'objet d'utilisation de l'API et le plan de protection des données.", "path": "Developer Profile" },
+              { "h3": "Soumettre pour examen", "p": "Soumettez vos informations d'enregistrement développeur pour l'examen d'Amazon.", "path": "Submit for review" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Ce n'est qu'une fois l'approbation terminée que vous pouvez enregistrer une application SP-API de production et utiliser ses autorisations." }
+          ]
+        },
+        {
+          "h2": "4. Enregistrer une application SP-API → Client ID / Client Secret",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Créez une nouvelle application", "p": "Créez une nouvelle application dans Develop Apps.", "path": "Add new app" },
+              { "h3": "Choisissez le type d'application", "p": "Si vous connectez uniquement votre propre compte, c'est une Private App ; si vous la fournissez à des vendeurs externes, c'est une Public App.", "path": "Private / Public App" },
+              { "h3": "Sélectionnez les rôles API", "p": "Sélectionnez les rôles dont vous avez besoin, tels que Orders, Catalog et Inventory.", "path": "API Roles" },
+              { "h3": "Saisissez l'OAuth Redirect URL", "p": "Saisissez l'URL du serveur vers laquelle revenir une fois l'autorisation terminée.", "path": "Redirect URI" },
+              { "h3": "Enregistrez et vérifiez les infos Client", "p": "Après avoir créé l'application, vérifiez le client_id (LWA Client ID) et le client_secret (Client Secret).", "path": "client_id / client_secret" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. Autorisation OAuth → Émettre un Refresh Token",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "1) Accédez à l'URL d'autorisation OAuth du vendeur 2) Recevez l'authorization code à la Redirect URL 3) Transmettez l'authorization code au LWA Token Endpoint 4) Recevez le refresh_token / access_token" },
+            { "type": "notice", "kind": "", "html": "Le <strong>refresh_token</strong> est utilisé pour les appels à long terme après l'autorisation du vendeur. GenieGo rafraîchit automatiquement l'access_token à l'aide de ce refresh_token pour appeler la SP-API, vous n'avez donc qu'à enregistrer le refresh_token sans configuration de signature AWS distincte." }
+          ]
+        },
+        {
+          "h2": "6. Vérifiez le Marketplace ID · Seller ID",
+          "desc": "Vérifiez les deux identifiants restants nécessaires à l'enregistrement GenieGo.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "marketplace_id", "h3": "ID de la marketplace cible", "p": "Le Marketplace ID du pays que vous connectez. US: ATVPDKIKX0DER · JP: A1VC38T7YXB528 · DE: A1PA6795UKMFR9" },
+              { "tag": "seller_id", "h3": "Seller ID / Merchant Token", "p": "Nécessaire pour l'enregistrement des produits et la consultation des commandes. Vérifiez-le dans les informations de votre compte Seller Central. Seller Central → Paramètres → Informations du compte → Merchant Token" }
+            ] }
+          ]
+        },
+        {
+          "h2": "7. Enregistrer dans le GenieGo Integration Hub",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Préparez les 5 valeurs", "p": "Préparez refresh_token · client_id · client_secret · marketplace_id · seller_id.", "path": "5 identifiants" },
+              { "h3": "Integration Hub → Amazon SP-API → [Enregistrer]", "p": "Saisissez chaque valeur dans son champ et enregistrez (les champs vides conservent les valeurs existantes).", "path": "refresh_token · client_id · client_secret · marketplace_id · seller_id" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Les valeurs enregistrées sont <strong>chiffrées au repos avec AES-256-GCM</strong> et masquées à la lecture. La synchronisation automatique démarre immédiatement après l'enregistrement." },
+            { "type": "notice", "kind": "danger", "html": "Le client_secret·refresh_token ne doit jamais être exposé dans le code frontend, le HTML ou des dépôts publics." }
+          ]
+        },
+        {
+          "h2": "8. Liste de vérification finale",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "J'ai soumis le Developer Profile et l'ai fait approuver.",
+              "J'ai créé l'application SP-API et vérifié le client_id·client_secret.",
+              "J'ai émis un refresh_token via l'autorisation OAuth.",
+              "J'ai vérifié le marketplace_id à connecter.",
+              "J'ai vérifié le seller_id (Merchant Token) dans Seller Central.",
+              "J'ai saisi les 5 valeurs (refresh_token·client_id·client_secret·marketplace_id·seller_id) dans GenieGo [Enregistrer] et les ai enregistrées."
+            ] }
+          ]
+        },
+        {
+          "h2": "9. Problèmes fréquents",
+          "blocks": [
+            { "type": "table", "head": ["Problème", "Cause", "Solution"], "rows": [
+              ["Il n'y a pas de menu API Key", "La SP-API n'est pas une structure d'API Key unique", "Procédez avec la structure LWA (client_id·client_secret·refresh_token)."],
+              ["L'enregistrement des produits échoue", "seller_id (Merchant Token) non enregistré", "Enregistrez le Merchant Token depuis les informations de votre compte Seller Central."],
+              ["Données de pays incorrectes", "marketplace_id ne correspond pas", "Enregistrez le Marketplace ID correct pour le pays que vous connectez."],
+              ["Erreur d'autorisation", "API Role de l'application insuffisant ou token expiré", "Vérifiez l'API Role et rafraîchissez le token avec le refresh_token."]
+            ] }
+          ]
+        }
+      ]
+    },
+    "hi": {
+      "titleType": "जारी करने की नियमावली",
+      "badge": "शुरुआती लोगों के लिए API जारी करने की नियमावली",
+      "intro": "अपने Amazon विक्रेता डेटा को ऑर्डर, इन्वेंट्री, उत्पाद और शिपिंग सिस्टम से जोड़ने के लिए SP-API डेवलपर पंजीकरण, ऐप निर्माण और OAuth·LWA सेटअप प्रवाह की एक मार्गदर्शिका।",
+      "org": "GenieGo Integration Hub · शुरुआती लोगों के लिए व्यावहारिक एकीकरण मार्गदर्शिका",
+      "quick": [
+        ["प्रमाणीकरण संरचना", "LWA(OAuth) — 5 क्रेडेंशियल"],
+        ["आवश्यक खाता", "Seller/Vendor Central (Professional)"],
+        ["GenieGo मान", "refresh_token·client_id·secret·marketplace_id·seller_id"],
+        ["कठिनाई", "मध्यवर्ती या उससे ऊपर"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Amazon SP-API क्या है?",
+          "desc": "Amazon Selling Partner API ऑर्डर, इन्वेंट्री, उत्पाद, शिपिंग और निपटान जैसे विक्रेता डेटा को प्रोग्रामेटिक रूप से एकीकृत करने के लिए एक API है।",
+          "blocks": [
+            { "type": "notice", "kind": "danger", "html": "<strong>महत्वपूर्ण:</strong> SP-API कोई साधारण API Key योजना नहीं है। इसके लिए आम तौर पर एक साथ <strong>Amazon Developer पंजीकरण, ऐप पंजीकरण, Login with Amazon(LWA) और OAuth प्राधिकरण</strong> की आवश्यकता होती है।" },
+            { "type": "notice", "kind": "", "html": "<strong>★GenieGo एकीकरण के लिए 5 मान आवश्यक हैं:</strong> <strong>refresh_token, client_id, client_secret, marketplace_id, seller_id</strong>। (वर्तमान SP-API केवल LWA टोकन के साथ कॉल की जाती है, और AWS IAM/SigV4 हस्ताक्षर GenieGo द्वारा आंतरिक रूप से संभाला जाता है, इसलिए आप इसे पंजीकरण फ़ील्ड में दर्ज नहीं करते।)" }
+          ]
+        },
+        {
+          "h2": "2. पूर्वापेक्षाएँ",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "एक Amazon Seller Central या Vendor Central Professional विक्रेता खाता",
+              "डेवलपर पंजीकरण के लिए उपयोग की जाने वाली कंपनी/संपर्क जानकारी",
+              "ऐप का नाम, ऐप का विवरण और इच्छित उपयोग",
+              "गोपनीयता नीति URL",
+              "OAuth Redirect URL"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. डेवलपर पंजीकरण",
+          "desc": "सबसे पहले, Seller Central में अपनी SP-API डेवलपर प्रोफ़ाइल पंजीकृत करें।",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Seller Central में साइन इन करें", "p": "अपने Amazon विक्रेता खाते से Seller Central में साइन इन करें।", "path": "Seller Central → Apps & Services" },
+              { "h3": "Develop Apps मेनू पर जाएँ", "p": "Apps & Services मेनू से, डेवलपर या ऐप डेवलपमेंट मेनू पर जाएँ।", "path": "Apps & Services → Develop Apps" },
+              { "h3": "Developer Profile भरें", "p": "अपनी कंपनी की जानकारी, संपर्क जानकारी, API उपयोग का उद्देश्य और डेटा सुरक्षा योजना दर्ज करें।", "path": "Developer Profile" },
+              { "h3": "समीक्षा के लिए सबमिट करें", "p": "Amazon की समीक्षा के लिए अपनी डेवलपर पंजीकरण जानकारी सबमिट करें।", "path": "Submit for review" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "अनुमोदन पूरा होने के बाद ही आप एक प्रोडक्शन SP-API ऐप पंजीकृत कर सकते हैं और उसकी अनुमतियों का उपयोग कर सकते हैं।" }
+          ]
+        },
+        {
+          "h2": "4. एक SP-API ऐप पंजीकृत करें → Client ID / Client Secret",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "एक नया एप्लिकेशन बनाएँ", "p": "Develop Apps में एक नया ऐप बनाएँ।", "path": "Add new app" },
+              { "h3": "ऐप प्रकार चुनें", "p": "यदि आप केवल अपना खाता जोड़ते हैं तो यह Private App है; यदि आप इसे बाहरी विक्रेताओं को प्रदान करते हैं तो यह Public App है।", "path": "Private / Public App" },
+              { "h3": "API भूमिकाएँ चुनें", "p": "Orders, Catalog और Inventory जैसी आवश्यक भूमिकाएँ चुनें।", "path": "API Roles" },
+              { "h3": "OAuth Redirect URL दर्ज करें", "p": "प्राधिकरण पूरा होने के बाद लौटने के लिए सर्वर URL दर्ज करें।", "path": "Redirect URI" },
+              { "h3": "सहेजें और Client जानकारी जाँचें", "p": "ऐप बनाने के बाद, client_id (LWA Client ID) और client_secret (Client Secret) की जाँच करें।", "path": "client_id / client_secret" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. OAuth प्राधिकरण → Refresh Token जारी करें",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "1) विक्रेता OAuth प्राधिकरण URL तक पहुँचें 2) Redirect URL पर authorization code प्राप्त करें 3) authorization code को LWA Token Endpoint पर भेजें 4) refresh_token / access_token प्राप्त करें" },
+            { "type": "notice", "kind": "", "html": "<strong>refresh_token</strong> का उपयोग विक्रेता प्राधिकरण के बाद दीर्घकालिक कॉल के लिए किया जाता है। GenieGo SP-API को कॉल करने के लिए इस refresh_token का उपयोग करके access_token को स्वचालित रूप से रीफ़्रेश करता है, इसलिए आपको किसी अलग AWS हस्ताक्षर सेटअप के बिना केवल refresh_token पंजीकृत करने की आवश्यकता है।" }
+          ]
+        },
+        {
+          "h2": "6. Marketplace ID · Seller ID जाँचें",
+          "desc": "GenieGo पंजीकरण के लिए आवश्यक शेष दो पहचानकर्ताओं की जाँच करें।",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "marketplace_id", "h3": "लक्ष्य मार्केटप्लेस ID", "p": "जिस देश को आप जोड़ रहे हैं उसका Marketplace ID। US: ATVPDKIKX0DER · JP: A1VC38T7YXB528 · DE: A1PA6795UKMFR9" },
+              { "tag": "seller_id", "h3": "Seller ID / Merchant Token", "p": "उत्पाद पंजीकरण और ऑर्डर खोज के लिए आवश्यक। इसे अपनी Seller Central खाता जानकारी में जाँचें। Seller Central → सेटिंग्स → खाता जानकारी → Merchant Token" }
+            ] }
+          ]
+        },
+        {
+          "h2": "7. GenieGo Integration Hub में पंजीकृत करें",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "5 मान तैयार करें", "p": "refresh_token · client_id · client_secret · marketplace_id · seller_id तैयार करें।", "path": "5 क्रेडेंशियल" },
+              { "h3": "Integration Hub → Amazon SP-API → [पंजीकृत करें]", "p": "प्रत्येक मान को उसके फ़ील्ड में दर्ज करें और सहेजें (खाली फ़ील्ड मौजूदा मान बनाए रखते हैं)।", "path": "refresh_token · client_id · client_secret · marketplace_id · seller_id" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "पंजीकृत मान <strong>AES-256-GCM के साथ एन्क्रिप्ट करके संग्रहीत</strong> किए जाते हैं और पढ़ते समय मास्क किए जाते हैं। सहेजने के तुरंत बाद स्वचालित सिंक शुरू हो जाती है।" },
+            { "type": "notice", "kind": "danger", "html": "client_secret·refresh_token को कभी भी फ्रंटएंड कोड, HTML या सार्वजनिक रिपॉजिटरी में उजागर नहीं किया जाना चाहिए।" }
+          ]
+        },
+        {
+          "h2": "8. अंतिम जाँच सूची",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Developer Profile सबमिट किया और उसे अनुमोदित करवाया।",
+              "SP-API ऐप बनाया और client_id·client_secret की जाँच की।",
+              "OAuth प्राधिकरण के माध्यम से refresh_token जारी किया।",
+              "जोड़ने के लिए marketplace_id की जाँच की।",
+              "Seller Central में seller_id (Merchant Token) की जाँच की।",
+              "GenieGo [पंजीकृत करें] में 5 मान (refresh_token·client_id·client_secret·marketplace_id·seller_id) दर्ज किए और सहेजे।"
+            ] }
+          ]
+        },
+        {
+          "h2": "9. सामान्य समस्याएँ",
+          "blocks": [
+            { "type": "table", "head": ["समस्या", "कारण", "समाधान"], "rows": [
+              ["कोई API Key मेनू नहीं है", "SP-API एकल API Key संरचना नहीं है", "LWA (client_id·client_secret·refresh_token) संरचना के साथ आगे बढ़ें।"],
+              ["उत्पाद पंजीकरण विफल", "seller_id (Merchant Token) पंजीकृत नहीं", "अपनी Seller Central खाता जानकारी से Merchant Token पंजीकृत करें।"],
+              ["गलत देश डेटा", "marketplace_id बेमेल", "जिस देश को आप जोड़ रहे हैं उसके लिए सही Marketplace ID पंजीकृत करें।"],
+              ["अनुमति त्रुटि", "ऐप API Role अपर्याप्त या टोकन समाप्त", "API Role जाँचें और refresh_token के साथ टोकन रीफ़्रेश करें।"]
+            ] }
+          ]
+        }
+      ]
+    },
+    "pt": {
+      "titleType": "Manual de emissão",
+      "badge": "Manual de emissão de API para iniciantes",
+      "intro": "Um guia sobre o fluxo de registro de desenvolvedor da SP-API, criação do aplicativo e configuração de OAuth·LWA para conectar seus dados de vendedor da Amazon com sistemas de pedidos, estoque, produtos e envio.",
+      "org": "GenieGo Integration Hub · Guia prático de integração para iniciantes",
+      "quick": [
+        ["Estrutura de autenticação", "LWA(OAuth) — 5 credenciais"],
+        ["Conta necessária", "Seller/Vendor Central (Professional)"],
+        ["Valores do GenieGo", "refresh_token·client_id·secret·marketplace_id·seller_id"],
+        ["Dificuldade", "Intermediário ou superior"]
+      ],
+      "sections": [
+        {
+          "h2": "1. O que é a Amazon SP-API?",
+          "desc": "A Amazon Selling Partner API é uma API para integrar programaticamente dados do vendedor, como pedidos, estoque, produtos, envio e liquidações.",
+          "blocks": [
+            { "type": "notice", "kind": "danger", "html": "<strong>Importante:</strong> A SP-API não é um esquema simples de API Key. Geralmente exige em conjunto <strong>o registro de Amazon Developer, o registro do aplicativo, Login with Amazon(LWA) e a autorização OAuth</strong>." },
+            { "type": "notice", "kind": "", "html": "<strong>★A integração com o GenieGo requer 5 valores:</strong> <strong>refresh_token, client_id, client_secret, marketplace_id, seller_id</strong>. (A SP-API atual é chamada apenas com o token LWA, e a assinatura AWS IAM/SigV4 é tratada internamente pelo GenieGo, portanto você não a insere nos campos de registro.)" }
+          ]
+        },
+        {
+          "h2": "2. Pré-requisitos",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Uma conta de vendedor Professional da Amazon Seller Central ou Vendor Central",
+              "Informações da empresa/contato a usar para o registro de desenvolvedor",
+              "Nome do aplicativo, descrição do aplicativo e uso pretendido",
+              "URL da política de privacidade",
+              "OAuth Redirect URL"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. Registro de desenvolvedor",
+          "desc": "Primeiro, registre seu perfil de desenvolvedor da SP-API no Seller Central.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Faça login no Seller Central", "p": "Faça login no Seller Central com sua conta de vendedor da Amazon.", "path": "Seller Central → Apps & Services" },
+              { "h3": "Vá ao menu Develop Apps", "p": "No menu Apps & Services, vá ao menu de desenvolvedor ou de desenvolvimento de aplicativos.", "path": "Apps & Services → Develop Apps" },
+              { "h3": "Preencha o Developer Profile", "p": "Insira as informações da empresa, as informações de contato, a finalidade de uso da API e o plano de proteção de dados.", "path": "Developer Profile" },
+              { "h3": "Enviar para revisão", "p": "Envie suas informações de registro de desenvolvedor para a revisão da Amazon.", "path": "Submit for review" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Somente após a conclusão da aprovação você pode registrar um aplicativo SP-API de produção e usar suas permissões." }
+          ]
+        },
+        {
+          "h2": "4. Registrar um aplicativo SP-API → Client ID / Client Secret",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Crie um novo aplicativo", "p": "Crie um novo aplicativo em Develop Apps.", "path": "Add new app" },
+              { "h3": "Escolha o tipo de aplicativo", "p": "Se você conectar apenas sua própria conta, é um Private App; se você o fornecer a vendedores externos, é um Public App.", "path": "Private / Public App" },
+              { "h3": "Selecione as funções de API", "p": "Selecione as funções de que precisa, como Orders, Catalog e Inventory.", "path": "API Roles" },
+              { "h3": "Insira a OAuth Redirect URL", "p": "Insira a URL do servidor para a qual retornar após a conclusão da autorização.", "path": "Redirect URI" },
+              { "h3": "Salve e verifique as informações de Client", "p": "Após criar o aplicativo, verifique o client_id (LWA Client ID) e o client_secret (Client Secret).", "path": "client_id / client_secret" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. Autorização OAuth → Emitir um Refresh Token",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "1) Acesse a URL de autorização OAuth do vendedor 2) Receba o authorization code na Redirect URL 3) Passe o authorization code ao LWA Token Endpoint 4) Receba o refresh_token / access_token" },
+            { "type": "notice", "kind": "", "html": "O <strong>refresh_token</strong> é usado para chamadas de longo prazo após a autorização do vendedor. O GenieGo atualiza automaticamente o access_token usando este refresh_token para chamar a SP-API, portanto você só precisa registrar o refresh_token sem nenhuma configuração de assinatura AWS separada." }
+          ]
+        },
+        {
+          "h2": "6. Verifique o Marketplace ID · Seller ID",
+          "desc": "Verifique os dois identificadores restantes necessários para o registro no GenieGo.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "marketplace_id", "h3": "ID do marketplace de destino", "p": "O Marketplace ID do país que você está conectando. US: ATVPDKIKX0DER · JP: A1VC38T7YXB528 · DE: A1PA6795UKMFR9" },
+              { "tag": "seller_id", "h3": "Seller ID / Merchant Token", "p": "Necessário para o registro de produtos e a consulta de pedidos. Verifique-o nas informações da sua conta do Seller Central. Seller Central → Configurações → Informações da conta → Merchant Token" }
+            ] }
+          ]
+        },
+        {
+          "h2": "7. Registrar no GenieGo Integration Hub",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Prepare os 5 valores", "p": "Prepare refresh_token · client_id · client_secret · marketplace_id · seller_id.", "path": "5 credenciais" },
+              { "h3": "Integration Hub → Amazon SP-API → [Registrar]", "p": "Insira cada valor em seu campo e salve (os campos em branco mantêm os valores existentes).", "path": "refresh_token · client_id · client_secret · marketplace_id · seller_id" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Os valores registrados são <strong>armazenados criptografados com AES-256-GCM</strong> e mascarados na leitura. A sincronização automática começa imediatamente após salvar." },
+            { "type": "notice", "kind": "danger", "html": "O client_secret·refresh_token nunca deve ser exposto em código frontend, HTML ou repositórios públicos." }
+          ]
+        },
+        {
+          "h2": "8. Lista de verificação final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Enviei o Developer Profile e o tive aprovado.",
+              "Criei o aplicativo SP-API e verifiquei o client_id·client_secret.",
+              "Emiti um refresh_token via autorização OAuth.",
+              "Verifiquei o marketplace_id a conectar.",
+              "Verifiquei o seller_id (Merchant Token) no Seller Central.",
+              "Inseri os 5 valores (refresh_token·client_id·client_secret·marketplace_id·seller_id) no GenieGo [Registrar] e os salvei."
+            ] }
+          ]
+        },
+        {
+          "h2": "9. Problemas comuns",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solução"], "rows": [
+              ["Não há menu de API Key", "A SP-API não é uma estrutura de API Key única", "Prossiga com a estrutura LWA (client_id·client_secret·refresh_token)."],
+              ["O registro de produtos falha", "seller_id (Merchant Token) não registrado", "Registre o Merchant Token a partir das informações da sua conta do Seller Central."],
+              ["Dados de país errados", "marketplace_id não corresponde", "Registre o Marketplace ID correto para o país que você está conectando."],
+              ["Erro de permissão", "API Role do aplicativo insuficiente ou token expirado", "Verifique o API Role e atualize o token com o refresh_token."]
+            ] }
+          ]
+        }
+      ]
+    },
+    "ru": {
+      "titleType": "Руководство по получению",
+      "badge": "Руководство по получению API для начинающих",
+      "intro": "Руководство по процессу регистрации разработчика SP-API, создания приложения и настройки OAuth·LWA для подключения данных продавца Amazon к системам заказов, склада, товаров и доставки.",
+      "org": "GenieGo Integration Hub · Практическое руководство по интеграции для начинающих",
+      "quick": [
+        ["Структура аутентификации", "LWA(OAuth) — 5 учётных данных"],
+        ["Необходимый аккаунт", "Seller/Vendor Central (Professional)"],
+        ["Значения GenieGo", "refresh_token·client_id·secret·marketplace_id·seller_id"],
+        ["Сложность", "Средний уровень или выше"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Что такое Amazon SP-API?",
+          "desc": "Amazon Selling Partner API — это API для программной интеграции данных продавца, таких как заказы, склад, товары, доставка и расчёты.",
+          "blocks": [
+            { "type": "notice", "kind": "danger", "html": "<strong>Важно:</strong> SP-API — это не простая схема API Key. Обычно она одновременно требует <strong>регистрации Amazon Developer, регистрации приложения, Login with Amazon(LWA) и авторизации OAuth</strong>." },
+            { "type": "notice", "kind": "", "html": "<strong>★Для интеграции с GenieGo требуется 5 значений:</strong> <strong>refresh_token, client_id, client_secret, marketplace_id, seller_id</strong>. (Текущая SP-API вызывается только с токеном LWA, а подпись AWS IAM/SigV4 обрабатывается GenieGo внутренне, поэтому вы не вводите её в поля регистрации.)" }
+          ]
+        },
+        {
+          "h2": "2. Что нужно подготовить",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Аккаунт продавца Professional в Amazon Seller Central или Vendor Central",
+              "Сведения о компании/контактном лице для регистрации разработчика",
+              "Название приложения, описание приложения и цель использования",
+              "URL политики конфиденциальности",
+              "OAuth Redirect URL"
+            ] }
+          ]
+        },
+        {
+          "h2": "3. Регистрация разработчика",
+          "desc": "Сначала зарегистрируйте профиль разработчика SP-API в Seller Central.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Войдите в Seller Central", "p": "Войдите в Seller Central с помощью своего аккаунта продавца Amazon.", "path": "Seller Central → Apps & Services" },
+              { "h3": "Перейдите в меню Develop Apps", "p": "В меню Apps & Services перейдите в меню разработчика или разработки приложений.", "path": "Apps & Services → Develop Apps" },
+              { "h3": "Заполните Developer Profile", "p": "Введите сведения о компании, контактную информацию, цель использования API и план защиты данных.", "path": "Developer Profile" },
+              { "h3": "Отправить на проверку", "p": "Отправьте сведения о регистрации разработчика на проверку Amazon.", "path": "Submit for review" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Только после завершения утверждения вы сможете зарегистрировать рабочее приложение SP-API и использовать его разрешения." }
+          ]
+        },
+        {
+          "h2": "4. Регистрация приложения SP-API → Client ID / Client Secret",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Создайте новое приложение", "p": "Создайте новое приложение в Develop Apps.", "path": "Add new app" },
+              { "h3": "Выберите тип приложения", "p": "Если вы подключаете только свой аккаунт — это Private App; если предоставляете его внешним продавцам — это Public App.", "path": "Private / Public App" },
+              { "h3": "Выберите роли API", "p": "Выберите нужные роли, такие как Orders, Catalog и Inventory.", "path": "API Roles" },
+              { "h3": "Введите OAuth Redirect URL", "p": "Введите URL сервера, на который нужно вернуться после завершения авторизации.", "path": "Redirect URI" },
+              { "h3": "Сохраните и проверьте сведения Client", "p": "После создания приложения проверьте client_id (LWA Client ID) и client_secret (Client Secret).", "path": "client_id / client_secret" }
+            ] }
+          ]
+        },
+        {
+          "h2": "5. Авторизация OAuth → Выпуск Refresh Token",
+          "blocks": [
+            { "type": "notice", "kind": "", "html": "1) Перейдите по URL авторизации OAuth продавца 2) Получите authorization code на Redirect URL 3) Передайте authorization code в LWA Token Endpoint 4) Получите refresh_token / access_token" },
+            { "type": "notice", "kind": "", "html": "<strong>refresh_token</strong> используется для долгосрочных вызовов после авторизации продавца. GenieGo автоматически обновляет access_token с помощью этого refresh_token для вызова SP-API, поэтому вам нужно лишь зарегистрировать refresh_token без отдельной настройки подписи AWS." }
+          ]
+        },
+        {
+          "h2": "6. Проверка Marketplace ID · Seller ID",
+          "desc": "Проверьте два оставшихся идентификатора, необходимых для регистрации в GenieGo.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "marketplace_id", "h3": "Целевой идентификатор маркетплейса", "p": "Marketplace ID страны, которую вы подключаете. US: ATVPDKIKX0DER · JP: A1VC38T7YXB528 · DE: A1PA6795UKMFR9" },
+              { "tag": "seller_id", "h3": "Seller ID / Merchant Token", "p": "Необходим для регистрации товаров и поиска заказов. Проверьте его в сведениях своего аккаунта Seller Central. Seller Central → Настройки → Сведения об аккаунте → Merchant Token" }
+            ] }
+          ]
+        },
+        {
+          "h2": "7. Регистрация в GenieGo Integration Hub",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Подготовьте 5 значений", "p": "Подготовьте refresh_token · client_id · client_secret · marketplace_id · seller_id.", "path": "5 учётных данных" },
+              { "h3": "Integration Hub → Amazon SP-API → [Зарегистрировать]", "p": "Введите каждое значение в его поле и сохраните (пустые поля сохраняют существующие значения).", "path": "refresh_token · client_id · client_secret · marketplace_id · seller_id" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Зарегистрированные значения <strong>хранятся в зашифрованном виде с AES-256-GCM</strong> и маскируются при чтении. Автоматическая синхронизация начинается сразу после сохранения." },
+            { "type": "notice", "kind": "danger", "html": "client_secret·refresh_token никогда не должны раскрываться во фронтенд-коде, HTML или публичных репозиториях." }
+          ]
+        },
+        {
+          "h2": "8. Итоговый контрольный список",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Отправил Developer Profile и получил его утверждение.",
+              "Создал приложение SP-API и проверил client_id·client_secret.",
+              "Выпустил refresh_token через авторизацию OAuth.",
+              "Проверил marketplace_id для подключения.",
+              "Проверил seller_id (Merchant Token) в Seller Central.",
+              "Ввёл 5 значений (refresh_token·client_id·client_secret·marketplace_id·seller_id) в GenieGo [Зарегистрировать] и сохранил их."
+            ] }
+          ]
+        },
+        {
+          "h2": "9. Часто возникающие проблемы",
+          "blocks": [
+            { "type": "table", "head": ["Проблема", "Причина", "Решение"], "rows": [
+              ["Нет меню API Key", "SP-API не является единой структурой API Key", "Действуйте по структуре LWA (client_id·client_secret·refresh_token)."],
+              ["Не удаётся зарегистрировать товар", "seller_id (Merchant Token) не зарегистрирован", "Зарегистрируйте Merchant Token из сведений своего аккаунта Seller Central."],
+              ["Неверные данные страны", "несоответствие marketplace_id", "Зарегистрируйте правильный Marketplace ID для страны, которую вы подключаете."],
+              ["Ошибка разрешений", "Недостаточно API Role приложения или истёк срок действия токена", "Проверьте API Role и обновите токен с помощью refresh_token."]
+            ] }
+          ]
+        }
+      ]
     }
   }
 }

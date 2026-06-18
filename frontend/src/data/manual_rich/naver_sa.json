@@ -139,6 +139,903 @@
           ]
         }
       ]
+    },
+    "ja": {
+      "titleType": "API キー発行マニュアル",
+      "badge": "Beginner Guide",
+      "intro": "Naver Search Ad 管理ツールで API 認証情報(アクセスライセンス・シークレットキー)と CUSTOMER_ID を発行し、GenieGo 連携ハブに登録するまでの流れを、初心者でもそのまま実行できるようにまとめたマニュアルです。",
+      "org": "GenieGo 連携ハブ",
+      "quick": [
+        ["所要時間", "約5〜10分"],
+        ["必要なアカウント", "Naver Search Ad 広告主アカウント"],
+        ["発行されるキー", "アクセスライセンス · シークレットキー · CUSTOMER_ID"],
+        ["成果物", "Search Ad API 認証情報"]
+      ],
+      "sections": [
+        {
+          "h2": "1. はじめる前に",
+          "desc": "Naver Search Ad API は広告主アカウントからのみ申請できます。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必須", "h3": "Search Ad 広告主アカウント", "p": "Naver Search Ad 管理ツールを使用する広告主アカウントが必要です。一般の Naver 会員アカウントでは API 利用を申請できません。" },
+              { "tag": "発行されるキー", "h3": "アクセスライセンス · シークレットキー · CUSTOMER_ID", "p": "API 利用を申請した後にまとめて発行される CUSTOMER_ID、アクセスライセンス、シークレットキーを確認します。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> シークレットキーは発行時にのみ確認できるため、発行後すぐに安全に保管してください。" }
+          ]
+        },
+        {
+          "h2": "2. API キー発行手順",
+          "desc": "以下の順序で発行し、GenieGo に登録します。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Search Ads にサインイン", "p": "広告主アカウントで Naver Search Ad 管理ツールにサインインします。", "path": "searchad.naver.com" },
+              { "h3": "API 利用管理に移動", "p": "上部の[ツール]メニューから[API 利用管理]に移動します。", "path": "ツール → API 利用管理" },
+              { "h3": "API サービスを申請", "p": "[Naver Search Ad API サービス申請]ボタンをクリックして申請します。", "path": "Naver Search Ad API サービス申請" },
+              { "h3": "発行された情報を確認", "p": "発行された CUSTOMER_ID、アクセスライセンス、シークレットキーを確認します。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "CUSTOMER_ID・アクセスライセンス・シークレットキーがすべて確認できれば、正常に発行されています。" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo に登録する情報",
+          "blocks": [
+            { "type": "table", "head": ["フィールド", "説明"], "rows": [
+              ["api_key", "発行されたアクセスライセンス"],
+              ["api_secret", "発行されたシークレットキー(取り扱い注意)"],
+              ["customer_id", "発行された CUSTOMER_ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo 連携ハブの[登録]に入力して保存すると、認証情報は AES-256-GCM で暗号化保存され、参照時にはマスキングされます。" }
+          ]
+        },
+        {
+          "h2": "4. よくある問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決"], "rows": [
+              ["[API 利用管理]メニューがない", "広告主アカウントではない、または権限不足", "Search Ad 管理ツールを使用する広告主アカウントでサインインします。"],
+              ["認証エラーが発生する", "アクセスライセンスまたはシークレットキーの入力ミス", "発行画面のアクセスライセンス、シークレットキー、CUSTOMER_ID を再確認します。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終チェックリスト",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Naver Search Ad 広告主アカウントでサインインした。",
+              "[ツール > API 利用管理]で API サービス申請を完了した。",
+              "CUSTOMER_ID・アクセスライセンス・シークレットキーを確認した。",
+              "GenieGo[登録]に api_key・api_secret・customer_id を入力して保存した。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh": {
+      "titleType": "API 密钥申请手册",
+      "badge": "Beginner Guide",
+      "intro": "本手册以新手也能直接照做的方式,整理了在 Naver Search Ad 管理工具中申请 API 认证信息(访问许可证、密钥)和 CUSTOMER_ID,并将其注册到 GenieGo 集成中心的全过程。",
+      "org": "GenieGo 集成中心",
+      "quick": [
+        ["预计时间", "约 5–10 分钟"],
+        ["所需账户", "Naver Search Ad 广告主账户"],
+        ["申请的密钥", "访问许可证 · 密钥 · CUSTOMER_ID"],
+        ["成果", "Search Ad API 认证信息"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 开始之前",
+          "desc": "Naver Search Ad API 仅可通过广告主账户申请。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "Search Ad 广告主账户", "p": "您需要一个使用 Naver Search Ad 管理工具的广告主账户。使用普通的 Naver 会员账户无法申请 API 访问权限。" },
+              { "tag": "申请的密钥", "h3": "访问许可证 · 密钥 · CUSTOMER_ID", "p": "申请 API 访问权限后,确认一并签发的 CUSTOMER_ID、访问许可证和密钥。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> 密钥仅在申请时可见,请在申请后立即妥善保管。" }
+          ]
+        },
+        {
+          "h2": "2. API 密钥申请步骤",
+          "desc": "按以下顺序申请并在 GenieGo 中注册。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "登录 Search Ads", "p": "使用广告主账户登录 Naver Search Ad 管理工具。", "path": "searchad.naver.com" },
+              { "h3": "前往 API 使用管理", "p": "从顶部的[工具]菜单进入[API 使用管理]。", "path": "工具 → API 使用管理" },
+              { "h3": "申请 API 服务", "p": "点击[申请 Naver Search Ad API 服务]按钮进行申请。", "path": "申请 Naver Search Ad API 服务" },
+              { "h3": "确认签发的信息", "p": "确认签发的 CUSTOMER_ID、访问许可证和密钥。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "当 CUSTOMER_ID、访问许可证和密钥全部确认无误后,即表示已正常签发。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中注册的信息",
+          "blocks": [
+            { "type": "table", "head": ["字段", "说明"], "rows": [
+              ["api_key", "签发的访问许可证"],
+              ["api_secret", "签发的密钥(请谨慎处理)"],
+              ["customer_id", "签发的 CUSTOMER_ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 集成中心的[注册]中输入并保存后,认证信息将以 AES-256-GCM 加密存储,并在读取时进行掩码处理。" }
+          ]
+        },
+        {
+          "h2": "4. 常见问题",
+          "blocks": [
+            { "type": "table", "head": ["问题", "原因", "解决"], "rows": [
+              ["没有[API 使用管理]菜单", "并非广告主账户,或权限不足", "请使用使用 Search Ad 管理工具的广告主账户登录。"],
+              ["出现认证错误", "访问许可证或密钥输入错误", "请重新核对申请页面上的访问许可证、密钥和 CUSTOMER_ID。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最终检查清单",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已使用 Naver Search Ad 广告主账户登录。",
+              "已在[工具 > API 使用管理]中完成 API 服务申请。",
+              "已确认 CUSTOMER_ID、访问许可证和密钥。",
+              "已在 GenieGo[注册]中输入 api_key、api_secret、customer_id 并保存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh-TW": {
+      "titleType": "API 金鑰申請手冊",
+      "badge": "Beginner Guide",
+      "intro": "本手冊以新手也能直接照做的方式,整理了在 Naver Search Ad 管理工具中申請 API 認證資訊(存取授權、密鑰)和 CUSTOMER_ID,並將其註冊到 GenieGo 整合中心的完整流程。",
+      "org": "GenieGo 整合中心",
+      "quick": [
+        ["預計時間", "約 5–10 分鐘"],
+        ["所需帳戶", "Naver Search Ad 廣告主帳戶"],
+        ["申請的金鑰", "存取授權 · 密鑰 · CUSTOMER_ID"],
+        ["成果", "Search Ad API 認證資訊"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 開始之前",
+          "desc": "Naver Search Ad API 僅可透過廣告主帳戶申請。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "Search Ad 廣告主帳戶", "p": "您需要一個使用 Naver Search Ad 管理工具的廣告主帳戶。使用一般的 Naver 會員帳戶無法申請 API 存取權限。" },
+              { "tag": "申請的金鑰", "h3": "存取授權 · 密鑰 · CUSTOMER_ID", "p": "申請 API 存取權限後,確認一併核發的 CUSTOMER_ID、存取授權和密鑰。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> 密鑰僅在申請時可見,請在申請後立即妥善保管。" }
+          ]
+        },
+        {
+          "h2": "2. API 金鑰申請步驟",
+          "desc": "請依下列順序申請並在 GenieGo 中註冊。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "登入 Search Ads", "p": "使用廣告主帳戶登入 Naver Search Ad 管理工具。", "path": "searchad.naver.com" },
+              { "h3": "前往 API 使用管理", "p": "從頂部的[工具]選單進入[API 使用管理]。", "path": "工具 → API 使用管理" },
+              { "h3": "申請 API 服務", "p": "點擊[申請 Naver Search Ad API 服務]按鈕進行申請。", "path": "申請 Naver Search Ad API 服務" },
+              { "h3": "確認核發的資訊", "p": "確認核發的 CUSTOMER_ID、存取授權和密鑰。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "當 CUSTOMER_ID、存取授權和密鑰全部確認無誤後,即表示已正常核發。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 中註冊的資訊",
+          "blocks": [
+            { "type": "table", "head": ["欄位", "說明"], "rows": [
+              ["api_key", "核發的存取授權"],
+              ["api_secret", "核發的密鑰(請謹慎處理)"],
+              ["customer_id", "核發的 CUSTOMER_ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo 整合中心的[註冊]中輸入並儲存後,認證資訊將以 AES-256-GCM 加密儲存,並在讀取時進行遮罩處理。" }
+          ]
+        },
+        {
+          "h2": "4. 常見問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決"], "rows": [
+              ["沒有[API 使用管理]選單", "並非廣告主帳戶,或權限不足", "請使用使用 Search Ad 管理工具的廣告主帳戶登入。"],
+              ["發生認證錯誤", "存取授權或密鑰輸入錯誤", "請重新核對申請頁面上的存取授權、密鑰和 CUSTOMER_ID。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終檢查清單",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已使用 Naver Search Ad 廣告主帳戶登入。",
+              "已在[工具 > API 使用管理]中完成 API 服務申請。",
+              "已確認 CUSTOMER_ID、存取授權和密鑰。",
+              "已在 GenieGo[註冊]中輸入 api_key、api_secret、customer_id 並儲存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "de": {
+      "titleType": "Anleitung zur Ausstellung des API-Schlüssels",
+      "badge": "Beginner Guide",
+      "intro": "Eine einsteigerfreundliche Schritt-für-Schritt-Anleitung zum Ausstellen von API-Anmeldedaten (Zugriffslizenz, geheimer Schlüssel) und Ihrer CUSTOMER_ID im Naver Search Ad-Verwaltungstool sowie zur Registrierung im GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Geschätzte Zeit", "Etwa 5–10 Min."],
+        ["Benötigtes Konto", "Naver Search Ad Werbekundenkonto"],
+        ["Ausgestellte Schlüssel", "Zugriffslizenz · Geheimer Schlüssel · CUSTOMER_ID"],
+        ["Ergebnis", "Search Ad API-Anmeldedaten"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Bevor Sie beginnen",
+          "desc": "Die Naver Search Ad API kann nur über ein Werbekundenkonto beantragt werden.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Erforderlich", "h3": "Search Ad Werbekundenkonto", "p": "Sie benötigen ein Werbekundenkonto, das das Naver Search Ad-Verwaltungstool verwendet. Mit einem gewöhnlichen Naver-Mitgliedskonto können Sie keinen API-Zugriff beantragen." },
+              { "tag": "Ausgestellte Schlüssel", "h3": "Zugriffslizenz · Geheimer Schlüssel · CUSTOMER_ID", "p": "Bestätigen Sie die CUSTOMER_ID, die Zugriffslizenz und den geheimen Schlüssel, die zusammen ausgestellt werden, nachdem Sie den API-Zugriff beantragt haben." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Hinweis:</strong> Der geheime Schlüssel kann nur im Moment der Ausstellung eingesehen werden. Bewahren Sie ihn daher direkt nach der Ausstellung sicher auf." }
+          ]
+        },
+        {
+          "h2": "2. Schritte zur Ausstellung des API-Schlüssels",
+          "desc": "Stellen Sie ihn in der folgenden Reihenfolge aus und registrieren Sie ihn in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Bei Search Ads anmelden", "p": "Melden Sie sich mit Ihrem Werbekundenkonto beim Naver Search Ad-Verwaltungstool an.", "path": "searchad.naver.com" },
+              { "h3": "Zur API-Nutzungsverwaltung gehen", "p": "Gehen Sie über das obere Menü [Tools] zu [API-Nutzungsverwaltung].", "path": "Tools → API-Nutzungsverwaltung" },
+              { "h3": "API-Dienst beantragen", "p": "Klicken Sie auf die Schaltfläche [Naver Search Ad API-Dienst beantragen], um den Antrag zu stellen.", "path": "Naver Search Ad API-Dienst beantragen" },
+              { "h3": "Ausgestellte Informationen prüfen", "p": "Bestätigen Sie die ausgestellte CUSTOMER_ID, Zugriffslizenz und den geheimen Schlüssel." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Sobald CUSTOMER_ID, Zugriffslizenz und geheimer Schlüssel alle bestätigt sind, wurden sie korrekt ausgestellt." }
+          ]
+        },
+        {
+          "h2": "3. In GenieGo zu registrierende Informationen",
+          "blocks": [
+            { "type": "table", "head": ["Feld", "Beschreibung"], "rows": [
+              ["api_key", "Die ausgestellte Zugriffslizenz"],
+              ["api_secret", "Der ausgestellte geheime Schlüssel (mit Sorgfalt behandeln)"],
+              ["customer_id", "Die ausgestellte CUSTOMER_ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Geben Sie sie unter [Registrieren] im GenieGo Integration Hub ein und speichern Sie sie; die Anmeldedaten werden im Ruhezustand mit AES-256-GCM verschlüsselt und beim Lesen maskiert." }
+          ]
+        },
+        {
+          "h2": "4. Häufige Probleme",
+          "blocks": [
+            { "type": "table", "head": ["Problem", "Ursache", "Lösung"], "rows": [
+              ["Kein Menü [API-Nutzungsverwaltung]", "Kein Werbekundenkonto oder unzureichende Berechtigungen", "Melden Sie sich mit einem Werbekundenkonto an, das das Search Ad-Verwaltungstool verwendet."],
+              ["Authentifizierungsfehler tritt auf", "Zugriffslizenz oder geheimer Schlüssel falsch eingegeben", "Überprüfen Sie die Zugriffslizenz, den geheimen Schlüssel und die CUSTOMER_ID auf dem Ausstellungsbildschirm erneut."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Abschließende Checkliste",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Mit einem Naver Search Ad Werbekundenkonto angemeldet.",
+              "Den API-Dienst-Antrag unter [Tools > API-Nutzungsverwaltung] abgeschlossen.",
+              "CUSTOMER_ID, Zugriffslizenz und geheimen Schlüssel bestätigt.",
+              "api_key·api_secret·customer_id unter GenieGo [Registrieren] eingegeben und gespeichert."
+            ] }
+          ]
+        }
+      ]
+    },
+    "th": {
+      "titleType": "คู่มือการออก API Key",
+      "badge": "Beginner Guide",
+      "intro": "คู่มือทีละขั้นตอนที่เป็นมิตรกับผู้เริ่มต้น สำหรับการออกข้อมูลรับรอง API (access license, secret key) และ CUSTOMER_ID จากเครื่องมือจัดการ Naver Search Ad และลงทะเบียนใน GenieGo Integration Hub",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["เวลาโดยประมาณ", "ประมาณ 5–10 นาที"],
+        ["บัญชีที่ต้องใช้", "บัญชีผู้ลงโฆษณา Naver Search Ad"],
+        ["คีย์ที่ออก", "Access license · Secret key · CUSTOMER_ID"],
+        ["ผลลัพธ์", "ข้อมูลรับรอง Search Ad API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. ก่อนเริ่มต้น",
+          "desc": "Naver Search Ad API สามารถขอได้จากบัญชีผู้ลงโฆษณาเท่านั้น",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "จำเป็น", "h3": "บัญชีผู้ลงโฆษณา Search Ad", "p": "คุณต้องมีบัญชีผู้ลงโฆษณาที่ใช้เครื่องมือจัดการ Naver Search Ad คุณไม่สามารถขอสิทธิ์เข้าถึง API ด้วยบัญชีสมาชิก Naver ทั่วไปได้" },
+              { "tag": "คีย์ที่ออก", "h3": "Access license · Secret key · CUSTOMER_ID", "p": "ยืนยัน CUSTOMER_ID, access license และ secret key ที่ออกมาพร้อมกันหลังจากคุณขอสิทธิ์เข้าถึง API" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>หมายเหตุ:</strong> Secret key สามารถดูได้เฉพาะในขณะที่ออกเท่านั้น ดังนั้นโปรดเก็บรักษาให้ปลอดภัยทันทีหลังจากออก" }
+          ]
+        },
+        {
+          "h2": "2. ขั้นตอนการออก API Key",
+          "desc": "ออกตามลำดับด้านล่างและลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "ลงชื่อเข้าใช้ Search Ads", "p": "ลงชื่อเข้าใช้เครื่องมือจัดการ Naver Search Ad ด้วยบัญชีผู้ลงโฆษณาของคุณ", "path": "searchad.naver.com" },
+              { "h3": "ไปที่การจัดการการใช้ API", "p": "จากเมนู [เครื่องมือ] ด้านบน ไปที่ [การจัดการการใช้ API]", "path": "เครื่องมือ → การจัดการการใช้ API" },
+              { "h3": "ขอใช้บริการ API", "p": "คลิกปุ่ม [ขอใช้บริการ Naver Search Ad API] เพื่อยื่นคำขอ", "path": "ขอใช้บริการ Naver Search Ad API" },
+              { "h3": "ตรวจสอบข้อมูลที่ออก", "p": "ยืนยัน CUSTOMER_ID, access license และ secret key ที่ออกมา" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "เมื่อยืนยัน CUSTOMER_ID, access license และ secret key ครบทั้งหมดแล้ว แสดงว่าออกได้อย่างถูกต้อง" }
+          ]
+        },
+        {
+          "h2": "3. ข้อมูลที่ต้องลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["ฟิลด์", "คำอธิบาย"], "rows": [
+              ["api_key", "Access license ที่ออก"],
+              ["api_secret", "Secret key ที่ออก (จัดการด้วยความระมัดระวัง)"],
+              ["customer_id", "CUSTOMER_ID ที่ออก"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "ป้อนและบันทึกใน [ลงทะเบียน] ของ GenieGo Integration Hub แล้วข้อมูลรับรองจะถูกเข้ารหัสขณะจัดเก็บด้วย AES-256-GCM และถูกปิดบังเมื่ออ่าน" }
+          ]
+        },
+        {
+          "h2": "4. ปัญหาที่พบบ่อย",
+          "blocks": [
+            { "type": "table", "head": ["ปัญหา", "สาเหตุ", "วิธีแก้ไข"], "rows": [
+              ["ไม่มีเมนู [การจัดการการใช้ API]", "ไม่ใช่บัญชีผู้ลงโฆษณา หรือสิทธิ์ไม่เพียงพอ", "ลงชื่อเข้าใช้ด้วยบัญชีผู้ลงโฆษณาที่ใช้เครื่องมือจัดการ Search Ad"],
+              ["เกิดข้อผิดพลาดในการยืนยันตัวตน", "ป้อน access license หรือ secret key ไม่ถูกต้อง", "ตรวจสอบ access license, secret key และ CUSTOMER_ID จากหน้าจอการออกอีกครั้ง"]
+            ] }
+          ]
+        },
+        {
+          "h2": "รายการตรวจสอบขั้นสุดท้าย",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "ลงชื่อเข้าใช้ด้วยบัญชีผู้ลงโฆษณา Naver Search Ad แล้ว",
+              "ทำการยื่นคำขอใช้บริการ API ที่ [เครื่องมือ > การจัดการการใช้ API] เสร็จสมบูรณ์แล้ว",
+              "ยืนยัน CUSTOMER_ID, access license และ secret key แล้ว",
+              "ป้อน api_key·api_secret·customer_id ใน GenieGo [ลงทะเบียน] และบันทึกแล้ว"
+            ] }
+          ]
+        }
+      ]
+    },
+    "vi": {
+      "titleType": "Hướng dẫn cấp API Key",
+      "badge": "Beginner Guide",
+      "intro": "Hướng dẫn từng bước thân thiện với người mới bắt đầu để cấp thông tin xác thực API (giấy phép truy cập, khóa bí mật) và CUSTOMER_ID từ công cụ quản lý Naver Search Ad và đăng ký chúng trong GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Thời gian ước tính", "Khoảng 5–10 phút"],
+        ["Tài khoản cần có", "Tài khoản nhà quảng cáo Naver Search Ad"],
+        ["Khóa được cấp", "Giấy phép truy cập · Khóa bí mật · CUSTOMER_ID"],
+        ["Kết quả", "Thông tin xác thực Search Ad API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Trước khi bắt đầu",
+          "desc": "Naver Search Ad API chỉ có thể được yêu cầu từ tài khoản nhà quảng cáo.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Bắt buộc", "h3": "Tài khoản nhà quảng cáo Search Ad", "p": "Bạn cần một tài khoản nhà quảng cáo sử dụng công cụ quản lý Naver Search Ad. Bạn không thể đăng ký quyền truy cập API bằng tài khoản thành viên Naver thông thường." },
+              { "tag": "Khóa được cấp", "h3": "Giấy phép truy cập · Khóa bí mật · CUSTOMER_ID", "p": "Xác nhận CUSTOMER_ID, giấy phép truy cập và khóa bí mật được cấp cùng nhau sau khi bạn đăng ký quyền truy cập API." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Lưu ý:</strong> Khóa bí mật chỉ có thể xem được tại thời điểm cấp, vì vậy hãy lưu trữ nó an toàn ngay sau khi được cấp." }
+          ]
+        },
+        {
+          "h2": "2. Các bước cấp API Key",
+          "desc": "Cấp theo thứ tự bên dưới và đăng ký trong GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Đăng nhập vào Search Ads", "p": "Đăng nhập vào công cụ quản lý Naver Search Ad bằng tài khoản nhà quảng cáo của bạn.", "path": "searchad.naver.com" },
+              { "h3": "Vào quản lý sử dụng API", "p": "Từ menu [Công cụ] ở trên cùng, vào [Quản lý sử dụng API].", "path": "Công cụ → Quản lý sử dụng API" },
+              { "h3": "Đăng ký dịch vụ API", "p": "Nhấp vào nút [Đăng ký dịch vụ Naver Search Ad API] để đăng ký.", "path": "Đăng ký dịch vụ Naver Search Ad API" },
+              { "h3": "Kiểm tra thông tin được cấp", "p": "Xác nhận CUSTOMER_ID, giấy phép truy cập và khóa bí mật được cấp." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Khi CUSTOMER_ID, giấy phép truy cập và khóa bí mật đều được xác nhận, chúng đã được cấp chính xác." }
+          ]
+        },
+        {
+          "h2": "3. Thông tin cần đăng ký trong GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Trường", "Mô tả"], "rows": [
+              ["api_key", "Giấy phép truy cập được cấp"],
+              ["api_secret", "Khóa bí mật được cấp (xử lý cẩn thận)"],
+              ["customer_id", "CUSTOMER_ID được cấp"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Nhập và lưu chúng trong [Đăng ký] của GenieGo Integration Hub, thông tin xác thực được mã hóa khi lưu trữ bằng AES-256-GCM và được che khi đọc." }
+          ]
+        },
+        {
+          "h2": "4. Sự cố thường gặp",
+          "blocks": [
+            { "type": "table", "head": ["Sự cố", "Nguyên nhân", "Giải pháp"], "rows": [
+              ["Không có menu [Quản lý sử dụng API]", "Không phải tài khoản nhà quảng cáo, hoặc quyền không đủ", "Đăng nhập bằng tài khoản nhà quảng cáo sử dụng công cụ quản lý Search Ad."],
+              ["Xảy ra lỗi xác thực", "Nhập sai giấy phép truy cập hoặc khóa bí mật", "Kiểm tra lại giấy phép truy cập, khóa bí mật và CUSTOMER_ID từ màn hình cấp."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Danh sách kiểm tra cuối cùng",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Đã đăng nhập bằng tài khoản nhà quảng cáo Naver Search Ad.",
+              "Đã hoàn tất đăng ký dịch vụ API tại [Công cụ > Quản lý sử dụng API].",
+              "Đã xác nhận CUSTOMER_ID, giấy phép truy cập và khóa bí mật.",
+              "Đã nhập api_key·api_secret·customer_id trong GenieGo [Đăng ký] và lưu lại."
+            ] }
+          ]
+        }
+      ]
+    },
+    "id": {
+      "titleType": "Panduan Penerbitan API Key",
+      "badge": "Beginner Guide",
+      "intro": "Panduan langkah demi langkah yang ramah pemula untuk menerbitkan kredensial API (lisensi akses, kunci rahasia) dan CUSTOMER_ID Anda dari alat pengelolaan Naver Search Ad serta mendaftarkannya di GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Perkiraan waktu", "Sekitar 5–10 mnt"],
+        ["Akun yang diperlukan", "Akun pengiklan Naver Search Ad"],
+        ["Kunci yang diterbitkan", "Lisensi akses · Kunci rahasia · CUSTOMER_ID"],
+        ["Hasil", "Kredensial Search Ad API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Sebelum Anda Mulai",
+          "desc": "Naver Search Ad API hanya dapat diminta dari akun pengiklan.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Wajib", "h3": "Akun pengiklan Search Ad", "p": "Anda memerlukan akun pengiklan yang menggunakan alat pengelolaan Naver Search Ad. Anda tidak dapat mengajukan akses API dengan akun anggota Naver biasa." },
+              { "tag": "Kunci yang diterbitkan", "h3": "Lisensi akses · Kunci rahasia · CUSTOMER_ID", "p": "Konfirmasikan CUSTOMER_ID, lisensi akses, dan kunci rahasia yang diterbitkan bersamaan setelah Anda mengajukan akses API." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Catatan:</strong> Kunci rahasia hanya dapat dilihat pada saat penerbitan, jadi simpanlah dengan aman segera setelah diterbitkan." }
+          ]
+        },
+        {
+          "h2": "2. Langkah Penerbitan API Key",
+          "desc": "Terbitkan dalam urutan di bawah ini dan daftarkan di GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Masuk ke Search Ads", "p": "Masuk ke alat pengelolaan Naver Search Ad dengan akun pengiklan Anda.", "path": "searchad.naver.com" },
+              { "h3": "Buka pengelolaan penggunaan API", "p": "Dari menu [Alat] di bagian atas, buka [Pengelolaan Penggunaan API].", "path": "Alat → Pengelolaan Penggunaan API" },
+              { "h3": "Ajukan layanan API", "p": "Klik tombol [Ajukan Layanan Naver Search Ad API] untuk mengajukan.", "path": "Ajukan Layanan Naver Search Ad API" },
+              { "h3": "Periksa informasi yang diterbitkan", "p": "Konfirmasikan CUSTOMER_ID, lisensi akses, dan kunci rahasia yang diterbitkan." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Setelah CUSTOMER_ID, lisensi akses, dan kunci rahasia semuanya dikonfirmasi, berarti telah diterbitkan dengan benar." }
+          ]
+        },
+        {
+          "h2": "3. Informasi yang Didaftarkan di GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Bidang", "Deskripsi"], "rows": [
+              ["api_key", "Lisensi akses yang diterbitkan"],
+              ["api_secret", "Kunci rahasia yang diterbitkan (tangani dengan hati-hati)"],
+              ["customer_id", "CUSTOMER_ID yang diterbitkan"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Masukkan dan simpan di [Daftar] GenieGo Integration Hub, dan kredensial dienkripsi saat disimpan dengan AES-256-GCM dan disamarkan saat dibaca." }
+          ]
+        },
+        {
+          "h2": "4. Masalah Umum",
+          "blocks": [
+            { "type": "table", "head": ["Masalah", "Penyebab", "Solusi"], "rows": [
+              ["Tidak ada menu [Pengelolaan Penggunaan API]", "Bukan akun pengiklan, atau izin tidak mencukupi", "Masuk dengan akun pengiklan yang menggunakan alat pengelolaan Search Ad."],
+              ["Terjadi kesalahan autentikasi", "Lisensi akses atau kunci rahasia dimasukkan dengan salah", "Periksa kembali lisensi akses, kunci rahasia, dan CUSTOMER_ID dari layar penerbitan."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Daftar Periksa Akhir",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Telah masuk dengan akun pengiklan Naver Search Ad.",
+              "Telah menyelesaikan pengajuan layanan API di [Alat > Pengelolaan Penggunaan API].",
+              "Telah mengonfirmasi CUSTOMER_ID, lisensi akses, dan kunci rahasia.",
+              "Telah memasukkan api_key·api_secret·customer_id di GenieGo [Daftar] dan menyimpannya."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ar": {
+      "titleType": "دليل إصدار مفتاح API",
+      "badge": "Beginner Guide",
+      "intro": "دليل تفصيلي خطوة بخطوة مناسب للمبتدئين لإصدار بيانات اعتماد API (ترخيص الوصول، المفتاح السري) ومعرّف CUSTOMER_ID الخاص بك من أداة إدارة Naver Search Ad وتسجيلها في GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["الوقت المقدّر", "حوالي 5–10 دقائق"],
+        ["الحساب المطلوب", "حساب معلِن Naver Search Ad"],
+        ["المفاتيح الصادرة", "ترخيص الوصول · المفتاح السري · CUSTOMER_ID"],
+        ["النتيجة", "بيانات اعتماد Search Ad API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. قبل أن تبدأ",
+          "desc": "لا يمكن طلب Naver Search Ad API إلا من حساب معلِن.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "مطلوب", "h3": "حساب معلِن Search Ad", "p": "تحتاج إلى حساب معلِن يستخدم أداة إدارة Naver Search Ad. لا يمكنك التقدّم بطلب للوصول إلى API باستخدام حساب عضوية Naver عادي." },
+              { "tag": "المفاتيح الصادرة", "h3": "ترخيص الوصول · المفتاح السري · CUSTOMER_ID", "p": "أكّد على CUSTOMER_ID وترخيص الوصول والمفتاح السري الصادرة معًا بعد التقدّم بطلب للوصول إلى API." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>ملاحظة:</strong> لا يمكن عرض المفتاح السري إلا لحظة الإصدار، لذا احفظه بأمان مباشرة بعد إصداره." }
+          ]
+        },
+        {
+          "h2": "2. خطوات إصدار مفتاح API",
+          "desc": "أصدِرها بالترتيب أدناه وسجّلها في GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "تسجيل الدخول إلى Search Ads", "p": "سجّل الدخول إلى أداة إدارة Naver Search Ad باستخدام حساب المعلِن الخاص بك.", "path": "searchad.naver.com" },
+              { "h3": "الانتقال إلى إدارة استخدام API", "p": "من قائمة [الأدوات] العلوية، انتقل إلى [إدارة استخدام API].", "path": "الأدوات → إدارة استخدام API" },
+              { "h3": "التقدّم بطلب لخدمة API", "p": "انقر على زر [التقدّم بطلب لخدمة Naver Search Ad API] لتقديم الطلب.", "path": "التقدّم بطلب لخدمة Naver Search Ad API" },
+              { "h3": "التحقق من المعلومات الصادرة", "p": "أكّد على CUSTOMER_ID وترخيص الوصول والمفتاح السري الصادرة." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "بمجرد تأكيد CUSTOMER_ID وترخيص الوصول والمفتاح السري جميعها، يكون قد تم إصدارها بشكل صحيح." }
+          ]
+        },
+        {
+          "h2": "3. المعلومات المطلوب تسجيلها في GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["الحقل", "الوصف"], "rows": [
+              ["api_key", "ترخيص الوصول الصادر"],
+              ["api_secret", "المفتاح السري الصادر (تعامل معه بحذر)"],
+              ["customer_id", "معرّف CUSTOMER_ID الصادر"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "أدخِلها واحفظها في [تسجيل] ضمن GenieGo Integration Hub، وتُشفَّر بيانات الاعتماد عند التخزين باستخدام AES-256-GCM وتُخفى عند القراءة." }
+          ]
+        },
+        {
+          "h2": "4. المشكلات الشائعة",
+          "blocks": [
+            { "type": "table", "head": ["المشكلة", "السبب", "الحل"], "rows": [
+              ["لا توجد قائمة [إدارة استخدام API]", "ليس حساب معلِن، أو الأذونات غير كافية", "سجّل الدخول بحساب معلِن يستخدم أداة إدارة Search Ad."],
+              ["حدوث خطأ في المصادقة", "إدخال ترخيص الوصول أو المفتاح السري بشكل غير صحيح", "أعد التحقق من ترخيص الوصول والمفتاح السري ومعرّف CUSTOMER_ID من شاشة الإصدار."]
+            ] }
+          ]
+        },
+        {
+          "h2": "قائمة التحقق النهائية",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "تم تسجيل الدخول بحساب معلِن Naver Search Ad.",
+              "تم إكمال طلب خدمة API ضمن [الأدوات > إدارة استخدام API].",
+              "تم تأكيد CUSTOMER_ID وترخيص الوصول والمفتاح السري.",
+              "تم إدخال api_key·api_secret·customer_id في GenieGo [تسجيل] وحفظها."
+            ] }
+          ]
+        }
+      ]
+    },
+    "es": {
+      "titleType": "Manual de emisión de la clave de API",
+      "badge": "Beginner Guide",
+      "intro": "Una guía paso a paso para principiantes sobre cómo emitir las credenciales de API (licencia de acceso, clave secreta) y tu CUSTOMER_ID desde la herramienta de gestión de Naver Search Ad y registrarlas en el GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tiempo estimado", "Unos 5–10 min"],
+        ["Cuenta necesaria", "Cuenta de anunciante de Naver Search Ad"],
+        ["Claves emitidas", "Licencia de acceso · Clave secreta · CUSTOMER_ID"],
+        ["Resultado", "Credenciales de Search Ad API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de comenzar",
+          "desc": "La API de Naver Search Ad solo se puede solicitar desde una cuenta de anunciante.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Obligatorio", "h3": "Cuenta de anunciante de Search Ad", "p": "Necesitas una cuenta de anunciante que utilice la herramienta de gestión de Naver Search Ad. No puedes solicitar acceso a la API con una cuenta de miembro común de Naver." },
+              { "tag": "Claves emitidas", "h3": "Licencia de acceso · Clave secreta · CUSTOMER_ID", "p": "Confirma el CUSTOMER_ID, la licencia de acceso y la clave secreta que se emiten en conjunto después de solicitar el acceso a la API." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Nota:</strong> La clave secreta solo se puede ver en el momento de la emisión, así que guárdala de forma segura justo después de emitirla." }
+          ]
+        },
+        {
+          "h2": "2. Pasos para emitir la clave de API",
+          "desc": "Emítela en el orden siguiente y regístrala en GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Iniciar sesión en Search Ads", "p": "Inicia sesión en la herramienta de gestión de Naver Search Ad con tu cuenta de anunciante.", "path": "searchad.naver.com" },
+              { "h3": "Ir a la gestión de uso de la API", "p": "Desde el menú superior [Herramientas], ve a [Gestión de uso de la API].", "path": "Herramientas → Gestión de uso de la API" },
+              { "h3": "Solicitar el servicio de API", "p": "Haz clic en el botón [Solicitar el servicio de Naver Search Ad API] para solicitarlo.", "path": "Solicitar el servicio de Naver Search Ad API" },
+              { "h3": "Verificar la información emitida", "p": "Confirma el CUSTOMER_ID, la licencia de acceso y la clave secreta emitidos." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Una vez confirmados el CUSTOMER_ID, la licencia de acceso y la clave secreta, se han emitido correctamente." }
+          ]
+        },
+        {
+          "h2": "3. Información a registrar en GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descripción"], "rows": [
+              ["api_key", "La licencia de acceso emitida"],
+              ["api_secret", "La clave secreta emitida (manéjala con cuidado)"],
+              ["customer_id", "El CUSTOMER_ID emitido"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Ingrésalas y guárdalas en [Registrar] del GenieGo Integration Hub; las credenciales se cifran en reposo con AES-256-GCM y se enmascaran al leerlas." }
+          ]
+        },
+        {
+          "h2": "4. Problemas frecuentes",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solución"], "rows": [
+              ["No aparece el menú [Gestión de uso de la API]", "No es una cuenta de anunciante o permisos insuficientes", "Inicia sesión con una cuenta de anunciante que use la herramienta de gestión de Search Ad."],
+              ["Se produce un error de autenticación", "Licencia de acceso o clave secreta ingresada incorrectamente", "Vuelve a verificar la licencia de acceso, la clave secreta y el CUSTOMER_ID en la pantalla de emisión."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificación final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Inicié sesión con una cuenta de anunciante de Naver Search Ad.",
+              "Completé la solicitud del servicio de API en [Herramientas > Gestión de uso de la API].",
+              "Confirmé el CUSTOMER_ID, la licencia de acceso y la clave secreta.",
+              "Ingresé api_key·api_secret·customer_id en GenieGo [Registrar] y los guardé."
+            ] }
+          ]
+        }
+      ]
+    },
+    "fr": {
+      "titleType": "Manuel d'émission de la clé API",
+      "badge": "Beginner Guide",
+      "intro": "Un guide étape par étape destiné aux débutants pour émettre les identifiants d'API (licence d'accès, clé secrète) et votre CUSTOMER_ID depuis l'outil de gestion Naver Search Ad et les enregistrer dans le GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Temps estimé", "Environ 5–10 min"],
+        ["Compte requis", "Compte annonceur Naver Search Ad"],
+        ["Clés émises", "Licence d'accès · Clé secrète · CUSTOMER_ID"],
+        ["Résultat", "Identifiants Search Ad API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Avant de commencer",
+          "desc": "L'API Naver Search Ad ne peut être demandée que depuis un compte annonceur.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requis", "h3": "Compte annonceur Search Ad", "p": "Vous avez besoin d'un compte annonceur utilisant l'outil de gestion Naver Search Ad. Vous ne pouvez pas demander l'accès à l'API avec un compte de membre Naver ordinaire." },
+              { "tag": "Clés émises", "h3": "Licence d'accès · Clé secrète · CUSTOMER_ID", "p": "Confirmez le CUSTOMER_ID, la licence d'accès et la clé secrète émis ensemble après votre demande d'accès à l'API." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Remarque :</strong> La clé secrète ne peut être consultée qu'au moment de l'émission, conservez-la donc en lieu sûr juste après son émission." }
+          ]
+        },
+        {
+          "h2": "2. Étapes d'émission de la clé API",
+          "desc": "Émettez-la dans l'ordre ci-dessous et enregistrez-la dans GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Se connecter à Search Ads", "p": "Connectez-vous à l'outil de gestion Naver Search Ad avec votre compte annonceur.", "path": "searchad.naver.com" },
+              { "h3": "Accéder à la gestion de l'utilisation de l'API", "p": "Depuis le menu supérieur [Outils], accédez à [Gestion de l'utilisation de l'API].", "path": "Outils → Gestion de l'utilisation de l'API" },
+              { "h3": "Demander le service API", "p": "Cliquez sur le bouton [Demander le service Naver Search Ad API] pour faire la demande.", "path": "Demander le service Naver Search Ad API" },
+              { "h3": "Vérifier les informations émises", "p": "Confirmez le CUSTOMER_ID, la licence d'accès et la clé secrète émis." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Une fois le CUSTOMER_ID, la licence d'accès et la clé secrète tous confirmés, ils ont été émis correctement." }
+          ]
+        },
+        {
+          "h2": "3. Informations à enregistrer dans GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Champ", "Description"], "rows": [
+              ["api_key", "La licence d'accès émise"],
+              ["api_secret", "La clé secrète émise (à manipuler avec précaution)"],
+              ["customer_id", "Le CUSTOMER_ID émis"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Saisissez-les et enregistrez-les dans [Enregistrer] du GenieGo Integration Hub ; les identifiants sont chiffrés au repos avec AES-256-GCM et masqués à la lecture." }
+          ]
+        },
+        {
+          "h2": "4. Problèmes fréquents",
+          "blocks": [
+            { "type": "table", "head": ["Problème", "Cause", "Solution"], "rows": [
+              ["Pas de menu [Gestion de l'utilisation de l'API]", "Pas un compte annonceur, ou autorisations insuffisantes", "Connectez-vous avec un compte annonceur utilisant l'outil de gestion Search Ad."],
+              ["Une erreur d'authentification survient", "Licence d'accès ou clé secrète saisie incorrectement", "Vérifiez à nouveau la licence d'accès, la clé secrète et le CUSTOMER_ID sur l'écran d'émission."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Liste de contrôle finale",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Connecté avec un compte annonceur Naver Search Ad.",
+              "Demande de service API terminée sous [Outils > Gestion de l'utilisation de l'API].",
+              "CUSTOMER_ID, licence d'accès et clé secrète confirmés.",
+              "api_key·api_secret·customer_id saisis dans GenieGo [Enregistrer] et enregistrés."
+            ] }
+          ]
+        }
+      ]
+    },
+    "hi": {
+      "titleType": "API Key जारी करने की मार्गदर्शिका",
+      "badge": "Beginner Guide",
+      "intro": "Naver Search Ad प्रबंधन टूल से API क्रेडेंशियल (access license, secret key) और आपकी CUSTOMER_ID जारी करने और उन्हें GenieGo Integration Hub में पंजीकृत करने के लिए शुरुआती-अनुकूल, चरण-दर-चरण मार्गदर्शिका।",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["अनुमानित समय", "लगभग 5–10 मिनट"],
+        ["आवश्यक खाता", "Naver Search Ad विज्ञापनदाता खाता"],
+        ["जारी की गई कुंजियाँ", "Access license · Secret key · CUSTOMER_ID"],
+        ["परिणाम", "Search Ad API क्रेडेंशियल"]
+      ],
+      "sections": [
+        {
+          "h2": "1. शुरू करने से पहले",
+          "desc": "Naver Search Ad API केवल विज्ञापनदाता खाते से ही अनुरोध की जा सकती है।",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "आवश्यक", "h3": "Search Ad विज्ञापनदाता खाता", "p": "आपको एक विज्ञापनदाता खाता चाहिए जो Naver Search Ad प्रबंधन टूल का उपयोग करता हो। आप सामान्य Naver सदस्य खाते से API एक्सेस के लिए आवेदन नहीं कर सकते।" },
+              { "tag": "जारी की गई कुंजियाँ", "h3": "Access license · Secret key · CUSTOMER_ID", "p": "API एक्सेस के लिए आवेदन करने के बाद एक साथ जारी की गई CUSTOMER_ID, access license और secret key की पुष्टि करें।" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>नोट:</strong> Secret key केवल जारी किए जाने के समय ही देखी जा सकती है, इसलिए जारी होने के तुरंत बाद इसे सुरक्षित रूप से संग्रहित करें।" }
+          ]
+        },
+        {
+          "h2": "2. API Key जारी करने के चरण",
+          "desc": "नीचे दिए गए क्रम में जारी करें और GenieGo में पंजीकृत करें।",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Search Ads में साइन इन करें", "p": "अपने विज्ञापनदाता खाते से Naver Search Ad प्रबंधन टूल में साइन इन करें।", "path": "searchad.naver.com" },
+              { "h3": "API उपयोग प्रबंधन पर जाएँ", "p": "शीर्ष [टूल] मेनू से [API उपयोग प्रबंधन] पर जाएँ।", "path": "टूल → API उपयोग प्रबंधन" },
+              { "h3": "API सेवा के लिए आवेदन करें", "p": "आवेदन करने के लिए [Naver Search Ad API सेवा के लिए आवेदन करें] बटन पर क्लिक करें।", "path": "Naver Search Ad API सेवा के लिए आवेदन करें" },
+              { "h3": "जारी की गई जानकारी जाँचें", "p": "जारी की गई CUSTOMER_ID, access license और secret key की पुष्टि करें।" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "जब CUSTOMER_ID, access license और secret key सभी की पुष्टि हो जाती है, तो वे सही ढंग से जारी कर दिए गए हैं।" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo में पंजीकृत करने की जानकारी",
+          "blocks": [
+            { "type": "table", "head": ["फ़ील्ड", "विवरण"], "rows": [
+              ["api_key", "जारी की गई access license"],
+              ["api_secret", "जारी की गई secret key (सावधानी से संभालें)"],
+              ["customer_id", "जारी की गई CUSTOMER_ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "इन्हें GenieGo Integration Hub के [पंजीकरण] में दर्ज करके सहेजें, और क्रेडेंशियल AES-256-GCM के साथ संग्रहण के समय एन्क्रिप्ट किए जाते हैं और पढ़ते समय मास्क किए जाते हैं।" }
+          ]
+        },
+        {
+          "h2": "4. सामान्य समस्याएँ",
+          "blocks": [
+            { "type": "table", "head": ["समस्या", "कारण", "समाधान"], "rows": [
+              ["[API उपयोग प्रबंधन] मेनू नहीं है", "विज्ञापनदाता खाता नहीं है, या अनुमतियाँ अपर्याप्त हैं", "Search Ad प्रबंधन टूल का उपयोग करने वाले विज्ञापनदाता खाते से साइन इन करें।"],
+              ["प्रमाणीकरण त्रुटि होती है", "Access license या secret key गलत दर्ज की गई", "जारी करने वाली स्क्रीन से access license, secret key और CUSTOMER_ID को फिर से जाँचें।"]
+            ] }
+          ]
+        },
+        {
+          "h2": "अंतिम चेकलिस्ट",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Naver Search Ad विज्ञापनदाता खाते से साइन इन किया।",
+              "[टूल > API उपयोग प्रबंधन] के अंतर्गत API सेवा आवेदन पूरा किया।",
+              "CUSTOMER_ID, access license और secret key की पुष्टि की।",
+              "GenieGo [पंजीकरण] में api_key·api_secret·customer_id दर्ज करके सहेजा।"
+            ] }
+          ]
+        }
+      ]
+    },
+    "pt": {
+      "titleType": "Manual de emissão da chave de API",
+      "badge": "Beginner Guide",
+      "intro": "Um guia passo a passo para iniciantes sobre como emitir as credenciais de API (licença de acesso, chave secreta) e o seu CUSTOMER_ID a partir da ferramenta de gestão do Naver Search Ad e registá-las no GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tempo estimado", "Cerca de 5–10 min"],
+        ["Conta necessária", "Conta de anunciante do Naver Search Ad"],
+        ["Chaves emitidas", "Licença de acesso · Chave secreta · CUSTOMER_ID"],
+        ["Resultado", "Credenciais da Search Ad API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de começar",
+          "desc": "A API do Naver Search Ad só pode ser solicitada a partir de uma conta de anunciante.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Obrigatório", "h3": "Conta de anunciante do Search Ad", "p": "Precisa de uma conta de anunciante que use a ferramenta de gestão do Naver Search Ad. Não é possível solicitar acesso à API com uma conta de membro comum do Naver." },
+              { "tag": "Chaves emitidas", "h3": "Licença de acesso · Chave secreta · CUSTOMER_ID", "p": "Confirme o CUSTOMER_ID, a licença de acesso e a chave secreta emitidos em conjunto após solicitar o acesso à API." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Nota:</strong> A chave secreta só pode ser visualizada no momento da emissão, por isso guarde-a com segurança logo após a emissão." }
+          ]
+        },
+        {
+          "h2": "2. Passos para emitir a chave de API",
+          "desc": "Emita na ordem abaixo e registe no GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Iniciar sessão no Search Ads", "p": "Inicie sessão na ferramenta de gestão do Naver Search Ad com a sua conta de anunciante.", "path": "searchad.naver.com" },
+              { "h3": "Ir para a gestão de uso da API", "p": "A partir do menu superior [Ferramentas], vá para [Gestão de Uso da API].", "path": "Ferramentas → Gestão de Uso da API" },
+              { "h3": "Solicitar o serviço de API", "p": "Clique no botão [Solicitar o serviço Naver Search Ad API] para solicitar.", "path": "Solicitar o serviço Naver Search Ad API" },
+              { "h3": "Verificar as informações emitidas", "p": "Confirme o CUSTOMER_ID, a licença de acesso e a chave secreta emitidos." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Assim que o CUSTOMER_ID, a licença de acesso e a chave secreta forem todos confirmados, foram emitidos corretamente." }
+          ]
+        },
+        {
+          "h2": "3. Informações a registar no GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descrição"], "rows": [
+              ["api_key", "A licença de acesso emitida"],
+              ["api_secret", "A chave secreta emitida (manuseie com cuidado)"],
+              ["customer_id", "O CUSTOMER_ID emitido"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Insira-as e guarde-as em [Registar] no GenieGo Integration Hub; as credenciais são encriptadas em repouso com AES-256-GCM e mascaradas na leitura." }
+          ]
+        },
+        {
+          "h2": "4. Problemas comuns",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solução"], "rows": [
+              ["Sem menu [Gestão de Uso da API]", "Não é uma conta de anunciante ou permissões insuficientes", "Inicie sessão com uma conta de anunciante que use a ferramenta de gestão do Search Ad."],
+              ["Ocorre um erro de autenticação", "Licença de acesso ou chave secreta inserida incorretamente", "Verifique novamente a licença de acesso, a chave secreta e o CUSTOMER_ID no ecrã de emissão."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificação final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Iniciei sessão com uma conta de anunciante do Naver Search Ad.",
+              "Concluí o pedido do serviço de API em [Ferramentas > Gestão de Uso da API].",
+              "Confirmei o CUSTOMER_ID, a licença de acesso e a chave secreta.",
+              "Inseri api_key·api_secret·customer_id em GenieGo [Registar] e guardei."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ru": {
+      "titleType": "Руководство по выпуску API-ключа",
+      "badge": "Beginner Guide",
+      "intro": "Пошаговое руководство для начинающих по выпуску учётных данных API (лицензия доступа, секретный ключ) и вашего CUSTOMER_ID в инструменте управления Naver Search Ad и их регистрации в GenieGo Integration Hub.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Примерное время", "Около 5–10 мин"],
+        ["Требуемая учётная запись", "Рекламный аккаунт Naver Search Ad"],
+        ["Выпускаемые ключи", "Лицензия доступа · Секретный ключ · CUSTOMER_ID"],
+        ["Результат", "Учётные данные Search Ad API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Прежде чем начать",
+          "desc": "API Naver Search Ad можно запросить только из рекламного аккаунта.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Требуется", "h3": "Рекламный аккаунт Search Ad", "p": "Вам нужен рекламный аккаунт, использующий инструмент управления Naver Search Ad. Запросить доступ к API с помощью обычного членского аккаунта Naver невозможно." },
+              { "tag": "Выпускаемые ключи", "h3": "Лицензия доступа · Секретный ключ · CUSTOMER_ID", "p": "Подтвердите CUSTOMER_ID, лицензию доступа и секретный ключ, выпущенные вместе после запроса доступа к API." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Примечание:</strong> Секретный ключ можно просмотреть только в момент выпуска, поэтому надёжно сохраните его сразу после выпуска." }
+          ]
+        },
+        {
+          "h2": "2. Шаги выпуска API-ключа",
+          "desc": "Выпустите в указанном ниже порядке и зарегистрируйте в GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Войти в Search Ads", "p": "Войдите в инструмент управления Naver Search Ad, используя свой рекламный аккаунт.", "path": "searchad.naver.com" },
+              { "h3": "Перейти к управлению использованием API", "p": "В верхнем меню [Инструменты] перейдите к [Управление использованием API].", "path": "Инструменты → Управление использованием API" },
+              { "h3": "Подать заявку на сервис API", "p": "Нажмите кнопку [Подать заявку на сервис Naver Search Ad API], чтобы подать заявку.", "path": "Подать заявку на сервис Naver Search Ad API" },
+              { "h3": "Проверить выпущенную информацию", "p": "Подтвердите выпущенные CUSTOMER_ID, лицензию доступа и секретный ключ." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Как только CUSTOMER_ID, лицензия доступа и секретный ключ будут подтверждены, значит они выпущены правильно." }
+          ]
+        },
+        {
+          "h2": "3. Информация для регистрации в GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Поле", "Описание"], "rows": [
+              ["api_key", "Выпущенная лицензия доступа"],
+              ["api_secret", "Выпущенный секретный ключ (обращайтесь осторожно)"],
+              ["customer_id", "Выпущенный CUSTOMER_ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Введите и сохраните их в разделе [Регистрация] GenieGo Integration Hub; учётные данные шифруются при хранении с помощью AES-256-GCM и маскируются при чтении." }
+          ]
+        },
+        {
+          "h2": "4. Распространённые проблемы",
+          "blocks": [
+            { "type": "table", "head": ["Проблема", "Причина", "Решение"], "rows": [
+              ["Нет меню [Управление использованием API]", "Не рекламный аккаунт или недостаточно прав", "Войдите с рекламного аккаунта, использующего инструмент управления Search Ad."],
+              ["Возникает ошибка аутентификации", "Лицензия доступа или секретный ключ введены неверно", "Повторно проверьте лицензию доступа, секретный ключ и CUSTOMER_ID на экране выпуска."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Финальный контрольный список",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Вошёл с рекламного аккаунта Naver Search Ad.",
+              "Завершил подачу заявки на сервис API в разделе [Инструменты > Управление использованием API].",
+              "Подтвердил CUSTOMER_ID, лицензию доступа и секретный ключ.",
+              "Ввёл api_key·api_secret·customer_id в GenieGo [Регистрация] и сохранил."
+            ] }
+          ]
+        }
+      ]
     }
   }
 }

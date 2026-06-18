@@ -141,6 +141,916 @@
           ]
         }
       ]
+    },
+    "ja": {
+      "titleType": "API Key 発行マニュアル",
+      "badge": "Beginner Guide",
+      "intro": "Shopify 管理画面（Admin）でカスタムアプリを作成して Admin API アクセストークンを発行し、Shop ドメインとともに GenieGo 連携ハブに登録して Shopify ストアを連携する手順をまとめたマニュアルです。",
+      "org": "GenieGo 連携ハブ",
+      "quick": [
+        ["所要時間", "約5～15分"],
+        ["必要なアカウント", "Shopify ストアの管理者権限"],
+        ["発行キー", "Shop ドメイン · Admin API アクセストークン"],
+        ["成果物", "Admin API 認証情報"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 始める前に",
+          "desc": "Shopify のカスタムアプリは、ストアの管理者権限がないと作成できません。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必要", "h3": "ストア管理者権限", "p": "カスタムアプリを作成してトークンを発行するには、Shopify ストアの管理者（Admin）権限が必要です。" },
+              { "tag": "発行キー", "h3": "Shop ドメイン · Admin API トークン", "p": "xxx.myshopify.com 形式の Shop ドメインと、アプリのインストール後に表示される Admin API アクセストークンを確認します。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> Admin API アクセストークンはインストール直後に一度だけ表示されるため、表示されたらすぐにコピーしておく必要があります。" }
+          ]
+        },
+        {
+          "h2": "2. 発行手順",
+          "desc": "以下の順序で発行し、GenieGo に登録します。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "アプリと販売チャネルへ移動", "p": "Shopify 管理画面（Admin）> [設定] > [アプリと販売チャネル] へ移動します。", "path": "https://www.shopify.com/admin/settings/apps" },
+              { "h3": "カスタムアプリを作成", "p": "[アプリ開発] > [アプリを作成] をクリックしてカスタムアプリを作成します。", "path": "アプリ開発 → アプリを作成" },
+              { "h3": "スコープを選択 · アプリをインストール", "p": "Admin API のスコープ（scope）を選択してアプリをインストールします。" },
+              { "h3": "アクセストークンをコピー", "p": "インストール後に表示される Admin API アクセストークンをすぐにコピーします（一度だけ表示されます）。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "アプリのインストール後に Admin API アクセストークンが表示されれば、正常に発行されています。一度しか表示されないため、すぐにコピーしてください。" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo に登録する情報",
+          "blocks": [
+            { "type": "table", "head": ["フィールド", "説明"], "rows": [
+              ["shop_domain", "xxx.myshopify.com 形式の Shop ドメイン"],
+              ["access_token", "発行された Admin API アクセストークン（取り扱い注意）"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo の [登録] に shop_domain（xxx.myshopify.com）と access_token を入力して保存すると、認証情報は AES-256-GCM で暗号化保存され、参照時にはマスキングされます。" }
+          ]
+        },
+        {
+          "h2": "4. よくある問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決"], "rows": [
+              ["トークンを再表示できない", "Admin API アクセストークンは1回のみ表示", "トークンを紛失した場合は、カスタムアプリでトークンを再発行してすぐにコピーします。"],
+              ["権限不足エラー", "Admin API スコープ（scope）未選択", "必要な Admin API スコープ（scope）を選択してから、アプリを再インストールします。"],
+              ["ドメインエラー", "Shop ドメイン形式の誤記", "xxx.myshopify.com 形式の Shop ドメインを正確に入力します。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終チェックリスト",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Shopify ストアの管理者権限でログインした。",
+              "設定 > アプリと販売チャネル > アプリ開発でカスタムアプリを作成した。",
+              "Admin API スコープ（scope）を選択してアプリをインストールした。",
+              "インストール後に表示された Admin API アクセストークンをすぐにコピーした。",
+              "GenieGo の [登録] に shop_domain·access_token を入力して保存した。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh": {
+      "titleType": "API Key 申请手册",
+      "badge": "Beginner Guide",
+      "intro": "本手册介绍了在 Shopify 管理后台（Admin）中创建自定义应用以申请 Admin API 访问令牌，并将其与 Shop 域名一起注册到 GenieGo 集成中心，从而连接 Shopify 商店的整个流程。",
+      "org": "GenieGo 集成中心",
+      "quick": [
+        ["预计耗时", "约 5~15 分钟"],
+        ["所需账户", "Shopify 商店管理员权限"],
+        ["申请密钥", "Shop 域名 · Admin API 访问令牌"],
+        ["成果", "Admin API 凭据"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 开始之前",
+          "desc": "只有拥有商店管理员权限才能创建 Shopify 自定义应用。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "商店管理员权限", "p": "您需要拥有 Shopify 商店的管理员（Admin）权限，才能创建自定义应用并申请令牌。" },
+              { "tag": "申请密钥", "h3": "Shop 域名 · Admin API 令牌", "p": "您将获得 xxx.myshopify.com 格式的 Shop 域名，以及安装应用后显示的 Admin API 访问令牌。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意：</strong> Admin API 访问令牌仅在安装后立即显示一次，因此显示时必须立即复制。" }
+          ]
+        },
+        {
+          "h2": "2. 申请步骤",
+          "desc": "请按以下顺序申请并注册到 GenieGo。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "进入应用和销售渠道", "p": "在 Shopify 管理后台（Admin）中，进入 [设置] > [应用和销售渠道]。", "path": "https://www.shopify.com/admin/settings/apps" },
+              { "h3": "创建自定义应用", "p": "点击 [开发应用] > [创建应用] 以创建自定义应用。", "path": "开发应用 → 创建应用" },
+              { "h3": "选择范围 · 安装应用", "p": "选择 Admin API 范围（scope）并安装应用。" },
+              { "h3": "复制访问令牌", "p": "立即复制安装后显示的 Admin API 访问令牌（仅显示一次）。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "安装应用后显示 Admin API 访问令牌即表示申请成功。由于仅显示一次，请立即复制。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 注册的信息",
+          "blocks": [
+            { "type": "table", "head": ["字段", "说明"], "rows": [
+              ["shop_domain", "xxx.myshopify.com 格式的 Shop 域名"],
+              ["access_token", "已申请的 Admin API 访问令牌（请妥善保管）"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo [注册] 中输入您的 shop_domain（xxx.myshopify.com）和 access_token 并保存。凭据将以 AES-256-GCM 加密存储，并在读取时进行掩码处理。" }
+          ]
+        },
+        {
+          "h2": "4. 常见问题",
+          "blocks": [
+            { "type": "table", "head": ["问题", "原因", "解决方法"], "rows": [
+              ["无法再次查看令牌", "Admin API 访问令牌仅显示一次", "如果丢失了令牌，请在自定义应用中重新申请令牌并立即复制。"],
+              ["权限不足错误", "未选择 Admin API 范围（scope）", "选择所需的 Admin API 范围（scope），然后重新安装应用。"],
+              ["域名错误", "Shop 域名格式填写错误", "请准确输入 xxx.myshopify.com 格式的 Shop 域名。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最终检查清单",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已使用 Shopify 商店管理员权限登录。",
+              "已在 设置 > 应用和销售渠道 > 开发应用 中创建自定义应用。",
+              "已选择 Admin API 范围（scope）并安装应用。",
+              "已立即复制安装后显示的 Admin API 访问令牌。",
+              "已在 GenieGo [注册] 中输入 shop_domain·access_token 并保存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh-TW": {
+      "titleType": "API Key 申請手冊",
+      "badge": "Beginner Guide",
+      "intro": "本手冊介紹在 Shopify 管理後台（Admin）中建立自訂應用程式以申請 Admin API 存取權杖，並將其與 Shop 網域一併註冊到 GenieGo 整合中心，從而連接 Shopify 商店的整個流程。",
+      "org": "GenieGo 整合中心",
+      "quick": [
+        ["預計耗時", "約 5~15 分鐘"],
+        ["所需帳戶", "Shopify 商店管理員權限"],
+        ["申請金鑰", "Shop 網域 · Admin API 存取權杖"],
+        ["成果", "Admin API 憑證"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 開始之前",
+          "desc": "只有擁有商店管理員權限才能建立 Shopify 自訂應用程式。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必要", "h3": "商店管理員權限", "p": "您需要擁有 Shopify 商店的管理員（Admin）權限，才能建立自訂應用程式並申請權杖。" },
+              { "tag": "申請金鑰", "h3": "Shop 網域 · Admin API 權杖", "p": "您將取得 xxx.myshopify.com 格式的 Shop 網域，以及安裝應用程式後顯示的 Admin API 存取權杖。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意：</strong> Admin API 存取權杖僅在安裝後立即顯示一次，因此顯示時必須立即複製。" }
+          ]
+        },
+        {
+          "h2": "2. 申請步驟",
+          "desc": "請依以下順序申請並註冊到 GenieGo。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "前往應用程式與銷售管道", "p": "在 Shopify 管理後台（Admin）中，前往 [設定] > [應用程式與銷售管道]。", "path": "https://www.shopify.com/admin/settings/apps" },
+              { "h3": "建立自訂應用程式", "p": "點擊 [開發應用程式] > [建立應用程式] 以建立自訂應用程式。", "path": "開發應用程式 → 建立應用程式" },
+              { "h3": "選擇範圍 · 安裝應用程式", "p": "選擇 Admin API 範圍（scope）並安裝應用程式。" },
+              { "h3": "複製存取權杖", "p": "立即複製安裝後顯示的 Admin API 存取權杖（僅顯示一次）。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "安裝應用程式後顯示 Admin API 存取權杖即表示申請成功。由於僅顯示一次，請立即複製。" }
+          ]
+        },
+        {
+          "h2": "3. 需在 GenieGo 註冊的資訊",
+          "blocks": [
+            { "type": "table", "head": ["欄位", "說明"], "rows": [
+              ["shop_domain", "xxx.myshopify.com 格式的 Shop 網域"],
+              ["access_token", "已申請的 Admin API 存取權杖（請妥善保管）"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo [註冊] 中輸入您的 shop_domain（xxx.myshopify.com）和 access_token 並儲存。憑證將以 AES-256-GCM 加密儲存，並在讀取時進行遮罩處理。" }
+          ]
+        },
+        {
+          "h2": "4. 常見問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決方法"], "rows": [
+              ["無法再次檢視權杖", "Admin API 存取權杖僅顯示一次", "如果遺失了權杖，請在自訂應用程式中重新申請權杖並立即複製。"],
+              ["權限不足錯誤", "未選擇 Admin API 範圍（scope）", "選擇所需的 Admin API 範圍（scope），然後重新安裝應用程式。"],
+              ["網域錯誤", "Shop 網域格式填寫錯誤", "請準確輸入 xxx.myshopify.com 格式的 Shop 網域。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終檢查清單",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已使用 Shopify 商店管理員權限登入。",
+              "已在 設定 > 應用程式與銷售管道 > 開發應用程式 中建立自訂應用程式。",
+              "已選擇 Admin API 範圍（scope）並安裝應用程式。",
+              "已立即複製安裝後顯示的 Admin API 存取權杖。",
+              "已在 GenieGo [註冊] 中輸入 shop_domain·access_token 並儲存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "de": {
+      "titleType": "API-Key-Ausstellungshandbuch",
+      "badge": "Beginner Guide",
+      "intro": "Eine Schritt-für-Schritt-Anleitung zum Erstellen einer benutzerdefinierten App in Ihrem Shopify-Admin, um ein Admin API access token auszustellen und es zusammen mit Ihrer Shop-Domain im GenieGo Integration Hub zu registrieren, um Ihren Shopify-Store zu verbinden.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Geschätzte Zeit", "Ca. 5–15 Min."],
+        ["Benötigtes Konto", "Shopify-Store-Adminberechtigung"],
+        ["Ausgestellte Schlüssel", "Shop-Domain · Admin API access token"],
+        ["Ergebnis", "Admin API-Anmeldedaten"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Bevor Sie beginnen",
+          "desc": "Eine benutzerdefinierte Shopify-App kann nur mit Store-Adminberechtigung erstellt werden.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Erforderlich", "h3": "Store-Adminberechtigung", "p": "Sie benötigen die Admin-Berechtigung für den Shopify-Store, um eine benutzerdefinierte App zu erstellen und ein Token auszustellen." },
+              { "tag": "Ausgestellte Schlüssel", "h3": "Shop-Domain · Admin API token", "p": "Sie erhalten eine Shop-Domain im Format xxx.myshopify.com und das Admin API access token, das nach der Installation der App angezeigt wird." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Hinweis:</strong> Das Admin API access token wird unmittelbar nach der Installation nur einmal angezeigt, daher müssen Sie es sofort kopieren, sobald es erscheint." }
+          ]
+        },
+        {
+          "h2": "2. Ausstellungsschritte",
+          "desc": "Stellen Sie in der unten angegebenen Reihenfolge aus und registrieren Sie in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Zu Apps und Vertriebskanälen wechseln", "p": "Gehen Sie in Ihrem Shopify-Admin zu [Einstellungen] > [Apps und Vertriebskanäle].", "path": "https://www.shopify.com/admin/settings/apps" },
+              { "h3": "Eine benutzerdefinierte App erstellen", "p": "Klicken Sie auf [Apps entwickeln] > [App erstellen], um eine benutzerdefinierte App zu erstellen.", "path": "Apps entwickeln → App erstellen" },
+              { "h3": "Scopes auswählen · App installieren", "p": "Wählen Sie die Admin API scopes aus und installieren Sie die App." },
+              { "h3": "Das access token kopieren", "p": "Kopieren Sie sofort das nach der Installation angezeigte Admin API access token (wird nur einmal angezeigt)." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Sobald das Admin API access token nach der Installation der App erscheint, wurde es korrekt ausgestellt. Es wird nur einmal angezeigt, kopieren Sie es daher sofort." }
+          ]
+        },
+        {
+          "h2": "3. In GenieGo zu registrierende Informationen",
+          "blocks": [
+            { "type": "table", "head": ["Feld", "Beschreibung"], "rows": [
+              ["shop_domain", "Shop-Domain im Format xxx.myshopify.com"],
+              ["access_token", "Das ausgestellte Admin API access token (mit Sorgfalt behandeln)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Geben Sie in GenieGo [Registrieren] Ihre shop_domain (xxx.myshopify.com) und Ihr access_token ein und speichern Sie. Anmeldedaten werden im Ruhezustand mit AES-256-GCM verschlüsselt und beim Lesen maskiert." }
+          ]
+        },
+        {
+          "h2": "4. Häufige Probleme",
+          "blocks": [
+            { "type": "table", "head": ["Problem", "Ursache", "Lösung"], "rows": [
+              ["Token kann nicht erneut angezeigt werden", "Das Admin API access token wird nur einmal angezeigt", "Wenn Sie das Token verloren haben, stellen Sie es in der benutzerdefinierten App erneut aus und kopieren Sie es sofort."],
+              ["Fehler wegen unzureichender Berechtigung", "Admin API scopes nicht ausgewählt", "Wählen Sie die erforderlichen Admin API scopes aus und installieren Sie dann die App erneut."],
+              ["Domain-Fehler", "Shop-Domain-Format falsch eingegeben", "Geben Sie die Shop-Domain genau im Format xxx.myshopify.com ein."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Abschließende Checkliste",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Mit Shopify-Store-Adminberechtigung angemeldet.",
+              "Eine benutzerdefinierte App unter Einstellungen > Apps und Vertriebskanäle > Apps entwickeln erstellt.",
+              "Die Admin API scopes ausgewählt und die App installiert.",
+              "Das nach der Installation angezeigte Admin API access token sofort kopiert.",
+              "shop_domain·access_token in GenieGo [Registrieren] eingegeben und gespeichert."
+            ] }
+          ]
+        }
+      ]
+    },
+    "th": {
+      "titleType": "คู่มือการออก API Key",
+      "badge": "Beginner Guide",
+      "intro": "คู่มือทีละขั้นตอนในการสร้างแอปแบบกำหนดเองในผู้ดูแลระบบ Shopify (Admin) เพื่อออก Admin API access token และลงทะเบียนพร้อมกับโดเมนร้านค้าใน GenieGo Integration Hub เพื่อเชื่อมต่อร้านค้า Shopify ของคุณ",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["เวลาโดยประมาณ", "ประมาณ 5–15 นาที"],
+        ["บัญชีที่จำเป็น", "สิทธิ์ผู้ดูแลระบบร้านค้า Shopify"],
+        ["คีย์ที่ออก", "โดเมนร้านค้า · Admin API access token"],
+        ["ผลลัพธ์", "ข้อมูลรับรอง Admin API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. ก่อนเริ่มต้น",
+          "desc": "แอปแบบกำหนดเองของ Shopify สามารถสร้างได้เฉพาะผู้ที่มีสิทธิ์ผู้ดูแลระบบร้านค้าเท่านั้น",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "จำเป็น", "h3": "สิทธิ์ผู้ดูแลระบบร้านค้า", "p": "คุณต้องมีสิทธิ์ผู้ดูแลระบบ (Admin) ของร้านค้า Shopify จึงจะสามารถสร้างแอปแบบกำหนดเองและออก token ได้" },
+              { "tag": "คีย์ที่ออก", "h3": "โดเมนร้านค้า · Admin API token", "p": "คุณจะได้รับโดเมนร้านค้าในรูปแบบ xxx.myshopify.com และ Admin API access token ที่แสดงหลังจากติดตั้งแอป" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>หมายเหตุ:</strong> Admin API access token จะแสดงเพียงครั้งเดียวทันทีหลังการติดตั้ง ดังนั้นคุณต้องคัดลอกทันทีเมื่อปรากฏ" }
+          ]
+        },
+        {
+          "h2": "2. ขั้นตอนการออก",
+          "desc": "ออกตามลำดับด้านล่างและลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "ไปที่แอปและช่องทางการขาย", "p": "ในผู้ดูแลระบบ Shopify (Admin) ไปที่ [การตั้งค่า] > [แอปและช่องทางการขาย]", "path": "https://www.shopify.com/admin/settings/apps" },
+              { "h3": "สร้างแอปแบบกำหนดเอง", "p": "คลิก [พัฒนาแอป] > [สร้างแอป] เพื่อสร้างแอปแบบกำหนดเอง", "path": "พัฒนาแอป → สร้างแอป" },
+              { "h3": "เลือกขอบเขต · ติดตั้งแอป", "p": "เลือก Admin API scopes และติดตั้งแอป" },
+              { "h3": "คัดลอก access token", "p": "คัดลอก Admin API access token ที่แสดงหลังการติดตั้งทันที (แสดงเพียงครั้งเดียว)" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "เมื่อ Admin API access token ปรากฏหลังจากติดตั้งแอป แสดงว่าออกสำเร็จแล้ว เนื่องจากแสดงเพียงครั้งเดียว โปรดคัดลอกทันที" }
+          ]
+        },
+        {
+          "h2": "3. ข้อมูลที่ต้องลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["ฟิลด์", "คำอธิบาย"], "rows": [
+              ["shop_domain", "โดเมนร้านค้าในรูปแบบ xxx.myshopify.com"],
+              ["access_token", "Admin API access token ที่ออกแล้ว (โปรดจัดการด้วยความระมัดระวัง)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "ใน GenieGo [ลงทะเบียน] ให้ป้อน shop_domain (xxx.myshopify.com) และ access_token ของคุณแล้วบันทึก ข้อมูลรับรองจะถูกเข้ารหัสขณะจัดเก็บด้วย AES-256-GCM และถูกปกปิดเมื่ออ่าน" }
+          ]
+        },
+        {
+          "h2": "4. ปัญหาที่พบบ่อย",
+          "blocks": [
+            { "type": "table", "head": ["ปัญหา", "สาเหตุ", "วิธีแก้ไข"], "rows": [
+              ["ไม่สามารถดู token อีกครั้งได้", "Admin API access token แสดงเพียงครั้งเดียว", "หากคุณทำ token หาย ให้ออก token ใหม่ในแอปแบบกำหนดเองและคัดลอกทันที"],
+              ["ข้อผิดพลาดสิทธิ์ไม่เพียงพอ", "ยังไม่ได้เลือก Admin API scopes", "เลือก Admin API scopes ที่จำเป็น จากนั้นติดตั้งแอปใหม่"],
+              ["ข้อผิดพลาดโดเมน", "ป้อนรูปแบบโดเมนร้านค้าไม่ถูกต้อง", "ป้อนโดเมนร้านค้าให้ถูกต้องในรูปแบบ xxx.myshopify.com"]
+            ] }
+          ]
+        },
+        {
+          "h2": "รายการตรวจสอบขั้นสุดท้าย",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "เข้าสู่ระบบด้วยสิทธิ์ผู้ดูแลระบบร้านค้า Shopify แล้ว",
+              "สร้างแอปแบบกำหนดเองใน การตั้งค่า > แอปและช่องทางการขาย > พัฒนาแอป แล้ว",
+              "เลือก Admin API scopes และติดตั้งแอปแล้ว",
+              "คัดลอก Admin API access token ที่แสดงหลังการติดตั้งทันทีแล้ว",
+              "ป้อน shop_domain·access_token ใน GenieGo [ลงทะเบียน] และบันทึกแล้ว"
+            ] }
+          ]
+        }
+      ]
+    },
+    "vi": {
+      "titleType": "Hướng dẫn cấp API Key",
+      "badge": "Beginner Guide",
+      "intro": "Hướng dẫn từng bước để tạo ứng dụng tùy chỉnh trong trang Quản trị Shopify (Admin) nhằm cấp Admin API access token và đăng ký nó cùng với tên miền cửa hàng trong GenieGo Integration Hub để kết nối cửa hàng Shopify của bạn.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Thời gian ước tính", "Khoảng 5–15 phút"],
+        ["Tài khoản cần thiết", "Quyền quản trị cửa hàng Shopify"],
+        ["Khóa được cấp", "Tên miền cửa hàng · Admin API access token"],
+        ["Kết quả", "Thông tin xác thực Admin API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Trước khi bắt đầu",
+          "desc": "Chỉ có thể tạo ứng dụng tùy chỉnh Shopify khi có quyền quản trị cửa hàng.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Bắt buộc", "h3": "Quyền quản trị cửa hàng", "p": "Bạn cần quyền quản trị (Admin) cho cửa hàng Shopify để tạo ứng dụng tùy chỉnh và cấp token." },
+              { "tag": "Khóa được cấp", "h3": "Tên miền cửa hàng · Admin API token", "p": "Bạn sẽ nhận được tên miền cửa hàng theo định dạng xxx.myshopify.com và Admin API access token hiển thị sau khi cài đặt ứng dụng." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Lưu ý:</strong> Admin API access token chỉ hiển thị một lần ngay sau khi cài đặt, vì vậy bạn phải sao chép ngay khi nó xuất hiện." }
+          ]
+        },
+        {
+          "h2": "2. Các bước cấp",
+          "desc": "Cấp theo thứ tự bên dưới và đăng ký trong GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Đi tới Ứng dụng và kênh bán hàng", "p": "Trong trang Quản trị Shopify (Admin), đi tới [Cài đặt] > [Ứng dụng và kênh bán hàng].", "path": "https://www.shopify.com/admin/settings/apps" },
+              { "h3": "Tạo ứng dụng tùy chỉnh", "p": "Nhấp [Phát triển ứng dụng] > [Tạo ứng dụng] để tạo ứng dụng tùy chỉnh.", "path": "Phát triển ứng dụng → Tạo ứng dụng" },
+              { "h3": "Chọn phạm vi · Cài đặt ứng dụng", "p": "Chọn các Admin API scopes và cài đặt ứng dụng." },
+              { "h3": "Sao chép access token", "p": "Sao chép ngay Admin API access token hiển thị sau khi cài đặt (chỉ hiển thị một lần)." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Khi Admin API access token xuất hiện sau khi cài đặt ứng dụng, nghĩa là đã được cấp thành công. Vì chỉ hiển thị một lần, hãy sao chép ngay." }
+          ]
+        },
+        {
+          "h2": "3. Thông tin cần đăng ký trong GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Trường", "Mô tả"], "rows": [
+              ["shop_domain", "Tên miền cửa hàng theo định dạng xxx.myshopify.com"],
+              ["access_token", "Admin API access token đã được cấp (xử lý cẩn thận)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Trong GenieGo [Đăng ký], hãy nhập shop_domain (xxx.myshopify.com) và access_token của bạn rồi lưu. Thông tin xác thực được mã hóa khi lưu trữ bằng AES-256-GCM và được che dấu khi đọc." }
+          ]
+        },
+        {
+          "h2": "4. Các vấn đề thường gặp",
+          "blocks": [
+            { "type": "table", "head": ["Vấn đề", "Nguyên nhân", "Giải pháp"], "rows": [
+              ["Không thể xem lại token", "Admin API access token chỉ hiển thị một lần", "Nếu bạn làm mất token, hãy cấp lại token trong ứng dụng tùy chỉnh và sao chép ngay."],
+              ["Lỗi không đủ quyền", "Chưa chọn Admin API scopes", "Chọn các Admin API scopes cần thiết, sau đó cài đặt lại ứng dụng."],
+              ["Lỗi tên miền", "Nhập sai định dạng tên miền cửa hàng", "Nhập chính xác tên miền cửa hàng theo định dạng xxx.myshopify.com."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Danh sách kiểm tra cuối cùng",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Đã đăng nhập bằng quyền quản trị cửa hàng Shopify.",
+              "Đã tạo ứng dụng tùy chỉnh trong Cài đặt > Ứng dụng và kênh bán hàng > Phát triển ứng dụng.",
+              "Đã chọn các Admin API scopes và cài đặt ứng dụng.",
+              "Đã sao chép ngay Admin API access token hiển thị sau khi cài đặt.",
+              "Đã nhập shop_domain·access_token trong GenieGo [Đăng ký] và lưu."
+            ] }
+          ]
+        }
+      ]
+    },
+    "id": {
+      "titleType": "Manual Penerbitan API Key",
+      "badge": "Beginner Guide",
+      "intro": "Panduan langkah demi langkah untuk membuat aplikasi khusus di Admin Shopify Anda guna menerbitkan Admin API access token dan mendaftarkannya bersama domain toko Anda di GenieGo Integration Hub untuk menghubungkan toko Shopify Anda.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Perkiraan waktu", "Sekitar 5–15 mnt"],
+        ["Akun yang dibutuhkan", "Izin admin toko Shopify"],
+        ["Kunci yang diterbitkan", "Domain toko · Admin API access token"],
+        ["Hasil", "Kredensial Admin API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Sebelum Anda Mulai",
+          "desc": "Aplikasi khusus Shopify hanya dapat dibuat dengan izin admin toko.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Diperlukan", "h3": "Izin admin toko", "p": "Anda memerlukan izin admin untuk toko Shopify guna membuat aplikasi khusus dan menerbitkan token." },
+              { "tag": "Kunci yang diterbitkan", "h3": "Domain toko · Admin API token", "p": "Anda akan memperoleh domain toko dalam format xxx.myshopify.com dan Admin API access token yang ditampilkan setelah menginstal aplikasi." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Catatan:</strong> Admin API access token hanya ditampilkan satu kali tepat setelah instalasi, jadi Anda harus segera menyalinnya saat muncul." }
+          ]
+        },
+        {
+          "h2": "2. Langkah Penerbitan",
+          "desc": "Terbitkan sesuai urutan di bawah ini dan daftarkan di GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Buka Aplikasi dan saluran penjualan", "p": "Di Admin Shopify Anda, buka [Pengaturan] > [Aplikasi dan saluran penjualan].", "path": "https://www.shopify.com/admin/settings/apps" },
+              { "h3": "Buat aplikasi khusus", "p": "Klik [Kembangkan aplikasi] > [Buat aplikasi] untuk membuat aplikasi khusus.", "path": "Kembangkan aplikasi → Buat aplikasi" },
+              { "h3": "Pilih scope · Instal aplikasi", "p": "Pilih Admin API scopes dan instal aplikasi." },
+              { "h3": "Salin access token", "p": "Segera salin Admin API access token yang ditampilkan setelah instalasi (hanya ditampilkan satu kali)." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Setelah Admin API access token muncul usai menginstal aplikasi, berarti penerbitan berhasil. Karena hanya ditampilkan satu kali, segera salin." }
+          ]
+        },
+        {
+          "h2": "3. Informasi untuk Didaftarkan di GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Bidang", "Deskripsi"], "rows": [
+              ["shop_domain", "Domain toko dalam format xxx.myshopify.com"],
+              ["access_token", "Admin API access token yang diterbitkan (tangani dengan hati-hati)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Di GenieGo [Daftar], masukkan shop_domain (xxx.myshopify.com) dan access_token Anda lalu simpan. Kredensial dienkripsi saat disimpan dengan AES-256-GCM dan disamarkan saat dibaca." }
+          ]
+        },
+        {
+          "h2": "4. Masalah Umum",
+          "blocks": [
+            { "type": "table", "head": ["Masalah", "Penyebab", "Solusi"], "rows": [
+              ["Tidak bisa melihat token lagi", "Admin API access token hanya ditampilkan satu kali", "Jika Anda kehilangan token, terbitkan ulang di aplikasi khusus dan segera salin."],
+              ["Kesalahan izin tidak cukup", "Admin API scopes belum dipilih", "Pilih Admin API scopes yang diperlukan, lalu instal ulang aplikasi."],
+              ["Kesalahan domain", "Format domain toko dimasukkan dengan salah", "Masukkan domain toko dengan akurat dalam format xxx.myshopify.com."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Daftar Periksa Akhir",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Masuk dengan izin admin toko Shopify.",
+              "Membuat aplikasi khusus di Pengaturan > Aplikasi dan saluran penjualan > Kembangkan aplikasi.",
+              "Memilih Admin API scopes dan menginstal aplikasi.",
+              "Segera menyalin Admin API access token yang ditampilkan setelah instalasi.",
+              "Memasukkan shop_domain·access_token di GenieGo [Daftar] dan menyimpannya."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ar": {
+      "titleType": "دليل إصدار API Key",
+      "badge": "Beginner Guide",
+      "intro": "دليل تفصيلي خطوة بخطوة لإنشاء تطبيق مخصص في لوحة إدارة Shopify (Admin) لإصدار Admin API access token وتسجيله مع نطاق المتجر في GenieGo Integration Hub لربط متجر Shopify الخاص بك.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["الوقت المقدر", "حوالي 5–15 دقيقة"],
+        ["الحساب المطلوب", "صلاحية مدير متجر Shopify"],
+        ["المفاتيح المُصدرة", "نطاق المتجر · Admin API access token"],
+        ["النتيجة", "بيانات اعتماد Admin API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. قبل أن تبدأ",
+          "desc": "لا يمكن إنشاء تطبيق Shopify مخصص إلا بصلاحية مدير المتجر.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "مطلوب", "h3": "صلاحية مدير المتجر", "p": "تحتاج إلى صلاحية المدير (Admin) لمتجر Shopify لإنشاء تطبيق مخصص وإصدار token." },
+              { "tag": "المفاتيح المُصدرة", "h3": "نطاق المتجر · Admin API token", "p": "ستحصل على نطاق متجر بصيغة xxx.myshopify.com وعلى Admin API access token الذي يظهر بعد تثبيت التطبيق." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>ملاحظة:</strong> يظهر Admin API access token مرة واحدة فقط مباشرة بعد التثبيت، لذا يجب نسخه فورًا عند ظهوره." }
+          ]
+        },
+        {
+          "h2": "2. خطوات الإصدار",
+          "desc": "أصدر بالترتيب أدناه وسجّل في GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "الانتقال إلى التطبيقات وقنوات البيع", "p": "في لوحة إدارة Shopify (Admin)، انتقل إلى [الإعدادات] > [التطبيقات وقنوات البيع].", "path": "https://www.shopify.com/admin/settings/apps" },
+              { "h3": "إنشاء تطبيق مخصص", "p": "انقر على [تطوير التطبيقات] > [إنشاء تطبيق] لإنشاء تطبيق مخصص.", "path": "تطوير التطبيقات → إنشاء تطبيق" },
+              { "h3": "تحديد النطاقات · تثبيت التطبيق", "p": "حدد Admin API scopes وثبّت التطبيق." },
+              { "h3": "نسخ access token", "p": "انسخ فورًا Admin API access token الذي يظهر بعد التثبيت (يظهر مرة واحدة فقط)." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "بمجرد ظهور Admin API access token بعد تثبيت التطبيق، يكون قد تم إصداره بشكل صحيح. يظهر مرة واحدة فقط، لذا انسخه فورًا." }
+          ]
+        },
+        {
+          "h2": "3. المعلومات المطلوب تسجيلها في GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["الحقل", "الوصف"], "rows": [
+              ["shop_domain", "نطاق المتجر بصيغة xxx.myshopify.com"],
+              ["access_token", "Admin API access token المُصدر (تعامل معه بحذر)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "في GenieGo [تسجيل]، أدخل shop_domain (xxx.myshopify.com) و access_token الخاص بك واحفظ. يتم تشفير بيانات الاعتماد عند التخزين باستخدام AES-256-GCM وإخفاؤها عند القراءة." }
+          ]
+        },
+        {
+          "h2": "4. المشكلات الشائعة",
+          "blocks": [
+            { "type": "table", "head": ["المشكلة", "السبب", "الحل"], "rows": [
+              ["تعذّر رؤية الـ token مرة أخرى", "يظهر Admin API access token مرة واحدة فقط", "إذا فقدت الـ token، أعد إصداره في التطبيق المخصص وانسخه فورًا."],
+              ["خطأ عدم كفاية الصلاحية", "لم يتم تحديد Admin API scopes", "حدد Admin API scopes المطلوبة، ثم أعد تثبيت التطبيق."],
+              ["خطأ النطاق", "إدخال صيغة نطاق المتجر بشكل غير صحيح", "أدخل نطاق المتجر بدقة بصيغة xxx.myshopify.com."]
+            ] }
+          ]
+        },
+        {
+          "h2": "قائمة التحقق النهائية",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "سجّلت الدخول بصلاحية مدير متجر Shopify.",
+              "أنشأت تطبيقًا مخصصًا ضمن الإعدادات > التطبيقات وقنوات البيع > تطوير التطبيقات.",
+              "حددت Admin API scopes وثبّت التطبيق.",
+              "نسخت فورًا Admin API access token الذي ظهر بعد التثبيت.",
+              "أدخلت shop_domain·access_token في GenieGo [تسجيل] وحفظت."
+            ] }
+          ]
+        }
+      ]
+    },
+    "es": {
+      "titleType": "Manual de emisión de API Key",
+      "badge": "Beginner Guide",
+      "intro": "Una guía paso a paso para crear una app personalizada en tu Admin de Shopify a fin de emitir un Admin API access token y registrarlo junto con el dominio de tu tienda en el GenieGo Integration Hub para conectar tu tienda de Shopify.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tiempo estimado", "Aprox. 5–15 min"],
+        ["Cuenta necesaria", "Permiso de administrador de la tienda Shopify"],
+        ["Claves emitidas", "Dominio de la tienda · Admin API access token"],
+        ["Resultado", "Credenciales de Admin API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de comenzar",
+          "desc": "Una app personalizada de Shopify solo se puede crear con permiso de administrador de la tienda.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requerido", "h3": "Permiso de administrador de la tienda", "p": "Necesitas permiso de administrador de la tienda Shopify para crear una app personalizada y emitir un token." },
+              { "tag": "Claves emitidas", "h3": "Dominio de la tienda · Admin API token", "p": "Obtendrás un dominio de tienda con el formato xxx.myshopify.com y el Admin API access token que se muestra después de instalar la app." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Nota:</strong> El Admin API access token se muestra solo una vez justo después de la instalación, por lo que debes copiarlo de inmediato cuando aparezca." }
+          ]
+        },
+        {
+          "h2": "2. Pasos de emisión",
+          "desc": "Emite en el orden indicado a continuación y regístralo en GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Ir a Aplicaciones y canales de venta", "p": "En tu Admin de Shopify, ve a [Configuración] > [Aplicaciones y canales de venta].", "path": "https://www.shopify.com/admin/settings/apps" },
+              { "h3": "Crear una app personalizada", "p": "Haz clic en [Desarrollar aplicaciones] > [Crear una aplicación] para crear una app personalizada.", "path": "Desarrollar aplicaciones → Crear una aplicación" },
+              { "h3": "Seleccionar scopes · Instalar la app", "p": "Selecciona los Admin API scopes e instala la app." },
+              { "h3": "Copiar el access token", "p": "Copia de inmediato el Admin API access token que se muestra tras la instalación (se muestra solo una vez)." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Una vez que el Admin API access token aparezca después de instalar la app, significa que se ha emitido correctamente. Se muestra solo una vez, así que cópialo de inmediato." }
+          ]
+        },
+        {
+          "h2": "3. Información para registrar en GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descripción"], "rows": [
+              ["shop_domain", "Dominio de la tienda con el formato xxx.myshopify.com"],
+              ["access_token", "El Admin API access token emitido (manéjalo con cuidado)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "En GenieGo [Registrar], ingresa tu shop_domain (xxx.myshopify.com) y access_token y guarda. Las credenciales se cifran en reposo con AES-256-GCM y se enmascaran al leerlas." }
+          ]
+        },
+        {
+          "h2": "4. Problemas frecuentes",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solución"], "rows": [
+              ["No se puede volver a ver el token", "El Admin API access token se muestra solo una vez", "Si perdiste el token, vuelve a emitirlo en la app personalizada y cópialo de inmediato."],
+              ["Error de permiso insuficiente", "Admin API scopes no seleccionados", "Selecciona los Admin API scopes necesarios y luego reinstala la app."],
+              ["Error de dominio", "Formato del dominio de la tienda ingresado incorrectamente", "Ingresa el dominio de la tienda con precisión en el formato xxx.myshopify.com."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificación final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Inicié sesión con permiso de administrador de la tienda Shopify.",
+              "Creé una app personalizada en Configuración > Aplicaciones y canales de venta > Desarrollar aplicaciones.",
+              "Seleccioné los Admin API scopes e instalé la app.",
+              "Copié de inmediato el Admin API access token mostrado tras la instalación.",
+              "Ingresé shop_domain·access_token en GenieGo [Registrar] y guardé."
+            ] }
+          ]
+        }
+      ]
+    },
+    "fr": {
+      "titleType": "Manuel d'émission de la API Key",
+      "badge": "Beginner Guide",
+      "intro": "Un guide étape par étape pour créer une application personnalisée dans votre interface d'administration Shopify afin d'émettre un Admin API access token et de l'enregistrer avec le domaine de votre boutique dans le GenieGo Integration Hub pour connecter votre boutique Shopify.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Temps estimé", "Environ 5–15 min"],
+        ["Compte requis", "Permission d'administrateur de la boutique Shopify"],
+        ["Clés émises", "Domaine de la boutique · Admin API access token"],
+        ["Résultat", "Identifiants Admin API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Avant de commencer",
+          "desc": "Une application personnalisée Shopify ne peut être créée qu'avec une permission d'administrateur de la boutique.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requis", "h3": "Permission d'administrateur de la boutique", "p": "Vous avez besoin d'une permission d'administrateur de la boutique Shopify pour créer une application personnalisée et émettre un token." },
+              { "tag": "Clés émises", "h3": "Domaine de la boutique · Admin API token", "p": "Vous obtiendrez un domaine de boutique au format xxx.myshopify.com et l'Admin API access token affiché après l'installation de l'application." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Remarque :</strong> L'Admin API access token n'est affiché qu'une seule fois juste après l'installation, vous devez donc le copier immédiatement dès qu'il apparaît." }
+          ]
+        },
+        {
+          "h2": "2. Étapes d'émission",
+          "desc": "Émettez dans l'ordre ci-dessous et enregistrez dans GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Accéder à Applications et canaux de vente", "p": "Dans votre interface d'administration Shopify, allez dans [Paramètres] > [Applications et canaux de vente].", "path": "https://www.shopify.com/admin/settings/apps" },
+              { "h3": "Créer une application personnalisée", "p": "Cliquez sur [Développer des applications] > [Créer une application] pour créer une application personnalisée.", "path": "Développer des applications → Créer une application" },
+              { "h3": "Sélectionner les scopes · Installer l'application", "p": "Sélectionnez les Admin API scopes et installez l'application." },
+              { "h3": "Copier l'access token", "p": "Copiez immédiatement l'Admin API access token affiché après l'installation (affiché une seule fois)." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Dès que l'Admin API access token apparaît après l'installation de l'application, il a été émis correctement. Il n'est affiché qu'une seule fois, copiez-le donc immédiatement." }
+          ]
+        },
+        {
+          "h2": "3. Informations à enregistrer dans GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Champ", "Description"], "rows": [
+              ["shop_domain", "Domaine de la boutique au format xxx.myshopify.com"],
+              ["access_token", "L'Admin API access token émis (à manipuler avec précaution)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Dans GenieGo [Enregistrer], saisissez votre shop_domain (xxx.myshopify.com) et access_token, puis enregistrez. Les identifiants sont chiffrés au repos avec AES-256-GCM et masqués à la lecture." }
+          ]
+        },
+        {
+          "h2": "4. Problèmes courants",
+          "blocks": [
+            { "type": "table", "head": ["Problème", "Cause", "Solution"], "rows": [
+              ["Impossible de revoir le token", "L'Admin API access token n'est affiché qu'une seule fois", "Si vous avez perdu le token, ré-émettez-le dans l'application personnalisée et copiez-le immédiatement."],
+              ["Erreur de permission insuffisante", "Admin API scopes non sélectionnés", "Sélectionnez les Admin API scopes requis, puis réinstallez l'application."],
+              ["Erreur de domaine", "Format du domaine de la boutique saisi incorrectement", "Saisissez le domaine de la boutique avec précision au format xxx.myshopify.com."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Liste de contrôle finale",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Connecté avec une permission d'administrateur de la boutique Shopify.",
+              "Créé une application personnalisée dans Paramètres > Applications et canaux de vente > Développer des applications.",
+              "Sélectionné les Admin API scopes et installé l'application.",
+              "Copié immédiatement l'Admin API access token affiché après l'installation.",
+              "Saisi shop_domain·access_token dans GenieGo [Enregistrer] et enregistré."
+            ] }
+          ]
+        }
+      ]
+    },
+    "hi": {
+      "titleType": "API Key जारी करने की मैनुअल",
+      "badge": "Beginner Guide",
+      "intro": "अपने Shopify Admin में एक कस्टम ऐप बनाकर Admin API access token जारी करने और अपने Shopify स्टोर को कनेक्ट करने के लिए इसे शॉप डोमेन के साथ GenieGo Integration Hub में पंजीकृत करने की चरण-दर-चरण मार्गदर्शिका।",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["अनुमानित समय", "लगभग 5–15 मिनट"],
+        ["आवश्यक खाता", "Shopify स्टोर एडमिन अनुमति"],
+        ["जारी की गई कुंजियाँ", "शॉप डोमेन · Admin API access token"],
+        ["परिणाम", "Admin API क्रेडेंशियल"]
+      ],
+      "sections": [
+        {
+          "h2": "1. शुरू करने से पहले",
+          "desc": "Shopify कस्टम ऐप केवल स्टोर एडमिन अनुमति के साथ ही बनाया जा सकता है।",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "आवश्यक", "h3": "स्टोर एडमिन अनुमति", "p": "कस्टम ऐप बनाने और token जारी करने के लिए आपको Shopify स्टोर की एडमिन (Admin) अनुमति की आवश्यकता है।" },
+              { "tag": "जारी की गई कुंजियाँ", "h3": "शॉप डोमेन · Admin API token", "p": "आपको xxx.myshopify.com प्रारूप में एक शॉप डोमेन और ऐप इंस्टॉल करने के बाद दिखाया गया Admin API access token मिलेगा।" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>नोट:</strong> Admin API access token इंस्टॉलेशन के तुरंत बाद केवल एक बार दिखाया जाता है, इसलिए जब यह दिखे तो आपको इसे तुरंत कॉपी कर लेना चाहिए।" }
+          ]
+        },
+        {
+          "h2": "2. जारी करने के चरण",
+          "desc": "नीचे दिए गए क्रम में जारी करें और GenieGo में पंजीकृत करें।",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "ऐप्स और बिक्री चैनलों पर जाएँ", "p": "अपने Shopify Admin में, [सेटिंग्स] > [ऐप्स और बिक्री चैनल] पर जाएँ।", "path": "https://www.shopify.com/admin/settings/apps" },
+              { "h3": "एक कस्टम ऐप बनाएँ", "p": "कस्टम ऐप बनाने के लिए [ऐप्स विकसित करें] > [ऐप बनाएँ] पर क्लिक करें।", "path": "ऐप्स विकसित करें → ऐप बनाएँ" },
+              { "h3": "scopes चुनें · ऐप इंस्टॉल करें", "p": "Admin API scopes चुनें और ऐप इंस्टॉल करें।" },
+              { "h3": "access token कॉपी करें", "p": "इंस्टॉलेशन के बाद दिखाया गया Admin API access token तुरंत कॉपी करें (केवल एक बार दिखाया जाता है)।" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "ऐप इंस्टॉल करने के बाद जब Admin API access token दिखाई दे, तो इसका मतलब है कि यह सही ढंग से जारी हो गया है। यह केवल एक बार दिखाया जाता है, इसलिए इसे तुरंत कॉपी करें।" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo में पंजीकृत करने योग्य जानकारी",
+          "blocks": [
+            { "type": "table", "head": ["फ़ील्ड", "विवरण"], "rows": [
+              ["shop_domain", "xxx.myshopify.com प्रारूप में शॉप डोमेन"],
+              ["access_token", "जारी किया गया Admin API access token (सावधानी से संभालें)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo [पंजीकरण] में, अपना shop_domain (xxx.myshopify.com) और access_token दर्ज करें और सहेजें। क्रेडेंशियल्स को AES-256-GCM के साथ संग्रहण के समय एन्क्रिप्ट किया जाता है और पढ़ते समय मास्क किया जाता है।" }
+          ]
+        },
+        {
+          "h2": "4. आम समस्याएँ",
+          "blocks": [
+            { "type": "table", "head": ["समस्या", "कारण", "समाधान"], "rows": [
+              ["token दोबारा नहीं देख पा रहे", "Admin API access token केवल एक बार दिखाया जाता है", "यदि आपका token खो गया है, तो उसे कस्टम ऐप में फिर से जारी करें और तुरंत कॉपी करें।"],
+              ["अपर्याप्त अनुमति त्रुटि", "Admin API scopes चयनित नहीं", "आवश्यक Admin API scopes चुनें, फिर ऐप को फिर से इंस्टॉल करें।"],
+              ["डोमेन त्रुटि", "शॉप डोमेन प्रारूप गलत दर्ज किया गया", "शॉप डोमेन को xxx.myshopify.com प्रारूप में सही ढंग से दर्ज करें।"]
+            ] }
+          ]
+        },
+        {
+          "h2": "अंतिम चेकलिस्ट",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Shopify स्टोर एडमिन अनुमति के साथ साइन इन किया।",
+              "सेटिंग्स > ऐप्स और बिक्री चैनल > ऐप्स विकसित करें के अंतर्गत एक कस्टम ऐप बनाया।",
+              "Admin API scopes चुने और ऐप इंस्टॉल किया।",
+              "इंस्टॉलेशन के बाद दिखाया गया Admin API access token तुरंत कॉपी किया।",
+              "GenieGo [पंजीकरण] में shop_domain·access_token दर्ज किया और सहेजा।"
+            ] }
+          ]
+        }
+      ]
+    },
+    "pt": {
+      "titleType": "Manual de emissão de API Key",
+      "badge": "Beginner Guide",
+      "intro": "Um guia passo a passo para criar um app personalizado no Admin do Shopify a fim de emitir um Admin API access token e registrá-lo junto com o domínio da sua loja no GenieGo Integration Hub para conectar sua loja Shopify.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tempo estimado", "Cerca de 5–15 min"],
+        ["Conta necessária", "Permissão de administrador da loja Shopify"],
+        ["Chaves emitidas", "Domínio da loja · Admin API access token"],
+        ["Resultado", "Credenciais da Admin API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de começar",
+          "desc": "Um app personalizado do Shopify só pode ser criado com permissão de administrador da loja.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Obrigatório", "h3": "Permissão de administrador da loja", "p": "Você precisa de permissão de administrador da loja Shopify para criar um app personalizado e emitir um token." },
+              { "tag": "Chaves emitidas", "h3": "Domínio da loja · Admin API token", "p": "Você obterá um domínio de loja no formato xxx.myshopify.com e o Admin API access token exibido após instalar o app." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Observação:</strong> O Admin API access token é exibido apenas uma vez logo após a instalação, portanto você deve copiá-lo imediatamente quando ele aparecer." }
+          ]
+        },
+        {
+          "h2": "2. Etapas de emissão",
+          "desc": "Emita na ordem abaixo e registre no GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Ir para Aplicativos e canais de vendas", "p": "No seu Admin do Shopify, vá em [Configurações] > [Aplicativos e canais de vendas].", "path": "https://www.shopify.com/admin/settings/apps" },
+              { "h3": "Criar um app personalizado", "p": "Clique em [Desenvolver apps] > [Criar um app] para criar um app personalizado.", "path": "Desenvolver apps → Criar um app" },
+              { "h3": "Selecionar scopes · Instalar o app", "p": "Selecione os Admin API scopes e instale o app." },
+              { "h3": "Copiar o access token", "p": "Copie imediatamente o Admin API access token exibido após a instalação (exibido apenas uma vez)." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Assim que o Admin API access token aparecer após instalar o app, ele foi emitido corretamente. Ele é exibido apenas uma vez, então copie-o imediatamente." }
+          ]
+        },
+        {
+          "h2": "3. Informações a registrar no GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descrição"], "rows": [
+              ["shop_domain", "Domínio da loja no formato xxx.myshopify.com"],
+              ["access_token", "O Admin API access token emitido (manuseie com cuidado)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "No GenieGo [Registrar], insira seu shop_domain (xxx.myshopify.com) e access_token e salve. As credenciais são criptografadas em repouso com AES-256-GCM e mascaradas na leitura." }
+          ]
+        },
+        {
+          "h2": "4. Problemas comuns",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solução"], "rows": [
+              ["Não consigo ver o token novamente", "O Admin API access token é exibido apenas uma vez", "Se você perdeu o token, emita-o novamente no app personalizado e copie-o imediatamente."],
+              ["Erro de permissão insuficiente", "Admin API scopes não selecionados", "Selecione os Admin API scopes necessários e reinstale o app."],
+              ["Erro de domínio", "Formato do domínio da loja inserido incorretamente", "Insira o domínio da loja com precisão no formato xxx.myshopify.com."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Checklist final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Fiz login com permissão de administrador da loja Shopify.",
+              "Criei um app personalizado em Configurações > Aplicativos e canais de vendas > Desenvolver apps.",
+              "Selecionei os Admin API scopes e instalei o app.",
+              "Copiei imediatamente o Admin API access token exibido após a instalação.",
+              "Inseri shop_domain·access_token no GenieGo [Registrar] e salvei."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ru": {
+      "titleType": "Руководство по выпуску API Key",
+      "badge": "Beginner Guide",
+      "intro": "Пошаговое руководство по созданию пользовательского приложения в панели администратора Shopify (Admin) для выпуска Admin API access token и его регистрации вместе с доменом магазина в GenieGo Integration Hub для подключения вашего магазина Shopify.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Примерное время", "Около 5–15 мин"],
+        ["Требуемая учётная запись", "Права администратора магазина Shopify"],
+        ["Выпущенные ключи", "Домен магазина · Admin API access token"],
+        ["Результат", "Учётные данные Admin API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Перед началом",
+          "desc": "Пользовательское приложение Shopify можно создать только с правами администратора магазина.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Требуется", "h3": "Права администратора магазина", "p": "Чтобы создать пользовательское приложение и выпустить token, вам нужны права администратора (Admin) магазина Shopify." },
+              { "tag": "Выпущенные ключи", "h3": "Домен магазина · Admin API token", "p": "Вы получите домен магазина в формате xxx.myshopify.com и Admin API access token, который отображается после установки приложения." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Примечание:</strong> Admin API access token отображается только один раз сразу после установки, поэтому вы должны скопировать его немедленно, как только он появится." }
+          ]
+        },
+        {
+          "h2": "2. Шаги выпуска",
+          "desc": "Выполните выпуск в указанном ниже порядке и зарегистрируйте в GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Перейти к Приложениям и каналам продаж", "p": "В панели администратора Shopify (Admin) перейдите в [Настройки] > [Приложения и каналы продаж].", "path": "https://www.shopify.com/admin/settings/apps" },
+              { "h3": "Создать пользовательское приложение", "p": "Нажмите [Разработка приложений] > [Создать приложение], чтобы создать пользовательское приложение.", "path": "Разработка приложений → Создать приложение" },
+              { "h3": "Выбрать scopes · Установить приложение", "p": "Выберите Admin API scopes и установите приложение." },
+              { "h3": "Скопировать access token", "p": "Немедленно скопируйте Admin API access token, отображаемый после установки (отображается только один раз)." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Как только Admin API access token появится после установки приложения, он выпущен корректно. Он отображается только один раз, поэтому скопируйте его немедленно." }
+          ]
+        },
+        {
+          "h2": "3. Информация для регистрации в GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Поле", "Описание"], "rows": [
+              ["shop_domain", "Домен магазина в формате xxx.myshopify.com"],
+              ["access_token", "Выпущенный Admin API access token (обращайтесь осторожно)"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "В GenieGo [Регистрация] введите ваш shop_domain (xxx.myshopify.com) и access_token и сохраните. Учётные данные шифруются при хранении с помощью AES-256-GCM и маскируются при чтении." }
+          ]
+        },
+        {
+          "h2": "4. Частые проблемы",
+          "blocks": [
+            { "type": "table", "head": ["Проблема", "Причина", "Решение"], "rows": [
+              ["Не удаётся снова увидеть token", "Admin API access token отображается только один раз", "Если вы потеряли token, выпустите его повторно в пользовательском приложении и немедленно скопируйте."],
+              ["Ошибка недостаточных прав", "Admin API scopes не выбраны", "Выберите необходимые Admin API scopes, затем переустановите приложение."],
+              ["Ошибка домена", "Неправильно введён формат домена магазина", "Введите домен магазина точно в формате xxx.myshopify.com."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Финальный чек-лист",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Вошёл с правами администратора магазина Shopify.",
+              "Создал пользовательское приложение в Настройки > Приложения и каналы продаж > Разработка приложений.",
+              "Выбрал Admin API scopes и установил приложение.",
+              "Немедленно скопировал Admin API access token, отображённый после установки.",
+              "Ввёл shop_domain·access_token в GenieGo [Регистрация] и сохранил."
+            ] }
+          ]
+        }
+      ]
     }
   }
 }

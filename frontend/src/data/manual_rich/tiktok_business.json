@@ -147,6 +147,955 @@
           ]
         }
       ]
+    },
+    "ja": {
+      "titleType": "API キー発行マニュアル",
+      "badge": "Beginner Guide",
+      "intro": "TikTok for Business 開発者ポータルでアプリを作成してアクセストークンを発行し、広告主 ID（advertiser_id）とともに GenieGo 連携ハブに登録して TikTok Business の広告データを連携する手順をまとめたマニュアルです。",
+      "org": "GenieGo 連携ハブ",
+      "quick": [
+        ["所要時間", "約 10〜20 分（本番移行の審査は別途）"],
+        ["必要なアカウント", "TikTok For Business 広告アカウント"],
+        ["発行されるキー", "アクセストークン・広告主 ID"],
+        ["成果物", "TikTok Business API 認証情報"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 始める前に",
+          "desc": "TikTok Business 連携には広告アカウントと開発者（組織）登録が必要です。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必須", "h3": "TikTok For Business 広告アカウント", "p": "広告を実際に配信している TikTok For Business 広告アカウントが必要です。" },
+              { "tag": "発行されるキー", "h3": "アクセストークン・広告主 ID", "p": "アプリの App ID・Secret を使って広告主の認可を行い、アクセストークンを取得し、接続された advertiser_id を確認します。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意:</strong> 新規アプリはサンドボックス状態で開始し、本番（Production）へ切り替える際に審査が必要です。" }
+          ]
+        },
+        {
+          "h2": "2. 発行手順",
+          "desc": "以下の順番で発行し、GenieGo に登録します。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "開発者として登録", "p": "TikTok for Business 開発者ポータルにサインインし、開発者（組織）登録を完了します。", "path": "developers.tiktok.com" },
+              { "h3": "アプリを作成", "p": "[My Apps] > [Create an App] をクリックし、アプリ名と用途の説明を入力してアプリを作成します。", "path": "My Apps → Create an App" },
+              { "h3": "App ID・Secret を確認", "p": "アプリ詳細ページで App ID と Secret を確認します。" },
+              { "h3": "広告主を認可", "p": "広告主認可（authorization）リンクから広告アカウントへのアクセスを承認すると、auth_code が発行されます。" },
+              { "h3": "アクセストークンに交換", "p": "auth_code を access_token に交換します（アプリが自動処理するか、ポータルのガイドを参照）。" },
+              { "h3": "広告主 ID を確認", "p": "接続された advertiser_id（広告主 ID）を確認します。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "広告主認可の後に auth_code が access_token に交換され、advertiser_id が確認できれば正常に発行されています。" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo に登録する情報",
+          "blocks": [
+            { "type": "table", "head": ["フィールド", "説明"], "rows": [
+              ["access_token", "auth_code を交換して取得したアクセストークン（取り扱い注意）"],
+              ["advertiser_id", "接続された広告主 ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo の [登録] に access_token と advertiser_id を入力して保存します。認証情報は AES-256-GCM で暗号化保存され、参照時にはマスキングされます。" }
+          ]
+        },
+        {
+          "h2": "4. よくある問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決"], "rows": [
+              ["本番データを呼び出せない", "新規アプリがサンドボックス状態", "本番（Production）移行の審査を申請・完了してから呼び出します。"],
+              ["広告主認可に失敗する", "広告アカウントへのアクセス未承認、または誤った認可リンク", "広告主認可リンクから広告アカウントへのアクセスを再度承認し、auth_code を取得します。"],
+              ["トークン交換に失敗する", "auth_code の有効期限切れまたは再利用", "広告主認可を再度行い、新しい auth_code で access_token を交換します。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終チェックリスト",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "developers.tiktok.com で開発者（組織）登録を完了した。",
+              "My Apps > Create an App でアプリを作成し、用途の説明を入力した。",
+              "アプリ詳細で App ID・Secret を確認した。",
+              "広告主認可で auth_code を取得し、access_token に交換した。",
+              "接続された advertiser_id を確認した。",
+              "GenieGo の [登録] に access_token・advertiser_id を入力して保存した。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh": {
+      "titleType": "API 密钥申请手册",
+      "badge": "Beginner Guide",
+      "intro": "本手册介绍如何在 TikTok for Business 开发者门户中创建应用以签发访问令牌，并将其与广告主 ID（advertiser_id）一起注册到 GenieGo 集成中心，从而对接 TikTok Business 广告数据的完整流程。",
+      "org": "GenieGo 集成中心",
+      "quick": [
+        ["预计时间", "约 10–20 分钟（生产环境审核另计）"],
+        ["所需账户", "TikTok For Business 广告账户"],
+        ["签发密钥", "访问令牌 · 广告主 ID"],
+        ["产出", "TikTok Business API 凭据"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 开始之前",
+          "desc": "TikTok Business 集成需要广告账户和开发者（组织）注册。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必需", "h3": "TikTok For Business 广告账户", "p": "您需要一个正在投放广告的 TikTok For Business 广告账户。" },
+              { "tag": "签发密钥", "h3": "访问令牌 · 广告主 ID", "p": "使用应用的 App ID 和 Secret 对广告主进行授权，获取访问令牌，并确认已连接的 advertiser_id。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意：</strong>新建应用以沙盒状态开始，切换到生产环境（Production）时需要审核。" }
+          ]
+        },
+        {
+          "h2": "2. 申请步骤",
+          "desc": "按以下顺序申请并注册到 GenieGo。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "注册为开发者", "p": "登录 TikTok for Business 开发者门户，完成开发者（组织）注册。", "path": "developers.tiktok.com" },
+              { "h3": "创建应用", "p": "点击 [My Apps] > [Create an App]，输入应用名称和用途说明，然后创建应用。", "path": "My Apps → Create an App" },
+              { "h3": "查找 App ID 和 Secret", "p": "在应用详情页面查找 App ID 和 Secret。" },
+              { "h3": "授权广告主", "p": "通过广告主授权（authorization）链接批准广告账户访问后，将签发 auth_code。" },
+              { "h3": "交换访问令牌", "p": "将 auth_code 交换为 access_token（由应用自动处理，或参考门户指南）。" },
+              { "h3": "确认广告主 ID", "p": "确认已连接的 advertiser_id（广告主 ID）。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "在广告主授权后将 auth_code 交换为 access_token，并确认 advertiser_id 后，即表示已正确签发。" }
+          ]
+        },
+        {
+          "h2": "3. 需要在 GenieGo 中注册的信息",
+          "blocks": [
+            { "type": "table", "head": ["字段", "说明"], "rows": [
+              ["access_token", "通过交换 auth_code 获取的访问令牌（请妥善保管）"],
+              ["advertiser_id", "已连接的广告主 ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo [注册] 中输入 access_token 和 advertiser_id 并保存。凭据使用 AES-256-GCM 静态加密存储，读取时进行掩码处理。" }
+          ]
+        },
+        {
+          "h2": "4. 常见问题",
+          "blocks": [
+            { "type": "table", "head": ["问题", "原因", "解决"], "rows": [
+              ["无法调用生产数据", "新建应用处于沙盒状态", "申请并完成生产环境（Production）切换审核后再进行调用。"],
+              ["广告主授权失败", "未批准广告账户访问，或授权链接错误", "通过广告主授权链接重新批准广告账户访问以获取 auth_code。"],
+              ["令牌交换失败", "auth_code 已过期或被重复使用", "重新进行广告主授权，并用新的 auth_code 交换 access_token。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最终检查清单",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已在 developers.tiktok.com 完成开发者（组织）注册。",
+              "已通过 My Apps > Create an App 创建应用并输入用途说明。",
+              "已在应用详情中查找到 App ID 和 Secret。",
+              "已通过广告主授权获取 auth_code 并交换为 access_token。",
+              "已确认已连接的 advertiser_id。",
+              "已在 GenieGo [注册] 中输入 access_token·advertiser_id 并保存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "zh-TW": {
+      "titleType": "API 金鑰申請手冊",
+      "badge": "Beginner Guide",
+      "intro": "本手冊說明如何在 TikTok for Business 開發者入口網站中建立應用程式以核發存取權杖，並將其與廣告主 ID（advertiser_id）一起註冊到 GenieGo 整合中心，以連接 TikTok Business 廣告資料的完整流程。",
+      "org": "GenieGo 整合中心",
+      "quick": [
+        ["預計時間", "約 10–20 分鐘（正式環境審核另計）"],
+        ["所需帳戶", "TikTok For Business 廣告帳戶"],
+        ["核發金鑰", "存取權杖 · 廣告主 ID"],
+        ["產出", "TikTok Business API 憑證"]
+      ],
+      "sections": [
+        {
+          "h2": "1. 開始之前",
+          "desc": "TikTok Business 整合需要廣告帳戶和開發者（組織）註冊。",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "必要", "h3": "TikTok For Business 廣告帳戶", "p": "您需要一個正在投放廣告的 TikTok For Business 廣告帳戶。" },
+              { "tag": "核發金鑰", "h3": "存取權杖 · 廣告主 ID", "p": "使用應用程式的 App ID 和 Secret 對廣告主進行授權，取得存取權杖，並確認已連接的 advertiser_id。" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>注意：</strong>新建應用程式以沙盒狀態開始，切換到正式環境（Production）時需要審核。" }
+          ]
+        },
+        {
+          "h2": "2. 申請步驟",
+          "desc": "請按以下順序申請並註冊到 GenieGo。",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "註冊為開發者", "p": "登入 TikTok for Business 開發者入口網站，完成開發者（組織）註冊。", "path": "developers.tiktok.com" },
+              { "h3": "建立應用程式", "p": "點選 [My Apps] > [Create an App]，輸入應用程式名稱和用途說明，然後建立應用程式。", "path": "My Apps → Create an App" },
+              { "h3": "尋找 App ID 和 Secret", "p": "在應用程式詳細頁面尋找 App ID 和 Secret。" },
+              { "h3": "授權廣告主", "p": "透過廣告主授權（authorization）連結核准廣告帳戶存取後，將核發 auth_code。" },
+              { "h3": "交換存取權杖", "p": "將 auth_code 交換為 access_token（由應用程式自動處理，或參考入口網站指南）。" },
+              { "h3": "確認廣告主 ID", "p": "確認已連接的 advertiser_id（廣告主 ID）。" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "在廣告主授權後將 auth_code 交換為 access_token，並確認 advertiser_id 後，即表示已正確核發。" }
+          ]
+        },
+        {
+          "h2": "3. 需要在 GenieGo 中註冊的資訊",
+          "blocks": [
+            { "type": "table", "head": ["欄位", "說明"], "rows": [
+              ["access_token", "透過交換 auth_code 取得的存取權杖（請妥善保管）"],
+              ["advertiser_id", "已連接的廣告主 ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "在 GenieGo [註冊] 中輸入 access_token 和 advertiser_id 並儲存。憑證使用 AES-256-GCM 靜態加密儲存，讀取時進行遮罩處理。" }
+          ]
+        },
+        {
+          "h2": "4. 常見問題",
+          "blocks": [
+            { "type": "table", "head": ["問題", "原因", "解決"], "rows": [
+              ["無法呼叫正式環境資料", "新建應用程式處於沙盒狀態", "申請並完成正式環境（Production）切換審核後再進行呼叫。"],
+              ["廣告主授權失敗", "未核准廣告帳戶存取，或授權連結錯誤", "透過廣告主授權連結重新核准廣告帳戶存取以取得 auth_code。"],
+              ["權杖交換失敗", "auth_code 已過期或被重複使用", "重新進行廣告主授權，並用新的 auth_code 交換 access_token。"]
+            ] }
+          ]
+        },
+        {
+          "h2": "最終檢查清單",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "已在 developers.tiktok.com 完成開發者（組織）註冊。",
+              "已透過 My Apps > Create an App 建立應用程式並輸入用途說明。",
+              "已在應用程式詳細資訊中尋找到 App ID 和 Secret。",
+              "已透過廣告主授權取得 auth_code 並交換為 access_token。",
+              "已確認已連接的 advertiser_id。",
+              "已在 GenieGo [註冊] 中輸入 access_token·advertiser_id 並儲存。"
+            ] }
+          ]
+        }
+      ]
+    },
+    "de": {
+      "titleType": "Anleitung zur API-Schlüsselausstellung",
+      "badge": "Beginner Guide",
+      "intro": "Eine Schritt-für-Schritt-Anleitung zum Erstellen einer App im TikTok for Business-Entwicklerportal, um ein Zugriffstoken auszustellen, und zum Registrieren zusammen mit Ihrer Werbetreibenden-ID (advertiser_id) im GenieGo Integration Hub, um Ihre TikTok Business-Werbedaten anzubinden.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Geschätzte Zeit", "Etwa 10–20 Min. (Produktionsprüfung separat)"],
+        ["Benötigtes Konto", "TikTok For Business-Werbekonto"],
+        ["Ausgestellte Schlüssel", "Zugriffstoken · Werbetreibenden-ID"],
+        ["Ergebnis", "TikTok Business API-Anmeldedaten"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Bevor Sie beginnen",
+          "desc": "Die TikTok Business-Integration erfordert ein Werbekonto und eine Entwickler- (Organisations-) Registrierung.",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Erforderlich", "h3": "TikTok For Business-Werbekonto", "p": "Sie benötigen ein TikTok For Business-Werbekonto, das aktiv Anzeigen schaltet." },
+              { "tag": "Ausgestellte Schlüssel", "h3": "Zugriffstoken · Werbetreibenden-ID", "p": "Verwenden Sie die App ID und das Secret der App, um den Werbetreibenden zu autorisieren, ein Zugriffstoken zu erhalten und die verbundene advertiser_id zu bestätigen." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Hinweis:</strong> Neue Apps starten im Sandbox-Status, und beim Wechsel zu Production ist eine Prüfung erforderlich." }
+          ]
+        },
+        {
+          "h2": "2. Ausstellungsschritte",
+          "desc": "Stellen Sie in der unten angegebenen Reihenfolge aus und registrieren Sie sie in GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Als Entwickler registrieren", "p": "Melden Sie sich beim TikTok for Business-Entwicklerportal an und schließen Sie die Entwickler- (Organisations-) Registrierung ab.", "path": "developers.tiktok.com" },
+              { "h3": "App erstellen", "p": "Klicken Sie auf [My Apps] > [Create an App], geben Sie den App-Namen und eine Beschreibung ihres Zwecks ein und erstellen Sie die App.", "path": "My Apps → Create an App" },
+              { "h3": "App ID und Secret finden", "p": "Suchen Sie auf der App-Detailseite die App ID und das Secret." },
+              { "h3": "Werbetreibenden autorisieren", "p": "Genehmigen Sie den Zugriff auf das Werbekonto über den Autorisierungslink des Werbetreibenden, woraufhin ein auth_code ausgestellt wird." },
+              { "h3": "Gegen ein Zugriffstoken eintauschen", "p": "Tauschen Sie den auth_code gegen ein access_token ein (von der App automatisch verarbeitet oder gemäß der Portal-Anleitung)." },
+              { "h3": "Werbetreibenden-ID bestätigen", "p": "Bestätigen Sie die verbundene advertiser_id (Werbetreibenden-ID)." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Sobald der auth_code nach der Autorisierung des Werbetreibenden gegen ein access_token eingetauscht und die advertiser_id bestätigt wurde, ist die Ausstellung korrekt erfolgt." }
+          ]
+        },
+        {
+          "h2": "3. In GenieGo zu registrierende Informationen",
+          "blocks": [
+            { "type": "table", "head": ["Feld", "Beschreibung"], "rows": [
+              ["access_token", "Das durch Eintausch des auth_code erhaltene Zugriffstoken (vertraulich behandeln)"],
+              ["advertiser_id", "Die verbundene Werbetreibenden-ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Geben Sie Ihr access_token und advertiser_id in GenieGo [Registrieren] ein und speichern Sie. Anmeldedaten werden mit AES-256-GCM ruhend verschlüsselt und beim Lesen maskiert." }
+          ]
+        },
+        {
+          "h2": "4. Häufige Probleme",
+          "blocks": [
+            { "type": "table", "head": ["Problem", "Ursache", "Lösung"], "rows": [
+              ["Produktionsdaten können nicht abgerufen werden", "Neue App befindet sich im Sandbox-Status", "Beantragen und schließen Sie die Production-Wechselprüfung ab und führen Sie dann die Abrufe durch."],
+              ["Autorisierung des Werbetreibenden schlägt fehl", "Werbekontozugriff nicht genehmigt oder falscher Autorisierungslink", "Genehmigen Sie den Werbekontozugriff erneut über den Autorisierungslink des Werbetreibenden, um einen auth_code zu erhalten."],
+              ["Token-Austausch schlägt fehl", "auth_code abgelaufen oder wiederverwendet", "Wiederholen Sie die Autorisierung des Werbetreibenden und tauschen Sie einen neuen auth_code gegen ein access_token ein."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Abschließende Checkliste",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Die Entwickler- (Organisations-) Registrierung unter developers.tiktok.com abgeschlossen.",
+              "Über My Apps > Create an App eine App erstellt und eine Beschreibung ihres Zwecks eingegeben.",
+              "Die App ID und das Secret in den App-Details gefunden.",
+              "Über die Autorisierung des Werbetreibenden einen auth_code erhalten und gegen ein access_token eingetauscht.",
+              "Die verbundene advertiser_id bestätigt.",
+              "access_token·advertiser_id in GenieGo [Registrieren] eingegeben und gespeichert."
+            ] }
+          ]
+        }
+      ]
+    },
+    "th": {
+      "titleType": "คู่มือการออก API Key",
+      "badge": "Beginner Guide",
+      "intro": "คู่มือทีละขั้นตอนสำหรับการสร้างแอปในพอร์ทัลนักพัฒนา TikTok for Business เพื่อออกแอ็กเซสโทเค็น และลงทะเบียนพร้อมกับ ID ผู้ลงโฆษณา (advertiser_id) ใน GenieGo Integration Hub เพื่อเชื่อมต่อข้อมูลโฆษณา TikTok Business ของคุณ",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["เวลาโดยประมาณ", "ประมาณ 10–20 นาที (การตรวจสอบโปรดักชันแยกต่างหาก)"],
+        ["บัญชีที่ต้องใช้", "บัญชีโฆษณา TikTok For Business"],
+        ["คีย์ที่ออกให้", "แอ็กเซสโทเค็น · ID ผู้ลงโฆษณา"],
+        ["ผลลัพธ์", "ข้อมูลรับรอง TikTok Business API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. ก่อนเริ่มต้น",
+          "desc": "การเชื่อมต่อ TikTok Business ต้องมีบัญชีโฆษณาและการลงทะเบียนนักพัฒนา (องค์กร)",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "จำเป็น", "h3": "บัญชีโฆษณา TikTok For Business", "p": "คุณต้องมีบัญชีโฆษณา TikTok For Business ที่กำลังลงโฆษณาอยู่" },
+              { "tag": "คีย์ที่ออกให้", "h3": "แอ็กเซสโทเค็น · ID ผู้ลงโฆษณา", "p": "ใช้ App ID และ Secret ของแอปเพื่อให้สิทธิ์ผู้ลงโฆษณา รับแอ็กเซสโทเค็น และยืนยัน advertiser_id ที่เชื่อมต่ออยู่" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>หมายเหตุ:</strong> แอปใหม่จะเริ่มต้นในสถานะแซนด์บ็อกซ์ และจำเป็นต้องมีการตรวจสอบเมื่อเปลี่ยนไปยัง Production" }
+          ]
+        },
+        {
+          "h2": "2. ขั้นตอนการออกคีย์",
+          "desc": "ออกตามลำดับด้านล่างและลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "ลงทะเบียนเป็นนักพัฒนา", "p": "ลงชื่อเข้าใช้พอร์ทัลนักพัฒนา TikTok for Business และทำการลงทะเบียนนักพัฒนา (องค์กร) ให้เสร็จสมบูรณ์", "path": "developers.tiktok.com" },
+              { "h3": "สร้างแอป", "p": "คลิก [My Apps] > [Create an App] ป้อนชื่อแอปและคำอธิบายวัตถุประสงค์ แล้วสร้างแอป", "path": "My Apps → Create an App" },
+              { "h3": "ค้นหา App ID และ Secret", "p": "ในหน้ารายละเอียดแอป ให้ค้นหา App ID และ Secret" },
+              { "h3": "ให้สิทธิ์ผู้ลงโฆษณา", "p": "อนุมัติการเข้าถึงบัญชีโฆษณาผ่านลิงก์ให้สิทธิ์ (authorization) ผู้ลงโฆษณา แล้วระบบจะออก auth_code" },
+              { "h3": "แลกเปลี่ยนเป็นแอ็กเซสโทเค็น", "p": "แลกเปลี่ยน auth_code เป็น access_token (แอปจัดการให้โดยอัตโนมัติ หรือดูคู่มือในพอร์ทัล)" },
+              { "h3": "ยืนยัน ID ผู้ลงโฆษณา", "p": "ยืนยัน advertiser_id (ID ผู้ลงโฆษณา) ที่เชื่อมต่ออยู่" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "เมื่อ auth_code ถูกแลกเปลี่ยนเป็น access_token หลังจากให้สิทธิ์ผู้ลงโฆษณา และยืนยัน advertiser_id แล้ว แสดงว่าออกคีย์ได้อย่างถูกต้อง" }
+          ]
+        },
+        {
+          "h2": "3. ข้อมูลที่ต้องลงทะเบียนใน GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["ฟิลด์", "คำอธิบาย"], "rows": [
+              ["access_token", "แอ็กเซสโทเค็นที่ได้จากการแลกเปลี่ยน auth_code (จัดการด้วยความระมัดระวัง)"],
+              ["advertiser_id", "ID ผู้ลงโฆษณาที่เชื่อมต่ออยู่"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "ป้อน access_token และ advertiser_id ใน GenieGo [ลงทะเบียน] แล้วบันทึก ข้อมูลรับรองจะถูกเข้ารหัสขณะจัดเก็บด้วย AES-256-GCM และถูกปิดบังเมื่ออ่าน" }
+          ]
+        },
+        {
+          "h2": "4. ปัญหาที่พบบ่อย",
+          "blocks": [
+            { "type": "table", "head": ["ปัญหา", "สาเหตุ", "วิธีแก้"], "rows": [
+              ["เรียกข้อมูลโปรดักชันไม่ได้", "แอปใหม่อยู่ในสถานะแซนด์บ็อกซ์", "ยื่นขอและทำการตรวจสอบการเปลี่ยนไปยัง Production ให้เสร็จสมบูรณ์ แล้วจึงเรียกใช้งาน"],
+              ["การให้สิทธิ์ผู้ลงโฆษณาล้มเหลว", "ยังไม่ได้อนุมัติการเข้าถึงบัญชีโฆษณา หรือลิงก์ให้สิทธิ์ไม่ถูกต้อง", "อนุมัติการเข้าถึงบัญชีโฆษณาอีกครั้งผ่านลิงก์ให้สิทธิ์ผู้ลงโฆษณาเพื่อรับ auth_code"],
+              ["การแลกเปลี่ยนโทเค็นล้มเหลว", "auth_code หมดอายุหรือถูกใช้ซ้ำ", "ทำการให้สิทธิ์ผู้ลงโฆษณาอีกครั้ง และแลกเปลี่ยน auth_code ใหม่เป็น access_token"]
+            ] }
+          ]
+        },
+        {
+          "h2": "เช็กลิสต์สุดท้าย",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "ทำการลงทะเบียนนักพัฒนา (องค์กร) ที่ developers.tiktok.com เสร็จสมบูรณ์แล้ว",
+              "สร้างแอปผ่าน My Apps > Create an App และป้อนคำอธิบายวัตถุประสงค์แล้ว",
+              "ค้นหา App ID และ Secret ในรายละเอียดแอปแล้ว",
+              "ได้รับ auth_code ผ่านการให้สิทธิ์ผู้ลงโฆษณา และแลกเปลี่ยนเป็น access_token แล้ว",
+              "ยืนยัน advertiser_id ที่เชื่อมต่ออยู่แล้ว",
+              "ป้อน access_token·advertiser_id ใน GenieGo [ลงทะเบียน] และบันทึกแล้ว"
+            ] }
+          ]
+        }
+      ]
+    },
+    "vi": {
+      "titleType": "Hướng dẫn cấp API Key",
+      "badge": "Beginner Guide",
+      "intro": "Hướng dẫn từng bước để tạo một ứng dụng trong cổng nhà phát triển TikTok for Business nhằm cấp access token và đăng ký nó cùng với ID nhà quảng cáo (advertiser_id) trong GenieGo Integration Hub để kết nối dữ liệu quảng cáo TikTok Business của bạn.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Thời gian dự kiến", "Khoảng 10–20 phút (đánh giá production tính riêng)"],
+        ["Tài khoản cần có", "Tài khoản quảng cáo TikTok For Business"],
+        ["Khóa được cấp", "Access token · ID nhà quảng cáo"],
+        ["Kết quả", "Thông tin xác thực TikTok Business API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Trước khi bắt đầu",
+          "desc": "Tích hợp TikTok Business yêu cầu một tài khoản quảng cáo và đăng ký nhà phát triển (tổ chức).",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Bắt buộc", "h3": "Tài khoản quảng cáo TikTok For Business", "p": "Bạn cần một tài khoản quảng cáo TikTok For Business đang chạy quảng cáo." },
+              { "tag": "Khóa được cấp", "h3": "Access token · ID nhà quảng cáo", "p": "Sử dụng App ID và Secret của ứng dụng để cấp quyền cho nhà quảng cáo, lấy access token và xác nhận advertiser_id đã kết nối." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Lưu ý:</strong> Ứng dụng mới bắt đầu ở trạng thái sandbox, và cần được đánh giá khi chuyển sang Production." }
+          ]
+        },
+        {
+          "h2": "2. Các bước cấp",
+          "desc": "Cấp theo thứ tự dưới đây và đăng ký trong GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Đăng ký làm nhà phát triển", "p": "Đăng nhập vào cổng nhà phát triển TikTok for Business và hoàn tất đăng ký nhà phát triển (tổ chức).", "path": "developers.tiktok.com" },
+              { "h3": "Tạo ứng dụng", "p": "Nhấp [My Apps] > [Create an App], nhập tên ứng dụng và mô tả mục đích của nó, rồi tạo ứng dụng.", "path": "My Apps → Create an App" },
+              { "h3": "Tìm App ID và Secret", "p": "Trên trang chi tiết ứng dụng, tìm App ID và Secret." },
+              { "h3": "Cấp quyền cho nhà quảng cáo", "p": "Phê duyệt quyền truy cập tài khoản quảng cáo qua liên kết cấp quyền (authorization) của nhà quảng cáo, và một auth_code sẽ được cấp." },
+              { "h3": "Đổi lấy access token", "p": "Đổi auth_code lấy access_token (do ứng dụng tự động xử lý, hoặc tham khảo hướng dẫn trên cổng)." },
+              { "h3": "Xác nhận ID nhà quảng cáo", "p": "Xác nhận advertiser_id (ID nhà quảng cáo) đã kết nối." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Khi auth_code được đổi lấy access_token sau khi cấp quyền cho nhà quảng cáo và advertiser_id được xác nhận, nghĩa là đã cấp đúng cách." }
+          ]
+        },
+        {
+          "h2": "3. Thông tin cần đăng ký trong GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Trường", "Mô tả"], "rows": [
+              ["access_token", "Access token thu được bằng cách đổi auth_code (xử lý cẩn thận)"],
+              ["advertiser_id", "ID nhà quảng cáo đã kết nối"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Nhập access_token và advertiser_id của bạn vào GenieGo [Đăng ký] và lưu. Thông tin xác thực được mã hóa khi lưu trữ bằng AES-256-GCM và được che khi đọc." }
+          ]
+        },
+        {
+          "h2": "4. Sự cố thường gặp",
+          "blocks": [
+            { "type": "table", "head": ["Sự cố", "Nguyên nhân", "Giải pháp"], "rows": [
+              ["Không thể gọi dữ liệu production", "Ứng dụng mới ở trạng thái sandbox", "Đăng ký và hoàn tất đánh giá chuyển sang Production, rồi mới thực hiện các lệnh gọi."],
+              ["Cấp quyền nhà quảng cáo thất bại", "Chưa phê duyệt quyền truy cập tài khoản quảng cáo, hoặc liên kết cấp quyền sai", "Phê duyệt lại quyền truy cập tài khoản quảng cáo qua liên kết cấp quyền của nhà quảng cáo để lấy auth_code."],
+              ["Đổi token thất bại", "auth_code đã hết hạn hoặc bị dùng lại", "Lặp lại việc cấp quyền nhà quảng cáo và đổi một auth_code mới lấy access_token."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Danh sách kiểm tra cuối cùng",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Đã hoàn tất đăng ký nhà phát triển (tổ chức) tại developers.tiktok.com.",
+              "Đã tạo một ứng dụng qua My Apps > Create an App và nhập mô tả mục đích của nó.",
+              "Đã tìm App ID và Secret trong chi tiết ứng dụng.",
+              "Đã nhận một auth_code qua cấp quyền nhà quảng cáo và đổi nó lấy access_token.",
+              "Đã xác nhận advertiser_id đã kết nối.",
+              "Đã nhập access_token·advertiser_id vào GenieGo [Đăng ký] và lưu."
+            ] }
+          ]
+        }
+      ]
+    },
+    "id": {
+      "titleType": "Panduan Penerbitan API Key",
+      "badge": "Beginner Guide",
+      "intro": "Panduan langkah demi langkah untuk membuat aplikasi di portal pengembang TikTok for Business guna menerbitkan access token dan mendaftarkannya bersama ID pengiklan (advertiser_id) di GenieGo Integration Hub untuk menghubungkan data iklan TikTok Business Anda.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Perkiraan waktu", "Sekitar 10–20 mnt (peninjauan produksi terpisah)"],
+        ["Akun yang dibutuhkan", "Akun iklan TikTok For Business"],
+        ["Kunci yang diterbitkan", "Access token · ID pengiklan"],
+        ["Hasil", "Kredensial TikTok Business API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Sebelum Memulai",
+          "desc": "Integrasi TikTok Business memerlukan akun iklan dan pendaftaran pengembang (organisasi).",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Wajib", "h3": "Akun iklan TikTok For Business", "p": "Anda memerlukan akun iklan TikTok For Business yang sedang aktif menjalankan iklan." },
+              { "tag": "Kunci yang diterbitkan", "h3": "Access token · ID pengiklan", "p": "Gunakan App ID dan Secret aplikasi untuk mengotorisasi pengiklan, memperoleh access token, dan mengonfirmasi advertiser_id yang terhubung." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Catatan:</strong> Aplikasi baru dimulai dalam status sandbox, dan peninjauan diperlukan saat beralih ke Production." }
+          ]
+        },
+        {
+          "h2": "2. Langkah Penerbitan",
+          "desc": "Terbitkan sesuai urutan di bawah ini dan daftarkan di GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Daftar sebagai pengembang", "p": "Masuk ke portal pengembang TikTok for Business dan selesaikan pendaftaran pengembang (organisasi).", "path": "developers.tiktok.com" },
+              { "h3": "Buat aplikasi", "p": "Klik [My Apps] > [Create an App], masukkan nama aplikasi dan deskripsi tujuannya, lalu buat aplikasi.", "path": "My Apps → Create an App" },
+              { "h3": "Temukan App ID dan Secret", "p": "Di halaman detail aplikasi, temukan App ID dan Secret." },
+              { "h3": "Otorisasi pengiklan", "p": "Setujui akses akun iklan melalui tautan otorisasi (authorization) pengiklan, dan sebuah auth_code akan diterbitkan." },
+              { "h3": "Tukarkan dengan access token", "p": "Tukarkan auth_code dengan access_token (ditangani otomatis oleh aplikasi, atau lihat panduan portal)." },
+              { "h3": "Konfirmasi ID pengiklan", "p": "Konfirmasi advertiser_id (ID pengiklan) yang terhubung." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Setelah auth_code ditukar dengan access_token usai otorisasi pengiklan dan advertiser_id dikonfirmasi, maka penerbitan telah benar." }
+          ]
+        },
+        {
+          "h2": "3. Informasi yang Harus Didaftarkan di GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Bidang", "Deskripsi"], "rows": [
+              ["access_token", "Access token yang diperoleh dengan menukar auth_code (tangani dengan hati-hati)"],
+              ["advertiser_id", "ID pengiklan yang terhubung"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Masukkan access_token dan advertiser_id Anda di GenieGo [Daftar] lalu simpan. Kredensial dienkripsi saat disimpan dengan AES-256-GCM dan disamarkan saat dibaca." }
+          ]
+        },
+        {
+          "h2": "4. Masalah Umum",
+          "blocks": [
+            { "type": "table", "head": ["Masalah", "Penyebab", "Solusi"], "rows": [
+              ["Data produksi tidak dapat dipanggil", "Aplikasi baru berada dalam status sandbox", "Ajukan dan selesaikan peninjauan peralihan ke Production, lalu lakukan panggilan."],
+              ["Otorisasi pengiklan gagal", "Akses akun iklan belum disetujui, atau tautan otorisasi salah", "Setujui ulang akses akun iklan melalui tautan otorisasi pengiklan untuk memperoleh auth_code."],
+              ["Pertukaran token gagal", "auth_code kedaluwarsa atau digunakan ulang", "Ulangi otorisasi pengiklan dan tukarkan auth_code baru dengan access_token."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Daftar Periksa Akhir",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Menyelesaikan pendaftaran pengembang (organisasi) di developers.tiktok.com.",
+              "Membuat aplikasi melalui My Apps > Create an App dan memasukkan deskripsi tujuannya.",
+              "Menemukan App ID dan Secret di detail aplikasi.",
+              "Menerima auth_code melalui otorisasi pengiklan dan menukarnya dengan access_token.",
+              "Mengonfirmasi advertiser_id yang terhubung.",
+              "Memasukkan access_token·advertiser_id di GenieGo [Daftar] dan menyimpannya."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ar": {
+      "titleType": "دليل إصدار مفتاح API",
+      "badge": "Beginner Guide",
+      "intro": "دليل خطوة بخطوة لإنشاء تطبيق في بوابة مطوري TikTok for Business لإصدار رمز وصول وتسجيله مع معرّف المعلِن (advertiser_id) في GenieGo Integration Hub لربط بيانات إعلانات TikTok Business الخاصة بك.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["الوقت المقدَّر", "حوالي 10–20 دقيقة (مراجعة الإنتاج منفصلة)"],
+        ["الحساب المطلوب", "حساب إعلانات TikTok For Business"],
+        ["المفاتيح المُصدَرة", "رمز الوصول · معرّف المعلِن"],
+        ["النتيجة", "بيانات اعتماد TikTok Business API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. قبل أن تبدأ",
+          "desc": "يتطلب تكامل TikTok Business حساب إعلانات وتسجيل مطوّر (مؤسسة).",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "مطلوب", "h3": "حساب إعلانات TikTok For Business", "p": "تحتاج إلى حساب إعلانات TikTok For Business يقوم بتشغيل الإعلانات بنشاط." },
+              { "tag": "المفاتيح المُصدَرة", "h3": "رمز الوصول · معرّف المعلِن", "p": "استخدم App ID و Secret الخاصين بالتطبيق لتفويض المعلِن، والحصول على رمز وصول، وتأكيد advertiser_id المتصل." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>ملاحظة:</strong> تبدأ التطبيقات الجديدة في حالة الـ sandbox، وتكون المراجعة مطلوبة عند التبديل إلى Production." }
+          ]
+        },
+        {
+          "h2": "2. خطوات الإصدار",
+          "desc": "أصدِر بالترتيب أدناه وسجّل في GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "التسجيل كمطوّر", "p": "سجّل الدخول إلى بوابة مطوري TikTok for Business وأكمل تسجيل المطوّر (المؤسسة).", "path": "developers.tiktok.com" },
+              { "h3": "إنشاء تطبيق", "p": "انقر على [My Apps] > [Create an App]، وأدخل اسم التطبيق ووصفًا للغرض منه، ثم أنشئ التطبيق.", "path": "My Apps → Create an App" },
+              { "h3": "العثور على App ID و Secret", "p": "في صفحة تفاصيل التطبيق، اعثر على App ID و Secret." },
+              { "h3": "تفويض المعلِن", "p": "وافِق على الوصول إلى حساب الإعلانات عبر رابط تفويض (authorization) المعلِن، وسيتم إصدار auth_code." },
+              { "h3": "الاستبدال برمز وصول", "p": "استبدل auth_code بـ access_token (يتولاه التطبيق تلقائيًا، أو راجع دليل البوابة)." },
+              { "h3": "تأكيد معرّف المعلِن", "p": "أكّد advertiser_id (معرّف المعلِن) المتصل." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "بمجرد استبدال auth_code بـ access_token بعد تفويض المعلِن وتأكيد advertiser_id، يكون قد تم الإصدار بشكل صحيح." }
+          ]
+        },
+        {
+          "h2": "3. المعلومات المراد تسجيلها في GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["الحقل", "الوصف"], "rows": [
+              ["access_token", "رمز الوصول الذي تم الحصول عليه باستبدال auth_code (تعامل معه بحذر)"],
+              ["advertiser_id", "معرّف المعلِن المتصل"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "أدخل access_token و advertiser_id في GenieGo [تسجيل] واحفظ. يتم تشفير بيانات الاعتماد أثناء التخزين باستخدام AES-256-GCM وإخفاؤها عند القراءة." }
+          ]
+        },
+        {
+          "h2": "4. المشكلات الشائعة",
+          "blocks": [
+            { "type": "table", "head": ["المشكلة", "السبب", "الحل"], "rows": [
+              ["تعذّر استدعاء بيانات الإنتاج", "التطبيق الجديد في حالة sandbox", "قدّم طلب مراجعة التبديل إلى Production وأكمله، ثم أجرِ الاستدعاءات."],
+              ["فشل تفويض المعلِن", "لم تتم الموافقة على الوصول إلى حساب الإعلانات، أو رابط التفويض خاطئ", "أعِد الموافقة على الوصول إلى حساب الإعلانات عبر رابط تفويض المعلِن للحصول على auth_code."],
+              ["فشل استبدال الرمز", "انتهت صلاحية auth_code أو أعيد استخدامه", "كرّر تفويض المعلِن واستبدل auth_code جديدًا بـ access_token."]
+            ] }
+          ]
+        },
+        {
+          "h2": "قائمة التحقق النهائية",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "أكملتُ تسجيل المطوّر (المؤسسة) على developers.tiktok.com.",
+              "أنشأتُ تطبيقًا عبر My Apps > Create an App وأدخلتُ وصفًا للغرض منه.",
+              "عثرتُ على App ID و Secret في تفاصيل التطبيق.",
+              "حصلتُ على auth_code عبر تفويض المعلِن واستبدلتُه بـ access_token.",
+              "أكّدتُ advertiser_id المتصل.",
+              "أدخلتُ access_token·advertiser_id في GenieGo [تسجيل] وحفظتُه."
+            ] }
+          ]
+        }
+      ]
+    },
+    "es": {
+      "titleType": "Manual de emisión de la clave de API",
+      "badge": "Beginner Guide",
+      "intro": "Una guía paso a paso para crear una aplicación en el portal de desarrolladores de TikTok for Business con el fin de emitir un token de acceso y registrarlo junto con tu ID de anunciante (advertiser_id) en el GenieGo Integration Hub para conectar los datos publicitarios de TikTok Business.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tiempo estimado", "Unos 10–20 min (revisión de producción aparte)"],
+        ["Cuenta necesaria", "Cuenta publicitaria de TikTok For Business"],
+        ["Claves emitidas", "Token de acceso · ID de anunciante"],
+        ["Resultado", "Credenciales de la API de TikTok Business"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de empezar",
+          "desc": "La integración con TikTok Business requiere una cuenta publicitaria y el registro como desarrollador (organización).",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Obligatorio", "h3": "Cuenta publicitaria de TikTok For Business", "p": "Necesitas una cuenta publicitaria de TikTok For Business que esté ejecutando anuncios activamente." },
+              { "tag": "Claves emitidas", "h3": "Token de acceso · ID de anunciante", "p": "Usa el App ID y el Secret de la aplicación para autorizar al anunciante, obtener un token de acceso y confirmar el advertiser_id conectado." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Nota:</strong> Las aplicaciones nuevas empiezan en estado de sandbox, y se requiere una revisión al cambiar a Production." }
+          ]
+        },
+        {
+          "h2": "2. Pasos de emisión",
+          "desc": "Emite en el orden siguiente y registra en GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Regístrate como desarrollador", "p": "Inicia sesión en el portal de desarrolladores de TikTok for Business y completa el registro como desarrollador (organización).", "path": "developers.tiktok.com" },
+              { "h3": "Crea una aplicación", "p": "Haz clic en [My Apps] > [Create an App], introduce el nombre de la aplicación y una descripción de su propósito, y crea la aplicación.", "path": "My Apps → Create an App" },
+              { "h3": "Encuentra tu App ID y Secret", "p": "En la página de detalles de la aplicación, encuentra el App ID y el Secret." },
+              { "h3": "Autoriza al anunciante", "p": "Aprueba el acceso a la cuenta publicitaria mediante el enlace de autorización (authorization) del anunciante, y se emitirá un auth_code." },
+              { "h3": "Canjea por un token de acceso", "p": "Canjea el auth_code por un access_token (lo gestiona automáticamente la aplicación, o consulta la guía del portal)." },
+              { "h3": "Confirma tu ID de anunciante", "p": "Confirma el advertiser_id (ID de anunciante) conectado." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Una vez que el auth_code se canjea por un access_token tras la autorización del anunciante y se confirma el advertiser_id, la emisión se ha realizado correctamente." }
+          ]
+        },
+        {
+          "h2": "3. Información para registrar en GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descripción"], "rows": [
+              ["access_token", "El token de acceso obtenido al canjear el auth_code (manéjalo con cuidado)"],
+              ["advertiser_id", "El ID de anunciante conectado"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Introduce tu access_token y advertiser_id en GenieGo [Registrar] y guarda. Las credenciales se cifran en reposo con AES-256-GCM y se enmascaran al leerlas." }
+          ]
+        },
+        {
+          "h2": "4. Problemas frecuentes",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solución"], "rows": [
+              ["No se pueden solicitar datos de producción", "La aplicación nueva está en estado de sandbox", "Solicita y completa la revisión de cambio a Production, y luego realiza las llamadas."],
+              ["Falla la autorización del anunciante", "Acceso a la cuenta publicitaria no aprobado, o enlace de autorización incorrecto", "Vuelve a aprobar el acceso a la cuenta publicitaria mediante el enlace de autorización del anunciante para obtener un auth_code."],
+              ["Falla el canje del token", "auth_code caducado o reutilizado", "Repite la autorización del anunciante y canjea un nuevo auth_code por un access_token."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificación final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Completé el registro como desarrollador (organización) en developers.tiktok.com.",
+              "Creé una aplicación mediante My Apps > Create an App e introduje una descripción de su propósito.",
+              "Encontré el App ID y el Secret en los detalles de la aplicación.",
+              "Recibí un auth_code mediante la autorización del anunciante y lo canjeé por un access_token.",
+              "Confirmé el advertiser_id conectado.",
+              "Introduje access_token·advertiser_id en GenieGo [Registrar] y guardé."
+            ] }
+          ]
+        }
+      ]
+    },
+    "fr": {
+      "titleType": "Manuel de délivrance de la clé API",
+      "badge": "Beginner Guide",
+      "intro": "Un guide étape par étape pour créer une application dans le portail développeur TikTok for Business afin de délivrer un jeton d'accès et l'enregistrer avec votre ID d'annonceur (advertiser_id) dans le GenieGo Integration Hub pour connecter vos données publicitaires TikTok Business.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Temps estimé", "Environ 10–20 min (revue de production à part)"],
+        ["Compte requis", "Compte publicitaire TikTok For Business"],
+        ["Clés délivrées", "Jeton d'accès · ID d'annonceur"],
+        ["Résultat", "Identifiants de l'API TikTok Business"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Avant de commencer",
+          "desc": "L'intégration TikTok Business nécessite un compte publicitaire et une inscription en tant que développeur (organisation).",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Requis", "h3": "Compte publicitaire TikTok For Business", "p": "Vous avez besoin d'un compte publicitaire TikTok For Business qui diffuse activement des annonces." },
+              { "tag": "Clés délivrées", "h3": "Jeton d'accès · ID d'annonceur", "p": "Utilisez l'App ID et le Secret de l'application pour autoriser l'annonceur, obtenir un jeton d'accès et confirmer l'advertiser_id connecté." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Remarque :</strong> Les nouvelles applications démarrent en état sandbox, et une revue est requise lors du passage à Production." }
+          ]
+        },
+        {
+          "h2": "2. Étapes de délivrance",
+          "desc": "Délivrez dans l'ordre ci-dessous et enregistrez dans GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Inscrivez-vous comme développeur", "p": "Connectez-vous au portail développeur TikTok for Business et complétez l'inscription en tant que développeur (organisation).", "path": "developers.tiktok.com" },
+              { "h3": "Créez une application", "p": "Cliquez sur [My Apps] > [Create an App], saisissez le nom de l'application et une description de son objectif, puis créez l'application.", "path": "My Apps → Create an App" },
+              { "h3": "Trouvez votre App ID et Secret", "p": "Sur la page de détails de l'application, trouvez l'App ID et le Secret." },
+              { "h3": "Autorisez l'annonceur", "p": "Approuvez l'accès au compte publicitaire via le lien d'autorisation (authorization) de l'annonceur, et un auth_code est délivré." },
+              { "h3": "Échangez contre un jeton d'accès", "p": "Échangez l'auth_code contre un access_token (géré automatiquement par l'application, ou consultez le guide du portail)." },
+              { "h3": "Confirmez votre ID d'annonceur", "p": "Confirmez l'advertiser_id (ID d'annonceur) connecté." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Une fois l'auth_code échangé contre un access_token après l'autorisation de l'annonceur et l'advertiser_id confirmé, la délivrance est correcte." }
+          ]
+        },
+        {
+          "h2": "3. Informations à enregistrer dans GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Champ", "Description"], "rows": [
+              ["access_token", "Le jeton d'accès obtenu en échangeant l'auth_code (à manipuler avec précaution)"],
+              ["advertiser_id", "L'ID d'annonceur connecté"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Saisissez votre access_token et advertiser_id dans GenieGo [Enregistrer] et enregistrez. Les identifiants sont chiffrés au repos avec AES-256-GCM et masqués à la lecture." }
+          ]
+        },
+        {
+          "h2": "4. Problèmes fréquents",
+          "blocks": [
+            { "type": "table", "head": ["Problème", "Cause", "Solution"], "rows": [
+              ["Impossible d'appeler les données de production", "La nouvelle application est en état sandbox", "Demandez et terminez la revue de passage à Production, puis effectuez les appels."],
+              ["L'autorisation de l'annonceur échoue", "Accès au compte publicitaire non approuvé, ou lien d'autorisation incorrect", "Réapprouvez l'accès au compte publicitaire via le lien d'autorisation de l'annonceur pour obtenir un auth_code."],
+              ["L'échange du jeton échoue", "auth_code expiré ou réutilisé", "Répétez l'autorisation de l'annonceur et échangez un nouvel auth_code contre un access_token."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Liste de vérification finale",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Terminé l'inscription en tant que développeur (organisation) sur developers.tiktok.com.",
+              "Créé une application via My Apps > Create an App et saisi une description de son objectif.",
+              "Trouvé l'App ID et le Secret dans les détails de l'application.",
+              "Reçu un auth_code via l'autorisation de l'annonceur et l'échangé contre un access_token.",
+              "Confirmé l'advertiser_id connecté.",
+              "Saisi access_token·advertiser_id dans GenieGo [Enregistrer] et enregistré."
+            ] }
+          ]
+        }
+      ]
+    },
+    "hi": {
+      "titleType": "API Key जारी करने की नियमावली",
+      "badge": "Beginner Guide",
+      "intro": "एक्सेस टोकन जारी करने के लिए TikTok for Business डेवलपर पोर्टल में एक ऐप बनाने और अपने विज्ञापनदाता ID (advertiser_id) के साथ इसे GenieGo Integration Hub में पंजीकृत करके अपने TikTok Business विज्ञापन डेटा को जोड़ने की चरण-दर-चरण मार्गदर्शिका।",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["अनुमानित समय", "लगभग 10–20 मिनट (प्रोडक्शन समीक्षा अलग)"],
+        ["आवश्यक खाता", "TikTok For Business विज्ञापन खाता"],
+        ["जारी की गई कुंजियाँ", "एक्सेस टोकन · विज्ञापनदाता ID"],
+        ["परिणाम", "TikTok Business API क्रेडेंशियल"]
+      ],
+      "sections": [
+        {
+          "h2": "1. शुरू करने से पहले",
+          "desc": "TikTok Business एकीकरण के लिए एक विज्ञापन खाता और डेवलपर (संगठन) पंजीकरण आवश्यक है।",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "आवश्यक", "h3": "TikTok For Business विज्ञापन खाता", "p": "आपके पास एक TikTok For Business विज्ञापन खाता होना चाहिए जो सक्रिय रूप से विज्ञापन चला रहा हो।" },
+              { "tag": "जारी की गई कुंजियाँ", "h3": "एक्सेस टोकन · विज्ञापनदाता ID", "p": "विज्ञापनदाता को अधिकृत करने, एक एक्सेस टोकन प्राप्त करने और जुड़े हुए advertiser_id की पुष्टि करने के लिए ऐप के App ID और Secret का उपयोग करें।" }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>नोट:</strong> नए ऐप sandbox स्थिति में शुरू होते हैं, और Production पर स्विच करते समय समीक्षा आवश्यक है।" }
+          ]
+        },
+        {
+          "h2": "2. जारी करने के चरण",
+          "desc": "नीचे दिए गए क्रम में जारी करें और GenieGo में पंजीकृत करें।",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "डेवलपर के रूप में पंजीकरण करें", "p": "TikTok for Business डेवलपर पोर्टल में साइन इन करें और डेवलपर (संगठन) पंजीकरण पूरा करें।", "path": "developers.tiktok.com" },
+              { "h3": "एक ऐप बनाएँ", "p": "[My Apps] > [Create an App] पर क्लिक करें, ऐप का नाम और उसके उद्देश्य का विवरण दर्ज करें, और ऐप बनाएँ।", "path": "My Apps → Create an App" },
+              { "h3": "अपना App ID और Secret खोजें", "p": "ऐप विवरण पृष्ठ पर, App ID और Secret खोजें।" },
+              { "h3": "विज्ञापनदाता को अधिकृत करें", "p": "विज्ञापनदाता प्राधिकरण (authorization) लिंक के माध्यम से विज्ञापन खाते की पहुँच को स्वीकृत करें, और एक auth_code जारी होता है।" },
+              { "h3": "एक्सेस टोकन के लिए विनिमय करें", "p": "auth_code को access_token के लिए विनिमय करें (ऐप द्वारा स्वचालित रूप से संभाला जाता है, या पोर्टल मार्गदर्शिका देखें)।" },
+              { "h3": "अपने विज्ञापनदाता ID की पुष्टि करें", "p": "जुड़े हुए advertiser_id (विज्ञापनदाता ID) की पुष्टि करें।" }
+            ] },
+            { "type": "notice", "kind": "success", "html": "विज्ञापनदाता प्राधिकरण के बाद जब auth_code का access_token के लिए विनिमय हो जाता है और advertiser_id की पुष्टि हो जाती है, तो यह सही ढंग से जारी हो गया है।" }
+          ]
+        },
+        {
+          "h2": "3. GenieGo में पंजीकृत करने की जानकारी",
+          "blocks": [
+            { "type": "table", "head": ["फ़ील्ड", "विवरण"], "rows": [
+              ["access_token", "auth_code का विनिमय करके प्राप्त एक्सेस टोकन (सावधानी से संभालें)"],
+              ["advertiser_id", "जुड़ा हुआ विज्ञापनदाता ID"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "GenieGo [पंजीकरण] में अपना access_token और advertiser_id दर्ज करें और सहेजें। क्रेडेंशियल AES-256-GCM के साथ संग्रहण के दौरान एन्क्रिप्ट किए जाते हैं और पढ़ते समय मास्क किए जाते हैं।" }
+          ]
+        },
+        {
+          "h2": "4. आम समस्याएँ",
+          "blocks": [
+            { "type": "table", "head": ["समस्या", "कारण", "समाधान"], "rows": [
+              ["प्रोडक्शन डेटा कॉल नहीं किया जा सकता", "नया ऐप sandbox स्थिति में है", "Production स्विच समीक्षा के लिए आवेदन करें और पूरा करें, फिर कॉल करें।"],
+              ["विज्ञापनदाता प्राधिकरण विफल", "विज्ञापन खाते की पहुँच स्वीकृत नहीं, या गलत प्राधिकरण लिंक", "auth_code प्राप्त करने के लिए विज्ञापनदाता प्राधिकरण लिंक के माध्यम से विज्ञापन खाते की पहुँच को फिर से स्वीकृत करें।"],
+              ["टोकन विनिमय विफल", "auth_code समाप्त हो गया या पुनः उपयोग किया गया", "विज्ञापनदाता प्राधिकरण दोबारा करें और एक नए auth_code को access_token के लिए विनिमय करें।"]
+            ] }
+          ]
+        },
+        {
+          "h2": "अंतिम जाँच-सूची",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "developers.tiktok.com पर डेवलपर (संगठन) पंजीकरण पूरा किया।",
+              "My Apps > Create an App के माध्यम से एक ऐप बनाया और उसके उद्देश्य का विवरण दर्ज किया।",
+              "ऐप विवरण में App ID और Secret खोजा।",
+              "विज्ञापनदाता प्राधिकरण के माध्यम से एक auth_code प्राप्त किया और उसे access_token के लिए विनिमय किया।",
+              "जुड़े हुए advertiser_id की पुष्टि की।",
+              "GenieGo [पंजीकरण] में access_token·advertiser_id दर्ज किया और सहेजा।"
+            ] }
+          ]
+        }
+      ]
+    },
+    "pt": {
+      "titleType": "Manual de emissão de chave de API",
+      "badge": "Beginner Guide",
+      "intro": "Um guia passo a passo para criar um aplicativo no portal de desenvolvedores do TikTok for Business a fim de emitir um token de acesso e registrá-lo junto com o seu ID de anunciante (advertiser_id) no GenieGo Integration Hub para conectar os dados de publicidade do TikTok Business.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Tempo estimado", "Cerca de 10–20 min (revisão de produção à parte)"],
+        ["Conta necessária", "Conta de anúncios do TikTok For Business"],
+        ["Chaves emitidas", "Token de acesso · ID de anunciante"],
+        ["Resultado", "Credenciais da API do TikTok Business"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Antes de começar",
+          "desc": "A integração com o TikTok Business requer uma conta de anúncios e o registro de desenvolvedor (organização).",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Obrigatório", "h3": "Conta de anúncios do TikTok For Business", "p": "Você precisa de uma conta de anúncios do TikTok For Business que esteja veiculando anúncios ativamente." },
+              { "tag": "Chaves emitidas", "h3": "Token de acesso · ID de anunciante", "p": "Use o App ID e o Secret do aplicativo para autorizar o anunciante, obter um token de acesso e confirmar o advertiser_id conectado." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Observação:</strong> Aplicativos novos começam no estado de sandbox, e uma revisão é necessária ao mudar para Production." }
+          ]
+        },
+        {
+          "h2": "2. Etapas de emissão",
+          "desc": "Emita na ordem abaixo e registre no GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Registre-se como desenvolvedor", "p": "Faça login no portal de desenvolvedores do TikTok for Business e conclua o registro de desenvolvedor (organização).", "path": "developers.tiktok.com" },
+              { "h3": "Crie um aplicativo", "p": "Clique em [My Apps] > [Create an App], insira o nome do aplicativo e uma descrição de sua finalidade, e crie o aplicativo.", "path": "My Apps → Create an App" },
+              { "h3": "Encontre seu App ID e Secret", "p": "Na página de detalhes do aplicativo, encontre o App ID e o Secret." },
+              { "h3": "Autorize o anunciante", "p": "Aprove o acesso à conta de anúncios pelo link de autorização (authorization) do anunciante, e um auth_code é emitido." },
+              { "h3": "Troque por um token de acesso", "p": "Troque o auth_code por um access_token (tratado automaticamente pelo aplicativo, ou consulte o guia do portal)." },
+              { "h3": "Confirme seu ID de anunciante", "p": "Confirme o advertiser_id (ID de anunciante) conectado." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Quando o auth_code é trocado por um access_token após a autorização do anunciante e o advertiser_id é confirmado, a emissão foi feita corretamente." }
+          ]
+        },
+        {
+          "h2": "3. Informações para registrar no GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Campo", "Descrição"], "rows": [
+              ["access_token", "O token de acesso obtido ao trocar o auth_code (manuseie com cuidado)"],
+              ["advertiser_id", "O ID de anunciante conectado"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Insira seu access_token e advertiser_id no GenieGo [Registrar] e salve. As credenciais são criptografadas em repouso com AES-256-GCM e mascaradas na leitura." }
+          ]
+        },
+        {
+          "h2": "4. Problemas comuns",
+          "blocks": [
+            { "type": "table", "head": ["Problema", "Causa", "Solução"], "rows": [
+              ["Não é possível chamar dados de produção", "O aplicativo novo está no estado de sandbox", "Solicite e conclua a revisão de mudança para Production e, em seguida, faça as chamadas."],
+              ["A autorização do anunciante falha", "Acesso à conta de anúncios não aprovado, ou link de autorização incorreto", "Aprove novamente o acesso à conta de anúncios pelo link de autorização do anunciante para obter um auth_code."],
+              ["A troca do token falha", "auth_code expirado ou reutilizado", "Repita a autorização do anunciante e troque um novo auth_code por um access_token."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Lista de verificação final",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Concluí o registro de desenvolvedor (organização) em developers.tiktok.com.",
+              "Criei um aplicativo via My Apps > Create an App e inseri uma descrição de sua finalidade.",
+              "Encontrei o App ID e o Secret nos detalhes do aplicativo.",
+              "Recebi um auth_code pela autorização do anunciante e o troquei por um access_token.",
+              "Confirmei o advertiser_id conectado.",
+              "Inseri access_token·advertiser_id no GenieGo [Registrar] e salvei."
+            ] }
+          ]
+        }
+      ]
+    },
+    "ru": {
+      "titleType": "Руководство по выпуску API-ключа",
+      "badge": "Beginner Guide",
+      "intro": "Пошаговое руководство по созданию приложения в портале разработчиков TikTok for Business для выпуска токена доступа и его регистрации вместе с идентификатором рекламодателя (advertiser_id) в GenieGo Integration Hub для подключения рекламных данных TikTok Business.",
+      "org": "GenieGo Integration Hub",
+      "quick": [
+        ["Примерное время", "Около 10–20 мин (проверка для production отдельно)"],
+        ["Необходимый аккаунт", "Рекламный аккаунт TikTok For Business"],
+        ["Выпускаемые ключи", "Токен доступа · ID рекламодателя"],
+        ["Результат", "Учётные данные TikTok Business API"]
+      ],
+      "sections": [
+        {
+          "h2": "1. Прежде чем начать",
+          "desc": "Для интеграции с TikTok Business требуются рекламный аккаунт и регистрация разработчика (организации).",
+          "blocks": [
+            { "type": "cards", "items": [
+              { "tag": "Требуется", "h3": "Рекламный аккаунт TikTok For Business", "p": "Вам нужен рекламный аккаунт TikTok For Business, который активно показывает рекламу." },
+              { "tag": "Выпускаемые ключи", "h3": "Токен доступа · ID рекламодателя", "p": "Используйте App ID и Secret приложения, чтобы авторизовать рекламодателя, получить токен доступа и подтвердить подключённый advertiser_id." }
+            ] },
+            { "type": "notice", "kind": "", "html": "<strong>Примечание:</strong> Новые приложения начинают работу в состоянии sandbox, и при переходе на Production требуется проверка." }
+          ]
+        },
+        {
+          "h2": "2. Шаги выпуска",
+          "desc": "Выпустите в указанном ниже порядке и зарегистрируйте в GenieGo.",
+          "blocks": [
+            { "type": "steps", "items": [
+              { "h3": "Зарегистрируйтесь как разработчик", "p": "Войдите в портал разработчиков TikTok for Business и завершите регистрацию разработчика (организации).", "path": "developers.tiktok.com" },
+              { "h3": "Создайте приложение", "p": "Нажмите [My Apps] > [Create an App], введите имя приложения и описание его назначения, затем создайте приложение.", "path": "My Apps → Create an App" },
+              { "h3": "Найдите свои App ID и Secret", "p": "На странице сведений о приложении найдите App ID и Secret." },
+              { "h3": "Авторизуйте рекламодателя", "p": "Одобрите доступ к рекламному аккаунту по ссылке авторизации (authorization) рекламодателя, после чего будет выпущен auth_code." },
+              { "h3": "Обменяйте на токен доступа", "p": "Обменяйте auth_code на access_token (обрабатывается приложением автоматически или см. руководство портала)." },
+              { "h3": "Подтвердите свой ID рекламодателя", "p": "Подтвердите подключённый advertiser_id (ID рекламодателя)." }
+            ] },
+            { "type": "notice", "kind": "success", "html": "Как только auth_code обменян на access_token после авторизации рекламодателя и advertiser_id подтверждён, выпуск выполнен правильно." }
+          ]
+        },
+        {
+          "h2": "3. Информация для регистрации в GenieGo",
+          "blocks": [
+            { "type": "table", "head": ["Поле", "Описание"], "rows": [
+              ["access_token", "Токен доступа, полученный путём обмена auth_code (обращайтесь осторожно)"],
+              ["advertiser_id", "Подключённый ID рекламодателя"]
+            ] },
+            { "type": "notice", "kind": "success", "html": "Введите свои access_token и advertiser_id в GenieGo [Зарегистрировать] и сохраните. Учётные данные шифруются при хранении с помощью AES-256-GCM и маскируются при чтении." }
+          ]
+        },
+        {
+          "h2": "4. Частые проблемы",
+          "blocks": [
+            { "type": "table", "head": ["Проблема", "Причина", "Решение"], "rows": [
+              ["Не удаётся вызвать данные production", "Новое приложение находится в состоянии sandbox", "Подайте заявку и завершите проверку перехода на Production, затем выполняйте вызовы."],
+              ["Авторизация рекламодателя не удаётся", "Доступ к рекламному аккаунту не одобрен или неверная ссылка авторизации", "Повторно одобрите доступ к рекламному аккаунту по ссылке авторизации рекламодателя, чтобы получить auth_code."],
+              ["Обмен токена не удаётся", "auth_code истёк или использован повторно", "Повторите авторизацию рекламодателя и обменяйте новый auth_code на access_token."]
+            ] }
+          ]
+        },
+        {
+          "h2": "Итоговый контрольный список",
+          "blocks": [
+            { "type": "checklist", "items": [
+              "Завершил регистрацию разработчика (организации) на developers.tiktok.com.",
+              "Создал приложение через My Apps > Create an App и ввёл описание его назначения.",
+              "Нашёл App ID и Secret в сведениях о приложении.",
+              "Получил auth_code через авторизацию рекламодателя и обменял его на access_token.",
+              "Подтвердил подключённый advertiser_id.",
+              "Ввёл access_token·advertiser_id в GenieGo [Зарегистрировать] и сохранил."
+            ] }
+          ]
+        }
+      ]
     }
   }
 }
