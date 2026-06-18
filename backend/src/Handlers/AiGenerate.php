@@ -52,17 +52,8 @@ final class AiGenerate
     {
         // 204차 P1: SQLite 전용 DDL(INTEGER PK AUTOINCREMENT)이 MySQL 주backend 에서 throw → 전 /api/ai/* 500. 드라이버 분기.
         $pdo = Db::pdo();
+        Db::ensureAiSettings($pdo); // SSOT: ai_settings 를 Db::ensureAiSettings 로 일원화(종전 ClaudeAI 와 중복 제거)
         if ($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql') {
-            $pdo->exec("CREATE TABLE IF NOT EXISTS ai_settings (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                tenant_id VARCHAR(100) NOT NULL,
-                provider VARCHAR(32) DEFAULT 'claude',
-                api_key TEXT,
-                model VARCHAR(64) DEFAULT 'claude-3-5-haiku-20241022',
-                is_active TINYINT DEFAULT 1,
-                updated_at VARCHAR(32),
-                UNIQUE KEY uq_tenant (tenant_id)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
             $pdo->exec("CREATE TABLE IF NOT EXISTS ai_generate_log (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 tenant_id VARCHAR(100) NOT NULL,
@@ -73,16 +64,6 @@ final class AiGenerate
                 created_at VARCHAR(32)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
         } else {
-            $pdo->exec("CREATE TABLE IF NOT EXISTS ai_settings (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                tenant_id TEXT NOT NULL,
-                provider TEXT DEFAULT 'claude',
-                api_key TEXT,
-                model TEXT DEFAULT 'claude-3-5-haiku-20241022',
-                is_active INTEGER DEFAULT 1,
-                updated_at TEXT,
-                UNIQUE(tenant_id)
-            )");
             $pdo->exec("CREATE TABLE IF NOT EXISTS ai_generate_log (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 tenant_id TEXT NOT NULL,

@@ -2006,10 +2006,8 @@ final class UserAuth
     // ═════════════════════════════════════════════════════════════
     private static function ensureAppSetting(\PDO $pdo): void
     {
-        static $done = false;
-        if ($done) return;
-        $done = true;
-        try { $pdo->exec("CREATE TABLE IF NOT EXISTS app_setting (skey VARCHAR(64) PRIMARY KEY, svalue TEXT, updated_at VARCHAR(32))"); } catch (\Throwable $e) {}
+        // SSOT: 전역 KV 스토어 단일 정의(Db::ensureAppSetting) — PDO 별 멱등 보장
+        Db::ensureAppSetting($pdo);
     }
 
     private static function getAppSetting(\PDO $pdo, string $k): string

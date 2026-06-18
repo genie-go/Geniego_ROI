@@ -132,11 +132,7 @@ final class ClaudeAI {
 
     /** [현 차수] ai_settings 에 구독회원별 이미지/동영상 생성 API 컬럼 보강(멱등). */
     private static function ensureCreativeApiCols(PDO $pdo): void {
-        try {
-            $isMy = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql';
-            if ($isMy) $pdo->exec("CREATE TABLE IF NOT EXISTS ai_settings (id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) UNIQUE, provider VARCHAR(32) DEFAULT 'claude', api_key TEXT, model VARCHAR(64), is_active TINYINT(1) DEFAULT 1, updated_at VARCHAR(40))");
-            else $pdo->exec("CREATE TABLE IF NOT EXISTS ai_settings (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT UNIQUE, provider TEXT DEFAULT 'claude', api_key TEXT, model TEXT, is_active INTEGER DEFAULT 1, updated_at TEXT)");
-        } catch (\Throwable $e) {}
+        try { Db::ensureAiSettings($pdo); } catch (\Throwable $e) {} // SSOT: Db::ensureAiSettings 일원화
         foreach (['imggen_provider VARCHAR(32)', 'imggen_key TEXT', 'videogen_provider VARCHAR(32)', 'videogen_key TEXT', 'videogen_model VARCHAR(64)'] as $col) {
             try { $pdo->exec("ALTER TABLE ai_settings ADD COLUMN $col"); } catch (\Throwable $e) {}
         }

@@ -206,17 +206,8 @@ final class CouponEngine
             error_log('[CouponEngine] table init: ' . $e->getMessage());
         }
         // 212차 #5: free_coupons / coupon_redemptions 자동 보장(데모 등 미마이그레이션 DB 대응) — fire() 자급자족.
-        try {
-            if ($driver === 'mysql') {
-                $pdo->exec("CREATE TABLE IF NOT EXISTS free_coupons (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, code VARCHAR(50) NOT NULL UNIQUE, plan VARCHAR(30) NOT NULL DEFAULT 'starter', duration_days INT NOT NULL DEFAULT 30, max_uses INT NOT NULL DEFAULT 1, use_count INT NOT NULL DEFAULT 0, issued_to_user_id BIGINT UNSIGNED NULL, issued_to_email VARCHAR(255) NULL, issued_by BIGINT UNSIGNED NOT NULL DEFAULT 0, note TEXT NULL, is_revoked TINYINT(1) NOT NULL DEFAULT 0, redeemed_at DATETIME NULL, redeemed_by_user_id BIGINT UNSIGNED NULL, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
-                $pdo->exec("CREATE TABLE IF NOT EXISTS coupon_redemptions (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, coupon_id BIGINT UNSIGNED NOT NULL, user_id BIGINT UNSIGNED NOT NULL, plan VARCHAR(30) NOT NULL, expires_at DATETIME NOT NULL, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, UNIQUE KEY uq_coupon_user (coupon_id, user_id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
-            } else {
-                $pdo->exec("CREATE TABLE IF NOT EXISTS free_coupons (id INTEGER PRIMARY KEY AUTOINCREMENT, code TEXT NOT NULL UNIQUE, plan TEXT NOT NULL DEFAULT 'starter', duration_days INTEGER NOT NULL DEFAULT 30, max_uses INTEGER NOT NULL DEFAULT 1, use_count INTEGER NOT NULL DEFAULT 0, issued_to_user_id INTEGER NULL, issued_to_email TEXT NULL, issued_by INTEGER NOT NULL DEFAULT 0, note TEXT NULL, is_revoked INTEGER NOT NULL DEFAULT 0, redeemed_at TEXT NULL, redeemed_by_user_id INTEGER NULL, created_at TEXT NOT NULL DEFAULT (datetime('now')))");
-                $pdo->exec("CREATE TABLE IF NOT EXISTS coupon_redemptions (id INTEGER PRIMARY KEY AUTOINCREMENT, coupon_id INTEGER NOT NULL, user_id INTEGER NOT NULL, plan TEXT NOT NULL, expires_at TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT (datetime('now')), UNIQUE(coupon_id, user_id))");
-            }
-        } catch (\Throwable $e) {
-            error_log('[CouponEngine] coupon table init: ' . $e->getMessage());
-        }
+        // SSOT: 동일 DDL 을 Db::ensureCouponTables 로 일원화(종전 UserAdmin 과 중복 제거).
+        Db::ensureCouponTables($pdo);
         try {
             $stmt = $pdo->prepare(
                 "SELECT * FROM coupon_rules WHERE trigger_name = ? AND is_active = 1 LIMIT 1"

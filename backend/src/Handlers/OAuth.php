@@ -52,12 +52,11 @@ class OAuth
         try {
             if ($isMy) {
                 $pdo->exec("CREATE TABLE IF NOT EXISTS oauth_state (id INT AUTO_INCREMENT PRIMARY KEY, state VARCHAR(80) NOT NULL, tenant_id VARCHAR(100) NOT NULL, provider VARCHAR(40) NOT NULL, created_at VARCHAR(32), UNIQUE KEY uq_oauth_state (state)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
-                $pdo->exec("CREATE TABLE IF NOT EXISTS app_setting (skey VARCHAR(64) PRIMARY KEY, svalue TEXT, updated_at VARCHAR(32))");
             } else {
                 $pdo->exec("CREATE TABLE IF NOT EXISTS oauth_state (id INTEGER PRIMARY KEY AUTOINCREMENT, state TEXT NOT NULL, tenant_id TEXT NOT NULL, provider TEXT NOT NULL, created_at TEXT)");
                 try { $pdo->exec("CREATE UNIQUE INDEX IF NOT EXISTS uq_oauth_state ON oauth_state(state)"); } catch (\Throwable $e) {}
-                $pdo->exec("CREATE TABLE IF NOT EXISTS app_setting (skey TEXT PRIMARY KEY, svalue TEXT, updated_at TEXT)");
             }
+            Db::ensureAppSetting($pdo); // SSOT: 전역 KV 스토어 단일 정의(Db::ensureAppSetting)
             // [228차] 채널키 불일치 수정: 인가를 시작한 '레지스트리 채널키'(예: meta_ads)를 state 에 함께 보관 →
             //   콜백이 provider('meta')뿐 아니라 registry 채널에도 토큰을 반영하고 발급신청을 완료 처리한다.
             try { $pdo->exec("ALTER TABLE oauth_state ADD COLUMN channel " . ($isMy ? "VARCHAR(60)" : "TEXT")); } catch (\Throwable $e) {}

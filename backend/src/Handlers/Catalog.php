@@ -212,6 +212,7 @@ class Catalog
         $status = self::channelStatus($pdo, $tenant, $channel, $action);
         self::upsert($pdo, $tenant, $channel, $sku, $f, $status);
         self::logJob($pdo, $tenant, $channel, $sku, (string)($body['operation'] ?? 'publish'), $status, $f);
+        Db::audit($pdo, $tenant, 'catalog.writeback', ['channel'=>$channel, 'sku'=>$sku, 'action'=>$action, 'status'=>$status]); // 감사: 상품 writeback
         return self::jsonRes($res, ['ok' => true, 'status' => $status, 'channel' => $channel, 'sku' => $sku]);
     }
 
@@ -269,6 +270,7 @@ class Catalog
             try { $pushed = self::processWritebackQueue($pdo, $tenant, null, 200); }
             catch (\Throwable $e) { /* 큐는 남아 cron/재호출로 재개 */ }
         }
+        Db::audit($pdo, $tenant, 'catalog.bulk_price', ['updated'=>$updated, 'enqueued'=>$enqueued, 'changed'=>count($changed)]); // 감사: 일괄 가격변경
         return self::jsonRes($res, ['ok' => true, 'updated' => $updated, 'enqueued' => $enqueued, 'pushed' => $pushed]);
     }
 

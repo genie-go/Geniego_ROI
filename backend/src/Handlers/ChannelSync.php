@@ -208,29 +208,7 @@ final class ChannelSync
             synced_at TEXT,
             UNIQUE(tenant_id, channel, channel_product_id)
         )");
-        $exec("CREATE TABLE IF NOT EXISTS channel_orders (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            tenant_id TEXT NOT NULL DEFAULT 'demo',
-            channel TEXT NOT NULL,
-            channel_order_id TEXT,
-            order_no TEXT,
-            buyer_name TEXT,
-            buyer_email TEXT,
-            product_name TEXT,
-            sku TEXT,
-            qty INTEGER DEFAULT 1,
-            unit_price REAL DEFAULT 0,
-            total_price REAL DEFAULT 0,
-            status TEXT DEFAULT 'pending',
-            carrier TEXT,
-            tracking_no TEXT,
-            addr TEXT,
-            ordered_at TEXT,
-            event_type TEXT DEFAULT 'order',
-            raw_json TEXT,
-            synced_at TEXT,
-            UNIQUE(tenant_id, channel, channel_order_id)
-        )");
+        Db::ensureChannelOrders($pdo); // SSOT: channel_orders 를 Db::ensureChannelOrders 로 일원화(종전 LiveCommerce 와 중복 제거)
         $exec("CREATE TABLE IF NOT EXISTS channel_inventory (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             tenant_id TEXT NOT NULL DEFAULT 'demo',
@@ -2286,6 +2264,7 @@ final class ChannelSync
             $pdo->prepare("UPDATE channel_credential SET last_synced_at=?,sync_status=?,test_status='ok' WHERE id=?")->execute([$now,$syncStatus,$credId]);
         }
 
+        Db::audit($pdo, $tenant, 'channel_sync.save_credential', ['cred_id'=>$credId, 'channel'=>$channel, 'synced'=>$result['ok'] && !$pending]); // 감사: 자격증명 저장(보안)
         return TemplateResponder::respond($res, [
             'ok'            => true,
             'cred_id'       => $credId,
@@ -2312,6 +2291,7 @@ final class ChannelSync
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         if (!$row) return TemplateResponder::respond($res->withStatus(404),['error'=>'Not found']);
         $pdo->prepare("DELETE FROM channel_credential WHERE id=? AND tenant_id=?")->execute([$id,$tenant]);
+        Db::audit($pdo, $tenant, 'channel_sync.delete_credential', ['cred_id'=>$id, 'channel'=>$row['channel'] ?? null]); // 감사: 자격증명 삭제(보안)
         return TemplateResponder::respond($res,['ok'=>true,'deleted_id'=>$id]);
     }
 

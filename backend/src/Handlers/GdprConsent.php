@@ -74,7 +74,7 @@ final class GdprConsent
         try {
             $pdo = Db::pdo();
             // Crypto 키와 동일 패턴: app_setting(skey/svalue)에 1회 생성·영속(안정 서명키).
-            $pdo->exec("CREATE TABLE IF NOT EXISTS app_setting (skey VARCHAR(64) PRIMARY KEY, svalue TEXT, updated_at VARCHAR(32))");
+            Db::ensureAppSetting($pdo); // SSOT: 전역 KV 스토어 단일 정의(Db::ensureAppSetting)
             $sel = $pdo->prepare("SELECT svalue FROM app_setting WHERE skey='gdpr_sign_secret' LIMIT 1");
             $sel->execute();
             $v = $sel->fetchColumn();

@@ -33,7 +33,7 @@ final class Crypto
         try {
             $pdo = Db::pdo();
             // 플랫폼 정본 app_setting 스키마(skey/svalue) 사용(196차 smtp 등과 공유).
-            $pdo->exec("CREATE TABLE IF NOT EXISTS app_setting (skey VARCHAR(64) PRIMARY KEY, svalue TEXT, updated_at VARCHAR(32))");
+            Db::ensureAppSetting($pdo); // SSOT: 전역 KV 스토어 단일 정의(Db::ensureAppSetting)
             $sel = $pdo->prepare("SELECT svalue FROM app_setting WHERE skey='cred_enc_key' LIMIT 1");
             $sel->execute();
             $v = $sel->fetchColumn();

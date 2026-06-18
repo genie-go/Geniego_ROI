@@ -131,20 +131,8 @@ class LiveCommerce
         }
         // 208차 검수: OMS 미러 대상 channel_orders 존재 보장(ChannelSync 미사용 테넌트 대비).
         //   ChannelSync::ensureTables 는 private → 동일 스키마를 IF NOT EXISTS 로 보강(이미 있으면 no-op).
-        try {
-            if (self::isMysql($pdo)) {
-                $pdo->exec("CREATE TABLE IF NOT EXISTS channel_orders (
-                    id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(190) NOT NULL DEFAULT 'demo', channel VARCHAR(190) NOT NULL,
-                    channel_order_id VARCHAR(190), order_no VARCHAR(190), buyer_name VARCHAR(190), buyer_email VARCHAR(190),
-                    product_name VARCHAR(255), sku VARCHAR(190), qty INT DEFAULT 1, unit_price DOUBLE DEFAULT 0, total_price DOUBLE DEFAULT 0,
-                    status VARCHAR(40) DEFAULT 'pending', carrier VARCHAR(120), tracking_no VARCHAR(120), addr TEXT, ordered_at VARCHAR(32),
-                    event_type VARCHAR(40) DEFAULT 'order', raw_json TEXT, synced_at VARCHAR(32),
-                    UNIQUE KEY uq_co (tenant_id, channel, channel_order_id), KEY idx_co_tenant (tenant_id)
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
-            } else {
-                $pdo->exec("CREATE TABLE IF NOT EXISTS channel_orders (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', channel TEXT NOT NULL, channel_order_id TEXT, order_no TEXT, buyer_name TEXT, buyer_email TEXT, product_name TEXT, sku TEXT, qty INTEGER DEFAULT 1, unit_price REAL DEFAULT 0, total_price REAL DEFAULT 0, status TEXT DEFAULT 'pending', carrier TEXT, tracking_no TEXT, addr TEXT, ordered_at TEXT, event_type TEXT DEFAULT 'order', raw_json TEXT, synced_at TEXT, UNIQUE(tenant_id, channel, channel_order_id))");
-            }
-        } catch (\Throwable $e) { /* 이미 ChannelSync 가 생성했으면 no-op */ }
+        // SSOT: channel_orders 를 Db::ensureChannelOrders 로 일원화(종전 ChannelSync 와 동일 스키마 중복 제거)
+        try { Db::ensureChannelOrders($pdo); } catch (\Throwable $e) { /* 이미 생성됐으면 no-op */ }
     }
 
     /* ════════════════ 방송 세션(Sessions) ════════════════ */

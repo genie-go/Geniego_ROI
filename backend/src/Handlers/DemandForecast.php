@@ -240,13 +240,8 @@ class DemandForecast
         $lead    = max(1, min(60, (int)($b['lead'] ?? 7)));
         $horizon = max(7, min(60, (int)($b['horizon'] ?? 14)));
         $z = 1.65;
-        // wms_supply_orders 보장(driver-aware, IF NOT EXISTS 멱등)
-        $isMy = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql';
-        if ($isMy) {
-            $pdo->exec("CREATE TABLE IF NOT EXISTS wms_supply_orders (id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo', sku VARCHAR(120), name TEXT, qty DOUBLE DEFAULT 0, supplier VARCHAR(160), wh_id VARCHAR(60), status VARCHAR(30) DEFAULT 'pending', eta VARCHAR(32), created_at VARCHAR(32), updated_at VARCHAR(32), KEY idx_wso_tenant (tenant_id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
-        } else {
-            $pdo->exec("CREATE TABLE IF NOT EXISTS wms_supply_orders (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', sku TEXT, name TEXT, qty REAL DEFAULT 0, supplier TEXT, wh_id TEXT, status TEXT DEFAULT 'pending', eta TEXT, created_at TEXT, updated_at TEXT)");
-        }
+        // wms_supply_orders 보장 — SSOT: Db::ensureWmsSupplyOrders 로 일원화(종전 Wms 와 중복 제거, IF NOT EXISTS 멱등)
+        Db::ensureWmsSupplyOrders($pdo);
         // 현재 재고 맵(channel_inventory.available 합산)
         $stockMap = [];
         try {

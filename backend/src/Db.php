@@ -255,8 +255,128 @@ final class Db
         }
     }
 
+    /**
+     * 전역 KV 스토어 app_setting 존재 보장 (SSOT, 단일 정의).
+     * 락게이트 migrate() 를 우회해 어디서든 1회 호출로 존재 보장한다.
+     * 종전 OAuth/UserAuth/GdprConsent 등에 분산되어 있던 동일 DDL 을 본 메서드로 일원화.
+     * PDO(=DB)별 멱등 메모 → prod/demo 동일 워커에서도 각 DB 에 정확히 보장.
+     */
+    public static function ensureAppSetting(PDO $pdo): void
+    {
+        static $done = [];
+        $oid = spl_object_id($pdo);
+        if (isset($done[$oid])) return;
+        try {
+            if (self::isMySQL($pdo)) {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS app_setting (skey VARCHAR(64) PRIMARY KEY, svalue TEXT, updated_at VARCHAR(32))");
+            } else {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS app_setting (skey TEXT PRIMARY KEY, svalue TEXT, updated_at TEXT)");
+            }
+            $done[$oid] = true;
+        } catch (\Throwable $e) { /* idempotent: 이미 존재 등 무시 */ }
+    }
+
+    /**
+     * 쿠폰 코어 테이블 free_coupons / coupon_redemptions 존재 보장 (SSOT, 단일 정의).
+     * 종전 CouponEngine / UserAdmin 에 분산되어 있던 동일 컬럼 DDL 을 본 메서드로 일원화.
+     * 컬럼 집합은 양측 정의의 상위집합(인덱스 포함). plan 기본값은 'starter'(발급 시 항상 명시되어 무영향).
+     * 락게이트 migrate() 를 우회해 어디서든 1회 호출로 존재 보장. PDO(=DB)별 멱등 메모.
+     * 주: coupon_rules(+기본규칙 시드)는 CouponEngine 도메인 로직이라 본 메서드 범위 밖.
+     */
+    public static function ensureCouponTables(PDO $pdo): void
+    {
+        static $done = [];
+        $oid = spl_object_id($pdo);
+        if (isset($done[$oid])) return;
+        try {
+            if (self::isMySQL($pdo)) {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS free_coupons (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, code VARCHAR(50) NOT NULL UNIQUE, plan VARCHAR(30) NOT NULL DEFAULT 'starter', duration_days INT NOT NULL DEFAULT 30, max_uses INT NOT NULL DEFAULT 1, use_count INT NOT NULL DEFAULT 0, issued_to_user_id BIGINT UNSIGNED NULL, issued_to_email VARCHAR(255) NULL, issued_by BIGINT UNSIGNED NOT NULL DEFAULT 0, note TEXT NULL, is_revoked TINYINT(1) NOT NULL DEFAULT 0, redeemed_at DATETIME NULL, redeemed_by_user_id BIGINT UNSIGNED NULL, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, INDEX idx_code(code), INDEX idx_issued_to(issued_to_user_id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+                $pdo->exec("CREATE TABLE IF NOT EXISTS coupon_redemptions (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, coupon_id BIGINT UNSIGNED NOT NULL, user_id BIGINT UNSIGNED NOT NULL, plan VARCHAR(30) NOT NULL, expires_at DATETIME NOT NULL, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, UNIQUE KEY uq_coupon_user (coupon_id, user_id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+            } else {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS free_coupons (id INTEGER PRIMARY KEY AUTOINCREMENT, code TEXT NOT NULL UNIQUE, plan TEXT NOT NULL DEFAULT 'starter', duration_days INTEGER NOT NULL DEFAULT 30, max_uses INTEGER NOT NULL DEFAULT 1, use_count INTEGER NOT NULL DEFAULT 0, issued_to_user_id INTEGER NULL, issued_to_email TEXT NULL, issued_by INTEGER NOT NULL DEFAULT 0, note TEXT NULL, is_revoked INTEGER NOT NULL DEFAULT 0, redeemed_at TEXT NULL, redeemed_by_user_id INTEGER NULL, created_at TEXT NOT NULL DEFAULT (datetime('now')))");
+                $pdo->exec("CREATE TABLE IF NOT EXISTS coupon_redemptions (id INTEGER PRIMARY KEY AUTOINCREMENT, coupon_id INTEGER NOT NULL, user_id INTEGER NOT NULL, plan TEXT NOT NULL, expires_at TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT (datetime('now')), UNIQUE(coupon_id, user_id))");
+            }
+            $done[$oid] = true;
+        } catch (\Throwable $e) { /* idempotent: 이미 존재 등 무시 */ }
+    }
+
+    /**
+     * AI 설정 테이블 ai_settings 존재 보장 (SSOT, 단일 정의).
+     * 종전 ClaudeAI / AiGenerate 에 분산되어 있던 동일 컬럼 DDL 을 본 메서드로 일원화.
+     * 컬럼 집합 동일, 상위집합(model 기본값·tenant 유니크 포함). PDO 별 멱등.
+     */
+    public static function ensureAiSettings(PDO $pdo): void
+    {
+        static $done = [];
+        $oid = spl_object_id($pdo);
+        if (isset($done[$oid])) return;
+        try {
+            if (self::isMySQL($pdo)) {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS ai_settings (id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL, provider VARCHAR(32) DEFAULT 'claude', api_key TEXT, model VARCHAR(64) DEFAULT 'claude-3-5-haiku-20241022', is_active TINYINT(1) DEFAULT 1, updated_at VARCHAR(40), UNIQUE KEY uq_ai_tenant (tenant_id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+            } else {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS ai_settings (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL, provider TEXT DEFAULT 'claude', api_key TEXT, model TEXT DEFAULT 'claude-3-5-haiku-20241022', is_active INTEGER DEFAULT 1, updated_at TEXT, UNIQUE(tenant_id))");
+            }
+            $done[$oid] = true;
+        } catch (\Throwable $e) { /* idempotent: 이미 존재 등 무시 */ }
+    }
+
+    /**
+     * 발주 테이블 wms_supply_orders 존재 보장 (SSOT, 단일 정의).
+     * 종전 Wms(소유) / DemandForecast 에 분산되어 있던 동일 컬럼 DDL 을 본 메서드로 일원화(Wms 정의 기준). PDO 별 멱등.
+     */
+    public static function ensureWmsSupplyOrders(PDO $pdo): void
+    {
+        static $done = [];
+        $oid = spl_object_id($pdo);
+        if (isset($done[$oid])) return;
+        try {
+            if (self::isMySQL($pdo)) {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS wms_supply_orders (id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo', sku VARCHAR(120), name VARCHAR(255), qty DOUBLE DEFAULT 0, supplier VARCHAR(200), wh_id VARCHAR(60), status VARCHAR(40) DEFAULT 'pending', eta VARCHAR(32), created_at VARCHAR(32), updated_at VARCHAR(32), KEY idx_wms_so_tenant (tenant_id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            } else {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS wms_supply_orders (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', sku TEXT, name TEXT, qty REAL DEFAULT 0, supplier TEXT, wh_id TEXT, status TEXT DEFAULT 'pending', eta TEXT, created_at TEXT, updated_at TEXT)");
+            }
+            $done[$oid] = true;
+        } catch (\Throwable $e) { /* idempotent: 이미 존재 등 무시 */ }
+    }
+
+    /**
+     * 채널 주문 테이블 channel_orders 존재 보장 (SSOT, 단일 정의).
+     * 종전 ChannelSync(소유) / LiveCommerce 에 분산되어 있던 동일 컬럼 DDL 을 본 메서드로 일원화.
+     * MySQL 은 키 컬럼만 VARCHAR(190)(유니크 제약 요건), 비키 텍스트는 TEXT(truncation 회피, ChannelSync 방식). PDO 별 멱등.
+     */
+    public static function ensureChannelOrders(PDO $pdo): void
+    {
+        static $done = [];
+        $oid = spl_object_id($pdo);
+        if (isset($done[$oid])) return;
+        try {
+            if (self::isMySQL($pdo)) {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS channel_orders (id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(190) NOT NULL DEFAULT 'demo', channel VARCHAR(190) NOT NULL, channel_order_id VARCHAR(190), order_no TEXT, buyer_name TEXT, buyer_email TEXT, product_name TEXT, sku VARCHAR(190), qty INT DEFAULT 1, unit_price DOUBLE DEFAULT 0, total_price DOUBLE DEFAULT 0, status VARCHAR(40) DEFAULT 'pending', carrier TEXT, tracking_no TEXT, addr TEXT, ordered_at VARCHAR(32), event_type VARCHAR(40) DEFAULT 'order', raw_json TEXT, synced_at VARCHAR(32), UNIQUE KEY uq_co (tenant_id, channel, channel_order_id), KEY idx_co_tenant (tenant_id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            } else {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS channel_orders (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', channel TEXT NOT NULL, channel_order_id TEXT, order_no TEXT, buyer_name TEXT, buyer_email TEXT, product_name TEXT, sku TEXT, qty INTEGER DEFAULT 1, unit_price REAL DEFAULT 0, total_price REAL DEFAULT 0, status TEXT DEFAULT 'pending', carrier TEXT, tracking_no TEXT, addr TEXT, ordered_at TEXT, event_type TEXT DEFAULT 'order', raw_json TEXT, synced_at TEXT, UNIQUE(tenant_id, channel, channel_order_id))");
+            }
+            $done[$oid] = true;
+        } catch (\Throwable $e) { /* idempotent: 이미 존재 등 무시 */ }
+    }
+
+    /**
+     * 감사 로그 1행 기록 (SSOT, best-effort·fail-safe).
+     * 종전 핸들러별로 제각각 흩어진 audit_log INSERT 의 표준 진입점.
+     * ★실패해도 호출측 작업에 절대 영향 없음(감사는 부가 기능). audit_log 는 core 테이블(migrate).
+     */
+    public static function audit(PDO $pdo, string $actor, string $action, array $details = []): void
+    {
+        try {
+            $pdo->prepare("INSERT INTO audit_log(actor,action,details_json,created_at) VALUES(?,?,?,?)")
+                ->execute([$actor, $action, json_encode($details, JSON_UNESCAPED_UNICODE), gmdate('c')]);
+        } catch (\Throwable $e) { /* 감사 실패는 본 작업에 영향 없음 */ }
+    }
+
     private static function migrate(PDO $pdo): void
     {
+        // 신규 DB: 전역 KV 스토어를 중앙에서 보장 (락 보유 기존 DB 는 ensureAppSetting 호출자가 보장)
+        self::ensureAppSetting($pdo);
+
         // ???? ê¸°ë³¸ ?ì¤???ì´ë¸???????????????????????????????????????????????????????????????????????????????????????????????????
         $pdo->exec(self::sql($pdo, "CREATE TABLE IF NOT EXISTS risk_model_registry (
             id           INT AUTO_INCREMENT PRIMARY KEY,

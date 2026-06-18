@@ -87,12 +87,7 @@ class Wms
                 wh_id VARCHAR(60), carrier VARCHAR(120), status VARCHAR(40) DEFAULT 'pending',
                 created_at VARCHAR(32), updated_at VARCHAR(32), KEY idx_wms_pick_tenant (tenant_id)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
-            $pdo->exec("CREATE TABLE IF NOT EXISTS wms_supply_orders (
-                id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo',
-                sku VARCHAR(120), name VARCHAR(255), qty DOUBLE DEFAULT 0, supplier VARCHAR(200),
-                wh_id VARCHAR(60), status VARCHAR(40) DEFAULT 'pending', eta VARCHAR(32),
-                created_at VARCHAR(32), updated_at VARCHAR(32), KEY idx_wms_so_tenant (tenant_id)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            Db::ensureWmsSupplyOrders($pdo); // SSOT: Db::ensureWmsSupplyOrders 일원화(종전 DemandForecast 와 중복 제거)
             $pdo->exec("CREATE TABLE IF NOT EXISTS wms_lots (
                 id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo',
                 sku VARCHAR(120), name VARCHAR(255), lot_no VARCHAR(120), mfg_date VARCHAR(32),
@@ -119,7 +114,7 @@ class Wms
             $pdo->exec("CREATE TABLE IF NOT EXISTS wms_permissions (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', user_email TEXT NOT NULL, role TEXT DEFAULT 'viewer', warehouses TEXT, created_at TEXT, updated_at TEXT)");
             $pdo->exec("CREATE TABLE IF NOT EXISTS wms_movements (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', type TEXT NOT NULL DEFAULT 'Inbound', wh_id TEXT, dest_wh_id TEXT, sku TEXT, name TEXT, qty REAL DEFAULT 0, unit TEXT, memo TEXT, ref TEXT, reason TEXT, created_at TEXT)");
             $pdo->exec("CREATE TABLE IF NOT EXISTS wms_picking (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', order_ref TEXT, sku TEXT, name TEXT, qty REAL DEFAULT 0, wh_id TEXT, carrier TEXT, status TEXT DEFAULT 'pending', created_at TEXT, updated_at TEXT)");
-            $pdo->exec("CREATE TABLE IF NOT EXISTS wms_supply_orders (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', sku TEXT, name TEXT, qty REAL DEFAULT 0, supplier TEXT, wh_id TEXT, status TEXT DEFAULT 'pending', eta TEXT, created_at TEXT, updated_at TEXT)");
+            Db::ensureWmsSupplyOrders($pdo); // SSOT: Db::ensureWmsSupplyOrders 일원화(종전 DemandForecast 와 중복 제거)
             $pdo->exec("CREATE TABLE IF NOT EXISTS wms_lots (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', sku TEXT, name TEXT, lot_no TEXT, mfg_date TEXT, expiry_date TEXT, qty REAL DEFAULT 0, wh_id TEXT, created_at TEXT)");
             $pdo->exec("CREATE TABLE IF NOT EXISTS wms_stock (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', sku TEXT NOT NULL, wh_id TEXT NOT NULL DEFAULT '', name TEXT, on_hand REAL DEFAULT 0, updated_at TEXT)");
             $pdo->exec("CREATE TABLE IF NOT EXISTS wms_suppliers (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', name TEXT NOT NULL, code TEXT, contact TEXT, phone TEXT, email TEXT, memo TEXT, active INTEGER DEFAULT 1, created_at TEXT, updated_at TEXT)");
@@ -418,6 +413,7 @@ class Wms
             }
             throw $e;
         }
+        Db::audit(self::db(), $t, 'wms.movement', ['id'=>$id, 'type'=>(string)($b['type'] ?? 'Inbound'), 'wh_id'=>$whId, 'sku'=>(string)($b['sku'] ?? ''), 'qty'=>(float)($b['qty'] ?? 0)]); // 감사: 입출고(재고 무결성)
         return self::json($res, ['ok' => true, 'id' => $id]);
     }
 

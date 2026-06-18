@@ -1302,72 +1302,9 @@ final class UserAdmin
 
     public static function migrateCoupons(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
     {
-        $pdo    = Db::pdo();
-        $driver = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME);
-
-        if ($driver === 'mysql') {
-            $pdo->exec("
-                CREATE TABLE IF NOT EXISTS free_coupons (
-                    id                    BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-                    code                  VARCHAR(50)  NOT NULL UNIQUE,
-                    plan                  VARCHAR(30)  NOT NULL DEFAULT 'pro',
-                    duration_days         INT          NOT NULL DEFAULT 30,
-                    max_uses              INT          NOT NULL DEFAULT 1,
-                    use_count             INT          NOT NULL DEFAULT 0,
-                    issued_to_user_id     BIGINT UNSIGNED NULL,
-                    issued_to_email       VARCHAR(255) NULL,
-                    issued_by             BIGINT UNSIGNED NOT NULL DEFAULT 0,
-                    note                  TEXT         NULL,
-                    is_revoked            TINYINT(1)   NOT NULL DEFAULT 0,
-                    redeemed_at           DATETIME     NULL,
-                    redeemed_by_user_id   BIGINT UNSIGNED NULL,
-                    created_at            DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                    INDEX idx_code(code),
-                    INDEX idx_issued_to(issued_to_user_id)
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-            ");
-            $pdo->exec("
-                CREATE TABLE IF NOT EXISTS coupon_redemptions (
-                    id         BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-                    coupon_id  BIGINT UNSIGNED NOT NULL,
-                    user_id    BIGINT UNSIGNED NOT NULL,
-                    plan       VARCHAR(30) NOT NULL,
-                    expires_at DATETIME NOT NULL,
-                    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                    UNIQUE KEY uq_coupon_user (coupon_id, user_id)
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-            ");
-        } else {
-            $pdo->exec("
-                CREATE TABLE IF NOT EXISTS free_coupons (
-                    id                    INTEGER PRIMARY KEY AUTOINCREMENT,
-                    code                  TEXT    NOT NULL UNIQUE,
-                    plan                  TEXT    NOT NULL DEFAULT 'pro',
-                    duration_days         INTEGER NOT NULL DEFAULT 30,
-                    max_uses              INTEGER NOT NULL DEFAULT 1,
-                    use_count             INTEGER NOT NULL DEFAULT 0,
-                    issued_to_user_id     INTEGER NULL,
-                    issued_to_email       TEXT    NULL,
-                    issued_by             INTEGER NOT NULL DEFAULT 0,
-                    note                  TEXT    NULL,
-                    is_revoked            INTEGER NOT NULL DEFAULT 0,
-                    redeemed_at           TEXT    NULL,
-                    redeemed_by_user_id   INTEGER NULL,
-                    created_at            TEXT    NOT NULL DEFAULT (datetime('now'))
-                );
-            ");
-            $pdo->exec("
-                CREATE TABLE IF NOT EXISTS coupon_redemptions (
-                    id         INTEGER PRIMARY KEY AUTOINCREMENT,
-                    coupon_id  INTEGER NOT NULL,
-                    user_id    INTEGER NOT NULL,
-                    plan       TEXT NOT NULL,
-                    expires_at TEXT NOT NULL,
-                    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-                    UNIQUE(coupon_id, user_id)
-                );
-            ");
-        }
+        $pdo = Db::pdo();
+        // SSOT: free_coupons / coupon_redemptions 동일 DDL 을 Db::ensureCouponTables 로 일원화(종전 CouponEngine 과 중복 제거).
+        Db::ensureCouponTables($pdo);
 
         if (!self::requireAdmin($req)) {
             return self::json($res, ['ok' => false, 'error' => 'Admin access required'], 403);
@@ -1632,7 +1569,7 @@ final class UserAdmin
         if ($durationDays === null) $durationDays = \Genie\NotifyEngine::periodToDays($months, $years);
         $code = $customCode ?: ('GENIE-' . strtoupper(bin2hex(random_bytes(5))));
         $pdo = Db::pdo(); $driver = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME);
-        try { if ($driver === 'mysql') $pdo->exec("CREATE TABLE IF NOT EXISTS free_coupons (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, code VARCHAR(50) NOT NULL UNIQUE, plan VARCHAR(30) NOT NULL DEFAULT 'starter', duration_days INT NOT NULL DEFAULT 30, max_uses INT NOT NULL DEFAULT 1, use_count INT NOT NULL DEFAULT 0, issued_to_user_id BIGINT UNSIGNED NULL, issued_to_email VARCHAR(255) NULL, issued_by BIGINT UNSIGNED NOT NULL DEFAULT 0, note TEXT NULL, is_revoked TINYINT(1) NOT NULL DEFAULT 0, redeemed_at DATETIME NULL, redeemed_by_user_id BIGINT UNSIGNED NULL, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"); else $pdo->exec("CREATE TABLE IF NOT EXISTS free_coupons (id INTEGER PRIMARY KEY AUTOINCREMENT, code TEXT NOT NULL UNIQUE, plan TEXT NOT NULL DEFAULT 'starter', duration_days INTEGER NOT NULL DEFAULT 30, max_uses INTEGER NOT NULL DEFAULT 1, use_count INTEGER NOT NULL DEFAULT 0, issued_to_user_id INTEGER NULL, issued_to_email TEXT NULL, issued_by INTEGER NOT NULL DEFAULT 0, note TEXT NULL, is_revoked INTEGER NOT NULL DEFAULT 0, redeemed_at TEXT NULL, redeemed_by_user_id INTEGER NULL, created_at TEXT NOT NULL DEFAULT (datetime('now')))"); } catch (\Throwable $e) {}
+        try { Db::ensureCouponTables($pdo); } catch (\Throwable $e) {} // SSOT: Db::ensureCouponTables 일원화
         $targetUser = null;
         if ($targetEmail) { try { $su = $pdo->prepare("SELECT id,email,name,phone FROM app_user WHERE email=? LIMIT 1"); $su->execute([$targetEmail]); $targetUser = $su->fetch(\PDO::FETCH_ASSOC) ?: null; } catch (\Throwable $e) {} }
         $targetUserId = $targetUser ? (int)$targetUser['id'] : null;
