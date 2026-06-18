@@ -168,6 +168,8 @@ final class UserAuth
             "ALTER TABLE app_user ADD COLUMN admin_menus TEXT NULL",
             // [231차 #3] 멤버/하위관리자 프로필 사진(Base64 data-URL)
             "ALTER TABLE app_user ADD COLUMN photo MEDIUMTEXT NULL",
+            // [231차 OS#4] AI Agent 권한모드: 'recommend'|'approval'(기본)|'auto'. 민감 실행 기본=승인필수.
+            "ALTER TABLE app_user ADD COLUMN agent_mode VARCHAR(20) NULL",
         ];
         foreach ($alters as $sql) {
             try { $pdo->exec($sql); } catch (\Throwable $e) { /* 이미 존재 or 미지원 — 무시 */ }
@@ -815,6 +817,8 @@ final class UserAuth
                 //   admin 플랜에서만 의미. 'sub'는 admin_menus 로 메뉴가 제한됨(최고관리자=전체).
                 'admin_level'             => ($effectivePlan === 'admin') ? (($user['admin_level'] ?? '') === 'sub' ? 'sub' : 'master') : null,
                 'admin_menus'             => self::decodeAdminMenus($user['admin_menus'] ?? null),
+                // [231차 OS#4] AI Agent 권한모드(기본 approval=승인필수)
+                'agent_mode'              => in_array(($user['agent_mode'] ?? ''), ['recommend', 'approval', 'auto'], true) ? $user['agent_mode'] : 'approval',
             ];
             $resolved = self::resolveActivePlan($rawUser);
 
@@ -1331,6 +1335,18 @@ final class UserAuth
             $raw = (string)$req->getBody();
             $decoded = json_decode($raw, true);
             if (is_array($decoded)) $body = $decoded;
+        }
+
+        // [231차 OS#4] AI Agent 권한모드 변경(owner/master-admin 전용·tenant 거버넌스). 단독 변경 시 이름검증 전 조기 반환.
+        if (array_key_exists('agent_mode', $body)) {
+            $mode = (string)$body['agent_mode'];
+            if (!in_array($mode, ['recommend', 'approval', 'auto'], true)) return self::json($res, ['ok' => false, 'error' => '잘못된 agent_mode 값입니다.'], 422);
+            $tr = $user['team_role'] ?? 'owner';
+            $ownerLike = ($tr === 'owner') || (($user['plan'] ?? '') === 'admin' && ($user['admin_level'] ?? '') !== 'sub');
+            if (!$ownerLike) return self::json($res, ['ok' => false, 'error' => 'AI Agent 권한모드는 소유자/최고관리자만 변경할 수 있습니다.'], 403);
+            try { Db::pdo()->prepare("UPDATE app_user SET agent_mode=? WHERE id=?")->execute([$mode, (int)($user['id'] ?? 0)]); } catch (\Throwable $e) {}
+            self::audit($req, 'agent_mode_change', "AI Agent 권한모드 변경: {$mode}", 'high', $user);
+            if (count(array_diff(array_keys($body), ['agent_mode'])) === 0) return self::json($res, ['ok' => true, 'agent_mode' => $mode]);
         }
 
         $name    = trim((string)($body['name']    ?? ''));

@@ -38,6 +38,23 @@ final class AdAdapters
         return true; // 기본 활성 — 자격증명 미연결 시 어댑터가 no_credentials, 캠페인은 PAUSED 생성(무지출)
     }
 
+    /** [231차 OS#4] 테넌트 AI Agent 권한모드 — owner 행의 agent_mode('recommend'|'approval'|'auto'). 기본 'approval'(안전). */
+    public static function agentMode(PDO $pdo, string $tenant): string
+    {
+        try {
+            $st = $pdo->prepare("SELECT agent_mode FROM app_user WHERE tenant_id = ? AND (parent_user_id IS NULL OR team_role = 'owner') ORDER BY id LIMIT 1");
+            $st->execute([$tenant]);
+            $m = (string)$st->fetchColumn();
+            return in_array($m, ['recommend', 'approval', 'auto'], true) ? $m : 'approval';
+        } catch (\Throwable $e) { return 'approval'; }
+    }
+
+    /** 자율(승인없이) 실행 허용 여부 — 'auto' 모드 + 킬스위치 OFF 일 때만 true. 자율 실행 경로에서 호출. */
+    public static function agentAutoAllowed(PDO $pdo, string $tenant): bool
+    {
+        return self::executionEnabled() && self::agentMode($pdo, $tenant) === 'auto';
+    }
+
     /** channel_credential 에서 자격증명 1건 조회(테넌트 스코프).
      *  [현 차수] 채널·키 별칭 통합 — AdChannelConnect 수동등록('meta_ads'/'access_token')과
      *  OAuth 콜백 저장('meta'/'oauth_access_token') 양 경로 모두에서 자격증명을 찾는다. */

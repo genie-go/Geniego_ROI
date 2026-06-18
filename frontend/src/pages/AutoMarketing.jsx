@@ -9,6 +9,7 @@ import AutoCampaignLaunch from '../components/AutoCampaignLaunch.jsx'; // 196차
 import CardRequiredBanner from '../components/CardRequiredBanner.jsx'; // 광고비 결제카드 미등록 안내+등록 바로가기
 import CardBillingGuide from '../components/CardBillingGuide.jsx'; // 이용가이드 내 결제카드 등록 설명
 import CrossLinkBar from '../components/CrossLinkBar.jsx';
+import AgentModeCard from '../components/AgentModeCard.jsx'; // [231차 OS#4] AI Agent 권한모드 거버넌스
 const BUDGET_LINKS = [
   { to: '/auto-marketing', icon: '🚀', label: '마케팅 자동화' },
   { to: '/campaign-manager', icon: '🎯', label: '캠페인 관리' },
@@ -691,6 +692,9 @@ export default function AutoMarketing() {
 
             {/* ══════ SCROLLABLE CONTENT AREA ══════ */}
             <div className="fade-up" style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '16px 8px 28px', display: 'grid', gap: 18 }}>
+
+            {/* [231차 OS#4] AI Agent 권한모드 거버넌스(전 탭 상단 고정 노출) */}
+            <AgentModeCard />
 
             {/* ══ TAB: GUIDE — 15-Step Complete Guide ═══════════════════════════ */}
             {tab === "guide" && (

@@ -741,6 +741,7 @@ export function AuthProvider({ children }) {
             isPro, isPaid, isDemo, isFreeUser, isAdmin,
             isSubAdmin, subMenuAllowed, adminMenuLevel, // [현 차수] 하위 관리자 메뉴 게이팅 + [231차 #4] view/edit 레벨
             adminLevel: isAdmin ? (user?.admin_level === "sub" ? "sub" : "master") : null,
+            agentMode: ["recommend", "approval", "auto"].includes(user?.agent_mode) ? user.agent_mode : "approval", // [231차 OS#4] AI Agent 권한모드
             hasRealKeys, activateLiveMode, onApiKeyRegistered,
             subscriptionExpiresAt, subscriptionDaysLeft,
             subscriptionStatus, isSubscriptionExpired,
