@@ -612,6 +612,21 @@ export function AuthProvider({ children }) {
     //   데모에서도 admin 유지), 데모회원·운영회원은 admin 절대 접근 불가.
     const isAdmin = userPlan === "admin";
 
+    /* ── [현 차수] 하위 관리자(sub-admin) 체계 ──
+     * 최고관리자(master)가 발급한 하위 관리자는 plan='admin'이되 admin_level='sub'.
+     * 부여받은 메뉴(admin_menus: 경로 배열)만 접근 가능. 최고관리자는 전체 접근.
+     * 홈(종합 대시보드)은 안정적 랜딩을 위해 항상 허용. */
+    const isSubAdmin = isAdmin && (user?.admin_level === "sub");
+    const _SUB_ALWAYS = ["/dashboard"];
+    const subMenuAllowed = useCallback((to) => {
+        if (!isSubAdmin) return true;
+        if (!to) return true;
+        if (_SUB_ALWAYS.includes(to)) return true;
+        const menus = Array.isArray(user?.admin_menus) ? user.admin_menus : [];
+        // 부여된 경로(정확) 또는 그 하위 경로(예: /crm → /crm/123) 허용.
+        return menus.some((p) => to === p || to.startsWith(p + "/"));
+    }, [isSubAdmin, user]);
+
     /* ── 183차 Phase3: 테넌트 내 팀 역할(team_role) RBAC ──
      * owner > manager > member. admin/데모는 항상 전체 쓰기(우회).
      * member 만 읽기 전용. 미지정 역할은 owner 로 정규화(기존 안정성 보존). */
@@ -709,6 +724,8 @@ export function AuthProvider({ children }) {
             autoLogoutMin, setAutoLogoutMin,
             isDemoMode: IS_DEMO_MODE,
             isPro, isPaid, isDemo, isFreeUser, isAdmin,
+            isSubAdmin, subMenuAllowed, // [현 차수] 하위 관리자 메뉴 게이팅
+            adminLevel: isAdmin ? (user?.admin_level === "sub" ? "sub" : "master") : null,
             hasRealKeys, activateLiveMode, onApiKeyRegistered,
             subscriptionExpiresAt, subscriptionDaysLeft,
             subscriptionStatus, isSubscriptionExpired,

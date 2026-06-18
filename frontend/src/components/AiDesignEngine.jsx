@@ -158,13 +158,17 @@ export default function AiDesignEngine({ defaultPlatform="popup" }) {
         mood: th?.label || result.theme,
         palette: { bg: cols[0], primary: cols[1]||cols[0], accent: cols[2]||cols[1]||cols[0], text: "#ffffff" },
       };
+      // [현 차수] 채널별 광고물 기간 등록 — 노출 기간(설정 시)을 함께 저장해 채널별·기간별로 사용.
+      const periodStart = scheduleEnabled ? startDate : null;
+      const periodEnd   = scheduleEnabled ? endDate : null;
       const r = await fetch("/api/v422/ai/ad-design/save", { method:"POST", headers:_adHeaders(),
-        body: JSON.stringify({ product_description: result.prompt||result.headline||"", category: th?.label||"", design, svg: result.dataUrl||"", status }) });
+        body: JSON.stringify({ product_description: result.prompt||result.headline||"", category: th?.label||"", design, svg: result.dataUrl||"", status,
+          period_start: periodStart, period_end: periodEnd }) });
       const d = await r.json().catch(()=>({}));
       setSaveMsg(r.ok && d.ok ? { ok:true, text:d.message||"저장되었습니다." } : { ok:false, text:(d.error||"저장에 실패했습니다. 로그인 상태를 확인하세요.") });
     } catch { setSaveMsg({ ok:false, text:"서버 오류. 다시 시도하세요." }); }
     setSaving(false);
-  },[result]);
+  },[result, scheduleEnabled, startDate, endDate]);
 
   const handleUpload = useCallback((file)=>{
     if(!file||file.size>5*1024*1024) return;
@@ -190,7 +194,8 @@ export default function AiDesignEngine({ defaultPlatform="popup" }) {
     btn:(disabled)=>({padding:"10px 24px",borderRadius:10,border:"none",fontSize:13,fontWeight:800,background:disabled?"#cbd5e1":"linear-gradient(135deg,#4f8ef7,#6366f1)",color:"#fff",cursor:disabled?"wait":"pointer",boxShadow:disabled?"none":"0 4px 16px rgba(79,142,247,0.3)",transition:"all 0.2s",minWidth:160}),
   };
 
-  const needsSchedule = ["popup","mobile_popup","landing_hero"].includes(platform) || ["flash","season","birthday","cart","welcome"].includes(theme);
+  // [현 차수] 채널별 광고물 기간 등록 — 전 채널(유튜브/메타 등)에서 광고 노출 기간을 설정·저장할 수 있도록 항상 노출.
+  const needsSchedule = true;
 
   const SECTIONS=[
     {id:"platform",icon:"📱",label:t("marketing.aiSectionPlatform","Platform & Size")},

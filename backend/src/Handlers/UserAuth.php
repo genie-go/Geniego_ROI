@@ -163,6 +163,9 @@ final class UserAuth
             "ALTER TABLE app_user ADD COLUMN parent_user_id INTEGER NULL",
             "ALTER TABLE app_user ADD COLUMN team_role VARCHAR(40) NULL",
             "ALTER TABLE app_user ADD COLUMN team_name VARCHAR(100) NULL",
+            // [현 차수] 하위 관리자(sub-admin) 체계: admin_level('master'|'sub'), admin_menus(JSON 허용 메뉴 경로 배열)
+            "ALTER TABLE app_user ADD COLUMN admin_level VARCHAR(20) NULL",
+            "ALTER TABLE app_user ADD COLUMN admin_menus TEXT NULL",
         ];
         foreach ($alters as $sql) {
             try { $pdo->exec($sql); } catch (\Throwable $e) { /* 이미 존재 or 미지원 — 무시 */ }
@@ -217,7 +220,8 @@ final class UserAuth
                         u.subscription_expires_at,
                         u.subscription_cycle,
                         u.phone, u.extra_data,
-                        u.tenant_id, u.parent_user_id, u.team_role
+                        u.tenant_id, u.parent_user_id, u.team_role,
+                        u.admin_level, u.admin_menus
                    FROM user_session s
                    JOIN app_user u ON u.id = s.user_id
                   WHERE s.token = ? AND s.expires_at > ? AND u.is_active = 1'
@@ -805,6 +809,10 @@ final class UserAuth
                 'tenant_id'               => self::resolveTenantId($pdo, $user),
                 'parent_user_id'          => isset($user['parent_user_id']) ? (int)$user['parent_user_id'] : null,
                 'team_role'               => $user['team_role'] ?? (!empty($user['parent_user_id']) ? 'member' : 'owner'),
+                // [현 차수] 하위 관리자 체계: admin_level('master'|'sub'), admin_menus(허용 메뉴 경로 배열).
+                //   admin 플랜에서만 의미. 'sub'는 admin_menus 로 메뉴가 제한됨(최고관리자=전체).
+                'admin_level'             => ($effectivePlan === 'admin') ? (($user['admin_level'] ?? '') === 'sub' ? 'sub' : 'master') : null,
+                'admin_menus'             => self::decodeAdminMenus($user['admin_menus'] ?? null),
             ];
             $resolved = self::resolveActivePlan($rawUser);
 
@@ -842,6 +850,13 @@ final class UserAuth
         if (!$user) {
             return self::json($res, ['ok' => false, 'error' => '세션이 만료되었거나 유효하지 않습니다.'], 401);
         }
+        // [현 차수] 하위 관리자 체계: admin_level 정규화 + admin_menus 디코드(로그인 페이로드와 일관).
+        if (($user['plan'] ?? '') === 'admin') {
+            $user['admin_level'] = (($user['admin_level'] ?? '') === 'sub') ? 'sub' : 'master';
+        } else {
+            $user['admin_level'] = null;
+        }
+        $user['admin_menus'] = self::decodeAdminMenus($user['admin_menus'] ?? null);
         return self::json($res, ['ok' => true, 'user' => $user]);
     }
 
@@ -1111,6 +1126,158 @@ final class UserAuth
             return self::json($res, ['ok' => false, 'error' => '삭제 오류: ' . $e->getMessage()], 500);
         }
         return self::json($res, ['ok' => true, 'id' => $targetId, 'deactivated' => true]);
+    }
+
+    // ═════════════════════════════════════════════════════════════
+    // [현 차수] 하위 관리자(sub-admin) 관리 — 최고관리자(master) 전용
+    //   • 최고관리자가 별도 ID/PW 로 하위 관리자 계정을 발급(plan='admin', admin_level='sub').
+    //   • 하위 관리자는 최고관리자와 동일한 접속코드(GENIEGO-ADMIN)로 로그인하되 본인 이메일/비번 사용.
+    //   • 비번은 본인이 변경 가능(/auth/change-password). 메뉴는 admin_menus(경로 배열)로 일부만 부여.
+    //   • 최고관리자만 하위 관리자를 추가/정지/권한변경 가능(sub→sub 관리 불가, 권한상승 차단).
+    // ═════════════════════════════════════════════════════════════
+
+    private static function decodeAdminMenus($raw): array
+    {
+        if (is_array($raw)) return array_values(array_filter(array_map('strval', $raw)));
+        $s = trim((string)$raw);
+        if ($s === '') return [];
+        $d = json_decode($s, true);
+        return is_array($d) ? array_values(array_filter(array_map('strval', $d))) : [];
+    }
+
+    /** 토큰으로 최고관리자(master) 검증. 하위 관리자(sub)는 거부. */
+    private static function requireMasterAdmin(ServerRequestInterface $req): array
+    {
+        $pdo = Db::pdo();
+        self::ensureTenantColumns($pdo);
+        $caller = self::userByToken((string)(self::extractToken($req) ?? ''));
+        if (!$caller) return [null, ['인증이 필요합니다.', 401]];
+        if (($caller['plan'] ?? '') !== 'admin') return [null, ['관리자만 접근할 수 있습니다.', 403]];
+        if (($caller['admin_level'] ?? '') === 'sub') return [null, ['하위 관리자는 다른 관리자를 관리할 수 없습니다.', 403]];
+        return [$caller, null];
+    }
+
+    /** GET /auth/admin/sub-admins — 최고관리자가 발급한 하위 관리자 목록 */
+    public static function listSubAdmins(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        [$caller, $err] = self::requireMasterAdmin($req);
+        if ($err) return self::json($res, ['ok' => false, 'error' => $err[0]], $err[1]);
+        $pdo = Db::pdo();
+        $masterId = (int)($caller['id'] ?? 0);
+        $rows = [];
+        try {
+            $st = $pdo->prepare(
+                "SELECT id, email, name, is_active, admin_menus, created_at
+                   FROM app_user
+                  WHERE plan='admin' AND admin_level='sub' AND parent_user_id = ?
+                  ORDER BY id ASC"
+            );
+            $st->execute([$masterId]);
+            foreach ($st->fetchAll(\PDO::FETCH_ASSOC) ?: [] as $r) {
+                $r['admin_menus'] = self::decodeAdminMenus($r['admin_menus'] ?? null);
+                $r['is_active'] = (int)($r['is_active'] ?? 0);
+                $rows[] = $r;
+            }
+        } catch (\Throwable $e) { /* 컬럼/테이블 이슈 — 빈 목록 */ }
+        return self::json($res, ['ok' => true, 'sub_admins' => $rows]);
+    }
+
+    /** POST /auth/admin/sub-admins — 하위 관리자 발급(이메일/비번/이름/메뉴권한) */
+    public static function createSubAdmin(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        [$caller, $err] = self::requireMasterAdmin($req);
+        if ($err) return self::json($res, ['ok' => false, 'error' => $err[0]], $err[1]);
+        $pdo = Db::pdo();
+        $body = (array)($req->getParsedBody() ?? []);
+        if (empty($body)) { $d = json_decode((string)$req->getBody(), true); if (is_array($d)) $body = $d; }
+        $email = strtolower(trim((string)($body['email'] ?? '')));
+        $password = (string)($body['password'] ?? '');
+        $name = trim((string)($body['name'] ?? ''));
+        $menus = self::decodeAdminMenus($body['menus'] ?? $body['admin_menus'] ?? []);
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) return self::json($res, ['ok' => false, 'error' => '올바른 이메일 형식이 아닙니다.'], 422);
+        if (($pwErr = self::passwordPolicyError($password)) !== null) return self::json($res, ['ok' => false, 'error' => $pwErr], 422);
+        if ($name === '') return self::json($res, ['ok' => false, 'error' => '이름을 입력해 주세요.'], 422);
+        if (count($menus) < 1) return self::json($res, ['ok' => false, 'error' => '부여할 메뉴를 1개 이상 선택해 주세요.'], 422);
+
+        $chk = $pdo->prepare('SELECT id FROM app_user WHERE LOWER(email) = ?');
+        $chk->execute([$email]);
+        if ($chk->fetchColumn()) return self::json($res, ['ok' => false, 'error' => '이미 가입된 이메일입니다.'], 409);
+
+        $now = self::now();
+        $hashed = password_hash($password, PASSWORD_DEFAULT);
+        $masterId = (int)($caller['id'] ?? 0);
+        $tenant = self::callerTenant($caller);
+        $menuJson = json_encode(array_values($menus), JSON_UNESCAPED_UNICODE);
+        try {
+            $pdo->prepare(
+                "INSERT INTO app_user(email,password_hash,name,plan,plans,company,is_active,created_at,tenant_id,parent_user_id,team_role,admin_level,admin_menus)
+                 VALUES(?,?,?,'admin','admin',?,1,?,?,?,'member','sub',?)"
+            )->execute([$email, $hashed, $name, $caller['company'] ?? null, $now, $tenant, $masterId, $menuJson]);
+            $newId = (int)$pdo->lastInsertId();
+        } catch (\Throwable $e) {
+            try {
+                $pdo->prepare(
+                    "INSERT INTO app_user(email,password_hashs,name,plan,plans,company,is_active,created_at,tenant_id,parent_user_id,team_role,admin_level,admin_menus)
+                     VALUES(?,?,?,'admin','admin',?,1,?,?,?,'member','sub',?)"
+                )->execute([$email, $hashed, $name, $caller['company'] ?? null, $now, $tenant, $masterId, $menuJson]);
+                $newId = (int)$pdo->lastInsertId();
+            } catch (\Throwable $e2) {
+                return self::json($res, ['ok' => false, 'error' => '하위 관리자 생성 오류: ' . $e2->getMessage()], 500);
+            }
+        }
+        self::audit($req, 'sub_admin_create', "하위 관리자 발급: {$email}", 'high', $caller);
+        return self::json($res, ['ok' => true, 'id' => $newId, 'email' => $email, 'message' => '하위 관리자가 발급되었습니다. 최고관리자 접속코드 + 발급한 이메일/비번으로 로그인할 수 있습니다.']);
+    }
+
+    /** PATCH /auth/admin/sub-admins/{id} — 정지/활성/메뉴권한/비번재설정/이름 */
+    public static function updateSubAdmin(ServerRequestInterface $req, ResponseInterface $res, array $args = []): ResponseInterface
+    {
+        [$caller, $err] = self::requireMasterAdmin($req);
+        if ($err) return self::json($res, ['ok' => false, 'error' => $err[0]], $err[1]);
+        $pdo = Db::pdo();
+        $targetId = (int)($args['id'] ?? 0);
+        $masterId = (int)($caller['id'] ?? 0);
+
+        $t = $pdo->prepare("SELECT id, email, parent_user_id, admin_level FROM app_user WHERE id = ?");
+        $t->execute([$targetId]);
+        $target = $t->fetch(\PDO::FETCH_ASSOC);
+        if (!$target || ($target['admin_level'] ?? '') !== 'sub' || (int)($target['parent_user_id'] ?? 0) !== $masterId) {
+            return self::json($res, ['ok' => false, 'error' => '대상 하위 관리자를 찾을 수 없습니다.'], 404);
+        }
+        $body = (array)($req->getParsedBody() ?? []);
+        if (empty($body)) { $d = json_decode((string)$req->getBody(), true); if (is_array($d)) $body = $d; }
+
+        $sets = []; $vals = [];
+        if (array_key_exists('is_active', $body)) {
+            $act = (int)((bool)$body['is_active']);
+            $sets[] = 'is_active = ?'; $vals[] = $act;
+            if ($act === 0) { try { $pdo->prepare('DELETE FROM user_session WHERE user_id = ?')->execute([$targetId]); } catch (\Throwable $e) {} }
+        }
+        if (array_key_exists('menus', $body) || array_key_exists('admin_menus', $body)) {
+            $menus = self::decodeAdminMenus($body['menus'] ?? $body['admin_menus'] ?? []);
+            if (count($menus) < 1) return self::json($res, ['ok' => false, 'error' => '부여할 메뉴를 1개 이상 선택해 주세요.'], 422);
+            $sets[] = 'admin_menus = ?'; $vals[] = json_encode(array_values($menus), JSON_UNESCAPED_UNICODE);
+        }
+        if (!empty($body['password'])) {
+            $pw = (string)$body['password'];
+            if (($pwErr = self::passwordPolicyError($pw)) !== null) return self::json($res, ['ok' => false, 'error' => $pwErr], 422);
+            $hashed = password_hash($pw, PASSWORD_DEFAULT);
+            $sets[] = 'password_hashs = ?'; $vals[] = $hashed;
+            $sets[] = 'password_hash = ?'; $vals[] = $hashed;
+            try { $pdo->prepare('DELETE FROM user_session WHERE user_id = ?')->execute([$targetId]); } catch (\Throwable $e) {}
+        }
+        if (!empty($body['name'])) { $sets[] = 'name = ?'; $vals[] = trim((string)$body['name']); }
+        if (!$sets) return self::json($res, ['ok' => false, 'error' => '변경할 항목이 없습니다.'], 422);
+
+        $vals[] = $targetId;
+        try {
+            $pdo->prepare('UPDATE app_user SET ' . implode(', ', $sets) . ' WHERE id = ?')->execute($vals);
+        } catch (\Throwable $e) {
+            return self::json($res, ['ok' => false, 'error' => '수정 오류: ' . $e->getMessage()], 500);
+        }
+        self::audit($req, 'sub_admin_update', "하위 관리자 수정(id={$targetId})", 'high', $caller);
+        return self::json($res, ['ok' => true, 'id' => $targetId]);
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -1893,6 +2060,8 @@ final class UserAuth
         $user = self::userByToken((string)(self::extractToken($req) ?? ''));
         if (!$user) return self::json($res, ['ok' => false, 'error' => '인증이 필요합니다.'], 401);
         if (($user['plan'] ?? '') !== 'admin') return self::json($res, ['ok' => false, 'error' => '관리자만 변경할 수 있습니다.'], 403);
+        // [현 차수] 접속코드는 모든 관리자가 공유 → 하위 관리자는 변경 불가(최고관리자만 회전).
+        if (($user['admin_level'] ?? '') === 'sub') return self::json($res, ['ok' => false, 'error' => '하위 관리자는 접속코드를 변경할 수 없습니다.'], 403);
         $b = self::readBody($req);
         $cur    = (string)($b['current_password'] ?? '');
         $newKey = trim((string)($b['new_access_key'] ?? ''));

@@ -94,6 +94,31 @@ class AutoCampaign
         return self::CONNECTOR_KEY[$channel] ?? $channel;
     }
 
+    /**
+     * [현 차수] 저장 광고물(ad_design.channel = AI광고디자인 플랫폼) → 광고 매체 채널(캠페인 channel) 매핑.
+     *   채널별 광고물을 정확한 매체에만 배선하기 위함. 복수 매체 매핑 가능.
+     *   popup/mobile_popup/landing_hero = 온사이트(웹) 소재로 광고 매체가 아님 → 빈 배열(매칭 제외).
+     */
+    private static function designChannelToMedia(string $platform): array
+    {
+        $p = strtolower(trim($platform));
+        $map = [
+            'meta_feed'        => ['meta_ads'],
+            'instagram_feed'   => ['meta_ads', 'instagram'],
+            'instagram_story'  => ['meta_ads', 'instagram'],
+            'youtube_thumb'    => ['google_ads'],
+            'youtube_short'    => ['google_ads'],
+            'youtube_instream' => ['google_ads'],
+            'youtube_bumper'   => ['google_ads'],
+            'gdn'              => ['google_ads'],
+            'display_banner'   => ['google_ads'],
+            'tiktok'           => ['tiktok_business', 'tiktok_ads'],
+            'kakao'            => ['kakao_moment', 'kakao'],
+            // popup / mobile_popup / landing_hero = 온사이트(웹팝업/랜딩) → 광고 매체 아님
+        ];
+        return $map[$p] ?? [];
+    }
+
     /** 채널 API 자격증명 연결 여부(실제 집행 가능 판단). */
     private static function channelConnected(PDO $pdo, string $tenant, string $channel): bool
     {
@@ -142,14 +167,17 @@ class AutoCampaign
             //   - 연결됨 + 게이트 ON → 매체에 PAUSED 캠페인 생성 시도 → active(external_id 저장) / connect_error
             //   - Coupang 등 자동생성 미지원 → manual
             // 연결된 AI 디자인 검증(본 테넌트 소유 + 존재만 통과) — 딜리버리(ad) 크리에이티브 소스.
-            $validDesigns = [];
+            $validDesigns = [];   // [id,...] 본 테넌트 소유 검증된 전체 디자인(저장용)
+            $designCh = [];       // id => ad_design.channel(플랫폼) — 채널별 정확 배선용
             if (!empty($designIds)) {
                 $in = implode(',', array_fill(0, count($designIds), '?'));
                 try {
-                    $st = $pdo->prepare("SELECT id FROM ad_design WHERE tenant_id=? AND id IN ($in)");
+                    $st = $pdo->prepare("SELECT id, channel FROM ad_design WHERE tenant_id=? AND id IN ($in)");
                     $st->execute(array_merge([$tenant], $designIds));
-                    $validDesigns = array_map('intval', array_column($st->fetchAll(PDO::FETCH_ASSOC) ?: [], 'id'));
-                } catch (\Throwable $e) { $validDesigns = []; }
+                    foreach ($st->fetchAll(PDO::FETCH_ASSOC) ?: [] as $row) {
+                        $rid = (int)$row['id']; $validDesigns[] = $rid; $designCh[$rid] = (string)($row['channel'] ?? '');
+                    }
+                } catch (\Throwable $e) { $validDesigns = []; $designCh = []; }
             }
             $firstDesign = $validDesigns[0] ?? 0;
             $landing = (string)($d['landing_url'] ?? '');   // 광고 랜딩 URL(미설정 시 어댑터가 기본값)
@@ -169,10 +197,21 @@ class AutoCampaign
                     $exec[$ch] = 'active'; $dispatch[$ch] = (string)$r['external_id']; $activeCount++;
                     // ★ 크리에이티브 레이어: 캠페인 하위 adset/adgroup + ad 생성(PAUSED).
                     $daily = (int)round(($allocByCh[$ch] ?? 0) / max(1, (['monthly'=>30,'quarter'=>90,'halfyear'=>180,'annual'=>365][$period] ?? 30)));
-                    if ($abMode) {
-                        // ★ A/B: 선택 디자인(variant) 각각을 같은 캠페인 하위에 동시 집행 → ad_ext_id 수집.
+                    // [현 차수] ★채널별 광고물 정확 배선 — 캠페인 채널($ch)에 매칭되는 저장 광고물만 해당 채널에 사용.
+                    //   (유튜브용 광고물이 메타 캠페인에 들어가던 채널-무관 배선 결함 수정.)
+                    //   매칭 광고물이 없으면 일반(선택 전체)으로 폴백하되 정직 표기(채널 전용 광고물 저장 권장).
+                    $chMatched = array_values(array_filter($validDesigns, function ($did) use ($designCh, $ch) {
+                        return in_array($ch, self::designChannelToMedia($designCh[$did] ?? ''), true);
+                    }));
+                    $matchNote = '';
+                    $chDesigns = $chMatched;
+                    if (empty($chDesigns)) { $chDesigns = $validDesigns; $matchNote = ' · ⚠️ 채널 전용 광고물 없음(일반 광고물 사용 — 채널별 광고물 저장 권장)'; }
+                    $chFirst = $chDesigns[0] ?? 0;
+                    $chAb = !empty($d['ab_mode']) && count($chDesigns) >= 2;
+                    if ($chAb) {
+                        // ★ A/B: 채널 매칭 디자인(variant) 각각을 같은 캠페인 하위에 동시 집행 → ad_ext_id 수집.
                         $vlist = []; $okCnt = 0;
-                        foreach ($validDesigns as $vi => $did) {
+                        foreach ($chDesigns as $vi => $did) {
                             $dl = AdAdapters::buildDelivery($pdo, $tenant, $connKey, (string)$r['external_id'], (int)$did, max(1000, $daily), $landing);
                             if (!empty($dl['ok']) && ($dl['ad_id'] ?? '') !== '') {
                                 $vlist[] = ['design_id' => (int)$did, 'frame_idx' => 0, 'ad_ext_id' => (string)$dl['ad_id'], 'adset_ext_id' => (string)($dl['adset_id'] ?? ($dl['adgroup_id'] ?? '')), 'label' => 'Variant ' . ($vi + 1)];
@@ -180,11 +219,11 @@ class AutoCampaign
                             }
                         }
                         if (!empty($vlist)) $abVariants[$ch] = $vlist;
-                        $delivery[$ch] = ['ok' => $okCnt > 0, 'status' => $okCnt >= 2 ? 'ab_running' : ($okCnt === 1 ? 'single' : 'failed'), 'note' => "A/B variant {$okCnt}개 집행"];
+                        $delivery[$ch] = ['ok' => $okCnt > 0, 'status' => $okCnt >= 2 ? 'ab_running' : ($okCnt === 1 ? 'single' : 'failed'), 'matched' => count($chMatched), 'note' => "A/B variant {$okCnt}개 집행" . $matchNote];
                     } else {
-                        // 단일 크리에이티브(기존 흐름 보존).
-                        $dl = AdAdapters::buildDelivery($pdo, $tenant, $connKey, (string)$r['external_id'], $firstDesign, max(1000, $daily), $landing);
-                        $delivery[$ch] = ['ok' => !empty($dl['ok']), 'status' => $dl['status'] ?? ($dl['ok'] ? 'full' : 'failed'), 'note' => $dl['note'] ?? ($dl['error'] ?? '')];
+                        // 단일 크리에이티브 — 채널 매칭 우선($chFirst).
+                        $dl = AdAdapters::buildDelivery($pdo, $tenant, $connKey, (string)$r['external_id'], $chFirst, max(1000, $daily), $landing);
+                        $delivery[$ch] = ['ok' => !empty($dl['ok']), 'status' => $dl['status'] ?? ($dl['ok'] ? 'full' : 'failed'), 'matched' => count($chMatched), 'note' => ($dl['note'] ?? ($dl['error'] ?? '')) . $matchNote];
                     }
                 }
                 elseif (($r['status'] ?? '') === 'execution_disabled') { $exec[$ch] = 'ready'; }

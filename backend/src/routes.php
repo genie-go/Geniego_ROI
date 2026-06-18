@@ -944,6 +944,10 @@ return function (App $app): void {
         'POST /auth/team/members'        => 'Genie\\Handlers\\UserAuth::createTeamMember',
         'PATCH /auth/team/members/{id}'  => 'Genie\\Handlers\\UserAuth::updateTeamMember',
         'DELETE /auth/team/members/{id}' => 'Genie\\Handlers\\UserAuth::deleteTeamMember',
+        // [현 차수] 하위 관리자(sub-admin) 관리 — 최고관리자 전용
+        'GET /auth/admin/sub-admins'        => 'Genie\\Handlers\\UserAuth::listSubAdmins',
+        'POST /auth/admin/sub-admins'       => 'Genie\\Handlers\\UserAuth::createSubAdmin',
+        'PATCH /auth/admin/sub-admins/{id}' => 'Genie\\Handlers\\UserAuth::updateSubAdmin',
         'POST /auth/logout'   => 'Genie\\Handlers\\UserAuth::logout',
         'POST /auth/upgrade'  => 'Genie\\Handlers\\UserAuth::upgrade',
         'GET /auth/subscription'      => 'Genie\\Handlers\\UserAuth::subscription',
@@ -1795,6 +1799,10 @@ return function (App $app): void {
     $register('POST',   '/auth/team/members');
     $register('PATCH',  '/auth/team/members/{id}');
     $register('DELETE', '/auth/team/members/{id}');
+    // [현 차수] 하위 관리자(sub-admin) 관리 — 최고관리자 전용
+    $register('GET',   '/auth/admin/sub-admins');
+    $register('POST',  '/auth/admin/sub-admins');
+    $register('PATCH', '/auth/admin/sub-admins/{id}');
     $register('POST', '/auth/logout');
     $register('POST', '/auth/upgrade');
     $register('GET',  '/auth/subscription');

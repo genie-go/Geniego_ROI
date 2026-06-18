@@ -2358,6 +2358,11 @@ PROMPT;
                 created_at VARCHAR(32) NOT NULL
             )" . ($isSqlite ? '' : ' ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'));
         } catch (\Throwable $e) {}
+        // [현 차수] 채널별 기간 등록 — 기존 테이블에 기간 컬럼 idempotent 보강(YYYY-MM-DD).
+        foreach ([
+            "ALTER TABLE ad_design ADD COLUMN period_start VARCHAR(10) NULL",
+            "ALTER TABLE ad_design ADD COLUMN period_end VARCHAR(10) NULL",
+        ] as $sql) { try { $pdo->exec($sql); } catch (\Throwable $e) {} }
     }
 
     /** POST /v422/ai/ad-design/save — 미리보기 만족 시 '적용'(저장). 인증 테넌트 필요. */
@@ -2377,7 +2382,14 @@ PROMPT;
             if (!in_array($status, ['draft', 'approved'], true)) $status = 'approved';
             $pdo = Db::pdo(); self::migrateAdDesign($pdo);
             $now = gmdate('Y-m-d\TH:i:s\Z');
-            $st = $pdo->prepare('INSERT INTO ad_design(tenant_id,category,product,channel,spec_json,svg,status,created_at) VALUES(?,?,?,?,?,?,?,?)');
+            // [현 차수] 채널별 기간 등록 — 기간(YYYY-MM-DD) 정규화(미입력 허용).
+            $normDate = function ($v) {
+                $s = trim((string)$v);
+                return preg_match('/^\d{4}-\d{2}-\d{2}$/', $s) ? $s : null;
+            };
+            $periodStart = $normDate($data['period_start'] ?? ($design['period_start'] ?? ''));
+            $periodEnd   = $normDate($data['period_end'] ?? ($design['period_end'] ?? ''));
+            $st = $pdo->prepare('INSERT INTO ad_design(tenant_id,category,product,channel,spec_json,svg,status,created_at,period_start,period_end) VALUES(?,?,?,?,?,?,?,?,?,?)');
             $st->execute([
                 $tenant,
                 mb_substr((string)($data['category'] ?? ''),0,120),
@@ -2385,7 +2397,7 @@ PROMPT;
                 (string)($design['channel'] ?? ''),
                 json_encode($design, JSON_UNESCAPED_UNICODE),
                 (string)($data['svg'] ?? $data['image'] ?? ''),
-                $status, $now,
+                $status, $now, $periodStart, $periodEnd,
             ]);
             $msg = $status === 'draft'
                 ? '임시저장되었습니다. 저장 디자인 목록에서 이어서 편집하거나 적용할 수 있습니다.'
@@ -2406,8 +2418,15 @@ PROMPT;
             $pdo = Db::pdo(); self::migrateAdDesign($pdo);
             $rows = [];
             if ($tenant !== 'unknown') {
-                $st = $pdo->prepare('SELECT id,category,product,channel,spec_json,svg,status,created_at FROM ad_design WHERE tenant_id=? ORDER BY id DESC LIMIT 60');
-                $st->execute([$tenant]);
+                // [현 차수] 선택적 채널 필터(?channel=meta_feed 등) — 채널별 광고물 조회.
+                $qp = (array)($req->getQueryParams() ?? []);
+                $chFilter = trim((string)($qp['channel'] ?? ''));
+                $sql = 'SELECT id,category,product,channel,spec_json,svg,status,created_at,period_start,period_end FROM ad_design WHERE tenant_id=?';
+                $args = [$tenant];
+                if ($chFilter !== '') { $sql .= ' AND channel=?'; $args[] = $chFilter; }
+                $sql .= ' ORDER BY id DESC LIMIT 120';
+                $st = $pdo->prepare($sql);
+                $st->execute($args);
                 foreach ($st->fetchAll(PDO::FETCH_ASSOC) ?: [] as $r) {
                     $r['design'] = json_decode((string)($r['spec_json'] ?? '{}'), true); unset($r['spec_json']);
                     $rows[] = $r;

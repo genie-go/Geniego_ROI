@@ -111,7 +111,7 @@ function Upgradal({ menuLabel, onClose, t }) {
 
 
 /* Section Component with Lock Support */
-function NavSection({ section, t, isOpen, onToggle, hasMenuAccess, isDemo, onLockClick }) {
+function NavSection({ section, t, isOpen, onToggle, hasMenuAccess, isDemo, onLockClick, navigate, isSubAdmin, subMenuAllowed }) {
   const location = useLocation();
   const { isVisible: isMenuVisible, getVisibility } = useMenuVisibility();
   const hasActive = section.items.some(i => location.pathname === i.to);
@@ -144,6 +144,8 @@ function NavSection({ section, t, isOpen, onToggle, hasMenuAccess, isDemo, onLoc
   //  - 유료 User: hasMenuAccess(서버 Save 권한) 기준으로 체크
   const itemHasAccess = (item) => {
     const key = itemMenuKey(item);
+    // [현 차수] 하위 관리자(sub-admin): 최고관리자가 부여한 메뉴(경로)만 노출.
+    if (isSubAdmin && subMenuAllowed && !subMenuAllowed(item.to)) return false;
     if (isDemo) {
       return !ADMIN_ONLY_MENU_KEYS.has(key);
     }
@@ -186,7 +188,12 @@ function NavSection({ section, t, isOpen, onToggle, hasMenuAccess, isDemo, onLoc
   return (
     <div style={{ marginBottom: 2 }}>
       <button
-        onClick={() => onToggle()}
+        onClick={() => {
+          // [현 차수] 상위 메뉴 클릭 시 첫 번째 "접근 가능한" 하위 메뉴로 자동 이동(열 때만).
+          //   닫혀 있던 섹션을 열면 그 섹션의 첫 하위 페이지가 즉시 표시됨(추가 클릭 불필요).
+          if (!isOpen && navigate && _accessibleItems[0]?.to) navigate(_accessibleItems[0].to);
+          onToggle();
+        }}
         style={{
           display: "flex", alignItems: "center", gap: 8, width: "100%",
           padding: "7px 12px", border: "none", background: "none", cursor: "pointer",
@@ -377,7 +384,7 @@ export default function Sidebar() {
     }
     return t(key, fallback);
   }, [t, lang]);
-  const {user, logout, isDemo, isPro, isAdmin, hasMenuAccess} = useAuth();
+  const {user, logout, isDemo, isPro, isAdmin, hasMenuAccess, isSubAdmin, subMenuAllowed} = useAuth();
   const [lockModal, setLockModal] = useState(null); // locked menu label
   const { open: mobileOpen, close: mobileClose } = useMobileSidebar();
   const navigate = useNavigate();
@@ -535,6 +542,9 @@ export default function Sidebar() {
             hasMenuAccess={isAdmin ? null : hasMenuAccess}
             isDemo={isDemo}
             onLockClick={(label) => setLockModal(label)}
+            navigate={navigate}
+            isSubAdmin={isSubAdmin}
+            subMenuAllowed={subMenuAllowed}
           />
         ))}
       </div>

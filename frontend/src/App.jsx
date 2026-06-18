@@ -67,6 +67,7 @@ const RollupDashboard = lazy(() => import("./pages/RollupDashboard.jsx"));
 const AdminMenuManager = lazy(() => import("./pages/AdminMenuManager.jsx"));
 const UserMenuPreferences = lazy(() => import("./pages/UserMenuPreferences.jsx"));
 const PlanPricing = lazy(() => import("./pages/PlanPricing.jsx"));
+const SubAdminManager = lazy(() => import("./pages/SubAdminManager.jsx"));
 const PMOverview = lazy(() => import("./pages/PMOverview.jsx"));
 const PMProjectDetail = lazy(() => import("./pages/PMProjectDetail.jsx"));
 const PMTaskBoard = lazy(() => import("./pages/PMTaskBoard.jsx"));
@@ -300,9 +301,14 @@ function LoginRoute() {
 // [현 차수] 구독플랜 변경/업그레이드 경로는 어떤 플랜이든 항상 접근 가능해야 함(차단 시 플랜 변경 불가).
 const ALWAYS_ACCESSIBLE_PATHS = new Set(["/app-pricing", "/pricing"]);
 function MenuAccessGuard({ children }) {
-  const { hasMenuAccess } = useAuth();
+  const { hasMenuAccess, isSubAdmin, subMenuAllowed, user } = useAuth();
   const location = useLocation();
   if (ALWAYS_ACCESSIBLE_PATHS.has(location.pathname)) return children; // 요금제 보기/변경은 전 플랜 허용
+  // [현 차수] 하위 관리자: 부여받지 않은 경로 직접 접근(URL 우회) 차단 → 첫 허용 메뉴로 이동.
+  if (isSubAdmin && typeof subMenuAllowed === "function" && !subMenuAllowed(location.pathname)) {
+    const menus = Array.isArray(user?.admin_menus) ? user.admin_menus : [];
+    return <Navigate to={menus[0] || "/dashboard"} replace />;
+  }
   const menuKey = pathToMenuKey(location.pathname);
   if (menuKey && typeof hasMenuAccess === "function" && !hasMenuAccess(menuKey)) {
     return <PlanGate minPlan={requiredPlanForMenu(menuKey)} />;
@@ -388,6 +394,7 @@ function AppLayout() {
                       <Route path="/admin" element={<Admin />} />
                       <Route path="/admin/menu-tree" element={<AdminMenuManager />} />
                       <Route path="/admin/plan-pricing" element={<PlanPricing />} />
+                      <Route path="/admin/sub-admins" element={<SubAdminManager />} />
                       <Route path="/admin/site-intro" element={<SiteIntroAdmin />} />
                       <Route path="/me/menu" element={<UserMenuPreferences />} />
                       <Route path="/pm" element={<PMOverview />} />
