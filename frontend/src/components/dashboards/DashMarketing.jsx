@@ -387,7 +387,10 @@ export default function DashMarketing({ period }) {
 
   /* ── 종합 KPI (기간 스코프: 광고 누적집계=계수 f, 매출=채널 합산도 이미 f 반영) ──── */
   // 광고 매출/지출은 날짜 미보유 누적값 → 계수 f 적용. liveChannels 는 이미 f 반영됨.
-  const totalRev = (budgetStats?.totalAdRevenue || pnlStats?.revenue) ? ((budgetStats?.totalAdRevenue || pnlStats?.revenue) * f) : liveChannels.reduce((s, c) => s + c.revenue, 0);
+  // [정밀감사 E] '광고 기여 매출'은 광고 귀속 매출(totalAdRevenue)만 사용 — 과거 pnlStats.revenue(총 판매매출)
+  //   폴백이 광고데이터 0일 때 전체 판매매출을 광고매출로 오표시해 ROAS 가 대폭 과대 착시되던 결함 제거.
+  //   광고 귀속 매출 미적재 시 채널 합산(c.revenue=광고채널 매출), 그것도 0이면 0(정직).
+  const totalRev = budgetStats?.totalAdRevenue ? (budgetStats.totalAdRevenue * f) : liveChannels.reduce((s, c) => s + c.revenue, 0);
   const totalSpend = (budgetStats?.totalSpent || pnlStats?.adSpend) ? ((budgetStats?.totalSpent || pnlStats?.adSpend) * f) : liveChannels.reduce((s, c) => s + c.spend, 0);
   const avgROAS = totalSpend > 0
     ? (budgetStats?.blendedRoas || totalRev / totalSpend).toFixed(2)   // ROAS=비율→기간 불변

@@ -540,7 +540,11 @@ export function GlobalDataProvider({ children }) {
             }).catch(() => {});
         };
         const iv = setInterval(poll, 30000); // 30초 주기(운영 전용)
-        return () => { cancelled = true; clearInterval(iv); };
+        // [정밀감사 F] 자격증명 등록·동기화 직후 즉시 반영 — 30초 폴링 대기 없이 강제 refetch.
+        //   ApiKeys/ConnectModal 저장 성공 시 window.dispatchEvent(new Event('genie:data-refresh')) 발행.
+        const onRefresh = () => poll();
+        window.addEventListener('genie:data-refresh', onRefresh);
+        return () => { cancelled = true; clearInterval(iv); window.removeEventListener('genie:data-refresh', onRefresh); };
     }, []);
 
     // ── [DEMO v15] 데모 모드: 시드 데이터가 풍부하므로 Rollup API는 완전 삭제 처리 (운영 환경 오염 방지) ──

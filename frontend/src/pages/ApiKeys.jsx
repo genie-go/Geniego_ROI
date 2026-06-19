@@ -885,6 +885,7 @@ export default function ApiKeys() {
       show('success', t('ak.saved','Credential saved'));
       reload();
       refreshConnectorSync();
+      try { window.dispatchEvent(new Event('genie:data-refresh')); } catch {} // [정밀감사 F] 대시보드 즉시 반영
       return true;
     } catch (e) {
       show('error', String(e?.message || e));
@@ -945,6 +946,7 @@ export default function ApiKeys() {
         }
         // 저장+동기화 후 전역 연결상태 즉시 재조회(타 페이지 stale 윈도우 제거).
         refreshConnectorSync();
+        try { window.dispatchEvent(new Event('genie:data-refresh')); } catch {} // [정밀감사 F] 대시보드/P&L 즉시 반영(30초 폴링 대기 제거)
       }
       return saved > 0;
     } catch (e) {
