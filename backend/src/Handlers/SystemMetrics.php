@@ -62,6 +62,8 @@ final class SystemMetrics
             'env' => method_exists(Db::class, 'env') ? Db::env() : 'unknown',
             'response_time_ms' => round((microtime(true) - $start) * 1000, 2),
             'modules' => $modules,
+            // [Track B] cron 헬스 — 자동화 두뇌의 데이터 파이프라인(수집·갱신·최적화) 실행 가시화.
+            'cron' => self::cronHealth(),
             'summary' => [
                 'ok_count' => $okCount,
                 'total' => count($modules),
@@ -315,6 +317,61 @@ final class SystemMetrics
             'latency_ms' => $lat,
             'rpm' => null, 'uptime' => null, 'error_rate' => null,
             'detail' => ['request_time' => date('c')],
+        ];
+    }
+
+    /**
+     * [Track B] cron 헬스 — /var/log/genie_*.log mtime 으로 각 러너의 마지막 실행 신선도 측정.
+     *   www(php-fpm)가 644 로그를 읽을 수 있음(검증). 로그 내용은 노출하지 않고 last_run/age/status 만.
+     *   env(production/demo)에 따라 prod 로그 vs *_demo.log 선택. 측정 불가(파일 없음)=missing 정직 표기.
+     *   stale 판정: 마지막 실행이 예상 주기의 2.5배를 초과(한두 사이클 누락 허용).
+     */
+    private static function cronHealth(): array
+    {
+        $env = method_exists(Db::class, 'env') ? Db::env() : 'production';
+        $suffix = ($env === 'demo') ? '_demo' : '';
+        // [id, 로그 basename, 예상주기(분), 라벨, critical]
+        $runners = [
+            ['connectors_sync', 'genie_conn_sync',     60,  '광고 성과 수집',   true],
+            ['oauth_refresh',   'genie_oauth_refresh', 60,  'OAuth 토큰 갱신',  true],
+            ['optimize',        'genie_optimize',      60,  '자동 최적화',      true],
+            ['commerce_sync',   'genie_commerce_sync', 5,   '커머스 동기화',    true],
+            ['journey',         'genie_journey',       5,   '여정 러너',        false],
+            ['reports',         'genie_reports',       60,  '리포트 생성',      false],
+            ['attribution',     'genie_attribution',   30,  'Attribution',     false],
+            ['logistics',       'genie_logistics',     15,  '물류 추적',        false],
+            ['writeback',       'genie_writeback',     10,  'Writeback',       false],
+            ['pg_settle',       'genie_pg_settle',     120, 'PG 정산 수집',     false],
+            ['review_collect',  'genie_review_collect',360, '리뷰/UGC 수집',    false],
+            ['alerts',          'genie_alerts',        1440,'알림(일/주)',      false],
+        ];
+        // ★거짓경보 방지: open_basedir 가 /var/log 를 제외하면 PHP 가 로그 mtime 을 읽지 못한다.
+        //   이때 filemtime 실패를 'missing'(중단)으로 오판하면 실제로 도는 cron 을 "중단"으로 거짓경보한다.
+        //   → 로그 접근 불가가 확인되면 'unknown'(확인불가)로 정직 표기하고 critical 집계에서 제외한다.
+        $obd = (string) ini_get('open_basedir');
+        $logAccessible = ($obd === '') || (strpos($obd, '/var/log') !== false);
+        $now = time();
+        $rows = []; $okc = 0; $stale = 0; $missing = 0; $unknown = 0; $criticalStale = 0;
+        foreach ($runners as [$id, $base, $intervalMin, $label, $critical]) {
+            $path = "/var/log/{$base}{$suffix}.log";
+            $mtime = $logAccessible ? @filemtime($path) : false;
+            if ($mtime === false) {
+                $st = $logAccessible ? 'missing' : 'unknown';
+                $rows[] = ['id' => $id, 'label' => $label, 'interval_min' => $intervalMin, 'status' => $st, 'last_run' => null, 'age_min' => null, 'critical' => $critical];
+                if ($st === 'missing') { $missing++; if ($critical) $criticalStale++; } else { $unknown++; }
+                continue;
+            }
+            $ageMin = (int) round(($now - $mtime) / 60);
+            $status = $ageMin > (int) ceil($intervalMin * 2.5) ? 'stale' : 'ok';
+            if ($status === 'ok') $okc++; else { $stale++; if ($critical) $criticalStale++; }
+            $rows[] = ['id' => $id, 'label' => $label, 'interval_min' => $intervalMin, 'status' => $status, 'last_run' => date('c', $mtime), 'age_min' => $ageMin, 'critical' => $critical];
+        }
+        return [
+            'env' => $env,
+            'log_accessible' => $logAccessible,
+            'note' => $logAccessible ? null : 'PHP open_basedir 가 /var/log 를 제외해 cron 로그를 읽지 못함 — cron 은 서버에서 실행 중일 수 있음(서버 로그로 확인). open_basedir 에 /var/log 추가 시 실시간 표시.',
+            'runners' => $rows,
+            'summary' => ['ok' => $okc, 'stale' => $stale, 'missing' => $missing, 'unknown' => $unknown, 'total' => count($runners), 'critical_stale' => $criticalStale],
         ];
     }
 

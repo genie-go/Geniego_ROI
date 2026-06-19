@@ -144,12 +144,66 @@ function LogsTab({ logs }) {
 
 // Tabs defined in component to use i18n
 
+/* [Track B] cron 헬스 탭 — 자동화 두뇌의 데이터 파이프라인(수집·갱신·최적화) 실행 신선도 가시화. */
+function CronHealthTab({ cron, t }) {
+    const S = cron.summary || {};
+    const COL = { ok: '#22c55e', stale: '#ef4444', missing: '#94a3b8', unknown: '#94a3b8' };
+    const LBL = {
+        ok: t('systemMonitor.cronOk', '정상'),
+        stale: t('systemMonitor.cronStale', '지연/중단'),
+        missing: t('systemMonitor.cronMissing', '미실행'),
+        unknown: t('systemMonitor.cronUnknown', '확인불가'),
+    };
+    const fmtAge = (m) => m == null ? '—' : (m < 60 ? `${m}분 전` : m < 1440 ? `${Math.floor(m / 60)}시간 전` : `${Math.floor(m / 1440)}일 전`);
+    const critical = S.critical_stale || 0;
+    return (
+        <div style={{ display: 'grid', gap: 14 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                <div style={{ fontWeight: 800, fontSize: 14 }}>⚙️ {t('systemMonitor.cronTitle', '자동화 스케줄러(cron) 상태')}</div>
+                <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 99, background: 'rgba(148,163,184,0.12)', color: 'var(--text-3)' }}>{cron.env}</span>
+                <span style={{ fontSize: 11, color: critical > 0 ? '#ef4444' : '#22c55e', fontWeight: 700 }}>
+                    {critical > 0
+                        ? `⚠ ${t('systemMonitor.cronCriticalStale', '핵심 작업 중단')}: ${critical}`
+                        : `✓ ${S.ok || 0}/${S.total || 0} ${t('systemMonitor.cronAllOk', '정상')}`}
+                </span>
+            </div>
+            <div style={{ fontSize: 11, color: 'var(--text-3)', lineHeight: 1.6 }}>
+                {t('systemMonitor.cronDesc', '광고 성과 수집·OAuth 토큰 갱신·자동 최적화 등 자동화 작업의 마지막 실행 시각입니다. 핵심(★) 작업이 "지연/중단"이면 자동화 두뇌가 데이터를 받지 못하거나 토큰이 만료될 수 있습니다.')}
+            </div>
+            {cron.note && (
+                <div style={{ fontSize: 11, padding: '8px 12px', borderRadius: 8, background: 'rgba(234,179,8,0.08)', border: '1px solid rgba(234,179,8,0.25)', color: '#eab308' }}>
+                    ℹ️ {cron.note}
+                </div>
+            )}
+            <div style={{ display: 'grid', gap: 6 }}>
+                {cron.runners.map(r => (
+                    <div key={r.id} style={{
+                        display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 9,
+                        background: r.status === 'ok' ? 'rgba(34,197,94,0.04)' : r.status === 'stale' ? 'rgba(239,68,68,0.06)' : 'rgba(148,163,184,0.04)',
+                        border: `1px solid ${r.status === 'ok' ? 'rgba(34,197,94,0.15)' : r.status === 'stale' ? 'rgba(239,68,68,0.25)' : 'rgba(148,163,184,0.12)'}`,
+                    }}>
+                        <span style={{ width: 8, height: 8, borderRadius: '50%', background: COL[r.status] || '#94a3b8', flexShrink: 0 }} />
+                        <span style={{ fontSize: 12, fontWeight: 700, minWidth: 0, flex: 1 }}>
+                            {r.critical && <span style={{ color: '#eab308', marginRight: 4 }}>★</span>}{r.label}
+                        </span>
+                        <span style={{ fontSize: 10, color: 'var(--text-3)', whiteSpace: 'nowrap' }}>{fmtAge(r.age_min)}</span>
+                        <span style={{ fontSize: 9, padding: '2px 8px', borderRadius: 99, background: `${COL[r.status]}1a`, color: COL[r.status], fontWeight: 800, whiteSpace: 'nowrap' }}>
+                            {LBL[r.status] || r.status}
+                        </span>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
+
 export default function SystemMonitor() {
     const { t } = useI18n();
     const [tab, setTab] = useState("api");
     const [lastUpdate, setLastUpdate] = useState(new Date());
     const [services, setServices] = useState([]);
     const [summary, setSummary] = useState(null);
+    const [cron, setCron] = useState(null); // [Track B] cron 헬스
     const [loadErr, setLoadErr] = useState("");
 
     // 192차: /v424/system/metrics 실측 데이터 로드(가상/목 데이터 제거)
@@ -159,6 +213,7 @@ export default function SystemMonitor() {
             const mods = Array.isArray(d?.modules) ? d.modules : [];
             setServices(mods.map(mapModuleToService));
             setSummary(d?.summary || null);
+            setCron(d?.cron || null); // [Track B] 자동화 cron 헬스
             setLoadErr("");
         } catch (e) {
             setLoadErr(String(e?.message || e));
@@ -200,8 +255,8 @@ export default function SystemMonitor() {
                 {tab === "api" && (services.length > 0
                     ? <ApiStatusTab services={services} statusLabel={STATUS_LABEL} t={t} />
                     : <EmptyState msg={loadErr ? t("systemMonitor.loadError", "지표 로드 실패") : t("common.loading", "로딩 중…")} />)}
-                {tab === "pipeline" && (PIPELINE_JOBS.length > 0
-                    ? <PipelineTab jobs={PIPELINE_JOBS} t={t} />
+                {tab === "pipeline" && (cron && Array.isArray(cron.runners) && cron.runners.length > 0
+                    ? <CronHealthTab cron={cron} t={t} />
                     : <EmptyState msg={t("systemMonitor.noPipeline", "수집된 파이프라인 작업 데이터가 없습니다")} />)}
                 {tab === "logs" && (ERROR_LOGS.length > 0
                     ? <LogsTab logs={ERROR_LOGS} />
