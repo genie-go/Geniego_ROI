@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { IS_DEMO } from '../utils/demoEnv';
 import { useI18n } from '../i18n';
+import { svgToPngDataUrl } from '../utils/svgRasterize.js'; // [Track B] SVG→PNG 클라 래스터화(매체 이미지 업로드용)
 import { buildSamples, SAMPLE_CATEGORIES } from '../data/aiDesignSamples.js';
 
 /* 196차 — 대화형 AI 디자인. 사용자가 자유 자연어로 대화하며 광고 디자인을 생성·수정.
@@ -230,7 +231,9 @@ export default function AIDesignChat({ onApplied }) {
     setSaving(true); setSaveMsg(null);
     try {
       const visualType = video ? 'video' : (image ? 'image' : (frames ? 'carousel' : 'svg'));
-      const r = await fetch(`${API}/v422/ai/ad-design/save`, { method: 'POST', headers: auth(), body: JSON.stringify({ product_description: design.body || design.headline || '', category: design.mood || '', design: { ...design, _visual: visualType, ...(frames && frames.length > 1 ? { _frames: frames, _cut: frames.length } : {}) }, svg: video || image || svg || '', status }) });
+      // [Track B] SVG 마크업 → PNG 클라 래스터화(매체 이미지 업로드용). video/image 는 우선순위 보존(비-SVG passthrough).
+      const svgRaster = await svgToPngDataUrl(svg || '');
+      const r = await fetch(`${API}/v422/ai/ad-design/save`, { method: 'POST', headers: auth(), body: JSON.stringify({ product_description: design.body || design.headline || '', category: design.mood || '', design: { ...design, _visual: visualType, ...(frames && frames.length > 1 ? { _frames: frames, _cut: frames.length } : {}) }, svg: video || image || svgRaster || '', status }) });
       const d = await r.json();
       setSaveMsg(d.ok ? { ok: true, text: d.message } : { ok: false, text: d.error || '저장 실패' });
       if (d.ok && status === 'approved' && onApplied) onApplied(d.id, design);

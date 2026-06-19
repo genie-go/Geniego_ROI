@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { IS_DEMO } from '../utils/demoEnv';
 import { useI18n } from '../i18n';
+import { svgToPngDataUrl } from '../utils/svgRasterize.js'; // [Track B] SVG→PNG 클라 래스터화(매체 이미지 업로드용)
 import AIDesignChat from './AIDesignChat.jsx'; // 196차 — 대화형 AI 디자인
 
 /* 196차 — AI 디자인 스튜디오 (Phase 1)
@@ -138,7 +139,10 @@ export default function AIDesignStudio({ onApplied }) {
 
   const apply = async (d) => {
     try {
-      const r = await fetch(`${API}/v422/ai/ad-design/save`, { method: 'POST', headers: authHeaders(), body: JSON.stringify({ product_description: product, category, design: d, svg: svgs[d.channel]?.svg || '' }) });
+      // [Track B] SVG 마크업 → PNG 클라이언트 래스터화 → 매체(Meta /adimages 등) 이미지 업로드 가능.
+      //   서버 래스터화 도구 부재 우회. 비-SVG(이미 래스터/빈값)는 passthrough, 실패 시 원본(링크 폴백).
+      const raster = await svgToPngDataUrl(svgs[d.channel]?.svg || '');
+      const r = await fetch(`${API}/v422/ai/ad-design/save`, { method: 'POST', headers: authHeaders(), body: JSON.stringify({ product_description: product, category, design: d, svg: raster }) });
       const j = await r.json();
       setMsg(j.ok ? { type: 'ok', text: `✅ ${(d.channel || '').toUpperCase()} ${t('aiDesign.applied', '디자인이 적용되었습니다 — 캠페인 자동화에서 활용할 수 있습니다.')}` } : { type: 'err', text: j.error || t('aiDesign.applyFail', '적용에 실패했습니다.') });
       if (j.ok && typeof onApplied === 'function') onApplied(j.id, d);
