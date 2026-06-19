@@ -175,7 +175,7 @@ function HealthTab({ live, t, fmt }) {
 }
 
 /* ═══════ TAB 1: Overview ═══════ */
-function OverviewTab({ live, t, fmt, dateRange }) {
+function OverviewTab({ live, pgSum, t, fmt, dateRange }) {
     const max = live.grossRevenue || 1;
     const waterfallRows = [
         { label: t('pnl.wfRevenue'), v: live.grossRevenue, col: ACCENT },
@@ -223,6 +223,22 @@ function OverviewTab({ live, t, fmt, dateRange }) {
                 <KpiCard label={t('pnl.kpiAnomalies')} value={'0 ' + t('pnl.unitItems')} color={GREEN} icon="✅" sub={t('pnl.noAnomalies')} />
                 <KpiCard label={t('pnl.kpiRoas')} value={r2(live.roas || 0) + 'x'} color="#eab308" icon="📈" />
             </div>
+
+            {/* [정밀감사 C] PG 결제 정산(결제대행 수령액) — ★매출과 별도(현금 수령 기준). 데이터 있을 때만 표시. */}
+            {pgSum && pgSum.count > 0 && (
+                <div style={{ ...CARD, background: 'linear-gradient(135deg,rgba(99,102,241,0.05),rgba(79,142,247,0.03))', borderColor: 'rgba(99,102,241,0.18)' }}>
+                    <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 2, color: '#818cf8' }}>💳 {t('pnl.pgTitle', '결제대행(PG) 정산')}</div>
+                    <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 12 }}>
+                        {t('pnl.pgDesc', '결제대행(Stripe·Toss·PayPal 등)으로 실제 수령한 금액 — ★매출 합계와는 별도(판매 대금의 현금 수령 기준, 이중계산 방지).')}
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 10 }}>
+                        <KpiCard label={t('pnl.pgGross', 'PG 결제총액')} value={fmt(pgSum.gross)} color="#818cf8" icon="💳" />
+                        <KpiCard label={t('pnl.pgFee', 'PG 수수료')} value={fmt(pgSum.fee)} color={RED} icon="🏦" sub={pct(pgSum.fee, pgSum.gross)} />
+                        <KpiCard label={t('pnl.pgNet', 'PG 실수령액')} value={fmt(pgSum.net)} color={GREEN} icon="✅" />
+                        <KpiCard label={t('pnl.pgCount', 'PG 거래건수')} value={(pgSum.count || 0).toLocaleString() + ' ' + t('pnl.unitItems')} color={ACCENT} icon="🧾" />
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
@@ -687,6 +703,23 @@ export default function PnLDashboard() {
     const [threats, setThreats] = useState([]);
     const [syncTick, setSyncTick] = useState(0);
     const [dateRange, setDateRange] = useState('30d');
+    // [정밀감사 C] PG 결제 정산(결제대행 수령액) de-silo — 그동안 pg_settlement 이 PgConfig 페이지에만 보이고
+    //   통합 P&L 엔 미노출이던 사일로 해소. ★매출에 합산하지 않음: PG gross 는 '판매 대금의 현금 수령'이지
+    //   추가 매출이 아니며, 자사몰 주문이 channel_orders 에도 적재되면 이중계산되므로, 별도 '수령액' 라인으로만 표시.
+    //   운영 전용·데이터 있을 때만(count>0).
+    const [pgSum, setPgSum] = useState(null);
+    useEffect(() => {
+        if (isDemo) { setPgSum(null); return; }
+        let cancelled = false;
+        getJsonAuth('/api/v427/pg/settlements')
+            .then(r => {
+                if (!cancelled && r && r.ok && (Number(r.count) || 0) > 0) {
+                    setPgSum({ count: Number(r.count) || 0, gross: Number(r.gross) || 0, fee: Number(r.fee) || 0, net: Number(r.net) || 0 });
+                } else if (!cancelled) setPgSum(null);
+            })
+            .catch(() => { if (!cancelled) setPgSum(null); });
+        return () => { cancelled = true; };
+    }, [isDemo, syncTick]);
     const bcRef = useRef(null);
     const connectedChannels = useConnectedChannels();
     const { connectedCount = 0 } = useConnectorSync?.() || {};
@@ -832,7 +865,7 @@ export default function PnLDashboard() {
             {/* Content */}
             <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '16px', paddingBottom: 80 }}>
                 {tab === 'health' && <HealthTab live={live} t={t} fmt={fmt} />}
-                {tab === 'overview' && <OverviewTab live={live} t={t} fmt={fmt} dateRange={dateRange} />}
+                {tab === 'overview' && <OverviewTab live={live} pgSum={pgSum} t={t} fmt={fmt} dateRange={dateRange} />}
                 {tab === 'pnl' && <PnlUnitTab live={live} t={t} fmt={fmt} connectedChannels={connectedChannels} />}
                 {tab === 'anomaly' && <AnomalyTab t={t} live={live} fmt={fmt} navigate={navigate} />}
                 {tab === 'action' && <ActionTab t={t} navigate={navigate} />}
