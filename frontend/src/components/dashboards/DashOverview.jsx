@@ -11,7 +11,7 @@ import { useCurrency } from '../../contexts/CurrencyContext.jsx';
 import { useSecurityGuard, getSecurityAlerts } from '../../security/SecurityGuard.js';
 import { Spark, DonutChart, Gauge, fmt, LineChart } from './ChartUtils.jsx';
 import { IS_DEMO } from '../../utils/demoEnv';
-import { buildPeriodScope, deriveOrderKpis } from './dashPeriod.js';
+import { buildPeriodScope, deriveOrderKpis, usePeriodOrderStats } from './dashPeriod.js';
 
 // ── Style Constants ──────────────────────────────────────────────────────
 const G = 12;
@@ -484,6 +484,8 @@ export default function DashOverview({ ticker, period }) {
   const periodKpis = useMemo(() => deriveOrderKpis(scope.scoped), [scope.scoped]);
   const f = scope.factor;             // 광고 누적집계 스코프 계수
   const periodActive = scope.active;
+  // [정밀감사 A] 운영 기간 매출/주문수 = 서버 전체행 집계(1000건 캡 과소집계 해소). 로딩전/실패/데모는 null → 클라 배열 폴백.
+  const periodSrv = usePeriodOrderStats(period);
 
   // ── SecurityGuard 보안 감시 ────────────────────────────────────
   useSecurityGuard({ addAlert, enabled: true });
@@ -497,8 +499,10 @@ export default function DashOverview({ ticker, period }) {
   // ── 실시간 KPI (GlobalDataContext 단일 소스) ──────────────────
   const base = useMemo(() => {
     // [현 차수] 기간 선택 시: 매출/주문수/객단가=실주문 재집계, 광고비=기간비례 계수.
-    const gross = periodActive ? periodKpis.revenue : (pnlStats?.revenue || 0);
-    const ord = periodActive ? periodKpis.orders : (orderStats?.count || 0);
+    // [정밀감사 A] 기간 매출/주문수: 서버 전체행 집계(periodSrv) 우선 → 1000건 캡 과소집계 제거.
+    //   로딩 전/실패/데모는 periodKpis(클라 배열)로 graceful 폴백. 비기간은 정산-우선 권위(pnlStats) 유지.
+    const gross = periodActive ? (periodSrv ? periodSrv.revenue : periodKpis.revenue) : (pnlStats?.revenue || 0);
+    const ord = periodActive ? (periodSrv ? periodSrv.orders : periodKpis.orders) : (orderStats?.count || 0);
     const spend = (pnlStats?.adSpend || budgetStats?.totalSpent || 0) * (periodActive ? f : 1);
     return {
       grossRev: gross,
@@ -514,7 +518,7 @@ export default function DashOverview({ ticker, period }) {
         : null,
       avgOrder: ord > 0 ? Math.round(gross / ord) : 0,
     };
-  }, [pnlStats, orderStats, budgetStats, periodActive, periodKpis, f]);
+  }, [pnlStats, orderStats, budgetStats, periodActive, periodKpis, periodSrv, f]);
 
   const sparks = useMemo(() => ({
     gross: seedSpark(base.grossRev, 22),

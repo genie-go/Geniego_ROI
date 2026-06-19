@@ -5,7 +5,7 @@ import { useSecurityGuard } from '../../security/SecurityGuard.js';
 import { DonutChart, StackBar, fmt } from './ChartUtils.jsx';
 import { useCurrency } from '../../contexts/CurrencyContext.jsx';
 import { IS_DEMO } from '../../utils/demoEnv.js';
-import { buildPeriodScope, deriveOrderKpis } from './dashPeriod.js';
+import { buildPeriodScope, deriveOrderKpis, usePeriodOrderStats } from './dashPeriod.js';
 
 // ══════════════════════════════════════════════════════════════════════
 //  🛒 DashCommerce — 커머스·정산 Platform Intelligence
@@ -436,13 +436,15 @@ export default function DashCommerce({ period }) {
   const scope = useMemo(() => buildPeriodScope(orders, period), [orders, period]);
   const periodKpis = useMemo(() => deriveOrderKpis(scope.scoped), [scope.scoped]);
   const scopedOrders = scope.scoped;
+  // [정밀감사 A] 기간 매출/주문수 = 서버 전체행 집계(1000건 캡 과소집계 해소). 로딩전/실패/데모는 null → 클라 배열 폴백.
+  const periodSrv = usePeriodOrderStats(period);
 
   // ── Derived computed data (100% real-time, zero mock) ──────────────
-  const totalOrd = scope.active ? periodKpis.orders : (orderStats?.count || 0);
+  const totalOrd = scope.active ? (periodSrv ? periodSrv.orders : periodKpis.orders) : (orderStats?.count || 0);
   // [현 차수] 데이터품질(운영 매출 발산 통일): '총매출'은 플랫폼 캐논 매출(pnlStats.revenue)을 사용한다.
-  //   기간 선택 시엔 그 기간 실주문 매출(periodKpis.revenue)을 우선해 기간 정합성을 보장한다.
+  //   기간 선택 시엔 그 기간 실주문 매출(periodSrv 서버집계 우선, 폴백=periodKpis)을 써 기간 정합성을 보장한다.
   const totalRev = scope.active
-    ? periodKpis.revenue
+    ? (periodSrv ? periodSrv.revenue : periodKpis.revenue)
     : ((pnlStats?.revenue != null && pnlStats.revenue > 0) ? pnlStats.revenue : (orderStats?.revenue || 0));
   const returnRate = settlementStats?.returnRate || 0;
   const reconRate = settlementStats?.totalOrders > 0

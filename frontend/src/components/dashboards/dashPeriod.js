@@ -18,6 +18,10 @@
 
 // [225차 P2-3] 취소/반품 판정 공용 캐논(내부 deriveOrderKpis 사용 + 아래 re-export 로 외부 노출).
 import { isCancelledStatus, isReturnStatus } from './orderStatusCanon.js';
+// [정밀감사 A] 기간 매출 서버집계 훅용
+import { useState, useEffect } from 'react';
+import { getJsonAuth } from '../../services/apiClient.js';
+import { IS_DEMO } from '../../utils/demoEnv.js';
 
 const DAY = 86400000;
 
@@ -142,4 +146,35 @@ export function deriveOrderKpis(scopedOrders) {
     returnRate: count + returns > 0 ? (returns / (count + returns)) * 100 : 0,
     byChannel,
   };
+}
+
+/**
+ * [정밀감사 A] 운영 기간 매출/주문수 서버집계 훅 — 기간 토글이 1000건 캡 클라 배열(deriveOrderKpis)
+ * 대신 channel_orders 전체행 SQL 집계(/orders/stats?from=&to=)를 쓰도록 한다. 정산-우선 권위
+ * (전체기간 pnlStats.revenue=정산매출)는 그대로 유지하고, '기간' 측만 1000건 캡 과소집계를 해소.
+ *   - 데모/미기간/로딩 전/실패 시 null 반환 → 호출측이 클라 배열(periodKpis)로 graceful 폴백.
+ *   - 정산-우선 vs 주문 기저 차이는 호출측 라벨로 명시(전체=정산매출, 기간=거래매출).
+ */
+export function usePeriodOrderStats(period) {
+  const active = hasPeriod(period);
+  const from = active && period && period.start ? period.start.toISOString().slice(0, 10) : '';
+  const to   = active && period && period.end   ? period.end.toISOString().slice(0, 10)   : '';
+  const [stats, setStats] = useState(null);
+  useEffect(() => {
+    if (IS_DEMO || !active || !from || !to) { setStats(null); return; }
+    let cancelled = false;
+    getJsonAuth(`/api/v424/orderhub/orders/stats?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`)
+      .then(r => {
+        // ★구버전 백엔드(from/to 미지원)는 전체기간 합계를 반환하므로 period_from echo 가 요청과 일치할 때만
+        //   신뢰(기간 적용 확정). 불일치/부재면 null → 호출측이 클라 배열(periodKpis)로 폴백(전체기간 오표시 차단).
+        if (!cancelled && r && r.ok && r.period_from === from && r.period_to === to) {
+          setStats({ revenue: Number(r.revenue) || 0, orders: Number(r.count) || 0, cogs: r.cogs != null ? Number(r.cogs) : null });
+        } else if (!cancelled) {
+          setStats(null);
+        }
+      })
+      .catch(() => { if (!cancelled) setStats(null); });
+    return () => { cancelled = true; };
+  }, [from, to, active]);
+  return active ? stats : null;
 }

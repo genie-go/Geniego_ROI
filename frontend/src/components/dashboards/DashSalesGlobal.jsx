@@ -6,7 +6,7 @@ import {
     ComposableMap, Geographies, Geography, Marker, ZoomableGroup,
 } from 'react-simple-maps';
 import { fmt } from './ChartUtils.jsx';
-import { buildPeriodScope, deriveOrderKpis } from './dashPeriod.js';
+import { buildPeriodScope, deriveOrderKpis, usePeriodOrderStats } from './dashPeriod.js';
 import { useCurrency } from '../../contexts/CurrencyContext.jsx';
 
 // ══════════════════════════════════════════════════════════════════════════
@@ -729,7 +729,9 @@ export default function DashSalesGlobal({ period }) {
   // [현 차수] 기간 스코프: 선택 기간의 실주문 매출(취소 제외)을 단일소스로 국가 시드를 스케일.
   const scope = useMemo(() => buildPeriodScope(orders, period), [orders, period]);
   const periodKpis = useMemo(() => deriveOrderKpis(scope.scoped), [scope.scoped]);
-  const baseRev = scope.active ? periodKpis.revenue : (pnlStats?.revenue || 0);
+  // [정밀감사 A] 기간 매출 = 서버 전체행 집계(1000건 캡 과소집계 해소). 로딩전/실패/데모는 null → 클라 배열 폴백.
+  const periodSrv = usePeriodOrderStats(period);
+  const baseRev = scope.active ? (periodSrv ? periodSrv.revenue : periodKpis.revenue) : (pnlStats?.revenue || 0);
 
   // 206차 #1: 총매출 기준으로 국가 시드를 비례 스케일 → 글로벌/국가 매출이 총매출과 일관(기간 반영).
   const scale = (SEED_TOTAL > 0 && baseRev > 0) ? (baseRev / SEED_TOTAL) : 1;

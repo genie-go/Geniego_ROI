@@ -426,6 +426,11 @@ final class OrderHub
 
         $q = $req->getQueryParams();
         $channel = isset($q['channel']) ? (string)$q['channel'] : null;
+        // [정밀감사 A] 기간(from/to) 필터 — 대시보드 기간 토글이 1000건 캡 클라 배열 대신 서버 전체행
+        //   집계를 쓰도록(캡 과소집계 해소). ordered_at 은 어댑터별 ISO/'Y-m-d H:i:s' 혼재라 날짜 prefix(앞 10자
+        //   'YYYY-MM-DD') 비교로 포맷 강건. 미지정(전체기간)이면 기존 동작 100% 보존(가산적).
+        $from = isset($q['from']) ? substr(trim((string)$q['from']), 0, 10) : '';
+        $to   = isset($q['to'])   ? substr(trim((string)$q['to']),   0, 10) : '';
 
         // 캐논 토큰(취소=SSOT const, status 버킷=프론트 orderStats 동일)
         $pendingTokens  = ['발주Confirm','paid'];
@@ -435,6 +440,8 @@ final class OrderHub
         $base = ['tenant_id = ?'];
         $baseArgs = [$tenant];
         if ($channel !== null) { $base[] = 'channel = ?'; $baseArgs[] = $channel; }
+        if ($from !== '') { $base[] = "SUBSTR(ordered_at,1,10) >= ?"; $baseArgs[] = $from; }
+        if ($to   !== '') { $base[] = "SUBSTR(ordered_at,1,10) <= ?"; $baseArgs[] = $to; }
         $baseSql = implode(' AND ', $base);
 
         $ph = fn(array $a) => implode(',', array_fill(0, count($a), '?'));
@@ -501,6 +508,10 @@ final class OrderHub
             'done'      => $done,
             'cancelled' => $cancelled,
             'returned'  => $returned,
+            // [정밀감사 A] 적용된 기간 echo — 프론트가 이 echo 일치 시에만 기간값으로 신뢰(구버전 백엔드면
+            //   echo 부재 → 프론트가 클라 배열 폴백). 배포 순서 무관 안전.
+            'period_from' => $from !== '' ? $from : null,
+            'period_to'   => $to   !== '' ? $to   : null,
             '_env'      => Db::env(),
             '_isDemo'   => $isDemo,
         ]);
