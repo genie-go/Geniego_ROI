@@ -5654,6 +5654,11 @@ body:not([data-theme]) .sidebar-footer {
   overflow-x: hidden;
   padding: 14px 16px 20px;
   padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
+  /* ★페이지 루트가 display:grid 인 경우(WhatsApp 등): flex:1 로 뷰포트 높이만큼 늘어난 grid 가
+     align-content 기본값(stretch) 때문에 빈 공간을 행(hero 제목·탭바·콘텐츠)에 분배 → 콘텐츠가 짧은
+     탭에서 제목/탭바가 부풀어 균형이 깨지던 문제. start 로 상단 정렬해 각 행을 자연 높이로 고정.
+     (flex-column/블록 루트엔 align-content 무효과라 안전 — 전역 근본 수정) */
+  align-content: start;
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -6349,6 +6354,11 @@ body:not([data-theme]) .sidebar-footer {
   overflow-x: hidden;
   padding: 14px 16px 20px;
   padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
+  /* ★페이지 루트가 display:grid 인 경우(WhatsApp 등): flex:1 로 뷰포트 높이만큼 늘어난 grid 가
+     align-content 기본값(stretch) 때문에 빈 공간을 행(hero 제목·탭바·콘텐츠)에 분배 → 콘텐츠가 짧은
+     탭에서 제목/탭바가 부풀어 균형이 깨지던 문제. start 로 상단 정렬해 각 행을 자연 높이로 고정.
+     (flex-column/블록 루트엔 align-content 무효과라 안전 — 전역 근본 수정) */
+  align-content: start;
 }
 
 /* ── Budget Tracker & All Pages: Force dark text in card-glass on light themes ── */
