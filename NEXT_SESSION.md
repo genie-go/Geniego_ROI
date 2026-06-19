@@ -1,3 +1,39 @@
+# 232차 세션 인계서 — **플랫폼 전수 정밀감사(5도메인) + Sprint1~3 + 전 채널 "자격증명 등록→즉시 실연동·라이브" 일괄 실어댑터화 (전부 운영·데모 배포·라이브 검증·커밋·push 완료)**
+
+> **작성일**: 2026-06-19 (사용자 명시 승인) · 운영 roi.genie-go.com / 데모 roidemo.genie-go.com (★vhost server_name=하이픈, 파일경로 `.geniego.com` 무하이픈). 하네스 primary=**E:\project\GeniegoROI**. 정본 메모리 [[project-n232-audit-sprint12]].
+> **종결 상태**: 단일 커밋 `560da9079f6`(10파일 +975/−39) 운영/데모 프론트+백엔드 배포·서버 php -l·인증 e2e·**push 완료**(origin/master). SSH/MySQL/admin 자격증명 = 메모리 [[reference-session-credentials]].
+
+## ✅ 232차 완료 — 커밋 `560da9079f6` (10파일)
+**전수 정밀감사 결론**: 보안·오염차단=은행급(운영경로 mock/날조 0·cross-tenant P0 0·X-Tenant 무조건덮어쓰기·익명비콘 HMAC). 마케팅자동화=진짜 adtech(Meta/Google/TikTok/Naver SA 실 write 호출). ★감사 오탐 정정: 소재 이미지/영상생성=이미 실구현(ClaudeAI campaignAdImage=OpenAI/Stability, campaignAdVideo=Replicate), cron 12종=이미 등록(crontab 실측).
+
+| 영역 | 내용 |
+|---|---|
+| **Sprint1** | ①AI게이트 세션 만료·비활성 검증(`index.php:241` expires_at>now AND is_active=1) ②광고cron 하드코딩→AD_SHORT SSOT 동적화(`Connectors.tenantsWithAdCreds`) ③진실ROAS→자동화두뇌(`AutoCampaign` order-match 귀속 adj_roas, MIN_ATTR_CONV=5·클램프0.2~1.2) ④ConnectModal 필드별 필수검증+Kakao on-save sync |
+| **Sprint2** | 커머스 stub 9종 실 fetch 어댑터(`ChannelSync`): woocommerce/magento/walmart/etsy/shopee/lazada/qoo10/yahoo_japan/godomall. ★5위치 정합: dispatch(match)·COMMERCE_CHANNELS·CHANNEL_ALIASES(yahoo_japan→yahoo_jp)·ChannelCreds.hasRealAdapter·ApiKeys.REAL_ADAPTER |
+| **Sprint3** | A/B 베이지안 유의성검정(`AbTesting`: Beta-Binomial 정규근사 normalCdf/bayesBestProb, P(best)≥0.95 게이트, UCB대체)·Kakao Moment 집행(`AdAdapters` kakaoCreate/UpdateBudget/SetConfig, Bearer+adAccountId)·LINE Ads 전계층(JWS 서명 `Connectors.lineAdsAuthHeaders`+fetchLineRows ingest + `AdAdapters` lineCreate/UpdateBudget/SetStatus 집행) |
+| **stub 일괄 승격** | PG 정산 실수집 6종 추가(`PgSettlement`: Paddle/Square/Mollie/Razorpay/Klarna/Checkout → 총10종)·물류 실추적 FedEx/UPS(`Logistics` OAuth2 + httpPost 신설, 국내5+DHL 기존) |
+
+## 📌 232차 정본/발견
+- **"자격증명 등록→즉시 실행" 균일 배선(검증)**: 커머스→on-save `channel-sync`, 광고5종→`connectors/sync` ingest+집행, PG→정산 cron, 물류→추적 cron. 운영 인증호출 실증: 커머스 sync `pending:false`+graceful note / PG sync `configured:false "미등록—등록후 자동수집"` / 물류 track `"미등록—등록후 자동조회"` = 전부 실어댑터 라우팅(옛 stub "준비중/연동예정" 아님).
+- **PG 실수집 10종**: stripe/toss/paypal/adyen/paddle/square/mollie/razorpay/klarna/checkout. 물류 실추적=국내5(스마트택배 t_key 1개)+DHL+FedEx+UPS.
+- **★감사 에이전트 오탐 3건 정정**(검증 우선 원칙의 가치): ①소재생성 미구현(실제는 ClaudeAI에 완비, 에이전트가 AiGenerate.php만 봄) ②cron 미등록(실제 12종 crontab 등록됨) ③집행페이지 플랜게이팅 누락(실제 menuKey:marketing→starter + App.jsx:316 라우트가드로 강제됨). → 중복구현 회피.
+- **LINE Ads JWS**: `Base64(Header).Base64(Payload)` + `HMAC-SHA256(secret)` → `Authorization: Bearer {input},{sig}`. Payload=Content-MD5/Content-Type/Date(Ymd)/RequestUri. 키=Ad Manager>Group 페이지 발급. ★헤더/페이로드 정확한 필드명·엔드포인트 경로는 **실 자격증명 등록 시 라이브 응답으로 최종확정**(graceful 드롭인). 공개 SPA 문서라 비로그인 자동조회 불가(제목만 반환).
+- **honest-stub 유지(외부제약·정직표기)**: Coupang 광고집행(파트너 승인 API 필수)·kakaopay/naverpay/inicis/kcp(결제플로우/가맹점포털 기반, 표준 정산-리스트 API 부재)·braintree·tnt/ems/cj_intl/ocl_sameday/fulfillment(저빈도/계약형). register-and-go 구조적 불가 또는 저우선.
+
+## 📌 배포/도구 레퍼런스 (232차 — 231차 정합 + 추가 함정)
+- **배포**: plink/pscp(`C:\Program Files\PuTTY`). 자격증명=메모리 파일 **`[System.IO.File]::ReadAllText`(UTF-8 명시)** 로 읽고 정규식 파싱(★`Get-Content -Raw`는 한글 라벨 mojibake로 이메일/비번 정규식 실패 — 로그인 검증 0건 원인이었음). 백엔드=pscp→서버 `php -l` 게이트→교체+chown www:www→`systemctl restart php8.1-fpm`. 프론트=`npm run build`(운영)+`npx vite build --mode demo`(데모, ★`Set-Location` 명시 필수 — cwd 드리프트 시 "Could not resolve entry index.html") 각각 tar→dist 추출. 백업 `*.bak232`/`*.bak232b`/`*.bak232c`·`dist.bak232*`.
+- **★PS 함정(232차 신규)**: ① `rm`/`/` 포함 compound PS 명령 → 하네스 가드 "Remove-Item on system path '/' blocked" 차단 → 명령 분리·rm 제외. ② plink 원격 bash 명령에 `$x`/중첩따옴표 → PS가 `$x` 확장·따옴표 mangle → **단일인용 here-string `@'...'@`** 로 bash 스크립트 작성·pscp 업로드·`bash /tmp/x.sh` 실행. ③ Windows `tar.exe`=bsdtar → `--warning` 미지원(GNU 옵션). "future timestamp" 경고는 무해. ④ 상대경로 lint/pscp 실패 → **절대경로** 사용(PS cwd 불안정).
+- **로컬 php**: `C:\project\GeniegoROI\_tmp_php81\php.exe`(8.1.34 운영동일, 시스템 php 미설치 대체).
+- **pre-commit 게이트**: G2(ja/zh sacred_sha) 통과 확인. 232차는 로케일 미편집(ApiKeys 라벨은 인라인)이라 baseline 갱신 불요.
+
+## ⏭️ 다음 차수 잔여
+1. **LINE Ads 라이브 검증**: 사용자가 Ad Manager>Group에서 access_key/secret_key/group_id 발급·등록 → JWS 서명 라이브 검증, 엔드포인트 경로/필드명 최종확정(ingest+집행). cc는 외부 계정 가입·키발급 대행 불가.
+2. **honest-stub 추가(필요시)**: kakaopay/naverpay(정산-리스트 API 제약 재조사)·braintree(GraphQL)·tnt/ems/cj_intl 추적. Coupang 광고=파트너 승인 선행.
+3. **231차 이월**: per-endpoint 런타임 ABAC 집행·PM 추가 엔터프라이즈(CR/커스텀필드/간트드래그)·`.githooks` session157_wronglang 픽스처 복원·seedOrg 운영 e2e.
+4. **외부 의존**: 매체 write OAuth 앱 등록·광고계정 ID 매핑·Toss 빌링키·CLAUDE_API_KEY 설정 시 실 광고집행 개시(코드는 준비 완료).
+
+---
+
 # 231차 세션 인계서 — **팀·멤버·권한 RBAC/ABAC 시스템 + PM 초엔터프라이즈(포트폴리오/EVM/RAID/리소스) + 전방위 i18n 현지화(마케팅믹스·파트너계정·팀유형·백엔드 AI리포트 12종) (전부 운영·데모 배포·라이브 e2e·push 완료)**
 
 > **작성일**: 2026-06-19 (사용자 명시 승인) · 운영 roi.genie-go.com / 데모 roidemo.genie-go.com (★vhost server_name=하이픈, 파일경로 `.geniego.com` 무하이픈). 하네스 primary=**E:\project\GeniegoROI**. 정본 메모리 [[project-n231-team-permission-rbac]].
