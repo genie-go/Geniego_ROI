@@ -2270,6 +2270,67 @@ function RegistryAddModal({ onClose, onSubmit }) {
 /* ═══════════════════════════════════════════════════════════════════
    Modal: Connect — 채널별 구조화 자격증명 등록 (208차)
    ═══════════════════════════════════════════════════════════════════ */
+/* [현 차수] 광고 매체(집행 활성화 시 결제수단 필요) 채널 — 단계 가이드의 추가 안내용. */
+const AD_EXEC_CHANNELS = new Set(['meta_ads', 'google_ads', 'tiktok_business', 'naver_sa', 'kakao_moment', 'line_ads']);
+
+/* [현 차수] ★초보자용 "3단계 따라하기" 가이드 — 연동허브 ConnectModal 상단에 노출.
+   기존 발급 시스템(ISSUANCE_URL 콘솔·MANUAL HTML·hasLiveVerify·OAuth)을 단계 흐름으로 재구성해
+   "자격증명만 등록하면 바로 실행"되는 경로를 명확히 안내한다(중복 시스템 신설 아님 — 기존 데이터 재사용). */
+function ConnectStepGuide({ channel, t, uiLang }) {
+  const consoleUrl = ISSUANCE_URL[channel.key];
+  const hasManual = MANUAL_KEYS.has(channel.key);
+  const hasOAuth = !!OAUTH_PROVIDER[channel.key];
+  const liveVerify = LIVE_VERIFY_CHANNELS.has(channel.key);
+  const isAd = AD_EXEC_CHANNELS.has(channel.key);
+
+  const Step = ({ n, title, children }) => (
+    <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+      <span style={{ flexShrink: 0, width: 22, height: 22, borderRadius: '50%', background: 'linear-gradient(135deg,#6366f1,#4f8ef7)', color: '#fff', fontSize: 12, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{n}</span>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 12.5, fontWeight: 800, color: 'var(--text-1)', marginBottom: 3 }}>{title}</div>
+        <div style={{ fontSize: 11, color: 'var(--text-2)', lineHeight: 1.55 }}>{children}</div>
+      </div>
+    </div>
+  );
+  const linkBtn = (href, label, color) => (
+    <a href={href} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: 6, marginRight: 6, fontSize: 11, fontWeight: 800, color, textDecoration: 'none', padding: '5px 10px', border: `1px solid ${color}55`, borderRadius: 8 }}>{label}</a>
+  );
+
+  return (
+    <div style={{ marginBottom: 16, padding: '14px 16px', borderRadius: 14, background: 'linear-gradient(135deg,rgba(99,102,241,0.06),rgba(79,142,247,0.04))', border: '1px solid rgba(99,102,241,0.2)' }}>
+      <div style={{ fontSize: 12.5, fontWeight: 900, color: '#6366f1', marginBottom: 12 }}>
+        🚀 {t('ak.guideTitle', '3단계만 따라 하면 연동 완료 — 자격증명만 등록하면 바로 실행됩니다')}
+      </div>
+      <div style={{ display: 'grid', gap: 12 }}>
+        <Step n={1} title={hasOAuth
+          ? t('ak.guideStep1Oauth', '발급 콘솔에서 키 발급 (또는 OAuth 원클릭 연결)')
+          : t('ak.guideStep1', '발급 콘솔에서 키(자격증명) 발급')}>
+          {t('ak.guideStep1Desc', '아래 버튼으로 발급 콘솔을 열고, 매뉴얼을 따라 키를 발급하세요.')}
+          <div>
+            {consoleUrl && linkBtn(consoleUrl, '🔑 ' + t('ak.openConsole', '발급 콘솔 열기') + ' ↗', '#4f8ef7')}
+            {hasManual && linkBtn(manualUrl(channel.key, uiLang), '📖 ' + t('ak.manualBtn', '발급 매뉴얼'), '#6366f1')}
+            {signupUrl(channel.key) && linkBtn(signupUrl(channel.key), '🔗 ' + t('ak.signupShort', '가입'), '#9333ea')}
+          </div>
+        </Step>
+        <Step n={2} title={t('ak.guideStep2', '발급받은 값을 아래 칸에 붙여넣고 저장')}>
+          {t('ak.guideStep2Desc', '필수(✗ 미등록) 항목을 모두 채우면 됩니다. 값은 AES-256-GCM 암호화 저장됩니다.')}
+        </Step>
+        <Step n={3} title={t('ak.guideStep3', '저장 즉시 자동 연동·실행')}>
+          {liveVerify
+            ? t('ak.guideStep3Live', '저장과 동시에 실제 채널 API로 키 유효성을 검증하고, 통과하면 즉시 데이터 수집·동기화가 시작됩니다. 추가 작업이 필요 없습니다.')
+            : t('ak.guideStep3Std', '저장과 동시에 자동 동기화가 시작되어 대시보드·정산 등 관련 기능에 바로 반영됩니다.')}
+        </Step>
+      </div>
+      {isAd && (
+        <div style={{ marginTop: 12, padding: '9px 12px', borderRadius: 10, background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.3)', fontSize: 11, color: '#b45309', lineHeight: 1.55 }}>
+          💳 {t('ak.guideAdBilling', '광고 매체는 자격증명 등록 후 "성과 수집·자동 최적화"는 바로 동작합니다. 단, 실제 광고를 ON(집행)하려면 결제수단 등록이 필요합니다 — ')}
+          <a href="/payment-methods" style={{ color: '#d97706', fontWeight: 800 }}>{t('ak.guideAdBillingLink', '결제수단 등록 →')}</a>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ConnectModal({ channel, onClose, onSubmit, t, extraFields = {}, postOauth = false, registeredKeys, verifiedKeys }) {
   const fields = CHANNEL_FIELDS[channel.key] || extraFields[channel.key] || DEFAULT_FIELDS;
   const { lang: uiLang } = useI18n();
@@ -2325,6 +2386,8 @@ function ConnectModal({ channel, onClose, onSubmit, t, extraFields = {}, postOau
             <a href={signupUrl(channel.key)} target="_blank" rel="noopener noreferrer" title={t('ak.signupHint2','이 채널 계정이 없으면 먼저 가입하세요.')} style={{ fontSize: 11.5, fontWeight: 800, color: '#9333ea', textDecoration: 'none', padding: '5px 9px', border: '1px solid rgba(147,51,234,0.3)', borderRadius: 8, whiteSpace: 'nowrap' }}>🔗 {t('ak.signupShort','가입')}</a>
           )}
         </div>
+        {/* [현 차수] ★초보자용 3단계 따라하기 가이드 — 자격증명만 등록하면 바로 실행되는 경로 안내. */}
+        <ConnectStepGuide channel={channel} t={t} uiLang={uiLang} />
         {postOauth && (
           <div style={{ marginBottom: 16, padding: '12px 14px', borderRadius: 12, background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.28)' }}>
             <div style={{ fontSize: 12.5, fontWeight: 800, color: '#16a34a', marginBottom: 4 }}>✅ {t('ak.oauthDoneTitle', { ch: channel.name, defaultValue: `${channel.name} OAuth 인증 완료!` })}</div>
