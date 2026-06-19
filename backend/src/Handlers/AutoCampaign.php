@@ -86,7 +86,7 @@ class AutoCampaign
      *  오표기되던 버그 수정. (AutoMarketing.jsx connectorKey 와 일치) */
     private const CONNECTOR_KEY = [
         'meta' => 'meta_ads', 'tiktok' => 'tiktok_business', 'google' => 'google_ads',
-        'naver' => 'naver_sa', 'kakao' => 'kakao_moment', 'coupang_ads' => 'coupang', 'coupang' => 'coupang',
+        'naver' => 'naver_sa', 'kakao' => 'kakao_moment', 'line' => 'line_ads', 'coupang_ads' => 'coupang', 'coupang' => 'coupang',
     ];
 
     private static function connectorKey(string $channel): string
@@ -429,6 +429,55 @@ class AutoCampaign
 
     private const PAUSE_FLOOR = 1.0;   // ROAS < 1.0 (손해) → 예산 회수
     private const OPT_WINDOW_DAYS = 14; // 최근 14일 성과 분석
+    private const MIN_ATTR_CONV = 5;   // [현 차수 P1] 진실 ROAS 보정 적용 최소 귀속 전환수(이 미만이면 매체보고 그대로=회귀 없음)
+
+    /** [현 차수 P1] 광고채널 패밀리 정규화(매체보고 채널명 ↔ 귀속채널명 정합용). meta/google/tiktok/naver/kakao. */
+    private static function chFamily(string $ch): string
+    {
+        $c = strtolower(trim($ch));
+        $map = [
+            'meta' => 'meta', 'meta_ads' => 'meta', 'facebook' => 'meta', 'instagram' => 'meta',
+            'google' => 'google', 'google_ads' => 'google', 'youtube' => 'google',
+            'tiktok' => 'tiktok', 'tiktok_business' => 'tiktok',
+            'naver' => 'naver', 'naver_sa' => 'naver', 'naver_searchad' => 'naver',
+            'kakao' => 'kakao', 'kakao_moment' => 'kakao',
+        ];
+        return $map[$c] ?? $c;
+    }
+
+    /**
+     * [현 차수 P1] 채널 패밀리별 실주문 귀속 매출/전환(window 내) — 매체 과대보고 보정의 진실 기준.
+     *   attribution_result(model='order-match') ⨝ channel_orders(실 매출). order당 dedup(이중계산 방지).
+     *   테이블/컬럼 부재 시 빈 맵 반환 → 호출부는 매체보고를 그대로 사용(회귀 없음). 요청당 (tenant,since) 캐시.
+     */
+    private static function realRevMap(PDO $pdo, string $tenant, string $since): array
+    {
+        static $cache = [];
+        $ck = $tenant . '|' . $since;
+        if (isset($cache[$ck])) return $cache[$ck];
+        $map = [];
+        try {
+            $sql = "SELECT ch, COALESCE(SUM(rev),0) rev, COUNT(*) conv FROM (
+                        SELECT LOWER(ar.attributed_channel) ch, ar.order_id, MAX(co.total_price) rev
+                        FROM attribution_result ar
+                        JOIN channel_orders co ON co.tenant_id=ar.tenant_id AND co.channel_order_id=ar.order_id
+                        WHERE ar.tenant_id=? AND ar.model='order-match' AND co.ordered_at >= ?
+                        GROUP BY ar.order_id, LOWER(ar.attributed_channel)
+                    ) t GROUP BY ch";
+            $st = $pdo->prepare($sql);
+            $st->execute([$tenant, $since]);
+            foreach ($st->fetchAll(PDO::FETCH_ASSOC) ?: [] as $r) {
+                $fam = self::chFamily((string)$r['ch']);
+                if (!isset($map[$fam])) $map[$fam] = ['rev' => 0.0, 'conv' => 0];
+                $map[$fam]['rev']  += (float)$r['rev'];
+                $map[$fam]['conv'] += (int)$r['conv'];
+            }
+        } catch (\Throwable $e) {
+            $map = []; // 귀속 데이터 부재 → 매체보고 폴백
+        }
+        $cache[$ck] = $map;
+        return $map;
+    }
 
     /**
      * 채널별 최근 성과 집계(채널명 대소문자 무시).
@@ -459,12 +508,29 @@ class AutoCampaign
         }
         $spend = (float)($r['spend'] ?? 0); $rev = (float)($r['rev'] ?? 0);
         $imp = (int)($r['imp'] ?? 0); $clk = (int)($r['clk'] ?? 0);
+        // [현 차수 P1] 진실 ROAS 보정 — 매체 자가보고 매출(rev)은 뷰스루·중복으로 체계적 과대.
+        //   실주문 귀속 매출(order-match)로 산출한 truthRatio 로 보정한 adjRevenue/adjRoas 를 자동화 두뇌가 사용.
+        //   귀속 전환이 MIN_ATTR_CONV 미만이면 보정 미적용(adjRoas=roas) → 데이터 부족 테넌트 회귀 0.
+        $realMap = self::realRevMap($pdo, $tenant, $since);
+        $fam = self::chFamily($channel);
+        $realRev = (float)($realMap[$fam]['rev'] ?? 0);
+        $realConv = (int)($realMap[$fam]['conv'] ?? 0);
+        $adjRev = $rev; $truthRatio = null;
+        if ($realConv >= self::MIN_ATTR_CONV && $rev > 0) {
+            $truthRatio = max(0.2, min(1.2, $realRev / $rev)); // 극단 변동 클램프(0.2~1.2)
+            $adjRev = $rev * $truthRatio;
+        }
         return [
             'spend' => round($spend), 'revenue' => round($rev), 'impressions' => $imp, 'clicks' => $clk,
             'conversions' => (int)($r['conv'] ?? 0),
             'roas' => $spend > 0 ? round($rev / $spend, 2) : 0,
             'ctr'  => $imp > 0 ? round($clk / $imp * 100, 2) : 0,
             'has_data' => ($spend > 0 || $imp > 0),
+            // 진실 ROAS 보정 필드(자동화 두뇌·투명성 로그용)
+            'real_revenue' => round($realRev), 'real_conv' => $realConv,
+            'truth_ratio'  => $truthRatio !== null ? round($truthRatio, 3) : null,
+            'adj_revenue'  => round($adjRev),
+            'adj_roas'     => $spend > 0 ? round($adjRev / $spend, 2) : 0,
         ];
     }
 
@@ -601,18 +667,23 @@ class AutoCampaign
                 continue;
             }
             if (!$m['has_data']) { $weights[$ch] = 0.5; continue; }
+            // [현 차수 P1] 예산 결정은 진실 ROAS(adj_roas)로 — 매체 과대보고로 인한 예산 오배분 제거.
+            //   귀속 데이터 부족 시 adj_roas==roas 라 회귀 없음. truthRatio 적용 시 결정 사유에 투명 표기.
+            $decRoas = (float)($m['adj_roas'] ?? $m['roas']);
+            $tr = $m['truth_ratio'] ?? null;
+            $trNote = ($tr !== null && $tr < 0.98) ? " · 진실ROAS {$decRoas}(매체보고 {$m['roas']}×귀속 {$tr})" : '';
             // ① 이상감지: 지출은 있는데 전환 0 (낭비) → 즉시 회수(다채널 시).
             if ($m['conversions'] === 0 && $m['spend'] >= $zeroConvFloor && count($channels) > 1) {
                 $weights[$ch] = 0.0;
                 $decisions[] = ['channel' => $ch, 'action' => 'pause', 'old' => $oldMap[strtolower($ch)] ?? 0, 'new' => 0, 'roas' => $m['roas'], 'ctr' => $m['ctr'], 'reason' => "이상감지: 지출 ₩" . number_format($m['spend']) . " 대비 전환 0건 (낭비) → 자동 회수·정지"];
                 continue;
             }
-            // ② 손실 채널: ROAS < min_roas → 회수.
-            if ($m['roas'] < $minRoas && count($channels) > 1) {
+            // ② 손실 채널: 진실 ROAS < min_roas → 회수.
+            if ($decRoas < $minRoas && count($channels) > 1) {
                 $weights[$ch] = 0.0;
-                $decisions[] = ['channel' => $ch, 'action' => 'pause', 'old' => $oldMap[strtolower($ch)] ?? 0, 'new' => 0, 'roas' => $m['roas'], 'ctr' => $m['ctr'], 'reason' => "ROAS {$m['roas']} < {$minRoas} (손실) → 예산 회수·일시정지"];
+                $decisions[] = ['channel' => $ch, 'action' => 'pause', 'old' => $oldMap[strtolower($ch)] ?? 0, 'new' => 0, 'roas' => $m['roas'], 'ctr' => $m['ctr'], 'reason' => "ROAS {$decRoas} < {$minRoas} (손실) → 예산 회수·일시정지{$trNote}"];
             } else {
-                $w = max(0.05, (float)$m['roas']);
+                $w = max(0.05, $decRoas);
                 // 203차 ⓑ: 드리프트 저하 채널은 소프트 패널티(하드정지 아님)로 비중 하향 + 투명 로그.
                 $dr = $m['drift'] ?? [];
                 if (($dr['drift'] ?? '') === 'degrading') {
@@ -637,7 +708,10 @@ class AutoCampaign
             $old = $oldMap[strtolower($ch)] ?? 0;
             if ($weights[$ch] > 0 && abs($a - $old) >= 10000) {
                 $dir = $a > $old ? '증액' : '감액';
-                $decisions[] = ['channel' => $ch, 'action' => 'realloc', 'old' => (int)$old, 'new' => $a, 'roas' => $metrics[$ch]['roas'], 'ctr' => $metrics[$ch]['ctr'], 'reason' => "ROAS {$metrics[$ch]['roas']} (최고 성과) → 예산 {$dir}"];
+                // [현 차수 P1] 재배분 근거 ROAS = 진실 ROAS(adj_roas). 매체보고 대비 보정됐으면 투명 병기.
+                $mr = $metrics[$ch]; $dRoas = (float)($mr['adj_roas'] ?? $mr['roas']); $tRatio = $mr['truth_ratio'] ?? null;
+                $tNote = ($tRatio !== null && $tRatio < 0.98) ? " (매체보고 {$mr['roas']}×귀속 {$tRatio} 보정)" : '';
+                $decisions[] = ['channel' => $ch, 'action' => 'realloc', 'old' => (int)$old, 'new' => $a, 'roas' => $mr['roas'], 'ctr' => $mr['ctr'], 'reason' => "진실 ROAS {$dRoas}{$tNote} → 예산 {$dir}"];
             }
         }
 

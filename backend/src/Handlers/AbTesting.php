@@ -28,6 +28,50 @@ final class AbTesting
     private const MIN_IMPRESSIONS = 1000;
     /** UCB 탐색 강도. */
     private const UCB_C = 0.5;
+    /** [232차 Sprint3] 베이지안 승자 확정 임계치 — P(해당 variant가 진짜 최고 전환율) ≥ 0.95 일 때만 승자 선정.
+     *  기존엔 표본수 게이트 통과 후 UCB 점수 최고를 곧바로 승자로 정해(유의성 미검정) 우연한 차이로 패자를 정지하는 위험이 있었다. */
+    private const WIN_CONFIDENCE = 0.95;
+
+    /** 표준정규 누적분포 Φ(x) — erf 기반(Abramowitz-Stegun 7.1.26). 베이지안 A/B 정규근사용. */
+    private static function normalCdf(float $x): float
+    {
+        // erf 근사
+        $t = 1.0 / (1.0 + 0.3275911 * abs($x) / M_SQRT2);
+        $y = 1.0 - (((((1.061405429 * $t - 1.453152027) * $t) + 1.421413741) * $t - 0.284496736) * $t + 0.254829592) * $t * exp(-($x * $x) / 2.0);
+        return $x >= 0 ? 0.5 + 0.5 * $y : 0.5 - 0.5 * $y;
+    }
+
+    /**
+     * [232차 Sprint3] 베이지안 A/B — 전환율 Beta-Binomial 사후분포 정규근사로 "각 variant가 최고일 확률" 산출.
+     *   posterior: p~Beta(conv+1, imp-conv+1) → 평균 p̂=(conv+1)/(imp+2), 분산 v=p̂(1-p̂)/(imp+3).
+     *   후보(최고 p̂)가 나머지 전부보다 클 확률 = Π Φ((p̂_c-p̂_j)/√(v_c+v_j)) (정규근사·결정적, 난수 없음).
+     * @param array $rows [['v'=>variantRow,'m'=>metrics], ...]
+     * @return array{winnerId:int, prob:float, rates:array<int,float>}
+     */
+    private static function bayesBestProb(array $rows): array
+    {
+        $stat = []; // vid => [pHat, var, rate]
+        foreach ($rows as $r) {
+            $imp = max(0, (int)$r['m']['impressions']);
+            $conv = max(0, min($imp, (int)$r['m']['conversions']));
+            $pHat = ($conv + 1) / ($imp + 2);
+            $var  = $pHat * (1 - $pHat) / ($imp + 3);
+            $stat[(int)$r['v']['id']] = ['p' => $pHat, 'v' => max($var, 1e-9), 'rate' => $imp > 0 ? $conv / $imp : 0.0];
+        }
+        // 후보 = 최고 사후평균 전환율
+        $candId = 0; $candP = -1.0;
+        foreach ($stat as $vid => $s) { if ($s['p'] > $candP) { $candP = $s['p']; $candId = $vid; } }
+        // P(후보가 전부보다 큼) = 쌍별 정규근사 곱
+        $prob = 1.0;
+        foreach ($stat as $vid => $s) {
+            if ($vid === $candId) continue;
+            $den = sqrt($stat[$candId]['v'] + $s['v']);
+            $z = $den > 0 ? ($stat[$candId]['p'] - $s['p']) / $den : 0.0;
+            $prob *= self::normalCdf($z);
+        }
+        $rates = []; foreach ($stat as $vid => $s) $rates[$vid] = round($s['rate'] * 100, 3);
+        return ['winnerId' => $candId, 'prob' => round($prob, 4), 'rates' => $rates];
+    }
 
     public static function migrate(PDO $pdo): void
     {
@@ -187,18 +231,22 @@ final class AbTesting
                 continue;
             }
 
-            // 3) UCB 점수(ROAS 활용 + 저표본 탐색 보너스). 결정적(랜덤 없음).
-            $best = null; $bestScore = -INF; $scores = [];
-            foreach ($rows as $r) {
-                $conv = max(0, (int)$r['m']['conversions']);
-                $roas = (float)$r['m']['roas'];
-                $ucb = self::UCB_C * sqrt(log($totalConv + 2.0) / ($conv + 1.0));
-                $score = $roas + $ucb;
-                $scores[(int)$r['v']['id']] = ['score' => round($score, 3), 'roas' => $roas, 'ucb' => round($ucb, 3)];
-                if ($score > $bestScore) { $bestScore = $score; $best = $r['v']; }
+            // 3) [232차 Sprint3] 베이지안 유의성 검정 — 전환율 사후분포로 "최고 variant일 확률" 산출.
+            //    P(best) < WIN_CONFIDENCE(0.95) 면 승자 미확정(우연한 차이로 패자 정지 방지) → 계속 수집.
+            $bayes = self::bayesBestProb($rows);
+            $winnerId = (int)$bayes['winnerId'];
+            $probPct = round($bayes['prob'] * 100, 1);
+            if ($winnerId === 0 || $bayes['prob'] < self::WIN_CONFIDENCE) {
+                $decisions[] = ['ab_test' => $testId, 'channel' => $channel, 'action' => 'ab_collecting',
+                    'reason' => "통계 유의성 미달(최고 variant 우위확률 {$probPct}% < 95%) → 승자 미확정, 데이터 계속 수집"];
+                continue;
             }
-            if (!$best) continue;
-            $winnerId = (int)$best['id'];
+            // 투명성용 보조 점수(ROAS) — 결정은 베이지안, 로그엔 ROAS/우위확률 병기.
+            $scores = [];
+            foreach ($rows as $r) {
+                $vid = (int)$r['v']['id'];
+                $scores[$vid] = ['roas' => (float)$r['m']['roas'], 'conv_rate' => $bayes['rates'][$vid] ?? 0.0, 'win_prob' => $probPct];
+            }
 
             // 4) 승자 확정 + 패자 ad 일시정지(예산 승자 집중). 게이트/자격증명은 AdAdapters 가 처리.
             $connKey = self::connectorKey($channel);
@@ -207,7 +255,7 @@ final class AbTesting
                 $adExt = (string)$r['v']['ad_ext_id'];
                 if ($vid === $winnerId) {
                     try { $pdo->prepare("UPDATE ab_variant SET status='winner',alloc_share=1.0,updated_at=? WHERE id=?")->execute([self::now(), $vid]); } catch (Throwable $e) {}
-                    $decisions[] = ['ab_test' => $testId, 'channel' => $channel, 'action' => 'ab_winner', 'variant' => $vid, 'roas' => $r['m']['roas'], 'reason' => "A/B 승자 선정(ROAS {$r['m']['roas']}, score {$scores[$vid]['score']}) → 예산 집중"];
+                    $decisions[] = ['ab_test' => $testId, 'channel' => $channel, 'action' => 'ab_winner', 'variant' => $vid, 'roas' => $r['m']['roas'], 'reason' => "A/B 승자 선정(전환율 {$scores[$vid]['conv_rate']}%, 베이지안 우위확률 {$probPct}% ≥ 95%, ROAS {$r['m']['roas']}) → 예산 집중"];
                 } else {
                     $pr = AdAdapters::pause($pdo, $tenant, $connKey, $adExt);
                     try { $pdo->prepare("UPDATE ab_variant SET status='paused',alloc_share=0,updated_at=? WHERE id=?")->execute([self::now(), $vid]); } catch (Throwable $e) {}

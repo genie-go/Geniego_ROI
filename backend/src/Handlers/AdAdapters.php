@@ -65,6 +65,8 @@ final class AdAdapters
             'google_ads'      => ['google_ads', 'google'],
             'tiktok_business' => ['tiktok_business', 'tiktok'],
             'naver_sa'        => ['naver_sa', 'naver'],
+            'kakao_moment'    => ['kakao_moment', 'kakao'], // [232차 Sprint3] Kakao Moment 집행
+            'line_ads'        => ['line_ads'],             // [232차] LINE Ads 집행(메시징 'line'과 별개)
         ];
         static $keyAlias = ['access_token' => ['access_token', 'oauth_access_token']];
         $chans = $chanAlias[$channel] ?? [$channel];
@@ -145,8 +147,9 @@ final class AdAdapters
                 case 'google_ads':      return self::googleCreate($pdo, $tenant, $name, $daily);
                 case 'tiktok_business': return self::tiktokCreate($pdo, $tenant, $name, $daily);
                 case 'naver_sa':        return self::naverCreate($pdo, $tenant, $name, $daily);
+                case 'kakao_moment':    return self::kakaoCreate($pdo, $tenant, $name, $daily);
+                case 'line_ads':        return self::lineCreate($pdo, $tenant, $name, $daily);
                 case 'coupang':         return self::fail('Coupang 광고 집행 생성은 파트너 승인 API 가 별도 필요합니다. 수동 연동을 이용하세요.', 'unsupported');
-                case 'kakao_moment':    return self::fail('카카오모먼트 광고 집행 자동화는 준비 중입니다. 현재는 메타/구글/틱톡/네이버SA 채널을 이용하세요(카카오 알림톡 메시징은 정상 지원).', 'unsupported');
                 default:                return self::fail('지원하지 않는 채널: ' . $channel, 'unsupported');
             }
         } catch (Throwable $e) {
@@ -164,6 +167,8 @@ final class AdAdapters
                 case 'google_ads':      return self::googleUpdateBudget($pdo, $tenant, $externalId, $newDaily);
                 case 'tiktok_business': return self::tiktokUpdateBudget($pdo, $tenant, $externalId, $newDaily);
                 case 'naver_sa':        return self::naverUpdateBudget($pdo, $tenant, $externalId, $newDaily);
+                case 'kakao_moment':    return self::kakaoUpdateBudget($pdo, $tenant, $externalId, $newDaily);
+                case 'line_ads':        return self::lineUpdateBudget($pdo, $tenant, $externalId, $newDaily);
                 default:                return ['ok' => false, 'status' => 'unsupported'];
             }
         } catch (Throwable $e) { return ['ok' => false, 'error' => $e->getMessage()]; }
@@ -179,6 +184,8 @@ final class AdAdapters
                 case 'google_ads':      return self::googleSetStatus($pdo, $tenant, $externalId, 'PAUSED');
                 case 'tiktok_business': return self::tiktokSetStatus($pdo, $tenant, $externalId, 'DISABLE');
                 case 'naver_sa':        return self::naverSetLock($pdo, $tenant, $externalId, true);
+                case 'kakao_moment':    return self::kakaoSetConfig($pdo, $tenant, $externalId, 'OFF');
+                case 'line_ads':        return self::lineSetStatus($pdo, $tenant, $externalId, 'PAUSED');
                 default:                return ['ok' => false, 'status' => 'unsupported'];
             }
         } catch (Throwable $e) { return ['ok' => false, 'error' => $e->getMessage()]; }
@@ -199,6 +206,8 @@ final class AdAdapters
                 case 'google_ads':      return self::googleSetStatus($pdo, $tenant, $externalId, 'ENABLED');
                 case 'tiktok_business': return self::tiktokSetStatus($pdo, $tenant, $externalId, 'ENABLE');
                 case 'naver_sa':        return self::naverSetLock($pdo, $tenant, $externalId, false);
+                case 'kakao_moment':    return self::kakaoSetConfig($pdo, $tenant, $externalId, 'ON');
+                case 'line_ads':        return self::lineSetStatus($pdo, $tenant, $externalId, 'ACTIVE');
                 default:                return ['ok' => false, 'status' => 'unsupported'];
             }
         } catch (Throwable $e) { return ['ok' => false, 'error' => $e->getMessage()]; }
@@ -373,6 +382,99 @@ final class AdAdapters
         [$code, $res] = self::http('PUT', 'https://api.searchad.naver.com' . $path . '?fields=userLock', $hdr,
             json_encode(['nccCampaignId' => $extId, 'userLock' => $lock]));
         return ($code >= 200 && $code < 300) ? ['ok' => true] : ['ok' => false, 'error' => self::errMsg($res)];
+    }
+
+    /* ════════════════════════ Kakao Moment (Bearer + adAccountId) ════════════════════════
+     *   인증 패턴은 검증된 ingest(Connectors::fetchKakaoRows)와 동일: Authorization Bearer + adAccountId 헤더.
+     *   OpenAPI v4 campaigns. config=OFF 로 생성(PAUSED 안전정책) → 사용자 활성화 시에만 집행. graceful 에러. */
+    private static function kakaoHeaders(PDO $pdo, string $tenant): ?array
+    {
+        $token = self::cred($pdo, $tenant, 'kakao_moment', 'access_token');
+        $acc   = self::cred($pdo, $tenant, 'kakao_moment', 'ad_account_id');
+        if ($acc === '') $acc = self::cred($pdo, $tenant, 'kakao_moment', 'account_id'); // 레거시 키명 폴백
+        if ($token === '' || $acc === '') return null;
+        return [['Authorization: Bearer ' . $token, 'adAccountId: ' . $acc, 'Content-Type: application/json'], $acc];
+    }
+    private static function kakaoCreate(PDO $pdo, string $tenant, string $name, int $daily): array
+    {
+        $h = self::kakaoHeaders($pdo, $tenant);
+        if ($h === null) return self::fail('카카오모먼트 자격증명(access_token/ad_account_id) 미등록', 'no_credentials');
+        [$hdr, $acc] = $h;
+        // OpenAPI v4 캠페인 생성 — DISPLAY/전환 목표, config=OFF(정지=무지출). dailyBudgetAmount 동시 설정.
+        $body = json_encode(['adAccountId' => (int)$acc, 'name' => $name,
+            'campaignTypeGoal' => ['campaignType' => 'DISPLAY', 'goal' => 'CONVERSION'],
+            'config' => 'OFF', 'dailyBudgetAmount' => $daily], JSON_UNESCAPED_UNICODE);
+        [$code, $res] = self::http('POST', 'https://apis.moment.kakao.com/openapi/v4/campaigns', $hdr, $body);
+        $id = $res['id'] ?? $res['campaignId'] ?? ($res['data']['id'] ?? '');
+        if ($code >= 200 && $code < 300 && $id !== '') return self::ok((string)$id, 'paused', '카카오모먼트 캠페인 생성(OFF)');
+        return self::fail('Kakao Moment: ' . (self::errMsg($res) ?: ('HTTP ' . $code)));
+    }
+    private static function kakaoUpdateBudget(PDO $pdo, string $tenant, string $extId, int $daily): array
+    {
+        $h = self::kakaoHeaders($pdo, $tenant);
+        if ($h === null) return ['ok' => false, 'error' => 'no_credentials'];
+        [$hdr, $acc] = $h;
+        $body = json_encode(['adAccountId' => (int)$acc, 'id' => (int)$extId, 'dailyBudgetAmount' => $daily], JSON_UNESCAPED_UNICODE);
+        [$code, $res] = self::http('PUT', 'https://apis.moment.kakao.com/openapi/v4/campaigns', $hdr, $body);
+        return ($code >= 200 && $code < 300) ? ['ok' => true] : ['ok' => false, 'error' => self::errMsg($res) ?: ('HTTP ' . $code)];
+    }
+    private static function kakaoSetConfig(PDO $pdo, string $tenant, string $extId, string $config): array // ON|OFF
+    {
+        $h = self::kakaoHeaders($pdo, $tenant);
+        if ($h === null) return ['ok' => false, 'error' => 'no_credentials'];
+        [$hdr, $acc] = $h;
+        $body = json_encode(['adAccountId' => (int)$acc, 'id' => (int)$extId, 'config' => $config], JSON_UNESCAPED_UNICODE);
+        [$code, $res] = self::http('PUT', 'https://apis.moment.kakao.com/openapi/v4/campaigns/config', $hdr, $body);
+        return ($code >= 200 && $code < 300) ? ['ok' => true] : ['ok' => false, 'error' => self::errMsg($res) ?: ('HTTP ' . $code)];
+    }
+
+    /* ════════════════════════ LINE Ads (JWS HMAC-SHA256) ════════════════════════
+     *   인증=Connectors::lineAdsAuthHeaders(JWS). status=PAUSED 생성(안전정책). 키=Ad Manager>Group 발급.
+     *   ★엔드포인트 경로/필드명은 실 자격증명 등록 시 라이브 응답으로 최종 확정(graceful 드롭인). */
+    private static function lineCreds(PDO $pdo, string $tenant): ?array
+    {
+        $ak = self::cred($pdo, $tenant, 'line_ads', 'access_key');
+        $sk = self::cred($pdo, $tenant, 'line_ads', 'secret_key');
+        $gid = self::cred($pdo, $tenant, 'line_ads', 'group_id');
+        if ($gid === '') $gid = self::cred($pdo, $tenant, 'line_ads', 'ad_account_id');
+        if ($ak === '' || $sk === '' || $gid === '') return null;
+        return [$ak, $sk, $gid];
+    }
+    private static function lineReq(string $method, string $path, ?array $payload, string $ak, string $sk): array
+    {
+        $body = $payload !== null ? json_encode($payload, JSON_UNESCAPED_UNICODE) : '';
+        $h = \Genie\Handlers\Connectors::lineAdsAuthHeaders($method, $path, $body, $ak, $sk);
+        $hdr = []; foreach ($h as $k => $v) $hdr[] = "$k: $v";
+        return self::http($method, 'https://ads.line.me' . $path, $hdr, $body !== '' ? $body : null);
+    }
+    private static function lineCreate(PDO $pdo, string $tenant, string $name, int $daily): array
+    {
+        $c = self::lineCreds($pdo, $tenant);
+        if ($c === null) return self::fail('LINE Ads 자격증명(access_key/secret_key/group_id) 미등록', 'no_credentials');
+        [$ak, $sk, $gid] = $c;
+        $path = '/api/v3/groups/' . rawurlencode($gid) . '/campaigns';
+        [$code, $res] = self::lineReq('POST', $path, ['name' => $name, 'objective' => 'WEBSITE_CONVERSION', 'status' => 'PAUSED', 'dailyBudget' => $daily], $ak, $sk);
+        $id = $res['id'] ?? $res['campaignId'] ?? ($res['data']['id'] ?? '');
+        if ($code >= 200 && $code < 300 && $id !== '') return self::ok((string)$id, 'paused', 'LINE Ads 캠페인 생성(PAUSED)');
+        return self::fail('LINE Ads: ' . (self::errMsg($res) ?: ('HTTP ' . $code)));
+    }
+    private static function lineUpdateBudget(PDO $pdo, string $tenant, string $extId, int $daily): array
+    {
+        $c = self::lineCreds($pdo, $tenant);
+        if ($c === null) return ['ok' => false, 'error' => 'no_credentials'];
+        [$ak, $sk] = $c;
+        $path = '/api/v3/campaigns/' . rawurlencode($extId);
+        [$code, $res] = self::lineReq('PUT', $path, ['dailyBudget' => $daily], $ak, $sk);
+        return ($code >= 200 && $code < 300) ? ['ok' => true] : ['ok' => false, 'error' => self::errMsg($res) ?: ('HTTP ' . $code)];
+    }
+    private static function lineSetStatus(PDO $pdo, string $tenant, string $extId, string $status): array // ACTIVE|PAUSED
+    {
+        $c = self::lineCreds($pdo, $tenant);
+        if ($c === null) return ['ok' => false, 'error' => 'no_credentials'];
+        [$ak, $sk] = $c;
+        $path = '/api/v3/campaigns/' . rawurlencode($extId);
+        [$code, $res] = self::lineReq('PUT', $path, ['status' => $status], $ak, $sk);
+        return ($code >= 200 && $code < 300) ? ['ok' => true] : ['ok' => false, 'error' => self::errMsg($res) ?: ('HTTP ' . $code)];
     }
 
     /* ════════════════════════ 크리에이티브/딜리버리 레이어 ════════════════════════ */

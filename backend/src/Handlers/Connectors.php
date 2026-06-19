@@ -715,6 +715,7 @@ final class Connectors
         'tiktok_business'=>'tiktok','tiktok'=>'tiktok',
         'naver_sa'=>'naver','naver'=>'naver','naver_searchad'=>'naver',
         'kakao_moment'=>'kakao','kakao'=>'kakao', // [현 차수] Kakao Moment 자동sync 배선(저장 직후+cron)
+        'line_ads'=>'line', // [232차] LINE Ads(JWS) 자동sync 배선. 메시징 'line'(own_etc)과 별개 채널(line_ads).
     ];
 
     private static function loadCred(string $tenant, string $channelKey, string $credKey): string
@@ -1380,6 +1381,7 @@ final class Connectors
             'tiktok' => fn() => self::fetchTiktokRows($tenant, $start, $end),
             'naver'  => fn() => self::fetchNaverRows($tenant, $start, $end),
             'kakao'  => fn() => self::fetchKakaoRows($tenant, $start, $end), // [현 차수] Kakao Moment 실 ingest 배선
+            'line'   => fn() => self::fetchLineRows($tenant, $start, $end),  // [232차] LINE Ads 실 ingest(JWS)
         ];
 
         foreach ($fetchers as $ch => $fn) {
@@ -1421,12 +1423,17 @@ final class Connectors
     {
         $pdo = Db::pdo();
         try {
-            $stmt = $pdo->query(
+            // [현 차수 P1] AD_SHORT SSOT 동적 IN — 하드코딩 5채널 목록을 제거하고 광고채널 정본(AD_SHORT)에서
+            //   파생. 신규 광고채널을 AD_SHORT 한 곳에만 추가하면 cron 팬아웃이 자동 편입된다(저장직후·수동·cron 대칭).
+            $adKeys = array_keys(self::AD_SHORT); // 저장 형태(meta_ads/meta 등) 전부 포함
+            $ph = implode(',', array_fill(0, count($adKeys), '?'));
+            $stmt = $pdo->prepare(
                 "SELECT DISTINCT tenant_id FROM channel_credential
                   WHERE is_active=1
-                    AND channel IN ('meta_ads','google_ads','tiktok_business','naver_sa','kakao_moment')
+                    AND channel IN ($ph)
                     AND tenant_id IS NOT NULL AND tenant_id<>''"
             );
+            $stmt->execute($adKeys);
             $out = [];
             foreach ($stmt->fetchAll(PDO::FETCH_COLUMN) as $t) {
                 if ($t !== null && $t !== '') $out[] = (string)$t;
@@ -1951,6 +1958,72 @@ final class Connectors
                 'spend'           => (float)($m['cost'] ?? $m['spending'] ?? $m['spend'] ?? 0),
                 'conversions'     => (int)round((float)($m['convPurchaseCnt'] ?? $m['conversionPurchase'] ?? $m['conv'] ?? 0)),
                 'revenue'         => (float)($m['convPurchaseAmount'] ?? $m['conversionPurchaseAmount'] ?? $m['convValue'] ?? 0),
+            ];
+        }
+        return ['hasCreds' => true, 'live' => true, 'rows' => $rows];
+    }
+
+    /**
+     * [232차] LINE Ads Platform API 인증 — JWS(HMAC-SHA256). 공식 스펙:
+     *   InputValue = Base64(Header).Base64(Payload), Signature = Base64(HMAC-SHA256(secret, InputValue)),
+     *   Authorization: Bearer {InputValue},{Signature}. Payload = {Content-MD5(본문 md5), Content-Type, Date(YYYYMMDD), RequestUri(경로)}.
+     *   HTTP 헤더: Date(RFC1123 GMT), Content-Type, Authorization. 키=Ad Manager>Group 페이지 발급(access_key/secret_key).
+     *   ★헤더/페이로드 정확한 필드명·엔드포인트 경로는 실 자격증명 등록 시 라이브 응답으로 최종 확정(graceful 드롭인).
+     */
+    public static function lineAdsAuthHeaders(string $method, string $path, string $body, string $accessKey, string $secretKey): array
+    {
+        $ct = 'application/json';
+        $header  = base64_encode(json_encode(['kid' => $accessKey, 'alg' => 'HMAC-SHA256', 'typ' => 'text/plain'], JSON_UNESCAPED_SLASHES));
+        $payload = base64_encode(json_encode(['Content-MD5' => md5($body), 'Content-Type' => $ct, 'Date' => gmdate('Ymd'), 'RequestUri' => $path], JSON_UNESCAPED_SLASHES));
+        $input = $header . '.' . $payload;
+        $sig = base64_encode(hash_hmac('sha256', $input, $secretKey, true));
+        return [
+            'Content-Type'  => $ct,
+            'Date'          => gmdate('D, d M Y H:i:s') . ' GMT',
+            'Authorization' => 'Bearer ' . $input . ',' . $sig,
+        ];
+    }
+
+    /**
+     * [232차] LINE Ads 캠페인 성과 ingest → performance_metrics. 자격증명(access_key/secret_key/group_id) 등록 시 동작.
+     *   필드명은 다중 후보 방어매핑(타 ingest와 동일). 실패 시 graceful(error). 라이브 검증은 실 LINE Ads 계정 필요.
+     */
+    private static function fetchLineRows(string $tenant, string $start, string $end): array
+    {
+        $accessKey = (string)(getenv('LINE_ADS_ACCESS_KEY') ?: self::loadCred($tenant, 'line_ads', 'access_key'));
+        $secretKey = (string)(getenv('LINE_ADS_SECRET_KEY') ?: self::loadCred($tenant, 'line_ads', 'secret_key'));
+        $groupId   = (string)(getenv('LINE_ADS_GROUP_ID')   ?: self::loadCred($tenant, 'line_ads', 'group_id'));
+        if ($groupId === '') $groupId = (string)self::loadCred($tenant, 'line_ads', 'ad_account_id'); // 레거시 키명 폴백
+        if ($accessKey === '' || $secretKey === '' || $groupId === '') {
+            return ['hasCreds' => false, 'live' => false, 'rows' => []];
+        }
+        // LINE Ads 통계 리포트(캠페인 차원, 일자별). 경로/파라미터는 라이브 검증 시 최종 확정.
+        $path = '/api/v3/groups/' . rawurlencode($groupId) . '/statistics/campaign';
+        $query = http_build_query(['since' => str_replace('-', '', $start), 'until' => str_replace('-', '', $end), 'datePreset' => 'CUSTOM']);
+        $url = 'https://ads.line.me' . $path . '?' . $query;
+        $hdr = self::lineAdsAuthHeaders('GET', $path, '', $accessKey, $secretKey);
+        [$code, $body, $err] = self::httpGet($url, $hdr);
+        if ($err || $code >= 400) {
+            return ['hasCreds' => true, 'live' => false, 'error' => $err ?: "line http $code"];
+        }
+        $rows = [];
+        foreach ((array)($body['datas'] ?? $body['data'] ?? $body['statistics'] ?? $body['reports'] ?? []) as $r) {
+            $dim = (array)($r['dimensions'] ?? $r['dimension'] ?? $r);
+            $m   = (array)($r['metrics'] ?? $r['metric'] ?? $r);
+            $rawDate = (string)($r['date'] ?? $dim['date'] ?? '');
+            $date = (strlen($rawDate) === 8) ? substr($rawDate,0,4).'-'.substr($rawDate,4,2).'-'.substr($rawDate,6,2) : substr($rawDate,0,10);
+            $rows[] = [
+                'team'            => 'LINE',
+                'account'         => (string)($dim['campaignName'] ?? $dim['campaign'] ?? 'LINE Ads'),
+                'campaign_ext_id' => (string)($dim['campaignId'] ?? $dim['campaign_id'] ?? ''),
+                'objective'       => (string)($dim['objective'] ?? $dim['campaignObjective'] ?? $dim['goal'] ?? ''),
+                'reach'           => (int)($m['reach'] ?? 0),
+                'date'            => $date,
+                'impressions'     => (int)($m['imp'] ?? $m['impression'] ?? $m['impressions'] ?? 0),
+                'clicks'          => (int)($m['click'] ?? $m['clicks'] ?? 0),
+                'spend'           => (float)($m['cost'] ?? $m['spend'] ?? $m['spending'] ?? 0),
+                'conversions'     => (int)round((float)($m['conversion'] ?? $m['conv'] ?? $m['cv'] ?? 0)),
+                'revenue'         => (float)($m['conversionValue'] ?? $m['convValue'] ?? $m['revenue'] ?? 0),
             ];
         }
         return ['hasCreds' => true, 'live' => true, 'rows' => $rows];

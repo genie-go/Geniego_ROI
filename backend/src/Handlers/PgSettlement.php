@@ -40,15 +40,15 @@ final class PgSettlement
         'kakaopay'     => ['label' => '카카오페이', 'creds' => ['kakaopay'], 'live' => false],
         'naverpay'     => ['label' => '네이버페이', 'creds' => ['naverpay'], 'live' => false],
         // [228차] 글로벌 결제 전문 PG — 자격증명 등록·인식(정산 실수집 어댑터는 추후, 현재 honest pending).
-        'paddle'       => ['label' => 'Paddle', 'creds' => ['paddle'], 'live' => false],
+        'paddle'       => ['label' => 'Paddle', 'creds' => ['paddle'], 'live' => true],
         // [228차] Adyen 실 정산 수집 어댑터 구현(Settlement Detail Report CSV).
         'adyen'        => ['label' => 'Adyen', 'creds' => ['adyen'], 'live' => true],
-        'square'       => ['label' => 'Square', 'creds' => ['square'], 'live' => false],
+        'square'       => ['label' => 'Square', 'creds' => ['square'], 'live' => true],
         'braintree'    => ['label' => 'Braintree', 'creds' => ['braintree'], 'live' => false],
-        'checkout'     => ['label' => 'Checkout.com', 'creds' => ['checkout'], 'live' => false],
-        'mollie'       => ['label' => 'Mollie', 'creds' => ['mollie'], 'live' => false],
-        'razorpay'     => ['label' => 'Razorpay', 'creds' => ['razorpay'], 'live' => false],
-        'klarna'       => ['label' => 'Klarna', 'creds' => ['klarna'], 'live' => false],
+        'checkout'     => ['label' => 'Checkout.com', 'creds' => ['checkout'], 'live' => true],
+        'mollie'       => ['label' => 'Mollie', 'creds' => ['mollie'], 'live' => true],
+        'razorpay'     => ['label' => 'Razorpay', 'creds' => ['razorpay'], 'live' => true],
+        'klarna'       => ['label' => 'Klarna', 'creds' => ['klarna'], 'live' => true],
     ];
 
     private static function tenant(Request $request): string
@@ -237,6 +237,40 @@ final class PgSettlement
             $bs = self::loadCred($pdo, $tenant, $creds, 'batch_start');
             return self::fetchAdyen($pdo, $tenant, $ak, $ma, $bs);
         }
+        // [232차] 글로벌 PG 실 정산수집 4종 — 공개 Bearer/Basic API. 자격증명 등록 시 즉시 자동수집.
+        if ($provider === 'paddle') {
+            $ak = self::loadCred($pdo, $tenant, $creds, 'api_key');
+            if ($ak === '') return ['ok' => false, 'configured' => false, 'note' => 'Paddle API 키 미등록 — 등록 후 자동 수집됩니다.'];
+            return self::fetchPaddle($ak);
+        }
+        if ($provider === 'square') {
+            $tok = self::loadCred($pdo, $tenant, $creds, 'access_token');
+            if ($tok === '') return ['ok' => false, 'configured' => false, 'note' => 'Square Access Token 미등록 — 등록 후 자동 수집됩니다.'];
+            return self::fetchSquare($tok);
+        }
+        if ($provider === 'mollie') {
+            $ak = self::loadCred($pdo, $tenant, $creds, 'api_key');
+            if ($ak === '') return ['ok' => false, 'configured' => false, 'note' => 'Mollie API 키 미등록 — 등록 후 자동 수집됩니다.'];
+            return self::fetchMollie($ak);
+        }
+        if ($provider === 'razorpay') {
+            $kid = self::loadCred($pdo, $tenant, $creds, 'key_id');
+            $ksec = self::loadCred($pdo, $tenant, $creds, 'key_secret');
+            if ($kid === '' || $ksec === '') return ['ok' => false, 'configured' => false, 'note' => 'Razorpay Key ID/Secret 미등록 — 등록 후 자동 수집됩니다.'];
+            return self::fetchRazorpay($kid, $ksec);
+        }
+        if ($provider === 'klarna') {
+            $u = self::loadCred($pdo, $tenant, $creds, 'username');
+            $p = self::loadCred($pdo, $tenant, $creds, 'password');
+            $rg = strtolower(self::loadCred($pdo, $tenant, $creds, 'region') ?: 'eu');
+            if ($u === '' || $p === '') return ['ok' => false, 'configured' => false, 'note' => 'Klarna API Username/Password 미등록 — 등록 후 자동 수집됩니다.'];
+            return self::fetchKlarna($u, $p, $rg);
+        }
+        if ($provider === 'checkout') {
+            $sk = self::loadCred($pdo, $tenant, $creds, 'secret_key');
+            if ($sk === '') return ['ok' => false, 'configured' => false, 'note' => 'Checkout.com Secret Key 미등록 — 등록 후 자동 수집됩니다.'];
+            return self::fetchCheckout($sk);
+        }
         return ['ok' => false, 'configured' => false, 'note' => "[{$provider}] 정산 API 연동 예정입니다."];
     }
 
@@ -412,6 +446,154 @@ final class PgSettlement
                 'currency' => strtoupper((string)($ti['transaction_amount']['currency_code'] ?? 'USD')),
                 'status' => (string)($ti['transaction_status'] ?? ''),
                 'txn_at' => (string)($ti['transaction_initiation_date'] ?? ''),
+            ];
+        }
+        return ['ok' => true, 'rows' => $rows];
+    }
+
+    /** [232차] Paddle Billing v2 Transactions(Bearer api_key). 금액은 최소단위 문자열 → 주단위. */
+    private static function fetchPaddle(string $ak): array
+    {
+        $url = 'https://api.paddle.com/transactions?per_page=100&order_by=created_at[DESC]';
+        [$code, $body, $err] = self::httpGet($url, ['Authorization' => 'Bearer ' . $ak]);
+        if ($err) return ['ok' => false, 'note' => "Paddle 오류: {$err}"];
+        if ($code !== 200 || !isset($body['data'])) return ['ok' => false, 'note' => 'Paddle HTTP ' . $code . ' ' . ($body['error']['detail'] ?? '')];
+        $rows = [];
+        foreach ($body['data'] as $d) {
+            $t = $d['details']['totals'] ?? [];
+            $div = 100.0;
+            $rows[] = [
+                'txn_id' => (string)($d['id'] ?? ''), 'type' => (string)($d['origin'] ?? 'transaction'),
+                'gross' => round(((float)($t['grand_total'] ?? 0)) / $div, 2),
+                'fee' => round(((float)($t['fee'] ?? 0)) / $div, 2),
+                'net' => round(((float)($t['earnings'] ?? 0)) / $div, 2),
+                'currency' => strtoupper((string)($t['currency_code'] ?? '')),
+                'status' => (string)($d['status'] ?? ''),
+                'txn_at' => (string)($d['created_at'] ?? ''),
+            ];
+        }
+        return ['ok' => true, 'rows' => $rows];
+    }
+
+    /** [232차] Square Payments(Bearer access_token). 금액 cents → 주단위. 수수료=processing_fee 합. */
+    private static function fetchSquare(string $tok): array
+    {
+        $begin = gmdate('Y-m-d\TH:i:s\Z', time() - 30 * 86400);
+        $url = 'https://connect.squareup.com/v2/payments?' . http_build_query(['begin_time' => $begin, 'limit' => 100, 'sort_order' => 'DESC']);
+        [$code, $body, $err] = self::httpGet($url, ['Authorization' => 'Bearer ' . $tok, 'Square-Version' => '2024-07-17']);
+        if ($err) return ['ok' => false, 'note' => "Square 오류: {$err}"];
+        if ($code !== 200 || !isset($body['payments'])) return ['ok' => false, 'note' => 'Square HTTP ' . $code . ' ' . ($body['errors'][0]['detail'] ?? '')];
+        $rows = [];
+        foreach ($body['payments'] as $d) {
+            $div = 100.0;
+            $gross = ((float)($d['amount_money']['amount'] ?? 0)) / $div;
+            $fee = 0.0; foreach (($d['processing_fee'] ?? []) as $pf) $fee += ((float)($pf['amount_money']['amount'] ?? 0)) / $div;
+            $rows[] = [
+                'txn_id' => (string)($d['id'] ?? ''), 'type' => (string)($d['source_type'] ?? 'payment'),
+                'gross' => round($gross, 2), 'fee' => round($fee, 2), 'net' => round($gross - $fee, 2),
+                'currency' => strtoupper((string)($d['amount_money']['currency'] ?? '')),
+                'status' => (string)($d['status'] ?? ''),
+                'txn_at' => (string)($d['created_at'] ?? ''),
+            ];
+        }
+        return ['ok' => true, 'rows' => $rows];
+    }
+
+    /** [232차] Mollie Payments(Bearer live_ api_key). settlementAmount=net, fee=gross-net. */
+    private static function fetchMollie(string $ak): array
+    {
+        [$code, $body, $err] = self::httpGet('https://api.mollie.com/v2/payments?limit=100', ['Authorization' => 'Bearer ' . $ak]);
+        if ($err) return ['ok' => false, 'note' => "Mollie 오류: {$err}"];
+        if ($code !== 200 || !isset($body['_embedded']['payments'])) return ['ok' => false, 'note' => 'Mollie HTTP ' . $code . ' ' . ($body['detail'] ?? '')];
+        $rows = [];
+        foreach ($body['_embedded']['payments'] as $d) {
+            $gross = (float)($d['amount']['value'] ?? 0);
+            $net = isset($d['settlementAmount']['value']) ? (float)$d['settlementAmount']['value'] : $gross;
+            $rows[] = [
+                'txn_id' => (string)($d['id'] ?? ''), 'type' => (string)($d['method'] ?? 'payment'),
+                'gross' => round($gross, 2), 'fee' => round(max(0, $gross - $net), 2), 'net' => round($net, 2),
+                'currency' => strtoupper((string)($d['amount']['currency'] ?? '')),
+                'status' => (string)($d['status'] ?? ''),
+                'txn_at' => (string)($d['createdAt'] ?? ''),
+            ];
+        }
+        return ['ok' => true, 'rows' => $rows];
+    }
+
+    /** [232차] Razorpay Payments(Basic key_id:key_secret). 금액 paise → 주단위. */
+    private static function fetchRazorpay(string $kid, string $ksec): array
+    {
+        $from = time() - 30 * 86400;
+        $url = 'https://api.razorpay.com/v1/payments?' . http_build_query(['count' => 100, 'from' => $from]);
+        [$code, $body, $err] = self::httpGet($url, ['Authorization' => 'Basic ' . base64_encode($kid . ':' . $ksec)]);
+        if ($err) return ['ok' => false, 'note' => "Razorpay 오류: {$err}"];
+        if ($code !== 200 || !isset($body['items'])) return ['ok' => false, 'note' => 'Razorpay HTTP ' . $code . ' ' . ($body['error']['description'] ?? '')];
+        $rows = [];
+        foreach ($body['items'] as $d) {
+            $div = 100.0;
+            $gross = ((float)($d['amount'] ?? 0)) / $div;
+            $fee = ((float)($d['fee'] ?? 0)) / $div;
+            $rows[] = [
+                'txn_id' => (string)($d['id'] ?? ''), 'type' => (string)($d['method'] ?? 'payment'),
+                'gross' => round($gross, 2), 'fee' => round($fee, 2), 'net' => round($gross - $fee, 2),
+                'currency' => strtoupper((string)($d['currency'] ?? '')),
+                'status' => (string)($d['status'] ?? ''),
+                'txn_at' => isset($d['created_at']) ? gmdate('c', (int)$d['created_at']) : '',
+            ];
+        }
+        return ['ok' => true, 'rows' => $rows];
+    }
+
+    /** [232차] Klarna Settlements Transactions(Basic username:password, region host). 금액 minor → 주단위. */
+    private static function fetchKlarna(string $u, string $p, string $region): array
+    {
+        $host = ['na' => 'https://api-na.klarna.com', 'oc' => 'https://api-oc.klarna.com'][$region] ?? 'https://api.klarna.com';
+        [$code, $body, $err] = self::httpGet($host . '/settlements/v1/transactions?size=100', ['Authorization' => 'Basic ' . base64_encode($u . ':' . $p)]);
+        if ($err) return ['ok' => false, 'note' => "Klarna 오류: {$err}"];
+        if ($code !== 200 || !isset($body['transactions'])) return ['ok' => false, 'note' => 'Klarna HTTP ' . $code . ' ' . ($body['error_messages'][0] ?? '')];
+        $rows = [];
+        foreach ($body['transactions'] as $d) {
+            $div = 100.0; $amt = ((float)($d['amount'] ?? 0)) / $div;
+            $type = (string)($d['type'] ?? 'SALE');
+            $isFee = stripos($type, 'fee') !== false || stripos($type, 'commission') !== false;
+            $rows[] = [
+                'txn_id' => (string)($d['transaction_id'] ?? $d['capture_id'] ?? uniqid('kl_')),
+                'type' => $type,
+                'gross' => $isFee ? 0.0 : round($amt, 2),
+                'fee' => $isFee ? round(abs($amt), 2) : 0.0,
+                'net' => round($amt, 2),
+                'currency' => strtoupper((string)($d['currency_code'] ?? $d['currency'] ?? '')),
+                'status' => (string)($d['type'] ?? 'settled'),
+                'txn_at' => (string)($d['capture_date'] ?? $d['date'] ?? ''),
+            ];
+        }
+        return ['ok' => true, 'rows' => $rows];
+    }
+
+    /** [232차] Checkout.com Reconciliation(Bearer sk_). 리스트의 breakdown 으로 gross/fee/net 산출. */
+    private static function fetchCheckout(string $sk): array
+    {
+        $from = gmdate('Y-m-d\TH:i:s\Z', time() - 30 * 86400); $to = gmdate('Y-m-d\TH:i:s\Z');
+        $url = 'https://api.checkout.com/reporting/payments?' . http_build_query(['from' => $from, 'to' => $to, 'limit' => 100]);
+        [$code, $body, $err] = self::httpGet($url, ['Authorization' => 'Bearer ' . $sk]);
+        if ($err) return ['ok' => false, 'note' => "Checkout 오류: {$err}"];
+        if ($code !== 200 || !isset($body['data'])) return ['ok' => false, 'note' => 'Checkout HTTP ' . $code . ' ' . ($body['error_type'] ?? '')];
+        $rows = [];
+        foreach ($body['data'] as $d) {
+            $gross = 0.0; $fee = 0.0; $net = 0.0; $cur = strtoupper((string)($d['payout_currency'] ?? $d['processing_currency'] ?? ''));
+            foreach ((array)($d['breakdown'] ?? []) as $b) {
+                $t = strtolower((string)($b['type'] ?? '')); $amt = (float)($b['payout_amount'] ?? $b['processing_amount'] ?? $b['amount'] ?? 0);
+                if (strpos($t, 'fee') !== false || strpos($t, 'scheme') !== false || strpos($t, 'interchange') !== false) $fee += abs($amt);
+                elseif (strpos($t, 'capture') !== false || strpos($t, 'sale') !== false || strpos($t, 'payment') !== false || strpos($t, 'presentment') !== false) $gross += $amt;
+                $net += $amt;
+            }
+            if ($gross == 0.0) $gross = (float)($d['amount'] ?? 0) / 100.0; // 폴백
+            $rows[] = [
+                'txn_id' => (string)($d['id'] ?? $d['payment_id'] ?? uniqid('ck_')),
+                'type' => (string)($d['breakdown_type'] ?? $d['action_type'] ?? 'payment'),
+                'gross' => round($gross, 2), 'fee' => round($fee, 2), 'net' => round($net !== 0.0 ? $net : ($gross - $fee), 2),
+                'currency' => $cur, 'status' => (string)($d['response_code'] ?? $d['status'] ?? 'settled'),
+                'txn_at' => (string)($d['requested_on'] ?? $d['processed_on'] ?? ''),
             ];
         }
         return ['ok' => true, 'rows' => $rows];

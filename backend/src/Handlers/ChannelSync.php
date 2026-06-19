@@ -1005,6 +1005,347 @@ final class ChannelSync
         return $products;
     }
 
+    // ══════════════════════════════════════════════════════════════════════
+    //  [232차 Sprint2] 글로벌 커머스 실 fetch 어댑터 9종 — genericFetch stub 제거.
+    //    WooCommerce/Magento/Walmart/Etsy = 저장 자격증명만으로 end-to-end 수집.
+    //    Shopee/Lazada = HMAC 서명 + OAuth access_token. Qoo10/Yahoo!JP/godomall = 문서화 엔드포인트
+    //    best-effort(라이브 셀러 계정 검증 필요). 전부 데모=미리보기 / 자격증명 부족=graceful note.
+    //    saveProducts/saveOrders chokepoint(tenant!=='demo')가 데모데이터 운영유입을 차단한다.
+    // ══════════════════════════════════════════════════════════════════════
+
+    /** 커머스 주문상태 → 내부 정본 라벨 매핑(전 채널 공통). */
+    private static function genStatus(string $s): string
+    {
+        $s = strtolower(trim($s));
+        return match (true) {
+            in_array($s, ['refunded','refund','return','returned','반품'], true)            => '반품완료',
+            in_array($s, ['cancelled','canceled','void','voided','closed','취소'], true)     => '취소완료',
+            in_array($s, ['completed','complete','fulfilled','delivered','shipped','done'], true) => '배송완료',
+            in_array($s, ['processing','on-hold','onhold','in_transit','ready_to_ship','partial'], true) => '배송중',
+            in_array($s, ['paid','payment','confirmed','open','created','new','unshipped','pending_payment'], true) => '발주확인',
+            default => '출고대기',
+        };
+    }
+
+    // ── WooCommerce (REST v3 · consumer key/secret) ─────────────────────────
+    private static function woocommerceFetch(array $creds, string $tenant = 'demo'): array
+    {
+        if ($tenant === 'demo') return ['ok'=>true, 'products'=>self::buildDemoChannelProducts('woocommerce','WooCommerce'), 'orders'=>self::buildDemoChannelOrders('woocommerce','WooCommerce'), 'note'=>'demo preview'];
+        $site = rtrim(trim((string)($creds['site_url'] ?? '')), '/');
+        $ck = trim((string)($creds['consumer_key'] ?? '')); $cs = trim((string)($creds['consumer_secret'] ?? ''));
+        if ($site === '' || $ck === '' || $cs === '') return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>'WooCommerce: site_url·consumer_key·consumer_secret 입력 필요'];
+        if (!str_starts_with($site, 'http')) $site = 'https://' . $site;
+        $auth = '&consumer_key=' . rawurlencode($ck) . '&consumer_secret=' . rawurlencode($cs);
+        [$pCode, $pBody] = self::httpGet("{$site}/wp-json/wc/v3/products?per_page=50{$auth}");
+        [$oCode, $oBody] = self::httpGet("{$site}/wp-json/wc/v3/orders?per_page=50{$auth}");
+        if ($pCode >= 400 && $oCode >= 400) return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>"WooCommerce 연결 실패(code={$pCode}/{$oCode}) — site_url·키/권한 확인"];
+        $products = [];
+        foreach ((array)$pBody as $p) {
+            if (!is_array($p) || !isset($p['id'])) continue;
+            $products[] = [
+                'channel_product_id'=>(string)$p['id'], 'sku'=>(string)($p['sku'] ?? ''), 'name'=>(string)($p['name'] ?? ''),
+                'price'=>(float)($p['price'] ?? 0), 'compare_price'=>(float)($p['regular_price'] ?? 0),
+                'inventory'=>(int)($p['stock_quantity'] ?? 0), 'status'=>(string)($p['status'] ?? 'publish'),
+                'category'=>(string)($p['categories'][0]['name'] ?? ''), 'image_url'=>$p['images'][0]['src'] ?? null, 'source'=>'live',
+            ];
+        }
+        $orders = [];
+        foreach ((array)$oBody as $o) {
+            if (!is_array($o) || !isset($o['id'])) continue;
+            $li = $o['line_items'][0] ?? [];
+            $orders[] = [
+                'channel_order_id'=>(string)$o['id'],
+                'buyer_name'=>trim(((string)($o['billing']['first_name'] ?? '')) . ' ' . ((string)($o['billing']['last_name'] ?? ''))),
+                'buyer_email'=>(string)($o['billing']['email'] ?? ''), 'product_name'=>(string)($li['name'] ?? ''),
+                'sku'=>(string)($li['sku'] ?? ''), 'qty'=>(int)($li['quantity'] ?? 1), 'unit_price'=>(float)($li['price'] ?? 0),
+                'total_price'=>(float)($o['total'] ?? 0), 'currency'=>strtoupper((string)($o['currency'] ?? '')),
+                'status'=>self::genStatus((string)($o['status'] ?? '')), 'ordered_at'=>(string)($o['date_created'] ?? ''), 'source'=>'live',
+            ];
+        }
+        return ['ok'=>true, 'products'=>$products, 'orders'=>$orders, 'note'=>count($orders) . ' orders + ' . count($products) . ' products (WooCommerce REST)'];
+    }
+
+    // ── Magento / Adobe Commerce (REST V1 · Bearer integration token) ───────
+    private static function magentoFetch(array $creds, string $tenant = 'demo'): array
+    {
+        if ($tenant === 'demo') return ['ok'=>true, 'products'=>self::buildDemoChannelProducts('magento','Magento'), 'orders'=>self::buildDemoChannelOrders('magento','Magento'), 'note'=>'demo preview'];
+        $base = rtrim(trim((string)($creds['base_url'] ?? '')), '/'); $tok = trim((string)($creds['access_token'] ?? ''));
+        if ($base === '' || $tok === '') return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>'Magento: base_url·access_token(Integration 토큰) 입력 필요'];
+        if (!str_starts_with($base, 'http')) $base = 'https://' . $base;
+        $h = ['Authorization'=>'Bearer ' . $tok, 'Accept'=>'application/json'];
+        [$pCode, $pBody] = self::httpGet("{$base}/rest/V1/products?searchCriteria%5BpageSize%5D=50", $h);
+        [$oCode, $oBody] = self::httpGet("{$base}/rest/V1/orders?searchCriteria%5BpageSize%5D=50", $h);
+        if ($pCode >= 400 && $oCode >= 400) return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>"Magento 연결 실패(code={$pCode}/{$oCode}) — base_url·토큰/권한 확인"];
+        $products = [];
+        foreach ((array)($pBody['items'] ?? []) as $p) {
+            $qty = 0; foreach (($p['extension_attributes']['stock_item'] ?? []) as $sk=>$sv) { if ($sk==='qty') $qty=(int)$sv; }
+            $products[] = [
+                'channel_product_id'=>(string)($p['id'] ?? $p['sku'] ?? ''), 'sku'=>(string)($p['sku'] ?? ''), 'name'=>(string)($p['name'] ?? ''),
+                'price'=>(float)($p['price'] ?? 0), 'compare_price'=>0.0, 'inventory'=>$qty,
+                'status'=>((int)($p['status'] ?? 1) === 1) ? 'active' : 'inactive', 'source'=>'live',
+            ];
+        }
+        $orders = [];
+        foreach ((array)($oBody['items'] ?? []) as $o) {
+            $it = $o['items'][0] ?? [];
+            $orders[] = [
+                'channel_order_id'=>(string)($o['increment_id'] ?? $o['entity_id'] ?? ''),
+                'buyer_name'=>trim(((string)($o['customer_firstname'] ?? '')) . ' ' . ((string)($o['customer_lastname'] ?? ''))),
+                'buyer_email'=>(string)($o['customer_email'] ?? ''), 'product_name'=>(string)($it['name'] ?? ''),
+                'sku'=>(string)($it['sku'] ?? ''), 'qty'=>(int)($it['qty_ordered'] ?? 1), 'unit_price'=>(float)($it['price'] ?? 0),
+                'total_price'=>(float)($o['grand_total'] ?? 0), 'currency'=>strtoupper((string)($o['order_currency_code'] ?? '')),
+                'status'=>self::genStatus((string)($o['status'] ?? '')), 'ordered_at'=>(string)($o['created_at'] ?? ''), 'source'=>'live',
+            ];
+        }
+        return ['ok'=>true, 'products'=>$products, 'orders'=>$orders, 'note'=>count($orders) . ' orders + ' . count($products) . ' products (Magento REST)'];
+    }
+
+    // ── Walmart Marketplace (OAuth2 client_credentials → orders/items) ──────
+    private static function walmartFetch(array $creds, string $tenant = 'demo'): array
+    {
+        if ($tenant === 'demo') return ['ok'=>true, 'products'=>self::buildDemoChannelProducts('walmart','Walmart'), 'orders'=>self::buildDemoChannelOrders('walmart','Walmart'), 'note'=>'demo preview'];
+        $cid = trim((string)($creds['client_id'] ?? '')); $cs = trim((string)($creds['client_secret'] ?? ''));
+        if ($cid === '' || $cs === '') return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>'Walmart: client_id·client_secret 입력 필요'];
+        $basic = base64_encode($cid . ':' . $cs);
+        $cid2 = uniqid('gg', true);
+        [$tCode, $tBody] = self::httpPost('https://marketplace.walmartapis.com/v3/token',
+            ['Authorization'=>'Basic ' . $basic, 'Content-Type'=>'application/x-www-form-urlencoded', 'Accept'=>'application/json', 'WM_SVC.NAME'=>'Walmart Marketplace', 'WM_QOS.CORRELATION_ID'=>$cid2],
+            'grant_type=client_credentials');
+        $tok = (string)($tBody['access_token'] ?? '');
+        if ($tok === '') return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>"Walmart 토큰 발급 실패(code={$tCode}) — client_id/secret 확인"];
+        $h = ['WM_SEC.ACCESS_TOKEN'=>$tok, 'Authorization'=>'Basic ' . $basic, 'WM_QOS.CORRELATION_ID'=>$cid2, 'WM_SVC.NAME'=>'Walmart Marketplace', 'Accept'=>'application/json'];
+        $createdAfter = gmdate('Y-m-d\TH:i:s\Z', time() - 30 * 86400);
+        [$oCode, $oBody] = self::httpGet('https://marketplace.walmartapis.com/v3/orders?limit=50&createdStartDate=' . rawurlencode($createdAfter), $h);
+        $orders = [];
+        foreach ((array)($oBody['list']['elements']['order'] ?? []) as $o) {
+            $line = $o['orderLines']['orderLine'][0] ?? [];
+            $amt = 0.0;
+            foreach (($line['charges']['charge'] ?? []) as $c) { $amt += (float)($c['chargeAmount']['amount'] ?? 0); }
+            $statusNode = $line['orderLineStatuses']['orderLineStatus'][0]['status'] ?? '';
+            $orders[] = [
+                'channel_order_id'=>(string)($o['purchaseOrderId'] ?? $o['customerOrderId'] ?? ''),
+                'buyer_name'=>(string)($o['shippingInfo']['postalAddress']['name'] ?? ''),
+                'buyer_email'=>(string)($o['customerEmailId'] ?? ''), 'product_name'=>(string)($line['item']['productName'] ?? ''),
+                'sku'=>(string)($line['item']['sku'] ?? ''), 'qty'=>(int)($line['orderLineQuantity']['amount'] ?? 1),
+                'unit_price'=>0.0, 'total_price'=>$amt, 'currency'=>'USD',
+                'status'=>self::genStatus((string)$statusNode), 'ordered_at'=>gmdate('c', (int)((($o['orderDate'] ?? 0)) / 1000) ?: time()), 'source'=>'live',
+            ];
+        }
+        [$iCode, $iBody] = self::httpGet('https://marketplace.walmartapis.com/v3/items?limit=50', $h);
+        $products = [];
+        foreach ((array)($iBody['ItemResponse'] ?? []) as $p) {
+            $products[] = [
+                'channel_product_id'=>(string)($p['mart'] ?? $p['sku'] ?? ''), 'sku'=>(string)($p['sku'] ?? ''),
+                'name'=>(string)($p['productName'] ?? ''), 'price'=>(float)($p['price']['amount'] ?? 0), 'compare_price'=>0.0,
+                'inventory'=>0, 'status'=>(string)($p['publishedStatus'] ?? 'PUBLISHED'), 'source'=>'live',
+            ];
+        }
+        return ['ok'=>true, 'products'=>$products, 'orders'=>$orders, 'note'=>count($orders) . ' orders + ' . count($products) . ' products (Walmart v3)'];
+    }
+
+    // ── Etsy (Open API v3 · x-api-key listings + OAuth receipts) ────────────
+    private static function etsyFetch(array $creds, string $tenant = 'demo'): array
+    {
+        if ($tenant === 'demo') return ['ok'=>true, 'products'=>self::buildDemoChannelProducts('etsy','Etsy'), 'orders'=>self::buildDemoChannelOrders('etsy','Etsy'), 'note'=>'demo preview'];
+        $key = trim((string)($creds['api_key'] ?? '')); $shop = trim((string)($creds['shop_id'] ?? ''));
+        $oauth = trim((string)($creds['oauth_token'] ?? $creds['access_token'] ?? ''));
+        if ($key === '' || $shop === '') return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>'Etsy: api_key(keystring)·shop_id 입력 필요'];
+        $h = ['x-api-key'=>$key, 'Accept'=>'application/json'];
+        [$pCode, $pBody] = self::httpGet("https://openapi.etsy.com/v3/application/shops/" . rawurlencode($shop) . "/listings/active?limit=50", $h);
+        $products = [];
+        foreach ((array)($pBody['results'] ?? []) as $p) {
+            $div = (int)($p['price']['divisor'] ?? 100) ?: 100;
+            $products[] = [
+                'channel_product_id'=>(string)($p['listing_id'] ?? ''), 'sku'=>(string)($p['skus'][0] ?? ''),
+                'name'=>(string)($p['title'] ?? ''), 'price'=>round((float)($p['price']['amount'] ?? 0) / $div, 2), 'compare_price'=>0.0,
+                'inventory'=>(int)($p['quantity'] ?? 0), 'status'=>(string)($p['state'] ?? 'active'),
+                'currency'=>strtoupper((string)($p['price']['currency_code'] ?? '')), 'source'=>'live',
+            ];
+        }
+        $orders = []; $note = count($products) . ' listings (Etsy v3)';
+        if ($oauth !== '') {
+            [$oCode, $oBody] = self::httpGet("https://openapi.etsy.com/v3/application/shops/" . rawurlencode($shop) . "/receipts?limit=50", $h + ['Authorization'=>'Bearer ' . $oauth]);
+            foreach ((array)($oBody['results'] ?? []) as $o) {
+                $tr = $o['transactions'][0] ?? [];
+                $div = (int)($o['grandtotal']['divisor'] ?? 100) ?: 100;
+                $orders[] = [
+                    'channel_order_id'=>(string)($o['receipt_id'] ?? ''), 'buyer_name'=>(string)($o['name'] ?? ''),
+                    'buyer_email'=>(string)($o['buyer_email'] ?? ''), 'product_name'=>(string)($tr['title'] ?? ''),
+                    'sku'=>(string)($tr['sku'] ?? ''), 'qty'=>(int)($tr['quantity'] ?? 1), 'unit_price'=>0.0,
+                    'total_price'=>round((float)($o['grandtotal']['amount'] ?? 0) / $div, 2), 'currency'=>strtoupper((string)($o['grandtotal']['currency_code'] ?? '')),
+                    'status'=>self::genStatus((string)($o['status'] ?? ($o['is_shipped'] ?? false ? 'shipped' : 'paid'))), 'ordered_at'=>gmdate('c', (int)($o['create_timestamp'] ?? time())), 'source'=>'live',
+                ];
+            }
+            $note .= ' + ' . count($orders) . ' receipts';
+        } else {
+            $note .= ' · 주문(receipts)은 OAuth oauth_token 등록 시 수집됩니다';
+        }
+        return ['ok'=>true, 'products'=>$products, 'orders'=>$orders, 'note'=>$note];
+    }
+
+    // ── Shopee (Open API v2 · partner HMAC + OAuth access_token) ─────────────
+    private static function shopeeFetch(array $creds, string $tenant = 'demo'): array
+    {
+        if ($tenant === 'demo') return ['ok'=>true, 'products'=>self::buildDemoChannelProducts('shopee','Shopee'), 'orders'=>self::buildDemoChannelOrders('shopee','Shopee'), 'note'=>'demo preview'];
+        $pid = trim((string)($creds['partner_id'] ?? '')); $pkey = trim((string)($creds['partner_key'] ?? ''));
+        $shop = trim((string)($creds['shop_id'] ?? '')); $tok = trim((string)($creds['access_token'] ?? ''));
+        if ($pid === '' || $pkey === '' || $shop === '' || $tok === '') return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>'Shopee: partner_id·partner_key·shop_id·access_token(OAuth 인증 후) 입력 필요'];
+        $host = 'https://partner.shopeemobile.com'; $ts = time();
+        $sign = fn(string $path) => hash_hmac('sha256', $pid . $path . $ts . $tok . $shop, $pkey);
+        $path = '/api/v2/order/get_order_list';
+        $q = http_build_query(['partner_id'=>$pid, 'timestamp'=>$ts, 'access_token'=>$tok, 'shop_id'=>$shop, 'sign'=>$sign($path),
+            'time_range_field'=>'create_time', 'time_from'=>$ts - 15 * 86400, 'time_to'=>$ts, 'page_size'=>50]);
+        [$lCode, $lBody] = self::httpGet("{$host}{$path}?{$q}");
+        if ($lCode >= 400 || !empty($lBody['error'])) return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>"Shopee 주문목록 실패(code={$lCode}) — " . (string)($lBody['message'] ?? 'partner/token/shop 확인')];
+        $sns = array_values(array_filter(array_map(fn($r) => (string)($r['order_sn'] ?? ''), (array)($lBody['response']['order_list'] ?? []))));
+        $orders = [];
+        if ($sns) {
+            $dpath = '/api/v2/order/get_order_detail';
+            $dq = http_build_query(['partner_id'=>$pid, 'timestamp'=>$ts, 'access_token'=>$tok, 'shop_id'=>$shop, 'sign'=>$sign($dpath),
+                'order_sn_list'=>implode(',', array_slice($sns, 0, 50))]);
+            [$dCode, $dBody] = self::httpGet("{$host}{$dpath}?{$dq}");
+            foreach ((array)($dBody['response']['order_list'] ?? []) as $o) {
+                $it = $o['item_list'][0] ?? [];
+                $orders[] = [
+                    'channel_order_id'=>(string)($o['order_sn'] ?? ''), 'buyer_name'=>(string)($o['buyer_username'] ?? ''),
+                    'buyer_email'=>'', 'product_name'=>(string)($it['item_name'] ?? ''), 'sku'=>(string)($it['item_sku'] ?? ''),
+                    'qty'=>(int)($it['model_quantity_purchased'] ?? 1), 'unit_price'=>(float)($it['model_discounted_price'] ?? 0),
+                    'total_price'=>(float)($o['total_amount'] ?? 0), 'currency'=>strtoupper((string)($o['currency'] ?? '')),
+                    'status'=>self::genStatus((string)($o['order_status'] ?? '')), 'ordered_at'=>gmdate('c', (int)($o['create_time'] ?? time())), 'source'=>'live',
+                ];
+            }
+        }
+        return ['ok'=>true, 'products'=>[], 'orders'=>$orders, 'note'=>count($orders) . ' orders (Shopee OpenAPI v2)'];
+    }
+
+    // ── Lazada (Open Platform · app HMAC-SHA256 + OAuth access_token) ────────
+    private static function lazadaFetch(array $creds, string $tenant = 'demo'): array
+    {
+        if ($tenant === 'demo') return ['ok'=>true, 'products'=>self::buildDemoChannelProducts('lazada','Lazada'), 'orders'=>self::buildDemoChannelOrders('lazada','Lazada'), 'note'=>'demo preview'];
+        $appKey = trim((string)($creds['app_key'] ?? '')); $appSecret = trim((string)($creds['app_secret'] ?? ''));
+        $tok = trim((string)($creds['access_token'] ?? '')); $region = strtolower(trim((string)($creds['region'] ?? 'sg')));
+        if ($appKey === '' || $appSecret === '' || $tok === '') return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>'Lazada: app_key·app_secret·access_token(OAuth 인증 후)·region 입력 필요'];
+        $hostMap = ['sg'=>'api.lazada.sg','my'=>'api.lazada.com.my','th'=>'api.lazada.co.th','id'=>'api.lazada.co.id','ph'=>'api.lazada.com.ph','vn'=>'api.lazada.vn'];
+        $host = 'https://' . ($hostMap[$region] ?? 'api.lazada.sg') . '/rest';
+        $apiPath = '/orders/get';
+        $params = ['app_key'=>$appKey, 'access_token'=>$tok, 'timestamp'=>(string)(time() * 1000), 'sign_method'=>'sha256',
+            'created_after'=>gmdate('c', time() - 30 * 86400), 'sort_direction'=>'DESC', 'offset'=>'0', 'limit'=>'50'];
+        ksort($params);
+        $base = $apiPath; foreach ($params as $k=>$v) $base .= $k . $v;
+        $params['sign'] = strtoupper(hash_hmac('sha256', $base, $appSecret));
+        [$oCode, $oBody] = self::httpGet($host . $apiPath . '?' . http_build_query($params));
+        if ($oCode >= 400 || isset($oBody['code']) && (string)$oBody['code'] !== '0') {
+            return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>"Lazada 주문조회 실패(code={$oCode}) — " . (string)($oBody['message'] ?? 'app_key/secret/token/region 확인')];
+        }
+        $orders = [];
+        foreach ((array)($oBody['data']['orders'] ?? []) as $o) {
+            $orders[] = [
+                'channel_order_id'=>(string)($o['order_id'] ?? $o['order_number'] ?? ''),
+                'buyer_name'=>trim(((string)($o['customer_first_name'] ?? '')) . ' ' . ((string)($o['customer_last_name'] ?? ''))),
+                'buyer_email'=>'', 'product_name'=>'', 'sku'=>'', 'qty'=>(int)($o['items_count'] ?? 1), 'unit_price'=>0.0,
+                'total_price'=>(float)($o['price'] ?? 0), 'currency'=>strtoupper((string)($o['currency'] ?? '')),
+                'status'=>self::genStatus((string)(($o['statuses'][0] ?? ($o['order_status'] ?? '')))), 'ordered_at'=>(string)($o['created_at'] ?? ''), 'source'=>'live',
+            ];
+        }
+        return ['ok'=>true, 'products'=>[], 'orders'=>$orders, 'note'=>count($orders) . ' orders (Lazada OpenAPI · ' . $region . ')'];
+    }
+
+    // ── Qoo10 QSM Open API (api_key 인증) — best-effort(라이브 셀러 계정 검증 필요) ──
+    private static function qoo10Fetch(array $creds, string $tenant = 'demo'): array
+    {
+        if ($tenant === 'demo') return ['ok'=>true, 'products'=>self::buildDemoChannelProducts('qoo10','Qoo10'), 'orders'=>self::buildDemoChannelOrders('qoo10','Qoo10'), 'note'=>'demo preview'];
+        $key = trim((string)($creds['api_key'] ?? '')); $seller = trim((string)($creds['seller_id'] ?? ''));
+        if ($key === '') return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>'Qoo10: QSM API 키(api_key)·seller_id 입력 필요'];
+        // QSM OpenAPI: ShippingBasic.GetShippingInfo_v2 로 최근 배송대기/발송 주문 조회. key=ApiKey.
+        $url = 'https://api.qoo10.com/GMKT.INC.Front.QAPIService/ebayjapan.qapi?' . http_build_query([
+            'v'=>'1.0', 'method'=>'ShippingBasic.GetShippingInfo_v2', 'key'=>$key,
+            'ShippingStat'=>'2', 'search_Sdate'=>gmdate('Ymd', time() - 30 * 86400), 'search_Edate'=>gmdate('Ymd'), 'returnType'=>'json',
+        ]);
+        [$oCode, $oBody] = self::httpGet($url);
+        if ($oCode >= 400 || (isset($oBody['ResultCode']) && (int)$oBody['ResultCode'] !== 0)) {
+            return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>"Qoo10 주문조회 실패(code={$oCode}) — QSM API 키/권한 확인(라이브 셀러 계정 필요)"];
+        }
+        $orders = [];
+        foreach ((array)($oBody['ResultObject'] ?? []) as $o) {
+            $orders[] = [
+                'channel_order_id'=>(string)($o['orderNo'] ?? $o['packNo'] ?? ''), 'buyer_name'=>(string)($o['receiver'] ?? $o['buyer'] ?? ''),
+                'buyer_email'=>'', 'product_name'=>(string)($o['itemTitle'] ?? ''), 'sku'=>(string)($o['sellerItemCode'] ?? ''),
+                'qty'=>(int)($o['orderQty'] ?? 1), 'unit_price'=>(float)($o['price'] ?? 0), 'total_price'=>(float)($o['orderAmount'] ?? $o['price'] ?? 0),
+                'currency'=>'', 'status'=>'발주확인', 'ordered_at'=>(string)($o['orderDate'] ?? ''), 'source'=>'live',
+            ];
+        }
+        return ['ok'=>true, 'products'=>[], 'orders'=>$orders, 'note'=>count($orders) . ' orders (Qoo10 QSM)'];
+    }
+
+    // ── Yahoo! Japan Shopping (OrderList · OAuth Bearer + seller_id) best-effort ──
+    private static function yahooJpFetch(array $creds, string $tenant = 'demo'): array
+    {
+        if ($tenant === 'demo') return ['ok'=>true, 'products'=>self::buildDemoChannelProducts('yahoo_jp','Yahoo! Japan'), 'orders'=>self::buildDemoChannelOrders('yahoo_jp','Yahoo! Japan'), 'note'=>'demo preview'];
+        $tok = trim((string)($creds['access_token'] ?? '')); $seller = trim((string)($creds['seller_id'] ?? ''));
+        if ($tok === '' || $seller === '') return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>'Yahoo! Japan: access_token(OAuth)·seller_id(스토어 계정) 입력 필요'];
+        // OrderList API(XML). 최근 30일 신규주문 검색. Bearer 인증.
+        $body = '<Req><Search><Result>50</Result><Start>1</Start><Sort>+order_time</Sort>'
+              . '<Condition><OrderTimeFrom>' . gmdate('YmdHis', time() - 30 * 86400) . '</OrderTimeFrom></Condition>'
+              . '<Field>OrderId,OrderTime,TotalPrice,PayStatus,ShipStatus,Currency</Field></Search>'
+              . '<SellerId>' . htmlspecialchars($seller) . '</SellerId></Req>';
+        [$oCode, $raw, $err] = self::httpReqXml('https://circus.shopping.yahooapis.jp/ShoppingWebService/V1/orderList',
+            ['Authorization'=>'Bearer ' . $tok, 'Content-Type'=>'application/xml'], $body);
+        if ($oCode >= 400 || $raw === '') return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>"Yahoo! Japan 주문조회 실패(code={$oCode}) — access_token/seller_id 확인(라이브 스토어 계정 필요)"];
+        $orders = [];
+        try {
+            $xml = @simplexml_load_string($raw);
+            foreach (($xml->Result->OrderInfo ?? []) as $o) {
+                $orders[] = [
+                    'channel_order_id'=>(string)$o->OrderId, 'buyer_name'=>'', 'buyer_email'=>'', 'product_name'=>'', 'sku'=>'',
+                    'qty'=>1, 'unit_price'=>0.0, 'total_price'=>(float)$o->TotalPrice, 'currency'=>strtoupper((string)($o->Currency ?: 'JPY')),
+                    'status'=>self::genStatus((string)$o->ShipStatus ?: (string)$o->PayStatus), 'ordered_at'=>(string)$o->OrderTime, 'source'=>'live',
+                ];
+            }
+        } catch (\Throwable $e) {}
+        return ['ok'=>true, 'products'=>[], 'orders'=>$orders, 'note'=>count($orders) . ' orders (Yahoo! Japan)'];
+    }
+
+    // ── godomall (NHN godo5 commerce API · partner_key+api_key) best-effort ──
+    private static function godomallFetch(array $creds, string $tenant = 'demo'): array
+    {
+        if ($tenant === 'demo') return ['ok'=>true, 'products'=>self::buildDemoChannelProducts('godomall','고도몰'), 'orders'=>self::buildDemoChannelOrders('godomall','고도몰'), 'note'=>'demo preview'];
+        $pkey = trim((string)($creds['partner_key'] ?? '')); $apiKey = trim((string)($creds['api_key'] ?? ''));
+        $mall = rtrim(trim((string)($creds['mall_url'] ?? '')), '/');
+        if ($pkey === '' || $apiKey === '' || $mall === '') return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>'godomall: partner_key·api_key·mall_url(스토어 도메인) 입력 필요'];
+        if (!str_starts_with($mall, 'http')) $mall = 'https://' . $mall;
+        // godo5 OpenAPI: /api/order.php (최근 주문). 키 인증 파라미터.
+        [$oCode, $oBody] = self::httpGet("{$mall}/api/order.php?" . http_build_query([
+            'partner_key'=>$pkey, 'key'=>$apiKey, 'method'=>'getOrderList', 'date_type'=>'order',
+            'start_date'=>gmdate('Y-m-d', time() - 30 * 86400), 'end_date'=>gmdate('Y-m-d'), 'page'=>1, 'size'=>50, 'return'=>'json',
+        ]));
+        if ($oCode >= 400 || empty($oBody)) return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>"godomall 주문조회 실패(code={$oCode}) — partner_key/api_key/mall_url 확인(라이브 스토어 계정 필요)"];
+        $orders = [];
+        foreach ((array)($oBody['data']['orders'] ?? $oBody['orders'] ?? []) as $o) {
+            $orders[] = [
+                'channel_order_id'=>(string)($o['orderNo'] ?? $o['order_no'] ?? ''), 'buyer_name'=>(string)($o['orderName'] ?? $o['orderer'] ?? ''),
+                'buyer_email'=>(string)($o['orderEmail'] ?? ''), 'product_name'=>(string)($o['goodsNm'] ?? $o['goods_name'] ?? ''),
+                'sku'=>(string)($o['goodsCd'] ?? ''), 'qty'=>(int)($o['ea'] ?? $o['qty'] ?? 1), 'unit_price'=>(float)($o['price'] ?? 0),
+                'total_price'=>(float)($o['settlePrice'] ?? $o['totalPrice'] ?? 0), 'currency'=>'KRW',
+                'status'=>self::genStatus((string)($o['orderStatus'] ?? $o['status'] ?? '')), 'ordered_at'=>(string)($o['orderDate'] ?? ''), 'source'=>'live',
+            ];
+        }
+        return ['ok'=>true, 'products'=>[], 'orders'=>$orders, 'note'=>count($orders) . ' orders (godomall)'];
+    }
+
+    /** XML POST(원시 본문 반환) — Yahoo!JP 등 XML API용. 반환 [code, rawBody, err]. */
+    private static function httpReqXml(string $url, array $headers, string $body, int $timeout = 20): array
+    {
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true, CURLOPT_POST => true, CURLOPT_POSTFIELDS => $body, CURLOPT_TIMEOUT => $timeout,
+            CURLOPT_HTTPHEADER => array_map(fn($k, $v) => "$k: $v", array_keys($headers), array_values($headers)),
+            CURLOPT_SSL_VERIFYPEER => true, CURLOPT_USERAGENT => 'GeniegoROI/v427',
+        ]);
+        $raw = curl_exec($ch); $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE); $err = curl_error($ch) ?: null;
+        curl_close($ch);
+        return [$code, ($err === null ? (string)$raw : ''), $err];
+    }
+
     // ── G마켓/11번가/기타 ─────────────────────────────────────────────────
     private static function genericFetch(string $channel, array $creds, string $tenant = 'demo'): array
     {
@@ -1233,6 +1574,16 @@ final class ChannelSync
             '11st','st11'                  => self::elevenStFetch($creds, $tenant),       // [현 차수] 11번가 실어댑터
             'gmarket','auction'            => self::esmFetch($channel, $creds, $tenant),  // [현 차수] ESM(G마켓/옥션)
             'lotteon'                      => self::lotteonFetch($creds, $tenant),         // [현 차수] 롯데온
+            // [232차 Sprint2] 글로벌 커머스 실어댑터 9종 — genericFetch stub 제거
+            'woocommerce'                  => self::woocommerceFetch($creds, $tenant),
+            'magento'                      => self::magentoFetch($creds, $tenant),
+            'walmart'                      => self::walmartFetch($creds, $tenant),
+            'etsy'                         => self::etsyFetch($creds, $tenant),
+            'shopee'                       => self::shopeeFetch($creds, $tenant),
+            'lazada'                       => self::lazadaFetch($creds, $tenant),
+            'qoo10'                        => self::qoo10Fetch($creds, $tenant),
+            'yahoo_japan','yahoo_jp'       => self::yahooJpFetch($creds, $tenant),
+            'godomall'                     => self::godomallFetch($creds, $tenant),
             default                        => self::genericFetch($channel, $creds, $tenant),
         };
     }
@@ -2359,6 +2710,8 @@ final class ChannelSync
         'shopify','amazon','amazon_spapi','coupang','naver','naver_smartstore',
         'ebay','tiktok','tiktok_shop','rakuten','yahoo_jp','line','11st','st11','gmarket','auction','cafe24','lotteon',
         // [현 차수] ★st11(ApiKeys UI 저장키)·auction 누락 → 자격증명 저장 후 자동sync/cron 영구 누락이던 결함 해소.
+        // [232차 Sprint2] 글로벌 커머스 실어댑터 9종 — 백엔드 커머스 인식(isCommerceChannel)·cron 폴링 편입.
+        'woocommerce','magento','walmart','etsy','shopee','lazada','qoo10','yahoo_japan','godomall',
     ];
 
     /* [현 차수] ★채널키 별칭 SSOT — 같은 채널의 여러 표기(UI 저장키 vs dispatch 키)를 canonical 로 통일.
@@ -2374,6 +2727,7 @@ final class ChannelSync
         'kakao'            => 'kakao_moment',
         'meta'             => 'meta_ads',
         'google'           => 'google_ads',
+        'yahoo_japan'      => 'yahoo_jp', // [232차 Sprint2] ApiKeys 저장키(yahoo_japan) ↔ 내부키(yahoo_jp) 정합
     ];
 
     /** 별칭 → canonical 채널키. 멤버십/매핑 체크 전 정규화에 사용. */

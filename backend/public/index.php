@@ -238,8 +238,11 @@ $app->add(function (Request $request, $handler) {
                         // [현 차수] 219 P2(격리): 세션 인증도 테넌트를 도출·주입한다. 기존엔 토큰 존재만 확인하고
                         //   auth_tenant 를 주입하지 않아, 핸들러가 raw X-Tenant-Id 헤더 폴백(위조 가능) 또는
                         //   'unknown' 공유 버킷으로 떨어졌다. user_session→app_user.tenant_id 로 권위 주입.
-                        $ss = $pdoAi->prepare('SELECT u.tenant_id FROM user_session s JOIN app_user u ON u.id = s.user_id WHERE s.token = ? LIMIT 1');
-                        $ss->execute([$bearer]);
+                        // [현 차수 P1 보안] 세션 만료/비활성 검증 추가 — userByToken·EventPopup::requireAdmin 과 동일하게
+                        //   s.expires_at > now AND u.is_active=1 강제. 기존엔 토큰 존재만 확인해 만료·해지 세션으로도
+                        //   공용 AI(/v422/ai)·결제(/v427/billing)·MMM·Attribution 경로 우회가 가능했다(세션수명 무력화).
+                        $ss = $pdoAi->prepare('SELECT u.tenant_id FROM user_session s JOIN app_user u ON u.id = s.user_id WHERE s.token = ? AND s.expires_at > ? AND u.is_active = 1 LIMIT 1');
+                        $ss->execute([$bearer, gmdate('Y-m-d\TH:i:s\Z')]);
                         $sessTenant = $ss->fetchColumn();
                         if ($sessTenant !== false) {
                             $aiOk = true;

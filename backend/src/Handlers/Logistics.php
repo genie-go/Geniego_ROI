@@ -118,7 +118,7 @@ final class Logistics
         $kr = [];
         foreach (self::KR_CODE as $k => $code) $kr[] = ['key' => $k, 'code' => $code, 'region' => 'domestic'];
         $intl = [];
-        foreach (self::INTL as $k) $intl[] = ['key' => $k, 'region' => 'international', 'live' => $k === 'dhl'];
+        foreach (self::INTL as $k) $intl[] = ['key' => $k, 'region' => 'international', 'live' => in_array($k, ['dhl', 'fedex', 'ups'], true)];
         return self::json($response, ['ok' => true, 'domestic' => $kr, 'international' => $intl]);
     }
 
@@ -221,8 +221,73 @@ final class Logistics
             if ($key === '') return ['ok' => false, 'configured' => false, 'status' => 'pending', 'note' => 'DHL API 키 미등록 — 등록 후 자동 조회됩니다.'];
             return self::fetchDHL($key, $invoice);
         }
-        // FedEx/UPS/TNT/EMS/OCL/풀필먼트 — 전용 API 연동 예정(정직).
+        // [232차] FedEx/UPS 실 추적(OAuth2 client_credentials). 자격증명 등록 시 즉시 조회.
+        if ($carrier === 'fedex') return self::fetchFedex($pdo, $tenant, $invoice);
+        if ($carrier === 'ups')   return self::fetchUps($pdo, $tenant, $invoice);
+        // TNT/EMS/CJ국제특송/OCL/풀필먼트 — 전용 API 연동 예정(정직).
         return ['ok' => false, 'configured' => false, 'status' => 'pending', 'note' => "[{$carrier}] 전용 추적 API 연동 예정입니다(송장은 저장됨)."];
+    }
+
+    /** [232차] FedEx Track API(OAuth2 → track/v1/trackingnumbers). */
+    private static function fetchFedex(PDO $pdo, string $tenant, string $invoice): array
+    {
+        $key = self::loadKey($pdo, $tenant, ['fedex'], 'api_key');
+        $sec = self::loadKey($pdo, $tenant, ['fedex'], 'api_secret');
+        if ($key === '' || $sec === '') return ['ok' => false, 'configured' => false, 'status' => 'pending', 'note' => 'FedEx API 키/시크릿 미등록 — 등록 후 자동 조회됩니다.'];
+        [$tc, $tb] = self::httpPost('https://apis.fedex.com/oauth/token',
+            'grant_type=client_credentials&client_id=' . rawurlencode($key) . '&client_secret=' . rawurlencode($sec),
+            ['Content-Type' => 'application/x-www-form-urlencoded']);
+        $tok = (string)($tb['access_token'] ?? '');
+        if ($tok === '') return ['ok' => false, 'configured' => true, 'status' => 'error', 'note' => "FedEx 토큰 발급 실패(HTTP {$tc})"];
+        $payload = json_encode(['includeDetailedScans' => true, 'trackingInfo' => [['trackingNumberInfo' => ['trackingNumber' => $invoice]]]]);
+        [$code, $body] = self::httpPost('https://apis.fedex.com/track/v1/trackingnumbers', $payload,
+            ['Authorization' => 'Bearer ' . $tok, 'Content-Type' => 'application/json']);
+        $tr = $body['output']['completeTrackResults'][0]['trackResults'][0] ?? null;
+        if ($code !== 200 || !$tr) return ['ok' => false, 'configured' => true, 'status' => 'error', 'note' => "FedEx HTTP {$code}"];
+        $lsd = $tr['latestStatusDetail'] ?? [];
+        $delivered = strtoupper((string)($lsd['derivedCode'] ?? $lsd['code'] ?? '')) === 'DL';
+        $events = [];
+        foreach (($tr['scanEvents'] ?? []) as $e) $events[] = ['time' => $e['date'] ?? '', 'where' => ($e['scanLocation']['city'] ?? ''), 'kind' => $e['eventDescription'] ?? ''];
+        return ['ok' => true, 'configured' => true, 'status' => $delivered ? 'delivered' : 'in_transit',
+            'status_text' => (string)($lsd['description'] ?? $lsd['statusByLocale'] ?? ''), 'level' => $delivered ? 6 : 3,
+            'recipient' => (string)($tr['deliveryDetails']['receivedByName'] ?? ''), 'last_event_at' => (string)($tr['scanEvents'][0]['date'] ?? ''),
+            'delivered' => $delivered, 'events' => $events];
+    }
+
+    /** [232차] UPS Track API(OAuth2 → api/track/v1/details). */
+    private static function fetchUps(PDO $pdo, string $tenant, string $invoice): array
+    {
+        $cid  = self::loadKey($pdo, $tenant, ['ups'], 'client_id');
+        $csec = self::loadKey($pdo, $tenant, ['ups'], 'client_secret');
+        if ($cid === '' || $csec === '') return ['ok' => false, 'configured' => false, 'status' => 'pending', 'note' => 'UPS Client ID/Secret 미등록 — 등록 후 자동 조회됩니다.'];
+        [$tc, $tb] = self::httpPost('https://onlinetools.ups.com/security/v1/oauth/token', 'grant_type=client_credentials',
+            ['Authorization' => 'Basic ' . base64_encode($cid . ':' . $csec), 'Content-Type' => 'application/x-www-form-urlencoded']);
+        $tok = (string)($tb['access_token'] ?? '');
+        if ($tok === '') return ['ok' => false, 'configured' => true, 'status' => 'error', 'note' => "UPS 토큰 발급 실패(HTTP {$tc})"];
+        [$code, $body] = self::httpGet('https://onlinetools.ups.com/api/track/v1/details/' . rawurlencode($invoice),
+            ['Authorization' => 'Bearer ' . $tok, 'transId' => uniqid('gg'), 'transactionSrc' => 'geniego']);
+        $pkg = $body['trackResponse']['shipment'][0]['package'][0] ?? null;
+        if ($code !== 200 || !$pkg) return ['ok' => false, 'configured' => true, 'status' => 'error', 'note' => "UPS HTTP {$code}"];
+        $cs = $pkg['currentStatus'] ?? [];
+        $delivered = (string)($cs['code'] ?? '') === '011' || stripos((string)($cs['description'] ?? ''), 'delivered') !== false;
+        $events = [];
+        foreach (($pkg['activity'] ?? []) as $a) $events[] = ['time' => trim(($a['date'] ?? '') . ' ' . ($a['time'] ?? '')), 'where' => ($a['location']['address']['city'] ?? ''), 'kind' => $a['status']['description'] ?? ''];
+        return ['ok' => true, 'configured' => true, 'status' => $delivered ? 'delivered' : 'in_transit',
+            'status_text' => (string)($cs['description'] ?? ''), 'level' => $delivered ? 6 : 3,
+            'recipient' => (string)($pkg['deliveryInformation']['receivedBy'] ?? ''), 'last_event_at' => (string)($pkg['activity'][0]['date'] ?? ''),
+            'delivered' => $delivered, 'events' => $events];
+    }
+
+    /** [232차] POST(form/json) — FedEx/UPS OAuth·추적용. */
+    private static function httpPost(string $url, string $body, array $headers = []): array
+    {
+        $ch = curl_init($url);
+        $hdr = []; foreach ($headers as $k => $v) $hdr[] = "{$k}: {$v}";
+        curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 15, CURLOPT_CONNECTTIMEOUT => 6,
+            CURLOPT_POST => true, CURLOPT_POSTFIELDS => $body, CURLOPT_HTTPHEADER => $hdr, CURLOPT_SSL_VERIFYPEER => true, CURLOPT_USERAGENT => 'Geniego-ROI/v427']);
+        $raw = curl_exec($ch); $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE); $err = curl_error($ch) ?: null; curl_close($ch);
+        $b = ($err === null && $raw) ? json_decode((string)$raw, true) : null;
+        return [$code, is_array($b) ? $b : [], $err];
     }
 
     /** 스마트택배(sweettracker) 통합 조회 — t_key 1개로 국내 전 택배사. */

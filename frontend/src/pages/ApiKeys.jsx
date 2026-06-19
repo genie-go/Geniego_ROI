@@ -20,6 +20,8 @@ const CHANNELS = [
   { key: 'meta_ads',         name: 'Meta Ads',          icon: '📘', color: '#1877F2', group: 'global_ad' },
   { key: 'google_ads',       name: 'Google Ads',        icon: '🔵', color: '#4285F4', group: 'global_ad' },
   { key: 'tiktok_business',  name: 'TikTok Business',   icon: '🎶', color: '#010101', group: 'global_ad' },
+  // [232차] LINE Ads — JP/TW/TH 핵심 광고매체. 메시징 'line'(아래 own_etc)과 별개 채널.
+  { key: 'line_ads',         name: 'LINE Ads',          icon: '💚', color: '#06C755', group: 'global_ad' },
   // [현 차수] tiktok_shop 실 어댑터(ChannelSync v202309 HMAC+shop_cipher)는 존재했으나 자격증명 등록 UI 진입점이 없었음 → 추가
   { key: 'tiktok_shop',      name: 'TikTok Shop',       icon: '🛍️', color: '#FE2C55', group: 'global_commerce' },
   { key: 'amazon_spapi',     name: 'Amazon SP-API',     icon: '📦', color: '#FF9900', group: 'global_commerce' },
@@ -119,10 +121,10 @@ const CHANNEL_FIELDS = {
   // 글로벌 마켓
   amazon_spapi: [{ k: 'refresh_token', label: 'LWA Refresh Token', secret: true }, { k: 'client_id', label: 'Client ID' }, { k: 'client_secret', label: 'Client Secret', secret: true }, { k: 'marketplace_id', label: 'Marketplace ID (예: ATVPDKIKX0DER=US · A1VC38T7YXB528=JP · A1PA6795UKMFR9=DE)' }, { k: 'seller_id', label: 'Seller ID / Merchant Token (상품등록 필수 · Seller Central > 계정정보)' }],
   ebay:      [{ k: 'access_token', label: 'OAuth 액세스 토큰', secret: true }],
-  etsy:      [{ k: 'api_key', label: 'API 키', secret: true }, { k: 'shop_id', label: 'Shop ID' }],
+  etsy:      [{ k: 'api_key', label: 'API 키 (keystring · x-api-key)', secret: true }, { k: 'shop_id', label: 'Shop ID' }, { k: 'oauth_token', label: 'OAuth 액세스 토큰 (주문/영수증 수집용 · 선택)', secret: true, opt: true }],
   walmart:   [{ k: 'client_id', label: 'Client ID' }, { k: 'client_secret', label: 'Client Secret', secret: true }],
-  shopee:    [{ k: 'partner_id', label: 'Partner ID' }, { k: 'partner_key', label: 'Partner Key', secret: true }, { k: 'shop_id', label: 'Shop ID' }],
-  lazada:    [{ k: 'app_key', label: 'App Key' }, { k: 'app_secret', label: 'App Secret', secret: true }],
+  shopee:    [{ k: 'partner_id', label: 'Partner ID' }, { k: 'partner_key', label: 'Partner Key', secret: true }, { k: 'shop_id', label: 'Shop ID' }, { k: 'access_token', label: 'OAuth 액세스 토큰 (파트너 인증 후)', secret: true }],
+  lazada:    [{ k: 'app_key', label: 'App Key' }, { k: 'app_secret', label: 'App Secret', secret: true }, { k: 'access_token', label: 'OAuth 액세스 토큰 (인증 후)', secret: true }, { k: 'region', label: '리전 (sg/my/th/id/ph/vn)' }],
   rakuten:   [{ k: 'service_secret', label: 'Service Secret', secret: true }, { k: 'license_key', label: 'License Key', secret: true }, { k: 'shop_url', label: 'Shop URL' }],
   qoo10:     [{ k: 'api_key', label: 'QSM API 키', secret: true }, { k: 'seller_id', label: '셀러 ID' }],
   // [227차] tiktok_shop — 실 어댑터(ChannelSync tiktokFetch v202309 HMAC+shop_cipher)가 요구하는 자격증명.
@@ -133,7 +135,7 @@ const CHANNEL_FIELDS = {
   woocommerce: [{ k: 'site_url', label: '사이트 URL' }, { k: 'consumer_key', label: 'Consumer Key', secret: true }, { k: 'consumer_secret', label: 'Consumer Secret', secret: true }],
   magento:   [{ k: 'base_url', label: '스토어 URL' }, { k: 'access_token', label: 'Integration 토큰', secret: true }],
   cafe24:    [{ k: 'mall_id', label: '몰 ID' }, { k: 'client_id', label: 'Client ID' }, { k: 'client_secret', label: 'Client Secret', secret: true }, { k: 'refresh_token', label: 'Refresh Token (OAuth2)', secret: true }],
-  godomall:  [{ k: 'partner_key', label: '파트너 키', secret: true }, { k: 'api_key', label: 'API 키', secret: true }],
+  godomall:  [{ k: 'partner_key', label: '파트너 키', secret: true }, { k: 'api_key', label: 'API 키', secret: true }, { k: 'mall_url', label: '스토어 도메인 (xxx.godomall.com)' }],
   // 물류/배송
   cj:          [{ k: 'api_key', label: 'API 키', secret: true }, { k: 'cust_code', label: '고객(계약) 코드' }],
   lotte:       [{ k: 'api_key', label: 'API 키', secret: true }, { k: 'cust_code', label: '고객(계약) 코드' }],
@@ -163,7 +165,7 @@ const CHANNEL_FIELDS = {
   // [228차] 글로벌 결제 전문 PG 자격증명
   // [229차] 백엔드 Paddle.php는 Billing v2(api.paddle.com·Bearer) → 단일 API 키(pdl_live_…). 구 Classic(vendor_id+auth_code) 폐기.
   paddle:    [{ k: 'api_key', label: 'API 키 (Billing v2 · Bearer pdl_live_…)', secret: true }],
-  adyen:     [{ k: 'api_key', label: 'API 키 (X-API-Key)', secret: true }, { k: 'merchant_account', label: 'Merchant Account' }, { k: 'batch_start', label: '시작 정산배치 번호 (정산 첫 수집용 · CA의 최근 settlement batch 번호)' }],
+  adyen:     [{ k: 'api_key', label: 'API 키 (X-API-Key)', secret: true }, { k: 'merchant_account', label: 'Merchant Account' }, { k: 'batch_start', label: '시작 정산배치 번호 (정산 첫 수집용 · CA의 최근 settlement batch 번호)', opt: true }],
   square:    [{ k: 'access_token', label: 'Access Token', secret: true }, { k: 'location_id', label: 'Location ID' }],
   braintree: [{ k: 'merchant_id', label: 'Merchant ID' }, { k: 'public_key', label: 'Public Key' }, { k: 'private_key', label: 'Private Key', secret: true }],
   checkout:  [{ k: 'secret_key', label: 'Secret Key (sk_)', secret: true }, { k: 'public_key', label: 'Public Key (pk_)' }],
@@ -176,15 +178,21 @@ const CHANNEL_FIELDS = {
   tiktok_business: [{ k: 'access_token', label: '액세스 토큰', secret: true }, { k: 'advertiser_id', label: '광고주 ID' }],
   naver_sa:  [{ k: 'api_key', label: 'API 키', secret: true }, { k: 'api_secret', label: '비밀키', secret: true }, { k: 'customer_id', label: '고객 ID' }],
   kakao_moment: [{ k: 'access_token', label: '액세스 토큰', secret: true }, { k: 'ad_account_id', label: '광고계정 ID' }],
+  // [232차] LINE Ads Platform — Ad Manager > Group 페이지에서 발급(access key/secret key) + Group ID. JWS 인증.
+  line_ads:  [{ k: 'access_key', label: 'Access Key (Ad Manager > Group)', secret: true }, { k: 'secret_key', label: 'Secret Key', secret: true }, { k: 'group_id', label: 'Group ID (광고 그룹/계정 ID)' }],
   // 분석/기타
   google_analytics: [{ k: 'measurement_id', label: '측정 ID (G-)' }, { k: 'api_secret', label: 'API Secret', secret: true }],
   slack:     [{ k: 'webhook_url', label: 'Webhook URL', secret: true }],
   // [229차] 신규 채널
-  yahoo_japan: [{ k: 'client_id', label: 'Client ID' }, { k: 'client_secret', label: 'Client Secret', secret: true }, { k: 'access_token', label: 'OAuth Access Token', secret: true }],
+  yahoo_japan: [{ k: 'client_id', label: 'Client ID' }, { k: 'client_secret', label: 'Client Secret', secret: true }, { k: 'access_token', label: 'OAuth Access Token', secret: true }, { k: 'seller_id', label: '스토어(셀러) ID' }],
   kakao_alimtalk: [{ k: 'sender_key', label: '발신 프로필 키 (sender_key)' }, { k: 'api_key', label: 'API Key', secret: true }, { k: 'api_secret', label: 'API Secret', secret: true }],
   line:      [{ k: 'channel_secret', label: 'Channel Secret', secret: true }, { k: 'channel_access_token', label: 'Channel Access Token', secret: true }],
 };
 const DEFAULT_FIELDS = [{ k: 'api_key', label: 'API 키 / 액세스 토큰', secret: true }];
+
+/* [현 차수 P0] 필드 선택여부 판정 — 명시 opt:true 또는 라벨에 '선택/optional' 포함 시 선택(미입력 허용).
+   그 외는 필수. 부분 입력 저장으로 sync 가 무음 실패하는 것을 ConnectModal 에서 사전 차단. */
+const isOptionalField = (f) => f?.opt === true || /선택|optional/i.test(String(f?.label || ''));
 
 /* [229차] 채널별 발급 매뉴얼(레이어 팝업·iframe). public/api_manuals/<key>.html 정적 서빙.
    youtube=큐레이트, 나머지=issuanceGuide 단계 기반 생성. 이 집합의 채널만 '📖 발급 매뉴얼' 버튼 노출. */
@@ -218,12 +226,16 @@ const OAUTH_COVERED_KEYS = new Set(['access_token', 'oauth_access_token', 'refre
 /* [현 차수] 실 동기화 어댑터(라이브 fetch/ingest)가 구현된 채널 — 백엔드 ChannelCreds.hasRealAdapter 미러.
    이 집합에 없는 채널은 자격증명 저장은 되나 전용 어댑터 미연동(데이터 동기화 X) → 카드에 "연동 예정" 정직 표기. */
 const REAL_ADAPTER = new Set([
-  'meta_ads', 'google_ads', 'tiktok_business', 'naver_sa', 'kakao_moment',
+  'meta_ads', 'google_ads', 'tiktok_business', 'naver_sa', 'kakao_moment', 'line_ads',
   'shopify', 'amazon_spapi', 'coupang', 'naver_smartstore', 'ebay', 'rakuten', 'cafe24', 'tiktok_shop',
   'st11', '11st', 'gmarket', 'auction', 'lotteon', // [현 차수] 국내 오픈마켓 4종 실어댑터(11번가 XML·ESM·롯데온)
+  // [232차 Sprint2] 글로벌 커머스 실어댑터 9종(ChannelSync fetch) — 거짓 '데이터 미수집' 사전고지 제거.
+  'woocommerce', 'magento', 'walmart', 'etsy', 'shopee', 'lazada', 'qoo10', 'yahoo_japan', 'godomall',
 
   // [현 차수] v427 물류 배송추적 실어댑터(Logistics.php): 국내 택배(스마트택배 통합) + DHL.
   'epost', 'cj', 'lotte', 'hanjin', 'logen', 'smarttracker', 'dhl',
+  // [232차] FedEx/UPS 실 추적(OAuth2) + PG 정산 Klarna/Checkout 추가.
+  'fedex', 'ups', 'klarna', 'checkout',
   // [현 차수] v427 PG 정산 실어댑터(PgSettlement.php): Stripe·토스페이먼츠·PayPal.
   'stripe', 'toss', 'paypal',
   // [228차] Adyen 정산 실 수집 어댑터(Settlement Detail Report CSV).
@@ -913,7 +925,8 @@ export default function ApiKeys() {
         }
         // 212차 #1: 광고매체(AdChannelConnect 흡수) — 자격증명 등록 즉시 성과 ingest 트리거.
         //   /v423/connectors/sync(meta/google/tiktok/naver) → performance_metrics 적재.
-        const AD_SYNC = { meta_ads: 'meta', google_ads: 'google', tiktok_business: 'tiktok', naver_sa: 'naver' };
+        // [현 차수] kakao_moment 추가 — 백엔드 adShortCodes/AD_SHORT 는 kakao 를 포함하나 저장직후 트리거 맵에 누락돼 있었음.
+        const AD_SYNC = { meta_ads: 'meta', google_ads: 'google', tiktok_business: 'tiktok', naver_sa: 'naver', kakao_moment: 'kakao', line_ads: 'line' };
         if (AD_SYNC[channelKey]) {
           try {
             show('info', `${channelName} ${t('ak.syncing','동기화 중...')}`);
@@ -2260,6 +2273,7 @@ function ConnectModal({ channel, onClose, onSubmit, t, extraFields = {}, postOau
   const { lang: uiLang } = useI18n();
   const [vals, setVals] = useState({});
   const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState(''); // [현 차수 P0] 필수 필드 누락 검증 메시지
   // [227차] OAuth 직후 모드: 토큰성 필드는 "자동 등록됨"으로 표시, 회원은 계정 ID 등 잔여 필드만 입력.
   const remainFields = postOauth ? fields.filter(f => !OAUTH_COVERED_KEYS.has(f.k)) : fields;
   const coveredFields = postOauth ? fields.filter(f => OAUTH_COVERED_KEYS.has(f.k)) : [];
@@ -2270,6 +2284,20 @@ function ConnectModal({ channel, onClose, onSubmit, t, extraFields = {}, postOau
   const missList = remainFields.filter(f => !reg.has(f.k));
 
   const submit = async () => {
+    // [현 차수 P0] 채널별 필수 자격증명 검증 — 부분 입력 저장→sync 무음실패→원인불명을 사전 차단.
+    //   이미 등록된(reg) 필드는 비워도 유지되므로 충족으로 간주. 선택 필드(opt/'선택')는 제외.
+    //   저장 후에도 충족되지 않는 필수 필드가 있으면 어느 항목인지 명시하고 저장 보류.
+    const missingRequired = remainFields.filter(f =>
+      !isOptionalField(f) && !reg.has(f.k) && !String(vals[f.k] || '').trim()
+    );
+    if (missingRequired.length > 0) {
+      setErr(t('ak.requiredMissing', {
+        fields: missingRequired.map(f => f.label).join(', '),
+        defaultValue: `다음 필수 항목을 모두 입력해야 정상 연동·동기화됩니다: ${missingRequired.map(f => f.label).join(', ')}`,
+      }));
+      return;
+    }
+    setErr('');
     setBusy(true);
     const ok = await onSubmit(channel.key, channel.name, vals);
     setBusy(false);
@@ -2344,13 +2372,18 @@ function ConnectModal({ channel, onClose, onSubmit, t, extraFields = {}, postOau
               </span>
             )}>
               <input type={f.secret ? 'password' : 'text'} value={vals[f.k] || ''} autoComplete="new-password"
-                onChange={e => setVals(v => ({ ...v, [f.k]: e.target.value }))} style={fieldStyle}
+                onChange={e => { setVals(v => ({ ...v, [f.k]: e.target.value })); if (err) setErr(''); }} style={fieldStyle}
                 placeholder={isReg
                   ? (f.secret ? t('ak.regKeepHint','등록됨 — 변경하려면 새 값 입력(비우면 유지)') : t('ak.regKeepHintPlain','등록됨 — 변경 시에만 입력(비우면 유지)'))
                   : f.k} />
             </Field>
           );
         })}
+        {err && (
+          <div role="alert" style={{ marginTop: 14, padding: '10px 13px', borderRadius: 10, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.32)', fontSize: 12, color: '#dc2626', lineHeight: 1.55, fontWeight: 600 }}>
+            ⚠️ {err}
+          </div>
+        )}
         <div style={{ display: 'flex', gap: 8, marginTop: 18 }}>
           <button onClick={onClose} style={{ flex: 1, ...btnGhost }}>{t('ak.cancel','Cancel')}</button>
           <button onClick={submit} disabled={busy} style={{ flex: 1, ...btnPrimary, opacity: busy ? 0.6 : 1, cursor: busy ? 'not-allowed' : 'pointer' }}>

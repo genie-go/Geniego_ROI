@@ -549,6 +549,8 @@ final class ChannelCreds
             'shopify', 'amazon', 'amazon_spapi', 'coupang', 'naver', 'naver_smartstore',
             'ebay', 'rakuten', 'cafe24',
             '11st', 'st11', 'gmarket', 'auction', 'lotteon', // 국내 오픈마켓 4종 실어댑터
+            // [232차 Sprint2] 글로벌 커머스 실어댑터 9종(ChannelSync fetch) — 거짓 '준비중' 표기 제거.
+            'woocommerce', 'magento', 'walmart', 'etsy', 'shopee', 'lazada', 'qoo10', 'yahoo_japan', 'yahoo_jp', 'godomall',
             'stripe', 'tosspayments', 'toss', 'paypal', 'adyen', // PG 정산 실 수집 어댑터(228차 Adyen 추가)
         ];
         if (in_array($channel, $list, true)) return true;
