@@ -138,7 +138,7 @@ export default {
     "pageTitle": "🇰🇷 Korean Channel Settlement Hub",
     "pageSub": "Coupang · Naver · 11번가 · Gmarket · 옥션 · 카카오선물하기 · 롯데ON · 위메프 · 티몬 — Settlement Standardization · Commission Management · Reconciliation (v419)"
   },
-  igdm: {
+  igdm: {"broadcastFail":"Failed to send.",
     "broadcastSentAlert": "✅ Message sent to {{n}} recipients.",
     "heroDesc": "One Page Access Token → instant live integration · Manage Instagram + Facebook Messenger · Auto-reply rules",
     "kpiConnected": "Connected",
@@ -528,7 +528,7 @@ export default {
     "clientToken": "Client Token",
     "webhookEndpoint": "Webhook Endpoint",
   },
-  digitalShelf: {
+  digitalShelf: {"noTopProducts":"Once you connect a channel, the top product rankings within that channel are aggregated and displayed.",
     "title": "Digital Shelf",
     "heroDesc": "Monitor your products' search visibility, competitive share (SoS), and keyword rank across 5 domestic channels in real time.",
     "addKeyword": "Add keyword",
@@ -14564,7 +14564,7 @@ export default {
 
 
   // 176차 PM8 S6-P1: attrData live channel/touches append (last-key-wins, append-only)
-  attrData: {
+  attrData: {"autoTab4":"④ User Guide","autoTab3":"③ AI Strategy Preview","autoTab2":"② Campaign Setup","autoTab1":"① Creative Studio","serverMtaFoot":"Value = per-model channel conversion credit (sum = total conversions). ★ Markov = recommended data-driven model.","serverMtaEmpty":"No touch journeys linked to conversions yet. They will appear automatically after pixel/touch collection and conversion scoring.","serverMtaLoading":"Computing server attribution…","serverMtaDesc":"The server combines attribution_touch journeys with conversions to compute 6 models. Markov removal-effect measures the conversion loss when a channel is absent — a data-driven attribution.","serverMtaDays":"days","serverMtaWindow":"Last","serverMtaConv":"Conversions","serverMtaBadge":"1st-party Measured","serverMtaTitle":"Server Data-Driven Multi-Touch (Authoritative)",
     liveChannelPerf: "Live Channel Performance (real backend)",
     channel: "Channel",
     spend: "Spend",
@@ -14747,11 +14747,11 @@ export default {
     "winner": "🏆 Winner",
     itemsCount: "{n} items",
     synergyTitle: "⚡ Channel Synergy (Pairwise Lift)",
-    shapleyBudget: "💡 Shapley-based Budget Rec.",
+    shapleyBudget: "💡 Shapley-Based Budget Recommendation",
     expectedRoas: "Expected Blend ROAS",
-    diminishing: "Add. Utility Decrease",
+    diminishing: "Diminishing Returns",
     markovRemoval: "🔗 Markov Chain — Removal Effect",
-    upliftDesc: "Net Incremental Impact via Robinson's Partial Regression",
+    upliftDesc: "Net incremental effect based on Robinson partial regression",
     ltvTitle: "💰 Channel LTV vs CAC",
     statusCrit: "🔴 Critical",
     statusAlert: "🟠 Alert",
@@ -14759,11 +14759,11 @@ export default {
     statusInfo: "🔵 Info",
     statusOk: "🟢 OK",
     anomalySum: "📊 Anomaly Summary",
-    compareTbl1: "📋 Model Channel Contribution Compare (%)",
-    modelRadar: "🕸️ Channel Contribution Radar Compare",
-    mmmDescText: "Ridge-regularised OLS + Adstock decay + Hill saturation. Bootstrap 200 iterations for posterior credible intervals.",
-    markovDescText: "Markov Transition Matrix for Conversion Paths + Channel Removal Effect. Robinson's Partial Regression for real incremental uplift.",
-    abDescText: "Prior Beta(1,1) → Posterior Beta(1+conv, 1+fail). 5k-sample Monte-Carlo. 95% CI displayed.",
+    compareTbl1: "📋 Per-Model Channel Contribution Comparison (%)",
+    modelRadar: "🕸️ Channel Contribution Radar Comparison",
+    mmmDescText: "Ridge-regularized OLS + Adstock decay + Hill curve saturation. 200-iteration bootstrap posterior confidence intervals.",
+    markovDescText: "Computes net incremental effect using a Markov transition matrix of conversion paths plus channel removal effect and Robinson partial regression.",
+    abDescText: "5,000-iteration Monte Carlo simulation based on prior Beta and posterior distributions. Shows 95% confidence interval.",
   },
 
 

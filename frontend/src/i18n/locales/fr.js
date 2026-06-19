@@ -271,7 +271,7 @@ export default {
     "pageTitle": "🇰🇷 Hub de règlement des canaux coréens",
     "pageSub": "Coupang · Naver · 11번가 · Gmarket · 옥션 · 카카오선물하기 · 롯데ON · 위메프 · 티몬 — Standardisation des règlements · Gestion des commissions · Réconciliation (v419)"
   },
-  igdm: {
+  igdm: {"broadcastFail":"Échec de l'envoi.",
     "broadcastSentAlert": "✅ Message envoyé à {{n}} personne(s).",
     "heroDesc": "1 Page Access Token → connexion réelle immédiate · Gestion Instagram + Facebook Messenger · Règles de réponse automatique",
     "kpiConnected": "Connecté",
@@ -661,7 +661,7 @@ export default {
     "clientToken": "Jeton client",
     "webhookEndpoint": "Point de terminaison webhook",
   },
-  digitalShelf: {
+  digitalShelf: {"noTopProducts":"Une fois un canal connecté, le classement des meilleurs produits de ce canal est agrégé et affiché.",
     "title": "Étagère numérique",
     "heroDesc": "Surveillez en temps réel la visibilité de recherche, la part concurrentielle (SoS) et le classement des mots-clés de vos produits sur 5 canaux nationaux.",
     "addKeyword": "Ajouter un mot-clé",
@@ -14683,7 +14683,7 @@ export default {
 
 
   // 176차 PM8 S6-P1: attrData live channel/touches append (last-key-wins, append-only)
-  attrData: {
+  attrData: {"autoTab4":"④ Guide d'utilisation","autoTab3":"③ Aperçu de la stratégie IA","autoTab2":"② Configuration de campagne","autoTab1":"① Studio créatif","serverMtaFoot":"Valeur = crédit de conversion du canal par modèle (somme = conversions totales). ★ Markov = modèle data-driven recommandé.","serverMtaEmpty":"Aucun parcours de contact lié à des conversions pour l'instant. Ils apparaîtront automatiquement après la collecte pixel/contacts et le scoring des conversions.","serverMtaLoading":"Calcul de l'attribution serveur…","serverMtaDesc":"Le serveur combine les parcours attribution_touch avec les conversions pour calculer 6 modèles. Markov removal-effect mesure la perte de conversions en l'absence d'un canal — une attribution data-driven.","serverMtaDays":"jours","serverMtaWindow":"Derniers","serverMtaConv":"Conversions","serverMtaBadge":"Mesuré en 1st-party","serverMtaTitle":"Multi-touch piloté par les données serveur (faisant autorité)",
     liveChannelPerf: "Performance des canaux en direct (backend réel)",
     channel: "Canal",
     spend: "Dépenses publicitaires",
@@ -14865,10 +14865,10 @@ export default {
     "visitor": "Visiteur",
     "winner": "🏆 Gagnant",
     itemsCount: "{n} éléments",
-    synergyTitle: "⚡ Synergie entre canaux (Pairwise Lift)",
-    shapleyBudget: "💡 Recommandation de budget basée sur Shapley",
+    synergyTitle: "⚡ Synergie des canaux (Pairwise Lift)",
+    shapleyBudget: "💡 Recommandation budgétaire basée sur Shapley",
     expectedRoas: "ROAS combiné prévu",
-    diminishing: "Baisse de l'utilité marginale",
+    diminishing: "Rendements décroissants",
     markovRemoval: "🔗 Chaîne de Markov — effet de retrait",
     upliftDesc: "Effet incrémental net basé sur la régression partielle de Robinson",
     ltvTitle: "💰 LTV vs CAC par canal",
@@ -14878,11 +14878,11 @@ export default {
     statusInfo: "🔵 Information",
     statusOk: "🟢 OK",
     anomalySum: "📊 Synthèse de détection des anomalies",
-    compareTbl1: "📋 Tableau comparatif de la contribution par canal et par modèle (%)",
-    modelRadar: "🕸️ Comparaison radar de la contribution par canal",
-    mmmDescText: "OLS avec régularisation Ridge + atténuation Adstock + saturation par courbe de Hill. Intervalles de crédibilité a posteriori sur 200 itérations bootstrap.",
-    markovDescText: "Matrice de transition de Markov des chemins de conversion + effet de retrait des canaux et régression partielle de Robinson pour calculer l'effet incrémental net.",
-    abDescText: "Simulation de Monte-Carlo sur 5 000 itérations basée sur les distributions bêta a priori et a posteriori. Intervalle de confiance à 95 % affiché.",
+    compareTbl1: "📋 Comparaison de la contribution des canaux par modèle (%)",
+    modelRadar: "🕸️ Comparaison radar de la contribution des canaux",
+    mmmDescText: "OLS régularisé par Ridge + décroissance Adstock + saturation de la courbe Hill. Intervalles de confiance postérieurs par bootstrap de 200 itérations.",
+    markovDescText: "Calcule l'effet incrémental net à l'aide d'une matrice de transition de Markov des chemins de conversion, du effet de suppression de canal et de la régression partielle de Robinson.",
+    abDescText: "Simulation de Monte-Carlo de 5 000 itérations basée sur les distributions Beta a priori et a posteriori. Affiche l'intervalle de confiance à 95 %.",
   },
 
 

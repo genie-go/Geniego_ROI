@@ -271,7 +271,7 @@ export default {
     "pageTitle": "🇰🇷 韩国渠道结算中心",
     "pageSub": "Coupang · Naver · 11번가 · Gmarket · 옥션 · 카카오선물하기 · 롯데ON · 위메프 · 티몬 — 结算标准化 · 佣金管理 · 对账 (v419)"
   },
-  igdm: {
+  igdm: {"broadcastFail":"发送失败。",
     "broadcastSentAlert": "✅ 已向 {{n}} 人发送消息。",
     "heroDesc": "1 个 Page Access Token → 即时真实接入 · Instagram + Facebook Messenger 接入管理 · 自动回复规则",
     "kpiConnected": "已连接",
@@ -661,7 +661,7 @@ export default {
     "clientToken": "客户端令牌",
     "webhookEndpoint": "Webhook 端点",
   },
-  digitalShelf: {
+  digitalShelf: {"noTopProducts":"连接渠道后，将汇总并显示该渠道内的 TOP 商品排名。",
     "title": "数字货架",
     "heroDesc": "实时监控自有商品在国内5个渠道的搜索可见度、竞争份额(SoS)和关键词排名。",
     "addKeyword": "添加关键词",
@@ -14346,7 +14346,7 @@ export default {
 
 
   // 176차 PM8 S6-P1: attrData live channel/touches append (last-key-wins, append-only)
-  attrData: {
+  attrData: {"abDescText":"基于先验 Beta 分布及后验分布的 5,000 次蒙特卡洛模拟。显示 95% 置信区间。","markovDescText":"基于转化路径的马尔可夫转移矩阵 + 渠道移除效应及 Robinson 偏回归，计算净增量效应。","mmmDescText":"Ridge 正则化 OLS + Adstock 衰减 + Hill 曲线饱和。200 次自助法后验置信区间。","modelRadar":"🕸️ 渠道贡献度雷达对比","compareTbl1":"📋 各模型渠道贡献度对比表 (%)","upliftDesc":"基于 Robinson 偏回归的净增量效应","diminishing":"边际效用递减","shapleyBudget":"💡 基于 Shapley 的预算建议","synergyTitle":"⚡ 渠道协同效应 (Pairwise Lift)","itemsCount":"{n} 项","autoTab4":"④ 使用指南","autoTab3":"③ AI 策略预览","autoTab2":"② 广告系列设置","autoTab1":"① 创意工作室","serverMtaFoot":"数值 = 各模型的渠道转化归因（合计 = 总转化）。★ Markov = 推荐的数据驱动模型。","serverMtaEmpty":"尚无与转化关联的触点路径。在像素/触点采集及转化评分后将自动呈现。","serverMtaLoading":"正在计算服务端归因…","serverMtaDesc":"服务端将 attribution_touch 路径与转化结合，计算 6 个模型。Markov removal-effect（移除效应）是衡量某渠道缺失时转化损失的 data-driven 归因。","serverMtaDays":"天","serverMtaWindow":"最近","serverMtaConv":"转化","serverMtaBadge":"1st-party 实测","serverMtaTitle":"服务端数据驱动多触点（权威）",
     "expectedRoas": "预期综合ROAS",
     "markovRemoval": "🔗 马尔可夫链 — 移除效果",
     "statusAlert": "🟠 注意",

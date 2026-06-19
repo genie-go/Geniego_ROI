@@ -271,7 +271,7 @@ export default {
     "pageTitle": "🇰🇷 Trung tâm settlement kênh Hàn Quốc",
     "pageSub": "Coupang · Naver · 11번가 · Gmarket · 옥션 · 카카오선물하기 · 롯데ON · 위메프 · 티몬 — Chuẩn hóa settlement · Quản lý phí · Reconciliation (v419)"
   },
-  igdm: {
+  igdm: {"broadcastFail":"Gửi thất bại.",
     "broadcastSentAlert": "✅ Đã gửi tin nhắn đến {{n}} người.",
     "heroDesc": "1 Page Access Token → kết nối thực tế tức thì · Quản lý kết nối Instagram + Facebook Messenger · Quy tắc trả lời tự động",
     "kpiConnected": "Đã kết nối",
@@ -661,7 +661,7 @@ export default {
     "clientToken": "Token máy khách",
     "webhookEndpoint": "Điểm cuối Webhook",
   },
-  digitalShelf: {
+  digitalShelf: {"noTopProducts":"Sau khi bạn kết nối một kênh, bảng xếp hạng sản phẩm TOP trong kênh đó sẽ được tổng hợp và hiển thị.",
     "title": "Kệ kỹ thuật số",
     "heroDesc": "Theo dõi khả năng hiển thị tìm kiếm, thị phần cạnh tranh (SoS) và thứ hạng từ khóa của sản phẩm trên 5 kênh nội địa theo thời gian thực.",
     "addKeyword": "Thêm từ khóa",
@@ -16570,7 +16570,7 @@ export default {
 
 
   // 176차 PM8 S6-P1: attrData live channel/touches append (last-key-wins, append-only)
-  attrData: {
+  attrData: {"autoTab4":"④ Hướng dẫn sử dụng","autoTab3":"③ Xem trước chiến lược AI","autoTab2":"② Thiết lập chiến dịch","autoTab1":"① Creative Studio","serverMtaFoot":"Giá trị = tín dụng chuyển đổi của kênh theo từng mô hình (tổng = tổng chuyển đổi). ★ Markov = mô hình data-driven được khuyến nghị.","serverMtaEmpty":"Chưa có hành trình điểm chạm nào liên kết với chuyển đổi. Chúng sẽ tự động hiển thị sau khi thu thập pixel/điểm chạm và chấm điểm chuyển đổi.","serverMtaLoading":"Đang tính toán phân bổ phía máy chủ…","serverMtaDesc":"Máy chủ kết hợp các hành trình attribution_touch với chuyển đổi để tính toán 6 mô hình. Markov removal-effect (hiệu ứng loại bỏ) là phương pháp phân bổ data-driven đo lường tổn thất chuyển đổi khi thiếu một kênh.","serverMtaDays":"ngày","serverMtaWindow":"Gần đây","serverMtaConv":"Chuyển đổi","serverMtaBadge":"Đo lường 1st-party","serverMtaTitle":"Đa điểm chạm dựa trên dữ liệu phía máy chủ (chính thống)",
     liveChannelPerf: "Hiệu suất kênh Live (backend thực)",
     channel: "Kênh",
     spend: "Chi phí quảng cáo",
@@ -16753,11 +16753,11 @@ export default {
     "winner": "🏆 Người thắng",
     itemsCount: "{n} mục",
     synergyTitle: "⚡ Cộng hưởng kênh (Pairwise Lift)",
-    shapleyBudget: "💡 Khuyến nghị ngân sách dựa trên Shapley",
+    shapleyBudget: "💡 Đề xuất ngân sách dựa trên Shapley",
     expectedRoas: "ROAS tổng hợp dự kiến",
-    diminishing: "Giảm hiệu dụng biên",
+    diminishing: "Lợi ích cận biên giảm dần",
     markovRemoval: "🔗 Chuỗi Markov — Hiệu ứng loại bỏ",
-    upliftDesc: "Hiệu ứng tăng trưởng ròng dựa trên hồi quy thành phần Robinson",
+    upliftDesc: "Hiệu ứng gia tăng ròng dựa trên Robinson partial regression",
     ltvTitle: "💰 LTV vs CAC theo kênh",
     statusCrit: "🔴 Nguy hiểm",
     statusAlert: "🟠 Chú ý",
@@ -16765,11 +16765,11 @@ export default {
     statusInfo: "🔵 Thông tin",
     statusOk: "🟢 OK",
     anomalySum: "📊 Tóm tắt phát hiện bất thường",
-    compareTbl1: "📋 Bảng so sánh đóng góp theo kênh của các mô hình (%)",
-    modelRadar: "🕸️ So sánh radar đóng góp theo kênh",
-    mmmDescText: "OLS chuẩn hóa Ridge + suy giảm Adstock + bão hòa đường cong Hill. Khoảng tin cậy hậu nghiệm qua 200 lần bootstrap.",
-    markovDescText: "Ma trận chuyển tiếp Markov cho đường dẫn chuyển đổi + hiệu ứng loại bỏ kênh, kết hợp hồi quy thành phần Robinson để tính hiệu ứng tăng trưởng ròng.",
-    abDescText: "Mô phỏng Monte Carlo 5.000 lần dựa trên phân phối Beta tiên nghiệm và hậu nghiệm. Hiển thị khoảng tin cậy 95%.",
+    compareTbl1: "📋 Bảng so sánh đóng góp kênh theo từng mô hình (%)",
+    modelRadar: "🕸️ So sánh radar đóng góp kênh",
+    mmmDescText: "OLS chính quy hóa Ridge + suy giảm Adstock + bão hòa đường cong Hill. Khoảng tin cậy hậu nghiệm bootstrap 200 lần.",
+    markovDescText: "Tính hiệu ứng gia tăng ròng bằng ma trận chuyển trạng thái Markov của các đường dẫn chuyển đổi cùng hiệu ứng loại bỏ kênh và Robinson partial regression.",
+    abDescText: "Mô phỏng Monte Carlo 5.000 lần dựa trên phân phối Beta tiên nghiệm và phân phối hậu nghiệm. Hiển thị khoảng tin cậy 95%.",
   },
 
 

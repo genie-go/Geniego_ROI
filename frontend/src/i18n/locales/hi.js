@@ -271,7 +271,7 @@ export default {
     "pageTitle": "🇰🇷 कोरियाई चैनल सेटलमेंट हब",
     "pageSub": "Coupang · Naver · 11번가 · Gmarket · 옥션 · 카카오선물하기 · 롯데ON · 위메프 · 티몬 — सेटलमेंट मानकीकरण · कमीशन प्रबंधन · रिकंसिलिएशन (v419)"
   },
-  igdm: {
+  igdm: {"broadcastFail":"भेजने में विफल।",
     "broadcastSentAlert": "✅ {{n}} लोगों को संदेश भेजा गया।",
     "heroDesc": "1 Page Access Token → तुरंत वास्तविक एकीकरण · Instagram + Facebook Messenger एकीकरण प्रबंधन · स्वचालित उत्तर नियम",
     "kpiConnected": "कनेक्टेड",
@@ -661,7 +661,7 @@ export default {
     "clientToken": "क्लाइंट टोकन",
     "webhookEndpoint": "वेबहुक एंडपॉइंट",
   },
-  digitalShelf: {
+  digitalShelf: {"noTopProducts":"किसी चैनल को कनेक्ट करने पर, उस चैनल के TOP उत्पादों की रैंकिंग एकत्रित कर दिखाई जाती है।",
     "title": "डिजिटल शेल्फ",
     "heroDesc": "5 घरेलू चैनलों पर अपने उत्पादों की खोज दृश्यता, प्रतिस्पर्धी हिस्सेदारी (SoS) और कीवर्ड रैंक को रीयल-टाइम में मॉनिटर करें।",
     "addKeyword": "कीवर्ड जोड़ें",
@@ -14669,7 +14669,7 @@ export default {
 
 
   // 176차 PM8 S6-P1: attrData live channel/touches append (last-key-wins, append-only)
-  attrData: {
+  attrData: {"autoTab4":"④ उपयोग गाइड","autoTab3":"③ AI रणनीति पूर्वावलोकन","autoTab2":"② अभियान सेटअप","autoTab1":"① क्रिएटिव स्टूडियो","serverMtaFoot":"मान = प्रति-मॉडल चैनल रूपांतरण क्रेडिट (योग = कुल रूपांतरण)। ★ Markov = अनुशंसित data-driven मॉडल।","serverMtaEmpty":"अभी तक रूपांतरणों से जुड़ी कोई टच यात्रा नहीं है। पिक्सेल/टच संग्रह और रूपांतरण स्कोरिंग के बाद ये स्वतः दिखाई देंगी।","serverMtaLoading":"सर्वर एट्रिब्यूशन की गणना हो रही है…","serverMtaDesc":"सर्वर attribution_touch यात्राओं को रूपांतरणों के साथ जोड़कर 6 मॉडल की गणना करता है। Markov removal-effect (हटाव प्रभाव) किसी चैनल की अनुपस्थिति में रूपांतरण हानि मापने वाला data-driven एट्रिब्यूशन है।","serverMtaDays":"दिन","serverMtaWindow":"पिछले","serverMtaConv":"रूपांतरण","serverMtaBadge":"1st-party वास्तविक माप","serverMtaTitle":"सर्वर डेटा-संचालित मल्टी-टच (आधिकारिक)",
     liveChannelPerf: "Live चैनल प्रदर्शन (वास्तविक backend)",
     channel: "चैनल",
     spend: "विज्ञापन खर्च",
@@ -14851,12 +14851,12 @@ export default {
     "visitor": "विज़िटर",
     "winner": "🏆 विजेता",
     itemsCount: "{n} आइटम",
-    synergyTitle: "⚡ Channel सिनर्जी (Pairwise Lift)",
-    shapleyBudget: "💡 Shapley आधारित Budget अनुशंसा",
+    synergyTitle: "⚡ चैनल सिनर्जी (Pairwise Lift)",
+    shapleyBudget: "💡 Shapley आधारित बजट अनुशंसा",
     expectedRoas: "अपेक्षित ब्लेंड ROAS",
-    diminishing: "अतिरिक्त उपयोगिता में कमी",
+    diminishing: "घटता सीमांत प्रतिफल",
     markovRemoval: "🔗 मार्कोव चेन — हटाने का प्रभाव",
-    upliftDesc: "Robinson's Partial रिग्रेशन आधारित शुद्ध वृद्धिशील प्रभाव",
+    upliftDesc: "Robinson partial regression पर आधारित शुद्ध वृद्धिशील प्रभाव",
     ltvTitle: "💰 चैनल-वार LTV vs CAC",
     statusCrit: "🔴 जोखिम",
     statusAlert: "🟠 सावधानी",
@@ -14864,11 +14864,11 @@ export default {
     statusInfo: "🔵 जानकारी",
     statusOk: "🟢 OK",
     anomalySum: "📊 विसंगति पहचान सारांश",
-    compareTbl1: "📋 मॉडल-वार Channel योगदान तुलना तालिका (%)",
-    modelRadar: "🕸️ Channel योगदान रडार तुलना",
-    mmmDescText: "Ridge नियमित OLS + Adstock क्षय + Hill वक्र संतृप्ति। 200 बार बूटस्ट्रैप पश्च विश्वास अंतराल।",
-    markovDescText: "कन्वर्ज़न पथ मार्कोव संक्रमण मैट्रिक्स + चैनल हटाने का प्रभाव और Robinson's Partial रिग्रेशन से शुद्ध वृद्धिशील प्रभाव की गणना।",
-    abDescText: "पूर्व बीटा वितरण और पश्च वितरण आधारित 5,000 बार मोंटे कार्लो सिमुलेशन। 95% विश्वास अंतराल प्रदर्शित।",
+    compareTbl1: "📋 प्रति-मॉडल चैनल योगदान तुलना (%)",
+    modelRadar: "🕸️ चैनल योगदान रडार तुलना",
+    mmmDescText: "Ridge-नियमित OLS + Adstock क्षय + Hill वक्र संतृप्ति। 200-पुनरावृत्ति बूटस्ट्रैप पश्च विश्वास अंतराल।",
+    markovDescText: "रूपांतरण पथों के मार्कोव संक्रमण मैट्रिक्स के साथ चैनल हटाव प्रभाव और Robinson partial regression का उपयोग कर शुद्ध वृद्धिशील प्रभाव की गणना करता है।",
+    abDescText: "पूर्व Beta वितरण और पश्च वितरण पर आधारित 5,000-पुनरावृत्ति मोंटे कार्लो सिमुलेशन। 95% विश्वास अंतराल दिखाता है।",
   },
 
 

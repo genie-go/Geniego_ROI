@@ -271,7 +271,7 @@ export default {
     "pageTitle": "🇰🇷 Hub de liquidación de canales de Corea",
     "pageSub": "Coupang · Naver · 11번가 · Gmarket · 옥션 · 카카오선물하기 · 롯데ON · 위메프 · 티몬 — Estandarización de liquidación · Gestión de comisiones · Reconciliación (v419)"
   },
-  igdm: {
+  igdm: {"broadcastFail":"Error al enviar.",
     "broadcastSentAlert": "✅ Se ha enviado el mensaje a {{n}} personas.",
     "heroDesc": "Un solo Page Access Token → integración real inmediata · Gestión de integración de Instagram + Facebook Messenger · Reglas de respuesta automática",
     "kpiConnected": "Conectado",
@@ -661,7 +661,7 @@ export default {
     "clientToken": "Token de cliente",
     "webhookEndpoint": "Endpoint de webhook",
   },
-  digitalShelf: {
+  digitalShelf: {"noTopProducts":"Una vez que conectes un canal, los rankings de los productos TOP dentro de ese canal se agregan y se muestran.",
     "title": "Estantería digital",
     "heroDesc": "Monitoree en tiempo real la visibilidad de búsqueda, la cuota competitiva (SoS) y el ranking de palabras clave de sus productos en 5 canales nacionales.",
     "addKeyword": "Añadir palabra clave",
@@ -14683,7 +14683,7 @@ export default {
 
 
   // 176차 PM8 S6-P1: attrData live channel/touches append (last-key-wins, append-only)
-  attrData: {
+  attrData: {"autoTab4":"④ Guía de uso","autoTab3":"③ Vista previa de estrategia de IA","autoTab2":"② Configuración de campaña","autoTab1":"① Estudio creativo","serverMtaFoot":"Valor = crédito de conversión del canal por modelo (suma = conversiones totales). ★ Markov = modelo data-driven recomendado.","serverMtaEmpty":"Aún no hay recorridos de contacto vinculados a conversiones. Aparecerán automáticamente tras la recopilación de píxel/contactos y la puntuación de conversiones.","serverMtaLoading":"Calculando la atribución del servidor…","serverMtaDesc":"El servidor combina los recorridos attribution_touch con las conversiones para calcular 6 modelos. Markov removal-effect mide la pérdida de conversiones cuando falta un canal: una atribución data-driven.","serverMtaDays":"días","serverMtaWindow":"Últimos","serverMtaConv":"Conversiones","serverMtaBadge":"Medido con datos 1st-party","serverMtaTitle":"Multitáctil basado en datos del servidor (autoritativo)",
     liveChannelPerf: "Rendimiento del canal en vivo (backend real)",
     channel: "Canal",
     spend: "Inversión publicitaria",
@@ -14865,10 +14865,10 @@ export default {
     "visitor": "Visitante",
     "winner": "🏆 Ganador",
     itemsCount: "{n} elementos",
-    synergyTitle: "⚡ Sinergia entre canales (Pairwise Lift)",
+    synergyTitle: "⚡ Sinergia de canales (Pairwise Lift)",
     shapleyBudget: "💡 Recomendación de presupuesto basada en Shapley",
     expectedRoas: "ROAS combinado previsto",
-    diminishing: "Disminución de utilidad adicional",
+    diminishing: "Rendimientos decrecientes",
     markovRemoval: "🔗 Cadena de Markov — Efecto de eliminación",
     upliftDesc: "Efecto incremental neto basado en la regresión parcial de Robinson",
     ltvTitle: "💰 LTV vs. CAC por canal",
@@ -14878,11 +14878,11 @@ export default {
     statusInfo: "🔵 Información",
     statusOk: "🟢 OK",
     anomalySum: "📊 Resumen de detección de anomalías",
-    compareTbl1: "📋 Tabla comparativa de contribución por canal y modelo (%)",
-    modelRadar: "🕸️ Comparación radar de contribución por canal",
-    mmmDescText: "OLS con regularización Ridge + decaimiento Adstock + saturación con curva de Hill. 200 iteraciones de bootstrap para intervalos de confianza posteriores.",
-    markovDescText: "Matriz de transición de Markov para las rutas de conversión + efecto de eliminación de canales y regresión parcial de Robinson para calcular el efecto incremental neto.",
-    abDescText: "Simulación de Montecarlo de 5.000 iteraciones basada en distribuciones beta previa y posterior. Se muestra el intervalo de confianza del 95 %.",
+    compareTbl1: "📋 Comparación de la contribución de canales por modelo (%)",
+    modelRadar: "🕸️ Comparación de radar de contribución de canales",
+    mmmDescText: "OLS regularizado con Ridge + decaimiento Adstock + saturación de la curva Hill. Intervalos de confianza posteriores por bootstrap de 200 iteraciones.",
+    markovDescText: "Calcula el efecto incremental neto mediante una matriz de transición de Markov de las rutas de conversión, junto con el efecto de eliminación de canal y la regresión parcial de Robinson.",
+    abDescText: "Simulación de Monte Carlo de 5000 iteraciones basada en distribuciones Beta a priori y a posteriori. Muestra el intervalo de confianza del 95 %.",
   },
 
 

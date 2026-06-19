@@ -271,7 +271,7 @@ export default {
     "pageTitle": "🇰🇷 Hub Settlement Channel Korea",
     "pageSub": "Coupang · Naver · 11번가 · Gmarket · 옥션 · 카카오선물하기 · 롯데ON · 위메프 · 티몬 — Standardisasi Settlement · Manajemen Komisi · Rekonsiliasi (v419)"
   },
-  igdm: {
+  igdm: {"broadcastFail":"Gagal mengirim.",
     "broadcastSentAlert": "✅ Pesan telah dikirim ke {{n}} orang.",
     "heroDesc": "1 Page Access Token → langsung terhubung · Kelola integrasi Instagram + Facebook Messenger · Aturan balasan otomatis",
     "kpiConnected": "Terhubung",
@@ -661,7 +661,7 @@ export default {
     "clientToken": "Token Klien",
     "webhookEndpoint": "Endpoint Webhook",
   },
-  digitalShelf: {
+  digitalShelf: {"noTopProducts":"Setelah Anda menghubungkan kanal, peringkat produk TOP dalam kanal tersebut akan diagregasi dan ditampilkan.",
     "title": "Rak Digital",
     "heroDesc": "Pantau visibilitas pencarian, pangsa kompetitif (SoS), dan peringkat kata kunci produk Anda di 5 kanal domestik secara real-time.",
     "addKeyword": "Tambah kata kunci",
@@ -14915,7 +14915,7 @@ export default {
 
 
   // 176차 PM8 S6-P1: attrData live channel/touches append (last-key-wins, append-only)
-  attrData: {
+  attrData: {"autoTab4":"④ Panduan Penggunaan","autoTab3":"③ Pratinjau Strategi AI","autoTab2":"② Penyiapan Kampanye","autoTab1":"① Creative Studio","serverMtaFoot":"Nilai = kredit konversi kanal per model (jumlah = total konversi). ★ Markov = model data-driven yang direkomendasikan.","serverMtaEmpty":"Belum ada perjalanan sentuhan yang terhubung ke konversi. Akan muncul otomatis setelah pengumpulan piksel/sentuhan dan penilaian konversi.","serverMtaLoading":"Menghitung atribusi server…","serverMtaDesc":"Server menggabungkan perjalanan attribution_touch dengan konversi untuk menghitung 6 model. Markov removal-effect (efek penghapusan) adalah atribusi data-driven yang mengukur kehilangan konversi saat sebuah kanal tidak ada.","serverMtaDays":"hari","serverMtaWindow":"Terakhir","serverMtaConv":"Konversi","serverMtaBadge":"Diukur 1st-party","serverMtaTitle":"Multi-Touch Berbasis Data Sisi Server (Otoritatif)",
     liveChannelPerf: "Performa Channel Live (backend riil)",
     channel: "Kanal",
     spend: "Biaya Iklan",
@@ -15096,25 +15096,25 @@ export default {
     "upliftTitle": "📐 Model inkremental (Double ML Uplift)",
     "visitor": "Pengunjung",
     "winner": "🏆 Pemenang",
-    abDescText: "사전 베타 분포 및 사후 분포 기반 5,000회 몬테카를로 시뮬레이션. 95% 신뢰구간 표시.",
+    abDescText: "Simulasi Monte Carlo 5.000 iterasi berdasarkan distribusi Beta prior dan distribusi posterior. Menampilkan interval kepercayaan 95%.",
     anomalySum: "📊 이상감지 Summary",
-    compareTbl1: "📋 모델per Channel 기여도 Compare표 (%)",
-    diminishing: "Add 효용 Decrease",
+    compareTbl1: "📋 Tabel Perbandingan Kontribusi Kanal per Model (%)",
+    diminishing: "Hasil yang Menurun",
     expectedRoas: "Estimasi Blended ROAS",
-    itemsCount: "{n}건",
+    itemsCount: "{n} item",
     ltvTitle: "💰 Channelper LTV vs CAC",
-    markovDescText: "전환 경로 마르코프 전이행렬 + 채널 제거 효과 및 로빈슨 편회귀를 활용한 순 증분 효과 산출.",
+    markovDescText: "Menghitung efek inkremental bersih menggunakan matriks transisi Markov dari jalur konversi ditambah efek penghapusan kanal dan Robinson partial regression.",
     markovRemoval: "🔗 Markov Chain — Efek Penghapusan",
-    mmmDescText: "Ridge 정규화 OLS + Adstock 감쇠 + Hill 곡선 포화. 200회 부트스트랩 사후 신뢰구간.",
-    modelRadar: "🕸️ Channel 기여도 레이더 Compare",
-    shapleyBudget: "💡 Shapley 기반 Budget 권고",
+    mmmDescText: "OLS teregularisasi Ridge + peluruhan Adstock + saturasi kurva Hill. Interval kepercayaan posterior bootstrap 200 iterasi.",
+    modelRadar: "🕸️ Perbandingan Radar Kontribusi Kanal",
+    shapleyBudget: "💡 Rekomendasi Anggaran Berbasis Shapley",
     statusAlert: "🟠 Perhatian",
     statusCrit: "🔴 Kritis",
     statusInfo: "🔵 Info",
     statusOk: "🟢 OK",
     statusWarn: "🟡 Peringatan",
-    synergyTitle: "⚡ Channel 시너지 (Pairwise Lift)",
-    upliftDesc: "Robinson's Partial회귀 기반 순Count 증분 효과",
+    synergyTitle: "⚡ Sinergi Kanal (Pairwise Lift)",
+    upliftDesc: "Efek inkremental bersih berdasarkan Robinson partial regression",
   },
 
 

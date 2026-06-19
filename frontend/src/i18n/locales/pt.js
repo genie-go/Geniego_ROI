@@ -271,7 +271,7 @@ export default {
     "pageTitle": "🇰🇷 Hub de liquidação de canais coreanos",
     "pageSub": "Coupang · Naver · 11번가 · Gmarket · 옥션 · 카카오선물하기 · 롯데ON · 위메프 · 티몬 — Padronização de liquidação · Gestão de comissões · Reconciliação (v419)"
   },
-  igdm: {
+  igdm: {"broadcastFail":"Falha no envio.",
     "broadcastSentAlert": "✅ Mensagem enviada para {{n}} pessoas.",
     "heroDesc": "1 Page Access Token → integração real imediata · Gerenciamento de integração Instagram + Facebook Messenger · Regras de resposta automática",
     "kpiConnected": "Conectado",
@@ -661,7 +661,7 @@ export default {
     "clientToken": "Token do cliente",
     "webhookEndpoint": "Endpoint de webhook",
   },
-  digitalShelf: {
+  digitalShelf: {"noTopProducts":"Depois de conectar um canal, os rankings dos produtos TOP dentro desse canal são agregados e exibidos.",
     "title": "Prateleira digital",
     "heroDesc": "Monitore em tempo real a visibilidade de busca, a participação competitiva (SoS) e o ranking de palavras-chave dos seus produtos em 5 canais nacionais.",
     "addKeyword": "Adicionar palavra-chave",
@@ -14669,7 +14669,7 @@ export default {
 
 
   // 176차 PM8 S6-P1: attrData live channel/touches append (last-key-wins, append-only)
-  attrData: {
+  attrData: {"autoTab4":"④ Guia de uso","autoTab3":"③ Prévia da estratégia de IA","autoTab2":"② Configuração de campanha","autoTab1":"① Estúdio criativo","serverMtaFoot":"Valor = crédito de conversão do canal por modelo (soma = conversões totais). ★ Markov = modelo data-driven recomendado.","serverMtaEmpty":"Ainda não há jornadas de contato vinculadas a conversões. Elas aparecerão automaticamente após a coleta de pixel/contatos e a pontuação de conversões.","serverMtaLoading":"Calculando a atribuição do servidor…","serverMtaDesc":"O servidor combina as jornadas attribution_touch com as conversões para calcular 6 modelos. O Markov removal-effect mede a perda de conversões quando um canal está ausente — uma atribuição data-driven.","serverMtaDays":"dias","serverMtaWindow":"Últimos","serverMtaConv":"Conversões","serverMtaBadge":"Medido com dados 1st-party","serverMtaTitle":"Multitoque baseado em dados do servidor (autoritativo)",
     liveChannelPerf: "Performance de canal ao vivo (backend real)",
     channel: "Canal",
     spend: "Investimento em anúncios",
@@ -14854,7 +14854,7 @@ export default {
     synergyTitle: "⚡ Sinergia de canais (Pairwise Lift)",
     shapleyBudget: "💡 Recomendação de orçamento baseada em Shapley",
     expectedRoas: "ROAS combinado esperado",
-    diminishing: "Queda da utilidade adicional",
+    diminishing: "Retornos decrescentes",
     markovRemoval: "🔗 Cadeia de Markov — Efeito de remoção",
     upliftDesc: "Efeito incremental líquido baseado na regressão parcial de Robinson",
     ltvTitle: "💰 LTV vs CAC por canal",
@@ -14864,11 +14864,11 @@ export default {
     statusInfo: "🔵 Informação",
     statusOk: "🟢 OK",
     anomalySum: "📊 Resumo de detecção de anomalias",
-    compareTbl1: "📋 Tabela de comparação de contribuição por canal e modelo (%)",
-    modelRadar: "🕸️ Radar de comparação de contribuição por canal",
-    mmmDescText: "OLS com regularização Ridge + decaimento Adstock + saturação por curva de Hill. Intervalos de confiança posteriores via 200 iterações de bootstrap.",
-    markovDescText: "Matriz de transição de Markov para caminhos de conversão + efeito de remoção de canal e cálculo do efeito incremental líquido com a regressão parcial de Robinson.",
-    abDescText: "Simulação de Monte Carlo com 5.000 iterações baseada na distribuição beta a priori e na distribuição a posteriori. Intervalo de confiança de 95% exibido.",
+    compareTbl1: "📋 Comparação da contribuição de canais por modelo (%)",
+    modelRadar: "🕸️ Comparação em radar da contribuição de canais",
+    mmmDescText: "OLS regularizado por Ridge + decaimento Adstock + saturação da curva Hill. Intervalos de confiança posteriores por bootstrap de 200 iterações.",
+    markovDescText: "Calcula o efeito incremental líquido usando uma matriz de transição de Markov dos caminhos de conversão, além do efeito de remoção de canal e da regressão parcial de Robinson.",
+    abDescText: "Simulação de Monte Carlo de 5.000 iterações baseada em distribuições Beta a priori e a posteriori. Exibe o intervalo de confiança de 95%.",
   },
 
 

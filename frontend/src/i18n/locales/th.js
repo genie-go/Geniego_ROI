@@ -272,7 +272,7 @@ export default {
     "pageTitle": "🇰🇷 ศูนย์กลางการชำระเงินช่องทางเกาหลี",
     "pageSub": "Coupang · Naver · 11번가 · Gmarket · 옥션 · 카카오선물하기 · 롯데ON · 위메프 · 티몬 — การจัดมาตรฐานการชำระเงิน · การจัดการค่าธรรมเนียม · การกระทบยอด (v419)"
   },
-  igdm: {
+  igdm: {"broadcastFail":"ส่งไม่สำเร็จ",
     "broadcastSentAlert": "✅ ส่งข้อความถึง {{n}} คนแล้ว",
     "heroDesc": "Page Access Token 1 รายการ → เชื่อมต่อจริงทันที · จัดการการเชื่อมต่อ Instagram + Facebook Messenger · กฎตอบกลับอัตโนมัติ",
     "kpiConnected": "เชื่อมต่อแล้ว",
@@ -662,7 +662,7 @@ export default {
     "clientToken": "โทเค็นไคลเอนต์",
     "webhookEndpoint": "จุดสิ้นสุด Webhook",
   },
-  digitalShelf: {
+  digitalShelf: {"noTopProducts":"เมื่อเชื่อมต่อช่องทางแล้ว ระบบจะรวบรวมและแสดงอันดับสินค้า TOP ภายในช่องทางนั้น",
     "title": "ดิจิทัลเชลฟ์",
     "heroDesc": "ตรวจสอบการมองเห็นการค้นหา ส่วนแบ่งการแข่งขัน (SoS) และอันดับคีย์เวิร์ดของสินค้าคุณใน 5 ช่องทางในประเทศแบบเรียลไทม์",
     "addKeyword": "เพิ่มคีย์เวิร์ด",
@@ -14957,7 +14957,7 @@ export default {
 
 
   // 176차 PM8 S6-P1: attrData live channel/touches append (last-key-wins, append-only)
-  attrData: {
+  attrData: {"autoTab4":"④ คู่มือการใช้งาน","autoTab3":"③ ตัวอย่างกลยุทธ์ AI","autoTab2":"② ตั้งค่าแคมเปญ","autoTab1":"① ครีเอทีฟสตูดิโอ","serverMtaFoot":"ค่า = เครดิตคอนเวอร์ชันของช่องทางตามแต่ละโมเดล (ผลรวม = คอนเวอร์ชันทั้งหมด) ★ Markov = โมเดล data-driven ที่แนะนำ","serverMtaEmpty":"ยังไม่มีเส้นทางทัชที่เชื่อมกับคอนเวอร์ชัน จะแสดงโดยอัตโนมัติหลังการเก็บพิกเซล/ทัช และการให้คะแนนคอนเวอร์ชัน","serverMtaLoading":"กำลังคำนวณการระบุที่มาฝั่งเซิร์ฟเวอร์…","serverMtaDesc":"เซิร์ฟเวอร์รวมเส้นทาง attribution_touch เข้ากับคอนเวอร์ชันเพื่อคำนวณ 6 โมเดล Markov removal-effect (เอฟเฟกต์การถอด) เป็นการระบุที่มาแบบ data-driven ที่วัดการสูญเสียคอนเวอร์ชันเมื่อไม่มีช่องทางนั้น","serverMtaDays":"วัน","serverMtaWindow":"ล่าสุด","serverMtaConv":"คอนเวอร์ชัน","serverMtaBadge":"วัดผลจริงแบบ 1st-party","serverMtaTitle":"มัลติทัชแบบขับเคลื่อนด้วยข้อมูลฝั่งเซิร์ฟเวอร์ (เชื่อถือได้)",
     liveChannelPerf: "ผลการดำเนินงานตามช่องทาง Live (backend จริง)",
     channel: "ช่องทาง",
     spend: "ค่าโฆษณา",
@@ -15138,25 +15138,25 @@ export default {
     "upliftTitle": "📐 โมเดลเพิ่ม (Double ML Uplift)",
     "visitor": "ผู้เยี่ยมชม",
     "winner": "🏆 ผู้ชนะ",
-    abDescText: "사전 베타 분포 및 사후 분포 기반 5,000회 몬테카를로 시뮬레이션. 95% 신뢰구간 표시.",
+    abDescText: "การจำลองมอนติคาร์โล 5,000 รอบ บนพื้นฐานการแจกแจง Beta ก่อนหน้าและการแจกแจงภายหลัง แสดงช่วงความเชื่อมั่น 95%",
     anomalySum: "📊 이상감지 Summary",
-    compareTbl1: "📋 모델per Channel 기여도 Compare표 (%)",
-    diminishing: "Add 효용 Decrease",
+    compareTbl1: "📋 ตารางเปรียบเทียบสัดส่วนการมีส่วนร่วมของช่องทางตามโมเดล (%)",
+    diminishing: "ผลตอบแทนส่วนเพิ่มที่ลดลง",
     expectedRoas: "Blended ROAS ที่คาดการณ์",
-    itemsCount: "{n}건",
+    itemsCount: "{n} รายการ",
     ltvTitle: "💰 Channelper LTV vs CAC",
-    markovDescText: "전환 경로 마르코프 전이행렬 + 채널 제거 효과 및 로빈슨 편회귀를 활용한 순 증분 효과 산출.",
+    markovDescText: "คำนวณผลเพิ่มสุทธิด้วยเมทริกซ์การเปลี่ยนสถานะแบบมาร์คอฟของเส้นทางคอนเวอร์ชัน + เอฟเฟกต์การถอดช่องทาง และ Robinson partial regression",
     markovRemoval: "🔗 Markov Chain — ผลของการลบออก",
-    mmmDescText: "Ridge 정규화 OLS + Adstock 감쇠 + Hill 곡선 포화. 200회 부트스트랩 사후 신뢰구간.",
-    modelRadar: "🕸️ Channel 기여도 레이더 Compare",
-    shapleyBudget: "💡 Shapley 기반 Budget 권고",
+    mmmDescText: "OLS แบบ Ridge regularization + การลดทอน Adstock + ความอิ่มตัวของเส้นโค้ง Hill ช่วงความเชื่อมั่นภายหลังแบบบูตสแตรป 200 รอบ",
+    modelRadar: "🕸️ การเปรียบเทียบเรดาร์สัดส่วนการมีส่วนร่วมของช่องทาง",
+    shapleyBudget: "💡 คำแนะนำงบประมาณตาม Shapley",
     statusAlert: "🟠 เฝ้าระวัง",
     statusCrit: "🔴 วิกฤต",
     statusInfo: "🔵 ข้อมูล",
     statusOk: "🟢 OK",
     statusWarn: "🟡 เตือน",
-    synergyTitle: "⚡ Channel 시너지 (Pairwise Lift)",
-    upliftDesc: "Robinson's Partial회귀 기반 순Count 증분 효과",
+    synergyTitle: "⚡ การเสริมกันของช่องทาง (Pairwise Lift)",
+    upliftDesc: "ผลเพิ่มสุทธิจาก Robinson partial regression",
   },
 
 

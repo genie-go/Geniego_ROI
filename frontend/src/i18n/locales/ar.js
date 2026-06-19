@@ -271,7 +271,7 @@ export default {
     "pageTitle": "🇰🇷 مركز تسوية القنوات الكورية",
     "pageSub": "Coupang · Naver · 11번가 · Gmarket · 옥션 · 카카오선물하기 · 롯데ON · 위메프 · 티몬 — توحيد التسوية · إدارة العمولات · المطابقة (v419)"
   },
-  igdm: {
+  igdm: {"broadcastFail":"فشل الإرسال.",
     "broadcastSentAlert": "✅ تم إرسال الرسالة إلى {{n}} شخص.",
     "heroDesc": "Page Access Token واحد → ربط فوري حقيقي · إدارة ربط Instagram + Facebook Messenger · قواعد الرد التلقائي",
     "kpiConnected": "متصل",
@@ -661,7 +661,7 @@ export default {
     "clientToken": "رمز العميل",
     "webhookEndpoint": "نقطة نهاية Webhook",
   },
-  digitalShelf: {
+  digitalShelf: {"noTopProducts":"بمجرد ربط قناة، يتم تجميع ترتيب أفضل المنتجات داخل تلك القناة وعرضه.",
     "title": "الرف الرقمي",
     "heroDesc": "راقب ظهور البحث وحصة المنافسة (SoS) وترتيب الكلمات المفتاحية لمنتجاتك عبر 5 قنوات محلية في الوقت الفعلي.",
     "addKeyword": "إضافة كلمة مفتاحية",
@@ -14669,7 +14669,7 @@ export default {
 
 
   // 176차 PM8 S6-P1: attrData live channel/touches append (last-key-wins, append-only)
-  attrData: {
+  attrData: {"autoTab4":"④ دليل الاستخدام","autoTab3":"③ معاينة استراتيجية الذكاء الاصطناعي","autoTab2":"② إعداد الحملة","autoTab1":"① استوديو الإبداع","serverMtaFoot":"القيمة = رصيد تحويلات القناة لكل نموذج (المجموع = إجمالي التحويلات). ★ Markov = النموذج القائم على البيانات الموصى به.","serverMtaEmpty":"لا توجد بعد رحلات لمس مرتبطة بالتحويلات. ستظهر تلقائيًا بعد جمع البكسل/اللمسات وتسجيل نقاط التحويل.","serverMtaLoading":"جارٍ حساب إسناد الخادم…","serverMtaDesc":"يدمج الخادم رحلات attribution_touch مع التحويلات لحساب 6 نماذج. وتقيس Markov removal-effect (تأثير الإزالة) خسارة التحويلات عند غياب القناة، وهي إسناد قائم على البيانات (data-driven).","serverMtaDays":"يوم","serverMtaWindow":"آخر","serverMtaConv":"التحويلات","serverMtaBadge":"قياس فعلي 1st-party","serverMtaTitle":"إسناد متعدد اللمسات قائم على بيانات الخادم (موثوق)",
     liveChannelPerf: "أداء القناة المباشر (backend فعلي)",
     channel: "القناة",
     spend: "الإنفاق الإعلاني",
@@ -14851,12 +14851,12 @@ export default {
     "visitor": "زائر",
     "winner": "🏆 الفائز",
     itemsCount: "{n} عنصر",
-    synergyTitle: "⚡ تآزر القنوات (الرفع الثنائي)",
-    shapleyBudget: "💡 توصية الميزانية المبنية على Shapley",
+    synergyTitle: "⚡ تآزر القنوات (Pairwise Lift)",
+    shapleyBudget: "💡 توصية الميزانية القائمة على Shapley",
     expectedRoas: "ROAS المدمج المتوقع",
-    diminishing: "تناقص المنفعة الإضافية",
+    diminishing: "تناقص المنفعة الحدية",
     markovRemoval: "🔗 سلسلة ماركوف — أثر الإزالة",
-    upliftDesc: "أثر الزيادة الصافية المبني على الانحدار الجزئي لروبنسون",
+    upliftDesc: "الأثر التزايدي الصافي القائم على Robinson partial regression",
     ltvTitle: "💰 LTV مقابل CAC حسب القناة",
     statusCrit: "🔴 حرج",
     statusAlert: "🟠 تنبيه",
@@ -14866,9 +14866,9 @@ export default {
     anomalySum: "📊 ملخص رصد الحالات الشاذة",
     compareTbl1: "📋 جدول مقارنة مساهمة القنوات حسب النموذج (%)",
     modelRadar: "🕸️ مقارنة رادار مساهمة القنوات",
-    mmmDescText: "انحدار OLS منتظم بطريقة Ridge + تخميد Adstock + تشبع منحنى Hill. 200 تكرار Bootstrap لفترات الثقة اللاحقة.",
-    markovDescText: "مصفوفة انتقال ماركوف لمسارات التحويل + أثر إزالة القناة، وحساب أثر الزيادة الصافية باستخدام الانحدار الجزئي لروبنسون.",
-    abDescText: "محاكاة مونت كارلو بـ 5,000 تكرار مبنية على توزيع Beta المسبق والتوزيع اللاحق. عرض فترة ثقة 95%.",
+    mmmDescText: "OLS مع تنظيم Ridge + تضاؤل Adstock + تشبع منحنى Hill. فترات ثقة لاحقة عبر bootstrap بـ 200 تكرار.",
+    markovDescText: "يحسب الأثر التزايدي الصافي باستخدام مصفوفة انتقال ماركوف لمسارات التحويل إضافةً إلى تأثير إزالة القناة و Robinson partial regression.",
+    abDescText: "محاكاة مونت كارلو بـ 5,000 تكرار بناءً على توزيع Beta المسبق والتوزيع اللاحق. تعرض فترة ثقة 95%.",
   },
 
 

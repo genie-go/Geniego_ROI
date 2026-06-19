@@ -68,7 +68,7 @@ export default {
     "realtimeStream": "실시간 이벤트 스트림",
     "noEvents": "전송된 이벤트가 없습니다. 위에서 테스트 이벤트를 보내보세요."
   },
-  igdm: {
+  igdm: {"broadcastFail":"발송에 실패했습니다.",
     "broadcastSentAlert": "✅ {{n}}명에게 메시지를 발송했습니다.",
     "heroDesc": "Page Access Token 1개 → 즉시 실연동 · Instagram + Facebook Messenger 연동 관리 · 자동 응답 규칙",
     "kpiConnected": "연결됨",
@@ -6766,7 +6766,7 @@ export default {
 
   
   
-  attrData: {
+  attrData: {"serverMtaFoot":"값 = 모델별 채널 전환 크레딧(합 = 총 전환). ★ Markov = 데이터기반 권장 모델.","serverMtaEmpty":"전환에 연결된 터치 여정이 아직 없습니다. 픽셀/터치 수집 + 전환 스코어링 후 자동 반영됩니다.","serverMtaLoading":"서버 어트리뷰션 계산 중…","serverMtaDesc":"서버가 attribution_touch 여정을 전환과 결합해 6개 모델을 계산합니다. Markov removal-effect(제거 효과)는 채널 부재 시 전환 손실을 측정하는 데이터기반(data-driven) 어트리뷰션입니다.","serverMtaDays":"일","serverMtaWindow":"최근","serverMtaConv":"전환","serverMtaBadge":"1st-party 실측","serverMtaTitle":"서버 데이터기반 멀티터치 (권위)",
     // 176차 PM8 S6-P1: Live channel/touches wire-up
     liveChannelPerf: "Live 채널 성과 (실 backend)",
     channel: "채널",
@@ -6884,16 +6884,16 @@ export default {
     dataIncluded: "여정 실행 · AI 추천 집행 데이터가 모델 기여도 분석에 반영됩니다",
     realtimeSync: "실시간 동기화 ✓",
     itemsCount: "{n}건",
-    synergyTitle: "⚡ Channel 시너지 (Pairwise Lift)",
-    shapleyBudget: "💡 Shapley 기반 Budget 권고",
+    synergyTitle: "⚡ 채널 시너지 (Pairwise Lift)",
+    shapleyBudget: "💡 Shapley 기반 예산 권고",
     expectedRoas: "예상 블렌드 ROAS",
-    diminishing: "Add 효용 Decrease",
+    diminishing: "한계효용 체감",
     markovRemoval: "🔗 마르코프 체인 — 제거 효과",
-    upliftDesc: "Robinson's Partial회귀 기반 순Count 증분 효과",
+    upliftDesc: "Robinson 편회귀 기반 순 증분 효과",
     ltvTitle: "💰 채널별 LTV vs CAC",
     anomalySum: "📊 이상 감지 요약",
-    compareTbl1: "📋 모델per Channel 기여도 Compare표 (%)",
-    modelRadar: "🕸️ Channel 기여도 레이더 Compare",
+    compareTbl1: "📋 모델별 채널 기여도 비교표 (%)",
+    modelRadar: "🕸️ 채널 기여도 레이더 비교",
     mmmDescText: "Ridge 정규화 OLS + Adstock 감쇠 + Hill 곡선 포화. 200회 부트스트랩 사후 신뢰구간.",
     markovDescText: "전환 경로 마르코프 전이행렬 + 채널 제거 효과 및 로빈슨 편회귀를 활용한 순 증분 효과 산출.",
     abDescText: "사전 베타 분포 및 사후 분포 기반 5,000회 몬테카를로 시뮬레이션. 95% 신뢰구간 표시.",
@@ -23244,7 +23244,7 @@ export default {
   },
 
   // 176차 PM8-Total B1 — DigitalShelf 페이지 hardcoded 영문 fallback
-  digitalShelf: {
+  digitalShelf: {"noTopProducts":"채널을 연동하면 채널 내 TOP 상품 순위가 집계되어 표시됩니다.",
     "heroDesc": "국내 5개 채널의 자사 상품 검색 가시성·경쟁 점유율(SoS)·키워드 순위를 실시간으로 모니터링합니다.",
     "addKeyword": "키워드 추가",
     "csvDownload": "CSV 다운로드",

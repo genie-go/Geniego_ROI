@@ -271,7 +271,7 @@ export default {
     "pageTitle": "🇰🇷 Hub für koreanische Kanalabrechnung",
     "pageSub": "Coupang · Naver · 11번가 · Gmarket · 옥션 · 카카오선물하기 · 롯데ON · 위메프 · 티몬 — Abrechnungsstandardisierung · Provisionsverwaltung · Reconciliation (v419)"
   },
-  igdm: {
+  igdm: {"broadcastFail":"Senden fehlgeschlagen.",
     "broadcastSentAlert": "✅ Nachricht an {{n}} Empfänger gesendet.",
     "heroDesc": "Ein Page Access Token → sofortige Live-Anbindung · Verwaltung der Instagram- + Facebook-Messenger-Integration · Auto-Antwortregeln",
     "kpiConnected": "Verbunden",
@@ -661,7 +661,7 @@ export default {
     "clientToken": "Client-Token",
     "webhookEndpoint": "Webhook-Endpunkt",
   },
-  digitalShelf: {
+  digitalShelf: {"noTopProducts":"Sobald Sie einen Kanal verbinden, werden die Top-Produkt-Rankings innerhalb dieses Kanals aggregiert und angezeigt.",
     "title": "Digitales Regal",
     "heroDesc": "Überwachen Sie die Suchsichtbarkeit, den Wettbewerbsanteil (SoS) und das Keyword-Ranking Ihrer Produkte über 5 inländische Kanäle in Echtzeit.",
     "addKeyword": "Keyword hinzufügen",
@@ -14685,7 +14685,7 @@ export default {
 
 
   // 176차 PM8 S6-P1: attrData live channel/touches append (last-key-wins, append-only)
-  attrData: {
+  attrData: {"autoTab4":"④ Benutzerhandbuch","autoTab3":"③ KI-Strategievorschau","autoTab2":"② Kampagnen-Setup","autoTab1":"① Creative Studio","serverMtaFoot":"Wert = Kanal-Conversion-Credit pro Modell (Summe = Gesamt-Conversions). ★ Markov = empfohlenes data-driven-Modell.","serverMtaEmpty":"Noch keine mit Conversions verknüpften Touch-Journeys. Sie erscheinen automatisch nach Pixel-/Touch-Erfassung und Conversion-Scoring.","serverMtaLoading":"Server-Attribution wird berechnet…","serverMtaDesc":"Der Server kombiniert attribution_touch-Journeys mit Conversions, um 6 Modelle zu berechnen. Markov removal-effect misst den Conversion-Verlust bei Abwesenheit eines Kanals — eine data-driven Attribution.","serverMtaDays":"Tage","serverMtaWindow":"Letzte","serverMtaConv":"Conversions","serverMtaBadge":"1st-party gemessen","serverMtaTitle":"Serverseitige datengetriebene Multi-Touch-Attribution (autoritativ)",
     liveChannelPerf: "Live-Kanal-Performance (echtes Backend)",
     channel: "Kanal",
     spend: "Werbeausgaben",
@@ -14866,25 +14866,25 @@ export default {
     "upliftTitle": "📐 Inkrementelles Modell (Double ML Uplift)",
     "visitor": "Besucher",
     "winner": "🏆 Gewinner",
-    abDescText: "사전 베타 분포 및 사후 분포 기반 5,000회 몬테카를로 시뮬레이션. 95% 신뢰구간 표시.",
+    abDescText: "5.000-fache Monte-Carlo-Simulation auf Basis von Prior-Beta- und Posterior-Verteilungen. Zeigt das 95-%-Konfidenzintervall.",
     anomalySum: "📊 이상감지 Summary",
-    compareTbl1: "📋 모델per Channel 기여도 Compare표 (%)",
-    diminishing: "Add 효용 Decrease",
+    compareTbl1: "📋 Vergleich des Kanalbeitrags pro Modell (%)",
+    diminishing: "Abnehmender Grenznutzen",
     expectedRoas: "Erwarteter Blended ROAS",
-    itemsCount: "{n}건",
+    itemsCount: "{n} Einträge",
     ltvTitle: "💰 Channelper LTV vs CAC",
-    markovDescText: "전환 경로 마르코프 전이행렬 + 채널 제거 효과 및 로빈슨 편회귀를 활용한 순 증분 효과 산출.",
+    markovDescText: "Berechnet den Netto-Inkrementaleffekt mithilfe einer Markov-Übergangsmatrix der Conversion-Pfade sowie des Kanal-Removal-Effekts und der Robinson-Partialregression.",
     markovRemoval: "🔗 Markov-Kette — Removal-Effekt",
-    mmmDescText: "Ridge 정규화 OLS + Adstock 감쇠 + Hill 곡선 포화. 200회 부트스트랩 사후 신뢰구간.",
-    modelRadar: "🕸️ Channel 기여도 레이더 Compare",
-    shapleyBudget: "💡 Shapley 기반 Budget 권고",
+    mmmDescText: "Ridge-regularisiertes OLS + Adstock-Abklingen + Hill-Kurven-Sättigung. 200-fache Bootstrap-Posterior-Konfidenzintervalle.",
+    modelRadar: "🕸️ Radar-Vergleich des Kanalbeitrags",
+    shapleyBudget: "💡 Shapley-basierte Budgetempfehlung",
     statusAlert: "🟠 Achtung",
     statusCrit: "🔴 Kritisch",
     statusInfo: "🔵 Info",
     statusOk: "🟢 OK",
     statusWarn: "🟡 Warnung",
-    synergyTitle: "⚡ Channel 시너지 (Pairwise Lift)",
-    upliftDesc: "Robinson's Partial회귀 기반 순Count 증분 효과",
+    synergyTitle: "⚡ Kanal-Synergie (Pairwise Lift)",
+    upliftDesc: "Netto-Inkrementaleffekt basierend auf Robinson-Partialregression",
   },
 
 

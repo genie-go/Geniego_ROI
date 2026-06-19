@@ -271,7 +271,7 @@ export default {
     "pageTitle": "🇰🇷 韓国チャネル精算ハブ",
     "pageSub": "Coupang · Naver · 11번가 · Gmarket · 옥션 · 카카오선물하기 · 롯데ON · 위메프 · 티몬 — 精算標準化 · 手数料管理 · 照合 (v419)"
   },
-  igdm: {
+  igdm: {"broadcastFail":"送信に失敗しました。",
     "broadcastSentAlert": "✅ {{n}}名にメッセージを送信しました。",
     "heroDesc": "Page Access Token 1個 → 即時に本番連携 · Instagram + Facebook Messenger 連携管理 · 自動応答ルール",
     "kpiConnected": "接続済み",
@@ -661,7 +661,7 @@ export default {
     "clientToken": "クライアントトークン",
     "webhookEndpoint": "Webhookエンドポイント",
   },
-  digitalShelf: {
+  digitalShelf: {"noTopProducts":"チャネルを連携すると、チャネル内のTOP商品ランキングが集計されて表示されます。",
     "title": "デジタルシェルフ",
     "heroDesc": "国内5チャネルでの自社商品の検索可視性・競合シェア(SoS)・キーワード順位をリアルタイムで監視します。",
     "addKeyword": "キーワード追加",
@@ -14484,7 +14484,7 @@ export default {
 
 
   // 176차 PM8 S6-P1: attrData live channel/touches append (last-key-wins, append-only)
-  attrData: {
+  attrData: {"autoTab4":"④ 利用ガイド","autoTab3":"③ AI戦略プレビュー","autoTab2":"② キャンペーン設定","autoTab1":"① クリエイティブスタジオ","serverMtaFoot":"値 = モデル別のチャネルコンバージョンクレジット（合計 = 総コンバージョン）。★ Markov = データ駆動の推奨モデル。","serverMtaEmpty":"コンバージョンに紐づくタッチジャーニーはまだありません。ピクセル/タッチ収集とコンバージョンスコアリングの後、自動で反映されます。","serverMtaLoading":"サーバーアトリビューションを計算中…","serverMtaDesc":"サーバーが attribution_touch のジャーニーをコンバージョンと結合し、6つのモデルを算出します。Markov removal-effect（除去効果）は、チャネル不在時のコンバージョン損失を測定する data-driven なアトリビューションです。","serverMtaDays":"日間","serverMtaWindow":"直近","serverMtaConv":"コンバージョン","serverMtaBadge":"1st-party 実測","serverMtaTitle":"サーバーデータ駆動マルチタッチ（権威）",
     liveChannelPerf: "Liveチャネル成果（実backend）",
     channel: "チャネル",
     spend: "広告費",
@@ -14665,13 +14665,13 @@ export default {
     "upliftTitle": "📐 増分モデル（Double ML Uplift）",
     "visitor": "訪問者",
     "winner": "🏆 勝者",
-    "itemsCount": "{n}건",
-    "synergyTitle": "⚡ Channel 시너지 (Pairwise Lift)",
-    "shapleyBudget": "💡 Shapley 기반 Budget 권고",
+    "itemsCount": "{n}件",
+    "synergyTitle": "⚡ チャネルシナジー (Pairwise Lift)",
+    "shapleyBudget": "💡 Shapley に基づく予算推奨",
     "expectedRoas": "予想ブレンドROAS",
-    "diminishing": "Add 효용 Decrease",
+    "diminishing": "限界効用の逓減",
     "markovRemoval": "🔗 マルコフ連鎖 — 除去効果",
-    "upliftDesc": "Robinson's Partial회귀 기반 순Count 증분 효과",
+    "upliftDesc": "Robinson 偏回帰に基づく純増分効果",
     "ltvTitle": "💰 Channelper LTV vs CAC",
     "statusCrit": "🔴 危険",
     "statusAlert": "🟠 注意",
@@ -14679,11 +14679,11 @@ export default {
     "statusInfo": "🔵 情報",
     "statusOk": "🟢 OK",
     "anomalySum": "📊 이상감지 Summary",
-    "compareTbl1": "📋 모델per Channel 기여도 Compare표 (%)",
-    "modelRadar": "🕸️ Channel 기여도 레이더 Compare",
-    "mmmDescText": "Ridge 정규화 OLS + Adstock 감쇠 + Hill 곡선 포화. 200회 부트스트랩 사후 신뢰구간.",
-    "markovDescText": "전환 경로 마르코프 전이행렬 + 채널 제거 효과 및 로빈슨 편회귀를 활용한 순 증분 효과 산출.",
-    "abDescText": "사전 베타 분포 및 사후 분포 기반 5,000회 몬테카를로 시뮬레이션. 95% 신뢰구간 표시.",
+    "compareTbl1": "📋 モデル別チャネル貢献度比較表 (%)",
+    "modelRadar": "🕸️ チャネル貢献度レーダー比較",
+    "mmmDescText": "Ridge 正則化 OLS + Adstock 減衰 + Hill 曲線飽和。200回ブートストラップの事後信頼区間。",
+    "markovDescText": "コンバージョン経路のマルコフ遷移行列＋チャネル除去効果と Robinson 偏回帰を用いて純増分効果を算出します。",
+    "abDescText": "事前ベータ分布および事後分布に基づく5,000回モンテカルロシミュレーション。95%信頼区間を表示。",
   },
 
 

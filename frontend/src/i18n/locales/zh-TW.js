@@ -271,7 +271,7 @@ export default {
     "pageTitle": "🇰🇷 韓國通路結算中心",
     "pageSub": "Coupang · Naver · 11번가 · Gmarket · 옥션 · 카카오선물하기 · 롯데ON · 위메프 · 티몬 — 結算標準化 · 手續費管理 · 對帳 (v419)"
   },
-  igdm: {
+  igdm: {"broadcastFail":"傳送失敗。",
     "broadcastSentAlert": "✅ 已向 {{n}} 人發送訊息。",
     "heroDesc": "1 個 Page Access Token → 立即實際串接 · Instagram + Facebook Messenger 串接管理 · 自動回覆規則",
     "kpiConnected": "已連接",
@@ -661,7 +661,7 @@ export default {
     "clientToken": "用戶端權杖",
     "webhookEndpoint": "Webhook 端點",
   },
-  digitalShelf: {
+  digitalShelf: {"noTopProducts":"連接通路後，將彙總並顯示該通路內的 TOP 商品排名。",
     "title": "數位貨架",
     "heroDesc": "即時監控自有商品在國內5個通路的搜尋能見度、競爭份額(SoS)與關鍵字排名。",
     "addKeyword": "新增關鍵字",
@@ -14988,7 +14988,7 @@ export default {
 
 
   // 176차 PM8 S6-P1: attrData live channel/touches append (last-key-wins, append-only)
-  attrData: {
+  attrData: {"autoTab4":"④ 使用指南","autoTab3":"③ AI 策略預覽","autoTab2":"② 廣告活動設定","autoTab1":"① 創意工作室","serverMtaFoot":"數值 = 各模型的通路轉換歸因（合計 = 總轉換）。★ Markov = 推薦的資料驅動模型。","serverMtaEmpty":"尚無與轉換關聯的觸點歷程。在像素/觸點收集及轉換評分後將自動呈現。","serverMtaLoading":"正在計算伺服器歸因…","serverMtaDesc":"伺服器將 attribution_touch 歷程與轉換結合，計算 6 個模型。Markov removal-effect（移除效應）是衡量某通路缺席時轉換損失的 data-driven 歸因。","serverMtaDays":"天","serverMtaWindow":"最近","serverMtaConv":"轉換","serverMtaBadge":"1st-party 實測","serverMtaTitle":"伺服器資料驅動多點觸碰（權威）",
     liveChannelPerf: "Live 通路成效（真實 backend）",
     channel: "通路",
     spend: "廣告費",
@@ -15169,25 +15169,25 @@ export default {
     "upliftTitle": "📐 增量模型（Double ML Uplift）",
     "visitor": "訪客",
     "winner": "🏆 勝者",
-    abDescText: "사전 베타 분포 및 사후 분포 기반 5,000회 몬테카를로 시뮬레이션. 95% 신뢰구간 표시.",
+    abDescText: "基於先驗 Beta 分布及後驗分布的 5,000 次蒙地卡羅模擬。顯示 95% 信賴區間。",
     anomalySum: "📊 이상감지 Summary",
-    compareTbl1: "📋 모델per Channel 기여도 Compare표 (%)",
-    diminishing: "Add 효용 Decrease",
+    compareTbl1: "📋 各模型通路貢獻度比較表 (%)",
+    diminishing: "邊際效用遞減",
     expectedRoas: "預估混合 ROAS",
-    itemsCount: "{n}건",
+    itemsCount: "{n} 項",
     ltvTitle: "💰 Channelper LTV vs CAC",
-    markovDescText: "전환 경로 마르코프 전이행렬 + 채널 제거 효과 및 로빈슨 편회귀를 활용한 순 증분 효과 산출.",
+    markovDescText: "基於轉換路徑的馬可夫轉移矩陣 + 通路移除效應及 Robinson 偏迴歸，計算淨增量效應。",
     markovRemoval: "🔗 馬可夫鏈 — 移除效果",
-    mmmDescText: "Ridge 정규화 OLS + Adstock 감쇠 + Hill 곡선 포화. 200회 부트스트랩 사후 신뢰구간.",
-    modelRadar: "🕸️ Channel 기여도 레이더 Compare",
-    shapleyBudget: "💡 Shapley 기반 Budget 권고",
+    mmmDescText: "Ridge 正則化 OLS + Adstock 衰減 + Hill 曲線飽和。200 次自助法後驗信賴區間。",
+    modelRadar: "🕸️ 通路貢獻度雷達比較",
+    shapleyBudget: "💡 基於 Shapley 的預算建議",
     statusAlert: "🟠 注意",
     statusCrit: "🔴 危險",
     statusInfo: "🔵 資訊",
     statusOk: "🟢 OK",
     statusWarn: "🟡 警告",
-    synergyTitle: "⚡ Channel 시너지 (Pairwise Lift)",
-    upliftDesc: "Robinson's Partial회귀 기반 순Count 증분 효과",
+    synergyTitle: "⚡ 通路綜效 (Pairwise Lift)",
+    upliftDesc: "基於 Robinson 偏迴歸的淨增量效應",
   },
 
 
