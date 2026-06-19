@@ -8,6 +8,10 @@ import { IS_DEMO } from '../utils/demoEnv';
 import { MENU_KEY_LABEL } from '../layout/sidebarMenuLabels.js'; // 186차: 플랜 제공서비스 상세 설명
 import PlanServiceGuide from '../components/PlanServiceGuide.jsx'; // 186차: 플랜 상세 안내(초고도화)
 
+// ★Capacitor 네이티브 로그인 수정: 네이티브 웹뷰(https://localhost·capacitor://localhost)에서 상대경로 API 가
+//   깨지므로 VITE_API_BASE(.env.capacitor) 를 접두. 웹/PWA 는 빈 문자열 → 기존 상대경로 유지.
+const API_BASE = import.meta.env.VITE_API_BASE || "";
+
 /* ── Enterprise Dynamic Locale Map ────────────────────── */
 const LANG_LOCALE_MAP = {
   ko:'ko-KR', en:'en-US', ja:'ja-JP', zh:'zh-CN', 'zh-TW':'zh-TW',
@@ -294,7 +298,7 @@ function AccountRecovery({ t, initial = "findId", resetToken = "", onClose }) {
 
   const post = async (path, body) => {
     try {
-      const r = await fetch("/api/auth" + path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      const r = await fetch(API_BASE + "/api/auth" + path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
       const d = await r.json().catch(() => ({}));
       return { ok: r.ok && d.ok, d };
     } catch { return { ok: false, d: { error: t("auth.networkError", "네트워크 오류. 다시 시도하세요.") } }; }
@@ -945,7 +949,7 @@ function PaidRegisterForm({ selectedPlan, onBack, onSwitch }) {
   const [planDesc, setPlanDesc] = useState('');
 
   useEffect(() => {
-    fetch('/auth/pricing/public-plans')
+    fetch(API_BASE + '/auth/pricing/public-plans')
       .then(r => r.json())
       .then(d => {
         if (!d?.ok) return;
@@ -1045,7 +1049,7 @@ function PaidRegisterForm({ selectedPlan, onBack, onSwitch }) {
       if (couponCode && /^GENIE-[A-Z0-9]{8,16}$/.test(couponCode)) {
         try {
           const tok = localStorage.getItem('genie_token');
-          const r = await fetch('/auth/coupon/redeem', {
+          const r = await fetch(API_BASE + '/auth/coupon/redeem', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${tok}` },
             body: JSON.stringify({ code: couponCode }),
@@ -1497,7 +1501,7 @@ function AdminLoginForm({ onBack }) {
     setError(null); setLoading(true);
     try {
       // 188차: 서버 저장 접속키 검증(회전 가능). 미회전 시 기본 'GENIEGO-ADMIN'.
-      const r = await fetch("/api/auth/admin/verify-access-key", {
+      const r = await fetch(API_BASE + "/api/auth/admin/verify-access-key", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ access_key: adminKey.trim() }),
       });

@@ -111,7 +111,7 @@ function Upgradal({ menuLabel, onClose, t }) {
 
 
 /* Section Component with Lock Support */
-function NavSection({ section, t, isOpen, onToggle, hasMenuAccess, isDemo, onLockClick, navigate, isSubAdmin, subMenuAllowed }) {
+function NavSection({ section, t, isOpen, onToggle, hasMenuAccess, isDemo, onLockClick, navigate, isSubAdmin, subMenuAllowed, isMobile }) {
   const location = useLocation();
   const { isVisible: isMenuVisible, getVisibility } = useMenuVisibility();
   const hasActive = section.items.some(i => location.pathname === i.to);
@@ -185,13 +185,23 @@ function NavSection({ section, t, isOpen, onToggle, hasMenuAccess, isDemo, onLoc
   const _accessibleItems = section.items.filter(item => itemIsVisible(item) && itemHasAccess(item));
   if (_accessibleItems.length === 0) return null;
 
+  // 모바일/데스크톱 적응형: 접근 가능한 하위메뉴 패널 id (aria-controls 연결용)
+  const sectionPanelId = `nav-sec-${section.key}`;
+  // 모바일 터치 높이(≥44px)에 맞춰 펼침 maxHeight 산정 — 고정 40px 클리핑 방지
+  const _itemH = isMobile ? 48 : 40;
+
   return (
     <div style={{ marginBottom: 2 }}>
       <button
+        className="nav-section-toggle"
+        aria-expanded={isOpen}
+        aria-controls={sectionPanelId}
         onClick={() => {
-          // [현 차수] 상위 메뉴 클릭 시 첫 번째 "접근 가능한" 하위 메뉴로 자동 이동(열 때만).
+          // [현 차수] 데스크톱: 상위 메뉴 클릭 시 첫 번째 "접근 가능한" 하위 메뉴로 자동 이동(열 때만).
           //   닫혀 있던 섹션을 열면 그 섹션의 첫 하위 페이지가 즉시 표시됨(추가 클릭 불필요).
-          if (!isOpen && navigate && _accessibleItems[0]?.to) navigate(_accessibleItems[0].to);
+          // ★모바일: 펼침 전용 — 즉시 네비게이션하면 라우트 변경으로 drawer 가 닫혀
+          //   하위 메뉴 탐색이 불가능해지므로, 모바일에서는 펼치기만 하고 사용자가 하위를 직접 선택하게 함.
+          if (!isMobile && !isOpen && navigate && _accessibleItems[0]?.to) navigate(_accessibleItems[0].to);
           onToggle();
         }}
         style={{
@@ -205,19 +215,23 @@ function NavSection({ section, t, isOpen, onToggle, hasMenuAccess, isDemo, onLoc
         onMouseLeave={e => e.currentTarget.style.background = "none"}
       >
         <span style={{ fontSize: 14, width: 20, textAlign: "center", flexShrink: 0 }}>{section.icon}</span>
-        <span style={{ flex: 1, textAlign: "left" }}>{sectionLabel}</span>
+        <span style={{ flex: 1, textAlign: "left", whiteSpace: "normal", overflowWrap: "break-word", wordBreak: "keep-all", lineHeight: 1.3 }}>{sectionLabel}</span>
         {hasActive && <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#4f8ef7", flexShrink: 0 }} />}
-        <span style={{
+        <span aria-hidden="true" style={{
           fontSize: 9, color: "var(--text-3)", transition: "transform 200ms",
           transform: isOpen ? "rotate(90deg)" : "rotate(0deg)", flexShrink: 0,
         }}>▶</span>
       </button>
 
-      <div style={{
-        overflow: "hidden",
-        maxHeight: isOpen ? `${section.items.length * 40}px` : "0px",
-        transition: "max-height 220ms cubic-bezier(.4,0,.2,1)",
-      }}>
+      <div
+        id={sectionPanelId}
+        role="region"
+        aria-label={sectionLabel}
+        style={{
+          overflow: "hidden",
+          maxHeight: isOpen ? `${section.items.length * _itemH + 8}px` : "0px",
+          transition: "max-height 220ms cubic-bezier(.4,0,.2,1)",
+        }}>
         <div style={{ paddingLeft: 10 }}>
           {_accessibleItems.map(item => {
             const label = item.label ?? t(item.labelKey, item.labelKey.split('.')[1]);
@@ -416,6 +430,23 @@ export default function Sidebar() {
   const [openSectionId, setOpenSectionId] = useState(initialActiveSection);
   const [quickExpanded, setQuickExpanded] = useState(false); // 기본 접힘 → 클릭 시에만 펼침
 
+  // 모바일(≤768px) 감지 — 모바일에서만 대메뉴 클릭=펼침전용/터치높이 적용
+  const [isMobile, setIsMobile] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches
+  );
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mq = window.matchMedia('(max-width: 768px)');
+    const fn = () => setIsMobile(mq.matches);
+    fn();
+    if (mq.addEventListener) mq.addEventListener('change', fn);
+    else mq.addListener(fn); // Safari 구버전 폴백
+    return () => {
+      if (mq.removeEventListener) mq.removeEventListener('change', fn);
+      else mq.removeListener(fn);
+    };
+  }, []);
+
   useEffect(() => {
     if (initialActiveSection) setOpenSectionId(initialActiveSection);
   }, [initialActiveSection]);
@@ -425,6 +456,23 @@ export default function Sidebar() {
     setQuickExpanded(false);
     mobileClose();
   }, [location.pathname]);
+
+  // 모바일 drawer 열림 상태: ESC 키 + Android(Capacitor) 하드웨어 백버튼 → 닫기
+  //   (바깥 영역 클릭 닫기는 오버레이가 처리, 라우트 변경 닫기는 위 effect가 처리)
+  //   ★백버튼은 capacitorInit.js 의 중앙 핸들러가 window.__geniegoCloseDrawer 를 먼저 확인해
+  //     drawer 만 닫고 네비/종료를 차단한다(이중 backButton 리스너 발화 방지). 여기서는 그 닫기
+  //     함수만 등록/해제한다.
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const onKey = (e) => { if (e.key === 'Escape') mobileClose(); };
+    window.addEventListener('keydown', onKey);
+    try { window.__geniegoCloseDrawer = mobileClose; } catch {}
+
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      try { if (window.__geniegoCloseDrawer === mobileClose) window.__geniegoCloseDrawer = null; } catch {}
+    };
+  }, [mobileOpen, mobileClose]);
 
   const handleLogout = () => {
     logout();
@@ -545,6 +593,7 @@ export default function Sidebar() {
             navigate={navigate}
             isSubAdmin={isSubAdmin}
             subMenuAllowed={subMenuAllowed}
+            isMobile={isMobile}
           />
         ))}
       </div>

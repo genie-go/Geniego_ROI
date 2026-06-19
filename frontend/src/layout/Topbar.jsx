@@ -294,10 +294,17 @@ export default function Topbar() {
             onClick={() => {
               if (!window.confirm('체험 중 만든 데이터(여정·캠페인·팝업 등)를 모두 초기화하고 기본 데모 상태로 되돌릴까요?\n\n구독 회원으로 전환하면 작업한 데이터가 영구 저장됩니다.')) return;
               // 데모 누적 콘텐츠 키 제거 (인증·언어·테마는 보존 → 로그인 상태 유지)
-              // geniego_demo_* = GlobalDataContext 데모 상태, jb_journeys = 여정, genie_channel_creds = 데모 채널 creds
+              // ① geniego_demo_* = GlobalDataContext 데모 상태(주문/상품/캠페인 등), jb_journeys = 여정,
+              //    genie_channel_creds = 데모 채널 creds.
+              // ② ★tenant-scoped 체험 등록값(tenantStorage tSet)= `<base>::t=demo` 형식 — 카탈로그 채널가격
+              //    (geniego_catalog_channel_prices)·매핑·이메일 템플릿·writeback/approval/ih/ai_policy cfg 등.
+              //    기존 정규식이 이들을 누락해 "초기화 후에도 체험 등록 가격 등이 잔존"하던 결함(헤드리스 검증 확인).
+              //    → ::t=demo 포함 키를 함께 제거. 시드는 인메모리 기본값이라 보존(=원본 가상데이터만 남고 등록분만 삭제).
               const CONTENT_RE = /^(geniego_demo_|jb_journeys|genie_channel_creds)/;
               try {
-                Object.keys(localStorage).forEach(k => { if (CONTENT_RE.test(k)) localStorage.removeItem(k); });
+                Object.keys(localStorage).forEach(k => {
+                  if (CONTENT_RE.test(k) || k.includes('::t=demo')) localStorage.removeItem(k);
+                });
                 localStorage.setItem('geniego_tour_completed', 'true');
               } catch {}
               window.location.reload();
