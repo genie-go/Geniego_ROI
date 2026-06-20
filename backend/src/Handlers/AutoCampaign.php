@@ -341,22 +341,31 @@ class AutoCampaign
             $st = $pdo->prepare("SELECT id, allocations FROM auto_campaign WHERE tenant_id=? AND status='active'");
             $st->execute([$tenant]);
             $camps = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
-            $paused = 0; $pushed = 0;
+            $paused = 0; $pushed = 0; $failed = [];
             $upd = $pdo->prepare("UPDATE auto_campaign SET status='paused', updated_at=? WHERE id=? AND tenant_id=?");
             $now = gmdate('Y-m-d\TH:i:s\Z');
             foreach ($camps as $c) {
+                $allOk = true;
                 if ($isReal) {
                     foreach (json_decode((string)($c['allocations'] ?? '[]'), true) ?: [] as $a) {
                         $ch = (string)($a['channel'] ?? ''); $ext = (string)($a['external_id'] ?? '');
                         if ($ch === '' || $ext === '') continue;
                         $r = AdAdapters::pause($pdo, $tenant, $ch, $ext);
-                        if (!empty($r['ok'])) $pushed++;
+                        if (!empty($r['ok'])) { $pushed++; } else { $allOk = false; }
                     }
                 }
-                $upd->execute([$now, (int)$c['id'], $tenant]);
-                $paused++;
+                // [233차 감사 P1] kill-switch 정직성 — 플랫폼 일시중지가 실패한 캠페인은 DB 를 'paused' 로 표기하지
+                //   않는다(기존엔 무조건 paused → UI 는 정지인데 플랫폼은 계속 집행 = 실 광고비 누수). 실패분은 failed 로
+                //   노출해 운영자가 플랫폼에서 직접 정지/재시도하게 한다.
+                if ($allOk) {
+                    $upd->execute([$now, (int)$c['id'], $tenant]);
+                    $paused++;
+                } else {
+                    $failed[] = (int)$c['id'];
+                }
             }
-            return self::json($res, ['ok' => true, 'paused' => $paused, 'pushed' => $pushed]);
+            return self::json($res, ['ok' => empty($failed), 'paused' => $paused, 'pushed' => $pushed, 'failed' => $failed,
+                'note' => empty($failed) ? null : (count($failed) . '개 캠페인은 플랫폼 일시중지 실패 — 플랫폼 광고관리자에서 직접 정지/재시도가 필요합니다.')]);
         } catch (\Throwable $e) {
             return self::json($res, ['ok' => false, 'error' => $e->getMessage()], 500);
         }
@@ -415,6 +424,15 @@ class AutoCampaign
                 }
             }
 
+            // [233차 감사 P1] kill-switch 정직성 — 실 테넌트에서 플랫폼 push(activate/pause)가 하나라도 실패하면
+            //   DB 상태를 바꾸지 않는다. 기존엔 무조건 status 변경 → 'paused' 표기인데 플랫폼은 계속 집행(광고비 누수)
+            //   하거나 'active' 표기인데 미집행하는 발산이 가능했다. 실패 상세를 502 로 반환해 직접 확인/재시도 유도.
+            $allPushOk = true;
+            foreach ($pushed as $p) { if (empty($p['ok'])) { $allPushOk = false; break; } }
+            if ($isRealTenant && !$allPushOk) {
+                return self::json($res, ['ok' => false, 'error' => 'platform_push_failed', 'id' => $id, 'status' => 'unchanged',
+                    'pushed' => $pushed, 'message' => '플랫폼 반영 실패 — 상태를 변경하지 않았습니다. 플랫폼 광고관리자에서 직접 확인/재시도하세요.'], 502);
+            }
             $st = $pdo->prepare("UPDATE auto_campaign SET status=?, updated_at=? WHERE id=? AND tenant_id=?");
             $st->execute([$status, gmdate('Y-m-d\TH:i:s\Z'), $id, $tenant]);
             return self::json($res, ['ok' => true, 'id' => $id, 'status' => $status, 'pushed' => $pushed]);
