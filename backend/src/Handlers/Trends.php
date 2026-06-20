@@ -110,34 +110,6 @@ final class Trends {
         ]);
     }
 
-    /**
-     * POST /v422/ai/insight
-     */
-    public static function aiInsight(Request $req, Response $res, array $args = []): Response {
-        $raw  = (string)$req->getBody();
-        $data = json_decode($raw, true) ?: [];
-        $ctx  = trim($data['context'] ?? 'pnl');
-        $question = trim($data['question'] ?? '');
-
-        // Replaced mock insights with empty structures
-        $resp = [
-            'summary' => '',
-            'bullets' => [],
-            'recommendation' => '',
-        ];
-
-        if ($question !== '') {
-            $resp['question'] = $question;
-            $resp['answer'] = "";
-        }
-
-        return TemplateResponder::json($res, [
-            'ok'      => true,
-            'version' => 'v422',
-            'context' => $ctx,
-            'insight' => $resp,
-            'model'   => 'prod-v1',
-            'generated_at' => gmdate('c'),
-        ]);
-    }
+    // [233차 P2 정합] Trends::aiInsight(POST /v422/ai/insight) 제거 — 빈 구조만 반환하던 죽은 stub(프론트 미사용).
+    //   실 AI 인사이트는 ClaudeAI(marketing-insight/analyze, 실 Anthropic 연동)가 담당. 라우트/등록도 동반 제거.
 }

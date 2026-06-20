@@ -613,11 +613,11 @@ return function (App $app): void {
         'POST /v421/connectors/amazon/token'     => 'Genie\\Handlers\\Connectors::amazonStoreToken',
         'POST /v421/connectors/audience/sync'    => 'Genie\\Handlers\\Connectors::audienceSync',
 
-        // ── v422 Trends + AI Insight ───────────────────────────────────────────
+        // ── v422 Trends ─────────────────────────────────────────────────────────
         'GET /v422/trends/pnl'     => 'Genie\\Handlers\\Trends::pnl',
         'GET /v422/trends/roas'    => 'Genie\\Handlers\\Trends::roas',
         'GET /v422/trends/returns' => 'Genie\\Handlers\\Trends::returnRates',
-        'POST /v422/ai/insight'    => 'Genie\\Handlers\\Trends::aiInsight',
+        // [233차 P2] 'POST /v422/ai/insight'(Trends::aiInsight) 제거 — 빈 stub·프론트 미사용(ClaudeAI 가 실 인사이트 담당)
 
         // ── v423 Two-Layer Event Schema ────────────────────────────────────────
         'POST /v423/events/ingest-raw'  => 'Genie\\Handlers\\EventNorm::ingestRaw',
@@ -1726,11 +1726,11 @@ return function (App $app): void {
     $register('POST', '/v421/connectors/amazon/token');
     $register('POST', '/v421/connectors/audience/sync');
 
-    // ── v422 Trends + AI Insight ───────────────────────────────────────────
+    // ── v422 Trends ─────────────────────────────────────────────────────────
     $register('GET',  '/v422/trends/pnl');
     $register('GET',  '/v422/trends/roas');
     $register('GET',  '/v422/trends/returns');
-    $register('POST', '/v422/ai/insight');
+    // [233차 P2] '/v422/ai/insight' 제거(Trends::aiInsight 죽은 빈 stub)
 
     // ── v423 Two-Layer Event Schema ───────────────────────────────────
     $register('POST', '/v423/events/ingest-raw');

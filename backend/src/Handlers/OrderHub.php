@@ -498,21 +498,35 @@ final class OrderHub
             return self::json($resp, ['ok' => false, 'error' => 'db_error', 'message' => $e->getMessage()], 500);
         }
 
-        // [225차 P1-11] 서버측 COGS 집계(전체 행) — 기존 프론트는 매출만 서버집계로 고치고 COGS 는
+        // [225차 P1-11 + 233차 P2 정합] 서버측 COGS 집계(전체 행) — 기존 프론트는 매출만 서버집계로 고치고 COGS 는
         //   activeOrders(1000캡 배열) 계산이라 1000건 초과 테넌트의 총이익/영업이익이 과대(219 비대칭)였다.
-        //   channel_orders 엔 cost 컬럼이 없어 channel_inventory.cost(sku별, GROUP 으로 dedup)와 조인 집계.
-        //   취소 제외(cancelExpr SSOT). 인벤토리 테이블 부재 등 실패 시 cogs=null(프론트 폴백=배열 COGS).
-        $cogs = null;
+        //   channel_orders 엔 cost 컬럼이 없어 channel_inventory.cost(sku별)와 조인 집계. 취소 제외(cancelExpr SSOT).
+        //   ★233차 P2: ①sku 가 (channel·warehouse)별 다중행이라 기존 MAX(cost)=최고가 → COGS 과대·이익 과소.
+        //     실제 재고수량 가중평균(WAC=Σ(cost×available)/Σavailable, cost>0 행만; 재고 0 이면 비영(非零) cost 평균)
+        //     으로 교체 → 실제 원가·재고에서 자동산출. ②원가 미등록 SKU 주문을 0(무료)으로 묵살하지 않고
+        //     uncosted_units 로 정직 노출(소비측이 "원가 등록분 기준" 임을 인지). 실패 시 cogs=null(프론트 배열 폴백).
+        $cogs = null; $cogsUncostedUnits = null; $cogsCostedUnits = null;
         try {
             $stCogs = $pdo->prepare(
-                "SELECT COALESCE(SUM(o.qty * ic.cost),0) AS cogs
+                "SELECT
+                    COALESCE(SUM(o.qty * ic.cost),0) AS cogs,
+                    COALESCE(SUM(CASE WHEN ic.cost IS NULL OR ic.cost<=0 THEN o.qty ELSE 0 END),0) AS uncosted,
+                    COALESCE(SUM(CASE WHEN ic.cost>0 THEN o.qty ELSE 0 END),0) AS costed
                    FROM channel_orders o
-                   LEFT JOIN (SELECT tenant_id, sku, MAX(cost) AS cost FROM channel_inventory WHERE tenant_id=? GROUP BY tenant_id, sku) ic
-                     ON ic.tenant_id = o.tenant_id AND ic.sku = o.sku
+                   LEFT JOIN (
+                        SELECT tenant_id, sku,
+                            CASE WHEN SUM(CASE WHEN cost>0 THEN available ELSE 0 END) > 0
+                                 THEN SUM(CASE WHEN cost>0 THEN cost*available ELSE 0 END)*1.0 / SUM(CASE WHEN cost>0 THEN available ELSE 0 END)
+                                 ELSE AVG(NULLIF(cost,0)) END AS cost
+                          FROM channel_inventory WHERE tenant_id=? GROUP BY tenant_id, sku
+                   ) ic ON ic.tenant_id = o.tenant_id AND ic.sku = o.sku
                   WHERE o.$baseSql AND NOT $cancelExpr"
             );
             $stCogs->execute(array_merge([$tenant], $baseArgs, $cancelTokens));
-            $cogs = (float)$stCogs->fetchColumn();
+            $cogsRow = $stCogs->fetch(\PDO::FETCH_ASSOC) ?: [];
+            $cogs = (float)($cogsRow['cogs'] ?? 0);
+            $cogsUncostedUnits = (int)($cogsRow['uncosted'] ?? 0);
+            $cogsCostedUnits = (int)($cogsRow['costed'] ?? 0);
         } catch (\Throwable $e) { $cogs = null; /* 프론트가 클라 배열 COGS 로 폴백 */ }
 
         return self::json($resp, [
@@ -521,6 +535,8 @@ final class OrderHub
             'totalOrders' => (int)$active['cnt'],
             'revenue'   => (float)$active['rev'],
             'cogs'      => $cogs,
+            'cogs_uncosted_units' => $cogsUncostedUnits, // [233차 P2] 원가 미등록 units(정직 노출 — COGS 는 등록분 기준)
+            'cogs_costed_units'   => $cogsCostedUnits,
             'pending'   => $pending,
             'shipping'  => $shipping,
             'done'      => $done,

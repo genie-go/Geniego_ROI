@@ -62,7 +62,10 @@ function _skuRows(orders, dates) {
     if (!by[sku]) by[sku] = { name: o.name || sku, platform: _CH_NAME[o.ch] || o.ch || '', revenue: 0, orders: 0, spend: 0, returns: 0, units: 0, price: o.price || 0 };
     const r = by[sku];
     r.revenue += Number(o.total || 0);
-    r.orders += Number(o.qty || 0);
+    // [233차 P2 정합] 주문수 캐논 = 주문 건수(백엔드 Rollup.php·orderStats 와 통일). 데모 주문은 placeOrder 가
+    //   1주문=1객체(qty 보유)이므로 += 1(건수). 기존 += qty 는 멀티수량 주문을 과대계상 → summary total_orders/
+    //   revenue_per_order(AOV)가 "단위당"으로 과소 발산했다. 판매수량은 units 로 별도 집계(반품률 분모 유지).
+    r.orders += 1;
     r.units += Number(o.qty || 0);
     r.spend += Number(o.adFee || 0);
     if (_RETURN_STATUS.has(String(o.status || ''))) r.returns += Number(o.qty || 0);
