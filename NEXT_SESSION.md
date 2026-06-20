@@ -37,7 +37,7 @@
 ## ⏭️ 다음 차수 잔여 (순서대로)
 1. **[인프라 1순위] wronglang self-test 픽스처 복원** — `tools/session157_wronglang/ko.csv`(+@) 생성/복원해 로케일 커밋 시 `--no-verify` 불요화. 232차에서도 이월된 항목.
 2. ~~**D. 정산 stale-table 신선도(저영향)**~~ → **✅ 완료(`90315d670a6`)**: setOrderStatus(주문 상태변경/취소)·setClaimStatus(클레임 상태변경)에 해당 월 즉시 rollupSettlementsCore 재롤업 추가(ingestClaims 패턴 재사용). 운영/데모 배포·격리테넌트 e2e(취소→정산 15000→5000 즉시 반영) 검증. ChannelSync·ingestClaims 는 기존 커버.
-3. **P2 정합 정리** — ①COGS 무비용=0 정직화(OrderHub:483, SKU 원가 미적재 주문 별도 플래그)·`MAX(cost)`→가중평균 ②통화 probe 실패 시 KRW 가정 차단(ChannelSync:1672, fail-closed) ③주문수/AOV 캐논 통일(rollupDemoDerive qty합산 vs 건수) ④Trends::aiInsight stub 실연결/제거 ⑤커머스 stub 3채널 전용 어댑터(위메프/티몬/LINE Shopping, 현재 genericFetch).
+3. ~~**P2 정합 정리**~~ → **✅ 완료(`6b5eba41478`)**: ①COGS `MAX(cost)`→재고가중평균(WAC=Σ(cost×available)/Σavailable)·무원가 SKU `cogs_uncosted_units` 정직노출 ②~~통화 probe~~=무변경(probe가 방금 성공한 메인 insights 와 동일 토큰/계정→단독실패 불가, KRW 가정 실질 무영향) ③주문수/AOV=rollupDemoDerive `r.orders += qty`→`+= 1`(건수캐논, units 별도) ④Trends::aiInsight 죽은 빈 stub 제거(라우트+register+메서드, ClaudeAI 가 실 인사이트 담당) ⑤~~stub 3채널~~=무변경(genericFetch 이미 정직: 실테넌트 pending·가짜0, 전용어댑터는 외부API 필요). 운영/데모 배포·e2e(WAC cogs=350·uncosted=3·count=2) 검증. **★실제값 자동산출 원칙([[feedback-real-value-autoderive]]) 적용 — 임의 숫자 0**.
 4. **Track B 잔여(실 자격증명 필요)** — ①LINE Ads 엔드포인트 경로/필드 라이브 검증(추정 상태) ②TikTok 영상 video_id 업로드·Kakao/LINE 하위 ad 게재 ③매체 확장(X(Twitter)/LinkedIn/Amazon Ads). cc는 외부 계정·실키 대행 불가.
 5. **PG 정산 카드 i18n 15개국** — pnl.pgTitle/pgDesc/pgGross/pgFee/pgNet/pgCount(현재 ko fallback). guideStep i18n과 동일 방식(baseline 갱신).
 6. **가이드 i18n 현지 검수** — csg* 14개국 번역(특히 ar/hi/th) 사용자/원어민 검수(현지 자연어 정합, 메모리 [[feedback-178-i18n-translation-workflow]]).
