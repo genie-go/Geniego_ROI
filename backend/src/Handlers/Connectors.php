@@ -1170,7 +1170,9 @@ final class Connectors
         }
 
         // 쿠팡 HMAC-SHA256 서명
-        $datetime  = gmdate('ymmdd') . 'T' . gmdate('His') . 'Z';
+        // [233차 감사 P1] 서명 정정 — 기존 gmdate('ymmdd')(月 'm' 중복 → yyMMMdd) + 서명메시지의 '{method}' 리터럴
+        //   (미보간 → 서명 오염)로 쿠팡이 항상 401 거부, 실 테넌트 주문이 영구 0 이었다. ChannelSync::coupangFetch 정합.
+        $datetime  = gmdate('ymd\THis\Z'); // yyMMdd'T'HHmmss'Z'
         $path      = "/v2/providers/seller_api/apis/api/v1/vendor-items/orders";
         $queryStr  = http_build_query([
             'createdAtFrom' => $startDate . 'T00:00:00',
@@ -1178,7 +1180,7 @@ final class Connectors
             'status'        => $status,
             'limit'         => min(50, (int)($q['limit'] ?? 20)),
         ]);
-        $message   = "{$datetime}{method}GET{$path}{$queryStr}";
+        $message   = "{$datetime}GET{$path}{$queryStr}";
         $signature = hash_hmac('sha256', $message, $secretKey);
         $authHeader = "CEA algorithm=HmacSHA256, access-key={$accessKey}, signed-date={$datetime}, signature={$signature}";
 

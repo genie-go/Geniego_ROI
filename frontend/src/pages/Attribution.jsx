@@ -728,7 +728,7 @@ const BayesianABTab = memo(function BayesianABTab() {
                     { l: 'Conv. Rate', v: `${(v.cr * 100).toFixed(2)}%`, c: '#eab308' },
                     { l: 'P(승리)', v: `${(v.winProb * 100).toFixed(1)}%`, c: isW ? '#22c55e' : 'var(--text-2)' },
                     { l: 'Lift', v: `${v.lift > 0 ? '+' : ''}${v.lift.toFixed(1)}%`, c: v.lift > 0 ? '#22c55e' : '#ef4444' },
-                    { l: 'CI₉₅', v: `[${(v.ci95[0] * 100).toFixed(1)}, ${(v.ci95[1] * 100).toFixed(1)}]%`, c: 'var(--text-3)' },
+                    { l: 'CI₉₅', v: (v.ci95 && v.ci95.length >= 2) ? `[${(v.ci95[0] * 100).toFixed(1)}, ${(v.ci95[1] * 100).toFixed(1)}]%` : '—', c: 'var(--text-3)' },
                   ].map(k => (
                     <div key={k.l} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginBottom: 4 }}>
                       <span style={{ color: 'var(--text-3)' }}>{k.l}</span>

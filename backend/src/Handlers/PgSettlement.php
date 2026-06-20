@@ -141,13 +141,23 @@ final class PgSettlement
         $st = $pdo->prepare("SELECT id,provider,txn_id,type,gross,fee,net,currency,status,txn_at FROM pg_settlement WHERE tenant_id=? ORDER BY txn_at DESC, id DESC LIMIT 300");
         $st->execute([$tenant]);
         $rows = $st->fetchAll(PDO::FETCH_ASSOC);
-        // [225차 P1-15] summary 는 표시용 300행이 아닌 전체 행 SUM(거래 300건 초과 테넌트 과소집계 해소).
-        $sumSt = $pdo->prepare("SELECT COUNT(*) AS cnt, COALESCE(SUM(gross),0) AS g, COALESCE(SUM(fee),0) AS f, COALESCE(SUM(net),0) AS n FROM pg_settlement WHERE tenant_id=?");
+        // [225차 P1-15 + 233차 감사 P0] summary 는 표시용 300행이 아닌 전체 행 SUM. ★통화별로 분리 집계 후 각 통화를
+        //   실 환율로 KRW 정규화해 합산한다. 기존엔 USD+KRW 등 혼합통화를 그냥 SUM → P&L 'PG 수령액'이 의미 없는
+        //   혼합단위(달러+원) 숫자였다(예: $50 + ₩50,000 = 50,050). by_currency 원본도 함께 노출(정직).
+        $sumSt = $pdo->prepare("SELECT currency, COUNT(*) AS cnt, COALESCE(SUM(gross),0) AS g, COALESCE(SUM(fee),0) AS f, COALESCE(SUM(net),0) AS n FROM pg_settlement WHERE tenant_id=? GROUP BY currency");
         $sumSt->execute([$tenant]);
-        $agg = $sumSt->fetch(PDO::FETCH_ASSOC) ?: ['cnt' => 0, 'g' => 0, 'f' => 0, 'n' => 0];
+        $gKrw = 0.0; $fKrw = 0.0; $nKrw = 0.0; $cnt = 0; $byCurrency = [];
+        foreach ($sumSt->fetchAll(PDO::FETCH_ASSOC) as $r) {
+            $cur = strtoupper((string)($r['currency'] ?? '')) ?: 'KRW';
+            $gKrw += Connectors::fxToKrw((float)$r['g'], $cur);
+            $fKrw += Connectors::fxToKrw((float)$r['f'], $cur);
+            $nKrw += Connectors::fxToKrw((float)$r['n'], $cur);
+            $cnt += (int)$r['cnt'];
+            $byCurrency[] = ['currency' => $cur, 'count' => (int)$r['cnt'], 'gross' => round((float)$r['g'], 2), 'fee' => round((float)$r['f'], 2), 'net' => round((float)$r['n'], 2)];
+        }
         return self::json($response, ['ok' => true, 'settlements' => $rows, 'summary' => [
-            'count' => (int)$agg['cnt'], 'gross' => round((float)$agg['g'], 2), 'fee' => round((float)$agg['f'], 2), 'net' => round((float)$agg['n'], 2),
-            'shown' => count($rows),
+            'count' => $cnt, 'gross' => round($gKrw, 2), 'fee' => round($fKrw, 2), 'net' => round($nKrw, 2),
+            'currency' => 'KRW', 'by_currency' => $byCurrency, 'shown' => count($rows),
         ]]);
     }
 
@@ -376,6 +386,14 @@ final class PgSettlement
         return [$code, $err === null ? (string)$raw : '', $err];
     }
 
+    /** [233차 감사 P1] 통화 최소단위→주단위 divisor. JPY/KRW 등 ISO-4217 0-decimal 통화는 이미 주단위(÷1), 그 외 ÷100.
+     *   기존 $div=100 고정은 ¥10,000(0자리)을 ¥100 으로 100× 과소집계했다(Stripe/Square/Paddle/Razorpay/Klarna/Checkout 공통). */
+    private static function minorUnitDivisor(string $currency): float
+    {
+        static $zd = ['JPY','KRW','VND','CLP','BIF','DJF','GNF','KMF','MGA','PYG','RWF','UGX','VUV','XAF','XOF','XPF'];
+        return in_array(strtoupper(trim($currency)), $zd, true) ? 1.0 : 100.0;
+    }
+
     /** Stripe Balance Transactions(Bearer secret_key). 금액은 최소단위(cents) → 주단위 변환. */
     private static function fetchStripe(string $sk): array
     {
@@ -384,7 +402,7 @@ final class PgSettlement
         if ($code !== 200 || !isset($body['data'])) return ['ok' => false, 'note' => 'Stripe HTTP ' . $code . ' ' . ($body['error']['message'] ?? '')];
         $rows = [];
         foreach ($body['data'] as $d) {
-            $div = 100.0; // 대부분 통화 2자리(JPY 등 0자리 예외는 별도 처리 가능)
+            $div = self::minorUnitDivisor((string)($d['currency'] ?? '')); // 0자리 통화(JPY/KRW 등)=÷1
             $rows[] = [
                 'txn_id' => (string)($d['id'] ?? ''), 'type' => (string)($d['type'] ?? ''),
                 'gross' => round(((float)($d['amount'] ?? 0)) / $div, 2),
@@ -410,7 +428,7 @@ final class PgSettlement
         $rows = [];
         foreach ($list as $d) {
             $rows[] = [
-                'txn_id' => (string)($d['paymentKey'] ?? $d['transactionKey'] ?? uniqid('toss_')),
+                'txn_id' => (string)($d['paymentKey'] ?? $d['transactionKey'] ?? ('toss_' . substr(hash('sha256', json_encode($d)), 0, 24))),
                 'type' => (string)($d['method'] ?? 'payment'),
                 'gross' => (float)($d['amount'] ?? $d['totalAmount'] ?? 0),
                 'fee' => (float)($d['fee'] ?? 0),
@@ -440,7 +458,7 @@ final class PgSettlement
             $amt = (float)($ti['transaction_amount']['value'] ?? 0);
             $fee = (float)($ti['fee_amount']['value'] ?? 0);
             $rows[] = [
-                'txn_id' => (string)($ti['transaction_id'] ?? uniqid('pp_')),
+                'txn_id' => (string)($ti['transaction_id'] ?? ('pp_' . substr(hash('sha256', json_encode($d)), 0, 24))),
                 'type' => (string)($ti['transaction_event_code'] ?? 'payment'),
                 'gross' => round($amt, 2), 'fee' => round(abs($fee), 2), 'net' => round($amt + $fee, 2),
                 'currency' => strtoupper((string)($ti['transaction_amount']['currency_code'] ?? 'USD')),
@@ -461,7 +479,7 @@ final class PgSettlement
         $rows = [];
         foreach ($body['data'] as $d) {
             $t = $d['details']['totals'] ?? [];
-            $div = 100.0;
+            $div = self::minorUnitDivisor((string)($t['currency_code'] ?? ''));
             $rows[] = [
                 'txn_id' => (string)($d['id'] ?? ''), 'type' => (string)($d['origin'] ?? 'transaction'),
                 'gross' => round(((float)($t['grand_total'] ?? 0)) / $div, 2),
@@ -485,7 +503,7 @@ final class PgSettlement
         if ($code !== 200 || !isset($body['payments'])) return ['ok' => false, 'note' => 'Square HTTP ' . $code . ' ' . ($body['errors'][0]['detail'] ?? '')];
         $rows = [];
         foreach ($body['payments'] as $d) {
-            $div = 100.0;
+            $div = self::minorUnitDivisor((string)($d['amount_money']['currency'] ?? ''));
             $gross = ((float)($d['amount_money']['amount'] ?? 0)) / $div;
             $fee = 0.0; foreach (($d['processing_fee'] ?? []) as $pf) $fee += ((float)($pf['amount_money']['amount'] ?? 0)) / $div;
             $rows[] = [
@@ -530,7 +548,7 @@ final class PgSettlement
         if ($code !== 200 || !isset($body['items'])) return ['ok' => false, 'note' => 'Razorpay HTTP ' . $code . ' ' . ($body['error']['description'] ?? '')];
         $rows = [];
         foreach ($body['items'] as $d) {
-            $div = 100.0;
+            $div = self::minorUnitDivisor((string)($d['currency'] ?? ''));
             $gross = ((float)($d['amount'] ?? 0)) / $div;
             $fee = ((float)($d['fee'] ?? 0)) / $div;
             $rows[] = [
@@ -553,11 +571,11 @@ final class PgSettlement
         if ($code !== 200 || !isset($body['transactions'])) return ['ok' => false, 'note' => 'Klarna HTTP ' . $code . ' ' . ($body['error_messages'][0] ?? '')];
         $rows = [];
         foreach ($body['transactions'] as $d) {
-            $div = 100.0; $amt = ((float)($d['amount'] ?? 0)) / $div;
+            $div = self::minorUnitDivisor((string)($d['currency_code'] ?? $d['currency'] ?? '')); $amt = ((float)($d['amount'] ?? 0)) / $div;
             $type = (string)($d['type'] ?? 'SALE');
             $isFee = stripos($type, 'fee') !== false || stripos($type, 'commission') !== false;
             $rows[] = [
-                'txn_id' => (string)($d['transaction_id'] ?? $d['capture_id'] ?? uniqid('kl_')),
+                'txn_id' => (string)($d['transaction_id'] ?? $d['capture_id'] ?? ('kl_' . substr(hash('sha256', json_encode($d)), 0, 24))),
                 'type' => $type,
                 'gross' => $isFee ? 0.0 : round($amt, 2),
                 'fee' => $isFee ? round(abs($amt), 2) : 0.0,
@@ -587,9 +605,9 @@ final class PgSettlement
                 elseif (strpos($t, 'capture') !== false || strpos($t, 'sale') !== false || strpos($t, 'payment') !== false || strpos($t, 'presentment') !== false) $gross += $amt;
                 $net += $amt;
             }
-            if ($gross == 0.0) $gross = (float)($d['amount'] ?? 0) / 100.0; // 폴백
+            if ($gross == 0.0) $gross = (float)($d['amount'] ?? 0) / self::minorUnitDivisor($cur); // 폴백
             $rows[] = [
-                'txn_id' => (string)($d['id'] ?? $d['payment_id'] ?? uniqid('ck_')),
+                'txn_id' => (string)($d['id'] ?? $d['payment_id'] ?? ('ck_' . substr(hash('sha256', json_encode($d)), 0, 24))),
                 'type' => (string)($d['breakdown_type'] ?? $d['action_type'] ?? 'payment'),
                 'gross' => round($gross, 2), 'fee' => round($fee, 2), 'net' => round($net !== 0.0 ? $net : ($gross - $fee), 2),
                 'currency' => $cur, 'status' => (string)($d['response_code'] ?? $d['status'] ?? 'settled'),

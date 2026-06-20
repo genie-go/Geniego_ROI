@@ -1721,7 +1721,9 @@ export function GlobalDataProvider({ children }) {
     // 💰 Budget/Ad Spend 집계
     const budgetStats = useMemo(() => {
         const list = Object.values(channelBudgets);
-        const totalAdRevenue = list.reduce((s, c) => s + (c.revenue || c.spent * c.roas), 0);
+        // [233차 감사 P1] 가짜 광고매출 제거 — revenue 없을 때 spent*roas 역산은 임의 숫자(seeded roas면 날조).
+        //   귀속된 실 revenue 만 집계(E '광고기여매출 폴백 제거' 원칙 연장). 미귀속=0(blended ROAS 정직).
+        const totalAdRevenue = list.reduce((s, c) => s + (Number(c.revenue) || 0), 0);
         return {
             totalBudget: list.reduce((s, c) => s + c.budget, 0),
             totalSpent: list.reduce((s, c) => s + c.spent, 0),

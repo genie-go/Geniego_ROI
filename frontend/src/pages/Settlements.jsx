@@ -322,7 +322,7 @@ export default function Settlements() {
         <div className="section-title" style={{ marginBottom: 14 }}>📊 {t('settlements.channelNetTitle')}</div>
         <div style={{ display: "grid", gap: 10 }}>
           {byChannel.map(({ ch, gross, net, cnt, color, icon }) => {
-            const eff = (net / gross * 100).toFixed(1);
+            const eff = gross > 0 ? (net / gross * 100).toFixed(1) : '0.0';
             return (
 <div key={ch}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
@@ -485,7 +485,7 @@ export default function Settlements() {
             <span style={{ color: "var(--text-3)" }}>{t('settlements.currency')}: </span>
             <span style={{ fontFamily: "monospace", fontWeight: 700, color: "#4f8ef7" }}>{detail.currency}</span>
             {detail.currency !== "KRW" && (
-              <span style={{ color: "var(--text-3)", marginLeft: 8 }}>· {t('settlements.exchangeRate')}: 1{detail.currency} = {fmtC(FX[detail.currency])}</span>
+              <span style={{ color: "var(--text-3)", marginLeft: 8 }}>· {t('settlements.exchangeRate')}: 1{detail.currency} = {fmtKRWM(toKRW(1, detail.currency))} KRW</span>
             )}
           </div>
 
@@ -520,7 +520,7 @@ export default function Settlements() {
             {[
               [t('settlements.detailTotalOrders'), detail.orders.toLocaleString() + t('settlements.countUnit'), "#4f8ef7"],
               [t('settlements.detailStatus'), detail.status === "confirmed" ? `✓ ${t('settlements.statusConfirmed')}` : `⏳ ${t('settlements.statusPending')}`, detail.status === "confirmed" ? "#22c55e" : "#eab308"],
-              [t('settlements.detailEfficiency'), (detail.net_payout / detail.gross_sales * 100).toFixed(1) + "%", "#a855f7"],
+              [t('settlements.detailEfficiency'), (detail.gross_sales > 0 ? (detail.net_payout / detail.gross_sales * 100).toFixed(1) : '0.0') + "%", "#a855f7"],
               [t('settlements.detailFeeRate'), detail.fee_rate + "%", "#ef4444"],
             ].map(([l, v, c]) => (
               <div key={l} style={{ padding: "10px 12px", borderRadius: 8, background: "rgba(9,15,30,0.6)", border: "1px solid rgba(99,140,255,0.08)" }}>

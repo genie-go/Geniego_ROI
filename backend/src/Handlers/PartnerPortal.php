@@ -128,9 +128,13 @@ class PartnerPortal
         if (!$sets) return self::json($res, ['ok' => false, 'error' => '변경할 항목이 없습니다.'], 422);
         $sets[] = 'updated_at=?'; $vals[] = self::now();
         $vals[] = $id; $vals[] = $t;
-        $pdo->prepare("UPDATE partner_account SET " . implode(',', $sets) . " WHERE id=? AND tenant_id=?")->execute($vals);
-        // 비번/비활성 변경 시 기존 세션 무효화
-        if (isset($b['password']) || isset($b['active'])) { try { $pdo->prepare("DELETE FROM partner_session WHERE partner_account_id=?")->execute([$id]); } catch (\Throwable $e) {} }
+        $upd = $pdo->prepare("UPDATE partner_account SET " . implode(',', $sets) . " WHERE id=? AND tenant_id=?");
+        $upd->execute($vals);
+        // [233차 감사 P1] 비번/비활성 변경 시 세션 무효화 — ★계정 UPDATE 가 이 테넌트 행을 실제로 바꿨을 때만 purge.
+        //   기존엔 tenant 무관 partner_account_id 로 삭제 → 타 테넌트 파트너 세션을 강제 종료(로그아웃 DoS) 가능했음.
+        if ($upd->rowCount() > 0 && (isset($b['password']) || isset($b['active']))) {
+            try { $pdo->prepare("DELETE FROM partner_session WHERE partner_account_id=?")->execute([$id]); } catch (\Throwable $e) {}
+        }
         return self::json($res, ['ok' => true]);
     }
 
@@ -140,8 +144,10 @@ class PartnerPortal
         if ($err = UserAuth::requirePro($req, $res)) return $err;
         self::ensureTables();
         $t = (UserAuth::authedTenant($req) ?? 'demo'); $id = (int)($args['id'] ?? 0); $pdo = self::db();
-        $pdo->prepare("DELETE FROM partner_account WHERE id=? AND tenant_id=?")->execute([$id, $t]);
-        try { $pdo->prepare("DELETE FROM partner_session WHERE partner_account_id=?")->execute([$id]); } catch (\Throwable $e) {}
+        $del = $pdo->prepare("DELETE FROM partner_account WHERE id=? AND tenant_id=?");
+        $del->execute([$id, $t]);
+        // [233차 감사 P1] 교차테넌트 세션삭제 차단 — 계정이 이 테넌트 소유라 실제 삭제됐을 때만 세션 purge.
+        if ($del->rowCount() > 0) { try { $pdo->prepare("DELETE FROM partner_session WHERE partner_account_id=?")->execute([$id]); } catch (\Throwable $e) {} }
         return self::json($res, ['ok' => true]);
     }
 
