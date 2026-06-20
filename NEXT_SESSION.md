@@ -1,7 +1,7 @@
 # 233차 세션 인계서 — **모바일/네이티브 초고도화 + 데이터 동기화 정합 Sprint(A·C·E·F) + Track B 실광고집행 인프라(cron 코드화·헬스·SVG 래스터화) + 연동허브 3단계 가이드 15개국 (전부 운영·데모 배포·라이브 검증·커밋·push 완료)**
 
 > **작성일**: 2026-06-20 (사용자 명시 승인) · 운영 roi.genie-go.com / 데모 roidemo.genie-go.com (★vhost server_name=하이픈, 파일경로 `.geniego.com` 무하이픈). 하네스 primary=**E:\project\GeniegoROI**.
-> **종결 상태**: 10개 커밋 origin/master=`d62b29576f8` push 완료. 운영/데모 프론트+백엔드 동반 배포·라이브 검증 완료. SSH/MySQL/admin 자격증명 = 메모리 [[reference-session-credentials]].
+> **종결 상태**: 12개 커밋 origin/master=`2c94733ba5c` push 완료. 운영/데모 프론트+백엔드 동반 배포·라이브 검증 완료(★모바일 전수 98/98 가로오버플로 0 포함). SSH/MySQL/admin 자격증명 = 메모리 [[reference-session-credentials]].
 
 ## ✅ 233차 완료 (커밋 순서)
 | 커밋 | 내용 |
@@ -16,8 +16,11 @@
 | `eab87129d01` | **SVG→PNG 클라 래스터화**: utils/svgRasterize.js(브라우저 canvas) — AI SVG 디자인을 Meta 이미지광고로 게재(서버 변환도구 전무 우회). AIDesignStudio/AIDesignChat 배선 |
 | `28e99ae8118` | **연동허브 3단계 따라하기 가이드**: ConnectModal 상단 ConnectStepGuide(발급콘솔→붙여넣기 저장→즉시 자동실행, 광고채널 결제수단 안내). 기존 ISSUANCE_URL/MANUAL/OAUTH/LIVE_VERIFY 재구성(중복0) |
 | `d62b29576f8` | **가이드 i18n 15개국**: csg* 11키 ko+14개국 현지번역. ★기존 ak.guideTitle 충돌(G6) 회피 위해 csg* 접두 |
+| `cb50e11e1d2` | **233차 인계서 작성**(NEXT_SESSION.md, 사용자 승인) |
+| `2c94733ba5c` | **★모바일 우측 잘림 근본수정**: flex-column 레이아웃 체인의 각 flex item 기본 `min-width:auto`로 콘텐츠 min-content(Topbar 539·OnboardingGuide 539·RoleViewBar 등)가 부모(390) 초과→상위 overflow:hidden 이 우측 잘라냄(doc=390이라 가로스크롤조차 안 생김). ①Topbar max-width:100vw+클러스터 flex-shrink:1·min-width:0+언어라벨 모바일숨김→390고정 ②App.jsx 스크롤래퍼 minWidth:0 누락분 추가 ③OnboardingGuide 루트 minWidth:0 ④styles.css min-width:0 범위 .app-content-area(자신+자식) 확장+가로 flex행 flex-wrap+클래스기반 flex/grid 최후안전망(메인컬럼 전요소 max-width:100vw, 탑바/탭바/테이블/차트 제외). **★모바일 98페이지 전수 헤드리스 검증: 가로오버플로 0(doc=390 전체)** + dashboard/wms/performance 실 스크린샷서 헤더부제·상태배지·온보딩카드 줄바꿈으로 아래로 흐름 확인 |
 
 ## 📌 233차 정본/발견
+- **★모바일 우측 잘림 근본원인·전수검증(2c94733ba5c)**: 증상=모바일 화면 우측 잘림+가로스크롤 불가+콘텐츠가 아래로 안 흐름. 근본=`display:flex;flex-direction:column` 체인의 flex item 기본 `min-width:auto`라 콘텐츠 min-content가 부모(390vw) 초과→상위 `overflow:hidden` 우측 절단. **각 flex 링크에 min-width:0 필수**(메인컬럼엔 있었으나 스크롤래퍼·app-content-area 누락이 핵심 갭). ★검출 함정: `getBoundingClientRect().right`는 overflow:hidden auto flex 스크롤요소에서 부풀려진 값 반환(fade-up right=702인데 실제 box width=338) → **박스 판정은 `.width`(또는 `document.scrollWidth>clientWidth`)로**, `.right` 금지. ★클래스기반 flex/grid는 CSS로 "computed display:flex" 선택 불가→인라인 `[style*=display:flex]` selector 못 잡음→최후안전망 `max-width:100vw`(메인컬럼 전요소, 탑바/탭바/테이블/SVG 제외)로 일괄 캡. **전수검증=98/98 콘텐츠페이지 doc=390(가로스크롤 0)**, 타임아웃 3건(commerce/commerce-search/omni-channel)도 긴 타임아웃 재확인 정상.
 - **Capacitor 네이티브 로그인 근본원인**: `.env.capacitor`(VITE_API_BASE=https://roi.genie-go.com)가 있어도 AuthContext가 `/api` 하드코딩→네이티브 웹뷰(localhost) 상대경로 실패. ①AuthContext/AuthPage base 접두 ②**native/capacitorInit.js 전역 fetch shim**(API_RE=/^\/(api|auth|v\d|health)/ 만 base 접두, 정적자산 제외, 웹=no-op)으로 58곳 일괄 해결. **백엔드 CORS는 네이티브 origin(capacitor://localhost·https://localhost) 이미 허용**(index.php GENIE_ALLOWED_ORIGINS, 라이브 204 확인). 네이티브 단말 반영=`npm run build:cap`→cap sync→재빌드.
 - **데모 초기화 완전성**: tenantStorage tSet은 `<base>::t=demo` 형식(geniego_catalog_channel_prices 등). 기존 reset 정규식이 누락→헤드리스 검증으로 확인·수정(::t=demo 포함 삭제). **검증 3항목 PASS**: 동기화/재로그인 지속/초기화 완전성.
 - **app-pricing 데모 요금 미표기**: 코드 아닌 **데이터** — 데모 DB(geniego_roi_demo) plan_config.price_usd 미시드. AdminPlans::mirrorPlanTablesToSibling 동작과 동일하게 운영→데모 plan_config/plan_period_pricing/plan_menu_access 미러(SQL)로 1회 보정. 라이브 $379/$830/$1518 표기 확인.
