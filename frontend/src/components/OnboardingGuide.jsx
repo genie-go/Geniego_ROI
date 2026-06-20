@@ -117,7 +117,7 @@ export default function OnboardingGuide() {
       </button>
     );
     return (
-      <div style={{ position: 'relative', margin: '8px 16px 0', zIndex: 40 }}>
+      <div className="onb-guide-root" style={{ position: 'relative', margin: '8px 16px 0', zIndex: 40, minWidth: 0, maxWidth: '100%', boxSizing: 'border-box' }}>
         <div style={{ borderRadius: 12, padding: '12px 14px', background: 'linear-gradient(135deg,#0b1224,#1e1b4b)', color: '#fff', border: '1px solid rgba(124,58,237,0.4)' }}>
           <div style={{ fontSize: 13.5, fontWeight: 900, marginBottom: 2 }}>🧭 {t('onboard.bizModel.prompt', '먼저 비즈니스 모델을 선택하세요 — 시작 단계가 여기에 맞춰집니다.')}</div>
           <div style={{ fontSize: 11.5, color: '#c7d2fe', marginBottom: 10 }}>{t('onboard.bizModel.sub', '실물 상품을 파는지, 서비스·구독·플랫폼 자체를 알리는지에 따라 안내가 달라집니다.')}</div>
@@ -137,7 +137,7 @@ export default function OnboardingGuide() {
   const hBtn = { padding: '4px 10px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.25)', cursor: 'pointer', background: 'rgba(255,255,255,0.12)', color: '#fff', fontSize: 11, fontWeight: 800, flexShrink: 0 };
 
   return (
-    <div style={{ position: 'relative', margin: '8px 16px 0', zIndex: 40 }}>
+    <div className="onb-guide-root" style={{ position: 'relative', margin: '8px 16px 0', zIndex: 40, minWidth: 0, maxWidth: '100%', boxSizing: 'border-box' }}>
       {/* [현 차수] ★단일 1줄 컴팩트 바 + 펼침 오버레이 — 페이지 콘텐츠 높이 잠식 방지(초엔터프라이즈 균형). */}
       <style>{`
         @keyframes onbPulse{0%,100%{transform:scale(1);box-shadow:0 4px 14px rgba(124,58,237,0.45)}50%{transform:scale(1.07);box-shadow:0 10px 28px rgba(124,58,237,0.75)}}
