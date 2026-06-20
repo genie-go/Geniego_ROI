@@ -1,7 +1,15 @@
-# 233차 세션 인계서 — **모바일/네이티브 초고도화 + 데이터 동기화 정합 Sprint(A·C·E·F) + Track B 실광고집행 인프라(cron 코드화·헬스·SVG 래스터화) + 연동허브 3단계 가이드 15개국 (전부 운영·데모 배포·라이브 검증·커밋·push 완료)**
+# 233차 세션 인계서 — **모바일/네이티브 초고도화 + 데이터정합 Sprint + 가이드/PG i18n + 모바일 우측잘림 근본수정 + ★5도메인 전수감사 & P0/P1 수정 (전부 운영·데모 배포·라이브 검증·커밋·push 완료)**
 
 > **작성일**: 2026-06-20 (사용자 명시 승인) · 운영 roi.genie-go.com / 데모 roidemo.genie-go.com (★vhost server_name=하이픈, 파일경로 `.geniego.com` 무하이픈). 하네스 primary=**E:\project\GeniegoROI**.
-> **종결 상태**: 12개 커밋 origin/master=`2c94733ba5c` push 완료. 운영/데모 프론트+백엔드 동반 배포·라이브 검증 완료(★모바일 전수 98/98 가로오버플로 0 포함). SSH/MySQL/admin 자격증명 = 메모리 [[reference-session-credentials]].
+> **종결 상태**: 다수 커밋 origin/master=`3a6ad7144df` push 완료. 운영/데모 프론트+백엔드 동반 배포·라이브 검증 완료. SSH/MySQL/admin 자격증명 = 메모리 [[reference-session-credentials]].
+
+## ✅ 233차 후반 — 모바일 우측잘림 + 전수감사 + P0/P1 수정 (정본 [[project-n233-audit-fixes]])
+- **모바일 우측 잘림 근본수정**(`2c94733ba5c`): flex-column 체인의 flex item 기본 `min-width:auto`로 콘텐츠 min-content(Topbar 539·OnboardingGuide·RoleViewBar)가 부모(390) 초과→상위 overflow:hidden 절단(doc=390이라 가로스크롤조차 없음). ①Topbar max-width:100vw+클러스터 shrink ②App.jsx 스크롤래퍼 minWidth:0 ③.app-content-area 자신+자식 min-width:0+가로flex wrap+최후안전망(메인컬럼 전요소 max-width:100vw, 탑바/탭바/테이블/차트 제외). **★98페이지 헤드리스 전수 doc=390(가로오버플로 0)** + 실스크린샷 검증. ★검출함정: `getBoundingClientRect().right`는 overflow:hidden auto flex요소서 부풀려진 값(.width/document.scrollWidth로 판정).
+- **PG카드 i18n**(`4f1c93c7076`)·**COGS 정직배지**(`2fd76936c33`, cogs_uncosted_units 프론트 노출).
+- **★5도메인 전수감사**(Agent general-purpose 5병렬): 보안=은행급(P0 0·SQL injection 0)·마케팅/채널=정직성유지(가짜데이터 0). **P0는 데이터정합/프론트 집중**.
+- **감사 P0/P1 수정**: `0623bb8aff7`(①Settlements.jsx:488 FX미정의 비-KRW 정산상세 크래시→라이브변환 ②PgSettlement summary 혼합통화SUM→KRW정규화+by_currency, e2e검증 ③PG /100 JPY/KRW 100×과소→통화별divisor ④uniqid txn_id→결정적해시(정산팽창차단) ⑤PartnerPortal 교차테넌트 세션삭제 DoS→rowCount게이트 ⑥Connectors Coupang HMAC 깨짐 정정 ⑦가짜광고매출 spent*roas 제거 ⑧Attribution ci95 가드) · `6df56c58793`(AutoCampaign kill-switch 정직성: 플랫폼 pause 실패시 DB paused 미표기) · `7ee60128a56`(Topbar 데모 i18n 8키 15개국+AI폴백 라벨 정직화) · `3a6ad7144df`(고아 죽은코드 ProGate/DashPanel 삭제).
+- **메모리 정정**: Sprint2 9채널은 fetch전용(pushProduct 미구현, [[project-n232-audit-sprint12]] 보강).
+- **잔여 백로그**: [[project-n233-audit-fixes]] 참조(OrderHub 정산락·launch 결제체크·saveCredential flush·Influencer i18n·데모 수수료파생 등 — 저영향/호출처분석 필요).
 
 ## ✅ 233차 완료 (커밋 순서)
 | 커밋 | 내용 |
