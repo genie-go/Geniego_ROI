@@ -416,6 +416,10 @@ frontend/ios/App/Pods/
 /frontend/src/i18n/locales/_tmp_*
 /session*_collisions/
 /session*_wronglang/
+# [233차] 단, wronglang self-test 의 baseline 픽스처는 추적 필수(부재 시 pre-commit self-test 가 항상 FAIL→
+#   로케일 커밋 --no-verify 강제). 디렉터리 무시를 뚫고 ko.csv 만 예외 추적.
+!/session157_wronglang/
+!/session157_wronglang/ko.csv
 /triage_*.json
 /triage_out_*/
 # 루트 스크린샷(작업 캡처) — 추적 금지

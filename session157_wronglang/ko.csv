@@ -1,0 +1,3 @@
+"locale","path","line","value_preview","detected_script","char_count","total_chars","ratio","severity"
+"ko","orderHub.tabShipped","3071","배송中","Han","1","3","0.33","forbidden"
+"ko","orderHub.statusShipped","3091","배송中","Han","1","3","0.33","forbidden"
