@@ -353,7 +353,17 @@ final class OrderHub
             $setEvt = $newEvt ?? (($force && $wasCR) ? 'order' : $curEvt);
             $stmt = $pdo->prepare("UPDATE channel_orders SET status = ?, event_type = ? WHERE tenant_id = ? AND $idClause");
             $stmt->execute(array_merge([$status, $setEvt, $tenant], $idParams));
-            return self::json($resp, ['ok' => true, 'updated' => $stmt->rowCount(), 'status' => $status, 'event_type' => $setEvt]);
+            // [현 차수 D] 정산 stale-table 신선도 — 정산 읽기(settlementsStats)는 orderhub_settlements 저장본을
+            //   직독하므로, 주문 상태변경(취소/반품 전이·force 활성복구 포함)이 재롤업 전까지 옛 매출/취소를 노출한다.
+            //   ingestClaims 와 동일 패턴으로 해당 주문 월(YYYY-MM)을 즉시 재롤업해 정산을 실시간 일치시킨다(비치명).
+            $rerolled = null;
+            try {
+                $pp = $pdo->prepare("SELECT SUBSTR(ordered_at,1,7) FROM channel_orders WHERE tenant_id=? AND $idClause LIMIT 1");
+                $pp->execute(array_merge([$tenant], $idParams));
+                $pm = (string)($pp->fetchColumn() ?: '');
+                if (preg_match('/^\d{4}-\d{2}$/', $pm)) { self::rollupSettlementsCore($pdo, $tenant, $pm, null, gmdate('Y-m-d H:i:s')); $rerolled = $pm; }
+            } catch (\Throwable $e) {}
+            return self::json($resp, ['ok' => true, 'updated' => $stmt->rowCount(), 'status' => $status, 'event_type' => $setEvt, 'rerolled' => $rerolled]);
         } catch (\Throwable $e) {
             return self::json($resp, ['ok' => false, 'error' => 'db_error', 'message' => $e->getMessage()], 500);
         }
@@ -382,7 +392,7 @@ final class OrderHub
             //   대칭가드(원판매 Outbound 있을 때만·차감분 초과/이중복원 방지)로 order_id 불일치/중복 시 안전 no-op.
             $row = null;
             try {
-                $cs = $pdo->prepare("SELECT c.order_id, c.channel, c.type, o.sku, o.product_name AS name, o.qty
+                $cs = $pdo->prepare("SELECT c.order_id, c.channel, c.type, o.sku, o.product_name AS name, o.qty, SUBSTR(o.ordered_at,1,7) AS period
                     FROM orderhub_claims c LEFT JOIN channel_orders o
                       ON o.tenant_id=c.tenant_id AND (o.channel_order_id=c.order_id OR o.order_no=c.order_id)
                     WHERE c.id=? AND c.tenant_id=? LIMIT 1");
@@ -393,6 +403,14 @@ final class OrderHub
             $stmt = $pdo->prepare("UPDATE orderhub_claims SET status = ?, updated_at = ? WHERE id = ? AND tenant_id = ?");
             $stmt->execute([$status, gmdate('Y-m-d H:i:s'), $id, $tenant]);
 
+            // [현 차수 D] 정산 stale-table 신선도 — 클레임(반품/취소) 상태변경은 원주문 월의 returnFee/net_payout 을
+            //   바꾸지만 정산 저장본은 재롤업 전까지 옛 값을 노출한다 → 해당 원주문 월(YYYY-MM) 즉시 재롤업.
+            $rerolled = null;
+            try {
+                $pm = (string)($row['period'] ?? '');
+                if (preg_match('/^\d{4}-\d{2}$/', $pm)) { self::rollupSettlementsCore($pdo, $tenant, $pm, null, gmdate('Y-m-d H:i:s')); $rerolled = $pm; }
+            } catch (\Throwable $e) {}
+
             $restored = false;
             if (!$isDemo && $row && (string)($row['sku'] ?? '') !== ''
                 && in_array((string)($row['type'] ?? ''), ['return', 'cancel'], true)
@@ -402,7 +420,7 @@ final class OrderHub
                     $restored = Wms::reflectChannelRestock($tenant, (string)$row['sku'], (string)($row['name'] ?? ''), (float)($row['qty'] ?? 0), 'CHS-' . $ref, 'CHR-' . $ref);
                 } catch (\Throwable $e) {}
             }
-            return self::json($resp, ['ok' => true, 'updated' => $stmt->rowCount(), 'status' => $status, 'restored' => $restored]);
+            return self::json($resp, ['ok' => true, 'updated' => $stmt->rowCount(), 'status' => $status, 'restored' => $restored, 'rerolled' => $rerolled]);
         } catch (\Throwable $e) {
             return self::json($resp, ['ok' => false, 'error' => 'db_error', 'message' => $e->getMessage()], 500);
         }
