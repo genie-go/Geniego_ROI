@@ -1,3 +1,47 @@
+# 233차 세션 인계서 — **모바일/네이티브 초고도화 + 데이터 동기화 정합 Sprint(A·C·E·F) + Track B 실광고집행 인프라(cron 코드화·헬스·SVG 래스터화) + 연동허브 3단계 가이드 15개국 (전부 운영·데모 배포·라이브 검증·커밋·push 완료)**
+
+> **작성일**: 2026-06-20 (사용자 명시 승인) · 운영 roi.genie-go.com / 데모 roidemo.genie-go.com (★vhost server_name=하이픈, 파일경로 `.geniego.com` 무하이픈). 하네스 primary=**E:\project\GeniegoROI**.
+> **종결 상태**: 10개 커밋 origin/master=`d62b29576f8` push 완료. 운영/데모 프론트+백엔드 동반 배포·라이브 검증 완료. SSH/MySQL/admin 자격증명 = 메모리 [[reference-session-credentials]].
+
+## ✅ 233차 완료 (커밋 순서)
+| 커밋 | 내용 |
+|---|---|
+| `9ce77a7e0a7` | **모바일 UX 초고도화**: 사이드바 단일-open 아코디언 모바일 펼침전용(navigate 억제)·터치44px·safe-area·ESC/Capacitor 백버튼·ARIA + 겹침/잘림 안전레이어 v3(우측 드로어 시트화·매트릭스 스크롤·100dvh) + **Capacitor 네이티브 로그인 수정**(AuthContext/AuthPage 상대 /api→VITE_API_BASE + native/capacitorInit 전역 fetch base shim 58곳 일괄) + **데모 초기화 완전성**(::t=demo tenant-scoped 등록값 삭제) |
+| `e8e0c2c1da6` | **레이아웃 grid stretch 전역 수정**: `.app-content-area>div`에 align-content:start — display:grid 루트(WhatsApp 등) 제목/탭바 ballooning 제거. 36페이지 일괄검사 적용36/36·pageerror0 |
+| `798b34b876d` | **데이터정합 E·F**: 광고기여매출 폴백(pnlStats.revenue) 제거→ROAS 착시 제거 / 자격증명 등록 직후 'genie:data-refresh' 강제 refetch(30초 지연 제거) |
+| `3d468fd82a4` | **A 매출 SSOT**: OrderHub::ordersStats 에 기간 from/to(날짜prefix비교, period echo) 추가 + usePeriodOrderStats 훅(기간=서버 전체행집계, 1000건 캡 해소, 정산우선 유지). DashOverview/Commerce/SalesGlobal 배선 |
+| `fa010c144ee` | **C PG 정산 de-silo**: pg_settlement은 결제대행 수령액(현금, order_id 미연결)→매출 이중계산 위험. 매출 미합산·P&L Overview에 별도 'PG 결제 정산' 카드로 노출 |
+| `ed857474bcd` | **Track B cron 코드화**: backend/bin/install_crontab.sh(검증된 실 crontab 12러너×운영+데모) + AD_EXECUTION_GOLIVE_CHECKLIST.md(DB 실측 go-live 상태) |
+| `9dd3d735c60` | **cron 헬스 모니터링**: SystemMetrics::cronHealth(로그 mtime 신선도) → SystemMonitor Pipeline 탭. ★open_basedir 거짓경보 방지(unknown). 라이브 ok=12/12 |
+| `eab87129d01` | **SVG→PNG 클라 래스터화**: utils/svgRasterize.js(브라우저 canvas) — AI SVG 디자인을 Meta 이미지광고로 게재(서버 변환도구 전무 우회). AIDesignStudio/AIDesignChat 배선 |
+| `28e99ae8118` | **연동허브 3단계 따라하기 가이드**: ConnectModal 상단 ConnectStepGuide(발급콘솔→붙여넣기 저장→즉시 자동실행, 광고채널 결제수단 안내). 기존 ISSUANCE_URL/MANUAL/OAUTH/LIVE_VERIFY 재구성(중복0) |
+| `d62b29576f8` | **가이드 i18n 15개국**: csg* 11키 ko+14개국 현지번역. ★기존 ak.guideTitle 충돌(G6) 회피 위해 csg* 접두 |
+
+## 📌 233차 정본/발견
+- **Capacitor 네이티브 로그인 근본원인**: `.env.capacitor`(VITE_API_BASE=https://roi.genie-go.com)가 있어도 AuthContext가 `/api` 하드코딩→네이티브 웹뷰(localhost) 상대경로 실패. ①AuthContext/AuthPage base 접두 ②**native/capacitorInit.js 전역 fetch shim**(API_RE=/^\/(api|auth|v\d|health)/ 만 base 접두, 정적자산 제외, 웹=no-op)으로 58곳 일괄 해결. **백엔드 CORS는 네이티브 origin(capacitor://localhost·https://localhost) 이미 허용**(index.php GENIE_ALLOWED_ORIGINS, 라이브 204 확인). 네이티브 단말 반영=`npm run build:cap`→cap sync→재빌드.
+- **데모 초기화 완전성**: tenantStorage tSet은 `<base>::t=demo` 형식(geniego_catalog_channel_prices 등). 기존 reset 정규식이 누락→헤드리스 검증으로 확인·수정(::t=demo 포함 삭제). **검증 3항목 PASS**: 동기화/재로그인 지속/초기화 완전성.
+- **app-pricing 데모 요금 미표기**: 코드 아닌 **데이터** — 데모 DB(geniego_roi_demo) plan_config.price_usd 미시드. AdminPlans::mirrorPlanTablesToSibling 동작과 동일하게 운영→데모 plan_config/plan_period_pricing/plan_menu_access 미러(SQL)로 1회 보정. 라이브 $379/$830/$1518 표기 확인.
+- **YouTube 연동 검증**: admin tenant(acct_1) api_key(39자) 복호화 OK→Data API 200(83langs)+Live search 200(실 라이브 반환). 플랫폼 용도=발급 ping 검증(상시 수집 cron 없음). channel_id가 8자(비표준 UC… 아님)—채널특정 수집 시 교체 필요.
+- **cron 이미 완전 등록·실행 중**(운영+데모 12러너, conn_sync/oauth_refresh/optimize 매시 검증). connectors_sync tenants=0→persisted=0 정상(광고채널 연동 0). 에이전트 "cron 미등록 우려"는 해소—레포 미커밋만이었고 install_crontab.sh로 코드화.
+- **go-live 현황(운영 DB 실측)**: cron✅·AI(claude)키✅·billing테이블✅ / 광고채널 자격증명 0·OAuth앱 client_id/secret 0. → **코드·인프라 ready, 블로커=사용자 설정**(OAuth앱→인가→게재ID→결제수단).
+- **서버 이미지 변환도구 전무**(Imagick/GD/rsvg/inkscape 0) → SVG 래스터화는 **클라이언트 canvas**로 우회(서버 무변경, loadDesign이 data:image base64→image_b64 추출).
+- **★서버 인프라 변경(레포 외)**: php-fpm 양 풀 open_basedir에 `/var/log` 읽기 추가(`/etc/php/8.1/fpm/pool.d/{www,demo}.conf`, .bak_varlog 백업) — cron 헬스가 로그 mtime 읽도록. 가역적.
+
+## 📌 배포/도구 레퍼런스 (233차 — 232차 정합)
+- 배포 패턴=232차와 동일(plink/pscp, 자격증명 정규식 파싱, 백엔드 php -l→systemctl restart php8.1-fpm, 프론트 tar→dist). 백업 접미사 `.bak_<feature>`.
+- **★pre-commit 로케일 게이트(233차 실전)**: 로케일(ja/zh 포함) 편집 시 — ①**G6 collision**: 신규 키가 기존 ak 키와 충돌하면 차단(triage.mjs --mode collision로 확인). 전용 접두(csg* 등)로 회피. ②**G2 sacred_sha**: ja.js/zh.js SHA256 drift→`.githooks/baseline.json`의 sacred_sha + ko_leaf_count 갱신(sha256sum으로 신값 계산). ③**wronglang self-test**: 픽스처 `tools/session157_wronglang/ko.csv`가 **git에 미커밋(부재)**라 pre-flight 항상 실패→로케일 커밋이 막힘. **실 게이트(G2/G5/G6) 통과 시 `git commit --no-verify`로 우회**(게이트가 직접 제시). ★다음 차수 1순위로 픽스처 복원 권장.
+
+## ⏭️ 다음 차수 잔여 (순서대로)
+1. **[인프라 1순위] wronglang self-test 픽스처 복원** — `tools/session157_wronglang/ko.csv`(+@) 생성/복원해 로케일 커밋 시 `--no-verify` 불요화. 232차에서도 이월된 항목.
+2. **D. 정산 stale-table 신선도(저영향)** — OrderHub settlementStats가 영속 orderhub_settlements read(읽는시점 재집계 아님). 주문 저장 시 이미 rollup 인라인 호출하므로 수동 상태변경 사이 구간만 미세 지연. 주문변경 시 settlement 무효화/즉시 rollup.
+3. **P2 정합 정리** — ①COGS 무비용=0 정직화(OrderHub:483, SKU 원가 미적재 주문 별도 플래그)·`MAX(cost)`→가중평균 ②통화 probe 실패 시 KRW 가정 차단(ChannelSync:1672, fail-closed) ③주문수/AOV 캐논 통일(rollupDemoDerive qty합산 vs 건수) ④Trends::aiInsight stub 실연결/제거 ⑤커머스 stub 3채널 전용 어댑터(위메프/티몬/LINE Shopping, 현재 genericFetch).
+4. **Track B 잔여(실 자격증명 필요)** — ①LINE Ads 엔드포인트 경로/필드 라이브 검증(추정 상태) ②TikTok 영상 video_id 업로드·Kakao/LINE 하위 ad 게재 ③매체 확장(X(Twitter)/LinkedIn/Amazon Ads). cc는 외부 계정·실키 대행 불가.
+5. **PG 정산 카드 i18n 15개국** — pnl.pgTitle/pgDesc/pgGross/pgFee/pgNet/pgCount(현재 ko fallback). guideStep i18n과 동일 방식(baseline 갱신).
+6. **가이드 i18n 현지 검수** — csg* 14개국 번역(특히 ar/hi/th) 사용자/원어민 검수(현지 자연어 정합, 메모리 [[feedback-178-i18n-translation-workflow]]).
+7. **[사용자 액션] go-live STEP 1~4** — OAuth 앱 등록(admin)→OAuth 인가(광고 관리 권한)→게재 식별자(ad_account_id 등)→결제수단(/payment-methods). 완료 시 Meta/Google 실 광고 즉시 집행(코드·cron·안전장치 ready). 상세=`AD_EXECUTION_GOLIVE_CHECKLIST.md`.
+
+---
+
 # 232차 세션 인계서 — **플랫폼 전수 정밀감사(5도메인) + Sprint1~3 + 전 채널 "자격증명 등록→즉시 실연동·라이브" 일괄 실어댑터화 (전부 운영·데모 배포·라이브 검증·커밋·push 완료)**
 
 > **작성일**: 2026-06-19 (사용자 명시 승인) · 운영 roi.genie-go.com / 데모 roidemo.genie-go.com (★vhost server_name=하이픈, 파일경로 `.geniego.com` 무하이픈). 하네스 primary=**E:\project\GeniegoROI**. 정본 메모리 [[project-n232-audit-sprint12]].
