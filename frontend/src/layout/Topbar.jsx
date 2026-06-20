@@ -292,7 +292,7 @@ export default function Topbar() {
         {IS_DEMO && (
           <button
             onClick={() => {
-              if (!window.confirm('체험 중 만든 데이터(여정·캠페인·팝업 등)를 모두 초기화하고 기본 데모 상태로 되돌릴까요?\n\n구독 회원으로 전환하면 작업한 데이터가 영구 저장됩니다.')) return;
+              if (!window.confirm(t('topbar.demoResetConfirm', '체험 중 만든 데이터(여정·캠페인·팝업 등)를 모두 초기화하고 기본 데모 상태로 되돌릴까요?\n\n구독 회원으로 전환하면 작업한 데이터가 영구 저장됩니다.'))) return;
               // 데모 누적 콘텐츠 키 제거 (인증·언어·테마는 보존 → 로그인 상태 유지)
               // ① geniego_demo_* = GlobalDataContext 데모 상태(주문/상품/캠페인 등), jb_journeys = 여정,
               //    genie_channel_creds = 데모 채널 creds.
@@ -309,7 +309,7 @@ export default function Topbar() {
               } catch {}
               window.location.reload();
             }}
-            title="🔄 체험 데이터 초기화 · 구독 시 작업 데이터 영구 저장"
+            title={t('topbar.demoResetTitle', '🔄 체험 데이터 초기화 · 구독 시 작업 데이터 영구 저장')}
             style={{
               padding: '2px 10px', borderRadius: 99, fontSize: 9, fontWeight: 800,
               background: 'rgba(251,146,60,0.12)', color: '#fb923c',
@@ -330,10 +330,10 @@ export default function Topbar() {
               background: IS_DEMO ? 'rgba(251,146,60,0.15)' : 'rgba(34,197,94,0.15)',
               color: IS_DEMO ? '#fb923c' : '#22c55e',
               border: `1px solid ${IS_DEMO ? 'rgba(251,146,60,0.35)' : 'rgba(34,197,94,0.35)'}`,
-            }}>{IS_DEMO ? '🎪 데모 환경' : '🏢 운영 환경'}</span>
+            }}>{IS_DEMO ? t('topbar.envDemo', '🎪 데모 환경') : t('topbar.envProd', '🏢 운영 환경')}</span>
             <a
               href={IS_DEMO ? 'https://roi.genie-go.com/admin' : 'https://roidemo.genie-go.com/admin'}
-              title={IS_DEMO ? '운영 시스템(실데이터) 관리로 전환' : '데모(체험) 환경 관리로 전환'}
+              title={IS_DEMO ? t('topbar.switchToProdTitle', '운영 시스템(실데이터) 관리로 전환') : t('topbar.switchToDemoTitle', '데모(체험) 환경 관리로 전환')}
               style={{
                 padding: '2px 10px', borderRadius: 99, fontSize: 9, fontWeight: 800, textDecoration: 'none',
                 background: IS_DEMO ? 'rgba(34,197,94,0.12)' : 'rgba(251,146,60,0.12)',
@@ -341,7 +341,7 @@ export default function Topbar() {
                 border: `1px solid ${IS_DEMO ? 'rgba(34,197,94,0.35)' : 'rgba(251,146,60,0.35)'}`,
                 cursor: 'pointer', whiteSpace: 'nowrap',
               }}
-            >{IS_DEMO ? '🏢 운영 전환 →' : '🎪 데모 전환 →'}</a>
+            >{IS_DEMO ? t('topbar.switchToProd', '🏢 운영 전환 →') : t('topbar.switchToDemo', '🎪 데모 전환 →')}</a>
           </div>
         )}
       </div>

@@ -1633,12 +1633,17 @@ PROMPT;
                 ]);
             } catch (\Throwable $dbEx) { /* silent */ }
 
+            // [233차 감사 P1] AI 폴백 라벨 정직화 — 기존 '전문가 지식 베이스' 는 규칙/벤치마크 폴백을 실 AI 로 오인하게 했다.
+            //   top-level ai 플래그 + 솔직한 note 로 표준화(marketingInsight 패턴 정합, 소비측이 '규칙 기반' 배지 표기 가능).
+            $isAi = $dataSource === 'ai';
             $res->getBody()->write(json_encode([
                 'ok'          => true,
+                'ai'          => $isAi,
                 'result'      => $evalData,
-                'model'       => $dataSource === 'ai' ? self::MODEL : '전문가 지식 베이스',
+                'model'       => $isAi ? self::MODEL : '규칙 기반(벤치마크)',
                 'tokens_used' => $tokens,
                 'data_source' => $dataSource,
+                'note'        => $isAi ? null : 'AI 키 미설정 또는 호출 실패 — 업종 벤치마크 기반 규칙 분석으로 응답했습니다.',
             ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
             return $res->withHeader('Content-Type', 'application/json');
         } catch (\Throwable $e) {

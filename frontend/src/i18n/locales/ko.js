@@ -6006,7 +6006,7 @@ export default {
 
   },
 
-  "topbar": {
+  "topbar": {"demoResetConfirm":"체험 중 만든 데이터(여정·캠페인·팝업 등)를 모두 초기화하고 기본 데모 상태로 되돌릴까요?\n\n구독 회원으로 전환하면 작업한 데이터가 영구 저장됩니다.","demoResetTitle":"🔄 체험 데이터 초기화 · 구독 시 작업 데이터 영구 저장","envDemo":"🎪 데모 환경","envProd":"🏢 운영 환경","switchToProdTitle":"운영 시스템(실데이터) 관리로 전환","switchToDemoTitle":"데모(체험) 환경 관리로 전환","switchToProd":"🏢 운영 전환 →","switchToDemo":"🎪 데모 전환 →",
 
     "pg": {
 
