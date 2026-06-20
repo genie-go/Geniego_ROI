@@ -1828,6 +1828,10 @@ export function GlobalDataProvider({ children }) {
                 const item = inventory.find(i => i.sku === o.sku);
                 return s + (item ? item.cost * o.qty : 0);
             }, 0);
+        // [233차 P2 정직] 원가 미등록 주문수량 — 서버 COGS(WAC)는 원가 등록 SKU 만 집계하므로, 미등록분이 있으면
+        //   COGS 과소·이익 과대 착시가 생긴다. 그 규모를 그대로 노출해 사용자가 "원가 등록분 기준" 임을 인지하게 한다.
+        const cogsUncostedUnits = (!_isDemo && orderStatsServer && orderStatsServer.ok)
+            ? (Number(orderStatsServer.cogs_uncosted_units) || 0) : 0;
 
         // Ad Spend: BudgetPlanner spent 합계 (Channel별 Ad Spend 집행액)
         const adSpend = budgetStats.totalSpent;
@@ -1860,7 +1864,7 @@ export function GlobalDataProvider({ children }) {
             : operatingProfit;
 
         return {
-            revenue, cogs, grossProfit,
+            revenue, cogs, grossProfit, cogsUncostedUnits,
             adSpend, platformFee, couponDiscount, returnFee, shippingCost,
             operatingProfit, netProfit, netPayout,
             margin: revenue > 0 ? (operatingProfit / revenue * 100).toFixed(1) : '0',

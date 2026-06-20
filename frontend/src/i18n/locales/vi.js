@@ -8462,7 +8462,7 @@ export default {
       "title": "Trung tâm influencer",
       "sub": "Quản lý người có ảnh hưởng"
     },
-    "pnl": {"pgTitle":"Đối soát cổng thanh toán (PG)","pgDesc":"Số tiền thực nhận qua cổng thanh toán (Stripe, Toss, PayPal, v.v.) — tách biệt với tổng doanh thu (theo cơ sở tiền mặt thực nhận; tránh tính trùng).","pgGross":"Tổng thanh toán PG","pgFee":"Phí PG","pgNet":"Thực nhận PG","pgCount":"Số giao dịch PG",
+    "pnl": {"cogsUncosted":"chưa có giá vốn","pgTitle":"Đối soát cổng thanh toán (PG)","pgDesc":"Số tiền thực nhận qua cổng thanh toán (Stripe, Toss, PayPal, v.v.) — tách biệt với tổng doanh thu (theo cơ sở tiền mặt thực nhận; tránh tính trùng).","pgGross":"Tổng thanh toán PG","pgFee":"Phí PG","pgNet":"Thực nhận PG","pgCount":"Số giao dịch PG",
       "title": "P&L Dashboard",
       "sub": "Phân tích lợi nhuận và thua lỗ"
     },

@@ -9963,7 +9963,7 @@ export default {
     "downloadReport": "下载报告",
     "noData": "无数据"
   },
-  "pnl": {"pgTitle":"支付网关(PG)结算","pgDesc":"通过支付网关（Stripe·Toss·PayPal 等）实际收到的金额 — 与销售额合计分开（按销售款现金收讫口径，防止重复计算）。","pgGross":"PG 支付总额","pgFee":"PG 手续费","pgNet":"PG 实收净额","pgCount":"PG 交易笔数",
+  "pnl": {"cogsUncosted":"未设成本","pgTitle":"支付网关(PG)结算","pgDesc":"通过支付网关（Stripe·Toss·PayPal 等）实际收到的金额 — 与销售额合计分开（按销售款现金收讫口径，防止重复计算）。","pgGross":"PG 支付总额","pgFee":"PG 手续费","pgNet":"PG 实收净额","pgCount":"PG 交易笔数",
     "title": "损益仪表板",
     "subtitle": "盈亏分析 · 成本结构 · 利润优化",
     "tabSummary": "总结",

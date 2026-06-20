@@ -19441,7 +19441,7 @@ export default {
 
   },
 
-  "pnl": {"pgTitle":"결제대행(PG) 정산","pgDesc":"결제대행(Stripe·Toss·PayPal 등)으로 실제 수령한 금액 — ★매출 합계와는 별도(판매 대금의 현금 수령 기준, 이중계산 방지).","pgGross":"PG 결제총액","pgFee":"PG 수수료","pgNet":"PG 실수령액","pgCount":"PG 거래건수",
+  "pnl": {"cogsUncosted":"원가 미등록","pgTitle":"결제대행(PG) 정산","pgDesc":"결제대행(Stripe·Toss·PayPal 등)으로 실제 수령한 금액 — ★매출 합계와는 별도(판매 대금의 현금 수령 기준, 이중계산 방지).","pgGross":"PG 결제총액","pgFee":"PG 수수료","pgNet":"PG 실수령액","pgCount":"PG 거래건수",
 
     "title": "P&L 대시보드",
 

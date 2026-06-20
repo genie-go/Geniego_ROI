@@ -9569,7 +9569,7 @@ export default {
       downloadReport: "Download Report",
       noData: "No data"
     },
-  pnl: {"pgTitle":"Liquidación de pasarela de pago (PG)","pgDesc":"Importe realmente recibido a través de pasarelas de pago (Stripe, Toss, PayPal, etc.) — independiente de los ingresos totales (base de efectivo recibido; evita la doble contabilización).","pgGross":"Importe bruto PG","pgFee":"Comisión PG","pgNet":"Neto recibido PG","pgCount":"Transacciones PG",
+  pnl: {"cogsUncosted":"sin costo registrado","pgTitle":"Liquidación de pasarela de pago (PG)","pgDesc":"Importe realmente recibido a través de pasarelas de pago (Stripe, Toss, PayPal, etc.) — independiente de los ingresos totales (base de efectivo recibido; evita la doble contabilización).","pgGross":"Importe bruto PG","pgFee":"Comisión PG","pgNet":"Neto recibido PG","pgCount":"Transacciones PG",
       title: "Dashboard de P&L",
       subtitle: "Análisis de pérdidas y ganancias · Estructura de costes · Optimización de márgenes",
       tabSummary: "Resumen",

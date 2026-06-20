@@ -9833,7 +9833,7 @@ export default {
       downloadReport: "Download Report",
       noData: "No data"
     },
-  pnl: {"pgTitle":"पेमेंट गेटवे (PG) निपटान","pgDesc":"पेमेंट गेटवे (Stripe, Toss, PayPal आदि) से वास्तव में प्राप्त राशि — कुल राजस्व से अलग (नकद-प्राप्ति आधार; दोहरी गणना रोकता है)।","pgGross":"PG कुल भुगतान","pgFee":"PG शुल्क","pgNet":"PG शुद्ध प्राप्ति","pgCount":"PG लेनदेन",
+  pnl: {"cogsUncosted":"लागत दर्ज नहीं","pgTitle":"पेमेंट गेटवे (PG) निपटान","pgDesc":"पेमेंट गेटवे (Stripe, Toss, PayPal आदि) से वास्तव में प्राप्त राशि — कुल राजस्व से अलग (नकद-प्राप्ति आधार; दोहरी गणना रोकता है)।","pgGross":"PG कुल भुगतान","pgFee":"PG शुल्क","pgNet":"PG शुद्ध प्राप्ति","pgCount":"PG लेनदेन",
       title: "P&L डैशबोर्ड",
       subtitle: "लाभ-हानि विश्लेषण · लागत संरचना · मार्जिन अनुकूलन",
       tabSummary: "सारांश",

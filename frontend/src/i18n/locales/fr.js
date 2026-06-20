@@ -9569,7 +9569,7 @@ export default {
       downloadReport: "Download Report",
       noData: "No data"
     },
-  pnl: {"pgTitle":"Règlement de la passerelle de paiement (PG)","pgDesc":"Montant réellement reçu via les passerelles de paiement (Stripe, Toss, PayPal, etc.) — distinct du chiffre d’affaires total (base d’encaissement ; évite le double comptage).","pgGross":"Montant brut PG","pgFee":"Frais PG","pgNet":"Net reçu PG","pgCount":"Transactions PG",
+  pnl: {"cogsUncosted":"coût non défini","pgTitle":"Règlement de la passerelle de paiement (PG)","pgDesc":"Montant réellement reçu via les passerelles de paiement (Stripe, Toss, PayPal, etc.) — distinct du chiffre d’affaires total (base d’encaissement ; évite le double comptage).","pgGross":"Montant brut PG","pgFee":"Frais PG","pgNet":"Net reçu PG","pgCount":"Transactions PG",
       title: "Tableau de bord P&L",
       subtitle: "Analyse des résultats · Structure de coûts · Optimisation des marges",
       tabSummary: "Synthèse",

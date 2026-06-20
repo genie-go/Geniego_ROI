@@ -210,7 +210,9 @@ function OverviewTab({ live, pgSum, t, fmt, dateRange }) {
                 <KpiCard label={t('pnl.kpiRevenue')} value={fmt(live.grossRevenue)} color={ACCENT} icon="💰" />
                 <KpiCard label={t('pnl.kpiAdSpend')} value={fmt(live.adSpend)} color="#f97316" icon="📣" sub={pct(live.adSpend, live.grossRevenue)} />
                 <KpiCard label={t('pnl.kpiPlatformFee')} value={fmt(live.platformFee)} color={RED} icon="🏪" sub={pct(live.platformFee, live.grossRevenue)} />
-                <KpiCard label={t('pnl.kpiCogs')} value={fmt(live.cogs)} color="#a855f7" icon="📦" />
+                <KpiCard label={t('pnl.kpiCogs')} value={fmt(live.cogs)} color="#a855f7" icon="📦"
+                    sub={live.cogsUncostedUnits > 0 ? '⚠ ' + t('pnl.cogsUncosted', '원가 미등록') + ' ' + Number(live.cogsUncostedUnits).toLocaleString() : undefined}
+                    alert={live.cogsUncostedUnits > 0} />
                 <KpiCard label={t('pnl.kpiShipping', '배송비')} value={fmt(live.shippingCost)} color="#14b8a6" icon="🚚" sub={pct(live.shippingCost, live.grossRevenue)} />
                 <KpiCard label={t('pnl.kpiNetPayout')} value={fmt(live.netPayout)} color={GREEN} icon="✅" />
                 <KpiCard label={t('pnl.kpiOperatingProfit')} value={fmt(live.operatingProfit)} color={live.operatingProfit >= 0 ? GREEN : RED} icon="📊"
