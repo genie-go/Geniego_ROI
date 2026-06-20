@@ -9153,7 +9153,7 @@ export default {
       downloadReport: "Bericht herunterladen",
       noData: "Keine Daten"
     },
-  pnl: {
+  pnl: {"pgTitle":"Payment-Gateway-(PG-)Abrechnung","pgDesc":"Tatsächlich über Payment-Gateways (Stripe, Toss, PayPal usw.) erhaltener Betrag – getrennt vom Gesamtumsatz (Basis: Zahlungseingang; verhindert Doppelzählung).","pgGross":"PG-Bruttobetrag","pgFee":"PG-Gebühr","pgNet":"PG-Nettoeingang","pgCount":"PG-Transaktionen",
       title: "P&L-Dashboard",
       subtitle: "Gewinn- und Verlustanalyse · Kostenstruktur · Margenoptimierung",
       tabSummary: "Übersicht",

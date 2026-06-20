@@ -9398,7 +9398,7 @@ export default {
       downloadReport: "Download Report",
       noData: "No data"
     },
-  pnl: {
+  pnl: {"pgTitle":"Payment Gateway (PG) Settlement","pgDesc":"Amount actually received via payment gateways (Stripe, Toss, PayPal, etc.) — separate from total revenue (cash-receipt basis; prevents double counting).","pgGross":"PG Gross Amount","pgFee":"PG Fee","pgNet":"PG Net Received","pgCount":"PG Transactions",
       title: "P&L Dashboard",
       subtitle: "Profit & Loss analysis · Cost structure · Margin optimization",
       tabSummary: "Summary",

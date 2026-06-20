@@ -9292,7 +9292,7 @@ export default {
     "downloadReport": "レポートダウンロード",
     "noData": "データなし"
   },
-  "pnl": {
+  "pnl": {"pgTitle":"決済代行（PG）精算","pgDesc":"決済代行（Stripe・Toss・PayPal 等）で実際に受領した金額 — 売上合計とは別（販売代金の現金受領基準、二重計上防止）。","pgGross":"PG 決済総額","pgFee":"PG 手数料","pgNet":"PG 実受領額","pgCount":"PG 取引件数",
     "title": "P&Lダッシュボード",
     "subtitle": "損益分析 · コスト構造 · マージン最適化",
     "tabSummary": "サマリー",

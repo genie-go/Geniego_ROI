@@ -9833,7 +9833,7 @@ export default {
       downloadReport: "Download Report",
       noData: "No data"
     },
-  pnl: {
+  pnl: {"pgTitle":"Liquidação do gateway de pagamento (PG)","pgDesc":"Valor efetivamente recebido via gateways de pagamento (Stripe, Toss, PayPal, etc.) — separado da receita total (base de caixa recebido; evita dupla contagem).","pgGross":"Valor bruto PG","pgFee":"Taxa PG","pgNet":"Líquido recebido PG","pgCount":"Transações PG",
       title: "Dashboard de P&L",
       subtitle: "Análise de lucros e perdas · Estrutura de custos · Otimização de margem",
       tabSummary: "Resumo",

@@ -7012,7 +7012,7 @@ export default {
     "guideTip4": "將 AI 推薦佣金作為談判基準。",
     "guideTip5": "向內容歸因高的管道再投資。",
     },
-  pnl: {
+  pnl: {"pgTitle":"金流閘道(PG)結算","pgDesc":"透過金流閘道（Stripe·Toss·PayPal 等）實際收到的金額 — 與銷售額合計分開（依銷售款現金收訖口徑，防止重複計算）。","pgGross":"PG 支付總額","pgFee":"PG 手續費","pgNet":"PG 實收淨額","pgCount":"PG 交易筆數",
       title: "P&L儀表板",
       grossRevenue: "總收入",
       netRevenue: "淨收入",

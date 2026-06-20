@@ -4037,7 +4037,7 @@ export default {
       "title": "Hub Influencer",
       "sub": "Manajemen Influencer"
     },
-    "pnl": {
+    "pnl": {"pgTitle":"Penyelesaian Payment Gateway (PG)","pgDesc":"Jumlah yang benar-benar diterima melalui payment gateway (Stripe, Toss, PayPal, dll.) — terpisah dari total pendapatan (basis kas diterima; mencegah penghitungan ganda).","pgGross":"Total Pembayaran PG","pgFee":"Biaya PG","pgNet":"Penerimaan Bersih PG","pgCount":"Transaksi PG",
       "title": "P&L Dashboard",
       "sub": "Analisis Laba Rugi"
     },
