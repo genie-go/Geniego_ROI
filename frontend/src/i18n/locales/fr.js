@@ -15170,7 +15170,7 @@ export default {
 
 
   // 177차 PM 4.E TOP 1 본체: ApiKeys 재설계 ak namespace (last-key-wins, English fallback)
-  ak: {
+  ak: {"csgTitle":"Connectez-vous en 3 étapes : enregistrez les identifiants et c’est lancé","csgStep1":"Générez votre clé (identifiants) dans la console du fournisseur","csgStep1Oauth":"Générez une clé dans la console (ou connectez-vous via OAuth en un clic)","csgStep1Desc":"Ouvrez la console avec le bouton ci-dessous et suivez le manuel pour obtenir votre clé.","csgStep2":"Collez les valeurs obtenues dans les champs ci-dessous et enregistrez","csgStep2Desc":"Remplissez tous les champs requis (✗ non enregistré). Les valeurs sont chiffrées en AES-256-GCM.","csgStep3":"Se connecte et s’exécute automatiquement dès l’enregistrement","csgStep3Live":"À l’enregistrement, la clé est vérifiée via l’API réelle du canal ; une fois validée, la collecte et la synchronisation démarrent immédiatement. Aucune autre étape.","csgStep3Std":"La synchronisation automatique démarre à l’enregistrement et apparaît aussitôt dans les tableaux de bord, la facturation et les fonctions associées.","csgAdBilling":"Pour les canaux publicitaires, la collecte des performances et l’auto-optimisation fonctionnent dès l’enregistrement. Pour activer les annonces (dépense réelle), un moyen de paiement est requis — ","csgAdBillingLink":"Ajouter un moyen de paiement →",
     "tabTracking": "Suivi",
     "trkHint": "Sélectionnez un transporteur et saisissez un numéro de suivi pour consulter l'état de livraison en temps réel. Enregistrez d'abord la clé de suivi unifiée (SmartTracker) pour les transporteurs nationaux, ou la clé d'API DHL pour DHL, dans l'onglet [Enregistrer].",
     "trkTotal": "Total",

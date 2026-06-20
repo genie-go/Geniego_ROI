@@ -17055,7 +17055,7 @@ export default {
 
 
   // 177차 PM 4.E TOP 1 본체: ApiKeys 재설계 ak namespace (last-key-wins, English fallback)
-  ak: {
+  ak: {"csgTitle":"Chỉ 3 bước để kết nối — đăng ký thông tin xác thực là chạy ngay","csgStep1":"Cấp khóa (thông tin xác thực) trong bảng điều khiển nhà cung cấp","csgStep1Oauth":"Cấp khóa trong bảng điều khiển (hoặc kết nối OAuth chỉ một lần nhấp)","csgStep1Desc":"Mở bảng điều khiển bằng nút bên dưới và làm theo hướng dẫn để lấy khóa.","csgStep2":"Dán các giá trị đã cấp vào ô bên dưới và lưu","csgStep2Desc":"Điền tất cả mục bắt buộc (✗ chưa đăng ký). Giá trị được mã hóa AES-256-GCM.","csgStep3":"Tự động kết nối và chạy ngay khi bạn lưu","csgStep3Live":"Khi lưu, khóa được xác minh với API kênh thực; khi đạt, việc thu thập và đồng bộ dữ liệu bắt đầu ngay. Không cần thao tác thêm.","csgStep3Std":"Đồng bộ tự động bắt đầu khi lưu và phản ánh ngay vào bảng điều khiển, đối soát và các tính năng liên quan.","csgAdBilling":"Với kênh quảng cáo, việc thu thập hiệu suất và tối ưu tự động hoạt động ngay sau khi đăng ký. Để bật quảng cáo (chi tiêu thật) cần có phương thức thanh toán — ","csgAdBillingLink":"Đăng ký phương thức thanh toán →",
     "tabTracking": "Theo dõi giao hàng",
     "trkHint": "Chọn đơn vị vận chuyển và nhập mã vận đơn để kiểm tra trạng thái giao hàng theo thời gian thực. Hãy đăng ký khóa theo dõi hợp nhất (SmartTracker) cho vận chuyển nội địa, hoặc khóa DHL API cho DHL, trong tab [Đăng ký] trước.",
     "trkTotal": "Tổng cộng",

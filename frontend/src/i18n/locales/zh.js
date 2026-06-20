@@ -14807,7 +14807,7 @@ export default {
 
 
   // 177차 PM 4.E TOP 1 본체: ApiKeys 재설계 ak namespace (last-key-wins, English fallback)
-  ak: {
+  ak: {"csgTitle":"只需3步即可完成对接 — 注册凭证后立即运行","csgStep1":"在发放控制台中签发密钥（凭证）","csgStep1Oauth":"在控制台签发密钥（或通过OAuth一键连接）","csgStep1Desc":"用下方按钮打开发放控制台，按照手册签发密钥。","csgStep2":"将签发的值粘贴到下方字段并保存","csgStep2Desc":"请填写所有必填项（✗未注册）。值以AES-256-GCM加密存储。","csgStep3":"保存即自动对接并运行","csgStep3Live":"保存时即用真实渠道API验证密钥，通过后立即开始数据采集与同步，无需额外操作。","csgStep3Std":"保存即开始自动同步，立即反映到仪表盘、结算等相关功能。","csgAdBilling":"广告渠道在注册凭证后即可进行成效采集与自动优化。要开启广告（实际投放）需先登记支付方式 — ","csgAdBillingLink":"登记支付方式 →",
     "tabTracking": "配送追踪",
     "trkHint": "选择快递公司并输入运单号即可实时查询配送状态。国内快递请先在[注册]标签页登记统一追踪密钥（智能追踪），DHL 请登记 DHL API 密钥。",
     "trkTotal": "全部",

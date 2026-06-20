@@ -15049,7 +15049,7 @@ export default {
 
 
   // 177차 PM 4.E TOP 1 본체: ApiKeys 재설계 ak namespace (last-key-wins, English fallback)
-  ak: {
+  ak: {"csgTitle":"Just 3 steps to connect — register your credentials and it runs right away","csgStep1":"Issue your key (credentials) in the provider console","csgStep1Oauth":"Issue a key in the console (or connect via OAuth in one click)","csgStep1Desc":"Open the issuance console with the button below and follow the manual to get your key.","csgStep2":"Paste the issued values into the fields below and save","csgStep2Desc":"Fill in all required (✗ not registered) items. Values are stored AES-256-GCM encrypted.","csgStep3":"Auto-connects and runs the moment you save","csgStep3Live":"On save, the key is verified against the live channel API; once it passes, data collection and sync begin immediately. No further steps needed.","csgStep3Std":"Auto-sync begins on save and is reflected immediately in dashboards, settlement and related features.","csgAdBilling":"For ad channels, performance collection and auto-optimization work right after you register credentials. To turn ads ON (live spend), a payment method is required — ","csgAdBillingLink":"Register payment method →",
     "tabTracking": "Tracking",
     "trkHint": "Select a carrier and enter a tracking number to check delivery status in real time. Register the unified tracking key (SmartTracker) for domestic carriers, or the DHL API key for DHL, in the [Register] tab first.",
     "trkTotal": "Total",

@@ -15392,7 +15392,7 @@ export default {
 
 
   // 177차 PM 4.E TOP 1 본체: ApiKeys 재설계 ak namespace (last-key-wins, English fallback)
-  ak: {
+  ak: {"csgTitle":"Hanya 3 langkah untuk terhubung — daftarkan kredensial dan langsung berjalan","csgStep1":"Terbitkan kunci (kredensial) di konsol penyedia","csgStep1Oauth":"Terbitkan kunci di konsol (atau hubungkan via OAuth sekali klik)","csgStep1Desc":"Buka konsol penerbitan dengan tombol di bawah dan ikuti panduan untuk mendapatkan kunci.","csgStep2":"Tempel nilai yang diterbitkan ke kolom di bawah lalu simpan","csgStep2Desc":"Isi semua item wajib (✗ belum terdaftar). Nilai disimpan terenkripsi AES-256-GCM.","csgStep3":"Otomatis terhubung dan berjalan begitu Anda simpan","csgStep3Live":"Saat disimpan, kunci diverifikasi ke API kanal langsung; setelah lolos, pengumpulan dan sinkronisasi data langsung dimulai. Tanpa langkah tambahan.","csgStep3Std":"Sinkronisasi otomatis dimulai saat disimpan dan langsung tampil di dasbor, penyelesaian, dan fitur terkait.","csgAdBilling":"Untuk kanal iklan, pengumpulan kinerja dan optimasi otomatis langsung bekerja setelah kredensial terdaftar. Untuk mengaktifkan iklan (belanja nyata) diperlukan metode pembayaran — ","csgAdBillingLink":"Daftarkan metode pembayaran →",
     "tabTracking": "Lacak Pengiriman",
     "trkHint": "Pilih kurir dan masukkan nomor resi untuk memeriksa status pengiriman secara real-time. Daftarkan kunci pelacakan terpadu (SmartTracker) untuk kurir domestik, atau kunci DHL API untuk DHL, di tab [Daftar] terlebih dahulu.",
     "trkTotal": "Total",

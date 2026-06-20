@@ -15170,7 +15170,7 @@ export default {
 
 
   // 177차 PM 4.E TOP 1 본체: ApiKeys 재설계 ak namespace (last-key-wins, English fallback)
-  ak: {
+  ak: {"csgTitle":"Conéctate en solo 3 pasos: registra las credenciales y funciona al instante","csgStep1":"Genera tu clave (credenciales) en la consola del proveedor","csgStep1Oauth":"Genera una clave en la consola (o conéctate con OAuth en un clic)","csgStep1Desc":"Abre la consola con el botón de abajo y sigue el manual para obtener tu clave.","csgStep2":"Pega los valores emitidos en los campos de abajo y guarda","csgStep2Desc":"Completa todos los campos obligatorios (✗ no registrado). Los valores se guardan cifrados con AES-256-GCM.","csgStep3":"Se conecta y funciona automáticamente al guardar","csgStep3Live":"Al guardar, la clave se verifica con la API real del canal; al pasar, la recolección y sincronización empiezan de inmediato. Sin pasos adicionales.","csgStep3Std":"La sincronización automática comienza al guardar y se refleja de inmediato en paneles, liquidación y funciones relacionadas.","csgAdBilling":"En canales de anuncios, la recolección de rendimiento y la auto-optimización funcionan al registrar credenciales. Para activar anuncios (gasto real) se requiere un método de pago — ","csgAdBillingLink":"Registrar método de pago →",
     "tabTracking": "Seguimiento",
     "trkHint": "Seleccione un transportista e introduzca un número de seguimiento para consultar el estado de entrega en tiempo real. Registre primero la clave de seguimiento unificada (SmartTracker) para transportistas nacionales, o la clave de la API de DHL para DHL, en la pestaña [Registrar].",
     "trkTotal": "Total",

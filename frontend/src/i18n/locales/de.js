@@ -15172,7 +15172,7 @@ export default {
 
 
   // 177차 PM 4.E TOP 1 본체: ApiKeys 재설계 ak namespace (last-key-wins, English fallback)
-  ak: {
+  ak: {"csgTitle":"In nur 3 Schritten verbunden – Zugangsdaten eingeben und es läuft sofort","csgStep1":"Schlüssel (Zugangsdaten) in der Anbieter-Konsole erstellen","csgStep1Oauth":"Schlüssel in der Konsole erstellen (oder per OAuth mit einem Klick verbinden)","csgStep1Desc":"Öffnen Sie die Konsole über die Schaltfläche unten und folgen Sie der Anleitung zur Schlüsselerstellung.","csgStep2":"Fügen Sie die erhaltenen Werte unten ein und speichern Sie","csgStep2Desc":"Füllen Sie alle Pflichtfelder (✗ nicht registriert) aus. Werte werden AES-256-GCM-verschlüsselt gespeichert.","csgStep3":"Verbindet und läuft automatisch sofort nach dem Speichern","csgStep3Live":"Beim Speichern wird der Schlüssel über die Live-API geprüft; nach Erfolg starten Datenerfassung und Sync sofort. Keine weiteren Schritte nötig.","csgStep3Std":"Beim Speichern startet die Auto-Synchronisierung und wird sofort in Dashboards, Abrechnung und zugehörigen Funktionen sichtbar.","csgAdBilling":"Bei Werbekanälen funktionieren Leistungserfassung und Auto-Optimierung direkt nach der Registrierung. Um Anzeigen zu aktivieren (echtes Budget), ist eine Zahlungsmethode nötig — ","csgAdBillingLink":"Zahlungsmethode hinzufügen →",
     "tabTracking": "Sendungsverfolgung",
     "trkHint": "Wählen Sie einen Versanddienstleister und geben Sie eine Sendungsnummer ein, um den Lieferstatus in Echtzeit abzufragen. Registrieren Sie zuerst den einheitlichen Tracking-Schlüssel (SmartTracker) für inländische Dienste bzw. den DHL-API-Schlüssel für DHL im Tab [Registrieren].",
     "trkTotal": "Gesamt",
