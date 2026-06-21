@@ -1782,6 +1782,10 @@ final class ChannelSync
             case '11st': case 'st11':      return self::elevenStWrite($creds, $product, $operation, $channelProductId);
             case 'gmarket': case 'auction': return self::esmWrite($ch, $creds, $product, $operation, $channelProductId);
             case 'lotteon':                return self::lotteonWrite($creds, $product, $operation, $channelProductId);
+            // [현 차수] 글로벌 표준 REST 2종 write 보강 — fetch 인증 재사용. (walmart 피드·shopee/lazada HMAC·
+            //   qoo10/yahoo_jp/godomall 은 write API 복잡/피드기반이라 추정구현 위험 → honest pending 유지.)
+            case 'woocommerce':            return self::woocommerceWrite($creds, $product, $operation, $channelProductId);
+            case 'magento':                return self::magentoWrite($creds, $product, $operation, $channelProductId);
             default:                       return ['ok' => false, 'pending' => true, 'error' => 'write_adapter_pending:' . $ch];
         }
     }
@@ -1886,6 +1890,53 @@ final class ChannelSync
         [$c, $b] = self::httpReq('PUT', $url, $hdr, $body);
         if ($c >= 200 && $c < 300) return ['ok' => true, 'channel_product_id' => $sku, 'note' => 'inventory_item 등록 완료 — 판매 노출(offer)은 카테고리·정책 ID 필요'];
         return ['ok' => false, 'error' => "eBay HTTP {$c}", 'detail' => mb_substr(json_encode($b['errors'] ?? $b, JSON_UNESCAPED_UNICODE), 0, 200)];
+    }
+
+    /** [현 차수] WooCommerce REST v3 상품 등록/수정/내림 — woocommerceFetch 와 동일 인증(consumer key/secret).
+     *   표준 REST(simple product). 자격증명 미등록/실패 시 graceful 에러(상위 awaiting_credentials 보류). */
+    private static function woocommerceWrite(array $creds, array $p, string $op, ?string $cpid): array
+    {
+        $site = rtrim(trim((string)($creds['site_url'] ?? '')), '/');
+        $ck = trim((string)($creds['consumer_key'] ?? '')); $cs = trim((string)($creds['consumer_secret'] ?? ''));
+        if ($site === '' || $ck === '' || $cs === '') return ['ok' => false, 'error' => 'WooCommerce: site_url·consumer_key·consumer_secret 필요'];
+        if (!str_starts_with($site, 'http')) $site = 'https://' . $site;
+        $auth = 'consumer_key=' . rawurlencode($ck) . '&consumer_secret=' . rawurlencode($cs);
+        $unreg = ($op === 'unregister' || ($p['action'] ?? '') === 'unregister');
+        $payload = json_encode([
+            'name' => (string)($p['name'] ?? $p['sku'] ?? ''), 'type' => 'simple',
+            'regular_price' => (string)(float)($p['price'] ?? 0), 'description' => (string)($p['spec'] ?? ''),
+            'sku' => (string)($p['sku'] ?? ''), 'manage_stock' => true, 'stock_quantity' => (int)($p['inventory'] ?? 0),
+            'status' => $unreg ? 'draft' : 'publish',
+        ], JSON_UNESCAPED_UNICODE);
+        $hdr = ['Content-Type' => 'application/json'];
+        if ($cpid !== null) { [$c, $b] = self::httpReq('PUT', "{$site}/wp-json/wc/v3/products/{$cpid}?{$auth}", $hdr, $payload); }
+        else { [$c, $b] = self::httpPost("{$site}/wp-json/wc/v3/products?{$auth}", $hdr, $payload); }
+        if ($c >= 200 && $c < 300 && isset($b['id'])) return ['ok' => true, 'channel_product_id' => (string)$b['id']];
+        return ['ok' => false, 'error' => "WooCommerce HTTP {$c}", 'detail' => mb_substr(json_encode($b['message'] ?? $b, JSON_UNESCAPED_UNICODE), 0, 200)];
+    }
+
+    /** [현 차수] Magento/Adobe Commerce REST V1 상품 등록/수정/삭제 — magentoFetch 와 동일 인증(Bearer integration token).
+     *   SKU 키 멱등(POST=upsert). attribute_set_id 기본 4(Default). 자격증명/SKU 미비 시 graceful 에러. */
+    private static function magentoWrite(array $creds, array $p, string $op, ?string $cpid): array
+    {
+        $base = rtrim(trim((string)($creds['base_url'] ?? '')), '/'); $tok = trim((string)($creds['access_token'] ?? ''));
+        if ($base === '' || $tok === '') return ['ok' => false, 'error' => 'Magento: base_url·access_token 필요'];
+        if (!str_starts_with($base, 'http')) $base = 'https://' . $base;
+        $sku = (string)($p['sku'] ?? '');
+        if ($sku === '') return ['ok' => false, 'error' => 'Magento 등록은 SKU 가 필요합니다(상품 키)'];
+        $hdr = ['Authorization' => 'Bearer ' . $tok, 'Content-Type' => 'application/json', 'Accept' => 'application/json'];
+        if ($op === 'unregister' || ($p['action'] ?? '') === 'unregister') {
+            [$c] = self::httpReq('DELETE', "{$base}/rest/V1/products/" . rawurlencode($sku), $hdr, null);
+            return ($c >= 200 && $c < 300) ? ['ok' => true, 'deleted' => $sku] : ['ok' => false, 'error' => "Magento DELETE HTTP {$c}"];
+        }
+        $payload = json_encode(['product' => [
+            'sku' => $sku, 'name' => (string)($p['name'] ?? $sku), 'price' => (float)($p['price'] ?? 0),
+            'status' => 1, 'type_id' => 'simple', 'attribute_set_id' => (int)($p['attribute_set_id'] ?? 4), 'weight' => 1,
+            'extension_attributes' => ['stock_item' => ['qty' => (int)($p['inventory'] ?? 0), 'is_in_stock' => true]],
+        ]], JSON_UNESCAPED_UNICODE);
+        [$c, $b] = self::httpPost("{$base}/rest/V1/products", $hdr, $payload); // SKU 키 upsert(POST)
+        if ($c >= 200 && $c < 300 && isset($b['sku'])) return ['ok' => true, 'channel_product_id' => (string)($b['id'] ?? $b['sku'])];
+        return ['ok' => false, 'error' => "Magento HTTP {$c}", 'detail' => mb_substr(json_encode($b['message'] ?? $b, JSON_UNESCAPED_UNICODE), 0, 200)];
     }
 
     /** [228차] Amazon SP-API Listings Items 등록/수정 — LWA access_token, SKU 키 멱등 PUT. ★productType(category_code)·seller_id 필요.
