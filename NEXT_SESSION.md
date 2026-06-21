@@ -1,3 +1,42 @@
+# 234차 세션 인계서 — **모바일 환경 종합 초고도화: 우측잘림/스크롤/온보딩/폰트·박스 균형 전수 수정 (전부 운영·데모 배포·헤드리스 검증·커밋·push 완료)**
+
+> **작성일**: 2026-06-21 (사용자 명시 승인) · 운영 roi.genie-go.com / 데모 roidemo.genie-go.com (★vhost server_name=하이픈, 파일경로 `.geniego.com` 무하이픈). 하네스 primary=**E:\project\GeniegoROI**.
+> **종결 상태**: origin/master=`7f6afaa7a54` push 완료. 운영/데모 프론트 동반 배포(tar→pscp→extract→chown www:www→nginx reload)·헤드리스 검증 완료. SSH/MySQL/admin 자격증명 = 메모리 [[reference-session-credentials]]. **캐시버스트 v6.2.0**(index.html `var v`). 모바일 발견·수정 정본 = 메모리 [[reference-mobile-column-flex-wrap-trap]].
+
+## ✅ 234차 — 모바일 전수 수정 (사용자 예시 기반 반복 정밀화, 전 수정 `@media(max-width:768px)` 한정 → 데스크톱 CSS 무변경)
+
+| 커밋 | 핵심 |
+|---|---|
+| `0fdddf1684a` | 종합대시보드 등 **콘텐츠 패널 우측잘림**: 고정 grid(`1.4fr 1fr 0.8fr`·`1fr 1fr`)가 모바일서 다중컬럼 유지→`.container>div:last-child [display:grid]:not([minmax]){grid-template-columns:1fr}` 1컬럼 적층 |
+| `a92130c6494` | **우측잘림 진짜 근본**: `flex-direction:column` 컨테이너에 flex-wrap:wrap 먹으면 자식이 옆컬럼 wrap→off-screen(worstRight 1031). mobile.css·styles.css wrap규칙 `:not([column])` + 세로flex `flex-wrap:nowrap` catch-all |
+| `d6aca87cf63` | **온보딩 모바일 재설계**(상단배너 미렌더→하단 내비형 나침반 FAB+바텀시트, `createPortal(body)`+최상위 z로 데모 하단배너 위 클릭보장) + **표 per-char(1글자세로) 근본**: `overflow-wrap:anywhere`가 td/th에 걸림→`break-word`+`keep-all` + **Top SKU SKU/상품명 2줄 클램프** |
+| `a300fd944df` | 메뉴 콘텐츠 무스크롤: Dashboard 부모 overflow mutate effect **모바일 가드** + `.app-scroll-wrap`(메인 래퍼) `overflow-y:auto!important` 보장 |
+| `6116ed1ef0f` | **스크롤박스 전체화면화**: 페이지 자체스크롤(`.fade-up` flex:1 내부스크롤존)이 작은 박스(188px)에 콘텐츠 가둠→`overflow:visible`(★양축 필수—한축 hidden이면 visible이 auto로 강제계산) + 라우트루트 unconstrain + **네이티브 헤더/탭**(`.sub-tab-nav>div` flex-wrap:nowrap 가로스크롤, specificity 0,3,1로 wrap안전망 이김) + 히어로 부제 숨김 |
+| `2c2e0254be9` | 클래스없는 인라인 `flex:1 1 0%`+`overflow-y:auto`/`overflow:hidden auto` 스크롤존도 해제(budget-tracker·omni-channel 등 19→1). 전메뉴 전체화면 스크롤 |
+| `dae3e5dac39` | **폰트 일관화**: 인라인 아웃라이어(8·9·11.5·15·19px)만 클린스케일(10·11·12·13·14·16·18·20·22·24)로 스냅. 주류 유지(과대/과소 방지) |
+| `5b7303c6575` | **카드 텍스트 불균형 근본**(주소가 본문보다 큼): `.card.card-glass>div:nth-child(2){font-size:16px!important}` **위치기반 nth-child 폰트강제** 제거(KPI 큰숫자는 내용기반 `[style*=fontSize:20]`이 처리). CDP `el.matches(selector)`로 출처추적 |
+| `7ab02d5967d` | 종합: **콘텐츠 버튼** `button{clamp(9px..)}`→`.app-content-area button{clamp(11px,2.8vw,13px)}` 스코프+floor(1461개 9px해소·topbar배지 제외) / **표헤더** floor 9→10 / **topbar 배지**(DEMO/환경전환) 8px+stretch해제 / **★min-width:0!important→!important제거**(FunnelChart 스텝 minWidth:200 등 의도된 min-width 존중, funnel 82→200px 복원, 가로잘림 회귀0) |
+| `7f6afaa7a54` | 캐시버스트 v6.1.0→v6.2.0(재방문자 강제갱신) |
+
+### 234차 핵심 발견(트랩) — 정본 [[reference-mobile-column-flex-wrap-trap]]
+- **CSS overflow 함정**: 한 축 `overflow-x:hidden`이면 다른 축 `overflow-y:visible`이 명세상 `auto`로 강제계산 → 스크롤존 풀려면 **양축 `overflow:visible`** 필수.
+- **`:has()` 미지원 대비**: 라우트루트 unconstrain은 `:has(>.fade-up)` 대신 `.app-content-area>div` 범용 셀렉터.
+- **위치기반/휴리스틱 폰트강제가 불균형 주범**: `.card-glass>div:nth-child(N)` 폰트강제·`button{clamp(9px..)}`·`.table th{clamp(9px..)}`·`min-width:0!important`가 의도된 값을 덮어 들쭉날쭉. CDP `CSS.getMatchedStylesForNode`/`el.matches()`로 출처추적.
+- **FAB 스택킹**: 스크롤 래퍼 안 FAB는 z최상위라도 body레벨 배너(쿠키/PWA/MFA z99997~)에 가려 클릭불가 → `createPortal(document.body)` 필수.
+- **검증 함정**: `getBoundingClientRect().right`는 가로스크롤 표/overflow:hidden서 부풀려진 값(가로잘림은 `document.scrollWidth>vw`로 판정). 차트 무거운 페이지 per-char는 렌더전환 중 일시적(false positive). 콜드로드 `goto` 시 **MenuAccessGuard가 데이터 로딩 전 /dashboard로 간헐 리다이렉트**(레이스) → 헤드리스는 **dashboard 워밍업 후 client-nav(pushState+popstate)**로 진입해야 실페이지 측정.
+
+### 234차 전수 감사 결과(헤드리스 390px, 53~58페이지)
+- 가로 잘림 **0/54** · 콘텐츠 무스크롤/붕괴 **0/54** · JS 에러 **0/54** · 과확대 텍스트 **0/54** · min-width 찌그러진 박스 **0/53**. 데스크톱 1366px /marketing 정상.
+- 사용자 "/marketing 다 깨졌어"=현재 배포본 재현불가(전 페이지 정상)→**stale 캐시 판단**, v6.2.0 버스트로 대응.
+
+### 234차 잔여/후속
+- **funnel 박스**: 82→200px(읽기가능·균형)이나 노출수(272/풀폭)와 완전 동일폭 원하면 FunnelChart 모바일 풀폭화 추가 가능(미적용).
+- **MenuAccessGuard 콜드로드 리다이렉트 레이스**: 새로고침/직접URL서 /dashboard로 튕김(메뉴클릭=warm은 정상). auth ready 가드 필요(미수정, 별도 분리).
+- **topbar 139px**: 배지 컴팩트했으나 좌측클러스터 wrap으로 잔존(추가 압축 여지).
+- i18n: 신규 라벨(onboard.navLabel/showGuide/close/hide·sub-tab 등)은 `t(key, fallback)` 한글 폴백 사용 → 14개국 번역 미적용(사용자 제공자료 워크플로우 [[feedback-178-i18n-translation-workflow]]).
+
+---
+
 # 233차 세션 인계서 — **모바일/네이티브 초고도화 + 데이터정합 Sprint + 가이드/PG i18n + 모바일 우측잘림 근본수정 + ★5도메인 전수감사 & P0/P1 수정 (전부 운영·데모 배포·라이브 검증·커밋·push 완료)**
 
 > **작성일**: 2026-06-20 (사용자 명시 승인) · 운영 roi.genie-go.com / 데모 roidemo.genie-go.com (★vhost server_name=하이픈, 파일경로 `.geniego.com` 무하이픈). 하네스 primary=**E:\project\GeniegoROI**.
