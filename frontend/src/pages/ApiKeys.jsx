@@ -1813,6 +1813,9 @@ function OverviewTab({ channels, summary, creds, applies = [], loading, onChanne
     const canLiveVerify = LIVE_VERIFY_CHANNELS.has(ch.key);
     const isVerified = canLiveVerify && !!verifiedCh[ch.key];
     const needsVerify = live && canLiveVerify && !isVerified;
+    // [현 차수 정직성] 키는 실검증 통과했으나 데이터 동기화 어댑터가 없는 채널(예: youtube) — '발급 확인 완료'가
+    //   '연동 동작'으로 오해되지 않도록 '키 검증됨·동기화 준비중'으로 정직 표기(키 유효 사실은 보존). youtube 단독 해당.
+    const verifiedNoSync = isVerified && !REAL_ADAPTER.has(ch.key);
     // [228차] 이 채널의 발급 신청 현황(개요 카드 표기). pending/processing 이면 다음단계(발급→등록) 안내.
     const apply = applyByChannel[ch.key];
     const applySt = apply ? (APPLY_STAT[apply.status] || APPLY_STAT.pending) : null;
@@ -1844,7 +1847,8 @@ function OverviewTab({ channels, summary, creds, applies = [], loading, onChanne
               : pending ? 'linear-gradient(135deg,#facc15,#ca8a04)'
               : 'linear-gradient(135deg,#34d399,#16a34a)',
           }}>
-            {isVerified ? <span style={{ animation: 'akVerifiedBlink 1s ease-in-out infinite' }}>🎉 {t('ak.bannerVerified','발급 확인 완료')}</span>
+            {verifiedNoSync ? <span>🔑 {t('ak.bannerVerifiedNoSync','키 검증됨 · 동기화 준비중')}</span>
+              : isVerified ? <span style={{ animation: 'akVerifiedBlink 1s ease-in-out infinite' }}>🎉 {t('ak.bannerVerified','발급 확인 완료')}</span>
               : pending ? `✅ ${t('ak.bannerPending','등록 완료 · 연동 준비 중')}`
               : `✅ ${t('ak.bannerRegistered','발급·등록 완료')}`}
           </div>
@@ -1867,7 +1871,10 @@ function OverviewTab({ channels, summary, creds, applies = [], loading, onChanne
             </div>
           </div>
           {/* [현 차수] ★발급 확인 배지 — 실검증 통과 시에만 '발급 확인됨'(녹), 등록·미검증은 '발급 확인 대기'(주황). */}
-          {isVerified ? (
+          {verifiedNoSync ? (
+            <span style={{ fontSize: 9, padding: '2px 8px', borderRadius: 20, background: 'rgba(245,158,11,0.14)', color: '#d97706', border: '1px solid rgba(245,158,11,0.4)', fontWeight: 800, whiteSpace: 'nowrap' }}
+              title={t('ak.verifiedNoSyncHint','키는 검증됐으나 전용 동기화 어댑터는 연동 예정입니다(데이터는 아직 수집되지 않습니다).')}>🔑 {t('ak.issuanceVerifiedNoSync','키 검증됨·동기화 준비중')}</span>
+          ) : isVerified ? (
             <span style={{ fontSize: 9, padding: '2px 8px', borderRadius: 20, background: '#ffe000', color: '#0b2e8a', border: '1px solid #0b2e8a', fontWeight: 900, whiteSpace: 'nowrap' }}
               title={t('ak.verifiedHint','연동허브가 실제 채널 API로 키 발급을 검증했습니다(임의 표기 아님).')}>🎉 {t('ak.issuanceVerified','발급 확인됨')}</span>
           ) : needsVerify ? (
@@ -1940,7 +1947,7 @@ function OverviewTab({ channels, summary, creds, applies = [], loading, onChanne
             🔎 {t('ak.verifyNudge','등록됨 — [발급 확인]을 눌러 발급된 키가 실제 동작하는지 검증하세요. 확인되면 자동으로 발급 확인됨 표시됩니다.')}
           </div>
         )}
-        {isVerified && (
+        {isVerified && !verifiedNoSync && (
           <div style={{ marginTop: 7, fontSize: 9.5, color: '#16a34a', textAlign: 'center', fontWeight: 800, lineHeight: 1.4 }}>
             🎉 {t('ak.verifiedNudge','발급 확인됨 — 연동허브가 실제 채널 API로 검증했습니다.')}
           </div>
