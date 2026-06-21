@@ -141,8 +141,9 @@ final class Db
         }
 
         // ENTERPRISE OPTIMIZATION: 100+ DDLs 매 요청 실행 회피, DB 이름별 lock 으로 분리.
-        // [P0 멱등화] 스키마 변경(ingest dedup_key + UNIQUE) 강제 재실행 위해 락 버전 bump v424→v425.
-        $migrationLock = sys_get_temp_dir() . '/genie_roi_v425_migrated_' . $name . '.lock';
+        // [P0/P1 멱등화] 스키마 변경 강제 재실행용 락 버전. v424→v425(ingest dedup_key)→v426(mapping tenant_id 격리).
+        //   migrate() 전체 멱등(CREATE IF NOT EXISTS·ALTER try/catch·idx swallow)이라 재실행 안전.
+        $migrationLock = sys_get_temp_dir() . '/genie_roi_v426_migrated_' . $name . '.lock';
         if (!file_exists($migrationLock)) {
             self::migrate($pdo);
             @file_put_contents($migrationLock, date('Y-m-d H:i:s'));
@@ -574,6 +575,7 @@ final class Db
         // ???? V418 ë§¤í ?ì??¤í¸ë¦?& ê±°ë²?ì¤ ??????????????????????????????????????????????????????????????????
         $pdo->exec(self::sql($pdo, "CREATE TABLE IF NOT EXISTS mapping_entry (
             id              INT AUTO_INCREMENT PRIMARY KEY,
+            tenant_id       VARCHAR(100) NULL,
             platform        VARCHAR(100) NOT NULL,
             field           VARCHAR(255) NOT NULL,
             raw_value       VARCHAR(500) NOT NULL,
@@ -584,6 +586,7 @@ final class Db
 
         $pdo->exec(self::sql($pdo, "CREATE TABLE IF NOT EXISTS mapping_change_request (
             id                INT AUTO_INCREMENT PRIMARY KEY,
+            tenant_id         VARCHAR(100) NULL,
             platform          VARCHAR(100) NOT NULL,
             field             VARCHAR(255) NOT NULL,
             raw_value         VARCHAR(500) NOT NULL,
@@ -598,6 +601,7 @@ final class Db
 
         $pdo->exec(self::sql($pdo, "CREATE TABLE IF NOT EXISTS mapping_validation_rule (
             id                   INT AUTO_INCREMENT PRIMARY KEY,
+            tenant_id            VARCHAR(100) NULL,
             field                VARCHAR(255) NOT NULL,
             rule_type            VARCHAR(100) NOT NULL,
             allowed_values_json  MEDIUMTEXT,
@@ -606,6 +610,14 @@ final class Db
             enabled              TINYINT(1) NOT NULL DEFAULT 1,
             created_at           VARCHAR(32) NOT NULL
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"));
+        // [P1 보안] mapping 3테이블 테넌트 격리 — 기존 무격리(전역 공유)로 타테넌트 정규화매핑/검증룰 열람·변조 가능.
+        //   tenant_id 컬럼 보강(additive, 레거시 NULL=소비처 없어 무영향) + 조회 인덱스. 핸들러는 auth_tenant 강제.
+        foreach (['mapping_entry','mapping_change_request','mapping_validation_rule'] as $mt) {
+            try { $pdo->exec("ALTER TABLE {$mt} ADD COLUMN tenant_id VARCHAR(100) NULL"); } catch (\Throwable $e) {}
+        }
+        self::idx($pdo,'CREATE INDEX idx_mapping_entry_tenant ON mapping_entry(tenant_id,platform,field)');
+        self::idx($pdo,'CREATE INDEX idx_mapping_cr_tenant ON mapping_change_request(tenant_id,status)');
+        self::idx($pdo,'CREATE INDEX idx_mapping_rule_tenant ON mapping_validation_rule(tenant_id,field)');
 
         // Seed data
         $cnt = (int)$pdo->query('SELECT COUNT(*) FROM billing_plan')->fetchColumn();

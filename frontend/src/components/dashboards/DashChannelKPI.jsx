@@ -237,7 +237,9 @@ export default function DashChannelKPI({ period }) {
         d,
         ...Object.fromEntries(liveList.map(c => {
             const base = activeMetric.get(c) || 0;
-            const wave = 0.85 + Math.sin(i * 0.6 + c.id.length) * 0.15;
+            // [현 차수] 운영 실집계값에 sin 가짜 일별변동을 곱하던 결함 차단 — 데모만 시연 파동, 운영은 평탄(크기보존).
+            //   실 일별 추이는 performance_metrics GROUP BY date 연동 시 별도 확장(현재 컴포넌트는 채널 집계만 보유).
+            const wave = IS_DEMO ? (0.85 + Math.sin(i * 0.6 + c.id.length) * 0.15) : 1;
             return [c.id, base * wave];
         })),
     }));

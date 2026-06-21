@@ -11,6 +11,14 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 
 final class Mapping {
 
+    /** [P1 보안] 테넌트 격리 — 미들웨어 auth_tenant(위조불가) 강제. 미해결은 demo 격리(fail-closed). */
+    private static function tenantId(Request $request): string {
+        $auth = (string)($request->getAttribute('auth_tenant') ?? '');
+        if ($auth !== '') return $auth;
+        $t = UserAuth::authedTenant($request);
+        return ($t !== null && $t !== '') ? $t : 'demo';
+    }
+
     private static function actor(Request $request): string {
         $a = $request->getHeaderLine('X-User-Email');
         return $a !== '' ? $a : 'unknown';
@@ -23,12 +31,13 @@ final class Mapping {
 
     public static function listMappings(Request $request, Response $response, array $args): Response {
         $pdo = Db::pdo();
+        $tenant = self::tenantId($request);
         $qp = $request->getQueryParams();
         $platform = $qp["platform"] ?? null;
         $field = $qp["field"] ?? null;
 
-        $sql = "SELECT * FROM mapping_entry WHERE 1=1";
-        $params = [];
+        $sql = "SELECT * FROM mapping_entry WHERE tenant_id=?";
+        $params = [$tenant];
         if ($platform !== null) { $sql .= " AND platform=?"; $params[] = $platform; }
         if ($field !== null) { $sql .= " AND field=?"; $params[] = $field; }
         $sql .= " ORDER BY id DESC LIMIT 500";
@@ -54,6 +63,7 @@ final class Mapping {
 
     public static function upsertMapping(Request $request, Response $response, array $args): Response {
         $pdo = Db::pdo();
+        $tenant = self::tenantId($request);
         $actor = self::actor($request);
         $body = $request->getParsedBody();
         if (!is_array($body)) $body = [];
@@ -65,17 +75,17 @@ final class Mapping {
         $note = (string)($body["note"] ?? "");
         $now = gmdate('c');
 
-        $stmt = $pdo->prepare("SELECT id FROM mapping_entry WHERE platform=? AND field=? AND raw_value=? LIMIT 1");
-        $stmt->execute([$platform,$field,$raw]);
+        $stmt = $pdo->prepare("SELECT id FROM mapping_entry WHERE tenant_id=? AND platform=? AND field=? AND raw_value=? LIMIT 1");
+        $stmt->execute([$tenant,$platform,$field,$raw]);
         $id = $stmt->fetchColumn();
 
         if ($id) {
-            $pdo->prepare("UPDATE mapping_entry SET canonical_value=?, note=? WHERE id=?")
-                ->execute([$canon, $note, $id]);
+            $pdo->prepare("UPDATE mapping_entry SET canonical_value=?, note=? WHERE id=? AND tenant_id=?")
+                ->execute([$canon, $note, $id, $tenant]);
             $mid = (int)$id;
         } else {
-            $pdo->prepare("INSERT INTO mapping_entry(platform,field,raw_value,canonical_value,note,created_at) VALUES(?,?,?,?,?,?)")
-                ->execute([$platform,$field,$raw,$canon,$note,$now]);
+            $pdo->prepare("INSERT INTO mapping_entry(tenant_id,platform,field,raw_value,canonical_value,note,created_at) VALUES(?,?,?,?,?,?,?)")
+                ->execute([$tenant,$platform,$field,$raw,$canon,$note,$now]);
             $mid = (int)$pdo->lastInsertId();
         }
 
@@ -88,6 +98,7 @@ final class Mapping {
 
     public static function updateMapping(Request $request, Response $response, array $args): Response {
         $pdo = Db::pdo();
+        $tenant = self::tenantId($request);
         $actor = self::actor($request);
         $id = (int)($args["mapping_id"] ?? 0);
         $body = $request->getParsedBody();
@@ -96,8 +107,8 @@ final class Mapping {
         $canon = $body["canonical_value"] ?? null;
         $note = $body["note"] ?? null;
 
-        $stmt = $pdo->prepare("SELECT * FROM mapping_entry WHERE id=?");
-        $stmt->execute([$id]);
+        $stmt = $pdo->prepare("SELECT * FROM mapping_entry WHERE id=? AND tenant_id=?");
+        $stmt->execute([$id,$tenant]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         if (!$row) {
             $response->getBody()->write(json_encode(["detail"=>"mapping not found"], JSON_UNESCAPED_UNICODE));
@@ -107,7 +118,7 @@ final class Mapping {
         $newCanon = $canon !== null ? (string)$canon : (string)$row["canonical_value"];
         $newNote = $note !== null ? (string)$note : (string)($row["note"] ?? "");
 
-        $pdo->prepare("UPDATE mapping_entry SET canonical_value=?, note=? WHERE id=?")->execute([$newCanon,$newNote,$id]);
+        $pdo->prepare("UPDATE mapping_entry SET canonical_value=?, note=? WHERE id=? AND tenant_id=?")->execute([$newCanon,$newNote,$id,$tenant]);
 
         self::audit($pdo, $actor, "mapping_update", ["id"=>$id]);
 
@@ -124,15 +135,17 @@ final class Mapping {
 
     public static function deleteMapping(Request $request, Response $response, array $args): Response {
         $pdo = Db::pdo();
+        $tenant = self::tenantId($request);
         $actor = self::actor($request);
         $id = (int)($args["mapping_id"] ?? 0);
-        $pdo->prepare("DELETE FROM mapping_entry WHERE id=?")->execute([$id]);
+        $pdo->prepare("DELETE FROM mapping_entry WHERE id=? AND tenant_id=?")->execute([$id,$tenant]);
         self::audit($pdo, $actor, "mapping_delete", ["id"=>$id]);
         return TemplateResponder::respond($response, ["deleted"=>true]);
     }
 
     public static function propose(Request $request, Response $response, array $args): Response {
         $pdo = Db::pdo();
+        $tenant = self::tenantId($request);
         $actor = self::actor($request);
         $body = $request->getParsedBody();
         if (!is_array($body)) $body = [];
@@ -145,29 +158,30 @@ final class Mapping {
         $now = gmdate('c');
 
         // basic validation
-        [$ok, $errs] = self::validateValue($pdo, $field, $canon);
+        [$ok, $errs] = self::validateValue($pdo, $tenant, $field, $canon);
         if (!$ok) {
             $response->getBody()->write(json_encode(["detail"=>implode(", ", $errs)], JSON_UNESCAPED_UNICODE));
             return $response->withStatus(400)->withHeader('Content-Type','application/json');
         }
 
-        $pdo->prepare("INSERT INTO mapping_change_request(platform,field,raw_value,canonical_value,note,status,requested_by,approvals_json,required_approvals,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)")
-            ->execute([$platform,$field,$raw,$canon,$note,"pending",$actor,json_encode([], JSON_UNESCAPED_UNICODE),2,$now]);
+        $pdo->prepare("INSERT INTO mapping_change_request(tenant_id,platform,field,raw_value,canonical_value,note,status,requested_by,approvals_json,required_approvals,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)")
+            ->execute([$tenant,$platform,$field,$raw,$canon,$note,"pending",$actor,json_encode([], JSON_UNESCAPED_UNICODE),2,$now]);
         $id = (int)$pdo->lastInsertId();
 
         self::audit($pdo, $actor, "mapping_propose", ["id"=>$id]);
 
-        return TemplateResponder::respond($response, self::getChangeRequest($pdo, $id));
+        return TemplateResponder::respond($response, self::getChangeRequest($pdo, $tenant, $id));
     }
 
     public static function listProposals(Request $request, Response $response, array $args): Response {
         $pdo = Db::pdo();
+        $tenant = self::tenantId($request);
         $qp = $request->getQueryParams();
         $status = $qp["status"] ?? null;
 
-        $sql = "SELECT * FROM mapping_change_request";
-        $params = [];
-        if ($status !== null) { $sql .= " WHERE status=?"; $params[] = $status; }
+        $sql = "SELECT * FROM mapping_change_request WHERE tenant_id=?";
+        $params = [$tenant];
+        if ($status !== null) { $sql .= " AND status=?"; $params[] = $status; }
         $sql .= " ORDER BY id DESC LIMIT 500";
 
         $stmt = $pdo->prepare($sql);
@@ -181,11 +195,12 @@ final class Mapping {
 
     public static function approve(Request $request, Response $response, array $args): Response {
         $pdo = Db::pdo();
+        $tenant = self::tenantId($request);
         $actor = self::actor($request);
         $id = (int)($args["req_id"] ?? 0);
 
-        $row = $pdo->prepare("SELECT * FROM mapping_change_request WHERE id=?");
-        $row->execute([$id]);
+        $row = $pdo->prepare("SELECT * FROM mapping_change_request WHERE id=? AND tenant_id=?");
+        $row->execute([$id,$tenant]);
         $r = $row->fetch(PDO::FETCH_ASSOC);
         if (!$r) {
             $response->getBody()->write(json_encode(["detail"=>"proposal not found"], JSON_UNESCAPED_UNICODE));
@@ -197,21 +212,22 @@ final class Mapping {
         $approvals[] = ["user"=>$actor, "ts"=>gmdate('c')];
 
         $status = count($approvals) >= (int)$r["required_approvals"] ? "approved" : "pending";
-        $pdo->prepare("UPDATE mapping_change_request SET approvals_json=?, status=? WHERE id=?")
-            ->execute([json_encode($approvals, JSON_UNESCAPED_UNICODE), $status, $id]);
+        $pdo->prepare("UPDATE mapping_change_request SET approvals_json=?, status=? WHERE id=? AND tenant_id=?")
+            ->execute([json_encode($approvals, JSON_UNESCAPED_UNICODE), $status, $id, $tenant]);
 
         self::audit($pdo, $actor, "mapping_approve", ["id"=>$id,"status"=>$status]);
 
-        return TemplateResponder::respond($response, self::getChangeRequest($pdo, $id));
+        return TemplateResponder::respond($response, self::getChangeRequest($pdo, $tenant, $id));
     }
 
     public static function apply(Request $request, Response $response, array $args): Response {
         $pdo = Db::pdo();
+        $tenant = self::tenantId($request);
         $actor = self::actor($request);
         $id = (int)($args["req_id"] ?? 0);
 
-        $row = $pdo->prepare("SELECT * FROM mapping_change_request WHERE id=?");
-        $row->execute([$id]);
+        $row = $pdo->prepare("SELECT * FROM mapping_change_request WHERE id=? AND tenant_id=?");
+        $row->execute([$id,$tenant]);
         $r = $row->fetch(PDO::FETCH_ASSOC);
         if (!$r) {
             $response->getBody()->write(json_encode(["detail"=>"proposal not found"], JSON_UNESCAPED_UNICODE));
@@ -222,23 +238,23 @@ final class Mapping {
             return $response->withStatus(400)->withHeader('Content-Type','application/json');
         }
 
-        // Apply to registry (upsert)
+        // Apply to registry (upsert) — 동일 테넌트 스코프로만 적용/갱신
         $now = gmdate('c');
-        $stmt = $pdo->prepare("SELECT id FROM mapping_entry WHERE platform=? AND field=? AND raw_value=? LIMIT 1");
-        $stmt->execute([$r["platform"],$r["field"],$r["raw_value"]]);
+        $stmt = $pdo->prepare("SELECT id FROM mapping_entry WHERE tenant_id=? AND platform=? AND field=? AND raw_value=? LIMIT 1");
+        $stmt->execute([$tenant,$r["platform"],$r["field"],$r["raw_value"]]);
         $mid = $stmt->fetchColumn();
         if ($mid) {
-            $pdo->prepare("UPDATE mapping_entry SET canonical_value=?, note=? WHERE id=?")
-                ->execute([$r["canonical_value"], $r["note"], $mid]);
+            $pdo->prepare("UPDATE mapping_entry SET canonical_value=?, note=? WHERE id=? AND tenant_id=?")
+                ->execute([$r["canonical_value"], $r["note"], $mid, $tenant]);
         } else {
-            $pdo->prepare("INSERT INTO mapping_entry(platform,field,raw_value,canonical_value,note,created_at) VALUES(?,?,?,?,?,?)")
-                ->execute([$r["platform"],$r["field"],$r["raw_value"],$r["canonical_value"],$r["note"],$now]);
+            $pdo->prepare("INSERT INTO mapping_entry(tenant_id,platform,field,raw_value,canonical_value,note,created_at) VALUES(?,?,?,?,?,?,?)")
+                ->execute([$tenant,$r["platform"],$r["field"],$r["raw_value"],$r["canonical_value"],$r["note"],$now]);
         }
 
-        $pdo->prepare("UPDATE mapping_change_request SET status=? WHERE id=?")->execute(["applied",$id]);
+        $pdo->prepare("UPDATE mapping_change_request SET status=? WHERE id=? AND tenant_id=?")->execute(["applied",$id,$tenant]);
         self::audit($pdo, $actor, "mapping_apply", ["id"=>$id]);
 
-        return TemplateResponder::respond($response, self::getChangeRequest($pdo, $id));
+        return TemplateResponder::respond($response, self::getChangeRequest($pdo, $tenant, $id));
     }
 
     public static function impactPreview(Request $request, Response $response, array $args): Response {
@@ -264,18 +280,19 @@ final class Mapping {
 
     public static function validate(Request $request, Response $response, array $args): Response {
         $pdo = Db::pdo();
+        $tenant = self::tenantId($request);
         $body = $request->getParsedBody();
         if (!is_array($body)) $body = [];
         $field = (string)($body["field"] ?? "");
         $canon = (string)($body["canonical_value"] ?? "");
 
-        [$ok, $errs] = self::validateValue($pdo, $field, $canon);
+        [$ok, $errs] = self::validateValue($pdo, $tenant, $field, $canon);
         return TemplateResponder::respond($response, ["ok"=>$ok, "errors"=>$errs]);
     }
 
-    private static function validateValue(PDO $pdo, string $field, string $canon): array {
-        $stmt = $pdo->prepare("SELECT * FROM mapping_validation_rule WHERE field=? AND enabled=1 ORDER BY id DESC");
-        $stmt->execute([$field]);
+    private static function validateValue(PDO $pdo, string $tenant, string $field, string $canon): array {
+        $stmt = $pdo->prepare("SELECT * FROM mapping_validation_rule WHERE tenant_id=? AND field=? AND enabled=1 ORDER BY id DESC");
+        $stmt->execute([$tenant,$field]);
         $rules = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $errors = [];
 
@@ -303,10 +320,11 @@ final class Mapping {
     // Validation rules CRUD
     public static function listRules(Request $request, Response $response, array $args): Response {
         $pdo = Db::pdo();
+        $tenant = self::tenantId($request);
         $field = $request->getQueryParams()["field"] ?? null;
-        $sql = "SELECT * FROM mapping_validation_rule";
-        $params = [];
-        if ($field !== null) { $sql .= " WHERE field=?"; $params[] = $field; }
+        $sql = "SELECT * FROM mapping_validation_rule WHERE tenant_id=?";
+        $params = [$tenant];
+        if ($field !== null) { $sql .= " AND field=?"; $params[] = $field; }
         $sql .= " ORDER BY id DESC LIMIT 500";
         $stmt = $pdo->prepare($sql);
         $stmt->execute($params);
@@ -329,6 +347,7 @@ final class Mapping {
 
     public static function createRule(Request $request, Response $response, array $args): Response {
         $pdo = Db::pdo();
+        $tenant = self::tenantId($request);
         $actor = self::actor($request);
         $body = $request->getParsedBody();
         if (!is_array($body)) $body = [];
@@ -340,8 +359,8 @@ final class Mapping {
         $enabled = (bool)($body["enabled"] ?? true);
         $now = gmdate('c');
 
-        $pdo->prepare("INSERT INTO mapping_validation_rule(field,rule_type,allowed_values_json,regex_pattern,description,enabled,created_at) VALUES(?,?,?,?,?,?,?)")
-            ->execute([$field,$type, is_null($allowed)? null : json_encode($allowed, JSON_UNESCAPED_UNICODE), $regex, $desc, $enabled ? 1 : 0, $now]);
+        $pdo->prepare("INSERT INTO mapping_validation_rule(tenant_id,field,rule_type,allowed_values_json,regex_pattern,description,enabled,created_at) VALUES(?,?,?,?,?,?,?,?)")
+            ->execute([$tenant,$field,$type, is_null($allowed)? null : json_encode($allowed, JSON_UNESCAPED_UNICODE), $regex, $desc, $enabled ? 1 : 0, $now]);
         $id = (int)$pdo->lastInsertId();
 
         self::audit($pdo, $actor, "rule_create", ["id"=>$id,"field"=>$field]);
@@ -353,13 +372,14 @@ final class Mapping {
 
     public static function updateRule(Request $request, Response $response, array $args): Response {
         $pdo = Db::pdo();
+        $tenant = self::tenantId($request);
         $actor = self::actor($request);
         $id = (int)($args["rule_id"] ?? 0);
         $patch = $request->getParsedBody();
         if (!is_array($patch)) $patch = [];
 
-        $row = $pdo->prepare("SELECT * FROM mapping_validation_rule WHERE id=?");
-        $row->execute([$id]);
+        $row = $pdo->prepare("SELECT * FROM mapping_validation_rule WHERE id=? AND tenant_id=?");
+        $row->execute([$id,$tenant]);
         $r = $row->fetch(PDO::FETCH_ASSOC);
         if (!$r) {
             $response->getBody()->write(json_encode(["detail"=>"rule not found"], JSON_UNESCAPED_UNICODE));
@@ -373,8 +393,8 @@ final class Mapping {
         $desc = array_key_exists("description", $patch) ? $patch["description"] : $r["description"];
         $enabled = array_key_exists("enabled", $patch) ? (bool)$patch["enabled"] : (bool)$r["enabled"];
 
-        $pdo->prepare("UPDATE mapping_validation_rule SET field=?, rule_type=?, allowed_values_json=?, regex_pattern=?, description=?, enabled=? WHERE id=?")
-            ->execute([$field,$type,is_null($allowed)? null: json_encode($allowed, JSON_UNESCAPED_UNICODE), $regex, $desc, $enabled?1:0, $id]);
+        $pdo->prepare("UPDATE mapping_validation_rule SET field=?, rule_type=?, allowed_values_json=?, regex_pattern=?, description=?, enabled=? WHERE id=? AND tenant_id=?")
+            ->execute([$field,$type,is_null($allowed)? null: json_encode($allowed, JSON_UNESCAPED_UNICODE), $regex, $desc, $enabled?1:0, $id, $tenant]);
 
         self::audit($pdo, $actor, "rule_update", ["id"=>$id]);
 
@@ -385,16 +405,17 @@ final class Mapping {
 
     public static function deleteRule(Request $request, Response $response, array $args): Response {
         $pdo = Db::pdo();
+        $tenant = self::tenantId($request);
         $actor = self::actor($request);
         $id = (int)($args["rule_id"] ?? 0);
-        $pdo->prepare("DELETE FROM mapping_validation_rule WHERE id=?")->execute([$id]);
+        $pdo->prepare("DELETE FROM mapping_validation_rule WHERE id=? AND tenant_id=?")->execute([$id,$tenant]);
         self::audit($pdo, $actor, "rule_delete", ["id"=>$id]);
         return TemplateResponder::respond($response, ["ok"=>true]);
     }
 
-    private static function getChangeRequest(PDO $pdo, int $id): array {
-        $stmt = $pdo->prepare("SELECT * FROM mapping_change_request WHERE id=?");
-        $stmt->execute([$id]);
+    private static function getChangeRequest(PDO $pdo, string $tenant, int $id): array {
+        $stmt = $pdo->prepare("SELECT * FROM mapping_change_request WHERE id=? AND tenant_id=?");
+        $stmt->execute([$id,$tenant]);
         $r = $stmt->fetch(PDO::FETCH_ASSOC);
         return $r ? self::rowToChangeRequest($r) : [];
     }

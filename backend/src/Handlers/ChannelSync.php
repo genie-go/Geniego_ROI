@@ -700,6 +700,7 @@ final class ChannelSync
     {
         $token = $creds['oauth_token'] ?? $creds['access_token'] ?? '';
         if ($token) {
+            $products = [];
             [$code, $body] = self::httpGet(
                 'https://api.ebay.com/sell/inventory/v1/inventory_item?limit=20',
                 ['Authorization' => "Bearer {$token}", 'Content-Language' => 'en-US']
@@ -713,14 +714,48 @@ final class ChannelSync
                     'status'    => 'active',
                     'source'    => 'live',
                 ], $body['inventoryItems'] ?? []);
-                if (!empty($products)) return ['ok'=>true, 'products'=>$products, 'orders'=>($tenant==='demo' ? self::buildDemoChannelOrders('ebay','eBay') : [])];
+            }
+            // [현 차수 P1-3] eBay 주문 수집 — Sell Fulfillment API. 기존엔 상품만 수집·주문 항상 빈배열이라
+            //   eBay(글로벌) 매출/CRM/귀속/정산이 전부 0으로 끊겼다. ★실패/토큰미보유 시 빈배열(현행 동일=회귀안전).
+            //   통화는 saveOrders 의 fxToKrw 가 KRW 정규화. ★라이브 검증은 실 eBay 셀러 OAuth 필요(코드완비·검증대기).
+            $orders = [];
+            if ($tenant !== 'demo') {
+                [$oCode, $oBody] = self::httpGet(
+                    'https://api.ebay.com/sell/fulfillment/v1/order?limit=50',
+                    ['Authorization' => "Bearer {$token}", 'Content-Type' => 'application/json']
+                );
+                if ($oCode === 200 && is_array($oBody['orders'] ?? null)) {
+                    foreach ($oBody['orders'] as $o) {
+                        $lis = is_array($o['lineItems'] ?? null) ? $o['lineItems'] : [];
+                        $li  = $lis[0] ?? [];
+                        $qty = 0; foreach ($lis as $l) { $qty += (int)($l['quantity'] ?? 0); }
+                        if ($qty < 1) $qty = 1;
+                        $orders[] = [
+                            'channel_order_id' => (string)($o['orderId'] ?? ''),
+                            'buyer_name'  => (string)($o['buyer']['username'] ?? ''),
+                            'buyer_email' => null,
+                            'product_name'=> (string)($li['title'] ?? ''),
+                            'sku'         => (string)($li['sku'] ?? ''),
+                            'qty'         => $qty,
+                            'unit_price'  => 0.0,
+                            'total_price' => (float)($o['pricingSummary']['total']['value'] ?? 0),
+                            'currency'    => strtoupper((string)($o['pricingSummary']['total']['currency'] ?? '')),
+                            'status'      => (string)($o['orderFulfillmentStatus'] ?? 'NOT_STARTED'),
+                            'ordered_at'  => (string)($o['creationDate'] ?? ''),
+                            'source'      => 'live',
+                        ];
+                    }
+                }
+            }
+            if (!empty($products) || !empty($orders)) {
+                return ['ok'=>true, 'products'=>$products, 'orders'=>($tenant==='demo' ? self::buildDemoChannelOrders('ebay','eBay') : $orders)];
             }
         }
         // 188차 P0 보안: 데모 데이터의 운영 DB 유입 차단. 실 테넌트는 OAuth 토큰 미보유 시 빈 결과.
         if ($tenant === 'demo') {
             return ['ok'=>true, 'products'=>self::buildDemoChannelProducts('ebay','eBay'), 'orders'=>self::buildDemoChannelOrders('ebay','eBay'), 'note'=>'eBay Inventory API: OAuth token required for live sync.'];
         }
-        return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>'eBay: OAuth 토큰 등록 시 실데이터가 동기화됩니다.'];
+        return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>'eBay: OAuth 토큰 등록 시 실데이터(상품·주문)가 동기화됩니다.'];
     }
 
     // ── TikTok Shop ──────────────────────────────────────────────────────
@@ -2708,7 +2743,9 @@ final class ChannelSync
     //   commerce_sync_cron.php 폴링 러너가 동기화 대상으로 삼는 채널 집합(206차 #1).
     public const COMMERCE_CHANNELS = [
         'shopify','amazon','amazon_spapi','coupang','naver','naver_smartstore',
-        'ebay','tiktok','tiktok_shop','rakuten','yahoo_jp','line','11st','st11','gmarket','auction','cafe24','lotteon',
+        'ebay','tiktok','tiktok_shop','rakuten','yahoo_jp','11st','st11','gmarket','auction','cafe24','lotteon',
+        // [현 차수 P1-7] 'line'(LINE 메시징, line_ads 와 별개)은 커머스 채널 아님 → 제거.
+        //   dispatch arm 없어 genericFetch pending + cron 무의미 폴링 유발하던 오분류 해소.
         // [현 차수] ★st11(ApiKeys UI 저장키)·auction 누락 → 자격증명 저장 후 자동sync/cron 영구 누락이던 결함 해소.
         // [232차 Sprint2] 글로벌 커머스 실어댑터 9종 — 백엔드 커머스 인식(isCommerceChannel)·cron 폴링 편입.
         'woocommerce','magento','walmart','etsy','shopee','lazada','qoo10','yahoo_japan','godomall',

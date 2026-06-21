@@ -7,6 +7,7 @@ import { LineChart, BarChart, Spark, DonutChart, fmt } from './ChartUtils.jsx';
 import MarketingAIPanel from '../MarketingAIPanel.jsx';
 import { buildPeriodScope, deriveOrderKpis, filterOrdersByPeriod, orderDate } from './dashPeriod.js';
 import { classifyCampaigns } from '../../utils/adFunnel.js';
+import { IS_DEMO } from '../../utils/demoEnv';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    DashMarketing — 마케팅 퍼포먼스 엔터프라이즈 초고도화
@@ -443,7 +444,8 @@ export default function DashMarketing({ period }) {
       const row = {};
       liveChannels.forEach(c => {
         const base = activeMkt.get(c) || 0;
-        row[c.id] = base * (0.85 + Math.sin(i * 0.6 + c.id.length) * 0.15);
+        // [현 차수] 운영 실집계값에 sin 가짜 일별변동을 곱하던 결함 차단 — 데모만 시연 파동, 운영은 평탄(크기보존).
+        row[c.id] = base * (IS_DEMO ? (0.85 + Math.sin(i * 0.6 + c.id.length) * 0.15) : 1);
       });
       return row;
     });

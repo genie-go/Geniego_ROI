@@ -499,11 +499,13 @@ export default function DashCommerce({ period }) {
     });
   }, [scopedOrders, totalOrd, totalRev, returnRate]);
 
-  // Order funnel — derived from real totals
+  // Order funnel — Purchase 만 실측. 방문/장바구니/결제는 커머스 주문에 없는 이벤트라 파생 불가.
+  //   [현 차수] 인구통계(490-497)와 동일 — 운영 실주문에 ×85/15/3 가짜 퍼널 노출되던 결함 차단.
+  //   IS_DEMO 게이트로 데모만 시연값, 운영은 0(정직). 실 퍼널은 픽셀/이벤트 연동 시 별도 확장.
   const flowData = useMemo(() => [
-    { l: txt('flowVisit'), v: totalOrd > 0 ? totalOrd * 85 : 0, c: '#4f8ef7' },
-    { l: txt('flowCart'),  v: totalOrd > 0 ? totalOrd * 15 : 0, c: '#a855f7' },
-    { l: txt('flowCheckout'), v: totalOrd > 0 ? totalOrd * 3 : 0, c: '#22c55e' },
+    { l: txt('flowVisit'), v: (IS_DEMO && totalOrd > 0) ? totalOrd * 85 : 0, c: '#4f8ef7' },
+    { l: txt('flowCart'),  v: (IS_DEMO && totalOrd > 0) ? totalOrd * 15 : 0, c: '#a855f7' },
+    { l: txt('flowCheckout'), v: (IS_DEMO && totalOrd > 0) ? totalOrd * 3 : 0, c: '#22c55e' },
     { l: txt('flowPurchase'), v: totalOrd, c: '#eab308' },
   ], [totalOrd, txt]);
 
