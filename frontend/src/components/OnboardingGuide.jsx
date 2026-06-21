@@ -1,7 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import { useI18n } from '../i18n';
+
+/* [현 차수] ★모바일 환경 감지 — 하단 내비(MobileBottomNav)와 동일 기준(≤768px·standalone). 모바일에선 온보딩을
+   상단 배너가 아니라 하단 내비 옆 아이콘 + 바텀시트로 표시해 콘텐츠 영역을 전혀 잠식하지 않는다. */
+function useIsMobile() {
+  const [m, setM] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    try { return window.innerWidth <= 768 || window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true; } catch { return window.innerWidth <= 768; }
+  });
+  useEffect(() => {
+    let id = null;
+    const check = () => { clearTimeout(id); id = setTimeout(() => {
+      try { setM(window.innerWidth <= 768 || window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true); } catch { setM(window.innerWidth <= 768); }
+    }, 150); };
+    window.addEventListener('resize', check);
+    window.addEventListener('orientationchange', check);
+    return () => { clearTimeout(id); window.removeEventListener('resize', check); window.removeEventListener('orientationchange', check); };
+  }, []);
+  return m;
+}
 
 /* [현 차수] ★구독회원 단계별 진행 안내(이용가이드 불필요).
  *  - 첫 방문: 환영 인사 + 선행 작업 순서를 처음부터 안내.
@@ -90,6 +110,16 @@ export default function OnboardingGuide() {
   const [expanded, setExpanded] = useState(() => {
     try { return localStorage.getItem(expandKey) === '1'; } catch { return false; }
   });
+  // [현 차수] ★모바일 최적화: 안내 배너를 통째로 숨기기/보이기. 숨기면 작은 플로팅 버튼만 남아 전체 화면을
+  //   콘텐츠에 양보하고, 버튼을 누르면 다시 나타난다(상단 chrome 잠식 해소). 상태는 테넌트별 영속.
+  const hideKey = 'genie_onb_hidden_' + tenantKey();
+  const [hidden, setHidden] = useState(() => { try { return localStorage.getItem(hideKey) === '1'; } catch { return false; } });
+  const hide = () => { try { localStorage.setItem(hideKey, '1'); } catch {} setHidden(true); setExpanded(false); };
+  const unhide = () => { try { localStorage.setItem(hideKey, '0'); } catch {} setHidden(false); };
+
+  // [현 차수] ★모바일: 하단 내비 옆 아이콘 + 바텀시트(콘텐츠 비잠식). 데스크톱: 기존 상단 배너.
+  const isMobile = useIsMobile();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   // 모델 미선택 시 commerce 기준으로 완료 여부 판단(기존 사용자 회귀 방지) → 단, 선택 유도 배너 노출.
   const STEPS = STEP_SETS[bizModel] || COMMERCE_STEPS;
@@ -104,22 +134,121 @@ export default function OnboardingGuide() {
   // 전부 완료 + 이미 환영을 봤으면 숨김.
   if (allDone && welcomed) return null;
 
+  // [현 차수] ★★모바일: 상단 배너를 전혀 렌더하지 않고(콘텐츠 비잠식), 하단 내비 옆 나침반 아이콘만 노출.
+  //   탭하면 바텀시트로 가이드(모델 선택 또는 단계 체크리스트)를 띄운다 — 하단 대메뉴와 시각/위치 일관.
+  if (isMobile) {
+    const pending = !allDone;
+    const close = () => setMobileOpen(false);
+    const goStep = (route) => { close(); nav(route); };
+    const dismiss = () => { try { localStorage.setItem(welcomedKey, '1'); } catch {} setWelcomed(true); close(); };
+    const bizBtn = (m, icon, title, desc) => (
+      <button key={m} onClick={() => chooseModel(m)} style={{ display: 'block', width: '100%', textAlign: 'left', cursor: 'pointer', padding: '12px 14px', borderRadius: 12, marginBottom: 8, border: '1px solid rgba(124,58,237,0.4)', background: 'rgba(255,255,255,0.08)', color: '#fff' }}>
+        <div style={{ fontSize: 14, fontWeight: 900, marginBottom: 3 }}>{icon} {title}</div>
+        <div style={{ fontSize: 11.5, color: '#c7d2fe', lineHeight: 1.5 }}>{desc}</div>
+      </button>
+    );
+    const sheetBody = (!bizModel && !allDone) ? (
+      <div>
+        <div style={{ fontSize: 12, color: '#c7d2fe', marginBottom: 10 }}>{t('onboard.bizModel.sub', '실물 상품을 파는지, 서비스·구독·플랫폼 자체를 알리는지에 따라 안내가 달라집니다.')}</div>
+        {bizBtn('commerce', '📦', t('onboard.bizModel.commerce', '실물 커머스'), t('onboard.bizModel.commerceDesc', '실물 상품 판매 · 재고/창고/주문 관리(상품→창고→입고→채널→주문 동기화).'))}
+        {bizBtn('service', '🧩', t('onboard.bizModel.service', '서비스·구독·디지털'), t('onboard.bizModel.serviceDesc', '서비스/구독/플랫폼 자체가 상품 · 물류 없음(서비스 등록→채널→결제→마케팅 자동화).'))}
+        {bizBtn('both', '📦🧩', t('onboard.bizModel.both', '실물 + 서비스 둘 다'), t('onboard.bizModel.bothDesc', '실물 상품과 서비스·구독을 함께 운영 · 두 등록 단계를 모두 진행합니다.'))}
+      </div>
+    ) : (
+      <div>
+        <div style={{ height: 6, borderRadius: 99, background: 'rgba(255,255,255,0.12)', overflow: 'hidden', marginBottom: 12 }}>
+          <div style={{ height: '100%', width: `${Math.round(doneCount / STEPS.length * 100)}%`, background: 'linear-gradient(90deg,#4f46e5,#7c3aed)' }} />
+        </div>
+        {STEPS.map((s, i) => {
+          const d = doneFlags[i]; const cur = i === firstIdx; const here = loc.pathname === s.route;
+          return (
+            <div key={s.id} onClick={() => goStep(s.route)} style={{ display: 'flex', alignItems: 'flex-start', gap: 11, padding: '11px 12px', borderRadius: 11, cursor: 'pointer', marginBottom: 5, background: cur && !d ? 'rgba(124,58,237,0.18)' : here ? 'rgba(34,197,94,0.1)' : 'rgba(255,255,255,0.04)', border: `1px solid ${cur && !d ? 'rgba(124,58,237,0.5)' : 'transparent'}` }}>
+              <span style={{ width: 26, height: 26, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12.5, fontWeight: 900, background: d ? '#22c55e' : cur ? 'linear-gradient(135deg,#4f46e5,#7c3aed)' : 'rgba(148,163,184,0.3)', color: d || cur ? '#fff' : '#cbd5e1' }}>{d ? '✓' : i + 1}</span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13.5, fontWeight: cur && !d ? 900 : 800, color: d ? '#86efac' : '#fff' }}>
+                  {s.icon} {t(`onboard.step.${s.id}.title`, s.title)}
+                  {cur && !d && <span style={{ marginLeft: 8, fontSize: 11, fontWeight: 900, padding: '2px 9px', borderRadius: 99, background: 'linear-gradient(135deg,#f59e0b,#ef4444)', color: '#fff' }}>👉 {t('onboard.doNow', '지금 할 일')}</span>}
+                </div>
+                {(cur || here) && !d && <div style={{ fontSize: 11.5, color: '#c7d2fe', lineHeight: 1.5, marginTop: 3 }}>{t(`onboard.step.${s.id}.action`, s.action)}</div>}
+              </div>
+            </div>
+          );
+        })}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
+          <button onClick={dismiss} style={{ padding: '8px 16px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.25)', cursor: 'pointer', background: 'rgba(255,255,255,0.1)', color: '#fff', fontSize: 12, fontWeight: 800 }}>{allDone ? t('onboard.dismissDone', '확인 · 닫기') : t('onboard.hide', '숨기기')}</button>
+        </div>
+      </div>
+    );
+    return createPortal((
+      <>
+        <style>{`@keyframes onbFabPulse{0%,100%{box-shadow:0 6px 22px rgba(0,0,0,0.5),0 0 0 0 rgba(124,58,237,0.5)}50%{box-shadow:0 6px 22px rgba(0,0,0,0.5),0 0 0 8px rgba(124,58,237,0)}}`}</style>
+        {/* 하단 내비 옆 나침반 아이콘 — body 포털 + 최상위 z(데모 하단 배너 쿠키/PWA/MFA 위에서도 항상 클릭 가능) */}
+        <button onClick={() => setMobileOpen(o => !o)} aria-label={t('onboard.navLabel', '가이드')} style={{
+          position: 'fixed', right: 12, bottom: 'calc(66px + env(safe-area-inset-bottom, 0px))', zIndex: 2147483000,
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2,
+          width: 56, minHeight: 52, padding: '6px', borderRadius: 16, cursor: 'pointer',
+          background: 'rgba(6,12,22,0.97)', WebkitBackdropFilter: 'blur(20px)', backdropFilter: 'blur(20px)',
+          color: '#fff', border: '1px solid rgba(79,130,255,0.3)',
+          animation: pending && !mobileOpen ? 'onbFabPulse 1.8s ease-in-out infinite' : 'none',
+        }}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={mobileOpen ? '#4f8ef7' : '#9fb4e0'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" /></svg>
+          <span style={{ fontSize: 10, fontWeight: 800, color: mobileOpen ? '#4f8ef7' : '#9fb4e0', lineHeight: 1 }}>{t('onboard.navLabel', '가이드')}</span>
+          {pending && <span style={{ position: 'absolute', top: -6, right: -6, fontSize: 10, fontWeight: 900, padding: '1px 6px', borderRadius: 999, background: 'linear-gradient(135deg,#f59e0b,#ef4444)', color: '#fff', boxShadow: '0 2px 8px rgba(239,68,68,0.5)' }}>{doneCount}/{STEPS.length}</span>}
+        </button>
+        {/* 바텀시트 오버레이 */}
+        {mobileOpen && (
+          <>
+            <div onClick={close} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 2147483001 }} />
+            <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 2147483002, maxHeight: '80vh', overflowY: 'auto', borderRadius: '18px 18px 0 0', background: 'linear-gradient(135deg,#0b1224,#1e1b4b)', color: '#fff', borderTop: '1px solid rgba(124,58,237,0.5)', padding: '14px 14px calc(18px + env(safe-area-inset-bottom, 0px))', boxShadow: '0 -18px 50px rgba(0,0,0,0.6)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                <span style={{ fontSize: 17 }}>🧭</span>
+                <div style={{ flex: 1, minWidth: 0, fontSize: 14.5, fontWeight: 900 }}>{(!bizModel && !allDone) ? t('onboard.bizModel.prompt', '먼저 비즈니스 모델을 선택하세요') : (allDone ? t('onboard.allDoneTitle', '모든 시작 단계를 완료했습니다!') : t('onboard.guideTitle', 'GeniegoROI 시작 가이드'))}</div>
+                <button onClick={close} style={{ flexShrink: 0, padding: '6px 12px', borderRadius: 9, border: '1px solid rgba(255,255,255,0.25)', cursor: 'pointer', background: 'rgba(255,255,255,0.12)', color: '#fff', fontSize: 12, fontWeight: 800 }}>{t('onboard.close', '닫기')} ×</button>
+              </div>
+              {sheetBody}
+            </div>
+          </>
+        )}
+      </>
+    ), document.body);
+  }
+
+  // [현 차수] ★숨김 상태: 안내 배너를 접어 전체 화면을 콘텐츠에 양보하고, 우하단 작은 플로팅 버튼만 노출.
+  //   fixed 라 페이지 레이아웃을 밀지 않음(콘텐츠 top 상승). 모바일 바텀내비/세이프에어리어 위에 배치.
+  if (hidden) {
+    return (
+      <button onClick={unhide} className="onb-relaunch" title={t('onboard.showGuide', '시작 가이드 보기')} style={{
+        position: 'fixed', right: 14, bottom: 'calc(74px + env(safe-area-inset-bottom, 0px))', zIndex: 50,
+        display: 'flex', alignItems: 'center', gap: 7, padding: '9px 14px', borderRadius: 999, cursor: 'pointer',
+        border: 'none', color: '#fff', fontSize: 12.5, fontWeight: 900, whiteSpace: 'nowrap',
+        background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', boxShadow: '0 6px 20px rgba(79,70,229,0.45)',
+      }}>
+        <span style={{ fontSize: 15 }}>🧭</span>
+        <span>{t('onboard.showGuide', '시작 가이드')}</span>
+        {!allDone && <span style={{ fontSize: 11, fontWeight: 900, padding: '2px 7px', borderRadius: 999, background: 'rgba(255,255,255,0.22)' }}>{doneCount}/{STEPS.length}</span>}
+      </button>
+    );
+  }
+
   // [현 차수] ★비즈니스 모델 미선택 + 아직 온보딩 진행 중이면 모델 선택을 먼저 유도.
   //   (이미 모든 단계를 끝낸 기존 사용자는 위에서 return 되어 여기 도달하지 않음 → 불필요한 재질문 없음.)
   if (!bizModel && !allDone) {
     const card = (m, icon, title, desc) => (
-      <button onClick={() => chooseModel(m)} style={{
+      <button className="onb-biz-card" onClick={() => chooseModel(m)} style={{
         flex: '1 1 220px', textAlign: 'left', cursor: 'pointer', padding: '14px 16px', borderRadius: 12,
         border: '1px solid rgba(124,58,237,0.4)', background: 'rgba(255,255,255,0.08)', color: '#fff',
       }}>
-        <div style={{ fontSize: 15, fontWeight: 900, marginBottom: 4 }}>{icon} {title}</div>
-        <div style={{ fontSize: 12, color: '#c7d2fe', lineHeight: 1.5 }}>{desc}</div>
+        <div className="onb-biz-title" style={{ fontSize: 15, fontWeight: 900, marginBottom: 4 }}>{icon} {title}</div>
+        <div className="onb-biz-desc" style={{ fontSize: 12, color: '#c7d2fe', lineHeight: 1.5 }}>{desc}</div>
       </button>
     );
     return (
       <div className="onb-guide-root" style={{ position: 'relative', margin: '8px 16px 0', zIndex: 40, minWidth: 0, maxWidth: '100%', boxSizing: 'border-box' }}>
         <div style={{ borderRadius: 12, padding: '12px 14px', background: 'linear-gradient(135deg,#0b1224,#1e1b4b)', color: '#fff', border: '1px solid rgba(124,58,237,0.4)' }}>
-          <div style={{ fontSize: 13.5, fontWeight: 900, marginBottom: 2 }}>🧭 {t('onboard.bizModel.prompt', '먼저 비즈니스 모델을 선택하세요 — 시작 단계가 여기에 맞춰집니다.')}</div>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 2 }}>
+            <div style={{ flex: 1, minWidth: 0, fontSize: 13.5, fontWeight: 900 }}>🧭 {t('onboard.bizModel.prompt', '먼저 비즈니스 모델을 선택하세요 — 시작 단계가 여기에 맞춰집니다.')}</div>
+            <button onClick={hide} title={t('onboard.hide', '숨기기')} style={{ flexShrink: 0, padding: '3px 9px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.25)', cursor: 'pointer', background: 'rgba(255,255,255,0.12)', color: '#fff', fontSize: 11, fontWeight: 800 }}>{t('onboard.hide', '숨기기')} ×</button>
+          </div>
           <div style={{ fontSize: 11.5, color: '#c7d2fe', marginBottom: 10 }}>{t('onboard.bizModel.sub', '실물 상품을 파는지, 서비스·구독·플랫폼 자체를 알리는지에 따라 안내가 달라집니다.')}</div>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             {card('commerce', '📦', t('onboard.bizModel.commerce', '실물 커머스'), t('onboard.bizModel.commerceDesc', '실물 상품 판매 · 재고/창고/주문 관리(상품→창고→입고→채널→주문 동기화).'))}
@@ -188,7 +317,7 @@ export default function OnboardingGuide() {
           </button>
         )}
         <button onClick={toggle} style={hBtn}>{expanded ? t('onboard.collapse', '접기') + ' ▴' : t('onboard.expand', '펼치기') + ' ▾'}</button>
-        <button onClick={markWelcomed} title={t('onboard.dismiss', '닫기')} style={{ ...hBtn, padding: '4px 8px' }}>×</button>
+        <button onClick={hide} title={t('onboard.hide', '숨기기')} style={{ ...hBtn, padding: '4px 8px' }}>×</button>
       </div>
 
       {/* ── 펼침: 전체 체크리스트 — ★absolute 오버레이(페이지 콘텐츠를 밀지 않음, 위에 떠서 표시) ── */}

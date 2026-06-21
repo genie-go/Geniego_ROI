@@ -689,8 +689,8 @@ function SummaryTab({ period, n, txt, fc }) {
             <tbody>
               {(data.top_skus ?? []).map(s => (
                 <tr key={s.sku_id} style={S.rowBorder}>
-                  <td style={{ ...S.tdCell, fontFamily: "monospace", fontSize: 12 }}>{s.sku_id}</td>
-                  <td style={S.tdCell}>{s.name}</td>
+                  <td className="rollup-cell-sku" style={{ ...S.tdCell, fontFamily: "monospace", fontSize: 12 }}><span className="rollup-clip2">{s.sku_id}</span></td>
+                  <td className="rollup-cell-name" style={S.tdCell}><span className="rollup-clip2">{s.name}</span></td>
                   <td style={{ ...S.tdCell, textAlign: "right" }}>{fc.c(s.revenue)}</td>
                   <td style={{ ...S.tdCell, textAlign: "right" }}>{fc.num(s.orders)}</td>
                   <td style={{ ...S.tdCell, textAlign: "right", color: (s.roas ?? 0) >= 3 ? "#22c55e" : "#ef4444" }}>{fc.roas(s.roas)}</td>
