@@ -1039,9 +1039,19 @@ a {
     display: none !important;
   }
   .app-content-area .hero .hero-title {
-    font-size: 15px !important;
+    font-size: 16px !important;
     line-height: 1.25 !important;
   }
+
+  /* ★★모바일 폰트 일관화(데스크톱 무영향 — .app-content-area 인라인만, 미디어쿼리 모바일 한정):
+     12페이지 분포 분석 결과 본문 주류는 10·11·12·13px(정상 스케일)이라 그대로 두고(과대/과소 방지),
+     어중간한 아웃라이어(8·9·11.5·15·19px)만 인접 클린값으로 스냅해 페이지 내 글자 균형·일관성 확보.
+     최종 스케일: 10·11·12·13·14·16·18·20·22·24px. (full-prefix 매칭이라 18/19px 등에 오매칭 없음.) */
+  .app-content-area [style*="font-size: 8px"],
+  .app-content-area [style*="font-size: 9px"] { font-size: 10px !important; }
+  .app-content-area [style*="font-size: 11.5px"] { font-size: 11px !important; }
+  .app-content-area [style*="font-size: 15px"] { font-size: 14px !important; }
+  .app-content-area [style*="font-size: 19px"] { font-size: 18px !important; }
 
   /* 인라인 스타일 flex 중 일반 박스는 wrap 허용 (단 세로 flex 는 제외 — 아래 catch-all 참고) */
   [style*="display: flex"][style*="gap"]:not([style*="column"]) {
