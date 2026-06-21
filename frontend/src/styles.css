@@ -2914,18 +2914,10 @@ body:not([data-theme]) .sidebar-footer {
     padding: 10px 12px !important;
   }
 
-  /* KPI 카드 내부 폰트 자동 축소 */
-  .card.card-glass>div:first-child {
-    font-size: 9px !important;
-  }
-
-  .card.card-glass>div:nth-child(2) {
-    font-size: 16px !important;
-  }
-
-  .card.card-glass>div:nth-child(3) {
-    font-size: 9px !important;
-  }
+  /* [현 차수] ★위치 기반(nth-child) 폰트 강제 제거 — KPI 카드 구조(라벨/값/부제)를 가정했으나 모든
+     .card-glass 에 적용돼, 구조가 다른 카드(예: 창고 카드의 주소가 2번째 자식)에서 엉뚱한 텍스트가
+     16px 로 확대돼 페이지 내 글자 불균형을 유발했다. KPI 큰 숫자는 내용 기반 규칙([style*="fontSize: 20"]
+     등)이 정상 축소하므로, 위치 규칙은 제거하고 각 카드의 인라인(의도된) 크기를 존중한다. */
 }
 
 
@@ -3334,13 +3326,9 @@ body:not([data-theme]) .sidebar-footer {
     text-overflow: ellipsis !important;
   }
 
-  /* KpiCard value (큰 숫자) */
-  .card-glass>div>div:nth-child(2),
-  .card-glass>div:nth-child(2) {
-    font-size: clamp(13px, 3.5vw, 18px) !important;
-    word-break: break-all !important;
-    line-height: 1.2 !important;
-  }
+  /* [현 차수] ★위치 기반(nth-child) KPI 값 폰트 강제 제거 — 위 블록과 동일 사유(카드 구조 가정 오작동으로
+     비 KPI 카드의 2번째 자식이 엉뚱하게 확대/축소돼 불균형). KPI 큰 숫자는 내용 기반 [style*="fontSize: 20"]
+     규칙이 처리하므로 위치 규칙 불필요. 인라인 크기 존중. */
 
   /* ── 3. 성과표: 가로 스크롤 확실히 보장 ── */
   .card-glass [style*="overflowX"],
