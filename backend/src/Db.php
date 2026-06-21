@@ -141,7 +141,8 @@ final class Db
         }
 
         // ENTERPRISE OPTIMIZATION: 100+ DDLs 매 요청 실행 회피, DB 이름별 lock 으로 분리.
-        $migrationLock = sys_get_temp_dir() . '/genie_roi_v424_migrated_' . $name . '.lock';
+        // [P0 멱등화] 스키마 변경(ingest dedup_key + UNIQUE) 강제 재실행 위해 락 버전 bump v424→v425.
+        $migrationLock = sys_get_temp_dir() . '/genie_roi_v425_migrated_' . $name . '.lock';
         if (!file_exists($migrationLock)) {
             self::migrate($pdo);
             @file_put_contents($migrationLock, date('Y-m-d H:i:s'));
@@ -237,6 +238,35 @@ final class Db
     /**
      * CREATE INDEX ??MySQL 5.x ?ë IF NOT EXISTS ê°? ?ì¼ë¯?ë¡?     * "Duplicate key name" ?¤ë¥(1061)ë¥?ë¬´ì?ì¬ ë§ì´ê·¸ë ?´ì ?¬ì¤??ì§???     * SQLite ?ì??IF NOT EXISTS ì§ì  ì§???
      */
+    /**
+     * [P0 멱등화] ingest 집계 테이블 중복적재 영구차단 — INSERT-only 재수집 시 광고비/매출/전환 중복합산 결함 수정.
+     *   1) dedup_key(자연키 sha256) 컬럼 보강(additive)  2) 기존행 백필(포터블 PHP 해시)
+     *   3) 동일 dedup_key 최신행만 보존(역사적 중복 제거)  4) UNIQUE 인덱스(향후 INSERT 차단, 앱 upsert 와 이중방어)
+     *   MySQL/SQLite 공통. 전부 try/catch 흡수 — 부분 실패가 migrate() 전체를 깨지 않게 fail-soft.
+     */
+    private static function dedupAggTable(PDO $pdo, string $table, array $keyCols): void
+    {
+        try { $pdo->exec("ALTER TABLE {$table} ADD COLUMN dedup_key VARCHAR(64) NULL"); } catch (\Throwable $e) { /* 이미 존재 */ }
+        try {
+            $cols = implode(',', $keyCols);
+            $rows = $pdo->query("SELECT id, {$cols} FROM {$table} WHERE dedup_key IS NULL")->fetchAll(PDO::FETCH_ASSOC);
+            if ($rows) {
+                $upd = $pdo->prepare("UPDATE {$table} SET dedup_key=? WHERE id=?");
+                foreach ($rows as $row) {
+                    $parts = [];
+                    foreach ($keyCols as $c) $parts[] = (string)($row[$c] ?? '');
+                    $dk = substr(hash('sha256', implode('|', $parts)), 0, 40);
+                    $upd->execute([$dk, $row['id']]);
+                }
+            }
+        } catch (\Throwable $e) { /* 백필 실패 시 다음 단계 스킵되도록 진행 */ }
+        // 역사적 중복 제거: 동일 dedup_key 는 최신(MAX id) 1행만 보존(=upsert 의미와 정합).
+        try {
+            $pdo->exec("DELETE FROM {$table} WHERE dedup_key IS NOT NULL AND id NOT IN (SELECT keep FROM (SELECT MAX(id) AS keep FROM {$table} WHERE dedup_key IS NOT NULL GROUP BY dedup_key) t)");
+        } catch (\Throwable $e) {}
+        self::idx($pdo, "CREATE UNIQUE INDEX uq_{$table}_dedup ON {$table}(dedup_key)");
+    }
+
     private static function idx(PDO $pdo, string $sql): void
     {
         if (!self::isMySQL($pdo)) {
@@ -671,6 +701,12 @@ final class Db
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"));
         self::idx($pdo,'CREATE INDEX idx_commerce_sku_day_tenant_date ON commerce_sku_day(tenant_id,date)');
         self::idx($pdo,'CREATE INDEX idx_commerce_sku_day_sku ON commerce_sku_day(tenant_id,sku)');
+
+        // [P0 멱등화] Decisioning ingest 3종(ad/commerce/influencer) 중복적재 차단 — dedup_key+백필+제거+UNIQUE.
+        //   기존 INSERT-only + UNIQUE 제약 부재로 동일기간 재수집 시 SUM 집계가 중복합산되던 머니경로 결함 수정.
+        self::dedupAggTable($pdo, 'ad_insight_agg',         ['tenant_id','platform','date','campaign_id','adset_id','ad_id','sku','gender','age_range','region']);
+        self::dedupAggTable($pdo, 'commerce_sku_day',       ['tenant_id','channel','date','sku']);
+        self::dedupAggTable($pdo, 'influencer_audience_agg',['tenant_id','platform','creator_id']);
 
         // ???? V419 Semi-Attribution ??????????????????????????????????????????????????????????????????????????????????????????
         $pdo->exec(self::sql($pdo, "CREATE TABLE IF NOT EXISTS attribution_coupon (

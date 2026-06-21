@@ -23,6 +23,16 @@ final class Decisioning {
         return ($t !== null && $t !== '') ? $t : 'demo';
     }
 
+    /**
+     * [P0 멱등화] 자연키 dedup_key — Db::dedupAggTable 백필과 동일 순서·캐스팅이어야 기존행과 매칭된다.
+     *   동일기간 재수집을 INSERT 가 아닌 UPDATE 로 흡수 → SUM 집계 중복합산 차단.
+     */
+    private static function dk(array $parts): string {
+        $s = [];
+        foreach ($parts as $p) $s[] = (string)($p ?? '');
+        return substr(hash('sha256', implode('|', $s)), 0, 40);
+    }
+
     public static function ingestAdInsights(Request $request, Response $response, array $args): Response {
         $pdo = Db::pdo();
         $tenant = self::tenantId($request);
@@ -31,10 +41,13 @@ final class Decisioning {
         $rows = $body['rows'] ?? $body;
         if (!is_array($rows)) $rows = [];
 
-        $stmt = $pdo->prepare('INSERT INTO ad_insight_agg
+        // [P0] INSERT-only → dedup_key upsert. 동일 자연키 재수집은 UPDATE(덮어쓰기)로 흡수.
+        $sel = $pdo->prepare('SELECT id FROM ad_insight_agg WHERE tenant_id=? AND dedup_key=? LIMIT 1');
+        $ins = $pdo->prepare('INSERT INTO ad_insight_agg
             (tenant_id, platform, date, campaign_id, adset_id, ad_id, sku, gender, age_range, region,
-             impressions, clicks, spend, conversions, revenue, extra_json)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+             impressions, clicks, spend, conversions, revenue, extra_json, dedup_key)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+        $upd = $pdo->prepare('UPDATE ad_insight_agg SET impressions=?, clicks=?, spend=?, conversions=?, revenue=?, extra_json=? WHERE id=?');
 
         $count = 0;
         foreach ($rows as $r) {
@@ -61,17 +74,31 @@ final class Decisioning {
                   $extra['gender'],$extra['sex'],$extra['age_range'],$extra['age'],$extra['region'],$extra['country'],
                   $extra['impressions'],$extra['clicks'],$extra['spend'],$extra['cost'],$extra['conversions'],$extra['purchases'],$extra['revenue'],$extra['purchase_value']);
 
-            $stmt->execute([
-                $tenant, $platform, $date, $campaign, $adset, $ad, $sku, $gender, $age, $region,
-                $impr, $clicks, $spend, $conv, $rev, json_encode($extra, JSON_UNESCAPED_UNICODE)
-            ]);
+            $extraJson = json_encode($extra, JSON_UNESCAPED_UNICODE);
+            $dk = self::dk([$tenant, $platform, $date, $campaign, $adset, $ad, $sku, $gender, $age, $region]);
+            $sel->execute([$tenant, $dk]);
+            $existId = $sel->fetchColumn();
+            if ($existId) {
+                $upd->execute([$impr, $clicks, $spend, $conv, $rev, $extraJson, $existId]);
+            } else {
+                try {
+                    $ins->execute([
+                        $tenant, $platform, $date, $campaign, $adset, $ad, $sku, $gender, $age, $region,
+                        $impr, $clicks, $spend, $conv, $rev, $extraJson, $dk
+                    ]);
+                } catch (\PDOException $e) { // 동시성 레이스(병렬 INSERT) → UNIQUE 위반 시 UPDATE 폴백
+                    $sel->execute([$tenant, $dk]); $rid = $sel->fetchColumn();
+                    if ($rid) { $upd->execute([$impr, $clicks, $spend, $conv, $rev, $extraJson, $rid]); } else { throw $e; }
+                }
+            }
             $count++;
         }
 
         return TemplateResponder::respond($response, [
             'ok' => true,
             'tenant_id' => $tenant,
-            'inserted' => $count
+            'inserted' => $count, // 하위호환 별칭(외부 커넥터)
+            'upserted' => $count
         ]);
     }
 
@@ -83,9 +110,12 @@ final class Decisioning {
         $rows = $body['rows'] ?? $body;
         if (!is_array($rows)) $rows = [];
 
-        $stmt = $pdo->prepare('INSERT INTO influencer_audience_agg
-            (tenant_id, platform, creator_id, gender, age_range, region, followers, engagement_rate, updated_at, extra_json)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+        // [P0] INSERT-only → dedup_key(tenant|platform|creator) upsert.
+        $sel = $pdo->prepare('SELECT id FROM influencer_audience_agg WHERE tenant_id=? AND dedup_key=? LIMIT 1');
+        $ins = $pdo->prepare('INSERT INTO influencer_audience_agg
+            (tenant_id, platform, creator_id, gender, age_range, region, followers, engagement_rate, updated_at, extra_json, dedup_key)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+        $upd = $pdo->prepare('UPDATE influencer_audience_agg SET gender=?, age_range=?, region=?, followers=?, engagement_rate=?, updated_at=?, extra_json=? WHERE id=?');
 
         $count = 0;
         $now = date('c');
@@ -104,17 +134,30 @@ final class Decisioning {
             unset($extra['platform'],$extra['source'],$extra['creator_id'],$extra['creator'],$extra['handle'],
                   $extra['gender'],$extra['age_range'],$extra['region'],$extra['followers'],$extra['engagement_rate'],$extra['er'],$extra['updated_at']);
 
-            $stmt->execute([
-                $tenant, $platform, $creator, $gender, $age, $region, $followers, $er, $updated,
-                json_encode($extra, JSON_UNESCAPED_UNICODE)
-            ]);
+            $extraJson = json_encode($extra, JSON_UNESCAPED_UNICODE);
+            $dk = self::dk([$tenant, $platform, $creator]);
+            $sel->execute([$tenant, $dk]);
+            $existId = $sel->fetchColumn();
+            if ($existId) {
+                $upd->execute([$gender, $age, $region, $followers, $er, $updated, $extraJson, $existId]);
+            } else {
+                try {
+                    $ins->execute([
+                        $tenant, $platform, $creator, $gender, $age, $region, $followers, $er, $updated, $extraJson, $dk
+                    ]);
+                } catch (\PDOException $e) { // 동시성 레이스 → UNIQUE 위반 시 UPDATE 폴백
+                    $sel->execute([$tenant, $dk]); $rid = $sel->fetchColumn();
+                    if ($rid) { $upd->execute([$gender, $age, $region, $followers, $er, $updated, $extraJson, $rid]); } else { throw $e; }
+                }
+            }
             $count++;
         }
 
         return TemplateResponder::respond($response, [
             'ok' => true,
             'tenant_id' => $tenant,
-            'inserted' => $count
+            'inserted' => $count, // 하위호환 별칭(외부 커넥터)
+            'upserted' => $count
         ]);
     }
 
@@ -126,9 +169,12 @@ final class Decisioning {
         $rows = $body['rows'] ?? $body;
         if (!is_array($rows)) $rows = [];
 
-        $stmt = $pdo->prepare('INSERT INTO commerce_sku_day
-            (tenant_id, channel, date, sku, orders, units, revenue, refunds, extra_json)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
+        // [P0] INSERT-only → dedup_key(tenant|channel|date|sku) upsert.
+        $sel = $pdo->prepare('SELECT id FROM commerce_sku_day WHERE tenant_id=? AND dedup_key=? LIMIT 1');
+        $ins = $pdo->prepare('INSERT INTO commerce_sku_day
+            (tenant_id, channel, date, sku, orders, units, revenue, refunds, extra_json, dedup_key)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+        $upd = $pdo->prepare('UPDATE commerce_sku_day SET orders=?, units=?, revenue=?, refunds=?, extra_json=? WHERE id=?');
 
         $count = 0;
         foreach ($rows as $r) {
@@ -145,17 +191,30 @@ final class Decisioning {
             unset($extra['channel'],$extra['platform'],$extra['date'],$extra['day'],$extra['sku'],$extra['asin'],$extra['product_id'],
                   $extra['orders'],$extra['units'],$extra['qty'],$extra['revenue'],$extra['sales'],$extra['refunds']);
 
-            $stmt->execute([
-                $tenant, $channel, $date, $sku, $orders, $units, $rev, $refunds,
-                json_encode($extra, JSON_UNESCAPED_UNICODE)
-            ]);
+            $extraJson = json_encode($extra, JSON_UNESCAPED_UNICODE);
+            $dk = self::dk([$tenant, $channel, $date, $sku]);
+            $sel->execute([$tenant, $dk]);
+            $existId = $sel->fetchColumn();
+            if ($existId) {
+                $upd->execute([$orders, $units, $rev, $refunds, $extraJson, $existId]);
+            } else {
+                try {
+                    $ins->execute([
+                        $tenant, $channel, $date, $sku, $orders, $units, $rev, $refunds, $extraJson, $dk
+                    ]);
+                } catch (\PDOException $e) { // 동시성 레이스 → UNIQUE 위반 시 UPDATE 폴백
+                    $sel->execute([$tenant, $dk]); $rid = $sel->fetchColumn();
+                    if ($rid) { $upd->execute([$orders, $units, $rev, $refunds, $extraJson, $rid]); } else { throw $e; }
+                }
+            }
             $count++;
         }
 
         return TemplateResponder::respond($response, [
             'ok' => true,
             'tenant_id' => $tenant,
-            'inserted' => $count
+            'inserted' => $count, // 하위호환 별칭(외부 커넥터)
+            'upserted' => $count
         ]);
     }
 

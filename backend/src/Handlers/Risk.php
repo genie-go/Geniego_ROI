@@ -11,6 +11,19 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 
 final class Risk {
 
+    /**
+     * [P0 보안] 은행급 테넌트 격리 — 미들웨어 주입 auth_tenant(api_key 의 tenant_id, 위조불가)만 신뢰.
+     *   body/query 의 raw tenant_id 는 클라이언트 위조 가능 → 교차테넌트 read/write 통로이므로 절대 신뢰 금지.
+     *   라우트는 $register(api_key 미들웨어) 경유라 auth_tenant 가 항상 채워진다. 세션토큰 폴백 후 미해결은
+     *   demo 격리버킷으로 fail-closed.
+     */
+    private static function tenantId(Request $request): string {
+        $auth = (string)($request->getAttribute('auth_tenant') ?? '');
+        if ($auth !== '') return $auth;
+        $t = UserAuth::authedTenant($request);
+        return ($t !== null && $t !== '') ? $t : 'demo';
+    }
+
     private static function sigmoid(float $x): float {
         return 1.0 / (1.0 + exp(-$x));
     }
@@ -58,7 +71,7 @@ final class Risk {
         $payload = $request->getParsedBody();
         if (!is_array($payload)) $payload = [];
 
-        $tenantId = (string)($payload["tenant_id"] ?? "demo");
+        $tenantId = self::tenantId($request); // [P0] body tenant_id 신뢰 제거 — auth_tenant 강제
         $entityType = (string)($payload["entity_type"] ?? "amazon_listing");
         $entityId = (string)($payload["entity_id"] ?? "UNKNOWN");
         $features = $payload["features"] ?? [];
@@ -95,7 +108,7 @@ final class Risk {
         $payload = $request->getParsedBody();
         if (!is_array($payload)) $payload = [];
 
-        $tenantId = (string)($payload["tenant_id"] ?? "demo");
+        $tenantId = self::tenantId($request); // [P0] body tenant_id 신뢰 제거 — auth_tenant 강제
         $entities = $payload["entities"] ?? [];
         if (!is_array($entities)) {
             $response->getBody()->write(json_encode(["detail"=>"entities must be a list"], JSON_UNESCAPED_UNICODE));
@@ -175,7 +188,7 @@ final class Risk {
     public static function adminPredictions(Request $request, Response $response, array $args): Response {
         $pdo = Db::pdo();
         $qp = $request->getQueryParams();
-        $tenantId = (string)($qp["tenant_id"] ?? "demo");
+        $tenantId = self::tenantId($request); // [P0] query tenant_id 신뢰 제거 — auth_tenant 강제
         $limit = (int)($qp["limit"] ?? 50);
         if ($limit < 1) $limit = 50;
         $stmt = $pdo->prepare("SELECT * FROM risk_prediction WHERE tenant_id=? ORDER BY id DESC LIMIT ?");
@@ -200,7 +213,7 @@ final class Risk {
     public static function adminConnectorHealth(Request $request, Response $response, array $args): Response {
         $pdo = Db::pdo();
         $qp = $request->getQueryParams();
-        $tenantId = (string)($qp["tenant_id"] ?? "demo");
+        $tenantId = self::tenantId($request); // [P0] query tenant_id 신뢰 제거 — auth_tenant 강제
         $stmt = $pdo->prepare("SELECT * FROM connector_health WHERE tenant_id=? ORDER BY id DESC");
         $stmt->execute([$tenantId]);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -220,7 +233,7 @@ final class Risk {
     public static function adminIngestionRuns(Request $request, Response $response, array $args): Response {
         $pdo = Db::pdo();
         $qp = $request->getQueryParams();
-        $tenantId = (string)($qp["tenant_id"] ?? "demo");
+        $tenantId = self::tenantId($request); // [P0] query tenant_id 신뢰 제거 — auth_tenant 강제
         $limit = (int)($qp["limit"] ?? 50);
         if ($limit < 1) $limit = 50;
         $stmt = $pdo->prepare("SELECT * FROM ingestion_run_log WHERE tenant_id=? ORDER BY id DESC LIMIT ?");
@@ -245,8 +258,13 @@ final class Risk {
 
     public static function adminBilling(Request $request, Response $response, array $args): Response {
         $pdo = Db::pdo();
+        // [P0 보안] tenant_subscription 전 테넌트 덤프 차단 — 호출 테넌트 구독만 노출.
+        //   (플랫폼 admin 의 전 테넌트 뷰는 세션 기반 admin 게이트 /v423~426/admin/* 가 담당.)
+        $tenantId = self::tenantId($request);
         $plans = $pdo->query("SELECT * FROM billing_plan ORDER BY id ASC")->fetchAll(PDO::FETCH_ASSOC);
-        $subs = $pdo->query("SELECT * FROM tenant_subscription ORDER BY id DESC")->fetchAll(PDO::FETCH_ASSOC);
+        $subStmt = $pdo->prepare("SELECT * FROM tenant_subscription WHERE tenant_id=? ORDER BY id DESC");
+        $subStmt->execute([$tenantId]);
+        $subs = $subStmt->fetchAll(PDO::FETCH_ASSOC);
         $out = [
             "plans" => array_map(fn($p) => [
                 "code"=>$p["code"],

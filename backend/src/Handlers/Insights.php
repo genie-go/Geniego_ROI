@@ -118,6 +118,11 @@ final class Insights {
         foreach (['ad_audience_breakdowns','influencer_audience_breakdowns','commerce_product_daily'] as $tbl) {
             try { $pdo->exec("ALTER TABLE {$tbl} ADD COLUMN tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo'"); } catch (\Throwable $e) {}
         }
+        // [P0 멱등화] Insights ingest 3종도 INSERT-only + UNIQUE 제약 부재 → 재수집 시 SUM 집계 중복합산.
+        //   dedup_key 자연키 upsert 로 차단(ingest 메서드와 동일 키 순서). 무거운 백필/제거는 컬럼 최초추가 1회만.
+        self::ensureDedup($pdo, 'ad_audience_breakdowns',         ['tenant_id','source_platform','account_id','campaign_id','adset_id','ad_id','creative_id','product_sku','event_date','region','gender','age_bucket']);
+        self::ensureDedup($pdo, 'influencer_audience_breakdowns', ['tenant_id','platform','influencer_id','event_date','region','gender','age_bucket']);
+        self::ensureDedup($pdo, 'commerce_product_daily',         ['tenant_id','channel','store_id','product_sku','event_date']);
         // [현 차수 P1] creative_sku_map 테넌트 격리 — 과거 무격리(PK=sp,cid,sku) 테이블 마이그레이션.
         //   creative_id 가 테넌트 간 충돌하면 타 테넌트 creative→SKU 매핑이 JOIN 으로 유입(라벨 오염).
         //   tenant_id 컬럼 + PK 재구성. PK 변경 불가한 SQLite 는 rename→재생성→이관(기존행=demo).
@@ -139,6 +144,43 @@ final class Insights {
         } catch (\Throwable $e) { error_log('[Insights.migrate creative_sku_map] ' . $e->getMessage()); }
     }
 
+    /**
+     * [P0 멱등화] dedup_key 컬럼 보강 + 기존행 백필 + 역사적 중복제거 + UNIQUE 인덱스.
+     *   ★컬럼 최초추가($added) 시에만 무거운 백필/제거 실행 → 매 ingest 호출 비용 회피. fail-soft.
+     */
+    private static function ensureDedup(\PDO $pdo, string $table, array $keyCols): void {
+        $added = false;
+        try { $pdo->exec("ALTER TABLE {$table} ADD COLUMN dedup_key VARCHAR(64) NULL"); $added = true; } catch (\Throwable $e) {}
+        if (!$added) return; // 이미 마이그레이션 완료 — 스킵
+        try {
+            $cols = implode(',', $keyCols);
+            $rows = $pdo->query("SELECT id, {$cols} FROM {$table} WHERE dedup_key IS NULL")->fetchAll(\PDO::FETCH_ASSOC);
+            if ($rows) {
+                $upd = $pdo->prepare("UPDATE {$table} SET dedup_key=? WHERE id=?");
+                foreach ($rows as $row) {
+                    $parts = [];
+                    foreach ($keyCols as $c) $parts[] = (string)($row[$c] ?? '');
+                    $upd->execute([substr(hash('sha256', implode('|', $parts)), 0, 40), $row['id']]);
+                }
+            }
+        } catch (\Throwable $e) {}
+        try {
+            $pdo->exec("DELETE FROM {$table} WHERE dedup_key IS NOT NULL AND id NOT IN (SELECT keep FROM (SELECT MAX(id) AS keep FROM {$table} WHERE dedup_key IS NOT NULL GROUP BY dedup_key) t)");
+        } catch (\Throwable $e) {}
+        $idxSql = "CREATE UNIQUE INDEX uq_{$table}_dedup ON {$table}(dedup_key)";
+        if ($pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) !== 'mysql') {
+            $idxSql = preg_replace('/^CREATE UNIQUE INDEX\s/', 'CREATE UNIQUE INDEX IF NOT EXISTS ', $idxSql);
+        }
+        try { $pdo->exec($idxSql); } catch (\Throwable $e) {}
+    }
+
+    /** [P0] 자연키 dedup_key — ensureDedup 백필과 동일 순서·캐스팅이어야 기존행과 매칭된다. */
+    private static function dk(array $parts): string {
+        $s = [];
+        foreach ($parts as $p) $s[] = (string)($p ?? '');
+        return substr(hash('sha256', implode('|', $s)), 0, 40);
+    }
+
     public static function ingestAdAudience(Request $req, Response $res, array $args = []): Response {
         $pdo = Db::pdo();
         self::ensureTables($pdo);
@@ -147,15 +189,18 @@ final class Insights {
         $rows = $data['rows'] ?? [];
         if (!is_array($rows)) $rows = [];
 
+        // [P0] INSERT-only → dedup_key upsert(동일 자연키 재수집은 UPDATE 흡수).
         $stmt = $pdo->prepare('INSERT INTO ad_audience_breakdowns (
             tenant_id, source_platform, account_id, campaign_id, adset_id, ad_id, creative_id, product_sku,
             event_date, region, gender, age_bucket,
-            impressions, clicks, spend, conversions, attributed_revenue, raw_json, created_at
+            impressions, clicks, spend, conversions, attributed_revenue, raw_json, created_at, dedup_key
         ) VALUES (
             :tenant_id, :source_platform, :account_id, :campaign_id, :adset_id, :ad_id, :creative_id, :product_sku,
             :event_date, :region, :gender, :age_bucket,
-            :impressions, :clicks, :spend, :conversions, :attributed_revenue, :raw_json, :created_at
+            :impressions, :clicks, :spend, :conversions, :attributed_revenue, :raw_json, :created_at, :dedup_key
         );');
+        $sel = $pdo->prepare('SELECT id FROM ad_audience_breakdowns WHERE tenant_id=? AND dedup_key=? LIMIT 1');
+        $upd = $pdo->prepare('UPDATE ad_audience_breakdowns SET impressions=:impressions, clicks=:clicks, spend=:spend, conversions=:conversions, attributed_revenue=:attributed_revenue, raw_json=:raw_json, created_at=:created_at WHERE id=:id');
 
         $inserted = 0;
         foreach ($rows as $r) {
@@ -182,13 +227,23 @@ final class Insights {
                 ':raw_json' => json_encode($r, JSON_UNESCAPED_UNICODE),
                 ':created_at' => self::now(),
             ];
-            $stmt->execute($payload);
+            $dk = self::dk([$tenant, $sp, $payload[':account_id'], $payload[':campaign_id'], $payload[':adset_id'], $payload[':ad_id'], $payload[':creative_id'], $payload[':product_sku'], $payload[':event_date'], $payload[':region'], $payload[':gender'], $payload[':age_bucket']]);
+            $payload[':dedup_key'] = $dk;
+            $sel->execute([$tenant, $dk]);
+            $rid = $sel->fetchColumn();
+            if ($rid) {
+                $upd->execute([':impressions'=>$payload[':impressions'], ':clicks'=>$payload[':clicks'], ':spend'=>$payload[':spend'], ':conversions'=>$payload[':conversions'], ':attributed_revenue'=>$payload[':attributed_revenue'], ':raw_json'=>$payload[':raw_json'], ':created_at'=>$payload[':created_at'], ':id'=>$rid]);
+            } else {
+                try { $stmt->execute($payload); }
+                catch (\PDOException $e) { $sel->execute([$tenant, $dk]); $rid2 = $sel->fetchColumn(); if ($rid2) { $upd->execute([':impressions'=>$payload[':impressions'], ':clicks'=>$payload[':clicks'], ':spend'=>$payload[':spend'], ':conversions'=>$payload[':conversions'], ':attributed_revenue'=>$payload[':attributed_revenue'], ':raw_json'=>$payload[':raw_json'], ':created_at'=>$payload[':created_at'], ':id'=>$rid2]); } else { throw $e; } }
+            }
             $inserted++;
         }
 
         return TemplateResponder::json($res, [
             'ok' => true,
-            'inserted' => $inserted,
+            'inserted' => $inserted, // 하위호환 별칭(외부 커넥터)
+            'upserted' => $inserted,
             'schema' => 'ad_audience_breakdowns',
         ]);
     }
@@ -209,13 +264,16 @@ final class Insights {
         $rows = $data['rows'] ?? [];
         if (!is_array($rows)) $rows = [];
 
+        // [P0] INSERT-only → dedup_key upsert.
         $stmt = $pdo->prepare('INSERT INTO influencer_audience_breakdowns (
             tenant_id, platform, influencer_id, influencer_handle, event_date, region, gender, age_bucket,
-            followers, engaged_accounts, impressions, clicks, raw_json, created_at
+            followers, engaged_accounts, impressions, clicks, raw_json, created_at, dedup_key
         ) VALUES (
             :tenant_id, :platform, :influencer_id, :influencer_handle, :event_date, :region, :gender, :age_bucket,
-            :followers, :engaged_accounts, :impressions, :clicks, :raw_json, :created_at
+            :followers, :engaged_accounts, :impressions, :clicks, :raw_json, :created_at, :dedup_key
         );');
+        $sel = $pdo->prepare('SELECT id FROM influencer_audience_breakdowns WHERE tenant_id=? AND dedup_key=? LIMIT 1');
+        $upd = $pdo->prepare('UPDATE influencer_audience_breakdowns SET influencer_handle=:influencer_handle, followers=:followers, engaged_accounts=:engaged_accounts, impressions=:impressions, clicks=:clicks, raw_json=:raw_json, created_at=:created_at WHERE id=:id');
 
         $inserted = 0;
         foreach ($rows as $r) {
@@ -224,7 +282,7 @@ final class Insights {
             $influencerId = self::normStr($r['influencer_id'] ?? null);
             if ($influencerId === null) continue;
 
-            $stmt->execute([
+            $payload = [
                 ':tenant_id' => $tenant,
                 ':platform' => $platform,
                 ':influencer_id' => $influencerId,
@@ -239,13 +297,25 @@ final class Insights {
                 ':clicks' => self::normInt($r['clicks'] ?? 0),
                 ':raw_json' => json_encode($r, JSON_UNESCAPED_UNICODE),
                 ':created_at' => self::now(),
-            ]);
+            ];
+            $dk = self::dk([$tenant, $platform, $influencerId, $payload[':event_date'], $payload[':region'], $payload[':gender'], $payload[':age_bucket']]);
+            $payload[':dedup_key'] = $dk;
+            $sel->execute([$tenant, $dk]);
+            $rid = $sel->fetchColumn();
+            $updArgs = fn($id) => [':influencer_handle'=>$payload[':influencer_handle'], ':followers'=>$payload[':followers'], ':engaged_accounts'=>$payload[':engaged_accounts'], ':impressions'=>$payload[':impressions'], ':clicks'=>$payload[':clicks'], ':raw_json'=>$payload[':raw_json'], ':created_at'=>$payload[':created_at'], ':id'=>$id];
+            if ($rid) {
+                $upd->execute($updArgs($rid));
+            } else {
+                try { $stmt->execute($payload); }
+                catch (\PDOException $e) { $sel->execute([$tenant, $dk]); $rid2 = $sel->fetchColumn(); if ($rid2) { $upd->execute($updArgs($rid2)); } else { throw $e; } }
+            }
             $inserted++;
         }
 
         return TemplateResponder::json($res, [
             'ok' => true,
-            'inserted' => $inserted,
+            'inserted' => $inserted, // 하위호환 별칭(외부 커넥터)
+            'upserted' => $inserted,
             'schema' => 'influencer_audience_breakdowns',
         ]);
     }
@@ -266,13 +336,16 @@ final class Insights {
         $rows = $data['rows'] ?? [];
         if (!is_array($rows)) $rows = [];
 
+        // [P0] INSERT-only → dedup_key upsert.
         $stmt = $pdo->prepare('INSERT INTO commerce_product_daily (
             tenant_id, channel, store_id, product_sku, product_title, event_date,
-            units_sold, gross_revenue, refunds, net_revenue, sessions, raw_json, created_at
+            units_sold, gross_revenue, refunds, net_revenue, sessions, raw_json, created_at, dedup_key
         ) VALUES (
             :tenant_id, :channel, :store_id, :product_sku, :product_title, :event_date,
-            :units_sold, :gross_revenue, :refunds, :net_revenue, :sessions, :raw_json, :created_at
+            :units_sold, :gross_revenue, :refunds, :net_revenue, :sessions, :raw_json, :created_at, :dedup_key
         );');
+        $sel = $pdo->prepare('SELECT id FROM commerce_product_daily WHERE tenant_id=? AND dedup_key=? LIMIT 1');
+        $upd = $pdo->prepare('UPDATE commerce_product_daily SET product_title=:product_title, units_sold=:units_sold, gross_revenue=:gross_revenue, refunds=:refunds, net_revenue=:net_revenue, sessions=:sessions, raw_json=:raw_json, created_at=:created_at WHERE id=:id');
 
         $inserted = 0;
         foreach ($rows as $r) {
@@ -281,7 +354,7 @@ final class Insights {
             $sku = self::normStr($r['product_sku'] ?? null);
             if ($sku === null) continue;
 
-            $stmt->execute([
+            $payload = [
                 ':tenant_id' => $tenant,
                 ':channel' => $channel,
                 ':store_id' => self::normStr($r['store_id'] ?? null),
@@ -295,13 +368,25 @@ final class Insights {
                 ':sessions' => self::normInt($r['sessions'] ?? 0),
                 ':raw_json' => json_encode($r, JSON_UNESCAPED_UNICODE),
                 ':created_at' => self::now(),
-            ]);
+            ];
+            $dk = self::dk([$tenant, $channel, $payload[':store_id'], $sku, $payload[':event_date']]);
+            $payload[':dedup_key'] = $dk;
+            $sel->execute([$tenant, $dk]);
+            $rid = $sel->fetchColumn();
+            $updArgs = fn($id) => [':product_title'=>$payload[':product_title'], ':units_sold'=>$payload[':units_sold'], ':gross_revenue'=>$payload[':gross_revenue'], ':refunds'=>$payload[':refunds'], ':net_revenue'=>$payload[':net_revenue'], ':sessions'=>$payload[':sessions'], ':raw_json'=>$payload[':raw_json'], ':created_at'=>$payload[':created_at'], ':id'=>$id];
+            if ($rid) {
+                $upd->execute($updArgs($rid));
+            } else {
+                try { $stmt->execute($payload); }
+                catch (\PDOException $e) { $sel->execute([$tenant, $dk]); $rid2 = $sel->fetchColumn(); if ($rid2) { $upd->execute($updArgs($rid2)); } else { throw $e; } }
+            }
             $inserted++;
         }
 
         return TemplateResponder::json($res, [
             'ok' => true,
-            'inserted' => $inserted,
+            'inserted' => $inserted, // 하위호환 별칭(외부 커넥터)
+            'upserted' => $inserted,
             'schema' => 'commerce_product_daily',
         ]);
     }
