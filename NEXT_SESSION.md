@@ -1,3 +1,46 @@
+# 235차 세션 인계서 — **5도메인 전수 정밀감사 + P0 보안·머니경로 + P1 + 광고 딜리버리 + UI 정직성 + pushProduct (전부 운영·데모 배포·라이브 검증 / 브랜치 5커밋 push·PR #1, master 미접촉)**
+
+> **작성일**: 2026-06-21 (사용자 명시 승인) · 운영 roi.genie-go.com / 데모 roidemo.genie-go.com · 하네스 primary=**E:\project\GeniegoROI**.
+> **종결 상태**: 작업 브랜치 `fix/n235-p0-tenant-isolation-ingest-idempotency` **5커밋 push 완료 + PR #1**(base master). ★**master 미접촉**(운영/데모엔 이미 동일 코드 수동 swap 반영·검증 완료라 머지 시 동등). 백엔드 수동배포(.bak_235/.bak_235p1/.bak_235p2 백업), 프론트 dist 오버레이(.bak_235/235c). SSH/MySQL/admin 자격증명=메모리 [[reference-session-credentials]]. ★마이그레이션 락 v424→v425(ingest dedup)→**v426(mapping tenant_id)**. 오탐방지 정본=[[reference_audit_false_positives]]·[[feedback_audit_reference_past_fixes]].
+
+## ✅ 235차 — 브랜치 5커밋 (각 건 PM 직접 코드 재증명 후 수정·운영/데모 라이브 검증)
+
+| 커밋 | 핵심 |
+|---|---|
+| `e9a9f5cfb70` (P0) | **Risk.php 교차테넌트 격리**(predict/batchRun body·admin* query tenant_id→auth_tenant 강제, adminBilling 전테넌트 덤프 차단) + **ingest 6테이블 멱등화**(ad_insight_agg/commerce_sku_day/influencer_audience_agg + ad_audience_breakdowns/influencer_audience_breakdowns/commerce_product_daily: INSERT-only+UNIQUE부재→재수집 SUM 중복합산. dedup_key 해시+백필+중복제거+UNIQUE+앱 upsert(레이스 폴백)). 락 v426 |
+| `fdd0bad0216` (P1) | 대시보드 가짜데이터 IS_DEMO 가드(DashCommerce 퍼널 ×85/15/3·DashChannelKPI/DashMarketing Math.sin 가짜추이→운영=0/평탄·크기보존) + Mapping.php 3테이블 테넌트격리(tenant_id+전쿼리 auth_tenant) + `line` COMMERCE 오분류 제거 + eBay 주문수집(Sell Fulfillment API·실패시 빈배열=회귀안전) |
+| `2017b922176` | 광고 딜리버리 Kakao Moment·LINE Ads arm(buildDelivery, OFF/PAUSED 무지출·fail-closed·기존 arm 미변경). TikTok ad-level은 영상자산 부재로 honest partial 유지 |
+| `6f82d553efa` | UI 정직성 — youtube(LIVE_VERIFY인데 fetch어댑터 없음) "🎉발급확인완료"+"연동예정" 모순신호→verifiedNoSync 플래그로 "🔑키 검증됨·동기화 준비중" 정직표기(youtube 단독) |
+| `4f38db10ffb` | pushProduct WooCommerce·Magento(표준 REST, fetch 인증 재사용, fail-closed, 사용자 명시 실행에만). 나머지 7종은 write API 복잡/피드기반→honest pending |
+
+## ★235차 핵심 교훈 — 감사 오탐 3건 기각(사용자 "이미 여러차례 수정" 경고 적중)
+정밀 재검증으로 에이전트 감사의 오탐을 코드 근거로 기각(상세 [[reference_audit_false_positives]]):
+- **P0-3 PG정산 P&L 미환류=의도적 de-silo**(이중계산 방지, PnLDashboard.jsx:708-711 [정밀감사 C] 주석). pgSum 별도 KPI 렌더.
+- **P1-5 주문매출 통화비대칭=saveOrders가 이미 fxToKrw로 KRW 정규화**(228차 S5, ChannelSync.php:2103-2112).
+- **P1-2 글로벌 REAL_ADAPTER=fetch(읽기) 정확 표기**, pushProduct는 정직 pending.
+→ **워크플로우 강제**: 전수감사 착수 전 레지스트리를 에이전트에 주입, 에이전트 요약 불신·PM 직접 코드 재증명 후만 P0단정.
+
+## "자격증명만 등록하면 즉시 동작" 분석 결과
+- **자동배선 프레임워크는 진짜 완성**: ChannelCreds::upsert(351-384) 저장직후 채널종류 자동판별→광고/커머스/PG/물류 자동sync+writeback 큐 push+ping검증, 커머스는 saveOrders chokepoint에서 재고/CRM/귀속/정산/반품 자동 팬아웃. cron 백업.
+- **진짜 즉시 동작**(자체발급 키): 쿠팡·네이버·국내오픈마켓·PG 10종(stripe/toss/paypal/paddle/adyen/square/checkout/mollie/razorpay/klarna)·물류 9종.
+- **추가 전제 필요**: OAuth 채널(토큰발급에 admin OAuth앱 또는 수동앱)·광고 계정ID·광고집행(developer_token 심사·카드).
+- **미동작(정직 고지됨)**: SNS(youtube/instagram/facebook/twitch) fetch어댑터 없음·PG 5종/물류 5종 stub → 카드 "🔌 연동 예정" 고지(REAL_ADAPTER 미포함). UI 정직성 양호.
+
+## 235차 잔여/후속 (★전부 라이브 자격증명 필요·검증불가·고위험 — 투기구현 금지)
+- pushProduct 7종(walmart 피드·shopee/lazada HMAC·qoo10/yahoo_jp/godomall)
+- 채널정산 자동수집(fetchSettlements 전채널 pending — 머니파싱 P&L 오염 위험)
+- TikTok 영상소재 파이프라인(대형)·Kakao/LINE/eBay 라이브 스키마 검증·SNS 데이터 fetch 어댑터
+- 실광고집행 전제: **Google/Meta는 코드완비 — OAuth앱(admin client_id/secret)+카드(Toss 빌링키)+광고계정ID만 등록하면 즉시 실집행 가능**
+- ★라이브 자격증명 확보 후 실응답 기반으로 검증하며 진행 권장.
+
+## 235차 트랩(재확인)
+- **CRLF diff 함정**: Windows 로컬↔서버 diff가 전체 줄 차이로 부풀려짐(Db.php 2404줄). `tr -d '\r'` 후 diff로 실변경 확인 필수(실제 38줄).
+- **마이그레이션 락**: `genie_roi_v{NNN}_migrated_<db>.lock`. 스키마 변경 강제 재실행은 락버전 bump(v426). demo DB CLI 마이그레이션은 `GENIE_ENV=demo php` 강제(데모 env는 fpm 풀이 주입, .env 아님).
+- **opcache**: 신규/변경 핸들러는 `systemctl restart php8.1-fpm`(reload 무효).
+- **PowerShell→plink**: here-string CRLF가 sh 파싱 깨뜨림(괄호/`${}`/process substitution `<()` 회피). 단일라인 단일인용 또는 임시파일 권장.
+
+---
+
 # 234차 세션 인계서 — **모바일 환경 종합 초고도화: 우측잘림/스크롤/온보딩/폰트·박스 균형 전수 수정 (전부 운영·데모 배포·헤드리스 검증·커밋·push 완료)**
 
 > **작성일**: 2026-06-21 (사용자 명시 승인) · 운영 roi.genie-go.com / 데모 roidemo.genie-go.com (★vhost server_name=하이픈, 파일경로 `.geniego.com` 무하이픈). 하네스 primary=**E:\project\GeniegoROI**.
