@@ -262,8 +262,19 @@ function SmartPricing() {
 }
 
 function RequireAuth({ children }) {
-  const { user, loading } = useAuth();
+  const { user, token, loading } = useAuth();
+  // [현 차수] ★콜드로드 리다이렉트 레이스 차단: 토큰은 유효(restorableToken 통과)한데 user 객체가 아직
+  //   부트스트랩(/auth/me 페치) 중이면, 조기에 /login 으로 튕겨 요청 경로(예 /auto-marketing)를 잃고
+  //   LoginRoute 가 다시 /dashboard 로 보내는 체인이 발생했다. user 가 채워질 때까지 잠깐 대기 → 요청 경로
+  //   그대로 렌더. 6초 안전 타임아웃 후에도 미로드면 /login(무한로더 방지). ★admin 비영속 보안정책은 불변
+  //   (그 경우 restorableToken 이 null→token 도 null 이라 아래 대기에 안 걸리고 정상 /login).
+  const [bootWaited, setBootWaited] = React.useState(false);
+  React.useEffect(() => {
+    if (token && !user) { const t = setTimeout(() => setBootWaited(true), 6000); return () => clearTimeout(t); }
+    setBootWaited(false);
+  }, [token, user]);
   if (loading) return <FullLoader />;
+  if (token && !user && !bootWaited) return <FullLoader />;
   if (!user) return <Navigate to="/login" replace />;
   // 193차 Sprint4: 관리자 MFA 의무화 — admin이 2단계 인증 미설정이면 enrollment 게이트로 차단.
   return <AdminMfaGate>{children}</AdminMfaGate>;
