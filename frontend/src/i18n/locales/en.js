@@ -7565,6 +7565,7 @@ export default {
       memberTools: "Member Tools",
       adminSystem: "System Admin",
       platformEnvLabel: "Platform Environment",
+      growthCenterLabel: "Growth Center",
       planPricingLabel: "Plan Pricing",
       siteIntroLabel: "Company & Team",
       memberMgmtLabel: "Members",

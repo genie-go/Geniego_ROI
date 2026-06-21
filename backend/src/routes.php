@@ -779,6 +779,45 @@ return function (App $app): void {
         'DELETE /api/v424/admin/site/team/{id}'    => 'Genie\\Handlers\\SiteIntro::teamDelete',
         'POST /api/v424/admin/site/history'        => 'Genie\\Handlers\\SiteIntro::historySave',
         'DELETE /api/v424/admin/site/history/{id}' => 'Genie\\Handlers\\SiteIntro::historyDelete',
+        // 236차 — Admin Growth Automation (GeniegoROI 자체 마케팅 자동화). admin 전용(requirePlan('admin')).
+        //   index.php 의 /v424/admin/* 세션 admin bypass 를 그대로 사용(추가 bypass 불요).
+        'GET /v424/admin/growth/dashboard'             => 'Genie\\Handlers\\AdminGrowth::dashboard',
+        'GET /v424/admin/growth/funnel'                => 'Genie\\Handlers\\AdminGrowth::funnel',
+        'GET /v424/admin/growth/segments'              => 'Genie\\Handlers\\AdminGrowth::segments',
+        'POST /v424/admin/growth/segments'             => 'Genie\\Handlers\\AdminGrowth::segmentSave',
+        'POST /v424/admin/growth/segments/seed'        => 'Genie\\Handlers\\AdminGrowth::segmentSeed',
+        'DELETE /v424/admin/growth/segments/{id}'      => 'Genie\\Handlers\\AdminGrowth::segmentDelete',
+        'GET /v424/admin/growth/leads'                 => 'Genie\\Handlers\\AdminGrowth::leads',
+        'POST /v424/admin/growth/leads'                => 'Genie\\Handlers\\AdminGrowth::leadSave',
+        'POST /v424/admin/growth/leads/{id}/event'     => 'Genie\\Handlers\\AdminGrowth::leadEvent',
+        'GET /v424/admin/growth/campaigns'             => 'Genie\\Handlers\\AdminGrowth::campaigns',
+        'POST /v424/admin/growth/campaigns'            => 'Genie\\Handlers\\AdminGrowth::campaignSave',
+        'POST /v424/admin/growth/campaigns/{id}/generate' => 'Genie\\Handlers\\AdminGrowth::campaignGenerate',
+        'POST /v424/admin/growth/campaigns/{id}/launch'   => 'Genie\\Handlers\\AdminGrowth::campaignLaunch',
+        'GET /v424/admin/growth/approvals'             => 'Genie\\Handlers\\AdminGrowth::approvals',
+        'POST /v424/admin/growth/approvals/{id}/decide'=> 'Genie\\Handlers\\AdminGrowth::approvalDecide',
+        'GET /v424/admin/growth/settings'              => 'Genie\\Handlers\\AdminGrowth::settings',
+        'PUT /v424/admin/growth/settings'              => 'Genie\\Handlers\\AdminGrowth::settingsSave',
+        'GET /v424/admin/growth/audit'                 => 'Genie\\Handlers\\AdminGrowth::audit_log',
+        // /api 변형 (Apache Alias /api strip 환경)
+        'GET /api/v424/admin/growth/dashboard'             => 'Genie\\Handlers\\AdminGrowth::dashboard',
+        'GET /api/v424/admin/growth/funnel'                => 'Genie\\Handlers\\AdminGrowth::funnel',
+        'GET /api/v424/admin/growth/segments'              => 'Genie\\Handlers\\AdminGrowth::segments',
+        'POST /api/v424/admin/growth/segments'             => 'Genie\\Handlers\\AdminGrowth::segmentSave',
+        'POST /api/v424/admin/growth/segments/seed'        => 'Genie\\Handlers\\AdminGrowth::segmentSeed',
+        'DELETE /api/v424/admin/growth/segments/{id}'      => 'Genie\\Handlers\\AdminGrowth::segmentDelete',
+        'GET /api/v424/admin/growth/leads'                 => 'Genie\\Handlers\\AdminGrowth::leads',
+        'POST /api/v424/admin/growth/leads'                => 'Genie\\Handlers\\AdminGrowth::leadSave',
+        'POST /api/v424/admin/growth/leads/{id}/event'     => 'Genie\\Handlers\\AdminGrowth::leadEvent',
+        'GET /api/v424/admin/growth/campaigns'             => 'Genie\\Handlers\\AdminGrowth::campaigns',
+        'POST /api/v424/admin/growth/campaigns'            => 'Genie\\Handlers\\AdminGrowth::campaignSave',
+        'POST /api/v424/admin/growth/campaigns/{id}/generate' => 'Genie\\Handlers\\AdminGrowth::campaignGenerate',
+        'POST /api/v424/admin/growth/campaigns/{id}/launch'   => 'Genie\\Handlers\\AdminGrowth::campaignLaunch',
+        'GET /api/v424/admin/growth/approvals'             => 'Genie\\Handlers\\AdminGrowth::approvals',
+        'POST /api/v424/admin/growth/approvals/{id}/decide'=> 'Genie\\Handlers\\AdminGrowth::approvalDecide',
+        'GET /api/v424/admin/growth/settings'              => 'Genie\\Handlers\\AdminGrowth::settings',
+        'PUT /api/v424/admin/growth/settings'              => 'Genie\\Handlers\\AdminGrowth::settingsSave',
+        'GET /api/v424/admin/growth/audit'                 => 'Genie\\Handlers\\AdminGrowth::audit_log',
         // 172차 P0-C — 쿠폰 사용 (user)
         'POST /auth/coupon/redeem'      => 'Genie\\Handlers\\CouponRedeem::redeem',
         'GET /auth/coupon/preview'      => 'Genie\\Handlers\\CouponRedeem::preview',
@@ -1919,6 +1958,28 @@ return function (App $app): void {
     $register('DELETE', '/api/v424/admin/site/team/{id}');
     $register('POST',   '/api/v424/admin/site/history');
     $register('DELETE', '/api/v424/admin/site/history/{id}');
+
+    // ── 236차 Admin Growth Automation ────────────────────────────────
+    foreach (['', '/api'] as $pfx) {
+        $register('GET',    $pfx . '/v424/admin/growth/dashboard');
+        $register('GET',    $pfx . '/v424/admin/growth/funnel');
+        $register('GET',    $pfx . '/v424/admin/growth/segments');
+        $register('POST',   $pfx . '/v424/admin/growth/segments');
+        $register('POST',   $pfx . '/v424/admin/growth/segments/seed');
+        $register('DELETE', $pfx . '/v424/admin/growth/segments/{id}');
+        $register('GET',    $pfx . '/v424/admin/growth/leads');
+        $register('POST',   $pfx . '/v424/admin/growth/leads');
+        $register('POST',   $pfx . '/v424/admin/growth/leads/{id}/event');
+        $register('GET',    $pfx . '/v424/admin/growth/campaigns');
+        $register('POST',   $pfx . '/v424/admin/growth/campaigns');
+        $register('POST',   $pfx . '/v424/admin/growth/campaigns/{id}/generate');
+        $register('POST',   $pfx . '/v424/admin/growth/campaigns/{id}/launch');
+        $register('GET',    $pfx . '/v424/admin/growth/approvals');
+        $register('POST',   $pfx . '/v424/admin/growth/approvals/{id}/decide');
+        $register('GET',    $pfx . '/v424/admin/growth/settings');
+        $register('PUT',    $pfx . '/v424/admin/growth/settings');
+        $register('GET',    $pfx . '/v424/admin/growth/audit');
+    }
 
     // ── Subscription Packages ────────────────────────────────────────
     $register('GET',    '/auth/pricing/packages');

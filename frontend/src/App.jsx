@@ -133,6 +133,7 @@ const Landing = lazy(() => import("./pages/public/Landing.jsx"));
 const CompanyIntro = lazy(() => import("./pages/public/CompanyIntro.jsx"));
 const TeamIntro = lazy(() => import("./pages/public/TeamIntro.jsx"));
 const SiteIntroAdmin = lazy(() => import("./pages/SiteIntroAdmin.jsx"));
+const AdminGrowthCenter = lazy(() => import("./pages/AdminGrowthCenter.jsx"));
 const PricingPublic = lazy(() => import("./pages/public/PricingPublic.jsx"));
 const PartnerPortal = lazy(() => import("./pages/PartnerPortal.jsx"));
 const Terms = lazy(() => import("./pages/public/Terms.jsx"));
@@ -413,6 +414,7 @@ function AppLayout() {
                       <Route path="/admin/plan-pricing" element={<PlanPricing />} />
                       <Route path="/admin/sub-admins" element={<SubAdminManager />} />
                       <Route path="/admin/site-intro" element={<SiteIntroAdmin />} />
+                      <Route path="/admin/growth" element={<AdminGrowthCenter />} />
                       <Route path="/me/menu" element={<UserMenuPreferences />} />
                       <Route path="/pm" element={<PMOverview />} />
                       <Route path="/pm/portfolio" element={<PMPortfolio />} />

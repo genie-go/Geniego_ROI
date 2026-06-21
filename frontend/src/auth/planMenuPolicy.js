@@ -65,6 +65,7 @@ export const MENU_MIN_PLAN = Object.freeze({
   "system||db_admin": "admin",
   "system||pg_config": "admin",
   "system||admin": "admin",
+  "system||growth": "admin",
   "system||user_management": "admin",
   "system||system_monitor": "admin",
 });

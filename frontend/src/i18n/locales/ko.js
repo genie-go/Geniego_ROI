@@ -14112,6 +14112,7 @@ export default {
       memberMgmtLabel: "회원 관리",
       menuTreeLabel: "메뉴 트리 관리",
       platformEnvLabel: "플랫폼 환경",
+      growthCenterLabel: "그로스 센터",
       dbSchemaLabel: "DB 스키마",
       paymentPgLabel: "결제 PG 설정"
     },

@@ -23,6 +23,7 @@ export const ADMIN_ONLY_MENU_KEYS = new Set([
   "system||db_admin",
   "system||pg_config",
   "system||system_monitor",
+  "system||growth",
 ]);
 
 export const MEMBER_MENU = [
@@ -162,6 +163,7 @@ export const ADMIN_MENU = [
     labelKey: "gNav.adminSystem",
     items: [
       { to: "/admin",              icon: "⚙",  labelKey: "gNav.platformEnvLabel",  menuKey: "system||admin" },
+      { to: "/admin/growth",       icon: "🚀", labelKey: "gNav.growthCenterLabel", menuKey: "system||growth" },
       { to: "/admin/plan-pricing", icon: "💳", labelKey: "gNav.planPricingLabel",  menuKey: "system||plan_pricing" },
       { to: "/user-management",    icon: "👥", labelKey: "gNav.memberMgmtLabel",  menuKey: "system||user_management" },
       { to: "/admin/sub-admins",   icon: "👤", label: "하위 관리자 관리", labelKey: "gNav.subAdminMgmtLabel", menuKey: "system||sub_admin_mgmt" },
