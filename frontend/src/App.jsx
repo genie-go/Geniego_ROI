@@ -345,7 +345,7 @@ function AppLayout() {
             <GdprController />
             <EventPopupDisplay />
 
-            <div style={{
+            <div className="app-scroll-wrap" style={{
               flex: 1,
               minWidth: 0, // ★모바일 우측 잘림 근본수정: flex-col flex item 이 콘텐츠 min-content(예: OnboardingGuide
                            //   카드)로 커져 메인컬럼(390)을 넘어 잘리던 문제. min-width:0 으로 390 에 맞추면 내부가 wrap.

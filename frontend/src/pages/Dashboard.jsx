@@ -110,6 +110,11 @@ export default function Dashboard() {
     const el = dashRootRef.current;
     if (!el) return;
 
+    // [현 차수] ★모바일에선 부모(app-content-area·스크롤 래퍼) overflow 를 mutate 하지 않는다.
+    //   이 mutate 가 리다이렉트/타이밍에 깨지면 스크롤존이 붕괴(콘텐츠 안 보임·무스크롤)하고, 타 메뉴로
+    //   상태가 누수돼 "메뉴만 보이고 스크롤 안 됨"을 유발했다. 모바일은 메인 스크롤 래퍼로 자연 스크롤한다.
+    if (typeof window !== 'undefined' && window.innerWidth <= 768) return;
+
     // DOM 트리를 올라가며 실제 스크롤 가능한 부모 컨테이너를 찾음
     let scrollParent = null;
     let node = el.parentElement;

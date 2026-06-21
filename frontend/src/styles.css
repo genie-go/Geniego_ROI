@@ -966,6 +966,15 @@ a {
     min-width: 0 !important;
   }
 
+  /* ★모바일 스크롤 보장: 페이지(예: Dashboard)가 부모 overflow 를 JS 로 mutate 해 깨져도, 메인 스크롤 래퍼는
+     항상 세로 스크롤 가능하게 강제(인라인 비-!important 를 CSS !important 로 덮음). "메뉴만 보이고 콘텐츠
+     안 보임·무스크롤" 회귀 차단. min-height:0 으로 flex 자식이 줄어들어 스크롤 활성화. */
+  .app-scroll-wrap {
+    overflow-y: auto !important;
+    min-height: 0 !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
   /* 인라인 스타일 flex 중 일반 박스는 wrap 허용 (단 세로 flex 는 제외 — 아래 catch-all 참고) */
   [style*="display: flex"][style*="gap"]:not([style*="column"]) {
     flex-wrap: wrap;
