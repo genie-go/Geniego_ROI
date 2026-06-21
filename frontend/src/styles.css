@@ -947,8 +947,8 @@ a {
     min-width: 0 !important;
   }
 
-  /* 인라인 스타일 flex 중 일반 박스는 wrap 허용 */
-  [style*="display: flex"][style*="gap"] {
+  /* 인라인 스타일 flex 중 일반 박스는 wrap 허용 (단 세로 flex 는 제외 — 아래 catch-all 참고) */
+  [style*="display: flex"][style*="gap"]:not([style*="column"]) {
     flex-wrap: wrap;
   }
 
@@ -975,6 +975,16 @@ a {
   .container > div:last-child [style*="display: grid"]:not([style*="minmax"]):not([role="tablist"]),
   .container > div:last-child [style*="display:grid"]:not([style*="minmax"]):not([role="tablist"]) {
     grid-template-columns: 1fr !important;
+  }
+
+  /* ★★우측 잘림 진짜 근본수정(라이브 헤드리스로 규명): flex-direction:column 컨테이너에 flex-wrap:wrap 이
+     먹으면(위 인라인 wrap 규칙들·mobile.css) 높이 제약(height:100%·max-height·overflow:hidden) 시 자식이
+     "다음 컬럼"으로 wrap 되어 우측으로 흘러 화면 밖으로 밀려 잘린다(예: Dashboard 루트 → 고정존 좌측·실제
+     콘텐츠 우측 off-screen, worstRight 1031→해소). 세로 flex 는 어떤 경우에도 nowrap 강제(catch-all, !important).
+     React 는 인라인을 'flex-direction: column'(공백) 으로 직렬화하므로 공백/무공백 두 형태 모두 매칭. */
+  [style*="flex-direction: column"],
+  [style*="flex-direction:column"] {
+    flex-wrap: nowrap !important;
   }
 
   /* topbar / nav / 사이드바는 nowrap 유지 */
