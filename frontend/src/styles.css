@@ -967,6 +967,16 @@ a {
     max-width: 100vw !important;
   }
 
+  /* ★233차 안전망의 누락 구멍 보강(모바일 우측 잘림 핵심): flex 행은 위에서 flex-wrap:wrap 으로 아래로
+     흘렀지만, "본문 + 우측 정보 박스" 를 grid(예: '1.4fr 1fr 0.8fr'·'1fr 1fr'·'2fr 1fr'·'repeat(4,1fr)')
+     로 짠 레이아웃은 모바일에서도 다중 컬럼을 유지 → 우측 박스가 아래로 안 내려오고 잘렸다(대시보드 Row2/Row3
+     및 전 메뉴 공통). 고정 트랙 grid 를 1컬럼으로 무너뜨려 각 패널이 전폭으로 세로 적층되게 한다.
+     단, 이미 반응형인 auto-fit/auto-fill(=minmax 포함) grid 는 스스로 wrap 하므로 보존(:not minmax). */
+  .container > div:last-child [style*="display: grid"]:not([style*="minmax"]):not([role="tablist"]),
+  .container > div:last-child [style*="display:grid"]:not([style*="minmax"]):not([role="tablist"]) {
+    grid-template-columns: 1fr !important;
+  }
+
   /* topbar / nav / 사이드바는 nowrap 유지 */
   .topbar,
   .topbar-right,
