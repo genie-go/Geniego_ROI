@@ -86,11 +86,12 @@ final class AdminGrowth
         )");
 
         // GeniegoROI 자체 리드 (고객사 리드와 완전 분리).
+        // ★MySQL 호환: TEXT 컬럼은 DEFAULT/PRIMARY KEY 불가 → 상태성 짧은 컬럼은 VARCHAR 사용.
         $pdo->exec("CREATE TABLE IF NOT EXISTS admin_growth_lead (
             id $AI,
             email TEXT, name TEXT, company TEXT, phone TEXT,
             segment_key TEXT, source TEXT,
-            stage TEXT DEFAULT 'visitor', score INTEGER DEFAULT 0, grade TEXT DEFAULT 'cold',
+            stage VARCHAR(20) DEFAULT 'visitor', score INTEGER DEFAULT 0, grade VARCHAR(20) DEFAULT 'cold',
             owner TEXT, notes TEXT,
             mrr REAL DEFAULT 0,
             last_activity_at TEXT, created_at TEXT, updated_at TEXT
@@ -110,7 +111,7 @@ final class AdminGrowth
             id $AI,
             camp_key TEXT, name TEXT, objective TEXT,
             segment_key TEXT, channels_json TEXT, budget REAL DEFAULT 0,
-            mode TEXT DEFAULT 'test', status TEXT DEFAULT 'draft',
+            mode VARCHAR(10) DEFAULT 'test', status VARCHAR(30) DEFAULT 'draft',
             content_json TEXT, est_json TEXT,
             spend REAL DEFAULT 0, revenue REAL DEFAULT 0,
             created_by TEXT, created_at TEXT, updated_at TEXT
@@ -119,16 +120,16 @@ final class AdminGrowth
         // 승인 큐 (AI콘텐츠/캠페인실행/메시지/예산/최적화/Live전환).
         $pdo->exec("CREATE TABLE IF NOT EXISTS admin_growth_approval (
             id $AI,
-            ref_type TEXT, ref_id INTEGER DEFAULT 0, ref_key TEXT,
+            ref_type VARCHAR(40), ref_id INTEGER DEFAULT 0, ref_key TEXT,
             summary TEXT, payload_json TEXT,
-            status TEXT DEFAULT 'pending',
+            status VARCHAR(20) DEFAULT 'pending',
             requested_by TEXT, decided_by TEXT, decided_at TEXT,
             created_at TEXT
         )");
 
         // 설정 (mode 등) — key/value.
         $pdo->exec("CREATE TABLE IF NOT EXISTS admin_growth_setting (
-            skey TEXT PRIMARY KEY, svalue TEXT, updated_at TEXT
+            skey VARCHAR(64) PRIMARY KEY, svalue TEXT, updated_at TEXT
         )");
 
         // audit_log 는 기존 테이블 재사용 (없으면 생성 — Db::migrate 가 보통 선행).

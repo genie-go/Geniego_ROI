@@ -70,6 +70,17 @@ funnel ✓   audit(growth.*)=14건 ✓
 ```
 검증 결론: `requirePlan('admin')→userByToken→Db` 실경로, 표준 봉투, Test/Live 분리, 승인 게이트, 감사 기록 전부 동작.
 
-## 미검증 (서버 적용 단계 권장)
-- 운영/데모 **배포 후** 실 admin 세션 헤드리스 스모크(브라우저 렌더 + 실 MySQL).
-- Live 실제 매체 push(`platform_growth` 자격증명 등록 필요).
+## 8. 운영/데모 라이브 배포 + 실 admin 세션 검증 (236차)
+- 백엔드 배포: `AdminGrowth.php`+`routes.php` → 운영/데모 pscp, md5 4/4 일치, php-l 4/4 clean, php8.1-fpm+php-fpm 재시작.
+- 프론트 dist swap: 운영/데모 index.html md5 == 로컬(547d6c1b…), AdminGrowthCenter 청크 존재, sw.js vhost가 dist 경로(171차 fix) 확인.
+- 라우트 라이브: 운영/데모 `/v424/admin/growth/dashboard`(no-token) → **401 AUTH_REQUIRED**(404/501 아님).
+- 실 admin 로그인(plan=admin) → 운영/데모 dashboard 200·세그먼트 시드 17·settings tenant=platform_growth.
+- 데모 write e2e: leadSave→leadEvent(demo→grade warm/score30)→campaignSave→generate(fallback·pending_approval)→approvals 1. 6테이블 write/read 라이브 동작.
+
+### ★라이브에서 잡은 실버그 (MySQL 전용)
+SQLite는 허용하나 MySQL 8.0.37은 **`TEXT DEFAULT '...'`·`TEXT PRIMARY KEY` 거부** → 초기 dashboard 500.
+수정: `admin_growth_lead.stage/grade`, `campaign.mode/status`, `approval.status/ref_type`, `setting.skey` → `VARCHAR(n)`. 재배포 후 정상. (로컬 SQLite 테스트가 놓친 케이스 — 라이브 검증의 가치)
+
+## 미검증 (잔여)
+- Live 실제 매체 push(`platform_growth` 채널 자격증명 등록 필요 — 관리자 별도 등록).
+- 브라우저 UI 렌더 헤드리스(현재 API 레벨 검증 완료).
