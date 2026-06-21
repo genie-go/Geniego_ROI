@@ -519,6 +519,8 @@ final class AdAdapters
                 case 'naver_sa':        $r = self::naverDeliver($pdo, $tenant, $campExtId, $d, $daily, $landing); break;
                 case 'meta_ads':        $r = self::metaDeliver($pdo, $tenant, $campExtId, $d, $daily, $landing); break;
                 case 'tiktok_business': $r = self::tiktokDeliver($pdo, $tenant, $campExtId, $d, $daily); break;
+                case 'kakao_moment':    $r = self::kakaoDeliver($pdo, $tenant, $campExtId, $d, $daily, $landing); break;
+                case 'line_ads':        $r = self::lineDeliver($pdo, $tenant, $campExtId, $d, $daily, $landing); break;
                 default:                return ['ok' => false, 'status' => 'unsupported'];
             }
             // [현 차수] 저장 광고물 애니메이션(CSS 모션) 표기 — 매체는 정적 프레임 업로드, 모션은 온사이트/웹팝업 소재에 적용.
@@ -668,6 +670,52 @@ final class AdAdapters
         // 2) 광고 — 영상 소재(video_id) + identity 필요. SVG 디자인은 영상 변환 필요 → 보류 정직 표기.
         return ['ok' => true, 'adgroup_id' => $agId, 'ad_id' => '', 'status' => 'partial',
             'note' => 'TikTok 광고그룹 생성(DISABLE). 광고(ad)는 영상 소재(video_id)+identity 업로드 필요 — 영상 소재 등록 후 완성.'];
+    }
+
+    /* ── Kakao Moment: 광고그룹 + 소재(OFF). kakaoCreate 와 동일 인증(Bearer+adAccountId, OpenAPI v4).
+     *   ★엔드포인트/스키마는 실 자격증명 등록 시 라이브 응답으로 최종 확정(graceful 드롭인). fail-closed·OFF(무지출). ── */
+    private static function kakaoDeliver(PDO $pdo, string $tenant, string $campId, array $d, int $daily, string $landing): array
+    {
+        $h = self::kakaoHeaders($pdo, $tenant);
+        if ($h === null) return ['ok' => false, 'error' => 'no_credentials'];
+        [$hdr, $acc] = $h;
+        // 1) 광고그룹(캠페인 하위, OFF=정지)
+        $agBody = json_encode(['adAccountId' => (int)$acc, 'campaignId' => (int)$campId, 'name' => mb_substr($d['headline'], 0, 50) . ' AG',
+            'config' => 'OFF', 'dailyBudgetAmount' => $daily], JSON_UNESCAPED_UNICODE);
+        [$ac, $ar] = self::http('POST', 'https://apis.moment.kakao.com/openapi/v4/adGroups', $hdr, $agBody);
+        $agId = $ar['id'] ?? $ar['adGroupId'] ?? ($ar['data']['id'] ?? '');
+        if ($agId === '') return ['ok' => true, 'status' => 'partial', 'note' => 'Kakao 캠페인까지 생성. 광고그룹 보류(라이브 스키마 확정 필요): ' . (self::errMsg($ar) ?: ('HTTP ' . $ac))];
+        // 2) 소재(이미지 네이티브 — 문구/랜딩). 이미지 자산은 별도 업로드 API 필요 → 실패 시 honest partial.
+        $crBody = json_encode(['adAccountId' => (int)$acc, 'adGroupId' => (int)$agId, 'name' => mb_substr($d['headline'], 0, 50) . ' CR',
+            'title' => mb_substr($d['headline'], 0, 50), 'description' => mb_substr($d['copy'] ?: ($d['subheadline'] ?: ''), 0, 100),
+            'landingUrl' => $landing, 'config' => 'OFF'], JSON_UNESCAPED_UNICODE);
+        [$cc, $cr] = self::http('POST', 'https://apis.moment.kakao.com/openapi/v4/creatives', $hdr, $crBody);
+        $crId = $cr['id'] ?? ($cr['data']['id'] ?? '');
+        if ($crId === '') return ['ok' => true, 'adgroup_id' => (string)$agId, 'ad_id' => '', 'status' => 'partial',
+            'note' => 'Kakao 광고그룹 생성(OFF). 소재 보류(이미지 자산 업로드 필요): ' . (self::errMsg($cr) ?: ('HTTP ' . $cc))];
+        return ['ok' => true, 'adgroup_id' => (string)$agId, 'ad_id' => (string)$crId, 'note' => 'Kakao 광고그룹+소재 생성(OFF)'];
+    }
+
+    /* ── LINE Ads: 광고그룹 + 광고(소재) PAUSED. lineCreate 와 동일 JWS 인증.
+     *   ★엔드포인트/스키마는 실 자격증명 등록 시 라이브 응답으로 최종 확정(graceful). fail-closed·PAUSED(무지출). ── */
+    private static function lineDeliver(PDO $pdo, string $tenant, string $campId, array $d, int $daily, string $landing): array
+    {
+        $c = self::lineCreds($pdo, $tenant);
+        if ($c === null) return ['ok' => false, 'error' => 'no_credentials'];
+        [$ak, $sk, $gid] = $c;
+        // 1) 광고그룹(캠페인 하위, PAUSED)
+        $agPath = '/api/v3/campaigns/' . rawurlencode($campId) . '/adgroups';
+        [$ac, $ar] = self::lineReq('POST', $agPath, ['name' => mb_substr($d['headline'], 0, 50) . ' AG', 'status' => 'PAUSED', 'bidAmount' => max(100, (int)($daily / 100))], $ak, $sk);
+        $agId = $ar['id'] ?? $ar['adgroupId'] ?? ($ar['data']['id'] ?? '');
+        if ($agId === '') return ['ok' => true, 'status' => 'partial', 'note' => 'LINE 캠페인까지 생성. 광고그룹 보류(라이브 스키마 확정 필요): ' . (self::errMsg($ar) ?: ('HTTP ' . $ac))];
+        // 2) 광고(소재 — 문구/랜딩). 미디어 자산은 별도 업로드 필요 → 실패 시 honest partial.
+        $adPath = '/api/v3/adgroups/' . rawurlencode((string)$agId) . '/ads';
+        [$adc, $adr] = self::lineReq('POST', $adPath, ['name' => mb_substr($d['headline'], 0, 50) . ' Ad', 'status' => 'PAUSED',
+            'title' => mb_substr($d['headline'], 0, 50), 'description' => mb_substr($d['copy'] ?: '', 0, 100), 'landingUrl' => $landing], $ak, $sk);
+        $adId = $adr['id'] ?? ($adr['data']['id'] ?? '');
+        if ($adId === '') return ['ok' => true, 'adgroup_id' => (string)$agId, 'ad_id' => '', 'status' => 'partial',
+            'note' => 'LINE 광고그룹 생성(PAUSED). 소재 보류(미디어 자산 업로드 필요): ' . (self::errMsg($adr) ?: ('HTTP ' . $adc))];
+        return ['ok' => true, 'adgroup_id' => (string)$agId, 'ad_id' => (string)$adId, 'note' => 'LINE 광고그룹+소재 생성(PAUSED)'];
     }
 
     /* ════════════════════════ 오디언스/리타겟팅 (Custom Audience · Customer Match) ════════════════════════ */
