@@ -814,6 +814,18 @@ a {
     display: none !important;
   }
 
+  /* [현 차수] ★topbar 환경 배지(🔄 DEMO·🎪 데모 환경·🏢 운영 전환 →) 컴팩트화 — pill(border-radius:99)
+     텍스트 작게+패딩 축소 + ★stretch 해제(align-self:center·height:auto·min-height:0). 배지가 햄버거(34px)에
+     맞춰 늘어나 줄마다 34px 를 먹어 topbar 가 139px 로 비대했다 → 짧게(≈16px) 만들어 높이 대폭 절약. */
+  .topbar [style*="border-radius: 99"] {
+    font-size: 8px !important;
+    padding: 2px 7px !important;
+    align-self: center !important;
+    height: auto !important;
+    min-height: 0 !important;
+    line-height: 1.5 !important;
+  }
+
   /* ★OnboardingGuide(시작 안내 배너) 우측 잘림 근본수정: 스크롤 래퍼(flex-col)의 flex item 인 배너의
      내부 flex-col/카드가 콘텐츠 min-content 로 viewport(390)를 넘던 문제. 모든 하위를 부모 100%로 캡 +
      min-width:0 로 줄이고 텍스트는 줄바꿈 → 카드가 세로로 wrap 되어 아래로 자연스럽게 나타남. */
@@ -959,11 +971,15 @@ a {
      콘텐츠 영역 전체로 확장(+!important) 해 flex item 이 줄어들고, 가로 flex 행은 줄바꿈으로 아래로 흐른다. */
   /* ★app-content-area 자체도 flex item(스크롤 래퍼 flex-col)이라 min-width:0 없으면 콘텐츠 min-content
      (예: RoleViewBar 702px)로 커져 잘린다 — 자식뿐 아니라 자기 자신도 포함. */
+  /* [현 차수] ★!important 제거 — 기존 min-width:0!important 가 의도적으로 min-width 를 준 요소(예: FunnelChart
+     스텝 minWidth:200·검색입력 minWidth:200)까지 0 으로 죽여, 박스가 값비례 폭(30%)으로 찌그러지는 불균형을
+     유발했다(전 페이지 영향). !important 없이도 기본값 min-width:auto 는 0 으로 덮어 가로 잘림 방지는 유지되고,
+     인라인/명시 min-width 는 존중된다. */
   .app-content-area,
   main *,
   .page-content *,
   .app-content-area * {
-    min-width: 0 !important;
+    min-width: 0;
   }
 
   /* ★모바일 스크롤 보장: 페이지(예: Dashboard)가 부모 overflow 를 JS 로 mutate 해 깨져도, 메인 스크롤 래퍼는
@@ -3199,9 +3215,10 @@ body:not([data-theme]) .sidebar-footer {
   }
 
   /* ── ⑨ 테이블 헤더/셀 폰트 ──────────────────── */
+  /* [현 차수] ★floor 9→10 — 표 헤더가 9px 로 본문 td(10px)보다 작아지던 불균형 해소(과확대 없이 td 와 일치). */
   .table th,
   table th {
-    font-size: clamp(9px, 2.2vw, 11px) !important;
+    font-size: clamp(10px, 2.5vw, 11px) !important;
     white-space: nowrap !important;
   }
 
@@ -3236,8 +3253,11 @@ body:not([data-theme]) .sidebar-footer {
   }
 
   /* ── ⑬ 내부 button 텍스트 ──────────────────── */
-  button {
-    font-size: clamp(10px, 2.5vw, 13px) !important;
+  /* [현 차수] ★콘텐츠 버튼만 floor 11px(가독) — 기존 unscoped button 의 9~10px floor 가 전 메뉴 탭·액션
+     버튼(1461개)을 9px 로 축소해 본문보다 작아지는 불균형을 유발했다. ★단 topbar/사이드바 배지(DEMO·환경
+     전환 등)는 의도적으로 작아야 하므로 .app-content-area 로 스코프해 제외(과확대 방지). */
+  .app-content-area button {
+    font-size: clamp(11px, 2.8vw, 13px) !important;
   }
 
   /* ── ⑭ 헤더 레이아웃 overflow 방지 ──────────── */
@@ -3294,8 +3314,8 @@ body:not([data-theme]) .sidebar-footer {
     padding: 1px 5px !important;
   }
 
-  button {
-    font-size: clamp(9px, 2.2vw, 11px) !important;
+  .app-content-area button {
+    font-size: clamp(11px, 2.8vw, 12px) !important;
   }
 
   /* 2열 그리드 → 1열 */
