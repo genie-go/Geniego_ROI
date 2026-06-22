@@ -548,6 +548,9 @@ final class ChannelCreds
         $list = [
             'meta_ads', 'meta', 'google_ads', 'google', 'tiktok', 'tiktok_business', 'tiktok_shop',
             'naver_sa', 'naver_searchad', 'kakao', 'kakao_moment',
+            // [237차] LINE Ads 실 ingest 어댑터(Connectors::fetchLineRows, JWS, 232차) 보유인데 화이트리스트
+            //   누락으로 연결테스트가 거짓 '준비 중' 표기하던 것 정정. line/line_ads 둘 다 인식.
+            'line_ads', 'line',
             'shopify', 'amazon', 'amazon_spapi', 'coupang', 'naver', 'naver_smartstore',
             'ebay', 'rakuten', 'cafe24',
             '11st', 'st11', 'gmarket', 'auction', 'lotteon', // 국내 오픈마켓 4종 실어댑터
@@ -568,6 +571,8 @@ final class ChannelCreds
     private static function hasLiveVerify(string $channel): bool
     {
         // [237차/235백로그 P2] naver/coupang/amazon 라이브 실검증 추가(pingChannelWithCreds 가 OAuth/HMAC 실 호출).
+        // [237차] naver_sa(검색광고) 라이브 검증은 /ncc/campaigns 가 잘못된 creds 에 308(리다이렉트)을 반환해
+        //   유효 creds 인식을 보장 못함(거짓 실패 위험) → honest soft-ok('저장됨, 동기화 시 검증') 유지(미편입).
         $live = ['meta_ads', 'meta', 'tiktok', 'tiktok_business', 'google_ads', 'google', 'kakao', 'kakao_moment', 'youtube',
                  'naver', 'naver_smartstore', 'coupang', 'amazon', 'amazon_spapi'];
         if (in_array($channel, $live, true)) return true;
