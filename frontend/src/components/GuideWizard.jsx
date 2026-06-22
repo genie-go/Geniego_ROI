@@ -68,6 +68,15 @@ export default function GuideWizard({ guideKey, checks }) {
 
   return (
     <div dir={isRtl ? "rtl" : "ltr"} style={{ maxWidth: 820 }}>
+      {/* [237차] 다음 진행 버튼 강조 — 펄스/글로우로 '지금 할 일'을 뚜렷이 구분. */}
+      <style>{`
+        @keyframes gwPulse{0%,100%{transform:scale(1);box-shadow:0 4px 14px rgba(22,163,74,0.4)}50%{transform:scale(1.05);box-shadow:0 8px 24px rgba(22,163,74,0.6)}}
+        @keyframes gwPulseAccent{0%,100%{box-shadow:0 0 0 0 rgba(99,102,241,0.5)}100%{box-shadow:0 0 0 10px rgba(99,102,241,0)}}
+        @keyframes gwArrow{0%,100%{transform:translateX(0)}50%{transform:translateX(4px)}}
+        .gw-cta{animation:gwPulse 1.4s ease-in-out infinite}
+        .gw-go{animation:gwPulseAccent 1.6s ease-out infinite}
+        .gw-arr{display:inline-block;animation:gwArrow 1s ease-in-out infinite}
+      `}</style>
       <div style={{ marginBottom: 12 }}>
         <div style={{ fontSize: 17, fontWeight: 900, color: "var(--text-1)" }}>{d.title}</div>
         <div style={{ fontSize: 12.5, color: "var(--text-3)", marginTop: 3 }}>{d.lead}</div>
@@ -107,15 +116,15 @@ export default function GuideWizard({ guideKey, checks }) {
               {active && (
                 <>
                   {s[2] && <div style={{ marginBottom: 10 }}><span style={{ fontSize: 12, fontWeight: 700, color: accent[0], background: `${accent[0]}14`, padding: "4px 10px", borderRadius: 7 }}>📍 {s[2]}</span>{" "}
-                    {links[i] && <button onClick={() => navigate(links[i])} style={{ fontSize: 12.5, fontWeight: 800, color: "#fff", border: "none", cursor: "pointer", background: grad, padding: "6px 14px", borderRadius: 8, boxShadow: `0 3px 10px ${accent[0]}55`, verticalAlign: "middle" }}>{nav.go}</button>}
+                    {links[i] && <button className="gw-go" onClick={() => navigate(links[i])} style={{ fontSize: 13, fontWeight: 900, color: "#fff", border: "none", cursor: "pointer", background: grad, padding: "8px 18px", borderRadius: 9, boxShadow: `0 3px 10px ${accent[0]}55`, verticalAlign: "middle" }}>👉 {nav.go}</button>}
                   </div>}
                   {/* 시스템 완료 검증 결과 메시지 */}
                   {verifiedCur && <div style={{ fontSize: 12.5, fontWeight: 800, color: "#15803d", background: "rgba(22,163,74,0.1)", border: "1px solid rgba(22,163,74,0.3)", borderRadius: 8, padding: "8px 12px", marginBottom: 10 }}>{msg.verified}</div>}
                   {warn && !verifiedCur && <div style={{ fontSize: 12, fontWeight: 700, color: "#dc2626", marginBottom: 10 }}>⚠ {msg.checkRequired}</div>}
                   <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
                     {!verifiedCur
-                      ? <button onClick={verify} disabled={busy} style={btnSolid(accent[0], !busy)}>{busy ? msg.checking : msg.verify}</button>
-                      : <button onClick={advance} style={btnSolid("#16a34a", true)}>{nav.done}</button>}
+                      ? <button onClick={verify} disabled={busy} style={{ ...btnSolid(accent[0], !busy), fontSize: 13, padding: "9px 20px" }}>{busy ? msg.checking : msg.verify}</button>
+                      : <button className="gw-cta" onClick={advance} style={{ ...btnSolid("#16a34a", true), fontSize: 13.5, padding: "10px 22px" }}>{nav.done} <span className="gw-arr">→</span></button>}
                     {i > 0 && <button onClick={() => goStep(i - 1)} style={{ fontSize: 12, fontWeight: 700, color: "var(--text-3)", border: "1px solid var(--border,#e2e8f0)", cursor: "pointer", background: "transparent", padding: "6px 12px", borderRadius: 8 }}>{nav.prev}</button>}
                   </div>
                 </>
