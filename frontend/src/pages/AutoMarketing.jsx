@@ -665,7 +665,7 @@ export default function AutoMarketing() {
                             >{t("marketing.goHelp")}</button>
                             {/* [237차] 초보자 진행순서 설명서(15개국) — 단계별 바로가기 링크로 따라하며 실행 */}
                             <button
-                                onClick={() => window.open('/guide/marketing-automation.html', '_blank', 'noopener')}
+                                onClick={() => window.open('/guide/', '_blank', 'noopener')}
                                 style={{ padding: '7px 14px', borderRadius: 10, border: '2px solid #a855f7', cursor: 'pointer', background: 'rgba(168,85,247,0.1)', color: '#7c3aed', fontSize: 11, fontWeight: 800 }}
                             >📖 {t("marketing.goGuide", "진행순서 설명서")}</button>
                         </div>

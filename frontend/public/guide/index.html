@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>GeniegoROI — Guides</title>
+<style>
+  :root { --bg:#f6f8fc; --card:#fff; --pri:#4f46e5; --pri2:#7c3aed; --txt:#1e293b; --sub:#64748b; --line:#e2e8f0; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Malgun Gothic','Apple SD Gothic Neo',sans-serif; background:var(--bg); color:var(--txt); line-height:1.7; }
+  .wrap { max-width:820px; margin:0 auto; padding:24px 18px 80px; }
+  header { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:8px; }
+  .brand { font-weight:900; font-size:18px; background:linear-gradient(135deg,var(--pri),var(--pri2)); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+  select { padding:8px 12px; border-radius:10px; border:1px solid var(--line); background:#fff; font-size:14px; cursor:pointer; }
+  h1 { font-size:25px; margin:14px 0 6px; }
+  .lead { color:var(--sub); font-size:15px; margin-bottom:20px; }
+  a.card { display:flex; gap:16px; align-items:center; text-decoration:none; color:inherit; background:var(--card); border:1px solid var(--line); border-radius:16px; padding:20px 22px; margin-bottom:14px; box-shadow:0 4px 16px rgba(15,23,42,0.04); transition:transform .15s, box-shadow .15s; }
+  a.card:hover { transform:translateY(-2px); box-shadow:0 10px 28px rgba(15,23,42,0.1); }
+  .ic { flex-shrink:0; width:48px; height:48px; border-radius:13px; display:flex; align-items:center; justify-content:center; font-size:24px; }
+  .c-title { font-size:16.5px; font-weight:800; margin:0 0 3px; }
+  .c-desc { font-size:13px; color:var(--sub); margin:0; }
+  .arr { margin-left:auto; color:var(--pri); font-weight:900; font-size:20px; }
+  footer { text-align:center; color:var(--sub); font-size:12px; margin-top:24px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><div class="brand">⚡ GeniegoROI</div><select id="lang" onchange="render(this.value)" aria-label="Language"></select></header>
+  <h1 id="title"></h1>
+  <div class="lead" id="lead"></div>
+  <div id="cards"></div>
+  <footer id="footer"></footer>
+</div>
+<script>
+var LANGS = [["ko","🇰🇷 한국어"],["en","🇺🇸 English"],["ja","🇯🇵 日本語"],["zh","🇨🇳 简体中文"],["zh-TW","🇹🇼 繁體中文"],["de","🇩🇪 Deutsch"],["th","🇹🇭 ไทย"],["vi","🇻🇳 Tiếng Việt"],["id","🇮🇩 Indonesia"],["ar","🇸🇦 العربية"],["es","🇪🇸 Español"],["fr","🇫🇷 Français"],["hi","🇮🇳 हिन्दी"],["pt","🇧🇷 Português"],["ru","🇷🇺 Русский"]];
+var RTL = { ar:1 };
+var GUIDES = [
+  { href:"/guide/marketing-automation.html", ic:"🚀", bg:"linear-gradient(135deg,#a855f7,#4f8ef7)" },
+  { href:"/guide/commerce-operations.html", ic:"📦", bg:"linear-gradient(135deg,#0ea5e9,#2563eb)" }
+];
+var T = {
+  ko:{ title:"이용 가이드", lead:"순서대로 따라만 하면 실제 실행까지 완료되는 단계별 위저드입니다.", g:[["마케팅 자동화 시작","광고 채널 연동부터 캠페인 활성화·성과 측정까지"],["커머스 운영 시작","상품·창고·재고·채널·주문·정산·손익까지"]], footer:"각 가이드는 단계 완료 시 다음 단계로 이동하며, 바로가기로 실제 화면을 엽니다." },
+  en:{ title:"User Guides", lead:"Step-by-step wizards — follow them in order to complete real execution.", g:[["Marketing Automation","From connecting ad channels to activating campaigns and measuring results"],["Commerce Operations","Products, warehouse, inventory, channels, orders, settlement and P&L"]], footer:"Each guide advances to the next step on completion and opens real screens via shortcuts." },
+  ja:{ title:"利用ガイド", lead:"順番どおりに進めれば実際の実行まで完了するステップ式ウィザードです。", g:[["マーケティング自動化","広告チャネル連携からキャンペーン有効化・成果測定まで"],["コマース運用","商品・倉庫・在庫・チャネル・注文・精算・損益まで"]], footer:"各ガイドはステップ完了で次へ進み、ショートカットで実画面を開きます。" },
+  zh:{ title:"使用指南", lead:"分步向导——按顺序操作即可完成真实执行。", g:[["营销自动化","从连接广告渠道到激活广告系列与衡量效果"],["电商运营","商品、仓库、库存、渠道、订单、结算与损益"]], footer:"每个指南在完成一步后进入下一步，并通过快捷方式打开真实页面。" },
+  "zh-TW":{ title:"使用指南", lead:"分步精靈——依序操作即可完成真實執行。", g:[["行銷自動化","從連接廣告渠道到啟用廣告活動與衡量成效"],["電商營運","商品、倉庫、庫存、渠道、訂單、結算與損益"]], footer:"每個指南在完成一步後進入下一步，並透過捷徑開啟真實頁面。" },
+  de:{ title:"Anleitungen", lead:"Schritt-für-Schritt-Assistenten — der Reihe nach bis zur echten Ausführung.", g:[["Marketing-Automatisierung","Von Kanalanbindung bis Kampagnenaktivierung und Erfolgsmessung"],["Commerce-Betrieb","Produkte, Lager, Bestand, Kanäle, Bestellungen, Abrechnung und GuV"]], footer:"Jede Anleitung geht nach Abschluss zum nächsten Schritt und öffnet echte Bildschirme per Shortcut." },
+  th:{ title:"คู่มือการใช้งาน", lead:"วิซาร์ดทีละขั้น — ทำตามลำดับจนเสร็จการใช้งานจริง", g:[["การตลาดอัตโนมัติ","ตั้งแต่เชื่อมช่องทางโฆษณาจนเปิดแคมเปญและวัดผล"],["การดำเนินงานคอมเมิร์ซ","สินค้า คลัง สต็อก ช่องทาง คำสั่งซื้อ การชำระ และกำไรขาดทุน"]], footer:"แต่ละคู่มือจะไปขั้นถัดไปเมื่อเสร็จ และเปิดหน้าจริงผ่านทางลัด" },
+  vi:{ title:"Hướng dẫn sử dụng", lead:"Trình hướng dẫn từng bước — làm theo thứ tự đến khi thực thi thật.", g:[["Tự động hóa Marketing","Từ kết nối kênh quảng cáo đến kích hoạt chiến dịch và đo lường"],["Vận hành Thương mại","Sản phẩm, kho, tồn kho, kênh, đơn hàng, đối soát và P&L"]], footer:"Mỗi hướng dẫn chuyển sang bước tiếp theo khi hoàn tất và mở màn hình thật qua lối tắt." },
+  id:{ title:"Panduan Pengguna", lead:"Wizard langkah demi langkah — ikuti berurutan hingga eksekusi nyata.", g:[["Otomatisasi Pemasaran","Dari koneksi saluran iklan hingga aktivasi kampanye dan pengukuran"],["Operasi Commerce","Produk, gudang, stok, saluran, pesanan, penyelesaian, dan P&L"]], footer:"Setiap panduan lanjut ke langkah berikutnya saat selesai dan membuka layar nyata via pintasan." },
+  ar:{ title:"أدلة الاستخدام", lead:"معالجات خطوة بخطوة — اتبعها بالترتيب حتى التنفيذ الفعلي.", g:[["أتمتة التسويق","من ربط قنوات الإعلان إلى تفعيل الحملات وقياس النتائج"],["تشغيل التجارة","المنتجات، المستودع، المخزون، القنوات، الطلبات، التسوية والأرباح/الخسائر"]], footer:"ينتقل كل دليل إلى الخطوة التالية عند الإتمام ويفتح الشاشات الفعلية عبر الاختصارات." },
+  es:{ title:"Guías de uso", lead:"Asistentes paso a paso — síguelos en orden hasta la ejecución real.", g:[["Automatización de Marketing","De conectar canales a activar campañas y medir resultados"],["Operaciones de Comercio","Productos, almacén, inventario, canales, pedidos, liquidación y P&L"]], footer:"Cada guía avanza al siguiente paso al completarse y abre pantallas reales con accesos directos." },
+  fr:{ title:"Guides d'utilisation", lead:"Assistants pas à pas — suivez-les dans l'ordre jusqu'à l'exécution réelle.", g:[["Automatisation Marketing","De la connexion des canaux à l'activation des campagnes et la mesure"],["Opérations Commerce","Produits, entrepôt, stock, canaux, commandes, règlement et P&L"]], footer:"Chaque guide passe à l'étape suivante une fois terminée et ouvre les écrans réels via des raccourcis." },
+  hi:{ title:"उपयोग गाइड", lead:"चरण-दर-चरण विज़ार्ड — क्रम से पालन करें, वास्तविक निष्पादन तक।", g:[["मार्केटिंग ऑटोमेशन","विज्ञापन चैनल जोड़ने से अभियान सक्रियण व मापन तक"],["कॉमर्स ऑपरेशन","उत्पाद, गोदाम, स्टॉक, चैनल, ऑर्डर, निपटान व P&L"]], footer:"प्रत्येक गाइड पूर्ण होने पर अगले चरण पर जाती है और शॉर्टकट से वास्तविक स्क्रीन खोलती है।" },
+  pt:{ title:"Guias de uso", lead:"Assistentes passo a passo — siga em ordem até a execução real.", g:[["Automação de Marketing","De conectar canais a ativar campanhas e medir resultados"],["Operações de Commerce","Produtos, armazém, estoque, canais, pedidos, liquidação e P&L"]], footer:"Cada guia avança para o próximo passo ao concluir e abre telas reais via atalhos." },
+  ru:{ title:"Руководства", lead:"Пошаговые мастера — следуйте по порядку до реального выполнения.", g:[["Автоматизация маркетинга","От подключения каналов до активации кампаний и измерения"],["Коммерческие операции","Товары, склад, остатки, каналы, заказы, сверка и P&L"]], footer:"Каждое руководство переходит к следующему шагу после завершения и открывает реальные экраны по ссылкам." }
+};
+function render(code){
+  var d = T[code] || T.ko;
+  document.documentElement.lang = code; document.documentElement.dir = RTL[code] ? 'rtl' : 'ltr';
+  document.getElementById('title').textContent = d.title;
+  document.getElementById('lead').textContent = d.lead;
+  document.getElementById('footer').textContent = d.footer;
+  var html = '';
+  for (var i=0;i<GUIDES.length;i++){
+    var g = GUIDES[i], t = d.g[i] || ['',''];
+    html += '<a class="card" href="'+g.href+'"><div class="ic" style="background:'+g.bg+'">'+g.ic+'</div><div><p class="c-title">'+t[0]+'</p><p class="c-desc">'+t[1]+'</p></div><span class="arr">→</span></a>';
+  }
+  document.getElementById('cards').innerHTML = html;
+  try { localStorage.setItem('genie_guide_lang', code); } catch(e){}
+}
+(function init(){
+  var sel = document.getElementById('lang');
+  for (var i=0;i<LANGS.length;i++){ var o=document.createElement('option'); o.value=LANGS[i][0]; o.textContent=LANGS[i][1]; sel.appendChild(o); }
+  var saved = 'ko';
+  try { saved = localStorage.getItem('genie_guide_lang') || (navigator.language||'ko').slice(0,2); } catch(e){}
+  if (!T[saved]) saved='ko';
+  sel.value = saved; render(saved);
+})();
+</script>
+</body>
+</html>
