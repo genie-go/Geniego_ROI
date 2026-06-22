@@ -218,7 +218,10 @@ export default function OnboardingGuide() {
   if (hidden) {
     return (
       <button onClick={unhide} className="onb-relaunch" title={t('onboard.showGuide', '시작 가이드 보기')} style={{
-        position: 'fixed', right: 14, bottom: 'calc(74px + env(safe-area-inset-bottom, 0px))', zIndex: 50,
+        // [237차] '다시 펼치기' 미노출 버그: PWA 설치 배너(#pwa-install-banner, fixed z-index:10000, 하단)에
+        //   가려 보이지 않았다. z-index 를 배너 위(10001)로 올리고, 배너(≈하단 142px 점유)를 비우도록 위로
+        //   배치해 겹침을 제거 → 숨김 후 항상 보이고 클릭 가능.
+        position: 'fixed', right: 14, bottom: 'calc(150px + env(safe-area-inset-bottom, 0px))', zIndex: 10001,
         display: 'flex', alignItems: 'center', gap: 7, padding: '9px 14px', borderRadius: 999, cursor: 'pointer',
         border: 'none', color: '#fff', fontSize: 12.5, fontWeight: 900, whiteSpace: 'nowrap',
         background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', boxShadow: '0 6px 20px rgba(79,70,229,0.45)',
