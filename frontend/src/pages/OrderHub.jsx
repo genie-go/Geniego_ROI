@@ -7,6 +7,7 @@ import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
 import { useSecurityGuard } from '../security/SecurityGuard.js';
 import { CHANNEL_RATES } from '../constants/channelRates.js';
 import * as apiClient from '../services/apiClient';
+import GuideWizard from '../components/GuideWizard.jsx'; // [237차] 인앱 순차 완료 위저드(필수등록 게이팅)
 
 /* ??? CSV Download Util ???????????????????????????? */
 function downloadCSV(filename, headers, rows) {
@@ -1028,6 +1029,21 @@ export default function OrderHub() {
     /* ?? ConnectorSyncContext ??Integration Hub channel awareness ?? */
     const { connectedChannels: csChannels, refresh: csRefresh } = useConnectorSync();
 
+    // [237차] 커머스 위저드 필수등록 게이팅 — 실제 상태 검증(미완 시 다음 단계 차단). null=안내(동의)단계.
+    const commerceChecks = useMemo(() => {
+        const cnt = async (ep, keys) => { try { const r = await apiClient.getJsonAuth(ep); for (const k of keys) { if (Array.isArray(r?.[k])) return r[k].length > 0; } return Array.isArray(r) ? r.length > 0 : false; } catch { return false; } };
+        return [
+            null,                                                                 // 0 로그인(안내)
+            async () => cnt('/api/catalog/listings', ['listings', 'items', 'rows']), // 1 ★상품 1개 이상 등록 필수
+            async () => cnt('/api/wms/warehouses', ['warehouses', 'items', 'rows']), // 2 ★창고 1개 이상 등록 필수
+            async () => cnt('/api/wms/movements', ['movements', 'items', 'rows']),   // 3 ★입고 1건 이상 필수
+            async () => Object.values(csChannels || {}).filter(c => c && c.connected).length > 0, // 4 ★커머스 채널 1개 이상 연동 필수
+            null,                                                                 // 5 주문 동기화(안내)
+            null,                                                                 // 6 정산(안내)
+            null,                                                                 // 7 P&L(안내)
+        ];
+    }, [csChannels]);
+
     /* ?? SecurityGuard ?? */
     const [hackAlert, setHackAlert] = useState(null);
     const secAddAlert = useCallback((a) => {
@@ -1137,7 +1153,14 @@ export default function OrderHub() {
                 {tab === "b2b" && <B2BOrderTab />}
                 {tab === "settings" && <CollectSettingTab />}
                 {tab === "routing" && <AutoRoutingTab />}
-                {tab === "guide" && <GuideTab />}
+                {tab === "guide" && (
+                    <>
+                        <div style={{ background: "var(--card-bg,#fff)", border: "1px solid var(--border,#e2e8f0)", borderRadius: 16, padding: "20px 22px", marginBottom: 16 }}>
+                            <GuideWizard guideKey="commerce" checks={commerceChecks} />
+                        </div>
+                        <GuideTab />
+                    </>
+                )}
             </div>
         </div>
     );

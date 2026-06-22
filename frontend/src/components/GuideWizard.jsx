@@ -6,9 +6,10 @@ import { GUIDE_CONTENT, GUIDE_NAV, GUIDE_MSG } from "../data/guideContent.js";
 /**
  * [237차] 재사용 가이드 위저드 — 인앱(페이지 내 메뉴 박스) 순차 완료 위저드.
  *   ★전체 페이지를 덮지 않고 기존 사이드바·서브탭을 유지한 채 카드 안에서 순차 진행(UX 혼란 방지).
- *   ★완료 게이팅(2종):
- *     - 필수 등록 단계(checks[i]=함수): 실제 상태 검증(예 ≥1 채널 등록·결제수단 등록). 미완 시 차단+메시지.
- *     - 안내 단계(checks[i] 없음): 온라인 '완료 확인'(동의) 체크해야 진행.
+ *   ★완료 게이팅(시스템 검증): 각 단계에서 '✓ 완료 확인'을 누르면 시스템이 실제 완료 여부를 검증한다.
+ *     - 필수등록 단계(checks[i]=async 함수): 실제 상태 검증(예 ≥1 채널·결제수단·상품). 미완 시 차단+메시지.
+ *     - 안내 단계(checks[i] 없음): 시스템 자동 확인(현 위치/정보성 단계).
+ *     검증 통과 시 '✓ 이 단계가 완료되었습니다' 메시지 → '다음 단계' 활성화. ★사용자 자기체크 아님.
  *   ★최종 완료(전 단계 통과) 시에만 '실행하기' 활성화 → 실제 실행 화면으로 이동.
  *   콘텐츠 단일 소스 guideContent.js(15개국). props: guideKey, checks?(단계별 async ()=>bool 배열).
  */
@@ -27,49 +28,43 @@ export default function GuideWizard({ guideKey, checks }) {
 
   const total = d ? d.steps.length : 0;
   const [state, setState] = useState(() => {
-    try { const v = JSON.parse(localStorage.getItem(storageKey) || "{}"); return { cur: typeof v.cur === "number" ? v.cur : 0, agreed: v.agreed || {} }; }
-    catch { return { cur: 0, agreed: {} }; }
+    try { const v = JSON.parse(localStorage.getItem(storageKey) || "{}"); return { cur: typeof v.cur === "number" ? v.cur : 0, verified: v.verified || {} }; }
+    catch { return { cur: 0, verified: {} }; }
   });
-  const [warn, setWarn] = useState("");     // "", "agree", "check"
+  const [warn, setWarn] = useState(false);   // 검증 실패(미완) 메시지
   const [busy, setBusy] = useState(false);
   const persist = useCallback((nx) => { try { localStorage.setItem(storageKey, JSON.stringify(nx)); } catch (e) { /* ignore */ } }, [storageKey]);
 
   const cur = Math.max(0, Math.min(total, state.cur));
-  const hasCheck = typeof (checks && checks[cur]) === "function";
-  const agreedCur = !!state.agreed[cur];
+  const verifiedCur = !!state.verified[cur];
+
+  // 시스템 완료 검증 — checks[cur] 있으면 실제 상태 확인, 없으면 자동 확인(정보성 단계).
+  const verify = useCallback(async () => {
+    setBusy(true); setWarn(false);
+    try {
+      const fn = checks && checks[cur];
+      const ok = typeof fn === "function" ? await fn() : true;
+      if (ok) { setState((s) => { const v = { ...s.verified, [s.cur]: true }; const nx = { ...s, verified: v }; persist(nx); return nx; }); }
+      else setWarn(true);
+    } catch (e) { setWarn(true); }
+    finally { setBusy(false); }
+  }, [checks, cur, persist]);
 
   const advance = useCallback(() => {
+    setWarn(false);
     setState((s) => { const nx = { ...s, cur: Math.min(total, s.cur + 1) }; persist(nx); return nx; });
-    setWarn("");
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [total, persist]);
 
-  const toggleAgree = useCallback(() => {
-    setWarn("");
-    setState((s) => { const ag = { ...s.agreed, [s.cur]: !s.agreed[s.cur] }; const nx = { ...s, agreed: ag }; persist(nx); return nx; });
-  }, [persist]);
-
-  const onNext = useCallback(async () => {
-    if (hasCheck) {
-      setBusy(true); setWarn("");
-      try {
-        const ok = await checks[cur]();
-        if (ok) advance(); else setWarn("check");
-      } catch (e) { setWarn("check"); }
-      finally { setBusy(false); }
-    } else {
-      if (agreedCur) advance(); else setWarn("agree");
-    }
-  }, [hasCheck, checks, cur, agreedCur, advance]);
-
-  const goStep = useCallback((i) => { setWarn(""); setState((s) => { const nx = { ...s, cur: Math.max(0, Math.min(total, i)) }; persist(nx); return nx; }); }, [total, persist]);
+  const goStep = useCallback((i) => { setWarn(false); setState((s) => { const nx = { ...s, cur: Math.max(0, Math.min(total, i)) }; persist(nx); return nx; }); }, [total, persist]);
 
   if (!d) return null;
   const isRtl = lang === "ar";
   const pct = Math.round((cur / total) * 100);
   const grad = `linear-gradient(135deg, ${accent[0]}, ${accent[1]})`;
   const allDone = cur >= total;
-  const nextDisabled = busy || (!hasCheck && !agreedCur);
+
+  const btnSolid = (bg, on) => ({ fontSize: 12.5, fontWeight: 800, color: "#fff", border: "none", cursor: on ? "pointer" : "not-allowed", background: on ? bg : "#94a3b8", padding: "7px 16px", borderRadius: 8, opacity: on ? 1 : 0.7 });
 
   return (
     <div dir={isRtl ? "rtl" : "ltr"} style={{ maxWidth: 820 }}>
@@ -93,7 +88,7 @@ export default function GuideWizard({ guideKey, checks }) {
           {d.all}
           <div style={{ marginTop: 11, display: "flex", gap: 8, flexWrap: "wrap" }}>
             <button onClick={() => navigate(d.doneRoute || links[0] || "/")} style={{ fontSize: 13, fontWeight: 800, color: "#fff", border: "none", cursor: "pointer", background: grad, padding: "9px 20px", borderRadius: 9, boxShadow: `0 4px 14px ${accent[0]}55` }}>{nav.execute}</button>
-            <button onClick={() => goStep(0)} style={{ fontSize: 12, fontWeight: 700, color: "var(--text-3)", border: "1px solid var(--border,#e2e8f0)", cursor: "pointer", background: "transparent", padding: "8px 14px", borderRadius: 9 }}>{nav.reset}</button>
+            <button onClick={() => { setState((s) => { const nx = { cur: 0, verified: {} }; persist(nx); return nx; }); }} style={{ fontSize: 12, fontWeight: 700, color: "var(--text-3)", border: "1px solid var(--border,#e2e8f0)", cursor: "pointer", background: "transparent", padding: "8px 14px", borderRadius: 9 }}>{nav.reset}</button>
           </div>
         </div>
       )}
@@ -114,20 +109,13 @@ export default function GuideWizard({ guideKey, checks }) {
                   {s[2] && <div style={{ marginBottom: 10 }}><span style={{ fontSize: 12, fontWeight: 700, color: accent[0], background: `${accent[0]}14`, padding: "4px 10px", borderRadius: 7 }}>📍 {s[2]}</span>{" "}
                     {links[i] && <button onClick={() => navigate(links[i])} style={{ fontSize: 12.5, fontWeight: 800, color: "#fff", border: "none", cursor: "pointer", background: grad, padding: "6px 14px", borderRadius: 8, boxShadow: `0 3px 10px ${accent[0]}55`, verticalAlign: "middle" }}>{nav.go}</button>}
                   </div>}
-                  {/* 안내 단계: 온라인 완료 확인(동의). 필수 등록 단계(stepHasCheck): 실제 검증이므로 체크박스 없음. */}
-                  {!stepHasCheck && (
-                    <label style={{ display: "flex", alignItems: "center", gap: 9, cursor: "pointer", background: agreedCur ? "rgba(22,163,74,0.08)" : "rgba(0,0,0,0.03)", border: `1px solid ${agreedCur ? "rgba(22,163,74,0.35)" : "var(--border,#e2e8f0)"}`, borderRadius: 9, padding: "9px 13px", marginBottom: 10 }}>
-                      <input type="checkbox" checked={agreedCur} onChange={toggleAgree} style={{ width: 17, height: 17, accentColor: "#16a34a", cursor: "pointer" }} />
-                      <span style={{ fontSize: 12.5, fontWeight: 700, color: agreedCur ? "#15803d" : "var(--text-2)" }}>{nav.agree}</span>
-                    </label>
-                  )}
-                  {warn === "agree" && <div style={{ fontSize: 12, fontWeight: 700, color: "#dc2626", marginBottom: 9 }}>⚠ {nav.agreeRequired}</div>}
-                  {warn === "check" && <div style={{ fontSize: 12, fontWeight: 700, color: "#dc2626", marginBottom: 9 }}>⚠ {msg.checkRequired}</div>}
+                  {/* 시스템 완료 검증 결과 메시지 */}
+                  {verifiedCur && <div style={{ fontSize: 12.5, fontWeight: 800, color: "#15803d", background: "rgba(22,163,74,0.1)", border: "1px solid rgba(22,163,74,0.3)", borderRadius: 8, padding: "8px 12px", marginBottom: 10 }}>{msg.verified}</div>}
+                  {warn && !verifiedCur && <div style={{ fontSize: 12, fontWeight: 700, color: "#dc2626", marginBottom: 10 }}>⚠ {msg.checkRequired}</div>}
                   <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-                    <button onClick={onNext} disabled={nextDisabled}
-                      style={{ fontSize: 12.5, fontWeight: 800, color: "#fff", border: "none", cursor: nextDisabled ? "not-allowed" : "pointer", background: nextDisabled ? "#94a3b8" : "#16a34a", padding: "7px 16px", borderRadius: 8, boxShadow: nextDisabled ? "none" : "0 3px 10px rgba(22,163,74,0.3)", opacity: nextDisabled ? 0.7 : 1 }}>
-                      {busy ? msg.checking : nav.done}
-                    </button>
+                    {!verifiedCur
+                      ? <button onClick={verify} disabled={busy} style={btnSolid(accent[0], !busy)}>{busy ? msg.checking : msg.verify}</button>
+                      : <button onClick={advance} style={btnSolid("#16a34a", true)}>{nav.done}</button>}
                     {i > 0 && <button onClick={() => goStep(i - 1)} style={{ fontSize: 12, fontWeight: 700, color: "var(--text-3)", border: "1px solid var(--border,#e2e8f0)", cursor: "pointer", background: "transparent", padding: "6px 12px", borderRadius: 8 }}>{nav.prev}</button>}
                   </div>
                 </>
