@@ -1988,7 +1988,7 @@ function OverviewTab({ channels, summary, creds, applies = [], loading, onChanne
       {/* [현 차수] ★발급 확인 유도 펄스 애니메이션(키프레임 1회 주입). */}
       <style>{`@keyframes akVerifyPulse{0%,100%{box-shadow:0 0 0 0 rgba(245,158,11,0.0);transform:translateY(0)}50%{box-shadow:0 0 0 4px rgba(245,158,11,0.18);transform:translateY(-1px)}}@keyframes akVerifiedBlink{0%,100%{opacity:1}50%{opacity:0.35}}`}</style>
       {totalKeys === 0 && (
-        <div style={{ padding: '14px 18px', borderRadius: 12, background: 'rgba(79,142,247,0.06)', border: '1px solid rgba(79,142,247,0.18)', fontSize: 12, color: 'var(--text-2)' }}>
+        <div data-onboard-cta data-onboard-hint={t('ak.onboardHint','아래 채널 카드의 [등록] 버튼으로 판매·광고 채널 자격증명을 등록하세요')} style={{ padding: '14px 18px', borderRadius: 12, background: 'rgba(79,142,247,0.06)', border: '1px solid rgba(79,142,247,0.18)', fontSize: 12, color: 'var(--text-2)' }}>
           🔑 {t('ak.registerHint','아래 채널 카드의 [등록] 버튼으로 판매·광고·물류 채널의 자격증명(액세스 토큰/광고계정/고객ID/광고주ID 등)을 등록하세요. 등록 즉시 연동 현황·라이브 커머스에 반영됩니다.')}
         </div>
       )}

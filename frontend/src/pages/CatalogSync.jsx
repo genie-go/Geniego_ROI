@@ -1088,7 +1088,7 @@ const CatalogTab = memo(function CatalogTab() {
                 <button onClick={handleExportCSV} style={{ padding: "7px 12px", borderRadius: 8, background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.2)", color: "#374151", fontWeight: 700, fontSize: 10, cursor: "pointer", whiteSpace: "nowrap" }}>📤 {t('catalogSync.csvExport')}</button>
                 <button onClick={() => csvInputRef.current?.click()} style={{ padding: "7px 12px", borderRadius: 8, background: "rgba(79,142,247,0.08)", border: "1px solid rgba(79,142,247,0.2)", color: "#374151", fontWeight: 700, fontSize: 10, cursor: "pointer", whiteSpace: "nowrap" }}>📥 {t('catalogSync.csvImport')}</button>
                 <input ref={csvInputRef} type="file" accept=".csv" style={{ display: 'none' }} onChange={handleImportCSV} />
-                <button onClick={navigateToPriceOptProducts} style={{ padding: "7px 16px", borderRadius: 8, background: "linear-gradient(135deg,#4f8ef7,#a855f7)", border: "none", color: '#ffffff', fontWeight: 700, fontSize: 12, cursor: "pointer", whiteSpace: "nowrap" }}>📦 {t('catalogSync.addProduct')} →</button>
+                <button onClick={navigateToPriceOptProducts} data-onboard-cta data-onboard-hint={t('catalogSync.onboardAddHint','여기서 판매할 상품/서비스를 등록하세요')} style={{ padding: "7px 16px", borderRadius: 8, background: "linear-gradient(135deg,#4f8ef7,#a855f7)", border: "none", color: '#ffffff', fontWeight: 700, fontSize: 12, cursor: "pointer", whiteSpace: "nowrap" }}>📦 {t('catalogSync.addProduct')} →</button>
             </div>
 
             {/* 일괄 Action 바 — Select 시 나타남 */}
