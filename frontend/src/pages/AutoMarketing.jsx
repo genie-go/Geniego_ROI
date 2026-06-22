@@ -867,9 +867,28 @@ export default function AutoMarketing() {
                     {/* 광고비 결제카드 미등록 안내 — 예산 설정 전 카드 등록 유도 */}
                     <CardRequiredBanner />
 
-                    {/* 월 Budget Settings */}
+                    {/* [237차] ① 판매 카테고리 선택 — 최우선(판매유형이 채널 추천·전략의 기준이 되므로 맨 앞). */}
                     <div style={cardStyle}>
-                        <div style={{ fontWeight: 700, fontSize: 13, color: "#4f8ef7", marginBottom: 14 }}>{t("marketing.budgetSetup")}</div>
+                        <div style={{ fontWeight: 700, fontSize: 13, color: "#7c3aed", marginBottom: 14 }}>① {t("marketing.categorySelect")}</div>
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px,1fr))", gap: 10 }}>
+                            {PRODUCT_CATEGORIES.map(cat => (
+                                <button key={cat.id} onClick={() => toggleCat(cat.id)} style={{
+                                    padding: "12px 14px", borderRadius: 10, cursor: "pointer", textAlign: "left",
+                                    background: selCats.includes(cat.id) ? "rgba(168,85,247,0.12)" : "rgba(0,0,0,0.03)",
+                                    border: `1px solid ${selCats.includes(cat.id) ? "rgba(168,85,247,0.5)" : "rgba(99,140,255,0.1)"}`,
+                                    transition: "all 150ms" }}>
+                                    <div style={{ fontSize: 20, marginBottom: 4 }}>{cat.icon}</div>
+                                    <div style={{ fontWeight: 700, fontSize: 12, color: selCats.includes(cat.id) ? "#a855f7" : '#1e293b' }}>{cat.label}</div>
+                                    <div style={{ fontSize: 10, color: '#64748b', marginTop: 3 }}>{cat.tags.slice(0, 2).join(" · ")}</div>
+                                    {selCats.includes(cat.id) && <div style={{ fontSize: 10, color: "#7c3aed", marginTop: 4, fontWeight: 700 }}>{t("marketing.selected")}</div>}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* ② 월 Budget Settings */}
+                    <div style={cardStyle}>
+                        <div style={{ fontWeight: 700, fontSize: 13, color: "#4f8ef7", marginBottom: 14 }}>② {t("marketing.budgetSetup")}</div>
                         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
                             {[300000, 500000, 1000000, 2000000, 3000000, 5000000, 10000000].map(v => (
                                 <button key={v} onClick={() => { setBudget(v); setCustomBudget(""); handleBudgetChange(v); }} style={{ padding: "8px 16px", borderRadius: 9, fontSize: 12, fontWeight: 800, cursor: "pointer", backgroundColor: effectiveBudget === v && !customBudget ? "rgba(79,142,247,0.15)" : "rgba(79,142,247,0.08)", color: effectiveBudget === v && !customBudget ? "#dc2626" : "#334155", border: effectiveBudget === v && !customBudget ? "2px solid #4f8ef7" : "1px solid rgba(99,140,255,0.2)", boxShadow: effectiveBudget === v && !customBudget ? "0 2px 8px rgba(79,142,247,0.25)" : "none" }}>
@@ -903,7 +922,7 @@ export default function AutoMarketing() {
 
                     {/* Phase2: 다목표 최적화 — 전략 목표 + 가드레일 (multi-objective-v2 엔진) */}
                     <div style={cardStyle}>
-                        <div style={{ fontWeight: 700, fontSize: 13, color: "#a855f7", marginBottom: 4 }}>🎯 {t('marketing.objTitle', '최적화 목표')}</div>
+                        <div style={{ fontWeight: 700, fontSize: 13, color: "#a855f7", marginBottom: 4 }}>③ 🎯 {t('marketing.objTitle', '최적화 목표')}</div>
                         <div style={{ fontSize: 11, color: '#64748b', marginBottom: 12 }}>{t('marketing.objDesc', 'AI가 예산을 어떤 기준으로 배분할지 선택하세요. 채널별 실측이 쌓이면 자동 재학습됩니다.')}</div>
                         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))", gap: 8, marginBottom: 14 }}>
                             {[
@@ -931,29 +950,10 @@ export default function AutoMarketing() {
                         </div>
                     </div>
 
-                    {/* Product Category */}
-                    <div style={cardStyle}>
-                        <div style={{ fontWeight: 700, fontSize: 13, color: "#7c3aed", marginBottom: 14 }}>{t("marketing.categorySelect")}</div>
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px,1fr))", gap: 10 }}>
-                            {PRODUCT_CATEGORIES.map(cat => (
-                                <button key={cat.id} onClick={() => toggleCat(cat.id)} style={{
-                                    padding: "12px 14px", borderRadius: 10, cursor: "pointer", textAlign: "left",
-                                    background: selCats.includes(cat.id) ? "rgba(168,85,247,0.12)" : "rgba(0,0,0,0.03)",
-                                    border: `1px solid ${selCats.includes(cat.id) ? "rgba(168,85,247,0.5)" : "rgba(99,140,255,0.1)"}`,
-                                    transition: "all 150ms" }}>
-                                    <div style={{ fontSize: 20, marginBottom: 4 }}>{cat.icon}</div>
-                                    <div style={{ fontWeight: 700, fontSize: 12, color: selCats.includes(cat.id) ? "#a855f7" : '#1e293b' }}>{cat.label}</div>
-                                    <div style={{ fontSize: 10, color: '#64748b', marginTop: 3 }}>{cat.tags.slice(0, 2).join(" · ")}</div>
-                                    {selCats.includes(cat.id) && <div style={{ fontSize: 10, color: "#7c3aed", marginTop: 4, fontWeight: 700 }}>{t("marketing.selected")}</div>}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
 
                     <div style={cardStyle}>
                         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14, flexWrap: "wrap" }}>
-                            <div style={{ fontWeight: 700, fontSize: 13, color: "#22c55e" }}>{t("marketing.channelSelect")}</div>
+                            <div style={{ fontWeight: 700, fontSize: 13, color: "#22c55e" }}>④ {t("marketing.channelSelect")}</div>
                             {aiRecommended && (
                                 <div style={{ display: "flex", alignItems: "center", gap: 5, padding: "3px 10px", borderRadius: 99, background: "linear-gradient(135deg,rgba(34,197,94,0.12),rgba(79,142,247,0.12))", border: "1px solid rgba(34,197,94,0.3)", fontSize: 10, fontWeight: 700, color: "#22c55e" }}>
                                     🤖 {t('marketing.aiRecommendBadge')}
