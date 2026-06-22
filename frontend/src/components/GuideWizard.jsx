@@ -116,7 +116,7 @@ export default function GuideWizard({ guideKey, checks }) {
               {active && (
                 <>
                   {s[2] && <div style={{ marginBottom: 10 }}><span style={{ fontSize: 12, fontWeight: 700, color: accent[0], background: `${accent[0]}14`, padding: "4px 10px", borderRadius: 7 }}>📍 {s[2]}</span>{" "}
-                    {links[i] && <button className="gw-go" onClick={() => navigate(links[i])} style={{ fontSize: 13, fontWeight: 900, color: "#fff", border: "none", cursor: "pointer", background: grad, padding: "8px 18px", borderRadius: 9, boxShadow: `0 3px 10px ${accent[0]}55`, verticalAlign: "middle" }}>👉 {nav.go}</button>}
+                    {links[i] && <button className="gw-go" onClick={() => { try { sessionStorage.setItem("genie_onboard_focus", "1"); sessionStorage.setItem("genie_onboard_hint", (s[0] ? s[0] + " — " : "") + (s[1] || "")); } catch (e) {} navigate(links[i]); }} style={{ fontSize: 13, fontWeight: 900, color: "#fff", border: "none", cursor: "pointer", background: grad, padding: "8px 18px", borderRadius: 9, boxShadow: `0 3px 10px ${accent[0]}55`, verticalAlign: "middle" }}>👉 {nav.go}</button>}
                   </div>}
                   {/* 시스템 완료 검증 결과 메시지 */}
                   {verifiedCur && <div style={{ fontSize: 12.5, fontWeight: 800, color: "#15803d", background: "rgba(22,163,74,0.1)", border: "1px solid rgba(22,163,74,0.3)", borderRadius: 8, padding: "8px 12px", marginBottom: 10 }}>{msg.verified}</div>}

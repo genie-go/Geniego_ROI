@@ -20,6 +20,7 @@ import SessionExpiryWarning from "./components/SessionExpiryWarning.jsx";
 import KeyboardShortcuts from "./components/KeyboardShortcuts.jsx";
 import OnboardingTour from "./components/OnboardingTour.jsx";
 import OnboardingGuide from "./components/OnboardingGuide.jsx";
+import GuideArrival from "./components/GuideArrival.jsx"; // [237차] 바로가기 도착 스포트라이트(동작 영역 안내)
 import { initPerformanceMonitor } from "./utils/performanceMonitor.js";
 import CommandPalette from "./components/CommandPalette.jsx";
 import { initAuditTrail } from "./utils/auditTrail.js";
@@ -391,6 +392,7 @@ function AppLayout() {
                   .app-content-area>div{flex:1} 규칙에 걸리면 배너가 페이지와 높이를 반씩 나눠 늘어나는
                   레이아웃 회귀(전 페이지 박스 높이 불균형)가 발생하므로 바깥에 두어 자연 높이 유지. */}
               <OnboardingGuide />
+              <GuideArrival />
 
               <div className="app-content-area" style={{
                 flex: 1,

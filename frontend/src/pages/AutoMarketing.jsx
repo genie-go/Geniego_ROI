@@ -868,7 +868,7 @@ export default function AutoMarketing() {
                     <CardRequiredBanner />
 
                     {/* [237차] ① 판매 카테고리 선택 — 최우선(판매유형이 채널 추천·전략의 기준이 되므로 맨 앞). */}
-                    <div style={cardStyle}>
+                    <div style={cardStyle} data-onboard-cta data-onboard-hint={t("marketing.onboardCatHint", "먼저 판매 상품/서비스 카테고리를 선택하세요")}>
                         <div style={{ fontWeight: 700, fontSize: 13, color: "#7c3aed", marginBottom: 14 }}>① {t("marketing.categorySelect")}</div>
                         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px,1fr))", gap: 10 }}>
                             {PRODUCT_CATEGORIES.map(cat => (
