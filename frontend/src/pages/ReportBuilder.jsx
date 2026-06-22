@@ -81,8 +81,37 @@ export default function ReportBuilder() {
   const remove = async (s) => { if (!window.confirm(t("reportBuilder.delConfirm", "이 예약 리포트를 삭제할까요?"))) return; try { await delJson(`/api/reports/schedules/${s.id}`); loadSchedules(); } catch (e) { flash(String(e.message).slice(0, 80)); } };
 
   const freqLabel = (f) => ({ daily: t("reportBuilder.daily", "매일"), weekly: t("reportBuilder.weekly", "매주"), monthly: t("reportBuilder.monthly", "매월") }[f] || f);
+  // [237차] 셀프서비스 BI — 커스텀 분석(지표×차원×기간 → 표 + CSV). 백엔드 /api/reports/query(화이트리스트).
+  const Q_METRICS = [
+    ["spend", t("reportBuilder.mSpend", "광고비")], ["revenue", t("reportBuilder.mRevenue", "매출")],
+    ["roas", "ROAS"], ["conversions", t("reportBuilder.mConv", "전환")],
+    ["impressions", t("reportBuilder.mImp", "노출")], ["clicks", t("reportBuilder.mClk", "클릭")],
+    ["ctr", "CTR"], ["cvr", "CVR"], ["cpc", "CPC"], ["cpa", "CPA"],
+  ];
+  const Q_DIMS = [["channel", t("reportBuilder.dimChannel", "채널별")], ["campaign", t("reportBuilder.dimCampaign", "캠페인별")], ["date", t("reportBuilder.dimDate", "일자별")]];
+  const [qForm, setQForm] = useState({ metrics: ["spend", "revenue", "roas", "conversions"], dimension: "channel", period_days: 30 });
+  const [qResult, setQResult] = useState(null);
+  const [qLoading, setQLoading] = useState(false);
+  const toggleMetric = (m) => setQForm(f => ({ ...f, metrics: f.metrics.includes(m) ? f.metrics.filter(x => x !== m) : [...f.metrics, m] }));
+  const runQuery = useCallback(async () => {
+    if (qForm.metrics.length === 0) { flash(t("reportBuilder.pickMetric", "지표를 1개 이상 선택하세요.")); return; }
+    setQLoading(true);
+    try { const d = await postJsonAuth("/api/reports/query", qForm); setQResult(d.ok ? d : { rows: [], columns: [], note: d.error || "오류" }); }
+    catch (e) { setQResult({ rows: [], columns: [], note: String(e.message).slice(0, 80) }); }
+    finally { setQLoading(false); }
+  }, [qForm, t]);
+  const exportCsv = useCallback(() => {
+    if (!qResult || !qResult.rows || !qResult.rows.length) return;
+    const cols = qResult.columns || [];
+    const head = cols.join(",");
+    const body = qResult.rows.map(r => cols.map(c => JSON.stringify(r[c] ?? "")).join(",")).join("\n");
+    const blob = new Blob(["﻿" + head + "\n" + body], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob); const a = document.createElement("a");
+    a.href = url; a.download = `geniego_report_${qForm.dimension}_${qForm.period_days}d.csv`; a.click(); URL.revokeObjectURL(url);
+  }, [qResult, qForm]);
+
   // [차기] 구독플랜별 탭 게이팅 — 예약 자동발송(schedules)만 growth+. 첫탭(preview)·실행이력은 전 플랜.
-  const TABS = useVisibleTabs('report', [["preview", "📊 " + t("reportBuilder.tabPreview", "미리보기")], ["schedules", "📅 " + t("reportBuilder.tabSchedules", "예약 리포트")], ["history", "🕑 " + t("reportBuilder.tabHistory", "실행 이력")]], (pair) => pair[0]);
+  const TABS = useVisibleTabs('report', [["preview", "📊 " + t("reportBuilder.tabPreview", "미리보기")], ["custom", "🔎 " + t("reportBuilder.tabCustom", "커스텀 분석")], ["schedules", "📅 " + t("reportBuilder.tabSchedules", "예약 리포트")], ["history", "🕑 " + t("reportBuilder.tabHistory", "실행 이력")]], (pair) => pair[0]);
 
   return (
     <div style={{ padding: "8px 4px" }}>
@@ -111,6 +140,59 @@ export default function ReportBuilder() {
             {summary && <span style={{ fontSize: 11, color: "var(--text-3)" }}>{summary.since} ~ {summary.until}</span>}
           </div>
           {loadingPv ? <div style={{ color: "var(--text-3)", padding: 30, textAlign: "center" }}>{t("reportBuilder.loading", "불러오는 중…")}</div> : <KpiGrid s={summary} t={t} />}
+        </div>
+      )}
+
+      {tab === "custom" && (
+        <div>
+          <div style={{ ...card, display: "flex", gap: 14, alignItems: "flex-start", flexWrap: "wrap" }}>
+            <div>
+              <div style={{ fontSize: 11, color: "var(--text-3)", marginBottom: 6 }}>{t("reportBuilder.metrics", "지표 선택")}</div>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap", maxWidth: 420 }}>
+                {Q_METRICS.map(([id, lab]) => (
+                  <button key={id} onClick={() => toggleMetric(id)} style={{ padding: "5px 11px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 11, fontWeight: 700, background: qForm.metrics.includes(id) ? "#4f8ef7" : "rgba(0,0,0,0.05)", color: qForm.metrics.includes(id) ? "#fff" : "var(--text-2)" }}>{lab}</button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <div style={{ fontSize: 11, color: "var(--text-3)", marginBottom: 6 }}>{t("reportBuilder.dimension", "차원")}</div>
+              <select value={qForm.dimension} onChange={e => setQForm(f => ({ ...f, dimension: e.target.value }))} style={{ ...input, width: 130 }}>
+                {Q_DIMS.map(([id, lab]) => <option key={id} value={id}>{lab}</option>)}
+              </select>
+            </div>
+            <div>
+              <div style={{ fontSize: 11, color: "var(--text-3)", marginBottom: 6 }}>{t("reportBuilder.period", "집계 기간")}</div>
+              <select value={qForm.period_days} onChange={e => setQForm(f => ({ ...f, period_days: +e.target.value }))} style={{ ...input, width: 130 }}>
+                <option value={7}>{t("reportBuilder.last7", "최근 7일")}</option>
+                <option value={30}>{t("reportBuilder.last30", "최근 30일")}</option>
+                <option value={90}>{t("reportBuilder.last90", "최근 90일")}</option>
+              </select>
+            </div>
+            <div style={{ alignSelf: "flex-end", display: "flex", gap: 6 }}>
+              <button style={btn("primary")} onClick={runQuery} disabled={qLoading}>{qLoading ? "⏳" : "🔎"} {t("reportBuilder.runQuery", "분석 실행")}</button>
+              {qResult && qResult.rows && qResult.rows.length > 0 && <button style={btn("ghost")} onClick={exportCsv}>⬇ CSV</button>}
+            </div>
+          </div>
+          {qResult && (
+            <div style={{ ...card, marginTop: 12, overflowX: "auto" }}>
+              {(!qResult.rows || qResult.rows.length === 0) ? (
+                <div style={{ color: "var(--text-3)", fontSize: 12, padding: 20, textAlign: "center" }}>{qResult.note || t("reportBuilder.noData", "데이터가 없습니다.")}</div>
+              ) : (
+                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+                  <thead><tr style={{ borderBottom: "2px solid var(--border)" }}>
+                    {(qResult.columns || []).map(c => <th key={c} style={{ padding: "8px 10px", textAlign: c === "dim" ? "left" : "right", color: "var(--text-3)", fontWeight: 700, fontSize: 11 }}>{c === "dim" ? (Q_DIMS.find(d => d[0] === qResult.dimension)?.[1] || "") : (Q_METRICS.find(m => m[0] === c)?.[1] || c)}</th>)}
+                  </tr></thead>
+                  <tbody>
+                    {qResult.rows.map((r, i) => (
+                      <tr key={i} style={{ borderBottom: "1px solid var(--border)" }}>
+                        {(qResult.columns || []).map(c => <td key={c} style={{ padding: "8px 10px", textAlign: c === "dim" ? "left" : "right", fontWeight: c === "dim" ? 700 : 400, color: "var(--text-1)" }}>{c === "dim" ? r.dim : Number(r[c] ?? 0).toLocaleString()}</td>)}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          )}
         </div>
       )}
 

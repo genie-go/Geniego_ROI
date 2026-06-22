@@ -225,6 +225,78 @@ class Reports
         return self::json($res, ['ok' => true, 'summary' => $summary]);
     }
 
+    /**
+     * [237차] POST /api/reports/query — 셀프서비스 BI 쿼리 엔진(Funnel.io/Looker 급 커스텀 분석).
+     *   사용자가 지표×차원×기간을 선택하면 실 performance_metrics 에서 집계해 표를 반환한다.
+     *   ★보안: 지표·차원은 화이트리스트만 허용(임의 SQL/컬럼 불가 — DataProduct 의 SQL-injection 경계와 정합).
+     *   ★중복0: 기존 Reports 핸들러 확장(신규 메뉴/핸들러 없음)·performance_metrics 집계 재사용.
+     *   body: { metrics:[...], dimension:'channel'|'campaign'|'date', period_days, limit }
+     */
+    public static function query(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        $pdo = self::db();
+        $tenant = self::tenant($req);
+        $body = (array)($req->getParsedBody() ?? []);
+        if (empty($body)) { $d = json_decode((string)$req->getBody(), true); if (is_array($d)) $body = $d; }
+
+        // 화이트리스트: 지표 SQL 식(performance_metrics 컬럼만). 키 외 입력은 무시.
+        $METRICS = [
+            'spend'       => 'ROUND(SUM(spend))',
+            'revenue'     => 'ROUND(SUM(revenue))',
+            'impressions' => 'SUM(impressions)',
+            'clicks'      => 'SUM(clicks)',
+            'conversions' => 'SUM(conversions)',
+            'roas'        => 'ROUND(SUM(revenue)/NULLIF(SUM(spend),0),2)',
+            'ctr'         => 'ROUND(SUM(clicks)/NULLIF(SUM(impressions),0)*100,2)',
+            'cvr'         => 'ROUND(SUM(conversions)/NULLIF(SUM(clicks),0)*100,2)',
+            'cpc'         => 'ROUND(SUM(spend)/NULLIF(SUM(clicks),0))',
+            'cpa'         => 'ROUND(SUM(spend)/NULLIF(SUM(conversions),0))',
+        ];
+        $DIMS = ['channel' => 'channel', 'campaign' => 'campaign_ext_id', 'date' => 'date'];
+
+        $reqMetrics = array_values(array_filter((array)($body['metrics'] ?? []), fn($m) => isset($METRICS[$m])));
+        if (!$reqMetrics) $reqMetrics = ['spend', 'revenue', 'roas', 'conversions'];
+        $dim = (string)($body['dimension'] ?? 'channel');
+        if (!isset($DIMS[$dim])) $dim = 'channel';
+        $dimCol = $DIMS[$dim];
+        $period = max(1, min(365, (int)($body['period_days'] ?? 30)));
+        $limit = max(1, min(500, (int)($body['limit'] ?? 100)));
+        $since = gmdate('Y-m-d', time() - $period * 86400);
+
+        // SELECT 절(화이트리스트 식만 결합 → 인젝션 불가). 차원 컬럼 + 선택 지표.
+        $selects = ["{$dimCol} AS dim"];
+        foreach ($reqMetrics as $m) $selects[] = "{$METRICS[$m]} AS {$m}";
+        $orderMetric = $reqMetrics[0];
+        $sql = "SELECT " . implode(', ', $selects) . "
+                  FROM performance_metrics
+                 WHERE tenant_id = ? AND date >= ? AND {$dimCol} IS NOT NULL AND {$dimCol} <> ''
+                 GROUP BY {$dimCol}
+                 ORDER BY " . ($dim === 'date' ? 'dim ASC' : "{$orderMetric} DESC") . "
+                 LIMIT {$limit}";
+        try {
+            $st = $pdo->prepare($sql);
+            $st->execute([$tenant, $since]);
+            $rows = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+        } catch (\Throwable $e) {
+            return self::json($res, ['ok' => false, 'error' => 'query_failed'], 500);
+        }
+        // 합계 행(date 차원 제외)
+        $totals = [];
+        if ($dim !== 'date' && $rows) {
+            foreach (['spend', 'revenue', 'impressions', 'clicks', 'conversions'] as $k) {
+                if (in_array($k, $reqMetrics, true)) $totals[$k] = array_sum(array_map(fn($r) => (float)($r[$k] ?? 0), $rows));
+            }
+            if (isset($totals['revenue'], $totals['spend']) && $totals['spend'] > 0) $totals['roas'] = round($totals['revenue'] / $totals['spend'], 2);
+        }
+        return self::json($res, [
+            'ok' => true, 'dimension' => $dim, 'metrics' => $reqMetrics, 'period_days' => $period,
+            'columns' => array_merge(['dim'], $reqMetrics), 'rows' => $rows, 'totals' => $totals,
+            'count' => count($rows),
+            'note' => count($rows) === 0 ? '선택 기간·차원에 집계할 광고 성과 데이터가 없습니다(집행·수집 후 표시).' : null,
+        ]);
+    }
+
     // ── POST /reports/run/{id} ── (지금 생성 + 발송)
     public static function runNow(Request $req, Response $res, array $args): Response
     {
