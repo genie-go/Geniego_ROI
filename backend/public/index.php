@@ -219,7 +219,17 @@ $app->add(function (Request $request, $handler) {
         // [237차] KrChannel(국내채널 정산/수수료/대사 /v419/kr/*) — 프론트(/kr-channel)가 세션 토큰으로
         //   호출하나 bypass·세션게이트 부재로 strict api_key 미들웨어가 거부(401). 핸들러는 OrderHub 와
         //   동일하게 self-auth 없이 미들웨어 auth_tenant 만 신뢰하므로 세션→auth_tenant 주입 게이트에 편입.
-        || strpos($path, '/v419/kr/') === 0 || strpos($path, '/api/v419/kr/') === 0) {
+        || strpos($path, '/v419/kr/') === 0 || strpos($path, '/api/v419/kr/') === 0
+        // [237차] admin 전메뉴 라이브 스윕(69페이지)서 발견된 동일 클래스 세션 인증갭 4페이지:
+        //   GraphScore(/v419/graph/* — 그래프 스코어)·AttributionMetrics(/v424/marketing/* — 마케팅 일별추이)·
+        //   AdPerformance(/v1/ad-performance/* 광고성과·/performance/meta-ads 어카운트성과). 셋 다 핸들러가
+        //   auth_tenant(미들웨어 주입) 우선 사용(GraphScore/AdPerformance는 세션 self-auth 폴백도 보유)이라
+        //   세션→auth_tenant 주입 게이트 편입이 정합. marketing 은 prefix 로 향후 갭 방지(auto-recommend/
+        //   benchmarks 이미 위 블록 포함, daily-trends 누락분 흡수).
+        || strpos($path, '/v419/graph/') === 0 || strpos($path, '/api/v419/graph/') === 0
+        || strpos($path, '/v424/marketing/') === 0 || strpos($path, '/api/v424/marketing/') === 0
+        || strpos($path, '/v1/ad-performance/') === 0 || strpos($path, '/api/v1/ad-performance/') === 0
+        || $path === '/performance/meta-ads' || $path === '/api/performance/meta-ads') {
         $bearer = '';
         $ah = $request->getHeaderLine('Authorization');
         if (strpos($ah, 'Bearer ') === 0) { $bearer = trim(substr($ah, 7)); }

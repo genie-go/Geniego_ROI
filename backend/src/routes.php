@@ -1184,6 +1184,9 @@ return function (App $app): void {
 
         // ── Ad Performance (Multi-Team Analysis) ───────────────────────────
         'GET /api/v1/ad-performance/summary'        => 'Genie\\Handlers\\AdPerformance::summary',
+        // [237차] basePath /api strip 환경(운영 Apache Alias)에서 /api 변형만 있으면 strip 후 /v1/... 로
+        //   매칭돼 404. no-/api 변형 추가(meta-ads 와 동일 패턴). /performance 페이지 광고성과 200 해소.
+        'GET /v1/ad-performance/summary'            => 'Genie\\Handlers\\AdPerformance::summary',
         // 175차 S3.3 — Meta 광고 campaign 데이터 (AccountPerformance.jsx)
         'GET /performance/meta-ads'                 => 'Genie\\Handlers\\AdPerformance::metaAds',
         'GET /api/performance/meta-ads'             => 'Genie\\Handlers\\AdPerformance::metaAds',
@@ -2860,5 +2863,6 @@ return function (App $app): void {
     $register('GET',    '/auth/license/list');
     // api/v1 (AdPerformance)
     $register('GET',    '/api/v1/ad-performance/summary');
+    $register('GET',    '/v1/ad-performance/summary'); // [237차] basePath strip no-/api 변형
 
     };
