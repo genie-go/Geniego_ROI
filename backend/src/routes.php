@@ -706,6 +706,9 @@ return function (App $app): void {
         // [현 차수] ② MMM(마케팅 믹스 모델) + 예측 예산 최적화
         'GET /v424/mmm/model'         => 'Genie\\Handlers\\Mmm::model',
         'GET /api/v424/mmm/model'     => 'Genie\\Handlers\\Mmm::model',
+        // [237차] 증분성(Double ML Uplift) 입력 데이터 — 프론트 기존 incrementalUplift 가 실데이터로 계산(중복0).
+        'GET /v424/mmm/series'        => 'Genie\\Handlers\\Mmm::series',
+        'GET /api/v424/mmm/series'    => 'Genie\\Handlers\\Mmm::series',
         'POST /v424/mmm/optimize'     => 'Genie\\Handlers\\Mmm::optimize',
         'POST /api/v424/mmm/optimize' => 'Genie\\Handlers\\Mmm::optimize',
         // [현 차수] ② 이상감지(SPC)
@@ -1294,9 +1297,8 @@ return function (App $app): void {
     $register('GET', '/v385/recommendations/traffic-cost');
     $register('GET', '/v385/recommendations/budget-allocation');
     // 191차: 팬텀 V386 라우트 5개 제거(클래스 부재·프론트 미사용).
-    $register('GET', '/v387/recommendations/rule');
-    $register('GET', '/v387/recommendations/goal');
-    $register('GET', '/v387/recommendations/incrementality');
+    // [237차] /v387/recommendations/{rule,goal,incrementality} 제거 — $custom 맵 없는 501 죽은 고아 stub
+    //   (프론트 미호출). 증분성은 Attribution 의 Double ML Uplift(incrementalUplift)+신규 /v424/mmm/series 로 일원화.
     $register('POST', '/v388/ingest/unified');
     $register('GET', '/v388/schema/examples');
     $register('POST', '/v389/ingest/unified');
@@ -2600,6 +2602,7 @@ return function (App $app): void {
     $register('GET', '/api/v424/attribution/models');
     // [현 차수] ② MMM + 예측 예산 최적화
     $register('GET',  '/v424/mmm/model');     $register('GET',  '/api/v424/mmm/model');
+    $register('GET',  '/v424/mmm/series');    $register('GET',  '/api/v424/mmm/series'); // [237차] 증분성 입력
     $register('POST', '/v424/mmm/optimize');  $register('POST', '/api/v424/mmm/optimize');
     $register('GET',  '/v424/anomaly/scan');  $register('GET',  '/api/v424/anomaly/scan');
     // 201차 — 마케팅 자동화 추천/벤치마크 ($custom 등록 + $register 필수)

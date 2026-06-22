@@ -82,6 +82,51 @@ final class Mmm
         }
     }
 
+    /**
+     * [237차] GET /v424/mmm/series?window=90 — 증분성(Double ML Uplift·로빈슨 편회귀) 입력용 데이터.
+     *   날짜정렬 채널별 일지출 매트릭스 + 총매출 시계열(실 performance_metrics, loadSeries 재사용).
+     *   ★알고리즘 중복 금지: 계산은 프론트 기존 incrementalUplift(mlAttribution.js)가 수행, 백엔드는 데이터만.
+     *   기존엔 운영서 TS_DATA 빈값이라 증분모델이 데모 전용이었던 것을 실데이터로 동작시킨다.
+     */
+    public static function series(Request $req, Response $res): Response
+    {
+        $tenant = self::tenant($req);
+        $qs = $req->getQueryParams();
+        $window = max(14, min(365, (int)($qs['window'] ?? 90)));
+        if (self::isDemo($tenant)) {
+            return self::json($res, ['ok' => true, 'demo' => true, 'spends' => new \stdClass(), 'revenue' => [], 'dates' => []]);
+        }
+        try {
+            $series = self::loadSeries(Db::pdo(), $tenant, $window);
+            $dateSet = [];
+            foreach ($series as $rows) foreach ($rows as $r) $dateSet[$r['date']] = true;
+            $dates = array_keys($dateSet); sort($dates);
+            if (count($dates) < 7 || count($series) < 2) {
+                return self::json($res, ['ok' => true, 'demo' => false, 'spends' => new \stdClass(), 'revenue' => [], 'dates' => $dates,
+                    'note' => '증분성 분석은 2개 이상 채널 × 7일 이상 데이터가 필요합니다(현재 부족 — 집행·수집 후 표시).']);
+            }
+            $idx = array_flip($dates);
+            $nd = count($dates);
+            $spends = []; $revByDate = array_fill(0, $nd, 0.0);
+            foreach ($series as $ch => $rows) {
+                $arr = array_fill(0, $nd, 0.0);
+                foreach ($rows as $r) {
+                    $i = $idx[$r['date']] ?? null;
+                    if ($i !== null) { $arr[$i] += (float)$r['spend']; $revByDate[$i] += (float)$r['revenue']; }
+                }
+                $spends[$ch] = $arr;
+            }
+            return self::json($res, [
+                'ok' => true, 'demo' => false, 'window_days' => $window, 'days' => $nd,
+                'dates' => $dates, 'spends' => $spends, 'revenue' => array_values($revByDate),
+                'channels' => array_keys($spends),
+                'note' => '실측 performance_metrics 기반 — 증분모델(로빈슨 편회귀) 입력.',
+            ]);
+        } catch (\Throwable $e) {
+            return self::json($res, ['ok' => false, 'error' => 'DB 오류: ' . $e->getMessage()], 500);
+        }
+    }
+
     /** POST /v424/mmm/optimize — {daily_budget, constraints?} 총 일예산을 반응곡선 기반 최적 배분. */
     public static function optimize(Request $req, Response $res): Response
     {

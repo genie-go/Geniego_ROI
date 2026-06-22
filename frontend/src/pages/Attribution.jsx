@@ -454,7 +454,26 @@ const MarkovTab = memo(function MarkovTab() {
     }, 30);
   }, []);
 
-  if (_JOURNEYS.length === 0) {
+  // [237차] 운영: 증분모델(Double ML Uplift)을 실 performance_metrics(/v424/mmm/series)로 동작시킨다.
+  //   기존엔 운영 TS_DATA 빈값이라 데모 전용이었음. ★알고리즘은 기존 incrementalUplift 재사용(중복0) —
+  //   백엔드는 날짜정렬 채널별 지출 매트릭스+총매출 데이터만 제공(Mmm::series).
+  useEffect(() => {
+    if (_isDemo) return;
+    let alive = true;
+    (async () => {
+      try {
+        const d = await getJsonAuth('/api/v424/mmm/series?window=90');
+        if (!alive) return;
+        const spends = (d && d.spends && typeof d.spends === 'object') ? d.spends : {};
+        const revenue = Array.isArray(d && d.revenue) ? d.revenue : [];
+        setUpliftRes((Object.keys(spends).length >= 2 && revenue.length >= 7) ? incrementalUplift(spends, revenue) : []);
+      } catch (_) { if (alive) setUpliftRes([]); }
+    })();
+    return () => { alive = false; };
+  }, []);
+
+  // [237차] 운영: 여정 데이터가 없어도 실데이터 증분모델(upliftRes)이 있으면 그 카드를 표시(데모 전용 탈피).
+  if (_JOURNEYS.length === 0 && (!upliftRes || upliftRes.length === 0)) {
     return (
       <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-3)' }}>
         {t('attrData.noJourneyData', '마르코프 체인 분석에 필요한 Customer 여정 데이터가 없습니다.')}
@@ -468,8 +487,9 @@ const MarkovTab = memo(function MarkovTab() {
         🔗 <strong style={{ color: '#06b6d4' }}>{t('attrData.tabMarkovLabel', 'Markov+Uplift')}</strong> — {t('attrData.explainMarkov')}
       </div>
       {computing && <div style={{ textAlign: 'center', padding: 40, color: '#06b6d4' }}>{t('attrData.markovInProgress', 'Markov Chain + Double ML 계산 중…')}</div>}
-      {markovRes && !computing && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+      {!computing && (markovRes || (upliftRes && upliftRes.length > 0)) && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 14 }}>
+          {markovRes && (
           <div className="card card-glass">
             <div style={{ fontWeight: 900, fontSize: 13, marginBottom: 14 }}>{t('attrData.markovTitle', '🔗 Markov Chain — 제거 효과 (Removal Effect)')}</div>
             {markovRes.filter(r => CH_COLORS[r.ch]).map(r => {
@@ -491,9 +511,11 @@ const MarkovTab = memo(function MarkovTab() {
 );
             })}
           </div>
+          )}
+          {upliftRes && upliftRes.length > 0 && (
           <div className="card card-glass">
             <div style={{ fontWeight: 900, fontSize: 13, marginBottom: 14 }}>{t('attrData.upliftTitle', '📐 증분 모델 (Double ML Uplift)')}</div>
-            <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 12 }}>{t('attrData.upliftSub', '로빈슨 편회귀 기반의 순수 증분 효과')}</div>
+            <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 12 }}>{t('attrData.upliftSub', '로빈슨 편회귀 기반의 순수 증분 효과 · 운영=실 performance_metrics')}</div>
             {upliftRes && upliftRes.map(r => {
               const color = CH_COLORS[r.ch] || '#4f8ef7';
               const maxAbs = Math.max(...upliftRes.map(u => Math.abs(u.uplift)), 1);
@@ -514,10 +536,11 @@ const MarkovTab = memo(function MarkovTab() {
               );
             })}
           </div>
+          )}
         </div>
       )}
     </div>
-  
+
 );
 });
 
