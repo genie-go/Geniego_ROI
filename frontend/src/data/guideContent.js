@@ -41,6 +41,25 @@ export const GUIDE_MSG = {
   ru: { checking: "Проверка…", checkRequired: "Обязательный пункт не выполнен. Завершите и проверьте снова.", verify: "✓ Проверить завершение", verified: "✓ Этот шаг завершён" }
 };
 
+/* 복수 선택·등록 가능한 단계(채널/상품 등)에서 '더 추가 vs 다음 단계' 선택 프롬프트 — 15개국 */
+export const GUIDE_ASK = {
+  ko: { q: "더 추가로 선택·등록하시겠어요?", more: "➕ 더 추가" },
+  en: { q: "Add/select more?", more: "➕ Add more" },
+  ja: { q: "さらに追加・選択しますか？", more: "➕ 追加" },
+  zh: { q: "要再添加/选择吗？", more: "➕ 再添加" },
+  "zh-TW": { q: "要再新增/選擇嗎？", more: "➕ 再新增" },
+  de: { q: "Mehr hinzufügen/auswählen?", more: "➕ Mehr" },
+  th: { q: "เพิ่ม/เลือกอีกไหม?", more: "➕ เพิ่ม" },
+  vi: { q: "Thêm/chọn nữa?", more: "➕ Thêm" },
+  id: { q: "Tambah/pilih lagi?", more: "➕ Tambah" },
+  ar: { q: "هل تضيف/تختار المزيد؟", more: "➕ المزيد" },
+  es: { q: "¿Añadir/seleccionar más?", more: "➕ Más" },
+  fr: { q: "Ajouter/sélectionner plus ?", more: "➕ Plus" },
+  hi: { q: "और जोड़ें/चुनें?", more: "➕ और" },
+  pt: { q: "Adicionar/selecionar mais?", more: "➕ Mais" },
+  ru: { q: "Добавить/выбрать ещё?", more: "➕ Ещё" }
+};
+
 export const GUIDE_CONTENT = {
   marketing: {
     accent: ["#a855f7", "#4f8ef7"], doneRoute: "/auto-marketing",
