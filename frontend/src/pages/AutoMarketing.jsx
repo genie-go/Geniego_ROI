@@ -8,6 +8,8 @@ import ApprovalModal from '../components/ApprovalModal.jsx';
 import AutoCampaignLaunch from '../components/AutoCampaignLaunch.jsx'; // 196차 Phase2 — AI디자인 연결+자동실행
 import CardRequiredBanner from '../components/CardRequiredBanner.jsx'; // 광고비 결제카드 미등록 안내+등록 바로가기
 import CardBillingGuide from '../components/CardBillingGuide.jsx'; // 이용가이드 내 결제카드 등록 설명
+import GuideWizard from '../components/GuideWizard.jsx'; // [237차] 인앱 순차 완료 위저드(필수등록 게이팅)
+import { getJsonAuth } from '../services/apiClient.js';
 import CrossLinkBar from '../components/CrossLinkBar.jsx';
 import AgentModeCard from '../components/AgentModeCard.jsx'; // [231차 OS#4] AI Agent 권한모드 거버넌스
 const BUDGET_LINKS = [
@@ -198,6 +200,18 @@ export default function AutoMarketing() {
     const { addCampaign, addAlert, isDemo } = useGlobalData();
     const { fmt } = useCurrency();
     const { isConnected, connectedChannels } = useConnectorSync();
+
+    // [237차] 마케팅 위저드 필수등록 게이팅 — 실제 상태 검증(미완 시 다음 단계 차단). null=안내(동의)단계.
+    const guideChecks = useMemo(() => [
+        null,                                                                              // 0 로그인(안내)
+        async () => Object.values(connectedChannels || {}).filter(c => c && c.connected).length > 0, // 1 ★채널 1개 이상 등록 필수
+        null,                                                                              // 2 연결 확인(안내)
+        async () => { try { const r = await getJsonAuth('/api/v427/billing/methods'); const m = r?.methods || r?.items || (Array.isArray(r) ? r : []); return Array.isArray(m) && m.length > 0; } catch { return false; } }, // 3 ★결제수단 등록 필수
+        async () => { try { const r = await getJsonAuth('/api/v422/ai/ad-design/list'); const m = r?.designs || r?.items || (Array.isArray(r) ? r : []); return Array.isArray(m) && m.length > 0; } catch { return false; } }, // 4 ★소재 1개 이상 생성 필수
+        null,                                                                              // 5 캠페인 생성(안내)
+        null,                                                                              // 6 활성화(안내)
+        null,                                                                              // 7 성과 확인(안내)
+    ], [connectedChannels]);
 
     // 🔒 SecurityGuard — enterprise security monitoring (XSS·CSRF·Clickjack·Brute-force)
     const _secAlert = useCallback((a) => { if (typeof addAlert === 'function') addAlert({ ...a, _src: 'AutoMarketing' }); }, [addAlert]);
@@ -663,9 +677,9 @@ export default function AutoMarketing() {
                                 onClick={() => navigate('/help')}
                                 style={{ padding: '7px 14px', borderRadius: 10, border: '1px solid rgba(0,0,0,0.08)', cursor: 'pointer', background: 'transparent', color: '#64748b', fontSize: 11, fontWeight: 600 }}
                             >{t("marketing.goHelp")}</button>
-                            {/* [237차] 초보자 진행순서 설명서(15개국) — 단계별 바로가기 링크로 따라하며 실행 */}
+                            {/* [237차] 진행순서 설명서 → 인앱 '📖 이용 가이드' 서브탭(순차 완료 위저드)로 일원화 */}
                             <button
-                                onClick={() => window.open('/guide/', '_blank', 'noopener')}
+                                onClick={() => setTab('guide')}
                                 style={{ padding: '7px 14px', borderRadius: 10, border: '2px solid #a855f7', cursor: 'pointer', background: 'rgba(168,85,247,0.1)', color: '#7c3aed', fontSize: 11, fontWeight: 800 }}
                             >📖 {t("marketing.goGuide", "진행순서 설명서")}</button>
                         </div>
@@ -715,6 +729,10 @@ export default function AutoMarketing() {
                             ))}
                         </div>
                         <button onClick={() => setTab('setup')} style={{ marginTop:16, padding:'12px 28px', borderRadius:12, border:'none', cursor:'pointer', background:'linear-gradient(135deg,#4f8ef7,#a855f7)', color:'#fff', fontWeight:800, fontSize:14 }}>{t('marketing.guideStartBtn')}</button>
+                    </div>
+                    {/* ── [237차] 순차 완료 위저드(필수등록 게이팅·완료 시 실행) — 페이지 박스 내 진행 ── */}
+                    <div style={cardStyle}>
+                        <GuideWizard guideKey="marketing" checks={guideChecks} />
                     </div>
                     {/* ── 어디서 시작 ── */}
                     <div style={cardStyle}>
