@@ -480,7 +480,8 @@ final class ChannelCreds
         $keyName  = (string)$cred['key_name'];
         $keyValue = \Genie\Crypto::decrypt((string)($cred['key_value'] ?? '')); // 복호화 후 실 ping
 
-        [$success, $message] = self::pingChannel($channel, $keyName, $keyValue);
+        // [237차/235백로그 P2] 다중필드 채널(naver/coupang/amazon)은 형제 자격증명까지 로드해 라이브 실검증.
+        [$success, $message] = self::pingChannelWithCreds($pdo, $tenant, $channel, $keyName, $keyValue);
 
         $now    = gmdate('c');
         $status = $success ? 'ok' : 'error';
@@ -565,7 +566,9 @@ final class ChannelCreds
      */
     private static function hasLiveVerify(string $channel): bool
     {
-        $live = ['meta_ads', 'meta', 'tiktok', 'tiktok_business', 'google_ads', 'google', 'kakao', 'kakao_moment', 'youtube'];
+        // [237차/235백로그 P2] naver/coupang/amazon 라이브 실검증 추가(pingChannelWithCreds 가 OAuth/HMAC 실 호출).
+        $live = ['meta_ads', 'meta', 'tiktok', 'tiktok_business', 'google_ads', 'google', 'kakao', 'kakao_moment', 'youtube',
+                 'naver', 'naver_smartstore', 'coupang', 'amazon', 'amazon_spapi'];
         if (in_array($channel, $live, true)) return true;
         $c = ChannelSync::normalizeChannelKey($channel);
         return $c !== $channel && in_array($c, $live, true);
@@ -607,6 +610,96 @@ final class ChannelCreds
         curl_close($ch);
         $body = ($err === null && $raw) ? (json_decode((string)$raw, true) ?? []) : [];
         return [$code, $body, $err];
+    }
+
+    /** [237차/235백로그 P2] POST(form-urlencoded) — OAuth 토큰 발급 등 실검증 ping 용. @return [code,body,err] */
+    private static function httpPostForm(string $url, string $body, array $headers = []): array
+    {
+        $headers = array_merge(['Content-Type' => 'application/x-www-form-urlencoded'], $headers);
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => $body,
+            CURLOPT_TIMEOUT        => 10,
+            CURLOPT_HTTPHEADER     => array_map(fn($k, $v) => "$k: $v", array_keys($headers), array_values($headers)),
+            CURLOPT_SSL_VERIFYPEER => true,
+            CURLOPT_USERAGENT      => 'Geniego-ROI/v423',
+        ]);
+        $raw  = curl_exec($ch);
+        $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $err  = curl_error($ch) ?: null;
+        curl_close($ch);
+        $b = ($err === null && $raw) ? (json_decode((string)$raw, true) ?? []) : [];
+        return [$code, $b, $err];
+    }
+
+    /** [237차/235백로그 P2] 채널의 활성 자격증명 전체를 복호화 맵(key_name→평문)으로 로드 — 다중필드 실검증용. */
+    private static function loadCredMap(\PDO $pdo, string $tenant, string $channel): array
+    {
+        $m = [];
+        try {
+            $st = $pdo->prepare('SELECT key_name, key_value FROM channel_credential WHERE tenant_id=? AND channel=? AND is_active=1');
+            $st->execute([$tenant, $channel]);
+            foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) {
+                $m[(string)$r['key_name']] = \Genie\Crypto::decrypt((string)($r['key_value'] ?? ''));
+            }
+        } catch (\Throwable $e) { /* 빈 맵 반환 */ }
+        return $m;
+    }
+
+    /** [237차/235백로그 P2] 다중필드 채널(naver/coupang/amazon)은 형제 자격증명까지 로드해 라이브 실검증.
+     *   단일토큰 채널은 기존 pingChannel 폴백. 실패 시 [false,...] → '발급 확인됨' 미표기(데이터 주입 없음). */
+    private static function pingChannelWithCreds(\PDO $pdo, string $tenant, string $channel, string $keyName, string $keyValue): array
+    {
+        $c = ChannelSync::normalizeChannelKey($channel);
+        $is = fn(array $names) => in_array($channel, $names, true) || in_array($c, $names, true);
+        if ($is(['naver', 'naver_smartstore'])) return self::pingNaverCreds(self::loadCredMap($pdo, $tenant, $channel));
+        if ($is(['coupang']))                   return self::pingCoupangCreds(self::loadCredMap($pdo, $tenant, $channel));
+        if ($is(['amazon', 'amazon_spapi']))    return self::pingAmazonCreds(self::loadCredMap($pdo, $tenant, $channel));
+        return self::pingChannel($channel, $keyName, $keyValue);
+    }
+
+    /** Naver Commerce — client_id+client_secret 로 OAuth2 토큰 발급(성공=발급 확인). naverFetch 와 동일 서명. */
+    private static function pingNaverCreds(array $m): array
+    {
+        $cid = trim((string)($m['client_id'] ?? '')); $sec = trim((string)($m['client_secret'] ?? ''));
+        if ($cid === '' || $sec === '') return [false, 'Naver: client_id·client_secret 모두 등록해야 발급 확인됩니다.'];
+        $ts = (int)(microtime(true) * 1000);
+        $sign = base64_encode(hash_hmac('sha256', "{$cid}_{$ts}", $sec, true));
+        [$code, $body, $err] = self::httpPostForm('https://api.commerce.naver.com/external/v1/oauth2/token',
+            "client_id={$cid}&timestamp={$ts}&client_secret_sign=" . urlencode($sign) . "&grant_type=client_credentials&type=SELF");
+        if ($err) return [false, "Naver 연결 오류: $err"];
+        if ($code === 200 && !empty($body['access_token'])) return [true, 'Naver Commerce OAuth2 토큰 발급·검증 확인됨'];
+        return [false, 'Naver 키 검증 실패: ' . ($body['message'] ?? $body['error'] ?? "HTTP $code")];
+    }
+
+    /** Coupang Wing — access_key+secret_key+vendor_id 로 CEA HMAC 경량 호출(200=발급 확인). coupangFetch 와 동일 서명. */
+    private static function pingCoupangCreds(array $m): array
+    {
+        $ak = trim((string)($m['access_key'] ?? '')); $sk = trim((string)($m['secret_key'] ?? '')); $vid = trim((string)($m['vendor_id'] ?? ''));
+        if ($ak === '' || $sk === '' || $vid === '') return [false, 'Coupang: access_key·secret_key·vendor_id 모두 등록해야 발급 확인됩니다.'];
+        $path  = "/v2/providers/openapi/apis/api/v4/vendors/{$vid}/ordersheets";
+        $query = 'createdAtFrom=' . gmdate('Y-m-d', time() - 86400) . '&createdAtTo=' . gmdate('Y-m-d') . '&status=ACCEPT&maxPerPage=1';
+        $datetime  = gmdate('ymd\THis\Z');
+        $signature = hash_hmac('sha256', $datetime . 'GET' . $path . $query, $sk);
+        $auth = "CEA algorithm=HmacSHA256, access-key={$ak}, signed-date={$datetime}, signature={$signature}";
+        [$code, $body, $err] = self::httpGet('https://api-gateway.coupang.com' . $path . '?' . $query, ['Authorization' => $auth, 'Content-Type' => 'application/json;charset=UTF-8']);
+        if ($err) return [false, "Coupang 연결 오류: $err"];
+        if ($code === 200) return [true, 'Coupang Wing API HMAC 서명·자격증명 검증 확인됨'];
+        return [false, 'Coupang 키 검증 실패: ' . ($body['message'] ?? "HTTP $code") . ' — access_key/secret_key/vendor_id 확인'];
+    }
+
+    /** Amazon SP-API — LWA(client_id+client_secret+refresh_token) 토큰 교환(성공=발급 확인). amazonFetch 와 동일. */
+    private static function pingAmazonCreds(array $m): array
+    {
+        $cid = trim((string)($m['client_id'] ?? '')); $sec = trim((string)($m['client_secret'] ?? '')); $rt = trim((string)($m['refresh_token'] ?? ''));
+        if ($cid === '' || $sec === '' || $rt === '') return [false, 'Amazon SP-API: client_id·client_secret·refresh_token 모두 등록해야 발급 확인됩니다.'];
+        [$code, $body, $err] = self::httpPostForm('https://api.amazon.com/auth/o2/token',
+            http_build_query(['grant_type' => 'refresh_token', 'refresh_token' => $rt, 'client_id' => $cid, 'client_secret' => $sec]));
+        if ($err) return [false, "Amazon 연결 오류: $err"];
+        if ($code === 200 && !empty($body['access_token'])) return [true, 'Amazon SP-API LWA 토큰 교환·검증 확인됨'];
+        return [false, 'Amazon 키 검증 실패: ' . ($body['error_description'] ?? $body['error'] ?? "HTTP $code")];
     }
 
     private static function pingMeta(string $accessToken): array
@@ -788,7 +881,8 @@ final class ChannelCreds
             ]);
         }
 
-        [$success, $message] = self::pingChannel($channel, (string)$cred['key_name'], \Genie\Crypto::decrypt((string)($cred['key_value'] ?? '')));
+        // [237차/235백로그 P2] 다중필드 채널(naver/coupang/amazon)은 형제 자격증명까지 로드해 라이브 실검증(test 와 일관).
+        [$success, $message] = self::pingChannelWithCreds($pdo, $tenant, $channel, (string)$cred['key_name'], \Genie\Crypto::decrypt((string)($cred['key_value'] ?? '')));
 
         // 테스트 결과 저장
         $now    = gmdate('c');
