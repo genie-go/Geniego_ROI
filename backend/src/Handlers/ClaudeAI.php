@@ -876,6 +876,71 @@ PROMPT;
     }
 
     /* ── POST /v422/ai/analyze ───────────────────────────────── */
+    /**
+     * [237차] 자연어 AI 에이전트(Geniego AI Agency) 실데이터 그라운딩 — 서버측 종합 메트릭 스냅샷.
+     *   기존 analyze() 는 프론트가 넘긴 고정 데이터(pnlStats 등)만 봐서 채널/캠페인 단위 질문에 약했다.
+     *   서버가 실 performance_metrics/channel_orders/orderhub_settlements 를 집계해 항상 신선한 종합 컨텍스트를
+     *   제공(Moby급 질의응답). ★기존 테이블 집계 재사용(중복 핸들러 신설 없음)·테넌트 격리·데모 제외.
+     *   토큰 보호: 원시행이 아닌 압축 집계만(채널별·상위캠페인·30/90일 요약).
+     */
+    private static function buildAgentContext(\PDO $pdo, string $tenant): array
+    {
+        if ($tenant === '' || $tenant === 'unknown' || str_starts_with($tenant, 'demo')) return [];
+        $ctx = [];
+        $d30 = gmdate('Y-m-d', time() - 30 * 86400);
+        $d90 = gmdate('Y-m-d', time() - 90 * 86400);
+        // 광고 성과 — 채널별(최근 30일). performance_metrics 는 spend/revenue KRW 정규화 적재.
+        try {
+            $st = $pdo->prepare("SELECT channel, SUM(spend) sp, SUM(revenue) rv, SUM(impressions) imp, SUM(clicks) clk, SUM(conversions) cv
+                                   FROM performance_metrics WHERE tenant_id=? AND date>=? AND channel IS NOT NULL AND channel<>''
+                                  GROUP BY channel ORDER BY rv DESC");
+            $st->execute([$tenant, $d30]);
+            $byCh = []; $tSp = 0.0; $tRv = 0.0; $tCv = 0;
+            foreach ($st->fetchAll(\PDO::FETCH_ASSOC) as $r) {
+                $sp = (float)$r['sp']; $rv = (float)$r['rv']; $imp = (int)$r['imp']; $clk = (int)$r['clk']; $cv = (int)$r['cv'];
+                $tSp += $sp; $tRv += $rv; $tCv += $cv;
+                $byCh[] = ['channel' => (string)$r['channel'], 'spend' => round($sp), 'revenue' => round($rv),
+                    'roas' => $sp > 0 ? round($rv / $sp, 2) : 0, 'conversions' => $cv,
+                    'ctr_pct' => $imp > 0 ? round($clk / $imp * 100, 2) : 0, 'cpa' => $cv > 0 ? round($sp / $cv) : 0];
+            }
+            if ($byCh) $ctx['ad_performance_30d'] = ['total_spend' => round($tSp), 'total_revenue' => round($tRv),
+                'overall_roas' => $tSp > 0 ? round($tRv / $tSp, 2) : 0, 'total_conversions' => $tCv, 'by_channel' => $byCh];
+        } catch (\Throwable $e) {}
+        // 상위 캠페인(최근 30일, 매출순 5)
+        try {
+            $st = $pdo->prepare("SELECT campaign_ext_id, SUM(spend) sp, SUM(revenue) rv, SUM(conversions) cv
+                                   FROM performance_metrics WHERE tenant_id=? AND date>=? AND campaign_ext_id IS NOT NULL AND campaign_ext_id<>''
+                                  GROUP BY campaign_ext_id ORDER BY rv DESC LIMIT 5");
+            $st->execute([$tenant, $d30]);
+            $tc = [];
+            foreach ($st->fetchAll(\PDO::FETCH_ASSOC) as $r) {
+                $sp = (float)$r['sp']; $tc[] = ['campaign' => (string)$r['campaign_ext_id'], 'spend' => round($sp),
+                    'revenue' => round((float)$r['rv']), 'roas' => $sp > 0 ? round((float)$r['rv'] / $sp, 2) : 0, 'conversions' => (int)$r['cv']];
+            }
+            if ($tc) $ctx['top_campaigns_30d'] = $tc;
+        } catch (\Throwable $e) {}
+        // 주문/매출(channel_orders, KRW 정규화·취소 제외 근사) — 채널별 30일
+        try {
+            $st = $pdo->prepare("SELECT channel, COUNT(*) cnt, COALESCE(SUM(total_price),0) gmv
+                                   FROM channel_orders WHERE tenant_id=? AND COALESCE(ordered_at, created_at) >= ?
+                                     AND COALESCE(status,'') NOT IN ('cancelled','canceled','취소완료','취소','주문취소','CancelDone')
+                                  GROUP BY channel ORDER BY gmv DESC LIMIT 12");
+            $st->execute([$tenant, $d30 . ' 00:00:00']);
+            $oc = []; $tCnt = 0; $tGmv = 0.0;
+            foreach ($st->fetchAll(\PDO::FETCH_ASSOC) as $r) { $tCnt += (int)$r['cnt']; $tGmv += (float)$r['gmv'];
+                $oc[] = ['channel' => (string)$r['channel'], 'orders' => (int)$r['cnt'], 'gmv_krw' => round((float)$r['gmv'])]; }
+            if ($oc) $ctx['commerce_orders_30d'] = ['total_orders' => $tCnt, 'total_gmv_krw' => round($tGmv), 'by_channel' => $oc];
+        } catch (\Throwable $e) {}
+        // 90일 주간 매출 추이(광고 매출 기준, 간단)
+        try {
+            $st = $pdo->prepare("SELECT date, SUM(spend) sp, SUM(revenue) rv FROM performance_metrics WHERE tenant_id=? AND date>=? GROUP BY date ORDER BY date");
+            $st->execute([$tenant, $d90]);
+            $rows = $st->fetchAll(\PDO::FETCH_ASSOC);
+            if (count($rows) >= 7) $ctx['trend_note'] = '90일 일자별 spend/revenue ' . count($rows) . '일치 보유(추세 분석 가능)';
+        } catch (\Throwable $e) {}
+        return $ctx;
+    }
+
     public static function analyze(Request $req, Response $res, array $args = []): Response {
         $pdo  = Db::pdo();
         self::migrate($pdo);
@@ -892,6 +957,13 @@ PROMPT;
             return $res->withHeader('Content-Type', 'application/json')->withStatus(400);
         }
 
+        // [237차] 서버측 실데이터 종합 스냅샷을 우선 주입(프론트 고정 데이터보다 권위 — Moby급 그라운딩).
+        $tenantId = self::tenant($req);
+        $liveCtx = self::buildAgentContext($pdo, $tenantId);
+        if (!empty($liveCtx)) {
+            $data = array_merge(['live_metrics' => $liveCtx], is_array($data) ? $data : []);
+        }
+
         // 데이터를 사람이 읽기 좋은 형태로 변환
         $dataStr = '';
         if (!empty($data)) {
@@ -902,9 +974,11 @@ PROMPT;
 
         $now = gmdate('c');
         $analysisId = null;
+        @set_time_limit(45); // [237차] 자연어 에이전트 신뢰성 — 복잡한 분석 질문이 8초 타임아웃 초과로 500 나던 것 완화.
 
         try {
-            $result  = self::callClaude(self::systemPrompt($context) . self::langDirective(self::reqLang($req)), $userMsg, 8, self::tenant($req));
+            // [237차] 타임아웃 8→24초 상향(실데이터 종합 컨텍스트 분석은 더 긴 추론 필요 — 복잡질문 500 방지).
+            $result  = self::callClaude(self::systemPrompt($context) . self::langDirective(self::reqLang($req)), $userMsg, 24, self::tenant($req));
             $parsed  = self::parseAnalysis($result['text']);
             $tokens  = $result['tokens_input'] + $result['tokens_output'];
 
