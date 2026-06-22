@@ -108,8 +108,11 @@ export default function CreativeStudioTab({ sourcePage, onUseCampaign }) {
           periodStart: r.period_start || null,
           periodEnd: r.period_end || null,
           animation: spec.animation || '',
+          // [237차] 영상 소재 지원 — ad_design.svg 에 영상 URL(AIDesignChat 가 video||image||svg 저장)이 담기면
+          //   data:image/<svg 가 아니므로 갤러리 미리보기가 공백이었다. http(s) URL=영상으로 인지해 <video> 렌더.
           img: /^data:image\//.test(String(r.svg || '')) ? r.svg : '',
           svg: typeof r.svg === 'string' && r.svg.indexOf('<svg') === 0 ? r.svg : '',
+          video: (typeof r.svg === 'string' && /^https?:\/\//.test(r.svg) && !/^data:image\//.test(r.svg)) ? r.svg : '',
         };
       }));
     } catch (_) { setRealDesigns([]); }
@@ -302,11 +305,14 @@ export default function CreativeStudioTab({ sourcePage, onUseCampaign }) {
       <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))', gap:14 }}>
         {filteredGallery.map(item => (
           <div key={item.id} style={{ ...card, padding:18, position:'relative' }}>
-            {(item.img || item.svg) && (
+            {(item.img || item.svg || item.video) && (
               <div style={{ width:'100%', aspectRatio:'16/9', borderRadius:10, overflow:'hidden', marginBottom:10, background:'#0f172a', position:'relative' }}>
-                {item.img
+                {item.video
+                  ? <video src={item.video} muted loop playsInline autoPlay style={{ width:'100%', height:'100%', objectFit:'cover', display:'block', background:'#000' }} />
+                  : item.img
                   ? <img src={item.img} alt={item.name} style={{ width:'100%', height:'100%', objectFit:'cover', display:'block', animation:(ANIM_CSS[item.animation]||{}).css || 'none' }} />
                   : <div style={{ width:'100%', height:'100%', animation:(ANIM_CSS[item.animation]||{}).css || 'none' }} dangerouslySetInnerHTML={{ __html: item.svg.replace('<svg', '<svg width="100%" height="100%" preserveAspectRatio="xMidYMid slice"') }} />}
+                {item.video && <span style={{ position:'absolute', top:6, left:6, padding:'2px 8px', borderRadius:6, fontSize:9, fontWeight:800, background:'rgba(236,72,153,0.92)', color:'#fff' }}>🎬 VIDEO</span>}
                 {item.animation && ANIM_CSS[item.animation] && (
                   <span style={{ position:'absolute', top:6, right:6, padding:'2px 8px', borderRadius:6, fontSize:9, fontWeight:800, background:'rgba(236,72,153,0.92)', color:'#fff' }}>📽️ {ANIM_CSS[item.animation].label}</span>
                 )}
