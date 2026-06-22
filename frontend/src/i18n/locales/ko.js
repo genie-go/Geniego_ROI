@@ -13197,7 +13197,7 @@ export default {
   },
 
   
-  marketing: {"aiSectionAnimation":"애니메이션","aiAnimationTitle":"광고물 애니메이션 (CSS 모션)","aiAnimationHint":"선택한 모션은 채널별로 저장되어 보관함·웹팝업 소재에 적용됩니다.","aiSaveApply":"저장 (캠페인에 활용)","aiSaveDraft":"임시저장","aiSaveHint":"'AI 디자인 생성'으로 디자인을 생성하면 임시저장·저장이 활성화됩니다.","aiViewChat":"대화형 AI 디자인","aiViewEngine":"디자인 엔진","aiViewLibrary":"저장 광고물 보관함","aiViewManual":"AI 디자인 상세 매뉴얼","csAnimation":"애니메이션","csChannelFilter":"채널별","csPeriod":"노출 기간","csEmptyTitle":"아직 생성된 소재가 없습니다","csEmptyDesc":"‘새로 만들기’에서 AI로 광고 소재를 만들고 저장하면 여기 갤러리에 표시됩니다.","csLoading":"소재를 불러오는 중…","csAssetEmptyTitle":"등록된 브랜드 에셋이 없습니다","csAssetEmptyDesc":"로고·가이드라인·컬러·폰트 등 브랜드 에셋을 업로드하면 일관된 소재 제작에 활용됩니다.","csPerfEmptyTitle":"성과 데이터 연동 대기","csPerfEmptyDesc":"소재별 CTR·전환·효율 지표는 광고 채널(Meta·Google·TikTok 등)을 연동하면 자동으로 집계되어 여기에 표시됩니다.","csPerfHint":"CTR·전환 등 성과 지표는 광고 채널을 연동하면 자동 집계됩니다.","csRealData":"실데이터 연동","csStatusDraft":"임시저장","objTitle":"최적화 목표","objDesc":"AI가 예산을 어떤 기준으로 배분할지 선택하세요. 채널별 실측이 쌓이면 자동 재학습됩니다.","objBalanced":"균형 (ROAS·획득비용·성장)","objRoas":"ROAS 극대화 (효율)","objCac":"획득비용 최소화 (CAC)","objGrowth":"성장·전환량 극대화","gMinRoas":"최소 ROAS 가드 (미만 채널 제외, 0=미적용)","gMaxShare":"단일 채널 최대 점유율 (%)","kpiCac":"평균 획득비용","wonUnit":"원","objTag":"목표","cacLabel":"획득비용","dailyPace":"일 예산","confLabel":"신뢰도","exploreBadge":"탐색","srcMeasured":"실측","srcBlended":"블렌드","srcBenchmark":"벤치마크",
+  marketing: {"csBatchTitle":"AI 대량 변형 생성","csBatchSub":"브리프 1개로 카피 변형을 한 번에 생성","csBatchProduct":"상품/서비스","csBatchCategory":"카테고리(예: beauty)","csBatchVariants":"종 변형","csBatchWithImage":"공유 비주얼(AI 이미지) 동반 생성 — 이미지 API 키 등록 시","csBatchBusy":"생성 중…","csBatchRun":"대량 생성","csBatchNeedInput":"상품 또는 카테고리를 입력하세요.","csBatchDone":"대량 변형 생성 완료","csBatchFail":"생성 실패","csInsightsTitle":"Creative Insights — 소재별 성과","csInsTotal":"전체 소재","csInsMeasured":"실측 집행","csInsWinners":"상위 소재(ROAS)","csInsNoDesigns":"저장된 소재가 없습니다. 갤러리에서 'AI 대량 변형 생성'으로 만들어 보세요.","csInsHint":"'—' 지표는 해당 소재가 아직 캠페인에 집행되지 않았거나 매체 성과 수집 전입니다. 캠페인 활성화 후 자동 채워집니다.","aiSectionAnimation":"애니메이션","aiAnimationTitle":"광고물 애니메이션 (CSS 모션)","aiAnimationHint":"선택한 모션은 채널별로 저장되어 보관함·웹팝업 소재에 적용됩니다.","aiSaveApply":"저장 (캠페인에 활용)","aiSaveDraft":"임시저장","aiSaveHint":"'AI 디자인 생성'으로 디자인을 생성하면 임시저장·저장이 활성화됩니다.","aiViewChat":"대화형 AI 디자인","aiViewEngine":"디자인 엔진","aiViewLibrary":"저장 광고물 보관함","aiViewManual":"AI 디자인 상세 매뉴얼","csAnimation":"애니메이션","csChannelFilter":"채널별","csPeriod":"노출 기간","csEmptyTitle":"아직 생성된 소재가 없습니다","csEmptyDesc":"‘새로 만들기’에서 AI로 광고 소재를 만들고 저장하면 여기 갤러리에 표시됩니다.","csLoading":"소재를 불러오는 중…","csAssetEmptyTitle":"등록된 브랜드 에셋이 없습니다","csAssetEmptyDesc":"로고·가이드라인·컬러·폰트 등 브랜드 에셋을 업로드하면 일관된 소재 제작에 활용됩니다.","csPerfEmptyTitle":"성과 데이터 연동 대기","csPerfEmptyDesc":"소재별 CTR·전환·효율 지표는 광고 채널(Meta·Google·TikTok 등)을 연동하면 자동으로 집계되어 여기에 표시됩니다.","csPerfHint":"CTR·전환 등 성과 지표는 광고 채널을 연동하면 자동 집계됩니다.","csRealData":"실데이터 연동","csStatusDraft":"임시저장","objTitle":"최적화 목표","objDesc":"AI가 예산을 어떤 기준으로 배분할지 선택하세요. 채널별 실측이 쌓이면 자동 재학습됩니다.","objBalanced":"균형 (ROAS·획득비용·성장)","objRoas":"ROAS 극대화 (효율)","objCac":"획득비용 최소화 (CAC)","objGrowth":"성장·전환량 극대화","gMinRoas":"최소 ROAS 가드 (미만 채널 제외, 0=미적용)","gMaxShare":"단일 채널 최대 점유율 (%)","kpiCac":"평균 획득비용","wonUnit":"원","objTag":"목표","cacLabel":"획득비용","dailyPace":"일 예산","confLabel":"신뢰도","exploreBadge":"탐색","srcMeasured":"실측","srcBlended":"블렌드","srcBenchmark":"벤치마크",
     csTitle: "크리에이티브 스튜디오",
     csSubtitle: "다양한 플랫폼의 광고 소재를 디자인하고 관리합니다",
     csTabGallery: "갤러리",
@@ -19876,6 +19876,19 @@ export default {
   },
 
   reportBuilder: {
+    tabCustom: "커스텀 분석",
+    mSpend: "광고비",
+    mRevenue: "매출",
+    mConv: "전환",
+    mImp: "노출",
+    mClk: "클릭",
+    dimChannel: "채널별",
+    dimCampaign: "캠페인별",
+    dimDate: "일자별",
+    metrics: "지표 선택",
+    dimension: "차원",
+    runQuery: "분석 실행",
+    pickMetric: "지표를 1개 이상 선택하세요.",
     "heroTitle": "리포트 빌더",
     "heroDesc": "드래그앤드롭 방식으로 맞춤형 리포트를 구성하세요",
     "tabMyReports": "내 리포트",

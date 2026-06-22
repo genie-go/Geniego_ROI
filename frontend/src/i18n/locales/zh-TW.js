@@ -1708,7 +1708,7 @@ export default {
       keyPlaceholder: "Paste your API key here",
       save: "Save"
     },
-    marketing: {"aiSectionAnimation":"動畫","aiAnimationTitle":"廣告素材動畫 (CSS 動效)","aiAnimationHint":"所選動效會依渠道儲存，並套用至素材庫與網頁彈窗素材。","aiSaveApply":"儲存 (用於活動)","aiSaveDraft":"暫存","aiSaveHint":"使用「生成 AI 素材」產生設計後，暫存與儲存即會啟用。","aiViewChat":"對話式 AI 設計","aiViewEngine":"設計引擎","aiViewLibrary":"已儲存素材庫","aiViewManual":"AI 設計詳細手冊","csAnimation":"動畫","csChannelFilter":"依渠道","csPeriod":"投放期間","csEmptyTitle":"尚未建立任何素材","csEmptyDesc":"在「新建」中以 AI 製作並儲存廣告素材後，將顯示於此圖庫中。","csLoading":"正在載入素材…","csAssetEmptyTitle":"沒有已註冊的品牌資產","csAssetEmptyDesc":"上傳標誌、規範、配色、字型等品牌資產，即可用於製作風格一致的素材。","csPerfEmptyTitle":"等待成效資料介接","csPerfEmptyDesc":"介接廣告渠道(Meta、Google、TikTok 等)後，各素材的 CTR、轉換、效率指標將自動彙總並顯示於此。","csPerfHint":"介接廣告渠道後，CTR、轉換等成效指標將自動彙總。","csRealData":"即時資料已介接","csStatusDraft":"草稿","objTitle":"最佳化目標","objDesc":"請選擇AI分配預算的依據。隨著各通路實測資料的累積，將自動重新學習。","objBalanced":"均衡(ROAS·獲客成本·成長)","objRoas":"ROAS最大化(效率)","objCac":"獲客成本最小化(CAC)","objGrowth":"成長·轉換量最大化","gMinRoas":"最低ROAS門檻(排除低於此值的通路，0=不適用)","gMaxShare":"單一通路最大佔比(%)","kpiCac":"平均獲客成本","wonUnit":"韓元","objTag":"目標","cacLabel":"獲客成本","dailyPace":"日預算","confLabel":"信賴度","exploreBadge":"探索","srcMeasured":"實測","srcBlended":"混合","srcBenchmark":"基準",
+    marketing: {"csBatchTitle":"AI批次變體生成","csBatchSub":"用一份簡報一次生成多個文案變體","csBatchProduct":"商品/服務","csBatchCategory":"類別（如：beauty）","csBatchVariants":"個變體","csBatchWithImage":"同時生成共享視覺（AI圖片）— 已註冊圖片API金鑰時","csBatchBusy":"生成中…","csBatchRun":"批次生成","csBatchNeedInput":"請輸入商品或類別。","csBatchDone":"批次變體生成完成","csBatchFail":"生成失敗","csInsightsTitle":"Creative Insights — 各素材成效","csInsTotal":"全部素材","csInsMeasured":"實測投放","csInsWinners":"頂尖素材（ROAS）","csInsNoDesigns":"尚無已儲存的素材。請在素材庫中使用「AI批次變體生成」來建立。","csInsHint":"「—」指標表示該素材尚未在廣告活動中投放，或媒體成效尚未蒐集。廣告活動啟用後將自動填入。","aiSectionAnimation":"動畫","aiAnimationTitle":"廣告素材動畫 (CSS 動效)","aiAnimationHint":"所選動效會依渠道儲存，並套用至素材庫與網頁彈窗素材。","aiSaveApply":"儲存 (用於活動)","aiSaveDraft":"暫存","aiSaveHint":"使用「生成 AI 素材」產生設計後，暫存與儲存即會啟用。","aiViewChat":"對話式 AI 設計","aiViewEngine":"設計引擎","aiViewLibrary":"已儲存素材庫","aiViewManual":"AI 設計詳細手冊","csAnimation":"動畫","csChannelFilter":"依渠道","csPeriod":"投放期間","csEmptyTitle":"尚未建立任何素材","csEmptyDesc":"在「新建」中以 AI 製作並儲存廣告素材後，將顯示於此圖庫中。","csLoading":"正在載入素材…","csAssetEmptyTitle":"沒有已註冊的品牌資產","csAssetEmptyDesc":"上傳標誌、規範、配色、字型等品牌資產，即可用於製作風格一致的素材。","csPerfEmptyTitle":"等待成效資料介接","csPerfEmptyDesc":"介接廣告渠道(Meta、Google、TikTok 等)後，各素材的 CTR、轉換、效率指標將自動彙總並顯示於此。","csPerfHint":"介接廣告渠道後，CTR、轉換等成效指標將自動彙總。","csRealData":"即時資料已介接","csStatusDraft":"草稿","objTitle":"最佳化目標","objDesc":"請選擇AI分配預算的依據。隨著各通路實測資料的累積，將自動重新學習。","objBalanced":"均衡(ROAS·獲客成本·成長)","objRoas":"ROAS最大化(效率)","objCac":"獲客成本最小化(CAC)","objGrowth":"成長·轉換量最大化","gMinRoas":"最低ROAS門檻(排除低於此值的通路，0=不適用)","gMaxShare":"單一通路最大佔比(%)","kpiCac":"平均獲客成本","wonUnit":"韓元","objTag":"目標","cacLabel":"獲客成本","dailyPace":"日預算","confLabel":"信賴度","exploreBadge":"探索","srcMeasured":"實測","srcBlended":"混合","srcBenchmark":"基準",
       sidebarAlertCount: "🚨 {{n}}條警示",
       sidebarLogout: "登出",
       upgradalTitle: "Pro 方案專屬選單",
@@ -14000,6 +14000,18 @@ export default {
       totalRevenue: "総売上"
     },
     reportBuilder: {
+    "tabCustom": "自訂分析",
+    "mSpend": "廣告費",
+    "mRevenue": "營收",
+    "mConv": "轉換",
+    "mImp": "曝光",
+    "mClk": "點擊",
+    "dimChannel": "依渠道",
+    "dimCampaign": "依廣告活動",
+    "dimDate": "依日期",
+    "dimension": "維度",
+    "runQuery": "執行分析",
+    "pickMetric": "請至少選擇一個指標。",
     "heroTitle": "報表產生器",
     "heroDesc": "透過拖放元件建立自訂報表",
     "tabMyReports": "我的報表",
