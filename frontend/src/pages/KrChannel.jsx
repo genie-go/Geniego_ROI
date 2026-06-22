@@ -3,7 +3,9 @@ import { IS_DEMO } from '../utils/demoEnv';
 import { useI18n } from '../i18n';
 
 import { useT } from '../i18n/index.js';
-import { getJson, postJson, patchJson } from '../services/apiClient';
+// [237차] getJson(비인증)→getJsonAuth(세션 Bearer) 별칭. /api/v419/kr/* 는 핸들러가 미들웨어
+//   auth_tenant 만 신뢰(self-auth 없음)+세션게이트 편입 → 인증 GET 필수. postJson/patchJson은 인증됨.
+import { getJsonAuth as getJson, postJson, patchJson } from '../services/apiClient';
 
 /* ── Enterprise Demo Isolation Guard ─────────────────────── */
 const _isDemo = IS_DEMO; // 180차: 자가가드(startsWith demo — roidemo.* 미매칭) → demoEnv 정본 격리

@@ -9,7 +9,9 @@ import { useSecurityGuard, sanitizeInput, detectXSS } from '../security/Security
 import PlanGate from '../components/PlanGate.jsx';
 import { CHANNEL_RATES } from '../constants/channelRates.js';
 import { loadChannelRegistry, registryBySyncKind } from '../services/channelRegistry.js';
-import { getJson, postJson } from '../services/apiClient.js';
+// [237차] getJson(비인증)→getJsonAuth(세션 Bearer) 별칭. /api/channel-sync/* 는 세션 self-auth
+//   (denyAnon)이라 비인증 getJson 호출 시 401 → 옴니채널 상품/주문/재고/상태 전부 빈데이터였음.
+import { getJsonAuth as getJson, postJson } from '../services/apiClient.js';
 import { IS_DEMO } from '../utils/demoEnv';
 
 /* 204차 동기화: 데모는 GlobalDataContext 단일소스(orders/inventory)에서 채널현황을 파생 —

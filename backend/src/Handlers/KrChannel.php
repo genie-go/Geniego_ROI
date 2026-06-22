@@ -328,7 +328,7 @@ final class KrChannel {
             'SELECT
                 s.channel_key,
                 c.display_name,
-                COUNT(*) AS lines,
+                COUNT(*) AS `lines`,
                 SUM(s.gross_sales) AS gross_sales,
                 SUM(s.platform_fee) AS platform_fee,
                 SUM(s.ad_fee) AS ad_fee,
@@ -345,7 +345,7 @@ final class KrChannel {
              WHERE s.tenant_id=?
                AND DATE(s.period_start)>=?
                AND DATE(s.period_end)<=?
-             GROUP BY s.channel_key
+             GROUP BY s.channel_key, c.display_name
              ORDER BY net_payout DESC'
         );
         $stmt->execute([$tenant, $since, $until]);

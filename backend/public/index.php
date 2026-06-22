@@ -215,7 +215,11 @@ $app->add(function (Request $request, $handler) {
         //   데이터를 한 줄도 못 받던 선재 결함. OrderHub 핸들러는 self-auth 없이 미들웨어 auth_tenant 만
         //   신뢰하므로(no_tenant 401), full bypass(인증 skip=tenant 미주입)가 아니라 세션→auth_tenant 주입을
         //   수행하는 본 게이트에 편입해야 한다. api_key 경유 호출(원래 설계)도 그대로 보존(키 tenant 주입).
-        || strpos($path, '/v424/orderhub/') === 0 || strpos($path, '/api/v424/orderhub/') === 0) {
+        || strpos($path, '/v424/orderhub/') === 0 || strpos($path, '/api/v424/orderhub/') === 0
+        // [237차] KrChannel(국내채널 정산/수수료/대사 /v419/kr/*) — 프론트(/kr-channel)가 세션 토큰으로
+        //   호출하나 bypass·세션게이트 부재로 strict api_key 미들웨어가 거부(401). 핸들러는 OrderHub 와
+        //   동일하게 self-auth 없이 미들웨어 auth_tenant 만 신뢰하므로 세션→auth_tenant 주입 게이트에 편입.
+        || strpos($path, '/v419/kr/') === 0 || strpos($path, '/api/v419/kr/') === 0) {
         $bearer = '';
         $ah = $request->getHeaderLine('Authorization');
         if (strpos($ah, 'Bearer ') === 0) { $bearer = trim(substr($ah, 7)); }
