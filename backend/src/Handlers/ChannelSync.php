@@ -1782,10 +1782,15 @@ final class ChannelSync
             case '11st': case 'st11':      return self::elevenStWrite($creds, $product, $operation, $channelProductId);
             case 'gmarket': case 'auction': return self::esmWrite($ch, $creds, $product, $operation, $channelProductId);
             case 'lotteon':                return self::lotteonWrite($creds, $product, $operation, $channelProductId);
-            // [현 차수] 글로벌 표준 REST 2종 write 보강 — fetch 인증 재사용. (walmart 피드·shopee/lazada HMAC·
-            //   qoo10/yahoo_jp/godomall 은 write API 복잡/피드기반이라 추정구현 위험 → honest pending 유지.)
+            // [현 차수] 글로벌 표준 REST 2종 write 보강 — fetch 인증 재사용.
             case 'woocommerce':            return self::woocommerceWrite($creds, $product, $operation, $channelProductId);
             case 'magento':                return self::magentoWrite($creds, $product, $operation, $channelProductId);
+            // [237차/235백로그] Shopee·Lazada write 보강 — 각 fetch 어댑터의 검증된 HMAC 인증 재사용.
+            //   update=가격/재고/속성 push(writeback 주 용도), unregister=unlist/remove(클린), register=문서기준
+            //   add/create(카테고리 등 필수필드는 honest 게이트→미비 시 실에러). 라이브검증 대기(셀러 계정 필요).
+            //   (walmart 피드·qoo10/yahoo_jp/godomall 은 write API 피드기반/복잡으로 추정위험 → honest pending 유지.)
+            case 'shopee':                 return self::shopeeWrite($creds, $product, $operation, $channelProductId);
+            case 'lazada':                 return self::lazadaWrite($creds, $product, $operation, $channelProductId);
             default:                       return ['ok' => false, 'pending' => true, 'error' => 'write_adapter_pending:' . $ch];
         }
     }
@@ -1937,6 +1942,99 @@ final class ChannelSync
         [$c, $b] = self::httpPost("{$base}/rest/V1/products", $hdr, $payload); // SKU 키 upsert(POST)
         if ($c >= 200 && $c < 300 && isset($b['sku'])) return ['ok' => true, 'channel_product_id' => (string)($b['id'] ?? $b['sku'])];
         return ['ok' => false, 'error' => "Magento HTTP {$c}", 'detail' => mb_substr(json_encode($b['message'] ?? $b, JSON_UNESCAPED_UNICODE), 0, 200)];
+    }
+
+    /** [237차/235백로그] Shopee Open Platform v2 상품 write — shopeeFetch 와 동일 서명
+     *   (HMAC: partner_id+path+ts+access_token+shop_id, key=partner_key). 공통쿼리 partner_id/timestamp/
+     *   access_token/shop_id/sign. unregister=unlist_item(item_id 필요), update=update_item(이름/설명),
+     *   register=add_item(category_id 필수 honest 게이트, image_id_list/logistic_info 는 $p extras 통과).
+     *   ★라이브검증 대기(셀러 계정 필요) — 미비 필드는 Shopee 실에러 반환(거짓 ok 금지). */
+    private static function shopeeWrite(array $creds, array $p, string $op, ?string $cpid): array
+    {
+        $pid = trim((string)($creds['partner_id'] ?? '')); $pkey = trim((string)($creds['partner_key'] ?? ''));
+        $shop = trim((string)($creds['shop_id'] ?? '')); $tok = trim((string)($creds['access_token'] ?? ''));
+        if ($pid === '' || $pkey === '' || $shop === '' || $tok === '') return ['ok' => false, 'error' => 'Shopee: partner_id·partner_key·shop_id·access_token 필요'];
+        $host = 'https://partner.shopeemobile.com'; $ts = time();
+        $hdr = ['Content-Type' => 'application/json'];
+        $url = function (string $path) use ($host, $pid, $pkey, $shop, $tok, $ts): string {
+            $sign = hash_hmac('sha256', $pid . $path . $ts . $tok . $shop, $pkey);
+            $q = http_build_query(['partner_id' => $pid, 'timestamp' => $ts, 'access_token' => $tok, 'shop_id' => $shop, 'sign' => $sign]);
+            return "{$host}{$path}?{$q}";
+        };
+        $fail = fn(int $c, array $b, string $tag) => ['ok' => false, 'error' => "Shopee {$tag} HTTP {$c}", 'detail' => mb_substr((string)($b['message'] ?? json_encode($b, JSON_UNESCAPED_UNICODE)), 0, 200)];
+
+        if ($op === 'unregister' || ($p['action'] ?? '') === 'unregister') {
+            if ($cpid === null || $cpid === '') return ['ok' => false, 'error' => 'Shopee unlist 는 item_id(channel_product_id) 필요'];
+            $path = '/api/v2/product/unlist_item';
+            [$c, $b] = self::httpPost($url($path), $hdr, json_encode(['item_list' => [['item_id' => (int)$cpid, 'unlist' => true]]]));
+            return ($c >= 200 && $c < 300 && empty($b['error'])) ? ['ok' => true, 'unlisted' => $cpid] : $fail($c, $b, 'unlist');
+        }
+        if ($cpid !== null && $cpid !== '') {
+            $path = '/api/v2/product/update_item';
+            $upd = ['item_id' => (int)$cpid];
+            if (isset($p['name'])) $upd['item_name'] = (string)$p['name'];
+            if (isset($p['spec'])) $upd['description'] = (string)$p['spec'];
+            [$c, $b] = self::httpPost($url($path), $hdr, json_encode($upd, JSON_UNESCAPED_UNICODE));
+            return ($c >= 200 && $c < 300 && empty($b['error'])) ? ['ok' => true, 'channel_product_id' => (string)$cpid] : $fail($c, $b, 'update');
+        }
+        // register = add_item — category_id 필수(honest 게이트). image/logistic 은 $p extras 가 있으면 통과.
+        $cat = (int)($p['category_id'] ?? 0);
+        if ($cat <= 0) return ['ok' => false, 'error' => 'Shopee 신규 등록은 category_id 필요(Shopee 카테고리 필수)'];
+        $add = [
+            'category_id' => $cat, 'item_name' => (string)($p['name'] ?? $p['sku'] ?? ''),
+            'description' => (string)($p['spec'] ?? ($p['name'] ?? '')),
+            'original_price' => (float)($p['price'] ?? 0), 'normal_stock' => (int)($p['inventory'] ?? 0),
+            'weight' => (float)($p['weight'] ?? 0.5), 'item_status' => 'NORMAL',
+        ];
+        if (!empty($p['image_id_list']) && is_array($p['image_id_list'])) $add['image'] = ['image_id_list' => array_values($p['image_id_list'])];
+        if (!empty($p['logistic_info']) && is_array($p['logistic_info'])) $add['logistic_info'] = $p['logistic_info'];
+        $path = '/api/v2/product/add_item';
+        [$c, $b] = self::httpPost($url($path), $hdr, json_encode($add, JSON_UNESCAPED_UNICODE));
+        $itemId = $b['response']['item_id'] ?? null;
+        return ($c >= 200 && $c < 300 && $itemId) ? ['ok' => true, 'channel_product_id' => (string)$itemId] : $fail($c, $b, 'add');
+    }
+
+    /** [237차/235백로그] Lazada Open Platform 상품 write — lazadaFetch 와 동일 서명(GOP: apiPath + 정렬된
+     *   전 파라미터 key.value, HMAC-SHA256 upper, key=app_secret). 시스템파라미터(app_key/access_token/
+     *   timestamp/sign_method) + 비즈니스파라미터(payload XML / seller_sku_list JSON) 전부 서명 포함.
+     *   unregister=/product/remove(seller_sku_list), register/update=/product/create(PrimaryCategory 필수
+     *   honest 게이트). ★라이브검증 대기(셀러 계정 필요) — 미비 필드는 Lazada 실에러 반환. */
+    private static function lazadaWrite(array $creds, array $p, string $op, ?string $cpid): array
+    {
+        $appKey = trim((string)($creds['app_key'] ?? '')); $appSecret = trim((string)($creds['app_secret'] ?? ''));
+        $tok = trim((string)($creds['access_token'] ?? '')); $region = strtolower(trim((string)($creds['region'] ?? 'sg')));
+        if ($appKey === '' || $appSecret === '' || $tok === '') return ['ok' => false, 'error' => 'Lazada: app_key·app_secret·access_token 필요'];
+        $hostMap = ['sg' => 'api.lazada.sg', 'my' => 'api.lazada.com.my', 'th' => 'api.lazada.co.th', 'id' => 'api.lazada.co.id', 'ph' => 'api.lazada.com.ph', 'vn' => 'api.lazada.vn'];
+        $host = 'https://' . ($hostMap[$region] ?? 'api.lazada.sg') . '/rest';
+        $call = function (string $apiPath, array $biz) use ($appKey, $appSecret, $tok, $host): array {
+            $params = array_merge(['app_key' => $appKey, 'access_token' => $tok, 'timestamp' => (string)(time() * 1000), 'sign_method' => 'sha256'], $biz);
+            ksort($params);
+            $base = $apiPath; foreach ($params as $k => $v) $base .= $k . $v; // 서명 base = 미인코딩 원본값
+            $params['sign'] = strtoupper(hash_hmac('sha256', $base, $appSecret));
+            return self::httpPost($host . $apiPath, ['Content-Type' => 'application/x-www-form-urlencoded'], http_build_query($params));
+        };
+        $ok = fn(int $c, array $b) => $c >= 200 && $c < 300 && (string)($b['code'] ?? '') === '0';
+        $fail = fn(int $c, array $b, string $tag) => ['ok' => false, 'error' => "Lazada {$tag} HTTP {$c}", 'detail' => mb_substr((string)($b['message'] ?? json_encode($b, JSON_UNESCAPED_UNICODE)), 0, 200)];
+
+        if ($op === 'unregister' || ($p['action'] ?? '') === 'unregister') {
+            $sku = (string)($p['sku'] ?? '');
+            if ($sku === '') return ['ok' => false, 'error' => 'Lazada remove 는 seller_sku 필요'];
+            [$c, $b] = $call('/product/remove', ['seller_sku_list' => json_encode([$sku])]);
+            return $ok($c, $b) ? ['ok' => true, 'removed' => $sku] : $fail($c, $b, 'remove');
+        }
+        // create/update — PrimaryCategory 필수(honest 게이트). Lazada payload 는 XML.
+        $cat = (string)($p['category_id'] ?? '');
+        if ($cat === '') return ['ok' => false, 'error' => 'Lazada 등록은 category_id(PrimaryCategory) 필요'];
+        $sku = htmlspecialchars((string)($p['sku'] ?? ''), ENT_XML1);
+        $name = htmlspecialchars((string)($p['name'] ?? $p['sku'] ?? ''), ENT_XML1);
+        $desc = htmlspecialchars((string)($p['spec'] ?? ($p['name'] ?? '')), ENT_XML1);
+        $price = (float)($p['price'] ?? 0); $qty = (int)($p['inventory'] ?? 0);
+        $xml = "<Request><Product><PrimaryCategory>" . htmlspecialchars($cat, ENT_XML1) . "</PrimaryCategory>"
+            . "<Attributes><name>{$name}</name><short_description>{$desc}</short_description></Attributes>"
+            . "<Skus><Sku><SellerSku>{$sku}</SellerSku><quantity>{$qty}</quantity><price>{$price}</price></Sku></Skus>"
+            . "</Product></Request>";
+        [$c, $b] = $call('/product/create', ['payload' => $xml]);
+        return $ok($c, $b) ? ['ok' => true, 'channel_product_id' => (string)($b['data']['item_id'] ?? $p['sku'] ?? '')] : $fail($c, $b, 'create');
     }
 
     /** [228차] Amazon SP-API Listings Items 등록/수정 — LWA access_token, SKU 키 멱등 PUT. ★productType(category_code)·seller_id 필요.
