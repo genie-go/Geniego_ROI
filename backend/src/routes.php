@@ -535,6 +535,8 @@ return function (App $app): void {
         'POST /v420/price/repricer/rules'     => 'Genie\\Handlers\\PriceOpt::createRepricerRule',
         'GET /v420/price/repricer/history'    => 'Genie\\Handlers\\PriceOpt::repricerHistory',
         'POST /v420/price/repricer/rules/{id}/toggle' => 'Genie\\Handlers\\PriceOpt::toggleRepricerRule',
+        'POST /v420/price/repricer/run'       => 'Genie\\Handlers\\PriceOpt::runRepricer', // [237차] 리프라이서 실행 엔진
+        'POST /api/v420/price/repricer/run'   => 'Genie\\Handlers\\PriceOpt::runRepricer',
         // promo calendar
         'GET /v420/price/calendar'            => 'Genie\\Handlers\\PriceOpt::listCalendar',
         'POST /v420/price/calendar'           => 'Genie\\Handlers\\PriceOpt::createCalendarEvent',
@@ -2836,6 +2838,7 @@ return function (App $app): void {
     $register('POST',   '/v420/price/repricer/rules');
     $register('GET',    '/v420/price/repricer/history');
     $register('POST',   '/v420/price/repricer/rules/{id}/toggle');
+    $register('POST',   '/v420/price/repricer/run'); $register('POST', '/api/v420/price/repricer/run'); // [237차]
     $register('GET',    '/v420/price/calendar');
     $register('POST',   '/v420/price/calendar');
     $register('DELETE', '/v420/price/calendar/{id}');

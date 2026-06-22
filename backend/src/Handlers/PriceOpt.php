@@ -530,6 +530,80 @@ class PriceOpt
         return self::json($response, ['ok'=>true,'toggled'=>$id]);
     }
 
+    /**
+     * [237차] POST /v420/price/repricer/run — 다이내믹 리프라이서 ★실행 엔진(기존엔 규칙·경쟁가만 저장하고
+     *   실제 리프라이싱이 없던 갭=po_repricer_history INSERT 전무). 활성 규칙별로 경쟁사 가격(po_competitors)
+     *   대비 새 가격을 산출(언더컷/매칭/마진)하고 원가·목표마진 가드 적용 → 이력 기록 + 가격 갱신. 채널 전파는
+     *   기존 writeback(일괄가격) 경로. ★중복 없음: 규칙/경쟁가/상품/마진 기존 자산을 묶는 실행 로직만 신설.
+     */
+    public static function runRepricer(Request $request, Response $response, array $args): Response
+    {
+        if ($err = UserAuth::requirePro($request, $response)) return $err;
+        $db = self::db(); $t = self::tenant($request); $now = gmdate('c');
+        $rs = $db->prepare("SELECT * FROM po_repricer_rules WHERE tenant_id=? AND active=1");
+        $rs->execute([$t]);
+        $rules = $rs->fetchAll(\PDO::FETCH_ASSOC);
+        $changes = []; $evaluated = 0;
+        $hist = $db->prepare("INSERT INTO po_repricer_history (tenant_id,sku,channel,prev,next,reason,time,created_at) VALUES (?,?,?,?,?,?,?,?)");
+        $updComp = $db->prepare("UPDATE po_competitors SET ourPrice=?, updated_at=? WHERE tenant_id=? AND sku=?");
+        $updProd = $db->prepare("UPDATE po_products SET base_price=? WHERE tenant_id=? AND sku=?");
+        foreach ($rules as $rule) {
+            $mode = (string)($rule['mode'] ?? 'min_price');
+            $ruleSku = trim((string)($rule['sku'] ?? '*'));
+            $channel = (string)($rule['channel'] ?? '*');
+            // 대상 SKU: 특정 sku 또는 '*'(전체 경쟁사 등록 SKU)
+            if ($ruleSku !== '' && $ruleSku !== '*') {
+                $cs = $db->prepare("SELECT * FROM po_competitors WHERE tenant_id=? AND sku=?"); $cs->execute([$t, $ruleSku]);
+            } else {
+                $cs = $db->prepare("SELECT * FROM po_competitors WHERE tenant_id=?"); $cs->execute([$t]);
+            }
+            $changed = 0;
+            foreach ($cs->fetchAll(\PDO::FETCH_ASSOC) as $c) {
+                $evaluated++;
+                $sku = (string)$c['sku'];
+                $cur = (float)($c['ourPrice'] ?? 0);
+                if ($cur <= 0) continue;
+                $comps = array_filter([(float)($c['compA'] ?? 0), (float)($c['compB'] ?? 0)], fn($x) => $x > 0);
+                // 원가·목표마진 가드(절대 하한). 상품 미등록 시 현가의 70%를 안전하한.
+                $ps = $db->prepare("SELECT cost_price, target_margin FROM po_products WHERE tenant_id=? AND sku=? LIMIT 1");
+                $ps->execute([$t, $sku]); $prod = $ps->fetch(\PDO::FETCH_ASSOC);
+                $cost = $prod ? (float)$prod['cost_price'] : 0.0;
+                $tMargin = $prod ? (float)$prod['target_margin'] : 0.30;
+                $floor = $cost > 0 ? round($cost * (1 + $tMargin * 0.5)) : round($cur * 0.7); // 원가+절반목표마진, 또는 현가70%
+                $new = $cur;
+                $reason = '';
+                if ($mode === 'match' && $comps) {
+                    $new = max($floor, round(min($comps))); $reason = '경쟁사 최저가 매칭';
+                } elseif ($mode === 'margin') {
+                    $target = $cost > 0 ? round($cost * (1 + $tMargin)) : $cur;
+                    $new = max($cur < $target ? $target : $cur, $floor); $reason = '목표마진 확보';
+                } else { // min_price(언더컷, 기본)
+                    if ($comps) { $new = max($floor, round(min($comps) * 0.99)); $reason = '경쟁사 최저가 -1% 언더컷'; }
+                }
+                // 가드: 하한 미만 금지·과도변동(±50%) 방지·의미있는 변화(>0.5%)만 적용.
+                if ($new < $floor) { $new = $floor; $reason .= '(원가마진 하한 적용)'; }
+                if ($new > $cur * 1.5 || $new < $cur * 0.5) continue; // 비정상 변동 스킵
+                if (abs($new - $cur) / $cur < 0.005) continue;        // 변화 미미 → 스킵
+                try {
+                    $hist->execute([$t, $sku, $channel, $cur, $new, $reason, $now, $now]);
+                    $updComp->execute([$new, $now, $t, $sku]);
+                    if ($prod) $updProd->execute([$new, $t, $sku]);
+                    $changes[] = ['sku' => $sku, 'channel' => $channel, 'prev' => $cur, 'next' => $new, 'reason' => $reason];
+                    $changed++;
+                } catch (\Throwable $e) { /* 개별 실패 스킵 */ }
+            }
+            try { $db->prepare("UPDATE po_repricer_rules SET lastRun=?, changeCount=COALESCE(changeCount,0)+? WHERE id=? AND tenant_id=?")
+                ->execute([$now, $changed, (int)$rule['id'], $t]); } catch (\Throwable $e) {}
+        }
+        return self::json($response, [
+            'ok' => true, 'rules_run' => count($rules), 'skus_evaluated' => $evaluated,
+            'changes_applied' => count($changes), 'changes' => array_slice($changes, 0, 100),
+            'note' => count($changes) > 0
+                ? count($changes) . '건 리프라이싱 적용(이력 기록·가격 갱신). 채널 반영은 일괄가격 writeback 으로 전파됩니다.'
+                : ($evaluated === 0 ? '활성 규칙 또는 경쟁사 가격 데이터가 없습니다. [경쟁사 가격] 등록 후 실행하세요.' : '가드(원가마진·변동상한) 내 변경 대상이 없습니다.'),
+        ]);
+    }
+
     // ── Promo Calendar ───────────────────────────────────────────────────────
 
     /** GET /v420/price/calendar */
