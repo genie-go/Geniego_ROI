@@ -9,6 +9,8 @@ import { detectXSS, sanitizeInput } from '../security/SecurityGuard.js';
 
 import ApprovalModal from '../components/ApprovalModal.jsx';
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
+import GuideWizard from '../components/GuideWizard.jsx'; // [237차] 인앱 순차 완료 위저드(필수등록 게이팅)
+import { getJsonAuth as _gjaWms } from '../services/apiClient.js';
 import * as wmsApi from '../services/wmsApi.js';
 import { IS_DEMO } from '../utils/demoEnv.js';
 
@@ -2511,6 +2513,19 @@ export default function WmsManager() {
         { id: "guide", label: t("wms.tabGuide"), desc: t("wms.tabGuideDesc") },
     ];
 
+    // [237차] WMS 위저드 필수등록 게이팅 — 실제 상태 검증(미완 시 차단). null=시스템 자동확인.
+    const wmsChecks = useMemo(() => {
+        const cnt = async (ep, keys) => { try { const r = await _gjaWms(ep); for (const k of keys) { if (Array.isArray(r?.[k])) return r[k].length > 0; } return Array.isArray(r) ? r.length > 0 : false; } catch { return false; } };
+        return [
+            null,                                                              // 0 로그인
+            async () => cnt('/api/wms/warehouses', ['warehouses', 'items', 'rows']), // 1 ★창고 1개 이상 등록 필수
+            async () => cnt('/api/wms/movements', ['movements', 'items', 'rows']),   // 2 ★입고 1건 이상 필수
+            null,                                                              // 3 재고 확인(자동)
+            null,                                                              // 4 출고·피킹(자동)
+            null,                                                              // 5 발주(자동)
+        ];
+    }, []);
+
     // ✅ GlobalDataContext real-time aggregate values
     const totalStock = totalInventoryQty;
     const totalValue = totalInventoryValue;
@@ -2676,7 +2691,14 @@ export default function WmsManager() {
             {tab === "supplier" && <SupplierTab />}
             {tab === "partners" && <PartnerAccountsTab />}
             {tab === "audit" && <InventoryAuditTab inventory={inventory} />}
-            {tab === "guide" && <WmsGuideTab />}
+            {tab === "guide" && (
+                <>
+                    <div style={{ background: "var(--card-bg,#fff)", border: "1px solid var(--border,#e2e8f0)", borderRadius: 16, padding: "20px 22px", marginBottom: 16 }}>
+                        <GuideWizard guideKey="wms" checks={wmsChecks} />
+                    </div>
+                    <WmsGuideTab />
+                </>
+            )}
             {showSecPanel && (
                 <div className="card card-glass" style={{ padding: 18, borderColor: secAlerts.length > 0 ? 'rgba(239,68,68,0.3)' : 'rgba(34,197,94,0.3)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>

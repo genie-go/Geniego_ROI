@@ -7,6 +7,8 @@ import { useAuth } from "../auth/AuthContext";
 import { tabAllowedByPlan } from "../auth/tabPlanPolicy.js"; // [현 차수] 플랜별 탭 노출
 import { IS_DEMO as _IS_DEMO_EM } from "../utils/demoEnv";
 import PlanGate from "../components/PlanGate.jsx";
+import GuideWizard from '../components/GuideWizard.jsx'; // [237차] 인앱 순차 완료 위저드(필수등록 게이팅)
+import { getJsonAuth as _gjaEmail } from '../services/apiClient.js';
 import { useGlobalData } from "../context/GlobalDataContext.jsx";
 import { emailApi } from "../services/emailApi.js"; // 191차 2단계: 운영 백엔드 실배선(/email/*, /crm/segments)
 import { useConnectorSync } from "../context/ConnectorSyncContext.jsx";
@@ -558,6 +560,17 @@ function EmailMarketingContent() {
         {id:"settings",label:t('email.tabSettings', "Settings"),icon:"⚙️"},
         {id:"guide",label:t('email.tabGuide', "Guide"),icon:"📖"},
     ];
+    const emailChecks = useMemo(() => {
+        const cnt = async (ep, keys) => { try { const r = await _gjaEmail(ep); for (const k of keys) { if (Array.isArray(r?.[k])) return r[k].length > 0; } return Array.isArray(r) ? r.length > 0 : false; } catch { return false; } };
+        return [
+            null,                                                                   // 0 로그인
+            null,                                                                   // 1 발신자 인증(자동)
+            null,                                                                   // 2 수신자 리스트(자동)
+            async () => cnt('/api/email/templates', ['templates', 'items', 'rows']), // 3 ★템플릿 1개 이상 작성 필수
+            null,                                                                   // 4 발송·A/B(자동)
+            null,                                                                   // 5 성과 분석(자동)
+        ];
+    }, []);
     return (
         <div style={{ padding:24, minHeight:"100%", color:'#1e293b' }}>
             {secLocked && <SecurityLockModal t={t} onDismiss={()=>setSecLocked(false)}/>}
@@ -586,7 +599,14 @@ function EmailMarketingContent() {
             {tab==="analytics" && <AnalyticsTab/>}
             {tab==="creative" && <CreativeStudioTab sourcePage="email-marketing"/>}
             {tab==="settings" && <SettingsTab/>}
-            {tab==="guide" && <GuideTab/>}
+            {tab==="guide" && (
+                <>
+                    <div style={{ background:"var(--card-bg,#fff)", border:"1px solid var(--border,#e2e8f0)", borderRadius:16, padding:"20px 22px", marginBottom:16 }}>
+                        <GuideWizard guideKey="email" checks={emailChecks} />
+                    </div>
+                    <GuideTab/>
+                </>
+            )}
             <style>{`@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}`}</style>
         </div>
     );

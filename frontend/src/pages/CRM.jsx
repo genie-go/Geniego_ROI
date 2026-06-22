@@ -4,6 +4,8 @@ import { IS_DEMO } from '../utils/demoEnv';
 import React, { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import PlanGate from "../components/PlanGate.jsx";
 import { useNavigate } from "react-router-dom";
+import GuideWizard from '../components/GuideWizard.jsx'; // [237차] 인앱 순차 완료 위저드(필수등록 게이팅)
+import { getJsonAuth as _gjaCrm } from '../services/apiClient.js';
 import { useGlobalData } from "../context/GlobalDataContext.jsx";
 import { crmApi } from "../services/crmApi.js"; // 191차 4단계: 운영 백엔드 실배선(/api/crm/*)
 import { useConnectorSync } from "../context/ConnectorSyncContext.jsx";
@@ -631,6 +633,19 @@ function CRMContent() {
     { id: "guide", label: t('crm.tabGuide') },
   ];
 
+  // [237차] CRM 위저드 필수등록 게이팅 — 실제 상태 검증(미완 시 차단). null=시스템 자동확인.
+  const crmChecks = useMemo(() => {
+    const cnt = async (ep, keys) => { try { const r = await _gjaCrm(ep); for (const k of keys) { if (Array.isArray(r?.[k])) return r[k].length > 0; } return Array.isArray(r) ? r.length > 0 : false; } catch { return false; } };
+    return [
+      null,                                                                  // 0 로그인
+      async () => cnt('/api/crm/customers', ['customers', 'items', 'rows', 'data']), // 1 ★고객 1명 이상 등록 필수
+      async () => cnt('/api/crm/segments', ['segments', 'items', 'rows']),          // 2 ★세그먼트 1개 이상 필수
+      null,                                                                  // 3 캠페인 메시지(자동)
+      null,                                                                  // 4 발송·자동화(자동)
+      null,                                                                  // 5 성과 분석(자동)
+    ];
+  }, []);
+
   const displayStats = {
     total: customers.length,
     active_30d: customers.filter(c => c.purchase_count > 0).length,
@@ -762,7 +777,14 @@ function CRMContent() {
       {tab === "segments" && <SegmentsTab segments={segments} onSave={onSaveSegment} onDelete={onDeleteSegment} />}
       {tab === "rfm" && <RFMTab derivedCustomers={rfmList} />}
       {tab === "ai_segments" && <AISegmentsTab navigate={navigate} derivedCustomers={customers} />}
-      {tab === "guide" && <GuideTab />}
+      {tab === "guide" && (
+        <>
+          <div style={{ background: "var(--card-bg,#fff)", border: "1px solid var(--border,#e2e8f0)", borderRadius: 16, padding: "20px 22px", marginBottom: 16 }}>
+            <GuideWizard guideKey="crm" checks={crmChecks} />
+          </div>
+          <GuideTab />
+        </>
+      )}
 
       <CustomerPanel
         customer={selectedCustomer}
