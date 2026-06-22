@@ -104,6 +104,9 @@ export default function OnboardingGuide() {
   // [현 차수] ★비즈니스 모델: 'commerce'(실물 커머스) | 'service'(서비스·구독·디지털). 미선택 시 null → 선택 유도.
   const [bizModel, setBizModel] = useState(() => { try { const v = localStorage.getItem(bizModelKey); return (v === 'commerce' || v === 'service' || v === 'both') ? v : null; } catch { return null; } });
   const chooseModel = (m) => { try { localStorage.setItem(bizModelKey, m); } catch {} setBizModel(m); };
+  // [237차] 모델 다시 선택 — bizModel 초기화 → 3카드 선택 화면 재노출(상품형/서비스형/둘다 직접 재선택).
+  //   서비스 사업자가 실수로 commerce/both 를 골라 '상품 등록'에 막힌 경우 service 로 전환해 단계를 재구성.
+  const resetModel = () => { try { localStorage.removeItem(bizModelKey); } catch {} setBizModel(null); };
   // [현 차수] ★항상 기본 접힘(단일 1줄) — 안내 배너가 페이지 콘텐츠 높이를 잠식하지 않도록.
   //   펼침은 사용자가 명시적으로 [펼치기]를 눌렀을 때만(absolute 오버레이로 표시 → 페이지 안 밀림).
   //   (218차 '첫 방문 자동 펼침'이 전 페이지 컨테이너 높이를 압축하는 회귀를 유발해 제거.)
@@ -365,18 +368,10 @@ export default function OnboardingGuide() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginTop: 6, padding: '4px 6px', flexWrap: 'wrap' }}>
           <div style={{ fontSize: 11, color: '#64748b' }}>
             {t('onboard.freeMove', '원하는 단계를 눌러 자유롭게 이동할 수 있습니다.')}
-            {/* [현 차수] 모델 순환 전환(실물→서비스→둘 다→…) — 하나만 선택 후에도 '둘 다' 로 이동 가능. */}
-            {(() => {
-              const next = bizModel === 'commerce' ? 'both' : bizModel === 'both' ? 'service' : 'commerce';
-              const label = next === 'both' ? t('onboard.bizModel.toBoth', '실물+서비스 둘 다로 전환')
-                : next === 'service' ? t('onboard.bizModel.toService', '서비스·구독으로 전환')
-                : t('onboard.bizModel.toCommerce', '실물 커머스로 전환');
-              return (
-                <button onClick={(e) => { e.stopPropagation(); chooseModel(next); }} style={{ marginLeft: 8, padding: '2px 8px', borderRadius: 7, border: '1px solid #cbd5e1', cursor: 'pointer', background: '#fff', color: '#4f46e5', fontSize: 10.5, fontWeight: 800 }}>
-                  {label}
-                </button>
-              );
-            })()}
+            {/* [237차] 비즈니스 모델 다시 선택 — 3카드(실물/서비스/둘다) 선택 화면 재노출. 순환 전환보다 명확. */}
+            <button onClick={(e) => { e.stopPropagation(); resetModel(); }} style={{ marginLeft: 8, padding: '2px 8px', borderRadius: 7, border: '1px solid #cbd5e1', cursor: 'pointer', background: '#fff', color: '#4f46e5', fontSize: 10.5, fontWeight: 800 }}>
+              🔄 {t('onboard.bizModel.reselect', '사업유형 다시 선택')}
+            </button>
           </div>
           {firstVisit
             ? <button onClick={() => { markWelcomed(); if (step) nav(step.route); }} style={{ padding: '9px 20px', borderRadius: 10, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', color: '#fff', fontWeight: 800, fontSize: 12.5 }}>{allDone ? t('onboard.start', '시작하기') : t('onboard.startFirst', '첫 단계부터 시작')} →</button>
