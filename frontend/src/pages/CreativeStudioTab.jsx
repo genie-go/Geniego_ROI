@@ -1,6 +1,6 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { IS_DEMO } from '../utils/demoEnv';
-import { getJsonAuth } from '../services/apiClient.js';
+import { getJsonAuth, postJsonAuth } from '../services/apiClient.js';
 import { useI18n } from '../i18n';
 import AIDesignStudio from '../components/AIDesignStudio.jsx'; // 196차 — AI 광고 디자인 스튜디오
 
@@ -81,36 +81,71 @@ export default function CreativeStudioTab({ sourcePage, onUseCampaign }) {
     return () => obs.disconnect();
   }, []);
 
-  /* 운영: 실제 저장 소재 로드(테넌트 격리). 데모는 mock 유지 → fetch 안 함. */
-  useEffect(() => {
+  // [237차 Creative AI Studio] 대량 변형 생성 + Creative Insights 상태.
+  const [batchOpen, setBatchOpen] = useState(false);
+  const [batchForm, setBatchForm] = useState({ product: '', category: '', channel: 'meta_feed', count: 3, with_image: false });
+  const [batchBusy, setBatchBusy] = useState(false);
+  const [batchMsg, setBatchMsg] = useState(null);
+  const [insights, setInsights] = useState(null);     // null=로딩전
+  const [insightsLoading, setInsightsLoading] = useState(false);
+
+  /* 운영: 실제 저장 소재 로드(테넌트 격리). 데모는 mock 유지 → fetch 안 함. 배치 생성 후 재호출. */
+  const loadDesigns = useCallback(async () => {
     if (IS_DEMO) return;
-    let alive = true;
-    (async () => {
-      try {
-        const d = await getJsonAuth('/api/v422/ai/ad-design/list');
-        if (!alive) return;
-        const rows = Array.isArray(d?.designs) ? d.designs : [];
-        setRealDesigns(rows.map(r => {
-          const spec = r.design || {};
-          return {
-            id: 'AD' + r.id,
-            name: r.product || spec.headline || r.category || ('Creative #' + r.id),
-            format: spec.format || r.channel || '',
-            platform: r.channel || spec.channel || '—',
-            status: r.status === 'approved' ? 'approved' : (r.status === 'draft' ? 'draft' : 'review'),
-            ctr: null, conv: null,                 // 성과는 광고 채널 연동 후 (가짜 수치 금지)
-            date: String(r.created_at || '').slice(0, 10),
-            periodStart: r.period_start || null,   // [현 차수] 채널별 광고물 노출 기간
-            periodEnd: r.period_end || null,
-            animation: spec.animation || '',       // [현 차수] CSS 모션 애니메이션
-            img: /^data:image\//.test(String(r.svg || '')) ? r.svg : '',
-            svg: typeof r.svg === 'string' && r.svg.indexOf('<svg') === 0 ? r.svg : '',
-          };
-        }));
-      } catch (_) { if (alive) setRealDesigns([]); }
-    })();
-    return () => { alive = false; };
+    try {
+      const d = await getJsonAuth('/api/v422/ai/ad-design/list');
+      const rows = Array.isArray(d?.designs) ? d.designs : [];
+      setRealDesigns(rows.map(r => {
+        const spec = r.design || {};
+        return {
+          id: 'AD' + r.id,
+          name: r.product || spec.headline || r.category || ('Creative #' + r.id),
+          format: spec.format || r.channel || '',
+          platform: r.channel || spec.channel || '—',
+          status: r.status === 'approved' ? 'approved' : (r.status === 'draft' ? 'draft' : 'review'),
+          ctr: null, conv: null,                 // 성과는 광고 채널 연동 후 (가짜 수치 금지)
+          date: String(r.created_at || '').slice(0, 10),
+          periodStart: r.period_start || null,
+          periodEnd: r.period_end || null,
+          animation: spec.animation || '',
+          img: /^data:image\//.test(String(r.svg || '')) ? r.svg : '',
+          svg: typeof r.svg === 'string' && r.svg.indexOf('<svg') === 0 ? r.svg : '',
+        };
+      }));
+    } catch (_) { setRealDesigns([]); }
   }, []);
+  useEffect(() => { loadDesigns(); }, [loadDesigns]);
+
+  /* [237차] AI 대량 변형 생성 → ad_design draft N건 → 갤러리 새로고침. */
+  const runBatch = useCallback(async () => {
+    if (batchBusy) return;
+    if (!batchForm.product.trim() && !batchForm.category.trim()) { setBatchMsg({ err: true, text: t('marketing.csBatchNeedInput', '상품 또는 카테고리를 입력하세요.') }); return; }
+    setBatchBusy(true); setBatchMsg(null);
+    try {
+      const r = await postJsonAuth('/api/v422/ai/studio/batch', {
+        product: batchForm.product, category: batchForm.category, channel: batchForm.channel,
+        count: Math.max(1, Math.min(8, +batchForm.count || 3)), with_image: !!batchForm.with_image,
+      });
+      if (r?.ok) {
+        setBatchMsg({ err: false, text: (r.note || (t('marketing.csBatchDone', '대량 변형 생성 완료') + ': ' + (r.generated || 0))) });
+        setRealDesigns(null); await loadDesigns();  // 갤러리 즉시 반영
+      } else {
+        setBatchMsg({ err: true, text: r?.error || t('marketing.csBatchFail', '생성 실패') });
+      }
+    } catch (e) {
+      setBatchMsg({ err: true, text: String(e?.message || e).slice(0, 160) });
+    } finally { setBatchBusy(false); }
+  }, [batchBusy, batchForm, loadDesigns, t]);
+
+  /* [237차] Creative Insights 로드(성과 탭). 집행 전이면 measured 0(정직 빈상태). */
+  const loadInsights = useCallback(async () => {
+    if (IS_DEMO) return;
+    setInsightsLoading(true);
+    try { const r = await getJsonAuth('/api/v422/ai/studio/insights?days=30'); setInsights(r?.ok ? r : { designs: [], winners: [], losers: [], measured: 0, total: 0 }); }
+    catch (_) { setInsights({ designs: [], winners: [], losers: [], measured: 0, total: 0 }); }
+    finally { setInsightsLoading(false); }
+  }, []);
+  useEffect(() => { if (!IS_DEMO && activeTab === 2 && insights === null) loadInsights(); }, [activeTab, insights, loadInsights]);
 
   const gallery = IS_DEMO ? DEMO_GALLERY : (realDesigns || []);
   const loadingReal = !IS_DEMO && realDesigns === null;
@@ -195,11 +230,52 @@ export default function CreativeStudioTab({ sourcePage, onUseCampaign }) {
 
   /* ── Tab Content Renderers ────────────────────────── */
 
+  /* [237차] AI 대량 변형 생성 패널 — 브리프 1개로 카피 변형 N종 즉시 생성(Smartly AI Studio급). 운영 전용. */
+  const renderBatchPanel = () => {
+    if (IS_DEMO) return null;
+    const inp = { padding:'8px 10px', borderRadius:8, border:'1px solid rgba(0,0,0,0.12)', fontSize:12, background:'#fff', color:'#1e293b' };
+    return (
+      <div style={{ ...card, padding:16, border:'1px solid rgba(168,85,247,0.25)', background:'linear-gradient(135deg,rgba(168,85,247,0.05),rgba(79,142,247,0.05))' }}>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', cursor:'pointer' }} onClick={() => setBatchOpen(o => !o)}>
+          <div style={{ fontWeight:800, fontSize:13, color:'#7c3aed' }}>⚡ {t('marketing.csBatchTitle','AI 대량 변형 생성')}</div>
+          <span style={{ fontSize:11, color:'#94a3b8' }}>{batchOpen ? '▴' : '▾'} {t('marketing.csBatchSub','브리프 1개로 카피 변형을 한 번에 생성')}</span>
+        </div>
+        {batchOpen && (
+          <div style={{ marginTop:12, display:'grid', gap:8 }}>
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(150px,1fr))', gap:8 }}>
+              <input style={inp} placeholder={t('marketing.csBatchProduct','상품/서비스')} value={batchForm.product} onChange={e => setBatchForm(f => ({ ...f, product: e.target.value }))} />
+              <input style={inp} placeholder={t('marketing.csBatchCategory','카테고리(예: beauty)')} value={batchForm.category} onChange={e => setBatchForm(f => ({ ...f, category: e.target.value }))} />
+              <select style={inp} value={batchForm.channel} onChange={e => setBatchForm(f => ({ ...f, channel: e.target.value }))}>
+                <option value="meta_feed">Meta 피드</option><option value="instagram_story">Instagram 스토리</option>
+                <option value="youtube_thumb">YouTube</option><option value="tiktok">TikTok</option>
+                <option value="kakao">Kakao</option><option value="gdn">Google/Display</option>
+              </select>
+              <select style={inp} value={batchForm.count} onChange={e => setBatchForm(f => ({ ...f, count: +e.target.value }))}>
+                {[2,3,4,5,6,8].map(n => <option key={n} value={n}>{n}{t('marketing.csBatchVariants','종 변형')}</option>)}
+              </select>
+            </div>
+            <label style={{ fontSize:11, color:'#64748b', display:'flex', alignItems:'center', gap:6, cursor:'pointer' }}>
+              <input type="checkbox" checked={batchForm.with_image} onChange={e => setBatchForm(f => ({ ...f, with_image: e.target.checked }))} />
+              🖼 {t('marketing.csBatchWithImage','공유 비주얼(AI 이미지) 동반 생성 — 이미지 API 키 등록 시')}
+            </label>
+            <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+              <button onClick={runBatch} disabled={batchBusy} style={{ padding:'9px 20px', borderRadius:10, border:'none', cursor: batchBusy?'wait':'pointer', background: batchBusy?'#cbd5e1':'linear-gradient(135deg,#a855f7,#4f8ef7)', color:'#fff', fontWeight:800, fontSize:12 }}>
+                {batchBusy ? '⏳ ' + t('marketing.csBatchBusy','생성 중…') : '⚡ ' + t('marketing.csBatchRun','대량 생성')}
+              </button>
+              {batchMsg && <span style={{ fontSize:11, fontWeight:700, color: batchMsg.err ? '#ef4444' : '#22c55e' }}>{batchMsg.err ? '⚠ ' : '✓ '}{batchMsg.text}</span>}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const renderGallery = () => {
-    if (loadingReal) return <div style={{ ...card, textAlign:'center', padding:48, color:'#94a3b8', fontSize:13 }}>⏳ {t('marketing.csLoading','소재를 불러오는 중…')}</div>;
-    if (!gallery.length) return <EmptyState icon="🖼" title={t('marketing.csEmptyTitle','아직 생성된 소재가 없습니다')} desc={t('marketing.csEmptyDesc','‘새로 만들기’에서 AI로 광고 소재를 만들고 저장하면 여기 갤러리에 표시됩니다.')} cta={t('marketing.csTabCreateNew','새로 만들기')} />;
+    if (loadingReal) return <div style={{ display:'grid', gap:16 }}>{renderBatchPanel()}<div style={{ ...card, textAlign:'center', padding:48, color:'#94a3b8', fontSize:13 }}>⏳ {t('marketing.csLoading','소재를 불러오는 중…')}</div></div>;
+    if (!gallery.length) return <div style={{ display:'grid', gap:16 }}>{renderBatchPanel()}<EmptyState icon="🖼" title={t('marketing.csEmptyTitle','아직 생성된 소재가 없습니다')} desc={t('marketing.csEmptyDesc','‘새로 만들기’에서 AI로 광고 소재를 만들고 저장하거나, 위 ‘AI 대량 변형 생성’으로 한 번에 만드세요.')} cta={t('marketing.csTabCreateNew','새로 만들기')} /></div>;
     return (
     <div style={{ display:'grid', gap:16 }}>
+      {renderBatchPanel()}
       <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
         {['all','approved','review','draft'].map(f => (
           <button key={f} onClick={() => setGalleryFilter(f)} style={{
@@ -285,7 +361,73 @@ export default function CreativeStudioTab({ sourcePage, onUseCampaign }) {
 
   const renderPerformance = () => {
     if (!IS_DEMO) {
-      return <EmptyState icon="📊" title={t('marketing.csPerfEmptyTitle','성과 데이터 연동 대기')} desc={t('marketing.csPerfEmptyDesc','소재별 CTR·전환·효율 지표는 광고 채널(Meta·Google·TikTok 등)을 연동하면 자동으로 집계되어 여기에 표시됩니다.')} />;
+      // [237차] 실 Creative Insights — ad_design ← creative_variant → ad_insight_agg 소재별 ROAS/CTR/승자·패자.
+      if (insightsLoading || insights === null) return <div style={{ ...card, textAlign:'center', padding:48, color:'#94a3b8', fontSize:13 }}>⏳ {t('marketing.csLoading','분석을 불러오는 중…')}</div>;
+      const ds = Array.isArray(insights.designs) ? insights.designs : [];
+      const winners = Array.isArray(insights.winners) ? insights.winners : [];
+      const measured = insights.measured || 0;
+      const tdc = { padding:'10px 12px', fontSize:12 };
+      const rcolor = (v) => v >= 3 ? '#22c55e' : (v >= 1 ? '#f59e0b' : '#94a3b8');
+      return (
+        <div style={{ display:'grid', gap:16 }}>
+          <div style={{ ...card, padding:16, display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:10 }}>
+            <div>
+              <div style={{ fontWeight:800, fontSize:14, color:'#1e293b' }}>📊 {t('marketing.csInsightsTitle','Creative Insights — 소재별 성과')}</div>
+              <div style={{ fontSize:11, color:'#64748b', marginTop:4 }}>{insights.note || ''}</div>
+            </div>
+            <div style={{ display:'flex', gap:16 }}>
+              <div style={{ textAlign:'center' }}><div style={{ fontSize:20, fontWeight:900, color:'#4f8ef7' }}>{insights.total || ds.length}</div><div style={{ fontSize:10, color:'#64748b' }}>{t('marketing.csInsTotal','전체 소재')}</div></div>
+              <div style={{ textAlign:'center' }}><div style={{ fontSize:20, fontWeight:900, color:'#22c55e' }}>{measured}</div><div style={{ fontSize:10, color:'#64748b' }}>{t('marketing.csInsMeasured','실측 집행')}</div></div>
+            </div>
+          </div>
+          {measured > 0 && winners.length > 0 && (
+            <div style={card}>
+              <div style={{ fontWeight:800, fontSize:13, color:'#16a34a', marginBottom:10 }}>🏆 {t('marketing.csInsWinners','상위 소재(ROAS)')}</div>
+              <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(200px,1fr))', gap:10 }}>
+                {winners.map(w => (
+                  <div key={w.design_id} style={{ padding:12, borderRadius:10, background:'rgba(34,197,94,0.06)', border:'1px solid rgba(34,197,94,0.2)' }}>
+                    <div style={{ fontSize:12, fontWeight:700, color:'#1e293b', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{w.headline || ('#' + w.design_id)}</div>
+                    <div style={{ display:'flex', gap:10, marginTop:6, fontSize:11 }}>
+                      <span style={{ fontWeight:800, color:'#22c55e' }}>ROAS {w.roas}x</span>
+                      <span style={{ color:'#64748b' }}>CTR {w.ctr}%</span>
+                      <span style={{ color:'#64748b' }}>{w.channel}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          <div style={card}>
+            <div style={{ fontWeight:800, fontSize:14, color:'#1e293b', marginBottom:16 }}>📋 {t('marketing.csPerfTable','소재별 성과 테이블')}</div>
+            {ds.length === 0 ? (
+              <div style={{ textAlign:'center', padding:32, color:'#94a3b8', fontSize:12 }}>{t('marketing.csInsNoDesigns','저장된 소재가 없습니다. 갤러리에서 ‘AI 대량 변형 생성’으로 만들어 보세요.')}</div>
+            ) : (
+              <div style={{ overflowX:'auto' }}>
+                <table style={{ width:'100%', borderCollapse:'collapse', fontSize:12 }}>
+                  <thead><tr style={{ borderBottom:'2px solid rgba(0,0,0,0.08)' }}>
+                    {['소재(헤드라인)','채널','노출','클릭','CTR','전환','ROAS','상태'].map(h => <th key={h} style={{ padding:'10px 12px', textAlign:'left', color:'#64748b', fontWeight:700, fontSize:11 }}>{h}</th>)}
+                  </tr></thead>
+                  <tbody>
+                    {ds.map(d => (
+                      <tr key={d.design_id} style={{ borderBottom:'1px solid rgba(0,0,0,0.04)' }}>
+                        <td style={{ ...tdc, fontWeight:700, color:'#1e293b', maxWidth:260, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{d.headline || ('#' + d.design_id)}</td>
+                        <td style={{ ...tdc, color:'#a855f7' }}>{d.channel || '—'}</td>
+                        <td style={tdc}>{d.has_data ? d.impressions.toLocaleString() : '—'}</td>
+                        <td style={tdc}>{d.has_data ? d.clicks.toLocaleString() : '—'}</td>
+                        <td style={{ ...tdc, fontWeight:700, color: d.has_data ? (d.ctr >= 2 ? '#22c55e' : '#f59e0b') : '#cbd5e1' }}>{d.has_data ? d.ctr + '%' : '—'}</td>
+                        <td style={tdc}>{d.has_data ? d.conversions : '—'}</td>
+                        <td style={{ ...tdc, fontWeight:800, color: d.has_data ? rcolor(d.roas) : '#cbd5e1' }}>{d.has_data ? d.roas + 'x' : '—'}</td>
+                        <td style={tdc}>{statusBadge(d.status)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            <div style={{ fontSize:11, color:'#94a3b8', textAlign:'center', marginTop:12 }}>ℹ️ {t('marketing.csInsHint','‘—’ 지표는 해당 소재가 아직 캠페인에 집행되지 않았거나 매체 성과 수집 전입니다. 캠페인 활성화 후 자동 채워집니다.')}</div>
+          </div>
+        </div>
+      );
     }
     return (
     <div style={{ display:'grid', gap:16 }}>
