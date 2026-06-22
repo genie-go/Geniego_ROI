@@ -1037,6 +1037,18 @@ const CatalogTab = memo(function CatalogTab() {
     return (
         <div style={{ display: "grid", gap: 14 }}>
 
+            {/* [237차] 서비스·플랜 등록 모드 — 온보딩에서 '서비스·구독·디지털'(bizModel=service) 선택한 사업자.
+                무형 서비스/구독 사업자는 실물 상품 대신 '서비스/플랜(오퍼)'을 카탈로그 항목으로 등록한다. */}
+            {(() => { try { const tk = localStorage.getItem('tenantId') || localStorage.getItem('demo_genie_user') || 'me'; return localStorage.getItem('genie_onb_bizmodel_' + tk) === 'service'; } catch { return false; } })() && (
+                <div style={{ padding: "12px 16px", borderRadius: 12, background: "linear-gradient(135deg,rgba(245,158,11,0.1),rgba(99,102,241,0.08))", border: "1px solid rgba(245,158,11,0.4)" }}>
+                    <div style={{ fontWeight: 800, fontSize: 13.5, color: "#b45309" }}>🧩 {t('catalogSync.serviceMode', '서비스·플랜 등록 모드')}</div>
+                    <div style={{ fontSize: 12, color: "#475569", marginTop: 4, lineHeight: 1.6 }}>
+                        {t('catalogSync.serviceModeDesc', '실물 상품이 없는 서비스·구독·디지털 사업자는 광고로 알릴 서비스/플랜(오퍼)을 아래 [등록]으로 추가하세요(상품명=서비스명, 가격=플랜가). 등록 후 채널 연동 → 결제 → 마케팅 자동화로 진행됩니다.')}
+                    </div>
+                    <a href="/auto-marketing" style={{ display: "inline-block", marginTop: 9, padding: "6px 14px", borderRadius: 8, background: "linear-gradient(135deg,#a855f7,#4f8ef7)", color: "#fff", fontSize: 12, fontWeight: 800, textDecoration: "none" }}>🚀 {t('catalogSync.serviceToMarketing', '마케팅 자동화로 바로가기')} →</a>
+                </div>
+            )}
+
             {/* Security Alert Banner */}
             {secBanner && (
                 <div style={{ padding: "10px 16px", borderRadius: 10, background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.4)", display: "flex", alignItems: "center", gap: 8 }}>
