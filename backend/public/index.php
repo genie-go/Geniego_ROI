@@ -67,6 +67,10 @@ $app->add(function (Request $request, $handler) {
     if ($path === '/'
         || preg_match('#^(/api)?/v\d+[\w.]*/health[z]?$#', $path)
         || preg_match('#^(/api)?/v\d+[\w.]*/system/metrics$#', $path)
+        // [237차] 헬스 프로브(대시보드 시스템현황 위젯 HEAD 핑) — 인증 불요 공개 라우트. 라우트 부재로
+        //   /api/ping 은 401(미들웨어), /api/auth/check 는 404 라 위젯이 정상인데도 항상 경고를 띄웠다.
+        || $path === '/ping' || $path === '/api/ping'
+        || $path === '/auth/check' || $path === '/api/auth/check'
         || strpos($path, '/auth/') === 0
         || $path === '/auth'
         || strpos($path, '/api/auth/') === 0
@@ -204,7 +208,14 @@ $app->add(function (Request $request, $handler) {
         || strpos($path, '/v424/anomaly/') === 0 || strpos($path, '/api/v424/anomaly/') === 0
         // [현 차수] 광고비 결제수단(빌링키)·관리형 지출 월렛 — 프론트 세션 토큰 호출(익명만 차단,
         //   핸들러가 세션에서 테넌트 해석·데모 차단). 결제 정보라 절대 anonymous 허용 금지.
-        || strpos($path, '/v427/billing/') === 0 || strpos($path, '/api/v427/billing/') === 0) {
+        || strpos($path, '/v427/billing/') === 0 || strpos($path, '/api/v427/billing/') === 0
+        // [237차] OrderHub Aggregator(주문/클레임/정산) — 프론트(GlobalDataContext·OrderHub 페이지)가 세션
+        //   토큰(genie_token)으로 호출하는데, 이 경로가 public bypass·세션게이트 어디에도 없어 strict
+        //   api_key 미들웨어가 세션 토큰을 거부(401) → 운영 세션 사용자(관리자 포함) 전원이 주문/정산
+        //   데이터를 한 줄도 못 받던 선재 결함. OrderHub 핸들러는 self-auth 없이 미들웨어 auth_tenant 만
+        //   신뢰하므로(no_tenant 401), full bypass(인증 skip=tenant 미주입)가 아니라 세션→auth_tenant 주입을
+        //   수행하는 본 게이트에 편입해야 한다. api_key 경유 호출(원래 설계)도 그대로 보존(키 tenant 주입).
+        || strpos($path, '/v424/orderhub/') === 0 || strpos($path, '/api/v424/orderhub/') === 0) {
         $bearer = '';
         $ah = $request->getHeaderLine('Authorization');
         if (strpos($ah, 'Bearer ') === 0) { $bearer = trim(substr($ah, 7)); }
@@ -372,6 +383,17 @@ $app->get('/', function (Request $request, Response $response) {
     $response->getBody()->write(json_encode($payload, JSON_UNESCAPED_UNICODE));
     return $response->withHeader('Content-Type', 'application/json');
 });
+
+// [237차] 공개 헬스 프로브 — 대시보드 시스템현황 위젯(HEAD 핑)이 정상 200 을 받도록.
+//   Slim 4 는 GET 라우트가 HEAD 를 자동 처리. 미들웨어 bypass(위 공개목록)와 짝.
+$pingHandler = function (Request $request, Response $response) {
+    $response->getBody()->write(json_encode(['ok' => true, 'status' => 'ok', 'ts' => gmdate('c')], JSON_UNESCAPED_UNICODE));
+    return $response->withHeader('Content-Type', 'application/json');
+};
+$app->get('/ping', $pingHandler);
+$app->get('/api/ping', $pingHandler);
+$app->get('/auth/check', $pingHandler);
+$app->get('/api/auth/check', $pingHandler);
 
 $routes = require __DIR__ . '/../src/routes.php';
 $routes($app);

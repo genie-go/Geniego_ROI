@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { getJson, postJson, putJson, delJson } from "../services/apiClient.js";
+// [237차] getJson(헤더 없음=비인증) → getJsonAuth(defaultHeaders=세션 Bearer) 별칭.
+//   /v424/admin/growth/* 는 requirePlan('admin') 세션 인증 필수인데 비인증 getJson 으로 호출해
+//   GET 전건 401(AUTH_REQUIRED) 이었음. postJson/putJson/delJson 은 이미 인증 헤더 부착(정상).
+import { getJsonAuth as getJson, postJson, putJson, delJson } from "../services/apiClient.js";
 
 /**
  * AdminGrowthCenter — 236차 신규.
