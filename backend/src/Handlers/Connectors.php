@@ -742,12 +742,36 @@ final class Connectors
         }
     }
 
-    /** [현 차수] H2: 광고 채널 여부 + 저장 직후 1회 ingest 동기화(저장 경로 무관 대칭화). */
-    public static function isAdChannel(string $channelKey): bool { return isset(self::AD_SHORT[$channelKey]); }
+    /** [237차] 채널 레지스트리(channel_registry)에서 지정 sync_kind 의 활성 채널키 목록(요청당 1회 캐시·graceful).
+     *  ChannelSync::commerceTenantChannels 의 commerce 병합과 대칭으로, admin 이 레지스트리에 광고채널을
+     *  추가하면 코드 수정 없이 cron 폴링·저장직후 sync·isAdChannel 에 자동 합류한다. 테이블 부재/오류 시 빈배열. */
+    private static function registryChannels(string $syncKind): array
+    {
+        static $cache = [];
+        if (isset($cache[$syncKind])) return $cache[$syncKind];
+        $out = [];
+        try {
+            $st = Db::pdo()->prepare("SELECT channel_key FROM channel_registry WHERE is_active=1 AND sync_kind=?");
+            $st->execute([$syncKind]);
+            foreach ($st->fetchAll(PDO::FETCH_COLUMN) as $ck) { $c = (string)$ck; if ($c !== '') $out[] = $c; }
+        } catch (\Throwable $e) { /* 레지스트리 부재 → 하드코딩만 사용 */ }
+        return $cache[$syncKind] = array_values(array_unique($out));
+    }
+
+    /** [현 차수] H2: 광고 채널 여부 + 저장 직후 1회 ingest 동기화(저장 경로 무관 대칭화).
+     *  [237차] 레지스트리 sync_kind='ad' 채널도 광고로 인지(커머스 isCommerceChannel 대칭). */
+    public static function isAdChannel(string $channelKey): bool
+    {
+        return isset(self::AD_SHORT[$channelKey]) || in_array($channelKey, self::registryChannels('ad'), true);
+    }
     /** [현 차수] 보편 채널 동기화: 지원되는 광고 채널 short 코드 전체(중복 제거). cron 이 하드코딩 목록 대신
      *  이 SSOT 를 폴링 대상으로 써, 신규 광고채널(예: kakao)을 AD_SHORT 한 곳에만 추가하면 cron·저장직후·
-     *  isAdChannel 전부에 자동 전파된다(성과 누락→ROAS 허위 0 해소). */
-    public static function adShortCodes(): array { return array_values(array_unique(array_values(self::AD_SHORT))); }
+     *  isAdChannel 전부에 자동 전파된다(성과 누락→ROAS 허위 0 해소).
+     *  [237차] 레지스트리 ad 채널 병합(fetcher 없는 채널은 fetch 디스패치에서 graceful no-op). */
+    public static function adShortCodes(): array
+    {
+        return array_values(array_unique(array_merge(array_values(self::AD_SHORT), self::registryChannels('ad'))));
+    }
 
     /**
      * [현 차수] GET /v424/connectors/campaign-funnel — 채널×objective 집계(목적별 퍼널 분류 근거).
@@ -1427,7 +1451,8 @@ final class Connectors
         try {
             // [현 차수 P1] AD_SHORT SSOT 동적 IN — 하드코딩 5채널 목록을 제거하고 광고채널 정본(AD_SHORT)에서
             //   파생. 신규 광고채널을 AD_SHORT 한 곳에만 추가하면 cron 팬아웃이 자동 편입된다(저장직후·수동·cron 대칭).
-            $adKeys = array_keys(self::AD_SHORT); // 저장 형태(meta_ads/meta 등) 전부 포함
+            // [237차] AD_SHORT 저장키 + 레지스트리 ad 채널 병합(커머스 commerceTenantChannels 대칭).
+            $adKeys = array_values(array_unique(array_merge(array_keys(self::AD_SHORT), self::registryChannels('ad'))));
             $ph = implode(',', array_fill(0, count($adKeys), '?'));
             $stmt = $pdo->prepare(
                 "SELECT DISTINCT tenant_id FROM channel_credential

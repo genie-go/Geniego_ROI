@@ -43,6 +43,22 @@ final class Logistics
     /** 국제 특송 — 전용 API 보유(현재 DHL 실구현). */
     private const INTL = ['dhl', 'fedex', 'ups', 'tnt', 'cj_intl'];
 
+    /** [237차] 물류/배송추적 채널 여부 — 내장 택배사(KR/INTL/smarttracker/ems/fulfillment) + 레지스트리
+     *  (sync_kind in tracking/logistics). ChannelCreds 저장 직후 자동 refresh 트리거가 하드코딩 리터럴 대신
+     *  이 SSOT 를 사용(registry 추가 택배사 대칭 — P1-2). 레지스트리 부재/오류 시 내장 목록만. */
+    public static function isLogisticsChannel(\PDO $pdo, string $channel): bool
+    {
+        $c = strtolower(trim($channel));
+        if ($c === '') return false;
+        if (isset(self::KR_CODE[$c]) || in_array($c, self::INTL, true)
+            || in_array($c, ['smarttracker', 'ems', 'fulfillment'], true)) return true;
+        try {
+            $st = $pdo->prepare("SELECT 1 FROM channel_registry WHERE is_active=1 AND channel_key=? AND sync_kind IN ('tracking','logistics') LIMIT 1");
+            $st->execute([$channel]);
+            return (bool)$st->fetchColumn();
+        } catch (\Throwable $e) { return false; }
+    }
+
     private static function tenant(Request $request): string
     {
         $t = UserAuth::authedTenant($request);

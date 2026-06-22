@@ -28,7 +28,7 @@ use Throwable;
 final class AdAdapters
 {
     private const META_VER = 'v19.0';
-    private const GOOGLE_VER = 'v16';
+    private const GOOGLE_VER = 'v17'; // [237차] 인제스트(Connectors v17)와 통일 — 집행도 동일 버전(구 v16 sunset 대비)
 
     /** 집행 허용 여부. [현 차수] 기본 활성(자격증명+PAUSED 안전장치). 명시적 비활성/킬스위치만 차단. */
     public static function executionEnabled(): bool

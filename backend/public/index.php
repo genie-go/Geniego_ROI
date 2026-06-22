@@ -228,6 +228,14 @@ $app->add(function (Request $request, $handler) {
         //   benchmarks 이미 위 블록 포함, daily-trends 누락분 흡수).
         || strpos($path, '/v419/graph/') === 0 || strpos($path, '/api/v419/graph/') === 0
         || strpos($path, '/v424/marketing/') === 0 || strpos($path, '/api/v424/marketing/') === 0
+        // [237차 감사] viewer 메뉴트리(/v425/menu-tree) — 프론트(MenuVisibilityContext) 가 admin 트리 403 시
+        //   세션 토큰으로 폴백 호출하는데 게이트 부재로 401 → 메뉴 가시성 캐시폴백. AdminMenu::gate(viewer) 는
+        //   auth_tenant+auth_role(위에서 viewer 주입)만 읽으므로 세션 게이트 편입이 정합. (admin 트리는 별도 bypass.)
+        || $path === '/v425/menu-tree' || $path === '/api/v425/menu-tree'
+        // [237차 감사] 자격증명 저장 직후 즉시 광고 ingest(/v423/connectors/sync) — 프론트가 세션 토큰으로 호출하나
+        //   bypass 제외(raw 헤더 보호) + 세션게이트 부재로 401 → 즉시 sync 불능(cron 시간당 백업만). 핸들러는
+        //   authedTenant 세션 self-auth 폴백 보유 → 세션→auth_tenant 주입 게이트 편입이 정합(즉시 동기화 복구).
+        || $path === '/v423/connectors/sync' || $path === '/api/v423/connectors/sync'
         || strpos($path, '/v1/ad-performance/') === 0 || strpos($path, '/api/v1/ad-performance/') === 0
         || $path === '/performance/meta-ads' || $path === '/api/performance/meta-ads') {
         $bearer = '';
@@ -275,6 +283,10 @@ $app->add(function (Request $request, $handler) {
                             if ($st !== '') {
                                 $request = $request
                                     ->withAttribute('auth_tenant', $st)
+                                    // [237차] 세션 사용자에 최소권한 viewer 역할 주입(권한상승 아님 — 최하위 등급).
+                                    //   /v425/menu-tree(AdminMenu::gate viewer rank 검사) 등 auth_role 을 읽는 세션-게이트
+                                    //   핸들러가 빈 role(-1<viewer=0)로 403 나던 것을 해소. 쓰기 RBAC 는 여전히 미상승.
+                                    ->withAttribute('auth_role', 'viewer')
                                     ->withHeader('X-Tenant-Id', $st);
                             }
                         }

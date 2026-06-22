@@ -366,9 +366,10 @@ final class ChannelCreds
                     // [227차 Tier2] PG 정산 채널(stripe/tosspayments/toss/paypal…)도 자격증명 등록 즉시 자동 수집.
                     //   기존엔 PG만 자동 트리거 누락 → 사용자가 /v427/pg/sync 를 수동 호출해야 정산이 들어왔다.
                     $autoSync = ['kind' => 'pg', 'result' => PgSettlement::syncForTenant($pdo, $tenant, $pgProv)];
-                } elseif (in_array(strtolower($channel), ['cj', 'lotte', 'hanjin', 'logen', 'epost', 'smarttracker', 'dhl', 'fedex', 'ups', 'ems', 'tnt', 'cj_intl'], true)) {
+                } elseif (Logistics::isLogisticsChannel($pdo, $channel)) {
                     // [228차 S5] 물류 추적 채널도 자격증명 등록 즉시 자동 갱신(광고/커머스/PG 와 대칭). 미배송 송장 보유 시 추적
                     //   갱신(없으면 no-op). 주문 동기화로 적재된 송장이 있으면 즉시 최신 배송상태 반영, cron(*/15) 백업.
+                    // [237차 P1-2] 하드코딩 리터럴 → Logistics::isLogisticsChannel(내장 택배사 + 레지스트리 tracking/logistics) 대칭.
                     $autoSync = ['kind' => 'logistics', 'result' => ['refreshed' => Logistics::refreshTenant($pdo, $tenant)]];
                 }
             } catch (\Throwable $e) {
