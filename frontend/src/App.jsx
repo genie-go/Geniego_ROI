@@ -332,6 +332,24 @@ function MenuAccessGuard({ children }) {
   return children;
 }
 
+/*
+ * [현 차수] /admin/* 라우트 클라이언트 인증·권한 가드.
+ * 동기: 미인증/세션 토큰 소실 상태로 /admin/growth 등 진입 시 페이지가 렌더되어
+ *   API 가 raw 401({code:AUTH_REQUIRED}) JSON 을 노출하던 UX 갭(백엔드 requirePlan('admin') 정상 보호).
+ *   RequireAuth 는 user 만 검사하므로, 로그아웃/idle 레이스로 token 만 소실된 순간을 못 막는다.
+ * 정책:
+ *   - token 없음 → /login (재인증). raw 401 노출 차단.
+ *   - 일반(비관리자) 로그인 사용자 → /dashboard. raw 403 노출 차단.
+ *   - 하위 관리자(isSubAdmin)는 통과 — 경로별 접근은 MenuAccessGuard(subMenuAllowed)가 이미 통제(회귀 방지).
+ */
+function AdminRouteGuard({ children }) {
+  const { user, token, isSubAdmin } = useAuth();
+  if (!token || !user) return <Navigate to="/login" replace />;
+  const isAdmin = user.plan === "admin" || user.plans === "admin";
+  if (!isAdmin && !isSubAdmin) return <Navigate to="/dashboard" replace />;
+  return children;
+}
+
 function AppLayout() {
   useSecurityGuard({ enabled: true });
 
@@ -409,12 +427,12 @@ function AppLayout() {
                       <Route path="/ai-policy" element={<Navigate to="/ai-rule-engine" replace />} />
                       <Route path="/action-presets" element={<Navigate to="/ai-rule-engine" replace />} />
                       <Route path="/mapping-registry" element={<Navigate to="/integration-hub" replace />} />
-                      <Route path="/admin" element={<Admin />} />
-                      <Route path="/admin/menu-tree" element={<AdminMenuManager />} />
-                      <Route path="/admin/plan-pricing" element={<PlanPricing />} />
-                      <Route path="/admin/sub-admins" element={<SubAdminManager />} />
-                      <Route path="/admin/site-intro" element={<SiteIntroAdmin />} />
-                      <Route path="/admin/growth" element={<AdminGrowthCenter />} />
+                      <Route path="/admin" element={<AdminRouteGuard><Admin /></AdminRouteGuard>} />
+                      <Route path="/admin/menu-tree" element={<AdminRouteGuard><AdminMenuManager /></AdminRouteGuard>} />
+                      <Route path="/admin/plan-pricing" element={<AdminRouteGuard><PlanPricing /></AdminRouteGuard>} />
+                      <Route path="/admin/sub-admins" element={<AdminRouteGuard><SubAdminManager /></AdminRouteGuard>} />
+                      <Route path="/admin/site-intro" element={<AdminRouteGuard><SiteIntroAdmin /></AdminRouteGuard>} />
+                      <Route path="/admin/growth" element={<AdminRouteGuard><AdminGrowthCenter /></AdminRouteGuard>} />
                       <Route path="/me/menu" element={<UserMenuPreferences />} />
                       <Route path="/pm" element={<PMOverview />} />
                       <Route path="/pm/portfolio" element={<PMPortfolio />} />
