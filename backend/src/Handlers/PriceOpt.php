@@ -539,7 +539,22 @@ class PriceOpt
     public static function runRepricer(Request $request, Response $response, array $args): Response
     {
         if ($err = UserAuth::requirePro($request, $response)) return $err;
-        $db = self::db(); $t = self::tenant($request); $now = gmdate('c');
+        return self::json($response, self::repriceForTenant(self::tenant($request)));
+    }
+
+    /** [237차] 활성 리프라이서 규칙 보유 테넌트 목록 — cron 팬아웃용(현재 backend 의 priceopt.sqlite 기준). */
+    public static function tenantsWithActiveRepricerRules(): array
+    {
+        try {
+            $rs = self::db()->query("SELECT DISTINCT tenant_id FROM po_repricer_rules WHERE active=1 AND tenant_id IS NOT NULL AND tenant_id<>''");
+            return array_values(array_filter(array_map(fn($r) => (string)$r, $rs->fetchAll(\PDO::FETCH_COLUMN))));
+        } catch (\Throwable $e) { return []; }
+    }
+
+    /** [237차] 리프라이서 실행 코어(HTTP 핸들러 runRepricer + cron repricer_cron.php 공용). @return array 요약 */
+    public static function repriceForTenant(string $t): array
+    {
+        $db = self::db(); $now = gmdate('c');
         $rs = $db->prepare("SELECT * FROM po_repricer_rules WHERE tenant_id=? AND active=1");
         $rs->execute([$t]);
         $rules = $rs->fetchAll(\PDO::FETCH_ASSOC);
@@ -595,13 +610,13 @@ class PriceOpt
             try { $db->prepare("UPDATE po_repricer_rules SET lastRun=?, changeCount=COALESCE(changeCount,0)+? WHERE id=? AND tenant_id=?")
                 ->execute([$now, $changed, (int)$rule['id'], $t]); } catch (\Throwable $e) {}
         }
-        return self::json($response, [
+        return [
             'ok' => true, 'rules_run' => count($rules), 'skus_evaluated' => $evaluated,
             'changes_applied' => count($changes), 'changes' => array_slice($changes, 0, 100),
             'note' => count($changes) > 0
                 ? count($changes) . '건 리프라이싱 적용(이력 기록·가격 갱신). 채널 반영은 일괄가격 writeback 으로 전파됩니다.'
                 : ($evaluated === 0 ? '활성 규칙 또는 경쟁사 가격 데이터가 없습니다. [경쟁사 가격] 등록 후 실행하세요.' : '가드(원가마진·변동상한) 내 변경 대상이 없습니다.'),
-        ]);
+        ];
     }
 
     // ── Promo Calendar ───────────────────────────────────────────────────────

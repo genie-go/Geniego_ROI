@@ -64,6 +64,9 @@ read -r -d '' CRONTAB <<EOF || true
 # ── PG 결제 정산 수집(2시간) ──
 17 */2 * * * GENIE_ENV=production php ${PROD}/bin/pg_settlement_cron.php >> /var/log/genie_pg_settle.log 2>&1
 23 */2 * * * GENIE_ENV=demo php ${DEMO}/bin/pg_settlement_cron.php >> /var/log/genie_pg_settle_demo.log 2>&1
+# ── [237차] 다이내믹 리프라이서(경쟁가 대비 자동 가격조정; 가격은 저빈도라 30분/매시) ──
+*/30 * * * * GENIE_ENV=production php ${PROD}/bin/repricer_cron.php >> /var/log/genie_repricer.log 2>&1
+7 * * * * GENIE_ENV=demo php ${DEMO}/bin/repricer_cron.php >> /var/log/genie_repricer_demo.log 2>&1
 EOF
 
 if [ "${1:-}" = "--apply" ]; then
