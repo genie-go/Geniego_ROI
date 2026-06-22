@@ -177,7 +177,8 @@ export default function OnboardingGuide() {
             </div>
           );
         })}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginTop: 8 }}>
+          <button onClick={resetModel} style={{ padding: '8px 14px', borderRadius: 10, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#0ea5e9,#6366f1)', color: '#fff', fontSize: 12, fontWeight: 800 }}>🔄 {t('onboard.bizModel.reselect', '사업유형 다시 선택')}</button>
           <button onClick={dismiss} style={{ padding: '8px 16px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.25)', cursor: 'pointer', background: 'rgba(255,255,255,0.1)', color: '#fff', fontSize: 12, fontWeight: 800 }}>{allDone ? t('onboard.dismissDone', '확인 · 닫기') : t('onboard.hide', '숨기기')}</button>
         </div>
       </div>
@@ -315,13 +316,13 @@ export default function OnboardingGuide() {
         )}
         <span style={{ flexShrink: 0, fontSize: 11, fontWeight: 900, color: '#c7d2fe' }}>{doneCount}/{STEPS.length}</span>
         {/* [현 차수] 하나(실물/서비스)를 고른 뒤에도 메인 바에서 '추가 선택' → 둘 다 등록 가능(both 병합). */}
-        {(bizModel === 'commerce' || bizModel === 'service') && (
-          <button onClick={() => chooseModel('both')}
-            title={t('onboard.bizModel.addBothHint', '다른 유형도 함께 등록합니다')}
-            style={{ ...hBtn, flexShrink: 0, background: 'linear-gradient(135deg,#22c55e,#16a34a)', border: 'none', color: '#fff' }}>
-            + {bizModel === 'commerce' ? t('onboard.bizModel.addService', '서비스 추가') : t('onboard.bizModel.addCommerce', '실물상품 추가')}
-          </button>
-        )}
+        {/* [237차] ★사업유형 다시 선택 — 메인 바에 항상 노출(실물/서비스/둘다 3카드 재선택). 서비스 사업자가
+            상품등록에 막혔을 때 펼치기 없이 즉시 서비스형으로 전환 가능. */}
+        <button onClick={resetModel}
+          title={t('onboard.bizModel.reselectHint', '실물상품/서비스 중 다시 선택합니다')}
+          style={{ ...hBtn, flexShrink: 0, background: 'linear-gradient(135deg,#0ea5e9,#6366f1)', border: 'none', color: '#fff' }}>
+          🔄 {t('onboard.bizModel.reselect', '사업유형 다시 선택')}
+        </button>
         <button onClick={toggle} style={hBtn}>{expanded ? t('onboard.collapse', '접기') + ' ▴' : t('onboard.expand', '펼치기') + ' ▾'}</button>
         <button onClick={hide} title={t('onboard.hide', '숨기기')} style={{ ...hBtn, padding: '4px 8px' }}>×</button>
       </div>
