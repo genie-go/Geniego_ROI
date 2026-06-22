@@ -586,6 +586,11 @@ return function (App $app): void {
         'GET /v422/ai/campaign-ad-video-status' => 'Genie\\Handlers\\ClaudeAI::campaignAdVideoStatus',
         'POST /v422/ai/ad-design/save'        => 'Genie\\Handlers\\ClaudeAI::adDesignSave',
         'GET /v422/ai/ad-design/list'         => 'Genie\\Handlers\\ClaudeAI::adDesignList',
+        // [237차] Creative AI Studio — 대량 변형 생성 + 소재별 Creative Insights(/api 변형 포함, /v422/ai 세션게이트)
+        'POST /v422/ai/studio/batch'          => 'Genie\\Handlers\\CreativeStudio::batch',
+        'POST /api/v422/ai/studio/batch'      => 'Genie\\Handlers\\CreativeStudio::batch',
+        'GET /v422/ai/studio/insights'        => 'Genie\\Handlers\\CreativeStudio::insights',
+        'GET /api/v422/ai/studio/insights'    => 'Genie\\Handlers\\CreativeStudio::insights',
         'GET /v422/ai/creative-api'           => 'Genie\\Handlers\\ClaudeAI::creativeApiGet',
         'POST /v422/ai/creative-api'          => 'Genie\\Handlers\\ClaudeAI::creativeApiSave',
         'POST /v423/auto-campaign/launch'     => 'Genie\\Handlers\\AutoCampaign::launch',
@@ -614,10 +619,9 @@ return function (App $app): void {
         'POST /v421/connectors/audience/sync'    => 'Genie\\Handlers\\Connectors::audienceSync',
 
         // ── v422 Trends ─────────────────────────────────────────────────────────
-        'GET /v422/trends/pnl'     => 'Genie\\Handlers\\Trends::pnl',
-        'GET /v422/trends/roas'    => 'Genie\\Handlers\\Trends::roas',
-        'GET /v422/trends/returns' => 'Genie\\Handlers\\Trends::returnRates',
-        // [233차 P2] 'POST /v422/ai/insight'(Trends::aiInsight) 제거 — 빈 stub·프론트 미사용(ClaudeAI 가 실 인사이트 담당)
+        // [237차 235백로그 P2] Trends::pnl/roas/returnRates 제거 — 전부 0/빈배열만 반환하던 죽은 stub-zero
+        //   라우트(프론트·백엔드 호출처 전무). 233차 Trends::aiInsight 제거와 동일 정합. 실 P&L 추이는
+        //   Rollup/OrderHub·PnL 도메인이 실데이터로 담당. 핸들러 파일(Trends.php)도 동반 삭제.
 
         // ── v423 Two-Layer Event Schema ────────────────────────────────────────
         'POST /v423/events/ingest-raw'  => 'Genie\\Handlers\\EventNorm::ingestRaw',
@@ -1768,11 +1772,7 @@ return function (App $app): void {
     $register('POST', '/v421/connectors/amazon/token');
     $register('POST', '/v421/connectors/audience/sync');
 
-    // ── v422 Trends ─────────────────────────────────────────────────────────
-    $register('GET',  '/v422/trends/pnl');
-    $register('GET',  '/v422/trends/roas');
-    $register('GET',  '/v422/trends/returns');
-    // [233차 P2] '/v422/ai/insight' 제거(Trends::aiInsight 죽은 빈 stub)
+    // [237차 235백로그 P2] v422 Trends($register) 제거 — 죽은 stub-zero 라우트(상단 $custom 맵 동반 제거).
 
     // ── v423 Two-Layer Event Schema ───────────────────────────────────
     $register('POST', '/v423/events/ingest-raw');
@@ -1826,6 +1826,8 @@ return function (App $app): void {
     $register('GET',  '/v422/ai/campaign-ad-video-status');
     $register('POST', '/v422/ai/ad-design/save');
     $register('GET',  '/v422/ai/ad-design/list');
+    $register('POST', '/v422/ai/studio/batch');       // [237차] Creative AI Studio
+    $register('GET',  '/v422/ai/studio/insights');
     $register('GET',  '/v422/ai/creative-api');
     $register('POST', '/v422/ai/creative-api');
     $register('POST', '/v423/auto-campaign/launch');

@@ -2171,6 +2171,27 @@ PROMPT;
           ."</svg>";
     }
 
+    /**
+     * [237차 Creative AI Studio] 재사용 가능한 이미지 생성 — imgGenConfig + imgGenOpenAI/Stability + 공용키 quota.
+     *   campaignAdImage 핸들러의 코어를 추출(중복0). CreativeStudio 대량 변형 생성이 직접 호출한다.
+     *   반환: ['ok'=>bool, 'image'=>base64 data-URI, 'provider'=>str] | ['ok'=>false, 'error'/'configured'/'quota'].
+     */
+    public static function generateImage(string $tenant, string $prompt, string $ratio = '1:1'): array
+    {
+        $prompt = trim($prompt);
+        if ($prompt === '') return ['ok' => false, 'error' => 'empty_prompt'];
+        $cfg = self::imgGenConfig($tenant);
+        if (strlen((string)$cfg['key']) < 10) return ['ok' => false, 'configured' => false, 'error' => 'image_api_not_configured'];
+        $usingGlobal = self::usingGlobalKey($cfg['key'], self::imgGenConfig(''));
+        if ($usingGlobal && ($qErr = self::quotaGate($tenant, 'image')) !== null) return ['ok' => false, 'quota' => true, 'error' => $qErr];
+        $full = $prompt . ". Premium advertising background visual, high-end commercial photography, cinematic lighting, no text, no words, no letters, clean composition with empty space for overlay.";
+        try {
+            $img = ($cfg['provider'] === 'stability') ? self::imgGenStability($cfg['key'], $full, $ratio) : self::imgGenOpenAI($cfg['key'], $full, $ratio);
+        } catch (\Throwable $e) { return ['ok' => false, 'error' => 'imggen_failed:' . $e->getMessage()]; }
+        if ($usingGlobal) self::quotaConsume($tenant, 'image');
+        return ['ok' => true, 'image' => $img, 'provider' => $cfg['provider']];
+    }
+
     // ─────────────────────────────────────────────────────────────────────
     // POST /v422/ai/campaign-ad-image  (196차 — 실사 이미지 생성: DALL·E 3 등)
     // 이미지 생성 프롬프트 → 외부 이미지 생성 API → base64 이미지(광고 배경/비주얼).

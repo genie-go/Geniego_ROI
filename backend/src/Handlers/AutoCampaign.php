@@ -249,6 +249,16 @@ class AutoCampaign
             ]);
             $id = (int)$pdo->lastInsertId();
 
+            // [237차 Creative AI Studio] 소재(design_id)↔매체 ad_ext_id 매핑 영속화 → Creative Insights 성과 조인 키
+            //   (creative_variant ← ad_insight_agg.ad_id). 채널을 각 variant 에 부여 후 적재(멱등).
+            if (!empty($abVariants)) {
+                $cvRows = [];
+                foreach ($abVariants as $cvCh => $cvList) {
+                    foreach ($cvList as $cvV) { $cvV['channel'] = (string)$cvCh; $cvRows[] = $cvV; }
+                }
+                try { CreativeStudio::recordVariants($pdo, $tenant, $id, $cvRows); } catch (\Throwable $e) {}
+            }
+
             // ★ A/B 테스트 등록(variant 2+ 집행된 채널만). 승자선정은 optimizeCampaign(cron 매시)이 수행.
             $abTests = [];
             if ($abMode && !empty($abVariants)) {
