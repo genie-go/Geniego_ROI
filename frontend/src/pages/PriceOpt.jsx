@@ -1315,6 +1315,9 @@ function DynamicRepricerTab({ token, inventory = [], digitalShelfData = {} }) {
     const [approving, setApproving] = useState(false);
     const [pendingN, setPendingN] = useState(0);
     const [msg, setMsg] = useState('');
+    // [239차+ ML] 규칙 생성 폼(ML 탄력성 모드 포함)
+    const [newRule, setNewRule] = useState({ name: '', sku: '*', channel: '*', mode: 'elasticity' });
+    const [creating, setCreating] = useState(false);
 
     useEffect(() => {
         const ac = new AbortController();
@@ -1349,8 +1352,19 @@ function DynamicRepricerTab({ token, inventory = [], digitalShelfData = {} }) {
         setApproving(false);
     };
 
-    const MODE_LABEL = { min_price: t("priceOpt.minPriceAlert"), roas_target: "ROAS Goal", inventory: t("priceOpt.dsIntegration") };
-    const MODE_COLOR = { min_price: "#4f8ef7", roas_target: "#22c55e", inventory: "#f97316" };
+    const MODE_LABEL = { elasticity: "🧠 " + t("priceOpt.modeElasticity", "ML 수요탄력성"), min_price: t("priceOpt.modeUndercut", "언더컷 -1%"), match: t("priceOpt.modeMatch", "경쟁사 매칭"), margin: t("priceOpt.modeMargin", "목표마진"), roas_target: "ROAS Goal", inventory: t("priceOpt.dsIntegration") };
+    const MODE_COLOR = { elasticity: "#a855f7", min_price: "#4f8ef7", match: "#22c55e", margin: "#f97316", roas_target: "#22c55e", inventory: "#f97316" };
+    const MODE_OPTIONS = [["elasticity", MODE_LABEL.elasticity], ["min_price", MODE_LABEL.min_price], ["match", MODE_LABEL.match], ["margin", MODE_LABEL.margin]];
+    const createRule = async () => {
+        if (!newRule.name.trim()) { setMsg(t("priceOpt.ruleNameReq", "규칙 이름을 입력하세요")); return; }
+        setCreating(true); setMsg('');
+        try {
+            await postJsonAuth(`/v420/price/repricer/rules`, { name: newRule.name.trim(), sku: newRule.sku.trim() || '*', channel: newRule.channel.trim() || '*', mode: newRule.mode });
+            const r = await getJsonAuth(`/v420/price/repricer/rules`); if (r?.rules) setRules(r.rules);
+            setNewRule({ name: '', sku: '*', channel: '*', mode: 'elasticity' }); setMsg(t("priceOpt.ruleAdded", "규칙 추가됨"));
+        } catch (e) { setMsg(t("priceOpt.ruleAddFail", "규칙 추가 실패")); }
+        setCreating(false);
+    };
 
     return (
         <div style={{ display: "grid", gap: 18 }}>
@@ -1386,6 +1400,17 @@ function DynamicRepricerTab({ token, inventory = [], digitalShelfData = {} }) {
             </div>
             <div>
                 <div style={{ fontWeight: 800, fontSize: 14, color: '#1e293b', marginBottom: 12 }}>⚡ {t("priceOpt.autoRules")}</div>
+                {/* [239차+ ML] 규칙 생성 폼 — ML 수요탄력성 모드 포함 */}
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", padding: "12px 14px", borderRadius: 12, background: "#ffffff", border: "1px solid #e2e8f0", marginBottom: 10 }}>
+                    <input value={newRule.name} onChange={e => setNewRule(r => ({ ...r, name: e.target.value }))} placeholder={t("priceOpt.ruleName", "규칙 이름")} style={{ padding: "7px 10px", borderRadius: 8, border: "1px solid #e2e8f0", fontSize: 12, width: 150 }} />
+                    <input value={newRule.sku} onChange={e => setNewRule(r => ({ ...r, sku: e.target.value }))} placeholder="SKU (* = 전체)" style={{ padding: "7px 10px", borderRadius: 8, border: "1px solid #e2e8f0", fontSize: 12, width: 110 }} />
+                    <input value={newRule.channel} onChange={e => setNewRule(r => ({ ...r, channel: e.target.value }))} placeholder={t("priceOpt.labelChannel", "채널") + " (*)"} style={{ padding: "7px 10px", borderRadius: 8, border: "1px solid #e2e8f0", fontSize: 12, width: 110 }} />
+                    <select value={newRule.mode} onChange={e => setNewRule(r => ({ ...r, mode: e.target.value }))} style={{ padding: "7px 10px", borderRadius: 8, border: "1px solid #e2e8f0", fontSize: 12, cursor: "pointer" }}>
+                        {MODE_OPTIONS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                    </select>
+                    <button onClick={createRule} disabled={creating} style={{ padding: "8px 16px", borderRadius: 9, border: "none", cursor: creating ? "default" : "pointer", fontWeight: 800, fontSize: 12, background: creating ? "#cbd5e1" : "linear-gradient(135deg,#a855f7,#6366f1)", color: "#fff" }}>{creating ? "…" : "+ " + t("priceOpt.addRule", "규칙 추가")}</button>
+                    {newRule.mode === 'elasticity' && <span style={{ fontSize: 11, color: "#94a3b8" }}>{t("priceOpt.mlHint", "실주문 데이터가 쌓이면 수요탄력성으로 이익최대 가격을 자동 산출합니다.")}</span>}
+                </div>
                 {rules.length === 0 && <div className="sub" style={{ padding: 16, fontSize: 12 }}>{t("priceOpt.noAnalysis")}</div>}
                 <div style={{ display: "grid", gap: 8 }}>
                     {rules.map(r => (

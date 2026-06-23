@@ -162,6 +162,82 @@ class PriceOpt
         return ['slope' => $slope, 'intercept' => $intercept, 'r2' => round($r2, 4)];
     }
 
+    /**
+     * [239차+ ML] 수요탄력성 기반 이익최대 최적가 — optimize(수동) + repriceForTenant(자동 리프라이서) 공용(중복0).
+     *   po_elasticity(price,quantity) log-log 회귀로 수요곡선 추정 → 후보가격 중 이익최대 선택(재고 상한 반영).
+     *   관측 2점 미만 또는 가격 변동 없으면 null → 호출부가 규칙/cost-plus 폴백(데이터 부족 시 회귀0).
+     * @return array|null ['price','qty','margin','algo','r2','points']
+     */
+    private static function elasticityOptimal(\PDO $db, string $t, string $sku, string $channel, float $cost, float $targetMargin, ?float $currentPx, int $inventory): ?array
+    {
+        $minPrice = $cost > 0 ? round($cost / (1 - max(0.01, min(0.95, $targetMargin))), 0) : (float)($currentPx ?? 0);
+        if ($minPrice <= 0) return null;
+        $es = $db->prepare("SELECT price, quantity FROM po_elasticity WHERE sku=? AND channel=? AND tenant_id=? ORDER BY price");
+        $es->execute([$sku, $channel, $t]); $rows = $es->fetchAll(\PDO::FETCH_ASSOC);
+        if (count($rows) < 2) { $es->execute([$sku, '*', $t]); $rows = $es->fetchAll(\PDO::FETCH_ASSOC); }
+        if (count($rows) < 2) return null;
+        $xs = array_map('floatval', array_column($rows, 'price'));
+        $ys = array_map('floatval', array_column($rows, 'quantity'));
+        if (count(array_unique($xs)) < 2) return null; // 가격 변동 없으면 탄력성 추정 불가
+        $lxs = array_map('log', array_map(fn($v) => max($v, 1.0), $xs));
+        $lys = array_map('log', array_map(fn($v) => max($v, 0.1), $ys));
+        $reg = self::linReg($lxs, $lys);
+        $step = max(100.0, $cost * 0.02);
+        $hi = max($cost * 3, ($currentPx ?? $minPrice) * 1.5);
+        $lo = max($minPrice, $cost * 1.05);
+        $best = ['price' => $minPrice, 'profit' => -INF, 'qty' => 0.0];
+        for ($p = $lo, $guard = 0; $p <= $hi && $guard < 5000; $p += $step, $guard++) {
+            $q = exp($reg['intercept'] + $reg['slope'] * log(max($p, 1.0)));
+            if ($inventory > 0) $q = min($q, $inventory * 0.8);
+            $profit = ($p - $cost) * $q;
+            if ($profit > $best['profit']) $best = ['price' => $p, 'profit' => $profit, 'qty' => $q];
+        }
+        $optPrice = round($best['price'], -2);
+        return ['price' => $optPrice, 'qty' => round($best['qty'], 1), 'margin' => $optPrice > 0 ? round(($optPrice - $cost) / $optPrice, 4) : 0, 'algo' => 'log-log-regression', 'r2' => $reg['r2'], 'points' => count($rows)];
+    }
+
+    /**
+     * [239차+ ML] 실주문(channel_orders, 메인DB)에서 (가격,수량) 관측을 주별 집계해 po_elasticity 자동 적재.
+     *   ★"실데이터 투입 시 가동": 수동 ingest 없이 실 판매가 쌓이면 탄력성 추정 데이터가 자동 형성.
+     *   멱등: (tenant,sku,channel,recorded_at=주키) 중복 시 갱신. 메인DB 미가용/무데이터 시 no-op(회귀0).
+     * @return int 적재/갱신 관측 수
+     */
+    public static function harvestElasticityFromOrders(string $t, int $weeks = 12): int
+    {
+        if ($t === '' || $t === 'demo') return 0;
+        try {
+            $main = \Genie\Db::pdo();
+            $since = gmdate('Y-m-d', time() - $weeks * 7 * 86400);
+            // 주별·SKU·채널 평균단가/총수량(unit price=total_price/qty, KRW 정규화 적재 가정). SKU/qty 컬럼 존재 가정, 실패 시 no-op.
+            $sql = "SELECT sku, LOWER(channel) ch,
+                           " . (\Genie\Db::pdo()->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql'
+                                ? "DATE_FORMAT(ordered_at,'%x-W%v')" : "strftime('%Y-W%W', ordered_at)") . " AS wk,
+                           SUM(total_price) rev, SUM(quantity) qty
+                      FROM channel_orders
+                     WHERE tenant_id=? AND ordered_at>=? AND quantity>0 AND total_price>0 AND sku IS NOT NULL AND sku<>''
+                     GROUP BY sku, LOWER(channel), wk
+                     HAVING qty>0";
+            $st = $main->prepare($sql); $st->execute([$t, $since]);
+            $obs = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+        } catch (\Throwable $e) { return 0; } // 스키마 상이/미가용 → no-op
+        if (!$obs) return 0;
+        $db = self::db(); $n = 0;
+        $sel = $db->prepare("SELECT id FROM po_elasticity WHERE tenant_id=? AND sku=? AND channel=? AND recorded_at=?");
+        $upd = $db->prepare("UPDATE po_elasticity SET price=?, quantity=? WHERE id=?");
+        $ins = $db->prepare("INSERT INTO po_elasticity (tenant_id,sku,channel,price,quantity,recorded_at) VALUES (?,?,?,?,?,?)");
+        foreach ($obs as $o) {
+            $qty = (float)$o['qty']; if ($qty <= 0) continue;
+            $unit = round((float)$o['rev'] / $qty);
+            $ch = (string)$o['ch']; $sku = (string)$o['sku']; $wk = 'wk:' . (string)$o['wk'];
+            try {
+                $sel->execute([$t, $sku, $ch, $wk]); $id = $sel->fetchColumn();
+                if ($id) $upd->execute([$unit, $qty, $id]); else $ins->execute([$t, $sku, $ch, $unit, $qty, $wk]);
+                $n++;
+            } catch (\Throwable $e) { /* skip */ }
+        }
+        return $n;
+    }
+
     private static function optimalPrice(float $a, float $b, float $cost, float $minPrice): float
     {
         if (abs($b) < 1e-10 || $b > 0) return $minPrice;
@@ -310,26 +386,10 @@ class PriceOpt
         $cost = $product ? (float)$product['cost_price'] : 0;
         $targetMargin = $product ? (float)$product['target_margin'] : 0.30;
         $minPrice = $cost > 0 ? round($cost / (1 - $targetMargin), 0) : (float)($body['min_price'] ?? 0);
-        $es = $db->prepare("SELECT price, quantity FROM po_elasticity WHERE sku = ? AND channel = ? AND tenant_id = ? ORDER BY price");
-        $es->execute([$sku, $channel, $t]);
-        $rows = $es->fetchAll(\PDO::FETCH_ASSOC);
-        if (!count($rows)) { $es->execute([$sku, '*', $t]); $rows = $es->fetchAll(\PDO::FETCH_ASSOC); }
-        if (count($rows) >= 2) {
-            $xs = array_column($rows, 'price'); $ys = array_column($rows, 'quantity');
-            $lxs = array_map('log', array_map(fn($v) => max($v, 1), $xs));
-            $lys = array_map('log', array_map(fn($v) => max($v, 0.1), $ys));
-            $reg = self::linReg($lxs, $lys);
-            $candidates = range(max($minPrice, $cost * 1.05), max($cost * 3, ($currentPx ?? $minPrice) * 1.5), max(100, $cost * 0.02));
-            $best = ['price' => $minPrice, 'profit' => -INF, 'qty' => 0];
-            foreach ($candidates as $p) {
-                $q = exp($reg['intercept'] + $reg['slope'] * log(max($p, 1)));
-                if ($inventory > 0) $q = min($q, $inventory * 0.8);
-                $profit = ($p - $cost) * $q;
-                if ($profit > $best['profit']) $best = ['price' => $p, 'profit' => $profit, 'qty' => $q];
-            }
-            $optPrice = round($best['price'], -2); $optQty = round($best['qty'], 1);
-            $optMargin = $optPrice > 0 ? round(($optPrice - $cost) / $optPrice, 4) : 0;
-            $algo = 'log-log-regression'; $r2 = $reg['r2'];
+        // [239차+ ML] 탄력성 최적가 = 공용 헬퍼(elasticityOptimal) 재사용(중복0). 데이터 부족 시 cost-plus 폴백.
+        $opt = self::elasticityOptimal($db, $t, $sku, $channel, $cost, $targetMargin, $currentPx, $inventory);
+        if ($opt) {
+            $optPrice = $opt['price']; $optQty = $opt['qty']; $optMargin = $opt['margin']; $algo = $opt['algo']; $r2 = $opt['r2'];
         } else {
             $optPrice = $minPrice; $optQty = null; $optMargin = $targetMargin;
             $algo = 'cost-plus-fallback'; $r2 = null;
@@ -558,6 +618,8 @@ class PriceOpt
         $rs = $db->prepare("SELECT * FROM po_repricer_rules WHERE tenant_id=? AND active=1");
         $rs->execute([$t]);
         $rules = $rs->fetchAll(\PDO::FETCH_ASSOC);
+        // [239차+ ML] 실주문에서 (가격,수량) 관측 자동 적재 → elasticity 모드가 실데이터로 가동(데이터 없으면 no-op).
+        $harvested = 0; try { $harvested = self::harvestElasticityFromOrders($t); } catch (\Throwable $e) {}
         $changes = []; $evaluated = 0; $enqueued = 0;
         $hist = $db->prepare("INSERT INTO po_repricer_history (tenant_id,sku,channel,prev,next,reason,time,created_at) VALUES (?,?,?,?,?,?,?,?)");
         $updComp = $db->prepare("UPDATE po_competitors SET ourPrice=?, updated_at=? WHERE tenant_id=? AND sku=?");
@@ -592,6 +654,17 @@ class PriceOpt
                 } elseif ($mode === 'margin') {
                     $target = $cost > 0 ? round($cost * (1 + $tMargin)) : $cur;
                     $new = max($cur < $target ? $target : $cur, $floor); $reason = '목표마진 확보';
+                } elseif ($mode === 'elasticity' || $mode === 'ml') {
+                    // [239차+ ML] 수요탄력성 이익최대(공용 헬퍼 재사용). 데이터 부족 시 경쟁사 -1% 폴백(회귀0).
+                    $opt = self::elasticityOptimal($db, $t, $sku, $channel, $cost, $tMargin, $cur, 0);
+                    if ($opt && $opt['price'] > 0) {
+                        $new = max($floor, (float)$opt['price']);
+                        // 경쟁반응 가드: 경쟁가 존재 시 최저가 +5% 상한(과도 프리미엄 방지·경쟁력 유지)
+                        if ($comps) $new = min($new, max($floor, round(min($comps) * 1.05)));
+                        $reason = 'ML 수요탄력성 이익최대(R²=' . ($opt['r2'] ?? 0) . ')';
+                    } elseif ($comps) {
+                        $new = max($floor, round(min($comps) * 0.99)); $reason = 'ML 데이터 부족 → 경쟁사 -1% 폴백';
+                    }
                 } else { // min_price(언더컷, 기본)
                     if ($comps) { $new = max($floor, round(min($comps) * 0.99)); $reason = '경쟁사 최저가 -1% 언더컷'; }
                 }
@@ -617,7 +690,7 @@ class PriceOpt
         return [
             'ok' => true, 'rules_run' => count($rules), 'skus_evaluated' => $evaluated,
             'changes_applied' => count($changes), 'changes' => array_slice($changes, 0, 100),
-            'pending_approval' => $enqueued,
+            'pending_approval' => $enqueued, 'elasticity_observations' => $harvested,
             'note' => count($changes) > 0
                 ? count($changes) . '건 리프라이싱 적용(이력 기록·내부가격 갱신). 실 채널 반영은 사람 검토 보호를 위해 ' . $enqueued . '건이 승인 대기 중입니다 — [채널 반영 승인]을 눌러 push 하세요.'
                 : ($evaluated === 0 ? '활성 규칙 또는 경쟁사 가격 데이터가 없습니다. [경쟁사 가격] 등록 후 실행하세요.' : '가드(원가마진·변동상한) 내 변경 대상이 없습니다.'),
