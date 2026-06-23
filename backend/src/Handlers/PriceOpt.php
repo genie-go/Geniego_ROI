@@ -558,7 +558,7 @@ class PriceOpt
         $rs = $db->prepare("SELECT * FROM po_repricer_rules WHERE tenant_id=? AND active=1");
         $rs->execute([$t]);
         $rules = $rs->fetchAll(\PDO::FETCH_ASSOC);
-        $changes = []; $evaluated = 0;
+        $changes = []; $evaluated = 0; $enqueued = 0;
         $hist = $db->prepare("INSERT INTO po_repricer_history (tenant_id,sku,channel,prev,next,reason,time,created_at) VALUES (?,?,?,?,?,?,?,?)");
         $updComp = $db->prepare("UPDATE po_competitors SET ourPrice=?, updated_at=? WHERE tenant_id=? AND sku=?");
         $updProd = $db->prepare("UPDATE po_products SET base_price=? WHERE tenant_id=? AND sku=?");
@@ -605,6 +605,10 @@ class PriceOpt
                     if ($prod) $updProd->execute([$new, $t, $sku]);
                     $changes[] = ['sku' => $sku, 'channel' => $channel, 'prev' => $cur, 'next' => $new, 'reason' => $reason];
                     $changed++;
+                    // [239차] human-in-loop 채널 반영: 내부가격 갱신 후 writeback 큐에 'pending_approval' 로 적재.
+                    //   사용자 승인(POST /catalog/writeback/approve) 시에만 실 채널 push → 실 마켓 가격 자동변경 방지.
+                    Catalog::enqueueRepricePending($t, $channel, $sku, (float)$new, (float)$cur);
+                    $enqueued++;
                 } catch (\Throwable $e) { /* 개별 실패 스킵 */ }
             }
             try { $db->prepare("UPDATE po_repricer_rules SET lastRun=?, changeCount=COALESCE(changeCount,0)+? WHERE id=? AND tenant_id=?")
@@ -613,8 +617,9 @@ class PriceOpt
         return [
             'ok' => true, 'rules_run' => count($rules), 'skus_evaluated' => $evaluated,
             'changes_applied' => count($changes), 'changes' => array_slice($changes, 0, 100),
+            'pending_approval' => $enqueued,
             'note' => count($changes) > 0
-                ? count($changes) . '건 리프라이싱 적용(이력 기록·가격 갱신). 채널 반영은 일괄가격 writeback 으로 전파됩니다.'
+                ? count($changes) . '건 리프라이싱 적용(이력 기록·내부가격 갱신). 실 채널 반영은 사람 검토 보호를 위해 ' . $enqueued . '건이 승인 대기 중입니다 — [채널 반영 승인]을 눌러 push 하세요.'
                 : ($evaluated === 0 ? '활성 규칙 또는 경쟁사 가격 데이터가 없습니다. [경쟁사 가격] 등록 후 실행하세요.' : '가드(원가마진·변동상한) 내 변경 대상이 없습니다.'),
         ];
     }

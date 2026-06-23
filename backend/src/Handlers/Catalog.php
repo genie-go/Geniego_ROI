@@ -615,10 +615,19 @@ class Catalog
             }
             $product = self::currentListing($pdo, $t, $ch, $sku) ?: (json_decode((string)$j['payload'], true) ?: []);
             $product['sku'] = $sku;
+            // [239차] 리프라이서 price_update: payload 의 새 가격을 listing 위에 overlay.
+            //   리프라이서는 priceopt.sqlite(po_products)만 갱신하므로 메인DB catalog_listing 가격은 stale →
+            //   payload(source=repricer) 의 새 가격을 우선 반영해야 채널에 올바른 가격이 push 된다.
+            if ($op === 'price_update') {
+                $pl = json_decode((string)$j['payload'], true) ?: [];
+                if (isset($pl['price'])) $product['price'] = (float)$pl['price'];
+            }
             // [227차] 채널 카테고리 매핑 해석 — 내 카테고리→채널 카테고리코드(쿠팡/네이버 등 필수). 어댑터가 category_code 우선 사용.
             $product['category_code'] = self::resolveChannelCategory($pdo, $t, $ch, $product);
             $priorId = self::priorChannelProductId($pdo, $t, $ch, $sku);
-            $res = self::pushToChannel($ch, $creds, $product, $op, $priorId);
+            // 신규 op('price_update')은 어댑터엔 알려진 upsert('publish')로 정규화 전달(가격 포함 listing 갱신).
+            $pushOp = ($op === 'price_update') ? 'publish' : $op;
+            $res = self::pushToChannel($ch, $creds, $product, $pushOp, $priorId);
             if (!empty($res['ok'])) {
                 $upd->execute(['done', json_encode($res, JSON_UNESCAPED_UNICODE), $attempt, $now, $j['id']]);
                 try { $pdo->prepare("UPDATE catalog_listing SET status='synced', updated_at=? WHERE tenant_id=? AND channel=? AND sku=?")->execute([$now, $t, $ch, $sku]); } catch (\Throwable $e) {}
@@ -821,5 +830,59 @@ class Catalog
         $st = $pdo->prepare("SELECT id,channel,sku,operation,status,attempt,result,updated_at FROM catalog_writeback_job WHERE tenant_id=:t ORDER BY id DESC LIMIT 200");
         $st->execute([':t' => $tenant]);
         return self::jsonRes($res, $st->fetchAll(\PDO::FETCH_ASSOC));
+    }
+
+    /** [239차] 리프라이서 → writeback 큐 enqueue(human-in-loop). 가격변경을 'pending_approval' 로 적재 →
+     *   사용자 승인(approveQueue) 시에만 'queued'→채널 push. 실 마켓 가격 자동변경 방지(광고 PAUSED 정책과 일관).
+     *   ★중복 없음: 기존 catalog_writeback_job + processWritebackQueue 재사용(가격 overlay는 위 큐 소비에서 처리).
+     *   동일 (tenant,channel,sku) 대기건은 갱신(cron 반복 실행 시 누적 방지). PriceOpt::repriceForTenant 공용. */
+    public static function enqueueRepricePending(string $tenant, string $channel, string $sku, float $price, float $prev): void
+    {
+        if ($tenant === '' || $sku === '') return;
+        try {
+            self::ensureTables();
+            $pdo = self::db(); $now = self::now();
+            $ch = ($channel === '' || $channel === '*') ? 'all' : $channel;
+            $payload = json_encode(['sku' => $sku, 'channel' => $ch, 'price' => $price, 'prev' => $prev, 'source' => 'repricer'], JSON_UNESCAPED_UNICODE);
+            $ex = $pdo->prepare("SELECT id FROM catalog_writeback_job WHERE tenant_id=? AND channel=? AND sku=? AND operation='price_update' AND status='pending_approval' ORDER BY id DESC LIMIT 1");
+            $ex->execute([$tenant, $ch, $sku]);
+            $id = $ex->fetchColumn();
+            if ($id) {
+                $pdo->prepare("UPDATE catalog_writeback_job SET payload=?, updated_at=? WHERE id=?")->execute([$payload, $now, $id]);
+            } else {
+                $pdo->prepare("INSERT INTO catalog_writeback_job(tenant_id,channel,sku,operation,status,attempt,payload,created_at,updated_at) VALUES(?,?,?,?,?,1,?,?,?)")
+                    ->execute([$tenant, $ch, $sku, 'price_update', 'pending_approval', $payload, $now, $now]);
+            }
+        } catch (\Throwable $e) { /* best-effort: 큐 적재 실패해도 내부가격 갱신은 유지 */ }
+    }
+
+    /* [239차] POST /catalog/writeback/approve — pending_approval job 승인→queued→채널 push(human-in-loop 전이).
+     *   body:{ids?:[int], operation?:string}. 미지정 시 테넌트 전체 pending_approval 승인. requirePro.
+     *   ★기존 writeback 승인 흐름에 누락돼 있던 'pending_approval→queued' 전이 조각을 메움(리프라이서/일괄가격 공용).
+     *   승인 즉시 큐 소비: 자격증명 있으면 채널 push, 없으면 'awaiting_credentials' 보류(등록 시 자동 재개). */
+    public static function approveQueue(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $pdo = self::db(); $tenant = self::tenant($req);
+        $body = (array)($req->getParsedBody() ?? []);
+        $ids = array_values(array_filter(array_map('intval', (array)($body['ids'] ?? [])), fn($x) => $x > 0));
+        $operation = (isset($body['operation']) && $body['operation'] !== '') ? (string)$body['operation'] : null;
+        $now = self::now();
+        $where = "tenant_id=? AND status='pending_approval'"; $params = [$tenant];
+        if ($operation !== null) { $where .= " AND operation=?"; $params[] = $operation; }
+        if ($ids) { $where .= " AND id IN (" . implode(',', array_fill(0, count($ids), '?')) . ")"; foreach ($ids as $x) $params[] = $x; }
+        $approved = 0;
+        try {
+            $st = $pdo->prepare("UPDATE catalog_writeback_job SET status='queued', updated_at=? WHERE $where");
+            $st->execute(array_merge([$now], $params));
+            $approved = $st->rowCount();
+        } catch (\Throwable $e) {
+            return self::jsonRes($res, ['ok' => false, 'error' => $e->getMessage()], 500);
+        }
+        $summary = $approved > 0
+            ? self::processWritebackQueue($pdo, $tenant, null, 200)
+            : ['processed' => 0, 'done' => 0, 'awaiting' => 0, 'pending' => 0, 'failed' => 0];
+        return self::jsonRes($res, ['ok' => true, 'approved' => $approved, 'summary' => $summary]);
     }
 }

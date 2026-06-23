@@ -1309,6 +1309,12 @@ function DynamicRepricerTab({ token, inventory = [], digitalShelfData = {} }) {
     const [rules, setRules] = useState([]);
     const [history, setHistory] = useState([]);
     const [marginImprove, setMarginImprove] = useState(null);
+    // [239차] human-in-loop 리프라이싱: 실행 + 채널 반영 승인
+    const [running, setRunning] = useState(false);
+    const [runRes, setRunRes] = useState(null);
+    const [approving, setApproving] = useState(false);
+    const [pendingN, setPendingN] = useState(0);
+    const [msg, setMsg] = useState('');
 
     useEffect(() => {
         const ac = new AbortController();
@@ -1316,8 +1322,32 @@ function DynamicRepricerTab({ token, inventory = [], digitalShelfData = {} }) {
             .then(r => r.json()).then(d => { if (d.rules) setRules(d.rules); if (d.avg_margin_improve != null) setMarginImprove(d.avg_margin_improve); }).catch(() => {});
         getJsonAuthAbortable(`/v420/price/repricer/history`, ac.signal)
             .then(r => r.json()).then(d => { if (d.history) setHistory(d.history); }).catch(() => {});
+        // 채널 반영 대기(pending_approval price_update) 건수 — writeback jobs 에서 집계
+        getJsonAuthAbortable(`/api/catalog/writeback/jobs`, ac.signal)
+            .then(r => r.json()).then(d => { if (Array.isArray(d)) setPendingN(d.filter(j => j.operation === 'price_update' && j.status === 'pending_approval').length); }).catch(() => {});
         return () => ac.abort();
     }, [token]);
+
+    const runReprice = async () => {
+        setRunning(true); setMsg('');
+        try {
+            const d = await postJsonAuth('/v420/price/repricer/run', {});
+            setRunRes(d);
+            setPendingN(prev => prev + (d.pending_approval || 0));
+            getJsonAuth(`/v420/price/repricer/history`).then(r => r.json()).then(h => { if (h.history) setHistory(h.history); }).catch(() => {});
+        } catch (e) { setMsg(t('priceOpt.repriceRunErr', 'Failed to run repricer')); }
+        setRunning(false);
+    };
+    const approvePush = async () => {
+        setApproving(true); setMsg('');
+        try {
+            const d = await postJsonAuth('/api/catalog/writeback/approve', { operation: 'price_update' });
+            const s = d.summary || {};
+            setMsg(`${t('priceOpt.approveDone', 'Approved')} — ${t('priceOpt.approved', 'approved')}: ${d.approved || 0} · push: ${s.done || 0} · ${t('priceOpt.awaitingCred', 'awaiting credentials')}: ${s.awaiting || 0}`);
+            setPendingN(0);
+        } catch (e) { setMsg(t('priceOpt.approveErr', 'Approval failed')); }
+        setApproving(false);
+    };
 
     const MODE_LABEL = { min_price: t("priceOpt.minPriceAlert"), roas_target: "ROAS Goal", inventory: t("priceOpt.dsIntegration") };
     const MODE_COLOR = { min_price: "#4f8ef7", roas_target: "#22c55e", inventory: "#f97316" };
@@ -1336,6 +1366,23 @@ function DynamicRepricerTab({ token, inventory = [], digitalShelfData = {} }) {
                         <div style={{ fontSize: 20, fontWeight: 900, color: c }}>{v}</div>
                     </div>
                 ))}
+            </div>
+            {/* [239차] 리프라이서 실행 + 채널 반영 승인(human-in-loop) */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', padding: '14px 16px', borderRadius: 12, background: '#ffffff', border: '1px solid #e2e8f0' }}>
+                <button onClick={runReprice} disabled={running} style={{ padding: '8px 18px', borderRadius: 9, border: 'none', cursor: running ? 'default' : 'pointer', fontWeight: 800, fontSize: 12, background: running ? '#cbd5e1' : 'linear-gradient(135deg,#4f8ef7,#6366f1)', color: '#fff' }}>
+                    {running ? t('priceOpt.repriceRunning', 'Running…') : `⚡ ${t('priceOpt.repriceRun', 'Run Repricer')}`}
+                </button>
+                {pendingN > 0 && (
+                    <>
+                        <span style={{ fontSize: 12, color: '#b45309', fontWeight: 800 }}>🔔 {t('priceOpt.pendingPush', 'Pending channel push')}: {pendingN}</span>
+                        <button onClick={approvePush} disabled={approving} style={{ padding: '8px 18px', borderRadius: 9, border: 'none', cursor: approving ? 'default' : 'pointer', fontWeight: 800, fontSize: 12, background: approving ? '#cbd5e1' : 'linear-gradient(135deg,#22c55e,#16a34a)', color: '#fff' }}>
+                            {approving ? t('priceOpt.approving', 'Approving…') : `✅ ${t('priceOpt.approvePush', 'Approve channel push')}`}
+                        </button>
+                    </>
+                )}
+                <span style={{ fontSize: 11, color: '#94a3b8' }}>{t('priceOpt.repriceHelp', 'Live marketplace prices apply only after approval (human review).')}</span>
+                {runRes?.note && <span style={{ fontSize: 11, color: '#64748b', flexBasis: '100%' }}>{runRes.note}</span>}
+                {msg && <span style={{ fontSize: 11, color: '#0e7490', fontWeight: 700, flexBasis: '100%' }}>{msg}</span>}
             </div>
             <div>
                 <div style={{ fontWeight: 800, fontSize: 14, color: '#1e293b', marginBottom: 12 }}>⚡ {t("priceOpt.autoRules")}</div>
