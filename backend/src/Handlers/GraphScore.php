@@ -425,8 +425,6 @@ final class GraphScore {
         $cnt = $pdo->prepare('SELECT node_type, COUNT(*) AS cnt FROM graph_node WHERE tenant_id=? GROUP BY node_type');
         $cnt->execute([$tenant]);
 
-        $edgeCnt = (int)$pdo->prepare('SELECT COUNT(*) FROM graph_edge WHERE tenant_id=?')->execute([$tenant]);
-
         $edgeTotal = $pdo->prepare('SELECT COUNT(*) FROM graph_edge WHERE tenant_id=?');
         $edgeTotal->execute([$tenant]);
 
