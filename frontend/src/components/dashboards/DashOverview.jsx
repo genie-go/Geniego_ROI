@@ -24,8 +24,12 @@ const cardBase = {
 const CARD_CLS = 'overview-card-section';
 
 // ── Util: seed sparkline from a base value ───────────────────────────────
+// [현 차수 P1] 운영 가상데이터 차단: 오버뷰 KPI는 실 일별 시계열이 없어(집계 단일값)
+//   sine 변조 sparkline은 존재하지 않는 추이를 날조한다. 선례(DashChannelKPI:242·DashMarketing:448
+//   IS_DEMO ? sin : 1)와 동일하게 운영은 flat(무변조), 데모만 시각적 sine 변조로 게이트.
 function seedSpark(base, len = 20, vol = 0.08) {
   if (!base) return Array.from({ length: len }, () => 0);
+  if (!IS_DEMO) return Array.from({ length: len }, () => Math.abs(base)); // 운영: 가짜 추이 금지(flat)
   return Array.from({ length: len }, (_, i) =>
     Math.abs(base) * (1 - vol + (Math.sin(i * 0.8 + base * 0.01) + 1) * vol)
   );
