@@ -87,7 +87,7 @@ function buildDemoTimeSeries(channelBudgets) {
     'TikTok': 4700000, 'Kakao': 2100000, 'Email': 500000,
   };
   if (channelBudgets) {
-    const map = { meta: 'Meta Ads', google: 'Google Ads', tiktok: 'TikTok', naver_sa: 'Naver Ads', kakao_moment: 'Kakao' };
+    const map = { meta: 'Meta Ads', google: 'Google Ads', tiktok: 'TikTok', naver_sa: 'Naver Ads', kakao_moment: 'Kakao', snapchat: 'Snapchat Ads', linkedin: 'LinkedIn Ads', criteo: 'Criteo', pinterest: 'Pinterest Ads' };
     Object.entries(channelBudgets).forEach(([k, v]) => {
       if (map[k] && v?.spent) baseSpends[map[k]] = Math.round(v.spent / 52);
     });

@@ -958,7 +958,8 @@ export default function ApiKeys() {
         // 212차 #1: 광고매체(AdChannelConnect 흡수) — 자격증명 등록 즉시 성과 ingest 트리거.
         //   /v423/connectors/sync(meta/google/tiktok/naver) → performance_metrics 적재.
         // [현 차수] kakao_moment 추가 — 백엔드 adShortCodes/AD_SHORT 는 kakao 를 포함하나 저장직후 트리거 맵에 누락돼 있었음.
-        const AD_SYNC = { meta_ads: 'meta', google_ads: 'google', tiktok_business: 'tiktok', naver_sa: 'naver', kakao_moment: 'kakao', line_ads: 'line' };
+        // [240차] 신규 광고 데이터소스 4종 — 저장직후 ingest 트리거 동기화(백엔드 AD_SHORT 정합). pending 3종은 어댑터 없어 제외.
+        const AD_SYNC = { meta_ads: 'meta', google_ads: 'google', tiktok_business: 'tiktok', naver_sa: 'naver', kakao_moment: 'kakao', line_ads: 'line', snapchat_ads: 'snapchat', linkedin_ads: 'linkedin', criteo: 'criteo', pinterest_ads: 'pinterest' };
         if (AD_SYNC[channelKey]) {
           try {
             show('info', `${channelName} ${t('ak.syncing','동기화 중...')}`);

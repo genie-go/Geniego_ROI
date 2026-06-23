@@ -11,7 +11,7 @@ import { getJsonAuth, postJsonAuth } from '../services/apiClient.js';
 const fmtKRW = (n) => '₩' + Math.round(Number(n) || 0).toLocaleString('ko-KR');
 const CH_COLOR = ['#4f46e5', '#7c3aed', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#14b8a6'];
 // 채널명은 라틴/브랜드 표기로 언어 중립화(전 언어 공통).
-const chName = (c) => ({ meta_ads: 'Meta', google_ads: 'Google', tiktok_business: 'TikTok', naver_sa: 'Naver SA', kakao_moment: 'Kakao', coupang: 'Coupang' }[c] || c);
+const chName = (c) => ({ meta_ads: 'Meta', google_ads: 'Google', tiktok_business: 'TikTok', naver_sa: 'Naver SA', kakao_moment: 'Kakao', coupang: 'Coupang', snapchat: 'Snapchat', snapchat_ads: 'Snapchat', linkedin: 'LinkedIn', linkedin_ads: 'LinkedIn', criteo: 'Criteo', pinterest: 'Pinterest', pinterest_ads: 'Pinterest' }[c] || c);
 
 /* 반응곡선 SVG — revenue = beta*(1-exp(-x/kappa)), 현재 지점 마커 */
 function ResponseCurve({ ch, color, w = 260, h = 110, nowLabel = 'now' }) {

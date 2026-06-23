@@ -142,8 +142,8 @@ const PerformanceTab = memo(function PerformanceTab() {
 
     const CHANNELS_PERF = useMemo(() => {
         // 204차: 채널 목록을 summary(데모=channelBudgets 파생/운영=실데이터)에서 동적 생성 — 하드코딩 3채널 제거.
-        const ICO = { meta: "📘", google: "🔍", tiktok: "🎵", naver_sa: "🟢", kakao_moment: "💬", coupang_ads: "🟠", amazon: "📦" };
-        const COL = { meta: "#1877f2", google: "#22c55e", tiktok: "#ff0050", naver_sa: "#14d9b0", kakao_moment: "#eab308", coupang_ads: "#E31937", amazon: "#ff9900" };
+        const ICO = { meta: "📘", google: "🔍", tiktok: "🎵", naver_sa: "🟢", kakao_moment: "💬", coupang_ads: "🟠", amazon: "📦", snapchat: "👻", linkedin: "💼", criteo: "🟧", pinterest: "📌" };
+        const COL = { meta: "#1877f2", google: "#22c55e", tiktok: "#ff0050", naver_sa: "#14d9b0", kakao_moment: "#eab308", coupang_ads: "#E31937", amazon: "#ff9900", snapchat: "#facc15", linkedin: "#0a66c2", criteo: "#f47521", pinterest: "#e60023" };
         const channels = (Array.isArray(summary) ? summary : []).map(s => ({
             id: s.channel, name: s.name || s.channel, icon: ICO[s.channel] || "📊", color: s.color || COL[s.channel] || "#4f8ef7",
         }));
