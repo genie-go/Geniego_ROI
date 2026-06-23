@@ -7661,3 +7661,36 @@ button.cs-inactive-tab {
   color: #ffffff !important;
   -webkit-text-fill-color: #ffffff !important;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   [238차 F-1] 밝은 브랜드/액센트 색을 '텍스트'로 쓸 때 라이트테마 가독성 보정.
+   Kakao 노랑(#fee500/#fae100/#ffd400/#ffcd00 등)·밝은 시안(#22d3ee) 등은 흰 배경 위
+   텍스트로 쓰면 대비 1.3~1.8로 안 읽힌다. '텍스트(color:)'일 때만 진한 동색으로 보정
+   (배경색 background: 는 불변 → 컬러 칩/배지의 흰 글자 가독성은 유지). */
+[data-theme="arctic_white"] .container>div:last-child [style*="color: rgb(254, 229, 0)"],
+[data-theme="arctic_white"] .container>div:last-child [style*="color: rgb(250, 225, 0)"],
+[data-theme="arctic_white"] .container>div:last-child [style*="color: rgb(255, 212, 0)"],
+[data-theme="arctic_white"] .container>div:last-child [style*="color: rgb(255, 205, 0)"],
+[data-theme="arctic_white"] .container>div:last-child [style*="color: rgb(255, 235, 0)"],
+[data-theme="arctic_white"] .container>div:last-child [style*="color: #fee500"],
+[data-theme="arctic_white"] .container>div:last-child [style*="color: #fae100"],
+[data-theme="arctic_white"] .container>div:last-child [style*="color: #ffd400"],
+[data-theme="arctic_white"] .container>div:last-child [style*="color: #ffcd00"],
+[data-theme="arctic_white"] .container>div:last-child [style*="color: #FEE500"],
+[data-theme="arctic_white"] .container>div:last-child [style*="color: #FFD400"],
+[data-theme="pearl_office"] .container>div:last-child [style*="color: rgb(254, 229, 0)"],
+[data-theme="pearl_office"] .container>div:last-child [style*="color: rgb(250, 225, 0)"],
+[data-theme="pearl_office"] .container>div:last-child [style*="color: rgb(255, 212, 0)"],
+[data-theme="pearl_office"] .container>div:last-child [style*="color: #fee500"],
+[data-theme="pearl_office"] .container>div:last-child [style*="color: #fae100"],
+[data-theme="pearl_office"] .container>div:last-child [style*="color: #ffd400"] {
+  color: #a16207 !important;
+  -webkit-text-fill-color: #a16207 !important;
+}
+[data-theme="arctic_white"] .container>div:last-child [style*="color: rgb(34, 211, 238)"],
+[data-theme="arctic_white"] .container>div:last-child [style*="color: #22d3ee"],
+[data-theme="pearl_office"] .container>div:last-child [style*="color: rgb(34, 211, 238)"],
+[data-theme="pearl_office"] .container>div:last-child [style*="color: #22d3ee"] {
+  color: #0e7490 !important;
+  -webkit-text-fill-color: #0e7490 !important;
+}
