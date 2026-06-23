@@ -560,6 +560,8 @@ final class ChannelCreds
             // [237차] LINE Ads 실 ingest 어댑터(Connectors::fetchLineRows, JWS, 232차) 보유인데 화이트리스트
             //   누락으로 연결테스트가 거짓 '준비 중' 표기하던 것 정정. line/line_ads 둘 다 인식.
             'line_ads', 'line',
+            // [240차] 커넥터 확장 — 신규 광고 데이터소스 실 ingest 어댑터(Connectors::fetch{Snapchat,Linkedin,Criteo,Pinterest}Rows).
+            'snapchat_ads', 'snapchat', 'linkedin_ads', 'linkedin', 'criteo', 'criteo_ads', 'pinterest_ads', 'pinterest',
             'shopify', 'amazon', 'amazon_spapi', 'coupang', 'naver', 'naver_smartstore',
             'ebay', 'rakuten', 'cafe24',
             '11st', 'st11', 'gmarket', 'auction', 'lotteon', // 국내 오픈마켓 4종 실어댑터

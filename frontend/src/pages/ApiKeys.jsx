@@ -24,6 +24,15 @@ const CHANNELS = [
   { key: 'tiktok_business',  name: 'TikTok Business',   icon: '🎶', color: '#010101', group: 'global_ad' },
   // [232차] LINE Ads — JP/TW/TH 핵심 광고매체. 메시징 'line'(아래 own_etc)과 별개 채널.
   { key: 'line_ads',         name: 'LINE Ads',          icon: '💚', color: '#06C755', group: 'global_ad' },
+  // [240차] 커넥터 확장 — 신규 광고 데이터소스 실 ingest 어댑터(Connectors::fetch*Rows). REAL_ADAPTER 편입.
+  { key: 'snapchat_ads',     name: 'Snapchat Ads',      icon: '👻', color: '#FFFC00', group: 'global_ad' },
+  { key: 'linkedin_ads',     name: 'LinkedIn Ads',      icon: '💼', color: '#0A66C2', group: 'global_ad' },
+  { key: 'criteo',           name: 'Criteo',            icon: '🟧', color: '#F47521', group: 'global_ad' },
+  { key: 'pinterest_ads',    name: 'Pinterest Ads',     icon: '📌', color: '#E60023', group: 'global_ad' },
+  // [240차] 로드맵(연동 예정) — REAL_ADAPTER 미포함 → 카드에 '연동 예정' 정직 표기. 자격증명 저장은 가능.
+  { key: 'microsoft_ads',    name: 'Microsoft Ads (Bing)', icon: '🪟', color: '#00A4EF', group: 'global_ad' },
+  { key: 'x_ads',            name: 'X (Twitter) Ads',   icon: '✖️', color: '#000000', group: 'global_ad' },
+  { key: 'amazon_ads',       name: 'Amazon Ads',        icon: '📦', color: '#FF9900', group: 'global_ad' },
   // [현 차수] tiktok_shop 실 어댑터(ChannelSync v202309 HMAC+shop_cipher)는 존재했으나 자격증명 등록 UI 진입점이 없었음 → 추가
   { key: 'tiktok_shop',      name: 'TikTok Shop',       icon: '🛍️', color: '#FE2C55', group: 'global_commerce' },
   { key: 'amazon_spapi',     name: 'Amazon SP-API',     icon: '📦', color: '#FF9900', group: 'global_commerce' },
@@ -182,6 +191,15 @@ const CHANNEL_FIELDS = {
   kakao_moment: [{ k: 'access_token', label: '액세스 토큰', secret: true }, { k: 'ad_account_id', label: '광고계정 ID' }],
   // [232차] LINE Ads Platform — Ad Manager > Group 페이지에서 발급(access key/secret key) + Group ID. JWS 인증.
   line_ads:  [{ k: 'access_key', label: 'Access Key (Ad Manager > Group)', secret: true }, { k: 'secret_key', label: 'Secret Key', secret: true }, { k: 'group_id', label: 'Group ID (광고 그룹/계정 ID)' }],
+  // [240차] 커넥터 확장 — 신규 광고 데이터소스(실 ingest). spend 통화 stamp 위해 currency 입력(미입력 시 USD).
+  snapchat_ads: [{ k: 'access_token', label: '액세스 토큰 (Marketing API)', secret: true }, { k: 'ad_account_id', label: '광고계정 ID' }, { k: 'currency', label: '과금 통화 (예: USD · 미입력 시 USD)', opt: true }],
+  linkedin_ads: [{ k: 'access_token', label: '액세스 토큰 (Marketing API)', secret: true }, { k: 'ad_account_id', label: 'Sponsored Account ID (숫자)' }, { k: 'currency', label: '과금 통화 (예: USD · 미입력 시 USD)', opt: true }],
+  criteo:    [{ k: 'client_id', label: 'API Client ID' }, { k: 'client_secret', label: 'API Client Secret', secret: true }, { k: 'currency', label: '과금 통화 (예: USD · 미입력 시 USD)', opt: true }],
+  pinterest_ads: [{ k: 'access_token', label: '액세스 토큰 (Ads API v5)', secret: true }, { k: 'ad_account_id', label: '광고계정 ID' }, { k: 'currency', label: '과금 통화 (예: USD · 미입력 시 USD)', opt: true }],
+  // [240차] 로드맵(연동 예정) — 자격증명 저장은 되나 전용 어댑터 준비 중.
+  microsoft_ads: [{ k: 'developer_token', label: '개발자 토큰', secret: true }, { k: 'access_token', label: '액세스 토큰', secret: true }, { k: 'account_id', label: '계정 ID' }],
+  x_ads:     [{ k: 'consumer_key', label: 'Consumer Key', secret: true }, { k: 'consumer_secret', label: 'Consumer Secret', secret: true }, { k: 'access_token', label: 'Access Token', secret: true }, { k: 'access_token_secret', label: 'Access Token Secret', secret: true }, { k: 'account_id', label: '광고계정 ID' }],
+  amazon_ads: [{ k: 'client_id', label: 'LWA Client ID' }, { k: 'client_secret', label: 'LWA Secret', secret: true }, { k: 'refresh_token', label: 'Refresh Token', secret: true }, { k: 'profile_id', label: '프로필 ID' }],
   // 분석/기타
   google_analytics: [{ k: 'measurement_id', label: '측정 ID (G-)' }, { k: 'api_secret', label: 'API Secret', secret: true }],
   slack:     [{ k: 'webhook_url', label: 'Webhook URL', secret: true }],
@@ -229,6 +247,8 @@ const OAUTH_COVERED_KEYS = new Set(['access_token', 'oauth_access_token', 'refre
    이 집합에 없는 채널은 자격증명 저장은 되나 전용 어댑터 미연동(데이터 동기화 X) → 카드에 "연동 예정" 정직 표기. */
 const REAL_ADAPTER = new Set([
   'meta_ads', 'google_ads', 'tiktok_business', 'naver_sa', 'kakao_moment', 'line_ads',
+  // [240차] 커넥터 확장 — 신규 광고 데이터소스 실 ingest 어댑터(Connectors::fetch*Rows). microsoft/x/amazon_ads 는 미포함(연동 예정).
+  'snapchat_ads', 'linkedin_ads', 'criteo', 'pinterest_ads',
   'shopify', 'amazon_spapi', 'coupang', 'naver_smartstore', 'ebay', 'rakuten', 'cafe24', 'tiktok_shop',
   'st11', '11st', 'gmarket', 'auction', 'lotteon', // [현 차수] 국내 오픈마켓 4종 실어댑터(11번가 XML·ESM·롯데온)
   // [232차 Sprint2] 글로벌 커머스 실어댑터 9종(ChannelSync fetch) — 거짓 '데이터 미수집' 사전고지 제거.
@@ -282,6 +302,11 @@ const ISSUANCE_URL = {
   //   여기 발급할 자격증명 = YouTube Data API '키'(api_key) + 채널 ID. client_id/secret(OAuth) 아님.
   youtube: 'https://console.cloud.google.com/projectselector2/apis/credentials',
   twitch: 'https://dev.twitch.tv/console/apps',                 // [227차] Twitch 앱 등록→client_id/secret 발급
+  // [240차] 커넥터 확장 — 신규 광고 데이터소스 개발자 콘솔(자격증명 발급처)
+  snapchat_ads: 'https://business.snapchat.com', linkedin_ads: 'https://www.linkedin.com/developers/apps',
+  criteo: 'https://developers.criteo.com', pinterest_ads: 'https://developers.pinterest.com/apps',
+  microsoft_ads: 'https://developers.ads.microsoft.com', x_ads: 'https://developer.twitter.com/en/portal/dashboard',
+  amazon_ads: 'https://advertising.amazon.com/API/docs/en-us/index.html',
   // 분석/기타
   slack: 'https://api.slack.com/apps',
   // [229차] 신규 채널 콘솔
@@ -306,6 +331,10 @@ const SIGNUP_URL = {
   // 광고 매체 — 계정/비즈니스 가입
   meta_ads: 'https://business.facebook.com', google_ads: 'https://ads.google.com', tiktok_business: 'https://ads.tiktok.com',
   google_analytics: 'https://analytics.google.com', kakao_moment: 'https://business.kakao.com',
+  // [240차] 커넥터 확장 — 신규 광고 데이터소스 계정/비즈니스 가입
+  snapchat_ads: 'https://forbusiness.snapchat.com', linkedin_ads: 'https://business.linkedin.com/marketing-solutions',
+  criteo: 'https://www.criteo.com', pinterest_ads: 'https://ads.pinterest.com', microsoft_ads: 'https://ads.microsoft.com',
+  x_ads: 'https://ads.x.com', amazon_ads: 'https://advertising.amazon.com',
   // 결제 게이트웨이(PG)
   stripe: 'https://dashboard.stripe.com/register', paypal: 'https://www.paypal.com/bizsignup', toss: 'https://www.tosspayments.com',
   inicis: 'https://www.inicis.com', kcp: 'https://www.kcp.co.kr', kakaopay: 'https://biz.kakaopay.com',

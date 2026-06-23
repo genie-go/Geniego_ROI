@@ -23,9 +23,18 @@ const BASE = {
   naver_sa:      { name: 'Naver SA',      icon: '🟢', color: '#14d9b0' },
   kakao_moment:  { name: 'Kakao Moment',  icon: '💬', color: '#eab308' },
   coupang_ads:   { name: 'Coupang Ads',   icon: '🟠', color: '#E31937' },
+  line_ads:      { name: 'LINE Ads',      icon: '💚', color: '#06c755' },
   instagram:     { name: 'Instagram',     icon: '📸', color: '#a855f7' },
   youtube:       { name: 'YouTube',       icon: '▶️', color: '#ef4444' },
   twitter:       { name: 'X (Twitter)',   icon: '🐦', color: '#14d9b0' },
+  // [240차] 커넥터 확장 — 신규 광고 데이터소스(performance_metrics 단축코드 정합).
+  snapchat:      { name: 'Snapchat Ads',  icon: '👻', color: '#facc15' },
+  snapchat_ads:  { name: 'Snapchat Ads',  icon: '👻', color: '#facc15' },
+  linkedin:      { name: 'LinkedIn Ads',  icon: '💼', color: '#0a66c2' },
+  linkedin_ads:  { name: 'LinkedIn Ads',  icon: '💼', color: '#0a66c2' },
+  criteo:        { name: 'Criteo',        icon: '🟧', color: '#f47521' },
+  pinterest:     { name: 'Pinterest Ads', icon: '📌', color: '#e60023' },
+  pinterest_ads: { name: 'Pinterest Ads', icon: '📌', color: '#e60023' },
   // 판매(국내)
   naver:         { name: 'Naver',         icon: '🟢', color: '#22c55e' },
   naver_smartstore:{ name: 'Naver SmartStore', icon: '🟢', color: '#22c55e' },

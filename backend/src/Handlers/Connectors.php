@@ -716,6 +716,12 @@ final class Connectors
         'naver_sa'=>'naver','naver'=>'naver','naver_searchad'=>'naver',
         'kakao_moment'=>'kakao','kakao'=>'kakao', // [현 차수] Kakao Moment 자동sync 배선(저장 직후+cron)
         'line_ads'=>'line', // [232차] LINE Ads(JWS) 자동sync 배선. 메시징 'line'(own_etc)과 별개 채널(line_ads).
+        // [240차] 커넥터 확장(경쟁 마지막 약점) — 신규 광고 데이터소스 실 ingest 어댑터 자동sync 배선.
+        //   AD_SHORT 한 곳에만 추가하면 저장직후 syncOne·cron 팬아웃·isAdChannel 전부 자동 전파(기존 SSOT 패턴).
+        'snapchat_ads'=>'snapchat','snapchat'=>'snapchat',
+        'linkedin_ads'=>'linkedin','linkedin'=>'linkedin',
+        'criteo'=>'criteo','criteo_ads'=>'criteo',
+        'pinterest_ads'=>'pinterest','pinterest'=>'pinterest',
     ];
 
     private static function loadCred(string $tenant, string $channelKey, string $credKey): string
@@ -1408,6 +1414,11 @@ final class Connectors
             'naver'  => fn() => self::fetchNaverRows($tenant, $start, $end),
             'kakao'  => fn() => self::fetchKakaoRows($tenant, $start, $end), // [현 차수] Kakao Moment 실 ingest 배선
             'line'   => fn() => self::fetchLineRows($tenant, $start, $end),  // [232차] LINE Ads 실 ingest(JWS)
+            // [240차] 커넥터 확장 — 신규 광고 데이터소스 실 fetch(자격증명 등록 시 동작·graceful 드롭인).
+            'snapchat'  => fn() => self::fetchSnapchatRows($tenant, $start, $end),
+            'linkedin'  => fn() => self::fetchLinkedinRows($tenant, $start, $end),
+            'criteo'    => fn() => self::fetchCriteoRows($tenant, $start, $end),
+            'pinterest' => fn() => self::fetchPinterestRows($tenant, $start, $end),
         ];
 
         foreach ($fetchers as $ch => $fn) {
@@ -2056,6 +2067,232 @@ final class Connectors
                 'conversions'     => (int)round((float)($m['conversion'] ?? $m['conv'] ?? $m['cv'] ?? 0)),
                 'revenue'         => (float)($m['conversionValue'] ?? $m['convValue'] ?? $m['revenue'] ?? 0),
                 'currency'        => strtoupper((string)($m['currency'] ?? $dim['currency'] ?? $r['currency'] ?? $lineCur)), // [239차+ P1] persist 에서 KRW 환산
+            ];
+        }
+        return ['hasCreds' => true, 'live' => true, 'rows' => $rows];
+    }
+
+    /**
+     * [240차] Snapchat Marketing API — 광고계정 일자별 통계(timeseries) → performance_metrics 정규화.
+     *   GET /v1/adaccounts/{id}/stats?granularity=DAY&fields=impressions,swipes,spend,conversion_purchases,...
+     *   spend/conversion value 는 마이크로 통화(계정 통화) → 1e6 로 나눈다. swipes=clicks. 통화는 cred 'currency'
+     *   (기본 USD)로 stamp → persistMetricRows 가 KRW 환산. 라이브 검증은 실 Snapchat Ads 계정 필요(graceful 드롭인).
+     */
+    private static function fetchSnapchatRows(string $tenant, string $start, string $end): array
+    {
+        $accessToken = (string)(getenv('SNAPCHAT_ACCESS_TOKEN')   ?: self::loadCred($tenant, 'snapchat_ads', 'access_token'));
+        $adAccountId = (string)(getenv('SNAPCHAT_AD_ACCOUNT_ID')  ?: self::loadCred($tenant, 'snapchat_ads', 'ad_account_id'));
+        if ($adAccountId === '') $adAccountId = (string)self::loadCred($tenant, 'snapchat_ads', 'account_id'); // 레거시 키명 폴백
+        if ($accessToken === '' || $adAccountId === '') {
+            return ['hasCreds' => false, 'live' => false, 'rows' => []];
+        }
+        // Snapchat 은 ISO8601(타임존 포함)·일 경계 요구. end 는 exclusive 이므로 +1일.
+        $params = http_build_query([
+            'granularity' => 'DAY',
+            'start_time'  => $start . 'T00:00:00.000-00:00',
+            'end_time'    => gmdate('Y-m-d', (int)strtotime($end . ' +1 day')) . 'T00:00:00.000-00:00',
+            'fields'      => 'impressions,swipes,spend,conversion_purchases,conversion_purchases_value',
+        ]);
+        $url = 'https://adsapi.snapchat.com/v1/adaccounts/' . rawurlencode($adAccountId) . "/stats?{$params}";
+        [$code, $body, $err] = self::httpGet($url, ['Authorization' => "Bearer {$accessToken}"]);
+        if ($err || $code >= 400) {
+            return ['hasCreds' => true, 'live' => false, 'error' => $err ?: "snapchat http $code"];
+        }
+        $cur = strtoupper((string)(self::loadCred($tenant, 'snapchat_ads', 'currency') ?: 'USD'));
+        $rows = [];
+        foreach ((array)($body['timeseries_stats'] ?? []) as $ts) {
+            $stat = (array)($ts['timeseries_stat'] ?? $ts);
+            foreach ((array)($stat['timeseries'] ?? []) as $pt) {
+                $s = (array)($pt['stats'] ?? []);
+                $date = substr((string)($pt['start_time'] ?? ''), 0, 10);
+                if ($date === '') continue;
+                $rows[] = [
+                    'team'            => 'Snapchat',
+                    'account'         => 'Snapchat Ads',
+                    'campaign_ext_id' => (string)($stat['id'] ?? ''),
+                    'objective'       => '',
+                    'reach'           => 0,
+                    'date'            => $date,
+                    'impressions'     => (int)($s['impressions'] ?? 0),
+                    'clicks'          => (int)($s['swipes'] ?? $s['clicks'] ?? 0),
+                    'spend'           => ((float)($s['spend'] ?? 0)) / 1000000.0,
+                    'conversions'     => (int)round((float)($s['conversion_purchases'] ?? 0)),
+                    'revenue'         => ((float)($s['conversion_purchases_value'] ?? 0)) / 1000000.0,
+                    'currency'        => $cur,
+                ];
+            }
+        }
+        return ['hasCreds' => true, 'live' => true, 'rows' => $rows];
+    }
+
+    /**
+     * [240차] LinkedIn Marketing API — adAnalytics(캠페인 차원, 일자별) → performance_metrics.
+     *   GET /rest/adAnalytics?q=analytics&pivot=CAMPAIGN&timeGranularity=DAILY&dateRange=(...)&accounts=List(urn..)
+     *   헤더: LinkedIn-Version·X-Restli-Protocol-Version:2.0.0. costInLocalCurrency=문자열(소수). 통화=cred 'currency'(USD).
+     *   restli 쿼리(괄호/urn)는 수동 구성. 라이브 검증은 실 LinkedIn Ads 계정 필요(graceful 드롭인).
+     */
+    private static function fetchLinkedinRows(string $tenant, string $start, string $end): array
+    {
+        $accessToken = (string)(getenv('LINKEDIN_ACCESS_TOKEN')    ?: self::loadCred($tenant, 'linkedin_ads', 'access_token'));
+        $accountId   = (string)(getenv('LINKEDIN_AD_ACCOUNT_ID')   ?: self::loadCred($tenant, 'linkedin_ads', 'ad_account_id'));
+        if ($accountId === '') $accountId = (string)self::loadCred($tenant, 'linkedin_ads', 'account_id'); // 레거시 키명 폴백
+        if ($accessToken === '' || $accountId === '') {
+            return ['hasCreds' => false, 'live' => false, 'rows' => []];
+        }
+        [$sy, $sm, $sd] = array_map('intval', array_pad(explode('-', $start), 3, 0));
+        [$ey, $em, $ed] = array_map('intval', array_pad(explode('-', $end), 3, 0));
+        $dateRange = "(start:(year:{$sy},month:{$sm},day:{$sd}),end:(year:{$ey},month:{$em},day:{$ed}))";
+        $accounts  = 'List(' . rawurlencode('urn:li:sponsoredAccount:' . $accountId) . ')';
+        $fields    = 'impressions,clicks,costInLocalCurrency,externalWebsiteConversions,conversionValueInLocalCurrency,dateRange,pivotValues';
+        $url = 'https://api.linkedin.com/rest/adAnalytics?q=analytics&pivot=CAMPAIGN&timeGranularity=DAILY'
+             . "&dateRange={$dateRange}&accounts={$accounts}&fields={$fields}";
+        [$code, $body, $err] = self::httpGet($url, [
+            'Authorization'             => "Bearer {$accessToken}",
+            'LinkedIn-Version'          => '202401',
+            'X-Restli-Protocol-Version' => '2.0.0',
+        ]);
+        if ($err || $code >= 400) {
+            return ['hasCreds' => true, 'live' => false, 'error' => $err ?: "linkedin http $code"];
+        }
+        $cur = strtoupper((string)(self::loadCred($tenant, 'linkedin_ads', 'currency') ?: 'USD'));
+        $rows = [];
+        foreach ((array)($body['elements'] ?? []) as $el) {
+            $dr = (array)($el['dateRange']['start'] ?? []);
+            if (!$dr) continue;
+            $date = sprintf('%04d-%02d-%02d', (int)($dr['year'] ?? 0), (int)($dr['month'] ?? 0), (int)($dr['day'] ?? 0));
+            $pv = (array)($el['pivotValues'] ?? []);
+            $rows[] = [
+                'team'            => 'LinkedIn',
+                'account'         => 'LinkedIn Ads',
+                'campaign_ext_id' => (string)($pv[0] ?? ''),
+                'objective'       => '',
+                'reach'           => 0,
+                'date'            => $date,
+                'impressions'     => (int)($el['impressions'] ?? 0),
+                'clicks'          => (int)($el['clicks'] ?? 0),
+                'spend'           => (float)($el['costInLocalCurrency'] ?? 0),
+                'conversions'     => (int)round((float)($el['externalWebsiteConversions'] ?? 0)),
+                'revenue'         => (float)($el['conversionValueInLocalCurrency'] ?? 0),
+                'currency'        => $cur,
+            ];
+        }
+        return ['hasCreds' => true, 'live' => true, 'rows' => $rows];
+    }
+
+    /**
+     * [240차] Criteo Marketing Solutions API — OAuth2(client_credentials) 토큰 발급 후 statistics/report(일자×캠페인).
+     *   POST /oauth2/token → access_token, POST /2024-01/statistics/report(JSON) → 행. currency 명시 요청(stamp 정합).
+     *   라이브 검증은 실 Criteo 광고주 계정 필요(graceful 드롭인).
+     */
+    private static function fetchCriteoRows(string $tenant, string $start, string $end): array
+    {
+        $clientId     = (string)(getenv('CRITEO_CLIENT_ID')     ?: self::loadCred($tenant, 'criteo', 'client_id'));
+        $clientSecret = (string)(getenv('CRITEO_CLIENT_SECRET') ?: self::loadCred($tenant, 'criteo', 'client_secret'));
+        if ($clientId === '' || $clientSecret === '') {
+            return ['hasCreds' => false, 'live' => false, 'rows' => []];
+        }
+        [$tc, $tb, $te] = self::httpPost('https://api.criteo.com/oauth2/token', [
+            'client_id' => $clientId, 'client_secret' => $clientSecret, 'grant_type' => 'client_credentials',
+        ], ['Content-Type' => 'application/x-www-form-urlencoded']);
+        $token = (string)($tb['access_token'] ?? '');
+        if ($te || $tc >= 400 || $token === '') {
+            return ['hasCreds' => true, 'live' => false, 'error' => $te ?: "criteo token http $tc"];
+        }
+        $cur = strtoupper((string)(self::loadCred($tenant, 'criteo', 'currency') ?: 'USD'));
+        [$code, $body, $err] = self::httpPost('https://api.criteo.com/2024-01/statistics/report', [
+            'dimensions' => ['Day', 'CampaignId'],
+            'metrics'    => ['Displays', 'Clicks', 'AdvertiserCost', 'Sales', 'Revenue'],
+            'startDate'  => $start, 'endDate' => $end,
+            'currency'   => $cur, 'format' => 'Json', 'timezone' => 'GMT',
+        ], ['Authorization' => "Bearer {$token}", 'Content-Type' => 'application/json', 'Accept' => 'application/json']);
+        if ($err || $code >= 400) {
+            return ['hasCreds' => true, 'live' => false, 'error' => $err ?: "criteo report http $code"];
+        }
+        // Criteo Json 포맷: {Rows:[{Day,CampaignId,Displays,Clicks,AdvertiserCost,Sales,Revenue}]} (필드 케이스 편차 방어).
+        $data = $body['Rows'] ?? $body['rows'] ?? (array_is_list((array)$body) ? $body : []);
+        $rows = [];
+        foreach ((array)$data as $r) {
+            if (!is_array($r)) continue;
+            $g = fn($k) => $r[$k] ?? $r[lcfirst($k)] ?? $r[strtolower($k)] ?? null;
+            $rawDate = (string)($g('Day') ?? '');
+            $date = substr(str_replace('/', '-', $rawDate), 0, 10);
+            if ($date === '') continue;
+            $rows[] = [
+                'team'            => 'Criteo',
+                'account'         => 'Criteo',
+                'campaign_ext_id' => (string)($g('CampaignId') ?? ''),
+                'objective'       => '',
+                'reach'           => 0,
+                'date'            => $date,
+                'impressions'     => (int)($g('Displays') ?? 0),
+                'clicks'          => (int)($g('Clicks') ?? 0),
+                'spend'           => (float)($g('AdvertiserCost') ?? 0),
+                'conversions'     => (int)round((float)($g('Sales') ?? 0)),
+                'revenue'         => (float)($g('Revenue') ?? 0),
+                'currency'        => $cur,
+            ];
+        }
+        return ['hasCreds' => true, 'live' => true, 'rows' => $rows];
+    }
+
+    /**
+     * [240차] Pinterest Ads API v5 — 비동기 리포트(요청→폴링→다운로드). 캠페인×일자.
+     *   POST /v5/ad_accounts/{id}/reports → {token}, GET .../reports?token= → {report_status,url}(FINISHED 시 url),
+     *   GET url → JSON 행. spend/value 는 마이크로달러 → 1e6. 폴링은 짧게 바운드(최대 3회)·미완 시 graceful(다음 cron 재시도).
+     */
+    private static function fetchPinterestRows(string $tenant, string $start, string $end): array
+    {
+        $accessToken = (string)(getenv('PINTEREST_ACCESS_TOKEN')  ?: self::loadCred($tenant, 'pinterest_ads', 'access_token'));
+        $adAccountId = (string)(getenv('PINTEREST_AD_ACCOUNT_ID') ?: self::loadCred($tenant, 'pinterest_ads', 'ad_account_id'));
+        if ($adAccountId === '') $adAccountId = (string)self::loadCred($tenant, 'pinterest_ads', 'account_id'); // 레거시 키명 폴백
+        if ($accessToken === '' || $adAccountId === '') {
+            return ['hasCreds' => false, 'live' => false, 'rows' => []];
+        }
+        $base = 'https://api.pinterest.com/v5/ad_accounts/' . rawurlencode($adAccountId) . '/reports';
+        $hdr  = ['Authorization' => "Bearer {$accessToken}", 'Content-Type' => 'application/json'];
+        [$code, $body, $err] = self::httpPost($base, [
+            'start_date' => $start, 'end_date' => $end, 'granularity' => 'DAY', 'level' => 'CAMPAIGN',
+            'columns' => ['CAMPAIGN_ID', 'CAMPAIGN_NAME', 'IMPRESSION_1', 'CLICKTHROUGH_1', 'SPEND_IN_MICRO_DOLLAR', 'TOTAL_CONVERSIONS', 'TOTAL_CONVERSIONS_VALUE_IN_MICRO_DOLLAR'],
+        ], $hdr);
+        $token = (string)($body['token'] ?? '');
+        if ($err || $code >= 400 || $token === '') {
+            return ['hasCreds' => true, 'live' => false, 'error' => $err ?: "pinterest report http $code"];
+        }
+        $reportUrl = '';
+        for ($i = 0; $i < 3; $i++) {
+            [$pc, $pb, $pe] = self::httpGet($base . '?token=' . rawurlencode($token), $hdr);
+            $status = strtoupper((string)($pb['report_status'] ?? ''));
+            if ($status === 'FINISHED') { $reportUrl = (string)($pb['url'] ?? ''); break; }
+            if ($pe || $pc >= 400 || $status === 'FAILED' || $status === 'EXPIRED' || $status === 'DOES_NOT_EXIST') break;
+            usleep(2500000); // 2.5s — 비동기 리포트 생성 대기(바운드)
+        }
+        if ($reportUrl === '') {
+            return ['hasCreds' => true, 'live' => false, 'error' => 'pinterest report not ready (다음 cron 재시도)'];
+        }
+        [$dc, $draw, $de] = self::httpGet($reportUrl);
+        if ($de || $dc >= 400) {
+            return ['hasCreds' => true, 'live' => false, 'error' => $de ?: "pinterest download http $dc"];
+        }
+        $cur = strtoupper((string)(self::loadCred($tenant, 'pinterest_ads', 'currency') ?: 'USD'));
+        $data = $draw['data'] ?? (array_is_list((array)$draw) ? $draw : []);
+        $rows = [];
+        foreach ((array)$data as $r) {
+            if (!is_array($r)) continue;
+            $date = substr((string)($r['DATE'] ?? $r['date'] ?? ''), 0, 10);
+            if ($date === '') continue;
+            $rows[] = [
+                'team'            => 'Pinterest',
+                'account'         => (string)($r['CAMPAIGN_NAME'] ?? 'Pinterest Ads'),
+                'campaign_ext_id' => (string)($r['CAMPAIGN_ID'] ?? ''),
+                'objective'       => '',
+                'reach'           => 0,
+                'date'            => $date,
+                'impressions'     => (int)($r['IMPRESSION_1'] ?? 0),
+                'clicks'          => (int)($r['CLICKTHROUGH_1'] ?? 0),
+                'spend'           => ((float)($r['SPEND_IN_MICRO_DOLLAR'] ?? 0)) / 1000000.0,
+                'conversions'     => (int)round((float)($r['TOTAL_CONVERSIONS'] ?? 0)),
+                'revenue'         => ((float)($r['TOTAL_CONVERSIONS_VALUE_IN_MICRO_DOLLAR'] ?? 0)) / 1000000.0,
+                'currency'        => $cur,
             ];
         }
         return ['hasCreds' => true, 'live' => true, 'rows' => $rows];

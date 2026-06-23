@@ -65,6 +65,15 @@ class ChannelRegistry
             ['tiktok_business','TikTok Ads','marketing','🎵','#ff0050','ad',[$ftext('access_token','액세스 토큰'),$ftext('advertiser_id','광고주 ID',false)]],
             ['naver_sa','Naver 검색광고','marketing','🟩','#03c75a','ad',[$ftext('api_key','API 키'),$ftext('api_secret','비밀키'),$ftext('customer_id','고객 ID',false)]],
             ['kakao_moment','Kakao Moment','marketing','💬','#fee500','ad',[$ftext('access_token','액세스 토큰'),$ftext('account_id','광고계정 ID',false)]],
+            // [240차] 커넥터 확장 — 신규 광고/분석 데이터소스. 실 ingest 어댑터(Connectors::fetch*Rows): snapchat/linkedin/criteo/pinterest.
+            ['snapchat_ads','Snapchat Ads','marketing','👻','#fffc00','ad',[$ftext('access_token','액세스 토큰'),$ftext('ad_account_id','광고계정 ID',false),$ftext('currency','과금 통화(예: USD)',false)]],
+            ['linkedin_ads','LinkedIn Ads','marketing','💼','#0a66c2','ad',[$ftext('access_token','액세스 토큰'),$ftext('ad_account_id','Sponsored Account ID',false),$ftext('currency','과금 통화(예: USD)',false)]],
+            ['criteo','Criteo','marketing','🟧','#f47521','ad',[$ftext('client_id','API Client ID',false),$ftext('client_secret','API Client Secret'),$ftext('currency','과금 통화(예: USD)',false)]],
+            ['pinterest_ads','Pinterest Ads','marketing','📌','#e60023','ad',[$ftext('access_token','액세스 토큰'),$ftext('ad_account_id','광고계정 ID',false),$ftext('currency','과금 통화(예: USD)',false)]],
+            // [240차] 로드맵(연동 예정) — 전용 어댑터 준비 중(REAL_ADAPTER 미포함 → UI '연동 예정' 정직 표기).
+            ['microsoft_ads','Microsoft Ads (Bing)','marketing','🪟','#00a4ef','none',[$ftext('developer_token','개발자 토큰'),$ftext('access_token','액세스 토큰'),$ftext('account_id','계정 ID',false)]],
+            ['x_ads','X (Twitter) Ads','marketing','✖️','#000000','none',[$ftext('consumer_key','Consumer Key'),$ftext('consumer_secret','Consumer Secret'),$ftext('access_token','Access Token'),$ftext('access_token_secret','Access Token Secret'),$ftext('account_id','광고계정 ID',false)]],
+            ['amazon_ads','Amazon Ads (Sponsored)','marketing','📦','#ff9900','none',[$ftext('client_id','LWA Client ID',false),$ftext('client_secret','LWA Secret'),$ftext('refresh_token','Refresh Token'),$ftext('profile_id','프로필 ID',false)]],
             // ── 판매(커머스) ──
             ['shopify','Shopify','sales','🛍','#95bf47','commerce',[$ftext('shop_domain','상점 도메인',false),$ftext('access_token','Admin API 토큰')]],
             ['amazon','Amazon SP-API','sales','📦','#ff9900','commerce',[$ftext('client_id','LWA Client ID',false),$ftext('client_secret','LWA Secret'),$ftext('refresh_token','Refresh Token'),$ftext('marketplace_id','마켓플레이스',false)]],
