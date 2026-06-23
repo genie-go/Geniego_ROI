@@ -398,6 +398,8 @@ function AppLayout() {
                 flex: 1,
                 padding: 0,
                 minHeight: 0,
+                minWidth: 0, // [238차] flex item 가로 축소 강제 — 자식(grid/표)이 콘텐츠 min-content로 팽창해 우측 잘리던 갭 차단
+                maxWidth: '100%',
                 display: 'flex',
                 flexDirection: 'column',
                 paddingBottom: 'env(safe-area-inset-bottom, 0px)', // iOS Safe Area

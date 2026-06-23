@@ -1363,12 +1363,12 @@ function DynamicRepricerTab({ token, inventory = [], digitalShelfData = {} }) {
             <div>
                 <div style={{ fontWeight: 800, fontSize: 14, color: '#1e293b', marginBottom: 12 }}>📋 {t("priceOpt.changeHistory")}</div>
                 <div style={{ display: "grid", gap: 0, borderRadius: 12, overflow: "hidden", border: '1px solid #e2e8f0' }}>
-                    <div style={{ display: "grid", gridTemplateColumns: "60px 130px 80px 80px 80px 1fr", gap: 8, padding: "8px 14px", fontSize: 10, fontWeight: 700, color: "#7c8fa8", background: '#ffffff' }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "minmax(40px,60px) minmax(70px,130px) repeat(3,minmax(46px,80px)) minmax(50px,1fr)", gap: 8, padding: "8px 14px", fontSize: 10, fontWeight: 700, color: "#7c8fa8", background: '#ffffff' }}>
                         <span>{t('priceOpt.labelTime')}</span><span>{t('priceOpt.labelSku')}</span><span>{t('priceOpt.labelChannel')}</span><span>{t("priceOpt.currentPrice")}</span><span>{t("priceOpt.optimalPrice")}</span><span>{t("priceOpt.expectedMargin")}</span>
                     </div>
                     {history.length === 0 && <div className="sub" style={{ padding: 16, fontSize: 12, textAlign: 'center' }}>{t("priceOpt.noAnalysis")}</div>}
                     {history.map((h, i) => (
-                        <div key={i} style={{ display: "grid", gridTemplateColumns: "60px 130px 80px 80px 80px 1fr", gap: 8, padding: "10px 14px", borderTop: "1px solid rgba(255,255,255,0.04)", fontSize: 11, alignItems: "center" }}>
+                        <div key={i} style={{ display: "grid", gridTemplateColumns: "minmax(40px,60px) minmax(70px,130px) repeat(3,minmax(46px,80px)) minmax(50px,1fr)", gap: 8, padding: "10px 14px", borderTop: "1px solid rgba(255,255,255,0.04)", fontSize: 11, alignItems: "center" }}>
                             <span style={{ color: "#7c8fa8", fontFamily: "monospace" }}>{h.time}</span>
                             <span style={{ fontWeight: 700, color: '#1e293b' }}>{h.sku}</span>
                             <span style={{ color: "#94a3b8" }}>{h.channel}</span>

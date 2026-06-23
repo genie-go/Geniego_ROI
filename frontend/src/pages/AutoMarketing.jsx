@@ -1250,7 +1250,7 @@ export default function AutoMarketing() {
                                                 <div style={{ height: 5, background: 'rgba(241,245,249,0.7)', borderRadius: 4, marginBottom: 8 }}>
                                                     <div style={{ width: pct + "%", height: "100%", background: ch.color, borderRadius: 4, transition: "width 0.5s" }} />
                                                 </div>
-                                                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 4, fontSize: 10, color: '#64748b' }}>
+                                                <div style={{ display: "grid", gridTemplateColumns: "repeat(4,minmax(40px,1fr))", gap: 4, fontSize: 10, color: '#64748b' }}>
                                                     <span>{t("marketing.statImpressions")} <b style={{ color: '#475569' }}>{impressions.toLocaleString()}</b></span>
                                                     <span>{t("marketing.statClicks")} <b style={{ color: '#475569' }}>{clicks.toLocaleString()}</b></span>
                                                     <span>{t("marketing.statConversions")} <b style={{ color: '#475569' }}>{conversions}</b></span>
@@ -1258,7 +1258,7 @@ export default function AutoMarketing() {
                                                 </div>
                                                 {/* Phase2: 다목표 엔진 근거(CAC·일예산·신뢰도·탐색) */}
                                                 {(cac != null || dailyPace != null || confidence != null) && (
-                                                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 4, fontSize: 10, color: '#64748b', marginTop: 4 }}>
+                                                    <div style={{ display: "grid", gridTemplateColumns: "repeat(3,minmax(40px,1fr))", gap: 4, fontSize: 10, color: '#64748b', marginTop: 4 }}>
                                                         {cac != null && <span>{t('marketing.cacLabel', '획득비용')} <b style={{ color: '#475569' }}>{Number(cac).toLocaleString()}{t('marketing.wonUnit', '원')}</b></span>}
                                                         {dailyPace != null && <span>{t('marketing.dailyPace', '일 예산')} <b style={{ color: '#475569' }}>{Number(dailyPace).toLocaleString()}</b></span>}
                                                         {confidence != null && (
@@ -1351,7 +1351,7 @@ export default function AutoMarketing() {
                                         <span style={{ fontWeight: 700, fontSize: 11, color: ch.color }}>{ch.icon} {ch.label}</span>
                                         <span style={{ fontWeight: 800, color: ch.color }}>{fmt(alloc)}</span>
                                     </div>
-                                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 4, fontSize: 10, color: '#64748b' }}>
+                                    <div style={{ display: "grid", gridTemplateColumns: "repeat(4,minmax(40px,1fr))", gap: 4, fontSize: 10, color: '#64748b' }}>
                                         <span>{t("marketing.statImpressions")} {impressions?.toLocaleString()}</span>
                                         <span>{t("marketing.statClicks")} {clicks?.toLocaleString()}</span>
                                         <span>{t("marketing.statConversions")} {conversions}</span>

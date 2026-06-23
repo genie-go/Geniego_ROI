@@ -287,7 +287,7 @@ export default function CampaignManager(){
                     </div>
                     {/* Table */}
                     <div style={{ ...CARD, padding: 0, overflow: 'hidden' }}>
-                        <div style={{ display: 'grid', gridTemplateColumns: '2fr 80px 110px 130px 60px 100px 90px 130px', gap: 6, padding: '14px 20px', background: 'rgba(0,0,0,0.02)', borderBottom: '1px solid rgba(0,0,0,0.06)', fontSize: 12, fontWeight: 700, color: '#64748b' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(56px,2fr) minmax(48px,80px) minmax(56px,110px) minmax(64px,130px) minmax(40px,60px) minmax(52px,100px) minmax(48px,90px) minmax(64px,130px)', gap: 6, padding: '14px 20px', background: 'rgba(0,0,0,0.02)', borderBottom: '1px solid rgba(0,0,0,0.06)', fontSize: 12, fontWeight: 700, color: '#64748b' }}>
                             <span>{tr(T.colName)}</span><span>{tr(T.colStatus)}</span><span style={{ textAlign:'center' }} >{tr(T.colBudget)}</span><span>{tr(T.colSpent)}</span><span>{tr(T.colRoas)}</span><span>{tr(T.colChannels)}</span><span>{tr(T.colCreated)}</span><span>{tr(T.colActions)}</span>
                         </div>
                         {campaigns.length === 0 ? (
@@ -296,7 +296,7 @@ export default function CampaignManager(){
                             const cfg = STS[c.status] || STS.draft;
                             const pct = c.budget ? Math.min(100, Math.round((c.spent || 0) / c.budget * 100)) : 0;
                             return (
-                                <div key={c.id} style={{ display: 'grid', gridTemplateColumns: '2fr 80px 110px 130px 60px 100px 90px 130px', gap: 6, padding: '12px 20px', borderBottom: '1px solid rgba(0,0,0,0.03)', transition: 'background 0.15s', alignItems: 'center' }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(79,142,247,0.04)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                                <div key={c.id} style={{ display: 'grid', gridTemplateColumns: 'minmax(56px,2fr) minmax(48px,80px) minmax(56px,110px) minmax(64px,130px) minmax(40px,60px) minmax(52px,100px) minmax(48px,90px) minmax(64px,130px)', gap: 6, padding: '12px 20px', borderBottom: '1px solid rgba(0,0,0,0.03)', transition: 'background 0.15s', alignItems: 'center' }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(79,142,247,0.04)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                                     <div onClick={() => setDetailId(c.id)} style={{ cursor: 'pointer', fontSize: 9, fontWeight: 700, color: '#b0b9c5', marginBottom: 1, fontFamily: 'monospace' }} ><div>{c.name}</div><div>{c.id}</div></div>
                                     <div><span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '3px 8px', borderRadius: 6, fontSize: 10, fontWeight: 700, background: cfg.bg, border: `1px solid ${cfg.border}`, color: cfg.color }}>{cfg.icon} {stsLabel(c.status)}</span></div>
                                     <div style={{ textAlign: 'right', fontSize: 12, fontWeight: 700, color: '#334155' }}>{fmtW(c.budget)}</div>

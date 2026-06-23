@@ -607,7 +607,7 @@ function ListingQualitySection() {
                 <div style={{ fontSize:9, color:'var(--text-3)' }}>/ {t('digitalShelf.outOf100', '100점')}</div>
               </div>
             </div>
-            <div style={{ display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:8, marginBottom:12 }}>
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(5,minmax(40px,1fr))', gap:8, marginBottom:12 }}>
               {[[t('digitalShelf.lqTitle', '제목'),l.title],[t('digitalShelf.lqImage', '이미지'),l.images],[t('digitalShelf.lqDesc', '설명'),l.desc],[t('digitalShelf.lqSpec', '스펙'),l.spec],[t('digitalShelf.lqKeyword', '키워드'),l.keywords]].map(([lbl,val])=>(
                 <div key={lbl} style={{ textAlign:'center' }}>
                   <div style={{ fontSize:9, color:'var(--text-3)', marginBottom:4, fontWeight:600 }}>{lbl}</div>

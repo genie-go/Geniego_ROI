@@ -129,15 +129,21 @@
   [role="tablist"]::-webkit-scrollbar { display: none; }
 
   /* ── 인라인 그리드 자동 단일 컬럼 ─── */
-  div[style*="grid-template-columns"],
-  div[style*="gridTemplateColumns"] {
+  /* [238차] ★반응형 grid(minmax=auto-fit/auto-fill)는 제외 — 스스로 화면폭에 맞춰 균형 배치하므로
+     1fr로 무너뜨리면 카드가 1열로 길게 적층돼 "리스트가 아래로 늘어지는" 불균형이 된다(채널 KPI 등).
+     고정 트랙 grid만 1열화하고, minmax 반응형 grid는 보존(다열 균형 유지). styles.css 규칙과 정합. */
+  div[style*="grid-template-columns"]:not([style*="minmax"]),
+  div[style*="gridTemplateColumns"]:not([style*="minmax"]) {
     grid-template-columns: 1fr !important;
   }
 
   /* ── 고정 높이 박스: min-height로 전환 ─── */
   /* 내용이 많으면 아래로 늘어날 수 있도록 */
-  div[style*="height: "][style*="overflow: hidden"],
-  div[style*="height:"][style*="overflow:hidden"] {
+  /* [238차] ★max-height 기반 접힘(아코디언/role=region)은 제외 — 'max-height: 0px'가 'height: ' 부분문자열로
+     오매칭되어 overflow:visible 로 덮이면, 사이드바 대메뉴 아코디언·드롭다운 collapse 가 무력화되어
+     "모든 메뉴가 펼쳐진" 상태가 된다. 고정 height 스크롤박스만 풀고, 접힘 패널은 clip 유지. */
+  div[style*="height: "][style*="overflow: hidden"]:not([style*="max-height"]):not([role="region"]),
+  div[style*="height:"][style*="overflow:hidden"]:not([style*="max-height"]):not([role="region"]) {
     height: auto !important;
     min-height: fit-content;
     overflow: visible !important;

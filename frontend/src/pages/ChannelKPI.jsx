@@ -252,11 +252,11 @@ function SnsKpiTab({ globalChannels }) {
             </div>
             <div style={CARD}>
                 <div style={LBL}>{t('channelKpiPage.snsKpiByChannel')}</div>
-                <div style={{ display: 'grid', gridTemplateColumns: '120px repeat(4,1fr)', gap: 8, fontSize: 10, color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', paddingBottom: 8, borderBottom: '1px solid var(--border)', marginBottom: 8 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(64px,120px) repeat(4,minmax(40px,1fr))', gap: 8, fontSize: 10, color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', paddingBottom: 8, borderBottom: '1px solid var(--border)', marginBottom: 8 }}>
                     <span>{t('channelKpiPage.channelCol', 'Channel')}</span><span>{t('channelKpiPage.reach', 'Reach')}</span><span>{t('channelKpiPage.engagement', 'Engagement')}</span><span>{t('channelKpiPage.ctr', 'CTR')}</span><span>{t('channelKpiPage.videoViews', 'Video Views')}</span>
                 </div>
                 {SNS_DATA.map(d => (
-                    <div key={d.ch} style={{ display: 'grid', gridTemplateColumns: '120px repeat(4,1fr)', gap: 8, padding: '8px 0', borderBottom: '1px solid var(--border)', alignItems: 'center', fontSize: 11 }}>
+                    <div key={d.ch} style={{ display: 'grid', gridTemplateColumns: 'minmax(64px,120px) repeat(4,minmax(40px,1fr))', gap: 8, padding: '8px 0', borderBottom: '1px solid var(--border)', alignItems: 'center', fontSize: 11 }}>
                         <span style={{ fontWeight: 800, color: d.color }}>{d.ch}</span>
                         <span style={{ color: C.blue }}>{(d.reach / 1000000).toFixed(1)}M</span>
                         <span style={{ color: C.green }}>{(d.engagement / 1000).toFixed(0)}K</span>
@@ -295,7 +295,7 @@ function ContentKpiTab({ globalOrderStats }) {
             </div>
             <div style={CARD}>
                 <div style={LBL}>{t('channelKpiPage.monthlyTrend')}</div>
-                <div style={{ display: 'grid', gridTemplateColumns: '60px 1fr 1fr 1fr 1fr', gap: 12, padding: '8px 0', borderBottom: '1px solid var(--border)', fontSize: 11, alignItems: 'center' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(48px,60px) repeat(4,minmax(40px,1fr))', gap: 12, padding: '8px 0', borderBottom: '1px solid var(--border)', fontSize: 11, alignItems: 'center' }}>
                     <span style={{ fontWeight: 800, color: '#64748b' }}>{t('channelKpiPage.currentMonth', 'This Month')}</span>
                     {[
                         [views, views * 1.5 || 10, C.blue, t('channelKpiPage.pageViews', 'Views')],
@@ -597,12 +597,12 @@ function MonitoringTab({ goals, kpiTargets }) {
             {/* Weekly Trend */}
             <div style={CARD}>
                 <div style={LBL}>{t('channelKpiPage.weeklyAdTrend')}</div>
-                <div style={{ display: 'grid', gridTemplateColumns: '60px repeat(3,1fr)', gap: 8, fontSize: 10, color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(48px,60px) repeat(3,minmax(44px,1fr))', gap: 8, fontSize: 10, color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
                     <span>{t('channelKpiPage.period', 'Period')}</span><span>{t('channelKpiPage.ctr', 'CTR')}</span><span>{t('channelKpiPage.convRate', 'Conv. Rate')}</span><span>{t('channelKpiPage.roas', 'ROAS')}</span>
                 </div>
                 {WEEK_DATA.length === 0 && <div style={{ fontSize: 11, textAlign: 'center', color: '#94a3b8', padding: '20px' }}>{t('channelKpiPage.noData', '데이터가 없습니다')}</div>}
                 {WEEK_DATA.map(w => (
-                    <div key={w.week} style={{ display: 'grid', gridTemplateColumns: '60px repeat(3,1fr)', gap: 8, padding: '8px 0', borderBottom: '1px solid var(--border)', fontSize: 11 }}>
+                    <div key={w.week} style={{ display: 'grid', gridTemplateColumns: 'minmax(48px,60px) repeat(3,minmax(44px,1fr))', gap: 8, padding: '8px 0', borderBottom: '1px solid var(--border)', fontSize: 11 }}>
                         <span style={{ color: '#94a3b8', fontWeight: 700 }}>{w.week}</span>
                         <span style={{ color: w.ctr >= 3 ? C.green : C.orange, fontWeight: 700 }}>{w.ctr}%</span>
                         <span style={{ color: w.conv >= 5 ? C.green : C.orange, fontWeight: 700 }}>{w.conv}%</span>
@@ -741,8 +741,9 @@ export default function ChannelKPI() {
                             </div>
                         </div>
                     </div>
-                    {/* Channel ROAS Mini Panel */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 6, minWidth: 260 }}>
+                    {/* Channel ROAS Mini Panel — [238차] 반응형 auto-fit: 데스크톱 minWidth 260(≈3열) / 모바일은
+                        hero-meta 세로화 + .hero-meta>*{min-width:0} 로 minWidth 무력화 → 전폭에서 3~4열 균형. */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(80px,1fr))', gap: 6, minWidth: 260 }}>
                         {Object.entries(channelBudgets).slice(0, 6).map(([id, ch]) => (
                             <div key={id} style={{ padding: '8px 10px', borderRadius: 10, background: `${ch.color}10`, border: `1px solid ${ch.color}30`, textAlign: 'center' }}>
                                 <div style={{ fontSize: 14 }}>{ch.icon}</div>

@@ -733,6 +733,13 @@ a {
     padding: 9px 12px !important;
   }
 
+  /* [238차] ★대메뉴 아코디언 collapse 보장(방어) — 전역 'height/overflow' unconstrain 안전망이 max-height:0
+     접힘 패널의 overflow:hidden 을 visible 로 덮어 "모든 대메뉴가 동시에 펼쳐지던" 회귀를 차단. role=region
+     접힘 패널은 항상 clip 유지 → 한 번에 하나의 대메뉴만 펼쳐진다(openSectionId 단일 아코디언 정상화). */
+  .sidebar div[role="region"][aria-label] {
+    overflow: hidden !important;
+  }
+
   .sidebar .nav-item {
     min-height: 44px !important;
     padding-top: 9px !important;
@@ -1017,6 +1024,7 @@ a {
     max-height: none !important;
     min-height: 0 !important;
     overflow: visible !important;
+    max-width: 100% !important; /* [238차] 라우트 루트가 콘텐츠 폭으로 팽창해 우측 잘리던 잔여 오버플로우 캡 */
   }
 
   /* ★★네이티브 모바일 헤더/탭(AutoMarketing·CampaignManager·JourneyBuilder 등 공통 .sub-tab-nav 패턴):
@@ -1109,6 +1117,15 @@ a {
     flex-wrap: nowrap !important;
   }
 
+  /* [238차] ★공유 hero 헤더(.hero-meta) 모바일 세로 적층 — 데스크톱은 [아이콘+제목 | 우측 요약/패널]
+     2열(space-between)이지만 모바일에선 우측 패널(minWidth 260 등)이 폭을 점유해 좌측 제목이 한 자 폭으로
+     으스러져 세로로 끝없이 늘어진다(채널 KPI 등). 모바일에선 제목 블록 → 패널 순으로 전폭 적층(균형). */
+  .hero-meta {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  .hero-meta > * { width: 100% !important; min-width: 0 !important; }
+
   /* topbar / nav / 사이드바는 nowrap 유지 */
   .topbar,
   .topbar-right,
@@ -1169,6 +1186,38 @@ a {
     max-width: 100% !important;
     scrollbar-width: thin !important;
     scrollbar-color: rgba(79, 142, 247, 0.3) transparent !important;
+    position: relative;
+  }
+
+  /* [238차] ★가로 스크롤 어포던스 — 표/매트릭스가 viewport보다 넓을 때 우측이 잘려 보이지만 실제로는
+     스와이프로 스크롤 가능. 모바일에선 스크롤바가 숨겨져 "우측에 내용이 더 있고 스크롤된다"는 신호가
+     없어 사용자가 잘림으로 오인 → ① 항상 보이는 얇은 스크롤바 ② 우측 끝 그라데이션 힌트로 명확히 안내. */
+  table {
+    scrollbar-width: thin !important;
+    scrollbar-color: rgba(79, 142, 247, 0.45) transparent !important;
+  }
+  table::-webkit-scrollbar,
+  div:has(> table)::-webkit-scrollbar {
+    height: 6px !important;
+    -webkit-appearance: none !important;
+    display: block !important;
+  }
+  table::-webkit-scrollbar-thumb,
+  div:has(> table)::-webkit-scrollbar-thumb {
+    background: rgba(79, 142, 247, 0.5) !important;
+    border-radius: 6px !important;
+  }
+  /* 우측 끝 페이드 힌트(스크롤 가능 표시). pointer-events 없음 → 터치/스크롤 방해 안 함. */
+  div:has(> table)::after {
+    content: "";
+    position: absolute;
+    top: 1px;
+    right: 0;
+    bottom: 7px;
+    width: 26px;
+    pointer-events: none;
+    background: linear-gradient(to right, rgba(120, 130, 150, 0) 0%, rgba(120, 130, 150, 0.14) 100%);
+    border-radius: 0 10px 10px 0;
   }
 
   th,
@@ -3724,8 +3773,11 @@ body:not([data-theme]) .sidebar-footer {
    원인: 광범위 [style*="linear-gradient"] 매처가 EmptyState 등 모든 gradient
    버튼을 hijack → 흰 배경 + 흰 글자 invisible. 영향 페이지: JourneyBuilder,
    Connectors, MappingRegistry, Admin, HelpCenter, AI* 등 다수. */
-[data-theme="arctic_white"] .container>div:last-child :not(button):not(a)[style*="linear-gradient"][style*="background"],
-[data-theme="pearl_office"] .container>div:last-child :not(button):not(a)[style*="linear-gradient"][style*="background"] {
+/* [238차] ★흰 글자(color:#fff) 가진 gradient 요소 제외 — 온보딩 바(다크 네이비 그라데이션+흰글자)·
+   배너·아바타·컬러 배지 등은 색이 살아있어야 하는 컬러 UI라 흰 배경으로 바꾸면 '흰 글자 on 흰 배경'
+   으로 사라진다. 흰 글자 없는 gradient 카드만 라이트 카드로 변환. */
+[data-theme="arctic_white"] .container>div:last-child :not(button):not(a)[style*="linear-gradient"][style*="background"]:not([style*="color: rgb(255, 255, 255)"]):not([style*="color: #fff"]):not([style*="color:#fff"]):not([style*="color: #ffffff"]),
+[data-theme="pearl_office"] .container>div:last-child :not(button):not(a)[style*="linear-gradient"][style*="background"]:not([style*="color: rgb(255, 255, 255)"]):not([style*="color: #fff"]):not([style*="color:#fff"]):not([style*="color: #ffffff"]) {
   background: var(--bg-card, rgba(255, 255, 255, 0.95)) !important;
   border-color: var(--border) !important;
 }
@@ -4238,9 +4290,12 @@ body:not([data-theme]) .sidebar-footer {
 
 /* ??? LIGHT THEME: Tab Bar & Remaining Dark Remnants Fix ??? */
 
-/* Tab bar backgrounds that use gradients or dark surfaces (EXCLUDE buttons) */
-[data-theme="arctic_white"] .container>div:last-child div[style*="background: linear-gradient"]:not(button),
-[data-theme="pearl_office"] .container>div:last-child div[style*="background: linear-gradient"]:not(button) {
+/* Tab bar backgrounds that use gradients or dark surfaces (EXCLUDE buttons)
+   [238차] ★흰 글자(color:#fff)를 가진 그라데이션 요소는 제외 — 이들은 색이 살아있어야 하는 컬러 UI
+   (온보딩 배너·아바타·컬러 배지/버튼)라서 흰 배경으로 변환하면 '흰 글자 on 흰 배경'으로 사라진다.
+   흰 글자 없는(=어두운/무색 텍스트) 그라데이션 카드만 라이트 카드로 변환한다. */
+[data-theme="arctic_white"] .container>div:last-child div[style*="background: linear-gradient"]:not(button):not([style*="color: rgb(255, 255, 255)"]):not([style*="color: #fff"]):not([style*="color:#fff"]):not([style*="color: #ffffff"]),
+[data-theme="pearl_office"] .container>div:last-child div[style*="background: linear-gradient"]:not(button):not([style*="color: rgb(255, 255, 255)"]):not([style*="color: #fff"]):not([style*="color:#fff"]):not([style*="color: #ffffff"]) {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 255, 0.9)) !important;
   color: #111827 !important;
 }
@@ -6655,12 +6710,15 @@ body:not([data-theme]) .sidebar-footer {
    React renders inline background: '#4f8ef7' as 'rgb(79, 142, 247)'
    so attribute selectors must match the rgb() form too.
    ═══════════════════════════════════════════════════════════════ */
-[data-theme="arctic_white"] .container>div:last-child button[style*="rgb(79, 142, 247)"]:not(.am-active-tab):not(.cs-active-tab),
-[data-theme="arctic_white"] .container>div:last-child button[style*="rgb(79,142,247)"]:not(.am-active-tab):not(.cs-active-tab),
+/* [238차] ★'background:' 접두사 필수 — 기존엔 인라인 어디든 rgb(79,142,247)이 있으면(파랑 테두리·
+   rgba 저불투명 배경 등) 흰 글자를 강제해, 라이트테마에서 '흰 글자 + 연파랑/흰 배경'으로 텍스트가
+   안 보이던 버그(예 P&L 기간선택 활성 버튼). 솔리드 파랑 '배경' 버튼만 흰 글자로 유지. */
+[data-theme="arctic_white"] .container>div:last-child button[style*="background: rgb(79, 142, 247)"]:not(.am-active-tab):not(.cs-active-tab),
+[data-theme="arctic_white"] .container>div:last-child button[style*="background:rgb(79, 142, 247)"]:not(.am-active-tab):not(.cs-active-tab),
 [data-theme="arctic_white"] .container>div:last-child button[style*="background: #4f8ef7"]:not(.am-active-tab):not(.cs-active-tab),
 [data-theme="arctic_white"] .container>div:last-child button[style*="background:#4f8ef7"]:not(.am-active-tab):not(.cs-active-tab),
-[data-theme="pearl_office"] .container>div:last-child button[style*="rgb(79, 142, 247)"]:not(.am-active-tab):not(.cs-active-tab),
-[data-theme="pearl_office"] .container>div:last-child button[style*="rgb(79,142,247)"]:not(.am-active-tab):not(.cs-active-tab),
+[data-theme="pearl_office"] .container>div:last-child button[style*="background: rgb(79, 142, 247)"]:not(.am-active-tab):not(.cs-active-tab),
+[data-theme="pearl_office"] .container>div:last-child button[style*="background:rgb(79, 142, 247)"]:not(.am-active-tab):not(.cs-active-tab),
 [data-theme="pearl_office"] .container>div:last-child button[style*="background: #4f8ef7"]:not(.am-active-tab):not(.cs-active-tab),
 [data-theme="pearl_office"] .container>div:last-child button[style*="background:#4f8ef7"]:not(.am-active-tab):not(.cs-active-tab) {
   color: #ffffff !important;
@@ -7007,8 +7065,11 @@ button.cs-inactive-tab {
   -webkit-text-fill-color: #374151 !important;
 }
 
-/* Active (selected) sub-tab: red text + red border for clear indication */
-[data-theme="arctic_white"] .sub-tab-nav button[style*="translateY"] {
+/* Active (selected) sub-tab: red text + red border for clear indication.
+   [238차] ★dyn-sub-tab-btn / mkt-sub-tab-btn 제외 — 이들은 자체 규칙으로 '솔리드 배경+흰 글자'를
+   관리하는데, 이 일반 오버라이드가 배경을 연빨강(0.08)으로 덮으면 흰 글자가 흰 배경에 묻혀 안 보인다
+   (어트리뷰션 MTA/MMM 탭 등). 관리형 탭은 자체 active 규칙에 위임. */
+[data-theme="arctic_white"] .sub-tab-nav button[style*="translateY"]:not(.dyn-sub-tab-btn):not(.mkt-sub-tab-btn) {
   color: #dc2626 !important;
   -webkit-text-fill-color: #dc2626 !important;
   background: rgba(220, 38, 38, 0.08) !important;
@@ -7035,7 +7096,7 @@ button.cs-inactive-tab {
   -webkit-text-fill-color: #374151 !important;
 }
 
-[data-theme="pearl_office"] .sub-tab-nav button[style*="translateY"] {
+[data-theme="pearl_office"] .sub-tab-nav button[style*="translateY"]:not(.dyn-sub-tab-btn):not(.mkt-sub-tab-btn) {
   color: #dc2626 !important;
   -webkit-text-fill-color: #dc2626 !important;
   background: rgba(220, 38, 38, 0.08) !important;
@@ -7529,3 +7590,74 @@ button.cs-inactive-tab {
 @keyframes adPulse   { 0%,100% { transform: scale(1); } 50% { transform: scale(1.04); } }
 @keyframes adFloat   { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
 @keyframes adShine   { 0%,100% { filter: brightness(1); } 50% { filter: brightness(1.18); } }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   [238차] 초엔터프라이즈 프리미엄 폴리시 + 텍스트 박스 이탈 방지 (안전·가산적)
+   ★원칙(일체 오류 0): 레이아웃 치수/표시/위치/색상 불변 → 대비·레이아웃 회귀 없음.
+     ① 텍스트가 박스를 이탈하지 않도록 줄바꿈 안전망 ② 라이트테마 카드 은은한 레이어드
+     깊이감(box-shadow만, 인라인 그림자 있으면 그쪽 우선=비-important) ③ 제목/탭 타이포 정제.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ① 텍스트 박스 이탈 방지 — 제목·부제·라벨·버튼·카드 공통(한글 단어 보존 + 긴 단어 강제 줄바꿈) */
+.app-content-area h1, .app-content-area h2, .app-content-area h3, .app-content-area h4,
+.app-content-area .hero-title, .app-content-area .hero-desc,
+.app-content-area [class*="title"], .app-content-area [class*="Title"],
+.app-content-area [class*="label"], .app-content-area [class*="Label"],
+.app-content-area [class*="heading"], .app-content-area [class*="Heading"],
+.app-content-area button, .app-content-area .card, .app-content-area .card-glass {
+  overflow-wrap: break-word;
+  word-break: keep-all;
+}
+.app-content-area .card, .app-content-area .card-glass,
+.app-content-area [class*="panel"], .app-content-area [class*="Panel"],
+.app-content-area section {
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+/* ② 라이트테마 프리미엄 깊이감 — 거친 단일 그림자 대신 은은한 2겹 레이어드(치수 불변, 비-important
+   이므로 인라인/의도된 그림자가 있는 카드는 그대로 유지). 호버 시 살짝 더 떠오르는 고급감. */
+[data-theme="arctic_white"] .app-content-area .card,
+[data-theme="pearl_office"] .app-content-area .card {
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05), 0 10px 28px -12px rgba(15, 23, 42, 0.13);
+  transition: box-shadow 0.2s ease;
+}
+[data-theme="arctic_white"] .app-content-area .card.card-hover:hover,
+[data-theme="pearl_office"] .app-content-area .card.card-hover:hover {
+  box-shadow: 0 2px 4px rgba(15, 23, 42, 0.07), 0 18px 44px -14px rgba(15, 23, 42, 0.20);
+}
+
+/* ③ 제목 타이포 정제 — 자간 미세 조정으로 고급감(색/크기 불변) */
+.app-content-area .hero-title {
+  letter-spacing: -0.015em;
+}
+/* ④ 서브탭 바 — 하단 경계 정제 + 미세 자간(컨테이너만, 버튼 색/대비 불변) */
+.app-content-area .sub-tab-nav {
+  letter-spacing: 0.1px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   [238차] ★dark-on-dark 복원 — 라이트테마 흰글자 darkening 규칙들이 '솔리드/그라데이션 컬러 배경'
+   위의 흰 글자 배지·버튼(예: 대시보드 이용가이드 🎓초급/⏱5분/🌐15개언어 = 남색·녹색·보라 배경)까지
+   회색/짙은색으로 덮어 어두운배경+어두운글자(안 보임)가 되던 것을 흰 글자로 복원.
+   ★저불투명 틴트 rgba(...,0.x)는 제외 — 그 위 흰 글자는 안 보이므로(직전 pill 가독성 수정과 무충돌).
+     ('background: rgb(' 는 솔리드만 매칭, 'rgba(' 미매칭.) 특이성·말미배치로 darkening 규칙을 이긴다. */
+[data-theme="arctic_white"] .container>div:last-child [style*="color: rgb(255, 255, 255)"][style*="background: rgb("],
+[data-theme="arctic_white"] .container>div:last-child [style*="color: rgb(255, 255, 255)"][style*="background:rgb("],
+[data-theme="arctic_white"] .container>div:last-child [style*="color: rgb(255, 255, 255)"][style*="linear-gradient"],
+[data-theme="arctic_white"] .container>div:last-child [style*="color: #fff"][style*="background: rgb("],
+[data-theme="arctic_white"] .container>div:last-child [style*="color: #fff"][style*="linear-gradient"],
+[data-theme="arctic_white"] .container>div:last-child [style*="color:#fff"][style*="background: rgb("],
+[data-theme="arctic_white"] .container>div:last-child [style*="color: #ffffff"][style*="background: rgb("],
+[data-theme="arctic_white"] .container>div:last-child [style*="color: #ffffff"][style*="linear-gradient"],
+[data-theme="pearl_office"] .container>div:last-child [style*="color: rgb(255, 255, 255)"][style*="background: rgb("],
+[data-theme="pearl_office"] .container>div:last-child [style*="color: rgb(255, 255, 255)"][style*="background:rgb("],
+[data-theme="pearl_office"] .container>div:last-child [style*="color: rgb(255, 255, 255)"][style*="linear-gradient"],
+[data-theme="pearl_office"] .container>div:last-child [style*="color: #fff"][style*="background: rgb("],
+[data-theme="pearl_office"] .container>div:last-child [style*="color: #fff"][style*="linear-gradient"],
+[data-theme="pearl_office"] .container>div:last-child [style*="color:#fff"][style*="background: rgb("],
+[data-theme="pearl_office"] .container>div:last-child [style*="color: #ffffff"][style*="background: rgb("],
+[data-theme="pearl_office"] .container>div:last-child [style*="color: #ffffff"][style*="linear-gradient"] {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}

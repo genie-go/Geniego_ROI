@@ -639,7 +639,7 @@ const AttributionTab = memo(function AttributionTab() {
           {_CHANNELS_LIVE.length > 0 && (
             <div className="card card-glass">
               <div style={{ fontWeight: 900, fontSize: 13, marginBottom: 14 }}>📡 {t('attrData.liveChannelPerf', 'Live 채널 성과 (실 backend)')}</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr 1fr 1fr', gap: 6, fontSize: 10, color: 'var(--text-3)', fontWeight: 700, marginBottom: 6 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(48px,1.4fr) minmax(40px,1fr) minmax(40px,1fr) minmax(40px,1fr)', gap: 6, fontSize: 10, color: 'var(--text-3)', fontWeight: 700, marginBottom: 6 }}>
                 <span>{t('attrData.channel', '채널')}</span>
                 <span style={{ textAlign: 'right' }}>{t('attrData.spend', 'Spend')}</span>
                 <span style={{ textAlign: 'right' }}>ROAS</span>
@@ -648,7 +648,7 @@ const AttributionTab = memo(function AttributionTab() {
               {_CHANNELS_LIVE.slice(0, 8).map(c => {
                 const color = CH_COLORS[c.channel] || '#4f8ef7';
                 return (
-                  <div key={c.channel} style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr 1fr 1fr', gap: 6, padding: '6px 0', borderBottom: '1px solid rgba(99,140,255,0.05)', fontSize: 11, alignItems: 'center' }}>
+                  <div key={c.channel} style={{ display: 'grid', gridTemplateColumns: 'minmax(48px,1.4fr) minmax(40px,1fr) minmax(40px,1fr) minmax(40px,1fr)', gap: 6, padding: '6px 0', borderBottom: '1px solid rgba(99,140,255,0.05)', fontSize: 11, alignItems: 'center' }}>
                     <span style={{ color, fontWeight: 700 }}>{CH_LABELS[c.channel] || c.channel}</span>
                     <span style={{ textAlign: 'right', fontFamily: 'monospace' }}>{fmtC(Math.round(c.spend || 0))}</span>
                     <span style={{ textAlign: 'right', fontWeight: 700, color: (c.roas || 0) >= 2 ? '#22c55e' : (c.roas || 0) >= 1 ? '#f59e0b' : '#ef4444' }}>{(c.roas || 0).toFixed(2)}x</span>

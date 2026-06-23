@@ -69,16 +69,16 @@ export default function DashGuide() {
       <div style={{
         ...CARD,
         background: 'linear-gradient(135deg, #eff6ff 0%, #f5f3ff 100%)',
-        borderColor: C.accent + '40', textAlign: 'center', padding: 32,
+        borderColor: C.accent + '40', textAlign: 'center', padding: '18px 24px',
       }}>
-        <div style={{ fontSize: 44 }}>📊</div>
-        <div style={{ fontWeight: 900, fontSize: 22, marginTop: 8, color: '#4f46e5' }}>
+        <div style={{ fontSize: 32, lineHeight: 1 }}>📊</div>
+        <div style={{ fontWeight: 900, fontSize: 20, marginTop: 6, color: '#4f46e5' }}>
           {g('title', 'Dashboard Usage Guide')}
         </div>
-        <div style={{ fontSize: 13, color: '#374151', marginTop: 6, maxWidth: 560, margin: '6px auto 0', lineHeight: 1.7, fontWeight: 600 }}>
+        <div style={{ fontSize: 12.5, color: '#374151', marginTop: 4, maxWidth: 560, margin: '4px auto 0', lineHeight: 1.6, fontWeight: 600 }}>
           {g('subtitle', 'Learn all Dashboard features step by step.')}
         </div>
-        <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 14, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 10, flexWrap: 'wrap' }}>
           <span style={{ fontSize: 11, padding: '5px 14px', borderRadius: 20, background: '#4f46e5', color: '#fff', fontWeight: 800, textShadow: '0 1px 2px rgba(0,0,0,0.2)' }}>
             🎓 {g('beginnerBadge', 'Beginner Guide')}
           </span>
@@ -188,13 +188,13 @@ export default function DashGuide() {
       <div style={{
         ...CARD,
         background: 'linear-gradient(135deg, #f0fdf4 0%, #eff6ff 100%)',
-        borderColor: C.green + '40', textAlign: 'center', padding: 32,
+        borderColor: C.green + '40', textAlign: 'center', padding: '18px 24px',
       }}>
-        <div style={{ fontSize: 40 }}>🚀</div>
-        <div style={{ fontWeight: 900, fontSize: 18, marginTop: 8, color: '#059669' }}>
+        <div style={{ fontSize: 30, lineHeight: 1 }}>🚀</div>
+        <div style={{ fontWeight: 900, fontSize: 17, marginTop: 6, color: '#059669' }}>
           {g('readyTitle', '🎉 You\'re Ready to Start!')}
         </div>
-        <div style={{ fontSize: 13, color: '#374151', marginTop: 6, maxWidth: 500, margin: '6px auto 0', lineHeight: 1.7 }}>
+        <div style={{ fontSize: 12.5, color: '#374151', marginTop: 4, maxWidth: 500, margin: '4px auto 0', lineHeight: 1.6 }}>
           {g('readyDesc', 'Click the Overview tab above to begin.')}
         </div>
       </div>

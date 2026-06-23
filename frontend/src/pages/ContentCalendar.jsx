@@ -31,13 +31,13 @@ function MonthCalendar({year,month,events,t}){
   const PLAT_ICO={instagram:"📸",youtube:"▶",tiktok:"🎵",blog:"📝",facebook:"📘",twitter:"🐦",linkedin:"💼",pinterest:"📌"};
   return(
     <div>
-      <div style={{ display:"grid", gridTemplateColumns:"repeat(7,1fr)", gap:2, marginBottom:6 }}>
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(7,minmax(36px,1fr))", gap:2, marginBottom:6 }}>
         {DAY_KEYS.map((dk,i)=>(
           <div key={dk} style={{ fontSize:10, fontWeight:700, textAlign:"center", color:DAY_COLORS[i]||"#6b7280", padding:"4px 0" }}>{t(`contentCal.${dk}`)}</div>
         ))}
       </div>
       {weeks.map((week,wi)=>(
-        <div key={wi} style={{ display:"grid", gridTemplateColumns:"repeat(7,1fr)", gap:2, marginBottom:2 }}>
+        <div key={wi} style={{ display:"grid", gridTemplateColumns:"repeat(7,minmax(36px,1fr))", gap:2, marginBottom:2 }}>
           {week.map((day,di)=>{
             const ds=toStr(day);const inMonth=day.getMonth()===month;const dayEvents=evByDate[ds]||[];const isToday=ds===todayStr;
             return(
