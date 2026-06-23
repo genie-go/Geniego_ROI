@@ -429,9 +429,25 @@ function JobsTab({ t, isDemo }) {
     setPushing(false);
   }
 
+  // [240차 동기화] 리프라이서 승인 대기(pending_approval) 채널 반영 승인 — 기존엔 PriceOpt 에서만 승인 가능했고
+  //   Writeback 콘솔엔 승인 수단이 없어 pending_approval job 이 정체. 여기서도 승인→queued→자동 push.
+  const [approving, setApproving] = useState(false);
+  async function approvePending() {
+    if (isDemo) { addAlert?.({ type: 'info', msg: '데모에서는 실제 반영이 되지 않습니다.' }); return; }
+    setApproving(true); setErr(null);
+    try {
+      const r = await postJson('/api/catalog/writeback/approve', {});
+      const s = (r && r.summary) || r || {};
+      addAlert?.({ type: 'success', msg: `[Writeback] ${t('writebackPage.approved', '채널 반영 승인 완료')} · ${t('writebackPage.btnPushNow', '지금 Push')} ${s.done || 0}` });
+      await loadJobs();
+    } catch (e) { setErr(String(e?.message || e)); }
+    setApproving(false);
+  }
+
   // 워커 상태(done/awaiting_credentials/queued/pending/failed) + 레거시(completed/running) 색.
-  const statusColors = { done: '#22c55e', completed: '#22c55e', running: '#4f8ef7', failed: '#ef4444', pending: '#eab308', queued: '#a855f7', awaiting_credentials: '#f97316' };
-  const statusLabel = (s) => ({ done: '완료', awaiting_credentials: '자격증명 대기', queued: '대기열', pending: '보류', failed: '실패' }[s] || s);
+  // [240차 동기화] pending_approval(리프라이서 human-in-loop 승인 대기) 라벨/색 추가 — 기존엔 raw 영문 노출 + 승인 불가.
+  const statusColors = { done: '#22c55e', completed: '#22c55e', running: '#4f8ef7', failed: '#ef4444', pending: '#eab308', queued: '#a855f7', awaiting_credentials: '#f97316', pending_approval: '#f59e0b' };
+  const statusLabel = (s) => ({ done: '완료', awaiting_credentials: '자격증명 대기', queued: '대기열', pending: '보류', failed: '실패', pending_approval: t('writebackPage.pendingApproval', '승인 대기') }[s] || s);
   // result(JSON)에서 회원이 볼 actionable 메시지 추출.
   const resultMsg = (raw) => {
     if (!raw) return '';
@@ -444,11 +460,16 @@ function JobsTab({ t, isDemo }) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <div style={{ fontWeight: 700, fontSize: 14 }}>📊 {t('writebackPage.jobHistory', 'Job History')}</div>
-          {['queued', 'awaiting_credentials', 'done', 'failed', 'pending'].filter(s => summary[s]).map(s => (
+          {['pending_approval', 'queued', 'awaiting_credentials', 'done', 'failed', 'pending'].filter(s => summary[s]).map(s => (
             <span key={s} style={{ fontSize: 10.5, fontWeight: 700, padding: '2px 9px', borderRadius: 20, background: (statusColors[s] || '#4f8ef7') + '22', color: statusColors[s] || '#4f8ef7' }}>{statusLabel(s)} {summary[s]}</span>
           ))}
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
+          {summary.pending_approval > 0 && (
+            <button onClick={approvePending} disabled={approving} title={t('writebackPage.btnApproveHint', '리프라이서 승인 대기 가격을 채널 반영 승인합니다')} style={{ padding: '7px 16px', borderRadius: 8, border: 'none', cursor: approving ? 'default' : 'pointer', fontWeight: 700, fontSize: 11, background: 'linear-gradient(135deg,#f59e0b,#f97316)', color: '#fff', opacity: approving ? 0.6 : 1 }}>
+              ✅ {approving ? t('writebackPage.approving', '승인 중...') : `${t('writebackPage.btnApprove', '채널 반영 승인')} (${summary.pending_approval})`}
+            </button>
+          )}
           <button onClick={pushQueue} disabled={pushing} title={t('writebackPage.btnPushHint', '자격증명이 등록된 채널의 대기 작업을 지금 채널로 push합니다')} style={{ padding: '7px 16px', borderRadius: 8, border: 'none', cursor: pushing ? 'default' : 'pointer', fontWeight: 700, fontSize: 11, background: 'linear-gradient(135deg,#22c55e,#14d9b0)', color: '#fff', opacity: pushing ? 0.6 : 1 }}>
             ⚡ {pushing ? t('writebackPage.pushing', '처리 중...') : t('writebackPage.btnPushNow', '지금 Push')}
           </button>

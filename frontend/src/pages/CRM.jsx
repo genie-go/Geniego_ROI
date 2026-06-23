@@ -289,7 +289,7 @@ function AISegmentsTab({ navigate, derivedCustomers }) {
 }
 
 /* ── Segments Tab ───────────────────────────────────────────────────────────── */
-function SegmentsTab({ segments, onSave, onDelete, onSmartSeed }) {
+function SegmentsTab({ segments, onSave, onDelete, onSmartSeed, onRefresh }) {
   const { t } = useI18n();
   const [form, setForm] = useState({ name: "", description: "", color: "#4f8ef7", rules: [] });
   const [msg, setMsg] = useState("");
@@ -344,6 +344,7 @@ function SegmentsTab({ segments, onSave, onDelete, onSmartSeed }) {
               <div><div style={{ fontWeight: 700, fontSize: 11, color: C.muted, marginTop: 2 }} >{s.name}</div><div>{s.description}</div></div>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <div style={{ textAlign: "right", fontSize: 10, fontWeight: 800, color: C.muted }} ><div>{s.count}</div><div>{t('crm.segUnit')}</div></div>
+                {onRefresh && <button onClick={() => onRefresh(s.id)} title={t('crm.segRefresh', '멤버십 재계산 (실데이터 기준 동기화)')} style={{ background: "none", border: "none", color: C.accent, cursor: "pointer", fontSize: 14 }}>🔄</button>}
                 <button onClick={() => { if (window.confirm(t('crm.deleteConfirm', 'Delete?'))) onDelete(s.id); }} style={{ background: "none", border: "none", color: C.red, cursor: "pointer", fontSize: 14 }}>🗑</button>
               </div>
             </div>
@@ -623,6 +624,14 @@ function CRMContent() {
     if (IS_DEMO) { setCrmSegments(prev => prev.filter(s => s.id !== id)); }
     else { try { await crmApi.deleteSegment(id); reloadOpSegments(); } catch (e) { addAlert?.({ type: 'error', msg: '세그먼트 삭제 실패: ' + (e?.message || '') }); } }
   };
+  // [240차 동기화] 세그먼트 멤버십 재계산 — member_count/멤버십은 생성·시드 시점 스냅샷이라 신규 구매 누적 시 stale.
+  //   백엔드 refreshSegment(POST /crm/segments/{id}/refresh)가 존재했으나 프론트 호출처가 없어(고아) 사용자가
+  //   재동기화할 수단이 없었다. 카드별 새로고침으로 멤버십·카운트를 실데이터 기준 재계산(캠페인 발송 대상 정합).
+  const onRefreshSegment = async (id) => {
+    if (IS_DEMO) { addAlert?.({ type: 'info', msg: '데모에서는 멤버십이 시뮬레이션됩니다.' }); return; }
+    try { const r = await crmApi.refreshSegment(id); reloadOpSegments(); addAlert?.({ type: 'success', msg: `세그먼트 멤버십 재계산 완료 (${r?.member_count ?? '-'}명)` }); }
+    catch (e) { addAlert?.({ type: 'error', msg: '세그먼트 새로고침 실패: ' + (e?.message || '') }); }
+  };
   // [239차+ CDP] 표준 행동 세그먼트 원클릭 생성(VIP/충성/신규/이탈위험/휴면). 실 구매 데이터로 자동 멤버십.
   const onSmartSeed = async () => {
     try {
@@ -787,7 +796,7 @@ function CRMContent() {
         </>
       )}
 
-      {tab === "segments" && <SegmentsTab segments={segments} onSave={onSaveSegment} onDelete={onDeleteSegment} onSmartSeed={onSmartSeed} />}
+      {tab === "segments" && <SegmentsTab segments={segments} onSave={onSaveSegment} onDelete={onDeleteSegment} onSmartSeed={onSmartSeed} onRefresh={onRefreshSegment} />}
       {tab === "rfm" && <RFMTab derivedCustomers={rfmList} />}
       {tab === "ai_segments" && <AISegmentsTab navigate={navigate} derivedCustomers={customers} />}
       {tab === "guide" && (

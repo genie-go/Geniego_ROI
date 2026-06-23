@@ -630,7 +630,17 @@ class Catalog
             $res = self::pushToChannel($ch, $creds, $product, $pushOp, $priorId);
             if (!empty($res['ok'])) {
                 $upd->execute(['done', json_encode($res, JSON_UNESCAPED_UNICODE), $attempt, $now, $j['id']]);
-                try { $pdo->prepare("UPDATE catalog_listing SET status='synced', updated_at=? WHERE tenant_id=? AND channel=? AND sku=?")->execute([$now, $t, $ch, $sku]); } catch (\Throwable $e) {}
+                // [240차 동기화] price_update 성공 시 catalog_listing.price 도 동반 갱신(메인DB 가격 stale 해소).
+                //   기존엔 status='synced'만 갱신 → listings()/Writeback 그리드가 옛 가격 표시 + 이후 수동 writeback이
+                //   stale 가격을 재push(채널 가격 revert)하던 사일로 갭. 승인된 새 가격을 SSOT(catalog_listing)에 반영.
+                try {
+                    if ($op === 'price_update' && isset($product['price'])) {
+                        $pdo->prepare("UPDATE catalog_listing SET price=?, status='synced', updated_at=? WHERE tenant_id=? AND channel=? AND sku=?")
+                            ->execute([(float)$product['price'], $now, $t, $ch, $sku]);
+                    } else {
+                        $pdo->prepare("UPDATE catalog_listing SET status='synced', updated_at=? WHERE tenant_id=? AND channel=? AND sku=?")->execute([$now, $t, $ch, $sku]);
+                    }
+                } catch (\Throwable $e) {}
                 $sum['done']++;
             } elseif (!empty($res['pending'])) {
                 $upd->execute(['queued', json_encode($res, JSON_UNESCAPED_UNICODE), $attempt, $now, $j['id']]);
@@ -842,18 +852,40 @@ class Catalog
         try {
             self::ensureTables();
             $pdo = self::db(); $now = self::now();
-            $ch = ($channel === '' || $channel === '*') ? 'all' : $channel;
-            $payload = json_encode(['sku' => $sku, 'channel' => $ch, 'price' => $price, 'prev' => $prev, 'source' => 'repricer'], JSON_UNESCAPED_UNICODE);
-            $ex = $pdo->prepare("SELECT id FROM catalog_writeback_job WHERE tenant_id=? AND channel=? AND sku=? AND operation='price_update' AND status='pending_approval' ORDER BY id DESC LIMIT 1");
-            $ex->execute([$tenant, $ch, $sku]);
-            $id = $ex->fetchColumn();
-            if ($id) {
-                $pdo->prepare("UPDATE catalog_writeback_job SET payload=?, updated_at=? WHERE id=?")->execute([$payload, $now, $id]);
+            // [240차 동기화] 와일드카드 채널('*'/'all'/빈값) 팬아웃: 기존엔 리터럴 'all' 단일 job 으로 적재했으나
+            //   channel='all' 인 자격증명/어댑터가 없어 영구 'awaiting_credentials' 정체 → 기본 규칙(channel='*')의
+            //   가격이 어떤 실 채널에도 도달하지 못하던 갭. 해당 SKU 가 실제 등록된 채널(catalog_listing)로 팬아웃해
+            //   채널별 job 을 적재한다(bulkPrice 의 per-channel enqueue 패턴 정합). 미등록 SKU 는 단일 'all' 보류(가시성).
+            $targets = [];
+            if ($channel === '' || $channel === '*' || strtolower($channel) === 'all') {
+                try {
+                    $q = $pdo->prepare("SELECT DISTINCT channel FROM catalog_listing WHERE tenant_id=? AND sku=? AND channel IS NOT NULL AND channel<>''");
+                    $q->execute([$tenant, $sku]);
+                    foreach ($q->fetchAll(\PDO::FETCH_COLUMN) as $c) { $c = (string)$c; if ($c !== '') $targets[] = $c; }
+                } catch (\Throwable $e) {}
+                if (!$targets) $targets = ['all']; // 등록 채널 없음 → 단일 보류건(가시성, 채널 연동 시 재적재)
             } else {
-                $pdo->prepare("INSERT INTO catalog_writeback_job(tenant_id,channel,sku,operation,status,attempt,payload,created_at,updated_at) VALUES(?,?,?,?,?,1,?,?,?)")
-                    ->execute([$tenant, $ch, $sku, 'price_update', 'pending_approval', $payload, $now, $now]);
+                $targets = [$channel];
+            }
+            foreach (array_values(array_unique($targets)) as $ch) {
+                self::enqueueRepriceOne($pdo, $tenant, $ch, $sku, $price, $prev, $now);
             }
         } catch (\Throwable $e) { /* best-effort: 큐 적재 실패해도 내부가격 갱신은 유지 */ }
+    }
+
+    /** [240차] 단일 채널 pending_approval 적재(동일 대기건 갱신·중복방지). enqueueRepricePending 팬아웃 공용. */
+    private static function enqueueRepriceOne(\PDO $pdo, string $tenant, string $ch, string $sku, float $price, float $prev, string $now): void
+    {
+        $payload = json_encode(['sku' => $sku, 'channel' => $ch, 'price' => $price, 'prev' => $prev, 'source' => 'repricer'], JSON_UNESCAPED_UNICODE);
+        $ex = $pdo->prepare("SELECT id FROM catalog_writeback_job WHERE tenant_id=? AND channel=? AND sku=? AND operation='price_update' AND status='pending_approval' ORDER BY id DESC LIMIT 1");
+        $ex->execute([$tenant, $ch, $sku]);
+        $id = $ex->fetchColumn();
+        if ($id) {
+            $pdo->prepare("UPDATE catalog_writeback_job SET payload=?, updated_at=? WHERE id=?")->execute([$payload, $now, $id]);
+        } else {
+            $pdo->prepare("INSERT INTO catalog_writeback_job(tenant_id,channel,sku,operation,status,attempt,payload,created_at,updated_at) VALUES(?,?,?,?,?,1,?,?,?)")
+                ->execute([$tenant, $ch, $sku, 'price_update', 'pending_approval', $payload, $now, $now]);
+        }
     }
 
     /* [239차] POST /catalog/writeback/approve — pending_approval job 승인→queued→채널 push(human-in-loop 전이).
