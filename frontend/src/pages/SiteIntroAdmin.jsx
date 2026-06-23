@@ -61,7 +61,7 @@ export default function SiteIntroAdmin() {
     const saveCompany = async () => {
         setBusy(true);
         try {
-            const b = {}; ["name", "tagline", "summary", "description", "founded", "ceo", "address", "email", "phone", "website", "vision", "mission"].forEach(k => b[k] = company[k] || "");
+            const b = {}; ["name", "tagline", "summary", "description", "founded", "ceo", "address", "email", "phone", "website", "vision", "mission", "biz_reg", "copyright"].forEach(k => b[k] = company[k] || "");
             const r = await requestJsonAuth("/v424/admin/site/company", "PUT", b);
             if (r?.ok) flash("✅ 회사소개 저장됨 (공개 페이지 즉시 반영)");
         } catch (e) { flash("저장 실패: " + (e.message || e)); } finally { setBusy(false); }
@@ -130,6 +130,11 @@ export default function SiteIntroAdmin() {
                     <Field label="주소" value={company.address} onChange={v => setC("address", v)} />
                     <Field label="전화" value={company.phone} onChange={v => setC("phone", v)} />
                     <Field label="웹사이트" value={company.website} onChange={v => setC("website", v)} />
+                </div>
+                {/* [239차+] 공개 footer 정보(전 공개페이지 하단 — 약관/개인정보/환불 포함) */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: 14 }}>
+                    <Field label="사업자등록번호 (footer)" value={company.biz_reg} onChange={v => setC("biz_reg", v)} placeholder="104-81-65037" />
+                    <Field label="저작권 표기 (footer · 전 페이지)" value={company.copyright} onChange={v => setC("copyright", v)} placeholder="© 2001. 09. 11. Ociell Co., Ltd. All rights reserved." />
                 </div>
                 <button onClick={saveCompany} disabled={busy} style={{ ...btn("#16a34a"), opacity: busy ? 0.6 : 1 }}>💾 회사소개 저장</button>
             </Section>

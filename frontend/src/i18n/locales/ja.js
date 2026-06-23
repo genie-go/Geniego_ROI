@@ -587,8 +587,8 @@ export default {
       "tax": "所在地によって税金が課される場合があります。決済はPaddle.com（販売代行業者）が提供します。"
     },
     "alert": {
-      "noCycle": "{{name}}プランの{{months}}か月料金はまだ設定されていません。別のサイクルを選択するか、support@genie-go.com までお問い合わせください。",
-      "checkoutError": "決済ページを開けませんでした。もう一度お試しいただくか、support@genie-go.com までお問い合わせください。"
+      "noCycle": "{{name}}プランの{{months}}か月料金はまだ設定されていません。別のサイクルを選択するか、geniegoroi@ociell.com までお問い合わせください。",
+      "checkoutError": "決済ページを開けませんでした。もう一度お試しいただくか、geniegoroi@ociell.com までお問い合わせください。"
     }
   },
   // 181차 TeamMembers i18n (신규 루트 namespace)

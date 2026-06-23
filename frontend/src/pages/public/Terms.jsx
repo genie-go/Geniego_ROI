@@ -1,5 +1,6 @@
 import React from "react";
 import PublicLayout from "../../layout/PublicLayout.jsx";
+import LegalDocRender, { useLegalDoc } from "./LegalDocRender.jsx";
 
 const S = {
     hero: { padding: "80px 28px 48px", textAlign: "center", position: "relative" },
@@ -18,8 +19,10 @@ const S = {
 };
 
 export default function Terms() {
+    const doc = useLegalDoc("terms");
     return (
         <PublicLayout>
+            {doc ? <LegalDocRender doc={doc} S={S} /> : (<>
             <section style={S.hero}>
                 <div style={S.badge}>Legal</div>
                 <h1 style={S.title}>Terms of Service</h1>
@@ -28,7 +31,7 @@ export default function Terms() {
             <div style={S.wrap}>
                 <div style={S.card}>
                     <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", lineHeight: 1.9 }}>
-                        These Terms of Service ("Terms") govern your access to and use of the Geniego-ROI platform ("Service"), operated by <strong style={{ color: "#fff" }}>Geniego Co., Ltd.</strong> ("Company", "we", "us"). By accessing or using the Service, you agree to be bound by these Terms.
+                        These Terms of Service ("Terms") govern your access to and use of the Geniego-ROI platform ("Service"), operated by <strong style={{ color: "#fff" }}>Ociell Co., Ltd.</strong> ("Company", "we", "us"). By accessing or using the Service, you agree to be bound by these Terms.
                     </div>
                 </div>
 
@@ -83,13 +86,13 @@ export default function Terms() {
 
                 <div style={S.section}>
                     <h2 style={S.h2}>🔒 6. Intellectual Property</h2>
-                    <p style={S.p}>The Service, including all code, design, branding, documentation, and proprietary AI models, is the intellectual property of Geniego Co., Ltd. Your subscription grants you a limited, non-exclusive, non-transferable license to use the Service for its intended purpose.</p>
+                    <p style={S.p}>The Service, including all code, design, branding, documentation, and proprietary AI models, is the intellectual property of Ociell Co., Ltd. Your subscription grants you a limited, non-exclusive, non-transferable license to use the Service for its intended purpose.</p>
                     <p style={S.p}>You retain ownership of all data you upload to the Service. We do not claim ownership of your data and will not use it for purposes beyond providing the Service to you.</p>
                 </div>
 
                 <div style={S.section}>
                     <h2 style={S.h2}>⚠️ 7. Limitation of Liability</h2>
-                    <p style={S.p}>TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SERVICE IS PROVIDED "AS IS" WITHOUT WARRANTIES OF ANY KIND. IN NO EVENT SHALL GENIEGO CO., LTD. BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS OF PROFITS OR REVENUE, WHETHER INCURRED DIRECTLY OR INDIRECTLY.</p>
+                    <p style={S.p}>TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SERVICE IS PROVIDED "AS IS" WITHOUT WARRANTIES OF ANY KIND. IN NO EVENT SHALL OCIELL CO., LTD. BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS OF PROFITS OR REVENUE, WHETHER INCURRED DIRECTLY OR INDIRECTLY.</p>
                     <p style={S.p}>Our total aggregate liability shall not exceed the amount you paid to us in the twelve (12) months preceding the event giving rise to the claim.</p>
                 </div>
 
@@ -103,13 +106,14 @@ export default function Terms() {
                     <div style={S.card}>
                         <p style={{ ...S.p, marginBottom: 0 }}>
                             For questions about these Terms, please contact us:<br />
-                            <strong style={{ color: "#fff" }}>Email:</strong> support@genie-go.com<br />
-                            <strong style={{ color: "#fff" }}>Company:</strong> Geniego Co., Ltd.<br />
+                            <strong style={{ color: "#fff" }}>Email:</strong> geniegoroi@ociell.com<br />
+                            <strong style={{ color: "#fff" }}>Company:</strong> Ociell Co., Ltd.<br />
                             <strong style={{ color: "#fff" }}>Address:</strong> Seoul, Republic of Korea
                         </p>
                     </div>
                 </div>
             </div>
+            </>)}
         </PublicLayout>
     );
 }

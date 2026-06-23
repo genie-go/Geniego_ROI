@@ -588,8 +588,8 @@ export default {
       "tax": "อาจมีภาษีตามที่ตั้งของคุณ ให้บริการโดย Paddle.com (Merchant of Record)"
     },
     "alert": {
-      "noCycle": "ยังไม่ได้ตั้งค่าราคา {{months}} เดือนสำหรับแพ็กเกจ {{name}} กรุณาเลือกรอบอื่นหรือติดต่อ support@genie-go.com",
-      "checkoutError": "ไม่สามารถเปิดหน้าชำระเงินได้ กรุณาลองอีกครั้งหรือติดต่อ support@genie-go.com"
+      "noCycle": "ยังไม่ได้ตั้งค่าราคา {{months}} เดือนสำหรับแพ็กเกจ {{name}} กรุณาเลือกรอบอื่นหรือติดต่อ geniegoroi@ociell.com",
+      "checkoutError": "ไม่สามารถเปิดหน้าชำระเงินได้ กรุณาลองอีกครั้งหรือติดต่อ geniegoroi@ociell.com"
     }
   },
   // 181차 TeamMembers i18n (신규 루트 namespace)

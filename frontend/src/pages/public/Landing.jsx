@@ -2731,7 +2731,7 @@ export default function Landing() {
             <p style={{ fontSize: 16, color: "rgba(255,255,255,0.7)", marginBottom: 30, position: "relative" }}>{tr("finalDesc")}</p>
             <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap", position: "relative" }}>
               <Link to="/login?tab=register" style={{ padding: "16px 40px", borderRadius: 13, background: "linear-gradient(135deg,#06b6d4,#4f46e5)", color: "#fff", fontWeight: 800, fontSize: 15.5, textDecoration: "none", boxShadow: "0 12px 34px rgba(6,182,212,0.4)" }}>{tr("btnTrial")}</Link>
-              <a href="mailto:support@genie-go.com" style={{ padding: "16px 40px", borderRadius: 13, background: "rgba(255,255,255,0.1)", color: "#fff", fontWeight: 800, fontSize: 15.5, textDecoration: "none", border: "1px solid rgba(255,255,255,0.2)" }}>{tr("ctaBtnContact")}</a>
+              <a href="mailto:geniegoroi@ociell.com" style={{ padding: "16px 40px", borderRadius: 13, background: "rgba(255,255,255,0.1)", color: "#fff", fontWeight: 800, fontSize: 15.5, textDecoration: "none", border: "1px solid rgba(255,255,255,0.2)" }}>{tr("ctaBtnContact")}</a>
             </div>
             <div style={{ fontSize: 12.5, color: "rgba(255,255,255,0.5)", marginTop: 20, position: "relative" }}>{tr("heroTrust")}</div>
           </div>
@@ -2763,8 +2763,8 @@ export default function Landing() {
             </div>
           </div>
           <div style={{ borderTop: "1px solid #eef2f7", paddingTop: 22, display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 10, fontSize: 12, color: "#94a3b8" }}>
-            <span>© 2024–2026 OCIELL Co., Ltd. {tr("ftRights")}</span>
-            <span>support@genie-go.com · Seoul, Republic of Korea</span>
+            <span>© 2001. 09. 11. Ociell Co., Ltd. {tr("ftRights")}</span>
+            <span>geniegoroi@ociell.com · Seoul, Republic of Korea</span>
           </div>
         </div>
       </footer>

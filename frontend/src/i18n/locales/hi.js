@@ -587,8 +587,8 @@ export default {
       "tax": "आपके स्थान के आधार पर कर लागू हो सकते हैं। Paddle.com (Merchant of Record) द्वारा संचालित।"
     },
     "alert": {
-      "noCycle": "{{name}} प्लान के लिए {{months}}-माह मूल्य अभी कॉन्फ़िगर नहीं किया गया है। कृपया कोई अन्य चक्र चुनें या support@genie-go.com से संपर्क करें।",
-      "checkoutError": "चेकआउट नहीं खोला जा सका। कृपया पुनः प्रयास करें या support@genie-go.com से संपर्क करें।"
+      "noCycle": "{{name}} प्लान के लिए {{months}}-माह मूल्य अभी कॉन्फ़िगर नहीं किया गया है। कृपया कोई अन्य चक्र चुनें या geniegoroi@ociell.com से संपर्क करें।",
+      "checkoutError": "चेकआउट नहीं खोला जा सका। कृपया पुनः प्रयास करें या geniegoroi@ociell.com से संपर्क करें।"
     }
   },
   // 181차 TeamMembers i18n (신규 루트 namespace)

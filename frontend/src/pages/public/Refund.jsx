@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import PublicLayout from "../../layout/PublicLayout.jsx";
+import LegalDocRender, { useLegalDoc } from "./LegalDocRender.jsx";
 
 const S = {
     hero: { padding: "80px 28px 48px", textAlign: "center" },
@@ -17,8 +18,10 @@ const S = {
 };
 
 export default function Refund() {
+    const doc = useLegalDoc("refund");
     return (
         <PublicLayout>
+            {doc ? <LegalDocRender doc={doc} S={S} /> : (<>
             <section style={S.hero}>
                 <div style={S.badge}>Legal · Refund</div>
                 <h1 style={S.title}>Refund Policy</h1>
@@ -48,7 +51,7 @@ export default function Refund() {
                     <h2 style={S.h2}>📋 2. How to Request a Refund</h2>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 16 }}>
                         {[
-                            { step: "1", title: "Contact Us", desc: "Email support@genie-go.com with subject 'Refund Request'" },
+                            { step: "1", title: "Contact Us", desc: "Email geniegoroi@ociell.com with subject 'Refund Request'" },
                             { step: "2", title: "Provide Details", desc: "Include your account email and reason for the refund" },
                             { step: "3", title: "Receive Refund", desc: "Processed within 5–10 business days via Paddle" },
                         ].map(s => (
@@ -74,7 +77,7 @@ export default function Refund() {
 
                 <div style={S.section}>
                     <h2 style={S.h2}>⚠️ 3.1 Chargebacks</h2>
-                    <p style={S.p}>If you dispute a charge directly with your card issuer (a "chargeback") rather than contacting us first, Paddle.com is required to respond on our behalf. Chargebacks are treated as full refunds for service-revocation purposes: your account will be downgraded to the Demo plan immediately upon receiving the chargeback notification. We strongly recommend emailing <strong style={{ color: "#4f8ef7" }}>support@genie-go.com</strong> before initiating a chargeback — most issues can be resolved within 24 hours.</p>
+                    <p style={S.p}>If you dispute a charge directly with your card issuer (a "chargeback") rather than contacting us first, Paddle.com is required to respond on our behalf. Chargebacks are treated as full refunds for service-revocation purposes: your account will be downgraded to the Demo plan immediately upon receiving the chargeback notification. We strongly recommend emailing <strong style={{ color: "#4f8ef7" }}>geniegoroi@ociell.com</strong> before initiating a chargeback — most issues can be resolved within 24 hours.</p>
                 </div>
 
                 <div style={S.section}>
@@ -109,7 +112,7 @@ export default function Refund() {
                     <div style={S.card}>
                         <p style={{ ...S.p, marginBottom: 0 }}>
                             For refund requests or billing questions:<br />
-                            <strong style={{ color: "#fff" }}>Email:</strong> support@genie-go.com<br />
+                            <strong style={{ color: "#fff" }}>Email:</strong> geniegoroi@ociell.com<br />
                             <strong style={{ color: "#fff" }}>Subject Line:</strong> "Refund Request — [Your Account Email]"<br />
                             <strong style={{ color: "#fff" }}>Response Time:</strong> Within 24 hours (business days)
                         </p>
@@ -125,6 +128,7 @@ export default function Refund() {
                     </div>
                 </div>
             </div>
+            </>)}
         </PublicLayout>
     );
 }

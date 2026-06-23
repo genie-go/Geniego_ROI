@@ -295,7 +295,7 @@ export default function PremiumLayout({ children }) {
                         <Link to="/privacy" style={{ color: "#64748b", textDecoration: "none" }}>Privacy</Link>
                         <Link to="/refund" style={{ color: "#64748b", textDecoration: "none" }}>Refund</Link>
                     </div>
-                    <div style={{ fontSize: 12, color: "#94a3b8" }}>© 2024–2026 OCIELL Co., Ltd.</div>
+                    <div style={{ fontSize: 12, color: "#94a3b8" }}>© 2001. 09. 11. Ociell Co., Ltd. All rights reserved.</div>
                 </div>
             </footer>
         </div>

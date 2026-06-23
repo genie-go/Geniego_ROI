@@ -587,8 +587,8 @@ export default {
       "tax": "根据您所在地区可能产生税费。由 Paddle.com（销售方）提供支持。"
     },
     "alert": {
-      "noCycle": "{{name}}方案的{{months}}个月定价尚未配置。请选择其他周期，或联系 support@genie-go.com。",
-      "checkoutError": "无法打开结账页面。请重试或联系 support@genie-go.com。"
+      "noCycle": "{{name}}方案的{{months}}个月定价尚未配置。请选择其他周期，或联系 geniegoroi@ociell.com。",
+      "checkoutError": "无法打开结账页面。请重试或联系 geniegoroi@ociell.com。"
     }
   },
   // 181차 TeamMembers i18n (신규 루트 namespace)

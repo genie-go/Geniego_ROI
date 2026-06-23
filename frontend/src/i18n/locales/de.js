@@ -587,8 +587,8 @@ export default {
       "tax": "Je nach Standort können Steuern anfallen. Bereitgestellt durch Paddle.com (Merchant of Record)."
     },
     "alert": {
-      "noCycle": "Die {{months}}-Monats-Preise für {{name}} sind noch nicht konfiguriert. Bitte wählen Sie einen anderen Zeitraum oder kontaktieren Sie support@genie-go.com.",
-      "checkoutError": "Checkout konnte nicht geöffnet werden. Bitte versuchen Sie es erneut oder kontaktieren Sie support@genie-go.com."
+      "noCycle": "Die {{months}}-Monats-Preise für {{name}} sind noch nicht konfiguriert. Bitte wählen Sie einen anderen Zeitraum oder kontaktieren Sie geniegoroi@ociell.com.",
+      "checkoutError": "Checkout konnte nicht geöffnet werden. Bitte versuchen Sie es erneut oder kontaktieren Sie geniegoroi@ociell.com."
     }
   },
   // 181차 TeamMembers i18n (신규 루트 namespace)

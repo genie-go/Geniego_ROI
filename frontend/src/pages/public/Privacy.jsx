@@ -1,5 +1,6 @@
 import React from "react";
 import PublicLayout from "../../layout/PublicLayout.jsx";
+import LegalDocRender, { useLegalDoc } from "./LegalDocRender.jsx";
 
 const S = {
     hero: { padding: "80px 28px 48px", textAlign: "center" },
@@ -17,8 +18,10 @@ const S = {
 };
 
 export default function Privacy() {
+    const doc = useLegalDoc("privacy");
     return (
         <PublicLayout>
+            {doc ? <LegalDocRender doc={doc} S={S} /> : (<>
             <section style={S.hero}>
                 <div style={S.badge}>Legal · Privacy</div>
                 <h1 style={S.title}>Privacy Policy</h1>
@@ -27,7 +30,7 @@ export default function Privacy() {
             <div style={S.wrap}>
                 <div style={S.card}>
                     <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", lineHeight: 1.9 }}>
-                        This Privacy Policy describes how <strong style={{ color: "#fff" }}>Geniego Co., Ltd.</strong> ("Company", "we", "us") collects, uses, and protects personal information when you use the Geniego-ROI platform ("Service"). We are committed to protecting your privacy and complying with applicable data protection laws including <strong style={{ color: "#22c55e" }}>GDPR</strong>, <strong style={{ color: "#22c55e" }}>CCPA</strong>, and <strong style={{ color: "#22c55e" }}>PIPA (Korea)</strong>.
+                        This Privacy Policy describes how <strong style={{ color: "#fff" }}>Ociell Co., Ltd.</strong> ("Company", "we", "us") collects, uses, and protects personal information when you use the Geniego-ROI platform ("Service"). We are committed to protecting your privacy and complying with applicable data protection laws including <strong style={{ color: "#22c55e" }}>GDPR</strong>, <strong style={{ color: "#22c55e" }}>CCPA</strong>, and <strong style={{ color: "#22c55e" }}>PIPA (Korea)</strong>.
                     </div>
                 </div>
 
@@ -122,7 +125,7 @@ export default function Privacy() {
                             </div>
                         ))}
                     </div>
-                    <p style={{ ...S.p, marginTop: 16 }}>To exercise any of these rights, contact us at <strong style={{ color: "#4f8ef7" }}>support@genie-go.com</strong>. We will respond within 30 days.</p>
+                    <p style={{ ...S.p, marginTop: 16 }}>To exercise any of these rights, contact us at <strong style={{ color: "#4f8ef7" }}>geniegoroi@ociell.com</strong>. We will respond within 30 days.</p>
                 </div>
 
                 <div style={S.section}>
@@ -140,13 +143,14 @@ export default function Privacy() {
                     <div style={S.card}>
                         <p style={{ ...S.p, marginBottom: 0 }}>
                             For privacy-related inquiries or to exercise your data rights:<br />
-                            <strong style={{ color: "#fff" }}>Data Protection Officer:</strong> privacy@genie-go.com<br />
-                            <strong style={{ color: "#fff" }}>General Support:</strong> support@genie-go.com<br />
-                            <strong style={{ color: "#fff" }}>Company:</strong> Geniego Co., Ltd., Seoul, Republic of Korea
+                            <strong style={{ color: "#fff" }}>Data Protection Officer:</strong> geniegoroi@ociell.com<br />
+                            <strong style={{ color: "#fff" }}>General Support:</strong> geniegoroi@ociell.com<br />
+                            <strong style={{ color: "#fff" }}>Company:</strong> Ociell Co., Ltd., Seoul, Republic of Korea
                         </p>
                     </div>
                 </div>
             </div>
+            </>)}
         </PublicLayout>
     );
 }

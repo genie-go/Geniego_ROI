@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { st, siteLang } from "../pages/public/siteI18n.js";
+import { st, siteLang, SITE_LANGS, setSiteLang } from "../pages/public/siteI18n.js";
 
 export default function PublicLayout({ children }) {
     const { pathname } = useLocation();
@@ -8,6 +8,7 @@ export default function PublicLayout({ children }) {
     const [mobileOpen, setMobileOpen] = useState(false);
     // 187차 Phase2 — 회사소개/운영진 메뉴 (admin 숨기기 visibility 연동, 15개국 라벨)
     const [vis, setVis] = useState({ about: false, team: false });
+    const [company, setCompany] = useState({}); // [239차+] footer 회사정보(저작권·연락처·사업자번호) admin 편집 연동
     const [lang, setLang] = useState(siteLang());
 
     useEffect(() => {
@@ -16,7 +17,7 @@ export default function PublicLayout({ children }) {
         const onL = (e) => { if (e?.detail?.lang) setLang(e.detail.lang); };
         window.addEventListener("genie-lang-change", onL);
         const base = import.meta.env.VITE_API_BASE || "";
-        fetch(`${base}/auth/site/intro`).then(r => r.json()).then(d => { if (d?.visibility) setVis(d.visibility); }).catch(() => {});
+        fetch(`${base}/auth/site/intro`).then(r => r.json()).then(d => { if (d?.visibility) setVis(d.visibility); if (d?.company) setCompany(d.company); }).catch(() => {});
         return () => { window.removeEventListener("scroll", onScroll); window.removeEventListener("genie-lang-change", onL); };
     }, []);
 
@@ -76,6 +77,10 @@ export default function PublicLayout({ children }) {
                                 {n.label}
                             </Link>
                         ))}
+                        <select value={lang} onChange={(e) => setSiteLang(e.target.value)} aria-label="Language" title="Language"
+                            style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.85)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 8, fontSize: 12, padding: "6px 8px", marginLeft: 8, cursor: "pointer", outline: "none" }}>
+                            {SITE_LANGS.map(l => <option key={l.code} value={l.code} style={{ color: "#111" }}>{l.label}</option>)}
+                        </select>
                         <Link to="/login" className="pub-btn-primary" style={{ marginLeft: 12, fontSize: 12, padding: "8px 22px" }}>
                             Get Started ??                        </Link>
                     </nav>
@@ -113,14 +118,14 @@ export default function PublicLayout({ children }) {
                         <div>
                             <div style={{ fontWeight: 700, fontSize: 11, color: 'var(--text-3)', marginBottom: 16, textTransform: "uppercase", letterSpacing: 1.5 }}>Contact</div>
                             <div style={{ fontSize: 12, color: "var(--text-3)", lineHeight: 2.2 }}>
-                                support@genie-go.com<br />
-                                Seoul, Republic of Korea<br />
-                                <span style={{ fontSize: 11, color: "var(--text-3)" }}>Business Registration: 123-45-67890</span>
+                                {company.email || "geniegoroi@ociell.com"}<br />
+                                {company.address || "Seoul, Republic of Korea"}<br />
+                                <span style={{ fontSize: 11, color: "var(--text-3)" }}>Business Registration: {company.biz_reg || "104-81-65037"}</span>
                             </div>
                         </div>
                     </div>
                     <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: 24, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
-                        <div style={{ fontSize: 11, color: 'var(--text-3)' }}>© 2024??026 Geniego Co., Ltd. All rights reserved.</div>
+                        <div style={{ fontSize: 11, color: 'var(--text-3)' }}>{company.copyright || "© 2001. 09. 11. Ociell Co., Ltd. All rights reserved."}</div>
                         <div style={{ display: "flex", alignItems: "center", gap: 16, fontSize: 11, color: 'var(--text-3)' }}>
                             <span>Payments securely processed by <strong style={{ color: "var(--text-3)" }}>Paddle.com</strong></span>
                             <span>·</span>

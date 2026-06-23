@@ -168,6 +168,7 @@ export const ADMIN_MENU = [
       { to: "/user-management",    icon: "👥", labelKey: "gNav.memberMgmtLabel",  menuKey: "system||user_management" },
       { to: "/admin/sub-admins",   icon: "👤", label: "하위 관리자 관리", labelKey: "gNav.subAdminMgmtLabel", menuKey: "system||sub_admin_mgmt" },
       { to: "/admin/site-intro",   icon: "🏢", labelKey: "gNav.siteIntroLabel",   menuKey: "system||admin" },
+      { to: "/admin/legal-docs",   icon: "📜", label: "법적 페이지", labelKey: "gNav.legalDocsLabel", menuKey: "system||admin" },
       { to: "/admin/menu-tree",    icon: "🗂", labelKey: "gNav.menuTreeLabel",     menuKey: "system||menu_tree" },
       { to: "/db-admin",           icon: "🗄️", labelKey: "gNav.dbSchemaLabel",     menuKey: "system||db_admin" },
       { to: "/pg-config",          icon: "💳", labelKey: "gNav.paymentPgLabel",    menuKey: "system||pg_config" },

@@ -29,8 +29,19 @@ final class SiteIntro
             founded TEXT, ceo TEXT, address TEXT, email TEXT, phone TEXT, website TEXT,
             vision TEXT, mission TEXT,
             about_visible INTEGER DEFAULT 1, team_visible INTEGER DEFAULT 1, history_visible INTEGER DEFAULT 1,
+            biz_reg TEXT, copyright TEXT,
             updated_at TEXT
         )");
+        // [239차+] 기존 테이블에 footer 필드(biz_reg·copyright) 추가(idempotent — 이미 있으면 무시).
+        foreach (['biz_reg', 'copyright'] as $col) {
+            try { $pdo->exec("ALTER TABLE site_company ADD COLUMN $col TEXT"); } catch (\Throwable $e) { /* 이미 존재 */ }
+        }
+        // [239차+] footer 기본값 1회 설정(admin 미편집 시): biz_reg·copyright NULL/빈값이면 신규값, 구 이메일도 신규 도메인으로.
+        try {
+            $pdo->prepare("UPDATE site_company SET biz_reg=? WHERE id=1 AND (biz_reg IS NULL OR biz_reg='')")->execute(['104-81-65037']);
+            $pdo->prepare("UPDATE site_company SET copyright=? WHERE id=1 AND (copyright IS NULL OR copyright='')")->execute(['© 2001. 09. 11. Ociell Co., Ltd. All rights reserved.']);
+            $pdo->prepare("UPDATE site_company SET email=? WHERE id=1 AND (email IS NULL OR email='' OR email='support@genie-go.com')")->execute(['geniegoroi@ociell.com']);
+        } catch (\Throwable $e) { /* best-effort */ }
         $pdo->exec("CREATE TABLE IF NOT EXISTS site_team (
             id $AI,
             name TEXT, title TEXT, bio TEXT, photo_url TEXT, email TEXT, linkedin TEXT,
@@ -133,7 +144,7 @@ final class SiteIntro
         $gate = UserAuth::requirePlan($req, $res, 'admin'); if ($gate !== null) return $gate;
         $pdo = Db::pdo(); self::ensureTables($pdo);
         $b = (array)$req->getParsedBody();
-        $f = ['name','tagline','summary','description','founded','ceo','address','email','phone','website','vision','mission'];
+        $f = ['name','tagline','summary','description','founded','ceo','address','email','phone','website','vision','mission','biz_reg','copyright'];
         $set = []; $vals = [];
         foreach ($f as $k) { if (array_key_exists($k, $b)) { $set[] = "$k=?"; $vals[] = (string)$b[$k]; } }
         $set[] = "updated_at=?"; $vals[] = gmdate('c');

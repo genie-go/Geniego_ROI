@@ -454,8 +454,8 @@ export default {
       "tax": "Taxes may apply depending on your location. Powered by Paddle.com (Merchant of Record)."
     },
     "alert": {
-      "noCycle": "{{months}}-month pricing is not yet configured for {{name}}. Please choose a different cycle or contact support@genie-go.com.",
-      "checkoutError": "Unable to open checkout. Please try again or contact support@genie-go.com."
+      "noCycle": "{{months}}-month pricing is not yet configured for {{name}}. Please choose a different cycle or contact geniegoroi@ociell.com.",
+      "checkoutError": "Unable to open checkout. Please try again or contact geniegoroi@ociell.com."
     }
   },
   // 181차 TeamMembers i18n (신규 루트 namespace)

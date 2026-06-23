@@ -587,8 +587,8 @@ export default {
       "tax": "Pajak dapat berlaku tergantung lokasi Anda. Didukung oleh Paddle.com (Merchant of Record)."
     },
     "alert": {
-      "noCycle": "Harga {{months}} bulan untuk paket {{name}} belum dikonfigurasi. Silakan pilih siklus lain atau hubungi support@genie-go.com.",
-      "checkoutError": "Tidak dapat membuka checkout. Silakan coba lagi atau hubungi support@genie-go.com."
+      "noCycle": "Harga {{months}} bulan untuk paket {{name}} belum dikonfigurasi. Silakan pilih siklus lain atau hubungi geniegoroi@ociell.com.",
+      "checkoutError": "Tidak dapat membuka checkout. Silakan coba lagi atau hubungi geniegoroi@ociell.com."
     }
   },
   // 181차 TeamMembers i18n (신규 루트 namespace)

@@ -384,8 +384,8 @@ export default {
       "tax": "위치에 따라 세금이 부과될 수 있습니다. 결제는 Paddle.com(판매대행사)이 제공합니다."
     },
     "alert": {
-      "noCycle": "{{name}} 플랜의 {{months}}개월 요금이 아직 설정되지 않았습니다. 다른 주기를 선택하거나 support@genie-go.com으로 문의해 주세요.",
-      "checkoutError": "결제창을 열 수 없습니다. 다시 시도하거나 support@genie-go.com으로 문의해 주세요."
+      "noCycle": "{{name}} 플랜의 {{months}}개월 요금이 아직 설정되지 않았습니다. 다른 주기를 선택하거나 geniegoroi@ociell.com으로 문의해 주세요.",
+      "checkoutError": "결제창을 열 수 없습니다. 다시 시도하거나 geniegoroi@ociell.com으로 문의해 주세요."
     }
   },
   // 181차 TeamMembers i18n (신규 루트 namespace)

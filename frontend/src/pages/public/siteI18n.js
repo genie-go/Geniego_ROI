@@ -23,6 +23,20 @@ const S = {
 export function siteLang() {
     try { return localStorage.getItem("genie_roi_lang") || localStorage.getItem("landing_lang") || "en"; } catch { return "en"; }
 }
+
+// [239차+] 공개 페이지 언어 선택바 — 15개국 현지 자연어 라벨
+export const SITE_LANGS = [
+    { code: "ko", label: "한국어" }, { code: "en", label: "English" }, { code: "ja", label: "日本語" },
+    { code: "zh", label: "简体中文" }, { code: "zh-TW", label: "繁體中文" }, { code: "vi", label: "Tiếng Việt" },
+    { code: "th", label: "ไทย" }, { code: "id", label: "Bahasa Indonesia" }, { code: "de", label: "Deutsch" },
+    { code: "fr", label: "Français" }, { code: "es", label: "Español" }, { code: "pt", label: "Português" },
+    { code: "ru", label: "Русский" }, { code: "ar", label: "العربية" }, { code: "hi", label: "हिन्दी" },
+];
+
+export function setSiteLang(lang) {
+    try { localStorage.setItem("genie_roi_lang", lang); } catch {}
+    try { window.dispatchEvent(new CustomEvent("genie-lang-change", { detail: { lang } })); } catch {}
+}
 export function st(key, lang) {
     return S[key]?.[lang] || S[key]?.en || key;
 }

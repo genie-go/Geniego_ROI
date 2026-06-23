@@ -780,7 +780,7 @@ export default function PricingPublic() {
         const seatPeriods = periodsForSeat(plan, seatKey);
         const hasAnyPriceId = plan.priceIdMonthly || plan.priceIdAnnual || seatPeriods.some(pp => pp.paddle_price_id);
         if (!hasAnyPriceId || plan.isCustomQuote) {
-            window.location.href = `mailto:support@genie-go.com?subject=${encodeURIComponent(plan.name + " Plan Inquiry")}`;
+            window.location.href = `mailto:geniegoroi@ociell.com?subject=${encodeURIComponent(plan.name + " Plan Inquiry")}`;
             return;
         }
         const months = Number(cycleArg ?? cycleMonths) || 1;
@@ -794,7 +794,7 @@ export default function PricingPublic() {
             priceId = plan.priceIdMonthly;
         }
         if (!priceId) {
-            alert(t("appPricing.alert.noCycle", "{{months}}-month pricing not yet configured for {{name}}. Please choose a different cycle or contact support@genie-go.com.", { months, name: plan.name }));
+            alert(t("appPricing.alert.noCycle", "{{months}}-month pricing not yet configured for {{name}}. Please choose a different cycle or contact geniegoroi@ociell.com.", { months, name: plan.name }));
             return;
         }
         // ── 213차 결제 게이팅 #2: 데모/free 로그인 사용자 → 유료 결제 진입 전 전체정보 입력 강제 ──
@@ -822,7 +822,7 @@ export default function PricingPublic() {
             });
         } catch (e) {
             console.error("Paddle checkout error:", e);
-            alert(t("appPricing.alert.checkoutError", "Unable to open checkout. Please try again or contact support@genie-go.com."));
+            alert(t("appPricing.alert.checkoutError", "Unable to open checkout. Please try again or contact geniegoroi@ociell.com."));
         } finally {
             setLoading(p => ({ ...p, [plan.id]: false }));
         }

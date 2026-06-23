@@ -64,7 +64,7 @@ export default function PaymentFail() {
           🏠 {t('payment.goToDashboard', 'Go to Dashboard')}
         </button>
         <button
-          onClick={() => window.open('mailto:support@genie-go.com', '_blank')}
+          onClick={() => window.open('mailto:geniegoroi@ociell.com', '_blank')}
           style={{
             padding: "12px 28px", borderRadius: 12,
             border: "1px solid rgba(0,0,0,0.1)", background: "rgba(255,255,255,0.8)",

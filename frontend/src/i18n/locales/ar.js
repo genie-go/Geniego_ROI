@@ -587,8 +587,8 @@ export default {
       "tax": "قد تُطبَّق ضرائب حسب موقعك. مدعوم من Paddle.com (Merchant of Record)."
     },
     "alert": {
-      "noCycle": "لم يتم بعد ضبط سعر {{months}} أشهر لخطة {{name}}. يرجى اختيار دورة أخرى أو التواصل مع support@genie-go.com.",
-      "checkoutError": "تعذّر فتح صفحة الدفع. يرجى المحاولة مجددًا أو التواصل مع support@genie-go.com."
+      "noCycle": "لم يتم بعد ضبط سعر {{months}} أشهر لخطة {{name}}. يرجى اختيار دورة أخرى أو التواصل مع geniegoroi@ociell.com.",
+      "checkoutError": "تعذّر فتح صفحة الدفع. يرجى المحاولة مجددًا أو التواصل مع geniegoroi@ociell.com."
     }
   },
   // 181차 TeamMembers i18n (신규 루트 namespace)

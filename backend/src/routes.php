@@ -785,6 +785,14 @@ return function (App $app): void {
         'POST /v424/admin/site/history'         => 'Genie\\Handlers\\SiteIntro::historySave',
         'DELETE /v424/admin/site/history/{id}'  => 'Genie\\Handlers\\SiteIntro::historyDelete',
         'GET /api/v424/admin/site/intro'           => 'Genie\\Handlers\\SiteIntro::adminGet',
+
+        // 239차+ 법적 페이지(이용약관·개인정보·환불) admin 다국어 편집 (LegalDoc). 공개=/auth/legal/{key}(자동 bypass)
+        'GET /auth/legal/{key}'                  => 'Genie\\Handlers\\LegalDoc::publicGet',
+        'GET /api/auth/legal/{key}'              => 'Genie\\Handlers\\LegalDoc::publicGet',
+        'GET /v424/admin/legal'                  => 'Genie\\Handlers\\LegalDoc::adminList',
+        'GET /api/v424/admin/legal'              => 'Genie\\Handlers\\LegalDoc::adminList',
+        'PUT /v424/admin/legal/{key}/{lang}'     => 'Genie\\Handlers\\LegalDoc::adminSave',
+        'PUT /api/v424/admin/legal/{key}/{lang}' => 'Genie\\Handlers\\LegalDoc::adminSave',
         'PUT /api/v424/admin/site/company'         => 'Genie\\Handlers\\SiteIntro::saveCompany',
         'PUT /api/v424/admin/site/visibility'      => 'Genie\\Handlers\\SiteIntro::saveVisibility',
         'POST /api/v424/admin/site/team'           => 'Genie\\Handlers\\SiteIntro::teamSave',
@@ -1964,6 +1972,13 @@ return function (App $app): void {
     $register('POST',   '/v424/admin/site/history');
     $register('DELETE', '/v424/admin/site/history/{id}');
     $register('GET',    '/api/v424/admin/site/intro');
+    // 239차+ LegalDoc
+    $register('GET',    '/auth/legal/{key}');
+    $register('GET',    '/api/auth/legal/{key}');
+    $register('GET',    '/v424/admin/legal');
+    $register('GET',    '/api/v424/admin/legal');
+    $register('PUT',    '/v424/admin/legal/{key}/{lang}');
+    $register('PUT',    '/api/v424/admin/legal/{key}/{lang}');
     $register('PUT',    '/api/v424/admin/site/company');
     $register('PUT',    '/api/v424/admin/site/visibility');
     $register('POST',   '/api/v424/admin/site/team');

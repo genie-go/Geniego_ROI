@@ -587,8 +587,8 @@ export default {
       "tax": "Thuế có thể áp dụng tùy theo vị trí của bạn. Được cung cấp bởi Paddle.com (Merchant of Record)."
     },
     "alert": {
-      "noCycle": "Mức giá {{months}} tháng cho gói {{name}} chưa được cấu hình. Vui lòng chọn chu kỳ khác hoặc liên hệ support@genie-go.com.",
-      "checkoutError": "Không thể mở trang thanh toán. Vui lòng thử lại hoặc liên hệ support@genie-go.com."
+      "noCycle": "Mức giá {{months}} tháng cho gói {{name}} chưa được cấu hình. Vui lòng chọn chu kỳ khác hoặc liên hệ geniegoroi@ociell.com.",
+      "checkoutError": "Không thể mở trang thanh toán. Vui lòng thử lại hoặc liên hệ geniegoroi@ociell.com."
     }
   },
   // 181차 TeamMembers i18n (신규 루트 namespace)
