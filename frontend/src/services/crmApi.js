@@ -16,4 +16,5 @@ export const crmApi = {
   createSegment:  (body)   => postJsonAuth("/api/crm/segments", body),
   deleteSegment:  (id)     => requestJsonAuth(`/api/crm/segments/${id}`, "DELETE"),
   refreshSegment: (id)     => postJsonAuth(`/api/crm/segments/${id}/refresh`, {}),
+  smartSeedSegments: ()    => postJsonAuth("/api/crm/segments/smart-seed", {}), // [239차+ CDP] 표준 행동 세그먼트 원클릭
 };

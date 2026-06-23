@@ -289,10 +289,12 @@ function AISegmentsTab({ navigate, derivedCustomers }) {
 }
 
 /* ── Segments Tab ───────────────────────────────────────────────────────────── */
-function SegmentsTab({ segments, onSave, onDelete }) {
+function SegmentsTab({ segments, onSave, onDelete, onSmartSeed }) {
   const { t } = useI18n();
   const [form, setForm] = useState({ name: "", description: "", color: "#4f8ef7", rules: [] });
   const [msg, setMsg] = useState("");
+  const [seeding, setSeeding] = useState(false);
+  const smartSeed = async () => { setSeeding(true); try { await onSmartSeed?.(); } finally { setSeeding(false); } };
   const addRule = () => setForm(f => ({ ...f, rules: [...f.rules, { field: "ltv", op: "gte", value: "" }] }));
   const removeRule = (i) => setForm(f => { const r = [...f.rules]; r.splice(i, 1); return { ...f, rules: r }; });
   const updateRule = (i, k, v) => setForm(f => { const r = [...f.rules]; r[i] = { ...r[i], [k]: v }; return { ...f, rules: r }; });
@@ -318,10 +320,10 @@ function SegmentsTab({ segments, onSave, onDelete }) {
           {form.rules.map((rule, i) => (
             <div key={i} style={{ display: "flex", gap: 6, marginBottom: 6, alignItems: "center" }}>
               <select value={rule.field} onChange={e => updateRule(i, "field", e.target.value)} style={{ background: C.surface, border: `1px solid ${C.border}`, color: C.text, borderRadius: 6, padding: "4px 8px", fontSize: 12 }}>
-                <option value="ltv">LTV</option><option value="rfm_f">Frequency</option>
+                <option value="ltv">LTV</option><option value="frequency">{t('crm.segFreq', '구매횟수')}</option><option value="recency">{t('crm.segRecency', '최근구매 경과일')}</option><option value="rfm_score">RFM</option><option value="grade">{t('crm.colGrade', '등급')}</option>
               </select>
               <select value={rule.op} onChange={e => updateRule(i, "op", e.target.value)} style={{ background: C.surface, border: `1px solid ${C.border}`, color: C.text, borderRadius: 6, padding: "4px 8px", fontSize: 12 }}>
-                <option value="gte">≥</option><option value="lte">≤</option>
+                <option value="gte">≥</option><option value="lte">≤</option><option value="gt">&gt;</option><option value="lt">&lt;</option><option value="eq">=</option>
               </select>
               <input value={rule.value} onChange={e => updateRule(i, "value", e.target.value)} style={{ flex: 1, background: C.surface, border: `1px solid ${C.border}`, color: C.text, borderRadius: 6, padding: "4px 8px", fontSize: 12 }} />
               <button onClick={() => removeRule(i)} style={{ background: "none", border: "none", color: C.red, cursor: "pointer", fontSize: 16 }}>✕</button>
@@ -333,6 +335,9 @@ function SegmentsTab({ segments, onSave, onDelete }) {
         <button onClick={save} disabled={!form.name} style={{ width: "100%", padding: "10px", borderRadius: 10, border: "none", background: C.accent, color: '#ffffff', fontWeight: 700, cursor: "pointer" }}>{t('crm.segCreate')}</button>
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <button onClick={smartSeed} disabled={seeding} style={{ padding: "10px 14px", borderRadius: 10, border: "none", cursor: seeding ? "default" : "pointer", fontWeight: 800, fontSize: 13, background: seeding ? "#cbd5e1" : "linear-gradient(135deg,#a855f7,#6366f1)", color: "#fff" }}>
+          {seeding ? "…" : "🧠 " + t('crm.smartSeed', '스마트 세그먼트 자동생성 (VIP·충성·신규·이탈위험·휴면)')}
+        </button>
         {crmSegments.map(s => (
           <div key={s.id} style={{ background: C.card, borderRadius: 12, padding: "14px 18px", borderLeft: `4px solid ${s.color || "#4f8ef7"}` }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
@@ -618,6 +623,14 @@ function CRMContent() {
     if (IS_DEMO) { setCrmSegments(prev => prev.filter(s => s.id !== id)); }
     else { try { await crmApi.deleteSegment(id); reloadOpSegments(); } catch (e) { addAlert?.({ type: 'error', msg: '세그먼트 삭제 실패: ' + (e?.message || '') }); } }
   };
+  // [239차+ CDP] 표준 행동 세그먼트 원클릭 생성(VIP/충성/신규/이탈위험/휴면). 실 구매 데이터로 자동 멤버십.
+  const onSmartSeed = async () => {
+    try {
+      const d = await crmApi.smartSeedSegments();
+      if (IS_DEMO) reloadOpSegments?.(); else reloadOpSegments();
+      addAlert?.({ type: 'success', msg: `스마트 세그먼트 ${(d?.created || []).length}개 생성 (이미 있으면 건너뜀)` });
+    } catch (e) { addAlert?.({ type: 'error', msg: '스마트 세그먼트 생성 실패: ' + (e?.message || '') }); }
+  };
 
   const handleExportCsv = () => {
     const headers = [t('crm.fName'), t('crm.colEmail'), t('crm.colPhone'), t('crm.colGrade'), 'LTV', t('crm.colCnt'), t('crm.colLast')];
@@ -774,7 +787,7 @@ function CRMContent() {
         </>
       )}
 
-      {tab === "segments" && <SegmentsTab segments={segments} onSave={onSaveSegment} onDelete={onDeleteSegment} />}
+      {tab === "segments" && <SegmentsTab segments={segments} onSave={onSaveSegment} onDelete={onDeleteSegment} onSmartSeed={onSmartSeed} />}
       {tab === "rfm" && <RFMTab derivedCustomers={rfmList} />}
       {tab === "ai_segments" && <AISegmentsTab navigate={navigate} derivedCustomers={customers} />}
       {tab === "guide" && (

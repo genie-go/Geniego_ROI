@@ -60,6 +60,7 @@ return function (App $app): void {
         'POST /crm/segments'                   => 'Genie\\Handlers\\CRM::createSegment',
         'DELETE /crm/segments/{id}'            => 'Genie\\Handlers\\CRM::deleteSegment',
         'POST /crm/segments/{id}/refresh'      => 'Genie\\Handlers\\CRM::refreshSegment',
+        'POST /crm/segments/smart-seed'        => 'Genie\\Handlers\\CRM::smartSeedSegments',
         'GET /crm/stats'                       => 'Genie\\Handlers\\CRM::stats',
 
         // ── 상품 카탈로그 writeback (192차: 일괄 등록/가격수정 실배선, dead-route 404 대체) ──
@@ -2275,6 +2276,7 @@ return function (App $app): void {
     $register('POST',   '/crm/segments');
     $register('DELETE', '/crm/segments/{id}');
     $register('POST',   '/crm/segments/{id}/refresh');
+    $register('POST',   '/crm/segments/smart-seed'); // [239차+ CDP] 표준 행동 세그먼트 원클릭
     $register('GET',    '/crm/stats');
 
     // 상품 카탈로그 writeback (192차)

@@ -387,6 +387,36 @@ class CRM
         return self::jsonRes($res, ['ok'=>true]);
     }
 
+    /* ─── POST /crm/segments/smart-seed ─── [239차+ CDP] 표준 행동기반 세그먼트 원클릭 생성 ───
+       ★중복0: 기존 crm_segments + refreshSegmentMembers 재사용. 실 구매(crm_activities) 라이브 멤버십.
+       동일 이름 세그먼트는 skip(중복 생성 방지). recency/ltv/frequency 행동 룰. */
+    public static function smartSeedSegments(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $pdo = self::db(); $tenant = self::tenant($req); $now = self::now();
+        $templates = [
+            ['name'=>'VIP 고객',  'color'=>'#a855f7', 'rules'=>[['field'=>'ltv','op'=>'gte','value'=>500000],['field'=>'recency','op'=>'lte','value'=>60]]],
+            ['name'=>'충성 고객', 'color'=>'#22c55e', 'rules'=>[['field'=>'frequency','op'=>'gte','value'=>3]]],
+            ['name'=>'신규 고객', 'color'=>'#4f8ef7', 'rules'=>[['field'=>'frequency','op'=>'lte','value'=>1],['field'=>'recency','op'=>'lte','value'=>30]]],
+            ['name'=>'이탈 위험', 'color'=>'#f59e0b', 'rules'=>[['field'=>'ltv','op'=>'gt','value'=>0],['field'=>'recency','op'=>'gte','value'=>60],['field'=>'recency','op'=>'lte','value'=>180]]],
+            ['name'=>'휴면 고객', 'color'=>'#ef4444', 'rules'=>[['field'=>'recency','op'=>'gte','value'=>180]]],
+        ];
+        $created = []; $skipped = [];
+        foreach ($templates as $tpl) {
+            $ex = $pdo->prepare("SELECT id FROM crm_segments WHERE tenant_id=:t AND name=:n");
+            $ex->execute([':t'=>$tenant, ':n'=>$tpl['name']]);
+            if ($ex->fetchColumn()) { $skipped[] = $tpl['name']; continue; }
+            $pdo->prepare("INSERT INTO crm_segments (tenant_id,name,description,rules,color,created_at,updated_at) VALUES (:t,:n,:d,:r,:c,:ca,:ua)")
+                ->execute([':t'=>$tenant, ':n'=>$tpl['name'], ':d'=>'표준 행동 세그먼트(자동 멤버십)', ':r'=>json_encode($tpl['rules']), ':c'=>$tpl['color'], ':ca'=>$now, ':ua'=>$now]);
+            $sid = (int)$pdo->lastInsertId();
+            $cnt = self::refreshSegmentMembers($pdo, $sid, $tpl['rules'], $tenant);
+            $pdo->prepare("UPDATE crm_segments SET member_count=:c WHERE id=:id AND tenant_id=:t")->execute([':c'=>$cnt, ':id'=>$sid, ':t'=>$tenant]);
+            $created[] = ['name'=>$tpl['name'], 'members'=>$cnt];
+        }
+        return self::jsonRes($res, ['ok'=>true,'created'=>$created,'skipped'=>$skipped]);
+    }
+
     /* ─── POST /crm/segments/{id}/refresh ───────────────────────────── */
     public static function refreshSegment(Request $req, Response $res, array $args): Response
     {
@@ -424,6 +454,8 @@ class CRM
             $expr = match($field) {
                 'ltv', 'monetary'              => 'COALESCE(a.ltv,0)',
                 'rfm_f', 'frequency', 'freq'   => 'COALESCE(a.freq,0)',
+                'recency', 'recency_days', 'days_since' => 'COALESCE(a.recency_days, 99999)', // [239차+ CDP] 최근 구매 경과일(행동기반)
+                'rfm_score'                    => 'COALESCE(c.rfm_score, 0)',
                 'grade'                        => 'c.grade',
                 default                        => '',
             };
@@ -434,11 +466,14 @@ class CRM
         }
         $whereStr = implode(' AND ', $conds);
         $sidQ = (int)$sid;
-        $ignore = self::isMysql($pdo) ? 'IGNORE' : 'OR IGNORE';
+        $isMy = self::isMysql($pdo);
+        $ignore = $isMy ? 'IGNORE' : 'OR IGNORE';
+        // [239차+ CDP] recency_days = 최근 구매 경과일(드라이버별 date diff). 실 구매(crm_activities) 라이브 집계.
+        $recencyExpr = $isMy ? "DATEDIFF(NOW(), MAX(created_at))" : "CAST(julianday('now') - julianday(MAX(created_at)) AS INTEGER)";
         try {
             $pdo->exec("INSERT {$ignore} INTO crm_segment_members (tenant_id, segment_id, customer_id)
                         SELECT {$tQ}, {$sidQ}, c.id FROM crm_customers c
-                        LEFT JOIN (SELECT customer_id, SUM(amount) AS ltv, COUNT(*) AS freq
+                        LEFT JOIN (SELECT customer_id, SUM(amount) AS ltv, COUNT(*) AS freq, {$recencyExpr} AS recency_days
                                    FROM crm_activities WHERE type='purchase' AND tenant_id={$tQ} GROUP BY customer_id) a
                           ON a.customer_id = c.id
                         WHERE {$whereStr}");
