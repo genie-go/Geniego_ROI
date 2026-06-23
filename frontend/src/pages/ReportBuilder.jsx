@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useT } from "../i18n/index.js";
 import { getJsonAuth, postJsonAuth, patchJson, delJson } from "../services/apiClient.js";
 import { useVisibleTabs } from "../auth/useVisibleTabs.js";
+import { BarChart, LineChart, DonutChart } from "../components/dashboards/ChartUtils.jsx"; // [239차+ BI심화] 시각화 재사용
 
 /*
  * ReportBuilder — 리포트 빌더 + 예약 발송 (193차 Sprint4 실구현).
@@ -88,10 +89,12 @@ export default function ReportBuilder() {
     ["impressions", t("reportBuilder.mImp", "노출")], ["clicks", t("reportBuilder.mClk", "클릭")],
     ["ctr", "CTR"], ["cvr", "CVR"], ["cpc", "CPC"], ["cpa", "CPA"],
   ];
-  const Q_DIMS = [["channel", t("reportBuilder.dimChannel", "채널별")], ["campaign", t("reportBuilder.dimCampaign", "캠페인별")], ["date", t("reportBuilder.dimDate", "일자별")]];
-  const [qForm, setQForm] = useState({ metrics: ["spend", "revenue", "roas", "conversions"], dimension: "channel", period_days: 30 });
+  const Q_DIMS = [["channel", t("reportBuilder.dimChannel", "채널별")], ["campaign", t("reportBuilder.dimCampaign", "캠페인별")], ["date", t("reportBuilder.dimDate", "일자별")], ["account", t("reportBuilder.dimAccount", "계정별")]];
+  const [qForm, setQForm] = useState({ metrics: ["spend", "revenue", "roas", "conversions"], dimension: "channel", breakdown: "", period_days: 30 });
   const [qResult, setQResult] = useState(null);
   const [qLoading, setQLoading] = useState(false);
+  const [viz, setViz] = useState("table"); // [239차+ BI심화] table|bar|line|donut
+  const [saved, setSaved] = useState([]);
   const toggleMetric = (m) => setQForm(f => ({ ...f, metrics: f.metrics.includes(m) ? f.metrics.filter(x => x !== m) : [...f.metrics, m] }));
   const runQuery = useCallback(async () => {
     if (qForm.metrics.length === 0) { flash(t("reportBuilder.pickMetric", "지표를 1개 이상 선택하세요.")); return; }
@@ -100,6 +103,24 @@ export default function ReportBuilder() {
     catch (e) { setQResult({ rows: [], columns: [], note: String(e.message).slice(0, 80) }); }
     finally { setQLoading(false); }
   }, [qForm, t]);
+  // [239차+ BI심화] 저장된 리포트(saved_report)
+  const loadSaved = useCallback(() => { getJsonAuth("/api/reports/saved").then(d => { if (d?.ok) setSaved(d.reports || []); }).catch(() => {}); }, []);
+  useEffect(() => { loadSaved(); }, [loadSaved]);
+  const saveCurrent = useCallback(async () => {
+    const name = (typeof window !== "undefined" ? window.prompt(t("reportBuilder.savePrompt", "저장할 리포트 이름:"), `${qForm.dimension} ${qForm.period_days}d`) : "");
+    if (!name) return;
+    try { await postJsonAuth("/api/reports/saved", { name, config: qForm, viz }); flash(t("reportBuilder.saved", "저장됨")); loadSaved(); }
+    catch { flash(t("reportBuilder.saveFail", "저장 실패")); }
+  }, [qForm, viz, t, loadSaved]);
+  const applySaved = useCallback(async (r) => {
+    const c = r.config || {};
+    const form = { metrics: c.metrics || ["spend", "revenue", "roas"], dimension: c.dimension || "channel", breakdown: c.breakdown || "", period_days: c.period_days || 30 };
+    setQForm(form); setViz(r.viz || "table"); setQLoading(true);
+    try { const d = await postJsonAuth("/api/reports/query", form); setQResult(d.ok ? d : { rows: [], columns: [], note: d.error || "오류" }); }
+    catch (e) { setQResult({ rows: [], columns: [], note: String(e.message).slice(0, 80) }); }
+    finally { setQLoading(false); }
+  }, []);
+  const deleteSaved = useCallback(async (id) => { try { await delJson(`/api/reports/saved/${id}`); loadSaved(); } catch {} }, [loadSaved]);
   const exportCsv = useCallback(() => {
     if (!qResult || !qResult.rows || !qResult.rows.length) return;
     const cols = qResult.columns || [];
@@ -156,8 +177,15 @@ export default function ReportBuilder() {
             </div>
             <div>
               <div style={{ fontSize: 11, color: "var(--text-3)", marginBottom: 6 }}>{t("reportBuilder.dimension", "차원")}</div>
-              <select value={qForm.dimension} onChange={e => setQForm(f => ({ ...f, dimension: e.target.value }))} style={{ ...input, width: 130 }}>
+              <select value={qForm.dimension} onChange={e => setQForm(f => ({ ...f, dimension: e.target.value, breakdown: f.breakdown === e.target.value ? "" : f.breakdown }))} style={{ ...input, width: 130 }}>
                 {Q_DIMS.map(([id, lab]) => <option key={id} value={id}>{lab}</option>)}
+              </select>
+            </div>
+            <div>
+              <div style={{ fontSize: 11, color: "var(--text-3)", marginBottom: 6 }}>{t("reportBuilder.breakdown", "2차 차원(피벗)")}</div>
+              <select value={qForm.breakdown} onChange={e => setQForm(f => ({ ...f, breakdown: e.target.value }))} style={{ ...input, width: 130 }}>
+                <option value="">{t("reportBuilder.brkNone", "없음")}</option>
+                {Q_DIMS.filter(d => d[0] !== qForm.dimension).map(([id, lab]) => <option key={id} value={id}>{lab}</option>)}
               </select>
             </div>
             <div>
@@ -168,31 +196,76 @@ export default function ReportBuilder() {
                 <option value={90}>{t("reportBuilder.last90", "최근 90일")}</option>
               </select>
             </div>
+            <div>
+              <div style={{ fontSize: 11, color: "var(--text-3)", marginBottom: 6 }}>{t("reportBuilder.viz", "시각화")}</div>
+              <div style={{ display: "flex", gap: 4 }}>
+                {[["table", "📋"], ["bar", "📊"], ["donut", "🍩"]].map(([v, ic]) => (
+                  <button key={v} onClick={() => setViz(v)} title={v} style={{ padding: "6px 9px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 13, background: viz === v ? "#4f8ef7" : "rgba(0,0,0,0.05)" }}>{ic}</button>
+                ))}
+              </div>
+            </div>
             <div style={{ alignSelf: "flex-end", display: "flex", gap: 6 }}>
               <button style={btn("primary")} onClick={runQuery} disabled={qLoading}>{qLoading ? "⏳" : "🔎"} {t("reportBuilder.runQuery", "분석 실행")}</button>
               {qResult && qResult.rows && qResult.rows.length > 0 && <button style={btn("ghost")} onClick={exportCsv}>⬇ CSV</button>}
+              {qResult && qResult.rows && qResult.rows.length > 0 && <button style={btn("ghost")} onClick={saveCurrent}>💾 {t("reportBuilder.save", "저장")}</button>}
             </div>
           </div>
-          {qResult && (
+          {saved.length > 0 && (
+            <div style={{ ...card, marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+              <span style={{ fontSize: 11, color: "var(--text-3)", fontWeight: 700 }}>💼 {t("reportBuilder.savedReports", "저장된 리포트")}:</span>
+              {saved.map(r => (
+                <span key={r.id} style={{ display: "inline-flex", alignItems: "center", gap: 4, background: "rgba(79,142,247,0.08)", borderRadius: 8, padding: "3px 4px 3px 10px" }}>
+                  <button onClick={() => applySaved(r)} style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: 11, fontWeight: 700, color: "#4f8ef7" }}>{r.name}</button>
+                  <button onClick={() => deleteSaved(r.id)} title="delete" style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: 11, color: "var(--text-3)" }}>✕</button>
+                </span>
+              ))}
+            </div>
+          )}
+          {qResult && (() => {
+            const PALETTE = ["#4f8ef7", "#22c55e", "#a855f7", "#f59e0b", "#ec4899", "#14d9b0", "#ef4444", "#6366f1"];
+            const pm = (qResult.metrics || [])[0] || "spend";
+            const colLabel = (c) => c === "dim" ? (Q_DIMS.find(d => d[0] === qResult.dimension)?.[1] || "") : c === "brk" ? (Q_DIMS.find(d => d[0] === qResult.breakdown)?.[1] || "") : (Q_METRICS.find(m => m[0] === c)?.[1] || c);
+            const isChart = viz !== "table" && !qResult.breakdown && (qResult.rows || []).length > 0;
+            return (
             <div style={{ ...card, marginTop: 12, overflowX: "auto" }}>
               {(!qResult.rows || qResult.rows.length === 0) ? (
                 <div style={{ color: "var(--text-3)", fontSize: 12, padding: 20, textAlign: "center" }}>{qResult.note || t("reportBuilder.noData", "데이터가 없습니다.")}</div>
+              ) : isChart ? (
+                <div style={{ padding: "8px 4px" }}>
+                  <div style={{ fontSize: 11, color: "var(--text-3)", marginBottom: 8 }}>{colLabel("dim")} · {colLabel(pm)} ({t("reportBuilder.top", "상위")} {Math.min(viz === "donut" ? 8 : 14, qResult.rows.length)})</div>
+                  {viz === "bar" && <BarChart data={qResult.rows.slice(0, 14).map(r => ({ dim: r.dim, [pm]: Number(r[pm] ?? 0) }))} xKey="dim" yKey={pm} width={680} height={240} color={PALETTE} />}
+                  {viz === "donut" && (
+                    <div style={{ display: "flex", gap: 20, alignItems: "center", flexWrap: "wrap" }}>
+                      <DonutChart data={qResult.rows.slice(0, 8).map((r, i) => ({ value: Number(r[pm] ?? 0), color: PALETTE[i % PALETTE.length] }))} size={200} label={colLabel(pm)} />
+                      <div style={{ display: "grid", gap: 4 }}>
+                        {qResult.rows.slice(0, 8).map((r, i) => (
+                          <div key={i} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11 }}>
+                            <span style={{ width: 10, height: 10, borderRadius: 3, background: PALETTE[i % PALETTE.length] }} />
+                            <span style={{ color: "var(--text-2)" }}>{r.dim}</span>
+                            <span style={{ color: "var(--text-1)", fontWeight: 700 }}>{Number(r[pm] ?? 0).toLocaleString()}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               ) : (
                 <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
                   <thead><tr style={{ borderBottom: "2px solid var(--border)" }}>
-                    {(qResult.columns || []).map(c => <th key={c} style={{ padding: "8px 10px", textAlign: c === "dim" ? "left" : "right", color: "var(--text-3)", fontWeight: 700, fontSize: 11 }}>{c === "dim" ? (Q_DIMS.find(d => d[0] === qResult.dimension)?.[1] || "") : (Q_METRICS.find(m => m[0] === c)?.[1] || c)}</th>)}
+                    {(qResult.columns || []).map(c => <th key={c} style={{ padding: "8px 10px", textAlign: (c === "dim" || c === "brk") ? "left" : "right", color: "var(--text-3)", fontWeight: 700, fontSize: 11 }}>{colLabel(c)}</th>)}
                   </tr></thead>
                   <tbody>
                     {qResult.rows.map((r, i) => (
                       <tr key={i} style={{ borderBottom: "1px solid var(--border)" }}>
-                        {(qResult.columns || []).map(c => <td key={c} style={{ padding: "8px 10px", textAlign: c === "dim" ? "left" : "right", fontWeight: c === "dim" ? 700 : 400, color: "var(--text-1)" }}>{c === "dim" ? r.dim : Number(r[c] ?? 0).toLocaleString()}</td>)}
+                        {(qResult.columns || []).map(c => <td key={c} style={{ padding: "8px 10px", textAlign: (c === "dim" || c === "brk") ? "left" : "right", fontWeight: (c === "dim" || c === "brk") ? 700 : 400, color: "var(--text-1)" }}>{c === "dim" ? r.dim : c === "brk" ? r.brk : Number(r[c] ?? 0).toLocaleString()}</td>)}
                       </tr>
                     ))}
                   </tbody>
                 </table>
               )}
             </div>
-          )}
+            );
+          })()}
         </div>
       )}
 

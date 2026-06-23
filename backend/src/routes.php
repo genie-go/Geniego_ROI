@@ -229,6 +229,9 @@ return function (App $app): void {
         'GET /reports/history'           => 'Genie\\Handlers\\Reports::history',
         'POST /reports/query'            => 'Genie\\Handlers\\Reports::query',      // [237차] 셀프서비스 BI 쿼리
         'POST /api/reports/query'        => 'Genie\\Handlers\\Reports::query',
+        'GET /reports/saved'             => 'Genie\\Handlers\\Reports::savedList',   // [239차+] BI 저장된 리포트
+        'POST /reports/saved'            => 'Genie\\Handlers\\Reports::savedCreate',
+        'DELETE /reports/saved/{id}'     => 'Genie\\Handlers\\Reports::savedDelete',
 
 
         // ── 이메일/카카오 확장(A/B·중복·analytics·친구톡·SMS) — 183차 P0: 핸들러 미구현으로
@@ -2430,6 +2433,9 @@ return function (App $app): void {
     $register('GET',    '/reports/preview');
     $register('GET',    '/reports/history');
     $register('POST',   '/reports/query');     // [237차] 셀프서비스 BI 쿼리(basePath strip 이 /api 변형 처리)
+    $register('GET',    '/reports/saved');     // [239차+] BI 저장된 리포트
+    $register('POST',   '/reports/saved');
+    $register('DELETE', '/reports/saved/{id}');
     // WhatsApp
     $register('GET',    '/whatsapp/settings');
     $register('POST',   '/whatsapp/settings');

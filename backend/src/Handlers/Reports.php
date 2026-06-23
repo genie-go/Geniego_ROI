@@ -253,25 +253,33 @@ class Reports
             'cpc'         => 'ROUND(SUM(spend)/NULLIF(SUM(clicks),0))',
             'cpa'         => 'ROUND(SUM(spend)/NULLIF(SUM(conversions),0))',
         ];
-        $DIMS = ['channel' => 'channel', 'campaign' => 'campaign_ext_id', 'date' => 'date'];
+        // [239차+ BI심화] 차원 확장(account 추가) + 2차 차원(breakdown=피벗/크로스탭). 전부 화이트리스트(인젝션 불가).
+        $DIMS = ['channel' => 'channel', 'campaign' => 'campaign_ext_id', 'date' => 'date', 'account' => 'account'];
 
         $reqMetrics = array_values(array_filter((array)($body['metrics'] ?? []), fn($m) => isset($METRICS[$m])));
         if (!$reqMetrics) $reqMetrics = ['spend', 'revenue', 'roas', 'conversions'];
         $dim = (string)($body['dimension'] ?? 'channel');
         if (!isset($DIMS[$dim])) $dim = 'channel';
         $dimCol = $DIMS[$dim];
+        // 2차 차원(피벗): 1차와 다른 화이트리스트 차원일 때만. 빈값/동일/비화이트리스트면 단일차원(기존 동작 동일=회귀0).
+        $brk = (string)($body['breakdown'] ?? '');
+        $brkValid = ($brk !== '' && isset($DIMS[$brk]) && $brk !== $dim);
+        $brkCol = $brkValid ? $DIMS[$brk] : null;
         $period = max(1, min(365, (int)($body['period_days'] ?? 30)));
-        $limit = max(1, min(500, (int)($body['limit'] ?? 100)));
+        $limit = max(1, min(2000, (int)($body['limit'] ?? ($brkValid ? 1000 : 100))));
         $since = gmdate('Y-m-d', time() - $period * 86400);
 
-        // SELECT 절(화이트리스트 식만 결합 → 인젝션 불가). 차원 컬럼 + 선택 지표.
+        // SELECT 절(화이트리스트 식만 결합 → 인젝션 불가). 차원 컬럼 + (2차차원) + 선택 지표.
         $selects = ["{$dimCol} AS dim"];
+        if ($brkCol) $selects[] = "{$brkCol} AS brk";
         foreach ($reqMetrics as $m) $selects[] = "{$METRICS[$m]} AS {$m}";
         $orderMetric = $reqMetrics[0];
+        $groupBy = $brkCol ? "{$dimCol}, {$brkCol}" : $dimCol;
+        $whereBrk = $brkCol ? " AND {$brkCol} IS NOT NULL AND {$brkCol} <> ''" : '';
         $sql = "SELECT " . implode(', ', $selects) . "
                   FROM performance_metrics
-                 WHERE tenant_id = ? AND date >= ? AND {$dimCol} IS NOT NULL AND {$dimCol} <> ''
-                 GROUP BY {$dimCol}
+                 WHERE tenant_id = ? AND date >= ? AND {$dimCol} IS NOT NULL AND {$dimCol} <> ''{$whereBrk}
+                 GROUP BY {$groupBy}
                  ORDER BY " . ($dim === 'date' ? 'dim ASC' : "{$orderMetric} DESC") . "
                  LIMIT {$limit}";
         try {
@@ -290,8 +298,8 @@ class Reports
             if (isset($totals['revenue'], $totals['spend']) && $totals['spend'] > 0) $totals['roas'] = round($totals['revenue'] / $totals['spend'], 2);
         }
         return self::json($res, [
-            'ok' => true, 'dimension' => $dim, 'metrics' => $reqMetrics, 'period_days' => $period,
-            'columns' => array_merge(['dim'], $reqMetrics), 'rows' => $rows, 'totals' => $totals,
+            'ok' => true, 'dimension' => $dim, 'breakdown' => ($brkValid ? $brk : null), 'metrics' => $reqMetrics, 'period_days' => $period,
+            'columns' => array_merge(['dim'], ($brkCol ? ['brk'] : []), $reqMetrics), 'rows' => $rows, 'totals' => $totals,
             'count' => count($rows),
             'note' => count($rows) === 0 ? '선택 기간·차원에 집계할 광고 성과 데이터가 없습니다(집행·수집 후 표시).' : null,
         ]);
@@ -368,5 +376,63 @@ class Reports
         $out = [];
         foreach ($due as $sch) { $out[] = ['id' => $sch['id'], 'tenant' => $sch['tenant_id']] + self::runSchedule($pdo, $sch); }
         return $out;
+    }
+
+    // ═══ [239차+ BI심화] 저장된 커스텀 리포트(saved_report) — ReportBuilder 구성(지표×차원×피벗×기간) 영속 ═══
+    //   ★중복0: 기존 Reports 핸들러 확장. report_schedule(예약발송)과 별개 용도(저장된 분석 뷰).
+    private static function ensureSavedReport(): void
+    {
+        $pdo = self::db();
+        if (self::isMysql($pdo)) {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS saved_report (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo',
+                name VARCHAR(255) NOT NULL, config TEXT NOT NULL, viz VARCHAR(20) DEFAULT 'table',
+                created_at VARCHAR(32),
+                KEY idx_sr2_tenant (tenant_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        } else {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS saved_report (
+                id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo',
+                name TEXT NOT NULL, config TEXT NOT NULL, viz TEXT DEFAULT 'table', created_at TEXT
+            )");
+        }
+    }
+
+    /** GET /reports/saved — 저장된 리포트 목록(테넌트 격리). */
+    public static function savedList(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureSavedReport();
+        $st = self::db()->prepare("SELECT id,name,config,viz,created_at FROM saved_report WHERE tenant_id=? ORDER BY id DESC LIMIT 200");
+        $st->execute([self::tenant($req)]);
+        $rows = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+        foreach ($rows as &$r) { $r['config'] = json_decode((string)$r['config'], true) ?: []; }
+        return self::json($res, ['ok' => true, 'reports' => $rows]);
+    }
+
+    /** POST /reports/saved — 저장(name, config{metrics,dimension,breakdown,period_days}, viz). */
+    public static function savedCreate(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureSavedReport();
+        $b = self::body($req);
+        $name = trim((string)($b['name'] ?? ''));
+        if ($name === '') return self::json($res, ['ok' => false, 'error' => 'name_required'], 400);
+        $cfg = (array)($b['config'] ?? []);
+        $viz = in_array(($b['viz'] ?? 'table'), ['table', 'bar', 'line', 'donut'], true) ? (string)$b['viz'] : 'table';
+        self::db()->prepare("INSERT INTO saved_report(tenant_id,name,config,viz,created_at) VALUES(?,?,?,?,?)")
+            ->execute([self::tenant($req), mb_substr($name, 0, 200), json_encode($cfg, JSON_UNESCAPED_UNICODE), $viz, self::now()]);
+        return self::json($res, ['ok' => true, 'id' => (int)self::db()->lastInsertId()]);
+    }
+
+    /** DELETE /reports/saved/{id} — 삭제(테넌트 격리). */
+    public static function savedDelete(Request $req, Response $res, array $args): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureSavedReport();
+        self::db()->prepare("DELETE FROM saved_report WHERE id=? AND tenant_id=?")
+            ->execute([(int)($args['id'] ?? 0), self::tenant($req)]);
+        return self::json($res, ['ok' => true]);
     }
 }
