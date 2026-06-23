@@ -2707,6 +2707,16 @@ final class ChannelSync
             ['id'=>'gmarket','name'=>'G마켓','icon'=>'G','color'=>'#eab308','type'=>'국내'],
             ['id'=>'cafe24','name'=>'Cafe24','icon'=>'☕','color'=>'#6366f1','type'=>'국내'],
             ['id'=>'lotteon','name'=>'롯데온','icon'=>'L','color'=>'#ef4444','type'=>'국내'],
+            ['id'=>'auction','name'=>'옥션','icon'=>'A','color'=>'#cd1c2a','type'=>'국내'],
+            ['id'=>'godomall','name'=>'고도몰','icon'=>'🟦','color'=>'#1e88e5','type'=>'국내'],
+            // [239차+ P2-1] 글로벌커머스 실 fetch 어댑터 보유 채널을 status 카드 목록에 포함(누락 시 '내 채널' 카드 미표시).
+            ['id'=>'woocommerce','name'=>'WooCommerce','icon'=>'🛍️','color'=>'#96588a','type'=>'글로벌'],
+            ['id'=>'magento','name'=>'Magento','icon'=>'🧱','color'=>'#ee672f','type'=>'글로벌'],
+            ['id'=>'walmart','name'=>'Walmart','icon'=>'🏪','color'=>'#0071dc','type'=>'글로벌'],
+            ['id'=>'etsy','name'=>'Etsy','icon'=>'🎨','color'=>'#f56400','type'=>'글로벌'],
+            ['id'=>'shopee','name'=>'Shopee','icon'=>'🛒','color'=>'#ee4d2d','type'=>'동남아'],
+            ['id'=>'lazada','name'=>'Lazada','icon'=>'🛍️','color'=>'#0f146d','type'=>'동남아'],
+            ['id'=>'qoo10','name'=>'Qoo10','icon'=>'Q','color'=>'#ff5400','type'=>'글로벌'],
         ];
 
         // [225차 P1-7] credMap 도 canonical 키로 정규화(저장키 st11 등 별칭 → supportedChannels.id 와 정합).
@@ -2728,6 +2738,24 @@ final class ChannelSync
             $ch['sync_status']  = $credMap[$id][0]['sync_status'] ?? 'none';
         }
         unset($ch);
+
+        // [239차+ P2-1] 방어적 보강 — 기본 목록에 없으나 자격증명이 등록된 채널은 절대 누락하지 않는다.
+        //   (신규 채널 추가/별칭/레지스트리 확장 시 status 카드 자동 포함 → "설정한 채널이 안 보임" 회귀 차단.)
+        $listedIds = [];
+        foreach ($supportedChannels as $sc) { $listedIds[self::normalizeChannelKey($sc['id'])] = true; }
+        foreach ($credMap as $cid => $crows) {
+            if (isset($listedIds[$cid])) continue;
+            $supportedChannels[] = [
+                'id' => $cid, 'name' => ucfirst($cid), 'icon' => '🔌', 'color' => '#64748b', 'type' => '기타',
+                'status'        => $crows[0]['test_status'] ?? 'untested',
+                'creds'         => $crows,
+                'product_count' => (int)($productCounts[$cid] ?? 0),
+                'order_count'   => (int)($orderStats[$cid]['cnt'] ?? 0),
+                'revenue'       => (float)($orderStats[$cid]['revenue'] ?? 0),
+                'last_synced'   => $crows[0]['last_synced_at'] ?? null,
+                'sync_status'   => $crows[0]['sync_status'] ?? 'none',
+            ];
+        }
 
         return TemplateResponder::respond($res, [
             'ok'       => true,

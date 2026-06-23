@@ -508,6 +508,23 @@ class AutoCampaign
     }
 
     /**
+     * [239차+] 진실 ROAS 보정비율(매체 자가보고 → 실주문 귀속). 추천/자동화 두뇌 공용 SSOT —
+     *   AutoRecommend 등이 재사용(중복 구현 금지). realRevMap(attribution_result order-match ⨝ channel_orders) 기준.
+     *   귀속 전환 MIN_ATTR_CONV 미만이거나 mediaRevenue<=0 이면 null(호출부는 매체보고 그대로 사용=회귀 없음).
+     *   반환 시 0.2~1.2 클램프(극단 변동 방어). $since 미지정 시 OPT_WINDOW_DAYS 윈도우.
+     * @return float|null 보정비율(adjRev = mediaRevenue × ratio) 또는 null(보정 미적용)
+     */
+    public static function truthRatioForChannel(PDO $pdo, string $tenant, string $channel, float $mediaRevenue, string $since = ''): ?float
+    {
+        if ($tenant === '' || $mediaRevenue <= 0) return null;
+        if ($since === '') $since = gmdate('Y-m-d', time() - self::OPT_WINDOW_DAYS * 86400);
+        $map = self::realRevMap($pdo, $tenant, $since);
+        $fam = self::chFamily($channel);
+        if ((int)($map[$fam]['conv'] ?? 0) < self::MIN_ATTR_CONV) return null;
+        return max(0.2, min(1.2, (float)($map[$fam]['rev'] ?? 0) / $mediaRevenue));
+    }
+
+    /**
      * 채널별 최근 성과 집계(채널명 대소문자 무시).
      * ★ 202차 Phase3: $externalId(캠페인 external_id) 제공 시 campaign_ext_id 로 필터 →
      *   측정 입도를 액추에이션 입도(캠페인)와 일치(동일 채널 다중 캠페인 합산 오류 제거).

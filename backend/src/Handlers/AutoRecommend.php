@@ -177,18 +177,26 @@ final class AutoRecommend
                 . 'GROUP BY channel';
             $stmt = $pdo->prepare($sql);
             $stmt->execute([':t' => $tenant]);
+            // [239차+ P2] 진실 ROAS 소비 — measured ROAS 는 매체 자가보고 매출(뷰스루·중복 과대) 기반이었다.
+            //   추천이 실주문 귀속 매출로 보정되도록, 옵티마이저(AutoCampaign)와 동일한 truthRatio(클램프·MIN_ATTR_CONV
+            //   게이트)를 적용 → 추천·집행 두뇌가 동일 진실 기준 사용. 귀속 데이터 부족 채널은 매체보고 폴백(회귀 0).
+            $since = gmdate('Y-m-d', time() - $days * 86400);
             $out = [];
             foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $r) {
                 $spend = (float)$r['spend'];
                 $conv  = (int)$r['conversions'];
+                $mediaRev = (float)$r['revenue'];
+                $tr = AutoCampaign::truthRatioForChannel($pdo, $tenant, (string)$r['channel'], $mediaRev, $since);
+                $revenue = $tr !== null ? round($mediaRev * $tr, 2) : $mediaRev;
                 $out[$r['channel']] = [
                     'spend' => $spend,
-                    'revenue' => (float)$r['revenue'],
-                    'roas' => $spend > 0 ? round(((float)$r['revenue']) / $spend, 2) : 0.0,
+                    'revenue' => $revenue,
+                    'roas' => $spend > 0 ? round($revenue / $spend, 2) : 0.0,
                     'clicks' => (int)$r['clicks'],
                     'impressions' => (int)$r['impressions'],
                     'conversions' => $conv,
                     'cac' => $conv > 0 ? round($spend / $conv, 0) : 0.0,
+                    'truth_adjusted' => $tr !== null,
                 ];
             }
             return $out;

@@ -37,9 +37,11 @@ final class AnomalyDetection
     {
         if ($tenant === '' || $tenant === 'demo' || $tenant === 'unknown' || str_starts_with($tenant, 'demo')) return true;
         try { if (\Genie\Db::env() === 'demo') return true; } catch (\Throwable $e) {}
+        // [239차+ P2 하드닝] substring('demo') → 정확일치/suffix('_demo')만(운영 DB명에 'demo' 부분문자열
+        //   포함 시 합성 이상치 오노출 방지). Mmm::isDemo 와 동일 패턴으로 일관화(심층방어).
         try {
             $dbn = strtolower((string)Db::pdo()->query('SELECT DATABASE()')->fetchColumn());
-            if ($dbn !== '' && strpos($dbn, 'demo') !== false) return true;
+            if ($dbn === 'demo' || str_ends_with($dbn, '_demo')) return true;
         } catch (\Throwable $e) {}
         return false;
     }

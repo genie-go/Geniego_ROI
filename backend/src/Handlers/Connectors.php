@@ -2033,6 +2033,10 @@ final class Connectors
         if ($err || $code >= 400) {
             return ['hasCreds' => true, 'live' => false, 'error' => $err ?: "line http $code"];
         }
+        // [239차+ P1] LINE Ads 과금 통화 정규화 — LINE 은 KRW 로 과금하지 않는다(일본 JPY 주력·TH THB·TW TWD).
+        //   통화 미stamp 시 persistMetricRows 가 KRW 기본 적용 → JPY spend 가 미환산 적재되어 ROAS/CAC 왜곡.
+        //   (TikTok fetchTiktokRows 통화 정규화 패턴 정합.) 우선순위: 리포트 응답 통화 > cred 'currency' 선언 > JPY 기본.
+        $lineCur = strtoupper((string)(self::loadCred($tenant, 'line_ads', 'currency') ?: 'JPY'));
         $rows = [];
         foreach ((array)($body['datas'] ?? $body['data'] ?? $body['statistics'] ?? $body['reports'] ?? []) as $r) {
             $dim = (array)($r['dimensions'] ?? $r['dimension'] ?? $r);
@@ -2051,6 +2055,7 @@ final class Connectors
                 'spend'           => (float)($m['cost'] ?? $m['spend'] ?? $m['spending'] ?? 0),
                 'conversions'     => (int)round((float)($m['conversion'] ?? $m['conv'] ?? $m['cv'] ?? 0)),
                 'revenue'         => (float)($m['conversionValue'] ?? $m['convValue'] ?? $m['revenue'] ?? 0),
+                'currency'        => strtoupper((string)($m['currency'] ?? $dim['currency'] ?? $r['currency'] ?? $lineCur)), // [239차+ P1] persist 에서 KRW 환산
             ];
         }
         return ['hasCreds' => true, 'live' => true, 'rows' => $rows];

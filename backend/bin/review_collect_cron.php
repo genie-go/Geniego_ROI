@@ -24,7 +24,7 @@ require __DIR__ . '/../vendor/autoload.php';
 use Genie\Db;
 use Genie\Handlers\Reviews;
 
-const REVIEW_CHANNELS = ['cafe24', 'naver', 'naver_smartstore', 'coupang', 'shopify'];
+const REVIEW_CHANNELS = Reviews::REVIEW_CHANNELS; // [239차+] SSOT — Reviews 핸들러 단일소스 재사용(중복 제거)
 
 $onlyTenant = null; $onlyChannel = null;
 foreach (array_slice($argv, 1) as $a) {

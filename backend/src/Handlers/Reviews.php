@@ -16,6 +16,15 @@ use Psr\Http\Message\ResponseInterface as Response;
  */
 final class Reviews
 {
+    /** [239차+] 리뷰 수집 지원 채널 단일소스(SSOT) — review_collect_cron + ChannelCreds 자동트리거 공용. */
+    public const REVIEW_CHANNELS = ['cafe24', 'naver', 'naver_smartstore', 'coupang', 'shopify'];
+
+    /** 채널이 리뷰 수집 지원 채널인가(별칭 정규화 포함). */
+    public static function isReviewChannel(string $channel): bool
+    {
+        return in_array(strtolower(trim($channel)), self::REVIEW_CHANNELS, true);
+    }
+
     /** R1 부정 키워드 사전(뷰티/커머스) — 실 리뷰 텍스트에서 빈도 추출(하드코딩 카운트 아님). R2에서 AI 추출로 대체. */
     private const NEG_DICT = [
         '번짐', '뭉침', '트러블', '백탁', '따가움', '건조함', '밀림', '반품', '환불', '가품', '배송', '늦음',

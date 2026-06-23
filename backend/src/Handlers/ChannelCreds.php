@@ -382,6 +382,15 @@ final class ChannelCreds
                 try { Catalog::processWritebackQueue($pdo, $tenant, $channel, 100); }
                 catch (\Throwable $e) { error_log('[ChannelCreds::upsert] writeback auto-push failed: ' . $e->getMessage()); }
             }
+            // ── [239차+ GAP-1] 리뷰 수집 채널도 자격증명 등록 즉시 자동 수집(ad/commerce/pg/물류와 대칭) ──
+            //   기존엔 리뷰만 트리거 누락 → 등록해도 다음 review_collect_cron(*/6h)까지 미수집(비대칭).
+            //   리뷰 지원 채널(Reviews::REVIEW_CHANNELS)일 때만, best-effort(실패는 무음·cron 백업).
+            if (Reviews::isReviewChannel($channel)) {
+                try {
+                    $rv = Reviews::collectForTenant($pdo, $tenant, $channel);
+                    $autoSync = $autoSync ?: ['kind' => 'review', 'result' => $rv];
+                } catch (\Throwable $e) { error_log('[ChannelCreds::upsert] review auto-collect failed: ' . $e->getMessage()); }
+            }
         }
 
         // ── 데모 사용자: API 키 등록 시 plan=pro 자동 업그레이드(실사용 체험 전환) ──
