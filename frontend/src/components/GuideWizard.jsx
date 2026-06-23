@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useI18n } from "../i18n/index.js";
 import { GUIDE_CONTENT, GUIDE_NAV, GUIDE_MSG } from "../data/guideContent.js";
@@ -34,6 +34,44 @@ export default function GuideWizard({ guideKey, checks }) {
   const [warn, setWarn] = useState(false);   // 검증 실패(미완) 메시지
   const [busy, setBusy] = useState(false);
   const persist = useCallback((nx) => { try { localStorage.setItem(storageKey, JSON.stringify(nx)); } catch (e) { /* ignore */ } }, [storageKey]);
+
+  // [238차] ★실제 계정 상태 기반 진행도 자동 산출(SSOT) — localStorage(cur)는 즉시 렌더용 캐시일 뿐.
+  //   마운트 시 모든 필수 checks 를 실제 평가하여: ①이미 완료한 필수 단계는 ✓로 복원(재로그인/타기기/하위멤버
+  //   에서도 동일) ②첫 미완료 필수 단계로 자동 위치 ③필수가 전부 완료면 자유 진행. → "어디까지 했는지 + 다음 할 일"
+  //   을 실데이터로 안내. 안내(검증 없는)단계는 판정 보류(순서대로 자유 진행).
+  const [derived, setDerived] = useState(null); // { firstIncomplete, allReqDone, completedCount, hasAnyCheck }
+  const derivedRef = useRef("");
+  useEffect(() => {
+    const sig = `${guideKey}:${total}:${Array.isArray(checks) ? checks.length : 0}`;
+    if (derivedRef.current === sig) return;
+    derivedRef.current = sig;
+    if (!Array.isArray(checks) || !checks.length || !total) return;
+    let alive = true;
+    (async () => {
+      let firstIncomplete = -1, completedCount = 0, hasAnyCheck = false;
+      for (let i = 0; i < total; i++) {
+        const fn = checks[i];
+        if (typeof fn !== "function") continue; // 안내 단계: 판정 보류
+        hasAnyCheck = true;
+        let ok = false; try { ok = await fn(); } catch (e) { ok = false; }
+        if (ok) completedCount++;
+        else if (firstIncomplete < 0) firstIncomplete = i;
+      }
+      if (!alive) return;
+      const allReqDone = hasAnyCheck && firstIncomplete < 0;
+      setDerived({ firstIncomplete, allReqDone, completedCount, hasAnyCheck });
+      // 상태 병합: 첫 미완료 필수 이전 단계는 verified(✓), cur 를 첫 미완료 필수로 정렬(실제가 SSOT).
+      setState((s) => {
+        const upto = firstIncomplete < 0 ? total : firstIncomplete;
+        const v = { ...s.verified };
+        for (let i = 0; i < upto; i++) v[i] = true;
+        const nx = { cur: upto, verified: v };
+        persist(nx);
+        return nx;
+      });
+    })();
+    return () => { alive = false; };
+  }, [guideKey, total, checks, persist]);
 
   const cur = Math.max(0, Math.min(total, state.cur));
   const verifiedCur = !!state.verified[cur];
@@ -92,6 +130,15 @@ export default function GuideWizard({ guideKey, checks }) {
         </div>
       </div>
 
+      {/* [238차] 실데이터 기반 '이어서 진행' 요약 — 재로그인/타기기에서도 이미 완료한 필수 단계 수 + 다음 할 일을 안내. */}
+      {derived && !allDone && derived.completedCount > 0 && d.steps[cur] && (
+        <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", background: "linear-gradient(135deg,rgba(79,70,229,0.08),rgba(124,58,237,0.06))", border: `1px solid ${accent[0]}44`, borderRadius: 12, padding: "10px 14px", fontSize: 12.5, marginBottom: 13 }}>
+          <span style={{ fontWeight: 900, color: "#16a34a", background: "rgba(22,163,74,0.12)", padding: "3px 10px", borderRadius: 99 }}>✓ {derived.completedCount} {nav.doneBadge}</span>
+          <span style={{ color: "var(--text-3)", fontWeight: 700 }}>→</span>
+          <span style={{ fontWeight: 800, color: accent[0] }}>{nav.step} {cur + 1}: {d.steps[cur][0]}</span>
+        </div>
+      )}
+
       {allDone && (
         <div style={{ background: "linear-gradient(135deg,rgba(34,197,94,0.1),rgba(79,70,229,0.08))", border: "1px solid rgba(34,197,94,0.3)", borderRadius: 14, padding: "18px 20px", fontSize: 14.5, fontWeight: 700, color: "#15803d", marginBottom: 14 }}>
           {d.all}
@@ -120,9 +167,10 @@ export default function GuideWizard({ guideKey, checks }) {
                       try {
                         // 현재 단계부터 실행까지 연속 안내 큐 구성(각 페이지에서 '다음 단계 →'로 체인 이동).
                         const q = [];
+                        const ctas = (guide && guide.ctas) || [];
                         for (let k = i; k < d.steps.length; k++) {
                           if (!links[k]) continue;
-                          q.push({ route: links[k], hint: (d.steps[k][0] ? d.steps[k][0] + " — " : "") + (d.steps[k][1] || ""), nextLabel: nav.done, execLabel: nav.execute, multi: /\/(integration-hub|catalog-sync|crm)\b/.test(links[k]) });
+                          q.push({ route: links[k], cta: ctas[k] || null, hint: (d.steps[k][0] ? d.steps[k][0] + " — " : "") + (d.steps[k][1] || ""), nextLabel: nav.done, execLabel: nav.execute, multi: /\/(integration-hub|catalog-sync|crm)\b/.test(links[k]) });
                         }
                         if (d.doneRoute && (!q.length || q[q.length - 1].route !== d.doneRoute)) q.push({ route: d.doneRoute, hint: d.all || nav.execute, execLabel: nav.execute });
                         sessionStorage.setItem("genie_onboard_queue", JSON.stringify(q));

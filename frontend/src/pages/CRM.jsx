@@ -695,7 +695,7 @@ function CRMContent() {
         {tab === "customers" && (
           <>
             <button onClick={handleExportCsv} style={{ padding: "9px 18px", borderRadius: 10, border: `1px solid ${C.border}`, background: "transparent", color: C.muted, fontWeight: 700, cursor: "pointer", fontSize: 13 }}>📥 {t('crm.exportCsv')}</button>
-            <button onClick={() => setShowForm(f => !f)} style={{ marginLeft: "auto", padding: "9px 18px", borderRadius: 10, border: "none", background: C.green, color: '#ffffff', fontWeight: 700, cursor: "pointer", fontSize: 13 }}>+ {t('crm.btnRegister')}</button>
+            <button onClick={() => setShowForm(f => !f)} data-onboard-cta="crm-customer" data-onboard-hint={t('crm.onboardHint', '여기서 첫 고객을 추가하세요')} style={{ marginLeft: "auto", padding: "9px 18px", borderRadius: 10, border: "none", background: C.green, color: '#ffffff', fontWeight: 700, cursor: "pointer", fontSize: 13 }}>+ {t('crm.btnRegister')}</button>
           </>
         )}
       </div>

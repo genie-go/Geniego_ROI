@@ -191,7 +191,7 @@ function TemplatesTab() {
     return (
         <div style={{ display:"grid", gridTemplateColumns:"300px 1fr", gap:20 }}>
             <div>
-                <button onClick={()=>{setEditId("new");setForm({name:"",subject:"",html_body:"",category:"general"}); }} style={{ width:"100%", padding:"12px", borderRadius:12, border:"1px dashed "+C.accent, background:"none", color:C.accent, fontWeight:700, cursor:"pointer", marginBottom:14, fontSize:13 }}>
+                <button onClick={()=>{setEditId("new");setForm({name:"",subject:"",html_body:"",category:"general"}); }} data-onboard-cta="email-template" data-onboard-hint={t("email.onboardHint","여기서 이메일 템플릿을 만드세요")} style={{ width:"100%", padding:"12px", borderRadius:12, border:"1px dashed "+C.accent, background:"none", color:C.accent, fontWeight:700, cursor:"pointer", marginBottom:14, fontSize:13 }}>
                     ✨ {t("email.tplNew", "New Template")}
                 </button>
                 <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
@@ -552,6 +552,14 @@ function EmailMarketingContent() {
     const _ePlan=(_eu&&(_eu.plans||_eu.plan))||'free';
     const _eTabVisible=(id)=>(_IS_DEMO_EM||_eIsAdmin)?true:tabAllowedByPlan(_ePlan,'email',id);
     const [tab,setTab]=useState("campaigns");
+    // [238차] 온보딩 가이드 큐가 '템플릿 작성' 단계를 가리키면 템플릿 탭으로 자동 전환(마커 노출).
+    useEffect(() => {
+        const apply = (cta) => { if (cta === "email-template") setTab("templates"); };
+        try { apply(sessionStorage.getItem("genie_onboard_cta")); } catch (e) {}
+        const h = (e) => apply(e && e.detail && e.detail.cta);
+        window.addEventListener("genie-onboard-cta", h);
+        return () => window.removeEventListener("genie-onboard-cta", h);
+    }, []);
     const TABS=[
         {id:"campaigns",label:t('email.tabCamp', "Campaigns"),icon:"🚀"},
         {id:"templates",label:t('email.tabTpl', "Templates"),icon:"📝"},

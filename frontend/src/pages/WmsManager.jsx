@@ -2625,7 +2625,7 @@ export default function WmsManager() {
                             <button onClick={() => setShowSecPanel(p => !p)} style={{ padding: '5px 14px', borderRadius: 8, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 10, color: '#fff', background: secAlerts.length > 0 ? '#ef4444' : '#22c55e' }}>{t('wms.securityBtn')}</button>
                             {tab === 'warehouse' && <>
                                 <button onClick={() => setWhShowPerms(p => !p)} style={{ padding: '5px 14px', borderRadius: 8, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 10, color: '#fff', background: whShowPerms ? '#a855f7' : '#7c3aed' }}>{t('wms.permBtn')}</button>
-                                <button onClick={() => { setWhShowForm(true) }} style={{ padding: '5px 14px', borderRadius: 8, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 10, color: '#fff', background: '#4f8ef7' }}>{t('wms.whAddBtn')}</button>
+                                <button onClick={() => { setWhShowForm(true) }} data-onboard-cta="wms-warehouse" data-onboard-hint={t('wms.onboardHint', '여기서 첫 창고를 등록하세요')} style={{ padding: '5px 14px', borderRadius: 8, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 10, color: '#fff', background: '#4f8ef7' }}>{t('wms.whAddBtn')}</button>
                             </>}
                         </div>
                     </div>

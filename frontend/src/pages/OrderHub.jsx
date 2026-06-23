@@ -868,7 +868,7 @@ function AutoRoutingTab() {
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
                     <button onClick={simulate} style={{ padding: '7px 14px', background: 'rgba(34,197,94,0.15)', border: '1px solid #22c55e', borderRadius: 8, color: '#22c55e', fontWeight: 700, cursor: 'pointer', fontSize: 12 }}>{t('orderHub.routingSimBtn')}</button>
-                    <button onClick={() => setShowForm(p => !p)} style={{ padding: '7px 16px', background: 'linear-gradient(135deg,#4f8ef7,#6366f1)', border: 'none', borderRadius: 8, color: '#1e293b', fontWeight: 700, cursor: 'pointer', fontSize: 12 }}>{t('orderHub.routingAddBtn')}</button>
+                    <button onClick={() => setShowForm(p => !p)} data-onboard-cta="orderhub-routing" data-onboard-hint={t('orderHub.onboardHint', '여기서 주문 자동 라우팅 규칙을 추가하세요')} style={{ padding: '7px 16px', background: 'linear-gradient(135deg,#4f8ef7,#6366f1)', border: 'none', borderRadius: 8, color: '#1e293b', fontWeight: 700, cursor: 'pointer', fontSize: 12 }}>{t('orderHub.routingAddBtn')}</button>
                 </div>
             </div>
             {simResult && (

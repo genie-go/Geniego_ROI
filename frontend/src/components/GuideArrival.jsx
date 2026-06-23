@@ -35,13 +35,32 @@ export default function GuideArrival() {
     }
   }, [loc.pathname]);
 
+  // 현재 단계의 동작영역(cta)을 브로드캐스트 — 탭 안에 숨은 마커를 가진 페이지가 해당 탭으로 자동 전환하도록.
+  //   (예: 이메일 '템플릿' 탭, 주문허브 '라우팅' 탭) 같은 라우트에서 단계만 바뀌는 경우(이메일 2→3→4)도 커버.
+  useEffect(() => {
+    if (!queue || !queue[idx]) return;
+    const cta = queue[idx].cta || "";
+    try {
+      sessionStorage.setItem("genie_onboard_cta", cta);
+      window.dispatchEvent(new CustomEvent("genie-onboard-cta", { detail: { cta } }));
+    } catch (e) {}
+  }, [queue, idx]);
+
   // 현재 단계의 동작 영역으로 스크롤·강조(페이지 도착/단계 변경 시).
   useEffect(() => {
     if (!queue) return;
+    // 단계별 정확한 동작영역 선택:
+    //   cta가 문자열 키 → 해당 마커만 강조(못 찾으면 강조 없음 — 엉뚱한 자리 강조 방지, 힌트 배너만).
+    //   cta === null → 의도적 무-스포트라이트(정보성·자동처리 단계, 힌트 배너만).
+    //   cta === undefined(레거시 큐) → 첫 마커로 폴백(하위호환).
+    const want = queue[idx] ? queue[idx].cta : undefined;
+    if (want === null) return; // 의도적 무-스포트라이트 단계: 폴링 없이 힌트 배너만.
     let tries = 0, done = false;
     const timer = setInterval(() => {
       tries++;
-      const el = document.querySelector("[data-onboard-cta]");
+      const el = typeof want === "string"
+        ? document.querySelector(`[data-onboard-cta="${want}"]`)
+        : (want === undefined ? document.querySelector("[data-onboard-cta]") : null);
       if (el) {
         try { el.scrollIntoView({ behavior: "smooth", block: "center" }); } catch (e) {}
         el.classList.add("gw-arrival-pulse");
@@ -51,13 +70,13 @@ export default function GuideArrival() {
     return () => { if (!done) clearInterval(timer); };
   }, [queue, idx, loc.pathname]);
 
-  const finish = useCallback(() => { setQueue(null); try { sessionStorage.removeItem(QUEUE); } catch (e) {} }, []);
+  const finish = useCallback(() => { setQueue(null); try { sessionStorage.removeItem(QUEUE); sessionStorage.removeItem("genie_onboard_cta"); } catch (e) {} }, []);
   const goNext = useCallback(() => {
     setAsking(false);
     setQueue((q) => {
       if (!q) return q;
       const ni = idx + 1;
-      if (ni >= q.length) { try { sessionStorage.removeItem(QUEUE); } catch (e) {} return null; }
+      if (ni >= q.length) { try { sessionStorage.removeItem(QUEUE); sessionStorage.removeItem("genie_onboard_cta"); } catch (e) {} return null; }
       setIdx(ni);
       try { const nx = q[ni]; if (nx && nx.route) navigate(nx.route); } catch (e) {}
       return q;

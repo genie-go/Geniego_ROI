@@ -3,6 +3,8 @@ import { createPortal } from 'react-dom';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import { useI18n } from '../i18n';
+import { useAuth } from '../auth/AuthContext.jsx';
+import { profileComplete } from '../utils/profileComplete.js';
 
 /* [현 차수] ★모바일 환경 감지 — 하단 내비(MobileBottomNav)와 동일 기준(≤768px·standalone). 모바일에선 온보딩을
    상단 배너가 아니라 하단 내비 옆 아이콘 + 바텀시트로 표시해 콘텐츠 영역을 전혀 잠식하지 않는다. */
@@ -46,6 +48,11 @@ const COMMERCE_STEPS = [
   { id: 'inbound', route: '/wms-manager', icon: '📥', title: '입고 (재고 입고)',
     action: '등록한 창고로 상품 재고를 입고 처리하세요. 입고 수량이 재고·P&L·주문 가능 수량에 자동 반영됩니다.',
     done: (g) => (g.inventory || []).some(i => _stockSum(i) > 0) || (g.inOutHistory || []).some(io => io && io.type === '입고') },
+  // [238차] ★선행조건: 채널 API 키 발급신청·정산에는 회사정보(사업자번호·주소 등)가 필요하다.
+  //   누락 시 채널 연동 '전에' 회사정보 완성을 먼저 안내(완성 기준=백엔드 liveProfileMissing 5필드 SSOT).
+  { id: 'company', route: '/integration-hub', icon: '🏢', title: '회사정보 완성',
+    action: 'API 키 발급·채널 연동·정산에 필요한 회사정보(사업자등록번호·주소 등)를 먼저 완성하세요. 한 번만 입력하면 이후 발급신청에 자동으로 채워집니다.',
+    done: (g, user) => profileComplete(user) },
   { id: 'channels', route: '/integration-hub', icon: '🔌', title: '채널 연동',
     action: '판매·광고 채널의 API 키/자격증명을 등록하고 [연결]을 누르세요. 등록 즉시 자동 동기화됩니다.',
     done: (g) => Object.keys(g.channelBudgets || {}).length > 0 || (g.connectedChannels || []).length > 0 },
@@ -65,6 +72,10 @@ const SERVICE_STEPS = [
   { id: 'service', route: '/catalog-sync', icon: '🧩', title: '서비스·플랜 등록',
     action: '광고·마케팅으로 알릴 서비스/구독 플랜(오퍼)을 등록하세요. 가격·플랜·랜딩이 모든 캠페인의 기준이 됩니다.',
     done: (g) => (g.inventory || []).length > 0 },
+  // [238차] ★선행조건: 광고·마케팅 채널 연동/발급신청에는 회사정보가 필요 → 채널 연동 전에 완성 안내.
+  { id: 'company', route: '/integration-hub', icon: '🏢', title: '회사정보 완성',
+    action: 'API 키 발급·채널 연동·정산에 필요한 회사정보(사업자등록번호·주소 등)를 먼저 완성하세요. 한 번만 입력하면 이후 발급신청에 자동으로 채워집니다.',
+    done: (g, user) => profileComplete(user) },
   { id: 'channels', route: '/integration-hub', icon: '🔌', title: '광고·마케팅 채널 연동',
     action: '광고 매체(Meta·Google 등)와 마케팅 채널의 API 키/자격증명을 등록하고 [연결]을 누르세요.',
     done: (g) => Object.keys(g.channelBudgets || {}).length > 0 || (g.connectedChannels || []).length > 0 },
@@ -85,7 +96,11 @@ const BOTH_STEPS = (() => {
 })();
 const STEP_SETS = { commerce: COMMERCE_STEPS, service: SERVICE_STEPS, both: BOTH_STEPS };
 
-const isDone = (s, g) => { try { return !!s.done(g); } catch { return false; } };
+// [238차] 온보딩 단계 id → 도착지 동작영역(data-onboard-cta) 매핑. '바로가기' 시 GuideArrival(E-1)이
+//   해당 마커를 스포트라이트하여 "정확히 어디서 무엇을" 등록/선택하는지 강조한다. 마커 없는 단계는 null.
+const STEP_CTA = { product: 'catalog-product', service: 'catalog-product', warehouse: 'wms-warehouse', company: 'profile-company', channels: 'channel-connect', payment: 'pay-method', marketing: 'mkt-category' };
+
+const isDone = (s, g, user) => { try { return !!s.done(g, user); } catch { return false; } };
 
 function tenantKey() {
   try { return localStorage.getItem('tenantId') || localStorage.getItem('demo_genie_user') || 'me'; } catch { return 'me'; }
@@ -93,9 +108,22 @@ function tenantKey() {
 
 export default function OnboardingGuide() {
   const gd = useGlobalData();
+  const { user } = useAuth();
   const loc = useLocation();
   const nav = useNavigate();
   const { t } = useI18n();
+
+  // [238차] 단계 바로가기 — 도착지 동작영역 스포트라이트(GuideArrival/E-1) 큐를 설정한 뒤 이동.
+  //   단일 단계 큐: 도착 시 cta 마커가 강조되고 "✓ 완료" 배너로 실행을 안내한다. (URL 파라미터 미사용=XSS 오탐 회피)
+  const navStep = (s) => {
+    try {
+      const cta = STEP_CTA[s.id] || null;
+      const hint = `${s.icon ? s.icon + ' ' : ''}${t(`onboard.step.${s.id}.title`, s.title)} — ${t(`onboard.step.${s.id}.action`, s.action)}`;
+      sessionStorage.setItem('genie_onboard_queue', JSON.stringify([{ route: s.route, cta, hint, execLabel: '✓ ' + t('onboard.completed', '완료') }]));
+      sessionStorage.setItem('genie_onboard_focus', '1');
+    } catch (e) { /* ignore */ }
+    nav(s.route);
+  };
 
   const welcomedKey = 'genie_onb_welcomed_' + tenantKey();
   const expandKey = 'genie_onb_expanded_' + tenantKey();
@@ -126,7 +154,7 @@ export default function OnboardingGuide() {
 
   // 모델 미선택 시 commerce 기준으로 완료 여부 판단(기존 사용자 회귀 방지) → 단, 선택 유도 배너 노출.
   const STEPS = STEP_SETS[bizModel] || COMMERCE_STEPS;
-  const doneFlags = STEPS.map((s) => isDone(s, gd));
+  const doneFlags = STEPS.map((s) => isDone(s, gd, user));
   const doneCount = doneFlags.filter(Boolean).length;
   const allDone = doneCount === STEPS.length;
   const firstIdx = doneFlags.findIndex((d) => !d);            // 첫 미완료 = 현재 단계
@@ -134,15 +162,17 @@ export default function OnboardingGuide() {
   const onStepPage = step && loc.pathname === step.route;
   const firstVisit = !welcomed;
 
-  // 전부 완료 + 이미 환영을 봤으면 숨김.
-  if (allDone && welcomed) return null;
+  // [238차] ★필수 등록·설정을 모두 마치면(=실행 준비 완료) 등록 순서 안내는 더 이상 노출하지 않는다.
+  //   완료 여부는 실데이터(GlobalData)에서 파생되므로, 어느 기기/멤버로 재로그인해도 동일하게 자동 숨김.
+  //   사용자는 이후 모든 작업을 자유롭게 진행(이용가이드는 각 메뉴 탭에서 필요 시 참고). (welcomed 클릭 불요)
+  if (allDone) return null;
 
   // [현 차수] ★★모바일: 상단 배너를 전혀 렌더하지 않고(콘텐츠 비잠식), 하단 내비 옆 나침반 아이콘만 노출.
   //   탭하면 바텀시트로 가이드(모델 선택 또는 단계 체크리스트)를 띄운다 — 하단 대메뉴와 시각/위치 일관.
   if (isMobile) {
     const pending = !allDone;
     const close = () => setMobileOpen(false);
-    const goStep = (route) => { close(); nav(route); };
+    const goStep = (s) => { close(); navStep(s); };
     const dismiss = () => { try { localStorage.setItem(welcomedKey, '1'); } catch {} setWelcomed(true); close(); };
     const bizBtn = (m, icon, title, desc) => (
       <button key={m} onClick={() => chooseModel(m)} style={{ display: 'block', width: '100%', textAlign: 'left', cursor: 'pointer', padding: '12px 14px', borderRadius: 12, marginBottom: 8, border: '1px solid rgba(124,58,237,0.4)', background: 'rgba(255,255,255,0.08)', color: '#fff' }}>
@@ -165,7 +195,7 @@ export default function OnboardingGuide() {
         {STEPS.map((s, i) => {
           const d = doneFlags[i]; const cur = i === firstIdx; const here = loc.pathname === s.route;
           return (
-            <div key={s.id} onClick={() => goStep(s.route)} style={{ display: 'flex', alignItems: 'flex-start', gap: 11, padding: '11px 12px', borderRadius: 11, cursor: 'pointer', marginBottom: 5, background: cur && !d ? 'rgba(124,58,237,0.18)' : here ? 'rgba(34,197,94,0.1)' : 'rgba(255,255,255,0.04)', border: `1px solid ${cur && !d ? 'rgba(124,58,237,0.5)' : 'transparent'}` }}>
+            <div key={s.id} onClick={() => goStep(s)} style={{ display: 'flex', alignItems: 'flex-start', gap: 11, padding: '11px 12px', borderRadius: 11, cursor: 'pointer', marginBottom: 5, background: cur && !d ? 'rgba(124,58,237,0.18)' : here ? 'rgba(34,197,94,0.1)' : 'rgba(255,255,255,0.04)', border: `1px solid ${cur && !d ? 'rgba(124,58,237,0.5)' : 'transparent'}` }}>
               <span style={{ width: 26, height: 26, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12.5, fontWeight: 900, background: d ? '#22c55e' : cur ? 'linear-gradient(135deg,#4f46e5,#7c3aed)' : 'rgba(148,163,184,0.3)', color: d || cur ? '#fff' : '#cbd5e1' }}>{d ? '✓' : i + 1}</span>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 13.5, fontWeight: cur && !d ? 900 : 800, color: d ? '#86efac' : '#fff' }}>
@@ -309,7 +339,7 @@ export default function OnboardingGuide() {
           <span style={{ flexShrink: 0, fontSize: 11, fontWeight: 900, color: '#fcd34d' }}>STEP {firstIdx + 1}/{STEPS.length}</span>
           <span style={{ flex: 1, minWidth: 40, fontSize: 13.5, fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis' }}>{step.icon} {t(`onboard.step.${step.id}.title`, step.title)}</span>
           {!onStepPage
-            ? <button className="onb-cta" onClick={() => nav(step.route)} style={{ flexShrink: 0, padding: '7px 16px', borderRadius: 9, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', color: '#fff', fontWeight: 900, fontSize: 12.5 }}>{t('onboard.shortcut', '바로가기')} <span className="onb-arrow">→</span></button>
+            ? <button className="onb-cta" onClick={() => navStep(step)} style={{ flexShrink: 0, padding: '7px 16px', borderRadius: 9, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', color: '#fff', fontWeight: 900, fontSize: 12.5 }}>{t('onboard.shortcut', '바로가기')} <span className="onb-arrow">→</span></button>
             : <span style={{ flexShrink: 0, fontSize: 11, fontWeight: 800, color: '#86efac' }}>✓ {t('onboard.onThisPage', '진행 중')}</span>}
         </>) : (
           <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis' }}>{allDone ? t('onboard.allDoneTitle', '모든 시작 단계를 완료했습니다!') : t('onboard.guideTitle', 'GeniegoROI 시작 가이드')}</span>
@@ -336,7 +366,7 @@ export default function OnboardingGuide() {
           const cur = i === firstIdx;
           const here = loc.pathname === s.route;
           return (
-            <div key={s.id} className={cur && !d ? 'onb-row-cur' : ''} onClick={() => nav(s.route)} style={{
+            <div key={s.id} className={cur && !d ? 'onb-row-cur' : ''} onClick={() => navStep(s)} style={{
               display: 'flex', alignItems: 'flex-start', gap: 11, padding: '10px 12px', borderRadius: 11, cursor: 'pointer',
               background: cur && !d ? 'rgba(124,58,237,0.12)' : here ? 'rgba(34,197,94,0.08)' : 'transparent',
               border: `1px solid ${cur && !d ? 'rgba(124,58,237,0.4)' : 'transparent'}`, marginBottom: 4, transition: 'background .2s',
@@ -375,7 +405,7 @@ export default function OnboardingGuide() {
             </button>
           </div>
           {firstVisit
-            ? <button onClick={() => { markWelcomed(); if (step) nav(step.route); }} style={{ padding: '9px 20px', borderRadius: 10, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', color: '#fff', fontWeight: 800, fontSize: 12.5 }}>{allDone ? t('onboard.start', '시작하기') : t('onboard.startFirst', '첫 단계부터 시작')} →</button>
+            ? <button onClick={() => { markWelcomed(); if (step) navStep(step); }} style={{ padding: '9px 20px', borderRadius: 10, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', color: '#fff', fontWeight: 800, fontSize: 12.5 }}>{allDone ? t('onboard.start', '시작하기') : t('onboard.startFirst', '첫 단계부터 시작')} →</button>
             : (allDone ? <button onClick={markWelcomed} style={{ padding: '8px 18px', borderRadius: 10, border: '1px solid #cbd5e1', cursor: 'pointer', background: '#fff', color: '#334155', fontWeight: 800, fontSize: 12 }}>{t('onboard.dismissDone', '확인 · 닫기')}</button> : null)}
         </div>
       </div>

@@ -6,6 +6,8 @@ import { handlePlanLimit } from '../utils/planLimit.js';
 import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { getIssuanceGuide } from '../data/issuanceGuide.js';
+import CompanyProfileModal from '../components/CompanyProfileModal.jsx';
+import { profileMissing } from '../utils/profileComplete.js';
 
 /* ═══════════════════════════════════════════════════════════════════
    177차 §4.E TOP 1 본체 + U-177-A: ApiKeys.jsx 실제 ChannelCreds 관리 UI
@@ -1754,6 +1756,12 @@ function ApplyStatusPanel({ applies = [], onRefresh, t }) {
    Tab: Overview — 채널별 등록 현황 + Quick actions
    ═══════════════════════════════════════════════════════════════════ */
 function OverviewTab({ channels, summary, creds, applies = [], loading, onChannelTest, onConnect, onApply, onOAuth, onManual, testingId, t }) {
+  // [238차] ★선행조건: 채널 API 키 발급신청에는 회사정보(사업자번호·주소 등)가 필요(발급 폼에 자동 채워짐).
+  //   누락 시 채널 연동 '전에' 회사정보 완성을 먼저 안내(정확한 순서). 완성 기준=profileComplete SSOT.
+  const { user } = useAuth();
+  const [showCompany, setShowCompany] = useState(false);
+  const missingProfile = profileMissing(user);
+  const PROFILE_LABELS = { company: t('companyInfo.company', '회사(브랜드)명'), business_number: t('companyInfo.bizNum', '사업자등록번호'), ceo_name: t('companyInfo.ceo', '대표자명'), phone: t('companyInfo.phone', '연락처'), address: t('companyInfo.address', '사업장 주소') };
   if (loading) {
     return <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-3)' }}>{t('ak.loading','Loading…')}</div>;
   }
@@ -1987,8 +1995,29 @@ function OverviewTab({ channels, summary, creds, applies = [], loading, onChanne
     <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
       {/* [현 차수] ★발급 확인 유도 펄스 애니메이션(키프레임 1회 주입). */}
       <style>{`@keyframes akVerifyPulse{0%,100%{box-shadow:0 0 0 0 rgba(245,158,11,0.0);transform:translateY(0)}50%{box-shadow:0 0 0 4px rgba(245,158,11,0.18);transform:translateY(-1px)}}@keyframes akVerifiedBlink{0%,100%{opacity:1}50%{opacity:0.35}}`}</style>
+      {/* [238차] ★선행조건 안내(정확한 순서): 회사정보 → 채널 API 키. 누락 시 발급신청 전에 먼저 완성하도록 강조. */}
+      {missingProfile.length > 0 ? (
+        <div data-onboard-cta="profile-company" data-onboard-hint={t('ak.companyPrereqHint', 'API 키 발급신청 전에 회사정보를 먼저 완성하세요(발급 폼에 자동으로 채워집니다)')}
+          style={{ padding: '14px 18px', borderRadius: 12, background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.35)', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 18 }}>🏢</span>
+          <div style={{ flex: 1, minWidth: 200 }}>
+            <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--text-1)' }}>① {t('ak.companyPrereqTitle', '회사정보 완성이 필요합니다')}</div>
+            <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 3 }}>
+              {t('ak.companyPrereqDesc', 'API 키 발급신청·정산에 회사정보가 필요합니다. 먼저 완성하면 발급 폼에 자동으로 채워집니다.')}
+              {' '}<span style={{ color: '#d97706', fontWeight: 700 }}>{t('ak.companyMissing', '누락')}: {missingProfile.map((f) => PROFILE_LABELS[f] || f).join(', ')}</span>
+            </div>
+          </div>
+          <button onClick={() => setShowCompany(true)} style={{ flexShrink: 0, padding: '9px 18px', borderRadius: 9, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#f59e0b,#ef4444)', color: '#fff', fontWeight: 800, fontSize: 12.5 }}>🏢 {t('ak.companyComplete', '회사정보 완성하기')} →</button>
+        </div>
+      ) : (
+        <div style={{ padding: '10px 16px', borderRadius: 12, background: 'rgba(34,197,94,0.07)', border: '1px solid rgba(34,197,94,0.25)', fontSize: 12, color: '#15803d', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span>✓</span><span style={{ fontWeight: 700 }}>{t('ak.companyDone', '회사정보 완성됨 — 발급신청 시 자동으로 입력됩니다.')}</span>
+          <button onClick={() => setShowCompany(true)} style={{ marginLeft: 'auto', padding: '5px 12px', borderRadius: 8, border: '1px solid rgba(34,197,94,0.4)', cursor: 'pointer', background: 'transparent', color: '#15803d', fontWeight: 700, fontSize: 11.5 }}>{t('ak.companyEdit', '회사정보 수정')}</button>
+        </div>
+      )}
+      {showCompany && <CompanyProfileModal onClose={() => setShowCompany(false)} onSaved={() => {}} />}
       {totalKeys === 0 && (
-        <div data-onboard-cta data-onboard-hint={t('ak.onboardHint','아래 채널 카드의 [등록] 버튼으로 판매·광고 채널 자격증명을 등록하세요')} style={{ padding: '14px 18px', borderRadius: 12, background: 'rgba(79,142,247,0.06)', border: '1px solid rgba(79,142,247,0.18)', fontSize: 12, color: 'var(--text-2)' }}>
+        <div data-onboard-cta="channel-connect" data-onboard-hint={t('ak.onboardHint','아래 채널 카드의 [등록] 버튼으로 판매·광고 채널 자격증명을 등록하세요')} style={{ padding: '14px 18px', borderRadius: 12, background: 'rgba(79,142,247,0.06)', border: '1px solid rgba(79,142,247,0.18)', fontSize: 12, color: 'var(--text-2)' }}>
           🔑 {t('ak.registerHint','아래 채널 카드의 [등록] 버튼으로 판매·광고·물류 채널의 자격증명(액세스 토큰/광고계정/고객ID/광고주ID 등)을 등록하세요. 등록 즉시 연동 현황·라이브 커머스에 반영됩니다.')}
         </div>
       )}

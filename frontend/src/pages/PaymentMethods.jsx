@@ -162,7 +162,7 @@ export default function PaymentMethods() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
           <div style={{ fontWeight: 800, fontSize: 14 }}>{tr('card')}</div>
           <button onClick={onRegister} disabled={busy}
-            data-onboard-cta data-onboard-hint={tr('onboardHint', '여기서 광고비 결제 카드를 등록하세요')} style={{
+            data-onboard-cta="pay-method" data-onboard-hint={tr('onboardHint', '여기서 광고비 결제 카드를 등록하세요')} style={{
             padding: '10px 22px', borderRadius: 10, border: 'none', cursor: busy ? 'default' : 'pointer',
             background: busy ? '#cbd5e1' : 'linear-gradient(135deg,#4f46e5,#7c3aed)', color: '#fff', fontWeight: 800, fontSize: 13,
             boxShadow: '0 6px 18px rgba(79,70,229,0.26)'
