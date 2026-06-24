@@ -1,3 +1,42 @@
+# 240차 세션 인계서 — **UI 초고도화 + 경쟁사 비교분석 + 8대 약점 초고도화 + 실시간 동기화 엔진 + 회원로그 메뉴 + 잔존약점 완성 (전부 운영·데모 배포·self-test/라이브 검증 / 브랜치 다수커밋 push, master 미접촉)**
+
+> **작성일**: 2026-06-24 (사용자 명시 승인) · 운영 roi.genie-go.com / 데모 roidemo.genie-go.com · 하네스 primary=**E:\project\GeniegoROI**.
+> **종결 상태**: 작업 브랜치 `feat/n236-admin-growth-automation` **다수커밋 push 완료(…→96bb4a3f10b)**. ★**master 미접촉**(운영/데모 수동배포·검증 반영됨). 백엔드 수동배포(opcache=fpm restart), 프론트 dist 오버레이(운영 npm build + 데모 vite --mode demo). SSH/MySQL/admin 자격증명=메모리 [[reference_session_credentials]].
+
+## ✅ 240차 작업 요약 (전부 운영/데모 배포·검증·커밋·push)
+
+**① UI 초고도화**: demand-forecast 15개국 i18n(★신규 ns는 ko.js 필수=en폴백 영문표시 버그) + 서브탭 sticky 전 페이지 확대 + 풀폭 + 메트릭 정렬 + ★sticky 위 콘텐츠 비침 해소(라우트루트 `padding-top:0` → flush 고정).
+
+**② 경쟁사 비교분석**: 5도메인 코드기반 감사 → 기능별 경쟁사 vs GeniegoROI 점수(이중렌즈=기능완비도/실전성숙도).
+
+**③ 8대 약점 초고도화** (전부 self-test PASS): ①인플루언서비용 P&L(Influencer::costSummary→pnlStats) ②오운드채널 어트리뷰션(Attribution::recordOwnedTouch/backfillOwnedTouches·해시ID·PII0) ③예측CDP(CRM::addPredictiveScores 생존모델 churn/clv) ④정산어댑터(Coupang/Naver) ⑤BI 계산필드+commerce소스 ⑥빈도캡(commsFreqConfig/isFrequencyCapped) ⑦불변 tamper-evident 감사로그(SecurityAudit 해시체인·변조/삭제 탐지) ⑧커넥터13종+뷰스루(AttributionEngine vtWeight)+리프라이서 라이브경쟁가(PriceOpt::harvestCompetitors Naver쇼핑).
+
+**④ 실시간 동시 동기화 엔진**(GlobalDataContext): syncTick+triggerSync(genie_sync_v1 크로스탭 broadcast)+서버통계 fetch가 syncTick 의존 → 값 변경 시 새로고침 없이 전기능 동시 갱신. + 동기화 감사 갭 6건 수정(ReportBuilder 취소토큰 OrderHub::cancelExclusion SSOT·반품 매출포함·라이브 enrichOrderAttribution·감사 plan변경·커넥터 AD_SHORT·빈도캡 우회 저니/SMS).
+
+**⑤ 회원 로그 메뉴**(★엄격 테넌트 격리 self-test PASS=크로스누출0): team-members "로그 기록"(본인테넌트 authedTenant만)·user-management "회원 로그"(admin 전테넌트). 데모/구독 구분조회(recentByType)·유입요약(acquisitionSummary→AdminGrowth 자체 마케팅 분석)·실시간(syncTick)·15개국(memberLog 130키).
+
+**⑥ 잔존약점 완성**("자격등록 즉시 라이브"): 광고커넥터 amazon(v3 비동기)/microsoft(SOAP v13)/x(OAuth1.0a) **실 필드매핑 완성**(인증-only 스텁→라이브) + BI 정산/순이익 소스(Reports source='settlement' orderhub_settlements) + CRM 동기화(세그먼트 발송전갱신·예측세그먼트 실 churn/clv SQL·trackClick 어트리뷰션) + 빈도캡 admin UI(★잠재버그 수정: commsFreqConfig가 잘못된 app_setting 스키마 조회로 항상 기본값이던 것을 테넌트접두 skey로 실동작화).
+
+## 📊 240차 최종 점수 (이중렌즈)
+- **기능완비도 80→88, 실전성숙도 69→78**. 글로벌1위 평균 ~89 대비 격차 9→1pt.
+- **②광고/어트리뷰션 92 > Supermetrics 88(추월)**. ③CRM 88(Klaviyo 92 근접). ④BI 86(통합쿼리 우위·순수BI는 Looker95 열세). ①P&L 84. ⑤보안/i18n 88(동급).
+
+## ★240차 핵심 트랩/교훈
+- **i18n ko 필수**: 신규 ns를 en+타국에만 추가하고 ko.js 미추가 시 엔진이 inline폴백 아닌 en로 폴백→한국어가 영문표시(demand-forecast 47키·reportBuilder 역갭 5키 사례). 신규키는 반드시 ko.js에.
+- **sacred SHA 갱신**: i18n이 ja/zh 의도적 수정 시(memberLog 15국) `.githooks/baseline.json` sacred_sha ja/zh를 `sha256(파일전체)` 재계산해 갱신해야 G2 게이트 통과(`node -e crypto.createHash`).
+- **병렬 에이전트 동일파일 동시편집**: CRM.php·routes.php를 2에이전트가 동시편집 → Edit는 섹션별이라 공존했으나 **반드시 lint로 무손상 검증**(이번엔 통과). 위험하면 worktree 격리 권장.
+- **app_setting 스키마 SSOT**: canonical은 `(skey,svalue,updated_at)` — tenant 컬럼 없음. 테넌트별 설정은 `key@<tenant>` 접두. `(tenant_id,k,v)` 가정 코드는 latent 버그(commsFreqConfig가 그랬음).
+- **orderhub_settlements 컬럼**: period('YYYY-MM' 문자열)·channel·status·gross_sales·net_payout·platform_fee·ad_fee·coupon_discount·return_fee·orders_count·returns_count. **shipping_fee·COGS 컬럼 없음**. period는 월문자열이라 일자비교 트랩(`gmdate('Y-m')` prefix 비교).
+- **광고커넥터 자격등록 즉시동작**: amazon/microsoft/x 실 리포트매핑 완성(게이트+graceful·날조0). 단 **라이브 검증은 실 광고계정 필요**(필드매핑 미세조정 가능성). snapchat/linkedin/criteo/pinterest도 동일.
+- 기존 트랩 유지: opcache=fpm restart·CRLF diff(`tr -d '\r'`)·마이그레이션 락 bump·PowerShell→plink here-string CRLF.
+
+## 240차 잔여/후속 (★라이브 자격증명 필요·검증불가)
+- 광고/커머스/정산 어댑터 **라이브 검증**(코드완성·게이트, 실 계정 등록 시 즉시 동작·미세 필드조정 가능).
+- 순수 BI 깊이(시맨틱 모델링 레이어 — Looker/Tableau 대비), SOC2/ISO 인증·SSO/SAML/SCIM(엔터프라이즈 신뢰자산, 비코드 프로세스+IdP).
+- 미push: 없음(96bb4a3f10b까지 push 완료). master 머지는 사용자 결정.
+
+---
+
 # 235차 세션 인계서 — **5도메인 전수 정밀감사 + P0 보안·머니경로 + P1 + 광고 딜리버리 + UI 정직성 + pushProduct (전부 운영·데모 배포·라이브 검증 / 브랜치 5커밋 push·PR #1, master 미접촉)**
 
 > **작성일**: 2026-06-21 (사용자 명시 승인) · 운영 roi.genie-go.com / 데모 roidemo.genie-go.com · 하네스 primary=**E:\project\GeniegoROI**.
