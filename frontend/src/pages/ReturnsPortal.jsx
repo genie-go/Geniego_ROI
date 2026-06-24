@@ -14,7 +14,7 @@ return{...c,t};}
 const useTr=()=>{const{t,lang}=useI18n();return useCallback(k=>{const d=RP[lang]||RP.en||{};return d[k]||k;},[lang]);};
 
 const Card=({children,style={}})=><div style={{background:'#fff',borderRadius:12,border:'1px solid #e5e7eb',padding:'16px 20px',marginBottom:12,...style}}>{children}</div>;
-const Stat=({label,value,color='#6366f1',sub})=><Card><div style={{fontSize:10,color:'#7c8fa8',marginBottom:2}}>{label}</div><div style={{fontSize:22,fontWeight:800,color}}>{value}</div>{sub&&<div style={{fontSize:10,color:'#94a3b8',marginTop:2}}>{sub}</div>}</Card>;
+const Stat=({label,value,color='#6366f1',sub,style={}})=><Card style={{padding:'9px 16px',marginBottom:0,...style}}><div style={{fontSize:10,color:'#7c8fa8',marginBottom:2}}>{label}</div><div style={{fontSize:22,fontWeight:800,color}}>{value}</div>{sub&&<div style={{fontSize:10,color:'#94a3b8',marginTop:2}}>{sub}</div>}</Card>;
 const Badge=({label,color})=><span style={{background:color+'22',color,border:'1px solid '+color+'55',borderRadius:6,padding:'2px 8px',fontSize:11,fontWeight:700}}>{label}</span>;
 
 // 204차: 전자제품 DEMO_RETURNS 하드코딩 제거 — 데모 반품은 단일소스 orders(L'Oréal)에서 파생(ReturnsPortal 본체).
@@ -31,7 +31,7 @@ const kpis=useMemo(()=>{
 const rate=useMemo(()=>orderCount>0?((kpis.t/orderCount)*100).toFixed(1):'0',[kpis.t,orderCount]);
 const avgDays=useMemo(()=>{if(!data.length)return'0';const D={refunded:4.2,approved:2.1,pending:1.0,restocked:3.5,disposed:5.0};return(data.reduce((s,d)=>s+(D[d.status]||2),0)/data.length).toFixed(1);},[data]);
 return <div>
-<div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(150px,1fr))',gap:12,marginBottom:20}}>
+<div style={{display:'grid',gridTemplateColumns:'repeat(6,1fr)',gap:10,marginBottom:20,justifyContent:'flex-end',marginLeft:'auto'}}>
 <Stat label={tr('kpiTotal')} value={kpis.t} color="#6366f1"/>
 <Stat label={tr('kpiPending')} value={kpis.p} color="#f59e0b"/>
 <Stat label={tr('kpiApproved')} value={kpis.a} color="#22c55e"/>

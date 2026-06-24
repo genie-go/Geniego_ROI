@@ -134,7 +134,7 @@ export default function InstagramDM() {
         <PlanGate feature="instagram_dm">
         <div style={{ display: 'grid', gap: 18, padding: 4 }}>
             {/* Hero */}
-            <div className="hero fade-up">
+            <div className="hero fade-up" style={{ padding: '13px 24px', marginBottom: 14 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
                     <div>
                         <div className="hero-title" style={{ background: 'linear-gradient(135deg,#E1306C,#833AB4,#1877F2)' }}>
@@ -164,7 +164,7 @@ export default function InstagramDM() {
             </div>
 
             {/* Tabs */}
-            <div style={{ display: 'flex', gap: 4, padding: '4px', background: 'rgba(0,0,0,0.25)', borderRadius: 12 }}>
+            <div className="page-subtabs" style={{ display: 'flex', gap: 4, padding: '4px', background: 'rgba(0,0,0,0.25)', borderRadius: 12, marginBottom: 12 }}>
                 {TABS.map(tb => (
                     <button key={tb.id} onClick={() => setTab(tb.id)} style={{ padding: '6px 12px', borderRadius: 9, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 11, flex: 1, background: tab === tb.id ? 'linear-gradient(135deg,#E1306C,#833AB4)' : 'transparent', color: tab === tb.id ? '#fff' : 'var(--text-2)', transition: 'all 150ms' }}>
                         {t(tb.labelKey, tb.label)}

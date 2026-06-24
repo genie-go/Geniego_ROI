@@ -228,7 +228,7 @@ export default function WhatsApp() {
     return (
         <PlanGate feature="whatsapp">
         <div style={{ display: 'grid', gap: 18, padding: 4 }}>
-            <div className="hero fade-up">
+            <div className="hero fade-up" style={{ padding: '13px 24px', marginBottom: 14 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16 }}>
                     <div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
@@ -256,7 +256,7 @@ export default function WhatsApp() {
                 </div>
             </div>
 
-            <div style={{ display: 'flex', gap: 4, padding: '4px', background: 'rgba(0,0,0,0.25)', borderRadius: 12, flexWrap: 'wrap' }}>
+            <div className="page-subtabs" style={{ display: 'flex', gap: 4, padding: '4px', background: 'rgba(0,0,0,0.25)', borderRadius: 12, flexWrap: 'wrap', marginBottom: 12 }}>
                 {TABS.map(t => (
                     <button key={t.id} onClick={() => setTab(t.id)} style={{ padding: '6px 12px', borderRadius: 9, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 11, flex: 1, minWidth: 80, background: tab === t.id ? 'linear-gradient(135deg,#25D366,#128C7E)' : 'transparent', color: tab === t.id ? '#fff' : 'var(--text-2)', transition: 'all 150ms' }}>
                         {t.label}

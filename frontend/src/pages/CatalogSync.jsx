@@ -2303,7 +2303,7 @@ export default function CatalogSync() {
                         { l: t('catalogSync.kpiChangeDetected'), v: deltaProducts, c: "#f97316" },
                         { l: t('catalogSync.kpiErrorProduct'), v: errorProducts, c: "#ef4444" },
                     ].map(({ l, v, c }, i) => (
-                        <div key={i} style={{ padding: "16px 18px", borderRadius: 14, background: "#ffffff", border: "1px solid #e5e7eb", textAlign: "center" }}>
+                        <div key={i} style={{ padding: "10px 18px", borderRadius: 14, background: "#ffffff", border: "1px solid #e5e7eb", textAlign: "center", display: "flex", flexDirection: "column", justifyContent: "center" }}>
                             <div style={{ fontSize: 11, color: "#6b7280", marginBottom: 4 }}>{l}</div>
                             <div style={{ fontSize: 22, fontWeight: 900, color: c }}>{v}</div>
                             <ProgressBar pct={totalProducts > 0 ? (v / totalProducts) * 100 : 0} color={c} />

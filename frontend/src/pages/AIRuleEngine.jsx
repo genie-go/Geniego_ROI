@@ -51,7 +51,7 @@ export default function AIRuleEngine() {
 
   return (
     <div style={{ padding: 24, minHeight: "100%", color: "var(--text-1, #0f172a)" }}>
-      <div style={{ borderRadius: 18, padding: "28px 32px", marginBottom: 22, background: "linear-gradient(135deg, rgba(79,142,247,0.08), rgba(99,102,241,0.06))", border: "1px solid rgba(79,142,247,0.12)" }}>
+      <div style={{ borderRadius: 18, padding: "13px 28px", marginBottom: 14, background: "linear-gradient(135deg, rgba(79,142,247,0.08), rgba(99,102,241,0.06))", border: "1px solid rgba(79,142,247,0.12)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
           <span style={{ fontSize: 32 }}>🧠</span>
           <div>
@@ -73,7 +73,7 @@ export default function AIRuleEngine() {
         ))}
       </div>
 
-      <div style={{ display: "flex", gap: 4, marginBottom: 20, padding: 4, borderRadius: 12, background: "var(--surface-2, #f1f5f9)", border: "1px solid var(--border, #e5e7eb)", flexWrap: 'wrap' }}>
+      <div className="page-subtabs" style={{ display: "flex", gap: 4, marginBottom: 20, padding: 4, borderRadius: 12, background: "var(--surface-2, #f1f5f9)", border: "1px solid var(--border, #e5e7eb)", flexWrap: 'wrap' }}>
         {TABS.map((tab, i) => (
           <button key={i} onClick={() => setActiveTab(i)} style={{ flex: '1 1 120px', padding: "10px 16px", borderRadius: 10, border: "none", cursor: "pointer", fontWeight: 700, fontSize: 12, transition: "all 0.2s", background: activeTab === i ? "linear-gradient(135deg,#4f8ef7,#6366f1)" : "transparent", color: activeTab === i ? "#fff" : "var(--text-2, #475569)" }}>{tab}</button>
         ))}

@@ -7723,9 +7723,14 @@ button.cs-inactive-tab {
     position: sticky !important;
     top: 0 !important;
     z-index: 20 !important;
+    /* background 은 불투명 var(--bg) 강제 — 투명/반투명 탭바(rgba 0.03 등)가 sticky 될 때 스크롤 콘텐츠가
+       비치는 것을 막는다(기능적 정확성 우선). 불투명 styled pill 탭바(예: ChannelKPI 흰색 pill)는 page-subtabs
+       대신 page-subtabs-scroll(배경 미강제)을 사용해 고유 배경을 유지한다. */
     background: var(--bg, #f8fafc) !important;
-    padding-top: 6px !important;
-    padding-bottom: 6px !important;
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+    /* 스크롤 콘텐츠가 탭 아래로 지나갈 때 미세한 하단 그림자로 분리감(고정 탭과 콘텐츠 경계 명확). */
+    box-shadow: 0 6px 10px -6px rgba(0,0,0,0.10) !important;
   }
   /* [240차] 긴 서브탭(예: ChannelKPI 9탭)은 nowrap + 가로스크롤로 한 줄 유지(줄바꿈 방지) — 스크롤바 숨김(깔끔). */
   .app-content-area .page-subtabs-scroll { scrollbar-width: none !important; }
@@ -7736,6 +7741,11 @@ button.cs-inactive-tab {
      repeat(auto-fit,minmax) 라 화면이 좁아지면 자동으로 아래로 스택(반응형 유지). margin:0 auto 는 풀폭에선 무효과. */
   .app-content-area > div {
     max-width: none !important;
+    /* ★[240차] sticky 서브탭/배너 위 '틈 비침' 해소: 라우트 루트의 padding-top(기본 14px·일부 24px) 때문에
+       sticky 요소가 그 만큼 아래에 고정돼, 위쪽 패딩 영역으로 스크롤 콘텐츠가 비쳐 불균형이 났다(일부 페이지).
+       padding-top:0 으로 sticky 요소가 콘텐츠 영역 최상단에 flush 고정 → 콘텐츠가 탭 위로 새지 않고 깔끔히 아래로
+       스크롤된다. 좌우·하단 패딩은 유지(콘텐츠 여백·안전영역 보존). */
+    padding-top: 0 !important;
     /* ★flex 컨테이너(.app-content-area=display:flex)에서 라우트 루트의 margin:0 auto 는 auto 좌우 마진이
        여유공간을 흡수해 콘텐츠 폭(예: 935px)으로 가운데 정렬시킨다 → max-width 만 풀면 안 되고 좌우 마진을
        0 으로 강제해야 풀폭(콘텐츠 영역 전체)으로 채워진다. */

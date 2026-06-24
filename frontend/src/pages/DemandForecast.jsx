@@ -108,8 +108,8 @@ export default function DemandForecast() {
         ))}
       </div>
 
-      {/* ── Sub Tabs ── */}
-      <div style={{ display: "flex", gap: 4, marginBottom: 20, padding: 4, borderRadius: 12, background: "rgba(0,0,0,0.03)", border: "1px solid rgba(0,0,0,0.05)" }}>
+      {/* ── Sub Tabs — [240차] page-subtabs: 스크롤 시 상단 고정 ── */}
+      <div className="page-subtabs" style={{ display: "flex", gap: 4, marginBottom: 12, padding: 4, borderRadius: 12, background: "rgba(0,0,0,0.03)", border: "1px solid rgba(0,0,0,0.05)" }}>
         {tabs.map((tab, i) => (
           <button key={i} onClick={() => setActiveTab(i)} style={{ flex: 1, padding: "10px 16px", borderRadius: 10, border: "none", cursor: "pointer", fontWeight: 700, fontSize: 12, transition: "all 0.2s", background: activeTab === i ? "linear-gradient(135deg,#4f8ef7,#6366f1)" : "transparent", color: activeTab === i ? "#fff" : "var(--text-2, #475569)" }}>
             {tab}
