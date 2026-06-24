@@ -11,7 +11,7 @@ export default function DemandForecast() {
   const { t } = useI18n();
   const { inventory = [], orders = [] } = useGlobalData();
   const [activeTab, setActiveTab] = useState(0);
-  const tabs = ["Dashboard", "SKU Forecast", "Seasonality", "Model Config"];
+  const tabs = [t('demandForecast.tabDashboard', '대시보드'), t('demandForecast.tabForecast', 'SKU 예측'), t('demandForecast.tabSeasonality', '계절성'), t('demandForecast.tabModelConfig', '모델 설정')];
 
   /* ── 206차 #5: 서버측 실 예측 모델(Holt-Winters/Holt/이동평균) API 배선 ── */
   const [summary, setSummary] = useState(null);
@@ -43,13 +43,13 @@ export default function DemandForecast() {
   const [replenishing, setReplenishing] = useState(false);
   const [replenishMsg, setReplenishMsg] = useState(null);
   const runAutoReplenish = async () => {
-    if (IS_DEMO) { setReplenishMsg('데모 모드 — 자동발주는 운영에서 실행됩니다.'); return; }
+    if (IS_DEMO) { setReplenishMsg(t('demandForecast.demoReplenish', '데모 모드 — 자동발주는 운영에서 실행됩니다.')); return; }
     setReplenishing(true); setReplenishMsg(null);
     try {
       const r = await postJson('/api/demand/auto-replenish', { lead: 7, horizon: 14 });
-      if (r?.ok) setReplenishMsg(`자동발주 완료 — ${r.created}건의 발주 제안이 WMS 발주관리에 생성되었습니다${r.created === 0 ? ' (재고 충분 또는 진행중 발주 존재)' : ''}.`);
-      else setReplenishMsg('자동발주 실패 — 다시 시도하세요.');
-    } catch (e) { setReplenishMsg('자동발주 실패: ' + String(e?.message || e)); }
+      if (r?.ok) setReplenishMsg(t('demandForecast.replenishDone', '자동발주 완료 — {{n}}건의 발주 제안이 WMS 발주관리에 생성되었습니다').replace('{{n}}', r.created) + (r.created === 0 ? t('demandForecast.replenishEnough', ' (재고 충분 또는 진행중 발주 존재)') : '') + '.');
+      else setReplenishMsg(t('demandForecast.replenishFail', '자동발주 실패 — 다시 시도하세요.'));
+    } catch (e) { setReplenishMsg(t('demandForecast.replenishErr', '자동발주 실패: ') + String(e?.message || e)); }
     setReplenishing(false);
   };
 
@@ -61,10 +61,10 @@ export default function DemandForecast() {
     const acc = summary && summary.avg_accuracy > 0 ? `${summary.avg_accuracy}%` : "—";
     const hist = summary && summary.history_days > 0 ? `${summary.history_days}d` : "—";
     return [
-      { emoji: "📦", label: t('demandForecast.kpiSkus', 'SKUs Tracked'), val: skuCount },
-      { emoji: "📊", label: t('demandForecast.kpiForecasts', 'Forecastable SKUs'), val: forecastable },
-      { emoji: "🎯", label: t('demandForecast.kpiAccuracy', 'Avg Accuracy'), val: acc },
-      { emoji: "🗓️", label: t('demandForecast.kpiHistory', 'History'), val: hist },
+      { emoji: "📦", label: t('demandForecast.kpiSkus', '추적 SKU'), val: skuCount },
+      { emoji: "📊", label: t('demandForecast.kpiForecasts', '예측가능 SKU'), val: forecastable },
+      { emoji: "🎯", label: t('demandForecast.kpiAccuracy', '평균 정확도'), val: acc },
+      { emoji: "🗓️", label: t('demandForecast.kpiHistory', '데이터 기간'), val: hist },
     ];
   }, [summary, inventory, orders, t]);
 
@@ -122,9 +122,9 @@ export default function DemandForecast() {
         {/* Dashboard */}
         {activeTab === 0 && (
           <>
-            <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 16 }}>Dashboard</div>
+            <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 16 }}>{t('demandForecast.tabDashboard', '대시보드')}</div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 12 }}>
-              {["Multi-model ensemble (Holt-Winters / Holt / MA)", "Seasonal decomposition (weekly)", "Service-level safety stock (95%)", "Reorder point optimization"].map((f, i) => (
+              {[t('demandForecast.featEnsemble', '멀티모델 앙상블 (Holt-Winters / Holt / 이동평균)'), t('demandForecast.featSeasonal', '계절성 분해 (주간)'), t('demandForecast.featSafety', '서비스 수준 안전재고 (95%)'), t('demandForecast.featReorder', '재주문점 최적화')].map((f, i) => (
                 <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", borderRadius: 10, background: "rgba(79,142,247,0.04)", border: "1px solid rgba(79,142,247,0.08)" }}>
                   <span style={{ width: 28, height: 28, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg,#4f8ef7,#6366f1)", color: "#fff", fontSize: 12, fontWeight: 800 }}>✓</span>
                   <span style={{ fontSize: 13, fontWeight: 600 }}>{f}</span>
@@ -134,7 +134,7 @@ export default function DemandForecast() {
             <div style={{ marginTop: 24, padding: "16px 20px", borderRadius: 12, background: "linear-gradient(135deg, rgba(34,197,94,0.06), rgba(16,185,129,0.04))", border: "1px solid rgba(34,197,94,0.12)", display: "flex", alignItems: "center", gap: 10 }}>
               <span style={{ fontSize: 18 }}>✅</span>
               <span style={{ fontSize: 12, fontWeight: 700, color: "#16a34a" }}>
-                {summary ? `${forecast.length} SKU forecast(s) · ${summary.avg_accuracy > 0 ? summary.avg_accuracy + '% avg accuracy' : 'building model'}` : 'System Operational'}
+                {summary ? `${t('demandForecast.statusForecasts', '{{n}}개 SKU 예측').replace('{{n}}', forecast.length)} · ${summary.avg_accuracy > 0 ? t('demandForecast.statusAccuracy', '{{a}}% 평균 정확도').replace('{{a}}', summary.avg_accuracy) : t('demandForecast.statusBuilding', '모델 학습 중')}` : t('demandForecast.statusOperational', '시스템 정상')}
               </span>
             </div>
           </>
@@ -144,10 +144,10 @@ export default function DemandForecast() {
         {activeTab === 1 && (
           <>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
-              <div style={{ fontSize: 16, fontWeight: 800 }}>SKU Forecast <span style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>· {t('demandForecast.next14', '향후 14일')}</span></div>
-              <button onClick={runAutoReplenish} disabled={replenishing} title="재고가 재주문점 미만인 SKU에 발주 제안을 WMS 발주관리에 자동 생성"
+              <div style={{ fontSize: 16, fontWeight: 800 }}>{t('demandForecast.tabForecast', 'SKU 예측')} <span style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>· {t('demandForecast.next14', '향후 14일')}</span></div>
+              <button onClick={runAutoReplenish} disabled={replenishing} title={t('demandForecast.replenishTitle', '재고가 재주문점 미만인 SKU에 발주 제안을 WMS 발주관리에 자동 생성')}
                 style={{ padding: '8px 16px', borderRadius: 9, border: 'none', cursor: replenishing ? 'default' : 'pointer', background: 'linear-gradient(135deg,#16a34a,#22c55e)', color: '#fff', fontWeight: 800, fontSize: 12.5 }}>
-                {replenishing ? '발주 생성 중…' : '⚡ 자동발주 실행'}
+                {replenishing ? t('demandForecast.replenishing', '발주 생성 중…') : t('demandForecast.autoReplenish', '⚡ 자동발주 실행')}
               </button>
             </div>
             {replenishMsg && <div style={{ marginBottom: 12, padding: '8px 12px', borderRadius: 8, background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)', color: '#15803d', fontSize: 12.5 }}>{replenishMsg}</div>}
@@ -180,7 +180,7 @@ export default function DemandForecast() {
         {/* Seasonality */}
         {activeTab === 2 && (
           <>
-            <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 16 }}>Seasonality <span style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>· {t('demandForecast.weekly', '요일 지수')}</span></div>
+            <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 16 }}>{t('demandForecast.tabSeasonality', '계절성')} <span style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>· {t('demandForecast.weekly', '요일 지수')}</span></div>
             {season.length === 0 ? emptyState : (
               <div style={{ display: 'flex', alignItems: 'flex-end', gap: 12, height: 200, padding: '12px 0' }}>
                 {season.map((s) => {
@@ -202,14 +202,14 @@ export default function DemandForecast() {
         {/* Model Config */}
         {activeTab === 3 && (
           <>
-            <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 16 }}>Model Config</div>
+            <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 16 }}>{t('demandForecast.tabModelConfig', '모델 설정')}</div>
             <div style={{ display: 'grid', gap: 10, fontSize: 12, color: '#475569' }}>
               {[
-                ['Holt-Winters (가법)', '데이터 ≥ 14일 — 추세 + 주간 계절성 동시 반영'],
-                ['Holt 선형추세', '데이터 ≥ 4일 — 추세 반영(계절성 데이터 부족 시)'],
-                ['이동평균', '데이터 < 4일 — 평균 기반 보수적 예측'],
-                ['안전재고', 'z(1.65)×잔차σ×√(리드타임) — 서비스레벨 95%'],
-                ['정확도', '1-step in-sample sMAPE 기반(과적합·날조 지표 배제)'],
+                [t('demandForecast.mcHWName', 'Holt-Winters (가법)'), t('demandForecast.mcHWDesc', '데이터 ≥ 14일 — 추세 + 주간 계절성 동시 반영')],
+                [t('demandForecast.mcHoltName', 'Holt 선형추세'), t('demandForecast.mcHoltDesc', '데이터 ≥ 4일 — 추세 반영(계절성 데이터 부족 시)')],
+                [t('demandForecast.mcMeanName', '이동평균'), t('demandForecast.mcMeanDesc', '데이터 < 4일 — 평균 기반 보수적 예측')],
+                [t('demandForecast.mcSafetyName', '안전재고'), t('demandForecast.mcSafetyDesc', 'z(1.65)×잔차σ×√(리드타임) — 서비스레벨 95%')],
+                [t('demandForecast.mcAccName', '정확도'), t('demandForecast.mcAccDesc', '1-step in-sample sMAPE 기반(과적합·날조 지표 배제)')],
               ].map(([k, v]) => (
                 <div key={k} style={{ display: 'flex', gap: 12, padding: '10px 14px', borderRadius: 10, background: 'rgba(79,142,247,0.04)', border: '1px solid rgba(79,142,247,0.08)' }}>
                   <span style={{ fontWeight: 800, minWidth: 130, color: '#1e293b' }}>{k}</span>
