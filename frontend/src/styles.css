@@ -7715,14 +7715,10 @@ button.cs-inactive-tab {
   .app-content-area > div[style*="display:grid"] {
     grid-auto-rows: max-content !important;
   }
-  /* 비-그리드 라우트(flex-column/블록)의 .fade-up + 인라인 flex:1 내부 스크롤존도 자연 높이로 풀어 트랩 방지. */
-  .app-content-area .fade-up,
-  .app-content-area [style*="flex: 1"][style*="overflow-y: auto"],
-  .app-content-area [style*="flex:1"][style*="overflow-y:auto"],
-  .app-content-area [style*="flex: 1"][style*="overflow: hidden auto"],
-  .app-content-area [style*="flex:1"][style*="overflow:hidden auto"] {
-    overflow: visible !important;
-    max-height: none !important;
-    height: auto !important;
-  }
+  /* ★[240차 회귀수정] 이전 시도에서 .app-content-area .fade-up 을 overflow:visible/height:auto 로 강제했는데,
+     이는 height:100vh·overflow:hidden 루트 + .fade-up 내부 스크롤존(flex:1; overflow:hidden auto) 패턴 페이지
+     (AutoMarketing·CampaignManager·JourneyBuilder 등)의 내부 스크롤을 제거 → 루트가 overflow:hidden 으로 콘텐츠를
+     클립하고 페이지 전체 스크롤도 막히는 회귀를 유발했다. 해당 규칙은 제거하고, 그리드 라우트 압축만 위 grid-auto-rows
+     로 해결한다(operations/case-study=그리드 루트는 위 규칙으로 해결, AutoMarketing 등=flex 루트는 자체 .fade-up
+     내부 스크롤 보존). 즉 데스크톱은 페이지별 기존 스크롤 메커니즘을 건드리지 않는다. */
 }
