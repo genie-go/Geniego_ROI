@@ -573,8 +573,8 @@ export default function GraphScore() {
                 <div className="hero-desc">{t('graphScore.heroDesc')}</div>
               </div>
             </div>
-            {/* Legend + Badges */}
-            <div style={{ display: 'flex', gap: 16, marginTop: 16, flexWrap: 'wrap', alignItems: 'center' }}>
+            {/* Legend + Badges — [240차] 가중치설정·동기화 버튼을 우측 정렬로 합쳐 별도 행 제거(박스 높이 축소) */}
+            <div style={{ display: 'flex', gap: 16, marginTop: 12, flexWrap: 'wrap', alignItems: 'center' }}>
               {Object.entries(NODE_COLORS).map(([nodeType, c]) => (
                 <div key={nodeType} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>
                   <div style={{ width: 10, height: 10, borderRadius: "50%", background: c, boxShadow: `0 0 6px ${c}88` }} />
@@ -582,12 +582,10 @@ export default function GraphScore() {
                 </div>
               ))}
               <div style={{ color: "#64748b", fontSize: 11 }}>· {t('graphScore.weightDesc')}</div>
-            </div>
-
-            {/* Toolbar: Weight + Export */}
-            <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
-              <button onClick={() => setShowWeightModal(true)} className="btn" style={{ fontSize: 11 }}>⚙ {t('graphScore.weightSettings')}</button>
-              <button onClick={broadcastRefresh} className="btn" style={{ fontSize: 11 }}>🔄 {t('graphScore.syncNow')}</button>
+              <div style={{ display: 'flex', gap: 8, marginLeft: 'auto', flexWrap: 'wrap' }}>
+                <button onClick={() => setShowWeightModal(true)} className="btn" style={{ fontSize: 11 }}>⚙ {t('graphScore.weightSettings')}</button>
+                <button onClick={broadcastRefresh} className="btn" style={{ fontSize: 11 }}>🔄 {t('graphScore.syncNow')}</button>
+              </div>
             </div>
           </div>
 

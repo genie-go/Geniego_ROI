@@ -691,7 +691,7 @@ function CRMContent() {
       </div>
 
       {/* Hero */}
-      <div className="page-hero" style={{ borderRadius: 16, background: '#f1f5f9', border: `1px solid ${C.border}`, padding: "22px 28px", marginBottom: 20 }}>
+      <div className="page-hero" style={{ borderRadius: 16, background: '#f1f5f9', border: `1px solid ${C.border}`, padding: "13px 24px", marginBottom: 14 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <div className="section-title" style={{ fontSize: 22, fontWeight: 800, color: '#0f172a' }}>{t('crm.pageTitle')}</div>
@@ -711,8 +711,8 @@ function CRMContent() {
         <StatCard icon="🏷" label={t('crm.statSeg')} value={segments.length} color={C.yellow} />
       </div>
 
-      {/* Tabs */}
-      <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
+      {/* Tabs — [240차] page-subtabs: 스크롤 시 상단 고정(sticky), 아래 콘텐츠 스크롤 */}
+      <div className="page-subtabs" style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
         {TABS.map(tOption => (
           <button key={tOption.id} onClick={() => setTab(tOption.id)} style={{ padding: "9px 18px", borderRadius: 10, border: "none", cursor: "pointer", background: tab === tOption.id ? C.accent : C.card, color: tab === tOption.id ? "#fff" : C.muted, fontWeight: 700, fontSize: 13 }}>{tOption.label}</button>
         ))}

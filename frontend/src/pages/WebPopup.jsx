@@ -45,7 +45,7 @@ const TAB_ICONS = ["📊", "🎨", "🔴", "🧪", "⚙️", "📖"];
 /* ══ Pill Tab Bar ══ */
 function PillTabs({ tabs, icons, active, setActive, t }) {
   return (
-    <div style={{ display: "flex", gap: 6, padding: "6px 0", flexWrap: "wrap" }}>
+    <div className="page-subtabs" style={{ display: "flex", gap: 6, padding: "6px 0", flexWrap: "wrap", marginBottom: 12 }}>
       {tabs.map((k, i) => (
         <button key={k} onClick={() => setActive(i)}
           style={{ padding: "8px 18px", borderRadius: 99, border: "none", cursor: "pointer", fontWeight: 700, fontSize: 13, background: active === i ? "#f97316" : "#f1f5f9", color: active === i ? "#fff" : "#374151", transition: "all .2s" }}>
@@ -59,13 +59,13 @@ function PillTabs({ tabs, icons, active, setActive, t }) {
 /* ══ KPI Card ══ */
 function Kpi({ label, value, sub, color = "#f97316", icon }) {
   return (
-    <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e5e7eb", padding: "16px 18px", borderLeft: "4px solid " + color }}>
-      <div style={{ display: "flex", justifyContent: "space-between" }}>
+    <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e5e7eb", padding: "12px 18px", borderLeft: "4px solid " + color, display: "flex", alignItems: "center", gap: 14 }}>
+      {icon && <span style={{ fontSize: 22, flex: "0 0 auto" }}>{icon}</span>}
+      <div style={{ minWidth: 0 }}>
+        <div style={{ fontWeight: 900, fontSize: 22, color }}>{value}</div>
         <span style={{ fontSize: 11, color: "#6b7280", fontWeight: 700 }}>{label}</span>
-        {icon && <span style={{ fontSize: 18 }}>{icon}</span>}
+        {sub && <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 3 }}>{sub}</div>}
       </div>
-      <div style={{ fontWeight: 900, fontSize: 22, color, marginTop: 6 }}>{value}</div>
-      {sub && <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 3 }}>{sub}</div>}
     </div>
   );
 }
@@ -467,7 +467,7 @@ export default function WebPopup() {
     <DataIsolationGuard isDemo={isDemo}>
     <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden", background: "#f8fafc" }}>
       <div style={{ padding: "18px 24px 0", flexShrink: 0 }}>
-        <div style={{ background: "linear-gradient(135deg,#fff7ed,#fef3c7)", borderRadius: 16, padding: "20px 24px", border: "1px solid #fed7aa", marginBottom: 12 }}>
+        <div style={{ background: "linear-gradient(135deg,#fff7ed,#fef3c7)", borderRadius: 16, padding: "13px 24px", border: "1px solid #fed7aa", marginBottom: 14 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <span style={{ fontSize: 28 }}>🎯</span>
             <div>

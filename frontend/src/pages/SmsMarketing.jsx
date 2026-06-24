@@ -458,7 +458,7 @@ function SmsMarketingInner(){
             </div>
 
             {/* Hero */}
-            <div style={{ borderRadius:16, background:'rgba(255,255,255,0.95)', border:'1px solid rgba(0,0,0,0.08)', padding:'22px 28px', marginBottom:12 }}>
+            <div style={{ borderRadius:16, background:'rgba(255,255,255,0.95)', border:'1px solid rgba(0,0,0,0.08)', padding:'13px 24px', marginBottom:14 }}>
                 <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', flexWrap:'wrap', gap:16 }}>
                     <div>
                         <div style={{ fontSize:24, fontWeight:900, color:'#1f2937' }}>📱 {t('sms.heroTitle', 'SMS Marketing')}</div>
@@ -481,7 +481,7 @@ function SmsMarketingInner(){
             </div>
 
             {/* Tabs */}
-            <div style={{ display:'flex', gap:4, padding:5, background:'rgba(0,0,0,0.04)', borderRadius:14, overflowX:'auto', flexShrink:0, marginBottom:12 }}>
+            <div className="page-subtabs" style={{ display:'flex', gap:4, padding:5, background:'rgba(0,0,0,0.04)', borderRadius:14, overflowX:'auto', flexShrink:0, marginBottom:12 }}>
                 {TABS.map(tb=>(
                     <button key={tb.id} onClick={()=>setTab(tb.id)} style={{ padding:'8px 14px', borderRadius:10, border:'none', cursor:'pointer', fontWeight:700, fontSize:11, flex:1, whiteSpace:'nowrap', background:tab===tb.id?C.accent:'transparent', color:tab===tb.id?'#fff':'#4b5563', transition:'all 150ms' }}>{tb.label}</button>
                 ))}

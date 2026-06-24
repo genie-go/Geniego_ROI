@@ -97,7 +97,7 @@ export default function MarketingMix() {
       </p>
 
       {model?.demo && (
-        <div style={{ padding: '10px 14px', borderRadius: 10, background: '#eff6ff', border: '1px solid #bfdbfe', color: '#1e40af', fontSize: 12.5, marginBottom: 16 }}>
+        <div style={{ padding: '10px 14px', borderRadius: 10, background: '#eff6ff', border: '1px solid #bfdbfe', color: '#1e40af', fontSize: 12.5, marginBottom: 16, position: 'sticky', top: 0, zIndex: 20 }}>
           ⓘ {t('mmm.demoNote', '데모 환경 — 합성 곡선으로 기능을 체험합니다. 실제 운영에서는 수집된 성과 데이터로 적합됩니다.')}
         </div>
       )}

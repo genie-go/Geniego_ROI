@@ -36,11 +36,13 @@ function Card({ children, style, glow }) {
 }
 
 function KpiBadge({ icon, label, value, color, sub }) {
-    return (<Card glow style={{ textAlign:"center", minWidth:0 }}>
-        <div style={{ fontSize:24, marginBottom:6 }}>{icon}</div>
-        <div style={{ fontSize:11, color:'#6b7280', marginBottom:4, letterSpacing:0.5, textTransform:"uppercase" }}>{label}</div>
-        <div style={{ fontSize:22, fontWeight:800, color:color||'#1e293b' }}>{value}</div>
-        {sub && <div style={{ fontSize:11, color:'#6b7280', marginTop:4 }}>{sub}</div>}
+    return (<Card glow style={{ display:"flex", alignItems:"center", gap:14, minWidth:0, padding:"16px 20px" }}>
+        <div style={{ fontSize:28, flex:"0 0 auto" }}>{icon}</div>
+        <div style={{ minWidth:0 }}>
+            <div style={{ fontSize:11, color:'#6b7280', marginBottom:4, letterSpacing:0.5, textTransform:"uppercase" }}>{label}</div>
+            <div style={{ fontSize:22, fontWeight:800, color:color||'#1e293b' }}>{value}</div>
+            {sub && <div style={{ fontSize:11, color:'#6b7280', marginTop:4 }}>{sub}</div>}
+        </div>
     </Card>);
 }
 
@@ -588,7 +590,7 @@ function EmailMarketingContent() {
                 <span style={{ width:6, height:6, borderRadius:'50%', background:'#22c55e', animation:'pulse 2s infinite' }}/>
                 {t('email.liveSyncStatus', 'Real-time cross-tab sync active')}
             </div>
-            <div style={{ borderRadius:16, background:'rgba(79,142,247,0.06)', border:'1px solid rgba(79,142,247,0.15)', padding:"22px 28px", marginBottom:20 }}>
+            <div style={{ borderRadius:16, background:'rgba(79,142,247,0.06)', border:'1px solid rgba(79,142,247,0.15)', padding:"13px 24px", marginBottom:14 }}>
                 <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                     <div>
                         <div style={{ fontSize:24, fontWeight:900, letterSpacing:-0.5, color:'#1f2937' }}>{t('email.title', "📧 Email Marketing")}</div>
@@ -597,7 +599,7 @@ function EmailMarketingContent() {
                     <button onClick={broadcastRefresh} style={{ padding:'8px 14px', borderRadius:8, border:'1px solid rgba(0,0,0,0.1)', background:'rgba(255,255,255,0.9)', color:'#374151', fontWeight:700, fontSize:11, cursor:'pointer' }}>🔄 {t('email.syncNow', 'Sync Now')}</button>
                 </div>
             </div>
-            <div style={{ display:"flex", gap:8, marginBottom:22, flexWrap:"wrap" }}>
+            <div className="page-subtabs" style={{ display:"flex", gap:8, marginBottom:12, flexWrap:"wrap" }}>
                 {TABS.filter(Tb=>_eTabVisible(Tb.id)).map(Tb=>(
                     <button key={Tb.id} onClick={()=>setTab(Tb.id)} style={{ padding:"10px 20px", borderRadius:12, border:"none", cursor:"pointer", background:tab===Tb.id?C.accent:'rgba(255,255,255,0.9)', color:tab===Tb.id?"#fff":"#374151", fontWeight:700, fontSize:13, display:"flex", alignItems:"center", gap:6, boxShadow:tab===Tb.id?'0 4px 16px '+C.accent+'33':'0 1px 3px rgba(0,0,0,0.06)' }}><span>{Tb.icon}</span> {Tb.label}</button>
                 ))}

@@ -108,13 +108,13 @@ const Bar = memo(({ v, max = 1, color = "#4f8ef7", h = 4 }) => (
 ));
 
 const KpiCard = memo(({ label, value, sub, color = "#4f8ef7", icon }) => (
-    <div className="card card-glass" style={{ borderLeft: `3px solid ${color}`, padding: "14px 16px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between" }}>
+    <div className="card card-glass" style={{ borderLeft: `3px solid ${color}`, padding: "11px 16px", display: "flex", alignItems: "center", gap: 14 }}>
+        {icon && <span style={{ fontSize: 22, opacity: .7, flex: "0 0 auto" }}>{icon}</span>}
+        <div style={{ minWidth: 0 }}>
+            <div style={{ fontWeight: 900, fontSize: 20, color }}>{value}</div>
             <div style={{ fontSize: 10, color:"#6b7280", fontWeight: 700 }}>{label}</div>
-            {icon && <span style={{ fontSize: 18, opacity: .7 }}>{icon}</span>}
+            {sub && <div style={{ fontSize: 10, color:"#6b7280", marginTop: 3 }}>{sub}</div>}
         </div>
-        <div style={{ fontWeight: 900, fontSize: 20, color, marginTop: 6 }}>{value}</div>
-        {sub && <div style={{ fontSize: 10, color:"#6b7280", marginTop: 3 }}>{sub}</div>}
     </div>
 ));
 
@@ -1573,7 +1573,7 @@ export default function InfluencerUGC() {
             </div>
 
             {/* Hero — exactly like SMS Marketing */}
-            <div style={{ borderRadius:16, background:'rgba(255,255,255,0.95)', border:'1px solid rgba(0,0,0,0.08)', padding:'22px 28px', marginBottom:12 }}>
+            <div style={{ borderRadius:16, background:'rgba(255,255,255,0.95)', border:'1px solid rgba(0,0,0,0.08)', padding:'13px 28px', marginBottom:14 }}>
                 <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', flexWrap:'wrap', gap:16 }}>
                     <div>
                         <div style={{ fontSize:24, fontWeight:900, color:'#1f2937' }}>🤝 {t('influencer.title','인플루언서·UGC 허브')}</div>
@@ -1606,7 +1606,7 @@ export default function InfluencerUGC() {
             </div>
 
             {/* Tabs — same style as SMS Marketing */}
-            <div style={{ display:'flex', gap:4, padding:5, background:'rgba(0,0,0,0.04)', borderRadius:14, overflowX:'auto', flexShrink:0, marginBottom:12 }}>
+            <div className="page-subtabs" style={{ display:'flex', gap:4, padding:5, background:'rgba(0,0,0,0.04)', borderRadius:14, overflowX:'auto', flexShrink:0, marginBottom:12 }}>
                 {TABS.map(tb=>(
                     <button key={tb.id} onClick={()=>setTab(tb.id)}
                         className={tab===tb.id?'influencer-active-tab':''}

@@ -378,7 +378,7 @@ function LINEChannelContent() {
             
 
             {/* Header */}
-            <div style={{ borderRadius: 16, background: `linear-gradient(135deg, #004225, #00b900)`, border: `1px solid ${C.line}40`, padding: "22px 28px", marginBottom: 20, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ borderRadius: 16, background: `linear-gradient(135deg, #004225, #00b900)`, border: `1px solid ${C.line}40`, padding: "13px 24px", marginBottom: 14, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div>
                     <div style={{ fontSize: 22, fontWeight: 800, display: "flex", alignItems: "center", gap: 10 }}>
                         <span style={{ fontSize: 32 }}>💚</span> {t('line.title','LINE Channel')}
@@ -415,7 +415,7 @@ function LINEChannelContent() {
             </div>
 
             {/* Tab 네비게이션 */}
-            <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
+            <div className="page-subtabs" style={{ display: "flex", gap: 8, marginBottom: 12 }}>
                 {TABS.map(t => (
                     <button key={t.id} onClick={() => setTab(t.id)} style={{ padding: "9px 18px", borderRadius: 10, border: "none", cursor: "pointer", background: tab === t.id ? C.line : C.card, color: tab === t.id ? "#000" : C.muted, fontWeight: 700, fontSize: 13, transition: "all 0.2s" }}>{t.label}</button>
                 ))}

@@ -7715,6 +7715,33 @@ button.cs-inactive-tab {
   .app-content-area > div[style*="display:grid"] {
     grid-auto-rows: max-content !important;
   }
+  /* [240차] 서브탭 메뉴 고정(sticky) + 아래 콘텐츠 스크롤 — 사용자 요청(전 페이지 일관 UX).
+     페이지의 서브탭 바에 className "page-subtabs" 를 부여하면, 라우트 루트(overflow-y:auto) 스크롤 시
+     서브탭이 상단 고정되고 히어로/지표는 스크롤 아웃, 아래 콘텐츠가 탭 밑으로 스크롤된다(opt-in=기존 페이지 무영향).
+     배경은 라우트 배경(var(--bg))과 일치시켜 스크롤 콘텐츠 비침 방지. height:100vh 내부스크롤 페이지는 미부여=무영향. */
+  .app-content-area .page-subtabs {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 20 !important;
+    background: var(--bg, #f8fafc) !important;
+    padding-top: 6px !important;
+    padding-bottom: 6px !important;
+  }
+  /* [240차] 긴 서브탭(예: ChannelKPI 9탭)은 nowrap + 가로스크롤로 한 줄 유지(줄바꿈 방지) — 스크롤바 숨김(깔끔). */
+  .app-content-area .page-subtabs-scroll { scrollbar-width: none !important; }
+  .app-content-area .page-subtabs-scroll::-webkit-scrollbar { display: none !important; }
+  /* [240차] 전체 페이지 풀폭(full-width) — 사용자 요청: 일부 페이지가 라우트 루트에 maxWidth:1180~1400+margin:0 auto
+     로 가운데 정렬돼 와이드 화면에서 좌우 빈 공간이 남았다(graph-score 처럼 꽉 차지 않음). 라우트 루트의 maxWidth 를
+     해제해 콘텐츠 영역 전체 폭을 채운다. 풀폭이면 서브탭이 한 줄에 들어가 줄바꿈도 방지된다. 내부 그리드는
+     repeat(auto-fit,minmax) 라 화면이 좁아지면 자동으로 아래로 스택(반응형 유지). margin:0 auto 는 풀폭에선 무효과. */
+  .app-content-area > div {
+    max-width: none !important;
+    /* ★flex 컨테이너(.app-content-area=display:flex)에서 라우트 루트의 margin:0 auto 는 auto 좌우 마진이
+       여유공간을 흡수해 콘텐츠 폭(예: 935px)으로 가운데 정렬시킨다 → max-width 만 풀면 안 되고 좌우 마진을
+       0 으로 강제해야 풀폭(콘텐츠 영역 전체)으로 채워진다. */
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
   /* ★[240차 회귀수정] 이전 시도에서 .app-content-area .fade-up 을 overflow:visible/height:auto 로 강제했는데,
      이는 height:100vh·overflow:hidden 루트 + .fade-up 내부 스크롤존(flex:1; overflow:hidden auto) 패턴 페이지
      (AutoMarketing·CampaignManager·JourneyBuilder 등)의 내부 스크롤을 제거 → 루트가 overflow:hidden 으로 콘텐츠를

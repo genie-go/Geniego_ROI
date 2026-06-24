@@ -607,7 +607,7 @@ function KakaoChannelContent() {
             </div>
 
             {/* Hero */}
-            <div style={{ borderRadius:16, background:'rgba(254,229,0,0.06)', border:'1px solid rgba(234,179,8,0.18)', padding:"22px 28px", marginBottom:20 }}>
+            <div style={{ borderRadius:16, background:'rgba(254,229,0,0.06)', border:'1px solid rgba(234,179,8,0.18)', padding:"13px 24px", marginBottom:14 }}>
                 <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                     <div style={{ display:'flex', alignItems:'center', gap:12 }}>
                         <span style={{ background:C.kakao, color:C.kakaoText, borderRadius:8, padding:"6px 12px", fontSize:18, fontWeight:900 }}>💬</span>
@@ -629,7 +629,7 @@ function KakaoChannelContent() {
             </div>
 
             {/* Tabs */}
-            <div style={{ display:"flex", gap:8, marginBottom:20, flexWrap:'wrap' }}>
+            <div className="page-subtabs" style={{ display:"flex", gap:8, marginBottom:12, flexWrap:'wrap' }}>
                 {TABS.map(T => (
                     <button key={T.id} onClick={() => setTab(T.id)} style={{ padding:"9px 18px", borderRadius:10, border:"none", cursor:"pointer", background:tab === T.id ? C.kakao : C.card, color:tab === T.id ? C.kakaoText : C.muted, fontWeight:700, fontSize:13 }}>{T.label}</button>
                 ))}

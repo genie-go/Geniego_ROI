@@ -250,9 +250,11 @@ function ChannelTab({ channelStatus, onRefresh, plan, isDemo, t, csIsConnected }
                     { l: t('omniChannel.kpiProducts'), v: (channelStatus?.totals?.products || 0).toLocaleString(), c: '#a855f7' },
                     { l: t('omniChannel.kpiOrders'), v: (channelStatus?.totals?.orders || 0).toLocaleString(), c: '#eab308' },
                 ].map(k => (
-                    <div key={k.l} style={{ padding: '14px 18px', borderRadius: 12, background: `${k.c}08`, border: `1px solid ${k.c}22`, textAlign: 'center' }}>
-                        <div style={{ fontSize: 22, fontWeight: 900, color: k.c }}>{k.v}</div>
-                        <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>{k.l}</div>
+                    <div key={k.l} style={{ padding: '10px 18px', borderRadius: 12, background: `${k.c}08`, border: `1px solid ${k.c}22`, display: 'flex', alignItems: 'center', gap: 14 }}>
+                        <div style={{ minWidth: 0 }}>
+                            <div style={{ fontSize: 22, fontWeight: 900, color: k.c }}>{k.v}</div>
+                            <div style={{ fontSize: 11, color: '#6b7280' }}>{k.l}</div>
+                        </div>
                     </div>
                 ))}
             </div>
@@ -609,9 +611,11 @@ function OverviewTab({ channelStatus, t }) {
                     { l: t('omniChannel.kpiTotalOrders'), v: (channelStatus?.totals?.orders || 0).toLocaleString(), c: '#a855f7' },
                     { l: t('omniChannel.kpiTotalRevenue'), v: fmt(channelStatus?.totals?.revenue || 0), c: '#eab308' },
                 ].map(k => (
-                    <div key={k.l} style={{ padding: '16px 20px', borderRadius: 14, background: `${k.c}08`, border: `1px solid ${k.c}22`, textAlign: 'center' }}>
-                        <div style={{ fontSize: 22, fontWeight: 900, color: k.c }}>{k.v}</div>
-                        <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4 }}>{k.l}</div>
+                    <div key={k.l} style={{ padding: '11px 20px', borderRadius: 14, background: `${k.c}08`, border: `1px solid ${k.c}22`, display: 'flex', alignItems: 'center', gap: 14 }}>
+                        <div style={{ minWidth: 0 }}>
+                            <div style={{ fontSize: 22, fontWeight: 900, color: k.c }}>{k.v}</div>
+                            <div style={{ fontSize: 11, color: '#6b7280' }}>{k.l}</div>
+                        </div>
                     </div>
                 ))}
             </div>
@@ -838,7 +842,7 @@ function OmniChannelInner() {
               </div>
             )}
             {/* Hero */}
-            <div style={{ background:'linear-gradient(135deg,#eff6ff,#f0f9ff)', borderRadius:16, padding:'20px 24px', border:'1px solid #bfdbfe', marginBottom:12 }}>
+            <div style={{ background:'linear-gradient(135deg,#eff6ff,#f0f9ff)', borderRadius:16, padding:'13px 24px', border:'1px solid #bfdbfe', marginBottom:14 }}>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', flexWrap:'wrap', gap:16 }}>
                 <div>
                   <div style={{ fontSize:22, fontWeight:900, color:'#2563eb' }}>🌐 {t('omniChannel.heroTitle')}</div>
@@ -864,7 +868,7 @@ function OmniChannelInner() {
             {isDemo&&<div style={{ fontSize:11, color:'#ef4444', marginBottom:6, fontWeight:700 }}>🔒 {t('omniChannel.demoIsolation','Demo environment — data isolated from production')}</div>}
             <div style={{ fontSize:11, color:'#22c55e', marginBottom:10 }}>● {t('omniChannel.liveSyncMsg')}</div>
             {/* Fixed Sub-tabs */}
-            <div style={{ display:'flex', gap:4, padding:'5px', background:'#f1f5f9', borderRadius:14, flexWrap:'wrap', marginBottom:2 }}>
+            <div className="page-subtabs" style={{ display:'flex', gap:4, padding:'5px', background:'#f1f5f9', borderRadius:14, flexWrap:'wrap', marginBottom:12 }}>
               {TABS.map(tb=>(
                 <button key={tb.id} onClick={()=>setTab(tb.id)}
                   style={{ padding:'8px 14px', borderRadius:10, border:'none', cursor:'pointer', fontWeight:700, fontSize:11, background:tab===tb.id?'#2563eb':'#ffffff', color:tab===tb.id?'#ffffff':'#374151', transition:'all 150ms' }}>

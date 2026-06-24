@@ -759,12 +759,12 @@ export default function ChannelKPI() {
             </div>
 
             {/* Sub-Tabs (fixed) */}
-            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(12px)', borderRadius: 12, padding: 4, border: '1px solid rgba(99,140,255,0.12)', position: 'sticky', top: 0, zIndex: 20, flexShrink: 0, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+            <div className="page-subtabs-scroll" style={{ display: 'flex', gap: 4, flexWrap: 'nowrap', overflowX: 'auto', overflowY: 'hidden', background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(12px)', borderRadius: 12, padding: 4, border: '1px solid rgba(99,140,255,0.12)', position: 'sticky', top: 0, zIndex: 20, flexShrink: 0, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                 {TABS.map(tb => {
                     const isActive = tab === tb.id;
                     return (
                     <button key={tb.id} onClick={() => setTab(tb.id)}
-                        style={{ padding: '7px 14px', borderRadius: 9, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 700, flex: '1 1 auto', background: isActive ? '#4f8ef7' : 'transparent', color: isActive ? '#ffffff' : '#374151', transition: 'all 0.2s', boxShadow: isActive ? '0 4px 14px rgba(79,142,247,0.35)' : 'none', transform: isActive ? 'translateY(-1px)' : 'none' }}
+                        style={{ padding: '7px 14px', borderRadius: 9, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 700, flex: '0 0 auto', whiteSpace: 'nowrap', background: isActive ? '#4f8ef7' : 'transparent', color: isActive ? '#ffffff' : '#374151', transition: 'all 0.2s', boxShadow: isActive ? '0 4px 14px rgba(79,142,247,0.35)' : 'none', transform: isActive ? 'translateY(-1px)' : 'none' }}
                         onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = 'rgba(79,142,247,0.08)'; e.currentTarget.style.color = '#111827'; } }}
                         onMouseLeave={e => { if (!isActive) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#374151'; } }}
                     >
