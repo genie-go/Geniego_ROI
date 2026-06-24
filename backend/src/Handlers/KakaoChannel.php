@@ -296,6 +296,8 @@ class KakaoChannel
             $pdo->prepare("INSERT INTO crm_activities (tenant_id, customer_id, type, channel, data, created_at) VALUES (:t,:uid,'kakao_sent','kakao',:data,:ca)")->execute([
                 ':t'=>$tenant, ':uid'=>$c['id'], ':data'=>json_encode(['campaign_id'=>$cid,'campaign_name'=>$campaign['name'],'template'=>$campaign['template_code']]), ':ca'=>$now,
             ]);
+            // [240차 약점②] 오운드채널 어트리뷰션 — 실발송 카카오 터치(phone 해시, PII미저장). 주문 phone 매칭 시 캠페인 매출 귀속.
+            if ($status === 'sent') { try { Attribution::recordOwnedTouch($pdo, $tenant, 'kakao', null, $phone, 'kakao:'.$cid, ['campaign'=>(string)($campaign['name']??'')]); } catch (\Throwable $e) {} }
         }
         $total = count($customers);
         $pdo->prepare("UPDATE kakao_campaigns SET status='sent', sent_at=:sa, total=:t, success=:s, failed=:f WHERE id=:id AND tenant_id=:tn")->execute([

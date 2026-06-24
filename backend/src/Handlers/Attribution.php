@@ -105,6 +105,56 @@ final class Attribution {
         return TemplateResponder::respond($response, ['ok' => true, 'deeplinks' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
     }
 
+    // ── [240차] 오운드채널 어트리뷰션 귀속 (이메일/카카오/SMS/저니) ───────────────────
+    //   약점지적 ②: 오운드채널 발송이 attribution_touch 미기록 → 캠페인 매출이 멀티터치 모델에서 무크레딧이던 갭.
+    //   설계: 발송 시 고객 email/phone 해시 기반 의사세션('own:<hash>')으로 터치 적재(order_id NULL=사전터치).
+    //   주문 ingest 시 동일 고객 해시로 미귀속 터치에 order_id 백필 → markov/linear 등이 자동 크레딧.
+    //   ★PII 미저장(SHA-256 해시만). 식별 불가/무전환 터치는 markov NULL 상태로 자연 처리(잡음 0). 경쟁사 Klaviyo/Braze 정합.
+
+    /** 고객 식별 해시(원문 PII 미저장). email 우선, 없으면 phone. 식별 불가 시 null. */
+    public static function identityHash(?string $email, ?string $phone): ?string {
+        $e = is_string($email) ? trim(strtolower($email)) : '';
+        $p = is_string($phone) ? preg_replace('/[^0-9]/', '', $phone) : '';
+        if ($e !== '' && strpos($e, '@') !== false) return 'e' . substr(hash('sha256', $e), 0, 32);
+        if (strlen((string)$p) >= 9)                return 'p' . substr(hash('sha256', $p), 0, 32);
+        return null;
+    }
+
+    /** 오운드채널 발송 터치 1행 적재. 발송 실패에 영향 없도록 예외 무해 처리. */
+    public static function recordOwnedTouch(\PDO $pdo, string $tenant, string $channel, ?string $email, ?string $phone, string $campaign = '', array $extra = []): bool {
+        $id = self::identityHash($email, $phone);
+        if ($id === null) return false;                       // 식별 불가 → 잡음 차단(스킵)
+        $sess = 'own:' . $id;
+        $now  = gmdate('Y-m-d H:i:s');
+        $ex   = json_encode(array_merge(['source' => 'owned', 'ch' => $channel], $extra), JSON_UNESCAPED_UNICODE);
+        try {
+            $pdo->prepare(
+                'INSERT INTO attribution_touch
+                 (tenant_id,session_id,order_id,channel,utm_source,utm_medium,utm_campaign,touched_at,extra_json)
+                 VALUES(?,?,?,?,?,?,?,?,?)'
+            )->execute([$tenant, $sess, null, $channel, $channel, 'owned', $campaign, $now, $ex]);
+            return true;
+        } catch (\Throwable $e) { return false; }
+    }
+
+    /** 주문 ingest 시 동일 고객 해시의 미귀속 오운드 터치에 order_id 백필(어트리뷰션 윈도 내). */
+    public static function backfillOwnedTouches(\PDO $pdo, string $tenant, string $orderId, ?string $email, ?string $phone, string $orderAt = '', int $windowDays = 30): int {
+        $id = self::identityHash($email, $phone);
+        if ($id === null || $orderId === '') return 0;
+        $sess   = 'own:' . $id;
+        $ts      = $orderAt !== '' ? strtotime($orderAt) : time();
+        if ($ts === false) $ts = time();
+        $cutoff = gmdate('Y-m-d H:i:s', $ts - max(1, $windowDays) * 86400);
+        try {
+            $st = $pdo->prepare(
+                "UPDATE attribution_touch SET order_id=?
+                 WHERE tenant_id=? AND session_id=? AND (order_id IS NULL OR order_id='') AND touched_at >= ?"
+            );
+            $st->execute([$orderId, $tenant, $sess, $cutoff]);
+            return $st->rowCount();
+        } catch (\Throwable $e) { return 0; }
+    }
+
     // ── Touch Points ──────────────────────────────────────────────────────
 
     public static function recordTouch(Request $request, Response $response, array $args): Response {

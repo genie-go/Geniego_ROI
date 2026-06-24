@@ -2627,6 +2627,9 @@ final class ChannelSync
                 ->execute([$tenant, (int)$cid, $channel, $total, json_encode(['sku' => $sku, 'qty' => $qty, 'order_id' => $orderId], JSON_UNESCAPED_UNICODE), $now]);
             // [현 차수] 구매 이벤트 → 'purchase' 트리거 여정 자동 진입(전환 귀속 revenue 포함). best-effort.
             try { JourneyBuilder::enrollByTrigger($pdo, $tenant, 'purchase', (int)$cid, ['revenue' => $total]); } catch (\Throwable $e) {}
+            // [240차 약점②] 오운드채널 어트리뷰션 귀속 — 이 고객의 미귀속 이메일/저니 발송 터치(own:<emailHash>)에 order_id 백필
+            //   → markov/linear 등 멀티터치 모델이 캠페인 매출 자동 크레딧. 실 email 기준(합성 noemail 은 hash null=무동작). 30일 윈도.
+            if ($email !== '') { try { Attribution::backfillOwnedTouches($pdo, $tenant, $orderId !== '' ? $orderId : ('ORD-' . (int)$cid), $email, null, $now, 30); } catch (\Throwable $e) {} }
         } catch (\Throwable $e) { error_log('[ChannelSync.recordCrmPurchase] ' . $e->getMessage()); }
     }
 

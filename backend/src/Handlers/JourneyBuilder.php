@@ -577,6 +577,8 @@ class JourneyBuilder
             $html = \Genie\Mailer::wrapHtml($subject, "<p>{$name}님, " . htmlspecialchars($subject, ENT_QUOTES) . "</p>");
         }
         $r = \Genie\Mailer::send($email, $subject, $html, ['pdo' => $pdo, 'tenant' => $tenant]);
+        // [240차 약점②] 오운드채널 어트리뷰션 — 저니 이메일 발송 터치(주문 시 order_id 백필 → 저니 매출 멀티터치 귀속).
+        if (($r['ok'] ?? false) && ($r['mode'] ?? '') !== 'unconfigured') { try { Attribution::recordOwnedTouch($pdo, $tenant, 'journey', $email, null, 'journey:'.(string)($enr['journey_id'] ?? ''), ['node' => 'email']); } catch (\Throwable $e) {} }
         return ['action' => ($r['ok'] ?? false) ? 'email_sent' : 'email_failed', 'to' => $email, 'mode' => $r['mode'] ?? null];
     }
 
@@ -588,6 +590,7 @@ class JourneyBuilder
         $cfg     = (array)($node['config'] ?? []);
         $content = (string)($cfg['content'] ?? $cfg['message'] ?? '') ?: (string)($node['label'] ?? '안내');
         $r = \Genie\NaverSms::sendPlatform($pdo, $phone, $content);
+        if (($r['ok'] ?? false) && ($r['mode'] ?? '') !== 'unconfigured') { try { Attribution::recordOwnedTouch($pdo, $tenant, 'journey', null, $phone, 'journey:'.(string)($enr['journey_id'] ?? ''), ['node' => 'sms']); } catch (\Throwable $e) {} }
         return ['action' => ($r['ok'] ?? false) ? 'sms_sent' : ('sms_' . ($r['mode'] ?? 'failed')), 'to' => $phone];
     }
 
@@ -600,6 +603,7 @@ class JourneyBuilder
         $tplCode = (string)($cfg['template_code'] ?? '');
         $content = (string)($cfg['content'] ?? '') ?: (string)($node['label'] ?? '안내');
         $r = KakaoChannel::sendOne($pdo, $tenant, $phone, $tplCode, $content);
+        if (($r['ok'] ?? false) && ($r['mode'] ?? '') !== 'unconfigured') { try { Attribution::recordOwnedTouch($pdo, $tenant, 'journey', null, $phone, 'journey:'.(string)($enr['journey_id'] ?? ''), ['node' => 'kakao']); } catch (\Throwable $e) {} }
         return ['action' => ($r['ok'] ?? false) ? 'kakao_sent' : ('kakao_' . ($r['mode'] ?? 'failed')), 'to' => $phone];
     }
 

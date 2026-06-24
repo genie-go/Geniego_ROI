@@ -321,6 +321,8 @@ final class SmsMarketing
             $pdo->prepare("INSERT INTO sms_messages(tenant_id,msg_type,recipient,body,status,sent_at,created_at) VALUES(?,?,?,?,?,?,?)")
                 ->execute([$tenant,$type,$to,$message,$status,$now,$now]);
             in_array($status, ['sent','delivered'], true) ? $sent++ : $failed++;
+            // [240차 약점②] 오운드채널 어트리뷰션 — 실발송 SMS 터치(phone 해시, PII미저장). 주문 phone 매칭 시 캠페인 매출 귀속.
+            if ($status === 'sent') { try { Attribution::recordOwnedTouch($pdo, $tenant, 'sms', null, $to, 'sms'); } catch (\Throwable $e) {} }
         }
 
         return TemplateResponder::respond($res, ['ok'=>true,'sent'=>$sent,'failed'=>$failed,'total'=>$sent+$failed]);

@@ -298,6 +298,8 @@ class EmailMarketing
             // CRM 활동 기록 (테넌트 스코프)
             $pdo->prepare("INSERT INTO crm_activities (tenant_id, customer_id, type, channel, data, created_at) VALUES (:t,:uid,'email_sent','email',:data,:ca)")
                 ->execute([':t'=>$tenant, ':uid'=>$c['id'], ':data'=>json_encode(['campaign_id'=>$cid,'campaign_name'=>$campaign['name'],'subject'=>$subject]), ':ca'=>$now]);
+            // [240차 약점②] 오운드채널 어트리뷰션 — 실발송 이메일 터치 적재(주문 시 order_id 백필 → 캠페인 매출 멀티터치 귀속).
+            if ($status === 'sent') { try { Attribution::recordOwnedTouch($pdo, $tenant, 'email', (string)$c['email'], null, 'email:'.$cid, ['campaign'=>(string)($campaign['name']??'')]); } catch (\Throwable $e) {} }
         }
 
         $total = count($customerList);
