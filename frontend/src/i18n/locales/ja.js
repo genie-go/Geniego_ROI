@@ -926,6 +926,12 @@ export default {
     "u_110": "グレード",
   },
   "writebackPage": {
+      "pendingApproval": "承認待ち",
+      "btnApprove": "チャネル反映を承認",
+      "approving": "承認中...",
+      "btnApproveHint": "リプライサーの承認待ち価格をチャネルへ反映承認します",
+      "approved": "チャネル反映を承認しました",
+
     "heroDesc": "API キーを登録し接続状態を管理します。",
     "badgeRealtime": "リアルタイム同期",
     "badgeSecurity": "セキュリティ稼働",
@@ -11829,6 +11835,8 @@ export default {
     }
   },
   "crm": {
+      "segRefresh": "メンバーシップ再計算（実データ基準で同期）",
+
     "guideBeginnerBadge": "初心者向け",
     "guideTimeBadge": "約15分",
     "guideLangBadge": "15言語対応",

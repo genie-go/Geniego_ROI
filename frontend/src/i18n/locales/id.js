@@ -926,6 +926,12 @@ export default {
     "u_110": "Tingkat",
   },
   writebackPage: {
+      "pendingApproval": "Menunggu persetujuan",
+      "btnApprove": "Setujui kirim ke channel",
+      "approving": "Menyetujui...",
+      "btnApproveHint": "Setujui harga repricer yang menunggu untuk dikirim ke channel",
+      "approved": "Kirim ke channel disetujui",
+
       heroDesc: "Daftarkan dan kelola API Key.",
       badgeRealtime: "Sinkron",
       badgeSecurity: "Keamanan",
@@ -10323,6 +10329,8 @@ export default {
     "demoFashion2": "Sebuah merek outerwear menjalankan promosi dan kupon musiman berbasis data untuk meningkatkan margin."
   },
   crm: {
+      "segRefresh": "Hitung ulang anggota (sinkron dari data nyata)",
+
     "guideTitle": "Panduan Manajemen Pelanggan CRM",
     "guideSub": "Pelajari langkah demi langkah cara mengumpulkan data pelanggan, membuat segmen berbasis AI, menjalankan kampanye, dan mengotomatiskan perjalanan pelanggan.",
     "guideBeginnerBadge": "Ramah untuk Pemula",

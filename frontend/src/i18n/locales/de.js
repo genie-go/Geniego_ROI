@@ -926,6 +926,12 @@ export default {
     "u_110": "Stufe",
   },
   writebackPage: {
+      "pendingApproval": "Genehmigung ausstehend",
+      "btnApprove": "Kanal-Push genehmigen",
+      "approving": "Genehmigen...",
+      "btnApproveHint": "Repricer-Preise zur Genehmigung an den Kanal freigeben",
+      "approved": "Kanal-Push genehmigt",
+
       heroDesc: "API-Schlüssel registrieren und verwalten.",
       badgeRealtime: "Echtzeit",
       badgeSecurity: "Sicherheit aktiv",
@@ -11699,6 +11705,8 @@ export default {
       searchPh: "例：「ビューティのInstagram広告戦略」またはマーケティング目標を入力"
     },
   crm: {
+      "segRefresh": "Mitgliedschaft neu berechnen (Sync mit Echtdaten)",
+
     "guideTitle": "CRM-Leitfaden für Kundenmanagement",
     "guideSub": "Erfahren Sie Schritt für Schritt, wie Sie Kundendaten erfassen, KI-gestützte Segmente erstellen, Kampagnen durchführen und Customer Journeys automatisieren.",
     "guideBeginnerBadge": "Für Einsteiger geeignet",

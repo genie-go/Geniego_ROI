@@ -926,6 +926,12 @@ export default {
     "u_110": "Cấp",
   },
   writebackPage: {
+      "pendingApproval": "Chờ phê duyệt",
+      "btnApprove": "Phê duyệt đẩy lên kênh",
+      "approving": "Đang phê duyệt...",
+      "btnApproveHint": "Phê duyệt giá chờ duyệt của repricer để đẩy lên kênh",
+      "approved": "Đã phê duyệt đẩy lên kênh",
+
       heroDesc: "Đăng ký và quản lý API Key.",
       badgeRealtime: "Đồng bộ",
       badgeSecurity: "Bảo mật",
@@ -12441,6 +12447,8 @@ export default {
       searchPh: "例：「ビューティのInstagram広告戦略」またはマーケティング目標を入力"
     },
   crm: {
+      "segRefresh": "Tính lại thành viên (đồng bộ từ dữ liệu thực)",
+
     "guideTitle": "Hướng dẫn quản lý khách hàng CRM",
     "guideSub": "Tìm hiểu từng bước cách thu thập dữ liệu khách hàng, tạo phân khúc bằng AI, triển khai chiến dịch và tự động hóa hành trình khách hàng.",
     "guideBeginnerBadge": "Dành cho người mới bắt đầu",

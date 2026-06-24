@@ -793,6 +793,12 @@ export default {
     "u_110": "Grade",
   },
   writebackPage: {
+      "pendingApproval": "Pending approval",
+      "btnApprove": "Approve channel push",
+      "approving": "Approving...",
+      "btnApproveHint": "Approve repricer pending prices for channel push",
+      "approved": "Channel push approved",
+
       heroDesc: "Register API keys and manage connection status for sales, advertising, and analytics channels.",
       badgeRealtime: "Realtime Sync",
       badgeSecurity: "Security Active",
@@ -11806,6 +11812,8 @@ export default {
       PriceCheck: "Pricing Inquiry"
     },
   crm: {
+      "segRefresh": "Recompute membership (sync from live data)",
+
     guideStep1Desc: "To start collecting customer data, connect your sales channels and customer touchpoints.\n\nAvailable Channels:\nOnline Store · Brand Website · Kakao · Email · Messaging Platforms · Marketplaces\n\nSteps:\n1. Open the Integration Hub.\n2. Select a channel.\n3. Enter the required API credentials.\n4. Test the connection.\n5. Save the configuration.\n\nOutcome:\nCustomer records are collected automatically, and order data begins syncing in real time.",
     guideStep2Desc: "Review and manage synchronized customer information from all connected channels.\n\nAvailable Fields:\nName · Email · Phone Number · Membership Tier · Tags · Registration Date · Last Purchase Date\n\nAvailable Actions:\nSearch · Filter · Sort · Export to CSV · Manual Registration\n\nOutcome:\nA centralized customer database is created and continuously maintained.",
     guideStep3Desc: "Customer value and churn risk are evaluated automatically.\n\nRisk Levels:\nCritical · High · Normal\n\nCustomer Segments:\nChampions · Loyal Customers · Potential VIPs · New Customers · At-Risk Customers · Dormant Customers\n\nOutcome:\nIdentify the most valuable and highest-priority customer groups at a glance.",

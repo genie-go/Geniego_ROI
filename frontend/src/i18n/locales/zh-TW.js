@@ -926,6 +926,12 @@ export default {
     "u_110": "等級",
   },
   writebackPage: {
+      "pendingApproval": "待審批",
+      "btnApprove": "核准通路同步",
+      "approving": "審批中...",
+      "btnApproveHint": "核准重新定價器待審批價格並同步到通路",
+      "approved": "通路同步已核准",
+
       heroDesc: "註冊API金鑰並管理連接狀態。",
       badgeRealtime: "即時同步",
       badgeSecurity: "安全運行",
@@ -9757,6 +9763,8 @@ export default {
       searchPh: "例：「ビューティのInstagram広告戦略」またはマーケティング目標を入力"
     },
   crm: {
+      "segRefresh": "重新計算成員（依即時資料同步）",
+
     "guideTitle": "CRM客戶管理指南",
     "guideSub": "透過循序漸進的流程，學習如何收集客戶資料、建立 AI 客戶分群、執行行銷活動，以及打造自動化客戶旅程。",
     "guideBeginnerBadge": "適合新手",

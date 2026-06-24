@@ -926,6 +926,12 @@ export default {
     "u_110": "Grado",
   },
   writebackPage: {
+      "pendingApproval": "Pendiente de aprobación",
+      "btnApprove": "Aprobar envío al canal",
+      "approving": "Aprobando...",
+      "btnApproveHint": "Aprobar precios pendientes del repricer para envío al canal",
+      "approved": "Envío al canal aprobado",
+
       heroDesc: "Registra las claves API de los canales de venta, publicidad y analítica, y gestiona el estado de conexión.",
       badgeRealtime: "Sincronización en tiempo real",
       badgeSecurity: "Seguridad activa",
@@ -11815,6 +11821,8 @@ export default {
       PriceCheck: "Pricing Inquiry"
     },
   crm: {
+      "segRefresh": "Recalcular miembros (sincronizar con datos reales)",
+
     "guideTitle": "Guía de Gestión de Clientes CRM",
     "guideSub": "Aprenda paso a paso cómo recopilar datos de clientes, crear segmentos impulsados por IA, ejecutar campañas y automatizar recorridos de clientes.",
     "guideBeginnerBadge": "Apto para principiantes",

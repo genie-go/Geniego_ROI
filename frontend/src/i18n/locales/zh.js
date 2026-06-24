@@ -926,6 +926,12 @@ export default {
     "u_110": "等级",
   },
   "writebackPage": {
+      "pendingApproval": "待审批",
+      "btnApprove": "批准渠道同步",
+      "approving": "审批中...",
+      "btnApproveHint": "批准重新定价器待审批价格并同步到渠道",
+      "approved": "渠道同步已批准",
+
     "heroDesc": "注册API密钥并管理连接状态。",
     "badgeRealtime": "实时同步",
     "badgeSecurity": "安全运行",
@@ -11951,6 +11957,8 @@ export default {
     }
   },
   "crm": {
+      "segRefresh": "重新计算成员（按实时数据同步）",
+
     "guideBeginnerBadge": "适合新手",
     "guideTimeBadge": "约15分钟",
     "guideLangBadge": "支持15种语言",
