@@ -64,17 +64,21 @@ final class AttributionEngine
             $q = $request->getQueryParams();
             $window = max(1, min(730, (int)($q['window'] ?? self::DEFAULT_WINDOW)));
             $halflife = max(0.5, min(90.0, (float)($q['halflife'] ?? self::DEFAULT_HALFLIFE)));
+            // [240차 ⑧-A] 뷰스루 가중치(0~1, 기본 1.0=영향없음). 비기본 시 캐시 우회(라이브 계산).
+            $vtWeight = max(0.0, min(1.0, (float)($q['vt_weight'] ?? 1.0)));
 
             $pdo = Db::pdo();
             // [228차 S2] ★캐시 우선 — attribution_cron 선계산 결과가 신선(30분)하면 즉시 반환.
             //   기존엔 대시보드 히트마다 동기 재계산(대용량 테넌트 MAX_ORDERS=20000 스캔 지연). 캐시 미스 시 라이브 계산+저장.
-            $cached = self::cacheGet($pdo, $t, $window, $halflife, 1800);
-            if ($cached !== null) {
-                $cached['cached'] = true;
-                $cached['response_time_ms'] = self::elapsed($start);
-                return self::ok($response, $cached);
+            if ($vtWeight >= 1.0) {
+                $cached = self::cacheGet($pdo, $t, $window, $halflife, 1800);
+                if ($cached !== null) {
+                    $cached['cached'] = true;
+                    $cached['response_time_ms'] = self::elapsed($start);
+                    return self::ok($response, $cached);
+                }
             }
-            $result = self::precompute($pdo, $t, $window, $halflife);
+            $result = self::precompute($pdo, $t, $window, $halflife, $vtWeight);
             $result['response_time_ms'] = self::elapsed($start);
             return self::ok($response, $result);
         } catch (Throwable $e) {
@@ -122,23 +126,26 @@ final class AttributionEngine
                 $byOrder[$oid][] = $row;
             }
             foreach ($byOrder as $oid => $touches) {
-                $channels = []; $times = []; $revenue = 0.0;
+                $channels = []; $times = []; $views = []; $revenue = 0.0;
                 foreach ($touches as $tr) {
                     $ch = self::normChannel((string)$tr['channel']);
                     if ($ch === '') continue;
+                    $isView = self::isViewThrough((string)($tr['extra_json'] ?? '')); // [240차 ⑧-A] 노출 터치 여부
                     // 연속 중복 채널은 self-loop 회피를 위해 축약(시퀀스 의미 보존).
                     if (!empty($channels) && end($channels) === $ch) {
                         $times[count($times) - 1] = self::ts((string)$tr['touched_at']); // 최신 터치 시각 갱신
+                        $views[count($views) - 1] = ($views[count($views) - 1] && $isView); // 클릭 1건이라도 있으면 클릭 우선
                         continue;
                     }
                     $channels[] = $ch;
                     $times[] = self::ts((string)$tr['touched_at']);
+                    $views[] = $isView;
                     if ($revenue <= 0) $revenue = self::extractRevenue((string)($tr['extra_json'] ?? ''));
                 }
                 if (empty($channels)) continue;
                 $ct = $convAt[$oid] ?? end($times);
                 if ($ct <= 0) $ct = end($times);
-                $convJourneys[] = ['channels' => $channels, 'times' => $times, 'conv_time' => $ct, 'revenue' => $revenue];
+                $convJourneys[] = ['channels' => $channels, 'times' => $times, 'views' => $views, 'conv_time' => $ct, 'revenue' => $revenue];
             }
         }
 
@@ -183,8 +190,11 @@ final class AttributionEngine
      * @param array $nullJourneys 비전환 여정(channels)
      * @return array{models: array, channels: array}
      */
-    public static function computeModels(array $convJourneys, array $nullJourneys, float $halflife = self::DEFAULT_HALFLIFE): array
+    public static function computeModels(array $convJourneys, array $nullJourneys, float $halflife = self::DEFAULT_HALFLIFE, float $vtWeight = 1.0): array
     {
+        // [240차 ⑧-A] 뷰스루 가중치 — 노출(view-through) 터치는 클릭 대비 낮은 기여(vtWeight, 기본 1.0=영향없음/회귀0).
+        //   view_through 플래그가 있는 포지션만 vtWeight 배율 후 재정규화. iOS 프라이버시 시대 노출기여 반영.
+        $vtWeight = max(0.0, min(1.0, $vtWeight));
         $modelsConv = [
             'last_touch' => [], 'first_touch' => [], 'linear' => [],
             'time_decay' => [], 'position_based' => [],
@@ -204,21 +214,29 @@ final class AttributionEngine
             $totalConv += 1.0; $totalRev += $rev;
             foreach ($chs as $c) $channelSet[$c] = true;
 
-            // last / first
+            // [240차 ⑧-A] 포지션별 뷰스루 배율(view_through=true → vtWeight). 합이 0이면 균등 폴백.
+            $views = $j['views'] ?? [];
+            $vm = []; $sumVm = 0.0;
+            for ($i = 0; $i < $n; $i++) { $vm[$i] = !empty($views[$i]) ? $vtWeight : 1.0; $sumVm += $vm[$i]; }
+            if ($sumVm <= 0) { $vm = array_fill(0, $n, 1.0); $sumVm = (float)$n; }
+
+            // last / first (단일터치 모델 — 시퀀스 의미 유지)
             self::addCredit($modelsConv['last_touch'], $modelsRev['last_touch'], $chs[$n - 1], 1.0, $rev);
             self::addCredit($modelsConv['first_touch'], $modelsRev['first_touch'], $chs[0], 1.0, $rev);
 
-            // linear (이벤트 균등)
-            foreach ($chs as $c) self::addCredit($modelsConv['linear'], $modelsRev['linear'], $c, 1.0 / $n, $rev / max(1, $n));
+            // linear (이벤트 균등 × 뷰스루 배율 → 재정규화)
+            for ($i = 0; $i < $n; $i++) {
+                self::addCredit($modelsConv['linear'], $modelsRev['linear'], $chs[$i], $vm[$i] / $sumVm, $rev * $vm[$i] / $sumVm);
+            }
 
-            // time_decay (전환 시점 기준 지수감쇠, 반감기 halflife 일)
+            // time_decay (지수감쇠 × 뷰스루 배율)
             $convT = (float)($j['conv_time'] ?? 0);
             $times = $j['times'] ?? [];
             $w = []; $sumW = 0.0;
             for ($i = 0; $i < $n; $i++) {
                 $tt = (float)($times[$i] ?? $convT);
                 $dDays = max(0.0, ($convT - $tt) / 86400.0);
-                $wi = pow(2.0, -$dDays / max(0.5, $halflife));
+                $wi = pow(2.0, -$dDays / max(0.5, $halflife)) * $vm[$i];
                 $w[$i] = $wi; $sumW += $wi;
             }
             if ($sumW <= 0) { $sumW = $n; $w = array_fill(0, $n, 1.0); }
@@ -226,10 +244,13 @@ final class AttributionEngine
                 self::addCredit($modelsConv['time_decay'], $modelsRev['time_decay'], $chs[$i], $w[$i] / $sumW, $rev * $w[$i] / $sumW);
             }
 
-            // position_based (U-shaped 40/20/40)
+            // position_based (U-shaped × 뷰스루 배율 → 재정규화)
             $pw = self::positionWeights($n);
+            $pwv = []; $sumPwv = 0.0;
+            for ($i = 0; $i < $n; $i++) { $pwv[$i] = $pw[$i] * $vm[$i]; $sumPwv += $pwv[$i]; }
+            if ($sumPwv <= 0) { $pwv = $pw; $sumPwv = array_sum($pw) ?: 1.0; }
             for ($i = 0; $i < $n; $i++) {
-                self::addCredit($modelsConv['position_based'], $modelsRev['position_based'], $chs[$i], $pw[$i], $rev * $pw[$i]);
+                self::addCredit($modelsConv['position_based'], $modelsRev['position_based'], $chs[$i], $pwv[$i] / $sumPwv, $rev * $pwv[$i] / $sumPwv);
             }
         }
 
@@ -405,6 +426,17 @@ final class AttributionEngine
         return 0.0;
     }
 
+    /** [240차 ⑧-A] 노출(view-through) 터치 판정 — extra_json 의 view_through/vt true 또는 event=impression/view-only. */
+    private static function isViewThrough(string $extraJson): bool
+    {
+        if ($extraJson === '') return false;
+        $d = json_decode($extraJson, true);
+        if (!is_array($d)) return false;
+        if (!empty($d['view_through']) || !empty($d['vt'])) return true;
+        $ev = strtolower((string)($d['event'] ?? ''));
+        return in_array($ev, ['impression', 'ad_view', 'view'], true);
+    }
+
     private static function normChannel(string $ch): string
     {
         $ch = trim($ch);
@@ -441,7 +473,7 @@ final class AttributionEngine
      * markov 모델 계산 + 캐시 저장(attribution_cron·models 공용). 전환 여정이 없으면 빈 결과도 캐시한다.
      *   (cron 이 주기 선계산 → models 는 캐시 신선 시 즉시 반환. 캐시 미스 시 본 메서드가 라이브 계산+저장.)
      */
-    public static function precompute(PDO $pdo, string $t, int $window = self::DEFAULT_WINDOW, float $halflife = self::DEFAULT_HALFLIFE): array
+    public static function precompute(PDO $pdo, string $t, int $window = self::DEFAULT_WINDOW, float $halflife = self::DEFAULT_HALFLIFE, float $vtWeight = 1.0): array
     {
         [$convJourneys, $nullJourneys] = self::loadJourneys($pdo, $t, $window);
         if (empty($convJourneys)) {
@@ -449,12 +481,13 @@ final class AttributionEngine
                   'window_days' => $window, 'journeys' => count($nullJourneys), 'converted' => 0,
                   'note' => '전환(attribution_result)에 연결된 터치 여정이 아직 없습니다. 전환 스코어링 후 자동 반영됩니다.'];
         } else {
-            $r = self::computeModels($convJourneys, $nullJourneys, $halflife);
-            $r['window_days'] = $window; $r['halflife_days'] = $halflife;
+            $r = self::computeModels($convJourneys, $nullJourneys, $halflife, $vtWeight);
+            $r['window_days'] = $window; $r['halflife_days'] = $halflife; $r['vt_weight'] = $vtWeight;
             $r['journeys'] = count($convJourneys) + count($nullJourneys);
             $r['converted'] = count($convJourneys); $r['data_driven'] = 'markov';
         }
-        self::cachePut($pdo, $t, $window, $halflife, $r);
+        // [240차 ⑧-A] 비기본 vtWeight 결과는 캐시 저장 스킵(기본 캐시 오염 방지 — 캐시 키는 window+halflife만).
+        if ($vtWeight >= 1.0) self::cachePut($pdo, $t, $window, $halflife, $r);
         return $r;
     }
 

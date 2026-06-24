@@ -315,7 +315,9 @@ class PixelTracking
                 $cd = is_array($b['custom_data'] ?? null) ? $b['custom_data'] : [];
                 $orderId = $cut($b['order_id'] ?? ($cd['order_id'] ?? null), 120) ?: ('PX-' . $eventId);
             }
-            $extra = json_encode(['source' => 'pixel', 'event' => $eventName, 'value' => $value], JSON_UNESCAPED_UNICODE);
+            // [240차 ⑧-A] 뷰스루 — 노출 추적 태그가 view_through=true 를 보내면 터치에 표기(어트리뷰션 모델이 낮은 가중치 적용).
+            $viewThrough = !empty($b['view_through']) || in_array(strtolower((string)($b['interaction'] ?? '')), ['view', 'impression'], true);
+            $extra = json_encode(['source' => 'pixel', 'event' => $eventName, 'value' => $value] + ($viewThrough ? ['view_through' => true] : []), JSON_UNESCAPED_UNICODE);
             $pdo->prepare(
                 'INSERT INTO attribution_touch
                  (tenant_id,session_id,order_id,channel,utm_source,utm_medium,utm_campaign,
