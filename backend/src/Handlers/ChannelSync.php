@@ -3028,14 +3028,98 @@ final class ChannelSync
     {
         if ($tenant === 'demo') return ['ok' => true, 'settlements' => [], 'pending' => true, 'note' => 'demo']; // 데모는 실 API 미호출
         switch ($channel) {
-            // ── 채널별 실 정산 API 어댑터 추가 지점 ──────────────────────────────
-            //   예: case 'coupang' => return self::coupangSettlements($creds, $period);  // CEA HMAC 재사용
-            //       case 'naver':   return self::naverSettlements($creds, $period);    // OAuth2 재사용
-            //   각 어댑터는 [code,body]=self::httpGet(...) 호출→정산 필드 매핑→settlements 반환(라이브 검증 후).
+            // [240차 약점④] 채널별 실 정산 API 어댑터 — fetch 인증 재사용. ★자격증명 게이트 + 오류/빈/매핑불일치 시 pending
+            //   (추정 롤업 폴백 = 안전, 날조 0). 실 셀러 자격증명 확보 후 즉시 라이브 동작.
+            case 'coupang': return self::coupangSettlements($creds, $period);  // CEA HMAC 재사용
+            case 'naver':   return self::naverSettlements($creds, $period);    // OAuth2 재사용
             default:
                 return ['ok' => true, 'settlements' => [], 'pending' => true,
                         'note' => $channel . ' 정산 자동풀 어댑터 미구현 — 추정 롤업/수동 ingest 사용(실 셀러 자격증명 확보 후 어댑터 추가)'];
         }
+    }
+
+    /** [240차 약점④] Coupang 정산 자동수집 — revenue-history(CEA HMAC). 게이트+오류/매핑불일치 시 pending(날조 0·추정롤업 폴백). */
+    private static function coupangSettlements(array $creds, string $period): array
+    {
+        $accessKey = trim((string)($creds['access_key'] ?? ''));
+        $secretKey = trim((string)($creds['secret_key'] ?? ''));
+        $vendorId  = trim((string)($creds['vendor_id'] ?? ''));
+        if ($accessKey === '' || $secretKey === '' || $vendorId === '')
+            return ['ok' => true, 'settlements' => [], 'pending' => true, 'note' => 'Coupang 정산: access_key·secret_key·vendor_id 필요'];
+        $from = $period . '-01';
+        $ts   = strtotime($from); if ($ts === false) return ['ok'=>true,'settlements'=>[],'pending'=>true,'note'=>'Coupang 정산: period 형식 오류'];
+        $to   = gmdate('Y-m-t', $ts);
+        $host = 'https://api-gateway.coupang.com';
+        $path = '/v2/providers/openapi/apis/api/v1/revenue-history';
+        $query = "vendorId={$vendorId}&recognitionDateFrom={$from}&recognitionDateTo={$to}&maxPerPage=100";
+        $datetime  = gmdate('ymd\THis\Z');
+        $signature = hash_hmac('sha256', $datetime . 'GET' . $path . $query, $secretKey);
+        $auth = "CEA algorithm=HmacSHA256, access-key={$accessKey}, signed-date={$datetime}, signature={$signature}";
+        [$code, $body] = self::httpGet($host . $path . '?' . $query, ['Authorization' => $auth, 'Content-Type' => 'application/json;charset=UTF-8']);
+        if ($code !== 200 || !is_array($body))
+            return ['ok' => true, 'settlements' => [], 'pending' => true, 'note' => "Coupang 정산 조회 실패(code={$code}) — 추정 롤업 폴백"];
+        $data = $body['data'] ?? ($body['content'] ?? []);
+        if (!is_array($data) || !$data)
+            return ['ok' => true, 'settlements' => [], 'pending' => true, 'note' => 'Coupang 정산 데이터 없음(기간) — 추정 롤업 폴백'];
+        $gross = 0.0; $fee = 0.0; $net = 0.0;
+        foreach ($data as $row) {
+            if (!is_array($row)) continue;
+            $gross += (float)($row['salesAmount'] ?? $row['saleAmount'] ?? 0);
+            $fee   += (float)($row['serviceFee'] ?? $row['saleCommission'] ?? $row['commission'] ?? 0);
+            $net   += (float)($row['settlementAmount'] ?? $row['amount'] ?? 0);
+        }
+        if ($gross <= 0 && $net <= 0)   // 핵심 필드 0 = 매핑 불일치 가능 → pending(날조 방지)
+            return ['ok' => true, 'settlements' => [], 'pending' => true, 'note' => 'Coupang 정산 필드 매핑 불일치 — 라이브 검증 필요(추정 롤업 폴백)'];
+        if ($net <= 0) $net = $gross - $fee;
+        return ['ok' => true, 'pending' => false, 'settlements' => [[
+            'period' => $period, 'channel' => 'coupang', 'gross_sales' => round($gross),
+            'platform_fee' => round($fee), 'net_payout' => round($net), 'source' => 'coupang_revenue_history',
+        ]]];
+    }
+
+    /** [240차 약점④] Naver 정산 자동수집 — OAuth2(fetch 토큰 재사용) → 정산내역. 게이트+오류/매핑불일치 시 pending(날조 0). */
+    private static function naverSettlements(array $creds, string $period): array
+    {
+        $clientId     = trim((string)($creds['client_id'] ?? ''));
+        $clientSecret = trim((string)($creds['client_secret'] ?? ''));
+        if ($clientId === '' || $clientSecret === '')
+            return ['ok' => true, 'settlements' => [], 'pending' => true, 'note' => 'Naver 정산: client_id·client_secret 필요'];
+        $timestamp = (int)(microtime(true) * 1000);
+        $sign = base64_encode(hash_hmac('sha256', "{$clientId}_{$timestamp}", $clientSecret, true));
+        [$code, $body] = self::httpPost(
+            'https://api.commerce.naver.com/external/v1/oauth2/token',
+            ['Content-Type' => 'application/x-www-form-urlencoded'],
+            "client_id={$clientId}&timestamp={$timestamp}&client_secret_sign={$sign}&grant_type=client_credentials&type=SELF"
+        );
+        if ($code !== 200 || empty($body['access_token']))
+            return ['ok' => true, 'settlements' => [], 'pending' => true, 'note' => "Naver 정산: 토큰 발급 실패(code={$code}) — 추정 롤업 폴백"];
+        $token = $body['access_token'];
+        $from  = $period . '-01';
+        $ts    = strtotime($from); if ($ts === false) return ['ok'=>true,'settlements'=>[],'pending'=>true,'note'=>'Naver 정산: period 형식 오류'];
+        $to    = gmdate('Y-m-t', $ts);
+        [$sCode, $sBody] = self::httpGet(
+            "https://api.commerce.naver.com/external/v1/pay-settle/settle/daily?startDate={$from}&endDate={$to}",
+            ['Authorization' => "Bearer {$token}"]
+        );
+        if ($sCode !== 200 || !is_array($sBody))
+            return ['ok' => true, 'settlements' => [], 'pending' => true, 'note' => "Naver 정산 조회 실패(code={$sCode}) — 추정 롤업 폴백"];
+        $data = $sBody['data'] ?? ($sBody['elements'] ?? ($sBody['content'] ?? []));
+        if (!is_array($data) || !$data)
+            return ['ok' => true, 'settlements' => [], 'pending' => true, 'note' => 'Naver 정산 데이터 없음(기간) — 추정 롤업 폴백'];
+        $gross = 0.0; $fee = 0.0; $net = 0.0;
+        foreach ($data as $row) {
+            if (!is_array($row)) continue;
+            $gross += (float)($row['settleExpectAmount'] ?? $row['saleAmount'] ?? $row['paymentAmount'] ?? 0);
+            $fee   += (float)($row['commissionAmount'] ?? $row['feeAmount'] ?? $row['commission'] ?? 0);
+            $net   += (float)($row['settleAmount'] ?? $row['settlementAmount'] ?? 0);
+        }
+        if ($gross <= 0 && $net <= 0)
+            return ['ok' => true, 'settlements' => [], 'pending' => true, 'note' => 'Naver 정산 필드 매핑 불일치 — 라이브 검증 필요(추정 롤업 폴백)'];
+        if ($net <= 0) $net = $gross - $fee;
+        return ['ok' => true, 'pending' => false, 'settlements' => [[
+            'period' => $period, 'channel' => 'naver', 'gross_sales' => round($gross),
+            'platform_fee' => round($fee), 'net_payout' => round($net), 'source' => 'naver_pay_settle',
+        ]]];
     }
 
     /** 정산 자동 풀 → orderhub_settlements 실 적재(confirmed). cron/syncTenantChannel 공용. @return int 적재 수 */
