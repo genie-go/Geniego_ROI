@@ -186,6 +186,8 @@ function OverviewTab({ live, pgSum, t, fmt, dateRange }) {
         { label: t('pnl.wfCoupon'), v: -live.couponDiscount, col: '#eab308' },
         { label: t('pnl.wfReturnFee'), v: -live.returnFee, col: '#ec4899' },
         { label: t('pnl.wfShipping', '배송비'), v: -live.shippingCost, col: '#14b8a6' },
+        // [240차] 인플루언서 비용 — 유일 누락 P&L 항목 보강. 실 지급액 있을 때만 표시(운영 실데이터/데모 격리).
+        ...(live.influencerCost > 0 ? [{ label: t('pnl.wfInfluencer', '인플루언서 비용'), v: -live.influencerCost, col: '#a855f7' }] : []),
         { label: t('pnl.wfOperatingProfit'), v: live.operatingProfit, col: live.operatingProfit >= 0 ? GREEN : RED, bold: true },
     ];
     return (
@@ -762,7 +764,8 @@ export default function PnLDashboard() {
         grossRevenue: pnlStats.revenue || 0, adSpend: pnlStats.adSpend || 0,
         platformFee: pnlStats.platformFee || 0, couponDiscount: pnlStats.couponDiscount || 0,
         returnFee: pnlStats.returnFee || 0, cogs: pnlStats.cogs || 0,
-        shippingCost: pnlStats.shippingCost || 0,
+        shippingCost: pnlStats.shippingCost || 0, influencerCost: pnlStats.influencerCost || 0, // [240차] 인플루언서 비용 P&L 라인
+
         grossProfit: pnlStats.grossProfit || 0, operatingProfit: pnlStats.operatingProfit || 0,
         netPayout: pnlStats.netPayout || 0, pendingPayout: settlementStats.pendingAmount || 0,
         roas: budgetStats.blendedRoas || 0,

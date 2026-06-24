@@ -298,6 +298,8 @@ export function GlobalDataProvider({ children }) {
     const [claimHistory, setClaimHistory] = useState(_isDemo ? loadDemoState('claimHistory', []) : []);  // 클레임/반품 이력
     // [현 차수] 운영 주문 통계 서버측 집계(limit 캡 과소집계 해소). 데모는 런타임 파생이라 null 유지.
     const [orderStatsServer, setOrderStatsServer] = useState(null);
+    // [240차] 인플루언서 비용 P&L 편입 — 운영 실 정산(influencer_store settle.paid) 서버집계. 데모는 클라 creators 합산(_isDemo 가드). 목데이터 운영유입 0.
+    const [influencerCostServer, setInfluencerCostServer] = useState(null);
     // [225차 P0-1] 운영 정산 통계 서버측 집계(settlements?limit=200 재집계 과소 해소). 데모는 null 유지.
     const [settlementStatsServer, setSettlementStatsServer] = useState(null);
     // [225차 P1-16] 운영 클레임(반품) 통계 서버집계(claims?limit=200 재집계 과소 해소). 데모는 null 유지.
@@ -448,6 +450,10 @@ export function GlobalDataProvider({ children }) {
         getJsonAuth('/api/v424/orderhub/orders/stats')
             .then(res => { if (!cancelled && res?.ok) setOrderStatsServer(res); })
             .catch(() => { /* 실패 시 클라 집계 폴백 */ });
+        // [240차] 인플루언서 비용 P&L — 운영 실 정산 합계(미등록 시 0). 데모는 fetch 스킵(클라 creators 합산).
+        getJsonAuth('/api/v423/influencer/cost-summary')
+            .then(res => { if (!cancelled && res?.ok) setInfluencerCostServer(res); })
+            .catch(() => { /* 실패 시 0(영향 없음) */ });
         return () => { cancelled = true; };
     }, []);
 
@@ -1856,24 +1862,30 @@ export function GlobalDataProvider({ children }) {
         // 정산 순지급액 (실제 받은 금액)
         const netPayout = settlementStats.totalNetPayout;
 
+        // [240차] 인플루언서 비용 — 유일 누락 P&L 항목 보강(경쟁사 Triple Whale 정합). 실 지급액(settle.paid)만 반영.
+        //   ★목데이터 운영유입 0: 데모는 클라 데모 creators(격리) 합산, 운영은 서버 실집계(미등록 시 0). _isDemo 가드.
+        const influencerCost = _isDemo
+            ? Math.round((Array.isArray(creators) ? creators : []).reduce((s, c) => s + (Number(c?.settle?.paid) || 0), 0))
+            : Math.round(Number(influencerCostServer?.influencer_cost) || 0);
+
         // 손익 계산
         const grossProfit = revenue - cogs;                              // Revenue총이익 = Revenue - 원가
-        const operatingProfit = grossProfit - adSpend - platformFee - couponDiscount - returnFee - shippingCost; // 영업이익(배송비 포함)
+        const operatingProfit = grossProfit - adSpend - platformFee - couponDiscount - returnFee - shippingCost - influencerCost; // 영업이익(배송비·인플루언서 비용 포함)
         // [227차 감사 P1] 순이익에 쿠폰할인 반영 — netPayout(=gross-platform-returnFee)은 쿠폰 미차감이라
         //   기존엔 영업이익엔 쿠폰 차감/순이익엔 누락되어 netProfit>operatingProfit 역전 가능했음(데모/운영 공통).
         const netProfit = netPayout > 0
-            ? netPayout - cogs - adSpend - couponDiscount               // 정산 기준 순이익(쿠폰 반영)
+            ? netPayout - cogs - adSpend - couponDiscount - influencerCost  // 정산 기준 순이익(쿠폰·인플루언서 반영)
             : operatingProfit;
 
         return {
             revenue, cogs, grossProfit, cogsUncostedUnits,
-            adSpend, platformFee, couponDiscount, returnFee, shippingCost,
+            adSpend, platformFee, couponDiscount, returnFee, shippingCost, influencerCost,
             operatingProfit, netProfit, netPayout,
             margin: revenue > 0 ? (operatingProfit / revenue * 100).toFixed(1) : '0',
             netMargin: revenue > 0 ? (netProfit / revenue * 100).toFixed(1) : '0',
             roas: adSpend > 0 ? budgetStats.blendedRoas : 0,
         };
-    }, [orders, inventory, budgetStats, settlementStats, orderStats, orderStatsServer]);
+    }, [orders, inventory, budgetStats, settlementStats, orderStats, orderStatsServer, creators, influencerCostServer]);
 
     // Notification 집계
     const unreadAlertCount = useMemo(() => alerts.filter(a => !a.read).length, [alerts]);

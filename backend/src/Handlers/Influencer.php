@@ -97,4 +97,32 @@ class Influencer
     public static function saveUgcReviews(Request $req, Response $res): Response    { return self::write($req, $res, 'ugc'); }
     public static function saveChannelStats(Request $req, Response $res): Response  { return self::write($req, $res, 'channel_stats'); }
     public static function saveNegKeywords(Request $req, Response $res): Response   { return self::write($req, $res, 'neg_keywords'); }
+
+    /* [240차] 인플루언서 비용 P&L 집계 — creators 의 실 지급액(settle.paid) 합산(tenant격리). 미등록 시 0(목데이터 0).
+     *   P&L operatingProfit/netProfit 의 influencerCost 항목 소스(유일 누락 P&L 항목 보강). 운영=실 정산만,
+     *   데모는 프론트가 데모 creators(격리)로 직접 합산(_isDemo 가드)하므로 본 엔드포인트는 운영 실데이터 경로.
+     *   committed(계약금액)은 참고치. by_period 는 정산일/캠페인월 귀속(기간 P&L 정합). */
+    public static function costSummary(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensure();
+        $st = self::pdo()->prepare("SELECT payload_json FROM influencer_store WHERE tenant_id=? AND kind='creators'");
+        $st->execute([self::tenant($req)]);
+        $row = $st->fetchColumn();
+        $creators = $row ? json_decode((string)$row, true) : [];
+        if (!is_array($creators)) $creators = [];
+        $paid = 0.0; $committed = 0.0; $count = 0; $byPeriod = [];
+        foreach ($creators as $c) {
+            if (!is_array($c)) continue;
+            $settle   = (array)($c['settle'] ?? []);
+            $contract = (array)($c['contract'] ?? []);
+            $p   = (float)($settle['paid'] ?? 0);                                              // 실 지급액(realized)
+            $amt = (float)($contract['amount'] ?? $contract['fee'] ?? $contract['cost'] ?? 0); // 계약금액(committed)
+            if ($p > 0 || $amt > 0) $count++;
+            $paid += $p; $committed += $amt;
+            $dt = (string)($c['campaignMonth'] ?? $settle['resolvedAt'] ?? $c['date'] ?? '');
+            if ($p > 0 && strlen($dt) >= 7) { $pm = substr($dt, 0, 7); $byPeriod[$pm] = ($byPeriod[$pm] ?? 0) + $p; }
+        }
+        return self::json($res, ['ok' => true, 'influencer_cost' => round($paid), 'committed' => round($committed), 'creator_count' => $count, 'by_period' => $byPeriod]);
+    }
 }

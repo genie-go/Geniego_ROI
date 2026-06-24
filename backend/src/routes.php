@@ -1170,6 +1170,7 @@ return function (App $app): void {
         'POST /v423/creds/{id}/test'   => 'Genie\\Handlers\\ChannelCreds::test',
         // [현 차수] H4: InfluencerUGC 라이브 데이터 — 4 kind GET/POST(테넌트 격리 영속). 세션 self-auth.
         'GET /v423/influencer/creators'       => 'Genie\\Handlers\\Influencer::creators',
+        'GET /v423/influencer/cost-summary'   => 'Genie\\Handlers\\Influencer::costSummary', // [240차] 인플루언서 비용 P&L 집계
         'GET /v423/influencer/ugc-reviews'    => 'Genie\\Handlers\\Influencer::ugcReviews',
         'GET /v423/influencer/channel-stats'  => 'Genie\\Handlers\\Influencer::channelStats',
         'GET /v423/influencer/neg-keywords'   => 'Genie\\Handlers\\Influencer::negKeywords',
