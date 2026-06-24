@@ -240,24 +240,47 @@ class Reports
         $body = (array)($req->getParsedBody() ?? []);
         if (empty($body)) { $d = json_decode((string)$req->getBody(), true); if (is_array($d)) $body = $d; }
 
-        // 화이트리스트: 지표 SQL 식(performance_metrics 컬럼만). 키 외 입력은 무시.
-        $METRICS = [
-            'spend'       => 'ROUND(SUM(spend))',
-            'revenue'     => 'ROUND(SUM(revenue))',
-            'impressions' => 'SUM(impressions)',
-            'clicks'      => 'SUM(clicks)',
-            'conversions' => 'SUM(conversions)',
-            'roas'        => 'ROUND(SUM(revenue)/NULLIF(SUM(spend),0),2)',
-            'ctr'         => 'ROUND(SUM(clicks)/NULLIF(SUM(impressions),0)*100,2)',
-            'cvr'         => 'ROUND(SUM(conversions)/NULLIF(SUM(clicks),0)*100,2)',
-            'cpc'         => 'ROUND(SUM(spend)/NULLIF(SUM(clicks),0))',
-            'cpa'         => 'ROUND(SUM(spend)/NULLIF(SUM(conversions),0))',
-        ];
-        // [239차+ BI심화] 차원 확장(account 추가) + 2차 차원(breakdown=피벗/크로스탭). 전부 화이트리스트(인젝션 불가).
-        $DIMS = ['channel' => 'channel', 'campaign' => 'campaign_ext_id', 'date' => 'date', 'account' => 'account'];
+        // [240차 BI⑤] 데이터 소스 인지 — ads(광고 성과) | commerce(주문 머니경로). 경쟁사 BI 대비 P&L/주문 통합 쿼리 우위.
+        $source = ((string)($body['source'] ?? 'ads') === 'commerce') ? 'commerce' : 'ads';
+        if ($source === 'commerce') {
+            // 커머스 머니경로(channel_orders) — 취소/반품 제외(P&L 정합). 화이트리스트 식만.
+            $cancelExpr = "(COALESCE(event_type,'order')='cancel' OR COALESCE(status,'') IN ('취소','반품','cancelled','canceled','returned'))";
+            $METRICS = [
+                'gross_sales' => 'ROUND(SUM(total_price))',
+                'orders'      => 'COUNT(*)',
+                'units'       => 'SUM(qty)',
+                'aov'         => 'ROUND(SUM(total_price)/NULLIF(COUNT(*),0))',
+            ];
+            $DIMS = ['channel' => 'channel', 'date' => "SUBSTR(ordered_at,1,10)"];
+            $TABLE = 'channel_orders'; $PERIOD_COL = 'ordered_at'; $BASE_WHERE = " AND NOT {$cancelExpr}";
+            $defaultMetrics = ['gross_sales', 'orders', 'aov'];
+        } else {
+            // 화이트리스트: 광고 지표 SQL 식(performance_metrics). [240차] 계산필드(profit/margin/aov/cpm) 추가 — 경쟁사 BI 계산필드 정합.
+            $METRICS = [
+                'spend'       => 'ROUND(SUM(spend))',
+                'revenue'     => 'ROUND(SUM(revenue))',
+                'impressions' => 'SUM(impressions)',
+                'clicks'      => 'SUM(clicks)',
+                'conversions' => 'SUM(conversions)',
+                'roas'        => 'ROUND(SUM(revenue)/NULLIF(SUM(spend),0),2)',
+                'ctr'         => 'ROUND(SUM(clicks)/NULLIF(SUM(impressions),0)*100,2)',
+                'cvr'         => 'ROUND(SUM(conversions)/NULLIF(SUM(clicks),0)*100,2)',
+                'cpc'         => 'ROUND(SUM(spend)/NULLIF(SUM(clicks),0))',
+                'cpa'         => 'ROUND(SUM(spend)/NULLIF(SUM(conversions),0))',
+                // [240차 BI⑤] 계산필드(파생지표) — 광고 이익·이익률·객단가·CPM. SUM 집계 식 결합(인젝션 불가).
+                'profit'      => 'ROUND(SUM(revenue)-SUM(spend))',
+                'margin'      => 'ROUND((SUM(revenue)-SUM(spend))/NULLIF(SUM(revenue),0)*100,2)',
+                'aov'         => 'ROUND(SUM(revenue)/NULLIF(SUM(conversions),0))',
+                'cpm'         => 'ROUND(SUM(spend)/NULLIF(SUM(impressions),0)*1000)',
+            ];
+            // [239차+ BI심화] 차원 확장(account) + 2차 차원(breakdown=피벗). 전부 화이트리스트.
+            $DIMS = ['channel' => 'channel', 'campaign' => 'campaign_ext_id', 'date' => 'date', 'account' => 'account'];
+            $TABLE = 'performance_metrics'; $PERIOD_COL = 'date'; $BASE_WHERE = '';
+            $defaultMetrics = ['spend', 'revenue', 'roas', 'conversions'];
+        }
 
         $reqMetrics = array_values(array_filter((array)($body['metrics'] ?? []), fn($m) => isset($METRICS[$m])));
-        if (!$reqMetrics) $reqMetrics = ['spend', 'revenue', 'roas', 'conversions'];
+        if (!$reqMetrics) $reqMetrics = $defaultMetrics;
         $dim = (string)($body['dimension'] ?? 'channel');
         if (!isset($DIMS[$dim])) $dim = 'channel';
         $dimCol = $DIMS[$dim];
@@ -277,8 +300,8 @@ class Reports
         $groupBy = $brkCol ? "{$dimCol}, {$brkCol}" : $dimCol;
         $whereBrk = $brkCol ? " AND {$brkCol} IS NOT NULL AND {$brkCol} <> ''" : '';
         $sql = "SELECT " . implode(', ', $selects) . "
-                  FROM performance_metrics
-                 WHERE tenant_id = ? AND date >= ? AND {$dimCol} IS NOT NULL AND {$dimCol} <> ''{$whereBrk}
+                  FROM {$TABLE}
+                 WHERE tenant_id = ? AND {$PERIOD_COL} >= ? AND {$dimCol} IS NOT NULL AND {$dimCol} <> ''{$BASE_WHERE}{$whereBrk}
                  GROUP BY {$groupBy}
                  ORDER BY " . ($dim === 'date' ? 'dim ASC' : "{$orderMetric} DESC") . "
                  LIMIT {$limit}";
@@ -292,13 +315,15 @@ class Reports
         // 합계 행(date 차원 제외)
         $totals = [];
         if ($dim !== 'date' && $rows) {
-            foreach (['spend', 'revenue', 'impressions', 'clicks', 'conversions'] as $k) {
+            $sumKeys = $source === 'commerce' ? ['gross_sales', 'orders', 'units'] : ['spend', 'revenue', 'impressions', 'clicks', 'conversions'];
+            foreach ($sumKeys as $k) {
                 if (in_array($k, $reqMetrics, true)) $totals[$k] = array_sum(array_map(fn($r) => (float)($r[$k] ?? 0), $rows));
             }
-            if (isset($totals['revenue'], $totals['spend']) && $totals['spend'] > 0) $totals['roas'] = round($totals['revenue'] / $totals['spend'], 2);
+            if ($source === 'ads' && isset($totals['revenue'], $totals['spend']) && $totals['spend'] > 0) $totals['roas'] = round($totals['revenue'] / $totals['spend'], 2);
+            if (isset($totals['gross_sales'], $totals['orders']) && $totals['orders'] > 0) $totals['aov'] = round($totals['gross_sales'] / $totals['orders']);
         }
         return self::json($res, [
-            'ok' => true, 'dimension' => $dim, 'breakdown' => ($brkValid ? $brk : null), 'metrics' => $reqMetrics, 'period_days' => $period,
+            'ok' => true, 'source' => $source, 'dimension' => $dim, 'breakdown' => ($brkValid ? $brk : null), 'metrics' => $reqMetrics, 'period_days' => $period,
             'columns' => array_merge(['dim'], ($brkCol ? ['brk'] : []), $reqMetrics), 'rows' => $rows, 'totals' => $totals,
             'count' => count($rows),
             'note' => count($rows) === 0 ? '선택 기간·차원에 집계할 광고 성과 데이터가 없습니다(집행·수집 후 표시).' : null,

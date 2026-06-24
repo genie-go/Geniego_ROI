@@ -83,14 +83,28 @@ export default function ReportBuilder() {
 
   const freqLabel = (f) => ({ daily: t("reportBuilder.daily", "매일"), weekly: t("reportBuilder.weekly", "매주"), monthly: t("reportBuilder.monthly", "매월") }[f] || f);
   // [237차] 셀프서비스 BI — 커스텀 분석(지표×차원×기간 → 표 + CSV). 백엔드 /api/reports/query(화이트리스트).
-  const Q_METRICS = [
+  // [240차 BI⑤] 데이터 소스(ads=광고성과 | commerce=주문 머니경로) — 경쟁사 BI 대비 P&L/주문 통합 쿼리.
+  const [qForm, setQForm] = useState({ source: "ads", metrics: ["spend", "revenue", "roas", "conversions"], dimension: "channel", breakdown: "", period_days: 30 });
+  const Q_METRICS = qForm.source === "commerce" ? [
+    ["gross_sales", t("reportBuilder.mGross", "매출")], ["orders", t("reportBuilder.mOrders", "주문수")],
+    ["units", t("reportBuilder.mUnits", "수량")], ["aov", t("reportBuilder.mAov", "객단가")],
+  ] : [
     ["spend", t("reportBuilder.mSpend", "광고비")], ["revenue", t("reportBuilder.mRevenue", "매출")],
     ["roas", "ROAS"], ["conversions", t("reportBuilder.mConv", "전환")],
     ["impressions", t("reportBuilder.mImp", "노출")], ["clicks", t("reportBuilder.mClk", "클릭")],
     ["ctr", "CTR"], ["cvr", "CVR"], ["cpc", "CPC"], ["cpa", "CPA"],
+    // [240차 BI⑤] 계산필드(파생지표)
+    ["profit", t("reportBuilder.mProfit", "이익")], ["margin", t("reportBuilder.mMargin", "이익률%")],
+    ["aov", t("reportBuilder.mAov", "객단가")], ["cpm", "CPM"],
   ];
-  const Q_DIMS = [["channel", t("reportBuilder.dimChannel", "채널별")], ["campaign", t("reportBuilder.dimCampaign", "캠페인별")], ["date", t("reportBuilder.dimDate", "일자별")], ["account", t("reportBuilder.dimAccount", "계정별")]];
-  const [qForm, setQForm] = useState({ metrics: ["spend", "revenue", "roas", "conversions"], dimension: "channel", breakdown: "", period_days: 30 });
+  const Q_DIMS = qForm.source === "commerce"
+    ? [["channel", t("reportBuilder.dimChannel", "채널별")], ["date", t("reportBuilder.dimDate", "일자별")]]
+    : [["channel", t("reportBuilder.dimChannel", "채널별")], ["campaign", t("reportBuilder.dimCampaign", "캠페인별")], ["date", t("reportBuilder.dimDate", "일자별")], ["account", t("reportBuilder.dimAccount", "계정별")]];
+  // 소스 전환 시 해당 소스 기본 지표/차원으로 리셋(무효 선택 방지).
+  const switchSource = (src) => setQForm(f => f.source === src ? f : ({
+    ...f, source: src, dimension: "channel", breakdown: "",
+    metrics: src === "commerce" ? ["gross_sales", "orders", "aov"] : ["spend", "revenue", "roas", "conversions"],
+  }));
   const [qResult, setQResult] = useState(null);
   const [qLoading, setQLoading] = useState(false);
   const [viz, setViz] = useState("table"); // [239차+ BI심화] table|bar|line|donut
@@ -168,6 +182,13 @@ export default function ReportBuilder() {
         <div>
           <div style={{ ...card, display: "flex", gap: 14, alignItems: "flex-start", flexWrap: "wrap" }}>
             <div>
+              {/* [240차 BI⑤] 데이터 소스 토글 — 광고성과/주문 머니경로 */}
+              <div style={{ fontSize: 11, color: "var(--text-3)", marginBottom: 6 }}>{t("reportBuilder.source", "데이터 소스")}</div>
+              <div style={{ display: "flex", gap: 6, marginBottom: 12 }}>
+                {[["ads", t("reportBuilder.srcAds", "광고 성과")], ["commerce", t("reportBuilder.srcCommerce", "주문/매출")]].map(([id, lab]) => (
+                  <button key={id} onClick={() => switchSource(id)} style={{ padding: "5px 12px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 11, fontWeight: 700, background: qForm.source === id ? "#8b5cf6" : "rgba(0,0,0,0.05)", color: qForm.source === id ? "#fff" : "var(--text-2)" }}>{lab}</button>
+                ))}
+              </div>
               <div style={{ fontSize: 11, color: "var(--text-3)", marginBottom: 6 }}>{t("reportBuilder.metrics", "지표 선택")}</div>
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap", maxWidth: 420 }}>
                 {Q_METRICS.map(([id, lab]) => (
