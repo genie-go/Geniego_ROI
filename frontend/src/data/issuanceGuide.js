@@ -25,6 +25,59 @@ export const GUIDE_LANGS = ['ko', 'en', 'ja', 'zh', 'zh-TW', 'de', 'th', 'vi', '
 
 /* 원본(한국어) — 초보자 기준 상세 단계. 번역 모듈이 이 키들을 그대로 미러링한다. */
 export const ISSUANCE_GUIDE_KO = {
+  // [240차] 신규 채널 발급 가이드(인앱 스텝). 연동허브 등록 즉시 라이브 동작.
+  naver_shopping: [
+    '준비물: 네이버 계정. (리프라이서 라이브 경쟁가 수집에 사용됩니다.)',
+    'developers.naver.com 접속 → 로그인 → 상단 [Application] > [애플리케이션 등록]을 클릭합니다.',
+    '애플리케이션 이름 입력 → 사용 API에서 "검색"을 선택 → 비로그인 오픈 API 환경(WEB)을 추가하고 등록합니다.',
+    '등록 완료 후 [내 애플리케이션]에서 "Client ID"와 "Client Secret"을 확인합니다.',
+    'GenieGo 연동허브 > "Naver 쇼핑 API (경쟁가)" [등록]에 Client ID / Client Secret을 붙여넣고 저장하면, 최적 가격(리프라이서) 메뉴에서 [라이브 경쟁가 수집]이 즉시 동작합니다.',
+  ],
+  amazon_ads: [
+    '준비물: Amazon 광고를 집행 중인 셀러/벤더 계정과 Login with Amazon(LWA) 앱이 필요합니다.',
+    'advertising.amazon.com 의 Amazon Ads API 사용 신청(승인 필요) 후, developer.amazon.com 에서 LWA 보안 프로필(앱)을 만들어 client_id / client_secret을 발급받습니다.',
+    'LWA OAuth 동의 절차로 refresh_token을 발급받습니다(scope: advertising::campaign_management).',
+    'Profiles API로 광고 프로파일 ID(profile_id)를 확인합니다.',
+    'GenieGo [등록]에 LWA 리프레시 토큰 / 클라이언트 ID / 클라이언트 시크릿 / 프로파일 ID를 입력해 저장합니다.',
+  ],
+  microsoft_ads: [
+    '준비물: Microsoft Advertising(Bing Ads) 광고 계정이 필요합니다.',
+    'ads.microsoft.com 에서 개발자 토큰(Developer Token)을 신청합니다.',
+    'portal.azure.com(Azure AD) 에서 앱을 등록하고 client_id / client_secret을 발급받습니다(리디렉션 URI 설정 포함).',
+    'OAuth2 동의 절차로 refresh_token을 발급받습니다(scope: https://ads.microsoft.com/msads.manage offline_access).',
+    'GenieGo [등록]에 리프레시 토큰 / 앱(클라이언트) ID / 클라이언트 시크릿 / 개발자 토큰을 입력해 저장합니다.',
+  ],
+  x_ads: [
+    '준비물: X(트위터) 광고 계정과 승인된 개발자 계정이 필요합니다.',
+    'developer.x.com 에서 앱(Project/App)을 만들고 consumer_key(API Key) / consumer_secret을 발급받습니다.',
+    'OAuth 1.0a 사용자 인증으로 access_token / access_token_secret을 발급받고, ads.x.com 에서 광고계정 ID를 확인합니다.',
+    'X Ads API 사용 신청(Ads API access)을 완료합니다(승인 필요).',
+    'GenieGo [등록]에 컨슈머 키 / 컨슈머 시크릿 / 액세스 토큰 / 액세스 토큰 시크릿 / 광고계정 ID를 입력해 저장합니다.',
+  ],
+  snapchat_ads: [
+    '준비물: Snapchat 비즈니스 광고 계정이 필요합니다.',
+    'business.snapchat.com 에서 Business Details로 OAuth 앱(클라이언트)을 만들고 Marketing API access_token을 발급받습니다.',
+    'Ads Manager에서 광고계정 ID(ad_account_id)를 확인합니다.',
+    'GenieGo [등록]에 액세스 토큰 / 광고계정 ID(필요 시 과금 통화)를 입력해 저장합니다.',
+  ],
+  linkedin_ads: [
+    '준비물: LinkedIn 광고 계정과 LinkedIn 개발자 앱이 필요합니다.',
+    'linkedin.com/developers/apps 에서 앱을 만들고 Marketing Developer Platform(광고 API) 사용 권한을 신청합니다(승인 필요).',
+    'OAuth2 동의로 access_token을 발급받고, 광고계정 URN(또는 ID)을 확인합니다.',
+    'GenieGo [등록]에 액세스 토큰 / 광고계정 ID를 입력해 저장합니다.',
+  ],
+  criteo: [
+    '준비물: Criteo 광고주 계정이 필요합니다.',
+    'Criteo Management Center > API 설정에서 API 자격증명(client_id / client_secret)을 발급받습니다(OAuth2 client_credentials).',
+    '대상 광고주 계정 ID(advertiser_id)를 확인합니다.',
+    'GenieGo [등록]에 client_id / client_secret / advertiser_id를 입력해 저장합니다.',
+  ],
+  pinterest_ads: [
+    '준비물: Pinterest 비즈니스 계정과 광고 계정이 필요합니다.',
+    'developers.pinterest.com 에서 앱을 만들고 광고(Ads) 권한 access_token을 발급받습니다.',
+    'Ads Manager에서 광고계정 ID(ad_account_id)를 확인합니다.',
+    'GenieGo [등록]에 액세스 토큰 / 광고계정 ID를 입력해 저장합니다.',
+  ],
   meta_ads: [
     '준비물: Facebook 개인 계정과, 광고를 집행 중인 Meta 광고 계정이 필요합니다.',
     '브라우저에서 business.facebook.com 에 접속해 로그인하고, [비즈니스 만들기]로 비즈니스 계정을 만든 뒤 이메일 인증을 완료합니다.',

@@ -33,6 +33,8 @@ const CHANNELS = [
   { key: 'microsoft_ads',    name: 'Microsoft Ads (Bing)', icon: '🪟', color: '#00A4EF', group: 'global_ad' },
   { key: 'x_ads',            name: 'X (Twitter) Ads',   icon: '✖️', color: '#000000', group: 'global_ad' },
   { key: 'amazon_ads',       name: 'Amazon Ads',        icon: '📦', color: '#FF9900', group: 'global_ad' },
+  // [240차 ⑧-B] 리프라이서 라이브 경쟁가 수집용 — Naver 쇼핑 검색 API(최저가). 연동허브 등록 즉시 경쟁가 자동수집 가능.
+  { key: 'naver_shopping',   name: 'Naver 쇼핑 API (경쟁가)', icon: '🟢', color: '#03C75A', group: 'own_etc' },
   // [현 차수] tiktok_shop 실 어댑터(ChannelSync v202309 HMAC+shop_cipher)는 존재했으나 자격증명 등록 UI 진입점이 없었음 → 추가
   { key: 'tiktok_shop',      name: 'TikTok Shop',       icon: '🛍️', color: '#FE2C55', group: 'global_commerce' },
   { key: 'amazon_spapi',     name: 'Amazon SP-API',     icon: '📦', color: '#FF9900', group: 'global_commerce' },
@@ -193,6 +195,7 @@ const CHANNEL_FIELDS = {
   line_ads:  [{ k: 'access_key', label: 'Access Key (Ad Manager > Group)', secret: true }, { k: 'secret_key', label: 'Secret Key', secret: true }, { k: 'group_id', label: 'Group ID (광고 그룹/계정 ID)' }],
   // [240차] 커넥터 확장 — 신규 광고 데이터소스(실 ingest). spend 통화 stamp 위해 currency 입력(미입력 시 USD).
   snapchat_ads: [{ k: 'access_token', label: '액세스 토큰 (Marketing API)', secret: true }, { k: 'ad_account_id', label: '광고계정 ID' }, { k: 'currency', label: '과금 통화 (예: USD · 미입력 시 USD)', opt: true }],
+  naver_shopping: [{ k: 'client_id', label: 'Client ID (네이버 개발자센터 검색 API)' }, { k: 'client_secret', label: 'Client Secret', secret: true }], // [240차 ⑧-B] 리프라이서 경쟁가
   linkedin_ads: [{ k: 'access_token', label: '액세스 토큰 (Marketing API)', secret: true }, { k: 'ad_account_id', label: 'Sponsored Account ID (숫자)' }, { k: 'currency', label: '과금 통화 (예: USD · 미입력 시 USD)', opt: true }],
   criteo:    [{ k: 'client_id', label: 'API Client ID' }, { k: 'client_secret', label: 'API Client Secret', secret: true }, { k: 'currency', label: '과금 통화 (예: USD · 미입력 시 USD)', opt: true }],
   pinterest_ads: [{ k: 'access_token', label: '액세스 토큰 (Ads API v5)', secret: true }, { k: 'ad_account_id', label: '광고계정 ID' }, { k: 'currency', label: '과금 통화 (예: USD · 미입력 시 USD)', opt: true }],
@@ -304,6 +307,7 @@ const ISSUANCE_URL = {
   twitch: 'https://dev.twitch.tv/console/apps',                 // [227차] Twitch 앱 등록→client_id/secret 발급
   // [240차] 커넥터 확장 — 신규 광고 데이터소스 개발자 콘솔(자격증명 발급처)
   snapchat_ads: 'https://business.snapchat.com', linkedin_ads: 'https://www.linkedin.com/developers/apps',
+  naver_shopping: 'https://developers.naver.com/docs/serviceapi/search/shopping/shopping.md',
   criteo: 'https://developers.criteo.com', pinterest_ads: 'https://developers.pinterest.com/apps',
   microsoft_ads: 'https://developers.ads.microsoft.com', x_ads: 'https://developer.twitter.com/en/portal/dashboard',
   amazon_ads: 'https://advertising.amazon.com/API/docs/en-us/index.html',
@@ -333,6 +337,7 @@ const SIGNUP_URL = {
   google_analytics: 'https://analytics.google.com', kakao_moment: 'https://business.kakao.com',
   // [240차] 커넥터 확장 — 신규 광고 데이터소스 계정/비즈니스 가입
   snapchat_ads: 'https://forbusiness.snapchat.com', linkedin_ads: 'https://business.linkedin.com/marketing-solutions',
+  naver_shopping: 'https://developers.naver.com/apps/#/register',
   criteo: 'https://www.criteo.com', pinterest_ads: 'https://ads.pinterest.com', microsoft_ads: 'https://ads.microsoft.com',
   x_ads: 'https://ads.x.com', amazon_ads: 'https://advertising.amazon.com',
   // 결제 게이트웨이(PG)

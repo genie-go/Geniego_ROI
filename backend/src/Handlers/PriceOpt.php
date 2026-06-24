@@ -554,8 +554,9 @@ class PriceOpt
     {
         if ($err = UserAuth::requirePro($request, $response)) return $err;
         $db = self::db(); $t = self::tenant($request);
-        $cid = (string)(getenv('NAVER_SHOP_CLIENT_ID')     ?: self::appSetting($db, $t, 'naver_shop_client_id'));
-        $sec = (string)(getenv('NAVER_SHOP_CLIENT_SECRET') ?: self::appSetting($db, $t, 'naver_shop_client_secret'));
+        // [240차] 자격증명 우선순위: 연동허브(channel_credential naver_shopping) → env → app_setting(레거시).
+        $cid = (string)(self::loadChannelCred($db, $t, 'naver_shopping', 'client_id')     ?: getenv('NAVER_SHOP_CLIENT_ID')     ?: self::appSetting($db, $t, 'naver_shop_client_id'));
+        $sec = (string)(self::loadChannelCred($db, $t, 'naver_shopping', 'client_secret') ?: getenv('NAVER_SHOP_CLIENT_SECRET') ?: self::appSetting($db, $t, 'naver_shop_client_secret'));
         if ($cid === '' || $sec === '')
             return self::json($response, ['ok'=>true,'pending'=>true,'updated'=>0,'note'=>'Naver 쇼핑 API 자격증명(client_id/secret) 미설정 — 설정 후 라이브 경쟁가 자동 수집(현재는 수동 입력 사용)']);
         $ps = $db->prepare("SELECT sku, product_name, base_price FROM po_products WHERE tenant_id=? AND product_name<>'' LIMIT 50");
@@ -586,6 +587,17 @@ class PriceOpt
     {
         try { $st = $db->prepare("SELECT v FROM app_setting WHERE tenant_id=? AND k=? LIMIT 1"); $st->execute([$t, $k]); $v = $st->fetchColumn(); return $v ? (string)$v : ''; }
         catch (\Throwable $e) { return ''; }
+    }
+
+    /** [240차] 연동허브 자격증명 읽기 — channel_credential(channel/key_name/key_value, AES-256-GCM 복호화). Connectors::loadCred 패턴 정합. */
+    private static function loadChannelCred(\PDO $db, string $t, string $channel, string $key): string
+    {
+        try {
+            $st = $db->prepare("SELECT key_value FROM channel_credential WHERE tenant_id=? AND channel=? AND key_name=? AND is_active=1 LIMIT 1");
+            $st->execute([$t, $channel, $key]);
+            $row = $st->fetch(\PDO::FETCH_ASSOC);
+            return \Genie\Crypto::decrypt((string)($row['key_value'] ?? ''));
+        } catch (\Throwable $e) { return ''; }
     }
 
     // ── Dynamic Repricer ─────────────────────────────────────────────────────
