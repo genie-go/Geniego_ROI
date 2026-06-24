@@ -295,7 +295,7 @@ class CRM
             SELECT c.id, c.email, c.name, c.grade,
                    COALESCE(a.purchase_count, 0) AS frequency,
                    COALESCE(a.total_amount, 0)   AS monetary,
-                   a.last_purchase,
+                   a.last_purchase, a.first_purchase,
                    CASE
                      WHEN a.last_purchase >= :c30 THEN 5
                      WHEN a.last_purchase >= :c60 THEN 4
@@ -305,7 +305,7 @@ class CRM
                    END AS recency
             FROM crm_customers c
             LEFT JOIN (
-                SELECT customer_id, COUNT(*) AS purchase_count, SUM(amount) AS total_amount, MAX(created_at) AS last_purchase
+                SELECT customer_id, COUNT(*) AS purchase_count, SUM(amount) AS total_amount, MAX(created_at) AS last_purchase, MIN(created_at) AS first_purchase
                 FROM crm_activities WHERE type='purchase' AND tenant_id=:t GROUP BY customer_id
             ) a ON a.customer_id = c.id
             WHERE c.tenant_id=:t ORDER BY monetary DESC LIMIT 500
@@ -330,7 +330,47 @@ class CRM
             $r['rfm_grade'] = $grade;
             $stats[$grade]++;
         }
-        return self::jsonRes($res, ['ok'=>true,'customers'=>$rows,'stats'=>$stats]);
+        unset($r);
+        // [240차 약점③] 예측형 CDP — 이탈확률·예측CLV 부착(기존 RFM 탭에 통합, 신규메뉴 0).
+        $predictive = self::addPredictiveScores($rows);
+        return self::jsonRes($res, ['ok'=>true,'customers'=>$rows,'stats'=>$stats,'predictive'=>$predictive]);
+    }
+
+    /* ─── [240차 약점③] 예측형 CDP — 구매이력 기반 통계 예측(외부의존 0, 경쟁사 Klaviyo predictive 정합) ─────
+     *   churn_prob   : 생존모델 1-exp(-recency/(주기×2)) — 고객 고유 구매주기 대비 경과로 이탈확률 추정.
+     *   predicted_clv: 12개월 예측가치 = AOV × 연구매빈도 × P(alive). ★실 구매데이터(crm_activities)만, 데이터부족=보수적기본. */
+    private static function addPredictiveScores(array &$rows): array
+    {
+        $now = time();
+        $sumChurn = 0.0; $highChurn = 0; $sumPredClv = 0.0; $n = 0;
+        foreach ($rows as &$r) {
+            $freq  = (int)($r['frequency'] ?? 0);
+            $monet = (float)($r['monetary'] ?? 0);
+            $last  = !empty($r['last_purchase'])  ? strtotime((string)$r['last_purchase'])  : false;
+            $first = !empty($r['first_purchase']) ? strtotime((string)$r['first_purchase']) : false;
+            $aov   = $freq > 0 ? $monet / $freq : 0;
+            $recencyDays = $last ? max(0, ($now - $last) / 86400) : 999;
+            $churn = 0.5; $predClv = 0.0;
+            if ($freq >= 2 && $first && $last && $last > $first) {
+                $interval   = max(1, (($last - $first) / 86400) / ($freq - 1));   // 평균 구매주기(일)
+                $churn      = 1 - exp(-$recencyDays / ($interval * 2));           // recency=2×주기 → 0.63
+                $ageYears   = max(0.25, ($now - $first) / 31536000);
+                $annualFreq = min(52, $freq / $ageYears);
+                $predClv    = $aov * $annualFreq * (1 - $churn);                  // 12개월 예측가치
+            } elseif ($freq == 1) {
+                $churn   = min(0.95, $recencyDays / 180);                         // 단일구매: recency 기반
+                $predClv = $aov * (1 - $churn) * 0.5;                             // 보수적 재구매 기대
+            }
+            $churn   = round(max(0.0, min(0.99, $churn)), 3);
+            $predClv = round(max(0.0, $predClv));
+            $r['churn_prob']    = $churn;
+            $r['predicted_clv'] = $predClv;
+            $r['churn_tier']    = $churn >= 0.6 ? 'high' : ($churn >= 0.35 ? 'medium' : 'low');
+            if ($freq > 0) { $sumChurn += $churn; $sumPredClv += $predClv; if ($churn >= 0.6) $highChurn++; $n++; }
+        }
+        unset($r);
+        return ['avg_churn' => $n ? round($sumChurn / $n, 3) : 0, 'high_churn_count' => $highChurn,
+                'total_predicted_clv' => round($sumPredClv), 'scored' => $n];
     }
 
     /* ─── GET /crm/segments ─────────────────────────────────────────── */
@@ -401,6 +441,9 @@ class CRM
             ['name'=>'신규 고객', 'color'=>'#4f8ef7', 'rules'=>[['field'=>'frequency','op'=>'lte','value'=>1],['field'=>'recency','op'=>'lte','value'=>30]]],
             ['name'=>'이탈 위험', 'color'=>'#f59e0b', 'rules'=>[['field'=>'ltv','op'=>'gt','value'=>0],['field'=>'recency','op'=>'gte','value'=>60],['field'=>'recency','op'=>'lte','value'=>180]]],
             ['name'=>'휴면 고객', 'color'=>'#ef4444', 'rules'=>[['field'=>'recency','op'=>'gte','value'=>180]]],
+            // [240차 약점③] 예측형 CDP 세그먼트(경쟁사 Klaviyo predictive 정합) — 예측가치/이탈확률 의도. churn_prob/predicted_clv 정밀치는 RFM 탭 표시.
+            ['name'=>'고가치 예측', 'color'=>'#8b5cf6', 'rules'=>[['field'=>'ltv','op'=>'gte','value'=>300000],['field'=>'frequency','op'=>'gte','value'=>2],['field'=>'recency','op'=>'lte','value'=>30]]],   // 활성·고가치·반복(예측 CLV 상위)
+            ['name'=>'이탈위험 예측', 'color'=>'#f97316', 'rules'=>[['field'=>'frequency','op'=>'gte','value'=>3],['field'=>'recency','op'=>'gte','value'=>45]]],                                            // 과거 충성→침묵(예측 이탈·구제가치 높음)
         ];
         $created = []; $skipped = [];
         foreach ($templates as $tpl) {

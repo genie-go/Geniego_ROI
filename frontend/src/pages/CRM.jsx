@@ -358,6 +358,19 @@ function SegmentsTab({ segments, onSave, onDelete, onSmartSeed, onRefresh }) {
   );
 }
 
+/* [240차 약점③] 예측형 CDP 행 점수 — 운영은 백엔드 churn_prob/predicted_clv(단일소스·CRM.addPredictiveScores) 우선,
+   데모(백엔드값 부재)는 recency/frequency 기반 표시용 근사(샌드박스 전용·운영 로직 무관·데이터 오염 0). */
+function predRowScore(c) {
+  if (c.churn_prob != null && c.predicted_clv != null) return { churn: Number(c.churn_prob), clv: Number(c.predicted_clv) };
+  const freq = Number(c.purchase_count || 0);
+  const daysSince = c.last_purchase ? Math.max(0, (Date.now() - new Date(c.last_purchase).getTime()) / 86400000) : 999;
+  if (freq <= 0) return { churn: 0.5, clv: 0 };
+  const churn = Math.min(0.99, daysSince / (freq >= 3 ? 120 : freq === 2 ? 100 : 180));
+  const aov = c.ltv > 0 ? c.ltv / freq : 0;
+  const clv = Math.round(aov * (1 - churn) * (freq >= 2 ? 1.5 : 0.5));
+  return { churn: Math.round(churn * 1000) / 1000, clv };
+}
+
 /* ── RFM Tab ────────────────────────────────────────────────────────────────── */
 function RFMTab({ derivedCustomers }) {
   const { t } = useI18n();
@@ -390,13 +403,16 @@ function RFMTab({ derivedCustomers }) {
         <div style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
             <thead><tr style={{ background: "#f1f5f9" }}>
-              {[t('crm.fName'), t('crm.colEmail'), "LTV", t('crm.colCnt'), t('crm.colLast'), t('crm.colGrade')].map(h => (
+              {[t('crm.fName'), t('crm.colEmail'), "LTV", t('crm.colCnt'), t('crm.colLast'), t('crm.colGrade'), t('crm.colChurn', '이탈확률'), t('crm.colPredClv', '예측 CLV')].map(h => (
                 <th key={h} style={{ padding: "10px 14px", textAlign: "left", color: C.muted, fontWeight: 600 }}>{h}</th>
               ))}
             </tr></thead>
             <tbody>
               {derivedCustomers.slice(0, 50).map((c, i) => {
                 const g = getRfmGrade(t)[c.grade] || getRfmGrade(t).normal;
+                // [240차 약점③] 이탈확률·예측CLV — 운영=백엔드 churn_prob/predicted_clv(단일소스). 데모=표시용 근사(recency/freq 기반, 샌드박스 전용).
+                const { churn, clv } = predRowScore(c);
+                const churnColor = churn >= 0.6 ? '#ef4444' : churn >= 0.35 ? '#f59e0b' : '#22c55e';
                 return (
                   <tr key={c.id || i} style={{ borderTop: `1px solid ${C.border}`, background: i % 2 ? "#f1f5f9" : "transparent" }}>
                     <td style={{ padding: "8px 14px", fontWeight: 600 }}>{c.name || "-"}</td>
@@ -405,6 +421,8 @@ function RFMTab({ derivedCustomers }) {
                     <td style={{ padding: "8px 14px" }}>{c.purchase_count || 0} {t('crm.unitTimes')}</td>
                     <td style={{ padding: "8px 14px", color: C.muted, fontSize: 12 }}>{c.last_purchase || "-"}</td>
                     <td style={{ fontSize: 11, fontWeight: 700, background: `${g.color}22`, color: g.color, borderRadius: 6, padding: "3px 8px" }} ><span>{g.label}</span></td>
+                    <td style={{ padding: "8px 14px", fontWeight: 700, color: churnColor }}>{churn != null ? Math.round(churn * 100) + '%' : '-'}</td>
+                    <td style={{ padding: "8px 14px", color: '#8b5cf6', fontWeight: 700 }}>{clv != null ? fmt(clv) : '-'}</td>
                   </tr>
                 );
               })}
@@ -566,7 +584,7 @@ function CRMContent() {
   const mapCust = (r) => ({ id: r.id, name: r.name || '', email: r.email || '', phone: r.phone || '-', grade: r.grade || 'normal', ltv: Number(r.ltv || 0), purchase_count: Number(r.purchase_count || 0), last_purchase: (r.last_purchase || '').slice(0, 10), tags: Array.isArray(r.tags) ? r.tags : [] });
   const reloadOpCustomers = useCallback(() => { crmApi.listCustomers().then(r => setOpCustomers((r.customers || []).map(mapCust))).catch(() => {}); }, []);
   const reloadOpSegments = useCallback(() => { crmApi.listSegments().then(r => setOpSegments((r.segments || []).map(s => ({ ...s, count: Number(s.member_count || 0) })))).catch(() => {}); }, []);
-  const reloadOpRfm = useCallback(() => { crmApi.rfm().then(r => setOpRfm((r.customers || []).map(c => ({ id: c.id, name: c.name || '', email: c.email || '', phone: '-', grade: c.rfm_grade || 'normal', ltv: Number(c.monetary || 0), purchase_count: Number(c.frequency || 0), last_purchase: (c.last_purchase || '').slice(0, 10), tags: [] })))).catch(() => {}); }, []);
+  const reloadOpRfm = useCallback(() => { crmApi.rfm().then(r => setOpRfm((r.customers || []).map(c => ({ id: c.id, name: c.name || '', email: c.email || '', phone: '-', grade: c.rfm_grade || 'normal', ltv: Number(c.monetary || 0), purchase_count: Number(c.frequency || 0), last_purchase: (c.last_purchase || '').slice(0, 10), churn_prob: c.churn_prob, predicted_clv: c.predicted_clv, tags: [] })))).catch(() => {}); }, []); // [240차 약점③] 예측형 CDP: 백엔드 churn_prob/predicted_clv(단일소스) 전달
   useEffect(() => { if (IS_DEMO) return; reloadOpCustomers(); reloadOpSegments(); reloadOpRfm(); }, [reloadOpCustomers, reloadOpSegments, reloadOpRfm]);
 
   const customers = useMemo(() => (
