@@ -547,6 +547,47 @@ class PriceOpt
         return self::json($response, ['ok'=>true,'sku'=>$sku]);
     }
 
+    /** [240차 ⑧-B] POST /v420/price/competitor/harvest — 라이브 경쟁가 자동 수집(Naver 쇼핑 최저가 API).
+     *   ★게이트(client_id/secret 필요)+graceful(없으면 pending). 수동 입력 대체 → po_competitors 자동 갱신
+     *   (compA=최저·compB=차순·alert=우리가 더 비쌈). 실 자격증명 확보 후 즉시 라이브(리프라이서 elasticity 모드가 경쟁가 가드에 사용). */
+    public static function harvestCompetitors(Request $request, Response $response, array $args): Response
+    {
+        if ($err = UserAuth::requirePro($request, $response)) return $err;
+        $db = self::db(); $t = self::tenant($request);
+        $cid = (string)(getenv('NAVER_SHOP_CLIENT_ID')     ?: self::appSetting($db, $t, 'naver_shop_client_id'));
+        $sec = (string)(getenv('NAVER_SHOP_CLIENT_SECRET') ?: self::appSetting($db, $t, 'naver_shop_client_secret'));
+        if ($cid === '' || $sec === '')
+            return self::json($response, ['ok'=>true,'pending'=>true,'updated'=>0,'note'=>'Naver 쇼핑 API 자격증명(client_id/secret) 미설정 — 설정 후 라이브 경쟁가 자동 수집(현재는 수동 입력 사용)']);
+        $ps = $db->prepare("SELECT sku, product_name, base_price FROM po_products WHERE tenant_id=? AND product_name<>'' LIMIT 50");
+        $ps->execute([$t]);
+        $updated = 0;
+        foreach ($ps->fetchAll(\PDO::FETCH_ASSOC) as $p) {
+            $q = trim((string)$p['product_name']); if ($q === '') continue;
+            $ch = curl_init('https://openapi.naver.com/v1/search/shop.json?display=10&sort=asc&query=' . rawurlencode($q));
+            curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER=>true, CURLOPT_TIMEOUT=>8, CURLOPT_SSL_VERIFYPEER=>true,
+                CURLOPT_HTTPHEADER=>["X-Naver-Client-Id: {$cid}", "X-Naver-Client-Secret: {$sec}"]]);
+            $raw = curl_exec($ch); $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE); curl_close($ch);
+            if ($code !== 200 || !$raw) continue;
+            $j = json_decode((string)$raw, true);
+            $prices = [];
+            foreach ((array)($j['items'] ?? []) as $it) { $lp = (float)($it['lprice'] ?? 0); if ($lp > 0) $prices[] = $lp; }
+            if (!$prices) continue;
+            sort($prices);
+            $compA = $prices[0]; $compB = $prices[1] ?? $prices[0]; $our = (float)($p['base_price'] ?? 0);
+            $alert = ($our > 0 && $compA < $our) ? 1 : 0;
+            $db->prepare("INSERT OR REPLACE INTO po_competitors (tenant_id,sku,name,ourPrice,compA,compB,sosRank,alert,updated_at) VALUES (?,?,?,?,?,?,?,?,?)")
+                ->execute([$t, (string)$p['sku'], $q, $our, $compA, $compB, 99, $alert, gmdate('c')]);
+            $updated++;
+        }
+        return self::json($response, ['ok'=>true,'updated'=>$updated,'source'=>'naver_shopping','live'=>true]);
+    }
+
+    private static function appSetting(\PDO $db, string $t, string $k): string
+    {
+        try { $st = $db->prepare("SELECT v FROM app_setting WHERE tenant_id=? AND k=? LIMIT 1"); $st->execute([$t, $k]); $v = $st->fetchColumn(); return $v ? (string)$v : ''; }
+        catch (\Throwable $e) { return ''; }
+    }
+
     // ── Dynamic Repricer ─────────────────────────────────────────────────────
 
     /** GET /v420/price/repricer/rules */

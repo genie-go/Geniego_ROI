@@ -537,6 +537,7 @@ return function (App $app): void {
         // competitor monitoring
         'GET /v420/price/competitor'          => 'Genie\\Handlers\\PriceOpt::listCompetitors',
         'POST /v420/price/competitor'         => 'Genie\\Handlers\\PriceOpt::upsertCompetitor',
+        'POST /v420/price/competitor/harvest' => 'Genie\\Handlers\\PriceOpt::harvestCompetitors', // [240차] 라이브 경쟁가 수집(Naver 쇼핑)
         // dynamic repricer
         'GET /v420/price/repricer/rules'      => 'Genie\\Handlers\\PriceOpt::listRepricerRules',
         'POST /v420/price/repricer/rules'     => 'Genie\\Handlers\\PriceOpt::createRepricerRule',
@@ -2866,6 +2867,7 @@ return function (App $app): void {
     $register('POST',   '/v420/price/optimize/batch');
     $register('GET',    '/v420/price/competitor');
     $register('POST',   '/v420/price/competitor');
+    $register('POST',   '/v420/price/competitor/harvest'); // [240차] 라이브 경쟁가 수집
     $register('GET',    '/v420/price/repricer/rules');
     $register('POST',   '/v420/price/repricer/rules');
     $register('GET',    '/v420/price/repricer/history');
