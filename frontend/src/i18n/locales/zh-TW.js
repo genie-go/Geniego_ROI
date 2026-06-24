@@ -1,4 +1,5 @@
 export default {
+  "memberLog": { "tabLog": "日誌記錄", "tabMemberLog": "會員日誌", "time": "時間", "user": "使用者", "action": "操作", "ipAddr": "IP", "detail": "詳情", "empty": "無記錄", "tenant": "租戶", "integrity": "完整性" },
   "demandForecast": {
     "title": "AI 需求預測",
     "subtitle": "基於銷售訊號（訂單·庫存）的 SKU 需求預測 — 通路串接資料累積越多，預測越精準。",

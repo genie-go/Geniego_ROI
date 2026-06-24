@@ -1,4 +1,5 @@
 export default {
+  "memberLog": { "tabLog": "ログ記録", "tabMemberLog": "メンバーログ", "time": "時刻", "user": "ユーザー", "action": "操作", "ipAddr": "IP", "detail": "詳細", "empty": "記録なし", "tenant": "テナント", "integrity": "整合性" },
   "demandForecast": {
     "title": "AI需要予測",
     "subtitle": "販売シグナル(注文・在庫)に基づくSKU需要予測 — チャネル連携データが蓄積されるほど精度が向上します。",

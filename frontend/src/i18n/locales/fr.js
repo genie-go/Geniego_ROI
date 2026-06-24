@@ -1,4 +1,5 @@
 export default {
+  "memberLog": { "tabLog": "Journal d'activité", "tabMemberLog": "Journaux des membres", "time": "Heure", "user": "Utilisateur", "action": "Action", "ipAddr": "IP", "detail": "Détail", "empty": "Aucun enregistrement", "tenant": "Locataire", "integrity": "Intégrité" },
   "demandForecast": {
     "title": "Prévision de la demande par IA",
     "subtitle": "Prévision de la demande par SKU basée sur les signaux de vente (commandes · stock) — plus les données d'intégration des canaux s'accumulent, plus elle gagne en précision.",

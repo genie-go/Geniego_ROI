@@ -1,4 +1,5 @@
 export default {
+  "memberLog": { "tabLog": "Log Aktivitas", "tabMemberLog": "Log Anggota", "time": "Waktu", "user": "Pengguna", "action": "Tindakan", "ipAddr": "IP", "detail": "Detail", "empty": "Tidak ada catatan", "tenant": "Penyewa", "integrity": "Integritas" },
   "demandForecast": {
     "title": "Prakiraan Permintaan AI",
     "subtitle": "Prakiraan permintaan SKU berbasis sinyal penjualan (pesanan·stok) — semakin banyak data integrasi kanal terkumpul, semakin presisi.",

@@ -1,4 +1,5 @@
 export default {
+  "memberLog": { "tabLog": "Nhật ký hoạt động", "tabMemberLog": "Nhật ký thành viên", "time": "Thời gian", "user": "Người dùng", "action": "Hành động", "ipAddr": "IP", "detail": "Chi tiết", "empty": "Không có bản ghi", "tenant": "Người thuê", "integrity": "Tính toàn vẹn" },
   "demandForecast": {
     "title": "Dự báo nhu cầu bằng AI",
     "subtitle": "Dự báo nhu cầu SKU dựa trên tín hiệu bán hàng (đơn hàng·tồn kho) — càng tích lũy nhiều dữ liệu kết nối kênh thì càng chính xác.",

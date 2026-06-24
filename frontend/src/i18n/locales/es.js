@@ -1,4 +1,5 @@
 export default {
+  "memberLog": { "tabLog": "Registro de actividad", "tabMemberLog": "Registros de miembros", "time": "Hora", "user": "Usuario", "action": "Acción", "ipAddr": "IP", "detail": "Detalle", "empty": "Sin registros", "tenant": "Inquilino", "integrity": "Integridad" },
   "demandForecast": {
     "title": "Previsión de demanda con IA",
     "subtitle": "Previsión de demanda por SKU basada en señales de venta (pedidos · inventario) — cuantos más datos de integración de canales se acumulen, más precisa será.",

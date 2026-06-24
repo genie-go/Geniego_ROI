@@ -1,4 +1,5 @@
 export default {
+  "memberLog": { "tabLog": "日志记录", "tabMemberLog": "会员日志", "time": "时间", "user": "用户", "action": "操作", "ipAddr": "IP", "detail": "详情", "empty": "无记录", "tenant": "租户", "integrity": "完整性" },
   "demandForecast": {
     "title": "AI 需求预测",
     "subtitle": "基于销售信号(订单·库存)的 SKU 需求预测 — 渠道连接数据越多越精准。",

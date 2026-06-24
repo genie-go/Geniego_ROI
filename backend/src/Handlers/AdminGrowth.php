@@ -888,9 +888,20 @@ final class AdminGrowth
     {
         $gate = UserAuth::requirePlan($req, $res, 'admin'); if ($gate !== null) return $gate;
         $pdo  = Db::pdo();
-        $rows = \Genie\SecurityAudit::recent($pdo, null, 300);
+        // [현 차수 보강1] 회원 유형 필터(all|demo|subscriber). recentByType 가 화이트리스트 강제.
+        $q  = $req->getQueryParams();
+        $mt = (string)($q['member_type'] ?? 'all');
+        $mt = in_array($mt, ['all', 'demo', 'subscriber'], true) ? $mt : 'all';
+        $rows = \Genie\SecurityAudit::recentByType($pdo, $mt, 300);
         foreach ($rows as &$r) { $r['details'] = json_decode((string)($r['details_json'] ?? 'null'), true); unset($r['details_json']); }
         unset($r);
-        return self::json($res, ['logs' => $rows, 'count' => count($rows), 'integrity' => \Genie\SecurityAudit::verify($pdo)], '보안 감사 로그');
+        // [현 차수 보강2] 유입 요약 — 어드민 유입 현황 + 마케팅 자동화(funnel) 참조용.
+        return self::json($res, [
+            'logs'        => $rows,
+            'count'       => count($rows),
+            'member_type' => $mt,
+            'acquisition' => \Genie\SecurityAudit::acquisitionSummary($pdo, 30),
+            'integrity'   => \Genie\SecurityAudit::verify($pdo),
+        ], '보안 감사 로그');
     }
 }

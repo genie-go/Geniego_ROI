@@ -4,6 +4,7 @@ import { useAuth } from "../auth/AuthContext.jsx";
 import { useI18n } from '../i18n';
 
 import { useT } from '../i18n/index.js';
+import { useGlobalData } from '../context/GlobalDataContext.jsx'; // [현 차수 보강3] 실시간 동기화(syncTick) 구독
 const API = "/api";
 const PLANS = ["free", "demo", "starter", "growth", "pro", "enterprise", "admin"];
 const PLAN_COLORS = {
@@ -623,23 +624,65 @@ function AuditTab() {
  */
 function MemberAuditTab() {
     const t = useT();
-    const { data, loading } = useAdminApi("v424/admin/security-audit");
+    // [현 차수 보강3] 실시간 동기화 — syncTick 변경 시 재조회. triggerSync 는 수동 새로고침 버튼용.
+    const { syncTick, triggerSync } = useGlobalData();
+    // [현 차수 보강1] 회원 유형 필터(all|demo|subscriber) → member_type 파라미터로 재조회.
+    const [memberType, setMemberType] = useState("all");
+    const { data, loading, refetch } = useAdminApi(
+        `v424/admin/security-audit?member_type=${memberType}`,
+        [syncTick] // syncTick 변경 시 자동 재조회(append-only 로그 → 재조회만으로 동기화 충분)
+    );
     const logs = data?.logs || [];
     const integ = data?.integrity || null;
+    const acq = data?.acquisition || null; // [현 차수 보강2] 유입 요약(데모/구독 신규·활동·추세)
+    const FILTERS = [
+        { id: "all", label: t('memberLog.filterAll', '전체') },
+        { id: "demo", label: t('memberLog.filterDemo', '데모회원') },
+        { id: "subscriber", label: t('memberLog.filterSub', '구독회원') },
+    ];
     const detailText = (det) => {
         if (!det || typeof det !== "object") return "—";
         const parts = Object.entries(det).map(([k, v]) => `${k}: ${typeof v === "object" ? JSON.stringify(v) : v}`);
         return parts.length ? parts.join(", ") : "—";
     };
+    const lastLogin = acq?.trend?.length ? acq.trend[acq.trend.length - 1] : null;
     return (
         <div style={css.card}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+            {/* [현 차수 보강2] 유입 요약 카드 — 마케팅 자동화(AdminGrowth funnel) 참조 가능 데이터 노출 */}
+            {acq && (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12, marginBottom: 16 }}>
+                    {[
+                        { label: t('memberLog.acqDemo', '데모 유입 (30일)'), value: `${acq.demo?.signup ?? 0} ${t('memberLog.acqNew', '신규')} · ${acq.demo?.login ?? 0} ${t('memberLog.acqActive', '활동')}`, color: "#64748b" },
+                        { label: t('memberLog.acqSub', '구독 유입 (30일)'), value: `${acq.subscriber?.signup ?? 0} ${t('memberLog.acqNew', '신규')} · ${acq.subscriber?.login ?? 0} ${t('memberLog.acqActive', '활동')}`, color: "#4f8ef7" },
+                        { label: t('memberLog.acqRecentLogin', '최근 로그인'), value: lastLogin ? `${lastLogin.date} · ${lastLogin.count}` : "—", color: "#8b5cf6" },
+                    ].map((c, i) => (
+                        <div key={i} style={{ background: "#f8fafc", border: "1px solid #e8edf3", borderRadius: 10, padding: "12px 14px" }}>
+                            <div style={{ fontSize: 10, color: "var(--text-3)", fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 6 }}>{c.label}</div>
+                            <div style={{ fontSize: 14, fontWeight: 800, color: c.color }}>{c.value}</div>
+                        </div>
+                    ))}
+                </div>
+            )}
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14, flexWrap: "wrap" }}>
                 <div style={{ fontWeight: 700, fontSize: 13 }}>🛡️ {t('memberLog.tabMemberLog', '회원 로그')} ({logs.length})</div>
                 {integ && (
                     <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 9px", borderRadius: 20, background: integ.ok ? "rgba(34,197,94,0.15)" : "rgba(239,68,68,0.15)", color: integ.ok ? "#16a34a" : "#ef4444" }}>
                         {t('memberLog.integrity', '무결성')}: {integ.ok ? "OK" : `BROKEN @${integ.broken_at}`}
                     </span>
                 )}
+                <div style={{ flex: 1 }} />
+                {/* [현 차수 보강1] 회원 유형 필터 버튼 */}
+                <div style={{ display: "inline-flex", gap: 4, background: "#eef2f7", borderRadius: 8, padding: 3 }}>
+                    {FILTERS.map(f => (
+                        <button key={f.id} onClick={() => setMemberType(f.id)} style={{ padding: "5px 12px", borderRadius: 6, border: "none", cursor: "pointer", fontSize: 11, fontWeight: 700, background: memberType === f.id ? "#fff" : "transparent", color: memberType === f.id ? "#4f8ef7" : "#64748b", boxShadow: memberType === f.id ? "0 1px 2px rgba(0,0,0,0.06)" : "none" }}>
+                            {f.label}
+                        </button>
+                    ))}
+                </div>
+                {/* [현 차수 보강3] 수동 새로고침(전 탭 동기화 트리거 겸용) */}
+                <button onClick={() => { triggerSync(); refetch(); }} style={{ padding: "5px 12px", borderRadius: 6, border: "1px solid #cbd5e1", cursor: "pointer", fontSize: 11, fontWeight: 700, background: "#fff", color: "#475569" }}>
+                    🔄 {t('memberLog.refresh', '새로고침')}
+                </button>
             </div>
             {loading ? <div style={{ color: "var(--text-3)" }}>로딩 중...</div> : (
                 <table style={{ width: "100%", borderCollapse: "collapse" }}>

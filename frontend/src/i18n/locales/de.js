@@ -1,4 +1,5 @@
 export default {
+  "memberLog": { "tabLog": "Aktivitätsprotokoll", "tabMemberLog": "Mitgliederprotokolle", "time": "Zeit", "user": "Benutzer", "action": "Aktion", "ipAddr": "IP", "detail": "Detail", "empty": "Keine Einträge", "tenant": "Mandant", "integrity": "Integrität" },
   "demandForecast": {
     "title": "KI-Nachfrageprognose",
     "subtitle": "SKU-Nachfrageprognose auf Basis von Verkaufssignalen (Bestellungen · Lagerbestand) — je mehr kanalintegrierte Daten anfallen, desto präziser wird sie.",
