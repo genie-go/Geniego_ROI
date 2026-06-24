@@ -617,6 +617,52 @@ function AuditTab() {
     );
 }
 
+/* ─── TAB: 회원 로그(전 테넌트 보안 감사 + 무결성) ─────────────────────────────
+ *  admin 전용. 기존 AdminGrowth::securityAudit(GET /v424/admin/security-audit) 재사용.
+ *  무결성 배지는 해시체인 verify 결과(변조 시 broken_at).
+ */
+function MemberAuditTab() {
+    const t = useT();
+    const { data, loading } = useAdminApi("v424/admin/security-audit");
+    const logs = data?.logs || [];
+    const integ = data?.integrity || null;
+    const detailText = (det) => {
+        if (!det || typeof det !== "object") return "—";
+        const parts = Object.entries(det).map(([k, v]) => `${k}: ${typeof v === "object" ? JSON.stringify(v) : v}`);
+        return parts.length ? parts.join(", ") : "—";
+    };
+    return (
+        <div style={css.card}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+                <div style={{ fontWeight: 700, fontSize: 13 }}>🛡️ {t('memberLog.tabMemberLog', '회원 로그')} ({logs.length})</div>
+                {integ && (
+                    <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 9px", borderRadius: 20, background: integ.ok ? "rgba(34,197,94,0.15)" : "rgba(239,68,68,0.15)", color: integ.ok ? "#16a34a" : "#ef4444" }}>
+                        {t('memberLog.integrity', '무결성')}: {integ.ok ? "OK" : `BROKEN @${integ.broken_at}`}
+                    </span>
+                )}
+            </div>
+            {loading ? <div style={{ color: "var(--text-3)" }}>로딩 중...</div> : (
+                <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                    <thead><tr>{[t('memberLog.tenant', '테넌트'), t('memberLog.user', '사용자'), t('memberLog.action', '동작'), t('memberLog.ipAddr', 'IP'), t('memberLog.time', '시각'), t('memberLog.detail', '상세')].map(h => <th key={h} style={css.th}>{h}</th>)}</tr></thead>
+                    <tbody>
+                        {logs.map((l, i) => (
+                            <tr key={l.id || i}>
+                                <td style={css.td}><span style={{ fontSize: 10, color: "var(--text-3)" }}>{l.tenant_id || "—"}</span></td>
+                                <td style={css.td}><span style={{ fontSize: 11 }}>{l.actor || "—"}</span></td>
+                                <td style={css.td}><span style={{ fontSize: 11, fontWeight: 700, color: "#4f8ef7" }}>{l.action || "—"}</span></td>
+                                <td style={css.td}><span style={{ fontSize: 10, color: "var(--text-3)" }}>{l.ip_address || "—"}</span></td>
+                                <td style={css.td}><span style={{ fontSize: 10, color: "var(--text-3)" }}>{(l.created_at || "").replace("T", " ").slice(0, 19)}</span></td>
+                                <td style={css.td}><span style={{ fontSize: 11, color: "var(--text-2)" }}>{detailText(l.details)}</span></td>
+                            </tr>
+                        ))}
+                        {logs.length === 0 && <tr><td colSpan={6} style={{ ...css.td, textAlign: "center", color: "var(--text-3)", padding: 20 }}>{t('memberLog.empty', '기록 없음')}</td></tr>}
+                    </tbody>
+                </table>
+            )}
+        </div>
+    );
+}
+
 /* ─── MAIN ────────────────────────────────────────────────────────────────── */
 const TABS = [
     { id: "stats", label: "📊 대시보드" },
@@ -624,6 +670,7 @@ const TABS = [
     { id: "roles", label: "🔐 역할·권한(RBAC)" },
     { id: "billing", label: "💰 결제 내역" },
     { id: "audit", label: "📋 감사 로그" },
+    { id: "memberlog", label: "🛡️ 회원 로그" },
 ];
 
 export default function UserManagement() {
@@ -682,6 +729,7 @@ export default function UserManagement() {
             {tab === "roles" && <RolesTab />}
             {tab === "billing" && <BillingTab />}
             {tab === "audit" && <AuditTab />}
+            {tab === "memberlog" && <MemberAuditTab />}
         </div>
     );
 }

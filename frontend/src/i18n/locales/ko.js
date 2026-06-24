@@ -1,4 +1,5 @@
 export default {
+  "memberLog": { "tabLog": "로그 기록", "tabMemberLog": "회원 로그", "time": "시각", "user": "사용자", "action": "동작", "ipAddr": "IP", "detail": "상세", "empty": "기록 없음", "tenant": "테넌트", "integrity": "무결성" },
   "demandForecast": {
     "title": "AI 수요예측",
     "subtitle": "판매 신호(주문·재고) 기반 SKU 수요예측 — 채널 연동 데이터가 쌓일수록 정밀해집니다.",

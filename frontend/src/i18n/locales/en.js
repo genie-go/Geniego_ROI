@@ -1,4 +1,5 @@
 export default {
+  "memberLog": { "tabLog": "Activity Log", "tabMemberLog": "Member Logs", "time": "Time", "user": "User", "action": "Action", "ipAddr": "IP", "detail": "Detail", "empty": "No records", "tenant": "Tenant", "integrity": "Integrity" },
   "demandForecast": {
     "title": "AI Demand Forecast",
     "subtitle": "Sales-signal (orders·inventory) based SKU demand forecast — accuracy improves as connected channel data accumulates.",

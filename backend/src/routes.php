@@ -1174,6 +1174,9 @@ return function (App $app): void {
         // [현 차수] H4: InfluencerUGC 라이브 데이터 — 4 kind GET/POST(테넌트 격리 영속). 세션 self-auth.
         'GET /v423/influencer/creators'       => 'Genie\\Handlers\\Influencer::creators',
         'GET /v423/influencer/cost-summary'   => 'Genie\\Handlers\\Influencer::costSummary', // [240차] 인플루언서 비용 P&L 집계
+        // [현 차수] 구독계정 본인 보안 로그(team-members 로그 기록 탭) — 세션 self-auth·테넌트 서버도출 강제
+        'GET /v423/member-logs'               => 'Genie\\Handlers\\UserAuth::memberLogs',
+        'GET /api/v423/member-logs'           => 'Genie\\Handlers\\UserAuth::memberLogs',
         'GET /v423/influencer/ugc-reviews'    => 'Genie\\Handlers\\Influencer::ugcReviews',
         'GET /v423/influencer/channel-stats'  => 'Genie\\Handlers\\Influencer::channelStats',
         'GET /v423/influencer/neg-keywords'   => 'Genie\\Handlers\\Influencer::negKeywords',
@@ -1827,6 +1830,8 @@ return function (App $app): void {
     $register('GET',    '/v423/creds/summary');
     $register('DELETE', '/v423/creds/{id}');
     $register('POST',   '/v423/creds/{id}/test');
+    // [현 차수] 구독계정 본인 보안 로그(team-members 로그 기록 탭)
+    $register('GET',    '/v423/member-logs');               $register('GET',    '/api/v423/member-logs');
     // [현 차수] H4: InfluencerUGC 라이브 데이터
     $register('GET',    '/v423/influencer/creators');
     $register('GET',    '/v423/influencer/ugc-reviews');

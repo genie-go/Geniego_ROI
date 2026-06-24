@@ -8,6 +8,7 @@ import { handlePlanLimit } from '../utils/planLimit.js';
 import AvatarField from '../components/AvatarField.jsx'; // [231차 #3] 프로필 사진 등록·표시
 import * as teamApi from '../services/teamApi.js'; // [231차 팀권한] 팀 엔터티/권한 매트릭스/데이터범위
 import { MENU_CATALOG, ACTIONS, DATA_SCOPES, TEAM_TYPES, normActions, actionsCover } from '../services/teamApi.js';
+import { getJsonAuth } from '../services/apiClient.js'; // [현 차수] 본인 보안 로그(세션 Bearer)
 
 /**
  * 팀·멤버·권한 관리 (180차 멤버구성원 → 231차 초엔터프라이즈 RBAC/ABAC 통합).
@@ -66,6 +67,7 @@ export default function TeamMembers() {
     { id: 'teams', label: t('teamMembers.tabTeams', '팀 관리'), icon: '🏢' },
     { id: 'matrix', label: t('teamMembers.tabMatrix', '권한 매트릭스'), icon: '🔐' },
     { id: 'audit', label: t('teamMembers.tabAudit', '감사 로그'), icon: '🧾' },
+    { id: 'memberlog', label: t('memberLog.tabLog', '로그 기록'), icon: '🛡️' },
   ];
 
   return (
@@ -102,6 +104,7 @@ export default function TeamMembers() {
       {tab === 'teams' && <TeamsPanel t={t} canManage={isOwnerAdmin} flash={flash} />}
       {tab === 'matrix' && <MatrixPanel t={t} canManage={canManage} isOwnerAdmin={isOwnerAdmin} flash={flash} />}
       {tab === 'audit' && <AuditPanel t={t} flash={flash} />}
+      {tab === 'memberlog' && <MemberLogPanel t={t} flash={flash} />}
 
       {toast && <div style={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', background: '#1e293b', color: '#fff', padding: '11px 22px', borderRadius: 10, fontSize: 13, fontWeight: 600, zIndex: 9999 }}>{toast}</div>}
     </div>
@@ -636,6 +639,61 @@ function AuditPanel({ t, flash }) {
                   <td style={{ padding: '7px 10px', fontWeight: 600 }}>{l.action}</td>
                   <td style={{ padding: '7px 10px', color: '#475569' }}>{l.detail}</td>
                   <td style={{ padding: '7px 10px' }}><span style={{ fontSize: 11, fontWeight: 700, color: RISK_COLOR[l.risk] || '#64748b' }}>{l.risk || '—'}</span></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ═══════════════════ 본인 보안 활동 로그 패널 (현 차수) ═══════════════════
+ *  ★테넌트 격리: 백엔드 memberLogs 가 authedTenant(서버 도출)로만 스코프 조회.
+ *  클라이언트는 어떤 tenant 파라미터도 보내지 않으므로 타 계정 로그 혼입이 구조적으로 불가.
+ */
+function MemberLogPanel({ t, flash }) {
+  const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    (async () => {
+      setLoading(true);
+      try {
+        const d = await getJsonAuth('/api/v423/member-logs'); // 세션 Bearer · 테넌트 서버강제
+        setLogs(Array.isArray(d?.logs) ? d.logs : []);
+      } catch (e) { flash('⚠ ' + (e?.message || e)); setLogs([]); }
+      setLoading(false);
+    })();
+  }, []);
+  const detailText = (det) => {
+    if (!det || typeof det !== 'object') return '—';
+    const parts = Object.entries(det).map(([k, v]) => `${k}: ${typeof v === 'object' ? JSON.stringify(v) : v}`);
+    return parts.length ? parts.join(', ') : '—';
+  };
+  return (
+    <div style={card}>
+      <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 12 }}>🛡️ {t('memberLog.tabLog', '로그 기록')} ({logs.length})</div>
+      {loading ? <div style={{ color: '#64748b', fontSize: 13 }}>{t('teamMembers.loading', '불러오는 중…')}</div> : !logs.length ? (
+        <div style={{ padding: 20, textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>{t('memberLog.empty', '기록 없음')}</div>
+      ) : (
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12.5 }}>
+            <thead><tr style={{ textAlign: 'left', color: '#64748b', borderBottom: '1px solid var(--border,#e5e7eb)' }}>
+              <th style={{ padding: '8px 10px' }}>{t('memberLog.time', '시각')}</th>
+              <th style={{ padding: '8px 10px' }}>{t('memberLog.user', '사용자')}</th>
+              <th style={{ padding: '8px 10px' }}>{t('memberLog.action', '동작')}</th>
+              <th style={{ padding: '8px 10px' }}>{t('memberLog.ipAddr', 'IP')}</th>
+              <th style={{ padding: '8px 10px' }}>{t('memberLog.detail', '상세')}</th>
+            </tr></thead>
+            <tbody>
+              {logs.map((l, i) => (
+                <tr key={l.id || i} style={{ borderBottom: '1px solid var(--border,#f1f5f9)' }}>
+                  <td style={{ padding: '7px 10px', color: '#94a3b8', whiteSpace: 'nowrap' }}>{(l.created_at || '').replace('T', ' ').slice(0, 19)}</td>
+                  <td style={{ padding: '7px 10px' }}>{l.actor || '—'}</td>
+                  <td style={{ padding: '7px 10px', fontWeight: 600 }}>{l.action || '—'}</td>
+                  <td style={{ padding: '7px 10px', color: '#94a3b8', whiteSpace: 'nowrap' }}>{l.ip_address || '—'}</td>
+                  <td style={{ padding: '7px 10px', color: '#475569' }}>{detailText(l.details)}</td>
                 </tr>
               ))}
             </tbody>

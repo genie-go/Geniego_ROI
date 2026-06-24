@@ -344,6 +344,35 @@ final class UserAuth
     }
 
     // ─────────────────────────────────────────────────────────────
+    // GET /v423/member-logs — 구독계정 본인 보안 활동 로그(team-members "로그 기록" 탭)
+    //
+    //   ★보안: 테넌트는 반드시 서버 도출값(authedTenant)만 사용한다. 클라이언트가 보낸
+    //   tenant/tenant_id 등 어떤 파라미터도 신뢰하지 않으므로 크로스테넌트 누출이 구조적으로 불가.
+    //   SecurityAudit::recent 가 WHERE tenant_id=? 로 스코프 조회 → 자기 계정 로그만 반환.
+    // ─────────────────────────────────────────────────────────────
+    public static function memberLogs(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        $tenant = self::authedTenant($req); // 서버 도출 전용(클라 파라미터 절대 미사용)
+        if ($tenant === null) {
+            return self::json($res, ['ok' => false, 'error' => '인증이 필요합니다.'], 401);
+        }
+        $rows = \Genie\SecurityAudit::recent(Db::pdo(), $tenant, 300);
+        $logs = [];
+        foreach ($rows as $r) {
+            $det = json_decode((string)($r['details_json'] ?? ''), true);
+            $logs[] = [
+                'id'         => (int)($r['id'] ?? 0),
+                'actor'      => (string)($r['actor'] ?? ''),
+                'action'     => (string)($r['action'] ?? ''),
+                'details'    => is_array($det) ? $det : [],
+                'ip_address' => (string)($r['ip_address'] ?? ''),
+                'created_at' => (string)($r['created_at'] ?? ''),
+            ];
+        }
+        return self::json($res, ['ok' => true, 'tenant' => $tenant, 'logs' => $logs]);
+    }
+
+    // ─────────────────────────────────────────────────────────────
     // POST /auth/register
     // Body: { email, password, name, company? }
     // ─────────────────────────────────────────────────────────────
