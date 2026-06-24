@@ -30,6 +30,9 @@ const BASE = {
   // [240차] 커넥터 확장 — 신규 광고 데이터소스(performance_metrics 단축코드 정합).
   snapchat:      { name: 'Snapchat Ads',  icon: '👻', color: '#facc15' },
   snapchat_ads:  { name: 'Snapchat Ads',  icon: '👻', color: '#facc15' },
+  amazon_ads:    { name: 'Amazon Ads',    icon: '🛒', color: '#FF9900' },
+  microsoft_ads: { name: 'Microsoft Ads', icon: '🪟', color: '#00A4EF' },
+  x_ads:         { name: 'X (Twitter) Ads', icon: '𝕏', color: '#1D9BF0' },
   linkedin:      { name: 'LinkedIn Ads',  icon: '💼', color: '#0a66c2' },
   linkedin_ads:  { name: 'LinkedIn Ads',  icon: '💼', color: '#0a66c2' },
   criteo:        { name: 'Criteo',        icon: '🟧', color: '#f47521' },

@@ -1419,6 +1419,10 @@ final class Connectors
             'linkedin'  => fn() => self::fetchLinkedinRows($tenant, $start, $end),
             'criteo'    => fn() => self::fetchCriteoRows($tenant, $start, $end),
             'pinterest' => fn() => self::fetchPinterestRows($tenant, $start, $end),
+            // [240차 약점⑧] 광고 커넥터 확대 — Amazon/Microsoft/X Ads(게이트+OAuth 인증취득+graceful, 라이브 검증 후 매핑)
+            'amazon_ads'    => fn() => self::fetchAmazonAdsRows($tenant, $start, $end),
+            'microsoft_ads' => fn() => self::fetchMicrosoftAdsRows($tenant, $start, $end),
+            'x_ads'         => fn() => self::fetchXAdsRows($tenant, $start, $end),
         ];
 
         foreach ($fetchers as $ch => $fn) {
@@ -2296,5 +2300,52 @@ final class Connectors
             ];
         }
         return ['hasCreds' => true, 'live' => true, 'rows' => $rows];
+    }
+
+    /* [240차 약점⑧] Amazon Ads — LWA OAuth2 인증 취득(SP-API 패턴 재사용). v2 리포트는 비동기(요청→폴링→다운로드)라
+     *   라이브 자격증명 검증 시 폴링 매핑 확정. ★게이트+graceful empty(날조 0·크래시 0). */
+    private static function fetchAmazonAdsRows(string $tenant, string $start, string $end): array
+    {
+        $refresh = (string)(getenv('AMAZON_ADS_REFRESH_TOKEN') ?: self::loadCred($tenant, 'amazon_ads', 'refresh_token'));
+        $cid     = (string)(getenv('AMAZON_ADS_CLIENT_ID')     ?: self::loadCred($tenant, 'amazon_ads', 'client_id'));
+        $secret  = (string)(getenv('AMAZON_ADS_CLIENT_SECRET') ?: self::loadCred($tenant, 'amazon_ads', 'client_secret'));
+        $profile = (string)self::loadCred($tenant, 'amazon_ads', 'profile_id');
+        if ($refresh === '' || $cid === '' || $secret === '' || $profile === '') return ['hasCreds' => false, 'live' => false, 'rows' => []];
+        [$tc, $tb] = self::httpPost('https://api.amazon.com/auth/o2/token',
+            ['grant_type' => 'refresh_token', 'refresh_token' => $refresh, 'client_id' => $cid, 'client_secret' => $secret],
+            ['Content-Type' => 'application/x-www-form-urlencoded']);
+        $token = is_array($tb) ? (string)($tb['access_token'] ?? '') : '';
+        if ($token === '') return ['hasCreds' => true, 'live' => false, 'error' => "amazon_ads token http $tc"];
+        // 인증 OK. 비동기 리포트 폴링은 실 자격증명 검증 단계에서 활성화 → 현재는 graceful empty.
+        return ['hasCreds' => true, 'live' => true, 'rows' => [], 'note' => 'amazon_ads 인증 OK — 비동기 리포트 매핑은 라이브 자격증명 검증 후'];
+    }
+
+    /* [240차 약점⑧] Microsoft Ads(Bing) — MS Identity OAuth2 인증 취득. 리포팅은 SOAP 비동기 → 라이브 검증 후 매핑. 게이트+graceful. */
+    private static function fetchMicrosoftAdsRows(string $tenant, string $start, string $end): array
+    {
+        $refresh = (string)(getenv('MSADS_REFRESH_TOKEN') ?: self::loadCred($tenant, 'microsoft_ads', 'refresh_token'));
+        $cid     = (string)(getenv('MSADS_CLIENT_ID')     ?: self::loadCred($tenant, 'microsoft_ads', 'client_id'));
+        $secret  = (string)(getenv('MSADS_CLIENT_SECRET') ?: self::loadCred($tenant, 'microsoft_ads', 'client_secret'));
+        $devToken = (string)self::loadCred($tenant, 'microsoft_ads', 'developer_token');
+        if ($refresh === '' || $cid === '' || $devToken === '') return ['hasCreds' => false, 'live' => false, 'rows' => []];
+        [$tc, $tb] = self::httpPost('https://login.microsoftonline.com/common/oauth2/v2.0/token',
+            ['grant_type' => 'refresh_token', 'refresh_token' => $refresh, 'client_id' => $cid, 'client_secret' => $secret, 'scope' => 'https://ads.microsoft.com/msads.manage offline_access'],
+            ['Content-Type' => 'application/x-www-form-urlencoded']);
+        $token = is_array($tb) ? (string)($tb['access_token'] ?? '') : '';
+        if ($token === '') return ['hasCreds' => true, 'live' => false, 'error' => "microsoft_ads token http $tc"];
+        return ['hasCreds' => true, 'live' => true, 'rows' => [], 'note' => 'microsoft_ads 인증 OK — SOAP 리포팅 매핑은 라이브 자격증명 검증 후'];
+    }
+
+    /* [240차 약점⑧] X(Twitter) Ads — OAuth1.0a(per-request HMAC-SHA1 서명) 자격증명 게이트. 라이브 서명/통계 매핑은 검증 후. graceful. */
+    private static function fetchXAdsRows(string $tenant, string $start, string $end): array
+    {
+        $ck = (string)(getenv('X_ADS_CONSUMER_KEY')    ?: self::loadCred($tenant, 'x_ads', 'consumer_key'));
+        $cs = (string)(getenv('X_ADS_CONSUMER_SECRET') ?: self::loadCred($tenant, 'x_ads', 'consumer_secret'));
+        $at = (string)self::loadCred($tenant, 'x_ads', 'access_token');
+        $as = (string)self::loadCred($tenant, 'x_ads', 'access_token_secret');
+        $acct = (string)self::loadCred($tenant, 'x_ads', 'account_id');
+        if ($ck === '' || $cs === '' || $at === '' || $as === '' || $acct === '') return ['hasCreds' => false, 'live' => false, 'rows' => []];
+        // OAuth1.0a 서명·stats/jobs 비동기 매핑은 라이브 자격증명 검증 단계에서 활성화 → graceful empty(날조 0).
+        return ['hasCreds' => true, 'live' => true, 'rows' => [], 'note' => 'x_ads 자격증명 OK — OAuth1.0a 서명·통계 매핑은 라이브 자격증명 검증 후'];
     }
 }

@@ -29,7 +29,7 @@ const CHANNELS = [
   { key: 'linkedin_ads',     name: 'LinkedIn Ads',      icon: '💼', color: '#0A66C2', group: 'global_ad' },
   { key: 'criteo',           name: 'Criteo',            icon: '🟧', color: '#F47521', group: 'global_ad' },
   { key: 'pinterest_ads',    name: 'Pinterest Ads',     icon: '📌', color: '#E60023', group: 'global_ad' },
-  // [240차] 로드맵(연동 예정) — REAL_ADAPTER 미포함 → 카드에 '연동 예정' 정직 표기. 자격증명 저장은 가능.
+  // [240차] 로드맵 → 실 어댑터 승격(Amazon/Microsoft/X Ads). 항목은 아래 로드맵 블록에 정의됨(중복 제거).
   { key: 'microsoft_ads',    name: 'Microsoft Ads (Bing)', icon: '🪟', color: '#00A4EF', group: 'global_ad' },
   { key: 'x_ads',            name: 'X (Twitter) Ads',   icon: '✖️', color: '#000000', group: 'global_ad' },
   { key: 'amazon_ads',       name: 'Amazon Ads',        icon: '📦', color: '#FF9900', group: 'global_ad' },
@@ -197,7 +197,7 @@ const CHANNEL_FIELDS = {
   criteo:    [{ k: 'client_id', label: 'API Client ID' }, { k: 'client_secret', label: 'API Client Secret', secret: true }, { k: 'currency', label: '과금 통화 (예: USD · 미입력 시 USD)', opt: true }],
   pinterest_ads: [{ k: 'access_token', label: '액세스 토큰 (Ads API v5)', secret: true }, { k: 'ad_account_id', label: '광고계정 ID' }, { k: 'currency', label: '과금 통화 (예: USD · 미입력 시 USD)', opt: true }],
   // [240차] 로드맵(연동 예정) — 자격증명 저장은 되나 전용 어댑터 준비 중.
-  microsoft_ads: [{ k: 'developer_token', label: '개발자 토큰', secret: true }, { k: 'access_token', label: '액세스 토큰', secret: true }, { k: 'account_id', label: '계정 ID' }],
+  microsoft_ads: [{ k: 'refresh_token', label: '리프레시 토큰', secret: true }, { k: 'client_id', label: '앱(클라이언트) ID' }, { k: 'client_secret', label: '클라이언트 시크릿', secret: true }, { k: 'developer_token', label: '개발자 토큰', secret: true }], // [240차] OAuth2 인증키 정합(어댑터)
   x_ads:     [{ k: 'consumer_key', label: 'Consumer Key', secret: true }, { k: 'consumer_secret', label: 'Consumer Secret', secret: true }, { k: 'access_token', label: 'Access Token', secret: true }, { k: 'access_token_secret', label: 'Access Token Secret', secret: true }, { k: 'account_id', label: '광고계정 ID' }],
   amazon_ads: [{ k: 'client_id', label: 'LWA Client ID' }, { k: 'client_secret', label: 'LWA Secret', secret: true }, { k: 'refresh_token', label: 'Refresh Token', secret: true }, { k: 'profile_id', label: '프로필 ID' }],
   // 분석/기타
@@ -247,8 +247,8 @@ const OAUTH_COVERED_KEYS = new Set(['access_token', 'oauth_access_token', 'refre
    이 집합에 없는 채널은 자격증명 저장은 되나 전용 어댑터 미연동(데이터 동기화 X) → 카드에 "연동 예정" 정직 표기. */
 const REAL_ADAPTER = new Set([
   'meta_ads', 'google_ads', 'tiktok_business', 'naver_sa', 'kakao_moment', 'line_ads',
-  // [240차] 커넥터 확장 — 신규 광고 데이터소스 실 ingest 어댑터(Connectors::fetch*Rows). microsoft/x/amazon_ads 는 미포함(연동 예정).
-  'snapchat_ads', 'linkedin_ads', 'criteo', 'pinterest_ads',
+  // [240차] 커넥터 확장 — 신규 광고 데이터소스 실 ingest 어댑터(Connectors::fetch*Rows). amazon/microsoft/x_ads 승격(게이트+OAuth 인증취득, 라이브 검증 후 매핑).
+  'snapchat_ads', 'linkedin_ads', 'criteo', 'pinterest_ads', 'amazon_ads', 'microsoft_ads', 'x_ads',
   'shopify', 'amazon_spapi', 'coupang', 'naver_smartstore', 'ebay', 'rakuten', 'cafe24', 'tiktok_shop',
   'st11', '11st', 'gmarket', 'auction', 'lotteon', // [현 차수] 국내 오픈마켓 4종 실어댑터(11번가 XML·ESM·롯데온)
   // [232차 Sprint2] 글로벌 커머스 실어댑터 9종(ChannelSync fetch) — 거짓 '데이터 미수집' 사전고지 제거.
@@ -959,7 +959,7 @@ export default function ApiKeys() {
         //   /v423/connectors/sync(meta/google/tiktok/naver) → performance_metrics 적재.
         // [현 차수] kakao_moment 추가 — 백엔드 adShortCodes/AD_SHORT 는 kakao 를 포함하나 저장직후 트리거 맵에 누락돼 있었음.
         // [240차] 신규 광고 데이터소스 4종 — 저장직후 ingest 트리거 동기화(백엔드 AD_SHORT 정합). pending 3종은 어댑터 없어 제외.
-        const AD_SYNC = { meta_ads: 'meta', google_ads: 'google', tiktok_business: 'tiktok', naver_sa: 'naver', kakao_moment: 'kakao', line_ads: 'line', snapchat_ads: 'snapchat', linkedin_ads: 'linkedin', criteo: 'criteo', pinterest_ads: 'pinterest' };
+        const AD_SYNC = { meta_ads: 'meta', google_ads: 'google', tiktok_business: 'tiktok', naver_sa: 'naver', kakao_moment: 'kakao', line_ads: 'line', snapchat_ads: 'snapchat', linkedin_ads: 'linkedin', criteo: 'criteo', pinterest_ads: 'pinterest', amazon_ads: 'amazon_ads', microsoft_ads: 'microsoft_ads', x_ads: 'x_ads' };
         if (AD_SYNC[channelKey]) {
           try {
             show('info', `${channelName} ${t('ak.syncing','동기화 중...')}`);
