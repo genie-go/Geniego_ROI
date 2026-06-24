@@ -703,6 +703,8 @@ final class UserAuth
                         ], 401);
                     }
                 }
+                // [240차 약점⑦] 불변 보안 감사 — 로그인 실패 기록(무차별 대입 탐지·감사 추적).
+                try { \Genie\SecurityAudit::log($pdo, (string)($user['tenant_id'] ?? ''), $email, 'auth.login_failed', ['reason' => 'bad_password'], $req); } catch (\Throwable $e) {}
                 return self::json($res, ['ok' => false, 'error' => '이메일 또는 비밀번호가 올바르지 않습니다.'], 401);
             }
 
@@ -795,6 +797,8 @@ final class UserAuth
             $pdo->prepare('INSERT INTO user_session(user_id,token,expires_at,created_at) VALUES(?,?,?,?)')
                 ->execute([$userId, $token, $expires, $now]);
             self::recordSessionMeta($pdo, $req, $token); // 189차+ 세션 ip/ua 메타 기록
+            // [240차 약점⑦] 불변 보안 감사 — 로그인 성공 기록(tamper-evident 해시체인).
+            try { \Genie\SecurityAudit::log($pdo, (string)self::resolveTenantId($pdo, $user), (string)($user['email'] ?? ''), 'auth.login', ['plan' => ($user['plans'] ?? $user['plan'] ?? ''), 'master' => $isMasterAuth], $req); } catch (\Throwable $e) {}
 
             $effectivePlan = $user['plans'] ?? $user['plan'] ?? 'free';
             if (($user['plan'] ?? '') === 'admin' || ($user['plans'] ?? '') === 'admin') {

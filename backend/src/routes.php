@@ -823,6 +823,7 @@ return function (App $app): void {
         'GET /v424/admin/growth/settings'              => 'Genie\\Handlers\\AdminGrowth::settings',
         'PUT /v424/admin/growth/settings'              => 'Genie\\Handlers\\AdminGrowth::settingsSave',
         'GET /v424/admin/growth/audit'                 => 'Genie\\Handlers\\AdminGrowth::audit_log',
+        'GET /v424/admin/security-audit'               => 'Genie\\Handlers\\AdminGrowth::securityAudit', // [240차] 불변 보안 감사+무결성
         // /api 변형 (Apache Alias /api strip 환경)
         'GET /api/v424/admin/growth/dashboard'             => 'Genie\\Handlers\\AdminGrowth::dashboard',
         'GET /api/v424/admin/growth/funnel'                => 'Genie\\Handlers\\AdminGrowth::funnel',
@@ -842,6 +843,7 @@ return function (App $app): void {
         'GET /api/v424/admin/growth/settings'              => 'Genie\\Handlers\\AdminGrowth::settings',
         'PUT /api/v424/admin/growth/settings'              => 'Genie\\Handlers\\AdminGrowth::settingsSave',
         'GET /api/v424/admin/growth/audit'                 => 'Genie\\Handlers\\AdminGrowth::audit_log',
+        'GET /api/v424/admin/security-audit'               => 'Genie\\Handlers\\AdminGrowth::securityAudit', // [240차] 불변 보안 감사+무결성
         // 172차 P0-C — 쿠폰 사용 (user)
         'POST /auth/coupon/redeem'      => 'Genie\\Handlers\\CouponRedeem::redeem',
         'GET /auth/coupon/preview'      => 'Genie\\Handlers\\CouponRedeem::preview',
@@ -2011,6 +2013,7 @@ return function (App $app): void {
         $register('GET',    $pfx . '/v424/admin/growth/settings');
         $register('PUT',    $pfx . '/v424/admin/growth/settings');
         $register('GET',    $pfx . '/v424/admin/growth/audit');
+        $register('GET',    $pfx . '/v424/admin/security-audit'); // [240차] 불변 보안 감사
     }
 
     // ── Subscription Packages ────────────────────────────────────────

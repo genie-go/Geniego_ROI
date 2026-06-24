@@ -882,4 +882,15 @@ final class AdminGrowth
         foreach ($rows as &$r) { $r['details'] = json_decode((string)($r['details_json'] ?? 'null'), true); }
         return self::json($res, ['logs' => $rows, 'count' => count($rows)], '감사 로그');
     }
+
+    /* [240차 약점⑦] 불변 보안 감사 로그 조회 + 무결성 검증 — tamper-evident 해시체인(SOC2/ISO 감사 정합). */
+    public static function securityAudit(Request $req, Response $res): Response
+    {
+        $gate = UserAuth::requirePlan($req, $res, 'admin'); if ($gate !== null) return $gate;
+        $pdo  = Db::pdo();
+        $rows = \Genie\SecurityAudit::recent($pdo, null, 300);
+        foreach ($rows as &$r) { $r['details'] = json_decode((string)($r['details_json'] ?? 'null'), true); unset($r['details_json']); }
+        unset($r);
+        return self::json($res, ['logs' => $rows, 'count' => count($rows), 'integrity' => \Genie\SecurityAudit::verify($pdo)], '보안 감사 로그');
+    }
 }
