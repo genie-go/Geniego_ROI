@@ -66,6 +66,33 @@ final class Connectors
         return [$code, $body, $err];
     }
 
+    /** [현 차수] gzip/비-JSON 응답(예: Amazon Ads v3 GZIP_JSON 리포트 다운로드)을 위한 원시 바디 보존 GET.
+     *  반환 [code, json|null, err, rawBody]. json 디코드 실패 시 rawBody 로 호출측이 gzdecode 처리. */
+    private static function httpGetRaw(string $url, array $headers = []): array
+    {
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_TIMEOUT        => 20,
+            CURLOPT_ENCODING       => '', // gzip/deflate 자동 해제(서버가 Content-Encoding 부여 시)
+            CURLOPT_HTTPHEADER     => array_map(
+                fn ($k, $v) => "$k: $v",
+                array_keys($headers),
+                array_values($headers)
+            ),
+            CURLOPT_SSL_VERIFYPEER => true,
+            CURLOPT_USERAGENT      => 'Geniego-ROI/v421 PHP',
+        ]);
+        $raw  = curl_exec($ch);
+        $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $err  = curl_error($ch) ?: null;
+        curl_close($ch);
+        $rawStr = $err === null ? (string)$raw : '';
+        $json   = $rawStr !== '' ? json_decode($rawStr, true) : null;
+        return [$code, is_array($json) ? $json : null, $err, $rawStr];
+    }
+
     private static function httpPost(string $url, array $payload, array $headers = []): array
     {
         $ch = curl_init($url);
@@ -2306,8 +2333,12 @@ final class Connectors
         return ['hasCreds' => true, 'live' => true, 'rows' => $rows];
     }
 
-    /* [240차 약점⑧] Amazon Ads — LWA OAuth2 인증 취득(SP-API 패턴 재사용). v2 리포트는 비동기(요청→폴링→다운로드)라
-     *   라이브 자격증명 검증 시 폴링 매핑 확정. ★게이트+graceful empty(날조 0·크래시 0). */
+    /* [현 차수 약점⑧] Amazon Ads — LWA OAuth2(refresh_token) → v3 Reporting API(비동기: 생성→폴링→다운로드).
+     *   POST {region}/reporting/reports (sponsoredProducts·spCampaigns·groupBy=campaign·DAILY) → reportId,
+     *   GET .../reports/{id} → {status,url}(COMPLETED 시 gzip JSON url), GET url → 행(gzdecode).
+     *   필드: campaignId/cost/impressions/clicks/purchases7d/sales7d/date. cost·sales=계정통화 실수(micro 아님).
+     *   헤더: Amazon-Advertising-API-ClientId + Amazon-Advertising-API-Scope(profileId) + Bearer.
+     *   region cred(na/eu/fe)로 base URL 분기·기본 na. 폴링 짧게 바운드(최대 3회) 미완 시 graceful(다음 cron). */
     private static function fetchAmazonAdsRows(string $tenant, string $start, string $end): array
     {
         $refresh = (string)(getenv('AMAZON_ADS_REFRESH_TOKEN') ?: self::loadCred($tenant, 'amazon_ads', 'refresh_token'));
@@ -2320,27 +2351,294 @@ final class Connectors
             ['Content-Type' => 'application/x-www-form-urlencoded']);
         $token = is_array($tb) ? (string)($tb['access_token'] ?? '') : '';
         if ($token === '') return ['hasCreds' => true, 'live' => false, 'error' => "amazon_ads token http $tc"];
-        // 인증 OK. 비동기 리포트 폴링은 실 자격증명 검증 단계에서 활성화 → 현재는 graceful empty.
-        return ['hasCreds' => true, 'live' => true, 'rows' => [], 'note' => 'amazon_ads 인증 OK — 비동기 리포트 매핑은 라이브 자격증명 검증 후'];
+
+        // region → Advertising API 엔드포인트(na 기본). cred 'region' 값 na/eu/fe.
+        $region = strtolower((string)(self::loadCred($tenant, 'amazon_ads', 'region') ?: 'na'));
+        $apiBase = [
+            'na' => 'https://advertising-api.amazon.com',
+            'eu' => 'https://advertising-api-eu.amazon.com',
+            'fe' => 'https://advertising-api-fe.amazon.com',
+        ][$region] ?? 'https://advertising-api.amazon.com';
+        $cur = strtoupper((string)(self::loadCred($tenant, 'amazon_ads', 'currency') ?: 'USD'));
+        // v3 Reporting 은 vendor-specific Accept(content-type)를 요구.
+        $repCT = 'application/vnd.createasyncreportrequest.v3+json';
+        $hdr = [
+            'Authorization'                    => "Bearer {$token}",
+            'Amazon-Advertising-API-ClientId'  => $cid,
+            'Amazon-Advertising-API-Scope'     => $profile,
+            'Content-Type'                     => $repCT,
+            'Accept'                           => $repCT,
+        ];
+        // 1) 리포트 생성: Sponsored Products·캠페인 차원·일자 그룹.
+        [$cc, $cb, $ce] = self::httpPost($apiBase . '/reporting/reports', [
+            'name'          => 'geniego-sp-daily',
+            'startDate'     => $start,
+            'endDate'       => $end,
+            'configuration' => [
+                'adProduct'      => 'SPONSORED_PRODUCTS',
+                'groupBy'        => ['campaign'],
+                'columns'        => ['campaignId', 'campaignName', 'impressions', 'clicks', 'cost', 'purchases7d', 'sales7d', 'date'],
+                'reportTypeId'   => 'spCampaigns',
+                'timeUnit'       => 'DAILY',
+                'format'         => 'GZIP_JSON',
+            ],
+        ], $hdr);
+        $reportId = is_array($cb) ? (string)($cb['reportId'] ?? '') : '';
+        if ($ce || $cc >= 400 || $reportId === '') {
+            return ['hasCreds' => true, 'live' => false, 'error' => $ce ?: "amazon_ads report create http $cc"];
+        }
+        // 2) 상태 폴링(짧게 바운드). 상태 GET 은 일반 JSON Accept.
+        $statHdr = [
+            'Authorization'                    => "Bearer {$token}",
+            'Amazon-Advertising-API-ClientId'  => $cid,
+            'Amazon-Advertising-API-Scope'     => $profile,
+        ];
+        $reportUrl = '';
+        for ($i = 0; $i < 3; $i++) {
+            [$pc, $pb, $pe] = self::httpGet($apiBase . '/reporting/reports/' . rawurlencode($reportId), $statHdr);
+            $status = strtoupper((string)($pb['status'] ?? ''));
+            if ($status === 'COMPLETED' || $status === 'SUCCESS') { $reportUrl = (string)($pb['url'] ?? ''); break; }
+            if ($pe || $pc >= 400 || $status === 'FAILED' || $status === 'CANCELLED') break;
+            usleep(2500000); // 2.5s — 비동기 리포트 생성 대기(바운드)
+        }
+        if ($reportUrl === '') {
+            return ['hasCreds' => true, 'live' => false, 'error' => 'amazon_ads report not ready (다음 cron 재시도)'];
+        }
+        // 3) 다운로드(gzip JSON). httpGet 은 json_decode 만 하므로 원시 gzip 은 별도 디코드.
+        [$dc, $dbody, $de, $draw] = self::httpGetRaw($reportUrl);
+        if ($de || $dc >= 400) {
+            return ['hasCreds' => true, 'live' => false, 'error' => $de ?: "amazon_ads download http $dc"];
+        }
+        $json = is_array($dbody) ? $dbody : null;
+        if ($json === null && $draw !== '') {
+            $dec = @gzdecode($draw);
+            if ($dec === false) $dec = $draw; // 비압축 폴백
+            $json = json_decode($dec, true);
+        }
+        $data = is_array($json) ? ($json['rows'] ?? (array_is_list($json) ? $json : [])) : [];
+        $rows = [];
+        foreach ((array)$data as $r) {
+            if (!is_array($r)) continue;
+            $date = substr((string)($r['date'] ?? ''), 0, 10);
+            if ($date === '') continue;
+            $rows[] = [
+                'team'            => 'Amazon Ads',
+                'account'         => (string)($r['campaignName'] ?? 'Amazon Ads'),
+                'campaign_ext_id' => (string)($r['campaignId'] ?? ''),
+                'objective'       => '',
+                'reach'           => 0,
+                'date'            => $date,
+                'impressions'     => (int)($r['impressions'] ?? 0),
+                'clicks'          => (int)($r['clicks'] ?? 0),
+                'spend'           => (float)($r['cost'] ?? 0),
+                'conversions'     => (int)round((float)($r['purchases7d'] ?? 0)),
+                'revenue'         => (float)($r['sales7d'] ?? 0),
+                'currency'        => $cur,
+            ];
+        }
+        return ['hasCreds' => true, 'live' => true, 'rows' => $rows];
     }
 
-    /* [240차 약점⑧] Microsoft Ads(Bing) — MS Identity OAuth2 인증 취득. 리포팅은 SOAP 비동기 → 라이브 검증 후 매핑. 게이트+graceful. */
+    /* [현 차수 약점⑧] Microsoft Ads(Bing) — MS Identity OAuth2(refresh_token) → Reporting SOAP v13(비동기).
+     *   SubmitGenerateReport(CampaignPerformanceReport·Daily·CSV) → ReportRequestId,
+     *   PollGenerateReport → {Status,ReportDownloadUrl}(Success 시 ZIP url), download → ZIP 내 CSV 파싱.
+     *   컬럼: TimePeriod·CampaignId·Impressions·Clicks·Spend·Conversions·Revenue.
+     *   헤더(SOAP body): DeveloperToken·CustomerId·CustomerAccountId·AuthenticationToken(Bearer).
+     *   폴링 짧게 바운드(최대 3회) 미완 시 graceful. ZIP→CSV 추출은 ZipArchive(temp)·없으면 graceful note. */
     private static function fetchMicrosoftAdsRows(string $tenant, string $start, string $end): array
     {
         $refresh = (string)(getenv('MSADS_REFRESH_TOKEN') ?: self::loadCred($tenant, 'microsoft_ads', 'refresh_token'));
         $cid     = (string)(getenv('MSADS_CLIENT_ID')     ?: self::loadCred($tenant, 'microsoft_ads', 'client_id'));
         $secret  = (string)(getenv('MSADS_CLIENT_SECRET') ?: self::loadCred($tenant, 'microsoft_ads', 'client_secret'));
         $devToken = (string)self::loadCred($tenant, 'microsoft_ads', 'developer_token');
-        if ($refresh === '' || $cid === '' || $devToken === '') return ['hasCreds' => false, 'live' => false, 'rows' => []];
+        $customerId = (string)self::loadCred($tenant, 'microsoft_ads', 'customer_id');
+        $accountId  = (string)self::loadCred($tenant, 'microsoft_ads', 'account_id');
+        if ($refresh === '' || $cid === '' || $devToken === '' || $customerId === '' || $accountId === '') {
+            return ['hasCreds' => false, 'live' => false, 'rows' => []];
+        }
         [$tc, $tb] = self::httpPost('https://login.microsoftonline.com/common/oauth2/v2.0/token',
             ['grant_type' => 'refresh_token', 'refresh_token' => $refresh, 'client_id' => $cid, 'client_secret' => $secret, 'scope' => 'https://ads.microsoft.com/msads.manage offline_access'],
             ['Content-Type' => 'application/x-www-form-urlencoded']);
         $token = is_array($tb) ? (string)($tb['access_token'] ?? '') : '';
         if ($token === '') return ['hasCreds' => true, 'live' => false, 'error' => "microsoft_ads token http $tc"];
-        return ['hasCreds' => true, 'live' => true, 'rows' => [], 'note' => 'microsoft_ads 인증 OK — SOAP 리포팅 매핑은 라이브 자격증명 검증 후'];
+
+        $cur = strtoupper((string)(self::loadCred($tenant, 'microsoft_ads', 'currency') ?: 'USD'));
+        $svc = 'https://reporting.api.bingads.microsoft.com/Api/Advertiser/Reporting/v13/ReportingService.svc';
+        // SOAP 공통 헤더 블록.
+        $soapHeader =
+            "<DeveloperToken xmlns=\"https://bingads.microsoft.com/Reporting/v13\">" . htmlspecialchars($devToken, ENT_XML1) . "</DeveloperToken>"
+          . "<CustomerId xmlns=\"https://bingads.microsoft.com/Reporting/v13\">" . htmlspecialchars($customerId, ENT_XML1) . "</CustomerId>"
+          . "<CustomerAccountId xmlns=\"https://bingads.microsoft.com/Reporting/v13\">" . htmlspecialchars($accountId, ENT_XML1) . "</CustomerAccountId>"
+          . "<AuthenticationToken xmlns=\"https://bingads.microsoft.com/Reporting/v13\">" . htmlspecialchars($token, ENT_XML1) . "</AuthenticationToken>";
+        $ns = 'https://bingads.microsoft.com/Reporting/v13';
+        [$sy, $sm, $sd] = array_map('intval', array_pad(explode('-', $start), 3, 0));
+        [$ey, $em, $ed] = array_map('intval', array_pad(explode('-', $end), 3, 0));
+        // 1) SubmitGenerateReport — CampaignPerformanceReport·Daily·CSV.
+        $columns = ['TimePeriod', 'CampaignId', 'Impressions', 'Clicks', 'Spend', 'Conversions', 'Revenue'];
+        $colXml = '';
+        foreach ($columns as $c) $colXml .= "<CampaignPerformanceReportColumn>{$c}</CampaignPerformanceReportColumn>";
+        $reportReq =
+            "<ReportRequest i:type=\"CampaignPerformanceReportRequest\">"
+          . "<ExcludeColumnHeaders>false</ExcludeColumnHeaders><ExcludeReportFooter>true</ExcludeReportFooter>"
+          . "<ExcludeReportHeader>true</ExcludeReportHeader><Format>Csv</Format><ReturnOnlyCompleteData>false</ReturnOnlyCompleteData>"
+          . "<Aggregation>Daily</Aggregation>"
+          . "<Columns>{$colXml}</Columns>"
+          . "<Scope><AccountIds xmlns:a=\"http://schemas.microsoft.com/2003/10/Serialization/Arrays\"><a:long>" . htmlspecialchars($accountId, ENT_XML1) . "</a:long></AccountIds></Scope>"
+          . "<Time><CustomDateRangeEnd><Day>{$ed}</Day><Month>{$em}</Month><Year>{$ey}</Year></CustomDateRangeEnd>"
+          . "<CustomDateRangeStart><Day>{$sd}</Day><Month>{$sm}</Month><Year>{$sy}</Year></CustomDateRangeStart></Time>"
+          . "</ReportRequest>";
+        $submitBody = self::soapEnvelope($ns, 'SubmitGenerateReport', $soapHeader,
+            "<SubmitGenerateReportRequest xmlns=\"{$ns}\" xmlns:i=\"http://www.w3.org/2001/XMLSchema-instance\">{$reportReq}</SubmitGenerateReportRequest>");
+        [$rqId, $serr] = self::soapCall($svc, $ns, 'SubmitGenerateReport', $submitBody, 'ReportRequestId');
+        if ($serr !== null || $rqId === '') {
+            return ['hasCreds' => true, 'live' => false, 'error' => $serr ?: 'microsoft_ads submit empty request id'];
+        }
+        // 2) PollGenerateReport — Status/ReportDownloadUrl.
+        $downloadUrl = '';
+        for ($i = 0; $i < 3; $i++) {
+            $pollBody = self::soapEnvelope($ns, 'PollGenerateReport', $soapHeader,
+                "<PollGenerateReportRequest xmlns=\"{$ns}\"><ReportRequestId>" . htmlspecialchars($rqId, ENT_XML1) . "</ReportRequestId></PollGenerateReportRequest>");
+            [$rawXml, $perr] = self::soapCall($svc, $ns, 'PollGenerateReport', $pollBody, null);
+            if ($perr !== null) break;
+            $status = self::xmlPick($rawXml, 'Status');
+            if ($status === 'Success') { $downloadUrl = self::xmlPick($rawXml, 'ReportDownloadUrl'); break; }
+            if ($status === 'Error') break;
+            usleep(2500000); // 2.5s — 비동기 리포트 대기(바운드)
+        }
+        if ($downloadUrl === '') {
+            return ['hasCreds' => true, 'live' => false, 'error' => 'microsoft_ads report not ready (다음 cron 재시도)'];
+        }
+        // 3) ZIP 다운로드 → CSV 파싱(ZipArchive). 미가용 시 graceful.
+        [$dc, , $de, $draw] = self::httpGetRaw($downloadUrl);
+        if ($de || $dc >= 400 || $draw === '') {
+            return ['hasCreds' => true, 'live' => false, 'error' => $de ?: "microsoft_ads download http $dc"];
+        }
+        $csv = self::unzipFirstCsv($draw);
+        if ($csv === null) {
+            return ['hasCreds' => true, 'live' => false, 'note' => 'microsoft_ads ZIP 추출 미가용(ZipArchive 부재) — 다음 cron 재시도'];
+        }
+        $rows = self::parseMsAdsCsv($csv, $cur);
+        return ['hasCreds' => true, 'live' => true, 'rows' => $rows];
     }
 
-    /* [240차 약점⑧] X(Twitter) Ads — OAuth1.0a(per-request HMAC-SHA1 서명) 자격증명 게이트. 라이브 서명/통계 매핑은 검증 후. graceful. */
+    /** [현 차수] Bing Reporting SOAP — 단순 봉투 빌더. */
+    private static function soapEnvelope(string $ns, string $action, string $headerInner, string $bodyInner): string
+    {
+        return '<?xml version="1.0" encoding="utf-8"?>'
+            . '<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">'
+            . '<s:Header xmlns="' . $ns . '">' . $headerInner . '</s:Header>'
+            . '<s:Body>' . $bodyInner . '</s:Body></s:Envelope>';
+    }
+
+    /** [현 차수] SOAP POST 호출(raw XML 전송/응답). $pick 지정 시 해당 태그값, 아니면 raw XML 반환.
+     *  반환 [value|rawXml, err]. 4xx/5xx·전송오류 시 err 세팅. */
+    private static function soapCall(string $url, string $ns, string $action, string $xmlBody, ?string $pick): array
+    {
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => $xmlBody,
+            CURLOPT_TIMEOUT        => 20,
+            CURLOPT_HTTPHEADER     => [
+                'Content-Type: text/xml; charset=utf-8',
+                'SOAPAction: "' . $action . '"',
+            ],
+            CURLOPT_SSL_VERIFYPEER => true,
+            CURLOPT_USERAGENT      => 'Geniego-ROI/v421 PHP',
+        ]);
+        $raw  = curl_exec($ch);
+        $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $err  = curl_error($ch) ?: null;
+        curl_close($ch);
+        if ($err !== null) return ['', $err];
+        $rawStr = (string)$raw;
+        if ($code >= 400) return ['', "soap {$action} http {$code}"];
+        if ($pick === null) return [$rawStr, null];
+        return [self::xmlPick($rawStr, $pick), null];
+    }
+
+    /** [현 차수] 네임스페이스 접두 무시하고 XML 에서 첫 <...:Tag> 또는 <Tag> 텍스트 추출(정규식·graceful). */
+    private static function xmlPick(string $xml, string $tag): string
+    {
+        if ($xml === '') return '';
+        if (preg_match('#<(?:[\w]+:)?' . preg_quote($tag, '#') . '[^>]*>(.*?)</(?:[\w]+:)?' . preg_quote($tag, '#') . '>#s', $xml, $m)) {
+            return html_entity_decode(trim($m[1]), ENT_XML1 | ENT_QUOTES);
+        }
+        return '';
+    }
+
+    /** [현 차수] ZIP 바이트열에서 첫 .csv 엔트리 추출. ZipArchive 미존재/실패 시 null(graceful). temp 파일 사용·정리. */
+    private static function unzipFirstCsv(string $zipBytes): ?string
+    {
+        if (!class_exists('ZipArchive')) return null;
+        $tmp = tempnam(sys_get_temp_dir(), 'msads_');
+        if ($tmp === false) return null;
+        $csv = null;
+        try {
+            file_put_contents($tmp, $zipBytes);
+            $za = new \ZipArchive();
+            if ($za->open($tmp) === true) {
+                for ($i = 0; $i < $za->numFiles; $i++) {
+                    $name = (string)$za->getNameIndex($i);
+                    if (preg_match('/\.csv$/i', $name)) {
+                        $c = $za->getFromIndex($i);
+                        if ($c !== false) { $csv = $c; break; }
+                    }
+                }
+                $za->close();
+            }
+        } catch (\Throwable $e) {
+            $csv = null;
+        } finally {
+            @unlink($tmp);
+        }
+        return $csv;
+    }
+
+    /** [현 차수] Bing CampaignPerformanceReport CSV → 표준 row. 헤더줄로 컬럼 인덱스 매핑(빈/비수치 graceful). */
+    private static function parseMsAdsCsv(string $csv, string $cur): array
+    {
+        $lines = preg_split('/\r\n|\r|\n/', trim($csv));
+        if (!is_array($lines) || count($lines) < 2) return [];
+        $header = str_getcsv((string)array_shift($lines));
+        $idx = [];
+        foreach ($header as $i => $h) $idx[trim((string)$h)] = $i;
+        $col = function (array $cells, string $name) use ($idx) {
+            return isset($idx[$name]) ? ($cells[$idx[$name]] ?? '') : '';
+        };
+        $numKr = fn($v) => (float)str_replace([',', '%'], '', (string)$v);
+        $rows = [];
+        foreach ($lines as $ln) {
+            if (trim((string)$ln) === '') continue;
+            $cells = str_getcsv((string)$ln);
+            $date = substr(str_replace('/', '-', (string)$col($cells, 'TimePeriod')), 0, 10);
+            if ($date === '' || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) continue;
+            $rows[] = [
+                'team'            => 'Microsoft Ads',
+                'account'         => 'Microsoft Ads',
+                'campaign_ext_id' => (string)$col($cells, 'CampaignId'),
+                'objective'       => '',
+                'reach'           => 0,
+                'date'            => $date,
+                'impressions'     => (int)$numKr($col($cells, 'Impressions')),
+                'clicks'          => (int)$numKr($col($cells, 'Clicks')),
+                'spend'           => $numKr($col($cells, 'Spend')),
+                'conversions'     => (int)round($numKr($col($cells, 'Conversions'))),
+                'revenue'         => $numKr($col($cells, 'Revenue')),
+                'currency'        => $cur,
+            ];
+        }
+        return $rows;
+    }
+
+    /* [현 차수 약점⑧] X(Twitter) Ads — OAuth1.0a(per-request HMAC-SHA1) → Ads API v12 동기 통계.
+     *   1) GET /12/accounts/{id}/campaigns(active) → entity_ids,
+     *   2) GET /12/stats/accounts/{id}?entity=CAMPAIGN&entity_ids=...&metric_groups=BILLING,ENGAGEMENT,WEB_CONVERSION
+     *      &granularity=DAY&start_time&end_time&placement=ALL_ON_TWITTER → 캠페인×일자 메트릭 시계열.
+     *   필드: impressions[], (likes+clicks)→clicks 는 ENGAGEMENT.clicks[], billed_charge_local_micro[](÷1e6),
+     *      conversion_purchases.metric[], sale_amount.metric[](÷1e6). entity_ids 는 배치 최대 20.
+     *   start/end 는 RFC3339 일경계, end exclusive(+1d). graceful(서명실패/응답불일치 시 empty). */
     private static function fetchXAdsRows(string $tenant, string $start, string $end): array
     {
         $ck = (string)(getenv('X_ADS_CONSUMER_KEY')    ?: self::loadCred($tenant, 'x_ads', 'consumer_key'));
@@ -2349,7 +2647,111 @@ final class Connectors
         $as = (string)self::loadCred($tenant, 'x_ads', 'access_token_secret');
         $acct = (string)self::loadCred($tenant, 'x_ads', 'account_id');
         if ($ck === '' || $cs === '' || $at === '' || $as === '' || $acct === '') return ['hasCreds' => false, 'live' => false, 'rows' => []];
-        // OAuth1.0a 서명·stats/jobs 비동기 매핑은 라이브 자격증명 검증 단계에서 활성화 → graceful empty(날조 0).
-        return ['hasCreds' => true, 'live' => true, 'rows' => [], 'note' => 'x_ads 자격증명 OK — OAuth1.0a 서명·통계 매핑은 라이브 자격증명 검증 후'];
+
+        $cur = strtoupper((string)(self::loadCred($tenant, 'x_ads', 'currency') ?: 'USD'));
+        $oauth = ['ck' => $ck, 'cs' => $cs, 'at' => $at, 'as' => $as];
+        $apiBase = 'https://ads-api.twitter.com';
+        // 1) 캠페인 목록(entity_ids 확보). 최대 200·active.
+        $campUrl = $apiBase . '/12/accounts/' . rawurlencode($acct) . '/campaigns';
+        [$cc, $cb, $ce] = self::xAdsGet($campUrl, ['count' => '200', 'with_deleted' => 'false'], $oauth);
+        if ($ce || $cc >= 400) {
+            return ['hasCreds' => true, 'live' => false, 'error' => $ce ?: "x_ads campaigns http $cc"];
+        }
+        $ids = [];
+        foreach ((array)($cb['data'] ?? []) as $c) {
+            $id = (string)($c['id'] ?? '');
+            if ($id !== '') $ids[] = $id;
+        }
+        if (!$ids) return ['hasCreds' => true, 'live' => true, 'rows' => []]; // 캠페인 없음 → 빈 rows(정상)
+
+        // entity_id → date → 메트릭 누적. stats 응답은 entity 단위 시계열 배열(날짜축 동일 길이).
+        $startTime = $start . 'T00:00:00Z';
+        $endTime   = gmdate('Y-m-d', (int)strtotime($end . ' +1 day')) . 'T00:00:00Z'; // exclusive
+        $dates = [];
+        for ($d = strtotime($start . ' UTC'); $d <= strtotime($end . ' UTC'); $d = strtotime('+1 day', $d)) {
+            $dates[] = gmdate('Y-m-d', $d);
+        }
+        $rows = [];
+        foreach (array_chunk($ids, 20) as $batch) { // stats entity_ids 배치 상한 20
+            [$sc, $sb, $se] = self::xAdsGet($apiBase . '/12/stats/accounts/' . rawurlencode($acct), [
+                'entity'        => 'CAMPAIGN',
+                'entity_ids'    => implode(',', $batch),
+                'start_time'    => $startTime,
+                'end_time'      => $endTime,
+                'granularity'   => 'DAY',
+                'placement'     => 'ALL_ON_TWITTER',
+                'metric_groups' => 'BILLING,ENGAGEMENT,WEB_CONVERSION',
+            ], $oauth);
+            if ($se || $sc >= 400) continue; // 배치 실패 → graceful skip(부분 성공 보존)
+            foreach ((array)($sb['data'] ?? []) as $ent) {
+                $entId = (string)($ent['id'] ?? '');
+                $series = (array)($ent['id_data'][0]['metrics'] ?? []);
+                $imp  = (array)($series['impressions'] ?? []);
+                $clk  = (array)($series['clicks'] ?? []);
+                $bill = (array)($series['billed_charge_local_micro'] ?? []);
+                $conv = (array)($series['conversion_purchases']['metric'] ?? $series['conversion_purchases'] ?? []);
+                $sale = (array)($series['conversion_sale_amount']['metric'] ?? $series['conversion_sale_amount'] ?? []);
+                foreach ($dates as $di => $date) {
+                    $impv = (int)($imp[$di] ?? 0);
+                    $clkv = (int)($clk[$di] ?? 0);
+                    $billv = (float)($bill[$di] ?? 0);
+                    $convv = (float)($conv[$di] ?? 0);
+                    $salev = (float)($sale[$di] ?? 0);
+                    if ($impv === 0 && $clkv === 0 && $billv == 0.0 && $convv == 0.0 && $salev == 0.0) continue;
+                    $rows[] = [
+                        'team'            => 'X Ads',
+                        'account'         => 'X Ads',
+                        'campaign_ext_id' => $entId,
+                        'objective'       => '',
+                        'reach'           => 0,
+                        'date'            => $date,
+                        'impressions'     => $impv,
+                        'clicks'          => $clkv,
+                        'spend'           => $billv / 1000000.0,
+                        'conversions'     => (int)round($convv),
+                        'revenue'         => $salev / 1000000.0,
+                        'currency'        => $cur,
+                    ];
+                }
+            }
+        }
+        return ['hasCreds' => true, 'live' => true, 'rows' => $rows];
+    }
+
+    /** [현 차수] X Ads OAuth1.0a 서명 GET. params 는 쿼리이자 서명 베이스 스트링 일부. graceful 반환 [code, json, err]. */
+    private static function xAdsGet(string $url, array $params, array $oauth): array
+    {
+        $oauthParams = [
+            'oauth_consumer_key'     => $oauth['ck'],
+            'oauth_token'            => $oauth['at'],
+            'oauth_nonce'            => bin2hex(random_bytes(16)),
+            'oauth_timestamp'        => (string)time(),
+            'oauth_signature_method' => 'HMAC-SHA1',
+            'oauth_version'          => '1.0',
+        ];
+        // 서명 베이스: 쿼리 + oauth 파라미터 병합 후 RFC3986 정렬 인코딩.
+        $allParams = array_merge($params, $oauthParams);
+        ksort($allParams);
+        $pieces = [];
+        foreach ($allParams as $k => $v) {
+            $pieces[] = rawurlencode((string)$k) . '=' . rawurlencode((string)$v);
+        }
+        $paramStr = implode('&', $pieces);
+        $baseStr  = 'GET&' . rawurlencode($url) . '&' . rawurlencode($paramStr);
+        $signKey  = rawurlencode($oauth['cs']) . '&' . rawurlencode($oauth['as']);
+        $sig = base64_encode(hash_hmac('sha1', $baseStr, $signKey, true));
+        $oauthParams['oauth_signature'] = $sig;
+        // Authorization 헤더(oauth_* 만, 정렬).
+        ksort($oauthParams);
+        $authPieces = [];
+        foreach ($oauthParams as $k => $v) {
+            $authPieces[] = rawurlencode((string)$k) . '="' . rawurlencode((string)$v) . '"';
+        }
+        $authHeader = 'OAuth ' . implode(', ', $authPieces);
+        // 쿼리 스트링(서명용과 동일 인코딩).
+        $qPieces = [];
+        foreach ($params as $k => $v) $qPieces[] = rawurlencode((string)$k) . '=' . rawurlencode((string)$v);
+        $fullUrl = $url . (empty($qPieces) ? '' : ('?' . implode('&', $qPieces)));
+        return self::httpGet($fullUrl, ['Authorization' => $authHeader]);
     }
 }

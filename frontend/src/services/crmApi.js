@@ -17,4 +17,7 @@ export const crmApi = {
   deleteSegment:  (id)     => requestJsonAuth(`/api/crm/segments/${id}`, "DELETE"),
   refreshSegment: (id)     => postJsonAuth(`/api/crm/segments/${id}/refresh`, {}),
   smartSeedSegments: ()    => postJsonAuth("/api/crm/segments/smart-seed", {}), // [239차+ CDP] 표준 행동 세그먼트 원클릭
+  // 빈도캡/STO(딜리버러빌리티 제어) — [현 차수] admin 조정. 테넌트 격리(서버 app_setting skey 접두).
+  getCommsFreq:   ()       => getJsonAuth("/api/crm/comms-freq"),
+  saveCommsFreq:  (body)   => requestJsonAuth("/api/crm/comms-freq", "PUT", body),
 };

@@ -376,14 +376,24 @@ class CRM
     /* ─── [240차 약점⑥] 메시징 빈도캡(Frequency Capping) + 발송시간 최적화 — 딜리버러빌리티 보호(경쟁사 Braze/Klaviyo 정합) ───
      *   기존 crm_activities(email_sent/kakao_sent/sms_sent 로그) 재사용(중복0). 과발송 차단으로 스팸/차단/평판하락 방지. */
 
+    /** 빈도캡/STO 설정 5키 — 테넌트 격리는 skey 접두(canonical app_setting=skey,svalue,updated_at 단일스키마, tenant 컬럼 없음). */
+    private const COMMS_FREQ_KEYS = ['comms_freq_cap', 'comms_freq_window', 'comms_quiet_start', 'comms_quiet_end', 'comms_sto'];
+
+    /** 테넌트 격리 skey: "comms_freq_cap@<tenant>" 형식(canonical app_setting 단일 KV 스키마 위에서 테넌트 격리). */
+    private static function commsFreqSkey(string $tenant, string $k): string { return $k . '@' . $tenant; }
+
     /** 테넌트 빈도캡 설정 — app_setting override(없으면 기본 4건/7일). 발송 루프 1회 호출 권장. */
     public static function commsFreqConfig(\PDO $pdo, string $tenant): array
     {
         $cap = 4; $win = 7; $quietStart = 21; $quietEnd = 8; $stoEnabled = false;
         try {
-            $st = $pdo->prepare("SELECT k, v FROM app_setting WHERE tenant_id=? AND k IN ('comms_freq_cap','comms_freq_window','comms_quiet_start','comms_quiet_end','comms_sto')");
-            $st->execute([$tenant]);
-            foreach ($st->fetchAll(\PDO::FETCH_KEY_PAIR) ?: [] as $k => $v) {
+            Db::ensureAppSetting($pdo);
+            $skeys = array_map(fn($k) => self::commsFreqSkey($tenant, $k), self::COMMS_FREQ_KEYS);
+            $ph = implode(',', array_fill(0, count($skeys), '?'));
+            $st = $pdo->prepare("SELECT skey, svalue FROM app_setting WHERE skey IN ($ph)");
+            $st->execute($skeys);
+            foreach ($st->fetchAll(\PDO::FETCH_KEY_PAIR) ?: [] as $skey => $v) {
+                $k = explode('@', (string)$skey, 2)[0];
                 if ($k === 'comms_freq_cap'   && is_numeric($v)) $cap = max(1, min(50, (int)$v));
                 if ($k === 'comms_freq_window'&& is_numeric($v)) $win = max(1, min(90, (int)$v));
                 if ($k === 'comms_quiet_start'&& is_numeric($v)) $quietStart = max(0, min(23, (int)$v));
@@ -392,6 +402,63 @@ class CRM
             }
         } catch (\Throwable $e) { /* app_setting 부재 시 기본값 */ }
         return ['cap' => $cap, 'window' => $win, 'quiet_start' => $quietStart, 'quiet_end' => $quietEnd, 'sto' => $stoEnabled];
+    }
+
+    /** app_setting 테넌트 격리 skey upsert(canonical skey,svalue,updated_at · MySQL/SQLite 분기). */
+    private static function commsFreqSet(\PDO $pdo, string $tenant, string $k, string $v): void
+    {
+        $skey = self::commsFreqSkey($tenant, $k);
+        $now  = gmdate('c');
+        if (self::isMysql($pdo)) {
+            $pdo->prepare("INSERT INTO app_setting(skey,svalue,updated_at) VALUES(?,?,?) ON DUPLICATE KEY UPDATE svalue=VALUES(svalue),updated_at=VALUES(updated_at)")
+                ->execute([$skey, $v, $now]);
+        } else {
+            $pdo->prepare("INSERT INTO app_setting(skey,svalue,updated_at) VALUES(?,?,?) ON CONFLICT(skey) DO UPDATE SET svalue=excluded.svalue,updated_at=excluded.updated_at")
+                ->execute([$skey, $v, $now]);
+        }
+    }
+
+    /* ─── GET /crm/comms-freq ─── 빈도캡/STO 설정 조회(테넌트 격리) ─── */
+    public static function getCommsFreqConfig(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        $pdo = self::db();
+        $tenant = self::tenant($req);
+        $cfg = self::commsFreqConfig($pdo, $tenant);
+        return self::jsonRes($res, ['ok' => true, 'config' => $cfg]);
+    }
+
+    /* ─── PUT /crm/comms-freq ─── 빈도캡/STO 설정 저장(화이트리스트·범위검증·테넌트 격리) ─── */
+    public static function saveCommsFreqConfig(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        $pdo = self::db();
+        $tenant = self::tenant($req);
+        Db::ensureAppSetting($pdo);
+        $b = (array)$req->getParsedBody();
+
+        // 화이트리스트 + 범위 검증(cap 1~50, window 1~90, quiet 0~23, sto bool). 제공된 키만 갱신.
+        if (array_key_exists('cap', $b)) {
+            if (!is_numeric($b['cap'])) return self::jsonRes($res, ['ok' => false, 'error' => 'cap must be numeric'], 422);
+            self::commsFreqSet($pdo, $tenant, 'comms_freq_cap', (string)max(1, min(50, (int)$b['cap'])));
+        }
+        if (array_key_exists('window', $b)) {
+            if (!is_numeric($b['window'])) return self::jsonRes($res, ['ok' => false, 'error' => 'window must be numeric'], 422);
+            self::commsFreqSet($pdo, $tenant, 'comms_freq_window', (string)max(1, min(90, (int)$b['window'])));
+        }
+        if (array_key_exists('quiet_start', $b)) {
+            if (!is_numeric($b['quiet_start'])) return self::jsonRes($res, ['ok' => false, 'error' => 'quiet_start must be numeric'], 422);
+            self::commsFreqSet($pdo, $tenant, 'comms_quiet_start', (string)max(0, min(23, (int)$b['quiet_start'])));
+        }
+        if (array_key_exists('quiet_end', $b)) {
+            if (!is_numeric($b['quiet_end'])) return self::jsonRes($res, ['ok' => false, 'error' => 'quiet_end must be numeric'], 422);
+            self::commsFreqSet($pdo, $tenant, 'comms_quiet_end', (string)max(0, min(23, (int)$b['quiet_end'])));
+        }
+        if (array_key_exists('sto', $b)) {
+            $sto = ($b['sto'] === true || $b['sto'] === '1' || $b['sto'] === 1 || $b['sto'] === 'true');
+            self::commsFreqSet($pdo, $tenant, 'comms_sto', $sto ? '1' : '0');
+        }
+        return self::jsonRes($res, ['ok' => true, 'config' => self::commsFreqConfig($pdo, $tenant)]);
     }
 
     /** 빈도캡 초과 여부 — 윈도 내 발송(email/kakao/sms) 건수 ≥ cap. 오류 시 false(발송 비차단=안전). */
@@ -485,9 +552,10 @@ class CRM
             ['name'=>'신규 고객', 'color'=>'#4f8ef7', 'rules'=>[['field'=>'frequency','op'=>'lte','value'=>1],['field'=>'recency','op'=>'lte','value'=>30]]],
             ['name'=>'이탈 위험', 'color'=>'#f59e0b', 'rules'=>[['field'=>'ltv','op'=>'gt','value'=>0],['field'=>'recency','op'=>'gte','value'=>60],['field'=>'recency','op'=>'lte','value'=>180]]],
             ['name'=>'휴면 고객', 'color'=>'#ef4444', 'rules'=>[['field'=>'recency','op'=>'gte','value'=>180]]],
-            // [240차 약점③] 예측형 CDP 세그먼트(경쟁사 Klaviyo predictive 정합) — 예측가치/이탈확률 의도. churn_prob/predicted_clv 정밀치는 RFM 탭 표시.
-            ['name'=>'고가치 예측', 'color'=>'#8b5cf6', 'rules'=>[['field'=>'ltv','op'=>'gte','value'=>300000],['field'=>'frequency','op'=>'gte','value'=>2],['field'=>'recency','op'=>'lte','value'=>30]]],   // 활성·고가치·반복(예측 CLV 상위)
-            ['name'=>'이탈위험 예측', 'color'=>'#f97316', 'rules'=>[['field'=>'frequency','op'=>'gte','value'=>3],['field'=>'recency','op'=>'gte','value'=>45]]],                                            // 과거 충성→침묵(예측 이탈·구제가치 높음)
+            // [현 차수 약점②] 예측형 CDP 세그먼트 — RFM프록시 탈피, 실 예측필드(predicted_clv/churn_prob) 평가.
+            //   refreshSegmentMembers 가 라이브 구매데이터에서 백엔드 생존모델의 portable 근사로 SQL 파생.
+            ['name'=>'고가치 예측', 'color'=>'#8b5cf6', 'rules'=>[['field'=>'predicted_clv','op'=>'gte','value'=>200000],['field'=>'churn_prob','op'=>'lte','value'=>0.4]]],   // 예측 CLV 상위 & 이탈저위험
+            ['name'=>'이탈위험 예측', 'color'=>'#f97316', 'rules'=>[['field'=>'churn_prob','op'=>'gte','value'=>0.6],['field'=>'frequency','op'=>'gte','value'=>2]]],          // 예측 이탈고위험 & 과거 반복구매(구제가치)
         ];
         $created = []; $skipped = [];
         foreach ($templates as $tpl) {
@@ -523,6 +591,26 @@ class CRM
         return self::jsonRes($res, ['ok'=>true,'member_count'=>$cnt]);
     }
 
+    /** [현 차수 약점①] 발송 직전 stale 방지 — 세그먼트가 동적 룰을 가지면 멤버 1회 최신화(best-effort).
+     *   EmailMarketing/KakaoChannel sendCampaign 이 발송 루프 진입 전 호출. 룰 없음(정적/수동 세그먼트)=무동작.
+     *   refresh 실패해도 발송은 진행(materialized 멤버 그대로). 전부 테넌트 스코프. 반환=최신 멤버 수 또는 null(미수행). */
+    public static function refreshSegmentForSend(\PDO $pdo, string $tenant, int $sid): ?int
+    {
+        if ($sid <= 0) return null;
+        try {
+            $seg = $pdo->prepare("SELECT rules FROM crm_segments WHERE id=:id AND tenant_id=:t");
+            $seg->execute([':id'=>$sid, ':t'=>$tenant]);
+            $row = $seg->fetch(\PDO::FETCH_ASSOC);
+            if (!$row) return null;
+            $rules = json_decode($row['rules'] ?? '[]', true);
+            if (!is_array($rules) || count($rules) === 0) return null;   // 정적/수동 세그먼트 → 최신화 불필요
+            $cnt = self::refreshSegmentMembers($pdo, $sid, $rules, $tenant);
+            $pdo->prepare("UPDATE crm_segments SET member_count=:c WHERE id=:id AND tenant_id=:t")
+                ->execute([':c'=>$cnt, ':id'=>$sid, ':t'=>$tenant]);
+            return $cnt;
+        } catch (\Throwable $e) { return null; }   // best-effort — 발송 진행
+    }
+
     /** 세그먼트 멤버 재계산 — 전부 테넌트 스코프. 반환=멤버 수. */
     private static function refreshSegmentMembers(\PDO $pdo, int $sid, array $rules, string $tenant): int
     {
@@ -533,6 +621,20 @@ class CRM
         // 191차: 멤버십 룰을 crm_activities(구매) 라이브 집계로 평가. ltv=SUM(amount), frequency=COUNT.
         //   (c.rfm_f 컬럼은 addActivity 가 갱신하지 않아 stale → 라이브 freq 가 정확). grade 는 컬럼 직접.
         //   알 수 없는 룰 필드는 무시하고 try/catch 로 세그먼트 생성 자체는 보호.
+        $isMy = self::isMysql($pdo);
+        // [현 차수 약점②] 예측세그먼트 RFM프록시 탈피 — '예측 이탈위험/고가치' 룰(churn_prob/predicted_clv)을
+        //   라이브 구매데이터에서 SQL로 파생(백엔드 addPredictiveScores 생존모델의 portable 근사).
+        //   avg_interval = lifespan/(freq-1). churn_prob ≈ recency / (2×avg_interval) → recency=2×주기 시 1.0 도달
+        //   (PHP의 1-exp(-r/2I)와 단조 정합, 0.63 임계만 1.0으로 선형치환). freq<2 = recency/180 단일구매 근사.
+        //   predicted_clv ≈ ltv × (1-churn) (잔존 기대가치). exp/GREATEST 미사용분기로 SQLite/MySQL 공통 평가.
+        $maxFn = $isMy ? 'GREATEST' : 'MAX';   // SQLite 스칼라 max()/min() = MySQL GREATEST/LEAST
+        $minFn = $isMy ? 'LEAST'    : 'MIN';
+        // 평균 구매주기(일) — freq<2 또는 lifespan=0 보호(분모 최소 1). recency 비례 이탈확률, [0,0.99] 클램프.
+        $churnExpr = "(CASE WHEN COALESCE(a.freq,0) >= 2 AND COALESCE(a.lifespan_days,0) > 0"
+                   . " THEN {$minFn}(0.99, COALESCE(a.recency_days,99999) / (2.0 * {$maxFn}(1.0, a.lifespan_days * 1.0 / (a.freq - 1))))"
+                   . " WHEN COALESCE(a.freq,0) = 1 THEN {$minFn}(0.95, COALESCE(a.recency_days,99999) / 180.0)"
+                   . " ELSE 0.5 END)";
+        $predClvExpr = "(COALESCE(a.ltv,0) * (1.0 - {$churnExpr}))";
         $conds = ["c.tenant_id = $tQ"];
         foreach ($rules as $rule) {
             $field = strtolower((string)($rule['field'] ?? ''));
@@ -544,6 +646,8 @@ class CRM
                 'recency', 'recency_days', 'days_since' => 'COALESCE(a.recency_days, 99999)', // [239차+ CDP] 최근 구매 경과일(행동기반)
                 'rfm_score'                    => 'COALESCE(c.rfm_score, 0)',
                 'grade'                        => 'c.grade',
+                'churn_prob', 'churn_risk', 'churn' => $churnExpr,       // [현 차수 약점②] 예측 이탈확률(SQL 파생)
+                'predicted_clv', 'pred_clv', 'clv' => $predClvExpr,      // [현 차수 약점②] 예측 CLV(SQL 파생)
                 default                        => '',
             };
             if ($expr === '') continue;
@@ -553,14 +657,15 @@ class CRM
         }
         $whereStr = implode(' AND ', $conds);
         $sidQ = (int)$sid;
-        $isMy = self::isMysql($pdo);
         $ignore = $isMy ? 'IGNORE' : 'OR IGNORE';
         // [239차+ CDP] recency_days = 최근 구매 경과일(드라이버별 date diff). 실 구매(crm_activities) 라이브 집계.
-        $recencyExpr = $isMy ? "DATEDIFF(NOW(), MAX(created_at))" : "CAST(julianday('now') - julianday(MAX(created_at)) AS INTEGER)";
+        $recencyExpr  = $isMy ? "DATEDIFF(NOW(), MAX(created_at))" : "CAST(julianday('now') - julianday(MAX(created_at)) AS INTEGER)";
+        // [현 차수 약점②] 구매 수명(첫↔마지막 구매 경과일) — 평균 구매주기 산출용.
+        $lifespanExpr = $isMy ? "DATEDIFF(MAX(created_at), MIN(created_at))" : "CAST(julianday(MAX(created_at)) - julianday(MIN(created_at)) AS INTEGER)";
         try {
             $pdo->exec("INSERT {$ignore} INTO crm_segment_members (tenant_id, segment_id, customer_id)
                         SELECT {$tQ}, {$sidQ}, c.id FROM crm_customers c
-                        LEFT JOIN (SELECT customer_id, SUM(amount) AS ltv, COUNT(*) AS freq, {$recencyExpr} AS recency_days
+                        LEFT JOIN (SELECT customer_id, SUM(amount) AS ltv, COUNT(*) AS freq, {$recencyExpr} AS recency_days, {$lifespanExpr} AS lifespan_days
                                    FROM crm_activities WHERE type='purchase' AND tenant_id={$tQ} GROUP BY customer_id) a
                           ON a.customer_id = c.id
                         WHERE {$whereStr}");

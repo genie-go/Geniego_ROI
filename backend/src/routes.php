@@ -62,6 +62,9 @@ return function (App $app): void {
         'POST /crm/segments/{id}/refresh'      => 'Genie\\Handlers\\CRM::refreshSegment',
         'POST /crm/segments/smart-seed'        => 'Genie\\Handlers\\CRM::smartSeedSegments',
         'GET /crm/stats'                       => 'Genie\\Handlers\\CRM::stats',
+        // [현 차수] 메시징 빈도캡(Frequency Capping)/STO 설정 — admin 조정(딜리버러빌리티 제어, Braze/Klaviyo 정합)
+        'GET /crm/comms-freq'                  => 'Genie\\Handlers\\CRM::getCommsFreqConfig',
+        'PUT /crm/comms-freq'                  => 'Genie\\Handlers\\CRM::saveCommsFreqConfig',
 
         // ── 상품 카탈로그 writeback (192차: 일괄 등록/가격수정 실배선, dead-route 404 대체) ──
         'POST /catalog/writeback/{channel}/{sku}' => 'Genie\\Handlers\\Catalog::writeback',
@@ -95,6 +98,7 @@ return function (App $app): void {
         'POST /email/campaigns/{id}/send'      => 'Genie\\Handlers\\EmailMarketing::sendCampaign',
         'GET /email/campaigns/{id}/stats'      => 'Genie\\Handlers\\EmailMarketing::campaignStats',
         'POST /email/track/open'               => 'Genie\\Handlers\\EmailMarketing::trackOpen',
+        'POST /email/track/click'              => 'Genie\\Handlers\\EmailMarketing::trackClick',
 
         // ── 카카오 채널 (알림톡) ─────────────────────────────────────────
         'GET /kakao/settings'                  => 'Genie\\Handlers\\KakaoChannel::getSettings',
@@ -2288,6 +2292,8 @@ return function (App $app): void {
     $register('POST',   '/crm/segments/{id}/refresh');
     $register('POST',   '/crm/segments/smart-seed'); // [239차+ CDP] 표준 행동 세그먼트 원클릭
     $register('GET',    '/crm/stats');
+    $register('GET',    '/crm/comms-freq');  // [현 차수] 빈도캡/STO 설정 조회
+    $register('PUT',    '/crm/comms-freq');  // [현 차수] 빈도캡/STO 설정 저장
 
     // 상품 카탈로그 writeback (192차)
     $register('POST',   '/catalog/writeback/{channel}/{sku}');
@@ -2320,6 +2326,7 @@ return function (App $app): void {
     $register('POST',   '/email/campaigns/{id}/send');
     $register('GET',    '/email/campaigns/{id}/stats');
     $register('POST',   '/email/track/open');
+    $register('POST',   '/email/track/click');
     // 183차 P0: email ab-test/ab-result/duplicate/analytics 죽은 매핑 제거(핸들러 미구현)
     // Kakao
     $register('GET',    '/kakao/settings');

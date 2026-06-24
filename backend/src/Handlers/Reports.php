@@ -240,10 +240,38 @@ class Reports
         $body = (array)($req->getParsedBody() ?? []);
         if (empty($body)) { $d = json_decode((string)$req->getBody(), true); if (is_array($d)) $body = $d; }
 
-        // [240차 BI⑤] 데이터 소스 인지 — ads(광고 성과) | commerce(주문 머니경로). 경쟁사 BI 대비 P&L/주문 통합 쿼리 우위.
-        $source = ((string)($body['source'] ?? 'ads') === 'commerce') ? 'commerce' : 'ads';
+        // [240차 BI⑤] 데이터 소스 인지 — ads(광고 성과) | commerce(주문 머니경로) | settlement(정산/순이익).
+        //   경쟁사 Looker/Tableau 대비 "광고+주문+순이익" 통합 쿼리 우위(정산수령액·수수료·순이익 직접 조회).
+        $srcIn = (string)($body['source'] ?? 'ads');
+        $source = in_array($srcIn, ['commerce', 'settlement'], true) ? $srcIn : 'ads';
         $baseParams = [];
-        if ($source === 'commerce') {
+        // [현 차수] period 컬럼이 'YYYY-MM' 문자열인 소스(settlement)는 날짜비교 대신 월 prefix 비교를 쓴다.
+        $periodIsMonth = false;
+        if ($source === 'settlement') {
+            // 정산/머니경로(orderhub_settlements) — OrderHub::rollupSettlementsCore 산출 rollup 결과.
+            //   실 컬럼(ensureSettlementTables/upsertSettlement 정합): channel, period('YYYY-MM'), status,
+            //   gross_sales, net_payout, platform_fee, ad_fee, coupon_discount, return_fee, orders_count, returns_count.
+            //   ※ shipping_fee·COGS 컬럼은 스키마에 없으므로 제외(과장 금지). net_profit 은 net_payout 파생.
+            $METRICS = [
+                'gross_sales'     => 'ROUND(SUM(gross_sales))',      // 정산 총매출(취소 제외 rollup)
+                'net_payout'      => 'ROUND(SUM(net_payout))',       // 실수령 정산액(=gross-수수료-반품)
+                'platform_fee'    => 'ROUND(SUM(platform_fee))',     // 플랫폼 수수료
+                'ad_fee'          => 'ROUND(SUM(ad_fee))',           // 광고비(정산 차감분)
+                'coupon_discount' => 'ROUND(SUM(coupon_discount))',  // 쿠폰 할인액
+                'return_fee'      => 'ROUND(SUM(return_fee))',       // 반품 수수료/차감
+                'orders'          => 'SUM(orders_count)',            // 주문 건수
+                'returns'         => 'SUM(returns_count)',           // 반품 건수
+                // 파생(전부 화이트리스트 SUM 식 결합 → 인젝션 불가):
+                'net_profit'      => 'ROUND(SUM(net_payout)-SUM(ad_fee))',                       // 순이익(실수령-광고비)
+                'fee_rate'        => 'ROUND(SUM(platform_fee)/NULLIF(SUM(gross_sales),0)*100,2)', // 수수료율(%)
+                'aov'             => 'ROUND(SUM(gross_sales)/NULLIF(SUM(orders_count),0))',        // 정산 객단가
+            ];
+            // 차원: 채널 / 기간(월). period 가 곧 'YYYY-MM' 이므로 date 차원 == period.
+            $DIMS = ['channel' => 'channel', 'period' => 'period', 'date' => 'period'];
+            $TABLE = 'orderhub_settlements'; $PERIOD_COL = 'period'; $BASE_WHERE = '';
+            $periodIsMonth = true;
+            $defaultMetrics = ['gross_sales', 'net_payout', 'platform_fee', 'net_profit'];
+        } elseif ($source === 'commerce') {
             // 커머스 머니경로(channel_orders) — 취소만 제외(반품은 P&L과 동일하게 매출 포함). [현 차수]
             //   취소 SSOT = OrderHub::cancelExclusion() 재사용(인라인 토큰 드리프트 제거). 반품 토큰은 제외 대상 아님.
             [$cancelExpr, $cancelTokens] = OrderHub::cancelExclusion();
@@ -293,7 +321,8 @@ class Reports
         $brkCol = $brkValid ? $DIMS[$brk] : null;
         $period = max(1, min(365, (int)($body['period_days'] ?? 30)));
         $limit = max(1, min(2000, (int)($body['limit'] ?? ($brkValid ? 1000 : 100))));
-        $since = gmdate('Y-m-d', time() - $period * 86400);
+        // [현 차수] settlement.period 는 'YYYY-MM' 문자열이라 일자비교가 아니라 월 prefix(>=) 비교를 쓴다(레코드 누락 방지).
+        $since = $periodIsMonth ? gmdate('Y-m', time() - $period * 86400) : gmdate('Y-m-d', time() - $period * 86400);
 
         // SELECT 절(화이트리스트 식만 결합 → 인젝션 불가). 차원 컬럼 + (2차차원) + 선택 지표.
         $selects = ["{$dimCol} AS dim"];
@@ -306,7 +335,7 @@ class Reports
                   FROM {$TABLE}
                  WHERE tenant_id = ? AND {$PERIOD_COL} >= ? AND {$dimCol} IS NOT NULL AND {$dimCol} <> ''{$BASE_WHERE}{$whereBrk}
                  GROUP BY {$groupBy}
-                 ORDER BY " . ($dim === 'date' ? 'dim ASC' : "{$orderMetric} DESC") . "
+                 ORDER BY " . (($dim === 'date' || $dim === 'period') ? 'dim ASC' : "{$orderMetric} DESC") . "
                  LIMIT {$limit}";
         try {
             $st = $pdo->prepare($sql);
@@ -315,21 +344,30 @@ class Reports
         } catch (\Throwable $e) {
             return self::json($res, ['ok' => false, 'error' => 'query_failed'], 500);
         }
-        // 합계 행(date 차원 제외)
+        // 합계 행(시계열 차원 date/period 제외)
         $totals = [];
-        if ($dim !== 'date' && $rows) {
-            $sumKeys = $source === 'commerce' ? ['gross_sales', 'orders', 'units'] : ['spend', 'revenue', 'impressions', 'clicks', 'conversions'];
+        if ($dim !== 'date' && $dim !== 'period' && $rows) {
+            if ($source === 'settlement') $sumKeys = ['gross_sales', 'net_payout', 'platform_fee', 'ad_fee', 'coupon_discount', 'return_fee', 'orders', 'returns', 'net_profit'];
+            elseif ($source === 'commerce') $sumKeys = ['gross_sales', 'orders', 'units'];
+            else $sumKeys = ['spend', 'revenue', 'impressions', 'clicks', 'conversions'];
             foreach ($sumKeys as $k) {
                 if (in_array($k, $reqMetrics, true)) $totals[$k] = array_sum(array_map(fn($r) => (float)($r[$k] ?? 0), $rows));
             }
             if ($source === 'ads' && isset($totals['revenue'], $totals['spend']) && $totals['spend'] > 0) $totals['roas'] = round($totals['revenue'] / $totals['spend'], 2);
             if (isset($totals['gross_sales'], $totals['orders']) && $totals['orders'] > 0) $totals['aov'] = round($totals['gross_sales'] / $totals['orders']);
+            // [현 차수] 정산 파생 합계: 수수료율(%)은 합계 gross 기준 재계산(행별 평균 합산 오류 회피).
+            if ($source === 'settlement' && isset($totals['platform_fee'], $totals['gross_sales']) && $totals['gross_sales'] > 0) $totals['fee_rate'] = round($totals['platform_fee'] / $totals['gross_sales'] * 100, 2);
         }
+        $emptyNote = $source === 'settlement'
+            ? '선택 기간·차원에 집계할 정산 데이터가 없습니다(주문 동기화·정산 롤업 후 표시).'
+            : ($source === 'commerce'
+                ? '선택 기간·차원에 집계할 주문 데이터가 없습니다.'
+                : '선택 기간·차원에 집계할 광고 성과 데이터가 없습니다(집행·수집 후 표시).');
         return self::json($res, [
             'ok' => true, 'source' => $source, 'dimension' => $dim, 'breakdown' => ($brkValid ? $brk : null), 'metrics' => $reqMetrics, 'period_days' => $period,
             'columns' => array_merge(['dim'], ($brkCol ? ['brk'] : []), $reqMetrics), 'rows' => $rows, 'totals' => $totals,
             'count' => count($rows),
-            'note' => count($rows) === 0 ? '선택 기간·차원에 집계할 광고 성과 데이터가 없습니다(집행·수집 후 표시).' : null,
+            'note' => count($rows) === 0 ? $emptyNote : null,
         ]);
     }
 

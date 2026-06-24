@@ -371,6 +371,116 @@ function predRowScore(c) {
   return { churn: Math.round(churn * 1000) / 1000, clv };
 }
 
+/* ── Deliverability Tab — 메시징 빈도캡(Frequency Capping) + 발송시간 최적화(STO) ──
+ *   [현 차수] 경쟁사 Braze/Klaviyo 정합. 서버 app_setting(테넌트 격리 skey 접두)에 저장.
+ *   데모는 로컬 상태만(운영 격리). 운영은 /api/crm/comms-freq GET/PUT 실배선. */
+function DeliverabilityTab({ t }) {
+  const [cfg, setCfg] = React.useState({ cap: 4, window: 7, quiet_start: 21, quiet_end: 8, sto: false });
+  const [loading, setLoading] = React.useState(!IS_DEMO);
+  const [saving, setSaving] = React.useState(false);
+  const [msg, setMsg] = React.useState("");
+
+  React.useEffect(() => {
+    if (IS_DEMO) return; // 데모: 기본값 로컬 편집(운영 격리)
+    let alive = true;
+    (async () => {
+      try {
+        const r = await crmApi.getCommsFreq();
+        if (alive && r?.config) setCfg(c => ({ ...c, ...r.config }));
+      } catch (e) { /* 미설정/네트워크 → 기본값 유지 */ }
+      finally { if (alive) setLoading(false); }
+    })();
+    return () => { alive = false; };
+  }, []);
+
+  const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, isNaN(+v) ? lo : Math.round(+v)));
+  const set = (k, v) => setCfg(c => ({ ...c, [k]: v }));
+
+  const onSave = async () => {
+    setMsg(""); setSaving(true);
+    const body = {
+      cap: clamp(cfg.cap, 1, 50),
+      window: clamp(cfg.window, 1, 90),
+      quiet_start: clamp(cfg.quiet_start, 0, 23),
+      quiet_end: clamp(cfg.quiet_end, 0, 23),
+      sto: !!cfg.sto,
+    };
+    try {
+      if (IS_DEMO) { setCfg(c => ({ ...c, ...body })); setMsg(t('crm.deliverSaved', '저장되었습니다 (데모)')); }
+      else {
+        const r = await crmApi.saveCommsFreq(body);
+        if (r?.config) setCfg(c => ({ ...c, ...r.config }));
+        setMsg(t('crm.deliverSaved', '저장되었습니다'));
+      }
+    } catch (e) { setMsg(t('crm.deliverSaveErr', '저장 실패: 권한 또는 네트워크를 확인하세요')); }
+    finally { setSaving(false); }
+  };
+
+  const card = { background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: "20px 22px", marginBottom: 16 };
+  const labelSt = { fontSize: 13, fontWeight: 700, color: C.text, marginBottom: 6 };
+  const descSt = { fontSize: 11.5, color: C.muted, marginBottom: 10, lineHeight: 1.5 };
+  const inputSt = { width: 110, padding: "8px 10px", borderRadius: 8, border: `1px solid ${C.border}`, background: "#fff", color: C.text, fontSize: 13, fontWeight: 600 };
+
+  if (loading) return <div style={{ padding: 24, color: C.muted, fontSize: 13 }}>{t('crm.loading', '불러오는 중...')}</div>;
+
+  return (
+    <div>
+      <div style={{ fontSize: 12.5, color: C.muted, marginBottom: 14, lineHeight: 1.6 }}>
+        {t('crm.deliverIntro', '과발송을 차단해 스팸 신고·차단·발신자 평판 하락을 예방합니다. 이메일·카카오·SMS 발송에 공통 적용됩니다(경쟁사 Braze/Klaviyo 동급 제어).')}
+      </div>
+
+      {/* 빈도 상한(Frequency Capping) */}
+      <div style={card}>
+        <div style={labelSt}>📊 {t('crm.deliverFreqTitle', '발송 빈도 상한 (Frequency Capping)')}</div>
+        <div style={descSt}>{t('crm.deliverFreqDesc', '지정한 기간 동안 한 고객에게 보낼 수 있는 최대 메시지 수입니다. 초과 시 자동 발송이 차단됩니다.')}</div>
+        <div style={{ display: "flex", gap: 24, flexWrap: "wrap", alignItems: "flex-end" }}>
+          <div>
+            <div style={{ fontSize: 11.5, color: C.muted, marginBottom: 4 }}>{t('crm.deliverCap', '최대 발송 건수 (1~50)')}</div>
+            <input type="number" min={1} max={50} value={cfg.cap} onChange={e => set('cap', e.target.value)} style={inputSt} />
+          </div>
+          <div>
+            <div style={{ fontSize: 11.5, color: C.muted, marginBottom: 4 }}>{t('crm.deliverWindow', '기간 (일, 1~90)')}</div>
+            <input type="number" min={1} max={90} value={cfg.window} onChange={e => set('window', e.target.value)} style={inputSt} />
+          </div>
+          <div style={{ fontSize: 12, color: C.accent, fontWeight: 600, paddingBottom: 8 }}>
+            {t('crm.deliverFreqSummary', '{cap}건 / {window}일', { cap: clamp(cfg.cap, 1, 50), window: clamp(cfg.window, 1, 90) })}
+          </div>
+        </div>
+      </div>
+
+      {/* 발송시간 최적화(STO) — 야간 차단 */}
+      <div style={card}>
+        <div style={labelSt}>🌙 {t('crm.deliverStoTitle', '발송시간 최적화 (STO) — 야간 차단')}</div>
+        <div style={descSt}>{t('crm.deliverStoDesc', '활성화 시 지정한 야간 시간대(한국시간 기준)에는 메시지 발송이 차단됩니다. 수신자 경험과 도달률을 보호합니다.')}</div>
+        <label style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14, cursor: "pointer", fontSize: 13, fontWeight: 600, color: C.text }}>
+          <input type="checkbox" checked={!!cfg.sto} onChange={e => set('sto', e.target.checked)} style={{ width: 16, height: 16 }} />
+          {t('crm.deliverStoEnable', '야간 발송 차단 사용')}
+        </label>
+        <div style={{ display: "flex", gap: 24, flexWrap: "wrap", alignItems: "flex-end", opacity: cfg.sto ? 1 : 0.45 }}>
+          <div>
+            <div style={{ fontSize: 11.5, color: C.muted, marginBottom: 4 }}>{t('crm.deliverQuietStart', '차단 시작 (시, 0~23)')}</div>
+            <input type="number" min={0} max={23} value={cfg.quiet_start} onChange={e => set('quiet_start', e.target.value)} disabled={!cfg.sto} style={inputSt} />
+          </div>
+          <div>
+            <div style={{ fontSize: 11.5, color: C.muted, marginBottom: 4 }}>{t('crm.deliverQuietEnd', '차단 종료 (시, 0~23)')}</div>
+            <input type="number" min={0} max={23} value={cfg.quiet_end} onChange={e => set('quiet_end', e.target.value)} disabled={!cfg.sto} style={inputSt} />
+          </div>
+          <div style={{ fontSize: 12, color: C.accent, fontWeight: 600, paddingBottom: 8 }}>
+            {t('crm.deliverQuietSummary', '{start}시 ~ {end}시 차단', { start: clamp(cfg.quiet_start, 0, 23), end: clamp(cfg.quiet_end, 0, 23) })}
+          </div>
+        </div>
+      </div>
+
+      <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+        <button onClick={onSave} disabled={saving} style={{ padding: "10px 22px", borderRadius: 10, border: "none", background: C.accent, color: "#fff", fontWeight: 700, fontSize: 13, cursor: saving ? "default" : "pointer", opacity: saving ? 0.6 : 1 }}>
+          {saving ? t('crm.saving', '저장 중...') : t('crm.deliverSave', '설정 저장')}
+        </button>
+        {msg && <span style={{ fontSize: 12.5, fontWeight: 600, color: C.green }}>{msg}</span>}
+      </div>
+    </div>
+  );
+}
+
 /* ── RFM Tab ────────────────────────────────────────────────────────────────── */
 function RFMTab({ derivedCustomers }) {
   const { t } = useI18n();
@@ -672,6 +782,7 @@ function CRMContent() {
     { id: "ai_segments", label: t('crm.tabAiSeg') },
     { id: "segments", label: t('crm.tabManSeg') },
     { id: "rfm", label: t('crm.tabRfm') },
+    { id: "deliverability", label: t('crm.tabDeliver', '딜리버러빌리티') },
     { id: "guide", label: t('crm.tabGuide') },
   ];
 
@@ -818,6 +929,7 @@ function CRMContent() {
 
       {tab === "segments" && <SegmentsTab segments={segments} onSave={onSaveSegment} onDelete={onDeleteSegment} onSmartSeed={onSmartSeed} onRefresh={onRefreshSegment} />}
       {tab === "rfm" && <RFMTab derivedCustomers={rfmList} />}
+      {tab === "deliverability" && <DeliverabilityTab t={t} />}
       {tab === "ai_segments" && <AISegmentsTab navigate={navigate} derivedCustomers={customers} />}
       {tab === "guide" && (
         <>

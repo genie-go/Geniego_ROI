@@ -270,6 +270,8 @@ class KakaoChannel
 
         // 대상 고객 (★테넌트 스코프)
         $segId = (int)$campaign['segment_id'];
+        // [현 차수 약점①] 발송 직전 동적 세그먼트 멤버 최신화(stale 방지). best-effort — 실패해도 발송 진행.
+        if ($segId) { CRM::refreshSegmentForSend($pdo, $tenant, $segId); }
         if ($segId) {
             $cst = $pdo->prepare("SELECT c.id, c.name, c.phone FROM crm_customers c JOIN crm_segment_members sm ON sm.customer_id=c.id AND sm.tenant_id=c.tenant_id WHERE sm.segment_id=:sid AND c.tenant_id=:t AND c.phone IS NOT NULL AND c.phone != ''");
             $cst->execute([':sid'=>$segId, ':t'=>$tenant]);

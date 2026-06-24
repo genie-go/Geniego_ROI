@@ -270,6 +270,8 @@ class EmailMarketing
 
         // 대상 고객 (★테넌트 스코프 — crm_* 도 동일 테넌트만)
         $segId = (int)$campaign['segment_id'];
+        // [현 차수 약점①] 발송 직전 동적 세그먼트 멤버 최신화(stale 방지). best-effort — 실패해도 발송 진행.
+        if ($segId) { CRM::refreshSegmentForSend($pdo, $tenant, $segId); }
         if ($segId) {
             $cust = $pdo->prepare("SELECT c.id, c.email, c.name FROM crm_customers c
                 JOIN crm_segment_members sm ON sm.customer_id=c.id AND sm.tenant_id=c.tenant_id
@@ -362,6 +364,43 @@ class EmailMarketing
             $pdo->prepare("UPDATE email_campaigns SET opened=opened+1
                 WHERE id=:cid AND tenant_id=(SELECT tenant_id FROM email_sends WHERE campaign_id=:cid2 AND customer_id=:uid LIMIT 1)")
                 ->execute([':cid'=>$cid, ':cid2'=>$cid, ':uid'=>$uid]);
+        }
+        $res->getBody()->write('{"ok":true}');
+        return $res->withHeader('Content-Type','application/json');
+    }
+
+    /* ─── POST /email/track/click — 공개 비콘(세션 없음). 클릭=강한 engagement 신호 ──
+     *   trackOpen 과 동일한 멱등/교차테넌트 차단 패턴(204차 P2). 추가로 [현 차수 약점③]:
+     *   클릭은 가장 강한 오운드 engagement → 발송시점 크레딧만이던 어트리뷰션에 클릭 engagement 터치를
+     *   강화 적재(send 의 email 해시 own:<hash> 로 기존 발송 터치와 정합). 주문 시 백필이 이 강화 터치도 귀속.
+     *   click 은 open 보다 강하므로 status='clicked' 로 전이(opened 도 동반 set). */
+    public static function trackClick(Request $req, Response $res): Response
+    {
+        self::ensureTables();
+        $pdo = self::db();
+        $b = (array)$req->getParsedBody();
+        $cid = (int)($b['campaign_id']??0); $uid = (int)($b['customer_id']??0);
+        // 멱등: 미클릭→클릭 전이할 때만 갱신(공개 비콘 반복 호출 중복 카운트 차단). opened_at 도 함께 보정.
+        $now = self::now();
+        $upd = $pdo->prepare("UPDATE email_sends SET clicked_at=:ca, opened_at=COALESCE(opened_at,:oa), status='clicked'
+            WHERE campaign_id=:cid AND customer_id=:uid AND (clicked_at IS NULL OR status<>'clicked')");
+        $upd->execute([':ca'=>$now, ':oa'=>$now, ':cid'=>$cid, ':uid'=>$uid]);
+        if ($upd->rowCount() > 0) {
+            // 캠페인 카운터는 해당 send 의 tenant 로만 증가(교차테넌트 오염 차단). open 미집계 시 동반 보정.
+            $row = $pdo->prepare("SELECT tenant_id, email FROM email_sends WHERE campaign_id=:cid AND customer_id=:uid LIMIT 1");
+            $row->execute([':cid'=>$cid, ':uid'=>$uid]);
+            $send = $row->fetch(\PDO::FETCH_ASSOC);
+            if ($send) {
+                $tn = (string)$send['tenant_id'];
+                $pdo->prepare("UPDATE email_campaigns SET clicked=clicked+1 WHERE id=:cid AND tenant_id=:t")
+                    ->execute([':cid'=>$cid, ':t'=>$tn]);
+                // [현 차수 약점③] 클릭 engagement 어트리뷰션 — 강화 오운드 터치 적재(발송 own:hash 와 정합).
+                //   발송실패에 영향 없도록 예외 무해. 주문 ingest 시 backfillOwnedTouches 가 order_id 백필.
+                try {
+                    Attribution::recordOwnedTouch($pdo, $tn, 'email', (string)($send['email']??''), null, 'email:'.$cid,
+                        ['campaign_id'=>$cid, 'engagement'=>'click', 'clicked'=>true]);
+                } catch (\Throwable $e) {}
+            }
         }
         $res->getBody()->write('{"ok":true}');
         return $res->withHeader('Content-Type','application/json');
