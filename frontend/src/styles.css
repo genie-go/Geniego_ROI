@@ -7694,3 +7694,35 @@ button.cs-inactive-tab {
   color: #0e7490 !important;
   -webkit-text-fill-color: #0e7490 !important;
 }
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   [240차] 데스크톱 스크롤 트랩 해소 (사용자 보고: /operations 크리에이티브 갤러리 등 콘텐츠 하단 잘림 + 스크롤 불가)
+   근본: .app-content-area>div(라우트 루트)는 overflow-y:auto 로 콘텐츠 영역을 뷰포트 높이만큼 채우며 내부 스크롤한다.
+   그러나 라우트 루트가 display:grid 인 페이지(OperationsHub 등)에서 그리드가 행을 압축하고, 그 안 .fade-up 카드가
+   overflow:hidden 이라 콘텐츠(예: 갤러리 871px)를 낮은 높이(371px)에 가둬 하단이 잘리고 스크롤도 막혔다.
+   234차 스크롤존 해제는 @media(max-width:768px) 모바일 한정이라 데스크톱엔 미적용이었다.
+   → 데스크톱(min-width:769px)에서도 내부 스크롤존(.fade-up + 인라인 flex:1 overflow 스크롤존)을 자연 높이로 풀어
+   라우트 루트가 정상 스크롤하게 한다(루트 자체 overflow-y:auto 는 미변경 = 기존 데스크톱 레이아웃 보존).
+   ★양 축 visible 필수(한 축 hidden 이면 다른 축이 auto 로 강제 계산되어 안 풀림). 라이브 검증: 갤러리 371→873px·스크롤 복원.
+   ══════════════════════════════════════════════════════════════════════════════ */
+@media (min-width: 769px) {
+  /* ★근본: 라우트 루트가 display:grid 인 페이지에서 grid-auto-rows(기본 auto)가 flex-wrap 자식(서브탭 바 등)을
+     가진 행을 콘텐츠보다 낮게 산정 → overflow:hidden 카드(.card/.fade-up)가 콘텐츠를 가둬 잘림(예: 탭바 60→26,
+     갤러리 871→371). grid-auto-rows:max-content 로 각 암시적 행을 콘텐츠 높이로 강제해 압축/클립을 원천 차단한다.
+     (라우트 루트는 flex:1+overflow-y:auto 유지 → 콘텐츠가 넘치면 정상 내부 스크롤. 명시적 grid-template-rows 를
+     쓰는 그리드는 grid-auto-rows 영향 없음 = 안전.) 라이브 검증: 탭바 26→62·갤러리 371→873·스크롤 복원. */
+  .app-content-area > div[style*="display: grid"],
+  .app-content-area > div[style*="display:grid"] {
+    grid-auto-rows: max-content !important;
+  }
+  /* 비-그리드 라우트(flex-column/블록)의 .fade-up + 인라인 flex:1 내부 스크롤존도 자연 높이로 풀어 트랩 방지. */
+  .app-content-area .fade-up,
+  .app-content-area [style*="flex: 1"][style*="overflow-y: auto"],
+  .app-content-area [style*="flex:1"][style*="overflow-y:auto"],
+  .app-content-area [style*="flex: 1"][style*="overflow: hidden auto"],
+  .app-content-area [style*="flex:1"][style*="overflow:hidden auto"] {
+    overflow: visible !important;
+    max-height: none !important;
+    height: auto !important;
+  }
+}

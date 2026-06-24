@@ -115,10 +115,12 @@ export default function CaseStudy() {
       {/* KPIs */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12 }}>
         {kpis.map((k, i) => (
-          <div key={i} className="card card-glass" style={{ padding: '16px 18px' }}>
-            <div style={{ fontSize: 20, marginBottom: 4 }}>{k.emoji}</div>
-            <div style={{ fontSize: 22, fontWeight: 900, color: 'var(--text-1)' }}>{k.val}</div>
-            <div style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 600 }}>{k.label}</div>
+          <div key={i} className="card card-glass" style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ fontSize: 24, lineHeight: 1, flex: '0 0 auto' }}>{k.emoji}</div>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: 22, fontWeight: 900, color: 'var(--text-1)', lineHeight: 1.1 }}>{k.val}</div>
+              <div style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 600 }}>{k.label}</div>
+            </div>
           </div>
         ))}
       </div>
