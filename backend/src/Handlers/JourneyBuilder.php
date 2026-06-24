@@ -582,6 +582,8 @@ class JourneyBuilder
         $r = \Genie\Mailer::send($email, $subject, $html, ['pdo' => $pdo, 'tenant' => $tenant]);
         // [240차 약점②] 오운드채널 어트리뷰션 — 저니 이메일 발송 터치(주문 시 order_id 백필 → 저니 매출 멀티터치 귀속).
         if (($r['ok'] ?? false) && ($r['mode'] ?? '') !== 'unconfigured') { try { Attribution::recordOwnedTouch($pdo, $tenant, 'journey', $email, null, 'journey:'.(string)($enr['journey_id'] ?? ''), ['node' => 'email']); } catch (\Throwable $e) {} }
+        // [현 차수] CRM 활동 기록 — 저니 발송도 빈도캡 카운트 대상에 포함(EmailMarketing 패턴 재사용).
+        if (($r['ok'] ?? false) && ($r['mode'] ?? '') !== 'unconfigured') { self::recordCrmActivity($pdo, $tenant, (int)($enr['customer_id'] ?? 0), 'email_sent', 'email', ['journey_id' => (string)($enr['journey_id'] ?? ''), 'subject' => $subject]); }
         return ['action' => ($r['ok'] ?? false) ? 'email_sent' : 'email_failed', 'to' => $email, 'mode' => $r['mode'] ?? null];
     }
 
@@ -594,6 +596,8 @@ class JourneyBuilder
         $content = (string)($cfg['content'] ?? $cfg['message'] ?? '') ?: (string)($node['label'] ?? '안내');
         $r = \Genie\NaverSms::sendPlatform($pdo, $phone, $content);
         if (($r['ok'] ?? false) && ($r['mode'] ?? '') !== 'unconfigured') { try { Attribution::recordOwnedTouch($pdo, $tenant, 'journey', null, $phone, 'journey:'.(string)($enr['journey_id'] ?? ''), ['node' => 'sms']); } catch (\Throwable $e) {} }
+        // [현 차수] CRM 활동 기록 — 저니 발송도 빈도캡 카운트 대상에 포함.
+        if (($r['ok'] ?? false) && ($r['mode'] ?? '') !== 'unconfigured') { self::recordCrmActivity($pdo, $tenant, (int)($enr['customer_id'] ?? 0), 'sms_sent', 'sms', ['journey_id' => (string)($enr['journey_id'] ?? '')]); }
         return ['action' => ($r['ok'] ?? false) ? 'sms_sent' : ('sms_' . ($r['mode'] ?? 'failed')), 'to' => $phone];
     }
 
@@ -607,7 +611,20 @@ class JourneyBuilder
         $content = (string)($cfg['content'] ?? '') ?: (string)($node['label'] ?? '안내');
         $r = KakaoChannel::sendOne($pdo, $tenant, $phone, $tplCode, $content);
         if (($r['ok'] ?? false) && ($r['mode'] ?? '') !== 'unconfigured') { try { Attribution::recordOwnedTouch($pdo, $tenant, 'journey', null, $phone, 'journey:'.(string)($enr['journey_id'] ?? ''), ['node' => 'kakao']); } catch (\Throwable $e) {} }
+        // [현 차수] CRM 활동 기록 — 저니 발송도 빈도캡 카운트 대상에 포함.
+        if (($r['ok'] ?? false) && ($r['mode'] ?? '') !== 'unconfigured') { self::recordCrmActivity($pdo, $tenant, (int)($enr['customer_id'] ?? 0), 'kakao_sent', 'kakao', ['journey_id' => (string)($enr['journey_id'] ?? '')]); }
         return ['action' => ($r['ok'] ?? false) ? 'kakao_sent' : ('kakao_' . ($r['mode'] ?? 'failed')), 'to' => $phone];
+    }
+
+    /** [현 차수] CRM 활동 기록 헬퍼 — 저니 발송이 빈도캡(crm_activities)에 카운트되도록.
+     *  EmailMarketing/KakaoChannel 의 crm_activities INSERT 패턴 동일 재사용. customer_id 없으면 no-op. */
+    private static function recordCrmActivity(\PDO $pdo, string $tenant, int $cid, string $type, string $channel, array $data): void
+    {
+        if ($cid <= 0) return;
+        try {
+            $pdo->prepare("INSERT INTO crm_activities (tenant_id, customer_id, type, channel, data, created_at) VALUES (:t,:cid,:ty,:ch,:data,:ca)")
+                ->execute([':t'=>$tenant, ':cid'=>$cid, ':ty'=>$type, ':ch'=>$channel, ':data'=>json_encode($data, JSON_UNESCAPED_UNICODE), ':ca'=>self::now()]);
+        } catch (\Throwable $e) {}
     }
 
     private static function logNode(\PDO $pdo, string $tenant, int $enrollId, int $jid, string $nodeId, string $type, string $action, array $result): void

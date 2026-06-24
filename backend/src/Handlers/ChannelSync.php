@@ -2470,7 +2470,8 @@ final class ChannelSync
      *   매출을 광고에 귀속한다(기존 커머스-채널 터치는 보존, 추가만 함 = 안전). 신호 없으면 무동작.
      *   데모/PII미저장(이메일은 sha256 해시만 사용)·멱등·테넌트 격리.
      */
-    private static function enrichOrderAttribution(PDO $pdo, string $tenant, string $channel, string $orderId, ?string $buyerEmail, float $total, array $raw): void
+    // [현 차수] public — LiveCommerce::placeOrder 가 라이브 주문 전환을 attribution_result 에 등록(폴링/웹훅 경로와 동등).
+    public static function enrichOrderAttribution(PDO $pdo, string $tenant, string $channel, string $orderId, ?string $buyerEmail, float $total, array $raw): void
     {
         if ($tenant === 'demo' || $orderId === '') return;
         $adChannel = '';

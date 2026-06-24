@@ -1601,6 +1601,9 @@ final class UserAuth
             if ($bonusDays > 0) $msg .= " 🎁 추가 " . (int)round($bonusDays / 30) . "개월 무료 보너스가 자동 적용되었습니다!";
         }
 
+        // [현 차수] 불변 보안 감사 — 플랜 업그레이드 성공 기록(login 배선 패턴 동일 재사용).
+        try { \Genie\SecurityAudit::log($pdo, (string)self::resolveTenantId($pdo, $user), (string)($user['email'] ?? ''), 'plan.upgrade', ['plan' => $plan, 'cycle' => $cycle], $req); } catch (\Throwable $e) {}
+
         return self::json($res, [
             'ok'   => true,
             'user' => $updatedUser,
@@ -1833,6 +1836,9 @@ final class UserAuth
             'subscription_expires_at' => $licenseExpiry,
             'subscription_cycle'      => 'license',
         ];
+
+        // [현 차수] 불변 보안 감사 — 라이선스 활성화 성공 기록(login 배선 패턴 동일 재사용).
+        try { \Genie\SecurityAudit::log($pdo, (string)self::resolveTenantId($pdo, $user), (string)($user['email'] ?? ''), 'plan.license_activate', ['plan' => $licensePlan, 'expires_at' => $licenseExpiry], $req); } catch (\Throwable $e) {}
 
         return self::json($res, [
             'ok'           => true,

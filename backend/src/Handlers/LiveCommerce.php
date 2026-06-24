@@ -367,6 +367,9 @@ class LiveCommerce
         try { \Genie\Handlers\ChannelSync::ingestPurchaseToCrm($pdo, $t, 'live', null, $buyer, $total, $sku, (int)$qty, 'LIVE-' . $sid . '-' . $orderId); } catch (\Throwable $e) {}
         // 어트리뷰션: 라이브 채널 전환 터치 기록(채널 귀속 분석 반영).
         try { \Genie\Handlers\ChannelSync::recordAttributionTouch($pdo, $t, 'live', 'LIVE-' . $sid . '-' . $orderId, $total); } catch (\Throwable $e) {}
+        // [현 차수] 라이브 주문 전환 등록(attribution_result) — 폴링(2339)/웹훅(3411) enrichOrderAttribution 경로와 동등.
+        //   광고 클릭ID 없으면 commerce-last-touch 로 전환 집계 → markov 여정에 라이브 채널 전환 반영. 데모는 내부 skip.
+        try { \Genie\Handlers\ChannelSync::enrichOrderAttribution($pdo, $t, 'live', 'LIVE-' . $sid . '-' . $orderId, null, $total, ['product_name' => $name, 'sku' => $sku]); } catch (\Throwable $e) {}
 
         return self::json($res, ['ok' => true, 'id' => $orderId, 'total' => $total, 'name' => $name, 'qty' => $qty]);
     }

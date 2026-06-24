@@ -722,6 +722,10 @@ final class Connectors
         'linkedin_ads'=>'linkedin','linkedin'=>'linkedin',
         'criteo'=>'criteo','criteo_ads'=>'criteo',
         'pinterest_ads'=>'pinterest','pinterest'=>'pinterest',
+        // [현 차수] 신규 광고 데이터소스 — 동일 SSOT 패턴(저장직후 syncOne·cron 팬아웃·isAdChannel 자동 전파).
+        'amazon_ads'=>'amazon_ads','amazon_ads_dsp'=>'amazon_ads',
+        'microsoft_ads'=>'microsoft_ads','bing_ads'=>'microsoft_ads',
+        'x_ads'=>'x_ads','twitter_ads'=>'x_ads',
     ];
 
     private static function loadCred(string $tenant, string $channelKey, string $credKey): string

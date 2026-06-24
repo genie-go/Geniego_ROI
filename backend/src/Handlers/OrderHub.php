@@ -85,8 +85,9 @@ final class OrderHub
     public const CANCEL_TOKENS = ['CancelDone','Cancel요청','cancelled','canceled','취소완료','취소요청','취소접수','취소','주문취소'];
     public const RETURN_TOKENS = ['returned','refunded','return','반품완료','반품요청','반품접수','반품','환불완료','반품Done','반품입고'];
 
-    /** 취소주문 제외용 SQL 단편 + 바인드 파라미터(NULL-safe). @return array{0:string,1:array} */
-    private static function cancelExclusion(): array
+    /** 취소주문 제외용 SQL 단편 + 바인드 파라미터(NULL-safe). @return array{0:string,1:array}
+     *  [현 차수] public — Reports(BI 커머스 소스)가 동일 취소 SSOT 재사용(드리프트 제거). */
+    public static function cancelExclusion(): array
     {
         $ph = implode(',', array_fill(0, count(self::CANCEL_TOKENS), '?'));
         $sql = "(COALESCE(event_type,'order') = 'cancel' OR COALESCE(status,'') IN ($ph))";

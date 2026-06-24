@@ -153,6 +153,17 @@ try {
     }
 } catch { /* BroadcastChannel not supported — fallback to localStorage events */ }
 
+/* [현 차수] ★실시간 동시 동기화 전용 채널(genie_sync_v1) — 페이로드 없는 "갱신 신호"만 전파.
+   기존 geniego-roi-global-sync(상태 페이로드 전파)와 별개 채널: 신호=서버 재fetch 트리거용.
+   모듈 싱글톤(중복 생성 금지). 미지원 환경은 null → triggerSync 의 ① 로컬 tick 만 동작(무해). */
+const REALTIME_SYNC_CHANNEL_NAME = 'genie_sync_v1';
+let _realtimeSyncChannel = null;
+try {
+    if (typeof BroadcastChannel !== 'undefined') {
+        _realtimeSyncChannel = new BroadcastChannel(REALTIME_SYNC_CHANNEL_NAME);
+    }
+} catch { /* BroadcastChannel not supported — local tick only */ }
+
 function broadcastUpdate(type, payload) {
     try {
         // 180차 회원 격리: 메시지에 발신 tenant 태그 → 다른 회원 탭은 수신 무시(크로스탭 누출 차단)
@@ -304,6 +315,25 @@ export function GlobalDataProvider({ children }) {
     const [settlementStatsServer, setSettlementStatsServer] = useState(null);
     // [225차 P1-16] 운영 클레임(반품) 통계 서버집계(claims?limit=200 재집계 과소 해소). 데모는 null 유지.
     const [claimStatsServer, setClaimStatsServer] = useState(null);
+    /* ════════════════════════════════════════════════
+       [현 차수] ★실시간 동시 동기화 엔진 — syncTick
+       어떤 값이 변경/등록되면(주문/정산/인플루언서/자격증명 등) triggerSync() 한 번으로
+       ① 운영 서버 통계 fetch useEffect 들을 즉시 재실행(syncTick 의존) → 새로고침 없이 갱신
+       ② BroadcastChannel('genie_sync_v1') 로 다른 탭에 전파 → 전 탭 동시 갱신(주식 시세처럼).
+       ★무한루프 방지: triggerSync 자신은 syncTick 을 의존하지 않음(함수 정체성 고정).
+       크로스탭 수신은 onmessage 에서 setSyncTick(n=>n+1) 만 호출(재broadcast 금지)로 echo 차단.
+    ════════════════════════════════════════════════ */
+    const [syncTick, setSyncTick] = useState(0);
+    const triggerSync = useCallback(() => {
+        // ① 로컬 재집계/재fetch 트리거(운영 서버 통계 useEffect 들이 syncTick 을 의존).
+        setSyncTick(n => n + 1);
+        // ② 크로스탭 전파(다른 탭이 즉시 갱신). 회원(테넌트) 격리 태그 동봉 → 타 회원 탭은 무시.
+        try {
+            if (_realtimeSyncChannel) {
+                _realtimeSyncChannel.postMessage({ tenant: currentTenant(), ts: Date.now() });
+            }
+        } catch { /* ignore broadcast errors */ }
+    }, []);
     const [digitalShelfData, setDigitalShelfData] = useState({});     // DigitalShelf SoS 데이터
     const [campaignOrderMap, setCampaignOrderMap] = useState({});     // 캠페인 ID → Orders 매핑
     const [orderMemos, setOrderMemos] = useState({});                 // Orders별 메모
@@ -435,7 +465,7 @@ export function GlobalDataProvider({ children }) {
                 if (built.length > 0) setInventory(built);
             })
             .catch(() => { /* Error 시 INIT_INVENTORY 유지 */ });
-    }, []); // 한 번만 Run
+    }, [syncTick]); // [현 차수] 마운트 1회 + triggerSync 시 재고 즉시 재pull(자격증명/동기화 등록 반영)
 
     // ── [165차 PM Phase 2-B] OrderHub Aggregator API → orders / claimHistory / settlement
     //    spec: docs/spec/backend_orderhub_aggregator_165_v3.md §8 (v1 §7 동일 패턴)
@@ -451,11 +481,12 @@ export function GlobalDataProvider({ children }) {
             .then(res => { if (!cancelled && res?.ok) setOrderStatsServer(res); })
             .catch(() => { /* 실패 시 클라 집계 폴백 */ });
         // [240차] 인플루언서 비용 P&L — 운영 실 정산 합계(미등록 시 0). 데모는 fetch 스킵(클라 creators 합산).
+        // [현 차수] ★creators 변경 등에 미반응이던 stale 갭 해소 — syncTick 의존으로 triggerSync 시 즉시 재fetch.
         getJsonAuth('/api/v423/influencer/cost-summary')
             .then(res => { if (!cancelled && res?.ok) setInfluencerCostServer(res); })
             .catch(() => { /* 실패 시 0(영향 없음) */ });
         return () => { cancelled = true; };
-    }, []);
+    }, [syncTick]); // [현 차수] 마운트 1회 + triggerSync 즉시 재fetch(폴링은 별도 useEffect 보존)
 
     useEffect(() => {
         if (_isDemo) return;
@@ -468,7 +499,7 @@ export function GlobalDataProvider({ children }) {
             .then(res => { if (!cancelled && res?.ok) setClaimStatsServer(res); })
             .catch(() => { /* 클라 배열 폴백 */ });
         return () => { cancelled = true; };
-    }, []);
+    }, [syncTick]); // [현 차수] triggerSync 즉시 재fetch
 
     useEffect(() => {
         if (_isDemo) return;
@@ -481,7 +512,7 @@ export function GlobalDataProvider({ children }) {
             .then(res => { if (!cancelled && res?.ok) setSettlementStatsServer(res); })
             .catch(() => { /* 실패 시 클라(200캡) 집계 폴백 */ });
         return () => { cancelled = true; };
-    }, []);
+    }, [syncTick]); // [현 차수] triggerSync 즉시 재fetch
 
     // ── [208차 동기화 P1] 운영 홈/성과 대시보드 실시간성: orders/settlement/inventory 30초 주기 폴링.
     //    기존엔 마운트 시 1회만 fetch → 신규 주문/정산 롤업이 새로고침 전까지 미반영이던 갭 해소.
@@ -621,6 +652,21 @@ export function GlobalDataProvider({ children }) {
             if (_broadcastChannel) _broadcastChannel.onmessage = null;
             window.removeEventListener('storage', handleStorage);
         };
+    }, []);
+
+    /* ── 🔄 [현 차수] 실시간 동시 동기화 수신부(genie_sync_v1) ───────────────
+       다른 탭에서 triggerSync() → postMessage 수신 시 setSyncTick 만 올려 로컬 서버 통계
+       useEffect 들을 즉시 재실행(크로스탭 동시 갱신). ★재broadcast 금지(echo/무한루프 차단).
+       회원(테넌트) 격리: 발신 tenant 가 현재 회원과 다르면 무시(타 회원 데이터 유입 차단). */
+    useEffect(() => {
+        if (!_realtimeSyncChannel) return; // 미지원 환경: 로컬 tick 만(무해)
+        const onSignal = (msg) => {
+            const data = msg?.data || msg;
+            if (data && data.tenant && data.tenant !== currentTenant()) return;
+            setSyncTick(n => n + 1); // 수신 탭 즉시 재fetch(재전파 안 함 → echo 없음)
+        };
+        _realtimeSyncChannel.addEventListener('message', onSignal);
+        return () => { _realtimeSyncChannel.removeEventListener('message', onSignal); };
     }, []);
 
     /** 재고를 백엔드에 Save (유료 User 수동 조정 후 호출) */
@@ -856,8 +902,11 @@ export function GlobalDataProvider({ children }) {
             broadcastUpdate('ALERTS_UPDATE', next);
             return next;
         });
+        // [현 차수] 운영: 주문 변경 → 서버 통계(주문/정산/클레임/인플루언서) 즉시 재fetch + 전 탭 동시 갱신.
+        //   데모는 위 client state + broadcastUpdate 로 이미 동기화되므로 운영 경로에만 트리거.
+        if (!_isDemo) triggerSync();
         return order;
-    }, [registerInOut]);
+    }, [registerInOut, triggerSync]);
 
     const updateOrderStatus = useCallback((id, newStatus) => {
         const statusVal = typeof newStatus === 'string' ? newStatus : newStatus?.status || newStatus;
@@ -946,7 +995,9 @@ export function GlobalDataProvider({ children }) {
                 ...prev.slice(0, 49)
             ]);
         }
-    }, [registerInOut]);
+        // [현 차수] 운영: 주문 상태 변경(배송/반품/취소)은 정산·클레임 서버집계에 영향 → 즉시 재fetch + 전 탭 갱신.
+        if (!_isDemo) triggerSync();
+    }, [registerInOut, triggerSync]);
 
     /* ════════════════════════════════════════════════
        정산(Settlement) Actions  ✅ NEW
@@ -1643,7 +1694,9 @@ export function GlobalDataProvider({ children }) {
     /** 크리에이터 개별 업데이트 (계약·정산·콘텐츠 변경 즉시 반영) */
     const updateCreator = useCallback((id, patch) => {
         setCreators(prev => prev.map(c => c.id === id ? { ...c, ...patch } : c));
-    }, []);
+        // [현 차수] 운영: 크리에이터 변경 → influencer/cost-summary 즉시 재fetch(stale 갭 해소) + 전 탭 갱신.
+        if (!_isDemo) triggerSync();
+    }, [triggerSync]);
 
     /** UGC 리뷰 동기화 */
     const syncUgcReviews = useCallback((list) => {
@@ -1941,6 +1994,11 @@ export function GlobalDataProvider({ children }) {
         // ── 🎪 데모 모드
         isDemo: _isDemo,
         resetDemoData,
+
+        // ── 🔄 [현 차수] 실시간 동시 동기화 엔진
+        //   어느 기능이든 값 변경/등록(주문/정산/인플루언서/자격증명 등) 후 triggerSync() 호출 →
+        //   운영 서버 통계 즉시 재fetch + 전 탭 동시 갱신. syncTick 은 파생 재계산 hook 의존성용 노출.
+        triggerSync, syncTick,
 
         // ── 재고 (broadcast-aware)
         inventory, setInventory: setInventorySync,

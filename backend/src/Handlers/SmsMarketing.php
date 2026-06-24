@@ -40,6 +40,19 @@ final class SmsMarketing
         return ($t !== null && $t !== '') ? $t : 'demo';
     }
 
+    /** [현 차수] 수신번호(숫자만) → crm_customers.id 역매핑. 저장 phone 의 구분자(-, 공백, (), +)를
+     *  SQL REPLACE 로 제거 후 숫자비교(best-effort). 매핑 실패 시 0(빈도캡 미적용·기존대로 발송). */
+    private static function customerIdByPhone(\PDO $pdo, string $tenant, string $digits): int
+    {
+        if ($digits === '') return 0;
+        try {
+            $norm = "REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(phone,''),'-',''),' ',''),'(',''),')',''),'+','')";
+            $st = $pdo->prepare("SELECT id FROM crm_customers WHERE tenant_id=? AND {$norm}=? LIMIT 1");
+            $st->execute([$tenant, $digits]);
+            return (int)($st->fetchColumn() ?: 0);
+        } catch (\Throwable $e) { return 0; }
+    }
+
     private static function ensureTables(): void
     {
         $pdo = Db::pdo();
@@ -308,10 +321,16 @@ final class SmsMarketing
             ]);
         }
 
-        $sent = $failed = 0;
+        // [현 차수] 빈도캡 — crm_customers.phone 역매핑 가능 시에만 평가(best-effort, 매핑 안 되면 기존대로 발송).
+        $freqCfg = CRM::commsFreqConfig($pdo, $tenant);
+
+        $sent = $failed = 0; $capped = 0;
         foreach (array_slice($numbers, 0, 500) as $to) {
             $to = preg_replace('/\D/', '', (string)$to);
             if (strlen($to) < 8) continue;
+            // [현 차수] 수신번호 → customer_id 역매핑(전화번호 정규화 후 일치). 매핑 시 빈도캡 평가 대상.
+            $cid = self::customerIdByPhone($pdo, $tenant, $to);
+            if ($cid > 0 && CRM::isFrequencyCapped($pdo, $tenant, $cid, $freqCfg['cap'], $freqCfg['window'])) { $capped++; continue; }
             if ($plan === 'demo') {
                 $status = rand(0, 9) < 95 ? 'delivered' : 'failed'; // 데모 시뮬레이션 한정
             } else {
@@ -323,9 +342,16 @@ final class SmsMarketing
             in_array($status, ['sent','delivered'], true) ? $sent++ : $failed++;
             // [240차 약점②] 오운드채널 어트리뷰션 — 실발송 SMS 터치(phone 해시, PII미저장). 주문 phone 매칭 시 캠페인 매출 귀속.
             if ($status === 'sent') { try { Attribution::recordOwnedTouch($pdo, $tenant, 'sms', null, $to, 'sms'); } catch (\Throwable $e) {} }
+            // [현 차수] CRM 활동 기록 — 매핑된 고객만(빈도캡 카운트 대상). EmailMarketing 패턴 재사용.
+            if ($cid > 0 && in_array($status, ['sent','delivered'], true)) {
+                try {
+                    $pdo->prepare("INSERT INTO crm_activities (tenant_id, customer_id, type, channel, data, created_at) VALUES (?,?,'sms_sent','sms',?,?)")
+                        ->execute([$tenant, $cid, json_encode(['broadcast'=>true], JSON_UNESCAPED_UNICODE), $now]);
+                } catch (\Throwable $e) {}
+            }
         }
 
-        return TemplateResponder::respond($res, ['ok'=>true,'sent'=>$sent,'failed'=>$failed,'total'=>$sent+$failed]);
+        return TemplateResponder::respond($res, ['ok'=>true,'sent'=>$sent,'failed'=>$failed,'capped'=>$capped,'total'=>$sent+$failed]);
     }
 
     // GET /api/sms/messages

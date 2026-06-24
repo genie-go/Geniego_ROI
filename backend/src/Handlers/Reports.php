@@ -242,9 +242,11 @@ class Reports
 
         // [240차 BI⑤] 데이터 소스 인지 — ads(광고 성과) | commerce(주문 머니경로). 경쟁사 BI 대비 P&L/주문 통합 쿼리 우위.
         $source = ((string)($body['source'] ?? 'ads') === 'commerce') ? 'commerce' : 'ads';
+        $baseParams = [];
         if ($source === 'commerce') {
-            // 커머스 머니경로(channel_orders) — 취소/반품 제외(P&L 정합). 화이트리스트 식만.
-            $cancelExpr = "(COALESCE(event_type,'order')='cancel' OR COALESCE(status,'') IN ('취소','반품','cancelled','canceled','returned'))";
+            // 커머스 머니경로(channel_orders) — 취소만 제외(반품은 P&L과 동일하게 매출 포함). [현 차수]
+            //   취소 SSOT = OrderHub::cancelExclusion() 재사용(인라인 토큰 드리프트 제거). 반품 토큰은 제외 대상 아님.
+            [$cancelExpr, $cancelTokens] = OrderHub::cancelExclusion();
             $METRICS = [
                 'gross_sales' => 'ROUND(SUM(total_price))',
                 'orders'      => 'COUNT(*)',
@@ -253,6 +255,7 @@ class Reports
             ];
             $DIMS = ['channel' => 'channel', 'date' => "SUBSTR(ordered_at,1,10)"];
             $TABLE = 'channel_orders'; $PERIOD_COL = 'ordered_at'; $BASE_WHERE = " AND NOT {$cancelExpr}";
+            $baseParams = $cancelTokens; // 취소 토큰 바인드(WHERE 절 ? 순서와 정합)
             $defaultMetrics = ['gross_sales', 'orders', 'aov'];
         } else {
             // 화이트리스트: 광고 지표 SQL 식(performance_metrics). [240차] 계산필드(profit/margin/aov/cpm) 추가 — 경쟁사 BI 계산필드 정합.
@@ -307,7 +310,7 @@ class Reports
                  LIMIT {$limit}";
         try {
             $st = $pdo->prepare($sql);
-            $st->execute([$tenant, $since]);
+            $st->execute(array_merge([$tenant, $since], $baseParams));
             $rows = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
         } catch (\Throwable $e) {
             return self::json($res, ['ok' => false, 'error' => 'query_failed'], 500);
