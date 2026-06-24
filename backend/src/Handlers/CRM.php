@@ -373,6 +373,50 @@ class CRM
                 'total_predicted_clv' => round($sumPredClv), 'scored' => $n];
     }
 
+    /* ─── [240차 약점⑥] 메시징 빈도캡(Frequency Capping) + 발송시간 최적화 — 딜리버러빌리티 보호(경쟁사 Braze/Klaviyo 정합) ───
+     *   기존 crm_activities(email_sent/kakao_sent/sms_sent 로그) 재사용(중복0). 과발송 차단으로 스팸/차단/평판하락 방지. */
+
+    /** 테넌트 빈도캡 설정 — app_setting override(없으면 기본 4건/7일). 발송 루프 1회 호출 권장. */
+    public static function commsFreqConfig(\PDO $pdo, string $tenant): array
+    {
+        $cap = 4; $win = 7; $quietStart = 21; $quietEnd = 8; $stoEnabled = false;
+        try {
+            $st = $pdo->prepare("SELECT k, v FROM app_setting WHERE tenant_id=? AND k IN ('comms_freq_cap','comms_freq_window','comms_quiet_start','comms_quiet_end','comms_sto')");
+            $st->execute([$tenant]);
+            foreach ($st->fetchAll(\PDO::FETCH_KEY_PAIR) ?: [] as $k => $v) {
+                if ($k === 'comms_freq_cap'   && is_numeric($v)) $cap = max(1, min(50, (int)$v));
+                if ($k === 'comms_freq_window'&& is_numeric($v)) $win = max(1, min(90, (int)$v));
+                if ($k === 'comms_quiet_start'&& is_numeric($v)) $quietStart = max(0, min(23, (int)$v));
+                if ($k === 'comms_quiet_end'  && is_numeric($v)) $quietEnd = max(0, min(23, (int)$v));
+                if ($k === 'comms_sto') $stoEnabled = ($v === '1' || $v === 'true');
+            }
+        } catch (\Throwable $e) { /* app_setting 부재 시 기본값 */ }
+        return ['cap' => $cap, 'window' => $win, 'quiet_start' => $quietStart, 'quiet_end' => $quietEnd, 'sto' => $stoEnabled];
+    }
+
+    /** 빈도캡 초과 여부 — 윈도 내 발송(email/kakao/sms) 건수 ≥ cap. 오류 시 false(발송 비차단=안전). */
+    public static function isFrequencyCapped(\PDO $pdo, string $tenant, int $customerId, int $cap = 4, int $windowDays = 7): bool
+    {
+        if ($customerId <= 0 || $cap <= 0) return false;
+        $cutoff = gmdate('Y-m-d H:i:s', time() - max(1, $windowDays) * 86400);
+        try {
+            $st = $pdo->prepare("SELECT COUNT(*) FROM crm_activities WHERE tenant_id=? AND customer_id=? AND type IN ('email_sent','kakao_sent','sms_sent') AND created_at >= ?");
+            $st->execute([$tenant, $customerId, $cutoff]);
+            return (int)$st->fetchColumn() >= $cap;
+        } catch (\Throwable $e) { return false; }
+    }
+
+    /** 발송시간 최적화(STO) — quiet-hours(야간) 발송 차단. sto 비활성 시 항상 허용. @return bool 지금 발송 가능 */
+    public static function commsSendAllowedNow(array $cfg): bool
+    {
+        if (empty($cfg['sto'])) return true;
+        $h = (int)gmdate('G', time() + 9 * 3600); // KST(UTC+9) 기준 시각
+        $s = (int)($cfg['quiet_start'] ?? 21); $e = (int)($cfg['quiet_end'] ?? 8);
+        // quiet 구간이 자정을 넘는 경우(21~08) 처리
+        $inQuiet = ($s > $e) ? ($h >= $s || $h < $e) : ($h >= $s && $h < $e);
+        return !$inQuiet;
+    }
+
     /* ─── GET /crm/segments ─────────────────────────────────────────── */
     public static function listSegments(Request $req, Response $res): Response
     {

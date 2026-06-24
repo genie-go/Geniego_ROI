@@ -281,9 +281,12 @@ class EmailMarketing
         }
         $customerList = $cust->fetchAll(\PDO::FETCH_ASSOC);
 
-        $sent = 0; $failed = 0; $mock = 0;
+        $sent = 0; $failed = 0; $mock = 0; $capped = 0;
         $now = self::now();
+        // [240차 약점⑥] 빈도캡 — 과발송 차단(딜리버러빌리티 보호). 설정 1회 로드 후 고객별 평가.
+        $freqCfg = CRM::commsFreqConfig($pdo, $tenant);
         foreach ($customerList as $c) {
+            if (CRM::isFrequencyCapped($pdo, $tenant, (int)$c['id'], $freqCfg['cap'], $freqCfg['window'])) { $capped++; continue; }
             $subject = $template ? str_replace('{{name}}', $c['name']??'', (string)($template['subject']??'')) : '(제목 없음)';
             $body    = $template ? str_replace('{{name}}', $c['name']??'', (string)($template['html_body']??'')) : '';
 
@@ -305,7 +308,7 @@ class EmailMarketing
         $total = count($customerList);
         $pdo->prepare("UPDATE email_campaigns SET status='sent', sent_at=:sa, total_sent=:t WHERE id=:id AND tenant_id=:tn")
             ->execute([':sa'=>$now, ':t'=>$total, ':id'=>$cid, ':tn'=>$tenant]);
-        return self::jsonRes($res, ['ok'=>true,'total'=>$total,'sent'=>$sent,'mock_sent'=>$mock,'failed'=>$failed]);
+        return self::jsonRes($res, ['ok'=>true,'total'=>$total,'sent'=>$sent,'mock_sent'=>$mock,'failed'=>$failed,'frequency_capped'=>$capped]);
     }
 
     /* ─── GET /email/campaigns/{id}/stats ──────────────────────────── */

@@ -279,8 +279,11 @@ class KakaoChannel
         }
         $customers = $cst->fetchAll(\PDO::FETCH_ASSOC);
 
-        $success = 0; $failed = 0; $now = self::now();
+        $success = 0; $failed = 0; $capped = 0; $now = self::now();
+        // [240차 약점⑥] 빈도캡 — 과발송 차단(딜리버러빌리티 보호).
+        $freqCfg = CRM::commsFreqConfig($pdo, $tenant);
         foreach ($customers as $c) {
+            if (CRM::isFrequencyCapped($pdo, $tenant, (int)$c['id'], $freqCfg['cap'], $freqCfg['window'])) { $capped++; continue; }
             $phone   = preg_replace('/[^0-9]/', '', $c['phone']);
             $content = $template ? str_replace('{{name}}', $c['name']??'고객', $template['content']) : '';
             $status  = 'mock_sent';
@@ -303,7 +306,7 @@ class KakaoChannel
         $pdo->prepare("UPDATE kakao_campaigns SET status='sent', sent_at=:sa, total=:t, success=:s, failed=:f WHERE id=:id AND tenant_id=:tn")->execute([
             ':sa'=>$now, ':t'=>$total, ':s'=>$success, ':f'=>$failed, ':id'=>$cid, ':tn'=>$tenant,
         ]);
-        return self::jsonRes($res, ['ok'=>true,'mode'=>$mode,'total'=>$total,'success'=>$success,'failed'=>$failed]);
+        return self::jsonRes($res, ['ok'=>true,'mode'=>$mode,'total'=>$total,'success'=>$success,'failed'=>$failed,'frequency_capped'=>$capped]);
     }
 
     /* ─── 성과 조회 ────────────────────────────────────────────────── */

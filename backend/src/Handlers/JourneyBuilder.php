@@ -569,6 +569,9 @@ class JourneyBuilder
         $c     = self::contact($pdo, $tenant, (int)($enr['customer_id'] ?? 0));
         $email = trim((string)($c['email'] ?? ''));
         if ($email === '') return ['action' => 'skipped', 'reason' => 'no_email'];
+        // [240차 약점⑥] 빈도캡 — 자동 저니 과발송 차단(딜리버러빌리티 보호).
+        $fc = CRM::commsFreqConfig($pdo, $tenant);
+        if (CRM::isFrequencyCapped($pdo, $tenant, (int)($enr['customer_id'] ?? 0), $fc['cap'], $fc['window'])) return ['action' => 'skipped', 'reason' => 'frequency_capped'];
         $cfg     = (array)($node['config'] ?? []);
         $subject = (string)($cfg['subject'] ?? '') ?: (string)($node['label'] ?? '안내');
         $html    = (string)($cfg['html'] ?? $cfg['body'] ?? '');
