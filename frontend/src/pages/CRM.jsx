@@ -112,11 +112,13 @@ function SecurityLockModal({ t, onDismiss }) {
 /* ── StatCard ───────────────────────────────────────────────────────────────── */
 function StatCard({ icon, label, value, sub, color }) {
   return (
-    <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: "18px 22px" }}>
-      <div style={{ fontSize: 22, marginBottom: 6 }}>{icon}</div>
-      <div style={{ fontSize: 24, fontWeight: 800, color: color || C.accent }}>{value}</div>
-      <div style={{ fontSize: 13, fontWeight: 600, color: C.text, marginTop: 2 }}>{label}</div>
-      {sub && <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>{sub}</div>}
+    <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: "14px 20px", display: "flex", alignItems: "center", gap: 14 }}>
+      <div style={{ fontSize: 26, flex: "0 0 auto" }}>{icon}</div>
+      <div style={{ minWidth: 0 }}>
+        <div style={{ fontSize: 24, fontWeight: 800, color: color || C.accent, lineHeight: 1.15 }}>{value}</div>
+        <div style={{ fontSize: 13, fontWeight: 600, color: C.text, marginTop: 2 }}>{label}</div>
+        {sub && <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>{sub}</div>}
+      </div>
     </div>
   );
 }

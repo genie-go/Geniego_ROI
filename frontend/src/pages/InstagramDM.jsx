@@ -349,10 +349,12 @@ export default function InstagramDM() {
                             { l: t('igdm.statConversion', 'DM → 구매 전환'), v: (settings?.stats?.conversion ?? (isDemo ? '8.4%' : '—')), c: '#f97316', icon: '🛒' },
                             { l: t('igdm.statAutoReplyRate', '자동 응답률'), v: (settings?.stats?.autoReplyRate ?? (isDemo ? '67%' : '—')), c: '#a855f7', icon: '🤖' },
                         ].map(k => (
-                            <div key={k.l} style={{ padding: '16px', borderRadius: 14, background: `${k.c}08`, border: `1px solid ${k.c}22`, textAlign: 'center' }}>
-                                <div style={{ fontSize: 20, marginBottom: 4 }}>{k.icon}</div>
-                                <div style={{ fontSize: 20, fontWeight: 900, color: k.c }}>{k.v}</div>
-                                <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 4 }}>{k.l}</div>
+                            <div key={k.l} style={{ padding: '14px 16px', borderRadius: 14, background: `${k.c}08`, border: `1px solid ${k.c}22`, display: 'flex', alignItems: 'center', gap: 14 }}>
+                                <div style={{ fontSize: 24, flex: '0 0 auto' }}>{k.icon}</div>
+                                <div style={{ minWidth: 0 }}>
+                                    <div style={{ fontSize: 20, fontWeight: 900, color: k.c, lineHeight: 1.15 }}>{k.v}</div>
+                                    <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 4 }}>{k.l}</div>
+                                </div>
                             </div>
                         ))}
                     </div>

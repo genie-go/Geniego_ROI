@@ -227,10 +227,12 @@ function OrderHubOverviewTab() {
                     { l: t('orderHub.kpiClaimRate', '클레임률'), v: `${claimRate}%`, c: '#ef4444', icon: '⚠️' },
                     { l: t('orderHub.kpiDelivered', '배송완료'), v: deliveredCount, c: '#a855f7', icon: '✅' },
                 ].map(({ l, v, c, icon }) => (
-                    <div key={l} style={{ background: `${c}08`, border: `1px solid ${c}22`, borderRadius: 14, padding: '18px 16px', textAlign: 'center' }}>
-                        <div style={{ fontSize: 22, marginBottom: 4 }}>{icon}</div>
-                        <div style={{ fontSize: 24, fontWeight: 900, color: c }}>{v}</div>
-                        <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4 }}>{l}</div>
+                    <div key={l} style={{ background: `${c}08`, border: `1px solid ${c}22`, borderRadius: 14, padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 14 }}>
+                        <div style={{ fontSize: 26, flex: '0 0 auto' }}>{icon}</div>
+                        <div style={{ minWidth: 0 }}>
+                            <div style={{ fontSize: 24, fontWeight: 900, color: c, lineHeight: 1.15 }}>{v}</div>
+                            <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4 }}>{l}</div>
+                        </div>
                     </div>
                 ))}
             </div>

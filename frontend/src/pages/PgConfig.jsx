@@ -89,7 +89,7 @@ function PgConfig() {
   const tabs = ['Paddle 설정', '결제 정책', '수수료 / 환불', 'Webhook 로그'];
 
   const cardStyle = {
-    borderRadius: 14, padding: '18px 20px',
+    borderRadius: 14, padding: '14px 20px',
     background: 'rgba(255,255,255,0.04)',
     border: '1px solid rgba(255,255,255,0.07)',
   };
@@ -150,26 +150,28 @@ function PgConfig() {
         gap: 14, marginBottom: 22,
       }}>
         {kpis.map((k, i) => (
-          <div key={i} style={cardStyle}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <div style={{ fontSize: 22, marginBottom: 6 }}>{k.emoji}</div>
-              {!loading && (
-                <span style={{
-                  fontSize: 8, fontWeight: 700, padding: '2px 6px', borderRadius: 4,
-                  background: 'rgba(34,197,94,0.10)', color: '#22c55e',
-                  border: '1px solid rgba(34,197,94,0.25)',
-                }}>LIVE</span>
+          <div key={i} style={{ ...cardStyle, display: 'flex', alignItems: 'center', gap: 14 }}>
+            <div style={{ fontSize: 26, flex: '0 0 auto' }}>{k.emoji}</div>
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
+                <div style={{ fontSize: 20, fontWeight: 800, lineHeight: 1.15, overflowWrap: 'anywhere', wordBreak: 'break-word' }}>{k.val}</div>
+                {!loading && (
+                  <span style={{
+                    fontSize: 8, fontWeight: 700, padding: '2px 6px', borderRadius: 4, flex: '0 0 auto',
+                    background: 'rgba(34,197,94,0.10)', color: '#22c55e',
+                    border: '1px solid rgba(34,197,94,0.25)',
+                  }}>LIVE</span>
+                )}
+              </div>
+              <div style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 600, marginTop: 2 }}>
+                {k.label}
+              </div>
+              {k.sub && (
+                <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 4, fontStyle: 'italic', overflowWrap: 'anywhere', wordBreak: 'break-word' }}>
+                  {k.sub}
+                </div>
               )}
             </div>
-            <div style={{ fontSize: 20, fontWeight: 800, lineHeight: 1.2, overflowWrap: 'anywhere', wordBreak: 'break-word' }}>{k.val}</div>
-            <div style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 600, marginTop: 2 }}>
-              {k.label}
-            </div>
-            {k.sub && (
-              <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 4, fontStyle: 'italic', overflowWrap: 'anywhere', wordBreak: 'break-word' }}>
-                {k.sub}
-              </div>
-            )}
           </div>
         ))}
       </div>

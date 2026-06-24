@@ -1201,10 +1201,12 @@ export default function AutoMarketing() {
                                         { label: t("marketing.kpiRoas"), value: strategy.estimatedRoas + "x", icon: "📈", color: "#fbbf24" },
                                         ...(strategy.blendedCac ? [{ label: t('marketing.kpiCac', '평균 획득비용'), value: Number(strategy.blendedCac).toLocaleString() + t('marketing.wonUnit', '원'), icon: "💸", color: "#ef4444" }] : []),
                                     ].map(({ label, value, icon, color }) => (
-                                        <div key={label} style={{ ...cardStyle, textAlign: "center" }}>
-                                            <div style={{ fontSize: 22, marginBottom: 4 }}>{icon}</div>
-                                            <div style={{ fontSize: 10, color: '#64748b', marginBottom: 4 }}>{label}</div>
-                                            <div style={{ fontWeight: 900, fontSize: 18, color }}>{value}</div>
+                                        <div key={label} style={{ ...cardStyle, display: "flex", alignItems: "center", gap: 14 }}>
+                                            <div style={{ fontSize: 26, flex: "0 0 auto" }}>{icon}</div>
+                                            <div style={{ minWidth: 0 }}>
+                                                <div style={{ fontSize: 10, color: '#64748b', marginBottom: 4 }}>{label}</div>
+                                                <div style={{ fontWeight: 900, fontSize: 18, color, lineHeight: 1.15 }}>{value}</div>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>

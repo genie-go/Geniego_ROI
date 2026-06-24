@@ -98,10 +98,12 @@ export default function DemandForecast() {
       {/* ── KPI Cards ── */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 14, marginBottom: 22 }}>
         {kpis.map((k, i) => (
-          <div key={i} style={card}>
-            <div style={{ fontSize: 22, marginBottom: 6 }}>{k.emoji}</div>
-            <div style={{ fontSize: 22, fontWeight: 800, color: "var(--text-1, #1e293b)" }}>{k.val}</div>
-            <div style={{ fontSize: 11, color: "var(--text-3, #64748b)", fontWeight: 600, marginTop: 2 }}>{k.label}</div>
+          <div key={i} style={{ ...card, padding: "14px 20px", display: "flex", alignItems: "center", gap: 14 }}>
+            <div style={{ fontSize: 26, flex: "0 0 auto" }}>{k.emoji}</div>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: 22, fontWeight: 800, color: "var(--text-1, #1e293b)", lineHeight: 1.15 }}>{k.val}</div>
+              <div style={{ fontSize: 11, color: "var(--text-3, #64748b)", fontWeight: 600, marginTop: 2 }}>{k.label}</div>
+            </div>
           </div>
         ))}
       </div>

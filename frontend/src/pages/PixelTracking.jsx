@@ -67,11 +67,13 @@ const PXL_FB = {"ko":{"heroTitle":"1st-Party 픽셀 트래킹","heroDesc":"쿠�
 
 function StatCard({ icon, label, value, sub, color = C.accent }) {
   return (
-    <div style={{ ...CARD, flex: 1, minWidth: 140 }}>
-      <div style={{ fontSize: 28, marginBottom: 8 }}>{icon}</div>
-      <div style={{ fontSize: 26, fontWeight: 800, color }}>{value}</div>
-      <div style={{ fontSize: 12, color: C.muted, marginTop: 4 }}>{label}</div>
-      {sub && <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>{sub}</div>}
+    <div style={{ ...CARD, flex: 1, minWidth: 140, display: "flex", alignItems: "center", gap: 14 }}>
+      <div style={{ fontSize: 32, flex: "0 0 auto" }}>{icon}</div>
+      <div style={{ minWidth: 0 }}>
+        <div style={{ fontSize: 26, fontWeight: 800, color, lineHeight: 1.15 }}>{value}</div>
+        <div style={{ fontSize: 12, color: C.muted, marginTop: 4 }}>{label}</div>
+        {sub && <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>{sub}</div>}
+      </div>
     </div>
   );
 }

@@ -31,11 +31,13 @@ const C = {
 /* ─── Statistics Card */
 function StatCard({ icon, label, value, color, sub }) {
     return (
-        <div style={{ background: C.card, borderRadius: 14, padding: "18px 20px", border: `1px solid ${C.border}` }}>
-            <div style={{ fontSize: 22, marginBottom: 6 }}>{icon}</div>
-            <div style={{ fontSize: 22, fontWeight: 800, color: color || C.text }}>{value}</div>
-            <div style={{ fontSize: 12, color: C.muted, marginTop: 2 }}>{label}</div>
-            {sub && <div style={{ fontSize: 10, color: color || C.accent, marginTop: 4, fontWeight: 600 }}>{sub}</div>}
+        <div style={{ background: C.card, borderRadius: 14, padding: "14px 18px", border: `1px solid ${C.border}`, display: "flex", alignItems: "center", gap: 14 }}>
+            <div style={{ fontSize: 26, flex: "0 0 auto" }}>{icon}</div>
+            <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 22, fontWeight: 800, color: color || C.text, lineHeight: 1.15 }}>{value}</div>
+                <div style={{ fontSize: 12, color: C.muted, marginTop: 2 }}>{label}</div>
+                {sub && <div style={{ fontSize: 10, color: color || C.accent, marginTop: 4, fontWeight: 600 }}>{sub}</div>}
+            </div>
         </div>
     );
 }
