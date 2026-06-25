@@ -218,31 +218,38 @@ export default function AccountPerformance() {
     }, [sharedCampaigns, realCampaigns, DEMO_META_CAMPAIGNS, isDemoMode]);
 
     /* ─ Normalized Data ─ */
+    // [현 차수] 죽은 dateFrom/dateTo 선택자 수정 — 광고 데이터 일자 부재 → 30일 기준 런레이트 비례 스코프(비율 보존).
+    const periodFactor = useMemo(() => {
+        const wd = Math.max(1, Math.round((new Date(dateTo).getTime() - new Date(dateFrom).getTime()) / 86400000) + 1);
+        return Math.min(1, Math.max(0.02, wd / 30));
+    }, [dateFrom, dateTo]);
     const ACTIVE_META_DATA = useMemo(() => {
         if (!currentCampaigns.length) return [];
+        const f = periodFactor;
         return currentCampaigns.map(c => {
             const teamName = c.account_team || c.team || t('acctPerf.defaultTeam', 'Operations');
             const objective = c.objective || 'Conversion';
-            const cSpend = c.spend || c.spent || c.budget || 0;
-            const alct = c.budget ? (typeof c.budget === 'string' ? parseFloat(c.budget.replace(/[^0-9.]/g, '')) : c.budget) : cSpend;
+            const cSpend = (c.spend || c.spent || c.budget || 0) * f;
+            const alct = (c.budget ? (typeof c.budget === 'string' ? parseFloat(c.budget.replace(/[^0-9.]/g, '')) : c.budget) : (c.spend || c.spent || 0)) * f;
             const roasVal = typeof c.roas === 'string' ? parseFloat(c.roas.replace(/[^0-9.]/g, '')) : (c.roas || 0);
             return {
                 ...c, account_team: sanitizeInput(teamName), objective, roas: roasVal,
-                spend: cSpend, allocated: alct, impressions: c.impressions || 0, clicks: c.clicks || 0,
-                ctr: c.ctr || 0, conv: c.conv || 0, adSets: c.adsets || c.adSets || []
+                spend: Math.round(cSpend), allocated: Math.round(alct), impressions: Math.round((c.impressions || 0) * f), clicks: Math.round((c.clicks || 0) * f),
+                ctr: c.ctr || 0, conv: Math.round((c.conv || 0) * f), adSets: c.adsets || c.adSets || []
             };
         });
-    }, [currentCampaigns, t]);
+    }, [currentCampaigns, t, periodFactor]);
 
     const maxSpend = useMemo(() => Math.max(...ACTIVE_META_DATA.map(c => c.spend), 1), [ACTIVE_META_DATA]);
 
-    /* ─ Chart Data ─ */
+    /* ─ Chart Data ─ [현 차수] 그래프도 dateFrom/dateTo 에 반응(윈도우 길이 + 크기). 실 history 우선,
+        없으면(데모) 기간계수 적용된 ACTIVE_META_DATA 의 objective 총액을 윈도우 일수만큼 결정적 분배(합계≈총액). */
     const chartData = useMemo(() => {
-        const data = [];
-        const now = new Date();
-        let hasHistory = false;
-        for (let i = 13; i >= 0; i--) {
-            const dStr = new Date(now.getTime() - i * 864e5).toISOString().slice(5, 10);
+        const end = new Date(dateTo); const sTime = new Date(dateFrom).getTime();
+        const windowDays = Math.min(60, Math.max(1, Math.round((end.getTime() - sTime) / 864e5) + 1));
+        const real = []; let hasHistory = false;
+        for (let i = windowDays - 1; i >= 0; i--) {
+            const dStr = new Date(end.getTime() - i * 864e5).toISOString().slice(5, 10);
             let aw = 0, cons = 0, cv = 0;
             currentCampaigns.forEach(c => {
                 if (c.history && Array.isArray(c.history)) {
@@ -255,10 +262,22 @@ export default function AccountPerformance() {
                     }
                 }
             });
-            data.push({ date: dStr, awareness: Math.floor(aw), consideration: Math.floor(cons), conversion: Math.floor(cv) });
+            real.push({ date: dStr, awareness: Math.floor(aw), consideration: Math.floor(cons), conversion: Math.floor(cv) });
         }
-        return hasHistory ? data : [];
-    }, [currentCampaigns]);
+        if (hasHistory) return real;
+        // 데모 합성 — objective별 (기간 스코프된) 총액을 윈도우 일수에 결정적 분배
+        const tot = { Awareness: 0, Consideration: 0, Conversion: 0 };
+        ACTIVE_META_DATA.forEach(c => { if (tot[c.objective] != null) tot[c.objective] += c.spend; });
+        if (tot.Awareness + tot.Consideration + tot.Conversion <= 0) return [];
+        const w = []; let sw = 0;
+        for (let i = 0; i < windowDays; i++) { const v = 1 + 0.3 * Math.sin(i * 0.7 + 0.4); w.push(v); sw += v; }
+        return Array.from({ length: windowDays }, (_, i) => ({
+            date: new Date(end.getTime() - (windowDays - 1 - i) * 864e5).toISOString().slice(5, 10),
+            awareness: Math.round(tot.Awareness * w[i] / sw),
+            consideration: Math.round(tot.Consideration * w[i] / sw),
+            conversion: Math.round(tot.Conversion * w[i] / sw),
+        }));
+    }, [currentCampaigns, ACTIVE_META_DATA, dateFrom, dateTo]);
 
     /* ─ Objective Aggregates ─ */
     const objAggregates = useMemo(() => {

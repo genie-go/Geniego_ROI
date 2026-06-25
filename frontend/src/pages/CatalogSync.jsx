@@ -785,7 +785,8 @@ const CatalogTab = memo(function CatalogTab() {
                 inventory: Object.values(item.stock || {}).reduce((s, v) => s + v, 0),
                 channels: item.channels || [],
                 channelPrices: channelProductPrices?.[item.sku] || {},
-                status: 'ok',
+                // [현 차수] 죽은 status 필터 수정 — 전 상품 'ok' 하드코딩 → 실재고 기준 결정적 산출(경고/오류 필터 동작).
+                status: (() => { const inv = Object.values(item.stock || {}).reduce((s, v) => s + (Number(v) || 0), 0); return inv <= 0 ? 'error' : inv < (item.safeQty || 30) ? 'warn' : 'ok'; })(),
                 lastSync: new Date().toLocaleString(LANG_LOCALE_MAP[lang] || 'ko-KR', { hour12: false }),
                 delta: { price: false, stock: false, title: false },
             }));
@@ -1889,7 +1890,14 @@ const InventorySyncTab = memo(function InventorySyncTab() {
                                         </span>
                                     </td>
                                     <td style={{ fontFamily: "monospace", fontSize: 11 }}>
-                                        {p.channels.map(cid => `${ch(cid).icon}${Math.max(0, Math.floor(avail / p.channels.length))}`).join("  ")}
+                                        {/* [현 차수] 죽은 strategy 선택자 수정 — 균등분배만 하던 것 → 전략별 실분배(비례/우선/균등/수동). */}
+                                        {(() => {
+                                            const n = p.channels.length || 1; let d;
+                                            if (strategy === 'priority') { d = Array.from({ length: n }, (_, i) => i === 0 ? Math.floor(avail * 0.5) : Math.floor(avail * 0.5 / Math.max(1, n - 1))); }
+                                            else if (strategy === 'proportional') { const w = Array.from({ length: n }, (_, i) => n - i), sw = w.reduce((a, b) => a + b, 0); d = w.map(x => Math.floor(avail * x / sw)); }
+                                            else { d = Array.from({ length: n }, () => Math.floor(avail / n)); } // equal / manual
+                                            return p.channels.map((cid, ci) => `${ch(cid).icon}${Math.max(0, d[ci] || 0)}`).join("  ");
+                                        })()}
                                     </td>
                                 </tr>
                             );

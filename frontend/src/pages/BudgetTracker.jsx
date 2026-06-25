@@ -142,14 +142,15 @@ const useTr = () => {
 };
 
 /* ─── Overview Tab ─── */
-function OverviewTab({ campaigns, budgetStats, tr, fmt }) {
+function OverviewTab({ campaigns, budgetStats, periodFactor = 1, tr, fmt }) {
   // [현 차수] 데이터일관성(P0): 총 광고비/예산은 canonical budgetStats(채널예산=실 광고메트릭)을 우선 사용.
   //   기존엔 sharedCampaigns 합산이라 P&L/홈(channelBudgets 기준)과 발산했다(운영 캠페인 부재 시 0 표시).
   //   budgetStats가 비어있을 때만(채널예산 미하이드레이션) 캠페인 합산 폴백.
+  //   ★[현 차수] 죽은 dateFrom/dateTo 수정 — 기간계수(periodFactor)를 budgetStats 분기에도 적용(캠페인 분기는 이미 스코프).
   const campBudget = useMemo(() => campaigns.reduce((s, c) => s + (c.budget || c.spent || 0), 0), [campaigns]);
   const campSpent = useMemo(() => campaigns.reduce((s, c) => s + (c.spent || 0), 0), [campaigns]);
-  const totalBudget = (budgetStats?.totalBudget > 0) ? budgetStats.totalBudget : campBudget;
-  const totalSpent = (budgetStats?.totalSpent > 0) ? budgetStats.totalSpent : campSpent;
+  const totalBudget = Math.round((budgetStats?.totalBudget > 0) ? budgetStats.totalBudget * periodFactor : campBudget);
+  const totalSpent = Math.round((budgetStats?.totalSpent > 0) ? budgetStats.totalSpent * periodFactor : campSpent);
   const remaining = totalBudget - totalSpent;
   const utilization = totalBudget > 0 ? (totalSpent / totalBudget * 100) : 0;
 
@@ -658,7 +659,18 @@ export default function BudgetTracker() {
 
   useSecurityGuard({ addAlert: useCallback((a) => { if (typeof addAlert === 'function') addAlert(a); }, [addAlert]), enabled: true });
 
-  const campaigns = useMemo(() => (sharedCampaigns || []).filter(c => c && c.name), [sharedCampaigns]);
+  // [현 차수] 죽은 dateFrom/dateTo 선택자 수정 — 광고 캠페인은 일자 데이터가 없어 30일 기준 런레이트로
+  //   기간 비례 스코프(대시보드 dashPeriod 광고비 비례 원칙과 동일). 기본(30일)=계수1=전체 보존. 비율(ROAS)은 보존.
+  const periodFactor = useMemo(() => {
+    const wd = Math.max(1, Math.round((new Date(dateTo).getTime() - new Date(dateFrom).getTime()) / 86400000) + 1);
+    return Math.min(1, Math.max(0.02, wd / 30));
+  }, [dateFrom, dateTo]);
+  const campaigns = useMemo(() => {
+    const list = (sharedCampaigns || []).filter(c => c && c.name);
+    if (periodFactor >= 1) return list;
+    const f = periodFactor;
+    return list.map(c => ({ ...c, spent: Math.round((c.spent || 0) * f), budget: Math.round((c.budget || 0) * f), spend: Math.round((c.spend || 0) * f), impressions: Math.round((c.impressions || 0) * f), clicks: Math.round((c.clicks || 0) * f), conv: Math.round((c.conv || 0) * f), revenue: Math.round((c.revenue || 0) * f) }));
+  }, [sharedCampaigns, periodFactor]);
 
   const TAB_CLR = { overview: '#4f8ef7', allocation: '#a855f7', burnrate: '#f97316', alerts: '#ef4444', guide: '#06b6d4' };
 
@@ -733,7 +745,7 @@ export default function BudgetTracker() {
           {/* [현 차수] 특정상품 조회 — 전역 동기화. 선택 시 그 상품 매출·순이익·채널/국가별 인라인. */}
           <ProductSelectBar />
           <ProductMarketingPanel period="monthly" />
-          {tab === 'overview' && <OverviewTab campaigns={campaigns} budgetStats={budgetStats} tr={tr} fmt={fmt} />}
+          {tab === 'overview' && <OverviewTab campaigns={campaigns} budgetStats={budgetStats} periodFactor={periodFactor} tr={tr} fmt={fmt} />}
           {tab === 'allocation' && <AllocationTab campaigns={campaigns} tr={tr} fmt={fmt} />}
           {tab === 'burnrate' && <BurnRateTab campaigns={campaigns} tr={tr} fmt={fmt} />}
           {tab === 'alerts' && <AlertsTab campaigns={campaigns} tr={tr} fmt={fmt} />}
