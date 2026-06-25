@@ -1115,6 +1115,88 @@ const ServerMtaPanel = memo(function ServerMtaPanel() {
   );
 });
 
+/* ── [현 차수 P3] 신뢰도·설명가능성 — 부트스트랩 신뢰구간 + removal-effect 내러티브(Northbeam급) ── */
+const ConfidenceTab = memo(function ConfidenceTab() {
+  const t = useT();
+  const data = useMemo(() => {
+    const J = _JOURNEYS;
+    if (!J || J.length === 0) return null;
+    const channels = [...new Set(J.flatMap(j => j.path))];
+    if (channels.length === 0) return null;
+    const base = markovAttribution(J, channels); // [{ch, removalEffect, share}]
+    const baseShare = Object.fromEntries(base.map(r => [r.ch, r.share]));
+    const baseRem = Object.fromEntries(base.map(r => [r.ch, r.removalEffect]));
+    const B = 30, n = J.length;
+    const samp = Object.fromEntries(channels.map(c => [c, []]));
+    for (let b = 0; b < B; b++) {
+      const res = Array.from({ length: n }, () => J[Math.floor(Math.random() * n)]);
+      markovAttribution(res, channels).forEach(x => samp[x.ch].push(x.share));
+    }
+    const pct = (arr, p) => { const s = [...arr].sort((a, b) => a - b); if (!s.length) return 0; const i = (p / 100) * (s.length - 1); const lo = Math.floor(i), hi = Math.ceil(i); return lo === hi ? s[lo] : s[lo] + (s[hi] - s[lo]) * (i - lo); };
+    const rows = channels.map(c => {
+      const arr = samp[c]; const m = arr.reduce((a, b) => a + b, 0) / (arr.length || 1);
+      const sd = Math.sqrt(arr.reduce((a, v) => a + (v - m) ** 2, 0) / (arr.length || 1));
+      const cv = m > 0 ? sd / m : 0;
+      return { channel: c, share: baseShare[c] ?? m, lo: pct(arr, 5), hi: pct(arr, 95), cv, removalEffect: (baseRem[c] ?? 0) * 100, stability: cv <= 0.15 ? 'high' : (cv <= 0.35 ? 'medium' : 'low') };
+    }).sort((a, b) => b.share - a.share);
+    const hi = rows.filter(r => r.stability === 'high').length;
+    return { rows, overall: rows.length ? Math.round(hi / rows.length * 100) : 0 };
+  }, []);
+  if (_JOURNEYS.length === 0) return <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-3)' }}>{t('attrData.noData', '전환 여정 데이터가 없습니다.')}</div>;
+  if (!data) return null;
+  const STB = { high: { c: '#22c55e', l: t('attrData.stbHigh', '높음') }, medium: { c: '#f59e0b', l: t('attrData.stbMed', '보통') }, low: { c: '#ef4444', l: t('attrData.stbLow', '낮음') } };
+  const top = data.rows[0];
+  return (
+    <div>
+      <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginBottom: 16 }}>
+        <div style={{ background: 'var(--surface,#fff)', border: '1px solid var(--border,#e2e8f0)', borderRadius: 14, padding: '16px 20px', flex: 1, minWidth: 220 }}>
+          <div style={{ fontSize: 11, color: 'var(--text-3)' }}>{t('attrData.overallConf', '전체 신뢰도 (안정 채널 비율)')}</div>
+          <div style={{ fontSize: 30, fontWeight: 900, color: data.overall >= 60 ? '#22c55e' : (data.overall >= 30 ? '#f59e0b' : '#ef4444') }}>{data.overall}%</div>
+          <div style={{ fontSize: 10.5, color: 'var(--text-3)', marginTop: 2 }}>{t('attrData.bootstrapNote', '부트스트랩 30회 재표본 · 90% 신뢰구간')}</div>
+        </div>
+        {top && (
+          <div style={{ background: 'rgba(14,165,233,0.06)', border: '1px solid rgba(14,165,233,0.2)', borderRadius: 14, padding: '16px 20px', flex: 2, minWidth: 280 }}>
+            <div style={{ fontSize: 12, fontWeight: 800, color: '#0ea5e9', marginBottom: 4 }}>💡 {t('attrData.explainTitle', '왜 이 채널인가 (설명가능성)')}</div>
+            <div style={{ fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.7 }}>
+              {t('attrData.explainNarrative', '{ch} 제거 시 전환이 약 {rem}% 감소 — 가장 영향이 큰 채널입니다. 기여도 {share}% (신뢰구간 {lo}~{hi}%, 안정성 {stb}).', { ch: top.channel, rem: top.removalEffect.toFixed(1), share: top.share.toFixed(1), lo: top.lo.toFixed(1), hi: top.hi.toFixed(1), stb: STB[top.stability].l })}
+            </div>
+          </div>
+        )}
+      </div>
+      <div style={{ background: 'var(--surface,#fff)', border: '1px solid var(--border,#e2e8f0)', borderRadius: 14, overflow: 'hidden' }}>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12.5 }}>
+            <thead><tr style={{ background: 'rgba(241,245,249,0.5)', color: 'var(--text-3)', fontSize: 11, textAlign: 'left' }}>
+              <th style={{ padding: '10px 14px' }}>{t('attrData.colChannel', '채널')}</th>
+              <th style={{ padding: '10px 14px', textAlign: 'right' }}>{t('attrData.colCredit', '기여도 %')}</th>
+              <th style={{ padding: '10px 14px' }}>{t('attrData.colCI', '90% 신뢰구간')}</th>
+              <th style={{ padding: '10px 14px', textAlign: 'right' }}>{t('attrData.colRemoval', '제거효과 %')}</th>
+              <th style={{ padding: '10px 14px', textAlign: 'center' }}>{t('attrData.colStability', '안정성')}</th>
+            </tr></thead>
+            <tbody>
+              {data.rows.map(r => (
+                <tr key={r.channel} style={{ borderTop: '1px solid var(--border,#e2e8f0)' }}>
+                  <td style={{ padding: '9px 14px', fontWeight: 700, color: 'var(--text-1)' }}>{r.channel}</td>
+                  <td style={{ padding: '9px 14px', textAlign: 'right', fontWeight: 800, color: '#0ea5e9' }}>{r.share.toFixed(1)}%</td>
+                  <td style={{ padding: '9px 14px' }}>
+                    <div style={{ position: 'relative', height: 8, background: '#eef2f7', borderRadius: 4 }}>
+                      <div style={{ position: 'absolute', left: Math.min(r.lo, 100) + '%', width: Math.max(2, Math.min(r.hi - r.lo, 100)) + '%', height: '100%', background: 'rgba(14,165,233,0.45)', borderRadius: 4 }} />
+                      <div style={{ position: 'absolute', left: Math.min(r.share, 100) + '%', width: 2, height: '100%', background: '#0ea5e9' }} />
+                    </div>
+                    <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 2 }}>{r.lo.toFixed(1)}% ~ {r.hi.toFixed(1)}%</div>
+                  </td>
+                  <td style={{ padding: '9px 14px', textAlign: 'right', color: 'var(--text-2)' }}>{r.removalEffect.toFixed(1)}%</td>
+                  <td style={{ padding: '9px 14px', textAlign: 'center' }}><span style={{ fontSize: 10.5, fontWeight: 700, padding: '2px 10px', borderRadius: 20, background: STB[r.stability].c + '22', color: STB[r.stability].c }}>{STB[r.stability].l}</span></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+});
+
 const ModelCompareTab = memo(function ModelCompareTab() {
   const t = useT();
   const { channels, models } = MODEL_COMPARE_DATA;
@@ -1345,6 +1427,7 @@ const getTabs = (t) => [
   { id:'shapley',  label:t('attrData.tabShapleyLabel'), desc:t('attrData.tabShapleyDesc') },
   { id:'mmm',      label:t('attrData.tabMmmLabel'),  desc:t('attrData.tabMmmDesc') },
   { id:'markov',   label:t('attrData.tabMarkovLabel'), desc:t('attrData.tabMarkovDesc') },
+  { id:'confidence', label:t('attrData.tabConfLabel','🎯 신뢰도·설명'), desc:t('attrData.tabConfDesc','부트스트랩 신뢰구간') },
   { id:'bayesian', label:t('attrData.tabAbLabel'),  desc:t('attrData.tabAbDesc') },
   { id:'cohort',   label:t('attrData.tabCohortLabel'),    desc:t('attrData.tabCohortDesc') },
   { id:'ltvcac',   label:t('attrData.tabLtvLabel'),    desc:t('attrData.tabLtvDesc') },
@@ -1449,6 +1532,7 @@ export default function Attribution() {
 
   const TAB_COLORS = {
     mta: '#4f8ef7', shapley: '#22c55e', mmm: '#a855f7', markov: '#06b6d4',
+    confidence: '#0ea5e9',
     bayesian: '#f59e0b', cohort: '#f97316', ltvcac: '#ef4444', anomaly: '#dc2626',
     compare: '#6366f1', guide: '#8b5cf6',
   };
@@ -1534,6 +1618,7 @@ export default function Attribution() {
           {tab === 'shapley'  && <ShapleyTab />}
           {tab === 'mmm'      && <MMMTab />}
           {tab === 'markov'   && <MarkovTab />}
+          {tab === 'confidence' && <ConfidenceTab />}
           {tab === 'bayesian' && <BayesianABTab />}
           {tab === 'cohort'   && <CohortTab />}
           {tab === 'ltvcac'   && <LtvCacTab />}

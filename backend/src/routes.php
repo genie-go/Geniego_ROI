@@ -734,6 +734,8 @@ return function (App $app): void {
         // 203차 — 서버측 멀티터치 어트리뷰션(MTA) 엔진: 6모델(last/first/linear/time-decay/position/markov-removal-effect)
         'GET /v424/attribution/models'     => 'Genie\\Handlers\\AttributionEngine::models',
         'GET /api/v424/attribution/models' => 'Genie\\Handlers\\AttributionEngine::models',
+        'GET /v424/attribution/confidence'     => 'Genie\\Handlers\\AttributionEngine::confidence', // [현 차수 P3]
+        'GET /api/v424/attribution/confidence' => 'Genie\\Handlers\\AttributionEngine::confidence',
         // [현 차수] ② MMM(마케팅 믹스 모델) + 예측 예산 최적화
         'GET /v424/mmm/model'         => 'Genie\\Handlers\\Mmm::model',
         'GET /api/v424/mmm/model'     => 'Genie\\Handlers\\Mmm::model',
@@ -2677,6 +2679,8 @@ return function (App $app): void {
     // 203차 — 서버측 멀티터치 어트리뷰션(MTA) 엔진 ($custom 등록 + $register 필수)
     $register('GET', '/v424/attribution/models');
     $register('GET', '/api/v424/attribution/models');
+    $register('GET', '/v424/attribution/confidence'); // [현 차수 P3]
+    $register('GET', '/api/v424/attribution/confidence');
     // [현 차수] ② MMM + 예측 예산 최적화
     $register('GET',  '/v424/mmm/model');     $register('GET',  '/api/v424/mmm/model');
     $register('GET',  '/v424/mmm/series');    $register('GET',  '/api/v424/mmm/series'); // [237차] 증분성 입력

@@ -86,6 +86,37 @@ final class AttributionEngine
         }
     }
 
+    /** [현 차수 P3] GET /v424/attribution/confidence — 부트스트랩 신뢰구간 + 모델 합의도(설명가능성/신뢰성). */
+    public static function confidence(Request $request, Response $response, array $args): Response
+    {
+        $start = microtime(true);
+        $t = self::tenant($request);
+        $empty = ['channels' => [], 'overall_confidence' => 0, 'model_agreement' => [], 'journeys' => 0, 'converted' => 0];
+        if ($t === '') return self::ok($response, $empty + ['response_time_ms' => self::elapsed($start)]);
+        try {
+            $q = $request->getQueryParams();
+            $window = max(1, min(730, (int)($q['window'] ?? self::DEFAULT_WINDOW)));
+            $B = max(20, min(80, (int)($q['samples'] ?? 40)));
+            $pdo = Db::pdo();
+            [$conv, $null] = self::loadJourneys($pdo, $t, $window);
+            $result = self::computeModels($conv, $null);
+            $totalConv = (float)($result['total_conversions'] ?? 0);
+            $channelSet = [];
+            foreach (($result['channels'] ?? []) as $row) { if (!empty($row['channel'])) $channelSet[$row['channel']] = true; }
+            $ci = self::confidenceIntervals($conv, $null, $totalConv, $channelSet, $B);
+            $hiCnt = 0; foreach ($ci as $c) { if (($c['stability'] ?? '') === 'high') $hiCnt++; }
+            $overall = count($ci) ? (int)round($hiCnt / count($ci) * 100) : 0;
+            $agreement = self::modelAgreement($result['models'] ?? [], $channelSet, $totalConv);
+            return self::ok($response, [
+                'channels' => $ci, 'overall_confidence' => $overall, 'model_agreement' => $agreement,
+                'journeys' => count($conv) + count($null), 'converted' => count($conv), 'samples' => $B,
+                'window_days' => $window, 'response_time_ms' => self::elapsed($start),
+            ]);
+        } catch (Throwable $e) {
+            return self::fail($response, $e, $empty);
+        }
+    }
+
     // ── 데이터 적재: 전환 여정 + 비전환(null) 여정 ─────────────────────────
     /**
      * @return array{0: array<int,array>, 1: array<int,array>}
@@ -348,6 +379,65 @@ final class AttributionEngine
         $credit = [];
         foreach ($channels as $c) $credit[$c] = $removal[$c] / $sumRemoval * $totalConv;
         return $credit;
+    }
+
+    /** [현 차수 P3] 부트스트랩 신뢰구간 — convJourneys 복원추출 B회 markov 재계산 → 채널별 credit p5/p95·변동계수(불확실성).
+     *  Northbeam급 통계적 신뢰 표면화: 안정(high)/보통/낮음(low) 등급으로 의사결정 신뢰도 제공. */
+    public static function confidenceIntervals(array $convJourneys, array $nullJourneys, float $totalConv, array $channelSet, int $B = 40): array
+    {
+        $channels = array_keys($channelSet);
+        $n = count($convJourneys);
+        if (empty($channels) || $n === 0) return [];
+        $base = self::markovRemovalEffect($convJourneys, $nullJourneys, $totalConv, $channelSet);
+        $samples = []; foreach ($channels as $c) $samples[$c] = [];
+        for ($b = 0; $b < $B; $b++) {
+            $res = [];
+            for ($i = 0; $i < $n; $i++) { $res[] = $convJourneys[random_int(0, $n - 1)]; }
+            $cr = self::markovRemovalEffect($res, $nullJourneys, $totalConv, $channelSet);
+            foreach ($channels as $c) $samples[$c][] = (float)($cr[$c] ?? 0.0);
+        }
+        $out = [];
+        foreach ($channels as $c) {
+            $arr = $samples[$c]; sort($arr);
+            $cnt = count($arr);
+            $m = $cnt ? array_sum($arr) / $cnt : 0.0;
+            $var = 0.0; foreach ($arr as $v) $var += ($v - $m) ** 2; $var = $cnt ? $var / $cnt : 0.0;
+            $sd = sqrt($var); $cv = $m > 0 ? $sd / $m : 0.0;
+            $out[] = [
+                'channel' => $c, 'credit' => round((float)($base[$c] ?? $m), 2),
+                'lo' => round(self::percentile($arr, 5), 2), 'hi' => round(self::percentile($arr, 95), 2),
+                'cv' => round($cv, 3), 'stability' => $cv <= 0.15 ? 'high' : ($cv <= 0.35 ? 'medium' : 'low'),
+            ];
+        }
+        usort($out, fn($a, $b) => $b['credit'] <=> $a['credit']);
+        return $out;
+    }
+    private static function percentile(array $sorted, float $p): float
+    {
+        $n = count($sorted); if ($n === 0) return 0.0; if ($n === 1) return (float)$sorted[0];
+        $idx = ($p / 100) * ($n - 1); $lo = (int)floor($idx); $hi = (int)ceil($idx);
+        if ($lo === $hi) return (float)$sorted[$lo];
+        return (float)$sorted[$lo] + ((float)$sorted[$hi] - (float)$sorted[$lo]) * ($idx - $lo);
+    }
+    /** [현 차수 P3] 모델 합의도 — 6개 모델이 한 채널 share에 얼마나 동의하는지(consensus%). 낮으면 모델 선택 민감 = 주의. */
+    public static function modelAgreement(array $models, array $channelSet, float $totalConv): array
+    {
+        $names = array_keys($models);
+        $out = [];
+        foreach (array_keys($channelSet) as $c) {
+            $shares = [];
+            foreach ($names as $mn) {
+                $cr = 0.0;
+                foreach (($models[$mn] ?? []) as $e) { if (($e['channel'] ?? '') === $c) { $cr = (float)($e['conversions'] ?? 0); break; } }
+                $shares[] = $totalConv > 0 ? $cr / $totalConv : 0.0;
+            }
+            $cnt = count($shares); $m = $cnt ? array_sum($shares) / $cnt : 0.0;
+            $var = 0.0; foreach ($shares as $s) $var += ($s - $m) ** 2; $var = $cnt ? $var / $cnt : 0.0;
+            $cv = $m > 0 ? sqrt($var) / $m : 0.0;
+            $out[] = ['channel' => $c, 'consensus' => (int)round(max(0.0, 1 - $cv) * 100), 'avg_share' => round($m * 100, 1)];
+        }
+        usort($out, fn($a, $b) => $b['avg_share'] <=> $a['avg_share']);
+        return $out;
     }
 
     /**
