@@ -7,6 +7,7 @@ import{useProductSelection}from'../contexts/ProductSelectionContext.jsx';
 import RP from'./rpI18n.js';
 import { IS_DEMO } from '../utils/demoEnv';
 import * as apiClient from '../services/apiClient';
+import PeriodFilterBar, { inPeriodAny } from '../components/common/PeriodFilterBar.jsx'; // [현 차수] 기간조회
 
 function useI18n(){const c=_useI18n();const lang=c.lang||'en';const ot=c.t;
 const t=(k,fb)=>{if(k&&k.startsWith('rp.')){const x=k.slice(3);const d=RP[lang]||RP.en||{};if(d[x]!==undefined)return d[x];}return ot(k,fb);};
@@ -240,6 +241,7 @@ const isDemo=IS_DEMO; // 180차: email·host broad includes('demo') 제거 → d
 const{orders=[],claimHistory=[],claimStatsServer=null,orderStats=null,registerClaimReturn}=useGlobalData();
 const{selectedProduct}=useProductSelection();// [현 차수] 전역 상품선택 → 그 상품 반품만 필터·상품별 반품률(실시간 동기화)
 const[tab,setTab]=useState('tabOverview');
+const[period,setPeriod]=useState({preset:'all'}); // [현 차수] 기간조회
 // [현 차수] P1: 수동 반품 등록 — registerClaimReturn(낙관적 claimHistory 추가 + sku/qty 시 반품입고=재고복원)
 //   + 운영은 백엔드 ingestClaims 영속(POST /v424/orderhub/claims). 등록 후 화면 즉시 반영.
 const[showAdd,setShowAdd]=useState(false);
@@ -280,7 +282,12 @@ const data=useMemo(()=>{
 const orderCount=isDemo?(Array.isArray(orders)?orders.length:0):(Number(orderStats?.totalOrders||orderStats?.count)||(Array.isArray(claimHistory)?claimHistory.length:0));
 // [현 차수] 전역 상품선택 시 그 상품 반품만 — 모든 탭(요청·검수·환불·재입고·분석)에 동일 필터 전파(실시간 동기화). sku 우선, 없으면 상품명.
 const prodMode=!!selectedProduct?.sku;
-const viewData=useMemo(()=>prodMode?data.filter(r=>(r.sku&&String(r.sku)===selectedProduct.sku)||(r.product&&r.product===selectedProduct.name)):data,[data,prodMode,selectedProduct]);
+const viewData=useMemo(()=>{
+  let d=prodMode?data.filter(r=>(r.sku&&String(r.sku)===selectedProduct.sku)||(r.product&&r.product===selectedProduct.name)):data;
+  // [현 차수] 기간조회 — 반품을 선택 기간으로 필터(date YYYY-MM-DD 우선, at/createdAt 폴백). 전 탭·KPI 동반 반응.
+  if(period&&period.preset!=='all')d=d.filter(r=>inPeriodAny(r,period,['date','at','createdAt','atISO']));
+  return d;
+},[data,prodMode,selectedProduct,period]);
 // 상품별 반품률 분모 = 그 상품 주문수(실주문 파생, 정직). orders 파생 가능 시만 표기(운영 부분적재 시 '—').
 const prodOrderCount=useMemo(()=>{if(!prodMode)return 0;const src=Array.isArray(orders)?orders:[];return src.filter(o=>String(o.sku||o.product_id||'')===selectedProduct.sku||o.name===selectedProduct.name).length;},[prodMode,orders,selectedProduct]);
 const prodRate=prodMode&&prodOrderCount>0?((viewData.length/prodOrderCount)*100).toFixed(1):null;
@@ -307,6 +314,8 @@ return <div style={{display:'flex',flexDirection:'column',height:'100%',backgrou
 <div style={{padding:'12px 28px',display:'flex',gap:6,flexWrap:'wrap',borderBottom:'1px solid #e5e7eb',background:'#fff',position:'sticky',top:0,zIndex:10,flexShrink:0}}>
 {TABS.map((t2,i)=><button key={t2} style={tabBtnStyle(tab===t2)} onClick={()=>setTab(t2)}>{TAB_ICONS[i]} {tr(t2)}</button>)}
 </div>
+{/* [현 차수] 기간조회 — 데이터 탭에서만 노출(반품 리스트·KPI 선택 기간 정확 스코프) */}
+{PERIOD_TABS.has(tab)&&<div style={{padding:'8px 28px 0'}}><PeriodFilterBar value={period} onChange={setPeriod}/></div>}
 {/* Content scroll */}
 <div style={{flex:1,overflowY:'auto',padding:'20px 28px 40px'}}>
 {/* [현 차수] 선택 상품 반품 요약 — 전 탭 동일 필터(실시간 동기화). 반품률 분모=상품 주문수(정직, 미파생 시 '—') */}
