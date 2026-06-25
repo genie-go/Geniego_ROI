@@ -49,6 +49,9 @@ read -r -d '' CRONTAB <<EOF || true
 # ── 이메일 STO 발송 큐(야간 등 차단시간 적재분을 허용시각에 실발송) ──
 */15 * * * * GENIE_ENV=production php ${PROD}/bin/email_queue_cron.php >> /var/log/genie_email_queue.log 2>&1
 */17 * * * * GENIE_ENV=demo php ${DEMO}/bin/email_queue_cron.php >> /var/log/genie_email_queue_demo.log 2>&1
+# ── Google Ads 서버 전환 업로드(gclid 보유 주문 → Offline Conversion Import; 쿠키리스 귀속) ──
+*/30 * * * * GENIE_ENV=production php ${PROD}/bin/gads_conversion_cron.php >> /var/log/genie_gads_conv.log 2>&1
+*/37 * * * * GENIE_ENV=demo php ${DEMO}/bin/gads_conversion_cron.php >> /var/log/genie_gads_conv_demo.log 2>&1
 # ── OAuth 토큰 갱신(만료 전 자동 refresh; 광고 집행 401 방지) ──
 10 * * * * GENIE_ENV=production php ${PROD}/bin/oauth_refresh_cron.php >> /var/log/genie_oauth_refresh.log 2>&1
 12 * * * * GENIE_ENV=demo php ${DEMO}/bin/oauth_refresh_cron.php >> /var/log/genie_oauth_refresh_demo.log 2>&1

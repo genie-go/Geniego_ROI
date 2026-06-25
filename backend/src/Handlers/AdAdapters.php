@@ -310,6 +310,61 @@ final class AdAdapters
         return ($code >= 200 && $code < 300) ? ['ok' => true] : ['ok' => false, 'error' => self::errMsg($res)];
     }
 
+    /** [현 차수 P2] Google Ads 서버 전환 업로드(Offline Conversion Import / Enhanced Conversions).
+     *  gclid(또는 hashedEmail) 기반 전환을 Google Ads로 업로드 → 쿠키리스·iOS 환경 귀속 보강. 자격증명만 등록하면 동작. */
+    public static function googleUploadConversion(PDO $pdo, string $tenant, string $gclid, float $value, string $currency, string $convDateTime, ?string $hashedEmail = null): array
+    {
+        $dev    = self::cred($pdo, $tenant, 'google_ads', 'developer_token');
+        $token  = self::cred($pdo, $tenant, 'google_ads', 'access_token');
+        $cid    = preg_replace('/\D/', '', self::cred($pdo, $tenant, 'google_ads', 'customer_id'));
+        $action = trim(self::cred($pdo, $tenant, 'google_ads', 'conversion_action'));
+        if ($dev === '' || $token === '' || $cid === '' || $action === '') return self::fail('Google 전환 자격증명(developer_token/access_token/customer_id/conversion_action) 미등록', 'no_credentials');
+        if ($gclid === '' && ($hashedEmail === null || $hashedEmail === '')) return self::fail('gclid 또는 이메일 식별자 필요', 'no_click_id');
+        $actionRes = (strpos($action, 'customers/') === 0) ? $action : "customers/{$cid}/conversionActions/{$action}";
+        $conv = array_filter([
+            'gclid'              => $gclid !== '' ? $gclid : null,
+            'conversionAction'   => $actionRes,
+            'conversionDateTime' => $convDateTime, // 'yyyy-MM-dd HH:mm:ss+hh:mm'
+            'conversionValue'    => $value > 0 ? $value : null,
+            'currencyCode'       => $currency !== '' ? $currency : 'KRW',
+            'userIdentifiers'    => ($hashedEmail !== null && $hashedEmail !== '') ? [['hashedEmail' => $hashedEmail]] : null,
+        ], fn($v) => $v !== null);
+        $hdr = ['Authorization: Bearer ' . $token, 'developer-token: ' . $dev, 'Content-Type: application/json', 'login-customer-id: ' . $cid];
+        $url = "https://googleads.googleapis.com/" . self::GOOGLE_VER . "/customers/{$cid}:uploadClickConversions";
+        [$code, $res] = self::http('POST', $url, $hdr, json_encode(['conversions' => [$conv], 'partialFailure' => true]));
+        if ($code >= 200 && $code < 300 && empty($res['partialFailureError'])) return self::ok('', 'uploaded', 'Google Ads 전환 업로드 완료');
+        return self::fail('Google 전환 업로드 실패: ' . (self::errMsg($res) ?: ($res['partialFailureError']['message'] ?? ('HTTP ' . $code))), 'failed');
+    }
+
+    /** [현 차수 P2] 최근 주문 중 gclid 보유 건을 Google Ads 전환으로 일괄 업로드(멱등 log). cron/endpoint 공용. */
+    public static function uploadPendingGoogleConversions(PDO $pdo, string $tenant, int $days = 7): array
+    {
+        $isMy = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql';
+        try { $pdo->exec("CREATE TABLE IF NOT EXISTS gads_conversion_log (tenant_id VARCHAR(100) NOT NULL, order_id VARCHAR(128) NOT NULL, status VARCHAR(20), detail VARCHAR(255), created_at VARCHAR(32), PRIMARY KEY (tenant_id, order_id))"); } catch (\Throwable $e) {}
+        $cut = gmdate('Y-m-d H:i:s', time() - max(1, $days) * 86400);
+        try {
+            $st = $pdo->prepare("SELECT order_id, total_price, currency, ordered_at, raw_json FROM channel_orders WHERE tenant_id=:t AND ordered_at >= :c AND raw_json LIKE '%gclid%' ORDER BY ordered_at DESC LIMIT 500");
+            $st->execute([':t' => $tenant, ':c' => $cut]);
+            $rows = $st->fetchAll(PDO::FETCH_ASSOC);
+        } catch (\Throwable $e) { return ['ok' => false, 'error' => 'orders_query_failed']; }
+        $uploaded = 0; $skipped = 0; $failed = 0;
+        $ins = $isMy ? 'INSERT IGNORE' : 'INSERT OR IGNORE';
+        foreach ($rows as $r) {
+            $oid = (string)($r['order_id'] ?? ''); if ($oid === '') continue;
+            $chk = $pdo->prepare("SELECT 1 FROM gads_conversion_log WHERE tenant_id=:t AND order_id=:o LIMIT 1");
+            $chk->execute([':t' => $tenant, ':o' => $oid]);
+            if ($chk->fetchColumn()) { $skipped++; continue; }
+            if (!preg_match('/"?gclid"?\s*[:=]\s*"?([A-Za-z0-9_\-.]{10,})/', (string)($r['raw_json'] ?? ''), $m)) { continue; }
+            $dt = gmdate('Y-m-d H:i:s', strtotime((string)($r['ordered_at'] ?? '')) ?: time()) . '+00:00';
+            $res = self::googleUploadConversion($pdo, $tenant, $m[1], (float)($r['total_price'] ?? 0), (string)($r['currency'] ?: 'KRW'), $dt);
+            if (($res['status'] ?? '') === 'no_credentials') return ['ok' => false, 'status' => 'no_credentials', 'uploaded' => $uploaded, 'failed' => $failed];
+            $status = !empty($res['ok']) ? 'uploaded' : 'failed';
+            try { $pdo->prepare("{$ins} INTO gads_conversion_log (tenant_id, order_id, status, detail, created_at) VALUES (:t,:o,:s,:d,:c)")->execute([':t' => $tenant, ':o' => $oid, ':s' => $status, ':d' => substr((string)($res['error'] ?? ''), 0, 250), ':c' => gmdate('Y-m-d H:i:s')]); } catch (\Throwable $e) {}
+            if ($status === 'uploaded') $uploaded++; else $failed++;
+        }
+        return ['ok' => true, 'uploaded' => $uploaded, 'skipped' => $skipped, 'failed' => $failed];
+    }
+
     /* ════════════════════════ TikTok ════════════════════════ */
     private static function tiktokCreate(PDO $pdo, string $tenant, string $name, int $daily): array
     {
