@@ -168,6 +168,36 @@ class EmailMarketing
         return $page('수신거부 완료', '<strong>' . htmlspecialchars($email) . '</strong> 주소로의 마케팅 이메일 수신이 중단되었습니다.');
     }
 
+    /* ─── Suppression 리스트 관리(인증) — 리스트 위생(Klaviyo Suppressions 정합) ─── */
+    public static function listSuppression(Request $req, Response $res): Response {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables(); $pdo = self::db(); $tenant = self::tenant($req);
+        $rows = $pdo->prepare("SELECT email, reason, source, created_at FROM email_suppression WHERE tenant_id=:t ORDER BY created_at DESC LIMIT 2000");
+        $rows->execute([':t'=>$tenant]);
+        $list = $rows->fetchAll(\PDO::FETCH_ASSOC);
+        $byReason = [];
+        foreach ($list as $r) { $rk = (string)($r['reason'] ?? 'unsubscribe'); $byReason[$rk] = ($byReason[$rk] ?? 0) + 1; }
+        return self::jsonRes($res, ['ok'=>true, 'suppression'=>$list, 'total'=>count($list), 'by_reason'=>$byReason]);
+    }
+    public static function addSuppression(Request $req, Response $res): Response {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables(); $pdo = self::db(); $tenant = self::tenant($req);
+        $body = (array)($req->getParsedBody() ?? []); if (empty($body)) { $d = json_decode((string)$req->getBody(), true); if (is_array($d)) $body = $d; }
+        $email = trim((string)($body['email'] ?? ''));
+        if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) return self::jsonRes($res, ['ok'=>false,'error'=>'유효한 이메일 주소가 필요합니다'], 422);
+        self::suppress($pdo, $tenant, $email, (string)($body['reason'] ?? 'manual'), 'admin');
+        return self::jsonRes($res, ['ok'=>true, 'email'=>strtolower($email)]);
+    }
+    public static function removeSuppression(Request $req, Response $res): Response {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables(); $pdo = self::db(); $tenant = self::tenant($req);
+        $body = (array)($req->getParsedBody() ?? []); if (empty($body)) { $d = json_decode((string)$req->getBody(), true); if (is_array($d)) $body = $d; }
+        $email = strtolower(trim((string)($body['email'] ?? '')));
+        if ($email === '') return self::jsonRes($res, ['ok'=>false,'error'=>'email 필요'], 422);
+        $pdo->prepare("DELETE FROM email_suppression WHERE tenant_id=:t AND email=:e")->execute([':t'=>$tenant, ':e'=>$email]);
+        return self::jsonRes($res, ['ok'=>true]);
+    }
+
     /* ─── 설정 GET/PUT ─────────────────────────────────────────────── */
     public static function getSettings(Request $req, Response $res): Response
     {

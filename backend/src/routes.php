@@ -103,6 +103,10 @@ return function (App $app): void {
         // [현 차수] 공개 수신거부(HMAC 토큰) — GET(링크) + POST(원클릭 List-Unsubscribe-Post). /email/ bypass 적용.
         'GET /email/unsubscribe'               => 'Genie\\Handlers\\EmailMarketing::unsubscribe',
         'POST /email/unsubscribe'              => 'Genie\\Handlers\\EmailMarketing::unsubscribe',
+        // [현 차수] Suppression 리스트 관리(인증) — 리스트 위생.
+        'GET /email/suppression'               => 'Genie\\Handlers\\EmailMarketing::listSuppression',
+        'POST /email/suppression'              => 'Genie\\Handlers\\EmailMarketing::addSuppression',
+        'DELETE /email/suppression'            => 'Genie\\Handlers\\EmailMarketing::removeSuppression',
 
         // ── 카카오 채널 (알림톡) ─────────────────────────────────────────
         'GET /kakao/settings'                  => 'Genie\\Handlers\\KakaoChannel::getSettings',
@@ -2343,6 +2347,9 @@ return function (App $app): void {
     $register('POST',   '/email/track/click');
     $register('GET',    '/email/unsubscribe'); // [현 차수] 공개 수신거부(HMAC)
     $register('POST',   '/email/unsubscribe');
+    $register('GET',    '/email/suppression'); // [현 차수] Suppression 관리(인증)
+    $register('POST',   '/email/suppression');
+    $register('DELETE', '/email/suppression');
     // 183차 P0: email ab-test/ab-result/duplicate/analytics 죽은 매핑 제거(핸들러 미구현)
     // Kakao
     $register('GET',    '/kakao/settings');
