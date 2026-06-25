@@ -107,6 +107,9 @@ return function (App $app): void {
         'GET /email/suppression'               => 'Genie\\Handlers\\EmailMarketing::listSuppression',
         'POST /email/suppression'              => 'Genie\\Handlers\\EmailMarketing::addSuppression',
         'DELETE /email/suppression'            => 'Genie\\Handlers\\EmailMarketing::removeSuppression',
+        // [현 차수] STO 큐 워커(cron_key/Pro) + 바운스 webhook(HMAC fail-closed).
+        'POST /email/queue/process'            => 'Genie\\Handlers\\EmailMarketing::processQueue',
+        'POST /email/bounce'                   => 'Genie\\Handlers\\EmailMarketing::bounceWebhook',
 
         // ── 카카오 채널 (알림톡) ─────────────────────────────────────────
         'GET /kakao/settings'                  => 'Genie\\Handlers\\KakaoChannel::getSettings',
@@ -2350,6 +2353,8 @@ return function (App $app): void {
     $register('GET',    '/email/suppression'); // [현 차수] Suppression 관리(인증)
     $register('POST',   '/email/suppression');
     $register('DELETE', '/email/suppression');
+    $register('POST',   '/email/queue/process'); // [현 차수] STO 큐 워커
+    $register('POST',   '/email/bounce');         // [현 차수] 바운스 webhook
     // 183차 P0: email ab-test/ab-result/duplicate/analytics 죽은 매핑 제거(핸들러 미구현)
     // Kakao
     $register('GET',    '/kakao/settings');

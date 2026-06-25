@@ -46,6 +46,9 @@ read -r -d '' CRONTAB <<EOF || true
 # ── 여정(Journey) 러너 ──
 */5 * * * * GENIE_ENV=production php ${PROD}/bin/journey_cron.php >> /var/log/genie_journey.log 2>&1
 */9 * * * * GENIE_ENV=demo php ${DEMO}/bin/journey_cron.php >> /var/log/genie_journey_demo.log 2>&1
+# ── 이메일 STO 발송 큐(야간 등 차단시간 적재분을 허용시각에 실발송) ──
+*/15 * * * * GENIE_ENV=production php ${PROD}/bin/email_queue_cron.php >> /var/log/genie_email_queue.log 2>&1
+*/17 * * * * GENIE_ENV=demo php ${DEMO}/bin/email_queue_cron.php >> /var/log/genie_email_queue_demo.log 2>&1
 # ── OAuth 토큰 갱신(만료 전 자동 refresh; 광고 집행 401 방지) ──
 10 * * * * GENIE_ENV=production php ${PROD}/bin/oauth_refresh_cron.php >> /var/log/genie_oauth_refresh.log 2>&1
 12 * * * * GENIE_ENV=demo php ${DEMO}/bin/oauth_refresh_cron.php >> /var/log/genie_oauth_refresh_demo.log 2>&1

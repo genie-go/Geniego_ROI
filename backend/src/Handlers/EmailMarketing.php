@@ -98,6 +98,10 @@ class EmailMarketing
         foreach (['email_settings','email_templates','email_campaigns','email_sends'] as $tbl) {
             try { $pdo->exec("ALTER TABLE {$tbl} ADD COLUMN tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo'"); } catch (\Throwable $e) {}
         }
+        // [현 차수] STO 비동기 발송 큐 — scheduled_at(예약)·attempts(재시도) 컬럼(멱등 ALTER).
+        foreach (['scheduled_at VARCHAR(32)', 'attempts INT DEFAULT 0'] as $col) {
+            try { $pdo->exec("ALTER TABLE email_sends ADD COLUMN " . $col); } catch (\Throwable $e) {}
+        }
     }
 
     /* ═══ [현 차수] Klaviyo급 딜리버러빌리티/컴플라이언스 — Suppression·Unsubscribe·개인화 ═══ */
@@ -196,6 +200,89 @@ class EmailMarketing
         if ($email === '') return self::jsonRes($res, ['ok'=>false,'error'=>'email 필요'], 422);
         $pdo->prepare("DELETE FROM email_suppression WHERE tenant_id=:t AND email=:e")->execute([':t'=>$tenant, ':e'=>$email]);
         return self::jsonRes($res, ['ok'=>true]);
+    }
+
+    /* ─── POST /email/queue/process — STO 큐 워커(cron). 허용시각 테넌트의 queued 발송 실행(재렌더·재시도). ─── */
+    public static function processQueue(Request $req, Response $res): Response {
+        $q = $req->getQueryParams();
+        $secret = getenv('APP_KEY') ?: '';
+        $cronOk = ($secret !== '' && hash_equals(substr(hash_hmac('sha256', 'email-queue', $secret), 0, 32), (string)($q['cron_key'] ?? '')));
+        if (!$cronOk) { if ($err = UserAuth::requirePro($req, $res)) return $err; }
+        return self::jsonRes($res, array_merge(['ok'=>true], self::runQueue()));
+    }
+
+    /** STO 큐 워커 본체 — HTTP/CLI(cron) 공용. 허용시각 테넌트의 queued 발송(재렌더·재시도). */
+    public static function runQueue(?string $onlyTenant = null): array {
+        self::ensureTables(); $pdo = self::db(); $now = self::now();
+        if ($onlyTenant !== null && $onlyTenant !== '') { $tenants = [$onlyTenant]; }
+        else { $tenants = $pdo->query("SELECT DISTINCT tenant_id FROM email_sends WHERE status='queued'")->fetchAll(\PDO::FETCH_COLUMN); }
+        $sent = 0; $failed = 0; $deferredTenants = 0; $tplCache = [];
+        foreach ($tenants as $tn) {
+            $cfg = CRM::commsFreqConfig($pdo, (string)$tn);
+            if (!CRM::commsSendAllowedNow($cfg)) { $deferredTenants++; continue; } // 아직 차단시간 → 다음 cron
+            $rows = $pdo->prepare("SELECT * FROM email_sends WHERE tenant_id=:t AND status='queued' ORDER BY id LIMIT 1000");
+            $rows->execute([':t'=>$tn]);
+            foreach ($rows->fetchAll(\PDO::FETCH_ASSOC) as $row) {
+                $cid = (int)$row['campaign_id']; $email = (string)$row['email']; $uid = (int)$row['customer_id'];
+                if (self::isSuppressed($pdo, (string)$tn, $email)) { $pdo->prepare("UPDATE email_sends SET status='suppressed' WHERE id=:id")->execute([':id'=>$row['id']]); continue; }
+                if (!isset($tplCache[$cid])) {
+                    $cst = $pdo->prepare("SELECT c.name AS cname, t.subject, t.html_body FROM email_campaigns c LEFT JOIN email_templates t ON t.id=c.template_id AND t.tenant_id=c.tenant_id WHERE c.id=:id AND c.tenant_id=:t");
+                    $cst->execute([':id'=>$cid, ':t'=>$tn]);
+                    $tplCache[$cid] = $cst->fetch(\PDO::FETCH_ASSOC) ?: ['cname'=>'', 'subject'=>'(제목 없음)', 'html_body'=>''];
+                }
+                $tpl = $tplCache[$cid];
+                $cust = ['email'=>$email, 'name'=>''];
+                if ($uid > 0) { $cs = $pdo->prepare("SELECT name FROM crm_customers WHERE id=:id AND tenant_id=:t"); $cs->execute([':id'=>$uid, ':t'=>$tn]); $cust['name'] = (string)($cs->fetchColumn() ?: ''); }
+                $unsubUrl = self::unsubUrl((string)$tn, $email);
+                $subject = self::renderTemplate((string)($tpl['subject'] ?? ''), $cust);
+                $body = self::renderTemplate((string)($tpl['html_body'] ?? ''), $cust, ['unsubscribe_url'=>$unsubUrl]) . self::unsubFooter($unsubUrl);
+                $mr = Mailer::send($email, $subject, $body, ['pdo'=>$pdo, 'tenant'=>$tn, 'headers'=>['List-Unsubscribe'=>'<'.$unsubUrl.'>', 'List-Unsubscribe-Post'=>'List-Unsubscribe=One-Click']]);
+                $st = (($mr['mode'] ?? '') === 'unconfigured') ? 'mock_sent' : (!empty($mr['ok']) ? 'sent' : 'failed');
+                $att = (int)($row['attempts'] ?? 0) + 1;
+                $finalSt = ($st === 'failed' && $att < 3) ? 'queued' : $st; // 실패 시 최대 3회 재시도
+                $pdo->prepare("UPDATE email_sends SET status=:s, sent_at=:sa, attempts=:a WHERE id=:id")->execute([':s'=>$finalSt, ':sa'=>$now, ':a'=>$att, ':id'=>$row['id']]);
+                if ($st === 'sent') {
+                    $sent++;
+                    try { Attribution::recordOwnedTouch($pdo, (string)$tn, 'email', $email, null, 'email:'.$cid, ['campaign'=>(string)($tpl['cname'] ?? '')]); } catch (\Throwable $e) {}
+                    try { $pdo->prepare("INSERT INTO crm_activities (tenant_id, customer_id, type, channel, data, created_at) VALUES (:t,:uid,'email_sent','email',:data,:ca)")->execute([':t'=>$tn, ':uid'=>$uid, ':data'=>json_encode(['campaign_id'=>$cid]), ':ca'=>$now]); } catch (\Throwable $e) {}
+                } elseif ($finalSt === 'failed') { $failed++; }
+            }
+        }
+        return ['sent'=>$sent, 'failed'=>$failed, 'tenants_deferred'=>$deferredTenants];
+    }
+
+    /* ─── POST /email/bounce — ESP/MTA 바운스·스팸신고 피드백(APP_KEY HMAC 서명, fail-closed). 하드바운스/신고 자동 suppression. ─── */
+    public static function bounceWebhook(Request $req, Response $res): Response {
+        $raw = (string)$req->getBody();
+        $sig = $req->getHeaderLine('X-Genie-Sign');
+        $secret = getenv('APP_KEY') ?: '';
+        if ($secret === '' || $sig === '' || !hash_equals(hash_hmac('sha256', $raw, $secret), $sig)) {
+            return self::jsonRes($res, ['ok'=>false, 'error'=>'invalid signature'], 401);
+        }
+        $d = json_decode($raw, true);
+        if (!is_array($d)) return self::jsonRes($res, ['ok'=>false, 'error'=>'bad payload'], 422);
+        $events = (isset($d['events']) && is_array($d['events'])) ? $d['events'] : [$d];
+        self::ensureTables(); $pdo = self::db();
+        $suppressed = 0; $recorded = 0;
+        foreach ($events as $ev) {
+            if (!is_array($ev)) continue;
+            $email = strtolower(trim((string)($ev['email'] ?? ''))); if ($email === '') continue;
+            $tn = (string)($ev['tenant'] ?? ($d['tenant'] ?? '')); if ($tn === '') continue;
+            $type = strtolower((string)($ev['type'] ?? 'hard'));
+            $reason = substr((string)($ev['reason'] ?? $type), 0, 250);
+            // 최근 발송 1건에 bounce_reason 기록(2단계 — MySQL/SQLite 공통).
+            try {
+                $idSt = $pdo->prepare("SELECT id FROM email_sends WHERE tenant_id=:t AND email=:e ORDER BY id DESC LIMIT 1");
+                $idSt->execute([':t'=>$tn, ':e'=>$email]); $sid = $idSt->fetchColumn();
+                if ($sid) { $pdo->prepare("UPDATE email_sends SET bounce_reason=:r, status='bounced' WHERE id=:id")->execute([':r'=>$reason, ':id'=>$sid]); $recorded++; }
+            } catch (\Throwable $e) {}
+            // 하드바운스/스팸신고/차단/수신거부 → 자동 영구 suppression.
+            if (in_array($type, ['hard', 'complaint', 'spam', 'block', 'unsubscribe'], true)) {
+                $sr = ($type === 'complaint' || $type === 'spam') ? 'complaint' : ($type === 'unsubscribe' ? 'unsubscribe' : 'bounce');
+                self::suppress($pdo, $tn, $email, $sr, 'webhook'); $suppressed++;
+            }
+        }
+        return self::jsonRes($res, ['ok'=>true, 'recorded'=>$recorded, 'suppressed'=>$suppressed]);
     }
 
     /* ─── 설정 GET/PUT ─────────────────────────────────────────────── */
@@ -392,14 +479,22 @@ class EmailMarketing
         }
         $customerList = $cust->fetchAll(\PDO::FETCH_ASSOC);
 
-        $sent = 0; $failed = 0; $mock = 0; $capped = 0; $suppressed = 0;
+        $sent = 0; $failed = 0; $mock = 0; $capped = 0; $suppressed = 0; $queued = 0;
         $now = self::now();
         // [240차 약점⑥] 빈도캡 — 과발송 차단(딜리버러빌리티 보호). 설정 1회 로드 후 고객별 평가.
         $freqCfg = CRM::commsFreqConfig($pdo, $tenant);
+        // [현 차수] STO(발송시간 최적화) — 야간 등 차단 시간엔 즉시발송 대신 큐 적재(cron이 허용시각에 발송).
+        $deferAll = !empty($freqCfg['sto']) && !CRM::commsSendAllowedNow($freqCfg);
         foreach ($customerList as $c) {
             // [현 차수] 컴플라이언스 게이트 — 수신거부/하드바운스 suppression 우선 차단(CAN-SPAM/GDPR 필수).
             if (self::isSuppressed($pdo, $tenant, (string)$c['email'])) { $suppressed++; continue; }
             if (CRM::isFrequencyCapped($pdo, $tenant, (int)$c['id'], $freqCfg['cap'], $freqCfg['window'])) { $capped++; continue; }
+            // [현 차수] STO 차단 시간 → 큐 적재(status='queued'). processQueue cron이 허용시각에 실발송.
+            if ($deferAll) {
+                $pdo->prepare("INSERT INTO email_sends (tenant_id, campaign_id, customer_id, email, status, scheduled_at) VALUES (:t,:cid,:uid,:email,'queued',:sa)")
+                    ->execute([':t'=>$tenant, ':cid'=>$cid, ':uid'=>$c['id'], ':email'=>$c['email'], ':sa'=>$now]);
+                $queued++; continue;
+            }
             // [현 차수] 개인화 엔진 + 수신거부 풋터/헤더(원클릭 List-Unsubscribe — Gmail/Yahoo 대량발송 요건).
             $unsubUrl = self::unsubUrl($tenant, (string)$c['email']);
             $subject = $template ? self::renderTemplate((string)($template['subject']??''), $c) : '(제목 없음)';
@@ -422,9 +517,11 @@ class EmailMarketing
         }
 
         $total = count($customerList);
-        $pdo->prepare("UPDATE email_campaigns SET status='sent', sent_at=:sa, total_sent=:t WHERE id=:id AND tenant_id=:tn")
-            ->execute([':sa'=>$now, ':t'=>$total, ':id'=>$cid, ':tn'=>$tenant]);
-        return self::jsonRes($res, ['ok'=>true,'total'=>$total,'sent'=>$sent,'mock_sent'=>$mock,'failed'=>$failed,'frequency_capped'=>$capped,'suppressed'=>$suppressed]);
+        // [현 차수] STO로 큐 적재된 경우 'scheduled', 그 외 'sent'.
+        $campStatus = ($queued > 0 && $sent === 0 && $mock === 0) ? 'scheduled' : 'sent';
+        $pdo->prepare("UPDATE email_campaigns SET status=:st, sent_at=:sa, total_sent=:t WHERE id=:id AND tenant_id=:tn")
+            ->execute([':st'=>$campStatus, ':sa'=>$now, ':t'=>$total, ':id'=>$cid, ':tn'=>$tenant]);
+        return self::jsonRes($res, ['ok'=>true,'total'=>$total,'sent'=>$sent,'mock_sent'=>$mock,'failed'=>$failed,'frequency_capped'=>$capped,'suppressed'=>$suppressed,'queued'=>$queued,'status'=>$campStatus]);
     }
 
     /* ─── GET /email/campaigns/{id}/stats ──────────────────────────── */
