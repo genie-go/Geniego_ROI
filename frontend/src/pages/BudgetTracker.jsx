@@ -199,7 +199,7 @@ function OverviewTab({ campaigns, budgetStats, periodFactor = 1, tr, fmt }) {
               <span style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.5 }}>{kpi.label}</span>
               <span style={{ fontSize: 18 }}>{kpi.icon}</span>
             </div>
-            <div style={{ fontSize: 22, fontWeight: 900, color: kpi.color }}>{kpi.value}</div>
+            <div style={{ fontSize: 17, fontWeight: 800, color: kpi.color }}>{kpi.value}</div>
           </div>
         ))}
       </div>
