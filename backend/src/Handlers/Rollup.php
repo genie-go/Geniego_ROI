@@ -299,6 +299,28 @@ final class Rollup {
             $cq->execute([$tenant]);
             while ($c = $cq->fetch(\PDO::FETCH_ASSOC)) { $costs[(string)$c['sku']] = (float)($c['cost_price'] ?? 0); }
         } catch (\Throwable $e) { /* 원가 미등록 */ }
+        // [Phase1 순이익] 실 정산 수수료(kr_settlement_line, SKU 단위 실데이터) — 마켓수수료+광고수수료+배송비+반품비+기타차감.
+        //   ★이중차감 방지: vat(대납세금)·coupon_discount·point_discount 제외(쿠폰/포인트는 channel_orders.total_price 에
+        //   이미 반영, vat 는 대납). 정산 미적재 sku 는 settleFees 없음 → 요율추정 폴백.
+        $settleFees = [];
+        try {
+            $sf = $pdo->prepare(
+                "SELECT sku, SUM(platform_fee + ad_fee + shipping_fee + return_fee + other_deductions) fee
+                   FROM kr_settlement_line
+                  WHERE tenant_id = ? AND sku IS NOT NULL AND sku <> '' AND period_start >= ?
+                  GROUP BY sku"
+            );
+            $sf->execute([$tenant, substr($start, 0, 10)]);
+            while ($s = $sf->fetch(\PDO::FETCH_ASSOC)) { $settleFees[(string)$s['sku']] = (float)($s['fee'] ?? 0); }
+        } catch (\Throwable $e) { /* 정산 미적재 = 요율추정 폴백 */ }
+        // [Phase1 순이익] 채널별 수수료율(kr_fee_rule) — 정산 미적재 채널용 정직 추정(fees_source='estimated').
+        //   요율은 분수(예: 0.1). 채널별 매출 × (판매수수료율+광고수수료율) 합산. 실 정산 적재 시 그 값이 우선.
+        $feeRule = [];
+        try {
+            $fr = $pdo->prepare("SELECT LOWER(channel_key) ch, AVG(platform_fee_rate) pf, AVG(ad_fee_rate) af FROM kr_fee_rule WHERE tenant_id = ? GROUP BY LOWER(channel_key)");
+            $fr->execute([$tenant]);
+            while ($f = $fr->fetch(\PDO::FETCH_ASSOC)) { $feeRule[(string)$f['ch']] = (float)($f['pf'] ?? 0) + (float)($f['af'] ?? 0); }
+        } catch (\Throwable $e) { /* 요율 미등록 */ }
         $list = array_values($products);
         foreach ($list as &$p) {
             $p['revenue'] = round($p['revenue'], 2);
@@ -309,6 +331,22 @@ final class Rollup {
                 $p['cogs'] = round($cogs, 2); $p['gross_profit'] = round($p['revenue'] - $cogs, 2);
                 $p['margin'] = $p['revenue'] > 0 ? round($p['gross_profit'] / $p['revenue'] * 100, 1) : 0;
             } else { $p['cogs'] = null; $p['gross_profit'] = null; $p['margin'] = null; }
+            // [Phase1 순이익] net_profit = 매출총이익 − 외부광고비 − 마켓수수료. 원가 미등록 시 net 산출 불가(정직 null).
+            //   외부광고비: ad_attr(귀속배분) 우선, 없으면 ad(직접 sku 적재). 마켓수수료: 실정산>요율추정>없음.
+            $adCost = isset($p['ad_attr']['spend']) ? (float)$p['ad_attr']['spend'] : (isset($p['ad']['spend']) ? (float)$p['ad']['spend'] : 0.0);
+            $feesSource = 'none'; $mktFees = 0.0;
+            if (isset($settleFees[$p['sku']])) { $mktFees = $settleFees[$p['sku']]; $feesSource = 'settlement'; }
+            elseif ($feeRule) {
+                $est = 0.0; foreach ($p['byChannel'] as $c => $v) { $rate = $feeRule[strtolower((string)$c)] ?? 0; if ($rate > 0) $est += $v['revenue'] * $rate; }
+                if ($est > 0) { $mktFees = $est; $feesSource = 'estimated'; }
+            }
+            $p['ad_cost'] = round($adCost, 2);
+            $p['mkt_fees'] = round($mktFees, 2);
+            $p['fees_source'] = $feesSource;
+            if ($p['gross_profit'] !== null) {
+                $p['net_profit'] = round($p['gross_profit'] - $adCost - $mktFees, 2);
+                $p['net_margin'] = $p['revenue'] > 0 ? round($p['net_profit'] / $p['revenue'] * 100, 1) : 0;
+            } else { $p['net_profit'] = null; $p['net_margin'] = null; }
             $tc = ''; $tcv = -1; foreach ($p['byChannel'] as $c => $v) { if ($v['revenue'] > $tcv) { $tcv = $v['revenue']; $tc = $c; } }
             $tk = ''; $tkv = -1; foreach ($p['byCountry'] as $c => $v) { if ($v['revenue'] > $tkv) { $tkv = $v['revenue']; $tk = $c; } }
             $p['top_channel'] = $tc; $p['top_country'] = $tk;
@@ -324,6 +362,82 @@ final class Rollup {
     }
 
     /** 실 테넌트: channel_orders 에서 SKU별 판매 집계(테넌트 격리). SKU 단위 광고비 부재 → spend/roas 0. */
+    /** [Phase2] GET /v423/rollup/product-channel-matrix — "어떤 상품을 어떤 채널에 광고해야 최소비용 최대 순이익인가".
+     *   ad_insight_agg(sku×platform 실광고성과) ⨯ po_products(원가)로 SKU×채널 셀별 ROAS·CAC·순이익ROI 산출 후
+     *   AutoRecommend 벤치마크(채널 목표 ROAS) 재사용해 셀 액션(increase/monitor/decrease)+근거 판정. 실데이터만(허위 0).
+     *   ★광고비 대비 '매출'이 아닌 '순이익(매출−원가×전환−광고비)' 중심. 광고데이터 적재 즉시 자동 채워짐. */
+    public static function productChannelMatrix(Request $req, Response $res, array $args = []): Response {
+        $tenant = self::tenantOf($req);
+        $q = $req->getQueryParams();
+        $period = (string)($q['period'] ?? 'monthly');
+        $n = self::nRange($period, (int)($q['n'] ?? 0), 6);
+        $dates = self::dates($period, $n);
+        $start = self::rangeStart($dates); $d0 = substr($start, 0, 10);
+        $bench = [];
+        try { $bench = \Genie\Handlers\AutoRecommend::benchmarkMap(); } catch (\Throwable $e) { $bench = []; }
+        $normCh = static function ($p) {
+            $p = strtolower(trim((string)$p));
+            $map = ['coupang'=>'coupang_ads','facebook'=>'meta','instagram'=>'meta','google_ads'=>'google','naver_sa'=>'naver','kakao_moment'=>'kakao'];
+            return $map[$p] ?? $p;
+        };
+        $products = []; $channelsSeen = [];
+        try {
+            $pdo = Db::pdo();
+            $costs = [];
+            try { $cq = $pdo->prepare("SELECT sku, cost_price FROM po_products WHERE tenant_id = ?"); $cq->execute([$tenant]);
+                while ($c = $cq->fetch(\PDO::FETCH_ASSOC)) $costs[(string)$c['sku']] = (float)($c['cost_price'] ?? 0); } catch (\Throwable $e) {}
+            $names = [];
+            try { $nq = $pdo->prepare("SELECT DISTINCT sku, product_name FROM channel_orders WHERE tenant_id = ? AND sku IS NOT NULL AND sku <> ''"); $nq->execute([$tenant]);
+                while ($r = $nq->fetch(\PDO::FETCH_ASSOC)) { $s = (string)$r['sku']; if (!isset($names[$s])) $names[$s] = (string)($r['product_name'] ?? $s); } } catch (\Throwable $e) {}
+            $am = $pdo->prepare(
+                "SELECT sku, LOWER(platform) platform, SUM(spend) sp, SUM(revenue) rv, SUM(conversions) cv, SUM(impressions) im, SUM(clicks) ck
+                   FROM ad_insight_agg
+                  WHERE tenant_id = ? AND sku IS NOT NULL AND sku <> '' AND date >= ?
+                  GROUP BY sku, LOWER(platform)"
+            );
+            $am->execute([$tenant, $d0]);
+            while ($r = $am->fetch(\PDO::FETCH_ASSOC)) {
+                $sku = (string)$r['sku']; $ch = $normCh((string)$r['platform']);
+                $sp = (float)($r['sp'] ?? 0); $rv = (float)($r['rv'] ?? 0); $cv = (int)($r['cv'] ?? 0); $im = (int)($r['im'] ?? 0); $ck = (int)($r['ck'] ?? 0);
+                if ($sp <= 0 && $im <= 0) continue;
+                if (!isset($products[$sku])) $products[$sku] = ['sku'=>$sku,'name'=>$names[$sku] ?? $sku,'cells'=>[],'total'=>['spend'=>0.0,'revenue'=>0.0,'conversions'=>0,'net_profit'=>0.0]];
+                $cost = $costs[$sku] ?? null;
+                $roas = $sp > 0 ? round($rv / $sp, 2) : null;
+                $cac = $cv > 0 ? round($sp / $cv, 0) : null;
+                $ctr = $im > 0 ? round($ck / $im * 100, 2) : 0;
+                $cogs = ($cost !== null && $cost > 0) ? $cost * $cv : null;
+                $netProfit = ($cogs !== null) ? round($rv - $cogs - $sp, 2) : null;
+                $profitRoi = ($netProfit !== null && $sp > 0) ? round($netProfit / $sp * 100, 1) : null;
+                $bRoas = (float)($bench[$ch]['roas'] ?? 3.0); if ($bRoas <= 0) $bRoas = 3.0;
+                $action = 'monitor'; $reason = '';
+                if ($sp > 0 && $cv === 0) { $action = 'decrease'; $reason = '지출 발생·전환 0 → 감액/중단'; }
+                elseif ($profitRoi !== null) {
+                    if ($profitRoi > 15 && $roas !== null && $roas >= $bRoas * 1.05) { $action = 'increase'; $reason = '순이익ROI +' . $profitRoi . '% · ROAS ' . $roas . 'x ≥ 벤치 ' . $bRoas . 'x'; }
+                    elseif ($profitRoi < 0) { $action = 'decrease'; $reason = '순이익ROI ' . $profitRoi . '% (손실)'; }
+                    else { $action = 'monitor'; $reason = '순이익ROI ' . $profitRoi . '%'; }
+                } elseif ($roas !== null) {
+                    if ($roas >= $bRoas * 1.1) { $action = 'increase'; $reason = 'ROAS ' . $roas . 'x ≥ 벤치 ' . $bRoas . 'x (원가 미등록=ROAS기준)'; }
+                    elseif ($roas < $bRoas * 0.7) { $action = 'decrease'; $reason = 'ROAS ' . $roas . 'x < 벤치 ' . $bRoas . 'x'; }
+                    else { $action = 'monitor'; $reason = 'ROAS ' . $roas . 'x'; }
+                } else { $action = 'monitor'; $reason = '데이터 부족'; }
+                $products[$sku]['cells'][$ch] = ['spend'=>round($sp,2),'revenue'=>round($rv,2),'roas'=>$roas,'conversions'=>$cv,'cac'=>$cac,'impressions'=>$im,'clicks'=>$ck,'ctr'=>$ctr,'cogs'=>$cogs !== null ? round($cogs,2) : null,'net_profit'=>$netProfit,'profit_roi'=>$profitRoi,'action'=>$action,'reason'=>$reason];
+                $products[$sku]['total']['spend'] += $sp; $products[$sku]['total']['revenue'] += $rv; $products[$sku]['total']['conversions'] += $cv; if ($netProfit !== null) $products[$sku]['total']['net_profit'] += $netProfit;
+                $channelsSeen[$ch] = true;
+            }
+        } catch (\Throwable $e) { /* 빈 결과(정직) */ }
+        $list = array_values($products);
+        foreach ($list as &$p) {
+            $t = $p['total']; $best = null; $bestv = -INF;
+            foreach ($p['cells'] as $ch => $c) { $v = $c['profit_roi'] !== null ? $c['profit_roi'] : ($c['roas'] !== null ? $c['roas'] * 10 : -INF); if ($c['action'] === 'increase' && $v > $bestv) { $bestv = $v; $best = $ch; } }
+            $p['recommend_channel'] = $best;
+            $p['total']['roas'] = $t['spend'] > 0 ? round($t['revenue'] / $t['spend'], 2) : null;
+            $p['total']['spend'] = round($t['spend'], 2); $p['total']['revenue'] = round($t['revenue'], 2); $p['total']['net_profit'] = round($t['net_profit'], 2);
+        } unset($p);
+        usort($list, fn($a, $b) => ($b['total']['net_profit'] <=> $a['total']['net_profit']));
+        $benchOut = []; foreach ($bench as $k => $v) $benchOut[$k] = ['roas' => (float)($v['roas'] ?? 0)];
+        return TemplateResponder::json($res, ['ok'=>true,'period'=>$period,'n'=>$n,'count'=>count($list),'channels'=>array_keys($channelsSeen),'benchmark'=>$benchOut,'products'=>$list]);
+    }
+
     private static function realSkuRows(string $tenant, string $period, array $dates): array {
         try {
             $pdo = Db::pdo();

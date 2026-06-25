@@ -3,6 +3,8 @@ import { useI18n } from '../../i18n';
 import { useGlobalData } from '../../context/GlobalDataContext.jsx';
 import { useSecurityGuard, getSecurityAlerts } from '../../security/SecurityGuard.js';
 import ProductMarketingPanel from './ProductMarketingPanel.jsx';
+import ProductSelectBar from './ProductSelectBar.jsx';
+import ProductScopeNotice from './ProductScopeNotice.jsx';
 import { useCurrency } from '../../contexts/CurrencyContext.jsx';
 import { LineChart, BarChart, Spark, DonutChart, fmt } from './ChartUtils.jsx';
 import MarketingAIPanel from '../MarketingAIPanel.jsx';
@@ -482,7 +484,12 @@ export default function DashMarketing({ period }) {
 
   return (
     <div style={{ display: 'grid', gap: G }}>
+      {/* [현 차수] 인라인 상품 선택기 — 이 탭에서 직접 전체↔특정상품 전환(전역 동기화). 선택 시 아래 패널 표시. */}
+      <ProductSelectBar />
       <ProductMarketingPanel period={period} />
+      {/* [현 차수] 정직 표기 — 아래 채널 성과 카드/트렌드/테이블은 채널 집계 광고데이터라 상품별 귀속 불가(전체 기준).
+           이 상품의 채널별 판매는 위 '상품 마케팅 성과' 패널의 채널별 판매를 참조. 가짜 상품귀속 대신 정직. */}
+      <ProductScopeNotice scope="channel" />
       {/* ── 보안 경고 배너 ─────────────────────────────────────────── */}
       {secAlerts.length > 0 && (
         <div style={{

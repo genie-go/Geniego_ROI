@@ -651,6 +651,7 @@ return function (App $app): void {
         'GET /v423/rollup/summary'   => 'Genie\\Handlers\\Rollup::summary',
         'GET /v423/rollup/sku'       => 'Genie\\Handlers\\Rollup::sku',
         'GET /v423/rollup/product-performance' => 'Genie\\Handlers\\Rollup::productPerformance', // [현 차수] 상품 순위·채널별·국가별 성과
+        'GET /v423/rollup/product-channel-matrix' => 'Genie\\Handlers\\Rollup::productChannelMatrix', // [Phase2] SKU×채널 순이익 매트릭스+액션추천
 
         'GET /v423/rollup/campaign'  => 'Genie\\Handlers\\Rollup::campaign',
         'GET /v423/rollup/creator'   => 'Genie\\Handlers\\Rollup::creator',
@@ -1822,6 +1823,7 @@ return function (App $app): void {
     $register('GET', '/v423/rollup/summary');
     $register('GET', '/v423/rollup/sku');
     $register('GET', '/v423/rollup/product-performance');
+    $register('GET', '/v423/rollup/product-channel-matrix');
     $register('GET', '/v423/rollup/campaign');
     $register('GET', '/v423/rollup/creator');
     $register('GET', '/v423/rollup/platform');

@@ -7,6 +7,7 @@ import { useCurrency } from '../../contexts/CurrencyContext.jsx';
 import { IS_DEMO } from '../../utils/demoEnv.js';
 import { buildPeriodScope, deriveOrderKpis, usePeriodOrderStats } from './dashPeriod.js';
 import { useProductSelection } from '../../contexts/ProductSelectionContext.jsx';
+import ProductScopeNotice from './ProductScopeNotice.jsx';
 
 // ══════════════════════════════════════════════════════════════════════
 //  🛒 DashCommerce — 커머스·정산 Platform Intelligence
@@ -589,6 +590,9 @@ export default function DashCommerce({ period }) {
         ))}
       </div>
 
+      {/* [현 차수] 정직 표기 — 메인 KPI(매출·주문·반품률)는 선택 상품 실필터지만, 아래 플랫폼 인텔리전스의
+           채널 분해(실주문 없는 플랫폼은 share 추정)·인구통계(주문에 없는 필드라 데모 시드)는 상품별 귀속 불가. */}
+      {prodMode && <ProductScopeNotice scope="channel" />}
       {/* ── Main Content Grid ────────────────────────────────────── */}
       <div style={{ display:'grid', gridTemplateColumns:'3fr 2fr', gap:GAP }}>
         <div style={{ display:'flex', flexDirection:'column', gap:GAP }}>

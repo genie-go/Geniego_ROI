@@ -5,7 +5,9 @@ import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import { deriveRollup } from './rollupDemoDerive.js';
 import PerformanceProfiler from '../components/PerformanceProfiler.jsx';
 import { useProductSelection } from '../contexts/ProductSelectionContext.jsx';
-import { deriveProductPerf, ppCountry, PP_COUNTRY_LABEL } from '../components/dashboards/productPerf.js';
+import ProductScopeNotice from '../components/dashboards/ProductScopeNotice.jsx';
+import ProductFunnel from '../components/dashboards/ProductFunnel.jsx';
+import { deriveProductPerf, deriveChannelMatrix, ppCountry, PP_COUNTRY_LABEL } from '../components/dashboards/productPerf.js';
 
 // ══════════════════════════════════════════════════════════════════════
 //  📈 RollupDashboard — Enterprise i18n (15 Languages) + Zero Mock Data
@@ -937,7 +939,7 @@ function ProductPerfTab({ period, n, txt, fc }) {
   const products = useMemo(() => {
     let list = (data?.products || []).slice();
     if (q.trim()) { const s=q.trim().toLowerCase(); list = list.filter(p => String(p.name||'').toLowerCase().includes(s) || String(p.sku||'').toLowerCase().includes(s)); }
-    if (sortBy==='qty') list.sort((a,b)=>b.qty-a.qty); else if (sortBy==='return') list.sort((a,b)=>b.return_rate-a.return_rate); else if (sortBy==='profit') list.sort((a,b)=>(b.gross_profit??-Infinity)-(a.gross_profit??-Infinity)); else list.sort((a,b)=>b.revenue-a.revenue);
+    if (sortBy==='qty') list.sort((a,b)=>b.qty-a.qty); else if (sortBy==='return') list.sort((a,b)=>b.return_rate-a.return_rate); else if (sortBy==='netProfit') list.sort((a,b)=>(b.net_profit??-Infinity)-(a.net_profit??-Infinity)); else if (sortBy==='profit') list.sort((a,b)=>(b.gross_profit??-Infinity)-(a.gross_profit??-Infinity)); else list.sort((a,b)=>b.revenue-a.revenue);
     return list;
   }, [data, q, sortBy]);
   const sel = useMemo(() => (data?.products||[]).find(p => p.sku === selectedProduct?.sku) || null, [data, selectedProduct]);
@@ -958,7 +960,8 @@ function ProductPerfTab({ period, n, txt, fc }) {
         <input value={q} onChange={e=>setQ(e.target.value)} placeholder={txt('ppSearch','상품명·SKU 검색')} style={{ flex:'1 1 220px', minWidth:180, padding:'7px 10px', borderRadius:8, border:'1px solid #e2e8f0', fontSize:13 }} />
         <select value={sortBy} onChange={e=>setSortBy(e.target.value)} style={{ padding:'7px 10px', borderRadius:8, border:'1px solid #e2e8f0', fontSize:13 }}>
           <option value="revenue">{txt('ppSortRevenue','매출순')}</option>
-          <option value="profit">{txt('ppSortProfit','이익순')}</option>
+          <option value="profit">{txt('ppSortProfit','매출총이익순')}</option>
+          <option value="netProfit">{txt('ppSortNetProfit','순이익순')}</option>
           <option value="qty">{txt('ppSortQty','판매량순')}</option>
           <option value="return">{txt('ppSortReturn','반품률순')}</option>
         </select>
@@ -984,7 +987,7 @@ function ProductPerfTab({ period, n, txt, fc }) {
         <div style={{ ...S.card, overflowX:'auto' }}>
           <div style={S.sectionTitle}>🏆 {txt('ppRanking','상품 판매 순위')} <span style={{ fontWeight:400, color:'#94a3b8', fontSize:11 }}>({data.count}{txt('ppKinds','종')})</span></div>
           <table style={{ width:'100%', borderCollapse:'collapse' }}>
-            <thead><tr style={S.rowBorder}>{['#', txt('colProduct'), txt('ppQty','판매량'), txt('colRevenue'), 'AOV', txt('ppProfit','매출총이익'), txt('ppTopChannel','주력채널'), txt('ppTopCountry','주력국가'), txt('colReturnRate')].map(h=><th key={h} style={S.thCell}>{h}</th>)}</tr></thead>
+            <thead><tr style={S.rowBorder}>{['#', txt('colProduct'), txt('ppQty','판매량'), txt('colRevenue'), 'AOV', txt('ppProfit','매출총이익'), txt('ppNetProfit','순이익'), txt('ppTopChannel','주력채널'), txt('ppTopCountry','주력국가'), txt('colReturnRate')].map(h=><th key={h} style={S.thCell}>{h}</th>)}</tr></thead>
             <tbody>{products.map(p=>(
               <tr key={p.sku} onClick={()=>setSelectedProduct(p)} style={{ ...S.rowBorder, cursor:'pointer', background: selectedProduct?.sku===p.sku?'rgba(79,142,247,0.08)':'transparent' }}>
                 <td style={{ ...S.tdCell, fontWeight:800, color: p.rank<=3?'#22c55e':'#94a3b8' }}>{p.rank}</td>
@@ -993,6 +996,8 @@ function ProductPerfTab({ period, n, txt, fc }) {
                 <td style={{ ...S.tdCell, textAlign:'right', fontWeight:700 }}>{fc.c(p.revenue)}</td>
                 <td style={{ ...S.tdCell, textAlign:'right', color:'#64748b' }}>{fc.c(p.aov)}</td>
                 <td style={{ ...S.tdCell, textAlign:'right', fontWeight:700, color: p.gross_profit==null?'#94a3b8':(p.gross_profit>=0?'#16a34a':'#ef4444') }}>{p.gross_profit==null?'—':fc.c(p.gross_profit)}{p.margin!=null?<span style={{color:'#94a3b8',fontWeight:400,fontSize:10}}> ({p.margin}%)</span>:null}</td>
+                {/* [Phase1 순이익] 매출−원가−광고비−마켓수수료. *=수수료 추정/미반영(정산 연동 시 자동 실값). */}
+                <td style={{ ...S.tdCell, textAlign:'right', fontWeight:800, color: p.net_profit==null?'#94a3b8':(p.net_profit>=0?'#16a34a':'#ef4444') }} title={p.fees_source==='settlement'?'실 정산 기준':p.fees_source==='estimated'?'마켓수수료 요율 추정':'마켓수수료 미반영'}>{p.net_profit==null?'—':fc.c(p.net_profit)}{p.net_margin!=null?<span style={{color:'#94a3b8',fontWeight:400,fontSize:10}}> ({p.net_margin}%)</span>:null}{p.net_profit!=null&&p.fees_source&&p.fees_source!=='settlement'?<span style={{color:'#f59e0b',fontSize:9}}> *</span>:null}</td>
                 <td style={{ ...S.tdCell }}>{p.top_channel||'—'}</td>
                 <td style={{ ...S.tdCell }}>{PP_COUNTRY_LABEL[p.top_country]||p.top_country||'—'}</td>
                 <td style={{ ...S.tdCell, textAlign:'right', color: p.return_rate>12?'#ef4444':'#22c55e' }}>{fc.pct(p.return_rate)}</td>
@@ -1032,6 +1037,8 @@ function ProductPerfTab({ period, n, txt, fc }) {
                 <div style={{ fontSize:11, color:'#64748b', margin:'8px 0 4px' }}>{txt('ppAge','연령대')}</div><Bar map={sel.byAge} />
               </>) : <div style={{ color:'#94a3b8', fontSize:12, padding:'6px 0' }}>{txt('ppDemoEmpty','이 상품의 구매자 타겟층(성별·연령) 데이터가 아직 없습니다 — 광고 채널을 연동하면 전환 구매자 기준으로 자동 수집·표시되어 타겟 설정에 활용됩니다.')}</div>}
             </div>
+            {/* [Phase3] 상품 고객 퍼널 — 노출→클릭→광고전환→실주문→순주문. */}
+            <div style={S.card}><ProductFunnel sel={sel} /></div>
           </>)}
         </div>
       </div>
@@ -1297,6 +1304,81 @@ function GuideTab({ txt }) {
   );
 }
 
+// ── Tab: Channel×Product Matrix (채널×상품 순이익 매트릭스 + 액션추천) ─[Phase2]──
+//   "어떤 상품을 어떤 채널에 광고해야 최소비용 최대 순이익인가". 운영=백엔드(ad_insight_agg⨯원가) 실산출,
+//   데모=주문 파생 판매 매트릭스. 셀 색상=액션(증액/유지/감액). 상품명 클릭→전역 선택 동기화.
+const CPM_CH_LABEL = { meta:'📘 Meta', google:'🔍 Google', tiktok:'🎵 TikTok', naver:'🟢 Naver', kakao:'💬 Kakao', coupang_ads:'🛒 Coupang', own:'🏠 자사몰' };
+const CPM_ACTION = {
+  increase:{ c:'#16a34a', bg:'rgba(22,163,74,0.1)', l:'▲ 증액' },
+  decrease:{ c:'#ef4444', bg:'rgba(239,68,68,0.1)', l:'▼ 감액' },
+  monitor: { c:'#d97706', bg:'rgba(217,119,6,0.1)', l:'― 유지' },
+  sales:   { c:'#64748b', bg:'rgba(100,116,139,0.08)', l:'판매' },
+};
+function ChannelProductMatrixTab({ period, n, txt, fc }) {
+  const { isDemo, orders, inventory } = useGlobalData();
+  const { setSelectedProduct } = useProductSelection();
+  const costMap = useMemo(() => { const m={}; (inventory||[]).forEach(it=>{ const s=it.sku||it.product_id; if(s&&it.cost!=null) m[String(s)]=Number(it.cost)||0; }); return m; }, [inventory]);
+  const [data, setData] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      const r = isDemo ? deriveChannelMatrix(orders, costMap) : await API(`/api/v423/rollup/product-channel-matrix?period=${period}&n=${n}`);
+      if (alive) setData(r);
+    })().catch(() => { if (alive) setData({ products:[], channels:[] }); });
+    return () => { alive = false; };
+  }, [period, n, isDemo, orders, costMap]);
+  if (!data) return <div style={{ color:'#64748b', padding:32 }}>{txt('loading')}</div>;
+  if (!data.products?.length) return (
+    <div style={{ ...S.card, color:'#64748b', textAlign:'center', padding:36 }}>
+      <div style={{ fontSize:32, marginBottom:8 }}>🎯</div>
+      <div style={{ fontWeight:700, marginBottom:4 }}>{txt('cpmEmptyTitle','채널×상품 매트릭스 데이터 없음')}</div>
+      <div style={{ fontSize:12 }}>{txt('cpmEmptyDesc','채널별 SKU 광고 성과(ad_insight_agg) 연동 시 자동 표시됩니다. 광고 자격증명 등록 즉시 채워집니다.')}</div>
+    </div>
+  );
+  const channels = data.channels || [];
+  const order = ['meta','google','tiktok','naver','kakao','coupang_ads','own'];
+  const cols = order.filter(c=>channels.includes(c)).concat(channels.filter(c=>!order.includes(c)));
+  return (
+    <div>
+      <div style={{ ...S.sectionTitle, marginBottom:6 }}>🎯 {txt('tabMatrix','채널×상품')} — {txt('cpmSubtitle','어떤 상품을 어떤 채널에 광고해야 최소비용 최대 순이익인가')}</div>
+      <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:10, fontSize:11, alignItems:'center' }}>
+        {['increase','monitor','decrease'].map(k=><span key={k} style={{ color:CPM_ACTION[k].c, background:CPM_ACTION[k].bg, padding:'3px 8px', borderRadius:6, fontWeight:700 }}>{CPM_ACTION[k].l}</span>)}
+        <span style={{ color:'#94a3b8' }}>{txt('cpmHint','셀=순이익 / ROAS·액션은 광고 연동 시. 정산 연동 시 실수수료 자동 반영')}</span>
+      </div>
+      <div style={{ ...S.card, overflowX:'auto' }}>
+        <table style={{ width:'100%', borderCollapse:'collapse', minWidth: 150 + cols.length*120 }}>
+          <thead><tr style={S.rowBorder}>
+            <th style={{ ...S.thCell, position:'sticky', left:0, background:'#fff', minWidth:150, textAlign:'left' }}>{txt('colProduct')}</th>
+            <th style={S.thCell}>{txt('cpmRecommend','추천채널')}</th>
+            {cols.map(c=><th key={c} style={S.thCell}>{CPM_CH_LABEL[c]||c}</th>)}
+          </tr></thead>
+          <tbody>{data.products.map(p=>(
+            <tr key={p.sku} style={S.rowBorder}>
+              <td style={{ ...S.tdCell, position:'sticky', left:0, background:'#fff', cursor:'pointer', maxWidth:170 }} onClick={()=>setSelectedProduct({ sku:p.sku, name:p.name })} title={p.name}>
+                <div style={{ fontWeight:700, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{p.name}</div>
+                <div style={{ fontSize:10, color: (p.total?.net_profit??0)>=0?'#16a34a':'#ef4444' }}>{txt('ppNetProfit','순이익')} {fc.c(p.total?.net_profit||0)}</div>
+              </td>
+              <td style={{ ...S.tdCell, textAlign:'center' }}>{p.recommend_channel ? <span style={{ color:'#16a34a', fontWeight:800, fontSize:11 }}>{CPM_CH_LABEL[p.recommend_channel]||p.recommend_channel}</span> : <span style={{ color:'#cbd5e1' }}>—</span>}</td>
+              {cols.map(c=>{
+                const cell = p.cells?.[c];
+                if (!cell) return <td key={c} style={{ ...S.tdCell, textAlign:'center', color:'#e2e8f0' }}>·</td>;
+                const act = CPM_ACTION[cell.action] || CPM_ACTION.monitor;
+                return (
+                  <td key={c} style={{ ...S.tdCell, textAlign:'right' }} title={cell.reason||''}>
+                    <div style={{ fontWeight:800, color: cell.net_profit==null?'#64748b':(cell.net_profit>=0?'#16a34a':'#ef4444') }}>{cell.net_profit==null?(cell.revenue!=null?fc.c(cell.revenue):'—'):fc.c(cell.net_profit)}</div>
+                    {cell.roas!=null && <div style={{ fontSize:10, color:'#64748b' }}>ROAS {cell.roas}x</div>}
+                    {cell.action && cell.action!=='sales' && <div style={{ fontSize:9, fontWeight:700, color:act.c, background:act.bg, borderRadius:4, padding:'1px 4px', display:'inline-block', marginTop:2 }}>{act.l}</div>}
+                  </td>
+                );
+              })}
+            </tr>
+          ))}</tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 // ══════════════════════════════════════════════════════════════════════
 //  Main Component
 // ══════════════════════════════════════════════════════════════════════
@@ -1313,6 +1395,7 @@ export default function RollupDashboard() {
   const TABS = useMemo(() => [
     { id: "summary", label: `📊 ${txt("tabSummary")}` },
     { id: "product", label: `🏆 ${txt("tabProduct", "상품 성과")}` },
+    { id: "matrix", label: `🎯 ${txt("tabMatrix", "채널×상품")}` },
     { id: "sku", label: "📦 SKU" },
     { id: "campaign", label: `📣 ${txt("tabCampaign")}` },
     { id: "creator", label: `🎬 ${txt("tabCreator")}` },
@@ -1451,8 +1534,12 @@ function DashboardContent({ txt, fc, isRTL, TABS, tab, setTab, period, setPeriod
 
         {/* ── Content panels ── */}
         <div style={{ padding: '16px 14px 28px' }}>
+          {/* [현 차수] 정직 표기 — '상품 성과' 탭 외 나머지 탭은 전체 기준 집계라 선택 상품으로 재필터되지 않음.
+               상품 선택 상태에서 그 사실을 명시하고 '상품 성과' 탭으로 안내(선택 무시 오해 방지). */}
+          {tab !== "product" && tab !== "matrix" && <ProductScopeNotice scope="global" />}
           {tab === "summary" && <SummaryTab period={period} n={n} txt={txt} fc={fc} />}
           {tab === "product" && <ProductPerfTab period={period} n={n} txt={txt} fc={fc} />}
+          {tab === "matrix" && <ChannelProductMatrixTab period={period} n={n} txt={txt} fc={fc} />}
           {tab === "sku" && <SkuTab period={period} n={n} txt={txt} fc={fc} />}
           {tab === "campaign" && <CampaignTab period={period} n={n} txt={txt} fc={fc} />}
           {tab === "creator" && <CreatorTab period={period} n={n} txt={txt} fc={fc} />}

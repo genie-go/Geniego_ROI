@@ -18,6 +18,8 @@ export default function ProductScopeNotice({ scope }) {
     ? t('dashboard.productScope.creatorReason', '크리에이터 단위 지표라 상품별 귀속이 불가합니다')
     : scope === 'global'
     ? t('dashboard.productScope.globalReason', '국가 단위 집계라 상품별 분석은 상품 성과 탭에서 제공됩니다')
+    : scope === 'list'
+    ? t('dashboard.productScope.listReason', '전체 목록 기준 — 선택 상품은 상단에 강조 표시됩니다')
     : t('dashboard.productScope.adReason', '광고 단위 지표라 상품별 귀속이 불가합니다');
   return (
     <div style={{

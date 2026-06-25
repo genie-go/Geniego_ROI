@@ -162,6 +162,10 @@ final class AutoRecommend
         return $out;
     }
 
+    /** [Phase2] 채널 벤치마크 맵(label/cpm/ctr/cvr/roas/minBudget) 공개 헬퍼 — 다른 핸들러(Rollup 채널×상품
+     *   매트릭스의 셀 액션 판정 등)가 동일 벤치마크를 재사용한다(중복 시드 금지). DB 우선·상수 폴백. */
+    public static function benchmarkMap(): array { return self::loadBenchmarks(); }
+
     /** 테넌트 실측 채널 성과(최근 N일). 없으면 빈 배열. ★tenant_id 스코프 필수. */
     private static function measured(string $tenant, int $days): array
     {

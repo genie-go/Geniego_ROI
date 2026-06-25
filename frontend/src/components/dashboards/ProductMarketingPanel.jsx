@@ -4,6 +4,7 @@ import { useProductSelection } from '../../contexts/ProductSelectionContext.jsx'
 import { useI18n } from '../../i18n/index.js';
 import { useCurrency } from '../../contexts/CurrencyContext.jsx';
 import { loadProductPerf, PP_COUNTRY_LABEL } from './productPerf.js';
+import ProductFunnel from './ProductFunnel.jsx';
 
 /**
  * [현 차수] 특정 상품 마케팅 성과 패널 — 사용자 요구 "특정 상품에 광고를 집행하므로 마케팅 성과에도
@@ -33,6 +34,10 @@ export default function ProductMarketingPanel({ period = 'monthly', n = 0 }) {
   }, [sku, isDemo, orders, costMap, period, n]);
 
   const sel = useMemo(() => (data?.products || []).find(p => p.sku === sku) || null, [data, sku]);
+  // [현 차수 hooks 수정] chMax/ctMax useMemo 를 조건부 early-return 위로 이동 — 기존엔 return 아래 있어
+  //   상품 선택 토글 시 hook 개수가 7↔9 로 바뀌어 React #300(Rendered fewer/more hooks) 크래시. 규칙 준수.
+  const chMax = useMemo(() => Math.max(...Object.values(sel?.byChannel || {}).map(v => v.revenue || 0), 1), [sel]);
+  const ctMax = useMemo(() => Math.max(...Object.values(sel?.byCountry || {}).map(v => v.revenue || 0), 1), [sel]);
   if (!sku) return null;
 
   const card = { background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: '14px 16px', marginBottom: 14, boxShadow: '0 2px 10px rgba(15,23,42,0.04)' };
@@ -69,9 +74,6 @@ export default function ProductMarketingPanel({ period = 'monthly', n = 0 }) {
       </div>
     );
   };
-  const chMax = useMemo(() => Math.max(...Object.values(sel?.byChannel || {}).map(v => v.revenue || 0), 1), [sel]);
-  const ctMax = useMemo(() => Math.max(...Object.values(sel?.byCountry || {}).map(v => v.revenue || 0), 1), [sel]);
-
   return (
     <div style={card}>
       <div style={head}>
@@ -95,7 +97,23 @@ export default function ProductMarketingPanel({ period = 'monthly', n = 0 }) {
             {kpi(t('dashboard.productMkt.qty', '판매량'), (sel.qty || 0).toLocaleString(), '#06b6d4')}
             {kpi(t('dashboard.productMkt.aov', '객단가'), fmtC(sel.aov || 0), '#8b5cf6')}
             {kpi(t('dashboard.productMkt.returnRate', '반품률'), (sel.return_rate ?? 0) + '%', (sel.return_rate ?? 0) > 12 ? '#ef4444' : '#22c55e')}
+            {/* [Phase1 순이익] 매출−원가−광고비−마켓수수료. 원가 미등록 시 산출 불가(—). */}
+            {sel.net_profit != null && kpi(t('dashboard.productMkt.netProfit', '순이익'), fmtC(sel.net_profit), sel.net_profit >= 0 ? '#16a34a' : '#ef4444')}
+            {sel.net_margin != null && kpi(t('dashboard.productMkt.netMargin', '순이익률'), sel.net_margin + '%', sel.net_margin >= 0 ? '#16a34a' : '#ef4444')}
           </div>
+          {/* [Phase1 순이익] 수수료 출처 정직 표기 — 등록 즉시 실값(settlement)으로 자동 상향. */}
+          {sel.net_profit != null && sel.fees_source !== 'settlement' && (
+            <div style={{ fontSize: 11, color: '#92400e', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 8, padding: '6px 10px', marginBottom: 10 }}>
+              ⓘ {sel.fees_source === 'estimated'
+                ? t('dashboard.productMkt.feesEstimated', '순이익의 마켓 수수료는 요율 추정치입니다. 정산 연동 시 실수수료로 자동 반영됩니다.')
+                : t('dashboard.productMkt.feesNone', '순이익은 원가·광고비 기준입니다(마켓 수수료 미반영). 정산·수수료율 연동 시 자동 반영됩니다.')}
+            </div>
+          )}
+          {sel.net_profit == null && (
+            <div style={{ fontSize: 11, color: '#64748b', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: '6px 10px', marginBottom: 10 }}>
+              ⓘ {t('dashboard.productMkt.noCost', '순이익 산출에는 상품 원가 등록이 필요합니다(가격최적화 › 상품 원가).')}
+            </div>
+          )}
 
           {/* 광고 성과 — attribution 기반(있을 때만). 없으면 정직 안내 */}
           {ad ? (
@@ -128,6 +146,10 @@ export default function ProductMarketingPanel({ period = 'monthly', n = 0 }) {
               <div style={{ fontSize: 11, fontWeight: 700, color: '#475569', marginBottom: 2 }}>🌍 {t('dashboard.productMkt.byCountry', '국가별 판매')}</div>
               <Bar map={sel.byCountry} max={ctMax} />
             </div>
+          </div>
+          {/* [Phase3] 상품 고객 퍼널 — 노출→클릭→광고전환→실주문→순주문(기존 데이터 파생). */}
+          <div style={{ marginTop: 14, borderTop: '1px solid #eef2f7', paddingTop: 12 }}>
+            <ProductFunnel sel={sel} />
           </div>
         </>
       )}
