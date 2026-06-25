@@ -1,3 +1,47 @@
+# 243차 세션 인계서 — **특정상품 Product Intelligence 초고도화 (크래시수정 + 정직표기 + 순이익엔진 + 채널×상품 매트릭스 + Funnel + 경쟁사 통합 / 전부 운영·데모 배포·HTTPS 검증 / 브랜치 2커밋+인계서, master 미접촉, push)**
+
+> **작성일**: 2026-06-25 (사용자 명시 승인) · 운영 roi.genie-go.com / 데모 roidemo.genie-go.com · primary=**E:\project\GeniegoROI** · 브랜치 `feat/n236-admin-growth-automation` · ★**master 미접촉**.
+> 발단: 데모 마케팅성과 서브탭에서 "특정 상품 마케팅 성과가 안 보인다" → 전수분석 → 스펙(Product Profit Intelligence) 단계별 초고도화.
+
+## ✅ 243차 작업 요약 (전부 운영/데모 수동배포·HTTPS 검증)
+
+**0. 긴급 크래시**: `ProductMarketingPanel` hooks 규칙 위반(chMax/ctMax `useMemo`가 조건부 early-return **아래**) → 상품 선택 시 **React #300**. useMemo를 return 위로 이동. *제 인라인 선택기가 기존 잠재버그를 노출시킨 케이스.*
+
+**1. 정직표기 + 인라인 상품선택기**: 마케팅성과·채널KPI 탭에 `ProductSelectBar`(공용 상품 드롭다운, 신규 i18n 0). 커머스·통합현황 기타탭·공급망에 `ProductScopeNotice`(귀속불가=전체기준 명시). ProductScopeNotice에 `list` scope 신설. *근본원인=마케팅성과 탭에 상품선택 수단이 없어 패널이 안 보였던 것.*
+
+**2. Phase1 순이익 엔진**: `Rollup::productPerformance`에 `net_profit/net_margin/ad_cost/mkt_fees/fees_source` 추가. **매출−원가−광고비−마켓수수료**. 수수료 **3티어**(`kr_settlement_line` 실값 > `kr_fee_rule` 요율추정 > none). 이중차감 방지(vat/쿠폰/포인트 제외). RollupDashboard 상품성과에 **'순이익순' 정렬+컬럼**, ProductMarketingPanel 순이익 KPI+수수료출처 배너.
+
+**3. Phase2 채널×상품 매트릭스**: 신규 `GET /v423/rollup/product-channel-matrix`(`Rollup::productChannelMatrix`). `ad_insight_agg`(sku×platform)⨯원가 → 셀별 ROAS·CAC·**순이익ROI**+**액션(증액/유지/감액)**+근거. `AutoRecommend::benchmarkMap()` 공개헬퍼 재사용(중복 시드 금지). RollupDashboard 신규 **'🎯 채널×상품' 탭**(데모=주문 파생 `deriveChannelMatrix`).
+
+**4. Phase3 Product Funnel**: 공용 `ProductFunnel.jsx`(노출→클릭→광고전환→실주문→순주문, **기존데이터 파생·백엔드 불요**). ProductMarketingPanel·상품성과 패널 배선. 미수집 단계(조회/장바구니=픽셀 연동 필요) 정직표기.
+
+**5. 경쟁사 통합 + ★원가소스 버그수정**: `po_products`·`po_competitors`가 **`data/priceopt.sqlite`(격리 sqlite)** 라 Rollup의 메인DB(`Db::pdo`) 조인이 **항상 빈결과** = 기존 gross_profit·Phase1 net_profit이 **운영에서 항상 null이던 잠재버그**. `PriceOpt::costMap/competitorMap` 공개헬퍼 신설 → Rollup 재사용. 상품뷰에 경쟁사 가격갭·SoS·역전경고(**공개 가격·SoS만, 경쟁사 내부실적은 외부 불가**).
+
+## 🔬 착수 전 전수 갭분석 (4 에이전트, 스펙 18섹션)
+- **약 65% 기존 존재**(중복 금지 원칙 정합). EXISTS: 상품성과/순위/채널·국가 매트릭스(transpose)/AutoRecommend 다목표추천/AdminGrowth 승인→실행→감사/AttributionEngine 6모델/RoiService/PriceOpt/LiveCommerce/CRM LTV·세그먼트/RBAC 프레임워크.
+- **키스톤 공백 = 상품별 실제 순이익**(매출총이익까지만 있었음) → Phase1으로 해결.
+
+## ★243차 핵심 트랩/교훈
+- **po_products·po_competitors = `data/priceopt.sqlite`(격리 sqlite), 메인DB 아님**. `Db::pdo()`로 조인 시 항상 빈결과(silent fail). 원가/경쟁사는 `PriceOpt::costMap/competitorMap` 헬퍼로만 접근. *(기존 gross_profit이 운영에서 항상 null이던 근본원인.)*
+- **컴포넌트 hooks 순서**: 조건부 `return null` **위**에 모든 useMemo 배치(React #300 회피). 잠재 위반은 "도달 불가 경로"가 도달 가능해질 때 표면화.
+- **fees_source 3티어 자동승급**: settlement>estimated>none. 자격/정산 등록 즉시 실값 자동(코드변경0) — "자격등록 즉시 실행" 원칙 정합.
+- **PS샌드박스 rm-rf 차단**: 원격 bash의 `rm -rf`도 로컬경로 삭제로 오탐→배포 스크립트를 **파일로 작성→업로드→실행**(cp/mv만). PowerShell env var는 호출 간 **비영속**→자격로드+pscp/plink 한 블록. mysql은 `.sql` 파일 업로드 후 `mysql < file`(인용 트랩 회피).
+- 기존 유지: opcache=fpm restart, 신규 i18n 0(인라인 폴백 재사용), tar 정방향슬래시, G2 sacred SHA 정합(pre-commit 통과).
+
+## 📋 잔여 작업 우선순위
+- **P1 — Phase 2.5 (액션 집행)**: 매트릭스 셀 액션 → 승인/집행 연결. ⚠️기존 AdAdapters/집행게이트는 **채널 캠페인 단위**라 SKU 단위 광고집행은 신규 설계 필요. AdminGrowth는 **플랫폼 자체마케팅용(테넌트 아님)** — 타겟 분리 주의.
+- **P1 — Phase 4 (보안)**: RBAC `data_scope` WHERE **백엔드 강제**(현재 `Wms::guardWarehouse`만, 타도메인은 `tenant_id` WHERE만). DATA_SCOPES(product/brand/campaign/partner) 정의는 있으나 핸들러 enforcement 부재. cross-tenant는 tenant_id로 차단=즉각위험 없음, **intra-tenant role-scope 갭**. *보안 민감→집중 단계 권장.*
+- **P2 — 전역 필터**: 기간/채널/브랜드/카테고리 전역 Context(현재 상품선택만 전역, 기간은 페이지 로컬). 기존 Context **확장**(중복 금지).
+- **P2 — 깊이**: 오가닉 인구통계(현재 광고전환자만=ad_insight_agg), SKU 물류비 배분(wms_movements 비용컬럼 없음), 라이브 진행자ROI(live_sessions.host 매핑 부재), 고객-상품 연결(crm_activities.sku 컬럼 없음).
+- **검증 한계**: 운영 메인DB 테스트 tenant 'demo'에 channel_orders/ad_insight_agg 0행 → 순이익/매트릭스 **실값** 검증은 실데이터 tenant + po_products 원가 등록 필요(현재는 무500·구조 검증까지).
+
+## 🚀 배포/커밋 상태
+- 브랜치 커밋: `36563486`(크래시+정직표기+순이익+매트릭스+퍼널, 12파일) · `45cce1e4`(경쟁사+원가소스수정, 4파일) · 본 인계서(+누락 SupplyChain.jsx).
+- 운영/데모 **수동배포·HTTPS 검증 완료**(php -l·무500·index/청크 200). 백엔드 백업 `*.bak.243/243b/243c`, 프론트 `dist.bak.243`/`dist.prev`.
+- **master 미접촉**. 본 세션 종결 시 브랜치 **push**(CI inert=빌드만, 자동배포 없음).
+
+---
+
 # 240차 세션 인계서 — **UI 초고도화 + 경쟁사 비교분석 + 8대 약점 초고도화 + 실시간 동기화 엔진 + 회원로그 메뉴 + 잔존약점 완성 (전부 운영·데모 배포·self-test/라이브 검증 / 브랜치 다수커밋 push, master 미접촉)**
 
 > **작성일**: 2026-06-24 (사용자 명시 승인) · 운영 roi.genie-go.com / 데모 roidemo.genie-go.com · 하네스 primary=**E:\project\GeniegoROI**.

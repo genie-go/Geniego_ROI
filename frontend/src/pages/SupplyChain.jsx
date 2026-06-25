@@ -9,6 +9,7 @@ import SC_DICT from'./scI18n.js';
 import{DEMO_PRODUCTS}from'../data/demoSeedData.js';
 import{useGlobalData}from'../context/GlobalDataContext.jsx';
 import{useProductSelection}from'../contexts/ProductSelectionContext.jsx';
+import ProductScopeNotice from'../components/dashboards/ProductScopeNotice.jsx';
 import{listSupplyOrders,createSupplyOrder,updateSupplyOrder}from'../services/wmsApi.js';
 import{getJsonAuth,requestJsonAuth}from'../services/apiClient.js';
 
@@ -236,6 +237,8 @@ if(lines.length===0)return(<div style={{display:'flex',flexDirection:'column',ga
 return(
 <div style={{display:'flex',flexDirection:'column',gap:16,animation:'fadeIn 0.4s'}}>
 {addBtn}
+{/* [현 차수] 정직 표기 — 선택 상품은 상단 강조·정렬만, 공급망 KPI·라인 목록은 전체 기준(필터 아님). */}
+<ProductScopeNotice scope="list" />
 {/* KPI Cards */}
 <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(180px,1fr))',gap:12}}>
 {[{l:tr('kpiLines'),v:lines.length,c:'#4f8ef7',i:'📦'},{l:tr('kpiSuppliers'),v:new Set(lines.map(x=>x.supplier)).size,c:'#22c55e',i:'🏭'},{l:tr('kpiHighRisk'),v:lines.filter(x=>x.risk==='high').length,c:'#ef4444',i:'⚠️'},{l:tr('kpiAvgLead'),v:Math.round(lines.reduce((s,x)=>s+x.leadTime,0)/lines.length)+' '+tr('days'),c:'#a855f7',i:'⏱'},{l:tr('kpiOnTime'),v:Math.round(lines.filter(x=>x.risk!=='high').length/lines.length*100)+'%',c:'#14b8a6',i:'✅'}].map((k,i)=>(
