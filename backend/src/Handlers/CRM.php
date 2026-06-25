@@ -484,6 +484,58 @@ class CRM
         return !$inQuiet;
     }
 
+    /* ─── GET /crm/cohort-retention — 가입월 코호트 × N개월 재구매율(리텐션). [현 차수] Klaviyo 코호트 정합. ─── */
+    public static function cohortRetention(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $pdo = self::db();
+        $tenant = self::tenant($req);
+        try {
+            $cs = $pdo->prepare("SELECT id, created_at FROM crm_customers WHERE tenant_id=:t");
+            $cs->execute([':t'=>$tenant]);
+            $custs = $cs->fetchAll(\PDO::FETCH_ASSOC);
+            $ps = $pdo->prepare("SELECT customer_id, created_at FROM crm_activities WHERE tenant_id=:t AND type='purchase'");
+            $ps->execute([':t'=>$tenant]);
+            $purch = [];
+            foreach ($ps->fetchAll(\PDO::FETCH_ASSOC) as $p) { $purch[(int)$p['customer_id']][] = (string)$p['created_at']; }
+        } catch (\Throwable $e) {
+            return self::jsonRes($res, ['ok'=>true, 'cohorts'=>[], 'max_offset'=>0]);
+        }
+        $offMonths = function (string $a, string $b): int {
+            $a = substr($a, 0, 7); $b = substr($b, 0, 7);
+            if (strlen($a) < 7 || strlen($b) < 7) return -1;
+            [$ay, $am] = array_map('intval', explode('-', $a));
+            [$by, $bm] = array_map('intval', explode('-', $b));
+            return ($by - $ay) * 12 + ($bm - $am);
+        };
+        $MAXO = 11;
+        $cohorts = [];
+        foreach ($custs as $c) {
+            $cm = substr((string)($c['created_at'] ?? ''), 0, 7);
+            if (strlen($cm) < 7) continue;
+            if (!isset($cohorts[$cm])) $cohorts[$cm] = ['size'=>0, 'ret'=>[]];
+            $cohorts[$cm]['size']++;
+            $cid = (int)$c['id'];
+            foreach (($purch[$cid] ?? []) as $pd) {
+                $o = $offMonths((string)$c['created_at'], $pd);
+                if ($o < 0 || $o > $MAXO) continue;
+                $cohorts[$cm]['ret'][$o][$cid] = true; // distinct 고객
+            }
+        }
+        ksort($cohorts);
+        $out = [];
+        foreach ($cohorts as $month => $d) {
+            $row = ['cohort'=>$month, 'size'=>$d['size'], 'retention'=>[]];
+            for ($o = 0; $o <= $MAXO; $o++) {
+                $cnt = isset($d['ret'][$o]) ? count($d['ret'][$o]) : 0;
+                $row['retention'][$o] = $d['size'] > 0 ? round($cnt / $d['size'] * 100, 1) : 0.0;
+            }
+            $out[] = $row;
+        }
+        return self::jsonRes($res, ['ok'=>true, 'cohorts'=>array_reverse($out), 'max_offset'=>$MAXO]);
+    }
+
     /* ─── GET /crm/segments ─────────────────────────────────────────── */
     public static function listSegments(Request $req, Response $res): Response
     {

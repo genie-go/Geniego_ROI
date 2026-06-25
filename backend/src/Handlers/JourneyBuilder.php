@@ -534,8 +534,16 @@ class JourneyBuilder
                 $facts['grade'] = $row['grade'] ?? null;
                 $facts['ltv']   = (float)($row['ltv'] ?? 0);
             } catch (\Throwable $e) {}
+            // [현 차수] engagement 분기 — 이메일 오픈/클릭 실신호(email_sends trackOpen/trackClick 적재). Klaviyo 'opened/clicked' 분기 정합.
+            try {
+                $e = $pdo->prepare("SELECT MAX(CASE WHEN opened_at IS NOT NULL AND opened_at <> '' THEN 1 ELSE 0 END) AS o, MAX(CASE WHEN clicked_at IS NOT NULL AND clicked_at <> '' THEN 1 ELSE 0 END) AS c FROM email_sends WHERE tenant_id=:t AND customer_id=:id");
+                $e->execute([':t'=>$tenant, ':id'=>$cid]);
+                $er = $e->fetch(\PDO::FETCH_ASSOC) ?: [];
+                $facts['email_opened']  = (int)($er['o'] ?? 0);
+                $facts['email_clicked'] = (int)($er['c'] ?? 0);
+            } catch (\Throwable $e) {}
         }
-        $actual = $facts[$field] ?? null; // email_clicked 등 서버 미추적 신호 → null → 보수적 false
+        $actual = $facts[$field] ?? null; // 그 외 미추적 신호 → null → 보수적 false
         return self::compare($actual, $op, $expected) ? 'true' : 'false';
     }
 

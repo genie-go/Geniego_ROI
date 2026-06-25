@@ -57,6 +57,7 @@ return function (App $app): void {
         'DELETE /crm/customers/{id}'           => 'Genie\\Handlers\\CRM::deleteCustomer',
         'POST /crm/activities'                 => 'Genie\\Handlers\\CRM::addActivity',
         'GET /crm/rfm'                         => 'Genie\\Handlers\\CRM::rfmAnalysis',
+        'GET /crm/cohort-retention'            => 'Genie\\Handlers\\CRM::cohortRetention', // [현 차수] 코호트 리텐션
         'GET /crm/segments'                    => 'Genie\\Handlers\\CRM::listSegments',
         'POST /crm/segments'                   => 'Genie\\Handlers\\CRM::createSegment',
         'DELETE /crm/segments/{id}'            => 'Genie\\Handlers\\CRM::deleteSegment',
@@ -2307,6 +2308,7 @@ return function (App $app): void {
     $register('DELETE', '/crm/customers/{id}');
     $register('POST',   '/crm/activities');
     $register('GET',    '/crm/rfm');
+    $register('GET',    '/crm/cohort-retention'); // [현 차수] 코호트 리텐션
     $register('GET',    '/crm/segments');
     $register('POST',   '/crm/segments');
     $register('DELETE', '/crm/segments/{id}');
