@@ -1,4 +1,5 @@
 export default {
+  "period": {"all":"全部","d7":"近7天","d30":"近30天","d90":"近90天","custom":"自訂","label":"期間"},
   "assistant": {"title":"有問題儘管問","sub":"GeniegoROI使用方法·選單諮詢","placeholder":"詢問選單·功能·使用方法…","greeting":"您好！關於 GeniegoROI 的使用有任何問題儘管問，我會一步步指導您了解選單、功能與使用方法。","newChat":"新對話","close":"關閉","disclaimer":"GeniegoROI使用助手 · Enter發送 · Shift+Enter換行"},
   partners: {"supNameCodeReq":"供應商名稱與代碼為必填項。","supTotal":"已登錄供應商","supActive":"啟用","supCats":"類別","supCountries":"國家","supSearch":"搜尋供應商名稱·代碼·類別","supCatMgr":"類別管理","supAdd":"登錄供應商","supCatMgrTitle":"供應商類別管理（可由使用者新增）","supCatNew":"新類別名稱（例：授權供應商）","supCatAddBtn":"新增","supCatEmpty":"尚無類別，請新增。","supEdit":"編輯供應商","supNew":"登錄新供應商","supNameL":"供應商名稱","supNamePh":"大韓供應（股）","supCodeL":"代碼","supCatL":"類別（供應商類型）","supCountryL":"國家","supContactL":"負責人","supPhoneL":"聯絡方式","supEmailL":"電子郵件","supPayL":"付款條件","supLeadL":"交貨週期（天）","supRatingL":"評等（1~5）","save":"儲存","cancel":"取消","supNoData":"尚無已登錄的供應商。","active":"啟用","inactive":"停用","supLead":"交貨週期","days":"天","edit":"編輯","deactivate":"停用","activate":"啟用","delete":"刪除"},
   "memberLog": {"refresh":"重新整理", "tabLog": "日誌記錄", "tabMemberLog": "會員日誌", "time": "時間", "user": "使用者", "action": "操作", "ipAddr": "IP", "detail": "詳情", "empty": "無記錄", "tenant": "租戶", "integrity": "完整性" },
@@ -9816,6 +9817,7 @@ export default {
       searchPh: "例：「ビューティのInstagram広告戦略」またはマーケティング目標を入力"
     },
   crm: {
+    "supTitle":"取消訂閱 / 封鎖清單","supDesc":"取消訂閱、退信或投訴的地址將永久排除發送，可手動增刪。","supUnsub":"取消訂閱","supManual":"手動","supBounce":"退信","supComplaint":"投訴","supEmpty":"無封鎖地址","supAddPh":"要封鎖的郵箱","supAdd":"新增封鎖","supColEmail":"郵箱","supColReason":"原因","supColDate":"時間","supRemove":"移除","cohortTitle":"同期留存（註冊月×回購率）","cohortDesc":"各註冊月份群組在之後N個月的回購率，用留存曲線診斷忠誠度與LTV趨勢。","cohortEmpty":"暫無同期數據（註冊與購買記錄累積後顯示）。","cohortCol":"註冊月","cohortSize":"人數",
       "segRefresh": "重新計算成員（依即時資料同步）",
 
     "guideTitle": "CRM客戶管理指南",

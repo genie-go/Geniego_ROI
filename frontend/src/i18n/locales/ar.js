@@ -1,4 +1,5 @@
 export default {
+  "period": {"all":"الكل","d7":"آخر 7 أيام","d30":"آخر 30 يومًا","d90":"آخر 90 يومًا","custom":"مخصص","label":"الفترة"},
   "assistant": {"title":"اسألني أي شيء","sub":"دليل GeniegoROI والقوائم","placeholder":"اسأل عن القوائم والميزات والطريقة…","greeting":"مرحباً! اسألني أي شيء عن استخدام GeniegoROI. سأرشدك خطوة بخطوة عبر القوائم والميزات وطريقة الاستخدام.","newChat":"محادثة جديدة","close":"إغلاق","disclaimer":"مساعد GeniegoROI · Enter للإرسال · Shift+Enter لسطر جديد"},
   partners: {"supNameCodeReq":"اسم المورّد والرمز حقول إلزامية.","supTotal":"الموردون المسجّلون","supActive":"نشط","supCats":"الفئات","supCountries":"الدول","supSearch":"البحث باسم المورّد أو الرمز أو الفئة","supCatMgr":"إدارة الفئات","supAdd":"تسجيل مورّد","supCatMgrTitle":"إدارة فئات الموردين (يمكن للمستخدم الإضافة)","supCatNew":"اسم فئة جديد (مثال: مورّد الترخيص)","supCatAddBtn":"إضافة","supCatEmpty":"لا توجد فئات. يُرجى الإضافة.","supEdit":"تعديل المورّد","supNew":"تسجيل مورّد جديد","supNameL":"اسم المورّد","supNamePh":"شركة دايهان للتوريد","supCodeL":"الرمز","supCatL":"الفئة (نوع المورّد)","supCountryL":"الدولة","supContactL":"جهة الاتصال","supPhoneL":"رقم الهاتف","supEmailL":"البريد الإلكتروني","supPayL":"شروط الدفع","supLeadL":"مدة التوريد (أيام)","supRatingL":"التقييم (1~5)","save":"حفظ","cancel":"إلغاء","supNoData":"لا يوجد موردون مسجّلون.","active":"نشط","inactive":"غير نشط","supLead":"مدة التوريد","days":"يوم","edit":"تعديل","deactivate":"إلغاء التنشيط","activate":"تنشيط","delete":"حذف"},
   "memberLog": {"refresh":"تحديث", "tabLog": "سجل النشاط", "tabMemberLog": "سجلات الأعضاء", "time": "الوقت", "user": "المستخدم", "action": "الإجراء", "ipAddr": "IP", "detail": "التفاصيل", "empty": "لا توجد سجلات", "tenant": "المستأجر", "integrity": "السلامة" },
@@ -11976,6 +11977,7 @@ export default {
       PriceCheck: "Pricing Inquiry"
     },
   crm: {
+    "supTitle":"قائمة الحظر","supDesc":"يتم استبعاد العناوين الملغاة أو المرتدة أو المبلّغ عنها نهائيًا. يمكن الإضافة/الإزالة يدويًا.","supUnsub":"إلغاء الاشتراك","supManual":"يدوي","supBounce":"ارتداد","supComplaint":"شكوى","supEmpty":"لا توجد عناوين محظورة","supAddPh":"بريد للحظر","supAdd":"إضافة","supColEmail":"البريد","supColReason":"السبب","supColDate":"التاريخ","supRemove":"إزالة","cohortTitle":"الاحتفاظ بالمجموعات (شهر التسجيل × معدل إعادة الشراء)","cohortDesc":"معدل إعادة الشراء لكل مجموعة حسب شهر التسجيل عبر الأشهر التالية — لتشخيص الولاء واتجاهات LTV.","cohortEmpty":"لا توجد بيانات مجموعات بعد (تظهر مع تراكم سجل التسجيل/الشراء).","cohortCol":"شهر التسجيل","cohortSize":"العدد",
       "segRefresh": "إعادة حساب الأعضاء (المزامنة من البيانات الفعلية)",
 
     "guideTitle": "دليل إدارة العملاء CRM",

@@ -1,4 +1,5 @@
 export default {
+  "period": {"all":"全期間","d7":"過去7日","d30":"過去30日","d90":"過去90日","custom":"カスタム","label":"期間"},
   "assistant": {"title":"何でも聞いてください","sub":"GeniegoROIの使い方・メニュー相談","placeholder":"メニュー・機能・使い方を質問…","greeting":"こんにちは！GeniegoROIの使い方について何でも聞いてください。メニュー・機能・使い方をステップごとにご案内します。","newChat":"新しい会話","close":"閉じる","disclaimer":"GeniegoROI利用ガイド · Enterで送信 · Shift+Enterで改行"},
   partners: {"supNameCodeReq":"取引先名とコードは必須です。","supTotal":"登録取引先","supActive":"有効","supCats":"カテゴリ","supCountries":"国","supSearch":"取引先名・コード・カテゴリ検索","supCatMgr":"カテゴリ管理","supAdd":"取引先登録","supCatMgrTitle":"取引先カテゴリ管理（ユーザー追加可能）","supCatNew":"新規カテゴリ名（例：ライセンス供給社）","supCatAddBtn":"追加","supCatEmpty":"カテゴリがありません。追加してください。","supEdit":"取引先編集","supNew":"新規取引先登録","supNameL":"取引先名","supNamePh":"（株）大韓サプライ","supCodeL":"コード","supCatL":"カテゴリ（取引先の種類）","supCountryL":"国","supContactL":"担当者","supPhoneL":"連絡先","supEmailL":"メール","supPayL":"決済条件","supLeadL":"リードタイム（日）","supRatingL":"評価（1〜5）","save":"保存","cancel":"キャンセル","supNoData":"登録された取引先がありません。","active":"有効","inactive":"無効","supLead":"リードタイム","days":"日","edit":"編集","deactivate":"無効化","activate":"有効化","delete":"削除"},
   "memberLog": {"refresh":"更新", "tabLog": "ログ記録", "tabMemberLog": "メンバーログ", "time": "時刻", "user": "ユーザー", "action": "操作", "ipAddr": "IP", "detail": "詳細", "empty": "記録なし", "tenant": "テナント", "integrity": "整合性" },
@@ -11889,6 +11890,7 @@ export default {
     }
   },
   "crm": {
+    "supTitle":"配信停止 / ブロックリスト","supDesc":"配信停止・バウンス・苦情のアドレスは送信から永久に除外されます。手動で追加/解除できます。","supUnsub":"配信停止","supManual":"手動","supBounce":"バウンス","supComplaint":"苦情","supEmpty":"ブロックなし","supAddPh":"ブロックするメール","supAdd":"追加","supColEmail":"メール","supColReason":"理由","supColDate":"日時","supRemove":"解除","cohortTitle":"コホート維持率（登録月×再購入率）","cohortDesc":"登録月ごとのグループの以降Nか月の再購入率です。維持曲線で忠誠度・LTV傾向を診断します。","cohortEmpty":"コホートデータはまだありません（登録・購入履歴が蓄積されると表示）。","cohortCol":"登録月","cohortSize":"人数",
       "segRefresh": "メンバーシップ再計算（実データ基準で同期）",
 
     "guideBeginnerBadge": "初心者向け",

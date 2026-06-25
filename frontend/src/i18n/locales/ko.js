@@ -1,4 +1,5 @@
 export default {
+  "period": {"all":"전체","d7":"지난 7일","d30":"지난 30일","d90":"지난 90일","custom":"사용자지정","label":"기간"},
   "assistant": {"title":"무엇이든 물어보세요","sub":"GeniegoROI 사용법·메뉴 상담","placeholder":"메뉴·기능·사용법을 물어보세요…","greeting":"안녕하세요! GeniegoROI 사용에 대해 무엇이든 물어보세요. 메뉴·기능·사용법을 단계별로 안내해 드립니다.","newChat":"새 대화","close":"닫기","disclaimer":"GeniegoROI 사용 안내 도우미 · Enter 전송 · Shift+Enter 줄바꿈"},
   partners: {"supNameCodeReq":"거래처명과 코드는 필수입니다.","supTotal":"등록 거래처","supActive":"활성","supCats":"카테고리","supCountries":"국가","supSearch":"거래처명·코드·카테고리 검색","supCatMgr":"카테고리 관리","supAdd":"거래처 등록","supCatMgrTitle":"거래처 카테고리 관리 (사용자 추가 가능)","supCatNew":"새 카테고리명 (예: 라이선스 공급사)","supCatAddBtn":"추가","supCatEmpty":"카테고리가 없습니다. 추가하세요.","supEdit":"거래처 수정","supNew":"신규 거래처 등록","supNameL":"거래처명","supNamePh":"(주)대한공급","supCodeL":"코드","supCatL":"카테고리 (어떤 거래처)","supCountryL":"국가","supContactL":"담당자","supPhoneL":"연락처","supEmailL":"이메일","supPayL":"결제조건","supLeadL":"리드타임(일)","supRatingL":"평가(1~5)","save":"저장","cancel":"취소","supNoData":"등록된 거래처가 없습니다.","active":"활성","inactive":"비활성","supLead":"리드타임","days":"일","edit":"수정","deactivate":"비활성","activate":"활성","delete":"삭제"},
   "memberLog": {"refresh":"새로고침", "tabLog": "로그 기록", "tabMemberLog": "회원 로그", "time": "시각", "user": "사용자", "action": "동작", "ipAddr": "IP", "detail": "상세", "empty": "기록 없음", "tenant": "테넌트", "integrity": "무결성" },
@@ -11965,6 +11966,7 @@ export default {
   },
 
   crm: {
+    "supTitle":"수신거부 / 차단 리스트","supDesc":"수신거부·바운스·스팸신고 주소는 발송에서 영구 제외됩니다. 직접 추가/해제할 수 있습니다.","supUnsub":"수신거부","supManual":"수동","supBounce":"반송(바운스)","supComplaint":"스팸신고","supEmpty":"차단된 주소 없음","supAddPh":"차단할 이메일 주소","supAdd":"차단 추가","supColEmail":"이메일","supColReason":"사유","supColDate":"일시","supRemove":"해제","cohortTitle":"코호트 리텐션 (가입월 × 재구매율)","cohortDesc":"가입 월별 그룹의 이후 N개월 재구매율입니다. 리텐션 곡선으로 충성도·LTV 추세를 진단합니다.","cohortEmpty":"코호트 데이터가 아직 없습니다(가입·구매 이력이 누적되면 표시됩니다).","cohortCol":"가입월","cohortSize":"인원",
       "segRefresh": "멤버십 재계산 (실데이터 기준 동기화)",
 
     guideBeginnerBadge: "입문자 친화",

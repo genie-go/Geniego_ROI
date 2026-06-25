@@ -1,11 +1,11 @@
 {
-  "version": "245",
+  "version": "246",
   "updated": "2026-06-25",
   "sacred_sha": {
-    "ja.js": "ee82ac67a6552316dd9c337f0febaff838f8fd6bab9a7e7f4a41d92405bd02ed",
-    "zh.js": "50c4952ab2cfb0a9201624f69859fa1d7f7d1746941a7544c8db791ba8eff762"
+    "ja.js": "9e91d53cbe24810a09113b6180d37c10b2ff7562ceab625c9c5270ea2a1285ba",
+    "zh.js": "37be455db59b029a530629693d172f9f76885c65c8013f27b08e5874bcf0b2d7"
   },
-  "ko_leaf_count": 17197,
+  "ko_leaf_count": 17221,
   "leaf_tolerance_pct": 5,
   "_note": "244차 — 이번 세션 신규 비-admin UI 15개국 현지화: wms(대시보드/정기리포트/임가공)·partners(거래처)·dashboard(productMkt/productScope)·teamMembers(파트너/거래처 탭)·memberLog.refresh = 185키×15국 acorn AST 주입(ko +254 leaf, 16936→17190). ja/zh SHA 동반 갱신. │ 190차 Sprint5 — PM page raw키 i18n: pm 네임스페이스에 board/detail/status/common + kpi.{done,overdue,completionPct} 15개국 주입(+20 ko leaf, 23292→23312). t(key)||fb 안티패턴(엔진이 key반환=truthy라 폴백 미발동)→t(key,fb) 2번째 인자 전환. ja/zh SHA 동반 갱신. │ 186차 Phase2 — dead/shadow ns purge: 27개 top-level ns 삭제(ko 9,646 leaf, 전 파일 누계 79,192). ko 32759→23103(-9646). 삭제 ns=nav(3933,sidebarI18n.js 내장사전 대체)·ruleEnginePage(2262,AIRuleEngine.jsx 하드코딩스텁)·aiPredict(삭제페이지)·auto(AutoMarketing=marketing ns사용)·pricing(PlanPricing 로컬/하드코딩)·_marketing_1·marketingIntel·cmpVal·pricingDetail·super·campaignMgr·dt·channelKpi(ChannelKPI=channelKpiPage)·workspace·returnsPortal(rpI18n 로컬)·aiPolicy·menu·writeback(Writeback=writebackPage)·alertAuto·dashGuide·approvals(Approvals=approvalsPage)·sc·conn·gBudget·pxl·commerce·reconciliation. ★검증=정적 2검출기 일치(경로인식,pages_backup제외)+소유페이지 교차검증+런타임 16라우트 헤드리스(pageerror0·미해결키0). 잔여 dead 롱테일(<50 leaf,506ns/546leaf)은 간접접근 잔여리스크로 보류. i18n-locales 17.5MB→14.7MB(-16%). Phase1(186차 전반): live ns 13개국 1453건 현지화."
 }

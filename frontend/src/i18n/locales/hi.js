@@ -1,4 +1,5 @@
 export default {
+  "period": {"all":"सभी","d7":"पिछले 7 दिन","d30":"पिछले 30 दिन","d90":"पिछले 90 दिन","custom":"कस्टम","label":"अवधि"},
   "assistant": {"title":"कुछ भी पूछें","sub":"GeniegoROI गाइड और मेन्यू","placeholder":"मेन्यू, फ़ीचर, तरीका पूछें…","greeting":"नमस्ते! GeniegoROI के उपयोग के बारे में कुछ भी पूछें। मैं मेन्यू, फ़ीचर और तरीके के बारे में चरण-दर-चरण मार्गदर्शन करूँगा।","newChat":"नई चैट","close":"बंद करें","disclaimer":"GeniegoROI सहायक · Enter भेजें · Shift+Enter नई पंक्ति"},
   partners: {"supNameCodeReq":"वेंडर नाम और कोड आवश्यक हैं।","supTotal":"पंजीकृत वेंडर","supActive":"सक्रिय","supCats":"श्रेणियाँ","supCountries":"देश","supSearch":"वेंडर नाम·कोड·श्रेणी खोजें","supCatMgr":"श्रेणी प्रबंधन","supAdd":"वेंडर पंजीकृत करें","supCatMgrTitle":"वेंडर श्रेणी प्रबंधन (उपयोगकर्ता जोड़ सकता है)","supCatNew":"नई श्रेणी का नाम (उदा: लाइसेंस आपूर्तिकर्ता)","supCatAddBtn":"जोड़ें","supCatEmpty":"कोई श्रेणी नहीं है। कृपया जोड़ें।","supEdit":"वेंडर संपादित करें","supNew":"नया वेंडर पंजीकृत करें","supNameL":"वेंडर नाम","supNamePh":"देहान सप्लाई प्रा. लि.","supCodeL":"कोड","supCatL":"श्रेणी (किस प्रकार का वेंडर)","supCountryL":"देश","supContactL":"संपर्क व्यक्ति","supPhoneL":"संपर्क नंबर","supEmailL":"ईमेल","supPayL":"भुगतान शर्तें","supLeadL":"लीड टाइम (दिन)","supRatingL":"रेटिंग (1~5)","save":"सहेजें","cancel":"रद्द करें","supNoData":"कोई पंजीकृत वेंडर नहीं है।","active":"सक्रिय","inactive":"निष्क्रिय","supLead":"लीड टाइम","days":"दिन","edit":"संपादित करें","deactivate":"निष्क्रिय करें","activate":"सक्रिय करें","delete":"हटाएं"},
   "memberLog": {"refresh":"ताज़ा करें", "tabLog": "गतिविधि लॉग", "tabMemberLog": "सदस्य लॉग", "time": "समय", "user": "उपयोगकर्ता", "action": "कार्रवाई", "ipAddr": "IP", "detail": "विवरण", "empty": "कोई रिकॉर्ड नहीं", "tenant": "किरायेदार", "integrity": "अखंडता" },
@@ -11976,6 +11977,7 @@ export default {
       PriceCheck: "Pricing Inquiry"
     },
   crm: {
+    "supTitle":"सप्रेशन सूची","supDesc":"अनसब्सक्राइब, बाउंस या शिकायत वाले पते स्थायी रूप से बाहर रखे जाते हैं।","supUnsub":"अनसब्सक्राइब","supManual":"मैनुअल","supBounce":"बाउंस","supComplaint":"शिकायत","supEmpty":"कोई अवरुद्ध पता नहीं","supAddPh":"ब्लॉक करने का ईमेल","supAdd":"जोड़ें","supColEmail":"ईमेल","supColReason":"कारण","supColDate":"तारीख","supRemove":"हटाएं","cohortTitle":"कोहोर्ट रिटेंशन (साइनअप माह × पुनः खरीद)","cohortDesc":"प्रत्येक साइनअप-माह कोहोर्ट की अगले महीनों में पुनः खरीद दर — वफादारी व LTV रुझान।","cohortEmpty":"अभी कोई कोहोर्ट डेटा नहीं (साइनअप/खरीद इतिहास जमा होने पर दिखेगा)।","cohortCol":"साइनअप माह","cohortSize":"संख्या",
       "segRefresh": "सदस्यता पुनर्गणना (वास्तविक डेटा से सिंक)",
 
     "guideTitle": "CRM ग्राहक प्रबंधन मार्गदर्शिका",

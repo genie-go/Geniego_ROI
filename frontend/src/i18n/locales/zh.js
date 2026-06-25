@@ -1,4 +1,5 @@
 export default {
+  "period": {"all":"全部","d7":"近7天","d30":"近30天","d90":"近90天","custom":"自定义","label":"期间"},
   "assistant": {"title":"有问题尽管问","sub":"GeniegoROI使用方法·菜单咨询","placeholder":"询问菜单·功能·使用方法…","greeting":"您好！关于 GeniegoROI 的使用有任何问题尽管问，我会一步步指导您了解菜单、功能和使用方法。","newChat":"新对话","close":"关闭","disclaimer":"GeniegoROI使用助手 · Enter发送 · Shift+Enter换行"},
   partners: {"supNameCodeReq":"供应商名称和代码为必填项。","supTotal":"已登记供应商","supActive":"启用","supCats":"类别","supCountries":"国家","supSearch":"搜索供应商名称·代码·类别","supCatMgr":"类别管理","supAdd":"登记供应商","supCatMgrTitle":"供应商类别管理（可由用户添加）","supCatNew":"新类别名称（例：授权供应商）","supCatAddBtn":"添加","supCatEmpty":"暂无类别，请添加。","supEdit":"编辑供应商","supNew":"登记新供应商","supNameL":"供应商名称","supNamePh":"大韩供应（株）","supCodeL":"代码","supCatL":"类别（供应商类型）","supCountryL":"国家","supContactL":"负责人","supPhoneL":"联系方式","supEmailL":"邮箱","supPayL":"付款条件","supLeadL":"交货周期（天）","supRatingL":"评级（1~5）","save":"保存","cancel":"取消","supNoData":"暂无已登记的供应商。","active":"启用","inactive":"停用","supLead":"交货周期","days":"天","edit":"编辑","deactivate":"停用","activate":"启用","delete":"删除"},
   "memberLog": {"refresh":"刷新", "tabLog": "日志记录", "tabMemberLog": "会员日志", "time": "时间", "user": "用户", "action": "操作", "ipAddr": "IP", "detail": "详情", "empty": "无记录", "tenant": "租户", "integrity": "完整性" },
@@ -12011,6 +12012,7 @@ export default {
     }
   },
   "crm": {
+    "supTitle":"退订 / 屏蔽列表","supDesc":"退订、退信或投诉的地址将永久排除发送，可手动增删。","supUnsub":"退订","supManual":"手动","supBounce":"退信","supComplaint":"投诉","supEmpty":"无屏蔽地址","supAddPh":"要屏蔽的邮箱","supAdd":"添加屏蔽","supColEmail":"邮箱","supColReason":"原因","supColDate":"时间","supRemove":"移除","cohortTitle":"同期留存（注册月×复购率）","cohortDesc":"各注册月份群组在之后N个月的复购率，用留存曲线诊断忠诚度与LTV趋势。","cohortEmpty":"暂无同期数据（注册与购买记录积累后显示）。","cohortCol":"注册月","cohortSize":"人数",
       "segRefresh": "重新计算成员（按实时数据同步）",
 
     "guideBeginnerBadge": "适合新手",
