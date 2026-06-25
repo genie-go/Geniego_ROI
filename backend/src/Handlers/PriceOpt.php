@@ -632,6 +632,43 @@ class PriceOpt
         return self::json($response, ['ok'=>true,'results'=>$results]);
     }
 
+    // ── 공개 헬퍼 (다른 핸들러 재사용) ───────────────────────────────────────
+    //   ★PriceOpt 의 SKU 원가·경쟁사는 격리 sqlite(priceopt.sqlite)에 있어 메인 DB(Db::pdo) 조인이 불가하다.
+    //   Rollup 순이익/매트릭스가 이 헬퍼로만 접근해 중복 저장 없이 재사용한다(기존 메인DB 조인 항상-null 버그 해소).
+
+    /** sku→cost_price 맵. 미등록·오류 시 빈 배열(정직). */
+    public static function costMap(string $tenant): array
+    {
+        $out = [];
+        try {
+            $st = self::db()->prepare("SELECT sku, cost_price FROM po_products WHERE tenant_id = ?");
+            $st->execute([$tenant]);
+            while ($r = $st->fetch(\PDO::FETCH_ASSOC)) { $out[(string)$r['sku']] = (float)($r['cost_price'] ?? 0); }
+        } catch (\Throwable $e) { /* 미등록 */ }
+        return $out;
+    }
+
+    /** sku→{our_price,comp_min,sos_rank,alert,gap_pct} 맵(공개데이터=가격·SoS만, 경쟁사 내부실적 아님). */
+    public static function competitorMap(string $tenant): array
+    {
+        $out = [];
+        try {
+            $st = self::db()->prepare("SELECT sku, ourPrice, compA, compB, sosRank, alert FROM po_competitors WHERE tenant_id = ?");
+            $st->execute([$tenant]);
+            while ($r = $st->fetch(\PDO::FETCH_ASSOC)) {
+                $sku = (string)$r['sku']; $a = (float)($r['compA'] ?? 0); $b = (float)($r['compB'] ?? 0);
+                $mins = array_filter([$a, $b], fn($x) => $x > 0); $cmin = $mins ? min($mins) : 0; $our = (float)($r['ourPrice'] ?? 0);
+                $out[$sku] = [
+                    'our_price' => round($our), 'comp_min' => round($cmin),
+                    'sos_rank' => $r['sosRank'] !== null ? (int)$r['sosRank'] : null,
+                    'alert' => ((int)($r['alert'] ?? 0)) ? true : false,
+                    'gap_pct' => ($cmin > 0 && $our > 0) ? round(($our - $cmin) / $cmin * 100, 1) : null,
+                ];
+            }
+        } catch (\Throwable $e) { /* 미등록 */ }
+        return $out;
+    }
+
     // ── Competitor Monitoring ────────────────────────────────────────────────
 
     /** GET /v420/price/competitor */

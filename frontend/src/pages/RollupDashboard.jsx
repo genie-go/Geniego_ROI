@@ -1039,6 +1039,19 @@ function ProductPerfTab({ period, n, txt, fc }) {
             </div>
             {/* [Phase3] 상품 고객 퍼널 — 노출→클릭→광고전환→실주문→순주문. */}
             <div style={S.card}><ProductFunnel sel={sel} /></div>
+            {/* [경쟁사] 자사가 vs 경쟁 최저·가격갭·SoS(가격최적화 수집분 재사용, 공개데이터). */}
+            {sel.competitor && (
+              <div style={S.card}>
+                <div style={{ fontSize:12, fontWeight:700, marginBottom:6, color:'#475569' }}>🏁 {txt('ppCompetitor','경쟁사 비교')} <span style={{ fontWeight:400, color:'#94a3b8', fontSize:10 }}>({txt('ppCompPublic','공개 가격·SoS')})</span></div>
+                <div style={{ display:'flex', flexWrap:'wrap', gap:14, fontSize:12 }}>
+                  <span><span style={{color:'#64748b'}}>{txt('ppOurPrice','자사가')}</span> <strong>{fc.c(sel.competitor.our_price||0)}</strong></span>
+                  <span><span style={{color:'#64748b'}}>{txt('ppCompMin','경쟁 최저')}</span> <strong>{fc.c(sel.competitor.comp_min||0)}</strong></span>
+                  {sel.competitor.gap_pct!=null && <span><span style={{color:'#64748b'}}>{txt('ppGap','가격갭')}</span> <strong style={{color: sel.competitor.gap_pct>0?'#ef4444':'#16a34a'}}>{sel.competitor.gap_pct>0?'+':''}{sel.competitor.gap_pct}%</strong></span>}
+                  {sel.competitor.sos_rank!=null && <span><span style={{color:'#64748b'}}>SoS</span> <strong>#{sel.competitor.sos_rank}</strong></span>}
+                  {sel.competitor.alert && <span style={{color:'#ef4444',fontWeight:700}}>⚠ {txt('ppCompAlert','가격 역전')}</span>}
+                </div>
+              </div>
+            )}
           </>)}
         </div>
       </div>

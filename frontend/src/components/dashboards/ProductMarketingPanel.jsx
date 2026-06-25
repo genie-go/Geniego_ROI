@@ -151,6 +151,21 @@ export default function ProductMarketingPanel({ period = 'monthly', n = 0 }) {
           <div style={{ marginTop: 14, borderTop: '1px solid #eef2f7', paddingTop: 12 }}>
             <ProductFunnel sel={sel} />
           </div>
+          {/* [경쟁사] 가격최적화 수집분(po_competitors) 재사용 — 자사가 vs 경쟁 최저·가격갭·SoS(공개데이터). */}
+          {sel.competitor && (
+            <div style={{ marginTop: 12, background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: 9, padding: '10px 12px' }}>
+              <div style={{ fontSize: 12, fontWeight: 800, color: '#475569', marginBottom: 4 }}>
+                🏁 {t('dashboard.productMkt.competitor', '경쟁사 비교')} <span style={{ fontWeight: 400, color: '#94a3b8', fontSize: 10 }}>({t('dashboard.productMkt.compPublic', '공개 가격·검색점유 기준')})</span>
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, fontSize: 12 }}>
+                <span><span style={{ color: '#64748b' }}>{t('dashboard.productMkt.ourPrice', '자사가')}</span> <strong>{fmtC(sel.competitor.our_price || 0)}</strong></span>
+                <span><span style={{ color: '#64748b' }}>{t('dashboard.productMkt.compMin', '경쟁 최저')}</span> <strong>{fmtC(sel.competitor.comp_min || 0)}</strong></span>
+                {sel.competitor.gap_pct != null && <span><span style={{ color: '#64748b' }}>{t('dashboard.productMkt.gap', '가격갭')}</span> <strong style={{ color: sel.competitor.gap_pct > 0 ? '#ef4444' : '#16a34a' }}>{sel.competitor.gap_pct > 0 ? '+' : ''}{sel.competitor.gap_pct}%</strong></span>}
+                {sel.competitor.sos_rank != null && <span><span style={{ color: '#64748b' }}>SoS</span> <strong>#{sel.competitor.sos_rank}</strong></span>}
+                {sel.competitor.alert && <span style={{ color: '#ef4444', fontWeight: 700 }}>⚠ {t('dashboard.productMkt.compAlert', '가격 역전')}</span>}
+              </div>
+            </div>
+          )}
         </>
       )}
     </div>

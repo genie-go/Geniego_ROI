@@ -293,12 +293,11 @@ final class Rollup {
         } catch (\Throwable $e) { /* 어트리뷰션 미적재 = ad_attr 미설정(정직) */ }
         // [현 차수] 상품 원가(po_products.cost_price by sku) — 이익순 랭킹용. 매출총이익 = 매출 − 원가×수량(주문+원가
         //   파생=정확). 원가 미등록 sku 는 gross_profit=null(정직·임의원가 0). 광고비 제외(=매출총이익 gross).
-        $costs = [];
-        try {
-            $cq = $pdo->prepare("SELECT sku, cost_price FROM po_products WHERE tenant_id = ?");
-            $cq->execute([$tenant]);
-            while ($c = $cq->fetch(\PDO::FETCH_ASSOC)) { $costs[(string)$c['sku']] = (float)($c['cost_price'] ?? 0); }
-        } catch (\Throwable $e) { /* 원가 미등록 */ }
+        // [수정] 원가는 PriceOpt 격리 sqlite(priceopt.sqlite)에 있어 메인 DB(Db::pdo) 조인이 항상 빈 결과였다
+        //   (→ 기존 gross_profit·Phase1 net_profit 이 운영에서 항상 null 이던 잠재버그). PriceOpt 공개 헬퍼로 재사용.
+        $costs = \Genie\Handlers\PriceOpt::costMap($tenant);
+        // [경쟁사] SKU별 경쟁사 가격/SoS(공개데이터=가격·점유율, 경쟁사 내부실적 아님) — 가격최적화 수집분 재사용.
+        $compMap = \Genie\Handlers\PriceOpt::competitorMap($tenant);
         // [Phase1 순이익] 실 정산 수수료(kr_settlement_line, SKU 단위 실데이터) — 마켓수수료+광고수수료+배송비+반품비+기타차감.
         //   ★이중차감 방지: vat(대납세금)·coupon_discount·point_discount 제외(쿠폰/포인트는 channel_orders.total_price 에
         //   이미 반영, vat 는 대납). 정산 미적재 sku 는 settleFees 없음 → 요율추정 폴백.
@@ -347,6 +346,8 @@ final class Rollup {
                 $p['net_profit'] = round($p['gross_profit'] - $adCost - $mktFees, 2);
                 $p['net_margin'] = $p['revenue'] > 0 ? round($p['net_profit'] / $p['revenue'] * 100, 1) : 0;
             } else { $p['net_profit'] = null; $p['net_margin'] = null; }
+            // [경쟁사] 등록된 SKU 만 부착(미등록=미부착, 정직). our_price·comp_min·gap_pct·sos_rank·alert.
+            if (isset($compMap[$p['sku']])) $p['competitor'] = $compMap[$p['sku']];
             $tc = ''; $tcv = -1; foreach ($p['byChannel'] as $c => $v) { if ($v['revenue'] > $tcv) { $tcv = $v['revenue']; $tc = $c; } }
             $tk = ''; $tkv = -1; foreach ($p['byCountry'] as $c => $v) { if ($v['revenue'] > $tkv) { $tkv = $v['revenue']; $tk = $c; } }
             $p['top_channel'] = $tc; $p['top_country'] = $tk;
@@ -383,9 +384,7 @@ final class Rollup {
         $products = []; $channelsSeen = [];
         try {
             $pdo = Db::pdo();
-            $costs = [];
-            try { $cq = $pdo->prepare("SELECT sku, cost_price FROM po_products WHERE tenant_id = ?"); $cq->execute([$tenant]);
-                while ($c = $cq->fetch(\PDO::FETCH_ASSOC)) $costs[(string)$c['sku']] = (float)($c['cost_price'] ?? 0); } catch (\Throwable $e) {}
+            $costs = \Genie\Handlers\PriceOpt::costMap($tenant); // [수정] 격리 sqlite 원가 헬퍼 재사용(메인DB 조인 불가)
             $names = [];
             try { $nq = $pdo->prepare("SELECT DISTINCT sku, product_name FROM channel_orders WHERE tenant_id = ? AND sku IS NOT NULL AND sku <> ''"); $nq->execute([$tenant]);
                 while ($r = $nq->fetch(\PDO::FETCH_ASSOC)) { $s = (string)$r['sku']; if (!isset($names[$s])) $names[$s] = (string)($r['product_name'] ?? $s); } } catch (\Throwable $e) {}
