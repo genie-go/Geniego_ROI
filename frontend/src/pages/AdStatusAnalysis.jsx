@@ -246,7 +246,11 @@ export default function AdStatusAnalysis() {
     const highlightBlue = '3px solid #4f8ef7';
     const defaultTrans = '3px solid transparent';
 
-    const tableData = tab === 'campaign' ? HIERARCHY_DATA : getFlattenedSets();
+    // [현 차수] accountFilter 죽은선택자 수정 — 하위계정(sub1) 선택 시 그 계정 소유분만 표시(결정적 분할).
+    //   실 광고계정 차원이 데이터에 없어 id 해시 기준 결정적 소속으로 시뮬레이션(데모 일관·재현가능).
+    const _acctOwn = (row, i) => { const key = String(row.id || row.name || i); let h = 0; for (let j = 0; j < key.length; j++) h = (h * 31 + key.charCodeAt(j)) >>> 0; return h % 2 === 0; };
+    const tableData = (tab === 'campaign' ? HIERARCHY_DATA : getFlattenedSets())
+      .filter((row, i) => accountFilter === 'all' || _acctOwn(row, i));
     const fmt = v => new Intl.NumberFormat('en-US').format(v);
 
     const getMetricTotal = (mDef) => {

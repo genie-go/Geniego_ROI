@@ -699,7 +699,7 @@ export default function PnLDashboard() {
     const { t } = useI18n();
     const { fmt } = useCurrency();
     const navigate = useNavigate();
-    const { pnlStats, settlementStats, budgetStats, orderStats, totalInventoryValue, lowStockCount, addAlert, isDemo } = useGlobalData();
+    const { pnlStats, settlementStats, budgetStats, orderStats, orders, totalInventoryValue, lowStockCount, addAlert, isDemo } = useGlobalData();
     const { user, isAdmin } = useAuth(); // [현 차수] 구독플랜별 탭 노출(데모/관리자/Enterprise 전체)
     const _plan = (user && (user.plans || user.plan)) || 'free';
     const _tabVisible = (id) => (isDemo || isAdmin) ? true : tabAllowedByPlan(_plan, 'pnl', id);
@@ -761,22 +761,38 @@ export default function PnLDashboard() {
         return value;
     }, [addAlert]);
 
-    /* ── Live Data ── */
-    const live = {
-        grossRevenue: pnlStats.revenue || 0, adSpend: pnlStats.adSpend || 0,
-        platformFee: pnlStats.platformFee || 0, couponDiscount: pnlStats.couponDiscount || 0,
-        returnFee: pnlStats.returnFee || 0, cogs: pnlStats.cogs || 0,
-        shippingCost: pnlStats.shippingCost || 0, influencerCost: pnlStats.influencerCost || 0, // [240차] 인플루언서 비용 P&L 라인
+    /* ── [현 차수] 기간(dateRange) 실스코프 계수 — 죽은선택자 수정 ──
+       버그: dateRange(today/7d/30d/90d) 선택이 live 어디에도 적용 안 됨(전체 누적 불변).
+       수정: 주문 atISO(파싱가능 ISO) 기준 윈도우 내 매출비중을 계수로 → 금액라인 비례 스코프(대시보드 dashPeriod 동일 원칙).
+       비율(ROAS·반품률)은 분자·분모 동률 스케일이라 보존. custom/90d≥데이터스팬이면 계수≈1(누적 보존). */
+    const _drDays = { today: 1, '7d': 7, '30d': 30, '90d': 90 };
+    const periodFactor = useMemo(() => {
+        const days = _drDays[dateRange]; if (!days) return 1; // custom/미지정 → 전체
+        const cutoff = Date.now() - days * 86400000;
+        const od = (o) => { const c = o.atISO || o.created_at || o.ordered_at || (o.month ? o.month + '-01' : null); if (!c) return null; const d = new Date(c); return isNaN(d.getTime()) ? null : d; };
+        let tot = 0, win = 0;
+        (orders || []).forEach(o => { if (/cancel|취소/i.test(String(o.status || ''))) return; const rev = Number(o.total ?? o.total_price ?? o.revenue ?? 0); tot += rev; const d = od(o); if (d && d.getTime() >= cutoff) win += rev; });
+        return tot > 0 ? Math.min(1, win / tot) : 1;
+    }, [orders, dateRange]);
 
-        grossProfit: pnlStats.grossProfit || 0, operatingProfit: pnlStats.operatingProfit || 0,
-        netPayout: pnlStats.netPayout || 0, pendingPayout: settlementStats.pendingAmount || 0,
-        roas: budgetStats.blendedRoas || 0,
-        // 209차: 기존 orderStats.count + settlementStats.totalOrders 는 동일 주문을 이중계산
-        //   (정산 rollup orders_count 는 channel_orders 파생) → 2배 + 반품률 분모 과대 → 알림 억제.
-        //   매출과 동일하게 either/or(정산 우선, 없으면 주문수).
-        totalOrders: (settlementStats.totalOrders || 0) > 0 ? settlementStats.totalOrders : (orderStats.count || 0),
-        totalReturns: settlementStats.totalReturns || 0, returnRate: settlementStats.returnRate || 0,
-    };
+    /* ── Live Data ── */
+    const live = (() => {
+        const f = periodFactor;
+        const sc = (v) => Math.round((Number(v) || 0) * f); // 금액·건수 비례 스코프
+        return {
+            grossRevenue: sc(pnlStats.revenue), adSpend: sc(pnlStats.adSpend),
+            platformFee: sc(pnlStats.platformFee), couponDiscount: sc(pnlStats.couponDiscount),
+            returnFee: sc(pnlStats.returnFee), cogs: sc(pnlStats.cogs),
+            shippingCost: sc(pnlStats.shippingCost), influencerCost: sc(pnlStats.influencerCost), // [240차] 인플루언서 비용 P&L 라인
+
+            grossProfit: sc(pnlStats.grossProfit), operatingProfit: sc(pnlStats.operatingProfit),
+            netPayout: sc(pnlStats.netPayout), pendingPayout: sc(settlementStats.pendingAmount),
+            roas: budgetStats.blendedRoas || 0, // 비율 보존(분자·분모 동률 스케일)
+            // 209차: 정산 우선, 없으면 주문수(이중계산 회피). 기간 계수 비례.
+            totalOrders: sc((settlementStats.totalOrders || 0) > 0 ? settlementStats.totalOrders : (orderStats.count || 0)),
+            totalReturns: sc(settlementStats.totalReturns), returnRate: settlementStats.returnRate || 0, // 반품률 비율 보존
+        };
+    })();
 
     const TABS = [
         { id: 'health', icon: '🩺', labelKey: 'pnl.tabHealth', descKey: 'pnl.descHealth' },

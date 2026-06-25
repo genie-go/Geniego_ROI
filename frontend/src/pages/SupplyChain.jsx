@@ -873,7 +873,7 @@ return(
 </div>
 {showDatePicker&&(
 <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap'}}>
-<span style={{fontSize:11,fontWeight:700,color:'#64748b'}}>📅 {tr('periodLabel')}</span>
+{/* [현 차수] 가짜 'Period' 선택자 라벨 제거 — 실제 기간 필터·상태가 없어 오해 유발. 실시간 LIVE 표기만 정직 유지. */}
 <div style={{display:'flex',alignItems:'center',gap:5,background:'rgba(34,197,94,0.08)',border:'1px solid rgba(34,197,94,0.2)',borderRadius:8,padding:'4px 10px'}}>
 <span style={{width:6,height:6,borderRadius:'50%',background:'#22c55e',display:'inline-block',boxShadow:'0 0 6px #22c55e'}}/>
 <span style={{fontSize:11,color:'#16a34a',fontWeight:700}}>LIVE</span>

@@ -80,7 +80,7 @@ function useWmsFlow() {
     return () => { alive = false; };
   }, []);
   const movements = useMemo(() => {
-    const ctx = (inOutHistory || []).map(m => ({ kind: normKind(m.type), qty: Number(m.qty) || 0, sku: m.sku, name: m.name, date: parseDt(m.ts || m.at || m.created_at) }));
+    const ctx = (inOutHistory || []).map(m => ({ kind: normKind(m.type), qty: Number(m.qty) || 0, sku: m.sku, name: m.name, date: parseDt(m.atISO || m.ts || m.created_at || (m.month ? m.month + '-01' : null)) }));
     const be = (beMoves || []).map(m => ({ kind: normKind(m.type), qty: m.qty, sku: m.sku, name: m.name, date: parseDt(m.ts) }));
     return [...be, ...ctx];
   }, [inOutHistory, beMoves]);
@@ -270,7 +270,7 @@ export const WmsReportsTab = memoGuard(function WmsReportsTab() {
     const buckets = {};
     const add = (key, field, qty) => { if (!key) return; if (!buckets[key]) buckets[key] = { key, inbound: 0, outbound: 0, returns: 0, disposal: 0 }; buckets[key][field] += qty; };
     movements.forEach(x => { const k = bucketKey(x.date, gran); if (x.kind === 'inbound') add(k, 'inbound', x.qty); else if (x.kind === 'outbound') add(k, 'outbound', x.qty); else if (x.kind === 'returns') add(k, 'returns', x.qty); else if (x.kind === 'disposal') add(k, 'disposal', x.qty); });
-    orders.forEach(o => { const k = bucketKey(parseDt(o.at || o.created_at || o.date), gran); if (!k) return; if (isReturn(o)) add(k, 'returns', oQty(o)); else if (!isCancel(o)) add(k, 'outbound', oQty(o)); });
+    orders.forEach(o => { const k = bucketKey(parseDt(o.atISO || o.created_at || o.ordered_at || (o.month ? o.month + '-01' : null) || o.date), gran); if (!k) return; if (isReturn(o)) add(k, 'returns', oQty(o)); else if (!isCancel(o)) add(k, 'outbound', oQty(o)); });
     const rows = Object.values(buckets).sort((a, b) => a.key < b.key ? 1 : -1).slice(0, 24).map(r => ({ ...r, net: r.inbound - r.outbound - r.disposal }));
 
     // 전체 누적 요약 (날짜 무관 — 항상 표기되어 빈 화면 방지)

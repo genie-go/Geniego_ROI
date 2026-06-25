@@ -150,6 +150,41 @@ function _creatorRows(creators, dates, n) {
   }).sort((a, b) => b.avg_roi_pct - a.avg_roi_pct);
 }
 
+// ── [현 차수] 기간(period+n) 실필터 ──────────────────────────────────────────
+//   버그: 기존엔 dates 가 스파크라인 라벨만 바꾸고 KPI/총계는 전체 누적이라 일/주/월/시즌 클릭해도 값 불변.
+//   수정: period+n 으로 윈도우(일수)를 산출 → 주문은 atISO(파싱가능 ISO)로 실필터, 날짜없는 광고/크리에이터
+//   소스는 윈도우/데이터스팬 비례계수로 스코프(대시보드 dashPeriod 와 동일한 정직 비례 원칙). 전체 윈도우면 계수=1.
+const _DAY = 86400000;
+const _UNIT_DAYS = { daily: 1, weekly: 7, monthly: 30, seasonal: 91, yearly: 365 };
+function _windowDays(period, n) { return Math.max(1, (_UNIT_DAYS[period] || 1) * (Number(n) || 1)); }
+// 주문 날짜 = atISO(결정적 ISO) 우선 — ko-KR 'at' 문자열은 new Date 파싱불가(전 메뉴 공통 버그 근원).
+function _odate(o) {
+  const c = o && (o.atISO || o.ordered_at || o.created_at || o.createdAt || o.orderDate || o.date || (o.month ? o.month + '-01' : null));
+  if (!c) return null; const d = new Date(c); return isNaN(d.getTime()) ? null : d;
+}
+function _filterByWindow(orders, cutoff) {
+  return (orders || []).filter(o => { const d = _odate(o); return d ? d.getTime() >= cutoff : false; });
+}
+function _dataSpanDays(orders) {
+  let mn = Infinity, mx = -Infinity;
+  for (const o of (orders || [])) { const d = _odate(o); if (!d) continue; const t = d.getTime(); if (t < mn) mn = t; if (t > mx) mx = t; }
+  if (mn === Infinity) return 90; return Math.max(1, Math.round((mx - mn) / _DAY) + 1);
+}
+function _scaleCh(channelBudgets, f) {
+  if (f >= 1) return channelBudgets;
+  const out = {}; for (const [k, b] of Object.entries(channelBudgets || {})) out[k] = { ...b, spent: Number(b.spent || 0) * f, revenue: Number(b.revenue || 0) * f, impressions: Number(b.impressions || 0) * f, clicks: Number(b.clicks || 0) * f };
+  return out;
+}
+function _scaleArr(arr, f, keys) {
+  if (f >= 1) return arr;
+  return (arr || []).map(c => { const o = { ...c }; for (const k of keys) if (o[k] != null) o[k] = Number(o[k]) * f; if (o.stats) { o.stats = { ...o.stats }; for (const k of ['revenue', 'orders', 'views']) if (o.stats[k] != null) o.stats[k] = Number(o.stats[k]) * f; } return o; });
+}
+
+/** [현 차수] 외부(ProductPerf/Matrix 탭)에서 같은 윈도우로 주문을 필터하기 위한 공용 진입점. */
+export function filterOrdersByRollupPeriod(orders, period, n) {
+  return _filterByWindow(orders, Date.now() - _windowDays(period, n) * _DAY);
+}
+
 /**
  * 데모 롤업 파생 진입점. dimension: summary|sku|campaign|creator|platform
  * gd: { orders, channelBudgets, snsCampaigns, creators }
@@ -157,14 +192,19 @@ function _creatorRows(creators, dates, n) {
 export function deriveRollup(dimension, period, n, gd) {
   const dates = _dates(period, n);
   const base = { ok: true, version: 'demo-derived', dimension, period, n, dates };
-  if (dimension === 'sku') return { ...base, rows: _skuRows(gd.orders, dates) };
-  if (dimension === 'platform') return { ...base, rows: _platformRows(gd.channelBudgets, dates) };
-  if (dimension === 'campaign') return { ...base, rows: _campaignRows(gd.snsCampaigns, dates) };
-  if (dimension === 'creator') return { ...base, rows: _creatorRows(gd.creators, dates, n) };
+  // [현 차수] 기간 윈도우 실적용
+  const windowDays = _windowDays(period, n);
+  const cutoff = Date.now() - windowDays * _DAY;
+  const fOrders = _filterByWindow(gd.orders, cutoff);
+  const f = Math.min(1, windowDays / _dataSpanDays(gd.orders)); // 날짜없는 소스 비례계수
+  if (dimension === 'sku') return { ...base, rows: _skuRows(fOrders, dates) };
+  if (dimension === 'platform') return { ...base, rows: _platformRows(_scaleCh(gd.channelBudgets, f), dates) };
+  if (dimension === 'campaign') return { ...base, rows: _campaignRows(_scaleArr(gd.snsCampaigns, f, ['spent', 'revenue', 'impressions', 'clicks', 'conv']), dates) };
+  if (dimension === 'creator') return { ...base, rows: _creatorRows(_scaleArr(gd.creators, f, ['revenue', 'purchases']), dates, n) };
 
   // summary — 전 차원 합으로 KPI/by_platform/top_skus/alerts 파생(전 메뉴 합계 reconcile)
-  const skuRows = _skuRows(gd.orders, dates);
-  const pfRows = _platformRows(gd.channelBudgets, dates);
+  const skuRows = _skuRows(fOrders, dates);
+  const pfRows = _platformRows(_scaleCh(gd.channelBudgets, f), dates);
   const totalRevenue = skuRows.reduce((s, r) => s + r.total_revenue, 0);          // 판매 매출(=대시보드/P&L)
   const totalOrders = skuRows.reduce((s, r) => s + r.total_orders, 0);
   const totalSpend = pfRows.reduce((s, r) => s + r.total_spend, 0);               // 광고 지출(=마케팅 메뉴)

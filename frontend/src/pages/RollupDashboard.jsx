@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useI18n } from '../i18n';
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
-import { deriveRollup } from './rollupDemoDerive.js';
+import { deriveRollup, filterOrdersByRollupPeriod } from './rollupDemoDerive.js';
 import PerformanceProfiler from '../components/PerformanceProfiler.jsx';
 import { useProductSelection } from '../contexts/ProductSelectionContext.jsx';
 import ProductScopeNotice from '../components/dashboards/ProductScopeNotice.jsx';
@@ -931,7 +931,7 @@ function ProductPerfTab({ period, n, txt, fc }) {
   useEffect(() => {
     let alive = true;
     (async () => {
-      const result = isDemo ? deriveProductPerf(orders, costMap) : await API(`/api/v423/rollup/product-performance?period=${period}&n=${n}`);
+      const result = isDemo ? deriveProductPerf(filterOrdersByRollupPeriod(orders, period, n), costMap) : await API(`/api/v423/rollup/product-performance?period=${period}&n=${n}`);
       if (alive) setData(result);
     })().catch(() => { if (alive) setData({ products:[] }); });
     return () => { alive = false; };
@@ -1005,7 +1005,7 @@ function ProductPerfTab({ period, n, txt, fc }) {
           </table>
         </div>
         <div style={{ display:'grid', gap:14, alignContent:'start' }}>
-          {!sel && <div style={{ ...S.card, color:'#64748b', textAlign:'center', padding:28 }}>{txt('ppSelectHint','상품을 선택하면 채널·국가·인구통계별 성과가 표시되고 대시보드 등 관련 메뉴에 동기화됩니다.')}</div>}
+          {!sel && <div style={{ ...S.card, color:'#64748b', textAlign:'center', padding:28, fontSize:13, lineHeight:1.6 }}>{txt('ppSelectHint','상품을 선택하면 채널·국가·인구통계별 성과가 표시되고 대시보드 등 관련 메뉴에 동기화됩니다.')}</div>}
           {sel && (<>
             <div style={S.card}>
               <div style={S.sectionTitle}>📦 {sel.name} <span style={{ fontWeight:400, color:'#94a3b8', fontSize:11 }}>#{sel.rank}</span></div>
@@ -1335,7 +1335,7 @@ function ChannelProductMatrixTab({ period, n, txt, fc }) {
   useEffect(() => {
     let alive = true;
     (async () => {
-      const r = isDemo ? deriveChannelMatrix(orders, costMap) : await API(`/api/v423/rollup/product-channel-matrix?period=${period}&n=${n}`);
+      const r = isDemo ? deriveChannelMatrix(filterOrdersByRollupPeriod(orders, period, n), costMap) : await API(`/api/v423/rollup/product-channel-matrix?period=${period}&n=${n}`);
       if (alive) setData(r);
     })().catch(() => { if (alive) setData({ products:[], channels:[] }); });
     return () => { alive = false; };
