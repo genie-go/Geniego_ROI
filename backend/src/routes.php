@@ -45,6 +45,7 @@ return function (App $app): void {
 
         // v422 AI 마케팅 추천 (전체 카테고리 지원)
         'POST /v422/ai/campaign-search'      => 'Genie\\Handlers\\ClaudeAI::campaignSearch',
+        'POST /v422/ai/assistant'            => 'Genie\\Handlers\\ClaudeAI::assistant', // [현 차수] 무엇이든 물어보세요 상담 챗봇(15개국)
         'POST /v422/ai/live-assist'          => 'Genie\\Handlers\\ClaudeAI::liveAssist',
         'POST /v422/ai/campaign-ad-creative' => 'Genie\\Handlers\\ClaudeAI::campaignAdCreative',
 
@@ -1857,6 +1858,7 @@ return function (App $app): void {
 
     // ── v422 AI 마케팅 추천 (전체 카테고리) ─────────────────────────
     $register('POST', '/v422/ai/campaign-search');
+    $register('POST', '/v422/ai/assistant'); // [현 차수] 무엇이든 물어보세요 상담 챗봇
     $register('POST', '/v422/ai/live-assist');
     $register('POST', '/v422/ai/campaign-ad-creative');
     $register('POST', '/v422/ai/campaign-ad-design');

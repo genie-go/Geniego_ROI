@@ -21,6 +21,7 @@ import SessionExpiryWarning from "./components/SessionExpiryWarning.jsx";
 import KeyboardShortcuts from "./components/KeyboardShortcuts.jsx";
 import OnboardingTour from "./components/OnboardingTour.jsx";
 import OnboardingGuide from "./components/OnboardingGuide.jsx";
+import GenieAssistant from "./components/GenieAssistant.jsx"; // [현 차수] 무엇이든 물어보세요 상담 챗봇
 import GuideArrival from "./components/GuideArrival.jsx"; // [237차] 바로가기 도착 스포트라이트(동작 영역 안내)
 import { initPerformanceMonitor } from "./utils/performanceMonitor.js";
 import CommandPalette from "./components/CommandPalette.jsx";
@@ -395,6 +396,7 @@ function AppLayout() {
                   레이아웃 회귀(전 페이지 박스 높이 불균형)가 발생하므로 바깥에 두어 자연 높이 유지. */}
               <OnboardingGuide />
               <GuideArrival />
+              <GenieAssistant />{/* [현 차수] 전역 상담 챗봇(로고 런처) */}
 
               <div className="app-content-area" style={{
                 flex: 1,

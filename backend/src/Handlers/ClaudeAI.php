@@ -56,6 +56,73 @@ final class ClaudeAI {
         }
     }
 
+    /** [현 차수] "무엇이든 물어보세요" GeniegoROI 상담 챗봇 — 메뉴·기능·사용법 전문 응답(15개국 현지 자연어).
+     *   v422/ai/* 공개 bypass. 실 Claude(키 설정 시) + 미설정 시 ai:false 반환(프론트 로컬 KB 폴백). */
+    public static function assistant(Request $req, Response $res): Response {
+        $body = (array)($req->getParsedBody() ?? []);
+        if (empty($body)) { $d = json_decode((string)$req->getBody(), true); if (is_array($d)) $body = $d; }
+        $messages = is_array($body['messages'] ?? null) ? $body['messages'] : [];
+        $lang = trim((string)($body['lang'] ?? 'ko')) ?: 'ko';
+        $q = trim((string)($body['question'] ?? ''));
+        if ($q === '') { foreach (array_reverse($messages) as $m) { if ((string)($m['role'] ?? '') === 'user') { $q = trim((string)($m['content'] ?? '')); break; } } }
+        if ($q === '') {
+            $res->getBody()->write(json_encode(['ok' => false, 'error' => 'empty question'], JSON_UNESCAPED_UNICODE));
+            return $res->withHeader('Content-Type', 'application/json')->withStatus(422);
+        }
+        if (!self::aiKeyConfigured()) {
+            // 데모/키 미설정 — 프론트 로컬 KB 폴백 신호
+            $res->getBody()->write(json_encode(['ok' => true, 'ai' => false, 'answer' => null], JSON_UNESCAPED_UNICODE));
+            return $res->withHeader('Content-Type', 'application/json');
+        }
+        // 최근 대화 맥락(최대 8턴) 평탄화
+        $ctx = '';
+        foreach (array_slice($messages, -8) as $m) {
+            $role = ((string)($m['role'] ?? '') === 'user') ? 'User' : 'Assistant';
+            $ctx .= $role . ': ' . trim((string)($m['content'] ?? '')) . "\n";
+        }
+        $sys = self::geniegoSystemPrompt($lang);
+        $userMsg = ($ctx ? "[대화 맥락]\n{$ctx}\n" : '') . "[질문]\n{$q}";
+        $ans = self::complete($sys, $userMsg, 22);
+        if ($ans === null || $ans === '') {
+            $res->getBody()->write(json_encode(['ok' => true, 'ai' => false, 'answer' => null], JSON_UNESCAPED_UNICODE));
+            return $res->withHeader('Content-Type', 'application/json');
+        }
+        $res->getBody()->write(json_encode(['ok' => true, 'ai' => true, 'answer' => $ans], JSON_UNESCAPED_UNICODE));
+        return $res->withHeader('Content-Type', 'application/json');
+    }
+
+    private static function geniegoSystemPrompt(string $lang): string {
+        $langName = [
+            'ko' => 'Korean (한국어)', 'en' => 'English', 'ja' => 'Japanese (日本語)', 'zh' => 'Simplified Chinese (简体中文)',
+            'zh-TW' => 'Traditional Chinese (繁體中文)', 'de' => 'German', 'th' => 'Thai', 'vi' => 'Vietnamese', 'id' => 'Indonesian',
+            'ar' => 'Arabic', 'es' => 'Spanish', 'fr' => 'French', 'hi' => 'Hindi', 'pt' => 'Portuguese (Brazil)', 'ru' => 'Russian',
+        ][$lang] ?? 'Korean (한국어)';
+        return <<<SYS
+You are "GenieGo Assistant", the official in-app product expert and support consultant for **GeniegoROI** — a multi-tenant e-commerce ROI / marketing / commerce-logistics analytics SaaS (deployed at roi.genie-go.com).
+
+YOUR JOB: Answer ANY question about GeniegoROI — what each menu does, how to use a feature step by step, where to find something, what a metric means, and how to accomplish a goal. Be a perfect, friendly, concise consultant.
+
+RESPONSE LANGUAGE: Always reply in {$langName}, in natural, native-level phrasing. Mirror the user's language if it differs.
+
+STYLE: Concise and actionable. Use short steps (1·2·3) for how-to. Name the exact menu path (e.g., "광고 및 채널 분석 › 광고성과"). Bold key menu names. If unsure which menu, suggest the closest one. Never invent features that don't exist; if a capability isn't in GeniegoROI, say so and suggest the nearest alternative. Keep answers focused on GeniegoROI.
+
+GENIEGOROI MENU & FEATURE MAP (use this as ground truth):
+• 종합 대시보드(/dashboard): 8탭 — 통합현황(KPI·채널매출), 마케팅성과, 채널KPI, 커머스정산, 글로벌매출(세계지도), AI인플루언서, 시스템현황, 이용가이드. 상단 기간선택(일/주/월/분기/연), 상품 조회바(특정 상품 선택 시 전 메뉴 동기화).
+• 롤업 뷰(/rollup): SKU·캠페인·크리에이터·플랫폼·상품성과·채널×상품 매트릭스를 일/주/월/분기/연 기간으로 집계.
+• AI 마케팅: 자동화 전략(/auto-marketing 한계ROAS·증분성·예산최적화), 캠페인 관리(/campaign-manager), 여정 빌더(/journey-builder 드래그 캔버스).
+• 광고 및 채널 분석: 광고성과(/marketing), 예산 관리(/budget-tracker), 어카운트 성과(/performance, /account-performance), 어트리뷰션(/attribution 6모델), 마케팅 믹스 모델(/marketing-mix), 채널 KPI(/channel-kpi), 그래프 스코어(/graph-score).
+• 고객/CRM: CRM 대시보드(/crm RFM·세그먼트), 카카오 비즈니스, 이메일 마케팅(/email-marketing), SMS 마케팅(/sms-marketing), 라인/WhatsApp/인스타 DM.
+• 커머스 및 물류: 주문 허브(/order-hub), 옴니채널(/omni-channel 채널연동·주문·재고), 정산(/settlements), 정산 대조(/reconciliation), 한국 채널(/kr-channel), WMS 재고관리(/wms-manager 창고·입출고·재고·LOT/유통기한·피킹·발주·임가공·정기리포트·물류대시보드), 수요예측(/demand-forecast), 반품 포털(/returns-portal), 공급망(/supply-chain), 카탈로그 동기화(/catalog-sync), 가격 최적화(/price-opt), 라이브 커머스(/live-commerce).
+• 성과 및 리포팅: P&L 손익(/pnl 워터폴·순이익), 성과 허브(/performance), 리포트 빌더(/report-builder 예약리포트), 픽셀 트래킹(/pixel-tracking).
+• 데이터 및 수집: 연동 허브(/integration-hub API키·채널연동), 데이터 신뢰도(/data-trust).
+• 결제/구독: 결제수단(/payment-methods 광고비 카드·월예산·결제내역), 구독 플랜(/app-pricing).
+• 팀·계정: 팀원·권한(/team-members 팀·역할·권한매트릭스·파트너 계정·거래처 등록).
+공통 기능: 대부분 거래/수집/로그 화면에 기간 선택(전체/7·30·90일/사용자지정)으로 값이 그 기간으로 정확 재산출됩니다. 특정 상품을 선택하면 대시보드·마케팅·정산 등 관련 메뉴가 그 상품으로 동기화됩니다. 15개 언어 지원.
+
+If the user asks something unrelated to GeniegoROI, politely steer back to how GeniegoROI can help with their goal.
+SYS;
+    }
+
     /** 196차: 실사 이미지 생성 API 설정(provider + key). [현 차수] 구독회원별 BYO 우선 + app_setting 전역 폴백. */
     private static function imgGenConfig(string $tenant = ''): array {
         // [현 차수] ★구독회원별 BYO: ai_settings 테넌트 행에 imggen_* 가 있으면 그 키 사용(없으면 전역 폴백=기존동작, 무위험).
