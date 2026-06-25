@@ -1865,16 +1865,20 @@ final class Connectors
             return ['hasCreds' => false, 'live' => false, 'rows' => []];
         }
 
-        // [현 차수] campaign.advertising_channel_type(SEARCH/DISPLAY/VIDEO/SHOPPING/PERFORMANCE_MAX/DEMAND_GEN…)
-        //   = Google 의 목적 분류 근거 → objective 로 적재(adFunnel 매핑). Google 표준 metrics 엔 reach 없음(=0).
-        // [227차] customer.currency_code 추가 — cost_micros 는 계정 통화의 마이크로 단위. 다통화 정규화 위해 통화 캡처.
+        // [현 차수 P2] 리포트 입도 확장: FROM campaign → FROM ad_group_ad(소재 단위 ad.id). ad_group/ad id·name 동반
+        //   수집 → ad_ext_id + extra(level/adset) 적재. campaign.advertising_channel_type = objective(adFunnel 매핑).
+        //   ★완전성: searchStream 전 청크 수집 + LIMIT 상향(10000). LIMIT 도달 시 truncate 경고 로그(무음 누락 금지 —
+        //   campaign 합계 undercount 가시화). 다운스트림 SUM 이라 캠페인 집계 무손상. customer.currency_code = 다통화.
+        $LIMIT = 10000;
         $gaql = "SELECT campaign.name, campaign.resource_name, campaign.advertising_channel_type,
+                        ad_group.id, ad_group.name,
+                        ad_group_ad.ad.id, ad_group_ad.ad.name,
                         customer.currency_code,
                         metrics.impressions, metrics.clicks, metrics.cost_micros,
                         metrics.conversions, metrics.conversions_value, segments.date
-                 FROM campaign
-                 WHERE segments.date BETWEEN '$start' AND '$end' AND campaign.status != 'REMOVED'
-                 ORDER BY segments.date DESC LIMIT 500";
+                 FROM ad_group_ad
+                 WHERE segments.date BETWEEN '$start' AND '$end' AND ad_group_ad.status != 'REMOVED'
+                 ORDER BY segments.date DESC LIMIT $LIMIT";
         $url = "https://googleads.googleapis.com/v17/customers/{$customerId}/googleAds:searchStream";
         [$code, $body, $err] = self::httpPost($url, ['query' => $gaql], [
             'Authorization'   => "Bearer {$accessToken}",
@@ -1886,13 +1890,22 @@ final class Connectors
             return ['hasCreds' => true, 'live' => false, 'error' => $err ?? "google http $code"];
         }
 
+        // searchStream 응답은 청크 배열([{results:[...]}, ...]) 또는 단일 {results:[...]}. 전 청크 평탄화(누락 방지).
+        $results = [];
+        if (isset($body['results'])) {
+            $results = (array)$body['results'];
+        } else {
+            foreach ((array)$body as $chunk) {
+                if (is_array($chunk) && isset($chunk['results'])) $results = array_merge($results, (array)$chunk['results']);
+            }
+        }
         $rows = [];
-        $results = $body[0]['results'] ?? $body['results'] ?? [];
         foreach ($results as $r) {
             $rows[] = [
                 'team'        => 'Google Ads',
                 'account'     => (string)($r['campaign']['name'] ?? 'Google Campaign'),
                 'campaign_ext_id' => (string)($r['campaign']['resourceName'] ?? ''),
+                'ad_ext_id'   => (string)($r['adGroupAd']['ad']['id'] ?? ''),
                 'objective'   => (string)($r['campaign']['advertisingChannelType'] ?? ''),
                 'date'        => (string)($r['segments']['date'] ?? ''),
                 'impressions' => (int)($r['metrics']['impressions'] ?? 0),
@@ -1901,7 +1914,16 @@ final class Connectors
                 'conversions' => (int)round((float)($r['metrics']['conversions'] ?? 0)),
                 'revenue'     => round((float)($r['metrics']['conversionsValue'] ?? 0), 2),
                 'currency'    => strtoupper((string)($r['customer']['currencyCode'] ?? 'KRW')),
+                'extra'       => [
+                    'level'        => 'ad',
+                    'adset_ext_id' => (string)($r['adGroup']['id'] ?? ''),
+                    'adset_name'   => (string)($r['adGroup']['name'] ?? ''),
+                    'ad_name'      => (string)($r['adGroupAd']['ad']['name'] ?? ''),
+                ],
             ];
+        }
+        if (count($results) >= $LIMIT) {
+            error_log("[Connectors.fetchGoogleRows] tenant=$tenant LIMIT($LIMIT) 도달 — ad_group_ad 행이 잘렸을 수 있음(campaign 합계 undercount 가능). 기간 축소 또는 페이지네이션 필요.");
         }
         return ['hasCreds' => true, 'live' => true, 'rows' => $rows];
     }
@@ -1937,47 +1959,61 @@ final class Connectors
             $ttCur = strtoupper((string)((($ib['data']['list'][0]['currency'] ?? '')) ?: 'KRW'));
         }
 
-        $payload = [
-            'advertiser_id' => $advertiserId,
-            'report_type'   => 'BASIC',
-            'dimensions'    => ['campaign_id', 'stat_time_day'],
-            // [현 차수] objective_type(REACH/TRAFFIC/VIDEO_VIEWS/CONVERSIONS/PRODUCT_SALES…)·reach 수집(목적 분류·빈도).
-            'metrics'       => ['campaign_name', 'objective_type', 'spend', 'clicks', 'impressions', 'reach', 'conversion', 'total_purchase_value'],
-            'data_level'    => 'AUCTION_CAMPAIGN',
-            'start_date'    => $start,
-            'end_date'      => $end,
-            'page_size'     => 200,
-            'page'          => 1,
-        ];
-        [$code, $body, $err] = self::httpPost(
-            'https://business-api.tiktok.com/open_api/v1.3/report/integrated/get',
-            $payload,
-            ['Access-Token' => $accessToken, 'Content-Type' => 'application/json']
-        );
-
-        if ($err || $code >= 400 || (int)($body['code'] ?? -1) !== 0) {
-            return ['hasCreds' => true, 'live' => false, 'error' => $err ?? ($body['message'] ?? "tiktok http $code")];
-        }
-
+        // [현 차수 P2] 리포트 입도 확장: AUCTION_CAMPAIGN → AUCTION_AD(소재 단위 ad_id). adgroup/campaign id·name 동반
+        //   수집 → ad_ext_id + extra(level/adset) 적재. ★완전성: page_info.total_page 까지 페이지네이션해 전수 적재
+        //   (truncate 시 campaign 합계 undercount = spend/ROAS 왜곡 회귀를 방지). 다운스트림은 SUM 이라 캠페인 집계 무손상.
         $rows = [];
-        foreach (($body['data']['list'] ?? []) as $r) {
-            $dim = $r['dimensions'] ?? [];
-            $m   = $r['metrics'] ?? [];
-            $rows[] = [
-                'team'        => 'TikTok',
-                'account'     => (string)($m['campaign_name'] ?? $dim['campaign_id'] ?? 'TikTok Campaign'),
-                'campaign_ext_id' => (string)($dim['campaign_id'] ?? ''),
-                'objective'   => (string)($m['objective_type'] ?? ''),
-                'reach'       => (int)($m['reach'] ?? 0),
-                'date'        => substr((string)($dim['stat_time_day'] ?? ''), 0, 10),
-                'impressions' => (int)($m['impressions'] ?? 0),
-                'clicks'      => (int)($m['clicks'] ?? 0),
-                'spend'       => (float)($m['spend'] ?? 0),
-                'conversions' => (int)round((float)($m['conversion'] ?? 0)),
-                'revenue'     => (float)($m['total_purchase_value'] ?? 0),
-                'currency'    => $ttCur, // [228차 S1] 다통화 정규화 — persist 에서 KRW 환산
+        $page = 1; $totalPage = 1; $pageSize = 200; $guard = 0;
+        do {
+            $payload = [
+                'advertiser_id' => $advertiserId,
+                'report_type'   => 'BASIC',
+                'dimensions'    => ['ad_id', 'stat_time_day'],
+                // objective_type(REACH/TRAFFIC/CONVERSIONS…)·reach·소재 식별(ad/adgroup/campaign name·id).
+                'metrics'       => ['ad_name', 'adgroup_id', 'adgroup_name', 'campaign_id', 'campaign_name', 'objective_type', 'spend', 'clicks', 'impressions', 'reach', 'conversion', 'total_purchase_value'],
+                'data_level'    => 'AUCTION_AD',
+                'start_date'    => $start,
+                'end_date'      => $end,
+                'page_size'     => $pageSize,
+                'page'          => $page,
             ];
-        }
+            [$code, $body, $err] = self::httpPost(
+                'https://business-api.tiktok.com/open_api/v1.3/report/integrated/get',
+                $payload,
+                ['Access-Token' => $accessToken, 'Content-Type' => 'application/json']
+            );
+            if ($err || $code >= 400 || (int)($body['code'] ?? -1) !== 0) {
+                if ($page === 1) return ['hasCreds' => true, 'live' => false, 'error' => $err ?? ($body['message'] ?? "tiktok http $code")];
+                break; // 후속 페이지 실패 시 이미 수집분으로 진행(부분 적재보다 전수 우선이나 무한루프 차단).
+            }
+            foreach (($body['data']['list'] ?? []) as $r) {
+                $dim = $r['dimensions'] ?? [];
+                $m   = $r['metrics'] ?? [];
+                $rows[] = [
+                    'team'        => 'TikTok',
+                    'account'     => (string)($m['campaign_name'] ?? $m['adgroup_name'] ?? $m['ad_name'] ?? 'TikTok Campaign'),
+                    'campaign_ext_id' => (string)($m['campaign_id'] ?? ''),
+                    'ad_ext_id'   => (string)($dim['ad_id'] ?? ''),
+                    'objective'   => (string)($m['objective_type'] ?? ''),
+                    'reach'       => (int)($m['reach'] ?? 0),
+                    'date'        => substr((string)($dim['stat_time_day'] ?? ''), 0, 10),
+                    'impressions' => (int)($m['impressions'] ?? 0),
+                    'clicks'      => (int)($m['clicks'] ?? 0),
+                    'spend'       => (float)($m['spend'] ?? 0),
+                    'conversions' => (int)round((float)($m['conversion'] ?? 0)),
+                    'revenue'     => (float)($m['total_purchase_value'] ?? 0),
+                    'currency'    => $ttCur, // [228차 S1] 다통화 정규화 — persist 에서 KRW 환산
+                    'extra'       => [
+                        'level'        => 'ad',
+                        'adset_ext_id' => (string)($m['adgroup_id'] ?? ''),
+                        'adset_name'   => (string)($m['adgroup_name'] ?? ''),
+                        'ad_name'      => (string)($m['ad_name'] ?? ''),
+                    ],
+                ];
+            }
+            $totalPage = (int)($body['data']['page_info']['total_page'] ?? 1);
+            $page++;
+        } while ($page <= $totalPage && ++$guard < 50);
         return ['hasCreds' => true, 'live' => true, 'rows' => $rows];
     }
 
