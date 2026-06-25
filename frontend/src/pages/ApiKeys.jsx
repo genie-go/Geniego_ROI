@@ -9,6 +9,7 @@ import { getIssuanceGuide } from '../data/issuanceGuide.js';
 import CompanyProfileModal from '../components/CompanyProfileModal.jsx';
 import { profileMissing } from '../utils/profileComplete.js';
 import { tChannelName } from '../utils/tenantStorage.js';
+import PeriodFilterBar, { inPeriodAny } from '../components/common/PeriodFilterBar.jsx'; // [현 차수] 기간조회
 
 /* [현 차수 S-4] 크로스탭 동기화 발신자 — 자격증명 등록/삭제 시 genie_connector_sync 에 발신.
  *   기존엔 PnL/PerformanceHub/Writeback/PriceOpt/Approvals/DataProduct/AIInsights 7개 페이지가 이 채널의
@@ -2170,23 +2171,30 @@ function ActiveKeysTab({ creds, channels, loading, onTest, onDelete, onAddClick,
    Tab: Rotation Log — last_tested_at 기반 simple history
    ═══════════════════════════════════════════════════════════════════ */
 function HistoryTab({ creds, loading, t }) {
+  const [period, setPeriod] = useState({ preset: 'all' }); // [현 차수] 기간조회
   if (loading) return <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-3)' }}>{t('ak.loading','Loading…')}</div>;
   const tested = creds
     .filter(c => c.last_tested_at)
+    .filter(c => inPeriodAny(c, period, ['last_tested_at'])) // [현 차수] 기간조회 — 선택 기간 테스트만
     .slice()
     .sort((a, b) => String(b.last_tested_at).localeCompare(String(a.last_tested_at)))
-    .slice(0, 30);
+    .slice(0, 100);
+  const _historyBar = <div style={{ marginBottom: 12 }}><PeriodFilterBar value={period} onChange={setPeriod} /></div>;
   if (tested.length === 0) {
     return (
-      <div style={{ padding: '48px 28px', textAlign: 'center', borderRadius: 16, background: 'rgba(255,255,255,0.85)', border: '1px solid rgba(0,0,0,0.06)' }}>
-        <div style={{ fontSize: 40, marginBottom: 12 }} aria-hidden>📜</div>
-        <div style={{ fontSize: 14, fontWeight: 700 }}>{t('ak.historyEmpty','No test history yet')}</div>
+      <div>
+        {_historyBar}
+        <div style={{ padding: '48px 28px', textAlign: 'center', borderRadius: 16, background: 'rgba(255,255,255,0.85)', border: '1px solid rgba(0,0,0,0.06)' }}>
+          <div style={{ fontSize: 40, marginBottom: 12 }} aria-hidden>📜</div>
+          <div style={{ fontSize: 14, fontWeight: 700 }}>{t('ak.historyEmpty','No test history yet')}</div>
+        </div>
       </div>
     );
   }
   return (
     <div style={{ borderRadius: 16, padding: 18, background: 'rgba(255,255,255,0.85)', border: '1px solid rgba(0,0,0,0.06)' }}>
-      <div style={{ fontWeight: 800, fontSize: 13, marginBottom: 12 }}>{t('ak.historyTitle','Recent Test History (top 30)')}</div>
+      {_historyBar}
+      <div style={{ fontWeight: 800, fontSize: 13, marginBottom: 12 }}>{t('ak.historyTitle','Recent Test History')}</div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         {tested.map(c => (
           <div key={c.id} style={{

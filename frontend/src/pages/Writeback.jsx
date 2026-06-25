@@ -7,6 +7,7 @@ import { useAuth } from '../auth/AuthContext.jsx';
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
 import { getJsonAuth, postJson, postJsonAuth, requestJsonAuth } from '../services/apiClient.js';
+import PeriodFilterBar, { inPeriodAny } from '../components/common/PeriodFilterBar.jsx'; // [현 차수] 기간조회
 
 /* ─── Channel Detection ─── */
 function useConnectedChannels() {
@@ -400,6 +401,7 @@ function CategoryMapPanel({ t }) {
 function JobsTab({ t, isDemo }) {
   const { addAlert } = useGlobalData();
   const [jobs, setJobs] = useState([]);
+  const [period, setPeriod] = useState({ preset: 'all' }); // [현 차수] 기간조회
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState(null);
 
@@ -453,10 +455,13 @@ function JobsTab({ t, isDemo }) {
     if (!raw) return '';
     try { const d = JSON.parse(raw); return d.error || d.reason || d.note || (d.ok ? '성공' : '') || ''; } catch { return String(raw).slice(0, 80); }
   };
-  const summary = jobs.reduce((a, j) => { a[j.status] = (a[j.status] || 0) + 1; return a; }, {});
+  // [현 차수] 기간조회 — 작업이력을 선택 기간으로 필터(updated_at 우선). 요약 카운트·테이블 동반 반응.
+  const jobsInPeriod = jobs.filter(j => inPeriodAny(j, period, ['updated_at', 'created_at', 'at', 'ts']));
+  const summary = jobsInPeriod.reduce((a, j) => { a[j.status] = (a[j.status] || 0) + 1; return a; }, {});
 
   return (
     <div style={{ display: 'grid', gap: 14 }}>
+      <PeriodFilterBar value={period} onChange={setPeriod} />
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <div style={{ fontWeight: 700, fontSize: 14 }}>📊 {t('writebackPage.jobHistory', 'Job History')}</div>
@@ -481,7 +486,7 @@ function JobsTab({ t, isDemo }) {
 
       {err && <div style={{ padding: '10px 14px', borderRadius: 10, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', fontSize: 12, color: '#ef4444' }}>⚠ {err}</div>}
 
-      {jobs.length === 0 ? (
+      {jobsInPeriod.length === 0 ? (
         <div className="card card-glass" style={{ padding: '48px 24px', textAlign: 'center' }}>
           <div style={{ fontSize: 48, marginBottom: 16 }}>📦</div>
           <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 8 }}>{t('writebackPage.noJobs', 'No Writeback Jobs')}</div>
@@ -499,7 +504,7 @@ function JobsTab({ t, isDemo }) {
                 </tr>
               </thead>
               <tbody>
-                {jobs.map((j, i) => (
+                {jobsInPeriod.map((j, i) => (
                   <tr key={j.id || i} style={{ borderBottom: '1px solid rgba(99,140,255,0.06)' }}>
                     <td style={{ padding: '10px 12px', color: 'var(--text-2)' }}>#{j.id}</td>
                     <td style={{ padding: '10px 12px' }}><Tag label={j.channel} /></td>

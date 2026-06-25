@@ -15,6 +15,7 @@ import { loadChannelRegistry, registryBySyncKind } from '../services/channelRegi
 //   (denyAnon)이라 비인증 getJson 호출 시 401 → 옴니채널 상품/주문/재고/상태 전부 빈데이터였음.
 import { getJsonAuth as getJson, postJson } from '../services/apiClient.js';
 import { IS_DEMO } from '../utils/demoEnv';
+import PeriodFilterBar, { inPeriodAny } from '../components/common/PeriodFilterBar.jsx'; // [현 차수] 기간조회
 
 /* 204차 동기화: 데모는 GlobalDataContext 단일소스(orders/inventory)에서 채널현황을 파생 —
    과거 5탭이 /api/channel-sync/* 를 호출해 데모서 빈값이었고, OrdersTab 은 전역 orders 를 []로 덮어써
@@ -403,6 +404,7 @@ function OrdersTab({ t }) {
     const [loading, setLoading] = React.useState(true);
     const [channel, setChannel] = React.useState('');
     const [statusFilter, setStatusFilter] = React.useState('');
+    const [period, setPeriod] = React.useState({ preset: 'all' }); // [현 차수] 기간조회
 
     const STATUS_KEYS = React.useMemo(() => ['statusConfirm','statusShipPending','statusShipping','statusDelivered','statusCancelReq','statusReturnRecv'], []);
     const STATUSES = React.useMemo(() => STATUS_KEYS.map(k => t(`omniChannel.${k}`)), [t, STATUS_KEYS]);
@@ -437,13 +439,15 @@ function OrdersTab({ t }) {
     // 데모: 전역 orders(DEMO_ORDERS) → OmniChannel 표시 스키마로 매핑(상태=현지화 라벨, 채널/상태 필터 적용). 운영=API orders.
     const _DEMO_ST = React.useMemo(() => ({ paid: STATUSES[0], confirmed: STATUSES[0], preparing: STATUSES[1], shipping: STATUSES[2], delivered: STATUSES[3], cancelled: STATUSES[4], canceled: STATUSES[4], returned: STATUSES[5] }), [STATUSES]);
     const displayOrders = React.useMemo(() => {
-        if (!IS_DEMO) return orders;
-        return (Array.isArray(orders) ? orders : []).map(o => ({
+        // [현 차수] 기간조회 — 수집 주문을 선택 기간으로 정확 필터(원본 atISO 기준, ko-KR at 폴백).
+        const inP = (o) => inPeriodAny(o, period, ['atISO', 'ordered_at', 'created_at', 'at']);
+        if (!IS_DEMO) return (Array.isArray(orders) ? orders : []).filter(inP);
+        return (Array.isArray(orders) ? orders : []).filter(inP).map(o => ({
             id: o.id, channel: o.ch || o.channel, channel_order_id: o.id, buyer_name: String(o.buyer || '').split(' ')[0] || o.buyer,
             product_name: o.name || o.product_name, qty: o.qty, total_price: o.total ?? o.total_price,
-            status: _DEMO_ST[o.status] || STATUSES[0], carrier: o.carrier, ordered_at: o.at || o.ordered_at,
+            status: _DEMO_ST[o.status] || STATUSES[0], carrier: o.carrier, ordered_at: o.atISO || o.at || o.ordered_at,
         })).filter(o => (!channel || o.channel === channel) && (!statusFilter || o.status === statusFilter));
-    }, [orders, channel, statusFilter, _DEMO_ST, STATUSES]);
+    }, [orders, channel, statusFilter, _DEMO_ST, STATUSES, period]);
 
     const handleStatusUpdate = React.useCallback(async (orderId, newStatus) => {
         if (isDemo) { alert(t('omniChannel.demoStatusMsg')); return; }
@@ -465,6 +469,7 @@ function OrdersTab({ t }) {
                     </div>
                 ))}
             </div>
+            <div style={{ marginBottom: 8 }}><PeriodFilterBar value={period} onChange={setPeriod} /></div>
             <div style={{ display: 'flex', gap: 8 }}>
                 <select style={{ padding: "7px 12px", borderRadius: 8, border: "1px solid #d1d5db", fontSize: 12, background: "#fff", color: "#1f2937", boxSizing: "border-box", width: 160 }} value={channel} onChange={e => setChannel(e.target.value)}>
                     <option value="">{t('omniChannel.allChannel')}</option>

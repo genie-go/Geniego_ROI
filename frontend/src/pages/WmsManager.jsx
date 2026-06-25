@@ -15,6 +15,7 @@ import { getJsonAuth as _gjaWms } from '../services/apiClient.js';
 import * as wmsApi from '../services/wmsApi.js';
 import { IS_DEMO } from '../utils/demoEnv.js';
 import { WmsDashboardTab, WmsReportsTab, WmsTollProcessingTab } from '../components/wms/WmsOpsTabs.jsx'; // [현 차수] 물류 대시보드·정기리포트·임가공
+import PeriodFilterBar, { inPeriodAny } from '../components/common/PeriodFilterBar.jsx'; // [현 차수] 입출고 기간조회
 
 /* ── BroadcastChannel Cross-Tab Sync ──────────────── */
 const BC_WMS = 'geniego_wms_sync';
@@ -297,6 +298,7 @@ const InOutTab = memo(function InOutTab({ whs }) {
     useEffect(() => { reloadMoves(); }, [reloadMoves]);
     const [filter, setFilter] = useState('All');
     const [searchTxt, setSearchTxt] = useState('');
+    const [period, setPeriod] = useState({ preset: 'all' }); // [현 차수] 입출고 기간조회
     const [form, setForm] = useState({ type: 'Inbound', whId: 'W001', destWhId: '', sku: '', name: '', qty: '', unit: '', memo: '', ref: '', reason: '' });
     const [showForm, setShowForm] = useState(false);
     const [showScanner, setShowScanner] = useState(false);
@@ -362,7 +364,9 @@ const InOutTab = memo(function InOutTab({ whs }) {
         const q = searchTxt.trim().toLowerCase();
         const matchType = filter === 'All' || r.type === filter;
         const matchQ = !q || r.sku.toLowerCase().includes(q) || (r.name || '').toLowerCase().includes(q) || (r.ref || '').toLowerCase().includes(q);
-        return matchType && matchQ;
+        // [현 차수] 기간조회 — 입출고 감사이력을 선택 기간으로 필터(ts ISO 우선, ko-KR at 폴백)
+        const matchP = inPeriodAny(r, period, ['ts', 'atISO', 'created_at', 'at']);
+        return matchType && matchQ && matchP;
     });
 
     /* ── Excel Bulk Upload ── */
@@ -461,6 +465,7 @@ const InOutTab = memo(function InOutTab({ whs }) {
 
     return (
         <div style={{ display: 'grid', gap: 14 }}>
+            <PeriodFilterBar value={period} onChange={setPeriod} />
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
                     {['All', ...IO_TYPES].map(k => (

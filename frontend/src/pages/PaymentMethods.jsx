@@ -5,6 +5,24 @@ import { useToast } from '../components/ToastProvider.jsx';
 import { IS_DEMO } from '../utils/demoEnv';
 import { bt } from '../utils/billingI18n';
 import CrossLinkBar from '../components/CrossLinkBar.jsx';
+import PeriodFilterBar, { inPeriodAny } from '../components/common/PeriodFilterBar.jsx'; // [현 차수] 결제내역 기간조회
+import { useGlobalData } from '../context/GlobalDataContext.jsx'; // [현 차수] 데모 결제내역 파생
+
+// [현 차수] 데모 결제/청구 내역 파생 — v427/billing/ledger 부재 시 주문 광고비를 월×채널 청구행으로 집계(기간 반응).
+const _LEDGER_CH = { meta: 'Meta Ads', google: 'Google Ads', naver: 'Naver', naver_sa: 'Naver SA', coupang: 'Coupang', tiktok: 'TikTok', kakao: 'Kakao', oliveyoung: 'Olive Young', '11st': '11번가', gmarket: 'G마켓' };
+function deriveDemoLedger(orders, channelBudgets) {
+  const by = {};
+  (orders || []).forEach(o => {
+    if (/cancel|취소/i.test(String(o.status || ''))) return;
+    const ym = o.month || (o.atISO ? String(o.atISO).slice(0, 7) : null); if (!ym) return;
+    const ch = o.ch || o.channel || 'meta';
+    const amt = Number(o.adFee || o.fee || Math.round(Number(o.total || 0) * 0.03));
+    const k = ym + '|' + ch;
+    if (!by[k]) by[k] = { id: k, ym, channel: ch, channel_name: _LEDGER_CH[ch] || ch, amount: 0, status: 'charged', created_at: ym + '-15' };
+    by[k].amount += amt;
+  });
+  return Object.values(by).map(r => ({ ...r, amount: Math.round(r.amount) })).filter(r => r.amount > 0).sort((a, b) => b.created_at.localeCompare(a.created_at) || b.amount - a.amount);
+}
 
 // [현 차수] 결제·청구 관련 화면 교차링크(비파괴 통합, 사용자 접근 가능 페이지만)
 const PAY_LINKS = [
@@ -24,8 +42,11 @@ export default function PaymentMethods() {
   const loc = useLocation();
   const tr = useCallback((k) => bt(k, lang), [lang]);
 
+  const { orders, channelBudgets } = useGlobalData(); // [현 차수] 데모 결제내역 파생용
   const [methods, setMethods] = useState([]);
   const [budget, setBudget] = useState(null);
+  const [ledger, setLedger] = useState([]); // [현 차수] 결제/청구 내역
+  const [period, setPeriod] = useState({ preset: 'all' });
   const [cfg, setCfg] = useState({ customer_key: '', client_key: '', configured: false });
   const [busy, setBusy] = useState(false);
 
@@ -36,7 +57,11 @@ export default function PaymentMethods() {
       .then(d => { if (d && d.ok) setBudget(d); }).catch(() => {});
     fetch('/api/v427/billing/customer-key', { headers: authHeaders() }).then(r => r.json())
       .then(d => { if (d && d.ok) setCfg({ customer_key: d.customer_key || '', client_key: d.client_key || '', configured: !!d.configured }); }).catch(() => {});
-  }, []);
+    // [현 차수] 결제/청구 내역 — 운영은 기존 ledger 엔드포인트, 데모는 주문 광고비 파생(기간조회 대상)
+    if (IS_DEMO) { setLedger(deriveDemoLedger(orders, channelBudgets)); }
+    else fetch('/api/v427/billing/ledger', { headers: authHeaders() }).then(r => r.json())
+      .then(d => { if (d && d.ok) setLedger(d.rows || d.ledger || []); }).catch(() => {});
+  }, [orders, channelBudgets]);
 
   useEffect(() => { loadAll(); }, [loadAll]);
 
@@ -155,6 +180,41 @@ export default function PaymentMethods() {
         {budget && budget.cap_hit && (
           <div style={{ marginTop: 12, fontSize: 12.5, color: '#dc2626', fontWeight: 700 }}>⛔ {tr('capHit')}</div>
         )}
+      </div>
+
+      {/* [현 차수] 결제/청구 내역 — 기간 설정 후 조회(누락 기능 신설). 운영=v427/billing/ledger, 데모=주문 광고비 파생. */}
+      <div style={{ ...card, marginBottom: 18 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10, marginBottom: 14 }}>
+          <div style={{ fontWeight: 800, fontSize: 14 }}>🧾 결제/청구 내역</div>
+          <PeriodFilterBar value={period} onChange={setPeriod} />
+        </div>
+        {(() => {
+          const rows = (ledger || []).filter(r => inPeriodAny(r, period, ['created_at', 'ym', 'charged_at']));
+          const total = rows.reduce((s, r) => s + Number(r.amount || 0), 0);
+          if (!rows.length) return <div style={{ padding: '24px 0', textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>선택 기간의 결제/청구 내역이 없습니다.</div>;
+          return (
+            <>
+              <div style={{ fontSize: 12.5, color: '#64748b', marginBottom: 12 }}>합계 <strong style={{ color: '#4f46e5', fontSize: 14 }}>{fmtKRW(total)}</strong> · {rows.length}건</div>
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12.5 }}>
+                  <thead><tr style={{ borderBottom: '1px solid #eef2f7', color: '#94a3b8', fontSize: 11, textAlign: 'left' }}>
+                    <th style={{ padding: '8px 10px' }}>청구월</th><th style={{ padding: '8px 10px' }}>채널</th><th style={{ padding: '8px 10px', textAlign: 'right' }}>금액</th><th style={{ padding: '8px 10px' }}>상태</th>
+                  </tr></thead>
+                  <tbody>
+                    {rows.slice(0, 200).map(r => (
+                      <tr key={r.id} style={{ borderBottom: '1px solid #f6f8fb' }}>
+                        <td style={{ padding: '8px 10px', fontFamily: 'monospace', color: '#475569' }}>{r.ym || (r.created_at || '').slice(0, 7)}</td>
+                        <td style={{ padding: '8px 10px', fontWeight: 700 }}>{r.channel_name || r.channel}</td>
+                        <td style={{ padding: '8px 10px', textAlign: 'right', fontWeight: 800, color: '#dc2626' }}>{fmtKRW(r.amount)}</td>
+                        <td style={{ padding: '8px 10px' }}><span style={{ fontSize: 10.5, fontWeight: 700, padding: '2px 9px', borderRadius: 20, background: r.status === 'charged' ? 'rgba(34,197,94,0.12)' : 'rgba(234,179,8,0.12)', color: r.status === 'charged' ? '#16a34a' : '#a16207' }}>{r.status === 'charged' ? '청구완료' : (r.status || '대기')}</span></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          );
+        })()}
       </div>
 
       {/* 등록 카드 목록 */}

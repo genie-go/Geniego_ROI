@@ -9,6 +9,7 @@ import { CHANNEL_RATES } from '../constants/channelRates.js';
 import * as apiClient from '../services/apiClient';
 import GuideWizard from '../components/GuideWizard.jsx'; // [237차] 인앱 순차 완료 위저드(필수등록 게이팅)
 import { useProductSelection } from '../contexts/ProductSelectionContext.jsx';
+import PeriodFilterBar, { inPeriodAny } from '../components/common/PeriodFilterBar.jsx'; // [현 차수] 기간조회
 
 /* ??? CSV Download Util ???????????????????????????? */
 function downloadCSV(filename, headers, rows) {
@@ -318,6 +319,7 @@ function OrderTab() {
     const [search, setSearch] = useState("");
     const [selCh, setSelCh] = useState("all");
     const [selSt, setSelSt] = useState("all");
+    const [period, setPeriod] = useState({ preset: 'all' }); // [현 차수] 기간조회
     const [page, setPage] = useState(0);
     const [detail, setDetail] = useState(null);
     const PAGE = 10;
@@ -369,8 +371,10 @@ function OrderTab() {
         if (search) rows = rows.filter(r => (r.id || '').includes(search) || (r.sku || '').includes(search) || (r.buyer || '').includes(search));
         if (selCh !== "all") rows = rows.filter(r => r.channel === selCh);
         if (selSt !== "all") rows = rows.filter(r => r.status === selSt);
+        // [현 차수] 기간조회 — 수집 주문을 선택 기간으로 필터(atISO 우선, ko-KR at 폴백)
+        if (period && period.preset !== 'all') rows = rows.filter(r => inPeriodAny(r, period, ['atISO', 'ordered_at', 'created_at', 'orderedAt', 'at']));
         return rows;
-    }, [memoizedOrders, search, selCh, selSt, selectedProduct]);
+    }, [memoizedOrders, search, selCh, selSt, selectedProduct, period]);
 
     const paged = filtered.slice(page * PAGE, (page + 1) * PAGE);
     const totalPages = Math.ceil(filtered.length / PAGE);
@@ -497,6 +501,9 @@ function OrderTab() {
                         <div className="kpi-value" style={{ color: c, fontSize: 20 }}>{v}</div>
                     </div>
                 ))}
+            </div>
+            <div style={{ marginBottom: 8 }}>
+                <PeriodFilterBar value={period} onChange={p => { setPeriod(p); setPage(0); }} />
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
                 <input className="input" style={{ flex: 1 }} placeholder={t('orderHub.searchPlaceholder')} value={search} onChange={e => setSearch(e.target.value)} />
