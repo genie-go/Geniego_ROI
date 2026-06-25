@@ -370,6 +370,13 @@ class LiveCommerce
         // [현 차수] 라이브 주문 전환 등록(attribution_result) — 폴링(2339)/웹훅(3411) enrichOrderAttribution 경로와 동등.
         //   광고 클릭ID 없으면 commerce-last-touch 로 전환 집계 → markov 여정에 라이브 채널 전환 반영. 데모는 내부 skip.
         try { \Genie\Handlers\ChannelSync::enrichOrderAttribution($pdo, $t, 'live', 'LIVE-' . $sid . '-' . $orderId, null, $total, ['product_name' => $name, 'sku' => $sku]); } catch (\Throwable $e) {}
+        // [현 차수 P1] 오픈 플랫폼 아웃바운드 웹훅 — 구독 엔드포인트가 있으면 order.created 발신(없으면 no-op).
+        //   emit 은 pending 행만 INSERT(비차단) → webhook_dispatch_cron 이 HMAC 서명 전달/재시도. 예외 비전파.
+        \Genie\Handlers\OpenPlatform::emit($t, 'order.created', [
+            'order_id' => 'LIVE-' . $sid . '-' . $orderId, 'channel' => 'live',
+            'amount' => $total, 'currency' => 'KRW', 'qty' => $qty, 'sku' => $sku, 'product_name' => $name,
+            'occurred_at' => $now,
+        ]);
 
         return self::json($res, ['ok' => true, 'id' => $orderId, 'total' => $total, 'name' => $name, 'qty' => $qty]);
     }

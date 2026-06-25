@@ -464,7 +464,7 @@ export default {
     "keyLastUsed": "Dernière utilisation",
     "keyExpires": "Expire",
     "keyRotate": "Rotation",
-    "keyRevoke": "Révoquer",
+    "keyRevoke": "Révoquer", "whUrlInvalid": "L’URL doit commencer par https://.", "whPickEvent": "Sélectionnez au moins un événement à abonner.", "whCreateFail": "Échec de l’enregistrement.", "whTestOk": "Événement de test livré.", "whTestFail": "Échec de la livraison", "whUpdateFail": "Échec de la mise à jour", "whDeleteConfirm": "Supprimer cet abonnement webhook ?", "whDeleted": "Supprimé.", "whDeleteFail": "Échec de la suppression", "whSecretOnce": "Ce secret de signature ne sera plus affiché.", "whRegister": "Enregistrer le point de terminaison webhook", "whDescPh": "Description (facultatif)", "whSubscribeEvents": "Événements abonnés", "whNoCatalog": "Échec du chargement du catalogue d’événements.", "whRegistering": "Enregistrement...", "whRegisterBtn": "Enregistrer l’abonnement", "whEndpoints": "Points de terminaison enregistrés", "whNone": "Aucun abonnement webhook enregistré.", "whActive": "Actif", "whPaused": "En pause", "whLast": "Dernier", "whFails": "Échecs", "whTest": "Tester", "whPause": "Pause", "whResume": "Reprendre", "whDelete": "Supprimer", "whDeliveries": "Journal de livraison récent", "whAttempts": " tentatives", "whVerifyTitle": "Vérification de signature (côté récepteur)",
   },
   appPricing: {
     "accountsLabel": "Nombre de comptes",

@@ -189,6 +189,179 @@ function ApiKeysPanel() {
   );
 }
 
+/* ─── P1 신규: 아웃바운드 웹훅 실관리 패널 (세션 인증 /v429/webhooks/*) ───
+   기존 정적 목업 탭을 실제 백엔드(OpenPlatform)에 연결해 구독 등록·테스트·전달로그까지 제공. */
+function WebhooksPanel() {
+  const { t } = useI18n();
+  const [catalog, setCatalog] = useState(null);   // [{type,description,sample_payload}]
+  const [endpoints, setEndpoints] = useState(null);
+  const [deliveries, setDeliveries] = useState([]);
+  const [url, setUrl] = useState('');
+  const [desc, setDesc] = useState('');
+  const [sel, setSel] = useState({});             // {eventType:true}
+  const [busy, setBusy] = useState(false);
+  const [newSecret, setNewSecret] = useState(null);
+  const [msg, setMsg] = useState({ text: '', type: '' });
+
+  const showMsg = (text, type = 'ok') => { setMsg({ text, type }); setTimeout(() => setMsg({ text: '', type: '' }), 5000); };
+
+  const loadCatalog = useCallback(async () => {
+    const { data } = await api('/v429/webhooks/events');
+    if (Array.isArray(data.events)) setCatalog(data.events); else setCatalog([]);
+  }, []);
+  const loadEndpoints = useCallback(async () => {
+    const { data } = await api('/v429/webhooks/endpoints');
+    setEndpoints(Array.isArray(data.endpoints) ? data.endpoints : []);
+  }, []);
+  const loadDeliveries = useCallback(async () => {
+    const { data } = await api('/v429/webhooks/deliveries');
+    setDeliveries(Array.isArray(data.deliveries) ? data.deliveries : []);
+  }, []);
+  useEffect(() => { loadCatalog(); loadEndpoints(); loadDeliveries(); }, [loadCatalog, loadEndpoints, loadDeliveries]);
+
+  const toggleEv = (ev) => setSel(s => ({ ...s, [ev]: !s[ev] }));
+  const selectedEvents = () => Object.keys(sel).filter(k => sel[k]);
+
+  const handleCreate = async () => {
+    const events = selectedEvents();
+    if (!/^https:\/\//i.test(url.trim())) { showMsg(t('devHub.whUrlInvalid', 'URL은 https:// 로 시작해야 합니다.'), 'err'); return; }
+    if (events.length === 0) { showMsg(t('devHub.whPickEvent', '구독할 이벤트를 1개 이상 선택하세요.'), 'err'); return; }
+    setBusy(true);
+    const { data } = await api('/v429/webhooks/endpoints', { method: 'POST', body: JSON.stringify({ url: url.trim(), events, description: desc.trim() }) });
+    if (data.ok) { setNewSecret({ secret: data.secret, warning: data.warning }); setUrl(''); setDesc(''); setSel({}); loadEndpoints(); }
+    else showMsg(data.error || t('devHub.whCreateFail', '등록에 실패했습니다.'), 'err');
+    setBusy(false);
+  };
+  const handleTest = async (id) => {
+    const { data } = await api(`/v429/webhooks/endpoints/${id}/test`, { method: 'POST', body: '{}' });
+    if (data.ok) showMsg(t('devHub.whTestOk', '테스트 이벤트가 전달되었습니다.') + ` (HTTP ${data.http_code})`, 'ok');
+    else showMsg(t('devHub.whTestFail', '전달 실패') + `: ${data.error || data.http_code || ''}`, 'err');
+    loadDeliveries();
+  };
+  const handleToggle = async (ep) => {
+    const { data } = await api(`/v429/webhooks/endpoints/${ep.id}`, { method: 'PUT', body: JSON.stringify({ is_active: ep.is_active ? 0 : 1 }) });
+    if (data.ok) loadEndpoints(); else showMsg(data.error || t('devHub.whUpdateFail', '변경 실패'), 'err');
+  };
+  const handleDelete = async (id) => {
+    if (!window.confirm(t('devHub.whDeleteConfirm', '이 웹훅 구독을 삭제하시겠습니까?'))) return;
+    const { data } = await api(`/v429/webhooks/endpoints/${id}`, { method: 'DELETE' });
+    if (data.ok) { showMsg(t('devHub.whDeleted', '삭제되었습니다.'), 'ok'); loadEndpoints(); } else showMsg(data.error || t('devHub.whDeleteFail', '삭제 실패'), 'err');
+  };
+
+  const card = { borderRadius: 12, background: 'rgba(255,255,255,0.9)', border: '1px solid rgba(0,0,0,0.07)', padding: 16 };
+  const inp = { padding: '9px 12px', borderRadius: 9, border: '1px solid rgba(0,0,0,0.12)', fontSize: 13, outline: 'none', color: '#1e293b', background: '#fff' };
+  const codeBox = { fontFamily: 'monospace', fontSize: 12, whiteSpace: 'pre-wrap', wordBreak: 'break-all', background: '#0f172a', color: '#e2e8f0', borderRadius: 10, padding: '14px 16px', lineHeight: 1.6 };
+  const statusColor = { delivered: '#16a34a', pending: '#64748b', retry: '#f59e0b', failed: '#dc2626', dropped: '#94a3b8' };
+
+  return (
+    <div style={{ display: 'grid', gap: 16 }}>
+      <div style={{ fontSize: 12, color: '#64748b', lineHeight: 1.7 }}>
+        🪝 {t('devHub.webhookIntro', '이벤트 발생 시 등록한 URL로 서명된 POST 요청을 전송합니다. X-Genie-Signature 헤더(HMAC-SHA256)로 위변조를 검증하세요.')}
+      </div>
+
+      {msg.text && (
+        <div style={{ padding: '10px 14px', borderRadius: 10, fontSize: 12, fontWeight: 700,
+          background: msg.type === 'ok' ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)',
+          border: `1px solid ${msg.type === 'ok' ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
+          color: msg.type === 'ok' ? '#16a34a' : '#dc2626' }}>
+          {msg.type === 'ok' ? '✅ ' : '❌ '}{msg.text}
+        </div>
+      )}
+
+      {/* 시크릿 1회 표시 */}
+      {newSecret && (
+        <div style={{ ...card, background: 'rgba(234,179,8,0.07)', border: '1px solid rgba(234,179,8,0.3)' }}>
+          <div style={{ fontSize: 12, fontWeight: 800, color: '#b45309', marginBottom: 8 }}>⚠️ {newSecret.warning || t('devHub.whSecretOnce', '이 서명 시크릿은 다시 표시되지 않습니다.')}</div>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <input readOnly value={newSecret.secret} onFocus={e => e.target.select()} style={{ ...inp, flex: 1, fontFamily: 'monospace', fontSize: 12 }} />
+            <button onClick={() => { try { navigator.clipboard.writeText(newSecret.secret); showMsg(t('devHub.copied', '복사되었습니다.'), 'ok'); } catch {} }}
+              style={{ padding: '9px 14px', borderRadius: 9, border: 'none', background: '#4f8ef7', color: '#fff', fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>📋</button>
+            <button onClick={() => setNewSecret(null)} style={{ padding: '9px 12px', borderRadius: 9, border: '1px solid rgba(0,0,0,0.1)', background: '#fff', color: '#64748b', fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>✕</button>
+          </div>
+        </div>
+      )}
+
+      {/* 등록 폼 */}
+      <div style={{ ...card, display: 'grid', gap: 12 }}>
+        <div style={{ fontSize: 12, fontWeight: 800, color: '#475569' }}>{t('devHub.whRegister', '웹훅 엔드포인트 등록')}</div>
+        <input value={url} onChange={e => setUrl(e.target.value)} placeholder="https://example.com/hooks/genie" style={inp} />
+        <input value={desc} onChange={e => setDesc(e.target.value)} placeholder={t('devHub.whDescPh', '설명(선택)')} style={inp} />
+        <div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#475569', marginBottom: 6 }}>{t('devHub.whSubscribeEvents', '구독 이벤트')}</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {(catalog || []).map(ev => (
+              <label key={ev.type} title={ev.description} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 10px', borderRadius: 20, cursor: 'pointer',
+                background: sel[ev.type] ? 'rgba(79,142,247,0.12)' : 'rgba(0,0,0,0.03)', border: `1px solid ${sel[ev.type] ? 'rgba(79,142,247,0.4)' : 'rgba(0,0,0,0.08)'}` }}>
+                <input type="checkbox" checked={!!sel[ev.type]} onChange={() => toggleEv(ev.type)} style={{ cursor: 'pointer' }} />
+                <span style={{ fontFamily: 'monospace', fontSize: 11, color: '#2563eb' }}>{ev.type}</span>
+              </label>
+            ))}
+            {catalog && catalog.length === 0 && <span style={{ fontSize: 11, color: '#94a3b8' }}>{t('devHub.whNoCatalog', '이벤트 카탈로그를 불러오지 못했습니다.')}</span>}
+          </div>
+        </div>
+        <button onClick={handleCreate} disabled={busy}
+          style={{ justifySelf: 'start', padding: '10px 18px', borderRadius: 9, border: 'none', cursor: busy ? 'wait' : 'pointer', background: 'linear-gradient(135deg,#4f8ef7,#6366f1)', color: '#fff', fontWeight: 800, fontSize: 13 }}>
+          {busy ? t('devHub.whRegistering', '등록 중...') : `+ ${t('devHub.whRegisterBtn', '구독 등록')}`}
+        </button>
+      </div>
+
+      {/* 등록된 엔드포인트 목록 */}
+      <div style={{ display: 'grid', gap: 10 }}>
+        <div style={{ fontSize: 12, fontWeight: 800, color: '#475569' }}>{t('devHub.whEndpoints', '등록된 엔드포인트')}</div>
+        {endpoints === null && <div style={{ ...card, textAlign: 'center', color: '#64748b', fontSize: 12 }}>{t('devHub.loading', '불러오는 중...')}</div>}
+        {Array.isArray(endpoints) && endpoints.length === 0 && (
+          <div style={{ ...card, textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>{t('devHub.whNone', '등록된 웹훅 구독이 없습니다.')}</div>
+        )}
+        {Array.isArray(endpoints) && endpoints.map(ep => (
+          <div key={ep.id} style={{ ...card, display: 'grid', gap: 8, opacity: ep.is_active ? 1 : 0.55 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+              <span style={{ fontFamily: 'monospace', fontSize: 12, color: '#1e293b', wordBreak: 'break-all', flex: '1 1 200px' }}>{ep.url}</span>
+              <span style={{ padding: '1px 8px', borderRadius: 99, fontSize: 9, fontWeight: 800, background: ep.is_active ? 'rgba(34,197,94,0.15)' : 'rgba(100,116,139,0.15)', color: ep.is_active ? '#16a34a' : '#64748b' }}>
+                {ep.is_active ? t('devHub.whActive', '활성') : t('devHub.whPaused', '일시중지')}
+              </span>
+              {ep.last_status && <span style={{ fontSize: 10, color: '#94a3b8' }}>{t('devHub.whLast', '최근')}: {ep.last_status}</span>}
+              {Number(ep.failure_count) > 0 && <span style={{ fontSize: 10, color: '#dc2626' }}>{t('devHub.whFails', '실패')} {ep.failure_count}</span>}
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+              {(ep.events || []).map(e => <span key={e} style={{ fontFamily: 'monospace', fontSize: 10, padding: '2px 8px', borderRadius: 14, background: 'rgba(79,142,247,0.08)', color: '#2563eb' }}>{e}</span>)}
+            </div>
+            {ep.secret_masked && <div style={{ fontSize: 10.5, color: '#94a3b8', fontFamily: 'monospace' }}>secret: {ep.secret_masked}</div>}
+            <div style={{ display: 'flex', gap: 6 }}>
+              <button onClick={() => handleTest(ep.id)} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid rgba(34,197,94,0.3)', background: 'rgba(34,197,94,0.06)', color: '#16a34a', fontWeight: 700, fontSize: 11.5, cursor: 'pointer' }}>🚀 {t('devHub.whTest', '테스트')}</button>
+              <button onClick={() => handleToggle(ep)} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid rgba(79,142,247,0.3)', background: 'rgba(79,142,247,0.06)', color: '#4f8ef7', fontWeight: 700, fontSize: 11.5, cursor: 'pointer' }}>{ep.is_active ? `⏸ ${t('devHub.whPause', '중지')}` : `▶ ${t('devHub.whResume', '재개')}`}</button>
+              <button onClick={() => handleDelete(ep.id)} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.06)', color: '#dc2626', fontWeight: 700, fontSize: 11.5, cursor: 'pointer' }}>🗑️ {t('devHub.whDelete', '삭제')}</button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* 전달 로그 */}
+      {deliveries.length > 0 && (
+        <div style={{ ...card }}>
+          <div style={{ fontSize: 12, fontWeight: 800, color: '#475569', marginBottom: 10 }}>📜 {t('devHub.whDeliveries', '최근 전달 로그')}</div>
+          <div style={{ display: 'grid', gap: 4 }}>
+            {deliveries.slice(0, 15).map(d => (
+              <div key={d.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 10px', borderRadius: 8, background: 'rgba(0,0,0,0.02)', fontSize: 11, flexWrap: 'wrap' }}>
+                <span style={{ fontFamily: 'monospace', color: '#2563eb', flex: '1 1 140px' }}>{d.event_type}</span>
+                <span style={{ fontWeight: 800, color: statusColor[d.status] || '#64748b' }}>{d.status}</span>
+                {d.http_code > 0 && <span style={{ color: '#94a3b8' }}>HTTP {d.http_code}</span>}
+                {Number(d.attempts) > 0 && <span style={{ color: '#94a3b8' }}>· {d.attempts}{t('devHub.whAttempts', '회 시도')}</span>}
+                <span style={{ color: '#cbd5e1', marginLeft: 'auto' }}>{String(d.created_at || '').slice(0, 16).replace('T', ' ')}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 서명 검증 예시 */}
+      <div>
+        <div style={{ fontSize: 12, fontWeight: 800, color: '#475569', marginBottom: 8 }}>{t('devHub.whVerifyTitle', '서명 검증 (수신 측)')}</div>
+        <div style={codeBox}>{`// X-Genie-Signature: t=<ts>,v1=<hmac>\nconst [tPart, v1Part] = sigHeader.split(',');\nconst ts = tPart.split('=')[1], v1 = v1Part.split('=')[1];\nconst expected = crypto.createHmac('sha256', ENDPOINT_SECRET)\n  .update(ts + '.' + rawBody).digest('hex');\nif (expected === v1 && Date.now()/1000 - ts < 300) { /* valid */ }`}</div>
+      </div>
+    </div>
+  );
+}
+
 /* ─── 실제 API 레퍼런스(문서) — 운영 routes.php 기준 대표 엔드포인트 ─── */
 const API_REF = [
   { group: 'Auth', color: '#4f8ef7', items: [
@@ -213,7 +386,8 @@ const SDK_LIST = [
   { id: 'js',   name: 'JavaScript', icon: '🟨', code: "const r = await fetch('/api/v423/rollup/summary', {\n  headers: { Authorization: `Bearer ${apiKey}` }\n});\nconst data = await r.json();" },
   { id: 'py',   name: 'Python', icon: '🐍', code: "import requests\nr = requests.get(\n  'https://roi.genie-go.com/api/v423/rollup/summary',\n  headers={'Authorization': f'Bearer {api_key}'})\nprint(r.json())" },
 ];
-const WEBHOOK_EVENTS = ['sync.completed', 'alert.triggered', 'report.exported', 'key.rotated', 'plan.changed'];
+// P1: 실제 OpenPlatform 발신 이벤트(웹훅 카탈로그와 정합). KPI 카운트용 — 실관리 UI 는 /v429/webhooks/events 동적 로드.
+const WEBHOOK_EVENTS = ['order.created', 'order.cancelled', 'settlement.created', 'conversion.recorded', 'attribution.computed'];
 
 export default function DeveloperHub() {
   const { t } = useI18n();
@@ -324,23 +498,8 @@ export default function DeveloperHub() {
           </div>
         )}
 
-        {/* TAB 3: Webhooks */}
-        {activeTab === 3 && (
-          <div style={{ display: 'grid', gap: 16 }}>
-            <div style={{ fontSize: 12, color: '#64748b', lineHeight: 1.7 }}>
-              🪝 {t('devHub.webhookIntro', '이벤트 발생 시 등록한 URL로 서명된 POST 요청을 전송합니다. X-Genie-Signature 헤더(HMAC-SHA256)로 위변조를 검증하세요.')}
-            </div>
-            <div>
-              <div style={{ fontSize: 12, fontWeight: 800, color: '#475569', marginBottom: 8 }}>{t('devHub.webhookEvents', '지원 이벤트')}</div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                {WEBHOOK_EVENTS.map(ev => (
-                  <span key={ev} style={{ fontFamily: 'monospace', fontSize: 11, padding: '4px 10px', borderRadius: 20, background: 'rgba(79,142,247,0.08)', border: '1px solid rgba(79,142,247,0.2)', color: '#2563eb' }}>{ev}</span>
-                ))}
-              </div>
-            </div>
-            <div style={codeBox}>{`POST {your_endpoint}\nX-Genie-Signature: sha256=...\nContent-Type: application/json\n\n{\n  "event": "sync.completed",\n  "tenant_id": "...",\n  "data": { ... }\n}`}</div>
-          </div>
-        )}
+        {/* TAB 3: Webhooks — P1 실관리(OpenPlatform /v429/webhooks/*) */}
+        {activeTab === 3 && <WebhooksPanel />}
 
         {/* TAB 4: Sandbox */}
         {activeTab === 4 && (

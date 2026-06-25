@@ -464,7 +464,7 @@ export default {
     "keyLastUsed": "Последнее использование",
     "keyExpires": "Истекает",
     "keyRotate": "Ротировать",
-    "keyRevoke": "Отозвать",
+    "keyRevoke": "Отозвать", "whUrlInvalid": "URL должен начинаться с https://.", "whPickEvent": "Выберите хотя бы одно событие для подписки.", "whCreateFail": "Ошибка регистрации.", "whTestOk": "Тестовое событие доставлено.", "whTestFail": "Ошибка доставки", "whUpdateFail": "Ошибка обновления", "whDeleteConfirm": "Удалить эту подписку на вебхук?", "whDeleted": "Удалено.", "whDeleteFail": "Ошибка удаления", "whSecretOnce": "Этот секрет подписи больше не будет показан.", "whRegister": "Зарегистрировать эндпоинт вебхука", "whDescPh": "Описание (необязательно)", "whSubscribeEvents": "Подписанные события", "whNoCatalog": "Не удалось загрузить каталог событий.", "whRegistering": "Регистрация...", "whRegisterBtn": "Зарегистрировать подписку", "whEndpoints": "Зарегистрированные эндпоинты", "whNone": "Подписок на вебхуки нет.", "whActive": "Активен", "whPaused": "Приостановлен", "whLast": "Последний", "whFails": "Сбои", "whTest": "Тест", "whPause": "Пауза", "whResume": "Возобновить", "whDelete": "Удалить", "whDeliveries": "Журнал доставки", "whAttempts": " попыток", "whVerifyTitle": "Проверка подписи (на стороне получателя)",
   },
   appPricing: {
     "accountsLabel": "Количество аккаунтов",

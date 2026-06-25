@@ -261,7 +261,7 @@ export default {
     "keyLastUsed": "마지막 사용",
     "keyExpires": "만료",
     "keyRotate": "회전",
-    "keyRevoke": "폐기",
+    "keyRevoke": "폐기", "whUrlInvalid": "URL은 https:// 로 시작해야 합니다.", "whPickEvent": "구독할 이벤트를 1개 이상 선택하세요.", "whCreateFail": "등록에 실패했습니다.", "whTestOk": "테스트 이벤트가 전달되었습니다.", "whTestFail": "전달 실패", "whUpdateFail": "변경 실패", "whDeleteConfirm": "이 웹훅 구독을 삭제하시겠습니까?", "whDeleted": "삭제되었습니다.", "whDeleteFail": "삭제 실패", "whSecretOnce": "이 서명 시크릿은 다시 표시되지 않습니다.", "whRegister": "웹훅 엔드포인트 등록", "whDescPh": "설명(선택)", "whSubscribeEvents": "구독 이벤트", "whNoCatalog": "이벤트 카탈로그를 불러오지 못했습니다.", "whRegistering": "등록 중...", "whRegisterBtn": "구독 등록", "whEndpoints": "등록된 엔드포인트", "whNone": "등록된 웹훅 구독이 없습니다.", "whActive": "활성", "whPaused": "일시중지", "whLast": "최근", "whFails": "실패", "whTest": "테스트", "whPause": "중지", "whResume": "재개", "whDelete": "삭제", "whDeliveries": "최근 전달 로그", "whAttempts": "회 시도", "whVerifyTitle": "서명 검증 (수신 측)",
   },
   appPricing: {
     "accountsLabel": "계정 수",

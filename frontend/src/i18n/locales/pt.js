@@ -464,7 +464,7 @@ export default {
     "keyLastUsed": "Último uso",
     "keyExpires": "Expira",
     "keyRotate": "Rotacionar",
-    "keyRevoke": "Revogar",
+    "keyRevoke": "Revogar", "whUrlInvalid": "A URL deve começar com https://.", "whPickEvent": "Selecione pelo menos um evento para assinar.", "whCreateFail": "Falha no registro.", "whTestOk": "Evento de teste entregue.", "whTestFail": "Falha na entrega", "whUpdateFail": "Falha na atualização", "whDeleteConfirm": "Excluir esta assinatura de webhook?", "whDeleted": "Excluído.", "whDeleteFail": "Falha ao excluir", "whSecretOnce": "Este segredo de assinatura não será exibido novamente.", "whRegister": "Registrar endpoint de webhook", "whDescPh": "Descrição (opcional)", "whSubscribeEvents": "Eventos assinados", "whNoCatalog": "Falha ao carregar o catálogo de eventos.", "whRegistering": "Registrando...", "whRegisterBtn": "Registrar assinatura", "whEndpoints": "Endpoints registrados", "whNone": "Nenhuma assinatura de webhook registrada.", "whActive": "Ativo", "whPaused": "Pausado", "whLast": "Último", "whFails": "Falhas", "whTest": "Testar", "whPause": "Pausar", "whResume": "Retomar", "whDelete": "Excluir", "whDeliveries": "Registro de entregas recente", "whAttempts": " tentativas", "whVerifyTitle": "Verificação de assinatura (lado receptor)",
   },
   appPricing: {
     "accountsLabel": "Número de contas",

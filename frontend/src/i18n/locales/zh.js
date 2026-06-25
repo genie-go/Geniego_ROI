@@ -464,7 +464,7 @@ export default {
     "keyLastUsed": "最近使用",
     "keyExpires": "过期",
     "keyRotate": "轮换",
-    "keyRevoke": "吊销",
+    "keyRevoke": "吊销", "whUrlInvalid": "URL 必须以 https:// 开头。", "whPickEvent": "请至少选择一个要订阅的事件。", "whCreateFail": "注册失败。", "whTestOk": "测试事件已送达。", "whTestFail": "送达失败", "whUpdateFail": "更新失败", "whDeleteConfirm": "确定删除此 Webhook 订阅吗？", "whDeleted": "已删除。", "whDeleteFail": "删除失败", "whSecretOnce": "此签名密钥不会再次显示。", "whRegister": "注册 Webhook 端点", "whDescPh": "说明（可选）", "whSubscribeEvents": "订阅事件", "whNoCatalog": "无法加载事件目录。", "whRegistering": "注册中...", "whRegisterBtn": "注册订阅", "whEndpoints": "已注册端点", "whNone": "尚无 Webhook 订阅。", "whActive": "启用", "whPaused": "已暂停", "whLast": "最近", "whFails": "失败", "whTest": "测试", "whPause": "暂停", "whResume": "恢复", "whDelete": "删除", "whDeliveries": "最近送达日志", "whAttempts": "次尝试", "whVerifyTitle": "签名验证（接收方）",
   },
   appPricing: {
     "accountsLabel": "账户数量",

@@ -464,7 +464,7 @@ export default {
     "keyLastUsed": "Último uso",
     "keyExpires": "Caduca",
     "keyRotate": "Rotar",
-    "keyRevoke": "Revocar",
+    "keyRevoke": "Revocar", "whUrlInvalid": "La URL debe comenzar con https://.", "whPickEvent": "Selecciona al menos un evento para suscribirte.", "whCreateFail": "Error al registrar.", "whTestOk": "Evento de prueba entregado.", "whTestFail": "Error de entrega", "whUpdateFail": "Error al actualizar", "whDeleteConfirm": "¿Eliminar esta suscripción de webhook?", "whDeleted": "Eliminado.", "whDeleteFail": "Error al eliminar", "whSecretOnce": "Este secreto de firma no se mostrará de nuevo.", "whRegister": "Registrar endpoint de webhook", "whDescPh": "Descripción (opcional)", "whSubscribeEvents": "Eventos suscritos", "whNoCatalog": "No se pudo cargar el catálogo de eventos.", "whRegistering": "Registrando...", "whRegisterBtn": "Registrar suscripción", "whEndpoints": "Endpoints registrados", "whNone": "No hay suscripciones de webhook registradas.", "whActive": "Activo", "whPaused": "En pausa", "whLast": "Último", "whFails": "Fallos", "whTest": "Probar", "whPause": "Pausar", "whResume": "Reanudar", "whDelete": "Eliminar", "whDeliveries": "Registro de entregas reciente", "whAttempts": " intentos", "whVerifyTitle": "Verificación de firma (lado receptor)",
   },
   appPricing: {
     "accountsLabel": "Número de cuentas",

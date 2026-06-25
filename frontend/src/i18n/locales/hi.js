@@ -464,7 +464,7 @@ export default {
     "keyLastUsed": "अंतिम उपयोग",
     "keyExpires": "समाप्ति",
     "keyRotate": "घुमाएँ",
-    "keyRevoke": "रद्द",
+    "keyRevoke": "रद्द", "whUrlInvalid": "URL https:// से शुरू होना चाहिए।", "whPickEvent": "सदस्यता के लिए कम से कम एक इवेंट चुनें।", "whCreateFail": "पंजीकरण विफल।", "whTestOk": "परीक्षण इवेंट भेज दिया गया।", "whTestFail": "डिलीवरी विफल", "whUpdateFail": "अपडेट विफल", "whDeleteConfirm": "क्या यह वेबहुक सदस्यता हटाएँ?", "whDeleted": "हटा दिया गया।", "whDeleteFail": "हटाना विफल", "whSecretOnce": "यह साइनिंग सीक्रेट दोबारा नहीं दिखेगा।", "whRegister": "वेबहुक एंडपॉइंट पंजीकृत करें", "whDescPh": "विवरण (वैकल्पिक)", "whSubscribeEvents": "सब्सक्राइब्ड इवेंट", "whNoCatalog": "इवेंट कैटलॉग लोड नहीं हो सका।", "whRegistering": "पंजीकरण हो रहा है...", "whRegisterBtn": "सदस्यता पंजीकृत करें", "whEndpoints": "पंजीकृत एंडपॉइंट", "whNone": "कोई वेबहुक सदस्यता पंजीकृत नहीं।", "whActive": "सक्रिय", "whPaused": "रोका गया", "whLast": "अंतिम", "whFails": "विफलताएँ", "whTest": "परीक्षण", "whPause": "रोकें", "whResume": "फिर शुरू", "whDelete": "हटाएँ", "whDeliveries": "हाल का डिलीवरी लॉग", "whAttempts": " प्रयास", "whVerifyTitle": "हस्ताक्षर सत्यापन (प्राप्तकर्ता पक्ष)",
   },
   appPricing: {
     "accountsLabel": "खातों की संख्या",

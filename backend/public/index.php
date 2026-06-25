@@ -112,6 +112,11 @@ $app->add(function (Request $request, $handler) {
         || strpos($path, '/api/v427/logistics/') === 0
         || strpos($path, '/v427/pg/') === 0
         || strpos($path, '/api/v427/pg/') === 0
+        // [현 차수 P1] v429 Open Platform — 웹훅 구독은 세션 self-auth(UserAuth::requirePro+authedTenant
+        //   격리), 카탈로그(webhooks/events·openapi.json)는 무인증 공개. /v429/ 는 핸들러가 자체 게이트하므로
+        //   api_key 미들웨어 bypass(CRM/catalog/reports 동일 패턴). 발신 서명은 엔드포인트별 secret HMAC.
+        || strpos($path, '/v429/') === 0
+        || strpos($path, '/api/v429/') === 0
         || strpos($path, '/v426/admin/') === 0
         || strpos($path, '/api/v426/admin/') === 0
         // 212차 #3-B: 파트너 포털 — 파트너 토큰 자가인증(본사 api_key/세션과 분리, 핸들러가 partner_session 검증)

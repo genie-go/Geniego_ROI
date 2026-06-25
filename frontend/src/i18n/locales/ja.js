@@ -464,7 +464,7 @@ export default {
     "keyLastUsed": "最終使用",
     "keyExpires": "有効期限",
     "keyRotate": "ローテーション",
-    "keyRevoke": "無効化",
+    "keyRevoke": "無効化", "whUrlInvalid": "URL は https:// で始める必要があります。", "whPickEvent": "購読するイベントを1つ以上選択してください。", "whCreateFail": "登録に失敗しました。", "whTestOk": "テストイベントを送信しました。", "whTestFail": "送信失敗", "whUpdateFail": "変更失敗", "whDeleteConfirm": "このウェブフック購読を削除しますか？", "whDeleted": "削除しました。", "whDeleteFail": "削除失敗", "whSecretOnce": "この署名シークレットは再表示されません。", "whRegister": "ウェブフックエンドポイント登録", "whDescPh": "説明（任意）", "whSubscribeEvents": "購読イベント", "whNoCatalog": "イベントカタログを読み込めませんでした。", "whRegistering": "登録中...", "whRegisterBtn": "購読登録", "whEndpoints": "登録済みエンドポイント", "whNone": "登録されたウェブフック購読がありません。", "whActive": "有効", "whPaused": "一時停止", "whLast": "最近", "whFails": "失敗", "whTest": "テスト", "whPause": "停止", "whResume": "再開", "whDelete": "削除", "whDeliveries": "最近の送信ログ", "whAttempts": "回試行", "whVerifyTitle": "署名検証（受信側）",
   },
   appPricing: {
     "accountsLabel": "アカウント数",

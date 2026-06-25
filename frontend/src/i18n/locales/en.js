@@ -331,7 +331,7 @@ export default {
     "keyLastUsed": "Last used",
     "keyExpires": "Expires",
     "keyRotate": "Rotate",
-    "keyRevoke": "Revoke",
+    "keyRevoke": "Revoke", "whUrlInvalid": "URL must start with https://.", "whPickEvent": "Select at least one event to subscribe.", "whCreateFail": "Registration failed.", "whTestOk": "Test event delivered.", "whTestFail": "Delivery failed", "whUpdateFail": "Update failed", "whDeleteConfirm": "Delete this webhook subscription?", "whDeleted": "Deleted.", "whDeleteFail": "Delete failed", "whSecretOnce": "This signing secret will not be shown again.", "whRegister": "Register webhook endpoint", "whDescPh": "Description (optional)", "whSubscribeEvents": "Subscribed events", "whNoCatalog": "Failed to load event catalog.", "whRegistering": "Registering...", "whRegisterBtn": "Register subscription", "whEndpoints": "Registered endpoints", "whNone": "No webhook subscriptions registered.", "whActive": "Active", "whPaused": "Paused", "whLast": "Last", "whFails": "Failures", "whTest": "Test", "whPause": "Pause", "whResume": "Resume", "whDelete": "Delete", "whDeliveries": "Recent delivery log", "whAttempts": " attempts", "whVerifyTitle": "Signature verification (receiver side)",
   },
   appPricing: {
     "accountsLabel": "Number of accounts",

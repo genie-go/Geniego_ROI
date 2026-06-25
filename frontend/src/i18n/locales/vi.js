@@ -464,7 +464,7 @@ export default {
     "keyLastUsed": "Dùng lần cuối",
     "keyExpires": "Hết hạn",
     "keyRotate": "Xoay vòng",
-    "keyRevoke": "Thu hồi",
+    "keyRevoke": "Thu hồi", "whUrlInvalid": "URL phải bắt đầu bằng https://.", "whPickEvent": "Chọn ít nhất một sự kiện để đăng ký.", "whCreateFail": "Đăng ký thất bại.", "whTestOk": "Đã gửi sự kiện thử nghiệm.", "whTestFail": "Gửi thất bại", "whUpdateFail": "Cập nhật thất bại", "whDeleteConfirm": "Xóa đăng ký webhook này?", "whDeleted": "Đã xóa.", "whDeleteFail": "Xóa thất bại", "whSecretOnce": "Khóa ký này sẽ không hiển thị lại.", "whRegister": "Đăng ký điểm cuối webhook", "whDescPh": "Mô tả (tùy chọn)", "whSubscribeEvents": "Sự kiện đã đăng ký", "whNoCatalog": "Không tải được danh mục sự kiện.", "whRegistering": "Đang đăng ký...", "whRegisterBtn": "Đăng ký", "whEndpoints": "Điểm cuối đã đăng ký", "whNone": "Chưa có đăng ký webhook nào.", "whActive": "Hoạt động", "whPaused": "Tạm dừng", "whLast": "Gần nhất", "whFails": "Lỗi", "whTest": "Thử", "whPause": "Tạm dừng", "whResume": "Tiếp tục", "whDelete": "Xóa", "whDeliveries": "Nhật ký gửi gần đây", "whAttempts": " lần thử", "whVerifyTitle": "Xác minh chữ ký (phía nhận)",
   },
   appPricing: {
     "accountsLabel": "Số tài khoản",

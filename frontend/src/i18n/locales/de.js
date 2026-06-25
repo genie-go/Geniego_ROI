@@ -464,7 +464,7 @@ export default {
     "keyLastUsed": "Zuletzt verwendet",
     "keyExpires": "Läuft ab",
     "keyRotate": "Rotieren",
-    "keyRevoke": "Widerrufen",
+    "keyRevoke": "Widerrufen", "whUrlInvalid": "URL muss mit https:// beginnen.", "whPickEvent": "Wählen Sie mindestens ein Event zum Abonnieren.", "whCreateFail": "Registrierung fehlgeschlagen.", "whTestOk": "Test-Event zugestellt.", "whTestFail": "Zustellung fehlgeschlagen", "whUpdateFail": "Aktualisierung fehlgeschlagen", "whDeleteConfirm": "Dieses Webhook-Abonnement löschen?", "whDeleted": "Gelöscht.", "whDeleteFail": "Löschen fehlgeschlagen", "whSecretOnce": "Dieses Signatur-Secret wird nicht erneut angezeigt.", "whRegister": "Webhook-Endpunkt registrieren", "whDescPh": "Beschreibung (optional)", "whSubscribeEvents": "Abonnierte Events", "whNoCatalog": "Event-Katalog konnte nicht geladen werden.", "whRegistering": "Wird registriert...", "whRegisterBtn": "Abonnement registrieren", "whEndpoints": "Registrierte Endpunkte", "whNone": "Keine Webhook-Abonnements registriert.", "whActive": "Aktiv", "whPaused": "Pausiert", "whLast": "Zuletzt", "whFails": "Fehler", "whTest": "Test", "whPause": "Pausieren", "whResume": "Fortsetzen", "whDelete": "Löschen", "whDeliveries": "Letztes Zustellprotokoll", "whAttempts": " Versuche", "whVerifyTitle": "Signaturprüfung (Empfängerseite)",
   },
   appPricing: {
     "accountsLabel": "Anzahl der Konten",

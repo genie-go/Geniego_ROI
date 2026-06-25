@@ -465,7 +465,7 @@ export default {
     "keyLastUsed": "ใช้ล่าสุด",
     "keyExpires": "หมดอายุ",
     "keyRotate": "หมุนเวียน",
-    "keyRevoke": "เพิกถอน",
+    "keyRevoke": "เพิกถอน", "whUrlInvalid": "URL ต้องขึ้นต้นด้วย https://", "whPickEvent": "เลือกอย่างน้อยหนึ่งเหตุการณ์เพื่อสมัครรับ", "whCreateFail": "ลงทะเบียนไม่สำเร็จ", "whTestOk": "ส่งเหตุการณ์ทดสอบแล้ว", "whTestFail": "ส่งไม่สำเร็จ", "whUpdateFail": "อัปเดตไม่สำเร็จ", "whDeleteConfirm": "ลบการสมัครรับ Webhook นี้หรือไม่?", "whDeleted": "ลบแล้ว", "whDeleteFail": "ลบไม่สำเร็จ", "whSecretOnce": "คีย์ลายเซ็นนี้จะไม่แสดงอีก", "whRegister": "ลงทะเบียนปลายทาง Webhook", "whDescPh": "คำอธิบาย (ไม่บังคับ)", "whSubscribeEvents": "เหตุการณ์ที่สมัครรับ", "whNoCatalog": "โหลดแคตตาล็อกเหตุการณ์ไม่สำเร็จ", "whRegistering": "กำลังลงทะเบียน...", "whRegisterBtn": "ลงทะเบียนการสมัครรับ", "whEndpoints": "ปลายทางที่ลงทะเบียน", "whNone": "ยังไม่มีการสมัครรับ Webhook", "whActive": "ใช้งาน", "whPaused": "หยุดชั่วคราว", "whLast": "ล่าสุด", "whFails": "ล้มเหลว", "whTest": "ทดสอบ", "whPause": "หยุด", "whResume": "ดำเนินต่อ", "whDelete": "ลบ", "whDeliveries": "บันทึกการส่งล่าสุด", "whAttempts": " ครั้งที่พยายาม", "whVerifyTitle": "การตรวจสอบลายเซ็น (ฝั่งผู้รับ)",
   },
   appPricing: {
     "accountsLabel": "จำนวนบัญชี",

@@ -464,7 +464,7 @@ export default {
     "keyLastUsed": "最近使用",
     "keyExpires": "到期",
     "keyRotate": "輪換",
-    "keyRevoke": "撤銷",
+    "keyRevoke": "撤銷", "whUrlInvalid": "URL 必須以 https:// 開頭。", "whPickEvent": "請至少選擇一個要訂閱的事件。", "whCreateFail": "註冊失敗。", "whTestOk": "測試事件已送達。", "whTestFail": "送達失敗", "whUpdateFail": "更新失敗", "whDeleteConfirm": "確定刪除此 Webhook 訂閱嗎？", "whDeleted": "已刪除。", "whDeleteFail": "刪除失敗", "whSecretOnce": "此簽章密鑰不會再次顯示。", "whRegister": "註冊 Webhook 端點", "whDescPh": "說明（選填）", "whSubscribeEvents": "訂閱事件", "whNoCatalog": "無法載入事件目錄。", "whRegistering": "註冊中...", "whRegisterBtn": "註冊訂閱", "whEndpoints": "已註冊端點", "whNone": "尚無 Webhook 訂閱。", "whActive": "啟用", "whPaused": "已暫停", "whLast": "最近", "whFails": "失敗", "whTest": "測試", "whPause": "暫停", "whResume": "恢復", "whDelete": "刪除", "whDeliveries": "最近送達紀錄", "whAttempts": "次嘗試", "whVerifyTitle": "簽章驗證（接收方）",
   },
   appPricing: {
     "accountsLabel": "帳戶數量",

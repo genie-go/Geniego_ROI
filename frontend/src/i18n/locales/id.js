@@ -464,7 +464,7 @@ export default {
     "keyLastUsed": "Terakhir dipakai",
     "keyExpires": "Kedaluwarsa",
     "keyRotate": "Putar",
-    "keyRevoke": "Cabut",
+    "keyRevoke": "Cabut", "whUrlInvalid": "URL harus diawali https://.", "whPickEvent": "Pilih minimal satu event untuk berlangganan.", "whCreateFail": "Pendaftaran gagal.", "whTestOk": "Event uji terkirim.", "whTestFail": "Pengiriman gagal", "whUpdateFail": "Pembaruan gagal", "whDeleteConfirm": "Hapus langganan webhook ini?", "whDeleted": "Dihapus.", "whDeleteFail": "Hapus gagal", "whSecretOnce": "Secret penandatanganan ini tidak akan ditampilkan lagi.", "whRegister": "Daftarkan endpoint webhook", "whDescPh": "Deskripsi (opsional)", "whSubscribeEvents": "Event berlangganan", "whNoCatalog": "Gagal memuat katalog event.", "whRegistering": "Mendaftar...", "whRegisterBtn": "Daftarkan langganan", "whEndpoints": "Endpoint terdaftar", "whNone": "Belum ada langganan webhook.", "whActive": "Aktif", "whPaused": "Dijeda", "whLast": "Terakhir", "whFails": "Gagal", "whTest": "Uji", "whPause": "Jeda", "whResume": "Lanjutkan", "whDelete": "Hapus", "whDeliveries": "Log pengiriman terbaru", "whAttempts": " percobaan", "whVerifyTitle": "Verifikasi tanda tangan (sisi penerima)",
   },
   appPricing: {
     "accountsLabel": "Jumlah akun",

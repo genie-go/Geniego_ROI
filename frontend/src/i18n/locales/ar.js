@@ -464,7 +464,7 @@ export default {
     "keyLastUsed": "آخر استخدام",
     "keyExpires": "تنتهي",
     "keyRotate": "تدوير",
-    "keyRevoke": "إلغاء",
+    "keyRevoke": "إلغاء", "whUrlInvalid": "يجب أن يبدأ الرابط بـ https://.", "whPickEvent": "اختر حدثًا واحدًا على الأقل للاشتراك.", "whCreateFail": "فشل التسجيل.", "whTestOk": "تم تسليم حدث الاختبار.", "whTestFail": "فشل التسليم", "whUpdateFail": "فشل التحديث", "whDeleteConfirm": "حذف اشتراك الويب هوك هذا؟", "whDeleted": "تم الحذف.", "whDeleteFail": "فشل الحذف", "whSecretOnce": "لن يظهر مفتاح التوقيع هذا مرة أخرى.", "whRegister": "تسجيل نقطة نهاية الويب هوك", "whDescPh": "الوصف (اختياري)", "whSubscribeEvents": "الأحداث المشترَك بها", "whNoCatalog": "تعذر تحميل كتالوج الأحداث.", "whRegistering": "جارٍ التسجيل...", "whRegisterBtn": "تسجيل الاشتراك", "whEndpoints": "نقاط النهاية المسجلة", "whNone": "لا توجد اشتراكات ويب هوك مسجلة.", "whActive": "نشط", "whPaused": "متوقف مؤقتًا", "whLast": "الأخير", "whFails": "إخفاقات", "whTest": "اختبار", "whPause": "إيقاف", "whResume": "استئناف", "whDelete": "حذف", "whDeliveries": "سجل التسليم الأخير", "whAttempts": " محاولات", "whVerifyTitle": "التحقق من التوقيع (جهة الاستقبال)",
   },
   appPricing: {
     "accountsLabel": "عدد الحسابات",

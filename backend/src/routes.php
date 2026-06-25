@@ -637,6 +637,17 @@ return function (App $app): void {
         'DELETE /v421/keys/{id}'             => 'Genie\\Handlers\\Keys::revoke',
         'POST /v421/keys/{id}/rotate'        => 'Genie\\Handlers\\Keys::rotate',
 
+        // ── v429 Open Platform — 아웃바운드 웹훅 구독 + OpenAPI 카탈로그 (P1 신규) ──────
+        //   세션 self-auth(/v429/ bypass + UserAuth::requirePro). events/openapi 는 공개.
+        'GET /v429/webhooks/endpoints'           => 'Genie\\Handlers\\OpenPlatform::listEndpoints',
+        'POST /v429/webhooks/endpoints'          => 'Genie\\Handlers\\OpenPlatform::createEndpoint',
+        'PUT /v429/webhooks/endpoints/{id}'      => 'Genie\\Handlers\\OpenPlatform::updateEndpoint',
+        'DELETE /v429/webhooks/endpoints/{id}'   => 'Genie\\Handlers\\OpenPlatform::deleteEndpoint',
+        'POST /v429/webhooks/endpoints/{id}/test'=> 'Genie\\Handlers\\OpenPlatform::testEndpoint',
+        'GET /v429/webhooks/deliveries'          => 'Genie\\Handlers\\OpenPlatform::listDeliveries',
+        'GET /v429/webhooks/events'              => 'Genie\\Handlers\\OpenPlatform::eventCatalog',
+        'GET /v429/openapi.json'                 => 'Genie\\Handlers\\OpenPlatform::openapi',
+
         // ── v421 Connectors — TikTok + Amazon real calls ───────────────────────
         'GET /v421/connectors/status'            => 'Genie\\Handlers\\Connectors::status',
         'GET /v421/connectors/tiktok/report'     => 'Genie\\Handlers\\Connectors::tiktokReport',
@@ -1813,6 +1824,16 @@ return function (App $app): void {
     $register('POST',   '/v421/keys');
     $register('DELETE', '/v421/keys/{id}');
     $register('POST',   '/v421/keys/{id}/rotate');
+
+    // ── v429 Open Platform — 웹훅 구독 + OpenAPI 카탈로그 ──────────────────────
+    $register('GET',    '/v429/webhooks/endpoints');
+    $register('POST',   '/v429/webhooks/endpoints');
+    $register('PUT',    '/v429/webhooks/endpoints/{id}');
+    $register('DELETE', '/v429/webhooks/endpoints/{id}');
+    $register('POST',   '/v429/webhooks/endpoints/{id}/test');
+    $register('GET',    '/v429/webhooks/deliveries');
+    $register('GET',    '/v429/webhooks/events');
+    $register('GET',    '/v429/openapi.json');
 
     // ── v421 Connectors — TikTok + Amazon ─────────────────────────────────
     $register('GET',  '/v421/connectors/status');
