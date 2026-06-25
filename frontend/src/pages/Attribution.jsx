@@ -3,6 +3,7 @@ import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import ProductSelectBar from '../components/dashboards/ProductSelectBar.jsx';
 import ProductMarketingPanel from '../components/dashboards/ProductMarketingPanel.jsx';
 import AIRecommendBanner from '../components/AIRecommendBanner.jsx';
+import PeriodFilterBar from '../components/common/PeriodFilterBar.jsx'; // [현 차수] 어트리뷰션 기간조회
 import { useI18n, useT } from '../i18n/index.js';
 import { getJsonAuth } from '../services/apiClient.js';
 import {
@@ -75,7 +76,9 @@ function buildDemoJourneys(channelBudgets) {
     }
     if (path.length === 0) path.push(pickCh());
     const revenue = Math.round((50000 + rng() * 450000) * (path.length * 0.6 + 0.4));
-    journeys.push({ path, revenue });
+    // [현 차수] 기간조회 정확 산출 — 전환 경로에 전환일(convertedAt) 부여(최근 120일 결정적 분포).
+    const daysAgo = Math.floor(rng() * 120);
+    journeys.push({ path, revenue, convertedAt: new Date(Date.now() - daysAgo * 86400000).toISOString() });
   }
   return journeys;
 }
@@ -190,7 +193,16 @@ function buildDemoCohorts() {
    ═══════════════════════════════════════════════════════════════════ */
 const _IS_DEMO_ENV = IS_DEMO; // 180차: broad includes('demo') 제거 → demoEnv 정본 격리
 
-let _JOURNEYS = _IS_DEMO_ENV ? buildDemoJourneys(null) : [];
+let _JOURNEYS_ALL = _IS_DEMO_ENV ? buildDemoJourneys(null) : []; // [현 차수] 전체 전환경로(원본)
+let _JOURNEYS = _JOURNEYS_ALL;                                    // [현 차수] 선택 기간으로 필터된 뷰(탭이 소비)
+// [현 차수] 기간조회 — 선택 기간에 전환된 경로만으로 어트리뷰션 재산출. 날짜축 부재(운영 미지원) 시 전체 유지(무손상).
+function _filterJourneysByPeriod(all, range) {
+  if (!range || range.preset === 'all') return all;
+  const dated = (all || []).filter(j => j && j.convertedAt);
+  if (dated.length === 0) return all; // convertedAt 없는 데이터셋(운영 등) → 필터 불가, 전체
+  return dated.filter(j => { const t = new Date(j.convertedAt).getTime(); return !isNaN(t) && t >= range.from && t <= range.to; });
+}
+function _applyPeriod(range) { _JOURNEYS = _filterJourneysByPeriod(_JOURNEYS_ALL, range); }
 let TS_DATA   = _IS_DEMO_ENV ? buildDemoTimeSeries(null) : { spends: {}, revenue: [] };
 let _DEMO_INITIALIZED = !_IS_DEMO_ENV; /* production: skip demo init forever */
 /* ── 176차 PM8 S6-P1: /v424/attribution/channels + /touches live ────── */
@@ -1346,7 +1358,11 @@ export default function Attribution() {
   const t = useT();
   const { lang } = useI18n();
   const [tab, setTab] = useState('mta');
+  const [period, setPeriod] = useState({ preset: 'all' }); // [현 차수] 기간조회
   const [dataReady, setDataReady] = useState(_JOURNEYS.length > 0);
+  // [현 차수] 선택 기간으로 전환경로 필터를 자식 렌더 전에 적용(전 모델이 _JOURNEYS=필터뷰를 읽음). dataReady=로드 후 재적용.
+  const periodKey = period.preset === 'custom' ? `${period.from}_${period.to}` : period.preset;
+  useMemo(() => { _applyPeriod(period); return periodKey; }, [periodKey, dataReady]);
   const { orderStats, AdCampaigns, attributionData, addAlert, channelBudgets } = useGlobalData();
   const { formatCurrency } = useCurrency();
   useEffect(() => { setFmt(formatCurrency); }, [formatCurrency]);
@@ -1367,7 +1383,7 @@ export default function Attribution() {
   useEffect(() => {
     let changed = false;
     if (attributionData && attributionData.length > 0) {
-      _JOURNEYS = attributionData.filter(d => d && d.path);
+      _JOURNEYS_ALL = attributionData.filter(d => d && d.path);
       changed = true;
     }
     if (AdCampaigns && AdCampaigns.length > 0) {
@@ -1384,7 +1400,7 @@ export default function Attribution() {
     }
     /* ── 176차 PM7: production 환경 실 backend fetch (mock 의존 제거) ── */
     /* 🛡️ GUARD: _IS_DEMO_ENV=false 일 때 + DB 데이터 있을 때만 사용 */
-    if (!_IS_DEMO_ENV && _JOURNEYS.length === 0) {
+    if (!_IS_DEMO_ENV && _JOURNEYS_ALL.length === 0) {
       (async () => {
         try {
           /* 176차 PM8 S6-P1: 4 endpoint 병렬 fetch — journeys / time-series / channels / touches */
@@ -1395,7 +1411,7 @@ export default function Attribution() {
             getJsonAuth('/v424/attribution/touches').catch(() => null),
           ]);
           if (jRes && Array.isArray(jRes.journeys) && jRes.journeys.length > 0) {
-            _JOURNEYS = jRes.journeys.map(j => ({ path: j.path || [], revenue: 0 }));
+            _JOURNEYS_ALL = jRes.journeys.map(j => ({ path: j.path || [], revenue: 0, convertedAt: j.converted_at || j.convertedAt || null }));
           }
           if (tsRes && tsRes.spends && Object.keys(tsRes.spends).length > 0) {
             const spends = {};
@@ -1421,7 +1437,7 @@ export default function Attribution() {
     /* ── Demo ONLY fallback: upgrade with channelBudgets-based data ── */
     /* 🛡️ GUARD: This block ONLY executes in demo environment */
     if (_IS_DEMO_ENV && !_DEMO_INITIALIZED && channelBudgets && Object.keys(channelBudgets).length > 0) {
-      _JOURNEYS = buildDemoJourneys(channelBudgets);
+      _JOURNEYS_ALL = buildDemoJourneys(channelBudgets);
       TS_DATA = buildDemoTimeSeries(channelBudgets);
       _DEMO_INITIALIZED = true;
       changed = true;
@@ -1489,6 +1505,10 @@ export default function Attribution() {
               <div style={{ fontSize: 10, color: 'var(--text-3, #64748b)' }}>{t('attrData.timeSeries')}</div>
             </div>
           </div>
+          {/* [현 차수] 기간조회 — 선택 기간에 전환된 경로만으로 전 모델(MTA·Shapley·Markov·…) 정확 재산출 */}
+          <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border, #e2e8f0)' }}>
+            <PeriodFilterBar value={period} onChange={setPeriod} />
+          </div>
         </div>
 
         <AIRecommendBanner context="attribution" />
@@ -1508,6 +1528,8 @@ export default function Attribution() {
           {/* [현 차수] 특정상품 조회 — 전역 동기화. 선택 시 그 상품 매출·순이익·채널/국가별 인라인(어트리뷰션 모델은 전체 기준). */}
           <ProductSelectBar />
           <ProductMarketingPanel period="monthly" />
+          {/* [현 차수] key=tab|기간 → 기간 변경 시 활성 탭 remount = 전 모델 완전 재계산(정확 값 보장) */}
+          <div key={tab + '|' + periodKey}>
           {tab === 'mta'      && <AttributionTab />}
           {tab === 'shapley'  && <ShapleyTab />}
           {tab === 'mmm'      && <MMMTab />}
@@ -1518,6 +1540,7 @@ export default function Attribution() {
           {tab === 'anomaly'  && <AnomalyTab />}
           {tab === 'compare'  && <ModelCompareTab />}
           {tab === 'guide'    && <GuideTab />}
+          </div>
         </div>
       </div>
     </div>
