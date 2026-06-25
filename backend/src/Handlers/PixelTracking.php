@@ -102,6 +102,17 @@ class PixelTracking
         }
         // [227차 P0] GA4 포워딩 추적 컬럼(idempotent — 이미 있으면 catch).
         try { $pdo->exec("ALTER TABLE pixel_events ADD COLUMN forwarded_ga4 " . (self::isMysql($pdo) ? "INT DEFAULT 0" : "INTEGER DEFAULT 0")); } catch (\Throwable $e) {}
+        // [현 차수 P2] Pinterest/Snapchat CAPI — 설정 컬럼 + 포워딩 추적(idempotent ALTER).
+        $intc = self::isMysql($pdo) ? "INT DEFAULT 0" : "INTEGER DEFAULT 0";
+        $txtc = self::isMysql($pdo) ? "VARCHAR(500)" : "TEXT";
+        foreach ([
+            "pixel_configs ADD COLUMN pinterest_ad_account_id " . (self::isMysql($pdo) ? "VARCHAR(64)" : "TEXT"),
+            "pixel_configs ADD COLUMN pinterest_conversion_token {$txtc}",
+            "pixel_configs ADD COLUMN snap_pixel_id " . (self::isMysql($pdo) ? "VARCHAR(64)" : "TEXT"),
+            "pixel_configs ADD COLUMN snap_api_token {$txtc}",
+            "pixel_events ADD COLUMN forwarded_pinterest {$intc}",
+            "pixel_events ADD COLUMN forwarded_snap {$intc}",
+        ] as $alt) { try { $pdo->exec("ALTER TABLE {$alt}"); } catch (\Throwable $e) {} }
     }
 
     /* ─── POST /pixel/collect ─── 픽셀 이벤트 수집 (공개 비콘) ─────────── */
@@ -141,7 +152,7 @@ class PixelTracking
         $cfgStmt->execute([':pid' => $pixelId]);
         $config = $cfgStmt->fetch(\PDO::FETCH_ASSOC);
         // 209차 P1: secret-at-rest 복호화(서버 전송 API 토큰). 평문 행은 passthrough.
-        if ($config) foreach (['meta_api_token','tiktok_access_token','ga4_api_secret'] as $sk) { if (!empty($config[$sk])) $config[$sk] = self::dec((string)$config[$sk]); }
+        if ($config) foreach (['meta_api_token','tiktok_access_token','ga4_api_secret','pinterest_conversion_token','snap_api_token'] as $sk) { if (!empty($config[$sk])) $config[$sk] = self::dec((string)$config[$sk]); }
         $tenant = $config['tenant_id'] ?? 'unknown';
 
         // 209차 P1: 익명 공개 비콘 오염 방어(pixel_id 는 사이트 스니펫에 공개 → 수집·위조 가능).
@@ -220,6 +231,8 @@ class PixelTracking
                 self::forwardToMeta($pdo, $config, $eventId, $eventName, $emailHash, $phoneHash, $b, $deviceType);
                 self::forwardToTikTok($pdo, $config, $eventId, $eventName, $emailHash, $b);
                 self::forwardToGA4($pdo, $config, $eventId, $eventName, (string)$sessionId, $b); // [227차 P0] GA4 Measurement Protocol
+                self::forwardToPinterest($pdo, $config, $eventId, $eventName, $emailHash, $phoneHash, $b); // [현 차수 P2] Pinterest CAPI
+                self::forwardToSnapchat($pdo, $config, $eventId, $eventName, $emailHash, $b);              // [현 차수 P2] Snapchat CAPI
             }
         }
         return self::json($res, ['ok' => true, 'event_id' => $eventId, 'deduped' => !$inserted]);
@@ -375,6 +388,44 @@ class PixelTracking
         } catch (\Exception $e) {}
     }
 
+    /** [현 차수 P2] Pinterest Conversions API (v5) — 서버측 전환 전송. 패턴=forwardToMeta. */
+    private static function forwardToPinterest(\PDO $pdo, array $cfg, string $eventId, string $eventName, ?string $emailHash, ?string $phoneHash, array $b): void
+    {
+        if (empty($cfg['pinterest_ad_account_id']) || empty($cfg['pinterest_conversion_token'])) return;
+        $map = ['page_view'=>'page_visit', 'view_content'=>'view_category', 'product_view'=>'view_category', 'add_to_cart'=>'add_to_cart', 'initiate_checkout'=>'checkout', 'purchase'=>'checkout', 'lead'=>'lead', 'subscribe'=>'signup', 'complete_registration'=>'signup'];
+        $ev = $map[$eventName] ?? 'custom';
+        $payload = ['data' => [array_filter([
+            'event_name'=>$ev, 'action_source'=>'web', 'event_time'=>time(), 'event_id'=>$eventId, 'event_source_url'=>$b['page_url'] ?? null,
+            'user_data'=>array_filter(['em'=>$emailHash ? [$emailHash] : null, 'ph'=>$phoneHash ? [$phoneHash] : null, 'client_user_agent'=>$b['user_agent'] ?? null]),
+            'custom_data'=>array_filter(['value'=>((float)($b['value'] ?? 0) ?: null) ? (string)(float)$b['value'] : null, 'currency'=>$b['currency'] ?? 'KRW']),
+        ], fn($v) => $v !== null && $v !== [])]];
+        try {
+            $ch = curl_init("https://api.pinterest.com/v5/ad_accounts/{$cfg['pinterest_ad_account_id']}/events");
+            curl_setopt_array($ch, [CURLOPT_POST=>true, CURLOPT_POSTFIELDS=>json_encode($payload), CURLOPT_RETURNTRANSFER=>true, CURLOPT_TIMEOUT=>5, CURLOPT_HTTPHEADER=>['Content-Type: application/json', 'Authorization: Bearer '.$cfg['pinterest_conversion_token']]]);
+            curl_exec($ch); curl_close($ch);
+            try { $pdo->prepare("UPDATE pixel_events SET forwarded_pinterest=1 WHERE event_id=:eid")->execute([':eid'=>$eventId]); } catch (\Throwable $e) {}
+        } catch (\Exception $e) {}
+    }
+
+    /** [현 차수 P2] Snapchat Conversions API (v3) — 서버측 전환 전송. 패턴=forwardToMeta. */
+    private static function forwardToSnapchat(\PDO $pdo, array $cfg, string $eventId, string $eventName, ?string $emailHash, array $b): void
+    {
+        if (empty($cfg['snap_pixel_id']) || empty($cfg['snap_api_token'])) return;
+        $map = ['page_view'=>'PAGE_VIEW', 'view_content'=>'VIEW_CONTENT', 'product_view'=>'VIEW_CONTENT', 'add_to_cart'=>'ADD_CART', 'initiate_checkout'=>'START_CHECKOUT', 'purchase'=>'PURCHASE', 'lead'=>'SIGN_UP', 'subscribe'=>'SUBSCRIBE'];
+        $ev = $map[$eventName] ?? 'CUSTOM_EVENT_1';
+        $payload = ['data' => [array_filter([
+            'event_name'=>$ev, 'action_source'=>'WEB', 'event_time'=>time() * 1000, 'event_id'=>$eventId, 'event_source_url'=>$b['page_url'] ?? null,
+            'user_data'=>array_filter(['em'=>$emailHash ? [$emailHash] : null, 'client_user_agent'=>$b['user_agent'] ?? null]),
+            'custom_data'=>array_filter(['value'=>(float)($b['value'] ?? 0) ?: null, 'currency'=>$b['currency'] ?? 'KRW']),
+        ], fn($v) => $v !== null && $v !== [])]];
+        try {
+            $ch = curl_init("https://tr.snapchat.com/v3/{$cfg['snap_pixel_id']}/events?access_token=" . urlencode((string)$cfg['snap_api_token']));
+            curl_setopt_array($ch, [CURLOPT_POST=>true, CURLOPT_POSTFIELDS=>json_encode($payload), CURLOPT_RETURNTRANSFER=>true, CURLOPT_TIMEOUT=>5, CURLOPT_HTTPHEADER=>['Content-Type: application/json']]);
+            curl_exec($ch); curl_close($ch);
+            try { $pdo->prepare("UPDATE pixel_events SET forwarded_snap=1 WHERE event_id=:eid")->execute([':eid'=>$eventId]); } catch (\Throwable $e) {}
+        } catch (\Exception $e) {}
+    }
+
     private static function forwardToTikTok(\PDO $pdo, array $cfg, string $eventId, string $eventName, ?string $emailHash, array $b): void
     {
         if (empty($cfg['tiktok_pixel_id']) || empty($cfg['tiktok_access_token'])) return;
@@ -444,12 +495,14 @@ class PixelTracking
         $b = (array)$req->getParsedBody();
         $pixelId = self::genPixelId(); // [현 차수] HMAC 서명 pixel_id(위조 차단)
         $now = self::now();
-        $pdo->prepare("INSERT INTO pixel_configs (tenant_id, pixel_id, name, domain, meta_pixel_id, meta_api_token, tiktok_pixel_id, tiktok_access_token, ga4_measurement_id, ga4_api_secret, created_at, updated_at)
-            VALUES (:t,:pid,:name,:dom,:mpid,:mapi,:tpid,:tapi,:ga4id,:ga4sec,:ca,:ua)
+        $pdo->prepare("INSERT INTO pixel_configs (tenant_id, pixel_id, name, domain, meta_pixel_id, meta_api_token, tiktok_pixel_id, tiktok_access_token, ga4_measurement_id, ga4_api_secret, pinterest_ad_account_id, pinterest_conversion_token, snap_pixel_id, snap_api_token, created_at, updated_at)
+            VALUES (:t,:pid,:name,:dom,:mpid,:mapi,:tpid,:tapi,:ga4id,:ga4sec,:pinid,:pintok,:snpid,:sntok,:ca,:ua)
         ")->execute([
             ':t'=>$tenant, ':pid'=>$pixelId, ':name'=>$b['name'] ?? '기본 픽셀', ':dom'=>$b['domain'] ?? '',
             ':mpid'=>$b['meta_pixel_id'] ?? '', ':mapi'=>self::enc($b['meta_api_token'] ?? ''), ':tpid'=>$b['tiktok_pixel_id'] ?? '',
-            ':tapi'=>self::enc($b['tiktok_access_token'] ?? ''), ':ga4id'=>$b['ga4_measurement_id'] ?? '', ':ga4sec'=>self::enc($b['ga4_api_secret'] ?? ''), ':ca'=>$now, ':ua'=>$now,
+            ':tapi'=>self::enc($b['tiktok_access_token'] ?? ''), ':ga4id'=>$b['ga4_measurement_id'] ?? '', ':ga4sec'=>self::enc($b['ga4_api_secret'] ?? ''),
+            ':pinid'=>$b['pinterest_ad_account_id'] ?? '', ':pintok'=>self::enc($b['pinterest_conversion_token'] ?? ''),
+            ':snpid'=>$b['snap_pixel_id'] ?? '', ':sntok'=>self::enc($b['snap_api_token'] ?? ''), ':ca'=>$now, ':ua'=>$now,
         ]);
         return self::json($res, ['ok' => true, 'pixel_id' => $pixelId]);
     }
