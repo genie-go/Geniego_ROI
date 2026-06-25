@@ -1,6 +1,10 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
+// [현 차수] 로컬 인스톨러 지원 — 개발 프록시 타깃을 env로 제어(기본=운영, 비파괴).
+//   로컬 풀스택 구동 시 install 스크립트가 VITE_PROXY_TARGET=http://localhost:8080 설정 → 로컬 백엔드로 프록시.
+const PROXY_TARGET = process.env.VITE_PROXY_TARGET || 'https://roi.genie-go.com';
+
 export default defineConfig({
   plugins: [react()],
   build: {
@@ -47,15 +51,12 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      '/api': {
-        target: 'https://roi.genie-go.com',
+      // [현 차수] 전 백엔드 경로(/api·/auth·/creatives·/v{NNN})를 한 타깃으로 프록시.
+      //   기본 타깃=운영(기존 프론트 단독 dev 호환). 로컬 풀스택은 VITE_PROXY_TARGET=http://localhost:8080.
+      '^/(api|auth|creatives|health|healthz|v[0-9]{2,4})(/|$)': {
+        target: PROXY_TARGET,
         changeOrigin: true,
-      },
-      // 176차 — DashSystem 실 API 검증용 운영 백엔드 proxy
-      // backend deploy 완료 후에는 운영 endpoint 직접 호출되므로 필수
-      '/v424': {
-        target: 'https://roi.genie-go.com',
-        changeOrigin: true,
+        secure: false,
       },
     },
   },

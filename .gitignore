@@ -1,6 +1,14 @@
 node_modules/
 vendor/
 .env
+# [현 차수] 로컬 인스톨러 — 비밀/로컬 산출물 커밋 금지(.env.local.example 템플릿은 허용)
+.env.local
+backend/.env.local
+frontend/.env.local
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+data/*.sqlite
 # MySQL credentials (운영 호스트 .my.cnf.bak 방식 — 166차 deploy-backend 백업)
 .my.cnf
 .my.cnf.bak
