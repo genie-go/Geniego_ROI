@@ -118,13 +118,17 @@ const PerformanceTab = memo(function PerformanceTab() {
                     const totClk = Object.values(cb).reduce((s, b) => s + Number(b.clicks || 0), 0);
                     const totOrd = Number(orderStats?.totalOrders || orderStats?.count || 0);
                     const cvr = totClk > 0 && totOrd > 0 ? totOrd / totClk : 0.018; // 클릭→전환율(단일소스 파생)
+                    // [현 차수] 죽은 team/account 선택자 수정 — 데모는 팀/계정 차원이 없어 결정적 점유율로 세그먼트 스코프
+                    //   (USA 45%·Japan 30%·Europe 25%, 하위계정=팀의 1/3). 선택 시 KPI가 그 세그먼트만큼 변동. 비율(ROAS) 보존.
+                    const _teamShare = { All: 1, USA: 0.45, Japan: 0.30, Europe: 0.25 };
+                    const segF = (_teamShare[team] ?? 1) * (account && account !== 'All' ? (1 / 3) : 1);
                     setSummary(Object.entries(cb).map(([key, b]) => {
-                        const clicks = Number(b.clicks || 0);
+                        const clicks = Math.round(Number(b.clicks || 0) * segF);
                         return {
                             channel: key, name: b.name, color: b.color,
-                            impressions: Number(b.impressions || 0), clicks,
+                            impressions: Math.round(Number(b.impressions || 0) * segF), clicks,
                             conversions: Math.round(clicks * cvr),
-                            revenue: Number(b.revenue || 0), spend: Number(b.spent || 0),
+                            revenue: Math.round(Number(b.revenue || 0) * segF), spend: Math.round(Number(b.spent || 0) * segF),
                         };
                     }));
                 } else {
