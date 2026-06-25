@@ -280,6 +280,9 @@ const REAL_ADAPTER = new Set([
   'stripe', 'toss', 'paypal',
   // [228차] Adyen 정산 실 수집 어댑터(Settlement Detail Report CSV).
   'adyen',
+  // [현 차수] 감사 A-1: PG 4종 REAL_ADAPTER 누락 해소 — PgSettlement.php live=true+fetchLive 실배선됨에도
+  //   set 누락으로 "연동 예정" 오표기되던 언더클레임 수정(klarna/checkout와 동일 PG 실어댑터군).
+  'paddle', 'square', 'mollie', 'razorpay',
 ]);
 /* [현 차수] ★연결 테스트가 '실제 발급 검증'(라이브 채널 API 호출로 키 유효성 확인)인 채널 — 백엔드 hasLiveVerify 정합.
    '발급 확인됨' 배지는 이 채널들의 test_status==='ok'(실검증 통과)에만 표기한다(임의 표기 금지).

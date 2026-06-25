@@ -86,6 +86,7 @@ final class AttributionMetrics
                     'path' => $r['path'] ? array_values(array_unique(explode(',', $r['path']))) : [],
                     'touches' => (int)$r['touches'],
                     'last_touch' => $r['last_touch'],
+                    'converted_at' => $r['last_touch'], // [현 차수] 감사 C-1: 운영 어트리뷰션 기간조회 실작동 — 전환시점(최종 touch) 노출
                 ];
             }
             return self::ok($response, [

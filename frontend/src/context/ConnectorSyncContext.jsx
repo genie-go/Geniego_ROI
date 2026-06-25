@@ -35,6 +35,7 @@ const getToken = () =>
 
 // 179차 — 데모 환경: 가상으로 API 연동된 채널 상태(체험용). 판별은 정본(demoEnv) 사용.
 import { IS_DEMO as _IS_DEMO } from '../utils/demoEnv.js';
+import { tChannelName } from '../utils/tenantStorage.js'; // [현 차수] 감사 B-1 크로스탭 연결상태 구독
 const DEMO_CONNECTED = (() => {
   const ok = ['coupang','naver_smartstore','naver_sa','meta_ads','google_ads','tiktok_business','kakao_moment','amazon_spapi','google_analytics','sendgrid'];
   const st = {};
@@ -145,6 +146,22 @@ export function ConnectorSyncProvider({ children }) {
     return () => {
       if (refreshTimerRef.current) clearInterval(refreshTimerRef.current);
     };
+  }, [token, refresh]);
+
+  /* [현 차수] 감사 B-1: 크로스탭 채널 연결/해제 즉시 반영 — ApiKeys 가 발신하던 genie_connector_sync
+     BroadcastChannel(CHANNEL_REGISTERED/REMOVED)을 SSOT 컨텍스트가 미구독해 connectedChannels 배지가 최대 5분 stale.
+     구독 후 즉시 refresh()로 다른 탭(같은 tenant 멀티탭/팀원)의 연결상태를 실시간 동기화. */
+  useEffect(() => {
+    if (!token || typeof BroadcastChannel === 'undefined') return;
+    let bc;
+    try {
+      bc = new BroadcastChannel(tChannelName('genie_connector_sync'));
+      bc.onmessage = (e) => {
+        const ty = e?.data?.type;
+        if (ty === 'CHANNEL_REGISTERED' || ty === 'CHANNEL_REMOVED') refresh();
+      };
+    } catch { /* 미지원 환경 무음 */ }
+    return () => { try { if (bc) bc.close(); } catch {} };
   }, [token, refresh]);
 
   /* 단일 Channel 연결 Test */
