@@ -1085,7 +1085,6 @@ async function fetchInfluencerEval(CREATORS) {
             // Phase 2~3: 활용 유형·측정 방식·캠페인 목표를 전달 → AI가 목표에 맞는 성공 기준으로 평가
             activation_type: deriveActivationType(c),
             attribution_method: c.attribution?.method || 'manual',
-            ad_spend: c.stats.adSpend,
             objective: deriveObjective(c),
             objective_weights: OBJECTIVE_WEIGHTS[deriveObjective(c)],
             performance_score: computePerformanceScore(c).score,

@@ -8,6 +8,21 @@ import { useAuth } from '../auth/AuthContext.jsx';
 import { getIssuanceGuide } from '../data/issuanceGuide.js';
 import CompanyProfileModal from '../components/CompanyProfileModal.jsx';
 import { profileMissing } from '../utils/profileComplete.js';
+import { tChannelName } from '../utils/tenantStorage.js';
+
+/* [현 차수 S-4] 크로스탭 동기화 발신자 — 자격증명 등록/삭제 시 genie_connector_sync 에 발신.
+ *   기존엔 PnL/PerformanceHub/Writeback/PriceOpt/Approvals/DataProduct/AIInsights 7개 페이지가 이 채널의
+ *   CHANNEL_REGISTERED/REMOVED 를 구독(수신)만 하고 발신자가 0개라 크로스탭 즉시반영이 죽어 있었다.
+ *   동일탭은 refreshConnectorSync()+genie:data-refresh 로 반영되나, 다른 탭(같은 tenant 팀원/멀티탭)은
+ *   자기 30초 폴링 전까지 미반영. 발신자 배선으로 죽은 크로스탭 경로 복구(수신자는 이미 존재). */
+function publishConnectorSync(type, channelKey) {
+  try {
+    if (typeof BroadcastChannel === 'undefined') return;
+    const bc = new BroadcastChannel(tChannelName('genie_connector_sync'));
+    bc.postMessage({ type, channel: channelKey || null, ts: Date.now() });
+    bc.close();
+  } catch { /* BroadcastChannel 미지원 환경 무음 */ }
+}
 
 /* ═══════════════════════════════════════════════════════════════════
    177차 §4.E TOP 1 본체 + U-177-A: ApiKeys.jsx 실제 ChannelCreds 관리 UI
@@ -984,6 +999,7 @@ export default function ApiKeys() {
         // 저장+동기화 후 전역 연결상태 즉시 재조회(타 페이지 stale 윈도우 제거).
         refreshConnectorSync();
         try { window.dispatchEvent(new Event('genie:data-refresh')); } catch {} // [정밀감사 F] 대시보드/P&L 즉시 반영(30초 폴링 대기 제거)
+        publishConnectorSync('CHANNEL_REGISTERED', channelKey); // [현 차수 S-4] 다른 탭(같은 tenant) 즉시 반영
       }
       return saved > 0;
     } catch (e) {
@@ -1010,6 +1026,8 @@ export default function ApiKeys() {
       show('success', t('ak.deleted','Credential deleted'));
       reload();
       refreshConnectorSync();
+      try { window.dispatchEvent(new Event('genie:data-refresh')); } catch {} // [현 차수 P2] 삭제도 저장경로와 대칭 — 채널 해제 시 운영 P&L 서버통계 즉시 갱신
+      publishConnectorSync('CHANNEL_REMOVED'); // [현 차수 S-4] 크로스탭 즉시 반영
     } catch (e) {
       show('error', String(e?.message || e));
     } finally {

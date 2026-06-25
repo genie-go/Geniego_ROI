@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { useGlobalData } from '../../context/GlobalDataContext.jsx';
 import { useI18n } from '../../i18n/index.js';
+import ProductScopeNotice from './ProductScopeNotice.jsx';
 import { useSecurityGuard } from '../../security/SecurityGuard.js';
 import {
     ComposableMap, Geographies, Geography, Marker, ZoomableGroup,
@@ -754,6 +755,7 @@ export default function DashSalesGlobal({ period }) {
 
   return (
     <div style={{ display:'grid', gap:GAP }}>
+      <ProductScopeNotice scope="global" />
       {/* ── Real-time KPI Badges ────────────────────────────────── */}
       <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
         <span style={{ fontSize:10, background:'rgba(20,217,176,0.12)', border:'1px solid rgba(20,217,176,0.3)', borderRadius:20, padding:'3px 10px', color:'#14d9b0', fontWeight:700 }}>

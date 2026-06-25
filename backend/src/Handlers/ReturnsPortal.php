@@ -202,7 +202,7 @@ class ReturnsPortal
         //   전이 전 현재 상태/품목 조회 → reflectChannelRestock(원판매 Outbound 있을 때만·차감분 초과/이중복원 방지,
         //   채널 자동경로와 동일 restockRef=CHR-{channel}-{order_id} 로 전역 dedup). order_id 불일치 시 대칭가드로 안전 no-op.
         $cur = null;
-        try { $q = $db->prepare("SELECT status, sku, name, qty, order_id, channel, COALESCE(wms_linked,0) AS wl FROM returns WHERE id=? AND tenant_id=?"); $q->execute([$id, $t]); $cur = $q->fetch(\PDO::FETCH_ASSOC) ?: null; } catch (\Throwable $e) {}
+        try { $q = $db->prepare("SELECT status, sku, name, qty, order_id, channel, COALESCE(refund_amt,0) AS refund_amt, COALESCE(wms_linked,0) AS wl FROM returns WHERE id=? AND tenant_id=?"); $q->execute([$id, $t]); $cur = $q->fetch(\PDO::FETCH_ASSOC) ?: null; } catch (\Throwable $e) {}
         $db->prepare("UPDATE returns SET status=? WHERE id=? AND tenant_id=?")->execute([$status, $id, $t]);
         $restored = false;
         if ($status === 'restocked' && $cur && (int)($cur['wl'] ?? 0) !== 1 && (string)($cur['sku'] ?? '') !== '') {
@@ -210,6 +210,33 @@ class ReturnsPortal
                 $ref = (string)($cur['channel'] ?? '') . '-' . (string)($cur['order_id'] ?? '');
                 $restored = \Genie\Handlers\Wms::reflectChannelRestock($t, (string)$cur['sku'], (string)($cur['name'] ?? ''), (float)($cur['qty'] ?? 0), 'CHS-' . $ref, 'CHR-' . $ref);
                 $db->prepare("UPDATE returns SET wms_linked=1 WHERE id=? AND tenant_id=?")->execute([$id, $t]);
+            } catch (\Throwable $e) {}
+        }
+        // [현 차수 S-2] 수동 반품 '실현'(승인/환불/재입고) → 정산 returnFee 전파 + 원주문 월 재롤업.
+        //   기존엔 채널 webhook 경로(ChannelSync::recordClaim)만 claim 적재 → 수동 포탈 승인 반품은
+        //   재고만 복원되고 orderhub_claims 미기록 → 정산 net_payout/returnFee 에 불가시(비대칭 동기화 갭).
+        //   ★이중계산 방지: 채널 origin 반품은 이미 동일 멱등 id(CLM-{channel}-{order_id}) claim 존재 → 존재 시 skip
+        //   (recordClaim 과 동일 스킴). 다중 상태전이(approved→refunded→restocked)도 존재확인으로 1회만 적재.
+        if (in_array($status, ['approved','refunded','restocked'], true)
+            && $cur && (string)($cur['order_id'] ?? '') !== ''
+            && $t !== 'demo' && !str_starts_with($t, 'demo')) {
+            try {
+                $oid = (string)$cur['order_id']; $ch = (string)($cur['channel'] ?? '');
+                $cid = 'CLM-' . $ch . '-' . $oid; // recordClaim 과 동일 스킴(채널 origin 중복 차단)
+                $chk = $db->prepare("SELECT 1 FROM orderhub_claims WHERE id=? AND tenant_id=? LIMIT 1");
+                $chk->execute([$cid, $t]);
+                if (!$chk->fetchColumn()) {
+                    $fee = round((float)($cur['refund_amt'] ?? 0) * 0.02, 2); // 반품 처리비 2%(recordClaim 정합)
+                    $nowc = gmdate('c');
+                    $db->prepare("INSERT INTO orderhub_claims(id,tenant_id,order_id,buyer,channel,type,reason,status,amount,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)")
+                        ->execute([$cid, $t, $oid, null, $ch !== '' ? $ch : null, 'return', null, 'accepted', $fee, $nowc, $nowc]);
+                }
+                // 원주문 월 재롤업(늦은 반품이 판매월 정산에 정확 반영) — ingestClaims(OrderHub:899) 패턴.
+                $po = $db->prepare("SELECT SUBSTR(ordered_at,1,7) FROM channel_orders WHERE tenant_id=? AND (channel_order_id=? OR order_no=?) LIMIT 1");
+                $po->execute([$t, $oid, $oid]);
+                $pm = (string)($po->fetchColumn() ?: '');
+                if (!preg_match('/^\d{4}-\d{2}$/', $pm)) $pm = gmdate('Y-m');
+                \Genie\Handlers\OrderHub::rollupSettlementsCore($db, $t, $pm, null, gmdate('Y-m-d H:i:s'));
             } catch (\Throwable $e) {}
         }
         return self::json($response, ['ok' => true, 'restored' => $restored]);

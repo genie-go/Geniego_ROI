@@ -2,6 +2,7 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { useI18n } from '../../i18n';
 import { useGlobalData } from '../../context/GlobalDataContext.jsx';
 import { useSecurityGuard } from '../../security/SecurityGuard.js';
+import ProductMarketingPanel from './ProductMarketingPanel.jsx';
 import { LineChart, Spark, fmt } from './ChartUtils.jsx';
 import { useCurrency } from '../../contexts/CurrencyContext.jsx';
 import { IS_DEMO } from '../../utils/demoEnv';
@@ -250,6 +251,7 @@ export default function DashChannelKPI({ period }) {
 
     return (
         <div style={{ display:'grid', gap: G }}>
+            <ProductMarketingPanel period={period} />
             {/* Real-time KPI Badges */}
             <div style={{ display:'flex', gap: 8, flexWrap: 'wrap', padding: '4px 0' }}>
                 <span style={{ fontSize: 10, background: 'rgba(20,217,176,0.12)', border: '1px solid rgba(20,217,176,0.3)', borderRadius: 20, padding: '3px 10px', color: '#14d9b0', fontWeight: 700 }}>

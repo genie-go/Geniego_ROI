@@ -7826,6 +7826,7 @@ export default {
     "badgeChannelUnit": "channels connected",
     "totalClicks": "Total Clicks",
     "cartAdds": "Cart Adds",
+    "adContribution": "Ad Contribution Profit",
     "purchases": "Purchases",
     "roas": "ROAS",
     "funnelImpressions": "Impressions",

@@ -1477,6 +1477,17 @@ final class Connectors
             $persisted = self::persistMetricRows($pdo, $tenant, $ch, $rows, $start, $end);
             $totalRows += $persisted;
             $summary[$ch] = ['status' => 'ok', 'rows' => $persisted];
+
+            // [현 차수] 타겟 마케팅 데이터화 — 성과(performance_metrics) 외에 성별·연령·지역 demographic 을
+            //   ad_insight_agg 에 자동수집(Decisioning::upsertAdInsights 공유=중복 없음). 실 매체 데이터만,
+            //   실패해도 성과 적재엔 무영향(graceful). RollupDashboard 상품성과 '구매자 타겟층' 데이터 기반.
+            try {
+                $demoRows = self::fetchAdDemographics($ch, $tenant, $start, $end);
+                if ($demoRows) {
+                    $dn = \Genie\Handlers\Decisioning::upsertAdInsights($pdo, $tenant, $demoRows);
+                    if ($dn > 0) $summary[$ch]['demographics'] = $dn;
+                }
+            } catch (\Throwable $e) { /* demographic 수집 실패 = 정직 무시(성과 적재 보존) */ }
         }
 
         return [
@@ -1766,6 +1777,68 @@ final class Connectors
             ];
         }
         return ['hasCreds' => true, 'live' => true, 'rows' => $rows];
+    }
+
+    /**
+     * [현 차수] 광고 demographic(성별·연령·지역) 자동수집 디스패처 — 타겟 마케팅 분석용 데이터화.
+     *   채널별 breakdown 지원 매체만 실수집(현재 Meta). 미지원 매체는 빈 배열(정직·날조 없음).
+     *   ★상품(sku)별 성별/연령은 매체 표준 API 가 product_id 와 age/gender 를 한 호출로 결합 못 해(Meta 제약)
+     *     캠페인 레벨로 수집된다. 상품태깅(쇼핑/카탈로그 캠페인) 또는 1차 enrichment push(POST /v418x/ingest/ad-insights,
+     *     Decisioning::upsertAdInsights 공유) 시 sku 차원이 채워져 RollupDashboard 상품성과 '구매자 타겟층'에 자동 반영.
+     */
+    private static function fetchAdDemographics(string $channel, string $tenant, string $start, string $end): array
+    {
+        switch ($channel) {
+            case 'meta': return self::fetchMetaDemographics($tenant, $start, $end);
+            // 타 매체(google/tiktok 등)는 demographic breakdown 어댑터 추가 시 여기 배선(현재 정직 미수집).
+            default: return [];
+        }
+    }
+
+    /** [현 차수] Meta Insights demographic breakdown(성별·연령·국가) 실수집 → ad_insight_agg 행. 자격증명·API 실패 시 빈 배열(graceful). */
+    private static function fetchMetaDemographics(string $tenant, string $start, string $end): array
+    {
+        $accessToken = (string)(getenv('META_ACCESS_TOKEN')  ?: self::loadCred($tenant, 'meta_ads', 'access_token'));
+        $adAccountId = (string)(getenv('META_AD_ACCOUNT_ID') ?: self::loadCred($tenant, 'meta_ads', 'ad_account_id'));
+        if ($accessToken === '' || $adAccountId === '') return [];
+        $out = [];
+        // 성별·연령 분포(캠페인 레벨). Meta 표준 breakdowns=age,gender(결합 허용).
+        self::metaDemoCall($adAccountId, $accessToken, $start, $end, 'age,gender', $out);
+        // 지역 분포(국가). breakdowns=country.
+        self::metaDemoCall($adAccountId, $accessToken, $start, $end, 'country', $out);
+        return $out;
+    }
+
+    /** Meta insights demographic 1회 호출 → $out 누적(실 매체 데이터만, 날조 없음). breakdown 미지원/에러 시 무시(graceful). */
+    private static function metaDemoCall(string $adAccountId, string $token, string $start, string $end, string $breakdowns, array &$out): void
+    {
+        $params = http_build_query([
+            'time_range'  => json_encode(['since' => $start, 'until' => $end]),
+            'level'       => 'campaign',
+            'fields'      => 'campaign_id,campaign_name,impressions,clicks,spend,actions,action_values',
+            'breakdowns'  => $breakdowns,
+            'limit'       => 500,
+            'access_token'=> $token,
+        ]);
+        $url = "https://graph.facebook.com/v19.0/act_{$adAccountId}/insights?{$params}";
+        [$code, $body, $err] = self::httpGet($url);
+        if ($err || $code >= 400 || isset($body['error'])) return; // breakdown 미허용/권한부족 → 정직 무시
+        foreach (($body['data'] ?? []) as $r) {
+            [$conv, $rev] = self::metaConvValue($r['actions'] ?? [], $r['action_values'] ?? []);
+            $out[] = [
+                'platform'    => 'meta',
+                'date'        => (string)($r['date_start'] ?? $start),
+                'campaign_id' => (string)($r['campaign_id'] ?? ''),
+                'gender'      => isset($r['gender']) ? (string)$r['gender'] : null,
+                'age_range'   => isset($r['age']) ? (string)$r['age'] : null,
+                'region'      => isset($r['country']) ? (string)$r['country'] : null,
+                'impressions' => (int)($r['impressions'] ?? 0),
+                'clicks'      => (int)($r['clicks'] ?? 0),
+                'spend'       => (float)($r['spend'] ?? 0),
+                'conversions' => $conv,
+                'revenue'     => $rev,
+            ];
+        }
     }
 
     /** Meta actions/action_values 배열에서 구매 전환수/매출 추출. */

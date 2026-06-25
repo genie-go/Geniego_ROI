@@ -3,6 +3,7 @@ import{useI18n as _useI18n}from'../i18n/index.js';
 import{useCurrency}from'../contexts/CurrencyContext.jsx';
 import{useAuth}from'../auth/AuthContext';
 import{useGlobalData}from'../context/GlobalDataContext.jsx';
+import{useProductSelection}from'../contexts/ProductSelectionContext.jsx';
 import RP from'./rpI18n.js';
 import { IS_DEMO } from '../utils/demoEnv';
 import * as apiClient from '../services/apiClient';
@@ -237,6 +238,7 @@ const{fmt}=useCurrency();
 const{user}=useAuth();
 const isDemo=IS_DEMO; // 180차: email·host broad includes('demo') 제거 → demoEnv 정본 격리(운영 오염 0)
 const{orders=[],claimHistory=[],claimStatsServer=null,orderStats=null,registerClaimReturn}=useGlobalData();
+const{selectedProduct}=useProductSelection();// [현 차수] 전역 상품선택 → 그 상품 반품만 필터·상품별 반품률(실시간 동기화)
 const[tab,setTab]=useState('tabOverview');
 // [현 차수] P1: 수동 반품 등록 — registerClaimReturn(낙관적 claimHistory 추가 + sku/qty 시 반품입고=재고복원)
 //   + 운영은 백엔드 ingestClaims 영속(POST /v424/orderhub/claims). 등록 후 화면 즉시 반영.
@@ -260,7 +262,7 @@ const data=useMemo(()=>{
   if(isDemo){
     const src=Array.isArray(orders)?orders:[];
     return src.filter((_,i)=>i%7===2||i%7===5).slice(0,14).map((o,i)=>({
-      id:`RT-${2401+i}`, orderNo:o.id, product:o.name, customer:(String(o.buyer||'').split(' ')[0]||o.buyer),
+      id:`RT-${2401+i}`, orderNo:o.id, product:o.name, sku:o.sku||o.product_id||'', customer:(String(o.buyer||'').split(' ')[0]||o.buyer),
       channel:o.ch, amount:o.total, reason:_RREASON[i%_RREASON.length], status:_RSTATUS[i%_RSTATUS.length],
       date:String(o.at||'').slice(0,10), inspGrade:_RGRADE[i%_RGRADE.length], refundMethod:_RMETHOD[i%_RMETHOD.length],
     }));
@@ -268,7 +270,7 @@ const data=useMemo(()=>{
   // 207차: 운영은 OrderHub 백엔드 적재 claimHistory(/api/v424/orderhub/claims) 를 소비 — 빈 화면 해소.
   const src=Array.isArray(claimHistory)?claimHistory:[];
   return src.map((c)=>({
-    id:c.id, orderNo:c.orderId||'', product:c.product||'', customer:(String(c.buyer||'').split(' ')[0]||c.buyer||''),
+    id:c.id, orderNo:c.orderId||'', product:c.product||'', sku:c.sku||'', customer:(String(c.buyer||'').split(' ')[0]||c.buyer||''),
     channel:c.channel||'', amount:Number(c.amount)||0, reason:c.reason||'', status:c.status||'pending',
     date:String(c.createdAt||'').slice(0,10), inspGrade:c.inspGrade??null, refundMethod:c.refundMethod??null,
   }));
@@ -276,6 +278,12 @@ const data=useMemo(()=>{
 // [225차 P1-16] 반품률 분모 = 실주문수. 운영은 과거 claimHistory.length(=반품수, 분자와 동일 → 항상 ~100%)
 //   였던 치명 버그를 서버 주문집계(orderStats.totalOrders, 전체 행)로 교체. 데모는 단일소스 주문수.
 const orderCount=isDemo?(Array.isArray(orders)?orders.length:0):(Number(orderStats?.totalOrders||orderStats?.count)||(Array.isArray(claimHistory)?claimHistory.length:0));
+// [현 차수] 전역 상품선택 시 그 상품 반품만 — 모든 탭(요청·검수·환불·재입고·분석)에 동일 필터 전파(실시간 동기화). sku 우선, 없으면 상품명.
+const prodMode=!!selectedProduct?.sku;
+const viewData=useMemo(()=>prodMode?data.filter(r=>(r.sku&&String(r.sku)===selectedProduct.sku)||(r.product&&r.product===selectedProduct.name)):data,[data,prodMode,selectedProduct]);
+// 상품별 반품률 분모 = 그 상품 주문수(실주문 파생, 정직). orders 파생 가능 시만 표기(운영 부분적재 시 '—').
+const prodOrderCount=useMemo(()=>{if(!prodMode)return 0;const src=Array.isArray(orders)?orders:[];return src.filter(o=>String(o.sku||o.product_id||'')===selectedProduct.sku||o.name===selectedProduct.name).length;},[prodMode,orders,selectedProduct]);
+const prodRate=prodMode&&prodOrderCount>0?((viewData.length/prodOrderCount)*100).toFixed(1):null;
 
 const titleStyle={fontSize:22,fontWeight:800,color:'#1e293b'};
 const subStyle={fontSize:13,color:'#64748b',marginTop:4};
@@ -301,12 +309,19 @@ return <div style={{display:'flex',flexDirection:'column',height:'100%',backgrou
 </div>
 {/* Content scroll */}
 <div style={{flex:1,overflowY:'auto',padding:'20px 28px 40px'}}>
-{tab==='tabOverview'&&<OverviewTab data={data} tr={tr} fmt={fmt} orderCount={orderCount} claimStats={isDemo?null:claimStatsServer}/>}
-{tab==='tabRequests'&&<RequestsTab data={data} tr={tr} fmt={fmt}/>}
-{tab==='tabInspection'&&<InspectionTab data={data} tr={tr}/>}
-{tab==='tabRefunds'&&<RefundsTab data={data} tr={tr} fmt={fmt}/>}
-{tab==='tabRestock'&&<RestockTab data={data} tr={tr}/>}
-{tab==='tabAnalytics'&&<AnalyticsTab data={data} tr={tr}/>}
+{/* [현 차수] 선택 상품 반품 요약 — 전 탭 동일 필터(실시간 동기화). 반품률 분모=상품 주문수(정직, 미파생 시 '—') */}
+{prodMode&&<div style={{marginBottom:16,padding:'11px 16px',borderRadius:10,background:'linear-gradient(90deg,#eff6ff,#eef2ff)',border:'1px solid #c7d2fe',fontSize:13,display:'flex',flexWrap:'wrap',gap:16,alignItems:'center'}}>
+<span style={{fontWeight:800}}>📦 {selectedProduct.name}</span>
+<span><b>{viewData.length}</b> {tr('tabRequests')||'반품'}</span>
+<span>{tr('kpiReturnRate')||'반품률'}: <b style={{color:'#dc2626'}}>{prodRate!=null?prodRate+'%':'—'}</b></span>
+{(()=>{const rs={};viewData.forEach(r=>{if(r.reason)rs[r.reason]=(rs[r.reason]||0)+1;});const top=Object.entries(rs).sort((a,b)=>b[1]-a[1])[0];return top?<span style={{color:'#475569'}}>{tr('topReason')||'주요 사유'}: {(tr('reason'+top[0].charAt(0).toUpperCase()+top[0].slice(1))||top[0])} ({top[1]})</span>:null;})()}
+</div>}
+{tab==='tabOverview'&&<OverviewTab data={viewData} tr={tr} fmt={fmt} orderCount={prodMode&&prodOrderCount>0?prodOrderCount:orderCount} claimStats={isDemo?null:claimStatsServer}/>}
+{tab==='tabRequests'&&<RequestsTab data={viewData} tr={tr} fmt={fmt}/>}
+{tab==='tabInspection'&&<InspectionTab data={viewData} tr={tr}/>}
+{tab==='tabRefunds'&&<RefundsTab data={viewData} tr={tr} fmt={fmt}/>}
+{tab==='tabRestock'&&<RestockTab data={viewData} tr={tr}/>}
+{tab==='tabAnalytics'&&<AnalyticsTab data={viewData} tr={tr}/>}
 {tab==='tabPolicies'&&<PoliciesTab tr={tr}/>}
 {tab==='tabGuide'&&<GuideTab tr={tr}/>}
 </div>

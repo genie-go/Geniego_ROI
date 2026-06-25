@@ -105,6 +105,16 @@ class PriceOpt
             promoPrice REAL, discountRate REAL, reason TEXT, status TEXT DEFAULT '초안', created_at TEXT
         )");
 
+        // [현 차수] 채널별 배송조건 — 무료배송(판매자 흡수) 시 ship_cost 가 실효원가에 가산되어 최적가가
+        //   마진을 보존하도록 상향. 소비자부담(buyer_paid)은 판매자 마진 무영향(burden=0). sku+channel 단위,
+        //   미설정 채널은 '*' 기본값 폴백. 국내(무료배송 다수)·해외(소비자부담 다수, 가변) 실효원가 정확화.
+        $pdo->exec("CREATE TABLE IF NOT EXISTS po_shipping (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo',
+            sku TEXT NOT NULL, channel TEXT NOT NULL DEFAULT '*',
+            ship_mode TEXT NOT NULL DEFAULT 'buyer_paid', ship_cost REAL NOT NULL DEFAULT 0,
+            updated_at TEXT, UNIQUE(tenant_id, sku, channel)
+        )");
+
         self::$db = $pdo;
         return $pdo;
     }
@@ -368,6 +378,97 @@ class PriceOpt
         return self::json($response, ['ok' => true, 'inserted' => $cnt]);
     }
 
+    /**
+     * [현 차수] 채널별 배송관행 스마트 기본 모드 — 실세계 관행 기반(사용자가 채널별 override 가능).
+     *   free=무료배송(판매자 흡수→실효원가 가산) / buyer_paid=소비자부담(판매자 마진 무영향).
+     *   ★실 배송비(ship_cost)는 상품/무게별로 다르므로 하드코딩 안 함(사용자 입력) — 여기선 '모드'만 기본 추정.
+     */
+    private const SHIP_DEFAULT_MODE = [
+        // 무료배송 관행(판매자 흡수): 국내 주요 채널 + Amazon(FBA/Prime)·Shopify(D2C 무료배송 경쟁)·Rakuten·TikTok Shop·Walmart
+        'coupang'=>'free','naver'=>'free','naver_smartstore'=>'free','smartstore'=>'free','11st'=>'free','st11'=>'free',
+        'gmarket'=>'free','auction'=>'free','lotteon'=>'free','ssg'=>'free','kakao'=>'free','cafe24'=>'free','godomall'=>'free',
+        'amazon'=>'free','amazon_spapi'=>'free','shopify'=>'free','rakuten'=>'free','tiktok_shop'=>'free','walmart'=>'free',
+        // 소비자부담 관행: eBay·Etsy·동남아(Shopee/Lazada/Qoo10)·Yahoo!JP (배송비 별도 청구가 일반적)
+        'ebay'=>'buyer_paid','etsy'=>'buyer_paid','shopee'=>'buyer_paid','lazada'=>'buyer_paid',
+        'qoo10'=>'buyer_paid','yahoo_japan'=>'buyer_paid','yahoo_jp'=>'buyer_paid',
+    ];
+
+    /** 채널 배송 기본 모드(미설정 채널은 buyer_paid=무부담, 가격 비의도적 상향 회피). */
+    private static function shipDefaultMode(string $channel): string
+    {
+        $c = strtolower(trim($channel));
+        return self::SHIP_DEFAULT_MODE[$c] ?? 'buyer_paid';
+    }
+
+    /**
+     * 배송조건 해석 — body 에 ship_mode 오면 persist(채널 단위) 후 사용. 없으면 저장값(sku,channel)→(sku,'*')→
+     *   채널 관행 기본 순 폴백. 반환 burden = 무료배송일 때만 ship_cost(판매자 흡수분), 아니면 0.
+     */
+    private static function resolveShipping(\PDO $db, string $t, string $sku, string $channel, array $body): array
+    {
+        $mode = isset($body['ship_mode']) ? (string)$body['ship_mode'] : null;
+        $cost = isset($body['ship_cost']) ? (float)$body['ship_cost'] : null;
+        if ($mode !== null && in_array($mode, ['free','buyer_paid'], true)) {
+            // 명시 입력 → 저장(채널 단위 upsert).
+            self::saveShippingRow($db, $t, $sku, $channel, $mode, $cost ?? 0);
+            $rcost = $cost ?? 0; $isDefault = false;
+        } else {
+            // 저장값 (sku,channel) → (sku,'*') 폴백.
+            $row = self::loadShippingRow($db, $t, $sku, $channel) ?: self::loadShippingRow($db, $t, $sku, '*');
+            if ($row) { $mode = (string)$row['ship_mode']; $rcost = (float)$row['ship_cost']; $isDefault = false; }
+            else { $mode = self::shipDefaultMode($channel); $rcost = 0.0; $isDefault = true; }
+        }
+        $burden = ($mode === 'free') ? max(0.0, $rcost) : 0.0;
+        return ['mode'=>$mode, 'cost'=>$rcost, 'burden'=>$burden, 'is_default'=>$isDefault];
+    }
+
+    private static function loadShippingRow(\PDO $db, string $t, string $sku, string $channel): ?array
+    {
+        try {
+            $st = $db->prepare("SELECT ship_mode, ship_cost FROM po_shipping WHERE tenant_id=? AND sku=? AND channel=? LIMIT 1");
+            $st->execute([$t, $sku, $channel]);
+            return $st->fetch(\PDO::FETCH_ASSOC) ?: null;
+        } catch (\Throwable $e) { return null; }
+    }
+
+    private static function saveShippingRow(\PDO $db, string $t, string $sku, string $channel, string $mode, float $cost): void
+    {
+        try {
+            $ex = $db->prepare("SELECT id FROM po_shipping WHERE tenant_id=? AND sku=? AND channel=? LIMIT 1");
+            $ex->execute([$t, $sku, $channel]);
+            $now = gmdate('c');
+            if ($id = $ex->fetchColumn()) {
+                $db->prepare("UPDATE po_shipping SET ship_mode=?, ship_cost=?, updated_at=? WHERE id=?")->execute([$mode, $cost, $now, $id]);
+            } else {
+                $db->prepare("INSERT INTO po_shipping (tenant_id,sku,channel,ship_mode,ship_cost,updated_at) VALUES (?,?,?,?,?,?)")->execute([$t, $sku, $channel, $mode, $cost, $now]);
+            }
+        } catch (\Throwable $e) { /* 멱등 best-effort */ }
+    }
+
+    /** GET /v420/price/shipping?sku=&channel= — 저장값 또는 채널 관행 기본 반환. */
+    public static function getShipping(Request $request, Response $response, array $args): Response
+    {
+        $db = self::db(); $t = self::tenant($request);
+        $q = $request->getQueryParams();
+        $sku = trim((string)($q['sku'] ?? '')); $channel = (string)($q['channel'] ?? '*');
+        if ($sku === '') return self::json($response, ['ok'=>false,'error'=>'sku required'], 400);
+        $ship = self::resolveShipping($db, $t, $sku, $channel, []);
+        return self::json($response, ['ok'=>true,'sku'=>$sku,'channel'=>$channel,'ship_mode'=>$ship['mode'],'ship_cost'=>$ship['cost'],'is_default'=>$ship['is_default'],'default_mode'=>self::shipDefaultMode($channel)]);
+    }
+
+    /** POST /v420/price/shipping — 채널별 배송조건 저장(무료배송/소비자부담 + 배송비). */
+    public static function saveShipping(Request $request, Response $response, array $args): Response
+    {
+        if ($err = UserAuth::requirePro($request, $response)) return $err;
+        $db = self::db(); $t = self::tenant($request); $body = self::body($request);
+        $sku = trim((string)($body['sku'] ?? '')); $channel = (string)($body['channel'] ?? '*');
+        $mode = (string)($body['ship_mode'] ?? 'buyer_paid');
+        if ($sku === '') return self::json($response, ['ok'=>false,'error'=>'sku required'], 400);
+        if (!in_array($mode, ['free','buyer_paid'], true)) return self::json($response, ['ok'=>false,'error'=>'invalid ship_mode'], 400);
+        self::saveShippingRow($db, $t, $sku, $channel, $mode, (float)($body['ship_cost'] ?? 0));
+        return self::json($response, ['ok'=>true,'sku'=>$sku,'channel'=>$channel,'ship_mode'=>$mode,'ship_cost'=>(float)($body['ship_cost'] ?? 0)]);
+    }
+
     /** POST /v420/price/optimize */
     public static function optimize(Request $request, Response $response, array $args): Response
     {
@@ -385,9 +486,14 @@ class PriceOpt
         $product = $ps->fetch(\PDO::FETCH_ASSOC);
         $cost = $product ? (float)$product['cost_price'] : 0;
         $targetMargin = $product ? (float)$product['target_margin'] : 0.30;
-        $minPrice = $cost > 0 ? round($cost / (1 - $targetMargin), 0) : (float)($body['min_price'] ?? 0);
+        // [현 차수] 채널 배송조건 반영 — 무료배송이면 배송비를 실효원가에 가산해 최적가가 마진을 보존하도록 상향.
+        //   소비자부담이면 burden=0(판매자 마진 무영향). body 에 ship_mode 오면 persist, 없으면 저장값/'*' 폴백.
+        $ship = self::resolveShipping($db, $t, $sku, $channel, $body);
+        $effectiveCost = $cost + $ship['burden'];
+        $minPrice = $effectiveCost > 0 ? round($effectiveCost / (1 - $targetMargin), 0) : (float)($body['min_price'] ?? 0);
         // [239차+ ML] 탄력성 최적가 = 공용 헬퍼(elasticityOptimal) 재사용(중복0). 데이터 부족 시 cost-plus 폴백.
-        $opt = self::elasticityOptimal($db, $t, $sku, $channel, $cost, $targetMargin, $currentPx, $inventory);
+        //   ★cost 인자에 effectiveCost 전달 → 이익최대 (p-effectiveCost)*q·마진 모두 배송반영.
+        $opt = self::elasticityOptimal($db, $t, $sku, $channel, $effectiveCost, $targetMargin, $currentPx, $inventory);
         if ($opt) {
             $optPrice = $opt['price']; $optQty = $opt['qty']; $optMargin = $opt['margin']; $algo = $opt['algo']; $r2 = $opt['r2'];
         } else {
@@ -399,7 +505,8 @@ class PriceOpt
         elseif ($inventory > 200) $clearancePrice = round(max($minPrice, $optPrice * 0.88), -2);
         $ins = $db->prepare("INSERT INTO po_recommendations (tenant_id,sku,channel,current_price,optimal_price,expected_margin,expected_qty,inventory_level,algo,created_at) VALUES (?,?,?,?,?,?,?,?,?,?)");
         $ins->execute([$t, $sku, $channel, $currentPx, $optPrice, $optMargin, $optQty, $inventory, $algo, gmdate('c')]);
-        return self::json($response, ['ok'=>true,'sku'=>$sku,'channel'=>$channel,'current_price'=>$currentPx,'optimal_price'=>$optPrice,'clearance_price'=>$clearancePrice,'expected_margin'=>$optMargin,'expected_qty'=>$optQty,'algo'=>$algo,'r2'=>$r2,'min_price'=>$minPrice,'inventory'=>$inventory,'cost_price'=>$cost]);
+        return self::json($response, ['ok'=>true,'sku'=>$sku,'channel'=>$channel,'current_price'=>$currentPx,'optimal_price'=>$optPrice,'clearance_price'=>$clearancePrice,'expected_margin'=>$optMargin,'expected_qty'=>$optQty,'algo'=>$algo,'r2'=>$r2,'min_price'=>$minPrice,'inventory'=>$inventory,'cost_price'=>$cost,
+            'ship_mode'=>$ship['mode'],'ship_cost'=>$ship['cost'],'shipping_burden'=>$ship['burden'],'effective_cost'=>$effectiveCost]);
     }
 
     /** POST /v420/price/optimize/batch */
@@ -417,6 +524,8 @@ class PriceOpt
             $ps->execute([$sku, $t]); $product = $ps->fetch(\PDO::FETCH_ASSOC);
             if (!$product) continue;
             $cost = (float)$product['cost_price']; $tm = (float)$product['target_margin'];
+            // [현 차수] 배송반영 일관성(batch 도 단건 optimize 와 동일 실효원가). batch 는 통합('*') 기준.
+            $cost = $cost + self::resolveShipping($db, $t, $sku, '*', [])['burden'];
             $minP = $cost > 0 ? round($cost / (1 - $tm), 0) : 0;
             $es = $db->prepare("SELECT price,quantity FROM po_elasticity WHERE sku=? AND channel='*' AND tenant_id=? ORDER BY price");
             $es->execute([$sku, $t]); $rows=$es->fetchAll(\PDO::FETCH_ASSOC);
@@ -699,7 +808,10 @@ class PriceOpt
                 $ps->execute([$t, $sku]); $prod = $ps->fetch(\PDO::FETCH_ASSOC);
                 $cost = $prod ? (float)$prod['cost_price'] : 0.0;
                 $tMargin = $prod ? (float)$prod['target_margin'] : 0.30;
-                $floor = $cost > 0 ? round($cost * (1 + $tMargin * 0.5)) : round($cur * 0.7); // 원가+절반목표마진, 또는 현가70%
+                // [현 차수] 배송반영 일관성 — optimize 와 동일하게 무료배송 채널은 배송비를 실효원가에 가산.
+                //   리프라이서(floor·margin·elasticity)와 optimize 가 같은 실효원가를 써야 메뉴 간 추천가가 발산하지 않음.
+                $cost = $cost + self::resolveShipping($db, $t, $sku, $channel, [])['burden'];
+                $floor = $cost > 0 ? round($cost * (1 + $tMargin * 0.5)) : round($cur * 0.7); // 실효원가+절반목표마진, 또는 현가70%
                 $new = $cur;
                 $reason = '';
                 if ($mode === 'match' && $comps) {

@@ -4693,6 +4693,7 @@ export default {
 
     "adRev": "광고 매출",
 
+    "adContribution": "광고기여이익",
     "dismiss": "차단 및 무시",
 
     "flowVisit": "방문자",

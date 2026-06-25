@@ -136,9 +136,11 @@ class Reports
     {
         $fmt = fn($n) => number_format((float)$n);
         $rows = [
-            ['매출 (Revenue)', '₩' . $fmt($s['revenue'])],
+            // [현 차수 값정합] 데이터 소스가 performance_metrics(광고매체)이므로 라벨을 광고 스코프로 정직화 —
+            //   대시보드/P&L의 회사 전체 "매출/순이익"(정산 gross·COGS차감)과 값이 발산해 신뢰 훼손되던 라벨 충돌 해소.
+            ['광고매출 (Ad Revenue)', '₩' . $fmt($s['revenue'])],
             ['광고비 (Ad Spend)', '₩' . $fmt($s['spend'])],
-            ['순이익 (Net)', '₩' . $fmt($s['net'])],
+            ['광고기여이익 (Ad Contribution)', '₩' . $fmt($s['net'])],
             ['ROAS', (string)$s['roas'] . 'x'],
             ['전환 (Conversions)', $fmt($s['conversions'])],
             ['클릭 (Clicks)', $fmt($s['clicks'])],

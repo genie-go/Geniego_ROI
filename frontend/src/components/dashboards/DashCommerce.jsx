@@ -6,6 +6,7 @@ import { DonutChart, StackBar, fmt } from './ChartUtils.jsx';
 import { useCurrency } from '../../contexts/CurrencyContext.jsx';
 import { IS_DEMO } from '../../utils/demoEnv.js';
 import { buildPeriodScope, deriveOrderKpis, usePeriodOrderStats } from './dashPeriod.js';
+import { useProductSelection } from '../../contexts/ProductSelectionContext.jsx';
 
 // ══════════════════════════════════════════════════════════════════════
 //  🛒 DashCommerce — 커머스·정산 Platform Intelligence
@@ -428,25 +429,32 @@ export default function DashCommerce({ period }) {
 
   // ✅ GlobalDataContext — Single Source of Truth (실시간 동기화)
   const { orders, orderStats, settlementStats, pnlStats, addAlert } = useGlobalData();
+  const { selectedProduct } = useProductSelection(); // [현 차수] 전역 상품선택 — 선택 시 그 상품으로 전 KPI 전환
 
   // ✅ SecurityGuard — Enterprise real-time threat monitoring
   useSecurityGuard({ addAlert: useCallback((a) => { if (typeof addAlert === 'function') addAlert(a); }, [addAlert]), enabled: true });
 
   // [현 차수] 기간 스코프: 선택 기간의 실주문(취소 제외)으로 주문수·매출·플랫폼 분해 재집계.
   const scope = useMemo(() => buildPeriodScope(orders, period), [orders, period]);
-  const periodKpis = useMemo(() => deriveOrderKpis(scope.scoped), [scope.scoped]);
-  const scopedOrders = scope.scoped;
+  // [현 차수] 상품 선택 시 그 상품(sku 정확일치) 주문만으로 전 KPI 재집계(전체↔상품 정확 전환·혼합값 방지).
+  const prodMode = !!selectedProduct?.sku;
+  const scopedOrders = useMemo(() => prodMode ? scope.scoped.filter(o => String(o.sku || o.product_id || '') === selectedProduct.sku) : scope.scoped, [scope.scoped, prodMode, selectedProduct]);
+  const periodKpis = useMemo(() => deriveOrderKpis(scopedOrders), [scopedOrders]);
   // [정밀감사 A] 기간 매출/주문수 = 서버 전체행 집계(1000건 캡 과소집계 해소). 로딩전/실패/데모는 null → 클라 배열 폴백.
   const periodSrv = usePeriodOrderStats(period);
 
   // ── Derived computed data (100% real-time, zero mock) ──────────────
-  const totalOrd = scope.active ? (periodSrv ? periodSrv.orders : periodKpis.orders) : (orderStats?.count || 0);
+  const totalOrd = prodMode ? periodKpis.orders : (scope.active ? (periodSrv ? periodSrv.orders : periodKpis.orders) : (orderStats?.count || 0));
   // [현 차수] 데이터품질(운영 매출 발산 통일): '총매출'은 플랫폼 캐논 매출(pnlStats.revenue)을 사용한다.
   //   기간 선택 시엔 그 기간 실주문 매출(periodSrv 서버집계 우선, 폴백=periodKpis)을 써 기간 정합성을 보장한다.
-  const totalRev = scope.active
-    ? (periodSrv ? periodSrv.revenue : periodKpis.revenue)
-    : ((pnlStats?.revenue != null && pnlStats.revenue > 0) ? pnlStats.revenue : (orderStats?.revenue || 0));
-  const returnRate = settlementStats?.returnRate || 0;
+  const totalRev = prodMode ? periodKpis.revenue
+    : (scope.active
+      ? (periodSrv ? periodSrv.revenue : periodKpis.revenue)
+      : ((pnlStats?.revenue != null && pnlStats.revenue > 0) ? pnlStats.revenue : (orderStats?.revenue || 0)));
+  // [현 차수] 상품모드 반품률 = 그 상품 주문 기준(전체 정산 반품률 대신). 비율(0~1).
+  const returnRate = prodMode
+    ? (() => { const valid = scopedOrders.filter(o => !/cancel|취소/i.test(String(o.status || '') + String(o.event_type || ''))).length; const ret = scopedOrders.filter(o => /return|반품/i.test(String(o.status || '') + String(o.event_type || ''))).length; return valid > 0 ? ret / valid : 0; })()
+    : (settlementStats?.returnRate || 0);
   const reconRate = settlementStats?.totalOrders > 0
     ? ((settlementStats.settledAmount / Math.max(1, settlementStats.totalGross)) * 100).toFixed(1)
     : '0.0';

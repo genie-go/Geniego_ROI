@@ -21,6 +21,20 @@ use Psr\Http\Message\ServerRequestInterface as Request;
  */
 final class Rollup {
 
+    /** [현 차수] 채널 → 마켓 국가/권역 매핑(상품×국가 성과). 채널이라는 실수집 데이터에서 도출(허위값 0).
+     *   국내 KR / 일본 JP(Qoo10·Yahoo·Rakuten) / 미국 US(Amazon·eBay·Walmart·Etsy) / 동남아 SEA(Shopee·Lazada) / 중국 CN. 미상=ETC. */
+    private const CHANNEL_COUNTRY = [
+        'coupang'=>'KR','naver'=>'KR','naver_smartstore'=>'KR','smartstore'=>'KR','11st'=>'KR','st11'=>'KR','gmarket'=>'KR',
+        'auction'=>'KR','lotteon'=>'KR','ssg'=>'KR','kakao'=>'KR','kakaogift'=>'KR','cafe24'=>'KR','godomall'=>'KR','wemef'=>'KR','tmon'=>'KR',
+        'qoo10'=>'JP','yahoo_japan'=>'JP','yahoo_jp'=>'JP','rakuten'=>'JP','amazon_jp'=>'JP',
+        'amazon'=>'US','amazon_spapi'=>'US','ebay'=>'US','walmart'=>'US','etsy'=>'US',
+        'shopee'=>'SEA','lazada'=>'SEA','aliexpress'=>'CN',
+    ];
+    private static function channelCountry(string $ch): string {
+        $c = strtolower(trim($ch));
+        return self::CHANNEL_COUNTRY[$c] ?? 'ETC';
+    }
+
     // ── 테넌트 해석 (세션 토큰 → tenant_id, 미인증/데모토큰 = 'demo') ────────────
     private static function tenantOf(Request $req): string {
         $auth = $req->getHeaderLine('Authorization');
@@ -159,6 +173,153 @@ final class Rollup {
         return TemplateResponder::json($res, [
             'ok' => true, 'version' => 'v423', 'dimension' => 'sku',
             'period' => $period, 'n' => $n, 'dates' => $dates, 'rows' => $rows,
+        ]);
+    }
+
+    // ── 1b. 상품 성과 분석 (순위 · 상품×채널 · 상품×국가) ───────────────────────
+    /** [현 차수] GET /v423/rollup/product-performance — "어떤 상품이 잘/안 팔리는지(순위), 어느 채널·국가에서
+     *   잘/안 팔리는지"를 channel_orders(sku·channel) 실집계로 산출(취소제외 SSOT). 국가=채널→마켓 매핑(실수집 채널 기반).
+     *   마케팅 활동·제품개발 의사결정의 핵심. 데모는 프론트가 단일소스(orders)에서 동일 파생(백엔드=실집계 전용). */
+    public static function productPerformance(Request $req, Response $res, array $args = []): Response {
+        $tenant = self::tenantOf($req);
+        $q = $req->getQueryParams();
+        $period = (string)($q['period'] ?? 'monthly');
+        $n = self::nRange($period, (int)($q['n'] ?? 0), 6);
+        $dates = self::dates($period, $n);
+        $start = self::rangeStart($dates);
+        $products = []; $channelsSeen = []; $countriesSeen = [];
+        try {
+            $pdo = Db::pdo();
+            $stmt = $pdo->prepare(
+                "SELECT sku, product_name AS name, channel, qty, total_price, status, event_type
+                   FROM channel_orders
+                  WHERE tenant_id = ? AND sku IS NOT NULL AND sku <> '' AND ordered_at >= ?"
+            );
+            $stmt->execute([$tenant, $start]);
+            while ($r = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+                $ev = (string)($r['event_type'] ?? 'order'); $st = (string)($r['status'] ?? '');
+                if (self::isCancel($ev, $st)) continue; // 취소 제외(매출·주문수 정합)
+                $sku = (string)$r['sku']; $ch = (string)($r['channel'] ?? ''); $country = self::channelCountry($ch);
+                $qty = (int)($r['qty'] ?? 0); $rev = (float)($r['total_price'] ?? 0); $isRet = self::isReturn($ev, $st);
+                if (!isset($products[$sku])) $products[$sku] = ['sku'=>$sku,'name'=>(string)($r['name'] ?? $sku),'qty'=>0,'revenue'=>0.0,'orders'=>0,'returns'=>0,'byChannel'=>[],'byCountry'=>[],'byGender'=>[],'byAge'=>[],'ad'=>null];
+                $products[$sku]['qty'] += $qty; $products[$sku]['revenue'] += $rev; $products[$sku]['orders'] += 1;
+                if ($isRet) $products[$sku]['returns'] += 1;
+                if (!isset($products[$sku]['byChannel'][$ch])) $products[$sku]['byChannel'][$ch] = ['qty'=>0,'revenue'=>0.0,'orders'=>0];
+                $products[$sku]['byChannel'][$ch]['qty'] += $qty; $products[$sku]['byChannel'][$ch]['revenue'] += $rev; $products[$sku]['byChannel'][$ch]['orders'] += 1;
+                if (!isset($products[$sku]['byCountry'][$country])) $products[$sku]['byCountry'][$country] = ['qty'=>0,'revenue'=>0.0,'orders'=>0];
+                $products[$sku]['byCountry'][$country]['qty'] += $qty; $products[$sku]['byCountry'][$country]['revenue'] += $rev; $products[$sku]['byCountry'][$country]['orders'] += 1;
+                $channelsSeen[$ch] = true; $countriesSeen[$country] = true;
+            }
+        } catch (\Throwable $e) { /* 빈 결과(정직) */ }
+        // [현 차수] 구매자 인구통계(성별·연령) — channel_orders 엔 개인정보(성별/연령) 미수집이라, 광고 오디언스 실데이터
+        //   ad_insight_agg(sku×gender×age_range, conversions=구매근접·revenue)에서 도출(허위값 0·미적재 시 빈 결과).
+        //   ★주문 있는 상품에만 부착(랭킹 집합 정합). 데이터 수집 확장 시 자동 반영(자격증명/오디언스 ingest).
+        try {
+            $dg = $pdo->prepare(
+                "SELECT sku, gender, age_range, SUM(conversions) cv, SUM(revenue) rv
+                   FROM ad_insight_agg
+                  WHERE tenant_id = ? AND sku IS NOT NULL AND sku <> '' AND date >= ?
+                  GROUP BY sku, gender, age_range"
+            );
+            $dg->execute([$tenant, substr($start, 0, 10)]);
+            while ($d = $dg->fetch(\PDO::FETCH_ASSOC)) {
+                $sku = (string)$d['sku']; if (!isset($products[$sku])) continue; // 주문 있는 상품만
+                $g = (string)($d['gender'] ?? '') ?: 'unknown'; $a = (string)($d['age_range'] ?? '') ?: 'unknown';
+                $cv = (int)($d['cv'] ?? 0); $rv = (float)($d['rv'] ?? 0);
+                if (!isset($products[$sku]['byGender'][$g])) $products[$sku]['byGender'][$g] = ['conv'=>0,'revenue'=>0.0];
+                $products[$sku]['byGender'][$g]['conv'] += $cv; $products[$sku]['byGender'][$g]['revenue'] += $rv;
+                if (!isset($products[$sku]['byAge'][$a])) $products[$sku]['byAge'][$a] = ['conv'=>0,'revenue'=>0.0];
+                $products[$sku]['byAge'][$a]['conv'] += $cv; $products[$sku]['byAge'][$a]['revenue'] += $rv;
+            }
+        } catch (\Throwable $e) { /* 인구통계 미적재 = 빈(정직) */ }
+        // [현 차수] 상품별 광고 성과(ad_insight_agg sku 차원) — 상품 ROAS·광고매출·노출·클릭·전환. performance_metrics 엔
+        //   sku 가 없어 상품별 광고분해가 불가했으나, ad_insight_agg(sku 키 보유)로 산출. 미적재 시 ad=null(정직·허위값 0).
+        //   ★상품별 마케팅 성과 분석의 데이터 기반 — 광고-상품 매핑 ingest 확장 시 자동 채워짐.
+        try {
+            $am = $pdo->prepare(
+                "SELECT sku, SUM(spend) sp, SUM(revenue) rv, SUM(conversions) cv, SUM(impressions) im, SUM(clicks) ck
+                   FROM ad_insight_agg
+                  WHERE tenant_id = ? AND sku IS NOT NULL AND sku <> '' AND date >= ?
+                  GROUP BY sku"
+            );
+            $am->execute([$tenant, substr($start, 0, 10)]);
+            while ($a = $am->fetch(\PDO::FETCH_ASSOC)) {
+                $sku = (string)$a['sku']; if (!isset($products[$sku])) continue;
+                $sp = (float)($a['sp'] ?? 0); $rv = (float)($a['rv'] ?? 0); $im = (int)($a['im'] ?? 0); $ck = (int)($a['ck'] ?? 0);
+                $products[$sku]['ad'] = [
+                    'spend' => round($sp, 2), 'ad_revenue' => round($rv, 2),
+                    'roas' => $sp > 0 ? round($rv / $sp, 2) : null,
+                    'impressions' => $im, 'clicks' => $ck, 'conversions' => (int)($a['cv'] ?? 0),
+                    'ctr' => $im > 0 ? round($ck / $im * 100, 2) : 0,
+                ];
+            }
+        } catch (\Throwable $e) { /* 광고 sku 미적재 = ad null(정직) */ }
+        // [현 차수] ★어트리뷰션 기반 상품 광고비 배분 — performance_metrics 는 sku 가 없어(캠페인/채널 단위) 상품별
+        //   광고비가 불가했다. attribution_touch(주문→귀속 광고채널) ⨯ channel_orders(주문→sku·매출) 로 각 채널
+        //   광고비를 그 채널 귀속주문의 sku 매출비례로 배분(1/N 임의분배 아님=실 귀속 기반). 귀속 데이터 없으면 ad_attr
+        //   미설정(정직·허위값 0). roas=귀속매출/배분광고비. ad_insight_agg 기반 ad(직접 sku 적재)와 출처 구분.
+        try {
+            $sp = $pdo->prepare("SELECT LOWER(channel) ch, SUM(spend) sp FROM performance_metrics WHERE tenant_id=? AND date >= ? GROUP BY LOWER(channel)");
+            $sp->execute([$tenant, substr($start, 0, 10)]);
+            $chSpend = []; while ($r = $sp->fetch(\PDO::FETCH_ASSOC)) { $chSpend[(string)$r['ch']] = (float)($r['sp'] ?? 0); }
+            if ($chSpend) {
+                $aj = $pdo->prepare(
+                    "SELECT LOWER(at.channel) ch, co.sku sku, SUM(co.total_price) rv
+                       FROM attribution_touch at
+                       JOIN channel_orders co ON co.tenant_id = at.tenant_id AND (co.channel_order_id = at.order_id OR co.order_no = at.order_id)
+                      WHERE at.tenant_id = ? AND at.order_id IS NOT NULL AND at.order_id <> '' AND co.sku IS NOT NULL AND co.sku <> ''
+                      GROUP BY LOWER(at.channel), co.sku"
+                );
+                $aj->execute([$tenant]);
+                $chSkuRev = []; $chTotRev = [];
+                while ($r = $aj->fetch(\PDO::FETCH_ASSOC)) {
+                    $ch = (string)$r['ch']; $sku = (string)$r['sku']; $rv = (float)($r['rv'] ?? 0);
+                    $chSkuRev[$ch][$sku] = ($chSkuRev[$ch][$sku] ?? 0) + $rv; $chTotRev[$ch] = ($chTotRev[$ch] ?? 0) + $rv;
+                }
+                $skuAdSpend = []; $skuAttrRev = [];
+                foreach ($chSpend as $ch => $sp2) {
+                    $tot = $chTotRev[$ch] ?? 0; if ($tot <= 0) continue; // 귀속주문 없는 채널 광고비는 배분 안 함(임의배분 금지)
+                    foreach (($chSkuRev[$ch] ?? []) as $sku => $rv) {
+                        $skuAdSpend[$sku] = ($skuAdSpend[$sku] ?? 0) + $sp2 * ($rv / $tot);
+                        $skuAttrRev[$sku] = ($skuAttrRev[$sku] ?? 0) + $rv;
+                    }
+                }
+                foreach ($skuAdSpend as $sku => $as) {
+                    if (!isset($products[$sku]) || $as <= 0) continue;
+                    $ar = $skuAttrRev[$sku] ?? 0;
+                    $products[$sku]['ad_attr'] = ['spend' => round($as, 2), 'attr_revenue' => round($ar, 2), 'roas' => $as > 0 ? round($ar / $as, 2) : null, 'source' => 'attribution'];
+                }
+            }
+        } catch (\Throwable $e) { /* 어트리뷰션 미적재 = ad_attr 미설정(정직) */ }
+        // [현 차수] 상품 원가(po_products.cost_price by sku) — 이익순 랭킹용. 매출총이익 = 매출 − 원가×수량(주문+원가
+        //   파생=정확). 원가 미등록 sku 는 gross_profit=null(정직·임의원가 0). 광고비 제외(=매출총이익 gross).
+        $costs = [];
+        try {
+            $cq = $pdo->prepare("SELECT sku, cost_price FROM po_products WHERE tenant_id = ?");
+            $cq->execute([$tenant]);
+            while ($c = $cq->fetch(\PDO::FETCH_ASSOC)) { $costs[(string)$c['sku']] = (float)($c['cost_price'] ?? 0); }
+        } catch (\Throwable $e) { /* 원가 미등록 */ }
+        $list = array_values($products);
+        foreach ($list as &$p) {
+            $p['revenue'] = round($p['revenue'], 2);
+            $p['return_rate'] = $p['orders'] > 0 ? round($p['returns'] / $p['orders'] * 100, 1) : 0;
+            $p['aov'] = $p['orders'] > 0 ? round($p['revenue'] / $p['orders'], 0) : 0;
+            if (isset($costs[$p['sku']]) && $costs[$p['sku']] > 0) {
+                $cogs = $costs[$p['sku']] * $p['qty'];
+                $p['cogs'] = round($cogs, 2); $p['gross_profit'] = round($p['revenue'] - $cogs, 2);
+                $p['margin'] = $p['revenue'] > 0 ? round($p['gross_profit'] / $p['revenue'] * 100, 1) : 0;
+            } else { $p['cogs'] = null; $p['gross_profit'] = null; $p['margin'] = null; }
+            $tc = ''; $tcv = -1; foreach ($p['byChannel'] as $c => $v) { if ($v['revenue'] > $tcv) { $tcv = $v['revenue']; $tc = $c; } }
+            $tk = ''; $tkv = -1; foreach ($p['byCountry'] as $c => $v) { if ($v['revenue'] > $tkv) { $tkv = $v['revenue']; $tk = $c; } }
+            $p['top_channel'] = $tc; $p['top_country'] = $tk;
+            foreach ($p['byChannel'] as $c => &$v) $v['revenue'] = round($v['revenue'], 2); unset($v);
+            foreach ($p['byCountry'] as $c => &$v) $v['revenue'] = round($v['revenue'], 2); unset($v);
+        } unset($p);
+        usort($list, fn($a, $b) => $b['revenue'] <=> $a['revenue']);
+        foreach ($list as $i => &$p) $p['rank'] = $i + 1; unset($p);
+        return TemplateResponder::json($res, [
+            'ok' => true, 'period' => $period, 'n' => $n, 'count' => count($list),
+            'products' => $list, 'channels' => array_keys($channelsSeen), 'countries' => array_keys($countriesSeen),
         ]);
     }
 

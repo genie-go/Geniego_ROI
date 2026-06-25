@@ -13,6 +13,7 @@ import { GlobalDataProvider } from "./context/GlobalDataContext.jsx";
 import { CurrencyProvider } from "./contexts/CurrencyContext.jsx";
 import { MobileSidebarProvider } from "./context/MobileSidebarContext.jsx";
 import { ConnectorSyncProvider } from "./context/ConnectorSyncContext.jsx";
+import { ProductSelectionProvider } from "./contexts/ProductSelectionContext.jsx";
 import { MenuVisibilityProvider } from "./context/MenuVisibilityContext.jsx";
 import NetworkStatus from "./components/NetworkStatus.jsx";
 import { ToastProvider } from "./components/ToastProvider.jsx";
@@ -561,7 +562,9 @@ function TenantScopedProviders({ children }) {
     <GlobalDataProvider key={tenantKey}>
       <MenuVisibilityProvider>
         <ConnectorSyncProvider>
-          {children}
+          <ProductSelectionProvider>
+            {children}
+          </ProductSelectionProvider>
         </ConnectorSyncProvider>
       </MenuVisibilityProvider>
     </GlobalDataProvider>

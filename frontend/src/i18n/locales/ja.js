@@ -1896,6 +1896,7 @@ export default {
     "purchaseCount": "구매수",
     "cartAdds": "장바구니 추가",
     "adRev": "광고 매출",
+    "adContribution": "広告貢献利益",
     "dismiss": "차단 및 무시",
     "flowVisit": "訪問者",
     "flowCart": "カート",

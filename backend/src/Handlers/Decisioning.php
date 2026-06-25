@@ -41,7 +41,27 @@ final class Decisioning {
         $rows = $body['rows'] ?? $body;
         if (!is_array($rows)) $rows = [];
 
-        // [P0] INSERT-only → dedup_key upsert. 동일 자연키 재수집은 UPDATE(덮어쓰기)로 흡수.
+        // [현 차수] 멱등 upsert 로직을 공용 헬퍼로 추출 — 외부 push(여기)와 광고 커넥터 데모그래픽 자동수집
+        //   (Connectors::syncAdDemographics)이 동일 경로 공유(중복 구현 금지·동일 dedup_key 정합).
+        $count = self::upsertAdInsights($pdo, $tenant, $rows);
+
+        return TemplateResponder::respond($response, [
+            'ok' => true,
+            'tenant_id' => $tenant,
+            'inserted' => $count, // 하위호환 별칭(외부 커넥터)
+            'upserted' => $count
+        ]);
+    }
+
+    /**
+     * [현 차수] ad_insight_agg 멱등 upsert 공용 헬퍼(SSOT) — 외부 push(ingestAdInsights)와 광고 커넥터
+     *   demographic 자동수집(Connectors)이 공유. 동일 자연키(dedup_key) 재수집은 UPDATE 로 흡수(중복합산 차단).
+     *   $rows 각 행은 유연 키 허용: platform/source, date/day, campaign_id, sku, gender/sex, age_range/age,
+     *   region/country, impressions, clicks, spend/cost, conversions/purchases, revenue/purchase_value.
+     *   ★모든 값은 호출측이 실 매체 데이터로 채움(이 함수는 산출/날조 안 함). 반환=처리 행수.
+     */
+    public static function upsertAdInsights(\PDO $pdo, string $tenant, array $rows): int {
+        if (!is_array($rows) || !$rows) return 0;
         $sel = $pdo->prepare('SELECT id FROM ad_insight_agg WHERE tenant_id=? AND dedup_key=? LIMIT 1');
         $ins = $pdo->prepare('INSERT INTO ad_insight_agg
             (tenant_id, platform, date, campaign_id, adset_id, ad_id, sku, gender, age_range, region,
@@ -93,13 +113,7 @@ final class Decisioning {
             }
             $count++;
         }
-
-        return TemplateResponder::respond($response, [
-            'ok' => true,
-            'tenant_id' => $tenant,
-            'inserted' => $count, // 하위호환 별칭(외부 커넥터)
-            'upserted' => $count
-        ]);
+        return $count;
     }
 
     public static function ingestInfluencerInsights(Request $request, Response $response, array $args): Response {

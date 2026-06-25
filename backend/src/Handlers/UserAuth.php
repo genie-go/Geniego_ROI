@@ -1568,13 +1568,15 @@ final class UserAuth
 
         // subscription_expires_at, subscription_cycle 컬럼 업데이트 시도
         try {
+            // [현 차수 S-3] plans 컬럼 동반 갱신 — read 경로가 COALESCE(plans,plan)이라 plan만 쓰면
+            //   plans 가 채워진 트라이얼/쿠폰 사용자는 업그레이드 후에도 구 플랜이 반환됨(다른 모든 플랜 mutation은 두 컬럼 다 씀).
             $pdo->prepare(
-                'UPDATE app_user SET plan = ?, subscription_expires_at = ?, subscription_cycle = ? WHERE id = ?'
-            )->execute([$plan, $expiresAt, $plan !== 'demo' ? $cycle : null, $id]);
+                'UPDATE app_user SET plan = ?, plans = ?, subscription_expires_at = ?, subscription_cycle = ? WHERE id = ?'
+            )->execute([$plan, $plan, $expiresAt, $plan !== 'demo' ? $cycle : null, $id]);
         } catch (\Throwable $e) {
-            // 컬럼이 없으면 plan만 업데이트 (idx 호환)
+            // 컬럼이 없으면 plan(+plans) 만 업데이트 (idx 호환)
             try {
-                $pdo->prepare('UPDATE app_user SET plan = ? WHERE id = ?')->execute([$plan, $id]);
+                $pdo->prepare('UPDATE app_user SET plan = ?, plans = ? WHERE id = ?')->execute([$plan, $plan, $id]);
             } catch (\Throwable $e2) {
                 $pdo->prepare('UPDATE app_user SET plan = ? WHERE idx = ?')->execute([$plan, $id]);
             }

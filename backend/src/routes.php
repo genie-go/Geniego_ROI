@@ -533,6 +533,8 @@ return function (App $app): void {
         'POST /v420/price/elasticity/bulk'   => 'Genie\\Handlers\\PriceOpt::bulkElasticity',
         'POST /v420/price/optimize'          => 'Genie\\Handlers\\PriceOpt::optimize',
         'POST /v420/price/optimize/batch'    => 'Genie\\Handlers\\PriceOpt::optimizeBatch',
+        'GET /v420/price/shipping'           => 'Genie\\Handlers\\PriceOpt::getShipping',  // [현 차수] 채널별 배송조건(무료/소비자부담)
+        'POST /v420/price/shipping'          => 'Genie\\Handlers\\PriceOpt::saveShipping',
         'GET /v420/price/recommendations'    => 'Genie\\Handlers\\PriceOpt::listRecommendations',
         'POST /v420/price/simulate'          => 'Genie\\Handlers\\PriceOpt::simulate',
         'GET /v420/price/summary'            => 'Genie\\Handlers\\PriceOpt::summary',
@@ -648,6 +650,8 @@ return function (App $app): void {
         // ── v423 Rollup Aggregation Layer ─────────────────────────────────────
         'GET /v423/rollup/summary'   => 'Genie\\Handlers\\Rollup::summary',
         'GET /v423/rollup/sku'       => 'Genie\\Handlers\\Rollup::sku',
+        'GET /v423/rollup/product-performance' => 'Genie\\Handlers\\Rollup::productPerformance', // [현 차수] 상품 순위·채널별·국가별 성과
+
         'GET /v423/rollup/campaign'  => 'Genie\\Handlers\\Rollup::campaign',
         'GET /v423/rollup/creator'   => 'Genie\\Handlers\\Rollup::creator',
         'GET /v423/rollup/platform'  => 'Genie\\Handlers\\Rollup::platform',
@@ -1781,6 +1785,8 @@ return function (App $app): void {
     $register('POST', '/v420/price/products');
     $register('POST', '/v420/price/elasticity');
     $register('POST', '/v420/price/optimize');
+    $register('GET',  '/v420/price/shipping');
+    $register('POST', '/v420/price/shipping');
     $register('GET',  '/v420/price/recommendations');
     $register('POST', '/v420/price/simulate');
     $register('GET',  '/v420/channel-mix/results');
@@ -1815,6 +1821,7 @@ return function (App $app): void {
     // ── v423 Rollup Aggregation Layer ─────────────────────────────────────
     $register('GET', '/v423/rollup/summary');
     $register('GET', '/v423/rollup/sku');
+    $register('GET', '/v423/rollup/product-performance');
     $register('GET', '/v423/rollup/campaign');
     $register('GET', '/v423/rollup/creator');
     $register('GET', '/v423/rollup/platform');

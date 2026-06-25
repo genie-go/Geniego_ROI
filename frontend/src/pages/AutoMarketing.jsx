@@ -278,6 +278,8 @@ export default function AutoMarketing() {
     const [targetAudience, setTargetAudience] = useState("");
     // Phase2: 다목표 최적화 제어(엔진 multi-objective-v2)
     const [objective, setObjective] = useState("balanced"); // roas|cac|growth|balanced
+    // [현 차수] 배분 방식 — 'score'(점수비례, 기존) | 'marginal'(한계ROAS 체감수익: 다음 1원이 목표 밑이면 정지=최소비용)
+    const [optMode, setOptMode] = useState("score");
     const [minRoas, setMinRoas] = useState(0);               // 최소 ROAS 가드(0=미적용)
     const [maxShare, setMaxShare] = useState(60);            // 단일 채널 최대 점유율(%)
     const [generating, setGenerating] = useState(false);
@@ -488,6 +490,7 @@ export default function AutoMarketing() {
                     body: JSON.stringify({
                         budget: effectiveBudget, category: selCats[0], categories: selCats, period, channels: selAds,
                         objective,                                  // Phase2: 다목표 선택
+                        mode: optMode === 'marginal' ? 'marginal' : undefined, // [현 차수] 한계ROAS 배분 모드
                         guardrails: { min_roas: Number(minRoas) || 0, max_share: (Number(maxShare) || 60) / 100 },
                     }),
                 });
@@ -502,6 +505,7 @@ export default function AutoMarketing() {
                             // Phase2: 다목표 엔진 근거 시각화용
                             cac: bc.expected_cac, confidence: bc.confidence,
                             exploration: bc.exploration, dailyPace: bc.daily_pace, channelRationale: bc.rationale,
+                            marginalRoas: bc.marginal_roas, curveFit: bc.curve_fit, // [현 차수] 한계ROAS 근거
                         } : null;
                     }).filter(Boolean);
                     if (allocations.length) {
@@ -513,6 +517,7 @@ export default function AutoMarketing() {
                             estimatedRoas: String(d.blended_roas ?? ''),
                             blendedCac: d.blended_cac, objective: d.objective, engine: d.engine,
                             recSource: d.source, rationale: d.rationale,
+                            savings: d.savings, recommendedSpend: d.recommended_spend, targetRoas: d.guardrails?.target_roas, // [현 차수] 한계ROAS 절감
                         };
                     }
                 }
@@ -936,6 +941,19 @@ export default function AutoMarketing() {
                                 </button>
                             ))}
                         </div>
+                        {/* [현 차수] 배분 방식 — 점수비례(기존) vs 한계수익 최적화(체감수익 곡선, 최소비용·최대효과) */}
+                        <div style={{ fontWeight: 700, fontSize: 12, color: '#22c55e', marginBottom: 6 }}>📊 {t('marketing.allocModeTitle', '배분 방식')}</div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 8, marginBottom: 14 }}>
+                            {[
+                                { k: 'score', icon: '⚖️', label: t('marketing.allocScore', '점수 비례 배분'), desc: t('marketing.allocScoreDesc', '다목표 점수에 비례해 예산 전액 배분') },
+                                { k: 'marginal', icon: '📉', label: t('marketing.allocMarginal', '한계수익 최적화'), desc: t('marketing.allocMarginalDesc', '체감수익 곡선 — 다음 1원의 한계ROAS가 목표 밑이면 정지(과투자 방지·예산 절감)') },
+                            ].map(o => (
+                                <button key={o.k} onClick={() => setOptMode(o.k)} style={{ textAlign: 'left', padding: '10px 12px', borderRadius: 10, cursor: 'pointer', fontSize: 12, fontWeight: 700, background: optMode === o.k ? 'rgba(34,197,94,0.12)' : 'rgba(34,197,94,0.04)', color: optMode === o.k ? '#15803d' : '#475569', border: optMode === o.k ? '2px solid #22c55e' : '1px solid rgba(34,197,94,0.18)' }}>
+                                    <div><span style={{ fontSize: 15, marginRight: 6 }}>{o.icon}</span>{o.label}</div>
+                                    <div style={{ fontSize: 10, fontWeight: 500, color: '#64748b', marginTop: 3, lineHeight: 1.4 }}>{o.desc}</div>
+                                </button>
+                            ))}
+                        </div>
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                             <div>
                                 {lbl(t('marketing.gMinRoas', '최소 ROAS 가드 (미만 채널 제외, 0=미적용)'))}
@@ -1191,6 +1209,21 @@ export default function AutoMarketing() {
                             </div>
                         ) : (
                             <>
+                                {/* [현 차수] 한계수익 최적화 절감 배너 — mode=marginal 결과로 잔여(절감)가 있을 때 */}
+                                {strategy.savings > 0 && (
+                                    <div style={{ ...cardStyle, background: 'linear-gradient(90deg,#f0fdf4,#ecfdf5)', border: '1px solid #86efac', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 14 }}>
+                                        <span style={{ fontSize: 22 }}>💡</span>
+                                        <div style={{ flex: 1, minWidth: 200 }}>
+                                            <div style={{ fontWeight: 800, fontSize: 14, color: '#15803d' }}>{t('marketing.savingsTitle', '한계수익 최적화 — 최소 비용 권장')}</div>
+                                            <div style={{ fontSize: 12, color: '#166534', marginTop: 3, lineHeight: 1.5 }}>{t('marketing.savingsBody', '다음 1원의 한계ROAS가 목표 밑으로 떨어지는 구간엔 추가 투입을 멈췄습니다. 같은 효과를 더 적은 비용으로 — 과투자 없이.')}</div>
+                                        </div>
+                                        <div style={{ textAlign: 'right' }}>
+                                            <div style={{ fontSize: 11, color: '#64748b' }}>{t('marketing.recSpend', '권장 집행')}</div>
+                                            <div style={{ fontSize: 18, fontWeight: 900, color: '#15803d' }}>{fmt(strategy.recommendedSpend)}</div>
+                                            <div style={{ fontSize: 12, fontWeight: 700, color: '#16a34a' }}>−{fmt(strategy.savings)} {t('marketing.saved', '절감')}</div>
+                                        </div>
+                                    </div>
+                                )}
                                 {/* KPI Summary */}
                                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(170px,1fr))", gap: 12 }}>
                                     {[

@@ -720,11 +720,41 @@ final class AdminGrowth
             return self::json($res, ['mode' => 'live', 'executed' => false, 'missingCredentials' => $missing, 'status' => 'pending_credentials'], '채널 자격증명이 필요합니다 — 등록 후 재실행', 409);
         }
 
-        // 실행: 기존 안전 철학(PAUSED→활성) 따라 running 마킹 + 감사. 실제 매체 push 는
-        //   AdAdapters/AutoCampaign 가 platform_growth 테넌트 자격증명으로 집행.
-        $pdo->prepare("UPDATE admin_growth_campaign SET status='running', updated_at=? WHERE id=?")->execute([gmdate('c'), $id]);
-        self::audit($pdo, self::actor($req), 'campaign.launch.live', ['id' => $id, 'channels' => $channels, 'budget' => (float)$c['budget']]);
-        return self::json($res, ['mode' => 'live', 'executed' => true, 'status' => 'running', 'channels' => $channels], 'Live 캠페인 실행 (승인+자격증명 통과)');
+        // [현 차수 M-1] ★실 매체 집행 — 기존엔 status='running' + executed:true 로 거짓 마킹만 하고
+        //   AdAdapters 호출이 전혀 없어(디스패처/cron 부재) Live 캠페인이 단 한 건도 실제 집행되지 않으면서
+        //   UI 에는 '실행됨'으로 표시되던 거짓성공. 승인+자격증명 게이트 통과 후 각 광고채널을
+        //   AdAdapters::createCampaign 으로 실제 생성한다(기존 안전철학=PAUSED 무지출·사람-인-루프 유지,
+        //   platform_growth 테넌트 자격증명 사용). honest 결과(active/connect_error/partial) 집계·est_json 저장.
+        $results = []; $anyLive = false; $anyErr = false;
+        foreach ($channels as $ch) {
+            $ch = (string)$ch;
+            if (!\Genie\Handlers\Connectors::isAdChannel($ch)) {
+                // 이메일/콘텐츠 등 비광고 채널은 실 매체 캠페인 생성 대상 아님(별도 발송 경로) — 정직 표기.
+                $results[$ch] = ['ok' => false, 'status' => 'not_ad_channel', 'note' => '실 광고 집행 대상 아님(비광고 채널)'];
+                continue;
+            }
+            try {
+                $r = \Genie\Handlers\AdAdapters::createCampaign($pdo, self::TENANT, $ch, [
+                    'name'   => (string)$c['name'],
+                    'budget' => (float)$c['budget'],
+                    'period' => 'monthly',
+                ]);
+            } catch (\Throwable $e) {
+                $r = ['ok' => false, 'status' => 'error', 'note' => $e->getMessage()];
+            }
+            $results[$ch] = $r;
+            if (!empty($r['ok'])) $anyLive = true; else $anyErr = true;
+        }
+        // 상태 정직화: 전 채널 성공=running, 일부=partial, 전부 실패=launch_failed.
+        $finalStatus = $anyLive ? ($anyErr ? 'partial' : 'running') : 'launch_failed';
+        $pdo->prepare("UPDATE admin_growth_campaign SET status=?, est_json=?, updated_at=? WHERE id=?")
+            ->execute([$finalStatus, json_encode(['live' => true, 'results' => $results, 'launched_at' => gmdate('c')], JSON_UNESCAPED_UNICODE), gmdate('c'), $id]);
+        self::audit($pdo, self::actor($req), 'campaign.launch.live', ['id' => $id, 'channels' => $channels, 'results' => $results, 'budget' => (float)$c['budget']]);
+        return self::json($res, [
+            'mode' => 'live', 'executed' => $anyLive, 'status' => $finalStatus, 'channels' => $channels, 'results' => $results,
+        ], $anyLive
+            ? ('실 매체 캠페인 생성(PAUSED 안전) — ' . ($anyErr ? '일부 채널 실패(연결 상태 확인)' : '전 채널 성공'))
+            : '실 집행 실패 — 자격증명/매체 연결 상태를 확인하세요');
     }
 
     /** Test 모드 예상 성과 = 세그먼트 추정치 기반(허위 실적 아님, 명시적 '예상'). */

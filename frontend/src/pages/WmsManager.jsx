@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef, memo } from "react";
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
+import { useProductSelection } from '../contexts/ProductSelectionContext.jsx';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { useNavigate } from 'react-router-dom';
 import { handlePlanLimit } from '../utils/planLimit.js';
@@ -669,6 +670,9 @@ const InventoryTab = memo(function InventoryTab({ whs }) {
     const inventory = (!IS_DEMO && wmsStock && wmsStock.length > 0) ? wmsStock : gdInventory;
     const [searchQuery, setSearchQuery] = useState('');
     const [showLowOnly, setShowLowOnly] = useState(false);
+    // [현 차수] 전역 상품선택 → 재고 그리드 자동 필터(실시간 동기화). 다른 메뉴에서 상품 선택 시 그 SKU 재고로 즉시 포커스.
+    const { selectedProduct: _wmsSelProd } = useProductSelection();
+    useEffect(() => { if (_wmsSelProd?.sku) setSearchQuery(_wmsSelProd.sku); }, [_wmsSelProd]);
     /* ── CSV Import Modal ── */
     const [showImport, setShowImport] = useState(false);
     const [csvData, setCsvData] = useState([]);

@@ -4,6 +4,8 @@ import { useCurrency } from '../contexts/CurrencyContext.jsx';
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import { deriveRollup } from './rollupDemoDerive.js';
 import PerformanceProfiler from '../components/PerformanceProfiler.jsx';
+import { useProductSelection } from '../contexts/ProductSelectionContext.jsx';
+import { deriveProductPerf, ppCountry, PP_COUNTRY_LABEL } from '../components/dashboards/productPerf.js';
 
 // ══════════════════════════════════════════════════════════════════════
 //  📈 RollupDashboard — Enterprise i18n (15 Languages) + Zero Mock Data
@@ -27,6 +29,15 @@ const LOC = {
     revenueVsSpend: '매출 vs 광고비', unitTenThousand: '만',
     tabSummary: '요약', tabCampaign: '캠페인', tabCreator: '크리에이터',
     tabPlatform: '플랫폼', tabSegment: '세그먼트', tabRisk: '리스크 예산',
+    tabProduct: '상품 성과', ppRanking: '상품 판매 순위', ppSearch: '상품명·SKU 검색', ppKinds: '종',
+    ppSortRevenue: '매출순', ppSortQty: '판매량순', ppSortProfit: '이익순', ppSortReturn: '반품률순',
+    ppQty: '판매량', ppProfit: '매출총이익', ppTopChannel: '주력채널', ppTopCountry: '주력국가',
+    ppBestReturn: '반품률 최저', ppWorstReturn: '반품률 최고', ppSynced: '전역 동기화',
+    ppByChannel: '채널별 판매', ppByCountry: '국가별 판매', ppByDemo: '구매자 타겟층', ppGender: '성별', ppAge: '연령대',
+    ppDemoSrc: '광고 전환 구매자 기준', ppAdPerf: '상품 광고 성과', ppAdSpend: '광고비', ppAdRev: '광고매출',
+    ppImpr: '노출', ppClick: '클릭', ppAdSrcDirect: '광고-상품 직접연동', ppAdSrcAttr: '어트리뷰션 배분',
+    ppSelectHint: '상품을 선택하면 채널·국가·인구통계별 성과가 표시되고 대시보드 등 관련 메뉴에 동기화됩니다.',
+    ppDemoEmpty: '이 상품의 구매자 타겟층(성별·연령) 데이터가 아직 없습니다 — 광고 채널을 연동하면 전환 구매자 기준으로 자동 수집·표시되어 타겟 설정에 활용됩니다.',
     periodDaily: '일별', periodWeekly: '주별', periodMonthly: '월별', periodYearly: '연간', periodSeasonal: '시즌별',
     unitDay: '일', unitWeek: '주', unitMonth: '개월', unitYear: '년', unitSeason: '시즌',
     noData: '연동된 데이터가 없습니다', connectData: '채널을 연동하면 실시간 데이터가 표시됩니다',
@@ -83,6 +94,15 @@ const LOC = {
     revenueVsSpend: 'Revenue vs Spend', unitTenThousand: '0K',
     tabSummary: 'Summary', tabCampaign: 'Campaign', tabCreator: 'Creator',
     tabPlatform: 'Platform', tabSegment: 'Segment', tabRisk: 'Risk Budget',
+    tabProduct: 'Product Performance', ppRanking: 'Product Sales Ranking', ppSearch: 'Search product · SKU', ppKinds: 'items',
+    ppSortRevenue: 'By revenue', ppSortQty: 'By units', ppSortProfit: 'By profit', ppSortReturn: 'By return rate',
+    ppQty: 'Units sold', ppProfit: 'Gross profit', ppTopChannel: 'Top channel', ppTopCountry: 'Top country',
+    ppBestReturn: 'Lowest return rate', ppWorstReturn: 'Highest return rate', ppSynced: 'Global sync',
+    ppByChannel: 'Sales by channel', ppByCountry: 'Sales by country', ppByDemo: 'Buyer demographics', ppGender: 'Gender', ppAge: 'Age group',
+    ppDemoSrc: 'Based on ad-converted buyers', ppAdPerf: 'Product ad performance', ppAdSpend: 'Ad spend', ppAdRev: 'Ad revenue',
+    ppImpr: 'Impressions', ppClick: 'Clicks', ppAdSrcDirect: 'Direct ad-product link', ppAdSrcAttr: 'Attribution-based',
+    ppSelectHint: 'Select a product to see performance by channel, country and demographics, synced across the dashboard and related menus.',
+    ppDemoEmpty: 'No buyer demographic (gender · age) data yet for this product — connect an ad channel to auto-collect from converted buyers for targeting.',
     periodDaily: 'Daily', periodWeekly: 'Weekly', periodMonthly: 'Monthly', periodYearly: 'Annual', periodSeasonal: 'Seasonal',
     unitDay: 'd', unitWeek: 'w', unitMonth: 'mo', unitYear: 'yr', unitSeason: 'Season',
     noData: 'No data available', connectData: 'Connect your channels to see real-time data',
@@ -139,6 +159,15 @@ const LOC = {
     revenueVsSpend: '売上 vs 広告費', unitTenThousand: '万',
     tabSummary: 'サマリー', tabCampaign: 'キャンペーン', tabCreator: 'クリエイター',
     tabPlatform: 'プラットフォーム', tabSegment: 'セグメント', tabRisk: 'リスク予算',
+    tabProduct: '商品パフォーマンス', ppRanking: '商品売上ランキング', ppSearch: '商品名・SKU検索', ppKinds: '種',
+    ppSortRevenue: '売上順', ppSortQty: '販売数順', ppSortProfit: '利益順', ppSortReturn: '返品率順',
+    ppQty: '販売数', ppProfit: '売上総利益', ppTopChannel: '主力チャネル', ppTopCountry: '主力国',
+    ppBestReturn: '返品率 最低', ppWorstReturn: '返品率 最高', ppSynced: 'グローバル同期',
+    ppByChannel: 'チャネル別販売', ppByCountry: '国別販売', ppByDemo: '購入者ターゲット層', ppGender: '性別', ppAge: '年齢層',
+    ppDemoSrc: '広告コンバージョン購入者基準', ppAdPerf: '商品広告パフォーマンス', ppAdSpend: '広告費', ppAdRev: '広告売上',
+    ppImpr: 'インプレッション', ppClick: 'クリック', ppAdSrcDirect: '広告-商品 直接連携', ppAdSrcAttr: 'アトリビューション配分',
+    ppSelectHint: '商品を選択すると、チャネル・国・属性別のパフォーマンスが表示され、ダッシュボードなど関連メニューに同期されます。',
+    ppDemoEmpty: 'この商品の購入者ターゲット層（性別・年齢）データはまだありません — 広告チャネルを連携すると、コンバージョン購入者基準で自動収集・表示され、ターゲティングに活用できます。',
     periodDaily: '日次', periodWeekly: '週次', periodMonthly: '月次', periodYearly: '年次', periodSeasonal: '季節別',
     unitDay: '日', unitWeek: '週', unitMonth: 'ヶ月', unitYear: '年', unitSeason: 'シーズン',
     noData: 'データがありません', connectData: 'チャネルを連携すると分析が表示されます',
@@ -174,6 +203,15 @@ const LOC = {
     revenueVsSpend: '收入 vs 广告费', unitTenThousand: '万',
     tabSummary: '概要', tabCampaign: '广告活动', tabCreator: '创作者',
     tabPlatform: '平台', tabSegment: '细分', tabRisk: '风险预算',
+    tabProduct: '商品业绩', ppRanking: '商品销售排名', ppSearch: '搜索商品·SKU', ppKinds: '种',
+    ppSortRevenue: '按销售额', ppSortQty: '按销量', ppSortProfit: '按利润', ppSortReturn: '按退货率',
+    ppQty: '销量', ppProfit: '销售毛利', ppTopChannel: '主力渠道', ppTopCountry: '主力国家',
+    ppBestReturn: '退货率最低', ppWorstReturn: '退货率最高', ppSynced: '全局同步',
+    ppByChannel: '渠道销售', ppByCountry: '国家销售', ppByDemo: '买家画像', ppGender: '性别', ppAge: '年龄段',
+    ppDemoSrc: '基于广告转化买家', ppAdPerf: '商品广告业绩', ppAdSpend: '广告费', ppAdRev: '广告销售额',
+    ppImpr: '曝光', ppClick: '点击', ppAdSrcDirect: '广告-商品直接关联', ppAdSrcAttr: '归因分配',
+    ppSelectHint: '选择商品后将显示按渠道·国家·人群的业绩，并同步到仪表盘等相关菜单。',
+    ppDemoEmpty: '该商品暂无买家画像（性别·年龄）数据 — 连接广告渠道后将基于转化买家自动采集并显示，用于精准定位。',
     periodDaily: '日度', periodWeekly: '周度', periodMonthly: '月度', periodYearly: '年度', periodSeasonal: '季度',
     unitDay: '天', unitWeek: '周', unitMonth: '月', unitYear: '年', unitSeason: '季度',
     noData: '暂无数据', connectData: '连接渠道后将显示实时数据',
@@ -203,6 +241,15 @@ const LOC = {
     revenueVsSpend: '收入 vs 廣告費', unitTenThousand: '萬',
     tabSummary: '摘要', tabCampaign: '廣告活動', tabCreator: '創作者',
     tabPlatform: '平台', tabSegment: '區分', tabRisk: '風險預算',
+    tabProduct: '商品業績', ppRanking: '商品銷售排名', ppSearch: '搜尋商品·SKU', ppKinds: '種',
+    ppSortRevenue: '依營收', ppSortQty: '依銷量', ppSortProfit: '依利潤', ppSortReturn: '依退貨率',
+    ppQty: '銷量', ppProfit: '銷售毛利', ppTopChannel: '主力通路', ppTopCountry: '主力國家',
+    ppBestReturn: '退貨率最低', ppWorstReturn: '退貨率最高', ppSynced: '全域同步',
+    ppByChannel: '通路銷售', ppByCountry: '國家銷售', ppByDemo: '買家輪廓', ppGender: '性別', ppAge: '年齡層',
+    ppDemoSrc: '依廣告轉換買家', ppAdPerf: '商品廣告業績', ppAdSpend: '廣告費', ppAdRev: '廣告營收',
+    ppImpr: '曝光', ppClick: '點擊', ppAdSrcDirect: '廣告-商品直接連結', ppAdSrcAttr: '歸因分配',
+    ppSelectHint: '選擇商品後將顯示依通路·國家·客群的業績，並同步至儀表板等相關選單。',
+    ppDemoEmpty: '此商品尚無買家輪廓（性別·年齡）資料 — 連接廣告通路後將依轉換買家自動蒐集並顯示，用於精準行銷。',
     periodDaily: '日', periodWeekly: '週', periodMonthly: '月', periodYearly: '年', periodSeasonal: '季',
     unitDay: '天', unitWeek: '週', unitMonth: '月', unitYear: '年', unitSeason: '季',
     noData: '尚無資料', connectData: '連接渠道後將顯示即時資料',
@@ -256,6 +303,15 @@ const LOC = {
     revenueVsSpend: 'Umsatz vs Ausgaben', unitTenThousand: 'Tsd',
     tabSummary: 'Übersicht', tabCampaign: 'Kampagne', tabCreator: 'Creator',
     tabPlatform: 'Plattform', tabSegment: 'Segment', tabRisk: 'Risikobudget',
+    tabProduct: 'Produktleistung', ppRanking: 'Produkt-Verkaufsranking', ppSearch: 'Produkt · SKU suchen', ppKinds: 'Artikel',
+    ppSortRevenue: 'Nach Umsatz', ppSortQty: 'Nach Menge', ppSortProfit: 'Nach Gewinn', ppSortReturn: 'Nach Retourenquote',
+    ppQty: 'Verkaufte Menge', ppProfit: 'Bruttogewinn', ppTopChannel: 'Top-Kanal', ppTopCountry: 'Top-Land',
+    ppBestReturn: 'Niedrigste Retourenquote', ppWorstReturn: 'Höchste Retourenquote', ppSynced: 'Globale Sync',
+    ppByChannel: 'Verkäufe nach Kanal', ppByCountry: 'Verkäufe nach Land', ppByDemo: 'Käufer-Demografie', ppGender: 'Geschlecht', ppAge: 'Altersgruppe',
+    ppDemoSrc: 'Basierend auf konvertierten Käufern', ppAdPerf: 'Produkt-Werbeleistung', ppAdSpend: 'Werbeausgaben', ppAdRev: 'Werbeumsatz',
+    ppImpr: 'Impressionen', ppClick: 'Klicks', ppAdSrcDirect: 'Direkte Anzeige-Produkt-Verknüpfung', ppAdSrcAttr: 'Attributionsbasiert',
+    ppSelectHint: 'Wählen Sie ein Produkt, um die Leistung nach Kanal, Land und Demografie zu sehen – synchronisiert über Dashboard und zugehörige Menüs.',
+    ppDemoEmpty: 'Noch keine Käufer-Demografiedaten (Geschlecht · Alter) für dieses Produkt — verbinden Sie einen Werbekanal zur automatischen Erfassung konvertierter Käufer fürs Targeting.',
     periodDaily: 'Täglich', periodWeekly: 'Wöchentlich', periodMonthly: 'Monatlich', periodYearly: 'Jährlich', periodSeasonal: 'Saisonal',
     unitDay: 'T', unitWeek: 'W', unitMonth: 'M', unitYear: 'J', unitSeason: 'Saison',
     noData: 'Keine Daten verfügbar', connectData: 'Kanäle verbinden für Echtzeitdaten',
@@ -285,6 +341,15 @@ const LOC = {
     revenueVsSpend: 'Revenu vs Dépenses', unitTenThousand: 'K',
     tabSummary: 'Résumé', tabCampaign: 'Campagne', tabCreator: 'Créateur',
     tabPlatform: 'Plateforme', tabSegment: 'Segment', tabRisk: 'Budget risque',
+    tabProduct: 'Performance produit', ppRanking: 'Classement des ventes', ppSearch: 'Rechercher produit · SKU', ppKinds: 'articles',
+    ppSortRevenue: 'Par chiffre d’affaires', ppSortQty: 'Par quantité', ppSortProfit: 'Par profit', ppSortReturn: 'Par taux de retour',
+    ppQty: 'Quantité vendue', ppProfit: 'Marge brute', ppTopChannel: 'Canal principal', ppTopCountry: 'Pays principal',
+    ppBestReturn: 'Taux de retour le plus bas', ppWorstReturn: 'Taux de retour le plus élevé', ppSynced: 'Sync globale',
+    ppByChannel: 'Ventes par canal', ppByCountry: 'Ventes par pays', ppByDemo: 'Profil des acheteurs', ppGender: 'Sexe', ppAge: 'Tranche d’âge',
+    ppDemoSrc: 'Basé sur les acheteurs convertis', ppAdPerf: 'Performance publicitaire produit', ppAdSpend: 'Dépenses pub', ppAdRev: 'Revenu pub',
+    ppImpr: 'Impressions', ppClick: 'Clics', ppAdSrcDirect: 'Lien annonce-produit direct', ppAdSrcAttr: 'Basé sur l’attribution',
+    ppSelectHint: 'Sélectionnez un produit pour voir la performance par canal, pays et profil, synchronisée sur le tableau de bord et les menus liés.',
+    ppDemoEmpty: 'Aucune donnée de profil acheteur (sexe · âge) pour ce produit — connectez un canal publicitaire pour collecter automatiquement les acheteurs convertis pour le ciblage.',
     periodDaily: 'Quotidien', periodWeekly: 'Hebdomadaire', periodMonthly: 'Mensuel', periodYearly: 'Annuel', periodSeasonal: 'Saisonnier',
     unitDay: 'j', unitWeek: 'sem', unitMonth: 'mois', unitYear: 'an', unitSeason: 'Saison',
     noData: 'Aucune donnée disponible', connectData: 'Connectez vos canaux pour voir les données en temps réel',
@@ -314,6 +379,15 @@ const LOC = {
     revenueVsSpend: 'Ingreso vs Gasto', unitTenThousand: 'K',
     tabSummary: 'Resumen', tabCampaign: 'Campaña', tabCreator: 'Creador',
     tabPlatform: 'Plataforma', tabSegment: 'Segmento', tabRisk: 'Presupuesto riesgo',
+    tabProduct: 'Rendimiento de producto', ppRanking: 'Ranking de ventas', ppSearch: 'Buscar producto · SKU', ppKinds: 'artículos',
+    ppSortRevenue: 'Por ingresos', ppSortQty: 'Por unidades', ppSortProfit: 'Por beneficio', ppSortReturn: 'Por tasa de devolución',
+    ppQty: 'Unidades vendidas', ppProfit: 'Beneficio bruto', ppTopChannel: 'Canal principal', ppTopCountry: 'País principal',
+    ppBestReturn: 'Menor tasa de devolución', ppWorstReturn: 'Mayor tasa de devolución', ppSynced: 'Sinc. global',
+    ppByChannel: 'Ventas por canal', ppByCountry: 'Ventas por país', ppByDemo: 'Perfil del comprador', ppGender: 'Género', ppAge: 'Grupo de edad',
+    ppDemoSrc: 'Según compradores convertidos', ppAdPerf: 'Rendimiento publicitario', ppAdSpend: 'Gasto en anuncios', ppAdRev: 'Ingresos por anuncios',
+    ppImpr: 'Impresiones', ppClick: 'Clics', ppAdSrcDirect: 'Vínculo anuncio-producto directo', ppAdSrcAttr: 'Basado en atribución',
+    ppSelectHint: 'Selecciona un producto para ver el rendimiento por canal, país y demografía, sincronizado en el panel y menús relacionados.',
+    ppDemoEmpty: 'Aún no hay datos demográficos del comprador (género · edad) para este producto — conecta un canal publicitario para recopilar automáticamente compradores convertidos para segmentación.',
     periodDaily: 'Diario', periodWeekly: 'Semanal', periodMonthly: 'Mensual', periodYearly: 'Anual', periodSeasonal: 'Estacional',
     unitDay: 'd', unitWeek: 'sem', unitMonth: 'mes', unitYear: 'año', unitSeason: 'Temp.',
     noData: 'No hay datos disponibles', connectData: 'Conecte sus canales para ver datos en tiempo real',
@@ -343,6 +417,15 @@ const LOC = {
     revenueVsSpend: 'Receita vs Gasto', unitTenThousand: 'K',
     tabSummary: 'Resumo', tabCampaign: 'Campanha', tabCreator: 'Criador',
     tabPlatform: 'Plataforma', tabSegment: 'Segmento', tabRisk: 'Orçamento risco',
+    tabProduct: 'Desempenho do produto', ppRanking: 'Ranking de vendas', ppSearch: 'Buscar produto · SKU', ppKinds: 'itens',
+    ppSortRevenue: 'Por receita', ppSortQty: 'Por unidades', ppSortProfit: 'Por lucro', ppSortReturn: 'Por taxa de devolução',
+    ppQty: 'Unidades vendidas', ppProfit: 'Lucro bruto', ppTopChannel: 'Canal principal', ppTopCountry: 'País principal',
+    ppBestReturn: 'Menor taxa de devolução', ppWorstReturn: 'Maior taxa de devolução', ppSynced: 'Sinc. global',
+    ppByChannel: 'Vendas por canal', ppByCountry: 'Vendas por país', ppByDemo: 'Perfil do comprador', ppGender: 'Gênero', ppAge: 'Faixa etária',
+    ppDemoSrc: 'Com base em compradores convertidos', ppAdPerf: 'Desempenho de anúncios', ppAdSpend: 'Gasto com anúncios', ppAdRev: 'Receita de anúncios',
+    ppImpr: 'Impressões', ppClick: 'Cliques', ppAdSrcDirect: 'Vínculo anúncio-produto direto', ppAdSrcAttr: 'Baseado em atribuição',
+    ppSelectHint: 'Selecione um produto para ver o desempenho por canal, país e demografia, sincronizado no painel e menus relacionados.',
+    ppDemoEmpty: 'Ainda não há dados demográficos do comprador (gênero · idade) para este produto — conecte um canal de anúncios para coletar automaticamente compradores convertidos para segmentação.',
     periodDaily: 'Diário', periodWeekly: 'Semanal', periodMonthly: 'Mensal', periodYearly: 'Anual', periodSeasonal: 'Sazonal',
     unitDay: 'd', unitWeek: 'sem', unitMonth: 'mês', unitYear: 'ano', unitSeason: 'Temp.',
     noData: 'Nenhum dado disponível', connectData: 'Conecte seus canais para ver dados em tempo real',
@@ -372,6 +455,15 @@ const LOC = {
     revenueVsSpend: 'Доход vs Расходы', unitTenThousand: 'тыс',
     tabSummary: 'Обзор', tabCampaign: 'Кампании', tabCreator: 'Авторы',
     tabPlatform: 'Платформы', tabSegment: 'Сегменты', tabRisk: 'Бюджет рисков',
+    tabProduct: 'Эффективность товара', ppRanking: 'Рейтинг продаж товаров', ppSearch: 'Поиск товара · SKU', ppKinds: 'шт.',
+    ppSortRevenue: 'По выручке', ppSortQty: 'По количеству', ppSortProfit: 'По прибыли', ppSortReturn: 'По проценту возвратов',
+    ppQty: 'Продано единиц', ppProfit: 'Валовая прибыль', ppTopChannel: 'Основной канал', ppTopCountry: 'Основная страна',
+    ppBestReturn: 'Наименьший процент возвратов', ppWorstReturn: 'Наибольший процент возвратов', ppSynced: 'Глобальная синхр.',
+    ppByChannel: 'Продажи по каналам', ppByCountry: 'Продажи по странам', ppByDemo: 'Профиль покупателей', ppGender: 'Пол', ppAge: 'Возраст',
+    ppDemoSrc: 'На основе покупателей из рекламы', ppAdPerf: 'Рекламная эффективность товара', ppAdSpend: 'Расходы на рекламу', ppAdRev: 'Доход от рекламы',
+    ppImpr: 'Показы', ppClick: 'Клики', ppAdSrcDirect: 'Прямая связь реклама-товар', ppAdSrcAttr: 'На основе атрибуции',
+    ppSelectHint: 'Выберите товар, чтобы увидеть эффективность по каналам, странам и демографии, синхронизированную с дашбордом и связанными меню.',
+    ppDemoEmpty: 'Пока нет демографических данных покупателей (пол · возраст) для этого товара — подключите рекламный канал для автоматического сбора по конвертированным покупателям для таргетинга.',
     periodDaily: 'День', periodWeekly: 'Неделя', periodMonthly: 'Месяц', periodYearly: 'Год', periodSeasonal: 'Сезон',
     unitDay: 'д', unitWeek: 'нед', unitMonth: 'мес', unitYear: 'г', unitSeason: 'Сезон',
     noData: 'Нет данных', connectData: 'Подключите каналы для данных в реальном времени',
@@ -401,6 +493,15 @@ const LOC = {
     revenueVsSpend: 'الإيرادات مقابل الإنفاق', unitTenThousand: 'ألف',
     tabSummary: 'الملخص', tabCampaign: 'الحملات', tabCreator: 'المنشئون',
     tabPlatform: 'المنصات', tabSegment: 'الشرائح', tabRisk: 'ميزانية المخاطر',
+    tabProduct: 'أداء المنتج', ppRanking: 'ترتيب مبيعات المنتجات', ppSearch: 'بحث عن منتج · SKU', ppKinds: 'صنف',
+    ppSortRevenue: 'حسب الإيرادات', ppSortQty: 'حسب الكمية', ppSortProfit: 'حسب الربح', ppSortReturn: 'حسب معدل الإرجاع',
+    ppQty: 'الوحدات المباعة', ppProfit: 'إجمالي الربح', ppTopChannel: 'القناة الرئيسية', ppTopCountry: 'الدولة الرئيسية',
+    ppBestReturn: 'أقل معدل إرجاع', ppWorstReturn: 'أعلى معدل إرجاع', ppSynced: 'مزامنة شاملة',
+    ppByChannel: 'المبيعات حسب القناة', ppByCountry: 'المبيعات حسب الدولة', ppByDemo: 'شريحة المشترين', ppGender: 'الجنس', ppAge: 'الفئة العمرية',
+    ppDemoSrc: 'بناءً على المشترين المحوَّلين من الإعلانات', ppAdPerf: 'أداء إعلانات المنتج', ppAdSpend: 'إنفاق الإعلانات', ppAdRev: 'إيرادات الإعلانات',
+    ppImpr: 'مرات الظهور', ppClick: 'النقرات', ppAdSrcDirect: 'ربط مباشر إعلان-منتج', ppAdSrcAttr: 'حسب الإسناد',
+    ppSelectHint: 'اختر منتجًا لعرض الأداء حسب القناة والدولة والشريحة، متزامنًا عبر لوحة التحكم والقوائم ذات الصلة.',
+    ppDemoEmpty: 'لا توجد بعد بيانات شريحة المشترين (الجنس · العمر) لهذا المنتج — اربط قناة إعلانية ليتم جمعها تلقائيًا من المشترين المحوَّلين لأغراض الاستهداف.',
     periodDaily: 'يومي', periodWeekly: 'أسبوعي', periodMonthly: 'شهري', periodYearly: 'سنوي', periodSeasonal: 'موسمي',
     unitDay: 'يوم', unitWeek: 'أسبوع', unitMonth: 'شهر', unitYear: 'سنة', unitSeason: 'موسم',
     noData: 'لا توجد بيانات متاحة', connectData: 'قم بربط قنواتك لرؤية البيانات في الوقت الفعلي',
@@ -430,6 +531,15 @@ const LOC = {
     revenueVsSpend: 'Doanh thu vs Chi phí', unitTenThousand: 'vạn',
     tabSummary: 'Tóm tắt', tabCampaign: 'Chiến dịch', tabCreator: 'Nhà sáng tạo',
     tabPlatform: 'Nền tảng', tabSegment: 'Phân khúc', tabRisk: 'Ngân sách rủi ro',
+    tabProduct: 'Hiệu suất sản phẩm', ppRanking: 'Xếp hạng doanh số sản phẩm', ppSearch: 'Tìm sản phẩm · SKU', ppKinds: 'loại',
+    ppSortRevenue: 'Theo doanh thu', ppSortQty: 'Theo số lượng', ppSortProfit: 'Theo lợi nhuận', ppSortReturn: 'Theo tỷ lệ trả hàng',
+    ppQty: 'Số lượng bán', ppProfit: 'Lợi nhuận gộp', ppTopChannel: 'Kênh chủ lực', ppTopCountry: 'Quốc gia chủ lực',
+    ppBestReturn: 'Tỷ lệ trả hàng thấp nhất', ppWorstReturn: 'Tỷ lệ trả hàng cao nhất', ppSynced: 'Đồng bộ toàn cục',
+    ppByChannel: 'Doanh số theo kênh', ppByCountry: 'Doanh số theo quốc gia', ppByDemo: 'Nhóm khách mua', ppGender: 'Giới tính', ppAge: 'Nhóm tuổi',
+    ppDemoSrc: 'Dựa trên khách chuyển đổi từ quảng cáo', ppAdPerf: 'Hiệu suất quảng cáo sản phẩm', ppAdSpend: 'Chi phí quảng cáo', ppAdRev: 'Doanh thu quảng cáo',
+    ppImpr: 'Lượt hiển thị', ppClick: 'Lượt nhấp', ppAdSrcDirect: 'Liên kết quảng cáo-sản phẩm trực tiếp', ppAdSrcAttr: 'Theo phân bổ',
+    ppSelectHint: 'Chọn một sản phẩm để xem hiệu suất theo kênh, quốc gia và nhân khẩu học, đồng bộ trên bảng điều khiển và các menu liên quan.',
+    ppDemoEmpty: 'Chưa có dữ liệu nhóm khách mua (giới tính · độ tuổi) cho sản phẩm này — kết nối kênh quảng cáo để tự động thu thập từ khách chuyển đổi phục vụ nhắm mục tiêu.',
     periodDaily: 'Ngày', periodWeekly: 'Tuần', periodMonthly: 'Tháng', periodYearly: 'Năm', periodSeasonal: 'Mùa',
     unitDay: 'ngày', unitWeek: 'tuần', unitMonth: 'tháng', unitYear: 'năm', unitSeason: 'mùa',
     noData: 'Chưa có dữ liệu', connectData: 'Kết nối kênh để xem dữ liệu thời gian thực',
@@ -459,6 +569,15 @@ const LOC = {
     revenueVsSpend: 'รายได้ vs ค่าโฆษณา', unitTenThousand: 'หมื่น',
     tabSummary: 'สรุป', tabCampaign: 'แคมเปญ', tabCreator: 'ครีเอเตอร์',
     tabPlatform: 'แพลตฟอร์ม', tabSegment: 'Segment', tabRisk: 'งบความเสี่ยง',
+    tabProduct: 'ประสิทธิภาพสินค้า', ppRanking: 'อันดับยอดขายสินค้า', ppSearch: 'ค้นหาสินค้า · SKU', ppKinds: 'รายการ',
+    ppSortRevenue: 'ตามรายได้', ppSortQty: 'ตามจำนวน', ppSortProfit: 'ตามกำไร', ppSortReturn: 'ตามอัตราคืนสินค้า',
+    ppQty: 'จำนวนที่ขาย', ppProfit: 'กำไรขั้นต้น', ppTopChannel: 'ช่องทางหลัก', ppTopCountry: 'ประเทศหลัก',
+    ppBestReturn: 'อัตราคืนต่ำสุด', ppWorstReturn: 'อัตราคืนสูงสุด', ppSynced: 'ซิงค์ทั่วระบบ',
+    ppByChannel: 'ยอดขายตามช่องทาง', ppByCountry: 'ยอดขายตามประเทศ', ppByDemo: 'กลุ่มผู้ซื้อ', ppGender: 'เพศ', ppAge: 'ช่วงอายุ',
+    ppDemoSrc: 'อิงผู้ซื้อที่เกิดจากโฆษณา', ppAdPerf: 'ประสิทธิภาพโฆษณาสินค้า', ppAdSpend: 'ค่าโฆษณา', ppAdRev: 'รายได้จากโฆษณา',
+    ppImpr: 'การแสดงผล', ppClick: 'คลิก', ppAdSrcDirect: 'เชื่อมโยงโฆษณา-สินค้าโดยตรง', ppAdSrcAttr: 'ตามการระบุแหล่งที่มา',
+    ppSelectHint: 'เลือกสินค้าเพื่อดูประสิทธิภาพตามช่องทาง ประเทศ และกลุ่มประชากร ซิงค์ทั่วแดชบอร์ดและเมนูที่เกี่ยวข้อง',
+    ppDemoEmpty: 'ยังไม่มีข้อมูลกลุ่มผู้ซื้อ (เพศ · อายุ) สำหรับสินค้านี้ — เชื่อมต่อช่องทางโฆษณาเพื่อเก็บข้อมูลอัตโนมัติจากผู้ซื้อที่เกิดจากโฆษณาเพื่อการกำหนดกลุ่มเป้าหมาย',
     periodDaily: 'รายวัน', periodWeekly: 'รายสัปดาห์', periodMonthly: 'รายเดือน', periodYearly: 'รายปี', periodSeasonal: 'ตามฤดูกาล',
     unitDay: 'วัน', unitWeek: 'สัปดาห์', unitMonth: 'เดือน', unitYear: 'ปี', unitSeason: 'ฤดูกาล',
     noData: 'ไม่มีข้อมูล', connectData: 'เชื่อมต่อช่องทางเพื่อดูข้อมูลแบบเรียลไทม์',
@@ -488,6 +607,15 @@ const LOC = {
     revenueVsSpend: 'Pendapatan vs Pengeluaran', unitTenThousand: 'rb',
     tabSummary: 'Ringkasan', tabCampaign: 'Kampanye', tabCreator: 'Kreator',
     tabPlatform: 'Platform', tabSegment: 'Segmen', tabRisk: 'Anggaran Risiko',
+    tabProduct: 'Performa Produk', ppRanking: 'Peringkat Penjualan Produk', ppSearch: 'Cari produk · SKU', ppKinds: 'item',
+    ppSortRevenue: 'Berdasarkan pendapatan', ppSortQty: 'Berdasarkan unit', ppSortProfit: 'Berdasarkan laba', ppSortReturn: 'Berdasarkan tingkat retur',
+    ppQty: 'Unit terjual', ppProfit: 'Laba kotor', ppTopChannel: 'Kanal utama', ppTopCountry: 'Negara utama',
+    ppBestReturn: 'Tingkat retur terendah', ppWorstReturn: 'Tingkat retur tertinggi', ppSynced: 'Sinkron global',
+    ppByChannel: 'Penjualan per kanal', ppByCountry: 'Penjualan per negara', ppByDemo: 'Demografi pembeli', ppGender: 'Jenis kelamin', ppAge: 'Kelompok usia',
+    ppDemoSrc: 'Berdasarkan pembeli hasil konversi iklan', ppAdPerf: 'Performa iklan produk', ppAdSpend: 'Belanja iklan', ppAdRev: 'Pendapatan iklan',
+    ppImpr: 'Impresi', ppClick: 'Klik', ppAdSrcDirect: 'Tautan iklan-produk langsung', ppAdSrcAttr: 'Berbasis atribusi',
+    ppSelectHint: 'Pilih produk untuk melihat performa per kanal, negara, dan demografi, tersinkron di dasbor dan menu terkait.',
+    ppDemoEmpty: 'Belum ada data demografi pembeli (jenis kelamin · usia) untuk produk ini — hubungkan kanal iklan untuk mengumpulkan otomatis dari pembeli hasil konversi untuk penargetan.',
     periodDaily: 'Harian', periodWeekly: 'Mingguan', periodMonthly: 'Bulanan', periodYearly: 'Tahunan', periodSeasonal: 'Musiman',
     unitDay: 'hari', unitWeek: 'minggu', unitMonth: 'bulan', unitYear: 'tahun', unitSeason: 'Musim',
     noData: 'Tidak ada data', connectData: 'Hubungkan saluran untuk data real-time',
@@ -517,6 +645,15 @@ const LOC = {
     revenueVsSpend: 'राजस्व vs व्यय', unitTenThousand: 'हज़ार',
     tabSummary: 'सारांश', tabCampaign: 'अभियान', tabCreator: 'क्रिएटर',
     tabPlatform: 'प्लेटफ़ॉर्म', tabSegment: 'सेगमेंट', tabRisk: 'जोखिम बजट',
+    tabProduct: 'उत्पाद प्रदर्शन', ppRanking: 'उत्पाद बिक्री रैंकिंग', ppSearch: 'उत्पाद · SKU खोजें', ppKinds: 'आइटम',
+    ppSortRevenue: 'राजस्व अनुसार', ppSortQty: 'मात्रा अनुसार', ppSortProfit: 'लाभ अनुसार', ppSortReturn: 'रिटर्न दर अनुसार',
+    ppQty: 'बिकी मात्रा', ppProfit: 'सकल लाभ', ppTopChannel: 'मुख्य चैनल', ppTopCountry: 'मुख्य देश',
+    ppBestReturn: 'सबसे कम रिटर्न दर', ppWorstReturn: 'सबसे अधिक रिटर्न दर', ppSynced: 'वैश्विक सिंक',
+    ppByChannel: 'चैनल अनुसार बिक्री', ppByCountry: 'देश अनुसार बिक्री', ppByDemo: 'खरीदार वर्ग', ppGender: 'लिंग', ppAge: 'आयु वर्ग',
+    ppDemoSrc: 'विज्ञापन-रूपांतरित खरीदारों के आधार पर', ppAdPerf: 'उत्पाद विज्ञापन प्रदर्शन', ppAdSpend: 'विज्ञापन व्यय', ppAdRev: 'विज्ञापन राजस्व',
+    ppImpr: 'इंप्रेशन', ppClick: 'क्लिक', ppAdSrcDirect: 'प्रत्यक्ष विज्ञापन-उत्पाद लिंक', ppAdSrcAttr: 'एट्रिब्यूशन आधारित',
+    ppSelectHint: 'किसी उत्पाद का चयन करें ताकि चैनल, देश और जनसांख्यिकी अनुसार प्रदर्शन दिखे, जो डैशबोर्ड व संबंधित मेनू में सिंक रहता है।',
+    ppDemoEmpty: 'इस उत्पाद के लिए अभी खरीदार वर्ग (लिंग · आयु) डेटा नहीं है — विज्ञापन चैनल जोड़ें ताकि रूपांतरित खरीदारों से स्वतः संग्रह हो और टार्गेटिंग में उपयोग हो।',
     periodDaily: 'दैनिक', periodWeekly: 'साप्ताहिक', periodMonthly: 'मासिक', periodYearly: 'वार्षिक', periodSeasonal: 'मौसमी',
     unitDay: 'दिन', unitWeek: 'सप्ताह', unitMonth: 'महीना', unitYear: 'वर्ष', unitSeason: 'मौसम',
     noData: 'कोई डेटा उपलब्ध नहीं', connectData: 'रीयल-टाइम डेटा के लिए चैनल कनेक्ट करें',
@@ -750,7 +887,7 @@ function SkuTab({ period, n, txt, fc }) {
                 <td style={{ ...S.tdCell, fontFamily: "monospace", fontSize: 12 }}>{r.sku_id}</td>
                 <td style={{ ...S.tdCell, maxWidth: 140, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.name}</td>
                 <td style={{ ...S.tdCell, textAlign: "right" }}>{fc.c(r.total_revenue)}</td>
-                <td style={{ ...S.tdCell, textAlign: "right", color: r.avg_roas >= 3 ? "#22c55e" : "#ef4444" }}>{fc.roas(r.avg_roas)}</td>
+                <td style={{ ...S.tdCell, textAlign: "right", color: !r.avg_roas ? "#94a3b8" : (r.avg_roas >= 3 ? "#22c55e" : "#ef4444") }} title={!r.avg_roas ? "SKU 단위 광고비 미연동(상품 ROAS는 광고-상품 매핑 연동 시 표시)" : ""}>{r.avg_roas ? fc.roas(r.avg_roas) : "—"}</td>
                 <td style={{ ...S.tdCell, textAlign: "right", color: r.avg_return_rate > 12 ? "#ef4444" : "#22c55e" }}>{fc.pct(r.avg_return_rate)}</td>
                 <td style={{ ...S.tdCell, textAlign: "right" }}><Sparkline data={r.series} field="revenue" /></td>
               </tr>
@@ -775,6 +912,162 @@ function SkuTab({ period, n, txt, fc }) {
           <div style={{ fontSize: 11, color: '#64748b', marginTop: 4 }}>{txt('roasScale')}</div>
         </div>
       )}
+    </div>
+  );
+}
+
+// ── Tab: Product Performance (상품 성과: 순위·채널·국가·인구통계) ──────────────
+// [현 차수] deriveProductPerf·ppCountry·PP_COUNTRY_LABEL 는 components/dashboards/productPerf.js 로 추출(SSOT).
+//   ProductMarketingPanel(마케팅/채널 대시보드)과 동일 파생 공유 — 중복 구현 금지. 상단 import 참조.
+function ProductPerfTab({ period, n, txt, fc }) {
+  const { isDemo, orders, inventory } = useGlobalData();
+  const { selectedProduct, setSelectedProduct } = useProductSelection();
+  const costMap = useMemo(() => { const m = {}; (inventory || []).forEach(it => { const s = it.sku || it.product_id; if (s && it.cost != null) m[String(s)] = Number(it.cost) || 0; }); return m; }, [inventory]);
+  const [data, setData] = useState(null);
+  const [q, setQ] = useState('');
+  const [sortBy, setSortBy] = useState('revenue');
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      const result = isDemo ? deriveProductPerf(orders, costMap) : await API(`/api/v423/rollup/product-performance?period=${period}&n=${n}`);
+      if (alive) setData(result);
+    })().catch(() => { if (alive) setData({ products:[] }); });
+    return () => { alive = false; };
+  }, [period, n, isDemo, orders, costMap]);
+  const products = useMemo(() => {
+    let list = (data?.products || []).slice();
+    if (q.trim()) { const s=q.trim().toLowerCase(); list = list.filter(p => String(p.name||'').toLowerCase().includes(s) || String(p.sku||'').toLowerCase().includes(s)); }
+    if (sortBy==='qty') list.sort((a,b)=>b.qty-a.qty); else if (sortBy==='return') list.sort((a,b)=>b.return_rate-a.return_rate); else if (sortBy==='profit') list.sort((a,b)=>(b.gross_profit??-Infinity)-(a.gross_profit??-Infinity)); else list.sort((a,b)=>b.revenue-a.revenue);
+    return list;
+  }, [data, q, sortBy]);
+  const sel = useMemo(() => (data?.products||[]).find(p => p.sku === selectedProduct?.sku) || null, [data, selectedProduct]);
+  if (!data) return <div style={{ color:'#64748b', padding:32 }}>{txt('loading')}</div>;
+  if (!data.products?.length) return <EmptyState txt={txt} />;
+  const Bar = ({ map }) => {
+    const entries = Object.entries(map||{}).sort((a,b)=>(b[1].revenue||0)-(a[1].revenue||0));
+    const mx = Math.max(...entries.map(([,v])=>v.revenue||0), 1);
+    return (<div style={{ display:'grid', gap:6 }}>{entries.map(([k,v])=>(
+      <div key={k}>
+        <div style={{ display:'flex', justifyContent:'space-between', fontSize:11, marginBottom:2 }}><span style={{fontWeight:700}}>{PP_COUNTRY_LABEL[k]||k}</span><span>{fc.c(v.revenue||0)} · {v.qty ?? v.conv ?? 0}</span></div>
+        <div style={{ height:8, background:'#eef2f7', borderRadius:4 }}><div style={{ width:`${Math.round((v.revenue||0)/mx*100)}%`, height:'100%', background:'#4f8ef7', borderRadius:4 }} /></div>
+      </div>))}</div>);
+  };
+  return (
+    <div>
+      <div style={{ display:'flex', gap:10, alignItems:'center', marginBottom:12, flexWrap:'wrap' }}>
+        <input value={q} onChange={e=>setQ(e.target.value)} placeholder={txt('ppSearch','상품명·SKU 검색')} style={{ flex:'1 1 220px', minWidth:180, padding:'7px 10px', borderRadius:8, border:'1px solid #e2e8f0', fontSize:13 }} />
+        <select value={sortBy} onChange={e=>setSortBy(e.target.value)} style={{ padding:'7px 10px', borderRadius:8, border:'1px solid #e2e8f0', fontSize:13 }}>
+          <option value="revenue">{txt('ppSortRevenue','매출순')}</option>
+          <option value="profit">{txt('ppSortProfit','이익순')}</option>
+          <option value="qty">{txt('ppSortQty','판매량순')}</option>
+          <option value="return">{txt('ppSortReturn','반품률순')}</option>
+        </select>
+        {selectedProduct && <span style={{ padding:'6px 12px', borderRadius:8, background:'rgba(79,142,247,0.1)', color:'#2563eb', fontWeight:700, fontSize:12 }}>🔗 {txt('ppSynced','전역 동기화')}: {selectedProduct.name} <button onClick={()=>setSelectedProduct(null)} style={{ marginLeft:6, border:'none', background:'transparent', cursor:'pointer', color:'#64748b' }}>✕</button></span>}
+      </div>
+      {(() => {
+        const wo = (data.products || []).filter(p => p.orders >= 1);
+        if (wo.length < 2) return null;
+        const s = [...wo].sort((a, b) => b.return_rate - a.return_rate);
+        const worst = s[0], best = s[s.length - 1];
+        return (
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 12 }}>
+            <div onClick={() => setSelectedProduct(worst)} style={{ cursor: 'pointer', padding: '8px 12px', borderRadius: 8, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', fontSize: 12 }}>
+              🔺 {txt('ppWorstReturn', '반품률 최고')}: <strong>{worst.name}</strong> <span style={{ color: '#ef4444', fontWeight: 700 }}>{fc.pct(worst.return_rate)}</span>
+            </div>
+            <div onClick={() => setSelectedProduct(best)} style={{ cursor: 'pointer', padding: '8px 12px', borderRadius: 8, background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.25)', fontSize: 12 }}>
+              🔻 {txt('ppBestReturn', '반품률 최저')}: <strong>{best.name}</strong> <span style={{ color: '#22c55e', fontWeight: 700 }}>{fc.pct(best.return_rate)}</span>
+            </div>
+          </div>
+        );
+      })()}
+      <div style={{ display:'grid', gridTemplateColumns:'1.3fr 1fr', gap:16 }}>
+        <div style={{ ...S.card, overflowX:'auto' }}>
+          <div style={S.sectionTitle}>🏆 {txt('ppRanking','상품 판매 순위')} <span style={{ fontWeight:400, color:'#94a3b8', fontSize:11 }}>({data.count}{txt('ppKinds','종')})</span></div>
+          <table style={{ width:'100%', borderCollapse:'collapse' }}>
+            <thead><tr style={S.rowBorder}>{['#', txt('colProduct'), txt('ppQty','판매량'), txt('colRevenue'), 'AOV', txt('ppProfit','매출총이익'), txt('ppTopChannel','주력채널'), txt('ppTopCountry','주력국가'), txt('colReturnRate')].map(h=><th key={h} style={S.thCell}>{h}</th>)}</tr></thead>
+            <tbody>{products.map(p=>(
+              <tr key={p.sku} onClick={()=>setSelectedProduct(p)} style={{ ...S.rowBorder, cursor:'pointer', background: selectedProduct?.sku===p.sku?'rgba(79,142,247,0.08)':'transparent' }}>
+                <td style={{ ...S.tdCell, fontWeight:800, color: p.rank<=3?'#22c55e':'#94a3b8' }}>{p.rank}</td>
+                <td style={{ ...S.tdCell, maxWidth:160, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }} title={p.name}>{p.name}</td>
+                <td style={{ ...S.tdCell, textAlign:'right' }}>{p.qty}</td>
+                <td style={{ ...S.tdCell, textAlign:'right', fontWeight:700 }}>{fc.c(p.revenue)}</td>
+                <td style={{ ...S.tdCell, textAlign:'right', color:'#64748b' }}>{fc.c(p.aov)}</td>
+                <td style={{ ...S.tdCell, textAlign:'right', fontWeight:700, color: p.gross_profit==null?'#94a3b8':(p.gross_profit>=0?'#16a34a':'#ef4444') }}>{p.gross_profit==null?'—':fc.c(p.gross_profit)}{p.margin!=null?<span style={{color:'#94a3b8',fontWeight:400,fontSize:10}}> ({p.margin}%)</span>:null}</td>
+                <td style={{ ...S.tdCell }}>{p.top_channel||'—'}</td>
+                <td style={{ ...S.tdCell }}>{PP_COUNTRY_LABEL[p.top_country]||p.top_country||'—'}</td>
+                <td style={{ ...S.tdCell, textAlign:'right', color: p.return_rate>12?'#ef4444':'#22c55e' }}>{fc.pct(p.return_rate)}</td>
+              </tr>))}</tbody>
+          </table>
+        </div>
+        <div style={{ display:'grid', gap:14, alignContent:'start' }}>
+          {!sel && <div style={{ ...S.card, color:'#64748b', textAlign:'center', padding:28 }}>{txt('ppSelectHint','상품을 선택하면 채널·국가·인구통계별 성과가 표시되고 대시보드 등 관련 메뉴에 동기화됩니다.')}</div>}
+          {sel && (<>
+            <div style={S.card}>
+              <div style={S.sectionTitle}>📦 {sel.name} <span style={{ fontWeight:400, color:'#94a3b8', fontSize:11 }}>#{sel.rank}</span></div>
+              <div style={{ fontSize:12, fontWeight:700, margin:'8px 0 6px', color:'#475569' }}>🛒 {txt('ppByChannel','채널별 판매')}</div>
+              <Bar map={sel.byChannel} />
+              <div style={{ fontSize:12, fontWeight:700, margin:'14px 0 6px', color:'#475569' }}>🌍 {txt('ppByCountry','국가별 판매')}</div>
+              <Bar map={sel.byCountry} />
+            </div>
+            {(() => {
+              const direct = sel.ad && (sel.ad.spend > 0 || sel.ad.impressions > 0);
+              const ad = direct ? { roas: sel.ad.roas, spend: sel.ad.spend, ad_revenue: sel.ad.ad_revenue, impressions: sel.ad.impressions, clicks: sel.ad.clicks, ctr: sel.ad.ctr, src: txt('ppAdSrcDirect', '광고-상품 직접연동') }
+                : (sel.ad_attr && sel.ad_attr.spend > 0 ? { roas: sel.ad_attr.roas, spend: sel.ad_attr.spend, ad_revenue: sel.ad_attr.attr_revenue, src: txt('ppAdSrcAttr', '어트리뷰션 배분') } : null);
+              if (!ad) return null;
+              const rows = [['ROAS', ad.roas != null ? ad.roas + 'x' : '—'], [txt('ppAdSpend', '광고비'), fc.c(ad.spend)], [txt('ppAdRev', '광고매출'), fc.c(ad.ad_revenue)]];
+              if (ad.impressions != null) rows.push([txt('ppImpr', '노출'), (ad.impressions || 0).toLocaleString()], [txt('ppClick', '클릭'), (ad.clicks || 0).toLocaleString()], ['CTR', (ad.ctr || 0) + '%']);
+              return (
+                <div style={S.card}>
+                  <div style={{ fontSize:12, fontWeight:700, marginBottom:6, color:'#475569' }}>📣 {txt('ppAdPerf','상품 광고 성과')} <span style={{ fontWeight:400, color:'#94a3b8', fontSize:10 }}>({ad.src})</span></div>
+                  <div style={{ display:'flex', flexWrap:'wrap', gap:14 }}>
+                    {rows.map(([k,v])=><span key={k} style={{fontSize:12}}><span style={{color:'#64748b'}}>{k}</span> <strong>{v}</strong></span>)}
+                  </div>
+                </div>
+              );
+            })()}
+            <div style={S.card}>
+              <div style={{ fontSize:12, fontWeight:700, marginBottom:6, color:'#475569' }}>👥 {txt('ppByDemo','구매자 타겟층')} <span style={{ fontWeight:400, color:'#94a3b8', fontSize:10 }}>({txt('ppDemoSrc','광고 전환 구매자 기준')})</span></div>
+              {(Object.keys(sel.byGender||{}).length || Object.keys(sel.byAge||{}).length) ? (<>
+                <div style={{ fontSize:11, color:'#64748b', margin:'4px 0' }}>{txt('ppGender','성별')}</div><Bar map={sel.byGender} />
+                <div style={{ fontSize:11, color:'#64748b', margin:'8px 0 4px' }}>{txt('ppAge','연령대')}</div><Bar map={sel.byAge} />
+              </>) : <div style={{ color:'#94a3b8', fontSize:12, padding:'6px 0' }}>{txt('ppDemoEmpty','이 상품의 구매자 타겟층(성별·연령) 데이터가 아직 없습니다 — 광고 채널을 연동하면 전환 구매자 기준으로 자동 수집·표시되어 타겟 설정에 활용됩니다.')}</div>}
+            </div>
+          </>)}
+        </div>
+      </div>
+      {/* [현 차수] ② 채널 중심 랭킹 — 어떤 채널에서 어떤 상품이 가장 잘 팔리는지(상품별 byChannel transpose, 실 주문데이터). 클릭=상품 선택→전 메뉴 실시간 동기화. */}
+      {(() => {
+        const byCh = {};
+        (data.products || []).forEach(p => {
+          Object.entries(p.byChannel || {}).forEach(([ch, v]) => {
+            if (!ch) return;
+            (byCh[ch] = byCh[ch] || []).push({ sku: p.sku, name: p.name, revenue: v.revenue || 0, qty: v.qty || 0 });
+          });
+        });
+        const chans = Object.entries(byCh).map(([ch, arr]) => ({ ch, arr: arr.sort((a, b) => b.revenue - a.revenue).slice(0, 5), total: arr.reduce((s, x) => s + x.revenue, 0) })).sort((a, b) => b.total - a.total);
+        if (!chans.length) return null;
+        return (
+          <div style={{ ...S.card, marginTop: 16 }}>
+            <div style={S.sectionTitle}>🛒 {txt('ppChannelBest', '채널별 베스트 상품')} <span style={{ fontWeight: 400, color: '#94a3b8', fontSize: 11 }}>({txt('ppChannelBestHint', '각 채널에서 가장 많이 팔리는 상품 — 어디에 집중할지')})</span></div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(220px,1fr))', gap: 14, marginTop: 10 }}>
+              {chans.map(({ ch, arr, total }) => (
+                <div key={ch} style={{ border: '1px solid #e2e8f0', borderRadius: 10, padding: '10px 12px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                    <span style={{ fontWeight: 800, fontSize: 13 }}>{ch}</span>
+                    <span style={{ fontSize: 11, color: '#94a3b8' }}>{fc.c(total)}</span>
+                  </div>
+                  {arr.map((x, i) => (
+                    <div key={x.sku} onClick={() => setSelectedProduct({ sku: x.sku, name: x.name })} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11.5, padding: '3px 0', cursor: 'pointer', borderTop: i ? '1px dashed #f1f5f9' : 'none' }}>
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 130 }} title={x.name}><span style={{ color: '#94a3b8', marginRight: 4 }}>{i + 1}</span>{x.name}</span>
+                      <span style={{ fontWeight: 700, color: '#4f8ef7' }}>{fc.c(x.revenue)}</span>
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
@@ -817,7 +1110,7 @@ function CampaignTab({ period, n, txt, fc }) {
                 <td style={{ ...S.tdCell, color: pcol(r.platform), fontWeight: 700 }}>{r.platform}</td>
                 <td style={{ ...S.tdCell, textAlign: "right" }}>{fc.c(r.total_revenue)}</td>
                 <td style={{ ...S.tdCell, textAlign: "right", color: "#ef4444" }}>{fc.c(r.total_spend)}</td>
-                <td style={{ ...S.tdCell, textAlign: "right", color: r.avg_roas >= 3 ? "#22c55e" : "#ef4444" }}>{fc.roas(r.avg_roas)}</td>
+                <td style={{ ...S.tdCell, textAlign: "right", color: !r.avg_roas ? "#94a3b8" : (r.avg_roas >= 3 ? "#22c55e" : "#ef4444") }} title={!r.avg_roas ? "SKU 단위 광고비 미연동(상품 ROAS는 광고-상품 매핑 연동 시 표시)" : ""}>{r.avg_roas ? fc.roas(r.avg_roas) : "—"}</td>
                 <td style={{ ...S.tdCell, textAlign: "right" }}>{fc.c(r.avg_cpa)}</td>
                 <td style={{ ...S.tdCell, textAlign: "right" }}><Sparkline data={r.series} field="revenue" color={pcol(r.platform)} /></td>
               </tr>
@@ -1019,6 +1312,7 @@ export default function RollupDashboard() {
   const [tab, setTab] = useState("summary");
   const TABS = useMemo(() => [
     { id: "summary", label: `📊 ${txt("tabSummary")}` },
+    { id: "product", label: `🏆 ${txt("tabProduct", "상품 성과")}` },
     { id: "sku", label: "📦 SKU" },
     { id: "campaign", label: `📣 ${txt("tabCampaign")}` },
     { id: "creator", label: `🎬 ${txt("tabCreator")}` },
@@ -1158,6 +1452,7 @@ function DashboardContent({ txt, fc, isRTL, TABS, tab, setTab, period, setPeriod
         {/* ── Content panels ── */}
         <div style={{ padding: '16px 14px 28px' }}>
           {tab === "summary" && <SummaryTab period={period} n={n} txt={txt} fc={fc} />}
+          {tab === "product" && <ProductPerfTab period={period} n={n} txt={txt} fc={fc} />}
           {tab === "sku" && <SkuTab period={period} n={n} txt={txt} fc={fc} />}
           {tab === "campaign" && <CampaignTab period={period} n={n} txt={txt} fc={fc} />}
           {tab === "creator" && <CreatorTab period={period} n={n} txt={txt} fc={fc} />}

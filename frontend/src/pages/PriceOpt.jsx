@@ -138,8 +138,7 @@ function SummaryTab({ token }) {
     useEffect(() => {
         const ac = new AbortController();
         getJsonAuthAbortable(`/v420/price/summary`, ac.signal)
-            .then(r => r.json())
-            .then(d => {
+                        .then(d => {
                 // API가 200 OK지만 데이터가 비어있으면 데모 폴백 사용
                 if ((!d.products || d.products === 0)) setData(isDemo && demoFallback ? demoFallback : emptyState);
                 else setData(d);
@@ -154,8 +153,7 @@ function SummaryTab({ token }) {
     const reload = () => {
         setData(null);
         getJsonAuth(`/v420/price/summary`)
-            .then(r => r.json())
-            .then(d => {
+                        .then(d => {
                 if ((!d.products || d.products === 0)) setData(isDemo && demoFallback ? demoFallback : emptyState);
                 else setData(d);
             })
@@ -305,8 +303,7 @@ function ProductsTab({ token }) {
     useEffect(() => {
         const ac = new AbortController();
         getJsonAuthAbortable(`/v420/price/products`, ac.signal)
-            .then(r => r.json())
-            .then(d => {
+                        .then(d => {
                 const prods = d.products || [];
                 // API가 빈 배열을 반환하면 inventory 데모 폴백 사용
                 if (prods.length === 0 && inventoryProducts.length > 0) setProducts(inventoryProducts);
@@ -337,7 +334,7 @@ function ProductsTab({ token }) {
 
     const load = () =>
         getJsonAuth(`/v420/price/products`)
-            .then(r => r.json()).then(d => setProducts(d.products || [])).catch(() => { });
+            .then(d => setProducts(d.products || [])).catch(() => { });
 
     const save = async () => {
         // 206차 #6: 클라이언트 사전 중복 검사 + 서버 중복 차단 알림.
@@ -713,7 +710,7 @@ function OptimizeTab({ token }) {
     const { fmt } = useCurrency();
     const { t } = useI18n();
     const [products, setProducts] = useState([]);
-    const [form, setForm] = useState({ sku: "", channel: "*", current_price: "", inventory: "0" });
+    const [form, setForm] = useState({ sku: "", channel: "*", current_price: "", inventory: "0", ship_mode: "", ship_cost: "" });
     const [result, setResult] = useState(null);
     const [loading, setLoading] = useState(false);
     const [recent, setRecent] = useState([]);
@@ -733,16 +730,14 @@ function OptimizeTab({ token }) {
 
     const loadRecent = useCallback((signal) =>
         getJsonAuthAbortable(`/v420/price/recommendations`, signal)
-            .then(r => r.json())
-            .then(d => setRecent(d.recommendations?.slice(0, 6) || []))
+                        .then(d => setRecent(d.recommendations?.slice(0, 6) || []))
             .catch(() => { })
         , [token]);
 
     useEffect(() => {
         const ac = new AbortController();
         getJsonAuthAbortable(`/v420/price/products`, ac.signal)
-            .then(r => r.json())
-            .then(d => {
+                        .then(d => {
                 const prods = d.products || [];
                 // API가 빈 배열이면 inventory 폴백
                 if (prods.length === 0 && inventoryProdsOpt.length > 0) {
@@ -771,6 +766,9 @@ function OptimizeTab({ token }) {
                 channel: form.channel || "*",
                 current_price: form.current_price ? parseFloat(form.current_price) : undefined,
                 inventory: parseInt(form.inventory) || 0,
+                // [현 차수] 배송조건 — 미선택('')이면 백엔드가 채널 관행 기본 적용. 무료배송이면 배송비를 실효원가에 가산.
+                ship_mode: form.ship_mode || undefined,
+                ship_cost: form.ship_cost !== "" ? parseFloat(form.ship_cost) : undefined,
             });
             setResult(d);
             loadRecent();
@@ -839,6 +837,28 @@ function OptimizeTab({ token }) {
                         </div>
                     ))}
                 </div>
+                {/* [현 차수] 배송 조건 — 무료배송(판매자 부담)이면 배송비가 실효원가에 가산되어 최적가가 마진 보존하도록 상향. 신규 메뉴 없이 기존 폼 확장. */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 2fr", gap: 10, marginBottom: 12, alignItems: "end" }}>
+                    <div>
+                        <label style={{ fontSize: 11, color: "#7c8fa8", display: "block", marginBottom: 2 }}>{t('priceOpt.shipMode', '배송 조건')}</label>
+                        <select value={form.ship_mode} onChange={e => setForm(f => ({ ...f, ship_mode: e.target.value }))}
+                            style={{ width: "100%", background: "#f1f5f9", border: "1px solid #e2e8f0", borderRadius: 6, color: "#1e293b", padding: "5px 8px", fontSize: 12 }}>
+                            <option value="">{t('priceOpt.shipAuto', '자동(채널 관행)')}</option>
+                            <option value="free">{t('priceOpt.shipFree', '무료배송(판매자 부담)')}</option>
+                            <option value="buyer_paid">{t('priceOpt.shipBuyer', '소비자 부담')}</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style={{ fontSize: 11, color: "#7c8fa8", display: "block", marginBottom: 2 }}>{t('priceOpt.shipCost', '배송비(무료배송 시)')}</label>
+                        <input type="number" value={form.ship_cost} onChange={e => setForm(f => ({ ...f, ship_cost: e.target.value }))}
+                            placeholder="0" disabled={form.ship_mode === 'buyer_paid'}
+                            style={{ width: "100%", background: form.ship_mode === 'buyer_paid' ? "#e2e8f0" : "#f1f5f9", border: "1px solid #e2e8f0", borderRadius: 6, color: "#1e293b", padding: "5px 8px", fontSize: 12, boxSizing: "border-box" }} />
+                    </div>
+                    <div style={{ fontSize: 10.5, color: "#94a3b8", paddingBottom: 4 }}>
+                        💡 {t('priceOpt.shipHint', '무료배송은 배송비가 실효원가에 가산되어 마진 보존 최적가로 상향됩니다. 자동 선택 시 채널 관행(Amazon·Shopify·쿠팡 등=무료배송, eBay·Etsy·Shopee 등=소비자 부담)이 적용됩니다.')}
+                        <div style={{ marginTop: 4 }}>🌐 {t('priceOpt.shipIntlNote', '해외 판매: 유류할증료는 배송비에 포함해 입력하세요. 관세·부가세는 통상 구매자(수입자) 부담(DDU)이며, DDP(판매자 관세부담) 조건일 때만 배송비 항목에 합산하세요.')}</div>
+                    </div>
+                </div>
                 <button className="btn" onClick={run} disabled={loading || !form.sku} style={{ background: "#6366f1" }}>
                     {loading ? "⏳ " + (t("priceOpt.calculating", "Calculating...")) : "🧮 " + (t("priceOpt.calcOptimal", "Optimize"))}
                 </button>
@@ -860,6 +880,9 @@ function OptimizeTab({ token }) {
                             { label: t("priceOpt.minApplyPrice"), value: fmt(result.min_price), color: "#7c8fa8" },
                             { label: t("priceOpt.expectedMargin"), value: PCT(result.expected_margin), color: "#f97316" },
                             { label: t("priceOpt.expectedQty"), value: result.expected_qty ? Math.round(result.expected_qty) + " " + t("priceOpt.unitPcs") : "—", color: "#06b6d4" },
+                            // [현 차수] 배송 반영 — 무료배송이면 실효원가(배송 가산) 표시. 소비자부담/무부담이면 생략.
+                            ...(result.ship_mode ? [{ label: t("priceOpt.shipModeLabel", "배송 조건"), value: result.ship_mode === 'free' ? (t('priceOpt.shipFreeShort', '무료배송') + (result.ship_cost ? ' ₩' + fmt(result.ship_cost) : '')) : t('priceOpt.shipBuyerShort', '소비자 부담'), color: result.ship_mode === 'free' ? "#a855f7" : "#64748b" }] : []),
+                            ...(result.shipping_burden > 0 ? [{ label: t("priceOpt.effectiveCost", "실효원가(배송반영)"), value: fmt(result.effective_cost), color: "#ef4444" }] : []),
                         ].map(({ label, value, color }) => (
                             <div key={label} style={{ padding: "8px 10px", background: "#f1f5f9", borderRadius: 6 }}>
                                 <div style={{ fontSize: 10, color: "#7c8fa8" }}>{label}</div>
@@ -931,8 +954,7 @@ function ScenarioTab({ token }) {
     useEffect(() => {
         const ac = new AbortController();
         getJsonAuthAbortable(`/v420/price/products`, ac.signal)
-            .then(r => r.json())
-            .then(d => {
+                        .then(d => {
                 const prods = d.products || [];
                 setProducts(prods);
                 if (prods.length) setForm(f => ({ ...f, sku: prods[0].sku }));
@@ -1054,8 +1076,7 @@ function ChannelMixTab({ token }) {
 
     const loadHistory = useCallback((signal) =>
         getJsonAuthAbortable(`/v420/channel-mix/results`, signal)
-            .then(r => r.json())
-            .then(d => setHistory(d.results || []))
+                        .then(d => setHistory(d.results || []))
             .catch(() => { })
         , [token]);
 
@@ -1172,7 +1193,7 @@ function CompetitorPriceTab({ token, inventory, digitalShelfData }) {
     useEffect(() => {
         const ac = new AbortController();
         getJsonAuthAbortable(`/v420/price/competitor`, ac.signal)
-            .then(r => r.json()).then(d => { if (d.items) setCompetitorData(d.items); }).catch(() => {});
+            .then(d => { if (d.items) setCompetitorData(d.items); }).catch(() => {});
         return () => ac.abort();
     }, [token]);
 
@@ -1231,7 +1252,7 @@ function PriceCalendarTab({ token, priceCalendar, addPriceCalendarEvent }) {
     useEffect(() => {
         const ac = new AbortController();
         getJsonAuthAbortable(`/v420/price/calendar`, ac.signal)
-            .then(r => r.json()).then(d => { if (d.events) setEvents(d.events); }).catch(() => {});
+            .then(d => { if (d.events) setEvents(d.events); }).catch(() => {});
         return () => ac.abort();
     }, [token]);
 
@@ -1241,8 +1262,7 @@ function PriceCalendarTab({ token, priceCalendar, addPriceCalendarEvent }) {
         try {
             await postJsonAuth(`/v420/price/calendar`, form);
             addPriceCalendarEvent?.(form);
-            const re = await getJsonAuth(`/v420/price/calendar`);
-            const d = await re.json();
+            const d = await getJsonAuth(`/v420/price/calendar`);
             if (d.events) setEvents(d.events);
             setSaved(true); setTimeout(() => setSaved(false), 2000);
         } catch { /* silent */ }
@@ -1322,12 +1342,12 @@ function DynamicRepricerTab({ token, inventory = [], digitalShelfData = {} }) {
     useEffect(() => {
         const ac = new AbortController();
         getJsonAuthAbortable(`/v420/price/repricer/rules`, ac.signal)
-            .then(r => r.json()).then(d => { if (d.rules) setRules(d.rules); if (d.avg_margin_improve != null) setMarginImprove(d.avg_margin_improve); }).catch(() => {});
+            .then(d => { if (d.rules) setRules(d.rules); if (d.avg_margin_improve != null) setMarginImprove(d.avg_margin_improve); }).catch(() => {});
         getJsonAuthAbortable(`/v420/price/repricer/history`, ac.signal)
-            .then(r => r.json()).then(d => { if (d.history) setHistory(d.history); }).catch(() => {});
+            .then(d => { if (d.history) setHistory(d.history); }).catch(() => {});
         // 채널 반영 대기(pending_approval price_update) 건수 — writeback jobs 에서 집계
         getJsonAuthAbortable(`/api/catalog/writeback/jobs`, ac.signal)
-            .then(r => r.json()).then(d => { if (Array.isArray(d)) setPendingN(d.filter(j => j.operation === 'price_update' && j.status === 'pending_approval').length); }).catch(() => {});
+            .then(d => { if (Array.isArray(d)) setPendingN(d.filter(j => j.operation === 'price_update' && j.status === 'pending_approval').length); }).catch(() => {});
         return () => ac.abort();
     }, [token]);
 
@@ -1337,7 +1357,7 @@ function DynamicRepricerTab({ token, inventory = [], digitalShelfData = {} }) {
             const d = await postJsonAuth('/v420/price/repricer/run', {});
             setRunRes(d);
             setPendingN(prev => prev + (d.pending_approval || 0));
-            getJsonAuth(`/v420/price/repricer/history`).then(r => r.json()).then(h => { if (h.history) setHistory(h.history); }).catch(() => {});
+            getJsonAuth(`/v420/price/repricer/history`).then(h => { if (h.history) setHistory(h.history); }).catch(() => {});
         } catch (e) { setMsg(t('priceOpt.repriceRunErr', 'Failed to run repricer')); }
         setRunning(false);
     };

@@ -8,6 +8,7 @@ import AIRecommendBanner from'../components/AIRecommendBanner.jsx';
 import SC_DICT from'./scI18n.js';
 import{DEMO_PRODUCTS}from'../data/demoSeedData.js';
 import{useGlobalData}from'../context/GlobalDataContext.jsx';
+import{useProductSelection}from'../contexts/ProductSelectionContext.jsx';
 import{listSupplyOrders,createSupplyOrder,updateSupplyOrder}from'../services/wmsApi.js';
 import{getJsonAuth,requestJsonAuth}from'../services/apiClient.js';
 
@@ -191,6 +192,9 @@ return{lines,suppliers,loading,reload,isDemoMode};
 const _emptyLine=()=>({sku:'',name:'',supplier:'',leadTime:14,risk:'normal'});
 function TimelineTab({tr,fmt}){
 const{lines,suppliers,loading,reload,isDemoMode}=useSupplyLines();
+// [현 차수] 전역 상품선택 → 그 SKU 공급선을 상단 정렬·강조(KPI는 전체 보존·실시간 동기화). 중복 메뉴 없이 기존 타임라인 재사용.
+const{selectedProduct}=useProductSelection();
+const vLines=selectedProduct?.sku?[...lines].sort((a,b)=>(String(b.sku)===selectedProduct.sku?1:0)-(String(a.sku)===selectedProduct.sku?1:0)):lines;
 const[showAdd,setShowAdd]=useState(false);
 const[form,setForm]=useState(_emptyLine());
 const[saving,setSaving]=useState(false);
@@ -242,10 +246,11 @@ return(
 </div>
 {/* Timeline Cards */}
 <div style={{display:'flex',flexDirection:'column',gap:12}}>
-{lines.map((ln,idx)=>{
+{vLines.map((ln,idx)=>{
 const riskClr=ln.risk==='high'?'#ef4444':'#22c55e';
+const _selMatch=selectedProduct?.sku&&String(ln.sku)===selectedProduct.sku;
 return(
-<div key={ln.id} className="card card-glass" style={{padding:18,borderLeft:'4px solid '+riskClr,color:'#1e293b'}}>
+<div key={ln.id} className="card card-glass" style={{padding:18,borderLeft:'4px solid '+riskClr,color:'#1e293b',...( _selMatch?{boxShadow:'0 0 0 2px #4f8ef7',background:'rgba(79,142,247,0.04)'}:{})}}>
 <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12,flexWrap:'wrap',gap:8}}>
 <div><div style={{fontWeight:800,fontSize:14,color:'#1e293b'}}>{ln.product}</div><div style={{fontSize:11,color:'#94a3b8',marginTop:2}}>{tr('labelSku')}: {ln.sku} · {tr('supplier')}: {ln.supplier} · {ln.country}</div></div>
 <div style={{display:'flex',gap:8,alignItems:'center'}}>

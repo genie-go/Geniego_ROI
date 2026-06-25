@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import { IS_DEMO } from '../utils/demoEnv';
 import { useI18n } from '../i18n';
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
+import { useProductSelection } from '../contexts/ProductSelectionContext.jsx';
 import { getJsonAuth, postJson } from '../services/apiClient.js';
 
 /* ── Enterprise Demo Isolation Guard ─── */
@@ -10,6 +11,7 @@ const _isDemo = IS_DEMO; // 180차: 자가가드(startsWith demo — roidemo.* �
 export default function DemandForecast() {
   const { t } = useI18n();
   const { inventory = [], orders = [] } = useGlobalData();
+  const { selectedProduct } = useProductSelection(); // [현 차수] 전역 상품선택 → 해당 SKU 수요예측 포커스
   const [activeTab, setActiveTab] = useState(0);
   const tabs = [t('demandForecast.tabDashboard', '대시보드'), t('demandForecast.tabForecast', 'SKU 예측'), t('demandForecast.tabSeasonality', '계절성'), t('demandForecast.tabModelConfig', '모델 설정')];
 
@@ -108,6 +110,39 @@ export default function DemandForecast() {
         ))}
       </div>
 
+      {/* ── [현 차수] 선택 상품 수요예측 포커스 — 전역 상품선택 시 해당 SKU 예측·현재고·소진예상·발주필요(실데이터·정직) ── */}
+      {selectedProduct?.sku && (() => {
+        const sf = forecast.find(it => String(it.sku) === selectedProduct.sku);
+        const inv = (inventory || []).find(x => String(x.sku || x.product_id || '') === selectedProduct.sku);
+        const onHand = inv ? Number(inv.stock ?? inv.qty ?? inv.quantity ?? inv.on_hand ?? 0) : null;
+        const cover = (sf && sf.avg_daily > 0 && onHand != null) ? Math.floor(onHand / sf.avg_daily) : null;
+        const needOrder = sf && onHand != null ? onHand < sf.reorder_point : false;
+        return (
+          <div style={{ ...card, padding: '14px 18px', marginBottom: 18, borderLeft: '4px solid #4f8ef7' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10, marginBottom: sf ? 10 : 0 }}>
+              <span style={{ fontSize: 14, fontWeight: 900 }}>📦 {t('demandForecast.selProduct', '선택 상품 수요예측')}: {selectedProduct.name}</span>
+              <span style={{ fontSize: 11, color: '#94a3b8', fontFamily: 'monospace' }}>{selectedProduct.sku}</span>
+            </div>
+            {sf ? (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20, alignItems: 'center' }}>
+                {[[t('demandForecast.colAvg', '일평균'), sf.avg_daily],
+                  [t('demandForecast.colSum', '14일 예측'), sf.forecast_sum],
+                  [t('demandForecast.colSafety', '안전재고'), sf.safety_stock],
+                  [t('demandForecast.colReorder', '재주문점'), sf.reorder_point],
+                  [t('demandForecast.onHand', '현재고'), onHand != null ? onHand : '—'],
+                  [t('demandForecast.daysCover', '소진예상'), cover != null ? cover + t('demandForecast.daysUnit', '일') : '—']
+                ].map(([l, v]) => (<div key={l}><div style={{ fontSize: 10.5, color: '#94a3b8', fontWeight: 700 }}>{l}</div><div style={{ fontSize: 17, fontWeight: 900, color: '#1e293b' }}>{v}</div></div>))}
+                {needOrder && <div style={{ fontSize: 12, fontWeight: 800, color: '#dc2626', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, padding: '5px 10px' }}>⚠️ {t('demandForecast.needReorder', '재주문점 미만 — 발주 필요')}</div>}
+              </div>
+            ) : (
+              <div style={{ fontSize: 12.5, color: '#92400e', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 8, padding: '8px 12px' }}>
+                💡 {t('demandForecast.noForecastForSku', '이 상품은 예측 가능한 주문 이력이 부족합니다. 판매가 누적되면 자동으로 수요예측·안전재고·재주문점이 산출됩니다.')}
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
       {/* ── Sub Tabs — [240차] page-subtabs: 스크롤 시 상단 고정 ── */}
       <div className="page-subtabs" style={{ display: "flex", gap: 4, marginBottom: 12, padding: 4, borderRadius: 12, background: "rgba(0,0,0,0.03)", border: "1px solid rgba(0,0,0,0.05)" }}>
         {tabs.map((tab, i) => (
@@ -159,7 +194,7 @@ export default function DemandForecast() {
                   </tr></thead>
                   <tbody>
                     {forecast.map((it) => (
-                      <tr key={it.sku}>
+                      <tr key={it.sku} style={selectedProduct?.sku === String(it.sku) ? { background: 'rgba(79,142,247,0.1)' } : undefined}>
                         <td style={{ ...td, fontFamily: 'monospace', fontSize: 11, color: '#4f8ef7' }}>{it.sku}</td>
                         <td style={td}>{it.name}</td>
                         <td style={td}><span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: 'rgba(99,102,241,0.1)', color: '#6366f1' }}>{METHOD_LABEL[it.method] || it.method}</span></td>

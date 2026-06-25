@@ -1306,7 +1306,9 @@ final class ChannelSync
                 'channel_order_id'=>(string)($o['orderNo'] ?? $o['packNo'] ?? ''), 'buyer_name'=>(string)($o['receiver'] ?? $o['buyer'] ?? ''),
                 'buyer_email'=>'', 'product_name'=>(string)($o['itemTitle'] ?? ''), 'sku'=>(string)($o['sellerItemCode'] ?? ''),
                 'qty'=>(int)($o['orderQty'] ?? 1), 'unit_price'=>(float)($o['price'] ?? 0), 'total_price'=>(float)($o['orderAmount'] ?? $o['price'] ?? 0),
-                'currency'=>'', 'status'=>'발주확인', 'ordered_at'=>(string)($o['orderDate'] ?? ''), 'source'=>'live',
+                // [현 차수 값정합] Qoo10 QSM(ebayjapan.qapi)=일본 마켓플레이스 → 금액은 JPY. currency='' 면 saveOrders 가
+                //   fxToKrw 를 건너뛰어 ¥ 가 ₩ 로 합산(약 9배 과소). Yahoo!JP 패턴처럼 통화필드 우선·없으면 JPY 폴백.
+                'currency'=>strtoupper((string)($o['currency'] ?? 'JPY')), 'status'=>'발주확인', 'ordered_at'=>(string)($o['orderDate'] ?? ''), 'source'=>'live',
             ];
         }
         return ['ok'=>true, 'products'=>[], 'orders'=>$orders, 'note'=>count($orders) . ' orders (Qoo10 QSM)'];
@@ -3418,6 +3420,19 @@ final class ChannelSync
                         ReturnsPortal::ingestChannelReturn($tenant, ['order_id'=>$oidW,'channel'=>$channel,'sku'=>$skuW,'name'=>(string)($body['product_name']??''),'qty'=>$qtyW,'reason'=>(string)($body['reason']??''),'refund_amt'=>$totalW]);
                     }
                 }
+            }
+        }
+
+        // [현 차수 S-1] 실시간 webhook 의 주문/취소/반품도 on-demand 동기화(syncTenantChannel 3004-3006)와
+        //   동등하게 즉시 정산 재집계 — 누락 시 정산·P&L 의 returnFee/net_payout/netProfit 이 다음 cron(최대 5분)
+        //   까지 '취소 전 gross' 로 stale(실시간 webhook 경로의 목적 자체가 무력화되던 동기화 갭). 멱등 upsert 라 안전.
+        if (in_array($eventType, ['order','order_update','cancel','return'], true)
+            && $tenant !== '' && $tenant !== 'demo' && !str_starts_with($tenant, 'demo')) {
+            $rollMonths = [gmdate('Y-m')]; // 현재월(공통) + 영향 주문월(과거 주문 취소 정합)
+            $omon = substr((string)($body['ordered_at'] ?? ''), 0, 7);
+            if (preg_match('/^\d{4}-\d{2}$/', $omon) && !in_array($omon, $rollMonths, true)) $rollMonths[] = $omon;
+            foreach ($rollMonths as $rm) {
+                try { \Genie\Handlers\OrderHub::rollupSettlementsCore($pdo, $tenant, $rm, null, gmdate('Y-m-d H:i:s')); } catch (\Throwable $e) {}
             }
         }
 

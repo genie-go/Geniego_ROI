@@ -2,6 +2,7 @@ import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { useGlobalData } from '../../context/GlobalDataContext.jsx';
 import { useI18n } from '../../i18n/index.js';
 import { fmt } from './ChartUtils.jsx';
+import ProductScopeNotice from './ProductScopeNotice.jsx';
 import { useCurrency } from '../../contexts/CurrencyContext.jsx';
 import { useSecurityGuard, getSecurityAlerts } from '../../security/SecurityGuard.js';
 import { buildPeriodScope, deriveOrderKpis } from './dashPeriod.js';
@@ -627,6 +628,7 @@ export default function DashInfluencer({ period }) {
 
   return (
     <div style={{ display:'grid', gap:G }}>
+      <ProductScopeNotice scope="creator" />
       {/* ── Real-time Status Badges ── */}
       <div style={{ display:'flex', gap:8, flexWrap:'wrap', padding:'4px 0' }}>
         <StatusBadge text={txt('liveInfluencer')} col="#a855f7" />

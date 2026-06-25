@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useI18n } from '../../i18n';
 import { useGlobalData } from '../../context/GlobalDataContext.jsx';
 import { useSecurityGuard, getSecurityAlerts } from '../../security/SecurityGuard.js';
+import ProductMarketingPanel from './ProductMarketingPanel.jsx';
 import { useCurrency } from '../../contexts/CurrencyContext.jsx';
 import { LineChart, BarChart, Spark, DonutChart, fmt } from './ChartUtils.jsx';
 import MarketingAIPanel from '../MarketingAIPanel.jsx';
@@ -181,7 +182,8 @@ function ChannelDetailPanel({ channel, t, currFmt }) {
         <MetRow l={t('dash.adRev', '광고매출')} v={currFmt(fb ? (c.revenue || 0) : tot.revenue)} col="#eab308" />
         <MetRow l={t('dash.adSpend', '광고비')} v={currFmt(fb ? (c.spend || 0) : tot.spend)} col="#eab308" />
         <MetRow l="ROAS" v={(fb ? (c.roas || 0) : tot.roas).toFixed(2) + 'x'} col="#eab308" />
-        <MetRow l={t('dash.netProfit', '순이익')} v={currFmt((fb ? (c.revenue || 0) : tot.revenue) - (fb ? (c.spend || 0) : tot.spend))} col="#eab308" />
+        {/* [현 차수 값정합] '광고매출−광고비'는 광고기여이익(COGS·수수료·쿠폰·반품 미차감)이므로 회사 전체 순이익(pnlStats.netProfit)과 충돌하던 라벨을 정직화 */}
+        <MetRow l={t('dash.adContribution', '광고기여이익')} v={currFmt((fb ? (c.revenue || 0) : tot.revenue) - (fb ? (c.spend || 0) : tot.spend))} col="#eab308" />
       </div>
     </div>
   );
@@ -480,6 +482,7 @@ export default function DashMarketing({ period }) {
 
   return (
     <div style={{ display: 'grid', gap: G }}>
+      <ProductMarketingPanel period={period} />
       {/* ── 보안 경고 배너 ─────────────────────────────────────────── */}
       {secAlerts.length > 0 && (
         <div style={{

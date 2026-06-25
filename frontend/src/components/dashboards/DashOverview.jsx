@@ -12,6 +12,7 @@ import { useSecurityGuard, getSecurityAlerts } from '../../security/SecurityGuar
 import { Spark, DonutChart, Gauge, fmt, LineChart } from './ChartUtils.jsx';
 import { IS_DEMO } from '../../utils/demoEnv';
 import { buildPeriodScope, deriveOrderKpis, usePeriodOrderStats } from './dashPeriod.js';
+import { useProductSelection } from '../../contexts/ProductSelectionContext.jsx';
 
 // ── Style Constants ──────────────────────────────────────────────────────
 const G = 12;
@@ -483,6 +484,34 @@ export default function DashOverview({ ticker, period }) {
     activeCampaignCount, unreadAlertCount, settlement,
   } = useGlobalData();
 
+  // ── [현 차수] 전역 상품 선택 동기화 — 대시보드를 전체↔특정상품으로 토글(선택 시 그 상품 KPI 패널 표시) ──
+  const { selectedProduct, setSelectedProduct } = useProductSelection();
+  const productList = useMemo(() => {
+    const m = new Map();
+    (orders || []).forEach(o => { const s = o.sku || o.product_id; if (s && !m.has(s)) m.set(String(s), String(o.product_name || o.name || o.product || s)); });
+    return [...m.entries()].map(([sku, name]) => ({ sku, name }));
+  }, [orders]);
+  const productKpi = useMemo(() => {
+    if (!selectedProduct?.sku) return null;
+    const rows = (orders || []).filter(o => String(o.sku || o.product_id || '') === selectedProduct.sku);
+    const valid = rows.filter(o => !/cancel|취소/i.test(String(o.event_type || '') + String(o.status || '')));
+    const revenue = valid.reduce((s, o) => s + Number(o.total_price ?? o.total ?? o.revenue ?? o.amount ?? 0), 0);
+    const qty = valid.reduce((s, o) => s + Number(o.qty ?? o.quantity ?? 1), 0);
+    const ordersN = valid.length;
+    const returns = rows.filter(o => /return|반품/i.test(String(o.event_type || '') + String(o.status || ''))).length;
+    const buyers = new Set(valid.map(o => o.buyer_email || o.buyer_name).filter(Boolean));
+    const repeatBuyers = (() => { const c = {}; valid.forEach(o => { const k = o.buyer_email || o.buyer_name; if (k) c[k] = (c[k] || 0) + 1; }); return Object.values(c).filter(v => v > 1).length; })();
+    const chMap = {}; valid.forEach(o => { const ch = o.channel || o.platform || '—'; chMap[ch] = (chMap[ch] || 0) + Number(o.total_price ?? o.total ?? 0); });
+    const topChannel = Object.entries(chMap).sort((a, b) => b[1] - a[1])[0]?.[0] || '—';
+    return {
+      revenue: Math.round(revenue), qty, orders: ordersN,
+      aov: ordersN > 0 ? Math.round(revenue / ordersN) : 0,
+      returnRate: ordersN > 0 ? Math.round(returns / ordersN * 1000) / 10 : 0,
+      buyers: buyers.size, repeatRate: buyers.size > 0 ? Math.round(repeatBuyers / buyers.size * 1000) / 10 : 0,
+      topChannel,
+    };
+  }, [selectedProduct, orders]);
+
   // ── [현 차수] 기간(period) 스코프 ─────────────────────────────
   const scope = useMemo(() => buildPeriodScope(orders, period), [orders, period]);
   const periodKpis = useMemo(() => deriveOrderKpis(scope.scoped), [scope.scoped]);
@@ -502,6 +531,11 @@ export default function DashOverview({ ticker, period }) {
 
   // ── 실시간 KPI (GlobalDataContext 단일 소스) ──────────────────
   const base = useMemo(() => {
+    // [현 차수] 특정 상품 선택 → 대시보드 전체를 그 상품으로 전환(주문파생=정확 산출). 광고비/ROAS는 캠페인 단위라
+    //   상품 귀속이 불가(임의배분 금지)하여 null→'—' 정직표기. 전환율도 방문 부재로 null.
+    if (productKpi) {
+      return { grossRev: productKpi.revenue, adSpend: null, roas: null, orders: productKpi.orders, convRate: null, avgOrder: productKpi.aov, _product: true };
+    }
     // [현 차수] 기간 선택 시: 매출/주문수/객단가=실주문 재집계, 광고비=기간비례 계수.
     // [정밀감사 A] 기간 매출/주문수: 서버 전체행 집계(periodSrv) 우선 → 1000건 캡 과소집계 제거.
     //   로딩 전/실패/데모는 periodKpis(클라 배열)로 graceful 폴백. 비기간은 정산-우선 권위(pnlStats) 유지.
@@ -522,7 +556,7 @@ export default function DashOverview({ ticker, period }) {
         : null,
       avgOrder: ord > 0 ? Math.round(gross / ord) : 0,
     };
-  }, [pnlStats, orderStats, budgetStats, periodActive, periodKpis, periodSrv, f]);
+  }, [pnlStats, orderStats, budgetStats, periodActive, periodKpis, periodSrv, f, productKpi]);
 
   const sparks = useMemo(() => ({
     gross: seedSpark(base.grossRev, 22),
@@ -552,12 +586,37 @@ export default function DashOverview({ ticker, period }) {
 
   return (
     <div style={{ display: 'grid', gap: G }}>
+      {/* ── [현 차수] 전체 ↔ 특정 상품 조회 토글 — 선택 시 그 상품의 종합 KPI(매출·주문·수량·AOV·반품·재구매·주력채널).
+           전역 selectedProduct 동기화(상품 성과 뷰·다른 메뉴와 같은 상품 컨텍스트). 전체 대시보드는 아래 유지. ── */}
+      <div style={{ ...cardBase, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12, borderLeft: selectedProduct ? '4px solid #4f8ef7' : '4px solid #e2e8f0' }}>
+        <span style={{ fontWeight: 800, fontSize: 13 }}>🛍️ {t('dashboard.productView', '상품 조회')}</span>
+        <select value={selectedProduct?.sku || ''} onChange={e => { const s = e.target.value; setSelectedProduct(s ? (productList.find(p => p.sku === s) || { sku: s, name: s }) : null); }}
+          style={{ padding: '7px 10px', borderRadius: 8, border: '1px solid #cbd5e1', fontSize: 13, minWidth: 200 }}>
+          <option value="">{t('dashboard.allProducts', '전체 상품')}</option>
+          {productList.map(p => <option key={p.sku} value={p.sku}>{p.name}</option>)}
+        </select>
+        {productKpi ? (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14, alignItems: 'center', marginLeft: 4 }}>
+            {[
+              [t('dashboard.grossRevenue', '매출'), fmtCurrency(productKpi.revenue, { compact: true })],
+              [t('dashboard.totalOrders', '주문'), productKpi.orders.toLocaleString()],
+              [t('dashboard.qtyLbl', '수량'), productKpi.qty.toLocaleString()],
+              ['AOV', fmtCurrency(productKpi.aov, { compact: true })],
+              [t('dashboard.returnRateLbl', '반품률'), productKpi.returnRate + '%'],
+              [t('dashboard.buyersLbl', '구매자'), productKpi.buyers.toLocaleString()],
+              [t('dashboard.repeatRateLbl', '재구매율'), productKpi.repeatRate + '%'],
+              [t('dashboard.topChannelLbl', '주력채널'), productKpi.topChannel],
+            ].map(([k, v]) => <span key={k} style={{ fontSize: 12 }}><span style={{ color: '#64748b' }}>{k}</span> <strong>{v}</strong></span>)}
+            <button onClick={() => setSelectedProduct(null)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#64748b', fontSize: 12 }}>✕ {t('dashboard.viewAll', '전체')}</button>
+          </div>
+        ) : <span style={{ fontSize: 12, color: '#94a3b8' }}>{t('dashboard.productViewHint', '특정 상품을 선택하면 그 상품의 매출·주문·재구매율 등을 조회할 수 있습니다 (전체는 아래 대시보드).')}</span>}
+      </div>
       {/* ── Row 1: 6-column KPIs — 173차 fix: auto-fit 으로 viewport 좁아질 시 자동 wrap ─ */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(165px, 1fr))', gap: G }}>
         <KpiCard icon="💰" label={t('dashboard.grossRevenue', '총 매출')} value={fmtCurrency(base.grossRev, { compact: true })} sub={t('dashboard.grossRevSub', '전체 채널 합산')} change={0} color="#4f8ef7" spark={sparks.gross} />
         {/* [227차 감사 P0-2] 기간 선택 시 광고비는 일별 미세분 부재로 비례 추정(매출은 정확 기간필터) → 정직 표기. */}
-        <KpiCard icon="📢" label={t('dashboard.adSpend', '광고비')} value={fmtCurrency(base.adSpend, { compact: true })} sub={periodActive ? t('dashboard.adSpendSubEst', '기간 비례 추정') : t('dashboard.adSpendSub', '전체 채널 합산')} change={0} color="#f97316" spark={sparks.spend} />
-        <KpiCard icon="📈" label={t('dashboard.netROAS', 'Net ROAS')} value={base.roas.toFixed(2) + 'x'} sub={t('dashboard.netROASSub', '순수익 기준')} change={0} color="#22c55e" spark={sparks.roas} />
+        <KpiCard icon="📢" label={t('dashboard.adSpend', '광고비')} value={base.adSpend == null ? '—' : fmtCurrency(base.adSpend, { compact: true })} sub={base._product ? t('dashboard.adSpendProduct', '상품 광고귀속 필요') : (periodActive ? t('dashboard.adSpendSubEst', '기간 비례 추정') : t('dashboard.adSpendSub', '전체 채널 합산'))} change={0} color="#f97316" spark={sparks.spend} />
+        <KpiCard icon="📈" label={t('dashboard.netROAS', 'Net ROAS')} value={base.roas == null ? '—' : base.roas.toFixed(2) + 'x'} sub={base._product ? t('dashboard.roasProduct', '상품 광고귀속 필요') : t('dashboard.netROASSub', '순수익 기준')} change={0} color="#22c55e" spark={sparks.roas} />
         <KpiCard icon="📦" label={t('dashboard.totalOrders', '총 주문')} value={base.orders.toLocaleString()} sub={t('dashboard.totalOrderSub', '오늘 기준')} change={0} color="#a855f7" spark={sparks.orders} />
         <KpiCard icon="🎯" label={t('dashboard.convRateLbl', '전환율')} value={base.convRate == null ? '—' : base.convRate.toFixed(2) + '%'} sub={base.convRate == null ? t('dashboard.convRateNeedData', '방문 데이터 연동 필요') : t('dashboard.convRateSub', '평균 전환율')} change={0} color="#ec4899" spark={sparks.conv} />
         <KpiCard icon="🧾" label={t('dashboard.avgOrder', 'AOV')} value={fmtCurrency(base.avgOrder, { compact: true })} sub="AOV" change={0} color="#14d9b0" spark={sparks.aov} />

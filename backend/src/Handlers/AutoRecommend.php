@@ -312,6 +312,14 @@ final class AutoRecommend
                 'note' => '조건(최소예산/ROAS 가드레일)을 충족하는 채널이 없습니다. 예산을 상향하거나 가드레일을 완화하세요.', 'source' => 'benchmark']);
         }
 
+        // [현 차수] ★한계ROAS(체감수익) 배분 모드 — mode=marginal. 채널 지출↔매출 일별 포화곡선 R=a·s^b(b<1)
+        //   적합 → 한계ROAS(dR/ds) 균등화 water-filling + 목표ROAS 미만 정지(잔여=절감). "최소 비용·최대 효과":
+        //   다음 1원의 한계수익이 목표 밑인 곳엔 추가 투입 안 함. 기본=기존 점수비례(안전·무회귀). 모든 값 실측 파생.
+        $allocMode = strtolower((string)($b['mode'] ?? $b['alloc'] ?? ''));
+        if ($allocMode === 'marginal') {
+            return self::marginalRecommend($res, $tenant, $budget, $category, $period, $days, $objective, $maxShare, $minRoasGate, $cand, $measured);
+        }
+
         // 2) 다목표 점수 = 정규화된 ROAS·CAC(역)·성장 가중 결합 + UCB 탐색 보너스.
         $roasN = self::normalize(array_map(fn($x) => $x['expRoas'], $cand));
         $cacInvN = self::normalize(array_map(fn($x) => $x['expCac'] > 0 ? 1.0 / $x['expCac'] : 0.0, $cand)); // 낮을수록 좋음→역수
@@ -409,6 +417,151 @@ final class AutoRecommend
             'rationale' => $hasMeasured
                 ? "목표('{$objective}') 기준 다목표 최적화 — 실측 전환 데이터(경험적 베이즈)를 반영해 효율·획득비용·성장·다양성을 균형있게 재배분했습니다. 데이터가 적은 고잠재 채널엔 탐색 예산을 일부 배정했습니다."
                 : "목표('{$objective}') 기준 다목표 최적화 — 업계 벤치마크×카테고리 적합도로 효율·획득비용·성장을 평가해 배분했습니다. 집행 실측이 쌓이면 경험적 베이즈로 자동 재학습됩니다.",
+        ]);
+    }
+
+    /**
+     * [현 차수] 채널 지출↔매출 반응(포화)곡선 적합 — 일별 (spend, revenue) 시계열로 R=a·s^b(체감수익 b<1) 추정.
+     *   log-log 선형회귀(ln R = ln a + b·ln s). b 는 (0.05,0.98)로 클램프(비포화/이상치 방지), a 는 역사적 중심점
+     *   통과하도록 재고정(robust). 일별 유효점 3개 미만 채널은 제외(적합 불가=정직 폴백). 모든 값 실측.
+     *   반환: [channel => ['a','b','n','r2','avgSpend']].
+     */
+    private static function fitChannelResponse(string $tenant, int $days): array
+    {
+        $out = [];
+        if ($tenant === '') return $out;
+        try {
+            $pdo = Db::pdo();
+            $days = max(14, min(365, $days));
+            $sql = "SELECT channel, date, SUM(spend) AS sp, SUM(revenue) AS rv FROM performance_metrics "
+                 . "WHERE tenant_id = :t AND channel IS NOT NULL "
+                 . "AND date >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL " . $days . " DAY), '%Y-%m-%d') "
+                 . "GROUP BY channel, date";
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([':t' => $tenant]);
+            $since = gmdate('Y-m-d', time() - $days * 86400);
+            $series = [];
+            foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $r) {
+                $s = (float)$r['sp']; $v = (float)$r['rv'];
+                if ($s > 0 && $v > 0) $series[(string)$r['channel']][] = [$s, $v];
+            }
+            foreach ($series as $ch => $pts) {
+                $n = count($pts);
+                if ($n < 3) continue;
+                $sx = 0.0; $sy = 0.0; $sxx = 0.0; $sxy = 0.0; $sumS = 0.0; $sumV = 0.0;
+                foreach ($pts as [$s, $v]) {
+                    $x = log($s); $y = log($v);
+                    $sx += $x; $sy += $y; $sxx += $x * $x; $sxy += $x * $y; $sumS += $s; $sumV += $v;
+                }
+                $den = $n * $sxx - $sx * $sx;
+                if (abs($den) < 1e-9) continue;
+                $bRaw = ($n * $sxy - $sx * $sy) / $den;
+                $lnaRaw = ($sy - $bRaw * $sx) / $n;
+                // R²(log 공간)
+                $ybar = $sy / $n; $ssTot = 0.0; $ssRes = 0.0;
+                foreach ($pts as [$s, $v]) {
+                    $y = log($v); $yhat = $lnaRaw + $bRaw * log($s);
+                    $ssTot += ($y - $ybar) ** 2; $ssRes += ($y - $yhat) ** 2;
+                }
+                $r2 = $ssTot > 1e-9 ? max(0.0, 1.0 - $ssRes / $ssTot) : 0.0;
+                $b = max(0.05, min(0.98, $bRaw));          // 체감수익 강제(b<1)
+                $avgSpend = $sumS / $n; $avgRev = $sumV / $n;
+                $a = $avgSpend > 0 ? $avgRev / pow($avgSpend, $b) : 0.0;   // 곡선이 역사적 중심점 통과(robust)
+                if ($a <= 0) continue;
+                // [현 차수] ③ 증분성 보정 — 곡선 매출을 truthRatio(매체보고 과대분 제거·실귀속 비율)로 스케일 →
+                //   한계ROAS 가 증분(귀속) 기준이 됨(measured()와 동일 진실). "가만둬도 전환될" 매체보고 과대분에
+                //   과투자 방지. AutoCampaign::truthRatioForChannel 재사용(알고리즘 중복 0). a 만 스케일(b=포화형 불변).
+                $tr = AutoCampaign::truthRatioForChannel($pdo, $tenant, (string)$ch, $sumV, $since);
+                $truthAdj = ($tr !== null);
+                if ($truthAdj && $tr > 0) $a *= $tr;
+                $out[$ch] = ['a' => $a, 'b' => $b, 'n' => $n, 'r2' => round($r2, 2), 'avgSpend' => $avgSpend, 'truth_adjusted' => $truthAdj];
+            }
+        } catch (Throwable $e) { /* 적합 실패 = 빈 결과(정직 폴백) */ }
+        return $out;
+    }
+
+    /**
+     * [현 차수] 한계ROAS(체감수익) 배분 — 포화곡선 기반 water-filling. 한계ROAS(dR/ds=a·b·s^(b-1))가 가장 높은
+     *   채널에 증분 배정을 반복하되, 목표ROAS 미만이면 정지(잔여 예산=절감). 곡선 미적합 채널은 평탄(상수 한계=expRoas)
+     *   폴백. min_budget floor·max_share cap 준수. ★모든 값 실측 파생(날조 0)·정직 라벨(절감액·적합점수).
+     */
+    private static function marginalRecommend(Response $res, string $tenant, int $budget, string $category, string $period, int $days, string $objective, float $maxShare, float $minRoasGate, array $cand, array $measured): Response
+    {
+        $fits = self::fitChannelResponse($tenant, max(30, $days));
+        $targetRoas = $minRoasGate > 0 ? $minRoasGate : 1.0;   // 목표(가드레일 없으면 손익분기 1.0x)
+        $marginalOf = function (string $id, float $s) use ($cand, $fits): float {
+            if (isset($fits[$id])) { $f = $fits[$id]; return $f['a'] * $f['b'] * pow(max($s, 1.0), $f['b'] - 1.0); }
+            return (float)$cand[$id]['expRoas'];               // 곡선 없음 → 평탄(상수 한계=평균ROAS)
+        };
+        $alloc = array_fill_keys(array_keys($cand), 0);
+        $step = max(1000, (int)(round($budget / 300 / 1000) * 1000));
+        $cap = $budget * $maxShare;
+        $spent = 0; $guard = 0;
+        while ($spent + $step <= $budget && $guard++ < 100000) {
+            $best = null; $bestM = -1.0;
+            foreach ($cand as $id => $x) {
+                if (($alloc[$id] + $step) > $cap) continue;
+                $m = $marginalOf($id, $alloc[$id] + $step / 2.0);
+                if ($m >= $targetRoas && $m > $bestM) { $bestM = $m; $best = $id; }
+            }
+            if ($best === null) break;                         // 모든 채널 한계ROAS < 목표 → 정지(잔여=절감)
+            $alloc[$best] += $step; $spent += $step;
+        }
+        // min_budget floor 미달 채널은 비효율 진입 방지 위해 제외(정직)
+        foreach ($alloc as $id => $a) {
+            if ($a > 0 && $a < (int)$cand[$id]['cfg']['minBudget']) { $spent -= $a; $alloc[$id] = 0; }
+        }
+        $recSpent = $spent; $savings = max(0, $budget - $spent);
+
+        $weeks = max(1, (int)round($days / 7));
+        $out = [];
+        foreach ($alloc as $id => $a) {
+            if ($a <= 0) continue;
+            $x = $cand[$id]; $c = $x['cfg']; $m = $measured[$id] ?? null; $f = $fits[$id] ?? null;
+            $cpm = $m && $m['impressions'] > 0 && $m['spend'] > 0 ? ($m['spend'] / $m['impressions'] * 1000) : $c['cpm'];
+            $ctr = $m && $m['impressions'] > 0 ? ($m['clicks'] / max(1, $m['impressions']) * 100) : $c['ctr'];
+            $cvr = $m && $m['clicks'] > 0 ? ($m['conversions'] / max(1, $m['clicks']) * 100) : $c['cvr'];
+            $impr = $cpm > 0 ? (int)round($a / $cpm * 1000) : 0;
+            $clicks = (int)round($impr * $ctr / 100);
+            $conv = (int)round($clicks * $cvr / 100);
+            $mRoas = $marginalOf($id, (float)$a);
+            $estRevenue = $f ? (int)round($f['a'] * pow($a, $f['b'])) : (int)round($a * $x['expRoas']);
+            $avgRoas = $a > 0 ? round($estRevenue / $a, 2) : 0;
+            $rationale = $f
+                ? ("포화곡선 적합(일별 {$f['n']}점·R² {$f['r2']}" . (!empty($f['truth_adjusted']) ? "·증분보정" : "") . ") — 추천 지출의 한계ROAS {$mRoas}x 가 목표 {$targetRoas}x 이상인 구간까지만 투입(체감수익" . (!empty($f['truth_adjusted']) ? "·실귀속 매출 기준" : "") . " 반영).")
+                : "곡선 적합 데이터 부족 — 평균 ROAS 평탄가정 배분(집행 누적 시 자동 곡선화).";
+            $out[] = [
+                'channel' => $id, 'label' => $c['label'], 'connectorKey' => $c['connectorKey'],
+                'allocation' => $a, 'allocation_pct' => $budget > 0 ? round($a / $budget * 100, 1) : 0,
+                'daily_pace' => $days > 0 ? (int)round($a / $days / 100) * 100 : $a,
+                'weekly_pace' => (int)round($a / $weeks / 1000) * 1000,
+                'marginal_roas' => round($mRoas, 2),
+                'avg_roas' => $avgRoas,
+                'expected_roas' => $avgRoas,
+                'curve_fit' => $f ? ['b' => round($f['b'], 2), 'r2' => $f['r2'], 'points' => $f['n'], 'truth_adjusted' => ($f['truth_adjusted'] ?? false)] : null,
+                'expected_cac' => (int)round($x['expCac']),
+                'confidence' => $x['conf'],
+                'est_impressions' => $impr, 'est_clicks' => $clicks, 'est_conversions' => $conv, 'est_revenue' => $estRevenue,
+                'source' => $f ? 'curve' : $x['src'],
+                'rationale' => $rationale,
+            ];
+        }
+        usort($out, fn($p, $q) => $q['allocation'] <=> $p['allocation']);
+        $totalRev = array_sum(array_column($out, 'est_revenue'));
+        $totalConv = array_sum(array_column($out, 'est_conversions'));
+        return self::json($res, [
+            'ok' => true,
+            'budget' => $budget, 'recommended_spend' => $recSpent, 'savings' => $savings,
+            'category' => $category, 'period' => $period, 'period_days' => $days, 'objective' => $objective,
+            'guardrails' => ['max_share' => $maxShare, 'min_roas' => $minRoasGate, 'target_roas' => $targetRoas],
+            'channels' => $out,
+            'total_est_revenue' => $totalRev, 'total_est_conversions' => $totalConv,
+            'blended_roas' => $recSpent > 0 ? round($totalRev / $recSpent, 2) : 0,
+            'blended_cac' => $totalConv > 0 ? (int)round($recSpent / $totalConv) : 0,
+            'engine' => 'marginal-roas-v1',
+            'rationale' => ($savings > 0
+                ? "한계수익(체감) 최적화 — 다음 1원의 한계ROAS가 목표 {$targetRoas}x 밑으로 떨어지는 채널엔 추가 투입을 멈췄습니다. 예산 " . number_format($budget) . "원 중 " . number_format($recSpent) . "원만 집행 권장(" . number_format($savings) . "원 절감 = 동일 효과·최소 비용). 곡선 미적합 채널은 평탄가정으로 정직 폴백."
+                : "한계수익(체감) 최적화 — 채널 간 한계ROAS를 균등화해 효율 프론티어에서 배분했습니다. 모든 구간의 한계ROAS가 목표 이상이라 전액 집행이 효율적입니다."),
         ]);
     }
 

@@ -7,6 +7,9 @@ import { RECON_GUIDE } from './reconGuideI18n.js';
 import useSecurityMonitor from '../hooks/useSecurityMonitor.js';
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
 import CrossLinkBar from '../components/CrossLinkBar.jsx';
+// [현 차수] 인증갭 수정 — /api/v419/kr/* 는 세션게이트(미들웨어 auth_tenant) 편입이라 Bearer 필수.
+//   KrChannel.jsx(자매 페이지)와 동일 컨벤션: GET=getJsonAuth, POST=postJson, PATCH=patchJson (전부 Bearer 부착·파싱객체 반환).
+import { getJsonAuth, postJson, patchJson } from '../services/apiClient';
 
 // [현 차수] 정산 관련 화면 교차링크(비파괴 통합)
 const SETTLE_LINKS = [
@@ -65,12 +68,7 @@ function UploadTab({ t, channels }) {
       try { parsed = JSON.parse(rows); }
       catch { setError(t('recon.jsonError')); setLoading(false); return; }
       if (!Array.isArray(parsed)) { setError(t('recon.notArray')); setLoading(false); return; }
-      const res = await fetch(API(`/v419/kr/settle/ingest-raw/${channel}`), {
-        method: 'POST', credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rows: parsed }),
-      });
-      const data = await res.json();
+      const data = await postJson(API(`/v419/kr/settle/ingest-raw/${channel}`), { rows: parsed });
       if (data.ok) setResult(data);
       else setError(data.error || t('recon.uploadFailed'));
     } catch (e) { setError(e.message); }
@@ -113,6 +111,7 @@ function UploadTab({ t, channels }) {
 
 /* ─── Tab2: Reconciliation Run ──────────────────────── */
 function ReconTab({ t, channels, onReconDone }) {
+  const { fmt: fmtC } = useCurrency(); // [현 차수] 부모 스코프 fmtC 참조 시 ReferenceError 크래시 → 탭별 자체 바인딩
   const today = new Date().toISOString().slice(0, 10);
   const firstDay = today.slice(0, 8) + '01';
   const [channel, setChannel] = useState(channels[0]?.key || '');
@@ -125,12 +124,7 @@ function ReconTab({ t, channels, onReconDone }) {
   const handleRun = async () => {
     setLoading(true); setError(''); setResult(null);
     try {
-      const res = await fetch(API('/v419/kr/recon/run'), {
-        method: 'POST', credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ channel_key: channel, period_start: startDate, period_end: endDate }),
-      });
-      const data = await res.json();
+      const data = await postJson(API('/v419/kr/recon/run'), { channel_key: channel, period_start: startDate, period_end: endDate });
       if (data.ok) { setResult(data); onReconDone && onReconDone(data); }
       else setError(data.error || t('recon.reconFailed'));
     } catch (e) { setError(e.message); }
@@ -192,6 +186,7 @@ function ReconTab({ t, channels, onReconDone }) {
 
 /* ─── Tab3: Reports ────────────────────────────────── */
 function ReportsTab({ t, channels, refresh }) {
+  const { fmt: fmtC } = useCurrency(); // [현 차수] 탭별 자체 바인딩(부모 스코프 참조 크래시 방지)
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(null);
@@ -200,8 +195,7 @@ function ReportsTab({ t, channels, refresh }) {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(API('/v419/kr/recon/reports'), { credentials: 'include' });
-      const data = await res.json();
+      const data = await getJsonAuth(API('/v419/kr/recon/reports'));
       setReports(data.reports ?? []);
     } catch { }
     finally { setLoading(false); }
@@ -212,8 +206,7 @@ function ReportsTab({ t, channels, refresh }) {
   const loadDetail = async (id) => {
     setSelected(id);
     try {
-      const res = await fetch(API(`/v419/kr/recon/reports/${id}`), { credentials: 'include' });
-      const data = await res.json();
+      const data = await getJsonAuth(API(`/v419/kr/recon/reports/${id}`));
       setDetail(data.report ?? null);
     } catch { }
   };
@@ -290,6 +283,7 @@ function ReportsTab({ t, channels, refresh }) {
 
 /* ─── Tab4: Tickets ─────────────────────────────────── */
 function TicketsTab({ t }) {
+  const { fmt: fmtC } = useCurrency(); // [현 차수] 탭별 자체 바인딩(부모 스코프 참조 크래시 방지)
   const [tickets, setTickets] = useState([]);
   const [statusFilter, setStatusFilter] = useState('open');
   const [loading, setLoading] = useState(true);
@@ -299,14 +293,12 @@ function TicketsTab({ t }) {
     const loadAll = async () => {
       setLoading(true);
       try {
-        const res = await fetch(API('/v419/kr/recon/reports'), { credentials: 'include' });
-        const data = await res.json();
+        const data = await getJsonAuth(API('/v419/kr/recon/reports'));
         const reps = data.reports ?? [];
         const all = [];
         for (const r of reps.slice(0, 10)) {
           try {
-            const d = await fetch(API(`/v419/kr/recon/reports/${r.id}`), { credentials: 'include' });
-            const dd = await d.json();
+            const dd = await getJsonAuth(API(`/v419/kr/recon/reports/${r.id}`));
             (dd.report?.tickets ?? []).forEach(tk => all.push({ ...tk, report_id: r.id }));
           } catch { }
         }
@@ -320,11 +312,7 @@ function TicketsTab({ t }) {
   const updateTicket = async (id, status) => {
     setUpdating(id);
     try {
-      await fetch(API(`/v419/kr/recon/tickets/${id}`), {
-        method: 'PATCH', credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status }),
-      });
+      await patchJson(API(`/v419/kr/recon/tickets/${id}`), { status });
       setTickets(prev => prev.map(tk => tk.id === id ? { ...tk, status } : tk));
     } catch { }
     finally { setUpdating(null); }
@@ -507,16 +495,16 @@ export default function Reconciliation() {
         </div>
         <div style={{ display: 'flex', gap: 10, marginTop: 12, flexWrap: 'wrap', alignItems: 'center' }}>
           <div style={{ padding: '8px 16px', borderRadius: 10, background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)', fontSize: 12 }}>
-            ✅ <strong style={{ color: '#4ade80' }}>{t('recon.settled')}</strong> {fmtC((settlementStats.settledAmount / 1e6))}
+            ✅ <strong style={{ color: '#4ade80' }}>{t('recon.settled')}</strong> {fmtC(settlementStats.settledAmount)}
           </div>
           <div style={{ padding: '8px 16px', borderRadius: 10, background: 'rgba(234,179,8,0.08)', border: '1px solid rgba(234,179,8,0.2)', fontSize: 12 }}>
-            ⏳ <strong style={{ color: '#fbbf24' }}>{t('recon.pending')}</strong> {fmtC((settlementStats.pendingAmount / 1e6))}
+            ⏳ <strong style={{ color: '#fbbf24' }}>{t('recon.pending')}</strong> {fmtC(settlementStats.pendingAmount)}
           </div>
           <div style={{ padding: '8px 16px', borderRadius: 10, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', fontSize: 12 }}>
-            💸 <strong style={{ color: '#f87171' }}>{t('recon.adDeduction')}</strong> {fmtC((settlementStats.totalAdFee / 1e6))}
+            💸 <strong style={{ color: '#f87171' }}>{t('recon.adDeduction')}</strong> {fmtC(settlementStats.totalAdFee)}
           </div>
           <div style={{ padding: '8px 16px', borderRadius: 10, background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.2)', fontSize: 12 }}>
-            🏪 <strong style={{ color: '#c084fc' }}>{t('recon.platformCommission')}</strong> {fmtC((settlementStats.totalPlatformFee / 1e6))}
+            🏪 <strong style={{ color: '#c084fc' }}>{t('recon.platformCommission')}</strong> {fmtC(settlementStats.totalPlatformFee)}
           </div>
           <button onClick={() => navigate('/pnl-dashboard')} style={{ padding: '8px 16px', borderRadius: 10, border: '1px solid rgba(79,142,247,0.3)', background: 'rgba(79,142,247,0.08)', color: '#60a5fa', fontSize: 12, cursor: 'pointer', fontWeight: 700 }}>
             {t('recon.viewPnl')}

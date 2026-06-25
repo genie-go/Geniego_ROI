@@ -8,6 +8,7 @@ import { useSecurityGuard } from '../security/SecurityGuard.js';
 import { CHANNEL_RATES } from '../constants/channelRates.js';
 import * as apiClient from '../services/apiClient';
 import GuideWizard from '../components/GuideWizard.jsx'; // [237차] 인앱 순차 완료 위저드(필수등록 게이팅)
+import { useProductSelection } from '../contexts/ProductSelectionContext.jsx';
 
 /* ??? CSV Download Util ???????????????????????????? */
 function downloadCSV(filename, headers, rows) {
@@ -303,6 +304,7 @@ function OrderTab() {
     const { t } = useI18n();
     const { fmt } = useCurrency();
     const { orders, claimHistory, settlement, orderMemos, slaViolations, addAlert, updateOrderStatus, isDemo } = useGlobalData();
+    const { selectedProduct, setSelectedProduct } = useProductSelection(); // [현 차수] 전역 상품선택 동기화 — 선택 시 그 상품 주문만
     // [현 차수] P1: 주문 상태 수동 변경 — 운영자가 내부 처리 상태를 전이. 낙관적 즉시반영 + 운영은 백엔드 영속.
     const STATUS_VALUES = ['paid', 'preparing', 'shipping', 'delivered', 'confirmed', 'CancelDone', '반품Done'];
     const handleStatusChange = async (o, ns) => {
@@ -362,11 +364,13 @@ function OrderTab() {
 
     const filtered = useMemo(() => {
         let rows = memoizedOrders;
+        // [현 차수] 전역 상품선택 시 그 상품(sku 정확 일치) 주문만 — 전체↔특정상품 정확 동기화(타상품·전체 노출 금지).
+        if (selectedProduct?.sku) rows = rows.filter(r => String(r.sku || r.product_id || '') === selectedProduct.sku);
         if (search) rows = rows.filter(r => (r.id || '').includes(search) || (r.sku || '').includes(search) || (r.buyer || '').includes(search));
         if (selCh !== "all") rows = rows.filter(r => r.channel === selCh);
         if (selSt !== "all") rows = rows.filter(r => r.status === selSt);
         return rows;
-    }, [memoizedOrders, search, selCh, selSt]);
+    }, [memoizedOrders, search, selCh, selSt, selectedProduct]);
 
     const paged = filtered.slice(page * PAGE, (page + 1) * PAGE);
     const totalPages = Math.ceil(filtered.length / PAGE);
