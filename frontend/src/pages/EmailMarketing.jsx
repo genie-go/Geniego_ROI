@@ -17,6 +17,8 @@ import { useSecurityGuard, sanitizeInput, detectXSS } from "../security/Security
 import AIRecommendBanner from '../components/AIRecommendBanner.jsx';
 import CreativeStudioTab from "./CreativeStudioTab.jsx";
 import { useNavigate } from "react-router-dom";
+import ProductSelectBar from '../components/dashboards/ProductSelectBar.jsx';
+import ProductMarketingPanel from '../components/dashboards/ProductMarketingPanel.jsx';
 
 const C = {
     bg: "var(--bg)", surface: "var(--surface)", card: "var(--bg-card, rgba(255,255,255,0.95))",
@@ -599,6 +601,9 @@ function EmailMarketingContent() {
                     <button onClick={broadcastRefresh} style={{ padding:'8px 14px', borderRadius:8, border:'1px solid rgba(0,0,0,0.1)', background:'rgba(255,255,255,0.9)', color:'#374151', fontWeight:700, fontSize:11, cursor:'pointer' }}>🔄 {t('email.syncNow', 'Sync Now')}</button>
                 </div>
             </div>
+            {/* [현 차수] 특정상품 조회 — 전역 동기화. 선택 시 그 상품 매출·세그먼트·채널/국가별 인라인. */}
+            <ProductSelectBar />
+            <ProductMarketingPanel period="monthly" />
             <div className="page-subtabs" style={{ display:"flex", gap:8, marginBottom:12, flexWrap:"wrap" }}>
                 {TABS.filter(Tb=>_eTabVisible(Tb.id)).map(Tb=>(
                     <button key={Tb.id} onClick={()=>setTab(Tb.id)} style={{ padding:"10px 20px", borderRadius:12, border:"none", cursor:"pointer", background:tab===Tb.id?C.accent:'rgba(255,255,255,0.9)', color:tab===Tb.id?"#fff":"#374151", fontWeight:700, fontSize:13, display:"flex", alignItems:"center", gap:6, boxShadow:tab===Tb.id?'0 4px 16px '+C.accent+'33':'0 1px 3px rgba(0,0,0,0.06)' }}><span>{Tb.icon}</span> {Tb.label}</button>

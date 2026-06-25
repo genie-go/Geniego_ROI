@@ -3,6 +3,8 @@ import { tGet, tSet, tRemove, tChannelName } from '../utils/tenantStorage.js'; /
 import { useGlobalData } from '../context/GlobalDataContext';
 import { useConnectorSync } from '../context/ConnectorSyncContext';
 import { useI18n } from '../i18n/index.js';
+import ProductSelectBar from '../components/dashboards/ProductSelectBar.jsx';
+import ProductMarketingPanel from '../components/dashboards/ProductMarketingPanel.jsx';
 import { CHANNEL_RATES, calcRecommendedPrice as calcRecPrice } from '../constants/channelRates.js';
 import { postJson } from '../services/apiClient.js'; // 192차: 상품 writeback/bulk-price 실배선
 
@@ -2317,6 +2319,9 @@ export default function CatalogSync() {
                 </div>
             </div>
             <div style={{ flex: 1, overflowY: "auto", padding: "16px 24px 24px" }}>
+                {/* [현 차수] 특정상품 조회 — 전역 동기화. 선택 시 그 상품 매출·순이익·채널/국가별 인라인. */}
+                <ProductSelectBar />
+                <ProductMarketingPanel period="monthly" />
                 {tab === "catalog" && <CatalogTab />}
                 {tab === "sync" && <SyncRunTab onJobCreated={addJob} />}
                 {tab === "catmap" && <CategoryMappingTab />}

@@ -10,6 +10,8 @@ import { useGlobalData } from "../context/GlobalDataContext.jsx";
 import { crmApi } from "../services/crmApi.js"; // 191차 4단계: 운영 백엔드 실배선(/api/crm/*)
 import { useConnectorSync } from "../context/ConnectorSyncContext.jsx";
 import AIRecommendBanner from '../components/AIRecommendBanner.jsx';
+import ProductSelectBar from '../components/dashboards/ProductSelectBar.jsx';
+import ProductMarketingPanel from '../components/dashboards/ProductMarketingPanel.jsx';
 import { useSecurityGuard } from '../security/SecurityGuard.js';
 
 /* ── Enterprise Demo Isolation Guard ─────────────────────── */
@@ -839,6 +841,10 @@ function CRMContent() {
         <StatCard icon="💰" label={t('crm.statLtv')} value={fmt(displayStats.total_ltv)} color="#38bdf8" />
         <StatCard icon="🏷" label={t('crm.statSeg')} value={segments.length} color={C.yellow} />
       </div>
+
+      {/* [현 차수] 특정상품 조회 — 전역 동기화. 선택 시 그 상품 매출·구매자·채널/국가별 인라인. */}
+      <ProductSelectBar />
+      <ProductMarketingPanel period="monthly" />
 
       {/* Tabs — [240차] page-subtabs: 스크롤 시 상단 고정(sticky), 아래 콘텐츠 스크롤 */}
       <div className="page-subtabs" style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>

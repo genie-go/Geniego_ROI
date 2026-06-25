@@ -14,6 +14,8 @@ import { useNavigate } from 'react-router-dom';
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import { useI18n } from '../i18n';
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
+import ProductSelectBar from '../components/dashboards/ProductSelectBar.jsx';
+import ProductMarketingPanel from '../components/dashboards/ProductMarketingPanel.jsx';
 import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
 import { IS_DEMO } from '../utils/demoEnv.js';
 import * as liveApi from '../services/liveApi.js';
@@ -269,6 +271,10 @@ export default function LiveCommerce() {
         </select>
         <Btn small ghost onClick={reload}>↻ {t('liveCommerce.refresh', '새로고침')}</Btn>
       </div>
+
+      {/* [현 차수] 특정상품 조회 — 전역 동기화. 선택 시 그 상품 매출·순이익·채널/국가별 인라인. */}
+      <ProductSelectBar />
+      <ProductMarketingPanel period="monthly" />
 
       {/* 탭 바 */}
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', borderBottom: `2px solid ${C.border}`, marginBottom: 18 }}>

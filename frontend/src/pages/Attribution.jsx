@@ -1,5 +1,7 @@
 import React, { useState, useMemo, useCallback, useEffect, useRef, memo } from "react";
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
+import ProductSelectBar from '../components/dashboards/ProductSelectBar.jsx';
+import ProductMarketingPanel from '../components/dashboards/ProductMarketingPanel.jsx';
 import AIRecommendBanner from '../components/AIRecommendBanner.jsx';
 import { useI18n, useT } from '../i18n/index.js';
 import { getJsonAuth } from '../services/apiClient.js';
@@ -1503,6 +1505,9 @@ export default function Attribution() {
 
         {/* Tab content */}
         <div style={{ padding: '16px 14px 28px' }}>
+          {/* [현 차수] 특정상품 조회 — 전역 동기화. 선택 시 그 상품 매출·순이익·채널/국가별 인라인(어트리뷰션 모델은 전체 기준). */}
+          <ProductSelectBar />
+          <ProductMarketingPanel period="monthly" />
           {tab === 'mta'      && <AttributionTab />}
           {tab === 'shapley'  && <ShapleyTab />}
           {tab === 'mmm'      && <MMMTab />}

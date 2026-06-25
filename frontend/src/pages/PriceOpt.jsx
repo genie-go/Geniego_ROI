@@ -1,6 +1,8 @@
 import React, { useMemo, useState, useEffect, useCallback } from "react";
 import { tChannelName } from '../utils/tenantStorage.js'; // 180차: 회원 격리 크로스탭
 import { useAuth } from "../auth/AuthContext.jsx";
+import ProductSelectBar from '../components/dashboards/ProductSelectBar.jsx';
+import ProductMarketingPanel from '../components/dashboards/ProductMarketingPanel.jsx';
 import { useI18n as _useI18n } from "../i18n";
 import PO_DICT from './poI18n.js';
 /* Wrap useI18n: priceOpt.* keys resolved from embedded dict first */
@@ -1757,6 +1759,9 @@ export default function PriceOpt() {
 
             {/* ─── CONTENT CONTAINER ─── */}
             <div style={{ marginTop: 4, padding: 14, background: "#ffffff", border: "1px solid #e5e7eb", borderRadius: 10 }}>
+                {/* [현 차수] 특정상품 조회 — 전역 동기화(타 메뉴와 동일 상품 컨텍스트). 선택 시 그 상품 매출·순이익·채널/국가별 인라인. */}
+                <ProductSelectBar />
+                <ProductMarketingPanel period="monthly" />
                 {tab === "summary"    && <SummaryTab token={token} />}
                 {tab === "products"   && <ProductsTab token={token} />}
                 {tab === "optimize"   && <OptimizeTab token={token} />}

@@ -2,6 +2,8 @@ import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useI18n } from "../i18n/index.js";
 import { useCurrency } from "../contexts/CurrencyContext.jsx";
 import { useGlobalData } from "../context/GlobalDataContext.jsx";
+import ProductSelectBar from '../components/dashboards/ProductSelectBar.jsx';
+import ProductMarketingPanel from '../components/dashboards/ProductMarketingPanel.jsx';
 import { useAuth } from "../auth/AuthContext";
 import { useSecurityGuard } from "../security/SecurityGuard.js";
 import CrossLinkBar from "../components/CrossLinkBar.jsx";
@@ -728,6 +730,9 @@ export default function BudgetTracker() {
       {/* ══════ Scrollable Content Area (flex:1 독립 스크롤) ══════ */}
       <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '16px 20px 40px' }}>
         <div style={{ maxWidth: 1400, margin: '0 auto' }}>
+          {/* [현 차수] 특정상품 조회 — 전역 동기화. 선택 시 그 상품 매출·순이익·채널/국가별 인라인. */}
+          <ProductSelectBar />
+          <ProductMarketingPanel period="monthly" />
           {tab === 'overview' && <OverviewTab campaigns={campaigns} budgetStats={budgetStats} tr={tr} fmt={fmt} />}
           {tab === 'allocation' && <AllocationTab campaigns={campaigns} tr={tr} fmt={fmt} />}
           {tab === 'burnrate' && <BurnRateTab campaigns={campaigns} tr={tr} fmt={fmt} />}

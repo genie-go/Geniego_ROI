@@ -13,6 +13,8 @@ import AIRecommendBanner from '../components/AIRecommendBanner.jsx';
 import CreativeStudioTab from "./CreativeStudioTab.jsx";
 import {SMS_GUIDE} from "./smsGuideI18n.js";
 import {useNavigate} from "react-router-dom";
+import ProductSelectBar from '../components/dashboards/ProductSelectBar.jsx';
+import ProductMarketingPanel from '../components/dashboards/ProductMarketingPanel.jsx';
 
 /* ── Enterprise Demo Isolation Guard ─────────────────────── */
 const _isDemo = IS_DEMO; // 180차: 자가가드(startsWith demo — roidemo.* 미매칭) → demoEnv 정본 격리
@@ -479,6 +481,10 @@ function SmsMarketingInner(){
                     </div>
                 </div>
             </div>
+
+            {/* [현 차수] 특정상품 조회 — 전역 동기화. 선택 시 그 상품 매출·세그먼트·채널/국가별 인라인. */}
+            <ProductSelectBar />
+            <ProductMarketingPanel period="monthly" />
 
             {/* Tabs */}
             <div className="page-subtabs" style={{ display:'flex', gap:4, padding:5, background:'rgba(0,0,0,0.04)', borderRadius:14, overflowX:'auto', flexShrink:0, marginBottom:12 }}>

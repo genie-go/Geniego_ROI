@@ -5,6 +5,8 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { tChannelName } from '../utils/tenantStorage.js'; // 180차: 회원 격리 크로스탭
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
+import ProductSelectBar from '../components/dashboards/ProductSelectBar.jsx';
+import ProductMarketingPanel from '../components/dashboards/ProductMarketingPanel.jsx';
 import { useNavigate } from 'react-router-dom';
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
 import { useT, useI18n } from '../i18n/index.js';
@@ -776,6 +778,9 @@ export default function ChannelKPI() {
 
             {/* Tab Content (independent scroll) */}
             <div style={{ flex: 1, overflowY: 'auto', padding: '16px 0' }}>
+                {/* [현 차수] 특정상품 조회 — 전역 동기화. 선택 시 그 상품 매출·순이익·채널/국가별 인라인. */}
+                <ProductSelectBar />
+                <ProductMarketingPanel period="monthly" />
                 {tab === 'goal' && <GoalTab goals={goals} setGoals={setGoals} />}
                 {tab === 'role' && <ChannelRoleTab globalChannels={channelBudgets} />}
                 {tab === 'kpi' && <KpiSetupTab kpiTargets={kpiTargets} setKpiTargets={setKpiTargets} globalChannels={channelBudgets} />}
