@@ -550,6 +550,48 @@ function SuppressionPanel({ t, card, labelSt, descSt, inputSt }) {
 }
 
 /* ── RFM Tab ────────────────────────────────────────────────────────────────── */
+/* ── [현 차수] 코호트 리텐션 — 가입월 × N개월 재구매율 히트맵(Klaviyo Cohorts 정합) ── */
+function CohortRetentionPanel({ t }) {
+  const [data, setData] = React.useState(null);
+  React.useEffect(() => {
+    let alive = true;
+    (async () => { try { const r = await _gjaCrm('/api/crm/cohort-retention'); if (alive) setData(r || { cohorts: [] }); } catch (e) { if (alive) setData({ cohorts: [] }); } })();
+    return () => { alive = false; };
+  }, []);
+  if (!data) return null;
+  const cohorts = data.cohorts || [];
+  const maxO = data.max_offset ?? 11;
+  const heat = (v) => { if (v <= 0) return '#f1f5f9'; const a = Math.min(1, v / 100); return `rgba(79,70,229,${(0.14 + a * 0.72).toFixed(2)})`; };
+  return (
+    <div style={{ background: C.card, borderRadius: 14, padding: '16px 18px' }}>
+      <div style={{ fontWeight: 700, marginBottom: 4, color: C.text }}>📈 {t('crm.cohortTitle', '코호트 리텐션 (가입월 × 재구매율)')}</div>
+      <div style={{ fontSize: 11.5, color: C.muted, marginBottom: 12, lineHeight: 1.6 }}>{t('crm.cohortDesc', '가입한 월별 그룹이 이후 N개월에 재구매한 비율입니다. 리텐션 곡선으로 충성도·LTV 추세를 진단합니다(경쟁사 Klaviyo Cohorts 동급).')}</div>
+      {cohorts.length === 0
+        ? <div style={{ fontSize: 12.5, color: C.muted, padding: '14px 0' }}>{t('crm.cohortEmpty', '코호트 데이터가 아직 없습니다(가입·구매 이력이 누적되면 표시됩니다).')}</div>
+        : (
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ borderCollapse: 'collapse', fontSize: 11 }}>
+              <thead><tr>
+                <th style={{ padding: '6px 10px', textAlign: 'left', color: C.muted, fontWeight: 700 }}>{t('crm.cohortCol', '가입월')}</th>
+                <th style={{ padding: '6px 8px', color: C.muted, fontWeight: 700 }}>{t('crm.cohortSize', '인원')}</th>
+                {Array.from({ length: maxO + 1 }, (_, i) => <th key={i} style={{ padding: '6px 8px', color: C.muted, fontWeight: 700 }}>M{i}</th>)}
+              </tr></thead>
+              <tbody>
+                {cohorts.map(c => (
+                  <tr key={c.cohort}>
+                    <td style={{ padding: '5px 10px', fontFamily: 'monospace', color: C.text }}>{c.cohort}</td>
+                    <td style={{ padding: '5px 8px', textAlign: 'center', color: C.muted }}>{c.size}</td>
+                    {(c.retention || []).map((v, i) => <td key={i} style={{ padding: '5px 8px', textAlign: 'center', background: heat(v), color: v > 50 ? '#fff' : '#1e293b', fontWeight: 600, minWidth: 40 }}>{v > 0 ? v + '%' : '·'}</td>)}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+    </div>
+  );
+}
+
 function RFMTab({ derivedCustomers }) {
   const { t } = useI18n();
   const fmt = useCurrencyFmt();
@@ -576,6 +618,9 @@ function RFMTab({ derivedCustomers }) {
           );
         })}
       </div>
+
+      <CohortRetentionPanel t={t} />
+
       <div style={{ background: C.card, borderRadius: 14, overflow: "hidden" }}>
         <div style={{ padding: "14px 18px", fontWeight: 700, borderBottom: `1px solid ${C.border}` }}>{t('crm.rfmListTit')}</div>
         <div style={{ overflowX: "auto" }}>
