@@ -192,7 +192,7 @@ class EmailMarketing
         if ($err = UserAuth::requirePro($req, $res)) return $err;
         self::ensureTables(); $pdo = self::db(); $tenant = self::tenant($req);
         $body = (array)($req->getParsedBody() ?? []); if (empty($body)) { $d = json_decode((string)$req->getBody(), true); if (is_array($d)) $body = $d; }
-        $email = strtolower(trim((string)($body['email'] ?? '')));
+        $email = strtolower(trim((string)($body['email'] ?? ($req->getQueryParams()['email'] ?? '')))); // DELETE는 query 폴백
         if ($email === '') return self::jsonRes($res, ['ok'=>false,'error'=>'email 필요'], 422);
         $pdo->prepare("DELETE FROM email_suppression WHERE tenant_id=:t AND email=:e")->execute([':t'=>$tenant, ':e'=>$email]);
         return self::jsonRes($res, ['ok'=>true]);

@@ -5,7 +5,7 @@ import React, { useState, useCallback, useMemo, useEffect, useRef } from "react"
 import PlanGate from "../components/PlanGate.jsx";
 import { useNavigate } from "react-router-dom";
 import GuideWizard from '../components/GuideWizard.jsx'; // [237차] 인앱 순차 완료 위저드(필수등록 게이팅)
-import { getJsonAuth as _gjaCrm } from '../services/apiClient.js';
+import { getJsonAuth as _gjaCrm, postJsonAuth as _pjaCrm, delJson as _delCrm } from '../services/apiClient.js';
 import { useGlobalData } from "../context/GlobalDataContext.jsx";
 import { crmApi } from "../services/crmApi.js"; // 191차 4단계: 운영 백엔드 실배선(/api/crm/*)
 import { useConnectorSync } from "../context/ConnectorSyncContext.jsx";
@@ -473,12 +473,78 @@ function DeliverabilityTab({ t }) {
         </div>
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16 }}>
         <button onClick={onSave} disabled={saving} style={{ padding: "10px 22px", borderRadius: 10, border: "none", background: C.accent, color: "#fff", fontWeight: 700, fontSize: 13, cursor: saving ? "default" : "pointer", opacity: saving ? 0.6 : 1 }}>
           {saving ? t('crm.saving', '저장 중...') : t('crm.deliverSave', '설정 저장')}
         </button>
         {msg && <span style={{ fontSize: 12.5, fontWeight: 600, color: C.green }}>{msg}</span>}
       </div>
+
+      <SuppressionPanel t={t} card={card} labelSt={labelSt} descSt={descSt} inputSt={inputSt} />
+    </div>
+  );
+}
+
+/* ── [현 차수] Suppression(수신거부/바운스) 리스트 관리 — 리스트 위생(Klaviyo Suppressions 정합) ── */
+function SuppressionPanel({ t, card, labelSt, descSt, inputSt }) {
+  const [list, setList] = React.useState([]);
+  const [byReason, setByReason] = React.useState({});
+  const [email, setEmail] = React.useState("");
+  const [busy, setBusy] = React.useState(false);
+  const load = React.useCallback(async () => {
+    if (IS_DEMO) return;
+    try { const r = await _gjaCrm('/api/email/suppression'); setList(r?.suppression || []); setByReason(r?.by_reason || {}); } catch (e) { /* 미인증/네트워크 */ }
+  }, []);
+  React.useEffect(() => { load(); }, [load]);
+  const add = async () => {
+    const e = email.trim(); if (!e) return; setBusy(true);
+    try {
+      if (IS_DEMO) { setList(l => [{ email: e.toLowerCase(), reason: 'manual', source: 'admin', created_at: new Date().toISOString().slice(0, 16) }, ...l]); }
+      else { await _pjaCrm('/api/email/suppression', { email: e, reason: 'manual' }); await load(); }
+      setEmail("");
+    } catch (err) { /* noop */ } finally { setBusy(false); }
+  };
+  const remove = async (e) => {
+    setBusy(true);
+    try { if (IS_DEMO) { setList(l => l.filter(x => x.email !== e)); } else { await _delCrm('/api/email/suppression?email=' + encodeURIComponent(e)); await load(); } }
+    catch (err) { /* noop */ } finally { setBusy(false); }
+  };
+  const REASON_LABEL = { unsubscribe: t('crm.supUnsub', '수신거부'), manual: t('crm.supManual', '수동'), bounce: t('crm.supBounce', '반송(바운스)'), complaint: t('crm.supComplaint', '스팸신고') };
+  const REASON_COLOR = { unsubscribe: '#64748b', manual: '#0ea5e9', bounce: '#f59e0b', complaint: '#ef4444' };
+  return (
+    <div style={card}>
+      <div style={labelSt}>🚫 {t('crm.supTitle', '수신거부 / 차단 리스트 (Suppression)')}</div>
+      <div style={descSt}>{t('crm.supDesc', '수신거부·하드바운스·스팸신고된 주소는 자동으로 발송에서 영구 제외됩니다(컴플라이언스·발신자 평판 보호). 직접 추가/해제할 수 있습니다.')}</div>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
+        {Object.keys(byReason).length === 0
+          ? <span style={{ fontSize: 12, color: C.muted }}>{t('crm.supEmpty', '차단된 주소 없음')}</span>
+          : Object.entries(byReason).map(([r, n]) => (
+            <span key={r} style={{ fontSize: 11.5, fontWeight: 700, padding: '4px 11px', borderRadius: 20, background: (REASON_COLOR[r] || '#64748b') + '18', color: REASON_COLOR[r] || '#64748b' }}>{REASON_LABEL[r] || r} {n}</span>
+          ))}
+      </div>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 14, flexWrap: 'wrap' }}>
+        <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder={t('crm.supAddPh', '차단할 이메일 주소')} style={{ ...inputSt, width: 260 }} onKeyDown={e => { if (e.key === 'Enter') add(); }} />
+        <button onClick={add} disabled={busy || !email.trim()} style={{ padding: '8px 18px', borderRadius: 8, border: 'none', background: busy || !email.trim() ? '#cbd5e1' : '#ef4444', color: '#fff', fontWeight: 700, fontSize: 12.5, cursor: busy || !email.trim() ? 'default' : 'pointer' }}>{t('crm.supAdd', '차단 추가')}</button>
+      </div>
+      {list.length > 0 && (
+        <div style={{ maxHeight: 260, overflowY: 'auto', border: `1px solid ${C.border}`, borderRadius: 10 }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12.5 }}>
+            <thead><tr style={{ background: 'rgba(241,245,249,0.6)', color: C.muted, fontSize: 11, textAlign: 'left' }}>
+              <th style={{ padding: '8px 12px' }}>{t('crm.supColEmail', '이메일')}</th><th style={{ padding: '8px 12px' }}>{t('crm.supColReason', '사유')}</th><th style={{ padding: '8px 12px' }}>{t('crm.supColDate', '일시')}</th><th></th>
+            </tr></thead>
+            <tbody>
+              {list.slice(0, 500).map((s, i) => (
+                <tr key={s.email + i} style={{ borderTop: `1px solid ${C.border}` }}>
+                  <td style={{ padding: '7px 12px', fontFamily: 'monospace', color: C.text }}>{s.email}</td>
+                  <td style={{ padding: '7px 12px' }}><span style={{ color: REASON_COLOR[s.reason] || '#64748b', fontWeight: 700 }}>{REASON_LABEL[s.reason] || s.reason}</span></td>
+                  <td style={{ padding: '7px 12px', color: C.muted }}>{(s.created_at || '').slice(0, 16)}</td>
+                  <td style={{ padding: '7px 12px', textAlign: 'right' }}><button onClick={() => remove(s.email)} disabled={busy} style={{ background: 'none', border: 'none', color: '#0ea5e9', cursor: 'pointer', fontSize: 11.5, fontWeight: 700, textDecoration: 'underline' }}>{t('crm.supRemove', '해제')}</button></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
