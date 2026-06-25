@@ -5,6 +5,8 @@ import { useSecurityGuard } from '../../security/SecurityGuard.js';
 import ProductMarketingPanel from './ProductMarketingPanel.jsx';
 import ProductSelectBar from './ProductSelectBar.jsx';
 import ProductScopeNotice from './ProductScopeNotice.jsx';
+import { useProductSelection } from '../../contexts/ProductSelectionContext.jsx';
+import { deriveProductPerf } from './productPerf.js';
 import { LineChart, Spark, fmt } from './ChartUtils.jsx';
 import { useCurrency } from '../../contexts/CurrencyContext.jsx';
 import { IS_DEMO } from '../../utils/demoEnv';
@@ -135,7 +137,7 @@ export default function DashChannelKPI({ period }) {
     const [metric, setMetric] = useState('roas');   // [현 차수] 채널 성과 추이 기준 지표
 
     // ✅ Real-time GlobalDataContext connection
-    const { channelBudgets, budgetStats, pnlStats, orderStats, orders, addAlert } = useGlobalData();
+    const { channelBudgets, budgetStats, pnlStats, orderStats, orders, inventory, addAlert } = useGlobalData();
 
     // ✅ SecurityGuard — Enterprise real-time threat monitoring
     useSecurityGuard({ addAlert: useCallback((a) => { if (typeof addAlert === 'function') addAlert(a); }, [addAlert]), enabled: true });
@@ -144,6 +146,21 @@ export default function DashChannelKPI({ period }) {
     const scope = useMemo(() => buildPeriodScope(orders, period), [orders, period]);
     const f = scope.factor;
     const periodActive = scope.active;
+
+    // [현 차수] 전역 상품 선택 — 선택 시 상단 KPI 배지(매출/주문/영업이익)를 그 상품 실값으로 전환(주문 SSOT 파생,
+    //   기간스코프 반영). 광고비/ROAS 는 채널 단위 광고데이터라 상품 귀속 불가 → 배지에서 제외하고 정직하게
+    //   ProductMarketingPanel(어트리뷰션 기반) 으로 안내한다(가짜 상품광고비 배분 금지=값정확성).
+    const { selectedProduct } = useProductSelection();
+    const prodCostMap = useMemo(() => {
+        const m = {}; (inventory || []).forEach(it => { const s = it.sku || it.product_id; if (s && it.cost != null) m[String(s)] = Number(it.cost) || 0; }); return m;
+    }, [inventory]);
+    const prodKpi = useMemo(() => {
+        if (!selectedProduct?.sku) return null;
+        const src = periodActive ? scope.scoped : orders;
+        const r = deriveProductPerf(src, prodCostMap);
+        return (r.products || []).find(p => p.sku === selectedProduct.sku)
+            || { sku: selectedProduct.sku, name: selectedProduct.name, revenue: 0, orders: 0, qty: 0, net_profit: null, return_rate: 0 };
+    }, [selectedProduct, periodActive, scope.scoped, orders, prodCostMap]);
 
     // Reconstruct channel metrics using 100% REAL global data formulas
     // [현 차수] 0값 유령채널 해소: 하드코딩 CH_META_DEFS(meta/google/tiktok/coupang/naver/amazon) union 은
@@ -258,21 +275,45 @@ export default function DashChannelKPI({ period }) {
             <ProductMarketingPanel period={period} />
             {/* [현 차수] 정직 표기 — 아래 채널 KPI는 채널 집계 광고데이터라 상품별 귀속 불가(전체 기준). */}
             <ProductScopeNotice scope="channel" />
-            {/* Real-time KPI Badges */}
-            <div style={{ display:'flex', gap: 8, flexWrap: 'wrap', padding: '4px 0' }}>
-                <span style={{ fontSize: 10, background: 'rgba(20,217,176,0.12)', border: '1px solid rgba(20,217,176,0.3)', borderRadius: 20, padding: '3px 10px', color: '#14d9b0', fontWeight: 700 }}>
-                    ● {t('dash.realTimeBlendedRoas', 'Real-time · Blended ROAS')} {budgetStats?.blendedRoas?.toFixed(2) || '0.00'}x
-                </span>
-                <span style={{ fontSize: 10, background:'rgba(249,115,22,0.12)', border: '1px solid rgba(249,115,22,0.3)', borderRadius: 20, padding: '3px 10px', color: '#f97316', fontWeight: 700 }}>
-                    💸 {t('dash.execAdSpend', 'Ad Spend')} {fmtC(budgetStats?.totalSpent || 0)}
-                </span>
-                <span style={{ fontSize: 10, background: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: 20, padding: '3px 10px', color: '#22c55e', fontWeight: 700 }}>
-                    📦 {t('dash.orders', 'Orders')} {(orderStats?.totalOrders || 0).toLocaleString()} {t('dash.unitCount', '건')}
-                </span>
-                <span style={{ fontSize: 10, background:'rgba(234,179,8,0.12)', border: '1px solid rgba(234,179,8,0.3)', borderRadius: 20, padding: '3px 10px', color: '#eab308', fontWeight: 700 }}>
-                    📊 {t('dash.opProfit', 'Op. Profit')} {fmtC(pnlStats?.operatingProfit || 0)}
-                </span>
-            </div>
+            {/* Real-time KPI Badges — [현 차수] 상품 선택 시 매출·주문·영업이익(순이익)을 그 상품 실값으로 전환(주문 SSOT).
+                광고비/ROAS 는 채널 단위라 상품 귀속 불가 → 상품모드에선 배지에서 빼고 위 마케팅 패널(어트리뷰션)로 안내. */}
+            {prodKpi ? (
+                <div style={{ display:'flex', gap: 8, flexWrap: 'wrap', padding: '4px 0', alignItems: 'center' }}>
+                    <span style={{ fontSize: 10, background: 'rgba(79,142,247,0.12)', border: '1px solid rgba(79,142,247,0.3)', borderRadius: 20, padding: '3px 10px', color: '#4f8ef7', fontWeight: 800 }}>
+                        🛍️ {prodKpi.name}
+                    </span>
+                    <span style={{ fontSize: 10, background: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: 20, padding: '3px 10px', color: '#22c55e', fontWeight: 700 }}>
+                        💰 {t('dash.mxRevenue', '매출')} {fmtC(prodKpi.revenue || 0)}
+                    </span>
+                    <span style={{ fontSize: 10, background:'rgba(124,58,237,0.12)', border: '1px solid rgba(124,58,237,0.3)', borderRadius: 20, padding: '3px 10px', color: '#7c3aed', fontWeight: 700 }}>
+                        📦 {t('dash.orders', 'Orders')} {(prodKpi.orders || 0).toLocaleString()} {t('dash.unitCount', '건')}
+                    </span>
+                    <span style={{ fontSize: 10, background:'rgba(234,179,8,0.12)', border: '1px solid rgba(234,179,8,0.3)', borderRadius: 20, padding: '3px 10px', color: '#eab308', fontWeight: 700 }}>
+                        📊 {t('dashboard.productMkt.netProfit', '순이익')} {prodKpi.net_profit == null ? '—' : fmtC(prodKpi.net_profit)}
+                    </span>
+                    <span style={{ fontSize: 10, background:'rgba(239,68,68,0.10)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: 20, padding: '3px 10px', color: '#ef4444', fontWeight: 700 }}>
+                        ↩ {t('dashboard.productMkt.returnRate', '반품률')} {prodKpi.return_rate ?? 0}%
+                    </span>
+                    <span style={{ fontSize: 9.5, color: 'var(--text-3)' }}>
+                        ● {t('dash.realTimeBlendedRoas', 'Real-time · Blended ROAS')} {budgetStats?.blendedRoas?.toFixed(2) || '0.00'}x · 💸 {fmtC(budgetStats?.totalSpent || 0)} <span style={{ opacity: 0.8 }}>({t('dashboard.productScope.allBasis', '이 화면은 전체 기준')})</span>
+                    </span>
+                </div>
+            ) : (
+                <div style={{ display:'flex', gap: 8, flexWrap: 'wrap', padding: '4px 0' }}>
+                    <span style={{ fontSize: 10, background: 'rgba(20,217,176,0.12)', border: '1px solid rgba(20,217,176,0.3)', borderRadius: 20, padding: '3px 10px', color: '#14d9b0', fontWeight: 700 }}>
+                        ● {t('dash.realTimeBlendedRoas', 'Real-time · Blended ROAS')} {budgetStats?.blendedRoas?.toFixed(2) || '0.00'}x
+                    </span>
+                    <span style={{ fontSize: 10, background:'rgba(249,115,22,0.12)', border: '1px solid rgba(249,115,22,0.3)', borderRadius: 20, padding: '3px 10px', color: '#f97316', fontWeight: 700 }}>
+                        💸 {t('dash.execAdSpend', 'Ad Spend')} {fmtC(budgetStats?.totalSpent || 0)}
+                    </span>
+                    <span style={{ fontSize: 10, background: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: 20, padding: '3px 10px', color: '#22c55e', fontWeight: 700 }}>
+                        📦 {t('dash.orders', 'Orders')} {(orderStats?.totalOrders || 0).toLocaleString()} {t('dash.unitCount', '건')}
+                    </span>
+                    <span style={{ fontSize: 10, background:'rgba(234,179,8,0.12)', border: '1px solid rgba(234,179,8,0.3)', borderRadius: 20, padding: '3px 10px', color: '#eab308', fontWeight: 700 }}>
+                        📊 {t('dash.opProfit', 'Op. Profit')} {fmtC(pnlStats?.operatingProfit || 0)}
+                    </span>
+                </div>
+            )}
             
             {/* Row 1: Channel Scorecard — 173차 fix: auto-fit (좁은 viewport 자동 wrap) */}
             <div style={{ display:'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: G }}>

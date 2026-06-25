@@ -10,6 +10,8 @@ import CrossLinkBar from '../components/CrossLinkBar.jsx';
 // [현 차수] 인증갭 수정 — /api/v419/kr/* 는 세션게이트(미들웨어 auth_tenant) 편입이라 Bearer 필수.
 //   KrChannel.jsx(자매 페이지)와 동일 컨벤션: GET=getJsonAuth, POST=postJson, PATCH=patchJson (전부 Bearer 부착·파싱객체 반환).
 import { getJsonAuth, postJson, patchJson } from '../services/apiClient';
+import ProductSelectBar from '../components/dashboards/ProductSelectBar.jsx';
+import ProductMarketingPanel from '../components/dashboards/ProductMarketingPanel.jsx';
 
 // [현 차수] 정산 관련 화면 교차링크(비파괴 통합)
 const SETTLE_LINKS = [
@@ -511,6 +513,10 @@ export default function Reconciliation() {
           </button>
         </div>
       </div>
+
+      {/* [현 차수] 특정상품 대사 조회 — 선택 시 그 상품 매출·순이익·채널/국가별 인라인(주문 SSOT). 아래 대사 합계는 전체 기준. */}
+      <ProductSelectBar />
+      <ProductMarketingPanel period="monthly" />
 
       {/* Tab Navigation */}
       <div style={{ display: 'flex', gap: 4, marginBottom: 0, padding: '12px 12px 0', background: 'var(--bg-card)', borderRadius: '12px 12px 0 0', border: '1px solid var(--border)', borderBottom: 'none', flexWrap: 'wrap' }}>

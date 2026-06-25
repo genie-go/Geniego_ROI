@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useT } from "../i18n/index.js";
 import { getJsonAuth, postJsonAuth, patchJson, delJson } from "../services/apiClient.js";
 import { useVisibleTabs } from "../auth/useVisibleTabs.js";
+import ProductSelectBar from '../components/dashboards/ProductSelectBar.jsx';
+import ProductMarketingPanel from '../components/dashboards/ProductMarketingPanel.jsx';
 import { BarChart, LineChart, DonutChart } from "../components/dashboards/ChartUtils.jsx"; // [239차+ BI심화] 시각화 재사용
 
 /*
@@ -166,6 +168,10 @@ export default function ReportBuilder() {
         <h2 style={{ margin: "0 0 4px", fontSize: 18 }}>📑 {t("reportBuilder.title", "리포트 빌더")}</h2>
         <div style={{ fontSize: 12, color: "var(--text-3)" }}>{t("reportBuilder.subtitle", "KPI 요약 리포트 생성 · 예약 이메일 발송 · 실행 이력")}</div>
       </div>
+
+      {/* [현 차수] 특정상품 리포트 참조 — 선택 시 그 상품 매출·순이익·채널/국가별 인라인 참조(주문 SSOT). 리포트 본문은 전체 기준. */}
+      <ProductSelectBar />
+      <ProductMarketingPanel period="monthly" />
 
       <div style={{ display: "flex", gap: 6, marginBottom: 16, flexWrap: "wrap" }}>
         {TABS.map(([id, label]) => (

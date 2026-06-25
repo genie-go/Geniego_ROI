@@ -9,6 +9,8 @@ import { IS_DEMO as _IS_DEMO_TAB } from "../utils/demoEnv";
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
 import { getJsonAuth } from '../services/apiClient.js';
+import ProductSelectBar from '../components/dashboards/ProductSelectBar.jsx';
+import ProductMarketingPanel from '../components/dashboards/ProductMarketingPanel.jsx';
 import { IS_DEMO } from '../utils/demoEnv.js';
 import { PERF_GUIDE } from './perfGuideI18n.js';
 
@@ -1253,6 +1255,11 @@ export default function PerformanceHub() {
 
             {/* ─── Scrollable Content ─── */}
             <div style={{ flex: 1, overflowY: "auto", overflowX: "hidden", padding: "16px", paddingBottom: "80px" }}>
+                {/* [현 차수] 특정상품 성과 조회 — 선택 시 그 상품 매출·순이익·채널/국가별·광고성과를 인라인(주문 SSOT·SKU별손익 탭과 동기화). */}
+                <div style={{ marginBottom: 16, display: 'grid', gap: 12 }}>
+                    <ProductSelectBar />
+                    <ProductMarketingPanel period="monthly" />
+                </div>
                 <div className="card card-glass fade-up">
                     {tab === "performance" && <PerformanceTab />}
                     {tab === "settlement" && <SettlementTab />}

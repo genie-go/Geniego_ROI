@@ -7,6 +7,8 @@ import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import { postJsonAuth } from '../services/apiClient.js';
 import useSecurityMonitor from '../hooks/useSecurityMonitor.js';
 import CrossLinkBar from '../components/CrossLinkBar.jsx';
+import ProductSelectBar from '../components/dashboards/ProductSelectBar.jsx';
+import ProductMarketingPanel from '../components/dashboards/ProductMarketingPanel.jsx';
 
 // [현 차수] 정산 관련 화면 교차링크(비파괴 통합) — 정산 현황/대사/성과+정산
 const SETTLE_LINKS = [
@@ -299,6 +301,10 @@ export default function Settlements() {
           </button>
         </div>
       </div>
+
+      {/* [현 차수] 특정상품 정산 조회 — 선택 시 그 상품 매출·순이익·채널/국가별 인라인(주문 SSOT). 아래 정산 합계는 전체 기준. */}
+      <ProductSelectBar />
+      <ProductMarketingPanel period="monthly" />
 
       {/* KPIs */}
       <div className="grid4 fade-up fade-up-1" style={{ gridTemplateColumns: "repeat(5,1fr)" }}>

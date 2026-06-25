@@ -9,6 +9,8 @@ import { useCurrency } from '../contexts/CurrencyContext.jsx';
 import { useAuth } from '../auth/AuthContext.jsx'; // [현 차수] 플랜별 탭 노출
 import { tabAllowedByPlan } from '../auth/tabPlanPolicy.js';
 import { getJsonAuth } from '../services/apiClient.js'; // [231차 OS#2] Root Cause: anomaly scan 보강(best-effort)
+import ProductSelectBar from '../components/dashboards/ProductSelectBar.jsx';
+import ProductMarketingPanel from '../components/dashboards/ProductMarketingPanel.jsx';
 
 /* ─── Security Engine ──────────────────── */
 const SEC_PATTERNS = [
@@ -869,6 +871,11 @@ export default function PnLDashboard() {
 
             {/* Content */}
             <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '16px', paddingBottom: 80 }}>
+                {/* [현 차수] 특정상품 손익 조회 — 선택 시 그 상품의 매출·순이익·원가·채널/국가별을 인라인(주문 SSOT). 페이지 합계 P&L 은 전체 기준 유지. */}
+                <div style={{ marginBottom: 16, display: 'grid', gap: 12 }}>
+                    <ProductSelectBar />
+                    <ProductMarketingPanel period="monthly" />
+                </div>
                 {tab === 'health' && <HealthTab live={live} t={t} fmt={fmt} />}
                 {tab === 'overview' && <OverviewTab live={live} pgSum={pgSum} t={t} fmt={fmt} dateRange={dateRange} />}
                 {tab === 'pnl' && <PnlUnitTab live={live} t={t} fmt={fmt} connectedChannels={connectedChannels} />}

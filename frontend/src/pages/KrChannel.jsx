@@ -6,6 +6,8 @@ import { useT } from '../i18n/index.js';
 // [237차] getJson(비인증)→getJsonAuth(세션 Bearer) 별칭. /api/v419/kr/* 는 핸들러가 미들웨어
 //   auth_tenant 만 신뢰(self-auth 없음)+세션게이트 편입 → 인증 GET 필수. postJson/patchJson은 인증됨.
 import { getJsonAuth as getJson, postJson, patchJson } from '../services/apiClient';
+import ProductSelectBar from '../components/dashboards/ProductSelectBar.jsx';
+import ProductMarketingPanel from '../components/dashboards/ProductMarketingPanel.jsx';
 
 /* ── Enterprise Demo Isolation Guard ─────────────────────── */
 const _isDemo = IS_DEMO; // 180차: 자가가드(startsWith demo — roidemo.* 미매칭) → demoEnv 정본 격리
@@ -527,6 +529,10 @@ export default function KrChannel() {
                     {t('krChannel.pageSub', 'Coupang · Naver · 11번가 · Gmarket · 옥션 · 카카오선물하기 · 롯데ON · 위메프 · 티몬 — 정산 표준화 · 수수료 관리 · 대사 (v419)')}
                 </div>
             </div>
+
+            {/* [현 차수] 특정상품 정산 조회 — 선택 시 그 상품 매출·순이익·채널/국가별 인라인(주문 SSOT). 아래 정산/수수료/대사는 전체 기준. */}
+            <ProductSelectBar />
+            <ProductMarketingPanel period="monthly" />
 
             <div style={{ display: "flex", gap: 8, marginBottom: 16, borderBottom: "1px solid #1c2842", paddingBottom: 8, flexWrap: "wrap" }}>
                 {TABS.map((t) => (

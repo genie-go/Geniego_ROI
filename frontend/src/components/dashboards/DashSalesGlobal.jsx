@@ -2,6 +2,9 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { useGlobalData } from '../../context/GlobalDataContext.jsx';
 import { useI18n } from '../../i18n/index.js';
 import ProductScopeNotice from './ProductScopeNotice.jsx';
+import ProductSelectBar from './ProductSelectBar.jsx';
+import ProductMarketingPanel from './ProductMarketingPanel.jsx';
+import { useProductSelection } from '../../contexts/ProductSelectionContext.jsx';
 import { useSecurityGuard } from '../../security/SecurityGuard.js';
 import {
     ComposableMap, Geographies, Geography, Marker, ZoomableGroup,
@@ -720,6 +723,7 @@ export default function DashSalesGlobal({ period }) {
 
   // ✅ GlobalDataContext — Single Source of Truth
   const { pnlStats, orderStats, channelBudgets, orders, addAlert } = useGlobalData();
+  const { selectedProduct } = useProductSelection(); // [현 차수] 글로벌 매출에서 특정상품 매출 조회(국가/지역별)
   const { t, lang: ctxLang } = useI18n();
   const lang = ctxLang || 'ko';
   const txt = useCallback((k, fb) => LOC[lang]?.[k] || LOC.en?.[k] || t(`dash.${k}`, fb || k), [lang, t]);
@@ -755,7 +759,14 @@ export default function DashSalesGlobal({ period }) {
 
   return (
     <div style={{ display:'grid', gap:GAP }}>
-      <ProductScopeNotice scope="global" />
+      {/* [현 차수] 특정상품 매출 조회 — 전역 선택 시 그 상품의 국가·지역별 매출/순이익을 인라인 조회(주문 SSOT). */}
+      <ProductSelectBar />
+      <ProductMarketingPanel period={period} />
+      {selectedProduct?.sku && (
+        <div style={{ fontSize: 11, color: 'var(--text-3, #6b7280)', padding: '0 2px' }}>
+          🗺 {t('dashboard.productScope.mapAllBasis', '아래 세계지도·국가순위는 전체 상품 기준입니다. 선택 상품의 국가·지역별 매출은 위 패널을 참조하세요.')}
+        </div>
+      )}
       {/* ── Real-time KPI Badges ────────────────────────────────── */}
       <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
         <span style={{ fontSize:10, background:'rgba(20,217,176,0.12)', border:'1px solid rgba(20,217,176,0.3)', borderRadius:20, padding:'3px 10px', color:'#14d9b0', fontWeight:700 }}>

@@ -7,6 +7,9 @@ import { useI18n } from "../i18n/index.js";
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend, BarChart, Bar, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Line, ComposedChart } from "recharts";
 import AIRecommendBanner from '../components/AIRecommendBanner.jsx';
+import ProductSelectBar from '../components/dashboards/ProductSelectBar.jsx';
+import ProductMarketingPanel from '../components/dashboards/ProductMarketingPanel.jsx';
+import ProductScopeNotice from '../components/dashboards/ProductScopeNotice.jsx';
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import { DEMO_DAILY_TRENDS } from '../data/demoSeedData.js';
 import { useSecurityGuard } from '../security/SecurityGuard.js';
@@ -805,6 +808,12 @@ export default function Marketing() {
 
       {/* ══════ SCROLLABLE CONTENT AREA ══════ */}
       <div className="fade-up" style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '16px 8px 28px' }}>
+
+      {/* [현 차수] 특정상품 마케팅 조회 — 전 서브탭 공유 컨텍스트. 선택 시 그 상품의 매출·주문·순이익·채널/국가별·
+          광고성과(어트리뷰션)를 인라인 표시. 광고집계 지표는 채널 단위라 상품 귀속 불가 → 정직 표기(scope=ad). */}
+      <ProductSelectBar />
+      <ProductMarketingPanel period="monthly" />
+      <ProductScopeNotice scope="ad" />
 
       {tab === "overview" && <AmazonOverviewTab />}
       {tab === "ad_status" && <AdStatusAnalysis />}

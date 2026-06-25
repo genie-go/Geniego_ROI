@@ -6,6 +6,8 @@ import { useCurrency } from '../contexts/CurrencyContext.jsx';
 import { useI18n } from '../i18n/index.js';
 import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
 import { useSecurityGuard, sanitizeInput, detectXSS } from '../security/SecurityGuard.js';
+import ProductSelectBar from '../components/dashboards/ProductSelectBar.jsx';
+import ProductMarketingPanel from '../components/dashboards/ProductMarketingPanel.jsx';
 import PlanGate from '../components/PlanGate.jsx';
 import { CHANNEL_RATES } from '../constants/channelRates.js';
 import { loadChannelRegistry, registryBySyncKind } from '../services/channelRegistry.js';
@@ -880,6 +882,11 @@ function OmniChannelInner() {
           </div>
           {/* Scrollable content */}
           <div style={{ flex:1, overflowY:'auto', padding:'16px 24px 24px' }}>
+            {/* [현 차수] 특정상품 채널 조회 — 선택 시 그 상품 매출·주문·채널/국가별을 인라인(주문 SSOT). 아래 채널/주문/재고는 전체 기준. */}
+            <div style={{ marginBottom: 16, display: 'grid', gap: 12 }}>
+              <ProductSelectBar />
+              <ProductMarketingPanel period="monthly" />
+            </div>
             {tab==='channels'&&<ChannelTab channelStatus={status} onRefresh={()=>{loadStatus();broadcast('channel_update',{});}} plan={plan} isDemo={isDemo} t={t} csIsConnected={csIsConnected}/>}
             {tab==='products'&&<ProductsTab t={t}/>}
             {tab==='orders'&&<OrdersTab t={t}/>}
