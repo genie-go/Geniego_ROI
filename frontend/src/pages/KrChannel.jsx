@@ -8,10 +8,38 @@ import { useT } from '../i18n/index.js';
 import { getJsonAuth as getJson, postJson, patchJson } from '../services/apiClient';
 import ProductSelectBar from '../components/dashboards/ProductSelectBar.jsx';
 import ProductMarketingPanel from '../components/dashboards/ProductMarketingPanel.jsx';
+import { useGlobalData } from '../context/GlobalDataContext.jsx'; // [현 차수] 데모 정산요약/대사 폴백 — 주문 SSOT 파생
 
 /* ── Enterprise Demo Isolation Guard ─────────────────────── */
 const _isDemo = IS_DEMO; // 180차: 자가가드(startsWith demo — roidemo.* 미매칭) → demoEnv 정본 격리
 const API = "/api";
+
+/* [현 차수] 데모 KR 정산 요약 폴백 — v419 데모 백엔드 부재 시 주문(orders)에서 채널별 정산 파생(since~until 윈도우).
+   ko-KR at 파싱불가 → atISO 사용. gross=Σtotal, 수수료=platformFeeRate, 광고비=fee, 정산=gross-수수료합. 선택 기간 반응. */
+const _KR_CH_NAME = { coupang: '쿠팡', naver: '네이버 스마트스토어', smartstore: '네이버 스마트스토어', oliveyoung: '올리브영', '11st': '11번가', gmarket: 'G마켓', auction: '옥션', kakao: '카카오선물하기', lotteon: '롯데ON', wemef: '위메프', tmon: '티몬' };
+function deriveKrSettleSummary(orders, since, until) {
+  const sT = since ? new Date(since + 'T00:00:00').getTime() : 0;
+  const uT = until ? new Date(until + 'T23:59:59').getTime() : Date.now();
+  const by = {};
+  (orders || []).forEach(o => {
+    const ch = o.ch || o.channel; if (!ch || !(ch in _KR_CH_NAME)) return;
+    const c = o.atISO || o.created_at || (o.month ? o.month + '-01' : null); const d = c ? new Date(c).getTime() : NaN;
+    if (isNaN(d) || d < sT || d > uT) return;
+    if (/cancel|취소/i.test(String(o.status || ''))) return;
+    const gross = Number(o.total || 0);
+    const pfee = Math.round(gross * Number(o.platformFeeRate || 0.055));
+    const adf = Number(o.fee || Math.round(gross * 0.03));
+    const isRet = /return|반품|refund|환불/i.test(String(o.status || ''));
+    const shipf = 0, retf = isRet ? Math.round(gross * 0.02) : 0, coupon = Math.round(gross * 0.015), vat = Math.round(gross / 11);
+    if (!by[ch]) by[ch] = { channel_key: ch, display_name: _KR_CH_NAME[ch], lines: 0, gross_sales: 0, platform_fee: 0, ad_fee: 0, shipping_fee: 0, return_fee: 0, coupon_discount: 0, vat: 0, net_payout: 0 };
+    const r = by[ch]; r.lines += 1; r.gross_sales += gross; r.platform_fee += pfee; r.ad_fee += adf; r.shipping_fee += shipf; r.return_fee += retf; r.coupon_discount += coupon; r.vat += vat;
+    r.net_payout += gross - pfee - adf - shipf - retf - coupon;
+  });
+  const channels = Object.values(by).map(r => ({ ...r, effective_fee_rate_pct: r.gross_sales > 0 ? Math.round((r.gross_sales - r.net_payout) / r.gross_sales * 1000) / 10 : 0 })).sort((a, b) => b.gross_sales - a.gross_sales);
+  const totals = channels.reduce((a, c) => { ['gross_sales', 'platform_fee', 'ad_fee', 'shipping_fee', 'return_fee', 'coupon_discount', 'vat', 'net_payout', 'lines'].forEach(k => a[k] = (a[k] || 0) + c[k]); return a; }, {});
+  totals.effective_fee_rate_pct = totals.gross_sales > 0 ? Math.round((totals.gross_sales - totals.net_payout) / totals.gross_sales * 1000) / 10 : 0;
+  return { ok: true, totals, channels };
+}
 
 const KRW = (v) =>
     v == null ? "—" : new Intl.NumberFormat("ko-KR", { style: "currency", currency: "KRW", maximumFractionDigits: 0 }).format(Number(v));
@@ -306,14 +334,17 @@ function IngestTab() {
 // ── Tab: Summary ──────────────────────────────────────────────────────────────
 function SummaryTab() {
     const t = useT();
+    const { orders } = useGlobalData();
     const [data, setData] = useState(null);
     const [since, setSince] = useState(new Date().toISOString().slice(0, 8) + "01");
     const [until, setUntil] = useState(new Date().toISOString().slice(0, 10));
 
+    // [현 차수] 데모 폴백 — v419 데모 백엔드 부재로 빈 화면이던 것 → 주문 SSOT 파생(기간 since~until 반응).
     const load = useCallback(() => {
+        if (_isDemo) { setData(deriveKrSettleSummary(orders, since, until)); return; }
         getJson(`${API}/v419/kr/settle/summary?since=${since}&until=${until}`)
             .then(setData).catch(() => { });
-    }, [since, until]);
+    }, [since, until, orders]);
     useEffect(load, [load]);
 
     const cols = [

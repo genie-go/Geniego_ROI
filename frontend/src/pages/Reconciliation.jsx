@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import '../styles.css';
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
+import { IS_DEMO } from '../utils/demoEnv'; // [현 차수] 데모 대사 폴백(v419 데모 백엔드 부재)
 import { useNavigate } from 'react-router-dom';
 import { useI18n } from '../i18n';
 import { RECON_GUIDE } from './reconGuideI18n.js';
@@ -113,6 +114,7 @@ function UploadTab({ t, channels }) {
 
 /* ─── Tab2: Reconciliation Run ──────────────────────── */
 function ReconTab({ t, channels, onReconDone }) {
+  const { orders: _gdOrders } = useGlobalData(); // [현 차수] 데모 대사 폴백용 주문 SSOT
   const { fmt: fmtC } = useCurrency(); // [현 차수] 부모 스코프 fmtC 참조 시 ReferenceError 크래시 → 탭별 자체 바인딩
   const today = new Date().toISOString().slice(0, 10);
   const firstDay = today.slice(0, 8) + '01';
@@ -125,6 +127,22 @@ function ReconTab({ t, channels, onReconDone }) {
 
   const handleRun = async () => {
     setLoading(true); setError(''); setResult(null);
+    // [현 차수] 데모 폴백 — v419 데모 백엔드 부재로 결과 0이던 것 → 주문 SSOT 파생(채널·기간 반응). 운영은 실 API.
+    if (IS_DEMO) {
+      const sT = new Date(startDate + 'T00:00:00').getTime(), uT = new Date(endDate + 'T23:59:59').getTime();
+      const win = (_gdOrders || []).filter(o => {
+        const c = o.atISO || o.created_at || (o.month ? o.month + '-01' : null); const d = c ? new Date(c).getTime() : NaN;
+        if (isNaN(d) || d < sT || d > uT) return false;
+        if (/cancel|취소/i.test(String(o.status || ''))) return false;
+        return !channel || channel === 'all' || (o.ch || o.channel) === channel;
+      });
+      const total = win.length;
+      const mismatch = Math.round(total * 0.04); // ~4% 채널보고 vs 내부 불일치(데모 결정적)
+      const grossSum = win.reduce((s, o) => s + Number(o.total || 0), 0);
+      const res = { ok: true, total_orders: total, matched: total - mismatch, mismatch, tickets_created: mismatch, fee_diff_krw: Math.round(grossSum * 0.0015), net_diff_krw: Math.round(grossSum * 0.0008), _demo: true };
+      setResult(res); onReconDone && onReconDone(res);
+      setLoading(false); return;
+    }
     try {
       const data = await postJson(API('/v419/kr/recon/run'), { channel_key: channel, period_start: startDate, period_end: endDate });
       if (data.ok) { setResult(data); onReconDone && onReconDone(data); }
