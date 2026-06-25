@@ -45,7 +45,7 @@ final class Mailer
         // ① SMTP 경로
         if ($cfg['host'] !== '' && $cfg['from'] !== '') {
             try {
-                $r = SmtpClient::send($cfg, $to, $subject, $html);
+                $r = SmtpClient::send($cfg, $to, $subject, $html, (array)($opts['headers'] ?? []));
                 return ['ok' => (bool)$r['ok'], 'mode' => 'smtp', 'detail' => (string)$r['detail']];
             } catch (\Throwable $e) {
                 return ['ok' => false, 'mode' => 'smtp', 'detail' => 'smtp exception: ' . $e->getMessage()];
@@ -59,6 +59,12 @@ final class Mailer
             $headers .= "Reply-To: {$from}\r\n";
             $headers .= "MIME-Version: 1.0\r\n";
             $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
+            // [현 차수] 추가 헤더(List-Unsubscribe 등) — 인젝션 방지.
+            foreach ((array)($opts['headers'] ?? []) as $hk => $hv) {
+                $hk = trim(preg_replace('/[\r\n:]+/', '', (string)$hk));
+                $hv = trim(preg_replace('/[\r\n]+/', ' ', (string)$hv));
+                if ($hk !== '' && $hv !== '') $headers .= "{$hk}: {$hv}\r\n";
+            }
             $enc = '=?UTF-8?B?' . base64_encode($subject) . '?=';
             $ok = @mail($to, $enc, $html, $headers);
             return ['ok' => (bool)$ok, 'mode' => 'sendmail', 'detail' => $ok ? 'queued via mail()' : 'mail() failed'];

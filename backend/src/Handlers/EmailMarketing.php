@@ -63,6 +63,12 @@ class EmailMarketing
                 opened_at VARCHAR(32), clicked_at VARCHAR(32), bounce_reason TEXT, sent_at VARCHAR(32),
                 KEY idx_email_sends_cmp (campaign_id), KEY idx_email_sends_tenant (tenant_id, status)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            // [현 차수] Klaviyo급 딜리버러빌리티 — 수신거부/바운스 Suppression 리스트(컴플라이언스 필수).
+            $pdo->exec("CREATE TABLE IF NOT EXISTS email_suppression (
+                id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo',
+                email VARCHAR(255) NOT NULL, reason VARCHAR(32) DEFAULT 'unsubscribe', source VARCHAR(32) DEFAULT 'user',
+                created_at VARCHAR(32), UNIQUE KEY uq_suppress (tenant_id, email)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
         } else {
             $pdo->exec("CREATE TABLE IF NOT EXISTS email_settings (
                 id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', provider TEXT DEFAULT 'smtp',
@@ -83,10 +89,83 @@ class EmailMarketing
                 bounce_reason TEXT, sent_at TEXT)");
             $pdo->exec("CREATE INDEX IF NOT EXISTS idx_email_sends_cmp ON email_sends(campaign_id)");
             $pdo->exec("CREATE INDEX IF NOT EXISTS idx_email_settings_tenant ON email_settings(tenant_id)");
+            // [현 차수] Suppression 리스트(SQLite).
+            $pdo->exec("CREATE TABLE IF NOT EXISTS email_suppression (
+                id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', email TEXT NOT NULL,
+                reason TEXT DEFAULT 'unsubscribe', source TEXT DEFAULT 'user', created_at TEXT)");
+            $pdo->exec("CREATE UNIQUE INDEX IF NOT EXISTS uq_suppress ON email_suppression(tenant_id, email)");
         }
         foreach (['email_settings','email_templates','email_campaigns','email_sends'] as $tbl) {
             try { $pdo->exec("ALTER TABLE {$tbl} ADD COLUMN tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo'"); } catch (\Throwable $e) {}
         }
+    }
+
+    /* ═══ [현 차수] Klaviyo급 딜리버러빌리티/컴플라이언스 — Suppression·Unsubscribe·개인화 ═══ */
+    private static function appBaseUrl(): string {
+        $u = getenv('APP_PUBLIC_URL') ?: getenv('APP_URL') ?: 'https://roi.genie-go.com';
+        $u = rtrim((string)$u, '/');
+        return ($u === '' || strpos($u, 'http') !== 0) ? 'https://roi.genie-go.com' : $u;
+    }
+    private static function unsubToken(string $tenant, string $email): string {
+        $secret = getenv('APP_KEY') ?: 'genie-unsub-secret-v1';
+        return substr(hash_hmac('sha256', $tenant . '|' . strtolower(trim($email)), $secret), 0, 32);
+    }
+    private static function unsubUrl(string $tenant, string $email): string {
+        return self::appBaseUrl() . '/api/email/unsubscribe?t=' . rawurlencode($tenant)
+            . '&e=' . rawurlencode($email) . '&k=' . self::unsubToken($tenant, $email);
+    }
+    /** 발송 전 수신거부 게이트 — 마케팅 발송 루프가 호출(컴플라이언스 필수). */
+    public static function isSuppressed(\PDO $pdo, string $tenant, string $email): bool {
+        try {
+            $s = $pdo->prepare("SELECT 1 FROM email_suppression WHERE tenant_id=:t AND email=:e LIMIT 1");
+            $s->execute([':t'=>$tenant, ':e'=>strtolower(trim($email))]);
+            return (bool)$s->fetchColumn();
+        } catch (\Throwable $e) { return false; }
+    }
+    /** 멱등 suppression 적재(수신거부·하드바운스·스팸신고). */
+    public static function suppress(\PDO $pdo, string $tenant, string $email, string $reason='unsubscribe', string $source='user'): void {
+        try {
+            $pdo->prepare("INSERT INTO email_suppression (tenant_id,email,reason,source,created_at) VALUES (:t,:e,:r,:s,:c)")
+                ->execute([':t'=>$tenant, ':e'=>strtolower(trim($email)), ':r'=>$reason, ':s'=>$source, ':c'=>self::now()]);
+        } catch (\Throwable $e) { /* unique 충돌 = 이미 등록됨 */ }
+    }
+    /** 개인화 토큰 머지 — {{name}}·{{first_name}}·{{email}} + 커스텀. 미정의 토큰은 제거(원본 노출 금지). */
+    private static function renderTemplate(string $tpl, array $c, array $extra=[]): string {
+        $name = trim((string)($c['name'] ?? ''));
+        $map = [
+            '{{name}}' => $name, '{{이름}}' => $name,
+            '{{first_name}}' => ($name !== '' ? explode(' ', $name)[0] : ''),
+            '{{email}}' => (string)($c['email'] ?? ''),
+        ];
+        foreach ($extra as $k=>$v) $map['{{'.$k.'}}'] = (string)$v;
+        $out = strtr($tpl, $map);
+        return preg_replace('/\{\{\s*[a-zA-Z0-9_가-힣]+\s*\}\}/u', '', $out);
+    }
+    private static function unsubFooter(string $url): string {
+        return '<div style="margin-top:28px;padding-top:16px;border-top:1px solid #e5e7eb;font-size:12px;color:#94a3b8;text-align:center;font-family:system-ui,sans-serif">'
+            . '본 메일은 마케팅 정보 수신에 동의하신 분께 발송되었습니다.<br>'
+            . '<a href="' . htmlspecialchars($url, ENT_QUOTES) . '" style="color:#64748b;text-decoration:underline">수신거부 / Unsubscribe</a></div>';
+    }
+
+    /* ─── GET|POST /email/unsubscribe — 공개(HMAC 토큰 검증). 수신거부 등록 후 HTML 응답. ─── */
+    public static function unsubscribe(Request $req, Response $res): Response {
+        $q = $req->getQueryParams();
+        $tenant = (string)($q['t'] ?? ''); $email = (string)($q['e'] ?? ''); $k = (string)($q['k'] ?? '');
+        $page = function(string $title, string $msg, int $code=200) use ($res) {
+            $html = '<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
+                . '<title>' . $title . '</title><body style="font-family:system-ui,-apple-system,sans-serif;background:#f8fafc;margin:0">'
+                . '<div style="max-width:480px;margin:64px auto;background:#fff;border-radius:16px;padding:40px 32px;text-align:center;box-shadow:0 4px 24px rgba(15,23,42,.06)">'
+                . '<div style="font-size:44px;margin-bottom:12px">📭</div><h1 style="font-size:20px;color:#0f172a;margin:0 0 10px">' . $title . '</h1>'
+                . '<p style="font-size:14px;color:#64748b;line-height:1.7;margin:0">' . $msg . '</p></div></body>';
+            $res->getBody()->write($html);
+            return $res->withHeader('Content-Type', 'text/html; charset=utf-8')->withStatus($code);
+        };
+        if ($tenant === '' || $email === '' || !hash_equals(self::unsubToken($tenant, $email), $k)) {
+            return $page('링크가 유효하지 않습니다', '수신거부 링크가 만료되었거나 올바르지 않습니다.', 400);
+        }
+        self::ensureTables();
+        self::suppress(self::db(), $tenant, $email, 'unsubscribe', 'user');
+        return $page('수신거부 완료', '<strong>' . htmlspecialchars($email) . '</strong> 주소로의 마케팅 이메일 수신이 중단되었습니다.');
     }
 
     /* ─── 설정 GET/PUT ─────────────────────────────────────────────── */
@@ -283,17 +362,22 @@ class EmailMarketing
         }
         $customerList = $cust->fetchAll(\PDO::FETCH_ASSOC);
 
-        $sent = 0; $failed = 0; $mock = 0; $capped = 0;
+        $sent = 0; $failed = 0; $mock = 0; $capped = 0; $suppressed = 0;
         $now = self::now();
         // [240차 약점⑥] 빈도캡 — 과발송 차단(딜리버러빌리티 보호). 설정 1회 로드 후 고객별 평가.
         $freqCfg = CRM::commsFreqConfig($pdo, $tenant);
         foreach ($customerList as $c) {
+            // [현 차수] 컴플라이언스 게이트 — 수신거부/하드바운스 suppression 우선 차단(CAN-SPAM/GDPR 필수).
+            if (self::isSuppressed($pdo, $tenant, (string)$c['email'])) { $suppressed++; continue; }
             if (CRM::isFrequencyCapped($pdo, $tenant, (int)$c['id'], $freqCfg['cap'], $freqCfg['window'])) { $capped++; continue; }
-            $subject = $template ? str_replace('{{name}}', $c['name']??'', (string)($template['subject']??'')) : '(제목 없음)';
-            $body    = $template ? str_replace('{{name}}', $c['name']??'', (string)($template['html_body']??'')) : '';
+            // [현 차수] 개인화 엔진 + 수신거부 풋터/헤더(원클릭 List-Unsubscribe — Gmail/Yahoo 대량발송 요건).
+            $unsubUrl = self::unsubUrl($tenant, (string)$c['email']);
+            $subject = $template ? self::renderTemplate((string)($template['subject']??''), $c) : '(제목 없음)';
+            $body    = $template ? (self::renderTemplate((string)($template['html_body']??''), $c, ['unsubscribe_url'=>$unsubUrl]) . self::unsubFooter($unsubUrl)) : '';
 
             // 실발송 — 테넌트 email_settings SMTP(Mailer). 미설정 시 honest mock_sent.
-            $mr = Mailer::send((string)$c['email'], $subject, $body, ['pdo'=>$pdo, 'tenant'=>$tenant]);
+            $mr = Mailer::send((string)$c['email'], $subject, $body, ['pdo'=>$pdo, 'tenant'=>$tenant,
+                'headers'=>['List-Unsubscribe'=>'<'.$unsubUrl.'>', 'List-Unsubscribe-Post'=>'List-Unsubscribe=One-Click']]);
             if (($mr['mode']??'') === 'unconfigured') { $status='mock_sent'; $mock++; }
             elseif (!empty($mr['ok'])) { $status='sent'; $sent++; }
             else { $status='failed'; $failed++; }
@@ -310,7 +394,7 @@ class EmailMarketing
         $total = count($customerList);
         $pdo->prepare("UPDATE email_campaigns SET status='sent', sent_at=:sa, total_sent=:t WHERE id=:id AND tenant_id=:tn")
             ->execute([':sa'=>$now, ':t'=>$total, ':id'=>$cid, ':tn'=>$tenant]);
-        return self::jsonRes($res, ['ok'=>true,'total'=>$total,'sent'=>$sent,'mock_sent'=>$mock,'failed'=>$failed,'frequency_capped'=>$capped]);
+        return self::jsonRes($res, ['ok'=>true,'total'=>$total,'sent'=>$sent,'mock_sent'=>$mock,'failed'=>$failed,'frequency_capped'=>$capped,'suppressed'=>$suppressed]);
     }
 
     /* ─── GET /email/campaigns/{id}/stats ──────────────────────────── */

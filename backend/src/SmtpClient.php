@@ -18,7 +18,7 @@ final class SmtpClient
      * @param array $cfg host,port,user,pass,from,from_name,secure('tls'|'ssl'|'none'),timeout
      * @return array{ok:bool, code:int, detail:string, trace:array<string>}
      */
-    public static function send(array $cfg, string $to, string $subject, string $html): array
+    public static function send(array $cfg, string $to, string $subject, string $html, array $extraHeaders = []): array
     {
         $host    = (string)($cfg['host'] ?? '');
         $port    = (int)($cfg['port'] ?? 587);
@@ -124,7 +124,7 @@ final class SmtpClient
         [$code] = $read();
         if ($code !== 354) return $fail("DATA code {$code}");
 
-        $msg = self::buildMessage($from, $fromNm, $to, $subject, $html);
+        $msg = self::buildMessage($from, $fromNm, $to, $subject, $html, $extraHeaders);
         fwrite($fp, $msg . "\r\n.\r\n");
         $trace[] = '> [message ' . strlen($msg) . ' bytes]';
         [$code, $resp] = $read();
@@ -137,7 +137,7 @@ final class SmtpClient
     }
 
     /** RFC 5322 헤더 + HTML 본문 조립 (CRLF 정규화 + dot-stuffing). */
-    private static function buildMessage(string $from, string $fromName, string $to, string $subject, string $html): string
+    private static function buildMessage(string $from, string $fromName, string $to, string $subject, string $html, array $extra = []): string
     {
         $encSubject = '=?UTF-8?B?' . base64_encode($subject) . '?=';
         $encFromNm  = '=?UTF-8?B?' . base64_encode($fromName) . '?=';
@@ -154,6 +154,14 @@ final class SmtpClient
             'Content-Type: text/html; charset=UTF-8',
             'Content-Transfer-Encoding: 8bit',
         ];
+        // [현 차수] 추가 헤더(List-Unsubscribe 등) — 헤더 인젝션 방지(CR/LF 제거), 표준 헤더 덮어쓰기 금지.
+        $reserved = ['date','from','to','subject','message-id','mime-version','content-type','content-transfer-encoding'];
+        foreach ($extra as $k => $v) {
+            $k = trim(preg_replace('/[\r\n:]+/', '', (string)$k));
+            $v = trim(preg_replace('/[\r\n]+/', ' ', (string)$v));
+            if ($k === '' || $v === '' || in_array(strtolower($k), $reserved, true)) continue;
+            $headers[] = "{$k}: {$v}";
+        }
 
         // 본문 CRLF 정규화 + dot-stuffing(줄 시작 '.' → '..')
         $body = preg_replace('/\r\n|\r|\n/', "\r\n", $html);
