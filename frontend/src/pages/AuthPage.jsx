@@ -1261,6 +1261,7 @@ function PaidRegisterForm({ selectedPlan, onBack, onSwitch, prefill = {} }) {
  * total payment + savings 표시.
  */
 function CycleSelectorSection({ planCfg, planPeriods, cycleMonths, setCycleMonths }) {
+  const t = useT(); // [245차] 누락된 useT() — 't is not defined' 크래시 수정(유료가입 step3)
   // periods 가 backend 에서 도착하면 그 데이터, 아니면 기본값 산출.
   // backend periods 의 1m row 우선 → planCfg fallback (PAID_PLANS 의 priceFallback 또는 priceMonthly)
   const periodOne = Array.isArray(planPeriods) ? planPeriods.find(p => p.period_months === 1) : null;
@@ -1354,6 +1355,7 @@ function CycleSelectorSection({ planCfg, planPeriods, cycleMonths, setCycleMonth
  * 선택 시 PaidRegisterForm 의 planPeriods 가 해당 계정수 가격으로 갱신 → 기간 가격 실시간 반영.
  */
 function SeatSelectorSection({ planCfg, seatTiers, seatTier, setSeatTier }) {
+  const t = useT(); // [245차] 누락된 useT() — 't is not defined' 크래시 수정
   const color = planCfg?.color || '#6366f1';
   return (
     <div style={{
@@ -1397,6 +1399,7 @@ function SeatSelectorSection({ planCfg, seatTiers, seatTier, setSeatTier }) {
  * admin 이 설정한 menuAccess(제공 서비스) + features(기능) 를 상세 설명과 함께 표시 → 구독 판단 자료.
  */
 function PlanServiceDetail({ planCfg, menuAccess = [], features = [], description = '' }) {
+  const t = useT(); // [245차] 누락된 useT() — 't is not defined' 크래시 수정
   const color = planCfg?.color || '#6366f1';
   // menuAccess(menu_key) → { title, desc } (MENU_KEY_LABEL). 의미있는(설명 있는) 메뉴만, 중복 제거.
   const services = [];
