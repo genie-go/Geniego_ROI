@@ -1,3 +1,47 @@
+# 244차 세션 인계서 — **경쟁 약점 전수 초고도화 (P1~P3 갭종결 + admin UX 2건 + 잔여 3대 기능: 라이브 멀티게스트·이메일 STO/A-B·AIRuleEngine 실배선 / 21커밋 전부 운영·데모 배포·검증 / 브랜치 push, master 미접촉)**
+
+> **작성일**: 2026-06-26 (사용자 명시 승인) · 운영 roi.genie-go.com / 데모 roidemo.genie-go.com · primary=**E:\project\GeniegoROI** · 브랜치 `feat/n236-admin-growth-automation` · ★**master 미접촉**(자동배포 미트리거).
+> 발단: 직전 인계서(`04ed48af`)의 "경쟁 약점 P1·P2·P3 종결" 로드맵 실행 + 경쟁사 재평가에서 도출된 약점 전체 초고도화.
+
+## ✅ 244차 작업 요약 (21커밋 · 전부 운영/데모 수동배포·HTTPS 검증)
+
+**P1 측정정확도** (`d80835c`): Shapley/MMM 운영 실데이터 배선(`/v424/mmm/series` TS_DATA·journeys revenue 조인 LEFT JOIN channel_orders) + 오픈API 이벤트 5종 emit(order.created/cancelled·settlement.created·conversion.recorded·attribution.computed).
+
+**P2 보안·입도** (`bc1fca6`·`2410457`·`8055a98`·`643d6c4`): PG크립토 **AES-256-GCM 통일**(CBC+평문폴백 제거·legacy CBC 복호 폴백) + 키워드/검색어 입도(Google keyword_view GAQL·Naver SA `/ncc/keywords`→`/stats`, **별도 keyword_insight 테이블=이중계산 회피**) + **ABAC data_scope 쿼리 강제**(저장만→실 행필터, `TeamPermissions::effectiveScope/scopeValuesFor/scopeSql` 프레임워크, WMS warehouse 차원 적용) + 이메일 임베드 오픈/클릭 추적(발송HTML 픽셀+링크리라이팅·**POST→GET 비콘 신설**).
+
+**P3 정직·완결** (`bc1fca6`·`97d939e`·`1b3454a`): 국내 PG정산 4종(이니시스·KCP·카카오·네이버페이) 신용게이트 + WMS **FEFO lot 실소비**(`consumeLotsFefo`·자동발주는 DemandForecast 정본=중복회피) + dead `/api/carrier-track`→실엔드포인트·**가짜성공 제거** + CAPI 전달확인(5매체 2xx만 forwarded 표기·실패 로그=EMQ식).
+
+**admin UX 2건** (`ec7bf3d`): admin 자동로그인 체크박스(genie_admin_autologin) + 전 접속 Arctic White 강제(main.jsx).
+
+**잔여 3대 기능 (이번 라운드 핵심)**:
+- **라이브 멀티게스트** (`8bf4c3a`·`4f9c03a`): `live_guests` 테이블 + 다중진행자 control-plane(초대·**공개 토큰참여**·역할 host/cohost/guest·SSE 참여/퇴장) + GuestsTab UI. ★영상합성=외부 미디어서버(SRS/LiveKit) 위임(정직, control-plane만 코드). e2e PASS.
+- **이메일 STO+A/B** (`998a203`): 수신자별 최적발송시각(`optimalHourFor`=과거 오픈 KST 최빈·이력<2 미적용·runQueue sto_hour 매칭) + 제목 A/B(uid 결정론적 50/50·variant B 제목) + **베이지안 자동승자**(`/email/campaigns/{id}/ab-result` 오픈율 P(B>A) Beta-Binomial 정규근사·최소표본50·95% 신뢰).
+- **AIRuleEngine 실배선** (`0319371`·`4995810`): 데모스텁→**실 범용 IF-THEN 룰엔진**(`RuleEngine.php` 신규). 5메트릭(channel_roas/spend/conversions·sku_stock·low_stock_count, performance_metrics/wms_stock 실쿼리)·4액션(alert/webhook/pause_channel/reorder)·`rule_engine_cron.php`(10/13분, 데모skip)·실행로그·KPI. AIRuleEngine.jsx 실배선(CRUD·토글·즉시평가·로그). ★데이터 없으면 평가 보류=거짓트리거 0.
+
+## 🏆 경쟁사 재평가 (세션 시작 83 → **88/90, 격차 −2pt**)
+- 전환된 우위: **CRM·이메일 93**(STO·A/B·임베드추적·markov)·**라이브커머스 84**(멀티게스트, 최대갭 해소)·**AI 88**(룰엔진 실배선)·**오픈API 88**(이벤트 1→6/6).
+- 남은 −2pt = **외부 의존**(PG 라이브키·라이브 영상 infra·일부 커넥터 라이브검증) — 코드는 완비, 자격증명/infra만 대기.
+
+## ★244차 핵심 트랩/교훈
+- **정밀검증으로 실 결함 4건 발견**(lint 무탐지): `httpPostForm`/`jsonResp` 미존재 메서드 fatal·키워드 엔드포인트 401 미bypass·이메일 추적 POST↔GET 불일치(픽셀 불가). **중복 2건 회피**: WMS 자동발주(DemandForecast 정본)·룰엔진 reorder(신호만).
+- **이메일 추적은 GET 필수**: 픽셀(img)·클릭(네비)은 GET. 기존 POST track/open·click 으로는 영원히 호출 0. GET open.gif(1x1)·click(302) 신설.
+- **ABAC scope_values=admin 자유입력 ID**(TeamMembers 쉼표구분). warehouse는 wh_id 매칭. owner/admin·company·미설정=null(무제한·무회귀).
+- **PS샌드박스**: 배포는 파일작성→pscp→plink(bash sed CRLF strip). `rm -rf` 인라인은 로컬삭제 오탐→스크립트파일만. PowerShell env var 호출간 비영속→자격+pscp/plink 한 블록.
+- 기존 유지: opcache=fpm restart·`$register`+bypass 3종세트·신규핸들러 fpm restart·tar 정방향슬래시.
+
+## 📋 잔여 작업 우선순위
+- **P1 — i18n 15개국**: 신규 UI 키 `liveCommerce.guest*`(~16)·`aiRuleEngine.*`(~30) 현재 한국어 소스 임베드+graceful 폴백. 번역 워크플로우(CC추천→사용자확정→적용) 대상. *14개국 fallback 경고 해소 필요.*
+- **P2 — 외부 의존 라이브검증**: PG 라이브키(TOSS_SECRET_KEY 등)·커넥터 자격증명 등록 시 즉시 라이브검증(코드 완비). 라이브 영상 멀티게스트=외부 미디어서버(SRS/LiveKit) 연동(control-plane 완료).
+- **P2 — 이메일 STO/A-B 프론트**: 백엔드 완료, 캠페인 생성 UI에 subject_b/ab_test 입력 + ab-result 대시보드 추가.
+- **P2 — ABAC 타 차원**: warehouse 외 brand/product/channel 차원 핸들러 적용(프레임워크 재사용, `scopeSql` 호출만).
+
+## 🚀 배포/커밋/푸시 상태
+- 이번 세션 **21커밋**(`d80835c`~`4995810`) + 본 인계서. 브랜치 `feat/n236-admin-growth-automation`.
+- 운영/데모 **전부 수동배포·검증 완료**(php -l·빌드 PASS·e2e: 멀티게스트 토큰참여·이메일 ab-result·룰엔진 평가·CAPI 응답확인). 백엔드 `.bak_n249*`, 프론트 `dist.bak_*`.
+- **GitHub push 완료**(브랜치, master 미접촉=자동배포 미트리거). cron: rule_engine 10/13분 등록.
+
+---
+
 # 243차 세션 인계서 — **특정상품 Product Intelligence 초고도화 (크래시수정 + 정직표기 + 순이익엔진 + 채널×상품 매트릭스 + Funnel + 경쟁사 통합 / 전부 운영·데모 배포·HTTPS 검증 / 브랜치 2커밋+인계서, master 미접촉, push)**
 
 > **작성일**: 2026-06-25 (사용자 명시 승인) · 운영 roi.genie-go.com / 데모 roidemo.genie-go.com · primary=**E:\project\GeniegoROI** · 브랜치 `feat/n236-admin-growth-automation` · ★**master 미접촉**.
