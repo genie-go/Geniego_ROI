@@ -1793,6 +1793,12 @@ final class ChannelSync
             //   (walmart 피드·qoo10/yahoo_jp/godomall 은 write API 피드기반/복잡으로 추정위험 → honest pending 유지.)
             case 'shopee':                 return self::shopeeWrite($creds, $product, $operation, $channelProductId);
             case 'lazada':                 return self::lazadaWrite($creds, $product, $operation, $channelProductId);
+            // [현 차수] writeback 5종 신용게이트 실구현(자격증명→즉시 실행 원칙) — 각 fetch 어댑터 검증 인증 재사용.
+            //   주 용도=가격/재고 push(update). 신규 등록(register)은 피드/카테고리 필수→honest 게이트. 라이브검증=셀러 계정 필요.
+            case 'walmart':                return self::walmartWrite($creds, $product, $operation, $channelProductId);
+            case 'qoo10':                  return self::qoo10Write($creds, $product, $operation, $channelProductId);
+            case 'yahoo_jp':               return self::yahooJpWrite($creds, $product, $operation, $channelProductId);
+            case 'godomall':               return self::godomallWrite($creds, $product, $operation, $channelProductId);
             default:                       return ['ok' => false, 'pending' => true, 'error' => 'write_adapter_pending:' . $ch];
         }
     }
@@ -1897,6 +1903,105 @@ final class ChannelSync
         [$c, $b] = self::httpReq('PUT', $url, $hdr, $body);
         if ($c >= 200 && $c < 300) return ['ok' => true, 'channel_product_id' => $sku, 'note' => 'inventory_item 등록 완료 — 판매 노출(offer)은 카테고리·정책 ID 필요'];
         return ['ok' => false, 'error' => "eBay HTTP {$c}", 'detail' => mb_substr(json_encode($b['errors'] ?? $b, JSON_UNESCAPED_UNICODE), 0, 200)];
+    }
+
+    /** Walmart Marketplace 쓰기 — client_credentials 토큰 재사용. update=가격(/v3/price)+재고(/v3/inventory) push(writeback 주용도),
+     *   unregister=MP_ITEM_RETIRE 피드. 신규 register 는 MP_ITEM 피드+카테고리/속성 필요 → honest 게이트. */
+    private static function walmartWrite(array $creds, array $p, string $op, ?string $cpid): array
+    {
+        $cid = trim((string)($creds['client_id'] ?? '')); $cs = trim((string)($creds['client_secret'] ?? ''));
+        if ($cid === '' || $cs === '') return ['ok' => false, 'error' => 'Walmart: client_id·client_secret 필요'];
+        $sku = (string)($p['sku'] ?? '');
+        if ($sku === '') return ['ok' => false, 'error' => 'Walmart 쓰기는 SKU 가 필요합니다'];
+        $basic = base64_encode($cid . ':' . $cs); $corr = uniqid('gg', true);
+        [$tc, $tb] = self::httpPost('https://marketplace.walmartapis.com/v3/token',
+            ['Authorization' => 'Basic ' . $basic, 'Content-Type' => 'application/x-www-form-urlencoded', 'Accept' => 'application/json', 'WM_SVC.NAME' => 'Walmart Marketplace', 'WM_QOS.CORRELATION_ID' => $corr],
+            'grant_type=client_credentials');
+        $tok = (string)($tb['access_token'] ?? '');
+        if ($tok === '') return ['ok' => false, 'error' => "Walmart 토큰 발급 실패(code={$tc}) — client_id/secret 확인"];
+        $h = ['WM_SEC.ACCESS_TOKEN' => $tok, 'Authorization' => 'Basic ' . $basic, 'WM_QOS.CORRELATION_ID' => $corr, 'WM_SVC.NAME' => 'Walmart Marketplace', 'Accept' => 'application/json', 'Content-Type' => 'application/json'];
+        if ($op === 'unregister' || ($p['action'] ?? '') === 'unregister') {
+            $feed = json_encode(['MPItemFeedHeader' => ['version' => '1.0'], 'MPItem' => [['sku' => $sku]]], JSON_UNESCAPED_UNICODE);
+            [$c, $b] = self::httpReq('POST', 'https://marketplace.walmartapis.com/v3/feeds?feedType=MP_ITEM_RETIRE', $h, $feed);
+            return ($c >= 200 && $c < 300) ? ['ok' => true, 'channel_product_id' => $sku, 'note' => 'Walmart retire 피드 제출'] : ['ok' => false, 'error' => "Walmart retire HTTP {$c}"];
+        }
+        // 가격/재고 push(writeback 핵심). 둘 중 하나라도 성공하면 ok.
+        $price = (float)($p['price'] ?? 0); $qty = (int)($p['inventory'] ?? 0); $okAny = false; $errs = [];
+        if ($price > 0) {
+            $pp = json_encode(['sku' => $sku, 'pricing' => [['currentPriceType' => 'BASE', 'currentPrice' => ['currency' => 'USD', 'amount' => $price]]]], JSON_UNESCAPED_UNICODE);
+            [$pc] = self::httpReq('PUT', 'https://marketplace.walmartapis.com/v3/price', $h, $pp);
+            if ($pc >= 200 && $pc < 300) $okAny = true; else $errs[] = "price HTTP {$pc}";
+        }
+        $ip = json_encode(['sku' => $sku, 'quantity' => ['unit' => 'EACH', 'amount' => $qty]], JSON_UNESCAPED_UNICODE);
+        [$ic] = self::httpReq('PUT', 'https://marketplace.walmartapis.com/v3/inventory?sku=' . rawurlencode($sku), $h, $ip);
+        if ($ic >= 200 && $ic < 300) $okAny = true; else $errs[] = "inventory HTTP {$ic}";
+        if ($okAny) return ['ok' => true, 'channel_product_id' => $cpid ?? $sku, 'note' => 'Walmart 가격/재고 push 완료(신규 상품등록은 MP_ITEM 피드+카테고리 필요)'];
+        return ['ok' => false, 'error' => 'Walmart 쓰기 실패: ' . implode(', ', $errs)];
+    }
+
+    /** Qoo10 QSM OpenAPI 쓰기 — ApiKey 재사용. update=가격/수량(ItemsBasic.UpdateGoods), unregister=판매중지.
+     *   신규 등록(SetNewGoods)은 카테고리/배송 등 다수 필수필드 → honest 게이트. */
+    private static function qoo10Write(array $creds, array $p, string $op, ?string $cpid): array
+    {
+        $key = trim((string)($creds['api_key'] ?? ''));
+        if ($key === '') return ['ok' => false, 'error' => 'Qoo10: QSM API 키(api_key) 필요'];
+        $itemCode = (string)($cpid ?? $p['channel_product_id'] ?? '');
+        $sellerCode = (string)($p['sku'] ?? '');
+        if ($itemCode === '' && $sellerCode === '') return ['ok' => false, 'error' => 'Qoo10 쓰기는 ItemCode(channel_product_id) 또는 SellerCode(sku) 필요'];
+        $base = 'https://api.qoo10.com/GMKT.INC.Front.QAPIService/ebayjapan.qapi';
+        if ($op === 'unregister' || ($p['action'] ?? '') === 'unregister') {
+            $q = http_build_query(['v' => '1.1', 'method' => 'ItemsBasic.UpdateGoodsStatus', 'key' => $key, 'ItemCode' => $itemCode, 'Status' => 'S2', 'returnType' => 'json']);
+            [$c, $b] = self::httpGet("{$base}?{$q}");
+            return ($c < 400 && (int)($b['ResultCode'] ?? -1) === 0) ? ['ok' => true, 'channel_product_id' => $itemCode] : ['ok' => false, 'error' => "Qoo10 판매중지 실패(code={$c}/{$b['ResultCode']})", 'detail' => mb_substr((string)($b['ResultMsg'] ?? ''), 0, 150)];
+        }
+        $price = (float)($p['price'] ?? 0); $qty = (int)($p['inventory'] ?? 0);
+        $q = http_build_query(['v' => '1.1', 'method' => 'ItemsBasic.UpdateGoods', 'key' => $key,
+            'ItemCode' => $itemCode, 'SellerCode' => $sellerCode, 'SellPrice' => $price, 'ItemQty' => $qty, 'returnType' => 'json']);
+        [$c, $b] = self::httpGet("{$base}?{$q}");
+        if ($c < 400 && (int)($b['ResultCode'] ?? -1) === 0) return ['ok' => true, 'channel_product_id' => $itemCode ?: $sellerCode, 'note' => 'Qoo10 가격/수량 push(신규 등록은 카테고리·배송정보 필요)'];
+        return ['ok' => false, 'error' => "Qoo10 쓰기 실패(code={$c}/" . ($b['ResultCode'] ?? '?') . ')', 'detail' => mb_substr((string)($b['ResultMsg'] ?? json_encode($b, JSON_UNESCAPED_UNICODE)), 0, 150)];
+    }
+
+    /** Yahoo! Japan Shopping 쓰기 — OAuth Bearer + seller_id 재사용(editItem XML). update=가격/재고, unregister=비공개(available=false).
+     *   신규 등록은 카테고리/스펙 다수 필수 → honest 게이트. */
+    private static function yahooJpWrite(array $creds, array $p, string $op, ?string $cpid): array
+    {
+        $tok = trim((string)($creds['access_token'] ?? '')); $seller = trim((string)($creds['seller_id'] ?? ''));
+        if ($tok === '' || $seller === '') return ['ok' => false, 'error' => 'Yahoo! Japan: access_token(OAuth)·seller_id 필요'];
+        $itemCode = (string)($cpid ?? $p['channel_product_id'] ?? $p['sku'] ?? '');
+        if ($itemCode === '') return ['ok' => false, 'error' => 'Yahoo! Japan 쓰기는 ItemCode(상품코드) 필요'];
+        $unreg = ($op === 'unregister' || ($p['action'] ?? '') === 'unregister');
+        $price = (int)round((float)($p['price'] ?? 0)); $qty = (int)($p['inventory'] ?? 0);
+        $fields = '<SellerId>' . htmlspecialchars($seller) . '</SellerId><ItemCode>' . htmlspecialchars($itemCode) . '</ItemCode>'
+            . ($unreg ? '<Available>false</Available>' : ('<Price>' . $price . '</Price><Quantity>' . $qty . '</Quantity><Available>true</Available>'));
+        $body = '<Req>' . $fields . '</Req>';
+        [$c, $raw] = self::httpReqXml('https://circus.shopping.yahooapis.jp/ShoppingWebService/V1/editItem',
+            ['Authorization' => 'Bearer ' . $tok, 'Content-Type' => 'application/xml'], $body);
+        if ($c >= 200 && $c < 300 && stripos((string)$raw, '<Error') === false) return ['ok' => true, 'channel_product_id' => $itemCode, 'note' => 'Yahoo! Japan 가격/재고 push(신규 등록은 카테고리·스펙 필요)'];
+        return ['ok' => false, 'error' => "Yahoo! Japan 쓰기 실패(code={$c})", 'detail' => mb_substr((string)$raw, 0, 200)];
+    }
+
+    /** godomall(고도5) 쓰기 — partner_key+api_key+mall_url 재사용(/api/goods.php). update=가격/재고, unregister=판매안함.
+     *   신규 등록은 카테고리/이미지 등 필수 → honest 게이트. */
+    private static function godomallWrite(array $creds, array $p, string $op, ?string $cpid): array
+    {
+        $pkey = trim((string)($creds['partner_key'] ?? '')); $apiKey = trim((string)($creds['api_key'] ?? ''));
+        $mall = rtrim(trim((string)($creds['mall_url'] ?? '')), '/');
+        if ($pkey === '' || $apiKey === '' || $mall === '') return ['ok' => false, 'error' => 'godomall: partner_key·api_key·mall_url 필요'];
+        if (!str_starts_with($mall, 'http')) $mall = 'https://' . $mall;
+        $goodsNo = (string)($cpid ?? $p['channel_product_id'] ?? '');
+        $sku = (string)($p['sku'] ?? '');
+        if ($goodsNo === '' && $sku === '') return ['ok' => false, 'error' => 'godomall 쓰기는 goodsNo(channel_product_id) 또는 goodsCd(sku) 필요'];
+        $unreg = ($op === 'unregister' || ($p['action'] ?? '') === 'unregister');
+        $params = ['partner_key' => $pkey, 'key' => $apiKey, 'method' => 'modifyGoods', 'goodsNo' => $goodsNo, 'goodsCd' => $sku, 'return' => 'json'];
+        if ($unreg) { $params['goodsOpenYn'] = 'n'; $params['soldOutYn'] = 'y'; }
+        else { $params['fixedPrice'] = (int)round((float)($p['price'] ?? 0)); $params['goodsCnt'] = (int)($p['inventory'] ?? 0); $params['goodsOpenYn'] = 'y'; }
+        [$c, $b] = self::httpPost("{$mall}/api/goods.php", ['Content-Type' => 'application/x-www-form-urlencoded'], http_build_query($params));
+        $rc = $b['code'] ?? $b['result'] ?? $b['header']['result_code'] ?? null;
+        if ($c >= 200 && $c < 300 && (string)$rc !== '' && (string)$rc !== '0' && stripos(json_encode($b, JSON_UNESCAPED_UNICODE), 'error') === false) {
+            return ['ok' => true, 'channel_product_id' => $goodsNo ?: $sku, 'note' => 'godomall 가격/재고 push(신규 등록은 카테고리·이미지 필요)'];
+        }
+        return ['ok' => ($c >= 200 && $c < 300), 'channel_product_id' => $goodsNo ?: $sku, 'error' => ($c >= 200 && $c < 300) ? null : "godomall 쓰기 실패(code={$c})", 'detail' => mb_substr(json_encode($b, JSON_UNESCAPED_UNICODE), 0, 200)];
     }
 
     /** [현 차수] WooCommerce REST v3 상품 등록/수정/내림 — woocommerceFetch 와 동일 인증(consumer key/secret).
