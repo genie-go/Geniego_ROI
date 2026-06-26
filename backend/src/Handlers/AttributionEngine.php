@@ -195,6 +195,109 @@ final class AttributionEngine
     }
 
     /**
+     * [R-P1-1] GET /v424/attribution/blended — 3개 증분성 신호(Markov 제거효과·MMM Bayesian 사후·Holdout 검증)를
+     *   채널별 단일 "통합 증분 기여도 + 신뢰도"로 블렌딩. markov·MMM 은 cross-channel share(신뢰도 가중평균),
+     *   holdout 은 per-channel 인과검증(share 비반영·신뢰도 가중). 의사결정자가 "어느 채널을 믿고 증/감액할지"를
+     *   단일 수치(blended_trust·confidence_grade)로 판단. 전부 실DB 파생(날조 0, 신호 부족 시 graceful 생략).
+     */
+    public static function blendedIncrementality(Request $request, Response $response, array $args): Response
+    {
+        $start = microtime(true);
+        $t = self::tenant($request);
+        $empty = ['channels' => [], 'decision_confidence' => 0, 'signals_available' => []];
+        if ($t === '') return self::ok($response, $empty + ['response_time_ms' => self::elapsed($start)]);
+        try {
+            $q = $request->getQueryParams();
+            $window = max(1, min(730, (int)($q['window'] ?? self::DEFAULT_WINDOW)));
+            $pdo = Db::pdo();
+
+            // ── 신호1: Markov(증분) share + 부트스트랩 신뢰도 ──
+            [$conv, $null] = self::loadJourneys($pdo, $t, $window);
+            $models = self::computeModels($conv, $null);
+            $totalConv = (float)($models['total_conversions'] ?? 0);
+            $mkShare = []; $disp = [];
+            foreach (($models['models']['markov'] ?? []) as $e) {
+                $c = (string)$e['channel']; $lc = strtolower($c); $disp[$lc] = $c;
+                $mkShare[$lc] = $totalConv > 0 ? (float)($e['conversions'] ?? 0) / $totalConv : 0.0;
+            }
+            $mkTrust = []; $channelSet = [];
+            foreach (array_keys($mkShare) as $lc) $channelSet[$disp[$lc]] = true;
+            if (!empty($channelSet) && count($conv) > 0) {
+                foreach (self::confidenceIntervals($conv, $null, $totalConv, $channelSet, 30) as $ci) {
+                    $mkTrust[strtolower((string)$ci['channel'])] = round(1.0 / (1.0 + (float)($ci['cv'] ?? 0)), 3);
+                }
+            }
+
+            // ── 신호2: MMM Bayesian 사후 기여 share + trust ──
+            $mmmShare = []; $mmmTrust = [];
+            try {
+                $post = Mmm::posteriorData($t, max(14, $window));
+                foreach (($post['channels'] ?? []) as $c) {
+                    $lc = strtolower((string)$c['channel']); if (!isset($disp[$lc])) $disp[$lc] = (string)$c['channel'];
+                    $mmmShare[$lc] = (float)($c['contribution_share'] ?? 0);
+                    $mmmTrust[$lc] = (float)($c['trust'] ?? 0);
+                }
+            } catch (\Throwable $e) { /* MMM 데이터 부족 — 신호 생략 */ }
+
+            // ── 신호3: Holdout 인과검증(채널별 최신 concluded) ──
+            $hold = [];
+            try {
+                self::ensureExpTable($pdo);
+                $st = $pdo->prepare("SELECT channel, result_json FROM holdout_experiment WHERE tenant_id=? AND status='concluded' AND channel<>'' ORDER BY updated_at DESC");
+                $st->execute([$t]);
+                foreach ($st->fetchAll(PDO::FETCH_ASSOC) ?: [] as $r) {
+                    $lc = strtolower((string)$r['channel']); if ($lc === '' || isset($hold[$lc])) continue;
+                    $res = json_decode((string)($r['result_json'] ?? ''), true);
+                    if (!is_array($res)) continue;
+                    $p = (float)($res['p_value'] ?? 1.0);
+                    $hold[$lc] = ['lift' => $res['lift_relative_pct'] ?? null, 'sig' => !empty($res['significant']),
+                        'trust' => round(max(0.0, min(1.0, -log10(max($p, 1e-6)) / 3.0)), 3)];
+                    if (!isset($disp[$lc])) $disp[$lc] = (string)$r['channel'];
+                }
+            } catch (\Throwable $e) { /* graceful */ }
+
+            // ── 블렌딩 ──
+            $rows = []; $signalsUsed = [];
+            foreach (array_keys(array_merge($mkShare, $mmmShare, $hold)) as $lc) {
+                $signals = []; $wsum = 0.0; $shareSum = 0.0; $trusts = [];
+                if (isset($mkShare[$lc])) { $tr = $mkTrust[$lc] ?? 0.5; $signals[] = 'markov'; $wsum += $tr; $shareSum += $tr * $mkShare[$lc]; $trusts[] = $tr; }
+                if (isset($mmmShare[$lc])) { $tr = $mmmTrust[$lc] ?? 0.5; $signals[] = 'mmm'; $wsum += $tr; $shareSum += $tr * $mmmShare[$lc]; $trusts[] = $tr; }
+                $blendedShare = $wsum > 0 ? $shareSum / $wsum : 0.0;
+                if (isset($hold[$lc])) { $signals[] = 'holdout'; $trusts[] = $hold[$lc]['trust']; }
+                $coverage = count($signals) / 3.0;
+                $avgTrust = $trusts ? array_sum($trusts) / count($trusts) : 0.0;
+                $blendedTrust = round($avgTrust * (0.6 + 0.4 * $coverage), 3);
+                foreach ($signals as $s) $signalsUsed[$s] = true;
+                $rows[] = [
+                    'channel' => $disp[$lc] ?? $lc,
+                    'blended_incremental_share' => round($blendedShare * 100, 1),
+                    'markov_share' => isset($mkShare[$lc]) ? round($mkShare[$lc] * 100, 1) : null,
+                    'mmm_share' => isset($mmmShare[$lc]) ? round($mmmShare[$lc] * 100, 1) : null,
+                    'holdout_lift_pct' => $hold[$lc]['lift'] ?? null,
+                    'holdout_significant' => isset($hold[$lc]) ? $hold[$lc]['sig'] : null,
+                    'blended_trust' => $blendedTrust,
+                    'confidence_grade' => $blendedTrust >= 0.7 ? 'high' : ($blendedTrust >= 0.45 ? 'medium' : 'low'),
+                    'contributing_signals' => $signals,
+                    'signal_count' => count($signals),
+                ];
+            }
+            usort($rows, fn($a, $b) => $b['blended_incremental_share'] <=> $a['blended_incremental_share']);
+            $dc = 0.0; $sw = 0.0;
+            foreach ($rows as $r) { $w = (float)$r['blended_incremental_share']; $dc += $w * (float)$r['blended_trust']; $sw += $w; }
+            return self::ok($response, [
+                'channels' => $rows,
+                'decision_confidence' => $sw > 0 ? round($dc / $sw * 100, 1) : 0.0,
+                'signals_available' => array_keys($signalsUsed),
+                'window_days' => $window,
+                'note' => '3개 증분성 신호(Markov 제거효과·MMM Bayesian 사후·Holdout 검증)의 신뢰도 가중 통합. holdout 은 share 비반영·신뢰도 가중.',
+                'response_time_ms' => self::elapsed($start),
+            ]);
+        } catch (Throwable $e) {
+            return self::fail($response, $e, $empty);
+        }
+    }
+
+    /**
      * [현 차수 P4] POST /v424/attribution/lift-test — 홀드아웃 리프트 테스트 분석(2-비율 z검정).
      *
      * 실제 홀드아웃(control=노출제외, treatment=노출) 전환 결과를 입력하면 리프트%·95% 신뢰구간·p값·유의성을
@@ -285,6 +388,10 @@ final class AttributionEngine
                 created_at TEXT, updated_at TEXT
             )");
         } catch (\Throwable $e) { /* graceful */ }
+        // [R-P1-1] geo 홀드아웃 표준화 — 지역 기반 실험 컬럼(없으면 추가, graceful).
+        foreach (['geo_strategy' => "VARCHAR(20) DEFAULT 'national'", 'geo_regions' => 'TEXT', 'geo_results' => 'TEXT'] as $col => $type) {
+            try { $pdo->exec("ALTER TABLE holdout_experiment ADD COLUMN $col $type"); } catch (\Throwable $e) { /* 이미 존재 */ }
+        }
     }
 
     private static function expRow(array $r): array
@@ -297,9 +404,13 @@ final class AttributionEngine
             'revenue_per_conversion' => (float)$r['revenue_per_conversion'],
             'start_date' => (string)($r['start_date'] ?? ''), 'end_date' => (string)($r['end_date'] ?? ''),
             'created_at' => (string)($r['created_at'] ?? ''), 'updated_at' => (string)($r['updated_at'] ?? ''),
+            'geo_strategy' => (string)($r['geo_strategy'] ?? 'national'),
+            'geo_regions' => (string)($r['geo_regions'] ?? ''),
         ];
         $res = json_decode((string)($r['result_json'] ?? ''), true);
         $out['result'] = is_array($res) ? $res : null;
+        $geo = json_decode((string)($r['geo_results'] ?? ''), true);
+        $out['geo_results'] = is_array($geo) ? $geo : null;
         return $out;
     }
 
@@ -327,11 +438,13 @@ final class AttributionEngine
             $name = trim((string)($b['name'] ?? ''));
             if ($name === '') return self::ok($response, ['ok' => false, 'error' => '실험명을 입력하세요.']);
             $pdo = Db::pdo(); self::ensureExpTable($pdo); $now = gmdate('c');
-            $st = $pdo->prepare("INSERT INTO holdout_experiment(tenant_id,name,channel,hypothesis,status,control_size,treatment_size,revenue_per_conversion,start_date,end_date,created_at,updated_at)
-                                 VALUES(?,?,?,?,?,?,?,?,?,?,?,?)");
+            $geoStrategy = in_array(($b['geo_strategy'] ?? 'national'), ['national', 'regional', 'demographic'], true) ? (string)$b['geo_strategy'] : 'national';
+            $geoRegions = is_array($b['geo_regions'] ?? null) ? implode(',', array_map('strval', $b['geo_regions'])) : substr((string)($b['geo_regions'] ?? ''), 0, 500);
+            $st = $pdo->prepare("INSERT INTO holdout_experiment(tenant_id,name,channel,hypothesis,status,control_size,treatment_size,revenue_per_conversion,start_date,end_date,geo_strategy,geo_regions,created_at,updated_at)
+                                 VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
             $st->execute([$t, substr($name, 0, 200), substr((string)($b['channel'] ?? ''), 0, 60), substr((string)($b['hypothesis'] ?? ''), 0, 500),
                 'draft', (float)($b['control_size'] ?? 0), (float)($b['treatment_size'] ?? 0), (float)($b['revenue_per_conversion'] ?? 0),
-                substr((string)($b['start_date'] ?? ''), 0, 20), substr((string)($b['end_date'] ?? ''), 0, 20), $now, $now]);
+                substr((string)($b['start_date'] ?? ''), 0, 20), substr((string)($b['end_date'] ?? ''), 0, 20), $geoStrategy, $geoRegions, $now, $now]);
             return self::ok($response, ['ok' => true, 'id' => (int)$pdo->lastInsertId()]);
         } catch (Throwable $e) { return self::fail($response, $e, ['ok' => false]); }
     }
@@ -362,8 +475,26 @@ final class AttributionEngine
             if ($status === 'concluded' && $cs > 0 && $ts > 0 && $cc <= $cs && $tc <= $ts) {
                 $resultJson = json_encode(self::computeLift($cc, $cs, $tc, $ts, $rpc), JSON_UNESCAPED_UNICODE);
             }
-            $up = $pdo->prepare("UPDATE holdout_experiment SET status=?, control_size=?, treatment_size=?, control_conversions=?, treatment_conversions=?, revenue_per_conversion=?, result_json=?, updated_at=? WHERE id=? AND tenant_id=?");
-            $up->execute([$status, $cs, $ts, $cc, $tc, $rpc, $resultJson, gmdate('c'), $id, $t]);
+            // [R-P1-1] geo 홀드아웃 — 지역별 control/treatment 입력 시 지역 서브그룹 리프트 자동검정(이질성 포착).
+            $geoStrategy = in_array(($b['geo_strategy'] ?? ($row['geo_strategy'] ?? 'national')), ['national', 'regional', 'demographic'], true)
+                ? (string)($b['geo_strategy'] ?? $row['geo_strategy'] ?? 'national') : 'national';
+            $geoRegions = array_key_exists('geo_regions', $b)
+                ? (is_array($b['geo_regions']) ? implode(',', array_map('strval', $b['geo_regions'])) : substr((string)$b['geo_regions'], 0, 500))
+                : (string)($row['geo_regions'] ?? '');
+            $geoResults = $row['geo_results'] ?? null;
+            if (is_array($b['geo_breakdown'] ?? null)) {
+                $gr = [];
+                foreach ($b['geo_breakdown'] as $g) {
+                    $g = (array)$g;
+                    $gcs = (float)($g['control_size'] ?? 0); $gts = (float)($g['treatment_size'] ?? 0);
+                    $gcc = (float)($g['control_conversions'] ?? 0); $gtc = (float)($g['treatment_conversions'] ?? 0);
+                    if ($gcs <= 0 || $gts <= 0 || $gcc > $gcs || $gtc > $gts) continue;
+                    $gr[] = ['region' => substr((string)($g['region'] ?? ''), 0, 60)] + self::computeLift($gcc, $gcs, $gtc, $gts, $rpc);
+                }
+                $geoResults = $gr ? json_encode($gr, JSON_UNESCAPED_UNICODE) : $geoResults;
+            }
+            $up = $pdo->prepare("UPDATE holdout_experiment SET status=?, control_size=?, treatment_size=?, control_conversions=?, treatment_conversions=?, revenue_per_conversion=?, result_json=?, geo_strategy=?, geo_regions=?, geo_results=?, updated_at=? WHERE id=? AND tenant_id=?");
+            $up->execute([$status, $cs, $ts, $cc, $tc, $rpc, $resultJson, $geoStrategy, $geoRegions, $geoResults, gmdate('c'), $id, $t]);
             $cur->execute([$id, $t]);
             return self::ok($response, ['ok' => true, 'experiment' => self::expRow($cur->fetch(PDO::FETCH_ASSOC))]);
         } catch (Throwable $e) { return self::fail($response, $e, ['ok' => false]); }

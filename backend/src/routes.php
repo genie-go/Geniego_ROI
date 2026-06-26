@@ -810,6 +810,11 @@ return function (App $app): void {
         // [현 차수] ② MMM(마케팅 믹스 모델) + 예측 예산 최적화
         'GET /v424/mmm/model'         => 'Genie\\Handlers\\Mmm::model',
         'GET /api/v424/mmm/model'     => 'Genie\\Handlers\\Mmm::model',
+        // [R-P1-1] Bayesian MMM 사후분포 + 통합 증분성 신뢰도 블렌딩.
+        'GET /v424/mmm/bayesian'             => 'Genie\\Handlers\\Mmm::bayesian',
+        'GET /api/v424/mmm/bayesian'         => 'Genie\\Handlers\\Mmm::bayesian',
+        'GET /v424/attribution/blended'      => 'Genie\\Handlers\\AttributionEngine::blendedIncrementality',
+        'GET /api/v424/attribution/blended'  => 'Genie\\Handlers\\AttributionEngine::blendedIncrementality',
         // [237차] 증분성(Double ML Uplift) 입력 데이터 — 프론트 기존 incrementalUplift 가 실데이터로 계산(중복0).
         'GET /v424/mmm/series'        => 'Genie\\Handlers\\Mmm::series',
         'GET /api/v424/mmm/series'    => 'Genie\\Handlers\\Mmm::series',
@@ -2829,6 +2834,8 @@ return function (App $app): void {
     $register('DELETE', '/api/v424/attribution/experiments/{id}');
     // [현 차수] ② MMM + 예측 예산 최적화
     $register('GET',  '/v424/mmm/model');     $register('GET',  '/api/v424/mmm/model');
+    $register('GET',  '/v424/mmm/bayesian');  $register('GET',  '/api/v424/mmm/bayesian');
+    $register('GET',  '/v424/attribution/blended'); $register('GET', '/api/v424/attribution/blended');
     $register('GET',  '/v424/mmm/series');    $register('GET',  '/api/v424/mmm/series'); // [237차] 증분성 입력
     $register('POST', '/v424/mmm/optimize');  $register('POST', '/api/v424/mmm/optimize');
     $register('GET',  '/v424/anomaly/scan');  $register('GET',  '/api/v424/anomaly/scan');

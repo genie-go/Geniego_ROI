@@ -1431,12 +1431,16 @@ function IncrementalityTab() {
   const [lt, setLt] = useState({ cc: '', cs: '', tc: '', ts: '', rpc: '' });
   const [ltRes, setLtRes] = useState(null);
   const [ltBusy, setLtBusy] = useState(false);
+  const [blended, setBlended] = useState(null); // [R-P1-1] 통합 증분성 신뢰도
 
   useEffect(() => {
     let alive = true;
     getJsonAuth('/v424/attribution/incrementality?window=90')
       .then(d => { if (alive) { setData(d); setLoading(false); } })
       .catch(() => { if (alive) setLoading(false); });
+    getJsonAuth('/v424/attribution/blended?window=90')
+      .then(d => { if (alive) setBlended(d); })
+      .catch(() => { /* graceful */ });
     return () => { alive = false; };
   }, []);
 
@@ -1498,6 +1502,61 @@ function IncrementalityTab() {
           </div>
         ))}
       </div>
+
+      {/* [R-P1-1] 통합 증분성 신뢰도(Blended) — Markov·MMM Bayesian·Holdout 3신호 신뢰도 가중 통합 */}
+      {blended && Array.isArray(blended.channels) && blended.channels.length > 0 && (
+        <div style={{ ...card }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
+            <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-1)' }}>🧭 {t('attrData.blendTitle', '통합 증분성 신뢰도')}</div>
+            <div style={{ fontSize: 11.5, color: 'var(--text-3)' }}>
+              {t('attrData.blendSignals', '활성 신호')}: {(blended.signals_available || []).map(s => s.toUpperCase()).join(' · ') || '—'}
+              {' · '}{t('attrData.blendDecision', '의사결정 신뢰도')}:{' '}
+              <b style={{ color: blended.decision_confidence >= 70 ? '#16a34a' : blended.decision_confidence >= 45 ? '#d97706' : '#dc2626' }}>{blended.decision_confidence}%</b>
+            </div>
+          </div>
+          <div style={{ fontSize: 11.5, color: 'var(--text-3)', lineHeight: 1.6, marginBottom: 10 }}>
+            {t('attrData.blendIntro', 'Markov 제거효과·MMM Bayesian 사후·Holdout 인과검증 신호를 신뢰도로 가중 통합한 채널별 증분 기여도입니다. 신호가 많고 일치할수록 신뢰등급이 높아집니다(증/감액 의사결정 기준).')}
+          </div>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+              <thead>
+                <tr style={{ textAlign: 'right', color: 'var(--text-3)', fontSize: 11 }}>
+                  <th style={{ textAlign: 'left', padding: '6px 8px' }}>{t('attrData.blendChannel', '채널')}</th>
+                  <th style={{ padding: '6px 8px' }}>{t('attrData.blendShare', '통합 증분비중')}</th>
+                  <th style={{ padding: '6px 8px' }}>Markov</th>
+                  <th style={{ padding: '6px 8px' }}>MMM</th>
+                  <th style={{ padding: '6px 8px' }}>{t('attrData.blendHoldout', 'Holdout 리프트')}</th>
+                  <th style={{ padding: '6px 8px' }}>{t('attrData.blendTrust', '신뢰도')}</th>
+                  <th style={{ textAlign: 'left', padding: '6px 8px' }}>{t('attrData.blendGrade', '등급')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {blended.channels.map((c, i) => {
+                  const gc = c.confidence_grade === 'high' ? '#16a34a' : c.confidence_grade === 'medium' ? '#d97706' : '#dc2626';
+                  return (
+                    <tr key={i} style={{ borderTop: '1px solid var(--border,#e2e8f0)', textAlign: 'right' }}>
+                      <td style={{ textAlign: 'left', padding: '7px 8px', fontWeight: 700, color: 'var(--text-1)' }}>{c.channel}</td>
+                      <td style={{ padding: '7px 8px', fontWeight: 800, color: 'var(--text-1)' }}>{c.blended_incremental_share}%</td>
+                      <td style={{ padding: '7px 8px', color: 'var(--text-2)' }}>{c.markov_share != null ? c.markov_share + '%' : '—'}</td>
+                      <td style={{ padding: '7px 8px', color: 'var(--text-2)' }}>{c.mmm_share != null ? c.mmm_share + '%' : '—'}</td>
+                      <td style={{ padding: '7px 8px', color: c.holdout_significant ? '#16a34a' : 'var(--text-3)' }}>
+                        {c.holdout_lift_pct != null ? (c.holdout_lift_pct > 0 ? '+' : '') + c.holdout_lift_pct + '%' + (c.holdout_significant ? ' ✓' : '') : '—'}
+                      </td>
+                      <td style={{ padding: '7px 8px', fontWeight: 700, color: gc }}>{Math.round((c.blended_trust || 0) * 100)}%</td>
+                      <td style={{ textAlign: 'left', padding: '7px 8px' }}>
+                        <span style={{ fontSize: 10.5, fontWeight: 700, color: gc, background: gc + '1a', padding: '2px 7px', borderRadius: 6 }}>
+                          {c.confidence_grade === 'high' ? t('attrData.gradeHigh', '높음') : c.confidence_grade === 'medium' ? t('attrData.gradeMed', '보통') : t('attrData.gradeLow', '낮음')}
+                          {' '}({c.signal_count}/3)
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* 증분 스코어카드 */}
       <div style={{ ...card, padding: 0, overflow: 'hidden' }}>

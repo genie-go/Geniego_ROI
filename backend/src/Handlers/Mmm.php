@@ -305,6 +305,118 @@ final class Mmm
         return ((float)$c['beta'] / $k) * exp(-$x / $k);
     }
 
+    /* ───────────────────────── Bayesian MMM (사후분포·신뢰구간) ───────────────────────── */
+
+    /**
+     * [R-P1-1] GET /v424/mmm/bayesian?window=90 — 채널별 Bayesian 사후 기여도(95% credible interval)·신뢰도.
+     *   점추정(fitChannel)만으로는 채널 불확실성을 알 수 없다 → 잔차 부트스트랩(무정보 사전 근사 사후)으로
+     *   β·기여매출의 사후분포를 표본화하여 평균·표준편차·95% CI·신뢰도(trust)를 산출. Northbeam/Recast급
+     *   uncertainty 정량화. 전부 실 performance_metrics 파생(날조 0).
+     */
+    public static function bayesian(Request $req, Response $res): Response
+    {
+        $tenant = self::tenant($req);
+        $qs = $req->getQueryParams();
+        $window = max(14, min(365, (int)($qs['window'] ?? 90)));
+        try {
+            $data = self::posteriorData($tenant, $window);
+            return self::json($res, [
+                'ok' => true, 'demo' => self::isDemo($tenant), 'window_days' => $window,
+                'channels' => $data['channels'],
+                'total_contribution' => $data['total_contribution'],
+                'data_driven' => count($data['channels']) > 0,
+                'method' => 'residual-bootstrap-posterior (B=300, 무정보 사전 근사)',
+                'note' => count($data['channels']) > 0
+                    ? '실측 performance_metrics 기반 사후분포 표본화 — 채널별 95% credible interval 제공'
+                    : '성과 데이터가 충분하지 않습니다. 채널 집행·수집 후 사후추정됩니다.',
+            ]);
+        } catch (\Throwable $e) {
+            return self::json($res, ['ok' => false, 'error' => 'DB 오류: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * 채널별 Bayesian 사후 기여도 데이터(엔드포인트 + AttributionEngine 블렌딩 공용 — 중복 0).
+     * @return array ['channels'=>[{channel, contribution, posterior_mean, posterior_sd, ci_lo, ci_hi, cv, trust, r2, contribution_share, marginal_roas}], 'total_contribution'=>float]
+     */
+    public static function posteriorData(string $tenant, int $window): array
+    {
+        $series = self::loadSeries(Db::pdo(), $tenant, $window);
+        $channels = [];
+        foreach ($series as $ch => $rows) {
+            $p = self::bayesianFit($rows);
+            if ($p !== null) $channels[] = ['channel' => (string)$ch] + $p;
+        }
+        $totalContrib = array_sum(array_map(fn($c) => (float)$c['posterior_mean'], $channels)) ?: 1.0;
+        foreach ($channels as &$c) { $c['contribution_share'] = round((float)$c['posterior_mean'] / $totalContrib, 4); }
+        unset($c);
+        usort($channels, fn($a, $b) => $b['posterior_mean'] <=> $a['posterior_mean']);
+        return ['channels' => $channels, 'total_contribution' => round($totalContrib, 2)];
+    }
+
+    /**
+     * 잔차 부트스트랩으로 β·기여매출의 사후분포 표본화.
+     *   곡선 형태(λ,κ_eff,R²)는 fitChannel 점추정 사용 → 정상상태 포화 sat_t=1−exp(−spend_t/κ_eff).
+     *   β̂=Σ(rev·sat)/Σ(sat²); pred_t=β̂·sat_t; 잔차 e_t=rev_t−pred_t.
+     *   B회: 잔차 복원추출 e*_t → rev*_t=pred_t+e*_t(≥0) → β*=Σ(rev*·sat)/Σ(sat²) → contribution*=β*·sat(avgSpend).
+     *   사후: 평균·표준편차·2.5/97.5 백분위 CI·변동계수·trust=1/(1+cv).
+     */
+    private static function bayesianFit(array $rows): ?array
+    {
+        $base = self::fitChannel($rows);
+        if ($base === null) return null;
+        $n = count($rows);
+        $spend = array_map(fn($r) => max(0.0, (float)$r['spend']), $rows);
+        $rev   = array_map(fn($r) => max(0.0, (float)$r['revenue']), $rows);
+        $kappa = max(1e-9, (float)$base['kappa']);
+        $avgSpend = (float)$base['current_daily_spend'];
+        // 정상상태 포화 기저(κ_eff). β̂·pred·잔차.
+        $sat = []; $sNum = 0.0; $sDen = 0.0;
+        foreach ($spend as $i => $x) { $s = 1.0 - exp(-$x / $kappa); $sat[$i] = $s; $sNum += $rev[$i] * $s; $sDen += $s * $s; }
+        if ($sDen <= 1e-9) return null;
+        $betaHat = $sNum / $sDen;
+        if ($betaHat <= 0) return null;
+        $pred = []; $resid = [];
+        foreach ($sat as $i => $s) { $pred[$i] = $betaHat * $s; $resid[$i] = $rev[$i] - $pred[$i]; }
+        $satAvg = 1.0 - exp(-$avgSpend / $kappa);
+
+        $B = 300; $betaS = []; $contribS = [];
+        for ($b = 0; $b < $B; $b++) {
+            $num = 0.0;
+            for ($i = 0; $i < $n; $i++) {
+                $e = $resid[random_int(0, $n - 1)];           // 잔차 복원추출
+                $rv = max(0.0, $pred[$i] + $e);                 // 합성 매출
+                $num += $rv * $sat[$i];
+            }
+            $betaStar = $num / $sDen;
+            $betaS[] = $betaStar;
+            $contribS[] = $betaStar * $satAvg;                  // 현 일지출에서의 기여 일매출
+        }
+        sort($contribS);
+        $mean = array_sum($contribS) / $B;
+        $var = 0.0; foreach ($contribS as $v) $var += ($v - $mean) ** 2; $var /= $B;
+        $sd = sqrt($var); $cv = $mean > 0 ? $sd / $mean : 0.0;
+        $pct = function (array $a, float $p) { $k = ($p / 100) * (count($a) - 1); $lo = (int)floor($k); $hi = (int)ceil($k); return $lo === $hi ? $a[$lo] : $a[$lo] + ($a[$hi] - $a[$lo]) * ($k - $lo); };
+        $marginal = ($betaHat / $kappa) * exp(-$avgSpend / $kappa);
+        return [
+            'beta' => round($betaHat, 2),
+            'kappa' => round($kappa, 2),
+            'lambda' => $base['lambda'],
+            'r2' => $base['r2'],
+            'days' => $n,
+            'current_daily_spend' => round($avgSpend, 2),
+            'contribution' => round($betaHat * $satAvg, 2),     // 점추정 기여(일)
+            'posterior_mean' => round($mean, 2),
+            'posterior_sd' => round($sd, 2),
+            'ci_lo' => round($pct($contribS, 2.5), 2),
+            'ci_hi' => round($pct($contribS, 97.5), 2),
+            'cv' => round($cv, 3),
+            'trust' => round(1.0 / (1.0 + $cv), 3),             // 0~1: CI 좁을수록 신뢰↑
+            'marginal_roas' => round($marginal, 3),
+            'stability' => $cv <= 0.15 ? 'high' : ($cv <= 0.35 ? 'medium' : 'low'),
+        ];
+    }
+
     /* ───────────────────────── 예산 최적화(그리디 한계배분) ───────────────────────── */
 
     private static function greedyAllocate(array $channels, int $budget, array $constraints): array
