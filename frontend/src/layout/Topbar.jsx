@@ -324,7 +324,8 @@ export default function Topbar() {
         {IS_DEMO && (
           <button
             onClick={() => {
-              let u = {}; try { u = JSON.parse(localStorage.getItem('demo_genie_user') || '{}'); } catch {}
+              // 데모 세션 유저 — 데모전용 빌드는 demo_genie_user, 공유(운영)빌드로 데모호스트 서빙 시 genie_user 에 저장됨. 둘 다 대응.
+              let u = {}; try { u = JSON.parse(localStorage.getItem('demo_genie_user') || localStorage.getItem('genie_user') || '{}'); } catch {}
               const pr = u.profile || {};
               const q = new URLSearchParams({
                 convert: '1', plan: 'pro',
