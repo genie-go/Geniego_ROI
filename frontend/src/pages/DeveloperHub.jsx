@@ -362,6 +362,138 @@ function WebhooksPanel() {
   );
 }
 
+/* ─── [245차 P1-1] DW/BI 데이터 익스포트 패널 (DataExport /v429/exports/*) ───
+   SSOT(주문·광고지표·정산·어트리뷰션·KPI)를 BigQuery·Snowflake·Google Sheets·범용 HTTP로 자동 싱크.
+   ★자격증명 등록 즉시 활성(configured) — 스케줄/수동 실행 시 자동 push. Funnel.io/Supermetrics 영역. */
+const EXPORT_SECRET_FIELDS = ['secret', 'service_account_json', 'private_key'];
+const EXPORT_TEXTAREA_FIELDS = ['service_account_json', 'private_key'];
+function DataExportPanel() {
+  const { t } = useI18n();
+  const [meta, setMeta] = useState({ datasets: [], types: [] });
+  const [dests, setDests] = useState(null);
+  const [runs, setRuns] = useState([]);
+  const [form, setForm] = useState({ name: '', type: 'http', frequency: 'daily', period_days: 7, datasets: ['orders', 'ad_metrics'], config: {} });
+  const [editId, setEditId] = useState(0);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState({ text: '', type: '' });
+  const showMsg = (text, type = 'ok') => { setMsg({ text, type }); setTimeout(() => setMsg({ text: '', type: '' }), 5000); };
+
+  const loadMeta = useCallback(async () => { const { data } = await api('/v429/exports/datasets'); if (data.ok) setMeta({ datasets: data.datasets || [], types: data.types || [] }); }, []);
+  const loadDests = useCallback(async () => { const { data } = await api('/v429/exports/destinations'); setDests(Array.isArray(data.destinations) ? data.destinations : []); }, []);
+  const loadRuns = useCallback(async () => { const { data } = await api('/v429/exports/runs'); setRuns(Array.isArray(data.runs) ? data.runs : []); }, []);
+  useEffect(() => { loadMeta(); loadDests(); loadRuns(); }, [loadMeta, loadDests, loadRuns]);
+
+  const typeDef = meta.types.find(x => x.key === form.type) || { fields: [] };
+  const reset = () => { setForm({ name: '', type: 'http', frequency: 'daily', period_days: 7, datasets: ['orders', 'ad_metrics'], config: {} }); setEditId(0); };
+  const edit = (d) => { setEditId(d.id); setForm({ name: d.name, type: d.type, frequency: d.frequency, period_days: d.period_days, datasets: d.datasets || [], config: { ...d.config } }); };
+  const toggleDs = (ds) => setForm(f => ({ ...f, datasets: f.datasets.includes(ds) ? f.datasets.filter(x => x !== ds) : [...f.datasets, ds] }));
+  const setCfg = (k, v) => setForm(f => ({ ...f, config: { ...f.config, [k]: v } }));
+
+  const save = async () => {
+    if (!form.name.trim()) { showMsg(t('devHub.exNameReq', '이름을 입력하세요.'), 'err'); return; }
+    setBusy(true);
+    const path = editId ? `/v429/exports/destinations/${editId}` : '/v429/exports/destinations';
+    const { data } = await api(path, { method: editId ? 'PUT' : 'POST', body: JSON.stringify(form) });
+    if (data.ok) { showMsg(data.configured ? t('devHub.exSavedActive', '저장됨 — 자격증명 완비, 자동 싱크 활성') : t('devHub.exSavedPending', '저장됨 — 자격증명 입력 시 활성화'), 'ok'); reset(); loadDests(); }
+    else showMsg(data.error || t('devHub.exSaveFail', '저장 실패'), 'err');
+    setBusy(false);
+  };
+  const run = async (id) => { setBusy(true); const { data } = await api(`/v429/exports/destinations/${id}/run`, { method: 'POST', body: '{}' }); if (data.ok) showMsg(t('devHub.exRunOk', '익스포트 실행됨'), 'ok'); else showMsg((data.result && data.result.error) || data.error || t('devHub.exRunFail', '실행 실패'), 'err'); loadDests(); loadRuns(); setBusy(false); };
+  const del = async (id) => { if (!window.confirm(t('devHub.exDelConfirm', '이 익스포트 대상을 삭제하시겠습니까?'))) return; const { data } = await api(`/v429/exports/destinations/${id}`, { method: 'DELETE' }); if (data.ok) { showMsg(t('devHub.exDeleted', '삭제되었습니다.'), 'ok'); loadDests(); } };
+
+  const card = { borderRadius: 12, background: 'rgba(255,255,255,0.9)', border: '1px solid rgba(0,0,0,0.07)', padding: 16 };
+  const inp = { padding: '9px 12px', borderRadius: 9, border: '1px solid rgba(0,0,0,0.12)', fontSize: 13, outline: 'none', color: '#1e293b', background: '#fff', width: '100%', boxSizing: 'border-box' };
+  const statusColor = { ok: '#16a34a', partial: '#f59e0b', failed: '#dc2626', unconfigured: '#94a3b8', skipped_demo: '#94a3b8' };
+
+  return (
+    <div style={{ display: 'grid', gap: 16 }}>
+      <div style={{ fontSize: 12, color: '#64748b', lineHeight: 1.7 }}>
+        🗄️ {t('devHub.exportIntro', 'GeniegoROI 데이터(주문·광고지표·정산·어트리뷰션·KPI)를 BigQuery·Snowflake·Google Sheets·웨어하우스로 자동 싱크합니다. 자격증명만 등록하면 스케줄(또는 즉시 실행)에 따라 자동 전송됩니다.')}
+      </div>
+      {msg.text && <div style={{ padding: '10px 14px', borderRadius: 10, fontSize: 12, fontWeight: 700, background: msg.type === 'ok' ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)', border: `1px solid ${msg.type === 'ok' ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`, color: msg.type === 'ok' ? '#16a34a' : '#dc2626' }}>{msg.text}</div>}
+
+      {/* 대상 등록/수정 폼 */}
+      <div style={card}>
+        <div style={{ fontWeight: 800, fontSize: 13, color: '#1e293b', marginBottom: 12 }}>{editId ? '✏️ ' + t('devHub.exEdit', '익스포트 대상 수정') : '➕ ' + t('devHub.exNew', '새 익스포트 대상')}</div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+          <input style={inp} placeholder={t('devHub.exName', '이름')} value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
+          <select style={inp} value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value, config: {} }))}>
+            {meta.types.map(tp => <option key={tp.key} value={tp.key}>{tp.label}</option>)}
+          </select>
+        </div>
+        {typeDef.note && <div style={{ fontSize: 11, color: '#64748b', marginBottom: 10 }}>ℹ️ {typeDef.note}</div>}
+        {/* 타입별 설정 필드 */}
+        <div style={{ display: 'grid', gap: 8, marginBottom: 12 }}>
+          {(typeDef.fields || []).map(fld => EXPORT_TEXTAREA_FIELDS.includes(fld)
+            ? <textarea key={fld} style={{ ...inp, minHeight: 64, fontFamily: 'monospace', fontSize: 11 }} placeholder={fld + (EXPORT_SECRET_FIELDS.includes(fld) ? ' (비밀 — 저장 시 암호화)' : '')} value={form.config[fld] || ''} onChange={e => setCfg(fld, e.target.value)} />
+            : <input key={fld} type={EXPORT_SECRET_FIELDS.includes(fld) ? 'password' : 'text'} style={inp} placeholder={fld + (fld === 'format' ? ' (json|ndjson)' : '')} value={form.config[fld] || ''} onChange={e => setCfg(fld, e.target.value)} />
+          )}
+        </div>
+        {/* 데이터셋 선택 */}
+        <div style={{ fontSize: 11, fontWeight: 700, color: '#64748b', marginBottom: 6 }}>{t('devHub.exDatasets', '익스포트 데이터셋')}</div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
+          {meta.datasets.map(d => (
+            <label key={d.key} title={d.desc} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, padding: '4px 10px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.1)', cursor: 'pointer', background: form.datasets.includes(d.key) ? 'rgba(79,142,247,0.1)' : '#fff' }}>
+              <input type="checkbox" checked={form.datasets.includes(d.key)} onChange={() => toggleDs(d.key)} />{d.label}
+            </label>
+          ))}
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: 10, alignItems: 'center' }}>
+          <select style={inp} value={form.frequency} onChange={e => setForm(f => ({ ...f, frequency: e.target.value }))}>
+            {['hourly', 'daily', 'weekly', 'monthly'].map(fr => <option key={fr} value={fr}>{t('devHub.exFreq_' + fr, fr)}</option>)}
+          </select>
+          <input type="number" style={inp} placeholder={t('devHub.exPeriod', '기간(일)')} value={form.period_days} onChange={e => setForm(f => ({ ...f, period_days: e.target.value }))} />
+          <div style={{ display: 'flex', gap: 6 }}>
+            {editId ? <button onClick={reset} style={{ padding: '9px 14px', borderRadius: 9, border: '1px solid rgba(0,0,0,0.12)', background: '#fff', cursor: 'pointer', fontSize: 12 }}>{t('devHub.exCancel', '취소')}</button> : null}
+            <button onClick={save} disabled={busy} style={{ padding: '9px 18px', borderRadius: 9, border: 'none', background: '#4f8ef7', color: '#fff', fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>{busy ? '⏳' : '💾'} {t('devHub.exSave', '저장')}</button>
+          </div>
+        </div>
+      </div>
+
+      {/* 등록된 대상 목록 */}
+      <div style={{ display: 'grid', gap: 10 }}>
+        {dests === null ? <div style={{ fontSize: 12, color: '#64748b' }}>⏳</div>
+          : dests.length === 0 ? <div style={{ fontSize: 12, color: '#94a3b8', textAlign: 'center', padding: 20 }}>{t('devHub.exEmpty', '등록된 익스포트 대상이 없습니다.')}</div>
+          : dests.map(d => (
+            <div key={d.id} style={{ ...card, display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontWeight: 800, fontSize: 13, color: '#1e293b' }}>{d.name}</span>
+                  <span style={{ fontSize: 10, fontWeight: 700, padding: '1px 7px', borderRadius: 6, background: 'rgba(79,142,247,0.12)', color: '#4f8ef7' }}>{d.type}</span>
+                  <span style={{ fontSize: 10, fontWeight: 700, padding: '1px 7px', borderRadius: 6, background: d.configured ? 'rgba(34,197,94,0.12)' : 'rgba(148,163,184,0.15)', color: d.configured ? '#16a34a' : '#64748b' }}>{d.configured ? '● ' + t('devHub.exActive', '활성') : t('devHub.exPending', '자격증명 대기')}</span>
+                  {d.last_status && <span style={{ fontSize: 10, fontWeight: 700, color: statusColor[d.last_status] || '#64748b' }}>{d.last_status}</span>}
+                </div>
+                <div style={{ fontSize: 11, color: '#64748b', marginTop: 3 }}>{(d.datasets || []).join(', ')} · {d.frequency} · {d.period_days}d{d.last_run_at ? ' · ' + d.last_run_at : ''}</div>
+              </div>
+              <button onClick={() => run(d.id)} disabled={busy || !d.configured} style={{ padding: '6px 12px', borderRadius: 8, border: 'none', background: d.configured ? '#16a34a' : '#cbd5e1', color: '#fff', fontWeight: 700, fontSize: 11, cursor: d.configured ? 'pointer' : 'not-allowed' }}>▶ {t('devHub.exRun', '즉시 실행')}</button>
+              <button onClick={() => edit(d)} style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.12)', background: '#fff', fontSize: 11, cursor: 'pointer' }}>✏️</button>
+              <button onClick={() => del(d.id)} style={{ padding: '6px 10px', borderRadius: 8, border: 'none', background: 'rgba(239,68,68,0.1)', color: '#dc2626', fontSize: 11, cursor: 'pointer' }}>🗑</button>
+            </div>
+          ))}
+      </div>
+
+      {/* 실행 로그 */}
+      {runs.length > 0 && (
+        <div style={card}>
+          <div style={{ fontWeight: 800, fontSize: 13, color: '#1e293b', marginBottom: 10 }}>📜 {t('devHub.exRuns', '최근 실행 로그')}</div>
+          <div style={{ display: 'grid', gap: 5 }}>
+            {runs.slice(0, 20).map(r => (
+              <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11.5, color: '#475569' }}>
+                <span style={{ fontWeight: 700, color: statusColor[r.status] || '#64748b', minWidth: 56 }}>{r.status}</span>
+                <span style={{ fontFamily: 'monospace' }}>{r.dataset}</span>
+                <span>{r.rows_exported} rows</span>
+                {r.http_code ? <span style={{ color: '#94a3b8' }}>HTTP {r.http_code}</span> : null}
+                {r.error ? <span style={{ color: '#dc2626', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={r.error}>{r.error}</span> : null}
+                <span style={{ marginLeft: 'auto', color: '#94a3b8' }}>{r.finished_at}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ─── 실제 API 레퍼런스(문서) — 운영 routes.php 기준 대표 엔드포인트 ─── */
 const API_REF = [
   { group: 'Auth', color: '#4f8ef7', items: [
@@ -401,7 +533,7 @@ export default function DeveloperHub() {
   }, []);
 
   const endpointCount = API_REF.reduce((s, g) => s + g.items.length, 0);
-  const tabs = [t('devHub.tabApiKeys', '🔑 API 키'), t('devHub.tabRef', 'API 레퍼런스'), t('devHub.tabSdk', 'SDK'), t('devHub.tabWebhook', '웹훅'), t('devHub.tabSandbox', '샌드박스')];
+  const tabs = [t('devHub.tabApiKeys', '🔑 API 키'), t('devHub.tabRef', 'API 레퍼런스'), t('devHub.tabSdk', 'SDK'), t('devHub.tabWebhook', '웹훅'), t('devHub.tabSandbox', '샌드박스'), t('devHub.tabExport', '데이터 익스포트')];
   const kpis = [
     { emoji: '📡', label: t('devHub.kpiEndpoints', '문서화 엔드포인트'), val: endpointCount },
     { emoji: '📦', label: t('devHub.kpiSdks', 'SDK 예제'), val: SDK_LIST.length },
@@ -500,6 +632,9 @@ export default function DeveloperHub() {
 
         {/* TAB 3: Webhooks — P1 실관리(OpenPlatform /v429/webhooks/*) */}
         {activeTab === 3 && <WebhooksPanel />}
+
+        {/* TAB 5: Data Export — [245차 P1-1] DW/BI 익스포트(DataExport /v429/exports/*) */}
+        {activeTab === 5 && <DataExportPanel />}
 
         {/* TAB 4: Sandbox */}
         {activeTab === 4 && (

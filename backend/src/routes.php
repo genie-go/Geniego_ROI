@@ -665,6 +665,14 @@ return function (App $app): void {
         'GET /v429/webhooks/deliveries'          => 'Genie\\Handlers\\OpenPlatform::listDeliveries',
         'GET /v429/webhooks/events'              => 'Genie\\Handlers\\OpenPlatform::eventCatalog',
         'GET /v429/openapi.json'                 => 'Genie\\Handlers\\OpenPlatform::openapi',
+        // [245차 P1-1] DW/BI 데이터 익스포트(BigQuery·Snowflake·Sheets·HTTP) — 자격증명 등록 즉시 자동 싱크
+        'GET /v429/exports/datasets'             => 'Genie\\Handlers\\DataExport::datasets',
+        'GET /v429/exports/destinations'         => 'Genie\\Handlers\\DataExport::listDestinations',
+        'POST /v429/exports/destinations'        => 'Genie\\Handlers\\DataExport::saveDestination',
+        'PUT /v429/exports/destinations/{id}'    => 'Genie\\Handlers\\DataExport::saveDestination',
+        'DELETE /v429/exports/destinations/{id}' => 'Genie\\Handlers\\DataExport::deleteDestination',
+        'POST /v429/exports/destinations/{id}/run' => 'Genie\\Handlers\\DataExport::runNow',
+        'GET /v429/exports/runs'                 => 'Genie\\Handlers\\DataExport::listRuns',
 
         // ── v421 Connectors — TikTok + Amazon real calls ───────────────────────
         'GET /v421/connectors/status'            => 'Genie\\Handlers\\Connectors::status',
@@ -1877,6 +1885,14 @@ return function (App $app): void {
     $register('GET',    '/v429/webhooks/deliveries');
     $register('GET',    '/v429/webhooks/events');
     $register('GET',    '/v429/openapi.json');
+    // [245차 P1-1] DW/BI 데이터 익스포트
+    $register('GET',    '/v429/exports/datasets');
+    $register('GET',    '/v429/exports/destinations');
+    $register('POST',   '/v429/exports/destinations');
+    $register('PUT',    '/v429/exports/destinations/{id}');
+    $register('DELETE', '/v429/exports/destinations/{id}');
+    $register('POST',   '/v429/exports/destinations/{id}/run');
+    $register('GET',    '/v429/exports/runs');
 
     // ── v421 Connectors — TikTok + Amazon ─────────────────────────────────
     $register('GET',  '/v421/connectors/status');

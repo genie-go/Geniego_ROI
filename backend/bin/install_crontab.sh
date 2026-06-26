@@ -40,6 +40,9 @@ read -r -d '' CRONTAB <<EOF || true
 # ── 리포트 생성 ──
 30 * * * * GENIE_ENV=production php ${PROD}/bin/reports_cron.php >> /var/log/genie_reports.log 2>&1
 35 * * * * GENIE_ENV=demo php ${DEMO}/bin/reports_cron.php >> /var/log/genie_reports_demo.log 2>&1
+# ── [245차 P1-1] DW/BI 데이터 익스포트(BigQuery·Snowflake·Sheets·HTTP) ──
+15 * * * * GENIE_ENV=production php ${PROD}/bin/data_export_cron.php >> /var/log/genie_export.log 2>&1
+20 * * * * GENIE_ENV=demo php ${DEMO}/bin/data_export_cron.php >> /var/log/genie_export_demo.log 2>&1
 # ── 커머스 동기화(주문/상품/재고) ──
 */5 * * * * GENIE_ENV=production php ${PROD}/bin/commerce_sync_cron.php >> /var/log/genie_commerce_sync.log 2>&1
 */7 * * * * GENIE_ENV=demo php ${DEMO}/bin/commerce_sync_cron.php >> /var/log/genie_commerce_sync_demo.log 2>&1
