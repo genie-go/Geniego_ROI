@@ -35,10 +35,11 @@ final class PgSettlement
         'stripe'       => ['label' => 'Stripe', 'creds' => ['stripe'], 'live' => true],
         'tosspayments' => ['label' => '토스페이먼츠', 'creds' => ['tosspayments', 'toss'], 'live' => true],
         'paypal'       => ['label' => 'PayPal', 'creds' => ['paypal'], 'live' => true],
-        'inicis'       => ['label' => 'KG이니시스', 'creds' => ['inicis'], 'live' => false],
-        'kcp'          => ['label' => 'NHN KCP', 'creds' => ['kcp'], 'live' => false],
-        'kakaopay'     => ['label' => '카카오페이', 'creds' => ['kakaopay'], 'live' => false],
-        'naverpay'     => ['label' => '네이버페이', 'creds' => ['naverpay'], 'live' => false],
+        // [현 차수 P3-1] 국내 PG 4종 정산 실수집 신용게이트 — 자격증명 등록 시 즉시 동작(라이브 응답으로 매핑 최종확정).
+        'inicis'       => ['label' => 'KG이니시스', 'creds' => ['inicis'], 'live' => true],
+        'kcp'          => ['label' => 'NHN KCP', 'creds' => ['kcp'], 'live' => true],
+        'kakaopay'     => ['label' => '카카오페이', 'creds' => ['kakaopay'], 'live' => true],
+        'naverpay'     => ['label' => '네이버페이', 'creds' => ['naverpay'], 'live' => true],
         // [228차] 글로벌 결제 전문 PG — 자격증명 등록·인식(정산 실수집 어댑터는 추후, 현재 honest pending).
         'paddle'       => ['label' => 'Paddle', 'creds' => ['paddle'], 'live' => true],
         // [228차] Adyen 실 정산 수집 어댑터 구현(Settlement Detail Report CSV).
@@ -280,6 +281,32 @@ final class PgSettlement
             $sk = self::loadCred($pdo, $tenant, $creds, 'secret_key');
             if ($sk === '') return ['ok' => false, 'configured' => false, 'note' => 'Checkout.com Secret Key 미등록 — 등록 후 자동 수집됩니다.'];
             return self::fetchCheckout($sk);
+        }
+        // [현 차수 P3-1] 국내 PG 4종 — 자격증명 등록 시 즉시 실 API 시도(라이브 응답으로 필드매핑 최종확정).
+        if ($provider === 'naverpay') {
+            $cid = self::loadCred($pdo, $tenant, $creds, 'client_id');
+            $sec = self::loadCred($pdo, $tenant, $creds, 'client_secret');
+            $pid = self::loadCred($pdo, $tenant, $creds, 'partner_id');
+            if ($cid === '' || $sec === '') return ['ok' => false, 'configured' => false, 'note' => '네이버페이 Client ID/Secret 미등록 — 등록 후 자동 수집됩니다.'];
+            return self::fetchNaverPay($cid, $sec, $pid);
+        }
+        if ($provider === 'kakaopay') {
+            $sk = self::loadCred($pdo, $tenant, $creds, 'secret_key') ?: self::loadCred($pdo, $tenant, $creds, 'admin_key');
+            $cid = self::loadCred($pdo, $tenant, $creds, 'cid');
+            if ($sk === '') return ['ok' => false, 'configured' => false, 'note' => '카카오페이 Secret Key(또는 Admin Key) 미등록 — 등록 후 자동 수집됩니다.'];
+            return self::fetchKakaoPay($sk, $cid);
+        }
+        if ($provider === 'inicis') {
+            $mid = self::loadCred($pdo, $tenant, $creds, 'mid');
+            $sign = self::loadCred($pdo, $tenant, $creds, 'sign_key') ?: self::loadCred($pdo, $tenant, $creds, 'api_key');
+            if ($mid === '' || $sign === '') return ['ok' => false, 'configured' => false, 'note' => 'KG이니시스 MID/SignKey 미등록 — 등록 후 자동 수집됩니다.'];
+            return self::fetchInicis($mid, $sign);
+        }
+        if ($provider === 'kcp') {
+            $site = self::loadCred($pdo, $tenant, $creds, 'site_cd');
+            $key = self::loadCred($pdo, $tenant, $creds, 'api_key') ?: self::loadCred($pdo, $tenant, $creds, 'key');
+            if ($site === '' || $key === '') return ['ok' => false, 'configured' => false, 'note' => 'NHN KCP Site Code/Key 미등록 — 등록 후 자동 수집됩니다.'];
+            return self::fetchKcp($site, $key);
         }
         return ['ok' => false, 'configured' => false, 'note' => "[{$provider}] 정산 API 연동 예정입니다."];
     }
@@ -612,6 +639,104 @@ final class PgSettlement
                 'gross' => round($gross, 2), 'fee' => round($fee, 2), 'net' => round($net !== 0.0 ? $net : ($gross - $fee), 2),
                 'currency' => $cur, 'status' => (string)($d['response_code'] ?? $d['status'] ?? 'settled'),
                 'txn_at' => (string)($d['requested_on'] ?? $d['processed_on'] ?? ''),
+            ];
+        }
+        return ['ok' => true, 'rows' => $rows];
+    }
+
+    /* ════════ [현 차수 P3-1] 국내 PG 4종 정산 수집 — 자격증명 등록 시 즉시 동작, 방어적 다중후보 매핑(라이브 응답으로 최종확정). ════════ */
+
+    /** 네이버페이 정산내역 — Partner API(client_id/secret 헤더). KRW. 방어적 매핑. */
+    private static function fetchNaverPay(string $cid, string $sec, string $pid): array
+    {
+        $start = gmdate('Ymd', time() - 30 * 86400); $end = gmdate('Ymd');
+        $url = 'https://apis.naver.com/' . ($pid !== '' ? rawurlencode($pid) . '/' : '') . 'naverpay-partner/naverpay/payments/v2.2/settlements?'
+            . http_build_query(['startDate' => $start, 'endDate' => $end]);
+        [$code, $body, $err] = self::httpGet($url, ['X-Naver-Client-Id' => $cid, 'X-Naver-Client-Secret' => $sec, 'Content-Type' => 'application/json']);
+        if ($err) return ['ok' => false, 'note' => "네이버페이 오류: {$err} (라이브 검증 시 매핑 최종확정)"];
+        if ($code >= 400) return ['ok' => false, 'note' => '네이버페이 HTTP ' . $code . ' (자격증명/권한 확인)'];
+        $list = $body['body']['list'] ?? $body['data'] ?? $body['settlements'] ?? (is_array($body) ? $body : []);
+        $rows = [];
+        foreach ((array)$list as $d) {
+            if (!is_array($d)) continue;
+            $gross = (float)($d['totalPaymentAmount'] ?? $d['paymentAmount'] ?? $d['amount'] ?? 0);
+            $fee = (float)($d['payCommissionAmount'] ?? $d['commissionAmount'] ?? $d['fee'] ?? 0);
+            $rows[] = [
+                'txn_id' => (string)($d['paymentId'] ?? $d['merchantPayKey'] ?? ('npay_' . substr(hash('sha256', json_encode($d)), 0, 24))),
+                'type' => (string)($d['admissionType'] ?? 'payment'), 'gross' => $gross, 'fee' => $fee,
+                'net' => (float)($d['settleAmount'] ?? $d['payOutAmount'] ?? ($gross - $fee)),
+                'currency' => 'KRW', 'status' => (string)($d['settleStatus'] ?? $d['admissionState'] ?? 'settled'),
+                'txn_at' => (string)($d['settleExpectDate'] ?? $d['admissionYmdt'] ?? ''),
+            ];
+        }
+        return ['ok' => true, 'rows' => $rows];
+    }
+
+    /** 카카오페이 — 지급(정산) 내역. Authorization: SECRET_KEY/KakaoAK. KRW. 방어적 매핑. */
+    private static function fetchKakaoPay(string $sk, string $cid): array
+    {
+        $auth = (strncmp($sk, 'SECRET', 6) === 0 || strncmp($sk, 'DEV', 3) === 0) ? ('SECRET_KEY ' . $sk) : ('KakaoAK ' . $sk);
+        $url = 'https://open-api.kakaopay.com/online/v1/payment/settlement?' . http_build_query(['cid' => ($cid ?: 'TC0ONETIME'), 'from' => gmdate('Ymd', time() - 30 * 86400), 'to' => gmdate('Ymd')]);
+        [$code, $body, $err] = self::httpGet($url, ['Authorization' => $auth, 'Content-Type' => 'application/json']);
+        if ($err) return ['ok' => false, 'note' => "카카오페이 오류: {$err} (라이브 검증 시 매핑 최종확정)"];
+        if ($code >= 400) return ['ok' => false, 'note' => '카카오페이 HTTP ' . $code . ' (정산 권한/CID 확인)'];
+        $list = $body['settlements'] ?? $body['list'] ?? $body['data'] ?? (is_array($body) ? $body : []);
+        $rows = [];
+        foreach ((array)$list as $d) {
+            if (!is_array($d)) continue;
+            $gross = (float)($d['amount']['total'] ?? $d['total_amount'] ?? $d['amount'] ?? 0);
+            $fee = (float)($d['commission'] ?? $d['fee'] ?? 0);
+            $rows[] = [
+                'txn_id' => (string)($d['tid'] ?? $d['aid'] ?? ('kakaopay_' . substr(hash('sha256', json_encode($d)), 0, 24))),
+                'type' => (string)($d['payment_method_type'] ?? 'payment'), 'gross' => $gross, 'fee' => $fee,
+                'net' => (float)($d['settlement_amount'] ?? ($gross - $fee)), 'currency' => 'KRW',
+                'status' => (string)($d['status'] ?? 'settled'), 'txn_at' => (string)($d['settlement_date'] ?? $d['approved_at'] ?? ''),
+            ];
+        }
+        return ['ok' => true, 'rows' => $rows];
+    }
+
+    /** KG이니시스 — INIAPI 정산/거래 조회(mid + SHA256 sign). 방어적 매핑. */
+    private static function fetchInicis(string $mid, string $sign): array
+    {
+        $ts = (string)(time() * 1000);
+        $data = ['mid' => $mid, 'type' => 'settle', 'from' => gmdate('Ymd', time() - 30 * 86400), 'to' => gmdate('Ymd'), 'timestamp' => $ts];
+        $hashData = hash('sha512', $sign . $mid . $ts);
+        [$code, $body] = self::httpPost('https://iniapi.inicis.com/api/v1/settlement', http_build_query(array_merge($data, ['hashData' => $hashData])), ['Content-Type' => 'application/x-www-form-urlencoded']);
+        if ($code >= 400 || $code === 0) return ['ok' => false, 'note' => '이니시스 HTTP ' . $code . ' (MID/SignKey 확인·라이브 검증 시 매핑 최종확정)'];
+        $list = $body['data'] ?? $body['list'] ?? $body['settleList'] ?? (is_array($body) ? $body : []);
+        $rows = [];
+        foreach ((array)$list as $d) {
+            if (!is_array($d)) continue;
+            $gross = (float)($d['price'] ?? $d['amount'] ?? $d['paySum'] ?? 0);
+            $fee = (float)($d['fee'] ?? $d['commission'] ?? 0);
+            $rows[] = [
+                'txn_id' => (string)($d['tid'] ?? $d['MOID'] ?? ('inicis_' . substr(hash('sha256', json_encode($d)), 0, 24))),
+                'type' => (string)($d['payMethod'] ?? 'payment'), 'gross' => $gross, 'fee' => $fee,
+                'net' => (float)($d['settleAmt'] ?? ($gross - $fee)), 'currency' => 'KRW',
+                'status' => (string)($d['status'] ?? 'settled'), 'txn_at' => (string)($d['settleDate'] ?? $d['applDate'] ?? ''),
+            ];
+        }
+        return ['ok' => true, 'rows' => $rows];
+    }
+
+    /** NHN KCP — 정산/거래내역 조회(site_cd + key). 방어적 매핑. */
+    private static function fetchKcp(string $site, string $key): array
+    {
+        $data = ['site_cd' => $site, 'kcp_api_key' => $key, 'req_tx' => 'settle_list', 'st_date' => gmdate('Ymd', time() - 30 * 86400), 'en_date' => gmdate('Ymd')];
+        [$code, $body] = self::httpPost('https://spl.kcp.co.kr/gw/enc/v1/payment', http_build_query($data), ['Content-Type' => 'application/x-www-form-urlencoded']);
+        if ($code >= 400 || $code === 0) return ['ok' => false, 'note' => 'KCP HTTP ' . $code . ' (Site Code/Key 확인·라이브 검증 시 매핑 최종확정)'];
+        $list = $body['data'] ?? $body['list'] ?? $body['settle_list'] ?? (is_array($body) ? $body : []);
+        $rows = [];
+        foreach ((array)$list as $d) {
+            if (!is_array($d)) continue;
+            $gross = (float)($d['amount'] ?? $d['tot_amount'] ?? $d['good_mny'] ?? 0);
+            $fee = (float)($d['fee'] ?? $d['commission'] ?? 0);
+            $rows[] = [
+                'txn_id' => (string)($d['tno'] ?? $d['order_no'] ?? ('kcp_' . substr(hash('sha256', json_encode($d)), 0, 24))),
+                'type' => (string)($d['pay_method'] ?? 'payment'), 'gross' => $gross, 'fee' => $fee,
+                'net' => (float)($d['settle_amount'] ?? ($gross - $fee)), 'currency' => 'KRW',
+                'status' => (string)($d['status'] ?? 'settled'), 'txn_at' => (string)($d['settle_date'] ?? $d['app_time'] ?? ''),
             ];
         }
         return ['ok' => true, 'rows' => $rows];

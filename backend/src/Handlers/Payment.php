@@ -45,7 +45,10 @@ final class Payment
         return self::allowTestKeys() ? self::TOSS_TEST_SK : '';
     }
 
-    /* ── PG 시크릿 암호화(저장 시 at-rest). PG_ENC_KEY 미설정 시 평문(기존 동작) — 키 설정 시 활성. ── */
+    /* ── PG 시크릿 암호화(at-rest). [현 차수 P2-3] 중앙 Crypto(AES-256-GCM·관리형 키)로 통일.
+         ★보안 강화: 기존 CBC+PG_ENC_KEY 미설정 시 평문폴백을 제거 — 이제 항상 GCM 암호화(관리형 키는
+         CRED_ENC_KEY env 또는 app_setting 랜덤 32B, openssl 부재시에만 평문). 복호화는 GCM 우선,
+         실패 시(레거시 enc:v1: CBC 데이터) PG_ENC_KEY CBC 폴백으로 전환기 호환. ── */
     private static function pgEncKey(): string
     {
         $k = getenv('PG_ENC_KEY');
@@ -53,17 +56,21 @@ final class Payment
     }
     private static function encSecret(string $plain): string
     {
-        $key = self::pgEncKey();
-        if ($key === '' || $plain === '') return $plain;          // 키 없으면 평문(레거시 호환)
-        $iv = random_bytes(16);
-        $ct = openssl_encrypt($plain, 'aes-256-cbc', $key, OPENSSL_RAW_DATA, $iv);
-        return $ct === false ? $plain : 'enc:v1:' . base64_encode($iv . $ct);
+        return $plain === '' ? '' : \Genie\Crypto::encrypt($plain); // 중앙 GCM(평문폴백 제거)
     }
     private static function decSecret(string $stored): string
     {
-        if (strncmp($stored, 'enc:v1:', 7) !== 0) return $stored;  // 레거시 평문 그대로
+        if ($stored === '') return '';
+        // GCM(또는 평문 passthrough) 우선. enc:v1: 인데 GCM 실패 → 레거시 CBC 데이터로 간주, CBC 폴백.
+        $pt = \Genie\Crypto::decrypt($stored);
+        if ($pt !== '' || strncmp($stored, 'enc:v1:', 7) !== 0) return $pt;
+        return self::decSecretLegacyCbc($stored);
+    }
+    /** [현 차수 P2-3] 레거시 CBC(enc:v1:) 복호화 — 전환기 기존 PG 시크릿 호환. 키 없으면 빈. */
+    private static function decSecretLegacyCbc(string $stored): string
+    {
         $key = self::pgEncKey();
-        if ($key === '') return '';                                // 암호화됐는데 키 없음 → 빈
+        if ($key === '') return '';
         $raw = base64_decode(substr($stored, 7), true);
         if ($raw === false || strlen($raw) < 17) return '';
         $iv = substr($raw, 0, 16); $ct = substr($raw, 16);
