@@ -7046,7 +7046,7 @@ export default {
     stbHigh: "높음",
     stbMed: "보통",
     stbLow: "낮음",
-    noData: "전환 여정 데이터가 없습니다.",
+    noData: "전환 여정 데이터가 없습니다.", "tabIncrLabel": "📊 증분성·홀드아웃", "tabIncrDesc": "리프트 테스트", "incrIntro": "데이터기반 증분 기여도(마르코프 제거효과)를 last-touch 보고치와 비교해 채널별 증분 ROAS·과대귀속을 산출하고, 실제 홀드아웃 실험에 필요한 검정력(최소검출효과·필요기간)을 안내합니다.", "incrSpend": "총 광고비", "incrRevenue": "총 매출", "incrBlended": "블렌드 ROAS", "incrConv": "전환수", "incrColSpend": "광고비", "incrColReported": "보고 ROAS", "incrColIncRoas": "증분 ROAS", "incrColOver": "과대귀속", "incrColCpa": "증분 CPA", "incrColHoldout": "홀드아웃(10%리프트)", "incrDays": "일", "incrInsufficient": "데이터 부족", "incrLoading": "불러오는 중...", "incrLiftTitle": "홀드아웃 리프트 테스트", "incrLiftDesc": "대조군(노출 제외)과 실험군(노출)의 전환 결과를 입력하면 증분 리프트·통계적 유의성(p값)을 검정합니다.", "incrCtrlConv": "대조군 전환수", "incrCtrlSize": "대조군 규모", "incrTrtConv": "실험군 전환수", "incrTrtSize": "실험군 규모", "incrRpc": "전환당 매출(선택)", "incrAnalyzing": "분석 중...", "incrRun": "리프트 검정 실행", "incrLiftErr": "분석에 실패했습니다.", "incrRelLift": "상대 리프트", "incrPval": "p값", "incrZscore": "z-score", "incrIncConv": "증분 전환", "incrIncVal": "증분 매출", "incrCvrCompare": "대조군 CVR", "incrTrtCvr": "실험군 CVR",
   },
 
   

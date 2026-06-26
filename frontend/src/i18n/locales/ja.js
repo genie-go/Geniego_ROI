@@ -14895,7 +14895,7 @@ export default {
     stbHigh: "高",
     stbMed: "中",
     stbLow: "低",
-    noData: "コンバージョン経路データがありません。",
+    noData: "コンバージョン経路データがありません。", "tabIncrLabel": "📊 増分性・ホールドアウト", "tabIncrDesc": "リフトテスト", "incrIntro": "データドリブンの増分貢献度（マルコフ除外効果）をラストタッチ報告値と比較してチャネル別の増分ROAS・過大帰属を算出し、実際のホールドアウト実験に必要な検出力（最小検出効果・必要期間）を案内します。", "incrSpend": "総広告費", "incrRevenue": "総売上", "incrBlended": "ブレンドROAS", "incrConv": "コンバージョン数", "incrColSpend": "広告費", "incrColReported": "報告ROAS", "incrColIncRoas": "増分ROAS", "incrColOver": "過大帰属", "incrColCpa": "増分CPA", "incrColHoldout": "ホールドアウト(10%リフト)", "incrDays": "日", "incrInsufficient": "データ不足", "incrLoading": "読み込み中...", "incrLiftTitle": "ホールドアウトリフトテスト", "incrLiftDesc": "対照群（非露出）と実験群（露出）のコンバージョン結果を入力すると、増分リフト・統計的有意性（p値）を検定します。", "incrCtrlConv": "対照群CV数", "incrCtrlSize": "対照群規模", "incrTrtConv": "実験群CV数", "incrTrtSize": "実験群規模", "incrRpc": "CV単価売上（任意）", "incrAnalyzing": "分析中...", "incrRun": "リフト検定を実行", "incrLiftErr": "分析に失敗しました。", "incrRelLift": "相対リフト", "incrPval": "p値", "incrZscore": "z値", "incrIncConv": "増分CV", "incrIncVal": "増分売上", "incrCvrCompare": "対照群CVR", "incrTrtCvr": "実験群CVR",
   },
 
 

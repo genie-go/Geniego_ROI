@@ -16898,7 +16898,7 @@ export default {
     stbHigh: "Cao",
     stbMed: "Trung bình",
     stbLow: "Thấp",
-    noData: "Không có dữ liệu hành trình chuyển đổi.",
+    noData: "Không có dữ liệu hành trình chuyển đổi.", "tabIncrLabel": "📊 Gia tăng·Holdout", "tabIncrDesc": "Kiểm định lift", "incrIntro": "So sánh đóng góp gia tăng dựa trên dữ liệu (hiệu ứng loại bỏ Markov) với số liệu báo cáo last-touch để tính ROAS gia tăng và quy gán quá mức theo kênh, đồng thời hướng dẫn năng lực thống kê (hiệu ứng tối thiểu phát hiện được·thời lượng cần thiết) cho thử nghiệm holdout thực tế.", "incrSpend": "Tổng chi tiêu", "incrRevenue": "Tổng doanh thu", "incrBlended": "ROAS pha trộn", "incrConv": "Chuyển đổi", "incrColSpend": "Chi tiêu", "incrColReported": "ROAS báo cáo", "incrColIncRoas": "ROAS gia tăng", "incrColOver": "Quy gán quá mức", "incrColCpa": "CPA gia tăng", "incrColHoldout": "Holdout (lift 10%)", "incrDays": "ngày", "incrInsufficient": "Thiếu dữ liệu", "incrLoading": "Đang tải...", "incrLiftTitle": "Kiểm định lift holdout", "incrLiftDesc": "Nhập kết quả chuyển đổi của nhóm đối chứng (không hiển thị) và nhóm thử nghiệm (có hiển thị) để kiểm định lift gia tăng và ý nghĩa thống kê (giá trị p).", "incrCtrlConv": "Chuyển đổi đối chứng", "incrCtrlSize": "Quy mô đối chứng", "incrTrtConv": "Chuyển đổi thử nghiệm", "incrTrtSize": "Quy mô thử nghiệm", "incrRpc": "Doanh thu mỗi chuyển đổi (tùy chọn)", "incrAnalyzing": "Đang phân tích...", "incrRun": "Chạy kiểm định lift", "incrLiftErr": "Phân tích thất bại.", "incrRelLift": "Lift tương đối", "incrPval": "giá trị p", "incrZscore": "điểm z", "incrIncConv": "CĐ gia tăng", "incrIncVal": "Giá trị gia tăng", "incrCvrCompare": "CVR đối chứng", "incrTrtCvr": "CVR thử nghiệm",
   },
 
 

@@ -15029,7 +15029,7 @@ export default {
     stbHigh: "Élevée",
     stbMed: "Moyenne",
     stbLow: "Faible",
-    noData: "Aucune donnée de parcours de conversion.",
+    noData: "Aucune donnée de parcours de conversion.", "tabIncrLabel": "📊 Incrémentalité·Holdout", "tabIncrDesc": "Test de lift", "incrIntro": "Compare la contribution incrémentale fondée sur les données (effet de retrait de Markov) aux valeurs déclarées au dernier contact pour dériver le ROAS incrémental et la sur-attribution par canal, et indique la puissance statistique (effet minimal détectable·durée requise) pour une vraie expérience de holdout.", "incrSpend": "Dépense totale", "incrRevenue": "Revenu total", "incrBlended": "ROAS combiné", "incrConv": "Conversions", "incrColSpend": "Dépense", "incrColReported": "ROAS déclaré", "incrColIncRoas": "ROAS incrémental", "incrColOver": "Sur-attribution", "incrColCpa": "CPA incrémental", "incrColHoldout": "Holdout (lift 10%)", "incrDays": "j", "incrInsufficient": "Données insuffisantes", "incrLoading": "Chargement...", "incrLiftTitle": "Test de lift holdout", "incrLiftDesc": "Saisissez les résultats de conversion des groupes témoin (sans exposition) et test (exposé) pour évaluer le lift incrémental et la significativité statistique (valeur p).", "incrCtrlConv": "Conversions témoin", "incrCtrlSize": "Taille témoin", "incrTrtConv": "Conversions test", "incrTrtSize": "Taille test", "incrRpc": "Revenu par conversion (facultatif)", "incrAnalyzing": "Analyse...", "incrRun": "Lancer le test de lift", "incrLiftErr": "Échec de l’analyse.", "incrRelLift": "Lift relatif", "incrPval": "valeur p", "incrZscore": "score z", "incrIncConv": "Conv. incrémentale", "incrIncVal": "Valeur incrémentale", "incrCvrCompare": "CVR témoin", "incrTrtCvr": "CVR test",
   },
 
 

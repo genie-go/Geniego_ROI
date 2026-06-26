@@ -117,6 +117,204 @@ final class AttributionEngine
         }
     }
 
+    /**
+     * [현 차수 P4] GET /v424/attribution/incrementality — 증분성 스코어카드 + 홀드아웃 검정력.
+     *
+     * 기존 엔진 재사용(중복 0): computeModels 의 last_touch(과대귀속 baseline)와 markov(데이터기반 순증분)
+     * credit 을 결합해 채널별 증분 ROAS/CPA·과대귀속률을 산출하고, performance_metrics 의 spend/clicks 로
+     * 정규화한다. 추가로 각 채널에 대해 50/50 홀드아웃 실험의 검정력(MDE·필요기간)을 계산해 "실제 리프트
+     * 테스트가 통계적으로 유효하려면 얼마나 필요한가"를 안내한다(실 실험 설계 도구). 전부 실DB 파생(날조 0).
+     */
+    public static function incrementality(Request $request, Response $response, array $args): Response
+    {
+        $start = microtime(true);
+        $t = self::tenant($request);
+        $empty = ['channels' => [], 'totals' => new \stdClass(), 'journeys' => 0, 'converted' => 0];
+        if ($t === '') return self::ok($response, $empty + ['response_time_ms' => self::elapsed($start)]);
+        try {
+            $q = $request->getQueryParams();
+            $window = max(1, min(730, (int)($q['window'] ?? self::DEFAULT_WINDOW)));
+            $pdo = Db::pdo();
+            [$conv, $null] = self::loadJourneys($pdo, $t, $window);
+            $models = self::computeModels($conv, $null);
+            $totalConv = (float)($models['total_conversions'] ?? 0);
+            $totalRev  = (float)($models['total_revenue'] ?? 0);
+            // last_touch(과대귀속 baseline)·markov(증분) credit + revenue 를 채널별 맵으로.
+            $lt = []; $ltRev = [];
+            foreach (($models['models']['last_touch'] ?? []) as $e) { $lt[$e['channel']] = (float)($e['conversions'] ?? 0); $ltRev[$e['channel']] = (float)($e['revenue'] ?? 0); }
+            $mk = [];
+            foreach (($models['models']['markov'] ?? []) as $e) { $mk[$e['channel']] = (float)($e['conversions'] ?? 0); }
+
+            $spendMap = self::channelSpendMap($pdo, $t, $window); // lower(channel) => ['spend','clicks','impressions']
+
+            $rows = [];
+            $channels = array_keys(array_merge($lt, $mk));
+            foreach ($channels as $ch) {
+                $ltc = (float)($lt[$ch] ?? 0);
+                $mkc = (float)($mk[$ch] ?? 0);
+                $sp  = $spendMap[strtolower($ch)] ?? ['spend' => 0.0, 'clicks' => 0, 'impressions' => 0];
+                $spend = (float)$sp['spend']; $clicks = (int)$sp['clicks'];
+                $ltShare = $totalConv > 0 ? $ltc / $totalConv : 0.0;
+                $mkShare = $totalConv > 0 ? $mkc / $totalConv : 0.0;
+                $ltRevenue = (float)($ltRev[$ch] ?? 0);
+                $incRevenue = $mkShare * $totalRev; // markov 는 전환기반 → 매출은 데이터기반 share 배분
+                $overAttr = $ltShare > 0 ? max(-100.0, ($ltShare - $mkShare) / $ltShare * 100.0) : 0.0;
+                $power = self::holdoutPower($ltc, $clicks, $window);
+                $rows[] = [
+                    'channel'             => $ch,
+                    'spend'               => round($spend, 2),
+                    'clicks'              => $clicks,
+                    'last_touch_conv'     => round($ltc, 2),
+                    'incremental_conv'    => round($mkc, 2),
+                    'last_touch_share'    => round($ltShare * 100, 1),
+                    'incremental_share'   => round($mkShare * 100, 1),
+                    'over_attribution_pct'=> round($overAttr, 1),   // 양수 = last-touch 가 과대평가
+                    'reported_roas'       => $spend > 0 ? round($ltRevenue / $spend, 2) : null,
+                    'incremental_roas'    => $spend > 0 ? round($incRevenue / $spend, 2) : null,
+                    'incremental_cpa'     => $mkc > 0 ? round($spend / $mkc, 0) : null,
+                    'incremental_revenue' => round($incRevenue, 0),
+                    'holdout'             => $power,
+                ];
+            }
+            // 증분 기여 큰 순.
+            usort($rows, fn($a, $b) => $b['incremental_conv'] <=> $a['incremental_conv']);
+            $blendedRoas = null; $sumSpend = 0.0; foreach ($spendMap as $s) $sumSpend += (float)$s['spend'];
+            if ($sumSpend > 0) $blendedRoas = round($totalRev / $sumSpend, 2);
+            return self::ok($response, [
+                'channels' => $rows,
+                'totals'   => [
+                    'conversions' => round($totalConv, 2), 'revenue' => round($totalRev, 0),
+                    'spend' => round($sumSpend, 0), 'blended_roas' => $blendedRoas,
+                ],
+                'journeys' => count($conv) + count($null), 'converted' => count($conv),
+                'window_days' => $window, 'response_time_ms' => self::elapsed($start),
+            ]);
+        } catch (Throwable $e) {
+            return self::fail($response, $e, $empty);
+        }
+    }
+
+    /**
+     * [현 차수 P4] POST /v424/attribution/lift-test — 홀드아웃 리프트 테스트 분석(2-비율 z검정).
+     *
+     * 실제 홀드아웃(control=노출제외, treatment=노출) 전환 결과를 입력하면 리프트%·95% 신뢰구간·p값·유의성을
+     * 통계적으로 판정하고, 증분 전환수/매출을 산출한다. 모델추정 증분성을 실측 리프트로 검증하는 인과추론 레이어.
+     * Body: { control_conversions, control_size, treatment_conversions, treatment_size, [revenue_per_conversion], [channel] }
+     */
+    public static function liftTest(Request $request, Response $response, array $args): Response
+    {
+        $start = microtime(true);
+        try {
+            $b = (array)($request->getParsedBody() ?? []);
+            $cc = max(0.0, (float)($b['control_conversions'] ?? 0));
+            $cs = max(0.0, (float)($b['control_size'] ?? 0));
+            $tc = max(0.0, (float)($b['treatment_conversions'] ?? 0));
+            $ts = max(0.0, (float)($b['treatment_size'] ?? 0));
+            $rpc = max(0.0, (float)($b['revenue_per_conversion'] ?? 0));
+            if ($cs <= 0 || $ts <= 0) {
+                return self::ok($response, ['ok' => false, 'error' => 'control_size 와 treatment_size 는 0보다 커야 합니다.']);
+            }
+            if ($cc > $cs || $tc > $ts) {
+                return self::ok($response, ['ok' => false, 'error' => '전환수는 그룹 크기를 초과할 수 없습니다.']);
+            }
+            $p1 = $cc / $cs;          // control 전환율
+            $p2 = $tc / $ts;          // treatment 전환율
+            $liftAbs = $p2 - $p1;
+            $liftRel = $p1 > 0 ? $liftAbs / $p1 : null;
+            // 2-비율 z검정(pooled).
+            $pPool = ($cc + $tc) / ($cs + $ts);
+            $sePool = sqrt(max(0.0, $pPool * (1 - $pPool) * (1 / $cs + 1 / $ts)));
+            $z = $sePool > 0 ? $liftAbs / $sePool : 0.0;
+            $pValue = 2 * (1 - self::normalCdf(abs($z)));
+            // 리프트 절대값 95% 신뢰구간(비-pooled SE).
+            $seUnpooled = sqrt(max(0.0, $p1 * (1 - $p1) / $cs + $p2 * (1 - $p2) / $ts));
+            $ciLoAbs = $liftAbs - 1.96 * $seUnpooled;
+            $ciHiAbs = $liftAbs + 1.96 * $seUnpooled;
+            // 증분 전환/매출(treatment 가 control 기준선 대비 추가로 만든 전환).
+            $incrementalConv = $ts * $liftAbs;
+            $incrementalValue = $rpc > 0 ? $incrementalConv * $rpc : null;
+            $significant = $pValue < 0.05 && $liftAbs > 0;
+            return self::ok($response, [
+                'ok' => true,
+                'control_cvr'        => round($p1 * 100, 3),
+                'treatment_cvr'      => round($p2 * 100, 3),
+                'lift_abs_pct'       => round($liftAbs * 100, 3),
+                'lift_relative_pct'  => $liftRel !== null ? round($liftRel * 100, 1) : null,
+                'lift_ci95'          => [round($ciLoAbs * 100, 3), round($ciHiAbs * 100, 3)],
+                'z_score'            => round($z, 3),
+                'p_value'            => round($pValue, 5),
+                'significant'        => $significant,
+                'incremental_conversions' => round($incrementalConv, 1),
+                'incremental_value'  => $incrementalValue !== null ? round($incrementalValue, 0) : null,
+                'verdict'            => $significant
+                    ? '통계적으로 유의한 증분 효과 (95% 신뢰수준)'
+                    : ($liftAbs <= 0 ? '증분 효과 없음/음수 — 노출이 전환을 끌어올리지 못함' : '아직 유의하지 않음 — 표본/기간 확대 필요'),
+                'response_time_ms' => self::elapsed($start),
+            ]);
+        } catch (Throwable $e) {
+            return self::fail($response, $e, ['ok' => false]);
+        }
+    }
+
+    /** 채널별 spend/clicks/impressions 합(window, performance_metrics). lower(channel) 키. */
+    private static function channelSpendMap(PDO $pdo, string $tenant, int $window): array
+    {
+        $since = gmdate('Y-m-d', time() - $window * 86400);
+        $out = [];
+        try {
+            $st = $pdo->prepare("SELECT LOWER(channel) ch, SUM(spend) sp, SUM(clicks) ck, SUM(impressions) im
+                                 FROM performance_metrics WHERE tenant_id=? AND date>=? GROUP BY LOWER(channel)");
+            $st->execute([$tenant, $since]);
+            foreach ($st->fetchAll(PDO::FETCH_ASSOC) ?: [] as $r) {
+                $out[(string)$r['ch']] = ['spend' => (float)$r['sp'], 'clicks' => (int)$r['ck'], 'impressions' => (int)$r['im']];
+            }
+        } catch (\Throwable $e) { /* graceful — 빈 맵(증분 ROAS 만 null) */ }
+        return $out;
+    }
+
+    /**
+     * 50/50 홀드아웃 실험 검정력 — 채널 관측 전환율(conv/clicks)·일 클릭량 기준 최소검출효과(MDE)·필요기간.
+     *   N = 2·(z_a+z_b)²·p(1-p)/(p·L)² (그룹당). z_a=1.96(α=.05 양측)·z_b=0.84(검정력 80%) → (z_a+z_b)²≈7.85.
+     *   실 실험 설계 안내(데이터 부족 시 feasible=false). 임의 숫자 아님 — 채널 실측치 파생.
+     */
+    private static function holdoutPower(float $conversions, int $clicks, int $window): array
+    {
+        if ($clicks <= 0 || $conversions <= 0) {
+            return ['feasible' => false, 'reason' => '클릭/전환 데이터 부족', 'base_cvr' => 0.0];
+        }
+        $p = min(0.99, $conversions / $clicks);   // 관측 전환율(클릭당)
+        if ($p <= 0) return ['feasible' => false, 'reason' => '전환율 0', 'base_cvr' => 0.0];
+        $K = 7.85; // (z_a+z_b)²
+        $dailyClicks = $clicks / max(1, $window); // 실 window 기준 일평균 클릭
+        // 그룹당 N(d일) = dailyClicks/2 × d. MDE(상대) = (z_a+z_b)·sqrt(2(1-p)/(p·N)).
+        $mdeFor = function (int $days) use ($p, $dailyClicks, $K): ?float {
+            $N = ($dailyClicks / 2.0) * $days;
+            if ($N <= 0) return null;
+            return sqrt(2.0 * (1 - $p) * $K / ($p * $N)); // 상대 MDE
+        };
+        // 10% 상대 리프트 검출 필요 그룹당 N → 일수.
+        $L = 0.10;
+        $nFor10 = 2.0 * $K * (1 - $p) / ($p * $L * $L);
+        $daysFor10 = $dailyClicks > 0 ? (int)ceil($nFor10 / ($dailyClicks / 2.0)) : null;
+        $mde14 = $mdeFor(14); $mde28 = $mdeFor(28);
+        return [
+            'feasible'         => $daysFor10 !== null && $daysFor10 <= 120,
+            'base_cvr'         => round($p * 100, 3),
+            'mde_14d_pct'      => $mde14 !== null ? round($mde14 * 100, 1) : null,
+            'mde_28d_pct'      => $mde28 !== null ? round($mde28 * 100, 1) : null,
+            'days_for_10pct_lift' => $daysFor10,
+        ];
+    }
+
+    /** 표준정규 누적분포(Abramowitz-Stegun 7.1.26 erf 근사). p값·검정력 계산용. */
+    private static function normalCdf(float $x): float
+    {
+        $t = 1.0 / (1.0 + 0.2316419 * abs($x));
+        $d = 0.3989422804014327 * exp(-$x * $x / 2.0);
+        $prob = $d * $t * (0.319381530 + $t * (-0.356563782 + $t * (1.781477937 + $t * (-1.821255978 + $t * 1.330274429))));
+        return $x > 0 ? 1.0 - $prob : $prob;
+    }
+
     // ── 데이터 적재: 전환 여정 + 비전환(null) 여정 ─────────────────────────
     /**
      * @return array{0: array<int,array>, 1: array<int,array>}

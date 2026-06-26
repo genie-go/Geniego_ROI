@@ -14997,7 +14997,7 @@ export default {
     stbHigh: "उच्च",
     stbMed: "मध्यम",
     stbLow: "निम्न",
-    noData: "कोई रूपांतरण यात्रा डेटा उपलब्ध नहीं।",
+    noData: "कोई रूपांतरण यात्रा डेटा उपलब्ध नहीं।", "tabIncrLabel": "📊 वृद्धिशीलता·होल्डआउट", "tabIncrDesc": "लिफ्ट परीक्षण", "incrIntro": "डेटा-आधारित वृद्धिशील योगदान (मार्कोव रिमूवल प्रभाव) की तुलना last-touch रिपोर्ट मानों से कर प्रति-चैनल वृद्धिशील ROAS और अति-एट्रिब्यूशन निकालता है, और वास्तविक होल्डआउट प्रयोग हेतु सांख्यिकीय शक्ति (न्यूनतम पहचान योग्य प्रभाव·आवश्यक अवधि) बताता है।", "incrSpend": "कुल खर्च", "incrRevenue": "कुल राजस्व", "incrBlended": "ब्लेंडेड ROAS", "incrConv": "रूपांतरण", "incrColSpend": "खर्च", "incrColReported": "रिपोर्टेड ROAS", "incrColIncRoas": "वृद्धिशील ROAS", "incrColOver": "अति-एट्रिब्यूशन", "incrColCpa": "वृद्धिशील CPA", "incrColHoldout": "होल्डआउट (10% लिफ्ट)", "incrDays": "दिन", "incrInsufficient": "अपर्याप्त डेटा", "incrLoading": "लोड हो रहा है...", "incrLiftTitle": "होल्डआउट लिफ्ट परीक्षण", "incrLiftDesc": "नियंत्रण समूह (बिना प्रदर्शन) और उपचार समूह (प्रदर्शित) के रूपांतरण परिणाम दर्ज कर वृद्धिशील लिफ्ट और सांख्यिकीय महत्व (p-मान) की जाँच करें।", "incrCtrlConv": "नियंत्रण रूपांतरण", "incrCtrlSize": "नियंत्रण आकार", "incrTrtConv": "उपचार रूपांतरण", "incrTrtSize": "उपचार आकार", "incrRpc": "प्रति रूपांतरण राजस्व (वैकल्पिक)", "incrAnalyzing": "विश्लेषण हो रहा है...", "incrRun": "लिफ्ट परीक्षण चलाएँ", "incrLiftErr": "विश्लेषण विफल।", "incrRelLift": "सापेक्ष लिफ्ट", "incrPval": "p-मान", "incrZscore": "z-स्कोर", "incrIncConv": "वृद्धिशील रूपां.", "incrIncVal": "वृद्धिशील मूल्य", "incrCvrCompare": "नियंत्रण CVR", "incrTrtCvr": "उपचार CVR",
   },
 
 

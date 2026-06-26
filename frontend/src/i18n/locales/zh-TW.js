@@ -15316,7 +15316,7 @@ export default {
     stbHigh: "高",
     stbMed: "中",
     stbLow: "低",
-    noData: "暫無轉換路徑資料。",
+    noData: "暫無轉換路徑資料。", "tabIncrLabel": "📊 增量·保留組", "tabIncrDesc": "提升測試", "incrIntro": "將資料驅動的增量貢獻（馬可夫移除效應）與最後接觸報告值比較，得出各通路的增量ROAS與過度歸因，並指導真實保留組實驗所需的統計檢定力（最小可偵測效應·所需期間）。", "incrSpend": "總廣告花費", "incrRevenue": "總營收", "incrBlended": "混合ROAS", "incrConv": "轉換數", "incrColSpend": "花費", "incrColReported": "報告ROAS", "incrColIncRoas": "增量ROAS", "incrColOver": "過度歸因", "incrColCpa": "增量CPA", "incrColHoldout": "保留組(10%提升)", "incrDays": "天", "incrInsufficient": "資料不足", "incrLoading": "載入中...", "incrLiftTitle": "保留組提升測試", "incrLiftDesc": "輸入對照組(未曝光)與實驗組(曝光)的轉換結果，檢定增量提升與統計顯著性(p值)。", "incrCtrlConv": "對照組轉換", "incrCtrlSize": "對照組規模", "incrTrtConv": "實驗組轉換", "incrTrtSize": "實驗組規模", "incrRpc": "每轉換營收(選填)", "incrAnalyzing": "分析中...", "incrRun": "執行提升檢定", "incrLiftErr": "分析失敗。", "incrRelLift": "相對提升", "incrPval": "p值", "incrZscore": "z值", "incrIncConv": "增量轉換", "incrIncVal": "增量價值", "incrCvrCompare": "對照組CVR", "incrTrtCvr": "實驗組CVR",
   },
 
 

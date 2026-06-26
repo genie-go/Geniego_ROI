@@ -15013,7 +15013,7 @@ export default {
     stbHigh: "Hoch",
     stbMed: "Mittel",
     stbLow: "Niedrig",
-    noData: "Keine Conversion-Pfad-Daten verfügbar.",
+    noData: "Keine Conversion-Pfad-Daten verfügbar.", "tabIncrLabel": "📊 Inkrementalität·Holdout", "tabIncrDesc": "Lift-Test", "incrIntro": "Vergleicht den datengetriebenen inkrementellen Beitrag (Markov-Removal-Effekt) mit den Last-Touch-Werten, um inkrementellen ROAS und Über-Attribution je Kanal abzuleiten, und gibt die nötige statistische Power (minimal erkennbarer Effekt, erforderliche Dauer) für ein echtes Holdout-Experiment an.", "incrSpend": "Gesamtausgaben", "incrRevenue": "Gesamtumsatz", "incrBlended": "Blended ROAS", "incrConv": "Conversions", "incrColSpend": "Ausgaben", "incrColReported": "Berichteter ROAS", "incrColIncRoas": "Inkrementeller ROAS", "incrColOver": "Über-Attribution", "incrColCpa": "Inkrementeller CPA", "incrColHoldout": "Holdout (10% Lift)", "incrDays": "T", "incrInsufficient": "Unzureichende Daten", "incrLoading": "Wird geladen...", "incrLiftTitle": "Holdout-Lift-Test", "incrLiftDesc": "Geben Sie die Conversion-Ergebnisse der Kontroll- (keine Auslieferung) und Testgruppe (ausgeliefert) ein, um inkrementellen Lift und statistische Signifikanz (p-Wert) zu prüfen.", "incrCtrlConv": "Kontroll-Conversions", "incrCtrlSize": "Kontrollgröße", "incrTrtConv": "Test-Conversions", "incrTrtSize": "Testgröße", "incrRpc": "Umsatz pro Conversion (optional)", "incrAnalyzing": "Analyse läuft...", "incrRun": "Lift-Test starten", "incrLiftErr": "Analyse fehlgeschlagen.", "incrRelLift": "Relativer Lift", "incrPval": "p-Wert", "incrZscore": "z-Wert", "incrIncConv": "Inkrement. Conv.", "incrIncVal": "Inkrement. Wert", "incrCvrCompare": "Kontroll-CVR", "incrTrtCvr": "Test-CVR",
   },
 
 

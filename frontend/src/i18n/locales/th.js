@@ -15285,7 +15285,7 @@ export default {
     stbHigh: "สูง",
     stbMed: "ปานกลาง",
     stbLow: "ต่ำ",
-    noData: "ไม่มีข้อมูลเส้นทางคอนเวอร์ชัน",
+    noData: "ไม่มีข้อมูลเส้นทางคอนเวอร์ชัน", "tabIncrLabel": "📊 ส่วนเพิ่ม·โฮลด์เอาต์", "tabIncrDesc": "ทดสอบลิฟต์", "incrIntro": "เปรียบเทียบเครดิตส่วนเพิ่มที่ขับเคลื่อนด้วยข้อมูล (Markov removal effect) กับค่ารายงานแบบ last-touch เพื่อหาค่า ROAS ส่วนเพิ่มและการระบุเกินจริงต่อช่องทาง พร้อมแนะนำกำลังการทดสอบ (ผลกระทบต่ำสุดที่ตรวจจับได้·ระยะเวลาที่ต้องใช้) สำหรับการทดลองโฮลด์เอาต์จริง", "incrSpend": "ค่าโฆษณารวม", "incrRevenue": "รายได้รวม", "incrBlended": "ROAS รวม", "incrConv": "จำนวนคอนเวอร์ชัน", "incrColSpend": "ค่าโฆษณา", "incrColReported": "ROAS ที่รายงาน", "incrColIncRoas": "ROAS ส่วนเพิ่ม", "incrColOver": "ระบุเกินจริง", "incrColCpa": "CPA ส่วนเพิ่ม", "incrColHoldout": "โฮลด์เอาต์(ลิฟต์10%)", "incrDays": "วัน", "incrInsufficient": "ข้อมูลไม่พอ", "incrLoading": "กำลังโหลด...", "incrLiftTitle": "การทดสอบลิฟต์โฮลด์เอาต์", "incrLiftDesc": "กรอกผลคอนเวอร์ชันของกลุ่มควบคุม (ไม่แสดงโฆษณา) และกลุ่มทดลอง (แสดงโฆษณา) เพื่อทดสอบลิฟต์ส่วนเพิ่มและนัยสำคัญทางสถิติ (ค่า p)", "incrCtrlConv": "คอนเวอร์ชันกลุ่มควบคุม", "incrCtrlSize": "ขนาดกลุ่มควบคุม", "incrTrtConv": "คอนเวอร์ชันกลุ่มทดลอง", "incrTrtSize": "ขนาดกลุ่มทดลอง", "incrRpc": "รายได้ต่อคอนเวอร์ชัน (ไม่บังคับ)", "incrAnalyzing": "กำลังวิเคราะห์...", "incrRun": "รันการทดสอบลิฟต์", "incrLiftErr": "การวิเคราะห์ล้มเหลว", "incrRelLift": "ลิฟต์สัมพัทธ์", "incrPval": "ค่า p", "incrZscore": "ค่า z", "incrIncConv": "คอนเวอร์ชันส่วนเพิ่ม", "incrIncVal": "มูลค่าส่วนเพิ่ม", "incrCvrCompare": "CVR กลุ่มควบคุม", "incrTrtCvr": "CVR กลุ่มทดลอง",
   },
 
 

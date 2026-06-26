@@ -5,7 +5,7 @@ import ProductMarketingPanel from '../components/dashboards/ProductMarketingPane
 import AIRecommendBanner from '../components/AIRecommendBanner.jsx';
 import PeriodFilterBar from '../components/common/PeriodFilterBar.jsx'; // [현 차수] 어트리뷰션 기간조회
 import { useI18n, useT } from '../i18n/index.js';
-import { getJsonAuth } from '../services/apiClient.js';
+import { getJsonAuth, postJsonAuth } from '../services/apiClient.js';
 import {
   computeShapleyExact, computeSynergy,
   bayesianMMM, incrementalUplift, markovAttribution,
@@ -1422,12 +1422,161 @@ const GuideTab = memo(function GuideTab() {
   );
 });
 
+/* [현 차수 P4] 증분성·홀드아웃 — 서버 incrementality 스코어카드(증분 ROAS·과대귀속·홀드아웃 검정력) +
+   리프트 테스트 계산기(2-비율 z검정). 실 backend /v424/attribution/{incrementality,lift-test}. */
+function IncrementalityTab() {
+  const t = useT();
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [lt, setLt] = useState({ cc: '', cs: '', tc: '', ts: '', rpc: '' });
+  const [ltRes, setLtRes] = useState(null);
+  const [ltBusy, setLtBusy] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    getJsonAuth('/v424/attribution/incrementality?window=90')
+      .then(d => { if (alive) { setData(d); setLoading(false); } })
+      .catch(() => { if (alive) setLoading(false); });
+    return () => { alive = false; };
+  }, []);
+
+  const runLift = async () => {
+    setLtBusy(true);
+    try {
+      const r = await postJsonAuth('/v424/attribution/lift-test', {
+        control_conversions: Number(lt.cc) || 0, control_size: Number(lt.cs) || 0,
+        treatment_conversions: Number(lt.tc) || 0, treatment_size: Number(lt.ts) || 0,
+        revenue_per_conversion: Number(lt.rpc) || 0,
+      });
+      setLtRes(r);
+    } catch { setLtRes({ ok: false, error: t('attrData.incrLiftErr', '분석에 실패했습니다.') }); }
+    setLtBusy(false);
+  };
+
+  const card = { background: 'var(--surface,#fff)', border: '1px solid var(--border,#e2e8f0)', borderRadius: 14, padding: 16 };
+  const inp = { padding: '8px 11px', borderRadius: 8, border: '1px solid var(--border,#e2e8f0)', fontSize: 13, width: '100%', boxSizing: 'border-box', background: 'var(--surface,#fff)', color: 'var(--text-1)' };
+  const num = (v) => (v === null || v === undefined) ? '—' : Number(v).toLocaleString();
+  const rows = data?.channels || [];
+  const totals = data?.totals || {};
+
+  return (
+    <div style={{ display: 'grid', gap: 16 }}>
+      <div style={{ fontSize: 12.5, color: 'var(--text-3)', lineHeight: 1.7 }}>
+        📊 {t('attrData.incrIntro', '데이터기반 증분 기여도(마르코프 제거효과)를 last-touch 보고치와 비교해 채널별 증분 ROAS·과대귀속을 산출하고, 실제 홀드아웃 실험에 필요한 검정력(최소검출효과·필요기간)을 안내합니다.')}
+      </div>
+
+      {/* 요약 KPI */}
+      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+        {[
+          ['💰', t('attrData.incrSpend', '총 광고비'), num(totals.spend)],
+          ['📈', t('attrData.incrRevenue', '총 매출'), num(totals.revenue)],
+          ['🎯', t('attrData.incrBlended', '블렌드 ROAS'), totals.blended_roas != null ? totals.blended_roas + 'x' : '—'],
+          ['🔁', t('attrData.incrConv', '전환수'), num(totals.conversions)],
+        ].map(([ic, l, v]) => (
+          <div key={l} style={{ ...card, flex: 1, minWidth: 150, textAlign: 'center' }}>
+            <div style={{ fontSize: 18 }}>{ic}</div>
+            <div style={{ fontSize: 20, fontWeight: 900, color: 'var(--text-1)' }}>{v}</div>
+            <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 2 }}>{l}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* 증분 스코어카드 */}
+      <div style={{ ...card, padding: 0, overflow: 'hidden' }}>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12.5 }}>
+            <thead><tr style={{ background: 'rgba(241,245,249,0.5)', color: 'var(--text-3)', fontSize: 11, textAlign: 'left' }}>
+              <th style={{ padding: '10px 14px' }}>{t('attrData.colChannel', '채널')}</th>
+              <th style={{ padding: '10px 14px', textAlign: 'right' }}>{t('attrData.incrColSpend', '광고비')}</th>
+              <th style={{ padding: '10px 14px', textAlign: 'right' }}>{t('attrData.incrColReported', '보고 ROAS')}</th>
+              <th style={{ padding: '10px 14px', textAlign: 'right' }}>{t('attrData.incrColIncRoas', '증분 ROAS')}</th>
+              <th style={{ padding: '10px 14px', textAlign: 'right' }}>{t('attrData.incrColOver', '과대귀속')}</th>
+              <th style={{ padding: '10px 14px', textAlign: 'right' }}>{t('attrData.incrColCpa', '증분 CPA')}</th>
+              <th style={{ padding: '10px 14px', textAlign: 'center' }}>{t('attrData.incrColHoldout', '홀드아웃(10%리프트)')}</th>
+            </tr></thead>
+            <tbody>
+              {rows.map(r => (
+                <tr key={r.channel} style={{ borderTop: '1px solid var(--border,#e2e8f0)' }}>
+                  <td style={{ padding: '9px 14px', fontWeight: 700, color: 'var(--text-1)' }}>{r.channel}</td>
+                  <td style={{ padding: '9px 14px', textAlign: 'right', color: 'var(--text-2)' }}>{num(r.spend)}</td>
+                  <td style={{ padding: '9px 14px', textAlign: 'right', color: 'var(--text-3)' }}>{r.reported_roas != null ? r.reported_roas + 'x' : '—'}</td>
+                  <td style={{ padding: '9px 14px', textAlign: 'right', fontWeight: 800, color: r.incremental_roas != null && r.reported_roas != null && r.incremental_roas < r.reported_roas ? '#f59e0b' : '#22c55e' }}>{r.incremental_roas != null ? r.incremental_roas + 'x' : '—'}</td>
+                  <td style={{ padding: '9px 14px', textAlign: 'right', color: r.over_attribution_pct > 15 ? '#ef4444' : 'var(--text-2)' }}>{r.over_attribution_pct > 0 ? '+' : ''}{r.over_attribution_pct}%</td>
+                  <td style={{ padding: '9px 14px', textAlign: 'right', color: 'var(--text-2)' }}>{r.incremental_cpa != null ? num(r.incremental_cpa) : '—'}</td>
+                  <td style={{ padding: '9px 14px', textAlign: 'center', fontSize: 11 }}>
+                    {r.holdout?.feasible
+                      ? <span style={{ color: '#22c55e' }}>{r.holdout.days_for_10pct_lift}{t('attrData.incrDays', '일')} · CVR {r.holdout.base_cvr}%</span>
+                      : <span style={{ color: 'var(--text-3)' }}>{t('attrData.incrInsufficient', '데이터 부족')}</span>}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {loading && <div style={{ padding: 20, textAlign: 'center', color: 'var(--text-3)', fontSize: 12 }}>{t('attrData.incrLoading', '불러오는 중...')}</div>}
+        {!loading && rows.length === 0 && <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-3)', fontSize: 13 }}>{t('attrData.noData', '전환 여정 데이터가 없습니다.')}</div>}
+      </div>
+
+      {/* 리프트 테스트 계산기 */}
+      <div style={{ ...card }}>
+        <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--text-1)', marginBottom: 4 }}>🧪 {t('attrData.incrLiftTitle', '홀드아웃 리프트 테스트')}</div>
+        <div style={{ fontSize: 11.5, color: 'var(--text-3)', marginBottom: 12 }}>{t('attrData.incrLiftDesc', '대조군(노출 제외)과 실험군(노출)의 전환 결과를 입력하면 증분 리프트·통계적 유의성(p값)을 검정합니다.')}</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 10, marginBottom: 12 }}>
+          {[
+            ['cc', t('attrData.incrCtrlConv', '대조군 전환수')],
+            ['cs', t('attrData.incrCtrlSize', '대조군 규모')],
+            ['tc', t('attrData.incrTrtConv', '실험군 전환수')],
+            ['ts', t('attrData.incrTrtSize', '실험군 규모')],
+            ['rpc', t('attrData.incrRpc', '전환당 매출(선택)')],
+          ].map(([k, l]) => (
+            <div key={k}>
+              <label style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--text-3)', display: 'block', marginBottom: 3 }}>{l}</label>
+              <input type="number" min="0" value={lt[k]} onChange={e => setLt(s => ({ ...s, [k]: e.target.value }))} style={inp} />
+            </div>
+          ))}
+        </div>
+        <button onClick={runLift} disabled={ltBusy} style={{ padding: '9px 18px', borderRadius: 9, border: 'none', cursor: ltBusy ? 'wait' : 'pointer', background: 'linear-gradient(135deg,#0ea5e9,#6366f1)', color: '#fff', fontWeight: 800, fontSize: 13 }}>
+          {ltBusy ? t('attrData.incrAnalyzing', '분석 중...') : t('attrData.incrRun', '리프트 검정 실행')}
+        </button>
+
+        {ltRes && (ltRes.ok === false
+          ? <div style={{ marginTop: 12, padding: '10px 14px', borderRadius: 10, background: 'rgba(239,68,68,0.08)', color: '#dc2626', fontSize: 12.5, fontWeight: 700 }}>⚠️ {ltRes.error}</div>
+          : (
+            <div style={{ marginTop: 14, padding: 16, borderRadius: 12, background: ltRes.significant ? 'rgba(34,197,94,0.07)' : 'rgba(148,163,184,0.08)', border: `1px solid ${ltRes.significant ? 'rgba(34,197,94,0.3)' : 'var(--border,#e2e8f0)'}` }}>
+              <div style={{ fontSize: 14, fontWeight: 900, color: ltRes.significant ? '#16a34a' : 'var(--text-2)', marginBottom: 10 }}>
+                {ltRes.significant ? '✅ ' : 'ℹ️ '}{ltRes.verdict}
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 12 }}>
+                {[
+                  [t('attrData.incrRelLift', '상대 리프트'), ltRes.lift_relative_pct != null ? ltRes.lift_relative_pct + '%' : '—'],
+                  [t('attrData.incrPval', 'p값'), ltRes.p_value],
+                  [t('attrData.incrZscore', 'z-score'), ltRes.z_score],
+                  [t('attrData.incrIncConv', '증분 전환'), num(ltRes.incremental_conversions)],
+                  [t('attrData.incrIncVal', '증분 매출'), ltRes.incremental_value != null ? num(ltRes.incremental_value) : '—'],
+                ].map(([l, v]) => (
+                  <div key={l}>
+                    <div style={{ fontSize: 10.5, color: 'var(--text-3)' }}>{l}</div>
+                    <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--text-1)' }}>{v}</div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 10 }}>
+                {t('attrData.incrCvrCompare', '대조군 CVR')} {ltRes.control_cvr}% → {t('attrData.incrTrtCvr', '실험군 CVR')} {ltRes.treatment_cvr}% (95% CI {ltRes.lift_ci95?.[0]}%~{ltRes.lift_ci95?.[1]}%)
+              </div>
+            </div>
+          ))}
+      </div>
+    </div>
+  );
+}
+
 const getTabs = (t) => [
   { id:'mta',      label:t('attrData.tabMtaLabel'),  desc:t('attrData.tabMtaDesc') },
   { id:'shapley',  label:t('attrData.tabShapleyLabel'), desc:t('attrData.tabShapleyDesc') },
   { id:'mmm',      label:t('attrData.tabMmmLabel'),  desc:t('attrData.tabMmmDesc') },
   { id:'markov',   label:t('attrData.tabMarkovLabel'), desc:t('attrData.tabMarkovDesc') },
   { id:'confidence', label:t('attrData.tabConfLabel','🎯 신뢰도·설명'), desc:t('attrData.tabConfDesc','부트스트랩 신뢰구간') },
+  { id:'incrementality', label:t('attrData.tabIncrLabel','📊 증분성·홀드아웃'), desc:t('attrData.tabIncrDesc','리프트 테스트') },
   { id:'bayesian', label:t('attrData.tabAbLabel'),  desc:t('attrData.tabAbDesc') },
   { id:'cohort',   label:t('attrData.tabCohortLabel'),    desc:t('attrData.tabCohortDesc') },
   { id:'ltvcac',   label:t('attrData.tabLtvLabel'),    desc:t('attrData.tabLtvDesc') },
@@ -1619,6 +1768,7 @@ export default function Attribution() {
           {tab === 'mmm'      && <MMMTab />}
           {tab === 'markov'   && <MarkovTab />}
           {tab === 'confidence' && <ConfidenceTab />}
+          {tab === 'incrementality' && <IncrementalityTab />}
           {tab === 'bayesian' && <BayesianABTab />}
           {tab === 'cohort'   && <CohortTab />}
           {tab === 'ltvcac'   && <LtvCacTab />}

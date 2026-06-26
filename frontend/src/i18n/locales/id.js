@@ -15243,7 +15243,7 @@ export default {
     stbHigh: "Tinggi",
     stbMed: "Sedang",
     stbLow: "Rendah",
-    noData: "Tidak ada data perjalanan konversi.",
+    noData: "Tidak ada data perjalanan konversi.", "tabIncrLabel": "📊 Inkrementalitas·Holdout", "tabIncrDesc": "Uji lift", "incrIntro": "Membandingkan kontribusi inkremental berbasis data (efek penghapusan Markov) dengan angka laporan last-touch untuk menurunkan ROAS inkremental dan over-atribusi per kanal, serta memandu daya statistik (efek minimum terdeteksi·durasi yang diperlukan) untuk eksperimen holdout nyata.", "incrSpend": "Total belanja", "incrRevenue": "Total pendapatan", "incrBlended": "ROAS gabungan", "incrConv": "Konversi", "incrColSpend": "Belanja", "incrColReported": "ROAS dilaporkan", "incrColIncRoas": "ROAS inkremental", "incrColOver": "Over-atribusi", "incrColCpa": "CPA inkremental", "incrColHoldout": "Holdout (lift 10%)", "incrDays": "hr", "incrInsufficient": "Data kurang", "incrLoading": "Memuat...", "incrLiftTitle": "Uji lift holdout", "incrLiftDesc": "Masukkan hasil konversi grup kontrol (tanpa tayangan) dan perlakuan (ditayangkan) untuk menguji lift inkremental dan signifikansi statistik (nilai p).", "incrCtrlConv": "Konversi kontrol", "incrCtrlSize": "Ukuran kontrol", "incrTrtConv": "Konversi perlakuan", "incrTrtSize": "Ukuran perlakuan", "incrRpc": "Pendapatan per konversi (opsional)", "incrAnalyzing": "Menganalisis...", "incrRun": "Jalankan uji lift", "incrLiftErr": "Analisis gagal.", "incrRelLift": "Lift relatif", "incrPval": "nilai p", "incrZscore": "skor z", "incrIncConv": "Konv. inkremental", "incrIncVal": "Nilai inkremental", "incrCvrCompare": "CVR kontrol", "incrTrtCvr": "CVR perlakuan",
   },
 
 

@@ -747,6 +747,10 @@ return function (App $app): void {
         'GET /api/v424/attribution/models' => 'Genie\\Handlers\\AttributionEngine::models',
         'GET /v424/attribution/confidence'     => 'Genie\\Handlers\\AttributionEngine::confidence', // [현 차수 P3]
         'GET /api/v424/attribution/confidence' => 'Genie\\Handlers\\AttributionEngine::confidence',
+        'GET /v424/attribution/incrementality'     => 'Genie\\Handlers\\AttributionEngine::incrementality', // [현 차수 P4]
+        'GET /api/v424/attribution/incrementality' => 'Genie\\Handlers\\AttributionEngine::incrementality',
+        'POST /v424/attribution/lift-test'     => 'Genie\\Handlers\\AttributionEngine::liftTest',
+        'POST /api/v424/attribution/lift-test' => 'Genie\\Handlers\\AttributionEngine::liftTest',
         // [현 차수] ② MMM(마케팅 믹스 모델) + 예측 예산 최적화
         'GET /v424/mmm/model'         => 'Genie\\Handlers\\Mmm::model',
         'GET /api/v424/mmm/model'     => 'Genie\\Handlers\\Mmm::model',
@@ -2702,6 +2706,10 @@ return function (App $app): void {
     $register('GET', '/api/v424/attribution/models');
     $register('GET', '/v424/attribution/confidence'); // [현 차수 P3]
     $register('GET', '/api/v424/attribution/confidence');
+    $register('GET', '/v424/attribution/incrementality'); // [현 차수 P4]
+    $register('GET', '/api/v424/attribution/incrementality');
+    $register('POST', '/v424/attribution/lift-test');
+    $register('POST', '/api/v424/attribution/lift-test');
     // [현 차수] ② MMM + 예측 예산 최적화
     $register('GET',  '/v424/mmm/model');     $register('GET',  '/api/v424/mmm/model');
     $register('GET',  '/v424/mmm/series');    $register('GET',  '/api/v424/mmm/series'); // [237차] 증분성 입력
