@@ -3286,6 +3286,17 @@ final class ChannelSync
         if ($tenant === 'demo') return 0;
         $r = self::fetchSettlements($channel, $creds, $tenant, $period);
         if (empty($r['ok']) || empty($r['settlements']) || !is_array($r['settlements'])) return 0;
+        // [245차 P2-5] 다통화 정산 정규화 — 비-KRW 정산(Shopify USD 등)을 적재 전 fxToKrw로 KRW 통일(주문 chokepoint와 동일 정합).
+        //   orderhub_settlements 는 KRW 집계가 SSOT이므로 통화 혼합 합산을 차단(글로벌 셀러 다통화 정합). 원통화는 orig_currency 보존.
+        $moneyCols = ['gross_sales', 'net_payout', 'platform_fee', 'ad_fee', 'coupon_discount', 'return_fee'];
+        foreach ($r['settlements'] as &$s) {
+            $cur = strtoupper(trim((string)($s['currency'] ?? 'KRW')));
+            if ($cur !== '' && $cur !== 'KRW') {
+                foreach ($moneyCols as $c) { if (isset($s[$c]) && is_numeric($s[$c])) $s[$c] = round(\Genie\Handlers\Connectors::fxToKrw((float)$s[$c], $cur)); }
+                $s['orig_currency'] = $cur; $s['currency'] = 'KRW';
+            }
+        }
+        unset($s);
         // 실 정산 데이터 → status='confirmed' 적재(추정 롤업이 덮어쓰지 않아 보존됨 — OrderHub 보존 로직 정합).
         return OrderHub::ingestSettlementRows($pdo, $tenant, $r['settlements'], 'confirmed');
     }
