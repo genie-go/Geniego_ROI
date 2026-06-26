@@ -3934,7 +3934,7 @@ export default {
       heroTitle: "Geniego-ROI User Guide"
     },
   topbar: {
-    "convertCta": 'Go Production',
+    "convertCta": 'Upgrade to Paid',
     "convertTitle": 'Convert to production (paid) using your demo signup info — trial mock data is not migrated',"demoResetConfirm":"Reset all data you created during the trial (journeys, campaigns, popups, etc.) to the default demo state?\n\nWhen you upgrade to a paid plan, your work is saved permanently.","demoResetTitle":"🔄 Reset trial data · Your work is saved permanently when you subscribe","envDemo":"🎪 Demo","envProd":"🏢 Production","switchToProdTitle":"Switch to production (live data) admin","switchToDemoTitle":"Switch to demo (trial) environment admin","switchToProd":"🏢 To production →","switchToDemo":"🎪 To demo →",
       live: "Real-time",
       workspace: "Workspace",

@@ -5681,7 +5681,7 @@ export default {
     },
   logout: "Logout",
   topbar: {
-    "convertCta": 'Ir para produção',
+    "convertCta": 'Mudar para pago',
     "convertTitle": 'Converter para membro de produção (pago) com seus dados de cadastro demo — dados fictícios de teste não são migrados',"demoResetConfirm":"Redefinir todos os dados criados durante o teste (jornadas, campanhas, pop-ups, etc.) para o estado de demonstração padrão?\n\nAo assinar um plano pago, seu trabalho é salvo permanentemente.","demoResetTitle":"🔄 Redefinir dados de teste · Salvo ao assinar","envDemo":"🎪 Ambiente demo","envProd":"🏢 Ambiente de produção","switchToProdTitle":"Mudar para a administração de produção (dados reais)","switchToDemoTitle":"Mudar para a administração do ambiente demo (teste)","switchToProd":"🏢 Para produção →","switchToDemo":"🎪 Para demo →",
       live: "Live",
       workspace: "Workspace",

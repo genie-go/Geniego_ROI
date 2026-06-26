@@ -344,7 +344,7 @@ export default function Topbar() {
             }}
             onMouseEnter={e => e.currentTarget.style.background = 'rgba(34,197,94,0.24)'}
             onMouseLeave={e => e.currentTarget.style.background = 'rgba(34,197,94,0.14)'}
-          >🚀 {t('topbar.convertCta', '운영 회원 전환')}</button>
+          >🚀 {t('topbar.convertCta', '유료 회원 전환')}</button>
         )}
 
         {/* 207차: 관리자 전용 환경 전환 — 운영/데모는 별도 시스템(별도 DB). 어느 페이지에서나 전환 가능.
