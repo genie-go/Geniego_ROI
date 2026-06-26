@@ -1442,9 +1442,10 @@ final class Connectors
             'meta'   => fn() => self::fetchMetaRows($tenant, $start, $end),
             'google' => fn() => self::fetchGoogleRows($tenant, $start, $end),
             'tiktok' => fn() => self::fetchTiktokRows($tenant, $start, $end),
-            'naver'  => fn() => self::fetchNaverRows($tenant, $start, $end),
-            'kakao'  => fn() => self::fetchKakaoRows($tenant, $start, $end), // [현 차수] Kakao Moment 실 ingest 배선
-            'line'   => fn() => self::fetchLineRows($tenant, $start, $end),  // [232차] LINE Ads 실 ingest(JWS)
+            // [현 차수] Kakao/Naver/LINE — ad-group 입도 시도 → 데이터 없으면 campaign 폴백(additive-fallback, 회귀 0).
+            'naver'  => fn() => self::adGroupOrFallback(fn() => self::fetchNaverAdGroupRows($tenant, $start, $end), fn() => self::fetchNaverRows($tenant, $start, $end)),
+            'kakao'  => fn() => self::adGroupOrFallback(fn() => self::fetchKakaoAdGroupRows($tenant, $start, $end), fn() => self::fetchKakaoRows($tenant, $start, $end)),
+            'line'   => fn() => self::adGroupOrFallback(fn() => self::fetchLineAdGroupRows($tenant, $start, $end), fn() => self::fetchLineRows($tenant, $start, $end)),
             // [240차] 커넥터 확장 — 신규 광고 데이터소스 실 fetch(자격증명 등록 시 동작·graceful 드롭인).
             'snapchat'  => fn() => self::fetchSnapchatRows($tenant, $start, $end),
             'linkedin'  => fn() => self::fetchLinkedinRows($tenant, $start, $end),
@@ -2834,6 +2835,137 @@ final class Connectors
                     ];
                 }
             }
+        }
+        return ['hasCreds' => true, 'live' => true, 'rows' => $rows];
+    }
+
+    /**
+     * [현 차수] ad-group/소재 입도 additive-fallback — 더 미세한 입도 fetch 를 시도하되, 데이터가 없거나(빈/에러)
+     * 자격증명 미설정이면 검증된 campaign-level fetch 로 폴백한다. ★기존 안정성: ad-group 엔드포인트가 틀려도
+     * campaign-level(현행 동작)이 그대로 유지되어 회귀 0. ad-group 이 실데이터를 반환할 때만 미세 입도 적용.
+     */
+    private static function adGroupOrFallback(callable $adGroup, callable $campaign): array
+    {
+        try {
+            $r = $adGroup();
+            if (!empty($r['live']) && !empty($r['rows'])) return $r; // 미세 입도 실데이터 → 사용
+            if (empty($r['hasCreds'])) return $campaign();           // 자격증명 없음 → campaign 도 동일 skip 처리
+        } catch (\Throwable $e) { /* 폴백 */ }
+        return $campaign(); // ad-group 빈/실패 → 검증된 campaign-level(회귀 0)
+    }
+
+    /** Naver SA ad-group 입도 — /ncc/adgroups(캠페인별) → /stats(adgroup ids, breakdown=day). 실패/빈 시 상위가 campaign 폴백. */
+    private static function fetchNaverAdGroupRows(string $tenant, string $start, string $end): array
+    {
+        $apiKey     = (string)(getenv('NAVER_API_KEY')     ?: self::loadCred($tenant, 'naver_sa', 'api_key')     ?: self::loadCred($tenant, 'naver_searchad', 'api_key'));
+        $apiSecret  = (string)(getenv('NAVER_API_SECRET')  ?: self::loadCred($tenant, 'naver_sa', 'api_secret')  ?: self::loadCred($tenant, 'naver_searchad', 'api_secret'));
+        $customerId = (string)(getenv('NAVER_CUSTOMER_ID') ?: self::loadCred($tenant, 'naver_sa', 'customer_id') ?: self::loadCred($tenant, 'naver_searchad', 'customer_id'));
+        if ($apiKey === '' || $apiSecret === '' || $customerId === '') return ['hasCreds' => false, 'live' => false, 'rows' => []];
+        $sign = function (string $method, string $path) use ($apiSecret): array {
+            $ts = (string)(round(microtime(true) * 1000));
+            return [$ts, base64_encode(hash_hmac('sha256', "{$ts}.{$method}.{$path}", $apiSecret, true))];
+        };
+        $hdr = function (array $sg) use ($apiKey, $customerId): array {
+            return ['X-Timestamp' => $sg[0], 'X-API-KEY' => $apiKey, 'X-Customer' => $customerId, 'X-Signature' => $sg[1], 'Content-Type' => 'application/json; charset=UTF-8'];
+        };
+        // 캠페인 → adgroup id 수집(캠페인당 1콜, 상한). campaignName 보존(account 표기).
+        [$cCode, $cBody] = self::httpGet('https://api.naver.com/ncc/campaigns', $hdr($sign('GET', '/ncc/campaigns')));
+        if ($cCode >= 400 || !is_array($cBody)) return ['hasCreds' => true, 'live' => false, 'rows' => []];
+        $agIds = []; $agMeta = []; $cnt = 0;
+        foreach ($cBody as $c) {
+            $cid = (string)($c['nccCampaignId'] ?? ''); if ($cid === '') continue;
+            if (++$cnt > 30) break; // 콜 상한(대형 계정 보호)
+            [$aCode, $aBody] = self::httpGet('https://api.naver.com/ncc/adgroups?' . http_build_query(['nccCampaignId' => $cid]), $hdr($sign('GET', '/ncc/adgroups')));
+            if ($aCode >= 400 || !is_array($aBody)) continue;
+            foreach ($aBody as $ag) {
+                $aid = (string)($ag['nccAdgroupId'] ?? ''); if ($aid === '') continue;
+                $agIds[] = $aid; $agMeta[$aid] = ['campaign' => (string)($c['name'] ?? 'Naver SA'), 'adgroup' => (string)($ag['name'] ?? ''), 'campaign_id' => $cid];
+            }
+        }
+        if (empty($agIds)) return ['hasCreds' => true, 'live' => false, 'rows' => []]; // adgroup 미확보 → campaign 폴백
+        $rows = [];
+        foreach (array_chunk($agIds, 100) as $batch) {
+            $query = http_build_query(['ids' => implode(',', $batch), 'fields' => json_encode(['impCnt', 'clkCnt', 'salesAmt', 'ccnt', 'convAmt']), 'timeRange' => json_encode(['since' => $start, 'until' => $end]), 'breakdown' => 'day']);
+            [$sCode, $sBody] = self::httpGet('https://api.naver.com/stats?' . $query, $hdr($sign('GET', '/stats')));
+            if ($sCode >= 400) return ['hasCreds' => true, 'live' => false, 'rows' => []]; // 부분실패=전체 폴백(all-or-nothing)
+            foreach ((array)($sBody['data'] ?? (is_array($sBody) ? $sBody : [])) as $row) {
+                if (!is_array($row)) continue;
+                $day = (string)($row['dimension']['day'] ?? $row['day'] ?? $row['statDt'] ?? '');
+                $day = substr(str_replace(['.', '/'], '-', $day), 0, 10);
+                if ($day === '' || $day < $start || $day > $end) continue;
+                $aid = (string)($row['id'] ?? ($row['dimension']['id'] ?? ''));
+                $m = $agMeta[$aid] ?? ['campaign' => 'Naver SA', 'adgroup' => '', 'campaign_id' => ''];
+                $rows[] = [
+                    'team' => 'Naver SA', 'account' => $m['campaign'], 'campaign_ext_id' => $m['campaign_id'], 'ad_ext_id' => $aid,
+                    'objective' => '', 'reach' => 0, 'date' => $day,
+                    'impressions' => (int)($row['impCnt'] ?? 0), 'clicks' => (int)($row['clkCnt'] ?? 0),
+                    'spend' => (float)($row['salesAmt'] ?? 0), 'conversions' => (int)round((float)($row['ccnt'] ?? 0)), 'revenue' => (float)($row['convAmt'] ?? 0),
+                    'currency' => 'KRW', 'extra' => ['level' => 'adgroup', 'adset_ext_id' => $aid, 'adset_name' => $m['adgroup']],
+                ];
+            }
+        }
+        return ['hasCreds' => true, 'live' => true, 'rows' => $rows];
+    }
+
+    /** Kakao Moment ad-group 입도 — /openapi/v4/adGroups/report(dimension=AD_GROUP). 실패/빈 시 상위가 campaign 폴백. */
+    private static function fetchKakaoAdGroupRows(string $tenant, string $start, string $end): array
+    {
+        $accessToken = (string)(getenv('KAKAO_MOMENT_ACCESS_TOKEN') ?: self::loadCred($tenant, 'kakao_moment', 'access_token'));
+        $adAccountId = (string)(getenv('KAKAO_MOMENT_AD_ACCOUNT_ID') ?: self::loadCred($tenant, 'kakao_moment', 'ad_account_id'));
+        if ($adAccountId === '') $adAccountId = (string)self::loadCred($tenant, 'kakao_moment', 'account_id');
+        if ($accessToken === '' || $adAccountId === '') return ['hasCreds' => false, 'live' => false, 'rows' => []];
+        $params = http_build_query(['start' => str_replace('-', '', $start), 'end' => str_replace('-', '', $end), 'metricsGroup' => 'BASIC', 'dimension' => 'AD_GROUP']);
+        [$code, $body] = self::httpGet("https://apis.moment.kakao.com/openapi/v4/adGroups/report?{$params}", ['Authorization' => "Bearer {$accessToken}", 'adAccountId' => $adAccountId, 'Content-Type' => 'application/json']);
+        if ($code >= 400) return ['hasCreds' => true, 'live' => false, 'rows' => []]; // 폴백
+        $rows = [];
+        foreach ((array)($body['data'] ?? $body['report'] ?? []) as $r) {
+            $dim = (array)($r['dimension'] ?? $r['dimensions'] ?? []);
+            $m   = (array)($r['metric'] ?? $r['metrics'] ?? []);
+            $rawDate = (string)($r['start'] ?? $r['date'] ?? $dim['date'] ?? '');
+            $date = (strlen($rawDate) === 8) ? substr($rawDate, 0, 4) . '-' . substr($rawDate, 4, 2) . '-' . substr($rawDate, 6, 2) : substr($rawDate, 0, 10);
+            $rows[] = [
+                'team' => 'Kakao', 'account' => (string)($dim['campaignName'] ?? $dim['adGroupName'] ?? 'Kakao Moment'),
+                'campaign_ext_id' => (string)($dim['campaignId'] ?? ''), 'ad_ext_id' => (string)($dim['adGroupId'] ?? $dim['adGroupName'] ?? ''),
+                'objective' => (string)($dim['objective'] ?? $dim['campaignObjective'] ?? ''), 'reach' => (int)($m['reach'] ?? 0), 'date' => $date,
+                'impressions' => (int)($m['imp'] ?? $m['impression'] ?? 0), 'clicks' => (int)($m['click'] ?? $m['clicks'] ?? 0),
+                'spend' => (float)($m['cost'] ?? $m['spending'] ?? 0), 'conversions' => (int)round((float)($m['convPurchaseCnt'] ?? $m['conv'] ?? 0)),
+                'revenue' => (float)($m['convPurchaseAmount'] ?? $m['convValue'] ?? 0),
+                'extra' => ['level' => 'adgroup', 'adset_ext_id' => (string)($dim['adGroupId'] ?? ''), 'adset_name' => (string)($dim['adGroupName'] ?? '')],
+            ];
+        }
+        return ['hasCreds' => true, 'live' => true, 'rows' => $rows];
+    }
+
+    /** LINE Ads ad-group 입도 — /statistics/adgroup(JWS). 실패/빈 시 상위가 campaign 폴백. */
+    private static function fetchLineAdGroupRows(string $tenant, string $start, string $end): array
+    {
+        $accessKey = (string)(getenv('LINE_ADS_ACCESS_KEY') ?: self::loadCred($tenant, 'line_ads', 'access_key'));
+        $secretKey = (string)(getenv('LINE_ADS_SECRET_KEY') ?: self::loadCred($tenant, 'line_ads', 'secret_key'));
+        $groupId   = (string)(getenv('LINE_ADS_GROUP_ID')   ?: self::loadCred($tenant, 'line_ads', 'group_id'));
+        if ($groupId === '') $groupId = (string)self::loadCred($tenant, 'line_ads', 'ad_account_id');
+        if ($accessKey === '' || $secretKey === '' || $groupId === '') return ['hasCreds' => false, 'live' => false, 'rows' => []];
+        $path = '/api/v3/groups/' . rawurlencode($groupId) . '/statistics/adgroup';
+        $query = http_build_query(['since' => str_replace('-', '', $start), 'until' => str_replace('-', '', $end), 'datePreset' => 'CUSTOM']);
+        $hdr = self::lineAdsAuthHeaders('GET', $path, '', $accessKey, $secretKey);
+        [$code, $body] = self::httpGet('https://ads.line.me' . $path . '?' . $query, $hdr);
+        if ($code >= 400) return ['hasCreds' => true, 'live' => false, 'rows' => []]; // 폴백
+        $lineCur = strtoupper((string)(self::loadCred($tenant, 'line_ads', 'currency') ?: 'JPY'));
+        $rows = [];
+        foreach ((array)($body['datas'] ?? $body['data'] ?? $body['statistics'] ?? []) as $r) {
+            $dim = (array)($r['dimensions'] ?? $r['dimension'] ?? $r);
+            $m   = (array)($r['metrics'] ?? $r['metric'] ?? $r);
+            $rawDate = (string)($r['date'] ?? $dim['date'] ?? '');
+            $date = (strlen($rawDate) === 8) ? substr($rawDate, 0, 4) . '-' . substr($rawDate, 4, 2) . '-' . substr($rawDate, 6, 2) : substr($rawDate, 0, 10);
+            $rows[] = [
+                'team' => 'LINE', 'account' => (string)($dim['campaignName'] ?? $dim['adgroupName'] ?? 'LINE Ads'),
+                'campaign_ext_id' => (string)($dim['campaignId'] ?? ''), 'ad_ext_id' => (string)($dim['adgroupId'] ?? $dim['adGroupId'] ?? ''),
+                'objective' => (string)($dim['objective'] ?? ''), 'reach' => (int)($m['reach'] ?? 0), 'date' => $date,
+                'impressions' => (int)($m['imp'] ?? $m['impression'] ?? $m['impressions'] ?? 0), 'clicks' => (int)($m['click'] ?? $m['clicks'] ?? 0),
+                'spend' => (float)($m['cost'] ?? $m['spend'] ?? 0), 'conversions' => (int)round((float)($m['conversion'] ?? $m['conv'] ?? 0)),
+                'revenue' => (float)($m['conversionValue'] ?? $m['convValue'] ?? 0),
+                'currency' => strtoupper((string)($m['currency'] ?? $lineCur)),
+                'extra' => ['level' => 'adgroup', 'adset_ext_id' => (string)($dim['adgroupId'] ?? ''), 'adset_name' => (string)($dim['adgroupName'] ?? '')],
+            ];
         }
         return ['hasCreds' => true, 'live' => true, 'rows' => $rows];
     }
