@@ -1703,22 +1703,22 @@ export default function Attribution() {
     if (!_IS_DEMO_ENV && _JOURNEYS_ALL.length === 0) {
       (async () => {
         try {
-          /* 176차 PM8 S6-P1: 4 endpoint 병렬 fetch — journeys / time-series / channels / touches */
-          const [jRes, tsRes, chRes, tcRes] = await Promise.all([
+          /* [현 차수 P1-1] 운영 실데이터 배선 확대 — journeys / channels / touches + ★mmm/series(Shapley·MMM 운영화).
+             기존엔 time-series(spends만)라 MMM revenue=[]→운영 빈값(데모전용)이었다. mmm/series 는 날짜정렬
+             채널별 지출 매트릭스 + 총매출(revenue[])을 둘 다 제공(Mmm::series, 실 performance_metrics) →
+             TS_DATA 에 spends+revenue 주입해 Bayesian MMM 을 운영에서 실데이터로 구동(Double ML 과 동일 소스). */
+          const [jRes, msRes, chRes, tcRes] = await Promise.all([
             getJsonAuth('/v424/attribution/journeys').catch(() => null),
-            getJsonAuth('/v424/attribution/time-series').catch(() => null),
+            getJsonAuth('/v424/mmm/series?window=90').catch(() => null),
             getJsonAuth('/v424/attribution/channels').catch(() => null),
             getJsonAuth('/v424/attribution/touches').catch(() => null),
           ]);
           if (jRes && Array.isArray(jRes.journeys) && jRes.journeys.length > 0) {
-            _JOURNEYS_ALL = jRes.journeys.map(j => ({ path: j.path || [], revenue: 0, convertedAt: j.converted_at || j.convertedAt || null }));
+            // [현 차수] revenue 보존 — journeys 엔드포인트가 revenue 제공 시 Shapley/MTA 매출가중까지 운영 동작.
+            _JOURNEYS_ALL = jRes.journeys.map(j => ({ path: j.path || [], revenue: Number(j.revenue || j.order_value || 0) || 0, convertedAt: j.converted_at || j.convertedAt || null }));
           }
-          if (tsRes && tsRes.spends && Object.keys(tsRes.spends).length > 0) {
-            const spends = {};
-            Object.entries(tsRes.spends).forEach(([ch, arr]) => {
-              spends[ch] = (arr || []).map(p => p.spend || 0);
-            });
-            TS_DATA = { spends, revenue: [] };
+          if (msRes && msRes.spends && typeof msRes.spends === 'object' && Object.keys(msRes.spends).length > 0) {
+            TS_DATA = { spends: msRes.spends, revenue: Array.isArray(msRes.revenue) ? msRes.revenue : [] };
           }
           if (chRes && Array.isArray(chRes.channels)) {
             _CHANNELS_LIVE = chRes.channels;

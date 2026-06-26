@@ -928,6 +928,15 @@ final class OrderHub
                     'orders_count'    => (int)($it['orders_count'] ?? $it['orders'] ?? 0),
                     'returns_count'   => (int)($it['returns_count'] ?? $it['returns'] ?? 0),
                 ], $now);
+                // [현 차수 P1-2] 웹훅 — settlement.created(사용자/커넥터 HTTP 인제스트만, cron rollup 경로 제외 → 재발화 없음).
+                if (!$isDemo) {
+                    \Genie\Handlers\OpenPlatform::emit($tenant, 'settlement.created', [
+                        'period' => $period, 'channel' => $channel,
+                        'net_payout' => (float)($it['net_payout'] ?? $it['netPayout'] ?? 0),
+                        'gross_sales' => (float)($it['gross_sales'] ?? $it['grossSales'] ?? 0),
+                        'currency' => 'KRW', 'status' => (string)($it['status'] ?? 'pending'),
+                    ]);
+                }
             }
         } catch (\Throwable $e) {
             return self::json($resp, ['ok' => false, 'error' => 'db_error', 'message' => $e->getMessage()], 500);

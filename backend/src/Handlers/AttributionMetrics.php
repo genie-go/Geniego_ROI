@@ -70,14 +70,26 @@ final class AttributionMetrics
         if ($t === '') return self::ok($response, ['journeys' => [], 'count' => 0, 'response_time_ms' => self::elapsed($start)]);
         try {
             $pdo = Db::pdo();
-            // session 별 channel 순서 + revenue 집계 (attribution_result 와 join)
+            // session 별 channel 순서 + [현 차수 P1-1] revenue(매출가중 Shapley/MTA 운영화).
+            //   ★안전: channel_orders LEFT JOIN(order_id=channel_order_id) — 매칭 실패 시 revenue=0(COALESCE),
+            //   회귀 없음. order_id 미연결 터치도 그대로 집계(기존 동작 유지). MAX 로 세션-주문 1:1 가정 견고.
             $sql = 'SELECT t.session_id, GROUP_CONCAT(t.channel ORDER BY t.touched_at) AS path, '
-                . 'COUNT(*) AS touches, MAX(t.touched_at) AS last_touch '
+                . 'COUNT(*) AS touches, MAX(t.touched_at) AS last_touch, '
+                . 'MAX(COALESCE(o.total_price, 0)) AS revenue '
                 . 'FROM attribution_touch t '
+                . 'LEFT JOIN channel_orders o ON o.tenant_id = t.tenant_id AND o.channel_order_id = t.order_id '
                 . 'WHERE t.tenant_id = :t AND t.channel IS NOT NULL AND t.session_id IS NOT NULL '
                 . 'GROUP BY t.session_id '
                 . 'ORDER BY last_touch DESC LIMIT 500';
-            $rows = self::queryP($pdo, $sql, [':t' => $t]);
+            try {
+                $rows = self::queryP($pdo, $sql, [':t' => $t]);
+            } catch (\Throwable $eJoin) {
+                // [현 차수] JOIN/스키마 변형 폴백 — revenue 없이 기존 쿼리(회귀 0).
+                $rows = self::queryP($pdo, 'SELECT t.session_id, GROUP_CONCAT(t.channel ORDER BY t.touched_at) AS path, '
+                    . 'COUNT(*) AS touches, MAX(t.touched_at) AS last_touch FROM attribution_touch t '
+                    . 'WHERE t.tenant_id = :t AND t.channel IS NOT NULL AND t.session_id IS NOT NULL '
+                    . 'GROUP BY t.session_id ORDER BY last_touch DESC LIMIT 500', [':t' => $t]);
+            }
             // 응답 normalize — path를 array 로 분리
             $journeys = [];
             foreach ($rows as $r) {
@@ -85,6 +97,7 @@ final class AttributionMetrics
                     'session_id' => $r['session_id'],
                     'path' => $r['path'] ? array_values(array_unique(explode(',', $r['path']))) : [],
                     'touches' => (int)$r['touches'],
+                    'revenue' => (float)($r['revenue'] ?? 0), // [현 차수 P1-1] 매출가중 Shapley/MTA 운영 동작
                     'last_touch' => $r['last_touch'],
                     'converted_at' => $r['last_touch'], // [현 차수] 감사 C-1: 운영 어트리뷰션 기간조회 실작동 — 전환시점(최종 touch) 노출
                 ];

@@ -2444,6 +2444,8 @@ final class ChannelSync
                     //   클릭ID(gclid/fbclid/ttclid) 또는 구매자 이메일↔픽셀 마케팅터치 매칭으로 광고 채널을 식별해
                     //   attribution_touch/result 에 적재 → markov 가 이 주문 매출을 광고에 귀속(커머스플랫폼명 귀속 한계 해소).
                     self::enrichOrderAttribution($pdo, $tenant, $channel, (string)$o['channel_order_id'], $o['buyer_email'] ?? null, (float)($o['total_price'] ?? 0), $o);
+                    // [현 차수 P1-2] 오픈플랫폼 웹훅 — order.created(신규 정상주문 1회·멱등). 구독 0=no-op·비차단.
+                    \Genie\Handlers\OpenPlatform::emit($tenant, 'order.created', ['order_id' => (string)$o['channel_order_id'], 'channel' => $channel, 'amount' => (float)($o['total_price'] ?? 0), 'currency' => 'KRW', 'qty' => (int)($o['qty'] ?? 1), 'sku' => (string)($o['sku'] ?? ''), 'occurred_at' => $now]);
                 } else {
                     // 최초 수집부터 취소/반품 → 재고차감/구매기록 없이 claim 만 적재(정산 정합, 미판매분 재고 미차감).
                     self::recordClaim($pdo, $tenant, $channel, (string)$o['channel_order_id'], $incCR, (float)($o['total_price'] ?? 0), (string)($o['reason'] ?? ''), (string)($o['buyer_name'] ?? ''), $now);
@@ -2466,6 +2468,8 @@ final class ChannelSync
                 $claimTotal = (float)($existing['total_price'] ?? 0);
                 if ($claimTotal <= 0) $claimTotal = (float)($o['total_price'] ?? 0);
                 self::recordClaim($pdo, $tenant, $channel, (string)$o['channel_order_id'], $incCR, $claimTotal, (string)($o['reason'] ?? ''), (string)($o['buyer_name'] ?? ''), $now);
+                // [현 차수 P1-2] 웹훅 — order.cancelled(활성→취소/반품 전이 1회·멱등). 취소·환불 공통.
+                \Genie\Handlers\OpenPlatform::emit($tenant, 'order.cancelled', ['order_id' => (string)$o['channel_order_id'], 'channel' => $channel, 'amount' => $claimTotal, 'currency' => 'KRW', 'reason' => $incCR, 'occurred_at' => $now]);
                 // [현 차수] 단방향 자동진입: 활성→취소/반품 전이 → 물리 창고 재고 복원(reflectChannelSale 차감분
                 //   대칭, 취소/반품 공통: 판매 차감했던 분만 1회 복원). 반품이면 반품관리 포탈에도 멱등 진입.
                 if ($rsku !== '' && $rqty > 0) {
@@ -2611,6 +2615,7 @@ final class ChannelSync
                 if (!$chk0->fetchColumn()) {
                     $pdo->prepare("INSERT {$ig} INTO attribution_result(tenant_id,order_id,attributed_channel,confidence_score,evidence_json,model,created_at) VALUES(?,?,?,?,?,?,?)")
                         ->execute([$tenant, $orderId, strtolower($channel), 1.0, json_encode(['source' => 'commerce_organic', 'revenue' => $total, 'commerce_channel' => $channel], JSON_UNESCAPED_UNICODE), 'commerce-last-touch', $now]);
+                    self::emitConversion($tenant, $orderId, strtolower($channel), 'commerce-last-touch', $total, 1.0, $now);
                 }
             } catch (\Throwable $e) { /* attribution_result 미존재 등 best-effort */ }
             return;
@@ -2633,8 +2638,16 @@ final class ChannelSync
             if (!$chk2->fetchColumn()) {
                 $pdo->prepare("INSERT {$ig} INTO attribution_result(tenant_id,order_id,attributed_channel,confidence_score,evidence_json,model,created_at) VALUES(?,?,?,?,?,?,?)")
                     ->execute([$tenant, $orderId, $adChannel, 0.8, json_encode(['source' => 'order_match', 'revenue' => $total, 'commerce_channel' => $channel], JSON_UNESCAPED_UNICODE), 'order-match', $now]);
+                self::emitConversion($tenant, $orderId, $adChannel, 'order-match', $total, 0.8, $now);
             }
         } catch (\Throwable $e) { /* attribution_result 미존재 등 best-effort */ }
+    }
+
+    /** [현 차수 P1-2] 전환 귀속 시 웹훅 발신 — conversion.recorded + attribution.computed(신규 attribution_result 1회·멱등). */
+    private static function emitConversion(string $tenant, string $orderId, string $channel, string $model, float $revenue, float $confidence, string $now): void
+    {
+        \Genie\Handlers\OpenPlatform::emit($tenant, 'conversion.recorded', ['order_id' => $orderId, 'channel' => $channel, 'value' => $revenue, 'currency' => 'KRW', 'occurred_at' => $now]);
+        \Genie\Handlers\OpenPlatform::emit($tenant, 'attribution.computed', ['order_id' => $orderId, 'attributed_channel' => $channel, 'model' => $model, 'confidence' => $confidence, 'revenue' => $revenue]);
     }
 
     /**
