@@ -203,6 +203,8 @@ $app->add(function (Request $request, $handler) {
         || strpos($path, '/v424/connectors/campaign-funnel') === 0 || strpos($path, '/api/v424/connectors/campaign-funnel') === 0
         // [228차 S1] 매체보고 vs 실주문귀속 ROAS 정합 — 세션 토큰 호출(익명 차단, auth_tenant 주입·격리).
         || strpos($path, '/v423/connectors/roas-reconciliation') === 0 || strpos($path, '/api/v423/connectors/roas-reconciliation') === 0
+        // [현 차수 P2-2a] 키워드 입도 조회 — 세션 self-auth(authedTenant 격리). 프론트 세션 토큰 호출.
+        || strpos($path, '/v424/connectors/keywords') === 0 || strpos($path, '/api/v424/connectors/keywords') === 0
         // [228차 S2] 어트리뷰션(markov 모델·여정·터치·채널·시계열) — 프론트 세션 토큰 호출(익명 차단, auth_tenant 주입).
         //   기존 미bypass라 세션토큰이 api_key 미들웨어에 막혀 어트리뷰션 페이지가 항상 빈 데이터였음. 핸들러는 auth_tenant 격리.
         || strpos($path, '/v424/attribution/') === 0 || strpos($path, '/api/v424/attribution/') === 0

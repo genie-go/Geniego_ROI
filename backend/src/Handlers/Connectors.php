@@ -1495,6 +1495,18 @@ final class Connectors
                     if ($dn > 0) $summary[$ch]['demographics'] = $dn;
                 }
             } catch (\Throwable $e) { /* demographic 수집 실패 = 정직 무시(성과 적재 보존) */ }
+
+            // [현 차수 P2-2a] 키워드 입도 — 검색광고(google/naver)의 키워드별 성과를 ★별도 keyword_insight 테이블에
+            //   수집(performance_metrics 와 이중계산 회피). 검색 채널 세분 귀속 분석 기반. 실패=정직 무시(성과 보존).
+            if (in_array($ch, ['google', 'naver'], true)) {
+                try {
+                    $kw = ($ch === 'google') ? self::fetchGoogleKeywordRows($tenant, $start, $end) : self::fetchNaverKeywordRows($tenant, $start, $end);
+                    if (!empty($kw['live']) && !empty($kw['rows'])) {
+                        $kn = self::persistKeywordRows($pdo, $tenant, $ch, $kw['rows'], $start, $end);
+                        if ($kn > 0) $summary[$ch]['keywords'] = $kn;
+                    }
+                } catch (\Throwable $e) { /* 키워드 수집 실패 = 정직 무시 */ }
+            }
         }
 
         return [
@@ -2968,6 +2980,160 @@ final class Connectors
             ];
         }
         return ['hasCreds' => true, 'live' => true, 'rows' => $rows];
+    }
+
+    // ════════════ [현 차수 P2-2a] 키워드 입도 — 검색광고 키워드별 성과(별도 테이블, 이중계산 회피) ════════════
+
+    private static function ensureKeywordTable(PDO $pdo): void
+    {
+        $drv = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+        $AI = ($drv === 'mysql') ? 'INT AUTO_INCREMENT PRIMARY KEY' : 'INTEGER PRIMARY KEY AUTOINCREMENT';
+        $pdo->exec("CREATE TABLE IF NOT EXISTS keyword_insight (
+            id $AI, tenant_id VARCHAR(64), channel VARCHAR(40),
+            campaign VARCHAR(255), adgroup VARCHAR(255), keyword VARCHAR(500), keyword_ext_id VARCHAR(120),
+            match_type VARCHAR(30), date VARCHAR(20),
+            impressions INTEGER DEFAULT 0, clicks INTEGER DEFAULT 0,
+            spend REAL DEFAULT 0, conversions INTEGER DEFAULT 0, revenue REAL DEFAULT 0,
+            currency VARCHAR(8) DEFAULT 'KRW', created_at TEXT
+        )");
+        try { $pdo->exec("CREATE INDEX idx_kwins_tenant ON keyword_insight(tenant_id, channel, date)"); } catch (\Throwable $e) {}
+    }
+
+    /** 키워드 행 적재 — DELETE-then-INSERT(tenant,channel,date 범위). spend KRW 환산. */
+    private static function persistKeywordRows(PDO $pdo, string $tenant, string $channel, array $rows, string $start, string $end): int
+    {
+        self::ensureKeywordTable($pdo);
+        $pdo->beginTransaction();
+        try {
+            $del = $pdo->prepare("DELETE FROM keyword_insight WHERE tenant_id=? AND channel=? AND date BETWEEN ? AND ?");
+            $del->execute([$tenant, $channel, $start, $end]);
+            $ins = $pdo->prepare("INSERT INTO keyword_insight(tenant_id,channel,campaign,adgroup,keyword,keyword_ext_id,match_type,date,impressions,clicks,spend,conversions,revenue,currency,created_at)
+                                  VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+            $now = gmdate('c'); $n = 0;
+            foreach ($rows as $r) {
+                $date = (string)($r['date'] ?? ''); if ($date === '' || $date < $start || $date > $end) continue;
+                $cur = strtoupper((string)($r['currency'] ?? 'KRW'));
+                $ins->execute([$tenant, $channel, (string)($r['campaign'] ?? ''), (string)($r['adgroup'] ?? ''),
+                    (string)($r['keyword'] ?? ''), (string)($r['keyword_ext_id'] ?? ''), (string)($r['match_type'] ?? ''), $date,
+                    (int)($r['impressions'] ?? 0), (int)($r['clicks'] ?? 0),
+                    self::fxToKrw((float)($r['spend'] ?? 0), $cur), (int)($r['conversions'] ?? 0),
+                    self::fxToKrw((float)($r['revenue'] ?? 0), $cur), $cur, $now]);
+                $n++;
+            }
+            $pdo->commit();
+            return $n;
+        } catch (\Throwable $e) { if ($pdo->inTransaction()) $pdo->rollBack(); throw $e; }
+    }
+
+    /** Google Ads keyword_view GAQL — 캠페인/애드그룹/키워드×일자. cost_micros÷1e6. */
+    private static function fetchGoogleKeywordRows(string $tenant, string $start, string $end): array
+    {
+        $devToken    = (string)(getenv('GOOGLE_DEVELOPER_TOKEN') ?: self::loadCred($tenant, 'google_ads', 'developer_token'));
+        $accessToken = (string)(getenv('GOOGLE_ACCESS_TOKEN')    ?: self::loadCred($tenant, 'google_ads', 'access_token'));
+        $customerId  = str_replace('-', '', (string)(getenv('GOOGLE_CUSTOMER_ID') ?: self::loadCred($tenant, 'google_ads', 'customer_id')));
+        if ($devToken === '' || $accessToken === '' || $customerId === '') return ['hasCreds' => false, 'live' => false, 'rows' => []];
+        $gaql = "SELECT campaign.name, ad_group.name, ad_group_criterion.keyword.text, ad_group_criterion.keyword.match_type,
+                        ad_group_criterion.criterion_id, customer.currency_code,
+                        metrics.impressions, metrics.clicks, metrics.cost_micros, metrics.conversions, metrics.conversions_value, segments.date
+                 FROM keyword_view
+                 WHERE segments.date BETWEEN '$start' AND '$end' AND ad_group_criterion.status != 'REMOVED'
+                 ORDER BY segments.date DESC LIMIT 10000";
+        [$code, $body, $err] = self::httpPost("https://googleads.googleapis.com/v17/customers/{$customerId}/googleAds:searchStream", ['query' => $gaql],
+            ['Authorization' => "Bearer {$accessToken}", 'developer-token' => $devToken, 'Content-Type' => 'application/json']);
+        if ($err || $code >= 400) return ['hasCreds' => true, 'live' => false, 'error' => $err ?? "google kw http $code"];
+        $results = [];
+        if (isset($body['results'])) $results = (array)$body['results'];
+        else foreach ((array)$body as $chunk) { if (is_array($chunk) && isset($chunk['results'])) $results = array_merge($results, (array)$chunk['results']); }
+        if (count($results) >= 10000) return ['hasCreds' => true, 'live' => false, 'error' => 'google keyword truncated — window 축소 필요(기존 보존)'];
+        $rows = [];
+        foreach ($results as $r) {
+            $rows[] = [
+                'campaign' => (string)($r['campaign']['name'] ?? ''), 'adgroup' => (string)($r['adGroup']['name'] ?? ''),
+                'keyword' => (string)($r['adGroupCriterion']['keyword']['text'] ?? ''),
+                'keyword_ext_id' => (string)($r['adGroupCriterion']['criterionId'] ?? ''),
+                'match_type' => (string)($r['adGroupCriterion']['keyword']['matchType'] ?? ''),
+                'date' => (string)($r['segments']['date'] ?? ''),
+                'impressions' => (int)($r['metrics']['impressions'] ?? 0), 'clicks' => (int)($r['metrics']['clicks'] ?? 0),
+                'spend' => round((int)($r['metrics']['costMicros'] ?? 0) / 1_000_000, 2),
+                'conversions' => (int)round((float)($r['metrics']['conversions'] ?? 0)),
+                'revenue' => round((float)($r['metrics']['conversionsValue'] ?? 0), 2),
+                'currency' => strtoupper((string)($r['customer']['currencyCode'] ?? 'KRW')),
+            ];
+        }
+        return ['hasCreds' => true, 'live' => true, 'rows' => $rows];
+    }
+
+    /** Naver SA 키워드 성과 — /ncc/keywords(애드그룹별·콜상한) → /stats(keyword ids, breakdown=day). KRW. */
+    private static function fetchNaverKeywordRows(string $tenant, string $start, string $end): array
+    {
+        $apiKey     = (string)(getenv('NAVER_API_KEY')     ?: self::loadCred($tenant, 'naver_sa', 'api_key')     ?: self::loadCred($tenant, 'naver_searchad', 'api_key'));
+        $apiSecret  = (string)(getenv('NAVER_API_SECRET')  ?: self::loadCred($tenant, 'naver_sa', 'api_secret')  ?: self::loadCred($tenant, 'naver_searchad', 'api_secret'));
+        $customerId = (string)(getenv('NAVER_CUSTOMER_ID') ?: self::loadCred($tenant, 'naver_sa', 'customer_id') ?: self::loadCred($tenant, 'naver_searchad', 'customer_id'));
+        if ($apiKey === '' || $apiSecret === '' || $customerId === '') return ['hasCreds' => false, 'live' => false, 'rows' => []];
+        $sign = function (string $m, string $p) use ($apiSecret): array { $ts = (string)(round(microtime(true) * 1000)); return [$ts, base64_encode(hash_hmac('sha256', "{$ts}.{$m}.{$p}", $apiSecret, true))]; };
+        $hdr = function (array $sg) use ($apiKey, $customerId): array { return ['X-Timestamp' => $sg[0], 'X-API-KEY' => $apiKey, 'X-Customer' => $customerId, 'X-Signature' => $sg[1], 'Content-Type' => 'application/json; charset=UTF-8']; };
+        [$aCode, $aBody] = self::httpGet('https://api.naver.com/ncc/adgroups', $hdr($sign('GET', '/ncc/adgroups')));
+        if ($aCode >= 400 || !is_array($aBody)) return ['hasCreds' => true, 'live' => false, 'rows' => []];
+        $kwIds = []; $kwMeta = []; $cnt = 0;
+        foreach ($aBody as $ag) {
+            $agid = (string)($ag['nccAdgroupId'] ?? ''); if ($agid === '') continue;
+            if (++$cnt > 20) break; // 콜 상한
+            [$kCode, $kBody] = self::httpGet('https://api.naver.com/ncc/keywords?' . http_build_query(['nccAdgroupId' => $agid]), $hdr($sign('GET', '/ncc/keywords')));
+            if ($kCode >= 400 || !is_array($kBody)) continue;
+            foreach ($kBody as $kw) {
+                $kid = (string)($kw['nccKeywordId'] ?? ''); if ($kid === '') continue;
+                $kwIds[] = $kid; $kwMeta[$kid] = ['keyword' => (string)($kw['keyword'] ?? ''), 'adgroup' => $agid];
+            }
+        }
+        if (empty($kwIds)) return ['hasCreds' => true, 'live' => false, 'rows' => []];
+        $rows = [];
+        foreach (array_chunk($kwIds, 100) as $batch) {
+            $q = http_build_query(['ids' => implode(',', $batch), 'fields' => json_encode(['impCnt', 'clkCnt', 'salesAmt', 'ccnt', 'convAmt']), 'timeRange' => json_encode(['since' => $start, 'until' => $end]), 'breakdown' => 'day']);
+            [$sCode, $sBody] = self::httpGet('https://api.naver.com/stats?' . $q, $hdr($sign('GET', '/stats')));
+            if ($sCode >= 400) return ['hasCreds' => true, 'live' => false, 'rows' => []];
+            foreach ((array)($sBody['data'] ?? (is_array($sBody) ? $sBody : [])) as $row) {
+                if (!is_array($row)) continue;
+                $day = substr(str_replace(['.', '/'], '-', (string)($row['dimension']['day'] ?? $row['day'] ?? '')), 0, 10);
+                if ($day === '' || $day < $start || $day > $end) continue;
+                $kid = (string)($row['id'] ?? ($row['dimension']['id'] ?? ''));
+                $m = $kwMeta[$kid] ?? ['keyword' => '', 'adgroup' => ''];
+                $rows[] = [
+                    'campaign' => '', 'adgroup' => $m['adgroup'], 'keyword' => $m['keyword'], 'keyword_ext_id' => $kid, 'match_type' => '', 'date' => $day,
+                    'impressions' => (int)($row['impCnt'] ?? 0), 'clicks' => (int)($row['clkCnt'] ?? 0),
+                    'spend' => (float)($row['salesAmt'] ?? 0), 'conversions' => (int)round((float)($row['ccnt'] ?? 0)), 'revenue' => (float)($row['convAmt'] ?? 0), 'currency' => 'KRW',
+                ];
+            }
+        }
+        return ['hasCreds' => true, 'live' => true, 'rows' => $rows];
+    }
+
+    /** GET /v424/connectors/keywords — 저장된 키워드 성과(검색광고 세분 귀속 분석). 테넌트 격리. */
+    public static function keywords(Request $request, Response $response, array $args): Response
+    {
+        $tenant = (string)($request->getAttribute('auth_tenant') ?? '');
+        if ($tenant === '') { $u = \Genie\Handlers\UserAuth::authedTenant($request); $tenant = $u ?? ''; }
+        if ($tenant === '') return TemplateResponder::respond($response, ['ok' => false, 'keywords' => []]);
+        try {
+            $pdo = Db::pdo(); self::ensureKeywordTable($pdo);
+            $q = $request->getQueryParams();
+            $where = 'tenant_id=?'; $params = [$tenant];
+            if (!empty($q['channel'])) { $where .= ' AND channel=?'; $params[] = (string)$q['channel']; }
+            $st = $pdo->prepare("SELECT channel,campaign,adgroup,keyword,keyword_ext_id,match_type,
+                                 SUM(impressions) impressions, SUM(clicks) clicks, SUM(spend) spend, SUM(conversions) conversions, SUM(revenue) revenue
+                                 FROM keyword_insight WHERE $where GROUP BY channel,campaign,adgroup,keyword,keyword_ext_id,match_type
+                                 ORDER BY spend DESC LIMIT 500");
+            $st->execute($params);
+            $rows = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+            foreach ($rows as &$r) {
+                $r['impressions'] = (int)$r['impressions']; $r['clicks'] = (int)$r['clicks'];
+                $r['spend'] = round((float)$r['spend'], 0); $r['conversions'] = (int)$r['conversions']; $r['revenue'] = round((float)$r['revenue'], 0);
+                $r['roas'] = $r['spend'] > 0 ? round($r['revenue'] / $r['spend'], 2) : 0;
+                $r['cpc'] = $r['clicks'] > 0 ? round($r['spend'] / $r['clicks'], 0) : 0;
+            }
+            return TemplateResponder::respond($response, ['ok' => true, 'keywords' => $rows, 'count' => count($rows)]);
+        } catch (\Throwable $e) {
+            return TemplateResponder::respond($response, ['ok' => false, 'keywords' => [], 'error' => $e->getMessage()]);
+        }
     }
 
     // ════════════ [현 차수] 롱테일 광고 커넥터 5종 (신용게이트·자격증명→즉시 실행, graceful 드롭인) ════════════

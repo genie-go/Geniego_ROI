@@ -780,6 +780,8 @@ return function (App $app): void {
         // [현 차수] 채널×objective 퍼널 집계(목적별 분류 근거) — 세션 토큰 호출(AI게이트).
         'GET /v424/connectors/campaign-funnel'     => 'Genie\\Handlers\\Connectors::campaignFunnel',
         'GET /api/v424/connectors/campaign-funnel' => 'Genie\\Handlers\\Connectors::campaignFunnel',
+        'GET /v424/connectors/keywords'     => 'Genie\\Handlers\\Connectors::keywords', // [현 차수 P2-2a] 검색광고 키워드 입도
+        'GET /api/v424/connectors/keywords' => 'Genie\\Handlers\\Connectors::keywords',
         // [228차 S1] 매체보고 vs 실주문귀속 ROAS 정합
         'GET /v423/connectors/roas-reconciliation'     => 'Genie\\Handlers\\Connectors::roasReconciliation',
         'GET /api/v423/connectors/roas-reconciliation' => 'Genie\\Handlers\\Connectors::roasReconciliation',
@@ -2740,6 +2742,8 @@ return function (App $app): void {
     $register('PUT', '/api/v424/marketing/benchmarks');
     $register('GET', '/v424/connectors/campaign-funnel');
     $register('GET', '/api/v424/connectors/campaign-funnel');
+    $register('GET', '/v424/connectors/keywords');
+    $register('GET', '/api/v424/connectors/keywords');
     $register('GET', '/v423/connectors/roas-reconciliation');
     $register('GET', '/api/v423/connectors/roas-reconciliation');
     // [228차 R1] 리뷰/UGC
