@@ -816,6 +816,11 @@ return function (App $app): void {
         'GET /api/v424/mmm/bayesian'         => 'Genie\\Handlers\\Mmm::bayesian',
         'GET /v424/attribution/blended'      => 'Genie\\Handlers\\AttributionEngine::blendedIncrementality',
         'GET /api/v424/attribution/blended'  => 'Genie\\Handlers\\AttributionEngine::blendedIncrementality',
+        // [R-P3-6] 컴플라이언스 준비도(SOC2/ISO 매핑) + 감사로그 증적 내보내기.
+        'GET /v424/compliance/posture'       => 'Genie\\Handlers\\Compliance::posture',
+        'GET /api/v424/compliance/posture'   => 'Genie\\Handlers\\Compliance::posture',
+        'GET /v424/compliance/audit-export'  => 'Genie\\Handlers\\Compliance::auditExport',
+        'GET /api/v424/compliance/audit-export' => 'Genie\\Handlers\\Compliance::auditExport',
         // [237차] 증분성(Double ML Uplift) 입력 데이터 — 프론트 기존 incrementalUplift 가 실데이터로 계산(중복0).
         'GET /v424/mmm/series'        => 'Genie\\Handlers\\Mmm::series',
         'GET /api/v424/mmm/series'    => 'Genie\\Handlers\\Mmm::series',
@@ -2842,6 +2847,8 @@ return function (App $app): void {
     $register('GET',  '/v424/mmm/model');     $register('GET',  '/api/v424/mmm/model');
     $register('GET',  '/v424/mmm/bayesian');  $register('GET',  '/api/v424/mmm/bayesian');
     $register('GET',  '/v424/attribution/blended'); $register('GET', '/api/v424/attribution/blended');
+    $register('GET',  '/v424/compliance/posture'); $register('GET', '/api/v424/compliance/posture');
+    $register('GET',  '/v424/compliance/audit-export'); $register('GET', '/api/v424/compliance/audit-export');
     $register('GET',  '/v424/mmm/series');    $register('GET',  '/api/v424/mmm/series'); // [237차] 증분성 입력
     $register('POST', '/v424/mmm/optimize');  $register('POST', '/api/v424/mmm/optimize');
     $register('GET',  '/v424/anomaly/scan');  $register('GET',  '/api/v424/anomaly/scan');

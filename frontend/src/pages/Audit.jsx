@@ -273,6 +273,13 @@ export default function Audit() {
       .finally(() => setLoading(false));
   }, []);
 
+  /* [R-P3-6] 컴플라이언스 준비도(SOC2/ISO) — 구현 컨트롤 실측 매핑 */
+  const [posture, setPosture] = useState(null);
+  useEffect(() => {
+    fetch("/api/v424/compliance/posture", { headers: { Authorization: `Bearer ${localStorage.getItem("genie_token") || localStorage.getItem("demo_genie_token") || ""}` } })
+      .then(r => r.json()).then(d => { if (d && d.ok) setPosture(d); }).catch(() => {});
+  }, []);
+
   const actors      = useMemo(() => [...new Set(logs.map(l => l.actor))].filter(Boolean), [logs]);
   const actionTypes = useMemo(() => [...new Set(logs.map(l => l.action))].filter(Boolean), [logs]);
 
@@ -323,6 +330,46 @@ export default function Audit() {
     <div style={{ display: "grid", gap: 16, alignContent: "start" }}>
       {/* Security Alert Banner */}
       <SecurityBanner alerts={securityAlerts} t={t} />
+
+      {/* [R-P3-6] 컴플라이언스 준비도(SOC2/ISO) */}
+      {posture && Array.isArray(posture.controls) && (() => {
+        const sc = { implemented: { c: '#22c55e', l: t('audit.cmplImpl', '구현') }, available: { c: '#3b82f6', l: t('audit.cmplAvail', '코드완비') }, manual: { c: '#94a3b8', l: t('audit.cmplManual', '프로세스') } };
+        const rp = posture.readiness_pct;
+        const rc = rp >= 75 ? '#22c55e' : rp >= 50 ? '#d97706' : '#dc2626';
+        return (
+          <div style={{ background: 'var(--surface,#fff)', border: '1px solid var(--border,#e2e8f0)', borderRadius: 14, padding: 18 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, marginBottom: 12 }}>
+              <div style={{ fontWeight: 800, fontSize: 15, color: 'var(--text-1)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                🛡️ {t('audit.cmplTitle', '컴플라이언스 준비도')}
+                <span style={{ fontSize: 10.5, color: 'var(--text-3)', fontWeight: 600 }}>{(posture.frameworks || []).join(' · ')}</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ fontSize: 11, color: 'var(--text-3)' }}>{t('audit.cmplReadiness', '준비도')}</span>
+                <span style={{ fontSize: 18, fontWeight: 900, color: rc }}>{rp}%</span>
+                <span style={{ fontSize: 11, color: 'var(--text-3)' }}>
+                  ✓{posture.summary?.implemented} · {t('audit.cmplAvail', '코드완비')} {posture.summary?.available} · {t('audit.cmplManual', '프로세스')} {posture.summary?.manual}
+                </span>
+              </div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 8 }}>
+              {posture.controls.map((c, i) => {
+                const s = sc[c.status] || sc.manual;
+                return (
+                  <div key={i} style={{ border: '1px solid var(--border,#e2e8f0)', borderLeft: `3px solid ${s.c}`, borderRadius: 9, padding: '8px 11px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-1)' }}>{c.title}</span>
+                      <span style={{ fontSize: 9.5, fontWeight: 700, color: s.c, background: s.c + '1a', padding: '2px 7px', borderRadius: 5, whiteSpace: 'nowrap' }}>{s.l}</span>
+                    </div>
+                    <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 3, lineHeight: 1.4 }}>{c.evidence}</div>
+                    <div style={{ fontSize: 9.5, color: 'var(--text-3)', marginTop: 3, opacity: 0.8 }}>SOC2 {c.soc2} · ISO {c.iso}</div>
+                  </div>
+                );
+              })}
+            </div>
+            {posture.note && <div style={{ fontSize: 10.5, color: 'var(--text-3)', marginTop: 10, lineHeight: 1.5 }}>ℹ️ {posture.note}</div>}
+          </div>
+        );
+      })()}
 
       {/* Hero */}
       <div className="hero fade-up">
