@@ -16,6 +16,7 @@ import { ConnectorSyncProvider } from "./context/ConnectorSyncContext.jsx";
 import { ProductSelectionProvider } from "./contexts/ProductSelectionContext.jsx";
 import { MenuVisibilityProvider } from "./context/MenuVisibilityContext.jsx";
 import NetworkStatus from "./components/NetworkStatus.jsx";
+import InstallPrompt from "./components/InstallPrompt.jsx";
 import { ToastProvider } from "./components/ToastProvider.jsx";
 import SessionExpiryWarning from "./components/SessionExpiryWarning.jsx";
 import KeyboardShortcuts from "./components/KeyboardShortcuts.jsx";
@@ -664,6 +665,7 @@ export default function App() {
             </Suspense>
             <NetworkStatus />
             <VersionUpdateBanner />
+            <InstallPrompt />
         </TenantScopedProviders>
       </ToastProvider>
     </AuthProvider>
