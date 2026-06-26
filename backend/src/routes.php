@@ -637,6 +637,8 @@ return function (App $app): void {
         'POST /api/v422/ai/studio/batch'      => 'Genie\\Handlers\\CreativeStudio::batch',
         'GET /v422/ai/studio/insights'        => 'Genie\\Handlers\\CreativeStudio::insights',
         'GET /api/v422/ai/studio/insights'    => 'Genie\\Handlers\\CreativeStudio::insights',
+        'GET /v422/ai/studio/cockpit'         => 'Genie\\Handlers\\CreativeStudio::cockpit', // [245차 P1-2] 크리에이티브 코크핏
+        'GET /api/v422/ai/studio/cockpit'     => 'Genie\\Handlers\\CreativeStudio::cockpit',
         'GET /v422/ai/creative-api'           => 'Genie\\Handlers\\ClaudeAI::creativeApiGet',
         'POST /v422/ai/creative-api'          => 'Genie\\Handlers\\ClaudeAI::creativeApiSave',
         'POST /v423/auto-campaign/launch'     => 'Genie\\Handlers\\AutoCampaign::launch',
@@ -1964,6 +1966,7 @@ return function (App $app): void {
     $register('GET',  '/v422/ai/ad-design/list');
     $register('POST', '/v422/ai/studio/batch');       // [237차] Creative AI Studio
     $register('GET',  '/v422/ai/studio/insights');
+    $register('GET',  '/v422/ai/studio/cockpit'); // [245차 P1-2] 크리에이티브 코크핏
     $register('GET',  '/v422/ai/creative-api');
     $register('POST', '/v422/ai/creative-api');
     $register('POST', '/v423/auto-campaign/launch');

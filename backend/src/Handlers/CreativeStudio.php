@@ -286,4 +286,181 @@ final class CreativeStudio
                 : (count($withData) . '개 소재의 실측 성과로 승자/패자를 산출했습니다.'),
         ]);
     }
+
+    /**
+     * [245차 P1-2] GET /v422/ai/studio/cockpit?days=14 — 크리에이티브 코크핏(Triple Whale 대응).
+     * insights 의 소재별 성과에 ①광고 피로도(최근½ vs 이전½ 윈도우 CTR 감쇠) ②신뢰도/성숙도 배지(노출·수집일)
+     * ③소재 나이(launch 경과일) ④크리에이티브 스코어(성과+콘텐츠 합성) ⑤차원 롤업(채널×포맷×앵글)을 더한다.
+     * 실 집행/수집 전이면 빈 결과(정직). ad_insight_agg(ad_id=ad_ext_id) 단일 쿼리로 윈도우 분할 집계.
+     */
+    public static function cockpit(Request $req, Response $res): Response
+    {
+        $tenant = self::tenant($req);
+        if ($tenant === 'unknown') return self::json($res, ['ok' => false, 'error' => '로그인이 필요합니다.'], 401);
+        $pdo = Db::pdo(); self::migrate($pdo);
+        $q = $req->getQueryParams();
+        $days = max(2, min(180, (int)($q['days'] ?? 14)));
+        $since = gmdate('Y-m-d', time() - $days * 86400);
+        $mid   = gmdate('Y-m-d', time() - intdiv($days, 2) * 86400); // 최근½ 경계
+
+        $rows = [];
+        try {
+            $isMy = false;
+            try { $isMy = strtolower((string)$pdo->getAttribute(\PDO::ATTR_DRIVER_NAME)) === 'mysql'; } catch (\Throwable $e) {}
+            $coll = $isMy ? ' COLLATE utf8mb4_unicode_ci' : '';
+            $sql = "SELECT d.id AS design_id, d.channel, d.spec_json, d.status, d.created_at,
+                           COUNT(DISTINCT v.ad_ext_id) AS ad_count,
+                           COALESCE(SUM(a.impressions),0) AS imp, COALESCE(SUM(a.clicks),0) AS clk,
+                           COALESCE(SUM(a.spend),0) AS spend, COALESCE(SUM(a.conversions),0) AS conv,
+                           COALESCE(SUM(a.revenue),0) AS rev,
+                           COALESCE(SUM(CASE WHEN a.date >= ? THEN a.impressions ELSE 0 END),0) AS imp_recent,
+                           COALESCE(SUM(CASE WHEN a.date >= ? THEN a.clicks ELSE 0 END),0) AS clk_recent,
+                           COALESCE(SUM(CASE WHEN a.date <  ? THEN a.impressions ELSE 0 END),0) AS imp_prior,
+                           COALESCE(SUM(CASE WHEN a.date <  ? THEN a.clicks ELSE 0 END),0) AS clk_prior,
+                           MIN(a.date) AS first_date, MAX(a.date) AS last_date, COUNT(DISTINCT a.date) AS active_days
+                    FROM ad_design d
+                    LEFT JOIN creative_variant v ON v.design_id = d.id AND v.tenant_id = d.tenant_id{$coll}
+                    LEFT JOIN ad_insight_agg a ON a.ad_id = v.ad_ext_id{$coll} AND a.tenant_id = d.tenant_id{$coll} AND a.date >= ?
+                    WHERE d.tenant_id = ?
+                    GROUP BY d.id
+                    ORDER BY rev DESC, d.id DESC
+                    LIMIT 200";
+            $st = $pdo->prepare($sql);
+            $st->execute([$mid, $mid, $mid, $mid, $since, $tenant]);
+            $rows = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+        } catch (\Throwable $e) {
+            return self::json($res, ['ok' => false, 'error' => 'cockpit_query_failed'], 500);
+        }
+
+        $designs = [];
+        $byChannel = []; $byFormat = []; $byAngle = [];
+        $nowTs = time();
+        foreach ($rows as $r) {
+            $spec = json_decode((string)($r['spec_json'] ?? '{}'), true) ?: [];
+            $imp = (int)$r['imp']; $clk = (int)$r['clk']; $spend = (float)$r['spend'];
+            $conv = (int)$r['conv']; $rev = (float)$r['rev'];
+            $ctr  = $imp > 0 ? $clk / $imp * 100 : 0.0;
+            $cvr  = $clk > 0 ? $conv / $clk * 100 : 0.0;
+            $roas = $spend > 0 ? $rev / $spend : 0.0;
+            $cpa  = $conv > 0 ? $spend / $conv : 0.0;
+            $hasData = $imp > 0;
+
+            // ── 피로도: 최근½ vs 이전½ CTR 감쇠(양수=하락). 표본부족(<500 노출)이면 미판정.
+            $impR = (int)$r['imp_recent']; $clkR = (int)$r['clk_recent'];
+            $impP = (int)$r['imp_prior'];  $clkP = (int)$r['clk_prior'];
+            $ctrR = $impR > 0 ? $clkR / $impR * 100 : 0.0;
+            $ctrP = $impP > 0 ? $clkP / $impP * 100 : 0.0;
+            $fatiguePct = ($ctrP > 0 && $impR >= 200 && $impP >= 200) ? round(($ctrP - $ctrR) / $ctrP * 100, 1) : 0.0;
+            if ($imp < 500 || $impR < 200 || $impP < 200) $fatigueStatus = 'insufficient';
+            elseif ($fatiguePct >= 25)  $fatigueStatus = 'fatigued';   // 교체 권고
+            elseif ($fatiguePct >= 10)  $fatigueStatus = 'fatiguing';
+            elseif ($fatiguePct <= -10) $fatigueStatus = 'rising';
+            else $fatigueStatus = 'stable';
+
+            // ── 소재 나이(첫 노출일 우선, 없으면 created_at).
+            $launch = (string)($r['first_date'] ?? '') ?: substr((string)($r['created_at'] ?? ''), 0, 10);
+            $ageDays = $launch ? max(0, (int)floor(($nowTs - strtotime($launch . ' 00:00:00')) / 86400)) : 0;
+            $activeDays = (int)$r['active_days'];
+
+            // ── 신뢰도/성숙도 배지(노출 누적 + 수집일).
+            if (!$hasData) $confidence = 0;
+            elseif ($imp >= 10000 && $activeDays >= 5) $confidence = 3;
+            elseif ($imp >= 2000 && $activeDays >= 3) $confidence = 2;
+            elseif ($imp >= 300) $confidence = 1;
+            else $confidence = 0;
+
+            // ── 크리에이티브 스코어(0~100): 성과(60%)+콘텐츠(40%). 성과 무 → 콘텐츠 예측치.
+            $content = self::contentScore($spec);
+            if ($hasData) {
+                $perf = 0.45 * min(100, $roas / 4 * 100) + 0.35 * min(100, $ctr / 2 * 100) + 0.20 * min(100, $cvr / 5 * 100);
+                $score = (int)round(0.6 * $perf + 0.4 * $content);
+                $scoreKind = 'measured';
+            } else { $score = (int)round($content); $scoreKind = 'predicted'; }
+
+            $format = (string)($spec['format'] ?? $spec['ratio'] ?? 'unknown');
+            $angle  = (string)($spec['angle'] ?? '미지정');
+            $row = [
+                'design_id' => (int)$r['design_id'], 'channel' => (string)$r['channel'],
+                'headline' => (string)($spec['headline'] ?? ''), 'angle' => $angle, 'format' => $format,
+                'status' => (string)$r['status'], 'ad_count' => (int)$r['ad_count'],
+                'impressions' => $imp, 'clicks' => $clk, 'spend' => round($spend, 0), 'conversions' => $conv, 'revenue' => round($rev, 0),
+                'ctr' => round($ctr, 2), 'cvr' => round($cvr, 2), 'roas' => round($roas, 2), 'cpa' => round($cpa, 0),
+                'ctr_recent' => round($ctrR, 2), 'ctr_prior' => round($ctrP, 2),
+                'fatigue_pct' => $fatiguePct, 'fatigue_status' => $fatigueStatus,
+                'age_days' => $ageDays, 'active_days' => $activeDays, 'confidence' => $confidence,
+                'score' => $score, 'score_kind' => $scoreKind, 'has_data' => $hasData,
+                'launched_at' => $launch,
+            ];
+            $designs[] = $row;
+
+            // ── 차원 롤업.
+            self::rollupAdd($byChannel, (string)$r['channel'] ?: 'unknown', $imp, $clk, $spend, $conv, $rev);
+            self::rollupAdd($byFormat, $format ?: 'unknown', $imp, $clk, $spend, $conv, $rev);
+            self::rollupAdd($byAngle, $angle ?: '미지정', $imp, $clk, $spend, $conv, $rev);
+        }
+
+        $measured = array_values(array_filter($designs, fn($x) => $x['has_data']));
+        $needRefresh = array_values(array_filter($designs, fn($x) => $x['fatigue_status'] === 'fatigued'));
+        usort($needRefresh, fn($a, $b) => $b['fatigue_pct'] <=> $a['fatigue_pct']);
+        $avgScore = $designs ? (int)round(array_sum(array_map(fn($x) => $x['score'], $designs)) / count($designs)) : 0;
+
+        return self::json($res, [
+            'ok' => true,
+            'period' => ['since' => $since, 'days' => $days, 'recent_since' => $mid],
+            'summary' => [
+                'total' => count($designs), 'measured' => count($measured), 'avg_score' => $avgScore,
+                'fatigued' => count($needRefresh),
+                'fatigue_breakdown' => self::countBy($designs, 'fatigue_status'),
+            ],
+            'designs' => $designs,
+            'need_refresh' => array_slice($needRefresh, 0, 10),
+            'by_channel' => self::rollupFinalize($byChannel),
+            'by_format'  => self::rollupFinalize($byFormat),
+            'by_angle'   => self::rollupFinalize($byAngle),
+            'note' => count($measured) === 0
+                ? '집행된 소재 성과가 아직 없습니다. 캠페인 활성화 후 매체 성과(ad_insight_agg) 수집 시 피로도·스코어·차원분석이 표시됩니다.'
+                : (count($measured) . '개 소재 실측 — 피로도/스코어/차원분석 산출. 교체권고 ' . count($needRefresh) . '건.'),
+        ]);
+    }
+
+    /** 콘텐츠 휴리스틱 스코어(0~100) — 성과 데이터 없을 때 예측 대용(투명 합성, AI날조 아님). */
+    private static function contentScore(array $spec): float
+    {
+        $s = 45.0;
+        $hl = trim((string)($spec['headline'] ?? '')); $hlLen = mb_strlen($hl);
+        if ($hlLen >= 8 && $hlLen <= 30) $s += 16; elseif ($hlLen > 0) $s += 6;
+        if (trim((string)($spec['cta'] ?? '')) !== '') $s += 15;
+        if (trim((string)($spec['angle'] ?? '')) !== '') $s += 10;
+        $copyLen = mb_strlen(trim((string)($spec['copy'] ?? '')));
+        if ($copyLen >= 20 && $copyLen <= 140) $s += 10; elseif ($copyLen > 0) $s += 4;
+        if (trim((string)($spec['subheadline'] ?? '')) !== '') $s += 4;
+        return min(100.0, $s);
+    }
+
+    private static function rollupAdd(array &$acc, string $key, int $imp, int $clk, float $spend, int $conv, float $rev): void
+    {
+        if (!isset($acc[$key])) $acc[$key] = ['key' => $key, 'imp' => 0, 'clk' => 0, 'spend' => 0.0, 'conv' => 0, 'rev' => 0.0, 'count' => 0];
+        $acc[$key]['imp'] += $imp; $acc[$key]['clk'] += $clk; $acc[$key]['spend'] += $spend;
+        $acc[$key]['conv'] += $conv; $acc[$key]['rev'] += $rev; $acc[$key]['count'] += 1;
+    }
+    private static function rollupFinalize(array $acc): array
+    {
+        $out = [];
+        foreach ($acc as $a) {
+            $imp = (int)$a['imp']; $clk = (int)$a['clk']; $spend = (float)$a['spend']; $rev = (float)$a['rev'];
+            $out[] = [
+                'key' => $a['key'], 'creatives' => (int)$a['count'], 'impressions' => $imp, 'spend' => round($spend, 0), 'revenue' => round($rev, 0),
+                'ctr' => $imp > 0 ? round($clk / $imp * 100, 2) : 0.0, 'roas' => $spend > 0 ? round($rev / $spend, 2) : 0.0,
+                'conversions' => (int)$a['conv'],
+            ];
+        }
+        usort($out, fn($x, $y) => $y['revenue'] <=> $x['revenue']);
+        return $out;
+    }
+    private static function countBy(array $rows, string $field): array
+    {
+        $c = [];
+        foreach ($rows as $r) { $k = (string)($r[$field] ?? ''); $c[$k] = ($c[$k] ?? 0) + 1; }
+        return $c;
+    }
 }

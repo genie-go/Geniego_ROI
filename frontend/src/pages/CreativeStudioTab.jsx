@@ -88,6 +88,7 @@ export default function CreativeStudioTab({ sourcePage, onUseCampaign }) {
   const [batchMsg, setBatchMsg] = useState(null);
   const [insights, setInsights] = useState(null);     // null=로딩전
   const [insightsLoading, setInsightsLoading] = useState(false);
+  const [cockpit, setCockpit] = useState(null);       // [245차 P1-2] 크리에이티브 코크핏
 
   /* 운영: 실제 저장 소재 로드(테넌트 격리). 데모는 mock 유지 → fetch 안 함. 배치 생성 후 재호출. */
   const loadDesigns = useCallback(async () => {
@@ -148,7 +149,14 @@ export default function CreativeStudioTab({ sourcePage, onUseCampaign }) {
     catch (_) { setInsights({ designs: [], winners: [], losers: [], measured: 0, total: 0 }); }
     finally { setInsightsLoading(false); }
   }, []);
+  // [245차 P1-2] 코크핏 로드(피로도·스코어·신뢰도·차원분석). insights 와 동반.
+  const loadCockpit = useCallback(async () => {
+    if (IS_DEMO) return;
+    try { const r = await getJsonAuth('/api/v422/ai/studio/cockpit?days=14'); setCockpit(r?.ok ? r : { designs: [], by_channel: [], by_format: [], by_angle: [], need_refresh: [], summary: {} }); }
+    catch (_) { setCockpit({ designs: [], by_channel: [], by_format: [], by_angle: [], need_refresh: [], summary: {} }); }
+  }, []);
   useEffect(() => { if (!IS_DEMO && activeTab === 2 && insights === null) loadInsights(); }, [activeTab, insights, loadInsights]);
+  useEffect(() => { if (!IS_DEMO && activeTab === 2 && cockpit === null) loadCockpit(); }, [activeTab, cockpit, loadCockpit]);
 
   const gallery = IS_DEMO ? DEMO_GALLERY : (realDesigns || []);
   const loadingReal = !IS_DEMO && realDesigns === null;
@@ -374,8 +382,61 @@ export default function CreativeStudioTab({ sourcePage, onUseCampaign }) {
       const measured = insights.measured || 0;
       const tdc = { padding:'10px 12px', fontSize:12 };
       const rcolor = (v) => v >= 3 ? '#22c55e' : (v >= 1 ? '#f59e0b' : '#94a3b8');
+      // [245차 P1-2] 코크핏 헬퍼 — 피로도/스코어/신뢰도 배지.
+      const FAT = { fatigued:{c:'#dc2626',l:t('marketing.csFatHigh','교체 권고')}, fatiguing:{c:'#f59e0b',l:t('marketing.csFatMid','피로 진행')}, stable:{c:'#22c55e',l:t('marketing.csFatStable','안정')}, rising:{c:'#0ea5e9',l:t('marketing.csFatRising','상승')}, insufficient:{c:'#94a3b8',l:t('marketing.csFatNa','표본부족')} };
+      const scoreColor = (s) => s >= 75 ? '#16a34a' : s >= 55 ? '#f59e0b' : '#dc2626';
+      const stars = (n) => '★'.repeat(n) + '☆'.repeat(Math.max(0, 3 - n));
+      const cp = cockpit && cockpit.summary ? cockpit : null;
+      const rollTable = (title, rows) => (
+        <div style={{ flex:'1 1 220px', minWidth:0 }}>
+          <div style={{ fontSize:11, fontWeight:800, color:'#475569', marginBottom:6 }}>{title}</div>
+          {(rows || []).slice(0,6).map(r => (
+            <div key={r.key} style={{ display:'flex', alignItems:'center', gap:8, fontSize:11, padding:'4px 0', borderBottom:'1px solid rgba(0,0,0,0.04)' }}>
+              <span style={{ flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', color:'#1e293b' }}>{r.key}</span>
+              <span style={{ color:'#64748b' }}>{r.creatives}개</span>
+              <span style={{ fontWeight:700, color: r.roas >= 1 ? '#16a34a' : '#64748b' }}>ROAS {r.roas}x</span>
+              <span style={{ color:'#64748b' }}>CTR {r.ctr}%</span>
+            </div>
+          ))}
+          {(!rows || rows.length === 0) && <div style={{ fontSize:11, color:'#cbd5e1' }}>—</div>}
+        </div>
+      );
       return (
         <div style={{ display:'grid', gap:16 }}>
+          {/* [245차 P1-2] 크리에이티브 코크핏 — 피로도·스코어·신뢰도·차원분석(Triple Whale 대응) */}
+          {cp && (
+            <div style={{ ...card, padding:18 }}>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:10, marginBottom:14 }}>
+                <div style={{ fontWeight:800, fontSize:14, color:'#1e293b' }}>🎯 {t('marketing.csCockpit','크리에이티브 코크핏')}</div>
+                <div style={{ display:'flex', gap:18 }}>
+                  <div style={{ textAlign:'center' }}><div style={{ fontSize:20, fontWeight:900, color:scoreColor(cp.summary.avg_score||0) }}>{cp.summary.avg_score||0}</div><div style={{ fontSize:10, color:'#64748b' }}>{t('marketing.csAvgScore','평균 스코어')}</div></div>
+                  <div style={{ textAlign:'center' }}><div style={{ fontSize:20, fontWeight:900, color:'#22c55e' }}>{cp.summary.measured||0}</div><div style={{ fontSize:10, color:'#64748b' }}>{t('marketing.csInsMeasured','실측 집행')}</div></div>
+                  <div style={{ textAlign:'center' }}><div style={{ fontSize:20, fontWeight:900, color:'#dc2626' }}>{cp.summary.fatigued||0}</div><div style={{ fontSize:10, color:'#64748b' }}>{t('marketing.csNeedRefresh','교체 권고')}</div></div>
+                </div>
+              </div>
+              {Array.isArray(cp.need_refresh) && cp.need_refresh.length > 0 && (
+                <div style={{ marginBottom:14, padding:'10px 12px', borderRadius:10, background:'rgba(220,38,38,0.05)', border:'1px solid rgba(220,38,38,0.2)' }}>
+                  <div style={{ fontSize:11.5, fontWeight:800, color:'#dc2626', marginBottom:6 }}>⚠️ {t('marketing.csRefreshList','피로도 높은 소재 — 교체 권고')}</div>
+                  {cp.need_refresh.slice(0,5).map(r => (
+                    <div key={r.design_id} style={{ display:'flex', alignItems:'center', gap:8, fontSize:11.5, padding:'3px 0' }}>
+                      <span style={{ flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', color:'#1e293b' }}>{r.headline || ('#'+r.design_id)}</span>
+                      <span style={{ color:'#64748b' }}>{r.channel}</span>
+                      <span style={{ fontWeight:800, color:'#dc2626' }}>CTR ↓{r.fatigue_pct}%</span>
+                      <span style={{ color:'#64748b' }}>{r.age_days}일차</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {(cp.summary.measured||0) > 0 && (
+                <div style={{ display:'flex', flexWrap:'wrap', gap:18 }}>
+                  {rollTable('📺 '+t('marketing.csByChannel','채널별'), cp.by_channel)}
+                  {rollTable('🖼️ '+t('marketing.csByFormat','포맷별'), cp.by_format)}
+                  {rollTable('🎭 '+t('marketing.csByAngle','앵글별'), cp.by_angle)}
+                </div>
+              )}
+              {(cp.summary.measured||0) === 0 && <div style={{ fontSize:11, color:'#94a3b8' }}>ℹ️ {cp.note || t('marketing.csCockpitEmpty','집행 성과 수집 후 피로도·스코어·차원분석이 표시됩니다.')}</div>}
+            </div>
+          )}
           <div style={{ ...card, padding:16, display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:10 }}>
             <div>
               <div style={{ fontWeight:800, fontSize:14, color:'#1e293b' }}>📊 {t('marketing.csInsightsTitle','Creative Insights — 소재별 성과')}</div>
