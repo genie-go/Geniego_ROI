@@ -751,6 +751,14 @@ return function (App $app): void {
         'GET /api/v424/attribution/incrementality' => 'Genie\\Handlers\\AttributionEngine::incrementality',
         'POST /v424/attribution/lift-test'     => 'Genie\\Handlers\\AttributionEngine::liftTest',
         'POST /api/v424/attribution/lift-test' => 'Genie\\Handlers\\AttributionEngine::liftTest',
+        'GET /v424/attribution/experiments'     => 'Genie\\Handlers\\AttributionEngine::experiments',
+        'GET /api/v424/attribution/experiments' => 'Genie\\Handlers\\AttributionEngine::experiments',
+        'POST /v424/attribution/experiments'     => 'Genie\\Handlers\\AttributionEngine::createExperiment',
+        'POST /api/v424/attribution/experiments' => 'Genie\\Handlers\\AttributionEngine::createExperiment',
+        'PUT /v424/attribution/experiments/{id}'     => 'Genie\\Handlers\\AttributionEngine::updateExperiment',
+        'PUT /api/v424/attribution/experiments/{id}' => 'Genie\\Handlers\\AttributionEngine::updateExperiment',
+        'DELETE /v424/attribution/experiments/{id}'     => 'Genie\\Handlers\\AttributionEngine::deleteExperiment',
+        'DELETE /api/v424/attribution/experiments/{id}' => 'Genie\\Handlers\\AttributionEngine::deleteExperiment',
         // [현 차수] ② MMM(마케팅 믹스 모델) + 예측 예산 최적화
         'GET /v424/mmm/model'         => 'Genie\\Handlers\\Mmm::model',
         'GET /api/v424/mmm/model'     => 'Genie\\Handlers\\Mmm::model',
@@ -2710,6 +2718,14 @@ return function (App $app): void {
     $register('GET', '/api/v424/attribution/incrementality');
     $register('POST', '/v424/attribution/lift-test');
     $register('POST', '/api/v424/attribution/lift-test');
+    $register('GET', '/v424/attribution/experiments');
+    $register('GET', '/api/v424/attribution/experiments');
+    $register('POST', '/v424/attribution/experiments');
+    $register('POST', '/api/v424/attribution/experiments');
+    $register('PUT', '/v424/attribution/experiments/{id}');
+    $register('PUT', '/api/v424/attribution/experiments/{id}');
+    $register('DELETE', '/v424/attribution/experiments/{id}');
+    $register('DELETE', '/api/v424/attribution/experiments/{id}');
     // [현 차수] ② MMM + 예측 예산 최적화
     $register('GET',  '/v424/mmm/model');     $register('GET',  '/api/v424/mmm/model');
     $register('GET',  '/v424/mmm/series');    $register('GET',  '/api/v424/mmm/series'); // [237차] 증분성 입력

@@ -217,43 +217,171 @@ final class AttributionEngine
             if ($cc > $cs || $tc > $ts) {
                 return self::ok($response, ['ok' => false, 'error' => '전환수는 그룹 크기를 초과할 수 없습니다.']);
             }
-            $p1 = $cc / $cs;          // control 전환율
-            $p2 = $tc / $ts;          // treatment 전환율
-            $liftAbs = $p2 - $p1;
-            $liftRel = $p1 > 0 ? $liftAbs / $p1 : null;
-            // 2-비율 z검정(pooled).
-            $pPool = ($cc + $tc) / ($cs + $ts);
-            $sePool = sqrt(max(0.0, $pPool * (1 - $pPool) * (1 / $cs + 1 / $ts)));
-            $z = $sePool > 0 ? $liftAbs / $sePool : 0.0;
-            $pValue = 2 * (1 - self::normalCdf(abs($z)));
-            // 리프트 절대값 95% 신뢰구간(비-pooled SE).
-            $seUnpooled = sqrt(max(0.0, $p1 * (1 - $p1) / $cs + $p2 * (1 - $p2) / $ts));
-            $ciLoAbs = $liftAbs - 1.96 * $seUnpooled;
-            $ciHiAbs = $liftAbs + 1.96 * $seUnpooled;
-            // 증분 전환/매출(treatment 가 control 기준선 대비 추가로 만든 전환).
-            $incrementalConv = $ts * $liftAbs;
-            $incrementalValue = $rpc > 0 ? $incrementalConv * $rpc : null;
-            $significant = $pValue < 0.05 && $liftAbs > 0;
-            return self::ok($response, [
-                'ok' => true,
-                'control_cvr'        => round($p1 * 100, 3),
-                'treatment_cvr'      => round($p2 * 100, 3),
-                'lift_abs_pct'       => round($liftAbs * 100, 3),
-                'lift_relative_pct'  => $liftRel !== null ? round($liftRel * 100, 1) : null,
-                'lift_ci95'          => [round($ciLoAbs * 100, 3), round($ciHiAbs * 100, 3)],
-                'z_score'            => round($z, 3),
-                'p_value'            => round($pValue, 5),
-                'significant'        => $significant,
-                'incremental_conversions' => round($incrementalConv, 1),
-                'incremental_value'  => $incrementalValue !== null ? round($incrementalValue, 0) : null,
-                'verdict'            => $significant
-                    ? '통계적으로 유의한 증분 효과 (95% 신뢰수준)'
-                    : ($liftAbs <= 0 ? '증분 효과 없음/음수 — 노출이 전환을 끌어올리지 못함' : '아직 유의하지 않음 — 표본/기간 확대 필요'),
-                'response_time_ms' => self::elapsed($start),
-            ]);
+            $r = self::computeLift($cc, $cs, $tc, $ts, $rpc);
+            $r['ok'] = true;
+            $r['response_time_ms'] = self::elapsed($start);
+            return self::ok($response, $r);
         } catch (Throwable $e) {
             return self::fail($response, $e, ['ok' => false]);
         }
+    }
+
+    /**
+     * 2-비율 z검정 핵심 계산(엔드포인트/실험 레지스트리 공용 — 중복 0). 입력 검증은 호출측 책임.
+     * @return array 리프트 지표(ok/response_time 제외).
+     */
+    public static function computeLift(float $cc, float $cs, float $tc, float $ts, float $rpc): array
+    {
+        $p1 = $cs > 0 ? $cc / $cs : 0.0;     // control 전환율
+        $p2 = $ts > 0 ? $tc / $ts : 0.0;     // treatment 전환율
+        $liftAbs = $p2 - $p1;
+        $liftRel = $p1 > 0 ? $liftAbs / $p1 : null;
+        $pPool = ($cs + $ts) > 0 ? ($cc + $tc) / ($cs + $ts) : 0.0;
+        $sePool = sqrt(max(0.0, $pPool * (1 - $pPool) * (($cs > 0 ? 1 / $cs : 0) + ($ts > 0 ? 1 / $ts : 0))));
+        $z = $sePool > 0 ? $liftAbs / $sePool : 0.0;
+        $pValue = 2 * (1 - self::normalCdf(abs($z)));
+        $seUnpooled = sqrt(max(0.0, ($cs > 0 ? $p1 * (1 - $p1) / $cs : 0) + ($ts > 0 ? $p2 * (1 - $p2) / $ts : 0)));
+        $ciLoAbs = $liftAbs - 1.96 * $seUnpooled;
+        $ciHiAbs = $liftAbs + 1.96 * $seUnpooled;
+        $incrementalConv = $ts * $liftAbs;
+        $incrementalValue = $rpc > 0 ? $incrementalConv * $rpc : null;
+        $significant = $pValue < 0.05 && $liftAbs > 0;
+        return [
+            'control_cvr'        => round($p1 * 100, 3),
+            'treatment_cvr'      => round($p2 * 100, 3),
+            'lift_abs_pct'       => round($liftAbs * 100, 3),
+            'lift_relative_pct'  => $liftRel !== null ? round($liftRel * 100, 1) : null,
+            'lift_ci95'          => [round($ciLoAbs * 100, 3), round($ciHiAbs * 100, 3)],
+            'z_score'            => round($z, 3),
+            'p_value'            => round($pValue, 5),
+            'significant'        => $significant,
+            'incremental_conversions' => round($incrementalConv, 1),
+            'incremental_value'  => $incrementalValue !== null ? round($incrementalValue, 0) : null,
+            'verdict'            => $significant
+                ? '통계적으로 유의한 증분 효과 (95% 신뢰수준)'
+                : ($liftAbs <= 0 ? '증분 효과 없음/음수 — 노출이 전환을 끌어올리지 못함' : '아직 유의하지 않음 — 표본/기간 확대 필요'),
+        ];
+    }
+
+    // ── 홀드아웃 실험 레지스트리 (P4 완성) ─────────────────────────────────
+    //   플랫폼측 conversion-lift 실험(Meta Conversion Lift·Google geo 등) 결과를 등록·추적·검증.
+    //   테넌트 격리(WHERE tenant_id). 결과 입력 시 computeLift 로 자동 검정 → result_json 영속.
+
+    private static function ensureExpTable(PDO $pdo): void
+    {
+        $isMy = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql';
+        $AI = $isMy ? 'INT AUTO_INCREMENT PRIMARY KEY' : 'INTEGER PRIMARY KEY AUTOINCREMENT';
+        try {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS holdout_experiment (
+                id $AI,
+                tenant_id VARCHAR(64),
+                name TEXT, channel VARCHAR(60), hypothesis TEXT,
+                status VARCHAR(20) DEFAULT 'draft',
+                control_size REAL DEFAULT 0, treatment_size REAL DEFAULT 0,
+                control_conversions REAL DEFAULT 0, treatment_conversions REAL DEFAULT 0,
+                revenue_per_conversion REAL DEFAULT 0,
+                start_date VARCHAR(20), end_date VARCHAR(20),
+                result_json TEXT,
+                created_at TEXT, updated_at TEXT
+            )");
+        } catch (\Throwable $e) { /* graceful */ }
+    }
+
+    private static function expRow(array $r): array
+    {
+        $out = [
+            'id' => (int)$r['id'], 'name' => (string)$r['name'], 'channel' => (string)($r['channel'] ?? ''),
+            'hypothesis' => (string)($r['hypothesis'] ?? ''), 'status' => (string)($r['status'] ?? 'draft'),
+            'control_size' => (float)$r['control_size'], 'treatment_size' => (float)$r['treatment_size'],
+            'control_conversions' => (float)$r['control_conversions'], 'treatment_conversions' => (float)$r['treatment_conversions'],
+            'revenue_per_conversion' => (float)$r['revenue_per_conversion'],
+            'start_date' => (string)($r['start_date'] ?? ''), 'end_date' => (string)($r['end_date'] ?? ''),
+            'created_at' => (string)($r['created_at'] ?? ''), 'updated_at' => (string)($r['updated_at'] ?? ''),
+        ];
+        $res = json_decode((string)($r['result_json'] ?? ''), true);
+        $out['result'] = is_array($res) ? $res : null;
+        return $out;
+    }
+
+    /** GET /v424/attribution/experiments — 목록(테넌트). */
+    public static function experiments(Request $request, Response $response, array $args): Response
+    {
+        $t = self::tenant($request);
+        if ($t === '') return self::ok($response, ['ok' => true, 'experiments' => []]);
+        try {
+            $pdo = Db::pdo(); self::ensureExpTable($pdo);
+            $st = $pdo->prepare("SELECT * FROM holdout_experiment WHERE tenant_id=? ORDER BY id DESC");
+            $st->execute([$t]);
+            $rows = array_map([self::class, 'expRow'], $st->fetchAll(PDO::FETCH_ASSOC) ?: []);
+            return self::ok($response, ['ok' => true, 'experiments' => $rows]);
+        } catch (Throwable $e) { return self::fail($response, $e, ['ok' => false, 'experiments' => []]); }
+    }
+
+    /** POST /v424/attribution/experiments — 실험 설계(draft) 생성. */
+    public static function createExperiment(Request $request, Response $response, array $args): Response
+    {
+        $t = self::tenant($request);
+        if ($t === '') return self::ok($response, ['ok' => false, 'error' => '인증이 필요합니다.']);
+        try {
+            $b = (array)($request->getParsedBody() ?? []);
+            $name = trim((string)($b['name'] ?? ''));
+            if ($name === '') return self::ok($response, ['ok' => false, 'error' => '실험명을 입력하세요.']);
+            $pdo = Db::pdo(); self::ensureExpTable($pdo); $now = gmdate('c');
+            $st = $pdo->prepare("INSERT INTO holdout_experiment(tenant_id,name,channel,hypothesis,status,control_size,treatment_size,revenue_per_conversion,start_date,end_date,created_at,updated_at)
+                                 VALUES(?,?,?,?,?,?,?,?,?,?,?,?)");
+            $st->execute([$t, substr($name, 0, 200), substr((string)($b['channel'] ?? ''), 0, 60), substr((string)($b['hypothesis'] ?? ''), 0, 500),
+                'draft', (float)($b['control_size'] ?? 0), (float)($b['treatment_size'] ?? 0), (float)($b['revenue_per_conversion'] ?? 0),
+                substr((string)($b['start_date'] ?? ''), 0, 20), substr((string)($b['end_date'] ?? ''), 0, 20), $now, $now]);
+            return self::ok($response, ['ok' => true, 'id' => (int)$pdo->lastInsertId()]);
+        } catch (Throwable $e) { return self::fail($response, $e, ['ok' => false]); }
+    }
+
+    /** PUT /v424/attribution/experiments/{id} — 상태/결과 갱신. 결과 입력 시 computeLift 자동 검정·영속. */
+    public static function updateExperiment(Request $request, Response $response, array $args): Response
+    {
+        $t = self::tenant($request);
+        if ($t === '') return self::ok($response, ['ok' => false, 'error' => '인증이 필요합니다.']);
+        try {
+            $id = (int)($args['id'] ?? 0);
+            $pdo = Db::pdo(); self::ensureExpTable($pdo);
+            $cur = $pdo->prepare("SELECT * FROM holdout_experiment WHERE id=? AND tenant_id=?");
+            $cur->execute([$id, $t]); $row = $cur->fetch(PDO::FETCH_ASSOC);
+            if (!$row) return self::ok($response, ['ok' => false, 'error' => '실험을 찾을 수 없습니다.']);
+            $b = (array)($request->getParsedBody() ?? []);
+            $f = fn($k, $d) => array_key_exists($k, $b) ? $b[$k] : $d;
+            $cs = (float)$f('control_size', $row['control_size']);
+            $ts = (float)$f('treatment_size', $row['treatment_size']);
+            $cc = (float)$f('control_conversions', $row['control_conversions']);
+            $tc = (float)$f('treatment_conversions', $row['treatment_conversions']);
+            $rpc = (float)$f('revenue_per_conversion', $row['revenue_per_conversion']);
+            $status = (string)$f('status', $row['status']);
+            $validStatus = ['draft', 'running', 'concluded'];
+            if (!in_array($status, $validStatus, true)) $status = (string)$row['status'];
+            // concluded 로 전환(또는 이미 concluded) + 유효 규모 → 자동 검정.
+            $resultJson = $row['result_json'];
+            if ($status === 'concluded' && $cs > 0 && $ts > 0 && $cc <= $cs && $tc <= $ts) {
+                $resultJson = json_encode(self::computeLift($cc, $cs, $tc, $ts, $rpc), JSON_UNESCAPED_UNICODE);
+            }
+            $up = $pdo->prepare("UPDATE holdout_experiment SET status=?, control_size=?, treatment_size=?, control_conversions=?, treatment_conversions=?, revenue_per_conversion=?, result_json=?, updated_at=? WHERE id=? AND tenant_id=?");
+            $up->execute([$status, $cs, $ts, $cc, $tc, $rpc, $resultJson, gmdate('c'), $id, $t]);
+            $cur->execute([$id, $t]);
+            return self::ok($response, ['ok' => true, 'experiment' => self::expRow($cur->fetch(PDO::FETCH_ASSOC))]);
+        } catch (Throwable $e) { return self::fail($response, $e, ['ok' => false]); }
+    }
+
+    /** DELETE /v424/attribution/experiments/{id}. */
+    public static function deleteExperiment(Request $request, Response $response, array $args): Response
+    {
+        $t = self::tenant($request);
+        if ($t === '') return self::ok($response, ['ok' => false, 'error' => '인증이 필요합니다.']);
+        try {
+            $id = (int)($args['id'] ?? 0);
+            $pdo = Db::pdo(); self::ensureExpTable($pdo);
+            $st = $pdo->prepare("DELETE FROM holdout_experiment WHERE id=? AND tenant_id=?");
+            $st->execute([$id, $t]);
+            if ($st->rowCount() === 0) return self::ok($response, ['ok' => false, 'error' => '실험을 찾을 수 없습니다.']);
+            return self::ok($response, ['ok' => true, 'deleted_id' => $id]);
+        } catch (Throwable $e) { return self::fail($response, $e, ['ok' => false]); }
     }
 
     /** 채널별 spend/clicks/impressions 합(window, performance_metrics). lower(channel) 키. */

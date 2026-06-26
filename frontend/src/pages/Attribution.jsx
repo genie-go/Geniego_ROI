@@ -5,7 +5,7 @@ import ProductMarketingPanel from '../components/dashboards/ProductMarketingPane
 import AIRecommendBanner from '../components/AIRecommendBanner.jsx';
 import PeriodFilterBar from '../components/common/PeriodFilterBar.jsx'; // [현 차수] 어트리뷰션 기간조회
 import { useI18n, useT } from '../i18n/index.js';
-import { getJsonAuth, postJsonAuth } from '../services/apiClient.js';
+import { getJsonAuth, postJsonAuth, requestJsonAuth } from '../services/apiClient.js';
 import {
   computeShapleyExact, computeSynergy,
   bayesianMMM, incrementalUplift, markovAttribution,
@@ -1453,6 +1453,24 @@ function IncrementalityTab() {
     setLtBusy(false);
   };
 
+  // 홀드아웃 실험 레지스트리 — 플랫폼측 lift 실험 등록·추적·검증.
+  const [exps, setExps] = useState([]);
+  const [expForm, setExpForm] = useState({ name: '', channel: '', hypothesis: '', control_size: '', treatment_size: '' });
+  const [concl, setConcl] = useState({}); // {id: {cc,tc,rpc}}
+  const loadExps = async () => { try { const d = await getJsonAuth('/v424/attribution/experiments'); setExps(Array.isArray(d.experiments) ? d.experiments : []); } catch { /* keep */ } };
+  useEffect(() => { loadExps(); }, []);
+  const createExp = async () => {
+    if (!expForm.name.trim()) return;
+    await postJsonAuth('/v424/attribution/experiments', { ...expForm, control_size: Number(expForm.control_size) || 0, treatment_size: Number(expForm.treatment_size) || 0 });
+    setExpForm({ name: '', channel: '', hypothesis: '', control_size: '', treatment_size: '' }); loadExps();
+  };
+  const concludeExp = async (id) => {
+    const c = concl[id] || {};
+    await requestJsonAuth(`/v424/attribution/experiments/${id}`, 'PUT', { status: 'concluded', control_conversions: Number(c.cc) || 0, treatment_conversions: Number(c.tc) || 0, revenue_per_conversion: Number(c.rpc) || 0 });
+    loadExps();
+  };
+  const deleteExp = async (id) => { if (!window.confirm(t('attrData.expDelConfirm', '이 실험을 삭제하시겠습니까?'))) return; await requestJsonAuth(`/v424/attribution/experiments/${id}`, 'DELETE'); loadExps(); };
+
   const card = { background: 'var(--surface,#fff)', border: '1px solid var(--border,#e2e8f0)', borderRadius: 14, padding: 16 };
   const inp = { padding: '8px 11px', borderRadius: 8, border: '1px solid var(--border,#e2e8f0)', fontSize: 13, width: '100%', boxSizing: 'border-box', background: 'var(--surface,#fff)', color: 'var(--text-1)' };
   const num = (v) => (v === null || v === undefined) ? '—' : Number(v).toLocaleString();
@@ -1565,6 +1583,56 @@ function IncrementalityTab() {
               </div>
             </div>
           ))}
+      </div>
+
+      {/* 홀드아웃 실험 레지스트리 — 등록·추적·검증 */}
+      <div style={{ ...card }}>
+        <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--text-1)', marginBottom: 4 }}>🔬 {t('attrData.expTitle', '홀드아웃 실험 관리')}</div>
+        <div style={{ fontSize: 11.5, color: 'var(--text-3)', marginBottom: 12 }}>{t('attrData.expDesc', '플랫폼측 conversion-lift 실험(Meta Conversion Lift·Google 지역실험 등)을 등록하고, 결과 입력 시 통계 검정으로 증분성을 자동 검증·추적합니다.')}</div>
+
+        {/* 생성 폼 */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10, marginBottom: 10 }}>
+          <input value={expForm.name} onChange={e => setExpForm(s => ({ ...s, name: e.target.value }))} placeholder={t('attrData.expName', '실험명')} style={inp} />
+          <input value={expForm.channel} onChange={e => setExpForm(s => ({ ...s, channel: e.target.value }))} placeholder={t('attrData.expChannel', '채널(예: meta)')} style={inp} />
+          <input type="number" min="0" value={expForm.control_size} onChange={e => setExpForm(s => ({ ...s, control_size: e.target.value }))} placeholder={t('attrData.incrCtrlSize', '대조군 규모')} style={inp} />
+          <input type="number" min="0" value={expForm.treatment_size} onChange={e => setExpForm(s => ({ ...s, treatment_size: e.target.value }))} placeholder={t('attrData.incrTrtSize', '실험군 규모')} style={inp} />
+        </div>
+        <input value={expForm.hypothesis} onChange={e => setExpForm(s => ({ ...s, hypothesis: e.target.value }))} placeholder={t('attrData.expHypo', '가설(선택)')} style={{ ...inp, marginBottom: 10 }} />
+        <button onClick={createExp} style={{ padding: '8px 16px', borderRadius: 9, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#0ea5e9,#6366f1)', color: '#fff', fontWeight: 800, fontSize: 12.5 }}>
+          + {t('attrData.expCreate', '실험 등록')}
+        </button>
+
+        {/* 실험 목록 */}
+        <div style={{ display: 'grid', gap: 10, marginTop: 14 }}>
+          {exps.length === 0 && <div style={{ fontSize: 12, color: 'var(--text-3)', textAlign: 'center', padding: 8 }}>{t('attrData.expNone', '등록된 실험이 없습니다.')}</div>}
+          {exps.map(ex => {
+            const statusColor = { draft: '#94a3b8', running: '#0ea5e9', concluded: '#22c55e' };
+            const c = concl[ex.id] || {};
+            return (
+              <div key={ex.id} style={{ border: '1px solid var(--border,#e2e8f0)', borderRadius: 10, padding: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 6 }}>
+                  <span style={{ fontWeight: 800, fontSize: 13, color: 'var(--text-1)' }}>{ex.name}</span>
+                  {ex.channel && <span style={{ fontFamily: 'monospace', fontSize: 10.5, color: '#2563eb' }}>{ex.channel}</span>}
+                  <span style={{ padding: '1px 8px', borderRadius: 99, fontSize: 9.5, fontWeight: 800, background: (statusColor[ex.status] || '#94a3b8') + '22', color: statusColor[ex.status] || '#94a3b8' }}>{ex.status}</span>
+                  <button onClick={() => deleteExp(ex.id)} style={{ marginLeft: 'auto', padding: '3px 9px', borderRadius: 7, border: '1px solid rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.06)', color: '#dc2626', fontWeight: 700, fontSize: 10.5, cursor: 'pointer' }}>🗑️</button>
+                </div>
+                {ex.hypothesis && <div style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 6 }}>{ex.hypothesis}</div>}
+                {ex.result
+                  ? <div style={{ fontSize: 11.5, color: ex.result.significant ? '#16a34a' : 'var(--text-2)', fontWeight: 700 }}>
+                      {ex.result.significant ? '✅ ' : 'ℹ️ '}{ex.result.verdict} · {t('attrData.incrRelLift', '상대 리프트')} {ex.result.lift_relative_pct != null ? ex.result.lift_relative_pct + '%' : '—'} · p={ex.result.p_value}
+                    </div>
+                  : (
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+                      <input type="number" min="0" value={c.cc || ''} onChange={e => setConcl(s => ({ ...s, [ex.id]: { ...c, cc: e.target.value } }))} placeholder={t('attrData.incrCtrlConv', '대조군 전환수')} style={{ ...inp, width: 130 }} />
+                      <input type="number" min="0" value={c.tc || ''} onChange={e => setConcl(s => ({ ...s, [ex.id]: { ...c, tc: e.target.value } }))} placeholder={t('attrData.incrTrtConv', '실험군 전환수')} style={{ ...inp, width: 130 }} />
+                      <input type="number" min="0" value={c.rpc || ''} onChange={e => setConcl(s => ({ ...s, [ex.id]: { ...c, rpc: e.target.value } }))} placeholder={t('attrData.incrRpc', '전환당 매출(선택)')} style={{ ...inp, width: 150 }} />
+                      <button onClick={() => concludeExp(ex.id)} style={{ padding: '7px 14px', borderRadius: 8, border: 'none', background: '#22c55e', color: '#fff', fontWeight: 700, fontSize: 11.5, cursor: 'pointer' }}>{t('attrData.expConclude', '결과 입력·검정')}</button>
+                    </div>
+                  )}
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
