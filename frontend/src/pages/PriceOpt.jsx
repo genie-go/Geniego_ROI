@@ -1338,7 +1338,7 @@ function DynamicRepricerTab({ token, inventory = [], digitalShelfData = {} }) {
     const [pendingN, setPendingN] = useState(0);
     const [msg, setMsg] = useState('');
     // [239차+ ML] 규칙 생성 폼(ML 탄력성 모드 포함)
-    const [newRule, setNewRule] = useState({ name: '', sku: '*', channel: '*', mode: 'elasticity' });
+    const [newRule, setNewRule] = useState({ name: '', sku: '*', channel: '*', mode: 'elasticity', beat_by: '1', min_price: '', max_price: '', comp_max_age_hours: '' });
     const [creating, setCreating] = useState(false);
 
     useEffect(() => {
@@ -1381,9 +1381,10 @@ function DynamicRepricerTab({ token, inventory = [], digitalShelfData = {} }) {
         if (!newRule.name.trim()) { setMsg(t("priceOpt.ruleNameReq", "규칙 이름을 입력하세요")); return; }
         setCreating(true); setMsg('');
         try {
-            await postJsonAuth(`/v420/price/repricer/rules`, { name: newRule.name.trim(), sku: newRule.sku.trim() || '*', channel: newRule.channel.trim() || '*', mode: newRule.mode });
+            await postJsonAuth(`/v420/price/repricer/rules`, { name: newRule.name.trim(), sku: newRule.sku.trim() || '*', channel: newRule.channel.trim() || '*', mode: newRule.mode,
+                beat_by: Number(newRule.beat_by) || 0, min_price: Number(newRule.min_price) || 0, max_price: Number(newRule.max_price) || 0, comp_max_age_hours: Number(newRule.comp_max_age_hours) || 0 });
             const r = await getJsonAuth(`/v420/price/repricer/rules`); if (r?.rules) setRules(r.rules);
-            setNewRule({ name: '', sku: '*', channel: '*', mode: 'elasticity' }); setMsg(t("priceOpt.ruleAdded", "규칙 추가됨"));
+            setNewRule({ name: '', sku: '*', channel: '*', mode: 'elasticity', beat_by: '1', min_price: '', max_price: '', comp_max_age_hours: '' }); setMsg(t("priceOpt.ruleAdded", "규칙 추가됨"));
         } catch (e) { setMsg(t("priceOpt.ruleAddFail", "규칙 추가 실패")); }
         setCreating(false);
     };
@@ -1430,6 +1431,13 @@ function DynamicRepricerTab({ token, inventory = [], digitalShelfData = {} }) {
                     <select value={newRule.mode} onChange={e => setNewRule(r => ({ ...r, mode: e.target.value }))} style={{ padding: "7px 10px", borderRadius: 8, border: "1px solid #e2e8f0", fontSize: 12, cursor: "pointer" }}>
                         {MODE_OPTIONS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
                     </select>
+                    {/* [R-P2-5] 전략 파라미터 — 언더컷%·최소/최대가·경쟁가 신선도 가드 */}
+                    {(newRule.mode === 'min_price' || newRule.mode === 'match' || newRule.mode === 'ml' || newRule.mode === 'elasticity') && (
+                        <input type="number" min="0" max="50" step="0.5" value={newRule.beat_by} onChange={e => setNewRule(r => ({ ...r, beat_by: e.target.value }))} title={t("priceOpt.beatByHint", "경쟁사 최저가 대비 언더컷 비율(%)")} placeholder={t("priceOpt.beatBy", "언더컷%")} style={{ padding: "7px 10px", borderRadius: 8, border: "1px solid #e2e8f0", fontSize: 12, width: 80 }} />
+                    )}
+                    <input type="number" min="0" value={newRule.min_price} onChange={e => setNewRule(r => ({ ...r, min_price: e.target.value }))} title={t("priceOpt.minPriceHint", "절대 최소가(원가마진 하한 위 추가 가드, 0=미설정)")} placeholder={t("priceOpt.minPrice", "최소가")} style={{ padding: "7px 10px", borderRadius: 8, border: "1px solid #e2e8f0", fontSize: 12, width: 90 }} />
+                    <input type="number" min="0" value={newRule.max_price} onChange={e => setNewRule(r => ({ ...r, max_price: e.target.value }))} title={t("priceOpt.maxPriceHint", "절대 최대가(0=미설정)")} placeholder={t("priceOpt.maxPrice", "최대가")} style={{ padding: "7px 10px", borderRadius: 8, border: "1px solid #e2e8f0", fontSize: 12, width: 90 }} />
+                    <input type="number" min="0" value={newRule.comp_max_age_hours} onChange={e => setNewRule(r => ({ ...r, comp_max_age_hours: e.target.value }))} title={t("priceOpt.compAgeHint", "경쟁가 최대 허용 나이(시간) — 더 오래된 경쟁가는 리프라이싱 제외(stale 방지). 0=무제한")} placeholder={t("priceOpt.compAge", "신선도h")} style={{ padding: "7px 10px", borderRadius: 8, border: "1px solid #e2e8f0", fontSize: 12, width: 80 }} />
                     <button onClick={createRule} disabled={creating} style={{ padding: "8px 16px", borderRadius: 9, border: "none", cursor: creating ? "default" : "pointer", fontWeight: 800, fontSize: 12, background: creating ? "#cbd5e1" : "linear-gradient(135deg,#a855f7,#6366f1)", color: "#fff" }}>{creating ? "…" : "+ " + t("priceOpt.addRule", "규칙 추가")}</button>
                     {newRule.mode === 'elasticity' && <span style={{ fontSize: 11, color: "#94a3b8" }}>{t("priceOpt.mlHint", "실주문 데이터가 쌓이면 수요탄력성으로 이익최대 가격을 자동 산출합니다.")}</span>}
                 </div>

@@ -93,6 +93,11 @@ class PriceOpt
             name TEXT NOT NULL, sku TEXT, channel TEXT DEFAULT '*', mode TEXT DEFAULT 'min_price',
             active INTEGER DEFAULT 1, lastRun TEXT, changeCount INTEGER DEFAULT 0, created_at TEXT
         )");
+        // [R-P2-5] per-rule 전략 파라미터 — beat_by(언더컷/매칭 오프셋 %), min/max 가격 한계(사용자 가드),
+        //   comp_max_age_hours(경쟁가 신선도 가드: stale 데이터로 리프라이싱 방지=실시간성 안전). graceful ADD.
+        foreach (['beat_by REAL DEFAULT 1.0', 'min_price REAL DEFAULT 0', 'max_price REAL DEFAULT 0', 'comp_max_age_hours INTEGER DEFAULT 0'] as $col) {
+            try { $pdo->exec("ALTER TABLE po_repricer_rules ADD COLUMN $col"); } catch (\Throwable $e) { /* 이미 존재 */ }
+        }
 
         $pdo->exec("CREATE TABLE IF NOT EXISTS po_repricer_history (
             id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo',
@@ -766,8 +771,13 @@ class PriceOpt
         $db = self::db(); $t = self::tenant($request); $body = self::body($request);
         $name = trim($body['name'] ?? '');
         if (!$name) return self::json($response, ['ok'=>false,'error'=>'name required'], 400);
-        $db->prepare("INSERT INTO po_repricer_rules (tenant_id,name,sku,channel,mode,active,created_at) VALUES (?,?,?,?,?,1,?)")
-            ->execute([$t,$name,$body['sku']??'*',$body['channel']??'*',$body['mode']??'min_price',gmdate('c')]);
+        // [R-P2-5] 전략 파라미터 — beat_by(0~50%로 클램프), min/max 가격(0=미설정), 경쟁가 최대허용나이(시간).
+        $beatBy = max(0.0, min(50.0, (float)($body['beat_by'] ?? 1.0)));
+        $minP   = max(0.0, (float)($body['min_price'] ?? 0));
+        $maxP   = max(0.0, (float)($body['max_price'] ?? 0));
+        $compAge = max(0, (int)($body['comp_max_age_hours'] ?? 0));
+        $db->prepare("INSERT INTO po_repricer_rules (tenant_id,name,sku,channel,mode,beat_by,min_price,max_price,comp_max_age_hours,active,created_at) VALUES (?,?,?,?,?,?,?,?,?,1,?)")
+            ->execute([$t,$name,$body['sku']??'*',$body['channel']??'*',$body['mode']??'min_price',$beatBy,$minP,$maxP,$compAge,gmdate('c')]);
         return self::json($response, ['ok'=>true,'id'=>$db->lastInsertId()]);
     }
 
@@ -827,6 +837,12 @@ class PriceOpt
             $mode = (string)($rule['mode'] ?? 'min_price');
             $ruleSku = trim((string)($rule['sku'] ?? '*'));
             $channel = (string)($rule['channel'] ?? '*');
+            // [R-P2-5] per-rule 전략 파라미터.
+            $beatBy = max(0.0, min(50.0, (float)($rule['beat_by'] ?? 1.0))) / 100.0; // 언더컷/매칭 오프셋 비율
+            $ruleMin = max(0.0, (float)($rule['min_price'] ?? 0));   // 사용자 절대 하한(0=미설정)
+            $ruleMax = max(0.0, (float)($rule['max_price'] ?? 0));   // 사용자 절대 상한(0=미설정)
+            $compMaxAge = max(0, (int)($rule['comp_max_age_hours'] ?? 0)); // 경쟁가 최대허용나이(시간, 0=무제한)
+            $compCutoff = $compMaxAge > 0 ? (time() - $compMaxAge * 3600) : 0;
             // 대상 SKU: 특정 sku 또는 '*'(전체 경쟁사 등록 SKU)
             if ($ruleSku !== '' && $ruleSku !== '*') {
                 $cs = $db->prepare("SELECT * FROM po_competitors WHERE tenant_id=? AND sku=?"); $cs->execute([$t, $ruleSku]);
@@ -839,6 +855,11 @@ class PriceOpt
                 $sku = (string)$c['sku'];
                 $cur = (float)($c['ourPrice'] ?? 0);
                 if ($cur <= 0) continue;
+                // [R-P2-5] 경쟁가 신선도 가드 — stale 데이터로 리프라이싱 방지(실시간성 안전).
+                if ($compCutoff > 0) {
+                    $cu = strtotime((string)($c['updated_at'] ?? '')) ?: 0;
+                    if ($cu > 0 && $cu < $compCutoff) continue; // 경쟁가가 허용나이보다 오래됨 → 스킵
+                }
                 $comps = array_filter([(float)($c['compA'] ?? 0), (float)($c['compB'] ?? 0)], fn($x) => $x > 0);
                 // 원가·목표마진 가드(절대 하한). 상품 미등록 시 현가의 70%를 안전하한.
                 $ps = $db->prepare("SELECT cost_price, target_margin FROM po_products WHERE tenant_id=? AND sku=? LIMIT 1");
@@ -851,13 +872,14 @@ class PriceOpt
                 $floor = $cost > 0 ? round($cost * (1 + $tMargin * 0.5)) : round($cur * 0.7); // 실효원가+절반목표마진, 또는 현가70%
                 $new = $cur;
                 $reason = '';
+                $beatPct = round($beatBy * 100, 1);
                 if ($mode === 'match' && $comps) {
                     $new = max($floor, round(min($comps))); $reason = '경쟁사 최저가 매칭';
                 } elseif ($mode === 'margin') {
                     $target = $cost > 0 ? round($cost * (1 + $tMargin)) : $cur;
                     $new = max($cur < $target ? $target : $cur, $floor); $reason = '목표마진 확보';
                 } elseif ($mode === 'elasticity' || $mode === 'ml') {
-                    // [239차+ ML] 수요탄력성 이익최대(공용 헬퍼 재사용). 데이터 부족 시 경쟁사 -1% 폴백(회귀0).
+                    // [239차+ ML] 수요탄력성 이익최대(공용 헬퍼 재사용). 데이터 부족 시 경쟁사 언더컷 폴백(회귀0).
                     $opt = self::elasticityOptimal($db, $t, $sku, $channel, $cost, $tMargin, $cur, 0);
                     if ($opt && $opt['price'] > 0) {
                         $new = max($floor, (float)$opt['price']);
@@ -865,13 +887,16 @@ class PriceOpt
                         if ($comps) $new = min($new, max($floor, round(min($comps) * 1.05)));
                         $reason = 'ML 수요탄력성 이익최대(R²=' . ($opt['r2'] ?? 0) . ')';
                     } elseif ($comps) {
-                        $new = max($floor, round(min($comps) * 0.99)); $reason = 'ML 데이터 부족 → 경쟁사 -1% 폴백';
+                        $new = max($floor, round(min($comps) * (1 - $beatBy))); $reason = "ML 데이터 부족 → 경쟁사 -{$beatPct}% 폴백";
                     }
-                } else { // min_price(언더컷, 기본)
-                    if ($comps) { $new = max($floor, round(min($comps) * 0.99)); $reason = '경쟁사 최저가 -1% 언더컷'; }
+                } else { // min_price(언더컷, 기본) — [R-P2-5] beat_by 설정만큼 언더컷.
+                    if ($comps) { $new = max($floor, round(min($comps) * (1 - $beatBy))); $reason = "경쟁사 최저가 -{$beatPct}% 언더컷"; }
                 }
                 // 가드: 하한 미만 금지·과도변동(±50%) 방지·의미있는 변화(>0.5%)만 적용.
                 if ($new < $floor) { $new = $floor; $reason .= '(원가마진 하한 적용)'; }
+                // [R-P2-5] 사용자 절대 min/max 가격 한계(원가마진 하한 위에 추가 가드).
+                if ($ruleMin > 0 && $new < $ruleMin) { $new = $ruleMin; $reason .= '(최소가 하한)'; }
+                if ($ruleMax > 0 && $new > $ruleMax) { $new = $ruleMax; $reason .= '(최대가 상한)'; }
                 if ($new > $cur * 1.5 || $new < $cur * 0.5) continue; // 비정상 변동 스킵
                 if (abs($new - $cur) / $cur < 0.005) continue;        // 변화 미미 → 스킵
                 try {
