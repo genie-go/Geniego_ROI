@@ -1922,8 +1922,12 @@ final class Connectors
                 ],
             ];
         }
+        // ★완전성/안정성(P2 감사 R1): LIMIT 도달 = 절단 가능 → ORDER BY date DESC 특성상 가장 오래된 날짜가 잘리고
+        //   persist DELETE 가 그 날짜를 0으로 비워 undercount 한다. 불완전 데이터로 기존 완전 데이터를 덮지 않도록
+        //   live:false 반환(기존 데이터 보존·에러 표면화). 대형 계정은 window 축소/page_token 순회 필요. (TikTok 페이지네이션과 정합)
         if (count($results) >= $LIMIT) {
-            error_log("[Connectors.fetchGoogleRows] tenant=$tenant LIMIT($LIMIT) 도달 — ad_group_ad 행이 잘렸을 수 있음(campaign 합계 undercount 가능). 기간 축소 또는 페이지네이션 필요.");
+            error_log("[Connectors.fetchGoogleRows] tenant=$tenant LIMIT($LIMIT) 도달 — 절단 우려로 적재 보류(기존 데이터 보존).");
+            return ['hasCreds' => true, 'live' => false, 'error' => "google ad-level rows truncated at LIMIT $LIMIT — preserving existing data (window 축소 또는 page_token 필요)"];
         }
         return ['hasCreds' => true, 'live' => true, 'rows' => $rows];
     }
@@ -1983,8 +1987,9 @@ final class Connectors
                 ['Access-Token' => $accessToken, 'Content-Type' => 'application/json']
             );
             if ($err || $code >= 400 || (int)($body['code'] ?? -1) !== 0) {
-                if ($page === 1) return ['hasCreds' => true, 'live' => false, 'error' => $err ?? ($body['message'] ?? "tiktok http $code")];
-                break; // 후속 페이지 실패 시 이미 수집분으로 진행(부분 적재보다 전수 우선이나 무한루프 차단).
+                // ★완전성/안정성(P2 감사 R2): 어느 페이지든 실패하면 부분 적재 대신 전체 실패 처리 → 기존 데이터 보존.
+                //   persist DELETE-then-INSERT 가 부분 rows 로 윈도를 덮어 일시적 undercount 하는 회귀 차단(all-or-nothing).
+                return ['hasCreds' => true, 'live' => false, 'error' => $err ?? ($body['message'] ?? "tiktok http $code (page $page)")];
             }
             foreach (($body['data']['list'] ?? []) as $r) {
                 $dim = $r['dimensions'] ?? [];
