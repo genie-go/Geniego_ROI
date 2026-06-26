@@ -236,6 +236,7 @@ class EmailMarketing
                 $unsubUrl = self::unsubUrl((string)$tn, $email);
                 $subject = self::renderTemplate((string)($tpl['subject'] ?? ''), $cust);
                 $body = self::renderTemplate((string)($tpl['html_body'] ?? ''), $cust, ['unsubscribe_url'=>$unsubUrl]) . self::unsubFooter($unsubUrl);
+                $body = self::injectTracking($body, $cid, $uid); // [현 차수 P2-2b] 오픈/클릭 추적 주입
                 $mr = Mailer::send($email, $subject, $body, ['pdo'=>$pdo, 'tenant'=>$tn, 'headers'=>['List-Unsubscribe'=>'<'.$unsubUrl.'>', 'List-Unsubscribe-Post'=>'List-Unsubscribe=One-Click']]);
                 $st = (($mr['mode'] ?? '') === 'unconfigured') ? 'mock_sent' : (!empty($mr['ok']) ? 'sent' : 'failed');
                 $att = (int)($row['attempts'] ?? 0) + 1;
@@ -499,6 +500,7 @@ class EmailMarketing
             $unsubUrl = self::unsubUrl($tenant, (string)$c['email']);
             $subject = $template ? self::renderTemplate((string)($template['subject']??''), $c) : '(제목 없음)';
             $body    = $template ? (self::renderTemplate((string)($template['html_body']??''), $c, ['unsubscribe_url'=>$unsubUrl]) . self::unsubFooter($unsubUrl)) : '';
+            $body    = self::injectTracking($body, (int)$cid, (int)($c['id'] ?? 0)); // [현 차수 P2-2b] 오픈/클릭 추적 주입
 
             // 실발송 — 테넌트 email_settings SMTP(Mailer). 미설정 시 honest mock_sent.
             $mr = Mailer::send((string)$c['email'], $subject, $body, ['pdo'=>$pdo, 'tenant'=>$tenant,
@@ -615,5 +617,70 @@ class EmailMarketing
         }
         $res->getBody()->write('{"ok":true}');
         return $res->withHeader('Content-Type','application/json');
+    }
+
+    /* ════════ [현 차수 P2-2b] 임베드 오픈/클릭 추적 — 발송 HTML 주입 + GET 비콘(픽셀·리다이렉트). ════════ */
+
+    private static function publicBase(): string {
+        $b = getenv('APP_PUBLIC_URL');
+        if ($b) return rtrim($b, '/');
+        return (Db::env() === 'demo') ? 'https://roidemo.genie-go.com' : 'https://roi.genie-go.com';
+    }
+
+    /** 발송 HTML 에 오픈 추적 픽셀 + 클릭 추적 링크리라이팅 주입(기존엔 미주입→추적 카운터 0이던 갭 해소).
+     *   unsubscribe/이미 추적 링크는 제외. cid≤0 이면 미주입. */
+    public static function injectTracking(string $html, int $cid, int $uid): string {
+        if ($cid <= 0) return $html;
+        $base = self::publicBase();
+        $html = preg_replace_callback('/href=("|\')(https?:\/\/[^"\']+)\1/i', function ($m) use ($base, $cid, $uid) {
+            $url = $m[2];
+            if (strpos($url, '/email/track/') !== false || strpos($url, '/email/unsubscribe') !== false) return $m[0];
+            return 'href=' . $m[1] . $base . '/api/email/track/click?c=' . $cid . '&u=' . $uid . '&url=' . rawurlencode($url) . $m[1];
+        }, $html);
+        $px = '<img src="' . $base . '/api/email/track/open.gif?c=' . $cid . '&u=' . $uid . '" width="1" height="1" alt="" style="display:none;border:0;width:1px;height:1px" />';
+        if (stripos($html, '</body>') !== false) return preg_replace('/<\/body>/i', $px . '</body>', $html, 1);
+        return $html . $px;
+    }
+
+    /** GET /email/track/open.gif?c=&u= — 공개 픽셀 비콘(오픈 멱등 기록 + 1x1 gif). */
+    public static function trackOpenPixel(Request $req, Response $res): Response {
+        self::ensureTables(); $pdo = self::db(); $q = $req->getQueryParams();
+        $cid = (int)($q['c'] ?? 0); $uid = (int)($q['u'] ?? 0);
+        if ($cid > 0) {
+            try {
+                $upd = $pdo->prepare("UPDATE email_sends SET opened_at=:oa, status='opened' WHERE campaign_id=:cid AND customer_id=:uid AND (opened_at IS NULL OR status<>'opened')");
+                $upd->execute([':oa'=>self::now(), ':cid'=>$cid, ':uid'=>$uid]);
+                if ($upd->rowCount() > 0) {
+                    $pdo->prepare("UPDATE email_campaigns SET opened=opened+1 WHERE id=:cid AND tenant_id=(SELECT tenant_id FROM email_sends WHERE campaign_id=:cid2 AND customer_id=:uid LIMIT 1)")->execute([':cid'=>$cid, ':cid2'=>$cid, ':uid'=>$uid]);
+                }
+            } catch (\Throwable $e) {}
+        }
+        $gif = base64_decode('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7');
+        $res->getBody()->write((string)$gif);
+        return $res->withHeader('Content-Type','image/gif')->withHeader('Cache-Control','no-store, no-cache, must-revalidate, private')->withHeader('Pragma','no-cache');
+    }
+
+    /** GET /email/track/click?c=&u=&url= — 공개 클릭 비콘(클릭 멱등 기록 + 302 리다이렉트). */
+    public static function trackClickRedirect(Request $req, Response $res): Response {
+        self::ensureTables(); $pdo = self::db(); $q = $req->getQueryParams();
+        $cid = (int)($q['c'] ?? 0); $uid = (int)($q['u'] ?? 0); $url = (string)($q['url'] ?? '');
+        if ($cid > 0) {
+            try {
+                $now = self::now();
+                $upd = $pdo->prepare("UPDATE email_sends SET clicked_at=:ca, opened_at=COALESCE(opened_at,:oa), status='clicked' WHERE campaign_id=:cid AND customer_id=:uid AND (clicked_at IS NULL OR status<>'clicked')");
+                $upd->execute([':ca'=>$now, ':oa'=>$now, ':cid'=>$cid, ':uid'=>$uid]);
+                if ($upd->rowCount() > 0) {
+                    $row = $pdo->prepare("SELECT tenant_id, email FROM email_sends WHERE campaign_id=:cid AND customer_id=:uid LIMIT 1");
+                    $row->execute([':cid'=>$cid, ':uid'=>$uid]); $send = $row->fetch(\PDO::FETCH_ASSOC);
+                    if ($send) {
+                        $tn = (string)$send['tenant_id'];
+                        $pdo->prepare("UPDATE email_campaigns SET clicked=clicked+1 WHERE id=:cid AND tenant_id=:t")->execute([':cid'=>$cid, ':t'=>$tn]);
+                        try { Attribution::recordOwnedTouch($pdo, $tn, 'email', (string)($send['email'] ?? ''), null, 'email:'.$cid, ['campaign_id'=>$cid, 'engagement'=>'click', 'clicked'=>true]); } catch (\Throwable $e) {}
+                    }
+                }
+            } catch (\Throwable $e) {}
+        }
+        if ($url === '' || !preg_match('#^https?://#i', $url)) $url = self::publicBase();
+        return $res->withHeader('Location', $url)->withStatus(302);
     }
 }

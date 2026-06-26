@@ -101,6 +101,11 @@ return function (App $app): void {
         'GET /email/campaigns/{id}/stats'      => 'Genie\\Handlers\\EmailMarketing::campaignStats',
         'POST /email/track/open'               => 'Genie\\Handlers\\EmailMarketing::trackOpen',
         'POST /email/track/click'              => 'Genie\\Handlers\\EmailMarketing::trackClick',
+        // [현 차수 P2-2b] 임베드 추적 GET 비콘(픽셀·리다이렉트) — 발송 HTML 주입 링크가 호출. 공개(/email/ bypass).
+        'GET /email/track/open.gif'            => 'Genie\\Handlers\\EmailMarketing::trackOpenPixel',
+        'GET /api/email/track/open.gif'        => 'Genie\\Handlers\\EmailMarketing::trackOpenPixel',
+        'GET /email/track/click'               => 'Genie\\Handlers\\EmailMarketing::trackClickRedirect',
+        'GET /api/email/track/click'           => 'Genie\\Handlers\\EmailMarketing::trackClickRedirect',
         // [현 차수] 공개 수신거부(HMAC 토큰) — GET(링크) + POST(원클릭 List-Unsubscribe-Post). /email/ bypass 적용.
         'GET /email/unsubscribe'               => 'Genie\\Handlers\\EmailMarketing::unsubscribe',
         'POST /email/unsubscribe'              => 'Genie\\Handlers\\EmailMarketing::unsubscribe',
@@ -2387,6 +2392,8 @@ return function (App $app): void {
     $register('GET',    '/email/campaigns/{id}/stats');
     $register('POST',   '/email/track/open');
     $register('POST',   '/email/track/click');
+    $register('GET',    '/email/track/open.gif');     $register('GET', '/api/email/track/open.gif');
+    $register('GET',    '/email/track/click');        $register('GET', '/api/email/track/click');
     $register('GET',    '/email/unsubscribe'); // [현 차수] 공개 수신거부(HMAC)
     $register('POST',   '/email/unsubscribe');
     $register('GET',    '/email/suppression'); // [현 차수] Suppression 관리(인증)
