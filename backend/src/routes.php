@@ -100,6 +100,7 @@ return function (App $app): void {
         'POST /email/campaigns/{id}/send'      => 'Genie\\Handlers\\EmailMarketing::sendCampaign',
         'GET /email/campaigns/{id}/stats'      => 'Genie\\Handlers\\EmailMarketing::campaignStats',
         'GET /email/campaigns/{id}/ab-result'  => 'Genie\\Handlers\\EmailMarketing::abResult', // [현 차수 P2-2b] A/B 베이지안 승자
+        'GET /email/deliverability'            => 'Genie\\Handlers\\EmailMarketing::deliverabilityHealth', // [R-P2-4] 딜리버러빌리티 건강도
         'POST /email/track/open'               => 'Genie\\Handlers\\EmailMarketing::trackOpen',
         'POST /email/track/click'              => 'Genie\\Handlers\\EmailMarketing::trackClick',
         // [현 차수 P2-2b] 임베드 추적 GET 비콘(픽셀·리다이렉트) — 발송 HTML 주입 링크가 호출. 공개(/email/ bypass).
@@ -2483,6 +2484,7 @@ return function (App $app): void {
     $register('POST',   '/email/campaigns/{id}/send');
     $register('GET',    '/email/campaigns/{id}/stats');
     $register('GET',    '/email/campaigns/{id}/ab-result');
+    $register('GET',    '/email/deliverability');
     $register('POST',   '/email/track/open');
     $register('POST',   '/email/track/click');
     $register('GET',    '/email/track/open.gif');     $register('GET', '/api/email/track/open.gif');

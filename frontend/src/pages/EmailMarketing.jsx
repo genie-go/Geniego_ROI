@@ -261,11 +261,13 @@ function CampaignsTab() {
     const [sending,setSending]=useState(null);
     const [msg,setMsg]=useState("");
     const [abModal,setAbModal]=useState(null); // [현 차수] A/B 결과 모달 대상 캠페인
+    const [deliv,setDeliv]=useState(null); // [R-P2-4] 딜리버러빌리티 건강도(운영 전용)
     const reloadCampaigns=()=>emailApi.listCampaigns().then(r=>setOpCampaigns(r.campaigns||[])).catch(()=>{});
     useEffect(()=>{ if(isDemo) return;
         reloadCampaigns();
         emailApi.listTemplates().then(r=>setOpTemplates(r.templates||[])).catch(()=>{});
         emailApi.listSegments().then(r=>setOpSegments((r.segments||[]).map(s=>({...s,count:s.member_count??0})))).catch(()=>{});
+        _gjaEmail('/email/deliverability?window=90').then(d=>{ if(d&&d.ok) setDeliv(d); }).catch(()=>{});
     },[isDemo]);
     const totalCustomers=isDemo?Object.keys(crmCustomerHistory).length:0;
     const computeTargetSize=(segId)=>{if(!segId)return totalCustomers;const s=crmSegments.find(x=>String(x.id)===String(segId));return s?(s.count||0):totalCustomers;};
@@ -332,6 +334,44 @@ function CampaignsTab() {
                 <KpiBadge icon="👁️" label={t('email.kpiOpen', "Avg Open%")} value={kpi.avgOpen+"%"} color={C.yellow}/>
                 <KpiBadge icon="🖱️" label={t('email.kpiClick', "Avg Click%")} value={kpi.avgClick+"%"} color={C.cyan}/>
             </div>
+
+            {/* [R-P2-4] 딜리버러빌리티 건강도 — 발신자 평판등급·바운스/컴플레인율·도메인 인증(운영 전용) */}
+            {!isDemo && deliv && deliv.reputation && (deliv.volume?.accepted>0 || deliv.volume?.bounced>0) && (()=>{
+                const rep=deliv.reputation, r=deliv.rates, da=deliv.domain_auth||{};
+                const gc={'good':C.green,'warning':C.yellow,'at-risk':'#dc2626'}[rep.grade]||C.green;
+                const gl={'good':t('email.delivGood','양호'),'warning':t('email.delivWarn','주의'),'at-risk':t('email.delivRisk','위험')}[rep.grade]||rep.grade;
+                const Cell=({label,val,warn})=>(<div style={{textAlign:'center',minWidth:84}}><div style={{fontSize:18,fontWeight:900,color:warn?'#dc2626':'#1f2937'}}>{val}</div><div style={{fontSize:10.5,color:'#6b7280',marginTop:2}}>{label}</div></div>);
+                return (
+                  <Card glow>
+                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:10,marginBottom:12}}>
+                      <div style={{fontWeight:800,fontSize:15,display:'flex',alignItems:'center',gap:8,color:'#1f2937'}}>
+                        <span style={{fontSize:18}}>📬</span>{t('email.delivTitle','딜리버러빌리티 건강도')}
+                        <span style={{fontSize:10,color:'#9ca3af',fontWeight:600}}>· {deliv.window_days}{t('email.delivDays','일')}</span>
+                      </div>
+                      <div style={{display:'flex',alignItems:'center',gap:10}}>
+                        <span style={{fontSize:11,color:'#6b7280'}}>{t('email.delivRep','발신자 평판')}</span>
+                        <span style={{fontSize:12,fontWeight:800,color:gc,background:gc+'1a',padding:'4px 12px',borderRadius:8}}>{gl} · {rep.score}/100</span>
+                      </div>
+                    </div>
+                    <div style={{display:'flex',flexWrap:'wrap',gap:18,alignItems:'center'}}>
+                      <Cell label={t('email.delivDelivery','도달률')} val={r.delivery_rate+'%'}/>
+                      <Cell label={t('email.delivBounce','바운스율')} val={r.bounce_rate+'%'} warn={rep.bounce_grade==='at-risk'}/>
+                      <Cell label={t('email.delivComplaint','스팸신고율')} val={r.complaint_rate+'%'} warn={rep.complaint_grade==='at-risk'}/>
+                      <Cell label={t('email.delivUnsub','수신거부율')} val={r.unsubscribe_rate+'%'}/>
+                      <Cell label={t('email.delivOpen','오픈율')} val={r.open_rate+'%'}/>
+                      <Cell label={t('email.delivClick','클릭율')} val={r.click_rate+'%'}/>
+                      {da.domain && (
+                        <div style={{display:'flex',gap:6,alignItems:'center',marginLeft:'auto'}}>
+                          <span style={{fontSize:10.5,color:'#6b7280'}}>{da.domain}</span>
+                          <span style={{fontSize:10,fontWeight:700,color:da.spf?C.green:'#dc2626'}}>SPF {da.spf?'✓':'✗'}</span>
+                          <span style={{fontSize:10,fontWeight:700,color:da.dmarc?C.green:'#dc2626'}}>DMARC {da.dmarc?'✓':'✗'}</span>
+                        </div>
+                      )}
+                    </div>
+                    {deliv.advice && <div style={{marginTop:10,fontSize:11.5,color:'#6b7280',lineHeight:1.5,background:'rgba(0,0,0,0.02)',padding:'8px 12px',borderRadius:8}}>💡 {deliv.advice}</div>}
+                  </Card>
+                );
+            })()}
             <Card glow>
                 <div style={{ fontWeight:800, fontSize:15, marginBottom:16, display:"flex", alignItems:"center", gap:8, color:'#1f2937' }}>
                     <span style={{ fontSize:18 }}>🚀</span>{t('email.cNew', "New Campaign")}

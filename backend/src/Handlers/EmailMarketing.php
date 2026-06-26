@@ -642,6 +642,104 @@ class EmailMarketing
         ]);
     }
 
+    /**
+     * [R-P2-4] GET /email/deliverability — 테넌트 전체 딜리버러빌리티 건강도.
+     *   캠페인별 통계(campaignStats)는 있으나 테넌트 전체 바운스율·컴플레인율·발신자 평판등급 집계가 부재했음.
+     *   email_sends(status)·email_suppression(reason)·open/click 집계 + 업계 임계치 기반 평판등급(good/warning/at-risk)
+     *   + 발신 도메인 SPF/DMARC DNS 실측. 전부 실DB 파생(날조 0). Klaviyo급 딜리버러빌리티 가시성.
+     */
+    public static function deliverabilityHealth(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $pdo = self::db();
+        $tenant = self::tenant($req);
+        $days = max(1, min(365, (int)($req->getQueryParams()['window'] ?? 90)));
+        $since = gmdate('c', time() - $days * 86400);
+
+        // 발송 상태 집계(window: sent_at). real_sent=sent(mock 제외 — 정직).
+        $byStatus = [];
+        try {
+            $st = $pdo->prepare("SELECT status, COUNT(*) cnt FROM email_sends WHERE tenant_id=:t AND (sent_at IS NULL OR sent_at>=:s) GROUP BY status");
+            $st->execute([':t'=>$tenant, ':s'=>$since]);
+            $byStatus = $st->fetchAll(\PDO::FETCH_KEY_PAIR) ?: [];
+        } catch (\Throwable $e) {}
+        $sent     = (int)($byStatus['sent'] ?? 0);
+        $bounced  = (int)($byStatus['bounced'] ?? 0);
+        $failed   = (int)($byStatus['failed'] ?? 0);
+        $mockSent = (int)($byStatus['mock_sent'] ?? 0);
+        $accepted = $sent + $bounced; // MTA 수락 시도(실발송 모수)
+
+        // open/click(실발송 기준).
+        $opens = 0; $clicks = 0;
+        try {
+            $o = $pdo->prepare("SELECT COUNT(*) FROM email_sends WHERE tenant_id=:t AND opened_at IS NOT NULL AND (sent_at IS NULL OR sent_at>=:s)");
+            $o->execute([':t'=>$tenant, ':s'=>$since]); $opens = (int)$o->fetchColumn();
+            $c = $pdo->prepare("SELECT COUNT(*) FROM email_sends WHERE tenant_id=:t AND clicked_at IS NOT NULL AND (sent_at IS NULL OR sent_at>=:s)");
+            $c->execute([':t'=>$tenant, ':s'=>$since]); $clicks = (int)$c->fetchColumn();
+        } catch (\Throwable $e) {}
+
+        // suppression(컴플레인/수신거부) 집계 — window: created_at.
+        $supp = [];
+        try {
+            $s2 = $pdo->prepare("SELECT reason, COUNT(*) cnt FROM email_suppression WHERE tenant_id=:t AND (created_at IS NULL OR created_at>=:s) GROUP BY reason");
+            $s2->execute([':t'=>$tenant, ':s'=>$since]);
+            $supp = $s2->fetchAll(\PDO::FETCH_KEY_PAIR) ?: [];
+        } catch (\Throwable $e) {}
+        $complaints = (int)($supp['complaint'] ?? 0);
+        $unsubs     = (int)($supp['unsubscribe'] ?? 0);
+
+        $pct = fn($num, $den) => $den > 0 ? round($num / $den * 100, 3) : 0.0;
+        $bounceRate    = $pct($bounced, $accepted);
+        $complaintRate = $pct($complaints, max(1, $sent));
+        $unsubRate     = $pct($unsubs, max(1, $sent));
+        $deliveryRate  = $pct($sent, $accepted);
+        $openRate      = $pct($opens, max(1, $sent));
+        $clickRate     = $pct($clicks, max(1, $sent));
+
+        // 업계 임계치 기반 평판등급(최악 컴포넌트). complaint: <0.1 good/<0.5 warn/else risk. bounce: <2 good/<5 warn/else risk.
+        $gradeOf = function (float $v, float $good, float $warn): string { return $v < $good ? 'good' : ($v < $warn ? 'warning' : 'at-risk'); };
+        $cg = $gradeOf($complaintRate, 0.1, 0.5);
+        $bg = $gradeOf($bounceRate, 2.0, 5.0);
+        $rank = ['good'=>0, 'warning'=>1, 'at-risk'=>2];
+        $overall = $rank[$cg] >= $rank[$bg] ? $cg : $bg;
+        // 평판 스코어(100 만점): 바운스/컴플레인 페널티.
+        $repScore = (int)round(max(0, 100 - min(60, $bounceRate * 8) - min(40, $complaintRate * 80)));
+
+        // 발신 도메인 인증(SPF/DMARC) DNS 실측 — from_email 도메인 기준.
+        $domainAuth = ['domain'=>null, 'spf'=>null, 'dmarc'=>null];
+        try {
+            $fs = $pdo->prepare("SELECT from_email FROM email_settings WHERE tenant_id=:t ORDER BY id DESC LIMIT 1");
+            $fs->execute([':t'=>$tenant]); $from = (string)$fs->fetchColumn();
+            $dom = (strpos($from, '@') !== false) ? strtolower(trim(substr(strrchr($from, '@'), 1))) : '';
+            if ($dom !== '' && preg_match('/^[a-z0-9.-]+\.[a-z]{2,}$/', $dom)) {
+                $domainAuth['domain'] = $dom;
+                if (function_exists('dns_get_record')) {
+                    $txt = @dns_get_record($dom, DNS_TXT) ?: [];
+                    $hasSpf = false; foreach ($txt as $r) { if (stripos((string)($r['txt'] ?? ''), 'v=spf1') !== false) { $hasSpf = true; break; } }
+                    $dmarc = @dns_get_record('_dmarc.' . $dom, DNS_TXT) ?: [];
+                    $hasDmarc = false; foreach ($dmarc as $r) { if (stripos((string)($r['txt'] ?? ''), 'v=DMARC1') !== false) { $hasDmarc = true; break; } }
+                    $domainAuth['spf'] = $hasSpf; $domainAuth['dmarc'] = $hasDmarc;
+                }
+            }
+        } catch (\Throwable $e) {}
+
+        // 권고(최우선 1건).
+        $advice = $overall === 'at-risk'
+            ? ($bg === 'at-risk' ? '바운스율이 높습니다 — 리스트 위생(하드바운스 제거)·이중옵트인을 적용하세요.' : '스팸 신고율이 높습니다 — 발송 빈도·세그먼트 적합성을 점검하세요.')
+            : ($overall === 'warning' ? '평판이 주의 구간입니다 — 비활성 수신자 제외·콘텐츠 품질을 개선하세요.'
+            : ($domainAuth['domain'] && ($domainAuth['spf'] === false || $domainAuth['dmarc'] === false) ? 'SPF/DMARC DNS 레코드를 설정하면 도달률이 더 향상됩니다.' : '딜리버러빌리티 양호 — 현 발송 위생을 유지하세요.'));
+
+        return self::jsonRes($res, [
+            'ok'=>true, 'window_days'=>$days,
+            'volume'=>['accepted'=>$accepted, 'sent'=>$sent, 'bounced'=>$bounced, 'failed'=>$failed, 'mock_sent'=>$mockSent, 'complaints'=>$complaints, 'unsubscribes'=>$unsubs],
+            'rates'=>['delivery_rate'=>$deliveryRate, 'bounce_rate'=>$bounceRate, 'complaint_rate'=>$complaintRate, 'unsubscribe_rate'=>$unsubRate, 'open_rate'=>$openRate, 'click_rate'=>$clickRate],
+            'reputation'=>['grade'=>$overall, 'score'=>$repScore, 'bounce_grade'=>$bg, 'complaint_grade'=>$cg],
+            'domain_auth'=>$domainAuth,
+            'advice'=>$advice,
+        ]);
+    }
+
     /* ─── POST /email/track/open — 공개 비콘(세션 없음). campaign+customer 로 자연 스코프 ── */
     public static function trackOpen(Request $req, Response $res): Response
     {
