@@ -163,6 +163,8 @@ $app->add(function (Request $request, $handler) {
         //   SCIM(/scim/v2/* 은 외부 IdP가 Bearer scim_token 으로 호출 — api_key 아님). 미bypass 시 api_key 미들웨어 401.
         || strpos($path, '/api/v430/sso/') === 0 || strpos($path, '/v430/sso/') === 0
         || strpos($path, '/api/scim/') === 0     || strpos($path, '/scim/') === 0
+        // [245차 P3-6] 알림 채널(/v431/alerts/* 세션 self-auth requirePro + authedTenant)
+        || strpos($path, '/api/v431/alerts/') === 0 || strpos($path, '/v431/alerts/') === 0
         // 191차 채널 부활: SMS/WhatsApp/Instagram — 세션 self-auth(핸들러 requirePro + authedTenant 격리, webhook 무인증)
         || strpos($path, '/api/sms/') === 0        || strpos($path, '/sms/') === 0
         || strpos($path, '/api/whatsapp/') === 0   || strpos($path, '/whatsapp/') === 0

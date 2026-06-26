@@ -772,6 +772,16 @@ class AutoCampaign
                     ->execute([$tenant, (int)$camp['id'], $d['channel'], $d['action'], (int)($d['old'] ?? 0), (int)($d['new'] ?? 0), (string)($d['roas'] ?? ''), (string)($d['ctr'] ?? ''), mb_substr((string)$d['reason'], 0, 255), $now]);
             } catch (\Throwable $e) {}
         }
+        // [245차 P3-6] 자율 최적화 액션 실시간 통지 — 이상감지(전환0 낭비)·손실 채널 자동 정지/회수 시 운영자 즉시 알림.
+        //   ★실집행(allowActuate)일 때만(드라이런/데모 미통지). 알림 채널 미설정 = no-op(Alerting::pushEvent 가 swallow).
+        if ($allowActuate) {
+            $autoPaused = array_values(array_filter($decisions, fn($d) => ($d['action'] ?? '') === 'pause'));
+            if ($autoPaused) {
+                $cname = (string)($camp['name'] ?? ('#' . (int)$camp['id']));
+                $nf = []; foreach (array_slice($autoPaused, 0, 5) as $d) $nf[] = ['label' => (string)$d['channel'], 'value' => mb_substr((string)($d['reason'] ?? ''), 0, 100)];
+                Alerting::pushEvent($tenant, 'high', '자동 최적화: 채널 자동 정지·회수', "캠페인 '{$cname}' — 이상감지·손실 채널 " . count($autoPaused) . '건을 자동 정지/회수했습니다.', $nf);
+            }
+        }
         // 212차 #6(P2): 테넌트 전역 월 spend cap. env AD_TENANT_MONTHLY_CAP(KRW, 0=미적용) 이상이면
         //   당월 전 캠페인 누적 광고비가 상한 도달 → 예산 '증액(realloc)' 매체 push 차단(정지·감액은 허용=안전쪽).
         $tenantCap = (int)(getenv('AD_TENANT_MONTHLY_CAP') ?: 0);

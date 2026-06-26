@@ -494,6 +494,52 @@ function DataExportPanel() {
   );
 }
 
+/* ─── [245차 P3-6] 시스템 이벤트 알림 채널(Slack·범용웹훅·이메일) 설정 패널 ───
+   이상감지 자동정지·킬스위치·예산소진 등 시스템 자율액션을 실시간 통지. 기존 alert_policy(임계치) 위 확장. */
+function NotifyChannelsPanel() {
+  const { t } = useI18n();
+  const [c, setC] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState({ text: '', type: '' });
+  const showMsg = (text, type = 'ok') => { setMsg({ text, type }); setTimeout(() => setMsg({ text: '', type: '' }), 5000); };
+  const load = useCallback(async () => { const { data } = await api('/v431/alerts/channels'); setC(data?.channels || { min_severity: 'medium', enabled: 1 }); }, []);
+  useEffect(() => { load(); }, [load]);
+  const set = (k, v) => setC(p => ({ ...p, [k]: v }));
+  const save = async () => { setBusy(true); const { data } = await api('/v431/alerts/channels', { method: 'PUT', body: JSON.stringify(c) }); if (data?.ok) { showMsg(t('devHub.ntSaved', '저장되었습니다.')); load(); } else showMsg(data?.error || '저장 실패', 'err'); setBusy(false); };
+  const test = async () => { setBusy(true); const { data } = await api('/v431/alerts/channels/test', { method: 'POST', body: '{}' }); showMsg(data?.ok ? t('devHub.ntTested', '테스트 알림을 발송했습니다(설정된 채널 확인).') : (data?.error || '발송 실패'), data?.ok ? 'ok' : 'err'); setBusy(false); };
+  if (!c) return <div style={{ padding: 20, color: '#94a3b8' }}>⏳</div>;
+  const inp = { width: '100%', padding: '9px 12px', borderRadius: 9, border: '1px solid rgba(0,0,0,0.12)', fontSize: 13, boxSizing: 'border-box', color: '#1e293b', background: '#fff' };
+  const lbl = { fontSize: 11.5, fontWeight: 700, color: '#475569', marginBottom: 5, display: 'block' };
+  return (
+    <div style={{ display: 'grid', gap: 14, maxWidth: 640 }}>
+      <div style={{ fontSize: 12, color: '#64748b', lineHeight: 1.7 }}>
+        🔔 {t('devHub.notifyIntro', '이상감지 자동 정지·예산 소진·킬스위치 등 시스템 자율 액션과 임계치 알림을 Slack·웹훅(Teams/Discord/n8n)·이메일로 실시간 통지합니다.')}
+      </div>
+      {msg.text && <div style={{ padding: '10px 14px', borderRadius: 10, fontSize: 12, fontWeight: 700, background: msg.type === 'ok' ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)', color: msg.type === 'ok' ? '#16a34a' : '#dc2626' }}>{msg.text}</div>}
+      <div><label style={lbl}>Slack Incoming Webhook URL</label><input type="password" style={inp} value={c.slack_webhook || ''} onChange={e => set('slack_webhook', e.target.value)} placeholder="https://hooks.slack.com/services/... (저장 시 암호화)" /></div>
+      <div><label style={lbl}>{t('devHub.ntGenericWebhook', '범용 웹훅 URL (Teams/Discord/n8n/커스텀)')}</label><input type="password" style={inp} value={c.generic_webhook || ''} onChange={e => set('generic_webhook', e.target.value)} placeholder="https://... (JSON POST + HMAC 서명)" /></div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div><label style={lbl}>{t('devHub.ntWebhookSecret', '웹훅 HMAC 시크릿(선택)')}</label><input type="password" style={inp} value={c.webhook_secret || ''} onChange={e => set('webhook_secret', e.target.value)} /></div>
+        <div><label style={lbl}>{t('devHub.ntEmail', '이메일 수신자(쉼표 구분)')}</label><input style={inp} value={c.email_to || ''} onChange={e => set('email_to', e.target.value)} placeholder="ops@company.com" /></div>
+      </div>
+      <div style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap' }}>
+        <div><label style={lbl}>{t('devHub.ntMinSeverity', '최소 심각도')}</label>
+          <select style={{ ...inp, width: 160 }} value={c.min_severity || 'medium'} onChange={e => set('min_severity', e.target.value)}>
+            <option value="low">low (전체)</option><option value="medium">medium</option><option value="high">high</option><option value="critical">critical</option>
+          </select>
+        </div>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 700, marginTop: 18 }}>
+          <input type="checkbox" checked={!!Number(c.enabled)} onChange={e => set('enabled', e.target.checked ? 1 : 0)} />{t('devHub.ntEnable', '알림 활성화')}
+        </label>
+      </div>
+      <div style={{ display: 'flex', gap: 8 }}>
+        <button onClick={save} disabled={busy} style={{ padding: '9px 18px', borderRadius: 9, border: 'none', background: '#4f8ef7', color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>{busy ? '⏳' : '💾'} {t('devHub.ntSave', '저장')}</button>
+        <button onClick={test} disabled={busy} style={{ padding: '9px 18px', borderRadius: 9, border: '1px solid rgba(0,0,0,0.12)', background: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>📨 {t('devHub.ntTest', '테스트 발송')}</button>
+      </div>
+    </div>
+  );
+}
+
 /* ─── 실제 API 레퍼런스(문서) — 운영 routes.php 기준 대표 엔드포인트 ─── */
 const API_REF = [
   { group: 'Auth', color: '#4f8ef7', items: [
@@ -533,7 +579,7 @@ export default function DeveloperHub() {
   }, []);
 
   const endpointCount = API_REF.reduce((s, g) => s + g.items.length, 0);
-  const tabs = [t('devHub.tabApiKeys', '🔑 API 키'), t('devHub.tabRef', 'API 레퍼런스'), t('devHub.tabSdk', 'SDK'), t('devHub.tabWebhook', '웹훅'), t('devHub.tabSandbox', '샌드박스'), t('devHub.tabExport', '데이터 익스포트')];
+  const tabs = [t('devHub.tabApiKeys', '🔑 API 키'), t('devHub.tabRef', 'API 레퍼런스'), t('devHub.tabSdk', 'SDK'), t('devHub.tabWebhook', '웹훅'), t('devHub.tabSandbox', '샌드박스'), t('devHub.tabExport', '데이터 익스포트'), t('devHub.tabNotify', '🔔 알림 채널')];
   const kpis = [
     { emoji: '📡', label: t('devHub.kpiEndpoints', '문서화 엔드포인트'), val: endpointCount },
     { emoji: '📦', label: t('devHub.kpiSdks', 'SDK 예제'), val: SDK_LIST.length },
@@ -635,6 +681,9 @@ export default function DeveloperHub() {
 
         {/* TAB 5: Data Export — [245차 P1-1] DW/BI 익스포트(DataExport /v429/exports/*) */}
         {activeTab === 5 && <DataExportPanel />}
+
+        {/* TAB 6: Notification Channels — [245차 P3-6] 시스템 이벤트 알림(Alerting /v431/alerts/channels) */}
+        {activeTab === 6 && <NotifyChannelsPanel />}
 
         {/* TAB 4: Sandbox */}
         {activeTab === 4 && (

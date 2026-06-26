@@ -691,6 +691,10 @@ return function (App $app): void {
         'PATCH /scim/v2/Users/{id}'              => 'Genie\\Handlers\\EnterpriseAuth::scimUpdateUser',
         'DELETE /scim/v2/Users/{id}'             => 'Genie\\Handlers\\EnterpriseAuth::scimDeleteUser',
         'GET /scim/v2/Groups'                    => 'Genie\\Handlers\\EnterpriseAuth::scimListGroups',
+        // [245차 P3-6] 시스템 이벤트 알림 채널(Slack·범용웹훅·이메일) — 세션 self-auth
+        'GET /v431/alerts/channels'              => 'Genie\\Handlers\\Alerting::getChannels',
+        'PUT /v431/alerts/channels'              => 'Genie\\Handlers\\Alerting::saveChannels',
+        'POST /v431/alerts/channels/test'        => 'Genie\\Handlers\\Alerting::testChannels',
 
         // ── v421 Connectors — TikTok + Amazon real calls ───────────────────────
         'GET /v421/connectors/status'            => 'Genie\\Handlers\\Connectors::status',
@@ -1927,6 +1931,10 @@ return function (App $app): void {
     $register('PATCH',  '/scim/v2/Users/{id}');
     $register('DELETE', '/scim/v2/Users/{id}');
     $register('GET',    '/scim/v2/Groups');
+    // [245차 P3-6] 알림 채널
+    $register('GET',    '/v431/alerts/channels');
+    $register('PUT',    '/v431/alerts/channels');
+    $register('POST',   '/v431/alerts/channels/test');
 
     // ── v421 Connectors — TikTok + Amazon ─────────────────────────────────
     $register('GET',  '/v421/connectors/status');

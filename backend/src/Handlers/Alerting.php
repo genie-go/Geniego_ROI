@@ -798,4 +798,78 @@ HTML;
             'detail' => $detail,
         ]);
     }
+
+    /* ════════════════ [245차 P3-6] 시스템 이벤트 실시간 알림 라우팅 ════════════════
+       기존 alert_policy(임계치) Slack/Email 위에, 시스템 자율액션(이상탐지 자동정지·킬스위치·예산소진·정산·
+       보안)을 per-tenant 채널(Slack·범용웹훅 Teams/Discord/n8n·Email)로 즉시 통지. ★중복0=sendSlack 재사용. */
+    private static function ensureNotifyTable(PDO $pdo): void
+    {
+        $isMy = false; try { $isMy = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql'; } catch (\Throwable $e) {}
+        if ($isMy) $pdo->exec("CREATE TABLE IF NOT EXISTS notification_channel (tenant_id VARCHAR(100) NOT NULL PRIMARY KEY, slack_webhook TEXT, generic_webhook TEXT, webhook_secret TEXT, email_to VARCHAR(400), min_severity VARCHAR(10) DEFAULT 'medium', enabled TINYINT(1) DEFAULT 1, updated_at VARCHAR(32)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+        else $pdo->exec("CREATE TABLE IF NOT EXISTS notification_channel (tenant_id TEXT PRIMARY KEY, slack_webhook TEXT, generic_webhook TEXT, webhook_secret TEXT, email_to TEXT, min_severity TEXT DEFAULT 'medium', enabled INTEGER DEFAULT 1, updated_at TEXT)");
+    }
+    private static function nDec(?string $v): string { if (!$v) return ''; try { return \Genie\Crypto::decrypt($v); } catch (\Throwable $e) { return ''; } }
+
+    /** 시스템 이벤트 실시간 통지 라우터. ★절대 예외 전파 금지(핵심 흐름 보호). 미설정/심각도 미달/demo = no-op. */
+    public static function pushEvent(string $tenant, string $severity, string $title, string $message, array $fields = []): void
+    {
+        try {
+            if ($tenant === '' || $tenant === 'demo') return;
+            $pdo = Db::pdo(); self::ensureNotifyTable($pdo);
+            $st = $pdo->prepare("SELECT * FROM notification_channel WHERE tenant_id=? AND enabled=1"); $st->execute([$tenant]);
+            $c = $st->fetch(PDO::FETCH_ASSOC); if (!$c) return;
+            $rank = ['low' => 0, 'medium' => 1, 'high' => 2, 'critical' => 3];
+            if (($rank[$severity] ?? 1) < ($rank[$c['min_severity'] ?? 'medium'] ?? 1)) return;
+            $emoji = ['critical' => '🚨', 'high' => '⚠️', 'medium' => '⚡', 'low' => 'ℹ️'][$severity] ?? '⚡';
+            $text = "{$emoji} [Geniego-ROI] {$title}\n{$message}";
+            foreach ($fields as $f) $text .= "\n• " . ($f['label'] ?? '') . ': ' . ($f['value'] ?? '');
+            $slack = self::nDec($c['slack_webhook'] ?? ''); if ($slack !== '') self::sendSlack($slack, $text);
+            $wh = self::nDec($c['generic_webhook'] ?? '');
+            if ($wh !== '') self::sendWebhook($wh, ['event' => 'alert', 'severity' => $severity, 'title' => $title, 'message' => $message, 'fields' => $fields, 'ts' => gmdate('c')], self::nDec($c['webhook_secret'] ?? ''));
+            $email = (string)($c['email_to'] ?? '');
+            if ($email !== '') { try { \Genie\Handlers\Mailer::send($email, "[Geniego-ROI] {$title}", '<pre style="font:14px monospace">' . htmlspecialchars($text) . '</pre>', ['tenant' => $tenant]); } catch (\Throwable $e) {} }
+        } catch (\Throwable $e) { error_log('[alert pushEvent] ' . $e->getMessage()); }
+    }
+
+    private static function sendWebhook(string $url, array $payload, string $secret): bool
+    {
+        if (!function_exists('curl_init')) return false;
+        $body = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        $h = ['Content-Type: application/json'];
+        if ($secret !== '') { $ts = (string)time(); $h[] = 'X-Genie-Signature: t=' . $ts . ',v1=' . hash_hmac('sha256', $ts . '.' . $body, $secret); }
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [CURLOPT_POST => true, CURLOPT_POSTFIELDS => $body, CURLOPT_HTTPHEADER => $h, CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 10, CURLOPT_SSL_VERIFYPEER => true, CURLOPT_SSL_VERIFYHOST => 2]);
+        curl_exec($ch); $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE); curl_close($ch);
+        return $code >= 200 && $code < 300;
+    }
+
+    private static function notifyTenant(Request $req): string { $t = UserAuth::authedTenant($req); return ($t !== null && $t !== '') ? $t : 'demo'; }
+    private static function notifyBody(Request $req): array { $b = (array)($req->getParsedBody() ?? []); if (empty($b)) { $d = json_decode((string)$req->getBody(), true); if (is_array($d)) $b = $d; } return $b; }
+
+    public static function getChannels(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        $pdo = Db::pdo(); self::ensureNotifyTable($pdo); $t = self::notifyTenant($req);
+        $st = $pdo->prepare("SELECT * FROM notification_channel WHERE tenant_id=?"); $st->execute([$t]); $c = $st->fetch(PDO::FETCH_ASSOC) ?: null;
+        $out = $c ? ['slack_webhook' => !empty($c['slack_webhook']) ? '••••••••' : '', 'generic_webhook' => !empty($c['generic_webhook']) ? '••••••••' : '', 'webhook_secret' => !empty($c['webhook_secret']) ? '••••••••' : '', 'email_to' => $c['email_to'], 'min_severity' => $c['min_severity'], 'enabled' => (int)$c['enabled']] : ['min_severity' => 'medium', 'enabled' => 1];
+        return TemplateResponder::respond($res, ['ok' => true, 'channels' => $out]);
+    }
+    public static function saveChannels(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        $pdo = Db::pdo(); self::ensureNotifyTable($pdo); $t = self::notifyTenant($req); $b = self::notifyBody($req);
+        $cur = $pdo->prepare("SELECT * FROM notification_channel WHERE tenant_id=?"); $cur->execute([$t]); $ex = $cur->fetch(PDO::FETCH_ASSOC) ?: [];
+        $keep = fn($k, $col) => (function () use ($b, $ex, $k, $col) { $v = (string)($b[$k] ?? ''); if ($v === '' || strpos($v, '•') !== false) return $ex[$col] ?? null; return \Genie\Crypto::encrypt($v); })();
+        $f = ['slack_webhook' => $keep('slack_webhook', 'slack_webhook'), 'generic_webhook' => $keep('generic_webhook', 'generic_webhook'), 'webhook_secret' => $keep('webhook_secret', 'webhook_secret'), 'email_to' => trim((string)($b['email_to'] ?? $ex['email_to'] ?? '')), 'min_severity' => in_array(($b['min_severity'] ?? ''), ['low', 'medium', 'high', 'critical'], true) ? (string)$b['min_severity'] : (string)($ex['min_severity'] ?? 'medium'), 'enabled' => !empty($b['enabled']) ? 1 : 0, 'updated_at' => gmdate('Y-m-d H:i:s')];
+        if ($ex) { $set = implode(',', array_map(fn($k) => "{$k}=?", array_keys($f))); $pdo->prepare("UPDATE notification_channel SET {$set} WHERE tenant_id=?")->execute([...array_values($f), $t]); }
+        else { $cols = implode(',', array_merge(['tenant_id'], array_keys($f))); $ph = implode(',', array_fill(0, count($f) + 1, '?')); $pdo->prepare("INSERT INTO notification_channel({$cols}) VALUES({$ph})")->execute([$t, ...array_values($f)]); }
+        return TemplateResponder::respond($res, ['ok' => true]);
+    }
+    public static function testChannels(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        $t = self::notifyTenant($req);
+        self::pushEvent($t, 'high', '알림 채널 테스트', '알림 채널 연결 테스트입니다. 정상 수신되면 설정이 완료된 것입니다.', [['label' => '시각', 'value' => gmdate('Y-m-d H:i:s')]]);
+        return TemplateResponder::respond($res, ['ok' => true, 'note' => '설정된 채널(Slack·웹훅·이메일)로 테스트 알림을 발송했습니다.']);
+    }
 }
