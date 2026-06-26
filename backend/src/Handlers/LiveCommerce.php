@@ -118,6 +118,14 @@ class LiveCommerce
                 status VARCHAR(20) DEFAULT 'idle', last_status_at VARCHAR(32), created_at VARCHAR(32), updated_at VARCHAR(32),
                 KEY idx_lc_dest (tenant_id, session_id)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            // [현 차수] 멀티게스트/코호스트 — 한 방송에 다중 진행자(초대·참여·역할). 영상 합성은 외부 미디어서버(SRS/LiveKit) 위임.
+            $pdo->exec("CREATE TABLE IF NOT EXISTS live_guests (
+                id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo',
+                session_id INT NOT NULL, name VARCHAR(120), role VARCHAR(20) DEFAULT 'guest',
+                status VARCHAR(20) DEFAULT 'invited', join_token VARCHAR(64), stream_key VARCHAR(80),
+                invited_at VARCHAR(32), joined_at VARCHAR(32), left_at VARCHAR(32),
+                UNIQUE KEY uq_lc_guest_tok (join_token), KEY idx_lc_guest (tenant_id, session_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
         } else {
             $pdo->exec("CREATE TABLE IF NOT EXISTS live_sessions (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', title TEXT NOT NULL, description TEXT, host TEXT, cover_url TEXT, status TEXT NOT NULL DEFAULT 'scheduled', channels TEXT, scheduled_at TEXT, started_at TEXT, ended_at TEXT, viewer_count INTEGER DEFAULT 0, peak_viewers INTEGER DEFAULT 0, like_count INTEGER DEFAULT 0, created_at TEXT, updated_at TEXT)");
             $pdo->exec("CREATE TABLE IF NOT EXISTS live_products (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', session_id INTEGER NOT NULL, sku TEXT, name TEXT, image TEXT, price REAL DEFAULT 0, special_price REAL DEFAULT 0, stock REAL DEFAULT 0, sold REAL DEFAULT 0, featured INTEGER DEFAULT 0, display_order INTEGER DEFAULT 0, created_at TEXT, updated_at TEXT)");
@@ -126,6 +134,8 @@ class LiveCommerce
             $pdo->exec("CREATE TABLE IF NOT EXISTS live_integrations (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', channel TEXT NOT NULL, category TEXT NOT NULL DEFAULT 'sns_live', status TEXT NOT NULL DEFAULT 'disconnected', config TEXT, secret TEXT, connected_at TEXT, created_at TEXT, updated_at TEXT)");
             $pdo->exec("CREATE TABLE IF NOT EXISTS live_presence (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', session_id INTEGER NOT NULL, viewer_key TEXT, last_seen TEXT)");
             $pdo->exec("CREATE TABLE IF NOT EXISTS live_destinations (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', session_id INTEGER NOT NULL, channel TEXT NOT NULL, label TEXT, rtmp_url TEXT, stream_key TEXT, enabled INTEGER DEFAULT 1, status TEXT DEFAULT 'idle', last_status_at TEXT, created_at TEXT, updated_at TEXT)");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS live_guests (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', session_id INTEGER NOT NULL, name TEXT, role TEXT DEFAULT 'guest', status TEXT DEFAULT 'invited', join_token TEXT, stream_key TEXT, invited_at TEXT, joined_at TEXT, left_at TEXT)");
+            try { $pdo->exec("CREATE UNIQUE INDEX IF NOT EXISTS uq_lc_guest_tok ON live_guests(join_token)"); } catch (\Throwable $e) {}
             try { $pdo->exec("CREATE UNIQUE INDEX IF NOT EXISTS uq_lc_int ON live_integrations(tenant_id, channel)"); } catch (\Throwable $e) {}
             try { $pdo->exec("CREATE UNIQUE INDEX IF NOT EXISTS uq_lc_pres ON live_presence(tenant_id, session_id, viewer_key)"); } catch (\Throwable $e) {}
         }
@@ -420,6 +430,99 @@ class LiveCommerce
         $st = $pdo->prepare("INSERT INTO live_chat (tenant_id,session_id,author,message,kind,meta,created_at) VALUES (:t,:s,:a,:m,:k,:meta,:ca)");
         $st->execute([':t' => $t, ':s' => $sid, ':a' => $author, ':m' => $msg, ':k' => $kind, ':meta' => $meta ? json_encode($meta, JSON_UNESCAPED_UNICODE) : null, ':ca' => self::now()]);
         return (int)$pdo->lastInsertId();
+    }
+
+    /* ════════════════ [현 차수] 멀티게스트/코호스트 (control-plane) ════════════════
+       한 방송에 다중 진행자(호스트/코호스트/게스트)를 초대·참여시킨다. 게스트는 토큰 링크로 참여(계정 불요).
+       SSE(채팅 피드)로 참여/퇴장 실시간 전파. ★영상 합성(다중 카메라 믹싱)은 외부 미디어서버(SRS/LiveKit/
+       WebRTC SFU)가 수행 — 본 control-plane 은 누가 방송에 있는지·역할·송출키를 관리(정직: 미디어 fan-out 위임). */
+
+    public static function listGuests(Request $req, Response $res, array $args): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $st = self::db()->prepare("SELECT id,session_id,name,role,status,stream_key,invited_at,joined_at,left_at FROM live_guests WHERE tenant_id=:t AND session_id=:s ORDER BY id ASC");
+        $st->execute([':t' => self::tenant($req), ':s' => (int)$args['id']]);
+        return self::json($res, ['ok' => true, 'guests' => $st->fetchAll(\PDO::FETCH_ASSOC)]);
+    }
+
+    public static function inviteGuest(Request $req, Response $res, array $args): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $t = self::tenant($req); $b = self::body($req); $now = self::now();
+        $sid = (int)($args['id'] ?? 0);
+        $name = trim((string)($b['name'] ?? '게스트'));
+        $role = in_array(($b['role'] ?? 'guest'), ['cohost', 'guest'], true) ? (string)$b['role'] : 'guest';
+        if ($sid <= 0) return self::json($res, ['ok' => false, 'error' => '세션이 필요합니다.'], 422);
+        if (!self::exists('live_sessions', $sid, $t)) return self::json($res, ['ok' => false, 'error' => '세션을 찾을 수 없습니다.'], 404);
+        $token = bin2hex(random_bytes(16));
+        $streamKey = 'g_' . substr(bin2hex(random_bytes(8)), 0, 14);
+        self::db()->prepare("INSERT INTO live_guests (tenant_id,session_id,name,role,status,join_token,stream_key,invited_at) VALUES (:t,:s,:n,:r,'invited',:tok,:sk,:ia)")
+            ->execute([':t' => $t, ':s' => $sid, ':n' => $name, ':r' => $role, ':tok' => $token, ':sk' => $streamKey, ':ia' => $now]);
+        $gid = (int)self::db()->lastInsertId();
+        $joinUrl = self::publicBase() . '/live-guest?token=' . $token;
+        return self::json($res, ['ok' => true, 'id' => $gid, 'join_token' => $token, 'join_url' => $joinUrl, 'stream_key' => $streamKey,
+            'note' => '게스트는 join_url 로 참여(계정 불요). 영상은 외부 미디어서버로 stream_key 송출.']);
+    }
+
+    /** POST /v425/live/guests/join — 게스트가 토큰 링크로 참여(공개, 토큰=인증). */
+    public static function joinGuest(Request $req, Response $res, array $args): Response
+    {
+        self::ensureTables();
+        $b = self::body($req);
+        $token = trim((string)($b['token'] ?? ($req->getQueryParams()['token'] ?? '')));
+        if ($token === '') return self::json($res, ['ok' => false, 'error' => '참여 토큰이 필요합니다.'], 422);
+        $pdo = self::db();
+        $g = $pdo->prepare("SELECT * FROM live_guests WHERE join_token=:tok LIMIT 1");
+        $g->execute([':tok' => $token]);
+        $guest = $g->fetch(\PDO::FETCH_ASSOC);
+        if (!$guest) return self::json($res, ['ok' => false, 'error' => '유효하지 않은 참여 링크입니다.'], 404);
+        $now = self::now();
+        $pdo->prepare("UPDATE live_guests SET status='joined', joined_at=COALESCE(NULLIF(joined_at,''),:ja), left_at=NULL WHERE id=:id")
+            ->execute([':ja' => $now, ':id' => (int)$guest['id']]);
+        self::sysChat((string)$guest['tenant_id'], (int)$guest['session_id'], '🎙️ ' . (string)$guest['name'] . '님이 ' . ((string)$guest['role'] === 'cohost' ? '코호스트' : '게스트') . '로 참여했습니다.', 'guest', ['guest_id' => (int)$guest['id'], 'role' => $guest['role'], 'event' => 'join']);
+        $sess = $pdo->prepare("SELECT id,title,status FROM live_sessions WHERE id=:s AND tenant_id=:t");
+        $sess->execute([':s' => (int)$guest['session_id'], ':t' => (string)$guest['tenant_id']]);
+        return self::json($res, ['ok' => true, 'guest' => ['id' => (int)$guest['id'], 'name' => $guest['name'], 'role' => $guest['role'], 'stream_key' => $guest['stream_key']],
+            'session' => $sess->fetch(\PDO::FETCH_ASSOC) ?: null,
+            'ingest' => ['stream_key' => $guest['stream_key'], 'note' => '이 stream_key 로 외부 미디어서버(WebRTC/RTMP)에 송출하면 방송에 합성됩니다.']]);
+    }
+
+    public static function updateGuest(Request $req, Response $res, array $args): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $t = self::tenant($req); $b = self::body($req); $gid = (int)($args['id'] ?? 0);
+        $cur = self::db()->prepare("SELECT * FROM live_guests WHERE id=:id AND tenant_id=:t"); $cur->execute([':id' => $gid, ':t' => $t]);
+        $guest = $cur->fetch(\PDO::FETCH_ASSOC);
+        if (!$guest) return self::json($res, ['ok' => false, 'error' => '게스트를 찾을 수 없습니다.'], 404);
+        $role = array_key_exists('role', $b) && in_array($b['role'], ['cohost', 'guest'], true) ? (string)$b['role'] : (string)$guest['role'];
+        $status = array_key_exists('status', $b) && in_array($b['status'], ['invited', 'joined', 'left', 'muted'], true) ? (string)$b['status'] : (string)$guest['status'];
+        self::db()->prepare("UPDATE live_guests SET role=:r, status=:st, left_at=:la WHERE id=:id AND tenant_id=:t")
+            ->execute([':r' => $role, ':st' => $status, ':la' => ($status === 'left' ? self::now() : ($guest['left_at'] ?: null)), ':id' => $gid, ':t' => $t]);
+        if ($status === 'left' && (string)$guest['status'] !== 'left') {
+            self::sysChat($t, (int)$guest['session_id'], '👋 ' . (string)$guest['name'] . '님이 퇴장했습니다.', 'guest', ['guest_id' => $gid, 'event' => 'leave']);
+        }
+        return self::json($res, ['ok' => true, 'id' => $gid, 'role' => $role, 'status' => $status]);
+    }
+
+    public static function removeGuest(Request $req, Response $res, array $args): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $t = self::tenant($req); $gid = (int)($args['id'] ?? 0);
+        $st = self::db()->prepare("DELETE FROM live_guests WHERE id=:id AND tenant_id=:t");
+        $st->execute([':id' => $gid, ':t' => $t]);
+        if ($st->rowCount() === 0) return self::json($res, ['ok' => false, 'error' => '게스트를 찾을 수 없습니다.'], 404);
+        return self::json($res, ['ok' => true, 'deleted_id' => $gid]);
+    }
+
+    private static function publicBase(): string
+    {
+        $b = getenv('APP_PUBLIC_URL');
+        if ($b) return rtrim($b, '/');
+        return (Db::env() === 'demo') ? 'https://roidemo.genie-go.com' : 'https://roi.genie-go.com';
     }
 
     /* ════════════════ 시청자 presence + 실시간 통계(Stats) ════════════════ */

@@ -213,6 +213,13 @@ return function (App $app): void {
         'GET /v425/live/sessions/{id}/chat'            => 'Genie\\Handlers\\LiveCommerce::listChat',
         'POST /v425/live/sessions/{id}/chat'           => 'Genie\\Handlers\\LiveCommerce::postChat',
         'POST /v425/live/sessions/{id}/heartbeat'      => 'Genie\\Handlers\\LiveCommerce::heartbeat',
+        // [현 차수] 멀티게스트/코호스트
+        'GET /v425/live/sessions/{id}/guests'          => 'Genie\\Handlers\\LiveCommerce::listGuests',
+        'POST /v425/live/sessions/{id}/guests'         => 'Genie\\Handlers\\LiveCommerce::inviteGuest',
+        'POST /v425/live/guests/join'                  => 'Genie\\Handlers\\LiveCommerce::joinGuest',
+        'POST /api/v425/live/guests/join'              => 'Genie\\Handlers\\LiveCommerce::joinGuest',
+        'PUT /v425/live/guests/{id}'                   => 'Genie\\Handlers\\LiveCommerce::updateGuest',
+        'DELETE /v425/live/guests/{id}'                => 'Genie\\Handlers\\LiveCommerce::removeGuest',
         'GET /v425/live/sessions/{id}/stats'           => 'Genie\\Handlers\\LiveCommerce::stats',
         'GET /v425/live/overview'                      => 'Genie\\Handlers\\LiveCommerce::overview',
         'GET /v425/live/integrations'                  => 'Genie\\Handlers\\LiveCommerce::listIntegrations',
@@ -2493,6 +2500,11 @@ return function (App $app): void {
     $register('GET',    '/v425/live/sessions/{id}/chat');
     $register('POST',   '/v425/live/sessions/{id}/chat');
     $register('POST',   '/v425/live/sessions/{id}/heartbeat');
+    $register('GET',    '/v425/live/sessions/{id}/guests');
+    $register('POST',   '/v425/live/sessions/{id}/guests');
+    $register('POST',   '/v425/live/guests/join');     $register('POST', '/api/v425/live/guests/join');
+    $register('PUT',    '/v425/live/guests/{id}');
+    $register('DELETE', '/v425/live/guests/{id}');
     $register('GET',    '/v425/live/sessions/{id}/stats');
     $register('GET',    '/v425/live/overview');
     $register('GET',    '/v425/live/integrations');
