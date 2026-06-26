@@ -795,6 +795,17 @@ return function (App $app): void {
         'GET /api/v424/connectors/campaign-funnel' => 'Genie\\Handlers\\Connectors::campaignFunnel',
         'GET /v424/connectors/keywords'     => 'Genie\\Handlers\\Connectors::keywords', // [현 차수 P2-2a] 검색광고 키워드 입도
         'GET /api/v424/connectors/keywords' => 'Genie\\Handlers\\Connectors::keywords',
+        // [현 차수] AIRuleEngine 실배선 — 범용 IF-THEN 자동화 룰엔진
+        'GET /v424/rules'            => 'Genie\\Handlers\\RuleEngine::listRules',
+        'GET /api/v424/rules'        => 'Genie\\Handlers\\RuleEngine::listRules',
+        'POST /v424/rules'           => 'Genie\\Handlers\\RuleEngine::saveRule',
+        'POST /api/v424/rules'       => 'Genie\\Handlers\\RuleEngine::saveRule',
+        'PUT /v424/rules/{id}'       => 'Genie\\Handlers\\RuleEngine::saveRule',
+        'DELETE /v424/rules/{id}'    => 'Genie\\Handlers\\RuleEngine::deleteRule',
+        'POST /v424/rules/{id}/toggle' => 'Genie\\Handlers\\RuleEngine::toggleRule',
+        'POST /v424/rules/run'       => 'Genie\\Handlers\\RuleEngine::runEndpoint',
+        'GET /v424/rules/logs'       => 'Genie\\Handlers\\RuleEngine::logs',
+        'GET /api/v424/rules/logs'   => 'Genie\\Handlers\\RuleEngine::logs',
         // [228차 S1] 매체보고 vs 실주문귀속 ROAS 정합
         'GET /v423/connectors/roas-reconciliation'     => 'Genie\\Handlers\\Connectors::roasReconciliation',
         'GET /api/v423/connectors/roas-reconciliation' => 'Genie\\Handlers\\Connectors::roasReconciliation',
@@ -2765,6 +2776,13 @@ return function (App $app): void {
     $register('GET', '/api/v424/connectors/campaign-funnel');
     $register('GET', '/v424/connectors/keywords');
     $register('GET', '/api/v424/connectors/keywords');
+    $register('GET', '/v424/rules');        $register('GET', '/api/v424/rules');
+    $register('POST', '/v424/rules');       $register('POST', '/api/v424/rules');
+    $register('PUT', '/v424/rules/{id}');
+    $register('DELETE', '/v424/rules/{id}');
+    $register('POST', '/v424/rules/{id}/toggle');
+    $register('POST', '/v424/rules/run');
+    $register('GET', '/v424/rules/logs');   $register('GET', '/api/v424/rules/logs');
     $register('GET', '/v423/connectors/roas-reconciliation');
     $register('GET', '/api/v423/connectors/roas-reconciliation');
     // [228차 R1] 리뷰/UGC
