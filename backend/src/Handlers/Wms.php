@@ -645,12 +645,15 @@ class Wms
         if ($err = UserAuth::requirePro($req, $res)) return $err;
         self::ensureTables();
         $t = self::tenant($req); $q = $req->getQueryParams();
+        // [현 차수 P2-1] ABAC 강제 — warehouse 데이터범위 사용자는 허용 창고 재고만 조회(무제한=무필터·무회귀).
+        [$scW, $scP] = \Genie\Handlers\TeamPermissions::scopeSql($req, 'warehouse', 'wh_id');
+        $params = [$t]; foreach ($scP as $p) $params[] = $p;
         if (!empty($q['by_sku'])) {
-            $st = self::db()->prepare("SELECT sku, MAX(name) name, SUM(on_hand) on_hand FROM wms_stock WHERE tenant_id=:t GROUP BY sku ORDER BY sku");
+            $st = self::db()->prepare("SELECT sku, MAX(name) name, SUM(on_hand) on_hand FROM wms_stock WHERE tenant_id=?{$scW} GROUP BY sku ORDER BY sku");
         } else {
-            $st = self::db()->prepare("SELECT sku, wh_id, name, on_hand, updated_at FROM wms_stock WHERE tenant_id=:t ORDER BY sku, wh_id");
+            $st = self::db()->prepare("SELECT sku, wh_id, name, on_hand, updated_at FROM wms_stock WHERE tenant_id=?{$scW} ORDER BY sku, wh_id");
         }
-        $st->execute([':t' => $t]);
+        $st->execute($params);
         return self::json($res, ['ok' => true, 'stock' => $st->fetchAll(\PDO::FETCH_ASSOC)]);
     }
 

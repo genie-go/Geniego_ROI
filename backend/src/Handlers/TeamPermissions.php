@@ -218,6 +218,58 @@ class TeamPermissions
             return ['scope_type' => (string)$r['scope_type'], 'values' => is_array($vals) ? array_values($vals) : []];
         } catch (\Throwable $e) { return null; }
     }
+    /**
+     * [현 차수 P2-1] ABAC 강제 — 현재 요청 사용자의 실효 데이터 범위. 무제한이면 null.
+     *   ★기존엔 data_scope 가 저장만 되고 쿼리 미적용(엔터프라이즈 세분권한 미완)이었다. 이 헬퍼 + dimension
+     *   값 조회로 핸들러가 행 필터를 실제 강제한다. owner/admin·company 스코프·미설정 = null(무제한, 무회귀).
+     *   사용자 본인 스코프 우선, 없으면 소속 팀 스코프 상속.
+     * @return array{scope_type:string,values:array}|null
+     */
+    public static function effectiveScope(\Psr\Http\Message\ServerRequestInterface $req): ?array
+    {
+        try {
+            $u = \Genie\Handlers\UserAuth::authedUser($req);
+            if (!$u) return null;
+            $role = strtolower((string)($u['team_role'] ?? $u['role'] ?? ''));
+            if (in_array($role, ['owner', 'admin'], true)) return null; // 소유자/관리자 = 무제한
+            $tenant = (string)(\Genie\Handlers\UserAuth::authedTenant($req) ?? '');
+            if ($tenant === '') return null;
+            $pdo = \Genie\Db::pdo();
+            $sc = self::subjectScope($pdo, $tenant, 'user', (int)($u['id'] ?? 0));
+            if (!$sc && !empty($u['team_id'])) $sc = self::subjectScope($pdo, $tenant, 'team', (int)$u['team_id']);
+            if (!$sc) return null;
+            $st = (string)($sc['scope_type'] ?? 'own');
+            if ($st === 'company') return null;       // 전사 = 무제한
+            return $sc;
+        } catch (\Throwable $e) { return null; } // 안전측 — 강제 실패 시 무제한(기존 동작 보존)
+    }
+
+    /**
+     * [현 차수 P2-1] 특정 차원(warehouse/brand/channel/...)에 대한 허용 값 목록. null = 이 차원 무제한.
+     *   사용자 스코프 타입이 이 차원과 일치할 때만 제한(타 차원 스코프는 이 차원에 무제한). 빈 허용목록은
+     *   '아무것도 없음'이 아니라 안전측 무제한(null)으로 처리(설정 미완 사용자 잠금 방지).
+     */
+    public static function scopeValuesFor(\Psr\Http\Message\ServerRequestInterface $req, string $dimension): ?array
+    {
+        $sc = self::effectiveScope($req);
+        if ($sc === null) return null;
+        if ((string)($sc['scope_type'] ?? '') !== $dimension) return null;
+        $vals = array_values(array_filter(array_map('strval', (array)($sc['values'] ?? [])), fn($v) => $v !== ''));
+        return $vals ? $vals : null;
+    }
+
+    /**
+     * [현 차수 P2-1] 차원 값 목록을 SQL IN 절로 — [whereFragment, params]. 무제한이면 ['', []].
+     *   호출: [$w,$p]=TeamPermissions::scopeSql($req,'warehouse','wh_id'); $sql.=$w; ...->execute([...$p]).
+     */
+    public static function scopeSql(\Psr\Http\Message\ServerRequestInterface $req, string $dimension, string $column): array
+    {
+        $vals = self::scopeValuesFor($req, $dimension);
+        if ($vals === null) return ['', []];
+        $ph = implode(',', array_fill(0, count($vals), '?'));
+        return [" AND {$column} IN ({$ph})", $vals];
+    }
+
     /** 권한 매트릭스 전체 교체(DELETE→INSERT). $perms = menu_key=>actions[]. */
     private static function replacePerms(\PDO $pdo, string $tenant, string $type, int $id, array $perms): void
     {
