@@ -903,28 +903,29 @@ function FreeRegisterForm({ onSwitch, onBack, variant = "demo" }) {
 }
 
 /* ─── Paid Register Form ────────────────────────────────────── */
-function PaidRegisterForm({ selectedPlan, onBack, onSwitch }) {
+function PaidRegisterForm({ selectedPlan, onBack, onSwitch, prefill = {} }) {
   const t = useT();
   const { register } = useAuth();
   const navigate = useNavigate();
+  const isConvert = !!prefill.convert; // [245차] 데모→운영 전환(프로필 prefill, 체험 데이터 미이관)
   const [step, setStep] = useState(1); // 1: account, 2: business, 3: channels
 
-  /* Step 1 - Account */
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  /* Step 1 - Account — [245차] 전환 시 데모 프로필 prefill(이메일/이름). 비밀번호는 보안상 운영에서 신규 설정. */
+  const [name, setName] = useState(prefill.name || "");
+  const [email, setEmail] = useState(prefill.email || "");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
 
-  /* Step 2 - Business Info */
-  const [company, setCompany] = useState("");
-  const [ceoName, setCeoName] = useState("");
+  /* Step 2 - Business Info — [245차] 전환 시 데모에서 받은 회사정보 prefill. */
+  const [company, setCompany] = useState(prefill.company || "");
+  const [ceoName, setCeoName] = useState(prefill.ceoName || "");
   const [businessType, setBusinessType] = useState("");
-  const [businessNumber, setBusinessNumber] = useState(""); // 사업자번호
+  const [businessNumber, setBusinessNumber] = useState(prefill.businessNumber || ""); // 사업자번호
   const [country, setCountry] = useState("대한민국");
   const [zipCode, setZipCode] = useState("");
   const [address, setAddress] = useState("");
   const [addressDetail, setAddressDetail] = useState("");
-  const [phone, setPhone] = useState("");
+  const [phone, setPhone] = useState(prefill.phone || "");
   const [website, setWebsite] = useState("");
 
   /* Step 3 - Channels */
@@ -1091,6 +1092,16 @@ function PaidRegisterForm({ selectedPlan, onBack, onSwitch }) {
 
   return (
     <div style={{ display: "grid", gap: 14 }}>
+      {/* [245차] 데모→운영 전환 배너 — 데모 가입정보만 prefill, 체험 가상데이터는 이관되지 않음(데이터 격리 원칙) */}
+      {isConvert && (
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "12px 14px", borderRadius: 12, background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.3)" }}>
+          <span style={{ fontSize: 20 }}>🚀</span>
+          <div>
+            <div style={{ fontWeight: 800, fontSize: 12.5, color: "#16a34a" }}>{t("auth.convertTitle", "데모 체험 정보로 운영(유료) 회원 전환")}</div>
+            <div style={{ fontSize: 10.5, color: "var(--text-3)", marginTop: 3, lineHeight: 1.6 }}>{t("auth.convertNote", "데모에서 입력한 가입 정보만 자동으로 채웠습니다. 플랜·주소·새 비밀번호 등 나머지 필수 정보만 입력하면 즉시 운영 회원으로 전환됩니다. ※ 데모의 체험용 가상 데이터는 운영 계정으로 이관되지 않습니다.")}</div>
+          </div>
+        </div>
+      )}
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderRadius: 10, background: `${PLAN_CFG.color}0D`, border: `1px solid ${PLAN_CFG.color}33` }}>
         <span style={{ fontSize: 20 }}>💎</span>
@@ -1692,12 +1703,23 @@ export default function AuthPage() {
   // Read mode from URL parameters if provided (e.g. ?mode=free)
   const queryParams = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
   const rawMode = queryParams.get('mode') || "login";
+  // [245차] 데모→운영 전환 — ?convert=1 진입 시 유료가입 폼 + 데모 프로필 prefill(체험 데이터 미이관).
+  const isConvert = queryParams.get('convert') === '1';
+  const convertPrefill = isConvert ? {
+    convert: true,
+    email: queryParams.get('email') || '',
+    name: queryParams.get('name') || '',
+    company: queryParams.get('company') || '',
+    ceoName: queryParams.get('ceo') || '',
+    businessNumber: queryParams.get('bizno') || '',
+    phone: queryParams.get('phone') || '',
+  } : {};
   // On demo domain, ?mode=free from URL means demo registration (redirected from production)
-  const initialMode = (rawMode === 'free' && isDemoDomain) ? 'demo_free' : rawMode;
+  const initialMode = isConvert ? 'paid' : ((rawMode === 'free' && isDemoDomain) ? 'demo_free' : rawMode);
 
   const [mode, setMode] = useState(initialMode); // login | register | free | demo_free | paid | admin
   const [planType, setPlanType] = useState("free");
-  const [selectedPaid, setSelectedPaid] = useState("pro");
+  const [selectedPaid, setSelectedPaid] = useState(isConvert ? (queryParams.get('plan') || 'pro') : "pro");
   // 190차: 비번재설정 이메일 링크(?reset=)로 진입 시 로그인폼(STEP2)을 즉시 마운트 → 재설정 모달 자동 오픈
   const hasResetParam = !!queryParams.get('reset');
   const [loginType, setLoginType] = useState(hasResetParam ? (isDemoDomain ? 'demo' : 'production') : null);
@@ -1925,7 +1947,7 @@ export default function AuthPage() {
 
           {/* Route: Paid registration */}
           {mode === "paid" && (
-            <PaidRegisterForm selectedPlan={selectedPaid} onSwitch={handleSwitch} onBack={() => setMode("register")} />
+            <PaidRegisterForm selectedPlan={selectedPaid} prefill={convertPrefill} onSwitch={handleSwitch} onBack={() => setMode("register")} />
           )}
         </div>
 

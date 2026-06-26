@@ -320,6 +320,32 @@ export default function Topbar() {
             onMouseLeave={e => e.currentTarget.style.background = 'rgba(251,146,60,0.12)'}
           >🔄 DEMO</button>
         )}
+        {/* [245차] 데모→운영(유료) 회원 전환 — 데모 가입정보만 운영 회원가입으로 prefill(체험 가상데이터 미이관·데이터 격리 원칙). */}
+        {IS_DEMO && (
+          <button
+            onClick={() => {
+              let u = {}; try { u = JSON.parse(localStorage.getItem('demo_genie_user') || '{}'); } catch {}
+              const pr = u.profile || {};
+              const q = new URLSearchParams({
+                convert: '1', plan: 'pro',
+                email: u.email || '', name: u.name || '',
+                company: pr.company || u.company || '', ceo: pr.ceo_name || '',
+                bizno: pr.business_number || '', phone: pr.phone || '',
+              });
+              // 운영 도메인 회원가입으로 이동(별도 DB) — 운영 신규 INSERT라 데모 가상데이터는 구조적으로 유입 불가.
+              window.location.href = 'https://roi.genie-go.com/login?' + q.toString();
+            }}
+            title={t('topbar.convertTitle', '데모 가입정보로 운영(유료) 회원 전환 — 체험용 가상데이터는 이관되지 않습니다')}
+            style={{
+              padding: '2px 10px', borderRadius: 99, fontSize: 9, fontWeight: 800,
+              background: 'rgba(34,197,94,0.14)', color: '#16a34a',
+              border: '1px solid rgba(34,197,94,0.35)', cursor: 'pointer',
+              flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 4,
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(34,197,94,0.24)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'rgba(34,197,94,0.14)'}
+          >🚀 {t('topbar.convertCta', '운영 회원 전환')}</button>
+        )}
 
         {/* 207차: 관리자 전용 환경 전환 — 운영/데모는 별도 시스템(별도 DB). 어느 페이지에서나 전환 가능.
             admin 계정만 노출(데모/운영 회원은 isAdmin=false 라 미표시). */}
