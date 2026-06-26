@@ -128,6 +128,9 @@ final class OrderHub
         if ($status !== null) { $where[] = 'status = ?'; $args[] = $status; }
         if ($channel !== null) { $where[] = 'channel = ?'; $args[] = $channel; }
         $whereSql = implode(' AND ', $where);
+        // [현 차수 P2] ABAC 차원강제 — 채널/상품(브랜드=상품집합) 스코프 사용자는 허용 행만 조회(무제한=무필터·무회귀).
+        [$scW, $scP] = \Genie\Handlers\TeamPermissions::scopeChannelProduct($req, 'channel', 'sku');
+        if ($scW !== '') { $whereSql .= $scW; foreach ($scP as $sp) $args[] = $sp; }
 
         try {
             $stmtCount = $pdo->prepare("SELECT COUNT(*) FROM channel_orders WHERE $whereSql");

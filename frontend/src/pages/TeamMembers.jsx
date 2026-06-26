@@ -611,7 +611,7 @@ function MatrixPanel({ t, canManage, isOwnerAdmin, flash }) {
   );
 }
 function scopeLabel(ds) {
-  return { company: '전체 회사', brand: '특정 브랜드', team: '특정 팀', campaign: '특정 캠페인', product: '특정 상품', warehouse: '특정 창고', partner: '특정 파트너', own: '본인 담당만' }[ds] || ds;
+  return { company: '전체 회사', brand: '특정 브랜드', team: '특정 팀', campaign: '특정 캠페인', product: '특정 상품', channel: '특정 채널', warehouse: '특정 창고', partner: '특정 파트너', own: '본인 담당만' }[ds] || ds;
 }
 
 /* ═══════════════════ 감사 로그 패널 ═══════════════════ */

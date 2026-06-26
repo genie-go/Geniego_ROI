@@ -222,6 +222,11 @@ return function (App $app): void {
         'PUT /v425/live/guests/{id}'                   => 'Genie\\Handlers\\LiveCommerce::updateGuest',
         'DELETE /v425/live/guests/{id}'                => 'Genie\\Handlers\\LiveCommerce::removeGuest',
         'GET /v425/live/sessions/{id}/stats'           => 'Genie\\Handlers\\LiveCommerce::stats',
+        // [현 차수] 미디어 평면(WHIP 송출/WHEP 재생) URL — 실제 영상 송출/시청
+        'GET /v425/live/sessions/{id}/media'           => 'Genie\\Handlers\\LiveCommerce::mediaInfo',
+        // [현 차수] 미디어서버 설정 등록(추후 자격증명 등록 시 즉시 자동 활성)
+        'GET /v425/live/media-config'                  => 'Genie\\Handlers\\LiveCommerce::getMediaConfig',
+        'PUT /v425/live/media-config'                  => 'Genie\\Handlers\\LiveCommerce::saveMediaConfig',
         'GET /v425/live/overview'                      => 'Genie\\Handlers\\LiveCommerce::overview',
         'GET /v425/live/integrations'                  => 'Genie\\Handlers\\LiveCommerce::listIntegrations',
         'POST /v425/live/integrations'                 => 'Genie\\Handlers\\LiveCommerce::saveIntegration',
@@ -2519,6 +2524,9 @@ return function (App $app): void {
     $register('PUT',    '/v425/live/guests/{id}');
     $register('DELETE', '/v425/live/guests/{id}');
     $register('GET',    '/v425/live/sessions/{id}/stats');
+    $register('GET',    '/v425/live/sessions/{id}/media');   // [현 차수] 미디어 평면 WHIP/WHEP URL
+    $register('GET',    '/v425/live/media-config');          // [현 차수] 미디어서버 설정 조회
+    $register('PUT',    '/v425/live/media-config');          // [현 차수] 미디어서버 설정 등록(즉시 자동 활성)
     $register('GET',    '/v425/live/overview');
     $register('GET',    '/v425/live/integrations');
     $register('POST',   '/v425/live/integrations');

@@ -281,9 +281,14 @@ class Catalog
         self::ensureTables();
         $pdo = self::db();
         $tenant = self::tenant($req);
+        // [현 차수 P2] ABAC 차원강제 — 채널/상품(브랜드=상품집합) 스코프 사용자는 허용 리스팅만(무제한=무필터·무회귀).
+        [$scC, $pC] = TeamPermissions::scopeSqlNamed($req, 'channel', 'channel', 'abc');
+        [$scP, $pP] = TeamPermissions::scopeSqlNamed($req, 'product', 'sku', 'abp');
+        [$scB, $pB] = TeamPermissions::scopeSqlNamed($req, 'brand',   'sku', 'abb');
+        $params = [':t' => $tenant] + $pC + $pP + $pB;
         $st = $pdo->prepare("SELECT channel,sku,name,category,price,inventory,action,status,updated_at
-                             FROM catalog_listing WHERE tenant_id=:t ORDER BY updated_at DESC LIMIT 1000");
-        $st->execute([':t' => $tenant]);
+                             FROM catalog_listing WHERE tenant_id=:t{$scC}{$scP}{$scB} ORDER BY updated_at DESC LIMIT 1000");
+        $st->execute($params);
         return self::jsonRes($res, ['ok' => true, 'listings' => $st->fetchAll(\PDO::FETCH_ASSOC)]);
     }
 

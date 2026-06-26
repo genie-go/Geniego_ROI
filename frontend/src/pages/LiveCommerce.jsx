@@ -19,6 +19,7 @@ import ProductMarketingPanel from '../components/dashboards/ProductMarketingPane
 import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
 import { IS_DEMO } from '../utils/demoEnv.js';
 import * as liveApi from '../services/liveApi.js';
+import { publishWhip, playWhep } from '../services/liveWebrtc.js'; // [현 차수] WHIP 송출/WHEP 재생
 
 /* ───────────────── 멀티송출 & 연동 채널 레지스트리 ───────────────── */
 const SNS_CHANNELS = [
@@ -313,10 +314,12 @@ export default function LiveCommerce() {
 const StudioTab = memo(function StudioTab({ session, gd, money, t, onChanged }) {
   const videoRef = useRef(null);
   const streamRef = useRef(null);
+  const pubRef = useRef(null); // [현 차수] WHIP 송출 핸들({pc,resource,stop})
   const [camOn, setCamOn] = useState(false);
   const [camErr, setCamErr] = useState('');
   const [devices, setDevices] = useState([]);
   const [deviceId, setDeviceId] = useState('');
+  const [bcast, setBcast] = useState({ state: 'idle' }); // idle|connecting|live|local|error — 미디어서버 송출 상태
   const [products, setProducts] = useState([]);
   const [chatInput, setChatInput] = useState('');
   const [busy, setBusy] = useState(false);
@@ -333,6 +336,24 @@ const StudioTab = memo(function StudioTab({ session, gd, money, t, onChanged }) 
   useEffect(() => { loadProducts(); }, [loadProducts, chat.length]);
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [chat.length]);
 
+  /* [현 차수] 미디어서버(WHIP)로 카메라 송출 — 설정 시 실시간 방송, 미설정 시 로컬 프리뷰로 degrade(정직). */
+  const startBroadcast = useCallback(async (stream) => {
+    if (!sid || !stream) return;
+    try { pubRef.current?.stop?.(); } catch {}
+    pubRef.current = null;
+    let info;
+    try { info = await liveApi.getMedia(sid); } catch { setBcast({ state: 'local' }); return; }
+    if (!info?.configured || !info?.whip_url) { setBcast({ state: 'local' }); return; } // 미디어서버 미설정 = 로컬 프리뷰만
+    setBcast({ state: 'connecting' });
+    try {
+      pubRef.current = await publishWhip(stream, info.whip_url, info.ice_servers || []);
+      setBcast({ state: 'live' });
+    } catch (e) {
+      pubRef.current = null;
+      setBcast({ state: 'error', msg: String(e?.message || e) });
+    }
+  }, [sid]);
+
   /* 카메라 연결 (getUserMedia) */
   const startCam = useCallback(async () => {
     setCamErr('');
@@ -344,12 +365,16 @@ const StudioTab = memo(function StudioTab({ session, gd, money, t, onChanged }) 
       setCamOn(true);
       const all = await navigator.mediaDevices.enumerateDevices();
       setDevices(all.filter(d => d.kind === 'videoinput'));
+      startBroadcast(stream); // 미디어서버 송출(설정 시) — 비차단
     } catch (e) {
       setCamErr(t('liveCommerce.camError', '카메라/마이크 접근이 거부되었거나 장치를 찾을 수 없습니다. 브라우저 권한을 확인하세요.') + ' (' + (e?.name || e) + ')');
       setCamOn(false);
     }
-  }, [deviceId, t]);
+  }, [deviceId, t, startBroadcast]);
   const stopCam = useCallback(() => {
+    try { pubRef.current?.stop?.(); } catch {}
+    pubRef.current = null;
+    setBcast({ state: 'idle' });
     try { streamRef.current?.getTracks().forEach(tr => tr.stop()); } catch {}
     streamRef.current = null;
     if (videoRef.current) videoRef.current.srcObject = null;
@@ -418,8 +443,19 @@ const StudioTab = memo(function StudioTab({ session, gd, money, t, onChanged }) 
               : <Btn color="#1e293b" onClick={doEnd} disabled={busy}>⏹ {t('liveCommerce.endLive', '방송 종료')}</Btn>}
           </div>
           {camErr && <div style={{ color: '#b91c1c', fontSize: 12, marginTop: 8 }}>{camErr}</div>}
+          {/* [현 차수] 미디어서버 송출 상태 — WHIP 실송출 vs 로컬 프리뷰 정직 표기 */}
+          {camOn && bcast.state !== 'idle' && (
+            <div style={{ marginTop: 8, fontSize: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+              {bcast.state === 'connecting' && <span style={{ color: '#0891b2' }}>📡 {t('liveCommerce.bcastConnecting', '미디어서버 송출 연결 중…')}</span>}
+              {bcast.state === 'live' && <span style={{ color: '#16a34a', fontWeight: 700 }}>🔴 {t('liveCommerce.bcastLive', '실시간 송출 중 (시청자에게 영상 전송)')}</span>}
+              {bcast.state === 'local' && <span style={{ color: '#64748b' }}>📷 {t('liveCommerce.bcastLocal', '로컬 프리뷰만 — 미디어서버 미설정(.env LIVE_MEDIA_BASE)')}</span>}
+              {bcast.state === 'error' && <span style={{ color: '#b91c1c' }}>⚠️ {t('liveCommerce.bcastError', '송출 실패')} — {bcast.msg}</span>}
+            </div>
+          )}
           {/* 멀티송출 대상(RTMP) 관리 */}
           <MulticastManager session={session} live={isLive} t={t} />
+          {/* [현 차수] 미디어서버 설정 — 추후 등록 시 즉시 자동 송출/시청 활성 */}
+          <MediaServerConfig t={t} />
         </Card>
 
         {/* 편성 상품 빠른 노출 */}
@@ -469,6 +505,69 @@ const StudioTab = memo(function StudioTab({ session, gd, money, t, onChanged }) 
 });
 
 /* 멀티 송출 대상(RTMP) 관리 — 208차 #1. 세션별 송출 대상 등록/활성화/상태. */
+/* [현 차수] 미디어서버(WHIP/WHEP) 설정 등록 — 추후 자격증명 등록 시 즉시 자동 송출/시청 활성(재시작 불요). */
+const MediaServerConfig = memo(function MediaServerConfig({ t }) {
+  const [open, setOpen] = useState(false);
+  const [cfg, setCfg] = useState({ base_url: '', whip_base: '', whep_base: '', app: 'live', stun: '', turn_url: '', turn_user: '', turn_cred: '', enabled: 0 });
+  const [configured, setConfigured] = useState(false);
+  const [source, setSource] = useState('none');
+  const [saving, setSaving] = useState(false);
+  const [msg, setMsg] = useState('');
+  const load = useCallback(async () => {
+    try { const r = await liveApi.getMediaConfig(); if (r?.config) setCfg(c => ({ ...c, ...r.config })); setConfigured(!!r?.configured); setSource(r?.source || 'none'); } catch {}
+  }, []);
+  useEffect(() => { load(); }, [load]);
+  const save = async () => {
+    setSaving(true); setMsg('');
+    try { const r = await liveApi.saveMediaConfig(cfg); setConfigured(!!r?.configured); setSource(r?.source || 'none'); setMsg(r?.note || t('liveCommerce.mediaSaved', '저장되었습니다.')); await load(); }
+    catch (e) { setMsg('⚠️ ' + String(e?.message || e)); }
+    finally { setSaving(false); setTimeout(() => setMsg(''), 4000); }
+  };
+  const field = (key, label, ph, type = 'text') => (
+    <div style={{ marginBottom: 8 }}>
+      <div style={{ fontSize: 11, color: C.sub, marginBottom: 3 }}>{label}</div>
+      <input type={type} value={cfg[key] || ''} onChange={e => setCfg(c => ({ ...c, [key]: e.target.value }))} placeholder={ph}
+        style={{ width: '100%', padding: '7px 10px', borderRadius: 8, border: `1px solid ${C.border}`, fontSize: 12, boxSizing: 'border-box' }} />
+    </div>
+  );
+  return (
+    <div style={{ marginTop: 12, borderTop: `1px solid ${C.border}`, paddingTop: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }} onClick={() => setOpen(o => !o)}>
+        <span style={{ fontWeight: 800, fontSize: 13 }}>📡 {t('liveCommerce.mediaServerTitle', '미디어서버(실시간 송출/시청) 설정')}</span>
+        <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 6, background: configured ? '#dcfce7' : '#f1f5f9', color: configured ? '#16a34a' : '#64748b' }}>
+          {configured ? `● ${t('liveCommerce.mediaActive', '활성')} (${source})` : t('liveCommerce.mediaInactive', '미설정 — 로컬 프리뷰')}
+        </span>
+        <span style={{ marginLeft: 'auto', color: C.sub }}>{open ? '▲' : '▼'}</span>
+      </div>
+      {open && (
+        <div style={{ marginTop: 10 }}>
+          <div style={{ fontSize: 11, color: C.sub, marginBottom: 10, lineHeight: 1.6 }}>
+            {t('liveCommerce.mediaServerDesc', 'SRS·MediaMTX·Cloudflare Stream 등 WHIP/WHEP 지원 미디어서버 주소를 등록하면, 다음 방송부터 호스트 카메라가 실시간 송출되고 시청자에게 영상이 전송됩니다. base_url(SRS)만 입력하면 WHIP/WHEP 경로는 자동 구성됩니다.')}
+          </div>
+          {field('base_url', t('liveCommerce.mediaBase', 'Base URL (SRS, 예: https://media.example.com:1985)'), 'https://media.example.com:1985')}
+          {field('whip_base', t('liveCommerce.mediaWhip', 'WHIP Base (개별 지정 시)'), 'https://.../rtc/v1/whip/')}
+          {field('whep_base', t('liveCommerce.mediaWhep', 'WHEP Base (개별 지정 시)'), 'https://.../rtc/v1/whep/')}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+            {field('app', t('liveCommerce.mediaApp', 'App'), 'live')}
+            {field('stun', t('liveCommerce.mediaStun', 'STUN'), 'stun:stun.l.google.com:19302')}
+          </div>
+          {field('turn_url', t('liveCommerce.mediaTurn', 'TURN URL (선택)'), 'turn:turn.example.com:3478')}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+            {field('turn_user', t('liveCommerce.mediaTurnUser', 'TURN User'), '')}
+            {field('turn_cred', t('liveCommerce.mediaTurnCred', 'TURN Credential'), '', 'password')}
+          </div>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, margin: '8px 0' }}>
+            <input type="checkbox" checked={!!Number(cfg.enabled)} onChange={e => setCfg(c => ({ ...c, enabled: e.target.checked ? 1 : 0 }))} />
+            {t('liveCommerce.mediaEnable', '활성화 (체크 시 실시간 송출/시청 사용)')}
+          </label>
+          <Btn color="#0891b2" onClick={save} disabled={saving}>{saving ? '⏳' : '💾'} {t('liveCommerce.mediaSave', '미디어서버 설정 저장')}</Btn>
+          {msg && <div style={{ fontSize: 12, color: '#16a34a', marginTop: 8 }}>{msg}</div>}
+        </div>
+      )}
+    </div>
+  );
+});
+
 const MulticastManager = memo(function MulticastManager({ session, live, t }) {
   const sid = session?.id;
   const [dests, setDests] = useState([]);
@@ -1001,6 +1100,28 @@ const BuyerTab = memo(function BuyerTab({ session, gd, money, t }) {
   const [toast, setToast] = useState('');
   const { stats, chat, sendLike } = useLiveStream(session, true);
   const sid = session?.id;
+  const isLive = session?.status === 'live';
+  // [현 차수] 시청자 영상 재생(WHEP) — 미디어서버 설정 시 호스트 송출 영상 수신, 미설정 시 플레이스홀더 유지.
+  const videoRef = useRef(null);
+  const playRef = useRef(null);
+  const [playing, setPlaying] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    const stop = () => { try { playRef.current?.stop?.(); } catch {} playRef.current = null; if (videoRef.current) videoRef.current.srcObject = null; setPlaying(false); };
+    if (!sid || !isLive) { stop(); return () => { cancelled = true; }; }
+    (async () => {
+      let info; try { info = await liveApi.getMedia(sid); } catch { return; }
+      if (cancelled || !info?.configured || !info?.whep_url) return; // 미설정 → 플레이스홀더
+      try {
+        const h = await playWhep(info.whep_url, info.ice_servers || []);
+        if (cancelled) { h.stop(); return; }
+        playRef.current = h;
+        if (videoRef.current) { videoRef.current.srcObject = h.stream; videoRef.current.play().catch(() => {}); }
+        setPlaying(true);
+      } catch {}
+    })();
+    return () => { cancelled = true; stop(); };
+  }, [sid, isLive]);
   const reload = useCallback(async () => { if (!sid) return; try { const r = await liveApi.listProducts(sid); setProducts(r?.products || []); } catch {} }, [sid]);
   useEffect(() => { reload(); }, [reload, chat.length]);
 
@@ -1030,16 +1151,18 @@ const BuyerTab = memo(function BuyerTab({ session, gd, money, t }) {
     <div style={{ maxWidth: 460, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
       <Card style={{ padding: 0, overflow: 'hidden', background: '#0b1020' }}>
         <div style={{ position: 'relative', aspectRatio: '9/14', maxHeight: 520, background: 'linear-gradient(160deg,#1e1b4b,#0b1020)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: 12 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          {/* [현 차수] WHEP 실시간 영상 — 재생 시 플레이스홀더 위로 표시 */}
+          <video ref={videoRef} playsInline autoPlay style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: playing ? 'block' : 'none', zIndex: 0 }} />
+          <div style={{ position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'space-between' }}>
             <span style={{ background: session.status === 'live' ? '#ef4444' : '#64748b', color: '#fff', fontSize: 11, fontWeight: 800, padding: '3px 10px', borderRadius: 6 }}>{session.status === 'live' ? '● LIVE' : 'VOD'}</span>
             <span style={{ background: 'rgba(0,0,0,.5)', color: '#fff', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 6 }}>👁 {stats?.viewers ?? 0}</span>
           </div>
-          <div style={{ textAlign: 'center', color: '#fff' }}>
+          <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', color: '#fff', visibility: playing ? 'hidden' : 'visible' }}>
             <div style={{ fontSize: 56 }}>{featured?.image || '🎬'}</div>
             <div style={{ fontWeight: 800, fontSize: 16, marginTop: 6 }}>{session.title}</div>
           </div>
           {/* 실시간 채팅 오버레이 */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 3, maxHeight: 110, overflow: 'hidden' }}>
+          <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: 3, maxHeight: 110, overflow: 'hidden' }}>
             {chat.slice(-5).map(m => <div key={m.id} style={{ fontSize: 11, color: '#e2e8f0' }}>
               {m.kind !== 'system' && <b style={{ color: '#c4b5fd' }}>{m.author} </b>}{m.message}</div>)}
           </div>

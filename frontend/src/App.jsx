@@ -144,6 +144,7 @@ const Terms = lazy(() => import("./pages/public/Terms.jsx"));
 const Privacy = lazy(() => import("./pages/public/Privacy.jsx"));
 const Refund = lazy(() => import("./pages/public/Refund.jsx"));
 const PgTest = lazy(() => import("./pages/public/PgTest.jsx"));
+const LiveGuest = lazy(() => import("./pages/public/LiveGuest.jsx")); // [현 차수] 게스트 송출 참여(공개)
 
 const Loader = () => (
   <div style={{ display: "grid", gap: 14, padding: "4px 0", background: "var(--surface-1, #070f1a)", minHeight: "100%" }}>
@@ -641,6 +642,8 @@ export default function App() {
                 <Route path="/login" element={<LoginRoute />} />
                 {/* 212차 #3-B: 파트너(매입처/물류처/창고처) 전용 포털 — 본사 인증과 분리된 독립 페이지 */}
                 <Route path="/partner" element={<PartnerPortal />} />
+                {/* [현 차수] 라이브 게스트/코호스트 송출 참여(초대 토큰, 계정 불요) */}
+                <Route path="/live-guest" element={<LiveGuest />} />
                 <Route path="/*" element={
                   <RequireAuth>
                     <AppLayout />

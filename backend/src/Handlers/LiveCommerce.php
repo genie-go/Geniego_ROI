@@ -126,6 +126,14 @@ class LiveCommerce
                 invited_at VARCHAR(32), joined_at VARCHAR(32), left_at VARCHAR(32),
                 UNIQUE KEY uq_lc_guest_tok (join_token), KEY idx_lc_guest (tenant_id, session_id)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            // [현 차수] 미디어서버(WHIP/WHEP) 설정 — 테넌트가 UI로 추후 등록하면 즉시 자동 활성(재시작 불요). turn_cred=AES-GCM.
+            $pdo->exec("CREATE TABLE IF NOT EXISTS live_media_config (
+                tenant_id VARCHAR(100) NOT NULL PRIMARY KEY,
+                base_url VARCHAR(300), whip_base VARCHAR(300), whep_base VARCHAR(300),
+                app VARCHAR(60) DEFAULT 'live', stun VARCHAR(200),
+                turn_url VARCHAR(200), turn_user VARCHAR(120), turn_cred TEXT,
+                enabled TINYINT(1) DEFAULT 0, updated_at VARCHAR(32)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
         } else {
             $pdo->exec("CREATE TABLE IF NOT EXISTS live_sessions (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', title TEXT NOT NULL, description TEXT, host TEXT, cover_url TEXT, status TEXT NOT NULL DEFAULT 'scheduled', channels TEXT, scheduled_at TEXT, started_at TEXT, ended_at TEXT, viewer_count INTEGER DEFAULT 0, peak_viewers INTEGER DEFAULT 0, like_count INTEGER DEFAULT 0, created_at TEXT, updated_at TEXT)");
             $pdo->exec("CREATE TABLE IF NOT EXISTS live_products (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', session_id INTEGER NOT NULL, sku TEXT, name TEXT, image TEXT, price REAL DEFAULT 0, special_price REAL DEFAULT 0, stock REAL DEFAULT 0, sold REAL DEFAULT 0, featured INTEGER DEFAULT 0, display_order INTEGER DEFAULT 0, created_at TEXT, updated_at TEXT)");
@@ -135,6 +143,7 @@ class LiveCommerce
             $pdo->exec("CREATE TABLE IF NOT EXISTS live_presence (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', session_id INTEGER NOT NULL, viewer_key TEXT, last_seen TEXT)");
             $pdo->exec("CREATE TABLE IF NOT EXISTS live_destinations (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', session_id INTEGER NOT NULL, channel TEXT NOT NULL, label TEXT, rtmp_url TEXT, stream_key TEXT, enabled INTEGER DEFAULT 1, status TEXT DEFAULT 'idle', last_status_at TEXT, created_at TEXT, updated_at TEXT)");
             $pdo->exec("CREATE TABLE IF NOT EXISTS live_guests (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', session_id INTEGER NOT NULL, name TEXT, role TEXT DEFAULT 'guest', status TEXT DEFAULT 'invited', join_token TEXT, stream_key TEXT, invited_at TEXT, joined_at TEXT, left_at TEXT)");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS live_media_config (tenant_id TEXT PRIMARY KEY, base_url TEXT, whip_base TEXT, whep_base TEXT, app TEXT DEFAULT 'live', stun TEXT, turn_url TEXT, turn_user TEXT, turn_cred TEXT, enabled INTEGER DEFAULT 0, updated_at TEXT)");
             try { $pdo->exec("CREATE UNIQUE INDEX IF NOT EXISTS uq_lc_guest_tok ON live_guests(join_token)"); } catch (\Throwable $e) {}
             try { $pdo->exec("CREATE UNIQUE INDEX IF NOT EXISTS uq_lc_int ON live_integrations(tenant_id, channel)"); } catch (\Throwable $e) {}
             try { $pdo->exec("CREATE UNIQUE INDEX IF NOT EXISTS uq_lc_pres ON live_presence(tenant_id, session_id, viewer_key)"); } catch (\Throwable $e) {}
@@ -462,8 +471,11 @@ class LiveCommerce
             ->execute([':t' => $t, ':s' => $sid, ':n' => $name, ':r' => $role, ':tok' => $token, ':sk' => $streamKey, ':ia' => $now]);
         $gid = (int)self::db()->lastInsertId();
         $joinUrl = self::publicBase() . '/live-guest?token=' . $token;
-        return self::json($res, ['ok' => true, 'id' => $gid, 'join_token' => $token, 'join_url' => $joinUrl, 'stream_key' => $streamKey,
-            'note' => '게스트는 join_url 로 참여(계정 불요). 영상은 외부 미디어서버로 stream_key 송출.']);
+        $cfg = self::mediaConfig($t);
+        $out = ['ok' => true, 'id' => $gid, 'join_token' => $token, 'join_url' => $joinUrl, 'stream_key' => $streamKey,
+            'note' => '게스트는 join_url 로 참여(계정 불요). 영상은 외부 미디어서버로 stream_key 송출.'];
+        if ($cfg['configured']) $out['whip_url'] = self::whipUrl($cfg, $streamKey); // 게스트 카메라 → 송출
+        return self::json($res, $out);
     }
 
     /** POST /v425/live/guests/join — 게스트가 토큰 링크로 참여(공개, 토큰=인증). */
@@ -484,9 +496,13 @@ class LiveCommerce
         self::sysChat((string)$guest['tenant_id'], (int)$guest['session_id'], '🎙️ ' . (string)$guest['name'] . '님이 ' . ((string)$guest['role'] === 'cohost' ? '코호스트' : '게스트') . '로 참여했습니다.', 'guest', ['guest_id' => (int)$guest['id'], 'role' => $guest['role'], 'event' => 'join']);
         $sess = $pdo->prepare("SELECT id,title,status FROM live_sessions WHERE id=:s AND tenant_id=:t");
         $sess->execute([':s' => (int)$guest['session_id'], ':t' => (string)$guest['tenant_id']]);
+        $cfg = self::mediaConfig((string)$guest['tenant_id']);
+        $ingest = ['stream_key' => $guest['stream_key'], 'configured' => $cfg['configured'], 'ice_servers' => $cfg['ice'],
+            'note' => '이 stream_key 로 외부 미디어서버(WebRTC/RTMP)에 송출하면 방송에 합성됩니다.'];
+        if ($cfg['configured']) $ingest['whip_url'] = self::whipUrl($cfg, (string)$guest['stream_key']); // 게스트 카메라 → 송출
         return self::json($res, ['ok' => true, 'guest' => ['id' => (int)$guest['id'], 'name' => $guest['name'], 'role' => $guest['role'], 'stream_key' => $guest['stream_key']],
             'session' => $sess->fetch(\PDO::FETCH_ASSOC) ?: null,
-            'ingest' => ['stream_key' => $guest['stream_key'], 'note' => '이 stream_key 로 외부 미디어서버(WebRTC/RTMP)에 송출하면 방송에 합성됩니다.']]);
+            'ingest' => $ingest]);
     }
 
     public static function updateGuest(Request $req, Response $res, array $args): Response
@@ -523,6 +539,153 @@ class LiveCommerce
         $b = getenv('APP_PUBLIC_URL');
         if ($b) return rtrim($b, '/');
         return (Db::env() === 'demo') ? 'https://roidemo.genie-go.com' : 'https://roi.genie-go.com';
+    }
+
+    /* ════════════════ [현 차수] 미디어 평면(WHIP/WHEP) — 실제 영상 송출/재생 ════════════════
+       control-plane(누가·역할·송출키)은 완성. 이 계층은 표준 WebRTC-over-HTTP(WHIP 송출/WHEP 재생)로
+       브라우저 ↔ 외부 미디어서버(SRS·MediaMTX·Cloudflare Stream 등)를 직접 연결한다(SDK 불요, fetch+RTCPeerConnection).
+       ★정직: 미디어서버 미설정(.env 무설정) 시 configured=false → 프론트는 로컬 카메라 프리뷰로 degrade(가짜 송출 없음).
+       설정: LIVE_MEDIA_BASE(SRS 단일 base, WHIP=/rtc/v1/whip/·WHEP=/rtc/v1/whep/ 자동) 또는
+             LIVE_MEDIA_WHIP_BASE/LIVE_MEDIA_WHEP_BASE(개별). LIVE_MEDIA_APP(기본 live), LIVE_MEDIA_STUN/TURN(NAT). */
+    /**
+     * 미디어서버 설정 해석 — ★DB 등록값 우선(테넌트가 UI로 추후 등록 시 즉시 자동 활성·재시작 불요),
+     *   미등록 시 .env(getenv) 폴백. source=db|env|none 으로 출처 표기.
+     */
+    private static function mediaConfig(?string $tenant = null): array
+    {
+        // 1) DB 등록값 우선 — 즉시 자동 활성(자격증명 추후 등록 패턴).
+        if ($tenant !== null && $tenant !== '') {
+            try {
+                $st = self::db()->prepare("SELECT * FROM live_media_config WHERE tenant_id=:t");
+                $st->execute([':t' => $tenant]);
+                $row = $st->fetch(\PDO::FETCH_ASSOC);
+                if ($row && (int)($row['enabled'] ?? 0) === 1) {
+                    $cred = (string)($row['turn_cred'] ?? '');
+                    if ($cred !== '') { try { $cred = Crypto::decrypt($cred); } catch (\Throwable $e) {} }
+                    $cfg = self::buildMediaCfg((string)($row['whip_base'] ?? ''), (string)($row['whep_base'] ?? ''),
+                        (string)($row['base_url'] ?? ''), (string)($row['app'] ?? ''), (string)($row['stun'] ?? ''),
+                        (string)($row['turn_url'] ?? ''), (string)($row['turn_user'] ?? ''), $cred);
+                    if ($cfg['configured']) { $cfg['source'] = 'db'; return $cfg; }
+                }
+            } catch (\Throwable $e) {}
+        }
+        // 2) .env 폴백.
+        $cfg = self::buildMediaCfg((string)(getenv('LIVE_MEDIA_WHIP_BASE') ?: ''), (string)(getenv('LIVE_MEDIA_WHEP_BASE') ?: ''),
+            (string)(getenv('LIVE_MEDIA_BASE') ?: ''), (string)(getenv('LIVE_MEDIA_APP') ?: ''), (string)(getenv('LIVE_MEDIA_STUN') ?: ''),
+            (string)(getenv('LIVE_MEDIA_TURN_URL') ?: ''), (string)(getenv('LIVE_MEDIA_TURN_USER') ?: ''), (string)(getenv('LIVE_MEDIA_TURN_CRED') ?: ''));
+        $cfg['source'] = $cfg['configured'] ? 'env' : 'none';
+        return $cfg;
+    }
+
+    /** WHIP/WHEP/ICE 정규화 — base(SRS) 단축 전개 + STUN/TURN ICE 배열 조립. */
+    private static function buildMediaCfg(string $whip, string $whep, string $base, string $app, string $stun, string $turnUrl, string $turnUser, string $turnCred): array
+    {
+        if ($base !== '') { $base = rtrim($base, '/');
+            if ($whip === '') $whip = $base . '/rtc/v1/whip/';
+            if ($whep === '') $whep = $base . '/rtc/v1/whep/';
+        }
+        if ($app === '') $app = 'live';
+        if ($stun === '') $stun = 'stun:stun.l.google.com:19302';
+        $ice = [];
+        if ($stun !== '') $ice[] = ['urls' => $stun];
+        if ($turnUrl !== '') {
+            $ts = ['urls' => $turnUrl];
+            if ($turnUser !== '') $ts['username'] = $turnUser;
+            if ($turnCred !== '') $ts['credential'] = $turnCred;
+            $ice[] = $ts;
+        }
+        return ['configured' => ($whip !== '' && $whep !== ''), 'whip' => $whip, 'whep' => $whep, 'app' => $app, 'ice' => $ice];
+    }
+
+    /** GET /v425/live/media-config — 현재 등록 설정(turn_cred 마스킹) + 출처. */
+    public static function getMediaConfig(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $t = self::tenant($req);
+        $row = null;
+        try { $st = self::db()->prepare("SELECT base_url,whip_base,whep_base,app,stun,turn_url,turn_user,turn_cred,enabled,updated_at FROM live_media_config WHERE tenant_id=:t");
+            $st->execute([':t' => $t]); $row = $st->fetch(\PDO::FETCH_ASSOC) ?: null; } catch (\Throwable $e) {}
+        $cfg = self::mediaConfig($t);
+        $config = $row ? [
+            'base_url' => $row['base_url'] ?? '', 'whip_base' => $row['whip_base'] ?? '', 'whep_base' => $row['whep_base'] ?? '',
+            'app' => $row['app'] ?? 'live', 'stun' => $row['stun'] ?? '', 'turn_url' => $row['turn_url'] ?? '',
+            'turn_user' => $row['turn_user'] ?? '', 'turn_cred' => (!empty($row['turn_cred']) ? '••••••••' : ''),
+            'enabled' => (int)($row['enabled'] ?? 0), 'updated_at' => $row['updated_at'] ?? null,
+        ] : ['base_url' => '', 'whip_base' => '', 'whep_base' => '', 'app' => 'live', 'stun' => '', 'turn_url' => '', 'turn_user' => '', 'turn_cred' => '', 'enabled' => 0, 'updated_at' => null];
+        return self::json($res, ['ok' => true, 'config' => $config, 'configured' => $cfg['configured'], 'source' => $cfg['source'] ?? 'none']);
+    }
+
+    /** PUT /v425/live/media-config — 미디어서버 설정 등록/수정. 등록 즉시 다음 요청부터 자동 활성. */
+    public static function saveMediaConfig(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $t = self::tenant($req); $b = self::body($req); $now = self::now();
+        $base = trim((string)($b['base_url'] ?? '')); $whip = trim((string)($b['whip_base'] ?? '')); $whep = trim((string)($b['whep_base'] ?? ''));
+        $app = trim((string)($b['app'] ?? 'live')); $stun = trim((string)($b['stun'] ?? ''));
+        $turnUrl = trim((string)($b['turn_url'] ?? '')); $turnUser = trim((string)($b['turn_user'] ?? ''));
+        $enabled = !empty($b['enabled']) ? 1 : 0;
+        // turn_cred: 마스킹(•) 값이면 기존 보존, 신규 평문이면 암호화.
+        $rawCred = (string)($b['turn_cred'] ?? '');
+        $pdo = self::db();
+        $existing = null;
+        try { $e = $pdo->prepare("SELECT turn_cred FROM live_media_config WHERE tenant_id=:t"); $e->execute([':t' => $t]); $existing = $e->fetchColumn(); } catch (\Throwable $ex) {}
+        if ($rawCred === '' || strpos($rawCred, '•') !== false) { $cred = ($existing !== false && $existing !== null) ? (string)$existing : null; }
+        else { $cred = Crypto::encrypt($rawCred); }
+        // upsert(테넌트 PK).
+        $exists = ($existing !== false && $existing !== null) || (function() use ($pdo, $t) {
+            try { $c = $pdo->prepare("SELECT 1 FROM live_media_config WHERE tenant_id=:t"); $c->execute([':t' => $t]); return (bool)$c->fetchColumn(); } catch (\Throwable $e) { return false; }
+        })();
+        if ($exists) {
+            $pdo->prepare("UPDATE live_media_config SET base_url=:bu,whip_base=:wi,whep_base=:we,app=:ap,stun=:st,turn_url=:tu,turn_user=:tus,turn_cred=:tc,enabled=:en,updated_at=:ua WHERE tenant_id=:t")
+                ->execute([':bu' => $base, ':wi' => $whip, ':we' => $whep, ':ap' => $app, ':st' => $stun, ':tu' => $turnUrl, ':tus' => $turnUser, ':tc' => $cred, ':en' => $enabled, ':ua' => $now, ':t' => $t]);
+        } else {
+            $pdo->prepare("INSERT INTO live_media_config (tenant_id,base_url,whip_base,whep_base,app,stun,turn_url,turn_user,turn_cred,enabled,updated_at) VALUES (:t,:bu,:wi,:we,:ap,:st,:tu,:tus,:tc,:en,:ua)")
+                ->execute([':t' => $t, ':bu' => $base, ':wi' => $whip, ':we' => $whep, ':ap' => $app, ':st' => $stun, ':tu' => $turnUrl, ':tus' => $turnUser, ':tc' => $cred, ':en' => $enabled, ':ua' => $now]);
+        }
+        $cfg = self::mediaConfig($t);
+        return self::json($res, ['ok' => true, 'configured' => $cfg['configured'], 'source' => $cfg['source'] ?? 'none',
+            'note' => $cfg['configured'] ? '미디어서버 등록 완료 — 다음 방송부터 자동 송출/시청 활성화됩니다.' : 'WHIP/WHEP 주소(또는 base_url)가 있어야 활성화됩니다.']);
+    }
+
+    /** 스트림 이름(테넌트 격리) — 영숫자만. program=시청자 시청 대상(호스트 송출). */
+    private static function streamName(string $tenant, int $sid, string $suffix = 'program'): string
+    {
+        $tt = preg_replace('/[^a-zA-Z0-9]/', '', $tenant); if ($tt === '') $tt = 'demo';
+        $sf = preg_replace('/[^a-zA-Z0-9_]/', '', $suffix);
+        return "live_{$tt}_{$sid}_{$sf}";
+    }
+
+    private static function whipUrl(array $cfg, string $stream): string
+    {
+        $sep = strpos($cfg['whip'], '?') !== false ? '&' : '?';
+        return $cfg['whip'] . $sep . 'app=' . rawurlencode($cfg['app']) . '&stream=' . rawurlencode($stream);
+    }
+    private static function whepUrl(array $cfg, string $stream): string
+    {
+        $sep = strpos($cfg['whep'], '?') !== false ? '&' : '?';
+        return $cfg['whep'] . $sep . 'app=' . rawurlencode($cfg['app']) . '&stream=' . rawurlencode($stream);
+    }
+
+    /** GET /v425/live/sessions/{id}/media — 호스트 송출(WHIP)·시청 재생(WHEP) URL + ICE 서버. */
+    public static function mediaInfo(Request $req, Response $res, array $args): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $t = self::tenant($req); $sid = (int)($args['id'] ?? 0);
+        if (!self::exists('live_sessions', $sid, $t)) return self::json($res, ['ok' => false, 'error' => '세션을 찾을 수 없습니다.'], 404);
+        $cfg = self::mediaConfig($t);
+        $program = self::streamName($t, $sid, 'program');
+        $out = ['ok' => true, 'configured' => $cfg['configured'], 'source' => $cfg['source'] ?? 'none', 'protocol' => 'whip-whep',
+            'stream' => $program, 'ice_servers' => $cfg['ice']];
+        if ($cfg['configured']) {
+            $out['whip_url'] = self::whipUrl($cfg, $program); // 호스트 카메라 → 송출
+            $out['whep_url'] = self::whepUrl($cfg, $program); // 시청자 → 재생
+        } else {
+            $out['note'] = '미디어서버 미설정 — 로컬 프리뷰만 동작. .env 에 LIVE_MEDIA_BASE(SRS) 또는 LIVE_MEDIA_WHIP_BASE/WHEP_BASE 설정 시 실시간 송출/시청 활성화.';
+        }
+        return self::json($res, $out);
     }
 
     /* ════════════════ 시청자 presence + 실시간 통계(Stats) ════════════════ */

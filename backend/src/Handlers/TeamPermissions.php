@@ -38,7 +38,7 @@ class TeamPermissions
 
     public const ACTIONS = ['view','create','update','delete','approve','export','execute','manage'];
 
-    public const DATA_SCOPES = ['company','brand','team','campaign','product','warehouse','partner','own'];
+    public const DATA_SCOPES = ['company','brand','team','campaign','product','channel','warehouse','partner','own'];
 
     /** 팀 유형(스펙 조직/파트너 구조). 자유 입력도 허용하되 카탈로그로 안내. */
     public const TEAM_TYPES = [
@@ -268,6 +268,34 @@ class TeamPermissions
         if ($vals === null) return ['', []];
         $ph = implode(',', array_fill(0, count($vals), '?'));
         return [" AND {$column} IN ({$ph})", $vals];
+    }
+
+    /**
+     * [현 차수 P2] named-param 변형 — [whereFragment(:prefixN..), {':prefixN'=>v}]. 무제한이면 ['', []].
+     *   named placeholder 쿼리(:tenant_id 등)와 혼용해야 하는 핸들러용(PDO는 positional/named 혼용 불가).
+     */
+    public static function scopeSqlNamed(\Psr\Http\Message\ServerRequestInterface $req, string $dimension, string $column, string $prefix): array
+    {
+        $vals = self::scopeValuesFor($req, $dimension);
+        if ($vals === null) return ['', []];
+        $ph = []; $p = [];
+        foreach (array_values($vals) as $i => $v) { $k = ":{$prefix}{$i}"; $ph[] = $k; $p[$k] = $v; }
+        return [" AND {$column} IN (" . implode(',', $ph) . ")", $p];
+    }
+
+    /**
+     * [현 차수 P2] 채널·상품·브랜드 차원 동시 강제(scopeSql 재사용) — [whereFragment, params].
+     *   ★사용자는 단일 scope_type만 가지므로(effectiveScope), 셋 중 최대 1개만 비공백 → 충돌 없음.
+     *   매핑(정직, 실재 컬럼만): channel→채널 컬럼, product/brand→SKU 컬럼(이 시스템 브랜드=상품집합 거버넌스).
+     *   owner/admin·company·미설정·타차원 = 무필터(무회귀). $skuCol 미지정 시 상품/브랜드 차원은 건너뜀.
+     */
+    public static function scopeChannelProduct(\Psr\Http\Message\ServerRequestInterface $req, ?string $channelCol, ?string $skuCol): array
+    {
+        $w = ''; $p = [];
+        if ($channelCol) { [$wc, $pc] = self::scopeSql($req, 'channel', $channelCol); $w .= $wc; foreach ($pc as $v) $p[] = $v; }
+        if ($skuCol)     { [$wp, $pp] = self::scopeSql($req, 'product', $skuCol);     $w .= $wp; foreach ($pp as $v) $p[] = $v;
+                           [$wb, $pb] = self::scopeSql($req, 'brand',   $skuCol);     $w .= $wb; foreach ($pb as $v) $p[] = $v; }
+        return [$w, $p];
     }
 
     /** 권한 매트릭스 전체 교체(DELETE→INSERT). $perms = menu_key=>actions[]. */

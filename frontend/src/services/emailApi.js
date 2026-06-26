@@ -19,6 +19,8 @@ export const emailApi = {
   createCampaign: (body)    => postJsonAuth("/api/email/campaigns", body),
   sendCampaign:   (id)      => postJsonAuth(`/api/email/campaigns/${id}/send`, {}),
   campaignStats:  (id)      => getJsonAuth(`/api/email/campaigns/${id}/stats`),
+  // [현 차수] A/B 테스트 결과(베이지안 승자판정) — variant A/B 오픈율 + P(B>A) + 승자.
+  abResult:       (id)      => getJsonAuth(`/api/email/campaigns/${id}/ab-result`),
   // 설정
   getSettings:    ()        => getJsonAuth("/api/email/settings"),
   saveSettings:   (body)    => putJson("/api/email/settings", body),

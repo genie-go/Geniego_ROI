@@ -257,9 +257,10 @@ function CampaignsTab() {
     const emailCampaignsLinked = isDemo ? gdCampaigns : opCampaigns;
     const emailTemplates = isDemo ? gdTemplates : opTemplates;
     const crmSegments = isDemo ? gdSegments : opSegments;
-    const [form,setForm]=useState({name:"",template_id:"",segment_id:""});
+    const [form,setForm]=useState({name:"",template_id:"",segment_id:"",subject_b:"",ab_test:false});
     const [sending,setSending]=useState(null);
     const [msg,setMsg]=useState("");
+    const [abModal,setAbModal]=useState(null); // [현 차수] A/B 결과 모달 대상 캠페인
     const reloadCampaigns=()=>emailApi.listCampaigns().then(r=>setOpCampaigns(r.campaigns||[])).catch(()=>{});
     useEffect(()=>{ if(isDemo) return;
         reloadCampaigns();
@@ -279,17 +280,22 @@ function CampaignsTab() {
     },[emailCampaignsLinked]);
     const create=async()=>{
         if(!form.name)return;if(detectXSS(form.name)){addAlert({type:'error',msg:'XSS blocked'});return;}
+        // [현 차수] A/B: subject_b 입력이 있으면 자동 활성. (백엔드 동일 규칙 — subject_b!=='' → ab_test=1)
+        const subjectB=sanitizeInput(form.subject_b||"").trim();
+        const abOn=(form.ab_test || subjectB!=="")?1:0;
+        if(subjectB && detectXSS(form.subject_b)){addAlert({type:'error',msg:'XSS blocked'});return;}
         if(isDemo){
             const nc={id:"ecp_"+Date.now(),name:sanitizeInput(form.name),template_name:emailTemplates.find(x=>String(x.id)===String(form.template_id))?.name||"N/A",
                 segment_name:crmSegments.find(x=>String(x.id)===String(form.segment_id))?.name||"All",targetSegmentId:form.segment_id||null,
                 targetSegmentName:crmSegments.find(x=>String(x.id)===String(form.segment_id))?.name||"All",
+                subject_b:subjectB||null,ab_test:abOn,ab_winner:null,
                 status:"draft",total_sent:computeTargetSize(form.segment_id),opened:0,clicked:0,failed:0,at:new Date().toISOString()};
             addEmailCampaign(nc);
         } else {
-            try{ await emailApi.createCampaign({name:sanitizeInput(form.name),template_id:form.template_id?Number(form.template_id):0,segment_id:form.segment_id?Number(form.segment_id):0}); await reloadCampaigns(); }
+            try{ await emailApi.createCampaign({name:sanitizeInput(form.name),template_id:form.template_id?Number(form.template_id):0,segment_id:form.segment_id?Number(form.segment_id):0,subject_b:subjectB,ab_test:abOn}); await reloadCampaigns(); }
             catch(e){ addAlert({type:'error',msg:'캠페인 생성 실패: '+(e?.message||'')}); return; }
         }
-        setMsg(t('email.msgCampDone', 'Campaign created!'));setForm({name:"",template_id:"",segment_id:""});setTimeout(()=>setMsg(""),3000);
+        setMsg(t('email.msgCampDone', 'Campaign created!'));setForm({name:"",template_id:"",segment_id:"",subject_b:"",ab_test:false});setTimeout(()=>setMsg(""),3000);
     };
     const send=async(c)=>{
         if(!confirm(t("email.msgSendConfirm", "Send to all?")))return;
@@ -335,6 +341,21 @@ function CampaignsTab() {
                     <div><div style={{ fontSize:11, color:'#6b7280', marginBottom:6, fontWeight:600, ...INPUT }} >{t('email.fTpl', "Template")}</div><select value={form.template_id} onChange={e=>setForm(f=>({...f,template_id:e.target.value}))}><option value="">{t('email.optSel', "-- Select --")}</option>{emailTemplates.map(tp=><option key={tp.id} value={tp.id}>{tp.name}</option>)}</select></div>
                     <div><div style={{ fontSize:11, color:'#6b7280', marginBottom:6, fontWeight:600, ...INPUT }} >{t('email.fTarget', "Target Segment")}</div><select value={form.segment_id} onChange={e=>setForm(f=>({...f,segment_id:String(e.target.value)}))}><option value="">{t('email.optAll', "All")} ({totalCustomers})</option>{(crmSegments||[]).map(s=><option key={s.id} value={s.id}>{s.name} ({s.count})</option>)}</select></div>
                 </div>
+                {/* [현 차수] A/B 테스트(제목 variant B) — 토글 ON 시 subject_b 입력 노출. 발송 시 수신자 50/50 분배 후 베이지안 승자판정. */}
+                <div style={{ marginTop:14, padding:"14px 16px", borderRadius:12, background:'rgba(167,139,250,0.06)', border:'1px solid rgba(167,139,250,0.18)' }}>
+                    <label style={{ display:"flex", alignItems:"center", gap:10, cursor:"pointer", userSelect:"none" }}>
+                        <input type="checkbox" checked={!!form.ab_test} onChange={e=>setForm(f=>({...f,ab_test:e.target.checked}))} style={{ width:16, height:16, accentColor:C.purple, cursor:"pointer" }}/>
+                        <span style={{ fontWeight:700, fontSize:13, color:'#6d28d9' }}>🧪 {t('email.abEnable', "A/B Test (Subject Line)")}</span>
+                        <span style={{ fontSize:11, color:'#6b7280' }}>{t('email.abHint', "Split recipients 50/50, pick winner by Bayesian open-rate")}</span>
+                    </label>
+                    {(!!form.ab_test || (form.subject_b||"")!=="") && (
+                        <div style={{ marginTop:12 }}>
+                            <div style={{ fontSize:11, color:'#6b7280', marginBottom:6, fontWeight:600 }}>{t('email.abSubjectB', "Subject B (variant)")}</div>
+                            <SecureInput value={form.subject_b} onChange={e=>setForm(f=>({...f,subject_b:e.target.value}))} placeholder={t("email.abSubjectBPh", "Alternate subject line for variant B...")} addAlert={addAlert}/>
+                            <div style={{ fontSize:10.5, color:'#9ca3af', marginTop:6 }}>{t('email.abSubjectBNote', "Variant A uses the template's subject. Leave empty to disable A/B.")}</div>
+                        </div>
+                    )}
+                </div>
                 {msg && <div style={{ marginTop:12, fontSize:12, color:C.green, fontWeight:600 }}>✅ {msg}</div>}
                 <button onClick={create} disabled={!form.name} style={{ ...BTN, marginTop:16, opacity:!form.name?0.5:1, background:C.accent }}>
                     {t("email.btnCreate", "🚀 Create Campaign")}
@@ -357,14 +378,14 @@ function CampaignsTab() {
                                 const clickR=c.total_sent>0?Math.round((c.clicked||0)/c.total_sent*100):0;
                                 const st=STATUS_MAP[c.status]||STATUS_MAP.draft;
                                 return (<tr key={c.id} style={{ borderTop:'1px solid rgba(0,0,0,0.04)', background:i%2?'rgba(0,0,0,0.01)':'transparent' }}>
-                                    <td style={{ padding:"12px 16px", fontWeight:600, color:'#1f2937' }}>{c.name}</td>
+                                    <td style={{ padding:"12px 16px", fontWeight:600, color:'#1f2937' }}>{c.name}{(c.ab_test==1||c.ab_test===true) && <span title={t('email.abBadgeTip','A/B test active')} style={{ marginLeft:8, fontSize:9.5, fontWeight:800, color:'#6d28d9', background:'rgba(167,139,250,0.15)', border:'1px solid rgba(167,139,250,0.3)', borderRadius:6, padding:'1px 6px', verticalAlign:'middle' }}>🧪 A/B{c.ab_winner?` · ${c.ab_winner}✓`:''}</span>}</td>
                                     <td style={{ padding:"12px 16px", color:'#6b7280' }}>{c.template_name||"-"}</td>
                                     <td style={{ padding:"12px 16px", color:'#6b7280' }}>{c.targetSegmentName||c.segment_name||"All"}</td>
                                     <td style={{ padding:"12px 16px", color:'#374151' }}>{c.total_sent?.toLocaleString()||0}</td>
                                     <td style={{ padding:"12px 16px", color:openR>20?C.green:openR>10?C.yellow:'#6b7280', fontWeight:700 }} ><span>{openR}%</span></td>
                                     <td style={{ padding:"12px 16px", color:clickR>5?C.green:clickR>2?C.yellow:'#6b7280', fontWeight:700 }} ><span>{clickR}%</span></td>
                                     <td style={{ padding:"3px 10px", fontSize:11, fontWeight:700, color:st.color, display:"inline-flex", alignItems:"center", gap:4, background:st.color+'15', borderRadius:6 }} ><span>{st.icon} {st.label}</span></td>
-                                    <td style={{ padding:"8px 14px" }} >{c.status!=="sent" && (<button onClick={()=>send(c)} disabled={sending===c.id} style={{ padding:"6px 14px", borderRadius:8, border:"none", background:sending===c.id?'#94a3b8':C.green, color:"#fff", fontWeight:700, cursor:sending===c.id?"wait":"pointer", fontSize:12 }}>{sending===c.id?"⏳ "+(t('email.btnSending', "Sending...")):"📤 "+(t('email.btnSend', "Send"))}</button>)}</td>
+                                    <td style={{ padding:"8px 14px" }} ><div style={{ display:"flex", gap:6, alignItems:"center" }}>{c.status!=="sent" && (<button onClick={()=>send(c)} disabled={sending===c.id} style={{ padding:"6px 14px", borderRadius:8, border:"none", background:sending===c.id?'#94a3b8':C.green, color:"#fff", fontWeight:700, cursor:sending===c.id?"wait":"pointer", fontSize:12 }}>{sending===c.id?"⏳ "+(t('email.btnSending', "Sending...")):"📤 "+(t('email.btnSend', "Send"))}</button>)}{(c.ab_test==1||c.ab_test===true) && (<button onClick={()=>setAbModal(c)} style={{ padding:"6px 12px", borderRadius:8, border:"1px solid rgba(167,139,250,0.4)", background:'rgba(167,139,250,0.12)', color:'#6d28d9', fontWeight:700, cursor:"pointer", fontSize:12 }}>🧪 {t('email.abResultBtn', "A/B Result")}</button>)}</div></td>
                                 </tr>);
                             })}
                             {emailCampaignsLinked.length===0 && (<tr><td colSpan={8} style={{ padding:"48px 24px", textAlign:"center", color:'#6b7280', fontSize:13, marginBottom:8 }} ><div>📭</div><div>{t('email.emptyCamp', "No campaigns yet.")}</div></td></tr>)}
@@ -372,8 +393,108 @@ function CampaignsTab() {
                     </table>
                 </div>
             </Card>
+            {abModal && <AbResultModal t={t} campaign={abModal} isDemo={isDemo} onClose={()=>setAbModal(null)}/>}
         </div>
     );
+}
+
+/* [현 차수] A/B 결과 모달 — 운영: 백엔드 ab-result(베이지안). 데모: 결정적 시뮬레이션(동일 베이지안 식). */
+function AbResultModal({ t, campaign, isDemo, onClose }) {
+    const [data,setData]=useState(null);
+    const [loading,setLoading]=useState(true);
+    const [err,setErr]=useState("");
+    useEffect(()=>{ let on=true;
+        const run=async()=>{
+            if(isDemo){ if(on){ setData(simulateAbResult(campaign)); setLoading(false); } return; }
+            try{ const r=await emailApi.abResult(campaign.id); if(on){ setData(r); setLoading(false); } }
+            catch(e){ if(on){ setErr(e?.message||'load failed'); setLoading(false); } }
+        };
+        run();
+        return ()=>{on=false;};
+    },[campaign,isDemo]);
+    const V=data?.variants||{A:{sent:0,opened:0,clicked:0,open_rate:0},B:{sent:0,opened:0,clicked:0,open_rate:0}};
+    const winner=data?.winner;
+    const probB=data?.prob_b_best??50;
+    const maxOpen=Math.max(V.A.open_rate||0,V.B.open_rate||0,1);
+    const bar=(label,v,isWin)=>{
+        const cr=v.sent>0?Math.round((v.clicked||0)/v.sent*100*10)/10:0;
+        return (<div style={{ flex:1, padding:"16px 18px", borderRadius:14, background:isWin?'rgba(34,197,94,0.07)':'rgba(0,0,0,0.02)', border:'1px solid '+(isWin?'rgba(34,197,94,0.35)':'rgba(0,0,0,0.08)') }}>
+            <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10 }}>
+                <span style={{ fontWeight:900, fontSize:16, color:isWin?'#16a34a':'#374151' }}>Variant {label}</span>
+                {isWin && <span style={{ fontSize:10, fontWeight:800, color:'#fff', background:'#22c55e', borderRadius:6, padding:'2px 8px' }}>👑 {t('email.abWinner','WINNER')}</span>}
+            </div>
+            <div style={{ fontSize:30, fontWeight:900, color:isWin?'#16a34a':'#1f2937', lineHeight:1 }}>{(v.open_rate||0).toFixed(1)}<span style={{ fontSize:15 }}>%</span></div>
+            <div style={{ fontSize:11, color:'#6b7280', marginTop:3, marginBottom:10 }}>{t('email.abOpenRate','Open rate')}</div>
+            <div style={{ height:8, borderRadius:99, background:'rgba(0,0,0,0.06)', overflow:'hidden', marginBottom:12 }}>
+                <div style={{ width:`${Math.round((v.open_rate||0)/maxOpen*100)}%`, height:'100%', background:isWin?'#22c55e':'#a78bfa', borderRadius:99 }}/>
+            </div>
+            <div style={{ display:"flex", justifyContent:"space-between", fontSize:11.5, color:'#475569' }}>
+                <span>{t('email.abSent','Sent')}: <b>{(v.sent||0).toLocaleString()}</b></span>
+                <span>{t('email.abOpened','Opened')}: <b>{(v.opened||0).toLocaleString()}</b></span>
+            </div>
+            <div style={{ display:"flex", justifyContent:"space-between", fontSize:11.5, color:'#475569', marginTop:4 }}>
+                <span>{t('email.colClick','Click%')}: <b>{cr}%</b></span>
+                <span>{t('email.abClicked','Clicked')}: <b>{(v.clicked||0).toLocaleString()}</b></span>
+            </div>
+        </div>);
+    };
+    return (<div onClick={onClose} style={{ position:'fixed', inset:0, zIndex:9998, background:'rgba(0,0,0,0.55)', backdropFilter:'blur(4px)', display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}>
+        <div onClick={e=>e.stopPropagation()} style={{ background:'#fff', borderRadius:20, padding:28, maxWidth:560, width:'100%', boxShadow:'0 20px 60px rgba(0,0,0,0.3)' }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"start", marginBottom:6 }}>
+                <div>
+                    <div style={{ fontWeight:900, fontSize:18, color:'#1e293b' }}>🧪 {t('email.abModalTitle','A/B Test Result')}</div>
+                    <div style={{ fontSize:12.5, color:'#6b7280', marginTop:3 }}>{campaign.name}</div>
+                </div>
+                <button onClick={onClose} style={{ background:'none', border:'none', fontSize:22, color:'#9ca3af', cursor:'pointer', lineHeight:1 }}>×</button>
+            </div>
+            {loading && <div style={{ padding:'40px 0', textAlign:'center', color:'#6b7280', fontSize:13 }}>⏳ {t('email.abLoading','Computing Bayesian result...')}</div>}
+            {err && <div style={{ padding:'24px 0', textAlign:'center', color:'#ef4444', fontSize:13 }}>⚠️ {err}</div>}
+            {!loading && !err && data && (<>
+                <div style={{ display:"flex", gap:14, marginTop:16, marginBottom:18 }}>
+                    {bar('A',V.A,winner==='A')}
+                    {bar('B',V.B,winner==='B')}
+                </div>
+                {/* P(B>A) 게이지 */}
+                <div style={{ padding:"14px 16px", borderRadius:12, background:'rgba(79,142,247,0.05)', border:'1px solid rgba(79,142,247,0.15)', marginBottom:14 }}>
+                    <div style={{ display:"flex", justifyContent:"space-between", fontSize:11.5, color:'#475569', marginBottom:6, fontWeight:600 }}>
+                        <span>A {t('email.abBetter','better')}</span>
+                        <span style={{ color:'#4f8ef7', fontWeight:800 }}>{t('email.abProbBBest','P(B is best)')}: {probB}%</span>
+                        <span>B {t('email.abBetter','better')}</span>
+                    </div>
+                    <div style={{ position:'relative', height:10, borderRadius:99, background:'linear-gradient(90deg,#fbbf24,#e5e7eb,#22c55e)' }}>
+                        <div style={{ position:'absolute', top:-3, left:`calc(${Math.max(0,Math.min(100,probB))}% - 8px)`, width:16, height:16, borderRadius:99, background:'#fff', border:'3px solid #4f8ef7', boxShadow:'0 1px 4px rgba(0,0,0,0.25)' }}/>
+                    </div>
+                </div>
+                <div style={{ padding:"12px 16px", borderRadius:12, textAlign:'center', fontWeight:800, fontSize:13.5,
+                    background:winner?'rgba(34,197,94,0.1)':'rgba(245,158,11,0.1)', color:winner?'#15803d':'#b45309',
+                    border:'1px solid '+(winner?'rgba(34,197,94,0.3)':'rgba(245,158,11,0.3)') }}>
+                    {winner?'🏆 ':'⏳ '}{data.verdict||(winner?`Winner: variant ${winner}`:t('email.abNoWinner','No significant winner yet — expand sample/duration'))}
+                </div>
+            </>)}
+        </div>
+    </div>);
+}
+
+/* [현 차수] 데모 A/B 시뮬레이터 — 캠페인 id 해시로 결정적. 백엔드와 동일 베이지안(정규근사). */
+function simulateAbResult(c){
+    const total=c.total_sent||c.opened*4||200;
+    const sentA=Math.floor(total/2), sentB=total-sentA;
+    const h=String(c.id||c.name||'').split('').reduce((a,ch)=>a+ch.charCodeAt(0),0);
+    const baseOpen=18+(h%18); // 18~35%
+    const orA=baseOpen, orB=baseOpen+((h%2)?4:-3)+(h%5); // variant B 차등
+    const openedA=Math.round(sentA*orA/100), openedB=Math.round(sentB*Math.max(1,orB)/100);
+    const clickedA=Math.round(openedA*0.28), clickedB=Math.round(openedB*0.31);
+    // 베이지안 P(B>A) — 백엔드 betaBestProb 동일 식
+    const norm=(x)=>{const tt=1/(1+0.2316419*Math.abs(x));const d=0.3989422804014327*Math.exp(-x*x/2);const p=d*tt*(0.319381530+tt*(-0.356563782+tt*(1.781477937+tt*(-1.821255978+tt*1.330274429))));return x>0?1-p:p;};
+    const mA=(openedA+1)/(sentA+2), vA=mA*(1-mA)/(sentA+3);
+    const mB=(openedB+1)/(sentB+2), vB=mB*(1-mB)/(sentB+3);
+    const sd=Math.sqrt(vA+vB)||1; const probB=norm((mB-mA)/sd);
+    let winner=null; if(sentA>=50&&sentB>=50){ if(probB>=0.95)winner='B'; else if(probB<=0.05)winner='A'; }
+    const verdict=winner?`승자: variant ${winner} (95% 신뢰수준)`:'아직 유의한 승자 없음 — 표본/기간 확대 필요';
+    return { ok:true, variants:{
+        A:{sent:sentA,opened:openedA,clicked:clickedA,open_rate:Math.round(openedA/Math.max(1,sentA)*1000)/10},
+        B:{sent:sentB,opened:openedB,clicked:clickedB,open_rate:Math.round(openedB/Math.max(1,sentB)*1000)/10},
+    }, prob_b_best:Math.round(probB*1000)/10, winner, confidence:Math.round(Math.max(probB,1-probB)*1000)/10, verdict };
 }
 
 /* Analytics Tab */

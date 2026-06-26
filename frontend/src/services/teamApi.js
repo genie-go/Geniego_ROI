@@ -42,7 +42,7 @@ export const MENU_CATALOG = [
   { key: 'security_settings',     group: 'admin',     ko: '보안 설정',               en: 'Security Settings' },
 ];
 export const ACTIONS = ['view', 'create', 'update', 'delete', 'approve', 'export', 'execute', 'manage'];
-export const DATA_SCOPES = ['company', 'brand', 'team', 'campaign', 'product', 'warehouse', 'partner', 'own'];
+export const DATA_SCOPES = ['company', 'brand', 'team', 'campaign', 'product', 'channel', 'warehouse', 'partner', 'own'];
 export const TEAM_TYPES = [
   'internal_super', 'brand', 'marketing', 'marketing_global', 'marketing_domestic',
   'sales', 'sales_global', 'sales_domestic', 'sales_enterprise', 'sales_channel',

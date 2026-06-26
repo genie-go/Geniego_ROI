@@ -32,6 +32,12 @@ export const heartbeat      = (sid, body) => postJsonAuth(`${BASE}/sessions/${si
 export const getStats       = (sid) => getJsonAuth(`${BASE}/sessions/${sid}/stats`);
 export const getOverview    = () => getJsonAuth(`${BASE}/overview`);
 
+/* ── [현 차수] 미디어 평면(WHIP 송출/WHEP 재생) URL ── */
+export const getMedia       = (sid) => getJsonAuth(`${BASE}/sessions/${sid}/media`);
+/* ── [현 차수] 미디어서버 설정 등록(추후 등록 시 즉시 자동 활성) ── */
+export const getMediaConfig  = () => getJsonAuth(`${BASE}/media-config`);
+export const saveMediaConfig = (body) => requestJsonAuth(`${BASE}/media-config`, 'PUT', body);
+
 /* ── 멀티 송출 대상(RTMP) — 208차 #1 ── */
 export const listDestinations  = (sid) => getJsonAuth(`${BASE}/sessions/${sid}/destinations`);
 export const saveDestination   = (sid, body) => postJsonAuth(`${BASE}/sessions/${sid}/destinations`, body);

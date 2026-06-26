@@ -9,11 +9,22 @@ class AdPerformance {
     private $db;
     private $userPlan;
     private $userId;
+    private $abacW = '';      // [현 차수 P2] ABAC 채널 차원 where-fragment(named)
+    private $abacP = [];      // [현 차수 P2] ABAC named params
 
     public function __construct(PDO $db, $userId, $userPlan) {
         $this->db = $db;
         $this->userId = $userId;
         $this->userPlan = $userPlan;
+    }
+
+    /**
+     * [현 차수 P2] ABAC 채널 차원 강제 — 요청 사용자의 channel 스코프를 named-param IN 절로 준비.
+     *   owner/admin·미설정·타차원 = 무필터(무회귀). 정적 래퍼가 $req 보유 시 1회 호출.
+     */
+    public function applyAbacScope(\Psr\Http\Message\ServerRequestInterface $req): void {
+        [$w, $p] = TeamPermissions::scopeSqlNamed($req, 'channel', 'channel', 'abch');
+        $this->abacW = $w; $this->abacP = $p;
     }
 
     // Helper to determine if demo data should be used
@@ -48,9 +59,9 @@ class AdPerformance {
             $params[':date_from'] = $filters['date_from'];
             $params[':date_to'] = $filters['date_to'];
         }
-        $sql = "SELECT * FROM performance_metrics" . (count($where) ? " WHERE " . implode(' AND ', $where) : "");
+        $sql = "SELECT * FROM performance_metrics" . (count($where) ? " WHERE " . implode(' AND ', $where) . $this->abacW : "");
         $stmt = $this->db->prepare($sql);
-        $stmt->execute($params);
+        $stmt->execute(array_merge($params, $this->abacP));
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
@@ -76,9 +87,9 @@ class AdPerformance {
             $where[] = "channel = :channel";
             $params[':channel'] = $filters['channel'];
         }
-        $sql = "SELECT team, channel, SUM(impressions) AS impressions, SUM(clicks) AS clicks, SUM(conversions) AS conversions, SUM(spend) AS spend, SUM(revenue) AS revenue FROM performance_metrics" . (count($where) ? " WHERE " . implode(' AND ', $where) : "") . " GROUP BY team, channel";
+        $sql = "SELECT team, channel, SUM(impressions) AS impressions, SUM(clicks) AS clicks, SUM(conversions) AS conversions, SUM(spend) AS spend, SUM(revenue) AS revenue FROM performance_metrics" . (count($where) ? " WHERE " . implode(' AND ', $where) . $this->abacW : "") . " GROUP BY team, channel";
         $stmt = $this->db->prepare($sql);
-        $stmt->execute($params);
+        $stmt->execute(array_merge($params, $this->abacP));
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
@@ -101,9 +112,9 @@ class AdPerformance {
             $params[':date_from'] = $filters['date_from'];
             $params[':date_to'] = $filters['date_to'];
         }
-        $sql = "SELECT SUM(impressions) AS impressions, SUM(clicks) AS clicks, SUM(conversions) AS conversions, SUM(spend) AS spend, SUM(revenue) AS revenue FROM performance_metrics" . (count($where) ? " WHERE " . implode(' AND ', $where) : "");
+        $sql = "SELECT SUM(impressions) AS impressions, SUM(clicks) AS clicks, SUM(conversions) AS conversions, SUM(spend) AS spend, SUM(revenue) AS revenue FROM performance_metrics" . (count($where) ? " WHERE " . implode(' AND ', $where) . $this->abacW : "");
         $stmt = $this->db->prepare($sql);
-        $stmt->execute($params);
+        $stmt->execute(array_merge($params, $this->abacP));
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
@@ -120,6 +131,7 @@ class AdPerformance {
         try {
             $pdo = \Genie\Db::pdo();
             $handler = new self($pdo, $tenant, 'pro');
+            $handler->applyAbacScope($req); // [현 차수 P2] ABAC 채널 차원 강제
             $rows = $handler->getSummary((array)$req->getQueryParams());
         } catch (\Throwable $e) {
             $rows = [];
