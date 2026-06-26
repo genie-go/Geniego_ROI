@@ -39,6 +39,12 @@ export const deleteDestination = (id) => requestJsonAuth(`${BASE}/destinations/$
 export const toggleDestination = (id) => postJsonAuth(`${BASE}/destinations/${id}/toggle`, {});
 export const multicast         = (sid, action) => postJsonAuth(`${BASE}/sessions/${sid}/multicast/${action}`, {});
 
+/* ── 멀티게스트/코호스트 ── */
+export const listGuests   = (sid) => getJsonAuth(`${BASE}/sessions/${sid}/guests`);
+export const inviteGuest  = (sid, body) => postJsonAuth(`${BASE}/sessions/${sid}/guests`, body);
+export const updateGuest  = (gid, body) => requestJsonAuth(`${BASE}/guests/${gid}`, 'PUT', body);
+export const removeGuest  = (gid) => requestJsonAuth(`${BASE}/guests/${gid}`, 'DELETE');
+
 /* ── 연동 프레임워크 ── */
 export const listIntegrations = () => getJsonAuth(`${BASE}/integrations`);
 export const saveIntegration  = (body) => postJsonAuth(`${BASE}/integrations`, body);

@@ -244,6 +244,7 @@ export default function LiveCommerce() {
     { id: 'lineup', label: '🛍️ ' + t('liveCommerce.tabLineup', '상품 편성') },
     { id: 'sessions', label: '📅 ' + t('liveCommerce.tabSessions', '방송 관리') },
     { id: 'integrations', label: '🔌 ' + t('liveCommerce.tabIntegrations', '연동 현황') },
+    { id: 'guests', label: '🎙️ ' + t('liveCommerce.tabGuests', '게스트/코호스트') },
     { id: 'aihost', label: '🤖 ' + t('liveCommerce.tabAiHost', 'AI 쇼호스트') },
     { id: 'buyer', label: '🛒 ' + t('liveCommerce.tabBuyer', '구매하기(시청자)') },
     { id: 'guide', label: '📖 ' + t('liveCommerce.tabGuide', '이용 가이드') },
@@ -297,6 +298,7 @@ export default function LiveCommerce() {
           {tab === 'lineup' && <LineupTab session={active} gd={gd} money={money} t={t} />}
           {tab === 'sessions' && <SessionsTab sessions={sessions} setActiveId={setActiveId} reload={reload} t={t} />}
           {tab === 'integrations' && <IntegrationsTab t={t} />}
+          {tab === 'guests' && <GuestsTab session={active} t={t} />}
           {tab === 'aihost' && <AiHostTab session={active} gd={gd} t={t} />}
           {tab === 'buyer' && <BuyerTab session={active} gd={gd} money={money} t={t} />}
           {tab === 'guide' && <GuideTab t={t} money={money} />}
@@ -813,6 +815,72 @@ async function aiAssist(body) {
   return res.json();
 }
 const LANGS = ['English', '日本語', '中文', '한국어', 'Español', 'Tiếng Việt', 'ไทย', 'Bahasa Indonesia'];
+
+/* [현 차수] 멀티게스트/코호스트 관리 — 초대(토큰링크)·역할·상태·퇴장. 영상합성은 외부 미디어서버 위임. */
+const GuestsTab = memo(function GuestsTab({ session, t }) {
+  const sid = session?.id;
+  const [guests, setGuests] = React.useState([]);
+  const [name, setName] = React.useState('');
+  const [role, setRole] = React.useState('cohost');
+  const [busy, setBusy] = React.useState(false);
+  const [invited, setInvited] = React.useState(null);
+  const load = React.useCallback(async () => { if (!sid) { setGuests([]); return; } try { const r = await liveApi.listGuests(sid); setGuests(r?.guests || []); } catch {} }, [sid]);
+  React.useEffect(() => { load(); const iv = setInterval(load, 5000); return () => clearInterval(iv); }, [load]);
+  const invite = async () => {
+    if (!sid || !name.trim()) return; setBusy(true);
+    try { const r = await liveApi.inviteGuest(sid, { name: name.trim(), role }); setInvited(r); setName(''); await load(); }
+    catch (e) { alert(String(e?.message || e)); } finally { setBusy(false); }
+  };
+  const setStatus = async (g, status) => { try { await liveApi.updateGuest(g.id, { status }); await load(); } catch (e) { alert(String(e?.message || e)); } };
+  const remove = async (gid) => { if (!window.confirm(t('liveCommerce.guestDelConfirm', '이 게스트를 삭제하시겠습니까?'))) return; try { await liveApi.removeGuest(gid); await load(); } catch (e) { alert(String(e?.message || e)); } };
+  const stColor = { invited: '#94a3b8', joined: '#22c55e', left: '#64748b', muted: '#f59e0b' };
+  if (!sid) return <Card><div style={{ color: C.sub, fontSize: 13, textAlign: 'center', padding: 12 }}>{t('liveCommerce.guestNoSession', '먼저 방송 세션을 선택하세요.')}</div></Card>;
+  return (
+    <div style={{ display: 'grid', gap: 14 }}>
+      <Card>
+        <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 4 }}>🎙️ {t('liveCommerce.guestTitle', '게스트/코호스트 초대')}</div>
+        <div style={{ fontSize: 11.5, color: C.sub, marginBottom: 12 }}>{t('liveCommerce.guestDesc', '한 방송에 다중 진행자를 초대합니다. 게스트는 발급된 링크로 참여(계정 불요)하고, 발급된 송출키로 외부 미디어서버에 영상을 송출하면 방송에 합성됩니다.')}</div>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+          <input value={name} onChange={e => setName(e.target.value)} placeholder={t('liveCommerce.guestNamePh', '게스트 이름')} style={{ flex: '1 1 180px', padding: '8px 11px', borderRadius: 8, border: `1px solid ${C.border}`, fontSize: 13 }} />
+          <select value={role} onChange={e => setRole(e.target.value)} style={{ padding: '8px 11px', borderRadius: 8, border: `1px solid ${C.border}`, fontSize: 13 }}>
+            <option value="cohost">{t('liveCommerce.guestCohost', '코호스트')}</option>
+            <option value="guest">{t('liveCommerce.guestGuest', '게스트')}</option>
+          </select>
+          <Btn onClick={invite} disabled={busy}>{busy ? '…' : '+ ' + t('liveCommerce.guestInvite', '초대')}</Btn>
+        </div>
+        {invited && (
+          <div style={{ marginTop: 12, padding: 12, borderRadius: 10, background: '#f5f3ff', border: `1px solid ${C.accent}33` }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: C.accent, marginBottom: 6 }}>✅ {t('liveCommerce.guestInvited', '초대 링크 생성됨 — 게스트에게 공유하세요')}</div>
+            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+              <input readOnly value={invited.join_url} onFocus={e => e.target.select()} style={{ flex: 1, padding: '7px 10px', borderRadius: 7, border: `1px solid ${C.border}`, fontSize: 11.5, fontFamily: 'monospace' }} />
+              <Btn small onClick={() => { try { navigator.clipboard.writeText(invited.join_url); } catch {} }}>📋</Btn>
+            </div>
+            <div style={{ fontSize: 10.5, color: C.sub, marginTop: 5 }}>{t('liveCommerce.guestStreamKey', '송출키')}: <code>{invited.stream_key}</code></div>
+          </div>
+        )}
+      </Card>
+      <Card>
+        <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 10 }}>{t('liveCommerce.guestList', '참여 진행자')} ({guests.length})</div>
+        {guests.length === 0 && <div style={{ color: C.sub, fontSize: 12, textAlign: 'center', padding: 8 }}>{t('liveCommerce.guestNone', '초대된 게스트가 없습니다.')}</div>}
+        <div style={{ display: 'grid', gap: 8 }}>
+          {guests.map(g => (
+            <div key={g.id} style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', padding: '8px 10px', borderRadius: 9, border: `1px solid ${C.border}` }}>
+              <span style={{ fontWeight: 700, fontSize: 13 }}>{g.role === 'cohost' ? '⭐' : '🎙️'} {g.name}</span>
+              <span style={{ fontSize: 10, color: C.sub }}>{g.role === 'cohost' ? t('liveCommerce.guestCohost', '코호스트') : t('liveCommerce.guestGuest', '게스트')}</span>
+              <span style={{ padding: '1px 8px', borderRadius: 99, fontSize: 9.5, fontWeight: 800, background: (stColor[g.status] || '#94a3b8') + '22', color: stColor[g.status] || '#94a3b8' }}>{g.status}</span>
+              <div style={{ marginLeft: 'auto', display: 'flex', gap: 5 }}>
+                {g.status === 'joined' && <Btn small ghost onClick={() => setStatus(g, 'muted')}>{t('liveCommerce.guestMute', '음소거')}</Btn>}
+                {g.status === 'muted' && <Btn small ghost onClick={() => setStatus(g, 'joined')}>{t('liveCommerce.guestUnmute', '해제')}</Btn>}
+                {g.status !== 'left' && <Btn small ghost color="#ef4444" onClick={() => setStatus(g, 'left')}>{t('liveCommerce.guestKick', '퇴장')}</Btn>}
+                <Btn small ghost color="#ef4444" onClick={() => remove(g.id)}>🗑️</Btn>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Card>
+    </div>
+  );
+});
 
 const AiHostTab = memo(function AiHostTab({ session, gd, t }) {
   const sid = session?.id;
