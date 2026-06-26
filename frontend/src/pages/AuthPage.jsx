@@ -1471,7 +1471,7 @@ function CouponCodeInput({ planCfg, onApplied }) {
 
 /* ─── Admin Login Form (한국어 전용) ────────────────────────── */
 function AdminLoginForm({ onBack }) {
-  const { login } = useAuth();
+  const { login, user } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -1479,6 +1479,9 @@ function AdminLoginForm({ onBack }) {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  // [현 차수] admin 자동로그인 — 체크 시 세션 영속(remember). 다음 접속에서 접속코드 인증만 하면
+  //   유효한 admin 세션을 재사용해 이메일/비밀번호 단계를 건너뛴다(비밀번호 미저장 = 보안).
+  const [adminRemember, setAdminRemember] = useState(() => { try { return localStorage.getItem('genie_admin_autologin') === '1'; } catch { return false; } });
   const ADMIN_GATE = "GENIEGO-ADMIN";
 
   // [225차] 관리 대상 시스템(운영/데모) 선택 — 데모/운영은 별도 빌드·백엔드(도메인 분리)이므로
@@ -1506,14 +1509,25 @@ function AdminLoginForm({ onBack }) {
         body: JSON.stringify({ access_key: adminKey.trim() }),
       });
       const d = await r.json().catch(() => ({}));
-      if (r.ok && d.ok) { setStep(2); }
+      if (r.ok && d.ok) { if (tryAutoLogin()) return; setStep(2); }
       else setError(d.error || "접속 코드가 올바르지 않습니다.");
     } catch {
       // 서버 미응답(오프라인) — 하위호환 기본 게이트로 폴백
-      if (adminKey.trim().toUpperCase() === ADMIN_GATE) setStep(2);
+      if (adminKey.trim().toUpperCase() === ADMIN_GATE) { if (tryAutoLogin()) return; setStep(2); }
       else setError("접속 코드 확인에 실패했습니다. 다시 시도하세요.");
     }
     setLoading(false);
+  };
+
+  // 접속코드 인증 후, 자동로그인 켜져 있고 유효한 admin 세션이 살아있으면 비번 단계 건너뛰고 바로 진입.
+  const tryAutoLogin = () => {
+    try {
+      if (localStorage.getItem('genie_admin_autologin') === '1' && user && (user.plans || user.plan) === 'admin') {
+        navigate("/admin", { replace: true });
+        return true;
+      }
+    } catch {}
+    return false;
   };
 
   const handleLogin = async (e) => {
@@ -1531,8 +1545,10 @@ function AdminLoginForm({ onBack }) {
       if (pwEl && pwEl.value) livePw = pwEl.value;
     } catch (_) {}
     try {
-      const user = await login(liveEmail.trim(), livePw, "admin", adminKey.trim());
-      if ((user.plans || user.plan) !== "admin") throw new Error("관리자 계정이 아닙니다. 관리자 전용 계정으로 로그인하세요.");
+      // [현 차수] adminRemember=true → login 의 remember 인자(6번째)로 세션 영속 + 자동로그인 플래그 저장.
+      const u = await login(liveEmail.trim(), livePw, "admin", adminKey.trim(), "", adminRemember);
+      if ((u.plans || u.plan) !== "admin") throw new Error("관리자 계정이 아닙니다. 관리자 전용 계정으로 로그인하세요.");
+      try { if (adminRemember) localStorage.setItem('genie_admin_autologin', '1'); else localStorage.removeItem('genie_admin_autologin'); } catch {}
       navigate("/admin", { replace: true });
     } catch (err) { setError(err.message); }
     setLoading(false);
@@ -1597,6 +1613,12 @@ function AdminLoginForm({ onBack }) {
               데모 로그인 폼은 무영향. 👁️ 보이기 버튼으로 실제 입력값 확인 가능. */}
           <Field label="관리자 이메일" type="email" value={email} onChange={setEmail} placeholder="admin@example.com" required autoComplete="off" />
           <Field label="비밀번호" type="password" value={password} onChange={setPassword} placeholder="••••••••" required autoComplete="new-password" />
+          {/* [현 차수] admin 자동로그인 — 체크 시 다음 접속에서 접속코드만 인증하면 이메일/비번 없이 자동 진입(세션 재사용·비번 미저장) */}
+          <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "#475569", cursor: "pointer", userSelect: "none" }}>
+            <input type="checkbox" checked={adminRemember} onChange={e => setAdminRemember(e.target.checked)} style={{ width: 15, height: 15, accentColor: "#ef4444", cursor: "pointer" }} />
+            <span>자동 로그인</span>
+            <span style={{ fontSize: 10, color: "#94a3b8" }}>· 다음 접속 시 접속코드만 입력하면 자동 로그인 (공용 PC 사용 금지)</span>
+          </label>
           {error && <div style={{ padding: "8px 12px", borderRadius: 8, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.3)", color: "#ef4444", fontSize: 11 }}>{error}</div>}
           <button type="submit" disabled={loading} style={{ padding: "12px 0", borderRadius: 10, border: "none", background: loading ? "rgba(239,68,68,0.4)" : "linear-gradient(135deg,#ef4444,#dc2626)", color: "#fff", fontWeight: 800, fontSize: 14, cursor: loading ? "not-allowed" : "pointer" }}>
             {loading ? "로그인 중..." : "🔐 관리자 로그인"}

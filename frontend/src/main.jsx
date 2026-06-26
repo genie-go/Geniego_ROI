@@ -127,6 +127,15 @@ if (typeof window !== 'undefined') {
 /* Capacitor 네이티브 셸 초기화 (웹에서는 no-op) — Phase M1 */
 try { initNative(); } catch (e) { /* 웹/구버전 안전 */ }
 
+/* [현 차수] 접속 시 무조건 Arctic White 모드 — 데모/운영 구독 모두 매 접속(페이지 로드)마다 Arctic White 로
+ * 강제 초기화한다. 두 테마 경로(ThemeContext=localStorage 'geniego_theme' 읽음, Topbar=data-theme 읽음)가
+ * 모두 이 값을 읽도록 렌더 직전에 설정. 세션 내에서 사용자가 테마를 바꾸면 그 전환은 허용되며(자유 선택),
+ * 다음 접속 시 다시 Arctic White 로 시작한다(저장된 선호는 세션 간 비유지 = 요구사항). */
+try {
+  localStorage.setItem('geniego_theme', 'arctic_white');
+  document.documentElement.setAttribute('data-theme', 'arctic_white');
+} catch (e) { /* SSR/프라이빗모드 안전 */ }
+
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <RootErrorBoundary>
