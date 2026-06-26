@@ -675,6 +675,22 @@ return function (App $app): void {
         'DELETE /v429/exports/destinations/{id}' => 'Genie\\Handlers\\DataExport::deleteDestination',
         'POST /v429/exports/destinations/{id}/run' => 'Genie\\Handlers\\DataExport::runNow',
         'GET /v429/exports/runs'                 => 'Genie\\Handlers\\DataExport::listRuns',
+        // [245차 P2-3] 엔터프라이즈 SSO(OIDC/SAML) + SCIM 2.0 프로비저닝
+        'GET /v430/sso/config'                   => 'Genie\\Handlers\\EnterpriseAuth::getConfig',
+        'PUT /v430/sso/config'                   => 'Genie\\Handlers\\EnterpriseAuth::saveConfig',
+        'POST /v430/sso/scim-token'              => 'Genie\\Handlers\\EnterpriseAuth::rotateScimToken',
+        'GET /auth/sso/oidc/callback'            => 'Genie\\Handlers\\EnterpriseAuth::oidcCallback',
+        'POST /auth/sso/saml/acs'                => 'Genie\\Handlers\\EnterpriseAuth::samlAcs',
+        'GET /auth/sso/saml/metadata'            => 'Genie\\Handlers\\EnterpriseAuth::samlMetadata',
+        'GET /auth/sso/{slug}/login'             => 'Genie\\Handlers\\EnterpriseAuth::login',
+        'GET /scim/v2/ServiceProviderConfig'     => 'Genie\\Handlers\\EnterpriseAuth::scimServiceProviderConfig',
+        'GET /scim/v2/Users'                     => 'Genie\\Handlers\\EnterpriseAuth::scimListUsers',
+        'POST /scim/v2/Users'                    => 'Genie\\Handlers\\EnterpriseAuth::scimCreateUser',
+        'GET /scim/v2/Users/{id}'                => 'Genie\\Handlers\\EnterpriseAuth::scimGetUser',
+        'PUT /scim/v2/Users/{id}'                => 'Genie\\Handlers\\EnterpriseAuth::scimUpdateUser',
+        'PATCH /scim/v2/Users/{id}'              => 'Genie\\Handlers\\EnterpriseAuth::scimUpdateUser',
+        'DELETE /scim/v2/Users/{id}'             => 'Genie\\Handlers\\EnterpriseAuth::scimDeleteUser',
+        'GET /scim/v2/Groups'                    => 'Genie\\Handlers\\EnterpriseAuth::scimListGroups',
 
         // ── v421 Connectors — TikTok + Amazon real calls ───────────────────────
         'GET /v421/connectors/status'            => 'Genie\\Handlers\\Connectors::status',
@@ -1895,6 +1911,22 @@ return function (App $app): void {
     $register('DELETE', '/v429/exports/destinations/{id}');
     $register('POST',   '/v429/exports/destinations/{id}/run');
     $register('GET',    '/v429/exports/runs');
+    // [245차 P2-3] 엔터프라이즈 SSO + SCIM
+    $register('GET',    '/v430/sso/config');
+    $register('PUT',    '/v430/sso/config');
+    $register('POST',   '/v430/sso/scim-token');
+    $register('GET',    '/auth/sso/oidc/callback');
+    $register('POST',   '/auth/sso/saml/acs');
+    $register('GET',    '/auth/sso/saml/metadata');
+    $register('GET',    '/auth/sso/{slug}/login');
+    $register('GET',    '/scim/v2/ServiceProviderConfig');
+    $register('GET',    '/scim/v2/Users');
+    $register('POST',   '/scim/v2/Users');
+    $register('GET',    '/scim/v2/Users/{id}');
+    $register('PUT',    '/scim/v2/Users/{id}');
+    $register('PATCH',  '/scim/v2/Users/{id}');
+    $register('DELETE', '/scim/v2/Users/{id}');
+    $register('GET',    '/scim/v2/Groups');
 
     // ── v421 Connectors — TikTok + Amazon ─────────────────────────────────
     $register('GET',  '/v421/connectors/status');

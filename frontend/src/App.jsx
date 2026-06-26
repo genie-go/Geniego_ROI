@@ -308,6 +308,17 @@ function LoginRoute() {
   const { user } = useAuth();
   let q = null;
   try { q = new URLSearchParams(window.location.search); } catch { q = null; }
+  // [245차 P2-3] 엔터프라이즈 SSO 콜백 핸드오프 — IdP(OIDC/SAML) 인증 후 ?sso_token= 으로 세션 수립.
+  const ssoTok = q && q.get('sso_token');
+  if (ssoTok) {
+    try {
+      const isDemoHost = typeof window !== 'undefined' && /^roidemo\./.test(window.location.hostname);
+      localStorage.setItem(isDemoHost ? 'demo_genie_token' : 'genie_token', ssoTok);
+      localStorage.setItem('genie_token', ssoTok);
+    } catch (e) {}
+    window.location.replace('/dashboard');
+    return null;
+  }
   const needsForm = q && (q.get('reset') || q.get('reason') === 'idle');
   if (user && !needsForm) return <Navigate to="/dashboard" replace />;
   return <AuthPage />;

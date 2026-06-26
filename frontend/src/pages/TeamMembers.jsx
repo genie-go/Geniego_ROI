@@ -8,7 +8,7 @@ import { handlePlanLimit } from '../utils/planLimit.js';
 import AvatarField from '../components/AvatarField.jsx'; // [231차 #3] 프로필 사진 등록·표시
 import * as teamApi from '../services/teamApi.js'; // [231차 팀권한] 팀 엔터티/권한 매트릭스/데이터범위
 import { MENU_CATALOG, ACTIONS, DATA_SCOPES, TEAM_TYPES, normActions, actionsCover } from '../services/teamApi.js';
-import { getJsonAuth } from '../services/apiClient.js'; // [현 차수] 본인 보안 로그(세션 Bearer)
+import { getJsonAuth, putJson, postJsonAuth } from '../services/apiClient.js'; // [현 차수] 본인 보안 로그(세션 Bearer) · [245차 P2-3] SSO/SCIM
 import { useGlobalData } from '../context/GlobalDataContext.jsx'; // [현 차수 보강3] 실시간 동기화(syncTick) 구독
 import { SupplierPanel } from '../components/partners/PartnerPanels.jsx'; // [현 차수] 거래처(매입처) 통합 관리 — WMS에서 이관, 카테고리 사용자 확장형
 
@@ -72,6 +72,7 @@ export default function TeamMembers() {
     { id: 'memberlog', label: t('memberLog.tabLog', '로그 기록'), icon: '🛡️' },
     { id: 'partners', label: t('teamMembers.tabPartners', '파트너 계정'), icon: '🤝' },
     { id: 'vendors', label: t('teamMembers.tabVendors', '거래처'), icon: '🏭' },
+    ...(isOwnerAdmin ? [{ id: 'sso', label: t('teamMembers.tabSso', 'SSO·SCIM'), icon: '🔑' }] : []), // [245차 P2-3] 엔터프라이즈 인증(owner/admin)
   ];
 
   return (
@@ -112,6 +113,7 @@ export default function TeamMembers() {
       {/* [현 차수] WMS에서 이관 통합 — 파트너 계정 발급 + 거래처(매입처) 등록을 한 곳에서 관리(백엔드 SSOT 공유→WMS 운영과 동기화). */}
       {tab === 'partners' && (canManage ? <PartnerSection t={t} flash={flash} input={input} /> : <div style={{ fontSize: 13, color: '#94a3b8', padding: 20 }}>{t('teamMembers.partnersLocked', '파트너 계정 관리는 관리자(owner)·매니저만 가능합니다.')}</div>)}
       {tab === 'vendors' && (canManage ? <SupplierPanel /> : <div style={{ fontSize: 13, color: '#94a3b8', padding: 20 }}>{t('teamMembers.vendorsLocked', '거래처 관리는 관리자(owner)·매니저만 가능합니다.')}</div>)}
+      {tab === 'sso' && (isOwnerAdmin ? <SSOPanel t={t} flash={flash} input={input} /> : <div style={{ fontSize: 13, color: '#94a3b8', padding: 20 }}>{t('teamMembers.ssoLocked', 'SSO/SCIM 설정은 관리자(owner)만 가능합니다.')}</div>)}
 
       {toast && <div style={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', background: '#1e293b', color: '#fff', padding: '11px 22px', borderRadius: 10, fontSize: 13, fontWeight: 600, zIndex: 9999 }}>{toast}</div>}
     </div>
@@ -610,6 +612,129 @@ function MatrixPanel({ t, canManage, isOwnerAdmin, flash }) {
     </div>
   );
 }
+/* ─── [245차 P2-3] 엔터프라이즈 SSO(OIDC/SAML) + SCIM 2.0 설정 패널 ─── */
+function SSOPanel({ t, flash }) {
+  const [cfg, setCfg] = useState(null);     // 폼 값
+  const [sp, setSp] = useState({});         // SP(서비스공급자) URL 정보
+  const [loaded, setLoaded] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [scimTok, setScimTok] = useState(null);
+  const load = useCallback(async () => {
+    try {
+      const r = await getJsonAuth('/api/v430/sso/config');
+      setSp(r?.sp || {});
+      setCfg(r?.config || { protocol: 'oidc', enabled: 0, oidc_scopes: 'openid email profile', default_role: 'member', auto_provision: 1, scim_enabled: 0 });
+    } catch (e) { setCfg({ protocol: 'oidc', enabled: 0, oidc_scopes: 'openid email profile', default_role: 'member', auto_provision: 1, scim_enabled: 0 }); }
+    setLoaded(true);
+  }, []);
+  useEffect(() => { load(); }, [load]);
+  const set = (k, v) => setCfg(c => ({ ...c, [k]: v }));
+  const save = async () => {
+    setSaving(true);
+    try { const r = await putJson('/api/v430/sso/config', cfg); if (r?.ok) { flash(t('teamMembers.ssoSaved', 'SSO 설정이 저장되었습니다.')); load(); } else flash(r?.error || '저장 실패'); }
+    catch (e) { flash('저장 실패: ' + (e?.message || '')); }
+    setSaving(false);
+  };
+  const rotateScim = async () => {
+    try { const r = await postJsonAuth('/api/v430/sso/scim-token', {}); if (r?.scim_token) { setScimTok(r.scim_token); load(); } else flash(r?.error || '발급 실패'); }
+    catch (e) { flash('발급 실패: ' + (e?.message || '')); }
+  };
+  if (!loaded) return <div style={{ padding: 20, color: '#94a3b8' }}>⏳</div>;
+
+  const card = { background: 'rgba(255,255,255,0.85)', border: '1px solid var(--border,#e5e7eb)', borderRadius: 14, padding: 18, marginBottom: 14 };
+  const inp = { width: '100%', padding: '8px 11px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.12)', fontSize: 12.5, boxSizing: 'border-box', color: '#1e293b', background: '#fff' };
+  const lbl = { fontSize: 11, fontWeight: 700, color: '#64748b', marginBottom: 4, display: 'block' };
+  const field = (k, label, type = 'text') => (
+    <div style={{ marginBottom: 10 }}><label style={lbl}>{label}</label><input type={type} style={inp} value={cfg[k] || ''} onChange={e => set(k, e.target.value)} /></div>
+  );
+  const copyRow = (label, val) => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, fontSize: 11.5 }}>
+      <span style={{ minWidth: 130, color: '#64748b', fontWeight: 600 }}>{label}</span>
+      <code style={{ flex: 1, background: '#f1f5f9', padding: '4px 8px', borderRadius: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#1e293b' }}>{val || '—'}</code>
+      <button onClick={() => { try { navigator.clipboard.writeText(val || ''); flash(t('teamMembers.copied', '복사됨')); } catch (e) {} }} style={{ padding: '3px 10px', borderRadius: 6, border: '1px solid rgba(0,0,0,0.12)', background: '#fff', fontSize: 11, cursor: 'pointer' }}>{t('teamMembers.copy', '복사')}</button>
+    </div>
+  );
+
+  return (
+    <div style={{ maxWidth: 760 }}>
+      <div style={{ fontSize: 12.5, color: '#64748b', marginBottom: 14, lineHeight: 1.7 }}>
+        🔑 {t('teamMembers.ssoIntro', 'Okta·Azure AD·Google·Auth0 등 IdP와 SSO(OIDC/SAML)로 연결하고, SCIM 2.0으로 사용자 자동 프로비저닝/회수를 구성합니다. 자격증명 등록 후 활성화하면 즉시 적용됩니다.')}
+      </div>
+
+      <div style={card}>
+        <div style={{ fontWeight: 800, fontSize: 13, marginBottom: 10 }}>📍 {t('teamMembers.ssoSpInfo', 'IdP에 등록할 서비스 공급자(SP) 정보')}</div>
+        {copyRow('OIDC Redirect URI', sp.oidc_redirect_uri)}
+        {copyRow('SAML ACS URL', sp.acs_url)}
+        {copyRow('SAML Metadata', sp.metadata_url)}
+        {copyRow('SCIM Base URL', sp.scim_base_url)}
+        {cfg.login_url && copyRow(t('teamMembers.ssoLoginUrl', 'SSO 로그인 URL'), cfg.login_url)}
+      </div>
+
+      <div style={card}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 12, flexWrap: 'wrap' }}>
+          <div>
+            <label style={lbl}>{t('teamMembers.ssoProtocol', '프로토콜')}</label>
+            <select style={{ ...inp, width: 140 }} value={cfg.protocol || 'oidc'} onChange={e => set('protocol', e.target.value)}>
+              <option value="oidc">OIDC (권장)</option><option value="saml">SAML 2.0</option>
+            </select>
+          </div>
+          <div><label style={lbl}>{t('teamMembers.ssoSlug', '로그인 슬러그')}</label><input style={{ ...inp, width: 160 }} value={cfg.slug || ''} onChange={e => set('slug', e.target.value)} placeholder="company" /></div>
+          <div><label style={lbl}>{t('teamMembers.ssoDomain', '이메일 도메인')}</label><input style={{ ...inp, width: 180 }} value={cfg.domain || ''} onChange={e => set('domain', e.target.value)} placeholder="company.com" /></div>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12.5, fontWeight: 700, marginTop: 16 }}>
+            <input type="checkbox" checked={!!Number(cfg.enabled)} onChange={e => set('enabled', e.target.checked ? 1 : 0)} />{t('teamMembers.ssoEnable', 'SSO 활성화')}
+          </label>
+        </div>
+
+        {cfg.protocol === 'saml' ? (
+          <>
+            {field('saml_idp_entity_id', 'IdP Entity ID')}
+            {field('saml_idp_sso_url', 'IdP SSO URL')}
+            <div style={{ marginBottom: 10 }}><label style={lbl}>IdP X.509 Certificate (PEM/base64)</label><textarea style={{ ...inp, minHeight: 80, fontFamily: 'monospace', fontSize: 11 }} value={cfg.saml_idp_cert || ''} onChange={e => set('saml_idp_cert', e.target.value)} placeholder="MIID... (저장 후 ••••로 마스킹)" /></div>
+          </>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            {field('oidc_issuer', 'Issuer')}
+            {field('oidc_client_id', 'Client ID')}
+            {field('oidc_client_secret', 'Client Secret', 'password')}
+            {field('oidc_scopes', 'Scopes')}
+            {field('oidc_authorize_url', 'Authorize URL')}
+            {field('oidc_token_url', 'Token URL')}
+            {field('oidc_jwks_url', 'JWKS URL')}
+            {field('oidc_userinfo_url', 'UserInfo URL')}
+          </div>
+        )}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginTop: 6 }}>
+          {field('email_attr', t('teamMembers.ssoEmailAttr', '이메일 속성(SAML)'))}
+          {field('name_attr', t('teamMembers.ssoNameAttr', '이름 속성(SAML)'))}
+          <div style={{ marginBottom: 10 }}><label style={lbl}>{t('teamMembers.ssoDefaultRole', '기본 역할')}</label>
+            <select style={inp} value={cfg.default_role || 'member'} onChange={e => set('default_role', e.target.value)}><option value="member">member</option><option value="manager">manager</option></select>
+          </div>
+        </div>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12.5, margin: '4px 0 12px' }}>
+          <input type="checkbox" checked={!!Number(cfg.auto_provision ?? 1)} onChange={e => set('auto_provision', e.target.checked ? 1 : 0)} />{t('teamMembers.ssoAutoProvision', '자동 프로비저닝 (최초 로그인 시 사용자 자동 생성)')}
+        </label>
+        <button onClick={save} disabled={saving} style={{ padding: '9px 20px', borderRadius: 9, border: 'none', background: '#4f46e5', color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>{saving ? '⏳' : '💾'} {t('teamMembers.ssoSave', 'SSO 설정 저장')}</button>
+      </div>
+
+      <div style={card}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
+          <div>
+            <div style={{ fontWeight: 800, fontSize: 13 }}>🔄 SCIM 2.0 {t('teamMembers.ssoScimProvision', '자동 프로비저닝')}</div>
+            <div style={{ fontSize: 11.5, color: '#64748b', marginTop: 4 }}>{t('teamMembers.ssoScimDesc', 'IdP가 SCIM Base URL + 아래 토큰으로 사용자 생성/수정/비활성을 자동 동기화합니다.')} {cfg.scim_enabled ? <b style={{ color: '#16a34a' }}>● 활성</b> : <span style={{ color: '#94a3b8' }}>비활성</span>}</div>
+          </div>
+          <button onClick={rotateScim} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: '#0ea5a3', color: '#fff', fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>🔑 {t('teamMembers.ssoScimRotate', 'SCIM 토큰 발급/재발급')}</button>
+        </div>
+        {scimTok && (
+          <div style={{ marginTop: 10, padding: 12, borderRadius: 10, background: '#0f172a' }}>
+            <div style={{ fontSize: 11, color: '#fca5a5', marginBottom: 6 }}>⚠️ {t('teamMembers.ssoScimWarn', '이 토큰은 다시 표시되지 않습니다. IdP의 SCIM 설정에 즉시 저장하세요.')}</div>
+            <code style={{ fontSize: 12, color: '#e2e8f0', wordBreak: 'break-all' }}>{scimTok}</code>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function scopeLabel(ds) {
   return { company: '전체 회사', brand: '특정 브랜드', team: '특정 팀', campaign: '특정 캠페인', product: '특정 상품', channel: '특정 채널', warehouse: '특정 창고', partner: '특정 파트너', own: '본인 담당만' }[ds] || ds;
 }

@@ -159,6 +159,10 @@ $app->add(function (Request $request, $handler) {
         // 208차 #2 OAuth 프레임워크(/v425/oauth/*) — callback 은 provider 리다이렉트라 무인증(state→tenant),
         //   authorize/status 는 세션 self-auth(OAuth::requirePro). api_key 미들웨어 bypass.
         || strpos($path, '/api/v425/oauth/') === 0 || strpos($path, '/v425/oauth/') === 0
+        // [245차 P2-3] 엔터프라이즈 SSO/SCIM — 설정(/v430/sso/* 세션 self-auth requirePlan), 콜백은 /auth/sso/* 라 /auth/ 로 이미 bypass.
+        //   SCIM(/scim/v2/* 은 외부 IdP가 Bearer scim_token 으로 호출 — api_key 아님). 미bypass 시 api_key 미들웨어 401.
+        || strpos($path, '/api/v430/sso/') === 0 || strpos($path, '/v430/sso/') === 0
+        || strpos($path, '/api/scim/') === 0     || strpos($path, '/scim/') === 0
         // 191차 채널 부활: SMS/WhatsApp/Instagram — 세션 self-auth(핸들러 requirePro + authedTenant 격리, webhook 무인증)
         || strpos($path, '/api/sms/') === 0        || strpos($path, '/sms/') === 0
         || strpos($path, '/api/whatsapp/') === 0   || strpos($path, '/whatsapp/') === 0
