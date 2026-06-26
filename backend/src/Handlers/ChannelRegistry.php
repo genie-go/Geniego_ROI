@@ -53,7 +53,10 @@ class ChannelRegistry
     /** 최초 1회 기본 카탈로그 시드(빈 테이블일 때만). 기존 하드코딩 채널을 보존. */
     private static function ensureSeed(\PDO $pdo): void
     {
-        try { if ((int)$pdo->query("SELECT COUNT(*) FROM channel_registry")->fetchColumn() > 0) return; }
+        // [현 차수] 누락분 top-up — 기존엔 비었을 때만 시드해 신규 채널이 기존 registry 에 영영 미노출이었다.
+        //   이미 있는 키(존재 집합)는 건너뛰고 누락된 시드 채널만 INSERT(멱등). 사용자 admin 커스터마이징은 보존.
+        $have = [];
+        try { foreach ($pdo->query("SELECT channel_key FROM channel_registry")->fetchAll(\PDO::FETCH_COLUMN) as $k) $have[(string)$k] = true; }
         catch (\Throwable $e) { return; }
         $F = fn(...$f) => $f; // 필드 라벨 배열 헬퍼
         $ftext = fn($k, $l, $s = true) => ['k' => $k, 'label' => $l, 'secret' => $s];
@@ -74,6 +77,12 @@ class ChannelRegistry
             ['microsoft_ads','Microsoft Ads (Bing)','marketing','🪟','#00a4ef','none',[$ftext('developer_token','개발자 토큰'),$ftext('access_token','액세스 토큰'),$ftext('account_id','계정 ID',false)]],
             ['x_ads','X (Twitter) Ads','marketing','✖️','#000000','none',[$ftext('consumer_key','Consumer Key'),$ftext('consumer_secret','Consumer Secret'),$ftext('access_token','Access Token'),$ftext('access_token_secret','Access Token Secret'),$ftext('account_id','광고계정 ID',false)]],
             ['amazon_ads','Amazon Ads (Sponsored)','marketing','📦','#ff9900','none',[$ftext('client_id','LWA Client ID',false),$ftext('client_secret','LWA Secret'),$ftext('refresh_token','Refresh Token'),$ftext('profile_id','프로필 ID',false)]],
+            // [현 차수] 롱테일 광고 커넥터 5종 — 실 fetch 어댑터(Connectors::fetch*Rows) 신용게이트. 자격증명 등록 시 즉시 동작.
+            ['reddit_ads','Reddit Ads','marketing','🟠','#ff4500','ad',[$ftext('access_token','액세스 토큰'),$ftext('ad_account_id','광고계정 ID',false),$ftext('currency','과금 통화(예: USD)',false)]],
+            ['apple_search_ads','Apple Search Ads','marketing','','#000000','ad',[$ftext('access_token','액세스 토큰'),$ftext('org_id','조직 ID(orgId)',false),$ftext('currency','과금 통화(예: USD)',false)]],
+            ['amazon_dsp','Amazon DSP','marketing','📦','#232f3e','ad',[$ftext('access_token','액세스 토큰'),$ftext('client_id','LWA Client ID',false),$ftext('profile_id','프로필 ID',false),$ftext('advertiser_id','광고주 ID',false),$ftext('currency','과금 통화(예: USD)',false)]],
+            ['quora_ads','Quora Ads','marketing','🅠','#b92b27','ad',[$ftext('access_token','액세스 토큰'),$ftext('account_id','광고계정 ID',false),$ftext('currency','과금 통화(예: USD)',false)]],
+            ['spotify_ads','Spotify Ads','marketing','🎧','#1db954','ad',[$ftext('access_token','액세스 토큰'),$ftext('ad_account_id','광고계정 ID',false),$ftext('currency','과금 통화(예: USD)',false)]],
             // ── 판매(커머스) ──
             ['shopify','Shopify','sales','🛍','#95bf47','commerce',[$ftext('shop_domain','상점 도메인',false),$ftext('access_token','Admin API 토큰')]],
             ['amazon','Amazon SP-API','sales','📦','#ff9900','commerce',[$ftext('client_id','LWA Client ID',false),$ftext('client_secret','LWA Secret'),$ftext('refresh_token','Refresh Token'),$ftext('marketplace_id','마켓플레이스',false)]],
@@ -107,7 +116,9 @@ class ChannelRegistry
         $now = self::now(); $i = 0;
         $ins = $pdo->prepare("INSERT INTO channel_registry(channel_key,name,group_type,icon,color,fields_json,sync_kind,is_active,display_order,created_at,updated_at) VALUES(?,?,?,?,?,?,?,1,?,?,?)");
         foreach ($cat as $c) {
-            try { $ins->execute([$c[0], $c[1], $c[2], $c[3], $c[4], json_encode($c[6], JSON_UNESCAPED_UNICODE), $c[5], (++$i) * 10, $now, $now]); }
+            $i++;
+            if (isset($have[$c[0]])) continue; // 이미 존재(사용자 커스터마이징 포함) → 보존
+            try { $ins->execute([$c[0], $c[1], $c[2], $c[3], $c[4], json_encode($c[6], JSON_UNESCAPED_UNICODE), $c[5], $i * 10, $now, $now]); }
             catch (\Throwable $e) {}
         }
     }

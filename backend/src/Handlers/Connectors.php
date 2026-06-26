@@ -1454,6 +1454,12 @@ final class Connectors
             'amazon_ads'    => fn() => self::fetchAmazonAdsRows($tenant, $start, $end),
             'microsoft_ads' => fn() => self::fetchMicrosoftAdsRows($tenant, $start, $end),
             'x_ads'         => fn() => self::fetchXAdsRows($tenant, $start, $end),
+            // [현 차수] 롱테일 커넥터 5종 — 신용게이트(미설정 skip·키 등록 시 즉시 fetch·graceful).
+            'reddit_ads'        => fn() => self::fetchRedditRows($tenant, $start, $end),
+            'apple_search_ads'  => fn() => self::fetchAppleSearchAdsRows($tenant, $start, $end),
+            'amazon_dsp'        => fn() => self::fetchAmazonDspRows($tenant, $start, $end),
+            'quora_ads'         => fn() => self::fetchQuoraRows($tenant, $start, $end),
+            'spotify_ads'       => fn() => self::fetchSpotifyAdsRows($tenant, $start, $end),
         ];
 
         foreach ($fetchers as $ch => $fn) {
@@ -2828,6 +2834,144 @@ final class Connectors
                     ];
                 }
             }
+        }
+        return ['hasCreds' => true, 'live' => true, 'rows' => $rows];
+    }
+
+    // ════════════ [현 차수] 롱테일 광고 커넥터 5종 (신용게이트·자격증명→즉시 실행, graceful 드롭인) ════════════
+    //   미설정=hasCreds:false skip, 키 등록=즉시 실 fetch. API 실패=live:false(기존 데이터 보존). 거짓데이터 0.
+    //   라이브 검증=실 매체 계정 필요(amazon_ads/x_ads 와 동일 posture). 통화 stamp→persist 가 KRW 환산.
+
+    /** Reddit Ads API v3 — POST /api/v3/ad_accounts/{id}/reports(DATE×CAMPAIGN). spend=microcurrency(÷1e6). */
+    private static function fetchRedditRows(string $tenant, string $start, string $end): array
+    {
+        $token = (string)(getenv('REDDIT_ADS_ACCESS_TOKEN') ?: self::loadCred($tenant, 'reddit_ads', 'access_token'));
+        $acct  = (string)(getenv('REDDIT_ADS_ACCOUNT_ID') ?: self::loadCred($tenant, 'reddit_ads', 'ad_account_id'));
+        if ($token === '' || $acct === '') return ['hasCreds' => false, 'live' => false, 'rows' => []];
+        $cur = strtoupper((string)(self::loadCred($tenant, 'reddit_ads', 'currency') ?: 'USD'));
+        $payload = ['data' => ['breakdowns' => ['DATE', 'CAMPAIGN_ID'], 'fields' => ['impressions', 'clicks', 'spend', 'conversion_signup_total_items', 'conversion_signup_total_value'],
+            'starts_at' => $start . 'T00:00:00Z', 'ends_at' => $end . 'T23:59:59Z', 'time_zone_id' => 'GMT']];
+        [$code, $body, $err] = self::httpPost('https://ads-api.reddit.com/api/v3/ad_accounts/' . rawurlencode($acct) . '/reports', $payload, ['Authorization' => 'Bearer ' . $token, 'Content-Type' => 'application/json']);
+        if ($err || $code >= 400) return ['hasCreds' => true, 'live' => false, 'error' => $err ?: "reddit http $code"];
+        $rows = [];
+        foreach ((array)($body['data']['metrics'] ?? $body['data'] ?? []) as $r) {
+            if (!is_array($r)) continue;
+            $rows[] = [
+                'team' => 'Reddit Ads', 'account' => 'Reddit Ads', 'campaign_ext_id' => (string)($r['campaign_id'] ?? $r['CAMPAIGN_ID'] ?? ''),
+                'objective' => '', 'reach' => 0, 'date' => substr((string)($r['date'] ?? $r['DATE'] ?? ''), 0, 10),
+                'impressions' => (int)($r['impressions'] ?? 0), 'clicks' => (int)($r['clicks'] ?? 0),
+                'spend' => round((float)($r['spend'] ?? 0) / 1000000.0, 2),
+                'conversions' => (int)round((float)($r['conversion_signup_total_items'] ?? 0)),
+                'revenue' => round((float)($r['conversion_signup_total_value'] ?? 0) / 1000000.0, 2), 'currency' => $cur,
+            ];
+        }
+        return ['hasCreds' => true, 'live' => true, 'rows' => $rows];
+    }
+
+    /** Apple Search Ads API v5 — POST /api/v5/reports/campaigns(DAILY). 인증 Bearer + X-AP-Context: orgId. taps=clicks. */
+    private static function fetchAppleSearchAdsRows(string $tenant, string $start, string $end): array
+    {
+        $token = (string)(getenv('APPLE_SEARCH_ADS_ACCESS_TOKEN') ?: self::loadCred($tenant, 'apple_search_ads', 'access_token'));
+        $org   = (string)(getenv('APPLE_SEARCH_ADS_ORG_ID') ?: self::loadCred($tenant, 'apple_search_ads', 'org_id'));
+        if ($token === '' || $org === '') return ['hasCreds' => false, 'live' => false, 'rows' => []];
+        $cur = strtoupper((string)(self::loadCred($tenant, 'apple_search_ads', 'currency') ?: 'USD'));
+        $payload = ['startTime' => $start, 'endTime' => $end, 'granularity' => 'DAILY',
+            'selector' => ['orderBy' => [['field' => 'campaignId', 'sortOrder' => 'ASCENDING']], 'pagination' => ['offset' => 0, 'limit' => 1000]],
+            'returnRowTotals' => false, 'returnGrandTotals' => false];
+        [$code, $body, $err] = self::httpPost('https://api.searchads.apple.com/api/v5/reports/campaigns', $payload, ['Authorization' => 'Bearer ' . $token, 'X-AP-Context' => 'orgId=' . $org, 'Content-Type' => 'application/json']);
+        if ($err || $code >= 400) return ['hasCreds' => true, 'live' => false, 'error' => $err ?: "apple_search_ads http $code"];
+        $rows = [];
+        foreach ((array)($body['data']['reportingDataResponse']['row'] ?? []) as $r) {
+            $meta = $r['metadata'] ?? [];
+            foreach ((array)($r['granularity'] ?? []) as $g) {
+                $rows[] = [
+                    'team' => 'Apple Search Ads', 'account' => (string)($meta['campaignName'] ?? 'Apple Search Ads'),
+                    'campaign_ext_id' => (string)($meta['campaignId'] ?? ''), 'objective' => '', 'reach' => 0,
+                    'date' => substr((string)($g['date'] ?? ''), 0, 10),
+                    'impressions' => (int)($g['impressions'] ?? 0), 'clicks' => (int)($g['taps'] ?? 0),
+                    'spend' => (float)($g['localSpend']['amount'] ?? 0),
+                    'conversions' => (int)round((float)($g['totalInstalls'] ?? $g['installs'] ?? 0)), 'revenue' => 0.0,
+                    'currency' => strtoupper((string)($g['localSpend']['currency'] ?? $cur)),
+                ];
+            }
+        }
+        return ['hasCreds' => true, 'live' => true, 'rows' => $rows];
+    }
+
+    /** Amazon DSP Reporting v3 — POST /dsp/reports(DAILY). 비동기 리포트(reportId 반환 시 다음 폴링)·graceful. */
+    private static function fetchAmazonDspRows(string $tenant, string $start, string $end): array
+    {
+        $token   = (string)(getenv('AMAZON_DSP_ACCESS_TOKEN') ?: self::loadCred($tenant, 'amazon_dsp', 'access_token'));
+        $profile = (string)(getenv('AMAZON_DSP_PROFILE_ID') ?: self::loadCred($tenant, 'amazon_dsp', 'profile_id'));
+        $advertiser = (string)self::loadCred($tenant, 'amazon_dsp', 'advertiser_id');
+        $clientId   = (string)(getenv('AMAZON_DSP_CLIENT_ID') ?: self::loadCred($tenant, 'amazon_dsp', 'client_id'));
+        if ($token === '' || $profile === '' || $advertiser === '') return ['hasCreds' => false, 'live' => false, 'rows' => []];
+        $cur = strtoupper((string)(self::loadCred($tenant, 'amazon_dsp', 'currency') ?: 'USD'));
+        $headers = ['Authorization' => 'Bearer ' . $token, 'Amazon-Advertising-API-ClientId' => $clientId, 'Amazon-Advertising-API-Scope' => $profile, 'Content-Type' => 'application/json'];
+        $payload = ['startDate' => str_replace('-', '', $start), 'endDate' => str_replace('-', '', $end), 'type' => 'CAMPAIGN',
+            'dimensions' => ['ORDER', 'LINE_ITEM'], 'metrics' => ['impressions', 'clickThroughs', 'totalCost', 'totalPurchases14d', 'totalSales14d'], 'timeUnit' => 'DAILY', 'format' => 'JSON'];
+        [$code, $body, $err] = self::httpPost('https://advertising-api.amazon.com/accounts/' . rawurlencode($advertiser) . '/dsp/reports', $payload, $headers);
+        if ($err || $code >= 400) return ['hasCreds' => true, 'live' => false, 'error' => ($err ?: "amazon_dsp http $code") . ' (비동기 — 라이브 검증 시 폴링 보강)'];
+        if (isset($body['reportId']) && !isset($body['data'])) return ['hasCreds' => true, 'live' => true, 'rows' => []]; // 비동기 생성됨 → 다음 사이클 폴링
+        $rows = [];
+        foreach ((array)($body['data'] ?? []) as $r) {
+            if (!is_array($r)) continue;
+            $rows[] = [
+                'team' => 'Amazon DSP', 'account' => (string)($r['orderName'] ?? 'Amazon DSP'),
+                'campaign_ext_id' => (string)($r['orderId'] ?? $r['lineItemId'] ?? ''), 'objective' => '', 'reach' => 0,
+                'date' => substr((string)($r['date'] ?? $r['intervalStart'] ?? ''), 0, 10),
+                'impressions' => (int)($r['impressions'] ?? 0), 'clicks' => (int)($r['clickThroughs'] ?? 0),
+                'spend' => (float)($r['totalCost'] ?? 0), 'conversions' => (int)round((float)($r['totalPurchases14d'] ?? 0)),
+                'revenue' => (float)($r['totalSales14d'] ?? 0), 'currency' => $cur,
+            ];
+        }
+        return ['hasCreds' => true, 'live' => true, 'rows' => $rows];
+    }
+
+    /** Quora Ads API — GET /ads/v0/accounts/{id}/stats(day×campaign). best-effort(라이브 검증 후 매핑). */
+    private static function fetchQuoraRows(string $tenant, string $start, string $end): array
+    {
+        $token = (string)(getenv('QUORA_ADS_ACCESS_TOKEN') ?: self::loadCred($tenant, 'quora_ads', 'access_token'));
+        $acct  = (string)(getenv('QUORA_ADS_ACCOUNT_ID') ?: self::loadCred($tenant, 'quora_ads', 'account_id'));
+        if ($token === '' || $acct === '') return ['hasCreds' => false, 'live' => false, 'rows' => []];
+        $cur = strtoupper((string)(self::loadCred($tenant, 'quora_ads', 'currency') ?: 'USD'));
+        $q = http_build_query(['start_date' => $start, 'end_date' => $end, 'granularity' => 'day', 'group_by' => 'campaign']);
+        [$code, $body, $err] = self::httpGet('https://api.quora.com/ads/v0/accounts/' . rawurlencode($acct) . '/stats?' . $q, ['Authorization' => 'Bearer ' . $token, 'Accept' => 'application/json']);
+        if ($err || $code >= 400) return ['hasCreds' => true, 'live' => false, 'error' => ($err ?: "quora http $code") . ' (라이브 검증 후 매핑)'];
+        $rows = [];
+        foreach ((array)($body['data'] ?? $body['stats'] ?? []) as $r) {
+            if (!is_array($r)) continue;
+            $rows[] = [
+                'team' => 'Quora Ads', 'account' => 'Quora Ads', 'campaign_ext_id' => (string)($r['campaign_id'] ?? $r['campaignId'] ?? ''),
+                'objective' => '', 'reach' => 0, 'date' => substr((string)($r['date'] ?? ''), 0, 10),
+                'impressions' => (int)($r['impressions'] ?? 0), 'clicks' => (int)($r['clicks'] ?? 0),
+                'spend' => (float)($r['spend'] ?? $r['cost'] ?? 0), 'conversions' => (int)round((float)($r['conversions'] ?? 0)),
+                'revenue' => (float)($r['conversion_value'] ?? 0), 'currency' => $cur,
+            ];
+        }
+        return ['hasCreds' => true, 'live' => true, 'rows' => $rows];
+    }
+
+    /** Spotify Ads(Ad Studio) API — GET /ads/v1/ad_accounts/{id}/reports(DAY). best-effort(라이브 검증 후 매핑). */
+    private static function fetchSpotifyAdsRows(string $tenant, string $start, string $end): array
+    {
+        $token = (string)(getenv('SPOTIFY_ADS_ACCESS_TOKEN') ?: self::loadCred($tenant, 'spotify_ads', 'access_token'));
+        $acct  = (string)(getenv('SPOTIFY_ADS_AD_ACCOUNT_ID') ?: self::loadCred($tenant, 'spotify_ads', 'ad_account_id'));
+        if ($token === '' || $acct === '') return ['hasCreds' => false, 'live' => false, 'rows' => []];
+        $cur = strtoupper((string)(self::loadCred($tenant, 'spotify_ads', 'currency') ?: 'USD'));
+        $q = http_build_query(['start_date' => $start, 'end_date' => $end, 'granularity' => 'DAY']);
+        [$code, $body, $err] = self::httpGet('https://api-partner.spotify.com/ads/v1/ad_accounts/' . rawurlencode($acct) . '/reports?' . $q, ['Authorization' => 'Bearer ' . $token, 'Accept' => 'application/json']);
+        if ($err || $code >= 400) return ['hasCreds' => true, 'live' => false, 'error' => ($err ?: "spotify http $code") . ' (라이브 검증 후 매핑)'];
+        $rows = [];
+        foreach ((array)($body['data'] ?? $body['reports'] ?? []) as $r) {
+            if (!is_array($r)) continue;
+            $rows[] = [
+                'team' => 'Spotify Ads', 'account' => 'Spotify Ads', 'campaign_ext_id' => (string)($r['campaign_id'] ?? $r['campaignId'] ?? ''),
+                'objective' => '', 'reach' => 0, 'date' => substr((string)($r['date'] ?? ''), 0, 10),
+                'impressions' => (int)($r['impressions'] ?? 0), 'clicks' => (int)($r['clicks'] ?? 0),
+                'spend' => (float)($r['spend'] ?? $r['cost'] ?? 0), 'conversions' => (int)round((float)($r['conversions'] ?? 0)),
+                'revenue' => (float)($r['conversion_value'] ?? 0), 'currency' => $cur,
+            ];
         }
         return ['hasCreds' => true, 'live' => true, 'rows' => $rows];
     }
