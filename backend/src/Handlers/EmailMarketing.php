@@ -99,9 +99,33 @@ class EmailMarketing
             try { $pdo->exec("ALTER TABLE {$tbl} ADD COLUMN tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo'"); } catch (\Throwable $e) {}
         }
         // [현 차수] STO 비동기 발송 큐 — scheduled_at(예약)·attempts(재시도) 컬럼(멱등 ALTER).
-        foreach (['scheduled_at VARCHAR(32)', 'attempts INT DEFAULT 0'] as $col) {
+        //   [현 차수 P2-2b] sto_hour(수신자별 최적 발송시각 KST)·variant(A/B 분기) 추가.
+        foreach (['scheduled_at VARCHAR(32)', 'attempts INT DEFAULT 0', 'sto_hour INT DEFAULT NULL', 'variant VARCHAR(8) DEFAULT NULL'] as $col) {
             try { $pdo->exec("ALTER TABLE email_sends ADD COLUMN " . $col); } catch (\Throwable $e) {}
         }
+        // [현 차수 P2-2b] A/B: 캠페인에 variant B 제목·A/B 플래그·승자(멱등 ALTER).
+        foreach (['subject_b VARCHAR(255) DEFAULT NULL', 'ab_test INT DEFAULT 0', 'ab_winner VARCHAR(8) DEFAULT NULL'] as $col) {
+            try { $pdo->exec("ALTER TABLE email_campaigns ADD COLUMN " . $col); } catch (\Throwable $e) {}
+        }
+    }
+
+    /** [현 차수 P2-2b] 수신자별 최적 발송시각(STO) — 과거 오픈 시각(opened_at) KST 시간대 최빈값. 이력<2 면 null(STO 미적용). */
+    private static function optimalHourFor(\PDO $pdo, string $tenant, string $email): ?int {
+        try {
+            $st = $pdo->prepare("SELECT opened_at FROM email_sends WHERE tenant_id=:t AND email=:e AND opened_at IS NOT NULL AND opened_at<>'' ORDER BY id DESC LIMIT 50");
+            $st->execute([':t'=>$tenant, ':e'=>$email]);
+            $hist = $st->fetchAll(\PDO::FETCH_COLUMN) ?: [];
+            if (count($hist) < 2) return null;
+            $buckets = [];
+            foreach ($hist as $ts) {
+                $u = strtotime((string)$ts); if ($u === false) continue;
+                $h = (int)gmdate('G', $u + 9 * 3600); // KST = UTC+9
+                $buckets[$h] = ($buckets[$h] ?? 0) + 1;
+            }
+            if (!$buckets) return null;
+            arsort($buckets);
+            return (int)array_key_first($buckets);
+        } catch (\Throwable $e) { return null; }
     }
 
     /* ═══ [현 차수] Klaviyo급 딜리버러빌리티/컴플라이언스 — Suppression·Unsubscribe·개인화 ═══ */
@@ -222,19 +246,24 @@ class EmailMarketing
             if (!CRM::commsSendAllowedNow($cfg)) { $deferredTenants++; continue; } // 아직 차단시간 → 다음 cron
             $rows = $pdo->prepare("SELECT * FROM email_sends WHERE tenant_id=:t AND status='queued' ORDER BY id LIMIT 1000");
             $rows->execute([':t'=>$tn]);
+            $curHourKst = (int)gmdate('G', time() + 9 * 3600); // [현 차수 P2-2b] 수신자별 STO 시각 매칭(KST)
             foreach ($rows->fetchAll(\PDO::FETCH_ASSOC) as $row) {
                 $cid = (int)$row['campaign_id']; $email = (string)$row['email']; $uid = (int)$row['customer_id'];
+                // [현 차수 P2-2b] 수신자별 STO — 개인 최적시각이 설정됐고 현재 KST 시각이 아니면 이 cron 사이클 보류(다음에 발송).
+                if (isset($row['sto_hour']) && $row['sto_hour'] !== null && (int)$row['sto_hour'] !== $curHourKst) continue;
                 if (self::isSuppressed($pdo, (string)$tn, $email)) { $pdo->prepare("UPDATE email_sends SET status='suppressed' WHERE id=:id")->execute([':id'=>$row['id']]); continue; }
                 if (!isset($tplCache[$cid])) {
-                    $cst = $pdo->prepare("SELECT c.name AS cname, t.subject, t.html_body FROM email_campaigns c LEFT JOIN email_templates t ON t.id=c.template_id AND t.tenant_id=c.tenant_id WHERE c.id=:id AND c.tenant_id=:t");
+                    $cst = $pdo->prepare("SELECT c.name AS cname, c.subject_b, t.subject, t.html_body FROM email_campaigns c LEFT JOIN email_templates t ON t.id=c.template_id AND t.tenant_id=c.tenant_id WHERE c.id=:id AND c.tenant_id=:t");
                     $cst->execute([':id'=>$cid, ':t'=>$tn]);
-                    $tplCache[$cid] = $cst->fetch(\PDO::FETCH_ASSOC) ?: ['cname'=>'', 'subject'=>'(제목 없음)', 'html_body'=>''];
+                    $tplCache[$cid] = $cst->fetch(\PDO::FETCH_ASSOC) ?: ['cname'=>'', 'subject_b'=>null, 'subject'=>'(제목 없음)', 'html_body'=>''];
                 }
                 $tpl = $tplCache[$cid];
                 $cust = ['email'=>$email, 'name'=>''];
                 if ($uid > 0) { $cs = $pdo->prepare("SELECT name FROM crm_customers WHERE id=:id AND tenant_id=:t"); $cs->execute([':id'=>$uid, ':t'=>$tn]); $cust['name'] = (string)($cs->fetchColumn() ?: ''); }
                 $unsubUrl = self::unsubUrl((string)$tn, $email);
-                $subject = self::renderTemplate((string)($tpl['subject'] ?? ''), $cust);
+                // [현 차수 P2-2b] A/B variant B 면 variant B 제목 사용.
+                $subjTpl = (((string)($row['variant'] ?? '') === 'B') && trim((string)($tpl['subject_b'] ?? '')) !== '') ? (string)$tpl['subject_b'] : (string)($tpl['subject'] ?? '');
+                $subject = self::renderTemplate($subjTpl, $cust);
                 $body = self::renderTemplate((string)($tpl['html_body'] ?? ''), $cust, ['unsubscribe_url'=>$unsubUrl]) . self::unsubFooter($unsubUrl);
                 $body = self::injectTracking($body, $cid, $uid); // [현 차수 P2-2b] 오픈/클릭 추적 주입
                 $mr = Mailer::send($email, $subject, $body, ['pdo'=>$pdo, 'tenant'=>$tn, 'headers'=>['List-Unsubscribe'=>'<'.$unsubUrl.'>', 'List-Unsubscribe-Post'=>'List-Unsubscribe=One-Click']]);
@@ -436,12 +465,16 @@ class EmailMarketing
         $tenant = self::tenant($req);
         $b = (array)$req->getParsedBody();
         if (empty($b['name'])) return self::jsonRes($res, ['ok'=>false,'error'=>'name 필수'], 400);
-        $pdo->prepare("INSERT INTO email_campaigns (tenant_id,name,template_id,segment_id,status,scheduled_at,created_at)
-            VALUES (:t,:n,:tpl,:s,:st,:sc,:ca)")->execute([
+        // [현 차수 P2-2b] A/B: subject_b(variant B 제목)·ab_test 플래그 수용. subject_b 있으면 자동 A/B 활성.
+        $subjectB = trim((string)($b['subject_b'] ?? ''));
+        $abTest = (!empty($b['ab_test']) || $subjectB !== '') ? 1 : 0;
+        $pdo->prepare("INSERT INTO email_campaigns (tenant_id,name,template_id,segment_id,status,scheduled_at,subject_b,ab_test,created_at)
+            VALUES (:t,:n,:tpl,:s,:st,:sc,:sb,:ab,:ca)")->execute([
             ':t'=>$tenant, ':n'=>$b['name'], ':tpl'=>(int)($b['template_id']??0),
-            ':s'=>(int)($b['segment_id']??0), ':st'=>$b['status']??'draft', ':sc'=>$b['scheduled_at']??null, ':ca'=>self::now(),
+            ':s'=>(int)($b['segment_id']??0), ':st'=>$b['status']??'draft', ':sc'=>$b['scheduled_at']??null,
+            ':sb'=>($subjectB !== '' ? $subjectB : null), ':ab'=>$abTest, ':ca'=>self::now(),
         ]);
-        return self::jsonRes($res, ['ok'=>true,'id'=>(int)$pdo->lastInsertId()]);
+        return self::jsonRes($res, ['ok'=>true,'id'=>(int)$pdo->lastInsertId(),'ab_test'=>$abTest]);
     }
 
     /* ─── POST /email/campaigns/{id}/send ──────────────────────────── */
@@ -486,19 +519,30 @@ class EmailMarketing
         $freqCfg = CRM::commsFreqConfig($pdo, $tenant);
         // [현 차수] STO(발송시간 최적화) — 야간 등 차단 시간엔 즉시발송 대신 큐 적재(cron이 허용시각에 발송).
         $deferAll = !empty($freqCfg['sto']) && !CRM::commsSendAllowedNow($freqCfg);
+        // [현 차수 P2-2b] A/B 테스트(제목 variant B) + 수신자별 STO(개인 최적 발송시각).
+        $abTest = ((int)($campaign['ab_test'] ?? 0) === 1) && trim((string)($campaign['subject_b'] ?? '')) !== '';
+        $subjectBTpl = (string)($campaign['subject_b'] ?? '');
+        $stoOn = !empty($freqCfg['sto']);
+        $curHourKst = (int)gmdate('G', time() + 9 * 3600);
         foreach ($customerList as $c) {
             // [현 차수] 컴플라이언스 게이트 — 수신거부/하드바운스 suppression 우선 차단(CAN-SPAM/GDPR 필수).
             if (self::isSuppressed($pdo, $tenant, (string)$c['email'])) { $suppressed++; continue; }
             if (CRM::isFrequencyCapped($pdo, $tenant, (int)$c['id'], $freqCfg['cap'], $freqCfg['window'])) { $capped++; continue; }
-            // [현 차수] STO 차단 시간 → 큐 적재(status='queued'). processQueue cron이 허용시각에 실발송.
-            if ($deferAll) {
-                $pdo->prepare("INSERT INTO email_sends (tenant_id, campaign_id, customer_id, email, status, scheduled_at) VALUES (:t,:cid,:uid,:email,'queued',:sa)")
-                    ->execute([':t'=>$tenant, ':cid'=>$cid, ':uid'=>$c['id'], ':email'=>$c['email'], ':sa'=>$now]);
+            // [현 차수 P2-2b] A/B variant 배정(uid 기준 결정론적 50/50). 추적 카운터로 추후 베이지안 승자판정.
+            $variant = $abTest ? (((int)$c['id'] % 2 === 0) ? 'A' : 'B') : null;
+            // [현 차수 P2-2b] 수신자별 STO — 과거 오픈 최빈 시각. 현재 KST 시각과 다르면 그 시각으로 defer(개인 최적발송).
+            $stoHour = $stoOn ? self::optimalHourFor($pdo, $tenant, (string)$c['email']) : null;
+            $deferThis = $deferAll || ($stoHour !== null && $stoHour !== $curHourKst);
+            // [현 차수] STO 차단 시간/수신자 최적시각 → 큐 적재(status='queued'). cron이 허용/최적 시각에 실발송.
+            if ($deferThis) {
+                $pdo->prepare("INSERT INTO email_sends (tenant_id, campaign_id, customer_id, email, status, scheduled_at, sto_hour, variant) VALUES (:t,:cid,:uid,:email,'queued',:sa,:sh,:v)")
+                    ->execute([':t'=>$tenant, ':cid'=>$cid, ':uid'=>$c['id'], ':email'=>$c['email'], ':sa'=>$now, ':sh'=>$stoHour, ':v'=>$variant]);
                 $queued++; continue;
             }
             // [현 차수] 개인화 엔진 + 수신거부 풋터/헤더(원클릭 List-Unsubscribe — Gmail/Yahoo 대량발송 요건).
             $unsubUrl = self::unsubUrl($tenant, (string)$c['email']);
-            $subject = $template ? self::renderTemplate((string)($template['subject']??''), $c) : '(제목 없음)';
+            $subjTpl = ($variant === 'B' && $subjectBTpl !== '') ? $subjectBTpl : (string)($template['subject'] ?? '');
+            $subject = $template ? self::renderTemplate($subjTpl, $c) : '(제목 없음)';
             $body    = $template ? (self::renderTemplate((string)($template['html_body']??''), $c, ['unsubscribe_url'=>$unsubUrl]) . self::unsubFooter($unsubUrl)) : '';
             $body    = self::injectTracking($body, (int)$cid, (int)($c['id'] ?? 0)); // [현 차수 P2-2b] 오픈/클릭 추적 주입
 
@@ -509,8 +553,8 @@ class EmailMarketing
             elseif (!empty($mr['ok'])) { $status='sent'; $sent++; }
             else { $status='failed'; $failed++; }
 
-            $pdo->prepare("INSERT INTO email_sends (tenant_id, campaign_id, customer_id, email, status, sent_at) VALUES (:t,:cid,:uid,:email,:st,:sa)")
-                ->execute([':t'=>$tenant, ':cid'=>$cid, ':uid'=>$c['id'], ':email'=>$c['email'], ':st'=>$status, ':sa'=>$now]);
+            $pdo->prepare("INSERT INTO email_sends (tenant_id, campaign_id, customer_id, email, status, sent_at, variant) VALUES (:t,:cid,:uid,:email,:st,:sa,:v)")
+                ->execute([':t'=>$tenant, ':cid'=>$cid, ':uid'=>$c['id'], ':email'=>$c['email'], ':st'=>$status, ':sa'=>$now, ':v'=>$variant]);
             // CRM 활동 기록 (테넌트 스코프)
             $pdo->prepare("INSERT INTO crm_activities (tenant_id, customer_id, type, channel, data, created_at) VALUES (:t,:uid,'email_sent','email',:data,:ca)")
                 ->execute([':t'=>$tenant, ':uid'=>$c['id'], ':data'=>json_encode(['campaign_id'=>$cid,'campaign_name'=>$campaign['name'],'subject'=>$subject]), ':ca'=>$now]);
@@ -524,6 +568,45 @@ class EmailMarketing
         $pdo->prepare("UPDATE email_campaigns SET status=:st, sent_at=:sa, total_sent=:t WHERE id=:id AND tenant_id=:tn")
             ->execute([':st'=>$campStatus, ':sa'=>$now, ':t'=>$total, ':id'=>$cid, ':tn'=>$tenant]);
         return self::jsonRes($res, ['ok'=>true,'total'=>$total,'sent'=>$sent,'mock_sent'=>$mock,'failed'=>$failed,'frequency_capped'=>$capped,'suppressed'=>$suppressed,'queued'=>$queued,'status'=>$campStatus]);
+    }
+
+    /* ─── [현 차수 P2-2b] GET /email/campaigns/{id}/ab-result — A/B variant 오픈율 베이지안 자동승자 ─── */
+    public static function abResult(Request $req, Response $res, array $args): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $pdo = self::db(); $tenant = self::tenant($req); $cid = (int)$args['id'];
+        $st = $pdo->prepare("SELECT variant, COUNT(*) AS sent,
+            SUM(CASE WHEN opened_at IS NOT NULL AND opened_at<>'' THEN 1 ELSE 0 END) AS opened,
+            SUM(CASE WHEN clicked_at IS NOT NULL AND clicked_at<>'' THEN 1 ELSE 0 END) AS clicked
+            FROM email_sends WHERE tenant_id=:t AND campaign_id=:c AND variant IN ('A','B') GROUP BY variant");
+        $st->execute([':t'=>$tenant, ':c'=>$cid]);
+        $V = ['A'=>['sent'=>0,'opened'=>0,'clicked'=>0], 'B'=>['sent'=>0,'opened'=>0,'clicked'=>0]];
+        foreach ($st->fetchAll(\PDO::FETCH_ASSOC) ?: [] as $r) { $v=(string)$r['variant']; if (isset($V[$v])) $V[$v]=['sent'=>(int)$r['sent'],'opened'=>(int)$r['opened'],'clicked'=>(int)$r['clicked']]; }
+        $orA = $V['A']['sent']>0 ? $V['A']['opened']/$V['A']['sent'] : 0.0;
+        $orB = $V['B']['sent']>0 ? $V['B']['opened']/$V['B']['sent'] : 0.0;
+        $probBbest = self::betaBestProb($V['B']['opened'], $V['B']['sent'], $V['A']['opened'], $V['A']['sent']);
+        $winner = null;
+        if ($V['A']['sent'] >= 50 && $V['B']['sent'] >= 50) { // 최소 표본 게이트
+            if ($probBbest >= 0.95) $winner = 'B'; elseif ($probBbest <= 0.05) $winner = 'A';
+        }
+        if ($winner) { try { $pdo->prepare("UPDATE email_campaigns SET ab_winner=:w WHERE id=:c AND tenant_id=:t")->execute([':w'=>$winner, ':c'=>$cid, ':t'=>$tenant]); } catch (\Throwable $e) {} }
+        return self::jsonRes($res, ['ok'=>true,
+            'variants'=>['A'=>$V['A']+['open_rate'=>round($orA*100,2)], 'B'=>$V['B']+['open_rate'=>round($orB*100,2)]],
+            'prob_b_best'=>round($probBbest*100,1), 'winner'=>$winner, 'confidence'=>round(max($probBbest,1-$probBbest)*100,1),
+            'verdict'=>$winner ? "승자: variant {$winner} (95% 신뢰수준)" : '아직 유의한 승자 없음 — 표본/기간 확대 필요']);
+    }
+    /** Beta(s+1,n-s+1) 사후 P(B>A) 정규근사 — 오픈율 A/B 승자 확률. */
+    private static function betaBestProb(int $sB, int $nB, int $sA, int $nA): float {
+        $mA=($sA+1)/($nA+2); $vA=$mA*(1-$mA)/($nA+3);
+        $mB=($sB+1)/($nB+2); $vB=$mB*(1-$mB)/($nB+3);
+        $sd=sqrt($vA+$vB); if ($sd<=0) return 0.5;
+        return self::stdNormCdf(($mB-$mA)/$sd);
+    }
+    private static function stdNormCdf(float $x): float {
+        $t=1/(1+0.2316419*abs($x)); $d=0.3989422804014327*exp(-$x*$x/2);
+        $p=$d*$t*(0.319381530+$t*(-0.356563782+$t*(1.781477937+$t*(-1.821255978+$t*1.330274429))));
+        return $x>0 ? 1-$p : $p;
     }
 
     /* ─── GET /email/campaigns/{id}/stats ──────────────────────────── */
