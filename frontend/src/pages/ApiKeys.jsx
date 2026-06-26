@@ -267,6 +267,8 @@ const REAL_ADAPTER = new Set([
   'meta_ads', 'google_ads', 'tiktok_business', 'naver_sa', 'kakao_moment', 'line_ads',
   // [240차] 커넥터 확장 — 신규 광고 데이터소스 실 ingest 어댑터(Connectors::fetch*Rows). amazon/microsoft/x_ads 승격(게이트+OAuth 인증취득, 라이브 검증 후 매핑).
   'snapchat_ads', 'linkedin_ads', 'criteo', 'pinterest_ads', 'amazon_ads', 'microsoft_ads', 'x_ads',
+  // [현 차수 감사 F-2] 롱테일 광고 5종 — Connectors fetch*Rows 실어댑터 보유에도 set 누락으로 "연동 예정" 거짓 언더클레임이던 결함 해소(F-1 AD_SHORT와 동반).
+  'reddit_ads', 'apple_search_ads', 'amazon_dsp', 'quora_ads', 'spotify_ads',
   'shopify', 'amazon_spapi', 'coupang', 'naver_smartstore', 'ebay', 'rakuten', 'cafe24', 'tiktok_shop',
   'st11', '11st', 'gmarket', 'auction', 'lotteon', // [현 차수] 국내 오픈마켓 4종 실어댑터(11번가 XML·ESM·롯데온)
   // [232차 Sprint2] 글로벌 커머스 실어댑터 9종(ChannelSync fetch) — 거짓 '데이터 미수집' 사전고지 제거.

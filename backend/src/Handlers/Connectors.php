@@ -753,6 +753,13 @@ final class Connectors
         'amazon_ads'=>'amazon_ads','amazon_ads_dsp'=>'amazon_ads',
         'microsoft_ads'=>'microsoft_ads','bing_ads'=>'microsoft_ads',
         'x_ads'=>'x_ads','twitter_ads'=>'x_ads',
+        // [현 차수 감사 F-1] 롱테일 광고 5종 — runSync fetcher·ChannelRegistry(sync_kind='ad')는 보유하나 AD_SHORT 누락으로
+        //   저장직후 즉시동기화만 비대칭 스킵(cron은 동작)이던 결함 해소. 키=fetcher 디스패치명 동일(자동 전파).
+        'reddit_ads'=>'reddit_ads',
+        'apple_search_ads'=>'apple_search_ads',
+        'amazon_dsp'=>'amazon_dsp',
+        'quora_ads'=>'quora_ads',
+        'spotify_ads'=>'spotify_ads',
     ];
 
     private static function loadCred(string $tenant, string $channelKey, string $credKey): string
