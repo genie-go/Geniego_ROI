@@ -1018,38 +1018,37 @@ const CarrierTab = memo(function CarrierTab() {
         try { await wmsApi.updateCarrier(id, { ...c, active: !c.active }); await reloadCarriers(); } catch (e) { alert(String(e?.message || e)); }
     };
 
-    // API Integration Test — /api/carrier-track endpoint
+    // [현 차수 P3-2] 택배사 API 연동 테스트 — 죽은 /api/carrier-track → 실 추적 엔드포인트(/v427/logistics/track)로
+    //   재배선. 테스트 운송장으로 핑(키 유효 시 carrier API 응답=ok, 인증실패=fail). ★거짓성공 제거: 네트워크/서버
+    //   오류 시 길이기반 가짜 'ok' 폴백을 honest 'fail'로 교체(실 검증만 표기).
     const testApi = async (id) => {
         const carrier = carriers.find(c => c.id === id);
         const key = apiInputs[id] ?? carrier.apiKey;
         if (!key || key.trim() === '') { alert(t('wms.carrApiKeyRequired')); return; }
         setTesting(p => ({ ...p, [id]: 'loading' }));
-        // Save API key immediately (로컬 + 백엔드 영속)
         setCarriers(p => p.map(c => c.id === id ? { ...c, apiKey: key } : c));
         try { await wmsApi.updateCarrier(id, { ...carrier, apiKey: key }); } catch {}
 
         try {
             const token = localStorage.getItem('genie_token');
             const BASE = import.meta.env?.VITE_API_BASE ?? '';
-            const r = await fetch(`${BASE}/api/carrier-track`, {
+            const r = await fetch(`${BASE}/api/v427/logistics/track`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     ...(token ? { Authorization: `Bearer ${token}` } : {}),
                 },
                 body: JSON.stringify({
-                    type: 'ping',  // API Integration Test
-                    carrierId: carrier.code,
-                    carrierName: carrier.name,
-                    apiKey: key,
-                    country: carrier.country,
+                    carrier: carrier.code, carrier_code: carrier.code, carrierName: carrier.name,
+                    tracking_no: 'TEST0000000000', api_key: key, country: carrier.country, ping: true,
                 }),
             });
             const d = await r.json().catch(() => ({}));
-            setTesting(p => ({ ...p, [id]: (r.ok && d.ok !== false) ? 'ok' : 'fail' }));
+            // carrier API 가 응답(인증 통과)하면 ok — 추적번호 미존재(found=false)여도 키는 유효. 인증/구성 오류만 fail.
+            const authFail = d.error && /auth|unauthor|key|forbidden|401|403/i.test(String(d.error));
+            setTesting(p => ({ ...p, [id]: (r.ok && d.ok !== false && !authFail) ? 'ok' : 'fail' }));
         } catch {
-            // Network error or server not implemented → length-based simulation fallback
-            setTesting(p => ({ ...p, [id]: key.length >= 8 ? 'ok' : 'fail' }));
+            setTesting(p => ({ ...p, [id]: 'fail' })); // 거짓성공 제거 — 실 검증 실패는 honest fail
         }
     };
 

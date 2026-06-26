@@ -594,6 +594,9 @@ class Wms
             if ($upd->rowCount() === 0) {
                 throw new \RuntimeException("insufficient_stock:{$sku}@{$wh}"); // 행없음 또는 재고부족 → 출고 거부
             }
+            // [현 차수 P3-2] FEFO 실소비 — 출고 시 유통기한 임박 lot 부터 실차감(기존엔 wms_lots 미소비=등록부에 머묾).
+            //   lot 미추적 SKU 는 no-op(전 SKU 가 lot 추적 대상은 아님). 비throw(재고는 wms_stock 권위).
+            self::consumeLotsFefo($pdo, $t, $sku, $wh, $need);
             return;
         }
         // 입고/조정: read-modify-write(조정 음수는 0 클램프). recordMovement 트랜잭션 내 호출로 일관성 확보.
@@ -608,6 +611,32 @@ class Wms
             $pdo->prepare("INSERT INTO wms_stock (tenant_id,sku,wh_id,name,on_hand,updated_at) VALUES (?,?,?,?,?,?)")
                 ->execute([$t, $sku, $wh, $name, max(0, $delta), $now]);
         }
+    }
+
+    /**
+     * [현 차수 P3-2] FEFO(First-Expiry-First-Out) lot 실소비 — 출고 수량을 유통기한 임박 lot 부터 차감.
+     *   wh 일치 lot 우선, 만료일 ASC(NULL/빈 만료는 후순위) → id ASC. lot 합이 부족하면 가능분만 차감(재고는
+     *   wms_stock 이 권위·이미 검증). lot 미추적 SKU(=lot 0개)는 no-op. 전과정 비throw(보조 등록부).
+     */
+    private static function consumeLotsFefo(\PDO $pdo, string $t, string $sku, string $wh, float $qty): void
+    {
+        if ($qty <= 0 || $sku === '') return;
+        try {
+            $sel = $pdo->prepare("SELECT id, qty FROM wms_lots WHERE tenant_id=:t AND sku=:s AND qty>0 AND (wh_id=:w OR wh_id IS NULL OR wh_id='')
+                                  ORDER BY (expiry_date IS NULL OR expiry_date=''), expiry_date ASC, id ASC");
+            $sel->execute([':t' => $t, ':s' => $sku, ':w' => $wh]);
+            $lots = $sel->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+            if (!$lots) return; // lot 미추적 SKU → no-op
+            $need = $qty;
+            $dec = $pdo->prepare("UPDATE wms_lots SET qty = qty - :take WHERE id = :id");
+            foreach ($lots as $lot) {
+                if ($need <= 0) break;
+                $take = min((float)$lot['qty'], $need);
+                if ($take <= 0) continue;
+                $dec->execute([':take' => $take, ':id' => (int)$lot['id']]);
+                $need -= $take;
+            }
+        } catch (\Throwable $e) { /* lot 소비 실패 = 정직 무시(wms_stock 권위) */ }
     }
 
     /** GET /wms/stock — 물리 창고 재고(입출고 파생). by_sku=1 이면 SKU별 합산. */
