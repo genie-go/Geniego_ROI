@@ -30,7 +30,7 @@
 - 기존 유지: opcache=fpm restart·`$register`+bypass 3종세트·신규핸들러 fpm restart·tar 정방향슬래시.
 
 ## 📋 잔여 작업 우선순위
-- **P1 — i18n 15개국**: 신규 UI 키 `liveCommerce.guest*`(~16)·`aiRuleEngine.*`(~30) 현재 한국어 소스 임베드+graceful 폴백. 번역 워크플로우(CC추천→사용자확정→적용) 대상. *14개국 fallback 경고 해소 필요.*
+- ~~**P1 — i18n 15개국**~~ ✅ **완료**(커밋 `b51ce29`): `aiRuleEngine` 신규 27 + `liveCommerce` guest 16 = **43키×15국** acorn splice 주입. baseline v251(ko_leaf 17349·ja/zh SHA). pre-commit 전 게이트 통과·운영/데모 배포·push. 14개국 fallback 경고 해소.
 - **P2 — 외부 의존 라이브검증**: PG 라이브키(TOSS_SECRET_KEY 등)·커넥터 자격증명 등록 시 즉시 라이브검증(코드 완비). 라이브 영상 멀티게스트=외부 미디어서버(SRS/LiveKit) 연동(control-plane 완료).
 - **P2 — 이메일 STO/A-B 프론트**: 백엔드 완료, 캠페인 생성 UI에 subject_b/ab_test 입력 + ab-result 대시보드 추가.
 - **P2 — ABAC 타 차원**: warehouse 외 brand/product/channel 차원 핸들러 적용(프레임워크 재사용, `scopeSql` 호출만).
