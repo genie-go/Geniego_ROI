@@ -760,6 +760,9 @@ final class Connectors
         'amazon_dsp'=>'amazon_dsp',
         'quora_ads'=>'quora_ads',
         'spotify_ads'=>'spotify_ads',
+        // [R-P3-7] 네이티브 광고(콘텐츠 디스커버리) — 동일 SSOT 패턴(저장직후 syncOne·cron·isAdChannel 자동 전파).
+        'taboola'=>'taboola','taboola_ads'=>'taboola',
+        'outbrain'=>'outbrain','outbrain_ads'=>'outbrain',
     ];
 
     private static function loadCred(string $tenant, string $channelKey, string $credKey): string
@@ -1468,6 +1471,9 @@ final class Connectors
             'amazon_dsp'        => fn() => self::fetchAmazonDspRows($tenant, $start, $end),
             'quora_ads'         => fn() => self::fetchQuoraRows($tenant, $start, $end),
             'spotify_ads'       => fn() => self::fetchSpotifyAdsRows($tenant, $start, $end),
+            // [R-P3-7] 네이티브 광고 커넥터 확대(콘텐츠 디스커버리) — 자격증명 등록 시 즉시 fetch·graceful.
+            'taboola'           => fn() => self::fetchTaboolaRows($tenant, $start, $end),
+            'outbrain'          => fn() => self::fetchOutbrainRows($tenant, $start, $end),
         ];
 
         foreach ($fetchers as $ch => $fn) {
@@ -3349,6 +3355,55 @@ final class Connectors
                 'impressions' => (int)($r['impressions'] ?? 0), 'clicks' => (int)($r['clicks'] ?? 0),
                 'spend' => (float)($r['spend'] ?? $r['cost'] ?? 0), 'conversions' => (int)round((float)($r['conversions'] ?? 0)),
                 'revenue' => (float)($r['conversion_value'] ?? 0), 'currency' => $cur,
+            ];
+        }
+        return ['hasCreds' => true, 'live' => true, 'rows' => $rows];
+    }
+
+    /** [R-P3-7] Taboola(Backstage) 네이티브 광고 — campaign-summary 일자 리포트. access_token+account_id 등록 시 즉시 동작. */
+    private static function fetchTaboolaRows(string $tenant, string $start, string $end): array
+    {
+        $token = (string)(getenv('TABOOLA_ACCESS_TOKEN') ?: self::loadCred($tenant, 'taboola', 'access_token'));
+        $acct  = (string)(getenv('TABOOLA_ACCOUNT_ID') ?: self::loadCred($tenant, 'taboola', 'account_id'));
+        if ($token === '' || $acct === '') return ['hasCreds' => false, 'live' => false, 'rows' => []];
+        $cur = strtoupper((string)(self::loadCred($tenant, 'taboola', 'currency') ?: 'USD'));
+        $q = http_build_query(['start_date' => $start, 'end_date' => $end]);
+        [$code, $body, $err] = self::httpGet('https://backstage.taboola.com/backstage/api/1.0/' . rawurlencode($acct) . '/reports/campaign-summary/dimensions/day?' . $q, ['Authorization' => 'Bearer ' . $token, 'Accept' => 'application/json']);
+        if ($err || $code >= 400) return ['hasCreds' => true, 'live' => false, 'error' => ($err ?: "taboola http $code") . ' (라이브 검증 후 매핑)'];
+        $rows = [];
+        foreach ((array)($body['results'] ?? []) as $r) {
+            if (!is_array($r)) continue;
+            $rows[] = [
+                'team' => 'Taboola', 'account' => 'Taboola', 'campaign_ext_id' => (string)($r['campaign'] ?? $r['campaign_id'] ?? ''),
+                'objective' => '', 'reach' => 0, 'date' => substr((string)($r['date'] ?? ''), 0, 10),
+                'impressions' => (int)($r['impressions'] ?? 0), 'clicks' => (int)($r['clicks'] ?? 0),
+                'spend' => (float)($r['spent'] ?? $r['spend'] ?? 0), 'conversions' => (int)round((float)($r['cpa_actions_num'] ?? $r['conversions'] ?? 0)),
+                'revenue' => (float)($r['cpa_conversions_value'] ?? $r['conversions_value'] ?? 0), 'currency' => $cur,
+            ];
+        }
+        return ['hasCreds' => true, 'live' => true, 'rows' => $rows];
+    }
+
+    /** [R-P3-7] Outbrain(Amplify) 네이티브 광고 — marketer periodic(daily) 리포트. ob_token+marketer_id 등록 시 즉시 동작. */
+    private static function fetchOutbrainRows(string $tenant, string $start, string $end): array
+    {
+        $token = (string)(getenv('OUTBRAIN_OB_TOKEN') ?: self::loadCred($tenant, 'outbrain', 'ob_token'));
+        $mkt   = (string)(getenv('OUTBRAIN_MARKETER_ID') ?: self::loadCred($tenant, 'outbrain', 'marketer_id'));
+        if ($token === '' || $mkt === '') return ['hasCreds' => false, 'live' => false, 'rows' => []];
+        $cur = strtoupper((string)(self::loadCred($tenant, 'outbrain', 'currency') ?: 'USD'));
+        $q = http_build_query(['from' => $start, 'to' => $end, 'breakdown' => 'daily']);
+        [$code, $body, $err] = self::httpGet('https://api.outbrain.com/amplify/v0.1/marketers/' . rawurlencode($mkt) . '/periodic?' . $q, ['OB-TOKEN-V1' => $token, 'Accept' => 'application/json']);
+        if ($err || $code >= 400) return ['hasCreds' => true, 'live' => false, 'error' => ($err ?: "outbrain http $code") . ' (라이브 검증 후 매핑)'];
+        $rows = [];
+        foreach ((array)($body['results'] ?? []) as $r) {
+            if (!is_array($r)) continue;
+            $m = (array)($r['metrics'] ?? $r); $meta = (array)($r['metadata'] ?? []);
+            $rows[] = [
+                'team' => 'Outbrain', 'account' => 'Outbrain', 'campaign_ext_id' => (string)($meta['id'] ?? ''),
+                'objective' => '', 'reach' => 0, 'date' => substr((string)($meta['fromDate'] ?? $meta['date'] ?? ''), 0, 10),
+                'impressions' => (int)($m['impressions'] ?? 0), 'clicks' => (int)($m['clicks'] ?? 0),
+                'spend' => (float)($m['spend'] ?? 0), 'conversions' => (int)round((float)($m['conversions'] ?? 0)),
+                'revenue' => (float)($m['sumValue'] ?? $m['conversionsValue'] ?? 0), 'currency' => $cur,
             ];
         }
         return ['hasCreds' => true, 'live' => true, 'rows' => $rows];

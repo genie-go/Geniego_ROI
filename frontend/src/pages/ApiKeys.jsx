@@ -44,6 +44,9 @@ const CHANNELS = [
   { key: 'linkedin_ads',     name: 'LinkedIn Ads',      icon: '💼', color: '#0A66C2', group: 'global_ad' },
   { key: 'criteo',           name: 'Criteo',            icon: '🟧', color: '#F47521', group: 'global_ad' },
   { key: 'pinterest_ads',    name: 'Pinterest Ads',     icon: '📌', color: '#E60023', group: 'global_ad' },
+  // [R-P3-7] 네이티브 광고(콘텐츠 디스커버리) 실 ingest 어댑터 — 자격증명 등록 시 즉시 자동수집.
+  { key: 'taboola',          name: 'Taboola',           icon: '🟦', color: '#0480D4', group: 'global_ad' },
+  { key: 'outbrain',         name: 'Outbrain',          icon: '🟠', color: '#EE6513', group: 'global_ad' },
   // [240차] 로드맵 → 실 어댑터 승격(Amazon/Microsoft/X Ads). 항목은 아래 로드맵 블록에 정의됨(중복 제거).
   { key: 'microsoft_ads',    name: 'Microsoft Ads (Bing)', icon: '🪟', color: '#00A4EF', group: 'global_ad' },
   { key: 'x_ads',            name: 'X (Twitter) Ads',   icon: '✖️', color: '#000000', group: 'global_ad' },
@@ -269,6 +272,7 @@ const REAL_ADAPTER = new Set([
   'snapchat_ads', 'linkedin_ads', 'criteo', 'pinterest_ads', 'amazon_ads', 'microsoft_ads', 'x_ads',
   // [현 차수 감사 F-2] 롱테일 광고 5종 — Connectors fetch*Rows 실어댑터 보유에도 set 누락으로 "연동 예정" 거짓 언더클레임이던 결함 해소(F-1 AD_SHORT와 동반).
   'reddit_ads', 'apple_search_ads', 'amazon_dsp', 'quora_ads', 'spotify_ads',
+  'taboola', 'outbrain', // [R-P3-7] 네이티브 광고 실어댑터(Connectors::fetchTaboolaRows/fetchOutbrainRows)
   'shopify', 'amazon_spapi', 'coupang', 'naver_smartstore', 'ebay', 'rakuten', 'cafe24', 'tiktok_shop',
   'st11', '11st', 'gmarket', 'auction', 'lotteon', // [현 차수] 국내 오픈마켓 4종 실어댑터(11번가 XML·ESM·롯데온)
   // [232차 Sprint2] 글로벌 커머스 실어댑터 9종(ChannelSync fetch) — 거짓 '데이터 미수집' 사전고지 제거.
