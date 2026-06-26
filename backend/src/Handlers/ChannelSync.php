@@ -3153,6 +3153,7 @@ final class ChannelSync
             //   (추정 롤업 폴백 = 안전, 날조 0). 실 셀러 자격증명 확보 후 즉시 라이브 동작.
             case 'coupang': return self::coupangSettlements($creds, $period);  // CEA HMAC 재사용
             case 'naver':   return self::naverSettlements($creds, $period);    // OAuth2 재사용
+            case 'shopify': return self::shopifySettlements($creds, $period);  // [245차 P2-4] Shopify Payments payouts(shop+token 재사용)
             default:
                 return ['ok' => true, 'settlements' => [], 'pending' => true,
                         'note' => $channel . ' 정산 자동풀 어댑터 미구현 — 추정 롤업/수동 ingest 사용(실 셀러 자격증명 확보 후 어댑터 추가)'];
@@ -3195,6 +3196,42 @@ final class ChannelSync
         return ['ok' => true, 'pending' => false, 'settlements' => [[
             'period' => $period, 'channel' => 'coupang', 'gross_sales' => round($gross),
             'platform_fee' => round($fee), 'net_payout' => round($net), 'source' => 'coupang_revenue_history',
+        ]]];
+    }
+
+    /** [245차 P2-4] Shopify 정산 자동수집 — Shopify Payments payouts(shop_domain+access_token 재사용).
+     *   payout.summary 에서 gross/fee 도출, amount=net_payout. 게이트+오류/빈/매핑불일치 시 pending(날조 0·추정롤업 폴백). */
+    private static function shopifySettlements(array $creds, string $period): array
+    {
+        $token = trim((string)($creds['access_token'] ?? $creds['api_password'] ?? ''));
+        $shop  = rtrim(trim((string)($creds['shop_domain'] ?? '')), '/');
+        if ($token === '' || $shop === '')
+            return ['ok' => true, 'settlements' => [], 'pending' => true, 'note' => 'Shopify 정산: shop_domain·access_token 필요'];
+        if (!str_contains($shop, '.')) $shop .= '.myshopify.com';
+        $ts = strtotime($period . '-01'); if ($ts === false) return ['ok' => true, 'settlements' => [], 'pending' => true, 'note' => 'Shopify 정산: period 형식 오류'];
+        $from = gmdate('Y-m-d', $ts); $to = gmdate('Y-m-t', $ts);
+        $url = "https://{$shop}/admin/api/2024-01/shopify_payments/payouts.json?date_min={$from}&date_max={$to}&limit=250";
+        [$code, $body] = self::httpGet($url, ['X-Shopify-Access-Token' => $token, 'Content-Type' => 'application/json']);
+        if ($code !== 200 || !is_array($body))
+            return ['ok' => true, 'settlements' => [], 'pending' => true, 'note' => "Shopify 정산 조회 실패(code={$code}) — 추정 롤업 폴백(Shopify Payments 미사용 시 정상)"];
+        $payouts = $body['payouts'] ?? [];
+        if (!is_array($payouts) || !$payouts)
+            return ['ok' => true, 'settlements' => [], 'pending' => true, 'note' => 'Shopify 정산 데이터 없음(기간) — 추정 롤업 폴백'];
+        $gross = 0.0; $fee = 0.0; $net = 0.0; $cur = 'USD';
+        foreach ($payouts as $p) {
+            if (!is_array($p)) continue;
+            $net += (float)($p['amount'] ?? 0);
+            $cur = (string)($p['currency'] ?? $cur);
+            $s = is_array($p['summary'] ?? null) ? $p['summary'] : [];
+            $gross += (float)($s['charges_gross_amount'] ?? 0) - (float)($s['refunds_gross_amount'] ?? 0);
+            $fee   += (float)($s['charges_fee_amount'] ?? 0) + (float)($s['refunds_fee_amount'] ?? 0) + (float)($s['adjustments_fee_amount'] ?? 0);
+        }
+        if ($gross <= 0 && $net <= 0)
+            return ['ok' => true, 'settlements' => [], 'pending' => true, 'note' => 'Shopify 정산 필드 매핑 불일치 — 라이브 검증 필요(추정 롤업 폴백)'];
+        if ($gross <= 0) $gross = $net + $fee; // summary 부재 시 net+fee 추정
+        return ['ok' => true, 'pending' => false, 'settlements' => [[
+            'period' => $period, 'channel' => 'shopify', 'gross_sales' => round($gross),
+            'platform_fee' => round($fee), 'net_payout' => round($net), 'currency' => $cur, 'source' => 'shopify_payments_payouts',
         ]]];
     }
 
