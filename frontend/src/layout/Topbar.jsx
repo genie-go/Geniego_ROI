@@ -14,6 +14,7 @@ import { sanitizeHtml } from "../utils/xssSanitizer.js";
 
 /* 데모 모드 감지 — 정본(demoEnv) 단일 소스 (운영 오염 방지 엄격 격리) */
 import { IS_DEMO } from "../utils/demoEnv.js";
+import DataFreshness from "../components/DataFreshness.jsx";
 
 /* 테마 목록 */
 const THEMES = [
@@ -375,6 +376,8 @@ export default function Topbar() {
 
       {/* 우측: 도구 모음 */}
       <div className="topbar-right" style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+        {/* [R-P1-2] 데이터 신선도 + 즉시 동기화 (운영 전용) */}
+        <DataFreshness />
         {/* 시계 */}
         <span className="topbar-clock" style={{
           fontSize: 10, color: isLightTopbar ? '#475569' : 'var(--text-3)', fontFamily: 'monospace',

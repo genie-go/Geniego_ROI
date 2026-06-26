@@ -1516,12 +1516,85 @@ final class Connectors
             }
         }
 
+        // [R-P1-2] 신선도 추적 — 채널별 마지막 동기화 시각·상태·행수 기록(테넌트×채널 단일행 upsert).
+        try { self::recordSyncFreshness($pdo, $tenant, $summary); } catch (\Throwable $e) { /* graceful */ }
+
         return [
             'tenant_id'  => $tenant,
             'window'     => compact('start', 'end'),
             'persisted'  => $totalRows,
             'channels'   => $summary,
         ];
+    }
+
+    /** [R-P1-2] connector_sync_log 테이블 보장. 테넌트×채널 단일행(최신 동기화 상태). */
+    private static function ensureSyncLogTable(PDO $pdo): void
+    {
+        try {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS connector_sync_log (
+                tenant_id VARCHAR(100), channel VARCHAR(100),
+                status VARCHAR(20), rows_persisted INT DEFAULT 0,
+                synced_at VARCHAR(32),
+                PRIMARY KEY (tenant_id, channel)
+            )");
+        } catch (\Throwable $e) { /* graceful */ }
+    }
+
+    /** runSync 결과 summary 를 채널별 신선도 행으로 upsert. ok=실수집 시각, skipped/error=시도 시각+상태. */
+    private static function recordSyncFreshness(PDO $pdo, string $tenant, array $summary): void
+    {
+        if ($tenant === '' || empty($summary)) return;
+        self::ensureSyncLogTable($pdo);
+        $now = gmdate('c');
+        $isMy = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql';
+        $sql = $isMy
+            ? "INSERT INTO connector_sync_log(tenant_id,channel,status,rows_persisted,synced_at) VALUES(?,?,?,?,?)
+               ON DUPLICATE KEY UPDATE status=VALUES(status), rows_persisted=VALUES(rows_persisted), synced_at=VALUES(synced_at)"
+            : "INSERT INTO connector_sync_log(tenant_id,channel,status,rows_persisted,synced_at) VALUES(?,?,?,?,?)
+               ON CONFLICT(tenant_id,channel) DO UPDATE SET status=excluded.status, rows_persisted=excluded.rows_persisted, synced_at=excluded.synced_at";
+        $st = $pdo->prepare($sql);
+        foreach ($summary as $ch => $s) {
+            $status = (string)($s['status'] ?? 'unknown');
+            $rows = (int)($s['rows'] ?? 0);
+            $st->execute([$tenant, (string)$ch, $status, $rows, $now]);
+        }
+    }
+
+    /**
+     * [R-P1-2] GET /v423/connectors/freshness — 채널별 마지막 동기화 시각·경과(분)·신선도 등급.
+     *   준실시간 신선도 표면화: 각 채널 "N분 전 업데이트", stale(>90분) 경고. 실DB 파생.
+     */
+    public static function freshness(Request $request, Response $response, array $args): Response
+    {
+        $tenant = (string)($request->getAttribute('auth_tenant') ?? '');
+        if ($tenant === '') { $tenant = UserAuth::authedTenant($request) ?? ''; }
+        $out = ['ok' => true, 'channels' => [], 'last_sync_at' => null, 'oldest_minutes' => null];
+        if ($tenant === '') { $response->getBody()->write(json_encode($out)); return $response->withHeader('Content-Type', 'application/json'); }
+        try {
+            $pdo = Db::pdo(); self::ensureSyncLogTable($pdo);
+            $st = $pdo->prepare("SELECT channel, status, rows_persisted, synced_at FROM connector_sync_log WHERE tenant_id=? ORDER BY synced_at DESC");
+            $st->execute([$tenant]);
+            $rows = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+            $now = time(); $latest = null; $oldestMin = null; $chans = [];
+            foreach ($rows as $r) {
+                $ts = strtotime((string)$r['synced_at']) ?: 0;
+                $minAgo = $ts > 0 ? (int)floor(($now - $ts) / 60) : null;
+                $grade = $minAgo === null ? 'unknown' : ($minAgo <= 20 ? 'fresh' : ($minAgo <= 90 ? 'recent' : 'stale'));
+                $chans[] = [
+                    'channel' => (string)$r['channel'], 'status' => (string)$r['status'],
+                    'rows' => (int)$r['rows_persisted'], 'synced_at' => (string)$r['synced_at'],
+                    'minutes_ago' => $minAgo, 'freshness' => $grade,
+                ];
+                if ($ts > 0 && ($latest === null || $ts > $latest)) $latest = $ts;
+                if ($ts > 0 && (string)$r['status'] === 'ok' && ($oldestMin === null || $minAgo > $oldestMin)) $oldestMin = $minAgo;
+            }
+            $out['channels'] = $chans;
+            $out['last_sync_at'] = $latest ? gmdate('c', $latest) : null;
+            $out['last_sync_minutes_ago'] = $latest ? (int)floor(($now - $latest) / 60) : null;
+            $out['oldest_minutes'] = $oldestMin;
+        } catch (\Throwable $e) { /* graceful — 빈 결과 */ }
+        $response->getBody()->write(json_encode($out, JSON_UNESCAPED_UNICODE));
+        return $response->withHeader('Content-Type', 'application/json');
     }
 
     /**
