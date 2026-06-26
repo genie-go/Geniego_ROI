@@ -42,6 +42,7 @@ export const MEMBER_MENU = [
       { to: "/auto-marketing",      icon: "💎", labelKey: "gNav.autoMarketingLabel",      menuKey: "marketing" },
       { to: "/campaign-manager",    icon: "🎯", labelKey: "gNav.campaignManagerLabel",    menuKey: "marketing" },
       { to: "/journey-builder",     icon: "🗺️", labelKey: "gNav.journeyBuilderLabel",     menuKey: "marketing" },
+      { to: "/onsite-cro",          icon: "🧪", labelKey: "gNav.onsiteCroLabel",          menuKey: "marketing" },
     ],
   },
   /* 광고 성과 분석 */

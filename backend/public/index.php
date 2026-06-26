@@ -91,6 +91,9 @@ $app->add(function (Request $request, $handler) {
         || preg_match('#^(/api)?/v423/connectors/[^/]+/test$#', $path)
         || strpos($path, '/v423/popups/') === 0
         || strpos($path, '/api/v423/popups/') === 0
+        // [R-P3-8] 온사이트 CRO 비콘 — 방문자 변형배정/전환(세션·api_key 불요·자연 스코프=tenant 쿼리). CRUD/results 는 인증.
+        || $path === '/v424/cro/assign' || $path === '/api/v424/cro/assign'
+        || $path === '/v424/cro/convert' || $path === '/api/v424/cro/convert'
         // Paddle Billing v2 — public (webhook is self-signed via HMAC, others are product catalog)
         || $path === '/v423/paddle/webhook' || $path === '/api/v423/paddle/webhook'
         || $path === '/v423/paddle/plans'   || $path === '/api/v423/paddle/plans'

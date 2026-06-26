@@ -821,6 +821,21 @@ return function (App $app): void {
         'GET /api/v424/compliance/posture'   => 'Genie\\Handlers\\Compliance::posture',
         'GET /v424/compliance/audit-export'  => 'Genie\\Handlers\\Compliance::auditExport',
         'GET /api/v424/compliance/audit-export' => 'Genie\\Handlers\\Compliance::auditExport',
+        // [R-P3-8] 온사이트 CRO 실험 — assign/convert 공개 비콘(세션불요·index.php bypass), CRUD/results 인증.
+        'GET /v424/cro/assign'               => 'Genie\\Handlers\\Onsite::assign',
+        'GET /api/v424/cro/assign'           => 'Genie\\Handlers\\Onsite::assign',
+        'POST /v424/cro/convert'             => 'Genie\\Handlers\\Onsite::convert',
+        'POST /api/v424/cro/convert'         => 'Genie\\Handlers\\Onsite::convert',
+        'GET /v424/cro/experiments'          => 'Genie\\Handlers\\Onsite::listExperiments',
+        'GET /api/v424/cro/experiments'      => 'Genie\\Handlers\\Onsite::listExperiments',
+        'POST /v424/cro/experiments'         => 'Genie\\Handlers\\Onsite::createExperiment',
+        'POST /api/v424/cro/experiments'     => 'Genie\\Handlers\\Onsite::createExperiment',
+        'PUT /v424/cro/experiments/{id}'     => 'Genie\\Handlers\\Onsite::updateExperiment',
+        'PUT /api/v424/cro/experiments/{id}' => 'Genie\\Handlers\\Onsite::updateExperiment',
+        'DELETE /v424/cro/experiments/{id}'     => 'Genie\\Handlers\\Onsite::deleteExperiment',
+        'DELETE /api/v424/cro/experiments/{id}' => 'Genie\\Handlers\\Onsite::deleteExperiment',
+        'GET /v424/cro/experiments/{id}/results'     => 'Genie\\Handlers\\Onsite::results',
+        'GET /api/v424/cro/experiments/{id}/results' => 'Genie\\Handlers\\Onsite::results',
         // [237차] 증분성(Double ML Uplift) 입력 데이터 — 프론트 기존 incrementalUplift 가 실데이터로 계산(중복0).
         'GET /v424/mmm/series'        => 'Genie\\Handlers\\Mmm::series',
         'GET /api/v424/mmm/series'    => 'Genie\\Handlers\\Mmm::series',
@@ -2849,6 +2864,13 @@ return function (App $app): void {
     $register('GET',  '/v424/attribution/blended'); $register('GET', '/api/v424/attribution/blended');
     $register('GET',  '/v424/compliance/posture'); $register('GET', '/api/v424/compliance/posture');
     $register('GET',  '/v424/compliance/audit-export'); $register('GET', '/api/v424/compliance/audit-export');
+    $register('GET',  '/v424/cro/assign'); $register('GET', '/api/v424/cro/assign');
+    $register('POST', '/v424/cro/convert'); $register('POST', '/api/v424/cro/convert');
+    $register('GET',  '/v424/cro/experiments'); $register('GET', '/api/v424/cro/experiments');
+    $register('POST', '/v424/cro/experiments'); $register('POST', '/api/v424/cro/experiments');
+    $register('PUT',  '/v424/cro/experiments/{id}'); $register('PUT', '/api/v424/cro/experiments/{id}');
+    $register('DELETE', '/v424/cro/experiments/{id}'); $register('DELETE', '/api/v424/cro/experiments/{id}');
+    $register('GET',  '/v424/cro/experiments/{id}/results'); $register('GET', '/api/v424/cro/experiments/{id}/results');
     $register('GET',  '/v424/mmm/series');    $register('GET',  '/api/v424/mmm/series'); // [237차] 증분성 입력
     $register('POST', '/v424/mmm/optimize');  $register('POST', '/api/v424/mmm/optimize');
     $register('GET',  '/v424/anomaly/scan');  $register('GET',  '/api/v424/anomaly/scan');

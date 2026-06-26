@@ -7732,6 +7732,7 @@ export default {
       data: "Data & Collection",
       finance: "Finance & Settlement",
       marketingMixLabel: "Marketing Mix Model",
+      onsiteCroLabel: "Onsite CRO",
       paymentMethodsLabel: "Payment Methods",
       memberTools: "Member Tools",
       adminSystem: "System Admin",

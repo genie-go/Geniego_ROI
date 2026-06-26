@@ -5238,7 +5238,7 @@ export default {
   
   "gNav": {
     pmGroup: "프로젝트 관리",
-    pmOverviewLabel: "프로젝트 목록","marketingMixLabel":"마케팅 믹스 모델","pmPortfolioLabel":"포트폴리오","pmResourcesLabel":"리소스",
+    pmOverviewLabel: "프로젝트 목록","marketingMixLabel":"마케팅 믹스 모델","onsiteCroLabel":"온사이트 CRO","pmPortfolioLabel":"포트폴리오","pmResourcesLabel":"리소스",
 
     "home": "홈",
 
@@ -14308,6 +14308,7 @@ export default {
       feedback: "Feedback",
       finance: "재무 & 정산",
       marketingMixLabel: "마케팅 믹스 모델",
+      onsiteCroLabel: "온사이트 CRO",
       paymentMethodsLabel: "결제수단",
       graphScore: "그래프 점수",
       help: "도움말 센터",

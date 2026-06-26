@@ -102,6 +102,7 @@ const PaymentFail = lazy(() => import("./pages/PaymentFail.jsx"));
 const PgConfig = lazy(() => import("./pages/PgConfig.jsx"));
 const CRM = lazy(() => import("./pages/CRM.jsx"));
 const EmailMarketing = lazy(() => import("./pages/EmailMarketing.jsx"));
+const OnsiteCro = lazy(() => import("./pages/OnsiteCro.jsx"));
 const KakaoChannel = lazy(() => import("./pages/KakaoChannel.jsx"));
 const LINEChannel = lazy(() => import("./pages/LINEChannel.jsx"));
 const JourneyBuilder = lazy(() => import("./pages/JourneyBuilder.jsx"));
@@ -518,6 +519,7 @@ function AppLayout() {
                       <Route path="/pg-config" element={<PgConfig />} />
                       <Route path="/crm" element={<CRM />} />
                       <Route path="/email-marketing" element={<EmailMarketing />} />
+                      <Route path="/onsite-cro" element={<OnsiteCro />} />
                       <Route path="/kakao-channel" element={<KakaoChannel />} />
                       <Route path="/line-channel" element={<LINEChannel />} />
                       <Route path="/pixel-tracking" element={<PixelTracking />} />
