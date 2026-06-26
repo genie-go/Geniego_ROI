@@ -154,9 +154,12 @@ final class OpenPlatform
         $desc = substr(trim((string)($body['description'] ?? '')), 0, 250);
         $events = is_array($body['events'] ?? null) ? array_values(array_unique(array_map('strval', $body['events']))) : [];
 
-        // 검증: https URL 강제(평문 http 발신 금지), 이벤트는 카탈로그 부분집합.
+        // 검증: 공개 https URL 강제(SSRF 차단 — 내부/사설/메타데이터 IP 거부), 이벤트는 카탈로그 부분집합.
         if ($url === '' || !preg_match('#^https://#i', $url)) {
             return self::json($res, ['ok' => false, 'error' => 'url 은 https:// 로 시작해야 합니다.'], 422);
+        }
+        if (!self::isPublicHttpsUrl($url)) {
+            return self::json($res, ['ok' => false, 'error' => '공개 호스트로 해석되는 https URL 만 허용됩니다(내부/사설/메타데이터 주소 차단).'], 422);
         }
         if (empty($events)) {
             return self::json($res, ['ok' => false, 'error' => '구독할 이벤트를 1개 이상 선택하세요.', 'available' => array_keys(self::EVENTS)], 422);
@@ -370,6 +373,43 @@ final class OpenPlatform
         return hash_hmac('sha256', $ts . '.' . $body, $secret);
     }
 
+    /**
+     * SSRF 방어 — URL 이 공개 https 호스트로 해석되는지 검증.
+     *   ★멀티테넌트 SaaS: 테넌트가 등록한 URL 로 서버가 서명 페이로드를 POST 하므로 내부/사설/메타데이터
+     *   주소(169.254.169.254·127.0.0.1·10.x·localhost 등) 차단 필수. 등록 시점 + 전달 시점 양쪽 호출
+     *   (DNS rebinding 대비 — 등록 때 공개였다가 전달 때 내부로 재해석되는 공격 차단).
+     */
+    private static function isPublicHttpsUrl(string $url): bool
+    {
+        $p = parse_url($url);
+        if (!$p || (($p['scheme'] ?? '') !== 'https')) return false;
+        $host = (string)($p['host'] ?? '');
+        if ($host === '') return false;
+        $lh = strtolower($host);
+        if (in_array($lh, ['localhost', 'metadata.google.internal'], true)) return false;
+        if (substr($lh, -6) === '.local' || substr($lh, -9) === '.internal') return false;
+
+        // 해석된 모든 IP 가 공개 범위(사설/예약 제외)여야 한다. 169.254.169.254(메타데이터)=link-local=예약 → 거부.
+        $ips = [];
+        if (filter_var($host, FILTER_VALIDATE_IP)) {
+            $ips = [$host];
+        } else {
+            $recs = @dns_get_record($host, DNS_A | DNS_AAAA);
+            if (is_array($recs)) {
+                foreach ($recs as $r) {
+                    if (!empty($r['ip']))   $ips[] = $r['ip'];
+                    if (!empty($r['ipv6'])) $ips[] = $r['ipv6'];
+                }
+            }
+            if (!$ips) { $h = @gethostbyname($host); if ($h && $h !== $host) $ips[] = $h; }
+        }
+        if (!$ips) return false; // 해석 불가 → 안전측 거부.
+        foreach ($ips as $ip) {
+            if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) return false;
+        }
+        return true;
+    }
+
     /** 단일 전달 시도 + 상태/재시도 갱신. */
     private static function attemptDelivery(\PDO $pdo, array $del, array $ep): array
     {
@@ -380,7 +420,10 @@ final class OpenPlatform
         $url = (string)($ep['url'] ?? '');
 
         $httpCode = 0; $err = null; $ok = false;
-        if (!function_exists('curl_init')) {
+        if (!self::isPublicHttpsUrl($url)) {
+            // DNS rebinding/사후 변조 방어 — 전달 직전 재검증. 비공개로 해석되면 전달 차단.
+            $err = 'blocked: url resolves to non-public host';
+        } elseif (!function_exists('curl_init')) {
             $err = 'curl extension unavailable';
         } else {
             try {
@@ -391,6 +434,8 @@ final class OpenPlatform
                     CURLOPT_RETURNTRANSFER => true,
                     CURLOPT_TIMEOUT => self::DELIVER_TIMEOUT,
                     CURLOPT_CONNECTTIMEOUT => 5,
+                    CURLOPT_FOLLOWLOCATION => false,            // 내부로의 리다이렉트 우회 차단
+                    CURLOPT_PROTOCOLS => defined('CURLPROTO_HTTPS') ? CURLPROTO_HTTPS : 2, // https 만(file/gopher 등 차단)
                     CURLOPT_HTTPHEADER => [
                         'Content-Type: application/json',
                         self::SIG_HEADER . ': t=' . $ts . ',v1=' . $sig,
