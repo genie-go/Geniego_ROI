@@ -1920,6 +1920,17 @@ final class ChannelSync
         $tok = (string)($tb['access_token'] ?? '');
         if ($tok === '') return ['ok' => false, 'error' => "Walmart 토큰 발급 실패(code={$tc}) — client_id/secret 확인"];
         $h = ['WM_SEC.ACCESS_TOKEN' => $tok, 'Authorization' => 'Basic ' . $basic, 'WM_QOS.CORRELATION_ID' => $corr, 'WM_SVC.NAME' => 'Walmart Marketplace', 'Accept' => 'application/json', 'Content-Type' => 'application/json'];
+        // [245차 P3-8] 신규 상품 등록(CREATE) — MP_ITEM 피드. productType(category)·productName 필수(카테고리별 필수속성은 셀러센터 스키마).
+        if ($op === 'register' || ($p['action'] ?? '') === 'register') {
+            $ptype = (string)($p['channel_category'] ?? $p['category'] ?? ''); $name = (string)($p['name'] ?? '');
+            if ($ptype === '' || $name === '') return ['ok' => false, 'pending' => true, 'error' => 'Walmart 신규등록(MP_ITEM): productName·productType(category) 필요'];
+            $item = ['sku' => $sku, 'productIdentifiers' => [['productIdType' => 'GTIN', 'productId' => (string)($p['gtin'] ?? $p['barcode'] ?? '')]],
+                'MPProduct' => ['productName' => $name, 'category' => $ptype], 'price' => (float)($p['price'] ?? 0), 'shippingWeight' => ['value' => 1.0, 'unit' => 'LB']];
+            $feed = json_encode(['MPItemFeedHeader' => ['version' => '4.2', 'sellingChannel' => 'marketplace'], 'MPItem' => [$item]], JSON_UNESCAPED_UNICODE);
+            [$cc, $cb] = self::httpReq('POST', 'https://marketplace.walmartapis.com/v3/feeds?feedType=MP_ITEM', $h, $feed);
+            if ($cc >= 200 && $cc < 300) return ['ok' => true, 'channel_product_id' => (string)($cb['feedId'] ?? $sku), 'note' => 'Walmart MP_ITEM 신규등록 피드 제출(피드 처리 후 활성 — feed status 확인. 카테고리 필수속성 누락 시 피드 거부 가능)'];
+            return ['ok' => false, 'error' => "Walmart 신규등록 HTTP {$cc}", 'detail' => mb_substr(json_encode($cb, JSON_UNESCAPED_UNICODE), 0, 200)];
+        }
         if ($op === 'unregister' || ($p['action'] ?? '') === 'unregister') {
             $feed = json_encode(['MPItemFeedHeader' => ['version' => '1.0'], 'MPItem' => [['sku' => $sku]]], JSON_UNESCAPED_UNICODE);
             [$c, $b] = self::httpReq('POST', 'https://marketplace.walmartapis.com/v3/feeds?feedType=MP_ITEM_RETIRE', $h, $feed);
@@ -1949,6 +1960,19 @@ final class ChannelSync
         $sellerCode = (string)($p['sku'] ?? '');
         if ($itemCode === '' && $sellerCode === '') return ['ok' => false, 'error' => 'Qoo10 쓰기는 ItemCode(channel_product_id) 또는 SellerCode(sku) 필요'];
         $base = 'https://api.qoo10.com/GMKT.INC.Front.QAPIService/ebayjapan.qapi';
+        // [245차 P3-8] 신규 상품 등록(CREATE) — SetNewGoods. 카테고리(SecondSubCat)·상품명·ShippingNo 필수.
+        if ($op === 'register' || ($p['action'] ?? '') === 'register') {
+            $cate = (string)($p['channel_category'] ?? $p['category'] ?? ''); $name = (string)($p['name'] ?? '');
+            $shipNo = (string)($creds['shipping_no'] ?? $p['shipping_no'] ?? '');
+            if ($cate === '' || $name === '' || $shipNo === '')
+                return ['ok' => false, 'pending' => true, 'error' => 'Qoo10 신규등록(SetNewGoods): 상품명·SecondSubCat(category)·ShippingNo(creds shipping_no) 필요'];
+            $q = http_build_query(['v' => '1.1', 'method' => 'ItemsBasic.SetNewGoods', 'key' => $key, 'SecondSubCat' => $cate, 'ItemTitle' => $name,
+                'SellPrice' => (float)($p['price'] ?? 0), 'ItemQty' => (int)($p['inventory'] ?? 0), 'SellerCode' => $sellerCode, 'ShippingNo' => $shipNo,
+                'AdultYN' => 'N', 'StandardImage' => (string)($p['image'] ?? ''), 'returnType' => 'json']);
+            [$cc, $cb] = self::httpGet("{$base}?{$q}");
+            if ($cc < 400 && (int)($cb['ResultCode'] ?? -1) === 0) return ['ok' => true, 'channel_product_id' => (string)($cb['ResultObject'] ?? $sellerCode), 'note' => 'Qoo10 신규 상품 등록 완료'];
+            return ['ok' => false, 'error' => "Qoo10 신규등록 실패(code={$cc}/" . ($cb['ResultCode'] ?? '?') . ')', 'detail' => mb_substr((string)($cb['ResultMsg'] ?? ''), 0, 150)];
+        }
         if ($op === 'unregister' || ($p['action'] ?? '') === 'unregister') {
             $q = http_build_query(['v' => '1.1', 'method' => 'ItemsBasic.UpdateGoodsStatus', 'key' => $key, 'ItemCode' => $itemCode, 'Status' => 'S2', 'returnType' => 'json']);
             [$c, $b] = self::httpGet("{$base}?{$q}");
@@ -1970,6 +1994,15 @@ final class ChannelSync
         if ($tok === '' || $seller === '') return ['ok' => false, 'error' => 'Yahoo! Japan: access_token(OAuth)·seller_id 필요'];
         $itemCode = (string)($cpid ?? $p['channel_product_id'] ?? $p['sku'] ?? '');
         if ($itemCode === '') return ['ok' => false, 'error' => 'Yahoo! Japan 쓰기는 ItemCode(상품코드) 필요'];
+        // [245차 P3-8] 신규 상품 등록(CREATE) — addItem. CategoryId(category)·ItemName 필수.
+        if ($op === 'register' || ($p['action'] ?? '') === 'register') {
+            $cate = (string)($p['channel_category'] ?? $p['category'] ?? ''); $name = (string)($p['name'] ?? '');
+            if ($cate === '' || $name === '') return ['ok' => false, 'pending' => true, 'error' => 'Yahoo! Japan 신규등록(addItem): ItemName·CategoryId(category) 필요'];
+            $cbody = '<Req><SellerId>' . htmlspecialchars($seller) . '</SellerId><ItemCode>' . htmlspecialchars($itemCode) . '</ItemCode><CategoryId>' . htmlspecialchars($cate) . '</CategoryId><ItemName>' . htmlspecialchars($name) . '</ItemName><Price>' . ((int)round((float)($p['price'] ?? 0))) . '</Price><Quantity>' . ((int)($p['inventory'] ?? 0)) . '</Quantity><Available>true</Available></Req>';
+            [$cc, $craw] = self::httpReqXml('https://circus.shopping.yahooapis.jp/ShoppingWebService/V1/addItem', ['Authorization' => 'Bearer ' . $tok, 'Content-Type' => 'application/xml'], $cbody);
+            if ($cc >= 200 && $cc < 300 && stripos((string)$craw, '<Error') === false) return ['ok' => true, 'channel_product_id' => $itemCode, 'note' => 'Yahoo! Japan 신규 상품 등록 완료'];
+            return ['ok' => false, 'error' => "Yahoo! Japan 신규등록 실패(code={$cc})", 'detail' => mb_substr((string)$craw, 0, 200)];
+        }
         $unreg = ($op === 'unregister' || ($p['action'] ?? '') === 'unregister');
         $price = (int)round((float)($p['price'] ?? 0)); $qty = (int)($p['inventory'] ?? 0);
         $fields = '<SellerId>' . htmlspecialchars($seller) . '</SellerId><ItemCode>' . htmlspecialchars($itemCode) . '</ItemCode>'
@@ -1993,6 +2026,21 @@ final class ChannelSync
         $sku = (string)($p['sku'] ?? '');
         if ($goodsNo === '' && $sku === '') return ['ok' => false, 'error' => 'godomall 쓰기는 goodsNo(channel_product_id) 또는 goodsCd(sku) 필요'];
         $unreg = ($op === 'unregister' || ($p['action'] ?? '') === 'unregister');
+        $isCreate = ($op === 'register' || ($p['action'] ?? '') === 'register' || ($goodsNo === '' && $sku === '' && !$unreg));
+        // [245차 P3-8] 신규 상품 등록(CREATE) — registGoods. 채널 카테고리코드(category/channel_category)·상품명·가격 필수.
+        if ($isCreate) {
+            $cate = (string)($p['channel_category'] ?? $p['category'] ?? '');
+            $name = (string)($p['name'] ?? '');
+            if ($cate === '' || $name === '') return ['ok' => false, 'pending' => true, 'error' => 'godomall 신규등록: 상품명·채널 카테고리코드(category) 필요 — [상품관리]에서 채널 카테고리 매핑 후 등록'];
+            $cp = ['partner_key' => $pkey, 'key' => $apiKey, 'method' => 'registGoods', 'goodsNm' => $name, 'cateCd' => $cate,
+                'fixedPrice' => (int)round((float)($p['price'] ?? 0)), 'goodsCnt' => (int)($p['inventory'] ?? 0), 'goodsCd' => $sku, 'goodsOpenYn' => 'y', 'return' => 'json'];
+            if (!empty($p['image'])) $cp['goodsImg'] = (string)$p['image'];
+            [$cc, $cb] = self::httpPost("{$mall}/api/goods.php", ['Content-Type' => 'application/x-www-form-urlencoded'], http_build_query($cp));
+            $crc = $cb['code'] ?? $cb['result'] ?? $cb['header']['result_code'] ?? null; $newNo = $cb['goodsNo'] ?? $cb['data']['goodsNo'] ?? null;
+            if ($cc >= 200 && $cc < 300 && (string)$crc !== '' && (string)$crc !== '0' && stripos(json_encode($cb, JSON_UNESCAPED_UNICODE), 'error') === false)
+                return ['ok' => true, 'channel_product_id' => (string)($newNo ?? $sku), 'note' => 'godomall 신규 상품 등록 완료'];
+            return ['ok' => false, 'error' => "godomall 신규등록 실패(code={$cc})", 'detail' => mb_substr(json_encode($cb, JSON_UNESCAPED_UNICODE), 0, 200)];
+        }
         $params = ['partner_key' => $pkey, 'key' => $apiKey, 'method' => 'modifyGoods', 'goodsNo' => $goodsNo, 'goodsCd' => $sku, 'return' => 'json'];
         if ($unreg) { $params['goodsOpenYn'] = 'n'; $params['soldOutYn'] = 'y'; }
         else { $params['fixedPrice'] = (int)round((float)($p['price'] ?? 0)); $params['goodsCnt'] = (int)($p['inventory'] ?? 0); $params['goodsOpenYn'] = 'y'; }
