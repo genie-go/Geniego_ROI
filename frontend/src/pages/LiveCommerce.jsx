@@ -508,13 +508,14 @@ const StudioTab = memo(function StudioTab({ session, gd, money, t, onChanged }) 
 /* [현 차수] 미디어서버(WHIP/WHEP) 설정 등록 — 추후 자격증명 등록 시 즉시 자동 송출/시청 활성(재시작 불요). */
 const MediaServerConfig = memo(function MediaServerConfig({ t }) {
   const [open, setOpen] = useState(false);
-  const [cfg, setCfg] = useState({ base_url: '', whip_base: '', whep_base: '', app: 'live', stun: '', turn_url: '', turn_user: '', turn_cred: '', enabled: 0 });
+  const [cfg, setCfg] = useState({ provider: 'srs', base_url: '', whip_base: '', whep_base: '', app: 'live', stun: '', turn_url: '', turn_user: '', turn_cred: '', enabled: 0 });
+  const [providers, setProviders] = useState([]); // [245차 P3-7] 제공자 프리셋
   const [configured, setConfigured] = useState(false);
   const [source, setSource] = useState('none');
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
   const load = useCallback(async () => {
-    try { const r = await liveApi.getMediaConfig(); if (r?.config) setCfg(c => ({ ...c, ...r.config })); setConfigured(!!r?.configured); setSource(r?.source || 'none'); } catch {}
+    try { const r = await liveApi.getMediaConfig(); if (r?.config) setCfg(c => ({ ...c, ...r.config })); if (Array.isArray(r?.providers)) setProviders(r.providers); setConfigured(!!r?.configured); setSource(r?.source || 'none'); } catch {}
   }, []);
   useEffect(() => { load(); }, [load]);
   const save = async () => {
@@ -544,6 +545,17 @@ const MediaServerConfig = memo(function MediaServerConfig({ t }) {
           <div style={{ fontSize: 11, color: C.sub, marginBottom: 10, lineHeight: 1.6 }}>
             {t('liveCommerce.mediaServerDesc', 'SRS·MediaMTX·Cloudflare Stream 등 WHIP/WHEP 지원 미디어서버 주소를 등록하면, 다음 방송부터 호스트 카메라가 실시간 송출되고 시청자에게 영상이 전송됩니다. base_url(SRS)만 입력하면 WHIP/WHEP 경로는 자동 구성됩니다.')}
           </div>
+          {/* [245차 P3-7] 제공자 프리셋 — 관리형(Cloudflare Stream)/셀프호스트(SRS·MediaMTX) 선택 */}
+          {providers.length > 0 && (
+            <div style={{ marginBottom: 10 }}>
+              <div style={{ fontSize: 11, color: C.sub, marginBottom: 3 }}>{t('liveCommerce.mediaProvider', '미디어 제공자')}</div>
+              <select value={cfg.provider || 'srs'} onChange={e => setCfg(c => ({ ...c, provider: e.target.value }))}
+                style={{ width: '100%', padding: '7px 10px', borderRadius: 8, border: `1px solid ${C.border}`, fontSize: 12, boxSizing: 'border-box' }}>
+                {providers.map(p => <option key={p.key} value={p.key}>{p.label}</option>)}
+              </select>
+              <div style={{ fontSize: 10.5, color: C.sub, marginTop: 4 }}>ℹ️ {(providers.find(p => p.key === (cfg.provider || 'srs')) || {}).hint || ''}</div>
+            </div>
+          )}
           {field('base_url', t('liveCommerce.mediaBase', 'Base URL (SRS, 예: https://media.example.com:1985)'), 'https://media.example.com:1985')}
           {field('whip_base', t('liveCommerce.mediaWhip', 'WHIP Base (개별 지정 시)'), 'https://.../rtc/v1/whip/')}
           {field('whep_base', t('liveCommerce.mediaWhep', 'WHEP Base (개별 지정 시)'), 'https://.../rtc/v1/whep/')}

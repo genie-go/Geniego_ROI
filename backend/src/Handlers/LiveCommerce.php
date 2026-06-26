@@ -129,11 +129,13 @@ class LiveCommerce
             // [현 차수] 미디어서버(WHIP/WHEP) 설정 — 테넌트가 UI로 추후 등록하면 즉시 자동 활성(재시작 불요). turn_cred=AES-GCM.
             $pdo->exec("CREATE TABLE IF NOT EXISTS live_media_config (
                 tenant_id VARCHAR(100) NOT NULL PRIMARY KEY,
+                provider VARCHAR(20) DEFAULT 'srs',
                 base_url VARCHAR(300), whip_base VARCHAR(300), whep_base VARCHAR(300),
                 app VARCHAR(60) DEFAULT 'live', stun VARCHAR(200),
                 turn_url VARCHAR(200), turn_user VARCHAR(120), turn_cred TEXT,
                 enabled TINYINT(1) DEFAULT 0, updated_at VARCHAR(32)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            try { $pdo->exec("ALTER TABLE live_media_config ADD COLUMN provider VARCHAR(20) DEFAULT 'srs'"); } catch (\Throwable $e) {} // [245차 P3-7] 기존 테이블 멱등 ALTER
         } else {
             $pdo->exec("CREATE TABLE IF NOT EXISTS live_sessions (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', title TEXT NOT NULL, description TEXT, host TEXT, cover_url TEXT, status TEXT NOT NULL DEFAULT 'scheduled', channels TEXT, scheduled_at TEXT, started_at TEXT, ended_at TEXT, viewer_count INTEGER DEFAULT 0, peak_viewers INTEGER DEFAULT 0, like_count INTEGER DEFAULT 0, created_at TEXT, updated_at TEXT)");
             $pdo->exec("CREATE TABLE IF NOT EXISTS live_products (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', session_id INTEGER NOT NULL, sku TEXT, name TEXT, image TEXT, price REAL DEFAULT 0, special_price REAL DEFAULT 0, stock REAL DEFAULT 0, sold REAL DEFAULT 0, featured INTEGER DEFAULT 0, display_order INTEGER DEFAULT 0, created_at TEXT, updated_at TEXT)");
@@ -143,7 +145,8 @@ class LiveCommerce
             $pdo->exec("CREATE TABLE IF NOT EXISTS live_presence (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', session_id INTEGER NOT NULL, viewer_key TEXT, last_seen TEXT)");
             $pdo->exec("CREATE TABLE IF NOT EXISTS live_destinations (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', session_id INTEGER NOT NULL, channel TEXT NOT NULL, label TEXT, rtmp_url TEXT, stream_key TEXT, enabled INTEGER DEFAULT 1, status TEXT DEFAULT 'idle', last_status_at TEXT, created_at TEXT, updated_at TEXT)");
             $pdo->exec("CREATE TABLE IF NOT EXISTS live_guests (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', session_id INTEGER NOT NULL, name TEXT, role TEXT DEFAULT 'guest', status TEXT DEFAULT 'invited', join_token TEXT, stream_key TEXT, invited_at TEXT, joined_at TEXT, left_at TEXT)");
-            $pdo->exec("CREATE TABLE IF NOT EXISTS live_media_config (tenant_id TEXT PRIMARY KEY, base_url TEXT, whip_base TEXT, whep_base TEXT, app TEXT DEFAULT 'live', stun TEXT, turn_url TEXT, turn_user TEXT, turn_cred TEXT, enabled INTEGER DEFAULT 0, updated_at TEXT)");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS live_media_config (tenant_id TEXT PRIMARY KEY, provider TEXT DEFAULT 'srs', base_url TEXT, whip_base TEXT, whep_base TEXT, app TEXT DEFAULT 'live', stun TEXT, turn_url TEXT, turn_user TEXT, turn_cred TEXT, enabled INTEGER DEFAULT 0, updated_at TEXT)");
+            try { $pdo->exec("ALTER TABLE live_media_config ADD COLUMN provider TEXT DEFAULT 'srs'"); } catch (\Throwable $e) {} // [245차 P3-7] 기존 테이블 멱등 ALTER
             try { $pdo->exec("CREATE UNIQUE INDEX IF NOT EXISTS uq_lc_guest_tok ON live_guests(join_token)"); } catch (\Throwable $e) {}
             try { $pdo->exec("CREATE UNIQUE INDEX IF NOT EXISTS uq_lc_int ON live_integrations(tenant_id, channel)"); } catch (\Throwable $e) {}
             try { $pdo->exec("CREATE UNIQUE INDEX IF NOT EXISTS uq_lc_pres ON live_presence(tenant_id, session_id, viewer_key)"); } catch (\Throwable $e) {}
@@ -562,7 +565,7 @@ class LiveCommerce
                 if ($row && (int)($row['enabled'] ?? 0) === 1) {
                     $cred = (string)($row['turn_cred'] ?? '');
                     if ($cred !== '') { try { $cred = Crypto::decrypt($cred); } catch (\Throwable $e) {} }
-                    $cfg = self::buildMediaCfg((string)($row['whip_base'] ?? ''), (string)($row['whep_base'] ?? ''),
+                    $cfg = self::buildMediaCfg((string)($row['provider'] ?? ''), (string)($row['whip_base'] ?? ''), (string)($row['whep_base'] ?? ''),
                         (string)($row['base_url'] ?? ''), (string)($row['app'] ?? ''), (string)($row['stun'] ?? ''),
                         (string)($row['turn_url'] ?? ''), (string)($row['turn_user'] ?? ''), $cred);
                     if ($cfg['configured']) { $cfg['source'] = 'db'; return $cfg; }
@@ -570,19 +573,24 @@ class LiveCommerce
             } catch (\Throwable $e) {}
         }
         // 2) .env 폴백.
-        $cfg = self::buildMediaCfg((string)(getenv('LIVE_MEDIA_WHIP_BASE') ?: ''), (string)(getenv('LIVE_MEDIA_WHEP_BASE') ?: ''),
+        $cfg = self::buildMediaCfg((string)(getenv('LIVE_MEDIA_PROVIDER') ?: ''), (string)(getenv('LIVE_MEDIA_WHIP_BASE') ?: ''), (string)(getenv('LIVE_MEDIA_WHEP_BASE') ?: ''),
             (string)(getenv('LIVE_MEDIA_BASE') ?: ''), (string)(getenv('LIVE_MEDIA_APP') ?: ''), (string)(getenv('LIVE_MEDIA_STUN') ?: ''),
             (string)(getenv('LIVE_MEDIA_TURN_URL') ?: ''), (string)(getenv('LIVE_MEDIA_TURN_USER') ?: ''), (string)(getenv('LIVE_MEDIA_TURN_CRED') ?: ''));
         $cfg['source'] = $cfg['configured'] ? 'env' : 'none';
         return $cfg;
     }
 
-    /** WHIP/WHEP/ICE 정규화 — base(SRS) 단축 전개 + STUN/TURN ICE 배열 조립. */
-    private static function buildMediaCfg(string $whip, string $whep, string $base, string $app, string $stun, string $turnUrl, string $turnUser, string $turnCred): array
+    /** [245차 P3-7] WHIP/WHEP/ICE 정규화 — provider 프리셋(srs query·mediamtx path·cloudflare/custom direct) + base 전개 + STUN/TURN. */
+    private static function buildMediaCfg(string $provider, string $whip, string $whep, string $base, string $app, string $stun, string $turnUrl, string $turnUser, string $turnCred): array
     {
+        $provider = $provider !== '' ? $provider : ($base !== '' ? 'srs' : (($whip !== '' && $whep !== '') ? 'custom' : 'srs'));
+        $style = 'query'; // SRS: ?app=&stream=
         if ($base !== '') { $base = rtrim($base, '/');
-            if ($whip === '') $whip = $base . '/rtc/v1/whip/';
-            if ($whep === '') $whep = $base . '/rtc/v1/whep/';
+            if ($provider === 'mediamtx') { if ($whip === '') $whip = $base; if ($whep === '') $whep = $base; $style = 'path'; } // MediaMTX: /{stream}/whip
+            else { if ($whip === '') $whip = $base . '/rtc/v1/whip/'; if ($whep === '') $whep = $base . '/rtc/v1/whep/'; $style = 'query'; }
+        } elseif ($whip !== '' && $whep !== '') {
+            // 명시 엔드포인트(Cloudflare Stream·Dolby Millicast 등 관리형) — {stream} 치환 또는 정적 입력 재사용.
+            $style = ($provider === 'mediamtx') ? 'path' : 'direct';
         }
         if ($app === '') $app = 'live';
         if ($stun === '') $stun = 'stun:stun.l.google.com:19302';
@@ -594,7 +602,7 @@ class LiveCommerce
             if ($turnCred !== '') $ts['credential'] = $turnCred;
             $ice[] = $ts;
         }
-        return ['configured' => ($whip !== '' && $whep !== ''), 'whip' => $whip, 'whep' => $whep, 'app' => $app, 'ice' => $ice];
+        return ['configured' => ($whip !== '' && $whep !== ''), 'whip' => $whip, 'whep' => $whep, 'app' => $app, 'ice' => $ice, 'provider' => $provider, 'style' => $style];
     }
 
     /** GET /v425/live/media-config — 현재 등록 설정(turn_cred 마스킹) + 출처. */
@@ -604,16 +612,23 @@ class LiveCommerce
         self::ensureTables();
         $t = self::tenant($req);
         $row = null;
-        try { $st = self::db()->prepare("SELECT base_url,whip_base,whep_base,app,stun,turn_url,turn_user,turn_cred,enabled,updated_at FROM live_media_config WHERE tenant_id=:t");
+        try { $st = self::db()->prepare("SELECT provider,base_url,whip_base,whep_base,app,stun,turn_url,turn_user,turn_cred,enabled,updated_at FROM live_media_config WHERE tenant_id=:t");
             $st->execute([':t' => $t]); $row = $st->fetch(\PDO::FETCH_ASSOC) ?: null; } catch (\Throwable $e) {}
         $cfg = self::mediaConfig($t);
         $config = $row ? [
-            'base_url' => $row['base_url'] ?? '', 'whip_base' => $row['whip_base'] ?? '', 'whep_base' => $row['whep_base'] ?? '',
+            'provider' => $row['provider'] ?? 'srs', 'base_url' => $row['base_url'] ?? '', 'whip_base' => $row['whip_base'] ?? '', 'whep_base' => $row['whep_base'] ?? '',
             'app' => $row['app'] ?? 'live', 'stun' => $row['stun'] ?? '', 'turn_url' => $row['turn_url'] ?? '',
             'turn_user' => $row['turn_user'] ?? '', 'turn_cred' => (!empty($row['turn_cred']) ? '••••••••' : ''),
             'enabled' => (int)($row['enabled'] ?? 0), 'updated_at' => $row['updated_at'] ?? null,
-        ] : ['base_url' => '', 'whip_base' => '', 'whep_base' => '', 'app' => 'live', 'stun' => '', 'turn_url' => '', 'turn_user' => '', 'turn_cred' => '', 'enabled' => 0, 'updated_at' => null];
-        return self::json($res, ['ok' => true, 'config' => $config, 'configured' => $cfg['configured'], 'source' => $cfg['source'] ?? 'none']);
+        ] : ['provider' => 'srs', 'base_url' => '', 'whip_base' => '', 'whep_base' => '', 'app' => 'live', 'stun' => '', 'turn_url' => '', 'turn_user' => '', 'turn_cred' => '', 'enabled' => 0, 'updated_at' => null];
+        // [245차 P3-7] 관리형/셀프호스트 제공자 프리셋 — 선택 시 입력 가이드.
+        $providers = [
+            ['key' => 'srs', 'label' => 'SRS (셀프호스트)', 'fields' => ['base_url'], 'hint' => 'base_url 만 입력 → WHIP=/rtc/v1/whip/·WHEP=/rtc/v1/whep/ 자동'],
+            ['key' => 'mediamtx', 'label' => 'MediaMTX (셀프호스트/클라우드)', 'fields' => ['base_url'], 'hint' => 'path 스타일 — base_url/{stream}/whip·/whep 자동'],
+            ['key' => 'cloudflare', 'label' => 'Cloudflare Stream (관리형)', 'fields' => ['whip_base', 'whep_base'], 'hint' => 'Live Input의 WebRTC publish(WHIP)·play(WHEP) URL을 붙여넣기. {stream} 플레이스홀더 지원'],
+            ['key' => 'custom', 'label' => '직접 입력(WHIP/WHEP)', 'fields' => ['whip_base', 'whep_base'], 'hint' => '관리형/커스텀 미디어서버의 WHIP·WHEP 엔드포인트 직접 지정'],
+        ];
+        return self::json($res, ['ok' => true, 'config' => $config, 'configured' => $cfg['configured'], 'source' => $cfg['source'] ?? 'none', 'providers' => $providers]);
     }
 
     /** PUT /v425/live/media-config — 미디어서버 설정 등록/수정. 등록 즉시 다음 요청부터 자동 활성. */
@@ -622,6 +637,7 @@ class LiveCommerce
         if ($err = UserAuth::requirePro($req, $res)) return $err;
         self::ensureTables();
         $t = self::tenant($req); $b = self::body($req); $now = self::now();
+        $provider = in_array(($b['provider'] ?? ''), ['srs', 'mediamtx', 'cloudflare', 'custom'], true) ? (string)$b['provider'] : 'srs'; // [245차 P3-7]
         $base = trim((string)($b['base_url'] ?? '')); $whip = trim((string)($b['whip_base'] ?? '')); $whep = trim((string)($b['whep_base'] ?? ''));
         $app = trim((string)($b['app'] ?? 'live')); $stun = trim((string)($b['stun'] ?? ''));
         $turnUrl = trim((string)($b['turn_url'] ?? '')); $turnUser = trim((string)($b['turn_user'] ?? ''));
@@ -638,11 +654,11 @@ class LiveCommerce
             try { $c = $pdo->prepare("SELECT 1 FROM live_media_config WHERE tenant_id=:t"); $c->execute([':t' => $t]); return (bool)$c->fetchColumn(); } catch (\Throwable $e) { return false; }
         })();
         if ($exists) {
-            $pdo->prepare("UPDATE live_media_config SET base_url=:bu,whip_base=:wi,whep_base=:we,app=:ap,stun=:st,turn_url=:tu,turn_user=:tus,turn_cred=:tc,enabled=:en,updated_at=:ua WHERE tenant_id=:t")
-                ->execute([':bu' => $base, ':wi' => $whip, ':we' => $whep, ':ap' => $app, ':st' => $stun, ':tu' => $turnUrl, ':tus' => $turnUser, ':tc' => $cred, ':en' => $enabled, ':ua' => $now, ':t' => $t]);
+            $pdo->prepare("UPDATE live_media_config SET provider=:pv,base_url=:bu,whip_base=:wi,whep_base=:we,app=:ap,stun=:st,turn_url=:tu,turn_user=:tus,turn_cred=:tc,enabled=:en,updated_at=:ua WHERE tenant_id=:t")
+                ->execute([':pv' => $provider, ':bu' => $base, ':wi' => $whip, ':we' => $whep, ':ap' => $app, ':st' => $stun, ':tu' => $turnUrl, ':tus' => $turnUser, ':tc' => $cred, ':en' => $enabled, ':ua' => $now, ':t' => $t]);
         } else {
-            $pdo->prepare("INSERT INTO live_media_config (tenant_id,base_url,whip_base,whep_base,app,stun,turn_url,turn_user,turn_cred,enabled,updated_at) VALUES (:t,:bu,:wi,:we,:ap,:st,:tu,:tus,:tc,:en,:ua)")
-                ->execute([':t' => $t, ':bu' => $base, ':wi' => $whip, ':we' => $whep, ':ap' => $app, ':st' => $stun, ':tu' => $turnUrl, ':tus' => $turnUser, ':tc' => $cred, ':en' => $enabled, ':ua' => $now]);
+            $pdo->prepare("INSERT INTO live_media_config (tenant_id,provider,base_url,whip_base,whep_base,app,stun,turn_url,turn_user,turn_cred,enabled,updated_at) VALUES (:t,:pv,:bu,:wi,:we,:ap,:st,:tu,:tus,:tc,:en,:ua)")
+                ->execute([':t' => $t, ':pv' => $provider, ':bu' => $base, ':wi' => $whip, ':we' => $whep, ':ap' => $app, ':st' => $stun, ':tu' => $turnUrl, ':tus' => $turnUser, ':tc' => $cred, ':en' => $enabled, ':ua' => $now]);
         }
         $cfg = self::mediaConfig($t);
         return self::json($res, ['ok' => true, 'configured' => $cfg['configured'], 'source' => $cfg['source'] ?? 'none',
@@ -657,15 +673,19 @@ class LiveCommerce
         return "live_{$tt}_{$sid}_{$sf}";
     }
 
-    private static function whipUrl(array $cfg, string $stream): string
+    private static function whipUrl(array $cfg, string $stream): string { return self::mediaUrl($cfg, (string)$cfg['whip'], 'whip', $stream); }
+    private static function whepUrl(array $cfg, string $stream): string { return self::mediaUrl($cfg, (string)$cfg['whep'], 'whep', $stream); }
+    /** [245차 P3-7] provider style 별 WHIP/WHEP URL 조립 — query(SRS)·path(MediaMTX)·direct(Cloudflare/custom). */
+    private static function mediaUrl(array $cfg, string $baseUrl, string $kind, string $stream): string
     {
-        $sep = strpos($cfg['whip'], '?') !== false ? '&' : '?';
-        return $cfg['whip'] . $sep . 'app=' . rawurlencode($cfg['app']) . '&stream=' . rawurlencode($stream);
-    }
-    private static function whepUrl(array $cfg, string $stream): string
-    {
-        $sep = strpos($cfg['whep'], '?') !== false ? '&' : '?';
-        return $cfg['whep'] . $sep . 'app=' . rawurlencode($cfg['app']) . '&stream=' . rawurlencode($stream);
+        $style = (string)($cfg['style'] ?? 'query');
+        if ($style === 'path') return rtrim($baseUrl, '/') . '/' . rawurlencode($stream) . '/' . $kind;           // MediaMTX: /{stream}/whip
+        if ($style === 'direct') {                                                                                  // 관리형 명시 엔드포인트
+            if (strpos($baseUrl, '{stream}') !== false) return str_replace('{stream}', rawurlencode($stream), $baseUrl);
+            return $baseUrl;                                                                                         // 정적 input 재사용
+        }
+        $sep = strpos($baseUrl, '?') !== false ? '&' : '?';                                                         // SRS query
+        return $baseUrl . $sep . 'app=' . rawurlencode($cfg['app']) . '&stream=' . rawurlencode($stream);
     }
 
     /** GET /v425/live/sessions/{id}/media — 호스트 송출(WHIP)·시청 재생(WHEP) URL + ICE 서버. */
