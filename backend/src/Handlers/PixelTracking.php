@@ -383,8 +383,14 @@ class PixelTracking
         try {
             $ch = curl_init("https://graph.facebook.com/v18.0/{$cfg['meta_pixel_id']}/events?access_token={$cfg['meta_api_token']}");
             curl_setopt_array($ch, [CURLOPT_POST=>true, CURLOPT_POSTFIELDS=>json_encode($payload), CURLOPT_RETURNTRANSFER=>true, CURLOPT_TIMEOUT=>5, CURLOPT_HTTPHEADER=>['Content-Type: application/json']]);
-            curl_exec($ch); curl_close($ch);
-            $u = $pdo->prepare("UPDATE pixel_events SET forwarded_meta=1 WHERE event_id=:eid"); $u->execute([':eid'=>$eventId]);
+            // [현 차수 P3-3] 전달확인 — 응답코드 확인(기존 fire-and-forget→실패도 forwarded=1 표기 갭). 2xx 만 성공표기,
+            //   실패는 로그(무음실패 가시화). events_received(EMQ 피드백)도 로그.
+            $resp = curl_exec($ch); $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE); $err = curl_error($ch); curl_close($ch);
+            if ($code >= 200 && $code < 300) {
+                $pdo->prepare("UPDATE pixel_events SET forwarded_meta=1 WHERE event_id=:eid")->execute([':eid'=>$eventId]);
+            } else {
+                error_log("[CAPI meta] event={$eventId} http={$code} err={$err} resp=" . substr((string)$resp, 0, 200));
+            }
         } catch (\Exception $e) {}
     }
 
@@ -402,8 +408,9 @@ class PixelTracking
         try {
             $ch = curl_init("https://api.pinterest.com/v5/ad_accounts/{$cfg['pinterest_ad_account_id']}/events");
             curl_setopt_array($ch, [CURLOPT_POST=>true, CURLOPT_POSTFIELDS=>json_encode($payload), CURLOPT_RETURNTRANSFER=>true, CURLOPT_TIMEOUT=>5, CURLOPT_HTTPHEADER=>['Content-Type: application/json', 'Authorization: Bearer '.$cfg['pinterest_conversion_token']]]);
-            curl_exec($ch); curl_close($ch);
-            try { $pdo->prepare("UPDATE pixel_events SET forwarded_pinterest=1 WHERE event_id=:eid")->execute([':eid'=>$eventId]); } catch (\Throwable $e) {}
+            $resp = curl_exec($ch); $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE); curl_close($ch); // [현 차수 P3-3] 전달확인
+            if ($code >= 200 && $code < 300) { try { $pdo->prepare("UPDATE pixel_events SET forwarded_pinterest=1 WHERE event_id=:eid")->execute([':eid'=>$eventId]); } catch (\Throwable $e) {} }
+            else error_log("[CAPI pinterest] event={$eventId} http={$code} resp=" . substr((string)$resp, 0, 160));
         } catch (\Exception $e) {}
     }
 
@@ -421,8 +428,9 @@ class PixelTracking
         try {
             $ch = curl_init("https://tr.snapchat.com/v3/{$cfg['snap_pixel_id']}/events?access_token=" . urlencode((string)$cfg['snap_api_token']));
             curl_setopt_array($ch, [CURLOPT_POST=>true, CURLOPT_POSTFIELDS=>json_encode($payload), CURLOPT_RETURNTRANSFER=>true, CURLOPT_TIMEOUT=>5, CURLOPT_HTTPHEADER=>['Content-Type: application/json']]);
-            curl_exec($ch); curl_close($ch);
-            try { $pdo->prepare("UPDATE pixel_events SET forwarded_snap=1 WHERE event_id=:eid")->execute([':eid'=>$eventId]); } catch (\Throwable $e) {}
+            $resp = curl_exec($ch); $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE); curl_close($ch); // [현 차수 P3-3] 전달확인
+            if ($code >= 200 && $code < 300) { try { $pdo->prepare("UPDATE pixel_events SET forwarded_snap=1 WHERE event_id=:eid")->execute([':eid'=>$eventId]); } catch (\Throwable $e) {} }
+            else error_log("[CAPI snapchat] event={$eventId} http={$code} resp=" . substr((string)$resp, 0, 160));
         } catch (\Exception $e) {}
     }
 
@@ -437,8 +445,9 @@ class PixelTracking
         try {
             $ch = curl_init('https://business-api.tiktok.com/open_api/v1.3/pixel/track/');
             curl_setopt_array($ch, [CURLOPT_POST=>true, CURLOPT_POSTFIELDS=>json_encode($payload), CURLOPT_RETURNTRANSFER=>true, CURLOPT_TIMEOUT=>5, CURLOPT_HTTPHEADER=>['Content-Type: application/json', 'Access-Token: '.$cfg['tiktok_access_token']]]);
-            curl_exec($ch); curl_close($ch);
-            $u = $pdo->prepare("UPDATE pixel_events SET forwarded_tiktok=1 WHERE event_id=:eid"); $u->execute([':eid'=>$eventId]);
+            $resp = curl_exec($ch); $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE); curl_close($ch); // [현 차수 P3-3] 전달확인
+            if ($code >= 200 && $code < 300) { $pdo->prepare("UPDATE pixel_events SET forwarded_tiktok=1 WHERE event_id=:eid")->execute([':eid'=>$eventId]); }
+            else error_log("[CAPI tiktok] event={$eventId} http={$code} resp=" . substr((string)$resp, 0, 160));
         } catch (\Exception $e) {}
     }
 
@@ -469,8 +478,10 @@ class PixelTracking
                  . '&api_secret=' . urlencode((string)$cfg['ga4_api_secret']);
             $ch = curl_init($url);
             curl_setopt_array($ch, [CURLOPT_POST=>true, CURLOPT_POSTFIELDS=>json_encode($payload), CURLOPT_RETURNTRANSFER=>true, CURLOPT_TIMEOUT=>5, CURLOPT_HTTPHEADER=>['Content-Type: application/json']]);
-            curl_exec($ch); curl_close($ch);
-            try { $pdo->prepare("UPDATE pixel_events SET forwarded_ga4=1 WHERE event_id=:eid")->execute([':eid'=>$eventId]); } catch (\Throwable $e) { /* 컬럼 부재 무시 */ }
+            // [현 차수 P3-3] 전달확인 — GA4 MP 성공=204 No Content(2xx 포함). 실패만 로그.
+            $resp = curl_exec($ch); $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE); curl_close($ch);
+            if ($code >= 200 && $code < 300) { try { $pdo->prepare("UPDATE pixel_events SET forwarded_ga4=1 WHERE event_id=:eid")->execute([':eid'=>$eventId]); } catch (\Throwable $e) { /* 컬럼 부재 무시 */ } }
+            else error_log("[CAPI ga4] event={$eventId} http={$code} resp=" . substr((string)$resp, 0, 160));
         } catch (\Exception $e) {}
     }
 
