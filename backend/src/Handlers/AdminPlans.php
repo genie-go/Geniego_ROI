@@ -364,12 +364,15 @@ final class AdminPlans
             ];
         }, $rows);
 
-        // 초기 DB empty fallback — Paddle.php hardcoded 3 plan 정합 (메뉴 권한은 빈 배열 = graceful 허용)
+        // 초기 DB empty fallback — ★246차 5티어(Free 진입 + Starter/Growth/Pro/Enterprise) 1계정 추천가 정합.
+        //   실제 가격·메뉴접근·설명은 admin 이 plan_config 에 등록하면 즉시 이 응답으로 전 페이지 자동 반영(데모/운영 각 DB).
         if (!$plans) {
             $plans = [
-                ['id'=>'starter','name'=>'Starter','price_usd'=>49,'price_annual_usd'=>39,'features'=>[],'limits'=>[],'menuAccess'=>[]],
-                ['id'=>'pro','name'=>'Pro','price_usd'=>149,'price_annual_usd'=>119,'features'=>[],'limits'=>[],'menuAccess'=>[]],
-                ['id'=>'enterprise','name'=>'Enterprise','price_usd'=>null,'price_annual_usd'=>null,'is_custom_quote'=>true,'features'=>[],'limits'=>[],'menuAccess'=>[]],
+                ['id'=>'free','name'=>'Free','price_usd'=>0,'price_annual_usd'=>0,'description'=>'무료 진입 · 판매 채널 3개','features'=>[],'limits'=>['channels'=>3],'menuAccess'=>[]],
+                ['id'=>'starter','name'=>'Starter','price_usd'=>49,'price_annual_usd'=>39,'description'=>'마케팅 입문 · 1계정 기준','features'=>[],'limits'=>[],'menuAccess'=>[]],
+                ['id'=>'growth','name'=>'Growth','price_usd'=>149,'price_annual_usd'=>119,'description'=>'데이터 기반 성장 · 1계정 기준','features'=>[],'limits'=>[],'menuAccess'=>[]],
+                ['id'=>'pro','name'=>'Pro','price_usd'=>399,'price_annual_usd'=>319,'is_recommended'=>true,'description'=>'풀 운영 자동화 · 1계정 기준','features'=>[],'limits'=>[],'menuAccess'=>[]],
+                ['id'=>'enterprise','name'=>'Enterprise','price_usd'=>1500,'price_annual_usd'=>1200,'is_custom_quote'=>true,'description'=>'대규모 운영 · 맞춤 통합','features'=>[],'limits'=>[],'menuAccess'=>[]],
             ];
         }
 

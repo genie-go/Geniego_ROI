@@ -6,7 +6,7 @@ import { MEMBER_MENU, ADMIN_MENU, buildMenuKeyIndex } from "../layout/sidebarMan
 import { MENU_KEY_LABEL, SUB_TABS_BY_PATH } from "../layout/sidebarMenuLabels.js";
 import SIDEBAR_DICT from "../layout/sidebarI18n.js"; // 186차: gNav.* 라벨 한글 해석 (하위메뉴 라벨)
 import PlanServiceGuide from "../components/PlanServiceGuide.jsx"; // 186차: 플랜 제공서비스 상세 안내(초고도화)
-import { recommendMenuAccess as recommendMenuAccessRealistic } from "../auth/planMenuPolicy.js"; // 202차 전 플랜(Free포함) 경쟁사 벤치마크 추천
+import { recommendMenuAccess as recommendMenuAccessRealistic, recommendPlanPricing, RECOMMENDED_PERIOD_DISCOUNT } from "../auth/planMenuPolicy.js"; // 202차 전 플랜(Free포함) 경쟁사 벤치마크 추천 + 246차 가격추천
 import { useAdminReadOnly } from "../auth/useAdminReadOnly.js"; // [231차 #17] 하위관리자 열람 전용 강제
 import ReadOnlyBanner from "../components/ReadOnlyBanner.jsx";
 /** gNav.* labelKey → 한글 라벨 (sidebarI18n 우선) */
@@ -58,33 +58,47 @@ function publishMenuAccessSync(payload) {
  */
 // [현 차수] 4단계 구조: Starter(무료)/Growth/Pro/Enterprise. plan_id 는 불변(게이팅 안정),
 //   표시명만 사용자 구성에 맞춤. 가격 0 = admin 이 직접 입력(구조 우선). 메뉴접근은 '요금 기반 추천' 버튼.
+// ★246차 — Free(진입 moat) + Starter/Growth/Pro/Enterprise(4유료) 5티어. 가격=1계정 기준 추천값(admin 수정 가능).
+//   메뉴 접근 차등은 planMenuPolicy.MENU_MIN_PLAN(Free/Starter/Growth/Pro/Enterprise)·recommendMenuAccess 정본.
 const SEED_PLANS = [
   {
-    // Starter(무료) — 사방넷 무료 모델. plan_id='free'(free-tier 로직 보존), 표시명만 "Starter".
-    plan_id: 'free', name: 'Starter', display_order: 10, is_active: true, is_custom_quote: false,
-    description: '무료 · 판매 채널 3개 연동',
+    // Free — 사방넷 무료 모델(진입장벽 제거). 채널 3개 무료.
+    plan_id: 'free', name: 'Free', display_order: 5, is_active: true, is_custom_quote: false,
+    description: '무료 진입 · 판매 채널 3개 연동',
     features: ['판매·마케팅 채널 3개 무료', '상품·주문·재고 동기화', '기본 성과 대시보드', '커뮤니티 지원'],
     limits: { channels: 3, orders_monthly: 500, products: 100, users: 1, suppliers: 3, logistics: 1, warehouses: 1, image_hosting_gb: 1 },
     price_usd: 0, price_annual_usd: 0,
   },
   {
-    plan_id: 'growth', name: 'Growth', display_order: 20, is_active: true, is_custom_quote: false,
-    description: '성장 단계 셀러 · 마케팅 자동화',
-    features: ['판매·마케팅 채널 5개', '마케팅 자동화·채널 추천', '멀티터치 어트리뷰션 기초', 'P&L 분석', '계정 수 선택', '이메일 지원'],
-    limits: { channels: 5, orders_monthly: 5000, products: 1000, users: 5, suppliers: 10, logistics: 3, warehouses: 2, image_hosting_gb: 10 },
-    price_usd: 0, price_annual_usd: 0,
+    // Starter — 마케팅 입문(1계정 $49). 마케팅 코어(자동마케팅·캠페인·광고성과·CRM·이메일·카카오·SMS·콘텐츠·리뷰).
+    plan_id: 'starter', name: 'Starter', display_order: 10, is_active: true, is_custom_quote: false,
+    description: '마케팅 입문 · 1계정 $49 기준',
+    features: ['판매·마케팅 채널 5개', '마케팅 자동화·캠페인', 'CRM·이메일·카카오·SMS', '콘텐츠 캘린더·리뷰', '계정 수 선택', '이메일 지원'],
+    limits: { channels: 5, orders_monthly: 2000, products: 500, users: 1, suppliers: 5, logistics: 2, warehouses: 1, image_hosting_gb: 5 },
+    price_usd: 49, price_annual_usd: 39,
   },
   {
+    // Growth — 데이터 기반 성장(1계정 $149). +어트리뷰션·MMM·고급분석·전 메시징.
+    plan_id: 'growth', name: 'Growth', display_order: 20, is_active: true, is_custom_quote: false,
+    description: '데이터 기반 성장 · 1계정 $149 기준',
+    features: ['판매·마케팅 채널 10개', '멀티터치 어트리뷰션·MMM(베이지안)', '리포트 빌더·P&L·AI 인사이트', '여정 빌더·온사이트 CRO·웹팝업', 'LINE/WhatsApp/IG·인플루언서', '계정 수 선택', '이메일 지원'],
+    limits: { channels: 10, orders_monthly: 10000, products: 2000, users: 5, suppliers: 10, logistics: 3, warehouses: 2, image_hosting_gb: 10 },
+    price_usd: 149, price_annual_usd: 119,
+  },
+  {
+    // Pro — 풀 운영 자동화(1계정 $399). +WMS/가격최적화/공급망/라이브/자동화/데이터.
     plan_id: 'pro', name: 'Pro', display_order: 30, is_active: true, is_custom_quote: false, is_recommended: 1,
-    description: '본격 커머스 운영 · 계정 수 기반',
-    features: ['무제한 판매 채널', '무제한 창고(WMS)', 'AI 마케팅 인텔리전스·A/B', '전채널 어트리뷰션', 'AI 디자인', '상업 송장 자동 생성', '계정 수 선택', '우선 지원 (8시간 내)'],
+    description: '풀 운영 자동화 · 1계정 $399 기준',
+    features: ['무제한 판매 채널·창고(WMS)', '가격최적화·공급망·수요예측·반품', '라이브 커머스·AI 룰엔진·라이트백', '데이터 스키마/신뢰도·데이터프로덕트', 'AI 디자인·상업 송장 자동', '계정 수 선택', '우선 지원 (8시간 내)'],
     limits: { channels: -1, orders_monthly: 50000, products: 10000, users: -1, suppliers: -1, logistics: -1, warehouses: -1, image_hosting_gb: 50 },
+    price_usd: 399, price_annual_usd: 319,
   },
   {
     plan_id: 'enterprise', name: 'Enterprise', display_order: 40, is_active: true, is_custom_quote: true,
-    description: '대규모 운영 · 맞춤 통합',
-    features: ['Pro 플랜 전체 기능', '무제한 판매 채널·창고', '맞춤 AI 모델 학습', '전담 계정 매니저', '99.9% 가용성 SLA', '계정 수 무제한', '무제한 API 호출', '맞춤 통합 & 웹훅 · SSO'],
+    description: '대규모 운영 · 맞춤 통합 (1계정 $1,500~ / 별도견적)',
+    features: ['Pro 플랜 전체 기능', '개발자 허브(API/웹훅/데이터 익스포트)', 'SSO/SCIM·화이트라벨', '맞춤 AI 모델 학습', '전담 계정 매니저·99.9% SLA', '계정 수 무제한', '맞춤 통합 & 웹훅'],
     limits: { channels: -1, orders_monthly: -1, products: -1, users: -1, suppliers: -1, logistics: -1, warehouses: -1, image_hosting_gb: -1 },
+    price_usd: 1500, price_annual_usd: 1200,
   },
 ];
 
@@ -502,6 +516,38 @@ function PlanPricing() {
     }
     return keys;
   }, []);
+
+  /** [246차] 가격 일괄 추천 — 경쟁사 앵커 1계정 base × 계정수(seat) 배수 × 기간할인 + 1년=3개월 무료 쿠폰.
+   *   전 플랜·전 seat·1/3/6/12개월 periodPricing 채움(검토 후 [플랜 탭 → 저장]). 전부 admin 수정 가능. */
+  const recommendAllPricing = () => {
+    const { matrix } = recommendPlanPricing();
+    const tiers = (seatTiers.length ? seatTiers : DEFAULT_SEAT_TIERS);
+    const PERIODS = [1, 3, 6, 12];
+    setPeriodPricing(prev => {
+      const next = { ...prev };
+      for (const p of plans) {
+        const pid = p.plan_id;
+        const rec = matrix[pid];
+        if (!rec) continue; // 알려진 플랜(free/starter/growth/pro/enterprise)만
+        const seatMap = { ...(next[pid] || {}) };
+        for (const tier of tiers) {
+          const sk = tier.key;
+          const seatRec = rec[sk] || rec['1']; // 커스텀 seat 키는 1계정 기준 폴백
+          const pp = { ...(seatMap[sk] || {}) };
+          for (const m of PERIODS) {
+            const r = seatRec[m] || seatRec[1];
+            if (!r) continue;
+            const existing = pp[m] || {};
+            pp[m] = { price_usd: r.list, discount_pct: RECOMMENDED_PERIOD_DISCOUNT[m] || 0, paddle_price_id: existing.paddle_price_id || '', is_active: true, bonus_months: r.bonusMonths };
+          }
+          seatMap[sk] = pp;
+        }
+        next[pid] = seatMap;
+      }
+      return next;
+    });
+    alert('경쟁사 벤치마크 추천가 채움 (1계정 base × 계정수 배수 × 기간할인 + 1년=3개월 무료 쿠폰). [플랜] 탭에서 검토·수정 후 [저장]하세요.');
+  };
 
   const recommendMenuAccess = () => {
     // 202차 초고도화: 전 플랜(Free 포함)을 DB 등록 목록에서 동적으로 추천.
@@ -2220,6 +2266,7 @@ function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk
           {typeof recommendMenuAccess === 'function' && (
             <button onClick={recommendMenuAccess} disabled={saving} title="플랜별 월 요금 차이에 비례해 AI가 메뉴 접근을 추천" style={{ padding: '11px 20px', borderRadius: 10, border: '1px solid rgba(168,85,247,0.45)', background: 'rgba(168,85,247,0.14)', color: '#6b21a8', fontSize: 14, fontWeight: 800, cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.6 : 1, whiteSpace: 'nowrap' }}>🤖 요금 기반 추천</button>
           )}
+          <button onClick={recommendAllPricing} disabled={saving} title="경쟁사 벤치마크 1계정 base × 계정수 배수 × 기간할인 + 1년=3개월 무료 쿠폰. 플랜 탭에서 저장." style={{ padding: '11px 20px', borderRadius: 10, border: '1px solid rgba(22,163,74,0.45)', background: 'rgba(22,163,74,0.12)', color: '#15803d', fontSize: 14, fontWeight: 800, cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.6 : 1, whiteSpace: 'nowrap' }}>💰 추천가 일괄 채움(계정수·기간)</button>
           <button onClick={saveAllAccess} disabled={saving || !dirty} style={{ padding: '11px 24px', borderRadius: 10, border: 'none', background: dirty ? 'linear-gradient(135deg,#16a34a,#22c55e)' : 'rgba(255,255,255,0.06)', color: dirty ? '#fff' : '#94a3b8', fontSize: 14, fontWeight: 800, cursor: dirty ? 'pointer' : 'default', opacity: saving ? 0.6 : 1, whiteSpace: 'nowrap' }}>{saving ? '저장 중…' : (dirty ? '💾 전체 저장' : '✓ 저장됨')}</button>
         </div>
       </div>

@@ -39,40 +39,40 @@ export const MEMBER_MENU = [
   {
     key: "ai_marketing", icon: "🚀", labelKey: "gNav.aiMarketing",
     items: [
-      { to: "/auto-marketing",      icon: "💎", labelKey: "gNav.autoMarketingLabel",      menuKey: "marketing" },
-      { to: "/campaign-manager",    icon: "🎯", labelKey: "gNav.campaignManagerLabel",    menuKey: "marketing" },
-      { to: "/journey-builder",     icon: "🗺️", labelKey: "gNav.journeyBuilderLabel",     menuKey: "marketing" },
-      { to: "/onsite-cro",          icon: "🧪", labelKey: "gNav.onsiteCroLabel",          menuKey: "marketing" },
-      { to: "/web-popup",           icon: "🎯", labelKey: "gNav.webPopupLabel",           menuKey: "marketing" }, // [246차 배치교정] CRM→온사이트 도구(사이트 전환)
+      { to: "/auto-marketing",      icon: "💎", labelKey: "gNav.autoMarketingLabel",      menuKey: "marketing_core" },
+      { to: "/campaign-manager",    icon: "🎯", labelKey: "gNav.campaignManagerLabel",    menuKey: "marketing_core" },
+      { to: "/journey-builder",     icon: "🗺️", labelKey: "gNav.journeyBuilderLabel",     menuKey: "marketing_advanced" },
+      { to: "/onsite-cro",          icon: "🧪", labelKey: "gNav.onsiteCroLabel",          menuKey: "marketing_advanced" },
+      { to: "/web-popup",           icon: "🎯", labelKey: "gNav.webPopupLabel",           menuKey: "marketing_advanced" }, // [246차 배치교정] CRM→온사이트 도구(사이트 전환)
     ],
   },
   /* 광고 성과 분석 */
   {
     key: "ad_analytics", icon: "📣", labelKey: "gNav.adAnalytics",
     items: [
-      { to: "/marketing",               icon: "📣", labelKey: "gNav.adPerformanceLabel",      menuKey: "marketing" },
-      { to: "/budget-tracker",          icon: "💰", labelKey: "gNav.budgetTrackerLabel",      menuKey: "marketing" },
-      { to: "/account-performance",     icon: "🏢", labelKey: "gNav.accountPerformanceLabel", menuKey: "marketing" },
-      { to: "/attribution",             icon: "🔗", labelKey: "gNav.attributionLabel",        menuKey: "marketing" },
-      { to: "/marketing-mix",           icon: "📐", labelKey: "gNav.marketingMixLabel",      menuKey: "marketing" },
-      { to: "/channel-kpi",             icon: "📊", labelKey: "gNav.channelKpiLabel",         menuKey: "marketing" },
-      { to: "/graph-score",             icon: "🕸️", labelKey: "gNav.graphScoreLabel",         menuKey: "marketing" },
+      { to: "/marketing",               icon: "📣", labelKey: "gNav.adPerformanceLabel",      menuKey: "marketing_core" },
+      { to: "/budget-tracker",          icon: "💰", labelKey: "gNav.budgetTrackerLabel",      menuKey: "marketing_advanced" },
+      { to: "/account-performance",     icon: "🏢", labelKey: "gNav.accountPerformanceLabel", menuKey: "marketing_advanced" },
+      { to: "/attribution",             icon: "🔗", labelKey: "gNav.attributionLabel",        menuKey: "marketing_advanced" },
+      { to: "/marketing-mix",           icon: "📐", labelKey: "gNav.marketingMixLabel",      menuKey: "marketing_advanced" },
+      { to: "/channel-kpi",             icon: "📊", labelKey: "gNav.channelKpiLabel",         menuKey: "marketing_advanced" },
+      { to: "/graph-score",             icon: "🕸️", labelKey: "gNav.graphScoreLabel",         menuKey: "marketing_advanced" },
     ],
   },
   /* 고객 & 채널 (CRM/UGC 통합) */
   {
     key: "crm", icon: "👤", labelKey: "gNav.crmLabel",
     items: [
-      { to: "/crm",             icon: "👥", labelKey: "gNav.crmMainLabel",         menuKey: "marketing" },
-      { to: "/kakao-channel",   icon: "💬", labelKey: "gNav.kakaoChannelLabel",    menuKey: "marketing" },
-      { to: "/email-marketing", icon: "✉️", labelKey: "gNav.emailMarketingLabel",  menuKey: "marketing" },
-      { to: "/sms-marketing",   icon: "📱", labelKey: "gNav.smsMarketingLabel",    menuKey: "marketing" },
-      { to: "/line-channel",    icon: "💚", labelKey: "gNav.lineChannelLabel",     menuKey: "marketing" },
-      { to: "/whatsapp",        icon: "🟢", labelKey: "gNav.whatsappLabel",        menuKey: "marketing" },
-      { to: "/instagram-dm",    icon: "📸", labelKey: "gNav.instagramDmLabel",     menuKey: "marketing" },
-      { to: "/influencer",      icon: "🤝", labelKey: "gNav.influencerLabel",      menuKey: "marketing" },
-      { to: "/content-calendar",icon: "📅", labelKey: "gNav.contentCalendarLabel", menuKey: "marketing" },
-      { to: "/reviews-ugc",     icon: "⭐", labelKey: "gNav.reviewsUgcLabel",      menuKey: "marketing" },
+      { to: "/crm",             icon: "👥", labelKey: "gNav.crmMainLabel",         menuKey: "marketing_core" },
+      { to: "/kakao-channel",   icon: "💬", labelKey: "gNav.kakaoChannelLabel",    menuKey: "marketing_core" },
+      { to: "/email-marketing", icon: "✉️", labelKey: "gNav.emailMarketingLabel",  menuKey: "marketing_core" },
+      { to: "/sms-marketing",   icon: "📱", labelKey: "gNav.smsMarketingLabel",    menuKey: "marketing_core" },
+      { to: "/line-channel",    icon: "💚", labelKey: "gNav.lineChannelLabel",     menuKey: "marketing_advanced" },
+      { to: "/whatsapp",        icon: "🟢", labelKey: "gNav.whatsappLabel",        menuKey: "marketing_advanced" },
+      { to: "/instagram-dm",    icon: "📸", labelKey: "gNav.instagramDmLabel",     menuKey: "marketing_advanced" },
+      { to: "/influencer",      icon: "🤝", labelKey: "gNav.influencerLabel",      menuKey: "marketing_advanced" },
+      { to: "/content-calendar",icon: "📅", labelKey: "gNav.contentCalendarLabel", menuKey: "marketing_core" },
+      { to: "/reviews-ugc",     icon: "⭐", labelKey: "gNav.reviewsUgcLabel",      menuKey: "marketing_core" },
     ],
   },
   /* 커머스 & 물류 */
@@ -81,7 +81,7 @@ export const MEMBER_MENU = [
     items: [
       { to: "/omni-channel",    icon: "🌐", labelKey: "gNav.omniChannelLabel",      menuKey: "commerce_channel" },
       { to: "/catalog-sync",    icon: "📂", labelKey: "gNav.catalogLabel",          menuKey: "commerce_channel" },
-      { to: "/live-commerce",   icon: "🎬", labelKey: "gNav.liveCommerceLabel",     menuKey: "commerce_channel" },
+      { to: "/live-commerce",   icon: "🎬", labelKey: "gNav.liveCommerceLabel",     menuKey: "commerce_live" },
       { to: "/order-hub",       icon: "📦", labelKey: "gNav.orderHubLabel",         menuKey: "commerce_channel" },
       { to: "/wms-manager",     icon: "🏭", labelKey: "gNav.wmsLabel",              menuKey: "ops" },
       { to: "/price-opt",       icon: "💡", labelKey: "gNav.priceOptLabel",         menuKey: "ops" },

@@ -23,9 +23,10 @@ import { planRank } from "./plans.js";
  * (세밀한 per-page 제어가 필요하면 관리자 menuAccess 로 override)
  */
 export const MENU_MIN_PLAN = Object.freeze({
-  // ── Free (평생 무료) — 사방넷(Sabangnet) 무료 모델 벤치마크 ────────────────
-  //   "판매 채널 연동 + 상품/주문 동기화"를 무료로 제공해 진입장벽 제거(채널 N개 제한은
-  //   limits.channels 로 강제). 경쟁사: 사방넷 무료, Shopify 무료체험, 채널톡 무료.
+  // ★246차 재설계 — 진짜 4단계 차등(Free 진입 + Starter/Growth/Pro/Enterprise). 경쟁사는 일부기능,
+  //   GeniegoROI는 올인원 슈퍼셋이라 가치기반 티어링. marketing 단일키를 core/advanced 로 분할해
+  //   Starter↔Growth 마케팅 차등을 실현. 모든 게이팅은 admin plan_menu_access 우선(본 표는 추천·폴백 정본).
+  // ── Free (평생 무료) — 사방넷 무료 모델: 채널 연동 + 상품/주문 동기화로 진입장벽 제거(채널수 limits 강제) ──
   "home||dashboard": "free",
   "home||rollup": "free",
   "commerce_channel": "free",          // 옴니채널/카탈로그/주문 — 채널 연동 핵심(3채널 무료)
@@ -38,16 +39,22 @@ export const MENU_MIN_PLAN = Object.freeze({
   "system||help_center": "free",
   "system||feedback": "free",
 
-  // ── Starter (마케팅 입문) — HubSpot Starter / 채널톡 / Mailchimp Standard ──
-  //   마케팅·광고·CRM·메신저 코어 + 기본 손익/AI 인사이트.
-  "marketing": "starter",              // 광고/CRM/이메일/카카오/캠페인 등
-  "analytics||report_builder": "starter",
-  "analytics||pnl_analytics": "starter",
-  "analytics||ai_insights": "starter",
+  // ── Starter (마케팅 입문, ~$49) — HubSpot Starter / 채널톡 Small / Mailchimp ──
+  //   마케팅·CRM·메신저 ‘코어’: 자동마케팅·캠페인·광고성과·CRM·이메일·카카오·SMS·콘텐츠·리뷰.
+  "marketing_core": "starter",
 
-  // ── Pro (성장) — HubSpot Professional / Salesforce / Shopify Advanced ──────
-  //   고급 운영(WMS/가격최적화/공급망/반품) + 자동화 + 데이터 연동·스키마 + 데이터프로덕트.
-  "ops": "pro",                        // WMS/가격최적화/공급망/반품 (PM 포함)
+  // ── Growth (데이터 기반 성장, ~$149) — Triple Whale / 채널톡 Medium ──────────
+  //   고급 분석·마케팅: 어트리뷰션·MMM(베이지안)·채널KPI·계정성과·예산·그래프스코어·여정·온사이트CRO·
+  //   웹팝업·인플루언서·LINE/WhatsApp/IG + 리포트빌더·P&L·AI인사이트.
+  "marketing_advanced": "growth",
+  "analytics||report_builder": "growth",
+  "analytics||pnl_analytics": "growth",
+  "analytics||ai_insights": "growth",
+
+  // ── Pro (풀 운영 자동화, ~$399) — Shopify Advanced / HubSpot Pro 언더컷 ───────
+  //   운영(WMS·가격최적화·공급망·수요예측·반품·PM) + 라이브커머스 + 자동화 + 데이터 거버넌스.
+  "ops": "pro",                        // WMS/가격최적화/공급망/수요예측/반품 (PM 포함)
+  "commerce_live": "pro",              // 라이브 커머스(고급 커머스)
   "analytics||data_product": "pro",
   "automation||ai_rule_engine": "pro",
   "automation||approvals": "pro",
@@ -56,7 +63,7 @@ export const MENU_MIN_PLAN = Object.freeze({
   "data||data_trust": "pro",
   "system||operations": "pro",
 
-  // ── Enterprise (대기업) — Salesforce Enterprise / 화이트라벨·API·개발자 ────
+  // ── Enterprise (대기업, ~$1,500/견적) — 개발자 API·웹훅·익스포트·SSO/SCIM·화이트라벨 ──
   "system||developer_hub": "enterprise",
 
   // ── 플랫폼 관리 — admin 전용(어떤 구독 플랜도 접근 불가) ───────────────────
@@ -202,6 +209,48 @@ export function recommendMenuAccessByPrice(prices, menuKeys) {
     pro: menusUpToTier(planTier.pro),
     enterprise: menusUpToTier(planTier.enterprise),
   };
+}
+
+/* ── [246차] 가격 추천 (경쟁사 앵커·1계정 base × seat × 기간 + 무료기간 쿠폰) ──
+ *   GeniegoROI는 경쟁사(일부기능) 대비 올인원 슈퍼셋 → 가치기반 list. 전 값 admin 수정 가능(plan_config/plan_period_pricing).
+ *   ★1계정 기준 base, 계정수(seat)에 따라 스케일. */
+export const RECOMMENDED_BASE_PRICE = Object.freeze({
+  free: 0, starter: 49, growth: 149, pro: 399, enterprise: 1500, // 1계정 월 list(USD)
+});
+export const RECOMMENDED_SEAT_MULT = Object.freeze({ '1': 1, '10': 6, 'unlimited': 12 }); // 볼륨할인(선형10× 대비)
+export const RECOMMENDED_PERIOD_DISCOUNT = Object.freeze({ 1: 0, 3: 5, 6: 10, 12: 20, 24: 25, 36: 30 }); // 기간 약정 할인%
+export const FREE_MONTHS_PER_YEAR = 3; // 무료기간 쿠폰 — 1년 구독=3개월 무료(가입/갱신 자동지급)
+
+/** 구독 기간(개월)당 무료 보너스 개월(1년 3개월 비례). */
+export function couponBonusMonths(periodMonths) {
+  return Math.round((Math.max(1, Number(periodMonths) || 1) / 12) * FREE_MONTHS_PER_YEAR * 100) / 100;
+}
+
+/**
+ * 플랜 가격 추천 — admin "추천" 버튼 기본값(전부 수정 가능). 1계정 base × seat 배수 × 기간할인 + 무료개월 쿠폰.
+ * @param {object} [opts] { base, seatMult, periodDiscount } 부분 override
+ * @returns {{base, seatMult, periodDiscount, freeMonthsPerYear, matrix}}
+ *   matrix[plan][seat][period] = { list, net(쿠폰 반영 실효 월단가), bonusMonths }
+ */
+export function recommendPlanPricing(opts = {}) {
+  const base = { ...RECOMMENDED_BASE_PRICE, ...(opts.base || {}) };
+  const seatMult = { ...RECOMMENDED_SEAT_MULT, ...(opts.seatMult || {}) };
+  const periodDisc = { ...RECOMMENDED_PERIOD_DISCOUNT, ...(opts.periodDiscount || {}) };
+  const matrix = {};
+  for (const plan of Object.keys(base)) {
+    matrix[plan] = {};
+    for (const seat of Object.keys(seatMult)) {
+      matrix[plan][seat] = {};
+      for (const p of Object.keys(periodDisc)) {
+        const pm = Number(p);
+        const list = Math.round(base[plan] * seatMult[seat] * (1 - periodDisc[p] / 100));
+        const bonus = couponBonusMonths(pm);
+        const net = pm > 0 ? Math.round(list * pm / (pm + bonus)) : list; // 무료개월 반영 실효 월단가
+        matrix[plan][seat][p] = { list, net, bonusMonths: bonus };
+      }
+    }
+  }
+  return { base, seatMult, periodDiscount: periodDisc, freeMonthsPerYear: FREE_MONTHS_PER_YEAR, matrix };
 }
 
 /* ── path → menuKey 역인덱스 (라우트 딥링크 가드용) ── */
