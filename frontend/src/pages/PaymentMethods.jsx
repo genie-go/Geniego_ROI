@@ -8,6 +8,7 @@ import { IS_DEMO } from '../utils/demoEnv';
 import { bt } from '../utils/billingI18n';
 import CrossLinkBar from '../components/CrossLinkBar.jsx';
 import PeriodFilterBar, { inPeriodAny } from '../components/common/PeriodFilterBar.jsx'; // [현 차수] 결제내역 기간조회
+import { postJsonAuth } from '../services/apiClient.js'; // 246차 구독 취소·환불
 import { useGlobalData } from '../context/GlobalDataContext.jsx'; // [현 차수] 데모 결제내역 파생
 
 // [현 차수] 데모 결제/청구 내역 파생 — v427/billing/ledger 부재 시 주문 광고비를 월×채널 청구행으로 집계(기간 반응).
@@ -141,6 +142,21 @@ export default function PaymentMethods() {
   const remaining = budget ? Number(budget.remaining || 0) : 0;
   const pct = cap > 0 ? Math.min(100, Math.round(charged / cap * 100)) : 0;
 
+  // 246차: 1개월 내 구독 취소·환불 (재가입 시 사용분 소급 안내)
+  const [refundBusy, setRefundBusy] = useState(false);
+  const [refundMsg, setRefundMsg] = useState('');
+  const requestRefund = useCallback(async () => {
+    if (IS_DEMO) { setRefundMsg('데모 환경에서는 환불이 적용되지 않습니다 (시연용).'); return; }
+    if (!window.confirm('구독을 취소하고 환불을 요청하시겠습니까?\n· 구독 시작 30일 이내에만 전액 환불됩니다.\n· 재가입 시 이번에 사용한 일수가 신규 구독에 소급 적용됩니다.')) return;
+    setRefundBusy(true); setRefundMsg('');
+    try {
+      const r = await postJsonAuth('/auth/refund-request', {});
+      setRefundMsg(r?.ok ? (r.msg || '환불 처리되었습니다.') : (r?.error || '환불 요청에 실패했습니다.'));
+    } catch (e) {
+      setRefundMsg('환불 요청 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+    } finally { setRefundBusy(false); }
+  }, []);
+
   return (
     <div style={{ maxWidth: 980, margin: '0 auto', padding: '28px 20px', color: '#0f172a', fontFamily: "'Pretendard','Inter',system-ui,sans-serif" }}>
       <div style={{ marginBottom: 22 }}>
@@ -150,6 +166,18 @@ export default function PaymentMethods() {
 
       <CrossLinkBar links={PAY_LINKS} note="결제·청구 관련" />
       <div style={{ marginBottom: 18 }}><BeginnerGuide spec={GUIDE.paymentMethods} /></div>
+
+      {/* 246차: 구독 취소·환불(1개월 내) — 재가입 시 사용분 소급 */}
+      <div style={{ marginBottom: 18, padding: '16px 18px', borderRadius: 12, background: '#fff7ed', border: '1px solid #fed7aa' }}>
+        <div style={{ fontSize: 14, fontWeight: 800, color: '#9a3412', marginBottom: 4 }}>↩️ 구독 취소·환불</div>
+        <div style={{ fontSize: 12.5, color: '#9a3412', lineHeight: 1.7, marginBottom: 10 }}>
+          구독 시작 <b>30일(1개월) 이내</b>에는 전액 환불됩니다. 단, <b>재가입 시 이번에 사용한 일수가 신규 구독 기간에서 소급 차감</b>됩니다(중복 환불 방지).
+        </div>
+        <button onClick={requestRefund} disabled={refundBusy} style={{ padding: '9px 18px', borderRadius: 9, border: '1px solid #f97316', background: refundBusy ? '#fdba74' : '#fff', color: '#c2410c', fontSize: 13, fontWeight: 800, cursor: refundBusy ? 'default' : 'pointer' }}>
+          {refundBusy ? '처리 중…' : '구독 취소·환불 요청'}
+        </button>
+        {refundMsg && <div style={{ marginTop: 10, fontSize: 12.5, fontWeight: 700, color: '#7c2d12' }}>{refundMsg}</div>}
+      </div>
 
       {IS_DEMO && (
         <div style={{ padding: '12px 16px', borderRadius: 12, background: '#eff6ff', border: '1px solid #bfdbfe', color: '#1e40af', fontSize: 13, marginBottom: 18 }}>
