@@ -17,22 +17,57 @@ function tenant() {
   try { return localStorage.getItem('tenantId') || (IS_DEMO ? 'demo' : ''); } catch { return ''; }
 }
 
-/** 변형 배정(노출 기록). 반환: { variant, content } | null. 세션 sticky 캐시. */
-export async function assignVariant(expKey) {
+/** [246차 P2] 방문자 컨텍스트 — 세그먼트 타겟팅용(기기·신규/재방문). PII 아님. */
+function visitorCtx() {
+  let dev = 'desktop';
+  try { if (/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) dev = 'mobile'; } catch { /* noop */ }
+  let vis = 'returning';
+  try { if (!localStorage.getItem('genie_cro_seen')) { vis = 'new'; localStorage.setItem('genie_cro_seen', '1'); } } catch { /* noop */ }
+  let src = '';
+  try { src = new URLSearchParams(location.search).get('utm_source') || ''; } catch { /* noop */ }
+  return { dev, vis, src };
+}
+
+/**
+ * [246차 P2] 노코드 변형 체인지셋 적용 — assign.changes 를 DOM 에 반영(Optimizely식).
+ *   change: { selector, action: text|html|css|hide|redirect, value, prop? }. graceful(요소 없으면 skip).
+ */
+export function applyChanges(changes) {
+  if (!Array.isArray(changes)) return;
+  for (const c of changes) {
+    try {
+      if (!c || !c.action) continue;
+      if (c.action === 'redirect' && c.value) { location.href = String(c.value); return; }
+      const els = c.selector ? document.querySelectorAll(c.selector) : [];
+      els.forEach(el => {
+        if (c.action === 'text') el.textContent = String(c.value ?? '');
+        else if (c.action === 'html') el.innerHTML = String(c.value ?? '');
+        else if (c.action === 'hide') el.style.display = 'none';
+        else if (c.action === 'css' && c.prop) el.style.setProperty(c.prop, String(c.value ?? ''));
+      });
+    } catch { /* graceful — 개별 변경 실패 무시 */ }
+  }
+}
+
+/** 변형 배정(노출 기록). 반환: { variant, content, changes } | null. 세션 sticky 캐시. applyChanges 옵션 자동적용. */
+export async function assignVariant(expKey, { autoApply = false } = {}) {
   if (!expKey) return null;
   const cacheKey = 'genie_cro_assigned_' + expKey;
   try {
     const cached = sessionStorage.getItem(cacheKey);
-    if (cached) return JSON.parse(cached);
+    if (cached) { const o = JSON.parse(cached); if (autoApply) applyChanges(o.changes); return o; }
   } catch { /* noop */ }
   const t = tenant(); if (!t) return null;
   try {
-    const u = `/api/v424/cro/assign?key=${encodeURIComponent(expKey)}&vid=${encodeURIComponent(getVisitorId())}&tenant=${encodeURIComponent(t)}`;
+    const ctx = visitorCtx();
+    const u = `/api/v424/cro/assign?key=${encodeURIComponent(expKey)}&vid=${encodeURIComponent(getVisitorId())}&tenant=${encodeURIComponent(t)}`
+      + `&dev=${encodeURIComponent(ctx.dev)}&vis=${encodeURIComponent(ctx.vis)}&src=${encodeURIComponent(ctx.src)}`;
     const r = await fetch(u);
     const d = await r.json();
     if (d && d.ok && d.variant) {
-      const out = { variant: d.variant, content: d.content ?? null };
+      const out = { variant: d.variant, content: d.content ?? null, changes: d.changes ?? null };
       try { sessionStorage.setItem(cacheKey, JSON.stringify(out)); } catch { /* noop */ }
+      if (autoApply) applyChanges(out.changes);
       return out;
     }
   } catch { /* graceful */ }

@@ -9,7 +9,7 @@ export default function OnsiteCro() {
   const t = useT();
   const [exps, setExps] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [form, setForm] = useState({ name: '', goal: '', vA: '대조군(A)', wA: 50, vB: '변형(B)', wB: 50 });
+  const [form, setForm] = useState({ name: '', goal: '', vA: '대조군(A)', wA: 50, vB: '변형(B)', wB: 50, device: 'all', visitor: 'all' });
   const [results, setResults] = useState({}); // {id: resultObj}
   const [msg, setMsg] = useState('');
 
@@ -28,8 +28,9 @@ export default function OnsiteCro() {
           { key: 'A', label: form.vA || 'A', weight: Number(form.wA) || 50 },
           { key: 'B', label: form.vB || 'B', weight: Number(form.wB) || 50 },
         ],
+        audience: (form.device !== 'all' || form.visitor !== 'all') ? { device: form.device, visitor: form.visitor } : null,
       });
-      setForm({ name: '', goal: '', vA: '대조군(A)', wA: 50, vB: '변형(B)', wB: 50 });
+      setForm({ name: '', goal: '', vA: '대조군(A)', wA: 50, vB: '변형(B)', wB: 50, device: 'all', visitor: 'all' });
       setMsg(t('cro.created', '실험이 생성되었습니다(실행 중).')); load();
     } catch { setMsg(t('cro.createFail', '생성 실패')); }
   };
@@ -65,6 +66,17 @@ export default function OnsiteCro() {
           <input type="number" value={form.wA} onChange={e => setForm(f => ({ ...f, wA: e.target.value }))} title={t('cro.weight', '트래픽 비중(%)')} style={{ ...inp, width: 70 }} />
           <input value={form.vB} onChange={e => setForm(f => ({ ...f, vB: e.target.value }))} placeholder="B" style={{ ...inp, width: 130 }} />
           <input type="number" value={form.wB} onChange={e => setForm(f => ({ ...f, wB: e.target.value }))} title={t('cro.weight', '트래픽 비중(%)')} style={{ ...inp, width: 70 }} />
+          {/* [246차 P2] 세그먼트 타겟팅 */}
+          <select value={form.device} onChange={e => setForm(f => ({ ...f, device: e.target.value }))} title={t('cro.deviceTarget', '기기 타겟')} style={{ ...inp, width: 110 }}>
+            <option value="all">{t('cro.devAll', '전체 기기')}</option>
+            <option value="mobile">{t('cro.devMobile', '모바일')}</option>
+            <option value="desktop">{t('cro.devDesktop', '데스크톱')}</option>
+          </select>
+          <select value={form.visitor} onChange={e => setForm(f => ({ ...f, visitor: e.target.value }))} title={t('cro.visitorTarget', '방문자 타겟')} style={{ ...inp, width: 110 }}>
+            <option value="all">{t('cro.visAll', '전체 방문자')}</option>
+            <option value="new">{t('cro.visNew', '신규')}</option>
+            <option value="returning">{t('cro.visReturning', '재방문')}</option>
+          </select>
           <button onClick={create} style={{ padding: '8px 16px', borderRadius: 9, border: 'none', cursor: 'pointer', fontWeight: 800, fontSize: 12, background: 'linear-gradient(135deg,#22c55e,#16a34a)', color: '#fff' }}>+ {t('cro.create', '실험 생성')}</button>
           {msg && <span style={{ fontSize: 11.5, color: '#0e7490', fontWeight: 700 }}>{msg}</span>}
         </div>
@@ -87,6 +99,11 @@ export default function OnsiteCro() {
                   <span style={{ fontSize: 10, fontWeight: 700, color: stc, background: stc + '1a', padding: '2px 8px', borderRadius: 6 }}>{e.status}</span>
                   <span style={{ fontSize: 10.5, color: 'var(--text-3)', fontFamily: 'monospace' }}>{e.exp_key}</span>
                   {e.goal && <span style={{ fontSize: 11, color: 'var(--text-3)' }}>🎯 {e.goal}</span>}
+                  {e.audience && (e.audience.device !== 'all' || e.audience.visitor !== 'all') && (
+                    <span style={{ fontSize: 10, fontWeight: 700, color: '#7c3aed', background: 'rgba(124,58,237,0.1)', padding: '2px 8px', borderRadius: 6 }}>
+                      🎯 {[e.audience.device !== 'all' ? (e.audience.device === 'mobile' ? t('cro.devMobile', '모바일') : t('cro.devDesktop', '데스크톱')) : null, e.audience.visitor !== 'all' ? (e.audience.visitor === 'new' ? t('cro.visNew', '신규') : t('cro.visReturning', '재방문')) : null].filter(Boolean).join(' · ')}
+                    </span>
+                  )}
                   <div style={{ marginLeft: 'auto', display: 'flex', gap: 6 }}>
                     <button onClick={() => loadResults(e.id)} style={{ fontSize: 11, padding: '5px 10px', borderRadius: 7, border: '1px solid var(--border,#e2e8f0)', background: 'transparent', cursor: 'pointer', color: 'var(--text-2)' }}>{t('cro.results', '결과')}</button>
                     {e.status === 'running'

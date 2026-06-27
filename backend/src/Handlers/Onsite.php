@@ -49,7 +49,31 @@ final class Onsite
                 exposures INT DEFAULT 0, conversions INT DEFAULT 0,
                 PRIMARY KEY (tenant_id, exp_key, variant_key)
             )");
+            // [246차 P2] 세그먼트 타겟팅 — 실험 오디언스 조건(기기/방문자/utm/국가). 없으면 전체.
+            try { $pdo->exec("ALTER TABLE onsite_experiment ADD COLUMN audience_json TEXT"); } catch (\Throwable $e) { /* 이미 존재 */ }
         } catch (\Throwable $e) { /* graceful */ }
+    }
+
+    /**
+     * [246차 P2] 오디언스(세그먼트) 매칭 — 방문자 컨텍스트가 실험 타겟 조건에 부합하는지.
+     *   audience: {device:all|mobile|desktop, visitor:all|new|returning, utm_source:substr, country:csv}.
+     *   미설정/all 은 전체 허용(무회귀). Optimizely식 타겟 실험.
+     */
+    private static function audienceMatches(?array $aud, array $ctx): bool
+    {
+        if (!$aud) return true;
+        $dev = strtolower((string)($aud['device'] ?? 'all'));
+        if ($dev === 'mobile' || $dev === 'desktop') { if (strtolower((string)($ctx['dev'] ?? '')) !== $dev) return false; }
+        $vis = strtolower((string)($aud['visitor'] ?? 'all'));
+        if ($vis === 'new' || $vis === 'returning') { if (strtolower((string)($ctx['vis'] ?? '')) !== $vis) return false; }
+        $src = trim((string)($aud['utm_source'] ?? ''));
+        if ($src !== '' && stripos((string)($ctx['src'] ?? ''), $src) === false) return false;
+        $country = trim((string)($aud['country'] ?? ''));
+        if ($country !== '') {
+            $allow = array_filter(array_map(fn($c) => strtoupper(trim($c)), explode(',', $country)));
+            if ($allow && !in_array(strtoupper((string)($ctx['country'] ?? '')), $allow, true)) return false;
+        }
+        return true;
     }
 
     /** 변형 가중치 정규화 + 결정론적 버킷 선택. variants=[{key,weight}], vid+exp_key 해시. */
@@ -73,6 +97,8 @@ final class Onsite
         if (!$row) return null;
         $vs = json_decode((string)($row['variants_json'] ?? ''), true);
         $row['variants'] = is_array($vs) ? $vs : [];
+        $aud = json_decode((string)($row['audience_json'] ?? ''), true);
+        $row['audience'] = is_array($aud) ? $aud : null;
         return $row;
     }
 
@@ -88,12 +114,18 @@ final class Onsite
             $pdo = Db::pdo(); self::ensure($pdo);
             $exp = self::loadExp($pdo, $tenant, $expKey);
             if (!$exp) return self::json($res, ['ok' => false, 'variant' => null, 'reason' => 'no_active_experiment']);
+            // [246차 P2] 세그먼트 타겟팅 — 방문자 컨텍스트가 오디언스에 부합하지 않으면 미노출(원본 유지·노출 미집계).
+            $ctx = ['dev' => (string)($q['dev'] ?? ''), 'vis' => (string)($q['vis'] ?? ''), 'src' => (string)($q['src'] ?? ''), 'country' => (string)($q['country'] ?? '')];
+            if (!self::audienceMatches($exp['audience'] ?? null, $ctx)) {
+                return self::json($res, ['ok' => true, 'variant' => null, 'reason' => 'not_in_audience']);
+            }
             $variant = self::pickVariant($exp['variants'], $vid, $expKey);
             if ($variant === null) return self::json($res, ['ok' => false, 'variant' => null]);
             self::bump($pdo, $tenant, $expKey, $variant, 'exposures');
-            $content = null;
-            foreach ($exp['variants'] as $v) { if (($v['key'] ?? '') === $variant) { $content = $v['content'] ?? null; break; } }
-            return self::json($res, ['ok' => true, 'variant' => $variant, 'content' => $content]);
+            $content = null; $changes = null;
+            foreach ($exp['variants'] as $v) { if (($v['key'] ?? '') === $variant) { $content = $v['content'] ?? null; $changes = $v['changes'] ?? null; break; } }
+            // [246차 P2] 노코드 변형 체인지셋(selector→text/html/css/hide/redirect) — 온사이트 스니펫이 적용.
+            return self::json($res, ['ok' => true, 'variant' => $variant, 'content' => $content, 'changes' => $changes]);
         } catch (\Throwable $e) { return self::json($res, ['ok' => false, 'variant' => null]); }
     }
 
@@ -136,7 +168,9 @@ final class Onsite
             $pdo = Db::pdo(); self::ensure($pdo);
             $st = $pdo->prepare("SELECT * FROM onsite_experiment WHERE tenant_id=? ORDER BY id DESC"); $st->execute([$t]);
             $rows = array_map(function ($r) {
-                $vs = json_decode((string)($r['variants_json'] ?? ''), true); $r['variants'] = is_array($vs) ? $vs : []; unset($r['variants_json']); return $r;
+                $vs = json_decode((string)($r['variants_json'] ?? ''), true); $r['variants'] = is_array($vs) ? $vs : []; unset($r['variants_json']);
+                $aud = json_decode((string)($r['audience_json'] ?? ''), true); $r['audience'] = is_array($aud) ? $aud : null; unset($r['audience_json']);
+                return $r;
             }, $st->fetchAll(PDO::FETCH_ASSOC) ?: []);
             return self::json($res, ['ok' => true, 'experiments' => $rows]);
         } catch (\Throwable $e) { return self::json($res, ['ok' => true, 'experiments' => []]); }
@@ -149,10 +183,11 @@ final class Onsite
         $name = trim((string)($b['name'] ?? '')); if ($name === '') return self::json($res, ['ok' => false, 'error' => '실험명을 입력하세요.']);
         $expKey = preg_replace('/[^a-z0-9_-]/', '', strtolower((string)($b['exp_key'] ?? ''))) ?: ('exp_' . substr(md5($name . microtime()), 0, 8));
         $variants = is_array($b['variants'] ?? null) ? array_slice($b['variants'], 0, 6) : [['key' => 'A', 'label' => 'A', 'weight' => 50], ['key' => 'B', 'label' => 'B', 'weight' => 50]];
+        $audience = is_array($b['audience'] ?? null) ? $b['audience'] : null;
         try {
             $pdo = Db::pdo(); self::ensure($pdo); $now = gmdate('c');
-            $pdo->prepare("INSERT INTO onsite_experiment(tenant_id,exp_key,name,goal,variants_json,status,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?)")
-                ->execute([$t, $expKey, substr($name, 0, 200), substr((string)($b['goal'] ?? ''), 0, 300), json_encode($variants, JSON_UNESCAPED_UNICODE), 'running', $now, $now]);
+            $pdo->prepare("INSERT INTO onsite_experiment(tenant_id,exp_key,name,goal,variants_json,audience_json,status,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?)")
+                ->execute([$t, $expKey, substr($name, 0, 200), substr((string)($b['goal'] ?? ''), 0, 300), json_encode($variants, JSON_UNESCAPED_UNICODE), $audience ? json_encode($audience, JSON_UNESCAPED_UNICODE) : null, 'running', $now, $now]);
             return self::json($res, ['ok' => true, 'id' => (int)$pdo->lastInsertId(), 'exp_key' => $expKey]);
         } catch (\Throwable $e) { return self::json($res, ['ok' => false, 'error' => $e->getMessage()]); }
     }
@@ -166,6 +201,7 @@ final class Onsite
             $status = in_array(($b['status'] ?? ''), ['running', 'paused', 'concluded'], true) ? $b['status'] : null;
             if ($status !== null) $pdo->prepare("UPDATE onsite_experiment SET status=?, updated_at=? WHERE id=? AND tenant_id=?")->execute([$status, gmdate('c'), $id, $t]);
             if (is_array($b['variants'] ?? null)) $pdo->prepare("UPDATE onsite_experiment SET variants_json=?, updated_at=? WHERE id=? AND tenant_id=?")->execute([json_encode(array_slice($b['variants'], 0, 6), JSON_UNESCAPED_UNICODE), gmdate('c'), $id, $t]);
+            if (array_key_exists('audience', $b)) $pdo->prepare("UPDATE onsite_experiment SET audience_json=?, updated_at=? WHERE id=? AND tenant_id=?")->execute([is_array($b['audience']) ? json_encode($b['audience'], JSON_UNESCAPED_UNICODE) : null, gmdate('c'), $id, $t]);
             return self::json($res, ['ok' => true]);
         } catch (\Throwable $e) { return self::json($res, ['ok' => false]); }
     }
