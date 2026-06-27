@@ -589,6 +589,35 @@ function PlanPricing() {
     );
   };
 
+  // 246차: 접근권한에 따라 ‘당연히 체크’ — 아직 구성 안 된 플랜은 추천 접근(=MENU_MIN_PLAN 폴백과 동일)으로
+  //   체크박스 기본 체크. ★1회만(언체크 후 자동 재채움 방지) · 이미 구성된 플랜은 보존(admin 설정 우선).
+  //   menus.length = 메뉴접근 로드 완료 신호(fetchMenuAccess 가 menus+access 동시 set).
+  const _prefilledRef = useRef(false);
+  useEffect(() => {
+    if (_prefilledRef.current) return;
+    if (!plans.length || !menus.length) return;
+    const planList = plans
+      .filter(p => p.plan_id && p.plan_id !== 'admin' && p.plan_id !== 'demo')
+      .map(p => ({ id: p.plan_id, price: priceOf(p.plan_id) }));
+    if (!planList.length) return;
+    let rec;
+    try { rec = recommendMenuAccessRealistic(planList).access; } catch { return; }
+    _prefilledRef.current = true;
+    setAccess(prev => {
+      const next = { ...prev };
+      let changed = false;
+      for (const planId of Object.keys(rec)) {
+        const cur = next[planId] || {};
+        if (Object.values(cur).some(Boolean)) continue; // 이미 구성됨 → admin 설정 우선 보존
+        const planAcc = {};
+        for (const mk of Object.keys(rec[planId] || {})) for (const k of expandMenuKeyAllLevels(mk)) planAcc[k] = 1;
+        next[planId] = planAcc;
+        changed = true;
+      }
+      return changed ? next : prev;
+    });
+  }, [plans, menus, expandMenuKeyAllLevels]);
+
   /**
    * updateField — 172차에서 plan_config 가격 필드는 plan_period_pricing 의 derived view 가 됨.
    * 본 함수는 plan_config 의 non-price 속성만 수정 (name/description/features/limits/flags/display_order).
@@ -2276,6 +2305,32 @@ function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk
         <input type="text" value={filter} onChange={e => setFilter(e.target.value)} placeholder="🔍 메뉴 이름/경로/키 검색…" style={{ flex: 1, minWidth: 200, boxSizing: 'border-box', padding: '10px 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.2)', color: 'var(--text-1)', fontSize: 14 }} />
         <button onClick={expandAll} style={{ padding: '9px 14px', borderRadius: 8, border: '1px solid rgba(56,189,248,0.45)', background: 'rgba(56,189,248,0.14)', color: '#0369a1', fontSize: 12, fontWeight: 800, cursor: 'pointer', whiteSpace: 'nowrap' }}>📂 전체 펼치기</button>
         <button onClick={collapseAll} style={{ padding: '9px 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.04)', color: '#94a3b8', fontSize: 12, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>📁 전체 접기</button>
+      </div>
+
+      {/* 246차: 플랜별 ‘접근 가능 메뉴 상세 설명’ — 체크박스 상태에서 동적 파생.
+          체크 해제 → 그 메뉴 설명이 해당 플랜에서 사라지고, 체크 추가 → 아주 상세한 설명이 즉시 생성된다. */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 12, marginBottom: 16 }}>
+        {plans.map(p => {
+          const acc = access[p.plan_id] || {};
+          const items = Object.keys(MENU_KEY_LABEL).filter(mk => acc[mk]);
+          return (
+            <div key={p.plan_id} style={{ border: '1px solid rgba(148,163,184,0.3)', borderRadius: 12, padding: '12px 14px', background: '#ffffff' }}>
+              <div style={{ fontWeight: 900, fontSize: 13, color: '#0f172a', marginBottom: 8 }}>
+                {p.name || p.plan_id} <span style={{ fontSize: 11, color: '#64748b', fontWeight: 700 }}>· 접근 {items.length}개 메뉴</span>
+              </div>
+              {items.length === 0
+                ? <div style={{ fontSize: 11.5, color: '#94a3b8' }}>접근 가능한 메뉴가 없습니다. (체크하면 상세 설명이 생성됩니다)</div>
+                : <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {items.map(mk => (
+                      <div key={mk} style={{ fontSize: 11.5, lineHeight: 1.55 }}>
+                        <div style={{ fontWeight: 800, color: '#0f172a' }}>• {MENU_KEY_LABEL[mk].title}</div>
+                        <div style={{ color: '#475569' }}>{MENU_KEY_LABEL[mk].desc}</div>
+                      </div>
+                    ))}
+                  </div>}
+            </div>
+          );
+        })}
       </div>
 
       {/* 비교 매트릭스 (메뉴 × 플랜) — 187차: id=genie-plan-pricing(어두운 셀 흰글자 override 앵커) + 패널 단색 다크 */}
