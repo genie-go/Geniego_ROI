@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
+import BeginnerGuide from "../components/BeginnerGuide.jsx";
+import { GUIDE } from "../lib/guideSpecs.js";
 import { useT } from "../i18n/index.js";
 import { getJsonAuth, postJsonAuth, patchJson, delJson } from "../services/apiClient.js";
 import { useVisibleTabs } from "../auth/useVisibleTabs.js";
@@ -172,6 +174,9 @@ export default function ReportBuilder() {
       {/* [현 차수] 특정상품 리포트 참조 — 선택 시 그 상품 매출·순이익·채널/국가별 인라인 참조(주문 SSOT). 리포트 본문은 전체 기준. */}
       <ProductSelectBar />
       <ProductMarketingPanel period="monthly" />
+
+      <BeginnerGuide spec={GUIDE.reportBuilder} />
+      <div style={{ height: 14 }} />
 
       <div style={{ display: "flex", gap: 6, marginBottom: 16, flexWrap: "wrap" }}>
         {TABS.map(([id, label]) => (

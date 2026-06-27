@@ -1,4 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import BeginnerGuide from '../components/BeginnerGuide.jsx';
+import { GUIDE } from '../lib/guideSpecs.js';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useI18n } from '../i18n/index.js';
 import { useToast } from '../components/ToastProvider.jsx';
@@ -147,6 +149,7 @@ export default function PaymentMethods() {
       </div>
 
       <CrossLinkBar links={PAY_LINKS} note="결제·청구 관련" />
+      <div style={{ marginBottom: 18 }}><BeginnerGuide spec={GUIDE.paymentMethods} /></div>
 
       {IS_DEMO && (
         <div style={{ padding: '12px 16px', borderRadius: 12, background: '#eff6ff', border: '1px solid #bfdbfe', color: '#1e40af', fontSize: 13, marginBottom: 18 }}>

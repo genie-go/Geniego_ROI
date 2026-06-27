@@ -1,4 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import BeginnerGuide from '../components/BeginnerGuide.jsx';
+import { GUIDE } from '../lib/guideSpecs.js';
 import { useT } from '../i18n/index.js';
 import * as pm from '../services/pmApi.js';
 
@@ -44,6 +46,7 @@ export default function PMPortfolio() {
         <h2 style={{ margin: 0 }}>🗂️ {t('pmx.pf.title', '포트폴리오 / 프로그램')}</h2>
         <button onClick={create} style={btn('#4f8ef7')}>+ {t('pmx.pf.add', '포트폴리오 추가')}</button>
       </div>
+      <div style={{ marginBottom: 16 }}><BeginnerGuide spec={GUIDE.pmPortfolio} /></div>
       {err && <div style={errBox}>{err}</div>}
       {loading && !items.length && <div>{t('pm.common.loadingFull', '로딩 중…')}</div>}
 

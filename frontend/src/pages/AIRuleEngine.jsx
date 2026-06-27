@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
+import BeginnerGuide from "../components/BeginnerGuide.jsx";
+import { GUIDE } from "../lib/guideSpecs.js";
 import { useI18n } from '../i18n';
 import { getJsonAuth, postJsonAuth, requestJsonAuth } from '../services/apiClient';
 
@@ -87,6 +89,8 @@ export default function AIRuleEngine() {
           </div>
         ))}
       </div>
+
+      <div style={{ marginBottom: 16 }}><BeginnerGuide spec={GUIDE.aiRuleEngine} /></div>
 
       <div className="page-subtabs" style={{ display: "flex", gap: 4, marginBottom: 20, padding: 4, borderRadius: 12, background: "var(--surface-2, #f1f5f9)", border: "1px solid var(--border, #e5e7eb)", flexWrap: 'wrap' }}>
         {TABS.map((tab, i) => (

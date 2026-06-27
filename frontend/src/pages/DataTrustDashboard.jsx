@@ -1,4 +1,6 @@
 import React, { useState, useMemo } from "react";
+import BeginnerGuide from "../components/BeginnerGuide.jsx";
+import { GUIDE } from "../lib/guideSpecs.js";
 import { IS_DEMO } from '../utils/demoEnv';
 import { useI18n } from '../i18n';
 import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
@@ -106,6 +108,8 @@ export default function DataTrustDashboard() {
           </div>
         ))}
       </div>
+
+      <BeginnerGuide spec={GUIDE.dataTrust} />
 
       <div className="card card-glass" style={{ padding: 8, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
         {tabs.map((tab, i) => (

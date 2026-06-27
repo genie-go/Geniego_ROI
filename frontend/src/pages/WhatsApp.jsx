@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
+import BeginnerGuide from "../components/BeginnerGuide.jsx";
+import { GUIDE } from "../lib/guideSpecs.js";
 import PlanGate from "../components/PlanGate.jsx";
 
 import { useI18n } from '../i18n';
@@ -255,6 +257,8 @@ export default function WhatsApp() {
                     </div>
                 </div>
             </div>
+
+            <BeginnerGuide spec={GUIDE.whatsapp} />
 
             <div className="page-subtabs" style={{ display: 'flex', gap: 4, padding: '4px', background: 'rgba(0,0,0,0.25)', borderRadius: 12, flexWrap: 'wrap', marginBottom: 12 }}>
                 {TABS.map(t => (

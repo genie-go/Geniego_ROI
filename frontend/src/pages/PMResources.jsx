@@ -1,4 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import BeginnerGuide from '../components/BeginnerGuide.jsx';
+import { GUIDE } from '../lib/guideSpecs.js';
 import { useT } from '../i18n/index.js';
 import * as pm from '../services/pmApi.js';
 
@@ -28,6 +30,7 @@ export default function PMResources() {
     <div style={{ padding: 24, color: 'var(--text-1,#e5e7eb)' }}>
       <h2 style={{ marginTop: 0 }}>👥 {t('pmx.res.title', '리소스 가용량 / 워크로드')}</h2>
       <div style={{ fontSize: 12.5, color: '#94a3b8', marginBottom: 16 }}>{t('pmx.res.desc', '담당자별 진행 중 작업·추정 시간·지연·실투입 시간을 집계합니다. 부하율은 주 {{h}}시간 기준입니다.', { h: cap })}</div>
+      <div style={{ marginBottom: 16 }}><BeginnerGuide spec={GUIDE.pmResources} /></div>
       {err && <div style={{ padding: 12, background: 'rgba(239,68,68,0.1)', border: '1px solid #ef4444', borderRadius: 8, marginBottom: 16 }}>{err}</div>}
       {loading && !rows.length ? <div>{t('pm.common.loadingFull', '로딩 중…')}</div> : (
         <div style={{ borderRadius: 12, background: 'var(--bg-2,#0f172a)', border: '1px solid #1e293b', overflow: 'hidden' }}>

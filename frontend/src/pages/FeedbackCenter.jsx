@@ -1,4 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
+import BeginnerGuide from "../components/BeginnerGuide.jsx";
+import { GUIDE } from "../lib/guideSpecs.js";
 import { IS_DEMO } from '../utils/demoEnv';
 import { useI18n } from '../i18n';
 import { tGetJSON, tSetJSON } from '../utils/tenantStorage.js';
@@ -137,6 +139,8 @@ export default function FeedbackCenter() {
           </div>
         ))}
       </div>
+
+      <BeginnerGuide spec={GUIDE.feedback} />
 
       {/* Tabs */}
       <div className="card card-glass" style={{ padding: 8, display: 'flex', gap: 6, flexWrap: 'wrap' }}>

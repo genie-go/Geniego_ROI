@@ -1,4 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import BeginnerGuide from '../components/BeginnerGuide.jsx';
+import { GUIDE } from '../lib/guideSpecs.js';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { useT } from '../i18n/index.js';
@@ -78,6 +80,7 @@ export default function PMOverview() {
 
   return (
     <div style={{ padding: 24, color: 'var(--text-1, #e5e7eb)' }}>
+      <div style={{ marginBottom: 16 }}><BeginnerGuide spec={GUIDE.pmOverview} /></div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 }}>
         <h2 style={{ margin: 0 }}>{t('pm.overview.title', '프로젝트 관리')}</h2>
         <button

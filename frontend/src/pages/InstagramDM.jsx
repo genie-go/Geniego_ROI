@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import BeginnerGuide from "../components/BeginnerGuide.jsx";
+import { GUIDE } from "../lib/guideSpecs.js";
 import PlanGate from "../components/PlanGate.jsx";
 import { getJsonAuth, postJsonAuth } from '../services/apiClient.js'; // 191차: 세션 토큰 인증(채널 부활 — /api/instagram requirePro)
 import { IS_DEMO } from '../utils/demoEnv.js';
@@ -162,6 +164,8 @@ export default function InstagramDM() {
                     )}
                 </div>
             </div>
+
+            <BeginnerGuide spec={GUIDE.igdm} />
 
             {/* Tabs */}
             <div className="page-subtabs" style={{ display: 'flex', gap: 4, padding: '4px', background: 'rgba(0,0,0,0.25)', borderRadius: 12, marginBottom: 12 }}>

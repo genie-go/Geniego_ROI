@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import BeginnerGuide from "../components/BeginnerGuide.jsx";
+import { GUIDE } from "../lib/guideSpecs.js";
 import { useAuth } from "../auth/AuthContext";
 import PlanGate from "../components/PlanGate.jsx";
 import { useGlobalData } from "../context/GlobalDataContext.jsx";
@@ -413,6 +415,8 @@ function LINEChannelContent() {
                     ))}
                 </div>
             </div>
+
+            <BeginnerGuide spec={GUIDE.line} />
 
             {/* Tab 네비게이션 */}
             <div className="page-subtabs" style={{ display: "flex", gap: 8, marginBottom: 12 }}>
