@@ -705,11 +705,22 @@ class PriceOpt
     {
         if ($err = UserAuth::requirePro($request, $response)) return $err;
         $db = self::db(); $t = self::tenant($request);
+        return self::json($response, self::harvestCompetitorsForTenant($db, $t));
+    }
+
+    /**
+     * [차기 P1] 경쟁가 자동수집 코어(엔드포인트 + cron/리프라이서 공용 — 중복 0).
+     *   Naver 쇼핑 최저가 API로 po_products 명칭 검색 → po_competitors 자동 갱신(compA=최저·compB=차순).
+     *   ★게이트(client_id/secret)+graceful(없으면 pending). repriceForTenant 가 실행 전 호출 → 30분 cron 에
+     *   편승해 "실시간 경쟁가 자동수집 스케줄" 성립(별도 cron 불요·중복 없음).
+     */
+    public static function harvestCompetitorsForTenant(\PDO $db, string $t): array
+    {
         // [240차] 자격증명 우선순위: 연동허브(channel_credential naver_shopping) → env → app_setting(레거시).
         $cid = (string)(self::loadChannelCred($db, $t, 'naver_shopping', 'client_id')     ?: getenv('NAVER_SHOP_CLIENT_ID')     ?: self::appSetting($db, $t, 'naver_shop_client_id'));
         $sec = (string)(self::loadChannelCred($db, $t, 'naver_shopping', 'client_secret') ?: getenv('NAVER_SHOP_CLIENT_SECRET') ?: self::appSetting($db, $t, 'naver_shop_client_secret'));
         if ($cid === '' || $sec === '')
-            return self::json($response, ['ok'=>true,'pending'=>true,'updated'=>0,'note'=>'Naver 쇼핑 API 자격증명(client_id/secret) 미설정 — 설정 후 라이브 경쟁가 자동 수집(현재는 수동 입력 사용)']);
+            return ['ok'=>true,'pending'=>true,'updated'=>0,'note'=>'Naver 쇼핑 API 자격증명(client_id/secret) 미설정 — 설정 후 라이브 경쟁가 자동 수집(현재는 수동 입력 사용)'];
         $ps = $db->prepare("SELECT sku, product_name, base_price FROM po_products WHERE tenant_id=? AND product_name<>'' LIMIT 50");
         $ps->execute([$t]);
         $updated = 0;
@@ -731,7 +742,58 @@ class PriceOpt
                 ->execute([$t, (string)$p['sku'], $q, $our, $compA, $compB, 99, $alert, gmdate('c')]);
             $updated++;
         }
-        return self::json($response, ['ok'=>true,'updated'=>$updated,'source'=>'naver_shopping','live'=>true]);
+        return ['ok'=>true,'updated'=>$updated,'source'=>'naver_shopping','live'=>true];
+    }
+
+    /**
+     * [차기 P1] 재고·판매속도 맵(메인DB) — 리프라이서 재고연동용. ★PriceOpt 는 priceopt.sqlite 격리이므로
+     *   재고(wms_stock)·판매속도(channel_orders)는 메인DB(Db::pdo)에서 읽는다(243차 트랩 정합).
+     *   velocity = 최근 $days 일 판매수량/일. days_cover = on_hand / max(velocity, ε)(소진예상일).
+     *   @return array<string sku, array{on_hand:float, velocity:float, days_cover:?float}>
+     */
+    public static function stockVelocityMap(string $t, int $days = 30): array
+    {
+        $out = [];
+        try {
+            $main = \Genie\Db::pdo();
+            // 재고: sku별 on_hand 합(전 창고).
+            $s = $main->prepare("SELECT sku, SUM(on_hand) oh FROM wms_stock WHERE tenant_id=? AND sku<>'' GROUP BY sku");
+            $s->execute([$t]);
+            foreach ($s->fetchAll(\PDO::FETCH_ASSOC) ?: [] as $r) {
+                $out[(string)$r['sku']] = ['on_hand'=>(float)$r['oh'], 'velocity'=>0.0, 'days_cover'=>null];
+            }
+            // 판매속도: 최근 days 일 판매수량(channel_orders, 취소 제외).
+            $since = gmdate('Y-m-d', time() - $days * 86400);
+            $v = $main->prepare("SELECT sku, SUM(qty) q FROM channel_orders
+                                 WHERE tenant_id=? AND sku<>'' AND COALESCE(ordered_at,synced_at)>=?
+                                   AND LOWER(COALESCE(status,'')) NOT IN ('cancelled','canceled','refunded','returned')
+                                 GROUP BY sku");
+            $v->execute([$t, $since]);
+            foreach ($v->fetchAll(\PDO::FETCH_ASSOC) ?: [] as $r) {
+                $sku = (string)$r['sku']; $vel = (float)$r['q'] / max(1, $days);
+                if (!isset($out[$sku])) $out[$sku] = ['on_hand'=>0.0, 'velocity'=>0.0, 'days_cover'=>null];
+                $out[$sku]['velocity'] = round($vel, 3);
+                $out[$sku]['days_cover'] = $vel > 1e-6 ? round($out[$sku]['on_hand'] / $vel, 1) : null;
+            }
+        } catch (\Throwable $e) { /* 메인DB 미가용 — graceful(재고연동 없이 리프라이싱) */ }
+        return $out;
+    }
+
+    /**
+     * [차기 P1] 재고·판매속도 기반 가격 조정 계수(Feedvisor식 inventory-aware repricing).
+     *   - 과잉재고+저속(days_cover 큼): 할인(재고 소진 가속). - 희소+고속(days_cover 작음): 프리미엄(마진/품절방지).
+     *   임계: <14일=품절임박(상향), >90일=적체(하향). 임의 숫자 아님 — 소진예상일(실재고/실판매속도) 파생.
+     *   @return array{factor:float, reason:string}  factor=가격배율(1=무변동).
+     */
+    public static function velocityFactor(?array $sv): array
+    {
+        if (!$sv || $sv['days_cover'] === null || $sv['velocity'] <= 0) return ['factor'=>1.0, 'reason'=>''];
+        $dc = (float)$sv['days_cover'];
+        if ($dc < 14)  return ['factor'=>1.05, 'reason'=>"품절임박(소진 {$dc}일) +5% 프리미엄"];
+        if ($dc < 30)  return ['factor'=>1.02, 'reason'=>"고회전(소진 {$dc}일) +2%"];
+        if ($dc > 120) return ['factor'=>0.92, 'reason'=>"장기적체(소진 {$dc}일) -8% 소진"];
+        if ($dc > 90)  return ['factor'=>0.95, 'reason'=>"적체(소진 {$dc}일) -5% 소진"];
+        return ['factor'=>1.0, 'reason'=>''];
     }
 
     private static function appSetting(\PDO $db, string $t, string $k): string
@@ -790,6 +852,41 @@ class PriceOpt
         return self::json($response, ['ok'=>true,'history'=>$stmt->fetchAll(\PDO::FETCH_ASSOC)]);
     }
 
+    /**
+     * [차기 P1-(b)] GET /v420/price/repricer/buybox — Buybox 승률 현황.
+     *   po_competitors 의 ourPrice vs 경쟁사 최저가 비교로 SKU별 승/패 + 전체 승률을 산출(Feedvisor Buy Box 대응).
+     *   win = ourPrice <= 경쟁사 최저가. gap = (ourPrice − 최저가)/최저가. 재고/판매속도 동반표기. 실데이터 파생(날조 0).
+     */
+    public static function buyboxStatus(Request $request, Response $response, array $args): Response
+    {
+        $db = self::db(); $t = self::tenant($request);
+        $svMap = self::stockVelocityMap($t);
+        $rs = $db->prepare("SELECT sku, name, ourPrice, compA, compB, updated_at FROM po_competitors WHERE tenant_id=?");
+        $rs->execute([$t]);
+        $items = []; $won = 0; $total = 0;
+        foreach ($rs->fetchAll(\PDO::FETCH_ASSOC) as $c) {
+            $our = (float)($c['ourPrice'] ?? 0);
+            $comps = array_filter([(float)($c['compA'] ?? 0), (float)($c['compB'] ?? 0)], fn($x) => $x > 0);
+            if ($our <= 0 || !$comps) continue;
+            $low = min($comps); $win = $our <= $low; $total++; if ($win) $won++;
+            $sv = $svMap[(string)$c['sku']] ?? null;
+            $items[] = [
+                'sku' => (string)$c['sku'], 'name' => (string)($c['name'] ?? $c['sku']),
+                'our_price' => round($our), 'comp_low' => round($low),
+                'win' => $win, 'gap_pct' => round(($our - $low) / $low * 100, 1),
+                'on_hand' => $sv ? (float)$sv['on_hand'] : null,
+                'days_cover' => $sv['days_cover'] ?? null,
+                'updated_at' => (string)($c['updated_at'] ?? ''),
+            ];
+        }
+        usort($items, fn($a, $b) => ($a['win'] <=> $b['win']) ?: ($b['gap_pct'] <=> $a['gap_pct'])); // 패배·고갭 우선
+        return self::json($response, [
+            'ok' => true, 'win_rate' => $total > 0 ? round($won / $total * 100, 1) : null,
+            'won' => $won, 'total' => $total, 'items' => $items,
+            'note' => $total === 0 ? '경쟁가 데이터가 없습니다. [경쟁사 가격] 등록 또는 자동수집(자격증명) 후 표시됩니다.' : null,
+        ]);
+    }
+
     /** POST /v420/price/repricer/rules/{id}/toggle */
     public static function toggleRepricerRule(Request $request, Response $response, array $args): Response
     {
@@ -829,6 +926,10 @@ class PriceOpt
         $rules = $rs->fetchAll(\PDO::FETCH_ASSOC);
         // [239차+ ML] 실주문에서 (가격,수량) 관측 자동 적재 → elasticity 모드가 실데이터로 가동(데이터 없으면 no-op).
         $harvested = 0; try { $harvested = self::harvestElasticityFromOrders($t); } catch (\Throwable $e) {}
+        // [차기 P1-(a)] 경쟁가 자동수집 — 리프라이싱 전 라이브 경쟁가 갱신(자격증명 있으면). 30분 cron 편승=실시간 스케줄.
+        $harvestComp = 0; try { $hc = self::harvestCompetitorsForTenant($db, $t); $harvestComp = (int)($hc['updated'] ?? 0); } catch (\Throwable $e) {}
+        // [차기 P1-(c)] 재고·판매속도 맵(메인DB) — inventory-aware 리프라이싱.
+        $svMap = self::stockVelocityMap($t);
         $changes = []; $evaluated = 0; $enqueued = 0;
         $hist = $db->prepare("INSERT INTO po_repricer_history (tenant_id,sku,channel,prev,next,reason,time,created_at) VALUES (?,?,?,?,?,?,?,?)");
         $updComp = $db->prepare("UPDATE po_competitors SET ourPrice=?, updated_at=? WHERE tenant_id=? AND sku=?");
@@ -861,6 +962,9 @@ class PriceOpt
                     if ($cu > 0 && $cu < $compCutoff) continue; // 경쟁가가 허용나이보다 오래됨 → 스킵
                 }
                 $comps = array_filter([(float)($c['compA'] ?? 0), (float)($c['compB'] ?? 0)], fn($x) => $x > 0);
+                // [차기 P1-(c)] 실재고·판매속도(메인DB) — elasticity 수량상한·velocity 조정에 사용.
+                $sv = $svMap[$sku] ?? null;
+                $inv = $sv ? (int)round((float)$sv['on_hand']) : 0;
                 // 원가·목표마진 가드(절대 하한). 상품 미등록 시 현가의 70%를 안전하한.
                 $ps = $db->prepare("SELECT cost_price, target_margin FROM po_products WHERE tenant_id=? AND sku=? LIMIT 1");
                 $ps->execute([$t, $sku]); $prod = $ps->fetch(\PDO::FETCH_ASSOC);
@@ -875,12 +979,20 @@ class PriceOpt
                 $beatPct = round($beatBy * 100, 1);
                 if ($mode === 'match' && $comps) {
                     $new = max($floor, round(min($comps))); $reason = '경쟁사 최저가 매칭';
+                } elseif ($mode === 'buybox' && $comps) {
+                    // [차기 P1-(b)] Buybox 승률 전략 — 최저가보다 beat_by 만큼 낮춰 바이박스 점유. floor 가 최저가 위면
+                    //   floor 로 클램프(승리 불가 = 마진 보호 우선). 승리 가능 시 최저-beat_by% 로 점유.
+                    $low = round(min($comps));
+                    $target = round($low * (1 - $beatBy));
+                    $new = max($floor, $target);
+                    $reason = ($new <= $low) ? "Buybox 점유(최저가 -{$beatPct}%)" : "Buybox 마진가드(최저가 하회 불가 → 원가마진 하한)";
                 } elseif ($mode === 'margin') {
                     $target = $cost > 0 ? round($cost * (1 + $tMargin)) : $cur;
                     $new = max($cur < $target ? $target : $cur, $floor); $reason = '목표마진 확보';
                 } elseif ($mode === 'elasticity' || $mode === 'ml') {
                     // [239차+ ML] 수요탄력성 이익최대(공용 헬퍼 재사용). 데이터 부족 시 경쟁사 언더컷 폴백(회귀0).
-                    $opt = self::elasticityOptimal($db, $t, $sku, $channel, $cost, $tMargin, $cur, 0);
+                    //   [차기 P1-(c)] 실재고($inv) 전달 → 재고 소진 가능 수량으로 최적화 상한(과대추정 방지).
+                    $opt = self::elasticityOptimal($db, $t, $sku, $channel, $cost, $tMargin, $cur, $inv);
                     if ($opt && $opt['price'] > 0) {
                         $new = max($floor, (float)$opt['price']);
                         // 경쟁반응 가드: 경쟁가 존재 시 최저가 +5% 상한(과도 프리미엄 방지·경쟁력 유지)
@@ -891,6 +1003,12 @@ class PriceOpt
                     }
                 } else { // min_price(언더컷, 기본) — [R-P2-5] beat_by 설정만큼 언더컷.
                     if ($comps) { $new = max($floor, round(min($comps) * (1 - $beatBy))); $reason = "경쟁사 최저가 -{$beatPct}% 언더컷"; }
+                }
+                // [차기 P1-(c)] 재고/판매속도 조정 — 소진예상일 기반 가격 nudge(품절임박 상향·적체 하향). buybox/match 는 경쟁가 점유가
+                //   목적이라 velocity 미적용(가격왜곡 방지). elasticity/margin/min_price 에만 적용.
+                if (!in_array($mode, ['buybox', 'match'], true)) {
+                    $vf = self::velocityFactor($sv);
+                    if ($vf['factor'] != 1.0) { $new = max($floor, round($new * $vf['factor'])); $reason .= ' · ' . $vf['reason']; }
                 }
                 // 가드: 하한 미만 금지·과도변동(±50%) 방지·의미있는 변화(>0.5%)만 적용.
                 if ($new < $floor) { $new = $floor; $reason .= '(원가마진 하한 적용)'; }
@@ -918,6 +1036,7 @@ class PriceOpt
             'ok' => true, 'rules_run' => count($rules), 'skus_evaluated' => $evaluated,
             'changes_applied' => count($changes), 'changes' => array_slice($changes, 0, 100),
             'pending_approval' => $enqueued, 'elasticity_observations' => $harvested,
+            'competitor_prices_harvested' => $harvestComp,
             'note' => count($changes) > 0
                 ? count($changes) . '건 리프라이싱 적용(이력 기록·내부가격 갱신). 실 채널 반영은 사람 검토 보호를 위해 ' . $enqueued . '건이 승인 대기 중입니다 — [채널 반영 승인]을 눌러 push 하세요.'
                 : ($evaluated === 0 ? '활성 규칙 또는 경쟁사 가격 데이터가 없습니다. [경쟁사 가격] 등록 후 실행하세요.' : '가드(원가마진·변동상한) 내 변경 대상이 없습니다.'),

@@ -1337,6 +1337,7 @@ function DynamicRepricerTab({ token, inventory = [], digitalShelfData = {} }) {
     const [approving, setApproving] = useState(false);
     const [pendingN, setPendingN] = useState(0);
     const [msg, setMsg] = useState('');
+    const [buybox, setBuybox] = useState(null); // [차기 P1] Buybox 승률 현황
     // [239차+ ML] 규칙 생성 폼(ML 탄력성 모드 포함)
     const [newRule, setNewRule] = useState({ name: '', sku: '*', channel: '*', mode: 'elasticity', beat_by: '1', min_price: '', max_price: '', comp_max_age_hours: '' });
     const [creating, setCreating] = useState(false);
@@ -1350,6 +1351,8 @@ function DynamicRepricerTab({ token, inventory = [], digitalShelfData = {} }) {
         // 채널 반영 대기(pending_approval price_update) 건수 — writeback jobs 에서 집계
         getJsonAuthAbortable(`/api/catalog/writeback/jobs`, ac.signal)
             .then(d => { if (Array.isArray(d)) setPendingN(d.filter(j => j.operation === 'price_update' && j.status === 'pending_approval').length); }).catch(() => {});
+        getJsonAuthAbortable(`/v420/price/repricer/buybox`, ac.signal)
+            .then(d => { if (d?.ok) setBuybox(d); }).catch(() => {});
         return () => ac.abort();
     }, [token]);
 
@@ -1374,9 +1377,9 @@ function DynamicRepricerTab({ token, inventory = [], digitalShelfData = {} }) {
         setApproving(false);
     };
 
-    const MODE_LABEL = { elasticity: "🧠 " + t("priceOpt.modeElasticity", "ML 수요탄력성"), min_price: t("priceOpt.modeUndercut", "언더컷 -1%"), match: t("priceOpt.modeMatch", "경쟁사 매칭"), margin: t("priceOpt.modeMargin", "목표마진"), roas_target: "ROAS Goal", inventory: t("priceOpt.dsIntegration") };
-    const MODE_COLOR = { elasticity: "#a855f7", min_price: "#4f8ef7", match: "#22c55e", margin: "#f97316", roas_target: "#22c55e", inventory: "#f97316" };
-    const MODE_OPTIONS = [["elasticity", MODE_LABEL.elasticity], ["min_price", MODE_LABEL.min_price], ["match", MODE_LABEL.match], ["margin", MODE_LABEL.margin]];
+    const MODE_LABEL = { elasticity: "🧠 " + t("priceOpt.modeElasticity", "ML 수요탄력성"), min_price: t("priceOpt.modeUndercut", "언더컷 -1%"), match: t("priceOpt.modeMatch", "경쟁사 매칭"), margin: t("priceOpt.modeMargin", "목표마진"), buybox: "🏆 " + t("priceOpt.modeBuybox", "Buybox 점유"), roas_target: "ROAS Goal", inventory: t("priceOpt.dsIntegration") };
+    const MODE_COLOR = { elasticity: "#a855f7", min_price: "#4f8ef7", match: "#22c55e", margin: "#f97316", buybox: "#eab308", roas_target: "#22c55e", inventory: "#f97316" };
+    const MODE_OPTIONS = [["elasticity", MODE_LABEL.elasticity], ["buybox", MODE_LABEL.buybox], ["min_price", MODE_LABEL.min_price], ["match", MODE_LABEL.match], ["margin", MODE_LABEL.margin]];
     const createRule = async () => {
         if (!newRule.name.trim()) { setMsg(t("priceOpt.ruleNameReq", "규칙 이름을 입력하세요")); return; }
         setCreating(true); setMsg('');
@@ -1419,8 +1422,35 @@ function DynamicRepricerTab({ token, inventory = [], digitalShelfData = {} }) {
                 )}
                 <span style={{ fontSize: 11, color: '#94a3b8' }}>{t('priceOpt.repriceHelp', 'Live marketplace prices apply only after approval (human review).')}</span>
                 {runRes?.note && <span style={{ fontSize: 11, color: '#64748b', flexBasis: '100%' }}>{runRes.note}</span>}
+                {runRes?.competitor_prices_harvested > 0 && <span style={{ fontSize: 11, color: '#0e7490', flexBasis: '100%' }}>🛰️ {t('priceOpt.harvestedNote', '경쟁가 자동수집')}: {runRes.competitor_prices_harvested}</span>}
                 {msg && <span style={{ fontSize: 11, color: '#0e7490', fontWeight: 700, flexBasis: '100%' }}>{msg}</span>}
             </div>
+
+            {/* [차기 P1-(b)] Buybox 승률 현황 */}
+            {buybox && buybox.total > 0 && (
+                <div style={{ padding: '16px 18px', borderRadius: 12, background: 'linear-gradient(135deg,#fffbeb,#fefce8)', border: '1px solid #fde68a' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, marginBottom: 10 }}>
+                        <div style={{ fontWeight: 800, fontSize: 14, color: '#854d0e' }}>🏆 {t('priceOpt.buyboxTitle', 'Buybox 승률 현황')}</div>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                            <span style={{ fontSize: 26, fontWeight: 900, color: buybox.win_rate >= 70 ? '#16a34a' : buybox.win_rate >= 40 ? '#d97706' : '#dc2626' }}>{buybox.win_rate}%</span>
+                            <span style={{ fontSize: 11, color: '#a16207' }}>({buybox.won}/{buybox.total} {t('priceOpt.buyboxWon', '점유')})</span>
+                        </div>
+                    </div>
+                    <div style={{ display: 'grid', gap: 5 }}>
+                        {buybox.items.slice(0, 6).map((it, i) => (
+                            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', fontSize: 11.5, padding: '6px 10px', borderRadius: 8, background: '#fff', border: '1px solid #fef3c7' }}>
+                                <span style={{ fontSize: 10, fontWeight: 800, color: '#fff', background: it.win ? '#16a34a' : '#dc2626', padding: '2px 7px', borderRadius: 6 }}>{it.win ? t('priceOpt.buyboxWin', '점유') : t('priceOpt.buyboxLose', '패배')}</span>
+                                <span style={{ fontWeight: 700, minWidth: 80, color: '#1e293b' }}>{it.name || it.sku}</span>
+                                <span style={{ color: '#64748b' }}>{t('priceOpt.buyboxOur', '우리')} {fmt(it.our_price)} · {t('priceOpt.buyboxComp', '최저')} {fmt(it.comp_low)}</span>
+                                <span style={{ color: it.gap_pct > 0 ? '#dc2626' : '#16a34a' }}>{it.gap_pct > 0 ? '+' : ''}{it.gap_pct}%</span>
+                                {it.days_cover != null && <span style={{ marginLeft: 'auto', fontSize: 10.5, color: '#94a3b8' }}>📦 {t('priceOpt.daysCover', '소진')} {it.days_cover}{t('priceOpt.daysUnit', '일')}</span>}
+                            </div>
+                        ))}
+                    </div>
+                    <div style={{ fontSize: 10, color: '#a16207', marginTop: 8 }}>{t('priceOpt.buyboxHelp', 'Buybox 모드 규칙으로 최저가 점유를 자동화하세요(원가마진 하한 보호). 패배 SKU 우선 표시.')}</div>
+                </div>
+            )}
+
             <div>
                 <div style={{ fontWeight: 800, fontSize: 14, color: '#1e293b', marginBottom: 12 }}>⚡ {t("priceOpt.autoRules")}</div>
                 {/* [239차+ ML] 규칙 생성 폼 — ML 수요탄력성 모드 포함 */}
@@ -1432,7 +1462,7 @@ function DynamicRepricerTab({ token, inventory = [], digitalShelfData = {} }) {
                         {MODE_OPTIONS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
                     </select>
                     {/* [R-P2-5] 전략 파라미터 — 언더컷%·최소/최대가·경쟁가 신선도 가드 */}
-                    {(newRule.mode === 'min_price' || newRule.mode === 'match' || newRule.mode === 'ml' || newRule.mode === 'elasticity') && (
+                    {(newRule.mode === 'min_price' || newRule.mode === 'match' || newRule.mode === 'ml' || newRule.mode === 'elasticity' || newRule.mode === 'buybox') && (
                         <input type="number" min="0" max="50" step="0.5" value={newRule.beat_by} onChange={e => setNewRule(r => ({ ...r, beat_by: e.target.value }))} title={t("priceOpt.beatByHint", "경쟁사 최저가 대비 언더컷 비율(%)")} placeholder={t("priceOpt.beatBy", "언더컷%")} style={{ padding: "7px 10px", borderRadius: 8, border: "1px solid #e2e8f0", fontSize: 12, width: 80 }} />
                     )}
                     <input type="number" min="0" value={newRule.min_price} onChange={e => setNewRule(r => ({ ...r, min_price: e.target.value }))} title={t("priceOpt.minPriceHint", "절대 최소가(원가마진 하한 위 추가 가드, 0=미설정)")} placeholder={t("priceOpt.minPrice", "최소가")} style={{ padding: "7px 10px", borderRadius: 8, border: "1px solid #e2e8f0", fontSize: 12, width: 90 }} />
