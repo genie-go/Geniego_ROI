@@ -499,6 +499,7 @@ const StudioTab = memo(function StudioTab({ session, gd, money, t, onChanged }) 
             <Btn small onClick={sendChat}>{t('liveCommerce.send', '전송')}</Btn>
           </div>
         </Card>
+        <LiveInteractive sid={sid} isHost t={t} />
       </div>
     </div>
   );
@@ -1105,6 +1106,93 @@ const AiHostTab = memo(function AiHostTab({ session, gd, t }) {
 });
 
 /* ═══════════════ 탭 7: 구매하기 (시청자 뷰) ═══════════════ */
+/* [246차 P2] 인터랙티브 오버레이 — 투표·이모지 반응(시청자 참여·호스트 운영). 채팅/상품핀 위 확장. */
+const LIVE_EMOJIS = ['❤️', '👍', '😍', '🔥', '👏', '🎉'];
+const LiveInteractive = memo(function LiveInteractive({ sid, isHost, t }) {
+  const vk = useRef('v' + Math.random().toString(36).slice(2) + Date.now().toString(36)).current;
+  const [polls, setPolls] = useState([]);
+  const [voted, setVoted] = useState({});
+  const [reTotal, setReTotal] = useState(0);
+  const [recent, setRecent] = useState([]);
+  const reCursor = useRef(0);
+  const [q, setQ] = useState('');
+  const [opts, setOpts] = useState(['', '']);
+  const [busy, setBusy] = useState(false);
+  const loadPolls = useCallback(async () => { if (!sid) return; try { const r = await liveApi.listPolls(sid); setPolls(r?.polls || []); } catch {} }, [sid]);
+  useEffect(() => {
+    if (!sid) return;
+    loadPolls();
+    const pi = setInterval(loadPolls, 4000);
+    const ri = setInterval(async () => {
+      try {
+        const r = await liveApi.reactionSummary(sid, reCursor.current);
+        if (r?.ok) {
+          reCursor.current = r.cursor || reCursor.current;
+          if (r.total > 0) {
+            setReTotal(x => x + r.total);
+            const arr = Object.entries(r.by_emoji || {}).flatMap(([e, c]) => Array(Math.min(c, 6)).fill(e));
+            if (arr.length) setRecent(b => [...b, ...arr].slice(-18));
+          }
+        }
+      } catch {}
+    }, 4000);
+    return () => { clearInterval(pi); clearInterval(ri); };
+  }, [sid, loadPolls]);
+  const react = async (e) => { setRecent(b => [...b, e].slice(-18)); setReTotal(x => x + 1); try { await liveApi.postReaction(sid, { emoji: e, viewer_key: vk }); } catch {} };
+  const vote = async (pid, idx) => { setVoted(v => ({ ...v, [pid]: idx })); try { await liveApi.votePoll(pid, { viewer_key: vk, option_idx: idx }); loadPolls(); } catch {} };
+  const create = async () => { const o = opts.map(s => s.trim()).filter(Boolean); if (!q.trim() || o.length < 2) return; setBusy(true); try { await liveApi.createPoll(sid, { question: q.trim(), options: o }); setQ(''); setOpts(['', '']); loadPolls(); } catch (e) { alert(String(e?.message || e)); } finally { setBusy(false); } };
+  const close = async (pid) => { try { await liveApi.closePoll(pid); loadPolls(); } catch {} };
+  if (!sid) return null;
+  const active = polls.find(p => p.status === 'active') || (isHost ? null : polls[0]);
+  return (
+    <Card>
+      <SecTitle>🎉 {t('liveCommerce.interactive', '실시간 참여')}</SecTitle>
+      {/* 이모지 반응 바 */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
+        {LIVE_EMOJIS.map(e => <button key={e} onClick={() => react(e)} style={{ fontSize: 18, background: 'rgba(0,0,0,0.04)', border: `1px solid ${C.border}`, borderRadius: 10, padding: '4px 9px', cursor: 'pointer' }}>{e}</button>)}
+        <span style={{ marginLeft: 'auto', fontSize: 12, fontWeight: 800, color: '#ec4899' }}>❤ {reTotal.toLocaleString()}</span>
+      </div>
+      {recent.length > 0 && <div style={{ fontSize: 16, letterSpacing: 1, marginBottom: 10, opacity: 0.85 }}>{recent.slice(-14).join('')}</div>}
+      {/* 투표(호스트 생성) */}
+      {isHost && (
+        <div style={{ background: 'rgba(0,0,0,0.03)', border: `1px solid ${C.border}`, borderRadius: 10, padding: 10, marginBottom: 10 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 6 }}>📊 {t('liveCommerce.pollCreate', '투표 만들기')}</div>
+          <input value={q} onChange={e => setQ(e.target.value)} placeholder={t('liveCommerce.pollQuestion', '질문')} style={{ width: '100%', padding: '6px 9px', borderRadius: 7, border: `1px solid ${C.border}`, fontSize: 12, marginBottom: 6, boxSizing: 'border-box' }} />
+          {opts.map((o, i) => <input key={i} value={o} onChange={e => setOpts(a => a.map((x, j) => j === i ? e.target.value : x))} placeholder={`${t('liveCommerce.pollOption', '선택지')} ${i + 1}`} style={{ width: '100%', padding: '5px 9px', borderRadius: 7, border: `1px solid ${C.border}`, fontSize: 12, marginBottom: 5, boxSizing: 'border-box' }} />)}
+          <div style={{ display: 'flex', gap: 6 }}>
+            {opts.length < 6 && <Btn small ghost onClick={() => setOpts(a => [...a, ''])}>+ {t('liveCommerce.pollAddOption', '선택지')}</Btn>}
+            <Btn small color="#7c3aed" onClick={create} disabled={busy}>{t('liveCommerce.pollStart', '투표 시작')}</Btn>
+          </div>
+        </div>
+      )}
+      {/* 활성 투표 + 결과 */}
+      {active ? (
+        <div style={{ border: `1px solid ${C.border}`, borderRadius: 10, padding: 10 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+            <div style={{ fontSize: 13, fontWeight: 800 }}>{active.question}</div>
+            <span style={{ fontSize: 10.5, color: C.sub }}>{active.total_votes} {t('liveCommerce.votes', '표')}{active.status !== 'active' ? ' · ' + t('liveCommerce.pollClosed', '마감') : ''}</span>
+          </div>
+          <div style={{ display: 'grid', gap: 5 }}>
+            {(active.results || []).map(r => {
+              const mine = voted[active.id] === r.idx;
+              const canVote = active.status === 'active' && voted[active.id] === undefined && !isHost;
+              return (
+                <div key={r.idx} onClick={() => canVote && vote(active.id, r.idx)} style={{ position: 'relative', cursor: canVote ? 'pointer' : 'default', border: `1px solid ${mine ? '#7c3aed' : C.border}`, borderRadius: 8, overflow: 'hidden', padding: '7px 10px' }}>
+                  <div style={{ position: 'absolute', inset: 0, width: `${r.pct}%`, background: mine ? 'rgba(124,58,237,0.18)' : 'rgba(99,102,241,0.10)' }} />
+                  <div style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', fontSize: 12, fontWeight: 700 }}>
+                    <span>{mine ? '✓ ' : ''}{r.label}</span><span>{r.pct}%</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          {isHost && active.status === 'active' && <div style={{ marginTop: 8 }}><Btn small ghost color="#ef4444" onClick={() => close(active.id)}>{t('liveCommerce.pollClose', '투표 마감')}</Btn></div>}
+        </div>
+      ) : !isHost && <div style={{ fontSize: 11.5, color: C.sub }}>{t('liveCommerce.noPoll', '진행 중인 투표가 없습니다.')}</div>}
+    </Card>
+  );
+});
+
 const BuyerTab = memo(function BuyerTab({ session, gd, money, t }) {
   const [products, setProducts] = useState([]);
   // [현 차수] 무작위 게스트 닉네임은 데모 전용(운영 주문에 가상 구매자명 유입 차단). 운영은 빈값→실 구매자명 대기.
@@ -1194,6 +1282,8 @@ const BuyerTab = memo(function BuyerTab({ session, gd, money, t }) {
           <Btn small ghost color="#ec4899" onClick={sendLike}>❤️ {t('liveCommerce.like', '좋아요')}</Btn>
         </div>
       </Card>}
+
+      <LiveInteractive sid={sid} t={t} />
 
       <Card>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>

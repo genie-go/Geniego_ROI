@@ -136,6 +136,23 @@ class LiveCommerce
                 enabled TINYINT(1) DEFAULT 0, updated_at VARCHAR(32)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
             try { $pdo->exec("ALTER TABLE live_media_config ADD COLUMN provider VARCHAR(20) DEFAULT 'srs'"); } catch (\Throwable $e) {} // [245차 P3-7] 기존 테이블 멱등 ALTER
+            // [246차 P2] 인터랙티브 오버레이 — 투표(poll)·반응(emoji). 채팅/상품핀 위 확장(중복0).
+            $pdo->exec("CREATE TABLE IF NOT EXISTS live_polls (
+                id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo',
+                session_id INT NOT NULL, question VARCHAR(255), options TEXT, status VARCHAR(20) DEFAULT 'active',
+                created_at VARCHAR(32), closed_at VARCHAR(32),
+                KEY idx_lc_poll (tenant_id, session_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS live_poll_votes (
+                id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo',
+                poll_id INT NOT NULL, viewer_key VARCHAR(80), option_idx INT, created_at VARCHAR(32),
+                UNIQUE KEY uq_lc_vote (poll_id, viewer_key), KEY idx_lc_vote (tenant_id, poll_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS live_reactions (
+                id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo',
+                session_id INT NOT NULL, viewer_key VARCHAR(80), emoji VARCHAR(16), created_at VARCHAR(32),
+                KEY idx_lc_react (tenant_id, session_id, id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
         } else {
             $pdo->exec("CREATE TABLE IF NOT EXISTS live_sessions (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', title TEXT NOT NULL, description TEXT, host TEXT, cover_url TEXT, status TEXT NOT NULL DEFAULT 'scheduled', channels TEXT, scheduled_at TEXT, started_at TEXT, ended_at TEXT, viewer_count INTEGER DEFAULT 0, peak_viewers INTEGER DEFAULT 0, like_count INTEGER DEFAULT 0, created_at TEXT, updated_at TEXT)");
             $pdo->exec("CREATE TABLE IF NOT EXISTS live_products (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', session_id INTEGER NOT NULL, sku TEXT, name TEXT, image TEXT, price REAL DEFAULT 0, special_price REAL DEFAULT 0, stock REAL DEFAULT 0, sold REAL DEFAULT 0, featured INTEGER DEFAULT 0, display_order INTEGER DEFAULT 0, created_at TEXT, updated_at TEXT)");
@@ -150,6 +167,11 @@ class LiveCommerce
             try { $pdo->exec("CREATE UNIQUE INDEX IF NOT EXISTS uq_lc_guest_tok ON live_guests(join_token)"); } catch (\Throwable $e) {}
             try { $pdo->exec("CREATE UNIQUE INDEX IF NOT EXISTS uq_lc_int ON live_integrations(tenant_id, channel)"); } catch (\Throwable $e) {}
             try { $pdo->exec("CREATE UNIQUE INDEX IF NOT EXISTS uq_lc_pres ON live_presence(tenant_id, session_id, viewer_key)"); } catch (\Throwable $e) {}
+            // [246차 P2] 인터랙티브 오버레이 — 투표·반응.
+            $pdo->exec("CREATE TABLE IF NOT EXISTS live_polls (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', session_id INTEGER NOT NULL, question TEXT, options TEXT, status TEXT DEFAULT 'active', created_at TEXT, closed_at TEXT)");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS live_poll_votes (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', poll_id INTEGER NOT NULL, viewer_key TEXT, option_idx INTEGER, created_at TEXT)");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS live_reactions (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', session_id INTEGER NOT NULL, viewer_key TEXT, emoji TEXT, created_at TEXT)");
+            try { $pdo->exec("CREATE UNIQUE INDEX IF NOT EXISTS uq_lc_vote ON live_poll_votes(poll_id, viewer_key)"); } catch (\Throwable $e) {}
         }
         // 208차 검수: OMS 미러 대상 channel_orders 존재 보장(ChannelSync 미사용 테넌트 대비).
         //   ChannelSync::ensureTables 는 private → 동일 스키마를 IF NOT EXISTS 로 보강(이미 있으면 no-op).
@@ -442,6 +464,109 @@ class LiveCommerce
         $st = $pdo->prepare("INSERT INTO live_chat (tenant_id,session_id,author,message,kind,meta,created_at) VALUES (:t,:s,:a,:m,:k,:meta,:ca)");
         $st->execute([':t' => $t, ':s' => $sid, ':a' => $author, ':m' => $msg, ':k' => $kind, ':meta' => $meta ? json_encode($meta, JSON_UNESCAPED_UNICODE) : null, ':ca' => self::now()]);
         return (int)$pdo->lastInsertId();
+    }
+
+    /* ════════════════ [246차 P2] 인터랙티브 오버레이 (투표·이모지 반응) ════════════════
+       채팅·상품핀 위 확장(중복0). 호스트가 투표 생성→시청자(BuyerTab) 참여→실시간 결과 오버레이.
+       반응은 플로팅 이모지(증분 cursor 집계). 전부 테넌트 스코프·1인1표(viewer_key)·멱등. */
+
+    public static function listPolls(Request $req, Response $res, array $args): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $t = self::tenant($req); $sid = (int)($args['id'] ?? 0); $pdo = self::db();
+        $st = $pdo->prepare("SELECT * FROM live_polls WHERE tenant_id=:t AND session_id=:s ORDER BY id DESC LIMIT 20");
+        $st->execute([':t' => $t, ':s' => $sid]);
+        $polls = [];
+        foreach ($st->fetchAll(\PDO::FETCH_ASSOC) as $p) {
+            $opts = json_decode((string)($p['options'] ?? '[]'), true) ?: [];
+            $vc = $pdo->prepare("SELECT option_idx, COUNT(*) c FROM live_poll_votes WHERE tenant_id=:t AND poll_id=:p GROUP BY option_idx");
+            $vc->execute([':t' => $t, ':p' => (int)$p['id']]);
+            $counts = []; $total = 0;
+            foreach ($vc->fetchAll(\PDO::FETCH_ASSOC) as $r) { $counts[(int)$r['option_idx']] = (int)$r['c']; $total += (int)$r['c']; }
+            $results = [];
+            foreach ($opts as $i => $label) { $cnt = $counts[$i] ?? 0; $results[] = ['idx' => $i, 'label' => (string)$label, 'votes' => $cnt, 'pct' => $total > 0 ? round($cnt / $total * 100, 1) : 0]; }
+            $polls[] = ['id' => (int)$p['id'], 'question' => (string)$p['question'], 'status' => (string)$p['status'], 'total_votes' => $total, 'results' => $results, 'created_at' => (string)$p['created_at']];
+        }
+        return self::json($res, ['ok' => true, 'polls' => $polls]);
+    }
+
+    public static function createPoll(Request $req, Response $res, array $args): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $t = self::tenant($req); $b = self::body($req); $sid = (int)($args['id'] ?? 0);
+        $q = trim((string)($b['question'] ?? ''));
+        $opts = array_values(array_filter(array_map(fn($o) => trim((string)$o), (array)($b['options'] ?? [])), fn($o) => $o !== ''));
+        if ($sid <= 0 || $q === '' || count($opts) < 2) return self::json($res, ['ok' => false, 'error' => '질문과 2개 이상 선택지를 입력하세요.'], 422);
+        $opts = array_slice($opts, 0, 6);
+        $pdo = self::db();
+        $st = $pdo->prepare("INSERT INTO live_polls (tenant_id,session_id,question,options,status,created_at) VALUES (:t,:s,:q,:o,'active',:ca)");
+        $st->execute([':t' => $t, ':s' => $sid, ':q' => substr($q, 0, 255), ':o' => json_encode($opts, JSON_UNESCAPED_UNICODE), ':ca' => self::now()]);
+        $id = (int)$pdo->lastInsertId();
+        self::sysChat($t, $sid, '📊 투표 시작: ' . $q, 'poll', ['poll_id' => $id]);
+        return self::json($res, ['ok' => true, 'id' => $id]);
+    }
+
+    public static function votePoll(Request $req, Response $res, array $args): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $t = self::tenant($req); $b = self::body($req); $pid = (int)($args['id'] ?? 0);
+        $vk = trim((string)($b['viewer_key'] ?? '')); $opt = (int)($b['option_idx'] ?? -1);
+        if ($pid <= 0 || $vk === '' || $opt < 0) return self::json($res, ['ok' => false, 'error' => 'invalid'], 422);
+        $pdo = self::db();
+        $pc = $pdo->prepare("SELECT status,options FROM live_polls WHERE id=:p AND tenant_id=:t"); $pc->execute([':p' => $pid, ':t' => $t]);
+        $poll = $pc->fetch(\PDO::FETCH_ASSOC);
+        if (!$poll) return self::json($res, ['ok' => false, 'error' => '없음'], 404);
+        if (($poll['status'] ?? '') !== 'active') return self::json($res, ['ok' => false, 'error' => '마감된 투표입니다.'], 409);
+        $nopt = count(json_decode((string)($poll['options'] ?? '[]'), true) ?: []);
+        if ($opt >= $nopt) return self::json($res, ['ok' => false, 'error' => 'invalid option'], 422);
+        try {
+            $up = $pdo->prepare("UPDATE live_poll_votes SET option_idx=:o WHERE poll_id=:p AND viewer_key=:v");
+            $up->execute([':o' => $opt, ':p' => $pid, ':v' => $vk]);
+            if ($up->rowCount() === 0) {
+                $pdo->prepare("INSERT INTO live_poll_votes (tenant_id,poll_id,viewer_key,option_idx,created_at) VALUES (:t,:p,:v,:o,:ca)")
+                    ->execute([':t' => $t, ':p' => $pid, ':v' => $vk, ':o' => $opt, ':ca' => self::now()]);
+            }
+        } catch (\Throwable $e) { /* unique 충돌=이미 투표(멱등) */ }
+        return self::json($res, ['ok' => true]);
+    }
+
+    public static function closePoll(Request $req, Response $res, array $args): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $t = self::tenant($req); $pid = (int)($args['id'] ?? 0);
+        self::db()->prepare("UPDATE live_polls SET status='closed', closed_at=:ca WHERE id=:p AND tenant_id=:t")->execute([':ca' => self::now(), ':p' => $pid, ':t' => $t]);
+        return self::json($res, ['ok' => true]);
+    }
+
+    public static function postReaction(Request $req, Response $res, array $args): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $t = self::tenant($req); $b = self::body($req); $sid = (int)($args['id'] ?? 0);
+        $emoji = (string)($b['emoji'] ?? '❤️'); $vk = (string)($b['viewer_key'] ?? '');
+        $allow = ['❤️', '👍', '😍', '🔥', '👏', '😮', '🎉'];
+        if (!in_array($emoji, $allow, true)) $emoji = '❤️';
+        if ($sid <= 0) return self::json($res, ['ok' => false], 422);
+        self::db()->prepare("INSERT INTO live_reactions (tenant_id,session_id,viewer_key,emoji,created_at) VALUES (:t,:s,:v,:e,:ca)")
+            ->execute([':t' => $t, ':s' => $sid, ':v' => substr($vk, 0, 80), ':e' => $emoji, ':ca' => self::now()]);
+        return self::json($res, ['ok' => true]);
+    }
+
+    public static function reactionSummary(Request $req, Response $res, array $args): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $t = self::tenant($req); $sid = (int)($args['id'] ?? 0);
+        $since = (int)($req->getQueryParams()['since'] ?? 0);
+        $st = self::db()->prepare("SELECT emoji, COUNT(*) c, MAX(id) maxid FROM live_reactions WHERE tenant_id=:t AND session_id=:s AND id>:since GROUP BY emoji");
+        $st->execute([':t' => $t, ':s' => $sid, ':since' => $since]);
+        $by = []; $maxId = $since; $total = 0;
+        foreach ($st->fetchAll(\PDO::FETCH_ASSOC) as $r) { $by[(string)$r['emoji']] = (int)$r['c']; $total += (int)$r['c']; if ((int)$r['maxid'] > $maxId) $maxId = (int)$r['maxid']; }
+        return self::json($res, ['ok' => true, 'by_emoji' => $by, 'total' => $total, 'cursor' => $maxId]);
     }
 
     /* ════════════════ [현 차수] 멀티게스트/코호스트 (control-plane) ════════════════

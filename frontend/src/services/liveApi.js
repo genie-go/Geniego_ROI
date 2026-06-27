@@ -45,6 +45,14 @@ export const deleteDestination = (id) => requestJsonAuth(`${BASE}/destinations/$
 export const toggleDestination = (id) => postJsonAuth(`${BASE}/destinations/${id}/toggle`, {});
 export const multicast         = (sid, action) => postJsonAuth(`${BASE}/sessions/${sid}/multicast/${action}`, {});
 
+/* ── [246차] 인터랙티브 오버레이: 투표·이모지 반응 ── */
+export const listPolls       = (sid) => getJsonAuth(`${BASE}/sessions/${sid}/polls`);
+export const createPoll      = (sid, body) => postJsonAuth(`${BASE}/sessions/${sid}/polls`, body);
+export const votePoll        = (pid, body) => postJsonAuth(`${BASE}/polls/${pid}/vote`, body);
+export const closePoll       = (pid) => postJsonAuth(`${BASE}/polls/${pid}/close`, {});
+export const postReaction    = (sid, body) => postJsonAuth(`${BASE}/sessions/${sid}/reactions`, body);
+export const reactionSummary = (sid, since = 0) => getJsonAuth(`${BASE}/sessions/${sid}/reactions/summary?since=${since}`);
+
 /* ── 멀티게스트/코호스트 ── */
 export const listGuests   = (sid) => getJsonAuth(`${BASE}/sessions/${sid}/guests`);
 export const inviteGuest  = (sid, body) => postJsonAuth(`${BASE}/sessions/${sid}/guests`, body);
