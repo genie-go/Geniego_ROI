@@ -66,12 +66,15 @@ final class AttributionEngine
             $halflife = max(0.5, min(90.0, (float)($q['halflife'] ?? self::DEFAULT_HALFLIFE)));
             // [240차 ⑧-A] 뷰스루 가중치(0~1, 기본 1.0=영향없음). 비기본 시 캐시 우회(라이브 계산).
             $vtWeight = max(0.0, min(1.0, (float)($q['vt_weight'] ?? 1.0)));
+            // [차기 P1 준실시간] fresh=1 → 캐시 우회 강제 재계산(대시보드 "지금 새로고침"). max_age 로 신선도 임계 조정 가능(기본 1800s).
+            $fresh = in_array((string)($q['fresh'] ?? ''), ['1', 'true', 'yes'], true);
+            $maxAge = max(60, min(1800, (int)($q['max_age'] ?? 1800)));
 
             $pdo = Db::pdo();
-            // [228차 S2] ★캐시 우선 — attribution_cron 선계산 결과가 신선(30분)하면 즉시 반환.
+            // [228차 S2] ★캐시 우선 — attribution_cron 선계산 결과가 신선하면 즉시 반환.
             //   기존엔 대시보드 히트마다 동기 재계산(대용량 테넌트 MAX_ORDERS=20000 스캔 지연). 캐시 미스 시 라이브 계산+저장.
-            if ($vtWeight >= 1.0) {
-                $cached = self::cacheGet($pdo, $t, $window, $halflife, 1800);
+            if ($vtWeight >= 1.0 && !$fresh) {
+                $cached = self::cacheGet($pdo, $t, $window, $halflife, $maxAge);
                 if ($cached !== null) {
                     $cached['cached'] = true;
                     $cached['response_time_ms'] = self::elapsed($start);
@@ -513,6 +516,86 @@ final class AttributionEngine
             if ($st->rowCount() === 0) return self::ok($response, ['ok' => false, 'error' => '실험을 찾을 수 없습니다.']);
             return self::ok($response, ['ok' => true, 'deleted_id' => $id]);
         } catch (Throwable $e) { return self::fail($response, $e, ['ok' => false]); }
+    }
+
+    /**
+     * [차기 P1] GET /v424/attribution/experiments/geo-readiness?channel=&window=90
+     *   geo 홀드아웃 *실행 표준화*: 지역별 실측 노출(ad_insight_agg)에서 균형 잡힌 treatment/control 지역 분할을
+     *   자동 추천하고, 추천 분할의 검정력(MDE·필요기간)을 산출한다. 실험을 "스키마/수동검정"에서
+     *   "데이터 기반 설계→배정→검정력 확인" 표준 워크플로우로 승격.
+     *
+     *   ★날조 0: ad_insight_agg 는 광고 노출 기반 데이터이므로 control(무노출 지역 유기 전환)을 여기서
+     *   날조하지 않는다. 본 엔드포인트는 *설계 보조*(지역 균형 분할·검정력)만 제공하고, 실제 리프트는
+     *   updateExperiment 의 geo_breakdown(플랫폼 conversion-lift 실측) 입력으로만 검정된다.
+     *   분할은 LPT(longest-processing-time) 그리디로 두 그룹 노출(클릭)을 균형화.
+     */
+    public static function geoReadiness(Request $request, Response $response, array $args): Response
+    {
+        $start = microtime(true);
+        $t = self::tenant($request);
+        $empty = ['ok' => true, 'regions' => [], 'feasible' => false, 'reason' => '인증/데이터 없음'];
+        if ($t === '') return self::ok($response, $empty + ['response_time_ms' => self::elapsed($start)]);
+        try {
+            $q = $request->getQueryParams();
+            $window = max(7, min(365, (int)($q['window'] ?? self::DEFAULT_WINDOW)));
+            $channel = strtolower(trim((string)($q['channel'] ?? '')));
+            $since = gmdate('Y-m-d', time() - $window * 86400);
+            $pdo = Db::pdo();
+
+            // 지역별 실측 노출/전환(ad_insight_agg). 채널 미지정 시 전 채널 합.
+            $sql = "SELECT region, SUM(impressions) im, SUM(clicks) ck, SUM(conversions) cv, SUM(spend) sp, SUM(revenue) rv
+                      FROM ad_insight_agg
+                     WHERE tenant_id=? AND date>=? AND region IS NOT NULL AND region<>''";
+            $params = [$t, $since];
+            if ($channel !== '') { $sql .= " AND LOWER(platform)=?"; $params[] = $channel; }
+            $sql .= " GROUP BY region ORDER BY ck DESC";
+            $st = $pdo->prepare($sql); $st->execute($params);
+            $regions = [];
+            foreach ($st->fetchAll(PDO::FETCH_ASSOC) ?: [] as $r) {
+                $ck = (int)$r['ck']; $cv = (int)$r['cv'];
+                $regions[] = [
+                    'region' => (string)$r['region'],
+                    'impressions' => (int)$r['im'], 'clicks' => $ck, 'conversions' => $cv,
+                    'spend' => round((float)$r['sp'], 0), 'revenue' => round((float)$r['rv'], 0),
+                    'cvr' => $ck > 0 ? round($cv / $ck * 100, 3) : 0.0,
+                ];
+            }
+            if (count($regions) < 2) {
+                return self::ok($response, $empty + ['regions' => $regions, 'reason' => '지역 차원 데이터가 2개 미만입니다. 지역 분해 수집(ad_insight_agg.region) 후 설계됩니다.', 'response_time_ms' => self::elapsed($start)]);
+            }
+
+            // LPT 그리디 — 노출(클릭) 균형 2그룹 분할(A=treatment 후보, B=control 후보).
+            $A = ['regions' => [], 'clicks' => 0, 'conv' => 0]; $B = ['regions' => [], 'clicks' => 0, 'conv' => 0];
+            foreach ($regions as $r) { // clicks 내림차순(이미 정렬)
+                $tgt = ($A['clicks'] <= $B['clicks']) ? 'A' : 'B';
+                if ($tgt === 'A') { $A['regions'][] = $r['region']; $A['clicks'] += $r['clicks']; $A['conv'] += $r['conversions']; }
+                else { $B['regions'][] = $r['region']; $B['clicks'] += $r['clicks']; $B['conv'] += $r['conversions']; }
+            }
+            $totalClicks = $A['clicks'] + $B['clicks'];
+            $balance = $totalClicks > 0 ? round(1 - abs($A['clicks'] - $B['clicks']) / $totalClicks, 3) : 0.0; // 1=완전균형
+            // 검정력 — 작은 그룹 기준(보수적): holdoutPower(전환, 클릭, window).
+            $small = $A['clicks'] <= $B['clicks'] ? $A : $B;
+            $power = self::holdoutPower((float)$small['conv'], (int)$small['clicks'], $window);
+
+            return self::ok($response, [
+                'ok' => true,
+                'channel' => $channel !== '' ? $channel : '(전체)',
+                'window_days' => $window,
+                'regions' => $regions,
+                'recommended_split' => [
+                    'treatment_regions' => $A['regions'], 'treatment_clicks' => $A['clicks'], 'treatment_conversions' => $A['conv'],
+                    'control_regions' => $B['regions'], 'control_clicks' => $B['clicks'], 'control_conversions' => $B['conv'],
+                    'balance_score' => $balance,
+                    'geo_regions_value' => implode(',', $A['regions']), // updateExperiment geo_regions 에 그대로 적용 가능
+                ],
+                'power' => $power,
+                'feasible' => ($power['feasible'] ?? false) && $balance >= 0.6,
+                'note' => '지역별 실측 노출 기반 균형 분할(treatment/control) 추천 + 검정력. 실제 증분 리프트는 무노출 control 지역의 전환을 플랫폼 conversion-lift 또는 자체 측정으로 입력(geo_breakdown)해야 검정됩니다.',
+                'response_time_ms' => self::elapsed($start),
+            ]);
+        } catch (Throwable $e) {
+            return self::fail($response, $e, $empty);
+        }
     }
 
     /** 채널별 spend/clicks/impressions 합(window, performance_metrics). lower(channel) 키. */
@@ -1062,9 +1145,13 @@ final class AttributionEngine
             $st->execute([self::ckey($t, $w, $hl)]);
             $r = $st->fetch(PDO::FETCH_ASSOC);
             if (!$r) return null;
-            if (strtotime((string)($r['computed_at'] ?? '')) < time() - $ttl) return null; // 만료
+            $computedAt = strtotime((string)($r['computed_at'] ?? ''));
+            if ($computedAt < time() - $ttl) return null; // 만료
             $d = json_decode((string)($r['result_json'] ?? ''), true);
-            return is_array($d) ? $d : null;
+            if (!is_array($d)) return null;
+            $d['cache_age_seconds'] = max(0, time() - $computedAt); // [준실시간] 신선도 노출
+            $d['cache_computed_at'] = (string)($r['computed_at'] ?? '');
+            return $d;
         } catch (\Throwable $e) { return null; }
     }
 

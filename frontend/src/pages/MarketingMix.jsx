@@ -49,6 +49,7 @@ export default function MarketingMix() {
   const [opt, setOpt] = useState(null);
   const [optBusy, setOptBusy] = useState(false);
   const [anom, setAnom] = useState(null); // [현 차수] 이상감지(SPC)
+  const [bayes, setBayes] = useState(null); // [차기 P1] 정식 Bayesian MMM(MCMC) 사후분포
   const [insight, setInsight] = useState(null); // [현 차수] 자연어 AI 인사이트
   const [insightBusy, setInsightBusy] = useState(false);
 
@@ -64,6 +65,7 @@ export default function MarketingMix() {
     getJsonAuth(`/v424/mmm/model?window=${window}`).then(d => { setModel(d); setLoading(false); })
       .catch(() => { setModel(null); setLoading(false); });
     getJsonAuth(`/v424/anomaly/scan?window=${Math.min(window, 90)}`).then(d => setAnom(d)).catch(() => setAnom(null));
+    getJsonAuth(`/v424/mmm/bayesian?window=${window}&method=mcmc`).then(d => setBayes(d)).catch(() => setBayes(null));
   }, [window]);
   useEffect(() => { loadModel(); }, [loadModel]);
 
@@ -272,6 +274,57 @@ export default function MarketingMix() {
             })}
           </div>
           <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 14 }}>🔬 {t('mmm.method', '방법: 채널별 일자 spend→revenue 데이터에 애드스톡(기하감쇠 λ)+포화(β·(1−exp(−x/κ))) 곡선을 최소제곱 적합. 한계ROAS=dRev/dSpend, 최적화=오목곡선 그리디 한계배분.')}</div>
+
+          {/* [차기 P1] 정식 Bayesian MMM(MCMC) — 채널별 기여도 사후분포 95% 신뢰구간·신뢰도·수렴진단 */}
+          {bayes && bayes.ok && Array.isArray(bayes.channels) && bayes.channels.length > 0 && (() => {
+            const maxHi = Math.max(...bayes.channels.map(c => Number(c.ci_hi) || 0), 1);
+            const gradeColor = (tr) => tr >= 0.7 ? '#16a34a' : tr >= 0.45 ? '#d97706' : '#dc2626';
+            return (
+              <div style={{ ...card, marginTop: 18, borderColor: '#ddd6fe', background: 'linear-gradient(135deg,#faf5ff,#eef2ff)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, marginBottom: 4 }}>
+                  <div style={{ fontWeight: 900, fontSize: 15 }}>🎲 {t('mmm.bayesTitle', '정식 Bayesian MMM — 기여도 사후분포 (95% 신뢰구간)')}</div>
+                  {bayes.channels.some(c => c.inference === 'mcmc') && (
+                    <span style={{ fontSize: 10.5, fontWeight: 800, color: '#6d28d9', background: 'rgba(124,58,237,0.12)', padding: '3px 10px', borderRadius: 99 }}>MCMC · 2-chain</span>
+                  )}
+                </div>
+                <div style={{ fontSize: 12, color: '#64748b', marginBottom: 14, lineHeight: 1.6 }}>{t('mmm.bayesDesc', '(β·κ·λ·σ) 전 파라미터를 Metropolis-Hastings MCMC로 결합 사후표본화해 곡선형태 불확실성까지 반영한 일 기여매출의 95% 신뢰구간·신뢰도(trust)·수렴진단(R̂)을 제공합니다.')}</div>
+                <div style={{ display: 'grid', gap: 10 }}>
+                  {bayes.channels.map((c, i) => {
+                    const color = CH_COLOR[i % CH_COLOR.length];
+                    const lo = Number(c.ci_lo) || 0, hi = Number(c.ci_hi) || 0, mean = Number(c.posterior_mean) || 0;
+                    const loPct = (lo / maxHi) * 100, hiPct = (hi / maxHi) * 100, meanPct = (mean / maxHi) * 100;
+                    return (
+                      <div key={c.channel} style={{ padding: '10px 12px', borderRadius: 10, background: '#fff', border: '1px solid #eef2f7' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 6, marginBottom: 6 }}>
+                          <div style={{ fontWeight: 800, fontSize: 13 }}><span style={{ color }}>●</span> {chName(c.channel)}</div>
+                          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                            <span style={{ fontSize: 11, fontWeight: 800, color: gradeColor(c.trust) }}>{t('mmm.bayesTrust', '신뢰도')} {Math.round((c.trust || 0) * 100)}%</span>
+                            {c.rhat != null && (
+                              <span title={t('mmm.bayesRhatTip', '겔만-루빈 수렴진단 — 1.1 이하면 수렴')} style={{ fontSize: 10, fontWeight: 800, color: c.converged ? '#16a34a' : '#d97706', background: c.converged ? 'rgba(22,163,74,0.1)' : 'rgba(217,119,6,0.1)', padding: '2px 7px', borderRadius: 99 }}>
+                                R̂={c.rhat}{c.converged ? ' ✓' : ''}
+                              </span>
+                            )}
+                            <span style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8' }}>{c.stability === 'high' ? t('mmm.bayesStable', '안정') : c.stability === 'medium' ? t('mmm.bayesMid', '보통') : t('mmm.bayesVolatile', '변동')}</span>
+                          </div>
+                        </div>
+                        {/* 신뢰구간 막대: [ci_lo ─●(mean)─ ci_hi] */}
+                        <div style={{ position: 'relative', height: 14, marginTop: 4 }}>
+                          <div style={{ position: 'absolute', top: 6, left: `${loPct}%`, width: `${Math.max(0.5, hiPct - loPct)}%`, height: 4, borderRadius: 99, background: color, opacity: 0.35 }} />
+                          <div style={{ position: 'absolute', top: 3, left: `calc(${meanPct}% - 4px)`, width: 8, height: 8, borderRadius: 99, background: color, border: '1.5px solid #fff', boxShadow: '0 0 0 1px ' + color }} />
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10.5, color: '#94a3b8', marginTop: 3 }}>
+                          <span>{fmtKRW(lo)}</span>
+                          <span style={{ fontWeight: 800, color: '#475569' }}>{t('mmm.bayesMean', '사후평균')} {fmtKRW(mean)}/{t('mmm.daysUnit', '일')}</span>
+                          <span>{fmtKRW(hi)}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div style={{ fontSize: 10.5, color: '#94a3b8', marginTop: 10 }}>🔬 {bayes.method || t('mmm.bayesMethod', 'Metropolis-Hastings MCMC(2 체인, β·κ·λ·σ 결합사후, R̂ 수렴진단)')}</div>
+              </div>
+            );
+          })()}
         </>
       )}
     </div>
