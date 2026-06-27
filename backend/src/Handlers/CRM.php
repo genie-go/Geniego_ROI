@@ -624,6 +624,39 @@ class CRM
         return self::jsonRes($res, ['ok'=>true,'created'=>$created,'skipped'=>$skipped]);
     }
 
+    /**
+     * [차기 P2] 예측세그먼트 자동 재편입(cron) — 룰 보유 세그먼트 멤버십을 현재 예측스코어(churn_prob/predicted_clv)로
+     *   재계산. 점수 변화 시 고객 자동 편입/이탈 → "발송 직전 1회만 갱신"하던 갭 해소(예측 CDP 자동화).
+     *   정적/수동 세그먼트(룰 없음)는 제외(보존). 전부 테넌트 스코프·멱등.
+     */
+    public static function autoRefreshPredictiveSegments(string $t): array
+    {
+        self::ensureTables(); $pdo = self::db();
+        $refreshed = 0; $totalMembers = 0;
+        try {
+            $rs = $pdo->prepare("SELECT id, rules FROM crm_segments WHERE tenant_id=?");
+            $rs->execute([$t]);
+            foreach ($rs->fetchAll(\PDO::FETCH_ASSOC) ?: [] as $seg) {
+                $rules = json_decode((string)($seg['rules'] ?? '[]'), true);
+                if (!is_array($rules) || count($rules) === 0) continue; // 정적/수동 세그먼트 보존
+                $cnt = self::refreshSegmentMembers($pdo, (int)$seg['id'], $rules, $t);
+                $pdo->prepare("UPDATE crm_segments SET member_count=:c, updated_at=:u WHERE id=:id AND tenant_id=:t")
+                    ->execute([':c'=>$cnt, ':u'=>self::now(), ':id'=>(int)$seg['id'], ':t'=>$t]);
+                $refreshed++; $totalMembers += $cnt;
+            }
+        } catch (\Throwable $e) { return ['ok'=>false, 'error'=>$e->getMessage()]; }
+        return ['ok'=>true, 'segments_refreshed'=>$refreshed, 'total_members'=>$totalMembers];
+    }
+
+    /** [차기 P2] CRM 고객 보유 테넌트(자동 재편입 cron 팬아웃). */
+    public static function tenantsWithCustomers(): array
+    {
+        try {
+            $rs = self::db()->query("SELECT DISTINCT tenant_id FROM crm_customers WHERE tenant_id IS NOT NULL AND tenant_id<>''");
+            return array_values(array_filter(array_map('strval', $rs->fetchAll(\PDO::FETCH_COLUMN) ?: []), fn($t)=>$t!==''));
+        } catch (\Throwable $e) { return []; }
+    }
+
     /* ─── POST /crm/segments/{id}/refresh ───────────────────────────── */
     public static function refreshSegment(Request $req, Response $res, array $args): Response
     {

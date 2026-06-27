@@ -558,6 +558,10 @@ function AnalyticsTab() {
     const overallOpen=analytics.totalSent>0?(analytics.totalOpened/analytics.totalSent*100).toFixed(1):"0";
     const overallClick=analytics.totalSent>0?(analytics.totalClicked/analytics.totalSent*100).toFixed(1):"0";
     const deliveryRate=analytics.totalSent>0?((analytics.totalSent-analytics.totalFailed)/analytics.totalSent*100).toFixed(1):"100";
+    // [246차 P2] 딜리버러빌리티 평판 시계열 — email_reputation_daily(일별 cron 스냅샷) + 현재값.
+    const [rep,setRep]=useState(null);
+    useEffect(()=>{ if(isDemo) return; _gjaEmail('/api/email/deliverability/history?days=90').then(r=>{ if(r?.ok) setRep(r); }).catch(()=>{}); },[isDemo]);
+    const gColor=(g)=> g==='good'?C.green : g==='warning'?C.yellow : '#ef4444';
     return (
         <div style={{ display:"flex", flexDirection:"column", gap:20 }}>
             <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:14 }}>
@@ -590,6 +594,46 @@ function AnalyticsTab() {
                     </div>
                 )}
             </Card>
+
+            {/* [246차 P2] 딜리버러빌리티 평판 추이 — 발신자 평판(repScore)·바운스/컴플레인 시계열 */}
+            {!isDemo && rep && rep.current && (() => {
+                const series = Array.isArray(rep.series) ? rep.series : [];
+                const cur = rep.current;
+                const scores = series.map(s => Number(s.rep_score) || 0);
+                const maxS = 100, minS = 0;
+                const W = 600, H = 60, pad = 4;
+                const pts = scores.map((v, i) => {
+                    const x = pad + (scores.length <= 1 ? 0 : (i / (scores.length - 1)) * (W - pad * 2));
+                    const y = H - pad - ((v - minS) / (maxS - minS || 1)) * (H - pad * 2);
+                    return `${x.toFixed(1)},${y.toFixed(1)}`;
+                });
+                return (
+                    <Card glow>
+                        <div style={{ fontWeight:800, fontSize:15, marginBottom:14, display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:8, color:'#1f2937' }}>
+                            <span style={{ display:"flex", alignItems:"center", gap:8 }}><span style={{ fontSize:16 }}>📈</span>{t('email.repTrendTitle', '딜리버러빌리티 평판 추이')}</span>
+                            <span style={{ display:"flex", alignItems:"center", gap:8 }}>
+                                <span style={{ fontSize:24, fontWeight:900, color:gColor(cur.grade) }}>{cur.rep_score}</span>
+                                <span style={{ fontSize:11, fontWeight:800, padding:'3px 10px', borderRadius:99, color:gColor(cur.grade), background:gColor(cur.grade)+'1a' }}>
+                                    {cur.grade==='good'?t('email.repGood','양호'):cur.grade==='warning'?t('email.repWarn','주의'):t('email.repRisk','위험')}
+                                </span>
+                            </span>
+                        </div>
+                        <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:12, marginBottom:14 }}>
+                            <KpiBadge icon="📉" label={t('email.repBounce','바운스율')} value={cur.bounce_rate+"%"} color={cur.bounce_rate<2?C.green:cur.bounce_rate<5?C.yellow:'#ef4444'}/>
+                            <KpiBadge icon="🚫" label={t('email.repComplaint','스팸신고율')} value={cur.complaint_rate+"%"} color={cur.complaint_rate<0.1?C.green:cur.complaint_rate<0.5?C.yellow:'#ef4444'}/>
+                            <KpiBadge icon="👁️" label={t('email.repOpen','오픈율')} value={cur.open_rate+"%"} color={C.cyan}/>
+                        </div>
+                        {scores.length >= 2 ? (
+                            <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ display:'block' }} preserveAspectRatio="none">
+                                <polyline points={pts.join(' ')} fill="none" stroke={gColor(cur.grade)} strokeWidth="2" />
+                            </svg>
+                        ) : (
+                            <div style={{ fontSize:11.5, color:'#94a3b8', padding:'8px 0' }}>{rep.note || t('email.repNote','평판 시계열은 일별 스냅샷 누적 후 표시됩니다(현재값은 7일 롤링).')}</div>
+                        )}
+                        <div style={{ fontSize:10.5, color:'#94a3b8', marginTop:8 }}>🔬 {t('email.repMethod','7일 롤링 발신자 평판(바운스×8 + 스팸신고×80 페널티, 100점)·일별 스냅샷 시계열. SPF/DMARC·리스트 위생이 점수를 좌우합니다.')}</div>
+                    </Card>
+                );
+            })()}
         </div>
     );
 }

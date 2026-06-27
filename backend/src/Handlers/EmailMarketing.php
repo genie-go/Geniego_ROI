@@ -652,9 +652,17 @@ class EmailMarketing
     {
         if ($err = UserAuth::requirePro($req, $res)) return $err;
         self::ensureTables();
-        $pdo = self::db();
         $tenant = self::tenant($req);
         $days = max(1, min(365, (int)($req->getQueryParams()['window'] ?? 90)));
+        return self::jsonRes($res, ['ok'=>true, 'window_days'=>$days] + self::computeDeliverability(self::db(), $tenant, $days));
+    }
+
+    /**
+     * [차기 P2] 딜리버러빌리티 지표 계산 코어 — 엔드포인트 + 일별 스냅샷 cron 공용(중복 0).
+     * @return array ['volume','rates','reputation','domain_auth','advice']
+     */
+    public static function computeDeliverability(\PDO $pdo, string $tenant, int $days): array
+    {
         $since = gmdate('c', time() - $days * 86400);
 
         // 발송 상태 집계(window: sent_at). real_sent=sent(mock 제외 — 정직).
@@ -730,14 +738,82 @@ class EmailMarketing
             : ($overall === 'warning' ? '평판이 주의 구간입니다 — 비활성 수신자 제외·콘텐츠 품질을 개선하세요.'
             : ($domainAuth['domain'] && ($domainAuth['spf'] === false || $domainAuth['dmarc'] === false) ? 'SPF/DMARC DNS 레코드를 설정하면 도달률이 더 향상됩니다.' : '딜리버러빌리티 양호 — 현 발송 위생을 유지하세요.'));
 
-        return self::jsonRes($res, [
-            'ok'=>true, 'window_days'=>$days,
+        return [
             'volume'=>['accepted'=>$accepted, 'sent'=>$sent, 'bounced'=>$bounced, 'failed'=>$failed, 'mock_sent'=>$mockSent, 'complaints'=>$complaints, 'unsubscribes'=>$unsubs],
             'rates'=>['delivery_rate'=>$deliveryRate, 'bounce_rate'=>$bounceRate, 'complaint_rate'=>$complaintRate, 'unsubscribe_rate'=>$unsubRate, 'open_rate'=>$openRate, 'click_rate'=>$clickRate],
             'reputation'=>['grade'=>$overall, 'score'=>$repScore, 'bounce_grade'=>$bg, 'complaint_grade'=>$cg],
             'domain_auth'=>$domainAuth,
             'advice'=>$advice,
+        ];
+    }
+
+    /** [차기 P2] 일별 평판 시계열 테이블(테넌트 격리·날짜 멱등). */
+    private static function ensureReputationTable(\PDO $pdo): void
+    {
+        $isMy = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql';
+        try {
+            $pdo->exec($isMy
+                ? "CREATE TABLE IF NOT EXISTS email_reputation_daily (tenant_id VARCHAR(100) NOT NULL, date VARCHAR(10) NOT NULL, sent INT DEFAULT 0, bounced INT DEFAULT 0, complaints INT DEFAULT 0, unsubscribes INT DEFAULT 0, opens INT DEFAULT 0, clicks INT DEFAULT 0, bounce_rate DOUBLE DEFAULT 0, complaint_rate DOUBLE DEFAULT 0, open_rate DOUBLE DEFAULT 0, click_rate DOUBLE DEFAULT 0, rep_score INT DEFAULT 0, grade VARCHAR(12), PRIMARY KEY(tenant_id,date)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
+                : "CREATE TABLE IF NOT EXISTS email_reputation_daily (tenant_id TEXT NOT NULL, date TEXT NOT NULL, sent INTEGER DEFAULT 0, bounced INTEGER DEFAULT 0, complaints INTEGER DEFAULT 0, unsubscribes INTEGER DEFAULT 0, opens INTEGER DEFAULT 0, clicks INTEGER DEFAULT 0, bounce_rate REAL DEFAULT 0, complaint_rate REAL DEFAULT 0, open_rate REAL DEFAULT 0, click_rate REAL DEFAULT 0, rep_score INTEGER DEFAULT 0, grade TEXT, PRIMARY KEY(tenant_id,date))");
+        } catch (\Throwable $e) { /* graceful */ }
+    }
+
+    /**
+     * [차기 P2] 일별 평판 스냅샷(cron) — 7일 롤링 지표를 당일자로 email_reputation_daily 에 멱등 upsert.
+     *   Google Postmaster 식 롤링 평판 추세. computeDeliverability 재사용(중복 0).
+     */
+    public static function snapshotReputation(string $t): array
+    {
+        self::ensureTables(); $pdo = self::db(); self::ensureReputationTable($pdo);
+        $d = self::computeDeliverability($pdo, $t, 7); // 7일 롤링
+        $v = $d['volume']; $r = $d['rates']; $rep = $d['reputation'];
+        $date = gmdate('Y-m-d');
+        $cols = [$t, $date, (int)$v['sent'], (int)$v['bounced'], (int)$v['complaints'], (int)$v['unsubscribes'],
+                 0, 0, (float)$r['bounce_rate'], (float)$r['complaint_rate'], (float)$r['open_rate'], (float)$r['click_rate'],
+                 (int)$rep['score'], (string)$rep['grade']];
+        // opens/clicks 카운트는 rate 로부터 역산 불필요 — sent×rate. 별도 저장 생략(rate 보존).
+        try {
+            $up = $pdo->prepare("UPDATE email_reputation_daily SET sent=?,bounced=?,complaints=?,unsubscribes=?,bounce_rate=?,complaint_rate=?,open_rate=?,click_rate=?,rep_score=?,grade=? WHERE tenant_id=? AND date=?");
+            $up->execute([(int)$v['sent'],(int)$v['bounced'],(int)$v['complaints'],(int)$v['unsubscribes'],(float)$r['bounce_rate'],(float)$r['complaint_rate'],(float)$r['open_rate'],(float)$r['click_rate'],(int)$rep['score'],(string)$rep['grade'],$t,$date]);
+            if ($up->rowCount() === 0) {
+                $pdo->prepare("INSERT INTO email_reputation_daily(tenant_id,date,sent,bounced,complaints,unsubscribes,opens,clicks,bounce_rate,complaint_rate,open_rate,click_rate,rep_score,grade) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)")->execute($cols);
+            }
+        } catch (\Throwable $e) { return ['ok'=>false, 'error'=>$e->getMessage()]; }
+        return ['ok'=>true, 'date'=>$date, 'rep_score'=>(int)$rep['score'], 'grade'=>(string)$rep['grade']];
+    }
+
+    /** [차기 P2] GET /email/deliverability/history?days=90 — 평판 시계열(EmailMarketing>Analytics 탭 차트). */
+    public static function deliverabilityHistory(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables(); $pdo = self::db(); self::ensureReputationTable($pdo);
+        $t = self::tenant($req);
+        $days = max(7, min(365, (int)($req->getQueryParams()['days'] ?? 90)));
+        $since = gmdate('Y-m-d', time() - $days * 86400);
+        $rows = [];
+        try {
+            $st = $pdo->prepare("SELECT date,sent,bounced,complaints,unsubscribes,bounce_rate,complaint_rate,open_rate,click_rate,rep_score,grade FROM email_reputation_daily WHERE tenant_id=? AND date>=? ORDER BY date ASC");
+            $st->execute([$t, $since]);
+            $rows = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+        } catch (\Throwable $e) {}
+        // 현재 스냅샷(오늘) 동반 — 아직 cron 이 안 돈 경우에도 최신 1점 보장.
+        $cur = self::computeDeliverability($pdo, $t, 7);
+        return self::jsonRes($res, [
+            'ok'=>true, 'days'=>$days, 'series'=>$rows,
+            'current'=>['rep_score'=>(int)$cur['reputation']['score'], 'grade'=>(string)$cur['reputation']['grade'],
+                        'bounce_rate'=>(float)$cur['rates']['bounce_rate'], 'complaint_rate'=>(float)$cur['rates']['complaint_rate'],
+                        'open_rate'=>(float)$cur['rates']['open_rate']],
+            'note'=>count($rows)===0 ? '평판 시계열은 일별 스냅샷 cron 누적 후 표시됩니다(현재값은 7일 롤링).' : null,
         ]);
+    }
+
+    /** [차기 P2] 이메일 발송 이력 보유 테넌트(스냅샷 cron 팬아웃용). */
+    public static function tenantsWithEmail(): array
+    {
+        try {
+            $rs = self::db()->query("SELECT DISTINCT tenant_id FROM email_sends WHERE tenant_id IS NOT NULL AND tenant_id<>''");
+            return array_values(array_filter(array_map('strval', $rs->fetchAll(\PDO::FETCH_COLUMN) ?: []), fn($t)=>$t!==''));
+        } catch (\Throwable $e) { return []; }
     }
 
     /* ─── POST /email/track/open — 공개 비콘(세션 없음). campaign+customer 로 자연 스코프 ── */
