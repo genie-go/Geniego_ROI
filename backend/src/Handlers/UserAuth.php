@@ -1587,7 +1587,9 @@ final class UserAuth
         //   (term_3mo/term_6mo/term_12mo) 에서 admin 편집. 쿠폰 플랜=가입한 플랜. CouponEngine 이 현재
         //   만료일(유료기간 끝) 기준으로 연장 → "유료 개월수 소진 후" 무료 적용. 가입 기간당 1회.
         $autoCoupons = [];
-        if ($plan === 'pro' || $plan === 'enterprise') {
+        // 246차: 무료기간 쿠폰을 전 유료 플랜(Starter/Growth/Pro/Enterprise)으로 확장(기존 pro/ent만).
+        //   "1년=3개월 무료" 비례: 1mo→7.5d·3mo→22.5d·6mo→45d·12mo→90d (coupon_rules term_*mo, admin 편집).
+        if (in_array($plan, ['starter', 'growth', 'pro', 'enterprise'], true)) {
             $email = (string)($user['email'] ?? '');
             // 가입 기간(개월) — 검증으로 덮인 $cycle 대신 원본 body 에서 산출(semiAnnual/6개월 포함).
             $rawCycle = strtolower((string)($body['cycle'] ?? $cycle));
@@ -1598,7 +1600,7 @@ final class UserAuth
                     'yearly', 'annual' => 12, 'monthly' => 1, default => 0,
                 };
             }
-            if (in_array($paidMonths, [3, 6, 12], true)) {
+            if (in_array($paidMonths, [1, 3, 6, 12], true)) {
                 try {
                     // 기간 윈도우(가입 기간 내 1회) — 신규/갱신 모두 기간당 보너스 1회.
                     $r = \Genie\CouponEngine::fire($pdo, (int)$id, $email, "term_{$paidMonths}mo", $prevPlan, $plan, 0, $paidMonths * 30);
@@ -1609,6 +1611,15 @@ final class UserAuth
         // 보너스 적용으로 만료일이 연장됐을 수 있으니 최신 만료일 재조회
         if ($autoCoupons) {
             try { $ex = $pdo->prepare("SELECT subscription_expires_at FROM app_user WHERE id=?"); $ex->execute([$id]); $ne = $ex->fetchColumn(); if ($ne) $expiresAt = (string)$ne; } catch (\Throwable $e) {}
+        }
+
+        // 246차: 구독 이력(ledger) 기록 + 재가입 소급적용 — 이전 1개월 내 환불분의 ‘사용일’을 신규 구독에서 차감.
+        $retroApplied = 0;
+        if ($plan !== 'demo') {
+            try {
+                $unitPrice = (float)($body['amount'] ?? $body['price_usd'] ?? 0);
+                [$expiresAt, $retroApplied] = self::recordSubscriptionStart($pdo, (int)$id, (string)($user['email'] ?? ''), $plan, $cycle, $expiresAt, $unitPrice);
+            } catch (\Throwable $e) { /* ledger 실패는 업그레이드를 깨지 않음 */ }
         }
 
         // 응답용 사용자 정보
@@ -1631,6 +1642,10 @@ final class UserAuth
             $bonusDays = 0; foreach ($autoCoupons as $c) { $bonusDays += (int)($c['duration_days'] ?? 0); }
             if ($bonusDays > 0) $msg .= " 🎁 추가 " . (int)round($bonusDays / 30) . "개월 무료 보너스가 자동 적용되었습니다!";
         }
+        // 246차: 재가입 소급 차감 안내
+        if (!empty($retroApplied) && $retroApplied > 0) {
+            $msg .= " ⏪ 직전 환불분 사용 {$retroApplied}일이 소급 적용(차감)되었습니다.";
+        }
 
         // [현 차수] 불변 보안 감사 — 플랜 업그레이드 성공 기록(login 배선 패턴 동일 재사용).
         try { \Genie\SecurityAudit::log($pdo, (string)self::resolveTenantId($pdo, $user), (string)($user['email'] ?? ''), 'plan.upgrade', ['plan' => $plan, 'cycle' => $cycle], $req); } catch (\Throwable $e) {}
@@ -1640,6 +1655,122 @@ final class UserAuth
             'user' => $updatedUser,
             'msg'  => $msg,
             'auto_coupons' => $autoCoupons,
+        ]);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // 246차: 구독 이력 ledger (환불 1개월 정책 + 재가입 소급적용 기반)
+    // ─────────────────────────────────────────────────────────────
+    /** subscription_ledger 런타임 보장 (MySQL/SQLite 양립 — AUTO_INCREMENT 드라이버 분기). */
+    private static function ensureLedgerTable(\PDO $pdo): void
+    {
+        $driver = '';
+        try { $driver = (string)$pdo->getAttribute(\PDO::ATTR_DRIVER_NAME); } catch (\Throwable $e) {}
+        $auto = $driver === 'sqlite' ? 'INTEGER PRIMARY KEY AUTOINCREMENT' : 'INT AUTO_INCREMENT PRIMARY KEY';
+        $pdo->exec(
+            "CREATE TABLE IF NOT EXISTS subscription_ledger (
+              id $auto,
+              user_id INT NOT NULL,
+              email VARCHAR(190),
+              plan VARCHAR(30),
+              cycle VARCHAR(20),
+              unit_price DECIMAL(10,2) DEFAULT 0,
+              started_at VARCHAR(32),
+              expires_at VARCHAR(32),
+              ended_at VARCHAR(32),
+              used_days INT DEFAULT 0,
+              refunded TINYINT DEFAULT 0,
+              refund_amount DECIMAL(10,2) DEFAULT 0,
+              retro_days_pending INT DEFAULT 0,
+              retro_applied TINYINT DEFAULT 0,
+              created_at VARCHAR(32)
+            )"
+        );
+    }
+
+    /** 신규 구독 기록 + 재가입 소급적용. 반환 [adjustedExpiresAt, retroDaysApplied]. */
+    private static function recordSubscriptionStart(\PDO $pdo, int $userId, string $email, string $plan, string $cycle, ?string $expiresAt, float $unitPrice): array
+    {
+        self::ensureLedgerTable($pdo);
+        $now = gmdate('Y-m-d\TH:i:s\Z');
+        // 1) 직전 1개월 내 환불분의 미적용 사용일(소급 대상) 합산
+        $retro = 0;
+        try {
+            $q = $pdo->prepare("SELECT COALESCE(SUM(retro_days_pending),0) FROM subscription_ledger WHERE user_id=? AND refunded=1 AND retro_applied=0");
+            $q->execute([$userId]);
+            $retro = (int)$q->fetchColumn();
+        } catch (\Throwable $e) {}
+        // 2) 소급분만큼 신규 만료일 차감(이미 사용·환불한 기간을 유료로 소급) + pending 소진 표시
+        if ($retro > 0 && $expiresAt) {
+            $ts = strtotime($expiresAt);
+            if ($ts) {
+                $expiresAt = gmdate('Y-m-d\TH:i:s\Z', $ts - $retro * 86400);
+                try {
+                    $pdo->prepare("UPDATE app_user SET subscription_expires_at=? WHERE id=?")->execute([$expiresAt, $userId]);
+                    $pdo->prepare("UPDATE subscription_ledger SET retro_applied=1 WHERE user_id=? AND refunded=1 AND retro_applied=0")->execute([$userId]);
+                } catch (\Throwable $e) {}
+            }
+        }
+        // 3) 신규 구독 ledger 행
+        try {
+            $pdo->prepare("INSERT INTO subscription_ledger (user_id,email,plan,cycle,unit_price,started_at,expires_at,refunded,retro_applied,created_at) VALUES (?,?,?,?,?,?,?,0,0,?)")
+                ->execute([$userId, $email, $plan, $cycle, $unitPrice, $now, $expiresAt, $now]);
+        } catch (\Throwable $e) {}
+        return [$expiresAt, $retro];
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // POST /auth/refund-request — 1개월 내 구독 취소 환불 (재가입 시 사용분 소급)
+    // ─────────────────────────────────────────────────────────────
+    public static function refundRequest(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        $token = self::extractToken($req);
+        if (!$token) return self::json($res, ['ok' => false, 'error' => '인증 토큰이 없습니다.'], 401);
+        $user = self::userByToken($token);
+        if (!$user) return self::json($res, ['ok' => false, 'error' => '세션이 만료되었습니다.'], 401);
+        // 구독 변경은 owner 전용(plan_change 정합)
+        [, $rbacErr] = self::requireTeamWrite($req, 'plan_change');
+        if ($rbacErr) return self::json($res, ['ok' => false, 'error' => $rbacErr[0]], $rbacErr[1]);
+
+        $id  = (int)($user['id'] ?? $user['idx'] ?? 0);
+        $pdo = Db::pdo();
+        self::ensureLedgerTable($pdo);
+
+        $row = null;
+        try {
+            $q = $pdo->prepare("SELECT * FROM subscription_ledger WHERE user_id=? AND refunded=0 ORDER BY id DESC LIMIT 1");
+            $q->execute([$id]);
+            $row = $q->fetch(\PDO::FETCH_ASSOC) ?: null;
+        } catch (\Throwable $e) {}
+        if (!$row) return self::json($res, ['ok' => false, 'error' => '환불 가능한 활성 구독이 없습니다.'], 404);
+
+        $startTs  = strtotime((string)($row['started_at'] ?? ''));
+        $usedDays = $startTs ? (int)floor((time() - $startTs) / 86400) : 0;
+        $REFUND_WINDOW = 30; // 1개월
+        if ($usedDays > $REFUND_WINDOW) {
+            return self::json($res, ['ok' => false, 'error' => "구독 시작 후 30일이 지나 환불할 수 없습니다. (경과 {$usedDays}일)", 'used_days' => $usedDays], 403);
+        }
+        $unit         = (float)($row['unit_price'] ?? 0);
+        $refundAmount = $unit; // 1개월 내 전액 환불(사용분은 재가입 시 소급 청구)
+        try {
+            $pdo->prepare("UPDATE subscription_ledger SET refunded=1, used_days=?, refund_amount=?, retro_days_pending=?, ended_at=? WHERE id=?")
+                ->execute([$usedDays, $refundAmount, $usedDays, gmdate('Y-m-d\TH:i:s\Z'), (int)$row['id']]);
+        } catch (\Throwable $e) {}
+        // 구독 해지 → demo 다운그레이드
+        try {
+            $pdo->prepare("UPDATE app_user SET plan='demo', plans='demo', subscription_expires_at=NULL, subscription_cycle=NULL WHERE id=?")->execute([$id]);
+        } catch (\Throwable $e) {
+            try { $pdo->prepare("UPDATE app_user SET plan='demo' WHERE idx=?")->execute([$id]); } catch (\Throwable $e2) {}
+        }
+        try { \Genie\SecurityAudit::log($pdo, (string)self::resolveTenantId($pdo, $user), (string)($user['email'] ?? ''), 'plan.refund', ['used_days' => $usedDays, 'refund' => $refundAmount], $req); } catch (\Throwable $e) {}
+
+        return self::json($res, [
+            'ok'                 => true,
+            'refunded'           => true,
+            'used_days'          => $usedDays,
+            'refund_amount'      => $refundAmount,
+            'retro_days_pending' => $usedDays,
+            'msg'                => "환불 처리되었습니다. (사용 {$usedDays}일, 환불액 \${$refundAmount}) 재가입 시 사용 {$usedDays}일이 신규 구독에 소급 적용됩니다.",
         ]);
     }
 

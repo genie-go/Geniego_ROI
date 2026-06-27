@@ -1220,6 +1220,7 @@ return function (App $app): void {
         'PATCH /auth/admin/sub-admins/{id}' => 'Genie\\Handlers\\UserAuth::updateSubAdmin',
         'POST /auth/logout'   => 'Genie\\Handlers\\UserAuth::logout',
         'POST /auth/upgrade'  => 'Genie\\Handlers\\UserAuth::upgrade',
+        'POST /auth/refund-request'   => 'Genie\\Handlers\\UserAuth::refundRequest', // 246차 1개월 내 환불+재가입 소급
         'GET /auth/subscription'      => 'Genie\\Handlers\\UserAuth::subscription',
 
         'GET /auth/plan-check'     => 'Genie\\Handlers\\UserAuth::planCheck',    // 현재 플랜 확인
@@ -2143,6 +2144,7 @@ return function (App $app): void {
     $register('PATCH', '/auth/admin/sub-admins/{id}');
     $register('POST', '/auth/logout');
     $register('POST', '/auth/upgrade');
+    $register('POST', '/auth/refund-request'); // 246차
     $register('GET',  '/auth/subscription');
     $register('POST', '/auth/demo');        // 데모 세션 발급 (24h)
     $register('GET',  '/auth/plan-check'); // 현재 플랜 + 기능 접근 목록
