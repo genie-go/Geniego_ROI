@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import { IS_DEMO } from '../utils/demoEnv';
 import { useI18n } from '../i18n';
 import { tGetJSON, tSetJSON } from '../utils/tenantStorage.js';
+import PushOptIn from '../components/PushOptIn.jsx'; // [246차 P3] 웹 푸시 opt-in(서버 VAPID 활성 시만 노출)
 
 /* ═══════════════════════════════════════════════════════════════
    TeamWorkspace — 팀 워크스페이스 (Enterprise)
@@ -90,6 +91,8 @@ export default function TeamWorkspace() {
           </div>
         ))}
       </div>
+
+      <PushOptIn />
 
       <div className="card card-glass" style={{ padding: 8, display: 'flex', gap: 6 }}>
         {tabs.map((tab, i) => (
