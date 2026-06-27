@@ -215,6 +215,12 @@ return function (App $app): void {
         'POST /v425/live/sessions/{id}/orders'         => 'Genie\\Handlers\\LiveCommerce::placeOrder',
         'GET /v425/live/sessions/{id}/chat'            => 'Genie\\Handlers\\LiveCommerce::listChat',
         'POST /v425/live/sessions/{id}/chat'           => 'Genie\\Handlers\\LiveCommerce::postChat',
+        'GET /v425/live/sessions/{id}/polls'           => 'Genie\\Handlers\\LiveCommerce::listPolls', // [246차] 인터랙티브 오버레이
+        'POST /v425/live/sessions/{id}/polls'          => 'Genie\\Handlers\\LiveCommerce::createPoll',
+        'POST /v425/live/polls/{id}/vote'              => 'Genie\\Handlers\\LiveCommerce::votePoll',
+        'POST /v425/live/polls/{id}/close'             => 'Genie\\Handlers\\LiveCommerce::closePoll',
+        'POST /v425/live/sessions/{id}/reactions'      => 'Genie\\Handlers\\LiveCommerce::postReaction',
+        'GET /v425/live/sessions/{id}/reactions/summary' => 'Genie\\Handlers\\LiveCommerce::reactionSummary',
         'POST /v425/live/sessions/{id}/heartbeat'      => 'Genie\\Handlers\\LiveCommerce::heartbeat',
         // [현 차수] 멀티게스트/코호스트
         'GET /v425/live/sessions/{id}/guests'          => 'Genie\\Handlers\\LiveCommerce::listGuests',
@@ -438,6 +444,17 @@ return function (App $app): void {
         'POST /api/v426/admin/channels'        => 'Genie\\Handlers\\ChannelRegistry::upsert',
         'DELETE /v426/admin/channels/{key}'    => 'Genie\\Handlers\\ChannelRegistry::remove',
         'DELETE /api/v426/admin/channels/{key}'=> 'Genie\\Handlers\\ChannelRegistry::remove',
+        // [246차 P3] 웹 푸시(VAPID) — vapid-key 공개, subscribe/test 인증, vapid-config admin.
+        'GET /v426/push/vapid-key'             => 'Genie\\Handlers\\WebPush::vapidKey',
+        'GET /api/v426/push/vapid-key'         => 'Genie\\Handlers\\WebPush::vapidKey',
+        'POST /v426/push/subscribe'            => 'Genie\\Handlers\\WebPush::subscribe',
+        'POST /api/v426/push/subscribe'        => 'Genie\\Handlers\\WebPush::subscribe',
+        'POST /v426/push/unsubscribe'          => 'Genie\\Handlers\\WebPush::unsubscribe',
+        'POST /api/v426/push/unsubscribe'      => 'Genie\\Handlers\\WebPush::unsubscribe',
+        'POST /v426/push/test'                 => 'Genie\\Handlers\\WebPush::test',
+        'POST /api/v426/push/test'             => 'Genie\\Handlers\\WebPush::test',
+        'POST /v426/push/vapid-config'         => 'Genie\\Handlers\\WebPush::saveVapidConfig',
+        'POST /api/v426/push/vapid-config'     => 'Genie\\Handlers\\WebPush::saveVapidConfig',
         // [현 차수] v427 Logistics 배송추적(물류/특송 실어댑터)
         'GET /v427/logistics/carriers'         => 'Genie\\Handlers\\Logistics::carriers',
         'GET /api/v427/logistics/carriers'     => 'Genie\\Handlers\\Logistics::carriers',
@@ -2612,6 +2629,12 @@ return function (App $app): void {
     $register('POST',   '/v425/live/sessions/{id}/orders');
     $register('GET',    '/v425/live/sessions/{id}/chat');
     $register('POST',   '/v425/live/sessions/{id}/chat');
+    $register('GET',    '/v425/live/sessions/{id}/polls'); // [246차] 인터랙티브 오버레이
+    $register('POST',   '/v425/live/sessions/{id}/polls');
+    $register('POST',   '/v425/live/polls/{id}/vote');
+    $register('POST',   '/v425/live/polls/{id}/close');
+    $register('POST',   '/v425/live/sessions/{id}/reactions');
+    $register('GET',    '/v425/live/sessions/{id}/reactions/summary');
     $register('POST',   '/v425/live/sessions/{id}/heartbeat');
     $register('GET',    '/v425/live/sessions/{id}/guests');
     $register('POST',   '/v425/live/sessions/{id}/guests');
@@ -2749,6 +2772,12 @@ return function (App $app): void {
     $register('GET',    '/v426/admin/channels');  $register('GET',    '/api/v426/admin/channels');
     $register('POST',   '/v426/admin/channels');  $register('POST',   '/api/v426/admin/channels');
     $register('DELETE', '/v426/admin/channels/{key}'); $register('DELETE', '/api/v426/admin/channels/{key}');
+    // [246차 P3] 웹 푸시
+    $register('GET',    '/v426/push/vapid-key');   $register('GET',    '/api/v426/push/vapid-key');
+    $register('POST',   '/v426/push/subscribe');   $register('POST',   '/api/v426/push/subscribe');
+    $register('POST',   '/v426/push/unsubscribe'); $register('POST',   '/api/v426/push/unsubscribe');
+    $register('POST',   '/v426/push/test');        $register('POST',   '/api/v426/push/test');
+    $register('POST',   '/v426/push/vapid-config'); $register('POST',   '/api/v426/push/vapid-config');
     // [현 차수] v427 Logistics 배송추적
     $register('GET',    '/v427/logistics/carriers');   $register('GET',    '/api/v427/logistics/carriers');
     $register('GET',    '/v427/logistics/shipments');  $register('GET',    '/api/v427/logistics/shipments');
