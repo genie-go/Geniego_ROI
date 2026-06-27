@@ -183,6 +183,49 @@ class DemandForecast
         ];
     }
 
+    /* ─── [246차] 안전재고 최적화 헬퍼(forecast/autoReplenish 공용) ─── */
+
+    /** 표준정규 역함수(Acklam 근사) — 서비스레벨 p∈(0,1) → z. */
+    private static function invNorm(float $p): float
+    {
+        $p = max(1e-6, min(1 - 1e-6, $p));
+        $a = [-3.969683028665376e+01, 2.209460984245205e+02, -2.759285104469687e+02, 1.383577518672690e+02, -3.066479806614716e+01, 2.506628277459239e+00];
+        $b = [-5.447609879822406e+01, 1.615858368580409e+02, -1.556989798598866e+02, 6.680131188771972e+01, -1.328068155288572e+01];
+        $c = [-7.784894002430293e-03, -3.223964580411365e-01, -2.400758277161838e+00, -2.549732539343734e+00, 4.374664141464968e+00, 2.938163982698783e+00];
+        $d = [7.784695709041462e-03, 3.224671290700398e-01, 2.445134137142996e+00, 3.754408661907416e+00];
+        $pl = 0.02425;
+        if ($p < $pl) { $q = sqrt(-2 * log($p)); return ((((($c[0] * $q + $c[1]) * $q + $c[2]) * $q + $c[3]) * $q + $c[4]) * $q + $c[5]) / (((($d[0] * $q + $d[1]) * $q + $d[2]) * $q + $d[3]) * $q + 1); }
+        if ($p <= 1 - $pl) { $q = $p - 0.5; $r = $q * $q; return ((((($a[0] * $r + $a[1]) * $r + $a[2]) * $r + $a[3]) * $r + $a[4]) * $r + $a[5]) * $q / ((((($b[0] * $r + $b[1]) * $r + $b[2]) * $r + $b[3]) * $r + $b[4]) * $r + 1); }
+        $q = sqrt(-2 * log(1 - $p)); return -((((($c[0] * $q + $c[1]) * $q + $c[2]) * $q + $c[3]) * $q + $c[4]) * $q + $c[5]) / (((($d[0] * $q + $d[1]) * $q + $d[2]) * $q + $d[3]) * $q + 1);
+    }
+
+    /**
+     * 최적 서비스레벨 z — 비용기반(newsvendor) 우선, 없으면 ABC 차등.
+     *   newsvendor SL = Cu/(Cu+Co): Cu=품절 단위손실(마진), Co=단위 보유비용(보유율×원가×lead/365).
+     *   비용 미제공 시 ABC 차등(A 98%/B 95%/C 90%) — 매출기여 상위에 더 높은 가용성.
+     */
+    private static function optimalZ(string $abc, ?float $cu, ?float $co): float
+    {
+        if ($cu !== null && $co !== null && ($cu + $co) > 1e-9) {
+            return self::invNorm(max(0.5, min(0.999, $cu / ($cu + $co))));
+        }
+        return $abc === 'A' ? 2.05 : ($abc === 'B' ? 1.65 : 1.28);
+    }
+
+    /** 매출/수요 기여 기반 ABC 분류(Pareto): 누적 80%=A·95%=B·나머지=C. @param array<sku,float> $weight */
+    private static function abcClassify(array $weight): array
+    {
+        arsort($weight);
+        $total = array_sum($weight) ?: 1.0;
+        $cum = 0.0; $cls = [];
+        foreach ($weight as $sku => $w) {
+            $cum += $w;
+            $share = $cum / $total;
+            $cls[$sku] = $share <= 0.8 ? 'A' : ($share <= 0.95 ? 'B' : 'C');
+        }
+        return $cls;
+    }
+
     /* ─── GET /api/demand/forecast ─── */
     public static function forecastEndpoint(Request $req, Response $res): Response
     {
@@ -194,16 +237,30 @@ class DemandForecast
         $topN    = max(1, min(200, (int)($q['top'] ?? 50)));
         $lead    = max(1, min(60, (int)($q['lead'] ?? 7)));
         $skuFilter = isset($q['sku']) ? (string)$q['sku'] : '';
-        $z = 1.65; // 서비스레벨 95%
+        // [246차] 비용기반 최적화 옵션(미제공 시 ABC 차등). holding_rate=연 보유율(기본 0.20).
+        $holdingRate = max(0.0, min(2.0, (float)($q['holding_rate'] ?? 0.20)));
 
         $all = self::loadSeries($tenant, $days, $topN);
         if ($skuFilter !== '') $all = array_intersect_key($all, [$skuFilter => true]);
 
-        $items = [];
+        // 1-pass: 예측 산출 + 매출/수요기여(ABC 가중치).
+        $fcMap = []; $weight = [];
         foreach ($all as $sku => $info) {
             $fc = self::forecast($info['series'], $horizon);
+            $fcMap[$sku] = $fc;
+            $weight[$sku] = array_sum($fc['forecast']); // 수요량 기여(매출 컬럼 부재 → 수요 프록시)
+        }
+        $abc = self::abcClassify($weight); // [246차] Pareto ABC
+
+        // 2-pass: ABC/비용기반 최적 z → 안전재고·재발주점.
+        $items = [];
+        foreach ($all as $sku => $info) {
+            $fc = $fcMap[$sku];
             $sum = array_sum($fc['forecast']);
             $avgDaily = $horizon ? $sum / $horizon : 0;
+            $cls = $abc[$sku] ?? 'C';
+            // 비용기반 newsvendor: Cu=마진(원가 미상 시 null→ABC 폴백), Co=보유비용. 원가 부재라 ABC 차등 기본.
+            $z = self::optimalZ($cls, null, null);
             $safety = round($z * $fc['sigma'] * sqrt($lead), 1);
             $reorder = round($avgDaily * $lead + $safety, 1);
             $items[] = [
@@ -215,6 +272,8 @@ class DemandForecast
                 'avg_daily'     => round($fc['avg'], 2),
                 'forecast'      => $fc['forecast'],
                 'forecast_sum'  => round($sum, 1),
+                'abc_class'     => $cls,
+                'service_level' => $cls === 'A' ? 98 : ($cls === 'B' ? 95 : 90),
                 'safety_stock'  => $safety,
                 'reorder_point' => $reorder,
             ];
@@ -223,7 +282,9 @@ class DemandForecast
 
         return self::json($res, [
             'ok' => true, 'tenant' => $tenant, 'horizon' => $horizon, 'lead_time' => $lead,
-            'count' => count($items), 'items' => $items, '_env' => Db::env(),
+            'count' => count($items), 'items' => $items,
+            'optimization' => 'abc-differentiated (A 98%/B 95%/C 90%)',
+            '_env' => Db::env(),
         ]);
     }
 
@@ -250,13 +311,18 @@ class DemandForecast
             foreach ($rs->fetchAll(\PDO::FETCH_ASSOC) as $r) { if ($r['sku'] !== null && $r['sku'] !== '') $stockMap[(string)$r['sku']] = (float)$r['av']; }
         } catch (\Throwable $e) {}
         $all = self::loadSeries($tenant, 90, 200);
+        // [246차] ABC 차등 안전재고 — 1-pass 예측·가중치 → 분류.
+        $fcMap = []; $weight = [];
+        foreach ($all as $sku => $info) { $fc = self::forecast($info['series'], $horizon); $fcMap[$sku] = $fc; $weight[$sku] = array_sum($fc['forecast']); }
+        $abc = self::abcClassify($weight);
         $created = []; $now = gmdate('Y-m-d H:i:s');
         $chk = $pdo->prepare("SELECT 1 FROM wms_supply_orders WHERE tenant_id=? AND sku=? AND status IN ('suggested','pending','ordered') LIMIT 1");
         $ins = $pdo->prepare("INSERT INTO wms_supply_orders (tenant_id,sku,name,qty,supplier,wh_id,status,eta,created_at,updated_at) VALUES (?,?,?,?,?,?,'suggested',?,?,?)");
         foreach ($all as $sku => $info) {
-            $fc = self::forecast($info['series'], $horizon);
+            $fc = $fcMap[$sku];
             $avgDaily = $horizon ? array_sum($fc['forecast']) / $horizon : 0;
-            $safety   = round($z * $fc['sigma'] * sqrt($lead), 1);
+            $zc       = self::optimalZ($abc[$sku] ?? 'C', null, null); // ABC 차등 서비스레벨
+            $safety   = round($zc * $fc['sigma'] * sqrt($lead), 1);
             $reorder  = round($avgDaily * $lead + $safety, 1);
             if ($reorder <= 0) continue;
             $stock = $stockMap[(string)$sku] ?? 0;

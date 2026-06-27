@@ -190,7 +190,7 @@ export default function DemandForecast() {
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead><tr>
-                    {['SKU', t('demandForecast.colName', '상품'), t('demandForecast.colModel', '모델'), t('demandForecast.colAcc', '정확도'), t('demandForecast.colAvg', '일평균'), t('demandForecast.colSum', '14일 예측'), t('demandForecast.colSafety', '안전재고'), t('demandForecast.colReorder', '재주문점')].map(h => <th key={h} style={th}>{h}</th>)}
+                    {['SKU', t('demandForecast.colName', '상품'), t('demandForecast.colModel', '모델'), t('demandForecast.colAcc', '정확도'), t('demandForecast.colAbc', 'ABC'), t('demandForecast.colAvg', '일평균'), t('demandForecast.colSum', '14일 예측'), t('demandForecast.colSafety', '안전재고'), t('demandForecast.colReorder', '재주문점')].map(h => <th key={h} style={th}>{h}</th>)}
                   </tr></thead>
                   <tbody>
                     {forecast.map((it) => (
@@ -199,6 +199,7 @@ export default function DemandForecast() {
                         <td style={td}>{it.name}</td>
                         <td style={td}><span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: 'rgba(99,102,241,0.1)', color: '#6366f1' }}>{METHOD_LABEL[it.method] || it.method}</span></td>
                         <td style={{ ...td, fontWeight: 700, color: it.accuracy >= 80 ? '#16a34a' : it.accuracy >= 60 ? '#f59e0b' : '#64748b' }}>{it.accuracy > 0 ? it.accuracy + '%' : '—'}</td>
+                        <td style={td}>{it.abc_class ? <span title={`${t('demandForecast.serviceLevel', '서비스레벨')} ${it.service_level}%`} style={{ fontSize: 10, fontWeight: 800, padding: '2px 7px', borderRadius: 20, background: it.abc_class === 'A' ? 'rgba(22,163,74,0.12)' : it.abc_class === 'B' ? 'rgba(245,158,11,0.12)' : 'rgba(100,116,139,0.12)', color: it.abc_class === 'A' ? '#16a34a' : it.abc_class === 'B' ? '#d97706' : '#64748b' }}>{it.abc_class}</span> : '—'}</td>
                         <td style={{ ...td, textAlign: 'right' }}>{it.avg_daily}</td>
                         <td style={{ ...td, textAlign: 'right', fontWeight: 700 }}>{it.forecast_sum}</td>
                         <td style={{ ...td, textAlign: 'right', color: '#f97316' }}>{it.safety_stock}</td>
