@@ -763,6 +763,11 @@ final class Connectors
         // [R-P3-7] 네이티브 광고(콘텐츠 디스커버리) — 동일 SSOT 패턴(저장직후 syncOne·cron·isAdChannel 자동 전파).
         'taboola'=>'taboola','taboola_ads'=>'taboola',
         'outbrain'=>'outbrain','outbrain_ads'=>'outbrain',
+        // [246차 P3] 커넥터 폭 확대 — 글로벌 퍼포먼스/앱 광고 4종(creds 등록 즉시 자동 전파).
+        'applovin'=>'applovin','applovin_ads'=>'applovin',
+        'mintegral'=>'mintegral','mintegral_ads'=>'mintegral',
+        'yandex_ads'=>'yandex_ads','yandex'=>'yandex_ads',
+        'yahoo_jp_ads'=>'yahoo_jp_ads','yahoo_japan_ads'=>'yahoo_jp_ads',
     ];
 
     private static function loadCred(string $tenant, string $channelKey, string $credKey): string
@@ -1474,6 +1479,10 @@ final class Connectors
             // [R-P3-7] 네이티브 광고 커넥터 확대(콘텐츠 디스커버리) — 자격증명 등록 시 즉시 fetch·graceful.
             'taboola'           => fn() => self::fetchTaboolaRows($tenant, $start, $end),
             'outbrain'          => fn() => self::fetchOutbrainRows($tenant, $start, $end),
+            'applovin'          => fn() => self::fetchAppLovinRows($tenant, $start, $end),
+            'mintegral'         => fn() => self::fetchMintegralRows($tenant, $start, $end),
+            'yandex_ads'        => fn() => self::fetchYandexRows($tenant, $start, $end),
+            'yahoo_jp_ads'      => fn() => self::fetchYahooJpRows($tenant, $start, $end),
         ];
 
         foreach ($fetchers as $ch => $fn) {
@@ -3407,6 +3416,97 @@ final class Connectors
             ];
         }
         return ['hasCreds' => true, 'live' => true, 'rows' => $rows];
+    }
+
+    /** [246차 P3] AppLovin 광고 리포트 — Report API(api_key, GET JSON). 등록 시 즉시 동작. */
+    private static function fetchAppLovinRows(string $tenant, string $start, string $end): array
+    {
+        $key = (string)(getenv('APPLOVIN_API_KEY') ?: self::loadCred($tenant, 'applovin', 'api_key'));
+        if ($key === '') return ['hasCreds' => false, 'live' => false, 'rows' => []];
+        $cur = strtoupper((string)(self::loadCred($tenant, 'applovin', 'currency') ?: 'USD'));
+        $q = http_build_query(['api_key' => $key, 'start' => $start, 'end' => $end, 'format' => 'json', 'report_type' => 'advertiser',
+            'columns' => 'day,campaign,impressions,clicks,cost,conversions,revenue']);
+        [$code, $body, $err] = self::httpGet('https://r.applovin.com/report?' . $q, ['Accept' => 'application/json']);
+        if ($err || $code >= 400) return ['hasCreds' => true, 'live' => false, 'error' => ($err ?: "applovin http $code") . ' (라이브 검증 후 매핑)'];
+        $rows = [];
+        foreach ((array)($body['results'] ?? []) as $r) {
+            if (!is_array($r)) continue;
+            $rows[] = [
+                'team' => 'AppLovin', 'account' => 'AppLovin', 'campaign_ext_id' => (string)($r['campaign'] ?? ''),
+                'objective' => '', 'reach' => 0, 'date' => substr((string)($r['day'] ?? ''), 0, 10),
+                'impressions' => (int)($r['impressions'] ?? 0), 'clicks' => (int)($r['clicks'] ?? 0),
+                'spend' => (float)($r['cost'] ?? 0), 'conversions' => (int)round((float)($r['conversions'] ?? 0)),
+                'revenue' => (float)($r['revenue'] ?? 0), 'currency' => $cur,
+            ];
+        }
+        return ['hasCreds' => true, 'live' => true, 'rows' => $rows];
+    }
+
+    /** [246차 P3] Mintegral 광고 리포트 — Reporting API(access_key + api_key→token md5, GET JSON). */
+    private static function fetchMintegralRows(string $tenant, string $start, string $end): array
+    {
+        $ak = (string)(getenv('MINTEGRAL_ACCESS_KEY') ?: self::loadCred($tenant, 'mintegral', 'access_key'));
+        $apiKey = (string)(getenv('MINTEGRAL_API_KEY') ?: self::loadCred($tenant, 'mintegral', 'api_key'));
+        if ($ak === '' || $apiKey === '') return ['hasCreds' => false, 'live' => false, 'rows' => []];
+        $cur = strtoupper((string)(self::loadCred($tenant, 'mintegral', 'currency') ?: 'USD'));
+        $ts = (string)time();
+        $token = md5($apiKey . md5($ts)); // Mintegral 표준 인증 토큰
+        $q = http_build_query(['start_time' => $start, 'end_time' => $end, 'type' => 1, 'utc' => '+0']);
+        [$code, $body, $err] = self::httpGet('https://ss-api.mintegral.com/api/v1/reports/data?' . $q,
+            ['access-key' => $ak, 'token' => $token, 'timestamp' => $ts, 'Accept' => 'application/json']);
+        if ($err || $code >= 400) return ['hasCreds' => true, 'live' => false, 'error' => ($err ?: "mintegral http $code") . ' (라이브 검증 후 매핑)'];
+        $rows = [];
+        foreach ((array)($body['data'] ?? $body['results'] ?? []) as $r) {
+            if (!is_array($r)) continue;
+            $rows[] = [
+                'team' => 'Mintegral', 'account' => 'Mintegral', 'campaign_ext_id' => (string)($r['campaign_id'] ?? ''),
+                'objective' => '', 'reach' => 0, 'date' => substr((string)($r['date'] ?? ''), 0, 10),
+                'impressions' => (int)($r['impression'] ?? $r['impressions'] ?? 0), 'clicks' => (int)($r['click'] ?? $r['clicks'] ?? 0),
+                'spend' => (float)($r['spend'] ?? 0), 'conversions' => (int)round((float)($r['conversion'] ?? $r['conversions'] ?? 0)),
+                'revenue' => (float)($r['revenue'] ?? 0), 'currency' => $cur,
+            ];
+        }
+        return ['hasCreds' => true, 'live' => true, 'rows' => $rows];
+    }
+
+    /** [246차 P3] Yandex Direct 광고 — Reports API v5(OAuth + Client-Login, POST). TSV/async → 등록 후 라이브 매핑. */
+    private static function fetchYandexRows(string $tenant, string $start, string $end): array
+    {
+        $token = (string)(getenv('YANDEX_OAUTH_TOKEN') ?: self::loadCred($tenant, 'yandex_ads', 'oauth_token'));
+        if ($token === '') return ['hasCreds' => false, 'live' => false, 'rows' => []];
+        $login = (string)(getenv('YANDEX_CLIENT_LOGIN') ?: self::loadCred($tenant, 'yandex_ads', 'client_login'));
+        $cur = strtoupper((string)(self::loadCred($tenant, 'yandex_ads', 'currency') ?: 'RUB'));
+        $payload = ['params' => [
+            'SelectionCriteria' => ['DateFrom' => $start, 'DateTo' => $end],
+            'FieldNames' => ['Date', 'CampaignId', 'Impressions', 'Clicks', 'Cost', 'Conversions'],
+            'ReportName' => 'genie_' . substr(md5($start . $end . microtime()), 0, 10),
+            'ReportType' => 'CAMPAIGN_PERFORMANCE_REPORT', 'DateRangeType' => 'CUSTOM_DATE',
+            'Format' => 'TSV', 'IncludeVAT' => 'NO',
+        ]];
+        $headers = ['Authorization' => 'Bearer ' . $token, 'Content-Type' => 'application/json', 'Accept-Language' => 'en', 'processingMode' => 'auto', 'returnMoneyInMicros' => 'false'];
+        if ($login !== '') $headers['Client-Login'] = $login;
+        [$code, $body, $err] = self::httpPost('https://api.direct.yandex.com/json/v5/reports', $payload, $headers);
+        // Yandex 는 TSV(200)/async(201·202) → 본문은 비JSON. 자격 확인됨·라이브 매핑은 TSV 파서 라운드(정직).
+        if ($err || $code >= 400) return ['hasCreds' => true, 'live' => false, 'error' => ($err ?: "yandex http $code") . ' (라이브 검증 후 TSV 매핑)'];
+        return ['hasCreds' => true, 'live' => true, 'rows' => [], 'note' => 'Yandex 리포트 수락(' . $code . ') — TSV 매핑은 라이브 자격증명 검증 라운드에서 활성화'];
+    }
+
+    /** [246차 P3] Yahoo! JAPAN Ads — ReportDefinition(비동기: 생성→폴링→다운로드). 등록 후 라이브 매핑. */
+    private static function fetchYahooJpRows(string $tenant, string $start, string $end): array
+    {
+        $token = (string)(getenv('YJP_ACCESS_TOKEN') ?: self::loadCred($tenant, 'yahoo_jp_ads', 'access_token'));
+        $acct  = (string)(getenv('YJP_ACCOUNT_ID') ?: self::loadCred($tenant, 'yahoo_jp_ads', 'account_id'));
+        if ($token === '' || $acct === '') return ['hasCreds' => false, 'live' => false, 'rows' => []];
+        $payload = ['accountId' => $acct, 'operand' => [[
+            'reportName' => 'genie_' . substr(md5($start . $end . microtime()), 0, 10),
+            'reportType' => 'CAMPAIGN', 'reportDateRangeType' => 'CUSTOM_DATE',
+            'dateRange' => ['startDate' => str_replace('-', '', $start), 'endDate' => str_replace('-', '', $end)],
+            'fields' => ['DAY', 'CAMPAIGN_ID', 'IMPS', 'CLICKS', 'COST', 'CONVERSIONS'],
+        ]]];
+        [$code, $body, $err] = self::httpPost('https://ads-search.yahooapis.jp/api/v9/ReportDefinitionService/add', $payload,
+            ['Authorization' => 'Bearer ' . $token, 'Content-Type' => 'application/json', 'Accept' => 'application/json']);
+        if ($err || $code >= 400) return ['hasCreds' => true, 'live' => false, 'error' => ($err ?: "yahoo_jp http $code") . ' (라이브 검증 후 비동기 매핑)'];
+        return ['hasCreds' => true, 'live' => true, 'rows' => [], 'note' => 'Yahoo! JAPAN Ads 리포트 정의 생성(' . $code . ') — 비동기 다운로드 매핑은 라이브 검증 라운드에서 활성화'];
     }
 
     /** [현 차수] X Ads OAuth1.0a 서명 GET. params 는 쿼리이자 서명 베이스 스트링 일부. graceful 반환 [code, json, err]. */

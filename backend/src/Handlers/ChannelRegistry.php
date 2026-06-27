@@ -83,6 +83,13 @@ class ChannelRegistry
             ['amazon_dsp','Amazon DSP','marketing','📦','#232f3e','ad',[$ftext('access_token','액세스 토큰'),$ftext('client_id','LWA Client ID',false),$ftext('profile_id','프로필 ID',false),$ftext('advertiser_id','광고주 ID',false),$ftext('currency','과금 통화(예: USD)',false)]],
             ['quora_ads','Quora Ads','marketing','🅠','#b92b27','ad',[$ftext('access_token','액세스 토큰'),$ftext('account_id','광고계정 ID',false),$ftext('currency','과금 통화(예: USD)',false)]],
             ['spotify_ads','Spotify Ads','marketing','🎧','#1db954','ad',[$ftext('access_token','액세스 토큰'),$ftext('ad_account_id','광고계정 ID',false),$ftext('currency','과금 통화(예: USD)',false)]],
+            // [246차 P3] 글로벌 퍼포먼스/앱 광고 4종 + 분석 데이터소스 2종(creds 등록 즉시 자동 동기화).
+            ['applovin','AppLovin','marketing','🅰️','#ff3b30','ad',[$ftext('api_key','Report API Key'),$ftext('currency','과금 통화(예: USD)',false)]],
+            ['mintegral','Mintegral','marketing','🟩','#00c389','ad',[$ftext('access_key','Access Key',false),$ftext('api_key','API Key'),$ftext('currency','과금 통화(예: USD)',false)]],
+            ['yandex_ads','Yandex Direct','marketing','🟥','#ffcc00','ad',[$ftext('oauth_token','OAuth 토큰'),$ftext('client_login','클라이언트 로그인',false),$ftext('currency','과금 통화(예: RUB)',false)]],
+            ['yahoo_jp_ads','Yahoo! JAPAN Ads','marketing','🟪','#ff0033','ad',[$ftext('access_token','액세스 토큰'),$ftext('account_id','계정 ID',false)]],
+            ['ga4','Google Analytics 4','marketing','📈','#e37400','none',[$ftext('property_id','GA4 속성 ID',false),$ftext('service_account_json','서비스 계정 JSON')]],
+            ['adobe_analytics','Adobe Analytics','marketing','🅰','#fa0f00','none',[$ftext('company_id','Company ID',false),$ftext('client_id','API Client ID',false),$ftext('client_secret','Client Secret'),$ftext('report_suite_id','Report Suite ID',false)]],
             // ── 판매(커머스) ──
             ['shopify','Shopify','sales','🛍','#95bf47','commerce',[$ftext('shop_domain','상점 도메인',false),$ftext('access_token','Admin API 토큰')]],
             ['amazon','Amazon SP-API','sales','📦','#ff9900','commerce',[$ftext('client_id','LWA Client ID',false),$ftext('client_secret','LWA Secret'),$ftext('refresh_token','Refresh Token'),$ftext('marketplace_id','마켓플레이스',false)]],
