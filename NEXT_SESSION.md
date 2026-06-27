@@ -1,3 +1,58 @@
+# 246차 세션 인계서 — **구독 5티어 전면 초고도화 (경쟁사 앵커 가격추천·계정수×기간·무료쿠폰·1개월 환불+소급 / 진짜 차등 메뉴접근 + 상세설명 + 자동체크 / 양 DB 직접 시드 라이브 / 광고성과 그래프 버그 + 11메뉴 초보가이드)**
+
+> **작성일**: 2026-06-27 (사용자 명시 승인) · 운영 roi.genie-go.com / 데모 roidemo.genie-go.com · primary=**E:\project\GeniegoROI** · 브랜치 `feat/n236-admin-growth-automation` · ★**master 미접촉**.
+> 발단: (1) 광고성과 종합현황 그래프 버그 신고 →수정. (2) 가이드 없던 메뉴 초보자 가이드. (3) 구독 플랜 가격추천+메뉴접근 진짜 차등 초고도화(경쟁사 분석) → 쿠폰/환불/소급/상세설명/자동체크/DB시드까지 전면 구현.
+
+## ✅ 246차 완료 (전부 운영/데모 배포·HTTPS 검증·브랜치 push + 양 DB 직접 시드)
+
+**1) 광고성과 그래프 버그 수정** (`70ad87370ba`): `/marketing` 종합현황 "캠페인 활성 기간" 그래프 — `generateTrendData` 데모 분배가 (당일/30일합)×30 으로 하루≈전체총합(×30 과대) + 활성기간(60일)>데모트렌드(30일) 시 중간 단차. **범위 전체 단일 가중치 분배(Σ=KPI총합·단차0)**로 수정. + 라벨 더블 📅(i18n값+JSX 중복) 제거(ko+12국).
+
+**2) 초보자 이용가이드 11메뉴** (`79e4c12027a`): 공용 `BeginnerGuide.jsx`+`guideSpecs.js`(4요소: 기능·역할·따라하기·활용). LINE/WhatsApp/IG·리포트빌더·데이터신뢰도·AI룰엔진·결제수단·피드백·PM(현황/포트폴리오/리소스). + OnsiteCro 가이드(이전). ★이미 가이드 보유 페이지 제외(중복0).
+
+**3) 구독 5티어 메뉴접근 진짜 차등 + 가격추천** (`497cff38094`):
+- `MENU_MIN_PLAN` 재설계: Free 진입 + **Starter/Growth/Pro/Enterprise** 4유료 진짜 차등. `marketing` 단일키 → **marketing_core(Starter)/marketing_advanced(Growth)** 분할, 분석→Growth, 라이브커머스→**commerce_live(Pro)**. sidebarManifest menuKey 재배정.
+- `recommendPlanPricing()`: **1계정 base**(Starter$49/Growth$149/Pro$399/Ent$1500) **× 계정수 배수(×1/×6/×12) × 기간할인 + 1년=3개월 무료쿠폰**. admin "💰 추천가 일괄 채움(계정수·기간)" 버튼. SEED_PLANS 5플랜. AdminPlans publicPlans fallback 5티어.
+
+**4) 무료쿠폰 전 유료플랜 + 1개월 환불 + 재가입 소급** (`a20349d5cd0`·`f744c517acf`):
+- 쿠폰 `term_*mo` 자동발급을 Starter/Growth/Pro/Enterprise + 1mo로 확장(기존 pro/ent·3/6/12만).
+- `POST /auth/refund-request`: 구독 30일 내 전액환불+demo 다운그레이드, 30일초과 403. `subscription_ledger` 신설(런타임 ensure, MySQL/SQLite 분기). **재가입(upgrade) 시 직전 환불 used_days를 신규 만료일에서 차감(소급)** — 반복환불 악용 차단. 결제 페이지 환불 UI.
+
+**5) 메뉴 상세설명 고도화 + 접근권한 자동체크 + 동적설명** (`bb30aa7a225`):
+- `MENU_KEY_LABEL` 신규 finer 키 추가 + 설명을 기능·역할·활용·티어 포함 **아주 상세히** 고도화.
+- 미구성 플랜 **추천 접근으로 체크박스 자동 체크**(1회·언체크 재채움 방지·admin 구성 보존).
+- 플랜별 "접근 가능 메뉴 상세설명" 패널 **체크 상태 동적 파생**(해제=설명 제거·추가=상세설명 생성).
+
+**6) ★양 환경 DB 직접 시드(라이브 활성화)** — `geniego_roi`+`geniego_roi_demo`(백업 `/root/backup_246/`):
+- `plan_config` 5플랜(Free$0/Starter$49·39/Growth$149·119/Pro$399·319 추천/Ent$1500·1200 견적) · 한글설명 utf8mb4 무손상.
+- `plan_menu_access` **차등 확인**: free 101 < starter 160 < growth 242 < pro 349 < ent 356.
+- `plan_period_pricing` 60행(5플랜×3계정수×4기간). `coupon_rules` 정합(**plan='free'→가입플랜으로 정확부여**, 1년=3개월 비례 8/23/45/90일).
+- 라이브 검증: `/auth/pricing/public-plans` 양 호스트 5플랜·가격·메뉴수·계정수·한글 정상 → 회원가입·결제·가격·사이드바 전 페이지 자동 반영.
+
+## ★246차 핵심 트랩/교훈
+- **쿠폰 plan 필드 트랩**: `effectivePlan=max(rule.plan, 사용자플랜)`이라 rule.plan='pro'면 starter 가입자가 pro로 과다부여 → **rule.plan='free'로 설정**해야 가입한 플랜으로 정확 부여.
+- **DB 시드 키 정합**: `plan_menu_access`는 coarse menuKey 가 아닌 **풀 캐스케이드**(menuKey+라우트+서브탭). 프론트 `expandMenuKeyAllLevels` 동일 로직을 Node(file:// URL)로 재현해 생성. mysql `--default-character-set=utf8mb4` 필수(한글).
+- **운영 DB는 기존 플랜이 이미 등록**돼 있어 코드 SEED/fallback 만으로는 라이브 미반영 → admin 저장 또는 직접 시드 필요(본 차수=직접 시드).
+- **메뉴 재티어 회귀 0 원칙**: growth 는 marketing_core+advanced 누적 보존(rank2≥둘다). 라이브커머스만 Pro 이동(승인된 설계·plan_menu_access admin 우선이라 기존설정 사용자 무회귀).
+- 기존 유지: 신규핸들러 fpm restart·`$register`+index bypass(/auth/*=공개·핸들러 세션인증)·PS샌드박스(스크립트파일→pscp→plink, rm-rf 인라인 금지)·acorn 주입 file:// URL.
+
+## 🔜 다음 차수 우선순위 (사용자 지정 — 순서대로)
+
+**P1. 챗봇 "무엇이든 물어보세요" 용어 설명 초고도화**
+- 참고자료: `C:\project\GeniegoROI\api_manuals\GeniegoROI_Terms_Guide_KR-용어설명.html`(용어집 정본).
+- 요구: **전체 용어**를 참고자료 수준으로 **아주 자세히** 설명. 사용자가 특정 용어를 **자연스럽고 복잡하게** 물어도 자연스럽게 답변.
+- 구현 방향: 챗봇 핸들러(ClaudeAI 재사용)에 용어집을 컨텍스트/RAG로 주입 → 용어 매칭+자연어 질의응답. 챗봇 위치=`무엇이든 물어보세요`(Copilot/AI 채팅). HTML 용어집 파싱→구조화 사전(term→정의/예시) 생성 후 시스템 프롬프트 주입 또는 검색.
+
+**P2. 15개국 현지 자연어 i18n 완료**
+- 대상: 본 차수 신규(초보가이드 11메뉴·플랜 설명/가격 라벨·환불 UI·메뉴 상세설명·strictDate 등) + 기존 미번역 잔여 전부.
+- 원칙(메모리): ko=SOT, ja/zh sacred SHA·G6 collision·사용자 제공 번역자료 재번역 금지·교집합0. 현재 신규키는 ko+en+인라인 한글 폴백 상태 → 13개국 현지 자연어 완료 필요.
+
+**P3. 경쟁사 재검증 보고서(초고도화분 반영)**
+- 타 경쟁/**글로벌** 플랫폼 vs GeniegoROI **상세 기능별** 분석: 강점·약점.
+- **100점 만점 기능별 경쟁사 점수 vs GeniegoROI 점수** 동시 평가표 + 종합점수 + 보강 필요 항목 도출.
+- ★평가 전제: **채널 자격증명 미등록**이나 "**자격증명만 등록하면 즉시 실행**" 구현 완료 기준으로 평가(코드 완비=점수 인정, 라이브 자격증명만 대기).
+
+---
+
 # 244차 세션 인계서 — **경쟁 약점 전수 초고도화 (P1~P3 갭종결 + admin UX 2건 + 잔여 3대 기능: 라이브 멀티게스트·이메일 STO/A-B·AIRuleEngine 실배선 / 21커밋 전부 운영·데모 배포·검증 / 브랜치 push, master 미접촉)**
 
 > **작성일**: 2026-06-26 (사용자 명시 승인) · 운영 roi.genie-go.com / 데모 roidemo.genie-go.com · primary=**E:\project\GeniegoROI** · 브랜치 `feat/n236-admin-growth-automation` · ★**master 미접촉**(자동배포 미트리거).
