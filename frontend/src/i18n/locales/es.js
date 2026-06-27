@@ -7057,7 +7057,7 @@ export default {
       metricCpm: "CPM promedio",
       metricConv: "Conversiones (Conv)",
       metricRoas: "Retorno de la inversión publicitaria (ROAS)",
-      strictDateFilter: "📅 Periodo activo de campaña (filtro de periodo estricto)",
+      strictDateFilter: "Periodo activo de campaña (filtro de periodo estricto)",
       strictDateDesc: "Ignora la caché y carga al instante los datos operativos integrados en tiempo real.",
       leftAxis: "(datos del eje izquierdo)",
       rightAxis: "(datos del eje derecho)",

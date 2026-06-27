@@ -4708,7 +4708,7 @@ export default {
       metricCpm: "CPM Rata-rata",
       metricConv: "Konversi (Conv)",
       metricRoas: "Laba atas Belanja Iklan (ROAS)",
-      strictDateFilter: "📅 活動期間篩選",
+      strictDateFilter: "活動期間篩選",
       strictDateDesc: "即時取得數據",
       leftAxis: "(左軸)",
       rightAxis: "(右軸)",

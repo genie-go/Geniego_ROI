@@ -7669,7 +7669,7 @@ export default {
       sc_gmarket: "GMarket",
       sc_kakao_shop: "Kakao Shop",
       sc_tiktok_shop: "TikTok Shop",
-      strictDateFilter: "📅 Campaign Active Period (Strict Date Filter)",
+      strictDateFilter: "Campaign Active Period (Strict Date Filter)",
       strictDateDesc: "Filters only ads actively running during this period to prevent data contamination.",
       tabOverview: "Performance Overview",
       mktHierTitle: "Ad Performance Breakdown",

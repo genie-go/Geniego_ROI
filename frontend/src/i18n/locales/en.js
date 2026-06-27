@@ -6687,7 +6687,7 @@ export default { "push": { "title": "Web Push Notifications", "desc": "Get push 
       metricCpm: "Average CPM",
       metricConv: "Conversions",
       metricRoas: "Return on Ad Spend (ROAS)",
-      strictDateFilter: "📅 Campaign Active Period (Strict Filter)",
+      strictDateFilter: "Campaign Active Period (Strict Filter)",
       strictDateDesc: "Bypasses cache and fetches live operational data instantly.",
       leftAxis: "(Left Axis)",
       rightAxis: "(Right Axis)",

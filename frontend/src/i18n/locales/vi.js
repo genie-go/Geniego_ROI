@@ -4638,7 +4638,7 @@ export default {
         metricCpm: "Average CPM",
         metricConv: "Conversions",
         metricRoas: "Return on Ad Spend (ROAS)",
-        strictDateFilter: "📅 Periode Kampanye",
+        strictDateFilter: "Periode Kampanye",
         strictDateDesc: "Data real-time",
         leftAxis: "(Kiri)",
         rightAxis: "(Kanan)",

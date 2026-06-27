@@ -122,45 +122,56 @@ const generateTrendData = (campaigns, startDate, endDate, metric1, metric2, isDe
     }
     const seed = (n) => Math.abs(Math.sin(n * 127.1 + 311.7) * 43758.5453) % 1;
 
-    // Precompute trend sums for normalization
-    const trendSums = {};
+    // [246차 FIX] 날짜 목록 선구축.
+    const dayList = [];
+    for (let i = 0; i < days; i++) {
+        const d = new Date(sTime + i * 86400000);
+        dayList.push({ i, fullDate: d.toISOString().slice(0, 10), dateStr: d.toISOString().slice(5, 10), dow: d.getDay() });
+    }
+
+    // [246차 FIX] 데모 분배 정규화 — ★버그 수정: 기존엔 (당일/30일합)×30 으로 ‘하루≈전체총합’(×30 과대) +
+    //   캠페인 활성기간(기본 60일)이 데모 트렌드(30일)를 넘으면 트렌드 있는 30일만 과대→그래프 중간 단차.
+    //   수정: 차트 ‘범위 전체’ 단일 가중치로 total 분배. 트렌드 있는 날=당일값, 없는 날=범위 평균값(연속성) →
+    //   Σ(일별)=KPI 총합, 단차 0. (합산형 지표만 분배; 비율/배수는 분배 대상 아님=당일 트렌드값/전체평균).
+    const demoW = {};
     if (isDemoMode) {
         allMetricIds.forEach(mId => {
             const tf = TREND_METRIC_MAP[mId] || 'revenue';
-            trendSums[mId] = DEMO_DAILY_TRENDS.reduce((a, tr) => a + (tr[tf] || 0), 0) || 1;
+            const present = dayList.map(dd => trendMap[dd.fullDate]).filter(Boolean).map(tr => Number(tr[tf] || 0));
+            const avg = present.length ? present.reduce((a, b) => a + b, 0) / present.length : 1;
+            const w = dayList.map(dd => { const tr = trendMap[dd.fullDate]; return tr ? Number(tr[tf] || 0) : avg; });
+            const sum = w.reduce((a, b) => a + b, 0) || 1;
+            demoW[mId] = { w, sum };
         });
     }
 
-    for (let i = 0; i < days; i++) {
-        const d = new Date(sTime + i * 86400000);
-        const dateStr = d.toISOString().slice(5, 10);
-        const fullDate = d.toISOString().slice(0, 10);
-        const dow = d.getDay();
+    for (let idx = 0; idx < dayList.length; idx++) {
+        const { i, fullDate, dateStr, dow } = dayList[idx];
         const tr = trendMap[fullDate];
-
         const point = { date: dateStr };
 
         allMetricIds.forEach(mId => {
             const total = metricTotals[mId];
             const tf = TREND_METRIC_MAP[mId] || 'revenue';
             const md = ALL_METRICS.find(m => m.id === mId);
+            const isRatio = md?.isRate || md?.isMultiplier;
             let val = 0;
-            if (isDemoMode && tr) {
-                val = total * ((tr[tf] || 0) / trendSums[mId]) * DEMO_DAILY_TRENDS.length;
-            } else if (isDemoMode && !tr) {
-                const wf = (dow === 0 || dow === 6) ? 0.65 + seed(i * 3 + mId.charCodeAt(0)) * 0.1 : 1.0;
-                const wave = Math.sin(i * 0.45 + 1.2 + mId.charCodeAt(0) * 0.1) * 0.15;
-                const noise = (seed(i * 7 + mId.charCodeAt(0) * 13) - 0.5) * 0.25;
-                const ramp = 1 + (i / days) * 0.12;
-                val = (total / days) * (1 + wave + noise) * wf * ramp;
-            } else if (!isDemoMode && tr) {
+            if (isDemoMode) {
+                if (isRatio) {
+                    // 비율/배수(CTR·ROAS 등): 합산 분배 불가 → 당일 트렌드값, 없으면 전체값 ±변동(연속).
+                    val = tr ? Number(tr[tf] ?? total) : total * (0.9 + seed(i * 7 + mId.charCodeAt(0)) * 0.2);
+                } else {
+                    const dw = demoW[mId];
+                    val = total * (dw.w[idx] / dw.sum); // Σ=total, 단차/과대스케일 0
+                }
+            } else if (tr) {
                 // 176차 PM7: production 실 backend trend point — 실 데이터 직접 사용
                 val = tr[tf] !== undefined ? Number(tr[tf]) : (total / days);
             } else {
                 // Production fallback (실 backend 미공급 + 데이터 없음): flat avg
                 val = total / days;
             }
-            point[mId] = (md?.isRate || md?.isMultiplier) ? parseFloat(Math.max(0, val).toFixed(2)) : Math.round(Math.max(0, val));
+            point[mId] = isRatio ? parseFloat(Math.max(0, val).toFixed(2)) : Math.round(Math.max(0, val));
         });
 
         data.push(point);

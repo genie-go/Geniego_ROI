@@ -4718,7 +4718,7 @@ export default {
       metricCpm: "CPM เฉลี่ย",
       metricConv: "จำนวนคอนเวอร์ชัน (Conv)",
       metricRoas: "ผลตอบแทนจากค่าโฆษณา (ROAS)",
-      strictDateFilter: "📅 ระยะเวลาแคมเปญที่ใช้งาน (ฟิลเตอร์ตามช่วงเวลา)",
+      strictDateFilter: "ระยะเวลาแคมเปญที่ใช้งาน (ฟิลเตอร์ตามช่วงเวลา)",
       strictDateDesc: "ดึงข้อมูลแบบเรียลไทม์จากการดำเนินงาน",
       leftAxis: "(แกนซ้าย)",
       rightAxis: "(แกนขวา)",

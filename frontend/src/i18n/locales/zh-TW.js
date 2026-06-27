@@ -2103,7 +2103,7 @@ export default {
       metricCpm: "平均 CPM",
       metricConv: "轉換數 (Conv)",
       metricRoas: "廣告投資報酬率 (ROAS)",
-      strictDateFilter: "📅 活动期间筛选",
+      strictDateFilter: "活动期间筛选",
       strictDateDesc: "跳过缓存实时获取数据",
       leftAxis: "(左轴)",
       rightAxis: "(右轴)",

@@ -1225,7 +1225,7 @@ export default {
       csFmtVideo: "वीडियो",
       csFmtBanner: "बैनर",
       csFmtShort: "शॉर्ट्स",
-      strictDateFilter: "📅 Campaign Active Period (Strict Date Filter)",
+      strictDateFilter: "Campaign Active Period (Strict Date Filter)",
       strictDateDesc: "Selects only ads that were actually live within this timeframe to prevent data contamination.",
       tabOverview: "Performance Overview",
       mktHierTitle: "Detailed Ad Performance (Analysis)",
