@@ -101,6 +101,7 @@ return function (App $app): void {
         'GET /email/campaigns/{id}/stats'      => 'Genie\\Handlers\\EmailMarketing::campaignStats',
         'GET /email/campaigns/{id}/ab-result'  => 'Genie\\Handlers\\EmailMarketing::abResult', // [현 차수 P2-2b] A/B 베이지안 승자
         'GET /email/deliverability'            => 'Genie\\Handlers\\EmailMarketing::deliverabilityHealth', // [R-P2-4] 딜리버러빌리티 건강도
+        'GET /email/deliverability/history'    => 'Genie\\Handlers\\EmailMarketing::deliverabilityHistory', // [246차 P2] 평판 시계열
         'POST /email/track/open'               => 'Genie\\Handlers\\EmailMarketing::trackOpen',
         'POST /email/track/click'              => 'Genie\\Handlers\\EmailMarketing::trackClick',
         // [현 차수 P2-2b] 임베드 추적 GET 비콘(픽셀·리다이렉트) — 발송 HTML 주입 링크가 호출. 공개(/email/ bypass).
@@ -579,6 +580,7 @@ return function (App $app): void {
         'GET /v420/price/repricer/rules'      => 'Genie\\Handlers\\PriceOpt::listRepricerRules',
         'POST /v420/price/repricer/rules'     => 'Genie\\Handlers\\PriceOpt::createRepricerRule',
         'GET /v420/price/repricer/history'    => 'Genie\\Handlers\\PriceOpt::repricerHistory',
+        'GET /v420/price/repricer/buybox'     => 'Genie\\Handlers\\PriceOpt::buyboxStatus', // [차기 P1] Buybox 승률 현황
         'POST /v420/price/repricer/rules/{id}/toggle' => 'Genie\\Handlers\\PriceOpt::toggleRepricerRule',
         'POST /v420/price/repricer/run'       => 'Genie\\Handlers\\PriceOpt::runRepricer', // [237차] 리프라이서 실행 엔진
         'POST /api/v420/price/repricer/run'   => 'Genie\\Handlers\\PriceOpt::runRepricer',
@@ -800,6 +802,8 @@ return function (App $app): void {
         'GET /api/v424/attribution/incrementality' => 'Genie\\Handlers\\AttributionEngine::incrementality',
         'POST /v424/attribution/lift-test'     => 'Genie\\Handlers\\AttributionEngine::liftTest',
         'POST /api/v424/attribution/lift-test' => 'Genie\\Handlers\\AttributionEngine::liftTest',
+        'GET /v424/attribution/experiments/geo-readiness'     => 'Genie\\Handlers\\AttributionEngine::geoReadiness',
+        'GET /api/v424/attribution/experiments/geo-readiness' => 'Genie\\Handlers\\AttributionEngine::geoReadiness',
         'GET /v424/attribution/experiments'     => 'Genie\\Handlers\\AttributionEngine::experiments',
         'GET /api/v424/attribution/experiments' => 'Genie\\Handlers\\AttributionEngine::experiments',
         'POST /v424/attribution/experiments'     => 'Genie\\Handlers\\AttributionEngine::createExperiment',
@@ -2505,6 +2509,7 @@ return function (App $app): void {
     $register('GET',    '/email/campaigns/{id}/stats');
     $register('GET',    '/email/campaigns/{id}/ab-result');
     $register('GET',    '/email/deliverability');
+    $register('GET',    '/email/deliverability/history'); // [246차 P2] 평판 시계열
     $register('POST',   '/email/track/open');
     $register('POST',   '/email/track/click');
     $register('GET',    '/email/track/open.gif');     $register('GET', '/api/email/track/open.gif');
@@ -2850,6 +2855,8 @@ return function (App $app): void {
     $register('GET', '/api/v424/attribution/incrementality');
     $register('POST', '/v424/attribution/lift-test');
     $register('POST', '/api/v424/attribution/lift-test');
+    $register('GET', '/v424/attribution/experiments/geo-readiness');
+    $register('GET', '/api/v424/attribution/experiments/geo-readiness');
     $register('GET', '/v424/attribution/experiments');
     $register('GET', '/api/v424/attribution/experiments');
     $register('POST', '/v424/attribution/experiments');
@@ -3114,6 +3121,7 @@ return function (App $app): void {
     $register('GET',    '/v420/price/repricer/rules');
     $register('POST',   '/v420/price/repricer/rules');
     $register('GET',    '/v420/price/repricer/history');
+    $register('GET',    '/v420/price/repricer/buybox'); // [차기 P1] Buybox 승률
     $register('POST',   '/v420/price/repricer/rules/{id}/toggle');
     $register('POST',   '/v420/price/repricer/run'); $register('POST', '/api/v420/price/repricer/run'); // [237차]
     $register('GET',    '/v420/price/calendar');

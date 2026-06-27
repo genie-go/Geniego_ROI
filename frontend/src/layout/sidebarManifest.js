@@ -43,6 +43,7 @@ export const MEMBER_MENU = [
       { to: "/campaign-manager",    icon: "🎯", labelKey: "gNav.campaignManagerLabel",    menuKey: "marketing" },
       { to: "/journey-builder",     icon: "🗺️", labelKey: "gNav.journeyBuilderLabel",     menuKey: "marketing" },
       { to: "/onsite-cro",          icon: "🧪", labelKey: "gNav.onsiteCroLabel",          menuKey: "marketing" },
+      { to: "/web-popup",           icon: "🎯", labelKey: "gNav.webPopupLabel",           menuKey: "marketing" }, // [246차 배치교정] CRM→온사이트 도구(사이트 전환)
     ],
   },
   /* 광고 성과 분석 */
@@ -72,7 +73,6 @@ export const MEMBER_MENU = [
       { to: "/influencer",      icon: "🤝", labelKey: "gNav.influencerLabel",      menuKey: "marketing" },
       { to: "/content-calendar",icon: "📅", labelKey: "gNav.contentCalendarLabel", menuKey: "marketing" },
       { to: "/reviews-ugc",     icon: "⭐", labelKey: "gNav.reviewsUgcLabel",      menuKey: "marketing" },
-      { to: "/web-popup",       icon: "🎯", labelKey: "gNav.webPopupLabel",        menuKey: "marketing" },
     ],
   },
   /* 커머스 & 물류 */
@@ -88,6 +88,7 @@ export const MEMBER_MENU = [
       { to: "/supply-chain",    icon: "🔭", labelKey: "gNav.supplyChainLabel",      menuKey: "ops" },
       { to: "/demand-forecast", icon: "📈", labelKey: "gNav.demandForecastLabel",   menuKey: "ops" },
       { to: "/returns-portal",  icon: "🔄", labelKey: "gNav.returnsPortalLabel",    menuKey: "ops" },
+      { to: "/operations",      icon: "⚡", labelKey: "gNav.operationsLabel",       menuKey: "system||operations" }, // [246차 배치교정] 멤버도구→커머스(쿠폰/프로모션=판매실행)
     ],
   },
   /* 인사이트 & 리포트 */
@@ -99,7 +100,6 @@ export const MEMBER_MENU = [
       { to: "/report-builder", icon: "📑", labelKey: "gNav.reportBuilderLabel", menuKey: "analytics||report_builder" },
       { to: "/pnl",            icon: "🌊", labelKey: "gNav.pnlLabel",           menuKey: "analytics||pnl_analytics" },
       { to: "/ai-insights",    icon: "🤖", labelKey: "gNav.aiInsightsLabel",    menuKey: "analytics||ai_insights" },
-      { to: "/data-product",   icon: "🗂️", labelKey: "gNav.dataProductLabel",   menuKey: "analytics||data_product" },
     ],
   },
   /* 자동화 & 알람 (통합) */
@@ -129,6 +129,7 @@ export const MEMBER_MENU = [
       { to: "/data-schema",      icon: "📋", labelKey: "gNav.dataSchemaLabel",     menuKey: "data||data_schema" },
       { to: "/data-trust",       icon: "🔬", labelKey: "gNav.dataTrustLabel",      menuKey: "data||data_trust" },
       { to: "/pixel-tracking",   icon: "🎯", labelKey: "gNav.pixelTracking", menuKey: "data||data_trust" },
+      { to: "/data-product",     icon: "🗂️", labelKey: "gNav.dataProductLabel", menuKey: "analytics||data_product" }, // [246차 배치교정] 인사이트→데이터(데이터마트+SQL)
     ],
   },
   /* 재무 & 결산 */
@@ -139,7 +140,6 @@ export const MEMBER_MENU = [
       { to: "/reconciliation", icon: "💰", labelKey: "gNav.reconciliationLabel", menuKey: "billing" },
       { to: "/payment-methods",icon: "💳", labelKey: "gNav.paymentMethodsLabel", menuKey: "billing" },
       { to: "/app-pricing",    icon: "🧾", labelKey: "gNav.pricingLabel",        menuKey: "billing" },
-      { to: "/audit",          icon: "🧾", labelKey: "gNav.auditLogLabel",       menuKey: "billing" },
     ],
   },
   /* 운영 & 지원 (일반) */
@@ -152,6 +152,7 @@ export const MEMBER_MENU = [
       { to: "/case-study",      icon: "🏆", labelKey: "gNav.caseStudyLabel",     menuKey: "system||case_study" },
       { to: "/help",            icon: "📚", labelKey: "gNav.helpLabel",          menuKey: "system||help_center" },
       { to: "/feedback",        icon: "💬", labelKey: "gNav.feedbackLabel",      menuKey: "system||feedback" },
+      { to: "/audit",           icon: "🧾", labelKey: "gNav.auditLogLabel",      menuKey: "billing" }, // [246차 배치교정] 재무→운영&지원(보안감사≠금융)
       { to: "/developer-hub",   icon: "⚙️", labelKey: "gNav.developerHubLabel", menuKey: "system||developer_hub" },
     ],
   },
