@@ -59,6 +59,7 @@ final class ClaudeAI {
     /** [현 차수] "무엇이든 물어보세요" GeniegoROI 상담 챗봇 — 메뉴·기능·사용법 전문 응답(15개국 현지 자연어).
      *   v422/ai/* 공개 bypass. 실 Claude(키 설정 시) + 미설정 시 ai:false 반환(프론트 로컬 KB 폴백). */
     public static function assistant(Request $req, Response $res): Response {
+        @set_time_limit(75); // [현 차수] 초보자 단계별 상세 안내는 출력이 길어 생성시간↑ → PHP 실행시간 확보(curl 타임아웃과 정합).
         $body = (array)($req->getParsedBody() ?? []);
         if (empty($body)) { $d = json_decode((string)$req->getBody(), true); if (is_array($d)) $body = $d; }
         $messages = is_array($body['messages'] ?? null) ? $body['messages'] : [];
@@ -80,9 +81,9 @@ final class ClaudeAI {
             $role = ((string)($m['role'] ?? '') === 'user') ? 'User' : 'Assistant';
             $ctx .= $role . ': ' . trim((string)($m['content'] ?? '')) . "\n";
         }
-        $sys = self::geniegoSystemPrompt($lang) . "\n\n" . self::geniegoTermsBlock();
+        $sys = self::geniegoSystemPrompt($lang) . "\n\n" . self::geniegoTermsBlock() . "\n\n" . self::geniegoKnowledgeBlock();
         $userMsg = ($ctx ? "[대화 맥락]\n{$ctx}\n" : '') . "[질문]\n{$q}";
-        $ans = self::complete($sys, $userMsg, 22);
+        $ans = self::complete($sys, $userMsg, 60); // [현 차수] 상세 단계별 답변 생성시간 여유(기존 22초→초과로 ai:false 나던 것 해소).
         if ($ans === null || $ans === '') {
             $res->getBody()->write(json_encode(['ok' => true, 'ai' => false, 'answer' => null], JSON_UNESCAPED_UNICODE));
             return $res->withHeader('Content-Type', 'application/json');
@@ -153,6 +154,46 @@ REFERENCE GLOSSARY (50 terms — depth and definition reference, Korean source o
 ────────────────────────────────────────
 TERMS;
         return $block;
+    }
+
+    /**
+     * [현 차수] 챗봇 초고도화 — 메뉴 이용법(초보자 단계별)·채널 API 키 발급(링크 포함)·플랫폼 소개(강점) 지식 주입.
+     *  KO 원본을 주입하고 AI 가 응답 언어(15개국)의 현지 자연어로 렌더한다. ChatGPT 수준의 친절·상세·단계별 안내.
+     */
+    private static function geniegoKnowledgeBlock(): string {
+        $issuance = ''; $menus = ''; $pitch = '';
+        try { $issuance = \Genie\GeniegoKnowledge::issuance(); } catch (\Throwable $e) {}
+        try { $menus = \Genie\GeniegoKnowledge::menuGuides(); } catch (\Throwable $e) {}
+        try { $pitch = \Genie\GeniegoKnowledge::platformPitch(); } catch (\Throwable $e) {}
+        return <<<KB
+
+════════════════════════════════════════
+BEGINNER HOW-TO MODE (ChatGPT 수준의 아주 상세한 단계별 안내 — 핵심 역할)
+
+When the user asks HOW TO USE a menu/feature, HOW TO ISSUE an API key for a channel, or WHAT GeniegoROI is, you MUST answer like a patient expert teaching a complete beginner. Rules:
+
+A. ASSUME ZERO KNOWLEDGE. The user may not know any term. Briefly explain any jargon inline (one short clause) the first time it appears, then continue. Never assume they know where a button is.
+
+B. STEP-BY-STEP, ONE BY ONE, IN ORDER. Always answer how-to as a NUMBERED ordered list (1, 2, 3 …). For EACH step state: (a) exactly WHERE to go (the precise menu path in GeniegoROI — bold it — or the external site URL), (b) WHAT to click/enter, and (c) a CHECKPOINT — what the user should see when that step is done ("이 단계가 끝나면 ~~ 화면이 보입니다") so they know to move to the next step. Tell them what comes first and what comes next, explicitly.
+
+C. PROVIDE LINKS. For API key / channel connection questions, give the EXACT official URL to visit at each step (e.g. business.facebook.com, developers.tiktok.com, console.cloud.google.com, searchad.naver.com …) from the ISSUANCE GUIDE below, and finish with where to paste the keys in GeniegoROI ("연동 허브 › 해당 채널 › [등록]"). Render URLs as plain clickable text.
+
+D. "GeniegoROI가 뭐야 / What is GeniegoROI" → use the PLATFORM PITCH below. Describe what kind of platform it is, its menus & features broadly, AND emphasize the STRENGTHS ONLY: that unlike competitors which show only a slice, GeniegoROI integrates everything end-to-end so not a single data point is missed, and it computes the REAL net profit (광고비·원가·물류비·반품비·수수료·다통화 반영). Be detailed and confident. Do NOT volunteer weaknesses.
+
+E. LANGUAGE. The knowledge below is Korean source; ALWAYS answer in the user's response language with native, natural phrasing — translate it, never paste Korean. Localise step labels and checkpoints too.
+
+F. COMPLETENESS. You can explain ANY of GeniegoROI's menus/features at this beginner depth. If a menu is not in the MENU GUIDES list below, derive beginner steps from the MENU & FEATURE MAP above. If a channel is not in the ISSUANCE GUIDE, give the closest general OAuth/API-key steps and point to the channel's official developer portal. Never invent a feature or a URL that does not exist; if unsure of an exact URL, name the official portal generically.
+
+─── PLATFORM PITCH (GeniegoROI 소개 — 강점 중심) ───
+{$pitch}
+
+─── MENU GUIDES (메뉴별 초보자 이용가이드) ───
+{$menus}
+
+─── ISSUANCE GUIDE (채널별 API 키 발급 따라하기 — 단계 + 공식 링크) ───
+{$issuance}
+════════════════════════════════════════
+KB;
     }
 
     /** 196차: 실사 이미지 생성 API 설정(provider + key). [현 차수] 구독회원별 BYO 우선 + app_setting 전역 폴백. */
@@ -434,10 +475,12 @@ TERMS;
         $qErr = self::quotaGate($tenant, 'text');
         if ($qErr !== null) throw new \RuntimeException('AI_QUOTA: ' . $qErr);
         $apiKey = self::apiKey();
+        // [현 차수] 프롬프트 캐싱(GA): 대형 정적 시스템 프롬프트(메뉴맵·용어집·발급가이드)를 ephemeral 캐시 →
+        //   동일 시스템 반복 호출 시 입력토큰 비용 대폭 절감(5분 TTL). 배열 형식은 전 호출자 후방호환.
         $payload = json_encode([
             'model'      => self::MODEL,
             'max_tokens' => self::MAX_TOKENS,
-            'system'     => $systemPrompt,
+            'system'     => [['type' => 'text', 'text' => $systemPrompt, 'cache_control' => ['type' => 'ephemeral']]],
             'messages'   => [
                 ['role' => 'user', 'content' => $userMsg]
             ],
