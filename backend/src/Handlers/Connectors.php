@@ -1483,6 +1483,9 @@ final class Connectors
             'mintegral'         => fn() => self::fetchMintegralRows($tenant, $start, $end),
             'yandex_ads'        => fn() => self::fetchYandexRows($tenant, $start, $end),
             'yahoo_jp_ads'      => fn() => self::fetchYahooJpRows($tenant, $start, $end),
+            // [P1 커넥터 폭] 웹 분석 인바운드 — performance_metrics 가 아닌 web_analytics_metrics 로 적재(아래 라우팅 분기).
+            'ga4'               => fn() => self::fetchGa4Rows($tenant, $start, $end),
+            'adobe_analytics'   => fn() => self::fetchAdobeAnalyticsRows($tenant, $start, $end),
         ];
 
         foreach ($fetchers as $ch => $fn) {
@@ -1503,6 +1506,14 @@ final class Connectors
                 continue;
             }
             $rows = $res['rows'] ?? [];
+            // [P1 커넥터 폭] 웹 분석 소스는 별도 테이블(web_analytics_metrics)로 적재 →
+            //   광고 ROAS/demographic/keyword 로직을 절대 타지 않는다(이중계산·오분류 차단).
+            if (self::isAnalyticsSource($ch)) {
+                $persisted = self::persistAnalyticsRows($pdo, $tenant, $ch, $rows, $start, $end);
+                $totalRows += $persisted;
+                $summary[$ch] = ['status' => 'ok', 'rows' => $persisted, 'kind' => 'analytics'];
+                continue;
+            }
             $persisted = self::persistMetricRows($pdo, $tenant, $ch, $rows, $start, $end);
             $totalRows += $persisted;
             $summary[$ch] = ['status' => 'ok', 'rows' => $persisted];
@@ -3544,5 +3555,893 @@ final class Connectors
         foreach ($params as $k => $v) $qPieces[] = rawurlencode((string)$k) . '=' . rawurlencode((string)$v);
         $fullUrl = $url . (empty($qPieces) ? '' : ('?' . implode('&', $qPieces)));
         return self::httpGet($fullUrl, ['Authorization' => $authHeader]);
+    }
+
+    // ════════════════════════════════════════════════════════════════════════════
+    //  [P1 커넥터 폭] 웹 분석 인바운드 — GA4 · Adobe Analytics
+    //  ─────────────────────────────────────────────────────────────────────────
+    //  광고(performance_metrics)와 별개의 web_analytics_metrics 로 적재(이중계산 차단).
+    //  세션/사용자/페이지뷰/전환/매출을 채널그룹×소스미디엄 차원으로 일자별 수집.
+    //  catalog 엔 등록됐으나 fetcher 부재(sync_kind='none')로 '거짓 기능'이던 갭 해소.
+    //  isAnalyticsSource 는 AD_SHORT(광고/ROAS)와 분리 — 절대 광고로 오인 적재되지 않는다.
+    // ════════════════════════════════════════════════════════════════════════════
+
+    /** 웹 분석 데이터소스 SSOT — runSync 라우팅·cron·저장직후 트리거 공용. */
+    public const ANALYTICS_SOURCES = ['ga4', 'adobe_analytics'];
+
+    /** 채널키가 웹 분석 데이터소스인가(광고/커머스와 분리). */
+    public static function isAnalyticsSource(string $channelKey): bool
+    {
+        return in_array(strtolower(trim($channelKey)), self::ANALYTICS_SOURCES, true);
+    }
+
+    /** 동기화 대상 웹 분석 소스 전체(레지스트리 sync_kind='analytics' 병합). cron 팬아웃 SSOT. */
+    public static function analyticsSources(): array
+    {
+        return array_values(array_unique(array_merge(self::ANALYTICS_SOURCES, self::registryChannels('analytics'))));
+    }
+
+    /** web_analytics_metrics 테이블 보장(MySQL/SQLite). (tenant,source,date,source_medium) 멱등 단위. */
+    private static function ensureAnalyticsTable(PDO $pdo): void
+    {
+        $isMy = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql';
+        try {
+            if ($isMy) {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS web_analytics_metrics (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    tenant_id VARCHAR(100) NOT NULL, source VARCHAR(40) NOT NULL,
+                    date VARCHAR(10) NOT NULL, source_medium VARCHAR(190) NOT NULL DEFAULT '(direct)',
+                    channel_group VARCHAR(120) NOT NULL DEFAULT '',
+                    sessions INT DEFAULT 0, users INT DEFAULT 0, new_users INT DEFAULT 0,
+                    page_views INT DEFAULT 0, conversions INT DEFAULT 0,
+                    revenue DOUBLE DEFAULT 0, engaged_sessions INT DEFAULT 0,
+                    avg_session_sec DOUBLE DEFAULT 0, bounce_rate DOUBLE DEFAULT 0,
+                    currency VARCHAR(10) DEFAULT 'KRW', extra_json TEXT, updated_at VARCHAR(32),
+                    UNIQUE KEY uq_wa (tenant_id, source, date, source_medium),
+                    KEY idx_wa_ts (tenant_id, source, date)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+            } else {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS web_analytics_metrics (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    tenant_id TEXT NOT NULL, source TEXT NOT NULL,
+                    date TEXT NOT NULL, source_medium TEXT NOT NULL DEFAULT '(direct)',
+                    channel_group TEXT NOT NULL DEFAULT '',
+                    sessions INTEGER DEFAULT 0, users INTEGER DEFAULT 0, new_users INTEGER DEFAULT 0,
+                    page_views INTEGER DEFAULT 0, conversions INTEGER DEFAULT 0,
+                    revenue REAL DEFAULT 0, engaged_sessions INTEGER DEFAULT 0,
+                    avg_session_sec REAL DEFAULT 0, bounce_rate REAL DEFAULT 0,
+                    currency TEXT DEFAULT 'KRW', extra_json TEXT, updated_at TEXT)");
+                try { $pdo->exec("CREATE UNIQUE INDEX IF NOT EXISTS uq_wa ON web_analytics_metrics(tenant_id,source,date,source_medium)"); } catch (\Throwable $e) {}
+            }
+        } catch (\Throwable $e) { /* graceful */ }
+    }
+
+    /** 웹 분석 행 멱등 적재: (tenant,source,date∈[start,end]) 삭제 후 삽입. revenue 는 KRW 정규화. */
+    private static function persistAnalyticsRows(PDO $pdo, string $tenant, string $source, array $rows, string $start, string $end): int
+    {
+        self::ensureAnalyticsTable($pdo);
+        $source = strtolower($source);
+        if (!$rows) {
+            $del = $pdo->prepare('DELETE FROM web_analytics_metrics WHERE tenant_id=? AND source=? AND date BETWEEN ? AND ?');
+            $del->execute([$tenant, $source, $start, $end]);
+            return 0;
+        }
+        $pdo->beginTransaction();
+        try {
+            $del = $pdo->prepare('DELETE FROM web_analytics_metrics WHERE tenant_id=? AND source=? AND date BETWEEN ? AND ?');
+            $del->execute([$tenant, $source, $start, $end]);
+            $ins = $pdo->prepare('INSERT INTO web_analytics_metrics
+                (tenant_id,source,date,source_medium,channel_group,sessions,users,new_users,page_views,conversions,revenue,engaged_sessions,avg_session_sec,bounce_rate,currency,extra_json,updated_at)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
+            $now = gmdate('c'); $n = 0;
+            foreach ($rows as $r) {
+                $date = (string)($r['date'] ?? '');
+                if ($date === '' || $date < $start || $date > $end) continue;
+                $curr = strtoupper((string)($r['currency'] ?? 'KRW'));
+                $revKrw = self::fxToKrw((float)($r['revenue'] ?? 0), $curr);
+                $ins->execute([
+                    $tenant, $source, $date,
+                    (string)($r['source_medium'] ?? '(direct)'),
+                    (string)($r['channel_group'] ?? ''),
+                    (int)($r['sessions'] ?? 0), (int)($r['users'] ?? 0), (int)($r['new_users'] ?? 0),
+                    (int)($r['page_views'] ?? 0), (int)($r['conversions'] ?? 0),
+                    $revKrw, (int)($r['engaged_sessions'] ?? 0),
+                    (float)($r['avg_session_sec'] ?? 0), (float)($r['bounce_rate'] ?? 0),
+                    $curr, isset($r['extra']) ? json_encode($r['extra'], JSON_UNESCAPED_UNICODE) : null, $now,
+                ]);
+                $n++;
+            }
+            $pdo->commit();
+            return $n;
+        } catch (\Throwable $e) {
+            if ($pdo->inTransaction()) $pdo->rollBack();
+            throw $e;
+        }
+    }
+
+    /**
+     * Google 서비스 계정(JSON) → OAuth2 액세스 토큰. RS256 JWT bearer 그랜트.
+     *   재사용 가능(GA4 외 Sheets/BigQuery 등). 실패 시 null(graceful). 토큰 요청당 캐시.
+     */
+    private static function googleSaToken(string $saJson, string $scope): ?string
+    {
+        static $cache = [];
+        $sa = json_decode($saJson, true);
+        if (!is_array($sa) || empty($sa['client_email']) || empty($sa['private_key'])) return null;
+        $ck = md5(((string)$sa['client_email']) . '|' . $scope);
+        if (isset($cache[$ck]) && $cache[$ck]['exp'] > time() + 60) return $cache[$ck]['tok'];
+        $now = time();
+        $b64 = fn($d) => rtrim(strtr(base64_encode($d), '+/', '-_'), '=');
+        $header = $b64(json_encode(['alg' => 'RS256', 'typ' => 'JWT']));
+        $claim  = $b64(json_encode([
+            'iss'   => $sa['client_email'],
+            'scope' => $scope,
+            'aud'   => 'https://oauth2.googleapis.com/token',
+            'exp'   => $now + 3600, 'iat' => $now,
+        ]));
+        $signingInput = $header . '.' . $claim;
+        $sig = '';
+        if (!openssl_sign($signingInput, $sig, (string)$sa['private_key'], OPENSSL_ALGO_SHA256)) return null;
+        $jwt = $signingInput . '.' . $b64($sig);
+        // 토큰 엔드포인트는 x-www-form-urlencoded 요구 → cURL 직접(httpPost 는 JSON 전제).
+        $post = http_build_query(['grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer', 'assertion' => $jwt]);
+        $ch = curl_init('https://oauth2.googleapis.com/token');
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true, CURLOPT_POST => true, CURLOPT_POSTFIELDS => $post,
+            CURLOPT_HTTPHEADER => ['Content-Type: application/x-www-form-urlencoded'], CURLOPT_TIMEOUT => 20,
+        ]);
+        $resp = curl_exec($ch); $hc = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE); curl_close($ch);
+        if ($hc >= 400 || !$resp) return null;
+        $j = json_decode((string)$resp, true);
+        $tok = is_array($j) ? (string)($j['access_token'] ?? '') : '';
+        if ($tok === '') return null;
+        $cache[$ck] = ['tok' => $tok, 'exp' => $now + (int)($j['expires_in'] ?? 3600)];
+        return $tok;
+    }
+
+    /**
+     * GA4 Data API(v1beta) runReport → web_analytics_metrics 정규화 행.
+     *   자격증명: ga4 채널의 property_id + service_account_json(+선택 currency).
+     *   차원: date·sessionDefaultChannelGroup·sessionSourceMedium. 지표 9종. graceful 드롭인.
+     */
+    private static function fetchGa4Rows(string $tenant, string $start, string $end): array
+    {
+        $propertyId = trim((string)(getenv('GA4_PROPERTY_ID') ?: self::loadCred($tenant, 'ga4', 'property_id')));
+        $saJson     = (string)(getenv('GA4_SERVICE_ACCOUNT_JSON') ?: self::loadCred($tenant, 'ga4', 'service_account_json'));
+        if ($propertyId === '' || $saJson === '') return ['hasCreds' => false, 'live' => false, 'rows' => []];
+        $token = self::googleSaToken($saJson, 'https://www.googleapis.com/auth/analytics.readonly');
+        if ($token === null) return ['hasCreds' => true, 'live' => false, 'error' => 'ga4 service-account token exchange failed'];
+        $propertyId = preg_replace('/[^0-9]/', '', $propertyId); // 'properties/123' 또는 '123' 모두 허용
+        $payload = [
+            'dateRanges' => [['startDate' => $start, 'endDate' => $end]],
+            'dimensions' => [['name' => 'date'], ['name' => 'sessionDefaultChannelGroup'], ['name' => 'sessionSourceMedium']],
+            'metrics'    => array_map(fn($m) => ['name' => $m], [
+                'sessions', 'totalUsers', 'newUsers', 'screenPageViews', 'conversions',
+                'totalRevenue', 'engagedSessions', 'averageSessionDuration', 'bounceRate',
+            ]),
+            'limit' => 100000,
+        ];
+        [$code, $body, $err] = self::httpPost(
+            "https://analyticsdata.googleapis.com/v1beta/properties/{$propertyId}:runReport",
+            $payload, ['Authorization' => "Bearer {$token}", 'Content-Type' => 'application/json']);
+        if ($err || $code >= 400) {
+            $msg = is_array($body) ? (string)($body['error']['message'] ?? '') : '';
+            return ['hasCreds' => true, 'live' => false, 'error' => $err ?: ("ga4 http $code" . ($msg ? ": $msg" : ''))];
+        }
+        $cur = strtoupper((string)(self::loadCred($tenant, 'ga4', 'currency') ?: 'KRW'));
+        $rows = [];
+        foreach ((array)($body['rows'] ?? []) as $row) {
+            $dim = array_map(fn($d) => (string)($d['value'] ?? ''), (array)($row['dimensionValues'] ?? []));
+            $met = array_map(fn($d) => (string)($d['value'] ?? '0'), (array)($row['metricValues'] ?? []));
+            $rawDate = $dim[0] ?? '';
+            if (!preg_match('/^\d{8}$/', $rawDate)) continue;
+            $date = substr($rawDate, 0, 4) . '-' . substr($rawDate, 4, 2) . '-' . substr($rawDate, 6, 2);
+            $rows[] = [
+                'date' => $date,
+                'channel_group' => $dim[1] ?? '',
+                'source_medium' => ($dim[2] ?? '') !== '' ? $dim[2] : '(direct)',
+                'sessions' => (int)round((float)($met[0] ?? 0)),
+                'users' => (int)round((float)($met[1] ?? 0)),
+                'new_users' => (int)round((float)($met[2] ?? 0)),
+                'page_views' => (int)round((float)($met[3] ?? 0)),
+                'conversions' => (int)round((float)($met[4] ?? 0)),
+                'revenue' => (float)($met[5] ?? 0),
+                'engaged_sessions' => (int)round((float)($met[6] ?? 0)),
+                'avg_session_sec' => (float)($met[7] ?? 0),
+                'bounce_rate' => (float)($met[8] ?? 0),
+                'currency' => $cur,
+            ];
+        }
+        return ['hasCreds' => true, 'live' => true, 'rows' => $rows];
+    }
+
+    /**
+     * Adobe Analytics 2.0 Reporting API → web_analytics_metrics 정규화 행.
+     *   인증: OAuth Server-to-Server(client_credentials) → IMS 토큰. 헤더 x-api-key/x-proxy-global-company-id.
+     *   차원: variables/daterangeday(일자). 지표: visits·visitors·pageviews·orders·revenue·bouncerate. graceful.
+     */
+    private static function fetchAdobeAnalyticsRows(string $tenant, string $start, string $end): array
+    {
+        $companyId    = trim((string)(getenv('ADOBE_COMPANY_ID') ?: self::loadCred($tenant, 'adobe_analytics', 'company_id')));
+        $clientId     = trim((string)(getenv('ADOBE_CLIENT_ID') ?: self::loadCred($tenant, 'adobe_analytics', 'client_id')));
+        $clientSecret = (string)(getenv('ADOBE_CLIENT_SECRET') ?: self::loadCred($tenant, 'adobe_analytics', 'client_secret'));
+        $rsid         = trim((string)(getenv('ADOBE_REPORT_SUITE_ID') ?: self::loadCred($tenant, 'adobe_analytics', 'report_suite_id')));
+        if ($companyId === '' || $clientId === '' || $clientSecret === '' || $rsid === '') {
+            return ['hasCreds' => false, 'live' => false, 'rows' => []];
+        }
+        // 1) IMS 토큰(client_credentials).
+        $imsPost = http_build_query([
+            'grant_type' => 'client_credentials', 'client_id' => $clientId, 'client_secret' => $clientSecret,
+            'scope' => 'openid,AdobeID,additional_info.projectedProductContext',
+        ]);
+        $ch = curl_init('https://ims-na1.adobelogin.com/ims/token/v3');
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true, CURLOPT_POST => true, CURLOPT_POSTFIELDS => $imsPost,
+            CURLOPT_HTTPHEADER => ['Content-Type: application/x-www-form-urlencoded'], CURLOPT_TIMEOUT => 20,
+        ]);
+        $resp = curl_exec($ch); $hc = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE); curl_close($ch);
+        if ($hc >= 400 || !$resp) return ['hasCreds' => true, 'live' => false, 'error' => "adobe ims token http $hc"];
+        $tok = (string)(json_decode((string)$resp, true)['access_token'] ?? '');
+        if ($tok === '') return ['hasCreds' => true, 'live' => false, 'error' => 'adobe ims token empty'];
+        // 2) 리포트(일자 차원 × 지표 6종).
+        $metricIds = ['metrics/visits', 'metrics/visitors', 'metrics/pageviews', 'metrics/orders', 'metrics/revenue', 'metrics/bouncerate'];
+        $payload = [
+            'rsid' => $rsid,
+            'globalFilters' => [['type' => 'dateRange', 'dateRange' => $start . 'T00:00:00.000/' . $end . 'T23:59:59.999']],
+            'metricContainer' => ['metrics' => array_map(fn($i, $id) => ['columnId' => (string)$i, 'id' => $id], array_keys($metricIds), $metricIds)],
+            'dimension' => 'variables/daterangeday',
+            'settings' => ['limit' => 400, 'page' => 0, 'dimensionSort' => 'asc'],
+        ];
+        [$code, $body, $err] = self::httpPost("https://analytics.adobe.io/api/{$companyId}/reports", $payload, [
+            'Authorization' => "Bearer {$tok}", 'x-api-key' => $clientId, 'x-proxy-global-company-id' => $companyId,
+            'Content-Type' => 'application/json',
+        ]);
+        if ($err || $code >= 400) {
+            $msg = is_array($body) ? (string)($body['message'] ?? '') : '';
+            return ['hasCreds' => true, 'live' => false, 'error' => $err ?: ("adobe http $code" . ($msg ? ": $msg" : ''))];
+        }
+        $cur = strtoupper((string)(self::loadCred($tenant, 'adobe_analytics', 'currency') ?: 'KRW'));
+        $rows = [];
+        foreach ((array)($body['rows'] ?? []) as $row) {
+            // daterangeday value 는 'Jun 1, 2024' 또는 ISO. value 우선 → 정규화.
+            $date = self::normAdobeDate((string)($row['value'] ?? ''));
+            if ($date === '') continue;
+            $d = array_map('floatval', (array)($row['data'] ?? []));
+            $rows[] = [
+                'date' => $date, 'source_medium' => 'adobe / all', 'channel_group' => 'Adobe Analytics',
+                'sessions' => (int)round($d[0] ?? 0), 'users' => (int)round($d[1] ?? 0),
+                'page_views' => (int)round($d[2] ?? 0), 'conversions' => (int)round($d[3] ?? 0),
+                'revenue' => (float)($d[4] ?? 0), 'bounce_rate' => (float)($d[5] ?? 0),
+                'currency' => $cur,
+            ];
+        }
+        return ['hasCreds' => true, 'live' => true, 'rows' => $rows];
+    }
+
+    /** Adobe daterangeday value → YYYY-MM-DD(여러 표기 graceful). 실패 시 빈 문자열. */
+    private static function normAdobeDate(string $v): string
+    {
+        $v = trim($v);
+        if ($v === '') return '';
+        if (preg_match('/^\d{4}-\d{2}-\d{2}/', $v)) return substr($v, 0, 10);
+        $ts = strtotime($v);
+        return $ts ? gmdate('Y-m-d', $ts) : '';
+    }
+
+    /** 자격증명 저장 직후 웹 분석 1회 동기화(광고 syncAdChannelOnSave 대칭). 데모/익명 skip. */
+    public static function syncAnalyticsOnSave(string $tenant, string $source): array
+    {
+        $source = strtolower(trim($source));
+        if (!self::isAnalyticsSource($source) || $tenant === '' || $tenant === 'demo') return ['skipped' => true];
+        try {
+            $end = date('Y-m-d'); $start = date('Y-m-d', strtotime('-28 days'));
+            return self::runSync($tenant, $start, $end, [$source]);
+        } catch (\Throwable $e) {
+            return ['error' => substr($e->getMessage(), 0, 120)];
+        }
+    }
+
+    /** 웹 분석 자격증명 보유 테넌트 목록 — analytics_sync_cron 팬아웃용. */
+    public static function tenantsWithAnalyticsCreds(): array
+    {
+        $out = [];
+        try {
+            $in = implode(',', array_fill(0, count(self::ANALYTICS_SOURCES), '?'));
+            $st = Db::pdo()->prepare("SELECT DISTINCT tenant_id FROM channel_credential WHERE channel IN ($in) AND is_active=1");
+            $st->execute(self::ANALYTICS_SOURCES);
+            foreach ($st->fetchAll(PDO::FETCH_COLUMN) as $t) { $t = (string)$t; if ($t !== '' && $t !== 'demo') $out[] = $t; }
+        } catch (\Throwable $e) { /* graceful */ }
+        return array_values(array_unique($out));
+    }
+
+    /**
+     * GET /v426/analytics/web — 웹 분석 집계(채널그룹·소스미디엄·일자 추이). BI 깊이 표면화.
+     *   Query: source(ga4/adobe_analytics/all), start_date, end_date, group_by(channel|source_medium|date).
+     *   실DB 파생(날조 0). 자격증명 미등록·미동기화 시 빈 결과(정직).
+     */
+    public static function webAnalytics(Request $request, Response $response, array $args): Response
+    {
+        $tenant = self::authTenant($request);
+        $q = $request->getQueryParams();
+        $source = strtolower((string)($q['source'] ?? 'all'));
+        $start = (string)($q['start_date'] ?? date('Y-m-d', strtotime('-28 days')));
+        $end   = (string)($q['end_date'] ?? date('Y-m-d'));
+        $groupBy = in_array(($q['group_by'] ?? ''), ['channel', 'source_medium', 'date'], true) ? $q['group_by'] : 'channel';
+        $out = ['ok' => true, 'source' => $source, 'window' => compact('start', 'end'), 'group_by' => $groupBy, 'rows' => [], 'totals' => []];
+        try {
+            $pdo = Db::pdo(); self::ensureAnalyticsTable($pdo);
+            $col = $groupBy === 'channel' ? 'channel_group' : ($groupBy === 'date' ? 'date' : 'source_medium');
+            $where = 'tenant_id=? AND date BETWEEN ? AND ?';
+            $params = [$tenant, $start, $end];
+            if ($source !== 'all' && $source !== '') { $where .= ' AND source=?'; $params[] = $source; }
+            $sql = "SELECT {$col} AS grp,
+                    SUM(sessions) AS sessions, SUM(users) AS users, SUM(new_users) AS new_users,
+                    SUM(page_views) AS page_views, SUM(conversions) AS conversions, SUM(revenue) AS revenue,
+                    SUM(engaged_sessions) AS engaged_sessions,
+                    AVG(NULLIF(bounce_rate,0)) AS bounce_rate, AVG(NULLIF(avg_session_sec,0)) AS avg_session_sec
+                    FROM web_analytics_metrics WHERE {$where} GROUP BY {$col} ORDER BY sessions DESC";
+            $st = $pdo->prepare($sql); $st->execute($params);
+            $rows = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+            $tot = ['sessions' => 0, 'users' => 0, 'new_users' => 0, 'page_views' => 0, 'conversions' => 0, 'revenue' => 0.0];
+            foreach ($rows as &$r) {
+                foreach (['sessions', 'users', 'new_users', 'page_views', 'conversions'] as $k) { $r[$k] = (int)$r[$k]; $tot[$k] += $r[$k]; }
+                $r['revenue'] = (float)$r['revenue']; $tot['revenue'] += $r['revenue'];
+                $r['engaged_sessions'] = (int)$r['engaged_sessions'];
+                $r['bounce_rate'] = round((float)$r['bounce_rate'], 4);
+                $r['avg_session_sec'] = round((float)$r['avg_session_sec'], 1);
+                $r['conv_rate'] = $r['sessions'] > 0 ? round($r['conversions'] / $r['sessions'], 4) : 0;
+            }
+            unset($r);
+            $out['rows'] = $rows;
+            $out['totals'] = $tot;
+        } catch (\Throwable $e) { /* graceful — 빈 결과 */ }
+        $response->getBody()->write(json_encode($out, JSON_UNESCAPED_UNICODE));
+        return $response->withHeader('Content-Type', 'application/json');
+    }
+
+    // ════════════════════════════════════════════════════════════════════════════
+    //  [P1 커넥터 폭] 고객지원(CS/헬프데스크) 인바운드 — Zendesk · Intercom · Freshdesk · Gorgias
+    //  ─────────────────────────────────────────────────────────────────────────
+    //  cs_metrics(별도 테이블)로 적재 — 티켓 생성/해결/미해결·CSAT·첫응답/해결 소요(분).
+    //  광고/커머스/분석과 분리(이중계산·오분류 차단). 윈도우 스냅샷(date=end) 1행/소스/동기화.
+    //  자격증명 미등록 시 skip(정직), 등록 즉시 fetch(graceful 드롭인).
+    // ════════════════════════════════════════════════════════════════════════════
+
+    /** CS 데이터소스 SSOT. */
+    public const CS_SOURCES = ['zendesk', 'intercom', 'freshdesk', 'gorgias'];
+
+    public static function isCsSource(string $channelKey): bool
+    {
+        return in_array(strtolower(trim($channelKey)), self::CS_SOURCES, true);
+    }
+
+    /** 동기화 대상 CS 소스 전체(레지스트리 sync_kind='cs' 병합). cron 팬아웃 SSOT. */
+    public static function csSources(): array
+    {
+        return array_values(array_unique(array_merge(self::CS_SOURCES, self::registryChannels('cs'))));
+    }
+
+    /** cs_metrics 테이블 보장(MySQL/SQLite). (tenant,source,date) 멱등 단위. */
+    private static function ensureCsTable(PDO $pdo): void
+    {
+        $isMy = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql';
+        try {
+            if ($isMy) {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS cs_metrics (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    tenant_id VARCHAR(100) NOT NULL, source VARCHAR(40) NOT NULL, date VARCHAR(10) NOT NULL,
+                    tickets_created INT DEFAULT 0, tickets_solved INT DEFAULT 0, open_tickets INT DEFAULT 0,
+                    csat DOUBLE DEFAULT 0, avg_first_reply_min DOUBLE DEFAULT 0, avg_resolution_min DOUBLE DEFAULT 0,
+                    extra_json TEXT, updated_at VARCHAR(32),
+                    UNIQUE KEY uq_cs (tenant_id, source, date), KEY idx_cs_ts (tenant_id, source, date)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+            } else {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS cs_metrics (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    tenant_id TEXT NOT NULL, source TEXT NOT NULL, date TEXT NOT NULL,
+                    tickets_created INTEGER DEFAULT 0, tickets_solved INTEGER DEFAULT 0, open_tickets INTEGER DEFAULT 0,
+                    csat REAL DEFAULT 0, avg_first_reply_min REAL DEFAULT 0, avg_resolution_min REAL DEFAULT 0,
+                    extra_json TEXT, updated_at TEXT)");
+                try { $pdo->exec("CREATE UNIQUE INDEX IF NOT EXISTS uq_cs ON cs_metrics(tenant_id,source,date)"); } catch (\Throwable $e) {}
+            }
+        } catch (\Throwable $e) { /* graceful */ }
+    }
+
+    /** CS 행 멱등 적재: (tenant,source,date∈[start,end]) 삭제 후 삽입. */
+    private static function persistCsRows(PDO $pdo, string $tenant, string $source, array $rows, string $start, string $end): int
+    {
+        self::ensureCsTable($pdo);
+        $source = strtolower($source);
+        $del = $pdo->prepare('DELETE FROM cs_metrics WHERE tenant_id=? AND source=? AND date BETWEEN ? AND ?');
+        $del->execute([$tenant, $source, $start, $end]);
+        if (!$rows) return 0;
+        $ins = $pdo->prepare('INSERT INTO cs_metrics
+            (tenant_id,source,date,tickets_created,tickets_solved,open_tickets,csat,avg_first_reply_min,avg_resolution_min,extra_json,updated_at)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?)');
+        $now = gmdate('c'); $n = 0;
+        foreach ($rows as $r) {
+            $date = (string)($r['date'] ?? '');
+            if ($date === '' || $date < $start || $date > $end) continue;
+            $ins->execute([
+                $tenant, $source, $date,
+                (int)($r['tickets_created'] ?? 0), (int)($r['tickets_solved'] ?? 0), (int)($r['open_tickets'] ?? 0),
+                (float)($r['csat'] ?? 0), (float)($r['avg_first_reply_min'] ?? 0), (float)($r['avg_resolution_min'] ?? 0),
+                isset($r['extra']) ? json_encode($r['extra'], JSON_UNESCAPED_UNICODE) : null, $now,
+            ]);
+            $n++;
+        }
+        return $n;
+    }
+
+    /** Basic 인증 헤더 값(base64). */
+    private static function basicAuth(string $user, string $pass): string
+    {
+        return 'Basic ' . base64_encode($user . ':' . $pass);
+    }
+
+    /**
+     * Zendesk Support API — 티켓 생성/해결/미해결(search/count) + CSAT(satisfaction_ratings).
+     *   자격증명: zendesk 채널의 subdomain + email + api_token. 인증=Basic(email/token:api_token).
+     */
+    private static function fetchZendeskCs(string $tenant, string $start, string $end): array
+    {
+        $sub   = trim((string)self::loadCred($tenant, 'zendesk', 'subdomain'));
+        $email = trim((string)self::loadCred($tenant, 'zendesk', 'email'));
+        $token = (string)self::loadCred($tenant, 'zendesk', 'api_token');
+        if ($sub === '' || $email === '' || $token === '') return ['hasCreds' => false, 'live' => false, 'rows' => []];
+        $base = 'https://' . rawurlencode($sub) . '.zendesk.com/api/v2';
+        $auth = self::basicAuth($email . '/token', $token);
+        $h = ['Authorization' => $auth];
+        $countQ = function (string $query) use ($base, $h): int {
+            [$code, $body] = self::httpGet($base . '/search/count.json?query=' . rawurlencode($query), $h);
+            return ($code >= 200 && $code < 300) ? (int)($body['count'] ?? 0) : 0;
+        };
+        // 첫 호출로 라이브 여부 판정(인증 실패 시 graceful error).
+        [$c0, $b0, $e0] = self::httpGet($base . '/search/count.json?query=' . rawurlencode('type:ticket created>=' . $start), $h);
+        if ($e0 || $c0 >= 400) return ['hasCreds' => true, 'live' => false, 'error' => $e0 ?: "zendesk http $c0"];
+        $created = (int)($b0['count'] ?? 0);
+        $solved  = $countQ('type:ticket solved>=' . $start);
+        $open    = $countQ('type:ticket status<solved');
+        // CSAT: 최근 좋음/나쁨 비율(satisfaction_ratings).
+        $csat = 0.0;
+        [$cc, $cb] = self::httpGet($base . '/satisfaction_ratings.json?score=received&sort_order=desc', $h);
+        if ($cc >= 200 && $cc < 300) {
+            $good = 0; $bad = 0;
+            foreach ((array)($cb['satisfaction_ratings'] ?? []) as $sr) {
+                $s = (string)($sr['score'] ?? '');
+                if ($s === 'good' || $s === 'goodwithcomment') $good++;
+                elseif ($s === 'bad' || $s === 'badwithcomment') $bad++;
+            }
+            if ($good + $bad > 0) $csat = round($good / ($good + $bad) * 100, 1);
+        }
+        return ['hasCreds' => true, 'live' => true, 'rows' => [[
+            'date' => $end, 'tickets_created' => $created, 'tickets_solved' => $solved,
+            'open_tickets' => $open, 'csat' => $csat,
+        ]]];
+    }
+
+    /**
+     * Intercom API — 대화 생성/종료/오픈(search) + CSAT(conversation_rating).
+     *   자격증명: intercom 채널의 access_token. 인증=Bearer + Intercom-Version 헤더.
+     */
+    private static function fetchIntercomCs(string $tenant, string $start, string $end): array
+    {
+        $token = (string)self::loadCred($tenant, 'intercom', 'access_token');
+        if ($token === '') return ['hasCreds' => false, 'live' => false, 'rows' => []];
+        $h = ['Authorization' => "Bearer {$token}", 'Intercom-Version' => '2.11', 'Content-Type' => 'application/json'];
+        $startTs = (int)strtotime($start . ' 00:00:00');
+        $search = function (array $query) use ($h): array {
+            return self::httpPost('https://api.intercom.io/conversations/search', ['query' => $query], $h);
+        };
+        $totalOf = function ($body): int {
+            if (!is_array($body)) return 0;
+            return (int)($body['total_count'] ?? count((array)($body['conversations'] ?? [])));
+        };
+        [$c0, $b0, $e0] = $search(['field' => 'created_at', 'operator' => '>', 'value' => $startTs]);
+        if ($e0 || $c0 >= 400) return ['hasCreds' => true, 'live' => false, 'error' => $e0 ?: "intercom http $c0"];
+        $created = $totalOf($b0);
+        [, $bOpen] = $search(['field' => 'state', 'operator' => '=', 'value' => 'open']); // open conversations
+        $open = is_array($bOpen) ? (int)($bOpen['total_count'] ?? count((array)($bOpen['conversations'] ?? []))) : 0;
+        [, $bClosed] = $search(['operator' => 'AND', 'value' => [
+            ['field' => 'state', 'operator' => '=', 'value' => 'closed'],
+            ['field' => 'updated_at', 'operator' => '>', 'value' => $startTs],
+        ]]);
+        $solved = is_array($bClosed) ? (int)($bClosed['total_count'] ?? count((array)($bClosed['conversations'] ?? []))) : 0;
+        return ['hasCreds' => true, 'live' => true, 'rows' => [[
+            'date' => $end, 'tickets_created' => $created, 'tickets_solved' => $solved, 'open_tickets' => $open,
+        ]]];
+    }
+
+    /**
+     * Freshdesk API — 티켓 생성/미해결(filter). 자격증명: freshdesk 채널의 domain + api_key. 인증=Basic(api_key:X).
+     */
+    private static function fetchFreshdeskCs(string $tenant, string $start, string $end): array
+    {
+        $domain = trim((string)self::loadCred($tenant, 'freshdesk', 'domain'));
+        $apiKey = (string)self::loadCred($tenant, 'freshdesk', 'api_key');
+        if ($domain === '' || $apiKey === '') return ['hasCreds' => false, 'live' => false, 'rows' => []];
+        $domain = preg_replace('#https?://#', '', $domain);
+        if (strpos($domain, '.') === false) $domain .= '.freshdesk.com';
+        $base = 'https://' . $domain . '/api/v2';
+        $h = ['Authorization' => self::basicAuth($apiKey, 'X'), 'Content-Type' => 'application/json'];
+        $countQ = function (string $q) use ($base, $h): int {
+            [$code, $body] = self::httpGet($base . '/search/tickets?query=' . rawurlencode('"' . $q . '"'), $h);
+            return ($code >= 200 && $code < 300) ? (int)($body['total'] ?? 0) : 0;
+        };
+        [$c0, $b0, $e0] = self::httpGet($base . '/search/tickets?query=' . rawurlencode('"created_at:>\'' . $start . '\'"'), $h);
+        if ($e0 || $c0 >= 400) return ['hasCreds' => true, 'live' => false, 'error' => $e0 ?: "freshdesk http $c0"];
+        $created = (int)($b0['total'] ?? 0);
+        $open    = $countQ('status:2'); // 2=Open
+        $solved  = $countQ('status:4'); // 4=Resolved
+        return ['hasCreds' => true, 'live' => true, 'rows' => [[
+            'date' => $end, 'tickets_created' => $created, 'tickets_solved' => $solved, 'open_tickets' => $open,
+        ]]];
+    }
+
+    /**
+     * Gorgias API — 티켓 통계(statistics) / 티켓 목록. 자격증명: gorgias 채널의 domain + username + api_key. 인증=Basic.
+     */
+    private static function fetchGorgiasCs(string $tenant, string $start, string $end): array
+    {
+        $domain = trim((string)self::loadCred($tenant, 'gorgias', 'domain'));
+        $user   = trim((string)self::loadCred($tenant, 'gorgias', 'username'));
+        $apiKey = (string)self::loadCred($tenant, 'gorgias', 'api_key');
+        if ($domain === '' || $user === '' || $apiKey === '') return ['hasCreds' => false, 'live' => false, 'rows' => []];
+        $domain = preg_replace('#https?://#', '', $domain);
+        if (strpos($domain, '.') === false) $domain .= '.gorgias.com';
+        $base = 'https://' . $domain . '/api';
+        $h = ['Authorization' => self::basicAuth($user, $apiKey)];
+        // 오픈 티켓 목록(메타 totals) — 라이브 판정 + open_tickets.
+        [$c0, $b0, $e0] = self::httpGet($base . '/tickets?limit=1&order_by=created_datetime:desc&filters=' . rawurlencode('status:open'), $h);
+        if ($e0 || $c0 >= 400) return ['hasCreds' => true, 'live' => false, 'error' => $e0 ?: "gorgias http $c0"];
+        $open = (int)($b0['meta']['total_count'] ?? count((array)($b0['data'] ?? [])));
+        [$cc, $cb] = self::httpGet($base . '/tickets?limit=1&filters=' . rawurlencode('created_datetime:>=' . $start), $h);
+        $created = ($cc >= 200 && $cc < 300) ? (int)($cb['meta']['total_count'] ?? 0) : 0;
+        [$sc, $sb] = self::httpGet($base . '/tickets?limit=1&filters=' . rawurlencode('status:closed,closed_datetime:>=' . $start), $h);
+        $solved = ($sc >= 200 && $sc < 300) ? (int)($sb['meta']['total_count'] ?? 0) : 0;
+        return ['hasCreds' => true, 'live' => true, 'rows' => [[
+            'date' => $end, 'tickets_created' => $created, 'tickets_solved' => $solved, 'open_tickets' => $open,
+        ]]];
+    }
+
+    /** CS 동기화 코어 — HTTP/cron 공용. 소스별 fetch → cs_metrics 멱등 적재. */
+    public static function runCsSync(string $tenant, string $start, string $end, array $wantSet): array
+    {
+        $pdo = Db::pdo();
+        $summary = []; $total = 0;
+        $fetchers = [
+            'zendesk'   => fn() => self::fetchZendeskCs($tenant, $start, $end),
+            'intercom'  => fn() => self::fetchIntercomCs($tenant, $start, $end),
+            'freshdesk' => fn() => self::fetchFreshdeskCs($tenant, $start, $end),
+            'gorgias'   => fn() => self::fetchGorgiasCs($tenant, $start, $end),
+        ];
+        foreach ($fetchers as $src => $fn) {
+            if (!in_array($src, $wantSet, true)) continue;
+            try { $res = $fn(); }
+            catch (\Throwable $e) { $summary[$src] = ['status' => 'error', 'error' => substr($e->getMessage(), 0, 120)]; continue; }
+            if (empty($res['hasCreds'])) { $summary[$src] = ['status' => 'skipped', 'reason' => 'no_credentials']; continue; }
+            if (empty($res['live']))     { $summary[$src] = ['status' => 'error', 'error' => $res['error'] ?? 'fetch_failed']; continue; }
+            $persisted = self::persistCsRows($pdo, $tenant, $src, $res['rows'] ?? [], $start, $end);
+            $total += $persisted;
+            $summary[$src] = ['status' => 'ok', 'rows' => $persisted, 'kind' => 'cs'];
+        }
+        try { self::recordSyncFreshness($pdo, $tenant, $summary); } catch (\Throwable $e) {}
+        return ['tenant_id' => $tenant, 'window' => compact('start', 'end'), 'persisted' => $total, 'channels' => $summary];
+    }
+
+    /** 자격증명 저장 직후 CS 1회 동기화(데모/익명 skip). */
+    public static function syncCsOnSave(string $tenant, string $source): array
+    {
+        $source = strtolower(trim($source));
+        if (!self::isCsSource($source) || $tenant === '' || $tenant === 'demo') return ['skipped' => true];
+        try { return self::runCsSync($tenant, date('Y-m-d', strtotime('-28 days')), date('Y-m-d'), [$source]); }
+        catch (\Throwable $e) { return ['error' => substr($e->getMessage(), 0, 120)]; }
+    }
+
+    /** CS 자격증명 보유 테넌트 목록 — cron 팬아웃용. */
+    public static function tenantsWithCsCreds(): array
+    {
+        $out = [];
+        try {
+            $in = implode(',', array_fill(0, count(self::CS_SOURCES), '?'));
+            $st = Db::pdo()->prepare("SELECT DISTINCT tenant_id FROM channel_credential WHERE channel IN ($in) AND is_active=1");
+            $st->execute(self::CS_SOURCES);
+            foreach ($st->fetchAll(PDO::FETCH_COLUMN) as $t) { $t = (string)$t; if ($t !== '' && $t !== 'demo') $out[] = $t; }
+        } catch (\Throwable $e) {}
+        return array_values(array_unique($out));
+    }
+
+    /**
+     * POST /v426/cs/sync — CS 온디맨드 동기화(세션 self-auth). GET /v426/cs/metrics — 집계 조회.
+     */
+    public static function csSync(Request $request, Response $response, array $args): Response
+    {
+        $tenant = self::authTenant($request);
+        if ($tenant === '' || $tenant === 'demo') { $response->getBody()->write(json_encode(['ok' => false, 'error' => 'tenant_required'])); return $response->withHeader('Content-Type', 'application/json')->withStatus(403); }
+        $q = $request->getQueryParams(); $b = (array)($request->getParsedBody() ?? []);
+        $start = (string)($b['start_date'] ?? $q['start_date'] ?? date('Y-m-d', strtotime('-28 days')));
+        $end   = (string)($b['end_date'] ?? $q['end_date'] ?? date('Y-m-d'));
+        $want  = (string)($b['sources'] ?? $q['sources'] ?? implode(',', self::csSources()));
+        $wantSet = array_values(array_filter(array_map('trim', explode(',', strtolower($want))))) ?: self::csSources();
+        $res = self::runCsSync($tenant, $start, $end, $wantSet);
+        $response->getBody()->write(json_encode(['ok' => true] + $res, JSON_UNESCAPED_UNICODE));
+        return $response->withHeader('Content-Type', 'application/json');
+    }
+
+    public static function csMetrics(Request $request, Response $response, array $args): Response
+    {
+        $tenant = self::authTenant($request);
+        $q = $request->getQueryParams();
+        $source = strtolower((string)($q['source'] ?? 'all'));
+        $start = (string)($q['start_date'] ?? date('Y-m-d', strtotime('-28 days')));
+        $end   = (string)($q['end_date'] ?? date('Y-m-d'));
+        $out = ['ok' => true, 'source' => $source, 'window' => compact('start', 'end'), 'rows' => [], 'totals' => []];
+        try {
+            $pdo = Db::pdo(); self::ensureCsTable($pdo);
+            $where = 'tenant_id=? AND date BETWEEN ? AND ?'; $params = [$tenant, $start, $end];
+            if ($source !== 'all' && $source !== '') { $where .= ' AND source=?'; $params[] = $source; }
+            $sql = "SELECT source,
+                    SUM(tickets_created) AS tickets_created, SUM(tickets_solved) AS tickets_solved,
+                    MAX(open_tickets) AS open_tickets, AVG(NULLIF(csat,0)) AS csat,
+                    AVG(NULLIF(avg_first_reply_min,0)) AS avg_first_reply_min, AVG(NULLIF(avg_resolution_min,0)) AS avg_resolution_min
+                    FROM cs_metrics WHERE {$where} GROUP BY source ORDER BY tickets_created DESC";
+            $st = $pdo->prepare($sql); $st->execute($params);
+            $rows = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+            $tot = ['tickets_created' => 0, 'tickets_solved' => 0, 'open_tickets' => 0];
+            foreach ($rows as &$r) {
+                foreach (['tickets_created', 'tickets_solved', 'open_tickets'] as $k) { $r[$k] = (int)$r[$k]; $tot[$k] += $r[$k]; }
+                $r['csat'] = round((float)$r['csat'], 1);
+                $r['avg_first_reply_min'] = round((float)$r['avg_first_reply_min'], 1);
+                $r['avg_resolution_min'] = round((float)$r['avg_resolution_min'], 1);
+                $r['solve_rate'] = $r['tickets_created'] > 0 ? round($r['tickets_solved'] / $r['tickets_created'], 4) : 0;
+            }
+            unset($r);
+            $out['rows'] = $rows; $out['totals'] = $tot;
+        } catch (\Throwable $e) { /* graceful */ }
+        $response->getBody()->write(json_encode($out, JSON_UNESCAPED_UNICODE));
+        return $response->withHeader('Content-Type', 'application/json');
+    }
+
+    // ════════════════════════════════════════════════════════════════════════════
+    //  [P1 커넥터 폭] 외부 ESP(이메일) 인바운드 — Mailchimp · Klaviyo · SendGrid
+    //  ─────────────────────────────────────────────────────────────────────────
+    //  esp_metrics(별도 테이블)로 적재 — 발송/전달/오픈/클릭/수신거부/바운스·매출.
+    //  자체 EmailMarketing(발송 플랫폼)과 분리·보완(외부 ESP 성과 통합 가시성).
+    //  자격증명 미등록 시 skip(정직), 등록 즉시 fetch(graceful 드롭인).
+    // ════════════════════════════════════════════════════════════════════════════
+
+    public const ESP_SOURCES = ['mailchimp', 'klaviyo', 'sendgrid'];
+
+    public static function isEspSource(string $channelKey): bool
+    {
+        return in_array(strtolower(trim($channelKey)), self::ESP_SOURCES, true);
+    }
+
+    public static function espSources(): array
+    {
+        return array_values(array_unique(array_merge(self::ESP_SOURCES, self::registryChannels('esp'))));
+    }
+
+    private static function ensureEspTable(PDO $pdo): void
+    {
+        $isMy = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql';
+        try {
+            if ($isMy) {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS esp_metrics (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    tenant_id VARCHAR(100) NOT NULL, source VARCHAR(40) NOT NULL, date VARCHAR(10) NOT NULL,
+                    campaigns_sent INT DEFAULT 0, emails_delivered INT DEFAULT 0, opens INT DEFAULT 0, clicks INT DEFAULT 0,
+                    unsubscribes INT DEFAULT 0, bounces INT DEFAULT 0, revenue DOUBLE DEFAULT 0,
+                    currency VARCHAR(10) DEFAULT 'KRW', extra_json TEXT, updated_at VARCHAR(32),
+                    UNIQUE KEY uq_esp (tenant_id, source, date), KEY idx_esp_ts (tenant_id, source, date)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+            } else {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS esp_metrics (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    tenant_id TEXT NOT NULL, source TEXT NOT NULL, date TEXT NOT NULL,
+                    campaigns_sent INTEGER DEFAULT 0, emails_delivered INTEGER DEFAULT 0, opens INTEGER DEFAULT 0, clicks INTEGER DEFAULT 0,
+                    unsubscribes INTEGER DEFAULT 0, bounces INTEGER DEFAULT 0, revenue REAL DEFAULT 0,
+                    currency TEXT DEFAULT 'KRW', extra_json TEXT, updated_at TEXT)");
+                try { $pdo->exec("CREATE UNIQUE INDEX IF NOT EXISTS uq_esp ON esp_metrics(tenant_id,source,date)"); } catch (\Throwable $e) {}
+            }
+        } catch (\Throwable $e) { /* graceful */ }
+    }
+
+    private static function persistEspRows(PDO $pdo, string $tenant, string $source, array $rows, string $start, string $end): int
+    {
+        self::ensureEspTable($pdo);
+        $source = strtolower($source);
+        $del = $pdo->prepare('DELETE FROM esp_metrics WHERE tenant_id=? AND source=? AND date BETWEEN ? AND ?');
+        $del->execute([$tenant, $source, $start, $end]);
+        if (!$rows) return 0;
+        $ins = $pdo->prepare('INSERT INTO esp_metrics
+            (tenant_id,source,date,campaigns_sent,emails_delivered,opens,clicks,unsubscribes,bounces,revenue,currency,extra_json,updated_at)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)');
+        $now = gmdate('c'); $n = 0;
+        foreach ($rows as $r) {
+            $date = (string)($r['date'] ?? '');
+            if ($date === '' || $date < $start || $date > $end) continue;
+            $curr = strtoupper((string)($r['currency'] ?? 'KRW'));
+            $ins->execute([
+                $tenant, $source, $date,
+                (int)($r['campaigns_sent'] ?? 0), (int)($r['emails_delivered'] ?? 0), (int)($r['opens'] ?? 0), (int)($r['clicks'] ?? 0),
+                (int)($r['unsubscribes'] ?? 0), (int)($r['bounces'] ?? 0), self::fxToKrw((float)($r['revenue'] ?? 0), $curr),
+                $curr, isset($r['extra']) ? json_encode($r['extra'], JSON_UNESCAPED_UNICODE) : null, $now,
+            ]);
+            $n++;
+        }
+        return $n;
+    }
+
+    /** Mailchimp Reporting — /3.0/reports(캠페인 리포트 집계). 자격증명: mailchimp api_key(-dcNN 접미). 인증=Basic. */
+    private static function fetchMailchimpEsp(string $tenant, string $start, string $end): array
+    {
+        $key = (string)self::loadCred($tenant, 'mailchimp', 'api_key');
+        if ($key === '') return ['hasCreds' => false, 'live' => false, 'rows' => []];
+        $dc = (strpos($key, '-') !== false) ? substr($key, strrpos($key, '-') + 1) : '';
+        if ($dc === '') return ['hasCreds' => true, 'live' => false, 'error' => 'mailchimp api_key missing -dc suffix'];
+        $base = 'https://' . $dc . '.api.mailchimp.com/3.0';
+        $h = ['Authorization' => self::basicAuth('anystring', $key)];
+        [$code, $body, $err] = self::httpGet($base . '/reports?count=500&since_send_time=' . rawurlencode($start . 'T00:00:00+00:00'), $h);
+        if ($err || $code >= 400) return ['hasCreds' => true, 'live' => false, 'error' => $err ?: "mailchimp http $code"];
+        $sent = 0; $deliv = 0; $opens = 0; $clicks = 0; $unsub = 0; $bounces = 0; $rev = 0.0; $campaigns = 0;
+        foreach ((array)($body['reports'] ?? []) as $rep) {
+            $campaigns++;
+            $es = (int)($rep['emails_sent'] ?? 0);
+            $sent += $es;
+            $b = (array)($rep['bounces'] ?? []);
+            $hb = (int)($b['hard_bounces'] ?? 0) + (int)($b['soft_bounces'] ?? 0);
+            $bounces += $hb;
+            $deliv += max(0, $es - $hb);
+            $opens += (int)(($rep['opens']['unique_opens'] ?? 0));
+            $clicks += (int)(($rep['clicks']['unique_clicks'] ?? 0));
+            $unsub += (int)(($rep['unsubscribed'] ?? 0));
+            $rev += (float)(($rep['ecommerce']['total_revenue'] ?? 0));
+        }
+        return ['hasCreds' => true, 'live' => true, 'rows' => [[
+            'date' => $end, 'campaigns_sent' => $campaigns, 'emails_delivered' => $deliv, 'opens' => $opens,
+            'clicks' => $clicks, 'unsubscribes' => $unsub, 'bounces' => $bounces, 'revenue' => $rev, 'currency' => 'USD',
+        ]]];
+    }
+
+    /** Klaviyo — campaigns(발송 캠페인 수·수신자) best-effort. 자격증명: klaviyo private_key(pk_). 인증=Klaviyo-API-Key. */
+    private static function fetchKlaviyoEsp(string $tenant, string $start, string $end): array
+    {
+        $key = (string)self::loadCred($tenant, 'klaviyo', 'private_key');
+        if ($key === '') $key = (string)self::loadCred($tenant, 'klaviyo', 'api_key');
+        if ($key === '') return ['hasCreds' => false, 'live' => false, 'rows' => []];
+        $h = ['Authorization' => 'Klaviyo-API-Key ' . $key, 'revision' => '2024-10-15', 'Accept' => 'application/vnd.api+json'];
+        // 이메일 채널 캠페인 목록(필수 filter=equals(messages.channel,'email')).
+        $url = 'https://a.klaviyo.com/api/campaigns?filter=' . rawurlencode("equals(messages.channel,'email')") . '&fields[campaign]=name,send_time,created_at';
+        [$code, $body, $err] = self::httpGet($url, $h);
+        if ($err || $code >= 400) return ['hasCreds' => true, 'live' => false, 'error' => $err ?: "klaviyo http $code"];
+        $campaigns = 0;
+        foreach ((array)($body['data'] ?? []) as $c) {
+            $st = (string)($c['attributes']['send_time'] ?? $c['attributes']['created_at'] ?? '');
+            if ($st === '' || substr($st, 0, 10) >= $start) $campaigns++;
+        }
+        // 오픈/클릭 집계는 campaign-values-report(conversion_metric_id 필요)라 best-effort 생략 — 캠페인 수만 정직 적재.
+        return ['hasCreds' => true, 'live' => true, 'rows' => [[
+            'date' => $end, 'campaigns_sent' => $campaigns, 'extra' => ['note' => 'opens/clicks require campaign-values-report (conversion_metric_id)'],
+        ]]];
+    }
+
+    /** SendGrid Stats — /v3/stats(일자별 집계). 자격증명: sendgrid api_key. 인증=Bearer. 일자별 행. */
+    private static function fetchSendgridEsp(string $tenant, string $start, string $end): array
+    {
+        $key = (string)self::loadCred($tenant, 'sendgrid', 'api_key');
+        if ($key === '') return ['hasCreds' => false, 'live' => false, 'rows' => []];
+        $h = ['Authorization' => "Bearer {$key}"];
+        $url = 'https://api.sendgrid.com/v3/stats?aggregated_by=day&start_date=' . rawurlencode($start) . '&end_date=' . rawurlencode($end);
+        [$code, $body, $err] = self::httpGet($url, $h);
+        if ($err || $code >= 400) return ['hasCreds' => true, 'live' => false, 'error' => $err ?: "sendgrid http $code"];
+        $rows = [];
+        foreach ((array)$body as $day) {
+            $date = (string)($day['date'] ?? '');
+            if ($date === '') continue;
+            $m = [];
+            foreach ((array)($day['stats'] ?? []) as $s) {
+                foreach ((array)($s['metrics'] ?? []) as $k => $v) { $m[$k] = ($m[$k] ?? 0) + (int)$v; }
+            }
+            $rows[] = [
+                'date' => $date,
+                'emails_delivered' => (int)($m['delivered'] ?? 0),
+                'opens' => (int)($m['unique_opens'] ?? $m['opens'] ?? 0),
+                'clicks' => (int)($m['unique_clicks'] ?? $m['clicks'] ?? 0),
+                'unsubscribes' => (int)($m['unsubscribes'] ?? 0),
+                'bounces' => (int)($m['bounces'] ?? 0),
+            ];
+        }
+        return ['hasCreds' => true, 'live' => true, 'rows' => $rows];
+    }
+
+    public static function runEspSync(string $tenant, string $start, string $end, array $wantSet): array
+    {
+        $pdo = Db::pdo();
+        $summary = []; $total = 0;
+        $fetchers = [
+            'mailchimp' => fn() => self::fetchMailchimpEsp($tenant, $start, $end),
+            'klaviyo'   => fn() => self::fetchKlaviyoEsp($tenant, $start, $end),
+            'sendgrid'  => fn() => self::fetchSendgridEsp($tenant, $start, $end),
+        ];
+        foreach ($fetchers as $src => $fn) {
+            if (!in_array($src, $wantSet, true)) continue;
+            try { $res = $fn(); }
+            catch (\Throwable $e) { $summary[$src] = ['status' => 'error', 'error' => substr($e->getMessage(), 0, 120)]; continue; }
+            if (empty($res['hasCreds'])) { $summary[$src] = ['status' => 'skipped', 'reason' => 'no_credentials']; continue; }
+            if (empty($res['live']))     { $summary[$src] = ['status' => 'error', 'error' => $res['error'] ?? 'fetch_failed']; continue; }
+            $persisted = self::persistEspRows($pdo, $tenant, $src, $res['rows'] ?? [], $start, $end);
+            $total += $persisted;
+            $summary[$src] = ['status' => 'ok', 'rows' => $persisted, 'kind' => 'esp'];
+        }
+        try { self::recordSyncFreshness($pdo, $tenant, $summary); } catch (\Throwable $e) {}
+        return ['tenant_id' => $tenant, 'window' => compact('start', 'end'), 'persisted' => $total, 'channels' => $summary];
+    }
+
+    public static function syncEspOnSave(string $tenant, string $source): array
+    {
+        $source = strtolower(trim($source));
+        if (!self::isEspSource($source) || $tenant === '' || $tenant === 'demo') return ['skipped' => true];
+        try { return self::runEspSync($tenant, date('Y-m-d', strtotime('-28 days')), date('Y-m-d'), [$source]); }
+        catch (\Throwable $e) { return ['error' => substr($e->getMessage(), 0, 120)]; }
+    }
+
+    public static function tenantsWithEspCreds(): array
+    {
+        $out = [];
+        try {
+            $in = implode(',', array_fill(0, count(self::ESP_SOURCES), '?'));
+            $st = Db::pdo()->prepare("SELECT DISTINCT tenant_id FROM channel_credential WHERE channel IN ($in) AND is_active=1");
+            $st->execute(self::ESP_SOURCES);
+            foreach ($st->fetchAll(PDO::FETCH_COLUMN) as $t) { $t = (string)$t; if ($t !== '' && $t !== 'demo') $out[] = $t; }
+        } catch (\Throwable $e) {}
+        return array_values(array_unique($out));
+    }
+
+    public static function espSync(Request $request, Response $response, array $args): Response
+    {
+        $tenant = self::authTenant($request);
+        if ($tenant === '' || $tenant === 'demo') { $response->getBody()->write(json_encode(['ok' => false, 'error' => 'tenant_required'])); return $response->withHeader('Content-Type', 'application/json')->withStatus(403); }
+        $q = $request->getQueryParams(); $b = (array)($request->getParsedBody() ?? []);
+        $start = (string)($b['start_date'] ?? $q['start_date'] ?? date('Y-m-d', strtotime('-28 days')));
+        $end   = (string)($b['end_date'] ?? $q['end_date'] ?? date('Y-m-d'));
+        $want  = (string)($b['sources'] ?? $q['sources'] ?? implode(',', self::espSources()));
+        $wantSet = array_values(array_filter(array_map('trim', explode(',', strtolower($want))))) ?: self::espSources();
+        $res = self::runEspSync($tenant, $start, $end, $wantSet);
+        $response->getBody()->write(json_encode(['ok' => true] + $res, JSON_UNESCAPED_UNICODE));
+        return $response->withHeader('Content-Type', 'application/json');
+    }
+
+    public static function espMetrics(Request $request, Response $response, array $args): Response
+    {
+        $tenant = self::authTenant($request);
+        $q = $request->getQueryParams();
+        $source = strtolower((string)($q['source'] ?? 'all'));
+        $start = (string)($q['start_date'] ?? date('Y-m-d', strtotime('-28 days')));
+        $end   = (string)($q['end_date'] ?? date('Y-m-d'));
+        $out = ['ok' => true, 'source' => $source, 'window' => compact('start', 'end'), 'rows' => [], 'totals' => []];
+        try {
+            $pdo = Db::pdo(); self::ensureEspTable($pdo);
+            $where = 'tenant_id=? AND date BETWEEN ? AND ?'; $params = [$tenant, $start, $end];
+            if ($source !== 'all' && $source !== '') { $where .= ' AND source=?'; $params[] = $source; }
+            $sql = "SELECT source,
+                    SUM(campaigns_sent) AS campaigns_sent, SUM(emails_delivered) AS emails_delivered,
+                    SUM(opens) AS opens, SUM(clicks) AS clicks, SUM(unsubscribes) AS unsubscribes,
+                    SUM(bounces) AS bounces, SUM(revenue) AS revenue
+                    FROM esp_metrics WHERE {$where} GROUP BY source ORDER BY emails_delivered DESC";
+            $st = $pdo->prepare($sql); $st->execute($params);
+            $rows = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+            $tot = ['campaigns_sent' => 0, 'emails_delivered' => 0, 'opens' => 0, 'clicks' => 0, 'unsubscribes' => 0, 'bounces' => 0, 'revenue' => 0.0];
+            foreach ($rows as &$r) {
+                foreach (['campaigns_sent', 'emails_delivered', 'opens', 'clicks', 'unsubscribes', 'bounces'] as $k) { $r[$k] = (int)$r[$k]; $tot[$k] += $r[$k]; }
+                $r['revenue'] = (float)$r['revenue']; $tot['revenue'] += $r['revenue'];
+                $r['open_rate'] = $r['emails_delivered'] > 0 ? round($r['opens'] / $r['emails_delivered'], 4) : 0;
+                $r['click_rate'] = $r['emails_delivered'] > 0 ? round($r['clicks'] / $r['emails_delivered'], 4) : 0;
+            }
+            unset($r);
+            $out['rows'] = $rows; $out['totals'] = $tot;
+        } catch (\Throwable $e) { /* graceful */ }
+        $response->getBody()->write(json_encode($out, JSON_UNESCAPED_UNICODE));
+        return $response->withHeader('Content-Type', 'application/json');
     }
 }

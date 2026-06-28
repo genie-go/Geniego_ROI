@@ -8947,6 +8947,20 @@ export default {"paymentSuccess": {"invalidInfo":"결제 정보가 올바르지 
     "tabTargets": "7. 목표 달성률 (Targets)",
 
     "tabMonitor": "8. 성과 모니터링 (Monitor)",
+    "tabWeb": "웹 분석",
+    "webDesc": "연동허브에서 Google Analytics 4·Adobe Analytics 자격증명을 등록하면 세션·사용자·전환·매출이 채널그룹·소스/매체별로 인바운드 수집됩니다. 광고 성과와 분리된 유입 분석입니다.",
+    "webSrcAll": "전체",
+    "webByChannel": "채널그룹",
+    "webBySource": "소스/매체",
+    "webByDate": "일자",
+    "webSessions": "세션",
+    "webUsers": "사용자",
+    "webPageviews": "페이지뷰",
+    "webConversions": "전환",
+    "webConvRate": "전환율",
+    "webRevenue": "매출",
+    "webEmpty": "GA4·Adobe Analytics 자격증명을 등록하면 웹 분석 데이터가 여기에 표시됩니다.",
+    "webGoConnect": "연동허브로 이동 →",
 
     "bizGoalSetting": "비즈니스 목표 설정",
 
@@ -12148,7 +12162,7 @@ export default {"paymentSuccess": {"invalidInfo":"결제 정보가 올바르지 
 
   },
 
-  crm: {"onboardHint": "여기서 첫 고객을 추가하세요","tabDeliver": "딜리버러빌리티","colPredClv": "예측 CLV","colChurn": "이탈확률","deliverSave": "설정 저장","saving": "저장 중...","deliverQuietSummary": "{start}시 ~ {end}시 차단","deliverQuietEnd": "차단 종료 (시, 0~23)","deliverQuietStart": "차단 시작 (시, 0~23)","deliverStoEnable": "야간 발송 차단 사용","deliverStoDesc": "활성화 시 지정한 야간 시간대(한국시간 기준)에는 메시지 발송이 차단됩니다. 수신자 경험과 도달률을 보호합니다.","deliverStoTitle": "발송시간 최적화 (STO) — 야간 차단","deliverFreqSummary": "{cap}건 / {window}일","deliverWindow": "기간 (일, 1~90)","deliverCap": "최대 발송 건수 (1~50)","deliverFreqDesc": "지정한 기간 동안 한 고객에게 보낼 수 있는 최대 메시지 수입니다. 초과 시 자동 발송이 차단됩니다.","deliverFreqTitle": "발송 빈도 상한 (Frequency Capping)","deliverIntro": "과발송을 차단해 스팸 신고·차단·발신자 평판 하락을 예방합니다. 이메일·카카오·SMS 발송에 공통 적용됩니다(경쟁사 Braze/Klaviyo 동급 제어).","loading": "불러오는 중...","deliverSaveErr": "저장 실패: 권한 또는 네트워크를 확인하세요","deliverSaved": "저장되었습니다 (데모)","smartSeed": "스마트 세그먼트 자동생성 (VIP·충성·신규·이탈위험·휴면)","segRecency": "최근구매 경과일","segFreq": "구매횟수",
+  crm: {"onboardHint": "여기서 첫 고객을 추가하세요","tabDeliver": "딜리버러빌리티","tabCs": "CS 지원","csDesc": "연동허브에서 Zendesk·Intercom·Freshdesk·Gorgias 자격증명을 등록하면 티켓·CSAT·응답시간이 인바운드 수집됩니다.","csAll": "전체","csCreated": "생성 티켓","csSolved": "해결 티켓","csOpen": "미해결","csSolveRate": "해결률","csSource": "채널","csEmpty": "Zendesk·Intercom·Freshdesk·Gorgias 자격증명을 등록하면 CS 데이터가 표시됩니다.","csGoConnect": "연동허브로 이동 →","colPredClv": "예측 CLV","colChurn": "이탈확률","deliverSave": "설정 저장","saving": "저장 중...","deliverQuietSummary": "{start}시 ~ {end}시 차단","deliverQuietEnd": "차단 종료 (시, 0~23)","deliverQuietStart": "차단 시작 (시, 0~23)","deliverStoEnable": "야간 발송 차단 사용","deliverStoDesc": "활성화 시 지정한 야간 시간대(한국시간 기준)에는 메시지 발송이 차단됩니다. 수신자 경험과 도달률을 보호합니다.","deliverStoTitle": "발송시간 최적화 (STO) — 야간 차단","deliverFreqSummary": "{cap}건 / {window}일","deliverWindow": "기간 (일, 1~90)","deliverCap": "최대 발송 건수 (1~50)","deliverFreqDesc": "지정한 기간 동안 한 고객에게 보낼 수 있는 최대 메시지 수입니다. 초과 시 자동 발송이 차단됩니다.","deliverFreqTitle": "발송 빈도 상한 (Frequency Capping)","deliverIntro": "과발송을 차단해 스팸 신고·차단·발신자 평판 하락을 예방합니다. 이메일·카카오·SMS 발송에 공통 적용됩니다(경쟁사 Braze/Klaviyo 동급 제어).","loading": "불러오는 중...","deliverSaveErr": "저장 실패: 권한 또는 네트워크를 확인하세요","deliverSaved": "저장되었습니다 (데모)","smartSeed": "스마트 세그먼트 자동생성 (VIP·충성·신규·이탈위험·휴면)","segRecency": "최근구매 경과일","segFreq": "구매횟수",
     "supTitle":"수신거부 / 차단 리스트","supDesc":"수신거부·바운스·스팸신고 주소는 발송에서 영구 제외됩니다. 직접 추가/해제할 수 있습니다.","supUnsub":"수신거부","supManual":"수동","supBounce":"반송(바운스)","supComplaint":"스팸신고","supEmpty":"차단된 주소 없음","supAddPh":"차단할 이메일 주소","supAdd":"차단 추가","supColEmail":"이메일","supColReason":"사유","supColDate":"일시","supRemove":"해제","cohortTitle":"코호트 리텐션 (가입월 × 재구매율)","cohortDesc":"가입 월별 그룹의 이후 N개월 재구매율입니다. 리텐션 곡선으로 충성도·LTV 추세를 진단합니다.","cohortEmpty":"코호트 데이터가 아직 없습니다(가입·구매 이력이 누적되면 표시됩니다).","cohortCol":"가입월","cohortSize":"인원",
       "segRefresh": "멤버십 재계산 (실데이터 기준 동기화)",
 

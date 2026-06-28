@@ -212,6 +212,12 @@ $app->add(function (Request $request, $handler) {
         || strpos($path, '/v424/marketing/benchmarks') === 0 || strpos($path, '/api/v424/marketing/benchmarks') === 0
         // [현 차수] 채널×objective 퍼널 집계 — 프론트 세션 토큰 호출(익명만 차단, tenant 주입).
         || strpos($path, '/v424/connectors/campaign-funnel') === 0 || strpos($path, '/api/v424/connectors/campaign-funnel') === 0
+        // [P1 커넥터 폭] 웹 분석 인바운드(GA4·Adobe) 집계 조회 — 프론트(ChannelKPI 웹분석 탭)가 세션 토큰으로
+        //   호출. 세션게이트 부재 시 strict api_key 미들웨어가 401 → 항상 빈 상태. authTenant=auth_tenant 격리.
+        || strpos($path, '/v426/analytics/') === 0 || strpos($path, '/api/v426/analytics/') === 0
+        // [P1 커넥터 폭] CS/헬프데스크·외부 ESP 인바운드 집계/동기화 — 프론트 세션 토큰 호출. authTenant=auth_tenant 격리.
+        || strpos($path, '/v426/cs/') === 0 || strpos($path, '/api/v426/cs/') === 0
+        || strpos($path, '/v426/esp/') === 0 || strpos($path, '/api/v426/esp/') === 0
         // [228차 S1] 매체보고 vs 실주문귀속 ROAS 정합 — 세션 토큰 호출(익명 차단, auth_tenant 주입·격리).
         || strpos($path, '/v423/connectors/roas-reconciliation') === 0 || strpos($path, '/api/v423/connectors/roas-reconciliation') === 0
         // [현 차수 P2-2a] 키워드 입도 조회 — 세션 self-auth(authedTenant 격리). 프론트 세션 토큰 호출.

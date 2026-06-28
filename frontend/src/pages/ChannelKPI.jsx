@@ -645,6 +645,127 @@ function MonitoringTab({ goals, kpiTargets }) {
 }
 
 /* ══════════════════════════════
+   Tab 9: Web Analytics (GA4 · Adobe Analytics inbound)
+   [P1 커넥터 폭] web_analytics_metrics 실DB 파생 — 세션/사용자/페이지뷰/전환/매출.
+   광고(performance_metrics)와 분리된 인바운드 웹 분석. 자격증명 미등록·미동기화 시 정직 빈 상태.
+══════════════════════════════ */
+function WebAnalyticsTab() {
+    const t = useT();
+    const { fmt } = useCurrency();
+    const [source, setSource] = useState('all');
+    const [groupBy, setGroupBy] = useState('channel');
+    const [data, setData] = useState(null);
+    const [status, setStatus] = useState('idle');
+
+    useEffect(() => {
+        let alive = true;
+        setStatus('loading');
+        getJsonAuth(`${API}/v426/analytics/web?source=${source}&group_by=${groupBy}`)
+            .then(r => { if (!alive) return; setData(r && r.ok ? r : { rows: [], totals: {} }); setStatus('done'); })
+            .catch(() => { if (alive) { setData({ rows: [], totals: {} }); setStatus('done'); } });
+        return () => { alive = false; };
+    }, [source, groupBy]);
+
+    const rows = Array.isArray(data?.rows) ? data.rows : [];
+    const tot = data?.totals || {};
+    const nf = (n) => Number(n || 0).toLocaleString();
+    const pct = (n) => `${(Number(n || 0) * 100).toFixed(1)}%`;
+    const SOURCES = [{ id: 'all', label: t('channelKpiPage.webSrcAll', '전체') }, { id: 'ga4', label: 'GA4' }, { id: 'adobe_analytics', label: 'Adobe' }];
+    const GROUPS = [
+        { id: 'channel', label: t('channelKpiPage.webByChannel', '채널그룹') },
+        { id: 'source_medium', label: t('channelKpiPage.webBySource', '소스/매체') },
+        { id: 'date', label: t('channelKpiPage.webByDate', '일자') },
+    ];
+    const cards = [
+        { k: 'sessions', label: t('channelKpiPage.webSessions', '세션'), c: '#2563eb', v: nf(tot.sessions) },
+        { k: 'users', label: t('channelKpiPage.webUsers', '사용자'), c: '#7c3aed', v: nf(tot.users) },
+        { k: 'page_views', label: t('channelKpiPage.webPageviews', '페이지뷰'), c: '#0891b2', v: nf(tot.page_views) },
+        { k: 'conversions', label: t('channelKpiPage.webConversions', '전환'), c: '#16a34a', v: nf(tot.conversions) },
+        { k: 'revenue', label: t('channelKpiPage.webRevenue', '매출'), c: '#ea580c', v: fmt(Number(tot.revenue || 0)) },
+    ];
+
+    return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, animation: 'fadeIn 0.3s' }}>
+            <div style={{ background: 'linear-gradient(135deg,rgba(227,116,0,0.08),rgba(37,99,235,0.06))', border: '1px solid rgba(227,116,0,0.2)', borderRadius: 14, padding: 18 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: 24 }}>📈</span>
+                    <div style={{ fontWeight: 900, fontSize: 17, color: '#1e293b' }}>{t('channelKpiPage.tabWeb', '웹 분석 (GA4·Adobe)')}</div>
+                </div>
+                <div style={{ fontSize: 12, color: '#64748b', marginTop: 6, lineHeight: 1.6 }}>
+                    {t('channelKpiPage.webDesc', '연동허브에서 Google Analytics 4·Adobe Analytics 자격증명을 등록하면 세션·사용자·전환·매출이 채널그룹·소스/매체별로 인바운드 수집됩니다. 광고 성과와 분리된 유입 분석입니다.')}
+                </div>
+            </div>
+
+            {/* Filters */}
+            <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: 4, background: 'rgba(255,255,255,0.95)', borderRadius: 10, padding: 4, border: '1px solid rgba(0,0,0,0.06)' }}>
+                    {SOURCES.map(s => (
+                        <button key={s.id} onClick={() => setSource(s.id)} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 700, background: source === s.id ? '#e37400' : 'transparent', color: source === s.id ? '#fff' : '#475569' }}>{s.label}</button>
+                    ))}
+                </div>
+                <div style={{ display: 'flex', gap: 4, background: 'rgba(255,255,255,0.95)', borderRadius: 10, padding: 4, border: '1px solid rgba(0,0,0,0.06)' }}>
+                    {GROUPS.map(g => (
+                        <button key={g.id} onClick={() => setGroupBy(g.id)} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 700, background: groupBy === g.id ? '#2563eb' : 'transparent', color: groupBy === g.id ? '#fff' : '#475569' }}>{g.label}</button>
+                    ))}
+                </div>
+            </div>
+
+            {/* Summary cards */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(130px,1fr))', gap: 10 }}>
+                {cards.map(c => (
+                    <div key={c.k} style={{ background: c.c + '0d', border: `1px solid ${c.c}22`, borderRadius: 12, padding: '12px 14px' }}>
+                        <div style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>{c.label}</div>
+                        <div style={{ fontSize: 18, fontWeight: 900, color: c.c, marginTop: 4 }}>{c.v}</div>
+                    </div>
+                ))}
+            </div>
+
+            {/* Table */}
+            <div style={{ background: 'rgba(255,255,255,0.97)', border: '1px solid rgba(0,0,0,0.06)', borderRadius: 14, padding: 14, overflowX: 'auto' }}>
+                {status === 'loading' ? (
+                    <div style={{ textAlign: 'center', padding: 30, color: '#94a3b8', fontSize: 13 }}>{t('common.loading', '불러오는 중…')}</div>
+                ) : rows.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: 36, color: '#94a3b8', fontSize: 13, lineHeight: 1.8 }}>
+                        <div style={{ fontSize: 30, marginBottom: 8 }}>🔌</div>
+                        {t('channelKpiPage.webEmpty', 'GA4·Adobe Analytics 자격증명을 등록하면 웹 분석 데이터가 여기에 표시됩니다.')}
+                        <div style={{ marginTop: 8 }}>
+                            <button onClick={() => { window.location.href = '/api-keys'; }} style={{ padding: '6px 16px', borderRadius: 8, border: '1px solid rgba(37,99,235,0.3)', background: 'rgba(37,99,235,0.06)', color: '#2563eb', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>{t('channelKpiPage.webGoConnect', '연동허브로 이동 →')}</button>
+                        </div>
+                    </div>
+                ) : (
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                        <thead>
+                            <tr style={{ borderBottom: '2px solid rgba(0,0,0,0.08)', color: '#475569', textAlign: 'right' }}>
+                                <th style={{ textAlign: 'left', padding: '8px 10px' }}>{GROUPS.find(g => g.id === groupBy)?.label}</th>
+                                <th style={{ padding: '8px 10px' }}>{t('channelKpiPage.webSessions', '세션')}</th>
+                                <th style={{ padding: '8px 10px' }}>{t('channelKpiPage.webUsers', '사용자')}</th>
+                                <th style={{ padding: '8px 10px' }}>{t('channelKpiPage.webPageviews', '페이지뷰')}</th>
+                                <th style={{ padding: '8px 10px' }}>{t('channelKpiPage.webConversions', '전환')}</th>
+                                <th style={{ padding: '8px 10px' }}>{t('channelKpiPage.webConvRate', '전환율')}</th>
+                                <th style={{ padding: '8px 10px' }}>{t('channelKpiPage.webRevenue', '매출')}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {rows.map((r, i) => (
+                                <tr key={i} style={{ borderBottom: '1px solid rgba(0,0,0,0.04)', textAlign: 'right' }}>
+                                    <td style={{ textAlign: 'left', padding: '7px 10px', fontWeight: 600, color: '#1e293b' }}>{r.grp || '(direct)'}</td>
+                                    <td style={{ padding: '7px 10px', color: '#334155' }}>{nf(r.sessions)}</td>
+                                    <td style={{ padding: '7px 10px', color: '#334155' }}>{nf(r.users)}</td>
+                                    <td style={{ padding: '7px 10px', color: '#334155' }}>{nf(r.page_views)}</td>
+                                    <td style={{ padding: '7px 10px', color: '#334155' }}>{nf(r.conversions)}</td>
+                                    <td style={{ padding: '7px 10px', color: '#16a34a', fontWeight: 600 }}>{pct(r.conv_rate)}</td>
+                                    <td style={{ padding: '7px 10px', color: '#ea580c', fontWeight: 600 }}>{fmt(Number(r.revenue || 0))}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                )}
+            </div>
+        </div>
+    );
+}
+
+/* ══════════════════════════════
    Main Component
 ══════════════════════════════ */
 
@@ -662,6 +783,7 @@ export default function ChannelKPI() {
     { id: 'community', label: t('channelKpiPage.tabCommunity') },
     { id: 'target', label: t('channelKpiPage.tabTargets') },
     { id: 'monitor', label: t('channelKpiPage.tabMonitor') },
+    { id: 'web', label: `📈 ${t('channelKpiPage.tabWeb', '웹 분석')}` },
     { id: 'guide', label: `📖 ${ckg('tabGuide')}` },
 ];
 
@@ -789,6 +911,7 @@ export default function ChannelKPI() {
                 {tab === 'community' && <CommunityKpiTab globalOrderStats={orderStats} />}
                 {tab === 'target' && <KpiTargetTab kpiTargets={kpiTargets} globalOrderStats={orderStats} globalBudgetStats={budgetStats} globalChannels={channelBudgets} globalCampaigns={sharedCampaigns} />}
                 {tab === 'monitor' && <MonitoringTab goals={goals} kpiTargets={kpiTargets} />}
+                {tab === 'web' && <WebAnalyticsTab />}
                 {tab === 'guide' && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 20, animation: 'fadeIn 0.3s' }}>
                         <div style={{ background: 'linear-gradient(135deg,rgba(79,142,247,0.10),rgba(168,85,247,0.06))', border: '1px solid rgba(79,142,247,0.20)', borderRadius: 16, textAlign: 'center', padding: 32 }}>

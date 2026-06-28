@@ -538,6 +538,51 @@ function simulateAbResult(c){
 }
 
 /* Analytics Tab */
+/* [P1 커넥터 폭] 외부 ESP 인바운드(Mailchimp·Klaviyo·SendGrid) — esp_metrics 실DB 파생.
+   발송/전달/오픈/클릭/매출. 자체 발송과 분리·보완. 자격증명 미등록·미동기화 시 정직 빈 상태. */
+function EspConnectorTab() {
+    const {t}=useI18n();
+    const [source,setSource]=useState('all');
+    const [data,setData]=useState(null);
+    const [status,setStatus]=useState('idle');
+    useEffect(()=>{
+        let alive=true; setStatus('loading');
+        _gjaEmail(`/api/v426/esp/metrics?source=${source}`)
+            .then(r=>{ if(!alive) return; setData(r&&r.ok?r:{rows:[],totals:{}}); setStatus('done'); })
+            .catch(()=>{ if(alive){ setData({rows:[],totals:{}}); setStatus('done'); } });
+        return ()=>{ alive=false; };
+    },[source]);
+    const rows=Array.isArray(data?.rows)?data.rows:[];
+    const tot=data?.totals||{};
+    const nf=(n)=>Number(n||0).toLocaleString();
+    const SRC=[{id:'all',label:t('email.espAll','전체')},{id:'mailchimp',label:'Mailchimp'},{id:'klaviyo',label:'Klaviyo'},{id:'sendgrid',label:'SendGrid'}];
+    const cards=[
+        {label:t('email.espDelivered','전달'),c:'#2563eb',v:nf(tot.emails_delivered)},
+        {label:t('email.espOpens','오픈'),c:'#16a34a',v:nf(tot.opens)},
+        {label:t('email.espClicks','클릭'),c:'#7c3aed',v:nf(tot.clicks)},
+        {label:t('email.espCampaigns','캠페인'),c:'#ea580c',v:nf(tot.campaigns_sent)},
+    ];
+    return (
+        <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
+            <div style={{ background:'linear-gradient(135deg,rgba(255,224,27,0.10),rgba(26,130,226,0.06))', border:'1px solid rgba(26,130,226,0.18)', borderRadius:14, padding:16 }}>
+                <div style={{ fontWeight:900, fontSize:16, color:'#1e293b' }}>📧 {t('email.tabEsp','ESP 연동')}</div>
+                <div style={{ fontSize:12, color:'#64748b', marginTop:6, lineHeight:1.6 }}>{t('email.espDesc','연동허브에서 Mailchimp·Klaviyo·SendGrid 자격증명을 등록하면 발송·오픈·클릭·매출이 인바운드 수집됩니다. 자체 발송 성과와 함께 통합 가시화합니다.')}</div>
+            </div>
+            <div style={{ display:'flex', gap:4, background:'rgba(255,255,255,0.95)', borderRadius:10, padding:4, border:'1px solid rgba(0,0,0,0.06)', width:'fit-content', flexWrap:'wrap' }}>
+                {SRC.map(s=>(<button key={s.id} onClick={()=>setSource(s.id)} style={{ padding:'6px 14px', borderRadius:8, border:'none', cursor:'pointer', fontSize:11, fontWeight:700, background:source===s.id?'#1a82e2':'transparent', color:source===s.id?'#fff':'#475569' }}>{s.label}</button>))}
+            </div>
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(120px,1fr))', gap:10 }}>
+                {cards.map((c,i)=>(<div key={i} style={{ background:c.c+'0d', border:`1px solid ${c.c}22`, borderRadius:12, padding:'12px 14px' }}><div style={{ fontSize:11, color:'#64748b', fontWeight:600 }}>{c.label}</div><div style={{ fontSize:18, fontWeight:900, color:c.c, marginTop:4 }}>{c.v}</div></div>))}
+            </div>
+            <div style={{ background:'rgba(255,255,255,0.97)', border:'1px solid rgba(0,0,0,0.06)', borderRadius:14, padding:14, overflowX:'auto' }}>
+                {status==='loading'?(<div style={{ textAlign:'center', padding:30, color:'#94a3b8', fontSize:13 }}>{t('common.loading','불러오는 중…')}</div>)
+                : rows.length===0?(<div style={{ textAlign:'center', padding:36, color:'#94a3b8', fontSize:13, lineHeight:1.8 }}><div style={{ fontSize:30, marginBottom:8 }}>🔌</div>{t('email.espEmpty','Mailchimp·Klaviyo·SendGrid 자격증명을 등록하면 ESP 성과가 표시됩니다.')}<div style={{ marginTop:8 }}><button onClick={()=>{ window.location.href='/api-keys'; }} style={{ padding:'6px 16px', borderRadius:8, border:'1px solid rgba(37,99,235,0.3)', background:'rgba(37,99,235,0.06)', color:'#2563eb', fontSize:11, fontWeight:700, cursor:'pointer' }}>{t('email.espGoConnect','연동허브로 이동 →')}</button></div></div>)
+                :(<table style={{ width:'100%', borderCollapse:'collapse', fontSize:12 }}><thead><tr style={{ borderBottom:'2px solid rgba(0,0,0,0.08)', color:'#475569', textAlign:'right' }}><th style={{ textAlign:'left', padding:'8px 10px' }}>{t('email.espSource','채널')}</th><th style={{ padding:'8px 10px' }}>{t('email.espDelivered','전달')}</th><th style={{ padding:'8px 10px' }}>{t('email.espOpens','오픈')}</th><th style={{ padding:'8px 10px' }}>{t('email.espOpenRate','오픈율')}</th><th style={{ padding:'8px 10px' }}>{t('email.espClicks','클릭')}</th><th style={{ padding:'8px 10px' }}>{t('email.espClickRate','클릭율')}</th></tr></thead><tbody>{rows.map((r,i)=>(<tr key={i} style={{ borderBottom:'1px solid rgba(0,0,0,0.04)', textAlign:'right' }}><td style={{ textAlign:'left', padding:'7px 10px', fontWeight:600, color:'#1e293b', textTransform:'capitalize' }}>{r.source}</td><td style={{ padding:'7px 10px', color:'#334155' }}>{nf(r.emails_delivered)}</td><td style={{ padding:'7px 10px', color:'#334155' }}>{nf(r.opens)}</td><td style={{ padding:'7px 10px', color:'#16a34a', fontWeight:600 }}>{(Number(r.open_rate||0)*100).toFixed(1)}%</td><td style={{ padding:'7px 10px', color:'#334155' }}>{nf(r.clicks)}</td><td style={{ padding:'7px 10px', color:'#7c3aed', fontWeight:600 }}>{(Number(r.click_rate||0)*100).toFixed(1)}%</td></tr>))}</tbody></table>)}
+            </div>
+        </div>
+    );
+}
+
 function AnalyticsTab() {
     const {t}=useI18n();
     // 191차 2단계: 운영=백엔드 캠페인 집계, 데모=GlobalData.
@@ -773,6 +818,7 @@ function EmailMarketingContent() {
         {id:"campaigns",label:t('email.tabCamp', "Campaigns"),icon:"🚀"},
         {id:"templates",label:t('email.tabTpl', "Templates"),icon:"📝"},
         {id:"analytics",label:t('email.tabAnalytics', "Analytics"),icon:"📊"},
+        {id:"esp",label:t('email.tabEsp', "ESP 연동"),icon:"🔌"},
         {id:"creative",label:t('email.tabCreative', "Creative"),icon:"🎨"},
         {id:"settings",label:t('email.tabSettings', "Settings"),icon:"⚙️"},
         {id:"guide",label:t('email.tabGuide', "Guide"),icon:"📖"},
@@ -817,6 +863,7 @@ function EmailMarketingContent() {
             {tab==="campaigns" && <CampaignsTab/>}
             {tab==="templates" && <TemplatesTab/>}
             {tab==="analytics" && <AnalyticsTab/>}
+            {tab==="esp" && <EspConnectorTab/>}
             {tab==="creative" && <CreativeStudioTab sourcePage="email-marketing"/>}
             {tab==="settings" && <SettingsTab/>}
             {tab==="guide" && (

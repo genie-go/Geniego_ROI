@@ -358,7 +358,16 @@ final class ChannelCreds
         $autoSync = null;
         if ($tenant !== '' && $tenant !== 'demo') {
             try {
-                if (Connectors::isAdChannel($channel)) {
+                if (Connectors::isAnalyticsSource($channel)) {
+                    // [P1 커넥터 폭] 웹 분석(GA4·Adobe) — 광고보다 먼저 분기(절대 ROAS 로 오인 적재 금지). web_analytics_metrics 적재.
+                    $autoSync = ['kind' => 'analytics', 'result' => Connectors::syncAnalyticsOnSave($tenant, $channel)];
+                } elseif (Connectors::isCsSource($channel)) {
+                    // [P1 커넥터 폭] CS/헬프데스크(Zendesk·Intercom·Freshdesk·Gorgias) — cs_metrics 적재.
+                    $autoSync = ['kind' => 'cs', 'result' => Connectors::syncCsOnSave($tenant, $channel)];
+                } elseif (Connectors::isEspSource($channel)) {
+                    // [P1 커넥터 폭] 외부 ESP(Mailchimp·Klaviyo·SendGrid) — esp_metrics 적재.
+                    $autoSync = ['kind' => 'esp', 'result' => Connectors::syncEspOnSave($tenant, $channel)];
+                } elseif (Connectors::isAdChannel($channel)) {
                     $autoSync = ['kind' => 'ad', 'result' => Connectors::syncAdChannelOnSave($tenant, $channel)];
                 } elseif (ChannelSync::isCommerceChannel($channel)) { // [현 차수] 별칭 인식(silent break 방지)
                     $autoSync = ['kind' => 'commerce', 'result' => ChannelSync::syncTenantChannel($tenant, $channel, $userPlan !== '' ? $userPlan : 'pro')];

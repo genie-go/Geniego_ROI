@@ -444,6 +444,21 @@ return function (App $app): void {
         'POST /api/v426/admin/channels'        => 'Genie\\Handlers\\ChannelRegistry::upsert',
         'DELETE /v426/admin/channels/{key}'    => 'Genie\\Handlers\\ChannelRegistry::remove',
         'DELETE /api/v426/admin/channels/{key}'=> 'Genie\\Handlers\\ChannelRegistry::remove',
+
+        // [P1 커넥터 폭] 웹 분석 인바운드(GA4·Adobe Analytics) 집계 조회 — web_analytics_metrics 실DB 파생.
+        //   동기화는 기존 POST /v423/connectors/sync(channels=ga4,adobe_analytics)가 runSync 라우팅으로 처리.
+        'GET /v426/analytics/web'              => 'Genie\\Handlers\\Connectors::webAnalytics',
+        'GET /api/v426/analytics/web'          => 'Genie\\Handlers\\Connectors::webAnalytics',
+        // [P1 커넥터 폭] CS/헬프데스크 인바운드(Zendesk·Intercom·Freshdesk·Gorgias) — cs_metrics 집계/동기화.
+        'GET /v426/cs/metrics'                 => 'Genie\\Handlers\\Connectors::csMetrics',
+        'GET /api/v426/cs/metrics'             => 'Genie\\Handlers\\Connectors::csMetrics',
+        'POST /v426/cs/sync'                   => 'Genie\\Handlers\\Connectors::csSync',
+        'POST /api/v426/cs/sync'               => 'Genie\\Handlers\\Connectors::csSync',
+        // [P1 커넥터 폭] 외부 ESP 인바운드(Mailchimp·Klaviyo·SendGrid) — esp_metrics 집계/동기화.
+        'GET /v426/esp/metrics'                => 'Genie\\Handlers\\Connectors::espMetrics',
+        'GET /api/v426/esp/metrics'            => 'Genie\\Handlers\\Connectors::espMetrics',
+        'POST /v426/esp/sync'                  => 'Genie\\Handlers\\Connectors::espSync',
+        'POST /api/v426/esp/sync'              => 'Genie\\Handlers\\Connectors::espSync',
         // [246차 P3] 웹 푸시(VAPID) — vapid-key 공개, subscribe/test 인증, vapid-config admin.
         'GET /v426/push/vapid-key'             => 'Genie\\Handlers\\WebPush::vapidKey',
         'GET /api/v426/push/vapid-key'         => 'Genie\\Handlers\\WebPush::vapidKey',
@@ -2774,6 +2789,14 @@ return function (App $app): void {
     $register('GET',    '/v426/admin/channels');  $register('GET',    '/api/v426/admin/channels');
     $register('POST',   '/v426/admin/channels');  $register('POST',   '/api/v426/admin/channels');
     $register('DELETE', '/v426/admin/channels/{key}'); $register('DELETE', '/api/v426/admin/channels/{key}');
+    // [P1 커넥터 폭] 웹 분석 인바운드 집계 조회
+    $register('GET',    '/v426/analytics/web');   $register('GET',    '/api/v426/analytics/web');
+    // [P1 커넥터 폭] CS/헬프데스크 인바운드
+    $register('GET',    '/v426/cs/metrics');      $register('GET',    '/api/v426/cs/metrics');
+    $register('POST',   '/v426/cs/sync');         $register('POST',   '/api/v426/cs/sync');
+    // [P1 커넥터 폭] 외부 ESP 인바운드
+    $register('GET',    '/v426/esp/metrics');     $register('GET',    '/api/v426/esp/metrics');
+    $register('POST',   '/v426/esp/sync');        $register('POST',   '/api/v426/esp/sync');
     // [246차 P3] 웹 푸시
     $register('GET',    '/v426/push/vapid-key');   $register('GET',    '/api/v426/push/vapid-key');
     $register('POST',   '/v426/push/subscribe');   $register('POST',   '/api/v426/push/subscribe');

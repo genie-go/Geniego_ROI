@@ -24,7 +24,7 @@ use Genie\Crypto;
 class DataExport
 {
     private const TYPES = ['http', 'google_sheets', 'bigquery', 'snowflake'];
-    private const DATASETS = ['orders', 'ad_metrics', 'settlements', 'attribution', 'kpi_summary'];
+    private const DATASETS = ['orders', 'ad_metrics', 'settlements', 'attribution', 'kpi_summary', 'web_analytics'];
     private const SECRET_KEYS = ['secret', 'service_account_json', 'private_key']; // 마스킹·암호화 대상
     private const MAX_ROWS = 5000;     // 실행당 데이터셋 행 상한(페이로드 보호)
     private const BQ_BATCH = 500;      // BigQuery insertAll 배치
@@ -140,6 +140,7 @@ class DataExport
             ['key' => 'settlements', 'label' => '정산(orderhub_settlements)', 'desc' => '기간×채널 총매출·실수령·수수료·반품'],
             ['key' => 'attribution', 'label' => '어트리뷰션(attribution_result)', 'desc' => '주문별 기여 채널·모델·신뢰도'],
             ['key' => 'kpi_summary', 'label' => 'KPI 요약', 'desc' => 'ROAS/CTR/CVR/CPA 집계(단일 행)'],
+            ['key' => 'web_analytics', 'label' => '웹 분석(web_analytics_metrics)', 'desc' => 'GA4·Adobe 인바운드 — 일자×채널그룹×소스미디엄 세션/사용자/페이지뷰/전환/매출'],
         ];
         $types = [
             ['key' => 'http', 'label' => '범용 HTTP/Webhook', 'fields' => ['url', 'secret', 'format'], 'note' => 'NDJSON/JSON POST + HMAC. 모든 웨어하우스 인제스트·Looker Studio·Zapier 호환'],
@@ -332,6 +333,11 @@ class DataExport
                 case 'kpi_summary':
                     $s = Reports::generateKpiSummary($pdo, $tenant, $periodDays);
                     return [array_keys($s), [$s]];
+                case 'web_analytics':
+                    $cols = ['source', 'date', 'channel_group', 'source_medium', 'sessions', 'users', 'new_users', 'page_views', 'conversions', 'revenue', 'engaged_sessions', 'avg_session_sec', 'bounce_rate', 'currency'];
+                    $st = $pdo->prepare("SELECT source, date, channel_group, source_medium, sessions, users, new_users, page_views, conversions, revenue, engaged_sessions, avg_session_sec, bounce_rate, currency FROM web_analytics_metrics WHERE tenant_id=? AND date>=? ORDER BY date DESC LIMIT {$lim}");
+                    $st->execute([$tenant, $since]);
+                    return [$cols, $st->fetchAll(\PDO::FETCH_ASSOC) ?: []];
             }
         } catch (\Throwable $e) { return [[], []]; }
         return [[], []];

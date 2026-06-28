@@ -376,6 +376,49 @@ function predRowScore(c) {
 /* ── Deliverability Tab — 메시징 빈도캡(Frequency Capping) + 발송시간 최적화(STO) ──
  *   [현 차수] 경쟁사 Braze/Klaviyo 정합. 서버 app_setting(테넌트 격리 skey 접두)에 저장.
  *   데모는 로컬 상태만(운영 격리). 운영은 /api/crm/comms-freq GET/PUT 실배선. */
+/* [P1 커넥터 폭] CS/헬프데스크 인바운드(Zendesk·Intercom·Freshdesk·Gorgias) — cs_metrics 실DB 파생.
+   티켓 생성/해결/미해결·CSAT. 자격증명 미등록·미동기화 시 정직 빈 상태. */
+function CsMetricsTab({ t }) {
+  const [source, setSource] = React.useState('all');
+  const [data, setData] = React.useState(null);
+  const [status, setStatus] = React.useState('idle');
+  React.useEffect(() => {
+    let alive = true; setStatus('loading');
+    _gjaCrm(`/api/v426/cs/metrics?source=${source}`)
+      .then(r => { if (!alive) return; setData(r && r.ok ? r : { rows: [], totals: {} }); setStatus('done'); })
+      .catch(() => { if (alive) { setData({ rows: [], totals: {} }); setStatus('done'); } });
+    return () => { alive = false; };
+  }, [source]);
+  const rows = Array.isArray(data?.rows) ? data.rows : [];
+  const tot = data?.totals || {};
+  const nf = (n) => Number(n || 0).toLocaleString();
+  const SRC = [{ id: 'all', label: t('crm.csAll', '전체') }, { id: 'zendesk', label: 'Zendesk' }, { id: 'intercom', label: 'Intercom' }, { id: 'freshdesk', label: 'Freshdesk' }, { id: 'gorgias', label: 'Gorgias' }];
+  const cards = [
+    { label: t('crm.csCreated', '생성 티켓'), c: '#2563eb', v: nf(tot.tickets_created) },
+    { label: t('crm.csSolved', '해결 티켓'), c: '#16a34a', v: nf(tot.tickets_solved) },
+    { label: t('crm.csOpen', '미해결'), c: '#ea580c', v: nf(tot.open_tickets) },
+  ];
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={{ background: 'linear-gradient(135deg,rgba(3,54,61,0.06),rgba(37,99,235,0.05))', border: '1px solid rgba(3,54,61,0.18)', borderRadius: 14, padding: 16 }}>
+        <div style={{ fontWeight: 900, fontSize: 16, color: '#1e293b' }}>🎧 {t('crm.tabCs', 'CS 지원')}</div>
+        <div style={{ fontSize: 12, color: '#64748b', marginTop: 6, lineHeight: 1.6 }}>{t('crm.csDesc', '연동허브에서 Zendesk·Intercom·Freshdesk·Gorgias 자격증명을 등록하면 티켓·CSAT·응답시간이 인바운드 수집됩니다.')}</div>
+      </div>
+      <div style={{ display: 'flex', gap: 4, background: 'rgba(255,255,255,0.95)', borderRadius: 10, padding: 4, border: '1px solid rgba(0,0,0,0.06)', width: 'fit-content', flexWrap: 'wrap' }}>
+        {SRC.map(s => (<button key={s.id} onClick={() => setSource(s.id)} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 700, background: source === s.id ? '#03363d' : 'transparent', color: source === s.id ? '#fff' : '#475569' }}>{s.label}</button>))}
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(130px,1fr))', gap: 10 }}>
+        {cards.map((c, i) => (<div key={i} style={{ background: c.c + '0d', border: `1px solid ${c.c}22`, borderRadius: 12, padding: '12px 14px' }}><div style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>{c.label}</div><div style={{ fontSize: 18, fontWeight: 900, color: c.c, marginTop: 4 }}>{c.v}</div></div>))}
+      </div>
+      <div style={{ background: 'rgba(255,255,255,0.97)', border: '1px solid rgba(0,0,0,0.06)', borderRadius: 14, padding: 14, overflowX: 'auto' }}>
+        {status === 'loading' ? (<div style={{ textAlign: 'center', padding: 30, color: '#94a3b8', fontSize: 13 }}>{t('common.loading', '불러오는 중…')}</div>)
+          : rows.length === 0 ? (<div style={{ textAlign: 'center', padding: 36, color: '#94a3b8', fontSize: 13, lineHeight: 1.8 }}><div style={{ fontSize: 30, marginBottom: 8 }}>🔌</div>{t('crm.csEmpty', 'Zendesk·Intercom·Freshdesk·Gorgias 자격증명을 등록하면 CS 데이터가 표시됩니다.')}<div style={{ marginTop: 8 }}><button onClick={() => { window.location.href = '/api-keys'; }} style={{ padding: '6px 16px', borderRadius: 8, border: '1px solid rgba(37,99,235,0.3)', background: 'rgba(37,99,235,0.06)', color: '#2563eb', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>{t('crm.csGoConnect', '연동허브로 이동 →')}</button></div></div>)
+          : (<table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}><thead><tr style={{ borderBottom: '2px solid rgba(0,0,0,0.08)', color: '#475569', textAlign: 'right' }}><th style={{ textAlign: 'left', padding: '8px 10px' }}>{t('crm.csSource', '채널')}</th><th style={{ padding: '8px 10px' }}>{t('crm.csCreated', '생성')}</th><th style={{ padding: '8px 10px' }}>{t('crm.csSolved', '해결')}</th><th style={{ padding: '8px 10px' }}>{t('crm.csSolveRate', '해결률')}</th><th style={{ padding: '8px 10px' }}>{t('crm.csOpen', '미해결')}</th><th style={{ padding: '8px 10px' }}>CSAT</th></tr></thead><tbody>{rows.map((r, i) => (<tr key={i} style={{ borderBottom: '1px solid rgba(0,0,0,0.04)', textAlign: 'right' }}><td style={{ textAlign: 'left', padding: '7px 10px', fontWeight: 600, color: '#1e293b', textTransform: 'capitalize' }}>{r.source}</td><td style={{ padding: '7px 10px', color: '#334155' }}>{nf(r.tickets_created)}</td><td style={{ padding: '7px 10px', color: '#334155' }}>{nf(r.tickets_solved)}</td><td style={{ padding: '7px 10px', color: '#16a34a', fontWeight: 600 }}>{(Number(r.solve_rate || 0) * 100).toFixed(1)}%</td><td style={{ padding: '7px 10px', color: '#ea580c' }}>{nf(r.open_tickets)}</td><td style={{ padding: '7px 10px', color: '#334155' }}>{r.csat > 0 ? r.csat + '%' : '—'}</td></tr>))}</tbody></table>)}
+      </div>
+    </div>
+  );
+}
+
 function DeliverabilityTab({ t }) {
   const [cfg, setCfg] = React.useState({ cap: 4, window: 7, quiet_start: 21, quiet_end: 8, sto: false });
   const [loading, setLoading] = React.useState(!IS_DEMO);
@@ -896,6 +939,7 @@ function CRMContent() {
     { id: "segments", label: t('crm.tabManSeg') },
     { id: "rfm", label: t('crm.tabRfm') },
     { id: "deliverability", label: t('crm.tabDeliver', '딜리버러빌리티') },
+    { id: "cs", label: `🎧 ${t('crm.tabCs', 'CS 지원')}` },
     { id: "guide", label: t('crm.tabGuide') },
   ];
 
@@ -1047,6 +1091,7 @@ function CRMContent() {
       {tab === "segments" && <SegmentsTab segments={segments} onSave={onSaveSegment} onDelete={onDeleteSegment} onSmartSeed={onSmartSeed} onRefresh={onRefreshSegment} />}
       {tab === "rfm" && <RFMTab derivedCustomers={rfmList} />}
       {tab === "deliverability" && <DeliverabilityTab t={t} />}
+      {tab === "cs" && <CsMetricsTab t={t} />}
       {tab === "ai_segments" && <AISegmentsTab navigate={navigate} derivedCustomers={customers} />}
       {tab === "guide" && (
         <>

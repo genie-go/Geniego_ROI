@@ -1660,6 +1660,10 @@ final class ChannelSync
             case 'shopify':                         return self::shopifyReviews($creds);
             case 'naver': case 'naver_smartstore':  return self::naverReviews($creds);
             case 'coupang':                         return self::coupangReviews($creds);
+            // [P1 커넥터 폭] 리뷰 플랫폼 확대 — 전용 리뷰 SaaS·평판 채널(실 API·graceful 게이트).
+            case 'trustpilot':                      return self::trustpilotReviews($creds);
+            case 'yotpo':                           return self::yotpoReviews($creds);
+            case 'google_business': case 'google':  return self::googleBusinessReviews($creds);
             default:                                return ['reviews' => [], 'mode' => 'unsupported', 'note' => "리뷰 수집 어댑터 미지원 채널: {$channel}"];
         }
     }
@@ -1766,6 +1770,91 @@ final class ChannelSync
         // 쿠팡 WING OpenAPI 는 주문/상품/정산 중심 — 구매자 상품평(리뷰) 조회는 일반 공개 미제공(WING UI/파트너 한정).
         //   HMAC 인증 자체는 검증되어 있으므로(주문 수집과 동일), 리뷰 API 가 파트너 승인되면 동일 패턴으로 즉시 배선 가능.
         return ['reviews' => [], 'mode' => 'partner_gated', 'note' => '쿠팡 구매자 리뷰 조회 API는 파트너 승인 한정 — 승인 시 동일 HMAC 인증으로 수집 배선됩니다.'];
+    }
+
+    /** [P1 커넥터 폭] Trustpilot Business API — 비즈니스 유닛 리뷰. 자격증명: business_unit_id + api_key. */
+    private static function trustpilotReviews(array $creds): array
+    {
+        $buId = trim((string)($creds['business_unit_id'] ?? '')); $apiKey = trim((string)($creds['api_key'] ?? ''));
+        if ($buId === '' || $apiKey === '') return ['reviews' => [], 'mode' => 'no_credentials', 'note' => 'Trustpilot: business_unit_id·api_key 필요'];
+        $url = 'https://api.trustpilot.com/v1/business-units/' . rawurlencode($buId) . '/reviews?' . http_build_query(['apikey' => $apiKey, 'perPage' => 100, 'orderBy' => 'createdat.desc']);
+        [$code, $body, $err] = self::httpGet($url, ['Accept' => 'application/json']);
+        if ($err || $code >= 400) return ['reviews' => [], 'mode' => 'api_error', 'note' => "Trustpilot 조회 실패(code={$code}) — business_unit_id/api_key 확인"];
+        $reviews = [];
+        foreach ((array)($body['reviews'] ?? []) as $r) {
+            $id = (string)($r['id'] ?? '');
+            if ($id === '') continue;
+            $reviews[] = [
+                'external_review_id' => 'trustpilot_' . $id,
+                'product'     => (string)($r['referenceId'] ?? 'Trustpilot'),
+                'product_id'  => (string)($r['referenceId'] ?? ''),
+                'rating'      => (float)($r['stars'] ?? 0),
+                'title'       => self::stripHtml((string)($r['title'] ?? '')),
+                'body'        => self::stripHtml((string)($r['text'] ?? '')),
+                'author'      => (string)(($r['consumer']['displayName'] ?? '') ?: ''),
+                'reviewed_at' => (string)($r['createdAt'] ?? gmdate('c')),
+            ];
+        }
+        return ['reviews' => $reviews, 'mode' => 'live', 'note' => count($reviews) . '건 Trustpilot 리뷰 수집'];
+    }
+
+    /** [P1 커넥터 폭] Yotpo Reviews API — app_key+secret → utoken → /apps/{app_key}/reviews. */
+    private static function yotpoReviews(array $creds): array
+    {
+        $appKey = trim((string)($creds['app_key'] ?? '')); $secret = trim((string)($creds['api_secret'] ?? $creds['secret'] ?? ''));
+        if ($appKey === '' || $secret === '') return ['reviews' => [], 'mode' => 'no_credentials', 'note' => 'Yotpo: app_key·api_secret 필요'];
+        // utoken 발급(client_credentials).
+        [$tc, $tb] = self::httpPost('https://api.yotpo.com/oauth/token', ['Content-Type' => 'application/json'],
+            json_encode(['client_id' => $appKey, 'client_secret' => $secret, 'grant_type' => 'client_credentials']));
+        $utoken = (string)($tb['access_token'] ?? '');
+        if ($utoken === '') return ['reviews' => [], 'mode' => 'auth_failed', 'note' => "Yotpo 토큰 발급 실패(code={$tc}) — app_key/secret 확인"];
+        [$code, $body, $err] = self::httpGet('https://api.yotpo.com/v1/apps/' . rawurlencode($appKey) . '/reviews?' . http_build_query(['utoken' => $utoken, 'count' => 100, 'page' => 1]), ['Accept' => 'application/json']);
+        if ($err || $code >= 400) return ['reviews' => [], 'mode' => 'api_error', 'note' => "Yotpo 리뷰 조회 실패(code={$code})"];
+        $reviews = [];
+        foreach ((array)($body['reviews'] ?? []) as $r) {
+            $id = (string)($r['id'] ?? '');
+            if ($id === '') continue;
+            $prod = (array)($r['product'] ?? []);
+            $reviews[] = [
+                'external_review_id' => 'yotpo_' . $id,
+                'product'     => (string)($prod['name'] ?? ''),
+                'product_id'  => (string)($prod['external_product_id'] ?? $prod['id'] ?? ''),
+                'rating'      => (float)($r['score'] ?? 0),
+                'title'       => self::stripHtml((string)($r['title'] ?? '')),
+                'body'        => self::stripHtml((string)($r['content'] ?? '')),
+                'author'      => (string)(($r['user']['display_name'] ?? '') ?: ''),
+                'reviewed_at' => (string)($r['created_at'] ?? gmdate('c')),
+            ];
+        }
+        return ['reviews' => $reviews, 'mode' => 'live', 'note' => count($reviews) . '건 Yotpo 리뷰 수집'];
+    }
+
+    /** [P1 커넥터 폭] Google Business Profile 리뷰 — v4 reviews. 자격증명: account_id + location_id + access_token(OAuth2). */
+    private static function googleBusinessReviews(array $creds): array
+    {
+        $acct = trim((string)($creds['account_id'] ?? '')); $loc = trim((string)($creds['location_id'] ?? ''));
+        $token = trim((string)($creds['access_token'] ?? ''));
+        if ($acct === '' || $loc === '' || $token === '') return ['reviews' => [], 'mode' => 'no_credentials', 'note' => 'Google Business: account_id·location_id·access_token 필요'];
+        $url = 'https://mybusiness.googleapis.com/v4/accounts/' . rawurlencode($acct) . '/locations/' . rawurlencode($loc) . '/reviews?pageSize=50';
+        [$code, $body, $err] = self::httpGet($url, ['Authorization' => "Bearer {$token}", 'Accept' => 'application/json']);
+        if ($err || $code >= 400) return ['reviews' => [], 'mode' => 'api_error', 'note' => "Google Business 리뷰 조회 실패(code={$code}) — OAuth 토큰/위치 ID 확인"];
+        $starMap = ['ONE' => 1, 'TWO' => 2, 'THREE' => 3, 'FOUR' => 4, 'FIVE' => 5];
+        $reviews = [];
+        foreach ((array)($body['reviews'] ?? []) as $r) {
+            $id = (string)($r['reviewId'] ?? '');
+            if ($id === '') continue;
+            $reviews[] = [
+                'external_review_id' => 'gbp_' . $id,
+                'product'     => 'Google Business',
+                'product_id'  => $loc,
+                'rating'      => (float)($starMap[(string)($r['starRating'] ?? '')] ?? 0),
+                'title'       => '',
+                'body'        => self::stripHtml((string)($r['comment'] ?? '')),
+                'author'      => (string)(($r['reviewer']['displayName'] ?? '') ?: ''),
+                'reviewed_at' => (string)($r['createTime'] ?? gmdate('c')),
+            ];
+        }
+        return ['reviews' => $reviews, 'mode' => 'live', 'note' => count($reviews) . '건 Google Business 리뷰 수집'];
     }
 
     public static function pushProduct(string $channel, array $creds, array $product, string $operation, ?string $channelProductId): array

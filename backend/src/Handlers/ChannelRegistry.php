@@ -88,8 +88,23 @@ class ChannelRegistry
             ['mintegral','Mintegral','marketing','🟩','#00c389','ad',[$ftext('access_key','Access Key',false),$ftext('api_key','API Key'),$ftext('currency','과금 통화(예: USD)',false)]],
             ['yandex_ads','Yandex Direct','marketing','🟥','#ffcc00','ad',[$ftext('oauth_token','OAuth 토큰'),$ftext('client_login','클라이언트 로그인',false),$ftext('currency','과금 통화(예: RUB)',false)]],
             ['yahoo_jp_ads','Yahoo! JAPAN Ads','marketing','🟪','#ff0033','ad',[$ftext('access_token','액세스 토큰'),$ftext('account_id','계정 ID',false)]],
-            ['ga4','Google Analytics 4','marketing','📈','#e37400','none',[$ftext('property_id','GA4 속성 ID',false),$ftext('service_account_json','서비스 계정 JSON')]],
-            ['adobe_analytics','Adobe Analytics','marketing','🅰','#fa0f00','none',[$ftext('company_id','Company ID',false),$ftext('client_id','API Client ID',false),$ftext('client_secret','Client Secret'),$ftext('report_suite_id','Report Suite ID',false)]],
+            // [P1 커넥터 폭] GA4·Adobe = 웹 분석 인바운드(sync_kind='analytics'). 실 fetcher(Connectors::fetchGa4Rows/fetchAdobeAnalyticsRows)
+            //   → web_analytics_metrics(광고 performance_metrics 와 분리). currency 선택(미지정=KRW, 무변환).
+            ['ga4','Google Analytics 4','marketing','📈','#e37400','analytics',[$ftext('property_id','GA4 속성 ID',false),$ftext('service_account_json','서비스 계정 JSON'),$ftext('currency','보고 통화(예: KRW·USD)',false)]],
+            ['adobe_analytics','Adobe Analytics','marketing','🅰','#fa0f00','analytics',[$ftext('company_id','Company ID',false),$ftext('client_id','API Client ID',false),$ftext('client_secret','Client Secret'),$ftext('report_suite_id','Report Suite ID',false),$ftext('currency','보고 통화(예: KRW·USD)',false)]],
+            // [P1 커넥터 폭] CS/헬프데스크 인바운드(sync_kind='cs') → cs_metrics. 티켓/CSAT/응답시간.
+            ['zendesk','Zendesk','support','🎧','#03363d','cs',[$ftext('subdomain','서브도메인(=xxx.zendesk.com)',false),$ftext('email','에이전트 이메일',false),$ftext('api_token','API 토큰')]],
+            ['intercom','Intercom','support','💬','#1f8ded','cs',[$ftext('access_token','액세스 토큰')]],
+            ['freshdesk','Freshdesk','support','🌿','#25c16f','cs',[$ftext('domain','도메인(=xxx.freshdesk.com)',false),$ftext('api_key','API 키')]],
+            ['gorgias','Gorgias','support','🛟','#ff6f61','cs',[$ftext('domain','도메인(=xxx.gorgias.com)',false),$ftext('username','사용자명(이메일)',false),$ftext('api_key','API 키')]],
+            // [P1 커넥터 폭] 외부 ESP(이메일) 인바운드(sync_kind='esp') → esp_metrics. 발송/오픈/클릭/매출.
+            ['mailchimp','Mailchimp','marketing','🐵','#ffe01b','esp',[$ftext('api_key','API 키(-dcNN 접미 포함)')]],
+            ['klaviyo','Klaviyo','marketing','📧','#000000','esp',[$ftext('private_key','Private API Key(pk_)')]],
+            ['sendgrid','SendGrid (Twilio)','marketing','📨','#1a82e2','esp',[$ftext('api_key','API 키')]],
+            // [P1 커넥터 폭] 리뷰 플랫폼 확대(sync_kind='review') → product_review(Reviews 수집기 공용).
+            ['trustpilot','Trustpilot','support','⭐','#00b67a','review',[$ftext('business_unit_id','Business Unit ID',false),$ftext('api_key','API 키')]],
+            ['yotpo','Yotpo','support','🌟','#0042e4','review',[$ftext('app_key','App Key',false),$ftext('api_secret','API Secret')]],
+            ['google_business','Google Business 리뷰','support','📍','#4285f4','review',[$ftext('account_id','Account ID',false),$ftext('location_id','Location ID',false),$ftext('access_token','OAuth 액세스 토큰')]],
             // ── 판매(커머스) ──
             ['shopify','Shopify','sales','🛍','#95bf47','commerce',[$ftext('shop_domain','상점 도메인',false),$ftext('access_token','Admin API 토큰')]],
             ['amazon','Amazon SP-API','sales','📦','#ff9900','commerce',[$ftext('client_id','LWA Client ID',false),$ftext('client_secret','LWA Secret'),$ftext('refresh_token','Refresh Token'),$ftext('marketplace_id','마켓플레이스',false)]],
@@ -128,6 +143,16 @@ class ChannelRegistry
             try { $ins->execute([$c[0], $c[1], $c[2], $c[3], $c[4], json_encode($c[6], JSON_UNESCAPED_UNICODE), $c[5], $i * 10, $now, $now]); }
             catch (\Throwable $e) {}
         }
+        // [P1 커넥터 폭] 마이그레이션 — 기존 시드(sync_kind='none')로 들어간 GA4·Adobe 를 'analytics' 로 승격.
+        //   시드는 누락분만 INSERT 하므로 기존 행은 갱신되지 않아, 실 fetcher 도입 후 sync_kind 정합을 위해 1회 UPDATE.
+        //   currency 필드가 빠진 기존 fields_json 도 시드값으로 갱신(자격증명 입력폼에 보고통화 노출). 멱등(이미 analytics 면 no-op 효과).
+        try {
+            $up = $pdo->prepare("UPDATE channel_registry SET sync_kind='analytics', fields_json=?, updated_at=? WHERE channel_key=? AND sync_kind<>'analytics'");
+            foreach ($cat as $c) {
+                if ($c[5] !== 'analytics') continue;
+                $up->execute([json_encode($c[6], JSON_UNESCAPED_UNICODE), $now, $c[0]]);
+            }
+        } catch (\Throwable $e) {}
     }
 
     /* GET /v426/channels — 활성 채널 카탈로그(등록 UI용, 전 구독자). */

@@ -17,7 +17,7 @@ use Psr\Http\Message\ResponseInterface as Response;
 final class Reviews
 {
     /** [239차+] 리뷰 수집 지원 채널 단일소스(SSOT) — review_collect_cron + ChannelCreds 자동트리거 공용. */
-    public const REVIEW_CHANNELS = ['cafe24', 'naver', 'naver_smartstore', 'coupang', 'shopify'];
+    public const REVIEW_CHANNELS = ['cafe24', 'naver', 'naver_smartstore', 'coupang', 'shopify', 'trustpilot', 'yotpo', 'google_business'];
 
     /** 채널이 리뷰 수집 지원 채널인가(별칭 정규화 포함). */
     public static function isReviewChannel(string $channel): bool
