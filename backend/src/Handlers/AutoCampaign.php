@@ -63,6 +63,12 @@ class AutoCampaign
         // 209차 P1: guardrails 컬럼 신설(기존 테이블 멱등 ALTER) — FE가 보내던 min_roas/max_share 가
         //   저장되지 않아 사용자 리스크설정이 매번 유실되던 버그(옵티마이저는 항상 기본값 사용).
         try { $pdo->exec("ALTER TABLE auto_campaign ADD COLUMN guardrails $txt"); } catch (\Throwable $e) {}
+        // [현 차수] 적응형 입찰주기(bid cycle) — 캠페인별 다음 최적화 예정시각/직전실행/산출주기(시간).
+        //   cron(매시) 이 모든 캠페인을 매번 일괄 최적화하던 것을 변동성 기반 캠페인별 가변주기로 전환:
+        //   손실/급변 캠페인은 최속(churn 허용=빠른 회수/스케일), 안정 캠페인은 연장(불필요한 재배분 churn 방지).
+        foreach (['next_optimize_at VARCHAR(32)', 'last_optimized_at VARCHAR(32)', 'opt_cadence_hours VARCHAR(8)'] as $col) {
+            try { $pdo->exec("ALTER TABLE auto_campaign ADD COLUMN $col"); } catch (\Throwable $e) {}
+        }
         // 196차 Phase3 — 실시간 최적화 결정 로그
         try {
             $pdo->exec("CREATE TABLE IF NOT EXISTS optimization_log (
@@ -637,6 +643,70 @@ class AutoCampaign
         return ['drift' => $drift, 'z' => round($z, 2), 'recent' => round($recentMean, 2), 'baseline' => round($mean, 2), 'cov' => round($cov, 2), 'days' => $n];
     }
 
+    // ── [현 차수] 적응형 입찰주기(bid cycle) 산출 — 변동성/손실근접도 기반 캠페인별 다음 최적화 간격 ──
+    private const CAD_MIN_H  = 1.0;   // 최소 간격(시간) — 손실/급변 캠페인 최속 반응(cron 매시 floor 와 정합)
+    private const CAD_BASE_H = 12.0;  // 기본 간격(데이터 부족/판단 보류)
+    private const CAD_MAX_H  = 48.0;  // 최대 간격 — 안정 캠페인 churn 방지(불필요한 재배분 억제)
+
+    /**
+     * [현 차수] 캠페인 성과 변동성·손실근접도로 "다음 최적화까지 간격(시간)"을 산출한다.
+     *   기존: cron(매시)이 전 캠페인을 매번 일괄 최적화 → 안정 캠페인도 매시간 재배분(churn)·급변 캠페인과 무차등.
+     *   개선: 손실/하락드리프트=최속(min), 강한개선/고변동=단축, 중변동=기본미만, 안정=연장(max).
+     *   → 변동성 큰 캠페인의 실효 의사결정 주기는 단축(빠른 회수/스케일), 안정 캠페인은 연장(과최적화 억제).
+     *   bounds 는 guardrails 로 캠페인별 override(opt_min/base/max_interval_hours), opt_adaptive=false 면 base 고정.
+     * @return array{hours:float, signal:string, reason:string, cov:float}
+     */
+    public static function computeCadenceHours(array $metrics, array $gr, float $minRoas): array
+    {
+        $min  = isset($gr['opt_min_interval_hours'])  ? max(0.25, (float)$gr['opt_min_interval_hours'])  : self::CAD_MIN_H;
+        $base = isset($gr['opt_base_interval_hours']) ? max($min, (float)$gr['opt_base_interval_hours']) : max($min, self::CAD_BASE_H);
+        $max  = isset($gr['opt_max_interval_hours'])  ? max($base, (float)$gr['opt_max_interval_hours']) : max($base, self::CAD_MAX_H);
+        // 적응형 비활성(사용자 명시) → 기본 간격 고정(레거시 동작 근사·예측가능).
+        if (isset($gr['opt_adaptive']) && ($gr['opt_adaptive'] === false || $gr['opt_adaptive'] === 0 || $gr['opt_adaptive'] === '0')) {
+            return ['hours' => $base, 'signal' => 'fixed', 'reason' => '적응형 비활성(고정 주기)', 'cov' => 0.0];
+        }
+        $hasData = false; $degrading = false; $lossNear = false; $improving = false; $maxCov = 0.0;
+        foreach ($metrics as $m) {
+            if (empty($m['has_data'])) continue;
+            $hasData = true;
+            $dr = (array)($m['drift'] ?? []);
+            $cov = (float)($dr['cov'] ?? 0.0);
+            if ($cov > $maxCov) $maxCov = $cov;
+            if (($dr['drift'] ?? '') === 'degrading') $degrading = true;
+            if (($dr['drift'] ?? '') === 'improving') $improving = true;
+            $roas = (float)($m['roas'] ?? 0);
+            // 손실 근접(임계 ROAS 의 1.1배 이내) — 지출 중인데 손익분기 부근 → 빠른 재판단 필요.
+            if (($m['spend'] ?? 0) > 0 && $roas > 0 && $roas <= $minRoas * 1.1) $lossNear = true;
+        }
+        if (!$hasData)        return ['hours' => $base, 'signal' => 'no_data',   'reason' => '성과 데이터 수집 중 — 기본 주기로 점검', 'cov' => 0.0];
+        if ($degrading || $lossNear) $h = $min;                                  // 손실/하락 → 최속 회수
+        elseif ($improving || $maxCov >= 0.6) $h = max($min, $base / 4.0);        // 강한 개선/고변동 → 단축(스케일/추적)
+        elseif ($maxCov >= 0.3) $h = max($min, $base / 1.5);                      // 중간 변동 → 기본 미만
+        else $h = $max;                                                          // 안정 → 연장(churn 방지)
+        $h = max($min, min($max, $h));
+        $signal = ($degrading || $lossNear) ? 'urgent' : ($improving ? 'scaling' : ($maxCov >= 0.3 ? 'volatile' : 'stable'));
+        $reasonMap = [
+            'urgent'   => '손실/하락 신호 — 최속 재배분(' . rtrim(rtrim(number_format($h, 1), '0'), '.') . 'h)',
+            'scaling'  => '성과 개선/변동 — 주기 단축(' . rtrim(rtrim(number_format($h, 1), '0'), '.') . 'h)',
+            'volatile' => '중간 변동 — 주기 단축(' . rtrim(rtrim(number_format($h, 1), '0'), '.') . 'h)',
+            'stable'   => '성과 안정 — 주기 연장(' . rtrim(rtrim(number_format($h, 1), '0'), '.') . 'h, churn 방지)',
+        ];
+        return ['hours' => round($h, 2), 'signal' => $signal, 'reason' => $reasonMap[$signal] ?? '', 'cov' => round($maxCov, 2)];
+    }
+
+    /** [현 차수] 캠페인 적응형 주기 영속 — 다음 최적화 예정시각/직전실행/산출주기 기록(멱등·실패 무해). */
+    private static function persistCadence(PDO $pdo, int $campId, string $tenant, array $cadence): void
+    {
+        $hours = max(0.25, (float)($cadence['hours'] ?? self::CAD_BASE_H));
+        $now   = time();
+        $nowS  = gmdate('Y-m-d\TH:i:s\Z', $now);
+        $nextS = gmdate('Y-m-d\TH:i:s\Z', $now + (int)round($hours * 3600));
+        try {
+            $pdo->prepare("UPDATE auto_campaign SET next_optimize_at=?, last_optimized_at=?, opt_cadence_hours=? WHERE id=? AND tenant_id=?")
+                ->execute([$nextS, $nowS, (string)$hours, $campId, $tenant]);
+        } catch (\Throwable $e) { /* 컬럼 부재(구 스키마) 등 무해 */ }
+    }
+
     /** 캠페인 1건 최적화: 성과 분석 → 예산 재배분 + 저성과 일시정지 + 결정 로그. 양 엔드포인트·cron 공용. */
     /** 테넌트 당월(1일~오늘) 전체 광고 지출 — 전 캠페인 합산(전역 spend cap 용). */
     private static function tenantMonthlySpend(PDO $pdo, string $tenant): float
@@ -678,15 +748,16 @@ class AutoCampaign
             $metrics[$ch] = $m;
             if ($m['has_data']) $anyData = true;
         }
-        if (!$anyData) {
-            return ['optimized' => false, 'reason' => '성과 데이터가 아직 충분하지 않습니다. 채널 집행·데이터 수집 후 자동 최적화됩니다.', 'metrics' => $metrics];
-        }
-
         // ── 가드레일(캠페인별 설정 override, 202차 초고도화) ──────────────────────
         //   min_roas: 이 미만이면 손실로 보고 회수(기본 1.0). zero_conv_spend_floor: 전환 0인데
         //   이만큼 이상 지출하면 낭비로 보고 자동 정지(이상감지). max_daily: 채널 일예산 상한(과지출 가드).
+        //   [현 차수] $gr/$minRoas 는 적응형 입찰주기(cadence) 산출에 no-data 경로에서도 필요 → 선파싱.
         $gr = json_decode((string)($camp['guardrails'] ?? '{}'), true) ?: [];
         $minRoas = isset($gr['min_roas']) ? (float)$gr['min_roas'] : self::PAUSE_FLOOR;
+        if (!$anyData) {
+            return ['optimized' => false, 'reason' => '성과 데이터가 아직 충분하지 않습니다. 채널 집행·데이터 수집 후 자동 최적화됩니다.',
+                'metrics' => $metrics, 'cadence' => self::computeCadenceHours($metrics, $gr, $minRoas)];
+        }
         $zeroConvFloor = isset($gr['zero_conv_spend_floor']) ? (float)$gr['zero_conv_spend_floor'] : 50000.0;
         $maxDaily = isset($gr['max_daily']) && $gr['max_daily'] !== null ? (int)$gr['max_daily'] : 0; // 0=미적용
         // 209차 P1: max_share(채널당 예산 비중 상한, 0~1) — FE가 보내나 리더 부재로 무시되던 가드 활성화.
@@ -850,7 +921,8 @@ class AutoCampaign
             }
         } catch (\Throwable $e) {}
 
-        return ['optimized' => true, 'allocations' => $newAlloc, 'decisions' => $decisions, 'metrics' => $metrics];
+        return ['optimized' => true, 'allocations' => $newAlloc, 'decisions' => $decisions, 'metrics' => $metrics,
+            'cadence' => self::computeCadenceHours($metrics, $gr, $minRoas)];
     }
 
     /** POST /v423/auto-campaign/optimize — {id} 본 테넌트 캠페인 즉시 최적화. */
@@ -870,6 +942,8 @@ class AutoCampaign
             if (!$camp) return self::json($res, ['ok' => false, 'error' => '캠페인을 찾을 수 없습니다.'], 404);
             // 212차 #6: 데모 env 는 실 매체 집행 금지(DB 재배분 시뮬레이션만).
             $r = self::optimizeCampaign($pdo, $camp, Db::env() !== 'demo');
+            // [현 차수] 수동 즉시 최적화도 적응형 주기 갱신 → cron 이 직후 중복 재배분하지 않도록 next_optimize_at 전진.
+            if (!empty($r['cadence'])) self::persistCadence($pdo, $id, $tenant, (array)$r['cadence']);
             return self::json($res, array_merge(['ok' => true, 'id' => $id], $r));
         } catch (\Throwable $e) {
             return self::json($res, ['ok' => false, 'error' => $e->getMessage()], 500);
@@ -903,11 +977,24 @@ class AutoCampaign
         if ($pdo === null) $pdo = Db::pdo();
         self::migrate($pdo);
         $n = 0;
+        // [현 차수] 적응형 입찰주기 게이트 — next_optimize_at 이 도래한(또는 미설정=최초) 캠페인만 최적화.
+        //   cron(매시)은 자주 호출되더라도 각 캠페인은 자기 가변주기에 맞춰서만 재배분 → 안정 캠페인 churn 방지·
+        //   급변 캠페인 최속 반응. ISO8601 UTC 문자열은 사전식 비교가 시간순과 일치(드라이버 무관).
+        $nowS = gmdate('Y-m-d\TH:i:s\Z');
         try {
-            $rows = $pdo->query("SELECT * FROM auto_campaign WHERE status='active'")->fetchAll(PDO::FETCH_ASSOC) ?: [];
+            // next_optimize_at 컬럼 부재(구 스키마) 시 예외 → 전체 대상 폴백(회귀 없음).
+            try {
+                $st = $pdo->prepare("SELECT * FROM auto_campaign WHERE status='active' AND (next_optimize_at IS NULL OR next_optimize_at <= ?)");
+                $st->execute([$nowS]);
+                $rows = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+            } catch (\Throwable $e) {
+                $rows = $pdo->query("SELECT * FROM auto_campaign WHERE status='active'")->fetchAll(PDO::FETCH_ASSOC) ?: [];
+            }
             foreach ($rows as $camp) {
                 $r = self::optimizeCampaign($pdo, $camp, $allowActuate);
                 if (!empty($r['optimized'])) $n++;
+                // 데이터 유무와 무관하게 다음 주기 기록(no-data 도 cadence 반환) → 빈 캠페인 매시간 재스캔 방지.
+                if (!empty($r['cadence'])) self::persistCadence($pdo, (int)$camp['id'], (string)$camp['tenant_id'], (array)$r['cadence']);
             }
         } catch (\Throwable $e) {}
         return $n;
