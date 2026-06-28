@@ -9963,7 +9963,7 @@ export default {"paymentSuccess": {"invalidInfo":"付款資訊不正確。","ver
       mainChannels: "主要管道",
       searchPh: "例：「ビューティのInstagram広告戦略」またはマーケティング目標を入力"
     },
-  crm: {"onboardHint": "在此新增您的第一位客戶","tabDeliver": "送達率","colPredClv": "預測CLV","colChurn": "流失機率","deliverSave": "儲存設定","saving": "儲存中...","deliverQuietSummary": "{start}時~{end}時封鎖","deliverQuietEnd": "封鎖結束（時，0~23）","deliverQuietStart": "封鎖開始（時，0~23）","deliverStoEnable": "啟用夜間發送封鎖","deliverStoDesc": "啟用後，在指定的夜間時段（韓國時間）將封鎖訊息發送。保護收件人體驗與送達率。","deliverStoTitle": "發送時間最佳化（STO）— 夜間封鎖","deliverFreqSummary": "{cap}則 / {window}天","deliverWindow": "期間（天，1~90）","deliverCap": "最大發送數（1~50）","deliverFreqDesc": "在指定期間內可向單一客戶發送的最大訊息數。超過後將自動阻擋發送。","deliverFreqTitle": "發送頻率上限（Frequency Capping）","deliverIntro": "防止過度發送，預防垃圾郵件檢舉、封鎖與寄件人信譽下降。通用於郵件、Kakao、SMS發送（與競品Braze/Klaviyo同級控制）。","loading": "載入中...","deliverSaveErr": "儲存失敗：請檢查權限或網路","deliverSaved": "已儲存（示範）","smartSeed": "智慧分群自動生成（VIP·忠誠·新客·流失風險·休眠）","segRecency": "距上次購買天數","segFreq": "購買次數",
+  crm: { "tabCs": "CS 支援", "csDesc": "在整合中心註冊 Zendesk·Intercom·Freshdesk·Gorgias 憑證後，工單、CSAT 與回覆時間將進行傳入收集。", "csAll": "全部", "csCreated": "建立工單", "csSolved": "已解決工單", "csOpen": "未解決", "csSolveRate": "解決率", "csSource": "管道", "csEmpty": "註冊 Zendesk·Intercom·Freshdesk·Gorgias 憑證後，CS 資料將顯示於此。", "csGoConnect": "前往整合中心 →","onboardHint": "在此新增您的第一位客戶","tabDeliver": "送達率","colPredClv": "預測CLV","colChurn": "流失機率","deliverSave": "儲存設定","saving": "儲存中...","deliverQuietSummary": "{start}時~{end}時封鎖","deliverQuietEnd": "封鎖結束（時，0~23）","deliverQuietStart": "封鎖開始（時，0~23）","deliverStoEnable": "啟用夜間發送封鎖","deliverStoDesc": "啟用後，在指定的夜間時段（韓國時間）將封鎖訊息發送。保護收件人體驗與送達率。","deliverStoTitle": "發送時間最佳化（STO）— 夜間封鎖","deliverFreqSummary": "{cap}則 / {window}天","deliverWindow": "期間（天，1~90）","deliverCap": "最大發送數（1~50）","deliverFreqDesc": "在指定期間內可向單一客戶發送的最大訊息數。超過後將自動阻擋發送。","deliverFreqTitle": "發送頻率上限（Frequency Capping）","deliverIntro": "防止過度發送，預防垃圾郵件檢舉、封鎖與寄件人信譽下降。通用於郵件、Kakao、SMS發送（與競品Braze/Klaviyo同級控制）。","loading": "載入中...","deliverSaveErr": "儲存失敗：請檢查權限或網路","deliverSaved": "已儲存（示範）","smartSeed": "智慧分群自動生成（VIP·忠誠·新客·流失風險·休眠）","segRecency": "距上次購買天數","segFreq": "購買次數",
     "supTitle":"取消訂閱 / 封鎖清單","supDesc":"取消訂閱、退信或投訴的地址將永久排除發送，可手動增刪。","supUnsub":"取消訂閱","supManual":"手動","supBounce":"退信","supComplaint":"投訴","supEmpty":"無封鎖地址","supAddPh":"要封鎖的郵箱","supAdd":"新增封鎖","supColEmail":"郵箱","supColReason":"原因","supColDate":"時間","supRemove":"移除","cohortTitle":"同期留存（註冊月×回購率）","cohortDesc":"各註冊月份群組在之後N個月的回購率，用留存曲線診斷忠誠度與LTV趨勢。","cohortEmpty":"暫無同期數據（註冊與購買記錄累積後顯示）。","cohortCol":"註冊月","cohortSize":"人數",
       "segRefresh": "重新計算成員（依即時資料同步）",
 
@@ -11908,7 +11908,7 @@ export default {"paymentSuccess": {"invalidInfo":"付款資訊不正確。","ver
       guideStep20Desc: "與團隊分享旅程成效資料，並運用於週報・月報。",
       guideStartBtn: "開始使用"
     },
-  channelKpiPage: {
+  channelKpiPage: { "tabWeb": "網站分析", "webDesc": "在整合中心註冊 Google Analytics 4·Adobe Analytics 憑證後，工作階段、使用者、轉換與營收會依管道分組與來源/媒介進行傳入收集。這是與廣告成效分離的流量分析。", "webSrcAll": "全部", "webByChannel": "管道分組", "webBySource": "來源/媒介", "webByDate": "日期", "webSessions": "工作階段", "webUsers": "使用者", "webPageviews": "頁面瀏覽量", "webConversions": "轉換", "webConvRate": "轉換率", "webRevenue": "營收", "webEmpty": "註冊 GA4·Adobe Analytics 憑證後，網站分析資料將顯示於此。", "webGoConnect": "前往整合中心 →",
       tabGoals: "1. 目標與角色 (Goals)",
       tabRoles: "2. 角色分配 (Roles)",
       tabSetup: "3. 目標設定 (Setup)",
@@ -13989,7 +13989,7 @@ export default {"paymentSuccess": {"invalidInfo":"付款資訊不正確。","ver
       totalSize: "Total Size",
       totalTables: "Total Tables"
     },
-  email: {"onboardHint": "在此建立您的郵件範本",
+  email: { "tabEsp": "ESP 整合", "espDesc": "在整合中心註冊 Mailchimp·Klaviyo·SendGrid 憑證後，寄送、開啟、點擊與營收將進行傳入收集，並與自有寄送成效整合視覺化。", "espAll": "全部", "espDelivered": "送達", "espOpens": "開啟", "espClicks": "點擊", "espCampaigns": "行銷活動", "espEmpty": "註冊 Mailchimp·Klaviyo·SendGrid 憑證後，ESP 成效將顯示於此。", "espGoConnect": "前往整合中心 →", "espSource": "管道", "espOpenRate": "開啟率", "espClickRate": "點擊率","onboardHint": "在此建立您的郵件範本",
     "delivTitle": '送達健康度',
     "delivGood": '良好',
     "delivWarn": '注意',

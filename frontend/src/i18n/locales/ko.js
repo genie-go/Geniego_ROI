@@ -4168,7 +4168,7 @@ export default {"paymentSuccess": {"invalidInfo":"결제 정보가 올바르지 
     tabGuide: "이용 가이드",
   },
 
-  "email": {"onboardHint": "여기서 이메일 템플릿을 만드세요", "repTrendTitle": "딜리버러빌리티 평판 추이", "repGood": "양호", "repWarn": "주의", "repRisk": "위험", "repBounce": "바운스율", "repComplaint": "스팸신고율", "repOpen": "오픈율", "repNote": "평판 시계열은 일별 스냅샷 누적 후 표시됩니다(현재값은 7일 롤링).", "repMethod": "7일 롤링 발신자 평판(바운스×8 + 스팸신고×80 페널티, 100점)·일별 스냅샷 시계열. SPF/DMARC·리스트 위생이 점수를 좌우합니다.",
+  "email": { "tabEsp": "ESP 연동", "espDesc": "연동허브에서 Mailchimp·Klaviyo·SendGrid 자격증명을 등록하면 발송·오픈·클릭·매출이 인바운드 수집됩니다. 자체 발송 성과와 함께 통합 가시화합니다.", "espAll": "전체", "espDelivered": "전달", "espOpens": "오픈", "espClicks": "클릭", "espCampaigns": "캠페인", "espEmpty": "Mailchimp·Klaviyo·SendGrid 자격증명을 등록하면 ESP 성과가 표시됩니다.", "espGoConnect": "연동허브로 이동 →", "espSource": "채널", "espOpenRate": "오픈율", "espClickRate": "클릭율","onboardHint": "여기서 이메일 템플릿을 만드세요", "repTrendTitle": "딜리버러빌리티 평판 추이", "repGood": "양호", "repWarn": "주의", "repRisk": "위험", "repBounce": "바운스율", "repComplaint": "스팸신고율", "repOpen": "오픈율", "repNote": "평판 시계열은 일별 스냅샷 누적 후 표시됩니다(현재값은 7일 롤링).", "repMethod": "7일 롤링 발신자 평판(바운스×8 + 스팸신고×80 페널티, 100점)·일별 스냅샷 시계열. SPF/DMARC·리스트 위생이 점수를 좌우합니다.",
     "delivTitle": '딜리버러빌리티 건강도',
     "delivGood": '양호',
     "delivWarn": '주의',

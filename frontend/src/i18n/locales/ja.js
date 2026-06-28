@@ -3331,7 +3331,7 @@ export default {"paymentSuccess": {"invalidInfo":"決済情報が正しくあり
     "poStatusReceived": "入庫完了",
     "poStatusCancelled": "キャンセル",
   },
-  "email": {"onboardHint": "ここでメールテンプレートを作成してください",
+  "email": { "tabEsp": "ESP連携", "espDesc": "連携ハブでMailchimp・Klaviyo・SendGridの認証情報を登録すると、配信・開封・クリック・売上がインバウンド収集されます。自社配信の成果とあわせて統合的に可視化します。", "espAll": "すべて", "espDelivered": "配信", "espOpens": "開封", "espClicks": "クリック", "espCampaigns": "キャンペーン", "espEmpty": "Mailchimp・Klaviyo・SendGridの認証情報を登録すると、ESP成果が表示されます。", "espGoConnect": "連携ハブへ移動 →", "espSource": "チャネル", "espOpenRate": "開封率", "espClickRate": "クリック率","onboardHint": "ここでメールテンプレートを作成してください",
     "delivTitle": '到達性ヘルス',
     "delivGood": '良好',
     "delivWarn": '注意',
@@ -12065,7 +12065,7 @@ export default {"paymentSuccess": {"invalidInfo":"決済情報が正しくあり
       "metaEu": "[유럽팀] 목표: 비용 효율화. 제언: 전환단가(CPA)가 무려 ₩13,333으로 과도하게 높습니다. 입찰가를 하향 조정하고, 지역 타겟 고객층에 맞는 신규 소재(Creative)로 즉각 교체하세요."
     }
   },
-  "crm": {"onboardHint": "ここで最初の顧客を追加してください","tabDeliver": "配信到達率","colPredClv": "予測CLV","colChurn": "離脱確率","deliverSave": "設定を保存","saving": "保存中...","deliverQuietSummary": "{start}時〜{end}時ブロック","deliverQuietEnd": "ブロック終了（時、0〜23）","deliverQuietStart": "ブロック開始（時、0〜23）","deliverStoEnable": "夜間送信ブロックを使用","deliverStoDesc": "有効にすると、指定した夜間時間帯（韓国時間基準）にはメッセージ送信がブロックされます。受信者の体験と到達率を保護します。","deliverStoTitle": "送信時間最適化（STO）— 夜間ブロック","deliverFreqSummary": "{cap}件 / {window}日","deliverWindow": "期間（日、1〜90）","deliverCap": "最大送信件数（1〜50）","deliverFreqDesc": "指定した期間内に1人の顧客へ送信できる最大メッセージ数です。超過すると自動送信がブロックされます。","deliverFreqTitle": "送信頻度の上限（Frequency Capping）","deliverIntro": "過剰送信を防ぎ、スパム報告・ブロック・送信者評価の低下を予防します。メール・カカオ・SMS送信に共通適用されます（競合のBraze/Klaviyoと同等の制御）。","loading": "読み込み中...","deliverSaveErr": "保存に失敗しました：権限またはネットワークを確認してください","deliverSaved": "保存しました（デモ）","smartSeed": "スマートセグメント自動生成（VIP・ロイヤル・新規・離脱リスク・休眠）","segRecency": "最終購入からの経過日数","segFreq": "購入回数",
+  "crm": { "tabCs": "CSサポート", "csDesc": "連携ハブでZendesk・Intercom・Freshdesk・Gorgiasの認証情報を登録すると、チケット・CSAT・応答時間がインバウンド収集されます。", "csAll": "すべて", "csCreated": "作成チケット", "csSolved": "解決チケット", "csOpen": "未解決", "csSolveRate": "解決率", "csSource": "チャネル", "csEmpty": "Zendesk・Intercom・Freshdesk・Gorgiasの認証情報を登録すると、CSデータが表示されます。", "csGoConnect": "連携ハブへ移動 →","onboardHint": "ここで最初の顧客を追加してください","tabDeliver": "配信到達率","colPredClv": "予測CLV","colChurn": "離脱確率","deliverSave": "設定を保存","saving": "保存中...","deliverQuietSummary": "{start}時〜{end}時ブロック","deliverQuietEnd": "ブロック終了（時、0〜23）","deliverQuietStart": "ブロック開始（時、0〜23）","deliverStoEnable": "夜間送信ブロックを使用","deliverStoDesc": "有効にすると、指定した夜間時間帯（韓国時間基準）にはメッセージ送信がブロックされます。受信者の体験と到達率を保護します。","deliverStoTitle": "送信時間最適化（STO）— 夜間ブロック","deliverFreqSummary": "{cap}件 / {window}日","deliverWindow": "期間（日、1〜90）","deliverCap": "最大送信件数（1〜50）","deliverFreqDesc": "指定した期間内に1人の顧客へ送信できる最大メッセージ数です。超過すると自動送信がブロックされます。","deliverFreqTitle": "送信頻度の上限（Frequency Capping）","deliverIntro": "過剰送信を防ぎ、スパム報告・ブロック・送信者評価の低下を予防します。メール・カカオ・SMS送信に共通適用されます（競合のBraze/Klaviyoと同等の制御）。","loading": "読み込み中...","deliverSaveErr": "保存に失敗しました：権限またはネットワークを確認してください","deliverSaved": "保存しました（デモ）","smartSeed": "スマートセグメント自動生成（VIP・ロイヤル・新規・離脱リスク・休眠）","segRecency": "最終購入からの経過日数","segFreq": "購入回数",
     "supTitle":"配信停止 / ブロックリスト","supDesc":"配信停止・バウンス・苦情のアドレスは送信から永久に除外されます。手動で追加/解除できます。","supUnsub":"配信停止","supManual":"手動","supBounce":"バウンス","supComplaint":"苦情","supEmpty":"ブロックなし","supAddPh":"ブロックするメール","supAdd":"追加","supColEmail":"メール","supColReason":"理由","supColDate":"日時","supRemove":"解除","cohortTitle":"コホート維持率（登録月×再購入率）","cohortDesc":"登録月ごとのグループの以降Nか月の再購入率です。維持曲線で忠誠度・LTV傾向を診断します。","cohortEmpty":"コホートデータはまだありません（登録・購入履歴が蓄積されると表示）。","cohortCol":"登録月","cohortSize":"人数",
       "segRefresh": "メンバーシップ再計算（実データ基準で同期）",
 
@@ -14099,7 +14099,7 @@ export default {"paymentSuccess": {"invalidInfo":"決済情報が正しくあり
     "guideStep20Desc": "成果データをチームと共有しレポートに活用。",
     "guideStartBtn": "開始"
 },
-  "channelKpiPage": {
+  "channelKpiPage": { "tabWeb": "Web分析", "webDesc": "連携ハブでGoogle Analytics 4・Adobe Analyticsの認証情報を登録すると、セッション・ユーザー・コンバージョン・売上がチャネルグループ・参照元/メディア別にインバウンド収集されます。広告成果とは分離した流入分析です。", "webSrcAll": "すべて", "webByChannel": "チャネルグループ", "webBySource": "参照元/メディア", "webByDate": "日付", "webSessions": "セッション", "webUsers": "ユーザー", "webPageviews": "ページビュー", "webConversions": "コンバージョン", "webConvRate": "コンバージョン率", "webRevenue": "売上", "webEmpty": "GA4・Adobe Analyticsの認証情報を登録すると、Web分析データがここに表示されます。", "webGoConnect": "連携ハブへ移動 →",
     "tabGoals": "1. 목표 및 역할 (Goals)",
     "tabRoles": "2. 역할 할당 (Roles)",
     "tabSetup": "3. 목표 설정 (Setup)",

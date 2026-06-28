@@ -5069,7 +5069,7 @@ export default {"paymentSuccess": {"invalidInfo":"支付信息不正确。","ver
     "poStatusReceived": "已收货",
     "poStatusCancelled": "已取消",
   },
-  "email": {"onboardHint": "在此创建您的邮件模板",
+  "email": { "tabEsp": "ESP 集成", "espDesc": "在集成中心注册 Mailchimp·Klaviyo·SendGrid 凭证后，发送、打开、点击和收入将进行入站采集，并与自有发送效果统一可视化。", "espAll": "全部", "espDelivered": "送达", "espOpens": "打开", "espClicks": "点击", "espCampaigns": "营销活动", "espEmpty": "注册 Mailchimp·Klaviyo·SendGrid 凭证后，ESP 效果将显示在此处。", "espGoConnect": "前往集成中心 →", "espSource": "渠道", "espOpenRate": "打开率", "espClickRate": "点击率","onboardHint": "在此创建您的邮件模板",
     "delivTitle": '送达健康度',
     "delivGood": '良好',
     "delivWarn": '注意',
@@ -12187,7 +12187,7 @@ export default {"paymentSuccess": {"invalidInfo":"支付信息不正确。","ver
       "metaEu": "[유럽팀] 목표: 비용 효율화. 제언: 전환단가(CPA)가 무려 ₩13,333으로 과도하게 높습니다. 입찰가를 하향 조정하고, 지역 타겟 고객층에 맞는 신규 소재(Creative)로 즉각 교체하세요."
     }
   },
-  "crm": {"onboardHint": "在此添加您的第一位客户","tabDeliver": "送达率","colPredClv": "预测CLV","colChurn": "流失概率","deliverSave": "保存设置","saving": "保存中...","deliverQuietSummary": "{start}时~{end}时屏蔽","deliverQuietEnd": "屏蔽结束（时，0~23）","deliverQuietStart": "屏蔽开始（时，0~23）","deliverStoEnable": "启用夜间发送屏蔽","deliverStoDesc": "启用后，在指定的夜间时段（韩国时间）将屏蔽消息发送。保护收件人体验与送达率。","deliverStoTitle": "发送时间优化（STO）— 夜间屏蔽","deliverFreqSummary": "{cap}条 / {window}天","deliverWindow": "期间（天，1~90）","deliverCap": "最大发送数（1~50）","deliverFreqDesc": "在指定期间内可向单个客户发送的最大消息数。超过后将自动阻止发送。","deliverFreqTitle": "发送频率上限（Frequency Capping）","deliverIntro": "防止过度发送，预防垃圾邮件举报、屏蔽和发件人信誉下降。通用于邮件、Kakao、SMS发送（与竞品Braze/Klaviyo同级控制）。","loading": "加载中...","deliverSaveErr": "保存失败：请检查权限或网络","deliverSaved": "已保存（演示）","smartSeed": "智能细分自动生成（VIP·忠诚·新客·流失风险·休眠）","segRecency": "距上次购买天数","segFreq": "购买次数",
+  "crm": { "tabCs": "CS 支持", "csDesc": "在集成中心注册 Zendesk·Intercom·Freshdesk·Gorgias 凭证后，工单、CSAT 和响应时间将进行入站采集。", "csAll": "全部", "csCreated": "创建工单", "csSolved": "已解决工单", "csOpen": "未解决", "csSolveRate": "解决率", "csSource": "渠道", "csEmpty": "注册 Zendesk·Intercom·Freshdesk·Gorgias 凭证后，CS 数据将显示在此处。", "csGoConnect": "前往集成中心 →","onboardHint": "在此添加您的第一位客户","tabDeliver": "送达率","colPredClv": "预测CLV","colChurn": "流失概率","deliverSave": "保存设置","saving": "保存中...","deliverQuietSummary": "{start}时~{end}时屏蔽","deliverQuietEnd": "屏蔽结束（时，0~23）","deliverQuietStart": "屏蔽开始（时，0~23）","deliverStoEnable": "启用夜间发送屏蔽","deliverStoDesc": "启用后，在指定的夜间时段（韩国时间）将屏蔽消息发送。保护收件人体验与送达率。","deliverStoTitle": "发送时间优化（STO）— 夜间屏蔽","deliverFreqSummary": "{cap}条 / {window}天","deliverWindow": "期间（天，1~90）","deliverCap": "最大发送数（1~50）","deliverFreqDesc": "在指定期间内可向单个客户发送的最大消息数。超过后将自动阻止发送。","deliverFreqTitle": "发送频率上限（Frequency Capping）","deliverIntro": "防止过度发送，预防垃圾邮件举报、屏蔽和发件人信誉下降。通用于邮件、Kakao、SMS发送（与竞品Braze/Klaviyo同级控制）。","loading": "加载中...","deliverSaveErr": "保存失败：请检查权限或网络","deliverSaved": "已保存（演示）","smartSeed": "智能细分自动生成（VIP·忠诚·新客·流失风险·休眠）","segRecency": "距上次购买天数","segFreq": "购买次数",
     "supTitle":"退订 / 屏蔽列表","supDesc":"退订、退信或投诉的地址将永久排除发送，可手动增删。","supUnsub":"退订","supManual":"手动","supBounce":"退信","supComplaint":"投诉","supEmpty":"无屏蔽地址","supAddPh":"要屏蔽的邮箱","supAdd":"添加屏蔽","supColEmail":"邮箱","supColReason":"原因","supColDate":"时间","supRemove":"移除","cohortTitle":"同期留存（注册月×复购率）","cohortDesc":"各注册月份群组在之后N个月的复购率，用留存曲线诊断忠诚度与LTV趋势。","cohortEmpty":"暂无同期数据（注册与购买记录积累后显示）。","cohortCol":"注册月","cohortSize":"人数",
       "segRefresh": "重新计算成员（按实时数据同步）",
 
@@ -13786,7 +13786,7 @@ export default {"paymentSuccess": {"invalidInfo":"支付信息不正确。","ver
     "guideStep20Desc": "与团队共享数据用于周报/月报。",
     "guideStartBtn": "开始构建"
 },
-  "channelKpiPage": {
+  "channelKpiPage": { "tabWeb": "网站分析", "webDesc": "在集成中心注册 Google Analytics 4·Adobe Analytics 凭证后，会话、用户、转化和收入将按渠道分组和来源/媒介进行入站采集。这是独立于广告效果的流量分析。", "webSrcAll": "全部", "webByChannel": "渠道分组", "webBySource": "来源/媒介", "webByDate": "日期", "webSessions": "会话", "webUsers": "用户", "webPageviews": "页面浏览量", "webConversions": "转化", "webConvRate": "转化率", "webRevenue": "收入", "webEmpty": "注册 GA4·Adobe Analytics 凭证后，网站分析数据将显示在此处。", "webGoConnect": "前往集成中心 →",
     "tabGoals": "1. 목표 및 역할 (Goals)",
     "tabRoles": "2. 역할 할당 (Roles)",
     "tabSetup": "3. 목표 설정 (Setup)",
