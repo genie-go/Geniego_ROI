@@ -1,3 +1,59 @@
+# 247차 세션 인계서 — **챗봇 초고도화(전체 용어설명·메뉴 단계별 이용법·채널 API키 발급 링크·플랫폼 강점소개 15개국) + i18n 한글누출 712키 현지화 + 경쟁사 재검증 보고서**
+
+> **작성일**: 2026-06-28 (사용자 명시 승인) · 운영 roi.genie-go.com / 데모 roidemo.genie-go.com · primary=**E:\project\GeniegoROI** · 브랜치 `feat/n236-admin-growth-automation` · ★**master 미접촉** · **origin push 완료**(909c8980ff4→1bef1cb9ea8, 5커밋).
+> 발단: 246차 인계서 우선순위 P1(챗봇 용어설명)·P2(15개국 i18n)·P3(경쟁사 재검증) 실행 + 사용자 추가요구(챗봇을 ChatGPT급 메뉴 단계별 이용법·채널 API키 발급 링크안내·플랫폼 강점소개로 초고도화).
+
+## ✅ 247차 완료 (전부 운영/데모 배포·HTTPS 라이브 검증·브랜치 push)
+
+**P1) 챗봇 "무엇이든 물어보세요" 용어설명 초고도화** (`7da1c2b400d`)
+- ★사용자 정정: 50선 용어집은 **참고자료**일 뿐, GeniegoROI **모든 용어**를 그 깊이로 **15개국 현지 자연어**.
+- 신규 `backend/src/GeniegoGlossary.php`(용어집 50선 SSOT, `api_manuals/..._용어설명.html` 파싱). `ClaudeAI::assistant` 시스템프롬프트에 **TERMINOLOGY EXPERT MODE** + 용어집 주입(무엇이다→쉽게말하면→GeniegoROI에서는 3분할·응답언어 현지화). 프론트 폴백 `genieGlossary.js`(별도 청크 동적import).
+- 라이브 검증: 운영·데모 양쪽 ai=True(키 설정됨). ROAS·attribution(en)·**FEFO(50선外 용어)** 현지 자연어 상세 실증.
+
+**P2) i18n 15개국 현지 자연어** (`2e1c8631fec` + `b764721f897`)
+- 246차 신규 46키(push6·cro device/visitor 8·liveCommerce poll10) 13개국 누락 → 현지화.
+- ★**정밀 분석으로 "대량 leaf-diff 2,716"가 ~99% 영어폴백/dead = 불필요(중복작업)임을 확정**(사용자 지적 정확). useI18n 폴백체인=locale→en→pages접두→inline fallback. 진짜 갭=**712 한글누출**(컴포넌트 `t('key','한글fallback')`·ko.js에도 없음·en에도 없어 비한국어 사용자에 **항상 한글**: ApiKeys 85·P&L 68·프로필 58·PriceMatrix 53·AutoCampaign 50·croGuide 48·AIDesign 38·MFA 28·CRM 24·결제완료 21 등).
+- 712를 **멀티에이전트 워크플로우**(26배치+재번역1)로 14개국 번역 → **acorn AST 정밀주입**(ko=한글원본·en+13=네이티브, 기존 도달가능 키 무회귀). G6 collision-free 15/15.
+- ★**pmx 53키 flat-dotted dead 저장 트랩**(`pmx["res.title"]`=deepGet 도달불가) → dead flat 제거 + nested 주입으로 런타임 도달가능하게 정합(잠복버그 수정). G2 ja/zh sacred SHA·G5 ko_leaf(18245) baseline 갱신.
+
+**P3) 경쟁사 재검증 보고서** (`f678bf1d1fd`)
+- `docs/COMPETITIVE_REVALIDATION_247.md`. 14개 도메인 100점 평가표·종합 **87.8/100**(이상적 합성 경쟁사 89.9, −2.1). 전제="자격증명만 등록하면 즉시실행"=코드완비 점수인정.
+- 해자: **순이익 P&L 통합(+12)**·도메인 통합범위·AI(+2)·글로벌 i18n(+2). 경쟁사군=Triple Whale/Northbeam/Polar·Adverity/Supermetrics/Funnel·Klaviyo·Channel Advisor/Linnworks·사방넷/플레이오토·Bambuser/Firework.
+
+**P1+) 챗봇 ChatGPT급 초고도화 — 메뉴 단계별 이용법·채널 API키 발급(링크)·플랫폼 강점소개** (`1bef1cb9ea8`)
+- 사용자 추가요구. 신규 `backend/src/GeniegoKnowledge.php`(챗봇 지식 SSOT, KO원본):
+  · `issuance()`=**71채널** API키 발급 따라하기(번호 단계 + 공식 링크) — 프론트 `data/issuanceGuide.js`(ISSUANCE_GUIDE_KO) 파싱.
+  · `menuGuides()`=13메뉴 초보자 이용가이드 — 프론트 `lib/guideSpecs.js`(GUIDE) 파싱.
+  · `platformPitch()`="GeniegoROI란?" 강점소개(통합·실순이익·데이터 무손실).
+- `ClaudeAI::assistant`에 **BEGINNER HOW-TO MODE** 주입: 초보자 가정(용어 인라인설명)·번호 단계별(어디서→무엇을→**체크포인트** "이 단계 끝나면 ~화면")·발급 공식링크·"GeniegoROI란?"=강점만(경쟁사 일부 vs 전체통합·실순이익). KO원본→AI가 15개국 현지렌더.
+- ★기존 자산 재사용(발명0): `issuanceGuide.<lang>.js`(15국 발급가이드)·`guideSpecs.js`(메뉴가이드).
+- 라이브 검증(운영+데모 ai=True): Meta/TikTok/쿠팡 발급(준비물·단계·🔗링크·✅체크포인트)·정산대조 메뉴howto·What is GeniegoROI(en 강점피치)·ja발급.
+
+## ★247차 핵심 트랩/교훈
+- **i18n leaf-diff 오해 금지** → 진짜 한글누출 판별: 컴포넌트 `t('key','한글fb')` 중 `deepGet(en,key)===undefined`인 것. topbar류는 별도 `fallback` 필드(영어)라 비-갭. [[reference-i18n-real-leak-detection]].
+- **flat-dotted dead키 트랩**(pmx): ns가 `"sub.leaf"` 평면키로 저장되면 deepGet(`.`split) 도달불가=항상 폴백. nested 주입 시 G6 collision → dead flat 제거(acorn) + nested 추가.
+- **챗봇 타임아웃 트랩**: 상세 단계별 답변은 생성시간↑ → `complete` 타임아웃 22초로는 초과해 **ai:false(len0)**. 60초 + `set_time_limit(75)`로 해소(캐싱/quota 무관, 타임아웃이 진짜원인).
+- **프롬프트 캐싱(GA)**: `'system'=>[['type'=>'text','text'=>$sys,'cache_control'=>['type'=>'ephemeral']]]` — 대형 정적 시스템프롬프트 입력토큰 비용절감. 전 호출자 후방호환.
+- 기존 유지: 신규핸들러/클래스 = `systemctl restart php8.1-fpm`(opcache reload 무효, PSR-4는 dump 불요)·`/v422/ai/*` 익명 401=비용보호(정상)·PS5.1 한글 .ps1 mojibake→ASCII스크립트+UTF-8 파일분리·배포 plink/pscp(자격증명 메모리 파싱, 평문 비노출)·G2/G5 baseline 갱신·acorn AST 주입(원본/주석 보존, offset 내림차순).
+
+## 🔜 다음 차수 우선순위 (P3 §5 경쟁약점 보강 — 순서대로)
+
+> ★대부분 격차는 **외부 라이브 활성화/인증 절차**이며 코드 기반은 마련됨. "자격증명만 등록하면 즉시실행" 전제에서 잠재 90+.
+
+**P1. 데이터수집/커넥터 폭 확장 (격차 −11, 최대)** — 이메일/리뷰/CS/BI 커넥터 추가(경쟁사 Supermetrics 150+ 대비)·기존 커넥터 라이브 자격증명 검증 표본↑·커넥터 카탈로그 UX.
+
+**P2. 라이브커머스 미디어플레인 (−8)** — 외부 미디어서버(SRS/LiveKit, WHIP/WHEP) 라이브 연동 검증·멀티게스트 영상합성 E2E(현재 control-plane만 코드, 미디어 infra만 대기).
+
+**P3. 보안/거버넌스 인증 (−7)** — SOC2 Type II / ISO27001 외부 감사 인증·SIEM 감사익스포트·MFA 강제 정책(코드 기반은 마련, 인증 절차).
+
+**P4. MMM/증분성 고도화 (−5)** — adstock/포화 하이퍼파라미터 자동탐색(Robyn급)·MTA↔MMM 캘리브레이션 일원화.
+
+**P5. CRM/리텐션 (−5)** — 프리빌트 플로우 라이브러리·딜리버러빌리티 운영 대시보드 심화.
+
+**기타 잔여(소)**: 챗봇 프론트 폴백(genieGlossary)에 메뉴howto/발급가이드 보강(현재 AI경로만 상세, 데모는 ai=True라 영향 미미)·발송 인프라 DNS(PTR/SPF/DKIM/DMARC) 완성·전수 dead-flat 키 추가점검(pmx 외 동일패턴 ns 있는지).
+
+---
+
 # 246차 세션 인계서 — **구독 5티어 전면 초고도화 (경쟁사 앵커 가격추천·계정수×기간·무료쿠폰·1개월 환불+소급 / 진짜 차등 메뉴접근 + 상세설명 + 자동체크 / 양 DB 직접 시드 라이브 / 광고성과 그래프 버그 + 11메뉴 초보가이드)**
 
 > **작성일**: 2026-06-27 (사용자 명시 승인) · 운영 roi.genie-go.com / 데모 roidemo.genie-go.com · primary=**E:\project\GeniegoROI** · 브랜치 `feat/n236-admin-growth-automation` · ★**master 미접촉**.
