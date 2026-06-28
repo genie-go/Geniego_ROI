@@ -265,6 +265,10 @@ export default function AccountPerformance() {
             real.push({ date: dStr, awareness: Math.floor(aw), consideration: Math.floor(cons), conversion: Math.floor(cv) });
         }
         if (hasHistory) return real;
+        // [정밀감사] 실 일별 history 부재 시 합성 추이는 데모 전용 — 운영은 가짜 일별 모양을 그리지 않고
+        //   빈 배열 반환(239차 DashChannelKPI/DashMarketing IS_DEMO?sin:1 게이트와 동일 클래스 정합).
+        //   운영에서 차트는 "일별 추이 데이터 없음"으로 정직 표시(총합 KPI는 별도 실값 유지).
+        if (!isDemoMode) return [];
         // 데모 합성 — objective별 (기간 스코프된) 총액을 윈도우 일수에 결정적 분배
         const tot = { Awareness: 0, Consideration: 0, Conversion: 0 };
         ACTIVE_META_DATA.forEach(c => { if (tot[c.objective] != null) tot[c.objective] += c.spend; });

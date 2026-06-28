@@ -2991,3 +2991,47 @@ i18n 15국 70키 acorn splice(신규 ns freshness/pwa/cro+기존 email/attrData/
 - harness 검증=reflection으로 private 메서드 실증 후 테스트 테넌트/행 정리(po_products NOT NULL=product_name/created_at 주의).
 
 (★본 인계서 = 사용자 명시 승인. 자격증명 평문노출 0. master push 미실행. 전 커밋 feat/n236 브랜치.)
+
+---
+
+# 249차 — 5도메인 전수 정밀감사(오탐0) + 확정결함 6 + 마케팅 실집행 초고도화 3 (운영/데모 배포·라이브검증)
+
+## 0. 감사 방법 / 결론
+- 245차까지 누적 **오탐 레지스트리**(reference_audit_false_positives.md)를 5개 병렬 에이전트에 주입(재플래그 금지 목록 포함) → 각 발견에 `file:line` 코드인용 강제 → **PM이 직접 코드 read 로 재증명**한 것만 확정(오탐 즉시 기각).
+- **결론: P0/P1(데이터정합·보안·오염) = 0건**(플랫폼 성숙). 판매22종·광고20종 실 API·ChannelRegistry admin CRUD·자격증명→7종 자동sync 대칭·4중 오염방어·markov/UCB/A-B베이지안·머니경로 멱등 SSOT 전부 양호 재확인.
+
+## 1. 확정 결함 6건 — 수정·운영/데모 배포·라이브검증 완료
+1. **[Med] CS/ESP 자격증명 자가치유 cron 부재** → `bin/cs_sync_cron.php`·`bin/esp_sync_cron.php` 신설(tenantsWithCsCreds/EspCreds 호출자0 해소). 라이브 crontab 에 analytics/cs/esp 추가(백업 후 비파괴).
+2. **[Med] install_crontab.sh SSOT stale**(러너20 중 미등록) → analytics/cs/esp/crm_email_daily/rule_engine/webhook_dispatch 등록. **+ `bin/check_cron_ssot.sh` 신설**(러너↔installer 정합 가드, 재발방지). 라이브엔 crm/rule/webhook 이미 ops 수동등록됨, 실 누락은 analytics/cs/esp 3종이었음.
+3. **[Low] AccountPerformance.jsx:267 sin 합성추이 비게이트** → `!isDemoMode → []`(239차 누락 동일클래스).
+4. **[Low] GlobalDataContext 콜드마운트 30초** → setInterval 앞 즉시 `poll()` 1회.
+5. **[Low-Med] Onsite CRO 비콘 metric poisoning** → `onsite_assignment` 원장(노출/전환 vid당 1회 멱등·선행노출 없는 전환 거부·변형 고정저장)+`onsite_rate` IP 신규배정 레이트리밋(fail-open, env `ONSITE_NEWVID_PER_MIN` 기본600). 공개 JS라 HMAC 불가 → 원장+레이트로 대체(통계 정확도도↑=고유방문자 단위).
+6. **[Low] isCommerceChannel 레지스트리 미인식** → `registryCommerceKeys()`(요청단위 캐시) 추가, commerceTenantChannels 와 동일 SSOT(admin추가 커머스채널 즉시sync 비대칭 해소).
+
+## 2. 마케팅 실집행 초고도화 3건 — 구현·배포·cron 실행검증(fatal0)
+7. **[#9] 서버전환 업로드**: `AdAdapters::metaUploadConversion`(Meta CAPI `/{pixel}/events`)+`tiktokUploadConversion`(TikTok Events `/event/track/`)+`uploadPendingServerConversions`(channel_orders 스캔·buyer_email sha256·fbclid/ttclid·`server_conversion_log` 채널별 멱등). `gads_conversion_cron.php` 에 배선(google gclid 와 합집합). → ROAS 측정정확도·쿠키리스 귀속.
+8. **[#8] 오디언스 push**: `tiktokSyncAudience`(Custom Audience, `httpMultipart` 헬퍼 신설=file/upload→create). syncAudience 디스패치에 tiktok 추가. Naver/Kakao 는 별도 광고상품·승인 필요 → honest unsupported(로드맵).
+9. **[#7] 광고 소재 완성**: `tiktokDeliver` 에 `/ad/create/` 실 생성(identity_id+video_id/image_id 자격증명 시), 없으면 honest-partial. **등록 UI 선택 자격증명 필드 추가**(ApiKeys.jsx CHANNEL_FIELDS): meta `pixel_id`/`capi_token`/`page_id`·google `conversion_action`·tiktok `pixel_code`/`identity_id`/`video_id`/`image_id`.
+
+## 3. 배포·검증 결과
+- 백엔드 `php -l` 운영+데모 6파일 전건 PASS / cron 3종(cs/esp/gads-서버전환) 실행 fatal0 / CRO assign 신규원장 정상응답(운영·데모) / 로그인401 / 홈200(운영·데모)+랜딩 풀렌더(화이트 아님, playwright) / crontab analytics/cs/esp 추가 / **php8.1-fpm restart**(opcache, 수정된 기존 클래스 반영) / dist 운영 업로드+데모 rsync 파리티+nginx reload.
+- 변경 파일: 백엔드 ChannelSync·Onsite·AdAdapters·gads_conversion_cron·install_crontab + 신설 cs_sync/esp_sync/check_cron_ssot, 프론트 AccountPerformance·GlobalDataContext·ApiKeys.
+
+## 4. ★★ 다음 차수 우선순위 (외부의존/대형 — 미완)
+> 전제: "자격증명 등록 즉시 실행" 완비. 아래는 외부 미디어자산/광고상품/인프라 의존이라 본 차수에서 honest-pending/roadmap 처리.
+1. **[P1] 소재 자동업로드 완성 — Kakao/LINE**: 이미지/미디어 자산 업로드(멀티파트 또는 공개 URL 호스팅). 현재 텍스트 크리에이티브 best-effort(honest-partial). 공개 creative-asset URL 엔드포인트 신설 후 upload-by-URL 로 Kakao Moment·LINE Ads 소재 완성. (Meta=이미 base64 bytes 완성, TikTok=identity+video_id 시 완성)
+2. **[P1] 오디언스 push — Naver/Kakao**: 별도 광고상품(Naver GFA·Kakao 고객파일 오디언스) API+승인 필요. TikTok 은 본 차수 완료(multipart). 
+3. **[P2] 서버전환 확장**: Meta CAPI/TikTok Events 외 픽셀 브라우저 이벤트와 event_id 규칙 통일(서버↔클라 dedup 완전화)·전환값 통화정규화 검증·Naver/Kakao 전환API.
+4. **[P2] 커넥터 동기화 헬스 UI**: on-save 실패 `sync_status='error'`+last_error+신선도 SLA 배지(SaaS급 가시화). recordSyncFreshness 는 이미 per-source 기록 → 프론트 status 패널 배선만.
+5. **[P2] 웹훅 DLQ/재시도 가시성**: webhook_delivery pending 적체 모니터·실패 큐 관리 UI·알림.
+6. (245차 잔여 승계) 어트리뷰션 정식 Bayesian MMM·가격 실시간 자동수집·CRM 예측세그 자동화·라이브 WHIP/WHEP·수요예측 ML·CRO 비주얼 에디터.
+- **외부 자격증명 등록 시 즉시 동작(결함아님)**: Meta pixel_id/capi_token·TikTok pixel_code/identity_id/video_id·매체 쓰기OAuth 실키.
+
+## 5. 트랩 (249차)
+- **수정된 기존 클래스도 opcache → php8.1-fpm restart 필수**(신규핸들러 아니어도). AdAdapters/ChannelSync/Onsite 메서드 추가 반영에 적용함.
+- **공개 비콘 metric poisoning 일반화**: 공개 JS 비콘(CRO 등)은 HMAC 불가 → 배정원장(고유 vid 멱등)+IP 레이트리밋(fail-open)으로 방어. Pixel(HMAC fail-closed)과 방어모델 다름.
+- **isCommerceChannel 등 하드코딩 const 함수는 레지스트리 SSOT 병합 누락 주의**: cron(commerceTenantChannels)은 병합하나 즉시트리거 함수가 const 만 보면 admin추가 채널 비대칭.
+- **httpMultipart(CURLFile)**: 기존 http()는 form-urlencoded/json 만 → 파일 업로드(TikTok 오디언스 등)는 신설 httpMultipart 사용. tempnam→file_put_contents→@unlink(try/finally).
+- **라이브 crontab ≠ install_crontab.sh SSOT**: ops 수동등록분 존재 가능 → 전체 --apply(덮어쓰기) 대신 누락분만 비파괴 append 권장(백업 선행). check_cron_ssot.sh 로 SSOT 정합 사전점검.
+
+(★본 인계서 = 사용자 명시 승인. 자격증명 평문노출 0. master 미접촉. feat/n236-admin-growth-automation 브랜치 커밋·push.)

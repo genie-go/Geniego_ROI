@@ -204,9 +204,9 @@ const CHANNEL_FIELDS = {
   razorpay:  [{ k: 'key_id', label: 'Key ID (rzp_live_)' }, { k: 'key_secret', label: 'Key Secret', secret: true }],
   klarna:    [{ k: 'username', label: 'API Username (MID/PID)' }, { k: 'password', label: 'API Password', secret: true }, { k: 'region', label: '리전 (eu / na / oc)' }],
   // 광고 매체
-  meta_ads:  [{ k: 'access_token', label: '액세스 토큰', secret: true }, { k: 'ad_account_id', label: '광고 계정 ID (act_)' }],
-  google_ads: [{ k: 'developer_token', label: '개발자 토큰', secret: true }, { k: 'access_token', label: '액세스 토큰', secret: true }, { k: 'customer_id', label: '고객 ID (10자리)' }],
-  tiktok_business: [{ k: 'access_token', label: '액세스 토큰', secret: true }, { k: 'advertiser_id', label: '광고주 ID' }],
+  meta_ads:  [{ k: 'access_token', label: '액세스 토큰', secret: true }, { k: 'ad_account_id', label: '광고 계정 ID (act_)' }, { k: 'page_id', label: '페이지 ID (광고 소재 게재용)', opt: true }, { k: 'pixel_id', label: '픽셀 ID (서버전환 CAPI·선택)', opt: true }, { k: 'capi_token', label: 'CAPI 토큰 (미입력 시 액세스 토큰 사용·선택)', secret: true, opt: true }],
+  google_ads: [{ k: 'developer_token', label: '개발자 토큰', secret: true }, { k: 'access_token', label: '액세스 토큰', secret: true }, { k: 'customer_id', label: '고객 ID (10자리)' }, { k: 'conversion_action', label: '전환 액션 ID (서버전환 업로드·선택)', opt: true }],
+  tiktok_business: [{ k: 'access_token', label: '액세스 토큰', secret: true }, { k: 'advertiser_id', label: '광고주 ID' }, { k: 'pixel_code', label: '픽셀 코드 (Events API 서버전환·선택)', opt: true }, { k: 'identity_id', label: '아이덴티티 ID (광고 소재 완성·선택)', opt: true }, { k: 'video_id', label: '영상 소재 ID (선택)', opt: true }, { k: 'image_id', label: '이미지 소재 ID (선택)', opt: true }],
   naver_sa:  [{ k: 'api_key', label: 'API 키', secret: true }, { k: 'api_secret', label: '비밀키', secret: true }, { k: 'customer_id', label: '고객 ID' }],
   kakao_moment: [{ k: 'access_token', label: '액세스 토큰', secret: true }, { k: 'ad_account_id', label: '광고계정 ID' }],
   // [232차] LINE Ads Platform — Ad Manager > Group 페이지에서 발급(access key/secret key) + Group ID. JWS 인증.

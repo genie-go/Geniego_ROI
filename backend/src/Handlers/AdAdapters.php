@@ -365,6 +365,122 @@ final class AdAdapters
         return ['ok' => true, 'uploaded' => $uploaded, 'skipped' => $skipped, 'failed' => $failed];
     }
 
+    /* ════════════════════════ 서버 전환(Conversions API) — Meta CAPI · TikTok Events ════════════════════════ */
+
+    /** 이메일 정규화(소문자·trim) 후 sha256 — Meta/TikTok Advanced Matching 표준. PII 원문 미전송. */
+    private static function hashEmail(string $email): string
+    {
+        $n = strtolower(trim($email));
+        return ($n !== '' && filter_var($n, FILTER_VALIDATE_EMAIL)) ? hash('sha256', $n) : '';
+    }
+
+    /**
+     * [정밀감사] Meta Conversions API(서버 전환) 1건 업로드 — 쿠키리스·iOS 환경 귀속 보강(픽셀과 event_id dedup).
+     *   자격증명: meta_ads 'pixel_id' + (capi_token | access_token). 미등록 시 honest no_credentials.
+     */
+    public static function metaUploadConversion(PDO $pdo, string $tenant, string $eventId, float $value, string $currency, int $eventTime, string $hashedEmail = '', string $fbc = '', string $eventName = 'Purchase'): array
+    {
+        $pixel = trim(self::cred($pdo, $tenant, 'meta_ads', 'pixel_id'));
+        $token = trim(self::cred($pdo, $tenant, 'meta_ads', 'capi_token')) ?: trim(self::cred($pdo, $tenant, 'meta_ads', 'access_token'));
+        if ($pixel === '' || $token === '') return self::fail('Meta CAPI 자격증명(pixel_id + capi_token/access_token) 미등록', 'no_credentials');
+        if ($hashedEmail === '' && $fbc === '') return self::fail('이메일/fbclid 식별자 필요', 'no_identifier');
+        $userData = array_filter(['em' => $hashedEmail !== '' ? [$hashedEmail] : null, 'fbc' => $fbc !== '' ? $fbc : null], fn($v) => $v !== null);
+        $event = [
+            'event_name'   => $eventName,
+            'event_time'   => $eventTime,
+            'action_source'=> 'website',
+            'event_id'     => $eventId, // 픽셀 브라우저 이벤트와 dedup
+            'user_data'    => $userData,
+            'custom_data'  => array_filter(['value' => $value > 0 ? $value : null, 'currency' => $currency !== '' ? $currency : 'KRW'], fn($v) => $v !== null),
+        ];
+        $api = "https://graph.facebook.com/" . self::META_VER;
+        [$code, $res] = self::http('POST', "{$api}/{$pixel}/events", ['Content-Type: application/x-www-form-urlencoded'],
+            ['data' => json_encode([$event]), 'access_token' => $token]);
+        if ($code >= 200 && $code < 300 && isset($res['events_received'])) return self::ok('', 'uploaded', 'Meta CAPI 전환 업로드(events_received=' . (int)$res['events_received'] . ')');
+        return self::fail('Meta CAPI 전환 업로드 실패: ' . (self::errMsg($res) ?: ('HTTP ' . $code)), 'failed');
+    }
+
+    /**
+     * [정밀감사] TikTok Events API(서버 전환) 1건 업로드. 자격증명: tiktok_business 'pixel_code' + access_token.
+     *   미등록 시 honest no_credentials.
+     */
+    public static function tiktokUploadConversion(PDO $pdo, string $tenant, string $eventId, float $value, string $currency, int $eventTime, string $hashedEmail = '', string $ttclid = '', string $eventName = 'CompletePayment'): array
+    {
+        $token = trim(self::cred($pdo, $tenant, 'tiktok_business', 'access_token'));
+        $pixel = trim(self::cred($pdo, $tenant, 'tiktok_business', 'pixel_code'));
+        if ($token === '' || $pixel === '') return self::fail('TikTok Events 자격증명(access_token + pixel_code) 미등록', 'no_credentials');
+        if ($hashedEmail === '' && $ttclid === '') return self::fail('이메일/ttclid 식별자 필요', 'no_identifier');
+        $user = array_filter(['email' => $hashedEmail !== '' ? $hashedEmail : null, 'ttclid' => $ttclid !== '' ? $ttclid : null], fn($v) => $v !== null);
+        $body = json_encode([
+            'event_source'    => 'web',
+            'event_source_id' => $pixel,
+            'data'            => [[
+                'event'      => $eventName,
+                'event_time' => $eventTime,
+                'event_id'   => $eventId, // 픽셀 이벤트와 dedup
+                'user'       => $user,
+                'properties' => array_filter(['value' => $value > 0 ? $value : null, 'currency' => $currency !== '' ? $currency : 'KRW'], fn($v) => $v !== null),
+            ]],
+        ]);
+        [$code, $res] = self::http('POST', 'https://business-api.tiktok.com/open_api/v1.3/event/track/',
+            ['Access-Token: ' . $token, 'Content-Type: application/json'], $body);
+        if (($res['code'] ?? -1) === 0) return self::ok('', 'uploaded', 'TikTok Events 전환 업로드');
+        return self::fail('TikTok Events 전환 업로드 실패: ' . (($res['message'] ?? '') ?: ('HTTP ' . $code)), 'failed');
+    }
+
+    /**
+     * [정밀감사] 최근 주문을 Meta CAPI + TikTok Events 서버 전환으로 일괄 업로드(채널별 멱등 log).
+     *   uploadPendingGoogleConversions 와 동형(google=gclid, 여기=해시이메일/fbclid/ttclid). 자격증명 미설정 채널은 skip.
+     *   매칭 신호: buyer_email(sha256, Advanced Matching) + raw_json 의 fbclid/ttclid(있으면 보강).
+     */
+    public static function uploadPendingServerConversions(PDO $pdo, string $tenant, int $days = 7): array
+    {
+        if ($tenant === '' || $tenant === 'demo' || strncmp($tenant, 'demo', 4) === 0) return ['ok' => true, 'skipped' => 'demo'];
+        try { $pdo->exec("CREATE TABLE IF NOT EXISTS server_conversion_log (tenant_id VARCHAR(100) NOT NULL, order_id VARCHAR(128) NOT NULL, channel VARCHAR(40) NOT NULL, status VARCHAR(20), detail VARCHAR(255), created_at VARCHAR(32), PRIMARY KEY (tenant_id, order_id, channel))"); } catch (\Throwable $e) {}
+        // 채널별 자격증명 사전 점검 — 미설정이면 해당 채널 전체 skip(불필요한 주문 스캔/호출 방지).
+        $metaOn   = trim(self::cred($pdo, $tenant, 'meta_ads', 'pixel_id')) !== '' && (trim(self::cred($pdo, $tenant, 'meta_ads', 'capi_token')) !== '' || trim(self::cred($pdo, $tenant, 'meta_ads', 'access_token')) !== '');
+        $tiktokOn = trim(self::cred($pdo, $tenant, 'tiktok_business', 'pixel_code')) !== '' && trim(self::cred($pdo, $tenant, 'tiktok_business', 'access_token')) !== '';
+        if (!$metaOn && !$tiktokOn) return ['ok' => true, 'status' => 'no_credentials', 'meta' => 0, 'tiktok' => 0];
+        $cut = gmdate('Y-m-d H:i:s', time() - max(1, $days) * 86400);
+        try {
+            $st = $pdo->prepare("SELECT order_id, total_price, currency, ordered_at, buyer_email, raw_json FROM channel_orders WHERE tenant_id=:t AND ordered_at >= :c AND buyer_email IS NOT NULL AND buyer_email<>'' ORDER BY ordered_at DESC LIMIT 1000");
+            $st->execute([':t' => $tenant, ':c' => $cut]);
+            $rows = $st->fetchAll(PDO::FETCH_ASSOC);
+        } catch (\Throwable $e) { return ['ok' => false, 'error' => 'orders_query_failed']; }
+        $isMy = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql';
+        $ins  = $isMy ? 'INSERT IGNORE' : 'INSERT OR IGNORE';
+        $counts = ['meta' => 0, 'tiktok' => 0]; $failed = 0;
+        foreach ($rows as $r) {
+            $oid = (string)($r['order_id'] ?? ''); if ($oid === '') continue;
+            $he  = self::hashEmail((string)($r['buyer_email'] ?? ''));
+            if ($he === '') continue;
+            $et  = strtotime((string)($r['ordered_at'] ?? '')) ?: time();
+            $val = (float)($r['total_price'] ?? 0);
+            $cur = (string)($r['currency'] ?: 'KRW');
+            $raw = (string)($r['raw_json'] ?? '');
+            foreach (['meta', 'tiktok'] as $ch) {
+                if ($ch === 'meta' && !$metaOn) continue;
+                if ($ch === 'tiktok' && !$tiktokOn) continue;
+                $chk = $pdo->prepare("SELECT 1 FROM server_conversion_log WHERE tenant_id=:t AND order_id=:o AND channel=:c LIMIT 1");
+                $chk->execute([':t' => $tenant, ':o' => $oid, ':c' => $ch]);
+                if ($chk->fetchColumn()) continue;
+                $eventId = $ch . '_' . $oid; // 픽셀 브라우저 이벤트와 동일 규칙이면 dedup(서버↔클라 중복 제거)
+                if ($ch === 'meta') {
+                    $fbc = preg_match('/"?fbclid"?\s*[:=]\s*"?([A-Za-z0-9_\-.]{6,})/', $raw, $m) ? 'fb.1.' . $et . '.' . $m[1] : '';
+                    $res = self::metaUploadConversion($pdo, $tenant, $eventId, $val, $cur, $et, $he, $fbc);
+                } else {
+                    $ttclid = preg_match('/"?ttclid"?\s*[:=]\s*"?([A-Za-z0-9_\-.]{6,})/', $raw, $m) ? $m[1] : '';
+                    $res = self::tiktokUploadConversion($pdo, $tenant, $eventId, $val, $cur, $et, $he, $ttclid);
+                }
+                $status = !empty($res['ok']) ? 'uploaded' : (($res['status'] ?? '') ?: 'failed');
+                if ($status === 'uploaded') $counts[$ch]++; elseif ($status !== 'no_identifier') $failed++;
+                // no_identifier(식별자 없음)는 로그하지 않음(다음 주문에서 재시도 의미 없음과 무관·일시적 아님이라 기록).
+                try { $pdo->prepare("{$ins} INTO server_conversion_log (tenant_id, order_id, channel, status, detail, created_at) VALUES (:t,:o,:c,:s,:d,:ts)")->execute([':t' => $tenant, ':o' => $oid, ':c' => $ch, ':s' => $status, ':d' => substr((string)($res['error'] ?? ''), 0, 250), ':ts' => gmdate('Y-m-d H:i:s')]); } catch (\Throwable $e) {}
+            }
+        }
+        return ['ok' => true, 'meta' => $counts['meta'], 'tiktok' => $counts['tiktok'], 'failed' => $failed];
+    }
+
     /* ════════════════════════ TikTok ════════════════════════ */
     private static function tiktokCreate(PDO $pdo, string $tenant, string $name, int $daily): array
     {
@@ -573,7 +689,7 @@ final class AdAdapters
                 case 'google_ads':      $r = self::googleDeliver($pdo, $tenant, $campExtId, $d, $daily, $landing); break;
                 case 'naver_sa':        $r = self::naverDeliver($pdo, $tenant, $campExtId, $d, $daily, $landing); break;
                 case 'meta_ads':        $r = self::metaDeliver($pdo, $tenant, $campExtId, $d, $daily, $landing); break;
-                case 'tiktok_business': $r = self::tiktokDeliver($pdo, $tenant, $campExtId, $d, $daily); break;
+                case 'tiktok_business': $r = self::tiktokDeliver($pdo, $tenant, $campExtId, $d, $daily, $landing); break;
                 case 'kakao_moment':    $r = self::kakaoDeliver($pdo, $tenant, $campExtId, $d, $daily, $landing); break;
                 case 'line_ads':        $r = self::lineDeliver($pdo, $tenant, $campExtId, $d, $daily, $landing); break;
                 default:                return ['ok' => false, 'status' => 'unsupported'];
@@ -708,23 +824,48 @@ final class AdAdapters
         return '';
     }
 
-    /* ── TikTok: 광고그룹 + 광고. 영상(video_id)·identity 필요. ── */
-    private static function tiktokDeliver(PDO $pdo, string $tenant, string $campId, array $d, int $daily): array
+    /* ── TikTok: 광고그룹 + 광고. identity_id + 영상(video_id)/이미지(image_id) 소재가 있으면 광고까지 완성. ── */
+    private static function tiktokDeliver(PDO $pdo, string $tenant, string $campId, array $d, int $daily, string $landing = ''): array
     {
         $token = self::cred($pdo, $tenant, 'tiktok_business', 'access_token');
         $advId = self::cred($pdo, $tenant, 'tiktok_business', 'advertiser_id');
         if ($token === '' || $advId === '') return ['ok' => false, 'error' => 'no_credentials'];
+        $hdr = ['Access-Token: ' . $token, 'Content-Type: application/json'];
         // 1) 광고그룹(예산·게재 KR, 정지)
         $agBody = json_encode(['advertiser_id' => $advId, 'campaign_id' => $campId, 'adgroup_name' => $d['headline'] . ' AG',
             'placement_type' => 'PLACEMENT_TYPE_AUTOMATIC', 'budget_mode' => 'BUDGET_MODE_DAY', 'budget' => $daily,
             'optimization_goal' => 'CLICK', 'billing_event' => 'CPC', 'location_ids' => ['KR'], 'operation_status' => 'DISABLE',
             'schedule_type' => 'SCHEDULE_FROM_NOW']);
-        [$ac, $ar] = self::http('POST', 'https://business-api.tiktok.com/open_api/v1.3/adgroup/create/', ['Access-Token: ' . $token, 'Content-Type: application/json'], $agBody);
+        [$ac, $ar] = self::http('POST', 'https://business-api.tiktok.com/open_api/v1.3/adgroup/create/', $hdr, $agBody);
         $agId = $ar['data']['adgroup_id'] ?? '';
         if ($agId === '') return ['ok' => false, 'error' => 'adgroup: ' . (($ar['message'] ?? '') ?: ('HTTP ' . $ac))];
-        // 2) 광고 — 영상 소재(video_id) + identity 필요. SVG 디자인은 영상 변환 필요 → 보류 정직 표기.
-        return ['ok' => true, 'adgroup_id' => $agId, 'ad_id' => '', 'status' => 'partial',
-            'note' => 'TikTok 광고그룹 생성(DISABLE). 광고(ad)는 영상 소재(video_id)+identity 업로드 필요 — 영상 소재 등록 후 완성.'];
+        // 2) 광고 — identity_id + 영상(video_id)/이미지(image_id) 소재 자격증명이 있으면 실제 생성(/ad/create/).
+        //   TikTok 광고는 인앱 게시 정책상 identity(브랜드/계정)와 미디어 자산(영상 우선) ID 가 필수 → 등록 시 자동 완성.
+        $identity = self::cred($pdo, $tenant, 'tiktok_business', 'identity_id');
+        $videoId  = self::cred($pdo, $tenant, 'tiktok_business', 'video_id');
+        $imageId  = self::cred($pdo, $tenant, 'tiktok_business', 'image_id');
+        if ($identity === '' || ($videoId === '' && $imageId === '')) {
+            return ['ok' => true, 'adgroup_id' => $agId, 'ad_id' => '', 'status' => 'partial',
+                'note' => 'TikTok 광고그룹 생성(DISABLE). 광고(ad)는 identity_id + 영상(video_id)/이미지(image_id) 소재 등록 후 자동 완성 — 자격증명에 추가하세요.'];
+        }
+        $creative = array_filter([
+            'ad_name'          => mb_substr($d['headline'], 0, 40) . ' Ad',
+            'identity_id'      => $identity,
+            'identity_type'    => 'CUSTOMIZED_USER',
+            'ad_format'        => $videoId !== '' ? 'SINGLE_VIDEO' : 'SINGLE_IMAGE',
+            'video_id'         => $videoId !== '' ? $videoId : null,
+            'image_ids'        => $imageId !== '' ? [$imageId] : null,
+            'ad_text'          => mb_substr($d['copy'] ?: $d['headline'], 0, 100),
+            'call_to_action'   => 'LEARN_MORE',
+            'landing_page_url' => $landing !== '' ? $landing : 'https://roi.genie-go.com',
+            'operation_status' => 'DISABLE',
+        ], fn($v) => $v !== null);
+        $adBody = json_encode(['advertiser_id' => $advId, 'adgroup_id' => $agId, 'creatives' => [$creative]], JSON_UNESCAPED_UNICODE);
+        [$adc, $adr] = self::http('POST', 'https://business-api.tiktok.com/open_api/v1.3/ad/create/', $hdr, $adBody);
+        $adId = $adr['data']['ad_ids'][0] ?? '';
+        if ($adId === '') return ['ok' => true, 'adgroup_id' => $agId, 'ad_id' => '', 'status' => 'partial',
+            'note' => 'TikTok 광고그룹 생성(DISABLE). 광고 생성 보류: ' . (($adr['message'] ?? '') ?: ('HTTP ' . $adc))];
+        return ['ok' => true, 'adgroup_id' => $agId, 'ad_id' => (string)$adId, 'note' => 'TikTok 광고그룹+광고 생성(DISABLE)'];
     }
 
     /* ── Kakao Moment: 광고그룹 + 소재(OFF). kakaoCreate 와 동일 인증(Bearer+adAccountId, OpenAPI v4).
@@ -814,7 +955,9 @@ final class AdAdapters
             switch ($channel) {
                 case 'meta_ads': case 'meta':   return self::metaSyncAudience($pdo, $tenant, $hashes, $opts);
                 case 'google_ads': case 'google': return self::googleSyncAudience($pdo, $tenant, $hashes, $opts);
-                default: return ['ok' => false, 'status' => 'unsupported', 'note' => '오디언스 push 미지원 채널: ' . $channel];
+                case 'tiktok_business': case 'tiktok': return self::tiktokSyncAudience($pdo, $tenant, $hashes, $opts);
+                default: return ['ok' => false, 'status' => 'unsupported',
+                    'note' => '오디언스 push 미지원 채널: ' . $channel . ' (Naver SA/Kakao Moment 해시 오디언스는 별도 광고상품·승인 필요 — 로드맵)'];
             }
         } catch (Throwable $e) { return self::fail($e->getMessage()); }
     }
@@ -892,6 +1035,67 @@ final class AdAdapters
         // 4) run job
         self::http('POST', "https://googleads.googleapis.com/" . self::GOOGLE_VER . "/{$jobRes}:run", $hdr, json_encode([]));
         return ['ok' => true, 'channel' => 'google', 'user_list' => $listRes, 'job' => $jobRes, 'uploaded' => $added, 'note' => "Google Customer Match user list 생성·{$added}건 적재(job 실행)"];
+    }
+
+    /** multipart/form-data POST(파일 업로드). $fields 의 값 중 ['__file__'=>path,'name'=>...] 는 CURLFile 로 전송. */
+    private static function httpMultipart(string $url, array $headers, array $fields, int $timeout = 30): array
+    {
+        $post = [];
+        foreach ($fields as $k => $v) {
+            if (is_array($v) && isset($v['__file__'])) {
+                $post[$k] = new \CURLFile($v['__file__'], (string)($v['mime'] ?? 'text/plain'), (string)($v['name'] ?? basename($v['__file__'])));
+            } else { $post[$k] = $v; }
+        }
+        $ch = curl_init();
+        curl_setopt_array($ch, [
+            CURLOPT_URL => $url, CURLOPT_POST => true, CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => $timeout, CURLOPT_HTTPHEADER => $headers,
+            CURLOPT_SSL_VERIFYPEER => true, CURLOPT_POSTFIELDS => $post, // 배열+CURLFile → multipart 자동
+        ]);
+        $resp = curl_exec($ch);
+        $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        $json = is_string($resp) ? json_decode($resp, true) : null;
+        return [$code, ($json !== null ? $json : $resp)];
+    }
+
+    /**
+     * [정밀감사] TikTok Custom Audience — 해시 이메일 파일(EMAIL_SHA256) 업로드 후 오디언스 생성.
+     *   2단계: file/upload(multipart) → custom_audience/create. honest-partial(코드≠0 시 정직 보류).
+     */
+    private static function tiktokSyncAudience(PDO $pdo, string $tenant, array $hashes, array $opts): array
+    {
+        $token = self::cred($pdo, $tenant, 'tiktok_business', 'access_token');
+        $advId = self::cred($pdo, $tenant, 'tiktok_business', 'advertiser_id');
+        if ($token === '' || $advId === '') return ['ok' => false, 'status' => 'no_credentials', 'error' => 'TikTok 자격증명(access_token/advertiser_id) 미등록'];
+        $name = mb_substr((string)($opts['name'] ?? 'GenieGo 고객 오디언스'), 0, 80);
+        // 1) 해시 목록을 임시 파일로 기록(한 줄당 sha256 이메일) — TikTok file/upload(multipart) 요구사항.
+        $tmp = tempnam(sys_get_temp_dir(), 'ttaud_');
+        if ($tmp === false) return ['ok' => false, 'error' => 'temp_file_failed'];
+        try {
+            file_put_contents($tmp, implode("\n", $hashes));
+            $hdr = ['Access-Token: ' . $token];
+            [$uc, $ur] = self::httpMultipart('https://business-api.tiktok.com/open_api/v1.3/dmp/custom_audience/file/upload/', $hdr, [
+                'advertiser_id' => $advId, 'calculate_type' => 'EMAIL_SHA256',
+                'file' => ['__file__' => $tmp, 'name' => 'audience.csv', 'mime' => 'text/csv'],
+            ]);
+            if (($ur['code'] ?? -1) !== 0 || empty($ur['data']['file_paths'])) {
+                return ['ok' => true, 'channel' => 'tiktok', 'status' => 'partial', 'uploaded' => 0,
+                    'note' => 'TikTok 오디언스 파일 업로드 보류(라이브 스키마 확정 필요): ' . (($ur['message'] ?? '') ?: ('HTTP ' . $uc))];
+            }
+            $filePaths = $ur['data']['file_paths'];
+            // 2) 오디언스 생성
+            $body = json_encode(['advertiser_id' => $advId, 'custom_audience_name' => $name, 'calculate_type' => 'EMAIL_SHA256', 'file_paths' => $filePaths], JSON_UNESCAPED_UNICODE);
+            [$cc, $cr] = self::http('POST', 'https://business-api.tiktok.com/open_api/v1.3/dmp/custom_audience/create/',
+                ['Access-Token: ' . $token, 'Content-Type: application/json'], $body);
+            $audId = $cr['data']['custom_audience_id'] ?? '';
+            if ($audId === '') return ['ok' => true, 'channel' => 'tiktok', 'status' => 'partial', 'uploaded' => count($hashes),
+                'note' => 'TikTok 오디언스 파일 업로드 완료. 생성 보류: ' . (($cr['message'] ?? '') ?: ('HTTP ' . $cc))];
+            return ['ok' => true, 'channel' => 'tiktok', 'audience_id' => (string)$audId, 'uploaded' => count($hashes),
+                'note' => "TikTok 커스텀 오디언스 생성·" . count($hashes) . "건 업로드(해시)"];
+        } finally {
+            @unlink($tmp);
+        }
     }
 
     private static function errMsg($res): string

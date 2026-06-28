@@ -34,6 +34,35 @@ final class Onsite
         return $t;
     }
 
+    /** 클라이언트 IP(프록시/nginx 뒤 X-Forwarded-For 첫 홉 우선). 레이트리밋 키. */
+    private static function clientIp(Request $req): string
+    {
+        $xff = trim((string)($req->getHeaderLine('X-Forwarded-For')));
+        if ($xff !== '') { $first = trim(explode(',', $xff)[0]); if ($first !== '') return substr($first, 0, 64); }
+        $sp = $req->getServerParams();
+        return substr((string)($sp['REMOTE_ADDR'] ?? ''), 0, 64);
+    }
+
+    /** IP×분 신규-배정 레이트리밋. 임계 초과 시 false(지표 부풀리기 차단) — fail-open(오류 시 허용). */
+    private static function newVidRateOk(PDO $pdo, string $ip): bool
+    {
+        if ($ip === '') return true;
+        $limit = (int)(getenv('ONSITE_NEWVID_PER_MIN') ?: 600); // 실 단일 방문자는 도달 불가·NAT 뒤 신규유입만 카운트.
+        if ($limit <= 0) return true;
+        $bucket = (int)floor(time() / 60);
+        $isMy = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql';
+        try {
+            $sql = $isMy
+                ? "INSERT INTO onsite_rate(ip,bucket,hits) VALUES(?,?,1) ON DUPLICATE KEY UPDATE hits=hits+1"
+                : "INSERT INTO onsite_rate(ip,bucket,hits) VALUES(?,?,1) ON CONFLICT(ip,bucket) DO UPDATE SET hits=hits+1";
+            $pdo->prepare($sql)->execute([$ip, $bucket]);
+            $st = $pdo->prepare("SELECT hits FROM onsite_rate WHERE ip=? AND bucket=?");
+            $st->execute([$ip, $bucket]);
+            $hits = (int)$st->fetchColumn();
+            return $hits <= $limit;
+        } catch (\Throwable $e) { return true; /* fail-open */ }
+    }
+
     private static function ensure(PDO $pdo): void
     {
         $isMy = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql';
@@ -51,6 +80,20 @@ final class Onsite
             )");
             // [246차 P2] 세그먼트 타겟팅 — 실험 오디언스 조건(기기/방문자/utm/국가). 없으면 전체.
             try { $pdo->exec("ALTER TABLE onsite_experiment ADD COLUMN audience_json TEXT"); } catch (\Throwable $e) { /* 이미 존재 */ }
+            // [정밀감사] 방문자 배정 원장 — 공개 비콘 metric poisoning 방어 + 통계 정확도(고유 방문자 단위).
+            //   노출/전환을 (tenant,exp,vid) 1회로 멱등 집계: 반복 assign 은 노출 미증가(sticky), convert 는
+            //   "선행 노출 보유 + 미전환" 일 때만 1회 집계(전환 위조·승자 강제 차단). 변형은 원장에 고정 저장.
+            $pdo->exec("CREATE TABLE IF NOT EXISTS onsite_assignment (
+                tenant_id VARCHAR(100), exp_key VARCHAR(80), vid VARCHAR(120), variant_key VARCHAR(80),
+                exposed_at VARCHAR(32), converted_at VARCHAR(32),
+                PRIMARY KEY (tenant_id, exp_key, vid)
+            )");
+            // [정밀감사] IP 신규-배정 레이트리밋 버킷(분 단위) — 대량 vid 위조에 의한 지표 부풀리기 차단.
+            //   반복 방문(기존 vid)은 원장 dedup 으로 무영향이라, 신규 배정 발생률만 IP×분 으로 바운드(fail-open).
+            $pdo->exec("CREATE TABLE IF NOT EXISTS onsite_rate (
+                ip VARCHAR(64), bucket INT, hits INT DEFAULT 0,
+                PRIMARY KEY (ip, bucket)
+            )");
         } catch (\Throwable $e) { /* graceful */ }
     }
 
@@ -121,7 +164,12 @@ final class Onsite
             }
             $variant = self::pickVariant($exp['variants'], $vid, $expKey);
             if ($variant === null) return self::json($res, ['ok' => false, 'variant' => null]);
-            self::bump($pdo, $tenant, $expKey, $variant, 'exposures');
+            // [정밀감사] 노출은 (tenant,exp,vid) 1회만 집계(sticky). 신규 배정만 원장에 기록 → 신규일 때만,
+            //   그리고 IP 레이트리밋 통과 시에만 onsite_stat.exposures 증가(반복방문·위조 vid 부풀리기 차단).
+            //   변형 UX 는 항상 정상 제공(차단해도 방문자 경험 무손상).
+            if (self::recordExposure($pdo, $tenant, $expKey, $vid, $variant, self::clientIp($req))) {
+                self::bump($pdo, $tenant, $expKey, $variant, 'exposures');
+            }
             $content = null; $changes = null;
             foreach ($exp['variants'] as $v) { if (($v['key'] ?? '') === $variant) { $content = $v['content'] ?? null; $changes = $v['changes'] ?? null; break; } }
             // [246차 P2] 노코드 변형 체인지셋(selector→text/html/css/hide/redirect) — 온사이트 스니펫이 적용.
@@ -142,10 +190,12 @@ final class Onsite
             $pdo = Db::pdo(); self::ensure($pdo);
             $exp = self::loadExp($pdo, $tenant, $expKey);
             if (!$exp) return self::json($res, ['ok' => false]);
-            $variant = self::pickVariant($exp['variants'], $vid, $expKey); // 동일 해시로 역산(저장 불요)
-            if ($variant === null) return self::json($res, ['ok' => false]);
-            self::bump($pdo, $tenant, $expKey, $variant, 'conversions');
-            return self::json($res, ['ok' => true, 'variant' => $variant]);
+            // [정밀감사] 전환은 선행 노출(원장) 보유 + 미전환일 때만 1회 집계 — 위조 전환·승자 강제 차단.
+            //   변형은 원장에 고정 저장된 값 사용(실험 중 가중치 변경에도 정확 귀속).
+            $conv = self::recordConversion($pdo, $tenant, $expKey, $vid);
+            if ($conv === null) return self::json($res, ['ok' => false, 'reason' => 'no_exposure']);
+            if (!empty($conv['counted'])) self::bump($pdo, $tenant, $expKey, (string)$conv['variant'], 'conversions');
+            return self::json($res, ['ok' => true, 'variant' => $conv['variant']]);
         } catch (\Throwable $e) { return self::json($res, ['ok' => false]); }
     }
 
@@ -156,6 +206,47 @@ final class Onsite
             ? "INSERT INTO onsite_stat(tenant_id,exp_key,variant_key,$col) VALUES(?,?,?,1) ON DUPLICATE KEY UPDATE $col=$col+1"
             : "INSERT INTO onsite_stat(tenant_id,exp_key,variant_key,$col) VALUES(?,?,?,1) ON CONFLICT(tenant_id,exp_key,variant_key) DO UPDATE SET $col=$col+1";
         try { $pdo->prepare($sql)->execute([$tenant, $expKey, $variant]); } catch (\Throwable $e) { /* graceful */ }
+    }
+
+    /**
+     * [정밀감사] 노출 원장 기록 — 신규 (tenant,exp,vid) 일 때만 true(노출 집계 대상).
+     *   반복 방문(이미 배정)=false(sticky·재집계 안 함). 신규 배정 폭주(IP 레이트리밋 초과)=false(위조 차단).
+     */
+    private static function recordExposure(PDO $pdo, string $tenant, string $expKey, string $vid, string $variant, string $ip): bool
+    {
+        try {
+            $st = $pdo->prepare("SELECT 1 FROM onsite_assignment WHERE tenant_id=? AND exp_key=? AND vid=? LIMIT 1");
+            $st->execute([$tenant, $expKey, $vid]);
+            if ($st->fetchColumn()) return false; // 이미 배정 → sticky
+            if (!self::newVidRateOk($pdo, $ip)) return false; // 신규 배정 폭주(위조 의심) → 지표 미집계
+            $now = gmdate('Y-m-d\\TH:i:s\\Z');
+            $isMy = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql';
+            $sql = $isMy
+                ? "INSERT IGNORE INTO onsite_assignment(tenant_id,exp_key,vid,variant_key,exposed_at) VALUES(?,?,?,?,?)"
+                : "INSERT OR IGNORE INTO onsite_assignment(tenant_id,exp_key,vid,variant_key,exposed_at) VALUES(?,?,?,?,?)";
+            $pdo->prepare($sql)->execute([$tenant, $expKey, $vid, $variant, $now]);
+            return true;
+        } catch (\Throwable $e) { return false; }
+    }
+
+    /**
+     * [정밀감사] 전환 원장 기록. null=선행 노출 없음(전환 거부). counted=true 는 미전환→전환 1회 전이 시에만.
+     *   변형은 노출 시 고정 저장된 값 반환(정확 귀속).
+     */
+    private static function recordConversion(PDO $pdo, string $tenant, string $expKey, string $vid): ?array
+    {
+        try {
+            $st = $pdo->prepare("SELECT variant_key, converted_at FROM onsite_assignment WHERE tenant_id=? AND exp_key=? AND vid=? LIMIT 1");
+            $st->execute([$tenant, $expKey, $vid]);
+            $row = $st->fetch(PDO::FETCH_ASSOC);
+            if (!$row) return null; // 선행 노출 없음 → 위조 전환 차단
+            $variant = (string)($row['variant_key'] ?? '');
+            if (!empty($row['converted_at'])) return ['variant' => $variant, 'counted' => false]; // 이미 전환(멱등)
+            $now = gmdate('Y-m-d\\TH:i:s\\Z');
+            $up = $pdo->prepare("UPDATE onsite_assignment SET converted_at=? WHERE tenant_id=? AND exp_key=? AND vid=? AND converted_at IS NULL");
+            $up->execute([$now, $tenant, $expKey, $vid]);
+            return ['variant' => $variant, 'counted' => $up->rowCount() > 0];
+        } catch (\Throwable $e) { return null; }
     }
 
     /* ───────── 관리(인증) ───────── */

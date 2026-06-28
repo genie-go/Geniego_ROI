@@ -34,18 +34,27 @@ try {
     if ($onlyTenant !== null) {
         $tenants = [$onlyTenant];
     } else {
+        // [정밀감사] google(gclid) + 서버전환(Meta CAPI/TikTok Events, buyer_email 보유) 테넌트 합집합.
         $tenants = [];
-        try { $tenants = $pdo->query("SELECT DISTINCT tenant_id FROM channel_orders WHERE raw_json LIKE '%gclid%' AND ordered_at >= " . $pdo->quote($cut))->fetchAll(PDO::FETCH_COLUMN); } catch (\Throwable $e) {}
+        try {
+            $tenants = $pdo->query(
+                "SELECT DISTINCT tenant_id FROM channel_orders
+                  WHERE ordered_at >= " . $pdo->quote($cut) . "
+                    AND (raw_json LIKE '%gclid%' OR (buyer_email IS NOT NULL AND buyer_email<>''))"
+            )->fetchAll(PDO::FETCH_COLUMN);
+        } catch (\Throwable $e) {}
     }
-    $up = 0; $fail = 0; $active = 0;
+    $up = 0; $fail = 0; $active = 0; $mUp = 0; $tUp = 0;
     foreach ($tenants as $t) {
-        $r = AdAdapters::uploadPendingGoogleConversions($pdo, (string)$t, $days);
-        if (($r['status'] ?? '') === 'no_credentials') continue; // 자격증명 미설정 테넌트
-        $active++;
-        $up += (int)($r['uploaded'] ?? 0);
-        $fail += (int)($r['failed'] ?? 0);
+        $tid = (string)$t;
+        // 1) Google Offline Conversion(gclid)
+        $r = AdAdapters::uploadPendingGoogleConversions($pdo, $tid, $days);
+        if (($r['status'] ?? '') !== 'no_credentials') { $active++; $up += (int)($r['uploaded'] ?? 0); $fail += (int)($r['failed'] ?? 0); }
+        // 2) Meta CAPI + TikTok Events(서버 전환) — 채널별 자격증명 내부 게이트(미설정 채널 skip)
+        $s = AdAdapters::uploadPendingServerConversions($pdo, $tid, $days);
+        $mUp += (int)($s['meta'] ?? 0); $tUp += (int)($s['tiktok'] ?? 0); $fail += (int)($s['failed'] ?? 0);
     }
-    fwrite(STDOUT, sprintf("[%s] gads_conversion: tenants=%d active=%d uploaded=%d failed=%d\n", gmdate('Y-m-d H:i:s'), count($tenants), $active, $up, $fail));
+    fwrite(STDOUT, sprintf("[%s] server_conversion: tenants=%d gads_active=%d gads=%d meta_capi=%d tiktok_events=%d failed=%d\n", gmdate('Y-m-d H:i:s'), count($tenants), $active, $up, $mUp, $tUp, $fail));
     exit(0);
 } catch (\Throwable $e) {
     fwrite(STDERR, '[gads_conversion_cron] ERROR: ' . $e->getMessage() . "\n");

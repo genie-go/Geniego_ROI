@@ -76,6 +76,25 @@ read -r -d '' CRONTAB <<EOF || true
 # ── [237차] 다이내믹 리프라이서(경쟁가 대비 자동 가격조정; 가격은 저빈도라 30분/매시) ──
 */30 * * * * GENIE_ENV=production php ${PROD}/bin/repricer_cron.php >> /var/log/genie_repricer.log 2>&1
 7 * * * * GENIE_ENV=demo php ${DEMO}/bin/repricer_cron.php >> /var/log/genie_repricer_demo.log 2>&1
+# ── [정밀감사 SSOT 정합] 그동안 러너는 존재하나 본 정본에 미등록이던 6종 추가(fresh provision/DR 재현성) ──
+# ── 웹 분석 인바운드(GA4·Adobe → web_analytics_metrics; ROAS 무관, 저장직후 syncAnalyticsOnSave 의 주기 백업) ──
+40 * * * * GENIE_ENV=production php ${PROD}/bin/analytics_sync_cron.php --days=28 >> /var/log/genie_analytics_sync.log 2>&1
+43 * * * * GENIE_ENV=demo php ${DEMO}/bin/analytics_sync_cron.php --days=28 >> /var/log/genie_analytics_sync_demo.log 2>&1
+# ── CS/헬프데스크 인바운드(Zendesk·Intercom·Freshdesk·Gorgias → cs_metrics; 저장직후 syncCsOnSave 자가치유 백업) ──
+25 * * * * GENIE_ENV=production php ${PROD}/bin/cs_sync_cron.php --days=28 >> /var/log/genie_cs_sync.log 2>&1
+28 * * * * GENIE_ENV=demo php ${DEMO}/bin/cs_sync_cron.php --days=28 >> /var/log/genie_cs_sync_demo.log 2>&1
+# ── 외부 ESP 인바운드(Mailchimp·Klaviyo·SendGrid → esp_metrics; 저장직후 syncEspOnSave 자가치유 백업) ──
+45 * * * * GENIE_ENV=production php ${PROD}/bin/esp_sync_cron.php --days=28 >> /var/log/genie_esp_sync.log 2>&1
+48 * * * * GENIE_ENV=demo php ${DEMO}/bin/esp_sync_cron.php --days=28 >> /var/log/genie_esp_sync_demo.log 2>&1
+# ── CRM 이메일 일배치(예측세그 자동갱신·평판 시계열 스냅샷) ──
+30 5 * * * GENIE_ENV=production php ${PROD}/bin/crm_email_daily_cron.php >> /var/log/genie_crm_email.log 2>&1
+33 5 * * * GENIE_ENV=demo php ${DEMO}/bin/crm_email_daily_cron.php >> /var/log/genie_crm_email_demo.log 2>&1
+# ── AI 룰 엔진 평가(RuleEngine::evaluateAll; 이상·임계 자동 액션) ──
+*/10 * * * * GENIE_ENV=production php ${PROD}/bin/rule_engine_cron.php >> /var/log/genie_rules.log 2>&1
+*/13 * * * * GENIE_ENV=demo php ${DEMO}/bin/rule_engine_cron.php >> /var/log/genie_rules_demo.log 2>&1
+# ── 아웃바운드 웹훅 디스패치(webhook_delivery pending drain; 매분, --max 바운드) ──
+* * * * * GENIE_ENV=production php ${PROD}/bin/webhook_dispatch_cron.php >> /var/log/genie_webhook.log 2>&1
+* * * * * GENIE_ENV=demo php ${DEMO}/bin/webhook_dispatch_cron.php >> /var/log/genie_webhook_demo.log 2>&1
 EOF
 
 if [ "${1:-}" = "--apply" ]; then

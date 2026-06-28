@@ -3216,7 +3216,25 @@ final class ChannelSync
     {
         if (in_array($channel, self::COMMERCE_CHANNELS, true)) return true;
         $c = self::normalizeChannelKey($channel);
-        return $c !== $channel && in_array($c, self::COMMERCE_CHANNELS, true);
+        if ($c !== $channel && in_array($c, self::COMMERCE_CHANNELS, true)) return true;
+        // [정밀감사] admin 이 레지스트리(sync_kind='commerce')로 추가한 신규 커머스 채널도 인식.
+        //   기존엔 cron(commerceTenantChannels)만 레지스트리를 병합하고 본 함수는 하드코딩 const 만 봐서
+        //   "자격증명 저장 직후 즉시 sync"(ChannelCreds::upsert) 가 신규 커머스 채널을 누락(즉시성 비대칭).
+        $reg = self::registryCommerceKeys();
+        return in_array($channel, $reg, true) || ($c !== $channel && in_array($c, $reg, true));
+    }
+
+    /** 레지스트리의 sync_kind='commerce' 활성 채널키 — 요청 단위 1회 캐시(반복 DB조회 방지). commerceTenantChannels 와 동일 SSOT. */
+    private static ?array $registryCommerceCache = null;
+    private static function registryCommerceKeys(): array
+    {
+        if (self::$registryCommerceCache !== null) return self::$registryCommerceCache;
+        $out = [];
+        try {
+            $rs = Db::pdo()->query("SELECT channel_key FROM channel_registry WHERE is_active=1 AND sync_kind='commerce'");
+            foreach ($rs->fetchAll(PDO::FETCH_COLUMN) as $ck) { $ck = (string)$ck; if ($ck !== '') $out[] = $ck; }
+        } catch (\Throwable $e) { /* 레지스트리 테이블 부재 시 빈 배열(하드코딩 폴백) */ }
+        return self::$registryCommerceCache = $out;
     }
 
     /**

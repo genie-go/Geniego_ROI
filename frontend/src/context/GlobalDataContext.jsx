@@ -576,6 +576,7 @@ export function GlobalDataProvider({ children }) {
                 });
             }).catch(() => {});
         };
+        poll(); // [정밀감사] 콜드마운트 즉시 1회 하이드레이션 — 기존엔 +30초 첫 폴링까지 광고비/ROAS가 0 표시.
         const iv = setInterval(poll, 30000); // 30초 주기(운영 전용)
         // [정밀감사 F] 자격증명 등록·동기화 직후 즉시 반영 — 30초 폴링 대기 없이 강제 refetch.
         //   ApiKeys/ConnectModal 저장 성공 시 window.dispatchEvent(new Event('genie:data-refresh')) 발행.
