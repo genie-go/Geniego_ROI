@@ -164,6 +164,7 @@ return function (App $app): void {
         'POST /wms/warehouses'                 => 'Genie\\Handlers\\Wms::saveWarehouse',
         'PUT /wms/warehouses/{id}'             => 'Genie\\Handlers\\Wms::saveWarehouse',
         'DELETE /wms/warehouses/{id}'          => 'Genie\\Handlers\\Wms::deleteWarehouse',
+        'POST /wms/allocate'                   => 'Genie\\Handlers\\Wms::allocate',
         'GET /wms/carriers'                    => 'Genie\\Handlers\\Wms::listCarriers',
         'POST /wms/carriers'                   => 'Genie\\Handlers\\Wms::saveCarrier',
         'PUT /wms/carriers/{id}'               => 'Genie\\Handlers\\Wms::saveCarrier',
@@ -2615,6 +2616,7 @@ return function (App $app): void {
     $register('POST',   '/wms/warehouses');
     $register('PUT',    '/wms/warehouses/{id}');
     $register('DELETE', '/wms/warehouses/{id}');
+    $register('POST',   '/wms/allocate');
     $register('GET',    '/wms/carriers');
     $register('POST',   '/wms/carriers');
     $register('PUT',    '/wms/carriers/{id}');

@@ -124,6 +124,11 @@ class Wms
         foreach (['wms_warehouses','wms_carriers','wms_permissions','wms_movements','wms_picking','wms_supply_orders','wms_lots','wms_stock'] as $tbl) {
             try { $pdo->exec("ALTER TABLE {$tbl} ADD COLUMN tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo'"); } catch (\Throwable $e) {}
         }
+        // [현 차수] 멀티창고 지리적 최적할당 — 창고 region(시/도)·좌표(lat/lng) 보강(멱등). 무해 실패 무시.
+        //   SQLite 는 타입 무관(REAL affinity)·MySQL DOUBLE. region 미입력 시 area/location 에서 추정.
+        foreach (['region VARCHAR(60)', 'lat DOUBLE', 'lng DOUBLE'] as $col) {
+            try { $pdo->exec("ALTER TABLE wms_warehouses ADD COLUMN {$col}"); } catch (\Throwable $e) {}
+        }
     }
 
     /* ════════════════ 창고(Warehouses) ════════════════ */
@@ -147,16 +152,22 @@ class Wms
         $name = trim((string)($b['name'] ?? ''));
         if ($name === '') return self::json($res, ['ok' => false, 'error' => '창고명을 입력하세요.'], 422);
         $pdo = self::db();
+        // [현 차수] 멀티창고 최적할당 — region(시/도) 미입력 시 area/location/name 에서 자동추정. 좌표는 숫자만 채택.
+        $region = trim((string)($b['region'] ?? ''));
+        if ($region === '') $region = self::regionOf(((string)($b['area'] ?? '')) . ' ' . ((string)($b['location'] ?? '')) . ' ' . $name);
         $f = [
             ':name' => $name, ':code' => (string)($b['code'] ?? ''), ':location' => (string)($b['location'] ?? ''),
             ':area' => (string)($b['area'] ?? ''), ':temp' => (string)($b['temp'] ?? 'Room Temp'),
             ':manager' => (string)($b['manager'] ?? ''), ':phone' => (string)($b['phone'] ?? ''),
             ':type' => (string)($b['type'] ?? 'Direct'), ':active' => !empty($b['active']) ? 1 : 0,
+            ':region' => $region,
+            ':lat' => is_numeric($b['lat'] ?? null) ? (float)$b['lat'] : null,
+            ':lng' => is_numeric($b['lng'] ?? null) ? (float)$b['lng'] : null,
         ];
         $id = (int)($args['id'] ?? $b['id'] ?? 0);
         if ($id > 0) {
             $f[':id'] = $id; $f[':t'] = $t; $f[':ua'] = $now;
-            $st = $pdo->prepare("UPDATE wms_warehouses SET name=:name,code=:code,location=:location,area=:area,temp=:temp,manager=:manager,phone=:phone,type=:type,active=:active,updated_at=:ua WHERE id=:id AND tenant_id=:t");
+            $st = $pdo->prepare("UPDATE wms_warehouses SET name=:name,code=:code,location=:location,area=:area,temp=:temp,manager=:manager,phone=:phone,type=:type,active=:active,region=:region,lat=:lat,lng=:lng,updated_at=:ua WHERE id=:id AND tenant_id=:t");
             $st->execute($f);
             if ($st->rowCount() === 0 && !self::exists('wms_warehouses', $id, $t)) return self::json($res, ['ok' => false, 'error' => '없음'], 404);
             return self::json($res, ['ok' => true, 'id' => $id]);
@@ -170,7 +181,7 @@ class Wms
             }
         } catch (\Throwable $e) { /* 카운트 실패 시 통과(가용성 우선) */ }
         $f[':t'] = $t; $f[':ca'] = $now; $f[':ua'] = $now;
-        $st = $pdo->prepare("INSERT INTO wms_warehouses (tenant_id,name,code,location,area,temp,manager,phone,type,active,created_at,updated_at) VALUES (:t,:name,:code,:location,:area,:temp,:manager,:phone,:type,:active,:ca,:ua)");
+        $st = $pdo->prepare("INSERT INTO wms_warehouses (tenant_id,name,code,location,area,temp,manager,phone,type,active,region,lat,lng,created_at,updated_at) VALUES (:t,:name,:code,:location,:area,:temp,:manager,:phone,:type,:active,:region,:lat,:lng,:ca,:ua)");
         $st->execute($f);
         return self::json($res, ['ok' => true, 'id' => (int)$pdo->lastInsertId()]);
     }
@@ -182,6 +193,20 @@ class Wms
         $st = self::db()->prepare("DELETE FROM wms_warehouses WHERE id=:id AND tenant_id=:t");
         $st->execute([':id' => (int)$args['id'], ':t' => self::tenant($req)]);
         return self::json($res, ['ok' => true, 'deleted' => $st->rowCount()]);
+    }
+
+    /** POST /wms/allocate — {sku, qty, address} 최적 출고 창고 미리보기(재고 보유 + 배송지 근접). Pro+.
+     *   채널 판매 자동 차감이 실제로 선택하는 창고를 사전 확인·시뮬레이션(분할출고 회피·후보 점수 투명 노출). */
+    public static function allocate(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $t = self::tenant($req); $b = self::body($req);
+        $sku = trim((string)($b['sku'] ?? ''));
+        $qty = max(1.0, (float)($b['qty'] ?? 1));
+        $ship = (string)($b['address'] ?? $b['ship_address'] ?? $b['region'] ?? '');
+        if ($sku === '') return self::json($res, ['ok' => false, 'error' => 'sku가 필요합니다.'], 422);
+        return self::json($res, array_merge(['ok' => true], self::allocationPlan($t, $sku, $qty, $ship)));
     }
 
     /* ════════════════ 택배사(Carriers) ════════════════ */
@@ -499,13 +524,13 @@ class Wms
      * [현 차수] 보편 채널 동기화(단방향 자동진입): 채널 판매를 물리 창고 재고(wms_stock)에 출고로 반영한다.
      *   ★안전 3중 가드:
      *   ① ref(채널 주문 식별자) 멱등 — 재폴링/중복 호출 시 1회만 차감(이중 차감 방지).
-     *   ② 물리 추적 SKU 한정 — 해당 SKU 의 wms_stock 행이 기본창고에 있을 때만 차감(미추적 SKU/무-WMS
+     *   ② 물리 추적 SKU 한정 — 해당 SKU 의 wms_stock 행이 최적할당 선택창고에 있을 때만 차감(미추적 SKU/무-WMS
      *      테넌트는 spurious 0행 생성 없이 skip → 수동 WMS 워크플로우/미사용 테넌트 무영향).
      *   ③ non-throw — 가용분(min(qty,on_hand))만 차감해 strict 출고 예외 회피, 오버셀은 로그(은폐 아님).
      *   best-effort: 예외는 호출측(채널 동기화) 흐름을 깨지 않도록 흡수.
      * @return bool 신규 차감 시 true.
      */
-    public static function reflectChannelSale(string $tenant, string $sku, string $name, float $qty, string $ref): bool
+    public static function reflectChannelSale(string $tenant, string $sku, string $name, float $qty, string $ref, string $shipText = ''): bool
     {
         $tenant = trim($tenant);
         if ($tenant === '' || strtolower($tenant) === 'demo' || $sku === '' || $qty <= 0) return false;
@@ -516,8 +541,10 @@ class Wms
             $chk = $pdo->prepare("SELECT 1 FROM wms_movements WHERE tenant_id=? AND ref=? AND type=? LIMIT 1");
             $chk->execute([$tenant, $ref, 'Outbound']);
             if ($chk->fetchColumn()) return false;
-            $wh = self::primaryWarehouse($tenant);
-            // ② 물리 추적 SKU 한정: 기본창고에 재고 행이 있을 때만 차감(없으면 미추적 → skip).
+            // [현 차수] 멀티창고 최적할당 — 기본창고 단일 출고 대신 SKU 재고 보유 + 배송지($shipText) 근접 창고 선택.
+            //   재고 보유 창고가 없으면 primaryWarehouse 폴백(아래 ② 체크에서 미추적 skip 동작 보존).
+            $wh = self::selectWarehouseForSale($tenant, $sku, $qty, $shipText);
+            // ② 물리 추적 SKU 한정: 선택 창고에 재고 행이 있을 때만 차감(없으면 미추적 → skip).
             $sel = $pdo->prepare("SELECT on_hand FROM wms_stock WHERE tenant_id=? AND sku=? AND wh_id=? LIMIT 1");
             $sel->execute([$tenant, $sku, $wh]);
             $row = $sel->fetch(\PDO::FETCH_ASSOC);
@@ -554,6 +581,133 @@ class Wms
             if ($id !== false && $id !== null && (string)$id !== '') return (string)$id;
         } catch (\Throwable $e) { /* fallthrough */ }
         return 'default';
+    }
+
+    /* ════════════════ [현 차수] 멀티창고 지리적 최적할당 ════════════════
+     *   기존: primaryWarehouse(최소 id 단일창고)에서만 출고 → 타 창고에 재고가 있어도 미추적 처리(분할/지역 무시).
+     *   개선: 주문 SKU 재고 보유 + 배송지 근접 창고로 최적 배분. 외부 의존(3PL/배송사 API) 없이 내부 재고·지리만으로 동작.
+     *   점수: ① 전량 커버(on_hand>=qty) 우선 ② 배송지 근접(시/도 centroid haversine·좌표 명시 시 우선) ③ 동점=재고 多. */
+
+    /** 한국 시/도 centroid(위도,경도) — region 근접도 산출 기준. */
+    private const KR_REGION_CENTROIDS = [
+        '서울'=>[37.5665,126.9780],'인천'=>[37.4563,126.7052],'경기'=>[37.4138,127.5183],
+        '강원'=>[37.8228,128.1555],'충북'=>[36.6357,127.4917],'충남'=>[36.5184,126.8000],
+        '대전'=>[36.3504,127.3845],'세종'=>[36.4800,127.2890],'전북'=>[35.7175,127.1530],
+        '전남'=>[34.8161,126.4630],'광주'=>[35.1595,126.8526],'경북'=>[36.4919,128.8889],
+        '경남'=>[35.4606,128.2132],'대구'=>[35.8714,128.6014],'울산'=>[35.5384,129.3114],
+        '부산'=>[35.1796,129.0756],'제주'=>[33.4996,126.5312],
+    ];
+    /** 주소 풀네임/별칭 → 캐논 시/도(긴 키 우선). */
+    private const KR_REGION_ALIASES = [
+        '서울특별시'=>'서울','인천광역시'=>'인천','경기도'=>'경기','강원특별자치도'=>'강원','강원도'=>'강원',
+        '충청북도'=>'충북','충청남도'=>'충남','대전광역시'=>'대전','세종특별자치시'=>'세종',
+        '전북특별자치도'=>'전북','전라북도'=>'전북','전라남도'=>'전남','광주광역시'=>'광주',
+        '경상북도'=>'경북','경상남도'=>'경남','대구광역시'=>'대구','울산광역시'=>'울산',
+        '부산광역시'=>'부산','제주특별자치도'=>'제주','제주도'=>'제주',
+    ];
+
+    /** 주소/지역 문자열 → 캐논 시/도. 미식별 시 ''. (UTF-8 byte-safe strpos.) */
+    public static function regionOf(string $text): string
+    {
+        $s = trim($text);
+        if ($s === '') return '';
+        foreach (self::KR_REGION_ALIASES as $full => $canon) { if (strpos($s, $full) !== false) return $canon; }
+        foreach (array_keys(self::KR_REGION_CENTROIDS) as $canon) { if (strpos($s, $canon) !== false) return $canon; }
+        return '';
+    }
+
+    /** haversine 거리(km). */
+    private static function haversineKm(float $la1, float $lo1, float $la2, float $lo2): float
+    {
+        $R = 6371.0; $dLa = deg2rad($la2 - $la1); $dLo = deg2rad($lo2 - $lo1);
+        $a = sin($dLa / 2) ** 2 + cos(deg2rad($la1)) * cos(deg2rad($la2)) * sin($dLo / 2) ** 2;
+        return $R * 2 * atan2(sqrt($a), sqrt(max(0.0, 1 - $a)));
+    }
+
+    /** 창고 centroid(위도,경도) — 명시 좌표 우선, 없으면 region/area/location/name 에서 시/도 centroid 추정. null=미상. */
+    private static function warehouseCentroid(array $wh): ?array
+    {
+        $lat = $wh['lat'] ?? null; $lng = $wh['lng'] ?? null;
+        if (is_numeric($lat) && is_numeric($lng) && (float)$lat != 0.0 && (float)$lng != 0.0) return [(float)$lat, (float)$lng];
+        $region = (string)($wh['region'] ?? '');
+        if ($region === '' || !isset(self::KR_REGION_CENTROIDS[$region])) {
+            $region = self::regionOf((string)($wh['region'] ?? '') . ' ' . (string)($wh['area'] ?? '') . ' ' . (string)($wh['location'] ?? '') . ' ' . (string)($wh['name'] ?? ''));
+        }
+        return isset(self::KR_REGION_CENTROIDS[$region]) ? self::KR_REGION_CENTROIDS[$region] : null;
+    }
+
+    /**
+     * [현 차수] 멀티창고 최적할당 계획 — SKU 재고 보유 + 배송지 근접 창고를 점수화하여 선정.
+     *   ① 재고>0 활성 창고 후보 ② 전량 커버(on_hand>=qty) 우선(분할출고 회피) ③ 배송지 근접(haversine)
+     *   ④ 동점 시 재고 많은 순. 좌표/지역 미상이면 재고량으로만 정렬. 후보 0 → primaryWarehouse 폴백.
+     * @return array{selected:string, selected_name:string, ship_region:string, covered:bool, candidates:array, reason:string}
+     */
+    public static function allocationPlan(string $tenant, string $sku, float $qty, string $shipText = ''): array
+    {
+        $primary = self::primaryWarehouse($tenant);
+        $out = ['selected' => $primary, 'selected_name' => '', 'ship_region' => '', 'covered' => false, 'candidates' => [], 'reason' => ''];
+        if ($sku === '' || $tenant === '') return $out;
+        try {
+            $pdo = self::db();
+            $st = $pdo->prepare("SELECT wh_id, on_hand FROM wms_stock WHERE tenant_id=? AND sku=? AND on_hand > 0");
+            $st->execute([$tenant, $sku]);
+            $stock = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+            if (!$stock) { $out['reason'] = '재고 보유 창고 없음 — 기본창고 폴백'; return $out; }
+            $whq = $pdo->prepare("SELECT id, name, region, area, location, lat, lng FROM wms_warehouses WHERE tenant_id=? AND active=1");
+            $whq->execute([$tenant]);
+            $whMap = [];
+            foreach ($whq->fetchAll(\PDO::FETCH_ASSOC) ?: [] as $w) { $whMap[(string)$w['id']] = $w; }
+            $shipRegion = self::regionOf($shipText);
+            $out['ship_region'] = $shipRegion;
+            $shipC = ($shipRegion !== '' && isset(self::KR_REGION_CENTROIDS[$shipRegion])) ? self::KR_REGION_CENTROIDS[$shipRegion] : null;
+            $cands = [];
+            foreach ($stock as $s) {
+                $wid = (string)$s['wh_id'];
+                if (!isset($whMap[$wid])) continue; // 비활성/삭제 창고 재고는 출고 대상 제외
+                $w = $whMap[$wid];
+                $onHand = (float)$s['on_hand'];
+                $wc = self::warehouseCentroid($w);
+                $dist = ($shipC !== null && $wc !== null) ? self::haversineKm($shipC[0], $shipC[1], $wc[0], $wc[1]) : null;
+                $cands[] = [
+                    'wh_id' => $wid, 'name' => (string)$w['name'],
+                    'region' => (string)($w['region'] ?: self::regionOf((string)($w['area'] ?? '') . ' ' . (string)($w['location'] ?? ''))),
+                    'on_hand' => $onHand, 'covers' => ($onHand >= $qty),
+                    'distance_km' => ($dist !== null ? round($dist, 1) : null),
+                ];
+            }
+            if (!$cands) { $out['reason'] = '활성 창고 재고 없음 — 기본창고 폴백'; return $out; }
+            $cmp = function ($a, $b) {
+                $da = $a['distance_km'] ?? 1e9; $db = $b['distance_km'] ?? 1e9;
+                if (abs($da - $db) > 0.01) return $da <=> $db;       // 근접 우선(미상=큰값 후순위)
+                return $b['on_hand'] <=> $a['on_hand'];               // 동점=재고 多
+            };
+            usort($cands, $cmp);
+            // 전량 커버 가능 후보가 있으면 그 중에서 선정(분할출고 회피). 없으면 전체 후보에서 최선.
+            $covering = array_values(array_filter($cands, fn($c) => $c['covers']));
+            $pool = $covering ?: $cands;
+            usort($pool, $cmp);
+            $best = $pool[0];
+            $out['selected'] = $best['wh_id']; $out['selected_name'] = $best['name'];
+            $out['covered'] = $best['covers']; $out['candidates'] = $cands; // 전체 후보(점수순) 투명 노출
+            $why = [];
+            $why[] = $best['covers'] ? '전량 출고 가능' : '부분 재고(분할 필요)';
+            if (($best['distance_km'] ?? null) !== null) $why[] = "배송지({$shipRegion}) 최근접 {$best['distance_km']}km";
+            elseif ($shipRegion === '') $why[] = '배송지 미상 — 재고량 우선';
+            else $why[] = '창고 좌표/지역 미상 — 재고량 우선';
+            $why[] = '재고 ' . rtrim(rtrim(number_format($best['on_hand'], 1), '0'), '.');
+            $out['reason'] = implode(' · ', $why);
+            return $out;
+        } catch (\Throwable $e) {
+            error_log('[Wms.allocationPlan] ' . $e->getMessage());
+            return $out;
+        }
+    }
+
+    /** [현 차수] 채널 판매 출고용 최적 창고 wh_id — allocationPlan 선정값(재고+근접). 폴백=primaryWarehouse. */
+    private static function selectWarehouseForSale(string $tenant, string $sku, float $qty, string $shipText = ''): string
+    {
+        $sel = self::allocationPlan($tenant, $sku, $qty, $shipText)['selected'] ?? '';
+        return $sel !== '' ? $sel : self::primaryWarehouse($tenant);
     }
 
     /** 입출고 유형 → 물리재고 부호 적용(영문 IO_TYPES + 한글 데모 라벨 모두 지원). */
