@@ -653,7 +653,7 @@ final class AdAdapters
     /** ad_design(AI 디자인) spec_json → 광고 카피 추출. svg 는 래스터화 필요(이미지 매체용). */
     private static function loadDesign(PDO $pdo, string $tenant, int $designId): array
     {
-        $out = ['headline' => 'GenieGo', 'copy' => '', 'subheadline' => '', 'cta' => 'LEARN_MORE', 'has_svg' => false, 'image_b64' => '', 'animation' => ''];
+        $out = ['headline' => 'GenieGo', 'copy' => '', 'subheadline' => '', 'cta' => 'LEARN_MORE', 'has_svg' => false, 'image_b64' => '', 'image_mime' => '', 'animation' => ''];
         if ($designId <= 0) return $out;
         try {
             $st = $pdo->prepare('SELECT spec_json, svg FROM ad_design WHERE tenant_id=? AND id=? LIMIT 1');
@@ -671,11 +671,29 @@ final class AdAdapters
             // [227차 P0] 래스터 이미지 감지 — AI 이미지생성(DALL-E/Stability) 결과는 data:image/*;base64 로
             //   svg 컬럼에 저장된다(adDesignSave: image→svg). 서버 래스터화(Imagick/GD) 없이 그대로 매체
             //   업로드 가능. SVG 마크업(<svg…)은 래스터화 불가라 이미지 광고 미사용(텍스트 크리에이티브 폴백).
-            if (preg_match('#^data:image/(png|jpe?g|webp);base64,#i', $svg)) {
-                $out['image_b64'] = substr($svg, strpos($svg, ',') + 1);
+            if (preg_match('#^data:image/(png|jpe?g|webp);base64,#i', $svg, $mm)) {
+                $out['image_b64']  = substr($svg, strpos($svg, ',') + 1);
+                $out['image_mime'] = 'image/' . strtolower($mm[1] === 'jpg' ? 'jpeg' : $mm[1]); // png|jpeg|webp
             }
         } catch (Throwable $e) {}
         return $out;
+    }
+
+    /** [현 차수] base64 래스터 이미지 → 임시파일(CURLFile 업로드용). 반환=[path, mime, filename] 또는 null.
+     *  미디어 자산 멀티파트 업로드(Kakao imageFile 등) 공용. 호출부에서 @unlink(path) 책임. */
+    private static function b64TempFile(string $b64, string $mime = 'image/png'): ?array
+    {
+        $bin = base64_decode($b64, true);
+        if ($bin === false || $bin === '' || strlen($bin) < 64) return null;
+        // 매직바이트로 mime 보정(loadDesign 이 mime 미보존 시 폴백) — PNG/JPEG/WebP.
+        if (strncmp($bin, "\x89PNG", 4) === 0) $mime = 'image/png';
+        elseif (strncmp($bin, "\xFF\xD8\xFF", 3) === 0) $mime = 'image/jpeg';
+        elseif (strncmp($bin, 'RIFF', 4) === 0 && substr($bin, 8, 4) === 'WEBP') $mime = 'image/webp';
+        $ext = ['image/png' => 'png', 'image/jpeg' => 'jpg', 'image/webp' => 'webp'][$mime] ?? 'png';
+        $tmp = tempnam(sys_get_temp_dir(), 'gcr_');
+        if ($tmp === false) return null;
+        if (@file_put_contents($tmp, $bin) === false) { @unlink($tmp); return null; }
+        return [$tmp, $mime, 'creative.' . $ext];
     }
 
     /** 캠페인 하위 adset/adgroup + ad 생성(PAUSED). 매체별 딜리버리 완성 레이어. */
@@ -881,15 +899,55 @@ final class AdAdapters
         [$ac, $ar] = self::http('POST', 'https://apis.moment.kakao.com/openapi/v4/adGroups', $hdr, $agBody);
         $agId = $ar['id'] ?? $ar['adGroupId'] ?? ($ar['data']['id'] ?? '');
         if ($agId === '') return ['ok' => true, 'status' => 'partial', 'note' => 'Kakao 캠페인까지 생성. 광고그룹 보류(라이브 스키마 확정 필요): ' . (self::errMsg($ar) ?: ('HTTP ' . $ac))];
-        // 2) 소재(이미지 네이티브 — 문구/랜딩). 이미지 자산은 별도 업로드 API 필요 → 실패 시 honest partial.
-        $crBody = json_encode(['adAccountId' => (int)$acc, 'adGroupId' => (int)$agId, 'name' => mb_substr($d['headline'], 0, 50) . ' CR',
-            'title' => mb_substr($d['headline'], 0, 50), 'description' => mb_substr($d['copy'] ?: ($d['subheadline'] ?: ''), 0, 100),
-            'landingUrl' => $landing, 'config' => 'OFF'], JSON_UNESCAPED_UNICODE);
-        [$cc, $cr] = self::http('POST', 'https://apis.moment.kakao.com/openapi/v4/creatives', $hdr, $crBody);
-        $crId = $cr['id'] ?? ($cr['data']['id'] ?? '');
-        if ($crId === '') return ['ok' => true, 'adgroup_id' => (string)$agId, 'ad_id' => '', 'status' => 'partial',
-            'note' => 'Kakao 광고그룹 생성(OFF). 소재 보류(이미지 자산 업로드 필요): ' . (self::errMsg($cr) ?: ('HTTP ' . $cc))];
-        return ['ok' => true, 'adgroup_id' => (string)$agId, 'ad_id' => (string)$crId, 'note' => 'Kakao 광고그룹+소재 생성(OFF)'];
+        // [현 차수 1순위] 2) 소재 자동업로드 — Kakao Moment Display 소재는 이미지 파일 멀티파트가 필수다.
+        //   (POST /openapi/v4/creatives, Content-Type: multipart/form-data, 필수: adGroupId·format·imageFile·altText.)
+        //   AI 생성 래스터(ad_design.svg 의 data:image base64)를 imageFile 로 직접 업로드 → 별도 자산 등록 단계 불요.
+        //   이미지가 없으면(텍스트 전용 디자인) honest partial — Display 소재는 이미지 없이 생성 불가.
+        if (empty($d['image_b64'])) {
+            return ['ok' => true, 'adgroup_id' => (string)$agId, 'ad_id' => '', 'status' => 'partial',
+                'note' => 'Kakao 광고그룹 생성(OFF). 소재 보류 — 이미지 소재 필요(AI 디자인에 이미지 생성 후 재집행).'];
+        }
+        $tf = self::b64TempFile((string)$d['image_b64'], (string)($d['image_mime'] ?: 'image/png'));
+        if ($tf === null) return ['ok' => true, 'adgroup_id' => (string)$agId, 'ad_id' => '', 'status' => 'partial',
+            'note' => 'Kakao 광고그룹 생성(OFF). 소재 보류 — 이미지 디코드 실패.'];
+        [$imgPath, $imgMime, $imgName] = $tf;
+        // 멀티파트는 curl 이 boundary 포함 Content-Type 을 자동설정 → JSON content-type 헤더 제거(Authorization·adAccountId 만).
+        $mpHdr = array_values(array_filter($hdr, fn($h) => stripos($h, 'content-type:') !== 0));
+        $alt   = mb_substr($d['headline'] ?: ($d['copy'] ?: 'GenieGo'), 0, 30);
+        $fields = array_filter([
+            'adGroupId'        => (string)(int)$agId,
+            'format'           => 'IMAGE_BANNER',           // 이미지 배너(프로필이미지 불요·단일 이미지) — 무지출 OFF 정책 유지.
+            'name'             => mb_substr($d['headline'], 0, 50) . ' CR',
+            'altText'          => $alt,
+            'mobileLandingUrl' => $landing,
+            'pcLandingUrl'     => $landing,
+            // ※ 무지출(정지)은 상위 adGroup·campaign 의 config=OFF 로 이미 보장된다. 소재 생성 API 는 'config' 파라미터를
+            //    받지 않으므로(미지원 파라미터 거부 방지) 전송하지 않는다. 사용자가 매체 화면에서 활성화 전까지 집행 0.
+            'imageFile'        => ['__file__' => $imgPath, 'name' => $imgName, 'mime' => $imgMime],
+        ], fn($v) => $v !== '' && $v !== null);
+        try {
+            [$cc, $cr] = self::httpMultipart('https://apis.moment.kakao.com/openapi/v4/creatives', $mpHdr, $fields, 40);
+        } finally { @unlink($imgPath); }
+        $crId = $cr['id'] ?? $cr['creativeId'] ?? ($cr['data']['id'] ?? '');
+        if ($crId === '' || $crId === null) return ['ok' => true, 'adgroup_id' => (string)$agId, 'ad_id' => '', 'status' => 'partial',
+            'note' => 'Kakao 광고그룹 생성(OFF). 소재 업로드 보류: ' . (self::errMsg($cr) ?: ('HTTP ' . $cc))];
+        $imgUrl = $cr['image']['url'] ?? ($cr['data']['image']['url'] ?? '');
+        return ['ok' => true, 'adgroup_id' => (string)$agId, 'ad_id' => (string)$crId, 'image_url' => $imgUrl,
+            'note' => 'Kakao 광고그룹+이미지 소재 업로드·생성(OFF)' . ($imgUrl !== '' ? ' — 소재이미지 등록완료' : '')];
+    }
+
+    /** [현 차수 1순위] LINE Ads 미디어(이미지) 자동업로드 → hash 획득. creative(IMAGE)는 이 hash 를 참조.
+     *   ★LINE JWS 인증(lineAdsAuthHeaders)이 JSON body 의 Content-MD5 를 서명하므로 멀티파트(이진) 대신 base64 JSON
+     *   미디어 등록을 사용한다(서명 일관성·graceful 드롭인). 엔드포인트/필드는 실 자격증명 라이브 응답으로 최종 확정.
+     *   반환=['hash'=>string, 'code'=>int, 'res'=>mixed]. */
+    private static function lineUploadMedia(string $ak, string $sk, string $gid, string $b64, string $mime): array
+    {
+        $path = '/api/v3/groups/' . rawurlencode($gid) . '/media';
+        [$code, $res] = self::lineReq('POST', $path, [
+            'name' => 'GenieGo Creative', 'type' => 'IMAGE', 'mime' => $mime, 'data' => $b64,
+        ], $ak, $sk);
+        $hash = $res['hash'] ?? $res['mediaHash'] ?? ($res['id'] ?? ($res['data']['hash'] ?? ($res['data']['id'] ?? '')));
+        return ['hash' => (string)$hash, 'code' => $code, 'res' => $res];
     }
 
     /* ── LINE Ads: 광고그룹 + 광고(소재) PAUSED. lineCreate 와 동일 JWS 인증.
@@ -904,14 +962,33 @@ final class AdAdapters
         [$ac, $ar] = self::lineReq('POST', $agPath, ['name' => mb_substr($d['headline'], 0, 50) . ' AG', 'status' => 'PAUSED', 'bidAmount' => max(100, (int)($daily / 100))], $ak, $sk);
         $agId = $ar['id'] ?? $ar['adgroupId'] ?? ($ar['data']['id'] ?? '');
         if ($agId === '') return ['ok' => true, 'status' => 'partial', 'note' => 'LINE 캠페인까지 생성. 광고그룹 보류(라이브 스키마 확정 필요): ' . (self::errMsg($ar) ?: ('HTTP ' . $ac))];
-        // 2) 광고(소재 — 문구/랜딩). 미디어 자산은 별도 업로드 필요 → 실패 시 honest partial.
+        // [현 차수 1순위] 2) 소재 자동업로드 — 이미지 미디어 업로드 → hash 획득 후 ad(소재) 생성.
+        //   creativeFormat=IMAGE 소재는 등록 미디어 hash 가 필수다. AI 생성 래스터를 자동 업로드(없으면 텍스트 소재).
+        $mediaHash = ''; $mediaNote = '';
+        if (!empty($d['image_b64'])) {
+            $up = self::lineUploadMedia($ak, $sk, $gid, (string)$d['image_b64'], (string)($d['image_mime'] ?: 'image/png'));
+            $mediaHash = (string)$up['hash'];
+            if ($mediaHash === '') $mediaNote = ' · 미디어 업로드 보류: ' . (self::errMsg($up['res']) ?: ('HTTP ' . $up['code']));
+        } else {
+            $mediaNote = ' · 이미지 소재 없음(텍스트 소재)';
+        }
         $adPath = '/api/v3/adgroups/' . rawurlencode((string)$agId) . '/ads';
-        [$adc, $adr] = self::lineReq('POST', $adPath, ['name' => mb_substr($d['headline'], 0, 50) . ' Ad', 'status' => 'PAUSED',
-            'title' => mb_substr($d['headline'], 0, 50), 'description' => mb_substr($d['copy'] ?: '', 0, 100), 'landingUrl' => $landing], $ak, $sk);
+        $adBody = array_filter([
+            'name'              => mb_substr($d['headline'], 0, 50) . ' Ad',
+            'status'            => 'PAUSED',
+            'creativeFormat'    => $mediaHash !== '' ? 'IMAGE' : null,
+            'mediaHash'         => $mediaHash !== '' ? $mediaHash : null,
+            'title'             => mb_substr($d['headline'], 0, 50),
+            'description'       => mb_substr($d['copy'] ?: '', 0, 100),
+            'actionButtonLabel' => $mediaHash !== '' ? 'LEARN_MORE' : null,
+            'landingUrl'        => $landing,
+        ], fn($v) => $v !== null);
+        [$adc, $adr] = self::lineReq('POST', $adPath, $adBody, $ak, $sk);
         $adId = $adr['id'] ?? ($adr['data']['id'] ?? '');
         if ($adId === '') return ['ok' => true, 'adgroup_id' => (string)$agId, 'ad_id' => '', 'status' => 'partial',
-            'note' => 'LINE 광고그룹 생성(PAUSED). 소재 보류(미디어 자산 업로드 필요): ' . (self::errMsg($adr) ?: ('HTTP ' . $adc))];
-        return ['ok' => true, 'adgroup_id' => (string)$agId, 'ad_id' => (string)$adId, 'note' => 'LINE 광고그룹+소재 생성(PAUSED)'];
+            'note' => 'LINE 광고그룹 생성(PAUSED). 소재 생성 보류' . $mediaNote . ': ' . (self::errMsg($adr) ?: ('HTTP ' . $adc))];
+        return ['ok' => true, 'adgroup_id' => (string)$agId, 'ad_id' => (string)$adId, 'media_hash' => $mediaHash,
+            'note' => 'LINE 광고그룹+소재 생성(PAUSED)' . ($mediaHash !== '' ? ' — 이미지 미디어 업로드 포함' : $mediaNote)];
     }
 
     /* ════════════════════════ 오디언스/리타겟팅 (Custom Audience · Customer Match) ════════════════════════ */
