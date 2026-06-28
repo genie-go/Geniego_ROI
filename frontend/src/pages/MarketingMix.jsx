@@ -239,6 +239,37 @@ export default function MarketingMix() {
             {opt && opt.ok && !opt.optimized && <div style={{ marginTop: 10, color: '#64748b', fontSize: 12.5 }}>{opt.reason}</div>}
           </div>
 
+          {/* [P4] Robyn식 모델 진단 — DECOMP.RSSD(지출↔효과 정합) + 지출가중 R² */}
+          {model?.model_diagnostics?.decomp_rssd != null && (() => {
+            const d = model.model_diagnostics;
+            const gColor = { excellent: '#16a34a', good: '#0891b2', fair: '#d97706', poor: '#dc2626' }[d.grade] || '#64748b';
+            const gLabel = { excellent: t('mmm.diagExcellent', '우수'), good: t('mmm.diagGood', '양호'), fair: t('mmm.diagFair', '보통'), poor: t('mmm.diagPoor', '주의') }[d.grade] || d.grade;
+            return (
+              <div style={{ background: 'rgba(79,142,247,0.05)', border: '1px solid rgba(79,142,247,0.18)', borderRadius: 14, padding: 16, marginBottom: 16 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                  <span style={{ fontWeight: 800, fontSize: 14 }}>🧪 {t('mmm.diagTitle', '모델 적합 진단 (Robyn식)')}</span>
+                  <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: gColor + '1a', color: gColor }}>{gLabel}</span>
+                  <span style={{ marginLeft: 'auto', display: 'flex', gap: 14, fontSize: 12 }}>
+                    <span><b style={{ color: gColor }}>DECOMP.RSSD</b> {d.decomp_rssd}</span>
+                    <span><b style={{ color: '#4f8ef7' }}>{t('mmm.diagAvgR2', '지출가중 R²')}</b> {d.avg_r2}</span>
+                  </span>
+                </div>
+                <div style={{ fontSize: 10.5, color: '#64748b', marginTop: 7, lineHeight: 1.6 }}>
+                  {t('mmm.diagHint', 'DECOMP.RSSD는 채널 지출비중과 모델 효과비중의 거리입니다(낮을수록 지출↔효과 정합·과적합 위험↓). 거리가 큰 채널은 모델이 효과를 과대/과소 추정하는 신호입니다.')}
+                </div>
+                {Array.isArray(d.channels) && d.channels.length > 0 && (
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
+                    {d.channels.slice(0, 6).map((r, i) => (
+                      <span key={i} style={{ fontSize: 10.5, padding: '3px 9px', borderRadius: 8, background: 'rgba(255,255,255,0.7)', border: '1px solid rgba(0,0,0,0.06)' }}>
+                        {r.channel}: {r.distance > 0 ? '▲' : r.distance < 0 ? '▼' : '＝'} {Math.abs(r.distance * 100).toFixed(1)}%p
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+
           {/* 채널 반응곡선 카드 */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(320px,1fr))', gap: 16 }}>
             {channels.map((c, i) => {

@@ -74,6 +74,7 @@ final class Mmm
             return self::json($res, [
                 'ok' => true, 'demo' => false, 'window_days' => $window,
                 'channels' => $channels,
+                'model_diagnostics' => self::mmmDiagnostics($channels),
                 'data_driven' => count($channels) > 0,
                 'note' => count($channels) > 0 ? '실측 performance_metrics 기반 적합' : '성과 데이터가 아직 충분하지 않습니다. 채널 집행·수집 후 적합됩니다.',
             ]);
@@ -674,6 +675,39 @@ final class Mmm
         foreach ($channels as &$c) $c['contribution_share'] = round($c['contribution'] / $tot, 4);
         unset($c);
         usort($channels, fn($a, $b) => $b['contribution'] <=> $a['contribution']);
-        return ['ok' => true, 'demo' => true, 'window_days' => $window, 'channels' => $channels, 'data_driven' => true, 'note' => '데모 합성 곡선(체험용)'];
+        return ['ok' => true, 'demo' => true, 'window_days' => $window, 'channels' => $channels,
+            'model_diagnostics' => self::mmmDiagnostics($channels), 'data_driven' => true, 'note' => '데모 합성 곡선(체험용)'];
+    }
+
+    /**
+     * [P4 MMM 고도화] Robyn식 모델선택 진단 — DECOMP.RSSD + 지출가중 R².
+     *   DECOMP.RSSD = √Σ(효과비중 − 지출비중)²: 채널 지출비중과 모델 효과비중의 거리(Robyn 비즈니스로직 적합도).
+     *   낮을수록 "지출↔효과" 정합(과적합·비현실 분해 경고). 기존 적합 결과만으로 산출(추가 가정·날조 0).
+     */
+    private static function mmmDiagnostics(array $channels): array
+    {
+        $totalSpend = 0.0; $totalContrib = 0.0;
+        foreach ($channels as $c) { $totalSpend += (float)($c['total_spend'] ?? 0); $totalContrib += (float)($c['contribution'] ?? 0); }
+        if ($totalSpend <= 0 || $totalContrib <= 0 || count($channels) === 0) {
+            return ['decomp_rssd' => null, 'avg_r2' => null, 'grade' => 'insufficient', 'channels' => [],
+                'note' => '진단에 충분한 지출/효과 데이터가 없습니다.'];
+        }
+        $rssd2 = 0.0; $wR2 = 0.0; $rows = [];
+        foreach ($channels as $c) {
+            $ss = (float)($c['total_spend'] ?? 0) / $totalSpend;     // 지출 비중
+            $es = (float)($c['contribution'] ?? 0) / $totalContrib;  // 효과(기여) 비중
+            $d = $es - $ss; $rssd2 += $d * $d; $wR2 += $ss * (float)($c['r2'] ?? 0);
+            $rows[] = ['channel' => (string)($c['channel'] ?? ''), 'spend_share' => round($ss, 4), 'effect_share' => round($es, 4), 'distance' => round($d, 4)];
+        }
+        $rssd = sqrt($rssd2);
+        $grade = $rssd < 0.1 ? 'excellent' : ($rssd < 0.25 ? 'good' : ($rssd < 0.5 ? 'fair' : 'poor'));
+        usort($rows, fn($a, $b) => abs($b['distance']) <=> abs($a['distance']));
+        return [
+            'decomp_rssd' => round($rssd, 4),
+            'avg_r2' => round($wR2, 3),
+            'grade' => $grade,
+            'channels' => $rows,
+            'note' => 'DECOMP.RSSD=√Σ(효과비중−지출비중)² (Robyn 비즈니스로직 적합도, 낮을수록 지출↔효과 정합). avg_r2=지출가중 모델 설명력. distance>0=과대평가(효과>지출), <0=과소평가.',
+        ];
     }
 }
