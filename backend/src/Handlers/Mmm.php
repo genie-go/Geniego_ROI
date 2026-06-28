@@ -232,46 +232,42 @@ final class Mmm
         $avgSpend = $totalSpend / $n;
         if ($avgSpend <= 0) return null;
 
-        $bestR2 = -INF; $best = null;
-        $lambdas = [0.0, 0.2, 0.4, 0.6];
-        // κ 후보: 평균지출의 0.3~6배 (포화 스케일 탐색)
-        $kappaGrid = [];
-        foreach ([0.3, 0.5, 0.8, 1.2, 2.0, 3.0, 5.0] as $mul) $kappaGrid[] = $avgSpend * $mul;
+        $meanRev = $totalRev / $n; $ssTot = 0.0;
+        foreach ($rev as $rv) $ssTot += ($rv - $meanRev) ** 2;
 
-        foreach ($lambdas as $lam) {
-            // adstock 변환
+        // [Robyn식 하이퍼파라미터 자동탐색] 단일 (λ,κ) 적합 평가 — adstock+포화 최소제곱. 반환 [beta,r2,sse,...] | null.
+        $evalFit = function (float $lam, float $kap) use ($spend, $rev, $n, $ssTot): ?array {
+            if ($kap <= 0 || $lam < 0 || $lam >= 0.97) return null;
             $ad = []; $prev = 0.0;
             foreach ($spend as $s) { $prev = $s + $lam * $prev; $ad[] = $prev; }
-            foreach ($kappaGrid as $kap) {
-                if ($kap <= 0) continue;
-                // sat_t = 1 - exp(-ad_t/κ);  β = Σ(rev·sat)/Σ(sat²)  (최소제곱)
-                $sse = 0.0; $sNum = 0.0; $sDen = 0.0;
-                foreach ($ad as $i => $x) {
-                    $sat = 1.0 - exp(-$x / $kap);
-                    $sNum += $rev[$i] * $sat;
-                    $sDen += $sat * $sat;
-                }
-                if ($sDen <= 1e-9) continue;
-                $beta = $sNum / $sDen;
-                if ($beta <= 0) continue;
-                // R²
-                $meanRev = $totalRev / $n; $ssTot = 0.0;
-                foreach ($ad as $i => $x) {
-                    $pred = $beta * (1.0 - exp(-$x / $kap));
-                    $sse += ($rev[$i] - $pred) ** 2;
-                    $ssTot += ($rev[$i] - $meanRev) ** 2;
-                }
-                $r2 = $ssTot > 1e-9 ? (1.0 - $sse / $ssTot) : 0.0;
-                if ($r2 > $bestR2) {
-                    $bestR2 = $r2;
-                    // 정상상태 보정: 일정 일지출 x → adstock 정상값 x/(1−λ). κ_eff 로 흡수.
-                    $kappaEff = $kap * (1.0 - $lam);
-                    if ($kappaEff <= 0) $kappaEff = $kap;
-                    $best = ['beta' => $beta, 'kappa' => $kappaEff, 'lambda' => $lam, 'r2' => $r2];
-                }
-            }
+            $sNum = 0.0; $sDen = 0.0;
+            foreach ($ad as $i => $x) { $sat = 1.0 - exp(-$x / $kap); $sNum += $rev[$i] * $sat; $sDen += $sat * $sat; }
+            if ($sDen <= 1e-9) return null;
+            $beta = $sNum / $sDen;
+            if ($beta <= 0) return null;
+            $sse = 0.0;
+            foreach ($ad as $i => $x) { $pred = $beta * (1.0 - exp(-$x / $kap)); $sse += ($rev[$i] - $pred) ** 2; }
+            $r2 = $ssTot > 1e-9 ? (1.0 - $sse / $ssTot) : 0.0;
+            return ['beta' => $beta, 'r2' => $r2, 'sse' => $sse, 'lambda' => $lam, 'kappa_raw' => $kap];
+        };
+        // 1) coarse 그리드(λ 9 × κ 7) → 2) best 주변 fine 정제(coarse→fine, 고정 28→적응형 88+). 결정론·R²는 단조 개선.
+        $best = null;
+        $consider = function ($f) use (&$best) { if ($f !== null && ($best === null || $f['r2'] > $best['r2'])) $best = $f; };
+        foreach ([0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8] as $lam) {
+            foreach ([0.3, 0.5, 0.8, 1.2, 2.0, 3.0, 5.0] as $mul) $consider($evalFit($lam, $avgSpend * $mul));
         }
         if ($best === null) return null;
+        $bl = $best['lambda']; $bk = $best['kappa_raw'];
+        foreach ([$bl - 0.1, $bl - 0.05, $bl + 0.05, $bl + 0.1] as $lam) {
+            foreach ([0.7, 0.85, 1.0, 1.15, 1.3] as $m) $consider($evalFit($lam, $bk * $m));
+        }
+        foreach ([0.7, 0.85, 1.15, 1.3] as $m) $consider($evalFit($bl, $bk * $m)); // best λ 고정 κ 정제
+
+        // 정상상태 보정: 일정 일지출 x → adstock 정상값 x/(1−λ). κ_eff 로 흡수.
+        $lamBest = $best['lambda']; $kapRaw = $best['kappa_raw'];
+        $kappaEff = $kapRaw * (1.0 - $lamBest); if ($kappaEff <= 0) $kappaEff = $kapRaw;
+        $nrmse = $meanRev > 0 ? sqrt($best['sse'] / $n) / $meanRev : 0.0; // Robyn 기본 지표(정규화 RMSE=상대오차)
+        $best = ['beta' => $best['beta'], 'kappa' => $kappaEff, 'lambda' => $lamBest, 'r2' => $best['r2'], 'nrmse' => $nrmse];
 
         $beta = $best['beta']; $kappa = $best['kappa'];
         $curRev = $beta * (1.0 - exp(-$avgSpend / $kappa)); // 예측 일매출(현 지출)
@@ -280,8 +276,9 @@ final class Mmm
         return [
             'beta' => round($beta, 2),
             'kappa' => round($kappa, 2),
-            'lambda' => $best['lambda'],
+            'lambda' => round($best['lambda'], 3),
             'r2' => round(max(0, $best['r2']), 3),
+            'nrmse' => round($best['nrmse'], 4),
             'days' => $n,
             'current_daily_spend' => round($avgSpend, 2),
             'current_daily_revenue' => round($totalRev / $n, 2),
@@ -664,7 +661,7 @@ final class Mmm
             $curRev = $beta * (1 - exp(-$x / $kap));
             $channels[] = [
                 'channel' => $d['channel'], 'beta' => $beta, 'kappa' => $kap, 'lambda' => $d['lambda'],
-                'r2' => 0.82, 'days' => $window,
+                'r2' => 0.82, 'nrmse' => 0.11, 'days' => $window,
                 'current_daily_spend' => $x, 'current_daily_revenue' => round($curRev, 2),
                 'total_spend' => $x * $window, 'total_revenue' => round($curRev * $window, 2),
                 'current_roas' => $d['roas'], 'marginal_roas' => round(($beta / $kap) * exp(-$x / $kap), 3),
@@ -692,11 +689,11 @@ final class Mmm
             return ['decomp_rssd' => null, 'avg_r2' => null, 'grade' => 'insufficient', 'channels' => [],
                 'note' => '진단에 충분한 지출/효과 데이터가 없습니다.'];
         }
-        $rssd2 = 0.0; $wR2 = 0.0; $rows = [];
+        $rssd2 = 0.0; $wR2 = 0.0; $wNrmse = 0.0; $rows = [];
         foreach ($channels as $c) {
             $ss = (float)($c['total_spend'] ?? 0) / $totalSpend;     // 지출 비중
             $es = (float)($c['contribution'] ?? 0) / $totalContrib;  // 효과(기여) 비중
-            $d = $es - $ss; $rssd2 += $d * $d; $wR2 += $ss * (float)($c['r2'] ?? 0);
+            $d = $es - $ss; $rssd2 += $d * $d; $wR2 += $ss * (float)($c['r2'] ?? 0); $wNrmse += $ss * (float)($c['nrmse'] ?? 0);
             $rows[] = ['channel' => (string)($c['channel'] ?? ''), 'spend_share' => round($ss, 4), 'effect_share' => round($es, 4), 'distance' => round($d, 4)];
         }
         $rssd = sqrt($rssd2);
@@ -705,9 +702,10 @@ final class Mmm
         return [
             'decomp_rssd' => round($rssd, 4),
             'avg_r2' => round($wR2, 3),
+            'avg_nrmse' => round($wNrmse, 4),
             'grade' => $grade,
             'channels' => $rows,
-            'note' => 'DECOMP.RSSD=√Σ(효과비중−지출비중)² (Robyn 비즈니스로직 적합도, 낮을수록 지출↔효과 정합). avg_r2=지출가중 모델 설명력. distance>0=과대평가(효과>지출), <0=과소평가.',
+            'note' => 'DECOMP.RSSD=√Σ(효과비중−지출비중)² (Robyn 비즈니스로직 적합도, 낮을수록 지출↔효과 정합). avg_r2=지출가중 설명력·avg_nrmse=지출가중 정규화 RMSE(상대오차, 낮을수록 정확). 하이퍼파라미터(λ·κ)는 coarse→fine 적응형 자동탐색. distance>0=과대평가(효과>지출), <0=과소평가.',
         ];
     }
 }

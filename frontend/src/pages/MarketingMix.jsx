@@ -252,6 +252,7 @@ export default function MarketingMix() {
                   <span style={{ marginLeft: 'auto', display: 'flex', gap: 14, fontSize: 12 }}>
                     <span><b style={{ color: gColor }}>DECOMP.RSSD</b> {d.decomp_rssd}</span>
                     <span><b style={{ color: '#4f8ef7' }}>{t('mmm.diagAvgR2', '지출가중 R²')}</b> {d.avg_r2}</span>
+                    {d.avg_nrmse != null && <span><b style={{ color: '#7c3aed' }}>NRMSE</b> {d.avg_nrmse}</span>}
                   </span>
                 </div>
                 <div style={{ fontSize: 10.5, color: '#64748b', marginTop: 7, lineHeight: 1.6 }}>
