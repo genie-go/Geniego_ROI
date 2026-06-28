@@ -515,10 +515,19 @@ const MediaServerConfig = memo(function MediaServerConfig({ t }) {
   const [source, setSource] = useState('none');
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
+  const [testing, setTesting] = useState(false);
+  const [testResult, setTestResult] = useState(null); // [P2] {reachable, whip, whep, note}
   const load = useCallback(async () => {
     try { const r = await liveApi.getMediaConfig(); if (r?.config) setCfg(c => ({ ...c, ...r.config })); if (Array.isArray(r?.providers)) setProviders(r.providers); setConfigured(!!r?.configured); setSource(r?.source || 'none'); } catch {}
   }, []);
   useEffect(() => { load(); }, [load]);
+  /* [P2 라이브미디어] 등록 미디어서버 연결 헬스체크(WHIP/WHEP 도달성) */
+  const test = async () => {
+    setTesting(true); setTestResult(null);
+    try { const r = await liveApi.testMediaConfig(); setTestResult(r || { reachable: false }); }
+    catch (e) { setTestResult({ reachable: false, note: String(e?.message || e) }); }
+    finally { setTesting(false); }
+  };
   const save = async () => {
     setSaving(true); setMsg('');
     try { const r = await liveApi.saveMediaConfig(cfg); setConfigured(!!r?.configured); setSource(r?.source || 'none'); setMsg(r?.note || t('liveCommerce.mediaSaved', '저장되었습니다.')); await load(); }
@@ -573,8 +582,20 @@ const MediaServerConfig = memo(function MediaServerConfig({ t }) {
             <input type="checkbox" checked={!!Number(cfg.enabled)} onChange={e => setCfg(c => ({ ...c, enabled: e.target.checked ? 1 : 0 }))} />
             {t('liveCommerce.mediaEnable', '활성화 (체크 시 실시간 송출/시청 사용)')}
           </label>
-          <Btn color="#0891b2" onClick={save} disabled={saving}>{saving ? '⏳' : '💾'} {t('liveCommerce.mediaSave', '미디어서버 설정 저장')}</Btn>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <Btn color="#0891b2" onClick={save} disabled={saving}>{saving ? '⏳' : '💾'} {t('liveCommerce.mediaSave', '미디어서버 설정 저장')}</Btn>
+            <Btn color="#16a34a" ghost onClick={test} disabled={testing || !configured}>{testing ? '⏳' : '🔌'} {t('liveCommerce.mediaTest', '연결 테스트')}</Btn>
+          </div>
           {msg && <div style={{ fontSize: 12, color: '#16a34a', marginTop: 8 }}>{msg}</div>}
+          {testResult && (
+            <div style={{ marginTop: 8, padding: '8px 11px', borderRadius: 8, fontSize: 11.5, lineHeight: 1.6,
+              background: testResult.reachable ? '#dcfce7' : '#fef2f2', border: `1px solid ${testResult.reachable ? '#86efac' : '#fecaca'}`, color: testResult.reachable ? '#15803d' : '#b91c1c' }}>
+              <div style={{ fontWeight: 700 }}>{testResult.reachable ? '✅ ' + t('liveCommerce.mediaReachable', '미디어서버 응답 확인') : '⚠️ ' + t('liveCommerce.mediaUnreachable', '연결 실패')}</div>
+              {testResult.whip && <div>WHIP: {testResult.whip.reachable ? `OK (HTTP ${testResult.whip.http_code}, ${testResult.whip.latency_ms}ms)` : (testResult.whip.error || '실패')}</div>}
+              {testResult.whep && <div>WHEP: {testResult.whep.reachable ? `OK (HTTP ${testResult.whep.http_code}, ${testResult.whep.latency_ms}ms)` : (testResult.whep.error || '실패')}</div>}
+              {testResult.note && <div style={{ marginTop: 3, opacity: 0.85 }}>{testResult.note}</div>}
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -37,6 +37,7 @@ export const getMedia       = (sid) => getJsonAuth(`${BASE}/sessions/${sid}/medi
 /* ── [현 차수] 미디어서버 설정 등록(추후 등록 시 즉시 자동 활성) ── */
 export const getMediaConfig  = () => getJsonAuth(`${BASE}/media-config`);
 export const saveMediaConfig = (body) => requestJsonAuth(`${BASE}/media-config`, 'PUT', body);
+export const testMediaConfig = () => requestJsonAuth(`${BASE}/media-config/test`, 'POST', {}); // [P2] 연결 헬스체크
 
 /* ── 멀티 송출 대상(RTMP) — 208차 #1 ── */
 export const listDestinations  = (sid) => getJsonAuth(`${BASE}/sessions/${sid}/destinations`);

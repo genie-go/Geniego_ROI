@@ -1,0 +1,43 @@
+# GeniegoROI 라이브커머스 — 셀프호스트 미디어서버(SRS) 빠른 시작
+# 사용법: docs/LIVE_MEDIA_SELFHOST.md 참고
+#
+#   CANDIDATE=<공인IP> docker compose -f infra/media/docker-compose.yml up -d
+#
+# 등록(연동허브 → 라이브커머스 → 미디어서버 설정):
+#   provider=srs, base_url=https://<your-domain>   (Caddy TLS 종단 권장)
+#   또는 로컬 테스트: base_url=http://<공인IP>:1985 (HTTP 대시보드에서만)
+#
+# ★ HTTPS 대시보드(roi.genie-go.com)에서 WHIP/WHEP 를 호출하려면 미디어서버도 HTTPS 여야 한다
+#   (mixed-content 차단). 아래 caddy 프로필이 자동 Let's Encrypt TLS 종단을 제공한다.
+
+services:
+  srs:
+    image: ossrs/srs:5
+    container_name: geniego-srs
+    restart: unless-stopped
+    # WebRTC UDP candidate 단순화를 위해 host 네트워킹(리눅스 권장).
+    network_mode: host
+    environment:
+      CANDIDATE: "${CANDIDATE:-127.0.0.1}"   # ★ 호스트 공인 IP 로 반드시 지정
+    volumes:
+      - ./srs.conf:/usr/local/srs/conf/srs.conf:ro
+    command: ["./objs/srs", "-c", "conf/srs.conf"]
+
+  # 선택(권장): Caddy 자동 HTTPS 리버스 프록시 — WHIP/WHEP API(1985)·HTTP-FLV(8080) 를 TLS 종단.
+  #   docker compose --profile tls up -d  로 함께 기동. DOMAIN 환경변수 + 80/443 개방 필요.
+  caddy:
+    image: caddy:2
+    container_name: geniego-srs-tls
+    restart: unless-stopped
+    profiles: ["tls"]
+    network_mode: host
+    environment:
+      DOMAIN: "${DOMAIN:-localhost}"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  caddy_data:
+  caddy_config:

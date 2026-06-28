@@ -790,6 +790,61 @@ class LiveCommerce
             'note' => $cfg['configured'] ? '미디어서버 등록 완료 — 다음 방송부터 자동 송출/시청 활성화됩니다.' : 'WHIP/WHEP 주소(또는 base_url)가 있어야 활성화됩니다.']);
     }
 
+    /**
+     * POST /v425/live/media-config/test — 등록된 미디어서버 연결 헬스체크.
+     *   WHIP/WHEP 엔드포인트에 HTTP OPTIONS 프로브를 보내 도달성·지연을 측정한다.
+     *   미디어서버 배포는 외부 인프라(SRS/MediaMTX/Cloudflare)지만, "등록한 서버가 실제 닿는지"는
+     *   플랫폼이 검증해줘야 한다(커넥터 test 패턴 대칭). 응답코드만 반환(본문 미반환)=SSRF 정보노출 최소화.
+     */
+    public static function testMediaConfig(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $t = self::tenant($req);
+        $cfg = self::mediaConfig($t);
+        if (empty($cfg['configured'])) {
+            return self::json($res, ['ok' => true, 'configured' => false, 'reachable' => false,
+                'note' => '미디어서버가 등록되지 않았습니다. 먼저 WHIP/WHEP 주소(또는 base_url)를 등록하세요.']);
+        }
+        // http/https 만 허용(스킴 가드). 리다이렉트 미추적. 본문 미반환. 짧은 타임아웃.
+        $probe = function (string $url): array {
+            if ($url === '') return ['reachable' => false, 'error' => 'no_url'];
+            $u = str_replace('{stream}', 'probe', $url);
+            $scheme = strtolower((string)parse_url($u, PHP_URL_SCHEME));
+            if ($scheme !== 'http' && $scheme !== 'https') return ['reachable' => false, 'error' => 'bad_scheme'];
+            $ch = curl_init($u);
+            $start = microtime(true);
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true, CURLOPT_NOBODY => false, CURLOPT_CUSTOMREQUEST => 'OPTIONS',
+                CURLOPT_TIMEOUT => 6, CURLOPT_CONNECTTIMEOUT => 4, CURLOPT_FOLLOWLOCATION => false,
+                CURLOPT_SSL_VERIFYPEER => true, CURLOPT_USERAGENT => 'GeniegoROI-MediaProbe/1.0',
+            ]);
+            curl_exec($ch);
+            $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $err  = curl_error($ch);
+            $ms   = (int)round((microtime(true) - $start) * 1000);
+            curl_close($ch);
+            // 어떤 HTTP 응답이든(405/404 포함) = 엔드포인트 도달(DNS+TCP+TLS OK). code=0 = 연결 실패.
+            $reachable = $code > 0;
+            return ['reachable' => $reachable, 'http_code' => $code, 'latency_ms' => $ms,
+                'error' => $reachable ? null : (substr($err, 0, 80) ?: 'connection_failed')];
+        };
+        $stream = self::streamName($t, 0, 'probe');
+        $whip = $probe(self::whipUrl($cfg, $stream));
+        $whep = $probe(self::whepUrl($cfg, $stream));
+        $reachable = !empty($whip['reachable']) || !empty($whep['reachable']);
+        $turn = false;
+        foreach ((array)($cfg['ice'] ?? []) as $s) { if (stripos((string)($s['urls'] ?? ''), 'turn') === 0) { $turn = true; break; } }
+        return self::json($res, [
+            'ok' => true, 'configured' => true, 'provider' => $cfg['provider'] ?? '', 'source' => $cfg['source'] ?? 'none',
+            'reachable' => $reachable, 'whip' => $whip, 'whep' => $whep,
+            'ice_servers' => count((array)($cfg['ice'] ?? [])), 'turn_configured' => $turn,
+            'note' => $reachable
+                ? '미디어서버 응답 확인 — 송출/시청 준비 완료.' . ($turn ? '' : ' (TURN 미설정 — 엄격한 방화벽 환경의 시청자는 TURN 권장.)')
+                : 'WHIP/WHEP 엔드포인트에 연결할 수 없습니다. 주소·HTTPS·방화벽(포트)을 확인하세요. 셀프호스트는 docs/LIVE_MEDIA_SELFHOST.md 참고.',
+        ]);
+    }
+
     /** 스트림 이름(테넌트 격리) — 영숫자만. program=시청자 시청 대상(호스트 송출). */
     private static function streamName(string $tenant, int $sid, string $suffix = 'program'): string
     {

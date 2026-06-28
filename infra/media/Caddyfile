@@ -1,0 +1,19 @@
+# GeniegoROI 미디어서버 TLS 종단(Caddy 자동 Let's Encrypt)
+# WHIP/WHEP API(SRS 1985) 와 HTTP-FLV(SRS 8080) 를 HTTPS 로 노출.
+# DOMAIN 환경변수로 도메인 지정(예: live.example.com). 80/443 개방 필요.
+#
+# 등록값: provider=srs, base_url=https://{$DOMAIN}
+
+{$DOMAIN} {
+	# WHIP/WHEP 시그널링·HTTP API → SRS 1985
+	handle /rtc/* {
+		reverse_proxy 127.0.0.1:1985
+	}
+	handle /api/* {
+		reverse_proxy 127.0.0.1:1985
+	}
+	# HTTP-FLV/HLS 폴백 재생 → SRS 8080
+	handle {
+		reverse_proxy 127.0.0.1:8080
+	}
+}

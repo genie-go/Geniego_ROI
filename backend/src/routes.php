@@ -235,6 +235,9 @@ return function (App $app): void {
         // [현 차수] 미디어서버 설정 등록(추후 자격증명 등록 시 즉시 자동 활성)
         'GET /v425/live/media-config'                  => 'Genie\\Handlers\\LiveCommerce::getMediaConfig',
         'PUT /v425/live/media-config'                  => 'Genie\\Handlers\\LiveCommerce::saveMediaConfig',
+        // [P2 라이브미디어] 등록 미디어서버 연결 헬스체크(WHIP/WHEP 도달성·지연)
+        'POST /v425/live/media-config/test'            => 'Genie\\Handlers\\LiveCommerce::testMediaConfig',
+        'POST /api/v425/live/media-config/test'        => 'Genie\\Handlers\\LiveCommerce::testMediaConfig',
         'GET /v425/live/overview'                      => 'Genie\\Handlers\\LiveCommerce::overview',
         'GET /v425/live/integrations'                  => 'Genie\\Handlers\\LiveCommerce::listIntegrations',
         'POST /v425/live/integrations'                 => 'Genie\\Handlers\\LiveCommerce::saveIntegration',
@@ -2662,6 +2665,7 @@ return function (App $app): void {
     $register('GET',    '/v425/live/sessions/{id}/media');   // [현 차수] 미디어 평면 WHIP/WHEP URL
     $register('GET',    '/v425/live/media-config');          // [현 차수] 미디어서버 설정 조회
     $register('PUT',    '/v425/live/media-config');          // [현 차수] 미디어서버 설정 등록(즉시 자동 활성)
+    $register('POST',   '/v425/live/media-config/test');     $register('POST', '/api/v425/live/media-config/test'); // [P2] 연결 헬스체크
     $register('GET',    '/v425/live/overview');
     $register('GET',    '/v425/live/integrations');
     $register('POST',   '/v425/live/integrations');
