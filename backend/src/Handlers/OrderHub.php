@@ -84,6 +84,26 @@ final class OrderHub
      */
     public const CANCEL_TOKENS = ['CancelDone','Cancel요청','cancelled','canceled','취소완료','취소요청','취소접수','취소','주문취소'];
     public const RETURN_TOKENS = ['returned','refunded','return','반품완료','반품요청','반품접수','반품','환불완료','반품Done','반품입고'];
+    // [커머스 보강] 교환(EXCHANGE) 캐논 — 취소(매출제외)·반품(매출포함+returnFee)과 구분된 매출중립 스왑 라이프사이클.
+    //   교환은 cancel/return 어느 토큰에도 들지 않아 매출 SSOT 에 안전(자연 중립). 재발송 상태머신은 freeform status.
+    public const EXCHANGE_TOKENS = ['exchange','exchanged','swap','교환','교환요청','교환접수','교환완료','교환Done','교환재발송','맞교환'];
+
+    /** [커머스 보강] 채널 네이티브 상태문자열 → 캐논 클레임 유형(cancel|return|exchange|null). 오픈마켓 상태머신 정규화 SSOT.
+     *   exchange 를 return 보다 먼저 판정(일부 채널이 '교환반품' 혼용 표기 — 교환 우선). 매칭 없으면 null. */
+    public static function claimType(?string $status): ?string
+    {
+        $s = trim((string)$status);
+        if ($s === '') return null;
+        $sl = mb_strtolower($s);
+        $hit = function (array $toks) use ($s, $sl): bool {
+            foreach ($toks as $t) { if ($s === $t || mb_strpos($sl, mb_strtolower($t)) !== false) return true; }
+            return false;
+        };
+        if ($hit(self::EXCHANGE_TOKENS)) return 'exchange';   // 교환 우선(교환반품 혼용 방어)
+        if ($hit(self::CANCEL_TOKENS))   return 'cancel';
+        if ($hit(self::RETURN_TOKENS))   return 'return';
+        return null;
+    }
 
     /** 취소주문 제외용 SQL 단편 + 바인드 파라미터(NULL-safe). @return array{0:string,1:array}
      *  [현 차수] public — Reports(BI 커머스 소스)가 동일 취소 SSOT 재사용(드리프트 제거). */
@@ -347,8 +367,13 @@ final class OrderHub
             $sel->execute(array_merge([$tenant], $idParams));
             $curEvt = (string)($sel->fetchColumn() ?: 'order');
             $wasCR = in_array($curEvt, ['cancel', 'return'], true);
-            $newEvt = (in_array($status, self::CANCEL_TOKENS, true) || preg_match('/cancel|취소|void/iu', $status)) ? 'cancel'
-                    : (preg_match('/return|refund|반품|환불/iu', $status) ? 'return' : null);
+            // [커머스 보강] 캐논 claimType(cancel|return|exchange) 우선 → 폴백 정규식. 교환=매출중립(취소/반품 어디에도 미산입).
+            $newEvt = self::claimType($status);
+            if ($newEvt === null) {
+                $newEvt = preg_match('/cancel|취소|void/iu', $status) ? 'cancel'
+                        : (preg_match('/exchange|교환|swap/iu', $status) ? 'exchange'
+                        : (preg_match('/return|refund|반품|환불/iu', $status) ? 'return' : null));
+            }
             if ($newEvt === null && $wasCR && !$force) {
                 return self::json($resp, ['ok' => false, 'error' => 'cancelled_or_returned_cannot_reactivate',
                     'message' => '취소/반품된 주문은 활성 상태로 되돌릴 수 없습니다. (force=true 로 강제)'], 409);
@@ -868,12 +893,13 @@ final class OrderHub
             foreach ($items as $it) {
                 $orderId = (string)($it['order_id'] ?? $it['orderId'] ?? '');
                 if ($orderId === '') { $skipped++; continue; }
-                $type = (string)($it['type'] ?? 'return');
-                if (!in_array($type, ['return','cancel','exchange'], true)) $type = 'return';
+                $status  = (string)($it['status'] ?? 'pending');
+                // [커머스 보강] type 미지정/무효 시 status 로 캐논 분류(claimType: 교환 우선) → 교환을 '반품'으로 오분류하지 않음.
+                $type = (string)($it['type'] ?? '');
+                if (!in_array($type, ['return','cancel','exchange'], true)) $type = self::claimType($status) ?? 'return';
                 $buyer   = isset($it['buyer']) ? (string)$it['buyer'] : null;
                 $channel = isset($it['channel']) ? (string)$it['channel'] : null;
                 $reason  = isset($it['reason']) ? (string)$it['reason'] : null;
-                $status  = (string)($it['status'] ?? 'pending');
                 $amount  = (float)($it['amount'] ?? 0);
                 $id = (string)($it['id'] ?? '');
                 // [225차 P1-9] id 미제공 시 자연키(tenant|channel|order_id|type) 결정적 id 로 멱등화.
