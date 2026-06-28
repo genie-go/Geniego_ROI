@@ -762,12 +762,22 @@ class EmailMarketing
      * [차기 P2] 일별 평판 스냅샷(cron) — 7일 롤링 지표를 당일자로 email_reputation_daily 에 멱등 upsert.
      *   Google Postmaster 식 롤링 평판 추세. computeDeliverability 재사용(중복 0).
      */
+    /** 딜리버러빌리티 등급 서열(악화 판정용). good < warning < at-risk. */
+    public static function gradeRank(string $g): int
+    {
+        $g = strtolower(str_replace('_', '-', trim($g)));
+        return ['good' => 0, 'warning' => 1, 'at-risk' => 2, 'atrisk' => 2][$g] ?? 0;
+    }
+
     public static function snapshotReputation(string $t): array
     {
         self::ensureTables(); $pdo = self::db(); self::ensureReputationTable($pdo);
         $d = self::computeDeliverability($pdo, $t, 7); // 7일 롤링
         $v = $d['volume']; $r = $d['rates']; $rep = $d['reputation'];
         $date = gmdate('Y-m-d');
+        // [P5 리텐션] 직전 스냅샷 등급(악화 경보 비교용) — 당일자 제외 최신 1건.
+        $prevGrade = '';
+        try { $pg = $pdo->prepare("SELECT grade FROM email_reputation_daily WHERE tenant_id=? AND date<? ORDER BY date DESC LIMIT 1"); $pg->execute([$t, $date]); $prevGrade = (string)($pg->fetchColumn() ?: ''); } catch (\Throwable $e) {}
         $cols = [$t, $date, (int)$v['sent'], (int)$v['bounced'], (int)$v['complaints'], (int)$v['unsubscribes'],
                  0, 0, (float)$r['bounce_rate'], (float)$r['complaint_rate'], (float)$r['open_rate'], (float)$r['click_rate'],
                  (int)$rep['score'], (string)$rep['grade']];
@@ -779,7 +789,23 @@ class EmailMarketing
                 $pdo->prepare("INSERT INTO email_reputation_daily(tenant_id,date,sent,bounced,complaints,unsubscribes,opens,clicks,bounce_rate,complaint_rate,open_rate,click_rate,rep_score,grade) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)")->execute($cols);
             }
         } catch (\Throwable $e) { return ['ok'=>false, 'error'=>$e->getMessage()]; }
-        return ['ok'=>true, 'date'=>$date, 'rep_score'=>(int)$rep['score'], 'grade'=>(string)$rep['grade']];
+        // [P5 리텐션] 딜리버러빌리티 악화 경보 — 등급이 직전보다 나빠졌을 때 1회 알림(Alerting 재사용, 발송량 0이면 생략).
+        //   스팸 방지: 매일 발송이 아니라 "등급 하락 전이" 시에만. 발송량(sent+bounced) 충분 시에만(저표본 노이즈 제거).
+        $alerted = false;
+        try {
+            $curRank = self::gradeRank((string)$rep['grade']);
+            $accepted = (int)$v['sent'] + (int)$v['bounced'];
+            if ($prevGrade !== '' && $curRank > self::gradeRank($prevGrade) && $curRank >= 2 && $accepted >= 50) {
+                \Genie\Handlers\Alerting::pushEvent($t, 'high', '이메일 딜리버러빌리티 경보',
+                    "발신자 평판 등급이 '{$prevGrade}' → '{$rep['grade']}' 로 악화되었습니다. 리스트 위생·발송 빈도·콘텐츠를 점검하세요.",
+                    [['label' => '평판점수', 'value' => (int)$rep['score']],
+                     ['label' => '바운스율', 'value' => round((float)$r['bounce_rate'], 2) . '%'],
+                     ['label' => '스팸신고율', 'value' => round((float)$r['complaint_rate'], 3) . '%']]);
+                $alerted = true;
+            }
+        } catch (\Throwable $e) { /* 경보 실패는 스냅샷 성공에 무영향 */ }
+        return ['ok'=>true, 'date'=>$date, 'rep_score'=>(int)$rep['score'], 'grade'=>(string)$rep['grade'],
+                'prev_grade'=>$prevGrade, 'degraded_alert'=>$alerted];
     }
 
     /** [차기 P2] GET /email/deliverability/history?days=90 — 평판 시계열(EmailMarketing>Analytics 탭 차트). */
