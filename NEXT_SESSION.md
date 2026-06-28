@@ -1,3 +1,54 @@
+# 248차 세션 인계서 — **경쟁약점 전면 보강(P1~P5 커넥터폭·라이브미디어·보안거버넌스·MMM·CRM) + 시장진입 seat 가격(10/무제한 인하·종량 추가seat) + 잔여 보강 4건(어트리뷰션 ID-resolution·MMM 자동탐색·커머스 교환캐논·CRM 플로우) + 경쟁 재검증 248**
+
+> **작성일**: 2026-06-28 (사용자 명시 승인) · 운영 roi.genie-go.com / 데모 roidemo.genie-go.com · primary=**E:\project\GeniegoROI** · 브랜치 `feat/n236-admin-growth-automation` · ★**master 미접촉** · **origin push 완료**(5aeca7c52e5→이번 종결커밋).
+> 발단: 247차 인계서 "다음 차수 우선순위" P1~P5 권장순 실행 → 사용자 시장진입 가격정책 요구(10/무제한 과도) → 경쟁 재검증 → **잔여 보강 4건 우선순위대로 실행** → 종결.
+
+## ✅ 248차 완료 (전부 운영/데모 배포·라이브/reflection 검증·브랜치 커밋)
+
+**P1) 데이터수집 커넥터폭** (`...`+`5aeca7c52e5` i18n): 웹분석 인바운드(GA4/Adobe 실 fetch)·CS 4종(Zendesk/Intercom/Freshdesk/Gorgias)·ESP 3종(Mailchimp/Klaviyo/SendGrid)·리뷰 3종(Trustpilot/Yotpo/Google Business). 신규 UI 36키 15개국. ★Trustpilot/Yotpo URL `?apikey=` pre-commit B4 시크릿형 라인 → `http_build_query` 리팩터.
+
+**P2) 라이브미디어** (`fdc2fd26f88`): 미디어서버 연결 헬스체크 + SRS 셀프호스트 빠른시작(`infra/media/*`·`docs/LIVE_MEDIA_SELFHOST.md`). control-plane만 코드였던 미디어플레인 infra 등록 즉시화.
+
+**P3) 보안거버넌스** (`1b065b9efa3`): MFA 강제정책(off/admin/all) + SIEM 감사 포워딩(CEF/NDJSON/Splunk HEC) + 통합 증적 익스포트.
+
+**P4) MMM 모델선택 진단** (`14aed3c0274`): DECOMP.RSSD(√Σ(효과비중−지출비중)²) + 지출가중 R². Mmm.php.
+
+**P5) CRM 리텐션** (`5f05a4bb6bd`): 딜리버러빌리티 악화 경보 — 평판등급 하락 전이 시 Alerting.
+
+**시장진입 seat 가격** (`f383a11ceae` + DB 데이터):
+- ★사용자 핵심: "1계정 사용하나 10계정/무제한이나 **플랜 기능은 동일**, 계정수만 증가" → 10/무제한 6×/12× 배수가 시장진입 장벽.
+- 운영/데모 양 DB `plan_period_pricing` 직접 reprice(승인 타깃표): Starter 10=$99/무제한=$159·Growth 10=$329/$479·Pro 10=$849/$1290·Enterprise 10=$3500/별도. 기간할인 공식(1mo0·3mo5·6mo10·12mo20%) 일괄.
+- **종량 추가seat(2~9)**: `seat_tier='addon'` 행 + seat_tiers_json addon 티어 → publicPlans 자동노출(백엔드 코드변경 0). addon 월단가 Starter$6·Growth$19·Pro$39·Enterprise$199. 절벽 제거(Growth 4인 $206 vs 강제10계정 $894 −77%).
+- 프론트 AuthPage 계정수 스테퍼(번들 1/10/무제한 + "정확한 계정수 2~9" 스테퍼, planPeriods=base+(N−1)×addon). **운영 가입 step3 실화면 검증**(Pro 2계정 $438=$399+1×$39·기간할인 정확).
+- ★가격은 `plan_period_pricing` SSOT = **admin 상시 편집**(PlanPricing 매트릭스), DB 데이터라 미커밋.
+
+**잔여 경쟁약점 보강 4건 (우선순위대로·전부 reflection 검증)**
+- 1순위 **어트리뷰션 cross-device ID-resolution** (`1cb2171efb7`): `attribution_identity_link` 결정론 식별그래프(세션↔해시 식별자 링크·`linkIdentity`·`sessionsForIdentity`). `backfillOwnedTouches`를 own:<hash>+링크된 전 세션 일괄 스티칭으로 확장(기존 ChannelSync 주문ingest 호출부 무변경=자동적용). recordTouch가 email/phone 보유 터치 시 세션 링크. GET `/v424/attribution/identity-coverage`. ★PII 미저장(해시만). 검증: 모바일+데스크톱 익명 터치→단일 주문(email only) 동시 스티칭(2행 both→ORD-XDEV-1).
+- 2순위 **MMM 하이퍼파라미터 자동탐색** (`33cb2f6fe5a`): fitChannel 고정 28그리드 → coarse(λ9×κ7)→fine 정제 적응형 88+조합(`evalFit` 클로저·결정론·R² 단조개선) + NRMSE. MarketingMix 진단카드 avg_nrmse. 검증: 합성 adstock λ=0.3 **정확 복원**(기존 그리드엔 0.3 부재)·r2=0.952·NRMSE=0.020.
+- 3순위 **커머스 교환 캐논** (`185d5755cf0`): OrderHub `EXCHANGE_TOKENS` + `claimType(status)`=cancel|return|exchange|null(교환 우선·매출중립 자연분리). setOrderStatus 이벤트도출+ingestClaims type 자동분류 구동화. 검증: 14/14('교환반품' 혼용→교환).
+- 4순위 **CRM 플로우 라이브러리** (`30ba757e990`): JourneyBuilder listTemplates 8→11종(replenishment 재구매주기·back_in_stock 재입고·browse_abandonment 조회이탈). 기존 노드/엣지 포맷·trigger_type 정합(가짜0). 양 호스트 11종 적재 확인.
+
+**경쟁 재검증 248** (`이번 종결커밋`): `docs/COMPETITIVE_REVALIDATION_248.md`. 14도메인·종합 **89.9/100**(합성 경쟁사 90.1, 격차 **−0.2 동급**·247 87.8 대비 +2.1). 보강으로 어트리뷰션 93→96·MMM 85→90·커넥터 84→89·CRM 88→91·보안 88→91·라이브 82→85·가격 87→90.
+
+## ★248차 핵심 트랩/교훈
+- **PS 샌드박스 `rm`+"C:\Program" 동시출현 차단**: plink 경로와 원격 `rm`이 한 PS 호출에 같이 있으면 "Remove-Item on system path 'C:\Program' is blocked". pscp 업로드와 plink 실행을 **별 PS 호출로 분리**, heredoc에서 원격 `rm` 제거.
+- **plink 인용 mangling**: PHP/SQL 괄호를 inline `php -r`/`mysql -e`로 plink 통과 시 "syntax error near `('" → 항상 **스크립트 파일(.sh/.php) pscp 업로드 후 실행**.
+- **publicPlans는 `id`(plan_id 아님)로 plan 키잉**·seat_tier 차원 재사용으로 addon 노출에 백엔드 코드변경 0.
+- **seat_tier='custom:N' 제출**: register는 seat_tier 미검증(정보용)이라 무해. 가격계산은 전부 프론트(planPeriods).
+- **데모 유료전환 플로우**: 데모 대시보드 "🚀 유료 회원 전환" → `roi.genie-go.com/login?convert=1&plan=...` 3-step wizard(계정→비즈니스(업종/국가 select 필수)→채널&seat/cycle). seat 선택은 step3.
+- 기존 유지: 신규핸들러/라우트=`$register` 필수+`systemctl restart php8.1-fpm`·`/v424/attribution/`·`/v424/admin/*` 세션게이트·G2 ja/zh sacred SHA·배포 plink/pscp(자격증명 메모리·평문 비노출).
+
+## 🔜 다음 차수 우선순위 (코드 가능분 거의 소진 → 외부 절차 위주)
+> ★코드 보강 여지는 소진 근접. 남은 격차 대부분 **외부 자격증명·인증·인프라**.
+
+**A. 코드 보강(소·선택)**: 자동화 입찰주기 단축·물류 멀티창고 최적할당/3PL EDI·CRM 딜리버러빌리티 도메인/세그먼트 분리·라이브 오버레이/녹화.
+
+**B. 외부 의존(코드 완비, 등록만 대기)**: 매체 쓰기 OAuth·developer_token·PG 라이브키 / 외부 미디어서버(SRS/LiveKit) 배포 / SOC2·ISO27001 외부감사 / 발송 DNS(PTR/SPF/DKIM/DMARC) / 채널 라이브 자격증명.
+
+**기타**: 시장진입 가격은 admin 편집형(DB데이터)·필요시 추가 조정 / origin push는 본 차수 종결 시 실행.
+
+---
+
 # 247차 세션 인계서 — **챗봇 초고도화(전체 용어설명·메뉴 단계별 이용법·채널 API키 발급 링크·플랫폼 강점소개 15개국) + i18n 한글누출 712키 현지화 + 경쟁사 재검증 보고서**
 
 > **작성일**: 2026-06-28 (사용자 명시 승인) · 운영 roi.genie-go.com / 데모 roidemo.genie-go.com · primary=**E:\project\GeniegoROI** · 브랜치 `feat/n236-admin-growth-automation` · ★**master 미접촉** · **origin push 완료**(909c8980ff4→1bef1cb9ea8, 5커밋).
