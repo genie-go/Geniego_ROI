@@ -1,9 +1,9 @@
 {
   "version": "255",
-  "updated": "2026-06-26",
+  "updated": "2026-06-28 (247차 P2: push/cro/liveCommerce poll 13개국 키 추가)",
   "sacred_sha": {
-    "ja.js": "a8ea9e5fc47923f8bcfe86e93a9272f5a19f482873a026c12fa25833e582e863",
-    "zh.js": "da17fe164959d6a6dd0c161ea9f482b2a04a11293590d02a2d13da292c54162b"
+    "ja.js": "44f912c32afe7e2dff580ae4127c4d27755e83d1b61bb574a64d1e64994a52de",
+    "zh.js": "036a7a74c846d3a693c685fc63ff095e4f60168d0ca830471590cb710e909298"
   },
   "ko_leaf_count": 17532,
   "leaf_tolerance_pct": 5,
