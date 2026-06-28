@@ -966,9 +966,22 @@ function PaidRegisterForm({ selectedPlan, onBack, onSwitch, prefill = {} }) {
   }, [selectedPlan]);
 
   // 186차: 선택 계정수의 기간 가격 → CycleSelectorSection 으로 전달. 없으면 base(1계정) periods.
-  const planPeriods = (seatPricing[seatTier] && seatPricing[seatTier].length)
-    ? seatPricing[seatTier]
-    : basePeriods;
+  // [시장진입] 종량 추가seat: seatTier='custom:N'(2~9) 이면 base(1계정) + (N−1)×addon 단가로 기간별 계산(절벽 제거).
+  const planPeriods = (() => {
+    if (typeof seatTier === 'string' && seatTier.startsWith('custom:')) {
+      const n = Math.max(2, Math.min(9, parseInt(seatTier.split(':')[1], 10) || 2));
+      const base = (seatPricing['1'] && seatPricing['1'].length) ? seatPricing['1'] : basePeriods;
+      const addon = seatPricing['addon'] || [];
+      if (Array.isArray(base) && base.length) {
+        return base.map((bp, i) => {
+          const ap = addon.find(a => Number(a.period_months) === Number(bp.period_months)) || addon[i] || {};
+          const price = Math.round((Number(bp.price_usd) || 0) + (n - 1) * (Number(ap.price_usd) || 0));
+          return { ...bp, price_usd: price, total_charge: Math.round(price * (Number(bp.period_months) || 1)) };
+        });
+      }
+    }
+    return (seatPricing[seatTier] && seatPricing[seatTier].length) ? seatPricing[seatTier] : basePeriods;
+  })();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -1217,6 +1230,7 @@ function PaidRegisterForm({ selectedPlan, onBack, onSwitch, prefill = {} }) {
               seatTiers={seatTiers}
               seatTier={seatTier}
               setSeatTier={setSeatTier}
+              seatPricing={seatPricing}
             />
           )}
 
@@ -1354,9 +1368,17 @@ function CycleSelectorSection({ planCfg, planPeriods, cycleMonths, setCycleMonth
  * 회원가입 시 계정수(seat) 선택. 같은 플랜이라도 계정수(1/10/무제한 등)별 요금이 다름.
  * 선택 시 PaidRegisterForm 의 planPeriods 가 해당 계정수 가격으로 갱신 → 기간 가격 실시간 반영.
  */
-function SeatSelectorSection({ planCfg, seatTiers, seatTier, setSeatTier }) {
+function SeatSelectorSection({ planCfg, seatTiers, seatTier, setSeatTier, seatPricing }) {
   const t = useT(); // [245차] 누락된 useT() — 't is not defined' 크래시 수정
   const color = planCfg?.color || '#6366f1';
+  // [시장진입] 'addon'(종량 추가seat)은 번들 버튼에서 제외 — 별도 스테퍼로 노출.
+  const bundles = (seatTiers || []).filter(tt => !tt.addon && tt.key !== 'addon');
+  const addonRows = (seatPricing && seatPricing.addon) || [];
+  const addonMonthly = Number((addonRows.find(a => Number(a.period_months) === 1) || addonRows[0] || {}).price_usd) || 0;
+  const hasAddon = addonRows.length > 0 && addonMonthly > 0;
+  const isCustom = typeof seatTier === 'string' && seatTier.startsWith('custom:');
+  const customN = isCustom ? Math.max(2, Math.min(9, parseInt(seatTier.split(':')[1], 10) || 2)) : 0;
+  const stepBtn = { width: 28, height: 28, borderRadius: 8, border: '1.5px solid rgba(99,102,241,0.3)', background: 'rgba(255,255,255,0.9)', color: '#1e3a8a', fontWeight: 900, fontSize: 16, cursor: 'pointer', lineHeight: 1 };
   return (
     <div style={{
       padding: '14px 16px', borderRadius: 12,
@@ -1366,9 +1388,9 @@ function SeatSelectorSection({ planCfg, seatTiers, seatTier, setSeatTier }) {
         <span style={{ fontSize: 14, fontWeight: 800, color }}>👥 {t('auth.seatSelectTitle','계정수 선택')}</span>
         <span style={{ fontSize: 11, color: 'var(--text-3)' }}>{t('auth.seatSelectDesc','이용할 계정(좌석) 수를 선택하세요. 계정수에 따라 요금이 달라집니다.')}</span>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(seatTiers.length, 4)}, 1fr)`, gap: 8 }}>
-        {seatTiers.map(tier => {
-          const sel = tier.key === seatTier;
+      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(bundles.length, 4)}, 1fr)`, gap: 8 }}>
+        {bundles.map(tier => {
+          const sel = tier.key === seatTier && !isCustom;
           return (
             <button
               key={tier.key}
@@ -1389,6 +1411,22 @@ function SeatSelectorSection({ planCfg, seatTiers, seatTier, setSeatTier }) {
           );
         })}
       </div>
+      {hasAddon && (
+        <div style={{ marginTop: 8, padding: '10px 12px', borderRadius: 10,
+          background: isCustom ? '#1e3a8a' : 'rgba(15,23,42,0.03)',
+          border: isCustom ? '2px solid #fde047' : '1.5px solid rgba(99,102,241,0.18)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
+            <span style={{ fontSize: 12, fontWeight: 700, color: isCustom ? '#fde047' : 'var(--text-2)' }}>
+              {t('auth.seatCustom','정확한 계정수 (2~9)')} · +${addonMonthly}/{t('auth.seatPerMonth','계정·월')}
+            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <button type="button" style={stepBtn} onClick={() => setSeatTier(isCustom && customN > 2 ? `custom:${customN - 1}` : '1')}>−</button>
+              <span style={{ minWidth: 26, textAlign: 'center', fontWeight: 900, fontSize: 15, color: isCustom ? '#fde047' : 'var(--text-3)' }}>{isCustom ? customN : '—'}</span>
+              <button type="button" style={stepBtn} onClick={() => setSeatTier(`custom:${isCustom ? Math.min(9, customN + 1) : 2}`)}>+</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
