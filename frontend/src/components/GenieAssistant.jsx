@@ -59,10 +59,10 @@ function kbAnswer(q, lang) {
 
 function starters(lang) {
   const S = {
-    ko: ['정산 대조는 어떻게 하나요?', '특정 상품 성과는 어디서 보나요?', '광고 예산을 기간별로 보려면?', 'WMS에서 유통기한 관리하는 법'],
-    en: ['How do I reconcile settlements?', 'Where can I see a single product’s performance?', 'How to view ad budget by period?', 'How to manage expiry in WMS'],
-    ja: ['決済の照合はどうやりますか？', '特定商品の実績はどこで見ますか？', '広告予算を期間別に見るには？', 'WMSで賞味期限を管理する方法'],
-    zh: ['如何进行结算对账？', '在哪里查看单个商品的业绩？', '如何按周期查看广告预算？', '如何在WMS中管理保质期'],
+    ko: ['ROAS가 뭐예요? 쉽게 설명해줘', '어트리뷰션이 무슨 뜻이야?', '정산 대조는 어떻게 하나요?', '특정 상품 성과는 어디서 보나요?'],
+    en: ['What is ROAS? Explain it simply', 'What does attribution mean?', 'How do I reconcile settlements?', 'Where can I see a single product’s performance?'],
+    ja: ['ROASとは何ですか？やさしく教えて', 'アトリビューションの意味は？', '決済の照合はどうやりますか？', '特定商品の実績はどこで見ますか？'],
+    zh: ['什么是ROAS？请简单说明', '归因是什么意思？', '如何进行结算对账？', '在哪里查看单个商品的业绩？'],
   };
   return S[lang] || S.en;
 }
@@ -86,10 +86,17 @@ export default function GenieAssistant() {
     setMsgs(next); setInput(''); setBusy(true);
     try {
       const r = await postJsonAuth(API, { messages: next.slice(-10), question: q, lang }).catch(() => null);
-      const answer = (r && r.ok && r.answer) ? r.answer : kbAnswer(q, lang);
+      let answer = (r && r.ok && r.answer) ? r.answer : null;
+      // AI 미응답(데모/키 미설정/오프라인) — 용어집 폴백 우선(별도 청크 lazy), 없으면 메뉴 KB.
+      if (!answer) {
+        try { const g = await import('./genieGlossary.js'); answer = g.glossaryAnswer(q, lang); } catch { /* 청크 로드 실패 무시 */ }
+        if (!answer) answer = kbAnswer(q, lang);
+      }
       setMsgs(m => [...m, { role: 'assistant', content: answer, _kb: !(r && r.answer) }]);
     } catch {
-      setMsgs(m => [...m, { role: 'assistant', content: kbAnswer(q, lang), _kb: true }]);
+      let answer = null;
+      try { const g = await import('./genieGlossary.js'); answer = g.glossaryAnswer(q, lang); } catch {}
+      setMsgs(m => [...m, { role: 'assistant', content: answer || kbAnswer(q, lang), _kb: true }]);
     } finally { setBusy(false); setTimeout(() => taRef.current?.focus(), 50); }
   }, [input, busy, msgs, lang]);
 
@@ -137,7 +144,7 @@ export default function GenieAssistant() {
               <div style={{ padding: '8px 4px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
                   <GenieMark size={30} />
-                  <div style={{ fontSize: 13.5, color: '#475569', lineHeight: 1.7 }}>{t('assistant.greeting', '안녕하세요! GeniegoROI 사용에 대해 무엇이든 물어보세요. 메뉴·기능·사용법을 단계별로 안내해 드립니다.')}</div>
+                  <div style={{ fontSize: 13.5, color: '#475569', lineHeight: 1.7 }}>{t('assistant.greeting', '안녕하세요! GeniegoROI 사용에 대해 무엇이든 물어보세요. 메뉴·기능·사용법은 물론, ROAS·어트리뷰션·LTV 같은 용어도 쉽게 설명해 드립니다.')}</div>
                 </div>
                 <div style={{ display: 'grid', gap: 7, marginTop: 6 }}>
                   {starters(lang).map((s, i) => (
