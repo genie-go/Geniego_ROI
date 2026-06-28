@@ -120,6 +120,72 @@ final class Attribution {
         return null;
     }
 
+    // ── [어트리뷰션 보강] 쿠키리스 결정론적 ID-resolution(cross-device 식별 그래프) ───────────────
+    //   브라우저 세션 ↔ 해시 식별자(email/phone) 결정론 링크. 사용자가 식별되는 순간(로그인/뉴스레터/체크아웃)
+    //   pixel/touch 가 보낸 email 로 그 세션을 identity 에 연결 → 주문(같은 email) 발생 시 own:<hash> + 링크된
+    //   전 세션(모바일·데스크톱)의 미귀속 터치에 일괄 order_id 백필 = 기기 간 여정 스티칭. ★PII 미저장(해시만).
+
+    private static function ensureIdentityTable(\PDO $pdo): void {
+        static $done = false; if ($done) return; $done = true;
+        $isMy = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql';
+        try {
+            if ($isMy) {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS attribution_identity_link (
+                    tenant_id VARCHAR(100) NOT NULL, identity_hash VARCHAR(40) NOT NULL, session_id VARCHAR(190) NOT NULL,
+                    first_seen VARCHAR(32), last_seen VARCHAR(32),
+                    UNIQUE KEY uq_idlink (tenant_id, identity_hash, session_id),
+                    KEY idx_idlink_id (tenant_id, identity_hash)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+            } else {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS attribution_identity_link (
+                    tenant_id TEXT NOT NULL, identity_hash TEXT NOT NULL, session_id TEXT NOT NULL, first_seen TEXT, last_seen TEXT)");
+                try { $pdo->exec("CREATE UNIQUE INDEX IF NOT EXISTS uq_idlink ON attribution_identity_link(tenant_id,identity_hash,session_id)"); } catch (\Throwable $e) {}
+            }
+        } catch (\Throwable $e) {}
+    }
+
+    /** 세션 ↔ 식별자 결정론 링크 upsert. own:/빈 세션은 스킵(자기참조 무의미). */
+    public static function linkIdentity(\PDO $pdo, string $tenant, ?string $idHash, ?string $sessionId): bool {
+        if ($idHash === null || $idHash === '' || $sessionId === null || $sessionId === '' || strncmp($sessionId, 'own:', 4) === 0) return false;
+        self::ensureIdentityTable($pdo);
+        $now = gmdate('Y-m-d H:i:s'); $isMy = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql';
+        try {
+            $sql = $isMy
+                ? "INSERT INTO attribution_identity_link(tenant_id,identity_hash,session_id,first_seen,last_seen) VALUES(?,?,?,?,?) ON DUPLICATE KEY UPDATE last_seen=VALUES(last_seen)"
+                : "INSERT INTO attribution_identity_link(tenant_id,identity_hash,session_id,first_seen,last_seen) VALUES(?,?,?,?,?) ON CONFLICT(tenant_id,identity_hash,session_id) DO UPDATE SET last_seen=excluded.last_seen";
+            $pdo->prepare($sql)->execute([$tenant, $idHash, $sessionId, $now, $now]);
+            return true;
+        } catch (\Throwable $e) { return false; }
+    }
+
+    /** 식별자에 연결된 전 세션(cross-device) + own:<hash> 의사세션. */
+    public static function sessionsForIdentity(\PDO $pdo, string $tenant, string $idHash): array {
+        $out = ['own:' . $idHash];
+        try {
+            self::ensureIdentityTable($pdo);
+            $st = $pdo->prepare("SELECT session_id FROM attribution_identity_link WHERE tenant_id=? AND identity_hash=?");
+            $st->execute([$tenant, $idHash]);
+            foreach ($st->fetchAll(\PDO::FETCH_COLUMN) as $s) { $s = (string)$s; if ($s !== '') $out[] = $s; }
+        } catch (\Throwable $e) {}
+        return array_values(array_unique($out));
+    }
+
+    /** GET /v424/attribution/identity-coverage — cross-device 식별 그래프 커버리지(결정론 ID-resolution). */
+    public static function identityCoverage(Request $req, Response $res): Response {
+        $pdo = Db::pdo(); $tenant = self::tenantId($req);
+        $out = ['ok' => true, 'identities' => 0, 'linked_sessions' => 0, 'cross_device_identities' => 0, 'max_devices_per_identity' => 0,
+            'note' => '결정론적(해시 기반·PII 미저장) cross-device 식별 그래프. 모바일↔데스크톱 여정을 동일인으로 스티칭해 어트리뷰션 여정 완전성을 높입니다.'];
+        try {
+            self::ensureIdentityTable($pdo);
+            $st = $pdo->prepare("SELECT identity_hash, COUNT(*) c FROM attribution_identity_link WHERE tenant_id=? GROUP BY identity_hash");
+            $st->execute([$tenant]); $rows = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+            $out['identities'] = count($rows);
+            foreach ($rows as $r) { $c = (int)$r['c']; $out['linked_sessions'] += $c; if ($c > 1) $out['cross_device_identities']++; if ($c > $out['max_devices_per_identity']) $out['max_devices_per_identity'] = $c; }
+        } catch (\Throwable $e) {}
+        $res->getBody()->write(json_encode($out, JSON_UNESCAPED_UNICODE));
+        return $res->withHeader('Content-Type', 'application/json');
+    }
+
     /** 오운드채널 발송 터치 1행 적재. 발송 실패에 영향 없도록 예외 무해 처리. */
     public static function recordOwnedTouch(\PDO $pdo, string $tenant, string $channel, ?string $email, ?string $phone, string $campaign = '', array $extra = []): bool {
         $id = self::identityHash($email, $phone);
@@ -137,22 +203,24 @@ final class Attribution {
         } catch (\Throwable $e) { return false; }
     }
 
-    /** 주문 ingest 시 동일 고객 해시의 미귀속 오운드 터치에 order_id 백필(어트리뷰션 윈도 내). */
+    /** 주문 ingest 시 동일 고객 해시의 미귀속 터치에 order_id 백필. [보강] own:<hash> 뿐 아니라 식별그래프에
+     *   링크된 전 세션(cross-device)을 일괄 스티칭 → markov/linear 등이 기기 간 여정을 동일인으로 크레딧. */
     public static function backfillOwnedTouches(\PDO $pdo, string $tenant, string $orderId, ?string $email, ?string $phone, string $orderAt = '', int $windowDays = 30): int {
         $id = self::identityHash($email, $phone);
         if ($id === null || $orderId === '') return 0;
-        $sess   = 'own:' . $id;
-        $ts      = $orderAt !== '' ? strtotime($orderAt) : time();
+        $ts = $orderAt !== '' ? strtotime($orderAt) : time();
         if ($ts === false) $ts = time();
         $cutoff = gmdate('Y-m-d H:i:s', $ts - max(1, $windowDays) * 86400);
+        $sessions = self::sessionsForIdentity($pdo, $tenant, $id); // own:<hash> + 링크된 cross-device 세션 전부
+        $total = 0;
         try {
-            $st = $pdo->prepare(
+            $up = $pdo->prepare(
                 "UPDATE attribution_touch SET order_id=?
                  WHERE tenant_id=? AND session_id=? AND (order_id IS NULL OR order_id='') AND touched_at >= ?"
             );
-            $st->execute([$orderId, $tenant, $sess, $cutoff]);
-            return $st->rowCount();
-        } catch (\Throwable $e) { return 0; }
+            foreach ($sessions as $sess) { $up->execute([$orderId, $tenant, $sess, $cutoff]); $total += $up->rowCount(); }
+        } catch (\Throwable $e) {}
+        return $total;
     }
 
     // ── Touch Points ──────────────────────────────────────────────────────
@@ -188,6 +256,11 @@ final class Attribution {
             $body['touched_at'] ?? gmdate('c'),
             json_encode($extra, JSON_UNESCAPED_UNICODE),
         ]);
+        // [어트리뷰션 ID-resolution] 식별 가능한 터치(email/phone)면 세션 ↔ 식별자 결정론 링크(cross-device 스티칭 기반).
+        try {
+            $idH = self::identityHash($body['email'] ?? $body['customer_email'] ?? null, $body['phone'] ?? $body['customer_phone'] ?? null);
+            if ($idH !== null && !empty($body['session_id'])) self::linkIdentity($pdo, $tenant, $idH, (string)$body['session_id']);
+        } catch (\Throwable $e) { /* 링크 실패는 터치 적재에 무영향 */ }
         return TemplateResponder::respond($response, ['ok' => true, 'touch_id' => (int)$pdo->lastInsertId()]);
     }
 

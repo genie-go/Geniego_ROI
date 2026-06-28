@@ -855,6 +855,9 @@ return function (App $app): void {
         'GET /api/v424/mmm/bayesian'         => 'Genie\\Handlers\\Mmm::bayesian',
         'GET /v424/attribution/blended'      => 'Genie\\Handlers\\AttributionEngine::blendedIncrementality',
         'GET /api/v424/attribution/blended'  => 'Genie\\Handlers\\AttributionEngine::blendedIncrementality',
+        // [어트리뷰션 보강] 쿠키리스 결정론적 ID-resolution(cross-device 식별 그래프) 커버리지
+        'GET /v424/attribution/identity-coverage'     => 'Genie\\Handlers\\Attribution::identityCoverage',
+        'GET /api/v424/attribution/identity-coverage' => 'Genie\\Handlers\\Attribution::identityCoverage',
         // [R-P3-6] 컴플라이언스 준비도(SOC2/ISO 매핑) + 감사로그 증적 내보내기.
         'GET /v424/compliance/posture'       => 'Genie\\Handlers\\Compliance::posture',
         'GET /api/v424/compliance/posture'   => 'Genie\\Handlers\\Compliance::posture',
@@ -2923,6 +2926,7 @@ return function (App $app): void {
     $register('GET', '/api/v424/attribution/confidence');
     $register('GET', '/v424/attribution/incrementality'); // [현 차수 P4]
     $register('GET', '/api/v424/attribution/incrementality');
+    $register('GET', '/v424/attribution/identity-coverage'); $register('GET', '/api/v424/attribution/identity-coverage');
     $register('POST', '/v424/attribution/lift-test');
     $register('POST', '/api/v424/attribution/lift-test');
     $register('GET', '/v424/attribution/experiments/geo-readiness');
