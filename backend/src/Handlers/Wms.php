@@ -126,7 +126,7 @@ class Wms
         }
         // [현 차수] 멀티창고 지리적 최적할당 — 창고 region(시/도)·좌표(lat/lng) 보강(멱등). 무해 실패 무시.
         //   SQLite 는 타입 무관(REAL affinity)·MySQL DOUBLE. region 미입력 시 area/location 에서 추정.
-        foreach (['region VARCHAR(60)', 'lat DOUBLE', 'lng DOUBLE'] as $col) {
+        foreach (['region VARCHAR(60)', 'country VARCHAR(60)', 'lat DOUBLE', 'lng DOUBLE'] as $col) {
             try { $pdo->exec("ALTER TABLE wms_warehouses ADD COLUMN {$col}"); } catch (\Throwable $e) {}
         }
     }
@@ -160,14 +160,14 @@ class Wms
             ':area' => (string)($b['area'] ?? ''), ':temp' => (string)($b['temp'] ?? 'Room Temp'),
             ':manager' => (string)($b['manager'] ?? ''), ':phone' => (string)($b['phone'] ?? ''),
             ':type' => (string)($b['type'] ?? 'Direct'), ':active' => !empty($b['active']) ? 1 : 0,
-            ':region' => $region,
+            ':region' => $region, ':country' => (string)($b['country'] ?? ''),
             ':lat' => is_numeric($b['lat'] ?? null) ? (float)$b['lat'] : null,
             ':lng' => is_numeric($b['lng'] ?? null) ? (float)$b['lng'] : null,
         ];
         $id = (int)($args['id'] ?? $b['id'] ?? 0);
         if ($id > 0) {
             $f[':id'] = $id; $f[':t'] = $t; $f[':ua'] = $now;
-            $st = $pdo->prepare("UPDATE wms_warehouses SET name=:name,code=:code,location=:location,area=:area,temp=:temp,manager=:manager,phone=:phone,type=:type,active=:active,region=:region,lat=:lat,lng=:lng,updated_at=:ua WHERE id=:id AND tenant_id=:t");
+            $st = $pdo->prepare("UPDATE wms_warehouses SET name=:name,code=:code,location=:location,area=:area,temp=:temp,manager=:manager,phone=:phone,type=:type,active=:active,region=:region,country=:country,lat=:lat,lng=:lng,updated_at=:ua WHERE id=:id AND tenant_id=:t");
             $st->execute($f);
             if ($st->rowCount() === 0 && !self::exists('wms_warehouses', $id, $t)) return self::json($res, ['ok' => false, 'error' => '없음'], 404);
             return self::json($res, ['ok' => true, 'id' => $id]);
@@ -181,7 +181,7 @@ class Wms
             }
         } catch (\Throwable $e) { /* 카운트 실패 시 통과(가용성 우선) */ }
         $f[':t'] = $t; $f[':ca'] = $now; $f[':ua'] = $now;
-        $st = $pdo->prepare("INSERT INTO wms_warehouses (tenant_id,name,code,location,area,temp,manager,phone,type,active,region,lat,lng,created_at,updated_at) VALUES (:t,:name,:code,:location,:area,:temp,:manager,:phone,:type,:active,:region,:lat,:lng,:ca,:ua)");
+        $st = $pdo->prepare("INSERT INTO wms_warehouses (tenant_id,name,code,location,area,temp,manager,phone,type,active,region,country,lat,lng,created_at,updated_at) VALUES (:t,:name,:code,:location,:area,:temp,:manager,:phone,:type,:active,:region,:country,:lat,:lng,:ca,:ua)");
         $st->execute($f);
         return self::json($res, ['ok' => true, 'id' => (int)$pdo->lastInsertId()]);
     }
@@ -204,9 +204,12 @@ class Wms
         $t = self::tenant($req); $b = self::body($req);
         $sku = trim((string)($b['sku'] ?? ''));
         $qty = max(1.0, (float)($b['qty'] ?? 1));
-        $ship = (string)($b['address'] ?? $b['ship_address'] ?? $b['region'] ?? '');
+        // 배송지: 주소/지역 텍스트 + 국가(글로벌 지오코딩) · 명시 좌표(전세계 정밀, 선택).
+        $ship = trim(((string)($b['address'] ?? $b['ship_address'] ?? $b['region'] ?? '')) . ' ' . (string)($b['country'] ?? ''));
+        $slat = is_numeric($b['lat'] ?? $b['ship_lat'] ?? null) ? (float)($b['lat'] ?? $b['ship_lat']) : null;
+        $slng = is_numeric($b['lng'] ?? $b['ship_lng'] ?? null) ? (float)($b['lng'] ?? $b['ship_lng']) : null;
         if ($sku === '') return self::json($res, ['ok' => false, 'error' => 'sku가 필요합니다.'], 422);
-        return self::json($res, array_merge(['ok' => true], self::allocationPlan($t, $sku, $qty, $ship)));
+        return self::json($res, array_merge(['ok' => true], self::allocationPlan($t, $sku, $qty, $ship, $slat, $slng)));
     }
 
     /* ════════════════ 택배사(Carriers) ════════════════ */
@@ -583,10 +586,12 @@ class Wms
         return 'default';
     }
 
-    /* ════════════════ [현 차수] 멀티창고 지리적 최적할당 ════════════════
+    /* ════════════════ [현 차수] 멀티창고 글로벌 지리적 최적할당 ════════════════
      *   기존: primaryWarehouse(최소 id 단일창고)에서만 출고 → 타 창고에 재고가 있어도 미추적 처리(분할/지역 무시).
      *   개선: 주문 SKU 재고 보유 + 배송지 근접 창고로 최적 배분. 외부 의존(3PL/배송사 API) 없이 내부 재고·지리만으로 동작.
-     *   점수: ① 전량 커버(on_hand>=qty) 우선 ② 배송지 근접(시/도 centroid haversine·좌표 명시 시 우선) ③ 동점=재고 多. */
+     *   ★국내 한정이 아닌 글로벌: 한국 시/도(국내 세분) + 글로벌 국가/주요도시 centroid + 명시 좌표(lat/lng, 전세계 정밀)로
+     *     배송지·창고 위치를 해석해 전세계 멀티노드 풀필먼트(예: 미국 캘리포니아 주문→미국 서부 창고)를 지원한다.
+     *   점수: ① 전량 커버(on_hand>=qty) 우선 ② 배송지 근접(전세계 haversine·명시 좌표 우선) ③ 동점=재고 多. */
 
     /** 한국 시/도 centroid(위도,경도) — region 근접도 산출 기준. */
     private const KR_REGION_CENTROIDS = [
@@ -616,6 +621,56 @@ class Wms
         return '';
     }
 
+    /** [현 차수] 글로벌 centroid — 국가/주요도시 키(소문자 영문·현지어) → [위도,경도]. 국내(KR)는 위 시/도가 우선 granularity.
+     *   도시(더 구체)를 국가보다 앞에 배치(긴 키/구체 우선 매칭). 2글자 ISO 코드는 오매칭 위험으로 제외(명시 좌표로 정밀화). */
+    private const WORLD_CENTROIDS = [
+        // ── 주요 도시(구체 우선) ──
+        'new york'=>[40.7128,-74.0060],'los angeles'=>[34.0522,-118.2437],'san francisco'=>[37.7749,-122.4194],
+        'chicago'=>[41.8781,-87.6298],'dallas'=>[32.7767,-96.7970],'seattle'=>[47.6062,-122.3321],'atlanta'=>[33.7490,-84.3880],
+        'miami'=>[25.7617,-80.1918],'london'=>[51.5074,-0.1278],'manchester'=>[53.4808,-2.2426],'paris'=>[48.8566,2.3522],
+        'berlin'=>[52.5200,13.4050],'frankfurt'=>[50.1109,8.6821],'amsterdam'=>[52.3676,4.9041],'madrid'=>[40.4168,-3.7038],
+        'milan'=>[45.4642,9.1900],'rome'=>[41.9028,12.4964],'tokyo'=>[35.6762,139.6503],'東京'=>[35.6762,139.6503],
+        'osaka'=>[34.6937,135.5023],'大阪'=>[34.6937,135.5023],'shanghai'=>[31.2304,121.4737],'上海'=>[31.2304,121.4737],
+        'beijing'=>[39.9042,116.4074],'北京'=>[39.9042,116.4074],'shenzhen'=>[22.5431,114.0579],'guangzhou'=>[23.1291,113.2644],
+        'hong kong'=>[22.3193,114.1694],'香港'=>[22.3193,114.1694],'singapore'=>[1.3521,103.8198],'taipei'=>[25.0330,121.5654],
+        'bangkok'=>[13.7563,100.5018],'jakarta'=>[-6.2088,106.8456],'hanoi'=>[21.0278,105.8342],'ho chi minh'=>[10.8231,106.6297],
+        'manila'=>[14.5995,120.9842],'kuala lumpur'=>[3.1390,101.6869],'mumbai'=>[19.0760,72.8777],'delhi'=>[28.7041,77.1025],
+        'dubai'=>[25.2048,55.2708],'sydney'=>[-33.8688,151.2093],'melbourne'=>[-37.8136,144.9631],'toronto'=>[43.6532,-79.3832],
+        'vancouver'=>[49.2827,-123.1207],'sao paulo'=>[-23.5505,-46.6333],'mexico city'=>[19.4326,-99.1332],
+        // ── 미국 주(중심) — 캘리포니아 등 광역 ──
+        'california'=>[36.7783,-119.4179],'texas'=>[31.0000,-99.0000],'florida'=>[27.7663,-81.6868],
+        'new jersey'=>[40.0583,-74.4057],'illinois'=>[40.0000,-89.0000],'washington'=>[47.7511,-120.7401],
+        // ── 국가(EN·현지어) ──
+        'united states'=>[39.8283,-98.5795],'usa'=>[39.8283,-98.5795],'america'=>[39.8283,-98.5795],'미국'=>[39.8283,-98.5795],
+        'japan'=>[36.2048,138.2529],'일본'=>[36.2048,138.2529],'日本'=>[36.2048,138.2529],
+        'china'=>[35.8617,104.1954],'중국'=>[35.8617,104.1954],'中国'=>[35.8617,104.1954],'中國'=>[35.8617,104.1954],
+        'united kingdom'=>[55.3781,-3.4360],'england'=>[52.3555,-1.1743],'영국'=>[55.3781,-3.4360],
+        'germany'=>[51.1657,10.4515],'독일'=>[51.1657,10.4515],'deutschland'=>[51.1657,10.4515],
+        'france'=>[46.2276,2.2137],'프랑스'=>[46.2276,2.2137],'spain'=>[40.4637,-3.7492],'스페인'=>[40.4637,-3.7492],
+        'italy'=>[41.8719,12.5674],'이탈리아'=>[41.8719,12.5674],'netherlands'=>[52.1326,5.2913],'네덜란드'=>[52.1326,5.2913],
+        'canada'=>[56.1304,-106.3468],'캐나다'=>[56.1304,-106.3468],'australia'=>[-25.2744,133.7751],'호주'=>[-25.2744,133.7751],
+        'india'=>[20.5937,78.9629],'인도'=>[20.5937,78.9629],'singapore'=>[1.3521,103.8198],'싱가포르'=>[1.3521,103.8198],
+        'taiwan'=>[23.6978,120.9605],'대만'=>[23.6978,120.9605],'臺灣'=>[23.6978,120.9605],
+        'thailand'=>[15.8700,100.9925],'태국'=>[15.8700,100.9925],'vietnam'=>[14.0583,108.2772],'베트남'=>[14.0583,108.2772],
+        'indonesia'=>[-0.7893,113.9213],'인도네시아'=>[-0.7893,113.9213],'philippines'=>[12.8797,121.7740],'필리핀'=>[12.8797,121.7740],
+        'malaysia'=>[4.2105,101.9758],'말레이시아'=>[4.2105,101.9758],'brazil'=>[-14.2350,-51.9253],'브라질'=>[-14.2350,-51.9253],
+        'mexico'=>[23.6345,-102.5528],'멕시코'=>[23.6345,-102.5528],'russia'=>[61.5240,105.3188],'러시아'=>[61.5240,105.3188],
+        'saudi'=>[23.8859,45.0792],'united arab emirates'=>[23.4241,53.8478],'uae'=>[23.4241,53.8478],
+    ];
+
+    /** [현 차수] 글로벌 통합 지오코더 — 주소/지역 문자열 → [위도,경도]. ① 한국 시/도(국내 granularity) ② 글로벌 국가/도시.
+     *   미식별 시 null. 정밀도가 필요하면 창고/배송지에 명시 좌표(lat/lng)를 제공(haversine 정확 동작). */
+    public static function geoCentroid(string $text): ?array
+    {
+        $s = trim($text);
+        if ($s === '') return null;
+        $kr = self::regionOf($s); // 한국 시/도 우선(국내 세분)
+        if ($kr !== '' && isset(self::KR_REGION_CENTROIDS[$kr])) return self::KR_REGION_CENTROIDS[$kr];
+        $low = strtolower($s);
+        foreach (self::WORLD_CENTROIDS as $key => $c) { if (strpos($low, $key) !== false) return $c; } // 도시(구체)→국가 순
+        return null;
+    }
+
     /** haversine 거리(km). */
     private static function haversineKm(float $la1, float $lo1, float $la2, float $lo2): float
     {
@@ -624,28 +679,29 @@ class Wms
         return $R * 2 * atan2(sqrt($a), sqrt(max(0.0, 1 - $a)));
     }
 
-    /** 창고 centroid(위도,경도) — 명시 좌표 우선, 없으면 region/area/location/name 에서 시/도 centroid 추정. null=미상. */
+    /** 창고 centroid(위도,경도) — ① 명시 좌표(lat/lng, 전세계 정밀) 우선 ② country/region/area/location/name 에서
+     *   글로벌 지오코더(geoCentroid: 한국 시/도 + 글로벌 국가/도시) 추정. null=미상(→ 재고량 정렬 폴백). */
     private static function warehouseCentroid(array $wh): ?array
     {
         $lat = $wh['lat'] ?? null; $lng = $wh['lng'] ?? null;
         if (is_numeric($lat) && is_numeric($lng) && (float)$lat != 0.0 && (float)$lng != 0.0) return [(float)$lat, (float)$lng];
-        $region = (string)($wh['region'] ?? '');
-        if ($region === '' || !isset(self::KR_REGION_CENTROIDS[$region])) {
-            $region = self::regionOf((string)($wh['region'] ?? '') . ' ' . (string)($wh['area'] ?? '') . ' ' . (string)($wh['location'] ?? '') . ' ' . (string)($wh['name'] ?? ''));
-        }
-        return isset(self::KR_REGION_CENTROIDS[$region]) ? self::KR_REGION_CENTROIDS[$region] : null;
+        return self::geoCentroid(
+            (string)($wh['country'] ?? '') . ' ' . (string)($wh['region'] ?? '') . ' ' .
+            (string)($wh['area'] ?? '') . ' ' . (string)($wh['location'] ?? '') . ' ' . (string)($wh['name'] ?? '')
+        );
     }
 
     /**
-     * [현 차수] 멀티창고 최적할당 계획 — SKU 재고 보유 + 배송지 근접 창고를 점수화하여 선정.
-     *   ① 재고>0 활성 창고 후보 ② 전량 커버(on_hand>=qty) 우선(분할출고 회피) ③ 배송지 근접(haversine)
+     * [현 차수] 멀티창고 글로벌 최적할당 계획 — SKU 재고 보유 + 배송지 근접 창고를 점수화하여 선정.
+     *   ① 재고>0 활성 창고 후보 ② 전량 커버(on_hand>=qty) 우선(분할출고 회피) ③ 배송지 근접(haversine·전세계)
      *   ④ 동점 시 재고 많은 순. 좌표/지역 미상이면 재고량으로만 정렬. 후보 0 → primaryWarehouse 폴백.
-     * @return array{selected:string, selected_name:string, ship_region:string, covered:bool, candidates:array, reason:string}
+     *   배송지 위치: 명시 좌표($shipLat/$shipLng, 전세계 정밀) 우선 → 없으면 글로벌 지오코더(geoCentroid: 한국 시/도 + 국가/도시).
+     * @return array{selected:string, selected_name:string, ship_region:string, ship_geocoded:bool, covered:bool, candidates:array, reason:string}
      */
-    public static function allocationPlan(string $tenant, string $sku, float $qty, string $shipText = ''): array
+    public static function allocationPlan(string $tenant, string $sku, float $qty, string $shipText = '', ?float $shipLat = null, ?float $shipLng = null): array
     {
         $primary = self::primaryWarehouse($tenant);
-        $out = ['selected' => $primary, 'selected_name' => '', 'ship_region' => '', 'covered' => false, 'candidates' => [], 'reason' => ''];
+        $out = ['selected' => $primary, 'selected_name' => '', 'ship_region' => '', 'ship_geocoded' => false, 'covered' => false, 'candidates' => [], 'reason' => ''];
         if ($sku === '' || $tenant === '') return $out;
         try {
             $pdo = self::db();
@@ -653,13 +709,16 @@ class Wms
             $st->execute([$tenant, $sku]);
             $stock = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
             if (!$stock) { $out['reason'] = '재고 보유 창고 없음 — 기본창고 폴백'; return $out; }
-            $whq = $pdo->prepare("SELECT id, name, region, area, location, lat, lng FROM wms_warehouses WHERE tenant_id=? AND active=1");
+            $whq = $pdo->prepare("SELECT id, name, region, country, area, location, lat, lng FROM wms_warehouses WHERE tenant_id=? AND active=1");
             $whq->execute([$tenant]);
             $whMap = [];
             foreach ($whq->fetchAll(\PDO::FETCH_ASSOC) ?: [] as $w) { $whMap[(string)$w['id']] = $w; }
-            $shipRegion = self::regionOf($shipText);
+            $shipRegion = self::regionOf($shipText); // 국내(KR) 라벨(가능 시)
             $out['ship_region'] = $shipRegion;
-            $shipC = ($shipRegion !== '' && isset(self::KR_REGION_CENTROIDS[$shipRegion])) ? self::KR_REGION_CENTROIDS[$shipRegion] : null;
+            // 배송지 centroid: ① 명시 좌표(전세계 정밀) ② 글로벌 지오코더(한국 시/도 + 글로벌 국가/도시)
+            $shipC = (is_numeric($shipLat) && is_numeric($shipLng) && ((float)$shipLat != 0.0 || (float)$shipLng != 0.0))
+                ? [(float)$shipLat, (float)$shipLng] : self::geoCentroid($shipText);
+            $out['ship_geocoded'] = $shipC !== null;
             $cands = [];
             foreach ($stock as $s) {
                 $wid = (string)$s['wh_id'];
@@ -670,7 +729,7 @@ class Wms
                 $dist = ($shipC !== null && $wc !== null) ? self::haversineKm($shipC[0], $shipC[1], $wc[0], $wc[1]) : null;
                 $cands[] = [
                     'wh_id' => $wid, 'name' => (string)$w['name'],
-                    'region' => (string)($w['region'] ?: self::regionOf((string)($w['area'] ?? '') . ' ' . (string)($w['location'] ?? ''))),
+                    'region' => (string)($w['region'] ?: ($w['country'] ?: self::regionOf((string)($w['area'] ?? '') . ' ' . (string)($w['location'] ?? '')))),
                     'on_hand' => $onHand, 'covers' => ($onHand >= $qty),
                     'distance_km' => ($dist !== null ? round($dist, 1) : null),
                 ];
@@ -691,9 +750,14 @@ class Wms
             $out['covered'] = $best['covers']; $out['candidates'] = $cands; // 전체 후보(점수순) 투명 노출
             $why = [];
             $why[] = $best['covers'] ? '전량 출고 가능' : '부분 재고(분할 필요)';
-            if (($best['distance_km'] ?? null) !== null) $why[] = "배송지({$shipRegion}) 최근접 {$best['distance_km']}km";
-            elseif ($shipRegion === '') $why[] = '배송지 미상 — 재고량 우선';
-            else $why[] = '창고 좌표/지역 미상 — 재고량 우선';
+            if (($best['distance_km'] ?? null) !== null) {
+                $shipLabel = $shipRegion !== '' ? $shipRegion : '배송지';
+                $why[] = "{$shipLabel} 최근접 {$best['distance_km']}km";
+            } elseif ($shipC === null) {
+                $why[] = '배송지 미상 — 재고량 우선';
+            } else {
+                $why[] = '창고 좌표/지역 미상 — 재고량 우선';
+            }
             $why[] = '재고 ' . rtrim(rtrim(number_format($best['on_hand'], 1), '0'), '.');
             $out['reason'] = implode(' · ', $why);
             return $out;
