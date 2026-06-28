@@ -691,6 +691,21 @@ class JourneyBuilder
              'nodes'=>[$N('t1','trigger','생일 세그먼트',['type'=>'segment'],$cx,40), $N('k1','kakao','생일 축하 쿠폰',['content'=>'🎂 생일 축하합니다! 특별 쿠폰을 드려요'],$cx,150), $N('g1','goal','생일 구매',['label'=>'생일 구매'],$cx,260)],
              'edges'=>[$E('t1','k1'),$E('k1','g1')]],
 
+            ['id'=>'replenishment', 'name'=>'🔁 소모품 재구매 주기 알림', 'category'=>'리텐션', 'goal'=>'재구매',
+             'description'=>'구매 25일 후 재구매 시점 이메일 → 5일 후 미구매 시 카카오 리마인더(소모품/정기재구매)', 'trigger_type'=>'purchase', 'estimated_duration'=>'30일',
+             'nodes'=>[$N('t1','trigger','구매 트리거',['type'=>'purchase'],$cx,40), $N('d1','delay','25일 대기',['value'=>25,'unit'=>'days'],$cx,150), $N('e1','email','재구매 시점 안내',['subject'=>'이제 다시 채울 시간이에요'],$cx,260), $N('d2','delay','5일 대기',['value'=>5,'unit'=>'days'],$cx,370), $N('c1','condition','재구매했나요?',['field'=>'revenue','op'=>'gt','value'=>0],$cx,480), $N('g1','goal','재구매',['label'=>'재구매'],$cx+150,590), $N('k1','kakao','재구매 리마인더',['content'=>'재구매 시 무료배송 혜택!'],$cx-150,590), $N('g2','goal','재구매',['label'=>'재구매'],$cx-150,700)],
+             'edges'=>[$E('t1','d1'),$E('d1','e1'),$E('e1','d2'),$E('d2','c1'),$E('c1','g1','true'),$E('c1','k1','false'),$E('k1','g2')]],
+
+            ['id'=>'back_in_stock', 'name'=>'📦 재입고 알림', 'category'=>'리타게팅', 'goal'=>'구매 완료',
+             'description'=>'재입고 대기 세그먼트 진입 → 즉시 카카오 재입고 알림 + 이메일(품절 전 구매 유도)', 'trigger_type'=>'segment', 'estimated_duration'=>'즉시',
+             'nodes'=>[$N('t1','trigger','재입고 대기 세그먼트',['type'=>'segment'],$cx,40), $N('k1','kakao','재입고 알림',['content'=>'기다리신 상품이 재입고됐어요! 🎉'],$cx,150), $N('e1','email','재입고 안내',['subject'=>'재입고 완료 — 품절 전 구매하세요'],$cx,260), $N('g1','goal','구매 완료',['label'=>'구매 완료'],$cx,370)],
+             'edges'=>[$E('t1','k1'),$E('k1','e1'),$E('e1','g1')]],
+
+            ['id'=>'browse_abandonment', 'name'=>'👀 상품 조회 이탈 복구', 'category'=>'리타게팅', 'goal'=>'구매 완료',
+             'description'=>'상품 조회 후 미구매 세그먼트 → 2시간 후 본 상품 리마인더 → 1일 후 미구매 시 첫구매 할인', 'trigger_type'=>'segment', 'estimated_duration'=>'2일',
+             'nodes'=>[$N('t1','trigger','조회 이탈 세그먼트',['type'=>'segment'],$cx,40), $N('d1','delay','2시간 대기',['value'=>2,'unit'=>'hours'],$cx,150), $N('e1','email','본 상품 리마인더',['subject'=>'관심 가지신 상품, 아직 고민 중이세요?'],$cx,260), $N('d2','delay','1일 대기',['value'=>1,'unit'=>'days'],$cx,370), $N('c1','condition','구매했나요?',['field'=>'revenue','op'=>'gt','value'=>0],$cx,480), $N('g1','goal','구매 완료',['label'=>'구매 완료'],$cx+150,590), $N('e2','email','할인 제안',['subject'=>'🎁 첫 구매 10% 할인'],$cx-150,590), $N('g2','goal','구매 완료',['label'=>'구매 완료'],$cx-150,700)],
+             'edges'=>[$E('t1','d1'),$E('d1','e1'),$E('e1','d2'),$E('d2','c1'),$E('c1','g1','true'),$E('c1','e2','false'),$E('e2','g2')]],
+
             ['id'=>'ab_welcome', 'name'=>'🧪 환영 메시지 A/B 테스트', 'category'=>'실험', 'goal'=>'전환(승자)',
              'description'=>'가입 후 A/B 50:50 분배(버전 A vs B 이메일) → 성과 비교로 승자 결정', 'trigger_type'=>'signup', 'estimated_duration'=>'즉시',
              'nodes'=>[$N('t1','trigger','가입 트리거',['type'=>'signup'],$cx,40), $N('s1','split','A/B 50:50',['weight_a'=>50],$cx,150), $N('e1','email','버전 A',['subject'=>'[A] 환영합니다 — 혜택 중심'],$cx-150,270), $N('e2','email','버전 B',['subject'=>'[B] 환영합니다 — 스토리 중심'],$cx+150,270), $N('g1','goal','전환',['label'=>'전환'],$cx,390)],
