@@ -22777,7 +22777,7 @@ export default {"paymentSuccess": {"invalidInfo":"결제 정보가 올바르지 
     "cmplTitle": '컴플라이언스 준비도',
     "cmplReadiness": '준비도',
     "cmplImpl": '구현',
-    "cmplAvail": '코드완비',
+    "cmplAvail": '코드완비',"govTitle":"보안 거버넌스","govDesc":"MFA 강제 정책·SIEM 감사 포워딩·증적 내보내기(관리자).","govMfa":"MFA 강제 정책","govMfaHint":"강제 시 해당 사용자는 로그인 후 MFA 등록 전까지 앱 사용이 차단됩니다.","govExport":"감사 증적 내보내기 (최근 30일)","govExportHint":"SOC2/ISO 심사 증적·SIEM 적재용(인증·보안·운영 감사 통합).","govSiem":"SIEM 포워딩 (Splunk HEC · Datadog · 범용 HTTPS)","govSiemToken":"토큰(HEC/Bearer)","govSiemEnable":"활성화","govSiemSave":"SIEM 설정 저장","govSiemPush":"지금 전송 테스트","govSaved":"저장되었습니다.","govPushed":"이벤트 전송됨",
     "cmplManual": '프로세스',
     adminActions: "관리자 작업",
     adminActionsDesc: "관리자 역할",

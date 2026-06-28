@@ -218,6 +218,8 @@ $app->add(function (Request $request, $handler) {
         // [P1 커넥터 폭] CS/헬프데스크·외부 ESP 인바운드 집계/동기화 — 프론트 세션 토큰 호출. authTenant=auth_tenant 격리.
         || strpos($path, '/v426/cs/') === 0 || strpos($path, '/api/v426/cs/') === 0
         || strpos($path, '/v426/esp/') === 0 || strpos($path, '/api/v426/esp/') === 0
+        // [P3 보안거버넌스] 컴플라이언스 준비도·감사 SIEM 익스포트 — 프론트(Compliance) 세션 토큰 호출. 핸들러 requirePro/admin 자체게이트.
+        || strpos($path, '/v424/compliance/') === 0 || strpos($path, '/api/v424/compliance/') === 0
         // [228차 S1] 매체보고 vs 실주문귀속 ROAS 정합 — 세션 토큰 호출(익명 차단, auth_tenant 주입·격리).
         || strpos($path, '/v423/connectors/roas-reconciliation') === 0 || strpos($path, '/api/v423/connectors/roas-reconciliation') === 0
         // [현 차수 P2-2a] 키워드 입도 조회 — 세션 self-auth(authedTenant 격리). 프론트 세션 토큰 호출.

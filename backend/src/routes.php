@@ -860,6 +860,13 @@ return function (App $app): void {
         'GET /api/v424/compliance/posture'   => 'Genie\\Handlers\\Compliance::posture',
         'GET /v424/compliance/audit-export'  => 'Genie\\Handlers\\Compliance::auditExport',
         'GET /api/v424/compliance/audit-export' => 'Genie\\Handlers\\Compliance::auditExport',
+        // [P3 보안거버넌스] SIEM 포워딩(Splunk HEC·Datadog·범용 HTTPS) 설정·푸시
+        'GET /v424/compliance/siem'          => 'Genie\\Handlers\\Compliance::siemConfig',
+        'GET /api/v424/compliance/siem'      => 'Genie\\Handlers\\Compliance::siemConfig',
+        'PUT /v424/compliance/siem'          => 'Genie\\Handlers\\Compliance::siemConfig',
+        'PUT /api/v424/compliance/siem'      => 'Genie\\Handlers\\Compliance::siemConfig',
+        'POST /v424/compliance/siem/push'    => 'Genie\\Handlers\\Compliance::siemPush',
+        'POST /api/v424/compliance/siem/push' => 'Genie\\Handlers\\Compliance::siemPush',
         // [R-P3-8] 온사이트 CRO 실험 — assign/convert 공개 비콘(세션불요·index.php bypass), CRUD/results 인증.
         'GET /v424/cro/assign'               => 'Genie\\Handlers\\Onsite::assign',
         'GET /api/v424/cro/assign'           => 'Genie\\Handlers\\Onsite::assign',
@@ -1208,6 +1215,9 @@ return function (App $app): void {
         // 189차 MFA/2FA (TOTP) — 모두 세션 토큰 자체검증(핸들러 내부)
         'GET /auth/mfa/status'   => 'Genie\\Handlers\\UserAuth::mfaStatus',
         'POST /auth/mfa/setup'   => 'Genie\\Handlers\\UserAuth::mfaSetup',
+        // [P3 보안거버넌스] 조직 MFA 강제 정책(off|admin|all) — GET 조회·PUT 설정(admin)
+        'GET /auth/mfa/policy'   => 'Genie\\Handlers\\UserAuth::mfaPolicyConfig',
+        'PUT /auth/mfa/policy'   => 'Genie\\Handlers\\UserAuth::mfaPolicyConfig',
         'POST /auth/mfa/enable'  => 'Genie\\Handlers\\UserAuth::mfaEnable',
         'POST /auth/mfa/disable' => 'Genie\\Handlers\\UserAuth::mfaDisable',
         'POST /auth/mfa/otp/send'   => 'Genie\\Handlers\\UserAuth::mfaOtpSend',
@@ -2132,6 +2142,8 @@ return function (App $app): void {
     // 189차 MFA/2FA (TOTP)
     $register('GET',  '/auth/mfa/status');
     $register('POST', '/auth/mfa/setup');
+    $register('GET',  '/auth/mfa/policy');
+    $register('PUT',  '/auth/mfa/policy');
     $register('POST', '/auth/mfa/enable');
     $register('POST', '/auth/mfa/disable');
     $register('POST', '/auth/mfa/otp/send');
@@ -2929,6 +2941,10 @@ return function (App $app): void {
     $register('GET',  '/v424/attribution/blended'); $register('GET', '/api/v424/attribution/blended');
     $register('GET',  '/v424/compliance/posture'); $register('GET', '/api/v424/compliance/posture');
     $register('GET',  '/v424/compliance/audit-export'); $register('GET', '/api/v424/compliance/audit-export');
+    // [P3 보안거버넌스] SIEM 포워딩
+    $register('GET',  '/v424/compliance/siem'); $register('GET', '/api/v424/compliance/siem');
+    $register('PUT',  '/v424/compliance/siem'); $register('PUT', '/api/v424/compliance/siem');
+    $register('POST', '/v424/compliance/siem/push'); $register('POST', '/api/v424/compliance/siem/push');
     $register('GET',  '/v424/cro/assign'); $register('GET', '/api/v424/cro/assign');
     $register('POST', '/v424/cro/convert'); $register('POST', '/api/v424/cro/convert');
     $register('GET',  '/v424/cro/experiments'); $register('GET', '/api/v424/cro/experiments');

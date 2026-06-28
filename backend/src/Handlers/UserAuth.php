@@ -857,10 +857,11 @@ final class UserAuth
             ];
             $resolved = self::resolveActivePlan($rawUser);
 
-            // Sprint4(193차) — admin MFA 의무화: admin 플랜이 2단계 인증 미설정이면 enrollment 강제 플래그.
+            // Sprint4(193차) — MFA 의무화: 2단계 인증 미설정 사용자에 enrollment 강제 플래그.
+            //   [P3 보안거버넌스] 조직 MFA 정책(off|admin|all)으로 강제 범위 결정(기존 admin-only 동작은 기본값 보존).
             //   세션은 발급(setup/enable API 호출에 세션 필요)하되, FE가 enrollment 게이트로 앱 차단.
             //   break-glass(isMasterAuth) 비상 접근은 제외.
-            $mfaEnrollRequired = (!$isMasterAuth && $effectivePlan === 'admin' && empty($user['mfa_enabled']));
+            $mfaEnrollRequired = (!$isMasterAuth && empty($user['mfa_enabled']) && self::mfaRequiredFor($effectivePlan));
 
             return self::json($res, [
                 'ok'    => true,
@@ -2896,7 +2897,53 @@ final class UserAuth
         // 이메일 인증 가용 여부(UI 게이트용): Mailer 설정 시 true
         $emailAvail = false; try { $emailAvail = \Genie\Mailer::isConfigured($pdo); } catch (\Throwable $e) {}
         return self::json($res, ['ok' => true, 'enabled' => $enabled === 1, 'method' => $method, 'recovery_remaining' => $remaining,
+            'policy' => self::mfaPolicy($pdo), 'enforced' => self::mfaRequiredFor((string)($user['plan'] ?? $user['plans'] ?? ''), $pdo),
             'methods_available' => ['email' => $emailAvail, 'totp' => true, 'sms' => false, 'kakao' => false]]);
+    }
+
+    /** [P3 보안거버넌스] 조직 MFA 강제 정책(app_setting mfa_policy): off|admin|all. 기본 admin(기존 동작 보존). */
+    public static function mfaPolicy(\PDO $pdo): string
+    {
+        try {
+            $st = $pdo->prepare("SELECT svalue FROM app_setting WHERE skey='mfa_policy' LIMIT 1");
+            $st->execute(); $v = (string)$st->fetchColumn();
+            if (in_array($v, ['off', 'admin', 'all'], true)) return $v;
+        } catch (\Throwable $e) {}
+        return 'admin';
+    }
+
+    /** 정책×역할 → MFA 강제 여부. off=없음·admin=관리자만·all=전원. */
+    public static function mfaRequiredFor(string $plan, ?\PDO $pdo = null): bool
+    {
+        $pol = self::mfaPolicy($pdo ?: Db::pdo());
+        if ($pol === 'off') return false;
+        if ($pol === 'all') return true;
+        return $plan === 'admin';
+    }
+
+    /** GET/PUT /auth/mfa/policy — 조직 MFA 강제 정책 조회/설정(PUT=관리자). 강제 시 로그인이 MFA 미설정 사용자에 enrollment 게이트. */
+    public static function mfaPolicyConfig(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        $pdo = Db::pdo();
+        if (strtoupper($req->getMethod()) === 'PUT') {
+            if ($err = self::requirePlan($req, $res, 'admin')) return $err;
+            $b = (array)($req->getParsedBody() ?? []);
+            if (empty($b)) { $d = json_decode((string)$req->getBody(), true); if (is_array($d)) $b = $d; }
+            $pol = in_array(($b['policy'] ?? ''), ['off', 'admin', 'all'], true) ? (string)$b['policy'] : 'admin';
+            try {
+                $now = gmdate('c'); $isMy = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql';
+                $sql = $isMy
+                    ? "INSERT INTO app_setting(skey,svalue,updated_at) VALUES('mfa_policy',?,?) ON DUPLICATE KEY UPDATE svalue=VALUES(svalue),updated_at=VALUES(updated_at)"
+                    : "INSERT INTO app_setting(skey,svalue,updated_at) VALUES('mfa_policy',?,?) ON CONFLICT(skey) DO UPDATE SET svalue=excluded.svalue,updated_at=excluded.updated_at";
+                $pdo->prepare($sql)->execute([$pol, $now]);
+            } catch (\Throwable $e) { return self::json($res, ['ok' => false, 'error' => 'save_failed'], 500); }
+            try { self::logAudit($req, 'mfa_policy_update', 'policy=' . $pol, 'high'); } catch (\Throwable $e) {}
+            return self::json($res, ['ok' => true, 'policy' => $pol]);
+        }
+        if ($err = self::requirePro($req, $res)) return $err;
+        return self::json($res, ['ok' => true, 'policy' => self::mfaPolicy($pdo),
+            'options' => ['off', 'admin', 'all'],
+            'labels' => ['off' => 'MFA 강제 안 함', 'admin' => '관리자만 강제', 'all' => '전 사용자 강제']]);
     }
 
     /** POST /auth/mfa/setup — 새 시크릿 발급(아직 미활성). secret + otpauth URI 반환. */

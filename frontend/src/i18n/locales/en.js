@@ -8605,7 +8605,7 @@ export default {"paymentSuccess": {"invalidInfo":"The payment information is inv
     "cmplTitle": 'Compliance readiness',
     "cmplReadiness": 'Readiness',
     "cmplImpl": 'Implemented',
-    "cmplAvail": 'Code-ready',
+    "cmplAvail": 'Code-ready',"govTitle":"Security Governance","govDesc":"MFA enforcement policy, SIEM audit forwarding and evidence export (admin).","govMfa":"MFA Enforcement Policy","govMfaHint":"When enforced, affected users are blocked from the app after login until they enroll in MFA.","govExport":"Export Audit Evidence (last 30 days)","govExportHint":"For SOC2/ISO audit evidence and SIEM ingestion (unified auth, security and ops audit).","govSiem":"SIEM Forwarding (Splunk HEC · Datadog · generic HTTPS)","govSiemToken":"Token (HEC/Bearer)","govSiemEnable":"Enable","govSiemSave":"Save SIEM settings","govSiemPush":"Send test now","govSaved":"Saved.","govPushed":"events sent",
     "cmplManual": 'Process',
       pageDesc: "Immutable audit records of all operational events",
       tableView: "📋 Table View",

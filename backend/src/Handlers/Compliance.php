@@ -114,23 +114,188 @@ final class Compliance
     }
 
     /**
-     * [R-P3-6] GET /v424/compliance/audit-export?window=30 — 감사 로그 증적 내보내기(최근, 캡).
-     *   SOC2/ISO 심사 증적 제출용. 관리자 전용(requirePro+).
+     * 감사 이벤트 통합 수집 — audit_log(운영 액션) + auth_audit_log(인증/권한, IP·UA·risk) UNION 정규화.
+     *   공통 스키마 {ts, source, actor, role, tenant, action, detail, ip, ua, risk}. 최신순.
+     */
+    private static function collectAuditEvents(\PDO $pdo, int $days, int $limit): array
+    {
+        $since = gmdate('c', time() - $days * 86400);
+        $events = [];
+        // ① auth_audit_log — 로그인/MFA/권한변경(가장 SIEM 가치 높음: IP·UA·risk 포함).
+        if (self::tableExists($pdo, 'auth_audit_log')) {
+            try {
+                $st = $pdo->prepare("SELECT at, actor, role, tenant_id, action, detail, ip, ua, risk FROM auth_audit_log WHERE at>=? ORDER BY at DESC LIMIT {$limit}");
+                $st->execute([$since]);
+                foreach ($st->fetchAll(\PDO::FETCH_ASSOC) as $r) {
+                    $events[] = ['ts' => (string)$r['at'], 'source' => 'auth', 'actor' => (string)$r['actor'], 'role' => (string)$r['role'],
+                        'tenant' => (string)$r['tenant_id'], 'action' => (string)$r['action'], 'detail' => (string)$r['detail'],
+                        'ip' => (string)$r['ip'], 'ua' => (string)$r['ua'], 'risk' => (string)($r['risk'] ?: 'low')];
+                }
+            } catch (\Throwable $e) {}
+        }
+        // ② security_audit_log — 해시체인 무결성 보안감사(SecurityAudit, append-only). 데이터접근·키회전 등.
+        if (self::tableExists($pdo, 'security_audit_log')) {
+            try {
+                $st = $pdo->prepare("SELECT created_at, actor, tenant_id, action, details_json, ip_address, user_agent FROM security_audit_log WHERE created_at>=? ORDER BY created_at DESC LIMIT {$limit}");
+                $st->execute([$since]);
+                foreach ($st->fetchAll(\PDO::FETCH_ASSOC) as $r) {
+                    $events[] = ['ts' => (string)$r['created_at'], 'source' => 'security', 'actor' => (string)$r['actor'], 'role' => '',
+                        'tenant' => (string)$r['tenant_id'], 'action' => (string)$r['action'], 'detail' => (string)($r['details_json'] ?? ''),
+                        'ip' => (string)($r['ip_address'] ?? ''), 'ua' => (string)($r['user_agent'] ?? ''), 'risk' => 'medium'];
+                }
+            } catch (\Throwable $e) {}
+        }
+        // ③ audit_log — 운영 액션(성장/알림/매핑 등).
+        if (self::tableExists($pdo, 'audit_log')) {
+            try {
+                $st = $pdo->prepare("SELECT actor, action, details_json, created_at FROM audit_log WHERE created_at>=? ORDER BY created_at DESC LIMIT {$limit}");
+                $st->execute([$since]);
+                foreach ($st->fetchAll(\PDO::FETCH_ASSOC) as $r) {
+                    $events[] = ['ts' => (string)$r['created_at'], 'source' => 'ops', 'actor' => (string)$r['actor'], 'role' => '',
+                        'tenant' => '', 'action' => (string)$r['action'], 'detail' => (string)($r['details_json'] ?? ''),
+                        'ip' => '', 'ua' => '', 'risk' => 'low'];
+                }
+            } catch (\Throwable $e) {}
+        }
+        usort($events, fn($a, $b) => strcmp((string)$b['ts'], (string)$a['ts']));
+        return array_slice($events, 0, $limit);
+    }
+
+    /** ArcSight CEF 1행 직렬화(SIEM 표준). risk→severity 매핑. */
+    private static function toCef(array $e): string
+    {
+        $esc = fn($s) => str_replace(['\\', '|'], ['\\\\', '\\|'], (string)$s);
+        $escx = fn($s) => str_replace(['\\', '='], ['\\\\', '\\='], (string)$s);
+        $sev = ['low' => 3, 'medium' => 6, 'high' => 9][$e['risk'] ?? 'low'] ?? 3;
+        $ext = [];
+        foreach (['actor' => 'suser', 'ip' => 'src', 'role' => 'cs1', 'tenant' => 'cs2', 'detail' => 'msg', 'source' => 'cs3'] as $k => $cef) {
+            if (($e[$k] ?? '') !== '') $ext[] = $cef . '=' . $escx($e[$k]);
+        }
+        $ext[] = 'rt=' . $escx((string)($e['ts'] ?? ''));
+        return 'CEF:0|GeniegoROI|ROI-Platform|1.0|' . $esc($e['action'] ?? 'event') . '|' . $esc($e['action'] ?? 'event') . '|' . $sev . '|' . implode(' ', $ext);
+    }
+
+    /**
+     * GET /v424/compliance/audit-export?window=30&format=json|ndjson|cef — 감사 증적 통합 내보내기.
+     *   SOC2/ISO 심사 증적 + SIEM 적재용. auth_audit_log + audit_log 통합. 관리자 전용(requirePro+).
      */
     public static function auditExport(Request $req, Response $res): Response
     {
         if ($err = UserAuth::requirePro($req, $res)) return $err;
-        $days = max(1, min(365, (int)($req->getQueryParams()['window'] ?? 30)));
-        $since = gmdate('c', time() - $days * 86400);
-        $rows = [];
+        $q = $req->getQueryParams();
+        $days = max(1, min(365, (int)($q['window'] ?? 30)));
+        $format = in_array(($q['format'] ?? 'json'), ['json', 'ndjson', 'cef'], true) ? (string)$q['format'] : 'json';
+        $limit = 5000;
+        $events = [];
+        try { $events = self::collectAuditEvents(Db::pdo(), $days, $limit); } catch (\Throwable $e) { /* graceful */ }
+        if ($format === 'ndjson') {
+            $lines = array_map(fn($e) => json_encode($e, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), $events);
+            $res->getBody()->write(implode("\n", $lines));
+            return $res->withHeader('Content-Type', 'application/x-ndjson')->withHeader('Content-Disposition', 'attachment; filename="genie_audit.ndjson"');
+        }
+        if ($format === 'cef') {
+            $res->getBody()->write(implode("\n", array_map([self::class, 'toCef'], $events)));
+            return $res->withHeader('Content-Type', 'text/plain; charset=utf-8')->withHeader('Content-Disposition', 'attachment; filename="genie_audit.cef"');
+        }
+        return self::json($res, ['ok' => true, 'window_days' => $days, 'format' => 'json', 'count' => count($events), 'capped_at' => $limit, 'events' => $events]);
+    }
+
+    /** SIEM 대상 설정 로드(app_setting siem_config). */
+    private static function siemCfg(\PDO $pdo): array
+    {
         try {
-            $pdo = Db::pdo();
-            if (self::tableExists($pdo, 'audit_log')) {
-                $st = $pdo->prepare("SELECT actor, action, details_json, created_at FROM audit_log WHERE created_at>=? ORDER BY created_at DESC LIMIT 1000");
-                $st->execute([$since]);
-                $rows = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+            $st = $pdo->prepare("SELECT svalue FROM app_setting WHERE skey='siem_config' LIMIT 1");
+            $st->execute(); $v = $st->fetchColumn();
+            if ($v) { $d = json_decode((string)$v, true); if (is_array($d)) return $d; }
+        } catch (\Throwable $e) {}
+        return ['endpoint' => '', 'token' => '', 'format' => 'ndjson', 'enabled' => 0];
+    }
+
+    /** GET/PUT /v424/compliance/siem — SIEM 포워딩 대상(Splunk HEC·Datadog·범용 HTTP) 설정. PUT=관리자. */
+    public static function siemConfig(Request $req, Response $res): Response
+    {
+        $pdo = Db::pdo();
+        $method = strtoupper($req->getMethod());
+        if ($method === 'PUT') {
+            if ($err = UserAuth::requirePlan($req, $res, 'admin')) return $err;
+            $b = (array)($req->getParsedBody() ?? []);
+            if (empty($b)) { $d = json_decode((string)$req->getBody(), true); if (is_array($d)) $b = $d; }
+            $endpoint = trim((string)($b['endpoint'] ?? ''));
+            if ($endpoint !== '' && !preg_match('#^https://#i', $endpoint)) {
+                return self::json($res, ['ok' => false, 'error' => 'SIEM 엔드포인트는 https:// 여야 합니다.'], 422);
             }
-        } catch (\Throwable $e) { /* graceful */ }
-        return self::json($res, ['ok' => true, 'window_days' => $days, 'count' => count($rows), 'capped_at' => 1000, 'events' => $rows]);
+            $cur = self::siemCfg($pdo);
+            $rawTok = (string)($b['token'] ?? '');
+            $tok = ($rawTok === '' || strpos($rawTok, '•') !== false) ? (string)($cur['token'] ?? '') : \Genie\Crypto::encrypt($rawTok);
+            $cfg = [
+                'endpoint' => $endpoint,
+                'token' => $tok,
+                'format' => in_array(($b['format'] ?? 'ndjson'), ['ndjson', 'cef', 'splunk_hec'], true) ? (string)$b['format'] : 'ndjson',
+                'enabled' => !empty($b['enabled']) ? 1 : 0,
+            ];
+            try {
+                $now = gmdate('c'); $json = json_encode($cfg);
+                $isMy = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql';
+                $sql = $isMy
+                    ? "INSERT INTO app_setting(skey,svalue,updated_at) VALUES('siem_config',?,?) ON DUPLICATE KEY UPDATE svalue=VALUES(svalue),updated_at=VALUES(updated_at)"
+                    : "INSERT INTO app_setting(skey,svalue,updated_at) VALUES('siem_config',?,?) ON CONFLICT(skey) DO UPDATE SET svalue=excluded.svalue,updated_at=excluded.updated_at";
+                $pdo->prepare($sql)->execute([$json, $now]);
+            } catch (\Throwable $e) { return self::json($res, ['ok' => false, 'error' => 'save_failed'], 500); }
+            try { UserAuth::logAudit($req, 'siem_config_update', 'endpoint=' . $endpoint . ' enabled=' . $cfg['enabled'], 'medium'); } catch (\Throwable $e) {}
+            return self::json($res, ['ok' => true, 'configured' => $endpoint !== '', 'enabled' => $cfg['enabled']]);
+        }
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        $c = self::siemCfg($pdo);
+        return self::json($res, ['ok' => true, 'config' => [
+            'endpoint' => $c['endpoint'] ?? '', 'token' => (!empty($c['token']) ? '••••••••' : ''),
+            'format' => $c['format'] ?? 'ndjson', 'enabled' => (int)($c['enabled'] ?? 0),
+        ], 'formats' => ['ndjson', 'cef', 'splunk_hec']]);
+    }
+
+    /**
+     * POST /v424/compliance/siem/push?window=1 — 설정된 SIEM 으로 최근 감사 이벤트 포워딩.
+     *   Splunk HEC(Authorization: Splunk <token>)·Datadog·범용 HTTPS. 관리자 전용. 수동/cron 공용.
+     */
+    public static function siemPush(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePlan($req, $res, 'admin')) return $err;
+        $pdo = Db::pdo();
+        $cfg = self::siemCfg($pdo);
+        $endpoint = (string)($cfg['endpoint'] ?? '');
+        if ($endpoint === '' || empty($cfg['enabled'])) {
+            return self::json($res, ['ok' => false, 'error' => 'SIEM 대상이 설정/활성화되지 않았습니다.'], 422);
+        }
+        if (!preg_match('#^https://#i', $endpoint)) return self::json($res, ['ok' => false, 'error' => 'bad_endpoint'], 422);
+        $days = max(1, min(30, (int)($req->getQueryParams()['window'] ?? 1)));
+        $events = self::collectAuditEvents($pdo, $days, 2000);
+        if (!$events) return self::json($res, ['ok' => true, 'sent' => 0, 'note' => '내보낼 이벤트가 없습니다.']);
+        $fmt = (string)($cfg['format'] ?? 'ndjson');
+        $token = (string)($cfg['token'] ?? '');
+        if ($token !== '') { try { $token = \Genie\Crypto::decrypt($token); } catch (\Throwable $e) {} }
+        $headers = ['Content-Type: application/json'];
+        if ($fmt === 'splunk_hec') {
+            // Splunk HEC: {event: {...}} JSON lines + Authorization: Splunk <token>
+            if ($token !== '') $headers[] = 'Authorization: Splunk ' . $token;
+            $body = implode("\n", array_map(fn($e) => json_encode(['event' => $e, 'source' => 'geniego-roi', 'sourcetype' => 'audit'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), $events));
+        } elseif ($fmt === 'cef') {
+            if ($token !== '') $headers[] = 'Authorization: Bearer ' . $token;
+            $headers[0] = 'Content-Type: text/plain';
+            $body = implode("\n", array_map([self::class, 'toCef'], $events));
+        } else { // ndjson
+            if ($token !== '') $headers[] = 'Authorization: Bearer ' . $token;
+            $headers[0] = 'Content-Type: application/x-ndjson';
+            $body = implode("\n", array_map(fn($e) => json_encode($e, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), $events));
+        }
+        $ch = curl_init($endpoint);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true, CURLOPT_POST => true, CURLOPT_POSTFIELDS => $body,
+            CURLOPT_HTTPHEADER => $headers, CURLOPT_TIMEOUT => 15, CURLOPT_SSL_VERIFYPEER => true,
+            CURLOPT_USERAGENT => 'GeniegoROI-SIEM/1.0',
+        ]);
+        $resp = curl_exec($ch); $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE); $err = curl_error($ch); curl_close($ch);
+        $okPush = $code >= 200 && $code < 300;
+        try { UserAuth::logAudit($req, 'siem_push', 'count=' . count($events) . ' http=' . $code, $okPush ? 'low' : 'medium'); } catch (\Throwable $e) {}
+        return self::json($res, ['ok' => $okPush, 'sent' => $okPush ? count($events) : 0, 'http_code' => $code,
+            'format' => $fmt, 'error' => $okPush ? null : (substr($err, 0, 100) ?: ('siem http ' . $code))], $okPush ? 200 : 502);
     }
 }

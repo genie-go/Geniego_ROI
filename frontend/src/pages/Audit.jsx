@@ -243,6 +243,98 @@ function UsageGuide({ t }) {
   );
 }
 
+/* [P3 보안거버넌스] MFA 강제 정책 + SIEM 포워딩 + 감사 SIEM 익스포트 — 관리자 거버넌스 패널 */
+const _authH = () => ({ Authorization: `Bearer ${localStorage.getItem("genie_token") || localStorage.getItem("demo_genie_token") || ""}`, "Content-Type": "application/json" });
+function SecurityGovernancePanel({ t }) {
+  const [mfaPolicy, setMfaPolicy] = useState(null);
+  const [siem, setSiem] = useState({ endpoint: "", token: "", format: "ndjson", enabled: 0 });
+  const [siemFormats, setSiemFormats] = useState(["ndjson", "cef", "splunk_hec"]);
+  const [msg, setMsg] = useState("");
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    fetch("/api/auth/mfa/policy", { headers: _authH() }).then(r => r.json()).then(d => { if (d?.ok) setMfaPolicy(d); }).catch(() => {});
+    fetch("/api/v424/compliance/siem", { headers: _authH() }).then(r => r.json()).then(d => { if (d?.ok && d.config) { setSiem(s => ({ ...s, ...d.config })); if (Array.isArray(d.formats)) setSiemFormats(d.formats); } }).catch(() => {});
+  }, []);
+  const flash = (m) => { setMsg(m); setTimeout(() => setMsg(""), 4000); };
+  const saveMfa = async (pol) => {
+    try { const r = await (await fetch("/api/auth/mfa/policy", { method: "PUT", headers: _authH(), body: JSON.stringify({ policy: pol }) })).json();
+      if (r?.ok) { setMfaPolicy(p => ({ ...p, policy: r.policy })); flash(t("audit.govSaved", "저장되었습니다.")); } else flash("⚠️ " + (r?.error || "실패")); }
+    catch (e) { flash("⚠️ " + String(e?.message || e)); }
+  };
+  const saveSiem = async () => {
+    setBusy(true);
+    try { const r = await (await fetch("/api/v424/compliance/siem", { method: "PUT", headers: _authH(), body: JSON.stringify(siem) })).json();
+      flash(r?.ok ? t("audit.govSaved", "저장되었습니다.") : "⚠️ " + (r?.error || "실패")); }
+    catch (e) { flash("⚠️ " + String(e?.message || e)); } finally { setBusy(false); }
+  };
+  const pushSiem = async () => {
+    setBusy(true);
+    try { const r = await (await fetch("/api/v424/compliance/siem/push?window=7", { method: "POST", headers: _authH(), body: "{}" })).json();
+      flash(r?.ok ? `✅ ${r.sent} ${t("audit.govPushed", "이벤트 전송됨")} (HTTP ${r.http_code})` : "⚠️ " + (r?.error || "실패")); }
+    catch (e) { flash("⚠️ " + String(e?.message || e)); } finally { setBusy(false); }
+  };
+  const exportUrl = (fmt) => `/api/v424/compliance/audit-export?window=30&format=${fmt}`;
+  const dl = async (fmt) => {
+    try { const r = await fetch(exportUrl(fmt), { headers: _authH() }); const blob = await r.blob();
+      const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `genie_audit.${fmt === "cef" ? "cef" : fmt === "ndjson" ? "ndjson" : "json"}`; a.click(); URL.revokeObjectURL(a.href); }
+    catch (e) { flash("⚠️ " + String(e?.message || e)); }
+  };
+  const card = { background: "var(--surface-1,rgba(255,255,255,0.04))", border: "1px solid rgba(168,85,247,0.18)", borderRadius: 14, padding: 16, marginBottom: 14 };
+  const lbl = { fontSize: 11, color: "var(--text-3)", marginBottom: 3, fontWeight: 600 };
+  const inp = { width: "100%", padding: "7px 10px", borderRadius: 8, border: "1px solid rgba(0,0,0,0.12)", fontSize: 12, boxSizing: "border-box" };
+  return (
+    <div style={card}>
+      <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 4 }}>🛡️ {t("audit.govTitle", "보안 거버넌스")}</div>
+      <div style={{ fontSize: 11, color: "var(--text-3)", marginBottom: 12 }}>{t("audit.govDesc", "MFA 강제 정책·SIEM 감사 포워딩·증적 내보내기(관리자).")}</div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: 14 }}>
+        {/* MFA 정책 */}
+        <div>
+          <div style={lbl}>{t("audit.govMfa", "MFA 강제 정책")}</div>
+          <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+            {(mfaPolicy?.options || ["off", "admin", "all"]).map(o => (
+              <button key={o} onClick={() => saveMfa(o)} style={{ padding: "6px 12px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 11, fontWeight: 700,
+                background: (mfaPolicy?.policy || "admin") === o ? "#a855f7" : "rgba(168,85,247,0.1)", color: (mfaPolicy?.policy || "admin") === o ? "#fff" : "#7c3aed" }}>
+                {(mfaPolicy?.labels && mfaPolicy.labels[o]) || o}
+              </button>
+            ))}
+          </div>
+          <div style={{ fontSize: 10, color: "var(--text-3)", marginTop: 5 }}>{t("audit.govMfaHint", "강제 시 해당 사용자는 로그인 후 MFA 등록 전까지 앱 사용이 차단됩니다.")}</div>
+        </div>
+        {/* 감사 익스포트 */}
+        <div>
+          <div style={lbl}>{t("audit.govExport", "감사 증적 내보내기 (최근 30일)")}</div>
+          <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+            {["json", "ndjson", "cef"].map(f => (
+              <button key={f} onClick={() => dl(f)} style={{ padding: "6px 12px", borderRadius: 8, border: "1px solid rgba(168,85,247,0.3)", cursor: "pointer", fontSize: 11, fontWeight: 700, background: "transparent", color: "#7c3aed" }}>⬇ {f.toUpperCase()}</button>
+            ))}
+          </div>
+          <div style={{ fontSize: 10, color: "var(--text-3)", marginTop: 5 }}>{t("audit.govExportHint", "SOC2/ISO 심사 증적·SIEM 적재용(인증·보안·운영 감사 통합).")}</div>
+        </div>
+      </div>
+      {/* SIEM 포워딩 */}
+      <div style={{ marginTop: 14, borderTop: "1px solid rgba(168,85,247,0.12)", paddingTop: 12 }}>
+        <div style={lbl}>{t("audit.govSiem", "SIEM 포워딩 (Splunk HEC · Datadog · 범용 HTTPS)")}</div>
+        <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr", gap: 8, marginTop: 4 }}>
+          <input style={inp} placeholder="https://siem.example.com/services/collector" value={siem.endpoint || ""} onChange={e => setSiem(s => ({ ...s, endpoint: e.target.value }))} />
+          <input style={inp} type="password" placeholder={t("audit.govSiemToken", "토큰(HEC/Bearer)")} value={siem.token || ""} onChange={e => setSiem(s => ({ ...s, token: e.target.value }))} />
+          <select style={inp} value={siem.format || "ndjson"} onChange={e => setSiem(s => ({ ...s, format: e.target.value }))}>
+            {siemFormats.map(f => <option key={f} value={f}>{f}</option>)}
+          </select>
+        </div>
+        <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, margin: "8px 0" }}>
+          <input type="checkbox" checked={!!Number(siem.enabled)} onChange={e => setSiem(s => ({ ...s, enabled: e.target.checked ? 1 : 0 }))} />
+          {t("audit.govSiemEnable", "활성화")}
+        </label>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <button onClick={saveSiem} disabled={busy} style={{ padding: "7px 16px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 700, background: "#a855f7", color: "#fff" }}>💾 {t("audit.govSiemSave", "SIEM 설정 저장")}</button>
+          <button onClick={pushSiem} disabled={busy} style={{ padding: "7px 16px", borderRadius: 8, border: "1px solid rgba(168,85,247,0.3)", cursor: "pointer", fontSize: 12, fontWeight: 700, background: "transparent", color: "#7c3aed" }}>📤 {t("audit.govSiemPush", "지금 전송 테스트")}</button>
+        </div>
+      </div>
+      {msg && <div style={{ fontSize: 12, color: "#16a34a", marginTop: 10 }}>{msg}</div>}
+    </div>
+  );
+}
+
 /* ── Main Component ─────────────────────────────────────────────────────── */
 export default function Audit() {
   const t = useT();
@@ -370,6 +462,9 @@ export default function Audit() {
           </div>
         );
       })()}
+
+      {/* [P3 보안거버넌스] MFA 정책 · SIEM 포워딩 · 감사 익스포트 */}
+      {!IS_DEMO && <SecurityGovernancePanel t={t} />}
 
       {/* Hero */}
       <div className="hero fade-up">
