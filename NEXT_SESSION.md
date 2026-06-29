@@ -1,3 +1,47 @@
+# 250차 세션 인계서 — **소재 자동업로드·적응형 입찰주기·멀티창고 글로벌 최적할당 + 경쟁 재검증 250(90.2) + 전수 정밀감사 2회(5에이전트·오탐0) + 마케팅 실집행 초고도화(전환목표·자동입찰·멀티통화·DLQ·오디언스·readiness) + SNS 라이브 동기화 4채널**
+
+> **작성일**: 2026-06-29 (사용자 명시 승인) · 운영 roi.genie-go.com / 데모 roidemo.genie-go.com · primary=**E:\project\GeniegoROI** · 브랜치 `feat/n236-admin-growth-automation` · ★**master 미접촉** · **origin push 완료**(9dd00f85e87→b8a0dfcc39e, 16커밋).
+> 발단: 248 인계서 잔여 로드맵 P1(Kakao/LINE 소재 자동업로드) 착수 → 적응형 입찰주기 → 멀티창고(국내→글로벌) → 경쟁 재검증250 → 사용자 "전수 정밀감사·오탐금지·실 광고마케팅 초고도화" 요구로 **5에이전트 감사 2회 + 마케팅 실집행 전면 초고도화** → 통합허브 YouTube "동기화 준비중" 분석 → **SNS 라이브 동기화 신설** → 잔여 보강 → 종결.
+
+## ✅ 250차 완료 (전부 운영/데모 배포·라이브검증·push·master 미접촉)
+
+### A. 초고도화 기능 신설
+- **소재 자동업로드** (`9dd00f85e87`): AdAdapters kakaoDeliver(multipart imageFile)·lineDeliver(base64 미디어hash). loadDesign mime보존+b64TempFile 매직바이트. 크리에이티브→집행 루프 Kakao/LINE 완결(partial 해소).
+- **적응형 입찰주기** (`b24565350ab`): AutoCampaign `computeCadenceHours`(변동성/손실근접→손실1h~안정48h)·`next_optimize_at` 게이팅·optimizeAllCli due만 처리. auto_campaign +3컬럼.
+- **멀티창고 글로벌 최적할당** (`69ec311d2f4`+`853b32c263d`): `allocationPlan`(재고보유+배송지근접 haversine)·`reflectChannelSale($shipText)`·`POST /wms/allocate`. ★국내(KR 시/도)→글로벌(WORLD_CENTROIDS 국가/도시·명시좌표·`geoCentroid` 다형식). wms_warehouses +region/country/lat/lng.
+- **SNS 라이브 동기화 4채널** (`c0570a7c541`+`f451bfe3885`): Connectors `syncSnsLiveOnSave`·`sns_channel_stats`. YouTube(★다형식 channel_id: UC ID/@핸들/URL/username)·IG/FB Graph·Twitch Helix(app token→users/streams 동시시청자). ChannelCreds upsert sns_live 분기·REAL_ADAPTER+4채널·sns_live_sync_cron·`GET /v426/sns-live/stats`. ★운영 실동기화 확인(채널 '지니고' 구독자 실수집).
+
+### B. 마케팅 실집행 초고도화 (사용자 "진짜 완벽한 광고 마케팅")
+- **전환목표** (`e3157568841`): Meta OUTCOME_SALES+픽셀 promoted_object(PURCHASE)·TikTok CONVERSIONS+pixel optimization_event. 픽셀게이트·없으면 트래픽 honest폴백. objective=conversions 기본.
+- **자동입찰·멀티통화·DLQ·프리퀀시캡** (`f044fb54feb`): bid_strategy(auto=LOWEST_COST/tcpa=COST_CAP/troas=MIN_ROAS·Meta/Google maximizeConversionValue·TikTok)·account_currency 환산(★KRW=무변환 보존)·ad_delivery_dlq+cron 지수백오프·프리퀀시캡 opt-in.
+- **Google A/B 정합 + 집행 감사로그** (`626bf923e6d`): googleDeliver 숫자id 반환(ab_variant 매칭)·activate cid resourceName 재구성·`ad_execution_log`+logExecution+`GET /v423/auto-campaign/execution-log`.
+- **마케팅 초고도화 1~3** (`e679f25eb34`): #3 활성화 readiness 게이트(딜리버리 미완성 채널 차단·force우회)·#1 Kakao/Naver/LINE 패리티(Kakao 목표·★LINE 멀티통화·Naver 스레딩)·#2 오디언스 배선(syncAudience 커스텀/룩어라이크 app_setting 영속→metaDeliver attach·audience_mode retarget/lookalike/prospect).
+
+### C. 전수 정밀감사 2회 (5에이전트 FP주입·PM 코드 재증명·오탐0)
+- **1차** (`e3157568841`): 확정결함 9건 — activate 캐스케이드(캠페인만 ACTIVE→하위 PAUSED 노출0)·멀티창고 restock 원창고복원·TikTok Shop currency·웹훅 fxToKrw·roas-recon whitelist제거·FX맵 SEA·Wms좌표·REAL_ADAPTER 16커넥터.
+- **eBay/Shopify 취소상태** (`4645df6d2f6`): cancelStatus/orderPaymentStatus·cancelled_at 매핑.
+- **2차** (`e4f8fa12a2f`): ★**치명 P1 채널키 정규화**(setStatus:466·pauseAll:397 raw short key 'meta'→AdAdapters match 풀키만→unsupported→**활성화/킬스위치 매체 미도달**·실광고비 안 멈춤. connectorKey 멱등 정규화)·Rollup:266 어트리뷰션 팬아웃 이중계산(주문 dedup)·**커머스5종 취소상태**(Naver/Rakuten/Cafe24/Qoo10/Coupang)·AttributionMetrics 취소제외·DLQ 재활성화+채널키 normConnKey·toMinor 미지원통화 100×방지·is*Source 레지스트리병합.
+- **잔여 보강** (`3bdf697c03d`+`757ca774256`+`b8a0dfcc39e`): Naver주문 sku/email·FX맵 +7통화(RUB/BRL/MXN/PLN/TRY/AED/SAR)·ms/x/amazon_ads sync_kind정합·taboola/outbrain 레지스트리시드(UI등록)·ad_insight 통화정규화·web_analytics bounce_rate 가중.
+
+### D. 경쟁 재검증 250 (`3d5072690bc`): `docs/COMPETITIVE_REVALIDATION_250.md` 종합 **90.2/100**(합성 best-of-breed 90.1, 격차 **+0.1 첫 역전**). 마케팅자동화 86→88·물류 87→89.
+
+## ★250차 핵심 트랩/교훈
+- ★**치명: allocations.channel = short key('meta')** — AdAdapters match는 풀키('meta_ads')만 분기. setStatus/pauseAll/optimizer/A/B 모두 connectorKey 정규화 필수(멱등). 미정규화 시 활성화/킬스위치 매체 미도달=실광고비 안전사고. **신규 매체 호출 시 항상 connectorKey.**
+- **Db CLI env 트랩**: 데모 백엔드 autoloader `Db::env()`='production' 떠도 실연결 demo DB 가능 → 운영/데모 직접 작업은 `Db::pdoFor(false/true)` 명시. 검증 시드=격리테넌트+정리로 운영오염0 확인.
+- **here-string 커밋 트랩**: PS `@'...'@` 내부 `"` 있으면 깨짐 → 메시지 파일+`git commit -F`.
+- **cron docblock `*/N` 금지**(`*/`가 주석 조기종료)→`0,10,20,..`. plink inline mysql/php 인용 mangling→SQL/스크립트 파일 업로드 실행.
+- **YouTube channel_id 다형식**: UC ID뿐 아니라 @핸들/URL/커스텀명 흔히 입력→geoCentroid식 순차폴백 필수.
+- **fxToKrw 미상통화=무변환**(rate 1.0). toMinor는 ×100을 명시 2-decimal 통화만(미지원=×1, 100×과집행 방지).
+- **어트리뷰션 팬아웃**: attribution_touch(주문당 N터치)⨝channel_orders SUM=터치수만큼 매출과대 → 서브쿼리 GROUP BY 주문 선dedup(Connectors:910 정본).
+- 기존 유지: 신규핸들러/라우트 `$register`+`systemctl restart php8.1-fpm`·G2 ja/zh sacred SHA·배포 plink/pscp(자격증명 메모리·평문 비노출)·프론트 dist swap 후 헤드리스 검증.
+
+## 🔜 다음 차수 (코드 검증가능 항목 거의 소진)
+- **의도적 보류(narrow/저영향)**: 2차광고 objective 빈값(퍼널라벨만·13fetcher 필드불확실)·cs CSAT AVG(narrow)·kakao키충돌(P3 graceful).
+- **외부 의존(코드완비·등록만)**: 매체 쓰기OAuth 실키·픽셀·conversion_action·account_currency·PG라이브키·미디어서버(SRS/LiveKit)·SOC2/ISO·발송DNS·Twitch 팔로워 user OAuth·Coupang returnRequests(취소 완전수집).
+- **라이브검증 대기**: 실 자격증명 등록 후 광고 집행(전환/입찰/오디언스)·SNS 통계·커머스 취소 엣지.
+
+---
+
 # 248차 세션 인계서 — **경쟁약점 전면 보강(P1~P5 커넥터폭·라이브미디어·보안거버넌스·MMM·CRM) + 시장진입 seat 가격(10/무제한 인하·종량 추가seat) + 잔여 보강 4건(어트리뷰션 ID-resolution·MMM 자동탐색·커머스 교환캐논·CRM 플로우) + 경쟁 재검증 248**
 
 > **작성일**: 2026-06-28 (사용자 명시 승인) · 운영 roi.genie-go.com / 데모 roidemo.genie-go.com · primary=**E:\project\GeniegoROI** · 브랜치 `feat/n236-admin-growth-automation` · ★**master 미접촉** · **origin push 완료**(5aeca7c52e5→이번 종결커밋).
