@@ -141,9 +141,98 @@ final class AbTesting
             )");
             try { $pdo->exec("ALTER TABLE performance_metrics ADD COLUMN ad_ext_id TEXT DEFAULT NULL"); } catch (Throwable $e) {}
         }
+        // [현 차수 초고도화 DCO] 마지막 소재 리프레시 시각(피로도 로테이션 쿨다운). 멱등 ALTER.
+        try { $pdo->exec("ALTER TABLE ab_test ADD COLUMN last_dco_at " . ($mysql ? "VARCHAR(32)" : "TEXT") . " DEFAULT NULL"); } catch (Throwable $e) {}
     }
 
     private static function now(): string { return gmdate('Y-m-d\TH:i:s\Z'); }
+
+    /* [현 차수 초고도화] DCO(Dynamic Creative Optimization) 피로도 루프 파라미터 */
+    private const DCO_WINDOW_DAYS = 21;   // 피로도 관측 윈도
+    private const DCO_MIN_DAYS    = 8;    // 최소 관측일(부족 시 비피로=회귀0)
+    private const DCO_DECAY_PCT   = 0.25; // 최근 CTR이 기준 대비 25%+ 하락 시 피로
+    private const DCO_COOLDOWN_DAYS = 5;  // 리프레시 쿨다운(과도 로테이션/churn 방지)
+
+    /** 크리에이티브 피로도 — ad_ext_id 일별 CTR 시계열의 최근 절반 평균이 기준 절반 대비 유의 하락하면 피로.
+     *  빈도 포화의 대리지표(노출 누적 + CTR 감쇠). 데이터 부족/상승은 비피로. */
+    private static function creativeFatigue(PDO $pdo, string $tenant, string $adExtId): array
+    {
+        $out = ['fatigued' => false, 'recent' => 0.0, 'baseline' => 0.0, 'days' => 0];
+        if ($adExtId === '') return $out;
+        try {
+            $st = $pdo->prepare("SELECT date, COALESCE(SUM(impressions),0) imp, COALESCE(SUM(clicks),0) clk
+                FROM performance_metrics WHERE tenant_id=? AND ad_ext_id=? AND date >= ? GROUP BY date ORDER BY date");
+            $st->execute([$tenant, $adExtId, gmdate('Y-m-d', time() - self::DCO_WINDOW_DAYS * 86400)]);
+            $rows = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        } catch (Throwable $e) { return $out; }
+        $ctr = [];
+        foreach ($rows as $r) { $imp = (int)$r['imp']; if ($imp >= 100) $ctr[] = (int)$r['clk'] / $imp * 100; }
+        $n = count($ctr); $out['days'] = $n;
+        if ($n < self::DCO_MIN_DAYS) return $out;
+        $half = (int)floor($n / 2);
+        $base = array_slice($ctr, 0, $half); $rec = array_slice($ctr, $half);
+        $bAvg = array_sum($base) / max(1, count($base));
+        $rAvg = array_sum($rec) / max(1, count($rec));
+        $out['baseline'] = round($bAvg, 3); $out['recent'] = round($rAvg, 3);
+        if ($bAvg > 0.1 && $rAvg < $bAvg * (1 - self::DCO_DECAY_PCT)) $out['fatigued'] = true;
+        return $out;
+    }
+
+    /**
+     * [현 차수 초고도화] DCO 피로도 루프 — 승자 선정 후에도 끝나지 않고, 승자 소재의 피로도(CTR 감쇠·빈도 포화)를
+     *   지속 감지해 신선한 소재로 자동 로테이션·A/B 재개(Smartly/Meta Andromeda 격차 해소).
+     *   ★기존 ab_test/ab_variant/AdAdapters 재사용·신규 미디어생성 0(정지된 대체 variant 재활성화). 소재 소진 시
+     *   신규 소재 생성 필요를 정직 신호. 쿨다운으로 churn 방지. optimizeCampaign(cron) 에서 evaluateAndSelect 후 호출.
+     */
+    public static function dcoEvaluate(PDO $pdo, string $tenant, int $campaignId, bool $allowActuate = true): array
+    {
+        $decisions = [];
+        try { self::migrate($pdo); } catch (Throwable $e) { return $decisions; }
+        $tests = [];
+        try {
+            $st = $pdo->prepare("SELECT * FROM ab_test WHERE tenant_id=? AND campaign_id=? AND status='winner_selected'");
+            $st->execute([$tenant, $campaignId]);
+            $tests = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        } catch (Throwable $e) { return $decisions; }
+        $now = self::now();
+        foreach ($tests as $test) {
+            $testId = (int)$test['id'];
+            $channel = (string)($test['channel'] ?? '');
+            $lastRefresh = (string)($test['last_dco_at'] ?? '');
+            if ($lastRefresh !== '' && strtotime($lastRefresh) > time() - self::DCO_COOLDOWN_DAYS * 86400) continue;
+            $wv = null;
+            try {
+                $q = $pdo->prepare("SELECT * FROM ab_variant WHERE tenant_id=? AND ab_test_id=? AND status='winner' LIMIT 1");
+                $q->execute([$tenant, $testId]); $wv = $q->fetch(PDO::FETCH_ASSOC) ?: null;
+            } catch (Throwable $e) {}
+            if (!$wv) continue;
+            $fat = self::creativeFatigue($pdo, $tenant, (string)$wv['ad_ext_id']);
+            if (!$fat['fatigued']) continue;
+            $connKey = self::connectorKey($channel);
+            // 신선한 대체 소재(정지된 variant) 재활성화 → A/B 재개(미디어 신규생성 0).
+            $alt = null;
+            try {
+                $a = $pdo->prepare("SELECT * FROM ab_variant WHERE tenant_id=? AND ab_test_id=? AND status='paused' AND ad_ext_id IS NOT NULL AND ad_ext_id<>'' ORDER BY updated_at ASC LIMIT 1");
+                $a->execute([$tenant, $testId]); $alt = $a->fetch(PDO::FETCH_ASSOC) ?: null;
+            } catch (Throwable $e) {}
+            if ($alt) {
+                $ok = false;
+                if ($allowActuate) { $r = AdAdapters::activate($pdo, $tenant, $connKey, (string)$alt['ad_ext_id']); $ok = !empty($r['ok']); }
+                try {
+                    $pdo->prepare("UPDATE ab_variant SET status='active',alloc_share=0.5,updated_at=? WHERE id=?")->execute([$now, (int)$alt['id']]);
+                    $pdo->prepare("UPDATE ab_variant SET status='active',alloc_share=0.5,updated_at=? WHERE id=?")->execute([$now, (int)$wv['id']]);
+                    $pdo->prepare("UPDATE ab_test SET status='running',winner_variant_id=NULL,last_dco_at=?,updated_at=? WHERE id=?")->execute([$now, $now, $testId]);
+                } catch (Throwable $e) {}
+                $decisions[] = ['ab_test' => $testId, 'channel' => $channel, 'action' => 'creative_refresh', 'variant' => (int)$alt['id'], 'actuated' => $ok,
+                    'reason' => "소재 피로도 감지(승자 CTR {$fat['recent']}% vs 기준 {$fat['baseline']}%, {$fat['days']}일) → 신선 소재 로테이션·A/B 재개(DCO)"];
+            } else {
+                try { $pdo->prepare("UPDATE ab_test SET last_dco_at=?,updated_at=? WHERE id=?")->execute([$now, $now, $testId]); } catch (Throwable $e) {}
+                $decisions[] = ['ab_test' => $testId, 'channel' => $channel, 'action' => 'creative_refresh_needed', 'variant' => (int)$wv['id'], 'actuated' => false,
+                    'reason' => "소재 피로도 감지(CTR {$fat['recent']}% vs {$fat['baseline']}%, {$fat['days']}일 하락) — 대체 소재 소진. [크리에이티브 스튜디오]에서 신규 소재 등록 시 자동 A/B 재개"];
+            }
+        }
+        return $decisions;
+    }
 
     /**
      * 캠페인 채널에 대한 A/B 테스트 + variant 묶음 생성(launch 에서 호출).

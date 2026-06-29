@@ -1020,9 +1020,12 @@ class AutoCampaign
             }
         }
 
-        // ★ [현 차수] A/B: 캠페인 variant 승자선정·패자 자동정지(데이터 충분 시). 결정 로그 병합.
+        // ★ [현 차수] A/B: 캠페인 variant 승자선정·패자 자동정지(데이터 충분 시) + [초고도화] DCO 피로도 루프
+        //   (승자 선정 후 소재 피로도 감지→신선 소재 자동 로테이션·A/B 재개). 결정 로그 병합.
         try {
             $abDec = AbTesting::evaluateAndSelect($pdo, $tenant, (int)$camp['id']);
+            // [초고도화 #1] DCO — 이미 승자가 확정된 테스트의 소재 피로도 점검·로테이션(지속 최적화).
+            $abDec = array_merge($abDec, AbTesting::dcoEvaluate($pdo, $tenant, (int)$camp['id'], $allowActuate));
             foreach ($abDec as $ad) {
                 $decisions[] = $ad;
                 try {

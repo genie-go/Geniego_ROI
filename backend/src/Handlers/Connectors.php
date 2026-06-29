@@ -3863,9 +3863,12 @@ final class Connectors
     {
         $out = [];
         try {
-            $in = implode(',', array_fill(0, count(self::ANALYTICS_SOURCES), '?'));
+            // [현 차수 기반강화] 레지스트리 병합 소스로 cron 팬아웃 — admin 이 ChannelRegistry 로 추가한 analytics
+            //   채널도 정기 cron 자가치유에 자동 편입(기존 const-only 는 즉시sync 만 인식하던 비대칭 해소).
+            $srcs = self::analyticsSources();
+            $in = implode(',', array_fill(0, count($srcs), '?'));
             $st = Db::pdo()->prepare("SELECT DISTINCT tenant_id FROM channel_credential WHERE channel IN ($in) AND is_active=1");
-            $st->execute(self::ANALYTICS_SOURCES);
+            $st->execute($srcs);
             foreach ($st->fetchAll(PDO::FETCH_COLUMN) as $t) { $t = (string)$t; if ($t !== '' && $t !== 'demo') $out[] = $t; }
         } catch (\Throwable $e) { /* graceful */ }
         return array_values(array_unique($out));
@@ -4348,9 +4351,11 @@ final class Connectors
     {
         $out = [];
         try {
-            $in = implode(',', array_fill(0, count(self::CS_SOURCES), '?'));
+            // [현 차수 기반강화] 레지스트리 병합 소스로 cron 팬아웃 — admin 추가 cs 채널도 정기 자가치유 편입.
+            $srcs = self::csSources();
+            $in = implode(',', array_fill(0, count($srcs), '?'));
             $st = Db::pdo()->prepare("SELECT DISTINCT tenant_id FROM channel_credential WHERE channel IN ($in) AND is_active=1");
-            $st->execute(self::CS_SOURCES);
+            $st->execute($srcs);
             foreach ($st->fetchAll(PDO::FETCH_COLUMN) as $t) { $t = (string)$t; if ($t !== '' && $t !== 'demo') $out[] = $t; }
         } catch (\Throwable $e) {}
         return array_values(array_unique($out));
@@ -4595,9 +4600,11 @@ final class Connectors
     {
         $out = [];
         try {
-            $in = implode(',', array_fill(0, count(self::ESP_SOURCES), '?'));
+            // [현 차수 기반강화] 레지스트리 병합 소스로 cron 팬아웃 — admin 추가 esp 채널도 정기 자가치유 편입.
+            $srcs = self::espSources();
+            $in = implode(',', array_fill(0, count($srcs), '?'));
             $st = Db::pdo()->prepare("SELECT DISTINCT tenant_id FROM channel_credential WHERE channel IN ($in) AND is_active=1");
-            $st->execute(self::ESP_SOURCES);
+            $st->execute($srcs);
             foreach ($st->fetchAll(PDO::FETCH_COLUMN) as $t) { $t = (string)$t; if ($t !== '' && $t !== 'demo') $out[] = $t; }
         } catch (\Throwable $e) {}
         return array_values(array_unique($out));
