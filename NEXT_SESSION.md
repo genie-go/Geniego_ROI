@@ -1,3 +1,41 @@
+# 251차 세션 인계서 — **마케팅 자동화 폐루프 초고도화(자가학습·채널효과랭킹·승인즉시집행) + 플랫폼 자체 성장(act-as 컨텍스트·가입/결제 퍼널 자동적재) + Integration Hub 정합 + 상품등록 종량과금(추가팩·이미지호스팅·광고디자인 연동) + plan-pricing 크래시·404/401 수정**
+
+> **작성일**: 2026-06-29 (사용자 명시 승인) · 운영 roi.genie-go.com / 데모 roidemo.genie-go.com · primary=**E:\project\GeniegoROI** · 브랜치 `feat/n236-admin-growth-automation` · ★**커밋 cd5a64eab2d push 완료 + master fast-forward 병합·push 완료**(56cb8452→cd5a64eab2d, 137커밋·충돌0). 운영/데모 **수동 배포·라이브검증 완료**(CI deploy.yml=SSH시크릿 미등록→빌드만, 실배포는 수동 pscp+fpm+nginx).
+> 발단: 4에이전트 "마케팅 자동화 진짜 성과" 정밀감사(측정→분석→실행→학습 전부 REAL·통화오탐 PM기각) → 사용자 연속 요구로 자가학습·채널효과·승인즉시집행 → 플랫폼 자체 성장(그로스센터 시작점+기존메뉴 재사용) → 연동허브 등록칸 감사 → AI API 현황 → 상품등록 종량과금(이미지 스토리지 적자방어) → 인계서.
+
+## 0. 핵심 산출물 (전부 운영/데모 배포·검증)
+1. **마케팅 자동화 폐루프**: `channel_learned_prior`(per-tenant EWMA 자가학습 prior·optimizeAllCli 배선·전역 benchmark불변)·`AutoRecommend::effectivenessData`(채널 효과 전수 랭킹 최고/최저+액션, /v424/marketing/channel-effectiveness)·승인 즉시집행(`AutoCampaign::applyStatus` 공용코어+launch `activate:true`)·데이터기반 채널 자동추천(AutoMarketing refineChannelsFromEngine).
+2. **플랫폼 자체 성장(platform_growth)**: 가입(`UserAuth::register`)·결제(`Paddle::onSubscriptionActivated`) → `AdminGrowth::recordEvent/recordSignup/recordPaid` 비차단 훅(퍼널 자동적재)·공개 방문캡처 `POST /v424/growth/capture`(Landing 팝업)·성장 A/B(`AbTesting::pickBest` 재사용+abReport)·가입유입 어트리뷰션(acquisitionByChannel)·**act-as 컨텍스트**(`UserAuth::authedTenant` admin전용 X-Act-As-Tenant=platform_growth, 그로스센터 진입 자동ON·전역배너·기존 모든 메뉴 재사용·중복0).
+3. **Integration Hub 정합**: 중복카드 4건 dedup(amazon/yahoo_jp/kakao/tosspayments↔HC)·microsoft_ads 누락필드(customer_id·account_id)·taboola/outbrain 하드코딩·CS/ESP/리뷰/분석 그룹분리(sync_kind 기준).
+4. **상품등록 종량과금(적자방어)**: `PlanLimits` 확장(productCount=DISTINCT sku·effectiveProductsLimit=기본(admin설정·★불변)+추가팩·effectiveImageHostingGb=상품수×5MB 동적연동·adDesignOverage=상품한도와 동일풀)·신규 `ProductAddon.php`(추가팩 SSOT 시드 **+50$5/+100$8/+200$13/+300$17/+500$25/+1000$40 월정기**·usage/purchase(결제수단게이트·즉시 entitlement)/cancel(거부권한)/admin packs GET·PUT). 강제=Catalog::writeback 신규sku 402·ClaudeAI::adDesignSave 402. 프론트 apiClient 402→전역 `ProductOverageModal`(구매/거부)·PlanPricing "📦 상품등록 추가팩" 탭(가격편집).
+5. **버그수정**: PlanPricing `recommendAllPricing` ReferenceError 크래시(MenuAccessTree prop 미전달→prop+guard)·잔여 404/401(influencer cost-summary=/api라우트+$register 누락·connectors freshness=index bypass).
+
+## 1. AI API 사용현황 (확인)
+- **운영 활성 = Anthropic Claude만**(app_setting.claude_api_key 108자 설정). 모델 claude-sonnet-4-6(ClaudeAI)·claude-3-5-haiku-20241022(AiGenerate). 키 없으면 rule-based 폴백.
+- 이미지(OpenAI dall-e-3/Stability)·영상(Replicate)=코드통합·**키 미설정→비활성**(연동허브 등록 시 활성). Gemini 미구현(안내문구만).
+- ★AI 광고이미지=ad_design.svg base64 **서버저장**(상품/디자인 한도 포함). ★AI 동영상=Replicate 호스팅·**서버 미저장**(URL만)→스토리지한도 불요, 생성비용은 일일 quota(Q_IMG_CAP)로 통제. Mmm(MCMC)·AttributionEngine(markov)=외부API아닌 자체통계.
+
+## 2. ★★ 다음 차수 우선순위 / 잔여
+1. **i18n 15국 정식키**: 이번차 신규 UI(채널효과탭·그로스토글·초과모달·추가팩탭 등) 인라인 한글폴백 동작·정식 키 미반영(비한글=한글표시). ★ko.js marketing ns 3중복 shadowing 트랩 주의.
+2. **capped 플랜 인앱 모달 e2e**: admin=무제한이라 402 미트리거(로직/빌드/배포 완료). free/starter 실계정 100/500건 도달 시 모달 확인.
+3. **추가팩 실 청구 연동**: 현재 entitlement 즉시적용+결제수단 게이트. Paddle 구독 line-item 실청구/정기갱신 reconcile 미배선(월정기 청구는 운영 reconcile 필요).
+4. **JourneyBuilder ↔ platform_growth**: enrollByTrigger=crm_customers 중심(INT customerId)→platform_growth 리드 직접호환 불가. 너처 자동발송은 AdminGrowth 자체 Mailer(maybeNurtureWelcome·기본OFF) 사용중.
+5. **운영 performance_metrics=0**: 실 광고데이터 미수집→채널분석/자가학습 honest 빈. 커넥터 실연동·동기화 선행 시 실측 전환.
+
+## 3. 트랩 (251차)
+- **act-as 컨텍스트**: `UserAuth::authedTenant`에 admin전용·'platform_growth'값만 허용 오버라이드(고객 임퍼소네이트 불가). apiClient defaultHeaders+actAsHeader()·raw fetch(AutoMarketing)는 별도 ...actAsHeader() 주입 필요. localStorage gg_act_as_tenant·전역배너 끄기.
+- **$register 트랩 재현**: influencer cost-summary가 $custom맵엔 있고 $register 누락→Not found(404). 매핑+$register+/api변형 3종세트 필수.
+- **세션 self-auth 엔드포인트 = index.php bypass 필수**: getJsonAuth(세션토큰)는 api_key 미들웨어에 막힘(401). freshness/plan/* 등 핸들러가 authedTenant 자체해석 시 bypass 추가(roas-reconciliation 패턴).
+- **데모 빌드 분리**: apiClient TOKEN_KEY/X-Tenant-ID가 빌드타임 VITE_DEMO_MODE 분기 → 데모는 `npx vite build --mode demo` 별도 빌드·배포 필수(운영 dist 복사 불가).
+- **데모 .my.cnf.bak 부재**: 데모 DB(geniego_roi_demo) 조회는 운영 my.cnf로(.my.cnf.bak는 운영 backend에만).
+- **admin 로그인**: 로고클릭→접속코드 GENIEGO-ADMIN→ceo@ociell.com→MFA "나중에". 일반로그인은 admin 403(전용 진입만).
+- **PlanLimits 기본 제공수 불변 원칙**: 사용자가 admin에서 plan_config products 설정 완료 → 코드는 읽기만, 추가팩 레이어만 가산. 이미지호스팅은 effectiveImageHostingGb로 동적산출(plan_config 무변경).
+- **빌드 EXIT 255 노이즈**: vite 청크크기경고 stderr가 PowerShell NativeCommandError로 잡혀 255처럼 보이나 실제 EXIT=0(✓ built). tail+$LASTEXITCODE로 확인.
+
+(★본 인계서 = 사용자 명시 승인. 자격증명 평문노출 0. ★이번차 master fast-forward 병합·push 완료. feat/n236-admin-growth-automation = master = cd5a64eab2d.)
+
+---
+
 # 250차 세션 인계서 — **소재 자동업로드·적응형 입찰주기·멀티창고 글로벌 최적할당 + 경쟁 재검증 250(90.2) + 전수 정밀감사 2회(5에이전트·오탐0) + 마케팅 실집행 초고도화(전환목표·자동입찰·멀티통화·DLQ·오디언스·readiness) + SNS 라이브 동기화 4채널**
 
 > **작성일**: 2026-06-29 (사용자 명시 승인) · 운영 roi.genie-go.com / 데모 roidemo.genie-go.com · primary=**E:\project\GeniegoROI** · 브랜치 `feat/n236-admin-growth-automation` · ★**master 미접촉** · **origin push 완료**(9dd00f85e87→b8a0dfcc39e, 16커밋).
