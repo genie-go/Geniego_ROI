@@ -157,6 +157,25 @@ final class AdAdapters
         return max(1, (int)round($major * (isset($minor100[$cur]) ? 100 : 1)));
     }
 
+    /* [현 차수 초고도화] 오디언스 ID 영속/조회 — syncAudience 가 생성한 커스텀/룩어라이크 오디언스를 딜리버리에서 재사용.
+     *   app_setting(skey 유니크, fxRates 패턴 정합)에 테넌트별 저장. kind: ca(custom)·la(lookalike). */
+    private static function setAudienceId(PDO $pdo, string $tenant, string $kind, string $id): void
+    {
+        if ($id === '' || $tenant === '') return;
+        try {
+            $isMy = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql';
+            $sql = $isMy
+                ? "INSERT INTO app_setting(skey,svalue,updated_at) VALUES(?,?,?) ON DUPLICATE KEY UPDATE svalue=VALUES(svalue),updated_at=VALUES(updated_at)"
+                : "INSERT INTO app_setting(skey,svalue,updated_at) VALUES(?,?,?) ON CONFLICT(skey) DO UPDATE SET svalue=excluded.svalue,updated_at=excluded.updated_at";
+            $pdo->prepare($sql)->execute(["meta_aud_{$kind}:{$tenant}", $id, gmdate('c')]);
+        } catch (\Throwable $e) {}
+    }
+    private static function getAudienceId(PDO $pdo, string $tenant, string $kind): string
+    {
+        try { $st = $pdo->prepare("SELECT svalue FROM app_setting WHERE skey=? LIMIT 1"); $st->execute(["meta_aud_{$kind}:{$tenant}"]); return (string)($st->fetchColumn() ?: ''); }
+        catch (\Throwable $e) { return ''; }
+    }
+
     /* ════════════════════════ 디스패치 ════════════════════════ */
 
     /** 캠페인 생성(PAUSED). $camp: name, budget(채널 배정액), period, objective. */
@@ -185,9 +204,9 @@ final class AdAdapters
                 'meta_ads'        => self::metaCreate($pdo, $tenant, $name, $daily, $settings),
                 'google_ads'      => self::googleCreate($pdo, $tenant, $name, $daily, $settings),
                 'tiktok_business' => self::tiktokCreate($pdo, $tenant, $name, $daily, $settings),
-                'naver_sa'        => self::naverCreate($pdo, $tenant, $name, $daily),
-                'kakao_moment'    => self::kakaoCreate($pdo, $tenant, $name, $daily),
-                'line_ads'        => self::lineCreate($pdo, $tenant, $name, $daily),
+                'naver_sa'        => self::naverCreate($pdo, $tenant, $name, $daily, $settings),
+                'kakao_moment'    => self::kakaoCreate($pdo, $tenant, $name, $daily, $settings),
+                'line_ads'        => self::lineCreate($pdo, $tenant, $name, $daily, $settings),
                 'coupang'         => self::fail('Coupang 광고 집행 생성은 파트너 승인 API 가 별도 필요합니다. 수동 연동을 이용하세요.', 'unsupported'),
                 default           => self::fail('지원하지 않는 채널: ' . $channel, 'unsupported'),
             };
@@ -730,8 +749,9 @@ final class AdAdapters
         $sig = base64_encode(hash_hmac('sha256', $ts . '.' . strtoupper($method) . '.' . $path, $secret, true));
         return ['Content-Type: application/json', 'X-Timestamp: ' . $ts, 'X-API-KEY: ' . $apiKey, 'X-Customer: ' . $cust, 'X-Signature: ' . $sig];
     }
-    private static function naverCreate(PDO $pdo, string $tenant, string $name, int $daily): array
+    private static function naverCreate(PDO $pdo, string $tenant, string $name, int $daily, array $settings = []): array
     {
+        // Naver SA = 국내(KRW) 검색광고 — 통화환산/objective/자동입찰 비적용(검색·KRW). 입찰은 adgroup(naverDeliver bidAmt). settings 수신만(프레임워크).
         $path = '/ncc/campaigns';
         $hdr = self::naverHeaders($pdo, $tenant, 'POST', $path);
         if ($hdr === null) return self::fail('Naver 자격증명(api_key/api_secret/customer_id) 미등록', 'no_credentials');
@@ -770,14 +790,15 @@ final class AdAdapters
         if ($token === '' || $acc === '') return null;
         return [['Authorization: Bearer ' . $token, 'adAccountId: ' . $acc, 'Content-Type: application/json'], $acc];
     }
-    private static function kakaoCreate(PDO $pdo, string $tenant, string $name, int $daily): array
+    private static function kakaoCreate(PDO $pdo, string $tenant, string $name, int $daily, array $settings = []): array
     {
         $h = self::kakaoHeaders($pdo, $tenant);
         if ($h === null) return self::fail('카카오모먼트 자격증명(access_token/ad_account_id) 미등록', 'no_credentials');
         [$hdr, $acc] = $h;
-        // OpenAPI v4 캠페인 생성 — DISPLAY/전환 목표, config=OFF(정지=무지출). dailyBudgetAmount 동시 설정.
+        // OpenAPI v4 캠페인 생성 — [현 차수] 목표 설정형(전환=CONVERSION·그 외=VISITING). config=OFF(정지=무지출). 예산=KRW(국내).
+        $kGoal = in_array((string)($settings['objective'] ?? 'conversions'), ['conversions', 'sales', 'purchase'], true) ? 'CONVERSION' : 'VISITING';
         $body = json_encode(['adAccountId' => (int)$acc, 'name' => $name,
-            'campaignTypeGoal' => ['campaignType' => 'DISPLAY', 'goal' => 'CONVERSION'],
+            'campaignTypeGoal' => ['campaignType' => 'DISPLAY', 'goal' => $kGoal],
             'config' => 'OFF', 'dailyBudgetAmount' => $daily], JSON_UNESCAPED_UNICODE);
         [$code, $res] = self::http('POST', 'https://apis.moment.kakao.com/openapi/v4/campaigns', $hdr, $body);
         $id = $res['id'] ?? $res['campaignId'] ?? ($res['data']['id'] ?? '');
@@ -822,15 +843,19 @@ final class AdAdapters
         $hdr = []; foreach ($h as $k => $v) $hdr[] = "$k: $v";
         return self::http($method, 'https://ads.line.me' . $path, $hdr, $body !== '' ? $body : null);
     }
-    private static function lineCreate(PDO $pdo, string $tenant, string $name, int $daily): array
+    private static function lineCreate(PDO $pdo, string $tenant, string $name, int $daily, array $settings = []): array
     {
         $c = self::lineCreds($pdo, $tenant);
         if ($c === null) return self::fail('LINE Ads 자격증명(access_key/secret_key/group_id) 미등록', 'no_credentials');
         [$ak, $sk, $gid] = $c;
         $path = '/api/v3/groups/' . rawurlencode($gid) . '/campaigns';
-        [$code, $res] = self::lineReq('POST', $path, ['name' => $name, 'objective' => 'WEBSITE_CONVERSION', 'status' => 'PAUSED', 'dailyBudget' => $daily], $ak, $sk);
+        // [현 차수] ★멀티통화 — LINE 계정통화(JPY/THB/TWD 등)로 예산 환산(기존 raw KRW 전송은 과집행). 목표 설정형.
+        $cur = self::accountCur($pdo, $tenant, 'line_ads');
+        $lBudget = (int)round(self::toAcctMajor($daily, $cur));
+        $lObj = in_array((string)($settings['objective'] ?? 'conversions'), ['conversions', 'sales', 'purchase'], true) ? 'WEBSITE_CONVERSION' : 'WEBSITE_TRAFFIC';
+        [$code, $res] = self::lineReq('POST', $path, ['name' => $name, 'objective' => $lObj, 'status' => 'PAUSED', 'dailyBudget' => $lBudget], $ak, $sk);
         $id = $res['id'] ?? $res['campaignId'] ?? ($res['data']['id'] ?? '');
-        if ($code >= 200 && $code < 300 && $id !== '') return self::ok((string)$id, 'paused', 'LINE Ads 캠페인 생성(PAUSED)');
+        if ($code >= 200 && $code < 300 && $id !== '') return self::ok((string)$id, 'paused', 'LINE Ads 캠페인 생성(PAUSED·' . ($cur !== 'KRW' ? $cur : 'KRW') . ')');
         return self::fail('LINE Ads: ' . (self::errMsg($res) ?: ('HTTP ' . $code)));
     }
     private static function lineUpdateBudget(PDO $pdo, string $tenant, string $extId, int $daily): array
@@ -1145,11 +1170,18 @@ final class AdAdapters
         $pixel = $conv ? trim(self::cred($pdo, $tenant, 'meta_ads', 'pixel_id')) : '';
         $cur   = self::accountCur($pdo, $tenant, 'meta_ads');
         $countries = (is_array($settings['countries'] ?? null) && $settings['countries']) ? array_values($settings['countries']) : ['KR'];
+        // [현 차수 초고도화] 오디언스 타겟팅 — syncAudience 가 생성·영속한 커스텀/룩어라이크 오디언스를 attach(최고 ROI 레버).
+        //   retarget=커스텀 포함·lookalike=룩어라이크 포함·prospect=커스텀 제외(기존고객 빼고 신규 획득). 미설정/미생성=지오만.
+        $targeting = ['geo_locations' => ['countries' => $countries]];
+        $audMode = (string)($settings['audience_mode'] ?? '');
+        if ($audMode === 'retarget')      { $ca = self::getAudienceId($pdo, $tenant, 'ca'); if ($ca !== '') $targeting['custom_audiences'] = [['id' => $ca]]; }
+        elseif ($audMode === 'lookalike') { $la = self::getAudienceId($pdo, $tenant, 'la'); if ($la !== '') $targeting['custom_audiences'] = [['id' => $la]]; }
+        elseif ($audMode === 'prospect')  { $ca = self::getAudienceId($pdo, $tenant, 'ca'); if ($ca !== '') $targeting['excluded_custom_audiences'] = [['id' => $ca]]; }
         $asBody = [
             'name' => $d['headline'] . ' AdSet', 'campaign_id' => $campId, 'status' => 'PAUSED',
             'billing_event' => 'IMPRESSIONS',
             'optimization_goal' => ($conv && $pixel !== '') ? 'OFFSITE_CONVERSIONS' : 'LINK_CLICKS',
-            'targeting' => json_encode(['geo_locations' => ['countries' => $countries]]),
+            'targeting' => json_encode($targeting),
             'access_token' => $token,
         ];
         if ($conv && $pixel !== '') {
@@ -1451,6 +1483,7 @@ final class AdAdapters
             if (isset($ur['num_received'])) $added += (int)$ur['num_received'];
             elseif ($uc >= 200 && $uc < 300) $added += count($b);
         }
+        self::setAudienceId($pdo, $tenant, 'ca', $audId); // [현 차수] 딜리버리 재사용 위해 영속(audience_mode=retarget/prospect)
         $out = ['ok' => true, 'channel' => 'meta', 'audience_id' => $audId, 'uploaded' => $added, 'note' => "Meta 커스텀 오디언스 생성·{$added}건 업로드(해시)"];
         // 3) 선택: 룩어라이크(유사 타깃 확장)
         if (!empty($opts['lookalike'])) {
@@ -1461,6 +1494,7 @@ final class AdAdapters
                 'access_token' => $token,
             ]);
             $out['lookalike_id'] = $lr['id'] ?? '';
+            if (($lr['id'] ?? '') !== '') self::setAudienceId($pdo, $tenant, 'la', (string)$lr['id']); // [현 차수] 룩어라이크 영속(audience_mode=lookalike)
             if (($lr['id'] ?? '') === '') $out['lookalike_note'] = '룩어라이크 생성 보류: ' . (self::errMsg($lr) ?: ('HTTP ' . $lc));
         }
         return $out;

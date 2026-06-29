@@ -198,6 +198,9 @@ class AutoCampaign
                 'countries'    => (is_array($d['countries'] ?? null) && $d['countries']) ? array_values(array_filter(array_map('strval', $d['countries']))) : ['KR'],
                 'frequency_cap'  => max(0, (int)($d['frequency_cap'] ?? 0)),    // 0=off(노출 피로 방지 캡, opt-in)
                 'frequency_days' => max(1, (int)($d['frequency_days'] ?? 7)),
+                // [현 차수 초고도화] 오디언스 모드 — retarget(고객 리타겟)·lookalike(유사확장)·prospect(기존고객 제외=신규획득).
+                //   syncAudience 가 생성·영속한 오디언스를 metaDeliver adset 타겟팅에 자동 attach(최고 ROI 레버). 빈값=지오만(기존).
+                'audience_mode'  => strtolower((string)($d['audience_mode'] ?? '')),
             ];
             // [현 차수] A/B 모드: 디자인(variant) 2+ 선택 시 같은 캠페인 하위에 동시 집행 → 승자 자동 선정.
             $abMode = !empty($d['ab_mode']) && count($validDesigns) >= 2;
@@ -452,6 +455,29 @@ class AutoCampaign
                 if (!BillingMethod::hasActiveMethod($pdo, $tenant)) {
                     return self::json($res, ['ok' => false, 'error' => 'billing_required',
                         'message' => '광고를 활성화하려면 광고비 결제수단(카드)을 먼저 등록해야 합니다. [재무·정산 > 결제수단]에서 등록 후 다시 시도하세요.'], 402);
+                }
+                // [현 차수 초고도화] 활성화 사전검증(readiness) — 딜리버리 미완성(캠페인 external_id 는 있으나 광고(ad_ext_id)·
+                //   A/B variant 둘 다 없음 = 광고 미생성) 채널이 있으면 차단. 활성화해도 노출0(매체 effective_status=레벨 AND)
+                //   인 미스컨피그 실집행을 사전 차단(은행급). page_id/픽셀/소재 보강 후 재시도하거나 force=true 로 우회.
+                if (empty($d['force'])) {
+                    $abChs = [];
+                    try {
+                        $vq = $pdo->prepare("SELECT DISTINCT channel FROM ab_variant WHERE tenant_id=? AND campaign_id=? AND status<>'paused'");
+                        $vq->execute([$tenant, $id]);
+                        foreach ($vq->fetchAll(PDO::FETCH_COLUMN) ?: [] as $vc) $abChs[self::connectorKey((string)$vc)] = true;
+                    } catch (\Throwable $e) {}
+                    $notReady = [];
+                    foreach ($allocs as $a) {
+                        if ((string)($a['external_id'] ?? '') === '') continue; // 캠페인 미생성(미연결) 채널은 push 대상 아님
+                        $ach = self::connectorKey((string)($a['channel'] ?? ''));
+                        $hasAd = ((string)($a['ad_ext_id'] ?? '')) !== '' || isset($abChs[$ach]);
+                        if (!$hasAd) $notReady[] = (string)($a['channel'] ?? $ach);
+                    }
+                    if ($notReady) {
+                        $nr = array_values(array_unique($notReady));
+                        return self::json($res, ['ok' => false, 'error' => 'delivery_incomplete', 'channels' => $nr,
+                            'message' => '광고 소재/딜리버리가 미완성인 채널이 있습니다(' . implode(', ', $nr) . '). 활성화해도 노출되지 않습니다(매체가 광고를 생성하지 못함). 매체 자격증명(Meta page_id·픽셀·이미지 소재 등)을 보강한 뒤 재시도하거나, 그대로 진행하려면 force 로 재요청하세요.'], 422);
+                    }
                 }
             }
 
