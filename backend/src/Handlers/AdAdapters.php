@@ -153,7 +153,7 @@ final class AdAdapters
      *   리스크였다(toAcctMajor 가 미상통화 무변환=KRW금액인데 ×100). 미지원은 ×1(=무변환 KRW 그대로, honest 폴백). */
     private static function toMinor(float $major, string $cur): int
     {
-        static $minor100 = ['USD'=>1,'EUR'=>1,'GBP'=>1,'CNY'=>1,'HKD'=>1,'SGD'=>1,'AUD'=>1,'CAD'=>1,'TWD'=>1,'THB'=>1,'MYR'=>1,'PHP'=>1,'INR'=>1];
+        static $minor100 = ['USD'=>1,'EUR'=>1,'GBP'=>1,'CNY'=>1,'HKD'=>1,'SGD'=>1,'AUD'=>1,'CAD'=>1,'TWD'=>1,'THB'=>1,'MYR'=>1,'PHP'=>1,'INR'=>1,'RUB'=>1,'BRL'=>1,'MXN'=>1,'PLN'=>1,'TRY'=>1,'AED'=>1,'SAR'=>1];
         return max(1, (int)round($major * (isset($minor100[$cur]) ? 100 : 1)));
     }
 

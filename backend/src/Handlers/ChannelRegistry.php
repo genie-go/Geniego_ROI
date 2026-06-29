@@ -73,10 +73,11 @@ class ChannelRegistry
             ['linkedin_ads','LinkedIn Ads','marketing','💼','#0a66c2','ad',[$ftext('access_token','액세스 토큰'),$ftext('ad_account_id','Sponsored Account ID',false),$ftext('currency','과금 통화(예: USD)',false)]],
             ['criteo','Criteo','marketing','🟧','#f47521','ad',[$ftext('client_id','API Client ID',false),$ftext('client_secret','API Client Secret'),$ftext('currency','과금 통화(예: USD)',false)]],
             ['pinterest_ads','Pinterest Ads','marketing','📌','#e60023','ad',[$ftext('access_token','액세스 토큰'),$ftext('ad_account_id','광고계정 ID',false),$ftext('currency','과금 통화(예: USD)',false)]],
-            // [240차] 로드맵(연동 예정) — 전용 어댑터 준비 중(REAL_ADAPTER 미포함 → UI '연동 예정' 정직 표기).
-            ['microsoft_ads','Microsoft Ads (Bing)','marketing','🪟','#00a4ef','none',[$ftext('developer_token','개발자 토큰'),$ftext('access_token','액세스 토큰'),$ftext('account_id','계정 ID',false)]],
-            ['x_ads','X (Twitter) Ads','marketing','✖️','#000000','none',[$ftext('consumer_key','Consumer Key'),$ftext('consumer_secret','Consumer Secret'),$ftext('access_token','Access Token'),$ftext('access_token_secret','Access Token Secret'),$ftext('account_id','광고계정 ID',false)]],
-            ['amazon_ads','Amazon Ads (Sponsored)','marketing','📦','#ff9900','none',[$ftext('client_id','LWA Client ID',false),$ftext('client_secret','LWA Secret'),$ftext('refresh_token','Refresh Token'),$ftext('profile_id','프로필 ID',false)]],
+            // [현 차수 감사] 실 fetch 어댑터(Connectors fetch*Rows·AD_SHORT) 보유 + REAL_ADAPTER 등재 → sync_kind 'none'→'ad'
+            //   정합화(기존 stale 'none'·"연동 예정" 주석 정정). 자격증명 등록 시 즉시 자동 동기화(이미 AD_SHORT로 동작 중).
+            ['microsoft_ads','Microsoft Ads (Bing)','marketing','🪟','#00a4ef','ad',[$ftext('developer_token','개발자 토큰'),$ftext('access_token','액세스 토큰'),$ftext('account_id','계정 ID',false)]],
+            ['x_ads','X (Twitter) Ads','marketing','✖️','#000000','ad',[$ftext('consumer_key','Consumer Key'),$ftext('consumer_secret','Consumer Secret'),$ftext('access_token','Access Token'),$ftext('access_token_secret','Access Token Secret'),$ftext('account_id','광고계정 ID',false)]],
+            ['amazon_ads','Amazon Ads (Sponsored)','marketing','📦','#ff9900','ad',[$ftext('client_id','LWA Client ID',false),$ftext('client_secret','LWA Secret'),$ftext('refresh_token','Refresh Token'),$ftext('profile_id','프로필 ID',false)]],
             // [현 차수] 롱테일 광고 커넥터 5종 — 실 fetch 어댑터(Connectors::fetch*Rows) 신용게이트. 자격증명 등록 시 즉시 동작.
             ['reddit_ads','Reddit Ads','marketing','🟠','#ff4500','ad',[$ftext('access_token','액세스 토큰'),$ftext('ad_account_id','광고계정 ID',false),$ftext('currency','과금 통화(예: USD)',false)]],
             ['apple_search_ads','Apple Search Ads','marketing','','#000000','ad',[$ftext('access_token','액세스 토큰'),$ftext('org_id','조직 ID(orgId)',false),$ftext('currency','과금 통화(예: USD)',false)]],

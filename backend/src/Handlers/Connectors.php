@@ -1734,7 +1734,7 @@ final class Connectors
         if ($cache !== null) return $cache;
         // [현 차수 감사 P2] SEA 통화(MYR/PHP/IDR)+INR 추가 — Shopee/Lazada 가 IDR/MYR/PHP 를 정확 추출하나 환율맵
         //   부재로 fxToKrw 무변환(예: 150,000 IDR 이 ₩150,000 으로 ~12배 과대)되던 상시 결함 해소.
-        $defaults = ['KRW'=>1.0,'USD'=>1350.0,'EUR'=>1450.0,'JPY'=>9.0,'CNY'=>185.0,'GBP'=>1700.0,'HKD'=>173.0,'SGD'=>1000.0,'AUD'=>890.0,'CAD'=>985.0,'TWD'=>42.0,'THB'=>37.0,'VND'=>0.053,'MYR'=>305.0,'PHP'=>23.5,'IDR'=>0.084,'INR'=>16.0];
+        $defaults = ['KRW'=>1.0,'USD'=>1350.0,'EUR'=>1450.0,'JPY'=>9.0,'CNY'=>185.0,'GBP'=>1700.0,'HKD'=>173.0,'SGD'=>1000.0,'AUD'=>890.0,'CAD'=>985.0,'TWD'=>42.0,'THB'=>37.0,'VND'=>0.053,'MYR'=>305.0,'PHP'=>23.5,'IDR'=>0.084,'INR'=>16.0,'RUB'=>15.0,'BRL'=>245.0,'MXN'=>75.0,'PLN'=>337.0,'TRY'=>42.0,'AED'=>368.0,'SAR'=>360.0];
         try {
             $pdo = Db::pdo();
             $st = $pdo->prepare("SELECT svalue, updated_at FROM app_setting WHERE skey='fx_rates_krw' LIMIT 1");
@@ -1770,7 +1770,7 @@ final class Connectors
             if ($code === 200 && !empty($body['rates']['KRW']) && (float)$body['rates']['KRW'] > 0) {
                 $usdKrw = (float)$body['rates']['KRW']; $rates = $body['rates'];
                 $out = ['KRW'=>1.0,'USD'=>$usdKrw];
-                foreach (['EUR','JPY','CNY','GBP','HKD','SGD','AUD','CAD','TWD','THB','VND','MYR','PHP','IDR','INR'] as $c) {
+                foreach (['EUR','JPY','CNY','GBP','HKD','SGD','AUD','CAD','TWD','THB','VND','MYR','PHP','IDR','INR','RUB','BRL','MXN','PLN','TRY','AED','SAR'] as $c) {
                     if (!empty($rates[$c]) && (float)$rates[$c] > 0) $out[$c] = $usdKrw / (float)$rates[$c]; // 1 unit C → KRW
                 }
                 return $out;

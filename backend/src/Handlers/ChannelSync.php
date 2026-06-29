@@ -649,7 +649,11 @@ final class ChannelSync
                     $orders[] = [
                         'channel_order_id' => (string)($o['orderId'] ?? $o['orderNo'] ?? uniqid()),
                         'buyer_name'  => $o['buyerName'] ?? '',
+                        // [현 차수 감사] sku/buyer_email 매핑 — 누락 시 WMS 재고차감(reflectChannelSale sku 필수)·CRM 구매기록
+                        //   (recordCrmPurchase email 필수)이 no-op 이었다. 판매자관리코드 등 방어 매핑(없으면 기존대로 빈값).
+                        'buyer_email' => (string)($o['ordererEmail'] ?? ($o['buyerEmail'] ?? '')),
                         'product_name'=> $o['productName'] ?? '',
+                        'sku'         => (string)($o['sellerManagementCode'] ?? ($o['sellerProductCode'] ?? ($o['productId'] ?? ($o['merchantProductId'] ?? '')))),
                         'qty'         => (int)($o['quantity'] ?? 1),
                         'unit_price'  => (float)($o['unitPrice'] ?? 0),
                         'total_price' => (float)($o['totalPayAmount'] ?? 0),
