@@ -723,7 +723,7 @@ function PlanSelector({ planType, setPlanType, selectedPaid, setSelectedPaid }) 
                   </div>
                   {/* [현 차수] 부가세 별도 표기 — 실제 표시 가격일 때만(맞춤견적/미설정 제외) */}
                   {/\d/.test(getDisplayPrice(p.id, p.priceFallback)) && (
-                    <div style={{ fontSize: 8, color: "var(--text-3)", marginTop: 1, opacity: 0.85 }}>VAT 별도</div>
+                    <div style={{ fontSize: 8, color: "var(--text-3)", marginTop: 1, opacity: 0.85 }}>{t("appPricing.exclVat", "(VAT 별도)")}</div>
                   )}
                   <div style={{ fontSize: 9, color: "var(--text-3)", marginTop: 1 }}>{p.desc}</div>
                   {selectedPaid === p.id && <div style={{ fontSize: 14, color: p.color, marginTop: 4 }}>✓</div>}

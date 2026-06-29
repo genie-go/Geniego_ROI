@@ -369,6 +369,7 @@ export default {"paymentSuccess": {"invalidInfo":"결제 정보가 올바르지 
       "guarantee": "30일 전액 환불 보장"
     },
     "cardOnly": "카드 결제 전용",
+    "exclVat": "(VAT 별도)",
     "custom": "맞춤형 플랜",
     "unlimited": "무제한",
     "selected": "선택한 플랜",

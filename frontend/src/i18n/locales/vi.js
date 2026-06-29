@@ -572,6 +572,7 @@ export default {"paymentSuccess": {"invalidInfo":"Thông tin thanh toán không 
       "guarantee": "Đảm bảo hoàn tiền đầy đủ trong 30 ngày"
     },
     "cardOnly": "Chỉ thanh toán bằng thẻ",
+    "exclVat": "(chưa gồm VAT)",
     "custom": "Gói tùy chỉnh",
     "unlimited": "Không giới hạn",
     "selected": "Gói đã chọn",

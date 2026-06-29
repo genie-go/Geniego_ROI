@@ -572,6 +572,7 @@ export default {"paymentSuccess": {"invalidInfo":"支付信息不正确。","ver
       "guarantee": "30天全额退款保证"
     },
     "cardOnly": "仅支持卡付款",
+    "exclVat": "(不含增值税)",
     "custom": "定制方案",
     "unlimited": "无限",
     "selected": "已选方案",

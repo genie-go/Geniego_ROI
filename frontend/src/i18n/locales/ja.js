@@ -572,6 +572,7 @@ export default {"paymentSuccess": {"invalidInfo":"決済情報が正しくあり
       "guarantee": "30日間全額返金保証"
     },
     "cardOnly": "カード決済専用",
+    "exclVat": "(税抜)",
     "custom": "カスタムプラン",
     "unlimited": "無制限",
     "selected": "選択中のプラン",

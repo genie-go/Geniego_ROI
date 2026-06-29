@@ -573,6 +573,7 @@ export default {"paymentSuccess": {"invalidInfo":"ข้อมูลการช
       "guarantee": "รับประกันคืนเงินเต็มจำนวนภายใน 30 วัน"
     },
     "cardOnly": "ชำระด้วยบัตรเท่านั้น",
+    "exclVat": "(ไม่รวม VAT)",
     "custom": "แพ็กเกจแบบกำหนดเอง",
     "unlimited": "ไม่จำกัด",
     "selected": "แพ็กเกจที่เลือก",

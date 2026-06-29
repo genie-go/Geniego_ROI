@@ -572,6 +572,7 @@ export default {"paymentSuccess": {"invalidInfo":"Die Zahlungsinformationen sind
       "guarantee": "30 Tage volle Geld-zurück-Garantie"
     },
     "cardOnly": "Nur Kartenzahlung",
+    "exclVat": "(zzgl. MwSt.)",
     "custom": "Individueller Plan",
     "unlimited": "Unbegrenzt",
     "selected": "Ausgewählter Plan",

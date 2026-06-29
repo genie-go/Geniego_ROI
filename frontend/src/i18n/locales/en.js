@@ -439,6 +439,7 @@ export default {"paymentSuccess": {"invalidInfo":"The payment information is inv
       "guarantee": "30-day full money-back guarantee"
     },
     "cardOnly": "Card payments only",
+    "exclVat": "(excl. VAT)",
     "custom": "Custom plan",
     "unlimited": "Unlimited",
     "selected": "Selected plan",

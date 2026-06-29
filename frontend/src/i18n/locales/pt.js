@@ -572,6 +572,7 @@ export default {"paymentSuccess": {"invalidInfo":"As informações de pagamento 
       "guarantee": "Garantia de reembolso total de 30 dias"
     },
     "cardOnly": "Apenas pagamento com cartão",
+    "exclVat": "(sem IVA)",
     "custom": "Plano personalizado",
     "unlimited": "Ilimitado",
     "selected": "Plano selecionado",

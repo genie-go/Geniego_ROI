@@ -572,6 +572,7 @@ export default {"paymentSuccess": {"invalidInfo":"Les informations de paiement s
       "guarantee": "Garantie de remboursement intégral sous 30 jours"
     },
     "cardOnly": "Paiement par carte uniquement",
+    "exclVat": "(hors TVA)",
     "custom": "Forfait sur mesure",
     "unlimited": "Illimité",
     "selected": "Forfait sélectionné",

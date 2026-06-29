@@ -931,7 +931,7 @@ const DICT_RICH = {
   },
   "fq4a": {
     "ko": "카드 없이 무료 데모로 시작하고, 준비되면 계정수·기간에 맞는 요금제로 업그레이드하세요. 30일 전액 환불 보장. (표시 요금은 모두 VAT 별도이며, 결제 시 부가세 10%가 별도 부과됩니다.)",
-    "en": "Start free with no card, upgrade when ready by seats and cycle. 30-day full money-back guarantee."
+    "en": "Start free with no card, upgrade when ready by seats and cycle. 30-day full money-back guarantee. (All listed prices exclude VAT; 10% VAT is added at checkout.)"
   },
   "finalTitle": {
     "ko": "지금, 데이터로 성장하세요",

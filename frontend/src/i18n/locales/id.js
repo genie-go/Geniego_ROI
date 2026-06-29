@@ -572,6 +572,7 @@ export default {"paymentSuccess": {"invalidInfo":"Informasi pembayaran tidak val
       "guarantee": "Jaminan uang kembali penuh 30 hari"
     },
     "cardOnly": "Hanya pembayaran kartu",
+    "exclVat": "(belum termasuk PPN)",
     "custom": "Paket khusus",
     "unlimited": "Tak terbatas",
     "selected": "Paket terpilih",

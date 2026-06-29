@@ -572,6 +572,7 @@ export default {"paymentSuccess": {"invalidInfo":"معلومات الدفع غي
       "guarantee": "ضمان استرداد كامل خلال 30 يومًا"
     },
     "cardOnly": "الدفع بالبطاقة فقط",
+    "exclVat": "(غير شامل ضريبة القيمة المضافة)",
     "custom": "خطة مخصّصة",
     "unlimited": "غير محدود",
     "selected": "الخطة المختارة",
