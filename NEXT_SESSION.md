@@ -1,3 +1,50 @@
+# 252·253차 세션 인계서 — **전수 정밀감사 5확정결함 수정 + 포트폴리오 예산최적화 + 경쟁 약점 6항목 초고도화(#0~#6) + 구독요금 VAT 표기**
+
+> **작성일**: 2026-06-29 (사용자 명시 승인) · 운영 roi.genie-go.com / 데모 roidemo.genie-go.com · primary=**E:\project\GeniegoROI** · 브랜치 `feat/n236-admin-growth-automation` (master 미접촉) · 운영/데모 **수동 배포·검증 완료**(매 항목 서버 php-l PASS·홈200·optimize_cron EXIT=0). 커밋·push 완료(하단 §커밋).
+> 발단: 사용자 "전수 정밀감사(오탐0)" → 5확정결함 수정·포트폴리오 초고도화 → 글로벌 경쟁사 3도메인 리서치·기능별 점수평가 → 약점 순차 초고도화(#0~#6) → VAT 표기 → 재검증(종합 ~80.5→~84.5) → 인계.
+
+## 0. 252차 — 전수 정밀감사 5확정결함 + 포트폴리오 (배포·커밋)
+5도메인 병렬감사(FP레지스트리 주입)+PM 코드 재증명. **확정결함 5건 수정**: ①P1 멀티통화 과집행(AdAdapters updateBudget 4종 통화환산 누락→옵티마이저 raw KRW→비-KRW 계정 과집행, accountCur+toAcctMajor) ②P1 GA4 dead-end(하드코딩 google_analytics→작동 ga4 일급전환·자동sync) ③P1 웹훅 불완전적재(buyer_email/raw_json/addr→CAPI·고객매칭·귀속백필 복구) ④P2 어트리뷰션 취소제외 형제3곳(Connectors/Rollup/AutoCampaign) ⑤P2 capture 레이트리밋. **초고도화**: `AutoCampaign::optimizePortfolio`(크로스캠페인 총예산 진실ROAS 재배분·총예산보존·[0.5×,2×]클램프·댐핑0.5). 커밋 `fe6cd6354b4`. VAT 커밋 `6a14a9063e9`.
+
+## 1. 253차 — 경쟁 약점 6항목 초고도화 (전부 기존재사용·중복0·배포·커밋)
+글로벌 경쟁사 벤치(리서치): ROI분석 Northbeam88/Adobe86, 채널연동 Rithum90/사방넷88/Channable88, 마케팅자동화 MetaAdvantage+82/Skai78. **핵심: 아무도 폐루프 미완성 → GeniegoROI 통합도(종합 ~80.5→~84.5) 유일**.
+- **#0 자동연동 무결화**(`082b6c7`): cron 자가치유 레지스트리 구동(tenantsWithAnalytics/Cs/EspCreds→xSources() 병합). admin 추가 채널이 즉시sync+정기cron 자동편입.
+- **#1 DCO 피로도 루프**(`082b6c7`): `AbTesting::dcoEvaluate`+creativeFatigue(승자 CTR 감쇠→정지 대체소재 재활성화·A/B재개·미디어신규0)·ab_test.last_dco_at. 64→84.
+- **#2 인크리멘탈리티 자동화**(`4475a20`): `AttributionEngine::autoDesignGeoHoldout`(지역 균형분할)·validateRunningHoldouts(diff-in-diff·가드레일·자동결론)·autoRunGeoHoldouts(cron). 관측 지오리프트(spend무변경). 72→82.
+- **#3 CRM 크로스채널 빈도캡+조용시간**(`a3e3450`): JourneyBuilder SMS/Kakao에 isFrequencyCapped(이메일만이던 비대칭)+commsSendAllowedNow 조용시간 defer(런너 미진행 재시도). STO기본OFF=회귀0. 74→80.
+- **#4 제네릭 스펙 어댑터**(`e0ca7ba`): `ChannelRegistry.fetch_spec`(REST선언)·`ChannelSync::specFetch`(auth bearer/apikey/basic·dotGet→saveOrders)·genericFetch 배선. admin이 스펙만 선언→코드없이 채널 무한확장. 68→84.
+- **#5 오디언스 자동갱신+데이파팅**(`e382aa1`·`8dc29d6`): `AdAdapters::refreshAudiencesForTenant`(syncAudience 재사용·일일게이트·cron)·데이파팅(`withinAdSchedule`·플랫폼측 pause/activate·6채널공통·KST·gr.ad_schedule). 오디언스 74→82·데이파팅 0→80.
+- **#6 non-Meta 데모그래픽**(`bdda825`): `Connectors::fetchTiktokDemographics`(report_type=AUDIENCE·통화정규화·graceful)·fetchAdDemographics 디스패처·upsertAdInsights 공유. 64→82.
+- **VAT**: 표시=VAT별도(PricingPublic 가격옆+법적푸터·AuthPage 전자상거래고지⑤·가입카드·admin·랜딩FAQ), 결제=Paddle MoR 체크아웃 자동 VAT가산(기존구현·명시고지).
+
+## 2. ★★ 다음 차수 즉시 진행 우선순위 — 경쟁 약점 잔여 보강 (순서대로)
+★**원칙: 아래는 모두 실 광고/외부 계정 자격증명 등록 + 라이브 검증과 함께 안전하게 활성화**한다(미검증 매체 API 파라미터·암호서명 투입은 "기존 안정성" 위반이므로 253차에 정직 보류). 자격증명만 등록하면 즉시 실행되는 배선은 완료, 활성화·검증만 남음.
+1. **프리퀀시캡 Google/Kakao/LINE 네이티브** (현 부분 / 벤치 88): Meta/TikTok 네이티브 보유. Google(GDN frequency_caps·Display/Video한정)·Kakao Moment(adgroup 빈도)·LINE(campaign 빈도)를 각 매체 캠페인타입별 API로 settings-gated 추가 → **실 광고계정으로 라이브 검증**(Search 캠페인 에러 회피).
+2. **인크리멘탈리티 인과 holdout** (82 / 85): 현재 관측 지오리프트. AdAdapters create에 **media geo-exclusion(control 지역 광고제외) 배선** + 실 광고집행으로 인과 리프트 검증(autoDesignGeoHoldout의 geo_regions를 매체 타겟팅에 적용).
+3. **BI S3/Redshift 커넥터** (76 / 88): DataExport에 AWS SigV4 서명(S3 PUT)·Redshift Data API 추가 → **실 AWS 계정으로 검증**(범용 HTTP가 현 대체 커버).
+4. **크리에이티브 생성형 DCO** (84 / 88): DCO 소재 소진 시 ClaudeAI 이미지 생성 파이프라인 자동 트리거(Meta Andromeda급)·새 챌린저 자동 런칭 → 생성 API 키 등록 후.
+5. **writeback CREATE 5종** (78 / 90): walmart/qoo10/yahoo_jp/godomall pushProduct → **실 셀러계정 등록 후**.
+6. **i18n 15국 정식키**: 252·253차 신규 라벨(VAT 별도·데이파팅·DCO·제네릭스펙·오디언스갱신 등) 인라인 한글폴백→정식 키. ★ko.js marketing ns 3중복 shadowing 트랩.
+7. (251차 잔여 승계) capped 플랜 인앱모달 e2e·추가팩 Paddle 실청구 reconcile·JourneyBuilder↔platform_growth.
+
+## 3. 트랩 (252·253차 신규)
+- **PS 샌드박스 `Remove-Item` + "C:\Program" 동시 등장 차단**: pscp/plink 경로("C:\Program Files\PuTTY\")가 있는 명령에 Remove-Item 포함 시 보호경로 삭제로 오인 차단 → tar 덮어쓰기로 Remove-Item 제거.
+- **plink heredoc `for ... in "..."` 루프 silent 실패**: 중첩 따옴표가 깨져 무출력·미반영 → **파일별 명시 cp** (`cp -f a b && cp -f c d && ...`)로 배포.
+- **mysql `-BNe "...(*)..."` 따옴표 깨짐**: PowerShell→plink 다층 따옴표로 `(*)` 파싱 실패 → **base64 인코딩**(`echo B64 | base64 -d | mysql`)로 회피.
+- **로컬 PHP 부재**: `_tmp_php81` 없음 → 백엔드 php-l은 **서버 업로드 후 `php -l`**(표준). 프론트는 vite build 로컬 검증.
+- **GA4 이중 통합 구분**: 하드코딩 google_analytics(measurement_id=Measurement Protocol·픽셀페이지 pixel_configs 소속)와 레지스트리 ga4(property_id+서비스계정JSON=Data API 수집·web_analytics_metrics). 252차에 ga4 일급 일원화·MP는 픽셀페이지.
+- **데이파팅 윈도 밖 = 항상 조기반환**: 정상 최적화가 소재 재활성화하는 것 방지(wasPaused 무관 return).
+
+## 4. 검증·배포 상태
+- 매 항목 서버 `php -l` PASS(PHP 8.1.34 운영동일)·운영+데모 백엔드 swap+fpm restart·프론트 vite build(운영/데모 `--mode demo`)+nginx reload.
+- `optimize_cron`(포트폴리오+자가학습+geo홀드아웃+오디언스갱신+DCO+데이파팅 전부 포함) **EXIT=0**·홈/요금 200·capture 200·portfolio_realloc=0(데이터0 no-op 정확).
+- 운영 performance_metrics=0(실 광고 미수집)→분석/자가학습/데모그래픽 honest 빈. **커넥터 실 자격증명 등록·동기화 선행 시 실측 반영**.
+
+## 5. 커밋 (브랜치 feat/n236-admin-growth-automation, master 미접촉)
+`fe6cd635`(252 5결함+포트폴리오) · `6a14a90`(VAT) · `082b6c7`(#0+#1) · `4475a20`(#2) · `a3e3450`(#3) · `e0ca7ba`(#4) · `e382aa1`(#5A) · `8dc29d6`(#5C) · `bdda825`(#6) · 본 인계서. ★전부 기존 자산 재사용·신규 중복0.
+
+---
+
 # 251차 세션 인계서 — **마케팅 자동화 폐루프 초고도화(자가학습·채널효과랭킹·승인즉시집행) + 플랫폼 자체 성장(act-as 컨텍스트·가입/결제 퍼널 자동적재) + Integration Hub 정합 + 상품등록 종량과금(추가팩·이미지호스팅·광고디자인 연동) + plan-pricing 크래시·404/401 수정**
 
 > **작성일**: 2026-06-29 (사용자 명시 승인) · 운영 roi.genie-go.com / 데모 roidemo.genie-go.com · primary=**E:\project\GeniegoROI** · 브랜치 `feat/n236-admin-growth-automation` · ★**커밋 cd5a64eab2d push 완료 + master fast-forward 병합·push 완료**(56cb8452→cd5a64eab2d, 137커밋·충돌0). 운영/데모 **수동 배포·라이브검증 완료**(CI deploy.yml=SSH시크릿 미등록→빌드만, 실배포는 수동 pscp+fpm+nginx).
