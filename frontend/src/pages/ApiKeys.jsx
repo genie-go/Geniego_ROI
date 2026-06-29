@@ -141,7 +141,7 @@ const CHANNEL_FIELDS = {
   youtube:   [{ k: 'api_key', label: 'API 키 (YouTube Data API · client_id/secret 아님)', secret: true }, { k: 'channel_id', label: '채널 ID (UC…)' }],
   instagram: [{ k: 'access_token', label: '액세스 토큰', secret: true }, { k: 'ig_user_id', label: 'IG 비즈니스 계정 ID' }],
   facebook:  [{ k: 'access_token', label: '페이지 액세스 토큰', secret: true }, { k: 'page_id', label: '페이지 ID' }],
-  twitch:    [{ k: 'client_id', label: 'Client ID' }, { k: 'client_secret', label: 'Client Secret', secret: true }],
+  twitch:    [{ k: 'client_id', label: 'Client ID' }, { k: 'client_secret', label: 'Client Secret', secret: true }, { k: 'login', label: '채널 로그인명 (twitch.tv/ 뒤의 이름)' }],
   // 국내 오픈마켓
   coupang:   [{ k: 'access_key', label: '액세스 키', secret: true }, { k: 'secret_key', label: '시크릿 키', secret: true }, { k: 'vendor_id', label: '벤더 ID' }],
   naver_smartstore: [{ k: 'client_id', label: 'Client ID' }, { k: 'client_secret', label: 'Client Secret', secret: true }],
@@ -298,7 +298,7 @@ const REAL_ADAPTER = new Set([
   'applovin', 'mintegral', 'yandex_ads', 'yahoo_jp_ads',      // 롱테일 광고(AD_SHORT + runSync fetchers)
   // [현 차수] SNS 라이브 채널 통계 동기화(Connectors::syncSnsLiveOnSave) — 등록 즉시 채널 통계(구독자/조회수/팔로워) 수집.
   //   Twitch 는 브로드캐스터 OAuth 스코프 필요로 미편입(honest pending).
-  'youtube', 'instagram', 'facebook',                         // YouTube Data API / Instagram·Facebook Graph API
+  'youtube', 'instagram', 'facebook', 'twitch',               // YouTube Data API / Instagram·Facebook Graph API / Twitch Helix
 ]);
 /* [현 차수] ★연결 테스트가 '실제 발급 검증'(라이브 채널 API 호출로 키 유효성 확인)인 채널 — 백엔드 hasLiveVerify 정합.
    '발급 확인됨' 배지는 이 채널들의 test_status==='ok'(실검증 통과)에만 표기한다(임의 표기 금지).

@@ -3944,6 +3944,35 @@ final class Connectors
             'followers' => (int)($body['followers_count'] ?? ($body['fan_count'] ?? 0)), 'views' => 0, 'items' => 0, 'live_now' => 0];
     }
 
+    /** Twitch 채널 통계(Helix · client_id+client_secret app 토큰 + login). 라이브 동시시청자 포함.
+     *   ★팔로워수는 user OAuth(moderator:read:followers) 필요 → app 토큰으론 0(honest). 채널명/라이브/시청자는 수집. */
+    private static function fetchTwitchStats(string $tenant): array
+    {
+        $cid    = self::loadCred($tenant, 'twitch', 'client_id');
+        $secret = self::loadCred($tenant, 'twitch', 'client_secret');
+        $login  = ltrim(trim(self::loadCred($tenant, 'twitch', 'login')), '@');
+        if ($cid === '' || $secret === '') return ['hasCreds' => false];
+        if ($login === '') return ['hasCreds' => true, 'live' => false, 'error' => 'Twitch 채널 로그인명(login) 미등록 — 조회 대상 채널 지정 필요'];
+        // 1) app access token(client_credentials)
+        [$tc, $tb] = self::httpPost('https://id.twitch.tv/oauth2/token',
+            ['client_id' => $cid, 'client_secret' => $secret, 'grant_type' => 'client_credentials'],
+            ['Content-Type' => 'application/x-www-form-urlencoded']);
+        $token = (string)($tb['access_token'] ?? '');
+        if ($token === '') return ['hasCreds' => true, 'live' => false, 'error' => "twitch token http $tc (client_id/secret 확인)"];
+        $hdr = ['Authorization' => 'Bearer ' . $token, 'Client-Id' => $cid];
+        // 2) 사용자 정보(broadcaster id + display name)
+        [$uc, $ub, $ue] = self::httpGet('https://api.twitch.tv/helix/users?login=' . urlencode($login), $hdr);
+        $u = $ub['data'][0] ?? null;
+        if (!$u) return ['hasCreds' => true, 'live' => false, 'error' => ($ue ?: "twitch users http $uc") . ' — 채널 로그인명 확인'];
+        $bid = (string)($u['id'] ?? '');
+        // 3) 라이브 여부 + 동시시청자(streams)
+        $liveNow = 0;
+        [$sc, $sb] = self::httpGet('https://api.twitch.tv/helix/streams?user_id=' . urlencode($bid), $hdr);
+        if (($stream = $sb['data'][0] ?? null)) $liveNow = (int)($stream['viewer_count'] ?? 0);
+        return ['hasCreds' => true, 'live' => true, 'ext_id' => $bid, 'title' => (string)($u['display_name'] ?? $login),
+            'followers' => 0, 'views' => 0, 'items' => 0, 'live_now' => $liveNow]; // 팔로워는 user OAuth 필요(honest 0)
+    }
+
     private static function persistSnsStats(string $tenant, string $channel, array $r): void
     {
         $pdo = Db::pdo(); self::ensureSnsStatsTable($pdo);
@@ -3965,7 +3994,7 @@ final class Connectors
                 'youtube'   => self::fetchYoutubeStats($tenant),
                 'instagram' => self::fetchInstagramStats($tenant),
                 'facebook'  => self::fetchFacebookStats($tenant),
-                'twitch'    => ['hasCreds' => self::loadCred($tenant, 'twitch', 'client_id') !== '', 'live' => false, 'error' => 'Twitch 팔로워/통계는 브로드캐스터 OAuth 스코프 필요(client 자격증명만으론 제한) — 로드맵'],
+                'twitch'    => self::fetchTwitchStats($tenant),
                 default     => ['skipped' => true],
             };
             if (!empty($r['live'])) {
