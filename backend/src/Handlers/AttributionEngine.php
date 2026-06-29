@@ -417,6 +417,150 @@ final class AttributionEngine
         return $out;
     }
 
+    /* ════════════ [초고도화 #2] 지오 홀드아웃 자동화 엔진 (자동 설계·일일 검증·가드레일·자동 결론) ════════════
+     *   기존 수동 holdout_experiment 레지스트리 위에 '자동화 레이어'를 얹어 Northbeam/Polar 지오리프트 자동화 격차 해소.
+     *   ★안전: media geo-exclusion 미지원이라 광고 집행을 바꾸지 않는 '관측(observational) 지오 리프트'(지역 분할 후
+     *   기준기간 대비 성장률 diff-in-diff). 광고 미변경=spend 영향0. 인과 holdout(control 지역 광고제외)은 geo-targeting
+     *   지원 시 활성(로드맵)으로 정직 표기. 자동 설계는 spend 무변경이라 안전하게 cron 자동 실행. */
+
+    /** 주소에서 광역 지역(시/도) 추출 — geo 실험 그룹핑. 빈/미상은 ''(실험 제외). */
+    private static function regionOf(string $addr): string
+    {
+        $addr = trim($addr);
+        if ($addr === '') return '';
+        $tok = preg_split('/\s+/', $addr)[0] ?? '';
+        static $map = ['서울특별시'=>'서울','서울'=>'서울','경기도'=>'경기','경기'=>'경기','인천광역시'=>'인천','인천'=>'인천',
+            '부산광역시'=>'부산','부산'=>'부산','대구광역시'=>'대구','대구'=>'대구','광주광역시'=>'광주','광주'=>'광주',
+            '대전광역시'=>'대전','대전'=>'대전','울산광역시'=>'울산','울산'=>'울산','세종특별자치시'=>'세종','세종'=>'세종',
+            '강원특별자치도'=>'강원','강원도'=>'강원','강원'=>'강원','충청북도'=>'충북','충북'=>'충북','충청남도'=>'충남','충남'=>'충남',
+            '전라북도'=>'전북','전북특별자치도'=>'전북','전북'=>'전북','전라남도'=>'전남','전남'=>'전남','경상북도'=>'경북','경북'=>'경북',
+            '경상남도'=>'경남','경남'=>'경남','제주특별자치도'=>'제주','제주도'=>'제주','제주'=>'제주'];
+        foreach ($map as $k => $v) { if (strncmp($tok, $k, strlen($k)) === 0) return $v; }
+        return mb_substr($tok, 0, 10);
+    }
+
+    /** 실험기간 내 지역집합의 전환(취소제외 주문)·매출 집계 — addr→regionOf 버킷팅(LIKE 모호성 회피). */
+    private static function ordersInRegions(PDO $pdo, string $tenant, array $regionSet, string $since): array
+    {
+        $set = array_flip(array_map('strval', $regionSet));
+        $conv = 0; $rev = 0.0;
+        try {
+            $st = $pdo->prepare("SELECT addr, total_price FROM channel_orders WHERE tenant_id=? AND COALESCE(event_type,'order') NOT IN ('cancel','return') AND ordered_at >= ?");
+            $st->execute([$tenant, $since]);
+            foreach ($st->fetchAll(PDO::FETCH_ASSOC) ?: [] as $r) {
+                $reg = self::regionOf((string)($r['addr'] ?? '')); if ($reg === '' || !isset($set[$reg])) continue;
+                $conv++; $rev += (float)($r['total_price'] ?? 0);
+            }
+        } catch (Throwable $e) {}
+        return [$conv, $rev];
+    }
+
+    /** 자동 geo-홀드아웃 설계 — 최근 주문 지역을 주문량 균형 분할(test/control)해 running 실험 생성. spend 무변경(관측). */
+    public static function autoDesignGeoHoldout(PDO $pdo, string $tenant, string $channel = '', array $opts = []): array
+    {
+        self::ensureExpTable($pdo);
+        $days    = max(7, min(60, (int)($opts['duration_days'] ?? 21)));
+        $baseWin = max(14, (int)($opts['baseline_days'] ?? 28));
+        $regions = [];
+        try {
+            $st = $pdo->prepare("SELECT addr, total_price FROM channel_orders WHERE tenant_id=? AND COALESCE(event_type,'order') NOT IN ('cancel','return') AND ordered_at >= ?");
+            $st->execute([$tenant, gmdate('Y-m-d', time() - $baseWin * 86400)]);
+            foreach ($st->fetchAll(PDO::FETCH_ASSOC) ?: [] as $r) {
+                $reg = self::regionOf((string)($r['addr'] ?? '')); if ($reg === '') continue;
+                if (!isset($regions[$reg])) $regions[$reg] = 0;
+                $regions[$reg]++;
+            }
+        } catch (Throwable $e) {}
+        if (count($regions) < 4) return ['ok' => false, 'error' => '지역 분포 부족(최소 4개 시/도 주문 필요) — 주문 데이터 축적 후 자동 설계됩니다.'];
+        uasort($regions, fn($a, $b) => $b <=> $a);
+        $test = []; $ctrl = []; $tSum = 0; $cSum = 0;
+        foreach ($regions as $reg => $cnt) { if ($tSum <= $cSum) { $test[] = (string)$reg; $tSum += $cnt; } else { $ctrl[] = (string)$reg; $cSum += $cnt; } }
+        if ($tSum <= 0 || $cSum <= 0) return ['ok' => false, 'error' => '균형 분할 실패(한쪽 그룹 주문 0).'];
+        $now = gmdate('c'); $start = gmdate('Y-m-d'); $end = gmdate('Y-m-d', time() + $days * 86400);
+        $geoRegions = json_encode(['test' => $test, 'control' => $ctrl], JSON_UNESCAPED_UNICODE);
+        $meta = ['auto_design' => ['mode' => 'observational', 'baseline_days' => $baseWin, 'baseline_treatment' => $tSum,
+            'baseline_control' => $cSum, 'duration_days' => $days, 'guardrails' => ['min_days' => 7, 'min_conv' => 30, 'early_stop_lift_pct' => -5], 'auto' => true,
+            'note' => '관측 지오 리프트(광고 미변경·spend영향0). 인과 holdout 은 geo-targeting 지원 시 활성(로드맵).']];
+        try {
+            $st = $pdo->prepare("INSERT INTO holdout_experiment(tenant_id,name,channel,hypothesis,status,control_size,treatment_size,revenue_per_conversion,start_date,end_date,geo_strategy,geo_regions,geo_results,result_json,created_at,updated_at)
+                                 VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+            $st->execute([$tenant, '자동 지오 홀드아웃 ' . $start, substr($channel, 0, 60), '광고 노출 지역군(test) vs 대조 지역군(control)의 기준기간 대비 전환 성장 리프트',
+                'running', $cSum, $tSum, 0, $start, $end, 'regional', $geoRegions, null, json_encode($meta, JSON_UNESCAPED_UNICODE), $now, $now]);
+            return ['ok' => true, 'id' => (int)$pdo->lastInsertId(), 'test_regions' => $test, 'control_regions' => $ctrl, 'baseline' => ['treatment' => $tSum, 'control' => $cSum], 'duration_days' => $days];
+        } catch (Throwable $e) { return ['ok' => false, 'error' => $e->getMessage()]; }
+    }
+
+    /** running geo 실험 일일 검증 — 실측 전환 집계→리프트 검정→가드레일→자동 결론(기간종료/유의/조기중단). 반환: 갱신수. */
+    public static function validateRunningHoldouts(PDO $pdo, string $tenant): int
+    {
+        self::ensureExpTable($pdo); $n = 0;
+        try {
+            $st = $pdo->prepare("SELECT * FROM holdout_experiment WHERE tenant_id=? AND status='running' AND geo_strategy='regional'");
+            $st->execute([$tenant]);
+            foreach ($st->fetchAll(PDO::FETCH_ASSOC) ?: [] as $row) {
+                $geo = json_decode((string)($row['geo_regions'] ?? ''), true);
+                $rj  = json_decode((string)($row['result_json'] ?? ''), true) ?: [];
+                $meta = $rj['auto_design'] ?? [];
+                if (!is_array($geo) || empty($geo['test']) || empty($geo['control'])) continue;
+                $start = (string)($row['start_date'] ?? ''); $end = (string)($row['end_date'] ?? '');
+                $baseT = (float)($meta['baseline_treatment'] ?? $row['treatment_size']);
+                $baseC = (float)($meta['baseline_control'] ?? $row['control_size']);
+                if ($baseT <= 0 || $baseC <= 0) continue;
+                [$curT, $revT] = self::ordersInRegions($pdo, $tenant, $geo['test'], $start);
+                [$curC, $revC] = self::ordersInRegions($pdo, $tenant, $geo['control'], $start);
+                $rpc = $curT > 0 ? $revT / $curT : 0.0;
+                // p = 현재전환/기준전환(성장률) → lift = 치료 성장률 − 대조 성장률(diff-in-diff).
+                $lift = self::computeLift($curC, $baseC, $curT, $baseT, $rpc);
+                $daysRun = $start !== '' ? max(0, (int)floor((time() - strtotime($start)) / 86400)) : 0;
+                $minDays = (int)($meta['guardrails']['min_days'] ?? 7);
+                $minConv = (int)($meta['guardrails']['min_conv'] ?? 30);
+                $earlyStop = (float)($meta['guardrails']['early_stop_lift_pct'] ?? -5);
+                $enough = ($curT + $curC) >= $minConv && $daysRun >= 3;
+                $geoResults = ['as_of' => gmdate('c'), 'days_run' => $daysRun, 'mode' => 'observational',
+                    'treatment' => ['conv' => $curT, 'baseline' => $baseT], 'control' => ['conv' => $curC, 'baseline' => $baseC], 'lift' => $lift];
+                $conclude = false; $verdict = '';
+                if ($end !== '' && gmdate('Y-m-d') >= $end) { $conclude = true; $verdict = '기간 종료 — 최종 리프트 확정'; }
+                elseif ($enough && $daysRun >= $minDays && !empty($lift['significant'])) { $conclude = true; $verdict = '통계 유의 도달 — 조기 확정'; }
+                elseif ($enough && $daysRun >= $minDays && (float)($lift['lift_abs_pct'] ?? 0) < $earlyStop) { $conclude = true; $verdict = '가드레일: 강한 음의 리프트 — 조기 종료'; }
+                $rj['interim'] = $geoResults; if ($conclude) { $rj['final'] = $lift; $rj['verdict'] = $verdict; }
+                try {
+                    $pdo->prepare("UPDATE holdout_experiment SET status=?,control_conversions=?,treatment_conversions=?,revenue_per_conversion=?,geo_results=?,result_json=?,updated_at=? WHERE id=? AND tenant_id=?")
+                        ->execute([$conclude ? 'concluded' : 'running', $curC, $curT, $rpc, json_encode($geoResults, JSON_UNESCAPED_UNICODE), json_encode($rj, JSON_UNESCAPED_UNICODE), gmdate('c'), (int)$row['id'], $tenant]);
+                    $n++;
+                } catch (Throwable $e) {}
+            }
+        } catch (Throwable $e) {}
+        return $n;
+    }
+
+    /** [cron 단일 진입] 테넌트 geo 자동화 — running 있으면 검증, 없으면 데이터 충분 시 자동 설계. spend 무변경(안전). */
+    public static function autoRunGeoHoldouts(PDO $pdo, string $tenant): array
+    {
+        if ($tenant === '' || $tenant === 'unknown' || strncmp($tenant, 'demo', 4) === 0) return ['validated' => 0, 'designed' => false];
+        self::ensureExpTable($pdo);
+        $validated = self::validateRunningHoldouts($pdo, $tenant);
+        $hasRunning = false;
+        try {
+            $c = $pdo->prepare("SELECT COUNT(*) FROM holdout_experiment WHERE tenant_id=? AND status='running' AND geo_strategy='regional'");
+            $c->execute([$tenant]); $hasRunning = ((int)$c->fetchColumn()) > 0;
+        } catch (Throwable $e) {}
+        $designed = false;
+        if (!$hasRunning) { $d = self::autoDesignGeoHoldout($pdo, $tenant); $designed = !empty($d['ok']); }
+        return ['validated' => $validated, 'designed' => $designed];
+    }
+
+    /** POST /v424/attribution/geo-holdout/auto-design — 수동 트리거(자동 설계 1건). */
+    public static function geoHoldoutAutoDesign(Request $request, Response $response, array $args): Response
+    {
+        $t = self::tenant($request);
+        if ($t === '') return self::ok($response, ['ok' => false, 'error' => '인증이 필요합니다.']);
+        try {
+            $b = (array)($request->getParsedBody() ?? []);
+            $r = self::autoDesignGeoHoldout(Db::pdo(), $t, (string)($b['channel'] ?? ''), $b);
+            return self::ok($response, $r);
+        } catch (Throwable $e) { return self::fail($response, $e, ['ok' => false]); }
+    }
+
     /** GET /v424/attribution/experiments — 목록(테넌트). */
     public static function experiments(Request $request, Response $response, array $args): Response
     {

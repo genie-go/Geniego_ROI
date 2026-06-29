@@ -1221,6 +1221,8 @@ class AutoCampaign
                 $tStmt = $pdo->query("SELECT DISTINCT tenant_id FROM auto_campaign WHERE status='active'");
                 foreach (($tStmt ? $tStmt->fetchAll(PDO::FETCH_COLUMN) : []) as $tid) {
                     try { \Genie\Handlers\AutoRecommend::learnFromOutcomes($pdo, (string)$tid); } catch (\Throwable $e) {}
+                    // [초고도화 #2] 지오 홀드아웃 자동화 — running 검증 + 없으면 자동 설계(관측·spend무변경·안전·비차단).
+                    try { \Genie\Handlers\AttributionEngine::autoRunGeoHoldouts($pdo, (string)$tid); } catch (\Throwable $e) {}
                 }
             } catch (\Throwable $e) {}
         } catch (\Throwable $e) {}

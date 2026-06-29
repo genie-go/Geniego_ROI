@@ -851,6 +851,8 @@ return function (App $app): void {
         'PUT /api/v424/attribution/experiments/{id}' => 'Genie\\Handlers\\AttributionEngine::updateExperiment',
         'DELETE /v424/attribution/experiments/{id}'     => 'Genie\\Handlers\\AttributionEngine::deleteExperiment',
         'DELETE /api/v424/attribution/experiments/{id}' => 'Genie\\Handlers\\AttributionEngine::deleteExperiment',
+        'POST /v424/attribution/geo-holdout/auto-design'     => 'Genie\\Handlers\\AttributionEngine::geoHoldoutAutoDesign', // [초고도화 #2] 자동 지오 홀드아웃 설계
+        'POST /api/v424/attribution/geo-holdout/auto-design' => 'Genie\\Handlers\\AttributionEngine::geoHoldoutAutoDesign',
         // [현 차수] ② MMM(마케팅 믹스 모델) + 예측 예산 최적화
         'GET /v424/mmm/model'         => 'Genie\\Handlers\\Mmm::model',
         'GET /api/v424/mmm/model'     => 'Genie\\Handlers\\Mmm::model',
@@ -2977,6 +2979,8 @@ return function (App $app): void {
     $register('PUT', '/api/v424/attribution/experiments/{id}');
     $register('DELETE', '/v424/attribution/experiments/{id}');
     $register('DELETE', '/api/v424/attribution/experiments/{id}');
+    $register('POST', '/v424/attribution/geo-holdout/auto-design');
+    $register('POST', '/api/v424/attribution/geo-holdout/auto-design');
     // [251차] 상품등록 추가팩(종량) + 이미지 호스팅 연동
     $register('GET',  '/v424/plan/product-usage');             $register('GET',  '/api/v424/plan/product-usage');
     $register('POST', '/v424/plan/product-addon/purchase');    $register('POST', '/api/v424/plan/product-addon/purchase');
