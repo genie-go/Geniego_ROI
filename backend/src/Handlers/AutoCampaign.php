@@ -471,12 +471,16 @@ class AutoCampaign
                 // [현 차수 감사 P1] A/B variant 도 하위 캐스케이드 활성화(캠페인은 위에서 활성). 변형 ext_id 는 ab_variant 보존.
                 if ($status === 'active') {
                     try {
+                        // 채널별 캠페인 external_id 맵 — A/B variant 활성화에 campExt 전달(Google cid 추출로 resourceName 재구성).
+                        $campExtByCh = [];
+                        foreach ($allocs as $a) { $cc = (string)($a['channel'] ?? ''); if ($cc !== '') $campExtByCh[$cc] = (string)($a['external_id'] ?? ''); }
                         $vs = $pdo->prepare("SELECT channel, adset_ext_id, ad_ext_id FROM ab_variant WHERE tenant_id=? AND campaign_id=? AND status<>'paused'");
                         $vs->execute([$tenant, $id]);
                         foreach ($vs->fetchAll(PDO::FETCH_ASSOC) ?: [] as $v) {
                             $vch = (string)($v['channel'] ?? ''); $vad = (string)($v['ad_ext_id'] ?? ''); $vas = (string)($v['adset_ext_id'] ?? '');
                             if ($vch === '' || ($vad === '' && $vas === '')) continue;
-                            $vr = AdAdapters::activateDelivery($pdo, $tenant, self::connectorKey($vch), '', $vas, $vad);
+                            $vCampExt = $campExtByCh[$vch] ?? ($campExtByCh[self::connectorKey($vch)] ?? '');
+                            $vr = AdAdapters::activateDelivery($pdo, $tenant, self::connectorKey($vch), $vCampExt, $vas, $vad);
                             $pushed[] = ['channel' => $vch, 'external_id' => ($vad ?: $vas), 'ok' => !empty($vr['ok']), 'detail' => 'ab:' . (string)($vr['error'] ?? $vr['status'] ?? '')];
                         }
                     } catch (\Throwable $e) { /* ab_variant 부재/구스키마 무해 */ }
@@ -1010,6 +1014,27 @@ class AutoCampaign
             return self::json($res, ['ok' => true, 'history' => $rows]);
         } catch (\Throwable $e) {
             return self::json($res, ['ok' => false, 'error' => $e->getMessage(), 'history' => []]);
+        }
+    }
+
+    /** GET /v423/auto-campaign/execution-log — 매체 집행 감사로그(생성/활성화/정지, 최신순·본 테넌트). 은행급 추적성. */
+    public static function executionLog(Request $req, Response $res): Response
+    {
+        try {
+            $tenant = self::tenant($req);
+            if ($tenant === 'unknown') return self::json($res, ['ok' => false, 'error' => '로그인이 필요합니다.', 'log' => []], 401);
+            $pdo = Db::pdo();
+            $rows = [];
+            try {
+                $st = $pdo->prepare("SELECT channel,action,external_id,ok,status,detail,created_at FROM ad_execution_log WHERE tenant_id=? ORDER BY id DESC LIMIT 100");
+                $st->execute([$tenant]);
+                $rows = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+                foreach ($rows as &$r) { $r['ok'] = (bool)(int)($r['ok'] ?? 0); }
+                unset($r);
+            } catch (\Throwable $e) { $rows = []; } // 테이블 부재(집행 0) → 빈 목록
+            return self::json($res, ['ok' => true, 'log' => $rows]);
+        } catch (\Throwable $e) {
+            return self::json($res, ['ok' => false, 'error' => $e->getMessage(), 'log' => []], 500);
         }
     }
 

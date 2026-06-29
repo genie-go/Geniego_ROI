@@ -179,19 +179,21 @@ final class AdAdapters
             'countries'    => (is_array($camp['countries'] ?? null) && $camp['countries']) ? array_values(array_filter(array_map('strval', $camp['countries']))) : ['KR'],
         ];
         try {
-            switch ($channel) {
-                case 'meta_ads':        return self::metaCreate($pdo, $tenant, $name, $daily, $settings);
-                case 'google_ads':      return self::googleCreate($pdo, $tenant, $name, $daily, $settings);
-                case 'tiktok_business': return self::tiktokCreate($pdo, $tenant, $name, $daily, $settings);
-                case 'naver_sa':        return self::naverCreate($pdo, $tenant, $name, $daily);
-                case 'kakao_moment':    return self::kakaoCreate($pdo, $tenant, $name, $daily);
-                case 'line_ads':        return self::lineCreate($pdo, $tenant, $name, $daily);
-                case 'coupang':         return self::fail('Coupang 광고 집행 생성은 파트너 승인 API 가 별도 필요합니다. 수동 연동을 이용하세요.', 'unsupported');
-                default:                return self::fail('지원하지 않는 채널: ' . $channel, 'unsupported');
-            }
+            $res = match ($channel) {
+                'meta_ads'        => self::metaCreate($pdo, $tenant, $name, $daily, $settings),
+                'google_ads'      => self::googleCreate($pdo, $tenant, $name, $daily, $settings),
+                'tiktok_business' => self::tiktokCreate($pdo, $tenant, $name, $daily, $settings),
+                'naver_sa'        => self::naverCreate($pdo, $tenant, $name, $daily),
+                'kakao_moment'    => self::kakaoCreate($pdo, $tenant, $name, $daily),
+                'line_ads'        => self::lineCreate($pdo, $tenant, $name, $daily),
+                'coupang'         => self::fail('Coupang 광고 집행 생성은 파트너 승인 API 가 별도 필요합니다. 수동 연동을 이용하세요.', 'unsupported'),
+                default           => self::fail('지원하지 않는 채널: ' . $channel, 'unsupported'),
+            };
         } catch (Throwable $e) {
-            return self::fail($e->getMessage());
+            $res = self::fail($e->getMessage());
         }
+        self::logExecution($pdo, $tenant, $channel, 'create_campaign', $res);
+        return $res;
     }
 
     /** 예산 변경(최적화 액추에이터). */
@@ -216,16 +218,19 @@ final class AdAdapters
     {
         if (!self::executionEnabled() || $externalId === '') return ['ok' => false, 'status' => 'skipped'];
         try {
-            switch ($channel) {
-                case 'meta_ads':        return self::metaSetStatus($pdo, $tenant, $externalId, 'PAUSED');
-                case 'google_ads':      return self::googleSetStatus($pdo, $tenant, $externalId, 'PAUSED');
-                case 'tiktok_business': return self::tiktokSetStatus($pdo, $tenant, $externalId, 'DISABLE');
-                case 'naver_sa':        return self::naverSetLock($pdo, $tenant, $externalId, true);
-                case 'kakao_moment':    return self::kakaoSetConfig($pdo, $tenant, $externalId, 'OFF');
-                case 'line_ads':        return self::lineSetStatus($pdo, $tenant, $externalId, 'PAUSED');
-                default:                return ['ok' => false, 'status' => 'unsupported'];
-            }
-        } catch (Throwable $e) { return ['ok' => false, 'error' => $e->getMessage()]; }
+            $res = match ($channel) {
+                'meta_ads'        => self::metaSetStatus($pdo, $tenant, $externalId, 'PAUSED'),
+                'google_ads'      => self::googleSetStatus($pdo, $tenant, $externalId, 'PAUSED'),
+                'tiktok_business' => self::tiktokSetStatus($pdo, $tenant, $externalId, 'DISABLE'),
+                'naver_sa'        => self::naverSetLock($pdo, $tenant, $externalId, true),
+                'kakao_moment'    => self::kakaoSetConfig($pdo, $tenant, $externalId, 'OFF'),
+                'line_ads'        => self::lineSetStatus($pdo, $tenant, $externalId, 'PAUSED'),
+                default           => ['ok' => false, 'status' => 'unsupported'],
+            };
+        } catch (Throwable $e) { $res = ['ok' => false, 'error' => $e->getMessage()]; }
+        $res['external_id'] = $res['external_id'] ?? $externalId;
+        self::logExecution($pdo, $tenant, $channel, 'pause', $res);
+        return $res;
     }
 
     /**
@@ -269,9 +274,14 @@ final class AdAdapters
                     if ($adExtId !== '')    $r['ad']       = self::metaSetStatus($pdo, $tenant, $adExtId, 'ACTIVE');
                     break;
                 case 'google_ads':
-                    if ($campExtId !== '')  $r['campaign'] = self::googleSetStatus($pdo, $tenant, $campExtId, 'ENABLED');
-                    if ($adsetExtId !== '') $r['adgroup']  = self::googleResourceStatus($pdo, $tenant, $adsetExtId, 'adGroups', 'ENABLED');
-                    if ($adExtId !== '')    $r['ad']       = self::googleResourceStatus($pdo, $tenant, $adExtId, 'adGroupAds', 'ENABLED');
+                    // [현 차수 감사] adset/ad ext 가 숫자(신규 정합)면 캠페인 resourceName 의 cid 로 resourceName 재구성.
+                    //   이미 resourceName(customers/…) 형식(구 데이터)이면 그대로 사용(후방호환).
+                    $gcid = preg_match('#customers/(\d+)/#', $campExtId, $gm) ? $gm[1] : '';
+                    $agRn = ($adsetExtId === '' ? '' : (strpos($adsetExtId, 'customers/') === 0 ? $adsetExtId : ($gcid !== '' ? "customers/{$gcid}/adGroups/{$adsetExtId}" : '')));
+                    $adRn = ($adExtId === '' ? '' : (strpos($adExtId, 'customers/') === 0 ? $adExtId : ($gcid !== '' && $adsetExtId !== '' ? "customers/{$gcid}/adGroupAds/{$adsetExtId}~{$adExtId}" : '')));
+                    if ($campExtId !== '') $r['campaign'] = self::googleSetStatus($pdo, $tenant, $campExtId, 'ENABLED');
+                    if ($agRn !== '')      $r['adgroup']  = self::googleResourceStatus($pdo, $tenant, $agRn, 'adGroups', 'ENABLED');
+                    if ($adRn !== '')      $r['ad']       = self::googleResourceStatus($pdo, $tenant, $adRn, 'adGroupAds', 'ENABLED');
                     break;
                 case 'tiktok_business':
                     if ($campExtId !== '')  $r['campaign'] = self::tiktokSetStatus($pdo, $tenant, $campExtId, 'ENABLE');
@@ -298,7 +308,9 @@ final class AdAdapters
         } catch (Throwable $e) { return ['ok' => false, 'error' => $e->getMessage()]; }
         $ok = true; $errs = [];
         foreach ($r as $lvl => $rr) { if (empty($rr['ok'])) { $ok = false; $errs[] = $lvl . ':' . (string)($rr['error'] ?? $rr['status'] ?? 'fail'); } }
-        return ['ok' => $ok, 'levels' => array_keys($r), 'error' => implode(';', $errs)];
+        $out = ['ok' => $ok, 'levels' => array_keys($r), 'error' => implode(';', $errs), 'external_id' => $campExtId];
+        self::logExecution($pdo, $tenant, $channel, 'activate', $out);
+        return $out;
     }
 
     /** Google adGroups/adGroupAds 상태 변경(캐스케이드 활성화용). resourceName=customers/{cid}/adGroups|adGroupAds/{id}. */
@@ -1001,6 +1013,31 @@ final class AdAdapters
         return ['ok' => true, 'retried' => $retried, 'done' => $done, 'failed' => $failed];
     }
 
+    /* ════════════════════════ [현 차수] 집행 감사로그(은행급 추적성) ════════════════════════
+     *   매체 outbound 결과(캠페인 생성/활성화/정지)를 구조화 기록 → 사후 디버깅·감사·집행 이력. 시크릿/PII 미기록. */
+    private static function ensureExecLogTable(PDO $pdo): void
+    {
+        $isMy = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql';
+        $auto = $isMy ? 'INT AUTO_INCREMENT PRIMARY KEY' : 'INTEGER PRIMARY KEY AUTOINCREMENT';
+        try { $pdo->exec("CREATE TABLE IF NOT EXISTS ad_execution_log (
+            id $auto, tenant_id VARCHAR(100) NOT NULL, channel VARCHAR(40), action VARCHAR(40),
+            external_id VARCHAR(255), ok TINYINT(1) DEFAULT 0, status VARCHAR(40), detail VARCHAR(500), created_at VARCHAR(32)
+        )" . ($isMy ? ' ENGINE=InnoDB DEFAULT CHARSET=utf8mb4' : '')); } catch (\Throwable $e) {}
+    }
+
+    /** 집행 결과 1건 감사기록(데모 제외). 시크릿/요청바디 미기록 — 채널·액션·external_id·성공여부·상태·노트만. */
+    public static function logExecution(PDO $pdo, string $tenant, string $channel, string $action, array $result): void
+    {
+        if ($tenant === '' || strncmp($tenant, 'demo', 4) === 0) return;
+        self::ensureExecLogTable($pdo);
+        try {
+            $pdo->prepare("INSERT INTO ad_execution_log (tenant_id,channel,action,external_id,ok,status,detail,created_at) VALUES (?,?,?,?,?,?,?,?)")
+                ->execute([$tenant, $channel, $action, mb_substr((string)($result['external_id'] ?? ''), 0, 255), !empty($result['ok']) ? 1 : 0,
+                    mb_substr((string)($result['status'] ?? (!empty($result['ok']) ? 'ok' : 'fail')), 0, 40),
+                    mb_substr((string)($result['note'] ?? ($result['error'] ?? '')), 0, 500), gmdate('Y-m-d\TH:i:s\Z')]);
+        } catch (\Throwable $e) {}
+    }
+
     /* ── Google: 광고그룹 + 반응형 검색광고(텍스트) — 완전 빌드 가능 ── */
     private static function googleDeliver(PDO $pdo, string $tenant, string $campRes, array $d, int $daily, string $landing, array $settings = []): array
     {
@@ -1034,7 +1071,13 @@ final class AdAdapters
         [$adc, $adr] = self::http('POST', "{$base}/adGroupAds:mutate", $hdr, $adBody);
         $adRes = $adr['results'][0]['resourceName'] ?? '';
         if ($adRes === '') return ['ok' => false, 'error' => 'ad: ' . (self::errMsg($adr) ?: ('HTTP ' . $adc))];
-        return ['ok' => true, 'adgroup_id' => $agRes, 'ad_id' => $adRes, 'note' => 'Google 광고그룹+RSA 생성(PAUSED)'];
+        // [현 차수 감사] ★A/B 정합 — adgroup_id/ad_id 를 숫자로 반환(resourceName 아님). performance_metrics 의 ad-level
+        //   ingest 가 ad_ext_id=adGroupAd.ad.id(숫자)·adset=adGroup.id(숫자)로 적재하므로, resourceName 을 그대로 쓰면
+        //   ab_variant 와 join 미매칭→Google A/B 승자 영구미확정이었다. 활성화 캐스케이드는 cid+숫자로 resourceName 재구성.
+        $agNum = (strrpos($agRes, '/') !== false) ? substr($agRes, strrpos($agRes, '/') + 1) : $agRes;          // customers/cid/adGroups/{id}
+        $adNum = (strpos($adRes, '~') !== false) ? substr($adRes, strpos($adRes, '~') + 1)                       // ...adGroupAds/{ag}~{adId}
+               : ((strrpos($adRes, '/') !== false) ? substr($adRes, strrpos($adRes, '/') + 1) : $adRes);
+        return ['ok' => true, 'adgroup_id' => $agNum, 'ad_id' => $adNum, 'note' => 'Google 광고그룹+RSA 생성(PAUSED)'];
     }
 
     /* ── Naver: 광고그룹 + 텍스트 광고. (비즈채널 ID 필요 — cred 'channel_id' 사용) ── */

@@ -686,6 +686,7 @@ return function (App $app): void {
         'POST /v423/auto-campaign/pause-all'  => 'Genie\\Handlers\\AutoCampaign::pauseAll',
         'POST /v423/auto-campaign/optimize'   => 'Genie\\Handlers\\AutoCampaign::optimize',
         'GET /v423/auto-campaign/optimize-history' => 'Genie\\Handlers\\AutoCampaign::optimizeHistory',
+        'GET /v423/auto-campaign/execution-log' => 'Genie\\Handlers\\AutoCampaign::executionLog',
         'GET /v423/auto-campaign/ab-status'   => 'Genie\\Handlers\\AbTesting::status',
         'POST /v422/ai/campaign-search'        => 'Genie\\Handlers\\ClaudeAI::campaignSearch',
 
@@ -2098,6 +2099,7 @@ return function (App $app): void {
     $register('POST', '/v423/auto-campaign/pause-all');
     $register('POST', '/v423/auto-campaign/optimize');
     $register('GET',  '/v423/auto-campaign/optimize-history');
+    $register('GET',  '/v423/auto-campaign/execution-log');
     $register('GET',  '/v423/auto-campaign/ab-status');
 
     // ── Auth ────────────────────────────────────────────────────────
