@@ -475,6 +475,11 @@ class JourneyBuilder
             self::logNode($pdo, $tenant, $enrollId, $jid, $nodeId, $type, (string)($a['action'] ?? 'processed'), $a);
             $actions[] = ['node'=>$nodeId] + $a;
 
+            // [초고도화 #3] 조용시간 등 defer — 현 노드 유지(미진행)·다음 실행에서 재시도(야간발송 회피·최적시간 발송).
+            if (!empty($a['defer'])) {
+                try { $pdo->prepare("UPDATE journey_enrollments SET last_run_at=:lr WHERE id=:id AND tenant_id=:t")->execute([':lr'=>$now, ':id'=>$enrollId, ':t'=>$tenant]); } catch (\Throwable $e) {}
+                return ['ok'=>true, 'status'=>'deferred', 'actions'=>$actions];
+            }
             $nodeId = self::nextNode($edges, $nodeId, null);
             $pdo->prepare("UPDATE journey_enrollments SET current_node=:n,last_run_at=:lr WHERE id=:id AND tenant_id=:t")
                 ->execute([':n'=>$nodeId, ':lr'=>$now, ':id'=>$enrollId, ':t'=>$tenant]);
@@ -580,6 +585,8 @@ class JourneyBuilder
         // [240차 약점⑥] 빈도캡 — 자동 저니 과발송 차단(딜리버러빌리티 보호).
         $fc = CRM::commsFreqConfig($pdo, $tenant);
         if (CRM::isFrequencyCapped($pdo, $tenant, (int)($enr['customer_id'] ?? 0), $fc['cap'], $fc['window'])) return ['action' => 'skipped', 'reason' => 'frequency_capped'];
+        // [초고도화 #3] 조용시간(STO ON 시 야간 defer) — 최적 시간대 발송(Klaviyo STO 정합·기본 OFF=무영향).
+        if (!CRM::commsSendAllowedNow($fc)) return ['action' => 'deferred_quiet_hours', 'defer' => true, 'reason' => 'quiet_hours'];
         $cfg     = (array)($node['config'] ?? []);
         $subject = (string)($cfg['subject'] ?? '') ?: (string)($node['label'] ?? '안내');
         $html    = (string)($cfg['html'] ?? $cfg['body'] ?? '');
@@ -600,6 +607,10 @@ class JourneyBuilder
         $c     = self::contact($pdo, $tenant, (int)($enr['customer_id'] ?? 0));
         $phone = preg_replace('/[^0-9]/', '', (string)($c['phone'] ?? ''));
         if ($phone === '') return ['action' => 'skipped', 'reason' => 'no_phone'];
+        // [초고도화 #3] ★크로스채널 글로벌 빈도캡(이메일만 적용되던 비대칭 해소) + 조용시간(야간발송 제한·STO ON시 defer).
+        $fc = CRM::commsFreqConfig($pdo, $tenant);
+        if (CRM::isFrequencyCapped($pdo, $tenant, (int)($enr['customer_id'] ?? 0), $fc['cap'], $fc['window'])) return ['action' => 'skipped', 'reason' => 'frequency_capped'];
+        if (!CRM::commsSendAllowedNow($fc)) return ['action' => 'deferred_quiet_hours', 'defer' => true, 'reason' => 'quiet_hours'];
         $cfg     = (array)($node['config'] ?? []);
         $content = (string)($cfg['content'] ?? $cfg['message'] ?? '') ?: (string)($node['label'] ?? '안내');
         $r = \Genie\NaverSms::sendPlatform($pdo, $phone, $content);
@@ -614,6 +625,10 @@ class JourneyBuilder
         $c     = self::contact($pdo, $tenant, (int)($enr['customer_id'] ?? 0));
         $phone = preg_replace('/[^0-9]/', '', (string)($c['phone'] ?? ''));
         if ($phone === '') return ['action' => 'skipped', 'reason' => 'no_phone'];
+        // [초고도화 #3] ★크로스채널 글로벌 빈도캡 + 조용시간(야간발송 제한·STO ON시 defer).
+        $fc = CRM::commsFreqConfig($pdo, $tenant);
+        if (CRM::isFrequencyCapped($pdo, $tenant, (int)($enr['customer_id'] ?? 0), $fc['cap'], $fc['window'])) return ['action' => 'skipped', 'reason' => 'frequency_capped'];
+        if (!CRM::commsSendAllowedNow($fc)) return ['action' => 'deferred_quiet_hours', 'defer' => true, 'reason' => 'quiet_hours'];
         $cfg     = (array)($node['config'] ?? []);
         $tplCode = (string)($cfg['template_code'] ?? '');
         $content = (string)($cfg['content'] ?? '') ?: (string)($node['label'] ?? '안내');
