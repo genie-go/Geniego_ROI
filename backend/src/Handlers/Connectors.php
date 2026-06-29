@@ -1919,7 +1919,8 @@ final class Connectors
     {
         switch ($channel) {
             case 'meta': return self::fetchMetaDemographics($tenant, $start, $end);
-            // 타 매체(google/tiktok 등)는 demographic breakdown 어댑터 추가 시 여기 배선(현재 정직 미수집).
+            case 'tiktok': return self::fetchTiktokDemographics($tenant, $start, $end); // [초고도화 #6] non-Meta 데모그래픽
+            // 그 외 매체(google/naver 등)는 demographic breakdown 어댑터 추가 시 여기 배선(현재 정직 미수집).
             default: return [];
         }
     }
@@ -1977,6 +1978,50 @@ final class Connectors
                 'spend'       => (float)($r['spend'] ?? 0),
                 'conversions' => $conv,
                 'revenue'     => $rev,
+            ];
+        }
+    }
+
+    /** [초고도화 #6] TikTok 광고 demographic(성별·연령·국가) 실수집 → ad_insight_agg 행. fetchMetaDemographics 와 동일 row
+     *  형태(upsertAdInsights 공유=중복0). 자격증명/API 실패·breakdown 미허용 시 빈 배열(graceful·날조 없음). */
+    private static function fetchTiktokDemographics(string $tenant, string $start, string $end): array
+    {
+        $token = (string)self::loadCred($tenant, 'tiktok_business', 'access_token');
+        $advId = (string)self::loadCred($tenant, 'tiktok_business', 'advertiser_id');
+        if ($token === '' || $advId === '') return [];
+        $out = [];
+        self::tiktokDemoCall($token, $advId, $start, $end, ['campaign_id', 'gender', 'age'], $out);
+        self::tiktokDemoCall($token, $advId, $start, $end, ['campaign_id', 'country_code'], $out);
+        // 통화 정규화(Meta 패턴 정합) — TikTok 계정통화 → KRW(ad_insight_agg KRW 일관).
+        $cur = strtoupper((string)(self::loadCred($tenant, 'tiktok_business', 'account_currency') ?: 'KRW'));
+        if ($cur !== '' && $cur !== 'KRW') {
+            foreach ($out as &$row) { $row['spend'] = self::fxToKrw((float)($row['spend'] ?? 0), $cur); $row['revenue'] = self::fxToKrw((float)($row['revenue'] ?? 0), $cur); }
+            unset($row);
+        }
+        return $out;
+    }
+
+    /** TikTok AUDIENCE 리포트 1회 호출(기존 fetchTiktokRows 패턴 정합) → $out 누적. 실패/미허용 시 정직 무시(graceful). */
+    private static function tiktokDemoCall(string $token, string $advId, string $start, string $end, array $dims, array &$out): void
+    {
+        $payload = [
+            'advertiser_id' => $advId, 'report_type' => 'AUDIENCE', 'dimensions' => $dims,
+            'metrics' => ['spend', 'impressions', 'clicks', 'conversion', 'complete_payment'],
+            'data_level' => 'AUCTION_CAMPAIGN', 'start_date' => $start, 'end_date' => $end, 'page_size' => 200, 'page' => 1,
+        ];
+        [$code, $body, $err] = self::httpPost('https://business-api.tiktok.com/open_api/v1.3/report/integrated/get', $payload, ['Access-Token' => $token, 'Content-Type' => 'application/json']);
+        if ($err !== null || $code >= 400 || (int)($body['code'] ?? -1) !== 0) return; // breakdown 미허용/권한부족 → 정직 무시
+        foreach (($body['data']['list'] ?? []) as $r) {
+            $dim = (array)($r['dimensions'] ?? []); $met = (array)($r['metrics'] ?? []);
+            $out[] = [
+                'platform'    => 'tiktok', 'date' => $start,
+                'campaign_id' => (string)($dim['campaign_id'] ?? ''),
+                'gender'      => isset($dim['gender']) ? (string)$dim['gender'] : null,
+                'age_range'   => isset($dim['age']) ? (string)$dim['age'] : null,
+                'region'      => isset($dim['country_code']) ? (string)$dim['country_code'] : null,
+                'impressions' => (int)($met['impressions'] ?? 0), 'clicks' => (int)($met['clicks'] ?? 0),
+                'spend'       => (float)($met['spend'] ?? 0), 'conversions' => (int)round((float)($met['conversion'] ?? 0)),
+                'revenue'     => (float)($met['complete_payment'] ?? 0),
             ];
         }
     }
