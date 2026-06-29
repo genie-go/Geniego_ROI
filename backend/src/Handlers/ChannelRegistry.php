@@ -84,6 +84,10 @@ class ChannelRegistry
             ['amazon_dsp','Amazon DSP','marketing','📦','#232f3e','ad',[$ftext('access_token','액세스 토큰'),$ftext('client_id','LWA Client ID',false),$ftext('profile_id','프로필 ID',false),$ftext('advertiser_id','광고주 ID',false),$ftext('currency','과금 통화(예: USD)',false)]],
             ['quora_ads','Quora Ads','marketing','🅠','#b92b27','ad',[$ftext('access_token','액세스 토큰'),$ftext('account_id','광고계정 ID',false),$ftext('currency','과금 통화(예: USD)',false)]],
             ['spotify_ads','Spotify Ads','marketing','🎧','#1db954','ad',[$ftext('access_token','액세스 토큰'),$ftext('ad_account_id','광고계정 ID',false),$ftext('currency','과금 통화(예: USD)',false)]],
+            // [현 차수 감사] 네이티브 광고 2종 — 실 fetch 어댑터(fetchTaboolaRows/fetchOutbrainRows)·AD_SHORT·REAL_ADAPTER
+            //   보유인데 레지스트리 시드 부재로 ConnectModal UI 미노출(등록 불가)이던 갭 해소.
+            ['taboola','Taboola','marketing','🟧','#0668e1','ad',[$ftext('access_token','액세스 토큰'),$ftext('account_id','계정 ID(account_id)',false),$ftext('currency','과금 통화(예: USD)',false)]],
+            ['outbrain','Outbrain','marketing','🟢','#ee6c4d','ad',[$ftext('ob_token','OB-TOKEN'),$ftext('marketer_id','마케터 ID(marketer_id)',false),$ftext('currency','과금 통화(예: USD)',false)]],
             // [246차 P3] 글로벌 퍼포먼스/앱 광고 4종 + 분석 데이터소스 2종(creds 등록 즉시 자동 동기화).
             ['applovin','AppLovin','marketing','🅰️','#ff3b30','ad',[$ftext('api_key','Report API Key'),$ftext('currency','과금 통화(예: USD)',false)]],
             ['mintegral','Mintegral','marketing','🟩','#00c389','ad',[$ftext('access_key','Access Key',false),$ftext('api_key','API Key'),$ftext('currency','과금 통화(예: USD)',false)]],
