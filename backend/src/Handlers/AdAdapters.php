@@ -439,8 +439,12 @@ final class AdAdapters
     private static function metaUpdateBudget(PDO $pdo, string $tenant, string $extId, int $daily): array
     {
         $token = self::cred($pdo, $tenant, 'meta_ads', 'access_token');
+        // [현 차수 P1] ★멀티통화 비대칭 수정 — metaCreate(:426)와 동일하게 계정통화 minor 단위로 환산.
+        //   옵티마이저(AutoCampaign:1006)가 raw KRW 정수를 전달하므로, 비-KRW 계정에 무변환 전송 시 과집행. KRW=무변환=회귀0.
+        $cur    = self::accountCur($pdo, $tenant, 'meta_ads');
+        $budget = self::toMinor(self::toAcctMajor($daily, $cur), $cur);
         [$code, $res] = self::http('POST', "https://graph.facebook.com/" . self::META_VER . "/{$extId}",
-            ['Content-Type: application/x-www-form-urlencoded'], ['daily_budget' => (string)$daily, 'access_token' => $token]);
+            ['Content-Type: application/x-www-form-urlencoded'], ['daily_budget' => (string)$budget, 'access_token' => $token]);
         return ($code >= 200 && $code < 300) ? ['ok' => true] : ['ok' => false, 'error' => self::errMsg($res)];
     }
     private static function metaSetStatus(PDO $pdo, string $tenant, string $extId, string $status): array
@@ -523,8 +527,10 @@ final class AdAdapters
         $budgetRes = $sr[0]['results'][0]['campaign']['campaignBudget']
             ?? ($sr['results'][0]['campaign']['campaignBudget'] ?? '');
         if ($budgetRes === '') return ['ok' => false, 'error' => 'budget_not_found'];
-        // 2) campaignBudget amountMicros 갱신
-        $body = json_encode(['operations' => [['update' => ['resourceName' => $budgetRes, 'amountMicros' => (string)((int)$daily * 1000000)], 'updateMask' => 'amount_micros']]]);
+        // 2) campaignBudget amountMicros 갱신 — [현 차수 P1] ★멀티통화: googleCreate(:465)와 동일 계정통화 micros 환산(KRW=무변환=회귀0).
+        $cur = self::accountCur($pdo, $tenant, 'google_ads');
+        $amountMicros = (int)round(self::toAcctMajor($daily, $cur) * 1000000);
+        $body = json_encode(['operations' => [['update' => ['resourceName' => $budgetRes, 'amountMicros' => (string)$amountMicros], 'updateMask' => 'amount_micros']]]);
         [$code, $res] = self::http('POST', "{$base}/campaignBudgets:mutate", $hdr, $body);
         return ($code >= 200 && $code < 300) ? ['ok' => true] : ['ok' => false, 'error' => self::errMsg($res)];
     }
@@ -723,7 +729,9 @@ final class AdAdapters
     {
         $token = self::cred($pdo, $tenant, 'tiktok_business', 'access_token');
         $advId = self::cred($pdo, $tenant, 'tiktok_business', 'advertiser_id');
-        $body = json_encode(['advertiser_id' => $advId, 'campaign_id' => $extId, 'budget' => $daily]);
+        // [현 차수 P1] ★멀티통화: tiktokCreate(:712)와 동일 계정통화 major 환산(KRW=무변환=회귀0).
+        $cur = self::accountCur($pdo, $tenant, 'tiktok_business');
+        $body = json_encode(['advertiser_id' => $advId, 'campaign_id' => $extId, 'budget' => round(self::toAcctMajor($daily, $cur), 2)]);
         [$code, $res] = self::http('POST', 'https://business-api.tiktok.com/open_api/v1.3/campaign/update/',
             ['Access-Token: ' . $token, 'Content-Type: application/json'], $body);
         return (($res['code'] ?? -1) === 0) ? ['ok' => true] : ['ok' => false, 'error' => ($res['message'] ?? 'HTTP ' . $code)];
@@ -864,7 +872,9 @@ final class AdAdapters
         if ($c === null) return ['ok' => false, 'error' => 'no_credentials'];
         [$ak, $sk] = $c;
         $path = '/api/v3/campaigns/' . rawurlencode($extId);
-        [$code, $res] = self::lineReq('PUT', $path, ['dailyBudget' => $daily], $ak, $sk);
+        // [현 차수 P1] ★멀티통화: lineCreate(:854)와 동일 계정통화 환산(KRW=무변환=회귀0).
+        $cur = self::accountCur($pdo, $tenant, 'line_ads');
+        [$code, $res] = self::lineReq('PUT', $path, ['dailyBudget' => (int)round(self::toAcctMajor($daily, $cur))], $ak, $sk);
         return ($code >= 200 && $code < 300) ? ['ok' => true] : ['ok' => false, 'error' => self::errMsg($res) ?: ('HTTP ' . $code)];
     }
     private static function lineSetStatus(PDO $pdo, string $tenant, string $extId, string $status): array // ACTIVE|PAUSED

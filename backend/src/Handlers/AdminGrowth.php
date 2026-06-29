@@ -109,6 +109,13 @@ final class AdminGrowth
         // [Phase2 ③] 기존 설치 멱등 보강 — variant 컬럼(성장 A/B 측정). 이미 있으면 무시.
         try { $pdo->exec("ALTER TABLE admin_growth_event ADD COLUMN variant VARCHAR(40) DEFAULT ''"); } catch (\Throwable $e) {}
 
+        // [현 차수 P2] 공개 capture 레이트리밋 원장(IP 고정창 카운터) — 비인증 /v424/growth/capture 자기오염
+        //   (가짜 리드 대량주입으로 플랫폼 자체 성장분석·리드스코어·A/B verdict 왜곡) 방어. CRO 비콘과 동일 '원장+레이트'
+        //   패턴. ★platform_growth 자체 퍼널 보호용(고객 테넌트 데이터 무관)·앱레벨 심층방어(nginx limit_req 보완).
+        $pdo->exec("CREATE TABLE IF NOT EXISTS growth_capture_rl (
+            ip_hash VARCHAR(64) PRIMARY KEY, win_start INTEGER DEFAULT 0, cnt INTEGER DEFAULT 0
+        )");
+
         // 플랫폼 홍보 캠페인 (mode=test/live, 승인·AI콘텐츠 상태).
         $pdo->exec("CREATE TABLE IF NOT EXISTS admin_growth_campaign (
             id $AI,
@@ -424,6 +431,40 @@ final class AdminGrowth
      *   랜딩·가격 페이지의 팝업/이메일 폼이 호출(퍼널 최상단 자동 유입). ★격리: platform_growth 전용 테이블만.
      *   ★안전: 이벤트 화이트리스트·이메일 검증·완전 비차단. A/B: variant(arm)·campaign_key 를 이벤트에 기록.
      */
+    /** 클라이언트 IP(프록시 X-Forwarded-For 우선·첫 홉). */
+    private static function clientIp(Request $req): string
+    {
+        $xff = trim($req->getHeaderLine('X-Forwarded-For'));
+        if ($xff !== '') { $p = explode(',', $xff); return trim($p[0]); }
+        $sp = $req->getServerParams();
+        return (string)($sp['REMOTE_ADDR'] ?? '');
+    }
+
+    /** [현 차수 P2] 공개 capture 고정창(60s) IP 레이트리밋 — 한도 초과 시 false(가짜 리드 대량주입 차단).
+     *   ★fail-open(레이트리밋 인프라 예외가 정상 캡처를 막지 않음). IP 부재=통과(검증불가). */
+    private static function captureRateOk(\PDO $pdo, string $ip): bool
+    {
+        if ($ip === '') return true;
+        $LIMIT = 20; $WIN = 60;
+        try {
+            $iph = hash('sha256', $ip);
+            $now = time(); $bucket = $now - ($now % $WIN);
+            $st = $pdo->prepare("SELECT win_start, cnt FROM growth_capture_rl WHERE ip_hash=? LIMIT 1");
+            $st->execute([$iph]); $row = $st->fetch(\PDO::FETCH_ASSOC) ?: null;
+            if ($row === null) {
+                try { $pdo->prepare("INSERT INTO growth_capture_rl(ip_hash,win_start,cnt) VALUES(?,?,1)")->execute([$iph, $bucket]); } catch (\Throwable $e) {}
+                return true;
+            }
+            if ((int)$row['win_start'] !== $bucket) {
+                $pdo->prepare("UPDATE growth_capture_rl SET win_start=?, cnt=1 WHERE ip_hash=?")->execute([$bucket, $iph]);
+                return true;
+            }
+            if ((int)$row['cnt'] >= $LIMIT) return false;
+            $pdo->prepare("UPDATE growth_capture_rl SET cnt=cnt+1 WHERE ip_hash=?")->execute([$iph]);
+            return true;
+        } catch (\Throwable $e) { return true; }
+    }
+
     public static function publicCapture(Request $req, Response $res): Response
     {
         $b = self::body($req);
@@ -436,6 +477,11 @@ final class AdminGrowth
         }
         try {
             $pdo = Db::pdo();
+            self::ensureTables($pdo);
+            // [현 차수 P2] IP 레이트리밋(자기오염 방어) — 한도 초과는 조용히 무시(200, 비차단 계약 유지).
+            if (!self::captureRateOk($pdo, self::clientIp($req))) {
+                return self::json($res, ['captured' => false], 'ok', 200);
+            }
             $evt = $event === 'email_capture' ? 'landing' : $event;  // FUNNEL/SCORE_WEIGHTS 정합
             $lid = self::recordEvent($pdo, $email, $evt, [
                 'name' => (string)($b['name'] ?? ''), 'company' => (string)($b['company'] ?? ''),

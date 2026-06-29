@@ -271,7 +271,7 @@ final class Rollup {
                          SELECT LOWER(at.channel) ch, co.sku sku, co.channel_order_id oid, MAX(co.total_price) rv
                            FROM attribution_touch at
                            JOIN channel_orders co ON co.tenant_id = at.tenant_id AND (co.channel_order_id = at.order_id OR co.order_no = at.order_id)
-                          WHERE at.tenant_id = ? AND at.order_id IS NOT NULL AND at.order_id <> '' AND co.sku IS NOT NULL AND co.sku <> ''
+                          WHERE at.tenant_id = ? AND at.order_id IS NOT NULL AND at.order_id <> '' AND co.sku IS NOT NULL AND co.sku <> '' AND COALESCE(co.event_type,'order') NOT IN ('cancel','return')
                           GROUP BY LOWER(at.channel), co.sku, co.channel_order_id
                      ) t GROUP BY ch, sku"
                 );

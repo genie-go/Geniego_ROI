@@ -911,7 +911,7 @@ final class Connectors
                 $rs = $pdo->prepare("SELECT ch, COALESCE(SUM(rev),0) rev, COUNT(*) conv FROM (
                     SELECT LOWER(ar.attributed_channel) ch, ar.order_id, MAX(co.total_price) rev
                     FROM attribution_result ar JOIN channel_orders co ON co.tenant_id=ar.tenant_id AND co.channel_order_id=ar.order_id
-                    WHERE ar.tenant_id=? AND ar.model='order-match' GROUP BY ar.order_id, LOWER(ar.attributed_channel)
+                    WHERE ar.tenant_id=? AND ar.model='order-match' AND COALESCE(co.event_type,'order') NOT IN ('cancel','return') GROUP BY ar.order_id, LOWER(ar.attributed_channel)
                 ) t GROUP BY ch");
                 $rs->execute([$tenant]);
                 foreach ($rs->fetchAll(\PDO::FETCH_ASSOC) as $r) {

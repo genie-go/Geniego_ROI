@@ -27,7 +27,7 @@ const KNOWN_CHANNELS = [
   "meta_ads", "google_ads", "tiktok_business", "amazon_spapi", "amazon_ads",
   "shopify", "coupang", "naver_smartstore", "naver_sa", "kakao_moment",
   "st11", "gmarket", "rakuten", "lazada", "qoo10", "instagram",
-  "youtube", "google_analytics", "slack", "cafe24", "own_mall",
+  "youtube", "ga4", "slack", "cafe24", "own_mall",
 ];
 
 const getToken = () =>
@@ -37,7 +37,7 @@ const getToken = () =>
 import { IS_DEMO as _IS_DEMO } from '../utils/demoEnv.js';
 import { tChannelName } from '../utils/tenantStorage.js'; // [현 차수] 감사 B-1 크로스탭 연결상태 구독
 const DEMO_CONNECTED = (() => {
-  const ok = ['coupang','naver_smartstore','naver_sa','meta_ads','google_ads','tiktok_business','kakao_moment','amazon_spapi','google_analytics','sendgrid'];
+  const ok = ['coupang','naver_smartstore','naver_sa','meta_ads','google_ads','tiktok_business','kakao_moment','amazon_spapi','ga4','sendgrid'];
   const st = {};
   ok.forEach(ch => { st[ch] = { connected: true, keyCount: ch === 'meta_ads' ? 2 : 1, lastTest: new Date(), testStatus: 'ok' }; });
   st['st11'] = { connected: true, keyCount: 1, lastTest: new Date(), testStatus: 'error' };

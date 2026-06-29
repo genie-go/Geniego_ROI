@@ -3765,9 +3765,15 @@ final class ChannelSync
                 $curW   = strtoupper((string)($body['currency'] ?? ''));
                 $totalW = \Genie\Handlers\Connectors::fxToKrw((float)($body['total'] ?? 0), $curW);
                 $unitW  = \Genie\Handlers\Connectors::fxToKrw((float)($body['price'] ?? 0), $curW);
-                $pdo->prepare("INSERT INTO channel_orders(tenant_id,channel,channel_order_id,buyer_name,product_name,sku,qty,unit_price,total_price,status,ordered_at,event_type,synced_at)
-                    VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)")
-                    ->execute([$tenant,$channel,$oidW,$body['buyer_name']??'',$body['product_name']??'',$skuW?:null,$qtyW,$unitW,$totalW,$body['status']??'pending',$body['ordered_at']??$now,$evtNormW,$now]);
+                // [현 차수 감사 P1] ★웹훅 주문도 폴링(saveOrders:2562)과 동일하게 buyer_email·addr·raw_json 적재 —
+                //   기존 누락으로 (1) CAPI 서버전환 업로드(AdAdapters:665 buyer_email 필터) (2) 고객매칭 오디언스
+                //   (AdAdapters:1427 DISTINCT buyer_email) (3) 귀속 백필(ChannelSync:2855 raw_json gclid/fbclid 재귀속)이
+                //   웹훅 주문을 영구 누락하던 폐루프 단절 해소. 원통화·원금은 raw_json 보존(KRW 무변환=동일).
+                $rawW = $body;
+                if ($curW !== '' && $curW !== 'KRW') { $rawW['orig_currency'] = $curW; $rawW['orig_total_price'] = (float)($body['total'] ?? 0); $rawW['orig_unit_price'] = (float)($body['price'] ?? 0); }
+                $pdo->prepare("INSERT INTO channel_orders(tenant_id,channel,channel_order_id,buyer_name,buyer_email,product_name,sku,qty,unit_price,total_price,status,addr,ordered_at,event_type,raw_json,synced_at)
+                    VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
+                    ->execute([$tenant,$channel,$oidW,$body['buyer_name']??'',$body['buyer_email']??'',$body['product_name']??'',$skuW?:null,$qtyW,$unitW,$totalW,$body['status']??'pending',$body['addr']??($body['address']??''),$body['ordered_at']??$now,$evtNormW,json_encode($rawW, JSON_UNESCAPED_UNICODE),$now]);
                 if ($incCRw === null) {
                     // 정상 신규 주문 → 실재고 차감 + CRM + 어트리뷰션(폴링 정합).
                     if ($skuW !== '') {

@@ -118,7 +118,7 @@ const CHANNELS = [
   { key: 'mollie',           name: 'Mollie',             icon: '💙', color: '#0077FF', group: 'payment' },
   { key: 'razorpay',         name: 'Razorpay',           icon: '🔷', color: '#3395FF', group: 'payment' },
   { key: 'klarna',           name: 'Klarna',             icon: '🛍️', color: '#FFB3C7', group: 'payment' },
-  { key: 'google_analytics', name: 'Google Analytics 4',icon: '📊', color: '#E37400', group: 'own_etc' },
+  { key: 'ga4',              name: 'Google Analytics 4',icon: '📊', color: '#E37400', group: 'own_etc' },
   { key: 'slack',            name: 'Slack Webhook',     icon: '💬', color: '#4A154B', group: 'own_etc' },
   // [229차] 메시징 채널(알림/메시지) — 신규
   { key: 'kakao_alimtalk',   name: '카카오 알림톡',      icon: '💛', color: '#FEE500', group: 'own_etc' },
@@ -228,7 +228,7 @@ const CHANNEL_FIELDS = {
   taboola: [{ k: 'access_token', label: 'Access Token', secret: true }, { k: 'account_id', label: '계정 ID' }, { k: 'currency', label: '통화(선택)' }],
   outbrain: [{ k: 'ob_token', label: 'OB-TOKEN', secret: true }, { k: 'marketer_id', label: 'Marketer ID' }, { k: 'currency', label: '통화(선택)' }],
   // 분석/기타
-  google_analytics: [{ k: 'measurement_id', label: '측정 ID (G-)' }, { k: 'api_secret', label: 'API Secret', secret: true }],
+  ga4: [{ k: 'property_id', label: 'GA4 속성 ID' }, { k: 'service_account_json', label: '서비스 계정 JSON', secret: true }, { k: 'currency', label: '보고 통화(예: KRW·USD, 선택)', opt: true }],
   slack:     [{ k: 'webhook_url', label: 'Webhook URL', secret: true }],
   // [229차] 신규 채널
   yahoo_japan: [{ k: 'client_id', label: 'Client ID' }, { k: 'client_secret', label: 'Client Secret', secret: true }, { k: 'access_token', label: 'OAuth Access Token', secret: true }, { k: 'seller_id', label: '스토어(셀러) ID' }],
@@ -243,7 +243,7 @@ const isOptionalField = (f) => f?.opt === true || /선택|optional/i.test(String
 
 /* [229차] 채널별 발급 매뉴얼(레이어 팝업·iframe). public/api_manuals/<key>.html 정적 서빙.
    youtube=큐레이트, 나머지=issuanceGuide 단계 기반 생성. 이 집합의 채널만 '📖 발급 매뉴얼' 버튼 노출. */
-const MANUAL_KEYS = new Set(['adyen','amazon_spapi','auction','braintree','cafe24','checkout','coupang','dhl','ebay','etsy','fedex','gmarket','godomall','google_ads','google_analytics','inicis','kakaopay','kcp','klarna','lazada','lotteon','magento','meta_ads','mollie','naver_sa','naver_smartstore','paddle','paypal','qoo10','rakuten','razorpay','shopee','shopify','slack','smarttracker','square','st11','stripe','tiktok_business','tiktok_shop','toss','twitch','ups','walmart','woocommerce','youtube',
+const MANUAL_KEYS = new Set(['adyen','amazon_spapi','auction','braintree','cafe24','checkout','coupang','dhl','ebay','etsy','fedex','gmarket','godomall','google_ads','ga4','inicis','kakaopay','kcp','klarna','lazada','lotteon','magento','meta_ads','mollie','naver_sa','naver_smartstore','paddle','paypal','qoo10','rakuten','razorpay','shopee','shopify','slack','smarttracker','square','st11','stripe','tiktok_business','tiktok_shop','toss','twitch','ups','walmart','woocommerce','youtube',
   // [229차] Instagram/Facebook(자가발급·큐레이트본 ko) + 안내형(대행사/계약형) 채널 매뉴얼 추가
   'instagram','facebook','kakao_moment','naverpay','cj','lotte','hanjin','logen','epost','ocl_sameday','fulfillment','ems','cj_intl','tnt',
   // [229차] 신규 채널(사용자 큐레이트 매뉴얼)
@@ -262,7 +262,7 @@ const manualUrl = (key, lang) => `/api_manuals/${MANUAL_LANGS.has(lang) ? lang :
    ※ ID/PW·수동 키 채널은 ConnectModal 로 직접 입력·저장 시 백엔드가 즉시 동기화(ChannelCreds.upsert auto_sync). */
 const OAUTH_PROVIDER = {
   meta_ads: 'meta', facebook: 'facebook', instagram: 'facebook',
-  google_ads: 'google', google_analytics: 'google',
+  google_ads: 'google', ga4: 'google',
   tiktok_business: 'tiktok',
   kakao_moment: 'kakao',
   naver_sa: 'naver', naver_smartstore: 'naver', naverpay: 'naver',
@@ -374,7 +374,7 @@ const SIGNUP_URL = {
   shopify: 'https://www.shopify.com', woocommerce: 'https://woocommerce.com', magento: 'https://business.adobe.com', cafe24: 'https://www.cafe24.com',
   // 광고 매체 — 계정/비즈니스 가입
   meta_ads: 'https://business.facebook.com', google_ads: 'https://ads.google.com', tiktok_business: 'https://ads.tiktok.com',
-  google_analytics: 'https://analytics.google.com', kakao_moment: 'https://business.kakao.com',
+  ga4: 'https://analytics.google.com', kakao_moment: 'https://business.kakao.com',
   // [240차] 커넥터 확장 — 신규 광고 데이터소스 계정/비즈니스 가입
   snapchat_ads: 'https://forbusiness.snapchat.com', linkedin_ads: 'https://business.linkedin.com/marketing-solutions',
   naver_shopping: 'https://developers.naver.com/apps/#/register',
@@ -449,7 +449,7 @@ const CHANNEL_APPLY_FIELDS = {
   dhl: ['account_number', 'account_email'], fedex: ['account_number', 'account_email'], ups: ['account_number', 'account_email'],
   ems: ['contract_code', 'account_email'], tnt: ['account_number', 'account_email'], cj_intl: ['contract_code', 'account_email'],
   // ── 분석/기타
-  google_analytics: ['account_id', 'account_email'], slack: ['site_url', 'account_email'],
+  ga4: ['account_id', 'account_email'], slack: ['site_url', 'account_email'],
   // [229차] 신규 채널
   yahoo_japan: ['account_id', 'account_email'], kakao_alimtalk: ['channel_url', 'account_email'], line: ['channel_url', 'account_email'],
 };
@@ -527,7 +527,7 @@ const CHANNEL_APPLY_NOTE = {
   tnt:    { hard: false, note: 'TNT는 FedEx에 인수되어 FedEx Developer Portal(developer.fedex.com)에서 자격증명(API Key/Secret)을 발급합니다. 별도 TNT 개발자 포털은 없으며 FedEx 계정번호가 필요합니다.' },
   cj_intl:{ hard: true,  note: 'CJ대한통운 국제특송 계약(고객) 코드가 필요합니다. (계약 필요)' },
   // ── 분석/기타
-  google_analytics: { hard: false, note: 'GA4 > 관리 > 데이터 스트림에서 측정 ID(G-)·Measurement Protocol API Secret을 발급합니다.' },
+  ga4: { hard: false, note: 'GA4 > 관리 > 속성 설정에서 속성 ID를 확인하고, Google Cloud 서비스 계정 JSON(Analytics Data API 권한 부여)을 등록하면 웹분석 지표가 자동 수집됩니다. (전환 이벤트 송신=Measurement Protocol은 픽셀 페이지에서 설정)' },
   slack:            { hard: false, note: 'api.slack.com/apps에서 앱 생성 → Incoming Webhook URL을 발급합니다.' },
   // [229차] 신규 채널
   yahoo_japan:      { hard: false, note: 'Yahoo!デベロッパー(e.developer.yahoo.co.jp)에서 애플리케이션을 등록해 Client ID·Client Secret을 발급하고, OAuth 2.0 인가로 Access Token을 발급합니다.' },
@@ -738,10 +738,11 @@ const CHANNEL_APPLY_STEPS = {
     'client_id/secret 발급',
     '계정번호 등록 → [등록]에 client_id·client_secret·account_number 입력',
   ],
-  google_analytics: [
-    'GA4 > 관리 > 데이터 스트림 선택',
-    '측정 ID(G-) 확인',
-    'Measurement Protocol API secret 생성 → [등록]에 measurement_id·api_secret 입력',
+  ga4: [
+    'GA4 > 관리 > 속성 설정에서 속성 ID 확인',
+    'Google Cloud Console > 서비스 계정 생성 → 키(JSON) 발급',
+    'GA4 속성에 해당 서비스 계정을 뷰어로 추가(Analytics Data API 권한)',
+    '[등록]에 property_id·service_account_json 입력 → 웹분석 지표 자동 수집',
   ],
   slack: [
     'api.slack.com/apps > [Create New App]',
@@ -896,7 +897,7 @@ export default function ApiKeys() {
           { id: 'demo-tiktok',      channel: 'tiktok_business',  cred_type: 'oauth',   is_active: 1, test_status: 'ok',    last_tested_at: _d(8) },
           { id: 'demo-kakao',       channel: 'kakao_moment',     cred_type: 'api_key', is_active: 1, test_status: 'ok',    last_tested_at: _d(6) },
           { id: 'demo-amazon',      channel: 'amazon_spapi',     cred_type: 'api_key', is_active: 1, test_status: 'ok',    last_tested_at: _d(12) },
-          { id: 'demo-ga4',         channel: 'google_analytics', cred_type: 'oauth',   is_active: 1, test_status: 'ok',    last_tested_at: _d(7) },
+          { id: 'demo-ga4',         channel: 'ga4',              cred_type: 'oauth',   is_active: 1, test_status: 'ok',    last_tested_at: _d(7) },
           { id: 'demo-sendgrid',    channel: 'sendgrid',         cred_type: 'api_key', is_active: 1, test_status: 'ok',    last_tested_at: _d(9) },
           { id: 'demo-11st',        channel: 'st11',             cred_type: 'api_key', is_active: 1, test_status: 'error', last_tested_at: _d(20) },
         ];

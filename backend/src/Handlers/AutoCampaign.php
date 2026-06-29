@@ -606,7 +606,7 @@ class AutoCampaign
                         SELECT LOWER(ar.attributed_channel) ch, ar.order_id, MAX(co.total_price) rev
                         FROM attribution_result ar
                         JOIN channel_orders co ON co.tenant_id=ar.tenant_id AND co.channel_order_id=ar.order_id
-                        WHERE ar.tenant_id=? AND ar.model='order-match' AND co.ordered_at >= ?
+                        WHERE ar.tenant_id=? AND ar.model='order-match' AND co.ordered_at >= ? AND COALESCE(co.event_type,'order') NOT IN ('cancel','return')
                         GROUP BY ar.order_id, LOWER(ar.attributed_channel)
                     ) t GROUP BY ch";
             $st = $pdo->prepare($sql);
@@ -1102,6 +1102,80 @@ class AutoCampaign
         }
     }
 
+    /**
+     * [현 차수 초고도화] 포트폴리오(크로스-캠페인) 예산 최적화 — 테넌트의 active 캠페인 '사이'에 총예산을
+     *   캠페인 진실 ROAS(adj_roas) 기준으로 재배분(글로벌 효율 균등화). per-campaign optimizeCampaign 이 '캠페인
+     *   내부' 채널 재배분이라면, 본 패스는 그 상위 레버(어느 캠페인에 더 태울지)다. 실제 광고비 집행 효율의 최대 레버.
+     *   ★안전설계: ①총예산 보존(증액 아님 → 월 cap 자동 준수) ②캠페인별 [0.5×,2×] 균등share 클램프(starvation·
+     *     과집중 방지) ③댐핑 0.5(oscillation/churn 방지·수 사이클 수렴 후 자동 정지) ④material(>10% 且 >₩1만)만
+     *     반영 ⑤budget(DB)만 갱신 후 next_optimize_at 즉시 due 리셋 → 같은 cron 의 per-campaign 패스가 새 envelope 를
+     *     채널 배분·매체 push(중복0). 진실 ROAS=매체 과대보고 보정(레지스트리 P1 원칙 준수).
+     *   @return array{reallocated:int, moved:float, detail:array}
+     */
+    public static function optimizePortfolio(PDO $pdo, string $tenant, bool $allowActuate = true): array
+    {
+        $out = ['reallocated' => 0, 'moved' => 0.0, 'detail' => []];
+        if ($tenant === '' || $tenant === 'unknown') return $out;
+        try {
+            $st = $pdo->prepare("SELECT id, name, budget, allocations FROM auto_campaign WHERE tenant_id=? AND status='active'");
+            $st->execute([$tenant]);
+            $camps = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+            $items = []; $totalBudget = 0;
+            foreach ($camps as $c) {
+                $b = (int)($c['budget'] ?? 0); if ($b <= 0) continue;
+                $alloc = json_decode((string)($c['allocations'] ?? '[]'), true) ?: [];
+                // 진실 ROAS(adj_roas) 캠페인 집계 — 채널별 aggMetrics(campaign_ext_id 입도) 합산(매체과대 보정·중복0).
+                $sp = 0.0; $adjRev = 0.0;
+                foreach ($alloc as $a) {
+                    if (!is_array($a)) continue;
+                    $ch = (string)($a['channel'] ?? ''); if ($ch === '') continue;
+                    $m = self::aggMetrics($pdo, $tenant, $ch, (string)($a['external_id'] ?? ''));
+                    $sp += (float)($m['spend'] ?? 0); $adjRev += (float)($m['adj_revenue'] ?? ($m['revenue'] ?? 0));
+                }
+                $roas = $sp > 0 ? round($adjRev / $sp, 2) : 0.0;
+                $items[] = ['id' => (int)$c['id'], 'name' => (string)($c['name'] ?? ('#' . $c['id'])),
+                    'budget' => $b, 'spend' => $sp, 'roas' => $roas, 'has_data' => ($sp > 0)];
+                $totalBudget += $b;
+            }
+            $withData = array_filter($items, fn($i) => $i['has_data']);
+            // 재배분은 데이터 보유 캠페인 ≥2 + 총예산>0 일 때만(단일 캠페인=내부 최적화로 충분).
+            if (count($items) < 2 || count($withData) < 2 || $totalBudget <= 0) return $out;
+
+            $N = count($items);
+            $equalShare = $totalBudget / $N;
+            $floor = 0.5 * $equalShare; $cap = 2.0 * $equalShare;
+            $weights = []; $sumW = 0.0;
+            foreach ($items as $i) { $w = $i['has_data'] ? max(0.1, (float)$i['roas']) : 1.0; $weights[$i['id']] = $w; $sumW += $w; }
+            if ($sumW <= 0) return $out;
+            // 1차 타깃(진실ROAS 가중 비례) → [floor,cap] 클램프 → 재정규화(총예산 보존).
+            $target = [];
+            foreach ($items as $i) { $target[$i['id']] = max($floor, min($cap, $totalBudget * $weights[$i['id']] / $sumW)); }
+            $sumT = array_sum($target) ?: 1;
+            foreach ($target as $k => $v) { $target[$k] = $v * $totalBudget / $sumT; }
+
+            $DAMP = 0.5; $moved = 0.0; $now = gmdate('Y-m-d\TH:i:s\Z');
+            foreach ($items as $i) {
+                $old = (float)$i['budget'];
+                $new = $old + $DAMP * ($target[$i['id']] - $old);
+                $new = max(1000.0, round($new / 10000) * 10000); // 만원 단위
+                if ($old <= 0 || abs($new - $old) / $old < 0.10 || abs($new - $old) < 10000) continue; // material 만
+                try {
+                    $pdo->prepare("UPDATE auto_campaign SET budget=?, updated_at=? WHERE id=? AND tenant_id=?")
+                        ->execute([(int)$new, $now, $i['id'], $tenant]);
+                    // budget 변경 캠페인은 즉시 due 리셋 → 같은 cron 의 per-campaign 패스가 새 envelope 를 채널·매체 반영.
+                    try { $pdo->prepare("UPDATE auto_campaign SET next_optimize_at=? WHERE id=? AND tenant_id=?")->execute([$now, $i['id'], $tenant]); } catch (\Throwable $e) {}
+                    $pdo->prepare("INSERT INTO optimization_log(tenant_id,campaign_id,channel,action,old_alloc,new_alloc,roas,ctr,reason,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)")
+                        ->execute([$tenant, $i['id'], '(포트폴리오)', 'portfolio_realloc', (int)$old, (int)$new, (string)$i['roas'], '',
+                            '포트폴리오 재배분: 진실 ROAS ' . $i['roas'] . '× 기준 캠페인 간 총예산 효율 재분배 (₩' . number_format((int)$old) . ' → ₩' . number_format((int)$new) . ')', $now]);
+                    $out['reallocated']++; $moved += abs($new - $old);
+                    $out['detail'][] = ['campaign_id' => $i['id'], 'name' => $i['name'], 'old' => (int)$old, 'new' => (int)$new, 'roas' => $i['roas']];
+                } catch (\Throwable $e) {}
+            }
+            $out['moved'] = round($moved);
+        } catch (\Throwable $e) {}
+        return $out;
+    }
+
     /** CLI(cron) — 전체 테넌트 active 캠페인 자동 최적화. 반환: 최적화된 캠페인 수.
      *  @param bool $allowActuate 데모 DB 는 false 로 호출(실 광고비 변경 금지, DB 재배분만). */
     public static function optimizeAllCli(?PDO $pdo = null, bool $allowActuate = true): int
@@ -1113,6 +1187,15 @@ class AutoCampaign
         //   cron(매시)은 자주 호출되더라도 각 캠페인은 자기 가변주기에 맞춰서만 재배분 → 안정 캠페인 churn 방지·
         //   급변 캠페인 최속 반응. ISO8601 UTC 문자열은 사전식 비교가 시간순과 일치(드라이버 무관).
         $nowS = gmdate('Y-m-d\TH:i:s\Z');
+        // [현 차수 초고도화] 포트폴리오(크로스-캠페인) 예산 재배분 — per-campaign 최적화 '전' 테넌트별 1회.
+        //   캠페인 진실 ROAS 기준 총예산 재분배 → 변경분은 next_optimize_at 리셋으로 같은 cron 의 per-campaign 패스가
+        //   새 envelope 를 매체에 push(중복0·증액아님=cap준수). 완전 비차단(실패해도 per-campaign 정상 진행).
+        try {
+            $pStmt = $pdo->query("SELECT DISTINCT tenant_id FROM auto_campaign WHERE status='active'");
+            foreach (($pStmt ? $pStmt->fetchAll(PDO::FETCH_COLUMN) : []) as $ptid) {
+                try { self::optimizePortfolio($pdo, (string)$ptid, $allowActuate); } catch (\Throwable $e) {}
+            }
+        } catch (\Throwable $e) {}
         try {
             // next_optimize_at 컬럼 부재(구 스키마) 시 예외 → 전체 대상 폴백(회귀 없음).
             try {
