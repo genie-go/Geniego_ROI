@@ -263,12 +263,17 @@ final class Rollup {
             $sp->execute([$tenant, substr($start, 0, 10)]);
             $chSpend = []; while ($r = $sp->fetch(\PDO::FETCH_ASSOC)) { $chSpend[(string)$r['ch']] = (float)($r['sp'] ?? 0); }
             if ($chSpend) {
+                // [현 차수 감사 P1] ★주문당 dedup — attribution_touch 는 주문당 N 터치행이라 channel_orders 와 직접
+                //   JOIN+SUM 하면 주문 매출이 터치수만큼 곱해져 귀속매출/ROAS 과대(팬아웃). Connectors:910·AutoCampaign:541
+                //   과 동일 패턴으로 내부 서브쿼리 GROUP BY (채널,sku,주문) MAX 로 주문당 1행 선dedup 후 외부 합산.
                 $aj = $pdo->prepare(
-                    "SELECT LOWER(at.channel) ch, co.sku sku, SUM(co.total_price) rv
-                       FROM attribution_touch at
-                       JOIN channel_orders co ON co.tenant_id = at.tenant_id AND (co.channel_order_id = at.order_id OR co.order_no = at.order_id)
-                      WHERE at.tenant_id = ? AND at.order_id IS NOT NULL AND at.order_id <> '' AND co.sku IS NOT NULL AND co.sku <> ''
-                      GROUP BY LOWER(at.channel), co.sku"
+                    "SELECT ch, sku, SUM(rv) rv FROM (
+                         SELECT LOWER(at.channel) ch, co.sku sku, co.channel_order_id oid, MAX(co.total_price) rv
+                           FROM attribution_touch at
+                           JOIN channel_orders co ON co.tenant_id = at.tenant_id AND (co.channel_order_id = at.order_id OR co.order_no = at.order_id)
+                          WHERE at.tenant_id = ? AND at.order_id IS NOT NULL AND at.order_id <> '' AND co.sku IS NOT NULL AND co.sku <> ''
+                          GROUP BY LOWER(at.channel), co.sku, co.channel_order_id
+                     ) t GROUP BY ch, sku"
                 );
                 $aj->execute([$tenant]);
                 $chSkuRev = []; $chTotRev = [];

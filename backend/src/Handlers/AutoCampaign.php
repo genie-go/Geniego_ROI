@@ -394,7 +394,8 @@ class AutoCampaign
                     foreach (json_decode((string)($c['allocations'] ?? '[]'), true) ?: [] as $a) {
                         $ch = (string)($a['channel'] ?? ''); $ext = (string)($a['external_id'] ?? '');
                         if ($ch === '' || $ext === '') continue;
-                        $r = AdAdapters::pause($pdo, $tenant, $ch, $ext);
+                        // [현 차수 감사 P1·치명] 긴급 킬스위치 — short key 정규화(미정규화 시 pause=unsupported → 매체 미정지·광고비 누수).
+                        $r = AdAdapters::pause($pdo, $tenant, self::connectorKey($ch), $ext);
                         if (!empty($r['ok'])) { $pushed++; } else { $allOk = false; }
                     }
                 }
@@ -461,11 +462,14 @@ class AutoCampaign
                     $ch  = (string)($a['channel'] ?? '');
                     $ext = (string)($a['external_id'] ?? '');
                     if ($ch === '' || $ext === '') continue;
-                    // [현 차수 감사 P1] 활성화는 캠페인→광고세트/그룹→광고 캐스케이드(activateDelivery) — 캠페인만 ACTIVE 하면
-                    //   하위 PAUSED 로 노출0이던 사일런트 미집행 해소. 정지(pause)는 캠페인 정지만으로 전 하위 중단(기존 유지).
+                    // [현 차수 감사 P1·치명] ★채널키 정규화 — allocations.channel 은 short key('meta'). AdAdapters match 는
+                    //   풀키('meta_ads')만 분기하므로 raw 전달 시 default='unsupported' → 활성화/정지가 **매체에 미도달**
+                    //   (킬스위치로 광고비가 안 멈추거나 활성화해도 노출0). connectorKey 로 정규화(멱등). 928·483 패턴 정합.
+                    $connCh = self::connectorKey($ch);
+                    // 활성화는 캠페인→광고세트/그룹→광고 캐스케이드. 정지(pause)는 캠페인 정지만으로 전 하위 중단(기존 유지).
                     $r = ($status === 'active')
-                        ? AdAdapters::activateDelivery($pdo, $tenant, $ch, $ext, (string)($a['adset_ext_id'] ?? ''), (string)($a['ad_ext_id'] ?? ''))
-                        : AdAdapters::pause($pdo, $tenant, $ch, $ext);
+                        ? AdAdapters::activateDelivery($pdo, $tenant, $connCh, $ext, (string)($a['adset_ext_id'] ?? ''), (string)($a['ad_ext_id'] ?? ''))
+                        : AdAdapters::pause($pdo, $tenant, $connCh, $ext);
                     $pushed[] = ['channel' => $ch, 'external_id' => $ext, 'ok' => !empty($r['ok']), 'detail' => (string)($r['error'] ?? $r['status'] ?? '')];
                 }
                 // [현 차수 감사 P1] A/B variant 도 하위 캐스케이드 활성화(캠페인은 위에서 활성). 변형 ext_id 는 ab_variant 보존.

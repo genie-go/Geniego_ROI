@@ -3576,7 +3576,9 @@ final class Connectors
     /** 채널키가 웹 분석 데이터소스인가(광고/커머스와 분리). */
     public static function isAnalyticsSource(string $channelKey): bool
     {
-        return in_array(strtolower(trim($channelKey)), self::ANALYTICS_SOURCES, true);
+        // [현 차수 감사 P2] 레지스트리 병합 — isAdChannel/isCommerceChannel 처럼 admin 추가 analytics 채널도
+        //   저장직후 즉시sync 인식(기존 const-only 는 cron 만 인식하던 즉시성 비대칭 해소).
+        return in_array(strtolower(trim($channelKey)), self::analyticsSources(), true);
     }
 
     /** 동기화 대상 웹 분석 소스 전체(레지스트리 sync_kind='analytics' 병합). cron 팬아웃 SSOT. */
@@ -4100,7 +4102,7 @@ final class Connectors
 
     public static function isCsSource(string $channelKey): bool
     {
-        return in_array(strtolower(trim($channelKey)), self::CS_SOURCES, true);
+        return in_array(strtolower(trim($channelKey)), self::csSources(), true); // [현 차수 감사 P2] 레지스트리 병합(즉시sync 대칭)
     }
 
     /** 동기화 대상 CS 소스 전체(레지스트리 sync_kind='cs' 병합). cron 팬아웃 SSOT. */
@@ -4402,7 +4404,7 @@ final class Connectors
 
     public static function isEspSource(string $channelKey): bool
     {
-        return in_array(strtolower(trim($channelKey)), self::ESP_SOURCES, true);
+        return in_array(strtolower(trim($channelKey)), self::espSources(), true); // [현 차수 감사 P2] 레지스트리 병합(즉시sync 대칭)
     }
 
     public static function espSources(): array

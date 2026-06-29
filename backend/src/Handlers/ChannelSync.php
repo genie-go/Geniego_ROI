@@ -579,6 +579,9 @@ final class ChannelSync
                 'total_price' => $total,
                 'status'      => strtolower((string)($os['status'] ?? 'accept')),
                 'ordered_at'  => (string)($os['orderedAt'] ?? gmdate('c')),
+                // [현 차수 감사] 상태→event_type 방어매핑(취소 토큰 시 전이). ★완전한 취소수집은 별도 returnRequests/
+                //   cancelRequests 엔드포인트 폴링 필요(ordersheets status=ACCEPT 는 취소건 미반환) — 로드맵.
+                'event_type'  => self::classifyCancelReturn((string)($os['status'] ?? ''), '') ?? 'order',
                 'source'      => 'coupang_api',
             ];
         }
@@ -639,6 +642,10 @@ final class ChannelSync
                 );
                 $orders = [];
                 foreach (($oBody['data'] ?? []) as $o) {
+                    // [현 차수 감사 P1] 취소/반품 상태 반영 — claimStatus/productOrderStatus 무시하고 '발주확인' 상수면
+                    //   취소/반품 네이버 주문이 매출에 잔존. 실 상태 필드(있으면) → classifyCancelReturn 으로 취소/반품 전이.
+                    $nvRaw = (string)($o['claimStatus'] ?? ($o['claimType'] ?? '')) ?: (string)($o['productOrderStatus'] ?? ($o['orderStatus'] ?? ''));
+                    $nvEvt = self::classifyCancelReturn($nvRaw, '') ?? 'order';
                     $orders[] = [
                         'channel_order_id' => (string)($o['orderId'] ?? $o['orderNo'] ?? uniqid()),
                         'buyer_name'  => $o['buyerName'] ?? '',
@@ -646,9 +653,9 @@ final class ChannelSync
                         'qty'         => (int)($o['quantity'] ?? 1),
                         'unit_price'  => (float)($o['unitPrice'] ?? 0),
                         'total_price' => (float)($o['totalPayAmount'] ?? 0),
-                        'status'      => '발주확인',
+                        'status'      => ($nvRaw !== '' ? $nvRaw : '발주확인'),
                         'ordered_at'  => $o['paymentDate'] ?? date('Y-m-d H:i:s'),
-                        'event_type'  => 'order',
+                        'event_type'  => $nvEvt,
                         'source'      => 'live',
                     ];
                 }
@@ -933,7 +940,9 @@ final class ChannelSync
                 'unit_price'  => (float)($first['price'] ?? 0),
                 'total_price' => (float)($o['totalPrice'] ?? 0),
                 'currency'    => 'JPY', // [228차 S5] Rakuten(일본)=엔화 → KRW 정규화
-                'status'      => 'rakuten-' . (string)($o['orderProgress'] ?? '100'),
+                // [현 차수 감사 P1] orderProgress 900=キャンセル確定(취소확정) → 취소 전이. 그 외는 진행코드 보존.
+                'status'      => ((int)($o['orderProgress'] ?? 100) === 900 ? '취소확정(rakuten-900)' : 'rakuten-' . (string)($o['orderProgress'] ?? '100')),
+                'event_type'  => ((int)($o['orderProgress'] ?? 100) === 900 ? 'cancel' : 'order'),
                 'ordered_at'  => (string)($o['orderDatetime'] ?? gmdate('c')),
                 'source'      => 'rakuten_api',
             ];
@@ -1019,7 +1028,10 @@ final class ChannelSync
                 'qty'         => $qty ?: count($items),
                 'unit_price'  => (float)($first['product_price'] ?? 0),
                 'total_price' => (float)($o['payment_amount'] ?? $o['order_price_amount'] ?? 0),
+                // [현 차수 감사 P1] Cafe24 order_status 코드 — C##=취소·R##=반품(원코드 그대로면 미반영). 첫글자로 전이.
                 'status'      => strtolower((string)($o['order_status'] ?? 'n00')),
+                'event_type'  => (strncmp(strtolower((string)($o['order_status'] ?? 'n00')), 'c', 1) === 0 ? 'cancel'
+                                   : (strncmp(strtolower((string)($o['order_status'] ?? 'n00')), 'r', 1) === 0 ? 'return' : 'order')),
                 'ordered_at'  => (string)($o['order_date'] ?? gmdate('c')),
                 'source'      => 'cafe24_api',
             ];
@@ -1326,7 +1338,11 @@ final class ChannelSync
                 'qty'=>(int)($o['orderQty'] ?? 1), 'unit_price'=>(float)($o['price'] ?? 0), 'total_price'=>(float)($o['orderAmount'] ?? $o['price'] ?? 0),
                 // [현 차수 값정합] Qoo10 QSM(ebayjapan.qapi)=일본 마켓플레이스 → 금액은 JPY. currency='' 면 saveOrders 가
                 //   fxToKrw 를 건너뛰어 ¥ 가 ₩ 로 합산(약 9배 과소). Yahoo!JP 패턴처럼 통화필드 우선·없으면 JPY 폴백.
-                'currency'=>strtoupper((string)($o['currency'] ?? 'JPY')), 'status'=>'발주확인', 'ordered_at'=>(string)($o['orderDate'] ?? ''), 'source'=>'live',
+                // [현 차수 감사 P1] 상태 상수('발주확인') → 실 상태필드(있으면) 판독 + 취소/반품 전이(미반영 해소).
+                'currency'=>strtoupper((string)($o['currency'] ?? 'JPY')),
+                'status'=>((string)($o['orderStatus'] ?? ($o['status'] ?? '')) ?: '발주확인'),
+                'event_type'=>self::classifyCancelReturn((string)($o['orderStatus'] ?? ($o['status'] ?? '')), '') ?? 'order',
+                'ordered_at'=>(string)($o['orderDate'] ?? ''), 'source'=>'live',
             ];
         }
         return ['ok'=>true, 'products'=>[], 'orders'=>$orders, 'note'=>count($orders) . ' orders (Qoo10 QSM)'];

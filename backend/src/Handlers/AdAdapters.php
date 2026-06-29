@@ -148,11 +148,13 @@ final class AdAdapters
         return ($rate > 0 && $rate !== 1.0) ? $dailyKrw / $rate : (float)$dailyKrw;
     }
 
-    /** 0-decimal 통화(원/엔/동 등)는 minor=major, 그 외 ×100(Meta daily_budget=계정통화 minor 단위). */
+    /** 계정통화 minor 단위(Meta daily_budget). [현 차수 감사 P2] ★×100 은 2-decimal minor 통화만 명시 — 그 외
+     *   (KRW/JPY/VND/IDR 0-decimal + 미지원/미상 통화)는 ×1. 기존 'whitelist 밖=×100' 은 미지원 통화에서 100× 과집행
+     *   리스크였다(toAcctMajor 가 미상통화 무변환=KRW금액인데 ×100). 미지원은 ×1(=무변환 KRW 그대로, honest 폴백). */
     private static function toMinor(float $major, string $cur): int
     {
-        $zero = ['KRW' => 1, 'JPY' => 1, 'VND' => 1, 'CLP' => 1, 'IDR' => 1]; // 무소수 통화
-        return max(1, (int)round($major * (isset($zero[$cur]) ? 1 : 100)));
+        static $minor100 = ['USD'=>1,'EUR'=>1,'GBP'=>1,'CNY'=>1,'HKD'=>1,'SGD'=>1,'AUD'=>1,'CAD'=>1,'TWD'=>1,'THB'=>1,'MYR'=>1,'PHP'=>1,'INR'=>1];
+        return max(1, (int)round($major * (isset($minor100[$cur]) ? 100 : 1)));
     }
 
     /* ════════════════════════ 디스패치 ════════════════════════ */
@@ -964,6 +966,14 @@ final class AdAdapters
         } catch (\Throwable $e) {}
     }
 
+    /** short key('meta')↔connector key('meta_ads') 정규화(멱등). DLQ.channel(connector)↔allocations.channel(short) 매칭용. */
+    private static function normConnKey(string $ch): string
+    {
+        static $m = ['meta' => 'meta_ads', 'tiktok' => 'tiktok_business', 'google' => 'google_ads', 'naver' => 'naver_sa', 'kakao' => 'kakao_moment', 'line' => 'line_ads', 'coupang_ads' => 'coupang'];
+        $c = strtolower(trim($ch));
+        return $m[$c] ?? $c;
+    }
+
     /** 성공 딜리버리 ext 를 캠페인 allocations 에 영속(활성화 캐스케이드용). 채널 키 일치 행만 갱신. */
     private static function writeBackDeliveryExt(PDO $pdo, string $tenant, int $campaignId, string $channel, string $adsetExt, string $adExt): void
     {
@@ -973,7 +983,10 @@ final class AdAdapters
             $st->execute([$campaignId, $tenant]);
             $allocs = json_decode((string)($st->fetchColumn() ?: '[]'), true) ?: [];
             $hit = false;
-            foreach ($allocs as &$a) { if ((string)($a['channel'] ?? '') === $channel) { $a['adset_ext_id'] = $adsetExt; $a['ad_ext_id'] = $adExt; $hit = true; } }
+            // [현 차수 감사 P2] 양측 connector key 정규화 비교 — DLQ.channel(='meta_ads')↔allocations.channel(='meta')
+            //   키공간 불일치로 매칭 실패해 ext 영속이 no-op 이던 결함 해소.
+            $target = self::normConnKey($channel);
+            foreach ($allocs as &$a) { if (self::normConnKey((string)($a['channel'] ?? '')) === $target) { $a['adset_ext_id'] = $adsetExt; $a['ad_ext_id'] = $adExt; $hit = true; } }
             unset($a);
             if ($hit) $pdo->prepare("UPDATE auto_campaign SET allocations=? WHERE id=? AND tenant_id=?")->execute([json_encode($allocs, JSON_UNESCAPED_UNICODE), $campaignId, $tenant]);
         } catch (\Throwable $e) {}
@@ -998,7 +1011,18 @@ final class AdAdapters
             $attempts = (int)$row['attempts'] + 1;
             $tsNow = gmdate('Y-m-d\TH:i:s\Z');
             if (!empty($dl['ok']) && (((string)($dl['ad_id'] ?? '')) !== '' || ((string)($dl['adgroup_id'] ?? '')) !== '')) {
-                self::writeBackDeliveryExt($pdo, $tenant, (int)$row['campaign_id'], (string)$row['channel'], (string)($dl['adset_id'] ?? ($dl['adgroup_id'] ?? '')), (string)($dl['ad_id'] ?? ''));
+                $rAdset = (string)($dl['adset_id'] ?? ($dl['adgroup_id'] ?? ''));
+                $rAd    = (string)($dl['ad_id'] ?? '');
+                self::writeBackDeliveryExt($pdo, $tenant, (int)$row['campaign_id'], (string)$row['channel'], $rAdset, $rAd);
+                // [현 차수 감사 P2] 캠페인이 이미 active 면 복구된 adset/ad 도 캐스케이드 활성화 — 캠페인 ACTIVE인데 복구분만
+                //   PAUSED 로 남아 노출0 되던 사일런트 미집행 재유입 차단. ★결제수단/킬스위치 게이트 재확인(실광고비 안전).
+                try {
+                    $cst = $pdo->prepare("SELECT status FROM auto_campaign WHERE id=? AND tenant_id=? LIMIT 1");
+                    $cst->execute([(int)$row['campaign_id'], $tenant]);
+                    if ((string)$cst->fetchColumn() === 'active' && self::executionEnabled() && \Genie\Handlers\BillingMethod::hasActiveMethod($pdo, $tenant)) {
+                        self::activateDelivery($pdo, $tenant, (string)$row['channel'], (string)$row['camp_ext_id'], $rAdset, $rAd);
+                    }
+                } catch (\Throwable $e) {}
                 try { $pdo->prepare("UPDATE ad_delivery_dlq SET status='done',attempts=?,updated_at=? WHERE id=?")->execute([$attempts, $tsNow, (int)$row['id']]); } catch (\Throwable $e) {}
                 $done++;
             } else {
