@@ -187,21 +187,30 @@ class AutoCampaign
             }
             $firstDesign = $validDesigns[0] ?? 0;
             $landing = (string)($d['landing_url'] ?? '');   // 광고 랜딩 URL(미설정 시 어댑터가 기본값)
-            // [현 차수 초고도화] 캠페인 목표 — 커머스 ROI 플랫폼 기본=전환(구매) 최적화. 매체에 픽셀 자격증명이 있으면
-            //   전환목표(OUTCOME_SALES/CONVERSIONS)+구매전환 최적화로 생성, 없으면 어댑터가 트래픽으로 honest 폴백.
+            // [현 차수 초고도화] 집행 설정 — 목표(기본 전환) + 자동입찰(기본 auto=매체 머신러닝) + 타깃CPA/ROAS + 타깃국가.
+            //   매체에 픽셀/전환추적/계정통화 자격증명이 있으면 전환목표·자동입찰·멀티통화로 집행, 없으면 honest 폴백.
             $objective = strtolower((string)($d['objective'] ?? 'conversions'));
+            $settings = [
+                'objective'    => $objective,
+                'bid_strategy' => strtolower((string)($d['bid_strategy'] ?? 'auto')),  // auto|tcpa|troas|manual
+                'target_cpa'   => (float)($d['target_cpa'] ?? 0),   // KRW
+                'target_roas'  => (float)($d['target_roas'] ?? 0),  // 비율(3.0=300%)
+                'countries'    => (is_array($d['countries'] ?? null) && $d['countries']) ? array_values(array_filter(array_map('strval', $d['countries']))) : ['KR'],
+                'frequency_cap'  => max(0, (int)($d['frequency_cap'] ?? 0)),    // 0=off(노출 피로 방지 캡, opt-in)
+                'frequency_days' => max(1, (int)($d['frequency_days'] ?? 7)),
+            ];
             // [현 차수] A/B 모드: 디자인(variant) 2+ 선택 시 같은 캠페인 하위에 동시 집행 → 승자 자동 선정.
             $abMode = !empty($d['ab_mode']) && count($validDesigns) >= 2;
             $abVariants = [];   // [channel => [variant,...]]
 
-            $exec = []; $activeCount = 0; $dispatch = []; $delivery = []; $deliveryExt = [];
+            $exec = []; $activeCount = 0; $dispatch = []; $delivery = []; $deliveryExt = []; $retryQueue = [];
             $allocByCh = [];
             foreach ($allocations as $a) { $allocByCh[(string)($a['channel'] ?? '')] = (int)($a['alloc'] ?? 0); }
             foreach ($channels as $ch) {
                 if (!self::channelConnected($pdo, $tenant, $ch)) { $exec[$ch] = 'pending_connection'; continue; }
                 $connKey = self::connectorKey($ch);
                 $r = AdAdapters::createCampaign($pdo, $tenant, $connKey,
-                    ['name' => $name . ' · ' . $ch, 'budget' => $allocByCh[$ch] ?? 0, 'period' => $period, 'objective' => $objective]);
+                    array_merge(['name' => $name . ' · ' . $ch, 'budget' => $allocByCh[$ch] ?? 0, 'period' => $period], $settings));
                 if (!empty($r['ok'])) {
                     $exec[$ch] = 'active'; $dispatch[$ch] = (string)$r['external_id']; $activeCount++;
                     // ★ 크리에이티브 레이어: 캠페인 하위 adset/adgroup + ad 생성(PAUSED).
@@ -221,7 +230,7 @@ class AutoCampaign
                         // ★ A/B: 채널 매칭 디자인(variant) 각각을 같은 캠페인 하위에 동시 집행 → ad_ext_id 수집.
                         $vlist = []; $okCnt = 0;
                         foreach ($chDesigns as $vi => $did) {
-                            $dl = AdAdapters::buildDelivery($pdo, $tenant, $connKey, (string)$r['external_id'], (int)$did, max(1000, $daily), $landing, $objective);
+                            $dl = AdAdapters::buildDelivery($pdo, $tenant, $connKey, (string)$r['external_id'], (int)$did, max(1000, $daily), $landing, $settings);
                             if (!empty($dl['ok']) && ($dl['ad_id'] ?? '') !== '') {
                                 $vlist[] = ['design_id' => (int)$did, 'frame_idx' => 0, 'ad_ext_id' => (string)$dl['ad_id'], 'adset_ext_id' => (string)($dl['adset_id'] ?? ($dl['adgroup_id'] ?? '')), 'label' => 'Variant ' . ($vi + 1)];
                                 $okCnt++;
@@ -231,10 +240,14 @@ class AutoCampaign
                         $delivery[$ch] = ['ok' => $okCnt > 0, 'status' => $okCnt >= 2 ? 'ab_running' : ($okCnt === 1 ? 'single' : 'failed'), 'matched' => count($chMatched), 'note' => "A/B variant {$okCnt}개 집행" . $matchNote];
                     } else {
                         // 단일 크리에이티브 — 채널 매칭 우선($chFirst).
-                        $dl = AdAdapters::buildDelivery($pdo, $tenant, $connKey, (string)$r['external_id'], $chFirst, max(1000, $daily), $landing, $objective);
+                        $dl = AdAdapters::buildDelivery($pdo, $tenant, $connKey, (string)$r['external_id'], $chFirst, max(1000, $daily), $landing, $settings);
                         $delivery[$ch] = ['ok' => !empty($dl['ok']), 'status' => $dl['status'] ?? ($dl['ok'] ? 'full' : 'failed'), 'matched' => count($chMatched), 'note' => ($dl['note'] ?? ($dl['error'] ?? '')) . $matchNote];
                         // [현 차수 감사 P1] 하위 광고세트/광고 ext_id 보존 → 활성화 시 캠페인→adset→ad 캐스케이드(노출0 미집행 해소).
                         $deliveryExt[$ch] = ['adset' => (string)($dl['adset_id'] ?? ($dl['adgroup_id'] ?? '')), 'ad' => (string)($dl['ad_id'] ?? '')];
+                        // [현 차수] 일시 장애(5xx/timeout) 딜리버리 → DLQ 재시도 큐(외부 등록대기/정직 partial 은 제외).
+                        if (AdAdapters::isTransientDeliveryFailure($dl)) {
+                            $retryQueue[] = ['channel' => $connKey, 'camp_ext' => (string)$r['external_id'], 'design' => (int)$chFirst, 'daily' => max(1000, $daily), 'error' => (string)($dl['error'] ?? '')];
+                        }
                     }
                 }
                 elseif (($r['status'] ?? '') === 'execution_disabled') { $exec[$ch] = 'ready'; }
@@ -264,6 +277,11 @@ class AutoCampaign
                 $estRoas, 'active', $now, $now,
             ]);
             $id = (int)$pdo->lastInsertId();
+
+            // [현 차수] 일시 실패 딜리버리 → DLQ 적재(campaignId 로 성공 시 allocations 영속·cron 지수백오프 재시도).
+            foreach ($retryQueue as $q) {
+                try { AdAdapters::enqueueDeliveryRetry($pdo, $tenant, $id, (string)$q['channel'], (string)$q['camp_ext'], (int)$q['design'], (int)$q['daily'], $settings, (string)$q['error']); } catch (\Throwable $e) {}
+            }
 
             // [237차 Creative AI Studio] 소재(design_id)↔매체 ad_ext_id 매핑 영속화 → Creative Insights 성과 조인 키
             //   (creative_variant ← ad_insight_agg.ad_id). 채널을 각 variant 에 부여 후 적재(멱등).

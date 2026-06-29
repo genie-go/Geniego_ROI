@@ -95,6 +95,8 @@ read -r -d '' CRONTAB <<EOF || true
 # ── 아웃바운드 웹훅 디스패치(webhook_delivery pending drain; 매분, --max 바운드) ──
 * * * * * GENIE_ENV=production php ${PROD}/bin/webhook_dispatch_cron.php >> /var/log/genie_webhook.log 2>&1
 * * * * * GENIE_ENV=demo php ${DEMO}/bin/webhook_dispatch_cron.php >> /var/log/genie_webhook_demo.log 2>&1
+# ── [현 차수] 광고 딜리버리 재시도 큐(DLQ; buildDelivery 일시장애 지수백오프 재시도. both=운영+데모 일괄) ──
+0,10,20,30,40,50 * * * * php ${PROD}/bin/ad_dlq_cron.php both >> /var/log/genie_ad_dlq.log 2>&1
 EOF
 
 if [ "${1:-}" = "--apply" ]; then

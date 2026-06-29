@@ -121,11 +121,38 @@ final class AdAdapters
         return ['ok' => false, 'external_id' => '', 'status' => $status, 'error' => $error];
     }
 
-    /** 일 예산 산출(매체는 보통 일예산). 채널 배정액 / 기간일수. */
+    /** 일 예산 산출(매체는 보통 일예산). 채널 배정액 / 기간일수. (KRW 기준) */
     private static function dailyBudget(int $alloc, string $period): int
     {
         $days = ['monthly' => 30, 'quarter' => 90, 'halfyear' => 180, 'annual' => 365][$period] ?? 30;
         return max(1000, (int)round($alloc / $days / 100) * 100);
+    }
+
+    /* ════════════════════════ [현 차수] 멀티통화 집행 + 자동입찰 ════════════════════════
+     *   기존: 예산을 KRW 정수로 매체에 그대로 전송 → 비-KRW 계정에서 단위 오류(Meta=계정통화 minor단위/Google=micros).
+     *   기존: 고정 manual bid(daily/100·manualCpc) → 매체 머신러닝 자동입찰(maximize/tROAS/tCPA) 미활용.
+     *   개선: 계정통화(cred 'account_currency', 기본 KRW=무변환=기존동작 보존) 환산 + 입찰전략 선택(auto 기본). */
+
+    /** 매체 계정 통화(cred 'account_currency'). 미설정=KRW(기존 동작 보존). */
+    private static function accountCur(PDO $pdo, string $tenant, string $channel): string
+    {
+        $c = strtoupper(trim(self::cred($pdo, $tenant, $channel, 'account_currency')));
+        return $c !== '' ? $c : 'KRW';
+    }
+
+    /** KRW 일예산 → 계정 통화 major 단위(소수). KRW/미상통화=무변환(기존 KRW 동작 그대로). */
+    private static function toAcctMajor(int $dailyKrw, string $cur): float
+    {
+        if ($cur === '' || $cur === 'KRW') return (float)$dailyKrw;
+        $rate = \Genie\Handlers\Connectors::fxToKrw(1.0, $cur); // fxToKrw(1,cur)=1 cur당 KRW 환율
+        return ($rate > 0 && $rate !== 1.0) ? $dailyKrw / $rate : (float)$dailyKrw;
+    }
+
+    /** 0-decimal 통화(원/엔/동 등)는 minor=major, 그 외 ×100(Meta daily_budget=계정통화 minor 단위). */
+    private static function toMinor(float $major, string $cur): int
+    {
+        $zero = ['KRW' => 1, 'JPY' => 1, 'VND' => 1, 'CLP' => 1, 'IDR' => 1]; // 무소수 통화
+        return max(1, (int)round($major * (isset($zero[$cur]) ? 1 : 100)));
     }
 
     /* ════════════════════════ 디스패치 ════════════════════════ */
@@ -143,12 +170,19 @@ final class AdAdapters
         $daily  = self::dailyBudget($alloc, $period);
         // [현 차수 초고도화] 캠페인 목표 — 커머스 ROI 플랫폼은 클릭이 아니라 구매/전환 최적화가 본질.
         //   'conversions'|'sales' 면 매체 전환목표 + 픽셀 전환최적화로 생성(픽셀 자격증명 있을 때만, 없으면 트래픽 honest 폴백).
-        $objective = strtolower((string)($camp['objective'] ?? 'conversions'));
+        // [현 차수] 집행 설정 — 목표/입찰전략/타깃CPA·ROAS/타깃국가. 입찰 기본 auto(매체 머신러닝 자동입찰).
+        $settings = [
+            'objective'    => strtolower((string)($camp['objective'] ?? 'conversions')),
+            'bid_strategy' => strtolower((string)($camp['bid_strategy'] ?? 'auto')),  // auto|tcpa|troas|manual
+            'target_cpa'   => (float)($camp['target_cpa'] ?? 0),   // KRW(계정통화 환산)
+            'target_roas'  => (float)($camp['target_roas'] ?? 0),  // 비율(예: 3.0 = 300%)
+            'countries'    => (is_array($camp['countries'] ?? null) && $camp['countries']) ? array_values(array_filter(array_map('strval', $camp['countries']))) : ['KR'],
+        ];
         try {
             switch ($channel) {
-                case 'meta_ads':        return self::metaCreate($pdo, $tenant, $name, $daily, $objective);
-                case 'google_ads':      return self::googleCreate($pdo, $tenant, $name, $daily);
-                case 'tiktok_business': return self::tiktokCreate($pdo, $tenant, $name, $daily, $objective);
+                case 'meta_ads':        return self::metaCreate($pdo, $tenant, $name, $daily, $settings);
+                case 'google_ads':      return self::googleCreate($pdo, $tenant, $name, $daily, $settings);
+                case 'tiktok_business': return self::tiktokCreate($pdo, $tenant, $name, $daily, $settings);
                 case 'naver_sa':        return self::naverCreate($pdo, $tenant, $name, $daily);
                 case 'kakao_moment':    return self::kakaoCreate($pdo, $tenant, $name, $daily);
                 case 'line_ads':        return self::lineCreate($pdo, $tenant, $name, $daily);
@@ -335,7 +369,17 @@ final class AdAdapters
         return in_array($objective, ['conversions', 'sales', 'purchase'], true)
             && trim(self::cred($pdo, $tenant, 'meta_ads', 'pixel_id')) !== '';
     }
-    private static function metaCreate(PDO $pdo, string $tenant, string $name, int $daily, string $objective = 'traffic'): array
+    /** Meta 캠페인 입찰전략 매핑. auto=LOWEST_COST_WITHOUT_CAP(예산 내 최대성과)·tcpa=COST_CAP·troas=최소ROAS(전환만)·manual=미설정(adset bid). */
+    private static function metaBidStrategy(string $bs, bool $conv): string
+    {
+        switch ($bs) {
+            case 'auto':  return 'LOWEST_COST_WITHOUT_CAP';
+            case 'tcpa':  return 'COST_CAP';
+            case 'troas': return $conv ? 'LOWEST_COST_WITH_MIN_ROAS' : 'LOWEST_COST_WITHOUT_CAP';
+            default:      return ''; // manual → adset bid_amount(기존)
+        }
+    }
+    private static function metaCreate(PDO $pdo, string $tenant, string $name, int $daily, array $settings = []): array
     {
         $token = self::cred($pdo, $tenant, 'meta_ads', 'access_token');
         $acct  = self::cred($pdo, $tenant, 'meta_ads', 'ad_account_id');
@@ -343,14 +387,20 @@ final class AdAdapters
         if (strncmp($acct, 'act_', 4) !== 0) $acct = 'act_' . $acct;
         $url = "https://graph.facebook.com/" . self::META_VER . "/{$acct}/campaigns";
         // [현 차수] 전환(구매) 목표 우선 — 픽셀 있으면 OUTCOME_SALES, 없으면 트래픽 폴백(honest). status=PAUSED, CBO 일예산.
-        $conv = self::metaIsConversion($pdo, $tenant, $objective);
+        $conv = self::metaIsConversion($pdo, $tenant, (string)($settings['objective'] ?? 'traffic'));
+        // [현 차수] 멀티통화 — 계정 통화 minor 단위로 예산 환산(KRW 계정=무변환=기존동작).
+        $cur    = self::accountCur($pdo, $tenant, 'meta_ads');
+        $budget = self::toMinor(self::toAcctMajor($daily, $cur), $cur);
         $body = [
             'name' => $name, 'objective' => $conv ? 'OUTCOME_SALES' : 'OUTCOME_TRAFFIC', 'status' => 'PAUSED',
-            'special_ad_categories' => json_encode([]), 'daily_budget' => (string)$daily,
+            'special_ad_categories' => json_encode([]), 'daily_budget' => (string)$budget,
             'access_token' => $token,
         ];
+        // [현 차수] 자동입찰 전략(매체 머신러닝). 기본 auto. COST_CAP/최소ROAS는 adset bid 제약과 함께 동작(metaDeliver).
+        $bidStrategy = self::metaBidStrategy((string)($settings['bid_strategy'] ?? 'auto'), $conv);
+        if ($bidStrategy !== '') $body['bid_strategy'] = $bidStrategy;
         [$code, $res] = self::http('POST', $url, ['Content-Type: application/x-www-form-urlencoded'], $body);
-        if ($code >= 200 && $code < 300 && !empty($res['id'])) return self::ok((string)$res['id'], 'paused', 'Meta 캠페인 생성(PAUSED·' . ($conv ? '전환/구매 최적화' : '트래픽') . ')');
+        if ($code >= 200 && $code < 300 && !empty($res['id'])) return self::ok((string)$res['id'], 'paused', 'Meta 캠페인 생성(PAUSED·' . ($conv ? '전환/구매' : '트래픽') . '·입찰=' . ($bidStrategy ?: 'manual') . ($cur !== 'KRW' ? '·' . $cur : '') . ')');
         return self::fail('Meta: ' . (self::errMsg($res) ?: ('HTTP ' . $code)));
     }
     private static function metaUpdateBudget(PDO $pdo, string $tenant, string $extId, int $daily): array
@@ -369,7 +419,7 @@ final class AdAdapters
     }
 
     /* ════════════════════════ Google Ads ════════════════════════ */
-    private static function googleCreate(PDO $pdo, string $tenant, string $name, int $daily): array
+    private static function googleCreate(PDO $pdo, string $tenant, string $name, int $daily, array $settings = []): array
     {
         $dev   = self::cred($pdo, $tenant, 'google_ads', 'developer_token');
         $token = self::cred($pdo, $tenant, 'google_ads', 'access_token');
@@ -377,24 +427,38 @@ final class AdAdapters
         if ($dev === '' || $token === '' || $cid === '') return self::fail('Google 자격증명(developer_token/access_token/customer_id) 미등록', 'no_credentials');
         $hdr = ['Authorization: Bearer ' . $token, 'developer-token: ' . $dev, 'Content-Type: application/json', 'login-customer-id: ' . $cid];
         $base = "https://googleads.googleapis.com/" . self::GOOGLE_VER . "/customers/{$cid}";
-        // 1) campaignBudget 생성 (amountMicros = 원*1,000,000)
+        // 1) campaignBudget — [현 차수] 멀티통화: 계정통화 micros(KRW 계정=원*1e6=기존동작).
+        $cur = self::accountCur($pdo, $tenant, 'google_ads');
+        $amountMicros = (int)round(self::toAcctMajor($daily, $cur) * 1000000);
         $budgetBody = json_encode(['operations' => [['create' => [
             'name' => $name . ' Budget ' . substr(md5($name . $daily), 0, 6),
-            'amountMicros' => (string)((int)$daily * 1000000),
-            'deliveryMethod' => 'STANDARD',
+            'amountMicros' => (string)$amountMicros, 'deliveryMethod' => 'STANDARD',
         ]]]]);
         [$bc, $br] = self::http('POST', "{$base}/campaignBudgets:mutate", $hdr, $budgetBody);
         $budgetRes = $br['results'][0]['resourceName'] ?? '';
         if ($budgetRes === '') return self::fail('Google 예산 생성 실패: ' . (self::errMsg($br) ?: ('HTTP ' . $bc)));
-        // 2) campaign 생성 (PAUSED, SEARCH)
-        $campBody = json_encode(['operations' => [['create' => [
-            'name' => $name, 'status' => 'PAUSED', 'advertisingChannelType' => 'SEARCH',
-            'manualCpc' => new \stdClass(), 'campaignBudget' => $budgetRes,
-        ]]]]);
+        // 2) campaign 생성 (PAUSED, SEARCH). [현 차수] 자동입찰 — 전환추적(conversion_action) 있으면 전환 기반 입찰
+        //   (troas=전환가치 최대화/tcpa=전환수 최대화+목표CPA/auto=전환수 최대화), 없으면 manualCpc honest 폴백.
+        $bs       = (string)($settings['bid_strategy'] ?? 'auto');
+        $hasConvAction = trim(self::cred($pdo, $tenant, 'google_ads', 'conversion_action')) !== '';
+        $bidNote = 'manualCpc';
+        $camp = ['name' => $name, 'status' => 'PAUSED', 'advertisingChannelType' => 'SEARCH', 'campaignBudget' => $budgetRes];
+        if ($hasConvAction && $bs !== 'manual') {
+            if ($bs === 'troas' && (float)($settings['target_roas'] ?? 0) > 0) {
+                $camp['maximizeConversionValue'] = ['targetRoas' => (float)$settings['target_roas']]; $bidNote = 'tROAS';
+            } elseif ($bs === 'tcpa' && (float)($settings['target_cpa'] ?? 0) > 0) {
+                $camp['maximizeConversions'] = ['targetCpaMicros' => (string)(int)round(self::toAcctMajor((int)round((float)$settings['target_cpa']), $cur) * 1000000)]; $bidNote = 'tCPA';
+            } else {
+                $camp['maximizeConversions'] = new \stdClass(); $bidNote = 'maxConv';
+            }
+        } else {
+            $camp['manualCpc'] = new \stdClass();
+        }
+        $campBody = json_encode(['operations' => [['create' => $camp]]]);
         [$cc, $cr] = self::http('POST', "{$base}/campaigns:mutate", $hdr, $campBody);
         $campRes = $cr['results'][0]['resourceName'] ?? '';
         if ($campRes === '') return self::fail('Google 캠페인 생성 실패: ' . (self::errMsg($cr) ?: ('HTTP ' . $cc)));
-        return self::ok($campRes, 'paused', 'Google 캠페인 생성(PAUSED)');
+        return self::ok($campRes, 'paused', 'Google 캠페인 생성(PAUSED·입찰=' . $bidNote . ($cur !== 'KRW' ? '·' . $cur : '') . ')');
     }
     /** Google 캠페인 상태 변경(최적화 액추에이터 — 일시정지/재개). extId = customers/{cid}/campaigns/{id}. */
     private static function googleSetStatus(PDO $pdo, string $tenant, string $extId, string $status): array
@@ -604,16 +668,18 @@ final class AdAdapters
     }
 
     /* ════════════════════════ TikTok ════════════════════════ */
-    private static function tiktokCreate(PDO $pdo, string $tenant, string $name, int $daily, string $objective = 'traffic'): array
+    private static function tiktokCreate(PDO $pdo, string $tenant, string $name, int $daily, array $settings = []): array
     {
         $token = self::cred($pdo, $tenant, 'tiktok_business', 'access_token');
         $advId = self::cred($pdo, $tenant, 'tiktok_business', 'advertiser_id');
         if ($token === '' || $advId === '') return self::fail('TikTok 자격증명(access_token/advertiser_id) 미등록', 'no_credentials');
-        // [현 차수 초고도화] 전환(구매) 목표 — pixel_code 있으면 CONVERSIONS, 없으면 TRAFFIC honest 폴백.
-        $conv = in_array($objective, ['conversions', 'sales', 'purchase'], true) && trim(self::cred($pdo, $tenant, 'tiktok_business', 'pixel_code')) !== '';
+        // [현 차수] 전환(구매) 목표 — pixel_code 있으면 CONVERSIONS, 없으면 TRAFFIC honest 폴백. 예산=계정통화 major(KRW=무변환).
+        $conv = in_array((string)($settings['objective'] ?? 'traffic'), ['conversions', 'sales', 'purchase'], true) && trim(self::cred($pdo, $tenant, 'tiktok_business', 'pixel_code')) !== '';
+        $cur  = self::accountCur($pdo, $tenant, 'tiktok_business');
+        $budget = round(self::toAcctMajor($daily, $cur), 2);
         $body = json_encode([
             'advertiser_id' => $advId, 'campaign_name' => $name, 'objective_type' => $conv ? 'CONVERSIONS' : 'TRAFFIC',
-            'budget_mode' => 'BUDGET_MODE_DAY', 'budget' => $daily, 'operation_status' => 'DISABLE',
+            'budget_mode' => 'BUDGET_MODE_DAY', 'budget' => $budget, 'operation_status' => 'DISABLE',
         ]);
         [$code, $res] = self::http('POST', 'https://business-api.tiktok.com/open_api/v1.3/campaign/create/',
             ['Access-Token: ' . $token, 'Content-Type: application/json'], $body);
@@ -821,17 +887,17 @@ final class AdAdapters
     }
 
     /** 캠페인 하위 adset/adgroup + ad 생성(PAUSED). 매체별 딜리버리 완성 레이어. */
-    public static function buildDelivery(PDO $pdo, string $tenant, string $channel, string $campExtId, int $designId, int $daily, string $landing, string $objective = 'traffic'): array
+    public static function buildDelivery(PDO $pdo, string $tenant, string $channel, string $campExtId, int $designId, int $daily, string $landing, array $settings = []): array
     {
         if (!self::executionEnabled() || $campExtId === '') return ['ok' => false, 'status' => 'skipped'];
         $d = self::loadDesign($pdo, $tenant, $designId);
         if ($landing === '') $landing = 'https://roi.genie-go.com';
         try {
             switch ($channel) {
-                case 'google_ads':      $r = self::googleDeliver($pdo, $tenant, $campExtId, $d, $daily, $landing); break;
+                case 'google_ads':      $r = self::googleDeliver($pdo, $tenant, $campExtId, $d, $daily, $landing, $settings); break;
                 case 'naver_sa':        $r = self::naverDeliver($pdo, $tenant, $campExtId, $d, $daily, $landing); break;
-                case 'meta_ads':        $r = self::metaDeliver($pdo, $tenant, $campExtId, $d, $daily, $landing, $objective); break;
-                case 'tiktok_business': $r = self::tiktokDeliver($pdo, $tenant, $campExtId, $d, $daily, $landing, $objective); break;
+                case 'meta_ads':        $r = self::metaDeliver($pdo, $tenant, $campExtId, $d, $daily, $landing, $settings); break;
+                case 'tiktok_business': $r = self::tiktokDeliver($pdo, $tenant, $campExtId, $d, $daily, $landing, $settings); break;
                 case 'kakao_moment':    $r = self::kakaoDeliver($pdo, $tenant, $campExtId, $d, $daily, $landing); break;
                 case 'line_ads':        $r = self::lineDeliver($pdo, $tenant, $campExtId, $d, $daily, $landing); break;
                 default:                return ['ok' => false, 'status' => 'unsupported'];
@@ -846,8 +912,97 @@ final class AdAdapters
         } catch (Throwable $e) { return ['ok' => false, 'error' => $e->getMessage()]; }
     }
 
+    /* ════════════════════════ [현 차수] 딜리버리 재시도 큐(DLQ) ════════════════════════
+     *   buildDelivery 가 일시 장애(HTTP 5xx/timeout/빈응답)로 실패하면 캠페인만 남고 광고 미생성(영구 미집행).
+     *   재시도 큐에 적재 → cron(지수 백오프) 재시도 → 성공 시 allocations 에 ad/adset ext 영속(활성화 캐스케이드).
+     *   no_credentials/unsupported/by-design partial 은 재시도 대상 아님(외부 등록 대기·정직). */
+    private static function ensureDlqTable(PDO $pdo): void
+    {
+        $isMy = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql';
+        $auto = $isMy ? 'INT AUTO_INCREMENT PRIMARY KEY' : 'INTEGER PRIMARY KEY AUTOINCREMENT';
+        try { $pdo->exec("CREATE TABLE IF NOT EXISTS ad_delivery_dlq (
+            id $auto, tenant_id VARCHAR(100) NOT NULL, campaign_id INT DEFAULT 0, channel VARCHAR(40),
+            camp_ext_id VARCHAR(255), design_id INT DEFAULT 0, daily INT DEFAULT 0, landing VARCHAR(500),
+            settings_json TEXT, attempts INT DEFAULT 0, last_error VARCHAR(500), status VARCHAR(20) DEFAULT 'pending',
+            next_retry_at VARCHAR(32), created_at VARCHAR(32), updated_at VARCHAR(32)
+        )" . ($isMy ? ' ENGINE=InnoDB DEFAULT CHARSET=utf8mb4' : '')); } catch (\Throwable $e) {}
+    }
+
+    /** 재시도 가능한 딜리버리 실패인지(일시 장애 의심). 외부 등록 대기/정직 partial 은 제외. */
+    public static function isTransientDeliveryFailure(array $dl): bool
+    {
+        if (!empty($dl['ok'])) return false;
+        $st = (string)($dl['status'] ?? '');
+        if (in_array($st, ['no_credentials', 'skipped', 'unsupported', 'execution_disabled', 'needs_channel', 'partial'], true)) return false;
+        // deliver 레벨은 status 미설정·error 문자열만 줄 수 있음 → 자격증명/미지원도 비-transient 처리(불필요 재시도 방지).
+        $err = strtolower((string)($dl['error'] ?? ''));
+        if ($err !== '' && (strpos($err, 'credential') !== false || strpos($err, 'unsupported') !== false)) return false;
+        return true;
+    }
+
+    /** 딜리버리 재시도 큐 적재(데모/익명 제외). campaignId = auto_campaign.id(성공 시 allocations 영속용). */
+    public static function enqueueDeliveryRetry(PDO $pdo, string $tenant, int $campaignId, string $channel, string $campExtId, int $designId, int $daily, string $landing, array $settings, string $error): void
+    {
+        if ($tenant === '' || strncmp($tenant, 'demo', 4) === 0 || $campExtId === '') return;
+        self::ensureDlqTable($pdo);
+        $now = gmdate('Y-m-d\TH:i:s\Z'); $next = gmdate('Y-m-d\TH:i:s\Z', time() + 600); // 10분 후 첫 재시도
+        try {
+            $pdo->prepare("INSERT INTO ad_delivery_dlq (tenant_id,campaign_id,channel,camp_ext_id,design_id,daily,landing,settings_json,attempts,last_error,status,next_retry_at,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,0,?,'pending',?,?,?)")
+                ->execute([$tenant, $campaignId, $channel, $campExtId, $designId, $daily, mb_substr($landing, 0, 500), json_encode($settings, JSON_UNESCAPED_UNICODE), mb_substr($error, 0, 500), $next, $now, $now]);
+        } catch (\Throwable $e) {}
+    }
+
+    /** 성공 딜리버리 ext 를 캠페인 allocations 에 영속(활성화 캐스케이드용). 채널 키 일치 행만 갱신. */
+    private static function writeBackDeliveryExt(PDO $pdo, string $tenant, int $campaignId, string $channel, string $adsetExt, string $adExt): void
+    {
+        if ($campaignId <= 0) return;
+        try {
+            $st = $pdo->prepare("SELECT allocations FROM auto_campaign WHERE id=? AND tenant_id=? LIMIT 1");
+            $st->execute([$campaignId, $tenant]);
+            $allocs = json_decode((string)($st->fetchColumn() ?: '[]'), true) ?: [];
+            $hit = false;
+            foreach ($allocs as &$a) { if ((string)($a['channel'] ?? '') === $channel) { $a['adset_ext_id'] = $adsetExt; $a['ad_ext_id'] = $adExt; $hit = true; } }
+            unset($a);
+            if ($hit) $pdo->prepare("UPDATE auto_campaign SET allocations=? WHERE id=? AND tenant_id=?")->execute([json_encode($allocs, JSON_UNESCAPED_UNICODE), $campaignId, $tenant]);
+        } catch (\Throwable $e) {}
+    }
+
+    /** DLQ 재시도 처리(cron). 지수 백오프, maxAttempts 초과 시 failed. 반환 통계. */
+    public static function retryDeliveryDlq(PDO $pdo, int $maxAttempts = 5, int $limit = 50): array
+    {
+        self::ensureDlqTable($pdo);
+        $now = gmdate('Y-m-d\TH:i:s\Z');
+        $done = 0; $failed = 0; $retried = 0;
+        try {
+            $st = $pdo->prepare("SELECT * FROM ad_delivery_dlq WHERE status='pending' AND (next_retry_at IS NULL OR next_retry_at <= ?) ORDER BY id LIMIT " . (int)$limit);
+            $st->execute([$now]);
+            $rows = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        } catch (\Throwable $e) { return ['ok' => false, 'error' => 'query_failed']; }
+        foreach ($rows as $row) {
+            $tenant = (string)$row['tenant_id'];
+            $settings = json_decode((string)($row['settings_json'] ?? '[]'), true) ?: [];
+            $dl = self::buildDelivery($pdo, $tenant, (string)$row['channel'], (string)$row['camp_ext_id'], (int)$row['design_id'], (int)$row['daily'], (string)$row['landing'], $settings);
+            $retried++;
+            $attempts = (int)$row['attempts'] + 1;
+            $tsNow = gmdate('Y-m-d\TH:i:s\Z');
+            if (!empty($dl['ok']) && (((string)($dl['ad_id'] ?? '')) !== '' || ((string)($dl['adgroup_id'] ?? '')) !== '')) {
+                self::writeBackDeliveryExt($pdo, $tenant, (int)$row['campaign_id'], (string)$row['channel'], (string)($dl['adset_id'] ?? ($dl['adgroup_id'] ?? '')), (string)($dl['ad_id'] ?? ''));
+                try { $pdo->prepare("UPDATE ad_delivery_dlq SET status='done',attempts=?,updated_at=? WHERE id=?")->execute([$attempts, $tsNow, (int)$row['id']]); } catch (\Throwable $e) {}
+                $done++;
+            } else {
+                $status = $attempts >= $maxAttempts ? 'failed' : 'pending';
+                $backoff = (int)min(86400, 600 * (2 ** $attempts)); // 지수 백오프(최대 24h)
+                $next = gmdate('Y-m-d\TH:i:s\Z', time() + $backoff);
+                try { $pdo->prepare("UPDATE ad_delivery_dlq SET status=?,attempts=?,last_error=?,next_retry_at=?,updated_at=? WHERE id=?")
+                    ->execute([$status, $attempts, mb_substr((string)($dl['error'] ?? ($dl['status'] ?? '')), 0, 500), $next, $tsNow, (int)$row['id']]); } catch (\Throwable $e) {}
+                if ($status === 'failed') $failed++;
+            }
+        }
+        return ['ok' => true, 'retried' => $retried, 'done' => $done, 'failed' => $failed];
+    }
+
     /* ── Google: 광고그룹 + 반응형 검색광고(텍스트) — 완전 빌드 가능 ── */
-    private static function googleDeliver(PDO $pdo, string $tenant, string $campRes, array $d, int $daily, string $landing): array
+    private static function googleDeliver(PDO $pdo, string $tenant, string $campRes, array $d, int $daily, string $landing, array $settings = []): array
     {
         $dev   = self::cred($pdo, $tenant, 'google_ads', 'developer_token');
         $token = self::cred($pdo, $tenant, 'google_ads', 'access_token');
@@ -855,11 +1010,13 @@ final class AdAdapters
         if ($dev === '' || $token === '' || $cid === '') return ['ok' => false, 'error' => 'no_credentials'];
         $hdr = ['Authorization: Bearer ' . $token, 'developer-token: ' . $dev, 'Content-Type: application/json', 'login-customer-id: ' . $cid];
         $base = "https://googleads.googleapis.com/" . self::GOOGLE_VER . "/customers/{$cid}";
-        // 1) 광고그룹
-        $agBody = json_encode(['operations' => [['create' => [
-            'name' => $d['headline'] . ' AG', 'campaign' => $campRes, 'status' => 'PAUSED',
-            'type' => 'SEARCH_STANDARD', 'cpcBidMicros' => (string)(max(100, (int)($daily / 50)) * 1000000),
-        ]]]]);
+        // 1) 광고그룹. [현 차수] cpcBidMicros 는 수동입찰에서만 유효 — 자동입찰(전환추적+비-manual) 캠페인은 생략(전략이 입찰결정).
+        $bs  = (string)($settings['bid_strategy'] ?? 'auto');
+        $cur = self::accountCur($pdo, $tenant, 'google_ads');
+        $auto = (trim(self::cred($pdo, $tenant, 'google_ads', 'conversion_action')) !== '') && $bs !== 'manual';
+        $ag = ['name' => $d['headline'] . ' AG', 'campaign' => $campRes, 'status' => 'PAUSED', 'type' => 'SEARCH_STANDARD'];
+        if (!$auto) $ag['cpcBidMicros'] = (string)(int)round(self::toAcctMajor((int)max(100, (int)($daily / 50)), $cur) * 1000000);
+        $agBody = json_encode(['operations' => [['create' => $ag]]]);
         [$ac, $ar] = self::http('POST', "{$base}/adGroups:mutate", $hdr, $agBody);
         $agRes = $ar['results'][0]['resourceName'] ?? '';
         if ($agRes === '') return ['ok' => false, 'error' => 'adgroup: ' . (self::errMsg($ar) ?: ('HTTP ' . $ac))];
@@ -907,7 +1064,7 @@ final class AdAdapters
     }
 
     /* ── Meta: 광고세트 + 광고. 이미지/페이지 필요(page_id cred + 래스터 이미지). ── */
-    private static function metaDeliver(PDO $pdo, string $tenant, string $campId, array $d, int $daily, string $landing, string $objective = 'traffic'): array
+    private static function metaDeliver(PDO $pdo, string $tenant, string $campId, array $d, int $daily, string $landing, array $settings = []): array
     {
         $token = self::cred($pdo, $tenant, 'meta_ads', 'access_token');
         $acct  = self::cred($pdo, $tenant, 'meta_ads', 'ad_account_id');
@@ -915,22 +1072,35 @@ final class AdAdapters
         if ($token === '' || $acct === '') return ['ok' => false, 'error' => 'no_credentials'];
         if (strncmp($acct, 'act_', 4) !== 0) $acct = 'act_' . $acct;
         $api = "https://graph.facebook.com/" . self::META_VER;
-        // 1) 광고세트(타깃 KR, PAUSED). [현 차수 초고도화] 전환 캠페인이면 픽셀 구매전환 최적화(OFFSITE_CONVERSIONS +
-        //   promoted_object pixel_id+PURCHASE)·lowest-cost 자동입찰, 아니면 링크클릭 + 수동 bid(트래픽 폴백).
-        $conv  = self::metaIsConversion($pdo, $tenant, $objective);
+        // 1) 광고세트(PAUSED). [현 차수] 전환 캠페인=픽셀 구매전환 최적화(OFFSITE_CONVERSIONS+promoted_object PURCHASE),
+        //   타깃국가 파라미터화(멀티국가), 자동입찰 제약(tcpa=cap/troas=최소ROAS floor/auto=lowest-cost/manual=수동bid).
+        $conv  = self::metaIsConversion($pdo, $tenant, (string)($settings['objective'] ?? 'traffic'));
         $pixel = $conv ? trim(self::cred($pdo, $tenant, 'meta_ads', 'pixel_id')) : '';
+        $cur   = self::accountCur($pdo, $tenant, 'meta_ads');
+        $countries = (is_array($settings['countries'] ?? null) && $settings['countries']) ? array_values($settings['countries']) : ['KR'];
         $asBody = [
             'name' => $d['headline'] . ' AdSet', 'campaign_id' => $campId, 'status' => 'PAUSED',
             'billing_event' => 'IMPRESSIONS',
             'optimization_goal' => ($conv && $pixel !== '') ? 'OFFSITE_CONVERSIONS' : 'LINK_CLICKS',
-            'targeting' => json_encode(['geo_locations' => ['countries' => ['KR']]]),
+            'targeting' => json_encode(['geo_locations' => ['countries' => $countries]]),
             'access_token' => $token,
         ];
         if ($conv && $pixel !== '') {
             $asBody['promoted_object'] = json_encode(['pixel_id' => $pixel, 'custom_event_type' => 'PURCHASE']); // 구매 전환 최적화
-            // lowest-cost(자동입찰) — bid_amount 생략 시 매체가 전환당 비용 최소화로 학습.
-        } else {
+        }
+        $bs = (string)($settings['bid_strategy'] ?? 'auto');
+        if ($bs === 'tcpa' && (float)($settings['target_cpa'] ?? 0) > 0) {
+            $asBody['bid_amount'] = (string)self::toMinor(self::toAcctMajor((int)round((float)$settings['target_cpa']), $cur), $cur); // COST_CAP 상한(계정통화 minor)
+        } elseif ($bs === 'troas' && $conv && $pixel !== '' && (float)($settings['target_roas'] ?? 0) > 0) {
+            $asBody['bid_constraints'] = json_encode(['roas_average_floor' => (int)round((float)$settings['target_roas'] * 10000)]); // 최소 ROAS(1.0=10000)
+        } elseif ($bs === 'manual') {
             $asBody['bid_amount'] = (string)max(100, (int)($daily / 100));
+        }
+        // auto → bid 생략(campaign LOWEST_COST_WITHOUT_CAP 자동입찰과 정합).
+        // [현 차수] 프리퀀시 캡(노출 피로 방지) — opt-in. 전환 adset 은 매체가 빈도 자동관리하므로 트래픽 adset 에만 적용.
+        $fc = (int)($settings['frequency_cap'] ?? 0);
+        if ($fc > 0 && !($conv && $pixel !== '')) {
+            $asBody['frequency_control_specs'] = json_encode([['event' => 'IMPRESSIONS', 'interval_days' => max(1, (int)($settings['frequency_days'] ?? 7)), 'max_frequency' => $fc]]);
         }
         [$ac, $ar] = self::http('POST', "{$api}/{$acct}/adsets", ['Content-Type: application/x-www-form-urlencoded'], $asBody);
         $asId = $ar['id'] ?? '';
@@ -976,18 +1146,19 @@ final class AdAdapters
     }
 
     /* ── TikTok: 광고그룹 + 광고. identity_id + 영상(video_id)/이미지(image_id) 소재가 있으면 광고까지 완성. ── */
-    private static function tiktokDeliver(PDO $pdo, string $tenant, string $campId, array $d, int $daily, string $landing = '', string $objective = 'traffic'): array
+    private static function tiktokDeliver(PDO $pdo, string $tenant, string $campId, array $d, int $daily, string $landing = '', array $settings = []): array
     {
         $token = self::cred($pdo, $tenant, 'tiktok_business', 'access_token');
         $advId = self::cred($pdo, $tenant, 'tiktok_business', 'advertiser_id');
         if ($token === '' || $advId === '') return ['ok' => false, 'error' => 'no_credentials'];
         $hdr = ['Access-Token: ' . $token, 'Content-Type: application/json'];
-        // 1) 광고그룹(예산·게재 KR, 정지). [현 차수 초고도화] 전환 캠페인이면 픽셀 구매전환 최적화(CONVERT+OCPM+pixel_id
-        //   +optimization_event), 아니면 클릭 최적화(트래픽 폴백). pixel_code 없으면 클릭으로 honest 폴백.
-        $tkPixel = (in_array($objective, ['conversions', 'sales', 'purchase'], true)) ? trim(self::cred($pdo, $tenant, 'tiktok_business', 'pixel_code')) : '';
+        // 1) 광고그룹(정지). [현 차수] 전환=픽셀 구매전환 최적화(CONVERT+OCPM+optimization_event), 아니면 클릭. 멀티통화 예산·타깃국가.
+        $tkPixel = (in_array((string)($settings['objective'] ?? 'traffic'), ['conversions', 'sales', 'purchase'], true)) ? trim(self::cred($pdo, $tenant, 'tiktok_business', 'pixel_code')) : '';
+        $cur = self::accountCur($pdo, $tenant, 'tiktok_business');
+        $countries = (is_array($settings['countries'] ?? null) && $settings['countries']) ? array_values($settings['countries']) : ['KR'];
         $ag = ['advertiser_id' => $advId, 'campaign_id' => $campId, 'adgroup_name' => $d['headline'] . ' AG',
-            'placement_type' => 'PLACEMENT_TYPE_AUTOMATIC', 'budget_mode' => 'BUDGET_MODE_DAY', 'budget' => $daily,
-            'location_ids' => ['KR'], 'operation_status' => 'DISABLE', 'schedule_type' => 'SCHEDULE_FROM_NOW'];
+            'placement_type' => 'PLACEMENT_TYPE_AUTOMATIC', 'budget_mode' => 'BUDGET_MODE_DAY', 'budget' => round(self::toAcctMajor($daily, $cur), 2),
+            'location_ids' => $countries, 'operation_status' => 'DISABLE', 'schedule_type' => 'SCHEDULE_FROM_NOW'];
         if ($tkPixel !== '') {
             $ag['optimization_goal'] = 'CONVERT'; $ag['billing_event'] = 'OCPM';
             $ag['pixel_id'] = $tkPixel; $ag['optimization_event'] = 'ON_WEB_ORDER'; // 웹 구매 전환 이벤트
@@ -995,6 +1166,14 @@ final class AdAdapters
         } else {
             $ag['optimization_goal'] = 'CLICK'; $ag['billing_event'] = 'CPC';
         }
+        // [현 차수] 입찰 — tcpa(목표CPA)면 BID_TYPE_CUSTOM+conversion_bid_price(계정통화), 그 외는 미설정(TikTok 기본 자동입찰 보존).
+        if ((string)($settings['bid_strategy'] ?? 'auto') === 'tcpa' && $tkPixel !== '' && (float)($settings['target_cpa'] ?? 0) > 0) {
+            $ag['bid_type'] = 'BID_TYPE_CUSTOM';
+            $ag['conversion_bid_price'] = round(self::toAcctMajor((int)round((float)$settings['target_cpa']), $cur), 2);
+        }
+        // [현 차수] 프리퀀시 캡(노출 피로 방지) — opt-in. frequency=최대노출수, frequency_schedule=기간(일).
+        $fc = (int)($settings['frequency_cap'] ?? 0);
+        if ($fc > 0) { $ag['frequency'] = $fc; $ag['frequency_schedule'] = max(1, (int)($settings['frequency_days'] ?? 7)); }
         $agBody = json_encode($ag);
         [$ac, $ar] = self::http('POST', 'https://business-api.tiktok.com/open_api/v1.3/adgroup/create/', $hdr, $agBody);
         $agId = $ar['data']['adgroup_id'] ?? '';
