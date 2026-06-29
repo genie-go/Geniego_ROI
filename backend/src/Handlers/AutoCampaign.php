@@ -1223,6 +1223,8 @@ class AutoCampaign
                     try { \Genie\Handlers\AutoRecommend::learnFromOutcomes($pdo, (string)$tid); } catch (\Throwable $e) {}
                     // [초고도화 #2] 지오 홀드아웃 자동화 — running 검증 + 없으면 자동 설계(관측·spend무변경·안전·비차단).
                     try { \Genie\Handlers\AttributionEngine::autoRunGeoHoldouts($pdo, (string)$tid); } catch (\Throwable $e) {}
+                    // [초고도화 #5] 오디언스 자동 갱신 — CRM 증분을 커스텀/룩어라이크에 일일 재업로드(비차단·데모제외).
+                    try { AdAdapters::refreshAudiencesForTenant($pdo, (string)$tid, $allowActuate); } catch (\Throwable $e) {}
                 }
             } catch (\Throwable $e) {}
         } catch (\Throwable $e) {}

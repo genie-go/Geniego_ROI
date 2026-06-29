@@ -1469,6 +1469,35 @@ final class AdAdapters
         } catch (Throwable $e) { return self::fail($e->getMessage()); }
     }
 
+    /** [초고도화 #5] 오디언스 자동 갱신 — CRM 고객 증분을 주기적으로 커스텀/룩어라이크 오디언스에 재업로드(일일 게이트 20h).
+     *   Braze/Klaviyo 오디언스 자동 새로고침 격차 해소. ★기존 syncAudience 재사용·신규 미디어 생성 없음(기존 오디언스 갱신)·
+     *   광고 자격증명 보유 채널만·데모 제외·완전 비차단. cron(optimize) 테넌트 루프에서 호출. */
+    public static function refreshAudiencesForTenant(PDO $pdo, string $tenant, bool $allowActuate = true): array
+    {
+        $out = ['refreshed' => [], 'skipped' => true];
+        if (!$allowActuate || $tenant === '' || $tenant === 'demo' || $tenant === 'unknown' || strncmp($tenant, 'demo', 4) === 0) return $out;
+        if (!self::executionEnabled()) return $out;
+        $skey = 'aud_refresh_at@' . $tenant;
+        try {
+            $g = $pdo->prepare("SELECT svalue FROM app_setting WHERE skey=? LIMIT 1"); $g->execute([$skey]);
+            $last = (string)($g->fetchColumn() ?: '');
+            if ($last !== '' && strtotime($last) > time() - 20 * 3600) return $out; // 일일 게이트(과빈도/레이트리밋 방지)
+        } catch (Throwable $e) {}
+        $out['skipped'] = false;
+        foreach (['meta_ads', 'google_ads', 'tiktok_business'] as $ch) {
+            if (trim(self::cred($pdo, $tenant, $ch, 'access_token')) === '') continue;
+            try { $r = self::syncAudience($pdo, $tenant, $ch, ['audience_mode' => 'retarget', 'refresh' => true]); if (!empty($r['ok'])) $out['refreshed'][] = $ch; } catch (Throwable $e) {}
+        }
+        try {
+            $now = gmdate('c'); $isMy = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql';
+            $sql = $isMy
+                ? "INSERT INTO app_setting(skey,svalue,updated_at) VALUES(?,?,?) ON DUPLICATE KEY UPDATE svalue=VALUES(svalue),updated_at=VALUES(updated_at)"
+                : "INSERT INTO app_setting(skey,svalue,updated_at) VALUES(?,?,?) ON CONFLICT(skey) DO UPDATE SET svalue=excluded.svalue,updated_at=excluded.updated_at";
+            $pdo->prepare($sql)->execute([$skey, $now, $now]);
+        } catch (Throwable $e) {}
+        return $out;
+    }
+
     /** Meta Custom Audience 생성 + 해시 이메일 업로드(+선택 Lookalike). */
     private static function metaSyncAudience(PDO $pdo, string $tenant, array $hashes, array $opts): array
     {
