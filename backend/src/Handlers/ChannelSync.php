@@ -341,7 +341,7 @@ final class ChannelSync
         // Products
         [$pCode, $pBody] = self::httpGet("https://{$shop}/admin/api/2024-01/products.json?limit=50&fields=id,title,variants,images,product_type,status", $headers);
         // Orders
-        [$oCode, $oBody] = self::httpGet("https://{$shop}/admin/api/2024-01/orders.json?limit=50&status=any&fields=id,name,email,customer,line_items,financial_status,fulfillment_status,created_at,shipping_address,total_price,currency", $headers);
+        [$oCode, $oBody] = self::httpGet("https://{$shop}/admin/api/2024-01/orders.json?limit=50&status=any&fields=id,name,email,customer,line_items,financial_status,fulfillment_status,created_at,cancelled_at,shipping_address,total_price,currency", $headers);
 
         if ($pCode !== 200) return ['ok'=>false, 'error'=>"Shopify HTTP {$pCode}", 'products'=>[], 'orders'=>[]];
 
@@ -376,7 +376,7 @@ final class ChannelSync
                 'total_price' => (float)($o['total_price'] ?? 0),
                 'currency'    => strtoupper((string)($o['currency'] ?? '')), // [228차 S5] 다통화 정규화
 
-                'status'      => self::shopifyOrderStatus($o['financial_status'] ?? '', $o['fulfillment_status'] ?? ''),
+                'status'      => self::shopifyOrderStatus($o['financial_status'] ?? '', $o['fulfillment_status'] ?? '', (string)($o['cancelled_at'] ?? '')),
                 'addr'        => ($o['shipping_address']['address1'] ?? '') . ' ' . ($o['shipping_address']['city'] ?? ''),
                 'ordered_at'  => $o['created_at'] ?? '',
                 'event_type'  => 'order',
@@ -387,8 +387,10 @@ final class ChannelSync
         return ['ok'=>true, 'products'=>$products, 'orders'=>$orders];
     }
 
-    private static function shopifyOrderStatus(string $fin, string $ful): string
+    private static function shopifyOrderStatus(string $fin, string $ful, string $cancelledAt = ''): string
     {
+        // [현 차수 감사] 취소(cancelled_at)-but-paid 도 취소로 — financial_status=paid 라도 주문이 취소되면 매출 제외.
+        if (trim($cancelledAt) !== '') return '취소완료';
         if ($fin === 'refunded') return '반품완료';
         if ($fin === 'voided')   return '취소완료';
         if ($ful === 'fulfilled') return '배송완료';
@@ -730,6 +732,19 @@ final class ChannelSync
                         $li  = $lis[0] ?? [];
                         $qty = 0; foreach ($lis as $l) { $qty += (int)($l['quantity'] ?? 0); }
                         if ($qty < 1) $qty = 1;
+                        // [현 차수 감사] 취소/환불 상태 반영 — orderFulfillmentStatus 만으론 취소/환불을 못 잡아(별도 필드)
+                        //   취소/환불 eBay 주문이 매출에 잔존하던 결함. cancelStatus(CANCELED)·orderPaymentStatus(REFUND)·
+                        //   refunds 를 우선 반영해 classifyCancelReturn 이 취소/반품으로 전이 → 매출 제외·재고 복원·정산.
+                        //   해당 신호 없으면 기존 fulfillment 상태 보존(graceful).
+                        $ebCancel = strtoupper((string)($o['cancelStatus']['cancelState'] ?? ''));
+                        $ebPay    = strtoupper((string)($o['orderPaymentStatus'] ?? ''));
+                        if ($ebCancel === 'CANCELED') {
+                            $ebStatus = 'CANCELED';
+                        } elseif (strpos($ebPay, 'REFUND') !== false || !empty($o['paymentSummary']['refunds'])) {
+                            $ebStatus = 'REFUNDED';
+                        } else {
+                            $ebStatus = (string)($o['orderFulfillmentStatus'] ?? 'NOT_STARTED');
+                        }
                         $orders[] = [
                             'channel_order_id' => (string)($o['orderId'] ?? ''),
                             'buyer_name'  => (string)($o['buyer']['username'] ?? ''),
@@ -740,7 +755,7 @@ final class ChannelSync
                             'unit_price'  => 0.0,
                             'total_price' => (float)($o['pricingSummary']['total']['value'] ?? 0),
                             'currency'    => strtoupper((string)($o['pricingSummary']['total']['currency'] ?? '')),
-                            'status'      => (string)($o['orderFulfillmentStatus'] ?? 'NOT_STARTED'),
+                            'status'      => $ebStatus,
                             'ordered_at'  => (string)($o['creationDate'] ?? ''),
                             'source'      => 'live',
                         ];
