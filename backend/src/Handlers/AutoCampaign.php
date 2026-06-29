@@ -306,9 +306,30 @@ class AutoCampaign
             }
 
             $pendingCount = count($channels) - $activeCount;
-            $msg = $activeCount > 0
-                ? "캠페인이 실행되었습니다. {$activeCount}개 채널 집행 시작" . ($pendingCount > 0 ? ", {$pendingCount}개 채널은 연결 대기" : "")
-                : "캠페인이 생성·예약되었습니다. 채널 API 연결 후 자동 집행됩니다(연결 대기 {$pendingCount}개).";
+
+            // [현 차수 초고도화] 승인=즉시 자동 집행 — activate:true 면 생성(PAUSED) 직후 동일 게이트(킬스위치·결제수단·
+            //   딜리버리 준비) 통과 시 캐스케이드 활성화까지 1단계로 수행(추천→승인→배정예산 한도 내 즉시 라이브).
+            //   ★중복 구현 금지: setStatus 와 동일한 applyStatus 코어 재사용. 게이트 미충족(예: 결제수단 미등록)은
+            //   캠페인은 생성된 채 활성화만 보류하고 사유를 반환(UI 가 결제수단/소재 보강 유도). 데모는 매체 호출 skip.
+            $activation = null;
+            if (!empty($d['activate']) && $activeCount > 0) {
+                try {
+                    $ar = self::applyStatus($pdo, $tenant, $id, 'active', !empty($d['force']));
+                    $activation = $ar['body'] ?? null;
+                } catch (\Throwable $e) { $activation = ['ok' => false, 'error' => substr($e->getMessage(), 0, 120)]; }
+            }
+            $liveNow = is_array($activation) && !empty($activation['ok']);
+
+            if ($liveNow) {
+                $msg = "캠페인이 승인되어 즉시 집행(라이브)되었습니다. {$activeCount}개 채널 노출 시작"
+                     . ($pendingCount > 0 ? ", {$pendingCount}개 채널은 연결 대기" : "") . ". 이후 성과는 자동 수집·최적화됩니다.";
+            } elseif (is_array($activation) && !empty($activation['message'])) {
+                $msg = "캠페인이 생성되었으나 즉시 활성화는 보류되었습니다 — " . (string)$activation['message'];
+            } else {
+                $msg = $activeCount > 0
+                    ? "캠페인이 실행되었습니다. {$activeCount}개 채널 집행 시작" . ($pendingCount > 0 ? ", {$pendingCount}개 채널은 연결 대기" : "")
+                    : "캠페인이 생성·예약되었습니다. 채널 API 연결 후 자동 집행됩니다(연결 대기 {$pendingCount}개).";
+            }
 
             return self::json($res, [
                 'ok' => true,
@@ -319,6 +340,8 @@ class AutoCampaign
                 'active_channels' => $activeCount,
                 'pending_channels' => $pendingCount,
                 'linked_designs' => count($validDesigns),
+                'activation' => $activation,   // 승인 즉시집행 결과(null=즉시집행 미요청). ok=라이브, message=보류 사유.
+                'live' => $liveNow,
                 'message' => $msg,
             ]);
         } catch (\Throwable $e) {
@@ -438,48 +461,62 @@ class AutoCampaign
             }
             $pdo = Db::pdo();
             self::migrate($pdo);
-            // 캠페인 로드(allocations 의 매체 external_id 필요).
-            $cs = $pdo->prepare("SELECT id, allocations FROM auto_campaign WHERE id=? AND tenant_id=? LIMIT 1");
-            $cs->execute([$id, $tenant]);
-            $camp = $cs->fetch(PDO::FETCH_ASSOC);
-            if (!$camp) return self::json($res, ['ok' => false, 'error' => '캠페인을 찾을 수 없습니다.'], 404);
-            $allocs = json_decode((string)($camp['allocations'] ?? '[]'), true) ?: [];
-            $isRealTenant = ($tenant !== 'demo' && strncmp($tenant, 'demo', 4) !== 0);
+            $r = self::applyStatus($pdo, $tenant, $id, $status, !empty($d['force']));
+            return self::json($res, $r['body'], $r['http']);
+        } catch (\Throwable $e) {
+            return self::json($res, ['ok' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
 
-            // ★활성화 하드 게이트(운영 테넌트) — 실 광고비 지출 시작 직전.
-            if ($status === 'active' && $isRealTenant) {
-                if (!AdAdapters::executionEnabled()) {
-                    return self::json($res, ['ok' => false, 'error' => 'execution_disabled',
-                        'message' => '집행이 비활성화되어 있습니다(긴급 킬스위치). 관리자에게 문의하세요.'], 409);
+    /**
+     * 캠페인 상태 적용 코어(매체 push + 활성화 하드게이트 + DB) — setStatus(HTTP) 와 launch(activate=true 즉시집행) 공용.
+     *   ★중복 구현 금지: 승인→즉시집행 1단계도 동일 게이트(킬스위치·결제수단·딜리버리 준비)·동일 캐스케이드 활성화를 거친다.
+     *   @return array ['http'=>int, 'body'=>array]  (호출부가 json 응답으로 래핑)
+     */
+    private static function applyStatus(PDO $pdo, string $tenant, int $id, string $status, bool $force): array
+    {
+        // 캠페인 로드(allocations 의 매체 external_id 필요).
+        $cs = $pdo->prepare("SELECT id, allocations FROM auto_campaign WHERE id=? AND tenant_id=? LIMIT 1");
+        $cs->execute([$id, $tenant]);
+        $camp = $cs->fetch(PDO::FETCH_ASSOC);
+        if (!$camp) return ['http' => 404, 'body' => ['ok' => false, 'error' => '캠페인을 찾을 수 없습니다.']];
+        $allocs = json_decode((string)($camp['allocations'] ?? '[]'), true) ?: [];
+        $isRealTenant = ($tenant !== 'demo' && strncmp($tenant, 'demo', 4) !== 0);
+
+        // ★활성화 하드 게이트(운영 테넌트) — 실 광고비 지출 시작 직전.
+        if ($status === 'active' && $isRealTenant) {
+            if (!AdAdapters::executionEnabled()) {
+                return ['http' => 409, 'body' => ['ok' => false, 'error' => 'execution_disabled',
+                    'message' => '집행이 비활성화되어 있습니다(긴급 킬스위치). 관리자에게 문의하세요.']];
+            }
+            if (!BillingMethod::hasActiveMethod($pdo, $tenant)) {
+                return ['http' => 402, 'body' => ['ok' => false, 'error' => 'billing_required',
+                    'message' => '광고를 활성화하려면 광고비 결제수단(카드)을 먼저 등록해야 합니다. [재무·정산 > 결제수단]에서 등록 후 다시 시도하세요.']];
+            }
+            // [현 차수 초고도화] 활성화 사전검증(readiness) — 딜리버리 미완성(캠페인 external_id 는 있으나 광고(ad_ext_id)·
+            //   A/B variant 둘 다 없음 = 광고 미생성) 채널이 있으면 차단. 활성화해도 노출0(매체 effective_status=레벨 AND)
+            //   인 미스컨피그 실집행을 사전 차단(은행급). page_id/픽셀/소재 보강 후 재시도하거나 force=true 로 우회.
+            if (!$force) {
+                $abChs = [];
+                try {
+                    $vq = $pdo->prepare("SELECT DISTINCT channel FROM ab_variant WHERE tenant_id=? AND campaign_id=? AND status<>'paused'");
+                    $vq->execute([$tenant, $id]);
+                    foreach ($vq->fetchAll(PDO::FETCH_COLUMN) ?: [] as $vc) $abChs[self::connectorKey((string)$vc)] = true;
+                } catch (\Throwable $e) {}
+                $notReady = [];
+                foreach ($allocs as $a) {
+                    if ((string)($a['external_id'] ?? '') === '') continue; // 캠페인 미생성(미연결) 채널은 push 대상 아님
+                    $ach = self::connectorKey((string)($a['channel'] ?? ''));
+                    $hasAd = ((string)($a['ad_ext_id'] ?? '')) !== '' || isset($abChs[$ach]);
+                    if (!$hasAd) $notReady[] = (string)($a['channel'] ?? $ach);
                 }
-                if (!BillingMethod::hasActiveMethod($pdo, $tenant)) {
-                    return self::json($res, ['ok' => false, 'error' => 'billing_required',
-                        'message' => '광고를 활성화하려면 광고비 결제수단(카드)을 먼저 등록해야 합니다. [재무·정산 > 결제수단]에서 등록 후 다시 시도하세요.'], 402);
-                }
-                // [현 차수 초고도화] 활성화 사전검증(readiness) — 딜리버리 미완성(캠페인 external_id 는 있으나 광고(ad_ext_id)·
-                //   A/B variant 둘 다 없음 = 광고 미생성) 채널이 있으면 차단. 활성화해도 노출0(매체 effective_status=레벨 AND)
-                //   인 미스컨피그 실집행을 사전 차단(은행급). page_id/픽셀/소재 보강 후 재시도하거나 force=true 로 우회.
-                if (empty($d['force'])) {
-                    $abChs = [];
-                    try {
-                        $vq = $pdo->prepare("SELECT DISTINCT channel FROM ab_variant WHERE tenant_id=? AND campaign_id=? AND status<>'paused'");
-                        $vq->execute([$tenant, $id]);
-                        foreach ($vq->fetchAll(PDO::FETCH_COLUMN) ?: [] as $vc) $abChs[self::connectorKey((string)$vc)] = true;
-                    } catch (\Throwable $e) {}
-                    $notReady = [];
-                    foreach ($allocs as $a) {
-                        if ((string)($a['external_id'] ?? '') === '') continue; // 캠페인 미생성(미연결) 채널은 push 대상 아님
-                        $ach = self::connectorKey((string)($a['channel'] ?? ''));
-                        $hasAd = ((string)($a['ad_ext_id'] ?? '')) !== '' || isset($abChs[$ach]);
-                        if (!$hasAd) $notReady[] = (string)($a['channel'] ?? $ach);
-                    }
-                    if ($notReady) {
-                        $nr = array_values(array_unique($notReady));
-                        return self::json($res, ['ok' => false, 'error' => 'delivery_incomplete', 'channels' => $nr,
-                            'message' => '광고 소재/딜리버리가 미완성인 채널이 있습니다(' . implode(', ', $nr) . '). 활성화해도 노출되지 않습니다(매체가 광고를 생성하지 못함). 매체 자격증명(Meta page_id·픽셀·이미지 소재 등)을 보강한 뒤 재시도하거나, 그대로 진행하려면 force 로 재요청하세요.'], 422);
-                    }
+                if ($notReady) {
+                    $nr = array_values(array_unique($notReady));
+                    return ['http' => 422, 'body' => ['ok' => false, 'error' => 'delivery_incomplete', 'channels' => $nr,
+                        'message' => '광고 소재/딜리버리가 미완성인 채널이 있습니다(' . implode(', ', $nr) . '). 활성화해도 노출되지 않습니다(매체가 광고를 생성하지 못함). 매체 자격증명(Meta page_id·픽셀·이미지 소재 등)을 보강한 뒤 재시도하거나, 그대로 진행하려면 force 로 재요청하세요.']];
                 }
             }
+        }
 
             // 매체 push(데모는 실 매체 호출 금지 — 가상/오염 차단). 캠페인이 매체에 생성돼 external_id 가 있을 때만.
             $pushed = [];
@@ -523,15 +560,12 @@ class AutoCampaign
             $allPushOk = true;
             foreach ($pushed as $p) { if (empty($p['ok'])) { $allPushOk = false; break; } }
             if ($isRealTenant && !$allPushOk) {
-                return self::json($res, ['ok' => false, 'error' => 'platform_push_failed', 'id' => $id, 'status' => 'unchanged',
-                    'pushed' => $pushed, 'message' => '플랫폼 반영 실패 — 상태를 변경하지 않았습니다. 플랫폼 광고관리자에서 직접 확인/재시도하세요.'], 502);
+                return ['http' => 502, 'body' => ['ok' => false, 'error' => 'platform_push_failed', 'id' => $id, 'status' => 'unchanged',
+                    'pushed' => $pushed, 'message' => '플랫폼 반영 실패 — 상태를 변경하지 않았습니다. 플랫폼 광고관리자에서 직접 확인/재시도하세요.']];
             }
             $st = $pdo->prepare("UPDATE auto_campaign SET status=?, updated_at=? WHERE id=? AND tenant_id=?");
             $st->execute([$status, gmdate('Y-m-d\TH:i:s\Z'), $id, $tenant]);
-            return self::json($res, ['ok' => true, 'id' => $id, 'status' => $status, 'pushed' => $pushed]);
-        } catch (\Throwable $e) {
-            return self::json($res, ['ok' => false, 'error' => $e->getMessage()], 500);
-        }
+            return ['http' => 200, 'body' => ['ok' => true, 'id' => $id, 'status' => $status, 'pushed' => $pushed]];
     }
 
     // ───────────────────────────────────────────────────────────────────────
@@ -1094,6 +1128,15 @@ class AutoCampaign
                 // 데이터 유무와 무관하게 다음 주기 기록(no-data 도 cadence 반환) → 빈 캠페인 매시간 재스캔 방지.
                 if (!empty($r['cadence'])) self::persistCadence($pdo, (int)$camp['id'], (string)$camp['tenant_id'], (array)$r['cadence']);
             }
+            // [폐루프 강화] 자가학습 write-back — 활성 자동화 테넌트별로 최근 성과를 EWMA prior 로 누적해
+            //   추천 두뇌의 사전분포를 복리 정밀화. cadence 게이트(due 캠페인만 최적화)와 무관하게 매 cron 흡수.
+            //   ★전역 benchmark 불변·tenant 스코프 별도 테이블만 갱신·외부 부작용 없음(DB only)·비차단.
+            try {
+                $tStmt = $pdo->query("SELECT DISTINCT tenant_id FROM auto_campaign WHERE status='active'");
+                foreach (($tStmt ? $tStmt->fetchAll(PDO::FETCH_COLUMN) : []) as $tid) {
+                    try { \Genie\Handlers\AutoRecommend::learnFromOutcomes($pdo, (string)$tid); } catch (\Throwable $e) {}
+                }
+            } catch (\Throwable $e) {}
         } catch (\Throwable $e) {}
         return $n;
     }

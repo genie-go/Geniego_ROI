@@ -910,6 +910,7 @@ function PlanPricing() {
       }}>
         {[
           { id: 'plan',    label: '💰 플랜별 설정 (요금 + 제공 메뉴·기능 + 접근 권한)' },
+          { id: 'addons',  label: '📦 상품등록 추가팩 (종량)' },
           { id: 'coupons', label: '🎟️ 쿠폰 관리' },
         ].map(tb => {
           const active = outerTab === tb.id;
@@ -930,6 +931,8 @@ function PlanPricing() {
       </div>
 
       {outerTab === 'coupons' && <CouponAdminPanel plans={plans} />}
+
+      {outerTab === 'addons' && <ProductAddonPackEditor />}
 
       {outerTab === 'plan' && <ServiceDescriptionCard />}
       {outerTab === 'plan' && menuPricingSync && (
@@ -1155,6 +1158,7 @@ function PlanPricing() {
             togglePlanAll={togglePlanAll}
             saveAllAccess={saveAllAccess} saving={saving === 'access'} dirty={accessDirty}
             recommendMenuAccess={recommendMenuAccess}
+            recommendAllPricing={recommendAllPricing}
           />
         </div>
       )}
@@ -1777,6 +1781,66 @@ function MenuPricingSyncPanel({ sync, onApply, applying }) {
  *  ③ 발급 통계 + 카테고리 분류
  *  ④ 발급 목록 — 검색 + 상태 필터 + revoke
  */
+/* [251차] 상품등록 추가팩 가격 편집(admin SSOT) — GET/PUT /v424/admin/plan/product-addon-packs. */
+function ProductAddonPackEditor() {
+  const [packs, setPacks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [msg, setMsg] = useState('');
+  const load = useCallback(async () => {
+    setLoading(true);
+    try { const r = await getJsonAuth('/v424/admin/plan/product-addon-packs'); setPacks(Array.isArray(r?.packs) ? r.packs : []); }
+    catch (e) { setMsg('불러오기 실패: ' + (e?.message || e)); }
+    finally { setLoading(false); }
+  }, []);
+  useEffect(() => { load(); }, [load]);
+  const setField = (size, key, val) => setPacks(ps => ps.map(p => p.pack_size === size ? { ...p, [key]: val } : p));
+  const save = async () => {
+    setSaving(true); setMsg('');
+    try {
+      const payload = packs.map(p => ({ pack_size: Number(p.pack_size), price_usd: Number(p.price_usd) || 0, is_active: Number(p.is_active) ? 1 : 0 }));
+      const r = await requestJsonAuth('/v424/admin/plan/product-addon-packs', 'PUT', { packs: payload });
+      if (r?.ok) { setMsg('✅ 저장되었습니다.'); load(); } else setMsg('저장 실패');
+    } catch (e) { setMsg('저장 실패: ' + (e?.message || e)); } finally { setSaving(false); }
+  };
+  const card = { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 14, padding: 20 };
+  return (
+    <div style={card}>
+      <h3 style={{ marginTop: 0, color: 'var(--text-1,#e5e7eb)' }}>📦 상품등록 추가팩 단가 (월 정기 · USD)</h3>
+      <p style={{ fontSize: 13, color: 'var(--text-3,#94a3b8)', lineHeight: 1.6 }}>각 구독 플랜의 <b>기본 제공 상품등록 수</b>(💰 플랜별 설정 탭)를 초과하면 구독회원이 구매하는 추가팩 가격입니다. 구매 시 <b>상품등록·광고디자인·이미지 호스팅 한도가 함께 확장</b>됩니다(상품 1건 ≈ 5MB). 기본 제공 수는 플랜별 설정에서, 추가팩 단가는 여기서 관리합니다.</p>
+      {loading ? <div style={{ color: 'var(--text-3,#94a3b8)' }}>불러오는 중…</div> : (
+        <>
+          <table style={{ width: '100%', borderCollapse: 'collapse', maxWidth: 580 }}>
+            <thead><tr style={{ color: 'var(--text-3,#94a3b8)', fontSize: 12, textAlign: 'left' }}>
+              <th style={{ padding: 8 }}>추가팩(건)</th><th style={{ padding: 8 }}>월 요금(USD)</th><th style={{ padding: 8 }}>건당 단가</th><th style={{ padding: 8 }}>활성</th></tr></thead>
+            <tbody>
+              {packs.map(p => (
+                <tr key={p.pack_size} style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                  <td style={{ padding: 8, fontWeight: 800, color: 'var(--text-1,#e5e7eb)' }}>+{Number(p.pack_size).toLocaleString()}건</td>
+                  <td style={{ padding: 8 }}>
+                    <span style={{ color: '#94a3b8' }}>$</span>
+                    <input type="number" step="0.01" min="0" value={p.price_usd} onChange={e => setField(p.pack_size, 'price_usd', e.target.value)}
+                      style={{ width: 92, padding: '6px 8px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(0,0,0,0.25)', color: '#fff', marginLeft: 4 }} />
+                  </td>
+                  <td style={{ padding: 8, color: 'var(--text-3,#94a3b8)', fontSize: 12 }}>${(Number(p.price_usd) / Math.max(1, Number(p.pack_size))).toFixed(3)}</td>
+                  <td style={{ padding: 8 }}>
+                    <input type="checkbox" checked={!!Number(p.is_active)} onChange={e => setField(p.pack_size, 'is_active', e.target.checked ? 1 : 0)} />
+                  </td>
+                </tr>
+              ))}
+              {packs.length === 0 && <tr><td colSpan={4} style={{ padding: 12, color: 'var(--text-3,#94a3b8)' }}>추가팩이 없습니다.</td></tr>}
+            </tbody>
+          </table>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginTop: 16 }}>
+            <button onClick={save} disabled={saving} style={{ padding: '10px 22px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#16a34a,#22c55e)', color: '#fff', fontWeight: 800, cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.6 : 1 }}>{saving ? '저장 중…' : '💾 가격 저장'}</button>
+            {msg && <span style={{ fontSize: 13, fontWeight: 700, color: msg.startsWith('✅') ? '#22c55e' : '#f59e0b' }}>{msg}</span>}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 function CouponAdminPanel({ plans }) {
   const [data, setData] = useState(null); // { ok, rules, stats, recent }
   const [loading, setLoading] = useState(false);
@@ -2220,7 +2284,7 @@ function CouponAdminPanel({ plans }) {
   );
 }
 
-function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk, togglePlanAll, saveAllAccess, saving, dirty, recommendMenuAccess }) {
+function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk, togglePlanAll, saveAllAccess, saving, dirty, recommendMenuAccess, recommendAllPricing }) {
   const t = useT();
   // 186차 요청: 클릭 단계 펼침(아코디언) — 대메뉴 클릭→중메뉴, 중메뉴 클릭→하위메뉴, 하위메뉴 클릭→서브탭.
   const _allMenuKeys = () => { const s = new Set(); for (const sec of [...MEMBER_MENU, ...ADMIN_MENU]) for (const it of (sec.items || [])) if (it.menuKey) s.add(it.menuKey); return s; };
@@ -2295,7 +2359,9 @@ function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk
           {typeof recommendMenuAccess === 'function' && (
             <button onClick={recommendMenuAccess} disabled={saving} title="플랜별 월 요금 차이에 비례해 AI가 메뉴 접근을 추천" style={{ padding: '11px 20px', borderRadius: 10, border: '1px solid rgba(168,85,247,0.45)', background: 'rgba(168,85,247,0.14)', color: '#6b21a8', fontSize: 14, fontWeight: 800, cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.6 : 1, whiteSpace: 'nowrap' }}>🤖 요금 기반 추천</button>
           )}
+          {typeof recommendAllPricing === 'function' && (
           <button onClick={recommendAllPricing} disabled={saving} title="경쟁사 벤치마크 1계정 base × 계정수 배수 × 기간할인 + 1년=3개월 무료 쿠폰. 플랜 탭에서 저장." style={{ padding: '11px 20px', borderRadius: 10, border: '1px solid rgba(22,163,74,0.45)', background: 'rgba(22,163,74,0.12)', color: '#15803d', fontSize: 14, fontWeight: 800, cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.6 : 1, whiteSpace: 'nowrap' }}>💰 추천가 일괄 채움(계정수·기간)</button>
+          )}
           <button onClick={saveAllAccess} disabled={saving || !dirty} style={{ padding: '11px 24px', borderRadius: 10, border: 'none', background: dirty ? 'linear-gradient(135deg,#16a34a,#22c55e)' : 'rgba(255,255,255,0.06)', color: dirty ? '#fff' : '#94a3b8', fontSize: 14, fontWeight: 800, cursor: dirty ? 'pointer' : 'default', opacity: saving ? 0.6 : 1, whiteSpace: 'nowrap' }}>{saving ? '저장 중…' : (dirty ? '💾 전체 저장' : '✓ 저장됨')}</button>
         </div>
       </div>

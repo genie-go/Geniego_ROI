@@ -73,6 +73,23 @@ final class AbTesting
         return ['winnerId' => $candId, 'prob' => round($prob, 4), 'rates' => $rates];
     }
 
+    /**
+     * [현 차수] 외부 재사용 공개 헬퍼 — {id,impressions,conversions} 변형 배열로 베이지안 "최고 확률" 산출.
+     *   ★중복 구현 금지: bayesBestProb 동일 코어 재사용(AdminGrowth 성장 메시지 A/B 등이 호출).
+     *   @param array $variants [['id'=>int,'impressions'=>int,'conversions'=>int], ...]
+     *   @return array{winnerId:int, prob:float, rates:array<int,float>}
+     */
+    public static function pickBest(array $variants): array
+    {
+        $rows = [];
+        foreach ($variants as $v) {
+            $rows[] = ['v' => ['id' => (int)($v['id'] ?? 0)],
+                       'm' => ['impressions' => (int)($v['impressions'] ?? 0), 'conversions' => (int)($v['conversions'] ?? 0)]];
+        }
+        if (count($rows) < 2) return ['winnerId' => (int)($variants[0]['id'] ?? 0), 'prob' => 0.0, 'rates' => []];
+        return self::bayesBestProb($rows);
+    }
+
     public static function migrate(PDO $pdo): void
     {
         $mysql = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql';

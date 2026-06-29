@@ -142,6 +142,16 @@ class Catalog
         } catch (\Throwable $e) { /* best-effort */ }
     }
 
+    /** [251차] 테넌트에 해당 sku 가 이미 존재하는지(채널 무관) — 신규 상품 여부 판정(한도 카운트용). */
+    private static function skuExists(\PDO $pdo, string $tenant, string $sku): bool
+    {
+        try {
+            $st = $pdo->prepare("SELECT 1 FROM catalog_listing WHERE tenant_id=? AND sku=? LIMIT 1");
+            $st->execute([$tenant, $sku]);
+            return (bool)$st->fetchColumn();
+        } catch (\Throwable $e) { return false; }
+    }
+
     /** 현재 등록가 조회(없으면 null). */
     private static function currentPrice(\PDO $pdo, string $tenant, string $channel, string $sku): ?float
     {
@@ -207,6 +217,13 @@ class Catalog
         if ($channel === '' || $sku === '') return self::jsonRes($res, ['ok' => false, 'error' => 'channel/sku required'], 400);
         $body = (array)($req->getParsedBody() ?? []);
         $action = (string)($body['action'] ?? 'register');
+        // [251차] ★상품등록 한도 강제(이미지 스토리지 적자 방어) — 신규 상품(미존재 sku) 등록 시 기본 제공 수 +
+        //   구매 추가팩의 유효 한도를 초과하면 402(추가팩 구매/거부 선택 payload). 기존 sku(채널 추가·수정·해제)는
+        //   상품 수 증가가 아니므로 통과. 기본 제공 수(plan_config)는 admin 설정값을 읽기만 함(불변).
+        if (!in_array($action, ['unregister', 'disconnect'], true) && !self::skuExists($pdo, $tenant, $sku)) {
+            $ov = \Genie\PlanLimits::productOverage($pdo, $tenant, \Genie\PlanLimits::productCount($pdo, $tenant));
+            if ($ov !== null) return self::jsonRes($res, $ov, 402);
+        }
         // 기존 리스팅과 병합(누락 필드는 기존값 보존 → execute 시 부분 payload 로 인한 데이터 손실 방지).
         $f = self::mergeWithExisting($pdo, $tenant, $channel, $sku, $body, $action);
         $status = self::channelStatus($pdo, $tenant, $channel, $action);

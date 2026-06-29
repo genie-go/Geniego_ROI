@@ -339,6 +339,14 @@ final class UserAuth
     {
         $u = self::authedUser($req);
         if (!$u) return null;
+        // [251차] ★admin 전용 'platform_growth' 컨텍스트 전환 — 플랫폼 자체 성장을 기존 모든 메뉴(크리에이티브
+        //   스튜디오·자동화 전략·캠페인·어트리뷰션·채널KPI 등)로 조회·운영(신규 메뉴 0·기능 재사용).
+        //   ★보안: 오직 admin 계정 + 오직 'platform_growth' 값만 허용(고객 테넌트 임의 임퍼소네이트 불가 =
+        //   블래스트 반경 최소). 헤더 부재 = 정상 자기 테넌트(기본 OFF·기존 동작 무영향).
+        $isAdmin = (strtolower((string)($u['plan'] ?? '')) === 'admin' || strtolower((string)($u['plans'] ?? '')) === 'admin');
+        if ($isAdmin && trim($req->getHeaderLine('X-Act-As-Tenant')) === 'platform_growth') {
+            return 'platform_growth';
+        }
         $t = trim((string)($u['tenant_id'] ?? ''));
         return $t !== '' ? $t : ('acct_' . (int)($u['id'] ?? 0));
     }
@@ -546,6 +554,15 @@ final class UserAuth
         } catch (\Throwable $e) {}
 
         self::audit($req, 'register', '회원가입: ' . $email, 'low', ['id' => $userId, 'email' => $email, 'plan' => $finalPlan, 'tenant_id' => $tenantId]);
+
+        // [현 차수 초고도화] 플랫폼 자체 성장 퍼널 자동 적재 — 실 가입을 platform_growth 리드/이벤트로 기록
+        //   (admin 성장 콘솔의 퍼널/전환 지표가 실측 반영). ★완전 비차단·격리: 실패해도 가입을 막지 않음.
+        try {
+            \Genie\Handlers\AdminGrowth::recordSignup($pdo, $email, $name, [
+                'company' => $company, 'phone' => $phone,
+                'meta' => ['plan' => $finalPlan, 'trial' => $isPaidSignup, 'tenant_id' => $tenantId, 'user_id' => $userId],
+            ]);
+        } catch (\Throwable $e) { /* 성장 적재 실패는 가입 차단 안 함 */ }
 
         return self::json($res, [
             'ok'    => true,

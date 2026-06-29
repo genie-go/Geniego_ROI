@@ -166,12 +166,149 @@ final class AutoRecommend
      *   매트릭스의 셀 액션 판정 등)가 동일 벤치마크를 재사용한다(중복 시드 금지). DB 우선·상수 폴백. */
     public static function benchmarkMap(): array { return self::loadBenchmarks(); }
 
-    /** 테넌트 실측 채널 성과(최근 N일). 없으면 빈 배열. ★tenant_id 스코프 필수. */
+    // ── 자가학습 사전분포(per-tenant): 성과 결과를 EWMA 로 누적해 추천 두뇌의 prior 를 복리 정밀화 ──────
+    //   [폐루프 강화] 기존: 전역 channel_benchmark(업계평균)=고정 prior, 관리자 수동 PUT 으로만 변동.
+    //   추가: 테넌트 실측 성과를 cron 이 EWMA 로 누적 학습 → 그 테넌트의 prior 가 시간에 따라 정밀화(자가학습).
+    //   ★격리: 전역 benchmark 불변(교차오염 0). 학습치는 tenant_id 스코프 별도 테이블에만 적재.
+    //   ★무회귀: 누적표본 부족(MIN_PRIOR_SAMPLE 미만) 채널은 전역 benchmark 그대로 사용.
+    private const LEARN_WINDOW_DAYS = 14;    // 매 학습 시 흡수할 최근 성과 윈도우(일)
+    private const MIN_LEARN_CONV    = 3;     // 이 전환수 미만 채널은 학습 스킵(잡음 방지)
+    private const MIN_PRIOR_SAMPLE  = 5.0;   // 누적 유효표본 이 값 이상이어야 학습 prior 를 추천에 사용
+    private const PRIOR_DECAY       = 0.8;   // 누적표본 감쇠(최근 가중·과거 점감) — EWMA 메모리 길이
+    private const PRIOR_SAMPLE_CAP  = 500.0; // 누적표본 상한(α 가 0 으로 굳지 않도록)
+
+    private static function ensureLearnedPriorTable(PDO $pdo): void
+    {
+        // PRIMARY KEY 는 VARCHAR(복합) — MySQL 은 TEXT PK 거부(메모리 트랩). SQLite 폴백도 동일 DDL 동작.
+        $pdo->exec("CREATE TABLE IF NOT EXISTS channel_learned_prior (
+            tenant_id VARCHAR(64) NOT NULL,
+            channel VARCHAR(40) NOT NULL,
+            cpm REAL DEFAULT 0,
+            ctr REAL DEFAULT 0,
+            cvr REAL DEFAULT 0,
+            roas REAL DEFAULT 0,
+            sample_conv REAL DEFAULT 0,
+            updated_at VARCHAR(32),
+            PRIMARY KEY (tenant_id, channel)
+        )");
+    }
+
+    /** 테넌트 학습 prior 로드(채널→cpm/ctr/cvr/roas/sample). 없으면 빈 배열. ★tenant 스코프. */
+    private static function loadLearnedPrior(PDO $pdo, string $tenant): array
+    {
+        if ($tenant === '') return [];
+        $out = [];
+        try {
+            self::ensureLearnedPriorTable($pdo);
+            $st = $pdo->prepare('SELECT channel,cpm,ctr,cvr,roas,sample_conv FROM channel_learned_prior WHERE tenant_id=?');
+            $st->execute([$tenant]);
+            foreach ($st->fetchAll(PDO::FETCH_ASSOC) ?: [] as $r) {
+                $out[(string)$r['channel']] = [
+                    'cpm' => (float)$r['cpm'], 'ctr' => (float)$r['ctr'], 'cvr' => (float)$r['cvr'],
+                    'roas' => (float)$r['roas'], 'sample' => (float)$r['sample_conv'],
+                ];
+            }
+        } catch (Throwable $e) { /* 테이블 부재/DB 불가 → 빈(전역 benchmark 폴백) */ }
+        return $out;
+    }
+
+    /** 추천 prior = 전역 benchmark 에 테넌트 학습치 오버레이(충분 표본 채널만). 학습 부재 시 전역 그대로(무회귀). */
+    private static function priorFor(string $tenant): array
+    {
+        $bench = self::loadBenchmarks();
+        if ($tenant === '') return $bench;
+        try {
+            $learned = self::loadLearnedPrior(Db::pdo(), $tenant);
+            foreach ($learned as $id => $lp) {
+                if (!isset($bench[$id])) continue;
+                if (($lp['sample'] ?? 0) < self::MIN_PRIOR_SAMPLE) continue;   // 표본 부족 → 전역 유지
+                // 학습된 지표로 prior 대체(0/비정상값은 전역 보존). minBudget/connectorKey/label 은 전역 유지.
+                if ($lp['cpm']  > 0) $bench[$id]['cpm']  = $lp['cpm'];
+                if ($lp['ctr']  > 0) $bench[$id]['ctr']  = $lp['ctr'];
+                if ($lp['cvr']  > 0) $bench[$id]['cvr']  = $lp['cvr'];
+                if ($lp['roas'] > 0) $bench[$id]['roas'] = $lp['roas'];
+                $bench[$id]['learned'] = true;
+                $bench[$id]['sample']  = $lp['sample'];
+            }
+        } catch (Throwable $e) { /* 학습 로드 실패 → 전역 benchmark */ }
+        return $bench;
+    }
+
+    /**
+     * [자가학습 write-back] 테넌트 최근 성과를 EWMA 로 누적해 학습 prior 갱신. cron(optimize)에서 테넌트별 1회 호출.
+     *   실측(measuredOn, 진실 ROAS 보정 적용) → 채널별 cpm/ctr/cvr/roas 도출 → 기존 prior 와 표본가중 EWMA 블렌딩.
+     *   α = recentConv/(recentConv + priorSample) (0.1~0.5 클램프) → 한 윈도우가 통째로 덮어쓰지 못하게(점진학습).
+     *   누적표본 = priorSample*DECAY + recentConv (CAP) → 최근 가중·과거 점감(개념변화 추종).
+     *   ★전역 benchmark 불변. tenant_id 스코프 별도 테이블만 갱신(교차오염 0). 외부 부작용 없음(DB only).
+     *   @return int 학습 갱신된 채널 수.
+     */
+    public static function learnFromOutcomes(PDO $pdo, string $tenant): int
+    {
+        $tenant = trim($tenant);
+        if ($tenant === '' || strtolower($tenant) === 'unknown') return 0;
+        $measured = self::measuredOn($pdo, $tenant, self::LEARN_WINDOW_DAYS);
+        if (empty($measured)) return 0;
+        $learned = 0;
+        try {
+            self::ensureLearnedPriorTable($pdo);
+            $bench  = self::loadBenchmarks();
+            $prior  = self::loadLearnedPrior($pdo, $tenant);
+            $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+            $now    = gmdate('c');
+            foreach ($measured as $id => $m) {
+                $id = (string)$id;
+                if (!isset($bench[$id])) continue;                 // 알려진 채널만
+                $conv = (int)($m['conversions'] ?? 0);
+                if ($conv < self::MIN_LEARN_CONV) continue;         // 표본 부족 → 학습 스킵(잡음)
+                $imp = (int)($m['impressions'] ?? 0); $clk = (int)($m['clicks'] ?? 0);
+                $spend = (float)($m['spend'] ?? 0);
+                // 기준(기존 prior 없으면 전역 benchmark 에서 시드).
+                $base = $prior[$id] ?? ['cpm' => $bench[$id]['cpm'], 'ctr' => $bench[$id]['ctr'],
+                    'cvr' => $bench[$id]['cvr'], 'roas' => $bench[$id]['roas'], 'sample' => 0.0];
+                // 실현 지표(분모 0 은 기준값 폴백).
+                $rCpm  = $imp > 0 ? ($spend / $imp * 1000.0) : $base['cpm'];
+                $rCtr  = $imp > 0 ? ($clk / $imp * 100.0)    : $base['ctr'];
+                $rCvr  = $clk > 0 ? ($conv / $clk * 100.0)   : $base['cvr'];
+                $rRoas = ((float)($m['roas'] ?? 0) > 0) ? (float)$m['roas'] : $base['roas'];
+                // 표본가중 EWMA — 누적표본이 클수록 새 윈도우 반영비율(α)↓ → 안정 수렴.
+                $ps    = (float)($base['sample'] ?? 0);
+                $alpha = max(0.1, min(0.5, $conv / ($conv + max($ps, self::MIN_PRIOR_SAMPLE))));
+                $nCpm  = (1 - $alpha) * $base['cpm']  + $alpha * $rCpm;
+                $nCtr  = (1 - $alpha) * $base['ctr']  + $alpha * $rCtr;
+                $nCvr  = (1 - $alpha) * $base['cvr']  + $alpha * $rCvr;
+                $nRoas = (1 - $alpha) * $base['roas'] + $alpha * $rRoas;
+                $nSample = min(self::PRIOR_SAMPLE_CAP, $ps * self::PRIOR_DECAY + $conv);
+                $vals = [$tenant, $id, round($nCpm, 2), round($nCtr, 4), round($nCvr, 4), round($nRoas, 3), round($nSample, 2), $now];
+                if ($driver === 'mysql') {
+                    $pdo->prepare('INSERT INTO channel_learned_prior(tenant_id,channel,cpm,ctr,cvr,roas,sample_conv,updated_at)
+                        VALUES(?,?,?,?,?,?,?,?)
+                        ON DUPLICATE KEY UPDATE cpm=VALUES(cpm),ctr=VALUES(ctr),cvr=VALUES(cvr),roas=VALUES(roas),sample_conv=VALUES(sample_conv),updated_at=VALUES(updated_at)')
+                        ->execute($vals);
+                } else {
+                    $pdo->prepare('INSERT INTO channel_learned_prior(tenant_id,channel,cpm,ctr,cvr,roas,sample_conv,updated_at)
+                        VALUES(?,?,?,?,?,?,?,?)
+                        ON CONFLICT(tenant_id,channel) DO UPDATE SET cpm=excluded.cpm,ctr=excluded.ctr,cvr=excluded.cvr,roas=excluded.roas,sample_conv=excluded.sample_conv,updated_at=excluded.updated_at')
+                        ->execute($vals);
+                }
+                $learned++;
+            }
+        } catch (Throwable $e) { /* 학습 실패는 비차단(추천은 전역 benchmark 로 계속) */ }
+        return $learned;
+    }
+
+    /** 테넌트 실측 채널 성과(최근 N일). 없으면 빈 배열. ★tenant_id 스코프 필수.
+     *  Db::pdo() 기본 컨텍스트. 자가학습 cron(운영/데모 pdoFor 명시)은 measuredOn() 사용. */
     private static function measured(string $tenant, int $days): array
+    {
+        try { return self::measuredOn(Db::pdo(), $tenant, $days); }
+        catch (Throwable $e) { return []; }
+    }
+
+    /** measured() 의 PDO 명시 버전 — 자가학습 cron 이 운영/데모 DB 를 정확히 지정(both 모드 교차 방지). */
+    private static function measuredOn(PDO $pdo, string $tenant, int $days): array
     {
         if ($tenant === '') return [];
         try {
-            $pdo = Db::pdo();
             $days = max(1, min(365, $days));
             $sql = 'SELECT channel, SUM(spend) AS spend, SUM(revenue) AS revenue, '
                 . 'SUM(impressions) AS impressions, SUM(clicks) AS clicks, SUM(conversions) AS conversions '
@@ -220,6 +357,129 @@ final class AutoRecommend
         return $out;
     }
 
+    /**
+     * GET /v424/marketing/channel-effectiveness — 채널 효과 전수 스코어카드(최고/최저 + 액션 판정).
+     *   모든 실측 데이터(진실 ROAS 보정·CAC·전환·CTR/CVR·CPM·추세)를 수집해 채널별 0~100 효과점수로 합성,
+     *   최고/최저 효과 채널을 식별하고 채널별 액션(증액/유지/최적화/회수·정지/데이터수집)을 판정한다.
+     *   ★자가학습 prior(channel_learned_prior) 와 진실 ROAS(truthRatio)를 그대로 소비 → 추천·집행 두뇌와 동일 기준.
+     *   효과점수 = 100·(0.45·ROAS_n + 0.25·CAC효율_n + 0.20·전환량_n + 0.10·추세). n=채널간 min-max 정규화.
+     */
+    public static function channelEffectiveness(Request $req, Response $res): Response
+    {
+        $b = self::body($req);
+        $qp = (array)$req->getQueryParams();
+        $period = (string)($qp['period'] ?? $b['period'] ?? 'monthly');
+        $tenant = self::tenant($req);
+        if ($tenant === '') {
+            return self::json($res, ['ok' => true, 'channels' => [], 'best' => null, 'worst' => null,
+                'note' => '로그인/연동 후 실측 성과가 쌓이면 채널 효과가 분석됩니다.', 'source' => 'empty']);
+        }
+        return self::json($res, self::effectivenessData($tenant, $period));
+    }
+
+    /**
+     * [현 차수 초고도화] 채널 효과 전수 분석 코어(테넌트 파라미터). channelEffectiveness(HTTP) 와
+     *   AdminGrowth(플랫폼 자체 성장 — 모든 광고매체 종합분석으로 가입 유입 최대화)가 공용 재사용(중복 구현 금지).
+     *   @return array 효과 스코어카드 payload(ok/channels/best/worst/totals/source/note).
+     */
+    public static function effectivenessData(string $tenant, string $period = 'monthly'): array
+    {
+        $days = self::PERIOD_DAYS[$period] ?? 30;
+        if ($tenant === '') return ['ok' => true, 'channels' => [], 'best' => null, 'worst' => null, 'source' => 'empty'];
+        $measured = self::measured($tenant, max(30, $days));
+        if (empty($measured)) {
+            return ['ok' => true, 'channels' => [], 'best' => null, 'worst' => null,
+                'note' => '아직 집행/성과 데이터가 없습니다. 캠페인 집행 후 채널별 효과가 분석됩니다.', 'source' => 'no_data'];
+        }
+        $bench = self::priorFor($tenant);   // 학습 prior 오버레이된 채널 기대치(없으면 전역 benchmark)
+        $learned = [];
+        try { $learned = self::loadLearnedPrior(Db::pdo(), $tenant); } catch (Throwable $e) {}
+
+        // 1) 채널별 원천 지표 수집(전수).
+        $rows = [];
+        foreach ($measured as $id => $m) {
+            $id = (string)$id;
+            $spend = (float)($m['spend'] ?? 0);
+            $conv  = (int)($m['conversions'] ?? 0);
+            $imp   = (int)($m['impressions'] ?? 0);
+            $clk   = (int)($m['clicks'] ?? 0);
+            $roas  = (float)($m['roas'] ?? 0);
+            $cac   = (float)($m['cac'] ?? 0);
+            $rows[$id] = [
+                'channel' => $id,
+                'label' => $bench[$id]['label'] ?? $id,
+                'spend' => round($spend, 0),
+                'revenue' => round((float)($m['revenue'] ?? 0), 0),
+                'roas' => round($roas, 2),
+                'cac' => round($cac, 0),
+                'conversions' => $conv,
+                'impressions' => $imp,
+                'clicks' => $clk,
+                'ctr' => $imp > 0 ? round($clk / $imp * 100, 2) : 0.0,
+                'cvr' => $clk > 0 ? round($conv / $clk * 100, 2) : 0.0,
+                'cpm' => $imp > 0 ? round($spend / $imp * 1000, 0) : 0.0,
+                'truth_adjusted' => (bool)($m['truth_adjusted'] ?? false),
+                'expected_roas' => round((float)($bench[$id]['roas'] ?? 0), 2),   // 학습/벤치 기대 ROAS
+                'learned' => isset($learned[$id]) && ($learned[$id]['sample'] ?? 0) >= self::MIN_PRIOR_SAMPLE,
+                'sample' => round((float)($learned[$id]['sample'] ?? 0), 1),
+            ];
+        }
+        if (empty($rows)) {
+            return ['ok' => true, 'channels' => [], 'best' => null, 'worst' => null, 'source' => 'no_data'];
+        }
+
+        // 2) 정규화 + 효과점수 합성. CAC 는 낮을수록 좋음 → 역수 정규화.
+        $roasN   = self::normalize(array_map(fn($r) => $r['roas'], $rows));
+        $cacInvN = self::normalize(array_map(fn($r) => $r['cac'] > 0 ? 1.0 / $r['cac'] : 0.0, $rows));
+        $volN    = self::normalize(array_map(fn($r) => (float)$r['conversions'], $rows));
+        foreach ($rows as $id => &$r) {
+            // 추세: 실측 ROAS vs 기대(학습 prior) ROAS. 개선=>1, 악화=>0, 기대 부재 시 중립 0.5.
+            $exp = $r['expected_roas'];
+            $trend = ($exp > 0) ? max(0.0, min(1.0, 0.5 + ($r['roas'] - $exp) / (2.0 * $exp))) : 0.5;
+            $score = 100.0 * (0.45 * ($roasN[$id] ?? 0.5) + 0.25 * ($cacInvN[$id] ?? 0.5)
+                   + 0.20 * ($volN[$id] ?? 0.5) + 0.10 * $trend);
+            $r['trend'] = round($trend, 2);
+            $r['effectiveness'] = round($score, 1);
+            // 신뢰도(표본 기반) — 전환수/(전환수+사전강도).
+            $r['confidence'] = round($r['conversions'] / ($r['conversions'] + self::PRIOR_CONV), 2);
+            // 3) 액션 판정(은행급 honest). 데이터 부족은 단정 금지.
+            if ($r['conversions'] < self::MIN_LEARN_CONV) {
+                $r['verdict'] = 'collecting'; $r['action'] = '데이터 수집 중 — 판단 보류(전환 표본 부족)';
+            } elseif ($exp > 0 && $r['roas'] >= $exp * 1.1 && $trend >= 0.5) {
+                $r['verdict'] = 'scale_up'; $r['action'] = '최고 효과 — 예산 증액 권장(한계ROAS 양호)';
+            } elseif ($r['roas'] < 1.0 || ($exp > 0 && $r['roas'] < $exp * 0.6)) {
+                $r['verdict'] = 'cut'; $r['action'] = '최저 효과 — 예산 회수·정지 권장(손실/기대 미달)';
+            } elseif ($trend < 0.5) {
+                $r['verdict'] = 'optimize'; $r['action'] = '효과 둔화 — 소재/타겟 최적화 필요';
+            } else {
+                $r['verdict'] = 'maintain'; $r['action'] = '효과 안정 — 현 예산 유지';
+            }
+        }
+        unset($r);
+
+        // 4) 효과점수 내림차순 정렬 + 최고/최저(충분 표본·집행 채널 한정) 식별.
+        $list = array_values($rows);
+        usort($list, fn($a, $b) => $b['effectiveness'] <=> $a['effectiveness']);
+        $eligible = array_values(array_filter($list, fn($r) => $r['conversions'] >= self::MIN_LEARN_CONV && $r['spend'] > 0));
+        $best = $eligible[0] ?? null;
+        $worst = !empty($eligible) ? $eligible[count($eligible) - 1] : null;
+        if ($best && $worst && $best['channel'] === $worst['channel']) $worst = null;   // 채널 1개면 최저 미표기
+
+        $tot = ['spend' => 0.0, 'revenue' => 0.0, 'conversions' => 0];
+        foreach ($list as $r) { $tot['spend'] += $r['spend']; $tot['revenue'] += $r['revenue']; $tot['conversions'] += $r['conversions']; }
+        $tot['roas'] = $tot['spend'] > 0 ? round($tot['revenue'] / $tot['spend'], 2) : 0.0;
+
+        return [
+            'ok' => true, 'period' => $period, 'days' => $days,
+            'channels' => $list,
+            'best' => $best ? ['channel' => $best['channel'], 'label' => $best['label'], 'effectiveness' => $best['effectiveness'], 'roas' => $best['roas'], 'action' => $best['action']] : null,
+            'worst' => $worst ? ['channel' => $worst['channel'], 'label' => $worst['label'], 'effectiveness' => $worst['effectiveness'], 'roas' => $worst['roas'], 'action' => $worst['action']] : null,
+            'totals' => $tot,
+            'source' => 'measured',
+            'note' => '효과점수=ROAS·CAC효율·전환량·추세 종합(진실 ROAS 보정). 최고=예산 증액 후보, 최저=회수·정지 후보. 자가학습 prior 반영.',
+        ];
+    }
+
     /** POST /v424/marketing/auto-recommend */
     /** [현 차수] 선택 카테고리들의 채널 적합도를 평균 블렌딩. 빈 입력은 DEFAULT(균일). */
     private static function blendAffinity(array $categories): array
@@ -266,7 +526,8 @@ final class AutoRecommend
         $categories = array_values(array_filter(array_map('strval', (array)($b['categories'] ?? []))));
         if (empty($categories) && $category !== '' && $category !== 'DEFAULT') $categories = [$category];
         $aff = self::blendAffinity($categories);
-        $bench = self::loadBenchmarks();
+        // [자가학습] prior = 전역 benchmark + 테넌트 학습치 오버레이(충분 표본 채널). 학습 부재 시 전역 그대로(무회귀).
+        $bench = self::priorFor($tenant);
         $only = array_filter(array_map('strval', (array)($b['channels'] ?? [])));
 
         // 전체 전환수(UCB 탐색 분모용)

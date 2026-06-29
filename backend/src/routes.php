@@ -902,8 +902,21 @@ return function (App $app): void {
         'POST /api/v424/marketing/auto-recommend' => 'Genie\\Handlers\\AutoRecommend::recommend',
         'GET /v424/marketing/benchmarks'          => 'Genie\\Handlers\\AutoRecommend::benchmarks',
         'GET /api/v424/marketing/benchmarks'      => 'Genie\\Handlers\\AutoRecommend::benchmarks',
+        'GET /v424/marketing/channel-effectiveness'     => 'Genie\\Handlers\\AutoRecommend::channelEffectiveness',
+        'GET /api/v424/marketing/channel-effectiveness' => 'Genie\\Handlers\\AutoRecommend::channelEffectiveness',
         'PUT /v424/marketing/benchmarks'          => 'Genie\\Handlers\\AutoRecommend::updateBenchmarks',
         'PUT /api/v424/marketing/benchmarks'      => 'Genie\\Handlers\\AutoRecommend::updateBenchmarks',
+        // [251차] 상품등록 추가팩(종량) — 사용량/구매/해지(세션) + 가격편집(admin). 기본 제공 수 초과 시 Catalog 402 게이트.
+        'GET /v424/plan/product-usage'                 => 'Genie\\Handlers\\ProductAddon::usage',
+        'GET /api/v424/plan/product-usage'             => 'Genie\\Handlers\\ProductAddon::usage',
+        'POST /v424/plan/product-addon/purchase'       => 'Genie\\Handlers\\ProductAddon::purchase',
+        'POST /api/v424/plan/product-addon/purchase'   => 'Genie\\Handlers\\ProductAddon::purchase',
+        'POST /v424/plan/product-addon/cancel'         => 'Genie\\Handlers\\ProductAddon::cancel',
+        'POST /api/v424/plan/product-addon/cancel'     => 'Genie\\Handlers\\ProductAddon::cancel',
+        'GET /v424/admin/plan/product-addon-packs'     => 'Genie\\Handlers\\ProductAddon::adminPacks',
+        'GET /api/v424/admin/plan/product-addon-packs' => 'Genie\\Handlers\\ProductAddon::adminPacks',
+        'PUT /v424/admin/plan/product-addon-packs'     => 'Genie\\Handlers\\ProductAddon::adminPacksSave',
+        'PUT /api/v424/admin/plan/product-addon-packs' => 'Genie\\Handlers\\ProductAddon::adminPacksSave',
         // [현 차수] 채널×objective 퍼널 집계(목적별 분류 근거) — 세션 토큰 호출(AI게이트).
         'GET /v424/connectors/campaign-funnel'     => 'Genie\\Handlers\\Connectors::campaignFunnel',
         'GET /api/v424/connectors/campaign-funnel' => 'Genie\\Handlers\\Connectors::campaignFunnel',
@@ -994,6 +1007,12 @@ return function (App $app): void {
         //   index.php 의 /v424/admin/* 세션 admin bypass 를 그대로 사용(추가 bypass 불요).
         'GET /v424/admin/growth/dashboard'             => 'Genie\\Handlers\\AdminGrowth::dashboard',
         'GET /v424/admin/growth/funnel'                => 'Genie\\Handlers\\AdminGrowth::funnel',
+        'GET /v424/admin/growth/channel-analysis'      => 'Genie\\Handlers\\AdminGrowth::channelAnalysis',
+        'GET /v424/admin/growth/ab-report'             => 'Genie\\Handlers\\AdminGrowth::abReport',
+        'GET /v424/admin/growth/designs'               => 'Genie\\Handlers\\AdminGrowth::designs',       // [Phase2 소재] platform_growth 광고 소재
+        'POST /v424/admin/growth/designs'              => 'Genie\\Handlers\\AdminGrowth::designSave',
+        'POST /v424/growth/capture'                    => 'Genie\\Handlers\\AdminGrowth::publicCapture', // [Phase2 ②] 공개 방문 캡처
+        'POST /api/v424/growth/capture'                => 'Genie\\Handlers\\AdminGrowth::publicCapture',
         'GET /v424/admin/growth/segments'              => 'Genie\\Handlers\\AdminGrowth::segments',
         'POST /v424/admin/growth/segments'             => 'Genie\\Handlers\\AdminGrowth::segmentSave',
         'POST /v424/admin/growth/segments/seed'        => 'Genie\\Handlers\\AdminGrowth::segmentSeed',
@@ -1014,6 +1033,10 @@ return function (App $app): void {
         // /api 변형 (Apache Alias /api strip 환경)
         'GET /api/v424/admin/growth/dashboard'             => 'Genie\\Handlers\\AdminGrowth::dashboard',
         'GET /api/v424/admin/growth/funnel'                => 'Genie\\Handlers\\AdminGrowth::funnel',
+        'GET /api/v424/admin/growth/channel-analysis'      => 'Genie\\Handlers\\AdminGrowth::channelAnalysis',
+        'GET /api/v424/admin/growth/ab-report'             => 'Genie\\Handlers\\AdminGrowth::abReport',
+        'GET /api/v424/admin/growth/designs'               => 'Genie\\Handlers\\AdminGrowth::designs',
+        'POST /api/v424/admin/growth/designs'              => 'Genie\\Handlers\\AdminGrowth::designSave',
         'GET /api/v424/admin/growth/segments'              => 'Genie\\Handlers\\AdminGrowth::segments',
         'POST /api/v424/admin/growth/segments'             => 'Genie\\Handlers\\AdminGrowth::segmentSave',
         'POST /api/v424/admin/growth/segments/seed'        => 'Genie\\Handlers\\AdminGrowth::segmentSeed',
@@ -1364,6 +1387,7 @@ return function (App $app): void {
         // [현 차수] H4: InfluencerUGC 라이브 데이터 — 4 kind GET/POST(테넌트 격리 영속). 세션 self-auth.
         'GET /v423/influencer/creators'       => 'Genie\\Handlers\\Influencer::creators',
         'GET /v423/influencer/cost-summary'   => 'Genie\\Handlers\\Influencer::costSummary', // [240차] 인플루언서 비용 P&L 집계
+        'GET /api/v423/influencer/cost-summary' => 'Genie\\Handlers\\Influencer::costSummary', // [251차] /api 변형 누락 보강(404 해소)
         // [현 차수] 구독계정 본인 보안 로그(team-members 로그 기록 탭) — 세션 self-auth·테넌트 서버도출 강제
         'GET /v423/member-logs'               => 'Genie\\Handlers\\UserAuth::memberLogs',
         'GET /api/v423/member-logs'           => 'Genie\\Handlers\\UserAuth::memberLogs',
@@ -2069,6 +2093,8 @@ return function (App $app): void {
     $register('GET',    '/v423/member-logs');               $register('GET',    '/api/v423/member-logs');
     // [현 차수] H4: InfluencerUGC 라이브 데이터
     $register('GET',    '/v423/influencer/creators');
+    $register('GET',    '/v423/influencer/cost-summary'); // [251차] $register 누락 보강(Not found 트랩)
+    $register('GET',    '/api/v423/influencer/cost-summary');
     $register('GET',    '/v423/influencer/ugc-reviews');
     $register('GET',    '/v423/influencer/channel-stats');
     $register('GET',    '/v423/influencer/neg-keywords');
@@ -2244,6 +2270,11 @@ return function (App $app): void {
     foreach (['', '/api'] as $pfx) {
         $register('GET',    $pfx . '/v424/admin/growth/dashboard');
         $register('GET',    $pfx . '/v424/admin/growth/funnel');
+        $register('GET',    $pfx . '/v424/admin/growth/channel-analysis');
+        $register('GET',    $pfx . '/v424/admin/growth/ab-report');
+        $register('GET',    $pfx . '/v424/admin/growth/designs');
+        $register('POST',   $pfx . '/v424/admin/growth/designs');
+        $register('POST',   $pfx . '/v424/growth/capture');
         $register('GET',    $pfx . '/v424/admin/growth/segments');
         $register('POST',   $pfx . '/v424/admin/growth/segments');
         $register('POST',   $pfx . '/v424/admin/growth/segments/seed');
@@ -2946,6 +2977,12 @@ return function (App $app): void {
     $register('PUT', '/api/v424/attribution/experiments/{id}');
     $register('DELETE', '/v424/attribution/experiments/{id}');
     $register('DELETE', '/api/v424/attribution/experiments/{id}');
+    // [251차] 상품등록 추가팩(종량) + 이미지 호스팅 연동
+    $register('GET',  '/v424/plan/product-usage');             $register('GET',  '/api/v424/plan/product-usage');
+    $register('POST', '/v424/plan/product-addon/purchase');    $register('POST', '/api/v424/plan/product-addon/purchase');
+    $register('POST', '/v424/plan/product-addon/cancel');      $register('POST', '/api/v424/plan/product-addon/cancel');
+    $register('GET',  '/v424/admin/plan/product-addon-packs'); $register('GET',  '/api/v424/admin/plan/product-addon-packs');
+    $register('PUT',  '/v424/admin/plan/product-addon-packs'); $register('PUT',  '/api/v424/admin/plan/product-addon-packs');
     // [현 차수] ② MMM + 예측 예산 최적화
     $register('GET',  '/v424/mmm/model');     $register('GET',  '/api/v424/mmm/model');
     $register('GET',  '/v424/mmm/bayesian');  $register('GET',  '/api/v424/mmm/bayesian');
@@ -2971,6 +3008,8 @@ return function (App $app): void {
     $register('POST', '/api/v424/marketing/auto-recommend');
     $register('GET', '/v424/marketing/benchmarks');
     $register('GET', '/api/v424/marketing/benchmarks');
+    $register('GET', '/v424/marketing/channel-effectiveness');
+    $register('GET', '/api/v424/marketing/channel-effectiveness');
     $register('PUT', '/v424/marketing/benchmarks');
     $register('PUT', '/api/v424/marketing/benchmarks');
     $register('GET', '/v424/connectors/campaign-funnel');

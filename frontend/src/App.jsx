@@ -390,6 +390,8 @@ function AppLayout() {
             position: 'relative',
           }}>
             <Topbar />
+            <PlatformActAsBanner />
+            <ProductOverageModal />
             <GdprController />
             <EventPopupDisplay />
 
@@ -634,6 +636,76 @@ function VersionUpdateBanner() {
           background: "linear-gradient(135deg,#4f8ef7,#6366f1)", color: "#fff", fontWeight: 800, fontSize: 12.5 }}>
         {t('common.versionApplyNow', '지금 적용')}
       </button>
+    </div>
+  );
+}
+
+/* [251차] 플랫폼 성장 컨텍스트 배너 — admin 이 'platform_growth' act-as 를 켜면 전 페이지 상단에 표시.
+   기존 모든 메뉴(크리에이티브/자동화/어트리뷰션 등)가 GeniegoROI 플랫폼 자체 데이터로 동작 중임을 명확히 인지(안전). */
+function PlatformActAsBanner() {
+  const [on, setOn] = React.useState(() => { try { return localStorage.getItem('gg_act_as_tenant') === 'platform_growth'; } catch (e) { return false; } });
+  React.useEffect(() => {
+    const h = () => { try { setOn(localStorage.getItem('gg_act_as_tenant') === 'platform_growth'); } catch (e) {} };
+    window.addEventListener('storage', h);
+    window.addEventListener('gg-actas-change', h);
+    return () => { window.removeEventListener('storage', h); window.removeEventListener('gg-actas-change', h); };
+  }, []);
+  if (!on) return null;
+  const off = () => { try { localStorage.removeItem('gg_act_as_tenant'); } catch (e) {} window.dispatchEvent(new Event('gg-actas-change')); setOn(false); };
+  return (
+    <div style={{ background: 'linear-gradient(90deg,#7c3aed,#4f8ef7)', color: '#fff', padding: '6px 16px', fontSize: 12.5, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+      <span>🚀 플랫폼 성장 컨텍스트(platform_growth) — 지금 보는 모든 메뉴는 GeniegoROI 플랫폼 자체 데이터입니다</span>
+      <button onClick={off} style={{ background: 'rgba(255,255,255,0.25)', border: 'none', color: '#fff', borderRadius: 6, padding: '3px 12px', fontWeight: 800, cursor: 'pointer', fontSize: 12 }}>끄기(내 계정으로)</button>
+    </div>
+  );
+}
+
+/* [251차] 전역 상품/광고디자인 등록 한도 초과 모달 — apiClient 가 402(product/ad_design_limit_reached) 시 발생시키는
+   'gg-product-overage' 이벤트를 수신해 표시. 추가팩 즉시 구매(월정기·상품·디자인 공통) 또는 거부 선택. 모든 등록 경로 공통. */
+function ProductOverageModal() {
+  const [data, setData] = React.useState(null);
+  const [busy, setBusy] = React.useState(false);
+  const [msg, setMsg] = React.useState('');
+  React.useEffect(() => {
+    const h = (e) => { setData(e.detail || null); setMsg(''); };
+    window.addEventListener('gg-product-overage', h);
+    return () => window.removeEventListener('gg-product-overage', h);
+  }, []);
+  if (!data) return null;
+  const close = () => setData(null);
+  const buy = async (size) => {
+    setBusy(true); setMsg('');
+    try {
+      const tok = localStorage.getItem('genie_token') || localStorage.getItem('demo_genie_token') || localStorage.getItem('accessToken') || '';
+      const r = await fetch('/api/v424/plan/product-addon/purchase', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + tok }, body: JSON.stringify({ pack_size: size }) });
+      const j = await r.json();
+      if (j.ok) { setMsg(`✅ +${size}건 추가 완료 — 다시 등록을 진행하세요.`); setTimeout(() => setData(null), 1800); }
+      else if (j.error === 'billing_required') setMsg('⚠️ ' + (j.message || '결제수단을 먼저 등록하세요(재무·정산 > 결제수단).'));
+      else setMsg('⚠️ ' + (j.message || '구매에 실패했습니다.'));
+    } catch (e) { setMsg('⚠️ 네트워크 오류로 구매하지 못했습니다.'); } finally { setBusy(false); }
+  };
+  const packs = Array.isArray(data.packs) ? data.packs : [];
+  const isDesign = data.error === 'ad_design_limit_reached';
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(15,23,42,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+      <div style={{ background: '#fff', borderRadius: 16, maxWidth: 470, width: '100%', padding: 24, boxShadow: '0 20px 60px rgba(0,0,0,0.3)', fontFamily: 'Apple SD Gothic Neo,Malgun Gothic,sans-serif' }}>
+        <div style={{ fontSize: 17, fontWeight: 900, color: '#0f172a' }}>{isDesign ? '🎨 광고디자인 저장 한도 도달' : '📦 상품등록 한도 도달'}</div>
+        <div style={{ fontSize: 13, color: '#475569', margin: '8px 0 6px', lineHeight: 1.6 }}>{data.message || '기본 제공 한도를 모두 사용했습니다.'}</div>
+        <div style={{ fontSize: 12, color: '#64748b', marginBottom: 12 }}>현재 {data.current ?? '—'} / 한도 {data.limit ?? '—'}건 · 추가팩 구매 시 즉시 계속 등록(월 정기 · 상품·디자인 한도 함께 확장).</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(120px,1fr))', gap: 8 }}>
+          {packs.map(p => (
+            <button key={p.size} disabled={busy} onClick={() => buy(p.size)} style={{ padding: '10px 8px', borderRadius: 10, border: '1px solid #cbd5e1', background: '#f8fafc', cursor: busy ? 'default' : 'pointer', textAlign: 'center', opacity: busy ? 0.6 : 1 }}>
+              <div style={{ fontWeight: 800, color: '#0f172a', fontSize: 14 }}>+{Number(p.size).toLocaleString()}건</div>
+              <div style={{ fontSize: 12, color: '#4f8ef7', fontWeight: 700 }}>${p.price_usd}/월</div>
+            </button>
+          ))}
+        </div>
+        {msg && <div style={{ marginTop: 10, fontSize: 12, fontWeight: 700, color: msg.startsWith('✅') ? '#16a34a' : '#d97706' }}>{msg}</div>}
+        <div style={{ marginTop: 16 }}>
+          <button onClick={close} style={{ width: '100%', padding: '10px 0', borderRadius: 10, border: '1px solid #e2e8f0', background: '#fff', color: '#64748b', fontWeight: 700, cursor: 'pointer' }}>추가하지 않음 (거부)</button>
+        </div>
+        <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 8 }}>※ 추가팩은 월 정기 결제이며 언제든 해지할 수 있습니다(거부 시 신규 등록만 제한, 기존 데이터는 유지).</div>
+      </div>
     </div>
   );
 }

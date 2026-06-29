@@ -124,7 +124,7 @@ class ChannelRegistry
             ['tiktok_shop','TikTok Shop','sales','🎵','#000000','commerce',[$ftext('app_key','App Key',false),$ftext('app_secret','App Secret'),$ftext('access_token','액세스 토큰')]],
             ['rakuten','Rakuten','sales','🔴','#bf0000','commerce',[$ftext('service_secret','Service Secret'),$ftext('license_key','License Key')]],
             ['yahoo_jp','Yahoo! Japan','sales','🟣','#ff0033','commerce',[$ftext('app_id','App ID',false),$ftext('access_token','액세스 토큰')]],
-            ['woocommerce','WooCommerce','sales','🟪','#96588a','commerce',[$ftext('store_url','상점 URL',false),$ftext('consumer_key','Consumer Key'),$ftext('consumer_secret','Consumer Secret')]],
+            ['woocommerce','WooCommerce','sales','🟪','#96588a','commerce',[$ftext('site_url','상점 URL',false),$ftext('consumer_key','Consumer Key'),$ftext('consumer_secret','Consumer Secret')]],
             ['shopee','Shopee','sales','🟠','#ee4d2d','commerce',[$ftext('partner_id','Partner ID',false),$ftext('partner_key','Partner Key'),$ftext('shop_id','Shop ID',false)]],
             ['lazada','Lazada','sales','🔵','#0f146d','commerce',[$ftext('app_key','App Key',false),$ftext('app_secret','App Secret'),$ftext('access_token','액세스 토큰')]],
             ['qoo10','Qoo10','sales','🐧','#ff5e00','commerce',[$ftext('api_key','API 키'),$ftext('seller_id','Seller ID',false)]],

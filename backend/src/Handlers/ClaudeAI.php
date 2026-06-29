@@ -2580,7 +2580,8 @@ PROMPT;
     }
 
     /** 196차 — 승인 디자인 저장 테이블(테넌트 스코프). Phase 2 캠페인 자동실행이 소비. */
-    private static function migrateAdDesign(PDO $pdo): void {
+    /** [251차] public — AdminGrowth(플랫폼 성장)가 platform_growth 소재 저장 시 동일 ad_design 스키마 재사용(중복0). */
+    public static function migrateAdDesign(PDO $pdo): void {
         $isSqlite = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite';
         $auto = $isSqlite ? 'INTEGER PRIMARY KEY AUTOINCREMENT' : 'INT AUTO_INCREMENT PRIMARY KEY';
         $txt  = $isSqlite ? 'TEXT' : 'MEDIUMTEXT';
@@ -2620,6 +2621,10 @@ PROMPT;
             $status = (string)($data['status'] ?? 'approved');
             if (!in_array($status, ['draft', 'approved'], true)) $status = 'approved';
             $pdo = Db::pdo(); self::migrateAdDesign($pdo);
+            // [251차] ★광고디자인(이미지=svg base64 서버저장) 저장 한도 강제 — 상품·이미지 호스팅과 일원화(유효 상품한도=디자인한도).
+            //   초과 시 402 + 추가팩 옵션/거부. 무제한 플랜은 통과. AI 광고이미지가 곧 ad_design 이므로 이미지도 함께 통제.
+            $dov = \Genie\PlanLimits::adDesignOverage($pdo, $tenant, \Genie\PlanLimits::adDesignCount($pdo, $tenant));
+            if ($dov !== null) { $res->getBody()->write(json_encode($dov, JSON_UNESCAPED_UNICODE)); return $res->withHeader('Content-Type','application/json')->withStatus(402); }
             $now = gmdate('Y-m-d\TH:i:s\Z');
             // [현 차수] 채널별 기간 등록 — 기간(YYYY-MM-DD) 정규화(미입력 허용).
             $normDate = function ($v) {

@@ -129,9 +129,12 @@ const CHANNELS = [
 const GROUP_LABELS = {
   sns_live: 'SNS 라이브 채널', domestic: '국내 오픈마켓', global_commerce: '글로벌 마켓플레이스',
   d2c: '자사몰 플랫폼 (D2C)', payment: '결제 게이트웨이 (PG)', logistics: '물류 및 배송 (지니고 당일배송)', global_express: '국제특송 (International Express)',
-  global_ad: '광고 매체', own_etc: '분석 · 기타',
+  global_ad: '광고 매체',
+  // [251차] 전문 인바운드 채널 분리(기존 '분석·기타' 뭉침 해소) — sync_kind 기준 정확 분류.
+  web_analytics: '웹 분석 · 측정', esp: '이메일 · SMS (ESP)', support: '고객지원 (CS · 헬프데스크)', review: '리뷰 · 평판',
+  own_etc: '분석 · 기타',
 };
-const GROUP_ORDER = ['sns_live', 'domestic', 'global_commerce', 'd2c', 'payment', 'logistics', 'global_express', 'global_ad', 'own_etc'];
+const GROUP_ORDER = ['sns_live', 'domestic', 'global_commerce', 'd2c', 'payment', 'logistics', 'global_express', 'global_ad', 'web_analytics', 'esp', 'support', 'review', 'own_etc'];
 // 저장 직후 즉시 동기화 대상 그룹(커머스) — 자격증명 등록하면 바로 상품/주문 동기화
 const COMMERCE_SYNC_GROUPS = ['domestic', 'global_commerce', 'd2c'];
 
@@ -218,9 +221,12 @@ const CHANNEL_FIELDS = {
   criteo:    [{ k: 'client_id', label: 'API Client ID' }, { k: 'client_secret', label: 'API Client Secret', secret: true }, { k: 'currency', label: '과금 통화 (예: USD · 미입력 시 USD)', opt: true }],
   pinterest_ads: [{ k: 'access_token', label: '액세스 토큰 (Ads API v5)', secret: true }, { k: 'ad_account_id', label: '광고계정 ID' }, { k: 'currency', label: '과금 통화 (예: USD · 미입력 시 USD)', opt: true }],
   // [240차] 로드맵(연동 예정) — 자격증명 저장은 되나 전용 어댑터 준비 중.
-  microsoft_ads: [{ k: 'refresh_token', label: '리프레시 토큰', secret: true }, { k: 'client_id', label: '앱(클라이언트) ID' }, { k: 'client_secret', label: '클라이언트 시크릿', secret: true }, { k: 'developer_token', label: '개발자 토큰', secret: true }], // [240차] OAuth2 인증키 정합(어댑터)
+  microsoft_ads: [{ k: 'refresh_token', label: '리프레시 토큰', secret: true }, { k: 'client_id', label: '앱(클라이언트) ID' }, { k: 'client_secret', label: '클라이언트 시크릿', secret: true }, { k: 'developer_token', label: '개발자 토큰', secret: true }, { k: 'customer_id', label: '고객(Customer) ID' }, { k: 'account_id', label: '광고계정 ID' }], // [251차] 백엔드 요구 customer_id·account_id 누락 보강
   x_ads:     [{ k: 'consumer_key', label: 'Consumer Key', secret: true }, { k: 'consumer_secret', label: 'Consumer Secret', secret: true }, { k: 'access_token', label: 'Access Token', secret: true }, { k: 'access_token_secret', label: 'Access Token Secret', secret: true }, { k: 'account_id', label: '광고계정 ID' }],
   amazon_ads: [{ k: 'client_id', label: 'LWA Client ID' }, { k: 'client_secret', label: 'LWA Secret', secret: true }, { k: 'refresh_token', label: 'Refresh Token', secret: true }, { k: 'profile_id', label: '프로필 ID' }],
+  // [251차] taboola/outbrain — 기존엔 필드가 레지스트리에서만 와서 로드 실패 시 단일 api_key 로 degrade(연동불가). 하드코딩 보강.
+  taboola: [{ k: 'access_token', label: 'Access Token', secret: true }, { k: 'account_id', label: '계정 ID' }, { k: 'currency', label: '통화(선택)' }],
+  outbrain: [{ k: 'ob_token', label: 'OB-TOKEN', secret: true }, { k: 'marketer_id', label: 'Marketer ID' }, { k: 'currency', label: '통화(선택)' }],
   // 분석/기타
   google_analytics: [{ k: 'measurement_id', label: '측정 ID (G-)' }, { k: 'api_secret', label: 'API Secret', secret: true }],
   slack:     [{ k: 'webhook_url', label: 'Webhook URL', secret: true }],
@@ -836,11 +842,18 @@ export default function ApiKeys() {
       const G2A = { marketing: 'global_ad', sales: 'domestic', logistics: 'logistics', pg: 'payment', messaging: 'own_etc' };
       const FINE = new Set(GROUP_ORDER); // sns_live/domestic/global_commerce/d2c/payment/logistics/global_express/global_ad/own_etc
       const existing = new Set(CHANNELS.map(c => c.key));
+      // [251차] 레지스트리 키 ↔ 하드코딩 키 별칭 — 동일 플랫폼이 키 불일치로 카드 2개로 중복 노출되던 혼란 제거.
+      //   (amazon=amazon_spapi · yahoo_jp=yahoo_japan · kakao=kakao_alimtalk · tosspayments=toss). 정규화 후 중복 카드 스킵.
+      const REG_ALIAS = { amazon: 'amazon_spapi', yahoo_jp: 'yahoo_japan', kakao: 'kakao_alimtalk', tosspayments: 'toss' };
+      // [251차] 전문 인바운드는 sync_kind 로 정확 분류(group_type='marketing' 인 ga4/mailchimp 가 광고매체로 오분류되던 것·
+      //   support 가 '분석·기타'로 뭉치던 것 해소). sync_kind 우선 → 없으면 group_type fine/coarse 매핑.
+      const SK2G = { analytics: 'web_analytics', cs: 'support', esp: 'esp', review: 'review' };
       const extra = [], ef = {};
       for (const c of r.channels) {
+        const canon = REG_ALIAS[c.channel_key] || c.channel_key;
         if (Array.isArray(c.fields) && c.fields.length) ef[c.channel_key] = c.fields.map(f => ({ k: f.k, label: f.label, secret: f.secret !== false }));
-        const grp = FINE.has(c.group_type) ? c.group_type : (G2A[c.group_type] || 'own_etc');
-        if (!existing.has(c.channel_key)) extra.push({ key: c.channel_key, name: c.name, icon: c.icon || '🔗', color: c.color || '#6366f1', group: grp });
+        const grp = SK2G[c.sync_kind] || (FINE.has(c.group_type) ? c.group_type : (G2A[c.group_type] || 'own_etc'));
+        if (!existing.has(canon)) extra.push({ key: c.channel_key, name: c.name, icon: c.icon || '🔗', color: c.color || '#6366f1', group: grp });
       }
       setRegChannels(extra); setRegFields(ef);
     }).catch(() => {});

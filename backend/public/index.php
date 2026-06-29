@@ -94,6 +94,8 @@ $app->add(function (Request $request, $handler) {
         // [R-P3-8] 온사이트 CRO 비콘 — 방문자 변형배정/전환(세션·api_key 불요·자연 스코프=tenant 쿼리). CRUD/results 는 인증.
         || $path === '/v424/cro/assign' || $path === '/api/v424/cro/assign'
         || $path === '/v424/cro/convert' || $path === '/api/v424/cro/convert'
+        // [251차 Phase2 ②] 플랫폼 성장 공개 방문 캡처 — 랜딩 팝업/폼이 비인증 호출(platform_growth 격리·핸들러가 이메일검증·이벤트 화이트리스트). 관리(admin/growth/*)는 인증 유지.
+        || $path === '/v424/growth/capture' || $path === '/api/v424/growth/capture'
         // [246차 P3] 웹 푸시 VAPID 공개키 — 비밀 아님(구독 전 조회). subscribe/test/config 는 인증.
         || $path === '/v426/push/vapid-key' || $path === '/api/v426/push/vapid-key'
         // Paddle Billing v2 — public (webhook is self-signed via HMAC, others are product catalog)
@@ -222,6 +224,11 @@ $app->add(function (Request $request, $handler) {
         || strpos($path, '/v424/compliance/') === 0 || strpos($path, '/api/v424/compliance/') === 0
         // [228차 S1] 매체보고 vs 실주문귀속 ROAS 정합 — 세션 토큰 호출(익명 차단, auth_tenant 주입·격리).
         || strpos($path, '/v423/connectors/roas-reconciliation') === 0 || strpos($path, '/api/v423/connectors/roas-reconciliation') === 0
+        // [251차] 데이터 신선도 위젯(DataFreshness) — 세션 self-auth(authedTenant 격리). 프론트 세션 토큰 호출(미bypass 시 401).
+        || strpos($path, '/v423/connectors/freshness') === 0 || strpos($path, '/api/v423/connectors/freshness') === 0
+        // [251차] 상품등록 추가팩 — 사용량/구매/해지(세션 self-auth) + 가격편집(admin requirePlan). api_key 미들웨어 bypass.
+        || strpos($path, '/v424/plan/') === 0 || strpos($path, '/api/v424/plan/') === 0
+        || strpos($path, '/v424/admin/plan/') === 0 || strpos($path, '/api/v424/admin/plan/') === 0
         // [현 차수 P2-2a] 키워드 입도 조회 — 세션 self-auth(authedTenant 격리). 프론트 세션 토큰 호출.
         || strpos($path, '/v424/connectors/keywords') === 0 || strpos($path, '/api/v424/connectors/keywords') === 0
         // [현 차수] AIRuleEngine 룰엔진 — 세션 self-auth(requirePro+authedTenant 격리). 프론트 세션 토큰 호출.

@@ -102,20 +102,26 @@ final class AdminGrowth
             id $AI,
             lead_id INTEGER DEFAULT 0, email TEXT,
             event_type TEXT, channel TEXT, campaign_key TEXT,
+            variant VARCHAR(40) DEFAULT '',
             value REAL DEFAULT 0,
             occurred_at TEXT, meta_json TEXT
         )");
+        // [Phase2 ③] 기존 설치 멱등 보강 — variant 컬럼(성장 A/B 측정). 이미 있으면 무시.
+        try { $pdo->exec("ALTER TABLE admin_growth_event ADD COLUMN variant VARCHAR(40) DEFAULT ''"); } catch (\Throwable $e) {}
 
         // 플랫폼 홍보 캠페인 (mode=test/live, 승인·AI콘텐츠 상태).
         $pdo->exec("CREATE TABLE IF NOT EXISTS admin_growth_campaign (
             id $AI,
             camp_key TEXT, name TEXT, objective TEXT,
             segment_key TEXT, channels_json TEXT, budget REAL DEFAULT 0,
+            design_ids TEXT,
             mode VARCHAR(10) DEFAULT 'test', status VARCHAR(30) DEFAULT 'draft',
             content_json TEXT, est_json TEXT,
             spend REAL DEFAULT 0, revenue REAL DEFAULT 0,
             created_by TEXT, created_at TEXT, updated_at TEXT
         )");
+        // [Phase2 소재] 기존 설치 멱등 보강 — design_ids(광고 소재 ad_design.id 배열). 이미 있으면 무시.
+        try { $pdo->exec("ALTER TABLE admin_growth_campaign ADD COLUMN design_ids TEXT"); } catch (\Throwable $e) {}
 
         // 승인 큐 (AI콘텐츠/캠페인실행/메시지/예산/최적화/Live전환).
         $pdo->exec("CREATE TABLE IF NOT EXISTS admin_growth_approval (
@@ -246,6 +252,251 @@ final class AdminGrowth
         $upd = $pdo->prepare("UPDATE admin_growth_lead SET score=?, grade=?, stage=?, mrr=?, last_activity_at=?, updated_at=? WHERE id=?");
         $upd->execute([$score, $grade, $stage, $mrr, $lastAt ?: gmdate('c'), gmdate('c'), $leadId]);
         return ['score' => $score, 'grade' => $grade, 'stage' => $stage, 'mrr' => $mrr];
+    }
+
+    // ─────────────────────────────────────────── 실 획득 이벤트 자동 적재(폐루프 입구)
+
+    /**
+     * [현 차수 초고도화] 실 제품 이벤트(가입·결제 등)를 platform_growth 성장 퍼널에 자동 적재.
+     *   기존엔 admin 수동 입력만 가능해 퍼널/CAC/LTV/MRR 이 비실측이었다. 이제 실제 회원 행동이 자동으로
+     *   리드 생성·이벤트 기록·스코어링·단계전이로 이어져 플랫폼 자체 마케팅 자동화가 "진짜 성과"를 반영한다.
+     *   ★완전 비차단: 어떤 예외도 호출측(가입/결제 sacred 경로)을 절대 막지 않는다.
+     *   ★격리: TENANT='platform_growth' 전용 테이블만 사용(고객 테넌트 데이터 무관).
+     *   @param array $ctx name/company/phone/source/channel/segment_key/campaign_key/value/meta
+     *   @return int lead_id (0=무시)
+     */
+    public static function recordEvent(\PDO $pdo, string $email, string $eventType, array $ctx = []): int
+    {
+        $email = strtolower(trim($email));
+        $eventType = strtolower(trim($eventType));
+        if ($email === '' || $eventType === '' || !str_contains($email, '@')) return 0;
+        try {
+            self::ensureTables($pdo);
+            $now = gmdate('c');
+            // 1) 리드 upsert(email 기준, 대소문자 무관).
+            $st = $pdo->prepare("SELECT id FROM admin_growth_lead WHERE LOWER(email)=? LIMIT 1");
+            $st->execute([$email]);
+            $lid = (int)($st->fetchColumn() ?: 0);
+            if ($lid === 0) {
+                $ins = $pdo->prepare("INSERT INTO admin_growth_lead(email,name,company,phone,segment_key,source,stage,score,grade,mrr,created_at,updated_at,last_activity_at) VALUES(?,?,?,?,?,?,?,0,'cold',0,?,?,?)");
+                $ins->execute([$email, (string)($ctx['name'] ?? ''), (string)($ctx['company'] ?? ''), (string)($ctx['phone'] ?? ''),
+                    (string)($ctx['segment_key'] ?? ''), (string)($ctx['source'] ?? 'product'), 'visitor', $now, $now, $now]);
+                $lid = (int)$pdo->lastInsertId();
+            } else {
+                // 기존 리드 빈 필드만 보강(기존 값 우선 — 덮어쓰기 금지).
+                if (!empty($ctx['name']) || !empty($ctx['company']) || !empty($ctx['phone'])) {
+                    $pdo->prepare("UPDATE admin_growth_lead SET name=COALESCE(NULLIF(name,''),?), company=COALESCE(NULLIF(company,''),?), phone=COALESCE(NULLIF(phone,''),?), updated_at=? WHERE id=?")
+                        ->execute([(string)($ctx['name'] ?? ''), (string)($ctx['company'] ?? ''), (string)($ctx['phone'] ?? ''), $now, $lid]);
+                }
+            }
+            if ($lid === 0) return 0;
+            // 2) 터치포인트 이벤트 기록(스코어링·퍼널·어트리뷰션·A/B 구동).
+            $pdo->prepare("INSERT INTO admin_growth_event(lead_id,email,event_type,channel,campaign_key,variant,value,occurred_at,meta_json) VALUES(?,?,?,?,?,?,?,?,?)")
+                ->execute([$lid, $email, $eventType, (string)($ctx['channel'] ?? 'product'), (string)($ctx['campaign_key'] ?? ''),
+                    substr((string)($ctx['variant'] ?? ''), 0, 40),
+                    (float)($ctx['value'] ?? 0), $now, json_encode($ctx['meta'] ?? [], JSON_UNESCAPED_UNICODE)]);
+            // 3) 누계 재스코어링(단계전이·등급 자동 갱신).
+            self::rescore($pdo, $lid);
+            self::audit($pdo, 'system', 'event.' . $eventType, ['email' => $email, 'lead_id' => $lid, 'value' => (float)($ctx['value'] ?? 0)]);
+            // 4) [Phase2 ①] 능동 자동화 — 가입 시 환영 너처(기본 OFF·승인후 자동). 비차단.
+            if ($eventType === 'trial') self::maybeNurtureWelcome($pdo, $email, (string)($ctx['name'] ?? ''));
+            return $lid;
+        } catch (\Throwable $e) { return 0; }
+    }
+
+    /** 실 가입(=무료체험 시작) 자동 적재. UserAuth::register 비차단 훅. */
+    public static function recordSignup(\PDO $pdo, string $email, string $name = '', array $ctx = []): int
+    {
+        return self::recordEvent($pdo, $email, 'trial', array_merge(['name' => $name, 'source' => 'signup', 'channel' => 'organic'], $ctx));
+    }
+
+    /** 실 결제 전환(MRR=월환산 value) 자동 적재. Paddle::onSubscriptionActivated 비차단 훅. */
+    public static function recordPaid(\PDO $pdo, string $email, float $mrr, array $ctx = []): int
+    {
+        return self::recordEvent($pdo, $email, 'paid', array_merge(['value' => $mrr, 'source' => 'subscription', 'channel' => 'product'], $ctx));
+    }
+
+    /**
+     * [Phase2 ①] 가입 환영 너처 자동발송 — ★기본 OFF(setting auto_nurture). auto_nurture='on' AND mode='live'
+     *   일 때만 실제 발송(사용자 승인 후 자동 운영). Mailer 미설정 시 honest 미발송. ★완전 비차단·발송결과 audit.
+     *   실 사용자에게 메일이 나가는 민감 동작이라 이중 게이트(설정 토글 + Live 승인)로만 가동.
+     */
+    private static function maybeNurtureWelcome(\PDO $pdo, string $email, string $name): void
+    {
+        try {
+            if (self::getSetting($pdo, 'auto_nurture', 'off') !== 'on') return;   // 기본 OFF
+            if (self::mode($pdo) !== 'live') return;                              // Live 모드(승인 완료)에서만 실발송
+            $nm = $name !== '' ? $name : '고객';
+            $subject = '[GeniegoROI] 환영합니다 — 20일 무료로 전 광고매체 ROI를 한 곳에서';
+            $html = self::welcomeEmailHtml($nm);
+            $r = \Genie\Mailer::send($email, $subject, $html, ['pdo' => $pdo, 'from_name' => 'GeniegoROI']);
+            self::audit($pdo, 'system', 'nurture.welcome', ['email' => $email, 'ok' => (bool)($r['ok'] ?? false), 'mode' => (string)($r['mode'] ?? '')]);
+        } catch (\Throwable $e) { /* 비차단 */ }
+    }
+
+    private static function welcomeEmailHtml(string $name): string
+    {
+        $cta = 'https://roi.genie-go.com/app-pricing';
+        $n = htmlspecialchars($name, ENT_QUOTES, 'UTF-8');
+        return '<div style="font-family:Apple SD Gothic Neo,Malgun Gothic,sans-serif;max-width:560px;margin:0 auto;color:#1e293b">'
+            . '<h2 style="color:#4f8ef7">' . $n . '님, GeniegoROI에 오신 것을 환영합니다 🎉</h2>'
+            . '<p>20일 무료 체험으로 메타·구글·틱톡·네이버·카카오 등 <b>전 광고매체의 ROI를 한 곳</b>에서 분석하고,'
+            . ' AI가 채널별 효과를 진단해 예산을 자동 최적화하는 마케팅 자동화를 경험해 보세요.</p>'
+            . '<p style="margin:24px 0"><a href="' . $cta . '" style="background:#4f8ef7;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:700">지금 시작하기</a></p>'
+            . '<p style="color:#94a3b8;font-size:12px">본 메일은 GeniegoROI 가입 안내입니다. 수신을 원치 않으시면 회신해 주세요.</p></div>';
+    }
+
+    /**
+     * [Phase2 ④] GET /v424/admin/growth/channel-analysis — 모든 광고매체 종합 효과 분석(플랫폼 자체 가입 유입).
+     *   ★AutoRecommend::effectivenessData('platform_growth') 재사용(중복0) — 진실 ROAS·CAC·전환·추세·자가학습 prior
+     *   종합 효과점수로 최고/최저 매체 식별 + 채널별 액션(증액/회수). 플랫폼 자체 광고비를 가입 전환 기준으로 최적화.
+     */
+    public static function channelAnalysis(Request $req, Response $res): Response
+    {
+        $gate = UserAuth::requirePlan($req, $res, 'admin'); if ($gate !== null) return $gate;
+        $pdo = Db::pdo(); self::ensureTables($pdo);
+        $q = (array)$req->getQueryParams();
+        $period = (string)($q['period'] ?? 'monthly');
+        $data = \Genie\Handlers\AutoRecommend::effectivenessData(self::TENANT, $period);
+        $data['tenant'] = self::TENANT;
+        // [Phase2 ⑤] 가입 유입 어트리뷰션(첫터치 채널/소스 → 가입·유료·MRR·진실 CAC) 동봉.
+        $data['acquisition'] = self::acquisitionByChannel($pdo);
+        return self::json($res, $data, '채널 종합 효과 분석');
+    }
+
+    /**
+     * [Phase2 ⑤] 가입 유입 어트리뷰션 — 리드 첫터치(최초 이벤트) 채널/소스 기준으로 가입(trial)·유료(paid)·MRR 귀속.
+     *   채널별 진실 CAC = 광고비(performance_metrics, platform_growth) / 유료전환수. "어느 매체가 실제 가입을 유입시켰나".
+     *   ★self-contained(admin_growth_event/lead) — 외부 의존 없이 정직 집계. MySQL/SQLite 공통 SQL.
+     */
+    private static function acquisitionByChannel(\PDO $pdo): array
+    {
+        $rows = [];
+        try {
+            // 첫터치 = 리드별 최소 id 이벤트의 channel. 채널별 리드/가입/유료/MRR 집계.
+            $sql = "SELECT ft.channel ch,
+                        COUNT(*) leads,
+                        SUM(CASE WHEN l.stage IN ('trial','onboarded','paid','active','upsell') THEN 1 ELSE 0 END) signups,
+                        SUM(CASE WHEN l.stage IN ('paid','active','upsell') THEN 1 ELSE 0 END) paid,
+                        COALESCE(SUM(l.mrr),0) mrr
+                    FROM admin_growth_lead l
+                    JOIN (
+                        SELECT e1.lead_id, e1.channel
+                        FROM admin_growth_event e1
+                        WHERE e1.id = (SELECT MIN(e2.id) FROM admin_growth_event e2 WHERE e2.lead_id = e1.lead_id)
+                    ) ft ON ft.lead_id = l.id
+                    GROUP BY ft.channel";
+            $st = $pdo->query($sql);
+            $acc = [];
+            foreach (($st ? $st->fetchAll(\PDO::FETCH_ASSOC) : []) as $r) {
+                $ch = (string)($r['ch'] ?? '') ?: 'unknown';
+                $acc[$ch] = [
+                    'channel' => $ch,
+                    'leads' => (int)$r['leads'], 'signups' => (int)$r['signups'],
+                    'paid' => (int)$r['paid'], 'mrr' => round((float)$r['mrr'], 0),
+                    'spend' => 0.0,
+                ];
+            }
+            // 채널별 광고비(platform_growth performance_metrics, 최근 90일) → 진실 CAC.
+            try {
+                $sp = $pdo->prepare("SELECT channel, COALESCE(SUM(spend),0) spend FROM performance_metrics
+                    WHERE tenant_id=? AND date >= ? GROUP BY channel");
+                $sp->execute([self::TENANT, gmdate('Y-m-d', time() - 90 * 86400)]);
+                foreach ($sp->fetchAll(\PDO::FETCH_ASSOC) ?: [] as $r) {
+                    $ch = (string)($r['channel'] ?? '') ?: 'unknown';
+                    if (!isset($acc[$ch])) $acc[$ch] = ['channel' => $ch, 'leads' => 0, 'signups' => 0, 'paid' => 0, 'mrr' => 0.0, 'spend' => 0.0];
+                    $acc[$ch]['spend'] = round((float)$r['spend'], 0);
+                }
+            } catch (\Throwable $e) {}
+            foreach ($acc as &$a) {
+                $a['cac'] = $a['paid'] > 0 ? round($a['spend'] / $a['paid'], 0) : 0;
+                $a['signup_to_paid'] = $a['signups'] > 0 ? round($a['paid'] / $a['signups'] * 100, 1) : 0.0;
+            }
+            unset($a);
+            $rows = array_values($acc);
+            usort($rows, fn($x, $y) => $y['paid'] <=> $x['paid']);
+        } catch (\Throwable $e) { $rows = []; }
+        return $rows;
+    }
+
+    /**
+     * [Phase2 ②] POST /v424/growth/capture — 공개(비인증) 방문/이메일 캡처 → platform_growth 리드 자동생성.
+     *   랜딩·가격 페이지의 팝업/이메일 폼이 호출(퍼널 최상단 자동 유입). ★격리: platform_growth 전용 테이블만.
+     *   ★안전: 이벤트 화이트리스트·이메일 검증·완전 비차단. A/B: variant(arm)·campaign_key 를 이벤트에 기록.
+     */
+    public static function publicCapture(Request $req, Response $res): Response
+    {
+        $b = self::body($req);
+        $email = strtolower(trim((string)($b['email'] ?? '')));
+        $event = strtolower(trim((string)($b['event'] ?? 'landing')));
+        $allow = ['visit', 'landing', 'pricing', 'download', 'inquiry', 'demo', 'email_capture'];
+        if (!in_array($event, $allow, true)) $event = 'landing';
+        if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return self::json($res, ['captured' => false], '유효한 이메일이 필요합니다', 200);
+        }
+        try {
+            $pdo = Db::pdo();
+            $evt = $event === 'email_capture' ? 'landing' : $event;  // FUNNEL/SCORE_WEIGHTS 정합
+            $lid = self::recordEvent($pdo, $email, $evt, [
+                'name' => (string)($b['name'] ?? ''), 'company' => (string)($b['company'] ?? ''),
+                'source' => substr((string)($b['source'] ?? 'landing_popup'), 0, 60),
+                'channel' => substr((string)($b['channel'] ?? 'organic'), 0, 40),
+                'campaign_key' => substr((string)($b['campaign_key'] ?? ''), 0, 60),
+                'variant' => substr((string)($b['variant'] ?? ''), 0, 40),
+                'meta' => ['page' => (string)($b['page'] ?? ''), 'ref' => (string)($b['ref'] ?? '')],
+            ]);
+            return self::json($res, ['captured' => $lid > 0, 'lead_id' => $lid], $lid > 0 ? '캡처 완료' : '무시', 200);
+        } catch (\Throwable $e) { return self::json($res, ['captured' => false], 'ok', 200); }
+    }
+
+    /**
+     * [Phase2 ③] GET /v424/admin/growth/ab-report?campaign=KEY — 성장 메시지/소재 A/B 결과.
+     *   variant(arm)별 캡처(노출)·가입전환(conversions=해당 variant 첫터치 리드 중 trial+ 도달) 집계 →
+     *   ★AbTesting::pickBest(베이지안 코어 재사용·중복0)로 승자·최고확률 산출. 데이터 기반 메시지 최적화.
+     */
+    public static function abReport(Request $req, Response $res): Response
+    {
+        $gate = UserAuth::requirePlan($req, $res, 'admin'); if ($gate !== null) return $gate;
+        $pdo = Db::pdo(); self::ensureTables($pdo);
+        $q = (array)$req->getQueryParams();
+        $camp = trim((string)($q['campaign'] ?? ''));
+        $variants = [];
+        try {
+            // 첫터치가 해당 campaign_key·variant 인 리드별: 노출(리드수) + 전환(trial+ 도달).
+            $where = "ft.variant<>''";
+            $bind = [];
+            if ($camp !== '') { $where .= " AND ft.campaign_key=?"; $bind[] = $camp; }
+            $sql = "SELECT ft.variant arm, COUNT(*) impressions,
+                        SUM(CASE WHEN l.stage IN ('trial','onboarded','paid','active','upsell') THEN 1 ELSE 0 END) conversions,
+                        SUM(CASE WHEN l.stage IN ('paid','active','upsell') THEN 1 ELSE 0 END) paid
+                    FROM admin_growth_lead l
+                    JOIN (
+                        SELECT e1.lead_id, e1.variant, e1.campaign_key
+                        FROM admin_growth_event e1
+                        WHERE e1.id = (SELECT MIN(e2.id) FROM admin_growth_event e2 WHERE e2.lead_id = e1.lead_id)
+                    ) ft ON ft.lead_id = l.id
+                    WHERE $where
+                    GROUP BY ft.variant";
+            $st = $pdo->prepare($sql); $st->execute($bind);
+            $i = 0;
+            foreach ($st->fetchAll(\PDO::FETCH_ASSOC) ?: [] as $r) {
+                $variants[] = ['id' => ++$i, 'arm' => (string)$r['arm'],
+                    'impressions' => (int)$r['impressions'], 'conversions' => (int)$r['conversions'], 'paid' => (int)$r['paid']];
+            }
+        } catch (\Throwable $e) { $variants = []; }
+        $verdict = null;
+        if (count($variants) >= 2) {
+            $best = \Genie\Handlers\AbTesting::pickBest($variants);
+            $byId = []; foreach ($variants as $v) $byId[$v['id']] = $v;
+            $verdict = [
+                'winner' => $byId[$best['winnerId']]['arm'] ?? null,
+                'probability' => $best['prob'],
+                'significant' => $best['prob'] >= 0.95,
+                'rates' => $best['rates'],
+                'note' => $best['prob'] >= 0.95 ? '통계적으로 유의미한 승자 — 승자 메시지로 전환 권장' : '표본 누적 중 — 유의수준(95%) 미달',
+            ];
+        }
+        return self::json($res, ['campaign' => $camp, 'variants' => $variants, 'verdict' => $verdict], '성장 A/B 결과');
     }
 
     // ─────────────────────────────────────────── 대시보드 / 퍼널
@@ -565,7 +816,9 @@ final class AdminGrowth
         foreach ($rows as &$r) {
             $r['channels'] = json_decode((string)($r['channels_json'] ?? '[]'), true) ?: [];
             $r['content']  = json_decode((string)($r['content_json'] ?? 'null'), true);
+            $r['design_ids'] = json_decode((string)($r['design_ids'] ?? '[]'), true) ?: [];
         }
+        unset($r);
         return self::json($res, ['campaigns' => $rows, 'count' => count($rows), 'mode' => self::mode($pdo)], '캠페인');
     }
 
@@ -577,17 +830,75 @@ final class AdminGrowth
         $now = gmdate('c');
         $id = (int)($b['id'] ?? 0);
         $channels = json_encode($b['channels'] ?? [], JSON_UNESCAPED_UNICODE);
+        // [Phase2 소재] 광고 소재(ad_design.id) 첨부 — 집행 시 buildDelivery 로 실제 이미지/영상 광고 생성.
+        $designIds = json_encode(array_values(array_map('intval', (array)($b['design_ids'] ?? []))), JSON_UNESCAPED_UNICODE);
         if ($id > 0) {
-            $st = $pdo->prepare("UPDATE admin_growth_campaign SET name=?, objective=?, segment_key=?, channels_json=?, budget=?, updated_at=? WHERE id=?");
-            $st->execute([(string)($b['name'] ?? ''), (string)($b['objective'] ?? ''), (string)($b['segment_key'] ?? ''), $channels, (float)($b['budget'] ?? 0), $now, $id]);
+            $st = $pdo->prepare("UPDATE admin_growth_campaign SET name=?, objective=?, segment_key=?, channels_json=?, budget=?, design_ids=?, updated_at=? WHERE id=?");
+            $st->execute([(string)($b['name'] ?? ''), (string)($b['objective'] ?? ''), (string)($b['segment_key'] ?? ''), $channels, (float)($b['budget'] ?? 0), $designIds, $now, $id]);
         } else {
             $campKey = 'gcamp_' . substr(bin2hex(random_bytes(4)), 0, 8);
-            $st = $pdo->prepare("INSERT INTO admin_growth_campaign (camp_key,name,objective,segment_key,channels_json,budget,mode,status,created_by,created_at,updated_at) VALUES (?,?,?,?,?,?,?, 'draft', ?,?,?)");
-            $st->execute([$campKey, (string)($b['name'] ?? ''), (string)($b['objective'] ?? ''), (string)($b['segment_key'] ?? ''), $channels, (float)($b['budget'] ?? 0), self::mode($pdo), self::actor($req), $now, $now]);
+            $st = $pdo->prepare("INSERT INTO admin_growth_campaign (camp_key,name,objective,segment_key,channels_json,budget,design_ids,mode,status,created_by,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?, 'draft', ?,?,?)");
+            $st->execute([$campKey, (string)($b['name'] ?? ''), (string)($b['objective'] ?? ''), (string)($b['segment_key'] ?? ''), $channels, (float)($b['budget'] ?? 0), $designIds, self::mode($pdo), self::actor($req), $now, $now]);
             $id = (int)$pdo->lastInsertId();
         }
         self::audit($pdo, self::actor($req), 'campaign.save', ['id' => $id, 'name' => $b['name'] ?? '']);
         return self::json($res, ['id' => $id], '캠페인 저장');
+    }
+
+    /**
+     * [Phase2 소재] GET /v424/admin/growth/designs — platform_growth 광고 소재 목록.
+     *   ★기존 크리에이티브 엔진 재사용: 고객용과 동일한 ad_design 테이블을 platform_growth 스코프로 사용.
+     *   campaignLaunch 가 design_ids → AdAdapters::buildDelivery 로 실제 이미지/영상 광고 생성에 소비.
+     */
+    public static function designs(Request $req, Response $res): Response
+    {
+        $gate = UserAuth::requirePlan($req, $res, 'admin'); if ($gate !== null) return $gate;
+        $pdo = Db::pdo();
+        try { \Genie\Handlers\ClaudeAI::migrateAdDesign($pdo); } catch (\Throwable $e) {}
+        $rows = [];
+        try {
+            $st = $pdo->prepare("SELECT id,category,product,channel,svg,status,created_at FROM ad_design WHERE tenant_id=? ORDER BY id DESC LIMIT 120");
+            $st->execute([self::TENANT]);
+            $rows = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+            foreach ($rows as &$r) { $r['has_image'] = ((string)($r['svg'] ?? '') !== ''); unset($r['svg']); }
+            unset($r);
+        } catch (\Throwable $e) { $rows = []; }
+        return self::json($res, ['designs' => $rows, 'count' => count($rows)], '플랫폼 광고 소재');
+    }
+
+    /**
+     * [Phase2 소재] POST /v424/admin/growth/designs — platform_growth 광고 소재 저장(기존 크리에이티브 스튜디오 재사용).
+     *   스튜디오가 생성한 design(spec)/svg(이미지 base64)를 platform_growth 테넌트로 저장 → 캠페인에 첨부.
+     *   ★ad_design 스키마/소비경로(buildDelivery)는 고객용과 100% 동일(중복 구현 0·격리 유지).
+     */
+    public static function designSave(Request $req, Response $res): Response
+    {
+        $gate = UserAuth::requirePlan($req, $res, 'admin'); if ($gate !== null) return $gate;
+        $pdo = Db::pdo();
+        try { \Genie\Handlers\ClaudeAI::migrateAdDesign($pdo); } catch (\Throwable $e) {}
+        $b = self::body($req);
+        $design = is_array($b['design'] ?? null) ? $b['design'] : [];
+        $channel = (string)($design['channel'] ?? ($b['channel'] ?? ''));
+        if ($channel === '') return self::fail($res, '채널(channel)은 필수입니다.', 'VALIDATION', 422);
+        $status = in_array((string)($b['status'] ?? 'approved'), ['draft', 'approved'], true) ? (string)($b['status'] ?? 'approved') : 'approved';
+        $now = gmdate('Y-m-d\TH:i:s\Z');
+        try {
+            $st = $pdo->prepare('INSERT INTO ad_design(tenant_id,category,product,channel,spec_json,svg,status,created_at) VALUES(?,?,?,?,?,?,?,?)');
+            $st->execute([
+                self::TENANT,
+                mb_substr((string)($b['category'] ?? 'GeniegoROI'), 0, 120),
+                mb_substr((string)($b['product_description'] ?? 'AI 마케팅 ROI 플랫폼'), 0, 2000),
+                $channel,
+                json_encode($design, JSON_UNESCAPED_UNICODE),
+                (string)($b['svg'] ?? $b['image'] ?? ''),
+                $status, $now,
+            ]);
+            $id = (int)$pdo->lastInsertId();
+            self::audit($pdo, self::actor($req), 'design.save', ['id' => $id, 'channel' => $channel]);
+            return self::json($res, ['id' => $id, 'channel' => $channel, 'status' => $status], '플랫폼 광고 소재 저장');
+        } catch (\Throwable $e) {
+            return self::fail($res, '소재 저장 실패: ' . substr($e->getMessage(), 0, 120), 'SAVE_FAILED', 500);
+        }
     }
 
     /**
@@ -725,6 +1036,19 @@ final class AdminGrowth
         //   UI 에는 '실행됨'으로 표시되던 거짓성공. 승인+자격증명 게이트 통과 후 각 광고채널을
         //   AdAdapters::createCampaign 으로 실제 생성한다(기존 안전철학=PAUSED 무지출·사람-인-루프 유지,
         //   platform_growth 테넌트 자격증명 사용). honest 결과(active/connect_error/partial) 집계·est_json 저장.
+        // [Phase2 소재] 캠페인 첨부 소재(platform_growth ad_design) 로드 — buildDelivery 로 실제 이미지/영상 광고 생성.
+        $designIds = array_values(array_map('intval', (array)(json_decode((string)($c['design_ids'] ?? '[]'), true) ?: [])));
+        $designCh = [];
+        if (!empty($designIds)) {
+            try {
+                $in = implode(',', array_fill(0, count($designIds), '?'));
+                $ds = $pdo->prepare("SELECT id, channel FROM ad_design WHERE tenant_id=? AND id IN ($in)");
+                $ds->execute(array_merge([self::TENANT], $designIds));
+                foreach ($ds->fetchAll(\PDO::FETCH_ASSOC) ?: [] as $dr) $designCh[(int)$dr['id']] = (string)($dr['channel'] ?? '');
+            } catch (\Throwable $e) {}
+        }
+        $landing = 'https://roi.genie-go.com/app-pricing';
+        $daily = (int)max(1000, round((float)$c['budget'] / 30));
         $results = []; $anyLive = false; $anyErr = false;
         foreach ($channels as $ch) {
             $ch = (string)$ch;
@@ -741,6 +1065,24 @@ final class AdminGrowth
                 ]);
             } catch (\Throwable $e) {
                 $r = ['ok' => false, 'status' => 'error', 'note' => $e->getMessage()];
+            }
+            // [Phase2 소재] 캠페인 생성 성공 + 소재 첨부 시 — 기존 buildDelivery 로 실제 광고(이미지/영상) 생성(고객 흐름 동일).
+            if (!empty($r['ok']) && (string)($r['external_id'] ?? '') !== '') {
+                if (!empty($designIds)) {
+                    $pick = 0;
+                    foreach ($designIds as $did) {
+                        $dc = strtolower($designCh[$did] ?? '');
+                        if ($dc !== '' && (strpos($ch, $dc) !== false || strpos($dc, $ch) !== false)) { $pick = $did; break; }
+                    }
+                    if ($pick === 0) $pick = $designIds[0];
+                    try {
+                        $dl = \Genie\Handlers\AdAdapters::buildDelivery($pdo, self::TENANT, $ch, (string)$r['external_id'], $pick, $daily, $landing, []);
+                        $r['delivery'] = ['ok' => !empty($dl['ok']), 'status' => (string)($dl['status'] ?? (!empty($dl['ok']) ? 'full' : 'failed')), 'design_id' => $pick, 'note' => (string)($dl['note'] ?? ($dl['error'] ?? ''))];
+                    } catch (\Throwable $e) { $r['delivery'] = ['ok' => false, 'status' => 'error', 'note' => substr($e->getMessage(), 0, 120)]; }
+                } else {
+                    // 소재 미첨부 = 광고 노출 불가(매체가 ad 를 못 만듦) — 정직 경고.
+                    $r['delivery'] = ['ok' => false, 'status' => 'no_creative', 'note' => '소재 미첨부 — 광고 노출 불가. [소재] 탭에서 소재 생성 후 캠페인에 첨부하세요.'];
+                }
             }
             $results[$ch] = $r;
             if (!empty($r['ok'])) $anyLive = true; else $anyErr = true;
@@ -868,6 +1210,7 @@ final class AdminGrowth
             'mode'              => self::mode($pdo),
             'tenant'           => self::TENANT,
             'liveExecEnabled'   => self::getSetting($pdo, 'live_exec_enabled', '0') === '1',
+            'autoNurture'       => self::getSetting($pdo, 'auto_nurture', 'off') === 'on',  // [Phase2 ①] 가입 환영 너처 자동발송(기본 OFF)
         ], '설정');
     }
 
@@ -897,7 +1240,12 @@ final class AdminGrowth
         if (array_key_exists('live_exec_enabled', $b)) {
             self::setSetting($pdo, 'live_exec_enabled', !empty($b['live_exec_enabled']) ? '1' : '0');
         }
-        return self::json($res, ['mode' => self::mode($pdo)], '설정 저장');
+        // [Phase2 ①] 가입 환영 너처 자동발송 토글(기본 OFF). on + Live 모드에서만 실발송.
+        if (array_key_exists('auto_nurture', $b)) {
+            self::setSetting($pdo, 'auto_nurture', !empty($b['auto_nurture']) ? 'on' : 'off');
+            self::audit($pdo, $actor, 'nurture.toggle', ['auto_nurture' => !empty($b['auto_nurture']) ? 'on' : 'off']);
+        }
+        return self::json($res, ['mode' => self::mode($pdo), 'autoNurture' => self::getSetting($pdo, 'auto_nurture', 'off') === 'on'], '설정 저장');
     }
 
     // ─────────────────────────────────────────── 감사 로그 (audit_log 재사용)

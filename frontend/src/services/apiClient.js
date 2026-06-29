@@ -34,7 +34,16 @@ function defaultHeaders() {
     "X-Lang": localStorage.getItem("genie_roi_lang") || "ko",
   };
   if (token) h["Authorization"] = `Bearer ${token}`;
+  // [251차] admin 'platform_growth' 컨텍스트 전환 — 켜져 있으면 기존 모든 메뉴(크리에이티브/자동화/어트리뷰션 등)가
+  //   플랫폼 자체 성장 데이터로 조회·운영(서버는 admin 계정에만 허용). 기본 OFF. 데모는 미적용(격리).
+  try { if (!IS_DEMO && localStorage.getItem("gg_act_as_tenant") === "platform_growth") h["X-Act-As-Tenant"] = "platform_growth"; } catch (e) {}
   return h;
+}
+
+/** [251차] 외부(raw fetch 페이지)에서도 동일 컨텍스트 헤더를 붙일 수 있게 공개. AutoMarketing 등 raw fetch 재사용. */
+export function actAsHeader() {
+  try { if (!IS_DEMO && localStorage.getItem("gg_act_as_tenant") === "platform_growth") return { "X-Act-As-Tenant": "platform_growth" }; } catch (e) {}
+  return {};
 }
 
 
@@ -51,6 +60,10 @@ export async function postJson(path, body) {
     try {
       const j = await res.json();
       detail = j?.detail ? JSON.stringify(j.detail) : JSON.stringify(j);
+      // [251차] 상품/광고디자인 등록 한도 초과(402) → 전역 초과 모달 트리거(추가팩 구매/거부). 호출부는 기존대로 throw 처리.
+      if (res.status === 402 && j && (j.error === 'product_limit_reached' || j.error === 'ad_design_limit_reached')) {
+        try { window.dispatchEvent(new CustomEvent('gg-product-overage', { detail: j })); } catch (e) { }
+      }
     } catch (e) {
       try { detail = await res.text(); } catch { }
     }

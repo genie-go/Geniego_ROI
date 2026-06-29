@@ -491,6 +491,15 @@ class Paddle
 
             self::setUserPlan($db, $email, $appPlan, $periodEnd);
 
+            // [현 차수 초고도화] 플랫폼 자체 성장 퍼널 — 실 결제 전환을 platform_growth 에 자동 적재(MRR=월환산).
+            //   admin 성장 콘솔의 paid/MRR/CAC/LTV/ROAS 가 실 구독수익을 반영. ★완전 비차단·격리.
+            try {
+                $mrrMonthly = str_contains((string)$cycle, 'year') ? ($amount / 12.0) : $amount;
+                \Genie\Handlers\AdminGrowth::recordPaid($db, $email, (float)$mrrMonthly, [
+                    'meta' => ['plan' => $appPlan, 'sub_id' => $subId, 'currency' => $currency, 'amount' => $amount, 'cycle' => $cycle],
+                ]);
+            } catch (\Throwable $e) { /* 성장 적재 실패는 결제 처리 차단 안 함 */ }
+
             // ─── 유료 전환 자동 쿠폰 발급 (trigger=upgrade) ──────────────────
             try {
                 // [225차 P2-5] addslashes SQL 조립(SQLi 잠복, HMAC 게이트로만 차단되던 통로) → 파라미터화.

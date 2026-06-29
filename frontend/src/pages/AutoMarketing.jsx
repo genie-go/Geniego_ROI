@@ -9,7 +9,7 @@ import AutoCampaignLaunch from '../components/AutoCampaignLaunch.jsx'; // 196차
 import CardRequiredBanner from '../components/CardRequiredBanner.jsx'; // 광고비 결제카드 미등록 안내+등록 바로가기
 import CardBillingGuide from '../components/CardBillingGuide.jsx'; // 이용가이드 내 결제카드 등록 설명
 import GuideWizard from '../components/GuideWizard.jsx'; // [237차] 인앱 순차 완료 위저드(필수등록 게이팅)
-import { getJsonAuth } from '../services/apiClient.js';
+import { getJsonAuth, actAsHeader } from '../services/apiClient.js';
 import CrossLinkBar from '../components/CrossLinkBar.jsx';
 import AgentModeCard from '../components/AgentModeCard.jsx'; // [231차 OS#4] AI Agent 권한모드 거버넌스
 const BUDGET_LINKS = [
@@ -284,6 +284,9 @@ export default function AutoMarketing() {
     const [maxShare, setMaxShare] = useState(60);            // 단일 채널 최대 점유율(%)
     const [generating, setGenerating] = useState(false);
     const [draft, setDraft] = useState(null);
+    // [현 차수 초고도화] 채널 효과 분석 — 실측 전수 데이터(진실 ROAS·CAC·전환·추세) 종합 효과점수 + 최고/최저 + 액션.
+    const [effData, setEffData] = useState(null);
+    const [effLoading, setEffLoading] = useState(false);
 
     // 번역된 Constant들 (Language Change 시 Auto 갱신)
     const PRODUCT_CATEGORIES = useMemo(() => PRODUCT_CATEGORIES_BASE.map(c => ({
@@ -414,6 +417,56 @@ export default function AutoMarketing() {
         };
     }, [t, AD_CHANNELS]);
 
+    // [251차] ★데이터 기반 채널 추천 — 백엔드 AutoRecommend(실측 효과+자가학습 prior+한계ROAS water-filling)로
+    //   "최대 성과 채널"을 산출해 자동 선택. 정적 추천(computeRecommend)으로 즉시 표시 후, 엔진 응답으로 정밀화.
+    //   전 채널을 엔진에 넘겨 배분액 내림차순으로 누적 ~85% 커버(최소 3개)만 선택 = 성과 높은 채널 집중.
+    //   act-as 컨텍스트 반영(플랫폼 성장 시 platform_growth 실측 기반). 사용자가 직접 토글하면(aiRecommended=false) 미실행.
+    const [recSource, setRecSource] = useState('heuristic'); // heuristic | data
+    const refineChannelsFromEngine = useCallback(async (cats, bgt) => {
+        if (!cats || cats.length === 0 || bgt <= 0) return;
+        try {
+            const tok = localStorage.getItem('genie_token') || localStorage.getItem('demo_genie_token') || '';
+            const r = await fetch('/api/v424/marketing/auto-recommend', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tok}`, ...actAsHeader() },
+                body: JSON.stringify({ budget: bgt, category: cats[0] || 'DEFAULT', categories: cats, period, objective, channels: AD_CHANNELS.map(c => c.id) }),
+            });
+            const d = await r.json();
+            if (!d || !d.ok || !Array.isArray(d.channels) || !d.channels.length) return;
+            const ranked = [...d.channels].sort((a, b) => (b.allocation || 0) - (a.allocation || 0));
+            const total = ranked.reduce((s, c) => s + (c.allocation || 0), 0) || bgt;
+            const picked = []; let cum = 0;
+            for (const c of ranked) {
+                picked.push(c.channel); cum += (c.allocation || 0);
+                if (picked.length >= 3 && cum >= total * 0.85) break;
+                if (picked.length >= 5) break;
+            }
+            if (picked.length) { setSelAds(picked); setAiRecommended(true); setRecSource('data'); }
+        } catch (_) { /* 백엔드 실패 → 정적 추천 유지 */ }
+    }, [period, objective, AD_CHANNELS]);
+
+    // 카테고리/예산 변경 + AI추천 모드일 때 데이터 기반 채널 추천으로 정밀화(정적 즉시표시 후 엔진 보정).
+    useEffect(() => {
+        if (selCats.length > 0 && aiRecommended) refineChannelsFromEngine(selCats, effectiveBudget);
+        else if (!aiRecommended) setRecSource('heuristic');
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selCats, effectiveBudget, aiRecommended]);
+
+    // [251차] ★admin 플랫폼 컨텍스트(act-as ON) 진입 시 — GeniegoROI=SaaS 플랫폼이므로 카테고리(platform)
+    //   자동 선택 → 채널 데이터기반 자동추천 발동(1회). ★일반 구독회원은 자동선택 없음(직접 카테고리 선택해야 추천).
+    const platformAutoInit = useRef(false);
+    useEffect(() => {
+        if (platformAutoInit.current) return;
+        try {
+            if (localStorage.getItem('gg_act_as_tenant') === 'platform_growth' && selCats.length === 0) {
+                platformAutoInit.current = true;
+                setSelCats(['platform']);
+                setAiRecommended(true);
+            }
+        } catch (e) {}
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     const buildReason = (cats, budgetRec, t) => {
         const catNames = cats.slice(0, 3).map(id => {
             const found = PRODUCT_CATEGORIES_BASE.find(c => c.id === id);
@@ -486,7 +539,7 @@ export default function AutoMarketing() {
                 const tok = localStorage.getItem('genie_token') || localStorage.getItem('demo_genie_token') || '';
                 const r = await fetch('/api/v424/marketing/auto-recommend', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tok}` },
+                    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tok}`, ...actAsHeader() },
                     body: JSON.stringify({
                         budget: effectiveBudget, category: selCats[0], categories: selCats, period, channels: selAds,
                         objective,                                  // Phase2: 다목표 선택
@@ -533,6 +586,23 @@ export default function AutoMarketing() {
         }
     }, [selCats, selAds, effectiveBudget, period, objective, minRoas, maxShare, PRODUCT_CATEGORIES, AD_CHANNELS, t]);
 
+    /* ─── 채널 효과 분석 로드(탭 진입 시) — /v424/marketing/channel-effectiveness ─── */
+    const loadEffectiveness = useCallback(async () => {
+        setEffLoading(true);
+        try {
+            const r = await getJsonAuth(`/api/v424/marketing/channel-effectiveness?period=${encodeURIComponent(period)}`);
+            setEffData(r && r.ok ? r : { ok: false, channels: [] });
+        } catch (_) {
+            setEffData({ ok: false, channels: [] });
+        } finally {
+            setEffLoading(false);
+        }
+    }, [period]);
+
+    useEffect(() => {
+        if (tab === 'effectiveness') loadEffectiveness();
+    }, [tab, loadEffectiveness]);
+
 
     /* ─── Campaign 제출 전 Management자 Approval Modal 표시 ─── */
     const handleSubmitApproval = () => {
@@ -556,26 +626,37 @@ export default function AutoMarketing() {
             requireNote: false,
             confirmText: Object.is(t('marketing.submitApprovalBtn'), 'marketing.submitApprovalBtn') ? '✅ 승인 및 제출' : t('marketing.submitApprovalBtn'),
             confirmColor: '#22c55e',
-            onConfirm: () => {
+            onConfirm: async () => {
                 const newStatus = 'pending';
                 // ★ 201차: 실 백엔드 영속화 + 채널 연결상태 추적(/v423/auto-campaign/launch).
                 //   연결된 채널은 집행 대기열로, 미연결은 'pending_connection'(정직). best-effort — UI 무중단.
+                // [현 차수 초고도화] 승인=즉시 자동 집행 — activate:true 로 생성 직후 게이트(킬스위치·결제수단·소재 준비)
+                //   통과 시 바로 라이브. 게이트 미충족(결제수단 미등록 등)은 캠페인은 생성되고 활성화만 보류 → 사유 안내.
                 try {
                     const tok = localStorage.getItem('genie_token') || localStorage.getItem('demo_genie_token') || '';
-                    fetch('/api/v423/auto-campaign/launch', {
+                    const lr = await fetch('/api/v423/auto-campaign/launch', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tok}` },
+                        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tok}`, ...actAsHeader() },
                         body: JSON.stringify({
                             name, category: selCats[0] || '', categories: selCats, budget: strategy.budget, period,
                             channels: selAds,
                             allocations: (strategy.allocations || []).map(a => ({ channel: a.ch?.id, alloc: a.alloc, roas: a.roas })),
                             est_roas: String(strategy.estimatedRoas || ''),
+                            activate: true,   // 승인 즉시 집행(배정예산 한도 내 라이브). 게이트 미충족 시 활성화만 보류.
                             // [227차 P1] 사용자 가드레일 배선 — 옵티마이저가 실제 사용(min_roas/max_share).
                             //   기존엔 recommend 에만 보내고 launch 에 누락돼, 영속 캠페인이 기본정책(min_roas=1·max_share 미적용)
                             //   으로만 최적화되어 사용자 안전설정이 매번 유실됐다.
                             guardrails: { min_roas: Number(minRoas) || 0, max_share: (Number(maxShare) || 60) / 100 },
                         }),
-                    }).catch(() => {});
+                    });
+                    try {
+                        const ld = await lr.json();
+                        if (ld && ld.live) {
+                            addAlert({ type: 'success', msg: `${name} — 승인 즉시 집행(라이브) 시작. 성과 자동 수집·최적화 진행`, channel: selAds[0] });
+                        } else if (ld && ld.activation && ld.activation.message) {
+                            addAlert({ type: 'warning', msg: `${name} — 생성됨(활성화 보류): ${ld.activation.message}`, channel: selAds[0] });
+                        }
+                    } catch (_) { /* 응답 파싱 실패 무해 */ }
                 } catch (_) {}
                 const camp = {
                     id: mkId(), name, period, targetAudience, budget: strategy.budget,
@@ -613,6 +694,7 @@ export default function AutoMarketing() {
         { id: "creative", label: t("marketing.autoTab1", "① 크리에이티브 스튜디오"), icon: "🎨" },
         { id: "setup", label: t("marketing.autoTab2", "② 캠페인 설정"), icon: "⚙" },
         { id: "preview", label: t("marketing.autoTab3", "③ AI 전략 미리보기"), icon: "🤖" },
+        { id: "effectiveness", label: t("marketing.autoTabEff", "④ 채널 효과 분석"), icon: "📊" },
         { id: "guide", label: t("marketing.autoTab4", "📖 이용 가이드"), icon: "📖" },
     ], [t]);
 
@@ -696,7 +778,7 @@ export default function AutoMarketing() {
                     <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', background: 'rgba(241,245,249,0.7)', border: '1px solid rgba(99,140,255,0.1)', borderRadius: 12, padding: '6px 8px' }}>
                         {TABS.map(tb => {
                             const isActive = tab === tb.id;
-                            const TAB_CLR = { creative: '#06b6d4', setup: '#a855f7', preview: '#4f8ef7', guide: '#6366f1' };
+                            const TAB_CLR = { creative: '#06b6d4', setup: '#a855f7', preview: '#4f8ef7', effectiveness: '#22c55e', guide: '#6366f1' };
                             const clr = TAB_CLR[tb.id] || '#6366f1';
                             return (
                                 <button key={tb.id} className={isActive ? 'am-active-tab' : 'am-inactive-tab'} onClick={() => setTab(tb.id)} style={{
@@ -719,6 +801,114 @@ export default function AutoMarketing() {
 
             {/* [231차 OS#4] AI Agent 권한모드 거버넌스(전 탭 상단 고정 노출) */}
             <AgentModeCard />
+
+            {/* ══ TAB: EFFECTIVENESS — 채널 효과 전수 분석(최고/최저 + 액션 판정) ════════ */}
+            {tab === "effectiveness" && (() => {
+                const VERDICT = {
+                    scale_up:   { label: t('marketing.effScaleUp', '예산 증액'),   clr: '#16a34a', bg: 'rgba(34,197,94,0.12)' },
+                    maintain:   { label: t('marketing.effMaintain', '유지'),       clr: '#2563eb', bg: 'rgba(37,99,235,0.10)' },
+                    optimize:   { label: t('marketing.effOptimize', '최적화 필요'), clr: '#d97706', bg: 'rgba(217,119,6,0.12)' },
+                    cut:        { label: t('marketing.effCut', '회수·정지'),       clr: '#dc2626', bg: 'rgba(220,38,38,0.12)' },
+                    collecting: { label: t('marketing.effCollecting', '데이터 수집'), clr: '#64748b', bg: 'rgba(100,116,139,0.10)' },
+                };
+                const chs = (effData && Array.isArray(effData.channels)) ? effData.channels : [];
+                const chLabel = (id) => (AD_CHANNELS.find(c => c.id === id)?.label) || id;
+                const barClr = (s) => s >= 70 ? '#16a34a' : s >= 45 ? '#d97706' : '#dc2626';
+                return (
+                <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
+                    <div style={{ ...cardStyle, display:'flex', alignItems:'center', gap:12, flexWrap:'wrap' }}>
+                        <div>
+                            <div style={{ fontSize:16, fontWeight:900, color:'#0f172a' }}>📊 {t('marketing.effTitle', '채널 효과 전수 분석')}</div>
+                            <div style={{ fontSize:12, color:'#64748b', marginTop:4 }}>{t('marketing.effSubtitle', '실측 전수 데이터(진실 ROAS·CAC·전환·추세)를 종합한 효과점수입니다. 최고=예산 증액 후보, 최저=회수·정지 후보. 자가학습 prior 반영.')}</div>
+                        </div>
+                        <button onClick={loadEffectiveness} style={{ marginLeft:'auto', padding:'8px 16px', borderRadius:10, border:'none', cursor:'pointer', background:'linear-gradient(135deg,#22c55e,#4f8ef7)', color:'#fff', fontWeight:800, fontSize:12 }}>🔄 {t('marketing.effRefresh', '새로고침')}</button>
+                    </div>
+
+                    {effLoading && <div style={{ ...cardStyle, textAlign:'center', color:'#64748b', fontSize:13 }}>{t('marketing.effLoading', '분석 중…')}</div>}
+
+                    {!effLoading && chs.length === 0 && (
+                        <div style={{ ...cardStyle, textAlign:'center', color:'#64748b', fontSize:13, padding:32 }}>
+                            {(effData && effData.note) || t('marketing.effEmpty', '아직 집행/성과 데이터가 없습니다. 캠페인 집행 후 채널별 효과가 분석됩니다.')}
+                        </div>
+                    )}
+
+                    {!effLoading && chs.length > 0 && (
+                        <>
+                            {(effData.best || effData.worst) && (
+                                <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))', gap:12 }}>
+                                    {effData.best && (
+                                        <div style={{ ...cardStyle, borderColor:'rgba(34,197,94,0.4)', background:'rgba(34,197,94,0.06)' }}>
+                                            <div style={{ fontSize:11, fontWeight:800, color:'#16a34a' }}>🏆 {t('marketing.effBest', '최고 효과 채널')}</div>
+                                            <div style={{ fontSize:18, fontWeight:900, color:'#0f172a', marginTop:4 }}>{chLabel(effData.best.channel)}</div>
+                                            <div style={{ fontSize:12, color:'#15803d', marginTop:2 }}>{t('marketing.effScore', '효과점수')} {effData.best.effectiveness} · ROAS {effData.best.roas}x</div>
+                                            <div style={{ fontSize:11, color:'#16a34a', marginTop:6, fontWeight:700 }}>→ {effData.best.action}</div>
+                                        </div>
+                                    )}
+                                    {effData.worst && (
+                                        <div style={{ ...cardStyle, borderColor:'rgba(220,38,38,0.4)', background:'rgba(220,38,38,0.06)' }}>
+                                            <div style={{ fontSize:11, fontWeight:800, color:'#dc2626' }}>⚠️ {t('marketing.effWorst', '최저 효과 채널')}</div>
+                                            <div style={{ fontSize:18, fontWeight:900, color:'#0f172a', marginTop:4 }}>{chLabel(effData.worst.channel)}</div>
+                                            <div style={{ fontSize:12, color:'#b91c1c', marginTop:2 }}>{t('marketing.effScore', '효과점수')} {effData.worst.effectiveness} · ROAS {effData.worst.roas}x</div>
+                                            <div style={{ fontSize:11, color:'#dc2626', marginTop:6, fontWeight:700 }}>→ {effData.worst.action}</div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            <div style={{ ...cardStyle, overflowX:'auto' }}>
+                                <table style={{ width:'100%', borderCollapse:'collapse', fontSize:12, minWidth:760 }}>
+                                    <thead>
+                                        <tr style={{ textAlign:'right', color:'#64748b', borderBottom:'1px solid rgba(0,0,0,0.08)' }}>
+                                            <th style={{ textAlign:'left', padding:'8px 6px' }}>{t('marketing.effColChannel', '채널')}</th>
+                                            <th style={{ padding:'8px 6px' }}>{t('marketing.effColScore', '효과점수')}</th>
+                                            <th style={{ padding:'8px 6px' }}>ROAS</th>
+                                            <th style={{ padding:'8px 6px' }}>CAC</th>
+                                            <th style={{ padding:'8px 6px' }}>{t('marketing.effColConv', '전환')}</th>
+                                            <th style={{ padding:'8px 6px' }}>CTR%</th>
+                                            <th style={{ padding:'8px 6px' }}>CVR%</th>
+                                            <th style={{ padding:'8px 6px' }}>{t('marketing.effColSpend', '지출')}</th>
+                                            <th style={{ textAlign:'center', padding:'8px 6px' }}>{t('marketing.effColVerdict', '액션')}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {chs.map((r) => {
+                                            const v = VERDICT[r.verdict] || VERDICT.maintain;
+                                            return (
+                                                <tr key={r.channel} style={{ textAlign:'right', borderBottom:'1px solid rgba(0,0,0,0.04)' }}>
+                                                    <td style={{ textAlign:'left', padding:'8px 6px', fontWeight:800, color:'#0f172a' }}>
+                                                        {chLabel(r.channel)}
+                                                        {r.learned && <span title={t('marketing.effLearned', '자가학습 반영')} style={{ marginLeft:6, fontSize:9, color:'#7c3aed', fontWeight:700 }}>🧠</span>}
+                                                        {r.truth_adjusted && <span title={t('marketing.effTruth', '진실 ROAS 보정')} style={{ marginLeft:4, fontSize:9, color:'#0ea5e9', fontWeight:700 }}>✓</span>}
+                                                    </td>
+                                                    <td style={{ padding:'8px 6px' }}>
+                                                        <div style={{ display:'flex', alignItems:'center', gap:6, justifyContent:'flex-end' }}>
+                                                            <div style={{ width:54, height:6, background:'rgba(0,0,0,0.06)', borderRadius:4, overflow:'hidden' }}>
+                                                                <div style={{ width:`${Math.max(2, Math.min(100, r.effectiveness))}%`, height:'100%', background:barClr(r.effectiveness) }} />
+                                                            </div>
+                                                            <span style={{ fontWeight:800, color:barClr(r.effectiveness) }}>{r.effectiveness}</span>
+                                                        </div>
+                                                    </td>
+                                                    <td style={{ padding:'8px 6px', fontWeight:700, color:'#0f172a' }}>{r.roas}x</td>
+                                                    <td style={{ padding:'8px 6px', color:'#475569' }}>{r.cac ? fmt(r.cac) : '—'}</td>
+                                                    <td style={{ padding:'8px 6px', color:'#475569' }}>{r.conversions}</td>
+                                                    <td style={{ padding:'8px 6px', color:'#475569' }}>{r.ctr}</td>
+                                                    <td style={{ padding:'8px 6px', color:'#475569' }}>{r.cvr}</td>
+                                                    <td style={{ padding:'8px 6px', color:'#475569' }}>{fmt(r.spend)}</td>
+                                                    <td style={{ textAlign:'center', padding:'8px 6px' }}>
+                                                        <span style={{ padding:'3px 9px', borderRadius:20, fontSize:10, fontWeight:800, color:v.clr, background:v.bg, whiteSpace:'nowrap' }}>{v.label}</span>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                                <div style={{ fontSize:10, color:'#94a3b8', marginTop:10 }}>{effData.note}</div>
+                            </div>
+                        </>
+                    )}
+                </div>
+                );
+            })()}
 
             {/* ══ TAB: GUIDE — 15-Step Complete Guide ═══════════════════════════ */}
             {tab === "guide" && (
@@ -981,7 +1171,8 @@ export default function AutoMarketing() {
                         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px,1fr))", gap: 10, marginBottom: 14 }}>
                             {AD_CHANNELS.map(ch => {
                                 const budgetOk = effectiveBudget >= ch.minBudget;
-                                const isRecommended = aiRecommended && (CATEGORY_AD_RECOMMEND[selCats[0]] || []).includes(ch.id);
+                                // [251차] 데이터 기반 추천 시 실제 선택된 채널(엔진 산출)에 AI 배지, 정적 추천 시 카테고리 맵 기준.
+                                const isRecommended = aiRecommended && (recSource === 'data' ? selAds.includes(ch.id) : (CATEGORY_AD_RECOMMEND[selCats[0]] || []).includes(ch.id));
                                 const apiOk = ch.apiConnected;
                                 return (
                                     <button key={ch.id} onClick={() => {

@@ -4,6 +4,53 @@ import { st } from "./siteI18n.js";
 import { LogoOrbit } from "../../layout/PremiumLayout.jsx";
 import { detectLang } from "../../i18n/index.js"; // [현 차수] navigator/저장 기반 초기 언어감지(영어 하드코딩 제거)
 
+/* [251차 Phase2 ②] 플랫폼 성장 — 랜딩 방문 이메일 캡처(비침습 하단 슬라이드인). 공개 /v424/growth/capture 호출
+   → platform_growth 리드 자동생성(퍼널 최상단 유입). 자체 완결형(메인 컴포넌트 무영향)·1회 닫으면 재노출 안 함. */
+function GrowthCapturePopup() {
+  const [show, setShow] = useState(false);
+  const [email, setEmail] = useState("");
+  const [done, setDone] = useState(false);
+  useEffect(() => {
+    try { if (localStorage.getItem("gg_cap_dismissed") === "1") return; } catch (_) {}
+    const t = setTimeout(() => setShow(true), 9000);
+    return () => clearTimeout(t);
+  }, []);
+  if (!show) return null;
+  const close = () => { setShow(false); try { localStorage.setItem("gg_cap_dismissed", "1"); } catch (_) {} };
+  const submit = async () => {
+    const e = (email || "").trim();
+    if (!/.+@.+\..+/.test(e)) return;
+    try {
+      await fetch("/api/v424/growth/capture", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: e, event: "email_capture", source: "landing_popup", channel: "organic", page: "landing" }),
+      });
+    } catch (_) {}
+    setDone(true); try { localStorage.setItem("gg_cap_dismissed", "1"); } catch (_) {}
+    setTimeout(() => setShow(false), 2200);
+  };
+  return (
+    <div style={{ position: "fixed", bottom: 20, right: 20, zIndex: 9999, width: 320, maxWidth: "92vw", background: "#fff", border: "1px solid #e2e8f0", borderRadius: 16, boxShadow: "0 12px 40px rgba(0,0,0,0.18)", padding: 20, fontFamily: "Apple SD Gothic Neo,Malgun Gothic,sans-serif" }}>
+      <button onClick={close} aria-label="close" style={{ position: "absolute", top: 8, right: 12, border: "none", background: "none", fontSize: 18, color: "#94a3b8", cursor: "pointer" }}>×</button>
+      {done ? (
+        <div style={{ textAlign: "center", padding: "12px 0" }}>
+          <div style={{ fontSize: 32 }}>🎉</div>
+          <div style={{ fontWeight: 800, color: "#0f172a", marginTop: 8 }}>감사합니다! 곧 안내드리겠습니다.</div>
+        </div>
+      ) : (
+        <>
+          <div style={{ fontSize: 15, fontWeight: 900, color: "#0f172a" }}>🚀 전 광고매체 ROI를 한 곳에서</div>
+          <div style={{ fontSize: 12.5, color: "#64748b", margin: "6px 0 12px", lineHeight: 1.6 }}>20일 무료 체험 안내를 받아보세요. AI가 채널별 예산을 자동 최적화합니다.</div>
+          <input value={email} onChange={(ev) => setEmail(ev.target.value)} placeholder="이메일 주소" type="email"
+            onKeyDown={(ev) => { if (ev.key === "Enter") submit(); }}
+            style={{ width: "100%", padding: "10px 12px", borderRadius: 9, border: "1px solid #cbd5e1", fontSize: 13, boxSizing: "border-box" }} />
+          <button onClick={submit} style={{ width: "100%", marginTop: 8, padding: "10px 0", borderRadius: 9, border: "none", background: "linear-gradient(135deg,#4f8ef7,#a855f7)", color: "#fff", fontWeight: 800, fontSize: 13, cursor: "pointer" }}>무료 체험 안내 받기</button>
+        </>
+      )}
+    </div>
+  );
+}
+
 /* ═══════════════════════════════════════════════════════════════════
    11-Language Dictionary — Landing Page Only
    ko, en, ja, zh, zh-TW, vi, th, id, de, fr, es
@@ -2768,6 +2815,7 @@ export default function Landing() {
           </div>
         </div>
       </footer>
+      <GrowthCapturePopup />
     </div>
   );
 }

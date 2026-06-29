@@ -60,11 +60,48 @@ function KpiCard({ label, value, sub }) {
   );
 }
 
+/* [251차] 플랫폼 성장 컨텍스트 토글 — ON 시 기존 모든 메뉴(크리에이티브 스튜디오·자동화 전략·어트리뷰션 등)가
+   platform_growth 데이터로 동작(X-Act-As-Tenant 헤더, 서버는 admin 에만 허용). 신규 메뉴 0·기존 기능 재사용. */
+function PlatformContextToggle() {
+  const [on, setOn] = useState(() => { try { return localStorage.getItem("gg_act_as_tenant") === "platform_growth"; } catch (e) { return false; } });
+  useEffect(() => {
+    const h = () => { try { setOn(localStorage.getItem("gg_act_as_tenant") === "platform_growth"); } catch (e) {} };
+    window.addEventListener("gg-actas-change", h);
+    window.addEventListener("storage", h);
+    return () => { window.removeEventListener("gg-actas-change", h); window.removeEventListener("storage", h); };
+  }, []);
+  const toggle = () => {
+    try {
+      if (on) localStorage.removeItem("gg_act_as_tenant");
+      else localStorage.setItem("gg_act_as_tenant", "platform_growth");
+    } catch (e) {}
+    window.dispatchEvent(new Event("gg-actas-change"));
+    setOn(!on);
+  };
+  return (
+    <button onClick={toggle} title="기존 메뉴를 GeniegoROI 플랫폼 자체 데이터로 전환"
+      style={{ padding: "5px 12px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 800,
+        background: on ? "linear-gradient(90deg,#7c3aed,#4f8ef7)" : "rgba(124,58,237,0.12)", color: on ? "#fff" : "#7c3aed" }}>
+      {on ? "🚀 플랫폼 컨텍스트 ON (끄기)" : "🚀 기존 메뉴를 플랫폼 컨텍스트로 전환"}
+    </button>
+  );
+}
+
 export default function AdminGrowthCenter() {
   const [tab, setTab] = useState("dashboard");
   const [mode, setMode] = useState("test");
   const [msg, setMsg] = useState("");
   const [err, setErr] = useState("");
+  // [251차] ★Growth Center 진입 = 플랫폼 컨텍스트 자동 선택(ON). 이후 기존 모든 메뉴(크리에이티브·자동화 전략·
+  //   어트리뷰션 등)가 platform_growth 데이터로 동작. 상단 토글/배너의 "끄기"로 내 계정으로 복귀 가능.
+  useEffect(() => {
+    try {
+      if (localStorage.getItem("gg_act_as_tenant") !== "platform_growth") {
+        localStorage.setItem("gg_act_as_tenant", "platform_growth");
+        window.dispatchEvent(new Event("gg-actas-change"));
+      }
+    } catch (e) {}
+  }, []);
 
   const flash = (m, isErr) => { if (isErr) { setErr(String(m)); setMsg(""); } else { setMsg(String(m)); setErr(""); } setTimeout(() => { setMsg(""); setErr(""); }, 4000); };
 
@@ -78,9 +115,11 @@ export default function AdminGrowthCenter() {
       <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", marginBottom: 6 }}>
         <h1 style={{ fontSize: 22, margin: 0 }}>그로스 센터</h1>
         <span style={S.badge(mode === "live" ? "#22c55e" : "#f59e0b")}>{mode === "live" ? "LIVE 모드" : "TEST 모드"}</span>
+        <PlatformContextToggle />
       </div>
       <p style={{ color: "var(--text-2,#9aa3b2)", fontSize: 13, marginTop: 0 }}>
-        GeniegoROI 플랫폼 자체 마케팅 자동화 — 리드 → 데모 → 체험 → 유료 전환 → 성과 검증
+        GeniegoROI 플랫폼 자체 마케팅 자동화 — 리드 → 데모 → 체험 → 유료 전환 → 성과 검증.
+        <b style={{ color: "#7c3aed" }}> 소재·캠페인·어트리뷰션 등은 아래 "플랫폼 컨텍스트 ON" 후 기존 메뉴(크리에이티브 스튜디오·자동화 전략·어트리뷰션)를 그대로 사용하세요.</b>
       </p>
 
       <div style={{ display: "flex", gap: 6, flexWrap: "wrap", margin: "12px 0" }}>
@@ -409,6 +448,128 @@ function ApprovalsTab({ flash }) {
   );
 }
 
+// ── 채널 종합분석 (모든 광고매체 → 가입 유입 최대성과) ──────────────────
+//   AutoRecommend::effectivenessData('platform_growth') 재사용 — 진실 ROAS·CAC·전환·추세·자가학습 prior
+//   종합 효과점수로 플랫폼 자체 광고비를 가입 전환 기준 최적화(최고=증액·최저=회수).
+function ChannelAnalysisTab({ flash }) {
+  const [d, setD] = useState(null);
+  const [ab, setAb] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [period, setPeriod] = useState("monthly");
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const r = unwrap(await getJson(`${API}/channel-analysis?period=${period}`)); setD(r);
+      try { const a = unwrap(await getJson(`${API}/ab-report`)); setAb(a); } catch (_) { setAb(null); }
+    }
+    catch (e) { flash(e?.message || e, true); setD({ channels: [] }); }
+    finally { setLoading(false); }
+  }, [flash, period]);
+  useEffect(() => { load(); }, [load]);
+  const V = {
+    scale_up: ["증액", "#16a34a"], maintain: ["유지", "#2563eb"], optimize: ["최적화", "#d97706"],
+    cut: ["회수·정지", "#dc2626"], collecting: ["수집중", "#64748b"],
+  };
+  const chs = (d && Array.isArray(d.channels)) ? d.channels : [];
+  const barClr = (s) => s >= 70 ? "#16a34a" : s >= 45 ? "#d97706" : "#dc2626";
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <div style={{ ...S.card, display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+        <div>
+          <h3 style={{ margin: 0 }}>📡 전 광고매체 종합 효과 분석</h3>
+          <p style={{ fontSize: 12, color: "var(--text-2,#9aa3b2)", margin: "4px 0 0" }}>
+            GeniegoROI 플랫폼 자체 광고비를 메타·구글·틱톡·네이버·카카오 전 매체에 걸쳐 진실 ROAS·CAC·전환·추세로 종합 분석 — 가입 유입 최대성과를 위한 채널별 증액/회수 판정.
+          </p>
+        </div>
+        <div style={{ marginLeft: "auto", display: "flex", gap: 6 }}>
+          <select value={period} onChange={(e) => setPeriod(e.target.value)} style={S.btn}>
+            <option value="monthly">월간</option><option value="quarter">분기</option>
+          </select>
+          <button style={S.btnP} onClick={load}>🔄 새로고침</button>
+        </div>
+      </div>
+      {loading && <div style={S.card}>분석 중…</div>}
+      {!loading && (d?.best || d?.worst) && (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 10 }}>
+          {d.best && <div style={{ ...S.card, borderColor: "#22c55e" }}><div style={{ color: "#16a34a", fontWeight: 800, fontSize: 12 }}>🏆 최고 효과</div><div style={{ fontSize: 17, fontWeight: 900 }}>{d.best.label}</div><div style={{ fontSize: 12 }}>효과 {d.best.effectiveness} · ROAS {d.best.roas}x</div><div style={{ fontSize: 11, color: "#16a34a", marginTop: 4 }}>→ {d.best.action}</div></div>}
+          {d.worst && <div style={{ ...S.card, borderColor: "#ef4444" }}><div style={{ color: "#dc2626", fontWeight: 800, fontSize: 12 }}>⚠️ 최저 효과</div><div style={{ fontSize: 17, fontWeight: 900 }}>{d.worst.label}</div><div style={{ fontSize: 12 }}>효과 {d.worst.effectiveness} · ROAS {d.worst.roas}x</div><div style={{ fontSize: 11, color: "#dc2626", marginTop: 4 }}>→ {d.worst.action}</div></div>}
+        </div>
+      )}
+      {!loading && chs.length === 0 && (
+        <div style={{ ...S.card, textAlign: "center", color: "var(--text-2,#9aa3b2)" }}>
+          {(d && d.note) || "아직 플랫폼 자체 광고 성과 데이터가 없습니다. 캠페인 집행 후 채널별 효과가 분석됩니다."}
+        </div>
+      )}
+      {!loading && chs.length > 0 && (
+        <div style={{ ...S.card, overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 680 }}>
+            <thead><tr><th style={S.th}>채널</th><th style={S.th}>효과점수</th><th style={S.th}>ROAS</th><th style={S.th}>CAC</th><th style={S.th}>전환</th><th style={S.th}>액션</th></tr></thead>
+            <tbody>
+              {chs.map((r) => { const v = V[r.verdict] || V.maintain; return (
+                <tr key={r.channel}>
+                  <td style={S.td}>{r.label}{r.learned ? " 🧠" : ""}{r.truth_adjusted ? " ✓" : ""}</td>
+                  <td style={S.td}><span style={{ fontWeight: 800, color: barClr(r.effectiveness) }}>{r.effectiveness}</span></td>
+                  <td style={S.td}>{r.roas}x</td>
+                  <td style={S.td}>{r.cac ? "₩" + Number(r.cac).toLocaleString() : "—"}</td>
+                  <td style={S.td}>{r.conversions}</td>
+                  <td style={S.td}><span style={{ padding: "2px 8px", borderRadius: 12, fontSize: 11, fontWeight: 700, color: v[1], border: `1px solid ${v[1]}` }}>{v[0]}</span></td>
+                </tr>
+              ); })}
+            </tbody>
+          </table>
+          {d.note && <div style={{ fontSize: 10, color: "var(--text-2,#9aa3b2)", marginTop: 8 }}>{d.note}</div>}
+        </div>
+      )}
+
+      {/* [Phase2 ⑤] 가입 유입 어트리뷰션 — 첫터치 채널 → 가입/유료/MRR/진실 CAC */}
+      {!loading && Array.isArray(d?.acquisition) && d.acquisition.length > 0 && (
+        <div style={{ ...S.card, overflowX: "auto" }}>
+          <h3 style={{ marginTop: 0 }}>🎯 가입 유입 어트리뷰션 (첫터치 채널 기준)</h3>
+          <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 560 }}>
+            <thead><tr><th style={S.th}>채널/소스</th><th style={S.th}>리드</th><th style={S.th}>가입</th><th style={S.th}>유료</th><th style={S.th}>MRR</th><th style={S.th}>가입→유료</th><th style={S.th}>진실 CAC</th></tr></thead>
+            <tbody>
+              {d.acquisition.map((a) => (
+                <tr key={a.channel}>
+                  <td style={S.td}>{a.channel}</td>
+                  <td style={S.td}>{a.leads}</td>
+                  <td style={S.td}>{a.signups}</td>
+                  <td style={{ ...S.td, fontWeight: 800, color: "#16a34a" }}>{a.paid}</td>
+                  <td style={S.td}>₩{Number(a.mrr || 0).toLocaleString()}</td>
+                  <td style={S.td}>{a.signup_to_paid}%</td>
+                  <td style={S.td}>{a.cac ? "₩" + Number(a.cac).toLocaleString() : "—"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div style={{ fontSize: 10, color: "var(--text-2,#9aa3b2)", marginTop: 8 }}>리드 첫 접점 채널에 가입·유료 전환을 귀속. 진실 CAC = 채널 광고비 / 유료전환수.</div>
+        </div>
+      )}
+
+      {/* [Phase2 ③] 성장 메시지 A/B — variant별 캡처→가입전환 + 베이지안 승자 */}
+      {!loading && ab && Array.isArray(ab.variants) && ab.variants.length > 0 && (
+        <div style={{ ...S.card, overflowX: "auto" }}>
+          <h3 style={{ marginTop: 0 }}>🧪 성장 메시지 A/B 결과</h3>
+          {ab.verdict && (
+            <div style={{ marginBottom: 8, fontSize: 13 }}>
+              승자: <b style={{ color: "#16a34a" }}>{ab.verdict.winner || "—"}</b> · 최고확률 {Math.round((ab.verdict.probability || 0) * 100)}%
+              <span style={{ marginLeft: 8, color: ab.verdict.significant ? "#16a34a" : "#d97706" }}>{ab.verdict.significant ? "✅ 유의미" : "⏳ 표본 누적중"}</span>
+            </div>
+          )}
+          <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 440 }}>
+            <thead><tr><th style={S.th}>Variant</th><th style={S.th}>노출(캡처)</th><th style={S.th}>가입전환</th><th style={S.th}>유료</th></tr></thead>
+            <tbody>
+              {ab.variants.map((v) => (
+                <tr key={v.id}><td style={S.td}>{v.arm}</td><td style={S.td}>{v.impressions}</td><td style={S.td}>{v.conversions}</td><td style={S.td}>{v.paid}</td></tr>
+              ))}
+            </tbody>
+          </table>
+          <div style={{ fontSize: 10, color: "var(--text-2,#9aa3b2)", marginTop: 8 }}>{ab.verdict?.note || "랜딩 캡처 시 variant(arm)를 전달하면 메시지별 가입 전환을 비교합니다."}</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── 설정 / 감사 ─────────────────────────────────────────
 function SettingsTab({ flash, setMode }) {
   const [s, setS] = useState(null);
@@ -439,6 +600,24 @@ function SettingsTab({ flash, setMode }) {
           <button style={s.mode === "test" ? S.btnP : S.btn} onClick={() => setModeReq("test")}>TEST 모드</button>
           <button style={s.mode === "live" ? S.btnP : S.btn} onClick={() => setModeReq("live")}>LIVE 모드 (승인 필요)</button>
         </div>
+      </div>
+      <div style={S.card}>
+        <h3 style={{ marginTop: 0 }}>가입 환영 너처 자동발송</h3>
+        <p style={{ fontSize: 13, color: "var(--text-2,#9aa3b2)" }}>
+          신규 가입자에게 환영·온보딩 이메일을 <b>자동 발송</b>합니다. ★안전: <b>이 토글 ON + LIVE 모드</b>일 때만 실제 발송됩니다(기본 OFF).
+        </p>
+        <button
+          style={s.autoNurture ? { ...S.btnP, background: "#16a34a" } : S.btn}
+          onClick={async () => {
+            try { const r = unwrap(await putJson(`${API}/settings`, { auto_nurture: !s.autoNurture }));
+              flash(`가입 환영 너처: ${r?.autoNurture ? "ON (Live 시 자동발송)" : "OFF"}`); load();
+            } catch (e) { flash(e?.message || e, true); }
+          }}>
+          {s.autoNurture ? "✅ 자동발송 ON" : "⬜ 자동발송 OFF"}
+        </button>
+        {s.autoNurture && s.mode !== "live" && (
+          <div style={{ marginTop: 8, fontSize: 12, color: "#d97706" }}>⚠️ 현재 TEST 모드 — LIVE 전환·승인 후에만 실제 발송됩니다.</div>
+        )}
       </div>
       <div style={{ ...S.card, overflowX: "auto" }}>
         <h3 style={{ marginTop: 0 }}>감사 로그 (Audit)</h3>
