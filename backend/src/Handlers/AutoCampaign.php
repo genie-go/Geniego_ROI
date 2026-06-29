@@ -820,6 +820,43 @@ class AutoCampaign
 
     /** 캠페인 1건 최적화: 성과 분석 → 예산 재배분 + 저성과 일시정지 + 결정 로그. 양 엔드포인트·cron 공용. */
     /** 테넌트 당월(1일~오늘) 전체 광고 지출 — 전 캠페인 합산(전역 spend cap 용). */
+    /** [초고도화 #5-C] 현재 KST 시각이 광고 스케줄(데이파팅) 윈도 안인가. 미설정/부분설정은 허용쪽(true). */
+    private static function withinAdSchedule(array $sched): bool
+    {
+        try {
+            $dt = new \DateTime('now', new \DateTimeZone('Asia/Seoul'));
+            $h = (int)$dt->format('G'); $dow = (int)$dt->format('w'); // 0=일
+            $days = $sched['days'] ?? null;
+            if (is_array($days) && !empty($days) && !in_array($dow, array_map('intval', $days), true)) return false;
+            $hours = $sched['hours'] ?? null;
+            if (is_array($hours) && count($hours) === 2) {
+                $s = (int)$hours[0]; $e = (int)$hours[1];
+                $in = ($s <= $e) ? ($h >= $s && $h < $e) : ($h >= $s || $h < $e);
+                if (!$in) return false;
+            }
+            return true;
+        } catch (\Throwable $e) { return true; }
+    }
+
+    /** app_setting 단일 KV 플래그 read(데이파팅 상태 등). */
+    private static function getFlag(PDO $pdo, string $key): string
+    {
+        try { $s = $pdo->prepare("SELECT svalue FROM app_setting WHERE skey=? LIMIT 1"); $s->execute([$key]); return (string)($s->fetchColumn() ?: ''); }
+        catch (\Throwable $e) { return ''; }
+    }
+
+    /** app_setting 단일 KV 플래그 write(MySQL/SQLite upsert). */
+    private static function setFlag(PDO $pdo, string $key, string $val): void
+    {
+        try {
+            $now = gmdate('c'); $isMy = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql';
+            $sql = $isMy
+                ? "INSERT INTO app_setting(skey,svalue,updated_at) VALUES(?,?,?) ON DUPLICATE KEY UPDATE svalue=VALUES(svalue),updated_at=VALUES(updated_at)"
+                : "INSERT INTO app_setting(skey,svalue,updated_at) VALUES(?,?,?) ON CONFLICT(skey) DO UPDATE SET svalue=excluded.svalue,updated_at=excluded.updated_at";
+            $pdo->prepare($sql)->execute([$key, $val, $now]);
+        } catch (\Throwable $e) {}
+    }
+
     private static function tenantMonthlySpend(PDO $pdo, string $tenant): float
     {
         try {
@@ -865,6 +902,32 @@ class AutoCampaign
         //   [현 차수] $gr/$minRoas 는 적응형 입찰주기(cadence) 산출에 no-data 경로에서도 필요 → 선파싱.
         $gr = json_decode((string)($camp['guardrails'] ?? '{}'), true) ?: [];
         $minRoas = isset($gr['min_roas']) ? (float)$gr['min_roas'] : self::PAUSE_FLOOR;
+        // [초고도화 #5-C] 데이파팅(시간대/요일 광고 스케줄) — ★플랫폼측 게이트로 전 6채널 공통(각 매체 네이티브 스케줄
+        //   API 미의존·파손 위험0). 기존 pause/activate 재사용(중복0). gr.ad_schedule={hours:[s,e],days:[0=일..6]} 설정 시
+        //   윈도 밖=ads 자동 정지·윈도 진입=자동 재개(KST). 미설정=항상 허용(회귀0). 데모/미actuate 면 스킵.
+        if ($allowActuate && !empty($gr['ad_schedule']) && is_array($gr['ad_schedule']) && !empty($extIdMap)) {
+            $dpNow = gmdate('Y-m-d\TH:i:s\Z');
+            $within = self::withinAdSchedule($gr['ad_schedule']);
+            $flagKey = 'daypart_paused@' . $tenant . ':' . (int)$camp['id'];
+            $wasPaused = self::getFlag($pdo, $flagKey) === '1';
+            if (!$within) {
+                // 윈도 밖 — 미정지 시 전 채널 정지 + ★항상 조기반환(윈도 밖엔 최적화/재활성화 금지).
+                if (!$wasPaused) {
+                    foreach ($extIdMap as $ck => $ext) { try { AdAdapters::pause($pdo, $tenant, self::connectorKey($ck), (string)$ext); } catch (\Throwable $e) {} }
+                    self::setFlag($pdo, $flagKey, '1');
+                    try { $pdo->prepare("INSERT INTO optimization_log(tenant_id,campaign_id,channel,action,old_alloc,new_alloc,roas,ctr,reason,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)")
+                        ->execute([$tenant, (int)$camp['id'], '(데이파팅)', 'dayparting_pause', 0, 0, '', '', '광고 스케줄 윈도 밖 — 전 채널 자동 정지(데이파팅)', $dpNow]); } catch (\Throwable $e) {}
+                }
+                return ['optimized' => true, 'allocations' => [], 'decisions' => [['channel' => '(데이파팅)', 'action' => 'dayparting_pause', 'reason' => '스케줄 윈도 밖 — 정지 유지']],
+                    'metrics' => $metrics, 'cadence' => self::computeCadenceHours($metrics, $gr, $minRoas)];
+            }
+            if ($within && $wasPaused) {
+                foreach ($extIdMap as $ck => $ext) { try { AdAdapters::activate($pdo, $tenant, self::connectorKey($ck), (string)$ext); } catch (\Throwable $e) {} }
+                self::setFlag($pdo, $flagKey, '0');
+                try { $pdo->prepare("INSERT INTO optimization_log(tenant_id,campaign_id,channel,action,old_alloc,new_alloc,roas,ctr,reason,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)")
+                    ->execute([$tenant, (int)$camp['id'], '(데이파팅)', 'dayparting_resume', 0, 0, '', '', '광고 스케줄 윈도 진입 — 전 채널 자동 재개(데이파팅)', $dpNow]); } catch (\Throwable $e) {}
+            }
+        }
         if (!$anyData) {
             return ['optimized' => false, 'reason' => '성과 데이터가 아직 충분하지 않습니다. 채널 집행·데이터 수집 후 자동 최적화됩니다.',
                 'metrics' => $metrics, 'cadence' => self::computeCadenceHours($metrics, $gr, $minRoas)];
