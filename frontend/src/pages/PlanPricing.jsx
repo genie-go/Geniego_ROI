@@ -849,7 +849,7 @@ function PlanPricing() {
             <div>
               <div style={{ fontSize: 18, fontWeight: 800 }}>플랜별 구독요금 설정</div>
               <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 1 }}>
-                USD 단일 · Paddle MoR · 카드 결제 전용
+                USD 단일 · Paddle MoR · 카드 결제 전용 · 모든 요금 <b>VAT 별도</b> 입력(결제 시 부가세 자동 가산)
               </div>
             </div>
           </div>

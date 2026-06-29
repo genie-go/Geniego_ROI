@@ -988,6 +988,7 @@ export default function PricingPublic() {
                                         <>
                                             <span style={{ fontSize: 48, fontWeight: 900, color: T.priceText, letterSpacing: -2 }}>${Math.round(monthlyPrice * 100) / 100}</span>
                                             <span style={{ fontSize: 14, color: T.text3, marginLeft: 4 }}>{t("appPricing.perMonth", "/mo")}</span>
+                                            <span style={{ fontSize: 11, color: T.text3, marginLeft: 6 }}>{t("appPricing.exclVat", "(VAT 별도)")}</span>
                                             {cycleMonths > 1 && totalCharge != null && (
                                                 <div style={{ fontSize: 11, color: T.text3, marginTop: 6 }}>
                                                     {t("appPricing.billedEvery", "Billed every {{months}} months ({{total}})", { months: cycleMonths, total: "$" + Math.round(totalCharge * 100) / 100 })}
@@ -1157,7 +1158,7 @@ export default function PricingPublic() {
                     {t("appPricing.legal.agree", "By purchasing, you agree to our")}{" "}
                     <Link to="/terms" style={{ color: T.link }}>{t("appPricing.legal.terms", "Terms of Service")}</Link> {t("appPricing.legal.and", "and")}{" "}
                     <Link to="/privacy" style={{ color: T.link }}>{t("appPricing.legal.privacy", "Privacy Policy")}</Link>.<br />
-                    {t("appPricing.legal.usd", "All prices in USD.")} <strong style={{ color: T.legalStrong }}>{t("appPricing.cardOnly", "Card payments only")}</strong>. {t("appPricing.legal.tax", "Taxes may apply depending on your location. Powered by Paddle.com (Merchant of Record).")}
+                    {t("appPricing.legal.usd", "All prices in USD.")} <strong style={{ color: T.legalStrong }}>{t("appPricing.cardOnly", "Card payments only")}</strong>. {t("appPricing.legal.tax", "All prices exclude VAT (VAT 별도). Applicable VAT/tax (10% in Korea) is added at checkout based on your location and included in the final charge. Powered by Paddle.com (Merchant of Record).")}
                 </p>
             </div>
         </section>
