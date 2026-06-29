@@ -39,7 +39,9 @@ class CRM
     }
 
     /* ─── DB 초기화 (MySQL/SQLite 양립 + tenant_id + 멱등 ALTER) ───────────── */
-    private static function ensureTables(): void
+    /** [254차 #7] AdminGrowth(platform_growth 리드 미러)가 crm_customers 스키마를 보장하기 위해 public 으로 노출.
+     *   idempotent CREATE IF NOT EXISTS 라 외부 호출 안전(자기 호출 self:: 영향 없음). */
+    public static function ensureTables(): void
     {
         $pdo = self::db();
         if (self::isMysql($pdo)) {

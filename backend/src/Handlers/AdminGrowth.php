@@ -307,8 +307,54 @@ final class AdminGrowth
             self::audit($pdo, 'system', 'event.' . $eventType, ['email' => $email, 'lead_id' => $lid, 'value' => (float)($ctx['value'] ?? 0)]);
             // 4) [Phase2 ①] 능동 자동화 — 가입 시 환영 너처(기본 OFF·승인후 자동). 비차단.
             if ($eventType === 'trial') self::maybeNurtureWelcome($pdo, $email, (string)($ctx['name'] ?? ''));
+            // 5) [254차 #7] 비주얼 저니빌더 브리지 — platform_growth 리드를 crm_customers(예약테넌트)로 미러 후
+            //    기존 JourneyBuilder::enrollByTrigger 재사용(신규코드 0·완전 격리). admin 이 그로스센터(act-as platform_growth)
+            //    에서 signup/purchase 트리거 비주얼 저니를 만들면 가입·결제 즉시 자동 진입(미정의 시 enrollByTrigger=no-op).
+            //    maybeNurtureWelcome(단순 Mailer)와 병행 — 저니빌더는 다단계/대기/분기/A-B 까지 확장 가능한 상위 레이어.
+            if ($eventType === 'trial' || $eventType === 'paid') {
+                $cid = self::mirrorLeadToCrm($pdo, $email, (string)($ctx['name'] ?? ''), (string)($ctx['phone'] ?? ''));
+                if ($cid > 0) {
+                    $trigger = $eventType === 'paid' ? 'purchase' : 'signup';
+                    $jctx = $eventType === 'paid' ? ['revenue' => (float)($ctx['value'] ?? 0)] : [];
+                    try { \Genie\Handlers\JourneyBuilder::enrollByTrigger($pdo, self::TENANT, $trigger, $cid, $jctx); } catch (\Throwable $e) {}
+                }
+            }
             return $lid;
         } catch (\Throwable $e) { return 0; }
+    }
+
+    /** [254차 #7] platform_growth 리드를 crm_customers(tenant=platform_growth)로 email 기준 멱등 미러.
+     *   JourneyBuilder/세그먼트가 crm_customers.id(INT)를 요구하므로 브리지 역할. 반환=crm_customers.id(실패 0).
+     *   ★예약테넌트 격리: 실 고객 테넌트와 절대 혼입 안 됨(tenant_id='platform_growth' 고정). */
+    private static function mirrorLeadToCrm(\PDO $pdo, string $email, string $name, string $phone): int
+    {
+        $email = strtolower(trim($email));
+        if ($email === '' || !str_contains($email, '@')) return 0;
+        $tenant = self::TENANT;
+        try {
+            try { \Genie\Handlers\CRM::ensureTables(); } catch (\Throwable $e) {}
+            $now = gmdate('Y-m-d H:i:s');   // crm_customers.created_at 포맷 정합(CRM::now)
+            $st = $pdo->prepare("SELECT id FROM crm_customers WHERE tenant_id=? AND LOWER(email)=? LIMIT 1");
+            $st->execute([$tenant, $email]);
+            $id = (int)($st->fetchColumn() ?: 0);
+            if ($id > 0) {
+                if ($name !== '' || $phone !== '') {
+                    $pdo->prepare("UPDATE crm_customers SET name=COALESCE(NULLIF(name,''),?), phone=COALESCE(NULLIF(phone,''),?), updated_at=? WHERE id=? AND tenant_id=?")
+                        ->execute([$name, $phone, $now, $id, $tenant]);
+                }
+                return $id;
+            }
+            $pdo->prepare("INSERT INTO crm_customers (tenant_id, email, name, phone, grade, tags, memo, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?)")
+                ->execute([$tenant, $email, $name, $phone, 'normal', '[]', 'platform_growth lead', $now, $now]);
+            return (int)$pdo->lastInsertId();
+        } catch (\Throwable $e) {
+            // 경합(동시 가입)으로 UNIQUE 충돌 시 재조회.
+            try {
+                $st = $pdo->prepare("SELECT id FROM crm_customers WHERE tenant_id=? AND LOWER(email)=? LIMIT 1");
+                $st->execute([$tenant, $email]);
+                return (int)($st->fetchColumn() ?: 0);
+            } catch (\Throwable $e2) { return 0; }
+        }
     }
 
     /** 실 가입(=무료체험 시작) 자동 적재. UserAuth::register 비차단 훅. */
