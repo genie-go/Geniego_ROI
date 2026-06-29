@@ -814,6 +814,9 @@ final class ChannelSync
                 'qty'         => count($items),
                 'unit_price'  => 0,
                 'total_price' => (float)($o['payment']['total_amount'] ?? 0),
+                // [현 차수 감사 P1] 통화 누락 수정 — saveOrders fxToKrw 정규화가 동작하도록 외화(USD/GBP/SEA) 통화 stamp.
+                //   (자매 어댑터 amazon/ebay/rakuten/qoo10/shopee/lazada 전부 currency 설정·TikTok만 누락이던 비대칭.)
+                'currency'    => strtoupper((string)($o['payment']['currency'] ?? '')),
                 'status'      => strtolower((string)($o['status'] ?? 'unpaid')),
                 'ordered_at'  => isset($o['create_time']) ? gmdate('c', (int)$o['create_time']) : gmdate('c'),
                 'source'      => 'tiktok_api',
@@ -3721,10 +3724,15 @@ final class ChannelSync
                 $incCRw = self::classifyCancelReturn((string)($body['status'] ?? ''), (string)$eventType);
                 $evtNormW = $incCRw ?? $eventType;
                 $oidW = (string)$body['order_id']; $skuW = (string)($body['sku'] ?? '');
-                $qtyW = (int)($body['qty'] ?? 1); $totalW = (float)($body['total'] ?? 0);
+                $qtyW = (int)($body['qty'] ?? 1);
+                // [현 차수 감사 P2] 웹훅 신규주문도 폴링(saveOrders)과 동일하게 fxToKrw 정규화 — 외화 웹훅 주문이
+                //   KRW 무변환 적재(폴링 정규화 주문과 비대칭)되던 것 해소. KRW/빈/미상 통화는 무변환(동일 SSOT).
+                $curW   = strtoupper((string)($body['currency'] ?? ''));
+                $totalW = \Genie\Handlers\Connectors::fxToKrw((float)($body['total'] ?? 0), $curW);
+                $unitW  = \Genie\Handlers\Connectors::fxToKrw((float)($body['price'] ?? 0), $curW);
                 $pdo->prepare("INSERT INTO channel_orders(tenant_id,channel,channel_order_id,buyer_name,product_name,sku,qty,unit_price,total_price,status,ordered_at,event_type,synced_at)
                     VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)")
-                    ->execute([$tenant,$channel,$oidW,$body['buyer_name']??'',$body['product_name']??'',$skuW?:null,$qtyW,(float)($body['price']??0),$totalW,$body['status']??'pending',$body['ordered_at']??$now,$evtNormW,$now]);
+                    ->execute([$tenant,$channel,$oidW,$body['buyer_name']??'',$body['product_name']??'',$skuW?:null,$qtyW,$unitW,$totalW,$body['status']??'pending',$body['ordered_at']??$now,$evtNormW,$now]);
                 if ($incCRw === null) {
                     // 정상 신규 주문 → 실재고 차감 + CRM + 어트리뷰션(폴링 정합).
                     if ($skuW !== '') {

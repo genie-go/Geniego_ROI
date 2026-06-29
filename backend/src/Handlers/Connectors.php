@@ -887,14 +887,16 @@ final class Connectors
         if ($tenant === '' || $tenant === 'demo' || str_starts_with($tenant, 'demo')) return TemplateResponder::respond($res, $out);
         try {
             $pdo = Db::pdo();
-            // ① 매체보고(performance_metrics) — 광고 채널만 집계
-            $adChs = ['meta', 'meta_ads', 'google', 'google_ads', 'tiktok', 'tiktok_business', 'naver', 'naver_sa', 'kakao', 'kakao_moment'];
-            $ph = implode(',', array_fill(0, count($adChs), '?'));
+            // ① 매체보고(performance_metrics=광고 전용 테이블) — 전 광고 채널 집계.
+            // [현 차수 감사 P2] 하드코딩 5채널 화이트리스트 제거 → 실매출측(②,채널 무필터)과 대칭.
+            //   기존엔 snapchat/linkedin/criteo/pinterest/amazon_ads/microsoft_ads/x_ads/롱테일의 spend 가 누락돼
+            //   totals.spend 과소 + 해당 채널 realRoas 가 spend=0 으로 강제 0표기되던 비대칭(staleness) 해소.
+            //   performance_metrics 는 ad-scoped 테이블이고 normAdCh 가 양측 채널명 정규화 → 합집합 정합.
             $plat = [];
             try {
                 $st = $pdo->prepare("SELECT LOWER(channel) ch, COALESCE(SUM(spend),0) spend, COALESCE(SUM(revenue),0) rev, COALESCE(SUM(conversions),0) conv
-                    FROM performance_metrics WHERE tenant_id=? AND LOWER(channel) IN ($ph) GROUP BY LOWER(channel)");
-                $st->execute(array_merge([$tenant], $adChs));
+                    FROM performance_metrics WHERE tenant_id=? GROUP BY LOWER(channel)");
+                $st->execute([$tenant]);
                 foreach ($st->fetchAll(\PDO::FETCH_ASSOC) as $r) {
                     $ch = self::normAdCh((string)$r['ch']);
                     if (!isset($plat[$ch])) $plat[$ch] = ['spend' => 0, 'rev' => 0, 'conv' => 0];
@@ -1730,7 +1732,9 @@ final class Connectors
     {
         static $cache = null;
         if ($cache !== null) return $cache;
-        $defaults = ['KRW'=>1.0,'USD'=>1350.0,'EUR'=>1450.0,'JPY'=>9.0,'CNY'=>185.0,'GBP'=>1700.0,'HKD'=>173.0,'SGD'=>1000.0,'AUD'=>890.0,'CAD'=>985.0,'TWD'=>42.0,'THB'=>37.0,'VND'=>0.053];
+        // [현 차수 감사 P2] SEA 통화(MYR/PHP/IDR)+INR 추가 — Shopee/Lazada 가 IDR/MYR/PHP 를 정확 추출하나 환율맵
+        //   부재로 fxToKrw 무변환(예: 150,000 IDR 이 ₩150,000 으로 ~12배 과대)되던 상시 결함 해소.
+        $defaults = ['KRW'=>1.0,'USD'=>1350.0,'EUR'=>1450.0,'JPY'=>9.0,'CNY'=>185.0,'GBP'=>1700.0,'HKD'=>173.0,'SGD'=>1000.0,'AUD'=>890.0,'CAD'=>985.0,'TWD'=>42.0,'THB'=>37.0,'VND'=>0.053,'MYR'=>305.0,'PHP'=>23.5,'IDR'=>0.084,'INR'=>16.0];
         try {
             $pdo = Db::pdo();
             $st = $pdo->prepare("SELECT svalue, updated_at FROM app_setting WHERE skey='fx_rates_krw' LIMIT 1");
@@ -1766,7 +1770,7 @@ final class Connectors
             if ($code === 200 && !empty($body['rates']['KRW']) && (float)$body['rates']['KRW'] > 0) {
                 $usdKrw = (float)$body['rates']['KRW']; $rates = $body['rates'];
                 $out = ['KRW'=>1.0,'USD'=>$usdKrw];
-                foreach (['EUR','JPY','CNY','GBP','HKD','SGD','AUD','CAD','TWD','THB','VND'] as $c) {
+                foreach (['EUR','JPY','CNY','GBP','HKD','SGD','AUD','CAD','TWD','THB','VND','MYR','PHP','IDR','INR'] as $c) {
                     if (!empty($rates[$c]) && (float)$rates[$c] > 0) $out[$c] = $usdKrw / (float)$rates[$c]; // 1 unit C → KRW
                 }
                 return $out;

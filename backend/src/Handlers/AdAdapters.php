@@ -141,11 +141,14 @@ final class AdAdapters
         $alloc  = (int)($camp['budget'] ?? 0);
         $period = (string)($camp['period'] ?? 'monthly');
         $daily  = self::dailyBudget($alloc, $period);
+        // [현 차수 초고도화] 캠페인 목표 — 커머스 ROI 플랫폼은 클릭이 아니라 구매/전환 최적화가 본질.
+        //   'conversions'|'sales' 면 매체 전환목표 + 픽셀 전환최적화로 생성(픽셀 자격증명 있을 때만, 없으면 트래픽 honest 폴백).
+        $objective = strtolower((string)($camp['objective'] ?? 'conversions'));
         try {
             switch ($channel) {
-                case 'meta_ads':        return self::metaCreate($pdo, $tenant, $name, $daily);
+                case 'meta_ads':        return self::metaCreate($pdo, $tenant, $name, $daily, $objective);
                 case 'google_ads':      return self::googleCreate($pdo, $tenant, $name, $daily);
-                case 'tiktok_business': return self::tiktokCreate($pdo, $tenant, $name, $daily);
+                case 'tiktok_business': return self::tiktokCreate($pdo, $tenant, $name, $daily, $objective);
                 case 'naver_sa':        return self::naverCreate($pdo, $tenant, $name, $daily);
                 case 'kakao_moment':    return self::kakaoCreate($pdo, $tenant, $name, $daily);
                 case 'line_ads':        return self::lineCreate($pdo, $tenant, $name, $daily);
@@ -213,22 +216,141 @@ final class AdAdapters
         } catch (Throwable $e) { return ['ok' => false, 'error' => $e->getMessage()]; }
     }
 
+    /**
+     * [현 차수 감사 P1] 딜리버리 캐스케이드 활성화 — 캠페인만 ACTIVE 하던 결함 해소.
+     *   매체 effective_status = 캠페인 ∧ 광고세트/그룹 ∧ 광고 의 AND 라, buildDelivery 가 PAUSED/OFF 로 만든
+     *   하위(adset/adgroup/ad)를 함께 활성화하지 않으면 캠페인만 ACTIVE 여도 노출·지출 0(사일런트 미집행)이었다.
+     *   하위 ext_id 가 없으면(구 캠페인·미보존) 캠페인만 활성(폴백). 레벨별 honest 결과 반환.
+     *   ※ 일시정지(pause)는 캠페인 정지만으로 전 하위 게재가 중단되므로 캐스케이드 불요(기존 pause 유지).
+     */
+    public static function activateDelivery(PDO $pdo, string $tenant, string $channel, string $campExtId, string $adsetExtId = '', string $adExtId = ''): array
+    {
+        if (!self::executionEnabled()) return ['ok' => false, 'status' => 'skipped'];
+        $r = [];
+        try {
+            switch ($channel) {
+                case 'meta_ads': // 동일 /{id} status 엔드포인트가 캠페인/광고세트/광고 모두 처리
+                    if ($campExtId !== '')  $r['campaign'] = self::metaSetStatus($pdo, $tenant, $campExtId, 'ACTIVE');
+                    if ($adsetExtId !== '') $r['adset']    = self::metaSetStatus($pdo, $tenant, $adsetExtId, 'ACTIVE');
+                    if ($adExtId !== '')    $r['ad']       = self::metaSetStatus($pdo, $tenant, $adExtId, 'ACTIVE');
+                    break;
+                case 'google_ads':
+                    if ($campExtId !== '')  $r['campaign'] = self::googleSetStatus($pdo, $tenant, $campExtId, 'ENABLED');
+                    if ($adsetExtId !== '') $r['adgroup']  = self::googleResourceStatus($pdo, $tenant, $adsetExtId, 'adGroups', 'ENABLED');
+                    if ($adExtId !== '')    $r['ad']       = self::googleResourceStatus($pdo, $tenant, $adExtId, 'adGroupAds', 'ENABLED');
+                    break;
+                case 'tiktok_business':
+                    if ($campExtId !== '')  $r['campaign'] = self::tiktokSetStatus($pdo, $tenant, $campExtId, 'ENABLE');
+                    if ($adsetExtId !== '') $r['adgroup']  = self::tiktokEntityStatus($pdo, $tenant, 'adgroup', 'adgroup_ids', $adsetExtId, 'ENABLE');
+                    if ($adExtId !== '')    $r['ad']       = self::tiktokEntityStatus($pdo, $tenant, 'ad', 'ad_ids', $adExtId, 'ENABLE');
+                    break;
+                case 'naver_sa':
+                    if ($campExtId !== '')  $r['campaign'] = self::naverSetLock($pdo, $tenant, $campExtId, false);
+                    if ($adsetExtId !== '') $r['adgroup']  = self::naverEntityLock($pdo, $tenant, '/ncc/adgroups', 'nccAdgroupId', $adsetExtId, false);
+                    if ($adExtId !== '')    $r['ad']       = self::naverEntityLock($pdo, $tenant, '/ncc/ads', 'nccAdId', $adExtId, false);
+                    break;
+                case 'kakao_moment':
+                    if ($campExtId !== '')  $r['campaign'] = self::kakaoSetConfig($pdo, $tenant, $campExtId, 'ON');
+                    if ($adsetExtId !== '') $r['adgroup']  = self::kakaoEntityConfig($pdo, $tenant, '/openapi/v4/adGroups/config', $adsetExtId, 'ON');
+                    if ($adExtId !== '')    $r['creative'] = self::kakaoEntityConfig($pdo, $tenant, '/openapi/v4/creatives/config', $adExtId, 'ON');
+                    break;
+                case 'line_ads':
+                    if ($campExtId !== '')  $r['campaign'] = self::lineSetStatus($pdo, $tenant, $campExtId, 'ACTIVE');
+                    if ($adsetExtId !== '') $r['adgroup']  = self::lineEntityStatus($pdo, $tenant, '/api/v3/adgroups', $adsetExtId, 'ACTIVE');
+                    if ($adExtId !== '')    $r['ad']       = self::lineEntityStatus($pdo, $tenant, '/api/v3/ads', $adExtId, 'ACTIVE');
+                    break;
+                default: return ['ok' => false, 'status' => 'unsupported'];
+            }
+        } catch (Throwable $e) { return ['ok' => false, 'error' => $e->getMessage()]; }
+        $ok = true; $errs = [];
+        foreach ($r as $lvl => $rr) { if (empty($rr['ok'])) { $ok = false; $errs[] = $lvl . ':' . (string)($rr['error'] ?? $rr['status'] ?? 'fail'); } }
+        return ['ok' => $ok, 'levels' => array_keys($r), 'error' => implode(';', $errs)];
+    }
+
+    /** Google adGroups/adGroupAds 상태 변경(캐스케이드 활성화용). resourceName=customers/{cid}/adGroups|adGroupAds/{id}. */
+    private static function googleResourceStatus(PDO $pdo, string $tenant, string $resourceName, string $service, string $status): array
+    {
+        $dev   = self::cred($pdo, $tenant, 'google_ads', 'developer_token');
+        $token = self::cred($pdo, $tenant, 'google_ads', 'access_token');
+        if ($dev === '' || $token === '' || $resourceName === '') return ['ok' => false, 'status' => 'no_credentials'];
+        if (!preg_match('#customers/(\d+)/#', $resourceName, $mm)) return ['ok' => false, 'error' => 'bad_resource'];
+        $cid = $mm[1];
+        $hdr = ['Authorization: Bearer ' . $token, 'developer-token: ' . $dev, 'Content-Type: application/json', 'login-customer-id: ' . $cid];
+        $base = "https://googleads.googleapis.com/" . self::GOOGLE_VER . "/customers/{$cid}";
+        $body = json_encode(['operations' => [['update' => ['resourceName' => $resourceName, 'status' => $status], 'updateMask' => 'status']]]);
+        [$code, $res] = self::http('POST', "{$base}/{$service}:mutate", $hdr, $body);
+        return ($code >= 200 && $code < 300) ? ['ok' => true] : ['ok' => false, 'error' => self::errMsg($res)];
+    }
+
+    /** TikTok adgroup/ad 상태 변경(캐스케이드). endpoint=adgroup|ad, idsField=adgroup_ids|ad_ids. */
+    private static function tiktokEntityStatus(PDO $pdo, string $tenant, string $endpoint, string $idsField, string $extId, string $status): array
+    {
+        $token = self::cred($pdo, $tenant, 'tiktok_business', 'access_token');
+        $advId = self::cred($pdo, $tenant, 'tiktok_business', 'advertiser_id');
+        if ($token === '' || $advId === '' || $extId === '') return ['ok' => false, 'status' => 'no_credentials'];
+        $body = json_encode(['advertiser_id' => $advId, $idsField => [$extId], 'operation_status' => $status]);
+        [$code, $res] = self::http('POST', "https://business-api.tiktok.com/open_api/v1.3/{$endpoint}/status/update/",
+            ['Access-Token: ' . $token, 'Content-Type: application/json'], $body);
+        return (($res['code'] ?? -1) === 0) ? ['ok' => true] : ['ok' => false, 'error' => ($res['message'] ?? 'HTTP ' . $code)];
+    }
+
+    /** Naver 광고그룹/광고 userLock 해제(캐스케이드). pathPrefix=/ncc/adgroups|/ncc/ads, idField=nccAdgroupId|nccAdId. */
+    private static function naverEntityLock(PDO $pdo, string $tenant, string $pathPrefix, string $idField, string $extId, bool $lock): array
+    {
+        $path = $pathPrefix . '/' . $extId;
+        $hdr = self::naverHeaders($pdo, $tenant, 'PUT', $path);
+        if ($hdr === null) return ['ok' => false, 'status' => 'no_credentials'];
+        [$code, $res] = self::http('PUT', 'https://api.searchad.naver.com' . $path . '?fields=userLock', $hdr,
+            json_encode([$idField => $extId, 'userLock' => $lock]));
+        return ($code >= 200 && $code < 300) ? ['ok' => true] : ['ok' => false, 'error' => self::errMsg($res)];
+    }
+
+    /** Kakao 광고그룹/소재 config 전환(캐스케이드). path=/openapi/v4/adGroups/config|/openapi/v4/creatives/config. */
+    private static function kakaoEntityConfig(PDO $pdo, string $tenant, string $path, string $extId, string $config): array
+    {
+        $h = self::kakaoHeaders($pdo, $tenant);
+        if ($h === null) return ['ok' => false, 'status' => 'no_credentials'];
+        [$hdr, $acc] = $h;
+        $body = json_encode(['adAccountId' => (int)$acc, 'id' => (int)$extId, 'config' => $config], JSON_UNESCAPED_UNICODE);
+        [$code, $res] = self::http('PUT', 'https://apis.moment.kakao.com' . $path, $hdr, $body);
+        return ($code >= 200 && $code < 300) ? ['ok' => true] : ['ok' => false, 'error' => self::errMsg($res) ?: ('HTTP ' . $code)];
+    }
+
+    /** LINE 광고그룹/광고 status 전환(캐스케이드). pathPrefix=/api/v3/adgroups|/api/v3/ads. */
+    private static function lineEntityStatus(PDO $pdo, string $tenant, string $pathPrefix, string $extId, string $status): array
+    {
+        $c = self::lineCreds($pdo, $tenant);
+        if ($c === null) return ['ok' => false, 'status' => 'no_credentials'];
+        [$ak, $sk] = $c;
+        $path = $pathPrefix . '/' . rawurlencode($extId);
+        [$code, $res] = self::lineReq('PUT', $path, ['status' => $status], $ak, $sk);
+        return ($code >= 200 && $code < 300) ? ['ok' => true] : ['ok' => false, 'error' => self::errMsg($res) ?: ('HTTP ' . $code)];
+    }
+
     /* ════════════════════════ Meta ════════════════════════ */
-    private static function metaCreate(PDO $pdo, string $tenant, string $name, int $daily): array
+    /** [현 차수 초고도화] 전환 최적화 캠페인 여부 — objective 가 conversions/sales 이고 pixel_id 자격증명이 있을 때만.
+     *   픽셀 없으면 전환 캠페인 생성이 불가(매체 요구)하므로 트래픽으로 honest 폴백. */
+    private static function metaIsConversion(PDO $pdo, string $tenant, string $objective): bool
+    {
+        return in_array($objective, ['conversions', 'sales', 'purchase'], true)
+            && trim(self::cred($pdo, $tenant, 'meta_ads', 'pixel_id')) !== '';
+    }
+    private static function metaCreate(PDO $pdo, string $tenant, string $name, int $daily, string $objective = 'traffic'): array
     {
         $token = self::cred($pdo, $tenant, 'meta_ads', 'access_token');
         $acct  = self::cred($pdo, $tenant, 'meta_ads', 'ad_account_id');
         if ($token === '' || $acct === '') return self::fail('Meta 자격증명(access_token/ad_account_id) 미등록', 'no_credentials');
         if (strncmp($acct, 'act_', 4) !== 0) $acct = 'act_' . $acct;
         $url = "https://graph.facebook.com/" . self::META_VER . "/{$acct}/campaigns";
-        // status=PAUSED, CBO 일예산, 트래픽 목표(특수 카테고리 없음)
+        // [현 차수] 전환(구매) 목표 우선 — 픽셀 있으면 OUTCOME_SALES, 없으면 트래픽 폴백(honest). status=PAUSED, CBO 일예산.
+        $conv = self::metaIsConversion($pdo, $tenant, $objective);
         $body = [
-            'name' => $name, 'objective' => 'OUTCOME_TRAFFIC', 'status' => 'PAUSED',
+            'name' => $name, 'objective' => $conv ? 'OUTCOME_SALES' : 'OUTCOME_TRAFFIC', 'status' => 'PAUSED',
             'special_ad_categories' => json_encode([]), 'daily_budget' => (string)$daily,
             'access_token' => $token,
         ];
         [$code, $res] = self::http('POST', $url, ['Content-Type: application/x-www-form-urlencoded'], $body);
-        if ($code >= 200 && $code < 300 && !empty($res['id'])) return self::ok((string)$res['id'], 'paused', 'Meta 캠페인 생성(PAUSED)');
+        if ($code >= 200 && $code < 300 && !empty($res['id'])) return self::ok((string)$res['id'], 'paused', 'Meta 캠페인 생성(PAUSED·' . ($conv ? '전환/구매 최적화' : '트래픽') . ')');
         return self::fail('Meta: ' . (self::errMsg($res) ?: ('HTTP ' . $code)));
     }
     private static function metaUpdateBudget(PDO $pdo, string $tenant, string $extId, int $daily): array
@@ -482,13 +604,15 @@ final class AdAdapters
     }
 
     /* ════════════════════════ TikTok ════════════════════════ */
-    private static function tiktokCreate(PDO $pdo, string $tenant, string $name, int $daily): array
+    private static function tiktokCreate(PDO $pdo, string $tenant, string $name, int $daily, string $objective = 'traffic'): array
     {
         $token = self::cred($pdo, $tenant, 'tiktok_business', 'access_token');
         $advId = self::cred($pdo, $tenant, 'tiktok_business', 'advertiser_id');
         if ($token === '' || $advId === '') return self::fail('TikTok 자격증명(access_token/advertiser_id) 미등록', 'no_credentials');
+        // [현 차수 초고도화] 전환(구매) 목표 — pixel_code 있으면 CONVERSIONS, 없으면 TRAFFIC honest 폴백.
+        $conv = in_array($objective, ['conversions', 'sales', 'purchase'], true) && trim(self::cred($pdo, $tenant, 'tiktok_business', 'pixel_code')) !== '';
         $body = json_encode([
-            'advertiser_id' => $advId, 'campaign_name' => $name, 'objective_type' => 'TRAFFIC',
+            'advertiser_id' => $advId, 'campaign_name' => $name, 'objective_type' => $conv ? 'CONVERSIONS' : 'TRAFFIC',
             'budget_mode' => 'BUDGET_MODE_DAY', 'budget' => $daily, 'operation_status' => 'DISABLE',
         ]);
         [$code, $res] = self::http('POST', 'https://business-api.tiktok.com/open_api/v1.3/campaign/create/',
@@ -697,7 +821,7 @@ final class AdAdapters
     }
 
     /** 캠페인 하위 adset/adgroup + ad 생성(PAUSED). 매체별 딜리버리 완성 레이어. */
-    public static function buildDelivery(PDO $pdo, string $tenant, string $channel, string $campExtId, int $designId, int $daily, string $landing): array
+    public static function buildDelivery(PDO $pdo, string $tenant, string $channel, string $campExtId, int $designId, int $daily, string $landing, string $objective = 'traffic'): array
     {
         if (!self::executionEnabled() || $campExtId === '') return ['ok' => false, 'status' => 'skipped'];
         $d = self::loadDesign($pdo, $tenant, $designId);
@@ -706,8 +830,8 @@ final class AdAdapters
             switch ($channel) {
                 case 'google_ads':      $r = self::googleDeliver($pdo, $tenant, $campExtId, $d, $daily, $landing); break;
                 case 'naver_sa':        $r = self::naverDeliver($pdo, $tenant, $campExtId, $d, $daily, $landing); break;
-                case 'meta_ads':        $r = self::metaDeliver($pdo, $tenant, $campExtId, $d, $daily, $landing); break;
-                case 'tiktok_business': $r = self::tiktokDeliver($pdo, $tenant, $campExtId, $d, $daily, $landing); break;
+                case 'meta_ads':        $r = self::metaDeliver($pdo, $tenant, $campExtId, $d, $daily, $landing, $objective); break;
+                case 'tiktok_business': $r = self::tiktokDeliver($pdo, $tenant, $campExtId, $d, $daily, $landing, $objective); break;
                 case 'kakao_moment':    $r = self::kakaoDeliver($pdo, $tenant, $campExtId, $d, $daily, $landing); break;
                 case 'line_ads':        $r = self::lineDeliver($pdo, $tenant, $campExtId, $d, $daily, $landing); break;
                 default:                return ['ok' => false, 'status' => 'unsupported'];
@@ -783,7 +907,7 @@ final class AdAdapters
     }
 
     /* ── Meta: 광고세트 + 광고. 이미지/페이지 필요(page_id cred + 래스터 이미지). ── */
-    private static function metaDeliver(PDO $pdo, string $tenant, string $campId, array $d, int $daily, string $landing): array
+    private static function metaDeliver(PDO $pdo, string $tenant, string $campId, array $d, int $daily, string $landing, string $objective = 'traffic'): array
     {
         $token = self::cred($pdo, $tenant, 'meta_ads', 'access_token');
         $acct  = self::cred($pdo, $tenant, 'meta_ads', 'ad_account_id');
@@ -791,14 +915,23 @@ final class AdAdapters
         if ($token === '' || $acct === '') return ['ok' => false, 'error' => 'no_credentials'];
         if (strncmp($acct, 'act_', 4) !== 0) $acct = 'act_' . $acct;
         $api = "https://graph.facebook.com/" . self::META_VER;
-        // 1) 광고세트(타깃 KR, 링크클릭 최적화, PAUSED)
+        // 1) 광고세트(타깃 KR, PAUSED). [현 차수 초고도화] 전환 캠페인이면 픽셀 구매전환 최적화(OFFSITE_CONVERSIONS +
+        //   promoted_object pixel_id+PURCHASE)·lowest-cost 자동입찰, 아니면 링크클릭 + 수동 bid(트래픽 폴백).
+        $conv  = self::metaIsConversion($pdo, $tenant, $objective);
+        $pixel = $conv ? trim(self::cred($pdo, $tenant, 'meta_ads', 'pixel_id')) : '';
         $asBody = [
             'name' => $d['headline'] . ' AdSet', 'campaign_id' => $campId, 'status' => 'PAUSED',
-            'billing_event' => 'IMPRESSIONS', 'optimization_goal' => 'LINK_CLICKS',
-            'bid_amount' => (string)max(100, (int)($daily / 100)),
+            'billing_event' => 'IMPRESSIONS',
+            'optimization_goal' => ($conv && $pixel !== '') ? 'OFFSITE_CONVERSIONS' : 'LINK_CLICKS',
             'targeting' => json_encode(['geo_locations' => ['countries' => ['KR']]]),
             'access_token' => $token,
         ];
+        if ($conv && $pixel !== '') {
+            $asBody['promoted_object'] = json_encode(['pixel_id' => $pixel, 'custom_event_type' => 'PURCHASE']); // 구매 전환 최적화
+            // lowest-cost(자동입찰) — bid_amount 생략 시 매체가 전환당 비용 최소화로 학습.
+        } else {
+            $asBody['bid_amount'] = (string)max(100, (int)($daily / 100));
+        }
         [$ac, $ar] = self::http('POST', "{$api}/{$acct}/adsets", ['Content-Type: application/x-www-form-urlencoded'], $asBody);
         $asId = $ar['id'] ?? '';
         if ($asId === '') return ['ok' => false, 'error' => 'adset: ' . (self::errMsg($ar) ?: ('HTTP ' . $ac))];
@@ -843,17 +976,26 @@ final class AdAdapters
     }
 
     /* ── TikTok: 광고그룹 + 광고. identity_id + 영상(video_id)/이미지(image_id) 소재가 있으면 광고까지 완성. ── */
-    private static function tiktokDeliver(PDO $pdo, string $tenant, string $campId, array $d, int $daily, string $landing = ''): array
+    private static function tiktokDeliver(PDO $pdo, string $tenant, string $campId, array $d, int $daily, string $landing = '', string $objective = 'traffic'): array
     {
         $token = self::cred($pdo, $tenant, 'tiktok_business', 'access_token');
         $advId = self::cred($pdo, $tenant, 'tiktok_business', 'advertiser_id');
         if ($token === '' || $advId === '') return ['ok' => false, 'error' => 'no_credentials'];
         $hdr = ['Access-Token: ' . $token, 'Content-Type: application/json'];
-        // 1) 광고그룹(예산·게재 KR, 정지)
-        $agBody = json_encode(['advertiser_id' => $advId, 'campaign_id' => $campId, 'adgroup_name' => $d['headline'] . ' AG',
+        // 1) 광고그룹(예산·게재 KR, 정지). [현 차수 초고도화] 전환 캠페인이면 픽셀 구매전환 최적화(CONVERT+OCPM+pixel_id
+        //   +optimization_event), 아니면 클릭 최적화(트래픽 폴백). pixel_code 없으면 클릭으로 honest 폴백.
+        $tkPixel = (in_array($objective, ['conversions', 'sales', 'purchase'], true)) ? trim(self::cred($pdo, $tenant, 'tiktok_business', 'pixel_code')) : '';
+        $ag = ['advertiser_id' => $advId, 'campaign_id' => $campId, 'adgroup_name' => $d['headline'] . ' AG',
             'placement_type' => 'PLACEMENT_TYPE_AUTOMATIC', 'budget_mode' => 'BUDGET_MODE_DAY', 'budget' => $daily,
-            'optimization_goal' => 'CLICK', 'billing_event' => 'CPC', 'location_ids' => ['KR'], 'operation_status' => 'DISABLE',
-            'schedule_type' => 'SCHEDULE_FROM_NOW']);
+            'location_ids' => ['KR'], 'operation_status' => 'DISABLE', 'schedule_type' => 'SCHEDULE_FROM_NOW'];
+        if ($tkPixel !== '') {
+            $ag['optimization_goal'] = 'CONVERT'; $ag['billing_event'] = 'OCPM';
+            $ag['pixel_id'] = $tkPixel; $ag['optimization_event'] = 'ON_WEB_ORDER'; // 웹 구매 전환 이벤트
+            $ag['promotion_type'] = 'WEBSITE';
+        } else {
+            $ag['optimization_goal'] = 'CLICK'; $ag['billing_event'] = 'CPC';
+        }
+        $agBody = json_encode($ag);
         [$ac, $ar] = self::http('POST', 'https://business-api.tiktok.com/open_api/v1.3/adgroup/create/', $hdr, $agBody);
         $agId = $ar['data']['adgroup_id'] ?? '';
         if ($agId === '') return ['ok' => false, 'error' => 'adgroup: ' . (($ar['message'] ?? '') ?: ('HTTP ' . $ac))];

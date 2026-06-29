@@ -187,18 +187,21 @@ class AutoCampaign
             }
             $firstDesign = $validDesigns[0] ?? 0;
             $landing = (string)($d['landing_url'] ?? '');   // 광고 랜딩 URL(미설정 시 어댑터가 기본값)
+            // [현 차수 초고도화] 캠페인 목표 — 커머스 ROI 플랫폼 기본=전환(구매) 최적화. 매체에 픽셀 자격증명이 있으면
+            //   전환목표(OUTCOME_SALES/CONVERSIONS)+구매전환 최적화로 생성, 없으면 어댑터가 트래픽으로 honest 폴백.
+            $objective = strtolower((string)($d['objective'] ?? 'conversions'));
             // [현 차수] A/B 모드: 디자인(variant) 2+ 선택 시 같은 캠페인 하위에 동시 집행 → 승자 자동 선정.
             $abMode = !empty($d['ab_mode']) && count($validDesigns) >= 2;
             $abVariants = [];   // [channel => [variant,...]]
 
-            $exec = []; $activeCount = 0; $dispatch = []; $delivery = [];
+            $exec = []; $activeCount = 0; $dispatch = []; $delivery = []; $deliveryExt = [];
             $allocByCh = [];
             foreach ($allocations as $a) { $allocByCh[(string)($a['channel'] ?? '')] = (int)($a['alloc'] ?? 0); }
             foreach ($channels as $ch) {
                 if (!self::channelConnected($pdo, $tenant, $ch)) { $exec[$ch] = 'pending_connection'; continue; }
                 $connKey = self::connectorKey($ch);
                 $r = AdAdapters::createCampaign($pdo, $tenant, $connKey,
-                    ['name' => $name . ' · ' . $ch, 'budget' => $allocByCh[$ch] ?? 0, 'period' => $period]);
+                    ['name' => $name . ' · ' . $ch, 'budget' => $allocByCh[$ch] ?? 0, 'period' => $period, 'objective' => $objective]);
                 if (!empty($r['ok'])) {
                     $exec[$ch] = 'active'; $dispatch[$ch] = (string)$r['external_id']; $activeCount++;
                     // ★ 크리에이티브 레이어: 캠페인 하위 adset/adgroup + ad 생성(PAUSED).
@@ -218,7 +221,7 @@ class AutoCampaign
                         // ★ A/B: 채널 매칭 디자인(variant) 각각을 같은 캠페인 하위에 동시 집행 → ad_ext_id 수집.
                         $vlist = []; $okCnt = 0;
                         foreach ($chDesigns as $vi => $did) {
-                            $dl = AdAdapters::buildDelivery($pdo, $tenant, $connKey, (string)$r['external_id'], (int)$did, max(1000, $daily), $landing);
+                            $dl = AdAdapters::buildDelivery($pdo, $tenant, $connKey, (string)$r['external_id'], (int)$did, max(1000, $daily), $landing, $objective);
                             if (!empty($dl['ok']) && ($dl['ad_id'] ?? '') !== '') {
                                 $vlist[] = ['design_id' => (int)$did, 'frame_idx' => 0, 'ad_ext_id' => (string)$dl['ad_id'], 'adset_ext_id' => (string)($dl['adset_id'] ?? ($dl['adgroup_id'] ?? '')), 'label' => 'Variant ' . ($vi + 1)];
                                 $okCnt++;
@@ -228,8 +231,10 @@ class AutoCampaign
                         $delivery[$ch] = ['ok' => $okCnt > 0, 'status' => $okCnt >= 2 ? 'ab_running' : ($okCnt === 1 ? 'single' : 'failed'), 'matched' => count($chMatched), 'note' => "A/B variant {$okCnt}개 집행" . $matchNote];
                     } else {
                         // 단일 크리에이티브 — 채널 매칭 우선($chFirst).
-                        $dl = AdAdapters::buildDelivery($pdo, $tenant, $connKey, (string)$r['external_id'], $chFirst, max(1000, $daily), $landing);
+                        $dl = AdAdapters::buildDelivery($pdo, $tenant, $connKey, (string)$r['external_id'], $chFirst, max(1000, $daily), $landing, $objective);
                         $delivery[$ch] = ['ok' => !empty($dl['ok']), 'status' => $dl['status'] ?? ($dl['ok'] ? 'full' : 'failed'), 'matched' => count($chMatched), 'note' => ($dl['note'] ?? ($dl['error'] ?? '')) . $matchNote];
+                        // [현 차수 감사 P1] 하위 광고세트/광고 ext_id 보존 → 활성화 시 캠페인→adset→ad 캐스케이드(노출0 미집행 해소).
+                        $deliveryExt[$ch] = ['adset' => (string)($dl['adset_id'] ?? ($dl['adgroup_id'] ?? '')), 'ad' => (string)($dl['ad_id'] ?? '')];
                     }
                 }
                 elseif (($r['status'] ?? '') === 'execution_disabled') { $exec[$ch] = 'ready'; }
@@ -238,7 +243,12 @@ class AutoCampaign
                 else { $exec[$ch] = 'connect_error'; }
             }
             // 생성된 캠페인 external_id 를 allocations 에 병합(최적화 액추에이터가 사용).
-            foreach ($allocations as &$_a) { $cid = (string)($_a['channel'] ?? ''); if (isset($dispatch[$cid])) $_a['external_id'] = $dispatch[$cid]; }
+            foreach ($allocations as &$_a) {
+                $cid = (string)($_a['channel'] ?? '');
+                if (isset($dispatch[$cid])) $_a['external_id'] = $dispatch[$cid];
+                // [현 차수 감사 P1] 하위 ext_id 도 allocations 에 영속 → setStatus 활성화가 캐스케이드.
+                if (isset($deliveryExt[$cid])) { $_a['adset_ext_id'] = $deliveryExt[$cid]['adset']; $_a['ad_ext_id'] = $deliveryExt[$cid]['ad']; }
+            }
             unset($_a);
 
             $now = gmdate('Y-m-d\TH:i:s\Z');
@@ -433,10 +443,25 @@ class AutoCampaign
                     $ch  = (string)($a['channel'] ?? '');
                     $ext = (string)($a['external_id'] ?? '');
                     if ($ch === '' || $ext === '') continue;
+                    // [현 차수 감사 P1] 활성화는 캠페인→광고세트/그룹→광고 캐스케이드(activateDelivery) — 캠페인만 ACTIVE 하면
+                    //   하위 PAUSED 로 노출0이던 사일런트 미집행 해소. 정지(pause)는 캠페인 정지만으로 전 하위 중단(기존 유지).
                     $r = ($status === 'active')
-                        ? AdAdapters::activate($pdo, $tenant, $ch, $ext)
+                        ? AdAdapters::activateDelivery($pdo, $tenant, $ch, $ext, (string)($a['adset_ext_id'] ?? ''), (string)($a['ad_ext_id'] ?? ''))
                         : AdAdapters::pause($pdo, $tenant, $ch, $ext);
                     $pushed[] = ['channel' => $ch, 'external_id' => $ext, 'ok' => !empty($r['ok']), 'detail' => (string)($r['error'] ?? $r['status'] ?? '')];
+                }
+                // [현 차수 감사 P1] A/B variant 도 하위 캐스케이드 활성화(캠페인은 위에서 활성). 변형 ext_id 는 ab_variant 보존.
+                if ($status === 'active') {
+                    try {
+                        $vs = $pdo->prepare("SELECT channel, adset_ext_id, ad_ext_id FROM ab_variant WHERE tenant_id=? AND campaign_id=? AND status<>'paused'");
+                        $vs->execute([$tenant, $id]);
+                        foreach ($vs->fetchAll(PDO::FETCH_ASSOC) ?: [] as $v) {
+                            $vch = (string)($v['channel'] ?? ''); $vad = (string)($v['ad_ext_id'] ?? ''); $vas = (string)($v['adset_ext_id'] ?? '');
+                            if ($vch === '' || ($vad === '' && $vas === '')) continue;
+                            $vr = AdAdapters::activateDelivery($pdo, $tenant, self::connectorKey($vch), '', $vas, $vad);
+                            $pushed[] = ['channel' => $vch, 'external_id' => ($vad ?: $vas), 'ok' => !empty($vr['ok']), 'detail' => 'ab:' . (string)($vr['error'] ?? $vr['status'] ?? '')];
+                        }
+                    } catch (\Throwable $e) { /* ab_variant 부재/구스키마 무해 */ }
                 }
             }
 

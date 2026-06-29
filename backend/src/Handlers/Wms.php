@@ -505,13 +505,17 @@ class Wms
             $chk->execute([$tenant, $restockRef, 'ReturnsInbound']);
             if ($chk->fetchColumn()) return false;
             // 대칭 가드: 대응 채널 판매 출고(saleRef)가 실제 있었을 때만 복원(미차감분 over-restock 방지).
-            $saleChk = $pdo->prepare("SELECT qty FROM wms_movements WHERE tenant_id=? AND ref=? AND type=? LIMIT 1");
+            // [현 차수 감사 P1] ★멀티창고 정합 — 복원 창고는 primaryWarehouse 가 아니라 **원 판매출고의 wh_id**.
+            //   reflectChannelSale 이 최적할당으로 창고 B에서 차감했는데 복원을 창고 A(primary)로 하면 노드별 재고가
+            //   영구 왜곡(B 영구부족·A 유령재고)되던 비대칭 해소. 판매출고 행에 wh_id 이미 보존되어 그대로 사용.
+            $saleChk = $pdo->prepare("SELECT qty, wh_id FROM wms_movements WHERE tenant_id=? AND ref=? AND type=? LIMIT 1");
             $saleChk->execute([$tenant, $saleRef, 'Outbound']);
-            $soldQty = $saleChk->fetchColumn();
-            if ($soldQty === false) return false; // 판매 차감 이력 없음 → 복원 대상 아님
-            $restoreQty = min((float)$qty, (float)$soldQty); // 차감분 초과 복원 방지
+            $saleRow = $saleChk->fetch(\PDO::FETCH_ASSOC);
+            if ($saleRow === false) return false; // 판매 차감 이력 없음 → 복원 대상 아님
+            $restoreQty = min((float)$qty, (float)($saleRow['qty'] ?? 0)); // 차감분 초과 복원 방지
             if ($restoreQty <= 0) return false;
-            $wh = self::primaryWarehouse($tenant);
+            $wh = (string)($saleRow['wh_id'] ?? '');
+            if ($wh === '') $wh = self::primaryWarehouse($tenant); // 구 이력(wh_id 빈값) 폴백
             self::recordMovement($tenant, [
                 'type' => 'ReturnsInbound', 'wh_id' => $wh, 'sku' => $sku, 'name' => $name,
                 'qty' => $restoreQty, 'ref' => $restockRef, 'reason' => 'channel_sync_restock',
@@ -635,6 +639,7 @@ class Wms
         'hong kong'=>[22.3193,114.1694],'香港'=>[22.3193,114.1694],'singapore'=>[1.3521,103.8198],'taipei'=>[25.0330,121.5654],
         'bangkok'=>[13.7563,100.5018],'jakarta'=>[-6.2088,106.8456],'hanoi'=>[21.0278,105.8342],'ho chi minh'=>[10.8231,106.6297],
         'manila'=>[14.5995,120.9842],'kuala lumpur'=>[3.1390,101.6869],'mumbai'=>[19.0760,72.8777],'delhi'=>[28.7041,77.1025],
+        'seoul'=>[37.5665,126.9780],'busan'=>[35.1796,129.0756],'incheon'=>[37.4563,126.7052],'gyeonggi'=>[37.4138,127.5183], // 로마자 한국(국내 한글은 regionOf 우선)
         'dubai'=>[25.2048,55.2708],'sydney'=>[-33.8688,151.2093],'melbourne'=>[-37.8136,144.9631],'toronto'=>[43.6532,-79.3832],
         'vancouver'=>[49.2827,-123.1207],'sao paulo'=>[-23.5505,-46.6333],'mexico city'=>[19.4326,-99.1332],
         // ── 미국 주(중심) — 캘리포니아 등 광역 ──
@@ -649,7 +654,8 @@ class Wms
         'france'=>[46.2276,2.2137],'프랑스'=>[46.2276,2.2137],'spain'=>[40.4637,-3.7492],'스페인'=>[40.4637,-3.7492],
         'italy'=>[41.8719,12.5674],'이탈리아'=>[41.8719,12.5674],'netherlands'=>[52.1326,5.2913],'네덜란드'=>[52.1326,5.2913],
         'canada'=>[56.1304,-106.3468],'캐나다'=>[56.1304,-106.3468],'australia'=>[-25.2744,133.7751],'호주'=>[-25.2744,133.7751],
-        'india'=>[20.5937,78.9629],'인도'=>[20.5937,78.9629],'singapore'=>[1.3521,103.8198],'싱가포르'=>[1.3521,103.8198],
+        'india'=>[20.5937,78.9629],'인도'=>[20.5937,78.9629],'싱가포르'=>[1.3521,103.8198], // 'singapore'(영문)는 도시섹션에 기정의
+        'south korea'=>[36.5,127.8],'korea'=>[36.5,127.8],'한국'=>[36.5,127.8],'대한민국'=>[36.5,127.8],
         'taiwan'=>[23.6978,120.9605],'대만'=>[23.6978,120.9605],'臺灣'=>[23.6978,120.9605],
         'thailand'=>[15.8700,100.9925],'태국'=>[15.8700,100.9925],'vietnam'=>[14.0583,108.2772],'베트남'=>[14.0583,108.2772],
         'indonesia'=>[-0.7893,113.9213],'인도네시아'=>[-0.7893,113.9213],'philippines'=>[12.8797,121.7740],'필리핀'=>[12.8797,121.7740],
@@ -684,7 +690,9 @@ class Wms
     private static function warehouseCentroid(array $wh): ?array
     {
         $lat = $wh['lat'] ?? null; $lng = $wh['lng'] ?? null;
-        if (is_numeric($lat) && is_numeric($lng) && (float)$lat != 0.0 && (float)$lng != 0.0) return [(float)$lat, (float)$lng];
+        // [현 차수 감사 P2] 배송지측(allocationPlan)과 동일하게 ||(진짜 0,0 sentinel만 거부) — 본초자오선(lng=0,
+        //   영국/프랑스 일부)·적도(lat=0) 창고의 명시좌표가 거부되어 텍스트 폴백되던 불일치 해소.
+        if (is_numeric($lat) && is_numeric($lng) && ((float)$lat != 0.0 || (float)$lng != 0.0)) return [(float)$lat, (float)$lng];
         return self::geoCentroid(
             (string)($wh['country'] ?? '') . ' ' . (string)($wh['region'] ?? '') . ' ' .
             (string)($wh['area'] ?? '') . ' ' . (string)($wh['location'] ?? '') . ' ' . (string)($wh['name'] ?? '')
