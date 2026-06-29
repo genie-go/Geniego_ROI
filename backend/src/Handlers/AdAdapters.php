@@ -479,7 +479,17 @@ final class AdAdapters
         $bs       = (string)($settings['bid_strategy'] ?? 'auto');
         $hasConvAction = trim(self::cred($pdo, $tenant, 'google_ads', 'conversion_action')) !== '';
         $bidNote = 'manualCpc';
-        $camp = ['name' => $name, 'status' => 'PAUSED', 'advertisingChannelType' => 'SEARCH', 'campaignBudget' => $budgetRes];
+        // [현 차수 #1] 캠페인 유형 — 기본 SEARCH(기존동작 보존=회귀0). 프리퀀시 캡(노출 피로 방지)은 Google 정책상
+        //   DISPLAY/VIDEO 캠페인에서만 유효(Search 는 frequencyCaps 거부)하므로, google_channel_type 으로 명시 선택 시에만 적용.
+        $chType = strtoupper((string)($settings['google_channel_type'] ?? 'SEARCH'));
+        if (!in_array($chType, ['SEARCH', 'DISPLAY', 'VIDEO'], true)) $chType = 'SEARCH';
+        $camp = ['name' => $name, 'status' => 'PAUSED', 'advertisingChannelType' => $chType, 'campaignBudget' => $budgetRes];
+        $fc = (int)($settings['frequency_cap'] ?? 0);
+        $fcNote = '';
+        if ($fc > 0 && $chType !== 'SEARCH') {
+            $camp['frequencyCaps'] = self::googleFrequencyCaps($fc, (int)($settings['frequency_days'] ?? 7));
+            $fcNote = '·freqCap' . $fc;
+        }
         if ($hasConvAction && $bs !== 'manual') {
             if ($bs === 'troas' && (float)($settings['target_roas'] ?? 0) > 0) {
                 $camp['maximizeConversionValue'] = ['targetRoas' => (float)$settings['target_roas']]; $bidNote = 'tROAS';
@@ -495,7 +505,20 @@ final class AdAdapters
         [$cc, $cr] = self::http('POST', "{$base}/campaigns:mutate", $hdr, $campBody);
         $campRes = $cr['results'][0]['resourceName'] ?? '';
         if ($campRes === '') return self::fail('Google 캠페인 생성 실패: ' . (self::errMsg($cr) ?: ('HTTP ' . $cc)));
-        return self::ok($campRes, 'paused', 'Google 캠페인 생성(PAUSED·입찰=' . $bidNote . ($cur !== 'KRW' ? '·' . $cur : '') . ')');
+        return self::ok($campRes, 'paused', 'Google 캠페인 생성(PAUSED·' . $chType . '·입찰=' . $bidNote . $fcNote . ($cur !== 'KRW' ? '·' . $cur : '') . ')');
+    }
+
+    /** [현 차수 #1] Google Ads 캠페인 프리퀀시 캡(노출 피로 방지) 빌더 — DISPLAY/VIDEO 캠페인 전용.
+     *   Google 은 임의 일수 윈도가 아니라 DAY/WEEK/MONTH 단위만 허용 → frequency_days 를 가장 가까운 단위로 매핑.
+     *   level=CAMPAIGN, eventType=IMPRESSION, cap=기간 내 최대 노출수. */
+    private static function googleFrequencyCaps(int $cap, int $days): array
+    {
+        $days = max(1, $days);
+        $timeUnit = $days <= 1 ? 'DAY' : ($days <= 7 ? 'WEEK' : 'MONTH');
+        return [[
+            'key' => ['level' => 'CAMPAIGN', 'eventType' => 'IMPRESSION', 'timeUnit' => $timeUnit, 'timeLength' => 1],
+            'cap' => max(1, $cap),
+        ]];
     }
     /** Google 캠페인 상태 변경(최적화 액추에이터 — 일시정지/재개). extId = customers/{cid}/campaigns/{id}. */
     private static function googleSetStatus(PDO $pdo, string $tenant, string $extId, string $status): array
@@ -947,8 +970,8 @@ final class AdAdapters
                 case 'naver_sa':        $r = self::naverDeliver($pdo, $tenant, $campExtId, $d, $daily, $landing); break;
                 case 'meta_ads':        $r = self::metaDeliver($pdo, $tenant, $campExtId, $d, $daily, $landing, $settings); break;
                 case 'tiktok_business': $r = self::tiktokDeliver($pdo, $tenant, $campExtId, $d, $daily, $landing, $settings); break;
-                case 'kakao_moment':    $r = self::kakaoDeliver($pdo, $tenant, $campExtId, $d, $daily, $landing); break;
-                case 'line_ads':        $r = self::lineDeliver($pdo, $tenant, $campExtId, $d, $daily, $landing); break;
+                case 'kakao_moment':    $r = self::kakaoDeliver($pdo, $tenant, $campExtId, $d, $daily, $landing, $settings); break;
+                case 'line_ads':        $r = self::lineDeliver($pdo, $tenant, $campExtId, $d, $daily, $landing, $settings); break;
                 default:                return ['ok' => false, 'status' => 'unsupported'];
             }
             // [현 차수] 저장 광고물 애니메이션(CSS 모션) 표기 — 매체는 정적 프레임 업로드, 모션은 온사이트/웹팝업 소재에 적용.
@@ -1110,12 +1133,23 @@ final class AdAdapters
         $bs  = (string)($settings['bid_strategy'] ?? 'auto');
         $cur = self::accountCur($pdo, $tenant, 'google_ads');
         $auto = (trim(self::cred($pdo, $tenant, 'google_ads', 'conversion_action')) !== '') && $bs !== 'manual';
-        $ag = ['name' => $d['headline'] . ' AG', 'campaign' => $campRes, 'status' => 'PAUSED', 'type' => 'SEARCH_STANDARD'];
+        // [현 차수 #1] 캠페인 유형 정합 — adGroup type 은 캠페인 advertisingChannelType 과 일치해야 함(불일치 시 매체 거부).
+        $chType = strtoupper((string)($settings['google_channel_type'] ?? 'SEARCH'));
+        $agType = $chType === 'DISPLAY' ? 'DISPLAY_STANDARD' : ($chType === 'VIDEO' ? 'VIDEO_TRUE_VIEW_IN_STREAM' : 'SEARCH_STANDARD');
+        $ag = ['name' => $d['headline'] . ' AG', 'campaign' => $campRes, 'status' => 'PAUSED', 'type' => $agType];
         if (!$auto) $ag['cpcBidMicros'] = (string)(int)round(self::toAcctMajor((int)max(100, (int)($daily / 50)), $cur) * 1000000);
         $agBody = json_encode(['operations' => [['create' => $ag]]]);
         [$ac, $ar] = self::http('POST', "{$base}/adGroups:mutate", $hdr, $agBody);
         $agRes = $ar['results'][0]['resourceName'] ?? '';
         if ($agRes === '') return ['ok' => false, 'error' => 'adgroup: ' . (self::errMsg($ar) ?: ('HTTP ' . $ac))];
+        // [현 차수 #1] 프리퀀시 캡 적용을 위한 DISPLAY/VIDEO 캠페인은 광고 소재가 RSA(검색)가 아니라 반응형 디스플레이/동영상
+        //   소재(이미지·로고·YouTube 영상 에셋 업로드 선행)가 필요 → 소재는 실 자격증명·에셋 등록 시 완성(graceful partial).
+        //   광고그룹(프리퀀시 캡 상속·PAUSED)까지 생성됐으므로 무지출. Search 경로는 아래 RSA 로 기존동작 그대로 완성(회귀0).
+        $agNumEarly = (strrpos($agRes, '/') !== false) ? substr($agRes, strrpos($agRes, '/') + 1) : $agRes;
+        if ($chType !== 'SEARCH') {
+            return ['ok' => true, 'adgroup_id' => $agNumEarly, 'ad_id' => '', 'status' => 'partial',
+                'note' => 'Google ' . $chType . ' 광고그룹 생성(PAUSED·프리퀀시 캡 적용). 소재 보류 — 반응형 ' . ($chType === 'VIDEO' ? '동영상(YouTube 영상 에셋)' : '디스플레이(이미지/로고 에셋)') . ' 소재 등록 후 자동 완성.'];
+        }
         // 2) 반응형 검색광고(헤드라인 3+, 설명 2)
         $h = array_values(array_filter([$d['headline'], $d['subheadline'] ?: ($d['headline'] . ' 지금'), 'GenieGo ROI']));
         $desc = array_values(array_filter([$d['copy'] ?: '데이터 기반 마케팅 자동화', '최적 채널·예산으로 성과 극대화']));
@@ -1318,14 +1352,20 @@ final class AdAdapters
 
     /* ── Kakao Moment: 광고그룹 + 소재(OFF). kakaoCreate 와 동일 인증(Bearer+adAccountId, OpenAPI v4).
      *   ★엔드포인트/스키마는 실 자격증명 등록 시 라이브 응답으로 최종 확정(graceful 드롭인). fail-closed·OFF(무지출). ── */
-    private static function kakaoDeliver(PDO $pdo, string $tenant, string $campId, array $d, int $daily, string $landing): array
+    private static function kakaoDeliver(PDO $pdo, string $tenant, string $campId, array $d, int $daily, string $landing, array $settings = []): array
     {
         $h = self::kakaoHeaders($pdo, $tenant);
         if ($h === null) return ['ok' => false, 'error' => 'no_credentials'];
         [$hdr, $acc] = $h;
         // 1) 광고그룹(캠페인 하위, OFF=정지)
-        $agBody = json_encode(['adAccountId' => (int)$acc, 'campaignId' => (int)$campId, 'name' => mb_substr($d['headline'], 0, 50) . ' AG',
-            'config' => 'OFF', 'dailyBudgetAmount' => $daily], JSON_UNESCAPED_UNICODE);
+        $ag = ['adAccountId' => (int)$acc, 'campaignId' => (int)$campId, 'name' => mb_substr($d['headline'], 0, 50) . ' AG',
+            'config' => 'OFF', 'dailyBudgetAmount' => $daily];
+        // [현 차수 #1] 네이티브 프리퀀시 캡(노출 피로 방지) — opt-in. Kakao Moment 는 adGroup 레벨 frequencyCap 지원.
+        //   frequency_cap=기간 내 최대노출수, frequency_days=기간(일). 0(기본)이면 미전송(매체 자동관리·기존동작 보존=회귀0).
+        //   ★스키마는 실 자격증명 라이브 응답으로 최종 확정(graceful 드롭인) — 미지원 시 매체가 무시/거부해도 OFF라 무지출.
+        $fc = (int)($settings['frequency_cap'] ?? 0);
+        if ($fc > 0) { $ag['frequencyCap'] = $fc; $ag['frequencyCapDays'] = max(1, (int)($settings['frequency_days'] ?? 7)); }
+        $agBody = json_encode($ag, JSON_UNESCAPED_UNICODE);
         [$ac, $ar] = self::http('POST', 'https://apis.moment.kakao.com/openapi/v4/adGroups', $hdr, $agBody);
         $agId = $ar['id'] ?? $ar['adGroupId'] ?? ($ar['data']['id'] ?? '');
         if ($agId === '') return ['ok' => true, 'status' => 'partial', 'note' => 'Kakao 캠페인까지 생성. 광고그룹 보류(라이브 스키마 확정 필요): ' . (self::errMsg($ar) ?: ('HTTP ' . $ac))];
@@ -1382,14 +1422,20 @@ final class AdAdapters
 
     /* ── LINE Ads: 광고그룹 + 광고(소재) PAUSED. lineCreate 와 동일 JWS 인증.
      *   ★엔드포인트/스키마는 실 자격증명 등록 시 라이브 응답으로 최종 확정(graceful). fail-closed·PAUSED(무지출). ── */
-    private static function lineDeliver(PDO $pdo, string $tenant, string $campId, array $d, int $daily, string $landing): array
+    private static function lineDeliver(PDO $pdo, string $tenant, string $campId, array $d, int $daily, string $landing, array $settings = []): array
     {
         $c = self::lineCreds($pdo, $tenant);
         if ($c === null) return ['ok' => false, 'error' => 'no_credentials'];
         [$ak, $sk, $gid] = $c;
         // 1) 광고그룹(캠페인 하위, PAUSED)
         $agPath = '/api/v3/campaigns/' . rawurlencode($campId) . '/adgroups';
-        [$ac, $ar] = self::lineReq('POST', $agPath, ['name' => mb_substr($d['headline'], 0, 50) . ' AG', 'status' => 'PAUSED', 'bidAmount' => max(100, (int)($daily / 100))], $ak, $sk);
+        $agBody = ['name' => mb_substr($d['headline'], 0, 50) . ' AG', 'status' => 'PAUSED', 'bidAmount' => max(100, (int)($daily / 100))];
+        // [현 차수 #1] 네이티브 프리퀀시 캡 — opt-in. LINE Ads 는 campaign/adgroup 레벨 frequencyCap(노출 상한·기간) 지원.
+        //   frequency_cap=기간 내 최대노출수, frequency_days=기간(일). 0(기본)이면 미전송(기존동작 보존=회귀0).
+        //   ★스키마는 실 자격증명 라이브 응답으로 최종 확정(graceful) — PAUSED라 미반영돼도 무지출.
+        $fc = (int)($settings['frequency_cap'] ?? 0);
+        if ($fc > 0) { $agBody['frequencyCap'] = $fc; $agBody['frequencyCapPeriodDays'] = max(1, (int)($settings['frequency_days'] ?? 7)); }
+        [$ac, $ar] = self::lineReq('POST', $agPath, $agBody, $ak, $sk);
         $agId = $ar['id'] ?? $ar['adgroupId'] ?? ($ar['data']['id'] ?? '');
         if ($agId === '') return ['ok' => true, 'status' => 'partial', 'note' => 'LINE 캠페인까지 생성. 광고그룹 보류(라이브 스키마 확정 필요): ' . (self::errMsg($ar) ?: ('HTTP ' . $ac))];
         // [현 차수 1순위] 2) 소재 자동업로드 — 이미지 미디어 업로드 → hash 획득 후 ad(소재) 생성.

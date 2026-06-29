@@ -198,6 +198,8 @@ class AutoCampaign
                 'countries'    => (is_array($d['countries'] ?? null) && $d['countries']) ? array_values(array_filter(array_map('strval', $d['countries']))) : ['KR'],
                 'frequency_cap'  => max(0, (int)($d['frequency_cap'] ?? 0)),    // 0=off(노출 피로 방지 캡, opt-in)
                 'frequency_days' => max(1, (int)($d['frequency_days'] ?? 7)),
+                // [현 차수 #1] Google 캠페인 유형 — SEARCH(기본)|DISPLAY|VIDEO. 프리퀀시 캡은 DISPLAY/VIDEO 에서만 유효(Google 정책).
+                'google_channel_type' => strtoupper((string)($d['google_channel_type'] ?? 'SEARCH')),
                 // [현 차수 초고도화] 오디언스 모드 — retarget(고객 리타겟)·lookalike(유사확장)·prospect(기존고객 제외=신규획득).
                 //   syncAudience 가 생성·영속한 오디언스를 metaDeliver adset 타겟팅에 자동 attach(최고 ROI 레버). 빈값=지오만(기존).
                 'audience_mode'  => strtolower((string)($d['audience_mode'] ?? '')),
