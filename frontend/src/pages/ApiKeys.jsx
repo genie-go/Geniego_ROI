@@ -296,6 +296,9 @@ const REAL_ADAPTER = new Set([
   'mailchimp', 'klaviyo', 'sendgrid',                         // ESP(syncEspOnSave·ESP_SOURCES)
   'trustpilot', 'yotpo', 'google_business',                   // 리뷰(Reviews collectForTenant·REVIEW_CHANNELS)
   'applovin', 'mintegral', 'yandex_ads', 'yahoo_jp_ads',      // 롱테일 광고(AD_SHORT + runSync fetchers)
+  // [현 차수] SNS 라이브 채널 통계 동기화(Connectors::syncSnsLiveOnSave) — 등록 즉시 채널 통계(구독자/조회수/팔로워) 수집.
+  //   Twitch 는 브로드캐스터 OAuth 스코프 필요로 미편입(honest pending).
+  'youtube', 'instagram', 'facebook',                         // YouTube Data API / Instagram·Facebook Graph API
 ]);
 /* [현 차수] ★연결 테스트가 '실제 발급 검증'(라이브 채널 API 호출로 키 유효성 확인)인 채널 — 백엔드 hasLiveVerify 정합.
    '발급 확인됨' 배지는 이 채널들의 test_status==='ok'(실검증 통과)에만 표기한다(임의 표기 금지).

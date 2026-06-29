@@ -3858,6 +3858,161 @@ final class Connectors
         return array_values(array_unique($out));
     }
 
+    /* ════════════════════════ [현 차수] SNS 라이브 채널 통계 동기화 ════════════════════════
+     *   YouTube/Instagram/Facebook/Twitch = 라이브 커머스 멀티송출 채널. 등록한 키로 채널 통계(구독자/조회수/
+     *   팔로워/영상수)를 수집해 sns_channel_stats 적재 → "동기화됨" 표기(송출 대상이자 채널 도달 분석 소스).
+     *   각 채널 graceful(키 부재/오류 시 honest). Twitch 팔로워는 브로드캐스터 OAuth 스코프 필요 → honest pending. */
+    public const SNS_LIVE_SOURCES = ['youtube', 'instagram', 'facebook', 'twitch'];
+
+    public static function isSnsLiveChannel(string $channelKey): bool
+    {
+        return in_array(strtolower(trim($channelKey)), self::SNS_LIVE_SOURCES, true);
+    }
+
+    private static function ensureSnsStatsTable(PDO $pdo): void
+    {
+        $isMy = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql';
+        try {
+            if ($isMy) {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS sns_channel_stats (
+                    id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL, channel VARCHAR(40) NOT NULL,
+                    ext_id VARCHAR(190), title VARCHAR(255), followers BIGINT DEFAULT 0, views BIGINT DEFAULT 0,
+                    items BIGINT DEFAULT 0, live_now INT DEFAULT 0, synced_at VARCHAR(32),
+                    UNIQUE KEY uq_sns (tenant_id, channel)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+            } else {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS sns_channel_stats (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL, channel TEXT NOT NULL, ext_id TEXT, title TEXT, followers INTEGER DEFAULT 0, views INTEGER DEFAULT 0, items INTEGER DEFAULT 0, live_now INTEGER DEFAULT 0, synced_at TEXT)");
+                $pdo->exec("CREATE UNIQUE INDEX IF NOT EXISTS uq_sns ON sns_channel_stats(tenant_id, channel)");
+            }
+        } catch (\Throwable $e) {}
+    }
+
+    /** YouTube 채널 통계(YouTube Data API v3 · api_key + channel_id). 공개 통계는 API 키로 충분.
+     *   ★다형식 해석 — 사용자가 UC… ID / @핸들 / 채널 URL / 커스텀 username 어느 것을 넣어도 동작(흔한 입력 혼동 흡수). */
+    private static function fetchYoutubeStats(string $tenant): array
+    {
+        $apiKey = self::loadCred($tenant, 'youtube', 'api_key');
+        $chId   = trim(self::loadCred($tenant, 'youtube', 'channel_id'));
+        if ($apiKey === '' || $chId === '') return ['hasCreds' => false];
+        $base = 'https://www.googleapis.com/youtube/v3/channels?part=statistics,snippet&key=' . urlencode($apiKey) . '&';
+        // 입력 형식 → 우선 시도 파라미터 후보(순차 폴백). UC… ID > URL의 UC추출 > @핸들 > username.
+        $params = [];
+        if (preg_match('#channel/(UC[\w-]{20,})#', $chId, $m)) $params[] = 'id=' . urlencode($m[1]);          // 채널 URL
+        if (strncmp($chId, 'UC', 2) === 0 && strlen($chId) >= 20) $params[] = 'id=' . urlencode($chId);        // UC… ID
+        if (preg_match('/@([A-Za-z0-9._\-가-힣]+)/u', $chId, $hm)) $params[] = 'forHandle=' . urlencode('@' . $hm[1]); // @핸들
+        if (strncmp($chId, 'UC', 2) !== 0 && strpos($chId, '@') === false) {                                   // 커스텀명/핸들 미상
+            $params[] = 'forUsername=' . urlencode($chId);
+            $params[] = 'forHandle=' . urlencode('@' . ltrim($chId, '@'));
+        }
+        if (!$params) $params[] = 'id=' . urlencode($chId);
+        $lastErr = '';
+        foreach (array_values(array_unique($params)) as $p) {
+            [$code, $body, $err] = self::httpGet($base . $p);
+            if ($err || $code >= 400) { $lastErr = $err ?: "youtube http $code"; continue; }
+            $it = $body['items'][0] ?? null;
+            if (!$it) { $lastErr = 'channel not found'; continue; }
+            $s = (array)($it['statistics'] ?? []);
+            return ['hasCreds' => true, 'live' => true, 'ext_id' => (string)($it['id'] ?? $chId), 'title' => (string)($it['snippet']['title'] ?? ''),
+                'followers' => (int)($s['subscriberCount'] ?? 0), 'views' => (int)($s['viewCount'] ?? 0), 'items' => (int)($s['videoCount'] ?? 0), 'live_now' => 0];
+        }
+        return ['hasCreds' => true, 'live' => false, 'error' => ($lastErr ?: 'channel not found') . ' — 채널 ID(UC…)·@핸들·채널 URL 중 하나를 정확히 입력하세요'];
+    }
+
+    /** Instagram 비즈니스 계정 통계(Graph API · access_token + ig_user_id). */
+    private static function fetchInstagramStats(string $tenant): array
+    {
+        $token = self::loadCred($tenant, 'instagram', 'access_token');
+        $uid   = self::loadCred($tenant, 'instagram', 'ig_user_id');
+        if ($token === '' || $uid === '') return ['hasCreds' => false];
+        $url = 'https://graph.facebook.com/v19.0/' . urlencode($uid) . '?fields=username,followers_count,media_count&access_token=' . urlencode($token);
+        [$code, $body, $err] = self::httpGet($url);
+        if ($err || $code >= 400) return ['hasCreds' => true, 'live' => false, 'error' => $err ?: "instagram http $code"];
+        return ['hasCreds' => true, 'live' => true, 'ext_id' => $uid, 'title' => (string)($body['username'] ?? ''),
+            'followers' => (int)($body['followers_count'] ?? 0), 'views' => 0, 'items' => (int)($body['media_count'] ?? 0), 'live_now' => 0];
+    }
+
+    /** Facebook 페이지 통계(Graph API · access_token + page_id). */
+    private static function fetchFacebookStats(string $tenant): array
+    {
+        $token  = self::loadCred($tenant, 'facebook', 'access_token');
+        $pageId = self::loadCred($tenant, 'facebook', 'page_id');
+        if ($token === '' || $pageId === '') return ['hasCreds' => false];
+        $url = 'https://graph.facebook.com/v19.0/' . urlencode($pageId) . '?fields=name,fan_count,followers_count&access_token=' . urlencode($token);
+        [$code, $body, $err] = self::httpGet($url);
+        if ($err || $code >= 400) return ['hasCreds' => true, 'live' => false, 'error' => $err ?: "facebook http $code"];
+        return ['hasCreds' => true, 'live' => true, 'ext_id' => $pageId, 'title' => (string)($body['name'] ?? ''),
+            'followers' => (int)($body['followers_count'] ?? ($body['fan_count'] ?? 0)), 'views' => 0, 'items' => 0, 'live_now' => 0];
+    }
+
+    private static function persistSnsStats(string $tenant, string $channel, array $r): void
+    {
+        $pdo = Db::pdo(); self::ensureSnsStatsTable($pdo);
+        $isMy = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql';
+        $now = gmdate('Y-m-d\TH:i:s\Z');
+        $sql = $isMy
+            ? "INSERT INTO sns_channel_stats (tenant_id,channel,ext_id,title,followers,views,items,live_now,synced_at) VALUES (?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE ext_id=VALUES(ext_id),title=VALUES(title),followers=VALUES(followers),views=VALUES(views),items=VALUES(items),live_now=VALUES(live_now),synced_at=VALUES(synced_at)"
+            : "INSERT INTO sns_channel_stats (tenant_id,channel,ext_id,title,followers,views,items,live_now,synced_at) VALUES (?,?,?,?,?,?,?,?,?) ON CONFLICT(tenant_id,channel) DO UPDATE SET ext_id=excluded.ext_id,title=excluded.title,followers=excluded.followers,views=excluded.views,items=excluded.items,live_now=excluded.live_now,synced_at=excluded.synced_at";
+        try { $pdo->prepare($sql)->execute([$tenant, $channel, (string)($r['ext_id'] ?? ''), (string)($r['title'] ?? ''), (int)($r['followers'] ?? 0), (int)($r['views'] ?? 0), (int)($r['items'] ?? 0), (int)($r['live_now'] ?? 0), $now]); } catch (\Throwable $e) {}
+    }
+
+    /** 자격증명 등록 즉시 SNS 라이브 채널 통계 동기화(ad/commerce/pg/물류/리뷰와 대칭). */
+    public static function syncSnsLiveOnSave(string $tenant, string $channel): array
+    {
+        $channel = strtolower(trim($channel));
+        if (!self::isSnsLiveChannel($channel) || $tenant === '' || $tenant === 'demo') return ['skipped' => true];
+        try {
+            $r = match ($channel) {
+                'youtube'   => self::fetchYoutubeStats($tenant),
+                'instagram' => self::fetchInstagramStats($tenant),
+                'facebook'  => self::fetchFacebookStats($tenant),
+                'twitch'    => ['hasCreds' => self::loadCred($tenant, 'twitch', 'client_id') !== '', 'live' => false, 'error' => 'Twitch 팔로워/통계는 브로드캐스터 OAuth 스코프 필요(client 자격증명만으론 제한) — 로드맵'],
+                default     => ['skipped' => true],
+            };
+            if (!empty($r['live'])) {
+                self::persistSnsStats($tenant, $channel, $r);
+                return ['synced' => true, 'channel' => $channel, 'title' => $r['title'] ?? '', 'followers' => $r['followers'] ?? 0];
+            }
+            return $r;
+        } catch (\Throwable $e) { return ['error' => substr($e->getMessage(), 0, 120)]; }
+    }
+
+    /** 테넌트 전 SNS 라이브 채널 동기화(cron 팬아웃). */
+    public static function syncSnsLiveForTenant(string $tenant): array
+    {
+        $out = [];
+        foreach (self::SNS_LIVE_SOURCES as $ch) { $out[$ch] = self::syncSnsLiveOnSave($tenant, $ch); }
+        return $out;
+    }
+
+    /** SNS 라이브 자격증명 보유 테넌트 목록 — cron 팬아웃용. */
+    public static function tenantsWithSnsLiveCreds(): array
+    {
+        $out = [];
+        try {
+            $in = implode(',', array_fill(0, count(self::SNS_LIVE_SOURCES), '?'));
+            $st = Db::pdo()->prepare("SELECT DISTINCT tenant_id FROM channel_credential WHERE channel IN ($in) AND is_active=1");
+            $st->execute(self::SNS_LIVE_SOURCES);
+            foreach ($st->fetchAll(PDO::FETCH_COLUMN) as $t) { $t = (string)$t; if ($t !== '' && $t !== 'demo') $out[] = $t; }
+        } catch (\Throwable $e) {}
+        return array_values(array_unique($out));
+    }
+
+    /** GET /v426/sns-live/stats — 본 테넌트 SNS 라이브 채널 통계(동기화 결과). */
+    public static function snsLiveStats(Request $request, Response $response, array $args): Response
+    {
+        $tenant = self::authTenant($request);
+        $rows = [];
+        if ($tenant !== '' && $tenant !== 'demo') {
+            try {
+                $st = Db::pdo()->prepare("SELECT channel,ext_id,title,followers,views,items,live_now,synced_at FROM sns_channel_stats WHERE tenant_id=? ORDER BY channel");
+                $st->execute([$tenant]);
+                $rows = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+            } catch (\Throwable $e) { $rows = []; }
+        }
+        $response->getBody()->write(json_encode(['ok' => true, 'channels' => $rows], JSON_UNESCAPED_UNICODE));
+        return $response->withHeader('Content-Type', 'application/json');
+    }
+
     /**
      * GET /v426/analytics/web — 웹 분석 집계(채널그룹·소스미디엄·일자 추이). BI 깊이 표면화.
      *   Query: source(ga4/adobe_analytics/all), start_date, end_date, group_by(channel|source_medium|date).

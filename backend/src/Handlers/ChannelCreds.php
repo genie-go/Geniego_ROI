@@ -380,6 +380,10 @@ final class ChannelCreds
                     //   갱신(없으면 no-op). 주문 동기화로 적재된 송장이 있으면 즉시 최신 배송상태 반영, cron(*/15) 백업.
                     // [237차 P1-2] 하드코딩 리터럴 → Logistics::isLogisticsChannel(내장 택배사 + 레지스트리 tracking/logistics) 대칭.
                     $autoSync = ['kind' => 'logistics', 'result' => ['refreshed' => Logistics::refreshTenant($pdo, $tenant)]];
+                } elseif (Connectors::isSnsLiveChannel($channel)) {
+                    // [현 차수] SNS 라이브 채널(YouTube/Instagram/Facebook/Twitch) — 등록 즉시 채널 통계 동기화
+                    //   (구독자/조회수/팔로워/영상수). 라이브 커머스 멀티송출 도달 분석 소스. Twitch 는 honest pending.
+                    $autoSync = ['kind' => 'sns_live', 'result' => Connectors::syncSnsLiveOnSave($tenant, $channel)];
                 }
             } catch (\Throwable $e) {
                 error_log('[ChannelCreds::upsert] auto-sync failed: ' . $e->getMessage());

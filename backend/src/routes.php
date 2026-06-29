@@ -453,6 +453,8 @@ return function (App $app): void {
         //   동기화는 기존 POST /v423/connectors/sync(channels=ga4,adobe_analytics)가 runSync 라우팅으로 처리.
         'GET /v426/analytics/web'              => 'Genie\\Handlers\\Connectors::webAnalytics',
         'GET /api/v426/analytics/web'          => 'Genie\\Handlers\\Connectors::webAnalytics',
+        'GET /v426/sns-live/stats'             => 'Genie\\Handlers\\Connectors::snsLiveStats',
+        'GET /api/v426/sns-live/stats'         => 'Genie\\Handlers\\Connectors::snsLiveStats',
         // [P1 커넥터 폭] CS/헬프데스크 인바운드(Zendesk·Intercom·Freshdesk·Gorgias) — cs_metrics 집계/동기화.
         'GET /v426/cs/metrics'                 => 'Genie\\Handlers\\Connectors::csMetrics',
         'GET /api/v426/cs/metrics'             => 'Genie\\Handlers\\Connectors::csMetrics',
@@ -2814,6 +2816,7 @@ return function (App $app): void {
     $register('DELETE', '/v426/admin/channels/{key}'); $register('DELETE', '/api/v426/admin/channels/{key}');
     // [P1 커넥터 폭] 웹 분석 인바운드 집계 조회
     $register('GET',    '/v426/analytics/web');   $register('GET',    '/api/v426/analytics/web');
+    $register('GET',    '/v426/sns-live/stats');  $register('GET',    '/api/v426/sns-live/stats');
     // [P1 커넥터 폭] CS/헬프데스크 인바운드
     $register('GET',    '/v426/cs/metrics');      $register('GET',    '/api/v426/cs/metrics');
     $register('POST',   '/v426/cs/sync');         $register('POST',   '/api/v426/cs/sync');
