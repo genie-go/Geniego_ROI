@@ -1422,6 +1422,63 @@ final class ChannelSync
     }
 
     // ── G마켓/11번가/기타 ─────────────────────────────────────────────────
+    /** dot-path 접근(a.b.0.c) — 배열 안전 탐색. 미존재=null. */
+    private static function dotGet($data, string $path)
+    {
+        if ($path === '') return null;
+        $cur = $data;
+        foreach (explode('.', $path) as $seg) {
+            if (is_array($cur) && array_key_exists($seg, $cur)) $cur = $cur[$seg];
+            else return null;
+        }
+        return (is_scalar($cur) || is_array($cur)) ? $cur : null;
+    }
+
+    /**
+     * [초고도화 #4] 제네릭 스펙 구동 fetch — ChannelRegistry.fetch_spec(REST 선언)으로 전용 코드 없이 주문 연동.
+     *   admin 이 어떤 REST 채널이든 스펙만 선언하면 즉시 연동(Channable/Linnworks 모델 → 채널 폭 무한 확장).
+     *   spec = { base_url, auth:{type:bearer|apikey|basic, cred_key, header|param, user_key}, orders:{path,params,list_path,map{...}} }
+     *   ★실 HTTP·테넌트 격리·saveOrders chokepoint(fxToKrw·데모유입차단) 그대로 통과. 스펙부재=null(honest pending 폴백).
+     */
+    private static function specFetch(string $channel, array $creds, string $tenant): ?array
+    {
+        $spec = \Genie\Handlers\ChannelRegistry::fetchSpecFor($channel);
+        if (!is_array($spec) || empty($spec['base_url']) || empty($spec['orders']['path'])) return null;
+        $o = (array)$spec['orders'];
+        $base = rtrim((string)$spec['base_url'], '/');
+        $since = gmdate('Y-m-d', time() - 14 * 86400);
+        $params = [];
+        foreach ((array)($o['params'] ?? []) as $k => $v) { $params[(string)$k] = str_replace(['{since}', '{tenant}'], [$since, $tenant], (string)$v); }
+        $url = $base . (string)$o['path'];
+        $headers = [];
+        $auth = (array)($spec['auth'] ?? []);
+        $type = strtolower((string)($auth['type'] ?? ''));
+        $secret = (string)($creds[(string)($auth['cred_key'] ?? 'api_key')] ?? '');
+        if ($type === 'bearer') { $headers['Authorization'] = 'Bearer ' . $secret; }
+        elseif ($type === 'basic') { $u = (string)($creds[(string)($auth['user_key'] ?? 'username')] ?? ''); $headers['Authorization'] = 'Basic ' . base64_encode($u . ':' . $secret); }
+        elseif ($type === 'apikey') { if (!empty($auth['header'])) $headers[(string)$auth['header']] = $secret; else $params[(string)($auth['param'] ?? 'api_key')] = $secret; }
+        if ($params) $url .= (str_contains($url, '?') ? '&' : '?') . http_build_query($params);
+        [$code, $raw, $err] = self::httpGetRaw($url, $headers, 20);
+        if ($code < 200 || $code >= 300 || $raw === '') {
+            return ['ok' => false, 'pending' => true, 'products' => [], 'orders' => [], 'note' => "제네릭 어댑터 HTTP {$code} — 스펙/자격증명 확인 필요" . ($err ? " ({$err})" : '')];
+        }
+        $data = json_decode($raw, true);
+        if (!is_array($data)) return ['ok' => false, 'pending' => true, 'products' => [], 'orders' => [], 'note' => '제네릭 어댑터 응답 JSON 파싱 실패'];
+        $list = empty($o['list_path']) ? (is_array($data[0] ?? null) ? $data : [$data]) : (array)(self::dotGet($data, (string)$o['list_path']) ?? []);
+        $map = (array)($o['map'] ?? []);
+        $orders = [];
+        foreach ($list as $item) {
+            if (!is_array($item)) continue;
+            $row = [];
+            foreach ($map as $field => $srcPath) { $v = self::dotGet($item, (string)$srcPath); if ($v !== null && !is_array($v)) $row[(string)$field] = $v; }
+            $oid = (string)($row['channel_order_id'] ?? '');
+            if ($oid === '') continue;
+            $row['source'] = 'generic'; // saveOrders 데모/structured 차단과 무관(실 tenant) — 정상 적재.
+            $orders[] = $row;
+        }
+        return ['ok' => true, 'products' => [], 'orders' => $orders, 'note' => '제네릭 스펙 어댑터: ' . count($orders) . '건 수신'];
+    }
+
     private static function genericFetch(string $channel, array $creds, string $tenant = 'demo'): array
     {
         $label = match($channel) {
@@ -1449,12 +1506,16 @@ final class ChannelSync
         // [현 차수] H1: 전용 실어댑터가 없는 stub 채널은 'pending'(연동 대기)으로 명시 — 저장만으로 "동기화 완료"
         //   거짓양성을 막는다. 실데이터는 전용 어댑터 추가 또는 정산 CSV 업로드 시 표시된다.
         if ($tenant !== 'demo') {
+            // [초고도화 #4] 제네릭 스펙 어댑터 — admin 이 ChannelRegistry.fetch_spec(REST 선언)을 등록한 채널이면
+            //   전용 코드 없이 실 주문 연동(Channable/Linnworks 식). 스펙 부재 시 honest pending 폴백.
+            $spec = self::specFetch($channel, $creds, $tenant);
+            if ($spec !== null) return $spec;
             return [
                 'ok'       => true,
                 'pending'  => true,
                 'products' => [],
                 'orders'   => [],
-                'note'     => "{$label}: 자격증명 저장 완료 — 전용 어댑터 연동 준비 중입니다. 정산 CSV 업로드 또는 라이브 API 어댑터 추가 시 실데이터가 동기화됩니다.",
+                'note'     => "{$label}: 자격증명 저장 완료 — 전용 어댑터 연동 준비 중입니다. [연동허브>채널추가]에서 REST 스펙(fetch_spec)을 등록하면 코드 없이 즉시 실데이터가 동기화됩니다.",
             ];
         }
         return [

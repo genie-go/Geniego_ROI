@@ -47,7 +47,23 @@ class ChannelRegistry
                 sync_kind TEXT NOT NULL DEFAULT 'none', is_active INTEGER NOT NULL DEFAULT 1,
                 display_order INTEGER DEFAULT 100, created_at TEXT, updated_at TEXT)");
         }
+        // [초고도화 #4] 제네릭 어댑터 스펙(REST 선언) — admin 이 fetch_spec(JSON) 선언만으로 전용 코드 없이 채널 연동.
+        //   Channable/Linnworks 식 스펙 구동. 멱등 ALTER.
+        try { $pdo->exec("ALTER TABLE channel_registry ADD COLUMN fetch_spec TEXT"); } catch (\Throwable $e) {}
         self::ensureSeed($pdo);
+    }
+
+    /** [초고도화 #4] 채널의 제네릭 fetch 스펙(JSON 디코드) — 없으면 null. ChannelSync::specFetch 가 소비. */
+    public static function fetchSpecFor(string $channel): ?array
+    {
+        try {
+            $st = self::db()->prepare("SELECT fetch_spec FROM channel_registry WHERE channel_key=? AND is_active=1 LIMIT 1");
+            $st->execute([strtolower(trim($channel))]);
+            $raw = (string)($st->fetchColumn() ?: '');
+            if ($raw === '') return null;
+            $spec = json_decode($raw, true);
+            return is_array($spec) ? $spec : null;
+        } catch (\Throwable $e) { return null; }
     }
 
     /** 최초 1회 기본 카탈로그 시드(빈 테이블일 때만). 기존 하드코딩 채널을 보존. */
@@ -197,13 +213,16 @@ class ChannelRegistry
             ':ic' => (string)($b['icon'] ?? '🔗'), ':co' => (string)($b['color'] ?? '#6366f1'),
             ':fj' => json_encode($fields, JSON_UNESCAPED_UNICODE), ':sk' => (string)($b['sync_kind'] ?? 'none'),
             ':ia' => (int)($b['is_active'] ?? 1), ':do' => (int)($b['display_order'] ?? 999), ':now' => $now,
+            // [초고도화 #4] 제네릭 어댑터 스펙(JSON) — 유효 JSON만 저장(검증), 부재 시 NULL.
+            ':fs' => (is_array($b['fetch_spec'] ?? null) ? json_encode($b['fetch_spec'], JSON_UNESCAPED_UNICODE)
+                       : (is_string($b['fetch_spec'] ?? null) && json_decode($b['fetch_spec'], true) !== null ? $b['fetch_spec'] : null)),
         ];
         $exists = $pdo->prepare("SELECT 1 FROM channel_registry WHERE channel_key=:k"); $exists->execute([':k' => $key]);
         if ($exists->fetchColumn()) {
-            $pdo->prepare("UPDATE channel_registry SET name=:n,group_type=:g,icon=:ic,color=:co,fields_json=:fj,sync_kind=:sk,is_active=:ia,display_order=:do,updated_at=:now WHERE channel_key=:k")->execute($vals);
+            $pdo->prepare("UPDATE channel_registry SET name=:n,group_type=:g,icon=:ic,color=:co,fields_json=:fj,sync_kind=:sk,is_active=:ia,display_order=:do,fetch_spec=:fs,updated_at=:now WHERE channel_key=:k")->execute($vals);
         } else {
             $vals[':ca'] = $now;
-            $pdo->prepare("INSERT INTO channel_registry(channel_key,name,group_type,icon,color,fields_json,sync_kind,is_active,display_order,created_at,updated_at) VALUES(:k,:n,:g,:ic,:co,:fj,:sk,:ia,:do,:ca,:now)")->execute($vals);
+            $pdo->prepare("INSERT INTO channel_registry(channel_key,name,group_type,icon,color,fields_json,sync_kind,is_active,display_order,fetch_spec,created_at,updated_at) VALUES(:k,:n,:g,:ic,:co,:fj,:sk,:ia,:do,:fs,:ca,:now)")->execute($vals);
         }
         return self::json($res, ['ok' => true, 'channel_key' => $key]);
     }
