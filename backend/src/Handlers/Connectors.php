@@ -1935,6 +1935,17 @@ final class Connectors
         self::metaDemoCall($adAccountId, $accessToken, $start, $end, 'age,gender', $out);
         // 지역 분포(국가). breakdowns=country.
         self::metaDemoCall($adAccountId, $accessToken, $start, $end, 'country', $out);
+        // [현 차수 감사 P2] 통화 정규화 — Meta 계정통화(account_currency) spend/revenue → KRW. ad_insight_agg 에 currency
+        //   컬럼이 없어 비-KRW 계정은 raw 통화로 적재되어 KRW 원가/광고비와 혼합산술(productChannelMatrix net_profit) 왜곡.
+        //   performance_metrics(persistMetricRows fxToKrw)와 정합. KRW/미설정 계정은 무변환(기존 동작 보존).
+        $cur = strtoupper((string)(self::loadCred($tenant, 'meta_ads', 'account_currency') ?: 'KRW'));
+        if ($cur !== '' && $cur !== 'KRW') {
+            foreach ($out as &$row) {
+                $row['spend']   = self::fxToKrw((float)($row['spend'] ?? 0), $cur);
+                $row['revenue'] = self::fxToKrw((float)($row['revenue'] ?? 0), $cur);
+            }
+            unset($row);
+        }
         return $out;
     }
 
@@ -4077,8 +4088,12 @@ final class Connectors
                 foreach (['sessions', 'users', 'new_users', 'page_views', 'conversions'] as $k) { $r[$k] = (int)$r[$k]; $tot[$k] += $r[$k]; }
                 $r['revenue'] = (float)$r['revenue']; $tot['revenue'] += $r['revenue'];
                 $r['engaged_sessions'] = (int)$r['engaged_sessions'];
-                $r['bounce_rate'] = round((float)$r['bounce_rate'], 4);
-                $r['avg_session_sec'] = round((float)$r['avg_session_sec'], 1);
+                // [현 차수 감사] bounce_rate 세션 가중 산출 — AVG(bounce_rate)(일자 비가중평균) 대신 1−참여세션/세션
+                //   (ratio-of-sums). engaged_sessions/sessions 둘 다 SUM이라 정확. 참여세션 미적재(0) 시 쿼리 AVG 폴백.
+                $r['bounce_rate'] = ($r['engaged_sessions'] > 0 && $r['sessions'] > 0)
+                    ? round(max(0.0, 1 - $r['engaged_sessions'] / $r['sessions']), 4)
+                    : round((float)$r['bounce_rate'], 4);
+                $r['avg_session_sec'] = round((float)$r['avg_session_sec'], 1); // 가중 산출은 total_session_sec 컬럼 필요 → AVG 유지(근사)
                 $r['conv_rate'] = $r['sessions'] > 0 ? round($r['conversions'] / $r['sessions'], 4) : 0;
             }
             unset($r);
