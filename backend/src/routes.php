@@ -921,6 +921,9 @@ return function (App $app): void {
         'DELETE /api/v424/cro/experiments/{id}' => 'Genie\\Handlers\\Onsite::deleteExperiment',
         'GET /v424/cro/experiments/{id}/results'     => 'Genie\\Handlers\\Onsite::results',
         'GET /api/v424/cro/experiments/{id}/results' => 'Genie\\Handlers\\Onsite::results',
+        // [현 차수] 접속 IP 기반 국가/언어 자동 감지(공개·동일출처). 광고차단 불가 + 다중 제공자 페일오버.
+        'GET /v424/geo/lang'                 => 'Genie\\Handlers\\Geo::lang',
+        'GET /api/v424/geo/lang'             => 'Genie\\Handlers\\Geo::lang',
         // [237차] 증분성(Double ML Uplift) 입력 데이터 — 프론트 기존 incrementalUplift 가 실데이터로 계산(중복0).
         'GET /v424/mmm/series'        => 'Genie\\Handlers\\Mmm::series',
         'GET /api/v424/mmm/series'    => 'Genie\\Handlers\\Mmm::series',
@@ -3056,6 +3059,7 @@ return function (App $app): void {
     $register('PUT',  '/v424/cro/experiments/{id}'); $register('PUT', '/api/v424/cro/experiments/{id}');
     $register('DELETE', '/v424/cro/experiments/{id}'); $register('DELETE', '/api/v424/cro/experiments/{id}');
     $register('GET',  '/v424/cro/experiments/{id}/results'); $register('GET', '/api/v424/cro/experiments/{id}/results');
+    $register('GET',  '/v424/geo/lang'); $register('GET', '/api/v424/geo/lang');
     $register('GET',  '/v424/mmm/series');    $register('GET',  '/api/v424/mmm/series'); // [237차] 증분성 입력
     $register('POST', '/v424/mmm/optimize');  $register('POST', '/api/v424/mmm/optimize');
     $register('GET',  '/v424/anomaly/scan');  $register('GET',  '/api/v424/anomaly/scan');

@@ -108,28 +108,58 @@ export function detectLang() {
 }
 
 // ── Step 2: IP 기반 국가 감지 (비동기, 첫 방문자만) ────────
+//   [현 차수] 견고화: 기존 ipapi.co 단일 의존(광고차단기·서비스장애·요청한도 취약)을 제거하고
+//     ① 동일 출처 백엔드(/api/v424/geo/lang) — 광고차단 불가 + 서버측 다중 제공자 페일오버 + 캐시
+//     ② 외부 ipapi.co (동일출처가 국가를 못 얻은 예외 환경의 2차 시도)
+//     ③ 서버가 파싱한 Accept-Language (최후 약한 폴백)
+//   순으로 폴백한다. 어느 단계든 성공하면 LS_GEO_KEY 로 재감지를 방지한다.
 async function detectGeoLang() {
     // 사용자가 이미 언어를 선택했거나 IP 감지 완료된 경우 스킵
     if (localStorage.getItem(LS_KEY))     return null;
     if (localStorage.getItem(LS_GEO_KEY)) return null;
 
+    let acceptFallback = null;
+
+    // ① 동일 출처 백엔드 (IP → 국가코드)
+    try {
+        const base = import.meta.env.VITE_API_BASE || "";
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 3500);
+        const res = await fetch(`${base}/api/v424/geo/lang`, { signal: controller.signal, cache: "no-store" });
+        clearTimeout(timer);
+        if (res.ok) {
+            const data = await res.json();
+            const byCountry = data && data.country ? COUNTRY_LANG_MAP[data.country] : null;
+            if (byCountry && LOCALES[byCountry]) {
+                localStorage.setItem(LS_GEO_KEY, "1");
+                return byCountry;
+            }
+            if (data && data.accept_lang && LOCALES[data.accept_lang]) acceptFallback = data.accept_lang;
+        }
+    } catch (_) { /* 동일출처 실패 → 외부 폴백 */ }
+
+    // ② 외부 ipapi.co (2차 시도)
     try {
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), 4000); // 4초 타임아웃
-        const res = await fetch("https://ipapi.co/json/", {
-            signal: controller.signal,
-            cache: "no-store",
-        });
+        const res = await fetch("https://ipapi.co/json/", { signal: controller.signal, cache: "no-store" });
         clearTimeout(timer);
-        if (!res.ok) return null;
-        const data = await res.json();
-        const lang = COUNTRY_LANG_MAP[data.country_code];
-        if (lang && LOCALES[lang]) {
-            localStorage.setItem(LS_GEO_KEY, "1"); // 재감지 방지
-            return lang;
+        if (res.ok) {
+            const data = await res.json();
+            const lang = COUNTRY_LANG_MAP[data.country_code];
+            if (lang && LOCALES[lang]) {
+                localStorage.setItem(LS_GEO_KEY, "1"); // 재감지 방지
+                return lang;
+            }
         }
     } catch (_) {
-        // 타임아웃/오류 → navigator.language fallback 유지
+        // 타임아웃/오류 → 아래 Accept-Language 폴백
+    }
+
+    // ③ 서버가 파싱한 Accept-Language (최후 약한 폴백)
+    if (acceptFallback) {
+        localStorage.setItem(LS_GEO_KEY, "1");
+        return acceptFallback;
     }
     return null;
 }

@@ -94,6 +94,8 @@ $app->add(function (Request $request, $handler) {
         // [R-P3-8] 온사이트 CRO 비콘 — 방문자 변형배정/전환(세션·api_key 불요·자연 스코프=tenant 쿼리). CRUD/results 는 인증.
         || $path === '/v424/cro/assign' || $path === '/api/v424/cro/assign'
         || $path === '/v424/cro/convert' || $path === '/api/v424/cro/convert'
+        // [현 차수] 접속 IP 기반 국가/언어 자동 감지 — 비인증 공개(첫 방문 언어 결정). 호출자 연결 IP 만 조회.
+        || $path === '/v424/geo/lang' || $path === '/api/v424/geo/lang'
         // [251차 Phase2 ②] 플랫폼 성장 공개 방문 캡처 — 랜딩 팝업/폼이 비인증 호출(platform_growth 격리·핸들러가 이메일검증·이벤트 화이트리스트). 관리(admin/growth/*)는 인증 유지.
         || $path === '/v424/growth/capture' || $path === '/api/v424/growth/capture'
         // [246차 P3] 웹 푸시 VAPID 공개키 — 비밀 아님(구독 전 조회). subscribe/test/config 는 인증.
