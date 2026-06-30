@@ -74,7 +74,7 @@ const SEED_PLANS = [
     plan_id: 'starter', name: 'Starter', display_order: 10, is_active: true, is_custom_quote: false,
     description: '마케팅 입문 · 1계정 $49 기준',
     features: ['판매·마케팅 채널 5개', '마케팅 자동화·캠페인', 'CRM·이메일·카카오·SMS', '콘텐츠 캘린더·리뷰', '계정 수 선택', '이메일 지원'],
-    limits: { channels: 5, orders_monthly: 2000, products: 500, users: 1, suppliers: 5, logistics: 2, warehouses: 1, image_hosting_gb: 5 },
+    limits: { channels: 5, orders_monthly: 2000, products: 500, users: 1, suppliers: 5, logistics: 2, warehouses: 1, image_hosting_gb: 3 },
     price_usd: 49, price_annual_usd: 39,
   },
   {
@@ -90,7 +90,7 @@ const SEED_PLANS = [
     plan_id: 'pro', name: 'Pro', display_order: 30, is_active: true, is_custom_quote: false, is_recommended: 1,
     description: '풀 운영 자동화 · 1계정 $399 기준',
     features: ['무제한 판매 채널·창고(WMS)', '가격최적화·공급망·수요예측·반품', '라이브 커머스·AI 룰엔진·라이트백', '데이터 스키마/신뢰도·데이터프로덕트', 'AI 디자인·상업 송장 자동', '계정 수 선택', '우선 지원 (8시간 내)'],
-    limits: { channels: -1, orders_monthly: 50000, products: 10000, users: -1, suppliers: -1, logistics: -1, warehouses: -1, image_hosting_gb: 50 },
+    limits: { channels: -1, orders_monthly: 50000, products: 10000, users: -1, suppliers: -1, logistics: -1, warehouses: -1, image_hosting_gb: 49 },
     price_usd: 399, price_annual_usd: 319,
   },
   {
