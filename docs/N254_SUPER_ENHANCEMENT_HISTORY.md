@@ -17,7 +17,21 @@
 | **단순 평균** | **88.2** | 80.2 | **≈83.4** | — |
 | **★통합도/폐루프** | ~72(전부 분절) | 91 | **92** | 단일 플랫폼 폐루프 = 유일 해자 |
 
-**남은 격차(−4.8)는 전부 외부자산/인프라 의존**(⑨geo-ID맵·발송DNS·광고매체계정·라이브SFU) — 코드 갭 아님(아래 잔여 섹션). 글로벌 경쟁사 벤치(리서치): ROI=Northbeam88/Adobe86/TripleWhale85·채널=Rithum90/사방넷88/Channable88·마케팅=MetaAdv+82/Skai78·커머스=Brightpearl/Linnworks/Extensiv/Prisync·CRM=Klaviyo/Braze/Iterable·AI=Sensei/Einstein/Bambuser/Looker. ★핵심결론: 아무도 폐루프 미완성=GenieGo 통합도 유일.
+글로벌 경쟁사 벤치(리서치): ROI=Northbeam88/Adobe86/TripleWhale85·채널=Rithum90/사방넷88/Channable88·마케팅=MetaAdv+82/Skai78·커머스=Brightpearl/Linnworks/Extensiv/Prisync·CRM=Klaviyo/Braze/Iterable·AI=Sensei/Einstein/Bambuser/Looker. ★핵심결론: 아무도 폐루프 미완성=GenieGo 통합도 유일.
+
+## ⭐ 다음 차수 추가 초고도화 대상 — ★"완료분 위에 심화"(재구현 아님·아직 경쟁사보다 낮은 도메인)
+> ★사용자 지시: **"초고도화 중복 방지"는 무조건이 아니다.** 아래는 이미 초고도화했지만 **여전히 경쟁사 점수보다 낮은** 도메인 → 다음 차수에 **기존 구현 위에 추가 심화**(같은 것 재구현 금지·더 깊게). 격차 큰 순:
+
+| 우선 | 도메인(현재→벤치·격차) | 추가 초고도화 방향(기존 위에 심화) |
+|---|---|---|
+| **P1** | CRM/메시징 80→90 (−10) | **규모/실시간**(동기 PHP루프→큐/배치 비동기 대량발송)·**옴니채널**(웹/앱 push·WhatsApp·in-app)·**임의 이벤트 속성 트리거/세그 빌더**·발송 **도달률 검증**(DNS 후) |
+| **P2** | 채널 연동 84→90 (−6) | **광고집행 매체확대**(Snapchat/LinkedIn/Criteo/Pinterest exec)·**제네릭 스펙 어댑터 writeback+HMAC/OAuth/XML**·Etsy writeback·드롭십/CS 자동화 |
+| **P2** | AI/엔터 84→89 (−5) | **라이브 SFU 자체호스팅/믹싱**·**BI 시맨틱 모델 레이어**(인-플랫폼 셀프서비스)·**암호키 회전 툴링**·SCIM 그룹→롤 매핑 |
+| **P2** | 커머스 83→88 (−5) | **결제대사 심화**(자동 dispute/수수료 재협상 신호·order_ref 매핑 강화)·리프라이서 적응형 주기·SupplyChain 최적화 엔진(현 CRUD보드) |
+| **P3** | ROI 85.5→87 (−1.5) | **인과 geo holdout**(geo-ID맵)·**뷰스루 자동감쇠**(vt_weight 기본1.0→노출데이터 기반)·Double ML 서버화 |
+| **P3** | 마케팅 84→85 (−1) | **생성형 이미지 DCO**(이미지키+에셋 업로드→플랫폼 변형 배포 완결)·인벤토리 자동확장(PMax급) |
+
+★이 항목들은 **N254 완료분을 baseline으로 더 깊게** 가는 것 — 같은 기능 재구현/재플래그 아님. 완료분(아래 ✅)을 "부재"로 다시 올리는 것만 금지.
 
 ## ✅ 완료한 초고도화 (DONE — 갭 아님, 재구현 금지)
 

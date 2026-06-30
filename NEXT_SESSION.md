@@ -7,6 +7,7 @@
 - **착수 전 반드시 참조**: `docs/N254_SUPER_ENHANCEMENT_HISTORY.md`(완료 10건 위치/커밋 + 경쟁 점수표 + FP) + 메모리 [[reference_audit_false_positives]](254차 항목).
 - **재플래그/재구현 금지(이미 완료/FP)**: ①PG결제대사 ③마케팅고급UI ⑤Shapley서버화 ⑩S3/SigV4+DW autocreate · 실시간SIEM · 메시징개인화(LINE/Kakao) · 확률적cross-device · 메시징전환A/B+Liquid · ⑥생성형DCO · i18n배치. **FP**: 다통화 P&L(saveOrders 228차 S5가 ingest시 KRW정규화→이중환산 금지)·엣지 ratelimit(nginx 이미 적용).
 - **★코드 grep만으로 "부재" 단정 금지** — 인프라(nginx/DNS)·ingestion정규화(228차 S5)·opt-in 게이트는 코드에서 안 보임. PM 코드 재증명 + 레지스트리 선참조 후만 갭 단정. 감사 에이전트에 **FP레지스트리+본 이력 주입 필수**.
+- **★★중요 구분(사용자 명시): "무조건 초고도화 중복 방지 아니다."** 재플래그/재구현 금지는 ①FP(다통화/엣지ratelimit) ②완료분을 "부재"로 재플래그 ③같은 기능 재구현 — 에만. **아직 경쟁사보다 낮은 도메인(CRM80→90·채널84→90·AI84→89·커머스83→88 등)은 기존 완료분 위에 "추가 심화 초고도화"가 다음 차수 핵심 작업** → `docs/N254_SUPER_ENHANCEMENT_HISTORY.md` ⭐"다음 차수 추가 초고도화 대상" 표 참조(P1 CRM 규모/실시간/옴니채널 ~ P3 마케팅 생성형이미지). baseline 위에 더 깊게 가는 것은 권장.
 
 ## 1. 254차 초고도화 완료 (10건·전부 운영/데모 라이브·중복0·회귀0·opt-in 기본off)
 | # | 항목 | 커밋 | 핵심 |
