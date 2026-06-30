@@ -234,6 +234,69 @@ class Reports
      *   ★중복0: 기존 Reports 핸들러 확장(신규 메뉴/핸들러 없음)·performance_metrics 집계 재사용.
      *   body: { metrics:[...], dimension:'channel'|'campaign'|'date', period_days, limit }
      */
+    /**
+     * [255차 심화] 사용자정의 메트릭 수식 컴파일 — 기존 화이트리스트 키 + 사칙연산/괄호/숫자만 허용(인젝션 0).
+     *   각 식별자는 반드시 $base(현재 소스 화이트리스트) 키여야 하며, 그 신뢰 SQL 식으로 치환. 미지 식별자=거부(null).
+     */
+    private static function compileMetricFormula(string $formula, array $base): ?string
+    {
+        $f = trim($formula);
+        if ($f === '' || strlen($f) > 500) return null;
+        if (!preg_match('#^[A-Za-z0-9_+\-*/().\s]+$#', $f)) return null; // 사용자 입력 문자집합 제한
+        $unknown = false;
+        $expr = preg_replace_callback('/[A-Za-z_][A-Za-z0-9_]*/', function ($m) use ($base, &$unknown) {
+            $k = $m[0];
+            if (isset($base[$k])) return '(' . $base[$k] . ')';
+            $unknown = true; return $k;
+        }, $f);
+        if ($unknown) return null;        // 미지 식별자 포함 → 거부(화이트리스트 키만)
+        if (!str_contains($expr, '(')) return null; // 최소 1개 키 치환 보장
+        return 'ROUND(' . $expr . ',2)';
+    }
+
+    /** [255차 심화] GET /reports/metrics?source= — 사용자정의 메트릭 목록. */
+    public static function metricDefList(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureMetricDefTable(); $pdo = self::db(); $tenant = self::tenant($req);
+        $src = (string)(($req->getQueryParams())['source'] ?? '');
+        $sql = "SELECT name, label, formula, source FROM report_metric_def WHERE tenant_id=?" . ($src !== '' ? " AND source=?" : "") . " ORDER BY name";
+        $st = $pdo->prepare($sql); $st->execute($src !== '' ? [$tenant, $src] : [$tenant]);
+        return self::json($res, ['ok' => true, 'metrics' => $st->fetchAll(\PDO::FETCH_ASSOC) ?: []]);
+    }
+
+    /** [255차 심화] PUT /reports/metrics — 사용자정의 메트릭 저장(소스별 전체 교체). body: {source, metrics:[{name,label,formula}]}. */
+    public static function metricDefSave(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureMetricDefTable(); $pdo = self::db(); $tenant = self::tenant($req);
+        $b = (array)($req->getParsedBody() ?? []); if (empty($b)) { $d = json_decode((string)$req->getBody(), true); if (is_array($d)) $b = $d; }
+        $source = in_array((string)($b['source'] ?? 'ads'), ['ads', 'commerce', 'settlement'], true) ? (string)$b['source'] : 'ads';
+        $metrics = is_array($b['metrics'] ?? null) ? $b['metrics'] : [];
+        $pdo->prepare("DELETE FROM report_metric_def WHERE tenant_id=? AND source=?")->execute([$tenant, $source]);
+        $now = gmdate('Y-m-d H:i:s'); $n = 0;
+        $ins = $pdo->prepare("INSERT INTO report_metric_def(tenant_id,source,name,label,formula,updated_at) VALUES(?,?,?,?,?,?)");
+        foreach ($metrics as $m) {
+            $nm = preg_replace('/[^a-z0-9_]/', '', strtolower((string)($m['name'] ?? '')));
+            $fm = (string)($m['formula'] ?? '');
+            if ($nm === '' || $fm === '') continue;
+            try { $ins->execute([$tenant, $source, mb_substr($nm, 0, 60), mb_substr((string)($m['label'] ?? $nm), 0, 120), mb_substr($fm, 0, 500), $now]); $n++; } catch (\Throwable $e) {}
+        }
+        return self::json($res, ['ok' => true, 'saved' => $n]);
+    }
+
+    private static function ensureMetricDefTable(): void
+    {
+        $pdo = self::db();
+        try {
+            if ($pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql') {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS report_metric_def (id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL, source VARCHAR(20) NOT NULL DEFAULT 'ads', name VARCHAR(60) NOT NULL, label VARCHAR(120), formula VARCHAR(500), updated_at VARCHAR(32), UNIQUE KEY uq_rmd (tenant_id, source, name)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            } else {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS report_metric_def (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL, source TEXT NOT NULL DEFAULT 'ads', name TEXT NOT NULL, label TEXT, formula TEXT, updated_at TEXT, UNIQUE(tenant_id, source, name))");
+            }
+        } catch (\Throwable $e) {}
+    }
+
     public static function query(Request $req, Response $res): Response
     {
         if ($err = UserAuth::requirePro($req, $res)) return $err;
@@ -311,6 +374,19 @@ class Reports
             $TABLE = 'performance_metrics'; $PERIOD_COL = 'date'; $BASE_WHERE = '';
             $defaultMetrics = ['spend', 'revenue', 'roas', 'conversions'];
         }
+
+        // [255차 심화] 사용자정의 메트릭(시맨틱 레이어) — 기존 화이트리스트 키 조합 수식만 컴파일·병합(인젝션 불가).
+        //   예) "공헌이익 = revenue - spend". raw SQL 미허용(키+사칙연산만) → Looker LookML 식 셀프서비스.
+        try {
+            $md = $pdo->prepare("SELECT name, formula FROM report_metric_def WHERE tenant_id=? AND source=?");
+            $md->execute([$tenant, $source]);
+            foreach ($md->fetchAll(\PDO::FETCH_ASSOC) ?: [] as $row) {
+                $nm = preg_replace('/[^a-z0-9_]/', '', strtolower((string)$row['name']));
+                if ($nm === '' || isset($METRICS[$nm])) continue; // 기본 키 덮어쓰기 금지
+                $compiled = self::compileMetricFormula((string)$row['formula'], $METRICS);
+                if ($compiled !== null) $METRICS[$nm] = $compiled;
+            }
+        } catch (\Throwable $e) { /* 테이블 부재/오류 → 사용자 메트릭 없음(graceful) */ }
 
         $reqMetrics = array_values(array_filter((array)($body['metrics'] ?? []), fn($m) => isset($METRICS[$m])));
         if (!$reqMetrics) $reqMetrics = $defaultMetrics;

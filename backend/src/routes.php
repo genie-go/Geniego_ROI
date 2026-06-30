@@ -288,6 +288,8 @@ return function (App $app): void {
         'GET /reports/saved'             => 'Genie\\Handlers\\Reports::savedList',   // [239차+] BI 저장된 리포트
         'POST /reports/saved'            => 'Genie\\Handlers\\Reports::savedCreate',
         'DELETE /reports/saved/{id}'     => 'Genie\\Handlers\\Reports::savedDelete',
+        'GET /reports/metrics'           => 'Genie\\Handlers\\Reports::metricDefList', // [255차 심화] 사용자정의 메트릭(시맨틱 레이어)
+        'PUT /reports/metrics'           => 'Genie\\Handlers\\Reports::metricDefSave',
 
 
         // ── 이메일/카카오 확장(A/B·중복·analytics·친구톡·SMS) — 183차 P0: 핸들러 미구현으로
@@ -2786,6 +2788,8 @@ return function (App $app): void {
     $register('GET',    '/reports/saved');     // [239차+] BI 저장된 리포트
     $register('POST',   '/reports/saved');
     $register('DELETE', '/reports/saved/{id}');
+    $register('GET',    '/reports/metrics'); // [255차 심화] 사용자정의 메트릭
+    $register('PUT',    '/reports/metrics');
     // WhatsApp
     $register('GET',    '/whatsapp/settings');
     $register('POST',   '/whatsapp/settings');
