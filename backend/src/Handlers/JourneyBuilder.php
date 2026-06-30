@@ -61,11 +61,14 @@ class JourneyBuilder
             try { $pdo->exec("ALTER TABLE {$tbl} ADD COLUMN tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo'"); } catch (\Throwable $e) {}
         }
         // 206차 #2: 실행러너 상태머신 컬럼(delay resume + cron 픽업).
-        foreach (['resume_at VARCHAR(32)', 'last_run_at VARCHAR(32)', 'converted INT DEFAULT 0'] as $col) {
+        // [255차 심화] wait_until: 이벤트 대기 노드의 절대 타임아웃 기한(resume_at=폴링주기와 분리).
+        foreach (['resume_at VARCHAR(32)', 'last_run_at VARCHAR(32)', 'converted INT DEFAULT 0', 'wait_until VARCHAR(32)'] as $col) {
             try { $pdo->exec("ALTER TABLE journey_enrollments ADD COLUMN {$col}"); } catch (\Throwable $e) {}
         }
         // [현 차수] 전환 목표(goal) 집계 컬럼.
         try { $pdo->exec("ALTER TABLE journeys ADD COLUMN stats_converted INT DEFAULT 0"); } catch (\Throwable $e) {}
+        // [255차 심화] 웹훅 트리거 토큰(인바운드 이벤트→여정 진입, Braze API-trigger 정합). 멱등 ALTER.
+        try { $pdo->exec("ALTER TABLE journeys ADD COLUMN webhook_token VARCHAR(64)"); } catch (\Throwable $e) {}
     }
 
     /* ─── GET /journey/journeys ─── 목록 ─────────────────────── */
@@ -106,13 +109,15 @@ class JourneyBuilder
         $defaultEdges = [['from'=>'trigger_1','to'=>'email_1'], ['from'=>'email_1','to'=>'delay_1'], ['from'=>'delay_1','to'=>'condition_1']];
         $now = self::now();
 
-        $pdo->prepare("INSERT INTO journeys (tenant_id, name, description, trigger_type, trigger_config, nodes, edges, status, created_at, updated_at)
-            VALUES (:t, :name, :desc, :ttype, :tconf, :nodes, :edges, 'draft', :ca, :ua)
+        // [255차 심화] 웹훅 트리거용 토큰 생성(인바운드 ingress URL 식별자). 생성 시 항상 발급(트리거 전환 즉시 사용).
+        $whTok = bin2hex(random_bytes(16));
+        $pdo->prepare("INSERT INTO journeys (tenant_id, name, description, trigger_type, trigger_config, nodes, edges, status, webhook_token, created_at, updated_at)
+            VALUES (:t, :name, :desc, :ttype, :tconf, :nodes, :edges, 'draft', :wt, :ca, :ua)
         ")->execute([
             ':t'=>$tenant, ':name'=>$b['name'] ?? '새 여정', ':desc'=>$b['description'] ?? '', ':ttype'=>$b['trigger_type'] ?? 'manual',
-            ':tconf'=>json_encode($b['trigger_config'] ?? []), ':nodes'=>json_encode($b['nodes'] ?? $defaultNodes), ':edges'=>json_encode($b['edges'] ?? $defaultEdges), ':ca'=>$now, ':ua'=>$now,
+            ':tconf'=>json_encode($b['trigger_config'] ?? []), ':nodes'=>json_encode($b['nodes'] ?? $defaultNodes), ':edges'=>json_encode($b['edges'] ?? $defaultEdges), ':wt'=>$whTok, ':ca'=>$now, ':ua'=>$now,
         ]);
-        return self::json($res, ['ok' => true, 'id' => (int)$pdo->lastInsertId()]);
+        return self::json($res, ['ok' => true, 'id' => (int)$pdo->lastInsertId(), 'webhook_token' => $whTok]);
     }
 
     /* ─── PUT /journey/journeys/{id} ─── 업데이트 ──────────── */
@@ -130,7 +135,13 @@ class JourneyBuilder
         if (isset($b['description']))    { $fields[] = "description=:desc"; $bind[':desc'] = $b['description']; }
         if (isset($b['nodes']))          { $fields[] = "nodes=:nodes"; $bind[':nodes'] = json_encode($b['nodes']); }
         if (isset($b['edges']))          { $fields[] = "edges=:edges"; $bind[':edges'] = json_encode($b['edges']); }
-        if (isset($b['trigger_type']))   { $fields[] = "trigger_type=:ttype"; $bind[':ttype'] = $b['trigger_type']; }
+        if (isset($b['trigger_type']))   { $fields[] = "trigger_type=:ttype"; $bind[':ttype'] = $b['trigger_type'];
+            // [255차 심화] 웹훅 트리거 전환 시 토큰 없으면 발급(기존 여정 호환).
+            if ($b['trigger_type'] === 'webhook') {
+                try { $cur = $pdo->prepare("SELECT webhook_token FROM journeys WHERE id=:id AND tenant_id=:t"); $cur->execute([':id'=>$id, ':t'=>$tenant]);
+                    if (trim((string)($cur->fetchColumn() ?: '')) === '') { $fields[] = "webhook_token=:wt"; $bind[':wt'] = bin2hex(random_bytes(16)); } } catch (\Throwable $e) {}
+            }
+        }
         if (isset($b['trigger_config'])) { $fields[] = "trigger_config=:tconf"; $bind[':tconf'] = json_encode($b['trigger_config']); }
         if (isset($b['status']))         { $fields[] = "status=:status"; $bind[':status'] = $b['status']; }
         $fields[] = "updated_at=:ua"; $bind[':ua'] = self::now();
@@ -435,6 +446,58 @@ class JourneyBuilder
                 return ['ok'=>true, 'status'=>'waiting', 'actions'=>$actions];
             }
 
+            // ── [255차 심화] wait: 이벤트/날짜 대기(시간 delay 와 별개·Braze "Wait for Trigger/Until Date" 정합) ──
+            //   mode=date: until 시각까지 대기. mode=event: event(purchase/email_open/email_click) 발생까지 대기, timeout 도래 시 'timeout' 분기.
+            if ($type === 'wait') {
+                $cfg  = (array)($node['config'] ?? []);
+                $mode = (string)($cfg['mode'] ?? 'date');
+                $cid  = (int)($enr['customer_id'] ?? 0);
+                $since = (string)($enr['entered_at'] ?? '');
+                if ($status === 'waiting') {
+                    if ($mode === 'event') {
+                        $ev = (string)($cfg['event'] ?? 'purchase');
+                        if ($cid > 0 && self::eventOccurred($pdo, $tenant, $cid, $ev, $since)) {
+                            self::logNode($pdo, $tenant, $enrollId, $jid, $nodeId, 'wait', 'event_occurred', ['event'=>$ev]);
+                            $status = 'active'; $enr['resume_at'] = null;
+                            $nodeId = self::nextNode($edges, $nodeId, 'occurred'); continue;
+                        }
+                        $until = (string)($enr['wait_until'] ?? '');
+                        if ($until !== '' && $until <= $now) { // 타임아웃 → timeout 분기
+                            self::logNode($pdo, $tenant, $enrollId, $jid, $nodeId, 'wait', 'event_timeout', ['event'=>$ev]);
+                            $status = 'active'; $enr['resume_at'] = null;
+                            $nodeId = self::nextNode($edges, $nodeId, 'timeout'); continue;
+                        }
+                        // 미발생·미타임아웃 → 다음 cron 재폴링(resume_at=now 유지, wait_until 보존)
+                        $pdo->prepare("UPDATE journey_enrollments SET current_node=:n,status='waiting',resume_at=:r,last_run_at=:lr WHERE id=:id AND tenant_id=:t")
+                            ->execute([':n'=>$nodeId, ':r'=>$now, ':lr'=>$now, ':id'=>$enrollId, ':t'=>$tenant]);
+                        return ['ok'=>true, 'status'=>'waiting', 'actions'=>$actions];
+                    }
+                    // date 모드 재개
+                    $resumeAt = (string)($enr['resume_at'] ?? '');
+                    if ($resumeAt !== '' && $resumeAt <= $now) {
+                        self::logNode($pdo, $tenant, $enrollId, $jid, $nodeId, 'wait', 'date_resumed', ['resumed_at'=>$now]);
+                        $status = 'active'; $enr['resume_at'] = null;
+                        $nodeId = self::nextNode($edges, $nodeId, null); continue;
+                    }
+                    return ['ok'=>true, 'status'=>'waiting', 'actions'=>$actions];
+                }
+                // 최초 진입 — 대기 설정
+                if ($mode === 'event') {
+                    $tv = max(1, (int)($cfg['timeout_value'] ?? 7)); $tu = (string)($cfg['timeout_unit'] ?? 'days');
+                    $deadline = gmdate('Y-m-d H:i:s', strtotime("+{$tv} {$tu}") ?: time());
+                    $pdo->prepare("UPDATE journey_enrollments SET current_node=:n,status='waiting',resume_at=:r,wait_until=:wu,last_run_at=:lr WHERE id=:id AND tenant_id=:t")
+                        ->execute([':n'=>$nodeId, ':r'=>$now, ':wu'=>$deadline, ':lr'=>$now, ':id'=>$enrollId, ':t'=>$tenant]);
+                    self::logNode($pdo, $tenant, $enrollId, $jid, $nodeId, 'wait', 'waiting', ['mode'=>'event', 'event'=>(string)($cfg['event'] ?? 'purchase'), 'timeout_at'=>$deadline]);
+                } else {
+                    $until = (string)($cfg['until'] ?? '');
+                    $resume = ($until !== '') ? $until : gmdate('Y-m-d H:i:s', strtotime('+1 day') ?: time());
+                    $pdo->prepare("UPDATE journey_enrollments SET current_node=:n,status='waiting',resume_at=:r,last_run_at=:lr WHERE id=:id AND tenant_id=:t")
+                        ->execute([':n'=>$nodeId, ':r'=>$resume, ':lr'=>$now, ':id'=>$enrollId, ':t'=>$tenant]);
+                    self::logNode($pdo, $tenant, $enrollId, $jid, $nodeId, 'wait', 'waiting', ['mode'=>'date', 'resume_at'=>$resume]);
+                }
+                return ['ok'=>true, 'status'=>'waiting', 'actions'=>$actions];
+            }
+
             // ── condition: 분기 ──
             if ($type === 'condition') {
                 $branch = self::evalCondition($pdo, $tenant, $enr, $node);
@@ -470,6 +533,7 @@ class JourneyBuilder
                 case 'email': $a = self::sendEmailNode($pdo, $tenant, $enr, $node); break;
                 case 'kakao': $a = self::sendKakaoNode($pdo, $tenant, $enr, $node); break;
                 case 'sms':   $a = self::sendSmsNode($pdo, $tenant, $enr, $node); break;
+                case 'webhook': $a = self::webhookNode($pdo, $tenant, $enr, $node); break; // [255차 심화] 외부 HTTP 액션
                 default:      $a = ['action' => 'processed']; break;
             }
             self::logNode($pdo, $tenant, $enrollId, $jid, $nodeId, $type, (string)($a['action'] ?? 'processed'), $a);
@@ -575,6 +639,90 @@ class JourneyBuilder
             $s->execute([':id'=>$cid, ':t'=>$tenant]);
             return $s->fetch(\PDO::FETCH_ASSOC) ?: [];
         } catch (\Throwable $e) { return []; }
+    }
+
+    /** [255차 심화] wait(event) — 지정 이벤트가 여정 진입(entered_at) 이후 발생했는지. purchase/email_open/email_click. */
+    private static function eventOccurred(\PDO $pdo, string $tenant, int $cid, string $event, string $since): bool
+    {
+        if ($cid <= 0) return false;
+        $since = $since !== '' ? $since : '1970-01-01 00:00:00';
+        try {
+            if ($event === 'purchase') {
+                $s = $pdo->prepare("SELECT 1 FROM crm_activities WHERE tenant_id=:t AND customer_id=:c AND type='purchase' AND created_at > :s LIMIT 1");
+                $s->execute([':t'=>$tenant, ':c'=>$cid, ':s'=>$since]); return (bool)$s->fetchColumn();
+            }
+            if ($event === 'email_open' || $event === 'email_click') {
+                $col = $event === 'email_open' ? 'opened_at' : 'clicked_at';
+                $s = $pdo->prepare("SELECT 1 FROM email_sends WHERE tenant_id=:t AND customer_id=:c AND {$col} IS NOT NULL AND {$col} <> '' AND {$col} > :s LIMIT 1");
+                $s->execute([':t'=>$tenant, ':c'=>$cid, ':s'=>$since]); return (bool)$s->fetchColumn();
+            }
+        } catch (\Throwable $e) {}
+        return false;
+    }
+
+    /** [255차 심화] webhook 액션 노드 — 외부 HTTP 호출(Braze Webhook action 정합). config: {url, method, headers, body}. */
+    private static function webhookNode(\PDO $pdo, string $tenant, array $enr, array $node): array
+    {
+        $cfg = (array)($node['config'] ?? []);
+        $url = trim((string)($cfg['url'] ?? ''));
+        if ($url === '' || !preg_match('#^https://#i', $url)) return ['action' => 'skipped', 'reason' => 'no_url']; // https 만(SSRF/평문 차단)
+        $c = self::contact($pdo, $tenant, (int)($enr['customer_id'] ?? 0));
+        // 머지 컨텍스트(PII 최소 — 이름/이메일/전화/매출). body 템플릿 {{var}} 치환.
+        $ctx = ['name'=>(string)($c['name'] ?? ''), 'email'=>(string)($c['email'] ?? ''), 'phone'=>(string)($c['phone'] ?? ''),
+                'customer_id'=>(int)($enr['customer_id'] ?? 0), 'journey_id'=>(int)($enr['journey_id'] ?? 0), 'revenue'=>(float)($enr['revenue'] ?? 0)];
+        $method = strtoupper((string)($cfg['method'] ?? 'POST'));
+        $bodyTpl = $cfg['body'] ?? null;
+        if (is_string($bodyTpl) && $bodyTpl !== '') {
+            $payload = $bodyTpl;
+            foreach ($ctx as $k=>$v) { $payload = str_replace('{{'.$k.'}}', (string)$v, $payload); }
+        } else { $payload = json_encode($ctx, JSON_UNESCAPED_UNICODE); }
+        $headers = ['Content-Type: application/json'];
+        foreach ((array)($cfg['headers'] ?? []) as $hk=>$hv) { $headers[] = $hk.': '.$hv; }
+        try {
+            $ch = curl_init($url);
+            curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER=>true, CURLOPT_CUSTOMREQUEST=>($method==='GET'?'GET':'POST'),
+                CURLOPT_POSTFIELDS=>($method==='GET'?null:$payload), CURLOPT_HTTPHEADER=>$headers, CURLOPT_TIMEOUT=>10, CURLOPT_SSL_VERIFYPEER=>true]);
+            curl_exec($ch); $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE); $err = curl_error($ch); curl_close($ch);
+            if ($err) return ['action'=>'webhook_failed', 'error'=>$err];
+            return ['action'=>($code>=200 && $code<300)?'webhook_sent':'webhook_failed', 'code'=>$code];
+        } catch (\Throwable $e) { return ['action'=>'webhook_failed', 'error'=>$e->getMessage()]; }
+    }
+
+    /**
+     * [255차 심화] POST /journey/webhook/{token} — 인바운드 웹훅 트리거(외부 이벤트→여정 진입, Braze API-trigger 정합).
+     *   무인증(token=시크릿). token→소유 테넌트+여정 역매핑. 고객은 payload(customer_id/email/phone)로 **기존 고객만** 매칭(오염 방지).
+     *   body: {customer_id?|email?|phone?, revenue?}. 미등록 고객은 enrolled=0(정직·미생성).
+     */
+    public static function webhookIngress(Request $req, Response $res, array $args): Response
+    {
+        self::ensureTables();
+        $pdo = self::db();
+        $token = (string)($args['token'] ?? '');
+        if ($token === '' || strlen($token) < 16) return self::json($res, ['ok'=>false, 'error'=>'invalid token'], 400);
+        try {
+            $j = $pdo->prepare("SELECT * FROM journeys WHERE webhook_token=:tk AND trigger_type='webhook' AND status='active' LIMIT 1");
+            $j->execute([':tk'=>$token]);
+            $journey = $j->fetch(\PDO::FETCH_ASSOC);
+        } catch (\Throwable $e) { $journey = null; }
+        if (!$journey) return self::json($res, ['ok'=>false, 'error'=>'no active webhook journey'], 404);
+        $tenant = (string)$journey['tenant_id'];
+        $b = (array)($req->getParsedBody() ?? []);
+        // 기존 고객만 매칭(미생성=오염 차단).
+        $cid = (int)($b['customer_id'] ?? 0);
+        if ($cid <= 0) {
+            $email = strtolower(trim((string)($b['email'] ?? '')));
+            $phone = preg_replace('/[^0-9]/', '', (string)($b['phone'] ?? ''));
+            try {
+                if ($email !== '') { $s = $pdo->prepare("SELECT id FROM crm_customers WHERE tenant_id=:t AND LOWER(email)=:e LIMIT 1"); $s->execute([':t'=>$tenant, ':e'=>$email]); $cid = (int)($s->fetchColumn() ?: 0); }
+                if ($cid <= 0 && $phone !== '') { $s = $pdo->prepare("SELECT id FROM crm_customers WHERE tenant_id=:t AND REPLACE(REPLACE(phone,'-',''),' ','')=:p LIMIT 1"); $s->execute([':t'=>$tenant, ':p'=>$phone]); $cid = (int)($s->fetchColumn() ?: 0); }
+            } catch (\Throwable $e) {}
+        } else {
+            // customer_id 도 테넌트 소유 확인(교차테넌트 차단).
+            try { $s = $pdo->prepare("SELECT id FROM crm_customers WHERE id=:id AND tenant_id=:t LIMIT 1"); $s->execute([':id'=>$cid, ':t'=>$tenant]); if (!$s->fetchColumn()) $cid = 0; } catch (\Throwable $e) { $cid = 0; }
+        }
+        if ($cid <= 0) return self::json($res, ['ok'=>true, 'enrolled'=>0, 'note'=>'no matching customer']);
+        $enrolled = self::enrollOne($pdo, $tenant, $journey, $cid, ['revenue'=>(float)($b['revenue'] ?? 0)]) ? 1 : 0;
+        return self::json($res, ['ok'=>true, 'enrolled'=>$enrolled]);
     }
 
     private static function sendEmailNode(\PDO $pdo, string $tenant, array $enr, array $node): array

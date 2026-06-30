@@ -160,6 +160,7 @@ return function (App $app): void {
         'POST /journey/journeys/{id}/launch'   => 'Genie\\Handlers\\JourneyBuilder::launchJourney',
         'GET /journey/journeys/{id}/stats'     => 'Genie\\Handlers\\JourneyBuilder::journeyStats',
         'GET /journey/templates'               => 'Genie\\Handlers\\JourneyBuilder::listTemplates',
+        'POST /journey/webhook/{token}'        => 'Genie\\Handlers\\JourneyBuilder::webhookIngress', // [255차 심화] 인바운드 웹훅 트리거(무인증·token)
 
         // ── 수요예측 서버측 실모델 — 206차 #5(Holt-Winters/Holt/이동평균) ────
         'GET /demand/summary'     => 'Genie\\Handlers\\DemandForecast::summary',
@@ -2666,6 +2667,7 @@ return function (App $app): void {
     $register('POST',   '/journey/journeys/{id}/launch');
     $register('GET',    '/journey/journeys/{id}/stats');
     $register('GET',    '/journey/templates');
+    $register('POST',   '/journey/webhook/{token}'); // [255차 심화] 인바운드 웹훅 트리거
     // 수요예측 서버측 실모델 — 206차 #5
     $register('GET',    '/demand/summary');
     $register('GET',    '/demand/forecast');

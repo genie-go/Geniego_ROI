@@ -12,8 +12,10 @@ const NODE_TYPES = {
   kakao:     { label: '카카오',     icon: '💬', color: '#f59e0b' },
   sms:       { label: 'SMS',        icon: '📱', color: '#22c55e' },
   delay:     { label: '대기',       icon: '⏱️', color: '#94a3b8' },
+  wait:      { label: '이벤트/날짜 대기', icon: '⏳', color: '#0ea5e9', branches: ['occurred', 'timeout'] }, // [255차 심화] 이벤트 발생/날짜까지 대기
   condition: { label: '조건 분기',  icon: '🔀', color: '#a855f7', branches: ['true', 'false'] },
   split:     { label: 'A/B 스플릿', icon: '🧪', color: '#06b6d4', branches: ['a', 'b'] },
+  webhook:   { label: '웹훅(외부호출)', icon: '🔗', color: '#0891b2' }, // [255차 심화] 외부 HTTP 액션
   goal:      { label: '목표(전환)', icon: '🎯', color: '#ef4444' },
 };
 const NODE_W = 150, NODE_H = 56;
@@ -149,7 +151,7 @@ export default function JourneyCanvas({ nodes: initNodes, edges: initEdges, onSa
             <Lbl t="이름"><input value={selNode.label || ''} onChange={e => updateNode(selNode.id, { label: e.target.value })} style={inp} /></Lbl>
             {selNode.type === 'trigger' && (
               <Lbl t="트리거 유형"><select value={selNode.config?.type || 'signup'} onChange={e => updateConfig(selNode.id, 'type', e.target.value)} style={inp}>
-                {[['signup', '회원가입'], ['purchase', '구매 완료'], ['abandon', '장바구니 이탈'], ['churn', '이탈 위험'], ['segment', '세그먼트 진입'], ['manual', '수동']].map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                {[['signup', '회원가입'], ['purchase', '구매 완료'], ['abandon', '장바구니 이탈'], ['churn', '이탈 위험'], ['segment', '세그먼트 진입'], ['webhook', '웹훅(외부 API 진입)'], ['manual', '수동']].map(([v, l]) => <option key={v} value={v}>{l}</option>)}
               </select></Lbl>
             )}
             {selNode.type === 'email' && (<>
@@ -178,6 +180,25 @@ export default function JourneyCanvas({ nodes: initNodes, edges: initEdges, onSa
             {selNode.type === 'split' && (<>
               <Lbl t="A 그룹 비율(%)"><input type="number" min="0" max="100" value={selNode.config?.weight_a ?? 50} onChange={e => updateConfig(selNode.id, 'weight_a', Number(e.target.value))} style={inp} /></Lbl>
               <div style={{ fontSize: 10.5, color: '#94a3b8', marginTop: 2 }}>A·B 두 분기로 연결(나머지 {100 - (selNode.config?.weight_a ?? 50)}%는 B). 성과 비교 후 승자 결정.</div>
+            </>)}
+            {selNode.type === 'wait' && (<>
+              <Lbl t="대기 유형"><select value={selNode.config?.mode || 'date'} onChange={e => updateConfig(selNode.id, 'mode', e.target.value)} style={inp}>{[['date', '날짜까지 대기'], ['event', '이벤트 발생까지 대기']].map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></Lbl>
+              {(selNode.config?.mode || 'date') === 'date'
+                ? <Lbl t="대기 종료 일시(YYYY-MM-DD HH:MM)"><input value={selNode.config?.until || ''} onChange={e => updateConfig(selNode.id, 'until', e.target.value)} placeholder="2026-07-01 09:00" style={inp} /></Lbl>
+                : (<>
+                    <Lbl t="대기 이벤트"><select value={selNode.config?.event || 'purchase'} onChange={e => updateConfig(selNode.id, 'event', e.target.value)} style={inp}>{[['purchase', '구매'], ['email_open', '이메일 열람'], ['email_click', '이메일 클릭']].map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></Lbl>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <Lbl t="타임아웃 값"><input type="number" min="1" value={selNode.config?.timeout_value ?? 7} onChange={e => updateConfig(selNode.id, 'timeout_value', Number(e.target.value))} style={inp} /></Lbl>
+                      <Lbl t="단위"><select value={selNode.config?.timeout_unit || 'days'} onChange={e => updateConfig(selNode.id, 'timeout_unit', e.target.value)} style={inp}>{[['hours', '시간'], ['days', '일']].map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></Lbl>
+                    </div>
+                    <div style={{ fontSize: 10.5, color: '#94a3b8', marginTop: 2 }}>occurred(이벤트 발생)·timeout(미발생) 두 분기로 연결하세요.</div>
+                  </>)}
+            </>)}
+            {selNode.type === 'webhook' && (<>
+              <Lbl t="호출 URL(https)"><input value={selNode.config?.url || ''} onChange={e => updateConfig(selNode.id, 'url', e.target.value)} placeholder="https://api.example.com/hook" style={inp} /></Lbl>
+              <Lbl t="메서드"><select value={selNode.config?.method || 'POST'} onChange={e => updateConfig(selNode.id, 'method', e.target.value)} style={inp}>{['POST', 'GET'].map(v => <option key={v} value={v}>{v}</option>)}</select></Lbl>
+              <Lbl t="본문(JSON · {{name}}/{{email}}/{{phone}}/{{revenue}} 치환)"><textarea value={selNode.config?.body || ''} onChange={e => updateConfig(selNode.id, 'body', e.target.value)} rows={3} style={{ ...inp, resize: 'vertical' }} /></Lbl>
+              <div style={{ fontSize: 10.5, color: '#94a3b8', marginTop: 2 }}>고객 컨텍스트를 외부 시스템(슬랙·CRM·웨어하우스)으로 전송합니다. 미입력 시 전체 컨텍스트 JSON 전송.</div>
             </>)}
             {selNode.type === 'goal' && (<div style={{ fontSize: 11, color: '#64748b', lineHeight: 1.6 }}>전환 목표 노드. 고객이 이 노드에 도달하면 여정 전환으로 집계됩니다(분석 탭 전환율).</div>)}
             {/* 연결 목록 */}
