@@ -868,6 +868,10 @@ return function (App $app): void {
         // [어트리뷰션 보강] 쿠키리스 결정론적 ID-resolution(cross-device 식별 그래프) 커버리지
         'GET /v424/attribution/identity-coverage'     => 'Genie\\Handlers\\Attribution::identityCoverage',
         'GET /api/v424/attribution/identity-coverage' => 'Genie\\Handlers\\Attribution::identityCoverage',
+        'GET /v424/attribution/probabilistic'         => 'Genie\\Handlers\\Attribution::probabilistic', // [254차 확률적 cross-device]
+        'GET /api/v424/attribution/probabilistic'     => 'Genie\\Handlers\\Attribution::probabilistic',
+        'POST /v424/attribution/probabilistic'        => 'Genie\\Handlers\\Attribution::probabilistic',
+        'POST /api/v424/attribution/probabilistic'    => 'Genie\\Handlers\\Attribution::probabilistic',
         // [R-P3-6] 컴플라이언스 준비도(SOC2/ISO 매핑) + 감사로그 증적 내보내기.
         'GET /v424/compliance/posture'       => 'Genie\\Handlers\\Compliance::posture',
         'GET /api/v424/compliance/posture'   => 'Genie\\Handlers\\Compliance::posture',
@@ -2974,6 +2978,8 @@ return function (App $app): void {
     $register('GET', '/v424/attribution/incrementality'); // [현 차수 P4]
     $register('GET', '/api/v424/attribution/incrementality');
     $register('GET', '/v424/attribution/identity-coverage'); $register('GET', '/api/v424/attribution/identity-coverage');
+    $register('GET', '/v424/attribution/probabilistic'); $register('GET', '/api/v424/attribution/probabilistic');
+    $register('POST', '/v424/attribution/probabilistic'); $register('POST', '/api/v424/attribution/probabilistic');
     $register('POST', '/v424/attribution/lift-test');
     $register('POST', '/api/v424/attribution/lift-test');
     $register('GET', '/v424/attribution/experiments/geo-readiness');

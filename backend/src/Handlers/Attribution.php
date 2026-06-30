@@ -141,6 +141,14 @@ final class Attribution {
                     tenant_id TEXT NOT NULL, identity_hash TEXT NOT NULL, session_id TEXT NOT NULL, first_seen TEXT, last_seen TEXT)");
                 try { $pdo->exec("CREATE UNIQUE INDEX IF NOT EXISTS uq_idlink ON attribution_identity_link(tenant_id,identity_hash,session_id)"); } catch (\Throwable $e) {}
             }
+            // [254차 초고도화] 확률적 cross-device — confidence(결정론=1.0·확률=0.5) + 디바이스 시그니처(ip+ua 해시, PII미저장).
+            try { $pdo->exec("ALTER TABLE attribution_identity_link ADD COLUMN confidence " . ($isMy ? "DOUBLE" : "REAL") . " DEFAULT 1.0"); } catch (\Throwable $e) {}
+            if ($isMy) {
+                try { $pdo->exec("CREATE TABLE IF NOT EXISTS attribution_device_sig (tenant_id VARCHAR(100) NOT NULL, sig_hash VARCHAR(64) NOT NULL, session_id VARCHAR(190) NOT NULL, seen_at VARCHAR(32), UNIQUE KEY uq_devsig (tenant_id, sig_hash, session_id), KEY idx_devsig (tenant_id, sig_hash)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"); } catch (\Throwable $e) {}
+            } else {
+                try { $pdo->exec("CREATE TABLE IF NOT EXISTS attribution_device_sig (tenant_id TEXT NOT NULL, sig_hash TEXT NOT NULL, session_id TEXT NOT NULL, seen_at TEXT)"); } catch (\Throwable $e) {}
+                try { $pdo->exec("CREATE UNIQUE INDEX IF NOT EXISTS uq_devsig ON attribution_device_sig(tenant_id,sig_hash,session_id)"); } catch (\Throwable $e) {}
+            }
         } catch (\Throwable $e) {}
     }
 
@@ -158,16 +166,80 @@ final class Attribution {
         } catch (\Throwable $e) { return false; }
     }
 
-    /** 식별자에 연결된 전 세션(cross-device) + own:<hash> 의사세션. */
-    public static function sessionsForIdentity(\PDO $pdo, string $tenant, string $idHash): array {
+    /** 식별자에 연결된 전 세션(cross-device) + own:<hash> 의사세션.
+     *   [254차] $includeProb=false(기본)=결정론(confidence>=1.0)만 → 회귀0. true=확률링크(0.5+) 포함(opt-in). */
+    public static function sessionsForIdentity(\PDO $pdo, string $tenant, string $idHash, bool $includeProb = false): array {
         $out = ['own:' . $idHash];
         try {
             self::ensureIdentityTable($pdo);
-            $st = $pdo->prepare("SELECT session_id FROM attribution_identity_link WHERE tenant_id=? AND identity_hash=?");
-            $st->execute([$tenant, $idHash]);
+            $minConf = $includeProb ? 0.4 : 0.999;
+            $st = $pdo->prepare("SELECT session_id FROM attribution_identity_link WHERE tenant_id=? AND identity_hash=? AND COALESCE(confidence,1.0) >= ?");
+            $st->execute([$tenant, $idHash, $minConf]);
             foreach ($st->fetchAll(\PDO::FETCH_COLUMN) as $s) { $s = (string)$s; if ($s !== '') $out[] = $s; }
         } catch (\Throwable $e) {}
         return array_values(array_unique($out));
+    }
+
+    /** [254차 초고도화] 확률적 링크 upsert(confidence 0.5). 이미 결정론(1.0) 링크면 다운그레이드 안 함. */
+    public static function linkProbabilistic(\PDO $pdo, string $tenant, string $idHash, string $sessionId, float $conf = 0.5): bool {
+        if ($idHash === '' || $sessionId === '' || strncmp($sessionId, 'own:', 4) === 0) return false;
+        self::ensureIdentityTable($pdo);
+        $now = gmdate('Y-m-d H:i:s'); $isMy = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql';
+        try {
+            $sql = $isMy
+                ? "INSERT INTO attribution_identity_link(tenant_id,identity_hash,session_id,first_seen,last_seen,confidence) VALUES(?,?,?,?,?,?) ON DUPLICATE KEY UPDATE last_seen=VALUES(last_seen)"
+                : "INSERT INTO attribution_identity_link(tenant_id,identity_hash,session_id,first_seen,last_seen,confidence) VALUES(?,?,?,?,?,?) ON CONFLICT(tenant_id,identity_hash,session_id) DO UPDATE SET last_seen=excluded.last_seen";
+            $pdo->prepare($sql)->execute([$tenant, $idHash, $sessionId, $now, $now, $conf]);
+            return true;
+        } catch (\Throwable $e) { return false; }
+    }
+
+    /** [254차 초고도화] 디바이스 시그니처 기록 + 확률적 스티칭. ip+ua 해시 동일 + window 내 known-identity 세션과 매칭 시
+     *   익명세션을 그 식별자에 확률링크(confidence 0.5). 고특이도(ip AND ua)·PII미저장(해시만)·best-effort. */
+    public static function recordDeviceSigAndStitch(\PDO $pdo, string $tenant, string $sessionId, string $ip, string $ua): void {
+        if ($sessionId === '' || strncmp($sessionId, 'own:', 4) === 0) return;
+        $ip = trim($ip); $ua = trim($ua);
+        if ($ip === '' || $ua === '') return;
+        try {
+            self::ensureIdentityTable($pdo);
+            $sig = hash('sha256', $tenant . '|' . $ip . '|' . substr($ua, 0, 200));
+            $now = gmdate('Y-m-d H:i:s'); $isMy = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql';
+            $sql = $isMy
+                ? "INSERT INTO attribution_device_sig(tenant_id,sig_hash,session_id,seen_at) VALUES(?,?,?,?) ON DUPLICATE KEY UPDATE seen_at=VALUES(seen_at)"
+                : "INSERT INTO attribution_device_sig(tenant_id,sig_hash,session_id,seen_at) VALUES(?,?,?,?) ON CONFLICT(tenant_id,sig_hash,session_id) DO UPDATE SET seen_at=excluded.seen_at";
+            $pdo->prepare($sql)->execute([$tenant, $sig, $sessionId, $now]);
+            // 이 세션이 이미 결정론 식별자에 링크돼 있으면 스티칭 불요.
+            $chk = $pdo->prepare("SELECT 1 FROM attribution_identity_link WHERE tenant_id=? AND session_id=? AND COALESCE(confidence,1.0) >= 0.999 LIMIT 1");
+            $chk->execute([$tenant, $sessionId]); if ($chk->fetchColumn()) return;
+            // 같은 시그니처의 다른 세션 중 known-identity(결정론)를 14일 내에서 찾아 확률링크.
+            $since = gmdate('Y-m-d H:i:s', time() - 14 * 86400);
+            $q = $pdo->prepare("SELECT DISTINCT l.identity_hash FROM attribution_device_sig d
+                JOIN attribution_identity_link l ON l.tenant_id=d.tenant_id AND l.session_id=d.session_id AND COALESCE(l.confidence,1.0) >= 0.999
+                WHERE d.tenant_id=? AND d.sig_hash=? AND d.session_id<>? AND d.seen_at >= ? LIMIT 3");
+            $q->execute([$tenant, $sig, $sessionId, $since]);
+            foreach ($q->fetchAll(\PDO::FETCH_COLUMN) as $idH) { if ((string)$idH !== '') self::linkProbabilistic($pdo, $tenant, (string)$idH, $sessionId, 0.5); }
+        } catch (\Throwable $e) {}
+    }
+
+    /** GET/POST /v424/attribution/probabilistic — 확률적 cross-device 스티칭 opt-in 설정 + 커버리지. */
+    public static function probabilistic(Request $req, Response $res): Response {
+        $t = self::tenantId($req); $pdo = Db::pdo(); self::ensureIdentityTable($pdo);
+        $key = 'attribution_prob_stitch@' . $t;
+        if (in_array(strtoupper($req->getMethod()), ['POST', 'PUT'], true)) {
+            $b = (array)($req->getParsedBody() ?? []); if (empty($b)) { $d = json_decode((string)$req->getBody(), true); if (is_array($d)) $b = $d; }
+            $en = !empty($b['enabled']) ? '1' : '0';
+            try {
+                $isMy = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql';
+                $sql = $isMy ? "INSERT INTO app_setting(skey,svalue,updated_at) VALUES(?,?,?) ON DUPLICATE KEY UPDATE svalue=VALUES(svalue),updated_at=VALUES(updated_at)" : "INSERT INTO app_setting(skey,svalue,updated_at) VALUES(?,?,?) ON CONFLICT(skey) DO UPDATE SET svalue=excluded.svalue,updated_at=excluded.updated_at";
+                $pdo->prepare($sql)->execute([$key, $en, gmdate('c')]);
+            } catch (\Throwable $e) {}
+            return TemplateResponder::respond($res, ['ok' => true, 'enabled' => $en === '1']);
+        }
+        $en = false; $links = 0; $ids = 0;
+        try { $g = $pdo->prepare("SELECT svalue FROM app_setting WHERE skey=? LIMIT 1"); $g->execute([$key]); $en = ((string)($g->fetchColumn() ?: '0')) === '1'; } catch (\Throwable $e) {}
+        try { $st = $pdo->prepare("SELECT COUNT(*) c, COUNT(DISTINCT identity_hash) i FROM attribution_identity_link WHERE tenant_id=? AND COALESCE(confidence,1.0) < 0.999"); $st->execute([$t]); $r = $st->fetch(\PDO::FETCH_ASSOC) ?: []; $links = (int)($r['c'] ?? 0); $ids = (int)($r['i'] ?? 0); } catch (\Throwable $e) {}
+        return TemplateResponder::respond($res, ['ok' => true, 'enabled' => $en, 'probabilistic_links' => $links, 'probabilistic_identities' => $ids,
+            'note' => '확률적 cross-device 스티칭(ip+ua 디바이스 시그니처·14일·confidence 0.5·PII미저장). 활성화 시 익명 기기 여정도 동일인으로 어트리뷰션 크레딧.']);
     }
 
     /** GET /v424/attribution/identity-coverage — cross-device 식별 그래프 커버리지(결정론 ID-resolution). */
@@ -211,7 +283,10 @@ final class Attribution {
         $ts = $orderAt !== '' ? strtotime($orderAt) : time();
         if ($ts === false) $ts = time();
         $cutoff = gmdate('Y-m-d H:i:s', $ts - max(1, $windowDays) * 86400);
-        $sessions = self::sessionsForIdentity($pdo, $tenant, $id); // own:<hash> + 링크된 cross-device 세션 전부
+        // [254차 초고도화] 확률적 cross-device 포함 여부 — app_setting attribution_probabilistic_stitch(테넌트 격리·기본 off=회귀0).
+        $incProb = false;
+        try { $g = $pdo->prepare("SELECT svalue FROM app_setting WHERE skey=? LIMIT 1"); $g->execute(['attribution_prob_stitch@' . $tenant]); $incProb = ((string)($g->fetchColumn() ?: '0')) === '1'; } catch (\Throwable $e) {}
+        $sessions = self::sessionsForIdentity($pdo, $tenant, $id, $incProb); // own:<hash> + 결정론(+opt-in 시 확률) cross-device 세션
         $total = 0;
         try {
             $up = $pdo->prepare(
@@ -260,6 +335,14 @@ final class Attribution {
         try {
             $idH = self::identityHash($body['email'] ?? $body['customer_email'] ?? null, $body['phone'] ?? $body['customer_phone'] ?? null);
             if ($idH !== null && !empty($body['session_id'])) self::linkIdentity($pdo, $tenant, $idH, (string)$body['session_id']);
+            // [254차 초고도화] 확률적 cross-device — 디바이스 시그니처(ip+ua 해시) 기록 + 익명세션 고특이도 스티칭(PII미저장).
+            if (!empty($body['session_id'])) {
+                $srv = $request->getServerParams();
+                $ip = (string)($request->getHeaderLine('X-Forwarded-For') ?: ($srv['REMOTE_ADDR'] ?? ''));
+                if (strpos($ip, ',') !== false) $ip = trim(explode(',', $ip)[0]);
+                $ua = (string)$request->getHeaderLine('User-Agent');
+                self::recordDeviceSigAndStitch($pdo, $tenant, (string)$body['session_id'], $ip, $ua);
+            }
         } catch (\Throwable $e) { /* 링크 실패는 터치 적재에 무영향 */ }
         return TemplateResponder::respond($response, ['ok' => true, 'touch_id' => (int)$pdo->lastInsertId()]);
     }
