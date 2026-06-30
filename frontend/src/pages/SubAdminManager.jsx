@@ -196,9 +196,12 @@ export default function SubAdminManager() {
           <span style={{ fontSize: 12, color: "var(--text-3)" }}>관리자 프로필 사진 (선택) — 클릭하여 등록</span>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 12 }}>
-          <div><div style={lblS}>이메일(로그인 ID)</div><input style={input} type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="sub-admin@company.com" /></div>
+          <div><div style={lblS}>이메일(로그인 ID) · @ociell.com 만 허용</div><input style={input} type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@ociell.com" /></div>
           <div><div style={lblS}>이름</div><input style={input} type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="홍길동" /></div>
           <div><div style={lblS}>초기 비밀번호</div><input style={input} type="text" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="8자+ 영문 대/소문자·숫자·특수문자 3종" /></div>
+        </div>
+        <div style={{ fontSize: 11, color: "var(--text-3)", marginTop: -4, marginBottom: 12, lineHeight: 1.6 }}>
+          💡 <b>@ociell.com</b> 도메인 이메일만 하위 관리자로 등록할 수 있습니다. 이미 운영/데모 회원으로 가입된 이메일이면 그 회원을 <b>하위 관리자로 전환</b>하며, 이때 비밀번호를 비워두면 <b>기존 회원 비밀번호가 그대로 유지</b>됩니다. (신규 발급은 비밀번호 필수)
         </div>
         <div style={lblS}>부여할 메뉴 권한 ({Object.keys(menus).length}개 선택) · 메뉴별 열람/수정 선택 · 🔧 관리자 시스템 메뉴 포함</div>
         <MenuTree selected={menus} setter={setMenus} />

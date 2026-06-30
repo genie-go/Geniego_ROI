@@ -1286,19 +1286,68 @@ final class UserAuth
         $menus = self::decodeAdminMenus($body['menus'] ?? $body['admin_menus'] ?? []);
 
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) return self::json($res, ['ok' => false, 'error' => '올바른 이메일 형식이 아닙니다.'], 422);
-        if (($pwErr = self::passwordPolicyError($password)) !== null) return self::json($res, ['ok' => false, 'error' => $pwErr], 422);
+        // [현 차수] 하위 관리자 도메인 제한 — 회사 이메일 도메인만 허용(승격·신규 발급 공통).
+        //   ★허용 도메인을 늘리려면 아래 배열에 'example.com' 형태로 추가하면 된다.
+        $allowedSubAdminDomains = ['ociell.com'];
+        $emailDomain = strtolower(substr((string)strrchr($email, '@'), 1));
+        if (!in_array($emailDomain, $allowedSubAdminDomains, true)) {
+            return self::json($res, ['ok' => false, 'error' => '하위 관리자는 회사 이메일(@' . implode(', @', $allowedSubAdminDomains) . ') 계정만 등록할 수 있습니다.'], 422);
+        }
         if ($name === '') return self::json($res, ['ok' => false, 'error' => '이름을 입력해 주세요.'], 422);
         if (count($menus) < 1) return self::json($res, ['ok' => false, 'error' => '부여할 메뉴를 1개 이상 선택해 주세요.'], 422);
 
-        $chk = $pdo->prepare('SELECT id FROM app_user WHERE LOWER(email) = ?');
-        $chk->execute([$email]);
-        if ($chk->fetchColumn()) return self::json($res, ['ok' => false, 'error' => '이미 가입된 이메일입니다.'], 409);
-
         $now = self::now();
-        $hashed = password_hash($password, PASSWORD_DEFAULT);
         $masterId = (int)($caller['id'] ?? 0);
         $tenant = self::callerTenant($caller);
         $menuJson = json_encode((object)$menus, JSON_UNESCAPED_UNICODE); // [231차 #4] {경로:level} 맵 보존
+        $photo = (string)($body['photo'] ?? '');
+
+        // [현 차수] 이미 가입된 회원(운영/데모)도 하위 관리자로 '승격' 지원.
+        //   기존엔 이메일 중복이면 무조건 거부(409)했으나, 이 엔드포인트는 최고관리자(master)만 호출 가능 +
+        //   관리자 접속키 검증의 이중 게이트가 걸려 있어, 이미 존재하는 일반 회원을 그 자리에서 하위 관리자로
+        //   전환(promote)한다. 로그인은 이메일 단일 키(WHERE LOWER(email)=?)이므로 신규 행을 또 만들지 않고
+        //   기존 행을 admin/sub 로 UPDATE 하는 것이 정합적이다.
+        //   ★단, 이미 관리자(최고/하위) 계정은 권한 탈취·자기 강등 방지를 위해 승격 대상에서 제외한다.
+        $chk = $pdo->prepare('SELECT id, plan, plans, admin_level FROM app_user WHERE LOWER(email) = ?');
+        $chk->execute([$email]);
+        $existing = $chk->fetch(\PDO::FETCH_ASSOC);
+
+        if ($existing) {
+            $exPlan = strtolower((string)($existing['plans'] ?? $existing['plan'] ?? ''));
+            if ($exPlan === 'admin' || ($existing['admin_level'] ?? '') !== '') {
+                return self::json($res, ['ok' => false, 'error' => '이미 관리자 계정입니다. 일반 회원만 하위 관리자로 전환할 수 있습니다.'], 409);
+            }
+            $exId = (int)$existing['id'];
+            // 비밀번호: 입력 시 정책검증 후 재설정(password_hashs 무효화로 stale 해시 차단), 미입력 시 기존 회원 비번 유지.
+            $resetPw = null;
+            if ($password !== '') {
+                if (($pwErr = self::passwordPolicyError($password)) !== null) return self::json($res, ['ok' => false, 'error' => $pwErr], 422);
+                $resetPw = password_hash($password, PASSWORD_DEFAULT);
+            }
+            try {
+                $sql  = "UPDATE app_user SET plan='admin', plans='admin', admin_level='sub', parent_user_id=?, admin_menus=?, is_active=1, tenant_id=?, name=?";
+                $vals = [$masterId, $menuJson, $tenant, $name];
+                if ($resetPw !== null) {
+                    $sql .= ", password_hash=?"; $vals[] = $resetPw;
+                    try { $pdo->prepare('UPDATE app_user SET password_hashs=NULL WHERE id=?')->execute([$exId]); } catch (\Throwable $e) {}
+                }
+                $sql .= " WHERE id=?"; $vals[] = $exId;
+                $pdo->prepare($sql)->execute($vals);
+            } catch (\Throwable $e) {
+                return self::json($res, ['ok' => false, 'error' => '하위 관리자 전환 오류: ' . $e->getMessage()], 500);
+            }
+            if ($photo !== '') { try { $pdo->prepare("UPDATE app_user SET photo=? WHERE id=?")->execute([$photo, $exId]); } catch (\Throwable $e) {} }
+            self::audit($req, 'sub_admin_promote', "기존 회원 → 하위 관리자 전환: {$email}", 'high', $caller);
+            return self::json($res, [
+                'ok' => true, 'id' => $exId, 'email' => $email, 'promoted' => true,
+                'message' => '기존 가입 회원을 하위 관리자로 전환했습니다. 최고관리자 접속코드 + '
+                    . ($resetPw !== null ? '새로 설정한' : '기존 회원') . ' 비밀번호로 로그인할 수 있습니다.',
+            ]);
+        }
+
+        // ── 신규 발급(기존 경로) — 신규 계정은 비밀번호 필수 ───────────────────────
+        if (($pwErr = self::passwordPolicyError($password)) !== null) return self::json($res, ['ok' => false, 'error' => $pwErr], 422);
+        $hashed = password_hash($password, PASSWORD_DEFAULT);
         try {
             $pdo->prepare(
                 "INSERT INTO app_user(email,password_hash,name,plan,plans,company,is_active,created_at,tenant_id,parent_user_id,team_role,admin_level,admin_menus)
@@ -1317,7 +1366,6 @@ final class UserAuth
             }
         }
         // [231차 #3] 프로필 사진(Base64 data-URL) — INSERT 미수정·post-insert UPDATE(있을 때만).
-        $photo = (string)($body['photo'] ?? '');
         if ($photo !== '' && $newId > 0) { try { $pdo->prepare("UPDATE app_user SET photo=? WHERE id=?")->execute([$photo, $newId]); } catch (\Throwable $e) {} }
         self::audit($req, 'sub_admin_create', "하위 관리자 발급: {$email}", 'high', $caller);
         return self::json($res, ['ok' => true, 'id' => $newId, 'email' => $email, 'message' => '하위 관리자가 발급되었습니다. 최고관리자 접속코드 + 발급한 이메일/비번으로 로그인할 수 있습니다.']);
