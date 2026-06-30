@@ -11829,7 +11829,7 @@ export default {"paymentSuccess": {"invalidInfo":"Die Zahlungsinformationen sind
     "footerTagline": "Isolierter Enterprise-Flow",
       resetEmailSent: 'Wir haben Ihnen einen Link zum Zurücksetzen per E-Mail gesendet.',
       resetEmailSentDesc: 'Prüfen Sie Ihren Posteingang (auch den Spam-Ordner) und klicken Sie auf den Link, um ein neues Passwort festzulegen. Der Link ist 15 Minuten gültig.',
-      close: 'Schließen',
+      close: 'Schließen', "payImmediate": "💡 Die Zahlung erfolgt unmittelbar nach der Anmeldung. Kartenzahlung (Paddle MoR) — VAT/GST wird automatisch abgewickelt. 30 Tage Rückerstattungsgarantie.", "thisPlan": "Dieser Plan", "seatUnlimited": "Unbegrenzt", "seatNAccounts": "{{n}} Konten", "planDetailTitle": "{{plan}} Details — enthaltene Leistungen", "plan": "Plan", "keyBenefits": "Wichtigste Vorteile", "availableServices": "Verfügbare Leistungen ({{n}})", "couponTitle": "Gutscheincode (optional)", "couponDesc": "Geben Sie bei der Anmeldung Ihren Gutscheincode ein, und der kostenlose Zeitraum wird automatisch angewendet (z. B. GENIE-XXXXXXXXXX)", "couponPh": "GENIE-XXXXXXXXXX (optional)", "couponNote": "Er wird nach Abschluss der Anmeldung automatisch angewendet. Bei einem ungültigen Code wird die Anmeldung dennoch normal fortgesetzt und nur der Gutschein nicht angewendet.", "cycle2y": "2 Jahre", "cycle3y": "3 Jahre", "monthlyPriceNotSet": "Der monatliche Preis für {{plan}} wurde noch nicht festgelegt. Wenden Sie sich an einen Administrator oder zahlen Sie nach der Anmeldung separat.",
     },
   gdpr: {
       bannerTitle: "Cookie-Einstellungen",

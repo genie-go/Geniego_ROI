@@ -11771,7 +11771,7 @@ export default {"paymentSuccess": {"invalidInfo":"Les informations de paiement s
     "footerTagline": "Flux entreprise isolé",
       resetEmailSent: 'Nous vous avons envoyé un lien de réinitialisation par e-mail.',
       resetEmailSentDesc: 'Vérifiez votre boîte de réception (et les spams) et cliquez sur le lien pour définir un nouveau mot de passe. Le lien est valable 15 minutes.',
-      close: 'Fermer',
+      close: 'Fermer', "payImmediate": "💡 Le paiement est effectué immédiatement après l'inscription. Paiement par carte (Paddle MoR) — VAT/GST traités automatiquement. Garantie de remboursement sous 30 jours.", "thisPlan": "Ce forfait", "seatUnlimited": "Illimité", "seatNAccounts": "{{n}} comptes", "planDetailTitle": "Détails de {{plan}} — services inclus", "plan": "Forfait", "keyBenefits": "Avantages clés", "availableServices": "Services disponibles ({{n}})", "couponTitle": "Code promo (facultatif)", "couponDesc": "Saisissez le code promo que vous possédez lors de l'inscription, et la période gratuite sera appliquée automatiquement (ex. : GENIE-XXXXXXXXXX)", "couponPh": "GENIE-XXXXXXXXXX (facultatif)", "couponNote": "Il est appliqué automatiquement une fois l'inscription terminée. Si le code est incorrect, l'inscription se poursuit normalement et seul le code promo n'est pas appliqué.", "cycle2y": "2 ans", "cycle3y": "3 ans", "monthlyPriceNotSet": "Le tarif mensuel de {{plan}} n'a pas encore été défini. Contactez un administrateur ou payez séparément après l'inscription.",
     },
   helpPanel: {
       searchResult: "Résultat de recherche",

@@ -9869,7 +9869,7 @@ export default {"paymentSuccess": {"invalidInfo":"付款資訊不正確。","ver
     "footerTagline": "隔離的企業流程",
       resetEmailSent: '重設連結已寄至您的信箱。',
       resetEmailSentDesc: '請查收郵件（包含垃圾郵件匣），點擊連結設定新密碼。連結15分鐘內有效。',
-      close: '關閉',
+      close: '關閉', "payImmediate": "💡 註冊後將立即進行付款。信用卡支付（Paddle MoR）— VAT/GST 自動處理。30天退款保證。", "thisPlan": "本方案", "seatUnlimited": "無限制", "seatNAccounts": "{{n}}個帳戶", "planDetailTitle": "{{plan}} 詳細說明 — 提供的服務", "plan": "方案", "keyBenefits": "核心權益", "availableServices": "可用服務（{{n}}）", "couponTitle": "優惠碼（選填）", "couponDesc": "註冊時輸入您持有的優惠碼，免費期將自動套用（例如：GENIE-XXXXXXXXXX）", "couponPh": "GENIE-XXXXXXXXXX（選填）", "couponNote": "註冊完成後將自動套用。若優惠碼有誤，註冊本身仍會正常進行，僅優惠碼不予套用。", "cycle2y": "2年", "cycle3y": "3年", "monthlyPriceNotSet": "{{plan}} 的月費尚未設定。請聯絡管理員或於註冊後另行付款。",
     },
   gdpr: {
       bannerTitle: "Cookie 偏好設定",

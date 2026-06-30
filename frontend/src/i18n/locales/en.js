@@ -11589,7 +11589,7 @@ export default {"paymentSuccess": {"invalidInfo":"The payment information is inv
     "footerTagline": "Isolated enterprise flow",
       resetEmailSent: 'We\'ve emailed you a reset link.',
       resetEmailSentDesc: 'Check your inbox (and spam folder) and click the link to set a new password. The link is valid for 15 minutes.',
-      close: 'Close',
+      close: 'Close', "payImmediate": "💡 Payment is processed immediately upon signup. Card payment (Paddle MoR) — VAT/GST handled automatically. 30-day refund guarantee.", "thisPlan": "This plan", "seatUnlimited": "Unlimited", "seatNAccounts": "{{n}} accounts", "planDetailTitle": "{{plan}} details — included services", "plan": "Plan", "keyBenefits": "Key benefits", "availableServices": "Available services ({{n}})", "couponTitle": "Coupon code (optional)", "couponDesc": "Enter a coupon code you have at signup and the free period will be applied automatically (e.g., GENIE-XXXXXXXXXX)", "couponPh": "GENIE-XXXXXXXXXX (optional)", "couponNote": "It is applied automatically after signup is complete. If the code is invalid, signup still proceeds normally and only the coupon is not applied.", "cycle2y": "2 years", "cycle3y": "3 years", "monthlyPriceNotSet": "The monthly price for {{plan}} has not been set yet. Contact an administrator or pay separately after signup.",
     },
   helpPanel: {
       searchResult: "Search Result",

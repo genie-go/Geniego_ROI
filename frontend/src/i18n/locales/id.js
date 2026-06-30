@@ -10095,7 +10095,7 @@ export default {"paymentSuccess": {"invalidInfo":"Informasi pembayaran tidak val
     "footerTagline": "Alur enterprise terisolasi",
       resetEmailSent: 'Kami telah mengirimkan tautan reset ke email Anda.',
       resetEmailSentDesc: 'Periksa kotak masuk (termasuk folder spam) dan klik tautan untuk menyetel kata sandi baru. Tautan berlaku selama 15 menit.',
-      close: 'Tutup',
+      close: 'Tutup', "payImmediate": "💡 Pembayaran diproses segera setelah pendaftaran. Pembayaran kartu (Paddle MoR) — VAT/GST ditangani otomatis. Jaminan pengembalian dana 30 hari.", "thisPlan": "Paket ini", "seatUnlimited": "Tanpa batas", "seatNAccounts": "{{n}} akun", "planDetailTitle": "Detail {{plan}} — layanan yang disertakan", "plan": "Paket", "keyBenefits": "Manfaat utama", "availableServices": "Layanan yang tersedia ({{n}})", "couponTitle": "Kode kupon (opsional)", "couponDesc": "Masukkan kode kupon yang Anda miliki saat pendaftaran, dan masa gratis akan diterapkan secara otomatis (mis. GENIE-XXXXXXXXXX)", "couponPh": "GENIE-XXXXXXXXXX (opsional)", "couponNote": "Diterapkan secara otomatis setelah pendaftaran selesai. Jika kode salah, pendaftaran tetap berjalan normal dan hanya kupon yang tidak diterapkan.", "cycle2y": "2 tahun", "cycle3y": "3 tahun", "monthlyPriceNotSet": "Harga bulanan untuk {{plan}} belum ditetapkan. Hubungi administrator atau bayar secara terpisah setelah pendaftaran.",
     },
   gdpr: {
       bannerTitle: "Preferensi Kue",

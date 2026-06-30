@@ -7184,7 +7184,7 @@ export default {"paymentSuccess": {"invalidInfo":"決済情報が正しくあり
     "footerTagline": "分離されたエンタープライズフロー",
       resetEmailSent: 'リセットリンクをメールで送信しました。',
       resetEmailSentDesc: 'メール（迷惑メールフォルダを含む）を確認し、リンクをクリックして新しいパスワードを設定してください。リンクは15分間有効です。',
-      close: '閉じる',
+      close: '閉じる', "payImmediate": "💡 ご登録後すぐに決済が行われます。カード決済（Paddle MoR）— VAT/GST 自動処理。30日間の返金保証。", "thisPlan": "本プラン", "seatUnlimited": "無制限", "seatNAccounts": "{{n}}アカウント", "planDetailTitle": "{{plan}} 詳細案内 — 提供サービス", "plan": "プラン", "keyBenefits": "主な特典", "availableServices": "利用可能なサービス（{{n}}）", "couponTitle": "クーポンコード（任意）", "couponDesc": "ご登録時にお持ちのクーポンコードを入力すると、無料期間が自動的に適用されます（例：GENIE-XXXXXXXXXX）", "couponPh": "GENIE-XXXXXXXXXX（任意）", "couponNote": "ご登録完了後に自動的に適用されます。コードが誤っている場合でも登録自体は正常に進行し、クーポンのみ未適用となります。", "cycle2y": "2年", "cycle3y": "3年", "monthlyPriceNotSet": "{{plan}} の月額料金がまだ設定されていません。管理者へお問い合わせいただくか、ご登録後に別途お支払いください。",
   },
   "helpPanel": {
     "searchResult": "Search Results",

@@ -1302,7 +1302,7 @@ function CycleSelectorSection({ planCfg, planPeriods, cycleMonths, setCycleMonth
         totalCharge: +(monthlyBase * m * (1 - (DEFAULT_DISCOUNTS[m] || 0) / 100)).toFixed(2),
       }));
 
-  const namedPeriod = (m) => ({ 1: '월간', 3: '분기', 6: '반기', 12: '연간', 24: '2년', 36: '3년' })[m] || `${m}개월`;
+  const namedPeriod = (m) => ({ 1: t('appPricing.cycle.monthly','월간'), 3: t('appPricing.cycle.quarterly','분기'), 6: t('appPricing.cycle.semiAnnual','반기'), 12: t('appPricing.cycle.annual','연간'), 24: t('auth.cycle2y','2년'), 36: t('auth.cycle3y','3년') })[m] || t('appPricing.nMonths','{{n}}개월',{ n: m });
 
   if (!monthlyBase || monthlyBase <= 0) {
     return (
@@ -1311,7 +1311,7 @@ function CycleSelectorSection({ planCfg, planPeriods, cycleMonths, setCycleMonth
         background: 'rgba(251,146,60,0.06)', border: '1px solid rgba(251,146,60,0.25)',
         fontSize: 11, color: '#d97706',
       }}>
-        ⚠ {planCfg?.label || '본 플랜'} 의 월 요금이 아직 설정되지 않았습니다. 관리자에게 문의 또는 가입 후 별도 결제.
+        ⚠ {t('auth.monthlyPriceNotSet','{{plan}} 의 월 요금이 아직 설정되지 않았습니다. 관리자에게 문의 또는 가입 후 별도 결제.',{ plan: planCfg?.label || t('auth.thisPlan','본 플랜') })}
       </div>
     );
   }
@@ -1361,7 +1361,7 @@ function CycleSelectorSection({ planCfg, planPeriods, cycleMonths, setCycleMonth
         marginTop: 10, padding: '8px 12px', borderRadius: 8,
         background: 'rgba(0,0,0,0.05)', fontSize: 11, color: 'var(--text-2)', lineHeight: 1.6,
       }}>
-        💡 가입 즉시 결제가 진행됩니다. 카드 결제 (Paddle MoR) — VAT/GST 자동 처리. 30일 환불 보장.
+        {t('auth.payImmediate','💡 가입 즉시 결제가 진행됩니다. 카드 결제 (Paddle MoR) — VAT/GST 자동 처리. 30일 환불 보장.')}
       </div>
     </div>
   );
@@ -1410,7 +1410,7 @@ function SeatSelectorSection({ planCfg, seatTiers, seatTier, setSeatTier, seatPr
               }}
             >
               <div style={{ fontSize: 18, marginBottom: 2 }}>{tier.unlimited ? '♾' : '👤'}</div>
-              <div style={{ fontSize: 13, fontWeight: 800 }}>{tier.unlimited ? '무제한' : `${tier.count}계정`}</div>
+              <div style={{ fontSize: 13, fontWeight: 800 }}>{tier.unlimited ? t('auth.seatUnlimited','무제한') : t('auth.seatNAccounts','{{n}}계정',{ n: tier.count })}</div>
             </button>
           );
         })}
@@ -1453,11 +1453,11 @@ function PlanServiceDetail({ planCfg, menuAccess = [], features = [], descriptio
   const featList = (features || []).map(f => (typeof f === 'string' ? f : (f?.text || ''))).filter(Boolean);
   return (
     <div style={{ padding: '16px 18px', borderRadius: 12, background: `${color}0A`, border: `1.5px solid ${color}33` }}>
-      <div style={{ fontSize: 14, fontWeight: 800, color, marginBottom: 6 }}>📖 {planCfg?.label || '플랜'} 상세 안내 — 제공 서비스</div>
+      <div style={{ fontSize: 14, fontWeight: 800, color, marginBottom: 6 }}>📖 {t('auth.planDetailTitle','{{plan}} 상세 안내 — 제공 서비스',{ plan: planCfg?.label || t('auth.plan','플랜') })}</div>
       {description && <div style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 10 }}>{description}</div>}
       {featList.length > 0 && (
         <div style={{ marginBottom: services.length ? 12 : 0 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', marginBottom: 5 }}>✨ 핵심 혜택</div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', marginBottom: 5 }}>✨ {t('auth.keyBenefits','핵심 혜택')}</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 6 }}>
             {featList.map((f, i) => (
               <div key={i} style={{ fontSize: 12, color: 'var(--text-1)', display: 'flex', gap: 6, alignItems: 'flex-start' }}>
@@ -1469,7 +1469,7 @@ function PlanServiceDetail({ planCfg, menuAccess = [], features = [], descriptio
       )}
       {services.length > 0 ? (
         <div>
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', marginBottom: 5 }}>🧩 이용 가능 서비스 ({services.length})</div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', marginBottom: 5 }}>🧩 {t('auth.availableServices','이용 가능 서비스 ({{n}})',{ n: services.length })}</div>
           <div style={{ display: 'grid', gap: 7, maxHeight: 280, overflowY: 'auto', paddingRight: 4 }}>
             {services.map((s, i) => (
               <div key={i} style={{ padding: '8px 10px', borderRadius: 8, background: 'rgba(15,23,42,0.03)', border: '1px solid #e2e8f0' }}>
@@ -1492,6 +1492,7 @@ function PlanServiceDetail({ planCfg, menuAccess = [], features = [], descriptio
  * 가입 흐름에서는 register 후 token 받은 다음 자동으로 redeem (extraData.coupon_code 동봉).
  */
 function CouponCodeInput({ planCfg, onApplied }) {
+  const t = useT(); // [254차] 쿠폰 입력 라벨 i18n
   const [code, setCode] = useState('');
   const [touched, setTouched] = useState(false);
   return (
@@ -1500,16 +1501,16 @@ function CouponCodeInput({ planCfg, onApplied }) {
       background: 'rgba(168,85,247,0.05)', border: '1.5px dashed rgba(168,85,247,0.25)',
     }}>
       <div style={{ fontSize: 13, fontWeight: 800, color: planCfg?.color || '#a855f7', marginBottom: 4 }}>
-        🎟️ 쿠폰 코드 (선택)
+        🎟️ {t('auth.couponTitle','쿠폰 코드 (선택)')}
       </div>
       <div style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 8 }}>
-        가입 시 보유 중인 쿠폰 코드를 입력하시면 무료 기간이 자동 적용됩니다 (예: GENIE-XXXXXXXXXX)
+        {t('auth.couponDesc','가입 시 보유 중인 쿠폰 코드를 입력하시면 무료 기간이 자동 적용됩니다 (예: GENIE-XXXXXXXXXX)')}
       </div>
       <input
         type="text" name="coupon_code" id="coupon_code"
         value={code}
         onChange={(e) => { setCode(e.target.value.toUpperCase()); setTouched(true); }}
-        placeholder="GENIE-XXXXXXXXXX (선택사항)"
+        placeholder={t('auth.couponPh','GENIE-XXXXXXXXXX (선택사항)')}
         style={{
           width: '100%', padding: '9px 12px', borderRadius: 7,
           border: '1px solid rgba(168,85,247,0.25)', background: '#ffffff',
@@ -1518,7 +1519,7 @@ function CouponCodeInput({ planCfg, onApplied }) {
       />
       {touched && code && (
         <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 4 }}>
-          가입 완료 후 자동 적용됩니다. 코드가 잘못된 경우 가입 자체는 정상 진행되며 쿠폰만 미적용.
+          {t('auth.couponNote','가입 완료 후 자동 적용됩니다. 코드가 잘못된 경우 가입 자체는 정상 진행되며 쿠폰만 미적용.')}
         </div>
       )}
     </div>

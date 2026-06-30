@@ -8213,7 +8213,7 @@ export default {"paymentSuccess": {"invalidInfo":"결제 정보가 올바르지 
     ceoLabel: '대표자',
       resetEmailSent: '재설정 링크를 이메일로 보냈습니다.',
       resetEmailSentDesc: '메일함(스팸함 포함)을 확인하고 링크를 눌러 새 비밀번호를 설정하세요. 링크는 15분간 유효합니다.',
-      close: '닫기',
+      close: '닫기', "payImmediate": "💡 가입 즉시 결제가 진행됩니다. 카드 결제 (Paddle MoR) — VAT/GST 자동 처리. 30일 환불 보장.", "thisPlan": "본 플랜", "seatUnlimited": "무제한", "seatNAccounts": "{{n}}계정", "planDetailTitle": "{{plan}} 상세 안내 — 제공 서비스", "plan": "플랜", "keyBenefits": "핵심 혜택", "availableServices": "이용 가능 서비스 ({{n}})", "couponTitle": "쿠폰 코드 (선택)", "couponDesc": "가입 시 보유 중인 쿠폰 코드를 입력하시면 무료 기간이 자동 적용됩니다 (예: GENIE-XXXXXXXXXX)", "couponPh": "GENIE-XXXXXXXXXX (선택사항)", "couponNote": "가입 완료 후 자동 적용됩니다. 코드가 잘못된 경우 가입 자체는 정상 진행되며 쿠폰만 미적용.", "cycle2y": "2년", "cycle3y": "3년", "monthlyPriceNotSet": "{{plan}} 의 월 요금이 아직 설정되지 않았습니다. 관리자에게 문의 또는 가입 후 별도 결제.",
   },
 
   "helpPanel": {

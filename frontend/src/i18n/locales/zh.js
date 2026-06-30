@@ -12055,7 +12055,7 @@ export default {"paymentSuccess": {"invalidInfo":"支付信息不正确。","ver
     "footerTagline": "隔离的企业流程",
       resetEmailSent: '重置链接已发送至您的邮箱。',
       resetEmailSentDesc: '请查收邮件（包括垃圾邮件箱），点击链接设置新密码。链接15分钟内有效。',
-      close: '关闭',
+      close: '关闭', "payImmediate": "💡 注册后将立即进行付款。银行卡支付（Paddle MoR）— VAT/GST 自动处理。30天退款保证。", "thisPlan": "本套餐", "seatUnlimited": "无限制", "seatNAccounts": "{{n}}个账户", "planDetailTitle": "{{plan}} 详细说明 — 提供的服务", "plan": "套餐", "keyBenefits": "核心权益", "availableServices": "可用服务（{{n}}）", "couponTitle": "优惠码（可选）", "couponDesc": "注册时输入您持有的优惠码，免费期将自动适用（例如：GENIE-XXXXXXXXXX）", "couponPh": "GENIE-XXXXXXXXXX（可选）", "couponNote": "注册完成后将自动适用。如果优惠码有误，注册本身仍会正常进行，仅优惠码不予适用。", "cycle2y": "2年", "cycle3y": "3年", "monthlyPriceNotSet": "{{plan}} 的月费尚未设置。请联系管理员或在注册后另行付款。",
   },
   "gdpr": {
     "bannerTitle": "Cookie 偏好设置",

@@ -11770,7 +11770,7 @@ export default {"paymentSuccess": {"invalidInfo":"La información de pago no es 
     "footerTagline": "Flujo empresarial aislado",
       resetEmailSent: 'Te enviamos un enlace de restablecimiento por correo.',
       resetEmailSentDesc: 'Revisa tu bandeja de entrada (y la carpeta de spam) y haz clic en el enlace para crear una nueva contraseña. El enlace es válido durante 15 minutos.',
-      close: 'Cerrar',
+      close: 'Cerrar', "payImmediate": "💡 El pago se procesa de inmediato al registrarse. Pago con tarjeta (Paddle MoR) — VAT/GST se gestiona automáticamente. Garantía de reembolso de 30 días.", "thisPlan": "Este plan", "seatUnlimited": "Ilimitado", "seatNAccounts": "{{n}} cuentas", "planDetailTitle": "Detalles de {{plan}} — servicios incluidos", "plan": "Plan", "keyBenefits": "Beneficios clave", "availableServices": "Servicios disponibles ({{n}})", "couponTitle": "Código de cupón (opcional)", "couponDesc": "Introduzca el código de cupón que tenga al registrarse y el período gratuito se aplicará automáticamente (p. ej., GENIE-XXXXXXXXXX)", "couponPh": "GENIE-XXXXXXXXXX (opcional)", "couponNote": "Se aplica automáticamente una vez completado el registro. Si el código es incorrecto, el registro continúa con normalidad y solo no se aplica el cupón.", "cycle2y": "2 años", "cycle3y": "3 años", "monthlyPriceNotSet": "El precio mensual de {{plan}} aún no se ha establecido. Comuníquese con un administrador o pague por separado después de registrarse.",
     },
   helpPanel: {
       searchResult: "Resultados de búsqueda",

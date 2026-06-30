@@ -9265,7 +9265,7 @@ export default {"paymentSuccess": {"invalidInfo":"Thông tin thanh toán không 
     "footerTagline": "Luồng doanh nghiệp tách biệt",
       resetEmailSent: 'Chúng tôi đã gửi liên kết đặt lại qua email cho bạn.',
       resetEmailSentDesc: 'Kiểm tra hộp thư (kể cả thư rác) và nhấp vào liên kết để đặt mật khẩu mới. Liên kết có hiệu lực trong 15 phút.',
-      close: 'Đóng',
+      close: 'Đóng', "payImmediate": "💡 Thanh toán được tiến hành ngay khi đăng ký. Thanh toán bằng thẻ (Paddle MoR) — Tự động xử lý VAT/GST. Đảm bảo hoàn tiền trong 30 ngày.", "thisPlan": "Gói này", "seatUnlimited": "Không giới hạn", "seatNAccounts": "{{n}} tài khoản", "planDetailTitle": "Chi tiết {{plan}} — dịch vụ đi kèm", "plan": "Gói", "keyBenefits": "Lợi ích chính", "availableServices": "Dịch vụ khả dụng ({{n}})", "couponTitle": "Mã giảm giá (tùy chọn)", "couponDesc": "Nhập mã giảm giá bạn đang có khi đăng ký, thời gian miễn phí sẽ được áp dụng tự động (ví dụ: GENIE-XXXXXXXXXX)", "couponPh": "GENIE-XXXXXXXXXX (tùy chọn)", "couponNote": "Mã sẽ được áp dụng tự động sau khi hoàn tất đăng ký. Nếu mã không hợp lệ, việc đăng ký vẫn diễn ra bình thường và chỉ mã giảm giá không được áp dụng.", "cycle2y": "2 năm", "cycle3y": "3 năm", "monthlyPriceNotSet": "Giá hàng tháng cho {{plan}} vẫn chưa được thiết lập. Vui lòng liên hệ quản trị viên hoặc thanh toán riêng sau khi đăng ký.",
     },
   helpPanel: {
       searchResult: "Search Results",
