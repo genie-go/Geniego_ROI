@@ -52,6 +52,9 @@ read -r -d '' CRONTAB <<EOF || true
 # ── 이메일 STO 발송 큐(야간 등 차단시간 적재분을 허용시각에 실발송) ──
 */15 * * * * GENIE_ENV=production php ${PROD}/bin/email_queue_cron.php >> /var/log/genie_email_queue.log 2>&1
 */17 * * * * GENIE_ENV=demo php ${DEMO}/bin/email_queue_cron.php >> /var/log/genie_email_queue_demo.log 2>&1
+# ── [255차 P1] 옴니채널 아웃박스 디스패치(세그먼트→다채널 워터폴 비동기 발송, 배치 드레인) ──
+*/5 * * * * GENIE_ENV=production php ${PROD}/bin/omni_dispatch_cron.php >> /var/log/genie_omni_dispatch.log 2>&1
+*/7 * * * * GENIE_ENV=demo php ${DEMO}/bin/omni_dispatch_cron.php >> /var/log/genie_omni_dispatch_demo.log 2>&1
 # ── Google Ads 서버 전환 업로드(gclid 보유 주문 → Offline Conversion Import; 쿠키리스 귀속) ──
 */30 * * * * GENIE_ENV=production php ${PROD}/bin/gads_conversion_cron.php >> /var/log/genie_gads_conv.log 2>&1
 */37 * * * * GENIE_ENV=demo php ${DEMO}/bin/gads_conversion_cron.php >> /var/log/genie_gads_conv_demo.log 2>&1

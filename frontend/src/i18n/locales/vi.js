@@ -14276,7 +14276,7 @@ export default {"paymentSuccess": {"invalidInfo":"Thông tin thanh toán không 
     "btnSave": "Lưu",
     "fSearch": "Tìm kiếm",
     "colLtv": "LTV",
-    "tDetail": "Chi tiết"
+    "tDetail": "Chi tiết", "tabOmni": "Đa kênh", "omniNeedName": "Nhập tên chiến dịch", "omniNeedCh": "Chọn ít nhất một kênh", "omniCreated": "Đã tạo chiến dịch đa kênh", "omniCreateFail": "Tạo thất bại", "omniQueued": "Đã đưa vào hàng đợi gửi", "omniFirstBatch": "xử lý ngay", "omniSendFail": "Gửi thất bại", "omniChTitle": "Trạng thái kênh đã kết nối", "omniChSub": "Sau khi đăng ký thông tin xác thực, việc gửi sẽ diễn ra ngay trên kênh đó (kênh chưa thiết lập sẽ tự động chuyển sang kênh tiếp theo).", "omniLive": "Hoạt động", "omniFallback": "Sẵn sàng dự phòng", "omniUnset": "Chưa thiết lập", "omniNew": "Chiến dịch đa kênh mới", "omniName": "Tên chiến dịch", "omniNamePh": "VD) Thúc đẩy mua lại VIP tháng 6", "omniSeg": "Phân khúc mục tiêu", "omniAllCust": "Tất cả khách hàng", "omniWaterfall": "Ưu tiên kênh (chuyển sang kênh kế tiếp nếu không tiếp cận được/chưa thiết lập)", "omniEmailSubj": "Tiêu đề email", "omniEmailSubjPh": "VD) {{name}}, ưu đãi đặc biệt dành cho bạn", "omniKakaoTpl": "Mã mẫu Kakao", "omniKakaoTplPh": "Mã mẫu AlimTalk đã được duyệt", "omniBody": "Nội dung tin nhắn (dùng chung mọi kênh · thay {{name}})", "omniBodyPh": "{{name}}, giảm giá đặc biệt chỉ trong tuần này!", "omniAlsoPush": "Đồng thời gửi web push (tất cả người đăng ký)", "omniCreate": "Tạo chiến dịch", "omniList": "Chiến dịch đa kênh", "omniEmpty": "Chưa có chiến dịch", "omniTotal": "Mục tiêu", "omniSent": "Đã gửi", "omniSkipped": "Đã bỏ qua", "omniFailed": "Thất bại", "omniProgress": "Tiến độ", "omniByCh": "Theo kênh", "omniSend": "Gửi"
   },
   acctPerf: {
       tabDashboard: "Dashboard trực quan",
@@ -17587,7 +17587,7 @@ export default {"paymentSuccess": {"invalidInfo":"Thông tin thanh toán không 
     "pgColTxn": "Mã GD",
     "pgColType": "Loại",
     "pgColDate": "Thời gian",
-    "pgColAmount": "Số tiền",
+    "pgColAmount": "Số tiền", "applyCeo": "Tên người đại diện", "applyAddress": "Địa chỉ doanh nghiệp",
   },
 
 

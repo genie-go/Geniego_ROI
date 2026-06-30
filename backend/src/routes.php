@@ -120,6 +120,14 @@ return function (App $app): void {
         'POST /email/queue/process'            => 'Genie\\Handlers\\EmailMarketing::processQueue',
         'POST /email/bounce'                   => 'Genie\\Handlers\\EmailMarketing::bounceWebhook',
 
+        // ── [255차 P1] 옴니채널 오케스트레이터 (세그먼트 → 다채널 워터폴 비동기 발송) ─────────
+        'GET /v427/omni/campaigns'                 => 'Genie\\Handlers\\Omnichannel::listCampaigns',
+        'POST /v427/omni/campaigns'                => 'Genie\\Handlers\\Omnichannel::createCampaign',
+        'DELETE /v427/omni/campaigns/{id}'         => 'Genie\\Handlers\\Omnichannel::deleteCampaign',
+        'POST /v427/omni/campaigns/{id}/send'      => 'Genie\\Handlers\\Omnichannel::sendCampaign',
+        'GET /v427/omni/campaigns/{id}/stats'      => 'Genie\\Handlers\\Omnichannel::campaignStats',
+        'GET /v427/omni/channels'                  => 'Genie\\Handlers\\Omnichannel::channelStatus',
+
         // ── 카카오 채널 (알림톡) ─────────────────────────────────────────
         'GET /kakao/settings'                  => 'Genie\\Handlers\\KakaoChannel::getSettings',
         'PUT /kakao/settings'                  => 'Genie\\Handlers\\KakaoChannel::saveSettings',
@@ -2619,6 +2627,13 @@ return function (App $app): void {
     $register('DELETE', '/email/suppression');
     $register('POST',   '/email/queue/process'); // [현 차수] STO 큐 워커
     $register('POST',   '/email/bounce');         // [현 차수] 바운스 webhook
+    // [255차 P1] 옴니채널 오케스트레이터
+    $register('GET',    '/v427/omni/campaigns');
+    $register('POST',   '/v427/omni/campaigns');
+    $register('DELETE', '/v427/omni/campaigns/{id}');
+    $register('POST',   '/v427/omni/campaigns/{id}/send');
+    $register('GET',    '/v427/omni/campaigns/{id}/stats');
+    $register('GET',    '/v427/omni/channels');
     // 183차 P0: email ab-test/ab-result/duplicate/analytics 죽은 매핑 제거(핸들러 미구현)
     // Kakao
     $register('GET',    '/kakao/settings');

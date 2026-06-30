@@ -13651,7 +13651,7 @@ export default {"paymentSuccess": {"invalidInfo":"Les informations de paiement s
     "btnSave": "Enregistrer",
     "fSearch": "Rechercher",
     "colLtv": "LTV",
-    "tDetail": "Détails"
+    "tDetail": "Détails", "tabOmni": "Omnicanal", "omniNeedName": "Saisissez un nom de campagne", "omniNeedCh": "Sélectionnez au moins un canal", "omniCreated": "Campagne omnicanale créée", "omniCreateFail": "Échec de la création", "omniQueued": "En file d'attente d'envoi", "omniFirstBatch": "instantané", "omniSendFail": "Échec de l'envoi", "omniChTitle": "État des canaux connectés", "omniChSub": "Une fois les identifiants enregistrés, l'envoi démarre immédiatement sur ce canal (les canaux non configurés basculent automatiquement vers le suivant).", "omniLive": "Actif", "omniFallback": "Repli prêt", "omniUnset": "Non configuré", "omniNew": "Nouvelle campagne omnicanale", "omniName": "Nom de la campagne", "omniNamePh": "ex. Relance rachat VIP de juin", "omniSeg": "Segment cible", "omniAllCust": "Tous les clients", "omniWaterfall": "Priorité des canaux (bascule vers le canal suivant si injoignable/non configuré)", "omniEmailSubj": "Objet de l'e-mail", "omniEmailSubjPh": "ex. {{name}}, une offre spéciale pour vous", "omniKakaoTpl": "Code de modèle Kakao", "omniKakaoTplPh": "Code de modèle AlimTalk approuvé", "omniBody": "Corps du message (commun à tous les canaux · remplacement {{name}})", "omniBodyPh": "{{name}}, remise spéciale cette semaine seulement !", "omniAlsoPush": "Envoyer aussi une notification web (tous les abonnés)", "omniCreate": "Créer la campagne", "omniList": "Campagnes omnicanales", "omniEmpty": "Aucune campagne pour le moment", "omniTotal": "Cible", "omniSent": "Envoyé", "omniSkipped": "Ignoré", "omniFailed": "Échec", "omniProgress": "Progression", "omniByCh": "Par canal", "omniSend": "Envoyer"
   },
     campMgr: {
     "guideBeginnerBadge": "Facile pour les débutants",
@@ -15720,7 +15720,7 @@ export default {"paymentSuccess": {"invalidInfo":"Les informations de paiement s
     "pgColTxn": "ID transac.",
     "pgColType": "Type",
     "pgColDate": "Date",
-    "pgColAmount": "Montant",
+    "pgColAmount": "Montant", "applyCeo": "Nom du dirigeant", "applyAddress": "Adresse de l’entreprise",
   },
 
 

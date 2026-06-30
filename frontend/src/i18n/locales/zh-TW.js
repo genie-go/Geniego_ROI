@@ -11563,7 +11563,7 @@ export default {"paymentSuccess": {"invalidInfo":"付款資訊不正確。","ver
     "oauthModalTitle": "{{platform}} OAuth認証",
     "oauthPrompt": "透過 OAuth 認證連接至平台",
     "requestedPermissions": "要求的權限",
-    "tokenExpiry": "權杖到期日"
+    "tokenExpiry": "權杖到期日", "tabOmni": "全通路", "omniNeedName": "請輸入活動名稱", "omniNeedCh": "請至少選擇一個通路", "omniCreated": "已建立全通路活動", "omniCreateFail": "建立失敗", "omniQueued": "已加入發送佇列", "omniFirstBatch": "即時處理", "omniSendFail": "發送失敗", "omniChTitle": "已連接通路狀態", "omniChSub": "註冊憑證後將立即透過該通路實際發送（未設定的通路會自動回退到下一個通路）。", "omniLive": "已上線", "omniFallback": "可回退", "omniUnset": "未設定", "omniNew": "新增全通路活動", "omniName": "活動名稱", "omniNamePh": "例）6月VIP回購促進", "omniSeg": "目標分眾", "omniAllCust": "全部客戶", "omniWaterfall": "通路優先順序（上層通路無法觸及/未設定時回退到下一通路）", "omniEmailSubj": "郵件主旨", "omniEmailSubjPh": "例）{{name}}，為您準備的專屬優惠", "omniKakaoTpl": "Kakao範本代碼", "omniKakaoTplPh": "已審核的AlimTalk範本代碼", "omniBody": "訊息內文（全通路通用·{{name}}替換）", "omniBodyPh": "{{name}}，僅限本週的特別折扣進行中！", "omniAlsoPush": "同時發送網頁推播（全部訂閱者）", "omniCreate": "建立活動", "omniList": "全通路活動", "omniEmpty": "尚無活動", "omniTotal": "目標", "omniSent": "已發送", "omniSkipped": "已略過", "omniFailed": "失敗", "omniProgress": "進度", "omniByCh": "依通路", "omniSend": "發送"
   },
     campMgr: {
     "guideBeginnerBadge": "新手也能輕鬆上手",
@@ -16007,7 +16007,7 @@ export default {"paymentSuccess": {"invalidInfo":"付款資訊不正確。","ver
     "pgColTxn": "交易ID",
     "pgColType": "類型",
     "pgColDate": "時間",
-    "pgColAmount": "金額",
+    "pgColAmount": "金額", "applyCeo": "法人代表姓名", "applyAddress": "營業地址",
   },
 
 

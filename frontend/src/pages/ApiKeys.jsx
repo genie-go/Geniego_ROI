@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { useI18n } from '../i18n';
 import { getJsonAuth, postJson, delJson } from '../services/apiClient.js';
 import { IS_DEMO } from '../utils/demoEnv';
@@ -123,6 +124,10 @@ const CHANNELS = [
   // [229차] 메시징 채널(알림/메시지) — 신규
   { key: 'kakao_alimtalk',   name: '카카오 알림톡',      icon: '💛', color: '#FEE500', group: 'own_etc' },
   { key: 'line',             name: 'LINE',              icon: '💬', color: '#06C755', group: 'own_etc' },
+  // [255차 갭4] Email/WhatsApp 메시징 — 발급허브 discoverability. 등록은 전용 페이지(actual settings 테이블에 저장)로
+  //   라우팅(managedPage) → 일반 ConnectModal 의 channel_credential 저장과 분리(실발송 경로 정합·중복 등록 방지).
+  { key: 'email',            name: '이메일 발송(SMTP/SES)', icon: '✉️', color: '#0EA5E9', group: 'own_etc', managedPage: '/email-marketing' },
+  { key: 'whatsapp',         name: 'WhatsApp Business',  icon: '🟢', color: '#25D366', group: 'own_etc', managedPage: '/whatsapp' },
 ];
 
 /* 그룹 라벨/정렬 — 208차: 카테고리별 헤더로 가독성 초고도화 */
@@ -232,7 +237,9 @@ const CHANNEL_FIELDS = {
   slack:     [{ k: 'webhook_url', label: 'Webhook URL', secret: true }],
   // [229차] 신규 채널
   yahoo_japan: [{ k: 'client_id', label: 'Client ID' }, { k: 'client_secret', label: 'Client Secret', secret: true }, { k: 'access_token', label: 'OAuth Access Token', secret: true }, { k: 'seller_id', label: '스토어(셀러) ID' }],
-  kakao_alimtalk: [{ k: 'sender_key', label: '발신 프로필 키 (sender_key)' }, { k: 'api_key', label: 'API Key', secret: true }, { k: 'api_secret', label: 'API Secret', secret: true }],
+  // [255차 갭3] 실제 알림톡 발송(KakaoChannel::callKakaoAPI)은 sender_key + api_key(KakaoAK REST 키)만 사용 →
+  //   존재하지 않는 api_secret 요구 제거(가입 차단·혼선 방지). 등록 전용 페이지(KakaoChannel)와 필드 정합.
+  kakao_alimtalk: [{ k: 'sender_key', label: '발신 프로필 키 (sender_key)' }, { k: 'api_key', label: 'REST API Key', secret: true }, { k: 'channel_id', label: '카카오 채널 ID' }, { k: 'channel_name', label: '채널명' }],
   line:      [{ k: 'channel_secret', label: 'Channel Secret', secret: true }, { k: 'channel_access_token', label: 'Channel Access Token', secret: true }],
 };
 const DEFAULT_FIELDS = [{ k: 'api_key', label: 'API 키 / 액세스 토큰', secret: true }];
@@ -816,6 +823,7 @@ export default function ApiKeys() {
   ];
 
   /* state */
+  const navigate = useNavigate(); // [255차 갭4] managedPage 채널(email/whatsapp) 전용 등록페이지 라우팅
   const [creds, setCreds]       = useState([]);   // GET /v423/creds
   const [summary, setSummary]   = useState({});   // GET /v423/creds/summary
   const [loading, setLoading]   = useState(true);
@@ -1152,8 +1160,10 @@ export default function ApiKeys() {
         member_name:  memberInfo.name    || '',
         member_email: memberInfo.email   || '',
         business_number: memberInfo.businessNumber || '',
+        ceo_name: memberInfo.ceoName || '', // [255차 갭1] 사업자 인증 신청에 필요
         phone:   memberInfo.phone   || '',
         company: memberInfo.company || '',
+        address: memberInfo.address || '', // [255차 갭1] 사업장 주소(사업자 인증)
         extra:   memberInfo.extra   || {}, // [현 차수] 채널별 발급 필요 정보(계정/식별)
         requested_at: new Date().toISOString(),
       });
@@ -1272,8 +1282,8 @@ export default function ApiKeys() {
           applies={applies}
           loading={loading}
           onChannelTest={handleChannelTest}
-          onConnect={(ch) => setShowConnectModal(ch)}
-          onApply={(ch) => setShowApplyModal(ch)}
+          onConnect={(ch) => { if (ch?.managedPage) { navigate(ch.managedPage); return; } setShowConnectModal(ch); }}
+          onApply={(ch) => { if (ch?.managedPage) { navigate(ch.managedPage); return; } setShowApplyModal(ch); }}
           onOAuth={connectOAuth}
           onManual={(ch) => setShowManual(ch)}
           testingId={testingId}
@@ -2626,6 +2636,9 @@ function ApplyModal({ channel, currentUser, onClose, onSubmit, onRegister, t }) 
       businessNumber: p.business_number || u?.business_number || u?.businessNumber || '',
       phone: p.phone || u?.phone || u?.contact || '',
       company: p.company || u?.company || '',
+      // [255차 갭1] 회사정보 5필수(profileComplete SSOT)와 정합 — 대표자명·주소 재사용(쿠팡/롯데온/아마존 사업자인증 신청에 필요).
+      ceoName: p.ceo_name || u?.ceo_name || u?.ceoName || '',
+      address: p.address || u?.address || '',
     };
   }, []);
   const [info, setInfo] = useState(() => fromUser(currentUser));
@@ -2641,6 +2654,18 @@ function ApplyModal({ channel, currentUser, onClose, onSubmit, onRegister, t }) 
     if (!info.email) { alert(t('ak.emailRequired','이메일은 필수입니다')); return; }
     if (!info.name)  { alert(t('ak.nameRequired','담당자 이름은 필수입니다')); return; }
     if (!info.company) { alert(t('ak.companyRequired','회사명은 필수입니다')); return; }
+    // [255차 갭2] "회사정보 완성" 게이트(profileComplete 5필수)와 정합 — 사업자번호·대표자명·연락처·주소 전수 필수.
+    //   (발급 콘솔 신청서가 요구하는 사업자 인증 항목 누락으로 신청이 반려되지 않도록 함.)
+    const reqCompany = [
+      ['businessNumber', t('ak.applyBiznum','사업자 번호')],
+      ['ceoName',        t('ak.applyCeo','대표자명')],
+      ['phone',          t('ak.applyPhone','연락처')],
+      ['address',        t('ak.applyAddress','사업장 주소')],
+    ].filter(([k]) => !String(info[k] || '').trim());
+    if (reqCompany.length) {
+      alert(t('ak.applyMissingCompany', { fields: reqCompany.map(([,l]) => l).join(', '), defaultValue: `다음 회사정보를 입력하세요: ${reqCompany.map(([,l]) => l).join(', ')}` }));
+      return;
+    }
     const missing = applyFieldKeys.filter(fk => !String(extra[fk] || '').trim());
     if (missing.length) {
       const labels = missing.map(fk => { const d = APPLY_FIELD_DEFS[fk] || { def: fk }; return d.i18n ? t(d.i18n, d.def) : d.def; });
@@ -2809,11 +2834,17 @@ function ApplyModal({ channel, currentUser, onClose, onSubmit, onRegister, t }) 
         <Field label={t('ak.applyCompany','회사명') + ' *'}>
           <input type="text" value={info.company} onChange={e => setInfo({ ...info, company: e.target.value })} style={fieldStyle} />
         </Field>
-        <Field label={t('ak.applyBiznum','사업자 번호')}>
+        <Field label={t('ak.applyCeo','대표자명') + ' *'}>
+          <input type="text" value={info.ceoName} onChange={e => setInfo({ ...info, ceoName: e.target.value })} style={fieldStyle} />
+        </Field>
+        <Field label={t('ak.applyBiznum','사업자 번호') + ' *'}>
           <input type="text" value={info.businessNumber} onChange={e => setInfo({ ...info, businessNumber: e.target.value })} style={fieldStyle} />
         </Field>
-        <Field label={t('ak.applyPhone','연락처')}>
+        <Field label={t('ak.applyPhone','연락처') + ' *'}>
           <input type="tel" value={info.phone} onChange={e => setInfo({ ...info, phone: e.target.value })} style={fieldStyle} />
+        </Field>
+        <Field label={t('ak.applyAddress','사업장 주소') + ' *'}>
+          <input type="text" value={info.address} onChange={e => setInfo({ ...info, address: e.target.value })} style={fieldStyle} />
         </Field>
 
         <div style={{ display: 'flex', gap: 8, marginTop: 18 }}>

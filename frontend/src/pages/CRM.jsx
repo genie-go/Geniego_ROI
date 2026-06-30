@@ -795,6 +795,177 @@ function GuideTab() {
 }
 
 /* ══════════════════════════════════════════════════════════════════════════════
+   [255차 P1] 옴니채널 캠페인 탭 — 세그먼트 → 다채널 워터폴 비동기 발송
+   ══════════════════════════════════════════════════════════════════════════════ */
+const OMNI_CH_META = {
+  whatsapp: { label: 'WhatsApp', icon: '🟢' },
+  kakao:    { label: '카카오 알림톡', icon: '💬' },
+  email:    { label: '이메일', icon: '✉️' },
+};
+function OmnichannelTab({ t, segments, addAlert }) {
+  const [channels, setChannels] = useState(null);
+  const [campaigns, setCampaigns] = useState([]);
+  const [stats, setStats] = useState({});
+  const [busy, setBusy] = useState(false);
+  const emptyForm = { name: '', segment_id: 0, channels: ['whatsapp', 'kakao', 'email'], email_subject: '', body: '', kakao_template_code: '', also_webpush: false };
+  const [form, setForm] = useState(emptyForm);
+
+  const reload = useCallback(() => { crmApi.omniListCampaigns().then(r => setCampaigns(r.campaigns || [])).catch(() => {}); }, []);
+  useEffect(() => { crmApi.omniChannels().then(r => setChannels(r.channels || {})).catch(() => setChannels({})); reload(); }, [reload]);
+
+  const toggleCh = (ch) => setForm(f => ({ ...f, channels: f.channels.includes(ch) ? f.channels.filter(c => c !== ch) : [...f.channels, ch] }));
+  const moveCh = (ch, dir) => setForm(f => {
+    const arr = [...f.channels]; const i = arr.indexOf(ch); const j = i + dir;
+    if (i < 0 || j < 0 || j >= arr.length) return f;
+    [arr[i], arr[j]] = [arr[j], arr[i]]; return { ...f, channels: arr };
+  });
+
+  const create = async () => {
+    if (!form.name.trim()) { addAlert?.({ type: 'error', msg: t('crm.omniNeedName', '캠페인 이름을 입력하세요') }); return; }
+    if (!form.channels.length) { addAlert?.({ type: 'error', msg: t('crm.omniNeedCh', '채널을 1개 이상 선택하세요') }); return; }
+    const config = { email_subject: form.email_subject, email_body: form.body, whatsapp_body: form.body, kakao_content: form.body, kakao_template_code: form.kakao_template_code, also_webpush: !!form.also_webpush };
+    try {
+      await crmApi.omniCreateCampaign({ name: form.name, segment_id: Number(form.segment_id) || 0, channels: form.channels, config });
+      addAlert?.({ type: 'success', msg: t('crm.omniCreated', '옴니채널 캠페인이 생성되었습니다') });
+      setForm(emptyForm); reload();
+    } catch (e) { addAlert?.({ type: 'error', msg: t('crm.omniCreateFail', '생성 실패') + ': ' + (e?.message || '') }); }
+  };
+  const send = async (id) => {
+    setBusy(true);
+    try {
+      const r = await crmApi.omniSendCampaign(id);
+      addAlert?.({ type: 'success', msg: t('crm.omniQueued', '발송 큐 적재') + `: ${r.queued ?? 0} · ${t('crm.omniFirstBatch', '즉시처리')} ${r.first_batch?.sent ?? 0}` });
+      reload(); pollStats(id);
+    } catch (e) { addAlert?.({ type: 'error', msg: t('crm.omniSendFail', '발송 실패') + ': ' + (e?.message || '') }); }
+    finally { setBusy(false); }
+  };
+  const del = async (id) => { try { await crmApi.omniDeleteCampaign(id); reload(); setStats(s => { const n = { ...s }; delete n[id]; return n; }); } catch (e) {} };
+  const pollStats = (id) => { crmApi.omniCampaignStats(id).then(r => setStats(s => ({ ...s, [id]: r }))).catch(() => {}); };
+
+  const card = { background: C.card, borderRadius: 14, padding: 18, border: `1px solid ${C.border}`, marginBottom: 16 };
+  const inputSt = { padding: '9px 11px', borderRadius: 9, border: `1px solid ${C.border}`, background: '#fff', color: '#0f172a', fontSize: 13, width: '100%' };
+
+  return (
+    <div>
+      {/* 채널 자격 상태 — register-then-execute 안내 */}
+      <div style={card}>
+        <div style={{ fontWeight: 800, fontSize: 15, color: '#0f172a', marginBottom: 4 }}>📡 {t('crm.omniChTitle', '연결 채널 상태')}</div>
+        <div style={{ fontSize: 12, color: C.muted, marginBottom: 12 }}>{t('crm.omniChSub', '자격을 등록하면 즉시 해당 채널로 실발송됩니다(미설정 채널은 다음 채널로 자동 폴백).')}</div>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          {['whatsapp', 'kakao', 'email', 'webpush'].map(ch => {
+            const st = channels?.[ch];
+            const live = !!st?.live;
+            const m = OMNI_CH_META[ch] || { label: ch === 'webpush' ? '웹 푸시' : ch, icon: '🔔' };
+            return (
+              <div key={ch} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 10, border: `1px solid ${live ? 'rgba(34,197,94,0.3)' : C.border}`, background: live ? 'rgba(34,197,94,0.06)' : '#f8fafc' }}>
+                <span>{m.icon}</span>
+                <span style={{ fontWeight: 700, fontSize: 12.5, color: '#0f172a' }}>{m.label}</span>
+                <span style={{ fontSize: 11, fontWeight: 700, color: live ? '#16a34a' : '#94a3b8' }}>
+                  {live ? `🟢 ${t('crm.omniLive', '라이브')}` : (ch === 'email' ? `🟢 ${t('crm.omniFallback', '폴백 가능')}` : `⚪ ${t('crm.omniUnset', '미설정')}`)}
+                </span>
+                {ch === 'webpush' && st?.subscribers != null && <span style={{ fontSize: 11, color: C.muted }}>({st.subscribers})</span>}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* 캠페인 생성 */}
+      <div style={card}>
+        <div style={{ fontWeight: 800, fontSize: 15, color: '#0f172a', marginBottom: 12 }}>➕ {t('crm.omniNew', '새 옴니채널 캠페인')}</div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+          <div>
+            <div style={{ fontSize: 12, color: C.muted, marginBottom: 4 }}>{t('crm.omniName', '캠페인 이름')}</div>
+            <input style={inputSt} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder={t('crm.omniNamePh', '예) 6월 VIP 재구매 유도')} />
+          </div>
+          <div>
+            <div style={{ fontSize: 12, color: C.muted, marginBottom: 4 }}>{t('crm.omniSeg', '대상 세그먼트')}</div>
+            <select style={inputSt} value={form.segment_id} onChange={e => setForm({ ...form, segment_id: e.target.value })}>
+              <option value={0}>{t('crm.omniAllCust', '전체 고객')}</option>
+              {(segments || []).map(s => <option key={s.id} value={s.id}>{s.name} ({s.member_count ?? s.count ?? 0})</option>)}
+            </select>
+          </div>
+        </div>
+
+        {/* 채널 워터폴 순서 */}
+        <div style={{ fontSize: 12, color: C.muted, marginBottom: 6 }}>{t('crm.omniWaterfall', '채널 우선순위(위 채널 미도달/미설정 시 다음 채널로 폴백)')}</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12 }}>
+          {['whatsapp', 'kakao', 'email'].sort((a, b) => {
+            const ia = form.channels.indexOf(a), ib = form.channels.indexOf(b);
+            return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
+          }).map(ch => {
+            const sel = form.channels.includes(ch); const m = OMNI_CH_META[ch];
+            return (
+              <div key={ch} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 10px', borderRadius: 9, border: `1px solid ${C.border}`, background: sel ? '#fff' : '#f8fafc', opacity: sel ? 1 : 0.6 }}>
+                <input type="checkbox" checked={sel} onChange={() => toggleCh(ch)} />
+                <span style={{ fontWeight: 700, fontSize: 13, color: '#0f172a' }}>{sel ? `${form.channels.indexOf(ch) + 1}. ` : ''}{m.icon} {m.label}</span>
+                {sel && <span style={{ marginLeft: 'auto', display: 'flex', gap: 4 }}>
+                  <button onClick={() => moveCh(ch, -1)} style={{ border: `1px solid ${C.border}`, background: '#fff', borderRadius: 6, cursor: 'pointer', padding: '2px 7px' }}>▲</button>
+                  <button onClick={() => moveCh(ch, 1)} style={{ border: `1px solid ${C.border}`, background: '#fff', borderRadius: 6, cursor: 'pointer', padding: '2px 7px' }}>▼</button>
+                </span>}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* 콘텐츠 */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+          <div>
+            <div style={{ fontSize: 12, color: C.muted, marginBottom: 4 }}>{t('crm.omniEmailSubj', '이메일 제목')}</div>
+            <input style={inputSt} value={form.email_subject} onChange={e => setForm({ ...form, email_subject: e.target.value })} placeholder={t('crm.omniEmailSubjPh', '예) {{name}}님께 드리는 특별 혜택')} />
+          </div>
+          <div>
+            <div style={{ fontSize: 12, color: C.muted, marginBottom: 4 }}>{t('crm.omniKakaoTpl', '카카오 템플릿 코드')}</div>
+            <input style={inputSt} value={form.kakao_template_code} onChange={e => setForm({ ...form, kakao_template_code: e.target.value })} placeholder={t('crm.omniKakaoTplPh', '승인된 알림톡 템플릿 코드')} />
+          </div>
+        </div>
+        <div style={{ marginBottom: 12 }}>
+          <div style={{ fontSize: 12, color: C.muted, marginBottom: 4 }}>{t('crm.omniBody', '메시지 본문(전 채널 공통 · {{name}} 치환)')}</div>
+          <textarea style={{ ...inputSt, minHeight: 70, resize: 'vertical' }} value={form.body} onChange={e => setForm({ ...form, body: e.target.value })} placeholder={t('crm.omniBodyPh', '{{name}}님, 이번 주만 특별 할인 진행 중입니다!')} />
+        </div>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, color: '#0f172a', marginBottom: 14, cursor: 'pointer' }}>
+          <input type="checkbox" checked={form.also_webpush} onChange={e => setForm({ ...form, also_webpush: e.target.checked })} />
+          🔔 {t('crm.omniAlsoPush', '웹 푸시 동시 발송(구독자 전체)')}
+        </label>
+        <button onClick={create} style={{ padding: '10px 20px', borderRadius: 10, border: 'none', background: C.accent, color: '#fff', fontWeight: 800, cursor: 'pointer', fontSize: 13 }}>{t('crm.omniCreate', '캠페인 생성')}</button>
+      </div>
+
+      {/* 캠페인 목록 */}
+      <div style={card}>
+        <div style={{ fontWeight: 800, fontSize: 15, color: '#0f172a', marginBottom: 12 }}>📋 {t('crm.omniList', '옴니채널 캠페인')}</div>
+        {campaigns.length === 0 && <div style={{ color: C.muted, textAlign: 'center', padding: 20, fontSize: 13 }}>{t('crm.omniEmpty', '생성된 캠페인이 없습니다')}</div>}
+        {campaigns.map(c => {
+          const s = stats[c.id];
+          return (
+            <div key={c.id} style={{ padding: '12px 14px', borderRadius: 11, border: `1px solid ${C.border}`, marginBottom: 8, background: '#fff' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                <span style={{ fontWeight: 800, fontSize: 14, color: '#0f172a' }}>{c.name}</span>
+                <span style={{ fontSize: 11, fontWeight: 700, color: '#64748b' }}>{(c.channels || []).map(ch => OMNI_CH_META[ch]?.icon || '').join(' ')}</span>
+                <span style={{ fontSize: 11, color: C.muted }}>{c.segment_name || t('crm.omniAllCust', '전체 고객')}</span>
+                <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 6, background: c.status === 'sent' ? 'rgba(34,197,94,0.1)' : c.status === 'sending' ? 'rgba(59,130,246,0.1)' : '#f1f5f9', color: c.status === 'sent' ? '#16a34a' : c.status === 'sending' ? '#2563eb' : '#64748b', fontWeight: 700 }}>{c.status}</span>
+                <span style={{ marginLeft: 'auto', display: 'flex', gap: 6 }}>
+                  <button disabled={busy} onClick={() => send(c.id)} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: C.green, color: '#fff', fontWeight: 700, cursor: 'pointer', fontSize: 12 }}>🚀 {t('crm.omniSend', '발송')}</button>
+                  <button onClick={() => pollStats(c.id)} style={{ padding: '6px 12px', borderRadius: 8, border: `1px solid ${C.border}`, background: 'transparent', color: C.muted, fontWeight: 700, cursor: 'pointer', fontSize: 12 }}>🔄</button>
+                  <button onClick={() => del(c.id)} style={{ padding: '6px 12px', borderRadius: 8, border: `1px solid ${C.border}`, background: 'transparent', color: '#ef4444', fontWeight: 700, cursor: 'pointer', fontSize: 12 }}>🗑</button>
+                </span>
+              </div>
+              <div style={{ fontSize: 11.5, color: C.muted, marginTop: 8, display: 'flex', gap: 14, flexWrap: 'wrap' }}>
+                <span>{t('crm.omniTotal', '대상')}: <b style={{ color: '#0f172a' }}>{c.total ?? 0}</b></span>
+                <span>{t('crm.omniSent', '발송')}: <b style={{ color: '#16a34a' }}>{c.sent ?? 0}</b></span>
+                <span>{t('crm.omniSkipped', '건너뜀')}: <b style={{ color: '#94a3b8' }}>{c.skipped ?? 0}</b></span>
+                <span>{t('crm.omniFailed', '실패')}: <b style={{ color: '#ef4444' }}>{c.failed ?? 0}</b></span>
+                {s && <span>{t('crm.omniProgress', '진행률')}: <b style={{ color: '#2563eb' }}>{s.progress_done ?? 0}%</b></span>}
+                {s?.by_channel && Object.keys(s.by_channel).length > 0 && <span>{t('crm.omniByCh', '채널별')}: {Object.entries(s.by_channel).map(([k, v]) => `${OMNI_CH_META[k]?.label || k} ${v}`).join(', ')}</span>}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
    MAIN CRM CONTENT
    ══════════════════════════════════════════════════════════════════════════════ */
 function CRMContent() {
@@ -937,6 +1108,7 @@ function CRMContent() {
     { id: "customers", label: t('crm.tabCust') },
     { id: "ai_segments", label: t('crm.tabAiSeg') },
     { id: "segments", label: t('crm.tabManSeg') },
+    { id: "omni", label: `📡 ${t('crm.tabOmni', '옴니채널')}` },
     { id: "rfm", label: t('crm.tabRfm') },
     { id: "deliverability", label: t('crm.tabDeliver', '딜리버러빌리티') },
     { id: "cs", label: `🎧 ${t('crm.tabCs', 'CS 지원')}` },
@@ -1089,6 +1261,7 @@ function CRMContent() {
       )}
 
       {tab === "segments" && <SegmentsTab segments={segments} onSave={onSaveSegment} onDelete={onDeleteSegment} onSmartSeed={onSmartSeed} onRefresh={onRefreshSegment} />}
+      {tab === "omni" && <OmnichannelTab t={t} segments={segments} addAlert={addAlert} />}
       {tab === "rfm" && <RFMTab derivedCustomers={rfmList} />}
       {tab === "deliverability" && <DeliverabilityTab t={t} />}
       {tab === "cs" && <CsMetricsTab t={t} />}

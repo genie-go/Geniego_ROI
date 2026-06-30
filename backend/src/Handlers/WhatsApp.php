@@ -364,6 +364,34 @@ final class WhatsApp
         } catch (\Throwable $e) { return ''; }
     }
 
+    /**
+     * [255차 옴니채널] per-recipient WhatsApp 발송 프리미티브(Omnichannel 워커 재사용).
+     *   whatsapp_settings(is_active) 로드 → 미설정/비활성 시 graceful unconfigured(에러 없음, 워커가 다음 채널 폴백).
+     *   발송 시 whatsapp_messages 기록(stats 정합). 전부 테넌트 스코프.
+     * @return array{ok:bool,mode:string,status?:string,error?:string} mode: live|unconfigured|invalid
+     */
+    public static function sendOne(\PDO $pdo, string $tenant, string $to, string $template, string $text, array $params = []): array
+    {
+        $to = preg_replace('/\D/', '', (string)$to);
+        if (strlen($to) < 8) return ['ok' => false, 'mode' => 'invalid'];
+        try {
+            self::ensureTables();
+            $s = $pdo->prepare("SELECT phone_number_id, access_token FROM whatsapp_settings WHERE tenant_id=? AND is_active=1");
+            $s->execute([$tenant]);
+            $cfg = $s->fetch(PDO::FETCH_ASSOC) ?: [];
+        } catch (\Throwable $e) { $cfg = []; }
+        // 자격 미등록 → graceful(에러 없음). 등록만 하면 즉시 live 발송(register-then-execute).
+        if (empty($cfg['phone_number_id']) || empty($cfg['access_token'])) return ['ok' => false, 'mode' => 'unconfigured'];
+        $token = \Genie\Crypto::decrypt((string)$cfg['access_token']);
+        $r = self::sendMessage((string)$cfg['phone_number_id'], $token, $to, $template, $text, $params);
+        $now = gmdate('c');
+        try {
+            $pdo->prepare("INSERT INTO whatsapp_messages(tenant_id,wa_message_id,recipient,template_name,body,status,error,sent_at,created_at) VALUES(?,?,?,?,?,?,?,?,?)")
+                ->execute([$tenant, $r['wa_id'] ?? null, $to, $template, $text, $r['ok'] ? 'sent' : 'failed', $r['error'] ?? null, $now, $now]);
+        } catch (\Throwable $e) {}
+        return ['ok' => !empty($r['ok']), 'mode' => 'live', 'status' => $r['ok'] ? 'sent' : 'failed', 'error' => $r['error'] ?? null];
+    }
+
     // ── 실 API 호출 ──────────────────────────────────────────────────────
     private static function testConnection(string $phoneNumberId, string $token): array
     {

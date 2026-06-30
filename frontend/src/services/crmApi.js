@@ -20,4 +20,11 @@ export const crmApi = {
   // 빈도캡/STO(딜리버러빌리티 제어) — [현 차수] admin 조정. 테넌트 격리(서버 app_setting skey 접두).
   getCommsFreq:   ()       => getJsonAuth("/api/crm/comms-freq"),
   saveCommsFreq:  (body)   => requestJsonAuth("/api/crm/comms-freq", "PUT", body),
+  // [255차 P1] 옴니채널 오케스트레이터 — 세그먼트→다채널 워터폴 비동기 발송.
+  omniChannels:        ()       => getJsonAuth("/api/v427/omni/channels"),
+  omniListCampaigns:   ()       => getJsonAuth("/api/v427/omni/campaigns"),
+  omniCreateCampaign:  (body)   => postJsonAuth("/api/v427/omni/campaigns", body),
+  omniDeleteCampaign:  (id)     => requestJsonAuth(`/api/v427/omni/campaigns/${id}`, "DELETE"),
+  omniSendCampaign:    (id)     => postJsonAuth(`/api/v427/omni/campaigns/${id}/send`, {}),
+  omniCampaignStats:   (id)     => getJsonAuth(`/api/v427/omni/campaigns/${id}/stats`),
 };

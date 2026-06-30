@@ -12129,7 +12129,7 @@ export default {"paymentSuccess": {"invalidInfo":"Informasi pembayaran tidak val
     "oauthModalTitle": "{{platform}} OAuth認証",
     "oauthPrompt": "Hubungkan ke platform melalui autentikasi OAuth",
     "requestedPermissions": "Izin yang Diminta",
-    "tokenExpiry": "Tanggal Kedaluwarsa Token"
+    "tokenExpiry": "Tanggal Kedaluwarsa Token", "tabOmni": "Omnichannel", "omniNeedName": "Masukkan nama kampanye", "omniNeedCh": "Pilih minimal satu saluran", "omniCreated": "Kampanye omnichannel dibuat", "omniCreateFail": "Gagal membuat", "omniQueued": "Masuk antrean pengiriman", "omniFirstBatch": "instan", "omniSendFail": "Gagal mengirim", "omniChTitle": "Status saluran terhubung", "omniChSub": "Setelah kredensial didaftarkan, pengiriman langsung berjalan di saluran itu (saluran yang belum diatur otomatis beralih ke saluran berikutnya).", "omniLive": "Aktif", "omniFallback": "Siap fallback", "omniUnset": "Belum diatur", "omniNew": "Kampanye omnichannel baru", "omniName": "Nama kampanye", "omniNamePh": "mis. Dorongan pembelian ulang VIP Juni", "omniSeg": "Segmen target", "omniAllCust": "Semua pelanggan", "omniWaterfall": "Prioritas saluran (beralih ke saluran berikutnya jika tak terjangkau/belum diatur)", "omniEmailSubj": "Subjek email", "omniEmailSubjPh": "mis. {{name}}, penawaran khusus untuk Anda", "omniKakaoTpl": "Kode templat Kakao", "omniKakaoTplPh": "Kode templat AlimTalk yang disetujui", "omniBody": "Isi pesan (umum lintas saluran · ganti {{name}})", "omniBodyPh": "{{name}}, diskon khusus minggu ini saja!", "omniAlsoPush": "Kirim juga web push (semua pelanggan)", "omniCreate": "Buat kampanye", "omniList": "Kampanye omnichannel", "omniEmpty": "Belum ada kampanye", "omniTotal": "Target", "omniSent": "Terkirim", "omniSkipped": "Dilewati", "omniFailed": "Gagal", "omniProgress": "Progres", "omniByCh": "Per saluran", "omniSend": "Kirim"
   },
     campMgr: {
     "guideBeginnerBadge": "Mudah untuk Pemula",
@@ -15924,7 +15924,7 @@ export default {"paymentSuccess": {"invalidInfo":"Informasi pembayaran tidak val
     "pgColTxn": "ID Transaksi",
     "pgColType": "Tipe",
     "pgColDate": "Tanggal",
-    "pgColAmount": "Jumlah",
+    "pgColAmount": "Jumlah", "applyCeo": "Nama direktur", "applyAddress": "Alamat usaha",
   },
 
 

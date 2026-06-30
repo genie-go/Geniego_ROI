@@ -13416,7 +13416,7 @@ export default {"paymentSuccess": {"invalidInfo":"결제 정보가 올바르지 
     oauthModalTitle: "{{platform}} OAuth 인증",
     oauthPrompt: "OAuth 인증으로 플랫폼에 연결",
     requestedPermissions: "요청된 권한",
-    tokenExpiry: "토큰 만료일",
+    tokenExpiry: "토큰 만료일", "tabOmni": "옴니채널", "omniNeedName": "캠페인 이름을 입력하세요", "omniNeedCh": "채널을 1개 이상 선택하세요", "omniCreated": "옴니채널 캠페인이 생성되었습니다", "omniCreateFail": "생성 실패", "omniQueued": "발송 큐 적재", "omniFirstBatch": "즉시처리", "omniSendFail": "발송 실패", "omniChTitle": "연결 채널 상태", "omniChSub": "자격을 등록하면 즉시 해당 채널로 실발송됩니다(미설정 채널은 다음 채널로 자동 폴백).", "omniLive": "라이브", "omniFallback": "폴백 가능", "omniUnset": "미설정", "omniNew": "새 옴니채널 캠페인", "omniName": "캠페인 이름", "omniNamePh": "예) 6월 VIP 재구매 유도", "omniSeg": "대상 세그먼트", "omniAllCust": "전체 고객", "omniWaterfall": "채널 우선순위(위 채널 미도달/미설정 시 다음 채널로 폴백)", "omniEmailSubj": "이메일 제목", "omniEmailSubjPh": "예) {{name}}님께 드리는 특별 혜택", "omniKakaoTpl": "카카오 템플릿 코드", "omniKakaoTplPh": "승인된 알림톡 템플릿 코드", "omniBody": "메시지 본문(전 채널 공통 · {{name}} 치환)", "omniBodyPh": "{{name}}님, 이번 주만 특별 할인 진행 중입니다!", "omniAlsoPush": "웹 푸시 동시 발송(구독자 전체)", "omniCreate": "캠페인 생성", "omniList": "옴니채널 캠페인", "omniEmpty": "생성된 캠페인이 없습니다", "omniTotal": "대상", "omniSent": "발송", "omniSkipped": "건너뜀", "omniFailed": "실패", "omniProgress": "진행률", "omniByCh": "채널별", "omniSend": "발송",
   },
 
 "apiKeys": {
@@ -23999,7 +23999,7 @@ export default {"paymentSuccess": {"invalidInfo":"결제 정보가 올바르지 
     "pgColTxn": "거래ID",
     "pgColType": "유형",
     "pgColDate": "일시",
-    "pgColAmount": "금액",
+    "pgColAmount": "금액", "applyCeo": "대표자명", "applyAddress": "사업장 주소",
   },
 
 

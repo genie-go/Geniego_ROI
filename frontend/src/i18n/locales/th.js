@@ -12184,7 +12184,7 @@ export default {"paymentSuccess": {"invalidInfo":"ข้อมูลการช
     "oauthModalTitle": "{{platform}} OAuth認証",
     "oauthPrompt": "เชื่อมต่อกับแพลตฟอร์มผ่านการยืนยันตัวตน OAuth",
     "requestedPermissions": "สิทธิ์ที่ร้องขอ",
-    "tokenExpiry": "วันหมดอายุโทเคน"
+    "tokenExpiry": "วันหมดอายุโทเคน", "tabOmni": "ออมนิแชนเนล", "omniNeedName": "กรุณากรอกชื่อแคมเปญ", "omniNeedCh": "เลือกอย่างน้อยหนึ่งช่องทาง", "omniCreated": "สร้างแคมเปญออมนิแชนเนลแล้ว", "omniCreateFail": "สร้างไม่สำเร็จ", "omniQueued": "เข้าคิวส่งแล้ว", "omniFirstBatch": "ประมวลผลทันที", "omniSendFail": "ส่งไม่สำเร็จ", "omniChTitle": "สถานะช่องทางที่เชื่อมต่อ", "omniChSub": "เมื่อลงทะเบียนข้อมูลรับรองแล้ว จะส่งจริงผ่านช่องทางนั้นทันที (ช่องทางที่ยังไม่ตั้งค่าจะถอยไปช่องทางถัดไปอัตโนมัติ)", "omniLive": "พร้อมใช้งาน", "omniFallback": "สำรองได้", "omniUnset": "ยังไม่ตั้งค่า", "omniNew": "แคมเปญออมนิแชนเนลใหม่", "omniName": "ชื่อแคมเปญ", "omniNamePh": "เช่น กระตุ้นการซื้อซ้ำ VIP เดือนมิ.ย.", "omniSeg": "กลุ่มเป้าหมาย", "omniAllCust": "ลูกค้าทั้งหมด", "omniWaterfall": "ลำดับช่องทาง (ถอยไปช่องทางถัดไปเมื่อเข้าถึงไม่ได้/ยังไม่ตั้งค่า)", "omniEmailSubj": "หัวข้ออีเมล", "omniEmailSubjPh": "เช่น {{name}} ข้อเสนอพิเศษสำหรับคุณ", "omniKakaoTpl": "รหัสเทมเพลต Kakao", "omniKakaoTplPh": "รหัสเทมเพลต AlimTalk ที่อนุมัติแล้ว", "omniBody": "เนื้อหาข้อความ (ใช้ร่วมทุกช่องทาง · แทนที่ {{name}})", "omniBodyPh": "{{name}} ส่วนลดพิเศษเฉพาะสัปดาห์นี้เท่านั้น!", "omniAlsoPush": "ส่งเว็บพุชพร้อมกัน (ผู้ติดตามทั้งหมด)", "omniCreate": "สร้างแคมเปญ", "omniList": "แคมเปญออมนิแชนเนล", "omniEmpty": "ยังไม่มีแคมเปญ", "omniTotal": "เป้าหมาย", "omniSent": "ส่งแล้ว", "omniSkipped": "ข้าม", "omniFailed": "ล้มเหลว", "omniProgress": "ความคืบหน้า", "omniByCh": "ตามช่องทาง", "omniSend": "ส่ง"
   },
     campMgr: {
     "guideBeginnerBadge": "เหมาะสำหรับผู้เริ่มต้น",
@@ -15966,7 +15966,7 @@ export default {"paymentSuccess": {"invalidInfo":"ข้อมูลการช
     "pgColTxn": "รหัสธุรกรรม",
     "pgColType": "ประเภท",
     "pgColDate": "วันที่",
-    "pgColAmount": "จำนวนเงิน",
+    "pgColAmount": "จำนวนเงิน", "applyCeo": "ชื่อผู้แทนนิติบุคคล", "applyAddress": "ที่อยู่สถานประกอบการ",
   },
 
 

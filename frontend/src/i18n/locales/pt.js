@@ -13752,7 +13752,7 @@ export default {"paymentSuccess": {"invalidInfo":"As informações de pagamento 
     "btnSave": "Salvar",
     "fSearch": "Buscar",
     "colLtv": "LTV",
-    "tDetail": "Detalhes"
+    "tDetail": "Detalhes", "tabOmni": "Omnicanal", "omniNeedName": "Insira um nome de campanha", "omniNeedCh": "Selecione pelo menos um canal", "omniCreated": "Campanha omnicanal criada", "omniCreateFail": "Falha ao criar", "omniQueued": "Na fila para envio", "omniFirstBatch": "instantâneo", "omniSendFail": "Falha ao enviar", "omniChTitle": "Status dos canais conectados", "omniChSub": "Após registrar as credenciais, o envio começa imediatamente nesse canal (canais não configurados recorrem automaticamente ao próximo).", "omniLive": "Ativo", "omniFallback": "Fallback pronto", "omniUnset": "Não configurado", "omniNew": "Nova campanha omnicanal", "omniName": "Nome da campanha", "omniNamePh": "ex. Recompra VIP de junho", "omniSeg": "Segmento-alvo", "omniAllCust": "Todos os clientes", "omniWaterfall": "Prioridade de canal (recorre ao próximo canal se inacessível/não configurado)", "omniEmailSubj": "Assunto do e-mail", "omniEmailSubjPh": "ex. {{name}}, uma oferta especial para você", "omniKakaoTpl": "Código de modelo Kakao", "omniKakaoTplPh": "Código de modelo AlimTalk aprovado", "omniBody": "Corpo da mensagem (comum a todos os canais · substituição {{name}})", "omniBodyPh": "{{name}}, desconto especial só esta semana!", "omniAlsoPush": "Enviar também push web (todos os assinantes)", "omniCreate": "Criar campanha", "omniList": "Campanhas omnicanais", "omniEmpty": "Nenhuma campanha ainda", "omniTotal": "Alvo", "omniSent": "Enviado", "omniSkipped": "Ignorado", "omniFailed": "Falhou", "omniProgress": "Progresso", "omniByCh": "Por canal", "omniSend": "Enviar"
   },
   campMgr: {
     "guideBeginnerBadge": "Fácil para Iniciantes",
@@ -15688,7 +15688,7 @@ export default {"paymentSuccess": {"invalidInfo":"As informações de pagamento 
     "pgColTxn": "ID transaç.",
     "pgColType": "Tipo",
     "pgColDate": "Data",
-    "pgColAmount": "Valor",
+    "pgColAmount": "Valor", "applyCeo": "Nome do representante legal", "applyAddress": "Endereço comercial",
   },
 
 

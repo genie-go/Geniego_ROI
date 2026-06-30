@@ -13643,7 +13643,7 @@ export default {"paymentSuccess": {"invalidInfo":"The payment information is inv
     "btnSave": "Save",
     "fSearch": "Search",
     "colLtv": "LTV",
-    "tDetail": "Details",
+    "tDetail": "Details", "tabOmni": "Omnichannel", "omniNeedName": "Enter a campaign name", "omniNeedCh": "Select at least one channel", "omniCreated": "Omnichannel campaign created", "omniCreateFail": "Creation failed", "omniQueued": "Queued for delivery", "omniFirstBatch": "instant", "omniSendFail": "Send failed", "omniChTitle": "Connected channel status", "omniChSub": "Once credentials are registered, delivery starts immediately on that channel (unset channels auto-fall back to the next one).", "omniLive": "Live", "omniFallback": "Fallback ready", "omniUnset": "Not set", "omniNew": "New omnichannel campaign", "omniName": "Campaign name", "omniNamePh": "e.g. June VIP repurchase push", "omniSeg": "Target segment", "omniAllCust": "All customers", "omniWaterfall": "Channel priority (falls back to next channel if unreachable/unset)", "omniEmailSubj": "Email subject", "omniEmailSubjPh": "e.g. {{name}}, a special offer for you", "omniKakaoTpl": "Kakao template code", "omniKakaoTplPh": "Approved AlimTalk template code", "omniBody": "Message body (shared across channels · {{name}} merge)", "omniBodyPh": "{{name}}, special discount this week only!", "omniAlsoPush": "Also send web push (all subscribers)", "omniCreate": "Create campaign", "omniList": "Omnichannel campaigns", "omniEmpty": "No campaigns yet", "omniTotal": "Target", "omniSent": "Sent", "omniSkipped": "Skipped", "omniFailed": "Failed", "omniProgress": "Progress", "omniByCh": "By channel", "omniSend": "Send",
     },
     campMgr: {
     "guideBeginnerBadge": "Beginner Friendly",
@@ -15586,7 +15586,7 @@ export default {"paymentSuccess": {"invalidInfo":"The payment information is inv
     "pgColTxn": "Txn ID",
     "pgColType": "Type",
     "pgColDate": "Date",
-    "pgColAmount": "Amount",
+    "pgColAmount": "Amount", "applyCeo": "CEO name", "applyAddress": "Business address",
   },
 
 

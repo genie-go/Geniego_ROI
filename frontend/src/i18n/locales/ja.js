@@ -13661,7 +13661,7 @@ export default {"paymentSuccess": {"invalidInfo":"決済情報が正しくあり
     "btnSave": "保存",
     "fSearch": "検索",
     "colLtv": "LTV",
-    "tDetail": "詳細"
+    "tDetail": "詳細", "tabOmni": "オムニチャネル", "omniNeedName": "キャンペーン名を入力してください", "omniNeedCh": "チャネルを1つ以上選択してください", "omniCreated": "オムニチャネルキャンペーンを作成しました", "omniCreateFail": "作成に失敗しました", "omniQueued": "配信キューに登録", "omniFirstBatch": "即時処理", "omniSendFail": "送信に失敗しました", "omniChTitle": "連携チャネルの状態", "omniChSub": "認証情報を登録すると、そのチャネルで即時に実配信されます（未設定チャネルは次のチャネルへ自動フォールバック）。", "omniLive": "ライブ", "omniFallback": "フォールバック可", "omniUnset": "未設定", "omniNew": "新規オムニチャネルキャンペーン", "omniName": "キャンペーン名", "omniNamePh": "例）6月VIP再購入促進", "omniSeg": "対象セグメント", "omniAllCust": "全顧客", "omniWaterfall": "チャネル優先順位（上位が未到達/未設定なら次のチャネルへフォールバック）", "omniEmailSubj": "メール件名", "omniEmailSubjPh": "例）{{name}}様への特別オファー", "omniKakaoTpl": "カカオテンプレートコード", "omniKakaoTplPh": "承認済みアラームトークのテンプレートコード", "omniBody": "メッセージ本文（全チャネル共通・{{name}}置換）", "omniBodyPh": "{{name}}様、今週だけの特別割引中です！", "omniAlsoPush": "Webプッシュ同時送信（購読者全員）", "omniCreate": "キャンペーン作成", "omniList": "オムニチャネルキャンペーン", "omniEmpty": "作成されたキャンペーンはありません", "omniTotal": "対象", "omniSent": "送信", "omniSkipped": "スキップ", "omniFailed": "失敗", "omniProgress": "進捗", "omniByCh": "チャネル別", "omniSend": "送信"
   },
   "acctPerf": {
     "tabDashboard": "ダッシュボード",
@@ -15573,7 +15573,7 @@ export default {"paymentSuccess": {"invalidInfo":"決済情報が正しくあり
     "pgColTxn": "取引ID",
     "pgColType": "種別",
     "pgColDate": "日時",
-    "pgColAmount": "金額",
+    "pgColAmount": "金額", "applyCeo": "代表者名", "applyAddress": "事業所住所",
   },
 
 

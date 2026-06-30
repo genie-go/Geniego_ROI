@@ -13752,7 +13752,7 @@ export default {"paymentSuccess": {"invalidInfo":"معلومات الدفع غي
     "btnSave": "حفظ",
     "fSearch": "بحث",
     "colLtv": "LTV",
-    "tDetail": "التفاصيل"
+    "tDetail": "التفاصيل", "tabOmni": "القنوات الشاملة", "omniNeedName": "أدخل اسم الحملة", "omniNeedCh": "اختر قناة واحدة على الأقل", "omniCreated": "تم إنشاء حملة القنوات الشاملة", "omniCreateFail": "فشل الإنشاء", "omniQueued": "في قائمة انتظار الإرسال", "omniFirstBatch": "فوري", "omniSendFail": "فشل الإرسال", "omniChTitle": "حالة القنوات المتصلة", "omniChSub": "بمجرد تسجيل بيانات الاعتماد، يبدأ الإرسال فورًا عبر تلك القناة (تنتقل القنوات غير المُعدّة تلقائيًا إلى القناة التالية).", "omniLive": "نشط", "omniFallback": "احتياطي جاهز", "omniUnset": "غير مُعد", "omniNew": "حملة قنوات شاملة جديدة", "omniName": "اسم الحملة", "omniNamePh": "مثال) تحفيز إعادة شراء VIP في يونيو", "omniSeg": "الشريحة المستهدفة", "omniAllCust": "جميع العملاء", "omniWaterfall": "أولوية القنوات (تنتقل إلى القناة التالية إذا تعذّر الوصول/غير مُعدّة)", "omniEmailSubj": "موضوع البريد", "omniEmailSubjPh": "مثال) {{name}}، عرض خاص لك", "omniKakaoTpl": "رمز قالب كاكاو", "omniKakaoTplPh": "رمز قالب AlimTalk المعتمد", "omniBody": "نص الرسالة (مشترك بين القنوات · استبدال {{name}})", "omniBodyPh": "{{name}}، خصم خاص هذا الأسبوع فقط!", "omniAlsoPush": "إرسال إشعار ويب أيضًا (جميع المشتركين)", "omniCreate": "إنشاء حملة", "omniList": "حملات القنوات الشاملة", "omniEmpty": "لا توجد حملات بعد", "omniTotal": "المستهدف", "omniSent": "مُرسل", "omniSkipped": "متخطّى", "omniFailed": "فشل", "omniProgress": "التقدم", "omniByCh": "حسب القناة", "omniSend": "إرسال"
   },
   campMgr: {
     "guideBeginnerBadge": "مناسب للمبتدئين",
@@ -15688,7 +15688,7 @@ export default {"paymentSuccess": {"invalidInfo":"معلومات الدفع غي
     "pgColTxn": "معرف المعاملة",
     "pgColType": "النوع",
     "pgColDate": "التاريخ",
-    "pgColAmount": "المبلغ",
+    "pgColAmount": "المبلغ", "applyCeo": "اسم المدير", "applyAddress": "عنوان النشاط التجاري",
   },
 
 

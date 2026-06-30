@@ -13441,7 +13441,7 @@ export default {"paymentSuccess": {"invalidInfo":"支付信息不正确。","ver
     "oauthModalTitle": "{{platform}} OAuth 授权",
     "oauthPrompt": "通过 OAuth 授权连接平台",
     "requestedPermissions": "请求的权限",
-    "tokenExpiry": "令牌到期日"
+    "tokenExpiry": "令牌到期日", "tabOmni": "全渠道", "omniNeedName": "请输入活动名称", "omniNeedCh": "请至少选择一个渠道", "omniCreated": "已创建全渠道活动", "omniCreateFail": "创建失败", "omniQueued": "已加入发送队列", "omniFirstBatch": "即时处理", "omniSendFail": "发送失败", "omniChTitle": "已连接渠道状态", "omniChSub": "注册凭证后将立即通过该渠道实际发送（未设置的渠道会自动回退到下一个渠道）。", "omniLive": "已上线", "omniFallback": "可回退", "omniUnset": "未设置", "omniNew": "新建全渠道活动", "omniName": "活动名称", "omniNamePh": "例）6月VIP复购促进", "omniSeg": "目标分群", "omniAllCust": "全部客户", "omniWaterfall": "渠道优先级（上层渠道无法触达/未设置时回退到下一渠道）", "omniEmailSubj": "邮件主题", "omniEmailSubjPh": "例）{{name}}，为您准备的专属优惠", "omniKakaoTpl": "Kakao模板代码", "omniKakaoTplPh": "已审核的AlimTalk模板代码", "omniBody": "消息正文（全渠道通用·{{name}}替换）", "omniBodyPh": "{{name}}，仅限本周的特别折扣进行中！", "omniAlsoPush": "同时发送网页推送（全部订阅者）", "omniCreate": "创建活动", "omniList": "全渠道活动", "omniEmpty": "暂无活动", "omniTotal": "目标", "omniSent": "已发送", "omniSkipped": "已跳过", "omniFailed": "失败", "omniProgress": "进度", "omniByCh": "按渠道", "omniSend": "发送"
   },
     "campMgr": {
     "guideBeginnerBadge": "新手也能轻松上手",
@@ -15404,7 +15404,7 @@ export default {"paymentSuccess": {"invalidInfo":"支付信息不正确。","ver
     "pgColTxn": "交易ID",
     "pgColType": "类型",
     "pgColDate": "时间",
-    "pgColAmount": "金额",
+    "pgColAmount": "金额", "applyCeo": "法人代表姓名", "applyAddress": "营业地址",
   },
 
 

@@ -950,8 +950,14 @@ final class ChannelCreds
         $phone           = trim((string)($body['phone']           ?? ''));
         $company         = trim((string)($body['company']         ?? ''));
         $requestedAt     = trim((string)($body['requested_at']    ?? gmdate('c')));
+        // [255차 갭1] 회사정보 5필수(대표자명·사업장 주소)도 신청서에 포함 — 사업자 인증 요구 채널(쿠팡/롯데온/아마존)
+        //   신청 반려 방지. 별도 컬럼 추가 없이 extra(추가정보)에 병합 보관·통지.
+        $ceoName         = trim((string)($body['ceo_name'] ?? ''));
+        $address         = trim((string)($body['address']  ?? ''));
         // [현 차수] 채널별 발급 필요 정보(계정/식별 등) — 신청 접수에 함께 보관·통지.
         $extra           = is_array($body['extra'] ?? null) ? $body['extra'] : [];
+        if ($ceoName !== '') $extra['ceo_name'] = $ceoName;
+        if ($address !== '') $extra['address']  = $address;
         $extraJson       = !empty($extra) ? json_encode($extra, JSON_UNESCAPED_UNICODE) : null;
 
         if ($channel === '') {

@@ -148,6 +148,9 @@ $app->add(function (Request $request, $handler) {
         // 190차 Sprint2-b: EmailMarketing 부활 — 세션 기반(requirePro self-auth + 테넌트 격리)
         || strpos($path, '/api/email/') === 0
         || strpos($path, '/email/') === 0
+        // [255차 P1] 옴니채널 오케스트레이터(/v427/omni/*) — 프론트 세션 토큰 호출(api_key 아님).
+        //   Omnichannel::requirePro + authedTenant 격리. 미bypass 시 api_key 미들웨어가 세션토큰을 401 거부.
+        || strpos($path, '/api/v427/omni/') === 0 || strpos($path, '/v427/omni/') === 0
         // 190차 Sprint2-c: KakaoChannel/PixelTracking/JourneyBuilder 부활 — 세션 self-auth + 테넌트 격리.
         //   (pixel/collect 는 공개 비콘 — 핸들러가 pixel_id→tenant 도출, requirePro 미적용)
         || strpos($path, '/api/kakao/') === 0    || strpos($path, '/kakao/') === 0

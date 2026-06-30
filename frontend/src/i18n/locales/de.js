@@ -13534,7 +13534,7 @@ export default {"paymentSuccess": {"invalidInfo":"Die Zahlungsinformationen sind
     "oauthModalTitle": "{{platform}} OAuth認証",
     "oauthPrompt": "Per OAuth-Authentifizierung mit der Plattform verbinden",
     "requestedPermissions": "Angeforderte Berechtigungen",
-    "tokenExpiry": "Token-Ablaufdatum"
+    "tokenExpiry": "Token-Ablaufdatum", "tabOmni": "Omnichannel", "omniNeedName": "Kampagnennamen eingeben", "omniNeedCh": "Mindestens einen Kanal auswählen", "omniCreated": "Omnichannel-Kampagne erstellt", "omniCreateFail": "Erstellung fehlgeschlagen", "omniQueued": "Zur Zustellung eingereiht", "omniFirstBatch": "sofort", "omniSendFail": "Senden fehlgeschlagen", "omniChTitle": "Status verbundener Kanäle", "omniChSub": "Sobald die Zugangsdaten registriert sind, erfolgt der Versand sofort über diesen Kanal (nicht eingerichtete Kanäle fallen automatisch auf den nächsten zurück).", "omniLive": "Live", "omniFallback": "Fallback bereit", "omniUnset": "Nicht gesetzt", "omniNew": "Neue Omnichannel-Kampagne", "omniName": "Kampagnenname", "omniNamePh": "z. B. Juni-VIP-Wiederkauf", "omniSeg": "Zielsegment", "omniAllCust": "Alle Kunden", "omniWaterfall": "Kanalpriorität (fällt auf den nächsten Kanal zurück, wenn nicht erreichbar/nicht gesetzt)", "omniEmailSubj": "E-Mail-Betreff", "omniEmailSubjPh": "z. B. {{name}}, ein besonderes Angebot für Sie", "omniKakaoTpl": "Kakao-Vorlagencode", "omniKakaoTplPh": "Genehmigter AlimTalk-Vorlagencode", "omniBody": "Nachrichtentext (kanalübergreifend · {{name}}-Ersetzung)", "omniBodyPh": "{{name}}, nur diese Woche Sonderrabatt!", "omniAlsoPush": "Auch Web-Push senden (alle Abonnenten)", "omniCreate": "Kampagne erstellen", "omniList": "Omnichannel-Kampagnen", "omniEmpty": "Noch keine Kampagnen", "omniTotal": "Ziel", "omniSent": "Gesendet", "omniSkipped": "Übersprungen", "omniFailed": "Fehlgeschlagen", "omniProgress": "Fortschritt", "omniByCh": "Nach Kanal", "omniSend": "Senden"
   },
     campMgr: {
     "guideBeginnerBadge": "Einfach für Einsteiger",
@@ -15704,7 +15704,7 @@ export default {"paymentSuccess": {"invalidInfo":"Die Zahlungsinformationen sind
     "pgColTxn": "Transakt.-ID",
     "pgColType": "Typ",
     "pgColDate": "Datum",
-    "pgColAmount": "Betrag",
+    "pgColAmount": "Betrag", "applyCeo": "Name des Geschäftsführers", "applyAddress": "Geschäftsadresse",
   },
 
 

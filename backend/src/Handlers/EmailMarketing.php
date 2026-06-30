@@ -542,6 +542,23 @@ class EmailMarketing
         $subjectBTpl = (string)($campaign['subject_b'] ?? '');
         $stoOn = !empty($freqCfg['sto']);
         $curHourKst = (int)gmdate('G', time() + 9 * 3600);
+
+        // ─── [255차 P1 규모/실시간] 대량 발송 비동기 배치화 ──────────────────────────────
+        //   대량 오디언스는 동기 Mailer 루프(HTTP 타임아웃·확장불가)를 회피하고 email_sends 'queued' 로
+        //   chunk 일괄 적재 후 즉시 반환한다. 기존 STO 큐 워커(runQueue / email_queue_cron)가 배치(LIMIT 1000)로
+        //   드레인·실발송·재시도. 임계(EMAIL_ASYNC_THRESHOLD, 기본 200) 초과 또는 async=true 명시 시 활성.
+        //   소량(임계 이하)은 기존 즉시 인라인 발송(저지연 UX) 유지. STO 차단시간이면 항상 큐(기존 deferAll).
+        $bodyIn = (array)($req->getParsedBody() ?? []);
+        $asyncThreshold = (int)(getenv('EMAIL_ASYNC_THRESHOLD') ?: 200);
+        $asyncMode = !empty($bodyIn['async']) || count($customerList) > $asyncThreshold || $deferAll;
+        if ($asyncMode) {
+            $r = self::enqueueCampaignBatch($pdo, $tenant, $cid, $customerList, $freqCfg, $abTest, $stoOn, $deferAll, $curHourKst);
+            $campStatus = ($r['queued'] > 0) ? 'scheduled' : 'sent';
+            $pdo->prepare("UPDATE email_campaigns SET status=:st, sent_at=:sa, total_sent=:t WHERE id=:id AND tenant_id=:tn")
+                ->execute([':st'=>$campStatus, ':sa'=>$now, ':t'=>count($customerList), ':id'=>$cid, ':tn'=>$tenant]);
+            return self::jsonRes($res, array_merge(['ok'=>true, 'mode'=>'async', 'total'=>count($customerList), 'status'=>$campStatus], $r));
+        }
+
         foreach ($customerList as $c) {
             // [현 차수] 컴플라이언스 게이트 — 수신거부/하드바운스 suppression 우선 차단(CAN-SPAM/GDPR 필수).
             if (self::isSuppressed($pdo, $tenant, (string)$c['email'])) { $suppressed++; continue; }
@@ -586,6 +603,80 @@ class EmailMarketing
         $pdo->prepare("UPDATE email_campaigns SET status=:st, sent_at=:sa, total_sent=:t WHERE id=:id AND tenant_id=:tn")
             ->execute([':st'=>$campStatus, ':sa'=>$now, ':t'=>$total, ':id'=>$cid, ':tn'=>$tenant]);
         return self::jsonRes($res, ['ok'=>true,'total'=>$total,'sent'=>$sent,'mock_sent'=>$mock,'failed'=>$failed,'frequency_capped'=>$capped,'suppressed'=>$suppressed,'queued'=>$queued,'status'=>$campStatus]);
+    }
+
+    /**
+     * [255차 P1 규모/실시간] 대량 발송 비동기 배치 적재 — email_sends 'queued' chunk INSERT.
+     *   suppression/freq-cap 게이트를 per-row 쿼리(O(N)) 대신 사전 일괄조회(set/map, O(1) 쿼리)로 평가해
+     *   대량(수만건)에서도 빠르게 큐잉(동기 SMTP 루프 회피). variant(A/B)·sto_hour(개인 최적시각) 부여.
+     *   즉시발송 큐(sto_hour=NULL)는 runQueue 가 다음 cron 사이클에 배치 드레인. 전부 테넌트 스코프.
+     *   @return array{queued:int,suppressed:int,frequency_capped:int}
+     */
+    private static function enqueueCampaignBatch(\PDO $pdo, string $tenant, int $cid, array $customerList,
+        array $freqCfg, bool $abTest, bool $stoOn, bool $deferAll, int $curHourKst): array
+    {
+        $now = self::now();
+        // 1) suppression 일괄(테넌트 전체 1쿼리) → 소문자 set.
+        $supp = [];
+        try {
+            $ss = $pdo->prepare("SELECT email FROM email_suppression WHERE tenant_id=:t");
+            $ss->execute([':t'=>$tenant]);
+            foreach ($ss->fetchAll(\PDO::FETCH_COLUMN) as $e) { $supp[strtolower(trim((string)$e))] = true; }
+        } catch (\Throwable $e) {}
+        // 2) freq-cap 일괄(윈도 내 발송 누계 1쿼리) → customer_id 별 count map.
+        $capMap = []; $cap = (int)($freqCfg['cap'] ?? 4); $win = (int)($freqCfg['window'] ?? 7);
+        if ($cap > 0) {
+            try {
+                $cutoff = gmdate('Y-m-d H:i:s', time() - max(1, $win) * 86400);
+                $cs = $pdo->prepare("SELECT customer_id, COUNT(*) AS cnt FROM crm_activities
+                    WHERE tenant_id=:t AND type IN ('email_sent','kakao_sent','sms_sent') AND created_at >= :c GROUP BY customer_id");
+                $cs->execute([':t'=>$tenant, ':c'=>$cutoff]);
+                foreach ($cs->fetchAll(\PDO::FETCH_ASSOC) as $r) { $capMap[(int)$r['customer_id']] = (int)$r['cnt']; }
+            } catch (\Throwable $e) {}
+        }
+        $queued = 0; $suppressed = 0; $capped = 0;
+        $rows = [];
+        foreach ($customerList as $c) {
+            $email = strtolower(trim((string)($c['email'] ?? '')));
+            if ($email === '' || isset($supp[$email])) { $suppressed++; continue; }
+            if ($cap > 0 && ($capMap[(int)$c['id']] ?? 0) >= $cap) { $capped++; continue; }
+            $variant = $abTest ? (((int)$c['id'] % 2 === 0) ? 'A' : 'B') : null;
+            // STO on: 개인 최적시각(과거 오픈 최빈). deferAll(차단시간)인데 STO off 면 sto_hour=NULL → 다음 사이클 즉시.
+            $stoHour = $stoOn ? self::optimalHourFor($pdo, $tenant, (string)$c['email']) : null;
+            $rows[] = [$tenant, $cid, (int)$c['id'], (string)$c['email'], $stoHour, $variant, $now];
+            $queued++;
+        }
+        // 3) chunk multi-row INSERT(드라이버 placeholder 한계 회피 — 200행/쿼리, 7컬럼).
+        foreach (array_chunk($rows, 200) as $chunk) {
+            $flat = [];
+            foreach ($chunk as $r) { array_push($flat, $r[0], $r[1], $r[2], $r[3], $r[4], $r[5], $r[6]); }
+            try {
+                $pdo->prepare("INSERT INTO email_sends (tenant_id, campaign_id, customer_id, email, sto_hour, variant, scheduled_at, status)
+                    VALUES " . implode(',', array_map(fn($p)=>'(?,?,?,?,?,?,?,\'queued\')', $chunk)))->execute($flat);
+            } catch (\Throwable $e) { /* chunk 실패는 다음 chunk 진행(부분 적재) */ }
+        }
+        return ['queued'=>$queued, 'suppressed'=>$suppressed, 'frequency_capped'=>$capped];
+    }
+
+    /**
+     * [255차 옴니채널] per-recipient 이메일 발송 프리미티브(Omnichannel 워커 재사용).
+     *   suppression 게이트 + 개인화 렌더 + List-Unsubscribe 헤더/풋터 + Mailer. 테넌트 SMTP 미설정 시
+     *   Mailer 가 mock(graceful, 에러 없음) → register-then-execute. 발송 활동 기록은 호출측(워커)이 수행.
+     * @return array{ok:bool,status:string} status: sent|mock_sent|failed|suppressed
+     */
+    public static function omniSend(\PDO $pdo, string $tenant, string $email, string $name, string $subjectTpl, string $htmlTpl): array
+    {
+        $email = trim($email);
+        if ($email === '') return ['ok'=>false, 'status'=>'failed'];
+        if (self::isSuppressed($pdo, $tenant, $email)) return ['ok'=>false, 'status'=>'suppressed'];
+        $cust = ['email'=>$email, 'name'=>$name];
+        $unsubUrl = self::unsubUrl($tenant, $email);
+        $subject = self::renderTemplate($subjectTpl !== '' ? $subjectTpl : '(제목 없음)', $cust);
+        $body    = self::renderTemplate($htmlTpl, $cust, ['unsubscribe_url'=>$unsubUrl]) . self::unsubFooter($unsubUrl);
+        $mr = Mailer::send($email, $subject, $body, ['pdo'=>$pdo, 'tenant'=>$tenant,
+            'headers'=>['List-Unsubscribe'=>'<'.$unsubUrl.'>', 'List-Unsubscribe-Post'=>'List-Unsubscribe=One-Click']]);
+        if (($mr['mode'] ?? '') === 'unconfigured') return ['ok'=>true, 'status'=>'mock_sent'];
+        return !empty($mr['ok']) ? ['ok'=>true, 'status'=>'sent'] : ['ok'=>false, 'status'=>'failed'];
     }
 
     /* ─── [현 차수 P2-2b] GET /email/campaigns/{id}/ab-result — A/B variant 오픈율 베이지안 자동승자 ─── */

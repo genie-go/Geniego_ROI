@@ -13650,7 +13650,7 @@ export default {"paymentSuccess": {"invalidInfo":"La información de pago no es 
     "btnSave": "Guardar",
     "fSearch": "Buscar",
     "colLtv": "LTV",
-    "tDetail": "Detalles"
+    "tDetail": "Detalles", "tabOmni": "Omnicanal", "omniNeedName": "Introduce un nombre de campaña", "omniNeedCh": "Selecciona al menos un canal", "omniCreated": "Campaña omnicanal creada", "omniCreateFail": "Error al crear", "omniQueued": "En cola para envío", "omniFirstBatch": "instantáneo", "omniSendFail": "Error al enviar", "omniChTitle": "Estado de canales conectados", "omniChSub": "Una vez registradas las credenciales, el envío comienza de inmediato en ese canal (los canales sin configurar pasan automáticamente al siguiente).", "omniLive": "Activo", "omniFallback": "Respaldo listo", "omniUnset": "Sin configurar", "omniNew": "Nueva campaña omnicanal", "omniName": "Nombre de campaña", "omniNamePh": "p. ej. Recompra VIP de junio", "omniSeg": "Segmento objetivo", "omniAllCust": "Todos los clientes", "omniWaterfall": "Prioridad de canal (pasa al siguiente canal si no es alcanzable/sin configurar)", "omniEmailSubj": "Asunto del correo", "omniEmailSubjPh": "p. ej. {{name}}, una oferta especial para ti", "omniKakaoTpl": "Código de plantilla Kakao", "omniKakaoTplPh": "Código de plantilla AlimTalk aprobado", "omniBody": "Cuerpo del mensaje (común a todos los canales · sustituye {{name}})", "omniBodyPh": "{{name}}, ¡descuento especial solo esta semana!", "omniAlsoPush": "Enviar también push web (todos los suscriptores)", "omniCreate": "Crear campaña", "omniList": "Campañas omnicanal", "omniEmpty": "Aún no hay campañas", "omniTotal": "Objetivo", "omniSent": "Enviado", "omniSkipped": "Omitido", "omniFailed": "Fallido", "omniProgress": "Progreso", "omniByCh": "Por canal", "omniSend": "Enviar"
   },
     campMgr: {
     "guideBeginnerBadge": "Fácil para Principiantes",
@@ -15719,7 +15719,7 @@ export default {"paymentSuccess": {"invalidInfo":"La información de pago no es 
     "pgColTxn": "ID transacc.",
     "pgColType": "Tipo",
     "pgColDate": "Fecha",
-    "pgColAmount": "Importe",
+    "pgColAmount": "Importe", "applyCeo": "Nombre del representante legal", "applyAddress": "Dirección comercial",
   },
 
 
