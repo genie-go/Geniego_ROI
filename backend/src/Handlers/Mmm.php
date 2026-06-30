@@ -577,11 +577,16 @@ final class Mmm
         $varHat = ($L - 1) / $L * $W + $Bvar / $L;
         $rhat = ($W > 1e-12) ? sqrt(max(0.0, $varHat) / $W) : 1.0;
 
+        // [255차 심화] ESS(유효표본수)·MCSE — R̂ 보완 수렴진단(Stan/PyMC 표준 페어). 순서보존 체인서 자기상관(Geyer 초기양수합) 기반.
+        $essTotal = 0.0; foreach ($chains as $c) { $essTotal += self::chainEss($c); }
+        $essTotal = max(1.0, min((float)($m * $L), $essTotal));
+
         // 통합 사후표본 → 평균·SD·CI.
         $all = array_merge(...$chains); sort($all); $N = count($all);
         $mean = array_sum($all) / $N;
         $var = 0.0; foreach ($all as $x) $var += ($x - $mean) ** 2; $var /= $N;
         $sd = sqrt($var); $cv = $mean > 0 ? $sd / $mean : 0.0;
+        $mcse = $sd / sqrt($essTotal); // 몬테카를로 표준오차(사후평균 추정 정밀도)
         $pct = function (array $a, float $p) { $k = ($p / 100) * (count($a) - 1); $lo = (int)floor($k); $hi = (int)ceil($k); return $lo === $hi ? $a[$lo] : $a[$lo] + ($a[$hi] - $a[$lo]) * ($k - $lo); };
 
         // R̂ 미수렴(>1.2) 시 신뢰불가 → 폴백(부트스트랩) 신호.
@@ -606,11 +611,32 @@ final class Mmm
             'marginal_roas' => round($marginal, 3),
             'stability' => $cv <= 0.15 ? 'high' : ($cv <= 0.35 ? 'medium' : 'low'),
             'rhat' => round($rhat, 3),
-            'converged' => $rhat <= 1.1,
+            'converged' => $rhat <= 1.1 && $essTotal >= 100, // [255차] R̂+ESS 동시충족(저ESS=신뢰불가)
             'accept_rate' => round($accRate, 3),
             'posterior_samples' => $N,
+            'ess' => round($essTotal, 1),                    // [255차] 유효표본수(자기상관 보정)
+            'mcse' => round($mcse, 4),                       // [255차] 몬테카를로 표준오차
+            'ess_ratio' => round($essTotal / max(1, $N), 3), // ESS/표본 비율(혼합도)
             'inference' => 'mcmc',
         ];
+    }
+
+    /** [255차 심화] 단일 체인 ESS — 자기상관 rho_k 의 Geyer 초기양수합. ESS=L/(1+2·Σrho). */
+    private static function chainEss(array $c): float
+    {
+        $L = count($c); if ($L < 4) return (float)max(1, $L);
+        $mu = array_sum($c) / $L;
+        $c0 = 0.0; foreach ($c as $x) { $c0 += ($x - $mu) ** 2; } $c0 /= $L;
+        if ($c0 <= 1e-12) return (float)$L; // 분산0=완전상관 회피, 보수적 L
+        $sumRho = 0.0; $maxLag = min($L - 1, 200);
+        for ($k = 1; $k <= $maxLag; $k++) {
+            $ck = 0.0; for ($i = 0; $i < $L - $k; $i++) { $ck += ($c[$i] - $mu) * ($c[$i + $k] - $mu); } $ck /= $L;
+            $rho = $ck / $c0;
+            if ($rho <= 0.0) break;       // Geyer 초기양수: 음수 도달 시 절단
+            $sumRho += $rho;
+        }
+        $ess = $L / (1.0 + 2.0 * $sumRho);
+        return max(1.0, min((float)$L, $ess));
     }
 
     /* ───────────────────────── 예산 최적화(그리디 한계배분) ───────────────────────── */
