@@ -319,6 +319,10 @@ class DemandForecast
             foreach ($rs->fetchAll(\PDO::FETCH_ASSOC) as $r) { if ($r['sku'] !== null && $r['sku'] !== '') $stockMap[(string)$r['sku']] = (float)$r['av']; }
         } catch (\Throwable $e) {}
         $all = self::loadSeries($tenant, 90, 200);
+        // [255차 심화] 프로모 반응 — horizon 내 프로모(po_calendar)가 있는 SKU 는 수요 증폭(promo uplift) 반영해 사전 비축.
+        //   uplift = 1 + 1.5×discount(가격탄력 보수 근사·최대 2.0). 프로모 없으면 1.0(기존동작 보존=회귀0). 크로스핸들러(PriceOpt).
+        $promos = [];
+        try { $promos = \Genie\Handlers\PriceOpt::promoWindows($tenant, $horizon); } catch (\Throwable $e) {}
         // [246차] ABC 차등 안전재고 — 1-pass 예측·가중치 → 분류.
         $fcMap = []; $weight = [];
         foreach ($all as $sku => $info) { $fc = self::forecast($info['series'], $horizon); $fcMap[$sku] = $fc; $weight[$sku] = array_sum($fc['forecast']); }
@@ -329,6 +333,8 @@ class DemandForecast
         foreach ($all as $sku => $info) {
             $fc = $fcMap[$sku];
             $avgDaily = $horizon ? array_sum($fc['forecast']) / $horizon : 0;
+            // [255차 심화] promo uplift — 프로모 예정 SKU 수요 증폭(사전 비축). 미해당=1.0(회귀0).
+            if (isset($promos[(string)$sku])) { $avgDaily *= min(2.0, 1.0 + 1.5 * (float)$promos[(string)$sku]['discount']); }
             $zc       = self::optimalZ($abc[$sku] ?? 'C', null, null); // ABC 차등 서비스레벨
             $safety   = round($zc * $fc['sigma'] * sqrt($lead), 1);
             $reorder  = round($avgDaily * $lead + $safety, 1);

@@ -1070,6 +1070,28 @@ class PriceOpt
         return self::json($response, ['ok'=>true,'events'=>$stmt->fetchAll(\PDO::FETCH_ASSOC)]);
     }
 
+    /**
+     * [255차 심화] 프로모 윈도우 — [today, today+horizon] 구간과 겹치는 프로모를 sku 별 반환(수요예측 promo uplift 입력).
+     *   DemandForecast::autoReplenishForTenant 가 호출(크로스핸들러·priceopt.sqlite). @return array sku=>['discount'=>0~1,'name'=>,'end'=>]
+     */
+    public static function promoWindows(string $tenant, int $horizonDays = 14): array
+    {
+        $out = [];
+        try {
+            $today = gmdate('Y-m-d'); $end = gmdate('Y-m-d', time() + max(1, $horizonDays) * 86400);
+            $st = self::db()->prepare("SELECT sku, name, startDate, endDate, discountRate FROM po_calendar
+                WHERE tenant_id=? AND status<>'cancelled' AND startDate <= ? AND endDate >= ?");
+            $st->execute([$tenant, $end, $today]);
+            foreach ($st->fetchAll(\PDO::FETCH_ASSOC) as $r) {
+                $sku = (string)($r['sku'] ?? ''); if ($sku === '') continue;
+                $disc = (float)($r['discountRate'] ?? 0); if ($disc > 1) $disc /= 100.0; // 0~1 정규화(퍼센트 허용)
+                $disc = max(0.0, min(0.9, $disc));
+                if (!isset($out[$sku]) || $disc > $out[$sku]['discount']) $out[$sku] = ['discount'=>$disc, 'name'=>(string)($r['name'] ?? ''), 'end'=>(string)($r['endDate'] ?? '')];
+            }
+        } catch (\Throwable $e) {}
+        return $out;
+    }
+
     /** POST /v420/price/calendar */
     public static function createCalendarEvent(Request $request, Response $response, array $args): Response
     {
