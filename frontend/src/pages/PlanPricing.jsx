@@ -646,9 +646,17 @@ function PlanPricing() {
       ? { ...p, features: (p.features || []).filter((_, j) => j !== fIdx) } : p));
   };
 
+  // [254차] 이미지 호스팅(GB) ↔ 상품수 자동 연동(5MB/상품·PlanLimits::MB_PER_PRODUCT 정합). 무제한 상품(-1)→무제한 이미지.
+  const imageGbForProducts = (p) => (p == null || p === '' || isNaN(Number(p))) ? null : (Number(p) < 0 ? -1 : Math.ceil(Number(p) * 5 / 1024));
+
   const updateLimit = (planIdx, key, val) => {
-    setPlans(prev => prev.map((p, i) => i === planIdx
-      ? { ...p, limits: { ...(p.limits || {}), [key]: val === '' ? null : Number(val) } } : p));
+    setPlans(prev => prev.map((p, i) => {
+      if (i !== planIdx) return p;
+      const limits = { ...(p.limits || {}), [key]: val === '' ? null : Number(val) };
+      // 상품수 변경 시 이미지 호스팅 용량 자동 산출(상품수×5MB→GB). 이미지호스팅은 읽기전용 파생값이라 직접 입력 없음.
+      if (key === 'products') limits.image_hosting_gb = imageGbForProducts(val);
+      return { ...p, limits };
+    }));
   };
 
   /**
@@ -1043,12 +1051,26 @@ function PlanPricing() {
                       { key: 'suppliers',        label: '매입처 ID 수' },
                       { key: 'logistics',        label: '물류처 ID 수' },
                       { key: 'warehouses',       label: '창고(WMS) 수' },
-                      { key: 'image_hosting_gb', label: '이미지 호스팅 (GB)' },
                     ].map(({ key, label }) => (
                       <Field key={key} label={label}>
                         <input type="number" value={plan.limits?.[key] ?? ''} onChange={e => updateLimit(activePlanIdx, key, e.target.value)} style={inputStyle} />
                       </Field>
                     ))}
+                    {/* [254차] 이미지 호스팅(GB) — 상품수 변경 시 권장값 자동 채움(5MB/상품), 단 admin 자유 수정 가능. */}
+                    <Field label="이미지 호스팅 (GB)">
+                      <input type="number" value={plan.limits?.image_hosting_gb ?? ''} onChange={e => updateLimit(activePlanIdx, 'image_hosting_gb', e.target.value)} style={inputStyle} />
+                      {(() => { const rec = imageGbForProducts(plan.limits?.products); if (rec == null) return null;
+                        const recTxt = rec < 0 ? '무제한' : `${rec} GB`;
+                        const cur = plan.limits?.image_hosting_gb;
+                        const match = (cur === rec) || (cur == null && rec === 0);
+                        return (
+                          <div style={{ fontSize: 9, color: 'var(--text-3)', marginTop: 2, display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <span>권장: {recTxt} (상품수×5MB)</span>
+                            {!match && <button type="button" onClick={() => updateLimit(activePlanIdx, 'image_hosting_gb', rec < 0 ? '-1' : String(rec))}
+                              style={{ fontSize: 9, padding: '1px 5px', borderRadius: 4, border: '1px solid var(--border)', background: 'transparent', color: 'var(--accent)', cursor: 'pointer' }}>권장 적용</button>}
+                          </div>
+                        ); })()}
+                    </Field>
                   </div>
                   <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 6, lineHeight: 1.6 }}>
                     💡 각 플랜이 제공하는 자원 한도입니다. <b>-1</b> = 무제한. <b>판매채널(쇼핑몰) 수</b>는 연동 가능한 쇼핑몰 채널 개수(예: Free=3 → 3개 평생 무료, 사방넷 모델),

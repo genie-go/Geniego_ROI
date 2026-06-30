@@ -87,6 +87,7 @@ final class AdminPlans
         $features = isset($body['features']) && is_array($body['features']) ? $body['features'] : [];
         $limits   = isset($body['limits'])   && is_array($body['limits'])   ? $body['limits']   : [];
 
+        // [254차] 이미지 호스팅(GB)은 admin 자유 수정값을 그대로 저장(상품수 기반 권장값 자동채움은 프론트가 담당).
         $actor = (string)($req->getAttribute('auth_key') ?? 'admin');
 
         $pdo = Db::pdo();
