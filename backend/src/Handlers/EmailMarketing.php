@@ -629,7 +629,7 @@ class EmailMarketing
             try {
                 $cutoff = gmdate('Y-m-d H:i:s', time() - max(1, $win) * 86400);
                 $cs = $pdo->prepare("SELECT customer_id, COUNT(*) AS cnt FROM crm_activities
-                    WHERE tenant_id=:t AND type IN ('email_sent','kakao_sent','sms_sent') AND created_at >= :c GROUP BY customer_id");
+                    WHERE tenant_id=:t AND type IN ('email_sent','kakao_sent','sms_sent','whatsapp_sent') AND created_at >= :c GROUP BY customer_id");
                 $cs->execute([':t'=>$tenant, ':c'=>$cutoff]);
                 foreach ($cs->fetchAll(\PDO::FETCH_ASSOC) as $r) { $capMap[(int)$r['customer_id']] = (int)$r['cnt']; }
             } catch (\Throwable $e) {}

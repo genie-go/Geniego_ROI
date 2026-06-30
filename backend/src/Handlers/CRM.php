@@ -318,24 +318,56 @@ class CRM
         ]);
         $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
-        $stats = ['champions'=>0,'loyal'=>0,'at_risk'=>0,'lost'=>0,'new'=>0,'total'=>count($rows)];
+        // [255차 감사 E] 표시 리스트는 LIMIT 500(고액순)이나, 세그먼트 분포·총고객수(stats)는
+        //   캡 집합이 아닌 **전체 테넌트** 기준으로 산출해야 정확(>500 테넌트 언더카운트/고액편향 해소).
+        //   per-row rfm_grade(표시용)는 리스트 루프에서 부여, stats 는 전수 SQL 집계로 분리.
         foreach ($rows as &$r) {
             $r_score = (int)$r['recency'];
             $f_score = $r['frequency'] >= 10 ? 5 : ($r['frequency'] >= 5 ? 4 : ($r['frequency'] >= 3 ? 3 : ($r['frequency'] >= 1 ? 2 : 1)));
-            $grade = match(true) {
+            $r['rfm_grade'] = match(true) {
                 $r_score >= 4 && $f_score >= 4 => 'champions',
                 $r_score >= 3 && $f_score >= 3 => 'loyal',
                 $r_score <= 2 && $f_score >= 3 => 'at_risk',
                 $r_score <= 2 && $f_score <= 2 => 'lost',
                 default => 'new'
             };
-            $r['rfm_grade'] = $grade;
-            $stats[$grade]++;
         }
         unset($r);
+        $stats = self::rfmStatsFull($pdo, $tenant);
         // [240차 약점③] 예측형 CDP — 이탈확률·예측CLV 부착(기존 RFM 탭에 통합, 신규메뉴 0).
         $predictive = self::addPredictiveScores($rows);
         return self::jsonRes($res, ['ok'=>true,'customers'=>$rows,'stats'=>$stats,'predictive'=>$predictive]);
+    }
+
+    /** [255차 감사 E] RFM 세그먼트 분포·총고객수를 **전체 테넌트** 기준 SQL 집계(LIMIT 캡 없음).
+     *   recency/frequency 점수 CASE + 등급 CASE(match(true)와 동일 first-match 우선순위)로 등급 파생 후 GROUP BY.
+     *   MySQL/SQLite 공통. 고객 >500 테넌트에서 분포 언더카운트·고액편향 제거. */
+    private static function rfmStatsFull(\PDO $pdo, string $tenant): array
+    {
+        $out = ['champions'=>0,'loyal'=>0,'at_risk'=>0,'lost'=>0,'new'=>0,'total'=>0];
+        try {
+            // rs/fs 점수를 inner 서브쿼리 컬럼으로 1회 산출(:c30~:c180 각 1회 등장 — 드라이버별 반복 네임드파라미터 회피).
+            $rsCol = "(CASE WHEN a.last_purchase >= :c30 THEN 5 WHEN a.last_purchase >= :c60 THEN 4 WHEN a.last_purchase >= :c90 THEN 3 WHEN a.last_purchase >= :c180 THEN 2 ELSE 1 END)";
+            $fsCol = "(CASE WHEN COALESCE(a.purchase_count,0) >= 10 THEN 5 WHEN COALESCE(a.purchase_count,0) >= 5 THEN 4 WHEN COALESCE(a.purchase_count,0) >= 3 THEN 3 WHEN COALESCE(a.purchase_count,0) >= 1 THEN 2 ELSE 1 END)";
+            $grade = "CASE WHEN rs >= 4 AND fs >= 4 THEN 'champions' WHEN rs >= 3 AND fs >= 3 THEN 'loyal' WHEN rs <= 2 AND fs >= 3 THEN 'at_risk' WHEN rs <= 2 AND fs <= 2 THEN 'lost' ELSE 'new' END";
+            $sql = "SELECT g AS grd, COUNT(*) AS cnt FROM (
+                        SELECT ($grade) AS g FROM (
+                            SELECT $rsCol AS rs, $fsCol AS fs FROM crm_customers c
+                            LEFT JOIN (SELECT customer_id, COUNT(*) AS purchase_count, MAX(created_at) AS last_purchase
+                                       FROM crm_activities WHERE type='purchase' AND tenant_id=:t GROUP BY customer_id) a
+                              ON a.customer_id = c.id
+                            WHERE c.tenant_id=:t
+                        ) s
+                    ) x GROUP BY g";
+            $st = $pdo->prepare($sql);
+            $st->execute([':t'=>$tenant, ':c30'=>self::cutoff(30), ':c60'=>self::cutoff(60), ':c90'=>self::cutoff(90), ':c180'=>self::cutoff(180)]);
+            foreach ($st->fetchAll(\PDO::FETCH_ASSOC) as $r) {
+                $g = (string)$r['grd']; $c = (int)$r['cnt'];
+                if (isset($out[$g])) $out[$g] = $c;
+                $out['total'] += $c;
+            }
+        } catch (\Throwable $e) { /* graceful — 빈 stats */ }
+        return $out;
     }
 
     /* ─── [240차 약점③] 예측형 CDP — 구매이력 기반 통계 예측(외부의존 0, 경쟁사 Klaviyo predictive 정합) ─────
@@ -469,7 +501,7 @@ class CRM
         if ($customerId <= 0 || $cap <= 0) return false;
         $cutoff = gmdate('Y-m-d H:i:s', time() - max(1, $windowDays) * 86400);
         try {
-            $st = $pdo->prepare("SELECT COUNT(*) FROM crm_activities WHERE tenant_id=? AND customer_id=? AND type IN ('email_sent','kakao_sent','sms_sent') AND created_at >= ?");
+            $st = $pdo->prepare("SELECT COUNT(*) FROM crm_activities WHERE tenant_id=? AND customer_id=? AND type IN ('email_sent','kakao_sent','sms_sent','whatsapp_sent') AND created_at >= ?");
             $st->execute([$tenant, $customerId, $cutoff]);
             return (int)$st->fetchColumn() >= $cap;
         } catch (\Throwable $e) { return false; }

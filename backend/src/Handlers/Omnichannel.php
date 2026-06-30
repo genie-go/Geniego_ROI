@@ -180,9 +180,19 @@ final class Omnichannel
         $now = self::now();
         $chJson = json_encode($channels);
 
-        // chunk 일괄 큐잉(동기 발송 회피). 멱등성은 캠페인 재발송 정책상 단순 append(상태 추적은 아웃박스 status).
+        // [255차 감사 C/B] 재발송 멱등화 — 이미 발송완료(sent)했거나 대기중(queued)인 수신자는 재적재 제외(이중발송 차단).
+        //   재발송 = 신규/실패 수신자만 추가 큐잉(SaaS 표준: 같은 캠페인 중복발송 방지). 실패(failed)·건너뜀(skipped)은 재시도 허용.
+        $already = [];
+        try {
+            $ex = $pdo->prepare("SELECT customer_id FROM omni_outbox WHERE campaign_id=:c AND tenant_id=:t AND status IN ('queued','sent')");
+            $ex->execute([':c'=>$cid, ':t'=>$tenant]);
+            foreach ($ex->fetchAll(PDO::FETCH_COLUMN) as $x) { $already[(int)$x] = true; }
+        } catch (\Throwable $e) {}
+        $newIds = array_values(array_filter($ids, fn($id) => !isset($already[(int)$id])));
+
+        // chunk 일괄 큐잉(동기 발송 회피).
         $queued = 0;
-        foreach (array_chunk($ids, 300) as $chunk) {
+        foreach (array_chunk($newIds, 300) as $chunk) {
             $flat = [];
             foreach ($chunk as $id) { array_push($flat, $tenant, $cid, $id, $chJson, $now); }
             try {
@@ -254,9 +264,12 @@ final class Omnichannel
             switch ($channel) {
                 case 'email': return true;
                 case 'kakao':
-                    $r = $pdo->prepare("SELECT mode, sender_key FROM kakao_settings WHERE tenant_id=? ORDER BY id DESC LIMIT 1");
+                    // 실발송(callKakaoAPI)은 sender_key(URL)+api_key(KakaoAK 헤더) 둘 다 필요 → 둘 다 있어야 '라이브'(정직 배지).
+                    $r = $pdo->prepare("SELECT mode, sender_key, api_key FROM kakao_settings WHERE tenant_id=? ORDER BY id DESC LIMIT 1");
                     $r->execute([$tenant]); $row = $r->fetch(PDO::FETCH_ASSOC) ?: [];
-                    return ($row['mode'] ?? '') === 'live' && trim((string)($row['sender_key'] ?? '')) !== '';
+                    return ($row['mode'] ?? '') === 'live'
+                        && trim((string)($row['sender_key'] ?? '')) !== ''
+                        && trim((string)($row['api_key'] ?? '')) !== '';
                 case 'whatsapp':
                     $r = $pdo->prepare("SELECT phone_number_id, access_token FROM whatsapp_settings WHERE tenant_id=? AND is_active=1");
                     $r->execute([$tenant]); $row = $r->fetch(PDO::FETCH_ASSOC) ?: [];
