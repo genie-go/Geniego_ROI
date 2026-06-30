@@ -157,16 +157,34 @@ class EmailMarketing
                 ->execute([':t'=>$tenant, ':e'=>strtolower(trim($email)), ':r'=>$reason, ':s'=>$source, ':c'=>self::now()]);
         } catch (\Throwable $e) { /* unique 충돌 = 이미 등록됨 */ }
     }
-    /** 개인화 토큰 머지 — {{name}}·{{first_name}}·{{email}} + 커스텀. 미정의 토큰은 제거(원본 노출 금지). */
+    /** [254차 초고도화] 개인화 머지 — Liquid-라이트. {{var}} 머지변수 확장 + {% if %}/{% else %}/{% endif %} 조건블록
+     *   + {{var | default:"폴백"}} 필터. 기존 {{name}}/{{first_name}}/{{email}} 하위호환(미사용 시 동작 동일=회귀0). */
     private static function renderTemplate(string $tpl, array $c, array $extra=[]): string {
         $name = trim((string)($c['name'] ?? ''));
-        $map = [
-            '{{name}}' => $name, '{{이름}}' => $name,
-            '{{first_name}}' => ($name !== '' ? explode(' ', $name)[0] : ''),
-            '{{email}}' => (string)($c['email'] ?? ''),
+        $vars = [
+            'name' => $name, '이름' => $name,
+            'first_name' => ($name !== '' ? explode(' ', $name)[0] : ''),
+            'email' => (string)($c['email'] ?? ''), 'phone' => (string)($c['phone'] ?? ''),
+            'grade' => (string)($c['grade'] ?? ''), 'company' => (string)($c['company'] ?? ''),
+            'city' => (string)($c['city'] ?? ''), 'ltv' => isset($c['ltv']) ? (string)round((float)$c['ltv']) : '',
         ];
-        foreach ($extra as $k=>$v) $map['{{'.$k.'}}'] = (string)$v;
-        $out = strtr($tpl, $map);
+        foreach ($extra as $k=>$v) $vars[$k] = is_scalar($v) ? (string)$v : '';
+        $out = $tpl;
+        // 1) 조건 블록(단순 truthy·else 지원·일부 중첩 위해 반복).
+        for ($i = 0; $i < 20; $i++) {
+            $new = preg_replace_callback('/\{%\s*if\s+([a-zA-Z0-9_]+)\s*%\}(.*?)(?:\{%\s*else\s*%\}(.*?))?\{%\s*endif\s*%\}/su', function($m) use ($vars) {
+                $t = isset($vars[$m[1]]) && trim($vars[$m[1]]) !== '' && $vars[$m[1]] !== '0';
+                return $t ? $m[2] : ($m[3] ?? '');
+            }, $out);
+            if ($new === null || $new === $out) break; $out = $new;
+        }
+        // 2) |default 필터.
+        $out = preg_replace_callback('/\{\{\s*([a-zA-Z0-9_가-힣]+)\s*\|\s*default:\s*"([^"]*)"\s*\}\}/u', function($m) use ($vars) {
+            $v = $vars[$m[1]] ?? ''; return ($v !== '' ? $v : $m[2]);
+        }, $out);
+        // 3) 기본 토큰 치환 + 미정의 제거.
+        $map = []; foreach ($vars as $k=>$v) $map['{{'.$k.'}}'] = $v;
+        $out = strtr($out, $map);
         return preg_replace('/\{\{\s*[a-zA-Z0-9_가-힣]+\s*\}\}/u', '', $out);
     }
     private static function unsubFooter(string $url): string {
@@ -581,20 +599,33 @@ class EmailMarketing
             SUM(CASE WHEN clicked_at IS NOT NULL AND clicked_at<>'' THEN 1 ELSE 0 END) AS clicked
             FROM email_sends WHERE tenant_id=:t AND campaign_id=:c AND variant IN ('A','B') GROUP BY variant");
         $st->execute([':t'=>$tenant, ':c'=>$cid]);
-        $V = ['A'=>['sent'=>0,'opened'=>0,'clicked'=>0], 'B'=>['sent'=>0,'opened'=>0,'clicked'=>0]];
-        foreach ($st->fetchAll(\PDO::FETCH_ASSOC) ?: [] as $r) { $v=(string)$r['variant']; if (isset($V[$v])) $V[$v]=['sent'=>(int)$r['sent'],'opened'=>(int)$r['opened'],'clicked'=>(int)$r['clicked']]; }
+        $V = ['A'=>['sent'=>0,'opened'=>0,'clicked'=>0,'converted'=>0,'revenue'=>0.0], 'B'=>['sent'=>0,'opened'=>0,'clicked'=>0,'converted'=>0,'revenue'=>0.0]];
+        foreach ($st->fetchAll(\PDO::FETCH_ASSOC) ?: [] as $r) { $v=(string)$r['variant']; if (isset($V[$v])) { $V[$v]['sent']=(int)$r['sent']; $V[$v]['opened']=(int)$r['opened']; $V[$v]['clicked']=(int)$r['clicked']; } }
+        // [254차 초고도화] 전환/매출 기반 A/B — 수신자(email) → 주문(channel_orders.buyer_email) 발송 후 매칭(취소제외).
+        try {
+            $cs = $pdo->prepare("SELECT s.variant AS variant, COUNT(DISTINCT LOWER(s.email)) AS cnt, COALESCE(SUM(o.total_price),0) AS rev
+                FROM email_sends s JOIN channel_orders o ON o.tenant_id=s.tenant_id AND LOWER(o.buyer_email)=LOWER(s.email)
+                    AND (s.sent_at IS NULL OR o.ordered_at >= s.sent_at) AND COALESCE(o.event_type,'order') NOT IN ('cancel','return')
+                WHERE s.tenant_id=:t AND s.campaign_id=:c AND s.variant IN ('A','B') AND s.email IS NOT NULL AND s.email<>'' GROUP BY s.variant");
+            $cs->execute([':t'=>$tenant, ':c'=>$cid]);
+            foreach ($cs->fetchAll(\PDO::FETCH_ASSOC) ?: [] as $r) { $v=(string)$r['variant']; if (isset($V[$v])) { $V[$v]['converted']=min((int)$r['cnt'], $V[$v]['sent']); $V[$v]['revenue']=round((float)$r['rev'],2); } }
+        } catch (\Throwable $e) {}
+        // metric: open(기본·하위호환) | click | conversion. 승자판정 지표 선택.
+        $metric = in_array(($req->getQueryParams()['metric'] ?? 'open'), ['open','click','conversion'], true) ? (string)($req->getQueryParams()['metric']) : 'open';
+        $sk = $metric==='click' ? 'clicked' : ($metric==='conversion' ? 'converted' : 'opened');
         $orA = $V['A']['sent']>0 ? $V['A']['opened']/$V['A']['sent'] : 0.0;
         $orB = $V['B']['sent']>0 ? $V['B']['opened']/$V['B']['sent'] : 0.0;
-        $probBbest = self::betaBestProb($V['B']['opened'], $V['B']['sent'], $V['A']['opened'], $V['A']['sent']);
+        $probBbest = self::betaBestProb($V['B'][$sk], $V['B']['sent'], $V['A'][$sk], $V['A']['sent']);
         $winner = null;
         if ($V['A']['sent'] >= 50 && $V['B']['sent'] >= 50) { // 최소 표본 게이트
             if ($probBbest >= 0.95) $winner = 'B'; elseif ($probBbest <= 0.05) $winner = 'A';
         }
         if ($winner) { try { $pdo->prepare("UPDATE email_campaigns SET ab_winner=:w WHERE id=:c AND tenant_id=:t")->execute([':w'=>$winner, ':c'=>$cid, ':t'=>$tenant]); } catch (\Throwable $e) {} }
-        return self::jsonRes($res, ['ok'=>true,
-            'variants'=>['A'=>$V['A']+['open_rate'=>round($orA*100,2)], 'B'=>$V['B']+['open_rate'=>round($orB*100,2)]],
+        $metricLabel = $metric==='click' ? '클릭률' : ($metric==='conversion' ? '전환율' : '오픈율');
+        return self::jsonRes($res, ['ok'=>true, 'metric'=>$metric,
+            'variants'=>['A'=>$V['A']+['open_rate'=>round($orA*100,2),'conv_rate'=>$V['A']['sent']>0?round($V['A']['converted']/$V['A']['sent']*100,2):0], 'B'=>$V['B']+['open_rate'=>round($orB*100,2),'conv_rate'=>$V['B']['sent']>0?round($V['B']['converted']/$V['B']['sent']*100,2):0]],
             'prob_b_best'=>round($probBbest*100,1), 'winner'=>$winner, 'confidence'=>round(max($probBbest,1-$probBbest)*100,1),
-            'verdict'=>$winner ? "승자: variant {$winner} (95% 신뢰수준)" : '아직 유의한 승자 없음 — 표본/기간 확대 필요']);
+            'verdict'=>$winner ? "승자: variant {$winner} ({$metricLabel} 기준·95% 신뢰수준)" : "아직 유의한 승자 없음({$metricLabel}) — 표본/기간 확대 필요"]);
     }
     /** Beta(s+1,n-s+1) 사후 P(B>A) 정규근사 — 오픈율 A/B 승자 확률. */
     private static function betaBestProb(int $sB, int $nB, int $sA, int $nA): float {
