@@ -1288,6 +1288,22 @@ final class AdAdapters
         return '';
     }
 
+    /** [255차 심화 B] TikTok 이미지 자동 업로드(/file/image/ad/upload) → image_id. AI 생성 base64 소재를 매체에 직접 등록(Kakao/LINE 패리티). 실패=''(graceful). */
+    private static function tiktokUploadImage(string $token, string $advId, string $b64, string $mime): string
+    {
+        $tf = self::b64TempFile($b64, $mime ?: 'image/png');
+        if ($tf === null) return '';
+        [$path, $m, $name] = $tf;
+        try {
+            $sig = md5_file($path) ?: '';
+            $fields = ['advertiser_id' => $advId, 'upload_type' => 'UPLOAD_BY_FILE', 'image_signature' => $sig,
+                       'image_file' => ['__file__' => $path, 'name' => $name, 'mime' => $m]];
+            [$c, $r] = self::httpMultipart('https://business-api.tiktok.com/open_api/v1.3/file/image/ad/upload/', ['Access-Token: ' . $token], $fields, 40);
+            return (string)($r['data']['image_id'] ?? '');
+        } catch (\Throwable $e) { return ''; }
+        finally { @unlink($path); }
+    }
+
     /* ── TikTok: 광고그룹 + 광고. identity_id + 영상(video_id)/이미지(image_id) 소재가 있으면 광고까지 완성. ── */
     private static function tiktokDeliver(PDO $pdo, string $tenant, string $campId, array $d, int $daily, string $landing = '', array $settings = []): array
     {
@@ -1326,6 +1342,10 @@ final class AdAdapters
         $identity = self::cred($pdo, $tenant, 'tiktok_business', 'identity_id');
         $videoId  = self::cred($pdo, $tenant, 'tiktok_business', 'video_id');
         $imageId  = self::cred($pdo, $tenant, 'tiktok_business', 'image_id');
+        // [255차 심화 B] 사전등록 image_id/video_id 없고 AI 생성 이미지(ad_design.svg→image_b64)가 있으면 자동 업로드→image_id 획득(Meta/Kakao/LINE 패리티).
+        if ($imageId === '' && $videoId === '' && !empty($d['image_b64'])) {
+            $imageId = self::tiktokUploadImage($token, $advId, (string)$d['image_b64'], (string)($d['image_mime'] ?: 'image/png'));
+        }
         if ($identity === '' || ($videoId === '' && $imageId === '')) {
             return ['ok' => true, 'adgroup_id' => $agId, 'ad_id' => '', 'status' => 'partial',
                 'note' => 'TikTok 광고그룹 생성(DISABLE). 광고(ad)는 identity_id + 영상(video_id)/이미지(image_id) 소재 등록 후 자동 완성 — 자격증명에 추가하세요.'];
@@ -1365,6 +1385,11 @@ final class AdAdapters
         //   ★스키마는 실 자격증명 라이브 응답으로 최종 확정(graceful 드롭인) — 미지원 시 매체가 무시/거부해도 OFF라 무지출.
         $fc = (int)($settings['frequency_cap'] ?? 0);
         if ($fc > 0) { $ag['frequencyCap'] = $fc; $ag['frequencyCapDays'] = max(1, (int)($settings['frequency_days'] ?? 7)); }
+        // [255차 심화 C] 입찰전략 — tcpa(목표CPA) opt-in. Kakao Moment adGroup 레벨. 0/미설정=매체 자동(기존동작 보존=회귀0).
+        //   ★graceful 드롭인(라이브 스키마 확정 전·OFF라 미반영돼도 무지출). KRW 도메인(dailyBudgetAmount 와 동일 통화).
+        if ((string)($settings['bid_strategy'] ?? 'auto') === 'tcpa' && (float)($settings['target_cpa'] ?? 0) > 0) {
+            $ag['bidStrategy'] = 'TARGET'; $ag['bidAmount'] = (int)round((float)$settings['target_cpa']);
+        }
         $agBody = json_encode($ag, JSON_UNESCAPED_UNICODE);
         [$ac, $ar] = self::http('POST', 'https://apis.moment.kakao.com/openapi/v4/adGroups', $hdr, $agBody);
         $agId = $ar['id'] ?? $ar['adGroupId'] ?? ($ar['data']['id'] ?? '');
@@ -1435,6 +1460,11 @@ final class AdAdapters
         //   ★스키마는 실 자격증명 라이브 응답으로 최종 확정(graceful) — PAUSED라 미반영돼도 무지출.
         $fc = (int)($settings['frequency_cap'] ?? 0);
         if ($fc > 0) { $agBody['frequencyCap'] = $fc; $agBody['frequencyCapPeriodDays'] = max(1, (int)($settings['frequency_days'] ?? 7)); }
+        // [255차 심화 C] 입찰전략 — tcpa(목표CPA) opt-in. LINE Ads adgroup 레벨. 0/미설정=기존 bidAmount(자동·회귀0).
+        //   ★graceful 드롭인(라이브 스키마 확정 전·PAUSED라 미반영돼도 무지출).
+        if ((string)($settings['bid_strategy'] ?? 'auto') === 'tcpa' && (float)($settings['target_cpa'] ?? 0) > 0) {
+            $agBody['bidStrategy'] = 'TARGET_CPA'; $agBody['targetCpa'] = (int)round((float)$settings['target_cpa']);
+        }
         [$ac, $ar] = self::lineReq('POST', $agPath, $agBody, $ak, $sk);
         $agId = $ar['id'] ?? $ar['adgroupId'] ?? ($ar['data']['id'] ?? '');
         if ($agId === '') return ['ok' => true, 'status' => 'partial', 'note' => 'LINE 캠페인까지 생성. 광고그룹 보류(라이브 스키마 확정 필요): ' . (self::errMsg($ar) ?: ('HTTP ' . $ac))];
