@@ -282,6 +282,18 @@ export default function AutoMarketing() {
     const [optMode, setOptMode] = useState("score");
     const [minRoas, setMinRoas] = useState(0);               // 최소 ROAS 가드(0=미적용)
     const [maxShare, setMaxShare] = useState(60);            // 단일 채널 최대 점유율(%)
+    // [254차 초고도화 ③] 고급 집행 설정 — 백엔드 REAL(AdAdapters 입찰전략·프리퀀시캡·오디언스·A/B·데이파팅) UI 노출.
+    const [bidStrategy, setBidStrategy] = useState("auto");  // auto|tcpa|troas|manual
+    const [targetCpa, setTargetCpa] = useState("");          // KRW(tcpa)
+    const [targetRoas, setTargetRoas] = useState("");        // 배수(troas, 3=300%)
+    const [freqCap, setFreqCap] = useState(0);               // 0=off 노출 피로방지 캡
+    const [freqDays, setFreqDays] = useState(7);
+    const [audienceMode, setAudienceMode] = useState("");    // ''|retarget|lookalike|prospect
+    const [abMode, setAbMode] = useState(false);             // 디자인 2+ 시 동시집행 A/B
+    const [dayparting, setDayparting] = useState(false);
+    const [dayStart, setDayStart] = useState(9);
+    const [dayEnd, setDayEnd] = useState(23);
+    const [googleChannelType, setGoogleChannelType] = useState("SEARCH"); // SEARCH|DISPLAY|VIDEO (프리퀀시캡=Display/Video)
     const [generating, setGenerating] = useState(false);
     const [draft, setDraft] = useState(null);
     // [현 차수 초고도화] 채널 효과 분석 — 실측 전수 데이터(진실 ROAS·CAC·전환·추세) 종합 효과점수 + 최고/최저 + 액션.
@@ -643,10 +655,16 @@ export default function AutoMarketing() {
                             allocations: (strategy.allocations || []).map(a => ({ channel: a.ch?.id, alloc: a.alloc, roas: a.roas })),
                             est_roas: String(strategy.estimatedRoas || ''),
                             activate: true,   // 승인 즉시 집행(배정예산 한도 내 라이브). 게이트 미충족 시 활성화만 보류.
-                            // [227차 P1] 사용자 가드레일 배선 — 옵티마이저가 실제 사용(min_roas/max_share).
-                            //   기존엔 recommend 에만 보내고 launch 에 누락돼, 영속 캠페인이 기본정책(min_roas=1·max_share 미적용)
-                            //   으로만 최적화되어 사용자 안전설정이 매번 유실됐다.
-                            guardrails: { min_roas: Number(minRoas) || 0, max_share: (Number(maxShare) || 60) / 100 },
+                            // [254차 ③] 고급 집행 설정 — 백엔드 AutoCampaign $settings 가 그대로 사용(입찰/캡/오디언스/A·B/데이파팅).
+                            objective, bid_strategy: bidStrategy,
+                            target_cpa: Number(targetCpa) || 0, target_roas: Number(targetRoas) || 0,
+                            frequency_cap: Number(freqCap) || 0, frequency_days: Number(freqDays) || 7,
+                            audience_mode: audienceMode, ab_mode: abMode, google_channel_type: googleChannelType,
+                            // [227차 P1] 사용자 가드레일 배선 — 옵티마이저가 실제 사용(min_roas/max_share). + 데이파팅(gr.ad_schedule).
+                            guardrails: {
+                                min_roas: Number(minRoas) || 0, max_share: (Number(maxShare) || 60) / 100,
+                                ...(dayparting ? { ad_schedule: { hours: [Number(dayStart), Number(dayEnd)], days: [] } } : {}),
+                            },
                         }),
                     });
                     try {
@@ -1158,6 +1176,55 @@ export default function AutoMarketing() {
                         </div>
                     </div>
 
+                    {/* [254차 ③] 고급 집행 설정 — 백엔드 REAL(입찰/캡/오디언스/A·B/데이파팅) UI 노출 */}
+                    <div style={cardStyle}>
+                        <div style={{ fontWeight: 700, fontSize: 13, color: '#a855f7', marginBottom: 12 }}>⚙️ {t('marketing.advTitle', '고급 집행 설정')} <span style={{ fontSize: 10, color: '#94a3b8', fontWeight: 600 }}>{t('marketing.advHint', '(자격증명 등록 시 즉시 적용)')}</span></div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px,1fr))', gap: 12 }}>
+                            <div>{lbl(t('marketing.advBid', '입찰 전략'))}
+                                <select style={inp} value={bidStrategy} onChange={e => setBidStrategy(e.target.value)}>
+                                    <option value="auto">{t('marketing.bidAuto', '자동(매체 ML)')}</option>
+                                    <option value="tcpa">{t('marketing.bidTcpa', '목표 CPA(tCPA)')}</option>
+                                    <option value="troas">{t('marketing.bidTroas', '목표 ROAS(tROAS)')}</option>
+                                    <option value="manual">{t('marketing.bidManual', '수동 입찰')}</option>
+                                </select>
+                            </div>
+                            {bidStrategy === 'tcpa' && <div>{lbl(t('marketing.advTcpa', '목표 CPA (₩)'))}<input style={inp} type="number" min="0" value={targetCpa} onChange={e => setTargetCpa(e.target.value)} placeholder="15000" /></div>}
+                            {bidStrategy === 'troas' && <div>{lbl(t('marketing.advTroas', '목표 ROAS (배수)'))}<input style={inp} type="number" min="0" step="0.1" value={targetRoas} onChange={e => setTargetRoas(e.target.value)} placeholder="3" /></div>}
+                            <div>{lbl(t('marketing.advAudience', '오디언스 모드'))}
+                                <select style={inp} value={audienceMode} onChange={e => setAudienceMode(e.target.value)}>
+                                    <option value="">{t('marketing.audGeo', '지오만(기본)')}</option>
+                                    <option value="retarget">{t('marketing.audRetarget', '리타겟(고객)')}</option>
+                                    <option value="lookalike">{t('marketing.audLookalike', '룩어라이크(유사확장)')}</option>
+                                    <option value="prospect">{t('marketing.audProspect', '신규획득(기존고객 제외)')}</option>
+                                </select>
+                            </div>
+                            <div>{lbl(t('marketing.advFreq', '프리퀀시 캡 (0=off · 기간일)'))}
+                                <div style={{ display: 'flex', gap: 6 }}>
+                                    <input style={{ ...inp, flex: 1 }} type="number" min="0" value={freqCap} onChange={e => setFreqCap(e.target.value)} placeholder="0" />
+                                    <input style={{ ...inp, width: 70 }} type="number" min="1" value={freqDays} onChange={e => setFreqDays(e.target.value)} title={t('marketing.advFreqDays', '기간(일)')} />
+                                </div>
+                            </div>
+                            <div>{lbl(t('marketing.advGoogleType', 'Google 캠페인 유형'))}
+                                <select style={inp} value={googleChannelType} onChange={e => setGoogleChannelType(e.target.value)}>
+                                    <option value="SEARCH">{t('marketing.gtSearch', '검색(기본)')}</option>
+                                    <option value="DISPLAY">{t('marketing.gtDisplay', '디스플레이')}</option>
+                                    <option value="VIDEO">{t('marketing.gtVideo', '동영상')}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginTop: 12, alignItems: 'center' }}>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, cursor: 'pointer' }}>
+                                <input type="checkbox" checked={abMode} onChange={e => setAbMode(e.target.checked)} /> {t('marketing.advAb', 'A/B 동시집행(디자인 2+)')}
+                            </label>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, cursor: 'pointer' }}>
+                                <input type="checkbox" checked={dayparting} onChange={e => setDayparting(e.target.checked)} /> {t('marketing.advDayparting', '데이파팅(시간대)')}
+                            </label>
+                            {dayparting && <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12 }}>
+                                <input style={{ ...inp, width: 60 }} type="number" min="0" max="23" value={dayStart} onChange={e => setDayStart(e.target.value)} />~
+                                <input style={{ ...inp, width: 60 }} type="number" min="0" max="24" value={dayEnd} onChange={e => setDayEnd(e.target.value)} /> {t('marketing.advKst', '시 (KST)')}
+                            </span>}
+                        </div>
+                    </div>
 
                     <div style={cardStyle}>
                         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14, flexWrap: "wrap" }}>
