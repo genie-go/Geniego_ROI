@@ -79,6 +79,11 @@ read -r -d '' CRONTAB <<EOF || true
 # ── [237차] 다이내믹 리프라이서(경쟁가 대비 자동 가격조정; 가격은 저빈도라 30분/매시) ──
 */30 * * * * GENIE_ENV=production php ${PROD}/bin/repricer_cron.php >> /var/log/genie_repricer.log 2>&1
 7 * * * * GENIE_ENV=demo php ${DEMO}/bin/repricer_cron.php >> /var/log/genie_repricer_demo.log 2>&1
+# ── [255차 심화] 경쟁가 독립 수집(규칙 무관 전 테넌트·Prisync 정합) + 수요예측 자동발주(Inventory Planner 정합) ──
+15 * * * * GENIE_ENV=production php ${PROD}/bin/competitor_price_cron.php >> /var/log/genie_comp_price.log 2>&1
+25 */2 * * * GENIE_ENV=demo php ${DEMO}/bin/competitor_price_cron.php >> /var/log/genie_comp_price_demo.log 2>&1
+20 6 * * * GENIE_ENV=production php ${PROD}/bin/demand_cron.php >> /var/log/genie_demand.log 2>&1
+23 6 * * * GENIE_ENV=demo php ${DEMO}/bin/demand_cron.php >> /var/log/genie_demand_demo.log 2>&1
 # ── [정밀감사 SSOT 정합] 그동안 러너는 존재하나 본 정본에 미등록이던 6종 추가(fresh provision/DR 재현성) ──
 # ── 웹 분석 인바운드(GA4·Adobe → web_analytics_metrics; ROAS 무관, 저장직후 syncAnalyticsOnSave 의 주기 백업) ──
 40 * * * * GENIE_ENV=production php ${PROD}/bin/analytics_sync_cron.php --days=28 >> /var/log/genie_analytics_sync.log 2>&1

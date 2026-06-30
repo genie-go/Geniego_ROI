@@ -1987,8 +1987,53 @@ final class ChannelSync
             case 'qoo10':                  return self::qoo10Write($creds, $product, $operation, $channelProductId);
             case 'yahoo_jp':               return self::yahooJpWrite($creds, $product, $operation, $channelProductId);
             case 'godomall':               return self::godomallWrite($creds, $product, $operation, $channelProductId);
+            case 'etsy':                   return self::etsyWrite($creds, $product, $operation, $channelProductId); // [255차 심화] fetch 인증 재사용
             default:                       return ['ok' => false, 'pending' => true, 'error' => 'write_adapter_pending:' . $ch];
         }
+    }
+
+    /**
+     * [255차 심화] Etsy v3 상품 쓰기 — etsyFetch 인증(api_key=x-api-key·shop_id·oauth_token=Bearer) 재사용.
+     *   update=가격/재고 PATCH(listing_id), unregister=state=inactive, register=createDraftListing(필수필드 honest 게이트=taxonomy_id/category).
+     *   라이브검증=실 셀러 OAuth 토큰 필요. 자격 미등록 시 상위 awaiting_credentials 보류.
+     */
+    private static function etsyWrite(array $creds, array $p, string $op, ?string $cpid): array
+    {
+        $key = trim((string)($creds['api_key'] ?? '')); $shop = trim((string)($creds['shop_id'] ?? ''));
+        $oauth = trim((string)($creds['oauth_token'] ?? $creds['access_token'] ?? ''));
+        if ($key === '' || $shop === '' || $oauth === '') return ['ok' => false, 'error' => 'Etsy: api_key(keystring)·shop_id·oauth_token(OAuth Bearer) 필요'];
+        $base = "https://openapi.etsy.com/v3/application/shops/" . rawurlencode($shop) . "/listings";
+        $h = ['x-api-key' => $key, 'Authorization' => 'Bearer ' . $oauth, 'Content-Type' => 'application/x-www-form-urlencoded', 'Accept' => 'application/json'];
+        $price = round((float)($p['price'] ?? 0), 2);
+        $qty   = (int)($p['inventory'] ?? $p['quantity'] ?? 0);
+        if ($op === 'unregister') {
+            if ($cpid === null || $cpid === '') return ['ok' => false, 'error' => 'Etsy unregister: listing_id 없음'];
+            [$c, $b, $err] = self::httpReq('PATCH', $base . '/' . rawurlencode($cpid), $h, http_build_query(['state' => 'inactive']));
+            if ($err) return ['ok' => false, 'error' => 'Etsy: ' . $err];
+            return ($c >= 200 && $c < 300) ? ['ok' => true, 'channel_product_id' => $cpid, 'op' => 'unregister'] : ['ok' => false, 'error' => 'Etsy unlist 실패(code=' . $c . ')', 'detail' => $b['error'] ?? null];
+        }
+        if ($cpid !== null && $cpid !== '') { // update — 가격/재고
+            $fields = [];
+            if ($price > 0) $fields['price'] = $price;
+            if ($qty > 0)   $fields['quantity'] = $qty;
+            if (!$fields) return ['ok' => false, 'error' => 'Etsy update: 변경할 가격/재고 없음'];
+            [$c, $b, $err] = self::httpReq('PATCH', $base . '/' . rawurlencode($cpid), $h, http_build_query($fields));
+            if ($err) return ['ok' => false, 'error' => 'Etsy: ' . $err];
+            return ($c >= 200 && $c < 300) ? ['ok' => true, 'channel_product_id' => $cpid, 'op' => 'update'] : ['ok' => false, 'error' => 'Etsy update 실패(code=' . $c . ')', 'detail' => $b['error'] ?? null];
+        }
+        // register — createDraftListing. Etsy 필수: quantity·title·description·price·who_made·when_made·taxonomy_id.
+        $taxonomy = (int)($p['category_code'] ?? $p['taxonomy_id'] ?? 0);
+        $title = trim((string)($p['name'] ?? '')); $desc = trim((string)($p['description'] ?? $p['name'] ?? ''));
+        if ($taxonomy <= 0) return ['ok' => false, 'error' => 'Etsy register: taxonomy_id(카테고리) 필요 — 채널 카테고리 매핑 후 등록'];
+        if ($title === '' || $price <= 0) return ['ok' => false, 'error' => 'Etsy register: title·price 필수'];
+        $payload = http_build_query([
+            'quantity' => max(1, $qty), 'title' => mb_substr($title, 0, 140), 'description' => mb_substr($desc, 0, 2000),
+            'price' => $price, 'who_made' => 'i_did', 'when_made' => 'made_to_order', 'taxonomy_id' => $taxonomy, 'type' => 'physical',
+        ]);
+        [$c, $b, $err] = self::httpReq('POST', $base, $h, $payload);
+        if ($err) return ['ok' => false, 'error' => 'Etsy: ' . $err];
+        $newId = (string)($b['listing_id'] ?? '');
+        return ($c >= 200 && $c < 300 && $newId !== '') ? ['ok' => true, 'channel_product_id' => $newId, 'op' => 'register'] : ['ok' => false, 'error' => 'Etsy 등록 실패(code=' . $c . ')', 'detail' => $b['error'] ?? null];
     }
 
     /** Cafe24 Admin API 상품 등록/수정 — refresh_token grant → access_token → /admin/products. */

@@ -1980,10 +1980,18 @@ PROMPT;
             $design = json_decode($txt, true);
             if (!is_array($design) || empty($design['headline'])) return 0;
             $design['channel'] = $channel; $design['_dco_generated'] = true;
+            // [255차 심화 A] 생성형 이미지 DCO — 카피와 함께 광고 배경 이미지도 자동생성(이미지 API 등록 시).
+            //   loadDesign 이 svg 의 base64 를 추출 → metaUploadImage/kakaoDeliver/lineDeliver 가 매체 이미지 변형으로 배포(업로드 파이프 기존·수정0).
+            //   이미지 API 미설정/오류 = graceful '' (기존 텍스트 전용 DCO 유지·회귀0). register-then-execute.
+            $svg = '';
+            try {
+                $imgPrompt = trim((string)($design['headline'] ?? '') . ' ' . ($category !== '일반' ? $category : '') . ' ' . $product);
+                if ($imgPrompt !== '') { $ig = self::generateImage($tenant, $imgPrompt, '1:1'); if (!empty($ig['ok']) && !empty($ig['image'])) { $svg = (string)$ig['image']; $design['_dco_image'] = true; } }
+            } catch (\Throwable $e) {}
             self::migrateAdDesign($pdo);
             $now = gmdate('Y-m-d H:i:s');
             $st = $pdo->prepare('INSERT INTO ad_design(tenant_id,category,product,channel,spec_json,svg,status,created_at) VALUES(?,?,?,?,?,?,?,?)');
-            $st->execute([$tenant, mb_substr($category, 0, 120), mb_substr($product, 0, 2000), $channel, json_encode($design, JSON_UNESCAPED_UNICODE), '', 'active', $now]);
+            $st->execute([$tenant, mb_substr($category, 0, 120), mb_substr($product, 0, 2000), $channel, json_encode($design, JSON_UNESCAPED_UNICODE), $svg, 'active', $now]);
             return (int)$pdo->lastInsertId();
         } catch (\Throwable $e) { return 0; }
     }

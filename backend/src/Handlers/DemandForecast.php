@@ -296,11 +296,19 @@ class DemandForecast
         if ($err = UserAuth::requirePro($req, $res)) return $err;
         $tenant = self::tenant($req);
         if ($tenant === 'demo' || $tenant === '') return self::json($res, ['ok' => true, 'created' => 0, 'note' => 'demo/anon skip']);
-        $pdo = self::db();
         $b = (array)($req->getParsedBody() ?? []);
         $lead    = max(1, min(60, (int)($b['lead'] ?? 7)));
         $horizon = max(7, min(60, (int)($b['horizon'] ?? 14)));
-        $z = 1.65;
+        $created = self::autoReplenishForTenant($tenant, $lead, $horizon);
+        return self::json($res, ['ok' => true, 'created' => count($created), 'orders' => $created, '_env' => Db::env()]);
+    }
+
+    /** [255차 심화] 자동발주 코어(CLI/cron 공용) — 스케줄형 자동 재주문(Inventory Planner 정합). HTTP 핸들러와 공유(중복0). */
+    public static function autoReplenishForTenant(string $tenant, int $lead = 7, int $horizon = 14): array
+    {
+        if ($tenant === 'demo' || $tenant === '') return [];
+        $lead = max(1, min(60, $lead)); $horizon = max(7, min(60, $horizon));
+        $pdo = self::db();
         // wms_supply_orders 보장 — SSOT: Db::ensureWmsSupplyOrders 로 일원화(종전 Wms 와 중복 제거, IF NOT EXISTS 멱등)
         Db::ensureWmsSupplyOrders($pdo);
         // 현재 재고 맵(channel_inventory.available 합산)
@@ -334,7 +342,16 @@ class DemandForecast
             $ins->execute([$tenant, (string)$sku, (string)$info['name'], $orderQty, '', '', $eta, $now, $now]);
             $created[] = ['sku' => $sku, 'name' => $info['name'], 'qty' => $orderQty, 'reorder_point' => $reorder, 'stock' => $stock, 'eta' => $eta];
         }
-        return self::json($res, ['ok' => true, 'created' => count($created), 'orders' => $created, '_env' => Db::env()]);
+        return $created;
+    }
+
+    /** [255차 심화] 자동발주 cron 팬아웃 — 재고/주문 데이터 보유 테넌트(데모 제외는 cron 에서). */
+    public static function tenantsForReplenish(): array
+    {
+        try {
+            $rs = self::db()->query("SELECT DISTINCT tenant_id FROM channel_inventory WHERE tenant_id IS NOT NULL AND tenant_id<>''");
+            return array_values(array_filter(array_map('strval', $rs->fetchAll(\PDO::FETCH_COLUMN) ?: []), fn($t)=>$t!==''));
+        } catch (\Throwable $e) { return []; }
     }
 
     /* ─── GET /api/demand/summary ─── */

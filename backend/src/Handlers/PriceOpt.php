@@ -917,6 +917,22 @@ class PriceOpt
         } catch (\Throwable $e) { return []; }
     }
 
+    /** [255차 심화] 경쟁가 수집 cron 팬아웃 — 상품 보유 전 테넌트(리프라이서 규칙 무관·독립 수집, Prisync/Feedvisor 정합). */
+    public static function tenantsWithPriceProducts(): array
+    {
+        try {
+            $rs = self::db()->query("SELECT DISTINCT tenant_id FROM po_products WHERE tenant_id IS NOT NULL AND tenant_id<>''");
+            return array_values(array_filter(array_map(fn($r) => (string)$r, $rs->fetchAll(\PDO::FETCH_COLUMN))));
+        } catch (\Throwable $e) { return []; }
+    }
+
+    /** [255차 심화] 경쟁가 수집 CLI 래퍼(competitor_price_cron 전용) — priceopt.sqlite(self::db) 주입. 자격 미등록=graceful no-op. */
+    public static function harvestCompetitorsCli(string $t): array
+    {
+        try { return self::harvestCompetitorsForTenant(self::db(), $t); }
+        catch (\Throwable $e) { return ['ok'=>false, 'error'=>$e->getMessage()]; }
+    }
+
     /** [237차] 리프라이서 실행 코어(HTTP 핸들러 runRepricer + cron repricer_cron.php 공용). @return array 요약 */
     public static function repriceForTenant(string $t): array
     {
