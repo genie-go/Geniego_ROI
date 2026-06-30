@@ -15,6 +15,9 @@
 | — | 실시간 SIEM 포워딩 | `3fe4cae` | high 심각도 보안이벤트 즉시 push(CEF/NDJSON/Splunk HEC). opt-in `siem_config.realtime`(기본off) | `Compliance::forwardEvent`·`UserAuth::audit` 훅 |
 | — | 메시징 개인화 | `40db3c8` | LINE 본문=캠페인 템플릿(line_templates.content) 연결 + 카카오 templateParameter 실명 바인딩 | `Line::sendCampaign`·`KakaoChannel::callKakaoAPI($vars)` |
 | — | 확률적 cross-device | `b6dab9f` | ip+ua 디바이스 시그니처(PII미저장)·14일·confidence 0.5. opt-in `attribution_prob_stitch@tenant`(기본off) | `Attribution::recordDeviceSigAndStitch`·`GET/POST /v424/attribution/probabilistic` |
+| — | 메시징 전환기반 A/B + Liquid 개인화 | `f8be02c` | abResult metric=open/click/conversion(매출 집계) + renderTemplate Liquid-라이트({% if %}/default 필터·머지변수 확장) | `EmailMarketing::abResult`/`renderTemplate` |
+| ⑥ | 생성형 DCO 자동연결 | `0c6466f` | 소재 피로 소진 시 ClaudeAI 신소재 자동생성·ad_design 영속. opt-in `dco_auto_generate@tenant`(기본off). ★서버 e2e 검증 | `ClaudeAI::autoGenerateAdDesign`·`AbTesting::dcoEvaluate` |
+| — | i18n 배치(신규 라벨 15국) | `74a2097` | marketing.adv* 23키 15국 + 결제대사 카드 현지화(한글누출 방지) | locales 15·`tools/inject_n254_adv_i18n.cjs`·Settlements.jsx |
 
 ## ⛔ 오탐(FP) — 이미 구현됨, 차후 재플래그·재구현 금지
 
@@ -23,13 +26,14 @@
 | **다통화 P&L(OMS)** | 분석이 "rollup raw total_price 합산"으로 오판. 실제는 **228차 S5에서 saveOrders가 ingestion 시 total_price를 KRW 정규화**(글로벌 USD/JPY/EUR→`Connectors::fxToKrw`, orig_currency는 raw_json). channel_orders.total_price=이미 KRW → 집계는 KRW 정확. 추가 보정 시 **이중환산 오류**. | `ChannelSync::saveOrders`(228차 S5) |
 | **엣지 레이트리밋** | 분석이 코드만 보고 "nginx limit_req 부재"로 오판. 실제 nginx에 `login_limit`(30r/m)·`api_limit`(30r/s)·`limit_conn perip 50`·burst·429가 로그인/API 로케이션에 적용 중. | `/usr/local/nginx/conf/nginx.conf`+vhost |
 
-## 🔄 잔여 (FP 선검증 후 진행)
+## 🔄 잔여 — 외부자산/인프라 의존(코드 완결 불가·등록 시 활성·재플래그 금지)
 
-- ⑥ 생성형 DCO 자동연결(피로감지→ClaudeAI 신소재 자동생성) — 이미지 생성키 등록 시 활성
-- ⑨ geo-exclusion 배선(인과 holdout — control 지역 매체 타겟 제외) — 매체별 지역→geo-ID 맵 등록 시 인과
-- 메시징 전환기반 A/B(현 오픈율만) · Liquid 개인화
-- i18n 키 배치: 254차 신규 라벨(마케팅 고급설정 marketing.adv*·결제대사 카드) 15국 정식키
-- 인프라/외부계정 의존(배선만, 활성화·검증은 등록 후): 발송 DNS(SPF/DKIM/DMARC)·광고집행 매체확대(Snapchat/LinkedIn 등)·라이브 SFU 자체호스팅
+- **⑨ geo-exclusion 배선**(인과 holdout — control 지역 매체 타겟 제외): 매체별 지역→geo-ID 맵(Meta region key·Google geoTargetConstant·TikTok location_id) 필요. **253차 #2에서 의도적 로드맵 보류**(추정 geo-ID 주입은 실광고비 오집행=기존안정성 위배). geo-ID 맵 등록+실광고계정 검증 시 인과 활성.
+- **발송 인프라 DNS**(SPF/DKIM/DMARC): Postfix/OpenDKIM은 구성(203차)·DNS 레코드 미완. DNS 설정 사안(코드 아님).
+- **광고집행 매체확대**(Snapchat/LinkedIn/Criteo/Pinterest 등): 수집은 REAL, 집행은 실 광고계정+매체별 API 검증 필요.
+- **라이브 SFU 자체호스팅**: 표준 WHIP/WHEP 시그널링 REAL, 미디어평면은 외부 SRS/MediaMTX 위임(인프라).
+
+> ★위 4건은 코드만으로 완결·검증 불가(외부 계정/맵/DNS/인프라 선행). "부재"가 아니라 "배선완료·활성대기". 재플래그 금지.
 
 ## 📌 재평가 원칙
 1. 위 ✅/⛔ 항목은 **DONE**으로 간주 — 재구현·재플래그 금지.
