@@ -1962,6 +1962,32 @@ PROMPT;
     // 상품설명+카테고리+채널 → 채널별 완성 광고 디자인 스펙(카피·컬러팔레트·레이아웃·규격).
     // feedback 전달 시 이전 디자인을 피드백 반영해 재생성(미리보기→수정→적용 워크플로우).
     // ─────────────────────────────────────────────────────────────────────
+    /**
+     * [254차 초고도화 ⑥] 생성형 DCO — 소재 피로 시 AbTesting 이 호출하는 프로그램형 신소재 자동생성.
+     *   Claude(실 API·운영 키 보유)로 채널 광고 카피를 생성·ad_design 영속(status=active)→ 다음 집행이 A/B 변형 편입.
+     *   키 미설정/API오류 = honest 0(수동 안내 유지). buildDelivery(플랫폼 광고 생성)는 매체 자격증명 게이트(별도).
+     */
+    public static function autoGenerateAdDesign(\PDO $pdo, string $tenant, string $channel, string $category = '일반', string $product = ''): int
+    {
+        if ($tenant === '' || $channel === '') return 0;
+        if ($product === '') $product = ($category !== '' && $category !== '일반') ? "{$category} 신규 프로모션" : '신규 프로모션';
+        $sys = "당신은 퍼포먼스 광고 크리에이티브 디렉터입니다. 채널({$channel})·카테고리({$category})에 맞춰 CTR/전환을 극대화하는 광고 1개를 설계합니다. 반드시 아래 JSON만 출력(설명·마크다운 금지): {\"channel\":\"{$channel}\",\"headline\":\"임팩트 헤드라인 16자내\",\"subheadline\":\"보조문구 24자내\",\"body\":\"혜택중심 본문 1~2문장\",\"cta\":\"행동유도 버튼문구\"}";
+        try {
+            $r = self::callClaude($sys, "상품: {$product}\n위 채널 광고 1개를 JSON으로 설계하세요.", 8, $tenant);
+            $txt = (string)($r['text'] ?? '');
+            if ($txt === '') return 0;
+            if (preg_match('/\{.*\}/s', $txt, $mm)) $txt = $mm[0];
+            $design = json_decode($txt, true);
+            if (!is_array($design) || empty($design['headline'])) return 0;
+            $design['channel'] = $channel; $design['_dco_generated'] = true;
+            self::migrateAdDesign($pdo);
+            $now = gmdate('Y-m-d H:i:s');
+            $st = $pdo->prepare('INSERT INTO ad_design(tenant_id,category,product,channel,spec_json,svg,status,created_at) VALUES(?,?,?,?,?,?,?,?)');
+            $st->execute([$tenant, mb_substr($category, 0, 120), mb_substr($product, 0, 2000), $channel, json_encode($design, JSON_UNESCAPED_UNICODE), '', 'active', $now]);
+            return (int)$pdo->lastInsertId();
+        } catch (\Throwable $e) { return 0; }
+    }
+
     public static function campaignAdDesign(Request $req, Response $res): Response
     {
         try {

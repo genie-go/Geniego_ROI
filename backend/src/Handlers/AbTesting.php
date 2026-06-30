@@ -236,11 +236,29 @@ final class AbTesting
                 }
             } else {
                 try { $pdo->prepare("UPDATE ab_test SET last_dco_at=?,updated_at=? WHERE id=?")->execute([$now, $now, $testId]); } catch (Throwable $e) {}
-                $decisions[] = ['ab_test' => $testId, 'channel' => $channel, 'action' => 'creative_refresh_needed', 'variant' => (int)$wv['id'], 'actuated' => false,
-                    'reason' => "소재 피로도 감지(CTR {$fat['recent']}% vs {$fat['baseline']}%, {$fat['days']}일 하락) — 대체 소재 소진. [크리에이티브 스튜디오]에서 신규 소재 등록 시 자동 A/B 재개"];
+                // [254차 초고도화 ⑥] 생성형 DCO — 대체 소재 소진 시 ClaudeAI로 신소재 자동생성(opt-in·기본off=회귀0).
+                //   생성된 ad_design(active)은 다음 집행 주기에 A/B 변형으로 자동 편입(buildDelivery는 매체 자격증명 게이트).
+                $newId = 0;
+                if (self::dcoAutoGenEnabled($pdo, $tenant)) {
+                    try { $newId = \Genie\Handlers\ClaudeAI::autoGenerateAdDesign($pdo, $tenant, $channel, '일반', ''); } catch (Throwable $e) {}
+                }
+                if ($newId > 0) {
+                    $decisions[] = ['ab_test' => $testId, 'channel' => $channel, 'action' => 'creative_auto_generated', 'variant' => (int)$wv['id'], 'design_id' => $newId, 'actuated' => true,
+                        'reason' => "소재 피로도 감지(CTR {$fat['recent']}% vs {$fat['baseline']}%) → AI 신소재 자동 생성·등록(design #{$newId}). 다음 집행 주기에 A/B 챌린저로 자동 편입."];
+                } else {
+                    $decisions[] = ['ab_test' => $testId, 'channel' => $channel, 'action' => 'creative_refresh_needed', 'variant' => (int)$wv['id'], 'actuated' => false,
+                        'reason' => "소재 피로도 감지(CTR {$fat['recent']}% vs {$fat['baseline']}%, {$fat['days']}일 하락) — 대체 소재 소진. [크리에이티브 스튜디오]에서 신규 소재 등록 시 자동 A/B 재개"];
+                }
             }
         }
         return $decisions;
+    }
+
+    /** [254차 ⑥] 생성형 DCO opt-in 게이트 — app_setting dco_auto_generate@tenant(기본 off=회귀0). */
+    private static function dcoAutoGenEnabled(PDO $pdo, string $tenant): bool
+    {
+        try { $st = $pdo->prepare("SELECT svalue FROM app_setting WHERE skey=? LIMIT 1"); $st->execute(['dco_auto_generate@' . $tenant]); return ((string)($st->fetchColumn() ?: '0')) === '1'; }
+        catch (\Throwable $e) { return false; }
     }
 
     /**
