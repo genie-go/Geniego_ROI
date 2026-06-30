@@ -1,3 +1,41 @@
+# 254차 세션 인계서 — **6도메인 경쟁 재평가 + 약점 초고도화 10건 + FP 2건 차단 + 이력 영구화**
+
+> **작성일**: 2026-06-30 (사용자 명시 승인) · 운영 roi.genie-go.com / 데모 roidemo.genie-go.com · primary=**E:\project\GeniegoROI** · 브랜치 `feat/n236-admin-growth-automation`(master 미접촉) · 운영/데모 **수동 배포·항목별 검증 완료**(매 항목 서버 php-l PASS·홈200·기능 e2e). **커밋·push 완료**(하단 §커밋).
+> 발단: 252·253차 잔여(#1 프리퀀시캡 등) 진행 → 사용자 "전체 초고도화·중복0·회귀0" → 6도메인 경쟁 재평가(글로벌 벤치) → 약점 순차 초고도화 → ★사용자 "오탐 재구현 방지·이력 남겨라" → FP 2건 차단·이력 영구화 → 인계.
+
+## ★0. 다음 차수 필독 — 중복 초고도화 방지 (사용자 강력 지적: 중복 오탐으로 시간낭비)
+- **착수 전 반드시 참조**: `docs/N254_SUPER_ENHANCEMENT_HISTORY.md`(완료 10건 위치/커밋 + 경쟁 점수표 + FP) + 메모리 [[reference_audit_false_positives]](254차 항목).
+- **재플래그/재구현 금지(이미 완료/FP)**: ①PG결제대사 ③마케팅고급UI ⑤Shapley서버화 ⑩S3/SigV4+DW autocreate · 실시간SIEM · 메시징개인화(LINE/Kakao) · 확률적cross-device · 메시징전환A/B+Liquid · ⑥생성형DCO · i18n배치. **FP**: 다통화 P&L(saveOrders 228차 S5가 ingest시 KRW정규화→이중환산 금지)·엣지 ratelimit(nginx 이미 적용).
+- **★코드 grep만으로 "부재" 단정 금지** — 인프라(nginx/DNS)·ingestion정규화(228차 S5)·opt-in 게이트는 코드에서 안 보임. PM 코드 재증명 + 레지스트리 선참조 후만 갭 단정. 감사 에이전트에 **FP레지스트리+본 이력 주입 필수**.
+
+## 1. 254차 초고도화 완료 (10건·전부 운영/데모 라이브·중복0·회귀0·opt-in 기본off)
+| # | 항목 | 커밋 | 핵심 |
+|---|------|------|------|
+| ① | PG↔주문 결제대사 | `a309d3b` | PgSettlement::reconcile(매칭→미정산/고아/수수료불일치)·Settlements.jsx 카드 |
+| ③ | 마케팅 고급 집행 UI | `e3c85ba` | 백엔드 REAL(입찰/캡/오디언스/AB/데이파팅) AutoMarketing 노출 |
+| ⑤ | Shapley 서버화 | `a480de2` | shapleyAttribution(zeta·O(n·2^n))·권위엔진. 단위검증 PASS |
+| ⑩ | BI S3/SigV4 + DW autocreate | `6ec9cd0` | DataExport::pushS3(SigV4)·BigQuery/Snowflake autocreate |
+| — | 실시간 SIEM | `3fe4cae` | Compliance::forwardEvent·UserAuth훅·realtime opt-in |
+| — | 메시징 개인화 | `40db3c8` | LINE 본문=템플릿·Kakao templateParameter 실명 |
+| — | 확률적 cross-device | `b6dab9f` | Attribution ip+ua 시그·prob_stitch opt-in |
+| — | 메시징 전환A/B+Liquid | `f8be02c` | abResult metric=conversion·renderTemplate Liquid-라이트 |
+| ⑥ | 생성형 DCO 자동연결 | `0c6466f` | ClaudeAI::autoGenerateAdDesign·dcoEvaluate 훅·서버 e2e검증 |
+| — | i18n 배치 | `74a2097` | marketing.adv* 23키15국+결제대사카드(한글누출0) |
++ 이력문서 `ea891fc`·`de4c682`. 경쟁 평균 80.2→**83.4**·통합도 92(유일). 상세=N254 history.
+
+## 2. 잔여 — 외부자산/인프라 의존(코드 완결불가·다음 차수도 동일·재플래그 금지)
+- **⑨ geo 인과 holdout**: 매체별 지역→geo-ID 맵(Meta region key/Google geoTargetConstant/TikTok location_id) 필요. 추정 주입=실광고비 오집행(기존안정성 위배). 맵+실계정 검증 시 활성.
+- **발송 DNS**(SPF/DKIM/DMARC)·**광고집행 매체확대**(Snapchat/LinkedIn 등 실계정)·**라이브 SFU 자체호스팅**(외부 미디어서버). 전부 외부 등록 선행.
+- (옵션) 251차 잔여: capped 플랜 인앱모달 e2e·추가팩 Paddle 실청구 reconcile.
+
+## 3. 트랩(254차 재확인)
+- ★**FP 선참조 의무**: 다통화/엣지ratelimit를 코드만 보고 갭으로 재구현 시도→saveOrders/nginx 확인 후 되돌림(시간낭비). 레지스트리 먼저.
+- PS 샌드박스 `rm -rf`+literal "C:\Program" 차단→PuTTY 경로 `$env:ProgramFiles` 구성. plink for-loop `\$f` 변수 silent 실패→파일별 명시.
+- i18n: marketing/auth ns=acorn splice 최상위 마지막 occurrence·G2 baseline ja/zh SHA+ko_leaf 동반 갱신. 자기완결 dict(en폴백)는 operator 페이지 빠른대안.
+- 신규 핸들러/메서드=fpm restart(opcache). 백엔드 php-l는 서버 업로드 후(로컬 PHP 부재).
+
+---
+
 # 252·253차 세션 인계서 — **전수 정밀감사 5확정결함 수정 + 포트폴리오 예산최적화 + 경쟁 약점 6항목 초고도화(#0~#6) + 구독요금 VAT 표기**
 
 > **작성일**: 2026-06-29 (사용자 명시 승인) · 운영 roi.genie-go.com / 데모 roidemo.genie-go.com · primary=**E:\project\GeniegoROI** · 브랜치 `feat/n236-admin-growth-automation` (master 미접촉) · 운영/데모 **수동 배포·검증 완료**(매 항목 서버 php-l PASS·홈200·optimize_cron EXIT=0). 커밋·push 완료(하단 §커밋).

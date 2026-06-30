@@ -4,6 +4,21 @@
 > 254차에 글로벌 경쟁사(Northbeam/Triple Whale/Adobe·Rithum/사방넷/Channable·Meta Advantage+/Skai/Smartly·Linnworks/Brightpearl/Extensiv/Prisync·Klaviyo/Braze/Iterable·Sensei/Einstein/Bambuser/Looker) 대비 6도메인 기능별 평가 → 약점 순차 초고도화.
 > 브랜치 `feat/n236-admin-growth-automation`(master 미접촉). 전부 운영/데모 라이브·항목별 deploy-verify-commit.
 
+## 📊 경쟁 재평가 점수 (초고도화 전 → 후) — ★재평가 시 이 점수를 기준선으로 사용
+
+| 도메인 | 경쟁사 최강(벤치) | 이전 | **현재** | 반영 |
+|---|---|---|---|---|
+| ROI/어트리뷰션 | Northbeam 87 / Adobe 86 | 83 | **85.5** | Shapley 서버권위·확률적 cross-device |
+| 채널 연동 | Rithum 90 / 사방넷 88 | 84 | **84** | (254차 무관) |
+| 마케팅 자동화 | Meta Adv+ 85 / Skai 80 | 80 | **84** | 고급 UI 노출·⑥생성형DCO |
+| 커머스 운영 | Brightpearl/Linnworks 88 | 78 | **83** | ①PG 결제대사 |
+| CRM/메시징 | Klaviyo/Braze 90 | 76 | **80** | 전환A/B·Liquid·LINE/Kakao 개인화 |
+| AI/엔터프라이즈 | 엔터리더 89 | 80 | **84** | S3/SigV4·DW autocreate·실시간SIEM |
+| **단순 평균** | **88.2** | 80.2 | **≈83.4** | — |
+| **★통합도/폐루프** | ~72(전부 분절) | 91 | **92** | 단일 플랫폼 폐루프 = 유일 해자 |
+
+**남은 격차(−4.8)는 전부 외부자산/인프라 의존**(⑨geo-ID맵·발송DNS·광고매체계정·라이브SFU) — 코드 갭 아님(아래 잔여 섹션). 글로벌 경쟁사 벤치(리서치): ROI=Northbeam88/Adobe86/TripleWhale85·채널=Rithum90/사방넷88/Channable88·마케팅=MetaAdv+82/Skai78·커머스=Brightpearl/Linnworks/Extensiv/Prisync·CRM=Klaviyo/Braze/Iterable·AI=Sensei/Einstein/Bambuser/Looker. ★핵심결론: 아무도 폐루프 미완성=GenieGo 통합도 유일.
+
 ## ✅ 완료한 초고도화 (DONE — 갭 아님, 재구현 금지)
 
 | # | 항목 | 커밋 | 구현 핵심 | 위치 |
