@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useI18n } from "../i18n";
 import { SETTLE_GUIDE } from "./settlementsGuideI18n.js";
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
-import { postJsonAuth } from '../services/apiClient.js';
+import { postJsonAuth, getJsonAuth } from '../services/apiClient.js';
 import useSecurityMonitor from '../hooks/useSecurityMonitor.js';
 import CrossLinkBar from '../components/CrossLinkBar.jsx';
 import ProductSelectBar from '../components/dashboards/ProductSelectBar.jsx';
@@ -169,6 +169,15 @@ export default function Settlements() {
   const [showGuide, setShowGuide] = useState(false);
   const [sortKey, setSortKey] = useState("net_payout_krw");
   const [sortDir, setSortDir] = useState("desc");
+  // [254차 초고도화] 결제 대사(PG↔주문) — 출하 대비 정산 누락·고아 정산·수수료 불일치 탐지.
+  const [recon, setRecon] = useState(null);
+  const [reconBusy, setReconBusy] = useState(false);
+  const runRecon = useCallback(async () => {
+    setReconBusy(true);
+    try { const r = await getJsonAuth('/v427/pg/reconciliation?window_days=7'); setRecon(r && r.ok ? r : { error: (r && r.error) || 'failed' }); }
+    catch (e) { setRecon({ error: String(e && e.message || e) }); }
+    finally { setReconBusy(false); }
+  }, []);
 
   /* Period List */
   const periods = useMemo(() => {
@@ -351,6 +360,39 @@ export default function Settlements() {
 );
           })}
         </div>
+      </div>
+
+      {/* [254차] 결제 대사(PG↔주문) — 정산 누락·고아 정산·수수료 불일치 탐지 */}
+      <div className="card" style={{ marginBottom: 14, padding: '14px 16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 800 }}>🔍 결제 대사 (PG 정산 ↔ 주문)</div>
+            <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 2 }}>출하한 만큼 정산받았는지·고아 정산·수수료 불일치를 자동 매칭으로 탐지합니다 (금액·일자·주문참조).</div>
+          </div>
+          <button className="btn" onClick={runRecon} disabled={reconBusy} style={{ whiteSpace: 'nowrap' }}>{reconBusy ? '대사 중…' : '결제 대사 실행'}</button>
+        </div>
+        {recon && recon.error && <div style={{ marginTop: 8, fontSize: 12, color: '#ef4444' }}>대사 오류: {recon.error}</div>}
+        {recon && recon.summary && (() => { const s = recon.summary; return (
+          <div style={{ marginTop: 12, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10 }}>
+            {[
+              { k: '매칭 완료', v: `${s.matched}건`, sub: `유효수수료 ${s.effective_fee_pct}%`, c: '#22c55e' },
+              { k: '⚠ 미정산 주문', v: `${s.unsettled_orders}건`, sub: `≈ ${Math.round(s.unsettled_amount).toLocaleString()}`, c: s.unsettled_orders > 0 ? '#f59e0b' : 'var(--text-3)' },
+              { k: '고아 정산', v: `${s.orphan_settlements}건`, sub: `≈ ${Math.round(s.orphan_amount).toLocaleString()}`, c: s.orphan_settlements > 0 ? '#f59e0b' : 'var(--text-3)' },
+              { k: '고수수료 의심', v: `${s.fee_mismatch}건`, sub: '>8% 정산', c: s.fee_mismatch > 0 ? '#ef4444' : 'var(--text-3)' },
+            ].map(x => (
+              <div key={x.k} style={{ padding: '10px 12px', borderRadius: 10, background: 'rgba(15,23,42,0.03)', border: '1px solid var(--border)' }}>
+                <div style={{ fontSize: 11, color: 'var(--text-3)' }}>{x.k}</div>
+                <div style={{ fontSize: 18, fontWeight: 900, color: x.c }}>{x.v}</div>
+                <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 1 }}>{x.sub}</div>
+              </div>
+            ))}
+          </div>
+        ); })()}
+        {recon && recon.summary && recon.summary.unsettled_orders > 0 && recon.unsettled_sample && recon.unsettled_sample.length > 0 && (
+          <div style={{ marginTop: 10, fontSize: 11, color: 'var(--text-2)' }}>
+            미정산 주문 예시: {recon.unsettled_sample.slice(0, 5).map(o => `${o.channel}/${o.channel_order_id || o.order_id}(${Math.round(o.total_price).toLocaleString()})`).join(' · ')}{recon.unsettled_sample.length > 5 ? ' …' : ''}
+          </div>
+        )}
       </div>
 
       {/* Settlements 내역 Table */}

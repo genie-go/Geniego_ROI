@@ -101,6 +101,8 @@ final class PgSettlement
                     currency TEXT, status TEXT, txn_at TEXT, created_at TEXT)");
                 try { $pdo->exec("CREATE UNIQUE INDEX IF NOT EXISTS uq_pg ON pg_settlement(tenant_id,provider,txn_id)"); } catch (\Throwable $e) {}
             }
+            // [254차 초고도화] 결제대사(PG↔주문 매칭)용 — PG가 제공하는 주문참조(merchant order ref). 미제공 시 빈값(금액·일자 퍼지매칭).
+            try { $pdo->exec("ALTER TABLE pg_settlement ADD COLUMN order_ref " . ($isMy ? "VARCHAR(190)" : "TEXT") . " DEFAULT NULL"); } catch (\Throwable $e) {}
         } catch (\Throwable $e) {}
     }
 
@@ -191,6 +193,95 @@ final class PgSettlement
      *   사용자가 'toss'/'tosspayments'/'stripe' 등 어느 별칭으로 자격증명을 저장하든 canonical provider 로 해석.
      *   PG provider 가 아니면 null.
      */
+    /**
+     * [254차 초고도화] 결제 대사(PG 정산 ↔ 주문 매칭) — "출하한 만큼 정산받았나·수수료 불일치" 탐지.
+     *   매칭: ①order_ref 정확(PG 제공 시) ②금액(round)±1 버킷 + 일자 윈도(±N일) 퍼지. 그리디 1:1.
+     *   산출: matched(유효수수료%)·미정산 주문(정산 누락 후보)·고아 정산(주문 없는 페이아웃)·고수수료(>8%) 의심.
+     *   ★중복0: 광고축 roasReconciliation(매체↔주문)과 다른 결제축 대사. 외부 핸들러 비의존(자기완결).
+     */
+    public static function reconcile(PDO $pdo, string $tenant, int $windowDays = 7): array
+    {
+        self::ensureTables($pdo);
+        $settles = [];
+        try {
+            $st = $pdo->prepare("SELECT id,provider,txn_id,type,gross,fee,net,currency,status,txn_at,order_ref FROM pg_settlement WHERE tenant_id=? AND gross > 0 ORDER BY txn_at ASC, id ASC LIMIT 5000");
+            $st->execute([$tenant]); $settles = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        } catch (\Throwable $e) {}
+        $orders = [];
+        try {
+            $st = $pdo->prepare("SELECT id, channel, channel_order_id, order_no, total_price, ordered_at, status FROM channel_orders WHERE tenant_id=? AND COALESCE(event_type,'order') NOT IN ('cancel','return') AND total_price > 0 ORDER BY ordered_at ASC, id ASC LIMIT 5000");
+            $st->execute([$tenant]); $orders = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        } catch (\Throwable $e) {}
+        // 인덱스: order_ref(채널주문ID/주문번호) 및 금액버킷(round).
+        $byRef = []; $byAmt = [];
+        foreach ($orders as $i => $o) {
+            foreach ([(string)$o['channel_order_id'], (string)$o['order_no']] as $k) { $k = trim($k); if ($k !== '') $byRef[$k][] = $i; }
+            $byAmt[(int)round((float)$o['total_price'])][] = $i;
+        }
+        $used = array_fill(0, count($orders), false);
+        $win = max(1, $windowDays) * 86400;
+        $matched = []; $feeMismatch = []; $orphan = []; $matchGross = 0.0; $matchFee = 0.0;
+        foreach ($settles as $s) {
+            $g = (float)$s['gross']; $ref = trim((string)($s['order_ref'] ?? '')); $sts = strtotime((string)$s['txn_at']) ?: 0;
+            $mi = -1;
+            if ($ref !== '' && isset($byRef[$ref])) { foreach ($byRef[$ref] as $idx) if (!$used[$idx]) { $mi = $idx; break; } }
+            if ($mi < 0) {
+                $gr = (int)round($g); $best = PHP_INT_MAX;
+                for ($b = $gr - 1; $b <= $gr + 1; $b++) {
+                    if (!isset($byAmt[$b])) continue;
+                    foreach ($byAmt[$b] as $idx) {
+                        if ($used[$idx]) continue;
+                        $ots = strtotime((string)$orders[$idx]['ordered_at']) ?: 0;
+                        if ($sts && $ots && abs($sts - $ots) > $win) continue;
+                        $d = abs((float)$orders[$idx]['total_price'] - $g) + ($sts && $ots ? abs($sts - $ots) / 86400.0 : 0);
+                        if ($d < $best) { $best = $d; $mi = $idx; }
+                    }
+                }
+            }
+            if ($mi >= 0) {
+                $used[$mi] = true; $o = $orders[$mi]; $matchGross += $g; $matchFee += (float)$s['fee'];
+                $feePct = $g > 0 ? round((float)$s['fee'] / $g * 100, 2) : 0.0;
+                $rec = ['settle_id'=>(int)$s['id'],'provider'=>$s['provider'],'order_id'=>(int)$o['id'],'channel'=>$o['channel'],'gross'=>$g,'order_total'=>(float)$o['total_price'],'fee'=>(float)$s['fee'],'fee_pct'=>$feePct,'currency'=>$s['currency']];
+                $matched[] = $rec;
+                if ($feePct > 8.0) $feeMismatch[] = $rec;
+            } else {
+                $orphan[] = ['settle_id'=>(int)$s['id'],'provider'=>$s['provider'],'txn_id'=>$s['txn_id'],'type'=>$s['type'],'gross'=>$g,'currency'=>$s['currency'],'txn_at'=>$s['txn_at']];
+            }
+        }
+        $unsettled = []; $unsettledAmt = 0.0;
+        foreach ($orders as $idx => $o) {
+            if ($used[$idx]) continue; $unsettledAmt += (float)$o['total_price'];
+            if (count($unsettled) < 200) $unsettled[] = ['order_id'=>(int)$o['id'],'channel'=>$o['channel'],'channel_order_id'=>$o['channel_order_id'],'total_price'=>(float)$o['total_price'],'ordered_at'=>$o['ordered_at'],'status'=>$o['status']];
+        }
+        $orphanAmt = array_sum(array_map(fn($x) => (float)$x['gross'], $orphan));
+        return [
+            'as_of' => gmdate('c'), 'window_days' => $windowDays,
+            'summary' => [
+                'orders_total' => count($orders), 'settlements_total' => count($settles),
+                'matched' => count($matched), 'match_gross' => round($matchGross, 2), 'match_fee' => round($matchFee, 2),
+                'effective_fee_pct' => $matchGross > 0 ? round($matchFee / $matchGross * 100, 2) : 0,
+                'unsettled_orders' => count($orders) - count($matched), 'unsettled_amount' => round($unsettledAmt, 2),
+                'orphan_settlements' => count($orphan), 'orphan_amount' => round($orphanAmt, 2),
+                'fee_mismatch' => count($feeMismatch),
+            ],
+            'unsettled_sample' => $unsettled,
+            'orphan_sample' => array_slice($orphan, 0, 200),
+            'fee_mismatch_sample' => array_slice($feeMismatch, 0, 100),
+        ];
+    }
+
+    /** GET /v427/pg/reconciliation?window_days=7 — 결제 대사 리포트. */
+    public static function reconciliation(Request $request, Response $response, array $args): Response
+    {
+        $tenant = self::tenant($request);
+        $pdo = Db::pdo();
+        $q = $request->getQueryParams();
+        $win = max(1, min(60, (int)($q['window_days'] ?? 7)));
+        try { $r = self::reconcile($pdo, $tenant, $win); }
+        catch (\Throwable $e) { return self::json($response, ['ok' => false, 'error' => $e->getMessage()], 200); }
+        return self::json($response, array_merge(['ok' => true], $r));
+    }
+
     public static function providerForChannel(string $channel): ?string
     {
         $c = strtolower(trim($channel));
@@ -760,17 +851,18 @@ final class PgSettlement
         $now = gmdate('c');
         $isMy = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql';
         $sql = $isMy
-            ? "INSERT INTO pg_settlement(tenant_id,provider,txn_id,type,gross,fee,net,currency,status,txn_at,created_at)
-               VALUES(?,?,?,?,?,?,?,?,?,?,?)
-               ON DUPLICATE KEY UPDATE type=VALUES(type),gross=VALUES(gross),fee=VALUES(fee),net=VALUES(net),currency=VALUES(currency),status=VALUES(status),txn_at=VALUES(txn_at)"
-            : "INSERT INTO pg_settlement(tenant_id,provider,txn_id,type,gross,fee,net,currency,status,txn_at,created_at)
-               VALUES(?,?,?,?,?,?,?,?,?,?,?)
-               ON CONFLICT(tenant_id,provider,txn_id) DO UPDATE SET type=excluded.type,gross=excluded.gross,fee=excluded.fee,net=excluded.net,currency=excluded.currency,status=excluded.status,txn_at=excluded.txn_at";
+            ? "INSERT INTO pg_settlement(tenant_id,provider,txn_id,type,gross,fee,net,currency,status,txn_at,order_ref,created_at)
+               VALUES(?,?,?,?,?,?,?,?,?,?,?,?)
+               ON DUPLICATE KEY UPDATE type=VALUES(type),gross=VALUES(gross),fee=VALUES(fee),net=VALUES(net),currency=VALUES(currency),status=VALUES(status),txn_at=VALUES(txn_at),order_ref=VALUES(order_ref)"
+            : "INSERT INTO pg_settlement(tenant_id,provider,txn_id,type,gross,fee,net,currency,status,txn_at,order_ref,created_at)
+               VALUES(?,?,?,?,?,?,?,?,?,?,?,?)
+               ON CONFLICT(tenant_id,provider,txn_id) DO UPDATE SET type=excluded.type,gross=excluded.gross,fee=excluded.fee,net=excluded.net,currency=excluded.currency,status=excluded.status,txn_at=excluded.txn_at,order_ref=excluded.order_ref";
         try {
             $pdo->prepare($sql)->execute([
                 $tenant, $provider, (string)$r['txn_id'], (string)($r['type'] ?? ''),
                 (float)($r['gross'] ?? 0), (float)($r['fee'] ?? 0), (float)($r['net'] ?? 0),
-                (string)($r['currency'] ?? ''), (string)($r['status'] ?? ''), (string)($r['txn_at'] ?? ''), $now,
+                (string)($r['currency'] ?? ''), (string)($r['status'] ?? ''), (string)($r['txn_at'] ?? ''),
+                (string)($r['order_ref'] ?? ''), $now,
             ]);
         } catch (\Throwable $e) { error_log('[PgSettlement.upsert] ' . $e->getMessage()); }
     }

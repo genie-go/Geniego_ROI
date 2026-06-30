@@ -494,6 +494,8 @@ return function (App $app): void {
         'GET /api/v427/pg/settlements'         => 'Genie\\Handlers\\PgSettlement::settlements',
         'POST /v427/pg/sync'                   => 'Genie\\Handlers\\PgSettlement::sync',
         'POST /api/v427/pg/sync'               => 'Genie\\Handlers\\PgSettlement::sync',
+        'GET /v427/pg/reconciliation'          => 'Genie\\Handlers\\PgSettlement::reconciliation',
+        'GET /api/v427/pg/reconciliation'      => 'Genie\\Handlers\\PgSettlement::reconciliation',
         // [현 차수] v427 광고비 결제수단(관리형 지출 월렛) — 빌링키 등록·월예산 한도 청구
         'GET /v427/billing/customer-key'           => 'Genie\\Handlers\\BillingMethod::customerKey',
         'GET /api/v427/billing/customer-key'       => 'Genie\\Handlers\\BillingMethod::customerKey',
@@ -2872,6 +2874,7 @@ return function (App $app): void {
     $register('GET',    '/v427/pg/providers');    $register('GET',    '/api/v427/pg/providers');
     $register('GET',    '/v427/pg/settlements');  $register('GET',    '/api/v427/pg/settlements');
     $register('POST',   '/v427/pg/sync');         $register('POST',   '/api/v427/pg/sync');
+    $register('GET',    '/v427/pg/reconciliation'); $register('GET', '/api/v427/pg/reconciliation');
 
     // [현 차수] v427 광고비 결제수단(관리형 지출 월렛)
     $register('GET',    '/v427/billing/customer-key');      $register('GET',    '/api/v427/billing/customer-key');
