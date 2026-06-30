@@ -232,6 +232,9 @@ final class Compliance
                 'token' => $tok,
                 'format' => in_array(($b['format'] ?? 'ndjson'), ['ndjson', 'cef', 'splunk_hec'], true) ? (string)$b['format'] : 'ndjson',
                 'enabled' => !empty($b['enabled']) ? 1 : 0,
+                // [254차 초고도화] 실시간 포워딩 opt-in(기본 off=배치만·회귀0) + 최소 심각도.
+                'realtime' => !empty($b['realtime']) ? 1 : 0,
+                'realtime_min_severity' => in_array(($b['realtime_min_severity'] ?? 'high'), ['medium', 'high'], true) ? (string)$b['realtime_min_severity'] : 'high',
             ];
             try {
                 $now = gmdate('c'); $json = json_encode($cfg);
@@ -256,6 +259,40 @@ final class Compliance
      * POST /v424/compliance/siem/push?window=1 — 설정된 SIEM 으로 최근 감사 이벤트 포워딩.
      *   Splunk HEC(Authorization: Splunk <token>)·Datadog·범용 HTTPS. 관리자 전용. 수동/cron 공용.
      */
+    /**
+     * [254차 초고도화] 실시간 SIEM 단건 포워딩 — 보안이벤트 발생 즉시 push(비차단·best-effort).
+     *   ★opt-in: siem_config.realtime=1 일 때만 동작(기본 off=배치만, 회귀0). 고심각도(min_severity, 기본 high)만
+     *   전송해 볼륨 제한. logAudit 훅이 high 이벤트에서만 호출(저/중 severity는 DB read조차 없음).
+     */
+    public static function forwardEvent(array $event): void
+    {
+        try {
+            $rank = ['low' => 1, 'medium' => 2, 'high' => 3];
+            $sev = (string)($event['risk'] ?? $event['severity'] ?? 'low');
+            $cfg = self::siemCfg(Db::pdo());
+            if (empty($cfg['enabled']) || empty($cfg['realtime']) || empty($cfg['endpoint'])) return;
+            $minSev = (string)($cfg['realtime_min_severity'] ?? 'high');
+            if (($rank[$sev] ?? 1) < ($rank[$minSev] ?? 3)) return;
+            $endpoint = (string)$cfg['endpoint'];
+            if (!preg_match('#^https://#i', $endpoint)) return;
+            $fmt = (string)($cfg['format'] ?? 'ndjson');
+            $token = (string)($cfg['token'] ?? '');
+            if ($token !== '') { try { $token = \Genie\Crypto::decrypt($token); } catch (\Throwable $e) {} }
+            $e = ['action' => (string)($event['action'] ?? 'event'), 'actor' => (string)($event['actor'] ?? ''),
+                'ip' => (string)($event['ip'] ?? ''), 'role' => (string)($event['role'] ?? ''),
+                'tenant' => (string)($event['tenant'] ?? ''), 'detail' => (string)($event['detail'] ?? ''),
+                'risk' => $sev, 'source' => 'realtime', 'ts' => gmdate('c')];
+            $headers = ['Content-Type: application/json'];
+            if ($fmt === 'splunk_hec') { if ($token !== '') $headers[] = 'Authorization: Splunk ' . $token; $body = json_encode(['event' => $e, 'source' => 'geniego-roi', 'sourcetype' => 'audit'], JSON_UNESCAPED_UNICODE); }
+            elseif ($fmt === 'cef') { if ($token !== '') $headers[] = 'Authorization: Bearer ' . $token; $headers[0] = 'Content-Type: text/plain'; $body = self::toCef($e); }
+            else { if ($token !== '') $headers[] = 'Authorization: Bearer ' . $token; $headers[0] = 'Content-Type: application/x-ndjson'; $body = json_encode($e, JSON_UNESCAPED_UNICODE); }
+            $ch = curl_init($endpoint);
+            curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_POST => true, CURLOPT_POSTFIELDS => $body,
+                CURLOPT_HTTPHEADER => $headers, CURLOPT_TIMEOUT => 4, CURLOPT_CONNECTTIMEOUT => 3, CURLOPT_SSL_VERIFYPEER => true, CURLOPT_USERAGENT => 'GeniegoROI-SIEM-RT/1.0']);
+            curl_exec($ch); curl_close($ch);
+        } catch (\Throwable $e) { /* 비차단 */ }
+    }
+
     public static function siemPush(Request $req, Response $res): Response
     {
         if ($err = UserAuth::requirePlan($req, $res, 'admin')) return $err;

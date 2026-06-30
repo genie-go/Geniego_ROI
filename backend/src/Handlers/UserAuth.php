@@ -3204,8 +3204,13 @@ final class UserAuth
                 $email = $who;
             }
             $ua = substr((string)$req->getHeaderLine('User-Agent'), 0, 255);
+            $ip = self::clientIp($req);
             $pdo->prepare('INSERT INTO auth_audit_log(at,user_id,actor,role,tenant_id,action,detail,ip,ua,risk) VALUES(?,?,?,?,?,?,?,?,?,?)')
-                ->execute([self::now(), $uid, $email, $role, $tenant, $action, $detail, self::clientIp($req), $ua, $risk]);
+                ->execute([self::now(), $uid, $email, $role, $tenant, $action, $detail, $ip, $ua, $risk]);
+            // [254차 초고도화] 실시간 SIEM 포워딩 — high 심각도만(DB read·전송 모두 high에서만). siem_config.realtime opt-in 시에만 실제 전송(비차단·기본off=회귀0).
+            if ($risk === 'high') {
+                try { \Genie\Handlers\Compliance::forwardEvent(['action' => $action, 'actor' => $email, 'ip' => $ip, 'role' => $role, 'tenant' => $tenant, 'detail' => $detail, 'risk' => $risk]); } catch (\Throwable $e) {}
+            }
         } catch (\Throwable $e) { /* 기록 실패는 무시 */ }
     }
 
