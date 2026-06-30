@@ -23,7 +23,7 @@ use Genie\Crypto;
  */
 class DataExport
 {
-    private const TYPES = ['http', 'google_sheets', 'bigquery', 'snowflake'];
+    private const TYPES = ['http', 'google_sheets', 'bigquery', 'snowflake', 's3'];
     private const DATASETS = ['orders', 'ad_metrics', 'settlements', 'attribution', 'kpi_summary', 'web_analytics'];
     private const SECRET_KEYS = ['secret', 'service_account_json', 'private_key']; // 마스킹·암호화 대상
     private const MAX_ROWS = 5000;     // 실행당 데이터셋 행 상한(페이로드 보호)
@@ -125,6 +125,7 @@ class DataExport
             case 'google_sheets': return !empty($cfg['spreadsheet_id']) && !empty($cfg['service_account_json']);
             case 'bigquery':      return !empty($cfg['project_id']) && !empty($cfg['dataset_id']) && !empty($cfg['service_account_json']);
             case 'snowflake':     return !empty($cfg['account']) && !empty($cfg['user']) && !empty($cfg['private_key']) && !empty($cfg['database']) && !empty($cfg['schema']);
+            case 's3':            return !empty($cfg['bucket']) && !empty($cfg['region']) && !empty($cfg['access_key_id']) && !empty($cfg['secret_access_key']);
             default: return false;
         }
     }
@@ -146,7 +147,8 @@ class DataExport
             ['key' => 'http', 'label' => '범용 HTTP/Webhook', 'fields' => ['url', 'secret', 'format'], 'note' => 'NDJSON/JSON POST + HMAC. 모든 웨어하우스 인제스트·Looker Studio·Zapier 호환'],
             ['key' => 'google_sheets', 'label' => 'Google Sheets', 'fields' => ['spreadsheet_id', 'sheet_prefix', 'service_account_json'], 'note' => '서비스계정 JWT → values.append'],
             ['key' => 'bigquery', 'label' => 'BigQuery', 'fields' => ['project_id', 'dataset_id', 'table_prefix', 'service_account_json'], 'note' => '서비스계정 JWT → tabledata.insertAll 스트리밍'],
-            ['key' => 'snowflake', 'label' => 'Snowflake', 'fields' => ['account', 'user', 'role', 'warehouse', 'database', 'schema', 'table_prefix', 'private_key'], 'note' => '키페어 JWT → SQL API(VARIANT INSERT)'],
+            ['key' => 'snowflake', 'label' => 'Snowflake', 'fields' => ['account', 'user', 'role', 'warehouse', 'database', 'schema', 'table_prefix', 'private_key'], 'note' => '키페어 JWT → SQL API(VARIANT INSERT) · 테이블 autocreate'],
+            ['key' => 's3', 'label' => 'Amazon S3 (데이터레이크)', 'fields' => ['bucket', 'region', 'access_key_id', 'secret_access_key', 'prefix'], 'note' => 'AWS SigV4 서명 → S3 PUT(NDJSON, 일자 파티션)'],
         ];
         return self::json($res, ['ok' => true, 'datasets' => $cat, 'types' => $types]);
     }
@@ -352,8 +354,37 @@ class DataExport
             case 'google_sheets': return self::pushGoogleSheets($cfg, $ds, $cols, $rows);
             case 'bigquery':      return self::pushBigQuery($cfg, $ds, $rows);
             case 'snowflake':     return self::pushSnowflake($cfg, $ds, $rows);
+            case 's3':            return self::pushS3($cfg, $ds, $rows);
         }
         return ['ok' => false, 'error' => 'unknown type'];
+    }
+
+    /* ─────────── [254차 초고도화 ⑩] Amazon S3 (AWS SigV4 서명 PUT, NDJSON 일자파티션) ─────────── */
+    private static function pushS3(array $cfg, string $ds, array $rows): array
+    {
+        $bucket = (string)($cfg['bucket'] ?? ''); $region = (string)($cfg['region'] ?? 'us-east-1');
+        $ak = (string)($cfg['access_key_id'] ?? ''); $sk = (string)($cfg['secret_access_key'] ?? '');
+        if ($bucket === '' || $ak === '' || $sk === '') return ['ok' => false, 'error' => 's3 config incomplete'];
+        $lines = []; foreach ($rows as $r) $lines[] = json_encode($r, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        $payload = implode("\n", $lines);
+        $prefix = trim((string)($cfg['prefix'] ?? 'genie'), '/');
+        $key = ($prefix !== '' ? $prefix . '/' : '') . $ds . '/' . gmdate('Y/m/d') . '/' . gmdate('Ymd\THis\Z') . '_' . substr(hash('sha256', $payload), 0, 8) . '.ndjson';
+        $host = "{$bucket}.s3.{$region}.amazonaws.com";
+        $uriPath = '/' . implode('/', array_map('rawurlencode', explode('/', $key)));
+        $now = gmdate('Ymd\THis\Z'); $date = gmdate('Ymd'); $payloadHash = hash('sha256', $payload);
+        $canonicalHeaders = "host:{$host}\nx-amz-content-sha256:{$payloadHash}\nx-amz-date:{$now}\n";
+        $signedHeaders = 'host;x-amz-content-sha256;x-amz-date';
+        $canonicalRequest = "PUT\n{$uriPath}\n\n{$canonicalHeaders}\n{$signedHeaders}\n{$payloadHash}";
+        $scope = "{$date}/{$region}/s3/aws4_request";
+        $stringToSign = "AWS4-HMAC-SHA256\n{$now}\n{$scope}\n" . hash('sha256', $canonicalRequest);
+        $kDate = hash_hmac('sha256', $date, 'AWS4' . $sk, true);
+        $kRegion = hash_hmac('sha256', $region, $kDate, true);
+        $kService = hash_hmac('sha256', 's3', $kRegion, true);
+        $kSigning = hash_hmac('sha256', 'aws4_request', $kService, true);
+        $signature = hash_hmac('sha256', $stringToSign, $kSigning);
+        $auth = "AWS4-HMAC-SHA256 Credential={$ak}/{$scope}, SignedHeaders={$signedHeaders}, Signature={$signature}";
+        $headers = ["Host: {$host}", "x-amz-date: {$now}", "x-amz-content-sha256: {$payloadHash}", "Authorization: {$auth}", 'Content-Type: application/x-ndjson'];
+        return self::httpSend('PUT', "https://{$host}{$uriPath}", $headers, $payload);
     }
 
     /* ─────────── 범용 HTTP/Webhook (NDJSON/JSON + HMAC) ─────────── */
@@ -404,7 +435,10 @@ class DataExport
         if (!$tok['ok']) return ['ok' => false, 'error' => 'google auth: ' . ($tok['error'] ?? '')];
         $proj = rawurlencode((string)$cfg['project_id']);
         $dset = rawurlencode((string)$cfg['dataset_id']);
-        $table = rawurlencode(((string)($cfg['table_prefix'] ?? 'genie_')) . $ds);
+        $tableId = ((string)($cfg['table_prefix'] ?? 'genie_')) . $ds;
+        $table = rawurlencode($tableId);
+        // [254차 초고도화] 테이블 autocreate — 빈 데이터셋 첫 실행 실패 방지. 샘플행 타입추론(숫자→FLOAT64, 그 외 STRING).
+        self::ensureBqTable($cfg, $tableId, $rows);
         $url = "https://bigquery.googleapis.com/bigquery/v2/projects/{$proj}/datasets/{$dset}/tables/{$table}/insertAll";
         $code = 0; $err = null;
         foreach (array_chunk($rows, self::BQ_BATCH) as $chunk) {
@@ -430,6 +464,10 @@ class DataExport
         $db = (string)$cfg['database']; $schema = (string)$cfg['schema'];
         $table = ((string)($cfg['table_prefix'] ?? 'GENIE_')) . strtoupper($ds);
         $fq = "\"{$db}\".\"{$schema}\".\"{$table}\"";
+        // [254차 초고도화] 테이블 autocreate — 빈 워크스페이스 첫 실행 실패 방지(VARIANT RECORD + LOADED_AT).
+        $ddl = "CREATE TABLE IF NOT EXISTS {$fq} (RECORD VARIANT, LOADED_AT TIMESTAMP_NTZ)";
+        self::httpSend('POST', $url, ['Content-Type: application/json', 'Authorization: Bearer ' . $jwt['token'], 'X-Snowflake-Authorization-Token-Type: KEYPAIR_JWT', 'Accept: application/json'],
+            json_encode(['statement' => $ddl, 'timeout' => 60, 'database' => $db, 'schema' => $schema, 'warehouse' => (string)($cfg['warehouse'] ?? ''), 'role' => (string)($cfg['role'] ?? '')], JSON_UNESCAPED_UNICODE));
         $code = 0; $err = null;
         foreach (array_chunk($rows, 200) as $chunk) {
             $tuples = []; $binds = []; $i = 1;
@@ -440,6 +478,27 @@ class DataExport
             $code = $resp['code']; if (!$resp['ok']) { $err = $resp['error'] ?? ('http ' . $resp['code'] . ' ' . substr((string)($resp['body'] ?? ''), 0, 160)); break; }
         }
         return ['ok' => $err === null, 'code' => $code, 'error' => $err];
+    }
+
+    /** [254차] BigQuery 테이블 autocreate(타입추론). 이미 존재(409)면 무시. bigquery 스코프 별도 토큰. */
+    private static function ensureBqTable(array $cfg, string $tableId, array $rows): void
+    {
+        if (!$rows) return;
+        $tok = self::googleAccessToken((string)$cfg['service_account_json'], 'https://www.googleapis.com/auth/bigquery');
+        if (!$tok['ok']) return;
+        // 샘플(최대 50행) 타입추론: 한 컬럼이라도 비숫자면 STRING, 전부 숫자면 FLOAT64.
+        $sample = array_slice($rows, 0, 50); $numeric = [];
+        foreach ($sample as $r) foreach ($r as $k => $v) {
+            $kk = preg_replace('/[^A-Za-z0-9_]/', '_', (string)$k);
+            if (!isset($numeric[$kk])) $numeric[$kk] = true;
+            if ($v !== null && $v !== '' && !is_numeric($v)) $numeric[$kk] = false;
+        }
+        $fields = [];
+        foreach ($numeric as $kk => $isNum) $fields[] = ['name' => $kk, 'type' => $isNum ? 'FLOAT64' : 'STRING', 'mode' => 'NULLABLE'];
+        if (!$fields) return;
+        $proj = rawurlencode((string)$cfg['project_id']); $dset = rawurlencode((string)$cfg['dataset_id']);
+        $body = json_encode(['tableReference' => ['projectId' => (string)$cfg['project_id'], 'datasetId' => (string)$cfg['dataset_id'], 'tableId' => $tableId], 'schema' => ['fields' => $fields]], JSON_UNESCAPED_UNICODE);
+        self::httpSend('POST', "https://bigquery.googleapis.com/bigquery/v2/projects/{$proj}/datasets/{$dset}/tables", ['Content-Type: application/json', 'Authorization: Bearer ' . $tok['token']], $body);
     }
 
     /** 행 값 문자열 정규화(JSON 적재 안전 — null 보존, 스칼라 유지). */
