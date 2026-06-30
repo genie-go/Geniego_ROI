@@ -10679,7 +10679,7 @@ export default {"paymentSuccess": {"invalidInfo":"支付信息不正确。","ver
     "noHistory": "暂无执行记录。",
     "colTime": "发送时间",
     "colStatus": "状态",
-    "colSent": "发送数量"
+    "colSent": "发送数量", "mdNeed": "请输入名称和公式", "mdSaved": "指标已保存", "mdDel": "删除指标", "mdAdd": "添加自定义指标", "mdName": "键(英文)", "mdLabel": "显示名", "mdFormula": "例: revenue - spend", "mdHint": "仅使用现有指标键 + 四则运算(+ - * /)。例)(revenue - spend) / conversions"
   },
   "alertPolicies": {
     "pageTitle": "🚨 告警策略引擎",

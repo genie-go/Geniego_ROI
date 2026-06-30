@@ -14352,7 +14352,7 @@ export default {"paymentSuccess": {"invalidInfo":"Informasi pembayaran tidak val
     "noHistory": "Tidak ada riwayat eksekusi.",
     "colTime": "Waktu pengiriman",
     "colStatus": "Status",
-    "colSent": "Jumlah terkirim"
+    "colSent": "Jumlah terkirim", "mdNeed": "Masukkan nama dan rumus", "mdSaved": "Metrik disimpan", "mdDel": "Hapus metrik", "mdAdd": "Tambah metrik khusus", "mdName": "Kunci (a-z)", "mdLabel": "Label", "mdFormula": "mis. revenue - spend", "mdHint": "Gunakan kunci metrik yang ada + aritmetika (+ - * /). mis. (revenue - spend) / conversions"
   },
   reportCards: {
       attribution: "어트리뷰션",

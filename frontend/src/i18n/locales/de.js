@@ -9871,7 +9871,7 @@ export default {"paymentSuccess": {"invalidInfo":"Die Zahlungsinformationen sind
     "noHistory": "Kein Ausführungsverlauf vorhanden.",
     "colTime": "Versandzeitpunkt",
     "colStatus": "Status",
-    "colSent": "Anzahl der Sendungen"
+    "colSent": "Anzahl der Sendungen", "mdNeed": "Name und Formel eingeben", "mdSaved": "Metrik gespeichert", "mdDel": "Metrik löschen", "mdAdd": "Eigene Metrik hinzufügen", "mdName": "Schlüssel (a-z)", "mdLabel": "Bezeichnung", "mdFormula": "z. B. revenue - spend", "mdHint": "Nur vorhandene Metrik-Schlüssel + Grundrechenarten (+ - * /). z. B. (revenue - spend) / conversions"
   },
   alertPolicies: {
       pageTitle: "🚨 Alert-Policy-Engine",

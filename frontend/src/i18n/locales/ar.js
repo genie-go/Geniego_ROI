@@ -10558,7 +10558,7 @@ export default {"paymentSuccess": {"invalidInfo":"معلومات الدفع غي
     "noHistory": "لا يوجد سجل تنفيذ.",
     "colTime": "وقت الإرسال",
     "colStatus": "الحالة",
-    "colSent": "عدد المرسل"
+    "colSent": "عدد المرسل", "mdNeed": "أدخل الاسم والصيغة", "mdSaved": "تم حفظ المقياس", "mdDel": "حذف المقياس", "mdAdd": "إضافة مقياس مخصص", "mdName": "مفتاح (إنجليزي)", "mdLabel": "الاسم المعروض", "mdFormula": "مثال: revenue - spend", "mdHint": "استخدم مفاتيح المقاييس الحالية + العمليات الحسابية (+ - * /) فقط. مثال) (revenue - spend) / conversions"
   },
   alertPolicies: {
       pageTitle: "🚨 Alert Policy Engine",

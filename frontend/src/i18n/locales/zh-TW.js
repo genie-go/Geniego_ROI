@@ -14431,7 +14431,7 @@ export default {"paymentSuccess": {"invalidInfo":"付款資訊不正確。","ver
     "noHistory": "尚無執行紀錄。",
     "colTime": "發送時間",
     "colStatus": "狀態",
-    "colSent": "發送數"
+    "colSent": "發送數", "mdNeed": "請輸入名稱和公式", "mdSaved": "指標已儲存", "mdDel": "刪除指標", "mdAdd": "新增自訂指標", "mdName": "鍵(英文)", "mdLabel": "顯示名", "mdFormula": "例: revenue - spend", "mdHint": "僅使用現有指標鍵 + 四則運算(+ - * /)。例)(revenue - spend) / conversions"
   },
   reportCards: {
       attribution: "어트리뷰션",

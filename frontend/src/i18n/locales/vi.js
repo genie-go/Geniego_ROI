@@ -16387,7 +16387,7 @@ export default {"paymentSuccess": {"invalidInfo":"Thông tin thanh toán không 
     "noHistory": "Không có lịch sử thực thi.",
     "colTime": "Thời điểm gửi",
     "colStatus": "Trạng thái",
-    "colSent": "Số lượng gửi"
+    "colSent": "Số lượng gửi", "mdNeed": "Nhập tên và công thức", "mdSaved": "Đã lưu chỉ số", "mdDel": "Xóa chỉ số", "mdAdd": "Thêm chỉ số tùy chỉnh", "mdName": "Khóa (a-z)", "mdLabel": "Nhãn", "mdFormula": "VD: revenue - spend", "mdHint": "Chỉ dùng khóa chỉ số có sẵn + phép tính (+ - * /). VD) (revenue - spend) / conversions"
   },
   reportCards: {
       attribution: "어트리뷰션",

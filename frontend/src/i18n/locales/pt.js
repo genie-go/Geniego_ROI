@@ -10558,7 +10558,7 @@ export default {"paymentSuccess": {"invalidInfo":"As informações de pagamento 
     "noHistory": "Nenhum histórico de execução.",
     "colTime": "Horário de envio",
     "colStatus": "Status",
-    "colSent": "Quantidade enviada"
+    "colSent": "Quantidade enviada", "mdNeed": "Insira nome e fórmula", "mdSaved": "Métrica salva", "mdDel": "Excluir métrica", "mdAdd": "Adicionar métrica personalizada", "mdName": "Chave (a-z)", "mdLabel": "Rótulo", "mdFormula": "ex. revenue - spend", "mdHint": "Use chaves de métricas existentes + aritmética (+ - * /). ex. (revenue - spend) / conversions"
   },
   alertPolicies: {
       pageTitle: "🚨 Alert Policy Engine",

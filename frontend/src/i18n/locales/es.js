@@ -10309,7 +10309,7 @@ export default {"paymentSuccess": {"invalidInfo":"La información de pago no es 
     "noHistory": "No hay historial de ejecución.",
     "colTime": "Hora de envío",
     "colStatus": "Estado",
-    "colSent": "Cantidad enviada"
+    "colSent": "Cantidad enviada", "mdNeed": "Introduce nombre y fórmula", "mdSaved": "Métrica guardada", "mdDel": "Eliminar métrica", "mdAdd": "Añadir métrica personalizada", "mdName": "Clave (a-z)", "mdLabel": "Etiqueta", "mdFormula": "p. ej. revenue - spend", "mdHint": "Usa claves de métricas existentes + aritmética (+ - * /). p. ej. (revenue - spend) / conversions"
   },
   alertPolicies: {
       pageTitle: "🚨 Alert Policy Engine",

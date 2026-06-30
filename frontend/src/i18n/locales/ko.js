@@ -20345,7 +20345,7 @@ export default {"paymentSuccess": {"invalidInfo":"결제 정보가 올바르지 
     "noHistory": "실행 이력이 없습니다.",
     "colTime": "발송 시각",
     "colStatus": "상태",
-    "colSent": "발송 수"
+    "colSent": "발송 수", "mdNeed": "이름·수식을 입력하세요", "mdSaved": "메트릭 저장됨", "mdDel": "메트릭 삭제", "mdAdd": "사용자정의 메트릭 추가", "mdName": "키(영문)", "mdLabel": "표시명", "mdFormula": "수식 예: revenue - spend", "mdHint": "기존 지표 키 + 사칙연산(+ - * /)만 사용. 예) (revenue - spend) / conversions"
   },
 
   "alertPolicies": {

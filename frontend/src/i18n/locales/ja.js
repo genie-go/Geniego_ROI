@@ -10030,7 +10030,7 @@ export default {"paymentSuccess": {"invalidInfo":"決済情報が正しくあり
     "noHistory": "実行履歴がありません。",
     "colTime": "送信時刻",
     "colStatus": "ステータス",
-    "colSent": "送信数"
+    "colSent": "送信数", "mdNeed": "名前と数式を入力してください", "mdSaved": "メトリックを保存しました", "mdDel": "メトリック削除", "mdAdd": "カスタムメトリック追加", "mdName": "キー(英字)", "mdLabel": "表示名", "mdFormula": "例: revenue - spend", "mdHint": "既存の指標キー + 四則演算(+ - * /)のみ。例)(revenue - spend) / conversions"
   },
   "alertPolicies": {
     "pageTitle": "🚨 アラートポリシーエンジン",

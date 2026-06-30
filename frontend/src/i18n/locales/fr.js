@@ -10310,7 +10310,7 @@ export default {"paymentSuccess": {"invalidInfo":"Les informations de paiement s
     "noHistory": "Aucun historique d'exécution.",
     "colTime": "Heure d'envoi",
     "colStatus": "Statut",
-    "colSent": "Nombre d'envois"
+    "colSent": "Nombre d'envois", "mdNeed": "Saisissez le nom et la formule", "mdSaved": "Métrique enregistrée", "mdDel": "Supprimer la métrique", "mdAdd": "Ajouter une métrique personnalisée", "mdName": "Clé (a-z)", "mdLabel": "Libellé", "mdFormula": "ex. revenue - spend", "mdHint": "Utilisez les clés de métriques existantes + arithmétique (+ - * /). ex. (revenue - spend) / conversions"
   },
   alertPolicies: {
       pageTitle: "🚨 Alert Policy Engine",

@@ -10097,7 +10097,7 @@ export default {"paymentSuccess": {"invalidInfo":"The payment information is inv
     "noHistory": "No run history.",
     "colTime": "Sent at",
     "colStatus": "Status",
-    "colSent": "Sent count"
+    "colSent": "Sent count", "mdNeed": "Enter name and formula", "mdSaved": "Metric saved", "mdDel": "Delete metric", "mdAdd": "Add custom metric", "mdName": "Key (a-z)", "mdLabel": "Label", "mdFormula": "e.g. revenue - spend", "mdHint": "Use existing metric keys + arithmetic (+ - * /). e.g. (revenue - spend) / conversions"
   },
   alertPolicies: {
       pageTitle: "🚨 Alert Policy Engine",

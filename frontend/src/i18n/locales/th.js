@@ -14395,7 +14395,7 @@ export default {"paymentSuccess": {"invalidInfo":"ข้อมูลการช
     "noHistory": "ไม่มีประวัติการทำงาน",
     "colTime": "เวลาที่ส่ง",
     "colStatus": "สถานะ",
-    "colSent": "จำนวนที่ส่ง"
+    "colSent": "จำนวนที่ส่ง", "mdNeed": "กรอกชื่อและสูตร", "mdSaved": "บันทึกเมตริกแล้ว", "mdDel": "ลบเมตริก", "mdAdd": "เพิ่มเมตริกที่กำหนดเอง", "mdName": "คีย์ (อังกฤษ)", "mdLabel": "ชื่อแสดง", "mdFormula": "เช่น revenue - spend", "mdHint": "ใช้คีย์เมตริกที่มี + การคำนวณ (+ - * /) เท่านั้น เช่น (revenue - spend) / conversions"
   },
   reportCards: {
       attribution: "어트리뷰션",
