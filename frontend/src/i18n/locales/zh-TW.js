@@ -2921,7 +2921,7 @@ export default {"paymentSuccess": {"invalidInfo":"付款資訊不正確。","ver
       aiResultTitle: '生成結果',
       aiHistory: '最近產生紀錄',
       aiCustomUpload: '直接上傳圖片',
-      aiDragDrop: '拖放檔案或點擊上傳',
+      aiDragDrop: '拖放檔案或點擊上傳', "autoTabEff": "④ 渠道效果分析", "effScaleUp": "增加預算", "effMaintain": "維持", "effOptimize": "需優化", "effCut": "回收·停止", "effCollecting": "資料蒐集中", "effTitle": "渠道效果全量分析", "effSubtitle": "綜合實測全量資料(真實ROAS·CAC·轉換·趨勢)得出的效果評分。最高=增加預算候選,最低=回收·停止候選。已納入自學習先驗。", "effRefresh": "重新整理", "effLoading": "分析中…", "effEmpty": "尚無投放/成效資料。投放活動後將分析各渠道效果。", "effBest": "最佳效果渠道", "effScore": "效果評分", "effWorst": "最差效果渠道", "effColChannel": "渠道", "effColScore": "評分", "effColConv": "轉換", "effColSpend": "支出", "effColVerdict": "動作", "effLearned": "已納入自學習", "effTruth": "真實ROAS校正",
     },
   accountPerf: {
       pageTitle: "账号业绩",

@@ -14509,7 +14509,7 @@ export default {"paymentSuccess": {"invalidInfo":"결제 정보가 올바르지 
       aiResultTitle: '생성 결과',
       aiHistory: '최근 생성 내역',
       aiCustomUpload: '이미지 직접 업로드',
-      aiDragDrop: '파일을 끌어놓거나 클릭하여 업로드',
+      aiDragDrop: '파일을 끌어놓거나 클릭하여 업로드', "autoTabEff": "④ 채널 효과 분석", "effScaleUp": "예산 증액", "effMaintain": "유지", "effOptimize": "최적화 필요", "effCut": "회수·정지", "effCollecting": "데이터 수집", "effTitle": "채널 효과 전수 분석", "effSubtitle": "실측 전수 데이터(진실 ROAS·CAC·전환·추세)를 종합한 효과점수입니다. 최고=예산 증액 후보, 최저=회수·정지 후보. 자가학습 prior 반영.", "effRefresh": "새로고침", "effLoading": "분석 중…", "effEmpty": "아직 집행/성과 데이터가 없습니다. 캠페인 집행 후 채널별 효과가 분석됩니다.", "effBest": "최고 효과 채널", "effScore": "효과점수", "effWorst": "최저 효과 채널", "effColChannel": "채널", "effColScore": "효과점수", "effColConv": "전환", "effColSpend": "지출", "effColVerdict": "액션", "effLearned": "자가학습 반영", "effTruth": "진실 ROAS 보정",
   },
 
   "accountPerf": {

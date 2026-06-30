@@ -7561,7 +7561,7 @@ export default {"paymentSuccess": {"invalidInfo":"The payment information is inv
       aiResultTitle: 'Result',
       aiHistory: 'Recent History',
       aiCustomUpload: 'Upload Image Directly',
-      aiDragDrop: 'Drag & drop or click to upload',
+      aiDragDrop: 'Drag & drop or click to upload', "autoTabEff": "④ Channel Effectiveness", "effScaleUp": "Scale Up", "effMaintain": "Maintain", "effOptimize": "Needs Optimization", "effCut": "Cut / Pause", "effCollecting": "Collecting Data", "effTitle": "Full Channel Effectiveness Analysis", "effSubtitle": "An effectiveness score combining full measured data (true ROAS, CAC, conversions, trend). Highest = budget scale-up candidate, lowest = cut/pause candidate. Reflects self-learning prior.", "effRefresh": "Refresh", "effLoading": "Analyzing…", "effEmpty": "No execution/performance data yet. Channel effectiveness will be analyzed after campaigns run.", "effBest": "Top-Performing Channel", "effScore": "Effectiveness Score", "effWorst": "Lowest-Performing Channel", "effColChannel": "Channel", "effColScore": "Score", "effColConv": "Conversions", "effColSpend": "Spend", "effColVerdict": "Action", "effLearned": "Self-Learning Applied", "effTruth": "True-ROAS Adjusted",
     },
   accountPerf: {
       pageTitle: "Account Performance",

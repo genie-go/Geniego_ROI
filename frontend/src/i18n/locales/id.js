@@ -5598,7 +5598,7 @@ export default {"paymentSuccess": {"invalidInfo":"Informasi pembayaran tidak val
       aiResultTitle: 'Hasil',
       aiHistory: 'Riwayat Terbaru',
       aiCustomUpload: 'Unggah Gambar Langsung',
-      aiDragDrop: 'Seret & lepas atau klik untuk mengunggah',
+      aiDragDrop: 'Seret & lepas atau klik untuk mengunggah', "autoTabEff": "④ Analisis Efektivitas Kanal", "effScaleUp": "Tingkatkan Anggaran", "effMaintain": "Pertahankan", "effOptimize": "Perlu Optimasi", "effCut": "Tarik·Hentikan", "effCollecting": "Mengumpulkan Data", "effTitle": "Analisis Efektivitas Kanal Menyeluruh", "effSubtitle": "Skor efektivitas yang menggabungkan seluruh data terukur (ROAS sebenarnya·CAC·konversi·tren). Tertinggi = kandidat penambahan anggaran, terendah = kandidat tarik·hentikan. Mencerminkan prior pembelajaran mandiri.", "effRefresh": "Segarkan", "effLoading": "Menganalisis…", "effEmpty": "Belum ada data penayangan/performa. Efektivitas tiap kanal akan dianalisis setelah kampanye berjalan.", "effBest": "Kanal Berkinerja Terbaik", "effScore": "Skor Efektivitas", "effWorst": "Kanal Berkinerja Terendah", "effColChannel": "Kanal", "effColScore": "Skor", "effColConv": "Konversi", "effColSpend": "Pengeluaran", "effColVerdict": "Tindakan", "effLearned": "Pembelajaran Mandiri Diterapkan", "effTruth": "Disesuaikan ROAS Sebenarnya",
     },
   accountPerf: {
       pageTitle: "帳號績效",

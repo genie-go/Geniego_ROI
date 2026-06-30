@@ -2122,7 +2122,7 @@ export default {"paymentSuccess": {"invalidInfo":"As informações de pagamento 
       aiResultTitle: 'Resultado',
       aiHistory: 'Histórico recente',
       aiCustomUpload: 'Enviar imagem diretamente',
-      aiDragDrop: 'Arraste e solte ou clique para enviar',
+      aiDragDrop: 'Arraste e solte ou clique para enviar', "autoTabEff": "④ Análise de Eficácia de Canais", "effScaleUp": "Aumentar Orçamento", "effMaintain": "Manter", "effOptimize": "Requer Otimização", "effCut": "Cortar / Pausar", "effCollecting": "Coletando Dados", "effTitle": "Análise Completa de Eficácia de Canais", "effSubtitle": "Uma pontuação de eficácia que combina todos os dados medidos (ROAS real, CAC, conversões, tendência). Maior = candidato a aumento de orçamento, menor = candidato a cortar/pausar. Reflete prior de autoaprendizagem.", "effRefresh": "Atualizar", "effLoading": "Analisando…", "effEmpty": "Ainda não há dados de veiculação/desempenho. A eficácia por canal será analisada após a execução das campanhas.", "effBest": "Canal de Melhor Desempenho", "effScore": "Pontuação de Eficácia", "effWorst": "Canal de Menor Desempenho", "effColChannel": "Canal", "effColScore": "Pontuação", "effColConv": "Conversões", "effColSpend": "Gasto", "effColVerdict": "Ação", "effLearned": "Autoaprendizagem Aplicada", "effTruth": "Ajustado por ROAS Real",
     },
   accountPerf: {
       pageTitle: "Account(Team) Performance Analytics",

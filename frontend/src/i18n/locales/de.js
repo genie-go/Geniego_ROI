@@ -8373,7 +8373,7 @@ export default {"paymentSuccess": {"invalidInfo":"Die Zahlungsinformationen sind
       aiResultTitle: 'Ergebnis',
       aiHistory: 'Zuletzt erstellt',
       aiCustomUpload: 'Bild direkt hochladen',
-      aiDragDrop: 'Datei ziehen & ablegen oder klicken zum Hochladen',
+      aiDragDrop: 'Datei ziehen & ablegen oder klicken zum Hochladen', "autoTabEff": "④ Kanal-Effektivität", "effScaleUp": "Budget erhöhen", "effMaintain": "Beibehalten", "effOptimize": "Optimierung nötig", "effCut": "Kürzen / Stoppen", "effCollecting": "Daten sammeln", "effTitle": "Vollständige Kanal-Effektivitätsanalyse", "effSubtitle": "Ein Effektivitäts-Score, der vollständige Messdaten (echter ROAS, CAC, Conversions, Trend) zusammenfasst. Höchster = Kandidat für Budgeterhöhung, niedrigster = Kandidat zum Kürzen/Stoppen. Berücksichtigt selbstlernenden Prior.", "effRefresh": "Aktualisieren", "effLoading": "Analysiere…", "effEmpty": "Noch keine Auslieferungs-/Leistungsdaten. Die Kanal-Effektivität wird nach dem Kampagnenstart analysiert.", "effBest": "Bester Kanal", "effScore": "Effektivitäts-Score", "effWorst": "Schwächster Kanal", "effColChannel": "Kanal", "effColScore": "Score", "effColConv": "Conversions", "effColSpend": "Ausgaben", "effColVerdict": "Aktion", "effLearned": "Selbstlernen angewandt", "effTruth": "Echter ROAS korrigiert",
     },
   gCat: {
       beauty_label: "💄 Beauty & Kosmetik",

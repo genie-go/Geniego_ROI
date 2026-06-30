@@ -2122,7 +2122,7 @@ export default {"paymentSuccess": {"invalidInfo":"معلومات الدفع غي
       aiResultTitle: 'النتيجة',
       aiHistory: 'السجل الأخير',
       aiCustomUpload: 'رفع الصورة مباشرة',
-      aiDragDrop: 'اسحب وأفلت الملف أو انقر للرفع',
+      aiDragDrop: 'اسحب وأفلت الملف أو انقر للرفع', "autoTabEff": "④ تحليل فعالية القنوات", "effScaleUp": "زيادة الميزانية", "effMaintain": "الحفاظ", "effOptimize": "بحاجة لتحسين", "effCut": "سحب·إيقاف", "effCollecting": "جمع البيانات", "effTitle": "تحليل شامل لفعالية القنوات", "effSubtitle": "درجة فعالية تجمع البيانات المقاسة بالكامل (ROAS الحقيقي·CAC·التحويلات·الاتجاه). الأعلى = مرشح لزيادة الميزانية، الأدنى = مرشح للسحب·الإيقاف. يعكس مُسبق التعلم الذاتي.", "effRefresh": "تحديث", "effLoading": "جارٍ التحليل…", "effEmpty": "لا توجد بيانات تشغيل/أداء بعد. سيتم تحليل فعالية كل قناة بعد تشغيل الحملات.", "effBest": "القناة الأعلى أداءً", "effScore": "درجة الفعالية", "effWorst": "القناة الأدنى أداءً", "effColChannel": "القناة", "effColScore": "الدرجة", "effColConv": "التحويلات", "effColSpend": "الإنفاق", "effColVerdict": "الإجراء", "effLearned": "تم تطبيق التعلم الذاتي", "effTruth": "معدّل بـ ROAS الحقيقي",
     },
   accountPerf: {
       pageTitle: "Account(Team) Performance Analytics",

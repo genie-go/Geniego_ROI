@@ -10479,7 +10479,7 @@ export default {"paymentSuccess": {"invalidInfo":"Thông tin thanh toán không 
       aiResultTitle: 'Kết quả',
       aiHistory: 'Lịch sử gần đây',
       aiCustomUpload: 'Tự tải ảnh lên',
-      aiDragDrop: 'Kéo thả tệp hoặc nhấp để tải lên',
+      aiDragDrop: 'Kéo thả tệp hoặc nhấp để tải lên', "autoTabEff": "④ Phân tích hiệu quả kênh", "effScaleUp": "Tăng ngân sách", "effMaintain": "Duy trì", "effOptimize": "Cần tối ưu", "effCut": "Thu hồi·Dừng", "effCollecting": "Đang thu thập dữ liệu", "effTitle": "Phân tích hiệu quả kênh toàn diện", "effSubtitle": "Điểm hiệu quả tổng hợp toàn bộ dữ liệu đo lường thực tế (ROAS thật·CAC·chuyển đổi·xu hướng). Cao nhất = ứng viên tăng ngân sách, thấp nhất = ứng viên thu hồi·dừng. Đã phản ánh prior tự học.", "effRefresh": "Làm mới", "effLoading": "Đang phân tích…", "effEmpty": "Chưa có dữ liệu triển khai/hiệu suất. Hiệu quả từng kênh sẽ được phân tích sau khi chạy chiến dịch.", "effBest": "Kênh hiệu quả nhất", "effScore": "Điểm hiệu quả", "effWorst": "Kênh hiệu quả thấp nhất", "effColChannel": "Kênh", "effColScore": "Điểm", "effColConv": "Chuyển đổi", "effColSpend": "Chi tiêu", "effColVerdict": "Hành động", "effLearned": "Áp dụng tự học", "effTruth": "Hiệu chỉnh ROAS thật",
     },
   gAiRec: {
       title: "🤖 AI Marketing Recommend & Automation Engine",

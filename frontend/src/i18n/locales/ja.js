@@ -8399,7 +8399,7 @@ export default {"paymentSuccess": {"invalidInfo":"決済情報が正しくあり
       aiResultTitle: '生成結果',
       aiHistory: '最近の生成履歴',
       aiCustomUpload: '画像を直接アップロード',
-      aiDragDrop: 'ファイルをドラッグまたはクリックしてアップロード',
+      aiDragDrop: 'ファイルをドラッグまたはクリックしてアップロード', "autoTabEff": "④ チャネル効果分析", "effScaleUp": "予算増額", "effMaintain": "維持", "effOptimize": "最適化が必要", "effCut": "回収・停止", "effCollecting": "データ収集中", "effTitle": "チャネル効果の全数分析", "effSubtitle": "実測の全数データ(真のROAS・CAC・コンバージョン・トレンド)を総合した効果スコアです。最高=予算増額候補、最低=回収・停止候補。自己学習priorを反映。", "effRefresh": "更新", "effLoading": "分析中…", "effEmpty": "まだ配信・成果データがありません。キャンペーン配信後にチャネル別の効果が分析されます。", "effBest": "最高効果チャネル", "effScore": "効果スコア", "effWorst": "最低効果チャネル", "effColChannel": "チャネル", "effColScore": "スコア", "effColConv": "コンバージョン", "effColSpend": "支出", "effColVerdict": "アクション", "effLearned": "自己学習を反映", "effTruth": "真のROAS補正",
   },
   "refresh": "更新",
   "myTeam": "マイチーム",

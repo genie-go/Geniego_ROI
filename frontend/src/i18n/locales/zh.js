@@ -3002,7 +3002,7 @@ export default {"paymentSuccess": {"invalidInfo":"支付信息不正确。","ver
       aiResultTitle: '生成结果',
       aiHistory: '最近生成记录',
       aiCustomUpload: '直接上传图片',
-      aiDragDrop: '拖放文件或点击上传',
+      aiDragDrop: '拖放文件或点击上传', "autoTabEff": "④ 渠道效果分析", "effScaleUp": "增加预算", "effMaintain": "维持", "effOptimize": "需优化", "effCut": "收回·停止", "effCollecting": "数据采集中", "effTitle": "渠道效果全量分析", "effSubtitle": "综合实测全量数据(真实ROAS·CAC·转化·趋势)得出的效果评分。最高=增加预算候选,最低=收回·停止候选。已纳入自学习先验。", "effRefresh": "刷新", "effLoading": "分析中…", "effEmpty": "暂无投放/成效数据。投放活动后将分析各渠道效果。", "effBest": "最佳效果渠道", "effScore": "效果评分", "effWorst": "最差效果渠道", "effColChannel": "渠道", "effColScore": "评分", "effColConv": "转化", "effColSpend": "支出", "effColVerdict": "操作", "effLearned": "已纳入自学习", "effTruth": "真实ROAS校正",
   },
   "accountPerf": {
     "pageTitle": "账号业绩",

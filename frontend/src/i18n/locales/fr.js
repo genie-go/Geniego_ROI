@@ -7932,7 +7932,7 @@ export default {"paymentSuccess": {"invalidInfo":"Les informations de paiement s
       aiResultTitle: 'Résultat',
       aiHistory: 'Historique récent',
       aiCustomUpload: 'Importer l’image directement',
-      aiDragDrop: 'Glissez-déposez ou cliquez pour importer',
+      aiDragDrop: 'Glissez-déposez ou cliquez pour importer', "autoTabEff": "④ Analyse d'Efficacité des Canaux", "effScaleUp": "Augmenter le Budget", "effMaintain": "Maintenir", "effOptimize": "Optimisation Requise", "effCut": "Réduire / Suspendre", "effCollecting": "Collecte de Données", "effTitle": "Analyse Complète de l'Efficacité des Canaux", "effSubtitle": "Un score d'efficacité combinant l'ensemble des données mesurées (ROAS réel, CAC, conversions, tendance). Le plus élevé = candidat à l'augmentation du budget, le plus bas = candidat à la réduction/suspension. Reflète le prior d'auto-apprentissage.", "effRefresh": "Actualiser", "effLoading": "Analyse en cours…", "effEmpty": "Aucune donnée de diffusion/performance pour l'instant. L'efficacité par canal sera analysée après l'exécution des campagnes.", "effBest": "Canal le Plus Performant", "effScore": "Score d'Efficacité", "effWorst": "Canal le Moins Performant", "effColChannel": "Canal", "effColScore": "Score", "effColConv": "Conversions", "effColSpend": "Dépenses", "effColVerdict": "Action", "effLearned": "Auto-apprentissage Appliqué", "effTruth": "Ajusté au ROAS Réel",
     },
   accountPerf: {
       pageTitle: "Account Performance",
