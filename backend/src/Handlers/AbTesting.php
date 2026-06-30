@@ -218,13 +218,22 @@ final class AbTesting
             if ($alt) {
                 $ok = false;
                 if ($allowActuate) { $r = AdAdapters::activate($pdo, $tenant, $connKey, (string)$alt['ad_ext_id']); $ok = !empty($r['ok']); }
-                try {
-                    $pdo->prepare("UPDATE ab_variant SET status='active',alloc_share=0.5,updated_at=? WHERE id=?")->execute([$now, (int)$alt['id']]);
-                    $pdo->prepare("UPDATE ab_variant SET status='active',alloc_share=0.5,updated_at=? WHERE id=?")->execute([$now, (int)$wv['id']]);
-                    $pdo->prepare("UPDATE ab_test SET status='running',winner_variant_id=NULL,last_dco_at=?,updated_at=? WHERE id=?")->execute([$now, $now, $testId]);
-                } catch (Throwable $e) {}
-                $decisions[] = ['ab_test' => $testId, 'channel' => $channel, 'action' => 'creative_refresh', 'variant' => (int)$alt['id'], 'actuated' => $ok,
-                    'reason' => "소재 피로도 감지(승자 CTR {$fat['recent']}% vs 기준 {$fat['baseline']}%, {$fat['days']}일) → 신선 소재 로테이션·A/B 재개(DCO)"];
+                // [254차 감사] 매체 actuate 실패 시 DB 전이 금지 — applyStatus(AutoCampaign) 안전패턴 정합.
+                //   실패에도 DB를 active/running·last_dco_at 로 바꾸면 ① 플랫폼(alt=paused) vs DB(50/50) desync,
+                //   ② last_dco_at 기록으로 DCO_COOLDOWN_DAYS(5일) 동안 재시도 차단(미복구). allowActuate=false(데모/드라이런)는
+                //   매체 호출 자체가 없어 desync 불가 → DB 전이 허용(시뮬레이션). 실 actuate 실패 시 last_dco_at 미기록=다음 cron 재시도.
+                if (!$allowActuate || $ok) {
+                    try {
+                        $pdo->prepare("UPDATE ab_variant SET status='active',alloc_share=0.5,updated_at=? WHERE id=?")->execute([$now, (int)$alt['id']]);
+                        $pdo->prepare("UPDATE ab_variant SET status='active',alloc_share=0.5,updated_at=? WHERE id=?")->execute([$now, (int)$wv['id']]);
+                        $pdo->prepare("UPDATE ab_test SET status='running',winner_variant_id=NULL,last_dco_at=?,updated_at=? WHERE id=?")->execute([$now, $now, $testId]);
+                    } catch (Throwable $e) {}
+                    $decisions[] = ['ab_test' => $testId, 'channel' => $channel, 'action' => 'creative_refresh', 'variant' => (int)$alt['id'], 'actuated' => $ok,
+                        'reason' => "소재 피로도 감지(승자 CTR {$fat['recent']}% vs 기준 {$fat['baseline']}%, {$fat['days']}일) → 신선 소재 로테이션·A/B 재개(DCO)"];
+                } else {
+                    $decisions[] = ['ab_test' => $testId, 'channel' => $channel, 'action' => 'creative_refresh_failed', 'variant' => (int)$alt['id'], 'actuated' => false,
+                        'reason' => "소재 피로도 감지 → 대체 소재 활성화 시도 실패(매체 응답 오류). DB 미변경·플랫폼 정합 유지·다음 주기 재시도."];
+                }
             } else {
                 try { $pdo->prepare("UPDATE ab_test SET last_dco_at=?,updated_at=? WHERE id=?")->execute([$now, $now, $testId]); } catch (Throwable $e) {}
                 $decisions[] = ['ab_test' => $testId, 'channel' => $channel, 'action' => 'creative_refresh_needed', 'variant' => (int)$wv['id'], 'actuated' => false,

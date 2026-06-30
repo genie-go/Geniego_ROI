@@ -96,6 +96,14 @@ final class AdminGrowth
             mrr REAL DEFAULT 0,
             last_activity_at TEXT, created_at TEXT, updated_at TEXT
         )");
+        // [254차 감사] email 중복 리드 방지 — UNIQUE 인덱스(best-effort·멱등). 공개 capture 더블서밋/봇 동시도착 시
+        //   recordEvent 의 SELECT-then-INSERT TOCTOU 로 중복 리드 생성되던 것을 DB 레벨에서 차단. recordEvent 는
+        //   INSERT 충돌 시 재조회로 graceful 처리. 기존 중복행 존재 테이블에선 ALTER 가 실패하나 무해(catch).
+        //   ★MySQL TEXT 컬럼은 prefix 길이(191) 필수, SQLite 는 IF NOT EXISTS 지원.
+        try {
+            if ($drv === 'mysql') $pdo->exec("ALTER TABLE admin_growth_lead ADD UNIQUE INDEX uq_agl_email (email(191))");
+            else                  $pdo->exec("CREATE UNIQUE INDEX IF NOT EXISTS uq_agl_email ON admin_growth_lead(email)");
+        } catch (\Throwable $e) { /* 이미 존재 or 기존 중복행 → 무해 */ }
 
         // 퍼널/터치포인트 이벤트 (스코어링·퍼널·어트리뷰션 구동).
         $pdo->exec("CREATE TABLE IF NOT EXISTS admin_growth_event (
@@ -285,10 +293,16 @@ final class AdminGrowth
             $st->execute([$email]);
             $lid = (int)($st->fetchColumn() ?: 0);
             if ($lid === 0) {
-                $ins = $pdo->prepare("INSERT INTO admin_growth_lead(email,name,company,phone,segment_key,source,stage,score,grade,mrr,created_at,updated_at,last_activity_at) VALUES(?,?,?,?,?,?,?,0,'cold',0,?,?,?)");
-                $ins->execute([$email, (string)($ctx['name'] ?? ''), (string)($ctx['company'] ?? ''), (string)($ctx['phone'] ?? ''),
-                    (string)($ctx['segment_key'] ?? ''), (string)($ctx['source'] ?? 'product'), 'visitor', $now, $now, $now]);
-                $lid = (int)$pdo->lastInsertId();
+                // [254차 감사] UNIQUE(email) 충돌(동시 캡처) 시 INSERT 실패 → 재조회로 graceful(중복 리드 0).
+                try {
+                    $ins = $pdo->prepare("INSERT INTO admin_growth_lead(email,name,company,phone,segment_key,source,stage,score,grade,mrr,created_at,updated_at,last_activity_at) VALUES(?,?,?,?,?,?,?,0,'cold',0,?,?,?)");
+                    $ins->execute([$email, (string)($ctx['name'] ?? ''), (string)($ctx['company'] ?? ''), (string)($ctx['phone'] ?? ''),
+                        (string)($ctx['segment_key'] ?? ''), (string)($ctx['source'] ?? 'product'), 'visitor', $now, $now, $now]);
+                    $lid = (int)$pdo->lastInsertId();
+                } catch (\Throwable $e) {
+                    $rq = $pdo->prepare("SELECT id FROM admin_growth_lead WHERE LOWER(email)=? LIMIT 1");
+                    $rq->execute([$email]); $lid = (int)($rq->fetchColumn() ?: 0);
+                }
             } else {
                 // 기존 리드 빈 필드만 보강(기존 값 우선 — 덮어쓰기 금지).
                 if (!empty($ctx['name']) || !empty($ctx['company']) || !empty($ctx['phone'])) {

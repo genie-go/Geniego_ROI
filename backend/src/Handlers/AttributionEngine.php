@@ -369,6 +369,46 @@ final class AttributionEngine
         ];
     }
 
+    /**
+     * [254차 감사] 지역 geo-홀드아웃 diff-in-diff 검정(카운트 기반·Poisson). computeLift(2-비율 z검정·rate∈[0,1])는
+     *   성장비(현재전환/기준전환, >1 가능)를 비율로 오해석해 pPool*(1-pPool)<0 → 분산 0 퇴화 → 조기 유의 영구 미발화였다.
+     *   여기서는 로그 성장비 차이(=ln(curT/baseT) − ln(curC/baseC))를 Poisson 분산(Var(ln N)≈1/N)으로 검정한다.
+     *   ★중복 아님: computeLift 는 모수(size) 분모의 전환율 검정(HTTP 결과입력 엔드포인트 전용)으로 그대로 유지.
+     */
+    public static function computeGeoLift(float $curT, float $baseT, float $curC, float $baseC, float $rpc): array
+    {
+        $gT = $baseT > 0 ? $curT / $baseT : 0.0;   // 치료 지역 성장비
+        $gC = $baseC > 0 ? $curC / $baseC : 0.0;   // 대조 지역 성장비
+        $liftAbs = $gT - $gC;                       // 성장비 차이(diff-in-diff, %p)
+        $liftRel = $gC > 0 ? $liftAbs / $gC : null;
+        $didLog = (($curT > 0 && $baseT > 0) ? log($curT / $baseT) : 0.0)
+                - (($curC > 0 && $baseC > 0) ? log($curC / $baseC) : 0.0);
+        $se = sqrt((($curT > 0) ? 1 / $curT : 0) + (($baseT > 0) ? 1 / $baseT : 0)
+                 + (($curC > 0) ? 1 / $curC : 0) + (($baseC > 0) ? 1 / $baseC : 0));
+        $z = $se > 0 ? $didLog / $se : 0.0;
+        $pValue = 2 * (1 - self::normalCdf(abs($z)));
+        $ciLoLog = $didLog - 1.96 * $se; $ciHiLog = $didLog + 1.96 * $se;
+        $incrementalConv = $curT - ($baseT > 0 ? $baseT * $gC : 0.0); // 대조 성장률 반사실 대비 초과 전환(인과 증분)
+        $incrementalValue = $rpc > 0 ? $incrementalConv * $rpc : null;
+        $significant = $pValue < 0.05 && $liftAbs > 0;
+        return [
+            'treatment_growth'  => round($gT, 3),
+            'control_growth'    => round($gC, 3),
+            'lift_abs_pct'      => round($liftAbs * 100, 3),
+            'lift_relative_pct' => $liftRel !== null ? round($liftRel * 100, 1) : null,
+            'did_log'           => round($didLog, 4),
+            'lift_ci95'         => [round((exp($ciLoLog) - 1) * 100, 2), round((exp($ciHiLog) - 1) * 100, 2)],
+            'z_score'           => round($z, 3),
+            'p_value'           => round($pValue, 5),
+            'significant'       => $significant,
+            'incremental_conversions' => round($incrementalConv, 1),
+            'incremental_value' => $incrementalValue !== null ? round($incrementalValue, 0) : null,
+            'method'            => 'poisson-did',
+            'verdict'           => $significant ? '통계적으로 유의한 지오 증분 리프트 (95% 신뢰수준)'
+                : ($liftAbs <= 0 ? '증분 리프트 없음/음수 — 노출이 지역 성장을 끌어올리지 못함' : '아직 유의하지 않음 — 기간/전환 확대 필요'),
+        ];
+    }
+
     // ── 홀드아웃 실험 레지스트리 (P4 완성) ─────────────────────────────────
     //   플랫폼측 conversion-lift 실험(Meta Conversion Lift·Google geo 등) 결과를 등록·추적·검증.
     //   테넌트 격리(WHERE tenant_id). 결과 입력 시 computeLift 로 자동 검정 → result_json 영속.
@@ -509,8 +549,9 @@ final class AttributionEngine
                 [$curT, $revT] = self::ordersInRegions($pdo, $tenant, $geo['test'], $start);
                 [$curC, $revC] = self::ordersInRegions($pdo, $tenant, $geo['control'], $start);
                 $rpc = $curT > 0 ? $revT / $curT : 0.0;
-                // p = 현재전환/기준전환(성장률) → lift = 치료 성장률 − 대조 성장률(diff-in-diff).
-                $lift = self::computeLift($curC, $baseC, $curT, $baseT, $rpc);
+                // [254차 감사] 카운트 기반 Poisson diff-in-diff(치료 성장비 − 대조 성장비). 과거 computeLift(2-비율 z검정)는
+                //   성장비>1 에서 분산 0 퇴화로 조기 유의 영구 미발화였다 → computeGeoLift 로 교정(rate 검정과 분리).
+                $lift = self::computeGeoLift($curT, $baseT, $curC, $baseC, $rpc);
                 $daysRun = $start !== '' ? max(0, (int)floor((time() - strtotime($start)) / 86400)) : 0;
                 $minDays = (int)($meta['guardrails']['min_days'] ?? 7);
                 $minConv = (int)($meta['guardrails']['min_conv'] ?? 30);
