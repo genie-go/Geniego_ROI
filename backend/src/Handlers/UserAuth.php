@@ -2352,13 +2352,16 @@ final class UserAuth
         $user = self::userByToken((string)(self::extractToken($req) ?? ''));
         if (!$user) return self::json($res, ['ok' => false, 'error' => '인증이 필요합니다.'], 401);
         if (($user['plan'] ?? '') !== 'admin') return self::json($res, ['ok' => false, 'error' => '관리자만 변경할 수 있습니다.'], 403);
+        $pdo = Db::pdo();
         // [현 차수] 접속코드는 모든 관리자가 공유 → 하위 관리자는 변경 불가(최고관리자만 회전).
-        if (($user['admin_level'] ?? '') === 'sub') return self::json($res, ['ok' => false, 'error' => '하위 관리자는 접속코드를 변경할 수 없습니다.'], 403);
+        //   ★방어적 재조회: userByToken 폴백 경로가 admin_level 을 누락할 수 있어, DB 에서 직접 확인한다.
+        $lv = (string)($user['admin_level'] ?? '');
+        try { $ls = $pdo->prepare('SELECT admin_level FROM app_user WHERE id=?'); $ls->execute([$user['id']]); $lv = (string)($ls->fetchColumn() ?: ''); } catch (\Throwable $e) {}
+        if ($lv === 'sub') return self::json($res, ['ok' => false, 'error' => '하위 관리자는 접속코드를 변경할 수 없습니다.'], 403);
         $b = self::readBody($req);
         $cur    = (string)($b['current_password'] ?? '');
         $newKey = trim((string)($b['new_access_key'] ?? ''));
         if (mb_strlen($newKey) < 6) return self::json($res, ['ok' => false, 'error' => '접속키는 6자 이상이어야 합니다.'], 422);
-        $pdo = Db::pdo();
         $st = $pdo->prepare('SELECT password_hash, password_hashs FROM app_user WHERE id=?');
         $st->execute([$user['id']]);
         $row = $st->fetch(\PDO::FETCH_ASSOC) ?: [];

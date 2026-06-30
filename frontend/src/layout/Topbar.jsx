@@ -1371,6 +1371,8 @@ const ProfileEditModal = memo(function ProfileEditModal({ user, token, onClose }
               >{saving ? t('profile.saving', '저장 중...') : `🤖 ${t('profile.aiKeySaveBtn', 'AI 키 저장')}`}</button>
             </div>
 
+            {/* [현 차수] 접속키 변경은 최고관리자(master)만 — 하위 관리자(sub)에게는 미노출 */}
+            {(user.admin_level !== 'sub') ? (<>
             <div style={{ padding: '12px 14px', borderRadius: 10, background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.15)', fontSize: 12, color: 'var(--text-3, #94a3b8)', lineHeight: 1.7 }}>
               🛡️ {t('profile.akGuide', '관리자 로그인 접속키를 변경합니다. 아이디(이메일)는 변경할 수 없습니다.')}<br />
               <span style={{ fontSize: 11 }}>{t('profile.akGuide2', '변경 시 현재 비밀번호 확인이 필요하며, 다음 관리자 로그인부터 새 접속키가 적용됩니다.')}</span>
@@ -1408,6 +1410,11 @@ const ProfileEditModal = memo(function ProfileEditModal({ user, token, onClose }
                 fontSize: 14, fontWeight: 800, transition: 'all 200ms',
               }}
             >{saving ? t('profile.changingPw', 'Changing...') : t('profile.changeAkBtn', '🛡️ 접속키 변경')}</button>
+            </>) : (
+              <div style={{ padding: '12px 14px', borderRadius: 10, background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.15)', fontSize: 12.5, color: 'var(--text-3, #94a3b8)', lineHeight: 1.7 }}>
+                🛡️ {t('profile.akMasterOnly', '접속키 변경은 최고관리자만 가능합니다. 하위 관리자는 변경할 수 없습니다.')}
+              </div>
+            )}
 
             {/* 196차 #3 — 이메일 발송(SMTP) 설정 : 2FA OTP·비번재설정 메일 인프라 */}
             <div style={{ marginTop: 8, paddingTop: 18, borderTop: '1px solid var(--border, #e2e8f0)' }}>
