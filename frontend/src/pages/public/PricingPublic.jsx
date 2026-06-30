@@ -195,6 +195,25 @@ const MM_I18N = {
   id: { title: "Akses Menu per Paket", subtitle: "Menu & layanan yang tersedia di tiap paket (mencerminkan pengaturan admin secara real-time)", menu: "Menu / Layanan", full: "Tersedia", partial: "Sebagian", none: "Tidak tersedia", readonly: "Hanya baca", expandAll: "Buka semua", collapseAll: "Tutup semua", active: "aktif", lvSection: "Menu utama", lvGroup: "Grup", lvLeaf: "Halaman", lvSub: "Subtab", note: "Hanya baca. Klik menu utama untuk membuka grup, halaman, dan subtab. Perubahan hanya oleh admin." },
 };
 
+// [254차 감사] 플랜 안내 '제공 한도' 행 라벨 — 기존 하드코딩 한글(전 비한글 노출) → MM_I18N 패턴 15국 자기완결.
+const GUIDE_LIMIT_I18N = {
+  ko: { channels:"판매·마케팅 채널", orders_monthly:"월 주문 수", products:"상품 DB", suppliers:"매입처 ID", logistics:"물류처 ID", warehouses:"창고", image_hosting_gb:"이미지 호스팅(GB)" },
+  en: { channels:"Sales & marketing channels", orders_monthly:"Monthly orders", products:"Product DB", suppliers:"Supplier IDs", logistics:"Logistics IDs", warehouses:"Warehouses", image_hosting_gb:"Image hosting (GB)" },
+  ja: { channels:"販売・マーケティングチャネル", orders_monthly:"月間注文数", products:"商品DB", suppliers:"仕入先ID", logistics:"物流業者ID", warehouses:"倉庫", image_hosting_gb:"画像ホスティング(GB)" },
+  zh: { channels:"销售·营销渠道", orders_monthly:"每月订单数", products:"商品数据库", suppliers:"供应商ID", logistics:"物流商ID", warehouses:"仓库", image_hosting_gb:"图片托管(GB)" },
+  "zh-TW": { channels:"銷售·行銷渠道", orders_monthly:"每月訂單數", products:"商品資料庫", suppliers:"供應商ID", logistics:"物流商ID", warehouses:"倉庫", image_hosting_gb:"圖片託管(GB)" },
+  de: { channels:"Vertriebs- & Marketingkanäle", orders_monthly:"Bestellungen pro Monat", products:"Produktdatenbank", suppliers:"Lieferanten-IDs", logistics:"Logistik-IDs", warehouses:"Lager", image_hosting_gb:"Bild-Hosting (GB)" },
+  th: { channels:"ช่องทางขาย·การตลาด", orders_monthly:"จำนวนคำสั่งซื้อต่อเดือน", products:"ฐานข้อมูลสินค้า", suppliers:"รหัสซัพพลายเออร์", logistics:"รหัสผู้ให้บริการโลจิสติกส์", warehouses:"คลังสินค้า", image_hosting_gb:"โฮสต์รูปภาพ (GB)" },
+  vi: { channels:"Kênh bán hàng & tiếp thị", orders_monthly:"Đơn hàng hằng tháng", products:"CSDL sản phẩm", suppliers:"ID nhà cung cấp", logistics:"ID đơn vị vận chuyển", warehouses:"Kho hàng", image_hosting_gb:"Lưu trữ ảnh (GB)" },
+  id: { channels:"Kanal penjualan & pemasaran", orders_monthly:"Pesanan per bulan", products:"Basis data produk", suppliers:"ID pemasok", logistics:"ID logistik", warehouses:"Gudang", image_hosting_gb:"Hosting gambar (GB)" },
+  ar: { channels:"قنوات البيع والتسويق", orders_monthly:"الطلبات الشهرية", products:"قاعدة بيانات المنتجات", suppliers:"معرّفات الموردين", logistics:"معرّفات اللوجستيات", warehouses:"المستودعات", image_hosting_gb:"استضافة الصور (GB)" },
+  es: { channels:"Canales de venta y marketing", orders_monthly:"Pedidos mensuales", products:"BD de productos", suppliers:"ID de proveedores", logistics:"ID de logística", warehouses:"Almacenes", image_hosting_gb:"Alojamiento de imágenes (GB)" },
+  fr: { channels:"Canaux de vente et marketing", orders_monthly:"Commandes mensuelles", products:"Base de produits", suppliers:"ID fournisseurs", logistics:"ID logistique", warehouses:"Entrepôts", image_hosting_gb:"Hébergement d'images (Go)" },
+  hi: { channels:"बिक्री·मार्केटिंग चैनल", orders_monthly:"मासिक ऑर्डर", products:"उत्पाद DB", suppliers:"आपूर्तिकर्ता ID", logistics:"लॉजिस्टिक्स ID", warehouses:"गोदाम", image_hosting_gb:"इमेज होस्टिंग (GB)" },
+  pt: { channels:"Canais de vendas e marketing", orders_monthly:"Pedidos mensais", products:"BD de produtos", suppliers:"IDs de fornecedores", logistics:"IDs de logística", warehouses:"Armazéns", image_hosting_gb:"Hospedagem de imagens (GB)" },
+  ru: { channels:"Каналы продаж и маркетинга", orders_monthly:"Заказов в месяц", products:"БД товаров", suppliers:"ID поставщиков", logistics:"ID логистики", warehouses:"Склады", image_hosting_gb:"Хостинг изображений (ГБ)" },
+};
+
 /**
  * [현 차수] 플랜별 메뉴 접근 권한 — admin "🔐 플랜별 메뉴 접근 권한" 트리와 동일한 4단계 계층
  *   (대메뉴→중메뉴→하위메뉴→서브탭)을 **열람 전용**으로 미러링(가입/구독 회원용).
@@ -385,7 +404,8 @@ function PlanMenuAccessMatrix({ plans, t, light = true, lang = 'ko' }) {
  * 212차 #5: 플랜별 제공 서비스 동적 안내 — plan_config(features·menuAccess·limits) 실데이터 기반.
  *   admin 이 기능목록/메뉴접근권한/한도를 변경하면 public-plans 응답이 바뀌어 즉시 반영(재빌드 불요).
  */
-function DynamicPlanGuide({ plan, t, light }) {
+function DynamicPlanGuide({ plan, t, light, lang = 'ko' }) {
+  const GL = GUIDE_LIMIT_I18N[lang] || GUIDE_LIMIT_I18N.en;
   const [open, setOpen] = useState(true);
   const color = plan.color || '#6366f1';
   const unlimited = t('appPricing.unlimited', '무제한');
@@ -438,7 +458,7 @@ function DynamicPlanGuide({ plan, t, light }) {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: 6 }}>
               {GUIDE_LIMIT_ROWS.map(row => (
                 <div key={row.k} style={{ fontSize: 12, color: subC, display: 'flex', justifyContent: 'space-between', borderBottom: light ? '1px solid #f1f5f9' : '1px solid rgba(255,255,255,0.06)', padding: '3px 0' }}>
-                  <span>{row.label}</span><span style={{ fontWeight: 800, color: titleC }}>{limitDisplay((plan.limits || {})[row.k], unlimited)}</span>
+                  <span>{GL[row.k] || row.label}</span><span style={{ fontWeight: 800, color: titleC }}>{limitDisplay((plan.limits || {})[row.k], unlimited)}</span>
                 </div>
               ))}
             </div>
@@ -1126,7 +1146,7 @@ export default function PricingPublic() {
                         {/* 212차 #5 — plan_config(features·menuAccess·limits) 실데이터 동적 안내.
                             admin 이 기능목록/메뉴접근권한/한도 변경 시 즉시 반영(현재 4플랜 Starter/Growth/Pro/Enterprise). */}
                         {plans.map(pl => (
-                            <DynamicPlanGuide key={pl.id} plan={pl} t={navT} light={true} />
+                            <DynamicPlanGuide key={pl.id} plan={pl} t={navT} light={true} lang={lang} />
                         ))}
                     </div>
                 </div>

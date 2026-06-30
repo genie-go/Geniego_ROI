@@ -16,6 +16,8 @@ function GrowthCapturePopup() {
     return () => clearTimeout(t);
   }, []);
   if (!show) return null;
+  // [254차 감사] 방문자 언어 — 저장 우선, 없으면 navigator 감지(Landing 본체 패턴 정합). t()=11국 DICT 현지화.
+  let lang; try { lang = localStorage.getItem("genie_roi_lang") || localStorage.getItem("landing_lang") || detectLang(); } catch (_) { lang = detectLang(); }
   const close = () => { setShow(false); try { localStorage.setItem("gg_cap_dismissed", "1"); } catch (_) {} };
   const submit = async () => {
     const e = (email || "").trim();
@@ -35,16 +37,16 @@ function GrowthCapturePopup() {
       {done ? (
         <div style={{ textAlign: "center", padding: "12px 0" }}>
           <div style={{ fontSize: 32 }}>🎉</div>
-          <div style={{ fontWeight: 800, color: "#0f172a", marginTop: 8 }}>감사합니다! 곧 안내드리겠습니다.</div>
+          <div style={{ fontWeight: 800, color: "#0f172a", marginTop: 8 }}>{t("capThanks", lang)}</div>
         </div>
       ) : (
         <>
-          <div style={{ fontSize: 15, fontWeight: 900, color: "#0f172a" }}>🚀 전 광고매체 ROI를 한 곳에서</div>
-          <div style={{ fontSize: 12.5, color: "#64748b", margin: "6px 0 12px", lineHeight: 1.6 }}>20일 무료 체험 안내를 받아보세요. AI가 채널별 예산을 자동 최적화합니다.</div>
-          <input value={email} onChange={(ev) => setEmail(ev.target.value)} placeholder="이메일 주소" type="email"
+          <div style={{ fontSize: 15, fontWeight: 900, color: "#0f172a" }}>{t("capTitle", lang)}</div>
+          <div style={{ fontSize: 12.5, color: "#64748b", margin: "6px 0 12px", lineHeight: 1.6 }}>{t("capDesc", lang)}</div>
+          <input value={email} onChange={(ev) => setEmail(ev.target.value)} placeholder={t("capEmailPh", lang)} type="email"
             onKeyDown={(ev) => { if (ev.key === "Enter") submit(); }}
             style={{ width: "100%", padding: "10px 12px", borderRadius: 9, border: "1px solid #cbd5e1", fontSize: 13, boxSizing: "border-box" }} />
-          <button onClick={submit} style={{ width: "100%", marginTop: 8, padding: "10px 0", borderRadius: 9, border: "none", background: "linear-gradient(135deg,#4f8ef7,#a855f7)", color: "#fff", fontWeight: 800, fontSize: 13, cursor: "pointer" }}>무료 체험 안내 받기</button>
+          <button onClick={submit} style={{ width: "100%", marginTop: 8, padding: "10px 0", borderRadius: 9, border: "none", background: "linear-gradient(135deg,#4f8ef7,#a855f7)", color: "#fff", fontWeight: 800, fontSize: 13, cursor: "pointer" }}>{t("capCta", lang)}</button>
         </>
       )}
     </div>
@@ -74,6 +76,12 @@ const LANGS = [
 ];
 
 const DICT = {
+    /* ── [254차 감사] Growth 캡처 팝업(전 방문자 노출·기존 하드코딩 한글 → 11국 현지화) ── */
+    capThanks: { ko:"감사합니다! 곧 안내드리겠습니다.", en:"Thank you! We'll be in touch shortly.", ja:"ありがとうございます！まもなくご案内します。", zh:"感谢！我们将尽快与您联系。", "zh-TW":"感謝！我們將盡快與您聯繫。", vi:"Cảm ơn bạn! Chúng tôi sẽ liên hệ sớm.", th:"ขอบคุณ! เราจะติดต่อกลับเร็วๆ นี้", id:"Terima kasih! Kami akan segera menghubungi Anda.", de:"Danke! Wir melden uns in Kürze.", fr:"Merci ! Nous vous contacterons sous peu.", es:"¡Gracias! Le contactaremos en breve." },
+    capTitle: { ko:"🚀 전 광고매체 ROI를 한 곳에서", en:"🚀 All your ad-channel ROI in one place", ja:"🚀 すべての広告媒体のROIを一か所で", zh:"🚀 所有广告渠道的ROI集中管理", "zh-TW":"🚀 所有廣告渠道的ROI集中管理", vi:"🚀 Toàn bộ ROI kênh quảng cáo tại một nơi", th:"🚀 ROI ของทุกช่องทางโฆษณาในที่เดียว", id:"🚀 Semua ROI kanal iklan dalam satu tempat", de:"🚀 Alle Werbekanal-ROIs an einem Ort", fr:"🚀 Tout le ROI de vos canaux publicitaires au même endroit", es:"🚀 Todo el ROI de tus canales publicitarios en un solo lugar" },
+    capDesc: { ko:"20일 무료 체험 안내를 받아보세요. AI가 채널별 예산을 자동 최적화합니다.", en:"Get your 20-day free trial guide. AI auto-optimizes budget per channel.", ja:"20日間の無料トライアル案内を受け取りましょう。AIがチャネル別予算を自動最適化します。", zh:"领取20天免费试用指南。AI自动优化各渠道预算。", "zh-TW":"領取20天免費試用指南。AI自動優化各渠道預算。", vi:"Nhận hướng dẫn dùng thử miễn phí 20 ngày. AI tự động tối ưu ngân sách từng kênh.", th:"รับคำแนะนำทดลองใช้ฟรี 20 วัน AI ปรับงบประมาณแต่ละช่องทางอัตโนมัติ", id:"Dapatkan panduan uji coba gratis 20 hari. AI mengoptimalkan anggaran tiap kanal secara otomatis.", de:"Erhalten Sie Ihren 20-tägigen Testleitfaden. Die KI optimiert das Budget pro Kanal automatisch.", fr:"Recevez votre guide d'essai gratuit de 20 jours. L'IA optimise automatiquement le budget par canal.", es:"Reciba su guía de prueba gratuita de 20 días. La IA optimiza el presupuesto por canal automáticamente." },
+    capEmailPh: { ko:"이메일 주소", en:"Email address", ja:"メールアドレス", zh:"电子邮箱", "zh-TW":"電子郵箱", vi:"Địa chỉ email", th:"ที่อยู่อีเมล", id:"Alamat email", de:"E-Mail-Adresse", fr:"Adresse e-mail", es:"Correo electrónico" },
+    capCta: { ko:"무료 체험 안내 받기", en:"Get free trial info", ja:"無料トライアル案内を受け取る", zh:"获取免费试用信息", "zh-TW":"取得免費試用資訊", vi:"Nhận thông tin dùng thử miễn phí", th:"รับข้อมูลทดลองใช้ฟรี", id:"Dapatkan info uji coba gratis", de:"Kostenlose Testinfos erhalten", fr:"Obtenir les infos d'essai gratuit", es:"Obtener info de prueba gratis" },
     /* ── Badge ── */
     heroBadge: {
         ko: "🚀 올인원 커머스 AI 자동화 플랫폼",
