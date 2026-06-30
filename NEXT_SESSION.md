@@ -3203,3 +3203,48 @@ i18n 15국 70키 acorn splice(신규 ns freshness/pwa/cro+기존 email/attrData/
 - **라이브 crontab ≠ install_crontab.sh SSOT**: ops 수동등록분 존재 가능 → 전체 --apply(덮어쓰기) 대신 누락분만 비파괴 append 권장(백업 선행). check_cron_ssot.sh 로 SSOT 정합 사전점검.
 
 (★본 인계서 = 사용자 명시 승인. 자격증명 평문노출 0. master 미접촉. feat/n236-admin-growth-automation 브랜치 커밋·push.)
+
+---
+
+# 255차 — P1 옴니채널 + 전수감사 + 경쟁 6도메인+잔여 전면 초고도화 + 에이전틱 코파일럿 액션루프 (★master 머지·CI 발동)
+
+브랜치 `feat/n236-admin-growth-automation` → **master fast-forward 머지 완료**(cb4f18afbca→232b92d21db, 252~255차 전체). 전 작업 **중복0·회귀0·오류0**(갭매핑 기구현 재확인·opt-in/graceful/additive·git diff 회귀 실증)·운영/데모 양 호스트 배포·php-l·e2e 검증·커밋 push. 상세 메모리 = `project_n255_crm_omnichannel`·`project_n255_full_audit`·`project_n255b_six_domain_overhaul`.
+
+## A. P1 CRM 규모/실시간/옴니채널 (81e9f9d8b43)
+- **옴니채널 오케스트레이터** 신규 `Omnichannel.php`(omni_campaigns/omni_outbox·runOutbox 워커·WhatsApp→Kakao→Email 워터폴 폴백·config.also_webpush). 채널 send 프리미티브 재사용(WhatsApp::sendOne·EmailMarketing::omniSend 신설·Kakao::sendOne·WebPush). `bin/omni_dispatch_cron.php`(*/5·*/7). register-then-execute(자격 미등록=graceful skip).
+- **규모/실시간**: EmailMarketing::sendCampaign 대량(임계200↑) 비동기 배치(enqueueCampaignBatch·suppression/freq-cap 일괄조회·chunk INSERT). 동기 SMTP 루프 회피.
+- **발급UI 갭4 수정**: ApplyModal ceo_name/address 재사용+5필수 정합(ChannelCreds extra 병합)·Kakao api_secret phantom 제거·Email/WhatsApp 연동허브 managedPage 편입. 라우트 /v427/omni/* + index.php 세션게이트 bypass. CRM 옴니탭·i18n 36키15국.
+
+## B. 전수 정밀감사(5도메인·오탐0·회귀0) + 확정결함 4 (0237e724cb0)
+- 5병렬 에이전트(FP레지스트리+"미구현 단정 전 전코드 grep 부재증명" 강제)+PM 코드 재증명. **채널연동/오염격리/마케팅실집행 결함0·회귀0(git diff)·dead/stub0.**
+- 수정: ①WhatsApp 옴니발송 빈도캡 미집계(CRM/EmailMarketing type IN 에 whatsapp_sent) ②RFM stats LIMIT500캡→rfmStatsFull 전수SQL ③kakao isChannelLive api_key 정합 ④omni 재발송 멱등(이중발송 차단).
+
+## C. 경쟁 6도메인 전면 초고도화 (1b10d~aaad23dd) — 갭매핑 재구현0
+- **CRM**: 여정 웹훅 트리거(webhook_token·POST /journey/webhook/{token}·기존고객만 enroll 오염차단)·웹훅 액션노드·이벤트/날짜 대기('wait' date/event·wait_until). [기구현 재구현금지: delay/condition/split/예측세그cron]
+- **채널**: etsy writeback(etsyWrite·fetch인증 재사용). [walmart/qoo10/yahoo_jp/godomall=245차 기구현]
+- **마케팅**: 이미지 생성형 DCO(autoGenerateAdDesign→generateImage→업로드파이프)·TikTok 이미지업로드(tiktokUploadImage)·Kakao/LINE tCPA. [TikTok tCPA·Meta/Kakao/LINE 이미지·데이파팅·프리퀀시캡 기구현]
+- **커머스**: demand_cron(autoReplenishForTenant)·competitor_price_cron(규칙무관 전테넌트)·promo uplift(promoWindows→forecast). install_crontab 등록. [cost-newsvendor=가격부재로 미투입 정직]
+- **어트리뷰션**: MMM ESS/MCSE 수렴진단(chainEss Geyer·R̂페어). [MCMC/Gibbs/R̂/adstock 기구현 Mmm::mcmcFit]
+- **AI/BI**: KEK 무파괴 키회전(Crypto enc:vN 버전봉투·미회전=v1 byte동일·rotateKek 신버전·기존 계속복호화·재암호화0·★서버 round-trip 증명)·SCIM 그룹→롤(sso_group_role_map·owner강등금지)·사용자정의 메트릭(report_metric_def·compileMetricFormula injection0·★DROP 시도 거부 e2e).
+
+## D. 잔여 전부 초고도화 (1fffa740ddb·34ad9335353)
+- **메트릭 프론트탭**: ReportBuilder 사용자정의 메트릭 칩+정의패널(기존 /reports/metrics). i18n reportBuilder.md* 8키15국.
+- **인과 geo-exclusion**: geoMapGet/Save(/v424/attribution/geo-map app_setting)·autoDesignGeoHoldout 맵등록 시 mode='causal'·AdAdapters::excludeGeo→metaDeliver excluded_geo_locations(★신규 광고세트만·노출축소·기존캠페인 미변경=과집행불가 안전). 맵 미등록=관측 폴백.
+- **★에이전틱 코파일럿 액션루프**: ClaudeAI callClaudeTools(tool-use)+agenticAsk(읽기 bi_query+액션 propose_*=제안만 자동집행금지)+agenticExecute(승인 단일액션만 기존 가드레일 핸들러 집행 AdAdapters::pause/updateBudget killswitch/card·CRM segment). requirePro. Einstein Copilot parity. 서버 e2e PASS.
+
+## E. 재평가(통합 가중) 89.5→90.7→**90.9**(best-of-breed 88.9 대비 **+2.0**). AI 90.5→92.0(코파일럿). docs/COMPETITIVE_REVALIDATION_255.md 255-B/255-C 섹션. 6도메인 전부 상승. 명시 잔여 0.
+
+## F. 트랩(255차)
+- **index.php 세션게이트 bypass 트랩 재현**: 신규 세션토큰 엔드포인트(/v427/omni)는 bypass 누락 시 "Invalid or inactive API key"(api_key 미들웨어가 세션토큰 거부). crm/email 패턴대로 bypass 추가 필수.
+- **PHP 로컬 미설치** → php -l 은 서버(/tmp 업로드 후). 신규/수정 핸들러 = **php8.1-fpm restart**(opcache).
+- **PHP 블록주석 내 `*/N` 크론표기** → 주석 조기종료 파스에러. `*\/N` 이스케이프(competitor_price_cron 재현).
+- **KEK 회전 무파괴 설계**: enc:vN 버전봉투·미회전 시 enc:v1 byte-동일(회귀0)·기존 암호문 영구 복호화. 재암호화-all 금지(운영중단 위험).
+- **G2 sacred SHA**: ja/zh i18n 추가 시 .githooks/baseline.json sha256+ko_leaf 갱신(255-omni/255-overhaul).
+- **데모 도메인 = roidemo.genie-go.com**(geniego.com 아님). 데모는 런타임 hostname 으로 IS_DEMO 자동판별 → 단일 prod 빌드 양 호스트 배포.
+- **master ff 머지**: 작업트리 dirty(자동생성 manifest) 시 checkout 차단 → 먼저 커밋/스태시.
+
+## G. 다음 차수 잔여(외부의존·niche 깊이)
+- 외부 자격증명 등록 시 활성(결함 아님): 매체 쓰기OAuth 실키·발송 DNS(SPF/DKIM)·미디어서버·IdP·DW·geo-ID맵·실 셀러계정(writeback CREATE 라이브검증).
+- micro-gap(CRM −3.9 등)=전문기업 수년 niche 깊이·통합 폐루프(+22)로 상쇄. 추가 심화 시 여정 분기 더 깊게·딜리버러빌리티 DNS·BI 시맨틱 거버넌스 확대.
+
+(★본 인계서 = 사용자 명시 승인. 자격증명 평문노출 0. master 머지·push 완료. feat/n236-admin-growth-automation + master.)
