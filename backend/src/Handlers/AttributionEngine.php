@@ -848,6 +848,72 @@ final class AttributionEngine
      *   convJourneys[i] = ['channels'=>[...순서], 'times'=>[epoch...], 'conv_time'=>epoch, 'revenue'=>float]
      *   nullJourneys[i] = ['channels'=>[...순서]]
      */
+    /**
+     * [254차 초고도화 ⑤] 서버측 Shapley value 어트리뷰션(협조게임 한계기여 평균) — 권위·감사가능·테넌트격리.
+     *   기존 프론트 mlAttribution.js(n≤10, 비권위)를 서버 권위엔진으로 승격. v(S)=연합 S 채널만으로 달성된 전환수
+     *   (zeta transform), φ_i=Σ_{S⊄i} w(|S|)(v(S∪i)−v(S)). 채널 n>12면 빈도상위 12 + 'other' 흡수(정확도/성능 균형).
+     *   ★중복0: 기존 6모델(markov 권위)과 별개 model. computeModels 비변경(회귀0).
+     */
+    public static function shapleyAttribution(array $convJourneys): array
+    {
+        $freq = []; $sets = [];
+        foreach ($convJourneys as $j) {
+            $chs = array_values(array_unique(array_map('strval', $j['channels'] ?? [])));
+            if (!$chs) continue;
+            foreach ($chs as $c) $freq[$c] = ($freq[$c] ?? 0) + 1;
+            $sets[] = ['chs' => $chs, 'rev' => (float)($j['revenue'] ?? 0)];
+        }
+        if (!$sets) return ['ok' => true, 'method' => 'shapley-exact', 'channels' => [], 'journeys' => 0, 'total_conversions' => 0, 'total_revenue' => 0];
+        arsort($freq);
+        $universe = array_slice(array_keys($freq), 0, 12);
+        $idx = array_flip($universe); $n = count($universe); $hasOther = count($freq) > $n;
+        $size = 1 << $n;
+        $cnt = array_fill(0, $size, 0.0); $cntRev = array_fill(0, $size, 0.0);
+        $otherConv = 0.0; $otherRev = 0.0;
+        foreach ($sets as $s) {
+            $mask = 0;
+            foreach ($s['chs'] as $c) if (isset($idx[$c])) $mask |= (1 << $idx[$c]);
+            if ($mask === 0) { $otherConv += 1.0; $otherRev += $s['rev']; continue; }
+            $cnt[$mask] += 1.0; $cntRev[$mask] += $s['rev'];
+        }
+        // zeta transform: v(S)=Σ_{m⊆S} cnt[m]
+        $v = $cnt; $vr = $cntRev;
+        for ($b = 0; $b < $n; $b++) for ($S = 0; $S < $size; $S++) if ($S & (1 << $b)) { $v[$S] += $v[$S ^ (1 << $b)]; $vr[$S] += $vr[$S ^ (1 << $b)]; }
+        $fact = [1.0]; for ($k = 1; $k <= $n; $k++) $fact[$k] = $fact[$k - 1] * $k;
+        $phi = array_fill(0, $n, 0.0); $phiR = array_fill(0, $n, 0.0); $full = $size - 1;
+        for ($i = 0; $i < $n; $i++) {
+            $bit = 1 << $i; $rest = $full ^ $bit;
+            for ($S = $rest; ; $S = ($S - 1) & $rest) {
+                $sz = self::popcount($S); $w = ($fact[$sz] * $fact[$n - $sz - 1]) / $fact[$n];
+                $phi[$i] += $w * ($v[$S | $bit] - $v[$S]); $phiR[$i] += $w * ($vr[$S | $bit] - $vr[$S]);
+                if ($S === 0) break;
+            }
+        }
+        $totConv = array_sum($phi) + $otherConv; $totRev = array_sum($phiR) + $otherRev;
+        $channels = [];
+        for ($i = 0; $i < $n; $i++) $channels[] = ['channel' => $universe[$i], 'shapley_conversions' => round($phi[$i], 3), 'shapley_revenue' => round($phiR[$i], 0), 'credit_pct' => $totConv > 0 ? round($phi[$i] / $totConv * 100, 2) : 0];
+        if ($hasOther && $otherConv > 0) $channels[] = ['channel' => 'other', 'shapley_conversions' => round($otherConv, 3), 'shapley_revenue' => round($otherRev, 0), 'credit_pct' => $totConv > 0 ? round($otherConv / $totConv * 100, 2) : 0];
+        usort($channels, fn($a, $b) => $b['shapley_conversions'] <=> $a['shapley_conversions']);
+        return ['ok' => true, 'method' => 'shapley-exact', 'n_channels' => $n, 'journeys' => count($sets), 'total_conversions' => round($totConv, 3), 'total_revenue' => round($totRev, 0), 'channels' => $channels];
+    }
+
+    private static function popcount(int $x): int { $c = 0; while ($x) { $x &= $x - 1; $c++; } return $c; }
+
+    /** GET /v424/attribution/shapley?window=90 — 서버 Shapley value 어트리뷰션. */
+    public static function shapley(Request $request, Response $response, array $args): Response
+    {
+        $start = microtime(true);
+        $t = self::tenant($request);
+        if ($t === '') return self::ok($response, ['ok' => true, 'channels' => [], 'journeys' => 0, 'response_time_ms' => self::elapsed($start)]);
+        try {
+            $q = $request->getQueryParams(); $window = max(1, min(730, (int)($q['window'] ?? self::DEFAULT_WINDOW)));
+            [$conv] = self::loadJourneys(Db::pdo(), $t, $window);
+            $r = self::shapleyAttribution($conv);
+            $r['window_days'] = $window; $r['response_time_ms'] = self::elapsed($start);
+            return self::ok($response, $r);
+        } catch (Throwable $e) { return self::fail($response, $e, ['ok' => false, 'channels' => []]); }
+    }
+
     private static function loadJourneys(PDO $pdo, string $tenant, int $window): array
     {
         $sinceDate = gmdate('Y-m-d', time() - $window * 86400);

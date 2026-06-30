@@ -839,6 +839,8 @@ return function (App $app): void {
         'GET /api/v424/attribution/models' => 'Genie\\Handlers\\AttributionEngine::models',
         'GET /v424/attribution/confidence'     => 'Genie\\Handlers\\AttributionEngine::confidence', // [현 차수 P3]
         'GET /api/v424/attribution/confidence' => 'Genie\\Handlers\\AttributionEngine::confidence',
+        'GET /v424/attribution/shapley'        => 'Genie\\Handlers\\AttributionEngine::shapley', // [254차 ⑤ 서버 Shapley]
+        'GET /api/v424/attribution/shapley'    => 'Genie\\Handlers\\AttributionEngine::shapley',
         'GET /v424/attribution/incrementality'     => 'Genie\\Handlers\\AttributionEngine::incrementality', // [현 차수 P4]
         'GET /api/v424/attribution/incrementality' => 'Genie\\Handlers\\AttributionEngine::incrementality',
         'POST /v424/attribution/lift-test'     => 'Genie\\Handlers\\AttributionEngine::liftTest',
@@ -2967,6 +2969,8 @@ return function (App $app): void {
     $register('GET', '/api/v424/attribution/models');
     $register('GET', '/v424/attribution/confidence'); // [현 차수 P3]
     $register('GET', '/api/v424/attribution/confidence');
+    $register('GET', '/v424/attribution/shapley'); // [254차 ⑤]
+    $register('GET', '/api/v424/attribution/shapley');
     $register('GET', '/v424/attribution/incrementality'); // [현 차수 P4]
     $register('GET', '/api/v424/attribution/incrementality');
     $register('GET', '/v424/attribution/identity-coverage'); $register('GET', '/api/v424/attribution/identity-coverage');
