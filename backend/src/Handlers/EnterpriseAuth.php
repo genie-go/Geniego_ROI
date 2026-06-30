@@ -61,6 +61,30 @@ class EnterpriseAuth
         foreach (['oidc_sub' => 'VARCHAR(255)', 'oidc_provider' => 'VARCHAR(40)', 'scim_external_id' => 'VARCHAR(190)'] as $col => $type) {
             try { $pdo->exec("ALTER TABLE app_user ADD COLUMN {$col} " . (self::isMysql($pdo) ? $type : 'TEXT')); } catch (\Throwable $e) {}
         }
+        // [255차 심화] SCIM/IdP 그룹(displayName) → 내부 롤(manager/member) 매핑. Okta/Entra 그룹기반 자동 롤 프로비저닝.
+        try {
+            if (self::isMysql($pdo)) {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS sso_group_role_map (id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL, group_name VARCHAR(190) NOT NULL, role VARCHAR(20) NOT NULL DEFAULT 'member', updated_at VARCHAR(32), UNIQUE KEY uq_sgrm (tenant_id, group_name)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            } else {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS sso_group_role_map (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL, group_name TEXT NOT NULL, role TEXT NOT NULL DEFAULT 'member', updated_at TEXT, UNIQUE(tenant_id, group_name))");
+            }
+        } catch (\Throwable $e) {}
+    }
+
+    /** [255차 심화] IdP 그룹 목록 → 내부 롤 해석(manager 우선). 매핑 없거나 그룹 없으면 ''(호출측 default 사용). */
+    private static function roleForGroups(\PDO $pdo, string $tenant, array $groups): string
+    {
+        $groups = array_values(array_filter(array_map(fn($g) => is_array($g) ? (string)($g['display'] ?? $g['value'] ?? '') : (string)$g, $groups), fn($g) => $g !== ''));
+        if (!$groups) return '';
+        try {
+            $in = implode(',', array_fill(0, count($groups), '?'));
+            $st = $pdo->prepare("SELECT role FROM sso_group_role_map WHERE tenant_id=? AND group_name IN ($in)");
+            $st->execute(array_merge([$tenant], $groups));
+            $roles = array_map('strval', $st->fetchAll(\PDO::FETCH_COLUMN) ?: []);
+            if (in_array('manager', $roles, true)) return 'manager';
+            if (in_array('member', $roles, true)) return 'member';
+        } catch (\Throwable $e) {}
+        return '';
     }
 
     /* ════════════════ 설정 (admin) ════════════════ */
@@ -327,7 +351,8 @@ class EnterpriseAuth
             $e['is_active'] = 1; $e['scim_external_id'] = $ext;
             return self::scimJson($res, self::scimUserOut($e), 200);
         }
-        try { $uid = self::provisionUser($pdo, $a['tenant'], $email, $name, 'scim', '', 'member', 1, $ext); }
+        $groups = is_array($b['groups'] ?? null) ? $b['groups'] : []; // [255차 심화] SCIM 그룹 → 롤 매핑 입력
+        try { $uid = self::provisionUser($pdo, $a['tenant'], $email, $name, 'scim', '', 'member', 1, $ext, $groups); }
         catch (\Throwable $e) { return self::scimErr($res, 400, $e->getMessage()); }
         $st = $pdo->prepare("SELECT * FROM app_user WHERE id=?"); $st->execute([$uid]);
         return self::scimJson($res, self::scimUserOut($st->fetch(\PDO::FETCH_ASSOC) ?: []), 201);
@@ -388,6 +413,36 @@ class EnterpriseAuth
         ]);
     }
 
+    /* ════════════════ [255차 심화] 그룹→롤 매핑 + KEK 회전 (admin) ════════════════ */
+    public static function groupRoleMapGet(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePlan($req, $res, 'enterprise')) return $err;
+        self::ensureTables(); $t = self::tenant($req);
+        $st = self::db()->prepare("SELECT group_name, role FROM sso_group_role_map WHERE tenant_id=? ORDER BY group_name"); $st->execute([$t]);
+        return self::json($res, ['ok' => true, 'mappings' => $st->fetchAll(\PDO::FETCH_ASSOC) ?: []]);
+    }
+    public static function groupRoleMapSave(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePlan($req, $res, 'enterprise')) return $err;
+        self::ensureTables(); $t = self::tenant($req); $pdo = self::db();
+        $b = self::body($req); $maps = is_array($b['mappings'] ?? null) ? $b['mappings'] : [];
+        $pdo->prepare("DELETE FROM sso_group_role_map WHERE tenant_id=?")->execute([$t]);
+        $now = self::now(); $n = 0;
+        $ins = $pdo->prepare("INSERT INTO sso_group_role_map(tenant_id,group_name,role,updated_at) VALUES(?,?,?,?)");
+        foreach ($maps as $m) {
+            $g = trim((string)($m['group_name'] ?? '')); $r = (string)($m['role'] ?? 'member');
+            if ($g === '' || !in_array($r, ['manager', 'member'], true)) continue;
+            try { $ins->execute([$t, mb_substr($g, 0, 190), $r, $now]); $n++; } catch (\Throwable $e) {}
+        }
+        return self::json($res, ['ok' => true, 'saved' => $n]);
+    }
+    /** [255차 심화] KEK 무파괴 회전(admin). 신규 버전 KEK 활성화·기존 암호문 계속 복호화(재암호화 0). */
+    public static function rotateKek(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requireAdmin($req, $res)) return $err;
+        return self::json($res, Crypto::rotateKek());
+    }
+
     /* ════════════════ 공통 헬퍼 ════════════════ */
     private static function cfgByTenant(\PDO $pdo, string $tenant): ?array
     { $st = $pdo->prepare("SELECT * FROM sso_config WHERE tenant_id=? AND enabled=1"); $st->execute([$tenant]); return $st->fetch(\PDO::FETCH_ASSOC) ?: null; }
@@ -396,21 +451,28 @@ class EnterpriseAuth
     { return $res->withHeader('Location', self::publicBase() . '/login?sso_error=' . rawurlencode(substr($msg, 0, 120)))->withStatus(302); }
 
     /** SSO 유저 프로비저닝 — 회사(테넌트) owner 하위 member 로 생성/갱신. 미존재 owner=거부. */
-    private static function provisionUser(\PDO $pdo, string $tenant, string $email, string $name, string $provider, string $sub, string $defaultRole, int $autoProvision, string $externalId = ''): int
+    private static function provisionUser(\PDO $pdo, string $tenant, string $email, string $name, string $provider, string $sub, string $defaultRole, int $autoProvision, string $externalId = '', array $groups = []): int
     {
         $email = strtolower(trim($email));
-        $cur = $pdo->prepare("SELECT id FROM app_user WHERE LOWER(email)=? AND tenant_id=? LIMIT 1"); $cur->execute([$email, $tenant]);
-        $existing = $cur->fetchColumn();
-        if ($existing !== false) {
+        // [255차 심화] IdP 그룹 → 롤 매핑(있으면 default 보다 우선). 그룹/매핑 없으면 default 유지.
+        $mappedRole = self::roleForGroups($pdo, $tenant, $groups);
+        $cur = $pdo->prepare("SELECT id, team_role FROM app_user WHERE LOWER(email)=? AND tenant_id=? LIMIT 1"); $cur->execute([$email, $tenant]);
+        $exRow = $cur->fetch(\PDO::FETCH_ASSOC);
+        if ($exRow !== false && $exRow) {
+            $existing = (int)$exRow['id'];
             $pdo->prepare("UPDATE app_user SET is_active=1, name=COALESCE(NULLIF(?,''),name), oidc_sub=COALESCE(NULLIF(?,''),oidc_sub), oidc_provider=?, scim_external_id=COALESCE(NULLIF(?,''),scim_external_id) WHERE id=?")
-                ->execute([$name, $sub, $provider, $externalId, (int)$existing]);
-            return (int)$existing;
+                ->execute([$name, $sub, $provider, $externalId, $existing]);
+            // 그룹 매핑이 있고 owner 가 아니면 IdP 그룹 기준으로 롤 동기화(IdP=source of truth, owner 강등 금지).
+            if ($mappedRole !== '' && (string)($exRow['team_role'] ?? '') !== 'owner' && (string)($exRow['team_role'] ?? '') !== $mappedRole) {
+                try { $pdo->prepare("UPDATE app_user SET team_role=? WHERE id=?")->execute([$mappedRole, $existing]); } catch (\Throwable $e) {}
+            }
+            return $existing;
         }
         if ($autoProvision !== 1) throw new \RuntimeException('auto-provision disabled — user not pre-provisioned');
         $own = $pdo->prepare("SELECT id, plan, plans FROM app_user WHERE tenant_id=? AND team_role='owner' AND is_active=1 LIMIT 1"); $own->execute([$tenant]);
         $owner = $own->fetch(\PDO::FETCH_ASSOC);
         if (!$owner) throw new \RuntimeException('tenant has no owner — cannot provision');
-        $role = in_array($defaultRole, ['manager', 'member'], true) ? $defaultRole : 'member';
+        $role = $mappedRole !== '' ? $mappedRole : (in_array($defaultRole, ['manager', 'member'], true) ? $defaultRole : 'member');
         $hash = password_hash(bin2hex(random_bytes(24)), PASSWORD_BCRYPT);
         $now = self::now();
         $pdo->prepare("INSERT INTO app_user(email,password_hash,name,plan,plans,is_active,created_at,tenant_id,parent_user_id,team_role,oidc_sub,oidc_provider,scim_external_id)

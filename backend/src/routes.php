@@ -732,6 +732,9 @@ return function (App $app): void {
         'GET /v430/sso/config'                   => 'Genie\\Handlers\\EnterpriseAuth::getConfig',
         'PUT /v430/sso/config'                   => 'Genie\\Handlers\\EnterpriseAuth::saveConfig',
         'POST /v430/sso/scim-token'              => 'Genie\\Handlers\\EnterpriseAuth::rotateScimToken',
+        'GET /v430/sso/group-roles'              => 'Genie\\Handlers\\EnterpriseAuth::groupRoleMapGet',   // [255차 심화] SCIM 그룹→롤 매핑
+        'PUT /v430/sso/group-roles'              => 'Genie\\Handlers\\EnterpriseAuth::groupRoleMapSave',
+        'POST /v430/sso/kek-rotate'              => 'Genie\\Handlers\\EnterpriseAuth::rotateKek',          // [255차 심화] KEK 무파괴 회전
         'GET /auth/sso/oidc/callback'            => 'Genie\\Handlers\\EnterpriseAuth::oidcCallback',
         'POST /auth/sso/saml/acs'                => 'Genie\\Handlers\\EnterpriseAuth::samlAcs',
         'GET /auth/sso/saml/metadata'            => 'Genie\\Handlers\\EnterpriseAuth::samlMetadata',
@@ -2048,6 +2051,9 @@ return function (App $app): void {
     $register('GET',    '/v430/sso/config');
     $register('PUT',    '/v430/sso/config');
     $register('POST',   '/v430/sso/scim-token');
+    $register('GET',    '/v430/sso/group-roles');
+    $register('PUT',    '/v430/sso/group-roles');
+    $register('POST',   '/v430/sso/kek-rotate');
     $register('GET',    '/auth/sso/oidc/callback');
     $register('POST',   '/auth/sso/saml/acs');
     $register('GET',    '/auth/sso/saml/metadata');

@@ -18,6 +18,27 @@ final class Crypto
 {
     private const PREFIX = 'enc:v1:';
     private static ?string $key = null;
+    /** [255차 심화] 버전별 KEK 캐시(무파괴 키회전). v1=기존 cred_enc_key, v2+=app_setting cred_kek_vN. */
+    private static array $verKeys = [];
+
+    /** 현재 활성 키 버전(신규 암호화에 사용). 미설정=v1(기존 동작 보존). */
+    private static function activeVersion(): string
+    {
+        try { $pdo = Db::pdo(); $s = $pdo->prepare("SELECT svalue FROM app_setting WHERE skey='cred_kek_active' LIMIT 1"); $s->execute(); $v = $s->fetchColumn(); if ($v) return (string)$v; }
+        catch (\Throwable $e) {}
+        return 'v1';
+    }
+
+    /** 버전별 KEK 조회. v1=기존 key()(cred_enc_key·하위호환 불변), v2+=app_setting cred_kek_vN. */
+    private static function keyForVersion(string $ver): string
+    {
+        if ($ver === '' || $ver === 'v1') return self::key();
+        if (isset(self::$verKeys[$ver])) return self::$verKeys[$ver];
+        try { $pdo = Db::pdo(); $s = $pdo->prepare("SELECT svalue FROM app_setting WHERE skey=? LIMIT 1"); $s->execute(['cred_kek_' . $ver]); $v = $s->fetchColumn();
+            if ($v) return self::$verKeys[$ver] = self::normalizeKey((string)$v); }
+        catch (\Throwable $e) {}
+        return self::key(); // 미등록 버전 → 현재키 폴백(graceful)
+    }
 
     /** 레거시 파생 키(앱 부팅 초기·DB 미가용 시 사용했던 폴백). 이중키 복호화 호환용. */
     private static function derivedKey(): string
@@ -64,7 +85,8 @@ final class Crypto
 
     public static function isEncrypted(?string $v): bool
     {
-        return is_string($v) && strncmp($v, self::PREFIX, strlen(self::PREFIX)) === 0;
+        // [255차 심화] 버전태그 봉투(enc:v1:·enc:v2: …) 전부 인식(무파괴 키회전).
+        return is_string($v) && preg_match('/^enc:v\d+:/', $v) === 1;
     }
 
     /**
@@ -89,33 +111,70 @@ final class Crypto
         if (self::isEncrypted($plain)) return $plain; // 이미 암호문
         if (!function_exists('openssl_encrypt')) return $plain;
         try {
+            // [255차 심화] 활성 버전 KEK 로 암호화·버전태그 봉투(키회전 후 신규 쓰기만 신버전·기존 암호문 불변).
+            $ver = self::activeVersion();
             $iv = random_bytes(12);
             $tag = '';
-            $ct = openssl_encrypt($plain, 'aes-256-gcm', self::key(), OPENSSL_RAW_DATA, $iv, $tag, '', 16);
+            $ct = openssl_encrypt($plain, 'aes-256-gcm', self::keyForVersion($ver), OPENSSL_RAW_DATA, $iv, $tag, '', 16);
             if ($ct === false) return $plain;
-            return self::PREFIX . base64_encode($iv . $tag . $ct);
+            return 'enc:' . $ver . ':' . base64_encode($iv . $tag . $ct);
         } catch (\Throwable $e) {
             return $plain;
         }
     }
 
-    /** "enc:v1:..." → 평문. 평문 입력은 그대로 반환(하위호환). 복호화 실패는 '' . */
+    /**
+     * [255차 심화] KEK 무파괴 회전 — 신규 버전 KEK 생성·활성화. 기존 암호문(enc:vN)은 해당 버전 키로 계속 복호화(재암호화 0·운영중단 0).
+     *   회전 후 신규 쓰기만 새 버전으로 암호화. 점진적 자연 재암호화(저장 시). admin 전용 호출.
+     *   @return array{ok:bool, active?:string, previous?:string, note?:string, error?:string}
+     */
+    public static function rotateKek(): array
+    {
+        if (!function_exists('openssl_encrypt')) return ['ok' => false, 'error' => 'openssl 미지원'];
+        try {
+            $pdo = Db::pdo(); Db::ensureAppSetting($pdo);
+            $cur = self::activeVersion();
+            $n = (int)ltrim($cur, 'v'); if ($n < 1) $n = 1;
+            $next = 'v' . ($n + 1);
+            $newKey = base64_encode(random_bytes(32));
+            self::putSetting($pdo, 'cred_kek_' . $next, $newKey);
+            self::putSetting($pdo, 'cred_kek_active', $next);
+            self::$verKeys = []; self::$key = null; // 캐시 무효화
+            return ['ok' => true, 'active' => $next, 'previous' => $cur,
+                'note' => '신규 쓰기부터 ' . $next . ' 키로 암호화. 기존 ' . $cur . ' 암호문은 계속 복호화됩니다(무파괴·운영중단 0).'];
+        } catch (\Throwable $e) { return ['ok' => false, 'error' => $e->getMessage()]; }
+    }
+
+    private static function putSetting(\PDO $pdo, string $k, string $v): void
+    {
+        $now = gmdate('c');
+        if ($pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql') {
+            $pdo->prepare("INSERT INTO app_setting(skey,svalue,updated_at) VALUES(?,?,?) ON DUPLICATE KEY UPDATE svalue=VALUES(svalue),updated_at=VALUES(updated_at)")->execute([$k, $v, $now]);
+        } else {
+            $u = $pdo->prepare("UPDATE app_setting SET svalue=?,updated_at=? WHERE skey=?"); $u->execute([$v, $now, $k]);
+            if ($u->rowCount() === 0) { try { $pdo->prepare("INSERT INTO app_setting(skey,svalue,updated_at) VALUES(?,?,?)")->execute([$k, $v, $now]); } catch (\Throwable $e) {} }
+        }
+    }
+
+    /** "enc:vN:..." → 평문. 평문 입력은 그대로 반환(하위호환). 복호화 실패는 '' . */
     public static function decrypt(?string $stored): string
     {
         $stored = (string)$stored;
         if ($stored === '') return '';
-        if (!self::isEncrypted($stored)) return $stored; // 평문 passthrough
+        if (!preg_match('/^enc:(v\d+):/', $stored, $m)) return $stored; // 평문 passthrough
         if (!function_exists('openssl_decrypt')) return '';
         try {
-            $raw = base64_decode(substr($stored, strlen(self::PREFIX)), true);
+            $ver = $m[1]; $pfx = 'enc:' . $ver . ':'; // 'v1'·'v2'…
+            $raw = base64_decode(substr($stored, strlen($pfx)), true);
             if ($raw === false || strlen($raw) < 28) return '';
             $iv = substr($raw, 0, 12);
             $tag = substr($raw, 12, 16);
             $ct = substr($raw, 28);
-            // 이중키: 현재 키(app_setting 랜덤) 우선, 실패 시 레거시 파생키(전환기 호환).
-            $pt = openssl_decrypt($ct, 'aes-256-gcm', self::key(), OPENSSL_RAW_DATA, $iv, $tag);
-            if ($pt === false) {
-                $pt = openssl_decrypt($ct, 'aes-256-gcm', self::derivedKey(), OPENSSL_RAW_DATA, $iv, $tag);
+            // [255차 심화] 버전별 KEK 로 복호화(무파괴 키회전). v1 은 레거시 파생키까지 폴백(전환기 호환).
+            $pt = openssl_decrypt($ct, 'aes-256-gcm', self::keyForVersion($ver), OPENSSL_RAW_DATA, $iv, $tag);
+            if ($pt === false && ($ver === 'v1' || $ver === '')) {
+                $pt = openssl_decrypt($ct, 'aes-256-gcm', self::key(), OPENSSL_RAW_DATA, $iv, $tag);
+                if ($pt === false) $pt = openssl_decrypt($ct, 'aes-256-gcm', self::derivedKey(), OPENSSL_RAW_DATA, $iv, $tag);
             }
             return $pt === false ? '' : $pt;
         } catch (\Throwable $e) {
