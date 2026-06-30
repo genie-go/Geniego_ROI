@@ -518,16 +518,79 @@ final class AttributionEngine
         if ($tSum <= 0 || $cSum <= 0) return ['ok' => false, 'error' => '균형 분할 실패(한쪽 그룹 주문 0).'];
         $now = gmdate('c'); $start = gmdate('Y-m-d'); $end = gmdate('Y-m-d', time() + $days * 86400);
         $geoRegions = json_encode(['test' => $test, 'control' => $ctrl], JSON_UNESCAPED_UNICODE);
-        $meta = ['auto_design' => ['mode' => 'observational', 'baseline_days' => $baseWin, 'baseline_treatment' => $tSum,
+        // [255차 심화] 인과 geo-exclusion(register-then-execute) — geo-ID 맵 등록 시 control 지역을 매체 타겟에서 제외(노출0)
+        //   → 진짜 인과 holdout. 맵 미등록=관측 폴백(현행·spend영향0). 제외는 노출 축소만(과집행 불가=안전).
+        $excl = self::resolveGeoExclusion($pdo, $tenant, $channel, $ctrl);
+        $causal = !empty($excl);
+        $geoResults = null;
+        if ($causal) {
+            $applied = [];
+            try { $applied = AdAdapters::excludeGeo($pdo, $tenant, $channel, $excl); } catch (\Throwable $e) { $applied = ['ok' => false, 'error' => $e->getMessage()]; }
+            $geoResults = json_encode(['excluded_geo_ids' => $excl, 'media_apply' => $applied], JSON_UNESCAPED_UNICODE);
+        }
+        $meta = ['auto_design' => ['mode' => $causal ? 'causal' : 'observational', 'baseline_days' => $baseWin, 'baseline_treatment' => $tSum,
             'baseline_control' => $cSum, 'duration_days' => $days, 'guardrails' => ['min_days' => 7, 'min_conv' => 30, 'early_stop_lift_pct' => -5], 'auto' => true,
-            'note' => '관측 지오 리프트(광고 미변경·spend영향0). 인과 holdout 은 geo-targeting 지원 시 활성(로드맵).']];
+            'note' => $causal
+                ? '인과 지오 홀드아웃 — control 지역을 매체 타겟에서 제외(노출0). 등록된 geo-ID 맵 기반.'
+                : '관측 지오 리프트(광고 미변경·spend영향0). geo-ID 맵 등록 시 인과 holdout 자동 활성.']];
         try {
             $st = $pdo->prepare("INSERT INTO holdout_experiment(tenant_id,name,channel,hypothesis,status,control_size,treatment_size,revenue_per_conversion,start_date,end_date,geo_strategy,geo_regions,geo_results,result_json,created_at,updated_at)
                                  VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
             $st->execute([$tenant, '자동 지오 홀드아웃 ' . $start, substr($channel, 0, 60), '광고 노출 지역군(test) vs 대조 지역군(control)의 기준기간 대비 전환 성장 리프트',
-                'running', $cSum, $tSum, 0, $start, $end, 'regional', $geoRegions, null, json_encode($meta, JSON_UNESCAPED_UNICODE), $now, $now]);
-            return ['ok' => true, 'id' => (int)$pdo->lastInsertId(), 'test_regions' => $test, 'control_regions' => $ctrl, 'baseline' => ['treatment' => $tSum, 'control' => $cSum], 'duration_days' => $days];
+                'running', $cSum, $tSum, 0, $start, $end, 'regional', $geoRegions, $geoResults, json_encode($meta, JSON_UNESCAPED_UNICODE), $now, $now]);
+            return ['ok' => true, 'id' => (int)$pdo->lastInsertId(), 'mode' => $causal ? 'causal' : 'observational', 'test_regions' => $test, 'control_regions' => $ctrl, 'baseline' => ['treatment' => $tSum, 'control' => $cSum], 'duration_days' => $days];
         } catch (Throwable $e) { return ['ok' => false, 'error' => $e->getMessage()]; }
+    }
+
+    /** [255차 심화] geo-ID 맵(app_setting JSON) — {channel:{region_key:media_geo_id}}. 미등록=빈 배열. */
+    private static function geoMap(PDO $pdo, string $tenant): array
+    {
+        try {
+            $s = $pdo->prepare("SELECT svalue FROM app_setting WHERE skey=? LIMIT 1"); $s->execute(['geo_region_map@' . $tenant]);
+            $v = $s->fetchColumn(); if ($v) { $j = json_decode((string)$v, true); return is_array($j) ? $j : []; }
+        } catch (\Throwable $e) {}
+        return [];
+    }
+
+    /** [255차 심화] control 지역 → 매체 geo-ID 배열(등록 맵 기반). 맵 미등록/미매칭=빈 배열(관측 폴백). */
+    public static function resolveGeoExclusion(PDO $pdo, string $tenant, string $channel, array $controlRegions): array
+    {
+        $ch = strtolower(trim($channel)); if ($ch === '') return [];
+        $map = self::geoMap($pdo, $tenant);
+        $chMap = $map[$ch] ?? ($map[$channel] ?? []);
+        if (!is_array($chMap) || !$chMap) return [];
+        $out = [];
+        foreach ($controlRegions as $r) { $gid = $chMap[(string)$r] ?? null; if ($gid !== null && $gid !== '') $out[] = (string)$gid; }
+        return array_values(array_unique($out));
+    }
+
+    /** [255차 심화] GET /v424/attribution/geo-map — 등록된 geo-ID 맵 조회. */
+    public static function geoMapGet(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        $pdo = Db::pdo(); $t = (string)($req->getAttribute('auth_tenant') ?? UserAuth::authedTenant($req) ?? '');
+        $body = ['ok' => true, 'map' => self::geoMap($pdo, $t)];
+        $res->getBody()->write(json_encode($body, JSON_UNESCAPED_UNICODE)); return $res->withHeader('Content-Type', 'application/json');
+    }
+
+    /** [255차 심화] PUT /v424/attribution/geo-map — geo-ID 맵 저장. body: {map:{channel:{region:geo_id}}}. */
+    public static function geoMapSave(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        $pdo = Db::pdo(); $t = (string)($req->getAttribute('auth_tenant') ?? UserAuth::authedTenant($req) ?? '');
+        $b = (array)($req->getParsedBody() ?? []); if (empty($b)) { $d = json_decode((string)$req->getBody(), true); if (is_array($d)) $b = $d; }
+        $map = is_array($b['map'] ?? null) ? $b['map'] : [];
+        try {
+            Db::ensureAppSetting($pdo);
+            $json = json_encode($map, JSON_UNESCAPED_UNICODE); $now = gmdate('c'); $k = 'geo_region_map@' . $t;
+            if ($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql') {
+                $pdo->prepare("INSERT INTO app_setting(skey,svalue,updated_at) VALUES(?,?,?) ON DUPLICATE KEY UPDATE svalue=VALUES(svalue),updated_at=VALUES(updated_at)")->execute([$k, $json, $now]);
+            } else {
+                $u = $pdo->prepare("UPDATE app_setting SET svalue=?,updated_at=? WHERE skey=?"); $u->execute([$json, $now, $k]);
+                if ($u->rowCount() === 0) $pdo->prepare("INSERT INTO app_setting(skey,svalue,updated_at) VALUES(?,?,?)")->execute([$k, $json, $now]);
+            }
+        } catch (\Throwable $e) { $res->getBody()->write(json_encode(['ok' => false, 'error' => $e->getMessage()])); return $res->withHeader('Content-Type', 'application/json'); }
+        $res->getBody()->write(json_encode(['ok' => true])); return $res->withHeader('Content-Type', 'application/json');
     }
 
     /** running geo 실험 일일 검증 — 실측 전환 집계→리프트 검정→가드레일→자동 결론(기간종료/유의/조기중단). 반환: 갱신수. */

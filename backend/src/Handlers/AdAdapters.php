@@ -1217,6 +1217,9 @@ final class AdAdapters
         // [현 차수 초고도화] 오디언스 타겟팅 — syncAudience 가 생성·영속한 커스텀/룩어라이크 오디언스를 attach(최고 ROI 레버).
         //   retarget=커스텀 포함·lookalike=룩어라이크 포함·prospect=커스텀 제외(기존고객 빼고 신규 획득). 미설정/미생성=지오만.
         $targeting = ['geo_locations' => ['countries' => $countries]];
+        // [255차 심화] 인과 geo-exclusion — 등록된 control 지역 geo-ID 를 신규 광고세트에서 제외(노출0=인과 holdout). 미등록=무영향.
+        $exGeo = self::geoExclusionIds($pdo, $tenant, 'meta_ads');
+        if ($exGeo) { $targeting['excluded_geo_locations'] = ['regions' => array_map(fn($g) => ['key' => $g], $exGeo)]; }
         $audMode = (string)($settings['audience_mode'] ?? '');
         if ($audMode === 'retarget')      { $ca = self::getAudienceId($pdo, $tenant, 'ca'); if ($ca !== '') $targeting['custom_audiences'] = [['id' => $ca]]; }
         elseif ($audMode === 'lookalike') { $la = self::getAudienceId($pdo, $tenant, 'la'); if ($la !== '') $targeting['custom_audiences'] = [['id' => $la]]; }
@@ -1572,6 +1575,42 @@ final class AdAdapters
             $pdo->prepare($sql)->execute([$skey, $now, $now]);
         } catch (Throwable $e) {}
         return $out;
+    }
+
+    /** [255차 심화] 인과 geo-exclusion 등록 — control 지역 매체 geo-ID 를 활성 제외목록으로 저장.
+     *   ★신규 광고세트(metaDeliver)에만 적용=노출 축소만(과집행 불가·기존 캠페인 미변경=안전). register-then-execute.
+     *   Meta 즉시 반영, 타 매체는 라이브검증 대기(honest). 반환 {ok,recorded,channel,note}. */
+    public static function excludeGeo(PDO $pdo, string $tenant, string $channel, array $geoIds): array
+    {
+        $geoIds = array_values(array_unique(array_filter(array_map('strval', $geoIds), fn($g) => $g !== '')));
+        if (!$geoIds) return ['ok' => true, 'recorded' => 0, 'note' => 'no_geo_ids'];
+        $ck = self::geoChanKey($channel);
+        $skey = 'geo_excl:' . $tenant . ':' . $ck;
+        try {
+            $now = gmdate('c'); $isMy = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql';
+            $sql = $isMy
+                ? "INSERT INTO app_setting(skey,svalue,updated_at) VALUES(?,?,?) ON DUPLICATE KEY UPDATE svalue=VALUES(svalue),updated_at=VALUES(updated_at)"
+                : "INSERT INTO app_setting(skey,svalue,updated_at) VALUES(?,?,?) ON CONFLICT(skey) DO UPDATE SET svalue=excluded.svalue,updated_at=excluded.updated_at";
+            $pdo->prepare($sql)->execute([$skey, json_encode($geoIds), $now]);
+        } catch (Throwable $e) { return ['ok' => false, 'error' => $e->getMessage()]; }
+        return ['ok' => true, 'recorded' => count($geoIds), 'channel' => $ck,
+            'note' => $ck === 'meta_ads' ? 'Meta 신규 광고세트에 control 지역 제외 적용(노출축소·안전)' : ($ck . ' geo-exclusion 등록(라이브검증 대기)')];
+    }
+
+    private static function geoChanKey(string $channel): string
+    {
+        $c = strtolower(trim($channel));
+        if ($c === '' || strpos($c, 'meta') !== false || strpos($c, 'facebook') !== false || strpos($c, 'instagram') !== false) return 'meta_ads';
+        return $c;
+    }
+
+    /** geo-exclusion 활성 geo-ID(신규 캠페인 적용용). */
+    private static function geoExclusionIds(PDO $pdo, string $tenant, string $channel): array
+    {
+        try { $s = $pdo->prepare("SELECT svalue FROM app_setting WHERE skey=? LIMIT 1"); $s->execute(['geo_excl:' . $tenant . ':' . self::geoChanKey($channel)]);
+            $v = $s->fetchColumn(); if ($v) { $j = json_decode((string)$v, true); return is_array($j) ? array_values(array_map('strval', $j)) : []; } }
+        catch (Throwable $e) {}
+        return [];
     }
 
     /** Meta Custom Audience 생성 + 해시 이메일 업로드(+선택 Lookalike). */

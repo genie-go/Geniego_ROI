@@ -46,6 +46,8 @@ return function (App $app): void {
         // v422 AI 마케팅 추천 (전체 카테고리 지원)
         'POST /v422/ai/campaign-search'      => 'Genie\\Handlers\\ClaudeAI::campaignSearch',
         'POST /v422/ai/assistant'            => 'Genie\\Handlers\\ClaudeAI::assistant', // [현 차수] 무엇이든 물어보세요 상담 챗봇(15개국)
+        'POST /v422/ai/agentic'              => 'Genie\\Handlers\\ClaudeAI::agenticAsk', // [255차 심화] 에이전틱 코파일럿(읽기전용 tool-use)
+        'POST /api/v422/ai/agentic'          => 'Genie\\Handlers\\ClaudeAI::agenticAsk',
         'POST /v422/ai/live-assist'          => 'Genie\\Handlers\\ClaudeAI::liveAssist',
         'POST /v422/ai/campaign-ad-creative' => 'Genie\\Handlers\\ClaudeAI::campaignAdCreative',
 
@@ -855,6 +857,10 @@ return function (App $app): void {
         'GET /api/v424/attribution/confidence' => 'Genie\\Handlers\\AttributionEngine::confidence',
         'GET /v424/attribution/shapley'        => 'Genie\\Handlers\\AttributionEngine::shapley', // [254차 ⑤ 서버 Shapley]
         'GET /api/v424/attribution/shapley'    => 'Genie\\Handlers\\AttributionEngine::shapley',
+        'GET /v424/attribution/geo-map'        => 'Genie\\Handlers\\AttributionEngine::geoMapGet',   // [255차 심화] 인과 geo-ID 맵
+        'GET /api/v424/attribution/geo-map'    => 'Genie\\Handlers\\AttributionEngine::geoMapGet',
+        'PUT /v424/attribution/geo-map'        => 'Genie\\Handlers\\AttributionEngine::geoMapSave',
+        'PUT /api/v424/attribution/geo-map'    => 'Genie\\Handlers\\AttributionEngine::geoMapSave',
         'GET /v424/attribution/incrementality'     => 'Genie\\Handlers\\AttributionEngine::incrementality', // [현 차수 P4]
         'GET /api/v424/attribution/incrementality' => 'Genie\\Handlers\\AttributionEngine::incrementality',
         'POST /v424/attribution/lift-test'     => 'Genie\\Handlers\\AttributionEngine::liftTest',
@@ -2133,6 +2139,7 @@ return function (App $app): void {
     // ── v422 AI 마케팅 추천 (전체 카테고리) ─────────────────────────
     $register('POST', '/v422/ai/campaign-search');
     $register('POST', '/v422/ai/assistant'); // [현 차수] 무엇이든 물어보세요 상담 챗봇
+    $register('POST', '/v422/ai/agentic'); $register('POST', '/api/v422/ai/agentic'); // [255차 심화] 에이전틱 코파일럿
     $register('POST', '/v422/ai/live-assist');
     $register('POST', '/v422/ai/campaign-ad-creative');
     $register('POST', '/v422/ai/campaign-ad-design');
@@ -2989,6 +2996,8 @@ return function (App $app): void {
     $register('GET', '/api/v424/attribution/touches');
     $register('GET', '/v424/attribution/journeys');
     $register('GET', '/api/v424/attribution/journeys');
+    $register('GET', '/v424/attribution/geo-map');     $register('GET', '/api/v424/attribution/geo-map');     // [255차 심화]
+    $register('PUT', '/v424/attribution/geo-map');     $register('PUT', '/api/v424/attribution/geo-map');
     $register('GET', '/v424/attribution/time-series');
     $register('GET', '/api/v424/attribution/time-series');
     $register('GET', '/v424/attribution/channels');

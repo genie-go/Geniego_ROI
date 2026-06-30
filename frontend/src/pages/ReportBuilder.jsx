@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import BeginnerGuide from "../components/BeginnerGuide.jsx";
 import { GUIDE } from "../lib/guideSpecs.js";
 import { useT } from "../i18n/index.js";
-import { getJsonAuth, postJsonAuth, patchJson, delJson } from "../services/apiClient.js";
+import { getJsonAuth, postJsonAuth, patchJson, delJson, requestJsonAuth } from "../services/apiClient.js";
 import { useVisibleTabs } from "../auth/useVisibleTabs.js";
 import ProductSelectBar from '../components/dashboards/ProductSelectBar.jsx';
 import ProductMarketingPanel from '../components/dashboards/ProductMarketingPanel.jsx';
@@ -125,6 +125,22 @@ export default function ReportBuilder() {
   const [qLoading, setQLoading] = useState(false);
   const [viz, setViz] = useState("table"); // [239차+ BI심화] table|bar|line|donut
   const [saved, setSaved] = useState([]);
+  // [255차 심화] 사용자정의 메트릭(시맨틱 레이어) — 소스별 로드/저장. 백엔드 /reports/metrics(중복0).
+  const [userMetrics, setUserMetrics] = useState([]);
+  const [mdForm, setMdForm] = useState({ name: "", label: "", formula: "" });
+  const loadUserMetrics = useCallback((src) => { getJsonAuth(`/api/reports/metrics?source=${src}`).then(d => { if (d?.ok) setUserMetrics(d.metrics || []); }).catch(() => {}); }, []);
+  useEffect(() => { if (tab === "custom") loadUserMetrics(qForm.source); }, [tab, qForm.source, loadUserMetrics]);
+  const saveUserMetric = useCallback(async () => {
+    const nm = (mdForm.name || "").trim().toLowerCase().replace(/[^a-z0-9_]/g, "");
+    if (!nm || !mdForm.formula.trim()) { flash(t("reportBuilder.mdNeed", "이름·수식을 입력하세요")); return; }
+    const next = [...userMetrics.filter(m => m.name !== nm).map(m => ({ name: m.name, label: m.label, formula: m.formula })), { name: nm, label: mdForm.label || nm, formula: mdForm.formula.trim() }];
+    try { await requestJsonAuth("/api/reports/metrics", "PUT", { source: qForm.source, metrics: next }); flash(t("reportBuilder.mdSaved", "메트릭 저장됨")); setMdForm({ name: "", label: "", formula: "" }); loadUserMetrics(qForm.source); }
+    catch (e) { flash(String(e.message).slice(0, 80)); }
+  }, [mdForm, userMetrics, qForm.source, loadUserMetrics, t]);
+  const deleteUserMetric = useCallback(async (name) => {
+    const next = userMetrics.filter(m => m.name !== name).map(m => ({ name: m.name, label: m.label, formula: m.formula }));
+    try { await requestJsonAuth("/api/reports/metrics", "PUT", { source: qForm.source, metrics: next }); setQForm(f => ({ ...f, metrics: f.metrics.filter(x => x !== name) })); loadUserMetrics(qForm.source); } catch (e) {}
+  }, [userMetrics, qForm.source, loadUserMetrics]);
   const toggleMetric = (m) => setQForm(f => ({ ...f, metrics: f.metrics.includes(m) ? f.metrics.filter(x => x !== m) : [...f.metrics, m] }));
   const runQuery = useCallback(async () => {
     if (qForm.metrics.length === 0) { flash(t("reportBuilder.pickMetric", "지표를 1개 이상 선택하세요.")); return; }
@@ -217,7 +233,25 @@ export default function ReportBuilder() {
                 {Q_METRICS.map(([id, lab]) => (
                   <button key={id} onClick={() => toggleMetric(id)} style={{ padding: "5px 11px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 11, fontWeight: 700, background: qForm.metrics.includes(id) ? "#4f8ef7" : "rgba(0,0,0,0.05)", color: qForm.metrics.includes(id) ? "#fff" : "var(--text-2)" }}>{lab}</button>
                 ))}
+                {/* [255차 심화] 사용자정의 메트릭 — 보라색 칩(삭제 ✕ 포함) */}
+                {userMetrics.map(m => (
+                  <span key={m.name} style={{ display: "inline-flex", alignItems: "center", gap: 3, borderRadius: 8, background: qForm.metrics.includes(m.name) ? "#8b5cf6" : "rgba(139,92,246,0.12)", color: qForm.metrics.includes(m.name) ? "#fff" : "#8b5cf6", padding: "0 4px 0 0" }}>
+                    <button onClick={() => toggleMetric(m.name)} title={m.formula} style={{ padding: "5px 8px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 11, fontWeight: 700, background: "transparent", color: "inherit" }}>ƒ {m.label || m.name}</button>
+                    <button onClick={() => deleteUserMetric(m.name)} title={t("reportBuilder.mdDel", "메트릭 삭제")} style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: 10, color: "inherit", opacity: 0.7 }}>✕</button>
+                  </span>
+                ))}
               </div>
+              {/* [255차 심화] 사용자정의 메트릭 정의(LookML식 시맨틱 — 기존 지표 조합 수식) */}
+              <details style={{ marginTop: 8, maxWidth: 420 }}>
+                <summary style={{ fontSize: 11, color: "#8b5cf6", cursor: "pointer", fontWeight: 700 }}>ƒ {t("reportBuilder.mdAdd", "사용자정의 메트릭 추가")}</summary>
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 8, alignItems: "center" }}>
+                  <input value={mdForm.name} onChange={e => setMdForm(f => ({ ...f, name: e.target.value }))} placeholder={t("reportBuilder.mdName", "키(영문)")} style={{ ...input, width: 110 }} />
+                  <input value={mdForm.label} onChange={e => setMdForm(f => ({ ...f, label: e.target.value }))} placeholder={t("reportBuilder.mdLabel", "표시명")} style={{ ...input, width: 110 }} />
+                  <input value={mdForm.formula} onChange={e => setMdForm(f => ({ ...f, formula: e.target.value }))} placeholder={t("reportBuilder.mdFormula", "수식 예: revenue - spend")} style={{ ...input, width: 180 }} />
+                  <button style={btn("primary")} onClick={saveUserMetric}>💾</button>
+                </div>
+                <div style={{ fontSize: 10, color: "var(--text-3)", marginTop: 4 }}>{t("reportBuilder.mdHint", "기존 지표 키 + 사칙연산(+ - * / )만 사용. 예) (revenue - spend) / conversions")}</div>
+              </details>
             </div>
             <div>
               <div style={{ fontSize: 11, color: "var(--text-3)", marginBottom: 6 }}>{t("reportBuilder.dimension", "차원")}</div>

@@ -520,6 +520,78 @@ KB;
         ];
     }
 
+    /** [255차 심화] tool-use 지원 Claude 호출(에이전틱 코파일럿). tools 정의 + messages 멀티턴 → 전체 응답(content blocks+stop_reason). */
+    private static function callClaudeTools(string $system, array $messages, array $tools, int $timeout, string $tenant): array {
+        $qErr = self::quotaGate($tenant, 'text'); if ($qErr !== null) throw new \RuntimeException('AI_QUOTA: ' . $qErr);
+        $apiKey = self::apiKey();
+        $payload = json_encode(['model' => self::MODEL, 'max_tokens' => self::MAX_TOKENS,
+            'system' => [['type' => 'text', 'text' => $system, 'cache_control' => ['type' => 'ephemeral']]],
+            'tools' => $tools, 'messages' => $messages], JSON_UNESCAPED_UNICODE);
+        $ch = curl_init(self::API_URL);
+        curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_POST => true, CURLOPT_POSTFIELDS => $payload,
+            CURLOPT_TIMEOUT => $timeout, CURLOPT_CONNECTTIMEOUT => 4,
+            CURLOPT_HTTPHEADER => ['Content-Type: application/json', 'x-api-key: ' . $apiKey, 'anthropic-version: 2023-06-01']]);
+        $raw = curl_exec($ch); $status = curl_getinfo($ch, CURLINFO_HTTP_CODE); $err = curl_error($ch); curl_close($ch);
+        if ($err) throw new \RuntimeException('curl error: ' . $err);
+        $resp = json_decode($raw, true);
+        if ($status !== 200 || !isset($resp['content'])) { $msg = $resp['error']['message'] ?? $raw; throw new \RuntimeException("Claude API error ({$status}): {$msg}"); }
+        self::quotaConsume($tenant, 'text', (int)($resp['usage']['input_tokens'] ?? 0) + (int)($resp['usage']['output_tokens'] ?? 0));
+        return $resp;
+    }
+
+    /** [255차 심화] bi_query 도구 — 읽기전용 광고성과 집계(테넌트 스코프·화이트리스트 차원). 액션 없음=안전. */
+    private static function biQueryTool(\PDO $pdo, string $tenant, array $args): array {
+        $period = max(1, min(365, (int)($args['period_days'] ?? 30)));
+        $since = gmdate('Y-m-d', time() - $period * 86400);
+        $dim = in_array(($args['dimension'] ?? 'channel'), ['channel', 'campaign_ext_id', 'date'], true) ? (string)($args['dimension'] ?? 'channel') : 'channel';
+        try {
+            $st = $pdo->prepare("SELECT {$dim} AS dim, ROUND(SUM(spend)) spend, ROUND(SUM(revenue)) revenue, SUM(conversions) conversions, ROUND(SUM(revenue)/NULLIF(SUM(spend),0),2) roas
+                FROM performance_metrics WHERE tenant_id=? AND date>=? AND {$dim} IS NOT NULL AND {$dim}<>'' GROUP BY {$dim} ORDER BY spend DESC LIMIT 50");
+            $st->execute([$tenant, $since]); $rows = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+            $tot = ['spend' => 0.0, 'revenue' => 0.0, 'conversions' => 0.0];
+            foreach ($rows as $r) { $tot['spend'] += (float)$r['spend']; $tot['revenue'] += (float)$r['revenue']; $tot['conversions'] += (float)$r['conversions']; }
+            $tot['roas'] = $tot['spend'] > 0 ? round($tot['revenue'] / $tot['spend'], 2) : 0;
+            return ['period_days' => $period, 'dimension' => $dim, 'rows' => $rows, 'totals' => $tot];
+        } catch (\Throwable $e) { return ['error' => 'query_failed', 'rows' => []]; }
+    }
+
+    /** [255차 심화] POST /v422/ai/agentic — 에이전틱 코파일럿(읽기전용 tool-use). 자연어 질문→bi_query 실데이터 조회→근거기반 답변. */
+    public static function agenticAsk(Request $req, Response $res): Response {
+        $tenant = self::tenant($req);
+        $body = (array)($req->getParsedBody() ?? []); if (empty($body)) { $d = json_decode((string)$req->getBody(), true); if (is_array($d)) $body = $d; }
+        $q = trim((string)($body['question'] ?? $body['q'] ?? ''));
+        $w = function (array $x, int $c = 200) use ($res) { $res->getBody()->write(json_encode($x, JSON_UNESCAPED_UNICODE)); return $res->withHeader('Content-Type', 'application/json')->withStatus($c); };
+        if ($q === '') return $w(['ok' => false, 'error' => 'question required'], 422);
+        if (self::apiKey() === '') return $w(['ok' => true, 'configured' => false, 'answer' => 'AI 코파일럿 키가 설정되지 않았습니다(관리자 AI 설정에서 등록하세요).']);
+        $pdo = \Genie\Db::pdo();
+        $tools = [['name' => 'bi_query', 'description' => '테넌트의 광고 성과 데이터를 채널/캠페인/일자 차원으로 집계 조회한다(spend/revenue/conversions/roas).',
+            'input_schema' => ['type' => 'object', 'properties' => ['dimension' => ['type' => 'string', 'enum' => ['channel', 'campaign_ext_id', 'date']], 'period_days' => ['type' => 'integer']], 'required' => []]]];
+        $system = "당신은 GeniegoROI 광고 ROI 분석 코파일럿입니다. 데이터가 필요하면 bi_query 도구로 실제 수치를 조회한 뒤, 한국어로 간결·정확하게 근거(수치) 기반으로 답하세요. 도구 결과에 없는 수치를 지어내지 마세요(추측 금지).";
+        $messages = [['role' => 'user', 'content' => $q]];
+        $usedData = null;
+        for ($i = 0; $i < 3; $i++) {
+            try { $resp = self::callClaudeTools($system, $messages, $tools, 20, $tenant); }
+            catch (\Throwable $e) { return $w(['ok' => false, 'error' => $e->getMessage()]); }
+            $content = $resp['content'] ?? [];
+            if ((string)($resp['stop_reason'] ?? '') === 'tool_use') {
+                $messages[] = ['role' => 'assistant', 'content' => $content];
+                $results = [];
+                foreach ($content as $blk) {
+                    if (($blk['type'] ?? '') === 'tool_use' && ($blk['name'] ?? '') === 'bi_query') {
+                        $usedData = self::biQueryTool($pdo, $tenant, (array)($blk['input'] ?? []));
+                        $results[] = ['type' => 'tool_result', 'tool_use_id' => $blk['id'], 'content' => json_encode($usedData, JSON_UNESCAPED_UNICODE)];
+                    }
+                }
+                if (!$results) break;
+                $messages[] = ['role' => 'user', 'content' => $results];
+                continue;
+            }
+            $text = ''; foreach ($content as $blk) { if (($blk['type'] ?? '') === 'text') $text .= $blk['text']; }
+            return $w(['ok' => true, 'answer' => $text, 'data' => $usedData]);
+        }
+        return $w(['ok' => true, 'answer' => '분석을 완료하지 못했습니다(도구 반복 한도).', 'data' => $usedData]);
+    }
+
     /* ── 응답 텍스트 → 구조화 파싱 ─────────────────────────── */
     private static function parseAnalysis(string $text): array {
         // Claude에게 JSON 형식으로 응답하도록 프롬프트하므로 JSON 파싱 시도
