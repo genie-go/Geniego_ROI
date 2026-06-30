@@ -555,8 +555,13 @@ KB;
         } catch (\Throwable $e) { return ['error' => 'query_failed', 'rows' => []]; }
     }
 
-    /** [255차 심화] POST /v422/ai/agentic — 에이전틱 코파일럿(읽기전용 tool-use). 자연어 질문→bi_query 실데이터 조회→근거기반 답변. */
+    /**
+     * [255차 심화] POST /v422/ai/agentic — 에이전틱 코파일럿(tool-use). 읽기도구(bi_query)로 실데이터 조회 +
+     *   액션도구(예산/일시정지/세그먼트)는 ★제안만 생성(자동집행 금지). 제안은 agenticExecute(휴먼-인-루프 승인) 로만 집행.
+     *   Salesforce Einstein Copilot 정합 — 단, 실광고비 영향 액션은 사용자 승인 없이 절대 실행하지 않는다(은행급 안전).
+     */
     public static function agenticAsk(Request $req, Response $res): Response {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
         $tenant = self::tenant($req);
         $body = (array)($req->getParsedBody() ?? []); if (empty($body)) { $d = json_decode((string)$req->getBody(), true); if (is_array($d)) $body = $d; }
         $q = trim((string)($body['question'] ?? $body['q'] ?? ''));
@@ -564,22 +569,43 @@ KB;
         if ($q === '') return $w(['ok' => false, 'error' => 'question required'], 422);
         if (self::apiKey() === '') return $w(['ok' => true, 'configured' => false, 'answer' => 'AI 코파일럿 키가 설정되지 않았습니다(관리자 AI 설정에서 등록하세요).']);
         $pdo = \Genie\Db::pdo();
-        $tools = [['name' => 'bi_query', 'description' => '테넌트의 광고 성과 데이터를 채널/캠페인/일자 차원으로 집계 조회한다(spend/revenue/conversions/roas).',
-            'input_schema' => ['type' => 'object', 'properties' => ['dimension' => ['type' => 'string', 'enum' => ['channel', 'campaign_ext_id', 'date']], 'period_days' => ['type' => 'integer']], 'required' => []]]];
-        $system = "당신은 GeniegoROI 광고 ROI 분석 코파일럿입니다. 데이터가 필요하면 bi_query 도구로 실제 수치를 조회한 뒤, 한국어로 간결·정확하게 근거(수치) 기반으로 답하세요. 도구 결과에 없는 수치를 지어내지 마세요(추측 금지).";
+        $obj = fn($p, $r = []) => ['type' => 'object', 'properties' => $p, 'required' => $r];
+        $tools = [
+            ['name' => 'bi_query', 'description' => '광고 성과 데이터를 채널/캠페인/일자 차원으로 집계 조회(spend/revenue/conversions/roas).',
+                'input_schema' => $obj(['dimension' => ['type' => 'string', 'enum' => ['channel', 'campaign_ext_id', 'date']], 'period_days' => ['type' => 'integer']])],
+            // ── 액션 도구(제안만·자동집행 금지) ──
+            ['name' => 'propose_pause_campaign', 'description' => '낭비 캠페인 일시정지를 제안한다(실행 아님·사용자 승인 필요). 전환 없이 지출 큰 캠페인 등.',
+                'input_schema' => $obj(['channel' => ['type' => 'string'], 'campaign_ext_id' => ['type' => 'string'], 'reason' => ['type' => 'string']], ['channel', 'campaign_ext_id'])],
+            ['name' => 'propose_budget_change', 'description' => '캠페인 일예산 변경을 제안한다(실행 아님·승인 필요). new_daily_krw=신규 일예산(원).',
+                'input_schema' => $obj(['channel' => ['type' => 'string'], 'campaign_ext_id' => ['type' => 'string'], 'new_daily_krw' => ['type' => 'integer'], 'reason' => ['type' => 'string']], ['channel', 'campaign_ext_id', 'new_daily_krw'])],
+            ['name' => 'propose_create_segment', 'description' => 'CRM 세그먼트 생성을 제안한다(실행 아님·승인 필요). rules=[{field,op,value}].',
+                'input_schema' => $obj(['name' => ['type' => 'string'], 'rules' => ['type' => 'array']], ['name'])],
+        ];
+        $system = "당신은 GeniegoROI 광고 ROI·CRM 자동화 코파일럿입니다. 데이터가 필요하면 bi_query 로 실제 수치를 조회하세요. "
+            . "예산 변경·캠페인 정지·세그먼트 생성 같은 액션은 propose_* 도구로 '제안'만 하세요(절대 직접 실행 아님). "
+            . "한국어로 간결·정확하게 근거(수치) 기반 답하고, 제안한 액션은 사용자가 승인해야 실행됨을 명시하세요. 추측 금지.";
         $messages = [['role' => 'user', 'content' => $q]];
-        $usedData = null;
-        for ($i = 0; $i < 3; $i++) {
-            try { $resp = self::callClaudeTools($system, $messages, $tools, 20, $tenant); }
+        $usedData = null; $proposals = [];
+        for ($i = 0; $i < 4; $i++) {
+            try { $resp = self::callClaudeTools($system, $messages, $tools, 22, $tenant); }
             catch (\Throwable $e) { return $w(['ok' => false, 'error' => $e->getMessage()]); }
             $content = $resp['content'] ?? [];
             if ((string)($resp['stop_reason'] ?? '') === 'tool_use') {
                 $messages[] = ['role' => 'assistant', 'content' => $content];
                 $results = [];
                 foreach ($content as $blk) {
-                    if (($blk['type'] ?? '') === 'tool_use' && ($blk['name'] ?? '') === 'bi_query') {
-                        $usedData = self::biQueryTool($pdo, $tenant, (array)($blk['input'] ?? []));
-                        $results[] = ['type' => 'tool_result', 'tool_use_id' => $blk['id'], 'content' => json_encode($usedData, JSON_UNESCAPED_UNICODE)];
+                    if (($blk['type'] ?? '') !== 'tool_use') continue;
+                    $name = (string)($blk['name'] ?? ''); $in = (array)($blk['input'] ?? []); $tid = $blk['id'];
+                    if ($name === 'bi_query') {
+                        $usedData = self::biQueryTool($pdo, $tenant, $in);
+                        $results[] = ['type' => 'tool_result', 'tool_use_id' => $tid, 'content' => json_encode($usedData, JSON_UNESCAPED_UNICODE)];
+                    } elseif (str_starts_with($name, 'propose_')) {
+                        $action = substr($name, 8); // pause_campaign|budget_change|create_segment
+                        $proposals[] = ['action' => $action, 'params' => $in];
+                        // ★집행하지 않음 — 제안만 기록. AI 에게는 "승인 대기 중" 통지.
+                        $results[] = ['type' => 'tool_result', 'tool_use_id' => $tid, 'content' => json_encode(['status' => 'proposed', 'note' => '사용자 승인 후 실행됩니다(자동집행 안 함).'], JSON_UNESCAPED_UNICODE)];
+                    } else {
+                        $results[] = ['type' => 'tool_result', 'tool_use_id' => $tid, 'content' => json_encode(['error' => 'unknown_tool'])];
                     }
                 }
                 if (!$results) break;
@@ -587,9 +613,49 @@ KB;
                 continue;
             }
             $text = ''; foreach ($content as $blk) { if (($blk['type'] ?? '') === 'text') $text .= $blk['text']; }
-            return $w(['ok' => true, 'answer' => $text, 'data' => $usedData]);
+            return $w(['ok' => true, 'answer' => $text, 'data' => $usedData, 'proposed_actions' => $proposals]);
         }
-        return $w(['ok' => true, 'answer' => '분석을 완료하지 못했습니다(도구 반복 한도).', 'data' => $usedData]);
+        return $w(['ok' => true, 'answer' => '분석을 완료하지 못했습니다(도구 반복 한도).', 'data' => $usedData, 'proposed_actions' => $proposals]);
+    }
+
+    /**
+     * [255차 심화] POST /v422/ai/agentic/execute — 코파일럿 제안 액션의 휴먼-인-루프 집행.
+     *   사용자가 명시 승인한 단일 액션만 실행. 기존 가드레일 핸들러(AdAdapters killswitch/card·CRM) 재사용 → 안전.
+     *   body: {action: pause_campaign|budget_change|create_segment, params:{...}}.
+     */
+    public static function agenticExecute(Request $req, Response $res): Response {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        $tenant = self::tenant($req);
+        $w = function (array $x, int $c = 200) use ($res) { $res->getBody()->write(json_encode($x, JSON_UNESCAPED_UNICODE)); return $res->withHeader('Content-Type', 'application/json')->withStatus($c); };
+        $body = (array)($req->getParsedBody() ?? []); if (empty($body)) { $d = json_decode((string)$req->getBody(), true); if (is_array($d)) $body = $d; }
+        $action = (string)($body['action'] ?? ''); $p = (array)($body['params'] ?? []);
+        $pdo = \Genie\Db::pdo();
+        try {
+            if ($action === 'pause_campaign') {
+                $ch = (string)($p['channel'] ?? ''); $ext = (string)($p['campaign_ext_id'] ?? '');
+                if ($ch === '' || $ext === '') return $w(['ok' => false, 'error' => 'channel·campaign_ext_id 필요'], 422);
+                $r = AdAdapters::pause($pdo, $tenant, $ch, $ext); // killswitch/자격 게이트 내장
+                return $w(['ok' => !empty($r['ok']), 'action' => $action, 'result' => $r]);
+            }
+            if ($action === 'budget_change') {
+                $ch = (string)($p['channel'] ?? ''); $ext = (string)($p['campaign_ext_id'] ?? ''); $nd = (int)($p['new_daily_krw'] ?? 0);
+                if ($ch === '' || $ext === '' || $nd <= 0) return $w(['ok' => false, 'error' => 'channel·campaign_ext_id·new_daily_krw 필요'], 422);
+                $r = AdAdapters::updateBudget($pdo, $tenant, $ch, $ext, $nd); // 통화환산·killswitch 내장
+                return $w(['ok' => !empty($r['ok']), 'action' => $action, 'result' => $r]);
+            }
+            if ($action === 'create_segment') {
+                $name = trim((string)($p['name'] ?? '')); $rules = is_array($p['rules'] ?? null) ? $p['rules'] : [];
+                if ($name === '') return $w(['ok' => false, 'error' => 'name 필요'], 422);
+                CRM::ensureTables();
+                $now = gmdate('Y-m-d H:i:s');
+                $pdo->prepare("INSERT INTO crm_segments (tenant_id,name,description,rules,color,created_at,updated_at) VALUES (?,?,?,?,?,?,?)")
+                    ->execute([$tenant, mb_substr($name, 0, 100), 'AI 코파일럿 제안', json_encode($rules, JSON_UNESCAPED_UNICODE), '#8b5cf6', $now, $now]);
+                $sid = (int)$pdo->lastInsertId();
+                $cnt = CRM::refreshSegmentForSend($pdo, $tenant, $sid); // 룰 있으면 멤버 산출
+                return $w(['ok' => true, 'action' => $action, 'segment_id' => $sid, 'member_count' => $cnt]);
+            }
+            return $w(['ok' => false, 'error' => 'unknown action: ' . $action], 422);
+        } catch (\Throwable $e) { return $w(['ok' => false, 'error' => $e->getMessage()]); }
     }
 
     /* ── 응답 텍스트 → 구조화 파싱 ─────────────────────────── */

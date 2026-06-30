@@ -46,8 +46,10 @@ return function (App $app): void {
         // v422 AI 마케팅 추천 (전체 카테고리 지원)
         'POST /v422/ai/campaign-search'      => 'Genie\\Handlers\\ClaudeAI::campaignSearch',
         'POST /v422/ai/assistant'            => 'Genie\\Handlers\\ClaudeAI::assistant', // [현 차수] 무엇이든 물어보세요 상담 챗봇(15개국)
-        'POST /v422/ai/agentic'              => 'Genie\\Handlers\\ClaudeAI::agenticAsk', // [255차 심화] 에이전틱 코파일럿(읽기전용 tool-use)
+        'POST /v422/ai/agentic'              => 'Genie\\Handlers\\ClaudeAI::agenticAsk', // [255차 심화] 에이전틱 코파일럿(tool-use)
         'POST /api/v422/ai/agentic'          => 'Genie\\Handlers\\ClaudeAI::agenticAsk',
+        'POST /v422/ai/agentic/execute'      => 'Genie\\Handlers\\ClaudeAI::agenticExecute', // [255차 심화] 제안 액션 휴먼-인-루프 집행
+        'POST /api/v422/ai/agentic/execute'  => 'Genie\\Handlers\\ClaudeAI::agenticExecute',
         'POST /v422/ai/live-assist'          => 'Genie\\Handlers\\ClaudeAI::liveAssist',
         'POST /v422/ai/campaign-ad-creative' => 'Genie\\Handlers\\ClaudeAI::campaignAdCreative',
 
@@ -2140,6 +2142,7 @@ return function (App $app): void {
     $register('POST', '/v422/ai/campaign-search');
     $register('POST', '/v422/ai/assistant'); // [현 차수] 무엇이든 물어보세요 상담 챗봇
     $register('POST', '/v422/ai/agentic'); $register('POST', '/api/v422/ai/agentic'); // [255차 심화] 에이전틱 코파일럿
+    $register('POST', '/v422/ai/agentic/execute'); $register('POST', '/api/v422/ai/agentic/execute');
     $register('POST', '/v422/ai/live-assist');
     $register('POST', '/v422/ai/campaign-ad-creative');
     $register('POST', '/v422/ai/campaign-ad-design');
