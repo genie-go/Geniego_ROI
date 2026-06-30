@@ -189,7 +189,8 @@ final class Line
         $cid = (int)$args['id'];
         $camp = $pdo->prepare("SELECT * FROM line_campaigns WHERE id=? AND tenant_id=?");
         $camp->execute([$cid, $tenant]);
-        if (!$camp->fetch()) return TemplateResponder::respond($res->withStatus(404), ['ok' => false, 'error' => '캠페인 없음']);
+        $campaign = $camp->fetch(PDO::FETCH_ASSOC);
+        if (!$campaign) return TemplateResponder::respond($res->withStatus(404), ['ok' => false, 'error' => '캠페인 없음']);
 
         $cfg = $pdo->prepare("SELECT access_token FROM line_settings WHERE tenant_id=? AND test_status='ok'");
         $cfg->execute([$tenant]);
@@ -198,8 +199,14 @@ final class Line
             return TemplateResponder::respond($res->withStatus(422), ['ok' => false, 'mode' => 'unconfigured',
                 'error' => 'LINE 채널 설정이 없습니다. 설정에서 Access Token 을 먼저 등록하세요.']);
         }
-        // 실 브로드캐스트(텍스트). 템플릿 본문은 별도 단계로 확장 가능.
-        $r = self::broadcast(\Genie\Crypto::decrypt((string)$s['access_token']), '(LINE 캠페인 메시지)'); // [현 차수] Low: 복호화(평문 passthrough 하위호환)
+        // [254차 초고도화] 실 브로드캐스트 — 캠페인 연결 템플릿 본문(line_templates.content)을 사용(기존 하드코딩 제거).
+        $msg = '';
+        $tid = (int)($campaign['template_id'] ?? 0);
+        if ($tid > 0) {
+            try { $tq = $pdo->prepare("SELECT content FROM line_templates WHERE id=? AND tenant_id=?"); $tq->execute([$tid, $tenant]); $msg = trim((string)($tq->fetchColumn() ?: '')); } catch (\Throwable $e) {}
+        }
+        if ($msg === '') $msg = trim((string)($campaign['name'] ?? '')) ?: 'GenieGo';
+        $r = self::broadcast(\Genie\Crypto::decrypt((string)$s['access_token']), $msg); // [현 차수] Low: 복호화(평문 passthrough 하위호환)
         $pdo->prepare("UPDATE line_campaigns SET status='sent', sent_at=? WHERE id=? AND tenant_id=?")->execute([self::now(), $cid, $tenant]);
         return TemplateResponder::respond($res, ['ok' => $r['ok'], 'mode' => 'live', 'error' => $r['error'] ?? null]);
     }

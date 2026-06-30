@@ -195,7 +195,7 @@ class KakaoChannel
 
         if ($mode === 'live' && !empty($cfg['sender_key']) && !empty($cfg['api_key'])) {
             $content = str_replace('{{name}}', $b['name']??'고객', $template['content']);
-            $result = self::callKakaoAPI($cfg, $phone, $template['template_code'], $content, json_decode($template['buttons']??'[]',true));
+            $result = self::callKakaoAPI($cfg, $phone, $template['template_code'], $content, json_decode($template['buttons']??'[]',true), ['name' => (string)($b['name'] ?? '고객')]);
             return self::jsonRes($res, ['ok'=>true,'mode'=>'live','result'=>$result]);
         }
         return self::jsonRes($res, ['ok'=>true,'mode'=>'mock','message'=>"[Mock] {$template['name']} → {$phone} 발송 시뮬레이션 완료",'phone'=>$phone,'content'=>$template['content']]);
@@ -290,7 +290,7 @@ class KakaoChannel
             $content = $template ? str_replace('{{name}}', $c['name']??'고객', $template['content']) : '';
             $status  = 'mock_sent';
             if ($mode === 'live' && !empty($cfg['sender_key'])) {
-                $result = self::callKakaoAPI($cfg, $phone, $campaign['template_code'], $content, json_decode($template['buttons']??'[]',true));
+                $result = self::callKakaoAPI($cfg, $phone, $campaign['template_code'], $content, json_decode($template['buttons']??'[]',true), ['name' => (string)($c['name'] ?? '고객')]);
                 $status = ($result['code']??'E') === '0000' ? 'sent' : 'failed';
             }
             if ($status === 'failed') { $failed++; } else { $success++; }
@@ -346,13 +346,16 @@ class KakaoChannel
     }
 
     /* ─── 카카오 API 호출 (비즈메시지 알림톡) ────────────────────── */
-    private static function callKakaoAPI(array $cfg, string $phone, string $tplCode, string $content, array $buttons): array
+    private static function callKakaoAPI(array $cfg, string $phone, string $tplCode, string $content, array $buttons, array $vars = []): array
     {
+        // [254차 초고도화] 알림톡 templateParameter 개인화 — 수신자 실제 변수($vars) 바인딩(기존 '고객' 고정 제거).
+        //   Kakao 비즈메시지는 등록 템플릿의 {{변수}}를 templateParameter 로 채우므로 실명/머지변수 전달이 필수.
+        $tp = !empty($vars) ? array_map('strval', $vars) : ['name' => '고객'];
         $url  = 'https://alimtalk-api.kakao.com/v2/senderkeys/'.$cfg['sender_key'].'/messages';
         $body = json_encode([
             'senderKey'    => $cfg['sender_key'],
             'templateCode' => $tplCode,
-            'recipientList' => [['recipientNo'=>$phone, 'templateParameter'=>['name'=>'고객'], 'buttons'=>$buttons]],
+            'recipientList' => [['recipientNo'=>$phone, 'templateParameter'=>$tp, 'buttons'=>$buttons]],
             'messageType' => 'AT',
             'message'     => $content,
         ]);
