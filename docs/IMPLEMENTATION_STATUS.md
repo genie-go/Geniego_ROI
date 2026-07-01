@@ -131,3 +131,15 @@
 | ③-3 | ESS/MCSE/accept_rate 프론트 노출 | ✅ 2026-07 | `MarketingMix.jsx` ESS/MCSE 배지(백엔드 이미 산출) |
 | ③-4 | model agreement/confidence 패널 | ✅ 2026-07 | ConfidenceTab 을 실 `/attribution/confidence` 배선(그간 로컬데모만 사용)+모델합의도 consensus 컬럼·실측배지. 데모 폴백 보존 |
 | ③-5 | geo-holdout 설계/readiness UI | ✅ 2026-07 | IncrementalityTab 에 geo-readiness 패널(균형분할·검정력·실험/대조군 추천) — 실 엔드포인트 배선 |
+
+## 🔺 남은 약점 보강 라운드2 (2026-07) — ⑥ CRM 심도(Braze 격차 축소)
+| 갭 | 상태 | 비고 |
+|-----|------|------|
+| ⑥ STO ML 정밀화 | ✅ 2026-07 | `optimalHourFor` 최근 오픈 지수감쇠 가중(Braze Intelligent Timing식). 반환=시각(0~23) 불변→큐정합·회귀0 |
+| ⑥ 저니 속성(attr) 노드 | ✅ 2026-07 | 여정 중 crm_customers.tags 갱신(Braze Update Attribute). tags만(RFM grade 미충돌·중복0·상한30)+프론트 attr 노드타입 |
+
+### ❌ 코드로 안전하게 보강 불가(정직 — 무리한 블라인드 구현 금지)
+- **④ 영상 DCO·CTV/DSP 실집행·PMax**: 외부 text-to-video API·DSP/광고 크리덴셜 필요. 검증 불가한 블라인드 구현은 라이브 시 오류 유발 → **키 등록 후** 검증과 함께.
+- **⑦ SOC2 Type II·ISO 27001 인증**: 외부 감사 프로세스(코드 아님). 준비도 대시보드(posture)는 완비.
+- **① 원시 국내마켓 채널 수(사방넷 650)**: 각 벤더 실 API·크리덴셜 필요. 미보유 채널은 genericFetch 정직 pending 으로 커버.
+- **④⑥ 엔터프라이즈 검증 연차·발신 규모**: 시간/운영 축적 항목(코드 불가).

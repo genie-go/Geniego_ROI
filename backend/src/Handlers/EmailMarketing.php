@@ -116,11 +116,16 @@ class EmailMarketing
             $st->execute([':t'=>$tenant, ':e'=>$email]);
             $hist = $st->fetchAll(\PDO::FETCH_COLUMN) ?: [];
             if (count($hist) < 2) return null;
+            // [현 차수 초고도화 ⑥] STO 정밀화(Braze Intelligent Timing식) — 최근 오픈에 지수 감쇠 가중.
+            //   최근 행동일수록 현재 선호시각을 더 반영. 반환은 여전히 시각(0~23)이라 큐 매칭 정합 불변(회귀0).
+            $nowU = time();
             $buckets = [];
             foreach ($hist as $ts) {
                 $u = strtotime((string)$ts); if ($u === false) continue;
                 $h = (int)gmdate('G', $u + 9 * 3600); // KST = UTC+9
-                $buckets[$h] = ($buckets[$h] ?? 0) + 1;
+                $ageDays = max(0.0, ($nowU - $u) / 86400.0);
+                $w = exp(-$ageDays / 30.0); // 30일 스케일 지수 감쇠(최근일수록 가중 ↑)
+                $buckets[$h] = ($buckets[$h] ?? 0.0) + $w;
             }
             if (!$buckets) return null;
             arsort($buckets);

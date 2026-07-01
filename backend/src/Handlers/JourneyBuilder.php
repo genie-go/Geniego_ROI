@@ -534,6 +534,29 @@ class JourneyBuilder
                 continue;
             }
 
+            // ── [현 차수 초고도화 ⑥] attr: 속성 업데이트 노드(Braze Update Attribute) — 여정 중 고객 tags 갱신 ──
+            //   기존 crm_customers.tags(JSON) 재사용. RFM grade 는 미변경(자동 재계산과 충돌 방지). 중복 없이 추가·상한30.
+            if ($type === 'attr') {
+                $cid = (int)($enr['customer_id'] ?? 0);
+                $tag = trim((string)(($node['config']['tag'] ?? $node['config']['value'] ?? '')));
+                if ($cid > 0 && $tag !== '') {
+                    try {
+                        $ts = $pdo->prepare("SELECT tags FROM crm_customers WHERE id=:id AND tenant_id=:t");
+                        $ts->execute([':id' => $cid, ':t' => $tenant]);
+                        $cur = json_decode((string)($ts->fetchColumn() ?: '[]'), true); if (!is_array($cur)) $cur = [];
+                        if (!in_array($tag, $cur, true)) {
+                            $cur[] = mb_substr($tag, 0, 40);
+                            $pdo->prepare("UPDATE crm_customers SET tags=:g, updated_at=:u WHERE id=:id AND tenant_id=:t")
+                                ->execute([':g' => json_encode(array_slice($cur, 0, 30), JSON_UNESCAPED_UNICODE), ':u' => $now, ':id' => $cid, ':t' => $tenant]);
+                        }
+                    } catch (\Throwable $e) {}
+                }
+                self::logNode($pdo, $tenant, $enrollId, $jid, $nodeId, 'attr', 'tag_updated', ['tag' => $tag]);
+                $actions[] = ['node' => $nodeId, 'action' => 'attr_tag'];
+                $nodeId = self::nextNode($edges, $nodeId, null);
+                continue;
+            }
+
             // ── [현 차수] goal: 전환 목표 도달 기록(여정·등록건 전환 카운트) ──
             if ($type === 'goal') {
                 self::logNode($pdo, $tenant, $enrollId, $jid, $nodeId, 'goal', 'goal_reached', ['goal'=>(string)($node['label'] ?? 'goal')]);

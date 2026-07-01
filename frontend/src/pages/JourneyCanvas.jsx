@@ -18,6 +18,7 @@ const NODE_TYPES = {
   split:     { label: 'A/B 스플릿', icon: '🧪', color: '#06b6d4', branches: ['a', 'b'] },
   webhook:   { label: '웹훅(외부호출)', icon: '🔗', color: '#0891b2' }, // [255차 심화] 외부 HTTP 액션
   nba:       { label: 'AI 최적채널(NBA)', icon: '🧠', color: '#8b5cf6' }, // [현 차수 초고도화 ②] Thompson 밴딧 = 고객별 최적 채널 자동선택 발송
+  attr:      { label: '속성 업데이트(태그)', icon: '🏷️', color: '#0d9488' }, // [현 차수 초고도화 ⑥] 여정 중 고객 태그 갱신(Braze Update Attribute)
   goal:      { label: '목표(전환)', icon: '🎯', color: '#ef4444' },
 };
 const NODE_W = 150, NODE_H = 56;
