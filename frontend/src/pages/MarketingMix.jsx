@@ -336,6 +336,11 @@ export default function MarketingMix() {
                                 R̂={c.rhat}{c.converged ? ' ✓' : ''}
                               </span>
                             )}
+                            {c.ess != null && (
+                              <span title={t('mmm.bayesEssTip', '유효표본수(ESS)=사후분포 독립표본 수(클수록 신뢰↑) · MCSE=몬테카를로 표준오차(작을수록 정밀). Stan/PyMC 표준 진단.')} style={{ fontSize: 10, fontWeight: 800, color: Number(c.ess) >= 200 ? '#16a34a' : '#d97706', background: 'rgba(99,102,241,0.08)', padding: '2px 7px', borderRadius: 99 }}>
+                                ESS={Math.round(Number(c.ess))}{c.mcse != null ? ` · MCSE ${Number(c.mcse).toFixed(3)}` : ''}
+                              </span>
+                            )}
                             <span style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8' }}>{c.stability === 'high' ? t('mmm.bayesStable', '안정') : c.stability === 'medium' ? t('mmm.bayesMid', '보통') : t('mmm.bayesVolatile', '변동')}</span>
                           </div>
                         </div>

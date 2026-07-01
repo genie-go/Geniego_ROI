@@ -16,6 +16,7 @@ const NODE_TYPES = {
   condition: { label: '조건 분기',  icon: '🔀', color: '#a855f7', branches: ['true', 'false'] },
   split:     { label: 'A/B 스플릿', icon: '🧪', color: '#06b6d4', branches: ['a', 'b'] },
   webhook:   { label: '웹훅(외부호출)', icon: '🔗', color: '#0891b2' }, // [255차 심화] 외부 HTTP 액션
+  nba:       { label: 'AI 최적채널(NBA)', icon: '🧠', color: '#8b5cf6' }, // [현 차수 초고도화 ②] Thompson 밴딧 = 고객별 최적 채널 자동선택 발송
   goal:      { label: '목표(전환)', icon: '🎯', color: '#ef4444' },
 };
 const NODE_W = 150, NODE_H = 56;

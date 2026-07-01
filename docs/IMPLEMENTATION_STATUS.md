@@ -115,18 +115,18 @@
 
 | # | 갭 | 상태 | 비고 |
 |---|-----|------|------|
-| ①-1 | 조합형 DCO(M이미지×N카피 데카르트곱) | 🔧 | `CreativeStore::batch` 확장(현재 1이미지×N카피) |
-| ①-2 | Advantage+/PMax 캠페인 타입·asset group | ⏳ | metaCreate/googleCreate 확장(순수코드) |
+| ①-1 | 조합형 DCO(M이미지×N카피 데카르트곱) | ✅ 2026-07 | `CreativeStudio::batch` image_count 확장(1이면 기존동작 보존). 프론트 image_count 컨트롤=폴리싱 잔여 |
+| ①-2 | Advantage+/PMax 캠페인 타입·asset group | ⏳ | metaCreate/googleCreate 확장(순수코드·라이브 크리덴셜 검증 필요) |
 | ①-3 | 멀티 종횡비 배치 자동생성 | ⏳ | 순수코드 |
-| ①-4 | Meta 빈도캡·Naver/LINE 스마트입찰 | ⏳ | 순수코드 |
+| ①-4 | Meta 빈도캡·Naver/LINE 스마트입찰 | ⏳ | 순수코드·외부 API 파라미터라 라이브 검증 필요 |
 | ①-5 | CTV/DSP 실집행(amazon_dsp/DV360)·영상생성 | ⏳ | **외부 크리덴셜/API 필요** |
 | ①-6 | 카탈로그 DPA(product_set) | ⏳ | product_catalog_id 크리덴셜 필요 |
-| ②-1 | NBA/RL 저니노드(Thompson) | ⏳ | CustomerAI 스텁 → 저니노드+기존 밴딧 재사용 |
-| ②-2 | 옴니 워터폴 SMS 편입 | ⏳ | SmsMarketing::sendPlatform 재사용(LINE은 프리미티브 부재) |
+| ②-1 | NBA/RL 저니노드(Thompson) | ✅ 2026-07 | `JourneyBuilder::nbaNode` 데이터기반 밴딧+프론트 nba 노드타입. 기존 발송노드 재사용 |
+| ②-2 | 옴니 워터폴 SMS 편입 | ⏳ | SmsMarketing::sendPlatform 재사용(LINE은 프리미티브 부재→리팩터 필요) |
 | ②-3 | 딜리버러빌리티 워밍업 램프·DMARC rua 수집 | ⏳ | 워밍업=순수코드, 전용IP/BIMI=인프라 |
 | ②-4 | 저니 push/속성/이탈 노드 | ⏳ | 순수코드(WebPush 재사용) |
-| ③-1 | MMM OOS 백테스트(예측 vs 실측) | ⏳ | `Mmm::backtest` 신설(loadSeries+fitChannel 재사용) |
+| ③-1 | MMM OOS 백테스트(예측 vs 실측) | ⏳ | `Mmm::backtest` 신설 — fitChannel 정상상태 보정 정밀추출 필요(급구현 시 오통계 위험→신중) |
 | ③-2 | 증분성 캘리브레이션 리포트(모델 vs 실험) | ⏳ | blendedIncrementality 확장 |
-| ③-3 | ESS/MCSE/accept_rate 프론트 노출 | ⏳ | 산출됨·노출만(순수 프론트) |
+| ③-3 | ESS/MCSE/accept_rate 프론트 노출 | ✅ 2026-07 | `MarketingMix.jsx` ESS/MCSE 배지(백엔드 이미 산출) |
 | ③-4 | model agreement/confidence 패널 | ⏳ | 엔드포인트 있음·프론트 배선만 |
 | ③-5 | geo-holdout 설계/readiness UI | ⏳ | 엔드포인트 있음·프론트 배선만 |
