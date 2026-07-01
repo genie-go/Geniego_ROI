@@ -9,6 +9,9 @@
 > - 진짜 신규 갭만 보고하되, 반드시 이 문서에 없음을 먼저 확인하십시오.
 > - 매 검증 후 새로 구현·확인된 것은 이 문서에 **추가 갱신**하십시오(이력 보존).
 > - 상태 표기: ✅ 구현·배포됨 · 🔧 진행중 · ⏳ 보류(외부 크리덴셜/인프라 필요)
+>
+> ## ★ 사용자 지시(2026-07 257차) — 초고도화 중복 방지 정책
+> **초고도화 착수 전, 대상 기능이 이 문서에 이미 "✅ 구현됨"으로 있는지 먼저 확인**한다. 이미 있으면 **재구현 금지** — "다음에 초고도화가 진짜 필요할 때만 기존 구현을 심화(enhance)"한다. 새로 구현하거나 재확인한 것은 즉시 이 문서에 기록해, 다음 세션이 같은 것을 다시 만들지 않도록 이력을 남긴다. (예: 257차에 CRM 예측세그 자동화·Onsite 노코드 체인지셋이 이미 구현돼 있음을 확인 → 재구현 대신 Onsite 빌더 UI만 추가.)
 
 ---
 
@@ -70,6 +73,7 @@
 - 이메일 딜리버러빌리티: suppression/unsub/bounce·**STO**(수신자별 최적시각)·**베이지안 A/B**(전환기반)·평판(bounce/complaint/reputation)·**라이브 SPF/DMARC DNS 검사**·일일 평판 스냅샷+경보. `EmailMarketing.php:112-956`
 - DKIM 서명 인프라(OpenDKIM, selector geniemail). `reference_mail_sms_infra`(라이브 재확인 권장)
 - **ISO-1(2026-07 완료)**: WhatsApp/SMS plan() 폴백 안전화.
+- **★예측형 CDP·예측세그먼트 자동화 = 이미 구현(재구현 금지)**: churn_prob/predicted_clv 생존모델(`CRM::addPredictiveScores`, 240차)·예측 세그먼트 템플릿(고가치예측/이탈위험예측)·**자동 재편입 cron 배선 완료**(`CRM::autoRefreshPredictiveSegments` ← `bin/crm_email_daily_cron.php:57` 일일 호출). CRM.php:662 "[차기 P2]" 주석은 stale(배선은 이미 됨). 심화 여지=예측 정밀도·in-app/웹푸시 옴니뿐.
 
 ## 7) 보안·엔터프라이즈 (Security) — ✅ 완비
 - RBAC(viewer<connector<analyst<admin+scope)·ABAC(channel/product/brand). 
@@ -107,6 +111,7 @@
 - **온보딩/가이드**: OnboardingGuide, 발급매뉴얼 제너레이터, DashGuide, GuideWizard.
 - **PM(프로젝트관리)**: Task/Milestone/Gantt/Portfolio/Resources/RAID/EVM·SSE 실시간.
 - **공개/기타**: Landing/Pricing 공개페이지, PartnerPortal(파트너토큰 자가인증), DeveloperHub, CaseStudy, FeedbackCenter, Reports/ReportBuilder(사용자정의 메트릭), DataSchema/DataTrust/DataProduct, PixelTracking, WebPush.
+- **온사이트 CRO(`/onsite-cro`, OnsiteCro.jsx·Onsite.php)**: 실험 CRUD·결정론 버킷팅·z검정 승자·세그먼트 타겟(기기/방문자)·비콘 metric-poisoning 방어(배정원장+레이트리밋). **노코드 변경(체인지셋 selector→text/html/css/hide/redirect)**: 백엔드 저장(variants_json)+비콘 반환+**클라 자동적용**(`lib/onsiteCro.js applyChanges`·`assignVariant(key,{autoApply})`) = 246차 완료. **★257차 추가=노코드 변경 빌더 UI**(생성폼에서 코드 없이 체인지셋 작성). 심화 여지=라이브 페이지 WYSIWYG 오버레이 에디터(브라우저확장급·외부).
 
 > **참고**: 전체 세션별 상세 구현 이력은 `NEXT_SESSION.md` 및 사용자 자동메모리(`MEMORY.md` 인덱스 → project_* 파일들)에 250+ 차수로 누적. 본 문서는 도메인별 정본 요약. 신규 감사 시 이 문서 + NEXT_SESSION.md 최근 차수 + FP 레지스트리(reference_audit_false_positives)를 함께 참조.
 

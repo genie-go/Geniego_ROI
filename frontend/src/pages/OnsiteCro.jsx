@@ -9,7 +9,13 @@ export default function OnsiteCro() {
   const t = useT();
   const [exps, setExps] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [form, setForm] = useState({ name: '', goal: '', vA: '대조군(A)', wA: 50, vB: '변형(B)', wB: 50, device: 'all', visitor: 'all' });
+  const [form, setForm] = useState({ name: '', goal: '', vA: '대조군(A)', wA: 50, vB: '변형(B)', wB: 50, device: 'all', visitor: 'all', changesB: [] });
+  const [showChanges, setShowChanges] = useState(false);
+  // [257차] 노코드 변경(체인지셋) 빌더 — B 변형에 selector→동작 변경을 코드 없이 작성.
+  //   백엔드(Onsite variants_json)·비콘·클라(onsiteCro.applyChanges)는 이미 지원 → 작성 UI만 부재였음.
+  const addChange = () => setForm(f => ({ ...f, changesB: [...(f.changesB || []), { selector: '', action: 'text', value: '', prop: '' }] }));
+  const updChange = (i, k, val) => setForm(f => ({ ...f, changesB: (f.changesB || []).map((c, idx) => idx === i ? { ...c, [k]: val } : c) }));
+  const rmChange = (i) => setForm(f => ({ ...f, changesB: (f.changesB || []).filter((_, idx) => idx !== i) }));
   const [results, setResults] = useState({}); // {id: resultObj}
   const [msg, setMsg] = useState('');
   const [showGuide, setShowGuide] = useState(false);
@@ -27,15 +33,28 @@ export default function OnsiteCro() {
   const create = async () => {
     if (!form.name.trim()) { setMsg(t('cro.nameReq', '실험명을 입력하세요.')); return; }
     try {
+      // [257차] B 변형 노코드 체인지셋 정제 — 유효행만(redirect=값필요, hide=selector만, text/html=selector+값, css=selector+prop+값).
+      const cleanB = (form.changesB || []).map(c => {
+        const action = c.action || 'text';
+        const sel = (c.selector || '').trim();
+        if (action === 'redirect') return (c.value || '').trim() ? { action, value: (c.value || '').trim() } : null;
+        if (!sel) return null;
+        if (action === 'hide') return { selector: sel, action };
+        if (action === 'css') return (c.prop || '').trim() && c.value !== '' ? { selector: sel, action, prop: (c.prop || '').trim(), value: c.value } : null;
+        return c.value !== '' ? { selector: sel, action, value: c.value } : null; // text|html
+      }).filter(Boolean);
+      const variantB = { key: 'B', label: form.vB || 'B', weight: Number(form.wB) || 50 };
+      if (cleanB.length) variantB.changes = cleanB;
       await postJsonAuth('/v424/cro/experiments', {
         name: form.name.trim(), goal: form.goal.trim(),
         variants: [
           { key: 'A', label: form.vA || 'A', weight: Number(form.wA) || 50 },
-          { key: 'B', label: form.vB || 'B', weight: Number(form.wB) || 50 },
+          variantB,
         ],
         audience: (form.device !== 'all' || form.visitor !== 'all') ? { device: form.device, visitor: form.visitor } : null,
       });
-      setForm({ name: '', goal: '', vA: '대조군(A)', wA: 50, vB: '변형(B)', wB: 50, device: 'all', visitor: 'all' });
+      setForm({ name: '', goal: '', vA: '대조군(A)', wA: 50, vB: '변형(B)', wB: 50, device: 'all', visitor: 'all', changesB: [] });
+      setShowChanges(false);
       setMsg(t('cro.created', '실험이 생성되었습니다(실행 중).')); load();
     } catch { setMsg(t('cro.createFail', '생성 실패')); }
   };
@@ -90,8 +109,44 @@ export default function OnsiteCro() {
           <button onClick={create} style={{ padding: '8px 16px', borderRadius: 9, border: 'none', cursor: 'pointer', fontWeight: 800, fontSize: 12, background: 'linear-gradient(135deg,#22c55e,#16a34a)', color: '#fff' }}>+ {t('cro.create', '실험 생성')}</button>
           {msg && <span style={{ fontSize: 11.5, color: '#0e7490', fontWeight: 700 }}>{msg}</span>}
         </div>
+        {/* [257차] 노코드 변경 빌더 — B 변형에 코드 없이 DOM 변경 정의(Optimizely식). 백엔드/비콘/클라 이미 지원. */}
+        <div style={{ marginTop: 12, borderTop: '1px dashed var(--border,#e2e8f0)', paddingTop: 12 }}>
+          <button type="button" onClick={() => setShowChanges(v => !v)} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid var(--border,#e2e8f0)', background: showChanges ? 'rgba(124,58,237,0.1)' : 'var(--surface,#fff)', color: showChanges ? '#7c3aed' : 'var(--text-2)', fontWeight: 800, fontSize: 12, cursor: 'pointer' }}>
+            🎨 {t('cro.noCodeTitle', '노코드 변경(B 변형) — 코드 없이 요소 바꾸기')} {showChanges ? '▲' : '▼'}
+            {(form.changesB || []).length > 0 && <span style={{ marginLeft: 6, fontSize: 10.5, background: '#7c3aed', color: '#fff', borderRadius: 6, padding: '1px 6px' }}>{form.changesB.length}</span>}
+          </button>
+          {showChanges && (
+            <div style={{ marginTop: 10, display: 'grid', gap: 8 }}>
+              <div style={{ fontSize: 11.5, color: 'var(--text-3)', lineHeight: 1.6 }}>
+                {t('cro.noCodeHelp', 'B 변형이 노출될 때 아래 변경이 페이지에 자동 적용됩니다. CSS 선택자(예: .cta-btn, #hero h1)로 대상을 지정하세요. 사이트 코드에 assignVariant(실험키, { autoApply: true }) 한 줄이면 별도 렌더 없이 적용됩니다.')}
+              </div>
+              {(form.changesB || []).map((c, i) => (
+                <div key={i} style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+                  <select value={c.action} onChange={e => updChange(i, 'action', e.target.value)} style={{ ...inp, width: 120 }}>
+                    <option value="text">{t('cro.actText', '텍스트 변경')}</option>
+                    <option value="html">{t('cro.actHtml', 'HTML 변경')}</option>
+                    <option value="css">{t('cro.actCss', 'CSS 스타일')}</option>
+                    <option value="hide">{t('cro.actHide', '숨기기')}</option>
+                    <option value="redirect">{t('cro.actRedirect', '페이지 이동')}</option>
+                  </select>
+                  {c.action !== 'redirect' && (
+                    <input value={c.selector} onChange={e => updChange(i, 'selector', e.target.value)} placeholder={t('cro.selPh', '선택자(.cta-btn, #hero h1)')} style={{ ...inp, width: 190 }} />
+                  )}
+                  {c.action === 'css' && (
+                    <input value={c.prop} onChange={e => updChange(i, 'prop', e.target.value)} placeholder={t('cro.propPh', '속성(color, font-size)')} style={{ ...inp, width: 140 }} />
+                  )}
+                  {c.action !== 'hide' && (
+                    <input value={c.value} onChange={e => updChange(i, 'value', e.target.value)} placeholder={c.action === 'redirect' ? t('cro.valUrlPh', '이동할 URL') : (c.action === 'css' ? t('cro.valCssPh', '값(#ff0000, 18px)') : t('cro.valTextPh', '새 문구/HTML'))} style={{ ...inp, flex: 1, minWidth: 160 }} />
+                  )}
+                  <button type="button" onClick={() => rmChange(i)} title={t('cro.rmChange', '변경 삭제')} style={{ padding: '6px 10px', borderRadius: 7, border: 'none', background: '#fee2e2', color: '#991b1b', cursor: 'pointer', fontWeight: 800, fontSize: 12 }}>✕</button>
+                </div>
+              ))}
+              <button type="button" onClick={addChange} style={{ justifySelf: 'start', padding: '6px 12px', borderRadius: 8, border: '1px dashed var(--border,#c7d2fe)', background: 'transparent', color: '#7c3aed', fontWeight: 800, fontSize: 12, cursor: 'pointer' }}>+ {t('cro.addChange', '변경 추가')}</button>
+            </div>
+          )}
+        </div>
         <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 8, lineHeight: 1.5 }}>
-          💡 {t('cro.snippet', '연동: assignVariant(exp_key)로 변형을 받아 렌더하고, 전환 시 trackConversion(exp_key)를 호출하세요.')}
+          💡 {t('cro.snippet', '연동: assignVariant(exp_key)로 변형을 받아 렌더하고, 전환 시 trackConversion(exp_key)를 호출하세요. 노코드 변경을 쓰면 assignVariant(exp_key, { autoApply: true })로 자동 적용됩니다.')}
         </div>
       </div>
 
