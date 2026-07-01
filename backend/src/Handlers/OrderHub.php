@@ -1089,10 +1089,14 @@ final class OrderHub
         // [227차 감사 P1] 반품 기간귀속 = 원주문 ordered_at 월(기존 created_at=반품접수월은 월경계 부정합:
         //   5월주문 6월반품이 6월정산에 잡혀 5월엔 미반영·6월엔 주문없는 반품 발생). 원주문 없으면 created_at 폴백.
         //   ★늦은 반품도 판매월에 포착되도록 ingestClaims 가 원주문 월을 재롤업 트리거(cron은 당월만 롤업이라).
+        // [현 차수 감사 #2] returnFee 는 '반품(return)'만 차감. 취소(cancel)는 이미 gross 에서 제외되어
+        //   매출 0 이므로, 취소 클레임까지 returnFee 로 빼면 이중차감(순이익 과소)이었다. 사용자 확정:
+        //   취소는 매출 제외로만 처리(P&L 영향 0), 실제 취소수수료는 실 정산 ingest(status!='estimated')가 반영.
+        //   → type IN('return','cancel') 을 type='return' 으로 좁혀 설계의도(주석 1080)와 정합. rcnt 도 반품수로 정확화.
         $cs = $pdo->prepare("SELECT c.channel, COUNT(*) AS rcnt, COALESCE(SUM(c.amount),0) AS rfee
             FROM orderhub_claims c
             LEFT JOIN channel_orders o ON o.tenant_id=c.tenant_id AND (o.channel_order_id=c.order_id OR o.order_no=c.order_id)
-            WHERE c.tenant_id=? AND c.type IN ('return','cancel') AND SUBSTR(COALESCE(o.ordered_at, c.created_at),1,7)=?
+            WHERE c.tenant_id=? AND c.type = 'return' AND SUBSTR(COALESCE(o.ordered_at, c.created_at),1,7)=?
             GROUP BY c.channel");
         $cs->execute([$tenant, $period]);
         $claimsBy = [];
