@@ -1,5 +1,5 @@
 export default {
-  "ko": {
+  "ko": {"analyticsTopProducts":"반품 유발 상품 Top","analyticsDefectiveRate":"불량률","analyticsServerNote":"전체 반품 전수 집계","defective":"불량",
     "pageTitle": "반품 포털",
     "pageSub": "반품 관리 및 환불 처리 시스템",
     "tabOverview": "반품 현황",
@@ -136,7 +136,7 @@ export default {
     "guideStep15T": "종합 관리 및 정기 모니터링",
     "guideStep15D": "정기적으로 KPI를 모니터링하고 정책을 최적화"
   },
-  "en": {
+  "en": {"analyticsTopProducts":"Top return-driving products","analyticsDefectiveRate":"Defect rate","analyticsServerNote":"Full return dataset (server aggregate)","defective":"Defective",
     "pageTitle": "Returns Portal",
     "pageSub": "Returns management & refund processing",
     "tabOverview": "Overview",
@@ -273,7 +273,7 @@ export default {
     "guideStep15T": "Regular monitoring and optimization",
     "guideStep15D": "Monitor KPIs regularly and optimize policies"
   },
-  "ja": {
+  "ja": {"analyticsTopProducts":"返品要因 商品Top","analyticsDefectiveRate":"不良率","analyticsServerNote":"全返品の全数集計","defective":"不良",
     "pageTitle": "返品ポータル",
     "pageSub": "返品管理・返金処理システム",
     "tabOverview": "返品概況",
@@ -410,7 +410,7 @@ export default {
     "guideStep15T": "定期モニタリング",
     "guideStep15D": "KPIを定期的に監視しポリシーを最適化"
   },
-  "zh": {
+  "zh": {"analyticsTopProducts":"引发退货商品Top","analyticsDefectiveRate":"次品率","analyticsServerNote":"全部退货全量汇总","defective":"次品",
     "pageTitle": "退货门户",
     "pageSub": "退货管理与退款处理系统",
     "tabOverview": "退货概览",
@@ -547,7 +547,7 @@ export default {
     "guideStep15T": "定期监控和优化",
     "guideStep15D": "定期监控 KPI 并优化政策"
   },
-  "zh-TW": {
+  "zh-TW": {"analyticsTopProducts":"引發退貨商品Top","analyticsDefectiveRate":"瑕疵率","analyticsServerNote":"全部退貨全量彙總","defective":"瑕疵",
     "pageTitle": "退貨入口",
     "pageSub": "退貨管理與退款處理系統",
     "tabOverview": "退貨概覽",
@@ -684,7 +684,7 @@ export default {
     "guideStep15T": "定期監控與最佳化",
     "guideStep15D": "定期監控 KPI 並最佳化政策"
   },
-  "de": {
+  "de": {"analyticsTopProducts":"Top-Retourentreiber (Produkte)","analyticsDefectiveRate":"Defektrate","analyticsServerNote":"Vollständige Retouren (Server-Aggregat)","defective":"Defekt",
     "pageTitle": "Retourenportal",
     "pageSub": "Retourenverwaltung & Erstattung",
     "tabOverview": "Übersicht",
@@ -821,7 +821,7 @@ export default {
     "guideStep15T": "Regelmäßiges Monitoring und Optimierung",
     "guideStep15D": "KPIs regelmäßig überwachen und Richtlinien optimieren"
   },
-  "fr": {
+  "fr": {"analyticsTopProducts":"Produits générant le plus de retours","analyticsDefectiveRate":"Taux de défauts","analyticsServerNote":"Ensemble complet des retours (serveur)","defective":"Défectueux",
     "pageTitle": "Portail Retours",
     "pageSub": "Gestion des retours & remboursements",
     "tabOverview": "Aperçu",
@@ -958,7 +958,7 @@ export default {
     "guideStep15T": "Suivi et optimisation réguliers",
     "guideStep15D": "Suivez les KPI régulièrement et optimisez les politiques"
   },
-  "es": {
+  "es": {"analyticsTopProducts":"Productos que más generan devoluciones","analyticsDefectiveRate":"Tasa de defectos","analyticsServerNote":"Conjunto completo de devoluciones (servidor)","defective":"Defectuoso",
     "pageTitle": "Portal de Devoluciones",
     "pageSub": "Gestión de devoluciones y reembolsos",
     "tabOverview": "Resumen",
@@ -1095,7 +1095,7 @@ export default {
     "guideStep15T": "Monitoreo y optimización periódicos",
     "guideStep15D": "Monitorea los KPI con regularidad y optimiza las políticas"
   },
-  "pt": {
+  "pt": {"analyticsTopProducts":"Produtos que mais geram devoluções","analyticsDefectiveRate":"Taxa de defeitos","analyticsServerNote":"Conjunto completo de devoluções (servidor)","defective":"Defeituoso",
     "pageTitle": "Portal de Devoluções",
     "pageSub": "Gestão de devoluções e reembolsos",
     "tabOverview": "Visão Geral",
@@ -1232,7 +1232,7 @@ export default {
     "guideStep15T": "Monitoramento e otimização regulares",
     "guideStep15D": "Monitore os KPIs regularmente e otimize as políticas"
   },
-  "ru": {
+  "ru": {"analyticsTopProducts":"Товары — лидеры по возвратам","analyticsDefectiveRate":"Доля брака","analyticsServerNote":"Полный набор возвратов (сервер)","defective":"Брак",
     "pageTitle": "Портал возвратов",
     "pageSub": "Управление возвратами и возвратами средств",
     "tabOverview": "Обзор",
@@ -1369,7 +1369,7 @@ export default {
     "guideStep15T": "Регулярный мониторинг и оптимизация",
     "guideStep15D": "Регулярно отслеживайте KPI и оптимизируйте политики"
   },
-  "ar": {
+  "ar": {"analyticsTopProducts":"أكثر المنتجات تسببًا في الإرجاع","analyticsDefectiveRate":"معدل العيوب","analyticsServerNote":"تجميع كامل لكل المرتجعات (خادم)","defective":"معيب",
     "pageTitle": "بوابة المرتجعات",
     "pageSub": "إدارة المرتجعات والمبالغ المستردة",
     "tabOverview": "نظرة عامة",
@@ -1506,7 +1506,7 @@ export default {
     "guideStep15T": "المراقبة والتحسين",
     "guideStep15D": "مراقبة مؤشرات الأداء بانتظام"
   },
-  "hi": {
+  "hi": {"analyticsTopProducts":"सर्वाधिक रिटर्न वाले उत्पाद","analyticsDefectiveRate":"दोष दर","analyticsServerNote":"संपूर्ण रिटर्न डेटा (सर्वर समुच्चय)","defective":"दोषपूर्ण",
     "pageTitle": "रिटर्न पोर्टल",
     "pageSub": "रिटर्न प्रबंधन और रिफंड प्रसंस्करण",
     "tabOverview": "सारांश",
@@ -1643,7 +1643,7 @@ export default {
     "guideStep15T": "नियमित निगरानी और अनुकूलन",
     "guideStep15D": "KPI की नियमित निगरानी करें और नीतियाँ अनुकूलित करें"
   },
-  "th": {
+  "th": {"analyticsTopProducts":"สินค้าที่ทำให้เกิดการคืนสูงสุด","analyticsDefectiveRate":"อัตราของชำรุด","analyticsServerNote":"รวมข้อมูลคืนทั้งหมด (ฝั่งเซิร์ฟเวอร์)","defective":"ชำรุด",
     "pageTitle": "พอร์ทัลคืนสินค้า",
     "pageSub": "ระบบจัดการการคืนสินค้าและการคืนเงิน",
     "tabOverview": "ภาพรวม",
@@ -1780,7 +1780,7 @@ export default {
     "guideStep15T": "การติดตามและปรับให้เหมาะสมอย่างสม่ำเสมอ",
     "guideStep15D": "ติดตาม KPI อย่างสม่ำเสมอและปรับนโยบายให้เหมาะสม"
   },
-  "vi": {
+  "vi": {"analyticsTopProducts":"Sản phẩm gây trả hàng nhiều nhất","analyticsDefectiveRate":"Tỷ lệ lỗi","analyticsServerNote":"Tổng hợp toàn bộ trả hàng (máy chủ)","defective":"Lỗi",
     "pageTitle": "Cổng Hoàn Trả",
     "pageSub": "Quản lý hoàn trả & xử lý hoàn tiền",
     "tabOverview": "Tổng quan",
@@ -1917,7 +1917,7 @@ export default {
     "guideStep15T": "Giám sát và tối ưu định kỳ",
     "guideStep15D": "Giám sát KPI định kỳ và tối ưu chính sách"
   },
-  "id": {
+  "id": {"analyticsTopProducts":"Produk pemicu retur teratas","analyticsDefectiveRate":"Tingkat cacat","analyticsServerNote":"Agregat seluruh retur (server)","defective":"Cacat",
     "pageTitle": "Portal Pengembalian",
     "pageSub": "Manajemen pengembalian & pengembalian dana",
     "tabOverview": "Ringkasan",
