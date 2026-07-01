@@ -534,6 +534,7 @@ class JourneyBuilder
                 case 'kakao': $a = self::sendKakaoNode($pdo, $tenant, $enr, $node); break;
                 case 'sms':   $a = self::sendSmsNode($pdo, $tenant, $enr, $node); break;
                 case 'webhook': $a = self::webhookNode($pdo, $tenant, $enr, $node); break; // [255차 심화] 외부 HTTP 액션
+                case 'nba':   $a = self::nbaNode($pdo, $tenant, $enr, $node); break; // [현 차수 초고도화 ②] RL/Next-Best-Action(Thompson). defer 전파는 기존 로직(하단) 재사용.
                 default:      $a = ['action' => 'processed']; break;
             }
             self::logNode($pdo, $tenant, $enrollId, $jid, $nodeId, $type, (string)($a['action'] ?? 'processed'), $a);
@@ -723,6 +724,84 @@ class JourneyBuilder
         if ($cid <= 0) return self::json($res, ['ok'=>true, 'enrolled'=>0, 'note'=>'no matching customer']);
         $enrolled = self::enrollOne($pdo, $tenant, $journey, $cid, ['revenue'=>(float)($b['revenue'] ?? 0)]) ? 1 : 0;
         return self::json($res, ['ok'=>true, 'enrolled'=>$enrolled]);
+    }
+
+    /**
+     * [현 차수 초고도화 ②] NBA(Next-Best-Action) 노드 — 데이터기반 Thompson 샘플링으로 고객별 최적 채널 선택 후 발송.
+     *   기존 CustomerAI::nextBestAction 하드코딩 스텁을 실 데이터 밴딧으로 대체. 리워드=테넌트 채널효과(발송 수신→구매 co-occurrence).
+     *   도달가능 채널만 후보. 발송은 기존 sendEmail/Kakao/SmsNode 재사용(중복0). 조용시간 defer 는 위임 전파(기존 로직 처리).
+     */
+    private static function nbaNode(\PDO $pdo, string $tenant, array $enr, array $node): array
+    {
+        $cid = (int)($enr['customer_id'] ?? 0);
+        $c = self::contact($pdo, $tenant, $cid);
+        $hasEmail = trim((string)($c['email'] ?? '')) !== '';
+        $hasPhone = preg_replace('/[^0-9]/', '', (string)($c['phone'] ?? '')) !== '';
+        $allow = (array)(($node['config']['channels'] ?? null) ?: ['email', 'kakao', 'sms']);
+        $cands = [];
+        foreach ($allow as $ch) {
+            $ch = (string)$ch;
+            if ($ch === 'email' && $hasEmail) $cands[] = 'email';
+            elseif (($ch === 'kakao' || $ch === 'sms') && $hasPhone) $cands[] = $ch;
+        }
+        $cands = array_values(array_unique($cands));
+        if (!$cands) return ['action' => 'skipped', 'reason' => 'no_reachable_channel'];
+        $stats = self::nbaChannelStats($pdo, $tenant);
+        $bestCh = $cands[0]; $bestScore = -1.0; $samples = [];
+        foreach ($cands as $ch) {
+            $score = self::nbaThompson($stats[$ch] ?? ['s' => 0, 't' => 0]);
+            $samples[$ch] = round($score, 4);
+            if ($score > $bestScore) { $bestScore = $score; $bestCh = $ch; }
+        }
+        $r = match ($bestCh) {
+            'email' => self::sendEmailNode($pdo, $tenant, $enr, $node),
+            'kakao' => self::sendKakaoNode($pdo, $tenant, $enr, $node),
+            'sms'   => self::sendSmsNode($pdo, $tenant, $enr, $node),
+            default => ['action' => 'skipped'],
+        };
+        $out = ['action' => 'nba:' . $bestCh . ':' . (string)($r['action'] ?? 'sent'), 'chosen_channel' => $bestCh, 'samples' => $samples];
+        if (!empty($r['defer'])) $out['defer'] = true; // 조용시간 위임 전파(기존 defer 처리 재사용)
+        return $out;
+    }
+
+    /** [②] 테넌트 채널효과 통계(요청내 메모이즈) — 채널별 발송 수신 고객수(trials)·그중 구매 고객수(successes). */
+    private static function nbaChannelStats(\PDO $pdo, string $tenant): array
+    {
+        static $cache = [];
+        if (array_key_exists($tenant, $cache)) return $cache[$tenant];
+        $stats = ['email' => ['s' => 0, 't' => 0], 'kakao' => ['s' => 0, 't' => 0], 'sms' => ['s' => 0, 't' => 0]];
+        try {
+            $sql = "SELECT a.channel AS ch,
+                           COUNT(DISTINCT a.customer_id) AS trials,
+                           COUNT(DISTINCT p.customer_id) AS succ
+                      FROM crm_activities a
+                      LEFT JOIN (SELECT DISTINCT customer_id FROM crm_activities WHERE tenant_id = ? AND type = 'purchase') p
+                        ON p.customer_id = a.customer_id
+                     WHERE a.tenant_id = ? AND a.type IN ('email_sent','kakao_sent','sms_sent')
+                     GROUP BY a.channel";
+            $st = $pdo->prepare($sql);
+            $st->execute([$tenant, $tenant]);
+            foreach ($st->fetchAll(\PDO::FETCH_ASSOC) ?: [] as $r) {
+                $ch = (string)$r['ch'];
+                if (isset($stats[$ch])) $stats[$ch] = ['s' => (int)$r['succ'], 't' => (int)$r['trials']];
+            }
+        } catch (\Throwable $e) { /* 데이터부족/스키마 → 균등 prior(탐색 우선) */ }
+        $cache[$tenant] = $stats;
+        return $stats;
+    }
+
+    /** [②] Gaussian Thompson 샘플 — Beta(1+s,1+(t-s)) 평균/분산의 정규근사(밴딧 탐색-활용). 데이터 적을수록 분산↑=탐색↑. */
+    private static function nbaThompson(array $stat): float
+    {
+        $s = (int)($stat['s'] ?? 0); $t = (int)($stat['t'] ?? 0);
+        $a = 1.0 + $s; $b = 1.0 + max(0, $t - $s);
+        $mean = $a / ($a + $b);
+        $var  = ($a * $b) / (($a + $b) * ($a + $b) * ($a + $b + 1.0));
+        $std  = sqrt(max(1e-12, $var));
+        $u1 = max(1e-9, mt_rand() / mt_getrandmax());
+        $u2 = mt_rand() / mt_getrandmax();
+        $z  = sqrt(-2.0 * log($u1)) * cos(2.0 * M_PI * $u2); // Box-Muller
+        return min(1.0, max(0.0, $mean + $std * $z));
     }
 
     private static function sendEmailNode(\PDO $pdo, string $tenant, array $enr, array $node): array
