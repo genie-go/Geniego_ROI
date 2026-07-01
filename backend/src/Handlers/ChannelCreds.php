@@ -830,6 +830,37 @@ final class ChannelCreds
             ];
         }
 
+        // [현 차수 감사 CH-3] Kakao 알림톡/LINE 전용페이지(kakao_settings·line_settings)에 등록된 자격증명을
+        //   허브 연결상태에 반영 — 이중 저장소로 전용페이지 등록이 허브에 '연결됨'으로 안 보이던 불일치 해소.
+        //   read-side 병합만(자격증명 중복기록·쓰기 없음). 허브 ConnectModal 로 이미 등록됐으면(channel_credential
+        //   에 존재) 그 값을 우선(덮어쓰지 않음). 테이블 부재/구스키마는 try/catch 로 무해.
+        try {
+            if (!isset($channels['line'])) {
+                $ls = $pdo->prepare("SELECT test_status, access_token FROM line_settings WHERE tenant_id=? ORDER BY id DESC LIMIT 1");
+                $ls->execute([$tenant]);
+                $lr = $ls->fetch(PDO::FETCH_ASSOC);
+                if ($lr && (string)($lr['access_token'] ?? '') !== '') {
+                    $ts = (string)($lr['test_status'] ?? '');
+                    $channels['line'] = ['keyCount' => 1, 'hasRequired' => true,
+                        'syncStatus' => $ts === 'ok' ? 'ok' : ($ts === 'error' ? 'error' : 'pending'), 'source' => 'line_settings'];
+                }
+            }
+        } catch (\Throwable $e) {}
+        try {
+            if (!isset($channels['kakao_alimtalk'])) {
+                $ks = $pdo->prepare("SELECT api_key, sender_key, mode FROM kakao_settings WHERE tenant_id=? ORDER BY id DESC LIMIT 1");
+                $ks->execute([$tenant]);
+                $kr = $ks->fetch(PDO::FETCH_ASSOC);
+                $kApi = (string)($kr['api_key'] ?? ''); $kSnd = (string)($kr['sender_key'] ?? '');
+                if ($kr && ($kApi !== '' || $kSnd !== '')) {
+                    $mode = (string)($kr['mode'] ?? '');
+                    // 실검증 게이트 부재(전용페이지 저장은 라이브 핑 없음) → 라이브모드만 'ok', 그 외 'pending'(정직).
+                    $channels['kakao_alimtalk'] = ['keyCount' => 1, 'hasRequired' => ($kApi !== '' && $kSnd !== ''),
+                        'syncStatus' => $mode === 'live' ? 'ok' : 'pending', 'source' => 'kakao_settings'];
+                }
+            }
+        } catch (\Throwable $e) {}
+
         return TemplateResponder::respond($response, [
             'ok'       => true,
             'tenant'   => $tenant,
