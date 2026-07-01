@@ -8,7 +8,7 @@ import { tabAllowedByPlan } from "../auth/tabPlanPolicy.js"; // [현 차수] 플
 import { IS_DEMO as _IS_DEMO_EM } from "../utils/demoEnv";
 import PlanGate from "../components/PlanGate.jsx";
 import GuideWizard from '../components/GuideWizard.jsx'; // [237차] 인앱 순차 완료 위저드(필수등록 게이팅)
-import { getJsonAuth as _gjaEmail } from '../services/apiClient.js';
+import { getJsonAuth as _gjaEmail, postJsonAuth as _pjaEmail } from '../services/apiClient.js';
 import { useGlobalData } from "../context/GlobalDataContext.jsx";
 import { emailApi } from "../services/emailApi.js"; // 191차 2단계: 운영 백엔드 실배선(/email/*, /crm/segments)
 import { useConnectorSync } from "../context/ConnectorSyncContext.jsx";
@@ -262,12 +262,14 @@ function CampaignsTab() {
     const [msg,setMsg]=useState("");
     const [abModal,setAbModal]=useState(null); // [현 차수] A/B 결과 모달 대상 캠페인
     const [deliv,setDeliv]=useState(null); // [R-P2-4] 딜리버러빌리티 건강도(운영 전용)
+    const [warmup,setWarmup]=useState(null); // [현 차수 초고도화 ②-3] 발신 워밍업 램프(opt-in)
     const reloadCampaigns=()=>emailApi.listCampaigns().then(r=>setOpCampaigns(r.campaigns||[])).catch(()=>{});
     useEffect(()=>{ if(isDemo) return;
         reloadCampaigns();
         emailApi.listTemplates().then(r=>setOpTemplates(r.templates||[])).catch(()=>{});
         emailApi.listSegments().then(r=>setOpSegments((r.segments||[]).map(s=>({...s,count:s.member_count??0})))).catch(()=>{});
         _gjaEmail('/email/deliverability?window=90').then(d=>{ if(d&&d.ok) setDeliv(d); }).catch(()=>{});
+        _gjaEmail('/email/warmup').then(w=>{ if(w&&w.ok) setWarmup(w); }).catch(()=>{});
     },[isDemo]);
     const totalCustomers=isDemo?Object.keys(crmCustomerHistory).length:0;
     const computeTargetSize=(segId)=>{if(!segId)return totalCustomers;const s=crmSegments.find(x=>String(x.id)===String(segId));return s?(s.count||0):totalCustomers;};
@@ -372,6 +374,27 @@ function CampaignsTab() {
                   </Card>
                 );
             })()}
+            {/* [현 차수 초고도화 ②-3] 발신 워밍업 램프 토글(opt-in·운영 전용) */}
+            {!isDemo && (
+              <Card>
+                <div style={{ fontWeight:800, fontSize:14, marginBottom:10, display:'flex', alignItems:'center', gap:8, color:'#1f2937', flexWrap:'wrap' }}>
+                    <span style={{ fontSize:16 }}>🌡️</span>{t('email.warmupTitle','발신 워밍업 램프')}
+                    <span style={{ fontSize:10.5, color:'#9ca3af', fontWeight:600 }}>· {t('email.warmupSub','신규 발신 도메인 평판 보호(일일 한도 점진 증대)')}</span>
+                </div>
+                <label style={{ display:'flex', alignItems:'center', gap:10, cursor:'pointer', fontSize:12.5 }}>
+                    <input type="checkbox" checked={!!warmup?.enabled} onChange={async e=>{
+                        const enabled=e.target.checked;
+                        const start=warmup?.start_date || new Date().toISOString().slice(0,10);
+                        setWarmup(w=>({...(w||{}),enabled,start_date:start}));
+                        try{ const r=await _pjaEmail('/email/warmup',{enabled,start_date:start}); if(r?.ok) setWarmup(r); }catch(_){}
+                    }} />
+                    <span>{t('email.warmupEnable','워밍업 활성화')} {warmup?.enabled && warmup?.start_date && <span style={{ color:'#6b7280', fontSize:11 }}>({t('email.warmupStart','시작')} {warmup.start_date})</span>}</span>
+                </label>
+                <div style={{ marginTop:8, fontSize:10.5, color:'#9ca3af', lineHeight:1.6 }}>
+                    {t('email.warmupNote','활성화 시 시작일 기준 14일간 일일 발송량을 단계적으로 늘려 스팸 차단·평판 하락을 방지합니다. 기존 대량 발신자는 비활성(기본) 유지 권장.')}
+                </div>
+              </Card>
+            )}
             <Card glow>
                 <div style={{ fontWeight:800, fontSize:15, marginBottom:16, display:"flex", alignItems:"center", gap:8, color:'#1f2937' }}>
                     <span style={{ fontSize:18 }}>🚀</span>{t('email.cNew', "New Campaign")}

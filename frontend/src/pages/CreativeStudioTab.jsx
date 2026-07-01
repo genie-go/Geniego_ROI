@@ -83,7 +83,7 @@ export default function CreativeStudioTab({ sourcePage, onUseCampaign }) {
 
   // [237차 Creative AI Studio] 대량 변형 생성 + Creative Insights 상태.
   const [batchOpen, setBatchOpen] = useState(false);
-  const [batchForm, setBatchForm] = useState({ product: '', category: '', channel: 'meta_feed', count: 3, with_image: false });
+  const [batchForm, setBatchForm] = useState({ product: '', category: '', channel: 'meta_feed', count: 3, with_image: false, image_count: 1, ratios: [] });
   const [batchBusy, setBatchBusy] = useState(false);
   const [batchMsg, setBatchMsg] = useState(null);
   const [insights, setInsights] = useState(null);     // null=로딩전
@@ -129,6 +129,8 @@ export default function CreativeStudioTab({ sourcePage, onUseCampaign }) {
       const r = await postJsonAuth('/api/v422/ai/studio/batch', {
         product: batchForm.product, category: batchForm.category, channel: batchForm.channel,
         count: Math.max(1, Math.min(8, +batchForm.count || 3)), with_image: !!batchForm.with_image,
+        image_count: Math.max(1, Math.min(4, +batchForm.image_count || 1)), // [①] 조합형 DCO 이미지 종수
+        ratios: Array.isArray(batchForm.ratios) ? batchForm.ratios : [],     // [①-3] 멀티 종횡비(플레이스먼트)
       });
       if (r?.ok) {
         setBatchMsg({ err: false, text: (r.note || (t('marketing.csBatchDone', '대량 변형 생성 완료') + ': ' + (r.generated || 0))) });
@@ -269,6 +271,24 @@ export default function CreativeStudioTab({ sourcePage, onUseCampaign }) {
               <input type="checkbox" checked={batchForm.with_image} onChange={e => setBatchForm(f => ({ ...f, with_image: e.target.checked }))} />
               🖼 {t('marketing.csBatchWithImage','공유 비주얼(AI 이미지) 동반 생성 — 이미지 API 키 등록 시')}
             </label>
+            {batchForm.with_image && (
+              <div style={{ display:'flex', alignItems:'center', gap:14, flexWrap:'wrap', fontSize:11, color:'#64748b' }}>
+                {/* [①] 조합형 DCO 이미지 종수 (이미지 M × 카피 N) */}
+                <span style={{ display:'flex', alignItems:'center', gap:6 }}>{t('marketing.csBatchImages','이미지 종수')}
+                  <select style={{ ...inp, width:'auto', padding:'5px 8px' }} value={batchForm.image_count} onChange={e => setBatchForm(f => ({ ...f, image_count: +e.target.value }))}>
+                    {[1,2,3,4].map(n => <option key={n} value={n}>{n}</option>)}
+                  </select>
+                </span>
+                {/* [①-3] 멀티 종횡비 — 선택 비율에 이미지 분산(플레이스먼트 커버) */}
+                <span style={{ display:'flex', alignItems:'center', gap:8 }}>{t('marketing.csBatchAspects','종횡비')}:
+                  {['1:1','9:16','16:9','4:5'].map(rr => (
+                    <label key={rr} style={{ display:'flex', alignItems:'center', gap:3, cursor:'pointer' }}>
+                      <input type="checkbox" checked={(batchForm.ratios||[]).includes(rr)} onChange={e => setBatchForm(f => { const s = new Set(f.ratios||[]); if (e.target.checked) s.add(rr); else s.delete(rr); return { ...f, ratios:[...s] }; })} />{rr}
+                    </label>
+                  ))}
+                </span>
+              </div>
+            )}
             <div style={{ display:'flex', alignItems:'center', gap:10 }}>
               <button onClick={runBatch} disabled={batchBusy} style={{ padding:'9px 20px', borderRadius:10, border:'none', cursor: batchBusy?'wait':'pointer', background: batchBusy?'#cbd5e1':'linear-gradient(135deg,#a855f7,#4f8ef7)', color:'#fff', fontWeight:800, fontSize:12 }}>
                 {batchBusy ? '⏳ ' + t('marketing.csBatchBusy','생성 중…') : '⚡ ' + t('marketing.csBatchRun','대량 생성')}

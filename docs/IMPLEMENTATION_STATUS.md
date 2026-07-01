@@ -115,16 +115,16 @@
 
 | # | 갭 | 상태 | 비고 |
 |---|-----|------|------|
-| ①-1 | 조합형 DCO(M이미지×N카피 데카르트곱) | ✅ 2026-07 | `CreativeStudio::batch` image_count 확장(1이면 기존동작 보존). 프론트 image_count 컨트롤=폴리싱 잔여 |
+| ①-1 | 조합형 DCO(M이미지×N카피 데카르트곱) | ✅ 2026-07 | `CreativeStudio::batch` image_count 확장(1이면 기존동작 보존)+**프론트 image_count 컨트롤(CreativeStudioTab)** |
 | ①-2 | Advantage+/PMax 캠페인 타입·asset group | ⏳블라인드 | metaCreate/googleCreate 확장 — 외부 API 파라미터라 라이브 크리덴셜 검증 필수(블라인드 추가 금지) |
-| ①-3 | 멀티 종횡비 배치 자동생성 | ✅ 2026-07 | `CreativeStudio::batch` ratios 파라미터 — 이미지 슬롯에 비율 분산(총 이미지수 불변·캡16 유지→폭주0). aspect 태깅. ratios 미제공=기존 단일비율(회귀0). 프론트 ratios 컨트롤=소폭 후속 |
+| ①-3 | 멀티 종횡비 배치 자동생성 | ✅ 2026-07 | `CreativeStudio::batch` ratios 파라미터 — 이미지 슬롯에 비율 분산(총 이미지수 불변·캡16 유지→폭주0). aspect 태깅. ratios 미제공=기존 단일비율(회귀0)+**프론트 ratios 체크박스(CreativeStudioTab)** |
 | ①-4a | Naver 스마트입찰 | ❌false | **by-design**: Naver SA=검색광고, 입찰은 adgroup 키워드 레벨(캠페인 tROAS 부적합). 갭 아님(naverCreate:820 주석) |
 | ①-4b | Meta 빈도캡·LINE 스마트입찰 | ⏳블라인드 | 외부 API 파라미터라 라이브 크리덴셜 검증 필수 |
 | ①-5 | CTV/DSP 실집행(amazon_dsp/DV360)·영상생성 | ⏳ | **외부 크리덴셜/API 필요** |
 | ①-6 | 카탈로그 DPA(product_set) | ⏳ | product_catalog_id 크리덴셜 필요 |
 | ②-1 | NBA/RL 저니노드(Thompson) | ✅ 2026-07 | `JourneyBuilder::nbaNode` 데이터기반 밴딧+프론트 nba 노드타입. 기존 발송노드 재사용 |
 | ②-2 | 옴니 워터폴 SMS 편입 | ✅ 2026-07 | `Omnichannel::deliverWaterfall` sms 분기(NaverSms 재사용). LINE=프리미티브 부재로 보류 |
-| ②-3 | 딜리버러빌리티 워밍업 램프 | ✅ 2026-07 | opt-in(email_warmup·기본 OFF→runQueue 불변=회귀0). 14일 표준 일일한도 램프·실발송만 카운트. GET/POST /email/warmup. 프론트 토글=소폭 후속. (DMARC rua·전용IP/BIMI=인프라 별개) |
+| ②-3 | 딜리버러빌리티 워밍업 램프 | ✅ 2026-07 | opt-in(email_warmup·기본 OFF→runQueue 불변=회귀0). 14일 표준 일일한도 램프·실발송만 카운트. GET/POST /email/warmup+**프론트 토글(EmailMarketing 딜리버러빌리티)**. (DMARC rua·전용IP/BIMI=인프라 별개) |
 | ②-4 | 저니 exit(이탈) 노드 | ✅ 2026-07 | `JourneyBuilder` exit 노드(evalCondition 재사용)+프론트 exit 노드타입. push=구독↔고객 미연결·attr=스키마로 보류 |
 | ③-1 | MMM OOS 백테스트(예측 vs 실측) | ✅ 2026-07 | `Mmm::backtest`(GET /v424/mmm/backtest)+MarketingMix 패널. ★보고 모델과 동일 response() 곡선으로 예측(정합)→fitChannel 미수정=회귀0. train/test 분리·OOS MAPE/NRMSE·train잔차 95% 커버리지. 데이터부족=빈결과(정직) |
 | ③-2 | 증분성 캘리브레이션 리포트(모델 vs 실험) | ✅ 2026-07 | `blendedIncrementality` 방향 일치도(aligned/over/under)+calibration.score. 정밀비율 대신 방향(오통계 회피) |
