@@ -1,6 +1,6 @@
-# 257차 세션 인계서 — **6도메인 전수감사(확정3) + 경쟁재평가 + net-new 3 + 심화 3 + 메뉴중복감사 + i18n 15국 60키**
+# 257차 세션 인계서 — **전수감사×3라운드 + 경쟁재평가×2 + net-new 4 + 심화 4 + 공급업체 SSOT통합 + 파트너 스코프감사 + 메뉴중복제거 + i18n 15국 69키**
 
-> **작성일**: 2026-07-01 (사용자 명시 승인) · 운영 roi.genie-go.com / 데모 roidemo.genie-go.com · 브랜치 `feat/n236-admin-growth-automation` → **master FF 머지·push(origin/master=`cc490288bb9`, CI 자동배포)**. 전 항목 운영/데모 수동배포·항목별 검증(php-l·엔드포인트 e2e·헤드리스 렌더·서버 self-test).
+> **작성일**: 2026-07-01 (사용자 명시 승인) · 운영 roi.genie-go.com / 데모 roidemo.genie-go.com · 브랜치 `feat/n236-admin-growth-automation` → **master FF 머지·push(origin/master=`b63751e2fa1`, CI 자동배포)**. 전 항목 운영/데모 수동배포·항목별 검증(php-l·엔드포인트 e2e·헤드리스 렌더·서버 self-test). **회귀0·목데0·격리위반0·신규누출0**(2·3라운드 재감사 확정).
 
 ## ★0. 다음 차수 필독 — 오탐/중복 방지 (이번 세션 재확인, 사용자 강력 지적)
 - 착수 전 반드시 `docs/IMPLEMENTATION_STATUS.md`(정본, 상단에 ★중복방지 정책 명문화) + `reference_audit_false_positives`(메모리, 257차 항목 추가) 참조·감사에이전트 주입.
@@ -18,6 +18,11 @@
 | F | 심화 | 온사이트CRO 노코드 변경빌더(체인지셋 UI)·고객360 전체활동 타임라인(전접점)·[전부 백엔드 기구현 위 UI 완결] | `24774a0e`·`b66584c3` |
 | G | 메뉴중복 | **/operations 사이드바 이중링크 제거**(246차 커머스이동 원본 잔존). 반품/공급업체 판정(아래 §3) | `3b9b80dc` |
 | H | i18n | **15국 현지 자연어 60키**(cro14·demandForecast22·crm20·rpI18n4). G2 baseline ja/zh SHA+ko_leaf 18468 갱신 | `cc490288` |
+| I | net-new #4 | **온사이트 CRO 라이브 WYSIWYG 오버레이 에디터**(크로스오리진→북마클릿이 서빙 에디터 `frontend/public/cro-editor.js` 주입·요소 클릭선택·CSS셀렉터·edit-token 저장→변형B). ★부수: /v424/cro/experiments 세션게이트 편입(실 테넌트 401 잠재버그 수정) | `7d1bca10` |
+| J | 통합 | **공급업체(공급망)↔거래처(WMS) 백엔드 SSOT 일원화**: wms_suppliers=마스터·sc_suppliers=오버레이(wms_id). SupplyChain CRUD 통합뷰(비파괴 마이그레이션·wms실패 sc-only 강등). 헤드리스 e2e(양방향 노출·id통일·중복0) | `b7f2d336` |
+| K | 파트너 스코프 | 파트너(supplier/logistics/warehouse) 데이터누출 전수감사=**누출0**(별도 계정/세션/토큰·독립 /partner 페이지·본인스코프·매출/고객 미포함·토큰 메인엔드포인트 401 격리). +하드닝(빈스코프 계정 fail-closed) | `a74ff4ed` |
+| L | 재평가2 | 전 기능별 정밀 100점(`docs/COMPETITIVE_REVALIDATION_257B.md`). 88.6/89.8·통합폐루프94. CRO86→88·커머스85→88(Linnworks패리티)·보안93·i18n93·통합94 | (문서) |
+| M | 재감사(2·3R) | 3병렬 신규표면 재감사(회귀0·목데0·격리0·신규누출0)→확정결함2 수정: SupplyChain deleteSupplier id공간 충돌(sc/wms)·CRO에디터 i18n 9키 누락. ★actPurchase D-2=오탐(비따옴표 기존존재) | `b63751e2` |
 
 ## 2. 검증
 - 백엔드 php -l 전건 PASS·신규 엔드포인트 401 라우팅(deadstock/product-affinity/reason-analysis)·fpm restart·nginx reload.
@@ -27,14 +32,14 @@
 
 ## 3. 메뉴 중복/분리 판정 (사용자 지적)
 - **반품 2곳**=의도적 분리 유지: returns-portal(고객 반품접수/환불) vs WMS 입출고(반품품 물리 재고복원). 데이터·업무단계 상이.
-- **공급업체 vs 거래처**=진짜 중복(백엔드 분절): SupplyChain `/v420/supply/suppliers`(sc_suppliers) vs TeamMembers 거래처 `/api/wms/suppliers`(WMS). **다음 차수 통합 대상**(데이터 마이그레이션 필요→승인 후).
+- **공급업체 vs 거래처**=진짜 중복(백엔드 분절)이었으나 **257차 SSOT 통합 완료**(J): wms_suppliers 마스터·sc_suppliers 오버레이(wms_id). 한 번 등록=양쪽 노출·id 통일.
 - **운영실행목록**=진짜중복 해결완료(/operations 이중링크 제거). manifest 전체 동일라우트 이중매핑은 이것 하나뿐이었음.
 - 잔여 확인: OperationsHub 미렌더 탭함수(CampaignTab/ProductTab/InfluencerTab) dead 여부 정리 권장.
 
 ## 4. 다음 차수 잔여/후보
-- **공급업체↔거래처 백엔드 SSOT 일원화**(마이그레이션·승인 후).
-- 외부의존(결함아님): 실광고계정 OAuth 라이브집행 검증·Naver쇼핑 실키(경쟁가 자동수집)·발송DNS·미디어서버·SOC2 인증.
-- ★신규 기능 착수 전 반드시 grep 부재증명(성숙 플랫폼=대부분 기구현).
+- ★**코드-완결 프론티어 도달**: 남은 격차(라이브 SFU·CTV/PMax·Naver쇼핑키·SOC2)는 전부 외부 자격증명/인프라/인증 의존. 무리한 블라인드/날조 구현 금지.
+- 외부의존(결함아님): 실광고계정 OAuth 라이브집행 검증·Naver쇼핑 실키·발송DNS·미디어서버·SOC2 인증.
+- ★신규 기능 착수 전 반드시 grep 부재증명(성숙 플랫폼=대부분 기구현). ★i18n 존재확인은 quoted-grep만으론 부족(비따옴표/단따옴표 키 놓침)→G6 triage가 검출.
 
 ## 5. 트랩(257차)
 - **/v420/returns/* 는 api_key 미들웨어 전용**(auth_tenant) → 프론트 세션토큰 401. 세션 소비 시 index.php 세션→auth_tenant 게이트 편입 필요(읽기전용만·쓰기EP는 api_key 유지).
@@ -42,8 +47,13 @@
 - **G2 baseline**: ja.js/zh.js 수정 시 `sha256sum` 재계산→.githooks/baseline.json sacred_sha 갱신. ko leaf는 acorn 카운트·TOL 5%.
 - **pre-commit self-test가 resolver_consumer_manifest_v2.json 자동재생성** → 커밋 후 `git checkout --`로 revert(트리청결).
 - 헤드리스 admin: 로그인 로고에 상시 애니메이션 → Playwright click 거부, `document.querySelector('img.auth-logo').click()` JS 디스패치로 우회.
+- **/v424/cro/experiments 도 api_key 전용이던 잠재버그**(returns와 동일 클래스) → 세션게이트 편입으로 해소. 신규 세션 소비 엔드포인트는 index.php 세션게이트 확인 습관화.
+- **비주얼에디터=크로스오리진**: 앱 iframe 편집 불가(cross-origin DOM 차단) → 북마클릿이 서빙 스크립트(/cro-editor.js) 주입 + 공개 edit-save(단기 edit-token 인증·CORS). 저장은 토큰서 tenant/exp_key 도출(클라 미신뢰).
+- **SupplyChain sc_suppliers(supplychain.sqlite)↔wms_suppliers(main DB) id 공간 독립**(둘 다 1부터 충돌) → 통합 delete는 wms_id 링크로만(OR id=? 금지). id=wms id 통일.
+- **실패한 커밋의 스테이징 파일**은 `git checkout --`(index 복원)로 안 돌아감 → `git checkout HEAD --` 필요.
+- **파트너 계정 발급 시 스코프(partner_name/partner_id) 필수 검증**(빈스코프=동일테넌트 무주행 과열람) — createAccount 422 + data/action fail-closed 적용됨.
 
-(★본 인계서 = 사용자 명시 승인. 자격증명 평문노출 0. master push 완료.)
+(★본 인계서 = 사용자 명시 승인. 자격증명 평문노출 0. master push 완료 `b63751e2fa1`. 다음 차수=실 자격증명 등록 후 라이브 집행 검증.)
 
 ---
 
