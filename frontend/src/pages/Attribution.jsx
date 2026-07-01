@@ -1118,7 +1118,27 @@ const ServerMtaPanel = memo(function ServerMtaPanel() {
 /* ── [현 차수 P3] 신뢰도·설명가능성 — 부트스트랩 신뢰구간 + removal-effect 내러티브(Northbeam급) ── */
 const ConfidenceTab = memo(function ConfidenceTab() {
   const t = useT();
+  // [현 차수 초고도화 ③-4] 서버 실측 /confidence 배선(그간 미소비) — 부트스트랩 CI + 모델 합의도(consensus).
+  const [srv, setSrv] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    getJsonAuth('/v424/attribution/confidence?window=90')
+      .then(r => { if (alive) setSrv(r || null); })
+      .catch(() => { if (alive) setSrv(null); });
+    return () => { alive = false; };
+  }, []);
   const data = useMemo(() => {
+    // 서버 실측 우선(real tenant) + 모델 합의도. 없으면 로컬 데모 폴백(기존 동작 보존=회귀0).
+    if (srv && Array.isArray(srv.channels) && srv.channels.length > 0) {
+      const total = srv.channels.reduce((s, c) => s + Math.max(0, Number(c.credit) || 0), 0) || 1;
+      const agMap = Object.fromEntries((srv.model_agreement || []).map(a => [a.channel, a.consensus]));
+      const rows = srv.channels.map(c => {
+        const share = Math.max(0, Number(c.credit) || 0) / total * 100;
+        return { channel: c.channel, share, lo: (Number(c.lo) || 0) / total * 100, hi: (Number(c.hi) || 0) / total * 100,
+          cv: Number(c.cv) || 0, removalEffect: share, stability: c.stability || 'low', consensus: agMap[c.channel] ?? null };
+      }).sort((a, b) => b.share - a.share);
+      return { rows, overall: Math.round(Number(srv.overall_confidence) || 0), source: 'server' };
+    }
     const J = _JOURNEYS;
     if (!J || J.length === 0) return null;
     const channels = [...new Set(J.flatMap(j => j.path))];
@@ -1137,13 +1157,12 @@ const ConfidenceTab = memo(function ConfidenceTab() {
       const arr = samp[c]; const m = arr.reduce((a, b) => a + b, 0) / (arr.length || 1);
       const sd = Math.sqrt(arr.reduce((a, v) => a + (v - m) ** 2, 0) / (arr.length || 1));
       const cv = m > 0 ? sd / m : 0;
-      return { channel: c, share: baseShare[c] ?? m, lo: pct(arr, 5), hi: pct(arr, 95), cv, removalEffect: (baseRem[c] ?? 0) * 100, stability: cv <= 0.15 ? 'high' : (cv <= 0.35 ? 'medium' : 'low') };
+      return { channel: c, share: baseShare[c] ?? m, lo: pct(arr, 5), hi: pct(arr, 95), cv, removalEffect: (baseRem[c] ?? 0) * 100, stability: cv <= 0.15 ? 'high' : (cv <= 0.35 ? 'medium' : 'low'), consensus: null };
     }).sort((a, b) => b.share - a.share);
     const hi = rows.filter(r => r.stability === 'high').length;
-    return { rows, overall: rows.length ? Math.round(hi / rows.length * 100) : 0 };
-  }, []);
-  if (_JOURNEYS.length === 0) return <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-3)' }}>{t('attrData.noData', '전환 여정 데이터가 없습니다.')}</div>;
-  if (!data) return null;
+    return { rows, overall: rows.length ? Math.round(hi / rows.length * 100) : 0, source: 'demo' };
+  }, [srv]);
+  if (!data) return <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-3)' }}>{t('attrData.noData', '전환 여정 데이터가 없습니다.')}</div>;
   const STB = { high: { c: '#22c55e', l: t('attrData.stbHigh', '높음') }, medium: { c: '#f59e0b', l: t('attrData.stbMed', '보통') }, low: { c: '#ef4444', l: t('attrData.stbLow', '낮음') } };
   const top = data.rows[0];
   return (
@@ -1152,7 +1171,8 @@ const ConfidenceTab = memo(function ConfidenceTab() {
         <div style={{ background: 'var(--surface,#fff)', border: '1px solid var(--border,#e2e8f0)', borderRadius: 14, padding: '16px 20px', flex: 1, minWidth: 220 }}>
           <div style={{ fontSize: 11, color: 'var(--text-3)' }}>{t('attrData.overallConf', '전체 신뢰도 (안정 채널 비율)')}</div>
           <div style={{ fontSize: 30, fontWeight: 900, color: data.overall >= 60 ? '#22c55e' : (data.overall >= 30 ? '#f59e0b' : '#ef4444') }}>{data.overall}%</div>
-          <div style={{ fontSize: 10.5, color: 'var(--text-3)', marginTop: 2 }}>{t('attrData.bootstrapNote', '부트스트랩 30회 재표본 · 90% 신뢰구간')}</div>
+          <div style={{ fontSize: 10.5, color: 'var(--text-3)', marginTop: 2 }}>{data.source === 'server' ? t('attrData.srvNote', '서버 실측 부트스트랩 · 90% 신뢰구간 + 6모델 합의도') : t('attrData.bootstrapNote', '부트스트랩 30회 재표본 · 90% 신뢰구간')}</div>
+          {data.source === 'server' && <div style={{ display: 'inline-block', marginTop: 4, fontSize: 9.5, fontWeight: 800, color: '#16a34a', background: 'rgba(22,163,74,0.1)', padding: '2px 8px', borderRadius: 20 }}>● {t('attrData.srvLive', '실측 데이터')}</div>}
         </div>
         {top && (
           <div style={{ background: 'rgba(14,165,233,0.06)', border: '1px solid rgba(14,165,233,0.2)', borderRadius: 14, padding: '16px 20px', flex: 2, minWidth: 280 }}>
@@ -1172,6 +1192,7 @@ const ConfidenceTab = memo(function ConfidenceTab() {
               <th style={{ padding: '10px 14px' }}>{t('attrData.colCI', '90% 신뢰구간')}</th>
               <th style={{ padding: '10px 14px', textAlign: 'right' }}>{t('attrData.colRemoval', '제거효과 %')}</th>
               <th style={{ padding: '10px 14px', textAlign: 'center' }}>{t('attrData.colStability', '안정성')}</th>
+              <th style={{ padding: '10px 14px', textAlign: 'center' }}>{t('attrData.colConsensus', '모델합의')}</th>
             </tr></thead>
             <tbody>
               {data.rows.map(r => (
@@ -1187,6 +1208,7 @@ const ConfidenceTab = memo(function ConfidenceTab() {
                   </td>
                   <td style={{ padding: '9px 14px', textAlign: 'right', color: 'var(--text-2)' }}>{r.removalEffect.toFixed(1)}%</td>
                   <td style={{ padding: '9px 14px', textAlign: 'center' }}><span style={{ fontSize: 10.5, fontWeight: 700, padding: '2px 10px', borderRadius: 20, background: STB[r.stability].c + '22', color: STB[r.stability].c }}>{STB[r.stability].l}</span></td>
+                  <td style={{ padding: '9px 14px', textAlign: 'center', fontWeight: 800, fontSize: 11, color: r.consensus == null ? 'var(--text-3)' : (r.consensus >= 70 ? '#22c55e' : r.consensus >= 40 ? '#f59e0b' : '#ef4444') }}>{r.consensus == null ? '—' : r.consensus + '%'}</td>
                 </tr>
               ))}
             </tbody>
@@ -1432,6 +1454,7 @@ function IncrementalityTab() {
   const [ltRes, setLtRes] = useState(null);
   const [ltBusy, setLtBusy] = useState(false);
   const [blended, setBlended] = useState(null); // [R-P1-1] 통합 증분성 신뢰도
+  const [geo, setGeo] = useState(null); // [현 차수 초고도화 ③-5] geo-holdout readiness(서버 설계 추천)
 
   useEffect(() => {
     let alive = true;
@@ -1440,6 +1463,9 @@ function IncrementalityTab() {
       .catch(() => { if (alive) setLoading(false); });
     getJsonAuth('/v424/attribution/blended?window=90')
       .then(d => { if (alive) setBlended(d); })
+      .catch(() => { /* graceful */ });
+    getJsonAuth('/v424/attribution/experiments/geo-readiness?window=90')
+      .then(d => { if (alive) setGeo(d); })
       .catch(() => { /* graceful */ });
     return () => { alive = false; };
   }, []);
@@ -1502,6 +1528,41 @@ function IncrementalityTab() {
           </div>
         ))}
       </div>
+
+      {/* [현 차수 초고도화 ③-5] 지오 홀드아웃 설계 준비도 — 서버 geo-readiness(균형분할·검정력·실험/대조군 추천) 노출 */}
+      {geo && Array.isArray(geo.regions) && (
+        <div style={card}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
+            <span style={{ fontWeight: 900, fontSize: 13 }}>🗺️ {t('attrData.geoTitle', '지오 홀드아웃 설계 준비도')}</span>
+            <span style={{ fontSize: 10.5, fontWeight: 800, padding: '2px 9px', borderRadius: 20, background: geo.feasible ? 'rgba(22,163,74,0.12)' : 'rgba(217,119,6,0.12)', color: geo.feasible ? '#16a34a' : '#d97706' }}>
+              {geo.feasible ? t('attrData.geoReady', '설계 가능') : t('attrData.geoNotReady', '데이터/검정력 부족')}
+            </span>
+            {geo.channel && <span style={{ fontSize: 11, color: 'var(--text-3)' }}>· {geo.channel}</span>}
+          </div>
+          {(!geo.regions || geo.regions.length < 2) ? (
+            <div style={{ fontSize: 11.5, color: 'var(--text-3)', lineHeight: 1.6 }}>{geo.reason || t('attrData.geoNeedRegions', '지역 차원 데이터 2개 이상 필요(ad_insight_agg.region 수집).')}</div>
+          ) : (
+            <>
+              <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', fontSize: 11.5, marginBottom: 8 }}>
+                <span>{t('attrData.geoBalance', '균형도')}: <b>{Math.round((geo.recommended_split?.balance_score || 0) * 100)}%</b></span>
+                {geo.power && <span>MDE: <b>{geo.power.mde != null ? Number(geo.power.mde).toFixed(1) + '%' : '—'}</b></span>}
+                {geo.power && <span>{t('attrData.geoDays', '필요기간')}: <b>{geo.power.required_days != null ? geo.power.required_days + t('attrData.daysUnit', '일') : '—'}</b></span>}
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                <div style={{ padding: '8px 10px', borderRadius: 8, background: 'rgba(79,142,247,0.06)', border: '1px solid rgba(79,142,247,0.2)' }}>
+                  <div style={{ fontSize: 10.5, fontWeight: 800, color: '#4f8ef7', marginBottom: 3 }}>🎯 {t('attrData.geoTreatment', '실험군(treatment)')}</div>
+                  <div style={{ fontSize: 11, color: 'var(--text-2)' }}>{(geo.recommended_split?.treatment_regions || []).join(', ') || '—'}</div>
+                </div>
+                <div style={{ padding: '8px 10px', borderRadius: 8, background: 'rgba(148,163,184,0.08)', border: '1px solid rgba(148,163,184,0.25)' }}>
+                  <div style={{ fontSize: 10.5, fontWeight: 800, color: '#64748b', marginBottom: 3 }}>🛑 {t('attrData.geoControl', '대조군(control·무노출)')}</div>
+                  <div style={{ fontSize: 11, color: 'var(--text-2)' }}>{(geo.recommended_split?.control_regions || []).join(', ') || '—'}</div>
+                </div>
+              </div>
+              {geo.note && <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 8, lineHeight: 1.6 }}>{geo.note}</div>}
+            </>
+          )}
+        </div>
+      )}
 
       {/* [R-P1-1] 통합 증분성 신뢰도(Blended) — Markov·MMM Bayesian·Holdout 3신호 신뢰도 가중 통합 */}
       {blended && Array.isArray(blended.channels) && blended.channels.length > 0 && (

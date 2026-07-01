@@ -129,5 +129,5 @@
 | ③-1 | MMM OOS 백테스트(예측 vs 실측) | ⏳위험 | `Mmm::backtest` 신설 — fitChannel 정상상태 보정 정밀추출 필요(급구현 시 오통계 위험→신중) |
 | ③-2 | 증분성 캘리브레이션 리포트(모델 vs 실험) | ✅ 2026-07 | `blendedIncrementality` 방향 일치도(aligned/over/under)+calibration.score. 정밀비율 대신 방향(오통계 회피) |
 | ③-3 | ESS/MCSE/accept_rate 프론트 노출 | ✅ 2026-07 | `MarketingMix.jsx` ESS/MCSE 배지(백엔드 이미 산출) |
-| ③-4 | model agreement/confidence 패널 | ⏳ | 엔드포인트 있음·프론트 배선만(잔여) |
-| ③-5 | geo-holdout 설계/readiness UI | ⏳ | 엔드포인트 있음·프론트 배선만(잔여) |
+| ③-4 | model agreement/confidence 패널 | ✅ 2026-07 | ConfidenceTab 을 실 `/attribution/confidence` 배선(그간 로컬데모만 사용)+모델합의도 consensus 컬럼·실측배지. 데모 폴백 보존 |
+| ③-5 | geo-holdout 설계/readiness UI | ✅ 2026-07 | IncrementalityTab 에 geo-readiness 패널(균형분할·검정력·실험/대조군 추천) — 실 엔드포인트 배선 |
