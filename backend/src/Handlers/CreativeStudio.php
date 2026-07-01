@@ -118,6 +118,14 @@ final class CreativeStudio
         // [현 차수 초고도화 ①] 조합형 DCO — 이미지 M종 × 카피 N종 데카르트곱(Smartly식 multivariate).
         //   image_count=1(기본) 이면 기존 1×N copy-DCO 동작 그대로 보존(회귀0). 2 이상이면 조합 생성.
         $imageCount = $withImg ? max(1, min(4, (int)($d['image_count'] ?? 1))) : 0;
+        // [현 차수 초고도화 ①-3] 멀티 종횡비 — ratios 제공 시 이미지 슬롯을 여러 비율에 '분산'(폭주 방지: 총 이미지수 불변, 캡16 유지).
+        //   ratios 미제공 = 단일 $ratio(기존 동작 보존). 제공 시 imageCount 를 비율 수 이상으로 자동 보정(캡 4).
+        $ratios = [];
+        if (isset($d['ratios']) && is_array($d['ratios'])) {
+            foreach ($d['ratios'] as $rr) { $rr = (string)$rr; if (in_array($rr, ['1:1', '9:16', '16:9', '4:5'], true) && !in_array($rr, $ratios, true)) $ratios[] = $rr; }
+        }
+        if (empty($ratios)) $ratios = [$ratio];
+        if (count($ratios) > 1 && $imageCount >= 1) $imageCount = max($imageCount, min(4, count($ratios)));
 
         if ($product === '' && $category === '') {
             return self::json($res, ['ok' => false, 'error' => '상품 또는 카테고리를 입력하세요.'], 422);
@@ -140,18 +148,19 @@ final class CreativeStudio
 
         // 2) 비주얼 M종(조합형 DCO — 비주얼 M × 카피 N). image_count=1 이면 표준 1×N. 미설정/실패 시 카피 전용(정직 진행).
         //   이미지 다양성: M>1 이면 스타일 힌트로 서로 다른 M종 생성(동일 프롬프트 중복 방지). 각 이미지=쿼터 1콜.
-        $images = []; $imgNote = '';
+        $images = []; $imageRatios = []; $imgNote = '';
         if ($imageCount >= 1) {
             $base = trim(($product !== '' ? $product : $category) . ' ' . ($audience !== '' ? "for {$audience}" : ''));
             $styleHints = ['제품 클로즈업, 스튜디오 조명', '라이프스타일 사용 장면', '미니멀 단색 배경', '대담한 컬러 그래픽'];
             for ($k = 0; $k < $imageCount; $k++) {
+                $rk = $ratios[$k % count($ratios)]; // [①-3] 슬롯별 종횡비 분산(멀티 플레이스먼트 커버)
                 $hint = $imageCount > 1 ? (', ' . $styleHints[$k % count($styleHints)]) : '';
-                $ig = ClaudeAI::generateImage($tenant, $base . $hint, $ratio);
-                if (!empty($ig['ok']) && !empty($ig['image'])) { $images[] = (string)$ig['image']; }
+                $ig = ClaudeAI::generateImage($tenant, $base . $hint, $rk);
+                if (!empty($ig['ok']) && !empty($ig['image'])) { $images[] = (string)$ig['image']; $imageRatios[] = $rk; }
                 elseif ($imgNote === '') { $imgNote = '이미지 생성 일부/전부 미수행(' . (string)($ig['error'] ?? 'n/a') . ') — 가능한 조합만 저장. [AI 광고 디자인 > API 연동]에서 이미지 API 키 등록 시 비주얼 동반 생성.'; }
             }
         }
-        if (empty($images)) $images = ['']; // 이미지 없음 = 카피 전용 1트랙(기존 동작 보존)
+        if (empty($images)) { $images = ['']; $imageRatios = [$ratio]; } // 이미지 없음 = 카피 전용 1트랙(기존 동작 보존)
 
         // 3) ad_design draft 저장(캠페인 자동화가 그대로 소비). 조합형 = 이미지 M × 카피 N (총 상한 16 — 폭주 방지).
         $pdo = Db::pdo(); self::migrate($pdo);
@@ -174,6 +183,7 @@ final class CreativeStudio
                     'source'      => 'studio_batch',
                     'variant_idx' => $i + 1,
                     'image_idx'   => (int)$imgIdx + 1,
+                    'aspect'      => $imageRatios[$imgIdx] ?? $ratio, // [①-3] 슬롯 종횡비(플레이스먼트)
                 ];
                 try {
                     $st->execute([$tenant, mb_substr($category, 0, 120), mb_substr($product, 0, 2000), $channel,

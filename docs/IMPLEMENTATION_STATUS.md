@@ -117,7 +117,7 @@
 |---|-----|------|------|
 | ①-1 | 조합형 DCO(M이미지×N카피 데카르트곱) | ✅ 2026-07 | `CreativeStudio::batch` image_count 확장(1이면 기존동작 보존). 프론트 image_count 컨트롤=폴리싱 잔여 |
 | ①-2 | Advantage+/PMax 캠페인 타입·asset group | ⏳블라인드 | metaCreate/googleCreate 확장 — 외부 API 파라미터라 라이브 크리덴셜 검증 필수(블라인드 추가 금지) |
-| ①-3 | 멀티 종횡비 배치 자동생성 | ⏳ | 순수코드·draft 폭주 주의(M×N×A) |
+| ①-3 | 멀티 종횡비 배치 자동생성 | ✅ 2026-07 | `CreativeStudio::batch` ratios 파라미터 — 이미지 슬롯에 비율 분산(총 이미지수 불변·캡16 유지→폭주0). aspect 태깅. ratios 미제공=기존 단일비율(회귀0). 프론트 ratios 컨트롤=소폭 후속 |
 | ①-4a | Naver 스마트입찰 | ❌false | **by-design**: Naver SA=검색광고, 입찰은 adgroup 키워드 레벨(캠페인 tROAS 부적합). 갭 아님(naverCreate:820 주석) |
 | ①-4b | Meta 빈도캡·LINE 스마트입찰 | ⏳블라인드 | 외부 API 파라미터라 라이브 크리덴셜 검증 필수 |
 | ①-5 | CTV/DSP 실집행(amazon_dsp/DV360)·영상생성 | ⏳ | **외부 크리덴셜/API 필요** |
