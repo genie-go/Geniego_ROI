@@ -24,6 +24,7 @@
 - PG 15 실 정산: stripe/toss/paypal/adyen/paddle/square/mollie/razorpay/klarna/checkout/inicis/kcp/kakaopay/naverpay. `PgSettlement.php:285,519+`
 - 물류 추적, SNS-live(youtube/ig/fb), CS(zendesk/intercom/freshdesk/gorgias), ESP(mailchimp/klaviyo/sendgrid), 리뷰(trustpilot/yotpo/google_business) — 전부 실 어댑터+동기화.
 - 어댑터 없는 채널 = 정직한 pending(genericFetch, 가짜데이터 없음). `ChannelSync.php:1508`
+- **★리뷰 AI 감성/토픽 분석 = 이미 구현(재구현 금지)**: R1 규칙기반(평점→감성)+**R2 ClaudeAI 텍스트 분석**(POST /v428/reviews/analyze=본문 감성+키워드+aspect·sentiment_src='ai'·ai_topics)+채널별 긍/부정 집계+AI 부정키워드. 프론트 ReviewsUGC "✨ AI 리뷰 분석" 버튼 배선. `Reviews.php:85,320`·`ReviewsUGC.jsx:541`
 - **CH-3(2026-07 완료)**: Kakao/LINE 전용페이지 자격증명 → 허브 연결상태 반영. `ChannelCreds.php:summary` read-side 병합.
 
 ## 2) 데이터 수집·정합 (Data Collection & Sync) — ✅ CLEAN

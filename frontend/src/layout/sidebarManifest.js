@@ -148,7 +148,8 @@ export const MEMBER_MENU = [
     items: [
       { to: "/team-members",    icon: "🧑‍🤝‍🧑", labelKey: "gNav.memberComposeLabel", menuKey: "system||workspace" },
       { to: "/workspace",       icon: "👥", labelKey: "gNav.workspaceLabel",     menuKey: "system||workspace" },
-      { to: "/operations",      icon: "⚡", labelKey: "gNav.operationsLabel",    menuKey: "system||operations" },
+      // [257차 중복제거] /operations 는 246차 배치교정으로 커머스&물류 그룹(line 91)으로 이동됐으나 원본이
+      //   본 그룹에 잔존해 사이드바에 같은 페이지 링크가 2번 노출됐다(동일 라우트·라벨·권한키). 커머스 그룹만 정본 유지.
       { to: "/case-study",      icon: "🏆", labelKey: "gNav.caseStudyLabel",     menuKey: "system||case_study" },
       { to: "/help",            icon: "📚", labelKey: "gNav.helpLabel",          menuKey: "system||help_center" },
       { to: "/feedback",        icon: "💬", labelKey: "gNav.feedbackLabel",      menuKey: "system||feedback" },
