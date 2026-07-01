@@ -635,6 +635,47 @@ function CohortRetentionPanel({ t }) {
   );
 }
 
+/* ── [257차] 상품 연관분석(함께 구매) — 고객 동시구매 SKU 쌍 lift/confidence(크로스셀·번들) ── */
+function ProductAffinityPanel({ t }) {
+  const [data, setData] = React.useState(null);
+  React.useEffect(() => {
+    let alive = true;
+    (async () => { try { const r = await _gjaCrm('/api/crm/product-affinity?top=30'); if (alive) setData(r || { pairs: [] }); } catch (e) { if (alive) setData({ pairs: [] }); } })();
+    return () => { alive = false; };
+  }, []);
+  if (!data) return null;
+  const pairs = data.pairs || [];
+  const liftColor = (l) => l >= 3 ? '#16a34a' : l >= 1.5 ? '#d97706' : '#64748b';
+  return (
+    <div style={{ background: C.card, borderRadius: 14, padding: '16px 18px' }}>
+      <div style={{ fontWeight: 700, marginBottom: 4, color: C.text }}>🧺 {t('crm.affinityTitle', '상품 연관분석 (함께 구매)')}</div>
+      <div style={{ fontSize: 11.5, color: C.muted, marginBottom: 12, lineHeight: 1.6 }}>{t('crm.affinityDesc', '같은 고객이 함께 구매한 상품 쌍입니다. 연관강도(lift)>1은 우연보다 자주 함께 팔린다는 의미 — 크로스셀·번들·추천에 활용하세요. (전체 구매고객 {{n}}명 기준)').replace('{{n}}', data.total_buyers ?? 0)}</div>
+      {pairs.length === 0
+        ? <div style={{ fontSize: 12.5, color: C.muted, padding: '14px 0' }}>{t('crm.affinityEmpty', '함께 구매 데이터가 아직 부족합니다(동일 고객이 2개 이상 상품을 구매하면 표시됩니다).')}</div>
+        : (
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+              <thead><tr>
+                {[t('crm.affA', '상품 A'), t('crm.affB', '함께 산 상품 B'), t('crm.affCo', '동시구매'), t('crm.affConf', 'B 구매율(A→B)'), t('crm.affLift', '연관강도')].map(h => <th key={h} style={{ padding: '6px 10px', textAlign: 'left', color: C.muted, fontWeight: 700 }}>{h}</th>)}
+              </tr></thead>
+              <tbody>
+                {pairs.map((p, i) => (
+                  <tr key={i} style={{ borderTop: `1px solid ${C.border}` }}>
+                    <td style={{ padding: '6px 10px', color: C.text }}>{p.a_name}</td>
+                    <td style={{ padding: '6px 10px', color: C.text, fontWeight: 600 }}>{p.b_name}</td>
+                    <td style={{ padding: '6px 10px', textAlign: 'center', color: C.muted }}>{p.co_buyers}{t('crm.affPeople', '명')}</td>
+                    <td style={{ padding: '6px 10px', textAlign: 'center', color: C.muted }}>{p.conf_ab}%</td>
+                    <td style={{ padding: '6px 10px', textAlign: 'center', fontWeight: 800, color: liftColor(p.lift) }}>{p.lift}×</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+    </div>
+  );
+}
+
 function RFMTab({ derivedCustomers }) {
   const { t } = useI18n();
   const fmt = useCurrencyFmt();
@@ -663,6 +704,7 @@ function RFMTab({ derivedCustomers }) {
       </div>
 
       <CohortRetentionPanel t={t} />
+      <ProductAffinityPanel t={t} />
 
       <div style={{ background: C.card, borderRadius: 14, overflow: "hidden" }}>
         <div style={{ padding: "14px 18px", fontWeight: 700, borderBottom: `1px solid ${C.border}` }}>{t('crm.rfmListTit')}</div>

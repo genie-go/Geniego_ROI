@@ -62,6 +62,7 @@ return function (App $app): void {
         'POST /crm/activities'                 => 'Genie\\Handlers\\CRM::addActivity',
         'GET /crm/rfm'                         => 'Genie\\Handlers\\CRM::rfmAnalysis',
         'GET /crm/cohort-retention'            => 'Genie\\Handlers\\CRM::cohortRetention', // [현 차수] 코호트 리텐션
+        'GET /crm/product-affinity'            => 'Genie\\Handlers\\CRM::productAffinity', // [257차] 상품 연관분석(함께 구매)
         'GET /crm/segments'                    => 'Genie\\Handlers\\CRM::listSegments',
         'POST /crm/segments'                   => 'Genie\\Handlers\\CRM::createSegment',
         'DELETE /crm/segments/{id}'            => 'Genie\\Handlers\\CRM::deleteSegment',
@@ -2601,6 +2602,7 @@ return function (App $app): void {
     $register('POST',   '/crm/activities');
     $register('GET',    '/crm/rfm');
     $register('GET',    '/crm/cohort-retention'); // [현 차수] 코호트 리텐션
+    $register('GET',    '/crm/product-affinity'); // [257차] 상품 연관분석(함께 구매)
     $register('GET',    '/crm/segments');
     $register('POST',   '/crm/segments');
     $register('DELETE', '/crm/segments/{id}');

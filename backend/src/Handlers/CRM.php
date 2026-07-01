@@ -570,6 +570,86 @@ class CRM
         return self::jsonRes($res, ['ok'=>true, 'cohorts'=>array_reverse($out), 'max_offset'=>$MAXO]);
     }
 
+    /* ─── GET /crm/product-affinity — 상품 연관분석(함께 구매) [257차 net-new] ───
+       동일 고객(buyer_email)이 구매한 SKU 쌍의 동시구매 고객수·support·confidence(A→B/B→A)·lift 산출.
+       크로스셀/번들 추천의 근거(Amazon "함께 구매" / 장바구니 분석). 실 주문(취소/반품 제외)만·테넌트 스코프·가짜0.
+       ★channel_orders 는 주문당 1행이라 주문내 라인 co-occurrence 불가 → 고객 레벨 동시구매(고객당 SKU집합)로 산출.
+       파라미터: ?min_co=2(최소 동시구매 고객수)&top=30. */
+    public static function productAffinity(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $pdo    = self::db();
+        $tenant = self::tenant($req);
+        $q      = $req->getQueryParams();
+        $minCo  = max(2, min(50, (int)($q['min_co'] ?? 2)));
+        $top    = min(100, max(5, (int)($q['top'] ?? 30)));
+
+        // 고객(buyer_email)별 구매 SKU 집합(취소/반품 제외) + SKU별 구매고객수·상품명
+        $byBuyer = []; $skuName = []; $skuBuyers = [];
+        try {
+            $st = $pdo->prepare("SELECT LOWER(buyer_email) AS be, sku, MAX(product_name) AS name
+                                   FROM channel_orders
+                                  WHERE tenant_id = :t AND buyer_email IS NOT NULL AND buyer_email <> ''
+                                    AND sku IS NOT NULL AND sku <> ''
+                                    AND (event_type IS NULL OR event_type = 'order')
+                                  GROUP BY LOWER(buyer_email), sku");
+            $st->execute([':t' => $tenant]);
+            foreach ($st->fetchAll(\PDO::FETCH_ASSOC) as $r) {
+                $be = (string)$r['be']; $sku = (string)$r['sku'];
+                if ($be === '' || $sku === '') continue;
+                $byBuyer[$be][$sku] = true;
+                if (!isset($skuName[$sku])) $skuName[$sku] = (string)(($r['name'] ?? '') !== '' ? $r['name'] : $sku);
+                $skuBuyers[$sku] = ($skuBuyers[$sku] ?? 0) + 1;
+            }
+        } catch (\Throwable $e) { $byBuyer = []; }
+
+        $totalBuyers = count($byBuyer);
+        if ($totalBuyers < 2) {
+            return self::jsonRes($res, ['ok' => true, 'pairs' => [], 'total_buyers' => $totalBuyers,
+                'params' => ['min_co' => $minCo]]);
+        }
+
+        // SKU 쌍 동시구매 카운트(정렬키로 방향 중복 제거). 폭주 방지: SKU 200개 초과 고객은 스킵.
+        $pairCo = [];
+        foreach ($byBuyer as $skus) {
+            $list = array_keys($skus);
+            $n = count($list);
+            if ($n < 2 || $n > 200) continue;
+            sort($list);
+            for ($i = 0; $i < $n; $i++) {
+                for ($j = $i + 1; $j < $n; $j++) {
+                    $key = $list[$i] . '||' . $list[$j];
+                    $pairCo[$key] = ($pairCo[$key] ?? 0) + 1;
+                }
+            }
+        }
+
+        $pairs = [];
+        foreach ($pairCo as $key => $co) {
+            if ($co < $minCo) continue;
+            [$a, $b] = explode('||', $key, 2);
+            $ba = $skuBuyers[$a] ?? 0; $bb = $skuBuyers[$b] ?? 0;
+            if ($ba <= 0 || $bb <= 0) continue;
+            $pa = $ba / $totalBuyers; $pb = $bb / $totalBuyers; $pab = $co / $totalBuyers;
+            $pairs[] = [
+                'a' => $a, 'a_name' => $skuName[$a] ?? $a,
+                'b' => $b, 'b_name' => $skuName[$b] ?? $b,
+                'co_buyers' => $co, 'buyers_a' => $ba, 'buyers_b' => $bb,
+                'support'   => round($pab * 100, 2),       // 전체 고객 중 둘 다 구매 비율(%)
+                'conf_ab'   => round($co / $ba * 100, 1),  // A 구매자 중 B도 구매(%)
+                'conf_ba'   => round($co / $bb * 100, 1),  // B 구매자 중 A도 구매(%)
+                'lift'      => ($pa > 0 && $pb > 0) ? round($pab / ($pa * $pb), 2) : 0, // 연관강도(1=무관·>1 양의연관)
+            ];
+        }
+        // 연관강도(lift) 큰 순, 동률이면 동시구매 고객수
+        usort($pairs, fn($x, $y) => ($y['lift'] <=> $x['lift']) ?: ($y['co_buyers'] <=> $x['co_buyers']));
+        $pairs = array_slice($pairs, 0, $top);
+
+        return self::jsonRes($res, ['ok' => true, 'pairs' => $pairs, 'total_buyers' => $totalBuyers,
+            'params' => ['min_co' => $minCo], '_env' => Db::env()]);
+    }
+
     /* ─── GET /crm/segments ─────────────────────────────────────────── */
     public static function listSegments(Request $req, Response $res): Response
     {
