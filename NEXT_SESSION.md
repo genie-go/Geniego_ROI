@@ -1,3 +1,52 @@
+# 257차 세션 인계서 — **6도메인 전수감사(확정3) + 경쟁재평가 + net-new 3 + 심화 3 + 메뉴중복감사 + i18n 15국 60키**
+
+> **작성일**: 2026-07-01 (사용자 명시 승인) · 운영 roi.genie-go.com / 데모 roidemo.genie-go.com · 브랜치 `feat/n236-admin-growth-automation` → **master FF 머지·push(origin/master=`cc490288bb9`, CI 자동배포)**. 전 항목 운영/데모 수동배포·항목별 검증(php-l·엔드포인트 e2e·헤드리스 렌더·서버 self-test).
+
+## ★0. 다음 차수 필독 — 오탐/중복 방지 (이번 세션 재확인, 사용자 강력 지적)
+- 착수 전 반드시 `docs/IMPLEMENTATION_STATUS.md`(정본, 상단에 ★중복방지 정책 명문화) + `reference_audit_false_positives`(메모리, 257차 항목 추가) 참조·감사에이전트 주입.
+- **★핵심 패턴(257차 실증)**: 플랫폼이 극히 성숙 → 제안 기능 대부분 이미 구현. 착수 전 **grep 부재증명 필수**. 이번에 코호트리텐션·딜리버러빌리티대시보드·예측세그자동·라이브오버레이·경쟁가자동수집·예약리포트·마켓바스켓affinity·고객360·리뷰AI감성 = 전부 기구현 확인→재구현 안함(이력등재). **진짜 net-new만 신설**.
+- **투기적 구현 금지**: 프로모ROI(주문별 할인연결/대조군 부재)는 정직하게 보류. 외부의존(실광고키·SOC2·미디어서버·geo-ID맵)은 결함 아님.
+
+## 1. 257차 완료 (전부 운영/데모 라이브·중복0·회귀0·master push)
+| # | 영역 | 항목 | 커밋 |
+|---|------|------|------|
+| A | 전수감사 | **6도메인 병렬감사(FP주입)+PM재증명→확정3**: P1머니경로 크로스먼스 취소/반품 원월정산 재롤업(saveOrders+웹훅, 수동경로엔 이미존재)·Compliance posture 테넌트스코프 누락(전역집계 노출)·AiGenerate 폴백 가짜지표 운영차단 +개선(웹훅 order.created대칭) | `5276ffef` |
+| B | 경쟁재평가 | 16차원 경쟁사vs Genie 100점(`docs/COMPETITIVE_REVALIDATION_257.md`). 단순평균 Genie88.0/best-of-breed89.8·통합폐루프 93vs~72(+21). 강점=데이터정합/데모격리/i18n | (문서) |
+| C | net-new #1 | **재고 노후/악성재고 분석** DemandForecast::deadStock(GET /api/demand/dead-stock)+수요예측 "재고노후" 탭(악성90d/저회전30d·묶인자본·회전일수·권장액션) | `ff1ecb9a` |
+| D | net-new #2 | **상품 연관분석(함께구매)** CRM::productAffinity(GET /crm/product-affinity·고객 동시구매 support/confidence/lift)+CRM RFM탭 ProductAffinityPanel | `dc3d22bd` |
+| E | net-new #3 | **반품 사유분석** ReturnsPortal::reasonAnalysis(사유별·반품유발상품Top·불량률)+AnalyticsTab 서버카드. ★index.php 세션→auth_tenant 게이트에 편입(세션토큰 401 해소) | `651802dc` |
+| F | 심화 | 온사이트CRO 노코드 변경빌더(체인지셋 UI)·고객360 전체활동 타임라인(전접점)·[전부 백엔드 기구현 위 UI 완결] | `24774a0e`·`b66584c3` |
+| G | 메뉴중복 | **/operations 사이드바 이중링크 제거**(246차 커머스이동 원본 잔존). 반품/공급업체 판정(아래 §3) | `3b9b80dc` |
+| H | i18n | **15국 현지 자연어 60키**(cro14·demandForecast22·crm20·rpI18n4). G2 baseline ja/zh SHA+ko_leaf 18468 갱신 | `cc490288` |
+
+## 2. 검증
+- 백엔드 php -l 전건 PASS·신규 엔드포인트 401 라우팅(deadstock/product-affinity/reason-analysis)·fpm restart·nginx reload.
+- 헤드리스 데모(admin 로고클릭→GENIEGO-ADMIN→ceo@ociell.com) 렌더검증: 재고노후 KPI·상품연관 패널·360 타임라인·CRO 빌더 정상.
+- ReturnsPortal reason-analysis **서버 self-test**(임시행 삽입→집계 정확[불량률50%·상품Top]→정리)·세션 200.
+- i18n dist 청크 번들검증(en 'Dead Stock'/'Product affinity'·ja '滞留在庫'·ru 'Неликвиды')·pre-commit 전게이트+triage self-test PASS.
+
+## 3. 메뉴 중복/분리 판정 (사용자 지적)
+- **반품 2곳**=의도적 분리 유지: returns-portal(고객 반품접수/환불) vs WMS 입출고(반품품 물리 재고복원). 데이터·업무단계 상이.
+- **공급업체 vs 거래처**=진짜 중복(백엔드 분절): SupplyChain `/v420/supply/suppliers`(sc_suppliers) vs TeamMembers 거래처 `/api/wms/suppliers`(WMS). **다음 차수 통합 대상**(데이터 마이그레이션 필요→승인 후).
+- **운영실행목록**=진짜중복 해결완료(/operations 이중링크 제거). manifest 전체 동일라우트 이중매핑은 이것 하나뿐이었음.
+- 잔여 확인: OperationsHub 미렌더 탭함수(CampaignTab/ProductTab/InfluencerTab) dead 여부 정리 권장.
+
+## 4. 다음 차수 잔여/후보
+- **공급업체↔거래처 백엔드 SSOT 일원화**(마이그레이션·승인 후).
+- 외부의존(결함아님): 실광고계정 OAuth 라이브집행 검증·Naver쇼핑 실키(경쟁가 자동수집)·발송DNS·미디어서버·SOC2 인증.
+- ★신규 기능 착수 전 반드시 grep 부재증명(성숙 플랫폼=대부분 기구현).
+
+## 5. 트랩(257차)
+- **/v420/returns/* 는 api_key 미들웨어 전용**(auth_tenant) → 프론트 세션토큰 401. 세션 소비 시 index.php 세션→auth_tenant 게이트 편입 필요(읽기전용만·쓰기EP는 api_key 유지).
+- **rpI18n tr()는 키 부재 시 키문자열을 그대로 노출**(||폴백 미발동, key가 truthy) → 신규키 반드시 rpI18n 15국 추가.
+- **G2 baseline**: ja.js/zh.js 수정 시 `sha256sum` 재계산→.githooks/baseline.json sacred_sha 갱신. ko leaf는 acorn 카운트·TOL 5%.
+- **pre-commit self-test가 resolver_consumer_manifest_v2.json 자동재생성** → 커밋 후 `git checkout --`로 revert(트리청결).
+- 헤드리스 admin: 로그인 로고에 상시 애니메이션 → Playwright click 거부, `document.querySelector('img.auth-logo').click()` JS 디스패치로 우회.
+
+(★본 인계서 = 사용자 명시 승인. 자격증명 평문노출 0. master push 완료.)
+
+---
+
 # 256차 세션 인계서 — **하위관리자·geo-i18n + 6도메인 전수감사 8건 + 구현이력 정본화(오탐 근본대책) + 경쟁 약점 순차 초고도화(코드갭 완전소진) + master 머지·배포**
 
 > **작성일**: 2026-07-01 (사용자 명시 승인) · 운영 roi.genie-go.com / 데모 roidemo.genie-go.com · primary=**E:\project\GeniegoROI** · 브랜치 `feat/n236-admin-growth-automation` → **master FF 머지·push 완료(origin/master=`27093a366b8`, CI 자동배포)**. 전 항목 **운영/데모 수동 배포·항목별 검증**(서버 php-l PASS·홈200·엔드포인트 e2e).
