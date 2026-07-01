@@ -27,6 +27,8 @@
 - **★리뷰 AI 감성/토픽 분석 = 이미 구현(재구현 금지)**: R1 규칙기반(평점→감성)+**R2 ClaudeAI 텍스트 분석**(POST /v428/reviews/analyze=본문 감성+키워드+aspect·sentiment_src='ai'·ai_topics)+채널별 긍/부정 집계+AI 부정키워드. 프론트 ReviewsUGC "✨ AI 리뷰 분석" 버튼 배선. `Reviews.php:85,320`·`ReviewsUGC.jsx:541`
 - **CH-3(2026-07 완료)**: Kakao/LINE 전용페이지 자격증명 → 허브 연결상태 반영. `ChannelCreds.php:summary` read-side 병합.
 
+- **★258차(2026-07-01 완료) 채널추가 UI sync_kind 매핑 완비**: admin 연동허브 채널추가 모달이 web_analytics/support/esp/review/payment/logistics 카테고리를 고르면 `sync_kind='none'`(보관전용)으로 저장돼 자동수집 미편입되던 것 수정(백엔드 ChannelRegistry·isXxxSource 는 대칭 지원했음). `GROUP_TO_SYNC` forward 매핑(SK2G 역매핑과 정합)으로 analytics/cs/esp/review/pg/logistics 정확 분류 → 저장 즉시 자동 sync 대상. `ApiKeys.jsx:881`. (커머스/광고 3종은 기존 동작 불변=회귀0)
+
 ## 2) 데이터 수집·정합 (Data Collection & Sync) — ✅ CLEAN
 - ingest 멱등(자연키 upsert)·fxToKrw 단일 정규화·raw_json 원통화 보존·active→cancel 1회 side-effect. `ChannelSync.php:2664-2771`
 - 정산 서버집계(SQL GROUP BY·캡 없음)·취소제외 SSOT·실정산 우선. `OrderHub.php:1075-1121`
@@ -60,6 +62,7 @@
 - Creative Insights/Cockpit(피로도/스코어/롤업). `CreativeStore.php:214,296`
 - 오디언스 동기화(customer-list+lookalike)+cron 자동갱신. `AdAdapters.php:1570,1589`, `AutoCampaign.php:1292`
 - **MKT-1(2026-07 완료)**: RuleEngine pause_channel 실동작. `AdAdapters.php:pauseChannel`
+- **★258차(2026-07-01 완료) AIRecommendTab 가짜 집행 → 실 집행 배선**: `/ai-recommend` 의 "집행" 버튼이 `setTimeout` 후 무조건 "집행됨"으로 표기하는 가짜(백엔드 미호출)였다. 검증된 실 엔드포인트 `POST /v423/auto-campaign/launch`(AutoMarketing 과 동일 백엔드) 호출로 대체 — 채널 캠페인 실제 생성(`activate:false` 안전 생성=휴먼-인-루프, 활성화는 /auto-marketing 게이트). 자격증명 미연동 채널은 pending_connection 정직 반환. 중복 엔진 신설 0(기존 엔진 재사용). `AIRecommendTab.jsx:425`. ※ 실 집행 엔진 자체(AdAdapters 6채널·멀티통화·킬스위치·CAPI·최적화 폐루프)는 258차 감사서 프로덕션급 재확인(CONFIRMED_GAP 0).
 
 ## 5) 정산·손익 P&L (Settlement) — 🏆 best-in-class(멀티채널·멀티테넌트)
 - rollupSettlementsCore(서버집계·kr_fee_rule·취소제외·실정산우선·늦은반품 원월귀속). `OrderHub.php:1075-1131`
@@ -86,6 +89,8 @@
 - 하위 관리자(sub-admin)+접속키 최고관리자 전용(2026-07 GAP/보안 수정 반영).
 - **GAP-1(2026-07 완료)**: 감사로그 내보내기 admin전용(교차유출 차단). `Compliance.php:184`
 - **★257차(2026-07 완료) 컴플라이언스 posture 테넌트 스코프**: `Compliance::posture` 의 gdpr/email_suppression COUNT 가 `WHERE tenant_id` 누락으로 플랫폼 전역 건수(숫자만·PII/행 무유출)를 임의 Pro 테넌트 카드에 노출하던 것 수정(형제 sso_config 는 정상 스코프였음). 레거시 무-tenant 컬럼 테이블은 예외 시 집계 제외(fail-closed). `Compliance.php:68-76`
+
+- **★258차(2026-07-01 완료) posture audit_log 전역 카운트 누출 차단**: `Compliance::posture` 가 `SELECT COUNT(*) FROM audit_log`(무-tenant 플랫폼 전역 관리자 감사 테이블)를 임의 Pro 테넌트 카드에 노출하던 것 수정(257차가 형제 gdpr/suppression 에 적용한 fail-closed 정책 누락분·집계 숫자만·행/PII 무유출 LOW). 테넌트 스코프된 `security_audit_log WHERE tenant_id=?` 카운트로 대체(없으면 fail-closed=0). `Compliance.php:63`.
 
 ## 8) SOC2/ISO 컴플라이언스 — ✅ 준비도 대시보드 완비(코드 완료)
 - `Compliance::posture` — 15개 통제를 SOC2 TSC + ISO 27001:2022 Annex A 매핑·실측 introspection·준비도% 산출. `Compliance.php:53-114`

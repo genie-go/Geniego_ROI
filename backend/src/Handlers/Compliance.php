@@ -60,7 +60,13 @@ final class Compliance
         $auditRows = 0; $ssoConfigured = false; $scimEnabled = false; $gdprRows = 0; $suppRows = 0;
         try {
             $pdo = Db::pdo();
-            if (self::tableExists($pdo, 'audit_log')) $auditRows = self::count($pdo, "SELECT COUNT(*) FROM audit_log");
+            // [현 차수 감사] ★audit_log 는 tenant_id 컬럼이 없는 플랫폼 전역 관리자 감사 테이블 →
+            //   전역 COUNT 를 임의 테넌트 posture 카드에 노출하면 타 테넌트 활동 건수가 새어나간다(257차가 형제
+            //   gdpr/suppression 에 적용한 fail-closed 정책 누락분). 테넌트 자신의 감사 활동은 tenant_id 스코프
+            //   된 security_audit_log 로 카운트한다(없으면 fail-closed=0). 형제 sso_config 스코프와 정합.
+            if (self::tableExists($pdo, 'security_audit_log')) {
+                try { $auditRows = self::count($pdo, "SELECT COUNT(*) FROM security_audit_log WHERE tenant_id=?", [$t]); } catch (\Throwable $e) { $auditRows = 0; }
+            }
             if (self::tableExists($pdo, 'sso_config')) {
                 $ssoConfigured = self::count($pdo, "SELECT COUNT(*) FROM sso_config WHERE tenant_id=? AND enabled=1", [$t]) > 0;
                 $scimEnabled = self::count($pdo, "SELECT COUNT(*) FROM sso_config WHERE tenant_id=? AND scim_token IS NOT NULL AND scim_token<>''", [$t]) > 0;

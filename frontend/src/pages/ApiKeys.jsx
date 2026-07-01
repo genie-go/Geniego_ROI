@@ -877,12 +877,25 @@ export default function ApiKeys() {
     const name = String(form.name || '').trim();
     if (!key || !name) { show('error', '채널 키와 표시명을 입력하세요.'); return; }
     const group = form.group || 'own_etc';
-    // 카테고리 → 동기화 종류 추론: 커머스(국내/글로벌/자사몰)=commerce, 광고=ad, 그 외=none
-    const sync_kind = ['domestic', 'global_commerce', 'd2c'].includes(group) ? 'commerce' : (group === 'global_ad' ? 'ad' : 'none');
+    // [현 차수] 카테고리 → 동기화 종류 추론 완비. 기존엔 커머스/광고 3종만 매핑돼 web_analytics/support/esp/
+    //   review/payment/logistics 카테고리로 추가한 채널이 sync_kind='none'(보관전용)로 떨어져 자동수집에
+    //   편입되지 못했다(백엔드 ChannelRegistry·isXxxSource 는 대칭 지원). SK2G(위 read-side 역매핑)와 정합되게
+    //   forward 매핑을 확장 → admin 이 UI 로 추가한 인바운드 채널도 저장 즉시 자동 sync 대상.
+    const GROUP_TO_SYNC = {
+      domestic: 'commerce', global_commerce: 'commerce', d2c: 'commerce',
+      global_ad: 'ad',
+      web_analytics: 'analytics', support: 'cs', esp: 'esp', review: 'review',
+      payment: 'pg', logistics: 'logistics', global_express: 'logistics',
+    };
+    const sync_kind = GROUP_TO_SYNC[group] || 'none'; // sns_live/own_etc = 전용 어댑터 필요 → 보관전용(정직)
     const fields = String(form.fields || 'api_key').split(',').map(s => s.trim()).filter(Boolean).map(k => ({ k, label: k, secret: true }));
     try {
       const r = await postJson('/api/v426/admin/channels', { channel_key: key, name, group_type: group, icon: form.icon || '🔗', color: form.color || '#6366f1', fields, sync_kind, is_active: 1 });
-      if (r?.ok) { show('success', `채널 추가됨: ${name} → ${GROUP_LABELS[group] || group} · 자격증명 저장 가능(자동 수집은 전용 어댑터 연동 후 — ${sync_kind === 'ad' ? 'ad-metrics push' : sync_kind === 'commerce' ? 'webhook push' : '보관 전용'})`); setShowRegAdd(false); loadRegistry(); }
+      if (r?.ok) {
+        const SK_HINT = { ad: '광고 성과 자동수집', commerce: '주문/정산 자동수집', analytics: '웹분석 자동수집', cs: 'CS 지표 자동수집', esp: '이메일/SMS 자동수집', review: '리뷰 자동수집', pg: '결제 정산 자동수집', logistics: '배송 추적 자동수집' };
+        show('success', `채널 추가됨: ${name} → ${GROUP_LABELS[group] || group} · 자격증명 저장 시 ${SK_HINT[sync_kind] || '보관 전용(전용 어댑터 연동 후 수집)'}`);
+        setShowRegAdd(false); loadRegistry();
+      }
       else show('error', r?.error || '추가 실패(관리자 권한 필요)');
     } catch (e) { show('error', String(e?.message || e)); }
   }, [show, loadRegistry]);

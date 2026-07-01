@@ -250,6 +250,7 @@ function AIRecommendTab() {
     const [approved, setApproved] = useState({});
     const [executing, setExecuting] = useState({});
     const [executed, setExecuted] = useState({});
+    const [execNote, setExecNote] = useState(''); // [현 차수] 실 집행 결과 안내(가짜 집행 제거)
     const [activeTab, setActiveTab] = useState('channels');
     const [customReq, setCustomReq] = useState({});
     const [searchQ, setSearchQ] = useState('');
@@ -422,11 +423,57 @@ function AIRecommendTab() {
         setActiveTab('images');
         if (imgStatus === 'idle') genCreatives(result?.channels || [], cat.label);
     };
+    // [현 차수] 실 집행 배선 — 기존 handleExecute 는 setTimeout 후 무조건 "집행됨"으로 표기하는 가짜였다.
+    //   실제 마케팅 자동화 엔진(POST /v423/auto-campaign/launch, AutoMarketing 과 동일 백엔드)을 호출해
+    //   해당 채널 캠페인을 실제 생성한다. activate:false = 안전 생성(휴먼-인-루프): 캠페인은 만들되 활성화는
+    //   결제수단·킬스위치·연동 게이트를 통과하는 /auto-marketing 에서 수행(무단 지출 0). 자격증명 미연동 채널은
+    //   백엔드가 pending_connection 으로 정직 반환. 중복 엔진 신설 없이 검증된 실 엔드포인트 재사용.
+    const AD_KEY_MAP = {
+        meta: 'meta', instagram: 'meta', facebook: 'meta',
+        google_search: 'google', google: 'google', youtube: 'google',
+        naver_search: 'naver_sa', naver: 'naver_sa', naver_sa: 'naver_sa',
+        tiktok: 'tiktok', kakao: 'kakao_moment', kakao_moment: 'kakao_moment',
+        line: 'line', line_ads: 'line',
+    };
     const handleExecute = async (ch) => {
-        setExecuting(prev => ({ ...prev, [ch.channel_id]: true }));
-        await new Promise(r => setTimeout(r, 1200 + Math.random() * 800));
-        setExecuting(prev => ({ ...prev, [ch.channel_id]: false }));
-        setExecuted(prev => ({ ...prev, [ch.channel_id]: true }));
+        const cid = ch.channel_id;
+        setExecuting(prev => ({ ...prev, [cid]: true }));
+        setExecNote('');
+        try {
+            const tok = localStorage.getItem('genie_token') || localStorage.getItem('demo_genie_token') || '';
+            if (!tok) { setExecNote('⚠️ 실 집행은 로그인 후 이용할 수 있습니다.'); setExecuting(prev => ({ ...prev, [cid]: false })); return; }
+            const nm = ch.channel_name || cid;
+            const adKey = AD_KEY_MAP[cid] || cid;
+            const totalCh = Math.max(1, (result?.channels || []).length);
+            const perBudget = Number(ch.recommend_budget ?? ch.budget ?? ch.monthly_budget ?? ch.allocation ?? 0)
+                || Math.round(Number(customBudget ?? result?.monthly_budget ?? 0) / totalCh);
+            const roas = Number(ch.expected_roas ?? ch.roas ?? 0);
+            const r = await fetch(`${API}/v423/auto-campaign/launch`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tok}` },
+                body: JSON.stringify({
+                    name: `${cat.label} - ${nm}`,
+                    category: catId, categories: [catId],
+                    budget: perBudget, period: 'monthly',
+                    channels: [adKey],
+                    allocations: [{ channel: adKey, alloc: perBudget, roas }],
+                    est_roas: String(roas || ''),
+                    activate: false, // 안전 생성(휴먼-인-루프) — 활성화는 /auto-marketing 게이트에서
+                }),
+            });
+            const ld = await r.json().catch(() => ({}));
+            if (r.ok && ld && ld.ok !== false) {
+                setExecuted(prev => ({ ...prev, [cid]: true }));
+                if (ld.live) setExecNote(`✅ ${nm} 라이브 집행 시작 — 성과 자동 수집·최적화`);
+                else if (ld.activation && ld.activation.message) setExecNote(`📝 ${nm} 캠페인 생성됨(활성화 보류): ${ld.activation.message} — 마케팅 자동화에서 활성화`);
+                else setExecNote(`📝 ${nm} 캠페인 생성됨 — [마케팅 자동화(/auto-marketing)]에서 승인·활성화하면 실집행됩니다. (자격증명 미등록 채널은 [연동허브]에서 API키 등록 후 자동 집행)`);
+            } else {
+                setExecNote(`❌ ${nm} 집행 실패: ${ld?.error || ('HTTP ' + r.status)}`);
+            }
+        } catch (e) {
+            setExecNote(`❌ 집행 오류: ${String(e?.message || e)}`);
+        }
+        setExecuting(prev => ({ ...prev, [cid]: false }));
     };
     const handleExecuteAll = async () => {
         for (const ch of (result?.channels || []).filter(c => approved[c.channel_id])) {
@@ -571,6 +618,16 @@ function AIRecommendTab() {
             {status === 'error' && (
                 <div style={{ padding: '12px 16px', borderRadius: 10, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', color: '#ef4444', fontSize: 12 }}>
                     ❌ {result?.error}
+                </div>
+            )}
+
+            {/* [현 차수] 실 집행 결과 안내(가짜 집행 제거 후 실 백엔드 응답 반영) */}
+            {execNote && (
+                <div style={{ padding: '10px 14px', borderRadius: 10, fontSize: 12, fontWeight: 600, lineHeight: 1.5,
+                    background: execNote.startsWith('❌') ? 'rgba(239,68,68,0.08)' : execNote.startsWith('⚠️') ? 'rgba(245,158,11,0.1)' : 'rgba(34,197,94,0.08)',
+                    border: '1px solid ' + (execNote.startsWith('❌') ? 'rgba(239,68,68,0.25)' : execNote.startsWith('⚠️') ? 'rgba(245,158,11,0.3)' : 'rgba(34,197,94,0.25)'),
+                    color: execNote.startsWith('❌') ? '#ef4444' : execNote.startsWith('⚠️') ? '#b45309' : '#16a34a' }}>
+                    {execNote}
                 </div>
             )}
 
