@@ -261,6 +261,9 @@ final class AttributionEngine
 
             // ── 블렌딩 ──
             $rows = []; $signalsUsed = [];
+            // [현 차수 초고도화 ③] 캘리브레이션 — 모델 예측(share) vs 실험 ground-truth(holdout lift) 방향 일치도.
+            //   단위가 달라 정밀 비율은 오해소지 → 방향(과대/과소/정합) 진단으로 신뢰도만 제시.
+            $calCovered = 0; $calAligned = 0;
             foreach (array_keys(array_merge($mkShare, $mmmShare, $hold)) as $lc) {
                 $signals = []; $wsum = 0.0; $shareSum = 0.0; $trusts = [];
                 if (isset($mkShare[$lc])) { $tr = $mkTrust[$lc] ?? 0.5; $signals[] = 'markov'; $wsum += $tr; $shareSum += $tr * $mkShare[$lc]; $trusts[] = $tr; }
@@ -271,6 +274,17 @@ final class AttributionEngine
                 $avgTrust = $trusts ? array_sum($trusts) / count($trusts) : 0.0;
                 $blendedTrust = round($avgTrust * (0.6 + 0.4 * $coverage), 3);
                 foreach ($signals as $s) $signalsUsed[$s] = true;
+                // [현 차수 ③] 캘리브레이션 — holdout 실험 보유 채널만: 모델 share vs 실측 lift 방향 일치.
+                $cal = null;
+                if (isset($hold[$lc])) {
+                    $calCovered++;
+                    $lift = (float)($hold[$lc]['lift'] ?? 0);
+                    $expInc = !empty($hold[$lc]['sig']) && $lift > 0; // 유의+양의 lift = 실측 증분
+                    if ($expInc && $blendedShare >= 0.10) { $cal = 'aligned'; $calAligned++; }
+                    elseif (!$expInc && $blendedShare >= 0.20) $cal = 'over_attributed';
+                    elseif ($expInc && $blendedShare < 0.05) $cal = 'under_attributed';
+                    else $cal = 'inconclusive';
+                }
                 $rows[] = [
                     'channel' => $disp[$lc] ?? $lc,
                     'blended_incremental_share' => round($blendedShare * 100, 1),
@@ -278,6 +292,7 @@ final class AttributionEngine
                     'mmm_share' => isset($mmmShare[$lc]) ? round($mmmShare[$lc] * 100, 1) : null,
                     'holdout_lift_pct' => $hold[$lc]['lift'] ?? null,
                     'holdout_significant' => isset($hold[$lc]) ? $hold[$lc]['sig'] : null,
+                    'calibration' => $cal,
                     'blended_trust' => $blendedTrust,
                     'confidence_grade' => $blendedTrust >= 0.7 ? 'high' : ($blendedTrust >= 0.45 ? 'medium' : 'low'),
                     'contributing_signals' => $signals,
@@ -291,6 +306,10 @@ final class AttributionEngine
                 'channels' => $rows,
                 'decision_confidence' => $sw > 0 ? round($dc / $sw * 100, 1) : 0.0,
                 'signals_available' => array_keys($signalsUsed),
+                // [현 차수 초고도화 ③] 모델 vs 실험 캘리브레이션 — holdout 보유 채널의 방향 일치 비율.
+                'calibration' => ['covered' => $calCovered, 'aligned' => $calAligned,
+                    'score' => $calCovered > 0 ? round($calAligned / $calCovered * 100, 1) : null,
+                    'note' => '실험(holdout) 보유 채널에서 모델 예측과 실측 lift 방향 일치 비율(%). 낮으면 모델 과대/과소귀속 재보정 권고.'],
                 'window_days' => $window,
                 'note' => '3개 증분성 신호(Markov 제거효과·MMM Bayesian 사후·Holdout 검증)의 신뢰도 가중 통합. holdout 은 share 비반영·신뢰도 가중.',
                 'response_time_ms' => self::elapsed($start),

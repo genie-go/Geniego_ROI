@@ -518,6 +518,22 @@ class JourneyBuilder
                 continue;
             }
 
+            // ── [현 차수 초고도화 ②] exit: 이탈 조건 — 충족 시 여정 즉시 종료(Braze exit criteria). 미충족=다음 진행 ──
+            //   기존 evalCondition 재사용(중복0). status='exited'(완료와 구분·재선정 안 됨·stats_completed 미증가).
+            if ($type === 'exit') {
+                $branch = self::evalCondition($pdo, $tenant, $enr, $node);
+                if ($branch === 'true') {
+                    self::logNode($pdo, $tenant, $enrollId, $jid, $nodeId, 'exit', 'exited', ['reason' => (string)($node['label'] ?? 'exit_criteria')]);
+                    try { $pdo->prepare("UPDATE journey_enrollments SET status='exited', completed_at=:c, last_run_at=:c WHERE id=:id AND tenant_id=:t")->execute([':c'=>$now, ':id'=>$enrollId, ':t'=>$tenant]); } catch (\Throwable $e) {}
+                    $actions[] = ['node'=>$nodeId, 'action'=>'exited'];
+                    return ['ok'=>true, 'status'=>'exited', 'actions'=>$actions];
+                }
+                self::logNode($pdo, $tenant, $enrollId, $jid, $nodeId, 'exit', 'exit_not_met', []);
+                $actions[] = ['node'=>$nodeId, 'action'=>'exit_not_met'];
+                $nodeId = self::nextNode($edges, $nodeId, null);
+                continue;
+            }
+
             // ── [현 차수] goal: 전환 목표 도달 기록(여정·등록건 전환 카운트) ──
             if ($type === 'goal') {
                 self::logNode($pdo, $tenant, $enrollId, $jid, $nodeId, 'goal', 'goal_reached', ['goal'=>(string)($node['label'] ?? 'goal')]);

@@ -381,6 +381,17 @@ final class Omnichannel
                 $anyAttempt = true;
                 if (!empty($r['ok'])) return ['ok'=>true, 'channel'=>'email', 'status'=>$r['status']];
                 $lastErr = 'email_failed';
+            } elseif ($ch === 'sms') {
+                // [현 차수 초고도화 ②] 워터폴 SMS 편입 — 기존 NaverSms::sendPlatform 재사용(중복0).
+                //   기본 WATERFALL_CHANNELS 불변(sms 를 순서에 명시한 테넌트만 활성 → 회귀0).
+                if ($phone === '') continue;
+                $content = self::mergeName((string)($config['sms_content'] ?? $config['kakao_content'] ?? ($config['whatsapp_body'] ?? '')), $name);
+                if ($content === '') continue;
+                $r = \Genie\NaverSms::sendPlatform($pdo, $phone, $content);
+                if (($r['mode'] ?? '') === 'unconfigured' || ($r['mode'] ?? '') === 'invalid') continue; // 미설정 → 폴백
+                $anyAttempt = true;
+                if (!empty($r['ok'])) return ['ok'=>true, 'channel'=>'sms', 'status'=>'sent'];
+                $lastErr = $r['error'] ?? 'sms_failed';
             }
         }
         return ['ok'=>false, 'reason'=>($anyAttempt ? 'failed' : 'unavailable'), 'error'=>$lastErr];
