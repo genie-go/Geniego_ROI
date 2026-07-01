@@ -192,21 +192,29 @@ final class AiGenerate
         $criteria = trim((string)($body['criteria'] ?? ''));
         $context  = trim((string)($body['context'] ?? ''));
 
-        if (false /*was demo*/ || !$criteria) {
+        // [현 차수 감사] ★가짜 지표 운영 노출 차단 — 기존엔 기준 미입력/AI미설정/파싱실패 시 운영 테넌트에도
+        //   demoSegmentSamples(₩820,000·12.4% 등 지표성 가짜값)를 반환했다(동일 파일 타 EP 는 이미 게이트됨).
+        //   데모 테넌트는 풍부한 샘플 경험 유지(격리 원칙), 운영은 정직 응답(가짜 지표 미노출).
+        $isDemo = ($tenant === 'demo' || str_starts_with($tenant, 'demo'));
+        if ($isDemo) {
             return TemplateResponder::respond($res, ['ok' => true, 'plan' => 'demo', 'result' => self::demoSegmentSamples()]);
+        }
+        if (!$criteria) {
+            return TemplateResponder::respond($res, ['ok' => false, 'error' => 'criteria_required', 'message' => '세그먼트 기준을 입력하세요.', 'result' => []], 400);
         }
 
         $s = $pdo->prepare("SELECT api_key,model FROM ai_settings WHERE tenant_id=? AND is_active=1");
         $s->execute([$tenant]);
         $cfg = $s->fetch(PDO::FETCH_ASSOC);
-        if (!$cfg) return TemplateResponder::respond($res, ['ok' => true, 'plan' => 'fallback', 'result' => self::demoSegmentSamples()]);
+        if (!$cfg) return TemplateResponder::respond($res, ['ok' => false, 'plan' => 'unconfigured', 'error' => 'ai_not_configured', 'message' => 'AI 자격증명을 등록하면 세그먼트를 자동 생성합니다.', 'result' => []]);
 
         $prompt = "당신은 마케팅 데이터 분석가입니다. 다음 기준으로 고객 세그먼트를 정의하고 마케팅 전략을 제안하세요.\n기준: {$criteria}\n컨텍스트: {$context}\n\n다음 형식으로 JSON으로만 응답하세요:\n{\"name\":\"...\",\"description\":\"...\",\"size_estimate\":\"...\",\"ltv_estimate\":\"...\",\"recommended_channel\":\"...\",\"message_strategy\":\"...\",\"expected_cvr\":\"...\"}";
 
         $result = self::callClaude(\Genie\Crypto::decrypt((string)$cfg['api_key']), $cfg['model'] ?? self::DEFAULT_MODEL, $prompt);
         $parsed = $result['ok'] ? json_decode((string)$result['content'], true) : null;
 
-        return TemplateResponder::respond($res, ['ok' => $result['ok'], 'result' => $parsed ?? self::demoSegmentSamples()[0]]);
+        // 파싱 실패 시 가짜 샘플 대신 정직 실패(운영 가짜 지표 미노출).
+        return TemplateResponder::respond($res, ['ok' => ($result['ok'] && $parsed !== null), 'result' => $parsed ?: null, 'error' => $parsed !== null ? null : 'ai_generation_failed']);
     }
 
     // POST /api/ai/generate/ad-copy

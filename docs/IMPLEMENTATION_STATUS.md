@@ -29,6 +29,7 @@
 - 주문수=행수(SUM(qty) 아님)·취소토큰 SSOT. `Rollup.php:628,77-82`
 - ROAS 진실 대사(매체보고 vs 실주문, truthRatio). `Connectors.php:883-941`
 - **#2(2026-07 완료)**: 정산 취소 이중차감 해소 — returnFee=반품만. `OrderHub.php:1092`
+- **★257차(2026-07 완료) 자동경로 크로스먼스 취소/반품 원월 재롤업**: 폴링(saveOrders)·웹훅 기존주문 전이가 당월만 롤업해 과거월 주문이 자동경로로 취소/반품되면 그 달 정산(gross/returnFee/net_payout)이 stale 과대로 남던 결함 수정. saveOrders 가 취소/반품 전이 영향 과거월을 수집→배치 끝 원월 재롤업, 웹훅은 `$existing.ordered_at` 월을 rollMonths 에 편입(수동 setOrderStatus 와 동일 SSOT·멱등). `ChannelSync.php:saveOrders,webhook`
 
 ## 3) 어트리뷰션·측정 (Attribution) — ✅ 연구급, 대부분 구현·노출
 - 6-모델 MTA(last/first/linear/time-decay/position/**Markov removal-effect 데이터기반**). `AttributionEngine.php:1085-1243`
@@ -76,6 +77,7 @@
 - SSO(OIDC/SAML C14N)·**SCIM 2.0 완전지원**(Looker보다 우위)·MFA(TOTP)·KEK 회전·불변 감사 해시체인·rate-limit·No-PII.
 - 하위 관리자(sub-admin)+접속키 최고관리자 전용(2026-07 GAP/보안 수정 반영).
 - **GAP-1(2026-07 완료)**: 감사로그 내보내기 admin전용(교차유출 차단). `Compliance.php:184`
+- **★257차(2026-07 완료) 컴플라이언스 posture 테넌트 스코프**: `Compliance::posture` 의 gdpr/email_suppression COUNT 가 `WHERE tenant_id` 누락으로 플랫폼 전역 건수(숫자만·PII/행 무유출)를 임의 Pro 테넌트 카드에 노출하던 것 수정(형제 sso_config 는 정상 스코프였음). 레거시 무-tenant 컬럼 테이블은 예외 시 집계 제외(fail-closed). `Compliance.php:68-76`
 
 ## 8) SOC2/ISO 컴플라이언스 — ✅ 준비도 대시보드 완비(코드 완료)
 - `Compliance::posture` — 15개 통제를 SOC2 TSC + ISO 27001:2022 Annex A 매핑·실측 introspection·준비도% 산출. `Compliance.php:53-114`
@@ -90,6 +92,7 @@
 - build-time(VITE_DEMO_MODE)+runtime host allowlist+data-layer backstop. `demoEnv.js`, `GlobalDataContext.jsx:54-69`
 - authedTenant는 인증 사용자에게 'demo'를 반환하지 않음(구조적 격리). `UserAuth.php:338`
 - **ISO-2(2026-07 완료)**: 데모 API키 env=demo 게이트+운영 시드분 삭제. `Db.php:955`
+- **★257차(2026-07 완료) AI 세그먼트 폴백 가짜지표 운영 차단**: `AiGenerate::generateSegment` 이 기준 미입력/AI미설정/파싱실패 시 운영 테넌트에도 demoSegmentSamples(₩820,000·12.4% 등 지표성 가짜값)를 반환하던 것을 데모=샘플 유지·운영=정직 응답(빈결과/설정안내)으로 분기(동일 파일 타 EP 는 이미 게이트됨). `AiGenerate.php:195-215`
 
 ## 11) 커머스 운영 모듈 (Commerce Ops) — ✅ 구현
 - **OrderHub**(주문통합·정산·클레임/반품·CLM 멱등), **WMS**(창고/택배사AES/권한/입출고감사/피킹/발주/LOT FEFO 테넌트격리, `Wms.php`), **SupplyChain**(멀티창고 최적할당·haversine 근접), **DemandForecast**(ABC·안전재고·auto-replenish), **ReturnsPortal**(교환/반품 캐논 claimType), **PriceOpt**(리프라이서·Buybox·velocity·승인큐 writeback), **DigitalShelf/CatalogSync**(writeback 12/12 어댑터), **LiveCommerce**(SSE·카메라·AI쇼호스트·구매동기화).

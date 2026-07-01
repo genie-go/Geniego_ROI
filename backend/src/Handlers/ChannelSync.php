@@ -2665,6 +2665,11 @@ final class ChannelSync
     {
         $count = 0;
         $now   = gmdate('c');
+        // [현 차수 감사 P1] 자동경로 크로스먼스 취소/반품 원월 정산 재롤업 정합 — 폴링/cron 은 caller 가 당월만 롤업하므로
+        //   과거월 주문이 이번 배치에서 취소/반품 전이되면 그 달 정산(gross/returnFee/net_payout)이 stale 로 남았다.
+        //   수동 setOrderStatus 와 동일하게 영향받은 과거월을 수집→배치 끝에서 원월 재롤업(당월은 caller 담당·중복제외).
+        $curMonth       = gmdate('Y-m');
+        $affectedMonths = [];
         $stmt  = $pdo->prepare("INSERT INTO channel_orders
             (tenant_id,channel,channel_order_id,buyer_name,buyer_email,product_name,sku,qty,unit_price,total_price,status,carrier,tracking_no,addr,ordered_at,event_type,raw_json,synced_at)
             VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
@@ -2688,7 +2693,7 @@ final class ChannelSync
             // 208차 멱등 + [현 차수 P0] 상태전이(취소/반품) 감지를 위해 기존 행 상태 사전 조회.
             $existing = null;
             try {
-                $chk = $pdo->prepare("SELECT event_type, status, sku, qty, total_price FROM channel_orders WHERE tenant_id=? AND channel=? AND channel_order_id=? LIMIT 1");
+                $chk = $pdo->prepare("SELECT event_type, status, sku, qty, total_price, ordered_at FROM channel_orders WHERE tenant_id=? AND channel=? AND channel_order_id=? LIMIT 1");
                 $chk->execute([$tenant, $channel, (string)$o['channel_order_id']]);
                 $existing = $chk->fetch(PDO::FETCH_ASSOC) ?: null;
             } catch (\Throwable $e) {}
@@ -2731,6 +2736,8 @@ final class ChannelSync
                 } else {
                     // 최초 수집부터 취소/반품 → 재고차감/구매기록 없이 claim 만 적재(정산 정합, 미판매분 재고 미차감).
                     self::recordClaim($pdo, $tenant, $channel, (string)$o['channel_order_id'], $incCR, (float)($o['total_price'] ?? 0), (string)($o['reason'] ?? ''), (string)($o['buyer_name'] ?? ''), $now);
+                    $am = substr((string)($o['ordered_at'] ?? ''), 0, 7); // [P1] 영향 원주문 월
+                    if (preg_match('/^\d{4}-\d{2}$/', $am) && $am !== $curMonth) $affectedMonths[$am] = true;
                     // [현 차수] 단방향 자동진입: 반품이면 반품관리 포탈에 멱등 자동 진입(반품관리 동기화).
                     //   최초수집 반품은 원 출고를 추적하지 않았으므로 물리재고 복원은 미수행(이중복원 방지).
                     if ($incCR === 'return') {
@@ -2747,6 +2754,8 @@ final class ChannelSync
                 $rsku = (string)($existing['sku'] ?? ($o['sku'] ?? ''));
                 $rqty = (int)($existing['qty'] ?? ($o['qty'] ?? 0));
                 if ($rsku !== '' && $rqty > 0) self::incInventory($pdo, $tenant, $channel, $rsku, $rqty);
+                $am = substr((string)($existing['ordered_at'] ?? ''), 0, 7); // [P1] 활성→취소/반품 전이 원주문 월
+                if (preg_match('/^\d{4}-\d{2}$/', $am) && $am !== $curMonth) $affectedMonths[$am] = true;
                 $claimTotal = (float)($existing['total_price'] ?? 0);
                 if ($claimTotal <= 0) $claimTotal = (float)($o['total_price'] ?? 0);
                 self::recordClaim($pdo, $tenant, $channel, (string)$o['channel_order_id'], $incCR, $claimTotal, (string)($o['reason'] ?? ''), (string)($o['buyer_name'] ?? ''), $now);
@@ -2765,6 +2774,13 @@ final class ChannelSync
                         ]);
                     }
                 }
+            }
+        }
+        // [현 차수 감사 P1] 과거월 취소/반품 전이가 있었으면 그 원주문 월 정산을 재롤업(당월은 caller 가 담당).
+        //   수동 setOrderStatus/setClaimStatus 와 동일 SSOT(rollupSettlementsCore). 멱등·비치명.
+        if ($tenant !== '' && $tenant !== 'demo' && !str_starts_with($tenant, 'demo') && $affectedMonths) {
+            foreach (array_keys($affectedMonths) as $rm) {
+                try { \Genie\Handlers\OrderHub::rollupSettlementsCore($pdo, $tenant, $rm, null, gmdate('Y-m-d H:i:s')); } catch (\Throwable $e) {}
             }
         }
         return $count;
@@ -3826,13 +3842,17 @@ final class ChannelSync
 
         // 웹훅 이벤트 처리 (재고 차감, 주문 업데이트) — 검증된 tenant 한정
         $eventType = $body['event'] ?? 'order';
+        // [현 차수 감사 P1] 자동경로 크로스먼스 취소/반품 원월 재롤업 정합 — 기존주문 상태변경 웹훅은 body 에
+        //   ordered_at 이 없어 원주문 월이 롤업 대상에서 누락됐다(과거월 정산 gross/returnFee stale). 아래 기존주문
+        //   전이 블록에서 $existing.ordered_at 의 월을 잡아 rollMonths 에 편입한다(수동 setOrderStatus 와 동일 패턴).
+        $affectedMonth = '';
 
         if ($eventType === 'inventory_update' && !empty($body['sku'])) {
             $pdo->prepare("UPDATE channel_inventory SET available=?,synced_at=? WHERE tenant_id=? AND channel=? AND sku=?")
                 ->execute([(int)($body['quantity']??0), $now, $tenant, $channel, $body['sku']]);
         } elseif (in_array($eventType, ['order','order_update','cancel','return'], true) && !empty($body['order_id'])) {
             // MySQL/SQLite 호환 upsert (ON CONFLICT 미사용)
-            $sel = $pdo->prepare("SELECT sku, qty, total_price, event_type FROM channel_orders WHERE tenant_id=? AND channel=? AND channel_order_id=? LIMIT 1");
+            $sel = $pdo->prepare("SELECT sku, qty, total_price, event_type, ordered_at FROM channel_orders WHERE tenant_id=? AND channel=? AND channel_order_id=? LIMIT 1");
             $sel->execute([$tenant, $channel, $body['order_id']]);
             $existing = $sel->fetch(PDO::FETCH_ASSOC);
             if ($existing) {
@@ -3841,9 +3861,12 @@ final class ChannelSync
                     ->execute([$body['status']??'pending', $eventType, $now, $tenant, $channel, $body['order_id']]);
                 // 208차 동기화 P0: 취소/반품 전이(최초 1회) → 재고 복원 + claim 적재(정산 returnFee 자동반영).
                 if (in_array($eventType, ['cancel','return'], true) && !$wasReturn) {
+                    $affectedMonth = substr((string)($existing['ordered_at'] ?? ''), 0, 7); // 원주문 월(정산 재롤업 대상)
                     $sku = (string)($existing['sku'] ?? ''); $qty = (int)($existing['qty'] ?? 0);
                     if ($sku !== '' && $qty > 0) self::incInventory($pdo, $tenant, $channel, $sku, $qty);
                     self::recordClaim($pdo, $tenant, $channel, (string)$body['order_id'], $eventType, (float)($existing['total_price'] ?? 0), (string)($body['reason'] ?? ''), (string)($body['buyer_name'] ?? ''), $now);
+                    // [현 차수 감사] 오픈플랫폼 order.cancelled — 폴링(saveOrders:2754)과 대칭(전이 1회·멱등·구독0=no-op).
+                    \Genie\Handlers\OpenPlatform::emit($tenant, 'order.cancelled', ['order_id' => (string)$body['order_id'], 'channel' => $channel, 'amount' => (float)($existing['total_price'] ?? 0), 'currency' => 'KRW', 'reason' => $eventType, 'occurred_at' => $now]);
                     // [현 차수] 단방향 자동진입(webhook=범용 ingest 경로도 saveOrders 와 동등): 물리 창고 재고 복원
                     //   (판매 차감분 대칭, 취소/반품 공통) + 반품이면 반품관리 포탈 멱등 진입.
                     if ($sku !== '' && $qty > 0) {
@@ -3889,6 +3912,9 @@ final class ChannelSync
                     self::recordCrmPurchase($pdo, $tenant, $channel, $body['buyer_email'] ?? '', $body['buyer_name'] ?? '', $totalW, $skuW, $qtyW, $oidW);
                     self::recordAttributionTouch($pdo, $tenant, $channel, $oidW, $totalW);
                     self::enrichOrderAttribution($pdo, $tenant, $channel, $oidW, $body['buyer_email'] ?? null, $totalW, $body);
+                    // [현 차수 감사] 오픈플랫폼 order.created — 폴링(saveOrders:2730)과 대칭. 웹훅 유입 신규주문만 구독자에게
+                    //   누락되던 비대칭 해소. 구독 0=no-op·비차단·멱등(신규주문 1회).
+                    \Genie\Handlers\OpenPlatform::emit($tenant, 'order.created', ['order_id' => $oidW, 'channel' => $channel, 'amount' => $totalW, 'currency' => 'KRW', 'qty' => $qtyW, 'sku' => $skuW, 'occurred_at' => $now]);
                 } else {
                     // 첫 수신 취소/반품 → claim 기록(+반품이면 물리재고 복원·반품포탈) — 폴링과 동등(정산 returnFee 정합).
                     self::recordClaim($pdo, $tenant, $channel, $oidW, $evtNormW, $totalW, (string)($body['reason'] ?? ''), (string)($body['buyer_name'] ?? ''), $now);
@@ -3908,6 +3934,8 @@ final class ChannelSync
             $rollMonths = [gmdate('Y-m')]; // 현재월(공통) + 영향 주문월(과거 주문 취소 정합)
             $omon = substr((string)($body['ordered_at'] ?? ''), 0, 7);
             if (preg_match('/^\d{4}-\d{2}$/', $omon) && !in_array($omon, $rollMonths, true)) $rollMonths[] = $omon;
+            // [현 차수 감사 P1] 기존주문 취소/반품 전이 시 원주문 월(위 $affectedMonth)도 재롤업 — body ordered_at 부재 보완.
+            if (preg_match('/^\d{4}-\d{2}$/', $affectedMonth) && !in_array($affectedMonth, $rollMonths, true)) $rollMonths[] = $affectedMonth;
             foreach ($rollMonths as $rm) {
                 try { \Genie\Handlers\OrderHub::rollupSettlementsCore($pdo, $tenant, $rm, null, gmdate('Y-m-d H:i:s')); } catch (\Throwable $e) {}
             }

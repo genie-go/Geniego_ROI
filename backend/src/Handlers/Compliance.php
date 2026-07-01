@@ -65,8 +65,17 @@ final class Compliance
                 $ssoConfigured = self::count($pdo, "SELECT COUNT(*) FROM sso_config WHERE tenant_id=? AND enabled=1", [$t]) > 0;
                 $scimEnabled = self::count($pdo, "SELECT COUNT(*) FROM sso_config WHERE tenant_id=? AND scim_token IS NOT NULL AND scim_token<>''", [$t]) > 0;
             }
-            foreach (['gdpr_consent', 'consent_log', 'gdpr_consents'] as $tb) { if (self::tableExists($pdo, $tb)) { $gdprRows = max($gdprRows, self::count($pdo, "SELECT COUNT(*) FROM $tb")); } }
-            if (self::tableExists($pdo, 'email_suppression')) $suppRows = self::count($pdo, "SELECT COUNT(*) FROM email_suppression");
+            // [현 차수 감사] ★테넌트 스코프 강제 — 기존엔 gdpr/suppression COUNT 가 WHERE tenant_id 누락으로
+            //   플랫폼 전역 건수가 임의 테넌트 컴플라이언스 카드에 노출됐다(형제 sso_config 는 스코프됨). 테넌트별로
+            //   집계하고, 레거시 무-tenant 컬럼 테이블은 예외 시 집계 제외(전역 노출 금지=fail-closed·개별 try 로 격리).
+            foreach (['gdpr_consent', 'consent_log', 'gdpr_consents'] as $tb) {
+                if (self::tableExists($pdo, $tb)) {
+                    try { $gdprRows = max($gdprRows, self::count($pdo, "SELECT COUNT(*) FROM $tb WHERE tenant_id=?", [$t])); } catch (\Throwable $e) { /* tenant 컬럼 없는 레거시 → 제외 */ }
+                }
+            }
+            if (self::tableExists($pdo, 'email_suppression')) {
+                try { $suppRows = self::count($pdo, "SELECT COUNT(*) FROM email_suppression WHERE tenant_id=?", [$t]); } catch (\Throwable $e) { $suppRows = 0; }
+            }
         } catch (\Throwable $e) { /* graceful */ }
         $encKey = (getenv('APP_KEY') ?: '') !== '';
 
