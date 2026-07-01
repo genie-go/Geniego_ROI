@@ -223,13 +223,16 @@ class PriceOpt
         try {
             $main = \Genie\Db::pdo();
             $since = gmdate('Y-m-d', time() - $weeks * 7 * 86400);
-            // 주별·SKU·채널 평균단가/총수량(unit price=total_price/qty, KRW 정규화 적재 가정). SKU/qty 컬럼 존재 가정, 실패 시 no-op.
+            // 주별·SKU·채널 평균단가/총수량(unit price=total_price/qty, KRW 정규화 적재). 컬럼=channel_orders.qty(스키마 정본 Db.php:385).
+            // [259차 복구] 과거 존재하지 않는 `quantity` 컬럼 참조로 쿼리가 항상 예외→try/catch no-op(탄력성 자동수집 영구 사망)였음. qty 로 정정.
+            // [259차] 취소/반품 관측 제외(형제 집계 roasRecon/realRevMap/productPerf 와 동일 취소제외 정책) — 탄력성 곡선 오염 방지.
             $sql = "SELECT sku, LOWER(channel) ch,
                            " . (\Genie\Db::pdo()->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql'
                                 ? "DATE_FORMAT(ordered_at,'%x-W%v')" : "strftime('%Y-W%W', ordered_at)") . " AS wk,
-                           SUM(total_price) rev, SUM(quantity) qty
+                           SUM(total_price) rev, SUM(qty) qty
                       FROM channel_orders
-                     WHERE tenant_id=? AND ordered_at>=? AND quantity>0 AND total_price>0 AND sku IS NOT NULL AND sku<>''
+                     WHERE tenant_id=? AND ordered_at>=? AND qty>0 AND total_price>0 AND sku IS NOT NULL AND sku<>''
+                       AND COALESCE(event_type,'order') NOT IN('cancel','return')
                      GROUP BY sku, LOWER(channel), wk
                      HAVING qty>0";
             $st = $main->prepare($sql); $st->execute([$t, $since]);

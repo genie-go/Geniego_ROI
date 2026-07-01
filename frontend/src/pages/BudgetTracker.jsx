@@ -352,7 +352,8 @@ function BurnRateTab({ campaigns, tr, fmt }) {
       const d = new Date(Date.now() - (days - 1 - i) * 86400000);
       const dateStr = d.toISOString().slice(5, 10);
       const dow = d.getDay();
-      const wf = (dow === 0 || dow === 6) ? 0.6 : 1.0;
+      // [259차] 주말계수도 운영 게이트: 운영은 실 totalSpent를 균등분배(가짜 주말딥/누적 언더슈트 제거), 데모만 현실적 주말딥. (형제 AdStatusAnalysis dowFactor와 동일 정책)
+      const wf = isDemoMode ? ((dow === 0 || dow === 6) ? 0.6 : 1.0) : 1.0;
       const noise = isDemoMode ? (seed(i * 7 + 3) - 0.5) * 0.4 : 0;
       const daily = Math.max(0, Math.round(dailyAvg * wf * (1 + noise)));
       cumulative += daily;

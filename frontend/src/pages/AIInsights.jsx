@@ -61,15 +61,16 @@ function useConnectedChannels() {
 }
 
 /* ─── Insight Card ──────────────────── */
-const InsightCard = memo(function InsightCard({ icon, title, desc, severity = "info", actionBtn, t }) {
+const InsightCard = memo(function InsightCard({ icon, title, desc, severity = "info", actionBtn, actionRoute, navigate, t }) {
     const tr = t || ((k, f) => f);
     const colors = { high: RED, mid: '#d97706', info: BLUE, good: GREEN };
     const col = colors[severity] || colors.info;
-    const [executing, setExecuting] = useState(false);
 
+    // [259차 정직성] 과거: setTimeout 1.5s 후 무조건 "Auto-Optimization Applied" alert = 백엔드 미호출 가짜집행.
+    // 실 최적화/정지는 전용 콘솔(마케팅 자동화·반품)에서 결제/킬스위치 게이트 + 휴먼-인-루프(propose→승인→집행)로만 수행.
+    // → 권장 액션 클릭 시 해당 실 실행 페이지로 딥링크(가짜 성공 표기 제거).
     const handleAction = () => {
-        setExecuting(true);
-        setTimeout(() => { alert(tr('aiInsights.autoOptApplied', '🤖 Auto-Optimization Applied Successfully.')); setExecuting(false); }, 1500);
+        if (navigate && actionRoute) navigate(actionRoute);
     };
 
     return (
@@ -81,9 +82,8 @@ const InsightCard = memo(function InsightCard({ icon, title, desc, severity = "i
                     <div style={{ fontSize: 13, color: TXT2, lineHeight: 1.6, wordBreak: 'break-word' }}>{desc}</div>
                     {actionBtn && (
                         <div style={{ marginTop: 14, display: 'flex', justifyContent: 'flex-end' }}>
-                            <button onClick={handleAction} disabled={executing} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, border: 'none', background: `linear-gradient(135deg, ${col}, ${col}dd)`, color: '#fff', fontWeight: 700, fontSize: 11, cursor: executing ? 'wait' : 'pointer', opacity: executing ? 0.7 : 1, transition: 'all 200ms', boxShadow: `0 4px 12px ${col}40` }}>
-                                {executing ? <span style={{ animation: 'spin 1s linear infinite' }}>🔄</span> : '⚡'}
-                                {executing ? tr('aiInsights.applyingOpt', 'Applying Optimization...') : actionBtn}
+                            <button onClick={handleAction} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, border: 'none', background: `linear-gradient(135deg, ${col}, ${col}dd)`, color: '#fff', fontWeight: 700, fontSize: 11, cursor: 'pointer', transition: 'all 200ms', boxShadow: `0 4px 12px ${col}40` }}>
+                                ⚡ {actionBtn} →
                             </button>
                         </div>
                     )}
@@ -123,12 +123,13 @@ const ChatMsg = memo(function ChatMsg({ role, text, insight, loading, t }) {
 });
 
 /* ═══════ TAB 1: Insight Cards ═══════ */
-const InsightCardsTab = memo(function InsightCardsTab({ live, t, connectedChannels }) {
+const InsightCardsTab = memo(function InsightCardsTab({ live, t, connectedChannels, navigate }) {
     const cards = [];
-    if (live.roas > 0 && live.roas < 3.0) cards.push({ icon: '📉', severity: 'high', title: t('aiInsights.roasAlertTitle', 'Critical: Low ROAS Detected'), desc: t('aiInsights.roasAlertDesc', 'Blended ROAS fell to {{v}}x. Immediate reallocation required.', { v: (live.roas || 0).toFixed(2) }), actionBtn: t('aiInsights.actRebalance', 'Rebalance Budget') });
-    if (live.returnRate > 0.12) cards.push({ icon: '↩', severity: 'high', title: t('aiInsights.returnAlertTitle', 'Warning: High Return Rate'), desc: t('aiInsights.returnAlertDesc', 'Product return rate spiked to {{v}}%.', { v: ((live.returnRate || 0) * 100).toFixed(1) }), actionBtn: t('aiInsights.actHalt', 'Halt Bad Catalogs') });
-    if (live.adSpend > 0 && live.grossRevenue > 0 && live.adSpend / live.grossRevenue > 0.2) cards.push({ icon: '💸', severity: 'mid', title: t('aiInsights.adSpendAlertTitle', 'Notice: High Ad Spend Ratio'), desc: t('aiInsights.adSpendAlertDesc', 'Ad spend is {{v}}% of revenue.', { v: ((live.adSpend / live.grossRevenue) * 100).toFixed(1) }), actionBtn: t('aiInsights.actOptimizeBids', 'Optimize Bids') });
-    if (live.roas >= 4.0) cards.push({ icon: '🔥', severity: 'good', title: t('aiInsights.topPerformTitle', 'Excellent: Scaling Opportunity'), desc: t('aiInsights.topPerformDesc', 'Current ROAS is highly profitable at {{v}}x. Scale up campaigns.', { v: (live.roas || 0).toFixed(2) }), actionBtn: t('aiInsights.actScale', 'Scale Budget +15%') });
+    // actionRoute = 클릭 시 이동할 실 실행 콘솔(가짜집행 대신 실제 게이트된 집행 페이지로 딥링크)
+    if (live.roas > 0 && live.roas < 3.0) cards.push({ icon: '📉', severity: 'high', title: t('aiInsights.roasAlertTitle', 'Critical: Low ROAS Detected'), desc: t('aiInsights.roasAlertDesc', 'Blended ROAS fell to {{v}}x. Immediate reallocation required.', { v: (live.roas || 0).toFixed(2) }), actionBtn: t('aiInsights.actRebalance', 'Rebalance Budget'), actionRoute: '/auto-marketing' });
+    if (live.returnRate > 0.12) cards.push({ icon: '↩', severity: 'high', title: t('aiInsights.returnAlertTitle', 'Warning: High Return Rate'), desc: t('aiInsights.returnAlertDesc', 'Product return rate spiked to {{v}}%.', { v: ((live.returnRate || 0) * 100).toFixed(1) }), actionBtn: t('aiInsights.actHalt', 'Halt Bad Catalogs'), actionRoute: '/returns-portal' });
+    if (live.adSpend > 0 && live.grossRevenue > 0 && live.adSpend / live.grossRevenue > 0.2) cards.push({ icon: '💸', severity: 'mid', title: t('aiInsights.adSpendAlertTitle', 'Notice: High Ad Spend Ratio'), desc: t('aiInsights.adSpendAlertDesc', 'Ad spend is {{v}}% of revenue.', { v: ((live.adSpend / live.grossRevenue) * 100).toFixed(1) }), actionBtn: t('aiInsights.actOptimizeBids', 'Optimize Bids'), actionRoute: '/auto-marketing' });
+    if (live.roas >= 4.0) cards.push({ icon: '🔥', severity: 'good', title: t('aiInsights.topPerformTitle', 'Excellent: Scaling Opportunity'), desc: t('aiInsights.topPerformDesc', 'Current ROAS is highly profitable at {{v}}x. Scale up campaigns.', { v: (live.roas || 0).toFixed(2) }), actionBtn: t('aiInsights.actScale', 'Scale Budget +15%'), actionRoute: '/auto-marketing' });
     if (cards.length === 0) cards.push({ icon: '✅', severity: 'good', title: t('aiInsights.allNormalTitle', 'System Healthy'), desc: t('aiInsights.allNormalDesc', 'All KPIs are within target safe thresholds. No critical actions needed.') });
 
     return (
@@ -149,7 +150,7 @@ const InsightCardsTab = memo(function InsightCardsTab({ live, t, connectedChanne
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16 }}>
-                {cards.map((c, i) => <InsightCard key={i} {...c} t={t} />)}
+                {cards.map((c, i) => <InsightCard key={i} {...c} t={t} navigate={navigate} />)}
             </div>
         </div>
     );
@@ -524,7 +525,7 @@ export default function AIInsights() {
 
             {/* Tab Contents */}
             <div className="aii-strong-fix" style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '24px 32px', paddingBottom: 100 }}>
-                {tab === 'cards' && <InsightCardsTab live={live} t={t} connectedChannels={connectedChannels} />}
+                {tab === 'cards' && <InsightCardsTab live={live} t={t} connectedChannels={connectedChannels} navigate={navigate} />}
                 {tab === 'trends' && <TrendsTab live={live} t={t} fmt={fmt} />}
                 {tab === 'chat' && <AIAssistantTab t={t} safeguard={safeguard} live={live} navigate={navigate} />}
                 {tab === 'history' && <HistoryTab t={t} />}
