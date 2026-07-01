@@ -335,7 +335,6 @@ export function GlobalDataProvider({ children }) {
         } catch { /* ignore broadcast errors */ }
     }, []);
     const [digitalShelfData, setDigitalShelfData] = useState({});     // DigitalShelf SoS 데이터
-    const [campaignOrderMap, setCampaignOrderMap] = useState({});     // 캠페인 ID → Orders 매핑
     const [orderMemos, setOrderMemos] = useState({});                 // Orders별 메모
     const [slaViolations, setSlaViolations] = useState([]);           // SLA 위반 이력
     const [supplyOrders, setSupplyOrders] = useState([]);             // 자동 발주 목록
@@ -1564,24 +1563,8 @@ export function GlobalDataProvider({ children }) {
         }));
     }, []);
 
-    /** 캠페인 → Orders 연결 (ROAS 자동 산출용) */
-    const linkOrderToCampaign = useCallback((campaignId, orderId) => {
-        setCampaignOrderMap(prev => ({
-            ...prev,
-            [campaignId]: [...(prev[campaignId] || []), orderId],
-        }));
-    }, []);
-
-    /** 캠페인별 ROAS 자동 계산 */
-    const getCampaignRoas = useCallback((campaignId) => {
-        const orderIds = campaignOrderMap[campaignId] || [];
-        const revenue = orders
-            .filter(o => orderIds.includes(o.id))
-            .reduce((s, o) => s + o.total, 0);
-        const camp = channelBudgets;
-        const spend = Object.values(camp).find(c => c.campaignId === campaignId)?.spent || 0;
-        return { revenue, spend, roas: spend > 0 ? (revenue / spend).toFixed(2) : '—' };
-    }, [campaignOrderMap, orders, channelBudgets]);
+    // [현 차수 감사] dead 코드 제거: linkOrderToCampaign·getCampaignRoas 는 Provider value 에 미export·무호출
+    //   (실제 캠페인 ROAS 는 서버 monitorLive 집계 campaign.roas 사용). 로컬 campaignOrderMap 도 함께 제거.
 
     /** Orders 메모/태그 Add */
     const setOrderMemo = useCallback((orderId, memo, tags = []) => {
@@ -2075,7 +2058,7 @@ export function GlobalDataProvider({ children }) {
         priceCalendar, addPriceCalendarEvent,
         claimHistory, claimStatsServer, registerClaimReturn, orderMemos, setOrderMemo, slaViolations,
         pickingLists, packingSlips,
-        digitalShelfData, campaignOrderMap,
+        digitalShelfData,
 
         // ── [v10 NEW] 구독요금 동기화
         planPricing, updatePlanPricing,

@@ -1966,12 +1966,15 @@ function OverviewTab({ channels, summary, creds, applies = [], loading, onChanne
               {status === 'partial' && <span style={{ color: '#d97706', fontSize: 12 }} aria-hidden>⚠️</span>}
               <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{ch.name}</span>
             </div>
-            <div style={{ fontSize: 10, color: status === 'none' ? 'var(--text-3)' : sc.fg, marginTop: 2, fontWeight: status === 'none' ? 400 : 700, whiteSpace: 'normal', lineHeight: 1.5 }}>
-              {status === 'none'
-                ? t('ak.needKeys', { count: reqCount, defaultValue: `자격증명 ${reqCount}개 필요 · 미등록` })
-                : status === 'partial'
-                  ? `🔑 ${credCount}/${reqCount} ${t('ak.registered','등록')} · ${t('ak.missingLabel','미등록')}: ${missing.map(f => f.label).join(', ')}`
-                  : `🔑 ${t('ak.keyRegistered', { count: shownCount, defaultValue: `${shownCount}개 키 등록됨` })}`}
+            <div style={{ fontSize: 10, color: (ch.managedPage || status === 'none') ? 'var(--text-3)' : sc.fg, marginTop: 2, fontWeight: (ch.managedPage || status === 'none') ? 400 : 700, whiteSpace: 'normal', lineHeight: 1.5 }}>
+              {ch.managedPage
+                /* [현 차수 감사] email/whatsapp 등 관리형 채널 — 허브 자격증명 입력이 아니라 전용 페이지에서 설정(오해 소지 '미등록' 문구 대체). */
+                ? `⚙️ ${t('ak.managedChannel','관리형 채널 · 전용 페이지에서 설정')}`
+                : status === 'none'
+                  ? t('ak.needKeys', { count: reqCount, defaultValue: `자격증명 ${reqCount}개 필요 · 미등록` })
+                  : status === 'partial'
+                    ? `🔑 ${credCount}/${reqCount} ${t('ak.registered','등록')} · ${t('ak.missingLabel','미등록')}: ${missing.map(f => f.label).join(', ')}`
+                    : `🔑 ${t('ak.keyRegistered', { count: shownCount, defaultValue: `${shownCount}개 키 등록됨` })}`}
             </div>
           </div>
           {/* [현 차수] ★발급 확인 배지 — 실검증 통과 시에만 '발급 확인됨'(녹), 등록·미검증은 '발급 확인 대기'(주황). */}

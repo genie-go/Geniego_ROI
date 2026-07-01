@@ -204,12 +204,14 @@ final class PgSettlement
         self::ensureTables($pdo);
         $settles = [];
         try {
-            $st = $pdo->prepare("SELECT id,provider,txn_id,type,gross,fee,net,currency,status,txn_at,order_ref FROM pg_settlement WHERE tenant_id=? AND gross > 0 ORDER BY txn_at ASC, id ASC LIMIT 5000");
+            // [현 차수 감사] as-of 대사 진단은 최근 거래가 더 유의미 → 5000 캡 시 오래된순(ASC)이 아닌 최신순(DESC)으로
+            //   로드해 >5000건 테넌트에서 최신분 누락을 방지(매칭은 로드셋 내 ref/금액·시간창 페어링이라 순서 무관).
+            $st = $pdo->prepare("SELECT id,provider,txn_id,type,gross,fee,net,currency,status,txn_at,order_ref FROM pg_settlement WHERE tenant_id=? AND gross > 0 ORDER BY txn_at DESC, id DESC LIMIT 5000");
             $st->execute([$tenant]); $settles = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
         } catch (\Throwable $e) {}
         $orders = [];
         try {
-            $st = $pdo->prepare("SELECT id, channel, channel_order_id, order_no, total_price, ordered_at, status FROM channel_orders WHERE tenant_id=? AND COALESCE(event_type,'order') NOT IN ('cancel','return') AND total_price > 0 ORDER BY ordered_at ASC, id ASC LIMIT 5000");
+            $st = $pdo->prepare("SELECT id, channel, channel_order_id, order_no, total_price, ordered_at, status FROM channel_orders WHERE tenant_id=? AND COALESCE(event_type,'order') NOT IN ('cancel','return') AND total_price > 0 ORDER BY ordered_at DESC, id DESC LIMIT 5000");
             $st->execute([$tenant]); $orders = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
         } catch (\Throwable $e) {}
         // 인덱스: order_ref(채널주문ID/주문번호) 및 금액버킷(round).
