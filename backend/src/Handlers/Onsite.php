@@ -94,6 +94,11 @@ final class Onsite
                 ip VARCHAR(64), bucket INT, hits INT DEFAULT 0,
                 PRIMARY KEY (ip, bucket)
             )");
+            // [257차] 비주얼 에디터 단기 편집 토큰 — 머천트 라이브 사이트(크로스오리진)서 변형B 체인지셋 저장 인증.
+            $pdo->exec("CREATE TABLE IF NOT EXISTS onsite_edit_token (
+                token VARCHAR(80) PRIMARY KEY, tenant_id VARCHAR(100), exp_key VARCHAR(80),
+                expires_at VARCHAR(32), created_at VARCHAR(32)
+            )");
         } catch (\Throwable $e) { /* graceful */ }
     }
 
@@ -348,5 +353,74 @@ final class Onsite
                 'verdict' => $winner ? "변형 '{$winner}'가 통계적으로 유의한 승자입니다(95%)." : ($totalExp < 100 ? '표본이 더 필요합니다(노출 누적 중).' : '아직 유의한 차이가 없습니다 — 계속 수집하세요.'),
             ]);
         } catch (\Throwable $e) { return self::json($res, ['ok' => false, 'error' => $e->getMessage()]); }
+    }
+
+    /* ─── [257차] 비주얼 WYSIWYG 오버레이 에디터 ───
+       크로스오리진(머천트 라이브 사이트)이라 앱 iframe 편집 불가 → 북마클릿이 GeniegoROI 서빙 에디터(cro-editor.js)를
+       머천트 페이지에 주입 + 단기 edit-token 으로 변형B 체인지셋 저장. 노코드 폼(257)의 시각 편집판. */
+
+    /** POST /v424/cro/experiments/{id}/edit-token — 비주얼 에디터 편집 토큰 발급(세션 인증). 북마클릿 반환. */
+    public static function editToken(Request $req, Response $res, array $args): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        $t = self::tenant($req); if ($t === '') return self::json($res, ['ok' => false, 'error' => 'no_tenant'], 401);
+        $id = (int)($args['id'] ?? 0);
+        try {
+            $pdo = Db::pdo(); self::ensure($pdo);
+            $e = $pdo->prepare("SELECT exp_key FROM onsite_experiment WHERE id=? AND tenant_id=?"); $e->execute([$id, $t]);
+            $exp = $e->fetch(PDO::FETCH_ASSOC);
+            if (!$exp) return self::json($res, ['ok' => false, 'error' => '실험을 찾을 수 없습니다.']);
+            $token = bin2hex(random_bytes(24)); $expKey = (string)$exp['exp_key'];
+            $expAt = gmdate('Y-m-d\TH:i:s\Z', time() + 3600); // 1시간 유효
+            $pdo->prepare("INSERT INTO onsite_edit_token(token,tenant_id,exp_key,expires_at,created_at) VALUES(?,?,?,?,?)")
+                ->execute([$token, $t, $expKey, $expAt, gmdate('c')]);
+            $host = (string)($req->getHeaderLine('Host') ?: ($req->getServerParams()['HTTP_HOST'] ?? 'roi.genie-go.com'));
+            $origin = 'https://' . $host;
+            $editorUrl = $origin . '/cro-editor.js';
+            $bookmarklet = "javascript:(function(){var s=document.createElement('script');s.src='" . $editorUrl . "?t=" . $token . "&exp=" . rawurlencode($expKey) . "&api=" . rawurlencode($origin) . "';s.setAttribute('data-genie-cro','1');document.body.appendChild(s);})();";
+            return self::json($res, ['ok' => true, 'token' => $token, 'exp_key' => $expKey, 'expires_at' => $expAt, 'editor_url' => $editorUrl, 'bookmarklet' => $bookmarklet]);
+        } catch (\Throwable $e) { return self::json($res, ['ok' => false, 'error' => $e->getMessage()]); }
+    }
+
+    /** POST /v424/cro/edit-save — 비주얼 에디터 저장(공개·edit-token 인증). body:{token, changes:[...]}. 변형B 체인지셋 갱신. */
+    public static function editSave(Request $req, Response $res): Response
+    {
+        $b = (array)($req->getParsedBody() ?? []);
+        $token = trim((string)($b['token'] ?? ''));
+        $changes = is_array($b['changes'] ?? null) ? $b['changes'] : null;
+        if ($token === '' || $changes === null) return self::json($res, ['ok' => false, 'error' => 'token_and_changes_required'], 400);
+        try {
+            $pdo = Db::pdo(); self::ensure($pdo);
+            $q = $pdo->prepare("SELECT tenant_id,exp_key,expires_at FROM onsite_edit_token WHERE token=? LIMIT 1");
+            $q->execute([$token]); $tk = $q->fetch(PDO::FETCH_ASSOC);
+            if (!$tk) return self::json($res, ['ok' => false, 'error' => 'invalid_token'], 403);
+            if (!empty($tk['expires_at']) && $tk['expires_at'] < gmdate('Y-m-d\TH:i:s\Z')) return self::json($res, ['ok' => false, 'error' => 'token_expired'], 403);
+            $t = (string)$tk['tenant_id']; $expKey = (string)$tk['exp_key'];
+            // 체인지셋 정제(화이트리스트 action·상한 100·길이캡). onsiteCro.applyChanges 스키마와 정합.
+            $clean = [];
+            foreach (array_slice($changes, 0, 100) as $c) {
+                if (!is_array($c)) continue;
+                $action = (string)($c['action'] ?? '');
+                if (!in_array($action, ['text', 'html', 'css', 'hide', 'redirect'], true)) continue;
+                if ($action === 'redirect') { $v = trim((string)($c['value'] ?? '')); if ($v === '') continue; $clean[] = ['action' => 'redirect', 'value' => mb_substr($v, 0, 500)]; continue; }
+                $sel = trim((string)($c['selector'] ?? '')); if ($sel === '') continue;
+                $row = ['selector' => mb_substr($sel, 0, 300), 'action' => $action];
+                if ($action === 'hide') { $clean[] = $row; continue; }
+                if ($action === 'css') { $prop = trim((string)($c['prop'] ?? '')); if ($prop === '') continue; $row['prop'] = mb_substr($prop, 0, 60); $row['value'] = mb_substr((string)($c['value'] ?? ''), 0, 300); }
+                else { $row['value'] = mb_substr((string)($c['value'] ?? ''), 0, 2000); }
+                $clean[] = $row;
+            }
+            $e = $pdo->prepare("SELECT id,variants_json FROM onsite_experiment WHERE tenant_id=? AND exp_key=? LIMIT 1");
+            $e->execute([$t, $expKey]); $exp = $e->fetch(PDO::FETCH_ASSOC);
+            if (!$exp) return self::json($res, ['ok' => false, 'error' => 'experiment_not_found'], 404);
+            $vs = json_decode((string)($exp['variants_json'] ?? ''), true); if (!is_array($vs)) $vs = [];
+            $bi = null; foreach ($vs as $i => $v) { if (strtoupper((string)($v['key'] ?? '')) === 'B') { $bi = $i; break; } }
+            if ($bi === null && count($vs) >= 2) $bi = 1;
+            if ($bi === null) { $vs[] = ['key' => 'B', 'label' => '변형(B)', 'weight' => 50]; $bi = count($vs) - 1; }
+            $vs[$bi]['changes'] = $clean;
+            $pdo->prepare("UPDATE onsite_experiment SET variants_json=?, updated_at=? WHERE id=? AND tenant_id=?")
+                ->execute([json_encode($vs, JSON_UNESCAPED_UNICODE), gmdate('c'), (int)$exp['id'], $t]);
+            return self::json($res, ['ok' => true, 'saved' => count($clean), 'exp_key' => $expKey]);
+        } catch (\Throwable $e) { return self::json($res, ['ok' => false, 'error' => $e->getMessage()], 500); }
     }
 }

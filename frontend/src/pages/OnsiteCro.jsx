@@ -65,6 +65,16 @@ export default function OnsiteCro() {
   const setStatus = async (id, status) => { await requestJsonAuth(`/v424/cro/experiments/${id}`, 'PUT', { status }); load(); };
   const del = async (id) => { if (!window.confirm(t('cro.delConfirm', '이 실험을 삭제하시겠습니까?'))) return; await requestJsonAuth(`/v424/cro/experiments/${id}`, 'DELETE'); load(); };
 
+  // [257차] 비주얼 WYSIWYG 에디터 — 편집 토큰 발급 → 머천트 라이브 사이트에서 실행할 북마클릿 안내(크로스오리진).
+  const [editInfo, setEditInfo] = useState(null); // {id, bookmarklet, expKey}
+  const openVisualEditor = async (id) => {
+    try {
+      const d = await postJsonAuth(`/v424/cro/experiments/${id}/edit-token`, {});
+      if (d?.ok) setEditInfo({ id, bookmarklet: d.bookmarklet, expKey: d.exp_key });
+      else setMsg(t('cro.veFail', '에디터 토큰 발급 실패'));
+    } catch { setMsg(t('cro.veFail', '에디터 토큰 발급 실패')); }
+  };
+
   const card = { background: 'var(--surface,#fff)', border: '1px solid var(--border,#e2e8f0)', borderRadius: 14, padding: 16 };
   const inp = { padding: '8px 11px', borderRadius: 8, border: '1px solid var(--border,#e2e8f0)', fontSize: 13, background: 'var(--surface,#fff)', color: 'var(--text-1)' };
 
@@ -171,12 +181,26 @@ export default function OnsiteCro() {
                   )}
                   <div style={{ marginLeft: 'auto', display: 'flex', gap: 6 }}>
                     <button onClick={() => loadResults(e.id)} style={{ fontSize: 11, padding: '5px 10px', borderRadius: 7, border: '1px solid var(--border,#e2e8f0)', background: 'transparent', cursor: 'pointer', color: 'var(--text-2)' }}>{t('cro.results', '결과')}</button>
+                    <button onClick={() => openVisualEditor(e.id)} title={t('cro.veTitle', '내 사이트에서 요소를 클릭해 시각적으로 변형 B를 편집')} style={{ fontSize: 11, padding: '5px 10px', borderRadius: 7, border: 'none', background: 'linear-gradient(135deg,#a855f7,#7c3aed)', cursor: 'pointer', color: '#fff', fontWeight: 700 }}>🎨 {t('cro.visualEditor', '비주얼 에디터')}</button>
                     {e.status === 'running'
                       ? <button onClick={() => setStatus(e.id, 'paused')} style={{ fontSize: 11, padding: '5px 10px', borderRadius: 7, border: 'none', background: '#fef3c7', cursor: 'pointer', color: '#92400e' }}>{t('cro.pause', '일시정지')}</button>
                       : <button onClick={() => setStatus(e.id, 'running')} style={{ fontSize: 11, padding: '5px 10px', borderRadius: 7, border: 'none', background: '#dcfce7', cursor: 'pointer', color: '#166534' }}>{t('cro.resume', '재개')}</button>}
                     <button onClick={() => del(e.id)} style={{ fontSize: 11, padding: '5px 10px', borderRadius: 7, border: 'none', background: '#fee2e2', cursor: 'pointer', color: '#991b1b' }}>{t('cro.delete', '삭제')}</button>
                   </div>
                 </div>
+                {editInfo && editInfo.id === e.id && (
+                  <div style={{ marginTop: 10, padding: 12, borderRadius: 10, background: 'rgba(124,58,237,0.06)', border: '1px solid rgba(124,58,237,0.25)' }}>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: '#7c3aed', marginBottom: 6 }}>🎨 {t('cro.veHowTitle', '비주얼 에디터 실행 방법')}</div>
+                    <div style={{ fontSize: 11.5, color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 8 }}>
+                      {t('cro.veHow', '① 아래 북마클릿 코드를 복사해 브라우저 북마크의 URL로 저장하세요. ② 편집할 내 사이트(라이브 페이지)를 연 뒤 그 북마크를 클릭하면 편집기가 뜹니다. ③ 요소를 클릭해 텍스트·숨기기·스타일을 바꾸고 저장하면 변형 B에 반영됩니다. (토큰 1시간 유효)')}
+                    </div>
+                    <textarea readOnly value={editInfo.bookmarklet} onFocus={ev => ev.target.select()} style={{ width: '100%', height: 56, fontSize: 10.5, fontFamily: 'monospace', padding: 8, borderRadius: 7, border: '1px solid var(--border,#e2e8f0)', background: 'var(--surface,#fff)', color: 'var(--text-1)', resize: 'vertical' }} />
+                    <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
+                      <button onClick={() => { try { navigator.clipboard.writeText(editInfo.bookmarklet); setMsg(t('cro.veCopied', '북마클릿 복사됨 — 북마크 URL로 저장하세요')); } catch { setMsg(t('cro.veCopyManual', '텍스트를 직접 복사하세요')); } }} style={{ fontSize: 11, padding: '5px 12px', borderRadius: 7, border: 'none', background: '#7c3aed', color: '#fff', fontWeight: 700, cursor: 'pointer' }}>📋 {t('cro.veCopy', '북마클릿 복사')}</button>
+                      <button onClick={() => setEditInfo(null)} style={{ fontSize: 11, padding: '5px 12px', borderRadius: 7, border: '1px solid var(--border,#e2e8f0)', background: 'transparent', color: 'var(--text-2)', cursor: 'pointer' }}>{t('cro.veClose', '닫기')}</button>
+                    </div>
+                  </div>
+                )}
                 {res && (
                   <div style={{ marginTop: 12 }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
