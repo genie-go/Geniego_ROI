@@ -45,6 +45,9 @@ class SupplyChain
             sup_id TEXT, name TEXT, country TEXT, category TEXT, leadTime INTEGER, delayRate REAL,
             orderCount INTEGER DEFAULT 0, reliability REAL DEFAULT 95, contact TEXT, created_at TEXT,
             UNIQUE(tenant_id, sup_id))");
+        // [257차 통합] 공급업체 SSOT 일원화 — sc_suppliers(공급망 분석)를 wms_suppliers(거래처 마스터, Db::pdo)에
+        //   wms_id 로 링크. 마스터=wms_suppliers(TeamMembers 거래처+WMS 발주/입고), 분석오버레이=sc_suppliers.
+        try { $pdo->exec("ALTER TABLE sc_suppliers ADD COLUMN wms_id INTEGER"); } catch (\Throwable $e) { /* 이미 존재 */ }
 
         $pdo->exec("CREATE TABLE IF NOT EXISTS sc_risk_rules (
             id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo',
@@ -161,42 +164,111 @@ class SupplyChain
 
     // ── Suppliers ─────────────────────────────────────────────────────────────
 
+    /* [257차 통합] 공급업체(공급망)↔거래처(WMS) 백엔드 SSOT 일원화.
+       마스터=wms_suppliers(Db::pdo — TeamMembers 거래처+WMS 발주/입고), 분석오버레이=sc_suppliers(wms_id 링크).
+       list=wms 마스터 기준 통합뷰(sc 분석 오버레이·legacy 비파괴 마이그레이션). CRUD=wms+sc 양측 동기.
+       ★wms(Db::pdo) 접근 실패 시 기존 sc-only 동작으로 graceful 강등(회귀0). id 공간=wms supplier id. */
+    private static function wmsPdo(): ?\PDO { try { return \Genie\Db::pdo(); } catch (\Throwable $e) { return null; } }
+
     public static function listSuppliers(Request $request, Response $response, array $args): Response
     {
         if (self::isAnon($request)) return self::json($response, ['ok'=>true,'suppliers'=>[]]); // [227차] 익명 demo 버킷 미노출
         $t = self::tenant($request);
-        $stmt = self::db()->prepare("SELECT * FROM sc_suppliers WHERE tenant_id=? ORDER BY name");
-        $stmt->execute([$t]);
-        return self::json($response, ['ok'=>true,'suppliers'=>$stmt->fetchAll(\PDO::FETCH_ASSOC)]);
+        $db = self::db();
+        $scStmt = $db->prepare("SELECT * FROM sc_suppliers WHERE tenant_id=?"); $scStmt->execute([$t]);
+        $scRows = $scStmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        $w = self::wmsPdo(); $wmsRows = null;
+        if ($w) { try { $wq = $w->prepare("SELECT id,name,contact FROM wms_suppliers WHERE tenant_id=? ORDER BY name"); $wq->execute([$t]); $wmsRows = $wq->fetchAll(\PDO::FETCH_ASSOC); } catch (\Throwable $e) { $wmsRows = null; } }
+
+        if ($wmsRows === null) { // 강등: 기존 sc-only 동작 보존(회귀0)
+            usort($scRows, fn($a,$b)=>strcmp((string)($a['name']??''),(string)($b['name']??'')));
+            return self::json($response, ['ok'=>true,'suppliers'=>$scRows]);
+        }
+
+        $scByWms = []; $scByName = [];
+        foreach ($scRows as $r) { if (!empty($r['wms_id'])) $scByWms[(int)$r['wms_id']] = $r; $nm=mb_strtolower(trim((string)($r['name']??''))); if($nm!=='') $scByName[$nm]=$r; }
+        $wmsByName = [];
+        foreach ($wmsRows as $w2) { $nm=mb_strtolower(trim((string)($w2['name']??''))); if($nm!=='') $wmsByName[$nm]=$w2; }
+
+        // 비파괴 마이그레이션: wms_id 없는 legacy sc → 이름매칭 wms 백필, 없으면 wms 신규생성(거래처에도 노출).
+        try {
+            foreach ($scRows as $r) {
+                if (!empty($r['wms_id'])) continue;
+                $nm = mb_strtolower(trim((string)($r['name']??''))); if ($nm==='') continue;
+                if (isset($wmsByName[$nm])) { $wid = (int)$wmsByName[$nm]['id']; }
+                else {
+                    $now=gmdate('c');
+                    $w->prepare("INSERT INTO wms_suppliers (tenant_id,name,contact,active,created_at,updated_at) VALUES (?,?,?,1,?,?)")->execute([$t,(string)($r['name']??''),(string)($r['contact']??''),$now,$now]);
+                    $wid = (int)$w->lastInsertId();
+                    $row = ['id'=>$wid,'name'=>(string)($r['name']??''),'contact'=>(string)($r['contact']??'')];
+                    $wmsRows[] = $row; $wmsByName[$nm] = $row;
+                }
+                $db->prepare("UPDATE sc_suppliers SET wms_id=? WHERE id=? AND tenant_id=?")->execute([$wid,(int)$r['id'],$t]);
+                $scByWms[$wid] = $r;
+            }
+        } catch (\Throwable $e) { /* best-effort */ }
+
+        $out = [];
+        foreach ($wmsRows as $w2) {
+            $wid = (int)$w2['id'];
+            $s = $scByWms[$wid] ?? ($scByName[mb_strtolower(trim((string)($w2['name']??'')))] ?? null);
+            $out[] = [
+                'id' => $wid, 'sup_id' => $s['sup_id'] ?? ('WMS-'.$wid),
+                'name' => (string)($w2['name'] ?? ''),
+                'contact' => (string)((($w2['contact'] ?? '') !== '') ? $w2['contact'] : ($s['contact'] ?? '')),
+                'country' => (string)($s['country'] ?? ''), 'category' => (string)($s['category'] ?? ''),
+                'leadTime' => (int)($s['leadTime'] ?? 14), 'delayRate' => (float)($s['delayRate'] ?? 0),
+                'orderCount' => (int)($s['orderCount'] ?? 0), 'reliability' => (float)($s['reliability'] ?? 95),
+            ];
+        }
+        usort($out, fn($a,$b)=>strcmp($a['name'],$b['name']));
+        return self::json($response, ['ok'=>true,'suppliers'=>$out]);
     }
 
     public static function createSupplier(Request $request, Response $response, array $args): Response
     {
         if ($err = UserAuth::requirePro($request, $response)) return $err; // [현 차수] 감사 P1
         $db = self::db(); $t = self::tenant($request); $b = self::body($request);
-        $sid = $b['sup_id'] ?? ('SUPL-'.strtoupper(substr(uniqid('', true), -10))); // [현 차수] rand 충돌 → 시간기반 고유 ID
-        $db->prepare("INSERT OR REPLACE INTO sc_suppliers (tenant_id,sup_id,name,country,category,leadTime,delayRate,orderCount,reliability,contact,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)")
-            ->execute([$t,$sid,$b['name']??'',$b['country']??'',$b['category']??'',(int)($b['leadTime']??14),(float)($b['delayRate']??0),(int)($b['orderCount']??0),(float)($b['reliability']??95),$b['contact']??'',gmdate('c')]);
-        return self::json($response, ['ok'=>true,'sup_id'=>$sid]);
+        $sid = $b['sup_id'] ?? ('SUPL-'.strtoupper(substr(uniqid('', true), -10)));
+        // 마스터 wms_suppliers 생성 → 거래처(TeamMembers)에도 등록(이중등록 해소). 실패 시 sc-only.
+        $wid = null; $w = self::wmsPdo();
+        if ($w) { try { $now=gmdate('c'); $w->prepare("INSERT INTO wms_suppliers (tenant_id,name,contact,active,created_at,updated_at) VALUES (?,?,?,1,?,?)")->execute([$t,(string)($b['name']??''),(string)($b['contact']??''),$now,$now]); $wid=(int)$w->lastInsertId(); } catch (\Throwable $e) { $wid=null; } }
+        $db->prepare("INSERT OR REPLACE INTO sc_suppliers (tenant_id,sup_id,wms_id,name,country,category,leadTime,delayRate,orderCount,reliability,contact,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)")
+            ->execute([$t,$sid,$wid,$b['name']??'',$b['country']??'',$b['category']??'',(int)($b['leadTime']??14),(float)($b['delayRate']??0),(int)($b['orderCount']??0),(float)($b['reliability']??95),$b['contact']??'',gmdate('c')]);
+        return self::json($response, ['ok'=>true,'sup_id'=>$sid,'id'=>$wid]);
     }
 
     public static function updateSupplier(Request $request, Response $response, array $args): Response
     {
         if ($err = UserAuth::requirePro($request, $response)) return $err; // [현 차수] 감사 P1
         $db = self::db(); $t = self::tenant($request); $b = self::body($request); $id = (int)($args['id']??0);
-        $sets = []; $params = [':id'=>$id, ':t'=>$t];
-        foreach (['name','country','category','leadTime','delayRate','orderCount','reliability','contact'] as $f) {
-            if (isset($b[$f])) { $sets[] = "$f=:$f"; $params[":$f"] = $b[$f]; }
+        // 마스터 name/contact 동기화(wms). best-effort.
+        $w = self::wmsPdo();
+        if ($w) { try { $ws=[]; $wp=[':id'=>$id,':t'=>$t]; if(isset($b['name'])){$ws[]="name=:name";$wp[':name']=$b['name'];} if(isset($b['contact'])){$ws[]="contact=:contact";$wp[':contact']=$b['contact'];} if($ws) $w->prepare("UPDATE wms_suppliers SET ".implode(',',$ws)." WHERE id=:id AND tenant_id=:t")->execute($wp); } catch (\Throwable $e) {} }
+        // 분석 오버레이 upsert(sc, wms_id 키). wms-origin(거래처 등록·sc 미존재)이면 신규 주석 행 생성.
+        $exists = false;
+        try { $q=$db->prepare("SELECT id FROM sc_suppliers WHERE wms_id=? AND tenant_id=? LIMIT 1"); $q->execute([$id,$t]); $exists=(bool)$q->fetchColumn(); } catch (\Throwable $e) {}
+        if ($exists) {
+            $sets = []; $params = [':wid'=>$id, ':t'=>$t];
+            foreach (['name','country','category','leadTime','delayRate','orderCount','reliability','contact'] as $f) { if (isset($b[$f])) { $sets[]="$f=:$f"; $params[":$f"]=$b[$f]; } }
+            if ($sets) $db->prepare("UPDATE sc_suppliers SET ".implode(',',$sets)." WHERE wms_id=:wid AND tenant_id=:t")->execute($params);
+        } else {
+            $sid = 'SUPL-'.strtoupper(substr(uniqid('', true), -10));
+            $db->prepare("INSERT INTO sc_suppliers (tenant_id,sup_id,wms_id,name,country,category,leadTime,delayRate,orderCount,reliability,contact,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)")
+                ->execute([$t,$sid,$id,$b['name']??'',$b['country']??'',$b['category']??'',(int)($b['leadTime']??14),(float)($b['delayRate']??0),(int)($b['orderCount']??0),(float)($b['reliability']??95),$b['contact']??'',gmdate('c')]);
         }
-        if (count($sets)) $db->prepare("UPDATE sc_suppliers SET ".implode(',',$sets)." WHERE id=:id AND tenant_id=:t")->execute($params);
         return self::json($response, ['ok'=>true]);
     }
 
     public static function deleteSupplier(Request $request, Response $response, array $args): Response
     {
         if ($err = UserAuth::requirePro($request, $response)) return $err; // [현 차수] 감사 P1
-        $t = self::tenant($request);
-        self::db()->prepare("DELETE FROM sc_suppliers WHERE id=? AND tenant_id=?")->execute([(int)($args['id']??0), $t]);
+        $t = self::tenant($request); $id = (int)($args['id']??0);
+        // 오버레이 삭제(wms_id 또는 legacy sc.id) + 마스터 삭제(거래처에서도 제거=단일 마스터).
+        try { self::db()->prepare("DELETE FROM sc_suppliers WHERE (wms_id=? OR id=?) AND tenant_id=?")->execute([$id,$id,$t]); } catch (\Throwable $e) {}
+        $w = self::wmsPdo();
+        if ($w) { try { $w->prepare("DELETE FROM wms_suppliers WHERE id=? AND tenant_id=?")->execute([$id,$t]); } catch (\Throwable $e) {} }
         return self::json($response, ['ok'=>true]);
     }
 
@@ -236,7 +308,10 @@ class SupplyChain
         $db = self::db(); $t = self::tenant($request);
         $cnt = function(string $sql) use ($db, $t) { $s = $db->prepare($sql); $s->execute([$t]); return $s->fetchColumn(); };
         $lines = (int)$cnt("SELECT COUNT(*) FROM sc_lines WHERE tenant_id=?");
+        // [257차 통합] 공급업체 수 = 통합 마스터(wms_suppliers) 기준. wms 실패 시 sc 폴백(회귀0).
         $suppliers = (int)$cnt("SELECT COUNT(*) FROM sc_suppliers WHERE tenant_id=?");
+        $w = self::wmsPdo();
+        if ($w) { try { $ws=$w->prepare("SELECT COUNT(*) FROM wms_suppliers WHERE tenant_id=?"); $ws->execute([$t]); $suppliers=(int)$ws->fetchColumn(); } catch (\Throwable $e) {} }
         $highRisk = (int)$cnt("SELECT COUNT(*) FROM sc_lines WHERE risk='high' AND tenant_id=?");
         $avgLead = $cnt("SELECT AVG(leadTime) FROM sc_lines WHERE tenant_id=?");
         $totalCost = $cnt("SELECT SUM(totalCost) FROM sc_lines WHERE tenant_id=?");
