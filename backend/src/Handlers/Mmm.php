@@ -84,6 +84,71 @@ final class Mmm
     }
 
     /**
+     * [현 차수 초고도화 ③-1] GET /v424/mmm/backtest?window=90&holdout=14 — MMM OOS(out-of-sample) 백테스트.
+     *   최근 holdout일을 검증셋으로 분리 → 이전 구간(train)으로 fitChannel 적합 후, 보고 모델과 동일한 response()
+     *   곡선으로 검증셋 예측 → 채널별 OOS MAPE/NRMSE + train 잔차기반 95% 예측구간 커버리지.
+     *   ★fitChannel/response 재사용(중복0)·미수정(회귀0). 데모 fake 없음(실 데이터 부족=빈 결과, 정직).
+     */
+    public static function backtest(Request $req, Response $res): Response
+    {
+        $tenant = self::tenant($req);
+        $qs = $req->getQueryParams();
+        $window  = max(21, min(365, (int)($qs['window'] ?? 90)));
+        $holdout = max(7, min(60, (int)($qs['holdout'] ?? 14)));
+        try {
+            $series = self::loadSeries(Db::pdo(), $tenant, $window);
+            $rows = []; $sumMape = 0.0; $sumNrmse = 0.0; $sumCov = 0.0; $cnt = 0;
+            foreach ($series as $ch => $chRows) {
+                $n = count($chRows);
+                if ($n < $holdout + 7) continue; // train 최소 7일 확보
+                $train = array_slice($chRows, 0, $n - $holdout);
+                $test  = array_slice($chRows, $n - $holdout);
+                $fit = self::fitChannel($train);
+                if ($fit === null) continue;
+                // train 잔차 표준편차 → 예측구간(±1.96σ).
+                $resid = [];
+                foreach ($train as $r) $resid[] = ((float)$r['revenue'] - self::response($fit, (float)$r['spend']));
+                $cr = count($resid); $mR = $cr ? array_sum($resid) / $cr : 0.0;
+                $vR = 0.0; foreach ($resid as $e) $vR += ($e - $mR) ** 2; $sd = $cr ? sqrt($vR / $cr) : 0.0;
+                // OOS 예측/오차.
+                $m = count($test); if ($m === 0) continue;
+                $actMean = 0.0; foreach ($test as $r) $actMean += (float)$r['revenue']; $actMean /= $m;
+                $absPctSum = 0.0; $seSum = 0.0; $within = 0;
+                foreach ($test as $r) {
+                    $act = (float)$r['revenue']; $pred = self::response($fit, (float)$r['spend']);
+                    $absPctSum += abs($act - $pred) / max(1.0, $act);
+                    $seSum += ($act - $pred) ** 2;
+                    if (abs($act - $pred) <= 1.96 * $sd) $within++;
+                }
+                $mape  = $absPctSum / $m * 100;
+                $rmse  = sqrt($seSum / $m);
+                $nrmse = $actMean > 0 ? $rmse / $actMean * 100 : 0.0;
+                $cov   = $within / $m * 100;
+                $rows[] = [
+                    'channel' => $ch, 'train_days' => count($train), 'test_days' => $m,
+                    'oos_mape' => round($mape, 1), 'oos_rmse' => round($rmse, 0), 'oos_nrmse' => round($nrmse, 1),
+                    'ci_coverage_95' => round($cov, 1), 'r2_insample' => $fit['r2'] ?? null,
+                    'grade' => $mape <= 20 ? 'good' : ($mape <= 40 ? 'fair' : 'poor'),
+                ];
+                $sumMape += $mape; $sumNrmse += $nrmse; $sumCov += $cov; $cnt++;
+            }
+            usort($rows, fn($a, $b) => $a['oos_mape'] <=> $b['oos_mape']);
+            return self::json($res, [
+                'ok' => true, 'window_days' => $window, 'holdout_days' => $holdout,
+                'channels' => $rows,
+                'overall' => $cnt > 0 ? [
+                    'avg_oos_mape' => round($sumMape / $cnt, 1), 'avg_oos_nrmse' => round($sumNrmse / $cnt, 1),
+                    'avg_ci_coverage_95' => round($sumCov / $cnt, 1),
+                    'grade' => ($sumMape / $cnt) <= 20 ? 'good' : (($sumMape / $cnt) <= 40 ? 'fair' : 'poor'),
+                ] : null,
+                'note' => '최근 holdout일=검증셋, 이전 구간=학습셋. 보고 모델(response 곡선)과 동일 함수로 예측 → OOS MAPE/NRMSE(정확도)·95% 예측구간 커버리지(train 잔차 기반). 채널 데이터 부족 시 제외.',
+            ]);
+        } catch (\Throwable $e) {
+            return self::json($res, ['ok' => false, 'error' => $e->getMessage(), 'channels' => []]);
+        }
+    }
+
+    /**
      * [237차] GET /v424/mmm/series?window=90 — 증분성(Double ML Uplift·로빈슨 편회귀) 입력용 데이터.
      *   날짜정렬 채널별 일지출 매트릭스 + 총매출 시계열(실 performance_metrics, loadSeries 재사용).
      *   ★알고리즘 중복 금지: 계산은 프론트 기존 incrementalUplift(mlAttribution.js)가 수행, 백엔드는 데이터만.

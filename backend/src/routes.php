@@ -885,6 +885,8 @@ return function (App $app): void {
         // [R-P1-1] Bayesian MMM 사후분포 + 통합 증분성 신뢰도 블렌딩.
         'GET /v424/mmm/bayesian'             => 'Genie\\Handlers\\Mmm::bayesian',
         'GET /api/v424/mmm/bayesian'         => 'Genie\\Handlers\\Mmm::bayesian',
+        'GET /v424/mmm/backtest'             => 'Genie\\Handlers\\Mmm::backtest', // [현 차수 초고도화 ③-1] OOS 백테스트
+        'GET /api/v424/mmm/backtest'         => 'Genie\\Handlers\\Mmm::backtest',
         'GET /v424/attribution/blended'      => 'Genie\\Handlers\\AttributionEngine::blendedIncrementality',
         'GET /api/v424/attribution/blended'  => 'Genie\\Handlers\\AttributionEngine::blendedIncrementality',
         // [어트리뷰션 보강] 쿠키리스 결정론적 ID-resolution(cross-device 식별 그래프) 커버리지
@@ -3045,6 +3047,7 @@ return function (App $app): void {
     // [현 차수] ② MMM + 예측 예산 최적화
     $register('GET',  '/v424/mmm/model');     $register('GET',  '/api/v424/mmm/model');
     $register('GET',  '/v424/mmm/bayesian');  $register('GET',  '/api/v424/mmm/bayesian');
+    $register('GET',  '/v424/mmm/backtest');  $register('GET',  '/api/v424/mmm/backtest');
     $register('GET',  '/v424/attribution/blended'); $register('GET', '/api/v424/attribution/blended');
     $register('GET',  '/v424/compliance/posture'); $register('GET', '/api/v424/compliance/posture');
     $register('GET',  '/v424/compliance/audit-export'); $register('GET', '/api/v424/compliance/audit-export');

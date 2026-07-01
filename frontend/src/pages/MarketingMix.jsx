@@ -50,6 +50,7 @@ export default function MarketingMix() {
   const [optBusy, setOptBusy] = useState(false);
   const [anom, setAnom] = useState(null); // [현 차수] 이상감지(SPC)
   const [bayes, setBayes] = useState(null); // [차기 P1] 정식 Bayesian MMM(MCMC) 사후분포
+  const [bt, setBt] = useState(null); // [현 차수 초고도화 ③-1] MMM OOS 백테스트(예측 vs 실측)
   const [insight, setInsight] = useState(null); // [현 차수] 자연어 AI 인사이트
   const [insightBusy, setInsightBusy] = useState(false);
 
@@ -66,6 +67,7 @@ export default function MarketingMix() {
       .catch(() => { setModel(null); setLoading(false); });
     getJsonAuth(`/v424/anomaly/scan?window=${Math.min(window, 90)}`).then(d => setAnom(d)).catch(() => setAnom(null));
     getJsonAuth(`/v424/mmm/bayesian?window=${window}&method=mcmc`).then(d => setBayes(d)).catch(() => setBayes(null));
+    getJsonAuth(`/v424/mmm/backtest?window=${window}&holdout=14`).then(d => setBt(d)).catch(() => setBt(null));
   }, [window]);
   useEffect(() => { loadModel(); }, [loadModel]);
 
@@ -362,6 +364,33 @@ export default function MarketingMix() {
               </div>
             );
           })()}
+
+          {/* [현 차수 초고도화 ③-1] MMM OOS 백테스트 — 예측 vs 실측(out-of-sample) */}
+          {bt && bt.overall && Array.isArray(bt.channels) && bt.channels.length > 0 && (
+            <div style={{ marginTop: 14, padding: 14, borderRadius: 12, background: 'var(--card-bg, #fff)', border: '1px solid #eef2f7' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
+                <span style={{ fontWeight: 900, fontSize: 13 }}>🎯 {t('mmm.btTitle', 'MMM 예측 검증(OOS 백테스트)')}</span>
+                <span style={{ fontSize: 10.5, fontWeight: 800, padding: '2px 9px', borderRadius: 20, background: bt.overall.grade === 'good' ? 'rgba(22,163,74,0.12)' : bt.overall.grade === 'fair' ? 'rgba(217,119,6,0.12)' : 'rgba(220,38,38,0.12)', color: bt.overall.grade === 'good' ? '#16a34a' : bt.overall.grade === 'fair' ? '#d97706' : '#dc2626' }}>
+                  {bt.overall.grade === 'good' ? t('mmm.btGood', '우수') : bt.overall.grade === 'fair' ? t('mmm.btFair', '보통') : t('mmm.btPoor', '주의')}
+                </span>
+                <span style={{ fontSize: 11, color: '#94a3b8' }}>· {t('mmm.btAvgMape', '평균 오차(MAPE)')} {bt.overall.avg_oos_mape}% · {t('mmm.btCov', '95% 커버리지')} {bt.overall.avg_ci_coverage_95}% · {t('mmm.btHold', '검증')} {bt.holdout_days}{t('mmm.daysUnit', '일')}</span>
+              </div>
+              <div style={{ fontSize: 10.5, color: '#94a3b8', marginBottom: 8, lineHeight: 1.6 }}>
+                {t('mmm.btDesc', '최근 검증셋을 예측해 실측과 비교(out-of-sample). MAPE 낮을수록·커버리지 높을수록 모델 신뢰. 보고 모델과 동일 곡선으로 예측합니다.')}
+              </div>
+              <div style={{ display: 'grid', gap: 5 }}>
+                {bt.channels.slice(0, 8).map(c => (
+                  <div key={c.channel} style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', fontSize: 11.5 }}>
+                    <span style={{ fontWeight: 800, minWidth: 90, textTransform: 'capitalize' }}>{chName(c.channel)}</span>
+                    <span style={{ color: c.grade === 'good' ? '#16a34a' : c.grade === 'fair' ? '#d97706' : '#dc2626', fontWeight: 800 }}>MAPE {c.oos_mape}%</span>
+                    <span style={{ color: '#64748b' }}>NRMSE {c.oos_nrmse}%</span>
+                    <span style={{ color: '#64748b' }}>{t('mmm.btCov2', '커버리지')} {c.ci_coverage_95}%</span>
+                    <span style={{ marginLeft: 'auto', fontSize: 10.5, color: '#94a3b8' }}>{t('mmm.btLearn', '학습')} {c.train_days}/{c.test_days}{t('mmm.daysUnit', '일')}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </>
       )}
     </div>
