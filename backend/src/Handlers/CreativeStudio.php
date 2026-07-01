@@ -115,6 +115,9 @@ final class CreativeStudio
         $count    = max(1, min(self::MAX_VARIANTS, (int)($d['count'] ?? 3)));
         $withImg  = !empty($d['with_image']);
         $ratio    = in_array(($d['ratio'] ?? '1:1'), ['1:1', '9:16', '16:9', '4:5'], true) ? (string)$d['ratio'] : '1:1';
+        // [현 차수 초고도화 ①] 조합형 DCO — 이미지 M종 × 카피 N종 데카르트곱(Smartly식 multivariate).
+        //   image_count=1(기본) 이면 기존 1×N copy-DCO 동작 그대로 보존(회귀0). 2 이상이면 조합 생성.
+        $imageCount = $withImg ? max(1, min(4, (int)($d['image_count'] ?? 1))) : 0;
 
         if ($product === '' && $category === '') {
             return self::json($res, ['ok' => false, 'error' => '상품 또는 카테고리를 입력하세요.'], 422);
@@ -135,47 +138,62 @@ final class CreativeStudio
         }
         $variants = array_slice(array_values($variants), 0, $count);
 
-        // 2) 선택: 공유 비주얼 1종(DCO 표준 — 비주얼 1 × 카피 N). 미설정/실패 시 카피 전용(정직 진행).
-        $sharedImg = ''; $imgNote = '';
-        if ($withImg) {
-            $iprompt = trim(($product !== '' ? $product : $category) . ' ' . ($audience !== '' ? "for {$audience}" : ''));
-            $ig = ClaudeAI::generateImage($tenant, $iprompt, $ratio);
-            if (!empty($ig['ok']) && !empty($ig['image'])) { $sharedImg = (string)$ig['image']; }
-            else { $imgNote = '이미지 생성 미수행(' . (string)($ig['error'] ?? 'n/a') . ') — 카피 변형만 저장됨. [AI 광고 디자인 > API 연동]에서 이미지 API 키 등록 시 비주얼 동반 생성.'; }
+        // 2) 비주얼 M종(조합형 DCO — 비주얼 M × 카피 N). image_count=1 이면 표준 1×N. 미설정/실패 시 카피 전용(정직 진행).
+        //   이미지 다양성: M>1 이면 스타일 힌트로 서로 다른 M종 생성(동일 프롬프트 중복 방지). 각 이미지=쿼터 1콜.
+        $images = []; $imgNote = '';
+        if ($imageCount >= 1) {
+            $base = trim(($product !== '' ? $product : $category) . ' ' . ($audience !== '' ? "for {$audience}" : ''));
+            $styleHints = ['제품 클로즈업, 스튜디오 조명', '라이프스타일 사용 장면', '미니멀 단색 배경', '대담한 컬러 그래픽'];
+            for ($k = 0; $k < $imageCount; $k++) {
+                $hint = $imageCount > 1 ? (', ' . $styleHints[$k % count($styleHints)]) : '';
+                $ig = ClaudeAI::generateImage($tenant, $base . $hint, $ratio);
+                if (!empty($ig['ok']) && !empty($ig['image'])) { $images[] = (string)$ig['image']; }
+                elseif ($imgNote === '') { $imgNote = '이미지 생성 일부/전부 미수행(' . (string)($ig['error'] ?? 'n/a') . ') — 가능한 조합만 저장. [AI 광고 디자인 > API 연동]에서 이미지 API 키 등록 시 비주얼 동반 생성.'; }
+            }
         }
+        if (empty($images)) $images = ['']; // 이미지 없음 = 카피 전용 1트랙(기존 동작 보존)
 
-        // 3) ad_design draft 로 저장(캠페인 자동화가 그대로 소비). status=draft.
+        // 3) ad_design draft 저장(캠페인 자동화가 그대로 소비). 조합형 = 이미지 M × 카피 N (총 상한 16 — 폭주 방지).
         $pdo = Db::pdo(); self::migrate($pdo);
         $now = gmdate('Y-m-d\TH:i:s\Z');
         $st = $pdo->prepare('INSERT INTO ad_design(tenant_id,category,product,channel,spec_json,svg,status,created_at,period_start,period_end) VALUES(?,?,?,?,?,?,?,?,?,?)');
         $created = [];
-        foreach ($variants as $i => $v) {
-            if (!is_array($v)) continue;
-            $design = [
-                'headline'    => mb_substr((string)($v['headline'] ?? ''), 0, 120),
-                'subheadline' => mb_substr((string)($v['subheadline'] ?? ''), 0, 200),
-                'copy'        => mb_substr((string)($v['copy'] ?? ''), 0, 500),
-                'cta'         => mb_substr((string)($v['cta'] ?? '자세히 보기'), 0, 40),
-                'angle'       => mb_substr((string)($v['angle'] ?? ''), 0, 40),
-                'channel'     => $channel,
-                'format'      => 'single',
-                'source'      => 'studio_batch',
-                'variant_idx' => $i + 1,
-            ];
-            try {
-                $st->execute([$tenant, mb_substr($category, 0, 120), mb_substr($product, 0, 2000), $channel,
-                    json_encode($design, JSON_UNESCAPED_UNICODE), $sharedImg, 'draft', $now, null, null]);
-                $design['id'] = (int)$pdo->lastInsertId();
-                $created[] = $design;
-            } catch (\Throwable $e) { /* 개별 실패는 건너뜀 */ }
+        $MAX_DRAFTS = 16;
+        foreach ($images as $imgIdx => $img) {
+            foreach ($variants as $i => $v) {
+                if (count($created) >= $MAX_DRAFTS) break 2;
+                if (!is_array($v)) continue;
+                $design = [
+                    'headline'    => mb_substr((string)($v['headline'] ?? ''), 0, 120),
+                    'subheadline' => mb_substr((string)($v['subheadline'] ?? ''), 0, 200),
+                    'copy'        => mb_substr((string)($v['copy'] ?? ''), 0, 500),
+                    'cta'         => mb_substr((string)($v['cta'] ?? '자세히 보기'), 0, 40),
+                    'angle'       => mb_substr((string)($v['angle'] ?? ''), 0, 40),
+                    'channel'     => $channel,
+                    'format'      => 'single',
+                    'source'      => 'studio_batch',
+                    'variant_idx' => $i + 1,
+                    'image_idx'   => (int)$imgIdx + 1,
+                ];
+                try {
+                    $st->execute([$tenant, mb_substr($category, 0, 120), mb_substr($product, 0, 2000), $channel,
+                        json_encode($design, JSON_UNESCAPED_UNICODE), (string)$img, 'draft', $now, null, null]);
+                    $design['id'] = (int)$pdo->lastInsertId();
+                    $created[] = $design;
+                } catch (\Throwable $e) { /* 개별 실패는 건너뜀 */ }
+            }
         }
 
+        $imgOk = count(array_filter($images, fn($x) => $x !== ''));
         return self::json($res, [
             'ok'        => true,
             'generated' => count($created),
             'channel'   => $channel,
-            'has_image' => $sharedImg !== '',
-            'note'      => $imgNote ?: ('대량 변형 ' . count($created) . '종을 임시저장했습니다. [저장 디자인]에서 검토 후 캠페인에 적용하세요.'),
+            'images'    => $imgOk,
+            'copies'    => count($variants),
+            'has_image' => $imgOk > 0,
+            'combinatorial' => ($imgOk > 1),
+            'note'      => $imgNote ?: (($imgOk > 1 ? '조합형 DCO(이미지×카피) ' : '변형 ') . count($created) . '종을 임시저장했습니다. [저장 디자인]에서 검토 후 캠페인에 적용하세요.'),
             'designs'   => $created,
         ]);
     }
