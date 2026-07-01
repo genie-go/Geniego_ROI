@@ -73,6 +73,7 @@
 - 이메일 딜리버러빌리티: suppression/unsub/bounce·**STO**(수신자별 최적시각)·**베이지안 A/B**(전환기반)·평판(bounce/complaint/reputation)·**라이브 SPF/DMARC DNS 검사**·일일 평판 스냅샷+경보. `EmailMarketing.php:112-956`
 - DKIM 서명 인프라(OpenDKIM, selector geniemail). `reference_mail_sms_infra`(라이브 재확인 권장)
 - **ISO-1(2026-07 완료)**: WhatsApp/SMS plan() 폴백 안전화.
+- **★반품 사유 분석 심화[257차]**: 기존 ReturnsPortal AnalyticsTab(클라 배열 사유/채널 카운트) 위에 `ReturnsPortal::reasonAnalysis`(GET /v420/returns/reason-analysis)=**서버 전수 집계**(사유별 건수·환불액·비율 + **반품 유발 상품 Top(SKU·환불·불량)** + 채널별 + 불량률). AnalyticsTab에 서버 카드 additive(기존 클라 카드 폴백/데모 유지=회귀0). 품질/CS 개선 신호.
 - **★고객 360° 뷰 = 이미 구현(재구현 금지)**: `CRM::getCustomer`(GET /crm/customers/{id})=고객+활동50건+세그먼트 반환·프론트 CustomerPanel(고객행 클릭 상세). **257차 심화=전체 활동 타임라인**(기존 패널은 구매만 표시→백엔드가 반환하던 전 활동유형[이메일/카카오/SMS/세그먼트/가입/반품]을 유형별 아이콘 시간순 타임라인으로 노출·프론트 전용·백엔드 무변경).
 - **★상품 연관분석(함께 구매)[257차 net-new]**: `CRM::productAffinity`(GET /crm/product-affinity)=동일 고객(buyer_email) 동시구매 SKU 쌍의 support/confidence(A→B·B→A)/lift 산출(크로스셀·번들 근거). channel_orders 주문당1행→고객레벨 co-occurrence. 폭주가드(고객당 SKU 200캡). CRM RFM탭 ProductAffinityPanel(코호트 옆). 실데이터만·테넌트스코프.
 - **★예측형 CDP·예측세그먼트 자동화 = 이미 구현(재구현 금지)**: churn_prob/predicted_clv 생존모델(`CRM::addPredictiveScores`, 240차)·예측 세그먼트 템플릿(고가치예측/이탈위험예측)·**자동 재편입 cron 배선 완료**(`CRM::autoRefreshPredictiveSegments` ← `bin/crm_email_daily_cron.php:57` 일일 호출). CRM.php:662 "[차기 P2]" 주석은 stale(배선은 이미 됨). 심화 여지=예측 정밀도·in-app/웹푸시 옴니뿐.

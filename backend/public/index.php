@@ -260,6 +260,10 @@ $app->add(function (Request $request, $handler) {
         //   호출하나 bypass·세션게이트 부재로 strict api_key 미들웨어가 거부(401). 핸들러는 OrderHub 와
         //   동일하게 self-auth 없이 미들웨어 auth_tenant 만 신뢰하므로 세션→auth_tenant 주입 게이트에 편입.
         || strpos($path, '/v419/kr/') === 0 || strpos($path, '/api/v419/kr/') === 0
+        // [257차] 반품 사유 분석(/v420/returns/reason-analysis) — 프론트(ReturnsPortal AnalyticsTab)가 세션 토큰으로
+        //   호출. ReturnsPortal::tenant 는 auth_tenant(미들웨어 주입)만 신뢰 → 세션→auth_tenant 주입 게이트 편입
+        //   (읽기 전용 집계·테넌트 스코프). 다른 /v420/returns 쓰기 EP 는 api_key 경로 유지(미편입=써드파티 전용).
+        || $path === '/v420/returns/reason-analysis' || $path === '/api/v420/returns/reason-analysis'
         // [237차] admin 전메뉴 라이브 스윕(69페이지)서 발견된 동일 클래스 세션 인증갭 4페이지:
         //   GraphScore(/v419/graph/* — 그래프 스코어)·AttributionMetrics(/v424/marketing/* — 마케팅 일별추이)·
         //   AdPerformance(/v1/ad-performance/* 광고성과·/performance/meta-ads 어카운트성과). 셋 다 핸들러가

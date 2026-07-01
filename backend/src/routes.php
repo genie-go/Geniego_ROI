@@ -670,6 +670,7 @@ return function (App $app): void {
         'POST /v420/returns/{id}/wms-link'      => 'Genie\\Handlers\\ReturnsPortal::wmsLink',
         'DELETE /v420/returns/{id}'             => 'Genie\\Handlers\\ReturnsPortal::delete',
         'GET /v420/returns/summary'             => 'Genie\\Handlers\\ReturnsPortal::summary',
+        'GET /v420/returns/reason-analysis'     => 'Genie\\Handlers\\ReturnsPortal::reasonAnalysis', // [257차] 반품 사유 분석
         'GET /v420/returns/settings'            => 'Genie\\Handlers\\ReturnsPortal::getSettings',
         'POST /v420/returns/settings'           => 'Genie\\Handlers\\ReturnsPortal::saveSettings',
         'POST /v420/returns/automation/toggle'  => 'Genie\\Handlers\\ReturnsPortal::toggleAutomation',
@@ -3342,6 +3343,7 @@ return function (App $app): void {
     $register('POST',   '/v420/returns/{id}/wms-link');
     $register('DELETE', '/v420/returns/{id}');
     $register('GET',    '/v420/returns/summary');
+    $register('GET',    '/v420/returns/reason-analysis'); // [257차] 반품 사유 분석
     $register('GET',    '/v420/returns/settings');
     $register('POST',   '/v420/returns/settings');
     $register('POST',   '/v420/returns/automation/toggle');

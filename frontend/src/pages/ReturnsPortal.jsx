@@ -132,9 +132,12 @@ return <Card><div style={{fontSize:13,fontWeight:700,marginBottom:12,color:'#1e2
 </tr>)}</tbody></table></Card>;
 }
 
-function AnalyticsTab({data,tr}){
+function AnalyticsTab({data,tr,fmt}){
 const reasons={};data.forEach(r=>{reasons[r.reason]=(reasons[r.reason]||0)+1;});
 const channels={};data.forEach(r=>{channels[r.channel]=(channels[r.channel]||0)+1;});
+// [257차] 서버 전수 집계(전체 반품 기준·환불영향·반품유발 상품·불량률) — 기존 클라 카드는 폴백/데모용 유지.
+const[srv,setSrv]=React.useState(null);
+React.useEffect(()=>{let a=true;if(IS_DEMO)return;apiClient.getJsonAuth('/api/v420/returns/reason-analysis?top=12').then(r=>{if(a&&r&&r.ok)setSrv(r);}).catch(()=>{});return()=>{a=false;};},[]);
 return <div><div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}}>
 <Card><div style={{fontSize:13,fontWeight:700,marginBottom:12,color:'#1e293b'}}>📊 {tr('analyticsByReason')}</div>
 {Object.entries(reasons).map(([k,v])=><div key={k} style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
@@ -148,7 +151,25 @@ return <div><div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}}>
 <div style={{width:120,background:'#e5e7eb',borderRadius:4,height:8,overflow:'hidden'}}><div style={{width:(v/data.length*100)+'%',background:'#22c55e',height:'100%',borderRadius:4}}/></div>
 <div style={{fontSize:11,fontWeight:700,color:'#22c55e',minWidth:30}}>{v}</div>
 </div>)}</Card>
-</div></div>;
+</div>
+{/* [257차] 반품 유발 상품 Top + 불량률 — 서버 전수 집계(전체 반품 기준·환불영향). 데이터 있을 때만 노출(회귀0). */}
+{srv&&Array.isArray(srv.top_products)&&srv.top_products.length>0&&<Card style={{marginTop:16}}>
+<div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap',marginBottom:10}}>
+<div style={{fontSize:13,fontWeight:700,color:'#1e293b'}}>🎯 {tr('analyticsTopProducts')||'반품 유발 상품 Top'}</div>
+<span style={{fontSize:11,color:'#ef4444',fontWeight:700}}>{(tr('analyticsDefectiveRate')||'불량률')} {srv.defective_rate}%</span>
+<span style={{fontSize:10.5,color:'#94a3b8'}}>· {(tr('analyticsServerNote')||'전체 반품 전수 집계')} ({srv.total})</span>
+</div>
+<table style={{width:'100%',borderCollapse:'collapse',fontSize:11}}>
+<thead><tr style={{borderBottom:'2px solid #e5e7eb',color:'#7c8fa8'}}>
+{[tr('product'),tr('kpiTotal')||'반품수',tr('amount'),tr('defective')||'불량'].map(h=><th key={h} style={{padding:'6px 8px',textAlign:'left'}}>{h}</th>)}
+</tr></thead>
+<tbody>{srv.top_products.map((p,i)=><tr key={i} style={{borderBottom:'1px solid #f1f5f9'}}>
+<td style={{padding:'6px 8px',fontWeight:600,color:'#1e293b'}}>{p.product}</td>
+<td style={{padding:'6px 8px',fontWeight:700,color:'#6366f1'}}>{p.count}</td>
+<td style={{padding:'6px 8px',color:'#1e293b'}}>{fmt?fmt(p.refund):p.refund}</td>
+<td style={{padding:'6px 8px'}}>{p.defective>0?<span style={{color:'#ef4444',fontWeight:700}}>⚠ {p.defective}</span>:'-'}</td>
+</tr>)}</tbody></table></Card>}
+</div>;
 }
 
 function PoliciesTab({tr}){
@@ -330,7 +351,7 @@ return <div style={{display:'flex',flexDirection:'column',height:'100%',backgrou
 {tab==='tabInspection'&&<InspectionTab data={viewData} tr={tr}/>}
 {tab==='tabRefunds'&&<RefundsTab data={viewData} tr={tr} fmt={fmt}/>}
 {tab==='tabRestock'&&<RestockTab data={viewData} tr={tr}/>}
-{tab==='tabAnalytics'&&<AnalyticsTab data={viewData} tr={tr}/>}
+{tab==='tabAnalytics'&&<AnalyticsTab data={viewData} tr={tr} fmt={fmt}/>}
 {tab==='tabPolicies'&&<PoliciesTab tr={tr}/>}
 {tab==='tabGuide'&&<GuideTab tr={tr}/>}
 </div>

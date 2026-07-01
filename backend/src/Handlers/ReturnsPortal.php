@@ -288,6 +288,61 @@ class ReturnsPortal
         ]);
     }
 
+    /* ─── GET /v420/returns/reason-analysis — 반품/클레임 사유 분석 [257차 net-new] ───
+       returns 를 사유별(건수·환불액·비율) Top + 반품 최다 상품(SKU) + 채널별 + 불량률으로 집계.
+       품질/CS 개선 신호(어떤 사유·상품이 반품을 유발하는가). 실데이터만·테넌트 스코프·가짜0.
+       파라미터: ?top=12. */
+    public static function reasonAnalysis(Request $request, Response $response, array $args): Response
+    {
+        $t = self::tenant($request);
+        $empty = ['ok' => true, 'total' => 0, 'defective_rate' => 0, 'reasons' => [], 'top_products' => [], 'by_channel' => []];
+        if ($t === '') return self::json($response, $empty);
+        $db = self::db();
+        $q = $request->getQueryParams();
+        $top = min(50, max(5, (int)($q['top'] ?? 12))); // 검증된 정수 → LIMIT 인라인 안전
+
+        try {
+            $total = (int)(function () use ($db, $t) { $s = $db->prepare("SELECT COUNT(*) FROM returns WHERE tenant_id=?"); $s->execute([$t]); return $s->fetchColumn(); })();
+            if ($total === 0) return self::json($response, $empty);
+            $defective = (int)(function () use ($db, $t) { $s = $db->prepare("SELECT COUNT(*) FROM returns WHERE tenant_id=? AND defective=1"); $s->execute([$t]); return $s->fetchColumn(); })();
+
+            // 사유별 집계(빈 사유=미분류)
+            $rs = $db->prepare("SELECT COALESCE(NULLIF(TRIM(reason),''),'미분류') AS reason, COUNT(*) AS cnt, COALESCE(SUM(refund_amt),0) AS refund
+                                  FROM returns WHERE tenant_id=? GROUP BY reason ORDER BY cnt DESC LIMIT $top");
+            $rs->execute([$t]);
+            $reasons = [];
+            foreach ($rs->fetchAll(\PDO::FETCH_ASSOC) as $r) {
+                $reasons[] = ['reason' => (string)$r['reason'], 'count' => (int)$r['cnt'], 'refund' => round((float)$r['refund']),
+                              'pct' => round((int)$r['cnt'] / $total * 100, 1)];
+            }
+
+            // 반품 최다 상품(SKU 기준)
+            $ps = $db->prepare("SELECT COALESCE(NULLIF(TRIM(name),''), sku) AS product, sku, COUNT(*) AS cnt,
+                                       COALESCE(SUM(refund_amt),0) AS refund, SUM(CASE WHEN defective=1 THEN 1 ELSE 0 END) AS defective
+                                  FROM returns WHERE tenant_id=? AND (COALESCE(sku,'')<>'' OR COALESCE(name,'')<>'')
+                                  GROUP BY sku ORDER BY cnt DESC LIMIT $top");
+            $ps->execute([$t]);
+            $topProducts = [];
+            foreach ($ps->fetchAll(\PDO::FETCH_ASSOC) as $r) {
+                $topProducts[] = ['product' => (string)$r['product'], 'sku' => (string)($r['sku'] ?? ''), 'count' => (int)$r['cnt'],
+                                  'refund' => round((float)$r['refund']), 'defective' => (int)$r['defective']];
+            }
+
+            // 채널별
+            $cs = $db->prepare("SELECT COALESCE(NULLIF(TRIM(channel),''),'기타') AS channel, COUNT(*) AS cnt
+                                  FROM returns WHERE tenant_id=? GROUP BY channel ORDER BY cnt DESC LIMIT 20");
+            $cs->execute([$t]);
+            $byChannel = [];
+            foreach ($cs->fetchAll(\PDO::FETCH_ASSOC) as $r) $byChannel[] = ['channel' => (string)$r['channel'], 'count' => (int)$r['cnt']];
+
+            return self::json($response, ['ok' => true, 'total' => $total,
+                'defective_rate' => $total > 0 ? round($defective / $total * 100, 1) : 0,
+                'reasons' => $reasons, 'top_products' => $topProducts, 'by_channel' => $byChannel]);
+        } catch (\Throwable $e) {
+            return self::json($response, $empty);
+        }
+    }
+
     /** GET /v420/returns/settings */
     public static function getSettings(Request $request, Response $response, array $args): Response
     {
