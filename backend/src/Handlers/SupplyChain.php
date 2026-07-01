@@ -265,10 +265,16 @@ class SupplyChain
     {
         if ($err = UserAuth::requirePro($request, $response)) return $err; // [현 차수] 감사 P1
         $t = self::tenant($request); $id = (int)($args['id']??0);
-        // 오버레이 삭제(wms_id 또는 legacy sc.id) + 마스터 삭제(거래처에서도 제거=단일 마스터).
-        try { self::db()->prepare("DELETE FROM sc_suppliers WHERE (wms_id=? OR id=?) AND tenant_id=?")->execute([$id,$id,$t]); } catch (\Throwable $e) {}
+        // [257차 감사 수정] id 공간 충돌 제거 — sc_suppliers.id(supplychain.sqlite)와 wms_suppliers.id(main DB)는
+        //   독립 자동증가라 값이 겹친다. 기존 `OR id=?`가 wms id 를 sc.id 에 매칭해 동일테넌트 무관 오버레이를 오삭제.
+        //   정상(wms 가용)=id=wms id → 오버레이는 wms_id 링크로만 삭제. 강등(wms 불가)=list가 sc.id 반환 → sc.id 로 삭제.
         $w = self::wmsPdo();
-        if ($w) { try { $w->prepare("DELETE FROM wms_suppliers WHERE id=? AND tenant_id=?")->execute([$id,$t]); } catch (\Throwable $e) {} }
+        if ($w) {
+            try { self::db()->prepare("DELETE FROM sc_suppliers WHERE wms_id=? AND tenant_id=?")->execute([$id, $t]); } catch (\Throwable $e) {}
+            try { $w->prepare("DELETE FROM wms_suppliers WHERE id=? AND tenant_id=?")->execute([$id, $t]); } catch (\Throwable $e) {}
+        } else {
+            try { self::db()->prepare("DELETE FROM sc_suppliers WHERE id=? AND tenant_id=?")->execute([$id, $t]); } catch (\Throwable $e) {}
+        }
         return self::json($response, ['ok'=>true]);
     }
 
