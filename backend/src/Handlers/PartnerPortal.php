@@ -92,6 +92,12 @@ class PartnerPortal
         $loginId = strtolower(trim((string)($b['login_id'] ?? '')));
         $pw = (string)($b['password'] ?? '');
         if ($loginId === '' || strlen($pw) < 8) return self::json($res, ['ok' => false, 'error' => '로그인 ID 와 8자 이상 비밀번호가 필요합니다.'], 422);
+        // [257차 보안 하드닝] 스코프 필수 검증 — 빈 스코프(partner_name/partner_id 미지정) 계정은 data() 의 WHERE supplier=''
+        //   /wh_id='0' 로 동일 테넌트 내 무주(unassigned) 행을 과열람할 수 있다(크로스테넌트는 여전히 차단). 발급 단계에서 차단.
+        $pnameIn = trim((string)($b['partner_name'] ?? ''));
+        $pidIn   = (int)($b['partner_id'] ?? 0);
+        if (($type === 'supplier' || $type === 'logistics') && $pnameIn === '') return self::json($res, ['ok' => false, 'error' => '공급처/물류처 계정은 거래처명(partner_name)이 필수입니다.'], 422);
+        if ($type === 'warehouse' && $pidIn <= 0) return self::json($res, ['ok' => false, 'error' => '창고처 계정은 창고 지정(partner_id)이 필수입니다.'], 422);
         $dup = $pdo->prepare("SELECT 1 FROM partner_account WHERE login_id=?"); $dup->execute([$loginId]);
         if ($dup->fetchColumn()) return self::json($res, ['ok' => false, 'error' => '이미 사용 중인 로그인 ID 입니다.'], 409);
         // 212차 #3: 파트너 계정도 구독 플랜 한도 내에서만 발급 — 유형별(supplier→suppliers/logistics→logistics/warehouse→warehouses). 초과 시 402.
@@ -223,6 +229,9 @@ class PartnerPortal
         if (!$p) return self::json($res, ['ok' => false, 'error' => '파트너 인증이 필요합니다.'], 401);
         $pdo = self::db(); $t = (string)$p['tenant_id']; $type = (string)$p['partner_type'];
         $pname = (string)$p['partner_name']; $pid = (int)$p['partner_id'];
+        // [257차 보안 하드닝] 빈 스코프(legacy 오배치) 계정 fail-closed — 무주 행 과열람 방지(빈 결과).
+        if (($type === 'supplier' || $type === 'logistics') && trim($pname) === '') return self::json($res, ['ok' => true, 'type' => $type, 'rows' => []]);
+        if ($type === 'warehouse' && $pid <= 0) return self::json($res, ['ok' => true, 'type' => $type, 'stock' => [], 'movements' => []]);
         try {
             if ($type === 'supplier') {
                 // 본인 매입처 발주내역(supplier 명 매칭)
@@ -257,6 +266,9 @@ class PartnerPortal
         if (!$p) return self::json($res, ['ok' => false, 'error' => '파트너 인증이 필요합니다.'], 401);
         $pdo = self::db(); $t = (string)$p['tenant_id']; $type = (string)$p['partner_type'];
         $pname = (string)$p['partner_name']; $pid = (int)$p['partner_id'];
+        // [257차 보안 하드닝] 빈 스코프 계정은 무주 행 수정 방지 — fail-closed(403).
+        if (($type === 'supplier' || $type === 'logistics') && trim($pname) === '') return self::json($res, ['ok' => false, 'error' => '스코프 미지정 파트너 계정입니다.'], 403);
+        if ($type === 'warehouse' && $pid <= 0) return self::json($res, ['ok' => false, 'error' => '스코프 미지정 파트너 계정입니다.'], 403);
         $b = self::body($req); $op = (string)($b['op'] ?? ''); $now = self::now();
         try {
             if ($type === 'supplier') {
