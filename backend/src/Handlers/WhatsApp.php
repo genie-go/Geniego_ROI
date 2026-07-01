@@ -28,8 +28,11 @@ final class WhatsApp
 
     private static function plan(Request $req): string
     {
+        // [현 차수 감사 ISO-1] 폴백을 'demo'→'free' 로 교정. 인증된 운영 사용자의 plan 이 비었을 때
+        //   'demo' 로 오판→실발송이 시뮬레이션되고 가짜 이력이 운영 테넌트에 주입되던 오염 방향 차단.
+        //   (실 데모 사용자는 plan 이 명시되어 있어 시뮬레이션 분기 plan==='demo' 는 불변 → 회귀 없음.)
         $u = UserAuth::authedUser($req);
-        return $u['plan'] ?? 'demo';
+        return $u['plan'] ?? 'free';
     }
 
     private static function tenant(Request $req): string

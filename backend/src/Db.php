@@ -953,14 +953,19 @@ final class Db
         self::idx($pdo,'CREATE UNIQUE INDEX uq_cred_tenant_channel_key ON channel_credential(tenant_id,channel,key_name)');
 
         // ?°ëª¨ API Key ?ë
+        // [현 차수 감사 ISO-2] 데모 API Key 시드는 데모 백엔드(env='demo')에서만 — 운영DB(geniego_roi)에
+        //   공개 파생 키(well-known 문자열의 sha256)가 시드되면 누구나 데모 테넌트 read/write 획득 가능.
+        //   사용자 시드(하단 self::env()==='demo' 게이트)와 동일 정책으로 통일.
         $demoKeyHash  = hash('sha256', 'genie_live_demo_key_00000000');
-        $demoKeyCount = (int)$pdo->query("SELECT COUNT(*) FROM api_key WHERE tenant_id='demo'")->fetchColumn();
-        if ($demoKeyCount === 0) {
-            $now = gmdate('c');
-            $pdo->prepare('INSERT INTO api_key(tenant_id,key_prefix,key_hash,name,role,scopes_json,is_active,created_at) VALUES(?,?,?,?,?,?,?,?)')
-                ->execute(['demo','genie_live_',$demoKeyHash,'Demo Key','analyst',json_encode(['read:*','write:*']),1,$now]);
-            $pdo->prepare('INSERT INTO api_key(tenant_id,key_prefix,key_hash,name,role,scopes_json,is_active,created_at) VALUES(?,?,?,?,?,?,?,?)')
-                ->execute(['demo','genie_read_',hash('sha256','genie_read_demo_key_11111111'),'Demo Analyst Key','analyst',json_encode(['read:*']),1,$now]);
+        if (self::env() === 'demo') {
+            $demoKeyCount = (int)$pdo->query("SELECT COUNT(*) FROM api_key WHERE tenant_id='demo'")->fetchColumn();
+            if ($demoKeyCount === 0) {
+                $now = gmdate('c');
+                $pdo->prepare('INSERT INTO api_key(tenant_id,key_prefix,key_hash,name,role,scopes_json,is_active,created_at) VALUES(?,?,?,?,?,?,?,?)')
+                    ->execute(['demo','genie_live_',$demoKeyHash,'Demo Key','analyst',json_encode(['read:*','write:*']),1,$now]);
+                $pdo->prepare('INSERT INTO api_key(tenant_id,key_prefix,key_hash,name,role,scopes_json,is_active,created_at) VALUES(?,?,?,?,?,?,?,?)')
+                    ->execute(['demo','genie_read_',hash('sha256','genie_read_demo_key_11111111'),'Demo Analyst Key','analyst',json_encode(['read:*']),1,$now]);
+            }
         }
         // 192cha security P0: downgrade any pre-seeded demo admin key (admin/admin:keys -> analyst). idempotent.
         try {

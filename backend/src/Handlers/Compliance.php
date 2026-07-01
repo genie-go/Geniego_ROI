@@ -181,7 +181,9 @@ final class Compliance
      */
     public static function auditExport(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        // [현 차수 감사 GAP-1] 전 테넌트 감사로그 교차유출 차단 — collectAuditEvents 가 tenant 조건 없이
+        //   auth/security/audit 로그를 통합 반환하므로 반드시 관리자 전용(형제 siemPush 와 정합).
+        if ($err = UserAuth::requirePlan($req, $res, 'admin')) return $err;
         $q = $req->getQueryParams();
         $days = max(1, min(365, (int)($q['window'] ?? 30)));
         $format = in_array(($q['format'] ?? 'json'), ['json', 'ndjson', 'cef'], true) ? (string)$q['format'] : 'json';

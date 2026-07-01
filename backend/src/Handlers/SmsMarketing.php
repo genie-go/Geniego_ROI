@@ -30,8 +30,10 @@ final class SmsMarketing
 
     private static function plan(Request $req): string
     {
+        // [현 차수 감사 ISO-1] 폴백 'demo'→'free' — 운영 사용자 plan 공백 시 데모 오판→실발송 시뮬레이션·가짜이력
+        //   운영 유입 차단(데모 판별 plan==='demo' 는 불변, 회귀 없음). WhatsApp.php 와 동일 정책.
         $u = UserAuth::authedUser($req);
-        return $u['plan'] ?? 'demo';
+        return $u['plan'] ?? 'free';
     }
 
     private static function tenant(Request $req): string

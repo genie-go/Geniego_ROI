@@ -255,6 +255,41 @@ final class AdAdapters
     }
 
     /**
+     * [현 차수 감사 MKT-1] 채널 단위 일시정지 — RuleEngine 의 pause_channel 액션이 호출하나
+     *   AdAdapters 에 이 메서드가 없어 method_exists 게이트에서 항상 skipped(광고 미정지)였다.
+     *   해당 테넌트의 active auto_campaign allocations 중 이 채널(정규화 매칭)의 external_id 를 모두 pause().
+     *   pause() 를 그대로 재사용(중복 구현 없음). 자격증명/집행 게이트는 pause() 가 판단.
+     */
+    public static function pauseChannel(PDO $pdo, string $tenant, string $channel): array
+    {
+        $target  = self::normConnKey($channel);
+        $paused  = 0;
+        $tried   = 0;
+        $results = [];
+        try {
+            $st = $pdo->prepare("SELECT allocations FROM auto_campaign WHERE tenant_id=? AND status='active'");
+            $st->execute([$tenant]);
+            foreach ($st->fetchAll(PDO::FETCH_COLUMN) ?: [] as $allocJson) {
+                $allocs = json_decode((string)$allocJson, true);
+                if (!is_array($allocs)) continue;
+                foreach ($allocs as $a) {
+                    $ch  = self::normConnKey((string)($a['channel'] ?? ''));
+                    $ext = (string)($a['external_id'] ?? '');
+                    if ($ch !== $target || $ext === '') continue;
+                    $tried++;
+                    $r = self::pause($pdo, $tenant, $target, $ext);
+                    if (!empty($r['ok'])) $paused++;
+                    $results[] = ['external_id' => $ext, 'ok' => !empty($r['ok']), 'status' => (string)($r['status'] ?? $r['error'] ?? '')];
+                }
+            }
+        } catch (Throwable $e) {
+            return ['ok' => false, 'channel' => $target, 'error' => $e->getMessage()];
+        }
+        // 정지 대상이 없으면(연결/캠페인 없음) ok=false·paused=0 — 거짓성공 없이 정직 반환.
+        return ['ok' => $paused > 0, 'channel' => $target, 'paused' => $paused, 'campaigns' => $tried, 'results' => $results];
+    }
+
+    /**
      * [227차 P0] 활성화(PAUSED→실집행). pause() 의 대칭 — 실제 광고를 매체에서 ON.
      *   ★호출부(AutoCampaign::setStatus)에서 결제수단 게이트 + 명시적 사용자 승인(인앱 버튼) 후에만 호출.
      *   PAUSED 기본생성 안전정책은 유지하고, 옵티마이저는 절대 자동 활성화하지 않는다(사람-인-루프).

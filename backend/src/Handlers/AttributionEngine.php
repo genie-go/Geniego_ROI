@@ -983,9 +983,16 @@ final class AttributionEngine
 
         // 1) 전환된 order_id 집합 + 전환 시각(created_at) — attribution_result.
         $rs = $pdo->prepare(
-            'SELECT order_id, MAX(created_at) AS conv_at FROM attribution_result '
-            . 'WHERE tenant_id = :t AND order_id IS NOT NULL AND order_id <> \'\' '
-            . "AND DATE(created_at) >= :since GROUP BY order_id LIMIT " . self::MAX_ORDERS
+            'SELECT ar.order_id, MAX(ar.created_at) AS conv_at FROM attribution_result ar '
+            . 'WHERE ar.tenant_id = :t AND ar.order_id IS NOT NULL AND ar.order_id <> \'\' '
+            . 'AND DATE(ar.created_at) >= :since '
+            // [현 차수 감사 ATT-1] 취소/반품 주문 제외 — attribution_result 는 취소 시 삭제/영점화되지 않아
+            //   귀속매출·전환수에 과다 계상되고, 형제(AttributionMetrics:82·geo-holdout:488/506)와 불일치였다.
+            //   channel_orders 에 취소/반품 행이 있으면 제외(픽셀 단독 전환=행 미존재→NOT EXISTS 참→포함 유지).
+            . 'AND NOT EXISTS (SELECT 1 FROM channel_orders co WHERE co.tenant_id = ar.tenant_id '
+            . "AND co.channel_order_id = ar.order_id AND COALESCE(co.event_type,'order') IN ('cancel','return')) "
+            // [현 차수 감사 ATT-2] 결정적 정렬 — MAX_ORDERS 초과 절단 시 남는 집합이 비결정(run마다 총계 변동)이던 문제 해소.
+            . 'GROUP BY ar.order_id ORDER BY conv_at DESC LIMIT ' . self::MAX_ORDERS
         );
         $rs->execute([':t' => $tenant, ':since' => $sinceDate]);
         $convAt = [];

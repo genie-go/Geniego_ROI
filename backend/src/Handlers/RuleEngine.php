@@ -249,7 +249,8 @@ final class RuleEngine
                 $channel = (string)($params['channel'] ?? $rule['target'] ?? '');
                 if ($channel === '') return ['skipped', 'pause_channel: channel 미지정'];
                 if (class_exists('\Genie\Handlers\AdAdapters') && method_exists('\Genie\Handlers\AdAdapters', 'pauseChannel')) {
-                    $r = \Genie\Handlers\AdAdapters::pauseChannel($tenant, $channel);
+                    // [현 차수 감사 MKT-1] $pdo 전달(시그니처 정합). pauseChannel 이 실제 매체 캠페인을 PAUSED 전환.
+                    $r = \Genie\Handlers\AdAdapters::pauseChannel($pdo, $tenant, $channel);
                     return [!empty($r['ok']) ? 'ok' : 'skipped', 'pause_channel ' . $channel . ': ' . json_encode($r, JSON_UNESCAPED_UNICODE)];
                 }
                 return ['skipped', 'pause_channel: 자격증명/어댑터 대기'];
