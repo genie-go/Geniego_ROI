@@ -115,6 +115,7 @@
 - **관리자**: AdminGrowth(자체 마케팅 자동화 콘솔·리드스코어링·퍼널CAC/LTV·Test/Live 게이트), MenuAccessManager, AdminPlans, DbAdmin, PgConfig, SiteIntro/LegalDocs 관리.
 - **온보딩/가이드**: OnboardingGuide, 발급매뉴얼 제너레이터, DashGuide, GuideWizard.
 - **PM(프로젝트관리)**: Task/Milestone/Gantt/Portfolio/Resources/RAID/EVM·SSE 실시간.
+- **★파트너/거래처/공급처 스코프 포털(재구현 금지·보안 확정)**: 파트너(supplier/logistics/warehouse)는 **별도 계정(partner_account)·별도 로그인(/partner/login)·별도 세션(partner_session≠user_session)·별도 토큰(localStorage partner_token)·독립 페이지(/partner, 메인 RequireAuth/AppLayout 밖=사이드바·매출/고객 메뉴 없음)**. `/partner/data`는 **본인 스코프만**(발주/배송/창고재고)·서버세션서 스코프 도출·**매출/수익/고객/사용자/PII 미포함**. 파트너 토큰은 user_session 불일치라 메인 엔드포인트(주문/매출/P&L) **401**(구조적 격리·라이브 실증). 계정 CRUD는 requirePro+테넌트스코프. `PartnerPortal.php`·`App.jsx:730`·index.php `/partner/` bypass. 257차 전수 검증(누출 0).
 - **공개/기타**: Landing/Pricing 공개페이지, PartnerPortal(파트너토큰 자가인증), DeveloperHub, CaseStudy, FeedbackCenter, Reports/ReportBuilder(사용자정의 메트릭), DataSchema/DataTrust/DataProduct, PixelTracking, WebPush.
 - **온사이트 CRO(`/onsite-cro`, OnsiteCro.jsx·Onsite.php)**: 실험 CRUD·결정론 버킷팅·z검정 승자·세그먼트 타겟(기기/방문자)·비콘 metric-poisoning 방어(배정원장+레이트리밋). **노코드 변경(체인지셋 selector→text/html/css/hide/redirect)**: 백엔드 저장(variants_json)+비콘 반환+**클라 자동적용**(`lib/onsiteCro.js applyChanges`·`assignVariant(key,{autoApply})`) = 246차 완료. **★257차 추가=노코드 변경 빌더 UI**(생성폼에서 코드 없이 체인지셋 작성). 심화 여지=라이브 페이지 WYSIWYG 오버레이 에디터(브라우저확장급·외부).
 
