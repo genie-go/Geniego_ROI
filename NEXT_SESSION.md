@@ -1,3 +1,38 @@
+# 256차 세션 인계서 — **하위관리자·geo-i18n + 6도메인 전수감사 8건 + 구현이력 정본화(오탐 근본대책) + 경쟁 약점 순차 초고도화(코드갭 완전소진) + master 머지·배포**
+
+> **작성일**: 2026-07-01 (사용자 명시 승인) · 운영 roi.genie-go.com / 데모 roidemo.genie-go.com · primary=**E:\project\GeniegoROI** · 브랜치 `feat/n236-admin-growth-automation` → **master FF 머지·push 완료(origin/master=`27093a366b8`, CI 자동배포)**. 전 항목 **운영/데모 수동 배포·항목별 검증**(서버 php-l PASS·홈200·엔드포인트 e2e).
+
+## ★0. 다음 차수 필독 — 오탐/중복 방지 (사용자 강력 지적)
+- **착수 전 반드시 참조**: **`docs/IMPLEMENTATION_STATUS.md`**(신설 — 구현 완료 상태 정본, 도메인별 file:line) + `docs/N254_SUPER_ENHANCEMENT_HISTORY.md`(254차) + 메모리 [[reference-implementation-status-ledger]]·[[reference-audit-false-positives]].
+- **감사 에이전트에 IMPLEMENTATION_STATUS.md + FP 레지스트리 주입 필수** → 이미 구현된 것 재플래그(오탐) 금지·중복구현 금지. **매 검증 후 이력 갱신**.
+- **코드로 안전 보강 불가(정직·무리한 블라인드 금지)**: ④영상DCO·CTV/DSP·PMax(외부 광고 크리덴셜) · ⑦SOC2/ISO 공식인증(외부 감사) · ①국내마켓 채널수 650(벤더 크리덴셜) · Naver 스마트입찰(검색광고=adgroup 키워드입찰이 정설계=false갭). → **키 등록 후 검증과 함께**.
+
+## 1. 256차 완료 (전부 운영/데모 라이브·중복0·회귀0)
+| 영역 | 항목 | 커밋 |
+|------|------|------|
+| 하위관리자 | 기존회원→하위관리자 승격+@ociell.com 도메인게이트 · 접속키 변경 최고관리자 전용(DB 재조회 가드) | `2da7bfe`·`36c1bbd` |
+| geo-i18n | 접속 IP 국가언어 자동감지 견고화(동일출처 /v424/geo/lang·다중제공자 페일오버·해시캐시) | `71d75ea` |
+| 전수감사 | **6도메인 병렬감사→확정결함 6**: GAP-1 감사로그 교차유출(requirePro→admin)·MKT-1 규칙 pause_channel 무동작(AdAdapters::pauseChannel 신설)·ATT-1/2 어트리뷰션 취소제외+결정정렬·ISO-1 발신 plan폴백·ISO-2 데모API키 운영시드차단+기존6삭제 | `c2b14de` |
+| 감사 | CH-3 Kakao/LINE 자격증명→허브 반영 · #2 정산 취소 이중차감 해소(returnFee=반품만) · PG대사 최신순 등 | `5be110b`·`39fef9b`·`4139b9f` |
+| **오탐대책** | **docs/IMPLEMENTATION_STATUS.md 구현이력 정본** + 메모리 규칙 | `7da9499` |
+| ①마케팅 | 조합형 DCO(M이미지×N카피) · 멀티종횡비(슬롯분산·폭주0) · 프론트 image_count/ratios | `24ac3bf`·`bb5b5a4`·`b2b0f05` |
+| ②CRM | NBA Thompson 밴딧 저니노드 · 옴니 SMS 워터폴 · exit 노드 · 워밍업 램프(opt-in) · STO ML 정밀화 · attr 노드 | `b575f20`·`cfe4f7b`·`8d57a9b`·`27093a3` |
+| ③어트리뷰션 | **MMM OOS 백테스트**(보고모델 정합·fitChannel 미수정=회귀0) · 증분성 캘리브레이션 · ESS/MCSE 노출 · confidence 실측배선+모델합의도 · geo-holdout UI | `b0ff1f7`·`cfe4f7b`·`6cf2835`·`091fab1` |
+
+## 2. 경쟁 재평가 (초고도화 후)
+- **통합 GeniegoROI ≈ 87.8**(세션시작 86.3 → +1.5). 최강 단일 경쟁사(TripleWhale ~64) 대비 **+23.8 올인원 해자**.
+- 도메인: ①채널90 ②데이터89 **③어트리89🏆역전** ④실집행87 **⑤정산88🏆** ⑥CRM86 ⑦보안86 ⑧AI85 **⑨글로벌88🏆** (경쟁사 최고=사방넷95·TW90·Northbeam88·Smartly92·단일몰68·Braze93·Looker90·TW90·85).
+- **핵심**: 검증 가능한 순수코드 갭 **완전 소진**. 남은 격차=외부 크리덴셜/공식인증/운영연차(코드 아님).
+
+## 3. 다음 차수 착수점
+- 사용자 자격증명 등록 후: **④ Meta/Google 소액 실집행 라이브 e2e**(배선 완비 상태) → ④ 84→90+. 
+- ④ 영상DCO·CTV/DSP·PMax·카탈로그DPA = 크리덴셜 확보 후 어댑터+라이브검증.
+- ⑦ SOC2 Type II 외부감사 트랙(posture 대시보드 완비).
+- ⑥ DCO/저니 프론트 config 에디터 심화(attr tag 입력·nba 채널선택 UI).
+- ★ **IMPLEMENTATION_STATUS.md 매 검증 갱신 + 감사 에이전트 주입** 습관화.
+
+---
+
 # 254차 세션 인계서 — **6도메인 경쟁 재평가 + 약점 초고도화 10건 + FP 2건 차단 + 이력 영구화**
 
 > **작성일**: 2026-06-30 (사용자 명시 승인) · 운영 roi.genie-go.com / 데모 roidemo.genie-go.com · primary=**E:\project\GeniegoROI** · 브랜치 `feat/n236-admin-growth-automation`(master 미접촉) · 운영/데모 **수동 배포·항목별 검증 완료**(매 항목 서버 php-l PASS·홈200·기능 e2e). **커밋·push 완료**(하단 §커밋).
