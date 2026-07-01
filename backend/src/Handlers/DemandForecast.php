@@ -413,4 +413,110 @@ class DemandForecast
         }
         return self::json($res, ['ok' => true, 'tenant' => $tenant, 'baseline' => round($base, 2), 'seasonality' => $index, '_env' => Db::env()]);
     }
+
+    /* ─── GET /api/demand/dead-stock — 재고 노후/악성재고 분석 (신규 net-new) ───
+       현재고 보유(channel_inventory.available>0) SKU × 실 판매활동(channel_orders 취소제외)으로
+       노후도(days_since_last_sale)·최근30일 판매속도·회전일수(days_of_supply)·묶인 자본을 산출해
+       dead(임계일+ 무판매/미판매)/slow(그 이하 저회전)/healthy 로 분류하고 권장 액션을 제안한다.
+       ★실 데이터만(가짜 0)·테넌트 스코프. 자본 = SKU 평균 판매단가(KRW 정규화된 unit_price) × 현재고.
+       파라미터: ?dead_days=90&slow_days=30&top=200. */
+    public static function deadStock(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        $tenant = self::tenant($req);
+        $pdo    = self::db();
+        $q        = $req->getQueryParams();
+        $deadDays = max(30, min(365, (int)($q['dead_days'] ?? 90)));
+        $slowDays = max(7,  min($deadDays - 1, (int)($q['slow_days'] ?? 30)));
+        $top      = min(500, max(10, (int)($q['top'] ?? 200)));
+
+        $today   = gmdate('Y-m-d');
+        $todayTs = gmmktime(0, 0, 0, (int)substr($today, 5, 2), (int)substr($today, 8, 2), (int)substr($today, 0, 4));
+        $d30     = gmdate('Y-m-d', $todayTs - 30 * 86400);
+
+        // 1) 현재고 보유 SKU(합산 available>0)
+        $inv = [];
+        try {
+            $rs = $pdo->prepare("SELECT sku, SUM(available) AS qty, MAX(product_name) AS name
+                                   FROM channel_inventory
+                                  WHERE tenant_id = :t AND sku IS NOT NULL AND sku <> ''
+                                  GROUP BY sku HAVING SUM(available) > 0");
+            $rs->execute([':t' => $tenant]);
+            foreach ($rs->fetchAll(\PDO::FETCH_ASSOC) as $r) {
+                $inv[(string)$r['sku']] = ['qty' => (float)$r['qty'], 'name' => (string)(($r['name'] ?? '') !== '' ? $r['name'] : $r['sku'])];
+            }
+        } catch (\Throwable $e) { $inv = []; }
+        if (!$inv) {
+            return self::json($res, ['ok' => true, 'tenant' => $tenant, 'items' => [], 'summary' =>
+                ['in_stock_skus' => 0, 'healthy' => 0, 'slow' => 0, 'dead' => 0, 'total_tied_capital' => 0, 'dead_tied_capital' => 0, 'slow_tied_capital' => 0],
+                'params' => ['dead_days' => $deadDays, 'slow_days' => $slowDays], '_env' => Db::env()]);
+        }
+
+        // 2) SKU별 판매활동(취소/반품 제외 — loadSeries 와 동일 규칙): 최근판매일·30일 판매량·평균단가
+        $sales = [];
+        try {
+            $st = $pdo->prepare("SELECT sku,
+                                        MAX(SUBSTR(ordered_at,1,10)) AS last_sale,
+                                        SUM(CASE WHEN SUBSTR(ordered_at,1,10) >= :d30 THEN qty ELSE 0 END) AS qty30,
+                                        AVG(CASE WHEN unit_price > 0 THEN unit_price ELSE NULL END) AS avg_price
+                                   FROM channel_orders
+                                  WHERE tenant_id = :t AND sku IS NOT NULL AND sku <> ''
+                                    AND (event_type IS NULL OR event_type = 'order')
+                                  GROUP BY sku");
+            $st->execute([':t' => $tenant, ':d30' => $d30]);
+            foreach ($st->fetchAll(\PDO::FETCH_ASSOC) as $r) $sales[(string)$r['sku']] = $r;
+        } catch (\Throwable $e) { $sales = []; }
+
+        // 3) SKU별 노후도 분류
+        $items = [];
+        $sum = ['in_stock_skus' => count($inv), 'healthy' => 0, 'slow' => 0, 'dead' => 0,
+                'total_tied_capital' => 0.0, 'dead_tied_capital' => 0.0, 'slow_tied_capital' => 0.0];
+        foreach ($inv as $sku => $iv) {
+            $s        = $sales[$sku] ?? null;
+            $lastSale = $s && $s['last_sale'] ? (string)$s['last_sale'] : '';
+            $qty30    = $s ? (int)$s['qty30'] : 0;
+            $avgPrice = $s && $s['avg_price'] !== null ? (float)$s['avg_price'] : 0.0;
+            $qty      = $iv['qty'];
+            $tied     = round($qty * $avgPrice);
+
+            if ($lastSale !== '' && preg_match('/^\d{4}-\d{2}-\d{2}$/', $lastSale)) {
+                $lsTs      = gmmktime(0, 0, 0, (int)substr($lastSale, 5, 2), (int)substr($lastSale, 8, 2), (int)substr($lastSale, 0, 4));
+                $daysSince = (int)floor(($todayTs - $lsTs) / 86400);
+            } else {
+                $daysSince = -1; // 미판매(판매 이력 없음) = 최악의 노후
+            }
+
+            // 분류: 미판매 또는 dead_days 이상 무판매 = dead / slow_days 이상 또는 최근30일 무판매 = slow / 그 외 healthy
+            if ($daysSince === -1 || $daysSince >= $deadDays) $cls = 'dead';
+            elseif ($daysSince >= $slowDays || $qty30 === 0)  $cls = 'slow';
+            else                                             $cls = 'healthy';
+
+            $sum[$cls]++;
+            $sum['total_tied_capital'] += $tied;
+            if ($cls === 'dead') $sum['dead_tied_capital'] += $tied;
+            if ($cls === 'slow') $sum['slow_tied_capital'] += $tied;
+
+            if ($cls === 'healthy') continue; // 액션 대상(dead/slow)만 목록화
+
+            // 회전일수(days of supply): 최근30일 속도 기준. 속도 0 = 무한(∞).
+            $daysOfSupply = $qty30 > 0 ? (int)round($qty / ($qty30 / 30.0)) : null;
+            $action = $cls === 'dead'
+                ? ($daysSince === -1 ? 'liquidate_never_sold' : 'liquidate_or_markdown')
+                : 'promote_or_bundle';
+            $items[] = [
+                'sku' => $sku, 'name' => $iv['name'], 'class' => $cls,
+                'on_hand' => (int)$qty, 'last_sale' => $lastSale ?: null,
+                'days_since_sale' => $daysSince === -1 ? null : $daysSince,
+                'sold_30d' => $qty30, 'avg_price' => round($avgPrice),
+                'tied_capital' => $tied, 'days_of_supply' => $daysOfSupply, 'action' => $action,
+            ];
+        }
+        // 묶인 자본 큰 순(자본 회수 우선순위)
+        usort($items, fn($a, $b) => $b['tied_capital'] <=> $a['tied_capital']);
+        $items = array_slice($items, 0, $top);
+        foreach (['total_tied_capital', 'dead_tied_capital', 'slow_tied_capital'] as $k) $sum[$k] = round($sum[$k]);
+
+        return self::json($res, ['ok' => true, 'tenant' => $tenant, 'items' => $items, 'summary' => $sum,
+            'params' => ['dead_days' => $deadDays, 'slow_days' => $slowDays], '_env' => Db::env()]);
+    }
 }

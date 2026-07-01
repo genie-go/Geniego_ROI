@@ -172,6 +172,7 @@ return function (App $app): void {
         'GET /demand/summary'     => 'Genie\\Handlers\\DemandForecast::summary',
         'GET /demand/forecast'    => 'Genie\\Handlers\\DemandForecast::forecastEndpoint',
         'GET /demand/seasonality' => 'Genie\\Handlers\\DemandForecast::seasonality',
+        'GET /demand/dead-stock'  => 'Genie\\Handlers\\DemandForecast::deadStock', // [257차] 재고 노후/악성재고 분석
         'POST /demand/auto-replenish' => 'Genie\\Handlers\\DemandForecast::autoReplenish', // [현 차수] 자동발주
 
         // ── 창고 관리(WMS) 영속화 — 205차 신설(useState→백엔드) ────────────
@@ -2698,6 +2699,7 @@ return function (App $app): void {
     $register('GET',    '/demand/summary');
     $register('GET',    '/demand/forecast');
     $register('GET',    '/demand/seasonality');
+    $register('GET',    '/demand/dead-stock'); // [257차] 재고 노후/악성재고 분석
     $register('POST',   '/demand/auto-replenish');
     // 창고 관리(WMS) 영속화 — 205차
     $register('GET',    '/wms/warehouses');

@@ -13,27 +13,30 @@ export default function DemandForecast() {
   const { inventory = [], orders = [] } = useGlobalData();
   const { selectedProduct } = useProductSelection(); // [현 차수] 전역 상품선택 → 해당 SKU 수요예측 포커스
   const [activeTab, setActiveTab] = useState(0);
-  const tabs = [t('demandForecast.tabDashboard', '대시보드'), t('demandForecast.tabForecast', 'SKU 예측'), t('demandForecast.tabSeasonality', '계절성'), t('demandForecast.tabModelConfig', '모델 설정')];
+  const tabs = [t('demandForecast.tabDashboard', '대시보드'), t('demandForecast.tabForecast', 'SKU 예측'), t('demandForecast.tabSeasonality', '계절성'), t('demandForecast.tabDeadStock', '재고 노후'), t('demandForecast.tabModelConfig', '모델 설정')];
 
   /* ── 206차 #5: 서버측 실 예측 모델(Holt-Winters/Holt/이동평균) API 배선 ── */
   const [summary, setSummary] = useState(null);
   const [forecast, setForecast] = useState([]);
   const [season, setSeason] = useState([]);
+  const [dead, setDead] = useState(null); // [257차] 재고 노후/악성재고
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let alive = true;
     (async () => {
       try {
-        const [s, f, sea] = await Promise.all([
+        const [s, f, sea, ds] = await Promise.all([
           getJsonAuth('/api/demand/summary').catch(() => null),
           getJsonAuth('/api/demand/forecast?horizon=14&top=50').catch(() => null),
           getJsonAuth('/api/demand/seasonality').catch(() => null),
+          getJsonAuth('/api/demand/dead-stock').catch(() => null),
         ]);
         if (!alive) return;
         if (s?.ok) setSummary(s);
         if (Array.isArray(f?.items)) setForecast(f.items);
         if (Array.isArray(sea?.seasonality)) setSeason(sea.seasonality);
+        if (ds?.ok) setDead(ds);
       } finally {
         if (alive) setLoading(false);
       }
@@ -235,8 +238,80 @@ export default function DemandForecast() {
           </>
         )}
 
+        {/* [257차] Dead Stock / Aging Inventory */}
+        {activeTab === 3 && (() => {
+          const sum = dead?.summary;
+          const items = dead?.items || [];
+          const won = (n) => '₩' + Number(n || 0).toLocaleString();
+          const clsBadge = (c) => c === 'dead'
+            ? { bg: 'rgba(220,38,38,0.12)', fg: '#dc2626', label: t('demandForecast.dsDead', '악성(무판매)') }
+            : { bg: 'rgba(245,158,11,0.14)', fg: '#d97706', label: t('demandForecast.dsSlow', '저회전') };
+          const actionLabel = (a) => ({
+            liquidate_never_sold: t('demandForecast.dsActNever', '청산(판매이력 없음)'),
+            liquidate_or_markdown: t('demandForecast.dsActLiquidate', '청산/마크다운'),
+            promote_or_bundle: t('demandForecast.dsActPromote', '프로모/번들'),
+          }[a] || a);
+          return (
+            <>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
+                <div style={{ fontSize: 16, fontWeight: 800 }}>{t('demandForecast.tabDeadStock', '재고 노후')} <span style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>· {t('demandForecast.dsSub', '악성·저회전 재고와 묶인 자본 진단')}</span></div>
+              </div>
+              {/* 요약 KPI */}
+              {sum && (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12, marginBottom: 18 }}>
+                  {[
+                    { emoji: '🧊', label: t('demandForecast.dsKpiDead', '악성 SKU'), val: sum.dead, color: '#dc2626' },
+                    { emoji: '🐢', label: t('demandForecast.dsKpiSlow', '저회전 SKU'), val: sum.slow, color: '#d97706' },
+                    { emoji: '💰', label: t('demandForecast.dsKpiDeadCap', '악성 묶인자본'), val: won(sum.dead_tied_capital), color: '#dc2626' },
+                    { emoji: '📦', label: t('demandForecast.dsKpiTotalCap', '총 묶인자본'), val: won(sum.total_tied_capital), color: '#4f8ef7' },
+                  ].map((k, i) => (
+                    <div key={i} style={{ ...card, padding: '14px 18px' }}>
+                      <div style={{ fontSize: 11, color: '#64748b', fontWeight: 700 }}>{k.emoji} {k.label}</div>
+                      <div style={{ fontSize: 20, fontWeight: 900, color: k.color, marginTop: 4 }}>{k.val}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {items.length === 0 ? (
+                <div style={{ padding: '40px 20px', textAlign: 'center', color: '#64748b', fontSize: 13 }}>
+                  {loading ? t('demandForecast.loading', '예측 모델 로딩 중…')
+                    : t('demandForecast.dsEmpty', '악성·저회전 재고가 없거나 재고/판매 데이터가 아직 부족합니다. 채널을 연동해 재고·주문이 쌓이면 자동으로 노후 재고가 진단됩니다.')}
+                </div>
+              ) : (
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <thead><tr>
+                      {['SKU', t('demandForecast.colName', '상품'), t('demandForecast.dsColClass', '분류'), t('demandForecast.dsColOnHand', '현재고'), t('demandForecast.dsColLastSale', '최근판매'), t('demandForecast.dsColAging', '경과일'), t('demandForecast.dsCol30', '30일판매'), t('demandForecast.dsColCapital', '묶인자본'), t('demandForecast.dsColDos', '회전일수'), t('demandForecast.dsColAction', '권장')].map(h => <th key={h} style={th}>{h}</th>)}
+                    </tr></thead>
+                    <tbody>
+                      {items.map((it) => {
+                        const b = clsBadge(it.class);
+                        return (
+                          <tr key={it.sku}>
+                            <td style={{ ...td, fontFamily: 'monospace', fontSize: 11, color: '#4f8ef7' }}>{it.sku}</td>
+                            <td style={td}>{it.name}</td>
+                            <td style={td}><span style={{ fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 20, background: b.bg, color: b.fg }}>{b.label}</span></td>
+                            <td style={{ ...td, textAlign: 'right' }}>{it.on_hand.toLocaleString()}</td>
+                            <td style={{ ...td, fontSize: 11, color: '#64748b' }}>{it.last_sale || t('demandForecast.dsNever', '없음')}</td>
+                            <td style={{ ...td, textAlign: 'right', fontWeight: 700, color: it.days_since_sale == null ? '#dc2626' : (it.days_since_sale >= 90 ? '#dc2626' : '#d97706') }}>{it.days_since_sale == null ? '—' : it.days_since_sale + t('demandForecast.daysUnit', '일')}</td>
+                            <td style={{ ...td, textAlign: 'right' }}>{it.sold_30d}</td>
+                            <td style={{ ...td, textAlign: 'right', fontWeight: 800, color: '#1e293b' }}>{won(it.tied_capital)}</td>
+                            <td style={{ ...td, textAlign: 'right', color: '#64748b' }}>{it.days_of_supply == null ? '∞' : it.days_of_supply + t('demandForecast.daysUnit', '일')}</td>
+                            <td style={td}><span style={{ fontSize: 11, fontWeight: 700, color: it.class === 'dead' ? '#dc2626' : '#d97706' }}>{actionLabel(it.action)}</span></td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                  <div style={{ fontSize: 10.5, color: '#94a3b8', marginTop: 10 }}>🔬 {t('demandForecast.dsMethod', '현재고 보유 SKU × 실 판매(취소제외)로 산출: 악성=90일+ 무판매/미판매·저회전=30일+ 저조. 묶인자본=평균 판매단가×현재고. 자본 회수 우선순위(묶인자본 큰 순).')}</div>
+                </div>
+              )}
+            </>
+          );
+        })()}
+
         {/* Model Config */}
-        {activeTab === 3 && (
+        {activeTab === 4 && (
           <>
             <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 16 }}>{t('demandForecast.tabModelConfig', '모델 설정')}</div>
             <div style={{ display: 'grid', gap: 10, fontSize: 12, color: '#475569' }}>
