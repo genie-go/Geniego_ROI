@@ -126,12 +126,24 @@ function StatCard({ icon, label, value, sub, color }) {
 }
 
 /* ── Customer Detail Panel ──────────────────────────────────────────────────── */
-function CustomerPanel({ customer, onClose, onSendEmail, onSendKakao, onDelete, crmCustomerHistory }) {
+function CustomerPanel({ customer, onClose, onSendEmail, onSendKakao, onDelete, crmCustomerHistory, timeline = [] }) {
   const { t } = useI18n();
   const fmt = useCurrencyFmt();
   if (!customer) return null;
   const grade = getRfmGrade(t)[customer.grade] || getRfmGrade(t).normal;
   const acts = crmCustomerHistory[customer.id] || [];
+  // [257차] 360 전체 활동 타임라인 — 활동 유형별 아이콘/라벨(구매 외 전 접점).
+  const actMeta = (type) => {
+    const m = {
+      purchase: { icon: '💳', label: t('crm.actPurchase', '구매') },
+      email: { icon: '✉️', label: t('crm.actEmail', '이메일') }, email_sent: { icon: '✉️', label: t('crm.actEmail', '이메일') },
+      kakao: { icon: '💬', label: t('crm.actKakao', '카카오') }, sms: { icon: '📱', label: t('crm.actSms', 'SMS') },
+      segment: { icon: '🏷', label: t('crm.actSegment', '세그먼트') }, signup: { icon: '🎉', label: t('crm.actSignup', '가입') },
+      churn: { icon: '⚠️', label: t('crm.actChurn', '이탈위험') }, return: { icon: '↩', label: t('crm.actReturn', '반품') },
+      claim: { icon: '↩', label: t('crm.actClaim', '클레임') }, webhook: { icon: '🔗', label: t('crm.actWebhook', '이벤트') },
+    };
+    return m[type] || { icon: '•', label: type };
+  };
   return (
     <div style={{ position: "fixed", right: 0, top: 0, bottom: 0, width: 420, background: C.surface, borderLeft: `1px solid ${C.border}`, zIndex: 200, overflowY: "auto", display: "flex", flexDirection: "column" }}>
       <div style={{ padding: "20px 24px", borderBottom: `1px solid ${C.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -187,6 +199,26 @@ function CustomerPanel({ customer, onClose, onSendEmail, onSendKakao, onDelete, 
             ))}
             {acts.length === 0 && <div style={{ color: C.muted, fontSize: 12 }}>{t('crm.actEmpty')}</div>}
           </div>
+        </div>
+        {/* [257차] 360 전체 활동 타임라인 — 구매 외 전 접점(이메일/카카오/SMS/세그먼트/가입 등) 시간순 */}
+        <div>
+          <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>🕒 {t('crm.timelineTitle', '전체 활동 타임라인')} ({timeline.length})</div>
+          {timeline.length === 0
+            ? <div style={{ color: C.muted, fontSize: 12 }}>{t('crm.timelineEmpty', '활동 기록이 아직 없습니다.')}</div>
+            : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+                {timeline.slice(0, 30).map((a, i) => { const m = actMeta(a.type); return (
+                  <div key={i} style={{ display: "flex", gap: 10, padding: "8px 0", borderLeft: `2px solid ${C.border}`, marginLeft: 8, paddingLeft: 14, position: "relative" }}>
+                    <span style={{ position: "absolute", left: -9, top: 9, fontSize: 12, background: C.surface }}>{m.icon}</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: C.text }}>{m.label}{a.ch ? ` · ${a.ch}` : ""}</div>
+                      <div style={{ fontSize: 10, color: C.muted }}>{a.at}</div>
+                    </div>
+                    {a.amount > 0 && <div style={{ fontSize: 12, fontWeight: 700, color: C.green }}>{fmt(a.amount)}</div>}
+                  </div>
+                ); })}
+              </div>
+            )}
         </div>
       </div>
     </div>
@@ -1060,6 +1092,7 @@ function CRMContent() {
   const [opSegments, setOpSegments] = useState([]);
   const [opRfm, setOpRfm] = useState([]);
   const [opPanelActs, setOpPanelActs] = useState([]);
+  const [opPanelTimeline, setOpPanelTimeline] = useState([]); // [257차] 360 전체 활동 타임라인(전 유형)
   const mapCust = (r) => ({ id: r.id, name: r.name || '', email: r.email || '', phone: r.phone || '-', grade: r.grade || 'normal', ltv: Number(r.ltv || 0), purchase_count: Number(r.purchase_count || 0), last_purchase: (r.last_purchase || '').slice(0, 10), tags: Array.isArray(r.tags) ? r.tags : [] });
   const reloadOpCustomers = useCallback(() => { crmApi.listCustomers().then(r => setOpCustomers((r.customers || []).map(mapCust))).catch(() => {}); }, []);
   const reloadOpSegments = useCallback(() => { crmApi.listSegments().then(r => setOpSegments((r.segments || []).map(s => ({ ...s, count: Number(s.member_count || 0) })))).catch(() => {}); }, []);
@@ -1107,9 +1140,12 @@ function CRMContent() {
   const selectCustomer = (c) => {
     setSelectedCustomer(c);
     if (!IS_DEMO && c?.id != null) {
-      setOpPanelActs([]);
+      setOpPanelActs([]); setOpPanelTimeline([]);
       crmApi.getCustomer(c.id).then(r => {
-        setOpPanelActs((r.activities || []).filter(a => a.type === 'purchase' || a.amount).map(a => ({ ch: a.channel || 'Web', total: Number(a.amount || 0), at: (a.created_at || '').slice(0, 16) })));
+        const all = r.activities || [];
+        setOpPanelActs(all.filter(a => a.type === 'purchase' || a.amount).map(a => ({ ch: a.channel || 'Web', total: Number(a.amount || 0), at: (a.created_at || '').slice(0, 16) })));
+        // [257차] 360 전체 활동 타임라인 — 구매만이 아닌 전 접점(이메일/카카오/SMS/세그먼트/가입 등) 시간순.
+        setOpPanelTimeline(all.map(a => ({ type: a.type || 'event', ch: a.channel || '', amount: Number(a.amount || 0), at: (a.created_at || '').slice(0, 16) })));
       }).catch(() => {});
     }
   };
@@ -1320,6 +1356,9 @@ function CRMContent() {
       <CustomerPanel
         customer={selectedCustomer}
         onClose={() => setSelectedCustomer(null)}
+        timeline={IS_DEMO
+          ? ((selectedCustomer ? (crmCustomerHistory[selectedCustomer.id] || []) : []).map(a => ({ type: 'purchase', ch: a.ch || 'Web', amount: Number(a.total || 0), at: a.at })))
+          : opPanelTimeline}
         crmCustomerHistory={IS_DEMO ? crmCustomerHistory : (selectedCustomer ? { [selectedCustomer.id]: opPanelActs } : {})}
         onDelete={deleteCustomer}
         onSendEmail={c => navigate(`/email-marketing?prefill_email=${encodeURIComponent(c.email)}`)}
