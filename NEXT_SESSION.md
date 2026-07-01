@@ -1,3 +1,38 @@
+# 258차 세션 인계서 — **회원세션(관리자 대행 열람) 신규 + 전수 정밀감사 4도메인 + 확정결함3 수정**
+
+> **작성일**: 2026-07-01 (사용자 명시 승인) · 운영 roi.genie-go.com / 데모 roidemo.genie-go.com · 브랜치 `feat/n236-admin-growth-automation` → **master FF push**. 전 항목 운영/데모 수동배포·라이브 검증(php-l·엔드포인트 e2e·헤드리스·서버 self-test). **회귀0·거짓집행0·운영목데이터0·오염경로0**.
+
+## ★0. 다음 차수 필독 — 오탐/중복 방지 (변함없는 최상위 원칙)
+- 착수 전 반드시 `docs/IMPLEMENTATION_STATUS.md`(정본) + `reference_audit_false_positives`(메모리, 258차 항목 추가) 참조·감사 에이전트 프롬프트에 **주입**. 이미 "✅ 구현됨" 항목 재플래그 금지.
+- **258차 실증**: 4도메인 병렬감사(채널연동/마케팅실집행/오염차단/수집정합·회귀)에서 **CONFIRMED_GAP 3건(전부 LOW/경미)**뿐. 마케팅 실집행은 프로덕션급(실키 넣으면 진짜 광고 정확 집행) 재확인. 성숙 플랫폼이므로 grep 부재증명·file:line·재현 시나리오 없는 "미구현" 단정 금지.
+
+## 1. 258차 완료 (전부 운영/데모 라이브·회귀0)
+| # | 영역 | 항목 | 커밋 |
+|---|------|------|------|
+| A | 신규기능 | **회원세션(관리자 대행 열람)**: user-management 회원목록 Action에 "🪟 회원세션" 버튼 → 해당 회원으로 인증된 새 창으로 회원 페이지 확인. 백엔드 `POST /v423/admin/users/{id}/impersonate`(UserAdmin, 단기2h user_session·admin/비활성 대행금지·감사로그). ★프론트 `impersonationShim.js`(main.jsx 최상단)=대행 탭만 인증/테넌트 localStorage 키를 sessionStorage(탭격리)로 우회하는 Proxy shim → 관리자 본인 세션 불오염·소비40파일 무변경·일반탭 no-op(회귀0). ImpersonationBanner. 라이브 e2e(impersonate#48→/auth/me=회원 반환) | `44de6d3b` |
+| B | 전수감사 | **4도메인 병렬(FP+IMPLEMENTATION_STATUS 주입)+PM 직접 재증명**. 채널연동/마케팅실집행/오염차단/수집정합·회귀 전부 프로덕션급 재확인. 확정결함 3건만(아래 C~E) | — |
+| C | 수정 보안LOW | Compliance::posture `audit_log` 전역 COUNT→임의 Pro테넌트 카드 노출(257 fail-closed 정책 누락분·집계숫자만·PII무유출). 테넌트스코프 `security_audit_log WHERE tenant_id=?` 대체. `Compliance.php:63` | `6139fab7` |
+| D | 수정 기능 | 채널추가 UI `sync_kind` 매핑 완비 — analytics/cs/esp/review/pg/logistics 카테고리가 'none'→자동수집 미편입되던 것 `GROUP_TO_SYNC`(SK2G 역매핑 정합·커머스/광고 기존동작 불변). `ApiKeys.jsx:881` | `6139fab7` |
+| E | 수정 정직성 | AIRecommendTab '집행' 가짜(setTimeout 후 무조건 "집행됨")→실 엔드포인트 `/v423/auto-campaign/launch`(activate:false 안전생성) 호출·실 응답 반영(중복엔진0). `AIRecommendTab.jsx:425` | `6139fab7` |
+
+## 2. 검증
+- 백엔드 php -l 전건 PASS(UserAdmin/routes/Compliance)·fpm restart(opcache)·엔드포인트 라우팅(impersonate 403 무인증·posture 401·launch 401).
+- 회원세션 라이브 e2e(운영): admin login→impersonate 회원#48→/auth/me with imp토큰=member(plan=free·tenant=acct_48) 반환(관리자 아님).
+- Compliance 라이브 e2e(운영): admin login→posture→audit evidence 테넌트카운트 33(전역 아님)·readiness 60.7. home 200(운영/데모).
+- vite build 전건 PASS(ops `vite build`·demo `--mode demo`). 원자 스왑(dist_old 롤백보존).
+
+## 3. 감사 확정 양호 (재플래그 금지 — reference_audit_false_positives 258차 등재)
+- **마케팅 실집행**: 6채널(Meta/Google/TikTok/Naver SA/Kakao/LINE) create/deliver/pause/activate 실 HTTP·`no_credentials` 정직반환·멀티통화 create/update 대칭·채널키 정규화 전 액추에이터·킬스위치 실pause·CAPI/TikTok Events/Google offline·최적화 폐루프(truthRatio·portfolio)+cron. **CONFIRMED_GAP 0**.
+- **채널 자동연동**: 자격증명→10유형 대칭 자동sync·admin 레지스트리 채널추가 즉시편입·fetch_spec·honest pending(거짓성공0).
+- **오염차단**: 4중 방어(X-Tenant 위조차단·authedTenant·DB물리분리·ingest HMAC/fail-closed)·tenant_id 전수 스코프·회원세션 격리.
+- **수집정합·회귀**: 머니 SSOT 무캡·취소제외 형제4곳 대칭·크로스먼스 재롤업. 252~257 초고도화 회귀0(warmup 기본OFF·DCO 기본값보존·optimizePortfolio 총예산보존·KEK 무파괴). 하드코딩 "맞추기" 0.
+
+## 4. 다음 차수 잔여/후보 (결함 아님)
+- 미구현 선택 심화: 인앱 킬스위치 토글(env AD_EXECUTION_DISABLED 외 DB플래그)·REAL_ADAPTER 배지 정합(레지스트리 fetch_spec 채널 언더클레임)·`optimizePortfolio($allowActuate)` 데드 파라미터 가드.
+- 코드-완결 프론티어 유지: 남은 격차(실 광고 OAuth키·CTV/PMax·라이브 SFU·Naver쇼핑키·SOC2 인증)는 외부 자격증명/인프라/인증 의존 — 블라인드 구현 금지.
+
+---
+
 # 257차 세션 인계서 — **전수감사×3라운드 + 경쟁재평가×2 + net-new 4 + 심화 4 + 공급업체 SSOT통합 + 파트너 스코프감사 + 메뉴중복제거 + i18n 15국 69키**
 
 > **작성일**: 2026-07-01 (사용자 명시 승인) · 운영 roi.genie-go.com / 데모 roidemo.genie-go.com · 브랜치 `feat/n236-admin-growth-automation` → **master FF 머지·push(origin/master=`b63751e2fa1`, CI 자동배포)**. 전 항목 운영/데모 수동배포·항목별 검증(php-l·엔드포인트 e2e·헤드리스 렌더·서버 self-test). **회귀0·목데0·격리위반0·신규누출0**(2·3라운드 재감사 확정).
