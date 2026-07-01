@@ -14,6 +14,7 @@ const NODE_TYPES = {
   delay:     { label: '대기',       icon: '⏱️', color: '#94a3b8' },
   wait:      { label: '이벤트/날짜 대기', icon: '⏳', color: '#0ea5e9', branches: ['occurred', 'timeout'] }, // [255차 심화] 이벤트 발생/날짜까지 대기
   condition: { label: '조건 분기',  icon: '🔀', color: '#a855f7', branches: ['true', 'false'] },
+  exit:      { label: '이탈(조건종료)', icon: '🚪', color: '#64748b' }, // [현 차수 초고도화 ②] 조건 충족 시 여정 즉시 종료(Braze exit criteria)
   split:     { label: 'A/B 스플릿', icon: '🧪', color: '#06b6d4', branches: ['a', 'b'] },
   webhook:   { label: '웹훅(외부호출)', icon: '🔗', color: '#0891b2' }, // [255차 심화] 외부 HTTP 액션
   nba:       { label: 'AI 최적채널(NBA)', icon: '🧠', color: '#8b5cf6' }, // [현 차수 초고도화 ②] Thompson 밴딧 = 고객별 최적 채널 자동선택 발송
