@@ -1,3 +1,4 @@
+import "./impersonationShim.js"; // 회원세션(관리자 대행 열람) 탭 격리 — 반드시 최상단(다른 모듈이 localStorage 읽기 전)
 import React, { Component } from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";

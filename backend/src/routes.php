@@ -1385,6 +1385,7 @@ return function (App $app): void {
         'PATCH /v423/admin/users/{id}/plan'              => 'Genie\\Handlers\\UserAdmin::updatePlan',
         'PATCH /v423/admin/users/{id}/active'            => 'Genie\\Handlers\\UserAdmin::setActive',
         'POST /v423/admin/users/{id}/reset-password'     => 'Genie\\Handlers\\UserAdmin::resetPassword',
+        'POST /v423/admin/users/{id}/impersonate'        => 'Genie\\Handlers\\UserAdmin::impersonate', // 회원세션(관리자 대행 열람)
         'GET /v423/admin/stats'                          => 'Genie\\Handlers\\UserAdmin::stats',
 
         // ── v423 Subscription Plan Pricing (period-based) ─────────────────────
@@ -2374,6 +2375,7 @@ return function (App $app): void {
     $register('PATCH',  '/v423/admin/users/{id}/plan');
     $register('PATCH',  '/v423/admin/users/{id}/active');
     $register('POST',   '/v423/admin/users/{id}/reset-password');
+    $register('POST',   '/v423/admin/users/{id}/impersonate'); // 회원세션(관리자 대행 열람)
     $register('GET',    '/v423/admin/stats');
     $register('GET',    '/v423/admin/plan-prices');
     $register('POST',   '/v423/admin/plan-prices');

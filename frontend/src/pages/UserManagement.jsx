@@ -185,6 +185,33 @@ function MembersTab() {
         setTimeout(() => setMsg(""), 3000);
     };
 
+    // [현 차수] 회원세션(관리자 대행 열람): 해당 회원으로 인증된 단기(2h) 세션 토큰을 발급받아
+    //   새 창을 그 회원 계정으로 로그인된 상태로 연다. 새 창은 sessionStorage(탭 격리)만 사용하므로
+    //   관리자 본인 세션(localStorage)은 그대로 유지된다(impersonationShim.js).
+    const openMemberSession = async (u) => {
+        const w = window.open("", "_blank"); // 팝업 차단 회피: 클릭 제스처 내 동기 오픈
+        setMsg(`회원세션 생성 중... (${u.name || u.email})`);
+        try {
+            const d = await adminPost(token, `v423/admin/users/${u.id}/impersonate`, {});
+            if (!d.ok || !d.token) {
+                if (w) { try { w.close(); } catch {} }
+                setMsg(`❌ ${d.error || "회원세션 생성 실패"}`);
+                setTimeout(() => setMsg(""), 4000);
+                return;
+            }
+            const userB64 = btoa(unescape(encodeURIComponent(JSON.stringify(d.user || {}))));
+            const tenant = (d.user && (d.user.tenant_id || d.user.tenantId)) || "";
+            const url = `/dashboard#imp=${encodeURIComponent(`${d.token}|${userB64}|${tenant}`)}`;
+            if (w) { try { w.opener = null; } catch {} w.location.href = url; }
+            else window.open(url, "_blank"); // 핸들 없으면(팝업차단) 재시도
+            setMsg(`✅ ${u.name || u.email} 회원세션 새 창 열림 (2시간 후 자동 만료)`);
+        } catch (e) {
+            if (w) { try { w.close(); } catch {} }
+            setMsg(`❌ ${e.message || "회원세션 생성 실패"}`);
+        }
+        setTimeout(() => setMsg(""), 4000);
+    };
+
     return (
         <div>
             {/* Toolbar */}
@@ -327,6 +354,13 @@ function MembersTab() {
                                 <td style={css.td}><span style={{ fontSize: 11, color: 'var(--text-3)' }}>{u.created_at?.slice(0, 10)}</span></td>
                                 <td style={css.td}>
                                     <div style={{ display: "flex", gap: 6 }}>
+                                        <button
+                                            style={{ ...css.btn("primary"), padding: "4px 10px", fontSize: 11, opacity: u.plan === "admin" ? 0.4 : 1, cursor: u.plan === "admin" ? "not-allowed" : "pointer" }}
+                                            disabled={u.plan === "admin"}
+                                            title="이 회원으로 인증된 새 창에서 회원 페이지를 확인합니다 (2시간 후 만료)"
+                                            onClick={e => { e.stopPropagation(); if (u.plan !== "admin") openMemberSession(u); }}>
+                                            🪟 회원세션
+                                        </button>
                                         <button style={{ ...css.btn(), padding: "4px 10px", fontSize: 11 }} onClick={e => { e.stopPropagation(); patch(`v423/admin/users/${u.id}/active`, { active: !u.is_active }); }}>
                                             {u.is_active ? "비활성화" : "활성화"}
                                         </button>

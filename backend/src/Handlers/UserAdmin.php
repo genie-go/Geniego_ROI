@@ -395,6 +395,76 @@ final class UserAdmin
         return self::json($res, ['ok' => true, 'user_id' => $userId, 'plan' => $plan], 201);
     }
 
+    // ── POST /v423/admin/users/{id}/impersonate — 회원세션(관리자 대행 열람) ──────
+    //
+    //   관리자가 특정 회원의 화면을 '그 회원으로 인증된 상태'로 새 창에서 확인할 수 있도록
+    //   단기(2시간) user_session 토큰을 발급한다. 실제 세션 행이므로 기존 인증·API·데이터
+    //   격리(tenant)가 그대로 적용된다. 프론트는 이 토큰을 새 탭의 sessionStorage(탭 격리)에만
+    //   저장해 관리자 본인 세션(localStorage)을 덮어쓰지 않는다.
+    public static function impersonate(ServerRequestInterface $req, ResponseInterface $res, array $args): ResponseInterface
+    {
+        $admin = self::requireAdmin($req);
+        if (!$admin) return self::json($res, ['ok' => false, 'error' => 'Admin access required'], 403);
+
+        $id  = (int)($args['id'] ?? 0);
+        $pdo = Db::pdo();
+
+        $stmt = $pdo->prepare("SELECT * FROM app_user WHERE id = ?");
+        $stmt->execute([$id]);
+        $user = $stmt->fetch(\PDO::FETCH_ASSOC);
+        if (!$user) return self::json($res, ['ok' => false, 'error' => 'User not found'], 404);
+        if ((int)($user['is_active'] ?? 1) === 0) {
+            return self::json($res, ['ok' => false, 'error' => '비활성 회원은 회원세션으로 열람할 수 없습니다.'], 409);
+        }
+        // 권한 상승 방지: 관리자 계정은 대행 열람 금지(일반 회원만).
+        if (($user['plan'] ?? '') === 'admin' || ($user['plans'] ?? '') === 'admin') {
+            return self::json($res, ['ok' => false, 'error' => '관리자 계정은 회원세션으로 열람할 수 없습니다.'], 403);
+        }
+
+        // 단기(2시간) 대행 토큰 발급 — 실제 user_session 행.
+        $token   = 'imp_' . bin2hex(random_bytes(24));
+        $now     = self::now();
+        $expires = gmdate('Y-m-d\TH:i:s\Z', time() + 2 * 3600);
+        $pdo->prepare('INSERT INTO user_session(user_id,token,expires_at,created_at) VALUES(?,?,?,?)')
+            ->execute([$id, $token, $expires, $now]);
+
+        self::auditLog($admin, "impersonate", "user#{$id} {$user['email']} 회원세션 발급(2h)");
+
+        // 데이터 격리 tenant 해석(로그인 흐름과 동일 규칙): tenant_id 우선, 없으면 acct_{id} 발급·영속.
+        $tenant = trim((string)($user['tenant_id'] ?? ''));
+        if ($tenant === '') {
+            $tenant = 'acct_' . $id;
+            try { $pdo->prepare('UPDATE app_user SET tenant_id = ? WHERE id = ?')->execute([$tenant, $id]); } catch (\Throwable $e) {}
+        }
+
+        // 로그인 페이로드와 동일 형태의 user 객체(프론트 AuthContext 호환).
+        $effectivePlan = $user['plans'] ?? $user['plan'] ?? 'free';
+        $userPayload = [
+            'id'                      => (int)$user['id'],
+            'email'                   => $user['email'],
+            'name'                    => $user['name'] ?? null,
+            'plan'                    => $effectivePlan,
+            'plans'                   => $effectivePlan,
+            'company'                 => $user['company'] ?? null,
+            'created_at'              => $user['created_at'] ?? null,
+            'subscription_expires_at' => $user['subscription_expires_at'] ?? null,
+            'subscription_cycle'      => $user['subscription_cycle'] ?? null,
+            'tenant_id'               => $tenant,
+            'parent_user_id'          => isset($user['parent_user_id']) ? (int)$user['parent_user_id'] : null,
+            'team_role'               => $user['team_role'] ?? (!empty($user['parent_user_id']) ? 'member' : 'owner'),
+            'admin_level'             => null,
+            'agent_mode'              => 'approval',
+            '_impersonated'           => true, // 프론트 대행 열람 배너 표시용
+        ];
+
+        return self::json($res, [
+            'ok'         => true,
+            'token'      => $token,
+            'user'       => $userPayload,
+            'expires_at' => $expires,
+        ]);
+    }
+
     // ── GET /v423/admin/stats ─────────────────────────────────────────────────
 
     public static function stats(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface

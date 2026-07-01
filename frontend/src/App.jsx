@@ -19,6 +19,7 @@ import NetworkStatus from "./components/NetworkStatus.jsx";
 import InstallPrompt from "./components/InstallPrompt.jsx";
 import { ToastProvider } from "./components/ToastProvider.jsx";
 import SessionExpiryWarning from "./components/SessionExpiryWarning.jsx";
+import ImpersonationBanner from "./components/ImpersonationBanner.jsx"; // 회원세션(관리자 대행 열람) 배너
 import KeyboardShortcuts from "./components/KeyboardShortcuts.jsx";
 import OnboardingTour from "./components/OnboardingTour.jsx";
 import OnboardingGuide from "./components/OnboardingGuide.jsx";
@@ -390,6 +391,7 @@ function AppLayout() {
             position: 'relative',
           }}>
             <Topbar />
+            <ImpersonationBanner />
             <PlatformActAsBanner />
             <ProductOverageModal />
             <GdprController />
