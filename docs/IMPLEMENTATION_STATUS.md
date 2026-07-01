@@ -99,7 +99,8 @@
 - **★257차(2026-07 완료) AI 세그먼트 폴백 가짜지표 운영 차단**: `AiGenerate::generateSegment` 이 기준 미입력/AI미설정/파싱실패 시 운영 테넌트에도 demoSegmentSamples(₩820,000·12.4% 등 지표성 가짜값)를 반환하던 것을 데모=샘플 유지·운영=정직 응답(빈결과/설정안내)으로 분기(동일 파일 타 EP 는 이미 게이트됨). `AiGenerate.php:195-215`
 
 ## 11) 커머스 운영 모듈 (Commerce Ops) — ✅ 구현
-- **OrderHub**(주문통합·정산·클레임/반품·CLM 멱등), **WMS**(창고/택배사AES/권한/입출고감사/피킹/발주/LOT FEFO 테넌트격리, `Wms.php`), **SupplyChain**(멀티창고 최적할당·haversine 근접), **DemandForecast**(ABC·안전재고·auto-replenish), **ReturnsPortal**(교환/반품 캐논 claimType), **PriceOpt**(리프라이서·Buybox·velocity·승인큐 writeback), **DigitalShelf/CatalogSync**(writeback 12/12 어댑터), **LiveCommerce**(SSE·카메라·AI쇼호스트·구매동기화).
+- **OrderHub**(주문통합·정산·클레임/반품·CLM 멱등), **WMS**(창고/택배사AES/권한/입출고감사/피킹/발주/LOT FEFO 테넌트격리, `Wms.php`), **SupplyChain**(멀티창고 최적할당·haversine 근접), **DemandForecast**(ABC·안전재고·auto-replenish), **ReturnsPortal**(교환/반품 캐논 claimType), **PriceOpt**(리프라이서·Buybox·velocity·승인큐 writeback), **DigitalShelf/CatalogSync**(writeback 12/12 어댑터), **LiveCommerce**(SSE·카메라·AI쇼호스트·구매동기화·**인터랙티브 오버레이=투표(live_polls)/이모지반응/실시간 presence 동시시청·peak** 246차). 심화 여지=실 SFU 미디어평면(외부 인프라)뿐.
+- **★257-B 검증 스윕(재구현 금지)**: 경쟁 재평가(docs/COMPETITIVE_REVALIDATION_257.md)의 "코드로 가능한 심화" 후보가 grep 전수확인 결과 **전부 이미 구현**됨 — ①CRM 딜리버러빌리티 시계열/평판 대시보드(computeDeliverability·email_reputation_daily·snapshotReputation cron·GET /email/deliverability/history·프론트 추이차트, 246차) ②CRM 예측세그 자동화(cron 배선) ③라이브 인터랙티브 오버레이(투표/반응/presence) ④가격 실시간 경쟁가 자동수집(competitorHarvestCore·harvestCompetitorAllTenants·competitor_price_cron 30분·신선도가드·Buybox, 255차). **남은 것은 외부의존(Naver쇼핑 실키·실 SFU·광고 실계정·SOC2 인증)·성숙도(연차/규모)뿐 — 코드 net-new 갭 아님.** 신규 초고도화 착수 전 반드시 이 문서 확인.
 
 ## 12) 인텔리전스·AI (AI Profit OS) — ✅ 구현
 - ClaudeAI 실 API(claude-sonnet-4-6), AI Profit OS 5단계(측정→분석→의사결정→실행→학습): HealthScore·RootCause·What-if·Agent권한모드(approval)·Copilot 액션루프(휴먼-인-루프 propose→승인→집행), 역할별뷰, GeniegoGlossary(용어설명), AI 디자인엔진(SVG/이미지), AIRuleEngine, GraphScore(그래프 네트워크 스코어), Attribution 두뇌연결.
