@@ -122,6 +122,8 @@ return function (App $app): void {
         'DELETE /email/suppression'            => 'Genie\\Handlers\\EmailMarketing::removeSuppression',
         // [현 차수] STO 큐 워커(cron_key/Pro) + 바운스 webhook(HMAC fail-closed).
         'POST /email/queue/process'            => 'Genie\\Handlers\\EmailMarketing::processQueue',
+        'GET /email/warmup'                    => 'Genie\\Handlers\\EmailMarketing::warmupGet', // [현 차수 초고도화 ②-3] 워밍업 opt-in
+        'POST /email/warmup'                   => 'Genie\\Handlers\\EmailMarketing::warmupSave',
         'POST /email/bounce'                   => 'Genie\\Handlers\\EmailMarketing::bounceWebhook',
 
         // ── [255차 P1] 옴니채널 오케스트레이터 (세그먼트 → 다채널 워터폴 비동기 발송) ─────────
@@ -2650,6 +2652,7 @@ return function (App $app): void {
     $register('POST',   '/email/suppression');
     $register('DELETE', '/email/suppression');
     $register('POST',   '/email/queue/process'); // [현 차수] STO 큐 워커
+    $register('GET',    '/email/warmup'); $register('POST', '/email/warmup'); // [현 차수 초고도화 ②-3] 워밍업 opt-in
     $register('POST',   '/email/bounce');         // [현 차수] 바운스 webhook
     // [255차 P1] 옴니채널 오케스트레이터
     $register('GET',    '/v427/omni/campaigns');

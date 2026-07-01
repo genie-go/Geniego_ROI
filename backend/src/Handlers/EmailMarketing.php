@@ -253,6 +253,48 @@ class EmailMarketing
         return self::jsonRes($res, array_merge(['ok'=>true], self::runQueue()));
     }
 
+    /* ─── [현 차수 초고도화 ②-3] 이메일 워밍업 램프(발신 평판 보호) — opt-in(기본 OFF → runQueue 불변=회귀0) ─── */
+    private static function ensureWarmupTable(\PDO $pdo): void {
+        try {
+            if (self::isMysql($pdo)) $pdo->exec("CREATE TABLE IF NOT EXISTS email_warmup (tenant_id VARCHAR(100) PRIMARY KEY, enabled TINYINT(1) DEFAULT 0, start_date VARCHAR(20), updated_at VARCHAR(32)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+            else $pdo->exec("CREATE TABLE IF NOT EXISTS email_warmup (tenant_id TEXT PRIMARY KEY, enabled INTEGER DEFAULT 0, start_date TEXT, updated_at TEXT)");
+        } catch (\Throwable $e) {}
+    }
+    private static function warmupConfig(\PDO $pdo, string $tenant): array {
+        self::ensureWarmupTable($pdo);
+        try {
+            $st = $pdo->prepare("SELECT enabled, start_date FROM email_warmup WHERE tenant_id=?");
+            $st->execute([$tenant]);
+            $r = $st->fetch(\PDO::FETCH_ASSOC);
+            if ($r && (int)$r['enabled'] === 1 && !empty($r['start_date'])) return ['enabled' => true, 'start' => (string)$r['start_date']];
+        } catch (\Throwable $e) {}
+        return ['enabled' => false, 'start' => gmdate('Y-m-d')];
+    }
+    /** 표준 워밍업 일일 한도(발신 평판 보호). 14일 후 무제한(PHP_INT_MAX). */
+    private static function warmupCap(int $dayIdx): int {
+        static $sched = [50, 100, 250, 500, 1000, 2500, 5000, 10000, 20000, 40000, 75000, 100000, 150000, 250000];
+        if ($dayIdx < 0) $dayIdx = 0;
+        return $dayIdx >= count($sched) ? PHP_INT_MAX : $sched[$dayIdx];
+    }
+    /** GET /email/warmup — 워밍업 설정 조회. */
+    public static function warmupGet(Request $req, Response $res): Response {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        $cfg = self::warmupConfig(self::db(), self::tenant($req));
+        return self::jsonRes($res, ['ok' => true, 'enabled' => $cfg['enabled'], 'start_date' => $cfg['start']]);
+    }
+    /** POST /email/warmup — 워밍업 opt-in 설정(enabled/start_date). 기본 OFF. */
+    public static function warmupSave(Request $req, Response $res): Response {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        $pdo = self::db(); self::ensureWarmupTable($pdo);
+        $t = self::tenant($req); $b = (array)($req->getParsedBody() ?? []);
+        $enabled = !empty($b['enabled']) ? 1 : 0;
+        $start = preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)($b['start_date'] ?? '')) ? (string)$b['start_date'] : gmdate('Y-m-d');
+        $now = self::now();
+        if (self::isMysql($pdo)) $pdo->prepare("INSERT INTO email_warmup(tenant_id,enabled,start_date,updated_at) VALUES(?,?,?,?) ON DUPLICATE KEY UPDATE enabled=VALUES(enabled),start_date=VALUES(start_date),updated_at=VALUES(updated_at)")->execute([$t, $enabled, $start, $now]);
+        else $pdo->prepare("INSERT INTO email_warmup(tenant_id,enabled,start_date,updated_at) VALUES(?,?,?,?) ON CONFLICT(tenant_id) DO UPDATE SET enabled=excluded.enabled,start_date=excluded.start_date,updated_at=excluded.updated_at")->execute([$t, $enabled, $start, $now]);
+        return self::jsonRes($res, ['ok' => true, 'enabled' => (bool)$enabled, 'start_date' => $start]);
+    }
+
     /** STO 큐 워커 본체 — HTTP/CLI(cron) 공용. 허용시각 테넌트의 queued 발송(재렌더·재시도). */
     public static function runQueue(?string $onlyTenant = null): array {
         self::ensureTables(); $pdo = self::db(); $now = self::now();
@@ -262,10 +304,25 @@ class EmailMarketing
         foreach ($tenants as $tn) {
             $cfg = CRM::commsFreqConfig($pdo, (string)$tn);
             if (!CRM::commsSendAllowedNow($cfg)) { $deferredTenants++; continue; } // 아직 차단시간 → 다음 cron
+            // [현 차수 초고도화 ②-3] 워밍업 램프(opt-in·기본 OFF=회귀0) — 발신 평판 보호 일일 한도.
+            $warmupRemaining = PHP_INT_MAX;
+            $wu = self::warmupConfig($pdo, (string)$tn);
+            if ($wu['enabled']) {
+                $dayIdx = (int)floor((time() - (strtotime($wu['start'] . ' 00:00:00') ?: time())) / 86400);
+                $cap = self::warmupCap($dayIdx);
+                if ($cap !== PHP_INT_MAX) {
+                    $cst = $pdo->prepare("SELECT COUNT(*) FROM email_sends WHERE tenant_id=:t AND status='sent' AND sent_at LIKE :d");
+                    $cst->execute([':t' => $tn, ':d' => gmdate('Y-m-d') . '%']);
+                    $warmupRemaining = max(0, $cap - (int)$cst->fetchColumn());
+                    if ($warmupRemaining <= 0) { $deferredTenants++; continue; } // 오늘 워밍업 한도 소진 → 잔여 큐 유지
+                }
+            }
             $rows = $pdo->prepare("SELECT * FROM email_sends WHERE tenant_id=:t AND status='queued' ORDER BY id LIMIT 1000");
             $rows->execute([':t'=>$tn]);
             $curHourKst = (int)gmdate('G', time() + 9 * 3600); // [현 차수 P2-2b] 수신자별 STO 시각 매칭(KST)
+            $sentThisCycle = 0;
             foreach ($rows->fetchAll(\PDO::FETCH_ASSOC) as $row) {
+                if ($sentThisCycle >= $warmupRemaining) break; // [②-3] 워밍업 일일 한도 도달 → 잔여 큐 다음 cron/일
                 $cid = (int)$row['campaign_id']; $email = (string)$row['email']; $uid = (int)$row['customer_id'];
                 // [현 차수 P2-2b] 수신자별 STO — 개인 최적시각이 설정됐고 현재 KST 시각이 아니면 이 cron 사이클 보류(다음에 발송).
                 if (isset($row['sto_hour']) && $row['sto_hour'] !== null && (int)$row['sto_hour'] !== $curHourKst) continue;
@@ -291,6 +348,7 @@ class EmailMarketing
                 $pdo->prepare("UPDATE email_sends SET status=:s, sent_at=:sa, attempts=:a WHERE id=:id")->execute([':s'=>$finalSt, ':sa'=>$now, ':a'=>$att, ':id'=>$row['id']]);
                 if ($st === 'sent') {
                     $sent++;
+                    $sentThisCycle++; // [②-3] 워밍업 한도 카운트(실발송만; mock_sent 제외)
                     try { Attribution::recordOwnedTouch($pdo, (string)$tn, 'email', $email, null, 'email:'.$cid, ['campaign'=>(string)($tpl['cname'] ?? '')]); } catch (\Throwable $e) {}
                     try { $pdo->prepare("INSERT INTO crm_activities (tenant_id, customer_id, type, channel, data, created_at) VALUES (:t,:uid,'email_sent','email',:data,:ca)")->execute([':t'=>$tn, ':uid'=>$uid, ':data'=>json_encode(['campaign_id'=>$cid]), ':ca'=>$now]); } catch (\Throwable $e) {}
                 } elseif ($finalSt === 'failed') { $failed++; }

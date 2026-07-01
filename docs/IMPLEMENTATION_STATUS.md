@@ -124,7 +124,7 @@
 | ①-6 | 카탈로그 DPA(product_set) | ⏳ | product_catalog_id 크리덴셜 필요 |
 | ②-1 | NBA/RL 저니노드(Thompson) | ✅ 2026-07 | `JourneyBuilder::nbaNode` 데이터기반 밴딧+프론트 nba 노드타입. 기존 발송노드 재사용 |
 | ②-2 | 옴니 워터폴 SMS 편입 | ✅ 2026-07 | `Omnichannel::deliverWaterfall` sms 분기(NaverSms 재사용). LINE=프리미티브 부재로 보류 |
-| ②-3 | 딜리버러빌리티 워밍업 램프·DMARC rua 수집 | ⏳ | 워밍업=순수코드(EmailMarketing runQueue), 전용IP/BIMI=인프라 |
+| ②-3 | 딜리버러빌리티 워밍업 램프 | ✅ 2026-07 | opt-in(email_warmup·기본 OFF→runQueue 불변=회귀0). 14일 표준 일일한도 램프·실발송만 카운트. GET/POST /email/warmup. 프론트 토글=소폭 후속. (DMARC rua·전용IP/BIMI=인프라 별개) |
 | ②-4 | 저니 exit(이탈) 노드 | ✅ 2026-07 | `JourneyBuilder` exit 노드(evalCondition 재사용)+프론트 exit 노드타입. push=구독↔고객 미연결·attr=스키마로 보류 |
 | ③-1 | MMM OOS 백테스트(예측 vs 실측) | ✅ 2026-07 | `Mmm::backtest`(GET /v424/mmm/backtest)+MarketingMix 패널. ★보고 모델과 동일 response() 곡선으로 예측(정합)→fitChannel 미수정=회귀0. train/test 분리·OOS MAPE/NRMSE·train잔차 95% 커버리지. 데이터부족=빈결과(정직) |
 | ③-2 | 증분성 캘리브레이션 리포트(모델 vs 실험) | ✅ 2026-07 | `blendedIncrementality` 방향 일치도(aligned/over/under)+calibration.score. 정밀비율 대신 방향(오통계 회피) |
