@@ -22,7 +22,8 @@ function gNavLabel(labelKey) {
  */
 const SYNC_CHANNEL = "geniego_menu_access_sync";
 function publishMenuAccessSync(payload) {
-  try { new BroadcastChannel(SYNC_CHANNEL).postMessage({ type: "menu_access_updated", ts: Date.now(), ...payload }); } catch {}
+  // [259차] 수신자(426·1562·AuthContext)는 tChannelName(테넌트 suffix) 채널을 구독 → 발신도 동일 채널로 통일(과거 raw SYNC_CHANNEL 발신이라 6개 발신처 전부 크로스탭 미수신이었음)
+  try { new BroadcastChannel(tChannelName(SYNC_CHANNEL)).postMessage({ type: "menu_access_updated", ts: Date.now(), ...payload }); } catch {}
   try { window.dispatchEvent(new CustomEvent("menu-access-saved", { detail: payload })); } catch {}
 }
 
