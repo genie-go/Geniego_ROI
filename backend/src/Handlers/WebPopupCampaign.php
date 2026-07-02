@@ -330,4 +330,97 @@ final class WebPopupCampaign
         } catch (\Throwable $e) { /* graceful */ }
         return self::json($res, ['ok' => true]);
     }
+
+    /** GET /v424/web-popups/embed.js?tenant=X — [262차] 머천트 외부사이트 임베드 로더(자기완결 vanilla JS).
+     *  트리거(exit-intent/시간/스크롤/유휴) 감지 → active fetch → 렌더 → impression/click/conversion 비콘.
+     *  공개(세션 불요). tenant 파라미터 스코프. api_key 미들웨어 bypass(full-public). */
+    public static function embedJs(Request $req, Response $res): Response
+    {
+        $t = (string)($req->getQueryParams()['tenant'] ?? '');
+        // tenant 는 영숫자/._- 만 허용(JS 리터럴 주입 방어).
+        $t = substr(preg_replace('/[^a-zA-Z0-9._-]/', '', $t), 0, 100);
+        $base = self::publicBase($req) . '/api';
+        $tj = json_encode($t, JSON_UNESCAPED_SLASHES);
+        $bj = json_encode($base, JSON_UNESCAPED_SLASHES);
+        // 자기완결 IIFE — 외부 의존 없음. metric poisoning 은 백엔드 (tenant,popup,vid) 멱등원장이 방어.
+        $js = <<<JS
+/* GenieGo Web Popup Loader — tenant-scoped, self-contained. */
+(function(){
+  "use strict";
+  var TENANT={$tj}, BASE={$bj};
+  if(!TENANT) return;
+  try {
+    var VK="__gg_pop_vid", vid=localStorage.getItem(VK);
+    if(!vid){ vid=(Date.now().toString(36)+Math.random().toString(36).slice(2,10)); localStorage.setItem(VK,vid); }
+    function beacon(pid,type){
+      try{
+        var body=JSON.stringify({tenant:TENANT,popup_id:pid,type:type,vid:vid});
+        if(navigator.sendBeacon){ navigator.sendBeacon(BASE+"/v424/web-popups/event", new Blob([body],{type:"application/json"})); }
+        else{ fetch(BASE+"/v424/web-popups/event",{method:"POST",headers:{"Content-Type":"application/json"},body:body,keepalive:true}).catch(function(){}); }
+      }catch(e){}
+    }
+    var SHOWN={};
+    function esc(s){ var d=document.createElement("div"); d.textContent=(s==null?"":String(s)); return d.innerHTML; }
+    function render(p){
+      if(SHOWN[p.id]) return; SHOWN[p.id]=1;
+      var ov=document.createElement("div");
+      ov.setAttribute("role","dialog"); ov.setAttribute("aria-modal","true");
+      ov.style.cssText="position:fixed;inset:0;z-index:2147483000;background:rgba(15,23,42,.55);display:flex;align-items:center;justify-content:center;padding:20px;font-family:system-ui,-apple-system,sans-serif";
+      var card=document.createElement("div");
+      card.style.cssText="background:#fff;max-width:420px;width:100%;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.3);padding:28px 26px;position:relative;text-align:center";
+      var x=document.createElement("button");
+      x.textContent="×"; x.setAttribute("aria-label","close");
+      x.style.cssText="position:absolute;top:10px;right:14px;border:none;background:none;font-size:26px;line-height:1;color:#94a3b8;cursor:pointer";
+      x.onclick=function(){ if(ov.parentNode) ov.parentNode.removeChild(ov); };
+      var h="";
+      if(p.title) h+="<div style='font-size:20px;font-weight:800;color:#0f172a;margin-bottom:8px'>"+esc(p.title)+"</div>";
+      if(p.subtitle) h+="<div style='font-size:14px;color:#6366f1;font-weight:700;margin-bottom:8px'>"+esc(p.subtitle)+"</div>";
+      if(p.discount>0) h+="<div style='font-size:34px;font-weight:900;color:#f97316;margin:6px 0'>"+esc(p.discount)+"% OFF</div>";
+      if(p.body) h+="<div style='font-size:13px;color:#475569;line-height:1.6;margin-bottom:16px'>"+esc(p.body)+"</div>";
+      card.innerHTML=h;
+      if(p.cta){
+        var a=document.createElement("a");
+        a.textContent=p.cta; a.href=p.linkUrl||"#"; if(p.linkUrl) a.target="_blank"; a.rel="noopener";
+        a.style.cssText="display:inline-block;margin-top:6px;padding:12px 28px;border-radius:99px;background:linear-gradient(135deg,#f97316,#f7931e);color:#fff;font-weight:800;font-size:14px;text-decoration:none;cursor:pointer";
+        a.onclick=function(){ beacon(p.id,"click"); beacon(p.id,"conversion"); };
+        card.appendChild(a);
+      }
+      card.appendChild(x); ov.appendChild(card);
+      ov.addEventListener("click",function(e){ if(e.target===ov && ov.parentNode) ov.parentNode.removeChild(ov); });
+      document.body.appendChild(ov);
+      beacon(p.id,"impression");
+    }
+    function arm(p){
+      var trig=(p.trigger||"exit");
+      if(trig==="time"){ setTimeout(function(){ render(p); }, 6000); }
+      else if(trig==="scroll"){
+        var f=function(){ var h=document.documentElement; if((h.scrollTop+window.innerHeight)/h.scrollHeight>0.5){ render(p); window.removeEventListener("scroll",f); } };
+        window.addEventListener("scroll",f,{passive:true});
+      }
+      else if(trig==="inactive"){ var tm; var r=function(){ clearTimeout(tm); tm=setTimeout(function(){ render(p); },15000); }; ["mousemove","keydown","scroll","touchstart"].forEach(function(ev){ document.addEventListener(ev,r,{passive:true}); }); r(); }
+      else { /* exit-intent */ var g=function(e){ if(e.clientY<=0){ render(p); document.removeEventListener("mouseout",g); } }; document.addEventListener("mouseout",g); }
+    }
+    fetch(BASE+"/v424/web-popups/active?tenant="+encodeURIComponent(TENANT))
+      .then(function(r){ return r.ok?r.json():null; })
+      .then(function(d){ if(d&&d.ok&&d.popups&&d.popups.length){ arm(d.popups[0]); } })
+      .catch(function(){});
+  } catch(e){}
+})();
+JS;
+        $res->getBody()->write($js);
+        return $res
+            ->withHeader('Content-Type', 'application/javascript; charset=utf-8')
+            ->withHeader('Cache-Control', 'public, max-age=300')
+            ->withHeader('Access-Control-Allow-Origin', '*');
+    }
+
+    /** 임베드 절대경로용 공개 베이스 URL(내부 localhost 호출은 운영 도메인 정규화). */
+    private static function publicBase(Request $req): string
+    {
+        $uri = $req->getUri();
+        $host = $uri->getHost() ?: 'roi.genie-go.com';
+        $scheme = $uri->getScheme() ?: 'https';
+        if ($host === 'localhost' || $host === '127.0.0.1') { $host = 'roi.genie-go.com'; $scheme = 'https'; }
+        return $scheme . '://' . $host;
+    }
 }

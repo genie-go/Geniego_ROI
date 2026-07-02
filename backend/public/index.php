@@ -101,6 +101,8 @@ $app->add(function (Request $request, $handler) {
         //   CRUD/설정은 아래 세션게이트(익명 차단). active/event 는 여기서 먼저 early-return 되므로 겹침 안전.
         || $path === '/v424/web-popups/active' || $path === '/api/v424/web-popups/active'
         || $path === '/v424/web-popups/event'  || $path === '/api/v424/web-popups/event'
+        // [262차] 임베드 로더 JS — 머천트 외부사이트 <script> 태그로 로드(세션 불요·완전공개).
+        || $path === '/v424/web-popups/embed.js' || $path === '/api/v424/web-popups/embed.js'
         // [현 차수] 접속 IP 기반 국가/언어 자동 감지 — 비인증 공개(첫 방문 언어 결정). 호출자 연결 IP 만 조회.
         || $path === '/v424/geo/lang' || $path === '/api/v424/geo/lang'
         // [251차 Phase2 ②] 플랫폼 성장 공개 방문 캡처 — 랜딩 팝업/폼이 비인증 호출(platform_growth 격리·핸들러가 이메일검증·이벤트 화이트리스트). 관리(admin/growth/*)는 인증 유지.

@@ -955,6 +955,8 @@ return function (App $app): void {
         'POST /api/v424/web-popups/{id}/toggle'   => 'Genie\\Handlers\\WebPopupCampaign::toggle',
         'GET /v424/web-popups/active'             => 'Genie\\Handlers\\WebPopupCampaign::active',   // 공개(tenant 파라미터)
         'GET /api/v424/web-popups/active'         => 'Genie\\Handlers\\WebPopupCampaign::active',
+        'GET /v424/web-popups/embed.js'           => 'Genie\\Handlers\\WebPopupCampaign::embedJs', // [262차] 공개 임베드 로더 JS
+        'GET /api/v424/web-popups/embed.js'       => 'Genie\\Handlers\\WebPopupCampaign::embedJs',
         'POST /v424/web-popups/event'             => 'Genie\\Handlers\\WebPopupCampaign::event',    // 공개 비콘
         'POST /api/v424/web-popups/event'         => 'Genie\\Handlers\\WebPopupCampaign::event',
         'GET /v424/web-popup-settings'            => 'Genie\\Handlers\\WebPopupCampaign::getSettings',
@@ -1036,6 +1038,11 @@ return function (App $app): void {
         'GET /api/v428/reviews/widget/data'  => 'Genie\\Handlers\\Reviews::widgetData',
         'GET /v428/reviews/badge'            => 'Genie\\Handlers\\Reviews::badge',
         'GET /api/v428/reviews/badge'        => 'Genie\\Handlers\\Reviews::badge',
+        // [262차] 리뷰 응대 설정(테넌트 스코프·세션 authed) — static 경로를 {id} 변수보다 앞 등록(shadow 회피).
+        'GET /v428/reviews/settings'         => 'Genie\\Handlers\\Reviews::getSettings',
+        'GET /api/v428/reviews/settings'     => 'Genie\\Handlers\\Reviews::getSettings',
+        'PUT /v428/reviews/settings'         => 'Genie\\Handlers\\Reviews::saveSettings',
+        'PUT /api/v428/reviews/settings'     => 'Genie\\Handlers\\Reviews::saveSettings',
         'DELETE /v428/reviews/{id}'          => 'Genie\\Handlers\\Reviews::remove',
         'DELETE /api/v428/reviews/{id}'      => 'Genie\\Handlers\\Reviews::remove',
         // [현 차수] 범용 광고성과 ingest(추후 추가 채널 무코드 적재, api_key write) — objective 포함.
@@ -3138,6 +3145,7 @@ return function (App $app): void {
     $register('POST', '/v424/cro/edit-save'); $register('POST', '/api/v424/cro/edit-save'); // [257차]
     // [261차] 테넌트 웹팝업 — 정적 경로(active/event/settings)를 변수({id}) 앞에 등록(FastRoute shadow 회피).
     $register('GET',    '/v424/web-popups/active');       $register('GET',    '/api/v424/web-popups/active');
+    $register('GET',    '/v424/web-popups/embed.js');     $register('GET',    '/api/v424/web-popups/embed.js'); // [262차] 공개 임베드 로더(static, {id} 앞)
     $register('POST',   '/v424/web-popups/event');        $register('POST',   '/api/v424/web-popups/event');
     $register('GET',    '/v424/web-popups');              $register('GET',    '/api/v424/web-popups');
     $register('POST',   '/v424/web-popups');              $register('POST',   '/api/v424/web-popups');
@@ -3185,6 +3193,8 @@ return function (App $app): void {
     $register('GET',    '/v428/reviews/widget/view');     $register('GET',    '/api/v428/reviews/widget/view');
     $register('GET',    '/v428/reviews/widget/data');     $register('GET',    '/api/v428/reviews/widget/data');
     $register('GET',    '/v428/reviews/badge');           $register('GET',    '/api/v428/reviews/badge');
+    $register('GET',    '/v428/reviews/settings');        $register('GET',    '/api/v428/reviews/settings'); // [262차] 응대설정(static, {id} 앞)
+    $register('PUT',    '/v428/reviews/settings');        $register('PUT',    '/api/v428/reviews/settings');
     $register('DELETE', '/v428/reviews/{id}');           $register('DELETE', '/api/v428/reviews/{id}');
     $register('POST', '/v424/connectors/ad-metrics');
     $register('POST', '/api/v424/connectors/ad-metrics');

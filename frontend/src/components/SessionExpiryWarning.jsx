@@ -21,27 +21,47 @@ function sessionTimeoutMs() {
   } catch (e) { return 0; }
 }
 
+// 262차: AuthContext 가 영속한 마지막 활동 시각(genie_last_activity / demo_ 폴백) 읽기.
+//   백그라운드/재시작 후 복귀 시 인메모리 ref 대신 이 값을 기준으로 유휴를 계산해 SSOT 를 맞춘다.
+function persistedLastActivity() {
+  try {
+    const raw = localStorage.getItem('genie_last_activity')
+             || localStorage.getItem('demo_genie_last_activity') || '0';
+    return parseInt(raw, 10) || 0;
+  } catch (e) { return 0; }
+}
+
 export default function SessionExpiryWarning() {
   const [show, setShow] = useState(false);
   const [remaining, setRemaining] = useState(0);
   const lastActivity = useRef(Date.now());
 
   useEffect(() => {
+    // 262차: 영속 활동시각으로 baseline 초기화(재시작/복귀 시 정확).
+    const seed = persistedLastActivity();
+    if (seed > 0) lastActivity.current = seed;
+
     const events = ['mousedown', 'keydown', 'scroll', 'touchstart'];
     const reset = () => { lastActivity.current = Date.now(); };
     events.forEach(e => window.addEventListener(e, reset, { passive: true }));
+    // 탭 복귀 시 영속본으로 재동기화(백그라운드 동안 다른 탭 활동 반영).
+    const onVis = () => { if (document.visibilityState === 'visible') { const p = persistedLastActivity(); if (p > lastActivity.current) lastActivity.current = p; } };
+    document.addEventListener('visibilitychange', onVis);
 
     const timer = setInterval(() => {
       const SESSION_TIMEOUT = sessionTimeoutMs();
       if (SESSION_TIMEOUT <= 0) { setShow(false); return; } // 유휴 자동 로그아웃 비활성
-      const idle = Date.now() - lastActivity.current;
+      // 인메모리 ref 와 영속본 중 최신(가장 최근 활동)을 기준으로 계산.
+      const p = persistedLastActivity();
+      const last = p > lastActivity.current ? p : lastActivity.current;
+      const idle = Date.now() - last;
       const left = SESSION_TIMEOUT - idle;
 
       if (left <= 0) {
-        // Session expired
+        // Session expired — 유휴 초과. AuthContext 와 동일 키 정리(genie_/demo_ 양쪽).
         setShow(false);
-        localStorage.removeItem('genie_token');
-        localStorage.removeItem('geniego_demo_token');
+        ['genie_token', 'demo_genie_token', 'genie_last_activity', 'demo_genie_last_activity'].forEach(k => { try { localStorage.removeItem(k); } catch (e) {} });
+        try { sessionStorage.removeItem('genie_sess_active'); sessionStorage.removeItem('demo_genie_sess_active'); } catch (e) {}
         window.location.href = '/login?reason=expired';
       } else if (left <= WARN_BEFORE) {
         setRemaining(Math.ceil(left / 1000));
@@ -53,6 +73,7 @@ export default function SessionExpiryWarning() {
 
     return () => {
       events.forEach(e => window.removeEventListener(e, reset));
+      document.removeEventListener('visibilitychange', onVis);
       clearInterval(timer);
     };
   }, []);

@@ -745,4 +745,74 @@ final class Reviews
             return self::json($res, ['ok' => true]);
         } catch (\Throwable $e) { return self::json($res, ['ok' => false, 'error' => $e->getMessage()], 500); }
     }
+
+    /* ═══════════ 리뷰 응대 설정 (테넌트 스코프·세션 authed) ═══════════
+       [262차] SettingsTab(ReviewsUGC.jsx) 의 AI톤·자동에스컬레이션·Slack Webhook 이
+       순수 ephemeral state(저장버튼 없는 미배선 토글)여서 새로고침 시 소실.
+       WebPopupCampaign::getSettings/saveSettings 패턴과 대칭으로 테넌트 스코프 영속화. */
+
+    private static function ensureSettingTable(\PDO $pdo): void
+    {
+        try {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS review_setting (
+                tenant_id VARCHAR(100) PRIMARY KEY, settings_json TEXT, updated_at VARCHAR(32)
+            )");
+        } catch (\Throwable $e) { /* graceful */ }
+    }
+
+    /** 저장/서빙 문자열 위생 — 스크립트/이벤트핸들러 차단(WebPopupCampaign::clean 과 대칭). */
+    private static function sanitize(string $s): string
+    {
+        $s = (string)preg_replace('/<\s*script.*?<\s*\/\s*script\s*>/is', '', $s);
+        $s = (string)preg_replace('/(javascript:|on\w+\s*=|<\s*iframe|document\.(cookie|domain))/i', '', $s);
+        return trim(mb_substr($s, 0, 500));
+    }
+
+    /** 신뢰경계 화이트리스트 — 알려진 키만·타입 강제. Slack Webhook 은 https 만 허용. */
+    private static function cleanSettings(array $in): array
+    {
+        $out = [];
+        $tone = (string)($in['aiTone'] ?? 'professional');
+        $out['aiTone'] = in_array($tone, ['professional', 'friendly', 'formal'], true) ? $tone : 'professional';
+        $out['autoEscalate'] = (bool)($in['autoEscalate'] ?? true);
+        $wh = self::sanitize((string)($in['slackWebhook'] ?? ''));
+        // Slack incoming-webhook 만 허용(SSRF/오배선 방어). 형식 불일치 시 공란.
+        $out['slackWebhook'] = preg_match('#^https://hooks\.slack\.com/services/[A-Za-z0-9/_-]+$#', $wh) ? $wh : '';
+        return $out;
+    }
+
+    /** GET /v428/reviews/settings — 테넌트 응대 설정 조회. */
+    public static function getSettings(Request $req, Response $res): Response
+    {
+        $tenant = self::tenant($req);
+        if ($tenant === '' || self::isDemo($tenant)) return self::json($res, ['ok' => false, 'error' => 'tenant_required'], 403);
+        try {
+            $pdo = Db::pdo(); self::ensureSettingTable($pdo);
+            $st = $pdo->prepare("SELECT settings_json FROM review_setting WHERE tenant_id=?"); $st->execute([$tenant]);
+            $raw = $st->fetchColumn();
+            $settings = $raw ? (json_decode((string)$raw, true) ?: []) : [];
+            return self::json($res, ['ok' => true, 'settings' => self::cleanSettings(is_array($settings) ? $settings : [])]);
+        } catch (\Throwable $e) { return self::json($res, ['ok' => false, 'error' => $e->getMessage()], 500); }
+    }
+
+    /** PUT /v428/reviews/settings — 테넌트 응대 설정 저장(upsert). */
+    public static function saveSettings(Request $req, Response $res): Response
+    {
+        $tenant = self::tenant($req);
+        if ($tenant === '' || self::isDemo($tenant)) return self::json($res, ['ok' => false, 'error' => 'tenant_required'], 403);
+        try {
+            $b = (array)($req->getParsedBody() ?? []);
+            if (!$b) { $b = json_decode((string)$req->getBody(), true) ?: []; }
+            $in = is_array($b['settings'] ?? null) ? $b['settings'] : $b;
+            $clean = self::cleanSettings(is_array($in) ? $in : []);
+            $json = json_encode($clean, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            $pdo = Db::pdo(); self::ensureSettingTable($pdo);
+            $isMy = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql';
+            $sql = $isMy
+                ? "INSERT INTO review_setting(tenant_id,settings_json,updated_at) VALUES(?,?,?) ON DUPLICATE KEY UPDATE settings_json=VALUES(settings_json), updated_at=VALUES(updated_at)"
+                : "INSERT INTO review_setting(tenant_id,settings_json,updated_at) VALUES(?,?,?) ON CONFLICT(tenant_id) DO UPDATE SET settings_json=excluded.settings_json, updated_at=excluded.updated_at";
+            $pdo->prepare($sql)->execute([$tenant, $json, gmdate('Y-m-d\TH:i:s\Z')]);
+            return self::json($res, ['ok' => true, 'settings' => $clean]);
+        } catch (\Throwable $e) { return self::json($res, ['ok' => false, 'error' => $e->getMessage()], 500); }
+    }
 }

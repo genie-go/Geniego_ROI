@@ -74,16 +74,51 @@ function Kpi({ label, value, sub, color = "#f97316", icon }) {
 /* ══ Overview Tab ══ */
 const _POPUP_TRIGGER_LABEL = { center_modal: "Center Modal", slide_in: "Slide-in", exit_intent: "Exit Intent", bottom_bar: "Bottom Bar", top_banner: "Top Banner" };
 const _POPUP_STATUS_COLOR = { active: "#22c55e", scheduled: "#3b82f6", ended: "#9ca3af" };
+/* [262차] 임베드 스니펫 — 머천트가 자사몰에 붙여넣는 로더 <script> 태그. 운영 전용(데모는 tenant 부재). */
+function EmbedSnippet({ t }) {
+  const [copied, setCopied] = useState(false);
+  const tenant = (typeof localStorage !== "undefined" && localStorage.getItem("tenantId")) || "";
+  const origin = (typeof window !== "undefined" && window.location && window.location.origin) || "https://roi.genie-go.com";
+  const snippet = `<script src="${origin}/api/v424/web-popups/embed.js?tenant=${encodeURIComponent(tenant)}" async></script>`;
+  const copy = () => { navigator.clipboard.writeText(snippet).catch(() => {}); setCopied(true); setTimeout(() => setCopied(false), 1800); };
+  return (
+    <div style={{ background: "linear-gradient(135deg,#fff7ed,#fffbeb)", border: "1px solid #fed7aa", borderRadius: 14, padding: 18 }}>
+      <div style={{ fontWeight: 800, fontSize: 14, color: "#9a3412", marginBottom: 6 }}>🔗 {t("webPopup.embedTitle", "사이트 임베드 코드")}</div>
+      <div style={{ fontSize: 12, color: "#9a3412", opacity: 0.85, marginBottom: 10, lineHeight: 1.6 }}>{t("webPopup.embedDesc", "아래 코드를 자사몰 <head> 또는 </body> 직전에 한 번 붙여넣으면 활성 팝업이 방문자에게 자동 노출됩니다(트리거·전환 비콘 포함). 별도 로그인 불필요·자동 갱신.")}</div>
+      <div style={{ display: "flex", gap: 8, alignItems: "stretch" }}>
+        <textarea readOnly rows={2} value={snippet} onClick={e => e.target.select()}
+          style={{ flex: 1, boxSizing: "border-box", fontFamily: "monospace", fontSize: 11, padding: "10px 12px", borderRadius: 8, border: "1px solid #fed7aa", background: "#fff", color: "#0f172a", resize: "vertical" }} />
+        <button onClick={copy} style={{ padding: "0 16px", fontSize: 12, fontWeight: 800, borderRadius: 8, border: "none", cursor: "pointer", background: "linear-gradient(135deg,#f97316,#f7931e)", color: "#fff", whiteSpace: "nowrap" }}>
+          {copied ? t("webPopup.embedCopied", "복사됨 ✓") : t("webPopup.embedCopy", "코드 복사")}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function OverviewTab({ t }) {
   // 공유 webPopupCampaigns에서 읽기 → AI 자동액션·CRM 연동으로 생성된 팝업까지 라이브 반영(데모·운영 동기화)
   const { webPopupCampaigns } = useGlobalData();
-  const rows = Array.isArray(webPopupCampaigns) ? webPopupCampaigns : [];
+  // [262차] 운영: 백엔드 list(실 impressions/clicks/conversions 비콘집계) 로드 → Overview 실지표 배선.
+  //   데모: 공유 state(가상 성과) 유지.
+  const [liveRows, setLiveRows] = useState(null);
+  useEffect(() => {
+    if (_IS_DEMO) return;
+    let alive = true;
+    getJsonAuth('/api/v424/web-popups')
+      .then(r => { if (alive && r && r.ok && Array.isArray(r.popups)) setLiveRows(r.popups); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, []);
+  const rows = _IS_DEMO ? (Array.isArray(webPopupCampaigns) ? webPopupCampaigns : [])
+                        : (Array.isArray(liveRows) ? liveRows : []);
   const totalViews = rows.reduce((s, p) => s + (p.impressions || 0), 0);
   const totalConv = rows.reduce((s, p) => s + (p.conversions || 0), 0);
   const active = rows.filter(p => p.status === "active").length;
   const inactive = rows.length - active;
   return (
     <div style={{ display: "grid", gap: 16 }}>
+      {!_IS_DEMO && <EmbedSnippet t={t} />}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))", gap: 14 }}>
         <Kpi label={t("webPopup.statViews")} value={fmtK(totalViews)} sub={rows.length ? `${rows.length} popups` : t("webPopup.noData", "No data yet")} icon="👁️" />
         <Kpi label={t("webPopup.statConv")} value={fmtK(totalConv)} sub={totalViews ? `CVR ${((totalConv / totalViews) * 100).toFixed(1)}%` : t("webPopup.noData", "No data yet")} color="#22c55e" icon="🎯" />

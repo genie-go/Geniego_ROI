@@ -351,10 +351,65 @@ function TrendTab({ t, channelStats, ugcReviews }) {
 /* ══════════════════════════════════════════════
    TAB 4: Settings
    ══════════════════════════════════════════════ */
-function SettingsTab({ t }) {
+const REVIEW_SETTINGS_LS = "genie_review_settings";
+function SettingsTab({ t, isDemo, setToast }) {
     const [aiTone, setAiTone] = useState("professional");
     const [autoEscalate, setAutoEscalate] = useState(true);
     const [slackWebhook, setSlackWebhook] = useState("");
+    const [saving, setSaving] = useState(false);
+    const [loaded, setLoaded] = useState(false);
+
+    // 로드: 데모=localStorage, 운영=백엔드(테넌트 스코프 영속).
+    useEffect(() => {
+        let alive = true;
+        const apply = (s) => {
+            if (!s || typeof s !== "object") return;
+            if (s.aiTone) setAiTone(s.aiTone);
+            if (typeof s.autoEscalate === "boolean") setAutoEscalate(s.autoEscalate);
+            if (typeof s.slackWebhook === "string") setSlackWebhook(s.slackWebhook);
+        };
+        if (isDemo) {
+            try { apply(JSON.parse(localStorage.getItem(REVIEW_SETTINGS_LS) || "{}")); } catch { /* ignore */ }
+            setLoaded(true);
+            return;
+        }
+        (async () => {
+            try {
+                const BASE = import.meta.env.VITE_API_BASE || "";
+                const token = localStorage.getItem("genie_token") || localStorage.getItem("demo_genie_token") || "";
+                const r = await fetch(`${BASE}/api/v428/reviews/settings`, { headers: { Authorization: `Bearer ${token}` } }).then(x => x.ok ? x.json() : null);
+                if (alive && r && r.ok) apply(r.settings);
+            } catch { /* ignore */ }
+            if (alive) setLoaded(true);
+        })();
+        return () => { alive = false; };
+    }, [isDemo]);
+
+    const save = useCallback(async () => {
+        const settings = { aiTone, autoEscalate, slackWebhook };
+        if (slackWebhook && !/^https:\/\/hooks\.slack\.com\/services\/[A-Za-z0-9/_-]+$/.test(slackWebhook)) {
+            setToast && setToast(t("reviews.slackWebhookInvalid", "Slack Webhook URL 형식이 올바르지 않습니다"));
+            return;
+        }
+        setSaving(true);
+        try {
+            if (isDemo) {
+                localStorage.setItem(REVIEW_SETTINGS_LS, JSON.stringify(settings));
+            } else {
+                const BASE = import.meta.env.VITE_API_BASE || "";
+                const token = localStorage.getItem("genie_token") || localStorage.getItem("demo_genie_token") || "";
+                const r = await fetch(`${BASE}/api/v428/reviews/settings`, {
+                    method: "PUT",
+                    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+                    body: JSON.stringify({ settings }),
+                }).then(x => x.ok ? x.json() : null);
+                if (!r || !r.ok) { setToast && setToast(t("reviews.settingsSaveFail", "설정 저장에 실패했습니다")); setSaving(false); return; }
+            }
+            setToast && setToast(t("reviews.settingsSaved", "설정이 저장되었습니다"));
+        } catch { setToast && setToast(t("reviews.settingsSaveFail", "설정 저장에 실패했습니다")); }
+        setSaving(false);
+    }, [aiTone, autoEscalate, slackWebhook, isDemo, setToast, t]);
+
     return (
         <div style={{ display: "grid", gap: 20, maxWidth: 600 }}>
             <div style={{ fontSize: 16, fontWeight: 800 }}>⚙️ {t("reviews.settingsTitle")}</div>
@@ -377,6 +432,11 @@ function SettingsTab({ t }) {
                 <div style={{ fontSize: 11, fontWeight: 700, color: "#6b7280", marginBottom: 6 }}>{t("reviews.slackWebhookLabel")}</div>
                 <input className="input" style={{ width: "100%", padding: "8px 12px", fontSize: 12, boxSizing: "border-box" }} placeholder="https://hooks.slack.com/services/..." value={slackWebhook} onChange={e => setSlackWebhook(e.target.value)} />
                 <div style={{ fontSize: 10, color: "#6b7280", marginTop: 4 }}>{t("reviews.slackWebhookSub")}</div>
+            </div>
+            <div>
+                <button className="btn" style={{ padding: "9px 20px", fontSize: 12, fontWeight: 800, borderRadius: 8, border: "none", cursor: saving ? "wait" : "pointer", background: "linear-gradient(135deg,#6366f1,#8b5cf6)", color: "#fff", opacity: saving || !loaded ? 0.6 : 1 }} onClick={save} disabled={saving || !loaded}>
+                    {saving ? t("reviews.settingsSaving", "저장 중…") : t("reviews.settingsSave", "설정 저장")}
+                </button>
             </div>
         </div>
     );
@@ -629,7 +689,7 @@ export default function ReviewsUGC() {
                 {tab === "feed" && <ReviewFeedTab t={t} ugcReviews={ugcReviews} channelStats={channelStats} replyState={replyState} escalateState={escalateState} onGenReply={handleGenReply} onCopyReply={handleCopyReply} onEscalate={handleEscalate} />}
                 {tab === "trend" && <TrendTab t={t} channelStats={channelStats} ugcReviews={ugcReviews} />}
                 {tab === "widget" && <WidgetTab t={t} isDemo={isDemo} setToast={setToast} />}
-                {tab === "settings" && <SettingsTab t={t} />}
+                {tab === "settings" && <SettingsTab t={t} isDemo={isDemo} setToast={setToast} />}
                 {tab === "guide" && <ReviewsGuideTab t={t} />}
             </div>
             </div>

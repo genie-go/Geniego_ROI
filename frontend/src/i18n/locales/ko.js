@@ -16690,6 +16690,16 @@ export default {"paymentSuccess": {"invalidInfo":"결제 정보가 올바르지 
 
     "slackWebhookSub": "부정 키워드 급증 시 자동 알림을 받을 Slack Webhook URL을 입력하세요.",
 
+    "settingsSave": "설정 저장",
+
+    "settingsSaving": "저장 중…",
+
+    "settingsSaved": "설정이 저장되었습니다",
+
+    "settingsSaveFail": "설정 저장에 실패했습니다",
+
+    "slackWebhookInvalid": "Slack Webhook URL 형식이 올바르지 않습니다",
+
     "guideTabsTitle": "탭별 기능 안내",
 
     "guideDashName": "대시보드",
@@ -16994,6 +17004,10 @@ export default {"paymentSuccess": {"invalidInfo":"결제 정보가 올바르지 
     badgeCvr: "평균 복구 CVR +3.2%",
     statViews: "총 노출수",
     statConv: "전환수",
+    embedTitle: "사이트 임베드 코드",
+    embedDesc: "아래 코드를 자사몰 <head> 또는 </body> 직전에 한 번 붙여넣으면 활성 팝업이 방문자에게 자동 노출됩니다(트리거·전환 비콘 포함). 별도 로그인 불필요·자동 갱신.",
+    embedCopy: "코드 복사",
+    embedCopied: "복사됨 ✓",
     tabOverview: "성과 분석",
     tabManage: "팝업 관리",
     tabLive: "라이브 미리보기",

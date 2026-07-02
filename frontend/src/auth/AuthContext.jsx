@@ -22,6 +22,11 @@ const TOKEN_KEY = KEY_PREFIX + "token";
 const USER_KEY = KEY_PREFIX + "user";
 const REAL_KEYS_FLAG = KEY_PREFIX + "has_real_keys";
 const AUTO_LOGOUT_KEY = KEY_PREFIX + "auto_logout_min";
+// 262차: 유휴 자동로그아웃 근본수정 — "마지막 활동 시각"을 localStorage 에 영속한다.
+//   기존엔 lastActivityRef(메모리)만 있어 브라우저를 닫으면 유휴 타이머가 소실 → 설정시간이 지나도
+//   로그아웃되지 않고 다음날 접속 시 자동로그인되던 결함. 로드 시점(restorableToken)에 이 값과 대조해
+//   유휴 초과분을 계산, 초과 시 토큰 복원을 차단(재로그인 강제)한다.
+const LAST_ACTIVITY_KEY = KEY_PREFIX + "last_activity";
 // 189차 자동 로그인(remember-me): 토큰은 호환성을 위해 localStorage 에 두되,
 //   영속 복원 여부는 REMEMBER_KEY(localStorage) + SESSION_ACTIVE_KEY(sessionStorage 센티넬)로 판별.
 //   - remember=1: 브라우저 재시작 후에도 자동 복원(영속)
@@ -34,6 +39,21 @@ function restorableToken() {
     try {
         const tok = localStorage.getItem(TOKEN_KEY);
         if (!tok) return null;
+        // 262차 유휴 자동로그아웃 로드시 강제 — 활동시각 영속본과 대조(브라우저 재시작/종료 무관).
+        //   유휴 설정(auto_logout_min>0) + 마지막 활동 이후 설정시간 경과 → 토큰 폐기(재로그인 강제).
+        //   이 검사가 admin/일반 사용자 공통으로 "닫았다 다음날 접속 시 자동로그인" 을 차단한다.
+        try {
+            const alm = parseInt(localStorage.getItem(AUTO_LOGOUT_KEY) || "0", 10) || 0;
+            if (alm > 0) {
+                const last = parseInt(localStorage.getItem(LAST_ACTIVITY_KEY) || "0", 10) || 0;
+                if (last > 0 && (Date.now() - last) >= alm * 60 * 1000) {
+                    localStorage.removeItem(TOKEN_KEY);
+                    localStorage.removeItem(USER_KEY);
+                    try { sessionStorage.removeItem(SESSION_ACTIVE_KEY); } catch {}
+                    return null;
+                }
+            }
+        } catch {}
         // 이미 활성 브라우징 세션(현재 탭) → 항상 복원
         if (sessionStorage.getItem(SESSION_ACTIVE_KEY) === "1") return tok;
         // 명시적 영속(자동 로그인 체크) → 복원
@@ -83,6 +103,7 @@ export function AuthProvider({ children }) {
     });
     const lastActivityRef = useRef(Date.now());
     const idleTimerRef = useRef(null);
+    const lastPersistRef = useRef(0); // 262차: 활동시각 영속 throttle
 
     const setAutoLogoutMin = useCallback((min) => {
         const v = Math.max(0, parseInt(min, 10) || 0);
@@ -91,33 +112,54 @@ export function AuthProvider({ children }) {
         lastActivityRef.current = Date.now(); // 설정 변경 시 타이머 리셋
     }, []);
 
-    /* 사용자 활동 감지 → 마지막 활동 시각 갱신 */
+    /* 사용자 활동 감지 → 마지막 활동 시각 갱신(+ 영속). 262차: localStorage 영속으로 재시작에도 유휴 계산 유지. */
     useEffect(() => {
         if (!token || autoLogoutMin <= 0) return;
-        const onActivity = () => { lastActivityRef.current = Date.now(); };
+        // 세션 시작(로그인/로드) 시 활동시각 baseline 을 현재로 기록.
+        try { localStorage.setItem(LAST_ACTIVITY_KEY, String(Date.now())); } catch {}
+        lastPersistRef.current = Date.now();
+        const onActivity = () => {
+            const now = Date.now();
+            lastActivityRef.current = now;
+            // 매 이벤트마다 쓰지 않고 5초 throttle(디스크/성능).
+            if (now - lastPersistRef.current > 5000) {
+                lastPersistRef.current = now;
+                try { localStorage.setItem(LAST_ACTIVITY_KEY, String(now)); } catch {}
+            }
+        };
         const events = ["mousedown", "mousemove", "keydown", "scroll", "touchstart", "click"];
         events.forEach(e => window.addEventListener(e, onActivity, { passive: true }));
         return () => events.forEach(e => window.removeEventListener(e, onActivity));
     }, [token, autoLogoutMin]);
 
-    /* Idle 체크 인터벌 (15초마다 검사) */
+    /* Idle 체크 인터벌(15초) + 탭 복귀 즉시 재검사. 262차: 백그라운드 스로틀/복귀 시에도 유휴 초과 즉시 로그아웃. */
     useEffect(() => {
         if (idleTimerRef.current) { clearInterval(idleTimerRef.current); idleTimerRef.current = null; }
         if (!token || autoLogoutMin <= 0) return;
         const timeoutMs = autoLogoutMin * 60 * 1000;
-        idleTimerRef.current = setInterval(() => {
-            const elapsed = Date.now() - lastActivityRef.current;
-            if (elapsed >= timeoutMs) {
-                clearInterval(idleTimerRef.current);
-                idleTimerRef.current = null;
-                // 자동 로그아웃 실행
-                setToken(null); setUser(null);
-                localStorage.removeItem(TOKEN_KEY);
-                localStorage.removeItem(USER_KEY);
-                try { window.location.href = "/login?reason=idle"; } catch {}
-            }
-        }, 15000);
-        return () => { if (idleTimerRef.current) clearInterval(idleTimerRef.current); };
+        const doLogout = () => {
+            if (idleTimerRef.current) { clearInterval(idleTimerRef.current); idleTimerRef.current = null; }
+            setToken(null); setUser(null);
+            localStorage.removeItem(TOKEN_KEY);
+            localStorage.removeItem(USER_KEY);
+            try { sessionStorage.removeItem(SESSION_ACTIVE_KEY); } catch {}
+            try { window.location.href = "/login?reason=idle"; } catch {}
+        };
+        // 영속 활동시각과 메모리 ref 중 최신(=가장 최근 활동)을 기준으로 경과 계산.
+        const checkIdle = () => {
+            let last = lastActivityRef.current;
+            try { const p = parseInt(localStorage.getItem(LAST_ACTIVITY_KEY) || "0", 10) || 0; if (p > last) last = p; } catch {}
+            if (Date.now() - last >= timeoutMs) doLogout();
+        };
+        idleTimerRef.current = setInterval(checkIdle, 15000);
+        const onVis = () => { if (document.visibilityState === "visible") checkIdle(); };
+        document.addEventListener("visibilitychange", onVis);
+        window.addEventListener("focus", onVis);
+        return () => {
+            if (idleTimerRef.current) clearInterval(idleTimerRef.current);
+            document.removeEventListener("visibilitychange", onVis);
+            window.removeEventListener("focus", onVis);
+        };
     }, [token, autoLogoutMin]);
 
     /* ── 공개 요금 API에서 플랜별 메뉴 접근 권한 로드 ── */
@@ -454,6 +496,7 @@ export function AuthProvider({ children }) {
         localStorage.removeItem(TOKEN_KEY);
         localStorage.removeItem(USER_KEY);
         localStorage.removeItem(REMEMBER_KEY);            // 189차 자동 로그인 플래그 정리
+        localStorage.removeItem(LAST_ACTIVITY_KEY);       // 262차: 유휴 활동시각 영속본 정리
         try { sessionStorage.removeItem(SESSION_ACTIVE_KEY); } catch {}
         localStorage.removeItem('tenantId'); // 180차: 회원 전환 시 이전 계정 격리 식별자 제거(누출 차단)
         // 180차: 회원 sessionStorage(같은 탭 순차 로그인 누출 방지) 정리 — aihub_* 등 비즈니스 캐시
