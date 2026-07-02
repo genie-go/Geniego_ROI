@@ -629,7 +629,7 @@ final class AdAdapters
             // [259차] ★channel_orders 에 currency 컬럼 없음(FP-2: saveOrders 가 total_price 를 fxToKrw 로 KRW 정규화) →
             //   기존 SELECT ...,currency 는 존재하지 않는 컬럼 참조로 매 쿼리 예외→catch→전환 업로드 항상 0건이었다(CAPI/오프라인전환 무음 미집행).
             //   currency 제거하고 total_price=KRW 상수 통화로 전달(정합).
-            $st = $pdo->prepare("SELECT order_id, total_price, ordered_at, raw_json FROM channel_orders WHERE tenant_id=:t AND ordered_at >= :c AND raw_json LIKE '%gclid%' ORDER BY ordered_at DESC LIMIT 500");
+            $st = $pdo->prepare("SELECT channel_order_id AS order_id, total_price, ordered_at, raw_json FROM channel_orders WHERE tenant_id=:t AND ordered_at >= :c AND raw_json LIKE '%gclid%' ORDER BY ordered_at DESC LIMIT 500");
             $st->execute([':t' => $tenant, ':c' => $cut]);
             $rows = $st->fetchAll(PDO::FETCH_ASSOC);
         } catch (\Throwable $e) { return ['ok' => false, 'error' => 'orders_query_failed']; }
@@ -730,7 +730,7 @@ final class AdAdapters
         $cut = gmdate('Y-m-d H:i:s', time() - max(1, $days) * 86400);
         try {
             // [259차] currency 컬럼 부재(FP-2, total_price=KRW 정규화) → 존재하지 않는 컬럼 참조 예외로 Meta CAPI/TikTok Events 전환 업로드 항상 0건이었음. currency 제거.
-            $st = $pdo->prepare("SELECT order_id, total_price, ordered_at, buyer_email, raw_json FROM channel_orders WHERE tenant_id=:t AND ordered_at >= :c AND buyer_email IS NOT NULL AND buyer_email<>'' ORDER BY ordered_at DESC LIMIT 1000");
+            $st = $pdo->prepare("SELECT channel_order_id AS order_id, total_price, ordered_at, buyer_email, raw_json FROM channel_orders WHERE tenant_id=:t AND ordered_at >= :c AND buyer_email IS NOT NULL AND buyer_email<>'' ORDER BY ordered_at DESC LIMIT 1000");
             $st->execute([':t' => $tenant, ':c' => $cut]);
             $rows = $st->fetchAll(PDO::FETCH_ASSOC);
         } catch (\Throwable $e) { return ['ok' => false, 'error' => 'orders_query_failed']; }
