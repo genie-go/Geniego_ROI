@@ -55,6 +55,11 @@ final class InstagramDM
                 direction VARCHAR(20) DEFAULT 'inbound', status VARCHAR(20) DEFAULT 'received', created_at VARCHAR(32),
                 KEY idx_ig_msg_tenant (tenant_id), KEY idx_ig_msg_thread (thread_id)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS instagram_rules (
+                id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL, platform VARCHAR(20) DEFAULT 'instagram',
+                keyword VARCHAR(255) NOT NULL, reply TEXT, enabled TINYINT(1) DEFAULT 1, created_at VARCHAR(32),
+                KEY idx_ig_rules_tenant (tenant_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
         } else {
             $pdo->exec("CREATE TABLE IF NOT EXISTS instagram_settings (
                 id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL, platform TEXT DEFAULT 'instagram',
@@ -64,7 +69,75 @@ final class InstagramDM
                 id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL, platform TEXT DEFAULT 'instagram',
                 thread_id TEXT, sender_name TEXT, sender_id TEXT, message TEXT, direction TEXT DEFAULT 'inbound',
                 status TEXT DEFAULT 'received', created_at TEXT)");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS instagram_rules (
+                id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL, platform TEXT DEFAULT 'instagram',
+                keyword TEXT NOT NULL, reply TEXT, enabled INTEGER DEFAULT 1, created_at TEXT)");
         }
+    }
+
+    // ── [259차] 자동응답 규칙 — 프론트 로컬 전용(새로고침 리셋·백엔드 미인지)이던 것을 영속화 + 웹훅 자동응답 실적용. ──
+    // GET /instagram/rules — 본 테넌트 규칙 목록(세션 스코프).
+    public static function getRules(Request $req, Response $res, array $args): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $pdo = Db::pdo(); $tenant = self::tenant($req);
+        $st = $pdo->prepare("SELECT id,keyword,reply,enabled,created_at FROM instagram_rules WHERE tenant_id=? ORDER BY id");
+        $st->execute([$tenant]);
+        return TemplateResponder::respond($res, ['ok' => true, 'rules' => $st->fetchAll(PDO::FETCH_ASSOC) ?: []]);
+    }
+
+    // POST /instagram/rules — 규칙 전량 저장(replace). body.rules=[{keyword,reply,enabled}]. 테넌트 스코프.
+    public static function saveRules(Request $req, Response $res, array $args): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $pdo = Db::pdo(); $tenant = self::tenant($req);
+        $body = (array)($req->getParsedBody() ?? []);
+        $rules = is_array($body['rules'] ?? null) ? $body['rules'] : [];
+        $now = gmdate('c');
+        try {
+            $pdo->beginTransaction();
+            $pdo->prepare("DELETE FROM instagram_rules WHERE tenant_id=?")->execute([$tenant]);
+            $ins = $pdo->prepare("INSERT INTO instagram_rules(tenant_id,platform,keyword,reply,enabled,created_at) VALUES(?,?,?,?,?,?)");
+            foreach ($rules as $r) {
+                $r = (array)$r;
+                $kw = trim((string)($r['keyword'] ?? ''));
+                if ($kw === '') continue;
+                $ins->execute([$tenant, 'instagram', mb_substr($kw, 0, 255), (string)($r['reply'] ?? ''), !empty($r['enabled']) ? 1 : 0, $now]);
+            }
+            $pdo->commit();
+        } catch (\Throwable $e) { if ($pdo->inTransaction()) $pdo->rollBack(); return TemplateResponder::respond($res->withStatus(500), ['ok' => false, 'error' => 'save_failed']); }
+        $st = $pdo->prepare("SELECT id,keyword,reply,enabled,created_at FROM instagram_rules WHERE tenant_id=? ORDER BY id");
+        $st->execute([$tenant]);
+        return TemplateResponder::respond($res, ['ok' => true, 'rules' => $st->fetchAll(PDO::FETCH_ASSOC) ?: []]);
+    }
+
+    /** [259차] 수신 DM 을 활성 규칙과 매칭(키워드 포함, 대소문자 무시)해 첫 매칭 규칙의 답장을 실발송. 자격증명(test_status=ok)·규칙 있을 때만. */
+    private static function applyAutoReply(PDO $pdo, string $tenant, string $recipientId, string $text, string $now): void
+    {
+        try {
+            if ($recipientId === '' || trim($text) === '') return;
+            $st = $pdo->prepare("SELECT keyword,reply FROM instagram_rules WHERE tenant_id=? AND enabled=1");
+            $st->execute([$tenant]);
+            $rules = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+            if (!$rules) return;
+            $lt = mb_strtolower($text);
+            $reply = '';
+            foreach ($rules as $r) {
+                $kw = mb_strtolower(trim((string)$r['keyword']));
+                if ($kw !== '' && mb_strpos($lt, $kw) !== false) { $reply = (string)$r['reply']; break; }
+            }
+            if (trim($reply) === '') return;
+            $cfg = $pdo->prepare("SELECT page_id,access_token FROM instagram_settings WHERE tenant_id=? AND platform='instagram' AND test_status='ok'");
+            $cfg->execute([$tenant]);
+            $s = $cfg->fetch(PDO::FETCH_ASSOC);
+            if (!$s || empty($s['access_token'])) return; // 미연동 시 조용히 skip(가짜 발송 없음)
+            $token = \Genie\Crypto::decrypt((string)$s['access_token']);
+            $r = self::sendDM((string)$s['page_id'], $token, $recipientId, $reply, 'instagram');
+            $pdo->prepare("INSERT INTO instagram_messages(tenant_id,platform,sender_id,message,direction,status,created_at) VALUES(?,?,?,?,?,?,?)")
+                ->execute([$tenant, 'instagram', $recipientId, $reply, 'outbound', !empty($r['ok']) ? 'sent' : 'failed', $now]);
+        } catch (\Throwable $e) { error_log('[InstagramDM.applyAutoReply] ' . $e->getMessage()); }
     }
 
     // POST /api/instagram/settings
@@ -264,8 +337,11 @@ final class InstagramDM
                 if ($tenant === '') { error_log("[InstagramDM.webhook] unmapped page_id={$pageId} — message skipped"); continue; }
                 foreach (($entry['messaging']??[]) as $msg) {
                     if (!isset($msg['message']['text'])) continue;
+                    $senderId = (string)($msg['sender']['id'] ?? '');
                     $pdo->prepare("INSERT INTO instagram_messages(tenant_id,platform,thread_id,sender_id,message,direction,status,created_at) VALUES(?,?,?,?,?,?,?,?)")
-                        ->execute([$tenant,'instagram',$msg['sender']['id']??'',$msg['sender']['id']??'',$msg['message']['text'],'inbound','received',$now]);
+                        ->execute([$tenant,'instagram',$senderId,$senderId,$msg['message']['text'],'inbound','received',$now]);
+                    // [259차] 자동응답 규칙 실적용 — 수신 메시지를 테넌트 규칙과 매칭해 답장 실발송(자격증명·규칙 있을 때만).
+                    self::applyAutoReply($pdo, $tenant, $senderId, (string)$msg['message']['text'], $now);
                 }
             }
         } catch (\Throwable) {}

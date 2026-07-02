@@ -406,6 +406,8 @@ return function (App $app): void {
         'POST /instagram/broadcast'               => 'Genie\\Handlers\\InstagramDM::broadcast', // [현차수] DM 단체발송 실배선
         'GET /instagram/stats'                    => 'Genie\\Handlers\\InstagramDM::stats',
         'POST /instagram/webhooks'                => 'Genie\\Handlers\\InstagramDM::webhook',
+        'GET /instagram/rules'                    => 'Genie\\Handlers\\InstagramDM::getRules',   // [259차] 자동응답 규칙 영속
+        'POST /instagram/rules'                   => 'Genie\\Handlers\\InstagramDM::saveRules',
 
         // ── LINE Messaging API (191차 신설: 프론트 호출하나 백엔드 부재였음) ──
         'GET /line/settings'                      => 'Genie\\Handlers\\Line::getSettings',
@@ -2860,6 +2862,8 @@ return function (App $app): void {
     $register('POST',   '/instagram/broadcast'); // [현차수] DM 단체발송 실배선
     $register('GET',    '/instagram/stats');
     $register('POST',   '/instagram/webhooks');
+    $register('GET',    '/instagram/rules');  // [259차] 자동응답 규칙 영속
+    $register('POST',   '/instagram/rules');
     // ── LINE (191차 신설) ──
     $register('GET',    '/line/settings');
     $register('POST',   '/line/settings');

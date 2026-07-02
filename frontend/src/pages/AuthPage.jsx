@@ -472,7 +472,7 @@ function SSOButtonGroup({ t }) {
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
         {providers.map(p => (
-          <button type="button" key={p.id} onClick={(e) => { e.preventDefault(); alert("Enterprise SSO Integration Ready! 🚀 (Demo)"); }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px 0', borderRadius: 8, border: '1px solid rgba(15,23,42,0.12)', background: p.bg, cursor: 'pointer', boxShadow: '0 2px 4px rgba(15,23,42,0.08)', transition: 'transform 150ms' }} onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'} onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}>
+          <button type="button" key={p.id} onClick={(e) => { e.preventDefault(); alert(t('auth.ssoAdminSetup', '엔터프라이즈 SSO(OIDC/SAML)는 관리자 콘솔에서 조직 IdP를 설정한 뒤 이용할 수 있습니다. (팀·권한 → SSO 설정)')); }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px 0', borderRadius: 8, border: '1px solid rgba(15,23,42,0.12)', background: p.bg, cursor: 'pointer', boxShadow: '0 2px 4px rgba(15,23,42,0.08)', transition: 'transform 150ms' }} onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'} onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}>
             <img src={p.icon} alt={p.id} style={{ width: 18, height: 18, filter: p.filter || 'none' }} />
           </button>
         ))}

@@ -564,7 +564,7 @@ const CreatorTab = memo(function CreatorTab() {
         attribution: c.stats?.engagement || 0, rightsExpiry: c.contract?.whitelistExpiry || '2027-12-31',
         contractEnd: c.contract?.period?.[1] || '2027-12-31',
         content: (c.content || []).map(ct => ({ title: ct.title, views: ct.views || 0, orders: ct.orders || 0, revenue: ct.revenue || 0, attrib: ct.engRate || 0 })),
-    })) : _PERF_CREATORS_FALLBACK, [ctxCreators]);
+    })) : (IS_DEMO ? _PERF_CREATORS_FALLBACK : []), [ctxCreators]); // [259차 철칙] 운영은 하드코딩 폴백 미노출(무데이터=빈배열)·데모만 시드
 
     const totPayout = useMemo(() => CREATORS.reduce((s, c) => s + (c.contractRate || 0), 0), [CREATORS]);
     const totRevenue = useMemo(() => CREATORS.reduce((s, c) => s + (c.revenue || 0), 0), [CREATORS]);
@@ -768,7 +768,7 @@ const CreatorTab = memo(function CreatorTab() {
                             <div><label className="input-label">{t('performance.bank')}</label>
                                 <select className="input"><option>KakaoBank</option><option>TossBank</option><option>Shinhan</option><option>Kookmin</option></select></div>
                             <div><label className="input-label">{t('performance.accountNo')}</label>
-                                <input className="input" defaultValue="1234-5678-9012" /></div>
+                                <input className="input" placeholder={t('performance.accountNoPh', '계좌번호 입력')} defaultValue={selected?.payoutAccount || ''} /></div>
                         </div>
                         <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 14 }}>
                             <button className="btn-ghost" onClick={() => setModal(null)}>{t('performance.cancel')}</button>

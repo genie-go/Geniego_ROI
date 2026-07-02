@@ -58,23 +58,34 @@ return <div>
 </tr>)}</tbody></table></Card></div>;
 }
 
-function RequestsTab({data,tr,fmt}){
+function RequestsTab({data,tr,fmt,onAdd}){
+// [259차] 죽은 버튼(등록/검색/내보내기 onClick 전무) → 실배선: 등록=추가모달 콜백, 검색=클라 필터, 내보내기=CSV.
+const [q,setQ]=useState('');
+const rows=q.trim()?data.filter(r=>['id','orderNo','product','reason','status','sku'].some(k=>String(r[k]??'').toLowerCase().includes(q.trim().toLowerCase()))):data;
+const exportCsv=()=>{
+  const head=['ID','orderNo','product','reason','status','date','amount'];
+  const esc=v=>`"${String(v??'').replace(/"/g,'""')}"`;
+  const lines=[head.join(',')].concat(rows.map(r=>[r.id,r.orderNo,r.product,r.reason,r.status,r.date,r.amount].map(esc).join(',')));
+  const blob=new Blob(['﻿'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`returns_${Date.now()}.csv`;a.click();URL.revokeObjectURL(url);
+};
 return <Card><div style={{fontSize:13,fontWeight:700,marginBottom:12,color:'#1e293b'}}>📋 {tr('tabRequests')}</div>
-<div style={{display:'flex',gap:8,marginBottom:12,flexWrap:'wrap'}}>
-<button style={{padding:'6px 14px',borderRadius:8,background:'#6366f1',color:'#fff',border:'none',fontSize:11,fontWeight:700,cursor:'pointer'}}>+ {tr('register')}</button>
-<button style={{padding:'6px 14px',borderRadius:8,background:'#f1f5f9',color:'#1e293b',border:'1px solid #e5e7eb',fontSize:11,fontWeight:600,cursor:'pointer'}}>🔍 {tr('search')}</button>
-<button style={{padding:'6px 14px',borderRadius:8,background:'#f1f5f9',color:'#1e293b',border:'1px solid #e5e7eb',fontSize:11,fontWeight:600,cursor:'pointer'}}>📤 {tr('export')}</button>
+<div style={{display:'flex',gap:8,marginBottom:12,flexWrap:'wrap',alignItems:'center'}}>
+<button onClick={()=>onAdd?.()} style={{padding:'6px 14px',borderRadius:8,background:'#6366f1',color:'#fff',border:'none',fontSize:11,fontWeight:700,cursor:'pointer'}}>+ {tr('register')}</button>
+<input value={q} onChange={e=>setQ(e.target.value)} placeholder={'🔍 '+tr('search')} style={{padding:'6px 12px',borderRadius:8,background:'#fff',color:'#1e293b',border:'1px solid #e5e7eb',fontSize:11,minWidth:160,flex:'0 1 220px'}}/>
+<button onClick={exportCsv} disabled={!rows.length} style={{padding:'6px 14px',borderRadius:8,background:'#f1f5f9',color:'#1e293b',border:'1px solid #e5e7eb',fontSize:11,fontWeight:600,cursor:rows.length?'pointer':'not-allowed',opacity:rows.length?1:0.5}}>📤 {tr('export')}</button>
+{q.trim()&&<span style={{fontSize:10,color:'#94a3b8'}}>{rows.length}/{data.length}</span>}
 </div>
 <table style={{width:'100%',borderCollapse:'collapse',fontSize:11}}>
 <thead><tr style={{borderBottom:'2px solid #e5e7eb',color:'#7c8fa8'}}>
 {['ID',tr('orderNo'),tr('product'),tr('reason'),tr('status'),tr('date'),tr('amount')].map(h=><th key={h} style={{padding:'6px 8px',textAlign:'left'}}>{h}</th>)}
 </tr></thead>
-<tbody>{data.map((r,i)=><tr key={i} style={{borderBottom:'1px solid #f1f5f9'}}>
+<tbody>{rows.map((r,i)=><tr key={i} style={{borderBottom:'1px solid #f1f5f9'}}>
 <td style={{padding:'6px 8px',fontFamily:'monospace',color:'#6366f1',fontWeight:700}}>{r.id}</td>
 <td style={{padding:'6px 8px',color:'#64748b'}}>{r.orderNo}</td>
 <td style={{padding:'6px 8px',fontWeight:600,color:'#1e293b'}}>{r.product}</td>
-<td style={{padding:'6px 8px'}}>{tr('reason'+r.reason.charAt(0).toUpperCase()+r.reason.slice(1))||r.reason}</td>
-<td style={{padding:'6px 8px'}}><Badge label={tr('status'+r.status.charAt(0).toUpperCase()+r.status.slice(1))} color={STATUS_COLORS[r.status]||'#94a3b8'}/></td>
+<td style={{padding:'6px 8px'}}>{(r.reason&&(tr('reason'+r.reason.charAt(0).toUpperCase()+r.reason.slice(1))))||r.reason||'-'}</td>
+<td style={{padding:'6px 8px'}}>{r.status?<Badge label={tr('status'+r.status.charAt(0).toUpperCase()+r.status.slice(1))} color={STATUS_COLORS[r.status]||'#94a3b8'}/>:'-'}</td>
 <td style={{padding:'6px 8px',color:'#64748b'}}>{r.date}</td>
 <td style={{padding:'6px 8px',textAlign:'right',fontWeight:700}}>{fmt(r.amount)}</td>
 </tr>)}</tbody></table></Card>;
@@ -347,7 +358,7 @@ return <div style={{display:'flex',flexDirection:'column',height:'100%',backgrou
 {(()=>{const rs={};viewData.forEach(r=>{if(r.reason)rs[r.reason]=(rs[r.reason]||0)+1;});const top=Object.entries(rs).sort((a,b)=>b[1]-a[1])[0];return top?<span style={{color:'#475569'}}>{tr('topReason')||'주요 사유'}: {(tr('reason'+top[0].charAt(0).toUpperCase()+top[0].slice(1))||top[0])} ({top[1]})</span>:null;})()}
 </div>}
 {tab==='tabOverview'&&<OverviewTab data={viewData} tr={tr} fmt={fmt} orderCount={prodMode&&prodOrderCount>0?prodOrderCount:orderCount} claimStats={isDemo?null:claimStatsServer}/>}
-{tab==='tabRequests'&&<RequestsTab data={viewData} tr={tr} fmt={fmt}/>}
+{tab==='tabRequests'&&<RequestsTab data={viewData} tr={tr} fmt={fmt} onAdd={()=>setShowAdd(true)}/>}
 {tab==='tabInspection'&&<InspectionTab data={viewData} tr={tr}/>}
 {tab==='tabRefunds'&&<RefundsTab data={viewData} tr={tr} fmt={fmt}/>}
 {tab==='tabRestock'&&<RestockTab data={viewData} tr={tr}/>}

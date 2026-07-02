@@ -3,6 +3,7 @@ import { useI18n } from "../i18n";
 import { WP_GUIDE } from "./webPopupGuideI18n.js";
 import { useGlobalData } from "../context/GlobalDataContext.jsx";
 import { useCurrency } from "../contexts/CurrencyContext.jsx";
+import { postJsonAuth } from "../services/apiClient.js"; // [259차] 가짜 AI 생성 → 실 ai/ad-copy 배선
 // 179차 — 데모 환경: 가상 웹팝업 성과(체험용). 판별은 정본(demoEnv) 사용.
 import { IS_DEMO as _IS_DEMO } from "../utils/demoEnv.js";
 
@@ -268,7 +269,18 @@ function ManageTab({ t }) {
             <div style={{ fontWeight:800, fontSize:14, color:"#1f2937", marginBottom:6 }}>🤖 {t("webPopup.aiDesignTitle")}</div>
             <div style={{ fontSize:12, color:"#6b7280", marginBottom:10 }}>{t("webPopup.aiDesignDesc")}</div>
             <input value={aiTopic} onChange={e=>setAiTopic(e.target.value)} placeholder={t("webPopup.aiTopicPh")} style={{ ...inp, marginBottom:8 }}/>
-            <button onClick={()=>{setGenerating(true);setTimeout(()=>{setGenerating(false);setForm(p=>({...p,title:aiTopic||"Special Offer",body:"AI-generated promo copy for maximum conversion.",cta:"Get It Now →"}));},1500);}} disabled={generating}
+            <button onClick={async()=>{
+                // [259차] 과거 setTimeout 후 하드코딩 영어 카피 주입(가짜 AI)이었음 → 실 AI 엔드포인트 배선.
+                //   운영은 AI 자격증명 등록 시에만 실 생성, 미설정 시 정직 안내(가짜 카피 미주입).
+                setGenerating(true);
+                try {
+                  const r = await postJsonAuth('/api/ai/generate/ad-copy', { product: (aiTopic||'').trim() || t('webPopup.aiDefaultTopic','프로모션'), platform: 'web', goal: t('webPopup.aiGoal','전환') });
+                  const item = Array.isArray(r?.result) ? r.result[0] : r?.result;
+                  if (r?.ok && item) { setForm(p=>({...p, title:item.headline||p.title, body:item.body||p.body, cta:item.cta||p.cta})); }
+                  else { alert(t('webPopup.aiUnavailable','AI 자동생성을 사용하려면 설정에서 AI 자격증명을 등록하세요.')); }
+                } catch { alert(t('webPopup.aiFail','AI 자동생성에 실패했습니다.')); }
+                finally { setGenerating(false); }
+              }} disabled={generating}
               style={{ padding:"10px 20px", borderRadius:10, border:"none", background:generating?"#d1d5db":"linear-gradient(135deg,#8b5cf6,#6366f1)", color:"#fff", fontWeight:700, fontSize:13, cursor:generating?"wait":"pointer" }}>
               {generating?t("webPopup.aiGenerating"):("🎨 "+t("webPopup.aiGenerate"))}</button>
           </div>

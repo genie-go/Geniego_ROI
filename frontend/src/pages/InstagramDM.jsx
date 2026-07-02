@@ -63,6 +63,13 @@ export default function InstagramDM() {
     // 184차 격리: 데모에서만 가상 대화/메시지 시드. 운영(IS_DEMO=false)은 실 API 데이터만(목 데이터 유입 0).
     const isDemo = IS_DEMO;
 
+    // [259차] 자동응답 규칙 영속 — 과거 로컬 state 전용(새로고침 리셋·백엔드 미인지)이던 것을 실 엔드포인트 배선.
+    //   데모는 로컬 시드 유지(백엔드 미호출), 운영은 /api/instagram/rules 저장·조회(웹훅 자동응답 실적용).
+    const persistRules = (next) => {
+        if (isDemo) return;
+        postJsonAuth('/api/instagram/rules', { rules: next.map(r => ({ keyword: r.keyword, reply: r.reply, enabled: r.active ? 1 : 0 })) }).catch(() => {});
+    };
+
     useEffect(() => {
         // 191차: 데모는 로컬 시드 사용(백엔드 호출 안 함). 운영은 세션 인증으로 /api/instagram 호출.
         if (isDemo) { setConversations(_CONVERSATIONS); return; }
@@ -72,6 +79,9 @@ export default function InstagramDM() {
         getJsonAuth('/api/instagram/conversations').then(d => {
             setConversations(d.ok && d.conversations?.length ? d.conversations : []);
         }).catch(() => setConversations([]));
+        getJsonAuth('/api/instagram/rules').then(d => {
+            if (Array.isArray(d?.rules)) setRules(d.rules.map(r => ({ id: r.id, keyword: r.keyword, reply: r.reply, active: !!Number(r.enabled) })));
+        }).catch(() => {});
     }, []);
 
     useEffect(() => {
@@ -316,7 +326,7 @@ export default function InstagramDM() {
                                             <span style={{ fontSize: 11, color: 'var(--text-3)' }}>{t('igdm.autoTriggerSuffix', '포함 시 자동 응답')}</span>
                                         </div>
                                         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                                            <div onClick={() => setRules(rs => rs.map(x => x.id === r.id ? { ...x, active: !x.active } : x))} style={{ width: 34, height: 18, borderRadius: 20, background: r.active ? '#4f8ef7' : 'rgba(107,114,128,0.3)', cursor: 'pointer', position: 'relative', transition: 'background 300ms' }}>
+                                            <div onClick={() => setRules(rs => { const next = rs.map(x => x.id === r.id ? { ...x, active: !x.active } : x); persistRules(next); return next; })} style={{ width: 34, height: 18, borderRadius: 20, background: r.active ? '#4f8ef7' : 'rgba(107,114,128,0.3)', cursor: 'pointer', position: 'relative', transition: 'background 300ms' }}>
                                                 <div style={{ position: 'absolute', top: 2, left: r.active ? 16 : 2, width: 14, height: 14, borderRadius: '50%', background: '#fff', transition: 'left 300ms' }} />
                                             </div>
                                         </div>
@@ -332,7 +342,7 @@ export default function InstagramDM() {
                                 <input value={newRule.keyword} onChange={e => setNewRule(n => ({ ...n, keyword: e.target.value }))} placeholder={t('igdm.keywordPh', '키워드 (ex: 배송, 환불, 재고)')} className="input" style={{ fontSize: 12 }} />
                                 <textarea value={newRule.reply} onChange={e => setNewRule(n => ({ ...n, reply: e.target.value }))} placeholder={t('igdm.autoReplyPh', '자동 응답 메시지')} rows={2}
                                     style={{ padding: '8px', borderRadius: 8, border: '1px solid rgba(99,102,241,0.2)', background: 'rgba(15,20,40,0.7)', color: '#fff', fontSize: 12, resize: 'none' }} />
-                                <button onClick={() => { if (newRule.keyword && newRule.reply) { setRules(rs => [...rs, { id: Date.now(), ...newRule, active: true }]); setNewRule({ keyword: '', reply: '' }); }}} style={{ padding: '8px', borderRadius: 8, border: 'none', background: 'linear-gradient(135deg,#4f8ef7,#6366f1)', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
+                                <button onClick={() => { if (newRule.keyword && newRule.reply) { setRules(rs => { const next = [...rs, { id: Date.now(), ...newRule, active: true }]; persistRules(next); return next; }); setNewRule({ keyword: '', reply: '' }); }}} style={{ padding: '8px', borderRadius: 8, border: 'none', background: 'linear-gradient(135deg,#4f8ef7,#6366f1)', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
                                     {t('igdm.addRule', '규칙 추가')}
                                 </button>
                             </div>

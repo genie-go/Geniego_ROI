@@ -475,7 +475,20 @@ const ContractTab = memo(function ContractTab() {
                         ))}
                         <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 16 }}>
                             <button className="btn-ghost" onClick={() => setModal(null)}>{t("influencerUGC.u_34", "Close")}</button>
-                            <button className="btn-primary">{t("influencerUGC.u_35", "📄 Download Contract")}</button>
+                            <button className="btn-primary" onClick={() => {
+                                // [259차] 죽은 버튼 → 계약 정보 클라이언트측 문서 다운로드(백엔드 불요·표시 데이터 그대로)
+                                const c = modal.contract || {};
+                                const txt = ['Contract — ' + (modal.name || ''),
+                                    'Type: ' + (c.type ?? '-'),
+                                    'Fixed Fee: ' + fmt(c.flatFee),
+                                    'Performance: ' + (c.perfRate > 0 ? pct(c.perfRate) + ' / ' + c.perfBase : 'None'),
+                                    'Rights: ' + (c.rights ?? '-'),
+                                    'Period: ' + (Array.isArray(c.period) ? c.period.join(' ~ ') : '-'),
+                                    'Whitelist: ' + (c.whitelist ? 'Allowed' : 'None') + ' (expiry ' + (c.whitelistExpiry || '-') + ')',
+                                    'e-Sign: ' + (c.esign ?? '-')].join('\n');
+                                const blob = new Blob(['﻿' + txt], { type: 'text/plain;charset=utf-8' });
+                                const u = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = u; a.download = 'contract_' + (modal.name || 'creator') + '.txt'; a.click(); URL.revokeObjectURL(u);
+                            }}>{t("influencerUGC.u_35", "📄 Download Contract")}</button>
                         </div>
                     </div>
                 </>
@@ -652,7 +665,16 @@ const SettleTab = memo(function SettleTab() {
                         })()}
                         <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 14 }}>
                             <button className="btn-ghost" onClick={() => setModal(null)}>{t("influencerUGC.u_34", "Close")}</button>
-                            <button className="btn-primary" style={{ background: "linear-gradient(135deg,#a855f7,#ec4899)" }}>
+                            <button className="btn-primary" style={{ background: "linear-gradient(135deg,#a855f7,#ec4899)" }}
+                                onClick={() => {
+                                    // [259차] 죽은 버튼 → 정산 명세서 클라이언트측 다운로드(modal.settle 표시 데이터)
+                                    const s = modal.settle || {};
+                                    const txt = ['Settlement Statement — ' + (modal.name || '')].concat(
+                                        Object.entries(s).map(([k, v]) => k + ': ' + (v == null ? '-' : String(v)))
+                                    ).join('\n');
+                                    const blob = new Blob(['﻿' + txt], { type: 'text/plain;charset=utf-8' });
+                                    const u = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = u; a.download = 'statement_' + (modal.name || 'creator') + '.txt'; a.click(); URL.revokeObjectURL(u);
+                                }}>
                                 {t("influencerUGC.u_67", "📥 Statement Download")}
                             </button>
                         </div>
