@@ -670,6 +670,9 @@ final class Db
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"));
         // 202차 Phase3: 캠페인 단위 측정 입도 — 기존 배포 테이블에 campaign_ext_id 보강(idempotent).
         try { $pdo->exec("ALTER TABLE performance_metrics ADD COLUMN campaign_ext_id VARCHAR(255) DEFAULT NULL"); } catch (\Throwable $e) { /* 이미 존재 */ }
+        // [259차] normalized_activity_event: 위 CREATE 정의의 vendor/channel 컬럼이 인코딩 손상 '--' 주석에 흡수돼 미생성 → EventNorm 정규화 INSERT가 'Unknown column' 무음실패(Layer-2 엔진 사망)였음. 멱등 보강(기존/신규 설치 자가치유).
+        try { $pdo->exec("ALTER TABLE normalized_activity_event ADD COLUMN vendor VARCHAR(100) NULL"); } catch (\Throwable $e) { /* 이미 존재 */ }
+        try { $pdo->exec("ALTER TABLE normalized_activity_event ADD COLUMN channel VARCHAR(100) NULL"); } catch (\Throwable $e) { /* 이미 존재 */ }
         $pdo->exec(self::sql($pdo, "CREATE TABLE IF NOT EXISTS team_channel_mapping (
             id INT AUTO_INCREMENT PRIMARY KEY,
             tenant_id VARCHAR(100) NOT NULL,

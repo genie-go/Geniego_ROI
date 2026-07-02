@@ -1202,7 +1202,7 @@ PROMPT;
         // 주문/매출(channel_orders, KRW 정규화·취소 제외 근사) — 채널별 30일
         try {
             $st = $pdo->prepare("SELECT channel, COUNT(*) cnt, COALESCE(SUM(total_price),0) gmv
-                                   FROM channel_orders WHERE tenant_id=? AND COALESCE(ordered_at, created_at) >= ?
+                                   FROM channel_orders WHERE tenant_id=? AND ordered_at >= ?
                                      AND COALESCE(status,'') NOT IN ('cancelled','canceled','취소완료','취소','주문취소','CancelDone')
                                   GROUP BY channel ORDER BY gmv DESC LIMIT 12");
             $st->execute([$tenant, $d30 . ' 00:00:00']);

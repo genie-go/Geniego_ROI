@@ -23,29 +23,33 @@ final class ModelMonitor
     private static function ensureTables(): void
     {
         $pdo = Db::pdo();
+        // [259차] 기존 SQLite 전용 DDL(INTEGER PRIMARY KEY AUTOINCREMENT + TEXT DEFAULT)은 MySQL이 거부(AUTOINCREMENT·TEXT DEFAULT 미지원)
+        //   → 운영(MySQL)에서 ml_models/ml_model_metrics/ml_retrain_log 3테이블 미생성으로 드리프트/재학습 모니터 미작동이었음. 드라이버 무관 PK + VARCHAR 전환.
+        $isMy = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql';
+        $pk = $isMy ? 'BIGINT AUTO_INCREMENT PRIMARY KEY' : 'INTEGER PRIMARY KEY AUTOINCREMENT';
         $pdo->exec("CREATE TABLE IF NOT EXISTS ml_models (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            tenant_id TEXT NOT NULL,
-            name TEXT NOT NULL,
-            type TEXT DEFAULT 'classification',
-            version TEXT DEFAULT 'v1.0',
-            status TEXT DEFAULT 'active',
+            id $pk,
+            tenant_id VARCHAR(100) NOT NULL,
+            name VARCHAR(255) NOT NULL,
+            type VARCHAR(50) DEFAULT 'classification',
+            version VARCHAR(50) DEFAULT 'v1.0',
+            status VARCHAR(30) DEFAULT 'active',
             accuracy REAL DEFAULT 0,
             auc_roc REAL DEFAULT 0,
             f1_score REAL DEFAULT 0,
             training_samples INTEGER DEFAULT 0,
-            last_trained_at TEXT,
+            last_trained_at VARCHAR(32),
             drift_score REAL DEFAULT 0,
-            drift_status TEXT DEFAULT 'ok',
+            drift_status VARCHAR(30) DEFAULT 'ok',
             auto_retrain INTEGER DEFAULT 1,
             retrain_threshold REAL DEFAULT 0.15,
-            created_at TEXT,
-            updated_at TEXT
+            created_at VARCHAR(32),
+            updated_at VARCHAR(32)
         )");
         $pdo->exec("CREATE TABLE IF NOT EXISTS ml_model_metrics (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id $pk,
             model_id INTEGER NOT NULL,
-            tenant_id TEXT NOT NULL,
+            tenant_id VARCHAR(100) NOT NULL,
             accuracy REAL,
             auc_roc  REAL,
             f1_score REAL,
@@ -53,18 +57,18 @@ final class ModelMonitor
             recall_val REAL,
             drift_score REAL,
             sample_count INTEGER,
-            recorded_at TEXT
+            recorded_at VARCHAR(32)
         )");
         $pdo->exec("CREATE TABLE IF NOT EXISTS ml_retrain_log (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id $pk,
             model_id INTEGER NOT NULL,
-            tenant_id TEXT NOT NULL,
-            trigger_type TEXT DEFAULT 'manual',
+            tenant_id VARCHAR(100) NOT NULL,
+            trigger_type VARCHAR(30) DEFAULT 'manual',
             old_accuracy REAL,
             new_accuracy REAL,
-            status TEXT DEFAULT 'pending',
-            started_at TEXT,
-            completed_at TEXT
+            status VARCHAR(30) DEFAULT 'pending',
+            started_at VARCHAR(32),
+            completed_at VARCHAR(32)
         )");
     }
 

@@ -82,7 +82,7 @@ function ChannelDetailPanel({ channel, t, currFmt }) {
   const tot = cls.total, aw = cls.byStage.awareness, en = cls.byStage.engagement, tr = cls.byStage.traffic, cv = cls.byStage.conversion;
   // 폴백(채널 누적) 파생 — 기존 동작 보존.
   const fbCpm = c.impressions > 0 ? Math.round(c.spend / c.impressions * 1000) : 0;
-  const fbReach = Math.round((c.impressions || 0) * 0.72);
+  const fbReach = IS_DEMO ? Math.round((c.impressions || 0) * 0.72) : 0; // [259차] 도달은 매체 미수집 필드 → 운영은 하드코딩 비율(0.72) 미노출(AdStatusAnalysis reach와 동일 게이트·빈도는 fbReach>0 가드)
   const fbCpa = c.conversions > 0 ? Math.round(c.spend / c.conversions) : 0;
   const G = 14;
   const headerKpis = fb
