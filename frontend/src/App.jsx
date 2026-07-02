@@ -655,7 +655,7 @@ function PlatformActAsBanner() {
   if (!on) return null;
   const off = () => { try { localStorage.removeItem('gg_act_as_tenant'); } catch (e) {} window.dispatchEvent(new Event('gg-actas-change')); setOn(false); };
   return (
-    {/* [259차] 가독성 수정 — 흰바탕/흰글자로 안 보이던 것을 밝은 배경 + 찐한 회색 글자(테마 무관 고대비)로 선명화. */}
+    // [259차] 가독성 수정 — 흰바탕/흰글자 → 밝은 배경 + 찐한 회색 글자(테마 무관 고대비)
     <div style={{ background: '#ede9fe', color: '#374151', borderBottom: '1px solid #c4b5fd', padding: '7px 16px', fontSize: 12.5, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
       <span style={{ color: '#374151' }}>🚀 플랫폼 성장 컨텍스트(platform_growth) — 지금 보는 모든 메뉴는 GeniegoROI 플랫폼 자체 데이터입니다</span>
       <button onClick={off} style={{ background: '#7c3aed', border: 'none', color: '#fff', borderRadius: 6, padding: '3px 12px', fontWeight: 800, cursor: 'pointer', fontSize: 12 }}>끄기(내 계정으로)</button>
