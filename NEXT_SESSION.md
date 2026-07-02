@@ -3377,3 +3377,38 @@ i18n 15국 70키 acorn splice(신규 ns freshness/pwa/cro+기존 email/attrData/
 - micro-gap(CRM −3.9 등)=전문기업 수년 niche 깊이·통합 폐루프(+22)로 상쇄. 추가 심화 시 여정 분기 더 깊게·딜리버러빌리티 DNS·BI 시맨틱 거버넌스 확대.
 
 (★본 인계서 = 사용자 명시 승인. 자격증명 평문노출 0. master 머지·push 완료. feat/n236-admin-growth-automation + master.)
+
+---
+
+# 259차 — 전수 재정밀감사 5라운드(동기화·산출·스키마대조) + 프로필/가독성 (브랜치 feat/n236-admin-growth-automation, master 미접촉)
+
+세션 전체 = 사용자 반복 지시 "모든 메뉴/기능 단 한개도 놓치지 말고 초정밀 분석·검수 + 동기화/산출 정확성 + 초고도화". FP 레지스트리+구현이력+직전 수정 주입한 병렬 감사 → **모든 발견 PM(main) 직접 라이브 DB/코드 재증명 후만 확정**. 오탐0·회귀0·오염0(운영 목데이터 금지 철칙). 운영+데모 동반 배포·라이브검증·push 전건 완료. 상세 = 메모리 `reference_audit_false_positives.md`(259차 3R/4R/5R 등재).
+
+## ✅ 완료·배포·push (커밋: d1b2054·7507adc·db02ac3·94f34e5·288ef72·fb207cb 등)
+- **프로필/UX**: 자동로그아웃 유휴시간 설정 UI(AuthContext autoLogoutMin 기존엔진·UI만 누락→프로필모달 세션탭 통합, Off/15/30/60/120분·idle타이머 동작검증)·프로필버튼 "나의 프로필 관리" 15국·플랫폼성장 배너 흰글자 가독성(#374151 고대비).
+- **산출/집행 HIGH**: ①AdAdapters 전환업로드(Meta CAPI/Google/TikTok) — channel_orders에 없는 `order_id`·`currency` 참조→쿼리 무음실패로 **전환 항상0건**이던 것 `channel_order_id AS order_id`+KRW상수 교정(라이브 DB 실증) ②DashChannelKPI conversions=rev/45000 하드코딩→실 rollup(live.conversions/convRate) 배선.
+- **스키마 무음실패(php-l 미검출·라이브 SHOW COLUMNS 재증명)**: ①EventNorm — normalized_activity_event의 vendor/channel이 Db.php CREATE 인코딩손상 주석에 흡수돼 미생성→정규화 엔진 전면 사망. Db.php migrate 멱등ALTER+양DB 직접ALTER ②ClaudeAI created_at 부재→AI 커머스컨텍스트 누락, ordered_at 교정 ③ModelMonitor ml_* SQLite전용DDL→MySQL거부, 드라이버무관+VARCHAR·양DB 생성검증.
+- **동기화**: 크로스탭 하트비트 죽은발신자 5건(PnLDashboard/Approvals/PerformanceHub/DataProduct/Writeback bcRef.current 미할당) 배선 + PlanPricing 메뉴권한 크로스탭 채널명 불일치(raw→tChannelName).
+- **하드코딩 파생지표 게이트(운영 목데금지)**: AdStatusAnalysis reach·PerformanceHub carts/logistics·CatalogSync 예약/안전재고·OrderHub 관세·DashMarketing fbReach — 전부 IS_DEMO 게이트.
+- **보안 하드닝**: UserAdmin 권한상승 차단·SystemMetrics 무인증 정보노출·Alerting 익명폴백·크리에이터 계좌 at-rest 암호화(직전 R2/R3).
+- **CLEAN 재확인**: 커넥터/커머스 60+테이블 스키마대조·가짜버튼 34페이지+20컴포넌트·머니 SSOT·통화 fxToKrw·취소제외 형제대칭·markov/MCMC/Shapley.
+
+## ★ 미완(다음 차수 최우선) — 서버 레이트리밋으로 이번 회차 미완
+1. **[P1] routes.php 전 엔드포인트 존재검증** — 프론트 apiClient 호출 경로가 routes.php에 실제 등록됐는지 전수 대조 + FastRoute static/variable shadow 충돌(2세그 static이 2세그 variable에 가려짐, 259차 brand-assets서 재현) 재점검. 고신호 스팟체크(이중파싱·/v접두·bypass)만 완료, 전수 미완.
+2. **[P1] 미영속(persistence)·크래시 전수감사** — 설정/규칙/데이터가 로컬 state만이고 새로고침 소실되는지(백엔드/localStorage 미저장) + 빈데이터 .map/.toFixed/[0]/charAt·조건부훅 크래시 전수. 담당 에이전트 레이트리밋 중단으로 최종산출 없음(미보고).
+3. **[P2] 스키마-컬럼 대조 잔여 핸들러** — 마케팅광고·커넥터커머스군은 완료(CLEAN+3결함수정). admin/report/team/wms 계열 핸들러 대조는 부분(레이트리밋 포크 다수 실패). `_live_schema.txt`(라이브 218테이블 정본) 재사용 권장.
+4. **[P2] 헤드리스 라이브검증 심화** — 프로필 자동로그아웃 실동작·전환업로드 실제 cron 적재·EventNorm 정규화 재가동 e2e(반복 로그인 레이트리밋으로 이번 회차 코드/DB검증까지만).
+
+## ★ 트랩(259차 신규)
+- **channel_orders 스키마 오용 클래스(치명)**: 실컬럼=id/tenant_id/channel/**channel_order_id**/order_no/.../total_price/status/qty/ordered_at/event_type/raw_json/synced_at. **order_id·currency·quantity·amount·created_at 없음**. 쿼리 시 channel_order_id 사용·통화는 total_price=KRW정규화(FP-2). try/catch가 삼켜 php-l·빌드로 안 잡힘 → 스키마 대조 필수.
+- **`_live_schema.txt` = UTF-16**(PowerShell 출력) → Bash grep 불가, Read/에이전트만 디코딩. information_schema로 재생성 시 인코딩 주의.
+- **PowerShell 인용 소실**: native exe(mysql/curl)에 `(...)`·`\n`·내부 따옴표 전달 시 소실/파스에러 → 반드시 bash 스크립트 파일로 작성→pscp 업로드→plink 실행.
+- **PowerShell `Remove-Item`+특수경로 차단**·`"C:\Program"` 리터럴 차단 → `Join-Path $env:ProgramFiles`.
+- **에이전트 대량 병렬=레이트리밋**("Server is temporarily limiting requests") → 2~3개씩·포크 최소화. 결정적 작업(스키마대조)은 라이브 DB 덤프 후 직접 수행이 더 안정적.
+- **MySQL DDL 트랩**(재확인): TEXT DEFAULT·`INTEGER PRIMARY KEY AUTOINCREMENT` 거부 → VARCHAR+드라이버무관 `BIGINT AUTO_INCREMENT PRIMARY KEY`.
+
+## 배포/브랜치
+- 운영 roi.genie-go.com + 데모 roidemo.genie-go.com **동반 배포**(content-hash 델타·index.html swap·chown www:www·fpm reload). 라이브 DB 반영(양DB ALTER/CREATE). **master 미접촉**(feat/n236만 push, origin 최신 fb207cb794a).
+- php-l 전건 통과·라이브 SHOW COLUMNS/쿼리 무오류·home/demo 200 검증.
+
+(★본 인계서 = 사용자 명시 승인. 자격증명 평문노출 0. master 미접촉·feat/n236-admin-growth-automation push 완료.)
