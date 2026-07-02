@@ -452,6 +452,7 @@ export default function Approvals() {
   useEffect(() => {
     if (typeof BroadcastChannel === 'undefined') return;
     const ch1 = new BroadcastChannel(tChannelName('genie_approval_sync'));
+    bcRef.current = ch1; // [259차] 크로스탭 하트비트/알림 발신 채널 배선(과거 bcRef 미할당→decision_made 등 postMessage 영구 no-op)
     const ch2 = new BroadcastChannel(tChannelName('genie_connector_sync'));
     const ch3 = new BroadcastChannel(tChannelName('genie_product_sync'));
     const handler = () => setSyncTick(p => p + 1);
@@ -463,7 +464,7 @@ export default function Approvals() {
     };
     ch2.onmessage = (e) => { if (['CHANNEL_REGISTERED','CHANNEL_REMOVED'].includes(e.data?.type)) handler(); };
     ch3.onmessage = handler;
-    return () => { ch1.close(); ch2.close(); ch3.close(); };
+    return () => { ch1.close(); ch2.close(); ch3.close(); bcRef.current = null; };
   }, []);
   useEffect(() => {
     const id = setInterval(() => { setSyncTick(p => p + 1); try { bcRef.current?.postMessage({ type: 'APPROVAL_UPDATE', ts: Date.now() }); } catch {} }, 30000);
