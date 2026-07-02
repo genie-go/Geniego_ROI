@@ -827,7 +827,7 @@ HTML;
             $wh = self::nDec($c['generic_webhook'] ?? '');
             if ($wh !== '') self::sendWebhook($wh, ['event' => 'alert', 'severity' => $severity, 'title' => $title, 'message' => $message, 'fields' => $fields, 'ts' => gmdate('c')], self::nDec($c['webhook_secret'] ?? ''));
             $email = (string)($c['email_to'] ?? '');
-            if ($email !== '') { try { \Genie\Handlers\Mailer::send($email, "[Geniego-ROI] {$title}", '<pre style="font:14px monospace">' . htmlspecialchars($text) . '</pre>', ['tenant' => $tenant]); } catch (\Throwable $e) {} }
+            if ($email !== '') { try { \Genie\Mailer::send($email, "[Geniego-ROI] {$title}", '<pre style="font:14px monospace">' . htmlspecialchars($text) . '</pre>', ['tenant' => $tenant]); } catch (\Throwable $e) {} } // [259차] \Genie\Handlers\Mailer(부재 클래스)→\Genie\Mailer 정정(:711과 정합·이메일 알림 무음 no-op+가짜성공 해소)
         } catch (\Throwable $e) { error_log('[alert pushEvent] ' . $e->getMessage()); }
     }
 

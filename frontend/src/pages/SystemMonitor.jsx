@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useI18n } from "../i18n";
-import { getJson } from "../services/apiClient.js";
+import { getJson, getJsonAuth } from "../services/apiClient.js";
 
 import { useT } from '../i18n/index.js';
 
@@ -209,7 +209,7 @@ export default function SystemMonitor() {
     // 192차: /v424/system/metrics 실측 데이터 로드(가상/목 데이터 제거)
     const load = useCallback(async () => {
         try {
-            const d = await getJson("/v424/system/metrics");
+            const d = await getJsonAuth("/v424/system/metrics"); // [259차] 세션 인증 전송(민감 플랫폼 정보는 인증 시에만)
             const mods = Array.isArray(d?.modules) ? d.modules : [];
             setServices(mods.map(mapModuleToService));
             setSummary(d?.summary || null);

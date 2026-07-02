@@ -838,7 +838,7 @@ return(
 export default function SupplyChain(){
 const{t}=useI18n();
 const{fmt}=useCurrency();
-const{addAlert}=typeof window!=='undefined'?(() => { try{const m=require('../context/GlobalDataContext.jsx');return m.useGlobalData();}catch{return{addAlert:null};}})():{addAlert:null};
+const{addAlert}=useGlobalData(); // [259차] require()는 Vite ESM 번들서 미정의→항상 catch→addAlert:null(보안알림 영구 무력화)였음. 정식 import 훅 사용(L10).
 const[tab,setTab]=useState('timeline');
 const tr=useTr();
 

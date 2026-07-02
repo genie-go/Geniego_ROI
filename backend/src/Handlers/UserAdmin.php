@@ -38,15 +38,41 @@ final class UserAdmin
         if (!$token) return null;
 
         $pdo = Db::pdo();
-        $stmt = $pdo->prepare(
-            "SELECT u.id, u.email, u.name, COALESCE(u.plans, u.plan, 'pro' /*replaced demo*/) as plan
-               FROM user_session s
-               JOIN app_user u ON u.id = s.user_id
-              WHERE s.token = ? AND s.expires_at > ? AND u.is_active = 1
-                AND (u.plan = 'admin' OR u.plans = 'admin')"
-        );
-        $stmt->execute([$token, self::now()]);
+        // [259차] admin_level 을 함께 조회 — 최고관리자(master)/하위관리자(sub) 구분에 사용(권한상승 차단).
+        //   admin_level 컬럼 미존재 스키마 폴백: 컬럼 없이 재시도(값은 null=master 취급).
+        try {
+            $stmt = $pdo->prepare(
+                "SELECT u.id, u.email, u.name, u.admin_level, COALESCE(u.plans, u.plan, 'pro' /*replaced demo*/) as plan
+                   FROM user_session s
+                   JOIN app_user u ON u.id = s.user_id
+                  WHERE s.token = ? AND s.expires_at > ? AND u.is_active = 1
+                    AND (u.plan = 'admin' OR u.plans = 'admin')"
+            );
+            $stmt->execute([$token, self::now()]);
+        } catch (\Throwable $e) {
+            $stmt = $pdo->prepare(
+                "SELECT u.id, u.email, u.name, COALESCE(u.plans, u.plan, 'pro') as plan
+                   FROM user_session s JOIN app_user u ON u.id = s.user_id
+                  WHERE s.token = ? AND s.expires_at > ? AND u.is_active = 1
+                    AND (u.plan = 'admin' OR u.plans = 'admin')"
+            );
+            $stmt->execute([$token, self::now()]);
+        }
         return $stmt->fetch(\PDO::FETCH_ASSOC) ?: null;
+    }
+
+    /** 최고관리자(master) 여부 — admin_level 이 'sub' 가 아니면 master(기존 NULL 계정 = master 하위호환). */
+    private static function isMaster(array $admin): bool
+    {
+        return (string)($admin['admin_level'] ?? '') !== 'sub';
+    }
+
+    /** 최고관리자 전용 게이트 — 하위관리자(sub)의 admin 발급·권한상승·대행·비번재설정 차단(259차 권한상승 수정). */
+    private static function requireMasterAdmin(ServerRequestInterface $req): ?array
+    {
+        $admin = self::requireAdmin($req);
+        if (!$admin || !self::isMaster($admin)) return null;
+        return $admin;
     }
 
     /** 공통 필터: plan/status/검색어 */
@@ -242,6 +268,11 @@ final class UserAdmin
         if (!in_array($plan, $validPlans, true)) {
             return self::json($res, ['ok' => false, 'error' => 'Invalid plan. Valid: ' . implode(', ', $validPlans)], 422);
         }
+        // [259차 권한상승 차단] 'admin' 부여는 최고관리자(master) 전용 — 하위관리자(sub)가 임의 회원을
+        //   plan='admin'(로그인 시 admin_level=NULL→master 해석)으로 승격해 최고관리자를 신설하던 경로 차단.
+        if ($plan === 'admin' && !self::isMaster($admin)) {
+            return self::json($res, ['ok' => false, 'error' => 'Only master admin can grant admin plan'], 403);
+        }
         // 무료 부여 기간(개월). 0/미지정 = 무기한(평생 무료). free/demo/admin 은 만료 개념 없음.
         $months = max(0, min(120, (int)($body['months'] ?? 0)));
         $isPaidPlan = in_array($plan, ['starter', 'growth', 'pro', 'enterprise'], true);
@@ -278,6 +309,12 @@ final class UserAdmin
             // subscription_* 컬럼 미존재 스키마 폴백 — plan/plans 만이라도 갱신
             try { $pdo->prepare("UPDATE app_user SET plan = ?, plans = ? WHERE id = ?")->execute([$plan, $plan, $id]); }
             catch (\Throwable $e2) { $pdo->prepare("UPDATE app_user SET plan = ? WHERE id = ?")->execute([$plan, $id]); }
+        }
+
+        // [259차 권한상승 차단] 비-admin → admin 신규 승격 시 admin_level='sub' 강제(로그인 NULL→master 자동승격 방지).
+        //   기존 admin(master/sub) 은 admin_level 미변경(이미 admin 이던 최고관리자 보존). 컬럼 미존재 스키마는 무시.
+        if ($plan === 'admin' && $oldPlan !== 'admin') {
+            try { $pdo->prepare("UPDATE app_user SET admin_level='sub' WHERE id = ?")->execute([$id]); } catch (\Throwable $e) {}
         }
 
         $grantDesc = $isPaidPlan ? (' (무료부여 ' . ($months > 0 ? "{$months}개월" : '무기한') . ')') : '';
@@ -337,6 +374,14 @@ final class UserAdmin
         }
 
         $pdo = Db::pdo();
+        // [259차 권한상승 차단] 관리자 계정의 비밀번호 재설정은 최고관리자(master) 전용 — 하위관리자가 타 관리자
+        //   비밀번호를 바꿔 계정을 탈취(로그인)하던 lateral 경로 차단.
+        $tgt = $pdo->prepare("SELECT plan, plans FROM app_user WHERE id = ?");
+        $tgt->execute([$id]);
+        $tu = $tgt->fetch(\PDO::FETCH_ASSOC) ?: [];
+        if ((($tu['plan'] ?? '') === 'admin' || ($tu['plans'] ?? '') === 'admin') && !self::isMaster($admin)) {
+            return self::json($res, ['ok' => false, 'error' => 'Only master admin can reset an admin account password'], 403);
+        }
         $pdo->prepare("UPDATE app_user SET password_hash = ? WHERE id = ?")
             ->execute([password_hash($newPw, PASSWORD_DEFAULT), $id]);
 
@@ -374,6 +419,12 @@ final class UserAdmin
         $validPlans = ['pro' /*replaced demo*/, 'starter', 'pro', 'enterprise', 'admin'];
         if (!in_array($plan, $validPlans, true)) $plan = 'pro' /*replaced demo*/;
 
+        // [259차 권한상승 차단] admin 계정 생성은 최고관리자(master) 전용 — 하위관리자가 admin_level 미설정(→NULL=master)
+        //   신규 admin 을 발급해 최고관리자를 신설하던 경로 차단.
+        if ($plan === 'admin' && !self::isMaster($admin)) {
+            return self::json($res, ['ok' => false, 'error' => 'Only master admin can create admin accounts'], 403);
+        }
+
         $pdo = Db::pdo();
 
         // Check duplicate
@@ -390,6 +441,10 @@ final class UserAdmin
         )->execute([$email, password_hash($password, PASSWORD_DEFAULT), $name, $plan, $company ?: null, $now]);
 
         $userId = (int)$pdo->lastInsertId();
+        // [259차] 생성된 admin 은 admin_level='sub' 강제(로그인 NULL→master 자동승격 방지·최고관리자는 DB 직접설정).
+        if ($plan === 'admin' && $userId > 0) {
+            try { $pdo->prepare("UPDATE app_user SET admin_level='sub' WHERE id = ?")->execute([$userId]); } catch (\Throwable $e) {}
+        }
         self::auditLog($admin, "create_user", "user#{$userId} {$email} plan={$plan}");
 
         return self::json($res, ['ok' => true, 'user_id' => $userId, 'plan' => $plan], 201);

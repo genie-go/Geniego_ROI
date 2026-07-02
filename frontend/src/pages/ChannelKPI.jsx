@@ -262,7 +262,7 @@ function SnsKpiTab({ globalChannels }) {
                         <span style={{ fontWeight: 800, color: d.color }}>{d.ch}</span>
                         <span style={{ color: C.blue }}>{(d.reach / 1000000).toFixed(1)}M</span>
                         <span style={{ color: C.green }}>{(d.engagement / 1000).toFixed(0)}K</span>
-                        <span style={{ color: C.orange, fontWeight: 800 }}>{d.ctr}%</span>
+                        <span style={{ color: C.orange, fontWeight: 800 }}>{(d.ctr || 0).toFixed(1)}%</span>
                         <span style={{ color: C.red }}>{(d.videoViews / 1000000).toFixed(1)}M</span>
                     </div>
                 ))}

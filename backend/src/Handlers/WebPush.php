@@ -52,7 +52,7 @@ final class WebPush
     }
 
     private static function vapidPublicKey(PDO $pdo): string { return (string)(getenv('VAPID_PUBLIC_KEY') ?: self::setting($pdo, 'webpush_vapid_public')); }
-    private static function vapidPrivateKey(PDO $pdo): string { return (string)(getenv('VAPID_PRIVATE_KEY') ?: self::setting($pdo, 'webpush_vapid_private')); }
+    private static function vapidPrivateKey(PDO $pdo): string { $env = (string)getenv('VAPID_PRIVATE_KEY'); if ($env !== '') return $env; $s = self::setting($pdo, 'webpush_vapid_private'); return $s !== '' ? (string)\Genie\Crypto::decrypt($s) : ''; } // [259차] at-rest 복호화(평문 passthrough 하위호환)
     private static function vapidSubject(PDO $pdo): string { $s = (string)(getenv('VAPID_SUBJECT') ?: self::setting($pdo, 'webpush_vapid_subject')); return $s !== '' ? $s : 'mailto:admin@genie-go.com'; }
 
     /** [공개] GET /v426/push/vapid-key — 구독용 VAPID 공개키(미설정 시 enabled=false). */
@@ -116,6 +116,7 @@ final class WebPush
             foreach (['webpush_vapid_public' => 'public', 'webpush_vapid_private' => 'private', 'webpush_vapid_subject' => 'subject'] as $skey => $bk) {
                 if (!array_key_exists($bk, $b)) continue;
                 $v = (string)$b[$bk];
+                if ($skey === 'webpush_vapid_private' && $v !== '') $v = \Genie\Crypto::encrypt($v); // [259차] VAPID 개인키 at-rest 암호화(SMTP/AI/SSO 등 형제 시크릿 정합)
                 $u = $pdo->prepare("UPDATE app_setting SET svalue=?, updated_at=? WHERE skey=?");
                 $u->execute([$v, gmdate('c'), $skey]);
                 if ($u->rowCount() === 0) $pdo->prepare("INSERT INTO app_setting(skey,svalue,updated_at) VALUES(?,?,?)")->execute([$skey, $v, gmdate('c')]);

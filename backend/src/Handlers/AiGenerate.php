@@ -153,8 +153,9 @@ final class AiGenerate
         $discount = trim((string)($body['discount'] ?? ''));
         $lang     = trim((string)($body['lang'] ?? 'ko'));
 
-        // 데모 모드: 미리 정의된 샘플 반환
-        if (false /*was demo*/) {
+        // [259차] generateSegment(257차) 게이트 정책 완결 — 데모=샘플 경험 유지, 운영=정직 응답(AI 미설정 시 가짜 카피 미노출).
+        $isDemo = ($tenant === 'demo' || str_starts_with($tenant, 'demo'));
+        if ($isDemo) {
             $samples = self::demoEmailSamples($product, $goal, $discount, $lang);
             return TemplateResponder::respond($res, ['ok' => true, 'plan' => 'demo', 'result' => $samples]);
         }
@@ -165,8 +166,7 @@ final class AiGenerate
         $cfg = $s->fetch(PDO::FETCH_ASSOC);
 
         if (!$cfg) {
-            // API 키 없으면 데모 샘플 반환
-            return TemplateResponder::respond($res, ['ok' => true, 'plan' => 'fallback', 'result' => self::demoEmailSamples($product, $goal, $discount, $lang)]);
+            return TemplateResponder::respond($res, ['ok' => false, 'plan' => 'unconfigured', 'error' => 'ai_not_configured', 'message' => 'AI 자격증명을 등록하면 이메일 카피를 자동 생성합니다.', 'result' => null]);
         }
 
         $prompt = self::buildEmailPrompt($product, $audience, $goal, $tone, $discount, $lang);
@@ -230,20 +230,22 @@ final class AiGenerate
         $platform = trim((string)($body['platform'] ?? 'meta'));
         $goal     = trim((string)($body['goal'] ?? '브랜드 인지도'));
 
-        if (false /*was demo*/) {
+        // [259차] 데모=샘플, 운영=정직(AI 미설정/파싱실패 시 날조 소셜프루프 카피 미노출·성공 마스킹 제거).
+        $isDemo = ($tenant === 'demo' || str_starts_with($tenant, 'demo'));
+        if ($isDemo) {
             return TemplateResponder::respond($res, ['ok' => true, 'plan' => 'demo', 'result' => self::demoAdCopySamples($product, $platform)]);
         }
 
         $s = $pdo->prepare("SELECT api_key,model FROM ai_settings WHERE tenant_id=? AND is_active=1");
         $s->execute([$tenant]);
         $cfg = $s->fetch(PDO::FETCH_ASSOC);
-        if (!$cfg) return TemplateResponder::respond($res, ['ok' => true, 'plan' => 'fallback', 'result' => self::demoAdCopySamples($product, $platform)]);
+        if (!$cfg) return TemplateResponder::respond($res, ['ok' => false, 'plan' => 'unconfigured', 'error' => 'ai_not_configured', 'message' => 'AI 자격증명을 등록하면 광고 카피를 자동 생성합니다.', 'result' => null]);
 
         $prompt = "당신은 광고 카피라이터입니다. {$platform} 플랫폼용 {$product} 광고 카피를 3가지 버전으로 작성하세요. 목표: {$goal}. JSON 배열로만 응답: [{\"headline\":\"...\",\"body\":\"...\",\"cta\":\"...\"}]";
         $result = self::callClaude(\Genie\Crypto::decrypt((string)$cfg['api_key']), $cfg['model'] ?? self::DEFAULT_MODEL, $prompt);
         $parsed = $result['ok'] ? json_decode((string)$result['content'], true) : null;
 
-        return TemplateResponder::respond($res, ['ok' => true, 'result' => $parsed ?? self::demoAdCopySamples($product, $platform)]);
+        return TemplateResponder::respond($res, ['ok' => ($result['ok'] && $parsed !== null), 'result' => $parsed ?: null, 'error' => $parsed !== null ? null : 'ai_generation_failed']);
     }
 
     // ── Claude API 호출 ─────────────────────────────────────────────────────

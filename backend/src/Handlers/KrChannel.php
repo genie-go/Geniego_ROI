@@ -160,6 +160,18 @@ final class KrChannel {
              VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
         );
 
+        // [259차 P1 머니] 멱등성 확보 — 정산 파일 재업로드/부분실패 재시도 시 동일 정산행 이중적재로
+        //   Rollup 순이익(SUM(platform_fee+...)) 과소되던 것 차단. 배치에 포함된 settlement_id(정산문서) 단위로
+        //   이전 적재분을 선삭제 후 재삽입(=재업로드는 해당 정산의 전체 교체). 배치 내 라인은 삭제 후 신규삽입이라 자기삭제 없음.
+        $sids = array_values(array_unique(array_filter(array_map(
+            fn($l) => ((array)$l)['settlement_id'] ?? null, $lines
+        ), fn($x) => $x !== null && $x !== '')));
+        if ($sids) {
+            $ph = implode(',', array_fill(0, count($sids), '?'));
+            $pdo->prepare("DELETE FROM kr_settlement_line WHERE tenant_id=? AND channel_key=? AND settlement_id IN ($ph)")
+                ->execute(array_merge([$tenant, $key], $sids));
+        }
+
         $now  = gmdate('c');
         $count = 0;
         foreach ($lines as $line) {

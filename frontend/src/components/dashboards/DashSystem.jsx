@@ -3,7 +3,7 @@ import { useI18n } from '../../i18n';
 import { useGlobalData } from '../../context/GlobalDataContext.jsx';
 import { useSecurityGuard, getSecurityAlerts } from '../../security/SecurityGuard.js';
 // LineChart/fmt 제거 (실측 시계열 데이터 미공급 → EmptyState 노출 중)
-import { getJson } from '../../services/apiClient.js';
+import { getJson, getJsonAuth } from '../../services/apiClient.js';
 
 // ══════════════════════════════════════════════════════════════════════
 //  🖥️ DashSystem — System Status (176차 ZERO-MOCK REWRITE)
@@ -443,7 +443,7 @@ export default function DashSystem() {
     let mounted = true;
     const fetchMetrics = async () => {
       try {
-        const data = await getJson('/v424/system/metrics');
+        const data = await getJsonAuth('/v424/system/metrics'); // [259차] 세션 인증 전송(민감 플랫폼 정보는 인증 시에만)
         if (!mounted) return;
         if (data && Array.isArray(data.modules)) {
           setMetricsState({ loading: false, error: null, modules: data.modules, summary: data.summary || null, fetchedAt: data.timestamp || new Date().toISOString() });

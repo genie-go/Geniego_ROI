@@ -388,6 +388,16 @@ const SettlementTab = memo(function SettlementTab() {
     }), [toBase, channels]);
 
     const netRate = useMemo(() => totals.grossSales ? totals.netPayout / totals.grossSales : 0, [totals]);
+    // [259차] 아래 두 useMemo 는 이른 반환(빈 정산상태) 앞으로 이동 — 운영에서 정산 데이터가 []→도착 전이 시
+    //   훅 개수가 렌더 간 달라져 "Rendered more hooks than previous render" 크래시가 나던 조건부 훅 위반 수정.
+    const totalDeductions = useMemo(() => totals.platformFee + totals.adFee + totals.paymentFee + totals.refund, [totals]);
+    // Deduction breakdown for pie-style display
+    const deductions = useMemo(() => [
+        { label: t('performance.deductPlatformFee'), value: totals.platformFee, color: "#ef4444" },
+        { label: t('performance.deductAdSpend'), value: totals.adFee, color: "#f97316" },
+        { label: t('performance.deductPaymentFee'), value: totals.paymentFee, color: "#eab308" },
+        { label: t('performance.deductRefund'), value: totals.refund, color: "#a855f7" },
+    ], [t, totals]);
 
     // 운영에서 실 정산 데이터가 없으면 정직한 빈 상태(가짜 수치 금지)
     if (!IS_DEMO && !channels.length) {
@@ -399,15 +409,6 @@ const SettlementTab = memo(function SettlementTab() {
             </div>
         );
     }
-    const totalDeductions = useMemo(() => totals.platformFee + totals.adFee + totals.paymentFee + totals.refund, [totals]);
-
-    // Deduction breakdown for pie-style display
-    const deductions = useMemo(() => [
-        { label: t('performance.deductPlatformFee'), value: totals.platformFee, color: "#ef4444" },
-        { label: t('performance.deductAdSpend'), value: totals.adFee, color: "#f97316" },
-        { label: t('performance.deductPaymentFee'), value: totals.paymentFee, color: "#eab308" },
-        { label: t('performance.deductRefund'), value: totals.refund, color: "#a855f7" },
-    ], [t, totals]);
 
     return (
         <div style={{ display: "grid", gap: 18 }}>
@@ -620,7 +621,7 @@ const CreatorTab = memo(function CreatorTab() {
                 {CREATORS.map(c => {
                     const dl = daysLeft(c.rightsExpiry);
                     const expired = c.status === "expired" || dl < 0;
-                    const roi = c.revenue / c.contractRate;
+                    const roi = c.contractRate ? c.revenue / c.contractRate : 0; // [259차] 계약료 0 시 Infinity("Infinityx") 표시 방지
                     const tax = Math.round(c.contractRate * 0.033);
                     const net = c.contractRate - tax;
 

@@ -31,9 +31,25 @@ use Throwable;
  */
 final class SystemMetrics
 {
+    /** [259차 보안] 세션 인증 여부 — 무인증 공개 호출에 민감 플랫폼 정보(회원수·DB버전·cron·raw예외) 노출 차단용.
+     *   엔드포인트는 index.php public bypass 라 미들웨어 auth 가 없으므로 핸들러가 직접 세션 토큰을 검증. */
+    private static function isAuthed(Request $request): bool
+    {
+        try {
+            $h = $request->getHeaderLine('Authorization');
+            $token = preg_match('/^Bearer\s+(.+)$/i', $h, $m) ? trim($m[1]) : trim((string)($request->getQueryParams()['token'] ?? ''));
+            if ($token === '') return false;
+            $pdo = Db::pdo();
+            $st = $pdo->prepare("SELECT 1 FROM user_session WHERE token=? AND expires_at>? LIMIT 1");
+            $st->execute([$token, gmdate('Y-m-d\TH:i:s\Z')]);
+            return (bool)$st->fetchColumn();
+        } catch (\Throwable $e) { return false; }
+    }
+
     public static function metrics(Request $request, Response $response, array $args): Response
     {
         $start = microtime(true);
+        $authed = self::isAuthed($request);
 
         $modules = [
             self::probeDatabase(),
@@ -72,6 +88,20 @@ final class SystemMetrics
                 'error_rate' => $errN > 0 ? round($errAccum / $errN, 3) : null,
             ],
         ];
+
+        // [259차 보안] 무인증 공개 호출에는 민감 플랫폼/인프라 정보 편집(회원·테넌트 수·DB server_version·raw 예외·cron 상세).
+        //   운영 상태(가동/지연/디스크%)는 그대로 노출. 인증(관리자 대시보드 getJsonAuth)은 전체.
+        if (!$authed) {
+            foreach ($payload['modules'] as &$mm) {
+                $mid = $mm['id'] ?? '';
+                if ($mid === 'db' && isset($mm['detail']) && is_array($mm['detail'])) {
+                    unset($mm['detail']['server_version'], $mm['detail']['error']);
+                }
+                if ($mid === 'tenants') { $mm['detail'] = ['restricted' => true]; }
+            }
+            unset($mm);
+            $payload['cron'] = ['restricted' => true];
+        }
 
         // record this request to APCu rolling counter (best-effort)
         self::recordRequest('system_metrics', (float)$payload['response_time_ms'], $payload['summary']['ok_count'] === count($modules));

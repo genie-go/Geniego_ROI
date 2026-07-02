@@ -383,6 +383,9 @@ class KakaoChannel
             $cs->execute([$tenant]);
             $cfg = $cs->fetch(\PDO::FETCH_ASSOC) ?: [];
         } catch (\Throwable $e) { $cfg = []; }
+        // [259차] sendCampaign(258)·testSend 과 동일 secret-at-rest 복호화. 누락 시 암호문을 그대로 카카오 API 인증헤더에 전송해
+        //   저니빌더 kakao 노드·옴니채널 워터폴 kakao 스텝의 라이브 알림톡이 유효 자격증명이 있어도 100% 인증실패(code!=0000)였음.
+        if ($cfg) { foreach (['sender_key','api_key'] as $sk) { if (!empty($cfg[$sk])) $cfg[$sk] = \Genie\Crypto::decrypt((string)$cfg[$sk]); } }
         $mode = $cfg['mode'] ?? 'mock';
         if ($mode === 'live' && !empty($cfg['sender_key'])) {
             $r = self::callKakaoAPI($cfg, $phone, $tplCode, $content, $buttons);

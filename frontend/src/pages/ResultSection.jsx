@@ -257,27 +257,32 @@ function ResultSection(props) {
                         )}
                     </div>
 
-                    {/* 타임라인 Tab */}
-                    {activeTab === 'timeline' && (result.timeline || []).length > 0 && (
-                        <div className="card card-glass" style={{ padding: 20 }}>
-                            <div style={{ fontWeight: 800, fontSize: 13, marginBottom: 14 }}>📅 {t('gAiRec.adCampaignTimeline')}</div>
-                            {result.timeline.map((t, i) => (
-                                <div key={i} style={{ display: 'flex', gap: 12, padding: '10px 0', borderBottom: '1px solid var(--border)', alignItems: 'flex-start' }}>
-                                    <div style={{ width: 72, fontSize: 10, color: '#6366f1', fontWeight: 800, flexShrink: 0 }}>{t.phase}</div>
-                                    <div style={{ flex: 1 }}>
-                                        <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 3 }}>{t.title}</div>
-                                        <div style={{ fontSize: 10, color: 'var(--text-3)', lineHeight: 1.55 }}>{t.detail}</div>
-                                    </div>
-                                </div>
-                            ))}
-                            {result.immediate_action && (
-                                <div style={{ marginTop: 14, padding: '10px 12px', borderRadius: 8, background: 'rgba(34,197,94,0.07)', border: '1px solid rgba(34,197,94,0.22)', fontSize: 11, color: '#22c55e', fontWeight: 700 }}>
-                                    ⚡ {t('gAiRec.instantRun')}: {result.immediate_action}
-                                </div>
-                            )}
-                        </div>
-                    )}
                 </div>
+            )}
+
+            {/* ── 타임라인 Tab (259차: images 블록 안에 중첩돼 activeTab==='timeline' 시 절대 렌더 불가하던 죽은 탭 → 최상위 탭 형제로 이동) ── */}
+            {activeTab === 'timeline' && (
+                (result.timeline || []).length > 0 ? (
+                    <div className="card card-glass" style={{ padding: 20 }}>
+                        <div style={{ fontWeight: 800, fontSize: 13, marginBottom: 14 }}>📅 {t('gAiRec.adCampaignTimeline')}</div>
+                        {result.timeline.map((tl, i) => (
+                            <div key={i} style={{ display: 'flex', gap: 12, padding: '10px 0', borderBottom: '1px solid var(--border)', alignItems: 'flex-start' }}>
+                                <div style={{ width: 72, fontSize: 10, color: '#6366f1', fontWeight: 800, flexShrink: 0 }}>{tl.phase}</div>
+                                <div style={{ flex: 1 }}>
+                                    <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 3 }}>{tl.title}</div>
+                                    <div style={{ fontSize: 10, color: 'var(--text-3)', lineHeight: 1.55 }}>{tl.detail}</div>
+                                </div>
+                            </div>
+                        ))}
+                        {result.immediate_action && (
+                            <div style={{ marginTop: 14, padding: '10px 12px', borderRadius: 8, background: 'rgba(34,197,94,0.07)', border: '1px solid rgba(34,197,94,0.22)', fontSize: 11, color: '#22c55e', fontWeight: 700 }}>
+                                ⚡ {t('gAiRec.instantRun')}: {result.immediate_action}
+                            </div>
+                        )}
+                    </div>
+                ) : (
+                    <div className="card card-glass" style={{ padding: 40, textAlign: 'center', color: 'var(--text-3)', fontSize: 12 }}>{t('gAiRec.adCampaignTimeline')}</div>
+                )
             )}
 
         </div>

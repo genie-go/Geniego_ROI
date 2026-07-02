@@ -453,7 +453,7 @@ function ReconTab() {
     };
 
     const patchTicket = async (id, patch) => {
-        await patchJson(`/v419/kr/recon/tickets/${id}`, patch);
+        await patchJson(`${API}/v419/kr/recon/tickets/${id}`, patch); // [259차] ${API}(/api) 접두 누락 수정(형제 recon 호출과 정합·SPA HTML 반환 방지)
         if (selReport) openReport(selReport.id);
     };
 

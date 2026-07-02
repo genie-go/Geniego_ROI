@@ -160,7 +160,8 @@ export default function ReportBuilder() {
   }, [qForm, viz, t, loadSaved]);
   const applySaved = useCallback(async (r) => {
     const c = r.config || {};
-    const form = { metrics: c.metrics || ["spend", "revenue", "roas"], dimension: c.dimension || "channel", breakdown: c.breakdown || "", period_days: c.period_days || 30 };
+    // [259차] 기본값 위에 저장 config 전체를 병합 — source(정산/커머스 등) 등 필드 누락으로 저장 리포트가 ads 로 재조회되던 것 수정.
+    const form = { metrics: ["spend", "revenue", "roas"], dimension: "channel", breakdown: "", period_days: 30, ...c };
     setQForm(form); setViz(r.viz || "table"); setQLoading(true);
     try { const d = await postJsonAuth("/api/reports/query", form); setQResult(d.ok ? d : { rows: [], columns: [], note: d.error || "오류" }); }
     catch (e) { setQResult({ rows: [], columns: [], note: String(e.message).slice(0, 80) }); }

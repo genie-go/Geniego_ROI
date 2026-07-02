@@ -111,8 +111,9 @@ function exportCsv(logs, t) {
 
 /* ── Sub-Components ─────────────────────────────────────────────────────── */
 function RiskBadge({ risk, t }) {
-  const cfg = RISK_CFG[risk] || RISK_CFG.low;
-  const label = t(`audit.risk${risk.charAt(0).toUpperCase() + risk.slice(1)}`) || risk.toUpperCase();
+  const r = risk || 'low'; // [259차] 라이브 감사로그 레코드에 risk 결측 시 charAt/slice 널참조 크래시 방지
+  const cfg = RISK_CFG[r] || RISK_CFG.low;
+  const label = t(`audit.risk${r.charAt(0).toUpperCase() + r.slice(1)}`) || r.toUpperCase();
   return (
     <span style={{
       padding: "1px 7px", borderRadius: 99, fontSize: 9, fontWeight: 800,
@@ -122,8 +123,9 @@ function RiskBadge({ risk, t }) {
 }
 
 function ActionBadge({ action, t }) {
-  const color = ACTION_COLORS[action] || "#4f8ef7";
-  const label = t(`audit.action_${action}`) || action.replace(/_/g, " ");
+  const a = action || 'unknown'; // [259차] action 결측 시 replace 널참조 크래시 방지
+  const color = ACTION_COLORS[a] || "#4f8ef7";
+  const label = t(`audit.action_${a}`) || a.replace(/_/g, " ");
   return (
     <span style={{
       padding: "2px 9px", borderRadius: 99, fontSize: 10, fontWeight: 700,

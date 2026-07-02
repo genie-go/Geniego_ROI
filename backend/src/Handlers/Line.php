@@ -207,7 +207,9 @@ final class Line
         }
         if ($msg === '') $msg = trim((string)($campaign['name'] ?? '')) ?: 'GenieGo';
         $r = self::broadcast(\Genie\Crypto::decrypt((string)$s['access_token']), $msg); // [현 차수] Low: 복호화(평문 passthrough 하위호환)
-        $pdo->prepare("UPDATE line_campaigns SET status='sent', sent_at=? WHERE id=? AND tenant_id=?")->execute([self::now(), $cid, $tenant]);
+        // [259차] 브로드캐스트 실패(토큰만료·쿼터) 시 status='sent' 확정하던 것 수정 — 실 결과로 sent/failed 분기(WhatsApp/Kakao 정합·재발송 판단 정확).
+        $st = !empty($r['ok']) ? 'sent' : 'failed';
+        $pdo->prepare("UPDATE line_campaigns SET status=?, sent_at=? WHERE id=? AND tenant_id=?")->execute([$st, self::now(), $cid, $tenant]);
         return TemplateResponder::respond($res, ['ok' => $r['ok'], 'mode' => 'live', 'error' => $r['error'] ?? null]);
     }
 

@@ -346,9 +346,9 @@ export default function DigitalShelf() {
       <div className="grid4 fade-up fade-up-2">
         {[
           { l: t('digitalShelf.kpiTracked', '추적 키워드'),  v: filtered.length + "개", s: t('digitalShelf.kpiTrackedSub', '추적 진행 중'), c: "#4f8ef7" },
-          { l: t('digitalShelf.kpiAvgOwnSos', '평균 자사 SoS'), v: `${avgBrand}%`, s: t('digitalShelf.kpiAvgOwnSosSub', '↑ 2.3%p vs 전월'), c: "#14d9b0" },
+          { l: t('digitalShelf.kpiAvgOwnSos', '평균 자사 SoS'), v: `${avgBrand}%`, s: IS_DEMO ? t('digitalShelf.kpiAvgOwnSosSub', '↑ 2.3%p vs 전월') : '', c: "#14d9b0" }, // [259차] 하드코딩 증감 운영 미노출
           { l: t('digitalShelf.kpiTop3', 'Top 3 진입'), v: `${top3Count}개`, s: t('digitalShelf.kpiTop3Sub', '전체 {{n}}개 진행 중', { n: filtered.length }), c: "#a855f7" },
-          { l: t('digitalShelf.kpiAvgCtr', '평균 CTR'), v: `${avgCtr}%`, s: t('digitalShelf.kpiAvgCtrSub', '업계 평균 2.9% 대비'), c: "#22c55e" },
+          { l: t('digitalShelf.kpiAvgCtr', '평균 CTR'), v: `${avgCtr}%`, s: IS_DEMO ? t('digitalShelf.kpiAvgCtrSub', '업계 평균 2.9% 대비') : '', c: "#22c55e" }, // [259차] 하드코딩 비교 운영 미노출
         ].map(({ l, v, s, c }, i) => (
           <div key={l} className="kpi-card card-hover fade-up" style={{ "--accent": c, animationDelay: `${i * 60}ms` }}>
             <div className="kpi-label">{l}</div>
@@ -491,8 +491,8 @@ export default function DigitalShelf() {
         <div className="section-title" style={{ marginBottom: 12 }}>📡 {t('digitalShelf.channelKwCoverage', '채널별 키워드 커버리지')}</div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10 }}>
           {CHANNELS.map(ch => {
-            const covered = KEYWORDS_INIT.filter(kw => kw.channels[ch.id]).length;
-            const top3 = KEYWORDS_INIT.filter(kw => kw.channels[ch.id] && kw.channels[ch.id].rank <= 3).length;
+            const covered = keywords.filter(kw => kw.channels[ch.id]).length; // [259차] KEYWORDS_INIT(영구 빈배열)→라이브 keywords state 참조(항상 0/ NaN% 버그 수정)
+            const top3 = keywords.filter(kw => kw.channels[ch.id] && kw.channels[ch.id].rank <= 3).length;
             return (
               <div key={ch.id} style={{ padding: "14px 16px", borderRadius: 12, background: "rgba(9,15,30,0.6)", border: `1px solid ${ch.color}22` }}>
                 <div style={{ fontWeight: 700, fontSize: 12, color: ch.color, marginBottom: 10 }}>{ch.icon} {ch.name}</div>

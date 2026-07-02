@@ -189,9 +189,10 @@ const TrendsTab = memo(function TrendsTab({ live, t, fmt }) {
                     <span style={{ color: BLUE }}>📊</span> {t('aiInsights.trendKpiTitle', 'Real-time Pulse')}
                 </div>
                 <div style={{ display: 'grid', gap: 10 }}>
-                    <KpiRow icon="💰" label={t('aiInsights.trendRevenue', 'Gross Revenue')} value={fmt(live.grossRevenue)} color={BLUE} trend={12.4} />
-                    <KpiRow icon="📈" label={t('aiInsights.blendedRoas', 'Blended ROAS')} value={(live.roas || 0).toFixed(2) + 'x'} color="#a855f7" trend={5.2} />
-                    <KpiRow icon="🔥" label={t('aiInsights.trendProfit', 'Operating Profit')} value={fmt(live.operatingProfit)} color={live.operatingProfit >= 0 ? GREEN : RED} trend={-2.1} />
+                    {/* [259차] 하드코딩 추이(▲12.4% 등)는 IS_DEMO 게이트 — 운영은 실 델타 없이 미표시(가짜증감 노출 방지, FORECAST_DATA 패턴과 동일) */}
+                    <KpiRow icon="💰" label={t('aiInsights.trendRevenue', 'Gross Revenue')} value={fmt(live.grossRevenue)} color={BLUE} trend={IS_DEMO ? 12.4 : null} />
+                    <KpiRow icon="📈" label={t('aiInsights.blendedRoas', 'Blended ROAS')} value={(live.roas || 0).toFixed(2) + 'x'} color="#a855f7" trend={IS_DEMO ? 5.2 : null} />
+                    <KpiRow icon="🔥" label={t('aiInsights.trendProfit', 'Operating Profit')} value={fmt(live.operatingProfit)} color={live.operatingProfit >= 0 ? GREEN : RED} trend={IS_DEMO ? -2.1 : null} />
                     <KpiRow icon="📣" label={t('aiInsights.trendAdSpend', 'Ad Spend')} value={fmt(live.adSpend)} color="#ea580c" />
                 </div>
             </div>

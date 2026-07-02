@@ -23,8 +23,11 @@ function MonthCalendar({year,month,events,t}){
   const weeks=getWeeksInMonth(year,month);
   const DAY_KEYS=['daySun','dayMon','dayTue','dayWed','dayThu','dayFri','daySat'];
   const DAY_COLORS=['#ef4444',null,null,null,null,null,'#4f8ef7'];
-  const toStr=d=>d.toISOString().slice(0,10);
-  const todayStr=new Date().toISOString().slice(0,10);
+  // [259차] 로컬(달력 셀=로컬 자정 Date)을 UTC로 변환하면 KST(UTC+9)에서 하루 전날로 밀려 이벤트/TODAY 오배치.
+  // 이벤트 키(e.date 원문 YYYY-MM-DD)와 정합하도록 로컬 기준 날짜문자열로 통일.
+  const pad2=n=>String(n).padStart(2,'0');
+  const toStr=d=>`${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+  const todayStr=toStr(new Date());
   const evByDate={};
   for(const e of events){const dk=e.date?.slice(0,10);if(!dk)continue;if(!evByDate[dk])evByDate[dk]=[];evByDate[dk].push(e);}
   const STATUS_COLORS={draft:"#eab308",review:"#f97316",scheduled:"#4f8ef7",published:"#22c55e",cancelled:"#ef4444"};
