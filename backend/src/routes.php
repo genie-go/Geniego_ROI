@@ -323,6 +323,13 @@ return function (App $app): void {
         'GET /v410/action_requests' => 'Genie\\Handlers\\Alerting::listActionRequests',
         'POST /v410/action_requests/{id}/decide' => 'Genie\\Handlers\\Alerting::decideAction',
         'POST /v410/action_requests/{id}/execute' => 'Genie\\Handlers\\Alerting::executeAction',
+        // [259차] 세션 호환 별칭(Approvals 프론트=getJsonAuth) — bypass+세션 자체검증. 기존 /v410(api_key) 불변.
+        'GET /v423/approvals' => 'Genie\\Handlers\\Alerting::listActionRequests',
+        'POST /v423/approvals/{id}/decide' => 'Genie\\Handlers\\Alerting::decideAction',
+        'POST /v423/approvals/{id}/execute' => 'Genie\\Handlers\\Alerting::executeAction',
+        'GET /api/v423/approvals' => 'Genie\\Handlers\\Alerting::listActionRequests',
+        'POST /api/v423/approvals/{id}/decide' => 'Genie\\Handlers\\Alerting::decideAction',
+        'POST /api/v423/approvals/{id}/execute' => 'Genie\\Handlers\\Alerting::executeAction',
         'GET /v410/audit_logs' => 'Genie\\Handlers\\Alerting::auditLogs',
         'GET /v418/actions/presets' => 'Genie\\Handlers\\Alerting::actionPresets',
         'GET /v418/alert_policies' => 'Genie\\Handlers\\Alerting::listPolicies',
@@ -3303,6 +3310,13 @@ return function (App $app): void {
     // v410 Alerting action_requests
     $register('POST', '/v410/action_requests/{id}/decide');
     $register('POST', '/v410/action_requests/{id}/execute');
+    // [259차] Approvals 세션 호환 별칭(bypass)
+    $register('GET',  '/v423/approvals');
+    $register('POST', '/v423/approvals/{id}/decide');
+    $register('POST', '/v423/approvals/{id}/execute');
+    $register('GET',  '/api/v423/approvals');
+    $register('POST', '/api/v423/approvals/{id}/decide');
+    $register('POST', '/api/v423/approvals/{id}/execute');
     // v418 / v418.1 Insights + Decisioning ingest
     $register('POST', '/v418/insights/audience-breakdowns');
     $register('POST', '/v418/insights/influencer-audience');

@@ -432,7 +432,7 @@ export default function Approvals() {
       setRequests(items);
       return;
     }
-    getJsonAuth('/api/v410/action_requests').then(d => {
+    getJsonAuth('/api/v423/approvals').then(d => {
       const rows = Array.isArray(d) ? d : (d?.requests || d?.data || []);
       setRequests(rows.map(r => {
         const p = r.payload || {};
@@ -481,7 +481,7 @@ export default function Approvals() {
     setBusy(true); setMsg('');
     const statusLabel = decision === 'approve' ? t('approvalsPage.statusApproved') : t('approvalsPage.statusRejected');
     try {
-      const r = await postJsonAuth(`/api/v410/action_requests/${id}/decide`, { decision });
+      const r = await postJsonAuth(`/api/v423/approvals/${id}/decide`, { decision });
       if (r && r.ok !== false && !r.detail) {
         addAlert?.({ type: 'success', msg: `[Approvals] #${id} ${statusLabel}` });
         setMsg(`✓ #${id} ${statusLabel}`); loadRequests();
@@ -495,7 +495,7 @@ export default function Approvals() {
     if (isDemo) { setMsg(t('approvalsPage.demoGuard')); return; }
     setBusy(true); setMsg('');
     try {
-      const r = await postJsonAuth(`/api/v410/action_requests/${id}/execute`, {});
+      const r = await postJsonAuth(`/api/v423/approvals/${id}/execute`, {});
       if (r && r.ok !== false && !r.detail) {
         addAlert?.({ type: 'success', msg: `[Approvals] #${id} ${t('approvalsPage.executeDone')}` });
         setMsg(`✓ #${id} ${t('approvalsPage.executeDone')}`); loadRequests();

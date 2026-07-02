@@ -35,10 +35,13 @@ final class Alerting {
         return $a !== '' ? $a : (string)($request->getQueryParams()['actor'] ?? 'unknown');
     }
 
-    /** 요청에서 테넌트 식별 (auth 미들웨어 속성 > 기본 demo). [227차] raw X-Tenant-Id 폴백 제거 — 헤더 위조 차단. */
+    /** 요청에서 테넌트 식별 (auth 미들웨어 속성 > 세션토큰 > 기본 demo). [227차] raw X-Tenant-Id 폴백 제거 — 헤더 위조 차단. */
     private static function tenantOf(Request $request): string {
         $t = (string)($request->getAttribute('auth_tenant') ?? '');
-        return $t !== '' ? $t : 'demo';
+        if ($t !== '') return $t;
+        // [259차] 세션 기반 프론트(getJsonAuth, /v423/approvals bypass) 지원 — 미들웨어 auth_tenant 부재 시 세션토큰으로 테넌트 도출(additive, api_key 경로 불변).
+        try { $st = UserAuth::authedTenant($request); if ($st !== null && $st !== '') return $st; } catch (\Throwable $e) {}
+        return 'demo';
     }
 
     public static function actionPresets(Request $request, Response $response, array $args): Response {
