@@ -154,10 +154,13 @@ class Influencer
         self::ensureSettlements();
         $b = (array)($req->getParsedBody() ?? []);
         $now = gmdate('c');
+        // [259차 하드닝] 계좌번호 at-rest 암호화(209차 secret-at-rest 패턴). 목록은 복호화 후 마스킹(****last4)만 노출.
+        $acct = mb_substr((string)($b['account'] ?? ''), 0, 120);
+        $acctEnc = $acct !== '' ? \Genie\Crypto::encrypt($acct) : '';
         self::pdo()->prepare("INSERT INTO creator_settlements(tenant_id,creator_id,creator_name,gross,tax,net_payout,bank,account,status,settled_at) VALUES(?,?,?,?,?,?,?,?,?,?)")
             ->execute([self::tenant($req), (string)($b['creator_id'] ?? ''), mb_substr((string)($b['creator_name'] ?? ''), 0, 255),
                 (float)($b['gross'] ?? 0), (float)($b['tax'] ?? 0), (float)($b['net_payout'] ?? 0),
-                mb_substr((string)($b['bank'] ?? ''), 0, 80), mb_substr((string)($b['account'] ?? ''), 0, 120), 'settled', $now]);
+                mb_substr((string)($b['bank'] ?? ''), 0, 80), $acctEnc, 'settled', $now]);
         return self::json($res, ['ok' => true, 'settled_at' => $now]);
     }
 
@@ -169,7 +172,7 @@ class Influencer
         $st = self::pdo()->prepare("SELECT id,creator_id,creator_name,gross,tax,net_payout,bank,account,status,settled_at FROM creator_settlements WHERE tenant_id=? ORDER BY id DESC LIMIT 200");
         $st->execute([self::tenant($req)]);
         $rows = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
-        foreach ($rows as &$r) { $a = (string)($r['account'] ?? ''); $r['account'] = $a !== '' ? ('****' . substr($a, -4)) : ''; } // 목록은 마스킹
+        foreach ($rows as &$r) { $enc = (string)($r['account'] ?? ''); $a = $enc !== '' ? (string)\Genie\Crypto::decrypt($enc) : ''; $r['account'] = $a !== '' ? ('****' . substr($a, -4)) : ''; } // 복호화 후 마스킹(평문 미노출)
         return self::json($res, ['ok' => true, 'settlements' => $rows]);
     }
 }

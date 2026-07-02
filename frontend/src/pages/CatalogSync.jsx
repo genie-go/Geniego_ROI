@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef, memo } from "react";
 import { tGet, tSet, tRemove, tChannelName } from '../utils/tenantStorage.js'; // 180차: 회원 격리
+import { IS_DEMO } from '../utils/demoEnv'; // [259차] 하드코딩 파생재고(예약/안전) 운영 미노출 게이트
 import { useGlobalData } from '../context/GlobalDataContext';
 import { useConnectorSync } from '../context/ConnectorSyncContext';
 import { useI18n } from '../i18n/index.js';
@@ -1412,7 +1413,7 @@ const ProductDetail = memo(function ProductDetail({ product: p, onClose }) {
                 {/* Inventory */}
                 <div style={{ background: "#ffffff", borderRadius: 14, border: "1px solid #e5e7eb", padding: 16, marginBottom: 14 }}>
                     <div style={{ fontWeight: 700, fontSize: 12, color: "#6b7280", marginBottom: 10 }}>{t('catalogSync.stockStatus')}</div>
-                    {[[t('catalogSync.availableStockLabel'), p.inventory, "#22c55e"], [t('catalogSync.reservedStockLabel'), Math.floor(p.inventory * 0.15), "#eab308"], [t('catalogSync.safetyStockLabel'), 20, "#4f8ef7"]].map(([l, v, c]) => (
+                    {[[t('catalogSync.availableStockLabel'), p.inventory, "#22c55e"], [t('catalogSync.reservedStockLabel'), IS_DEMO ? Math.floor(p.inventory * 0.15) : 0, "#eab308"], [t('catalogSync.safetyStockLabel'), IS_DEMO ? 20 : 0, "#4f8ef7"]].map(([l, v, c]) => (
                         <div key={l} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                             <span style={{ fontSize: 11, color: "#374151" }}>{l}</span>
                             <span style={{ fontWeight: 700, fontSize: 13, color: c, fontFamily: "monospace" }}>{v}</span>

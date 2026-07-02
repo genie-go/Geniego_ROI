@@ -163,7 +163,7 @@ const PerformanceTab = memo(function PerformanceTab() {
                 ...ch,
                 impressions: Number(s.impressions || 0),
                 clicks: Number(s.clicks || 0),
-                carts: Math.round(Number(s.clicks || 0) * 0.15),
+                carts: IS_DEMO ? Math.round(Number(s.clicks || 0) * 0.15) : 0, // [259차] 장바구니추가는 매체 summary 미보고 필드 → 운영은 하드코딩비율(0.15) 미노출(AdStatus reach와 동일 게이트)
                 orders: Number(s.conversions || 0),
                 revenue: rev,
                 adSpend: spend,
@@ -840,7 +840,7 @@ const SKUProfitTab = memo(function SKUProfitTab() {
         return Object.values(by).map(s => {
             const prod = prodBySku[s.sku] || {};
             const cog = (Number(prod.cost) || 0) * s.qty;
-            const logistics = Math.round(s.revenue * 0.05);
+            const logistics = IS_DEMO ? Math.round(s.revenue * 0.05) : 0; // [259차] 실 물류비 SSOT 부재 → 운영은 하드코딩 5% 미차감(임의숫자 금지·마진 왜곡 방지)
             const ad = Math.round(s.ad);
             const platform = Math.round(s.platform);
             const margin = s.revenue - cog - logistics - ad - platform;

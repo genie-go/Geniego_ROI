@@ -202,7 +202,7 @@ export default function AdStatusAnalysis() {
                 roas: dayRoas, 
                 cpc: dayCpc, 
                 cpm: dayCpm,
-                reach: Math.round(dayImpr * 0.72),
+                reach: isDemo ? Math.round(dayImpr * 0.72) : 0, // [259차] reach는 이 페이지 미수집 필드 → 운영은 하드코딩 비율(0.72) 미노출(형제 factors와 동일 게이트)
             });
         }
         return data;

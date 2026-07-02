@@ -41,7 +41,8 @@ final class Alerting {
         if ($t !== '') return $t;
         // [259차] 세션 기반 프론트(getJsonAuth, /v423/approvals bypass) 지원 — 미들웨어 auth_tenant 부재 시 세션토큰으로 테넌트 도출(additive, api_key 경로 불변).
         try { $st = UserAuth::authedTenant($request); if ($st !== null && $st !== '') return $st; } catch (\Throwable $e) {}
-        return 'demo';
+        // [259차 하드닝] 미인증(anon on bypass)은 비매칭 센티넬 → 공유 'demo' 테넌트 action_request 노출 차단(실테넌트는 세션으로만 도출·불변).
+        return '__anon__';
     }
 
     public static function actionPresets(Request $request, Response $response, array $args): Response {

@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { useI18n } from '../i18n';
+import { IS_DEMO } from '../utils/demoEnv'; // [259차] 하드코딩 관세(total*0.08) 운영 미노출 게이트
 import { useGlobalData } from '../context/GlobalDataContext';
 import { useAuth } from '../auth/AuthContext';
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
@@ -736,7 +737,7 @@ function IntlOrderTab() {
     const stats = {
         total: intlOrders.length,
         totalRevenue: intlOrders.reduce((s, o) => s + (o.total || 0), 0),
-        totalDuty: intlOrders.reduce((s, o) => s + ((o.total || 0) * 0.08), 0),
+        totalDuty: IS_DEMO ? intlOrders.reduce((s, o) => s + ((o.total || 0) * 0.08), 0) : 0, // [259차] 관세율은 HS/국가별 상이 → 운영은 하드코딩 8% 미노출(실 관세 SSOT 부재)
         ddp: intlOrders.filter(o => o.incoterm === 'DDP').length
     };
     return (

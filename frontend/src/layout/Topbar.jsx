@@ -604,7 +604,9 @@ const ProfileDropdown = memo(function ProfileDropdown({ user, navigate, logout, 
           }}
           onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.08)'}
           onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-          title={user.name || 'User'}
+          title={t('topbar.myProfile', '나의 프로필 관리')}
+          aria-label={t('topbar.myProfile', '나의 프로필 관리')}
+          role="button"
         >
           {user.name?.[0]?.toUpperCase() || 'U'}
         </div>
@@ -617,6 +619,8 @@ const ProfileDropdown = memo(function ProfileDropdown({ user, navigate, logout, 
             boxShadow: '0 8px 32px rgba(0,0,0,0.4)', padding: '16px 14px',
             animation: 'fadeInDown 150ms ease-out',
           }}>
+            {/* [259차] 드롭다운 헤더 — 프로필 관리 명시 */}
+            <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-3, #94a3b8)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 }}>👤 {t('topbar.myProfile', '나의 프로필 관리')}</div>
             {/* 사용자 정보 */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid var(--border, rgba(99,140,255,0.1))' }}>
               <div style={{
@@ -682,6 +686,7 @@ const ProfileDropdown = memo(function ProfileDropdown({ user, navigate, logout, 
 /* ─── 회원정보 수정 + 비밀번호 변경 모달 ────────────────────────────── */
 const ProfileEditModal = memo(function ProfileEditModal({ user, token, onClose }) {
   const { t } = useI18n();
+  const { autoLogoutMin, setAutoLogoutMin } = useAuth(); // [259차] 자동 로그아웃(유휴) 시간 설정 — 계정 프로필 관리 통합
   const [tab, setTab] = useState('info'); // 'info' | 'password'
   const [name, setName] = useState(user.name || '');
   const [phone, setPhone] = useState(user.phone || (user.profile && user.profile.phone) || '');
@@ -1601,6 +1606,23 @@ const ProfileEditModal = memo(function ProfileEditModal({ user, token, onClose }
           <div style={{ display: 'grid', gap: 14 }}>
             <div style={{ padding: '12px 14px', borderRadius: 10, background: 'rgba(79,142,247,0.05)', border: '1px solid rgba(79,142,247,0.12)', fontSize: 12, color: 'var(--text-3, #94a3b8)', lineHeight: 1.7 }}>
               💻 {t('profile.sessGuide', '현재 로그인된 기기·세션 목록입니다. 본인이 아닌 세션이 있으면 즉시 로그아웃하세요.')}
+            </div>
+
+            {/* [259차] 자동 로그아웃(유휴 시간) 설정 — 계정 프로필 관리 통합(기존 AuthContext autoLogoutMin 배선·UI 누락 해소) */}
+            <div style={{ padding: '14px 16px', borderRadius: 12, background: 'rgba(168,85,247,0.05)', border: '1px solid rgba(168,85,247,0.15)' }}>
+              <div style={{ fontSize: 12.5, fontWeight: 800, color: 'var(--text-1, #e2e8f0)', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>⏱️ {t('profile.autoLogoutTitle', '자동 로그아웃 (유휴 시간)')}</div>
+              <div style={{ fontSize: 11, color: 'var(--text-3, #94a3b8)', marginBottom: 10, lineHeight: 1.6 }}>{t('profile.autoLogoutDesc', '설정한 시간 동안 활동이 없으면 자동으로 로그아웃됩니다. 이 기기(브라우저)에 적용됩니다.')}</div>
+              <select value={autoLogoutMin} onChange={e => setAutoLogoutMin(parseInt(e.target.value, 10) || 0)}
+                style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1px solid var(--border, rgba(99,140,255,0.2))', background: 'var(--surface-2, rgba(255,255,255,0.03))', color: 'var(--text-1, #e2e8f0)', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+                <option value={0}>{t('profile.autoLogoutOff', '사용 안 함')}</option>
+                <option value={15}>15{t('profile.minutes', '분')}</option>
+                <option value={30}>30{t('profile.minutes', '분')}</option>
+                <option value={60}>60{t('profile.minutes', '분')}</option>
+                <option value={120}>120{t('profile.minutes', '분')}</option>
+              </select>
+              {autoLogoutMin > 0
+                ? <div style={{ fontSize: 10.5, color: '#22c55e', marginTop: 8, fontWeight: 700 }}>✓ {t('profile.autoLogoutActive', '{{n}}분 유휴 시 자동 로그아웃 활성', { n: autoLogoutMin })}</div>
+                : <div style={{ fontSize: 10.5, color: 'var(--text-3, #94a3b8)', marginTop: 8 }}>{t('profile.autoLogoutOffNote', '유휴 자동 로그아웃이 비활성화되어 있습니다(서버 세션 만료 정책은 별도 적용).')}</div>}
             </div>
 
             {sessLoading && <div style={{ fontSize: 12, color: 'var(--text-3)', textAlign: 'center', padding: 8 }}>{t('profile.sessLoading', '불러오는 중...')}</div>}
