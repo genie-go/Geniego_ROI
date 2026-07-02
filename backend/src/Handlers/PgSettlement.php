@@ -241,7 +241,8 @@ final class PgSettlement
                 }
             }
             if ($mi >= 0) {
-                $used[$mi] = true; $o = $orders[$mi]; $matchGross += $g; $matchFee += (float)$s['fee'];
+                // [259차] 대사 요약(match_gross/match_fee/effective_fee_pct)을 KRW 정규화(리스트 요약 :154 와 동일 fxToKrw). 과거 원통화 그대로 합산해 다통화 테넌트서 '달러+원 혼합'이었음(단일통화=무변환·무영향).
+                $used[$mi] = true; $o = $orders[$mi]; $matchGross += Connectors::fxToKrw($g, (string)$s['currency']); $matchFee += Connectors::fxToKrw((float)$s['fee'], (string)$s['currency']);
                 $feePct = $g > 0 ? round((float)$s['fee'] / $g * 100, 2) : 0.0;
                 $rec = ['settle_id'=>(int)$s['id'],'provider'=>$s['provider'],'order_id'=>(int)$o['id'],'channel'=>$o['channel'],'gross'=>$g,'order_total'=>(float)$o['total_price'],'fee'=>(float)$s['fee'],'fee_pct'=>$feePct,'currency'=>$s['currency']];
                 $matched[] = $rec;

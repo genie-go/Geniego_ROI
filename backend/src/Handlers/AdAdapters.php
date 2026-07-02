@@ -626,7 +626,10 @@ final class AdAdapters
         try { $pdo->exec("CREATE TABLE IF NOT EXISTS gads_conversion_log (tenant_id VARCHAR(100) NOT NULL, order_id VARCHAR(128) NOT NULL, status VARCHAR(20), detail VARCHAR(255), created_at VARCHAR(32), PRIMARY KEY (tenant_id, order_id))"); } catch (\Throwable $e) {}
         $cut = gmdate('Y-m-d H:i:s', time() - max(1, $days) * 86400);
         try {
-            $st = $pdo->prepare("SELECT order_id, total_price, currency, ordered_at, raw_json FROM channel_orders WHERE tenant_id=:t AND ordered_at >= :c AND raw_json LIKE '%gclid%' ORDER BY ordered_at DESC LIMIT 500");
+            // [259차] ★channel_orders 에 currency 컬럼 없음(FP-2: saveOrders 가 total_price 를 fxToKrw 로 KRW 정규화) →
+            //   기존 SELECT ...,currency 는 존재하지 않는 컬럼 참조로 매 쿼리 예외→catch→전환 업로드 항상 0건이었다(CAPI/오프라인전환 무음 미집행).
+            //   currency 제거하고 total_price=KRW 상수 통화로 전달(정합).
+            $st = $pdo->prepare("SELECT order_id, total_price, ordered_at, raw_json FROM channel_orders WHERE tenant_id=:t AND ordered_at >= :c AND raw_json LIKE '%gclid%' ORDER BY ordered_at DESC LIMIT 500");
             $st->execute([':t' => $tenant, ':c' => $cut]);
             $rows = $st->fetchAll(PDO::FETCH_ASSOC);
         } catch (\Throwable $e) { return ['ok' => false, 'error' => 'orders_query_failed']; }
@@ -639,7 +642,7 @@ final class AdAdapters
             if ($chk->fetchColumn()) { $skipped++; continue; }
             if (!preg_match('/"?gclid"?\s*[:=]\s*"?([A-Za-z0-9_\-.]{10,})/', (string)($r['raw_json'] ?? ''), $m)) { continue; }
             $dt = gmdate('Y-m-d H:i:s', strtotime((string)($r['ordered_at'] ?? '')) ?: time()) . '+00:00';
-            $res = self::googleUploadConversion($pdo, $tenant, $m[1], (float)($r['total_price'] ?? 0), (string)($r['currency'] ?: 'KRW'), $dt);
+            $res = self::googleUploadConversion($pdo, $tenant, $m[1], (float)($r['total_price'] ?? 0), 'KRW', $dt);
             if (($res['status'] ?? '') === 'no_credentials') return ['ok' => false, 'status' => 'no_credentials', 'uploaded' => $uploaded, 'failed' => $failed];
             $status = !empty($res['ok']) ? 'uploaded' : 'failed';
             try { $pdo->prepare("{$ins} INTO gads_conversion_log (tenant_id, order_id, status, detail, created_at) VALUES (:t,:o,:s,:d,:c)")->execute([':t' => $tenant, ':o' => $oid, ':s' => $status, ':d' => substr((string)($res['error'] ?? ''), 0, 250), ':c' => gmdate('Y-m-d H:i:s')]); } catch (\Throwable $e) {}
@@ -726,7 +729,8 @@ final class AdAdapters
         if (!$metaOn && !$tiktokOn) return ['ok' => true, 'status' => 'no_credentials', 'meta' => 0, 'tiktok' => 0];
         $cut = gmdate('Y-m-d H:i:s', time() - max(1, $days) * 86400);
         try {
-            $st = $pdo->prepare("SELECT order_id, total_price, currency, ordered_at, buyer_email, raw_json FROM channel_orders WHERE tenant_id=:t AND ordered_at >= :c AND buyer_email IS NOT NULL AND buyer_email<>'' ORDER BY ordered_at DESC LIMIT 1000");
+            // [259차] currency 컬럼 부재(FP-2, total_price=KRW 정규화) → 존재하지 않는 컬럼 참조 예외로 Meta CAPI/TikTok Events 전환 업로드 항상 0건이었음. currency 제거.
+            $st = $pdo->prepare("SELECT order_id, total_price, ordered_at, buyer_email, raw_json FROM channel_orders WHERE tenant_id=:t AND ordered_at >= :c AND buyer_email IS NOT NULL AND buyer_email<>'' ORDER BY ordered_at DESC LIMIT 1000");
             $st->execute([':t' => $tenant, ':c' => $cut]);
             $rows = $st->fetchAll(PDO::FETCH_ASSOC);
         } catch (\Throwable $e) { return ['ok' => false, 'error' => 'orders_query_failed']; }
@@ -739,7 +743,7 @@ final class AdAdapters
             if ($he === '') continue;
             $et  = strtotime((string)($r['ordered_at'] ?? '')) ?: time();
             $val = (float)($r['total_price'] ?? 0);
-            $cur = (string)($r['currency'] ?: 'KRW');
+            $cur = 'KRW'; // [259차] channel_orders.total_price 는 KRW 정규화(FP-2)
             $raw = (string)($r['raw_json'] ?? '');
             foreach (['meta', 'tiktok'] as $ch) {
                 if ($ch === 'meta' && !$metaOn) continue;

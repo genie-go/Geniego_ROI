@@ -200,10 +200,12 @@ export default function DashChannelKPI({ period }) {
             const impressions = (live.impressions || 0) * (periodActive ? f : 1);
             const clicks      = (live.clicks || 0) * (periodActive ? f : 1);
             const reach       = (live.reach || 0) * (periodActive ? f : 1);
-            const conversions = rev > 0 ? Math.round(rev / 45000) : 0;   // 객단가 45k 가정(데모 단일소스 정합)
+            // [259차] 실 rollup 전환실측(GlobalData channelBudgets[id].conversions/convRate = /v423/rollup total_conversions/avg_cvr) 우선.
+            //   과거 rev/45000 하드코딩이 무게이트로 운영 실측을 덮어써 전환지표 날조·DashMarketing과 SSOT 불일치였음. 데모/미적재만 파생 폴백.
+            const conversions = Number(live.conversions) > 0 ? Number(live.conversions) : (IS_DEMO && rev > 0 ? Math.round(rev / 45000) : 0);
             const ctrNum      = impressions > 0 ? (clicks / impressions) * 100 : 0;
             const cpcNum      = clicks > 0 ? spend / clicks : 0;
-            const convRateNum = clicks > 0 ? (conversions / clicks) * 100 : 0;
+            const convRateNum = Number(live.convRate) > 0 ? Number(live.convRate) : (clicks > 0 ? (conversions / clicks) * 100 : 0);
             const cpaNum      = conversions > 0 ? spend / conversions : 0;
 
             return {

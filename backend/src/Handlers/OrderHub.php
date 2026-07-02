@@ -1095,7 +1095,7 @@ final class OrderHub
         //   → type IN('return','cancel') 을 type='return' 으로 좁혀 설계의도(주석 1080)와 정합. rcnt 도 반품수로 정확화.
         $cs = $pdo->prepare("SELECT c.channel, COUNT(*) AS rcnt, COALESCE(SUM(c.amount),0) AS rfee
             FROM orderhub_claims c
-            LEFT JOIN channel_orders o ON o.tenant_id=c.tenant_id AND (o.channel_order_id=c.order_id OR o.order_no=c.order_id)
+            LEFT JOIN channel_orders o ON o.tenant_id=c.tenant_id AND o.channel=c.channel AND (o.channel_order_id=c.order_id OR o.order_no=c.order_id)
             WHERE c.tenant_id=? AND c.type = 'return' AND SUBSTR(COALESCE(o.ordered_at, c.created_at),1,7)=?
             GROUP BY c.channel");
         $cs->execute([$tenant, $period]);

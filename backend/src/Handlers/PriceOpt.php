@@ -767,9 +767,10 @@ class PriceOpt
             }
             // 판매속도: 최근 days 일 판매수량(channel_orders, 취소 제외).
             $since = gmdate('Y-m-d', time() - $days * 86400);
+            // [259차] 취소/반품 제외를 event_type SSOT 로 통일(과거 영문 status 4토큰만 → 국내채널 한국어 status '취소완료' 등 미제외로 velocity 과대·품절오판). 형제 harvestElasticity/deadStock 와 동일.
             $v = $main->prepare("SELECT sku, SUM(qty) q FROM channel_orders
                                  WHERE tenant_id=? AND sku<>'' AND COALESCE(ordered_at,synced_at)>=?
-                                   AND LOWER(COALESCE(status,'')) NOT IN ('cancelled','canceled','refunded','returned')
+                                   AND COALESCE(event_type,'order') NOT IN ('cancel','return')
                                  GROUP BY sku");
             $v->execute([$t, $since]);
             foreach ($v->fetchAll(\PDO::FETCH_ASSOC) ?: [] as $r) {
