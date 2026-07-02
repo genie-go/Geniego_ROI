@@ -126,6 +126,7 @@
 - **구독/과금**: 5티어 플랜·계정수(seat) 차등가격·플랜별 메뉴접근(planMenuPolicy fail-secure)·쿠폰/빌링/관리형지출월렛·Paddle(MoR) 웹훅/plans/migrate·플랜게이팅.
 - **관리자**: AdminGrowth(자체 마케팅 자동화 콘솔·리드스코어링·퍼널CAC/LTV·Test/Live 게이트), MenuAccessManager, AdminPlans, DbAdmin, PgConfig, SiteIntro/LegalDocs 관리.
 - **온보딩/가이드**: OnboardingGuide, 발급매뉴얼 제너레이터, DashGuide, GuideWizard.
+- **★259차 프로필/세션 설정(재구현 금지)**: **자동 로그아웃(유휴) 시간 설정** = AuthContext `autoLogoutMin`/`setAutoLogoutMin`(idle 타이머·localStorage, 기존 존재·UI만 누락이었음=중복 아님) → 프로필 설정 모달 "세션/기기" 탭에 UI 통합(Off/15/30/60/120분·이 기기 적용·서버 세션만료는 별도). 우측 상단 프로필 버튼 title/aria "나의 프로필 관리"(topbar.myProfile 15국)+드롭다운 헤더. `Topbar.jsx`.
 - **PM(프로젝트관리)**: Task/Milestone/Gantt/Portfolio/Resources/RAID/EVM·SSE 실시간.
 - **★파트너/거래처/공급처 스코프 포털(재구현 금지·보안 확정)**: 파트너(supplier/logistics/warehouse)는 **별도 계정(partner_account)·별도 로그인(/partner/login)·별도 세션(partner_session≠user_session)·별도 토큰(localStorage partner_token)·독립 페이지(/partner, 메인 RequireAuth/AppLayout 밖=사이드바·매출/고객 메뉴 없음)**. `/partner/data`는 **본인 스코프만**(발주/배송/창고재고)·서버세션서 스코프 도출·**매출/수익/고객/사용자/PII 미포함**. 파트너 토큰은 user_session 불일치라 메인 엔드포인트(주문/매출/P&L) **401**(구조적 격리·라이브 실증). 계정 CRUD는 requirePro+테넌트스코프. `PartnerPortal.php`·`App.jsx:730`·index.php `/partner/` bypass. 257차 전수 검증(누출 0).
 - **공개/기타**: Landing/Pricing 공개페이지, PartnerPortal(파트너토큰 자가인증), DeveloperHub, CaseStudy, FeedbackCenter, Reports/ReportBuilder(사용자정의 메트릭), DataSchema/DataTrust/DataProduct, PixelTracking, WebPush.
