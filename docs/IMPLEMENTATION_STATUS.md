@@ -116,6 +116,8 @@
 ## 6-B) 메시징 자동응답 — ✅ 259차 신설
 - **★259차 InstagramDM 자동응답 규칙 = 실 배선(재구현 금지)**: 과거 프론트 로컬 state 전용(새로고침 리셋·백엔드 미인지)이던 것을 `instagram_rules` 테이블(테넌트격리)+`GET/POST /instagram/rules`(InstagramDM::getRules/saveRules, 세션 requirePro)+**웹훅 자동응답 실적용**(InstagramDM::applyAutoReply — 수신 DM 키워드매칭→자격증명(test_status=ok) 있을 때만 sendDM 실발송·로그). `InstagramDM.php`. 프론트 InstagramDM.jsx 로드/저장/토글 배선(데모=로컬시드 IS_DEMO게이트).
 
+- **★259차 잔여 가짜버튼 3건 실배선 완료(재구현 금지)**: ①크리에이터 정산 처리(creator_settlements 테이블·Influencer.php·POST /v423/influencer/settlement-record·GET records[계좌 마스킹]. PerformanceHub 정산모달 "완료"→실 기록. 지급 rail 외부·원장 영속) ②브랜드 에셋 업로드/미리보기/다운로드(brand_asset 테이블·CreativeStore.php·GET/POST/GET item·DELETE·테넌트 스코프·5MB 캡. CreativeStudioTab 파일→base64. ★경로 3~4세그먼트로 /creatives/{id} FastRoute shadow 회피) ③Approvals 실집행(가짜 로컬→실 Alerting action_request. ★세션 호환 별칭 `/v423/approvals`[bypass]+Alerting::tenantOf 세션폴백 additive. 기존 /v410[api_key] 불변). 전건 테넌트 스코프·세션·라이브 인증검증(settlements[]·assets[]·approvals[]). 배포 완료.
+
 ## 12) 인텔리전스·AI (AI Profit OS) — ✅ 구현
 - ClaudeAI 실 API(claude-sonnet-4-6), AI Profit OS 5단계(측정→분석→의사결정→실행→학습): HealthScore·RootCause·What-if·Agent권한모드(approval)·Copilot 액션루프(휴먼-인-루프 propose→승인→집행), 역할별뷰, GeniegoGlossary(용어설명), AI 디자인엔진(SVG/이미지), AIRuleEngine, GraphScore(그래프 네트워크 스코어), Attribution 두뇌연결.
 
