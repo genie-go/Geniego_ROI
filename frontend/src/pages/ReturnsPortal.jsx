@@ -52,8 +52,8 @@ return <div>
 <td style={{padding:'6px 8px',fontWeight:600,color:'#1e293b'}}>{r.product}</td>
 <td style={{padding:'6px 8px'}}>{r.customer}</td>
 <td style={{padding:'6px 8px'}}><Badge label={r.channel} color={r.channel==='coupang'?'#ef4444':'#22c55e'}/></td>
-<td style={{padding:'6px 8px'}}>{tr('reason'+r.reason.charAt(0).toUpperCase()+r.reason.slice(1))||r.reason}</td>
-<td style={{padding:'6px 8px'}}><Badge label={tr('status'+r.status.charAt(0).toUpperCase()+r.status.slice(1))} color={STATUS_COLORS[r.status]||'#94a3b8'}/></td>
+<td style={{padding:'6px 8px'}}>{(r.reason&&(tr('reason'+r.reason.charAt(0).toUpperCase()+r.reason.slice(1))))||r.reason||'-'}</td>
+<td style={{padding:'6px 8px'}}>{r.status?<Badge label={tr('status'+r.status.charAt(0).toUpperCase()+r.status.slice(1))} color={STATUS_COLORS[r.status]||'#94a3b8'}/>:'-'}</td>
 <td style={{padding:'6px 8px',textAlign:'right',fontWeight:700,color:'#1e293b'}}>{fmt(r.amount)}</td>
 </tr>)}</tbody></table></Card></div>;
 }
