@@ -125,4 +125,51 @@ class Influencer
         }
         return self::json($res, ['ok' => true, 'influencer_cost' => round($paid), 'committed' => round($committed), 'creator_count' => $count, 'by_period' => $byPeriod]);
     }
+
+    // ── [259차] 크리에이터 정산 처리 원장 — "정산 완료" 가짜버튼 실배선. 지급 rail(계좌이체)은 외부이나
+    //   정산 확정 기록은 테넌트 스코프 영속(감사·이력·P&L 정합). 계정별 독립(tenant_id) 격리. ──
+    private static function ensureSettlements(): void
+    {
+        $pdo = self::pdo();
+        $isMy = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql';
+        if ($isMy) {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS creator_settlements (
+                id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL,
+                creator_id VARCHAR(100), creator_name VARCHAR(255), gross DOUBLE DEFAULT 0, tax DOUBLE DEFAULT 0,
+                net_payout DOUBLE DEFAULT 0, bank VARCHAR(80), account VARCHAR(120), status VARCHAR(20) DEFAULT 'settled',
+                settled_at VARCHAR(32), KEY idx_cs_tenant (tenant_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        } else {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS creator_settlements (
+                id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL,
+                creator_id TEXT, creator_name TEXT, gross REAL DEFAULT 0, tax REAL DEFAULT 0,
+                net_payout REAL DEFAULT 0, bank TEXT, account TEXT, status TEXT DEFAULT 'settled', settled_at TEXT)");
+        }
+    }
+
+    // POST /v423/influencer/settlement-record — 정산 확정 기록(테넌트 스코프·append·멱등 아님=이력).
+    public static function recordSettlement(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureSettlements();
+        $b = (array)($req->getParsedBody() ?? []);
+        $now = gmdate('c');
+        self::pdo()->prepare("INSERT INTO creator_settlements(tenant_id,creator_id,creator_name,gross,tax,net_payout,bank,account,status,settled_at) VALUES(?,?,?,?,?,?,?,?,?,?)")
+            ->execute([self::tenant($req), (string)($b['creator_id'] ?? ''), mb_substr((string)($b['creator_name'] ?? ''), 0, 255),
+                (float)($b['gross'] ?? 0), (float)($b['tax'] ?? 0), (float)($b['net_payout'] ?? 0),
+                mb_substr((string)($b['bank'] ?? ''), 0, 80), mb_substr((string)($b['account'] ?? ''), 0, 120), 'settled', $now]);
+        return self::json($res, ['ok' => true, 'settled_at' => $now]);
+    }
+
+    // GET /v423/influencer/settlement-records — 정산 이력(테넌트 스코프·계좌 마스킹).
+    public static function listSettlements(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureSettlements();
+        $st = self::pdo()->prepare("SELECT id,creator_id,creator_name,gross,tax,net_payout,bank,account,status,settled_at FROM creator_settlements WHERE tenant_id=? ORDER BY id DESC LIMIT 200");
+        $st->execute([self::tenant($req)]);
+        $rows = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+        foreach ($rows as &$r) { $a = (string)($r['account'] ?? ''); $r['account'] = $a !== '' ? ('****' . substr($a, -4)) : ''; } // 목록은 마스킹
+        return self::json($res, ['ok' => true, 'settlements' => $rows]);
+    }
 }

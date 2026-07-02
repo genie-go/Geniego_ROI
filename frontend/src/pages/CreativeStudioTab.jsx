@@ -57,6 +57,40 @@ const ANIM_CSS = {
 
 export default function CreativeStudioTab({ sourcePage, onUseCampaign }) {
   const { t } = useI18n();
+  // [259차] 브랜드 에셋 업로드 실배선(과거 죽은 버튼). 데모=시드, 운영=테넌트 스코프 실 저장(/creatives/brand-assets).
+  const [brandAssets, setBrandAssets] = useState([]);
+  const [uploadingAsset, setUploadingAsset] = useState(false);
+  const loadBrandAssets = useCallback(() => {
+    if (IS_DEMO) { setBrandAssets(DEMO_ASSETS); return; }
+    getJsonAuth('/api/creatives/brand-assets').then(d => { if (Array.isArray(d?.assets)) setBrandAssets(d.assets); }).catch(() => {});
+  }, []);
+  useEffect(() => { loadBrandAssets(); }, [loadBrandAssets]);
+  const onUploadAsset = useCallback((file) => {
+    if (!file || IS_DEMO) return; // 데모는 시드 유지(운영 오염 방지)
+    if (file.size > 5 * 1024 * 1024) { alert(t('marketing.csAssetTooLarge', '5MB 이하 파일만 업로드할 수 있습니다.')); return; }
+    const reader = new FileReader();
+    reader.onload = async () => {
+      setUploadingAsset(true);
+      const ext = (file.name.split('.').pop() || '').toUpperCase().slice(0, 8);
+      const size = file.size < 1024 ? file.size + 'B' : file.size < 1048576 ? Math.round(file.size / 1024) + 'KB' : (file.size / 1048576).toFixed(1) + 'MB';
+      try {
+        const r = await postJsonAuth('/api/creatives/brand-assets', { name: file.name, type: ext, size, data_url: String(reader.result || '') });
+        if (r?.ok) loadBrandAssets(); else alert(t('marketing.csUploadFail', '업로드에 실패했습니다.'));
+      } catch { alert(t('marketing.csUploadFail', '업로드에 실패했습니다.')); }
+      finally { setUploadingAsset(false); }
+    };
+    reader.readAsDataURL(file);
+  }, [loadBrandAssets, t]);
+  const assetAction = useCallback(async (asset, mode) => {
+    if (IS_DEMO || !asset?.id) { alert(t('marketing.csDemoAsset', '데모 샘플 에셋입니다(실 파일 없음).')); return; }
+    try {
+      const d = await getJsonAuth(`/api/creatives/brand-assets/${asset.id}`);
+      const url = d?.asset?.data_url;
+      if (!url) { alert(t('marketing.csAssetMissing', '에셋 데이터를 찾을 수 없습니다.')); return; }
+      if (mode === 'preview') { window.open(url, '_blank'); }
+      else { const a = document.createElement('a'); a.href = url; a.download = asset.name || 'asset'; a.click(); }
+    } catch { alert(t('marketing.csDownloadFail', '다운로드에 실패했습니다.')); }
+  }, [t]);
   const [activeTab, setActiveTab] = useState(0);
   const [selectedCat, setSelectedCat] = useState(null);
   const [selectedChannels, setSelectedChannels] = useState([]);
@@ -572,7 +606,7 @@ export default function CreativeStudioTab({ sourcePage, onUseCampaign }) {
   };
 
   const renderBrandAssets = () => {
-    const assets = IS_DEMO ? DEMO_ASSETS : [];
+    const assets = brandAssets;
     return (
     <div style={{ display:'grid', gap:16 }}>
       <div style={{ ...card, background:'linear-gradient(135deg,rgba(249,115,22,0.08),rgba(234,88,12,0.04))', borderColor:'rgba(249,115,22,0.2)' }}>
@@ -581,7 +615,10 @@ export default function CreativeStudioTab({ sourcePage, onUseCampaign }) {
             <div style={{ fontWeight:900, fontSize:16, color:'#1e293b' }}>🎨 {t('marketing.csBrandTitle','브랜드 에셋 관리')}</div>
             <div style={{ fontSize:12, color:'#64748b', marginTop:4 }}>{t('marketing.csBrandDesc','브랜드 가이드라인에 따른 일관된 소재 관리')}</div>
           </div>
-          <button style={{ padding:'8px 16px', borderRadius:10, border:'none', cursor:'pointer', background:'linear-gradient(135deg,#f97316,#ea580c)', color:'#fff', fontWeight:800, fontSize:11 }}>+ {t('marketing.csUploadAsset','에셋 업로드')}</button>
+          <label style={{ padding:'8px 16px', borderRadius:10, border:'none', cursor: (IS_DEMO||uploadingAsset)?'not-allowed':'pointer', background:'linear-gradient(135deg,#f97316,#ea580c)', color:'#fff', fontWeight:800, fontSize:11, display:'inline-flex', alignItems:'center', gap:6, opacity:(IS_DEMO||uploadingAsset)?0.6:1 }}>
+            + {uploadingAsset ? '⏳' : t('marketing.csUploadAsset','에셋 업로드')}
+            <input type="file" style={{ display:'none' }} disabled={IS_DEMO||uploadingAsset} accept="image/*,.pdf,.json,.svg,.woff2,.zip" onChange={e=>{ onUploadAsset(e.target.files?.[0]); e.target.value=''; }} />
+          </label>
         </div>
       </div>
       {!assets.length ? (
@@ -595,11 +632,11 @@ export default function CreativeStudioTab({ sourcePage, onUseCampaign }) {
             </div>
             <div style={{ flex:1, minWidth:0 }}>
               <div style={{ fontWeight:700, fontSize:13, color:'#1e293b' }}>{asset.name}</div>
-              <div style={{ fontSize:10, color:'#64748b', marginTop:2 }}>{asset.type} · {asset.size} · {asset.updated}</div>
+              <div style={{ fontSize:10, color:'#64748b', marginTop:2 }}>{asset.type} · {asset.size} · {asset.updated_at || asset.updated}</div>
             </div>
             <div style={{ display:'flex', gap:6 }}>
-              <button style={{ padding:'5px 12px', borderRadius:7, border:'1px solid rgba(0,0,0,0.08)', background:'transparent', color:'#64748b', fontSize:10, fontWeight:600, cursor:'pointer' }}>{t('marketing.csPreview','미리보기')}</button>
-              <button style={{ padding:'5px 12px', borderRadius:7, border:'none', background:'rgba(79,142,247,0.1)', color:'#4f8ef7', fontSize:10, fontWeight:700, cursor:'pointer' }}>{t('marketing.csDownload','다운로드')}</button>
+              <button onClick={()=>assetAction(asset,'preview')} style={{ padding:'5px 12px', borderRadius:7, border:'1px solid rgba(0,0,0,0.08)', background:'transparent', color:'#64748b', fontSize:10, fontWeight:600, cursor:'pointer' }}>{t('marketing.csPreview','미리보기')}</button>
+              <button onClick={()=>assetAction(asset,'download')} style={{ padding:'5px 12px', borderRadius:7, border:'none', background:'rgba(79,142,247,0.1)', color:'#4f8ef7', fontSize:10, fontWeight:700, cursor:'pointer' }}>{t('marketing.csDownload','다운로드')}</button>
             </div>
           </div>
         ))}

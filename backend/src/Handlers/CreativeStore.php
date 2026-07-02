@@ -218,4 +218,68 @@ final class CreativeStore
         } catch (\Throwable $e) { /* 스키마/연결 오류 → 공유 풀 폴백 */ }
         return 'default';
     }
+
+    /* ━━━━ [259차] 브랜드 에셋(로고/가이드/컬러/폰트) — CreativeStudio "에셋 업로드" 실배선 ━━━━
+       ★테넌트 스코프(계정별 독립·철칙)·세션 requirePro. data_url(base64) 5MB 캡. */
+    private static function tenant(Request $req): string
+    {
+        $t = UserAuth::authedTenant($req);
+        return ($t !== null && $t !== '') ? $t : 'demo';
+    }
+    private static function ensureBrandAssets(): void
+    {
+        $pdo = Db::pdo();
+        $isMy = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql';
+        if ($isMy) {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS brand_asset (
+                id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL,
+                name VARCHAR(255), type VARCHAR(20), size VARCHAR(30), data_url LONGTEXT, updated_at VARCHAR(32),
+                KEY idx_ba_tenant (tenant_id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        } else {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS brand_asset (
+                id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL,
+                name TEXT, type TEXT, size TEXT, data_url TEXT, updated_at TEXT)");
+        }
+    }
+    // GET /v426/creatives/brand-assets — 목록(data_url 제외=경량). 테넌트 스코프.
+    public static function brandAssetsList(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureBrandAssets();
+        $st = Db::pdo()->prepare("SELECT id,name,type,size,updated_at FROM brand_asset WHERE tenant_id=? ORDER BY id DESC LIMIT 200");
+        $st->execute([self::tenant($req)]);
+        return self::json($res, ['ok' => true, 'assets' => $st->fetchAll(\PDO::FETCH_ASSOC) ?: []]);
+    }
+    // GET /v426/creatives/brand-assets/{id} — 단건(data_url 포함, 다운로드/미리보기).
+    public static function brandAssetGet(Request $req, Response $res, array $args): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureBrandAssets();
+        $st = Db::pdo()->prepare("SELECT id,name,type,size,data_url,updated_at FROM brand_asset WHERE id=? AND tenant_id=?");
+        $st->execute([(int)($args['id'] ?? 0), self::tenant($req)]);
+        $r = $st->fetch(\PDO::FETCH_ASSOC);
+        if (!$r) return self::json($res, ['ok' => false, 'error' => 'not_found'], 404);
+        return self::json($res, ['ok' => true, 'asset' => $r]);
+    }
+    // POST /v426/creatives/brand-assets — 업로드(data_url base64, 5MB 캡). 테넌트 스코프.
+    public static function brandAssetUpload(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureBrandAssets();
+        $b = (array)($req->getParsedBody() ?? []);
+        $dataUrl = (string)($b['data_url'] ?? '');
+        if ($dataUrl === '' || strlen($dataUrl) > 5000000) return self::json($res, ['ok' => false, 'error' => 'invalid_or_too_large'], 422);
+        $now = gmdate('c');
+        Db::pdo()->prepare("INSERT INTO brand_asset(tenant_id,name,type,size,data_url,updated_at) VALUES(?,?,?,?,?,?)")
+            ->execute([self::tenant($req), mb_substr((string)($b['name'] ?? 'asset'), 0, 255), mb_substr((string)($b['type'] ?? ''), 0, 20), mb_substr((string)($b['size'] ?? ''), 0, 30), $dataUrl, $now]);
+        return self::json($res, ['ok' => true]);
+    }
+    // DELETE /v426/creatives/brand-assets/{id} — 삭제(테넌트 스코프).
+    public static function brandAssetDelete(Request $req, Response $res, array $args): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureBrandAssets();
+        Db::pdo()->prepare("DELETE FROM brand_asset WHERE id=? AND tenant_id=?")->execute([(int)($args['id'] ?? 0), self::tenant($req)]);
+        return self::json($res, ['ok' => true]);
+    }
 }

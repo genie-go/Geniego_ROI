@@ -1437,6 +1437,10 @@ return function (App $app): void {
         'GET /v423/influencer/creators'       => 'Genie\\Handlers\\Influencer::creators',
         'GET /v423/influencer/cost-summary'   => 'Genie\\Handlers\\Influencer::costSummary', // [240차] 인플루언서 비용 P&L 집계
         'GET /api/v423/influencer/cost-summary' => 'Genie\\Handlers\\Influencer::costSummary', // [251차] /api 변형 누락 보강(404 해소)
+        'POST /v423/influencer/settlement-record'     => 'Genie\\Handlers\\Influencer::recordSettlement', // [259차] 크리에이터 정산 확정 기록
+        'POST /api/v423/influencer/settlement-record' => 'Genie\\Handlers\\Influencer::recordSettlement',
+        'GET /v423/influencer/settlement-records'     => 'Genie\\Handlers\\Influencer::listSettlements',
+        'GET /api/v423/influencer/settlement-records' => 'Genie\\Handlers\\Influencer::listSettlements',
         // [현 차수] 구독계정 본인 보안 로그(team-members 로그 기록 탭) — 세션 self-auth·테넌트 서버도출 강제
         'GET /v423/member-logs'               => 'Genie\\Handlers\\UserAuth::memberLogs',
         'GET /api/v423/member-logs'           => 'Genie\\Handlers\\UserAuth::memberLogs',
@@ -1503,6 +1507,15 @@ return function (App $app): void {
         'PUT /creatives/{id}'                   => 'Genie\\Handlers\\CreativeStore::update',
         'DELETE /creatives/{id}'                => 'Genie\\Handlers\\CreativeStore::delete',
         'POST /creatives/check-duplicate'       => 'Genie\\Handlers\\CreativeStore::checkDuplicate',
+        // [259차] 브랜드 에셋(테넌트 스코프·세션 requirePro·FastRoute static 우선이라 /creatives/{id} 무충돌)
+        'GET /creatives/brand-assets'               => 'Genie\\Handlers\\CreativeStore::brandAssetsList',
+        'POST /creatives/brand-assets'              => 'Genie\\Handlers\\CreativeStore::brandAssetUpload',
+        'GET /creatives/brand-assets/{id}'          => 'Genie\\Handlers\\CreativeStore::brandAssetGet',
+        'DELETE /creatives/brand-assets/{id}'       => 'Genie\\Handlers\\CreativeStore::brandAssetDelete',
+        'GET /api/creatives/brand-assets'           => 'Genie\\Handlers\\CreativeStore::brandAssetsList',
+        'POST /api/creatives/brand-assets'          => 'Genie\\Handlers\\CreativeStore::brandAssetUpload',
+        'GET /api/creatives/brand-assets/{id}'      => 'Genie\\Handlers\\CreativeStore::brandAssetGet',
+        'DELETE /api/creatives/brand-assets/{id}'   => 'Genie\\Handlers\\CreativeStore::brandAssetDelete',
 ];
 
 
@@ -2147,6 +2160,10 @@ return function (App $app): void {
     $register('GET',    '/v423/influencer/creators');
     $register('GET',    '/v423/influencer/cost-summary'); // [251차] $register 누락 보강(Not found 트랩)
     $register('GET',    '/api/v423/influencer/cost-summary');
+    $register('POST',   '/v423/influencer/settlement-record'); // [259차] 크리에이터 정산 기록
+    $register('POST',   '/api/v423/influencer/settlement-record');
+    $register('GET',    '/v423/influencer/settlement-records');
+    $register('GET',    '/api/v423/influencer/settlement-records');
     $register('GET',    '/v423/influencer/ugc-reviews');
     $register('GET',    '/v423/influencer/channel-stats');
     $register('GET',    '/v423/influencer/neg-keywords');
@@ -2978,6 +2995,15 @@ return function (App $app): void {
     $register('PUT', '/creatives/{id}');
     $register('DELETE', '/creatives/{id}');
     $register('POST', '/creatives/check-duplicate');
+    // [259차] 브랜드 에셋
+    $register('GET',    '/creatives/brand-assets');
+    $register('POST',   '/creatives/brand-assets');
+    $register('GET',    '/creatives/brand-assets/{id}');
+    $register('DELETE', '/creatives/brand-assets/{id}');
+    $register('GET',    '/api/creatives/brand-assets');
+    $register('POST',   '/api/creatives/brand-assets');
+    $register('GET',    '/api/creatives/brand-assets/{id}');
+    $register('DELETE', '/api/creatives/brand-assets/{id}');
 
     // ── V424 OrderHub Aggregator (165차 deploy + 167차 register 매핑 보강) ──
     $register('GET', '/v424/orderhub/orders');

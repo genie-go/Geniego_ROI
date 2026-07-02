@@ -8,7 +8,7 @@ import { tabAllowedByPlan } from "../auth/tabPlanPolicy.js"; // [현 차수] 플
 import { IS_DEMO as _IS_DEMO_TAB } from "../utils/demoEnv";
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
-import { getJsonAuth } from '../services/apiClient.js';
+import { getJsonAuth, postJsonAuth } from '../services/apiClient.js';
 import ProductSelectBar from '../components/dashboards/ProductSelectBar.jsx';
 import ProductMarketingPanel from '../components/dashboards/ProductMarketingPanel.jsx';
 import { IS_DEMO } from '../utils/demoEnv.js';
@@ -553,6 +553,25 @@ const CreatorTab = memo(function CreatorTab() {
     const [expanded, setExpanded] = useState(null);
     const [modal, setModal] = useState(null);
     const [selected, setSelected] = useState(null);
+    // [259차] 크리에이터 정산 "완료" 실배선 상태(가짜 setModal(null) → 실 정산기록 POST)
+    const [payBank, setPayBank] = useState('KakaoBank');
+    const [payAccount, setPayAccount] = useState('');
+    const [settling, setSettling] = useState(false);
+    const submitSettlement = async () => {
+        if (!selected) return;
+        setSettling(true);
+        const gross = Number(selected.contractRate) || 0;
+        const tax = Math.round(gross * 0.033) + Math.round(gross * 0.0033);
+        try {
+            const r = await postJsonAuth('/api/v423/influencer/settlement-record', {
+                creator_id: String(selected.id ?? ''), creator_name: selected.name || '',
+                gross, tax, net_payout: gross - tax, bank: payBank, account: payAccount,
+            });
+            if (r?.ok) { setModal(null); setPayAccount(''); }
+            else alert(t('performance.settleFail', '정산 기록에 실패했습니다.'));
+        } catch { alert(t('performance.settleFail', '정산 기록에 실패했습니다.')); }
+        finally { setSettling(false); }
+    };
 
     // 🛡️ GUARD: Use GlobalDataContext creators (demo=seed, prod=API). Never hardcoded.
     const CREATORS = useMemo(() => ctxCreators.length > 0 ? ctxCreators.map(c => ({
@@ -766,14 +785,14 @@ const CreatorTab = memo(function CreatorTab() {
                         </div>
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 4 }}>
                             <div><label className="input-label">{t('performance.bank')}</label>
-                                <select className="input"><option>KakaoBank</option><option>TossBank</option><option>Shinhan</option><option>Kookmin</option></select></div>
+                                <select className="input" value={payBank} onChange={e => setPayBank(e.target.value)}><option>KakaoBank</option><option>TossBank</option><option>Shinhan</option><option>Kookmin</option></select></div>
                             <div><label className="input-label">{t('performance.accountNo')}</label>
-                                <input className="input" placeholder={t('performance.accountNoPh', '계좌번호 입력')} defaultValue={selected?.payoutAccount || ''} /></div>
+                                <input className="input" placeholder={t('performance.accountNoPh', '계좌번호 입력')} value={payAccount} onChange={e => setPayAccount(e.target.value)} /></div>
                         </div>
                         <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 14 }}>
                             <button className="btn-ghost" onClick={() => setModal(null)}>{t('performance.cancel')}</button>
-                            <button className="btn-primary" style={{ background: "linear-gradient(135deg,#a855f7,#ec4899)" }}
-                                onClick={() => setModal(null)}>{t('performance.completeSettlement')}</button>
+                            <button className="btn-primary" style={{ background: "linear-gradient(135deg,#a855f7,#ec4899)", opacity: settling ? 0.6 : 1 }}
+                                disabled={settling} onClick={submitSettlement}>{settling ? '⏳' : t('performance.completeSettlement')}</button>
                         </div>
                     </div>
                     <style>{`@keyframes popIn{from{opacity:0;transform:translate(-50%,-50%) scale(0.95)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}`}</style>

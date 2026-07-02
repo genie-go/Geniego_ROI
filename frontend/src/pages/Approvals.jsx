@@ -6,6 +6,7 @@ import { useCurrency } from '../contexts/CurrencyContext.jsx';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
+import { getJsonAuth, postJsonAuth } from '../services/apiClient.js'; // [259차] 가짜 집행 → 실 action_request 백엔드 배선
 
 /* ─── Channel Detection ─── */
 function useConnectedChannels() {
@@ -421,23 +422,31 @@ export default function Approvals() {
   const [syncTick, setSyncTick] = useState(0);
   const { locked, setLocked } = useSecurityGuard(addAlert);
 
-  // Sync: derive approval requests from activeRules that need approval
-  useEffect(() => {
-    const approvalItems = (activeRules || [])
-      .filter(r => r.origin === 'AIPolicy' || r.action?.toLowerCase().includes('policy') || r.type === 'policy')
-      .map(r => ({
-        id: r.id,
-        name: r.name,
-        action_type: r.action?.includes('Policy') ? 'policy_update' : 'rule_change',
-        status: r.approvalStatus || 'pending',
-        priority: r.priority || 'MEDIUM',
-        origin: r.origin || 'System',
-        condition: r.condition,
-        details: r.action,
-        createdAt: r.createdAt,
+  // [259차] 실 action_request 백엔드 로드(가짜 activeRules 파생·로컬 무영속 제거). 테넌트 스코프(auth_tenant)·실 decide/execute.
+  //   데모는 로컬 activeRules 파생 유지(체험용·백엔드 미호출), 운영은 /v410/action_requests 실 조회.
+  const loadRequests = () => {
+    if (isDemo) {
+      const items = (activeRules || [])
+        .filter(r => r.origin === 'AIPolicy' || r.action?.toLowerCase().includes('policy') || r.type === 'policy')
+        .map(r => ({ id: r.id, name: r.name, action_type: r.action?.includes('Policy') ? 'policy_update' : 'rule_change', status: r.approvalStatus || 'pending', priority: r.priority || 'MEDIUM', origin: r.origin || 'System', condition: r.condition, details: r.action, createdAt: r.createdAt }));
+      setRequests(items);
+      return;
+    }
+    getJsonAuth('/api/v410/action_requests').then(d => {
+      const rows = Array.isArray(d) ? d : (d?.requests || d?.data || []);
+      setRequests(rows.map(r => {
+        const p = r.payload || {};
+        return {
+          id: r.id, name: p.title || p.name || `${r.action_type || 'action'} #${r.id}`,
+          action_type: r.action_type || 'writeback', status: r.status || 'pending',
+          priority: p.priority || p.severity || 'MEDIUM', origin: p.origin || 'ActionRequest',
+          condition: p.condition || p.reason || '', details: p.description || p.summary || r.action_type || '',
+          createdAt: r.created_at, approvals: Array.isArray(r.approvals) ? r.approvals : [], required_approvals: r.required_approvals || 2,
+        };
       }));
-    if (approvalItems.length > 0) setRequests(approvalItems);
-  }, [activeRules]);
+    }).catch(() => {});
+  };
+  useEffect(() => { loadRequests(); }, [isDemo, activeRules, syncTick]);
 
   // BroadcastChannel 3-ch + 30s polling
   useEffect(() => {
@@ -466,24 +475,33 @@ export default function Approvals() {
     const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `approvals_${Date.now()}.json`; a.click(); URL.revokeObjectURL(url);
   };
 
-  const decide = (id, decision) => {
+  // [259차] 가짜 로컬 집행 → 실 action_request 백엔드(decide/execute). 데모는 로컬 낙관적 갱신 유지(체험).
+  const decide = async (id, decision) => {
     if (isDemo) { setMsg(t('approvalsPage.demoGuard')); return; }
     setBusy(true); setMsg('');
-    setRequests(prev => prev.map(row => row.id === id ? { ...row, status: decision === 'approve' ? 'approved' : 'rejected' } : row));
     const statusLabel = decision === 'approve' ? t('approvalsPage.statusApproved') : t('approvalsPage.statusRejected');
-    addAlert?.({ type: 'success', msg: `[Approvals] #${id} ${statusLabel}` });
-    setMsg(`✓ #${id} ${statusLabel}`);
-    try { bcRef.current?.postMessage({ type: 'decision_made', id, decision }); } catch (_) {}
-    setBusy(false);
+    try {
+      const r = await postJsonAuth(`/api/v410/action_requests/${id}/decide`, { decision });
+      if (r && r.ok !== false && !r.detail) {
+        addAlert?.({ type: 'success', msg: `[Approvals] #${id} ${statusLabel}` });
+        setMsg(`✓ #${id} ${statusLabel}`); loadRequests();
+      } else setMsg(r?.detail || r?.error || t('approvalsPage.actionFail', '처리에 실패했습니다.'));
+      try { bcRef.current?.postMessage({ type: 'decision_made', id, decision }); } catch (_) {}
+    } catch { setMsg(t('approvalsPage.actionFail', '처리에 실패했습니다.')); }
+    finally { setBusy(false); }
   };
 
-  const execute = (id) => {
+  const execute = async (id) => {
     if (isDemo) { setMsg(t('approvalsPage.demoGuard')); return; }
     setBusy(true); setMsg('');
-    setRequests(prev => prev.map(row => row.id === id ? { ...row, status: 'executed' } : row));
-    addAlert?.({ type: 'success', msg: `[Approvals] #${id} ${t('approvalsPage.executeDone')}` });
-    setMsg(`✓ #${id} ${t('approvalsPage.executeDone')}`);
-    setBusy(false);
+    try {
+      const r = await postJsonAuth(`/api/v410/action_requests/${id}/execute`, {});
+      if (r && r.ok !== false && !r.detail) {
+        addAlert?.({ type: 'success', msg: `[Approvals] #${id} ${t('approvalsPage.executeDone')}` });
+        setMsg(`✓ #${id} ${t('approvalsPage.executeDone')}`); loadRequests();
+      } else setMsg(r?.detail || r?.error || t('approvalsPage.actionFail', '처리에 실패했습니다.'));
+    } catch { setMsg(t('approvalsPage.actionFail', '처리에 실패했습니다.')); }
+    finally { setBusy(false); }
   };
 
   const pendingCount = requests.filter(r => r.status === 'pending').length;
