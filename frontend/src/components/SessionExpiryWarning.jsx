@@ -7,8 +7,19 @@
  */
 import React, { useState, useEffect, useRef } from 'react';
 
-const SESSION_TIMEOUT = 30 * 60 * 1000;  // 30 min
 const WARN_BEFORE   = 5 * 60 * 1000;     // 5 min before
+
+// [세션 타임아웃 SSOT — 260차] 유휴 자동 로그아웃 시간은 사용자 설정(auto_logout_min)을 단일
+//   진실원천으로 사용. AuthContext 프로필 "자동 로그아웃(유휴 시간)"과 완전 일치. 0/미설정이면 비활성.
+//   과거 하드코딩 30분이 사용자 설정(예: 120분)을 무시하던 문제 해소.
+function sessionTimeoutMs() {
+  try {
+    const raw = localStorage.getItem('genie_auto_logout_min')
+             || localStorage.getItem('demo_genie_auto_logout_min') || '0';
+    const min = parseInt(raw, 10) || 0;
+    return min > 0 ? min * 60 * 1000 : 0;
+  } catch (e) { return 0; }
+}
 
 export default function SessionExpiryWarning() {
   const [show, setShow] = useState(false);
@@ -21,6 +32,8 @@ export default function SessionExpiryWarning() {
     events.forEach(e => window.addEventListener(e, reset, { passive: true }));
 
     const timer = setInterval(() => {
+      const SESSION_TIMEOUT = sessionTimeoutMs();
+      if (SESSION_TIMEOUT <= 0) { setShow(false); return; } // 유휴 자동 로그아웃 비활성
       const idle = Date.now() - lastActivity.current;
       const left = SESSION_TIMEOUT - idle;
 

@@ -52,10 +52,14 @@
   try { if (sessionStorage.getItem(IMP_ACTIVE) !== '1') return; } catch (e) { return; }
 
   // 2) 격리 대상 키 — 인증/세션/테넌트 관련만. 테마·i18n·기타 UI 설정은 공유 유지.
+  // 260차 수정: auto_logout_min 은 인증/테넌트 데이터가 아니라 "기기 단위 UI 설정"이므로 격리 대상에서
+  //   제외한다. 격리하면 대행 탭에서 설정 시 휘발성 sessionStorage 로 가서 소실되고, 대행 탭에 stuck 된
+  //   imp_active 로 인해 관리자 본인 설정이 "저장했는데 다시 보면 풀려있음" 증상을 유발한다.
+  //   테마·i18n 과 동일하게 공유 localStorage 에 영속시킨다(대행 세션은 인증 키만 격리).
   var ISOLATED = {};
   [
     PREFIX + 'token', PREFIX + 'user', PREFIX + 'remember',
-    PREFIX + 'sess_active', PREFIX + 'has_real_keys', PREFIX + 'auto_logout_min',
+    PREFIX + 'sess_active', PREFIX + 'has_real_keys',
     'tenantId', 'accessToken', 'genie_auth_token', IMP_ACTIVE,
   ].forEach(function (k) { ISOLATED[k] = true; });
 

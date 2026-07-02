@@ -628,7 +628,7 @@ const CreatorTab = memo(function CreatorTab() {
                             </div>
                             <div style={{ fontSize: 10, color: "var(--text-3)" }}>{t('performance.expiryDate')}: {c.rightsExpiry}</div>
                         </div>
-                        <button className="btn-primary" style={{ fontSize: 10, padding: "5px 12px", background: expired ? "linear-gradient(135deg,#ef4444,#a855f7)" : "linear-gradient(135deg,#eab308,#f97316)" }}>
+                        <button onClick={() => { window.location.href = '/influencer-ugc'; }} className="btn-primary" style={{ fontSize: 10, padding: "5px 12px", cursor: "pointer", background: expired ? "linear-gradient(135deg,#ef4444,#a855f7)" : "linear-gradient(135deg,#eab308,#f97316)" }}>
                             {expired ? t('performance.requestRenewal') : t('performance.renewRights')}
                         </button>
                     </div>

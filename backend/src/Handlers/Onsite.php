@@ -397,17 +397,22 @@ final class Onsite
             if (!empty($tk['expires_at']) && $tk['expires_at'] < gmdate('Y-m-d\TH:i:s\Z')) return self::json($res, ['ok' => false, 'error' => 'token_expired'], 403);
             $t = (string)$tk['tenant_id']; $expKey = (string)$tk['exp_key'];
             // 체인지셋 정제(화이트리스트 action·상한 100·길이캡). onsiteCro.applyChanges 스키마와 정합.
+            // 260차 WYSIWYG 완전 패리티: attr/class/insert/img/remove 액션 추가(에디터·applier 3자 정합).
             $clean = [];
             foreach (array_slice($changes, 0, 100) as $c) {
                 if (!is_array($c)) continue;
                 $action = (string)($c['action'] ?? '');
-                if (!in_array($action, ['text', 'html', 'css', 'hide', 'redirect'], true)) continue;
-                if ($action === 'redirect') { $v = trim((string)($c['value'] ?? '')); if ($v === '') continue; $clean[] = ['action' => 'redirect', 'value' => mb_substr($v, 0, 500)]; continue; }
+                if (!in_array($action, ['text', 'html', 'css', 'hide', 'redirect', 'attr', 'class', 'insert', 'img', 'remove'], true)) continue;
+                if ($action === 'redirect') { $v = trim((string)($c['value'] ?? '')); if ($v === '' || stripos($v, 'javascript:') === 0) continue; $clean[] = ['action' => 'redirect', 'value' => mb_substr($v, 0, 500)]; continue; }
                 $sel = trim((string)($c['selector'] ?? '')); if ($sel === '') continue;
                 $row = ['selector' => mb_substr($sel, 0, 300), 'action' => $action];
-                if ($action === 'hide') { $clean[] = $row; continue; }
+                if ($action === 'hide' || $action === 'remove') { $clean[] = $row; continue; }
                 if ($action === 'css') { $prop = trim((string)($c['prop'] ?? '')); if ($prop === '') continue; $row['prop'] = mb_substr($prop, 0, 60); $row['value'] = mb_substr((string)($c['value'] ?? ''), 0, 300); }
-                else { $row['value'] = mb_substr((string)($c['value'] ?? ''), 0, 2000); }
+                elseif ($action === 'attr') { $prop = trim((string)($c['prop'] ?? '')); if ($prop === '' || preg_match('/^on/i', $prop)) continue; $row['prop'] = mb_substr($prop, 0, 60); $v = (string)($c['value'] ?? ''); if (stripos($v, 'javascript:') !== false) continue; $row['value'] = mb_substr($v, 0, 500); }
+                elseif ($action === 'class') { $mode = strtolower(trim((string)($c['prop'] ?? 'add'))); if (!in_array($mode, ['add', 'remove'], true)) continue; $cls = trim((string)($c['value'] ?? '')); if ($cls === '') continue; $row['prop'] = $mode; $row['value'] = mb_substr(preg_replace('/[^a-zA-Z0-9_\- ]/', '', $cls), 0, 100); }
+                elseif ($action === 'insert') { $pos = strtolower(trim((string)($c['prop'] ?? 'after'))); if (!in_array($pos, ['before', 'after', 'prepend', 'append'], true)) continue; $row['prop'] = $pos; $row['value'] = mb_substr((string)($c['value'] ?? ''), 0, 2000); }
+                elseif ($action === 'img') { $v = trim((string)($c['value'] ?? '')); if ($v === '' || stripos($v, 'javascript:') === 0) continue; $row['value'] = mb_substr($v, 0, 500); }
+                else { $row['value'] = mb_substr((string)($c['value'] ?? ''), 0, 5000); } // text/html
                 $clean[] = $row;
             }
             $e = $pdo->prepare("SELECT id,variants_json FROM onsite_experiment WHERE tenant_id=? AND exp_key=? LIMIT 1");

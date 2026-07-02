@@ -178,13 +178,84 @@ final class SmsMarketing
         $pdo = Db::pdo(); $tenant = self::tenant($req);
         $id = (int)($args['id'] ?? 0);
         $act = strtolower((string)($args['action'] ?? ''));
-        // 액션 → 상태 전이(소유 테넌트 한정). send=즉시발송 표시, pause/resume/cancel.
-        $map = ['send'=>'sent','pause'=>'paused','resume'=>'scheduled','cancel'=>'draft','start'=>'sent'];
+
+        // 260차 정직화: send/start = "발송됨" 표기만이 아니라 캠페인 세그먼트로 실제 발송(sendSms+sms_messages 적재)한다.
+        //   기존엔 status='sent' UPDATE만 해서 실제 문자 발송 없이 "발송됨"으로 표기(가짜집행).
+        if ($act === 'send' || $act === 'start') {
+            return self::dispatchCampaign($req, $res, $pdo, $tenant, $id);
+        }
+
+        // 상태 전이(소유 테넌트 한정): pause/resume/cancel.
+        $map = ['pause'=>'paused','resume'=>'scheduled','cancel'=>'draft'];
         if (!isset($map[$act])) return TemplateResponder::respond($res->withStatus(422), ['ok'=>false,'error'=>'unknown action']);
         $st = $pdo->prepare("UPDATE sms_campaigns SET status=?, updated_at=? WHERE id=? AND tenant_id=?");
         $st->execute([$map[$act], gmdate('c'), $id, $tenant]);
         if ($st->rowCount() === 0) return TemplateResponder::respond($res->withStatus(404), ['ok'=>false,'error'=>'not found']);
         return TemplateResponder::respond($res, ['ok'=>true,'id'=>$id,'status'=>$map[$act]]);
+    }
+
+    /** 260차: 캠페인 실제 발송 — 세그먼트 멤버 전화번호 해석 → sendSms → sms_messages 적재 → status='sent'+sent_count.
+     *  발신설정 미존재(운영)면 가짜 발송 금지·422. 데모는 시뮬레이션. broadcast 로직 재사용. */
+    private static function dispatchCampaign(Request $req, Response $res, \PDO $pdo, string $tenant, int $id): Response
+    {
+        $plan = self::plan($req);
+        $c = $pdo->prepare("SELECT id,segment_id,message,status FROM sms_campaigns WHERE id=? AND tenant_id=?");
+        $c->execute([$id, $tenant]);
+        $camp = $c->fetch(PDO::FETCH_ASSOC);
+        if (!$camp) return TemplateResponder::respond($res->withStatus(404), ['ok'=>false,'error'=>'not found']);
+        if (($camp['status'] ?? '') === 'sent') {
+            return TemplateResponder::respond($res, ['ok'=>true,'id'=>$id,'status'=>'sent','already'=>true,'sent'=>0]);
+        }
+        $message = trim((string)($camp['message'] ?? ''));
+        if ($message === '') return TemplateResponder::respond($res->withStatus(422), ['ok'=>false,'error'=>'캠페인 메시지가 비어 있습니다.']);
+        $type = strlen($message) > 90 ? 'LMS' : 'SMS';
+        $now  = gmdate('c');
+
+        // 세그먼트 멤버 전화번호 해석(세그먼트 미지정 시 전체 고객)
+        if ((int)($camp['segment_id'] ?? 0) > 0) {
+            $q = $pdo->prepare("SELECT c.phone FROM crm_segment_members m JOIN crm_customers c ON c.id=m.customer_id AND c.tenant_id=? WHERE m.segment_id=? AND (m.tenant_id=? OR m.tenant_id IS NULL) AND c.phone IS NOT NULL AND c.phone<>''");
+            $q->execute([$tenant, (int)$camp['segment_id'], $tenant]);
+        } else {
+            $q = $pdo->prepare("SELECT phone FROM crm_customers WHERE tenant_id=? AND phone IS NOT NULL AND phone<>''");
+            $q->execute([$tenant]);
+        }
+        $numbers = array_column($q->fetchAll(PDO::FETCH_ASSOC), 'phone');
+
+        $cfg = null;
+        if ($plan !== 'demo') {
+            $s = $pdo->prepare("SELECT app_key,secret_key,sender_no FROM sms_settings WHERE tenant_id=? AND is_active=1");
+            $s->execute([$tenant]);
+            $cfg = $s->fetch(PDO::FETCH_ASSOC);
+            if ($cfg && !empty($cfg['secret_key'])) $cfg['secret_key'] = \Genie\Crypto::decrypt((string)$cfg['secret_key']);
+            if (!$cfg) return TemplateResponder::respond($res->withStatus(422), ['ok'=>false,'error'=>'SMS 발신 설정이 없습니다. 설정에서 발신번호·인증키를 먼저 등록하세요.','sent'=>0]);
+        }
+        if (!$numbers) return TemplateResponder::respond($res->withStatus(422), ['ok'=>false,'error'=>'발송 대상(세그먼트 고객 전화번호)이 없습니다.','sent'=>0]);
+
+        $freqCfg = CRM::commsFreqConfig($pdo, $tenant);
+        $sent = $failed = $capped = 0;
+        foreach (array_slice($numbers, 0, 500) as $to) {
+            $to = preg_replace('/\D/', '', (string)$to);
+            if (strlen($to) < 8) continue;
+            $cid = self::customerIdByPhone($pdo, $tenant, $to);
+            if ($cid > 0 && CRM::isFrequencyCapped($pdo, $tenant, $cid, $freqCfg['cap'], $freqCfg['window'])) { $capped++; continue; }
+            if ($plan === 'demo') {
+                $status = rand(0, 9) < 95 ? 'delivered' : 'failed';
+            } else {
+                $r = self::sendSms($cfg['app_key'],$cfg['secret_key'],$cfg['sender_no'],$to,$message,$type);
+                $status = $r['ok'] ? 'sent' : 'failed';
+            }
+            $pdo->prepare("INSERT INTO sms_messages(tenant_id,msg_type,recipient,body,status,sent_at,created_at) VALUES(?,?,?,?,?,?,?)")
+                ->execute([$tenant,$type,$to,$message,$status,$now,$now]);
+            in_array($status, ['sent','delivered'], true) ? $sent++ : $failed++;
+            if ($status === 'sent') { try { Attribution::recordOwnedTouch($pdo, $tenant, 'sms', null, $to, 'sms'); } catch (\Throwable $e) {} }
+            if ($cid > 0 && in_array($status, ['sent','delivered'], true)) {
+                try { $pdo->prepare("INSERT INTO crm_activities (tenant_id, customer_id, type, channel, data, created_at) VALUES (?,?,'sms_sent','sms',?,?)")
+                    ->execute([$tenant, $cid, json_encode(['campaign_id'=>$id], JSON_UNESCAPED_UNICODE), $now]); } catch (\Throwable $e) {}
+            }
+        }
+        $pdo->prepare("UPDATE sms_campaigns SET status='sent', sent_count=?, updated_at=? WHERE id=? AND tenant_id=?")
+            ->execute([$sent, $now, $id, $tenant]);
+        return TemplateResponder::respond($res, ['ok'=>true,'id'=>$id,'status'=>'sent','sent'=>$sent,'failed'=>$failed,'capped'=>$capped,'total'=>$sent+$failed]);
     }
 
     // POST /api/sms/settings

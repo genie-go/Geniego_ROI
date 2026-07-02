@@ -507,12 +507,17 @@ class JourneyBuilder
                 continue;
             }
 
-            // ── [현 차수] split: A/B 분기(가중치, 등록ID 결정적 분배 — 동일 고객 동일 분기·재현가능) ──
+            // ── [현 차수·260차 심화] split: 멀티변량 분기(N개 가중치, 등록ID 결정적 분배 — 동일 고객 동일 분기·재현가능) ──
+            //   config.branches = [{key,weight},...] (2~N분기). 레거시 weight_a(2-way a/b) 하위호환. 목표기반 자동최적화(optimizeSplits)가 가중치 갱신.
             if ($type === 'split') {
                 $cfg = (array)($node['config'] ?? []);
-                $wA  = max(0, min(100, (int)($cfg['weight_a'] ?? 50)));
-                $pick = (($enrollId * 2654435761 + 1) % 100) < $wA ? 'a' : 'b';
-                self::logNode($pdo, $tenant, $enrollId, $jid, $nodeId, 'split', 'split', ['branch'=>$pick, 'weight_a'=>$wA]);
+                $branches = [];
+                if (is_array($cfg['branches'] ?? null) && count($cfg['branches']) >= 2) {
+                    foreach ($cfg['branches'] as $b) { $k = trim((string)($b['key'] ?? '')); $w = max(0, (float)($b['weight'] ?? 0)); if ($k !== '') $branches[$k] = $w; }
+                }
+                if (count($branches) < 2) { $wA = max(0, min(100, (int)($cfg['weight_a'] ?? 50))); $branches = ['a' => $wA, 'b' => max(0, 100 - $wA)]; }
+                $pick = self::pickWeighted($branches, $enrollId);
+                self::logNode($pdo, $tenant, $enrollId, $jid, $nodeId, 'split', 'split', ['branch'=>$pick, 'branches'=>$branches, 'auto'=>!empty($cfg['auto_optimize'])]);
                 $actions[] = ['node'=>$nodeId, 'action'=>'split', 'branch'=>$pick];
                 $nodeId = self::nextNode($edges, $nodeId, $pick);
                 continue;
@@ -600,6 +605,67 @@ class JourneyBuilder
     {
         foreach ($nodes as $n) { if (($n['id'] ?? null) === $id) return $n; }
         return null;
+    }
+
+    /** [260차 심화] 결정적 가중 분기 선택 — enrollId 해시로 누적가중 구간 배정(동일 고객 동일 분기·재현가능·멀티변량). */
+    private static function pickWeighted(array $weights, int $seed): string
+    {
+        $keys = array_keys($weights);
+        $total = 0.0; foreach ($weights as $w) $total += max(0.0, (float)$w);
+        if ($total <= 0) return (string)($keys[0] ?? 'a');
+        $r = ((($seed * 2654435761) + 1) % 100000) / 100000.0 * $total;
+        $acc = 0.0;
+        foreach ($weights as $k => $w) { $acc += max(0.0, (float)$w); if ($r < $acc) return (string)$k; }
+        return (string)end($keys);
+    }
+
+    /** [260차 심화] 목표기반 자동최적화 — split 노드(auto_optimize=true)의 분기 가중을 관측 전환율 기준 재배분(밴딧).
+     *  branch별 등록수·전환수(journey_node_logs⋈journey_enrollments) → Laplace 평활 전환율 → softmax 재가중(탐색 최소5%·상한80%).
+     *  결정론 분배는 유지(신규 등록만 새 분포 적용). 표본 20건 미만 노드는 유지. 반환: 갱신 노드 수. journey_cron 이 호출. */
+    public static function optimizeSplits(?string $onlyTenant = null): int
+    {
+        $pdo = Db::pdo();
+        $sql = "SELECT id, tenant_id, nodes FROM journeys WHERE status='active'" . ($onlyTenant ? " AND tenant_id=:t" : "");
+        $st = $pdo->prepare($sql); $st->execute($onlyTenant ? [':t' => $onlyTenant] : []);
+        $updated = 0;
+        foreach ($st->fetchAll(\PDO::FETCH_ASSOC) as $j) {
+            $jid = (int)$j['id']; $tenant = (string)$j['tenant_id'];
+            $nodes = json_decode($j['nodes'] ?? '[]', true); if (!is_array($nodes)) continue;
+            $changed = false;
+            foreach ($nodes as &$node) {
+                if (($node['type'] ?? '') !== 'split') continue;
+                $cfg = (array)($node['config'] ?? []);
+                if (empty($cfg['auto_optimize'])) continue;
+                $nodeId = (string)($node['id'] ?? ''); if ($nodeId === '') continue;
+                $keys = [];
+                if (is_array($cfg['branches'] ?? null)) foreach ($cfg['branches'] as $b) { $k = trim((string)($b['key'] ?? '')); if ($k !== '') $keys[] = $k; }
+                if (count($keys) < 2) $keys = ['a', 'b'];
+                $q = $pdo->prepare("SELECT l.result AS result, e.converted AS converted FROM journey_node_logs l JOIN journey_enrollments e ON e.id=l.enrollment_id AND e.tenant_id=l.tenant_id WHERE l.journey_id=:j AND l.tenant_id=:t AND l.node_id=:n AND l.node_type='split'");
+                $q->execute([':j' => $jid, ':t' => $tenant, ':n' => $nodeId]);
+                $enr = []; $conv = [];
+                foreach ($q->fetchAll(\PDO::FETCH_ASSOC) as $row) {
+                    $r = json_decode($row['result'] ?? '{}', true); $br = is_array($r) ? (string)($r['branch'] ?? '') : '';
+                    if ($br === '') continue;
+                    $enr[$br] = ($enr[$br] ?? 0) + 1;
+                    if ((int)$row['converted'] === 1) $conv[$br] = ($conv[$br] ?? 0) + 1;
+                }
+                if (array_sum($enr) < 20) continue; // 표본 부족 → 유지
+                $rates = []; foreach ($keys as $k) { $e = $enr[$k] ?? 0; $c = $conv[$k] ?? 0; $rates[$k] = ($c + 1.0) / ($e + 2.0); }
+                $maxR = max($rates); $exps = []; $sum = 0.0;
+                foreach ($keys as $k) { $ev = exp(($rates[$k] - $maxR) * 8.0); $exps[$k] = $ev; $sum += $ev; }
+                $raw = []; foreach ($keys as $k) { $raw[$k] = max(5.0, min(80.0, 100.0 * $exps[$k] / max(1e-9, $sum))); }
+                $tot = array_sum($raw); $newBranches = [];
+                foreach ($keys as $k) { $newBranches[] = ['key' => $k, 'weight' => round($raw[$k] * 100.0 / max(1e-9, $tot), 1)]; }
+                $node['config']['branches'] = $newBranches;
+                $node['config']['optimized_at'] = gmdate('c');
+                $changed = true; $updated++;
+            }
+            unset($node);
+            if ($changed) {
+                try { $pdo->prepare("UPDATE journeys SET nodes=:n, updated_at=:u WHERE id=:id AND tenant_id=:t")->execute([':n' => json_encode($nodes, JSON_UNESCAPED_UNICODE), ':u' => gmdate('c'), ':id' => $jid, ':t' => $tenant]); } catch (\Throwable $e) {}
+            }
+        }
+        return $updated;
     }
 
     /** 다음 노드 해석. $branch('true'/'false') 지정 시 조건 엣지(when/branch/label) 매칭. */

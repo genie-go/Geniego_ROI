@@ -73,7 +73,7 @@ export default function AmazonRisk() {
                       <span className="mono">{r.sku}</span> · {r.channel} · {r.time}
                     </div>
                   </div>
-                  <button className="btn" style={{ fontSize: 11, padding: "4px 10px", flexShrink: 0 }}>{t("amazonRisk.action")}</button>
+                  <button onClick={() => { window.location.href = '/digital-shelf'; }} className="btn" style={{ fontSize: 11, padding: "4px 10px", flexShrink: 0 }}>{t("amazonRisk.action")}</button>
                 </div>
               </div>
             ))}

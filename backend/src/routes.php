@@ -633,6 +633,7 @@ return function (App $app): void {
         'POST /v420/price/elasticity/bulk'   => 'Genie\\Handlers\\PriceOpt::bulkElasticity',
         'POST /v420/price/optimize'          => 'Genie\\Handlers\\PriceOpt::optimize',
         'POST /v420/price/optimize/batch'    => 'Genie\\Handlers\\PriceOpt::optimizeBatch',
+        'POST /v420/price/game-theory'       => 'Genie\\Handlers\\PriceOpt::gameTheorySim', // [260차 심화] 크로스마켓 게임이론 경쟁반응 시뮬레이션
         'GET /v420/price/shipping'           => 'Genie\\Handlers\\PriceOpt::getShipping',  // [현 차수] 채널별 배송조건(무료/소비자부담)
         'POST /v420/price/shipping'          => 'Genie\\Handlers\\PriceOpt::saveShipping',
         'GET /v420/price/recommendations'    => 'Genie\\Handlers\\PriceOpt::listRecommendations',
@@ -2063,6 +2064,7 @@ return function (App $app): void {
     $register('POST', '/v420/price/products');
     $register('POST', '/v420/price/elasticity');
     $register('POST', '/v420/price/optimize');
+    $register('POST', '/v420/price/game-theory'); // [260차 심화] 게임이론 경쟁반응 시뮬레이션
     $register('GET',  '/v420/price/shipping');
     $register('POST', '/v420/price/shipping');
     $register('GET',  '/v420/price/recommendations');

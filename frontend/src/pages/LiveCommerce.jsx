@@ -137,6 +137,7 @@ function useLiveStream(session, active) {
   const isLive = session?.status === 'live';
   const [stats, setStats] = useState(null);
   const [chat, setChat] = useState([]);
+  const [interactive, setInteractive] = useState(null); // [260차] 실시간 인터랙티브 상태공유(반응/투표/핀상품)
   const [connected, setConnected] = useState(false);
   const esRef = useRef(null);
   const pollRef = useRef(null);
@@ -167,6 +168,7 @@ function useLiveStream(session, active) {
         esRef.current = es;
         es.addEventListener('ready', () => { if (!stopped) setConnected(true); });
         es.addEventListener('stats', (e) => { try { setStats(JSON.parse(e.data)); } catch {} });
+        es.addEventListener('interactive', (e) => { try { setInteractive(JSON.parse(e.data)); } catch {} }); // [260차] 실시간 오버레이 상태공유
         es.addEventListener('chat', (e) => { try { pushChat([JSON.parse(e.data)]); } catch {} });
         es.addEventListener('bye', () => { es.close(); if (!stopped) startSSE(); });
         es.onerror = () => { es.close(); esRef.current = null; setConnected(false); if (!stopped) startPoll(); };
@@ -204,7 +206,55 @@ function useLiveStream(session, active) {
   }, [sid, active, isLive, pushChat]);
 
   const sendLike = useCallback(() => { if (sid) liveApi.heartbeat(sid, { viewer_key: viewerKey.current, like: 1 }).catch(() => {}); }, [sid]);
-  return { stats, chat, connected, sendLike, viewerKey: viewerKey.current };
+  return { stats, chat, interactive, connected, sendLike, viewerKey: viewerKey.current };
+}
+
+/* [260차 심화] 실시간 인터랙티브 오버레이 — SSE 'interactive'(반응버스트·활성투표·핀상품)를 모든 동시 시청자에게 공유 표시.
+ *   비디오 위 절대배치. SFU 불요(인터랙티브 평면만 스케일). interactive 없으면 렌더 안 함(회귀0). */
+function LiveOverlay({ interactive, t }) {
+  if (!interactive) return null;
+  const reactions = interactive.reactions && typeof interactive.reactions === 'object' ? interactive.reactions : {};
+  const rEntries = Object.entries(reactions).filter(([, c]) => c > 0).slice(0, 6);
+  const poll = interactive.poll;
+  const feat = interactive.featured;
+  const pollTotal = poll ? Math.max(1, Number(poll.total) || 0) : 1;
+  return (
+    <>
+      {/* 반응 버스트(최근 10초) */}
+      {rEntries.length > 0 && (
+        <div style={{ position: 'absolute', right: 10, bottom: 10, display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-end', pointerEvents: 'none' }}>
+          {rEntries.map(([emo, c]) => (
+            <div key={emo} style={{ background: 'rgba(0,0,0,0.45)', color: '#fff', borderRadius: 20, padding: '2px 10px', fontSize: 13, fontWeight: 700, backdropFilter: 'blur(4px)' }}>{emo} {c}</div>
+          ))}
+        </div>
+      )}
+      {/* 활성 투표 실시간 결과 */}
+      {poll && Array.isArray(poll.results) && (
+        <div style={{ position: 'absolute', left: 10, bottom: 10, width: 220, background: 'rgba(15,23,42,0.72)', color: '#fff', borderRadius: 10, padding: '8px 10px', backdropFilter: 'blur(6px)' }}>
+          <div style={{ fontSize: 11, fontWeight: 800, marginBottom: 6 }}>📊 {poll.question || t('liveCommerce.livePoll', '실시간 투표')} · {poll.total || 0}{t('liveCommerce.votesUnit', '표')}</div>
+          {poll.results.slice(0, 4).map((o, i) => {
+            const pct = Math.round((Number(o.votes) || 0) / pollTotal * 100);
+            return (
+              <div key={i} style={{ marginBottom: 4 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10.5 }}><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{o.label}</span><span>{pct}%</span></div>
+                <div style={{ height: 5, background: 'rgba(255,255,255,0.15)', borderRadius: 3, overflow: 'hidden' }}><div style={{ width: pct + '%', height: '100%', background: 'linear-gradient(90deg,#22c55e,#4f8ef7)' }} /></div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+      {/* 핀(featured) 상품 오버레이 */}
+      {feat && (
+        <div style={{ position: 'absolute', left: 10, top: 10, display: 'flex', gap: 8, alignItems: 'center', background: 'rgba(15,23,42,0.72)', color: '#fff', borderRadius: 10, padding: '6px 10px', maxWidth: 260, backdropFilter: 'blur(6px)' }}>
+          {feat.image ? <img src={feat.image} alt="" style={{ width: 34, height: 34, borderRadius: 7, objectFit: 'cover' }} /> : <span style={{ fontSize: 20 }}>🛍️</span>}
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: 11, fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{feat.name}</div>
+            <div style={{ fontSize: 11, color: '#22c55e', fontWeight: 700 }}>{Number(feat.special_price || feat.price || 0).toLocaleString()}{t('liveCommerce.won', '원')}</div>
+          </div>
+        </div>
+      )}
+    </>
+  );
 }
 
 /* ═══════════════════════ 메인 컴포넌트 ═══════════════════════ */
@@ -323,7 +373,7 @@ const StudioTab = memo(function StudioTab({ session, gd, money, t, onChanged }) 
   const [products, setProducts] = useState([]);
   const [chatInput, setChatInput] = useState('');
   const [busy, setBusy] = useState(false);
-  const { stats, chat, connected, viewerKey } = useLiveStream(session, true);
+  const { stats, chat, interactive, connected, viewerKey } = useLiveStream(session, true);
   const chatEndRef = useRef(null);
 
   const sid = session?.id;
@@ -410,6 +460,7 @@ const StudioTab = memo(function StudioTab({ session, gd, money, t, onChanged }) 
         <Card style={{ padding: 0, overflow: 'hidden', background: '#0b1020' }}>
           <div style={{ position: 'relative', aspectRatio: '16/9', background: '#0b1020', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <video ref={videoRef} playsInline style={{ width: '100%', height: '100%', objectFit: 'cover', display: camOn ? 'block' : 'none' }} />
+            <LiveOverlay interactive={interactive} t={t} />{/* [260차] 실시간 인터랙티브 오버레이(반응/투표/핀상품 동시시청 공유) */}
             {!camOn && <div style={{ color: '#94a3b8', textAlign: 'center' }}>
               <div style={{ fontSize: 44 }}>📷</div>
               <div style={{ fontSize: 13, marginTop: 6 }}>{t('liveCommerce.camOff', '카메라가 꺼져 있습니다')}</div>

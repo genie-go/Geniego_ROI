@@ -1044,15 +1044,18 @@ const ServerMtaPanel = memo(function ServerMtaPanel() {
   const t = useT();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [vtAuto, setVtAuto] = useState(false); // [260차] 뷰스루 자동감쇠(전용 반감기 1일 + 데이터 자동보정)
 
   useEffect(() => {
     let alive = true;
-    getJsonAuth('/v424/attribution/models?window=90')
+    setLoading(true);
+    const url = '/v424/attribution/models?window=90' + (vtAuto ? '&vt_weight=auto&vt_halflife=1' : '');
+    getJsonAuth(url)
       .then(r => { if (alive) setData(r || null); })
       .catch(() => { if (alive) setData(null); })
       .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
-  }, []);
+  }, [vtAuto]);
 
   const rows = (data && Array.isArray(data.channels)) ? data.channels : [];
   const converted = Number(data?.converted || 0);
@@ -1063,6 +1066,10 @@ const ServerMtaPanel = memo(function ServerMtaPanel() {
         <span style={{ fontWeight: 900, fontSize: 13 }}>🧬 {t('attrData.serverMtaTitle', '서버 데이터기반 멀티터치 (권위)')}</span>
         <Tag label={t('attrData.serverMtaBadge', '1st-party 실측')} color="#22c55e" />
         {converted > 0 && <span style={{ fontSize: 11, color: 'var(--text-3)' }}>· {t('attrData.serverMtaConv', '전환')} {converted.toLocaleString()} · {t('attrData.serverMtaWindow', '최근')} {Number(data?.window_days || 90)}{t('attrData.serverMtaDays', '일')}</span>}
+        <button onClick={() => setVtAuto(v => !v)} title={t('attrData.vtDecayHint', '노출(view-through) 터치를 전용 반감기(1일)로 시간감쇠 + 데이터 기반 자동 가중')}
+          style={{ marginLeft: 'auto', fontSize: 10.5, padding: '3px 10px', borderRadius: 20, cursor: 'pointer', fontWeight: 700, border: '1px solid ' + (vtAuto ? '#22c55e' : 'var(--border,#e2e8f0)'), background: vtAuto ? 'rgba(34,197,94,0.12)' : 'transparent', color: vtAuto ? '#16a34a' : 'var(--text-3)' }}>
+          {vtAuto ? '✓ ' : ''}{t('attrData.vtDecayToggle', '뷰스루 자동감쇠')}{vtAuto && data?.vt_weight != null ? ' (w=' + Number(data.vt_weight).toFixed(2) + ')' : ''}
+        </button>
       </div>
       <div style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 12, lineHeight: 1.6 }}>
         {t('attrData.serverMtaDesc', '서버가 attribution_touch 여정을 전환과 결합해 6개 모델을 계산합니다. Markov removal-effect(제거 효과)는 채널 부재 시 전환 손실을 측정하는 데이터기반(data-driven) 어트리뷰션입니다.')}

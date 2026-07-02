@@ -355,7 +355,19 @@ const HistoryTab = memo(function HistoryTab({ t }) {
         <div style={{ display: 'grid', gap: 16 }}>
             <div style={{ ...CARD, padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
                 <div style={{ fontSize: 16, fontWeight: 800, color: TXT1 }}>📋 {t('aiInsights.traceability', 'Insight Traceability')}</div>
-                <button style={{ fontSize: 12, padding: '8px 16px', borderRadius: 8, border: '1px solid rgba(168,85,247,0.3)', background: 'rgba(168,85,247,0.08)', color: '#7c3aed', cursor: 'pointer', fontWeight: 700 }}>📥 {t('aiInsights.exportAuditCsv', 'Export Audit Log (CSV)')}</button>
+                <button onClick={() => {
+                    // 260차: 죽은 버튼 실배선 — 분석이력 rows 를 실제 CSV 로 내보내기
+                    if (!rows.length) { alert(t('aiInsights.historyEmpty', 'No analysis history yet')); return; }
+                    const head = ['id','context','question','summary','recommendation','status','tokens_used','created_at'];
+                    const esc = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+                    const csv = [head.join(',')].concat(rows.map(r => head.map(h => esc(r[h])).join(','))).join('\r\n');
+                    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url; a.download = `ai_insight_audit_${new Date().toISOString().slice(0,10)}.csv`;
+                    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+                    setTimeout(() => URL.revokeObjectURL(url), 1000);
+                }} style={{ fontSize: 12, padding: '8px 16px', borderRadius: 8, border: '1px solid rgba(168,85,247,0.3)', background: 'rgba(168,85,247,0.08)', color: '#7c3aed', cursor: 'pointer', fontWeight: 700 }}>📥 {t('aiInsights.exportAuditCsv', 'Export Audit Log (CSV)')}</button>
             </div>
             {rows.length === 0 && (
                 <div style={{ ...CARD, padding: '48px 24px', textAlign: 'center' }}>

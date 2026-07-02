@@ -375,7 +375,7 @@ function PromoTab() {
             <div style={{ fontWeight:800, fontSize:14, marginBottom:4 }}>{p.name}</div>
             <div style={{ fontSize:11, color:"var(--text-3)", marginBottom:12 }}>{p.type} {"\u00b7"} {p.value}</div>
             <div style={{ display:"flex", gap:6 }}>
-              <button className="btn-ghost" style={{ flex:1, fontSize:10, padding:"5px 0" }}>{t('operations.edit')}</button>
+              <button onClick={()=>{ const nn = window.prompt(t('operations.edit'), p.name); if(nn && nn.trim()) setPromos(ps=>ps.map(q=>q.id===p.id?{...q,name:nn.trim()}:q)); }} className="btn-ghost" style={{ flex:1, fontSize:10, padding:"5px 0", cursor:"pointer" }}>{t('operations.edit')}</button>
               {p.status==="draft"&&<button className="btn-primary" style={{ flex:1, fontSize:10, padding:"5px 0" }} onClick={()=>setPromos(ps=>ps.map(q=>q.id===p.id?{...q,status:"active"}:q))}>{t('operations.activate')}</button>}
             </div>
           </div>

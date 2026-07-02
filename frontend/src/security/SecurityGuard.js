@@ -375,10 +375,26 @@ export function initSessionManager(onExpire) {
     const resetIdle = () => { _lastActivity = Date.now(); };
     activityEvents.forEach(evt => document.addEventListener(evt, resetIdle, { passive: true }));
 
+    // [세션 타임아웃 SSOT — 260차] 유휴 자동 로그아웃 시간은 사용자 설정(auto_logout_min)을
+    //   단일 진실원천으로 사용한다. AuthContext 프로필 "자동 로그아웃(유휴 시간)" 설정과 완전 일치.
+    //   0/미설정이면 유휴 자동 로그아웃 비활성(강제 로그아웃 안 함).
+    //   과거 하드코딩 30분(SESSION_TIMEOUT_MS)이 사용자 설정(예: 120분)을 무시하고 조기 로그아웃
+    //   시키던 문제 해소 — 이 함수가 향후 배선되더라도 사용자 설정을 존중한다.
+    const idleLimitMs = () => {
+        try {
+            const raw = localStorage.getItem('genie_auto_logout_min')
+                     || localStorage.getItem('demo_genie_auto_logout_min') || '0';
+            const min = parseInt(raw, 10) || 0;
+            return min > 0 ? min * 60 * 1000 : 0;
+        } catch (e) { return 0; }
+    };
+
     // Idle timeout check (every 60s)
     _idleTimer = setInterval(() => {
+        const limit = idleLimitMs();
+        if (limit <= 0) return; // 사용자가 유휴 자동 로그아웃 비활성 → 강제 로그아웃 안 함
         const idle = Date.now() - _lastActivity;
-        if (idle > SECURITY_CONFIG.SESSION_TIMEOUT_MS) {
+        if (idle > limit) {
             addSecurityAlert('warn', `⏱ Session expired: ${Math.round(idle / 60000)}min idle`);
             cleanupSession();
             if (onExpire) onExpire('idle');

@@ -1236,9 +1236,10 @@ class LiveCommerce
                 @flush();
                 $lastHb = time();
             }
-            // 주기적 stats(3s) — 시청자/매출 실시간 반영
+            // 주기적 stats(3s) — 시청자/매출 실시간 반영 + [260차 심화] 인터랙티브 상태공유(반응버스트·투표실시간·핀상품)
             if ((time() - $lastStats) >= 3) {
                 self::emit('stats', self::computeStats($t, $sid), null);
+                self::emit('interactive', self::computeInteractive($t, $sid), null); // 동시시청 실시간 오버레이 상태공유(SFU 불요)
                 @flush();
                 $lastStats = time(); $lastHb = time();
             } elseif ((time() - $lastHb) >= self::SSE_HB_SEC) {
@@ -1251,6 +1252,41 @@ class LiveCommerce
             }
         }
         exit;
+    }
+
+    /** [260차 심화] 인터랙티브 실시간 상태 — 반응 버스트(최근10초 이모지 집계)·활성 투표 실시간결과·핀(featured) 상품.
+     *  SSE 로 모든 동시 시청자에게 브로드캐스트 → 각자 폴링 없이 오버레이 상태 공유(SFU 불요, 인터랙티브 평면만 스케일). */
+    private static function computeInteractive(string $t, int $sid): array
+    {
+        $pdo = self::db();
+        $out = ['reactions' => new \stdClass(), 'poll' => null, 'featured' => null];
+        try {
+            $since = gmdate('Y-m-d H:i:s', time() - 10);
+            $rs = $pdo->prepare("SELECT emoji, COUNT(*) c FROM live_reactions WHERE tenant_id=:t AND session_id=:s AND created_at>=:since GROUP BY emoji");
+            $rs->execute([':t' => $t, ':s' => $sid, ':since' => $since]);
+            $r = [];
+            foreach ($rs->fetchAll(\PDO::FETCH_ASSOC) as $row) $r[(string)$row['emoji']] = (int)$row['c'];
+            if ($r) $out['reactions'] = $r;
+        } catch (\Throwable $e) {}
+        try {
+            $pc = $pdo->prepare("SELECT * FROM live_polls WHERE tenant_id=:t AND session_id=:s AND status='active' ORDER BY id DESC LIMIT 1");
+            $pc->execute([':t' => $t, ':s' => $sid]); $p = $pc->fetch(\PDO::FETCH_ASSOC);
+            if ($p) {
+                $opts = json_decode((string)($p['options'] ?? '[]'), true) ?: [];
+                $vc = $pdo->prepare("SELECT option_idx, COUNT(*) c FROM live_poll_votes WHERE tenant_id=:t AND poll_id=:p GROUP BY option_idx");
+                $vc->execute([':t' => $t, ':p' => (int)$p['id']]);
+                $counts = []; $total = 0;
+                foreach ($vc->fetchAll(\PDO::FETCH_ASSOC) as $v) { $counts[(int)$v['option_idx']] = (int)$v['c']; $total += (int)$v['c']; }
+                $results = []; foreach ($opts as $i => $o) $results[] = ['label' => (string)$o, 'votes' => (int)($counts[$i] ?? 0)];
+                $out['poll'] = ['id' => (int)$p['id'], 'question' => (string)$p['question'], 'total' => $total, 'results' => $results];
+            }
+        } catch (\Throwable $e) {}
+        try {
+            $fp = $pdo->prepare("SELECT id,sku,name,image,price,special_price,stock,sold FROM live_products WHERE tenant_id=:t AND session_id=:s AND featured=1 ORDER BY updated_at DESC LIMIT 1");
+            $fp->execute([':t' => $t, ':s' => $sid]); $f = $fp->fetch(\PDO::FETCH_ASSOC);
+            if ($f) { $f['price'] = (float)$f['price']; $f['special_price'] = (float)$f['special_price']; $f['stock'] = (float)$f['stock']; $f['sold'] = (float)$f['sold']; $out['featured'] = $f; }
+        } catch (\Throwable $e) {}
+        return $out;
     }
 
     private static function emit(string $event, array $data, ?int $id): void

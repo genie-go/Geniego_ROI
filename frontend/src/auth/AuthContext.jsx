@@ -44,7 +44,15 @@ function restorableToken() {
         // admin 계정은 보안상 비영속: 새 브라우저 세션/새 탭에서 재인증(접속키) 요구.
         let cachedPlan = "";
         try { const u = JSON.parse(localStorage.getItem(USER_KEY) || "null"); cachedPlan = u?.plan || u?.plans || ""; } catch {}
-        if (cachedPlan === "admin") return null;
+        if (cachedPlan === "admin") {
+            // 260차: admin 이 "유휴 자동 로그아웃"을 명시 설정했으면(보안 경계 존재) 세션을 영속한다.
+            //   → "설정한 시간(예: 120분) 동안 유지, 그 후 유휴 로그아웃" 요구 충족(새 탭/재시작에도 유지).
+            //   미설정 시에는 기존대로 비영속(새 세션 접속키 재인증) 유지 = 안전한 기본값.
+            const alm = parseInt(localStorage.getItem(AUTO_LOGOUT_KEY) || "0", 10) || 0;
+            if (alm <= 0) return null;
+            try { sessionStorage.setItem(SESSION_ACTIVE_KEY, "1"); } catch {}
+            return tok;
+        }
         // 192차 로그아웃 버그 수정: 일반 사용자는 영속 세션이 기본(엔터프라이즈 SaaS).
         //   새 탭/창·브라우저 재시작·홈("/") 이동에도 로그인 유지. 189차 비영속 기본값이
         //   "로그아웃 안 했는데 로그아웃" 호소의 근본 원인이었음. 보안 제어는 명시적 로그아웃 +

@@ -849,8 +849,8 @@ const ROITab = memo(function ROITab() {
                                     ))}
                                 </div>
                                 <div style={{ marginTop: 10, display: "flex", gap: 6 }}>
-                                    <button className="btn-primary" style={{ fontSize: 9, padding: "4px 10px", flex: 1, background: "linear-gradient(135deg,#6366f1,#a855f7)" }}>{t("influencer.adCreative","Ad Creative")}</button>
-                                    <button className="btn-primary" style={{ fontSize: 9, padding: "4px 10px", flex: 1, background: "linear-gradient(135deg,#14b8a6,#4f8ef7)" }}>{t("influencer.productPage","Product Page")}</button>
+                                    <button onClick={() => { window.location.href = '/auto-marketing'; }} className="btn-primary" style={{ fontSize: 9, padding: "4px 10px", flex: 1, background: "linear-gradient(135deg,#6366f1,#a855f7)" }}>{t("influencer.adCreative","Ad Creative")}</button>
+                                    <button onClick={() => { window.location.href = '/digital-shelf'; }} className="btn-primary" style={{ fontSize: 9, padding: "4px 10px", flex: 1, background: "linear-gradient(135deg,#14b8a6,#4f8ef7)" }}>{t("influencer.productPage","Product Page")}</button>
                                 </div>
                             </div>
                         );
@@ -1064,7 +1064,7 @@ const UGCTab = memo(function UGCTab() {
                             <div style={{ marginTop: 8, display: "flex", gap: 10 }}>
                                 <span style={{ fontSize: 11, color:"#6b7280" }}>👍 {r.helpful} {t("influencer.helpful","helpful")}</span>
                                 {r.sentiment === "negative" && (
-                                    <button className="btn-primary" style={{ fontSize: 9, padding: "2px 10px", background: "linear-gradient(135deg,#ef4444,#f97316)" }}>{t('influencer.csRespond')}</button>
+                                    <button onClick={() => { window.location.href = '/reviews-ugc'; }} className="btn-primary" style={{ fontSize: 9, padding: "2px 10px", background: "linear-gradient(135deg,#ef4444,#f97316)" }}>{t('influencer.csRespond')}</button>
                                 )}
                             </div>
                         </div>

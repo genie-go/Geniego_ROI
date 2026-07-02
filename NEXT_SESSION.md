@@ -1,3 +1,37 @@
+# 260차 세션 인계서 — **자동로그아웃 근본수정 + 반복재발 클래스 전수검출기 + Paddle 스키마드리프트 + 정직화/죽은버튼 + 경쟁재평가 89.5 + CRO WYSIWYG 완전패리티 + 코드완결 심화 5종**
+
+> **작성일**: 2026-07-02 (사용자 명시 승인) · 운영 roi.genie-go.com / 데모 roidemo.genie-go.com · 브랜치 `feat/n236-admin-growth-automation` (**master 미접촉** — 수동 dist/핸들러 스왑 배포·CI 미트리거). 전 항목 운영/데모 배포·라이브 검증(php-l·라우팅 e2e·라이브DB·HTTPS·헤드리스·admin 실로그인). **회귀0·거짓집행0·운영목데이터0**.
+
+## ★0. 다음 차수 필독 — 오탐/중복/재발 방지
+- 착수 전 `docs/IMPLEMENTATION_STATUS.md` + `reference_audit_false_positives`(메모리) + `project_n260_autologout_and_class_sweeps`(메모리) 주입.
+- **★반복재발 근본대책(사용자 지적 반영)**: 같은 "클래스" 결함이 여러 위치에 흩어져 매 감사가 다른 인스턴스를 찾음 → **클래스 단위 전수검출기** 도입(스크래치패드 재사용): 스키마드리프트(CREATE-vs-라이브 218테이블)·죽은버튼(<button> onClick부재)·하드코딩파생지표(매직상수×실측지표 IS_DEMO미게이트). **세 클래스 모두 전수 소진 확인**(스키마드리프트=Paddle 유일·죽은버튼7 전량수정·하드코딩=29후보 전량 정당/게이트). ★검출기 CI가드화 권장.
+
+## 1. 260차 완료(전부 운영/데모 라이브)
+| # | 영역 | 항목 |
+|---|------|------|
+| A | 버그(사용자) | **자동로그아웃 조기발생 3중 근본원인**(admin): ①impersonationShim 이 auto_logout_min 격리→회원세션탭서 휘발성 소실("설정 풀림") ②SecurityGuard/SessionExpiryWarning 하드코딩 30분(죽은코드지만 번들포함)→설정값 SSOT통일 ③admin 토큰 비영속→새세션 즉시로그아웃→유휴설정 시 세션영속(idle타이머가 보안경계). **admin 실로그인 e2e 검증**(120저장→localStorage영속·새세션 유지). |
+| B | 스키마드리프트 | **Paddle 결제/구독**: CREATE IF NOT EXISTS+ALTER부재→라이브 옛스키마와 불일치→구독웹훅 INSERT 무음실패. 라이브 prod+demo 3테이블 재생성+ensureSchema 자가치유. INSERT 실증. |
+| C | 정직화(가짜집행) | CustomerAI::autoAction(DB미기록 "예약됨"→crm_auto_action 실영속+정직메시지·라이브 persisted:true)·SmsMarketing::campaignAction send(발송없이 sent→dispatchCampaign 세그먼트 실발송 sendSms+sms_messages)·RulesEditorV2:119 널참조 크래시 가드. |
+| D | 죽은버튼 실배선7 | AIInsights CSV Export(실 CSV)·CatalogSync 상품동기화(실 writeback)·InfluencerUGC×3(딥링크)·AmazonRisk·PerformanceHub·OperationsHub(실 로컬편집). |
+| E | 경쟁재평가 | `docs/COMPETITIVE_REVALIDATION_260.md`: 16차원 평균 89.5/best 89.8(격차−0.3)·통합폐루프95(+23). 258~260 무음실패복구로 "자격증명 등록 즉시 실행" 명제 코드 실증. |
+| F | CRO WYSIWYG 완전패리티 | 기존 3파일 확장(중복0): cro-editor.js v2(prompt→인라인패널+라이브프리뷰+되돌리기+요소인스펙터+10액션)·onsiteCro.applyChanges 확장·Onsite.editSave 화이트리스트확장·OnsiteCro.jsx 인앱빌더. 실브라우저 6신규액션 검증. CRO 86→89. |
+| G | 코드완결 심화5 | ①어트리 뷰스루 자동감쇠+자동보정(90→91) ②저니 멀티변량split+목표기반 밴딧자동최적화(88→90·journey_cron배선) ③라이브 인터랙티브 SSE 상태공유+오버레이(84→86) ④가격 게임이론 내시균형(88→90·/v420/price/game-theory). |
+| H | routes 전수검증 | 849 매핑 전수 리플렉션 검증 → 활성 848 CLEAN. |
+
+## 2. 검증
+- 백엔드 php-l 전건 PASS·fpm restart·라우팅(game-theory/attr-vt AUTH_REQUIRED·edit-save 400·journey_cron splits_optimized 무크래시).
+- 라이브 admin e2e(자동로그아웃)·Paddle INSERT·CustomerAI persisted·CRO applyChanges 6액션 실브라우저·cro-editor v2 서빙.
+- 원자스왑 dist.bak.260*·백엔드 .bak.260 보존.
+
+## 3. 성숙 도메인(재플래그/재구현 금지 — 이미 성숙·검증)
+- **마케팅 실집행**: 6채널 실HTTP·전환업로드(259복구)·멀티통화·킬스위치·폐루프. **데이터정합**: 정규화엔진(259복구)·정산SSOT·취소제외·스키마드리프트 소진. **보안**: 4중오염방어·권한상승차단·파트너격리. **어트리**: markov/MCMC/Shapley+뷰스루감쇠. **CRM**: 저니 전노드+멀티변량+밴딧·옴니채널·실메시징. **라이브**: presence/polls/reactions/인터랙티브SSE. **CRO**: WYSIWYG 완전패리티. **i18n**: 15국. **격리**: DB물리분리·목데0.
+
+## 4. 잔여(경미·후속·외부의존)
+- 코드완결 잔여(경미): 저니 캔버스 auto_optimize 토글 UI(config/cron 동작 중)·신규 UI i18n키 15국 병합(인라인폴백 동작).
+- **외부의존(코드 아님·감점성격 아님)**: SOC2/ISO 실인증·라이브 SFU 미디어서버·실광고 OAuth키(CTV/PMax/영상)·Naver쇼핑 실키·사방넷 벤더채널수·발송DNS·geo-ID맵. **★코드-완결 net-new 프론티어 도달**(성숙 플랫폼).
+
+---
+
 # 258차 세션 인계서 — **회원세션(관리자 대행 열람) 신규 + 전수 정밀감사 4도메인 + 확정결함3 수정**
 
 > **작성일**: 2026-07-01 (사용자 명시 승인) · 운영 roi.genie-go.com / 데모 roidemo.genie-go.com · 브랜치 `feat/n236-admin-growth-automation` → **master FF push**. 전 항목 운영/데모 수동배포·라이브 검증(php-l·엔드포인트 e2e·헤드리스·서버 self-test). **회귀0·거짓집행0·운영목데이터0·오염경로0**.

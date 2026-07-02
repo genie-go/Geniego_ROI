@@ -29,8 +29,10 @@ function visitorCtx() {
 }
 
 /**
- * [246차 P2] 노코드 변형 체인지셋 적용 — assign.changes 를 DOM 에 반영(Optimizely식).
- *   change: { selector, action: text|html|css|hide|redirect, value, prop? }. graceful(요소 없으면 skip).
+ * [246차 P2 · 260차 WYSIWYG 패리티] 노코드 변형 체인지셋 적용 — assign.changes 를 DOM 에 반영(Optimizely식).
+ *   change: { selector, action, value, prop? }.
+ *   action: text|html|css(prop)|hide|remove|attr(prop=속성명)|class(prop=add|remove)|insert(prop=before|after|prepend|append)|img|redirect.
+ *   graceful(요소 없으면 skip). 실 방문자 변형 B 적용기 — 에디터·백엔드 화이트리스트와 3자 정합.
  */
 export function applyChanges(changes) {
   if (!Array.isArray(changes)) return;
@@ -40,10 +42,24 @@ export function applyChanges(changes) {
       if (c.action === 'redirect' && c.value) { location.href = String(c.value); return; }
       const els = c.selector ? document.querySelectorAll(c.selector) : [];
       els.forEach(el => {
-        if (c.action === 'text') el.textContent = String(c.value ?? '');
-        else if (c.action === 'html') el.innerHTML = String(c.value ?? '');
-        else if (c.action === 'hide') el.style.display = 'none';
-        else if (c.action === 'css' && c.prop) el.style.setProperty(c.prop, String(c.value ?? ''));
+        switch (c.action) {
+          case 'text': el.textContent = String(c.value ?? ''); break;
+          case 'html': el.innerHTML = String(c.value ?? ''); break;
+          case 'hide': el.style.display = 'none'; break;
+          case 'remove': el.parentNode && el.parentNode.removeChild(el); break;
+          case 'css': if (c.prop) el.style.setProperty(c.prop, String(c.value ?? '')); break;
+          case 'attr': if (c.prop && !/^on/i.test(c.prop)) el.setAttribute(c.prop, String(c.value ?? '')); break;
+          case 'class':
+            if (c.value) { const cls = String(c.value).trim().split(/\s+/); if (c.prop === 'remove') el.classList.remove(...cls); else el.classList.add(...cls); }
+            break;
+          case 'insert': {
+            const pos = { before: 'beforebegin', after: 'afterend', prepend: 'afterbegin', append: 'beforeend' }[c.prop] || 'afterend';
+            el.insertAdjacentHTML(pos, String(c.value ?? ''));
+            break;
+          }
+          case 'img': if (c.value) { el.setAttribute('src', String(c.value)); el.removeAttribute('srcset'); } break;
+          default: break;
+        }
       });
     } catch { /* graceful — 개별 변경 실패 무시 */ }
   }

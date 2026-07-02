@@ -1422,7 +1422,21 @@ const ProductDetail = memo(function ProductDetail({ product: p, onClose }) {
                     <ProgressBar pct={(p.inventory / 350) * 100} color={p.inventory < 20 ? "#ef4444" : p.inventory < 80 ? "#eab308" : "#22c55e"} />
                 </div>
 
-                <button style={{ padding: "8px 16px", borderRadius: 8, background: "#2563eb", color: "#fff", border: "none", fontWeight: 700, fontSize: 12, cursor: "pointer", width: "100%", marginBottom: 8 }}>{t('catalogSync.syncThisProduct')}</button>
+                <button onClick={async (e) => {
+                    // 260차: 죽은 버튼 실배선 — 이 상품을 등록 채널에 실제 writeback 동기화(기존 BulkRegister와 동일 엔드포인트)
+                    const btn = e.currentTarget; const orig = btn.textContent;
+                    btn.disabled = true; btn.textContent = t('catalogSync.syncing', '동기화 중…');
+                    let ok = 0; const chs = (channelPrices || []);
+                    for (const c of chs) {
+                        try {
+                            const d = await postJson(`/api/catalog/writeback/${encodeURIComponent(c.id)}/${encodeURIComponent(p.sku)}`,
+                                { price: c.price ?? p.price, name: p.name, category: p.category, inventory: p.inventory, spec: p.spec, action: 'update' });
+                            if (d && d.ok) ok++;
+                        } catch { /* 채널 실패는 계속 */ }
+                    }
+                    btn.disabled = false; btn.textContent = orig;
+                    alert(`${p.name}: ${ok}/${chs.length} ${t('catalogSync.syncRequested', '채널 동기화 요청 완료')}`);
+                }} style={{ padding: "8px 16px", borderRadius: 8, background: "#2563eb", color: "#fff", border: "none", fontWeight: 700, fontSize: 12, cursor: "pointer", width: "100%", marginBottom: 8 }}>{t('catalogSync.syncThisProduct')}</button>
                 <button className="btn-ghost" style={{ width: "100%" }} onClick={onClose}>{t('catalogSync.close')}</button>
             </div>
             <style>{`@keyframes fadeIn{from{opacity:0}to{opacity:1}}@keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}@keyframes stripe{from{background-position:0 0}to{background-position:32px 0}}`}</style>

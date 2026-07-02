@@ -517,6 +517,94 @@ class PriceOpt
             'ship_mode'=>$ship['mode'],'ship_cost'=>$ship['cost'],'shipping_burden'=>$ship['burden'],'effective_cost'=>$effectiveCost]);
     }
 
+    /** [260차 심화] POST /v420/price/game-theory — 크로스마켓 경쟁 반응 게임이론 시뮬레이션.
+     *  경쟁가(po_competitors) + 수요탄력성(po_elasticity)로 best-response 동학을 반복해 내시-근사 균형가 산출.
+     *  순진한 이익최대가(경쟁 반응 무시)가 경쟁사 언더컷을 유발해 이익이 잠식되는 "함정"을 시뮬레이션·정량 비교. */
+    public static function gameTheorySim(Request $request, Response $response, array $args): Response
+    {
+        if ($err = UserAuth::requirePro($request, $response)) return $err;
+        $db = self::db(); $t = self::tenant($request); $body = self::body($request);
+        $sku = trim((string)($body['sku'] ?? '')); if ($sku === '') return self::json($response, ['ok' => false, 'error' => 'sku required'], 400);
+        $channel = (string)($body['channel'] ?? '*');
+
+        $ps = $db->prepare("SELECT * FROM po_products WHERE sku=? AND tenant_id=?"); $ps->execute([$sku, $t]);
+        $product = $ps->fetch(\PDO::FETCH_ASSOC);
+        $cost = $product ? (float)$product['cost_price'] : (float)($body['cost'] ?? 0);
+        $targetMargin = $product ? (float)$product['target_margin'] : 0.30;
+        if ($cost <= 0) return self::json($response, ['ok' => false, 'error' => '원가(cost) 필요 — 상품 등록 또는 cost 전달'], 422);
+
+        $cs = $db->prepare("SELECT ourPrice, compA, compB FROM po_competitors WHERE sku=? AND tenant_id=? LIMIT 1"); $cs->execute([$sku, $t]);
+        $comp = $cs->fetch(\PDO::FETCH_ASSOC) ?: [];
+        $ourP0 = (float)($comp['ourPrice'] ?? ($body['current_price'] ?? 0));
+        $comps = []; foreach (['compA', 'compB'] as $k) { $v = (float)($comp[$k] ?? 0); if ($v > 0) $comps[] = $v; }
+        if ($ourP0 <= 0) $ourP0 = $cost / (1 - max(0.01, min(0.95, $targetMargin)));
+        if (!$comps) return self::json($response, ['ok' => false, 'error' => '경쟁가 데이터 없음 — 경쟁가 등록/수집 후 시뮬레이션'], 422);
+
+        // 수요 회귀(log-log) — elasticityOptimal 과 동일 원천(po_elasticity). 데이터 부족 시 탄력성 -1.5 폴백.
+        $es = $db->prepare("SELECT price, quantity FROM po_elasticity WHERE sku=? AND channel=? AND tenant_id=? ORDER BY price");
+        $es->execute([$sku, $channel, $t]); $rows = $es->fetchAll(\PDO::FETCH_ASSOC);
+        if (count($rows) < 2) { $es->execute([$sku, '*', $t]); $rows = $es->fetchAll(\PDO::FETCH_ASSOC); }
+        $slope = -1.5; $intercept = null;
+        if (count($rows) >= 2) {
+            $xs = array_map('floatval', array_column($rows, 'price')); $ys = array_map('floatval', array_column($rows, 'quantity'));
+            if (count(array_unique($xs)) >= 2) {
+                $lxs = array_map('log', array_map(fn($v) => max($v, 1.0), $xs)); $lys = array_map('log', array_map(fn($v) => max($v, 0.1), $ys));
+                $reg = self::linReg($lxs, $lys); $slope = $reg['slope']; $intercept = $reg['intercept'];
+            }
+        }
+        $refPx = $ourP0 > 0 ? $ourP0 : $cost * 1.4;
+        if ($intercept === null) $intercept = log(100.0) - $slope * log(max($refPx, 1.0)); // 폴백 스케일 q0(ref)=100
+        $q0 = fn($p) => exp($intercept + $slope * log(max($p, 1.0)));
+        $beta = 6.0; // 가격민감 점유(다항 로짓)
+        $attract = fn($p) => exp(-$beta * $p / max($refPx, 1.0));
+        $ourDemand = function ($p, $others) use ($q0, $attract) {
+            $den = $attract($p); foreach ($others as $o) $den += $attract($o);
+            $share = $den > 0 ? $attract($p) / $den : 1.0;
+            return $q0($p) * $share * (1 + count($others));
+        };
+        $ourProfitAt = fn($p, $others) => ($p - $cost) * $ourDemand($p, $others);
+        $ourBR = function ($others) use ($cost, $ourProfitAt, $refPx) {
+            $lo = $cost * 1.02; $hi = max($refPx * 2.0, $cost * 4); $step = max(100.0, $cost * 0.02);
+            $best = ['p' => $lo, 'profit' => -INF];
+            for ($p = $lo, $g = 0; $p <= $hi && $g < 3000; $p += $step, $g++) { $pr = $ourProfitAt($p, $others); if ($pr > $best['profit']) $best = ['p' => round($p, -2), 'profit' => $pr]; }
+            return $best['p'];
+        };
+        $compFloor = array_map(fn($c) => $c * 0.8, $comps); // 경쟁 원가 프록시(바닥)
+        $compBR = function ($ourP, $cur, $floors) {
+            $out = [];
+            foreach ($cur as $i => $c) {
+                $rivalMin = $ourP; foreach ($cur as $j => $cc) if ($j !== $i) $rivalMin = min($rivalMin, $cc);
+                $out[$i] = max($floors[$i], round($rivalMin * 0.98, -2)); // 최저가 대비 방어적 언더컷
+            }
+            return $out;
+        };
+        // 균형 반복(best-response 동학 → 내시 근사)
+        $ourP = $ourP0; $cp = $comps;
+        $path = [['round' => 0, 'our' => round($ourP), 'comp' => array_map('round', $cp), 'profit' => round($ourProfitAt($ourP, $cp))]];
+        for ($r = 1; $r <= 8; $r++) {
+            $newOur = $ourBR($cp);
+            $newCp = $compBR($newOur, $cp, $compFloor);
+            $path[] = ['round' => $r, 'our' => round($newOur), 'comp' => array_map('round', $newCp), 'profit' => round($ourProfitAt($newOur, $newCp))];
+            $conv = abs($newOur - $ourP) / max(1.0, $ourP) < 0.01;
+            $ourP = $newOur; $cp = $newCp;
+            if ($conv) break;
+        }
+        $eqPrice = round($ourP, -2); $eqProfit = round($ourProfitAt($eqPrice, $cp));
+        $naivePrice = $ourBR($comps); // 경쟁 반응 무시 이익최대
+        $naiveStatic = round($ourProfitAt($naivePrice, $comps));
+        $naiveAfter = round($ourProfitAt($naivePrice, $compBR($naivePrice, $comps, $compFloor))); // 순진가로 갔을 때 반응 후 실제 이익
+        try { $db->prepare("INSERT INTO po_simulations (tenant_id,sim_type,payload_json,result_json,created_at) VALUES (?,?,?,?,?)")
+            ->execute([$t, 'game_theory', json_encode(['sku' => $sku, 'channel' => $channel], JSON_UNESCAPED_UNICODE), json_encode(['eq' => $eqPrice, 'naive' => $naivePrice], JSON_UNESCAPED_UNICODE), gmdate('c')]); } catch (\Throwable $e) {}
+
+        return self::json($response, ['ok' => true, 'sku' => $sku, 'channel' => $channel, 'cost' => $cost,
+            'our_current' => round($ourP0), 'competitors' => array_map('round', $comps),
+            'equilibrium_price' => $eqPrice, 'equilibrium_profit' => $eqProfit,
+            'naive_price' => $naivePrice, 'naive_profit_static' => $naiveStatic, 'naive_profit_after_reaction' => $naiveAfter,
+            'reaction_trap_pct' => $naiveStatic > 0 ? round(($naiveStatic - $naiveAfter) / $naiveStatic * 100, 1) : 0,
+            'recommendation' => ($eqProfit >= $naiveAfter ? $eqPrice : $naivePrice),
+            'path' => $path, 'model' => 'best-response-nash-approx', 'elasticity_slope' => round($slope, 3)]);
+    }
+
     /** POST /v420/price/optimize/batch */
     public static function optimizeBatch(Request $request, Response $response, array $args): Response
     {

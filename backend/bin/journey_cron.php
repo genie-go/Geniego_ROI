@@ -44,12 +44,15 @@ try {
     $d = JourneyBuilder::runTriggerDetectors($onlyTenant);
     // ② resume 도래 waiting 등록건 진행.
     $r = JourneyBuilder::runDue($onlyTenant, $limit);
+    // ③ [260차 심화] 목표기반 자동최적화 — split(auto_optimize) 분기 가중을 관측 전환율로 재배분(밴딧).
+    $opt = JourneyBuilder::optimizeSplits($onlyTenant);
     echo "=== journey_cron env=" . Db::env()
         . " detect_enrolled=" . (int)($d['enrolled'] ?? 0)
         . " scanned=" . (int)($r['scanned'] ?? 0)
         . " processed=" . (int)($r['processed'] ?? 0)
         . " completed=" . (int)($r['completed'] ?? 0)
-        . " waiting=" . (int)($r['waiting'] ?? 0) . "\n";
+        . " waiting=" . (int)($r['waiting'] ?? 0)
+        . " splits_optimized=" . (int)$opt . "\n";
     exit(0);
 } catch (\Throwable $e) {
     fwrite(STDERR, "[journey_cron] FAILED: " . $e->getMessage() . "\n");

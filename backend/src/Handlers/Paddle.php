@@ -75,7 +75,22 @@ class Paddle
 
     public static function migrate(Request $req, Response $res): Response
     {
-        $db     = self::db();
+        $db = self::db();
+        self::ensureSchema($db);
+        return self::json($res, [
+            'ok'     => true,
+            'tables' => ['paddle_events', 'paddle_subscriptions', 'paddle_audit_log'],
+            'driver' => $db->getAttribute(\PDO::ATTR_DRIVER_NAME),
+        ]);
+    }
+
+    /** 260차: Paddle 스키마 보장(CREATE IF NOT EXISTS) — 웹훅/migrate 진입 시 자동 프로비저닝.
+     *  기존엔 webhook 이 테이블 존재를 가정 → 미프로비전/드리프트 DB에서 구독·이벤트 INSERT 무음실패(결제 크리티컬).
+     *  라이브 드리프트(구독 5컬럼·notification_id·ref_id 부재)는 빈 테이블 재생성으로 정합화(260차). */
+    private static function ensureSchema(\PDO $db): void
+    {
+        static $done = false;
+        if ($done) return;
         $driver = $db->getAttribute(\PDO::ATTR_DRIVER_NAME);
         $isMySQL = $driver === 'mysql';
 
@@ -168,11 +183,7 @@ class Paddle
             ");
         }
 
-        return self::json($res, [
-            'ok'     => true,
-            'tables' => ['paddle_events', 'paddle_subscriptions', 'paddle_audit_log'],
-            'driver' => $driver,
-        ]);
+        $done = true;
     }
 
     // ── Public config endpoint (called by frontend to get client token) ────────
@@ -340,6 +351,7 @@ class Paddle
         }
 
         $db = self::db();
+        self::ensureSchema($db); // 260차: 웹훅 진입 시 스키마 자가치유(미프로비전/드리프트 DB 무음실패 차단)
 
         // 5. Store raw payload (UNIQUE constraint on notification_id = idempotency guard)
         try {

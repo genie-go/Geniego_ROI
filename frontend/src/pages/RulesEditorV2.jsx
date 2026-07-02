@@ -116,6 +116,8 @@ export default function RulesEditorV2(){
 
   async function createDraft(){
     const d = await postJson(`/v395/templates/v2/${channel}/drafts`, { created_by: "admin" });
+    // 260차: 서버 오류/빈응답 시 d.draft 부재 → 널참조 크래시 가드(정직 메시지)
+    if (!d || !d.draft || !d.draft.id){ setMsg(`Draft 생성 실패: ${d?.error || '서버 응답 없음'}`); return; }
     setDraftId(d.draft.id);
     setMsg(`Draft Create: ${d.draft.id}`);
   }

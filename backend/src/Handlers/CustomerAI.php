@@ -366,13 +366,40 @@ class CustomerAI
     /* ─── POST /api/customer-ai/auto-action ─── 자동 액션 실행 ──── */
     public static function autoAction(Request $req, Response $res): Response
     {
-        // 데모도 허용 (시뮬레이션 실행)
+        // 260차: 가짜집행 제거 — 실제 대기열(crm_auto_action)에 영속하고 정직한 상태를 반환한다.
+        //   기존엔 DB 기록 없이 "예약됨/병행 발송"을 날조 반환(campaign_id 폐기) → 존재하지 않는 캠페인을 보고.
         $b = (array)$req->getParsedBody();
         $actionType  = $b['action_type'] ?? 'winback_campaign';
         $riskLevel   = $b['risk_level'] ?? 'high';
         $channelPref = $b['channel'] ?? 'email';
         $segmentName = $b['segment_name'] ?? '이탈 위험 고객';
         $estimatedReach = (int)($b['estimated_reach'] ?? 0);
+
+        $pdo = self::db();
+        $tenant = self::tenant($req);
+        $isMy = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql';
+        try {
+            $pdo->exec($isMy
+                ? "CREATE TABLE IF NOT EXISTS crm_auto_action (
+                     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL,
+                     action_ref VARCHAR(40) NOT NULL, action_type VARCHAR(64) NOT NULL, risk_level VARCHAR(32) NOT NULL,
+                     channel VARCHAR(64) NOT NULL, segment_name VARCHAR(255) NOT NULL, estimated_reach INT NOT NULL DEFAULT 0,
+                     status VARCHAR(32) NOT NULL DEFAULT 'queued', created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+                   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
+                : "CREATE TABLE IF NOT EXISTS crm_auto_action (
+                     id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL, action_ref TEXT NOT NULL,
+                     action_type TEXT NOT NULL, risk_level TEXT NOT NULL, channel TEXT NOT NULL, segment_name TEXT NOT NULL,
+                     estimated_reach INTEGER NOT NULL DEFAULT 0, status TEXT NOT NULL DEFAULT 'queued',
+                     created_at TEXT NOT NULL DEFAULT (datetime('now')))");
+        } catch (\Throwable $e) { /* 존재 시 무시 */ }
+
+        $ref = 'AACT-' . strtoupper(substr(md5(uniqid()), 0, 8));
+        $persisted = false;
+        try {
+            $pdo->prepare("INSERT INTO crm_auto_action (tenant_id, action_ref, action_type, risk_level, channel, segment_name, estimated_reach, status, created_at) VALUES (?,?,?,?,?,?,?, 'queued', ?)")
+                ->execute([$tenant, $ref, $actionType, $riskLevel, $channelPref, $segmentName, $estimatedReach, gmdate('Y-m-d H:i:s')]);
+            $persisted = true;
+        } catch (\Throwable $e) { error_log('[CustomerAI] autoAction persist: ' . $e->getMessage()); }
 
         return self::json($res, [
             'ok'             => true,
@@ -381,17 +408,14 @@ class CustomerAI
             'channel'        => $channelPref,
             'segment_name'   => $segmentName,
             'estimated_reach'=> (int)$estimatedReach, // 193차: rand 날조 제거 — 실 도달수 없으면 0(정직)
-            'queued'         => true,
-            'campaign_id'    => 'CAMP-' . strtoupper(substr(md5(uniqid()), 0, 8)),
-            'scheduled_at'   => date('Y-m-d H:i:s', time() + 3600),
-            'message' => match($actionType) {
-                'winback_campaign' => "{$segmentName}에게 재방문 할인 20% 캠페인이 예약되었습니다. 이메일+카카오 병행 발송.",
-                'nurture_campaign' => "{$segmentName}에게 맞춤 상품 추천 이메일이 예약됩니다.",
-                'vip_reward'       => "{$segmentName}에게 VIP 감사 메시지가 발송됩니다.",
-                'web_popup'        => "{$segmentName} 방문 시 웹팝업이 자동 트리거됩니다.",
-                default            => "캠페인이 예약되었습니다.",
-            },
-        ]);
+            'queued'         => $persisted,
+            'action_id'      => $ref,
+            'persisted'      => $persisted,
+            // 260차 정직화: 실제 발송이 아니라 "실행 대기열 등록"임을 명시(발송은 채널 연동·승인 후 집행).
+            'message' => $persisted
+                ? "{$segmentName} 대상 '{$actionType}' 액션이 실행 대기열에 등록되었습니다(참조 {$ref}). 실제 발송은 채널 연동·승인 후 진행됩니다."
+                : "액션 등록에 실패했습니다. 잠시 후 다시 시도해 주세요.",
+        ], $persisted ? 200 : 500);
     }
 
     /* ─── GET /api/customer-ai/next-best-action ─── 고객별 최적 액션 */

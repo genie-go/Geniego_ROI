@@ -39,8 +39,13 @@ export default function OnsiteCro() {
         const sel = (c.selector || '').trim();
         if (action === 'redirect') return (c.value || '').trim() ? { action, value: (c.value || '').trim() } : null;
         if (!sel) return null;
-        if (action === 'hide') return { selector: sel, action };
+        if (action === 'hide' || action === 'remove') return { selector: sel, action };
         if (action === 'css') return (c.prop || '').trim() && c.value !== '' ? { selector: sel, action, prop: (c.prop || '').trim(), value: c.value } : null;
+        // 260차 완전 패리티: attr/class/insert/img (백엔드 editSave·applyChanges 화이트리스트와 정합)
+        if (action === 'attr') return (c.prop || '').trim() ? { selector: sel, action, prop: (c.prop || '').trim(), value: c.value } : null;
+        if (action === 'class') return (c.value || '').trim() ? { selector: sel, action, prop: (c.prop === 'remove' ? 'remove' : 'add'), value: (c.value || '').trim() } : null;
+        if (action === 'insert') return (c.value || '').trim() ? { selector: sel, action, prop: (['before', 'after', 'prepend', 'append'].includes(c.prop) ? c.prop : 'after'), value: c.value } : null;
+        if (action === 'img') return (c.value || '').trim() ? { selector: sel, action, value: (c.value || '').trim() } : null;
         return c.value !== '' ? { selector: sel, action, value: c.value } : null; // text|html
       }).filter(Boolean);
       const variantB = { key: 'B', label: form.vB || 'B', weight: Number(form.wB) || 50 };
@@ -136,7 +141,12 @@ export default function OnsiteCro() {
                     <option value="text">{t('cro.actText', '텍스트 변경')}</option>
                     <option value="html">{t('cro.actHtml', 'HTML 변경')}</option>
                     <option value="css">{t('cro.actCss', 'CSS 스타일')}</option>
+                    <option value="attr">{t('cro.actAttr', '속성(attribute)')}</option>
+                    <option value="class">{t('cro.actClass', '클래스 add/remove')}</option>
+                    <option value="img">{t('cro.actImg', '이미지 교체')}</option>
+                    <option value="insert">{t('cro.actInsert', 'HTML 삽입')}</option>
                     <option value="hide">{t('cro.actHide', '숨기기')}</option>
+                    <option value="remove">{t('cro.actRemove', '제거')}</option>
                     <option value="redirect">{t('cro.actRedirect', '페이지 이동')}</option>
                   </select>
                   {c.action !== 'redirect' && (
@@ -145,8 +155,25 @@ export default function OnsiteCro() {
                   {c.action === 'css' && (
                     <input value={c.prop} onChange={e => updChange(i, 'prop', e.target.value)} placeholder={t('cro.propPh', '속성(color, font-size)')} style={{ ...inp, width: 140 }} />
                   )}
-                  {c.action !== 'hide' && (
-                    <input value={c.value} onChange={e => updChange(i, 'value', e.target.value)} placeholder={c.action === 'redirect' ? t('cro.valUrlPh', '이동할 URL') : (c.action === 'css' ? t('cro.valCssPh', '값(#ff0000, 18px)') : t('cro.valTextPh', '새 문구/HTML'))} style={{ ...inp, flex: 1, minWidth: 160 }} />
+                  {c.action === 'attr' && (
+                    <input value={c.prop} onChange={e => updChange(i, 'prop', e.target.value)} placeholder={t('cro.attrPh', '속성명(href, title, alt)')} style={{ ...inp, width: 140 }} />
+                  )}
+                  {c.action === 'class' && (
+                    <select value={c.prop || 'add'} onChange={e => updChange(i, 'prop', e.target.value)} style={{ ...inp, width: 110 }}>
+                      <option value="add">{t('cro.classAdd', '추가(add)')}</option>
+                      <option value="remove">{t('cro.classRemove', '제거(remove)')}</option>
+                    </select>
+                  )}
+                  {c.action === 'insert' && (
+                    <select value={c.prop || 'after'} onChange={e => updChange(i, 'prop', e.target.value)} style={{ ...inp, width: 110 }}>
+                      <option value="after">{t('cro.posAfter', '뒤에')}</option>
+                      <option value="before">{t('cro.posBefore', '앞에')}</option>
+                      <option value="append">{t('cro.posAppend', '내부 끝')}</option>
+                      <option value="prepend">{t('cro.posPrepend', '내부 앞')}</option>
+                    </select>
+                  )}
+                  {c.action !== 'hide' && c.action !== 'remove' && (
+                    <input value={c.value} onChange={e => updChange(i, 'value', e.target.value)} placeholder={c.action === 'redirect' ? t('cro.valUrlPh', '이동할 URL') : (c.action === 'css' ? t('cro.valCssPh', '값(#ff0000, 18px)') : (c.action === 'img' ? t('cro.valImgPh', '이미지 URL') : (c.action === 'class' ? t('cro.valClassPh', '클래스명') : (c.action === 'attr' ? t('cro.valAttrPh', '속성값') : (c.action === 'insert' ? t('cro.valInsertPh', '삽입할 HTML') : t('cro.valTextPh', '새 문구/HTML'))))))} style={{ ...inp, flex: 1, minWidth: 160 }} />
                   )}
                   <button type="button" onClick={() => rmChange(i)} title={t('cro.rmChange', '변경 삭제')} style={{ padding: '6px 10px', borderRadius: 7, border: 'none', background: '#fee2e2', color: '#991b1b', cursor: 'pointer', fontWeight: 800, fontSize: 12 }}>✕</button>
                 </div>

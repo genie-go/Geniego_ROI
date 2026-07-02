@@ -759,6 +759,20 @@ function OptimizeTab({ token }) {
         return () => ac.abort();
     }, [token, loadRecent, inventoryProdsOpt]);
 
+    const [gt, setGt] = useState(null);      // [260차] 게임이론 경쟁반응 시뮬 결과
+    const [gtLoading, setGtLoading] = useState(false);
+    const runGameTheory = async () => {
+        setGtLoading(true); setGt(null);
+        try {
+            const d = await postJsonAuth(`/v420/price/game-theory`, {
+                sku: form.sku, channel: form.channel || "*",
+                current_price: form.current_price ? parseFloat(form.current_price) : undefined,
+            });
+            setGt(d);
+        } catch (e) { setGt({ ok: false, error: String(e) }); }
+        finally { setGtLoading(false); }
+    };
+
     const run = async () => {
         setLoading(true);
         setResult(null);
@@ -861,10 +875,43 @@ function OptimizeTab({ token }) {
                         <div style={{ marginTop: 4 }}>🌐 {t('priceOpt.shipIntlNote', '해외 판매: 유류할증료는 배송비에 포함해 입력하세요. 관세·부가세는 통상 구매자(수입자) 부담(DDU)이며, DDP(판매자 관세부담) 조건일 때만 배송비 항목에 합산하세요.')}</div>
                     </div>
                 </div>
-                <button className="btn" onClick={run} disabled={loading || !form.sku} style={{ background: "#6366f1" }}>
-                    {loading ? "⏳ " + (t("priceOpt.calculating", "Calculating...")) : "🧮 " + (t("priceOpt.calcOptimal", "Optimize"))}
-                </button>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    <button className="btn" onClick={run} disabled={loading || !form.sku} style={{ background: "#6366f1" }}>
+                        {loading ? "⏳ " + (t("priceOpt.calculating", "Calculating...")) : "🧮 " + (t("priceOpt.calcOptimal", "Optimize"))}
+                    </button>
+                    <button className="btn" onClick={runGameTheory} disabled={gtLoading || !form.sku} title={t("priceOpt.gtHint", "경쟁사 가격 반응(언더컷)을 시뮬레이션해 내시 균형가 산출 — 순진한 이익최대가의 반응 함정 회피")}
+                        style={{ background: "#0ea5e9" }}>
+                        {gtLoading ? "⏳ " : "♟️ "}{t("priceOpt.gameTheory", "게임이론 시뮬")}
+                    </button>
+                </div>
             </div>
+
+            {/* [260차] 게임이론 경쟁반응 시뮬 결과 */}
+            {gt && (
+                <div className="card" style={{ marginBottom: 16, borderLeft: "3px solid #0ea5e9" }}>
+                    <h4 style={{ marginTop: 0, fontSize: 13 }}>♟️ {t("priceOpt.gameTheory", "게임이론 시뮬")} {gt.ok && <span style={{ color: "#7c8fa8", fontWeight: 400 }}>({gt.sku})</span>}</h4>
+                    {!gt.ok ? (
+                        <div style={{ fontSize: 12, color: "#ef4444" }}>{gt.error}</div>
+                    ) : (
+                        <div style={{ display: "grid", gap: 8, fontSize: 12.5 }}>
+                            <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+                                <div><span style={{ color: "#64748b" }}>{t("priceOpt.gtEqPrice", "내시 균형가")}: </span><b style={{ color: "#0ea5e9", fontSize: 15 }}>{Number(gt.equilibrium_price).toLocaleString()}</b></div>
+                                <div><span style={{ color: "#64748b" }}>{t("priceOpt.gtNaive", "순진한 이익최대가")}: </span><b>{Number(gt.naive_price).toLocaleString()}</b></div>
+                                <div><span style={{ color: "#64748b" }}>{t("priceOpt.gtRec", "권장가")}: </span><b style={{ color: "#22c55e" }}>{Number(gt.recommendation).toLocaleString()}</b></div>
+                            </div>
+                            <div style={{ fontSize: 11.5, color: "#475569", lineHeight: 1.6 }}>
+                                {t("priceOpt.gtTrap", "순진한 최저가로 내리면 경쟁사가 반응(언더컷)해 이익이")} <b style={{ color: "#ef4444" }}>{gt.reaction_trap_pct}%</b> {t("priceOpt.gtTrap2", "잠식됩니다. 균형가는 반응을 선반영해 방어적입니다.")}
+                                {" "}{t("priceOpt.gtElast", "탄력성")}={gt.elasticity_slope} · {t("priceOpt.gtComp", "경쟁가")} {(gt.competitors || []).map(c => Number(c).toLocaleString()).join(", ")}
+                            </div>
+                            {Array.isArray(gt.path) && (
+                                <div style={{ display: "flex", gap: 6, flexWrap: "wrap", fontSize: 10.5, color: "#64748b" }}>
+                                    {gt.path.map((p, i) => <span key={i} style={{ background: "#f1f5f9", borderRadius: 6, padding: "2px 8px" }}>R{p.round}: {Number(p.our).toLocaleString()} vs [{(p.comp || []).map(c => Number(c).toLocaleString()).join("/")}]</span>)}
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            )}
 
             {/* Result */}
             {result && (
