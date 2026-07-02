@@ -942,6 +942,25 @@ return function (App $app): void {
         'POST /api/v424/cro/experiments/{id}/edit-token' => 'Genie\\Handlers\\Onsite::editToken',
         'POST /v424/cro/edit-save'           => 'Genie\\Handlers\\Onsite::editSave', // [257차] 비주얼 에디터 저장(공개·토큰)
         'POST /api/v424/cro/edit-save'       => 'Genie\\Handlers\\Onsite::editSave',
+        // [261차] 테넌트 웹팝업 — CRUD/설정(세션 authed) + 공개 서빙/비콘(머천트 외부 사이트). 테넌트 스코프 격리.
+        'GET /v424/web-popups'                    => 'Genie\\Handlers\\WebPopupCampaign::list',
+        'GET /api/v424/web-popups'                => 'Genie\\Handlers\\WebPopupCampaign::list',
+        'POST /v424/web-popups'                   => 'Genie\\Handlers\\WebPopupCampaign::create',
+        'POST /api/v424/web-popups'               => 'Genie\\Handlers\\WebPopupCampaign::create',
+        'PUT /v424/web-popups/{id}'               => 'Genie\\Handlers\\WebPopupCampaign::update',
+        'PUT /api/v424/web-popups/{id}'           => 'Genie\\Handlers\\WebPopupCampaign::update',
+        'DELETE /v424/web-popups/{id}'            => 'Genie\\Handlers\\WebPopupCampaign::delete',
+        'DELETE /api/v424/web-popups/{id}'        => 'Genie\\Handlers\\WebPopupCampaign::delete',
+        'POST /v424/web-popups/{id}/toggle'       => 'Genie\\Handlers\\WebPopupCampaign::toggle',
+        'POST /api/v424/web-popups/{id}/toggle'   => 'Genie\\Handlers\\WebPopupCampaign::toggle',
+        'GET /v424/web-popups/active'             => 'Genie\\Handlers\\WebPopupCampaign::active',   // 공개(tenant 파라미터)
+        'GET /api/v424/web-popups/active'         => 'Genie\\Handlers\\WebPopupCampaign::active',
+        'POST /v424/web-popups/event'             => 'Genie\\Handlers\\WebPopupCampaign::event',    // 공개 비콘
+        'POST /api/v424/web-popups/event'         => 'Genie\\Handlers\\WebPopupCampaign::event',
+        'GET /v424/web-popup-settings'            => 'Genie\\Handlers\\WebPopupCampaign::getSettings',
+        'GET /api/v424/web-popup-settings'        => 'Genie\\Handlers\\WebPopupCampaign::getSettings',
+        'PUT /v424/web-popup-settings'            => 'Genie\\Handlers\\WebPopupCampaign::saveSettings',
+        'PUT /api/v424/web-popup-settings'        => 'Genie\\Handlers\\WebPopupCampaign::saveSettings',
         // [현 차수] 접속 IP 기반 국가/언어 자동 감지(공개·동일출처). 광고차단 불가 + 다중 제공자 페일오버.
         'GET /v424/geo/lang'                 => 'Genie\\Handlers\\Geo::lang',
         'GET /api/v424/geo/lang'             => 'Genie\\Handlers\\Geo::lang',
@@ -3117,6 +3136,16 @@ return function (App $app): void {
     $register('GET',  '/v424/cro/experiments/{id}/results'); $register('GET', '/api/v424/cro/experiments/{id}/results');
     $register('POST', '/v424/cro/experiments/{id}/edit-token'); $register('POST', '/api/v424/cro/experiments/{id}/edit-token'); // [257차]
     $register('POST', '/v424/cro/edit-save'); $register('POST', '/api/v424/cro/edit-save'); // [257차]
+    // [261차] 테넌트 웹팝업 — 정적 경로(active/event/settings)를 변수({id}) 앞에 등록(FastRoute shadow 회피).
+    $register('GET',    '/v424/web-popups/active');       $register('GET',    '/api/v424/web-popups/active');
+    $register('POST',   '/v424/web-popups/event');        $register('POST',   '/api/v424/web-popups/event');
+    $register('GET',    '/v424/web-popups');              $register('GET',    '/api/v424/web-popups');
+    $register('POST',   '/v424/web-popups');              $register('POST',   '/api/v424/web-popups');
+    $register('POST',   '/v424/web-popups/{id}/toggle');  $register('POST',   '/api/v424/web-popups/{id}/toggle');
+    $register('PUT',    '/v424/web-popups/{id}');         $register('PUT',    '/api/v424/web-popups/{id}');
+    $register('DELETE', '/v424/web-popups/{id}');         $register('DELETE', '/api/v424/web-popups/{id}');
+    $register('GET',    '/v424/web-popup-settings');      $register('GET',    '/api/v424/web-popup-settings');
+    $register('PUT',    '/v424/web-popup-settings');      $register('PUT',    '/api/v424/web-popup-settings');
     $register('GET',  '/v424/geo/lang'); $register('GET', '/api/v424/geo/lang');
     $register('GET',  '/v424/mmm/series');    $register('GET',  '/api/v424/mmm/series'); // [237차] 증분성 입력
     $register('POST', '/v424/mmm/optimize');  $register('POST', '/api/v424/mmm/optimize');

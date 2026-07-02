@@ -256,7 +256,7 @@ const IdentityTab = memo(function IdentityTab() {
                                     background:"rgba(0,0,0,0.03)", border: `1px solid ${id.verified ? "rgba(34,197,94,0.15)" : "rgba(239,68,68,0.15)"}`
                                 }}>
                                     <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
-                                        <span style={{ fontWeight: 700, fontSize: 12 }}>{PLAT_ICO[id.type]} {id.type.toUpperCase()}</span>
+                                        <span style={{ fontWeight: 700, fontSize: 12 }}>{PLAT_ICO[id.type]} {String(id.type || "").toUpperCase()}</span>
                                         <Tag label={id.verified ? t("influencer.verified","✓ Verified") : t("influencer.unverified","Unverified")} color={id.verified ? "#22c55e" : "#ef4444"} />
                                     </div>
                                     <div style={{ fontSize: 11, color: "#4f8ef7", fontWeight: 700 }}>{id.handle}</div>

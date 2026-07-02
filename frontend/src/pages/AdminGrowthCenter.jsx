@@ -153,7 +153,7 @@ function DashboardTab({ setMode, flash }) {
   const c = d.cards || {};
   const f = d.funnel || {};
   const stages = f.stages || {};
-  const maxCount = Math.max(1, ...Object.values(stages).map((s) => s.count || 0));
+  const maxCount = Math.max(1, ...Object.values(stages).map((s) => (s && s.count) || 0));
   const cards = [
     ["오늘 리드", c.todayLeads], ["이번 달 데모", c.monthDemos], ["무료 체험", c.trialSignups],
     ["유료 전환", c.paidConversions], ["MRR", `₩${(c.mrr || 0).toLocaleString()}`], ["Hot 리드", c.hotLeads],

@@ -1172,7 +1172,7 @@ function ChannelMixTab({ token }) {
 
                     {/* Allocation bars */}
                     <div style={{ marginBottom: 16 }}>
-                        {result.allocations.map((a, i) => (
+                        {(result.allocations || []).map((a, i) => (
                             <div key={i} style={{ marginBottom: 10 }}>
                                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
                                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -1200,7 +1200,7 @@ function ChannelMixTab({ token }) {
                             </tr>
                         </thead>
                         <tbody>
-                            {result.allocations.map((a, i) => (
+                            {(result.allocations || []).map((a, i) => (
                                 <tr key={i} style={{ borderBottom: "1px solid #f1f5f9" }}>
                                     <td style={{ padding: "5px 8px" }}><Badge label={a.channel} color={chColor(a.channel)} /></td>
                                     <td style={{ padding: "5px 8px", textAlign: "right", color: "#f97316", fontWeight: 700 }}>{a.roi_per_won}x</td>

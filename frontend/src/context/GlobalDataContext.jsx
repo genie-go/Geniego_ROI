@@ -445,6 +445,9 @@ export function GlobalDataProvider({ children }) {
     useEffect(() => { _saveDemoIfMounted('channel_prices', channelProductPrices); }, [channelProductPrices, _saveDemoIfMounted]);
     useEffect(() => { _saveDemoIfMounted('crm_customer_history', crmCustomerHistory); }, [crmCustomerHistory, _saveDemoIfMounted]);
     useEffect(() => { _saveDemoIfMounted('alerts', alerts); }, [alerts, _saveDemoIfMounted]);
+    // [261차 미영속 수정] calendar_events 는 init-load(loadDemoState:344)만 있고 save effect 가 없어
+    //   ContentCalendar 에서 등록한 콘텐츠가 새로고침 시 소실됐다(형제 상태는 전부 영속). 동일 패턴으로 보강.
+    useEffect(() => { _saveDemoIfMounted('calendar_events', sharedCalendarEvents); }, [sharedCalendarEvents, _saveDemoIfMounted]);
 
     // ── [A-3 NEW] 백엔드 재고 Integration: 앱 초기 로드 시 실서버에서 재고 pull ──
     // 토큰 있는 유료 User 전용; 데모는 시드 데이터 사용 (API 스킵)

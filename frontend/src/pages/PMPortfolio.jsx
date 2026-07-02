@@ -64,7 +64,7 @@ export default function PMPortfolio() {
         {!items.length && !loading && <div style={{ color: '#64748b', fontSize: 13 }}>{t('pmx.pf.empty', '포트폴리오가 없습니다. 추가하여 프로젝트를 묶으세요.')}</div>}
       </div>
 
-      {sel && rollup && (
+      {sel && rollup && rollup.summary && (
         <div style={{ ...tile, borderColor: '#334155' }}>
           <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 12 }}>📊 {sel.name} — {t('pmx.pf.rollup', '롤업 EVM')}</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(120px,1fr))', gap: 10, marginBottom: 16 }}>
@@ -78,10 +78,10 @@ export default function PMPortfolio() {
           <table style={tbl}>
             <thead><tr style={th}><td>{t('pmx.pf.project', '프로젝트')}</td><td>{t('pm.kpi.completionPct', '완성도')}</td><td>SPI</td><td>CPI</td><td>{t('pmx.evm.bac', 'BAC')}</td></tr></thead>
             <tbody>
-              {rollup.projects.map(p => (
+              {(rollup.projects || []).map(p => (
                 <tr key={p.id} style={tr}><td>{p.name}</td><td>{p.completion_pct}%</td><td style={{ color: spiColor(p.spi) }}>{fmt(p.spi)}</td><td style={{ color: spiColor(p.cpi) }}>{fmt(p.cpi)}</td><td>{Math.round(p.bac || 0).toLocaleString()}</td></tr>
               ))}
-              {!rollup.projects.length && <tr><td colSpan={5} style={{ padding: 14, color: '#64748b' }}>{t('pmx.pf.noProjects', '소속 프로젝트가 없습니다. 아래에서 추가하세요.')}</td></tr>}
+              {!(rollup.projects || []).length && <tr><td colSpan={5} style={{ padding: 14, color: '#64748b' }}>{t('pmx.pf.noProjects', '소속 프로젝트가 없습니다. 아래에서 추가하세요.')}</td></tr>}
             </tbody>
           </table>
           <div style={{ marginTop: 14, fontSize: 12, color: '#94a3b8' }}>{t('pmx.pf.assign', '프로젝트 소속 지정')}:</div>

@@ -239,7 +239,7 @@ export default function OnsiteCro() {
                         <th style={{ padding: '5px 8px' }}>CVR</th>
                       </tr></thead>
                       <tbody>
-                        {res.variants.map(v => (
+                        {(res.variants || []).map(v => (
                           <tr key={v.key} style={{ borderTop: '1px solid var(--border,#e2e8f0)', textAlign: 'right', background: res.winner === v.key ? 'rgba(34,197,94,0.08)' : 'transparent' }}>
                             <td style={{ textAlign: 'left', padding: '6px 8px', fontWeight: 700, color: 'var(--text-1)' }}>{v.label}{res.winner === v.key && ' 🏆'}</td>
                             <td style={{ padding: '6px 8px', color: 'var(--text-3)' }}>{v.weight}%</td>

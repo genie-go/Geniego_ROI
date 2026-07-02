@@ -3,7 +3,7 @@ import { useI18n } from "../i18n";
 import { WP_GUIDE } from "./webPopupGuideI18n.js";
 import { useGlobalData } from "../context/GlobalDataContext.jsx";
 import { useCurrency } from "../contexts/CurrencyContext.jsx";
-import { postJsonAuth } from "../services/apiClient.js"; // [259차] 가짜 AI 생성 → 실 ai/ad-copy 배선
+import { postJsonAuth, getJsonAuth, requestJsonAuth } from "../services/apiClient.js"; // [259차] ai/ad-copy · [261차] 웹팝업 CRUD/설정 영속
 // 179차 — 데모 환경: 가상 웹팝업 성과(체험용). 판별은 정본(demoEnv) 사용.
 import { IS_DEMO as _IS_DEMO } from "../utils/demoEnv.js";
 
@@ -204,15 +204,39 @@ function ManageTab({ t }) {
   const { addWebPopup } = useGlobalData();
   const F=(k,v)=>setForm(p=>({...p,[k]:v}));
 
-  const handleSave=()=>{
+  // [261차] 운영: 저장 팝업을 백엔드(테넌트 스코프)에서 로드 → 새로고침 영속. 데모: 컨텍스트 유지(비배선).
+  useEffect(() => {
+    if (_IS_DEMO) return;
+    let alive = true;
+    getJsonAuth('/api/v424/web-popups')
+      .then(r => { if (alive && r?.ok) setSaved((r.popups || []).map(p => ({ ...p, tpl: p.template, layout: p.layout, id: p.id }))); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, []);
+
+  const RESET = { name:"", title:"", cta:"", discount:20, body:"", trigger:"exit", linkUrl:"", email:"", subtitle:"" };
+  const handleSave=async ()=>{
     if(!form.name){alert("Popup name required");return;}
     // 공유 상태에 생성 → OverviewTab 성과·CRM 연동에 라이브 반영
     const ptype = (layout==='bar-top'||layout==='bar-bottom') ? 'top_banner'
       : (layout==='slide-bottom'||layout==='slide-right'||layout==='corner') ? 'slide_in'
       : 'center_modal';
-    addWebPopup?.({ name:form.name, title:form.title||form.name, subtitle:form.subtitle, type:ptype, status:'active', template:tpl, trigger:form.trigger, btnText:form.cta, linkUrl:form.linkUrl });
-    setSaved(p=>[...p,{...form,tpl,layout,id:Date.now()}]);
-    setForm({name:"",title:"",cta:"",discount:20,body:"",trigger:"exit",linkUrl:"",email:"",subtitle:""});
+    const shared = { name:form.name, title:form.title||form.name, subtitle:form.subtitle, type:ptype, status:'active', template:tpl, trigger:form.trigger, btnText:form.cta, linkUrl:form.linkUrl };
+    if (_IS_DEMO) {
+      addWebPopup?.(shared);
+      setSaved(p=>[...p,{...form,tpl,layout,id:Date.now()}]);
+      setForm(RESET);
+      return;
+    }
+    // 운영: 백엔드 영속(테넌트 스코프) → 새로고침·서빙 백엔드(active) 반영.
+    try {
+      const r = await postJsonAuth('/api/v424/web-popups', { ...form, ptype, type:ptype, template:tpl, tpl, layout, status:'active' });
+      if (r?.ok && r.popup) {
+        setSaved(p=>[{ ...r.popup, tpl:r.popup.template, layout:r.popup.layout, id:r.popup.id }, ...p]);
+        addWebPopup?.(shared);
+        setForm(RESET);
+      } else { alert(t('webPopup.saveFail','팝업 저장에 실패했습니다.')); }
+    } catch { alert(t('webPopup.saveFail','팝업 저장에 실패했습니다.')); }
   };
 
   return (
@@ -306,7 +330,7 @@ function ManageTab({ t }) {
             </div>
             <div style={{ padding:"10px 14px", display:"flex", gap:6 }}>
               <button onClick={()=>{setForm(s);setTpl(s.tpl);setLayout(s.layout);}} style={{ flex:1, padding:"6px", borderRadius:6, border:"1px solid #d1d5db", background:"#fff", fontSize:11, fontWeight:600, cursor:"pointer", color:"#374151" }}>{t("webPopup.editPopup","Edit")}</button>
-              <button onClick={()=>setSaved(p=>p.filter(x=>x.id!==s.id))} style={{ padding:"6px 10px", borderRadius:6, border:"1px solid #fecaca", background:"#fff", fontSize:11, fontWeight:600, cursor:"pointer", color:"#ef4444" }}>🗑</button>
+              <button onClick={async()=>{ if(!_IS_DEMO){ try{ await requestJsonAuth(`/api/v424/web-popups/${s.id}`, 'DELETE'); }catch{} } setSaved(p=>p.filter(x=>x.id!==s.id)); }} style={{ padding:"6px 10px", borderRadius:6, border:"1px solid #fecaca", background:"#fff", fontSize:11, fontWeight:600, cursor:"pointer", color:"#ef4444" }}>🗑</button>
             </div>
           </div>))}
         </div>
@@ -372,12 +396,27 @@ function SettingsTab({ t }) {
     { key: "settingCookie", desc: "settingCookieDesc", def: true }, { key: "settingGdpr", desc: "settingGdprDesc", def: false },
   ];
   const [vals, setVals] = useState(() => Object.fromEntries(settings.map(s => [s.key, s.def])));
+
+  // [261차] 전역설정 영속 — 운영: 백엔드(테넌트 스코프), 데모: localStorage. 저장버튼 없던 미배선 토글 보강.
+  useEffect(() => {
+    if (_IS_DEMO) { try { const s = JSON.parse(localStorage.getItem('wp_settings') || 'null'); if (s) setVals(v => ({ ...v, ...s })); } catch {} return; }
+    getJsonAuth('/api/v424/web-popup-settings')
+      .then(r => { if (r?.ok && r.settings && Object.keys(r.settings).length) setVals(v => ({ ...v, ...r.settings })); })
+      .catch(() => {});
+  }, []);
+  const toggle = (key) => setVals(prev => {
+    const next = { ...prev, [key]: !prev[key] };
+    if (_IS_DEMO) { try { localStorage.setItem('wp_settings', JSON.stringify(next)); } catch {} }
+    else { requestJsonAuth('/api/v424/web-popup-settings', 'PUT', { settings: next }).catch(() => {}); }
+    return next;
+  });
+
   return (<div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e5e7eb", padding: 20 }}>
     <div style={{ fontWeight: 800, fontSize: 15, color: "#1f2937", marginBottom: 16 }}>⚙️ {t("webPopup.globalSettings")}</div>
     {settings.map(s => (<div key={s.key} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 0", borderBottom: "1px solid #f3f4f6" }}>
       <div><div style={{ fontWeight: 700, fontSize: 13, color: "#374151" }}>{t("webPopup." + s.key)}</div>
         <div style={{ fontSize: 12, color: "#9ca3af" }}>{t("webPopup." + s.desc)}</div></div>
-      <button onClick={() => setVals(p => ({ ...p, [s.key]: !p[s.key] }))}
+      <button onClick={() => toggle(s.key)}
         style={{ width: 44, height: 24, borderRadius: 12, border: "none", cursor: "pointer", background: vals[s.key] ? "#22c55e" : "#d1d5db", position: "relative", transition: "all .2s" }}>
         <div style={{ width: 18, height: 18, borderRadius: 9, background: "#fff", position: "absolute", top: 3, left: vals[s.key] ? 23 : 3, transition: "left .2s" }} />
       </button>

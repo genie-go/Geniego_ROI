@@ -551,12 +551,12 @@ const API_REF = [
   ]},
   { group: 'Ingest', color: '#0ea5a3', items: [
     { m: 'POST', p: '/v423/connectors/sync',  dk: 'epSync' },
-    { m: 'POST', p: '/v420/price/ingest',     dk: 'epPrice' },
+    { m: 'POST', p: '/v420/price/products',   dk: 'epPrice' },
   ]},
   { group: 'Analytics', color: '#a855f7', items: [
     { m: 'GET', p: '/v423/rollup/summary',    dk: 'epRollup' },
     { m: 'GET', p: '/v420/channel-mix',       dk: 'epChannelMix' },
-    { m: 'POST', p: '/v422/ai/recommend',     dk: 'epAi' },
+    { m: 'POST', p: '/v422/ai/analyze',       dk: 'epAi' },
   ]},
 ];
 const SDK_LIST = [

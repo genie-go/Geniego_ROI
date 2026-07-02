@@ -125,7 +125,9 @@ final class UserAuth
                 try {
                     $pdo = Db::pdo();
                     $id = $user['id'] ?? $user['idx'] ?? 0;
-                    $pdo->prepare("UPDATE app_user SET plan = 'free', subscription_expires_at = NULL WHERE id = ? OR idx = ?")
+                    // [261차] plans 컬럼도 함께 'free' 로 강등해야 한다. plan 만 내리면 재로그인 시
+                    //   effectivePlan=COALESCE(plans,plan) 가 여전히 유료로 해석돼 만료 후 유료가 영구부활한다.
+                    $pdo->prepare("UPDATE app_user SET plan = 'free', plans = 'free', subscription_expires_at = NULL WHERE id = ? OR idx = ?")
                         ->execute([$id, $id]);
                 } catch (\Throwable $e) { /* 조용히 처리 */ }
 
@@ -1078,6 +1080,14 @@ final class UserAuth
 
         // 플랜은 상위 계정을 따름(종속)
         $ownerPlan = $caller['plan'] ?? 'pro';
+        // [261차 보안 P0] 권한상승 차단 — teamManager 는 plan='admin' 인 하위관리자(sub)도 통과시킨다.
+        //   이 경로가 admin 플랜을 상속시키면서 admin_level 을 비우면, 신규계정 로그인 시 NULL→'master' 로
+        //   승격돼(하위관리자→최고관리자 탈취) 문제가 된다. ∴ admin 플랜 팀원 생성은 (1)최고관리자(master)만
+        //   허용하고 (2)생성계정을 반드시 제한 sub-admin(메뉴 없음)으로 고정한다. 정식 하위관리자 발급은
+        //   UserAdmin::createSubAdmin(master 전용) 경로를 사용. 비-admin 오너/매니저는 영향 없음(회귀0).
+        if ($ownerPlan === 'admin' && (($caller['admin_level'] ?? '') === 'sub')) {
+            return self::json($res, ['ok' => false, 'error' => '하위 관리자는 관리자 계정을 생성할 수 없습니다. (최고관리자 전용)'], 403);
+        }
         // 212차 #3: 하위계정(사용자) 수 플랜 한도 강제 — 총괄관리자 플랜 한도 내에서만 부여. 초과 시 402.
         try {
             $uc = $pdo->prepare('SELECT COUNT(*) FROM app_user WHERE tenant_id=? AND is_active=1');
@@ -1105,6 +1115,11 @@ final class UserAuth
             } catch (\Throwable $e2) {
                 return self::json($res, ['ok' => false, 'error' => '팀원 생성 오류: ' . $e2->getMessage()], 500);
             }
+        }
+        // [261차 보안 P0] admin 플랜 팀원은 제한 하위관리자로 고정(admin_level='sub', 메뉴 없음) —
+        //   신규계정이 로그인 시 admin_level NULL→'master' 로 승격되던 권한상승을 차단(master 승격 불가).
+        if ($ownerPlan === 'admin' && $newId > 0) {
+            try { $pdo->prepare("UPDATE app_user SET admin_level='sub', admin_menus='[]' WHERE id=?")->execute([$newId]); } catch (\Throwable $e) {}
         }
         // [231차 #3] 프로필 사진(Base64) — post-insert UPDATE(있을 때만)
         $photo = (string)($body['photo'] ?? '');

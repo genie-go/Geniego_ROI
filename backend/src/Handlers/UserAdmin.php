@@ -278,10 +278,15 @@ final class UserAdmin
         $isPaidPlan = in_array($plan, ['starter', 'growth', 'pro', 'enterprise'], true);
 
         $pdo = Db::pdo();
-        $stmt = $pdo->prepare("SELECT id, email, name, plan, COALESCE(subscription_started_at,'') AS subscription_started_at, COALESCE(subscription_cycle,'') AS subscription_cycle FROM app_user WHERE id = ?");
+        $stmt = $pdo->prepare("SELECT id, email, name, plan, COALESCE(plans,'') AS plans, COALESCE(subscription_started_at,'') AS subscription_started_at, COALESCE(subscription_cycle,'') AS subscription_cycle FROM app_user WHERE id = ?");
         $stmt->execute([$id]);
         $user = $stmt->fetch(\PDO::FETCH_ASSOC);
         if (!$user) return self::json($res, ['ok' => false, 'error' => 'User not found'], 404);
+        // [261차 권한상승 차단] 대상이 관리자 계정(master 포함)이면 최고관리자(master)만 변경 가능 —
+        //   하위관리자(sub)가 master 를 plan='free' 로 강등해 admin 락아웃시키던 경로 차단(resetPassword 와 동일 정책).
+        if ((($user['plan'] ?? '') === 'admin' || ($user['plans'] ?? '') === 'admin') && !self::isMaster($admin)) {
+            return self::json($res, ['ok' => false, 'error' => 'Only master admin can modify an admin account'], 403);
+        }
 
         $oldPlan = $user['plan'];
         $now = self::now();
@@ -345,6 +350,14 @@ final class UserAdmin
         $active = isset($body['active']) ? (int)(bool)$body['active'] : 1;
 
         $pdo = Db::pdo();
+        // [261차 권한상승 차단] 관리자 계정 활성/비활성 토글은 최고관리자(master) 전용 —
+        //   하위관리자(sub)가 master 를 비활성화(+세션 말소)하던 경로 차단(resetPassword/updatePlan 과 동일 정책).
+        $tgt = $pdo->prepare("SELECT plan, plans FROM app_user WHERE id = ?");
+        $tgt->execute([$id]);
+        $tu = $tgt->fetch(\PDO::FETCH_ASSOC) ?: [];
+        if ((($tu['plan'] ?? '') === 'admin' || ($tu['plans'] ?? '') === 'admin') && !self::isMaster($admin)) {
+            return self::json($res, ['ok' => false, 'error' => 'Only master admin can change an admin account status'], 403);
+        }
         $pdo->prepare("UPDATE app_user SET is_active = ? WHERE id = ?")->execute([$active, $id]);
 
         // Revoke all sessions if deactivating
@@ -701,6 +714,28 @@ final class UserAdmin
     // ═══════════════════════════════════════════════════════════════════════════
 
     /**
+     * [261차 스키마 무음실패 수정] admin_roles/user_roles 런타임 보장.
+     *   두 테이블은 마이그레이션·코드 어디에도 CREATE 가 없어 라이브 스키마에 미존재했다. 라우트(+UserManagement.jsx
+     *   역할관리 탭)에서 도달되나 try/catch 없는 SELECT/INSERT 가 매번 uncaught PDOException(500) → 커스텀 역할관리
+     *   기능이 라이브에서 전면 사망하던 것을 report_metric_def/onsite_edit_token 과 동일한 IF NOT EXISTS 패턴으로 보강.
+     */
+    private static function ensureRoleTables(\PDO $pdo): void
+    {
+        static $done = false;
+        if ($done) return;
+        $done = true;
+        try {
+            if ($pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql') {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS admin_roles (id INT AUTO_INCREMENT PRIMARY KEY, role_key VARCHAR(60) NOT NULL UNIQUE, name_ko VARCHAR(120), name_en VARCHAR(120), permissions TEXT, is_active TINYINT DEFAULT 1, sort_order INT DEFAULT 0, created_at VARCHAR(32), updated_at VARCHAR(32)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+                $pdo->exec("CREATE TABLE IF NOT EXISTS user_roles (user_id INT NOT NULL, role_key VARCHAR(60) NOT NULL, granted_by INT, created_at VARCHAR(32), PRIMARY KEY(user_id, role_key)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            } else {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS admin_roles (id INTEGER PRIMARY KEY AUTOINCREMENT, role_key TEXT NOT NULL UNIQUE, name_ko TEXT, name_en TEXT, permissions TEXT, is_active INTEGER DEFAULT 1, sort_order INTEGER DEFAULT 0, created_at TEXT, updated_at TEXT)");
+                $pdo->exec("CREATE TABLE IF NOT EXISTS user_roles (user_id INTEGER NOT NULL, role_key TEXT NOT NULL, granted_by INTEGER, created_at TEXT, PRIMARY KEY(user_id, role_key))");
+            }
+        } catch (\Throwable $e) { /* best-effort */ }
+    }
+
+    /**
      * GET /v423/admin/roles
      * 역할 목록 조회
      */
@@ -710,7 +745,9 @@ final class UserAdmin
             return self::json($res, ['ok' => false, 'error' => 'Admin access required'], 403);
         }
 
-        $rows = Db::pdo()->query(
+        $pdo = Db::pdo();
+        self::ensureRoleTables($pdo);
+        $rows = $pdo->query(
             "SELECT * FROM admin_roles ORDER BY sort_order ASC, id ASC"
         )->fetchAll(\PDO::FETCH_ASSOC);
 
@@ -743,6 +780,7 @@ final class UserAdmin
 
         $permsJson = json_encode(is_array($perms) ? $perms : []);
         $pdo = Db::pdo();
+        self::ensureRoleTables($pdo);
         $driver = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME);
 
         if ($driver === 'mysql') {
@@ -778,7 +816,9 @@ final class UserAdmin
         if (!$admin) return self::json($res, ['ok' => false, 'error' => 'Admin access required'], 403);
 
         $roleKey = $args['role_key'] ?? '';
-        Db::pdo()->prepare("DELETE FROM admin_roles WHERE role_key = ?")->execute([$roleKey]);
+        $pdo = Db::pdo();
+        self::ensureRoleTables($pdo);
+        $pdo->prepare("DELETE FROM admin_roles WHERE role_key = ?")->execute([$roleKey]);
         self::auditLog($admin, "delete_role", "role_key=$roleKey");
         return self::json($res, ['ok' => true]);
     }
@@ -798,6 +838,7 @@ final class UserAdmin
 
         $roleKey = $body['role_key'] ?? '';
         $pdo     = Db::pdo();
+        self::ensureRoleTables($pdo);
 
         // Verify role exists
         $rStmt = $pdo->prepare("SELECT id FROM admin_roles WHERE role_key = ?");
@@ -835,7 +876,9 @@ final class UserAdmin
         }
 
         $userId = (int)($args['id'] ?? 0);
-        $stmt = Db::pdo()->prepare(
+        $pdo = Db::pdo();
+        self::ensureRoleTables($pdo);
+        $stmt = $pdo->prepare(
             "SELECT ur.role_key, r.name_ko, r.name_en, r.permissions, ur.created_at
                FROM user_roles ur
                JOIN admin_roles r ON r.role_key = ur.role_key
@@ -859,7 +902,9 @@ final class UserAdmin
         $userId  = (int)($args['id'] ?? 0);
         $roleKey = $args['role_key'] ?? '';
 
-        Db::pdo()->prepare("DELETE FROM user_roles WHERE user_id = ? AND role_key = ?")
+        $pdo = Db::pdo();
+        self::ensureRoleTables($pdo);
+        $pdo->prepare("DELETE FROM user_roles WHERE user_id = ? AND role_key = ?")
             ->execute([$userId, $roleKey]);
 
         self::auditLog($admin, "revoke_role", "user#{$userId} role=$roleKey");

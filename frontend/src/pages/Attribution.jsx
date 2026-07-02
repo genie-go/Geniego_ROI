@@ -338,14 +338,6 @@ const MMMTab = memo(function MMMTab() {
     }, 30);
   }, []);
 
-  if (TS_DATA.revenue.length === 0) {
-    return (
-      <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-3)' }}>
-        {t('attrData.noTimeSeriesData', '기여도 산출에 필요한 시계열 데이터가 없습니다.')}
-      </div>
-    );
-  }
-
   // Removed mock baseROAS and static decay data for production cleanly.
   const simResult = useMemo(() => {
     return Object.entries(budget).map(([ch, pct]) => {
@@ -358,6 +350,17 @@ const MMMTab = memo(function MMMTab() {
 
   const totalRev   = simResult.reduce((s, r) => s + r.revenue, 0);
   const totalSpend = simResult.reduce((s, r) => s + r.spend, 0);
+
+  // [261차 크래시수정] 빈 데이터 가드는 반드시 모든 훅(useMemo) 뒤에 위치해야 한다.
+  //   훅 앞의 early-return 은 데이터 async 로드 후 재렌더(예: 언어전환) 시 훅 실행개수가 달라져
+  //   "Rendered more hooks than during the previous render"(Rules of Hooks 위반)로 페이지가 화이트스크린된다.
+  if (TS_DATA.revenue.length === 0) {
+    return (
+      <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-3)' }}>
+        {t('attrData.noTimeSeriesData', '기여도 산출에 필요한 시계열 데이터가 없습니다.')}
+      </div>
+    );
+  }
 
   return (
     <div style={{ display: 'grid', gap: 16 }}>
@@ -567,14 +570,6 @@ const AttributionTab = memo(function AttributionTab() {
     { id: 'linear', label: t('attrData.linear') }, { id: 'time_decay', label: t('attrData.timeDecay') }, { id: 'position', label: t('attrData.position') },
   ];
 
-  if (_JOURNEYS.length === 0) {
-    return (
-      <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-3)' }}>
-        {t('attrData.noTimeSeriesData', '기여도 산출에 필요한 시계열 데이터가 없습니다.')}
-      </div>
-    );
-  }
-
   function calcMTA(journeys, model) {
     const tp = {};
     const init = ch => { tp[ch] = tp[ch] || { channel: ch, conversions: 0, revenue: 0 }; };
@@ -602,6 +597,17 @@ const AttributionTab = memo(function AttributionTab() {
     _JOURNEYS.forEach(j => { const k = j.path.join(' → '); pm[k] = pm[k] || { path: k, count: 0, revenue: 0 }; pm[k].count++; pm[k].revenue += j.revenue; });
     return Object.values(pm).sort((a, b) => b.count - a.count).slice(0, 6);
   }, []);
+
+  // [261차 크래시수정] 빈 데이터 가드는 모든 훅(useMemo) 뒤에 위치 — 훅 앞의 early-return 은
+  //   데이터 async 로드 후 재렌더(언어전환 등) 시 훅 실행개수 변동으로 화이트스크린을 유발한다(기본 탭이라 노출 최대).
+  if (_JOURNEYS.length === 0) {
+    return (
+      <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-3)' }}>
+        {t('attrData.noTimeSeriesData', '기여도 산출에 필요한 시계열 데이터가 없습니다.')}
+      </div>
+    );
+  }
+
   return (
     <div style={{ display: 'grid', gap: 16 }}>
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>

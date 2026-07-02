@@ -194,7 +194,7 @@ function GraphBrowserTab({ onExport }) {
   useEffect(() => { load(); }, []);
 
   const filteredEdges = filter
-    ? edges.filter(e => e.src_id.includes(filter) || e.dst_id.includes(filter))
+    ? edges.filter(e => (e.src_id || '').includes(filter) || (e.dst_id || '').includes(filter))
     : edges.slice(0, 100);
 
   const handleExportCsv = () => {

@@ -97,6 +97,10 @@ $app->add(function (Request $request, $handler) {
         // [257차] CRO 비주얼 에디터 저장 — 머천트 라이브 사이트(크로스오리진)서 단기 edit-token 으로 변형B 체인지셋
         //   저장. 세션 없음(외부 페이지) → 공개 bypass·핸들러가 onsite_edit_token 자체검증(만료/멱등).
         || $path === '/v424/cro/edit-save' || $path === '/api/v424/cro/edit-save'
+        // [261차] 테넌트 웹팝업 공개 서빙/비콘 — 머천트 외부 사이트 임베드 JS(세션 불요·tenant 파라미터 스코프).
+        //   CRUD/설정은 아래 세션게이트(익명 차단). active/event 는 여기서 먼저 early-return 되므로 겹침 안전.
+        || $path === '/v424/web-popups/active' || $path === '/api/v424/web-popups/active'
+        || $path === '/v424/web-popups/event'  || $path === '/api/v424/web-popups/event'
         // [현 차수] 접속 IP 기반 국가/언어 자동 감지 — 비인증 공개(첫 방문 언어 결정). 호출자 연결 IP 만 조회.
         || $path === '/v424/geo/lang' || $path === '/api/v424/geo/lang'
         // [251차 Phase2 ②] 플랫폼 성장 공개 방문 캡처 — 랜딩 팝업/폼이 비인증 호출(platform_growth 격리·핸들러가 이메일검증·이벤트 화이트리스트). 관리(admin/growth/*)는 인증 유지.
@@ -275,6 +279,10 @@ $app->add(function (Request $request, $handler) {
         //   edit-token(세션) 도 여기 편입. Onsite::tenant=auth_tenant 우선 → 세션→auth_tenant 주입 게이트 정합.
         //   ★assign/convert(익명 비콘)는 위 full-public-bypass 유지(세션게이트=토큰필수라 익명 차단됨). experiments 접두라 미매칭.
         || strpos($path, '/v424/cro/experiments') === 0 || strpos($path, '/api/v424/cro/experiments') === 0
+        // [261차] 테넌트 웹팝업 CRUD/설정 — 세션 self-auth(WebPopupCampaign::tenant=authedTenant, 익명 차단).
+        //   공개 서빙/비콘(active/event)은 위 full-public-bypass 에서 먼저 처리되므로 이 접두는 CRUD/settings 만 도달.
+        || strpos($path, '/v424/web-popups') === 0 || strpos($path, '/api/v424/web-popups') === 0
+        || strpos($path, '/v424/web-popup-settings') === 0 || strpos($path, '/api/v424/web-popup-settings') === 0
         // [237차] admin 전메뉴 라이브 스윕(69페이지)서 발견된 동일 클래스 세션 인증갭 4페이지:
         //   GraphScore(/v419/graph/* — 그래프 스코어)·AttributionMetrics(/v424/marketing/* — 마케팅 일별추이)·
         //   AdPerformance(/v1/ad-performance/* 광고성과·/performance/meta-ads 어카운트성과). 셋 다 핸들러가

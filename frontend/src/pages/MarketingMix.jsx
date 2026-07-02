@@ -222,7 +222,7 @@ export default function MarketingMix() {
                       </tr>
                     </thead>
                     <tbody>
-                      {opt.allocations.map((a, i) => (
+                      {(opt.allocations || []).map((a, i) => (
                         <tr key={a.channel} style={{ borderTop: '1px solid #eef2f7', textAlign: 'right' }}>
                           <td style={{ textAlign: 'left', padding: '8px', fontWeight: 800 }}><span style={{ color: CH_COLOR[i % CH_COLOR.length] }}>●</span> {chName(a.channel)}</td>
                           <td style={{ padding: '8px', color: '#64748b' }}>{fmtKRW(a.current_daily)}</td>

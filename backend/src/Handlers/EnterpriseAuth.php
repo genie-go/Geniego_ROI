@@ -53,9 +53,12 @@ class EnterpriseAuth
                 KEY idx_sso_slug (slug), KEY idx_sso_domain (domain), KEY idx_sso_scim (scim_token_hash)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
             $pdo->exec("CREATE TABLE IF NOT EXISTS sso_state (state VARCHAR(80) PRIMARY KEY, tenant_id VARCHAR(100), nonce VARCHAR(80), created_at VARCHAR(32)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+            // [261차 보안] SAML assertion 리플레이 방어 — 소비한 어설션 ID 기록(중복 제출 거부).
+            $pdo->exec("CREATE TABLE IF NOT EXISTS saml_consumed_assertion (assertion_id VARCHAR(255) NOT NULL PRIMARY KEY, tenant_id VARCHAR(100), consumed_at VARCHAR(32)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
         } else {
             $pdo->exec("CREATE TABLE IF NOT EXISTS sso_config (tenant_id TEXT PRIMARY KEY, slug TEXT, domain TEXT, protocol TEXT NOT NULL DEFAULT 'oidc', enabled INTEGER DEFAULT 0, oidc_issuer TEXT, oidc_client_id TEXT, oidc_client_secret TEXT, oidc_authorize_url TEXT, oidc_token_url TEXT, oidc_jwks_url TEXT, oidc_userinfo_url TEXT, oidc_scopes TEXT DEFAULT 'openid email profile', saml_idp_entity_id TEXT, saml_idp_sso_url TEXT, saml_idp_cert TEXT, email_attr TEXT, name_attr TEXT, default_role TEXT DEFAULT 'member', auto_provision INTEGER DEFAULT 1, scim_enabled INTEGER DEFAULT 0, scim_token TEXT, scim_token_hash TEXT, updated_at TEXT)");
             $pdo->exec("CREATE TABLE IF NOT EXISTS sso_state (state TEXT PRIMARY KEY, tenant_id TEXT, nonce TEXT, created_at TEXT)");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS saml_consumed_assertion (assertion_id TEXT PRIMARY KEY, tenant_id TEXT, consumed_at TEXT)");
         }
         // app_user 에 SSO 연결 컬럼(멱등 best-effort).
         foreach (['oidc_sub' => 'VARCHAR(255)', 'oidc_provider' => 'VARCHAR(40)', 'scim_external_id' => 'VARCHAR(190)'] as $col => $type) {
@@ -260,14 +263,31 @@ class EnterpriseAuth
         }
         if (!$cfg) return self::fail($res, 'sso not configured for this IdP');
         $cert = (string)($cfg['saml_idp_cert'] ?? '');
-        if (!self::verifySamlSignature($xml, $cert)) return self::fail($res, 'SAML signature verification failed');
-        // 어설션 속성 추출.
+        // [261차 보안] 서명검증은 서명된 노드의 정규화 XML을 반환한다. 신원(NameID/속성)은 반드시
+        //   이 "검증된 서명 서브트리"에서만 추출해야 한다(전체 $xml 대상 추출 시 signature-wrapping[XSW]
+        //   공격으로 서명 밖 위조 assertion의 email이 채택돼 계정탈취 가능).
+        $signedXml = self::verifySamlSignature($xml, $cert);
+        if ($signedXml === '') return self::fail($res, 'SAML signature verification failed');
+        // [261차] 어설션 유효기간(NotOnOrAfter) 검증 — 만료 캡처 무한 리플레이 차단(120초 스큐 허용).
+        if (preg_match('/NotOnOrAfter="([^"]+)"/', $signedXml, $nx)) {
+            $exp = strtotime($nx[1]);
+            if ($exp !== false && $exp < (time() - 120)) return self::fail($res, 'SAML assertion expired');
+        }
+        // [261차] 리플레이 방어 — 검증된 어설션 ID 1회성 소비(중복 제출 거부).
+        if (preg_match('/<(?:saml2?:)?Assertion\b[^>]*\bID="([^"]+)"/', $signedXml, $ax)) {
+            $aid = substr(trim($ax[1]), 0, 255);
+            try {
+                $pdo->prepare("INSERT INTO saml_consumed_assertion(assertion_id,tenant_id,consumed_at) VALUES(?,?,?)")
+                    ->execute([$aid, $tenant, self::now()]);
+            } catch (\Throwable $e) { return self::fail($res, 'SAML assertion already consumed'); }
+        }
+        // 어설션 속성 추출 — ★검증된 서명 서브트리($signedXml)에서만.
         $email = ''; $name = ''; $sub = '';
-        if (preg_match('/<(?:saml2?:)?NameID[^>]*>([^<]+)</', $xml, $m)) { $sub = trim($m[1]); if (strpos($sub, '@') !== false) $email = strtolower($sub); }
+        if (preg_match('/<(?:saml2?:)?NameID[^>]*>([^<]+)</', $signedXml, $m)) { $sub = trim($m[1]); if (strpos($sub, '@') !== false) $email = strtolower($sub); }
         $emailAttr = (string)($cfg['email_attr'] ?? '') ?: 'email';
         $nameAttr = (string)($cfg['name_attr'] ?? '') ?: 'name';
-        $email = self::samlAttr($xml, $emailAttr) ?: $email ?: self::samlAttr($xml, 'mail') ?: self::samlAttr($xml, 'urn:oid:0.9.2342.19200300.100.1.3');
-        $name = self::samlAttr($xml, $nameAttr) ?: self::samlAttr($xml, 'displayName') ?: '';
+        $email = self::samlAttr($signedXml, $emailAttr) ?: $email ?: self::samlAttr($signedXml, 'mail') ?: self::samlAttr($signedXml, 'urn:oid:0.9.2342.19200300.100.1.3');
+        $name = self::samlAttr($signedXml, $nameAttr) ?: self::samlAttr($signedXml, 'displayName') ?: '';
         $email = strtolower(trim((string)$email));
         if ($email === '' || strpos($email, '@') === false) return self::fail($res, 'no email in SAML assertion');
         try {
@@ -537,43 +557,63 @@ class EnterpriseAuth
     }
     private static function b64urlDec(string $s): string { return base64_decode(strtr($s, '-_', '+/') . str_repeat('=', (4 - strlen($s) % 4) % 4)) ?: ''; }
 
-    /** SAML ds:Signature 검증 — exclusive C14N(DOMNode::C14N) + RSA-SHA256 + digest 대조. */
-    private static function verifySamlSignature(string $xml, string $idpCert): bool
+    /**
+     * SAML ds:Signature 검증 — exclusive C14N(DOMNode::C14N) + RSA-SHA256 + digest 대조.
+     * [261차 보안] 반환값 변경: bool → 검증에 성공한 "서명된 노드"의 정규화 XML(실패=''). 호출측은
+     *   반드시 이 반환 서브트리에서만 신원(NameID/속성)을 추출해 signature-wrapping(XSW)을 차단한다.
+     *   또한 Reference URI(#ID)가 실제 서명된 노드를 가리키는지 대조해 서명-대상 스와핑을 방지한다.
+     */
+    private static function verifySamlSignature(string $xml, string $idpCert): string
     {
-        if (trim($idpCert) === '') return false;
+        if (trim($idpCert) === '') return '';
         $prev = libxml_use_internal_errors(true);
         $doc = new \DOMDocument();
         // XXE 방어: 엔티티 로딩 차단.
         $ok = $doc->loadXML($xml, LIBXML_NONET | (defined('LIBXML_NOENT') ? 0 : 0));
         libxml_use_internal_errors($prev);
-        if (!$ok) return false;
+        if (!$ok) return '';
         $xp = new \DOMXPath($doc);
         $xp->registerNamespace('ds', 'http://www.w3.org/2000/09/xmldsig#');
         $sig = $xp->query('//ds:Signature')->item(0);
-        if (!$sig) return false;
+        if (!$sig) return '';
         $signedInfo = $xp->query('ds:SignedInfo', $sig)->item(0);
         $sigValNode = $xp->query('ds:SignatureValue', $sig)->item(0);
+        $refNodeQ   = $xp->query('ds:SignedInfo/ds:Reference', $sig)->item(0);
         $digestNode = $xp->query('ds:SignedInfo/ds:Reference/ds:DigestValue', $sig)->item(0);
-        if (!$signedInfo || !$sigValNode || !$digestNode) return false;
+        if (!$signedInfo || !$sigValNode || !$digestNode || !$refNodeQ) return '';
         $sigVal = base64_decode(preg_replace('/\s+/', '', $sigValNode->nodeValue)) ?: '';
         $digest = base64_decode(preg_replace('/\s+/', '', $digestNode->nodeValue)) ?: '';
         // 1) SignedInfo 서명 검증.
         $c14nSignedInfo = $signedInfo->C14N(true, false); // exclusive, no comments
         $pubPem = "-----BEGIN " . "CERTIFICATE-----\n" . chunk_split(preg_replace('/\s+/', '', $idpCert), 64, "\n") . "-----END CERTIFICATE-----\n";
         $pub = @openssl_pkey_get_public($pubPem);
-        if (!$pub) return false;
-        if (openssl_verify($c14nSignedInfo, $sigVal, $pub, OPENSSL_ALGO_SHA256) !== 1) return false;
-        // 2) 참조 요소(서명된 노드) digest 대조 — 서명 노드 제거 후 C14N → SHA256.
-        $refNode = $sig->parentNode; // enveloped: 서명은 서명대상의 자식.
+        if (!$pub) return '';
+        if (openssl_verify($c14nSignedInfo, $sigVal, $pub, OPENSSL_ALGO_SHA256) !== 1) return '';
+        // 2) 참조 요소(서명된 노드) 결정 — Reference URI(#ID)가 있으면 그 ID의 노드를, 없으면 서명 부모를.
+        //    URI 기반 노드결정으로 서명이 실제로 "그 노드"를 보증함을 확인(XSW 방어의 핵심).
+        $refUri = (string)$refNodeQ->getAttribute('URI');
+        $refNode = null;
+        if ($refUri !== '' && $refUri[0] === '#') {
+            $targetId = substr($refUri, 1);
+            // ID 속성 후보(SAML: AssertionID/ID) 전수 탐색.
+            foreach ($xp->query('//*[@ID or @AssertionID]') as $el) {
+                if ($el->getAttribute('ID') === $targetId || $el->getAttribute('AssertionID') === $targetId) { $refNode = $el; break; }
+            }
+            if (!$refNode) return ''; // URI가 가리키는 서명대상 노드를 찾지 못하면 거부.
+        } else {
+            $refNode = $sig->parentNode; // enveloped(URI="") 폴백.
+        }
+        if (!$refNode) return '';
         $clone = $refNode->cloneNode(true);
-        $cxp = new \DOMXPath($clone->ownerDocument ?: $doc);
-        // clone 내부 Signature 제거.
+        // clone 내부 Signature 제거(enveloped).
         $innerSig = null;
         foreach ($clone->childNodes as $c) { if ($c->localName === 'Signature' && $c->namespaceURI === 'http://www.w3.org/2000/09/xmldsig#') { $innerSig = $c; break; } }
         if ($innerSig) $clone->removeChild($innerSig);
         $c14nRef = $clone->C14N(true, false);
         $calc = hash('sha256', $c14nRef, true);
-        return hash_equals($digest, $calc);
+        if (!hash_equals($digest, $calc)) return '';
+        // 검증 성공: 서명된 노드의 정규화 XML 반환(호출측 신원추출 소스).
+        return $c14nRef;
     }
 
     private static function samlAttr(string $xml, string $name): string
