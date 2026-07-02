@@ -1,3 +1,43 @@
+# 261차 세션 인계서 — **정전중단 보안WIP 완결(SAML XSW+권한상승차단) + 전수 정밀감사 확정결함 수정 + 웹팝업 테넌트 백엔드 완결**
+
+> **작성일**: 2026-07-02 (사용자 명시 승인) · 운영 roi.genie-go.com / 데모 roidemo.genie-go.com · 브랜치 `feat/n236-admin-growth-automation` (**master 미접촉**) · 커밋 `96cf50c3584` push완료. 전 항목 운영+데모 배포·php-l PASS·프론트빌드 PASS·라이브 e2e. **회귀0·거짓집행0·운영목데이터0·오염0**.
+
+## ★0. 다음 차수 필독 — 오탐/중복/재발 방지
+- 착수 전 `docs/IMPLEMENTATION_STATUS.md` + `reference_audit_false_positives`(메모리, **261차 등재됨**) 주입.
+- **이번차 오탐방지 실증**: 병렬감사 에이전트 다수 레이트리밋 사망 → **결정적 작업(routes전수·스키마대조)은 PM 직접 완주가 안정**. AnomalyTab 크래시 의심을 read로 자가기각(1051훅은 ServerMtaPanel 소속). 모든 발견 PM 코드 재증명 후 확정.
+- **★channel_orders 스키마 오용 클래스 상수 주의**: 실컬럼 order_id·currency·quantity·created_at **없음**(channel_order_id·total_price=KRW). `_live_schema_utf8.txt`(라이브 218테이블 UTF-8본) 대조.
+
+## 1. 261차 완료(전부 운영+데모 라이브·push)
+| # | 영역 | 항목 |
+|---|------|------|
+| A | 보안(정전중단분 완결) | **SAML XSW(서명래핑) 계정탈취 방어**(EnterpriseAuth: 검증된 서명 서브트리에서만 신원추출·Reference URI 대조·리플레이 saml_consumed_assertion·NotOnOrAfter 만료)·**하위관리자→최고관리자 권한상승 3경로 차단**(UserAdmin/UserAuth: 계정강등·비활성화·teamManager admin상속) |
+| B | 스키마 유령테이블 | **admin_roles/user_roles**(마이그레이션·CREATE 전무→라이브부재→역할관리 authed호출시 uncaught 500=기능전면사망). UserAdmin::ensureRoleTables() 런타임 CREATE·6메서드 배선. 라이브 active/역할 엔드포인트 검증 |
+| C | 크래시(HIGH) | **Attribution.jsx AttributionTab(기본탭)·MMMTab Rules-of-Hooks 위반**(early-return이 useMemo보다 앞→데이터 async로드 후 언어전환 재렌더시 훅개수변동 "Rendered more hooks" 화이트스크린)→가드를 모든 훅 뒤로 이동. InfluencerUGC id.type.toUpperCase 무방어 가드 |
+| D | 미영속 | **ContentCalendar calendar_events**(GlobalDataContext init-load만·save effect 누락→새로고침 소실)→데모 영속 effect 보강(형제패턴 일치) |
+| E | 정직화·하드닝 | DeveloperHub API레퍼런스 실재하지않는 EP 2건(/v420/price/ingest·/v422/ai/recommend)→실EP 교정. 계약의존 잠재크래시 하드닝6(PriceOpt/OnsiteCro/MarketingMix `.map`·GraphScore `.includes`·AdminGrowthCenter `Object.values`·PMPortfolio rollup.summary/projects `\|\|[]`) |
+| F | 웹팝업 테넌트 백엔드(신규) | **WebPopupCampaign.php**: 테넌트스코프 CRUD/설정(세션 self-auth authedTenant)+공개 서빙(active)/비콘(event)·IP레이트리밋·(tenant,popup,vid)멱등원장·XSS clean·교차테넌트 지표오염차단. routes /v424/web-popups(+/web-popup-settings)·index.php bypass(공개 active/event=full-public / CRUD=세션게이트). WebPopup.jsx 운영→백엔드영속(생성/삭제/설정)·데모→기존. 라이브: active200·세션게이트401·검증400·테이블 자동생성. **기존 EventPopup(플랫폼공지·tenant_id없음)에 미배선=테넌트간 유출 없음** |
+
+## 2. CLEAN 재확인(회귀0·재플래그 금지)
+- 채널 자동연동 10종 sync 대칭(ChannelCreds:358-404)·채널추가 CRUD(ChannelRegistry)·**4중 오염방어**(X-Tenant override index.php:320-323·DB물리분리·authedTenant·IS_DEMO)·스키마 13핸들러군(wms/admin/team/report/compliance) 유령컬럼0(admin_roles 제외)·미영속/크래시 ~90파일 스윕(확정건外 0)·252~260 초고도화 회귀0.
+
+## 3. ★다음 차수 우선순위 (사용자 명시)
+1. **[P1] ReviewsUGC 설정패널 영속 마저 구현** — SettingsTab(ReviewsUGC.jsx:354-383) Slack Webhook URL·AI톤·자동에스컬레이션이 순수 ephemeral state(저장버튼 없는 미배선 토글). WebPopup SettingsTab과 동일 유형 → **운영=백엔드(테넌트스코프 설정테이블 or app_setting 확장)·데모=localStorage** 패턴으로 배선. 이번차 WebPopupCampaign 설정 배선(getSettings/saveSettings)이 참조 템플릿.
+2. **[P1] 백엔드 admin 로그인 e2e 검증** — 261차 이번 세션서 사용자 취소로 미실행. admin 로그인(ceo@ociell.com)→GET /v423/admin/roles 200·admin_roles/user_roles 테이블 실생성·role upsert/assign/revoke 왕복·권한상승 차단 3경로(계정강등·비활성화·teamManager) 402/403 실증. 자격증명 평문노출 회피(env/temp만).
+3. **[P2] 웹팝업 서빙 스니펫(임베드 JS) + Overview 지표 배선** — active/event 백엔드는 완결. 머천트 사이트 임베드용 공개 JS 스니펫(exit-intent/트리거 감지→active fetch→렌더→event 비콘) 및 OverviewTab 실지표(impressions/clicks/conversions) 배선.
+4. **[P2] 259차 잔여** — routes 존재검증(261차 완료: 프론트95경로中 실결함2=DeveloperHub 문서, 전부 교정)·스키마대조(261차 admin/team/wms/report CLEAN+admin_roles수정). **미영속/크래시 전수는 ~90파일 커버**(잔여=CRM/마케팅외 나머지 페이지 스윕). 확인필요(저위험 계약의존): DataTable.jsx(고아·dead)·ConfidenceTab STB.
+5. **[P3] 검출기 CI가드화**(260차 권장 유지)·WebPopup A/B백엔드(현 프론트 stub).
+
+## 4. ★트랩(261차)
+- **PowerShell plink/pscp 인용**: 원격 bash 명령은 **단일 인용**으로 감싸야 `$var`가 bash로 전달(이중인용시 PowerShell이 삼킴). native mysql에 복잡 인용 전달 실패(help출력)→hex리터럴/temp SQL파일 권장. plink=`C:\Program Files\PuTTY\plink.exe` 호출연산자 `&`.
+- **프론트 dist 델타**: 서버 자산목록을 PowerShell `>`로 저장하면 UTF-16(sort/comm 깨짐)→`tr -d '\000\r'` 후 LC_ALL=C sort. 단일 변경(GlobalDataContext 등 공유모듈)도 index청크+다수 페이지청크 해시 전파(144/155 변경). 미변경 13.5MB 로케일은 스킵. tar `--force-local`(C: 드라이브colon→원격host 오인 회피).
+- **운영/데모 동일서버 다른디렉토리**: 백엔드 PHP는 /tmp 1회 업로드→php-l→양 backend/ 복사. fpm=`systemctl restart php8.1-fpm`(양풀 공유·opcache). 신규핸들러 필수 restart.
+- **FastRoute static/variable shadow**: 정적경로(active/event/settings)를 변수({id}) 앞 등록. settings는 별도 top-path(/web-popup-settings)로 분리해 /{id} 충돌 회피.
+- **로컬 PHP 미설치**: php-l은 서버에서만. 신규/수정 핸들러 = /tmp 업로드 후 검증.
+
+(★본 인계서 = 사용자 명시 승인. 자격증명 평문노출 0. master 미접촉·feat/n236 push 완료 96cf50c3584.)
+
+---
+
 # 260차 세션 인계서 — **자동로그아웃 근본수정 + 반복재발 클래스 전수검출기 + Paddle 스키마드리프트 + 정직화/죽은버튼 + 경쟁재평가 89.5 + CRO WYSIWYG 완전패리티 + 코드완결 심화 5종**
 
 > **작성일**: 2026-07-02 (사용자 명시 승인) · 운영 roi.genie-go.com / 데모 roidemo.genie-go.com · 브랜치 `feat/n236-admin-growth-automation` (**master 미접촉** — 수동 dist/핸들러 스왑 배포·CI 미트리거). 전 항목 운영/데모 배포·라이브 검증(php-l·라우팅 e2e·라이브DB·HTTPS·헤드리스·admin 실로그인). **회귀0·거짓집행0·운영목데이터0**.
