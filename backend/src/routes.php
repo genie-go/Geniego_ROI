@@ -1507,15 +1507,15 @@ return function (App $app): void {
         'PUT /creatives/{id}'                   => 'Genie\\Handlers\\CreativeStore::update',
         'DELETE /creatives/{id}'                => 'Genie\\Handlers\\CreativeStore::delete',
         'POST /creatives/check-duplicate'       => 'Genie\\Handlers\\CreativeStore::checkDuplicate',
-        // [259차] 브랜드 에셋(테넌트 스코프·세션 requirePro·FastRoute static 우선이라 /creatives/{id} 무충돌)
-        'GET /creatives/brand-assets'               => 'Genie\\Handlers\\CreativeStore::brandAssetsList',
-        'POST /creatives/brand-assets'              => 'Genie\\Handlers\\CreativeStore::brandAssetUpload',
-        'GET /creatives/brand-assets/{id}'          => 'Genie\\Handlers\\CreativeStore::brandAssetGet',
-        'DELETE /creatives/brand-assets/{id}'       => 'Genie\\Handlers\\CreativeStore::brandAssetDelete',
-        'GET /api/creatives/brand-assets'           => 'Genie\\Handlers\\CreativeStore::brandAssetsList',
-        'POST /api/creatives/brand-assets'          => 'Genie\\Handlers\\CreativeStore::brandAssetUpload',
-        'GET /api/creatives/brand-assets/{id}'      => 'Genie\\Handlers\\CreativeStore::brandAssetGet',
-        'DELETE /api/creatives/brand-assets/{id}'   => 'Genie\\Handlers\\CreativeStore::brandAssetDelete',
+        // [259차] 브랜드 에셋(테넌트 스코프·세션 requirePro). ★경로 3~4세그먼트로 /creatives/{id}(2세그) 정적/변수 shadow 충돌 회피(FastRoute 하드예외).
+        'GET /creatives/brand-assets/list'          => 'Genie\\Handlers\\CreativeStore::brandAssetsList',
+        'POST /creatives/brand-assets/save'         => 'Genie\\Handlers\\CreativeStore::brandAssetUpload',
+        'GET /creatives/brand-assets/item/{id}'     => 'Genie\\Handlers\\CreativeStore::brandAssetGet',
+        'DELETE /creatives/brand-assets/item/{id}'  => 'Genie\\Handlers\\CreativeStore::brandAssetDelete',
+        'GET /api/creatives/brand-assets/list'          => 'Genie\\Handlers\\CreativeStore::brandAssetsList',
+        'POST /api/creatives/brand-assets/save'         => 'Genie\\Handlers\\CreativeStore::brandAssetUpload',
+        'GET /api/creatives/brand-assets/item/{id}'     => 'Genie\\Handlers\\CreativeStore::brandAssetGet',
+        'DELETE /api/creatives/brand-assets/item/{id}'  => 'Genie\\Handlers\\CreativeStore::brandAssetDelete',
 ];
 
 
@@ -2995,15 +2995,15 @@ return function (App $app): void {
     $register('PUT', '/creatives/{id}');
     $register('DELETE', '/creatives/{id}');
     $register('POST', '/creatives/check-duplicate');
-    // [259차] 브랜드 에셋
-    $register('GET',    '/creatives/brand-assets');
-    $register('POST',   '/creatives/brand-assets');
-    $register('GET',    '/creatives/brand-assets/{id}');
-    $register('DELETE', '/creatives/brand-assets/{id}');
-    $register('GET',    '/api/creatives/brand-assets');
-    $register('POST',   '/api/creatives/brand-assets');
-    $register('GET',    '/api/creatives/brand-assets/{id}');
-    $register('DELETE', '/api/creatives/brand-assets/{id}');
+    // [259차] 브랜드 에셋 — 3~4세그먼트(/creatives/{id} shadow 회피)
+    $register('GET',    '/creatives/brand-assets/list');
+    $register('POST',   '/creatives/brand-assets/save');
+    $register('GET',    '/creatives/brand-assets/item/{id}');
+    $register('DELETE', '/creatives/brand-assets/item/{id}');
+    $register('GET',    '/api/creatives/brand-assets/list');
+    $register('POST',   '/api/creatives/brand-assets/save');
+    $register('GET',    '/api/creatives/brand-assets/item/{id}');
+    $register('DELETE', '/api/creatives/brand-assets/item/{id}');
 
     // ── V424 OrderHub Aggregator (165차 deploy + 167차 register 매핑 보강) ──
     $register('GET', '/v424/orderhub/orders');

@@ -62,7 +62,7 @@ export default function CreativeStudioTab({ sourcePage, onUseCampaign }) {
   const [uploadingAsset, setUploadingAsset] = useState(false);
   const loadBrandAssets = useCallback(() => {
     if (IS_DEMO) { setBrandAssets(DEMO_ASSETS); return; }
-    getJsonAuth('/api/creatives/brand-assets').then(d => { if (Array.isArray(d?.assets)) setBrandAssets(d.assets); }).catch(() => {});
+    getJsonAuth('/api/creatives/brand-assets/list').then(d => { if (Array.isArray(d?.assets)) setBrandAssets(d.assets); }).catch(() => {});
   }, []);
   useEffect(() => { loadBrandAssets(); }, [loadBrandAssets]);
   const onUploadAsset = useCallback((file) => {
@@ -74,7 +74,7 @@ export default function CreativeStudioTab({ sourcePage, onUseCampaign }) {
       const ext = (file.name.split('.').pop() || '').toUpperCase().slice(0, 8);
       const size = file.size < 1024 ? file.size + 'B' : file.size < 1048576 ? Math.round(file.size / 1024) + 'KB' : (file.size / 1048576).toFixed(1) + 'MB';
       try {
-        const r = await postJsonAuth('/api/creatives/brand-assets', { name: file.name, type: ext, size, data_url: String(reader.result || '') });
+        const r = await postJsonAuth('/api/creatives/brand-assets/save', { name: file.name, type: ext, size, data_url: String(reader.result || '') });
         if (r?.ok) loadBrandAssets(); else alert(t('marketing.csUploadFail', '업로드에 실패했습니다.'));
       } catch { alert(t('marketing.csUploadFail', '업로드에 실패했습니다.')); }
       finally { setUploadingAsset(false); }
@@ -84,7 +84,7 @@ export default function CreativeStudioTab({ sourcePage, onUseCampaign }) {
   const assetAction = useCallback(async (asset, mode) => {
     if (IS_DEMO || !asset?.id) { alert(t('marketing.csDemoAsset', '데모 샘플 에셋입니다(실 파일 없음).')); return; }
     try {
-      const d = await getJsonAuth(`/api/creatives/brand-assets/${asset.id}`);
+      const d = await getJsonAuth(`/api/creatives/brand-assets/item/${asset.id}`);
       const url = d?.asset?.data_url;
       if (!url) { alert(t('marketing.csAssetMissing', '에셋 데이터를 찾을 수 없습니다.')); return; }
       if (mode === 'preview') { window.open(url, '_blank'); }
