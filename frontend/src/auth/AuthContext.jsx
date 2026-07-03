@@ -109,7 +109,19 @@ export function AuthProvider({ children }) {
         const v = Math.max(0, parseInt(min, 10) || 0);
         setAutoLogoutMinState(v);
         localStorage.setItem(AUTO_LOGOUT_KEY, String(v));
+        localStorage.setItem(LAST_ACTIVITY_KEY, String(Date.now())); // 262차: 설정 즉시 baseline
         lastActivityRef.current = Date.now(); // 설정 변경 시 타이머 리셋
+        // 262차: 서버측 유휴 강제의 진실원천으로 임계를 서버에 영속(fire-and-forget).
+        try {
+            const tok = localStorage.getItem(TOKEN_KEY);
+            if (tok) {
+                fetch(`${API}/auth/profile`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json", Authorization: `Bearer ${tok}` },
+                    body: JSON.stringify({ auto_logout_min: v }),
+                }).catch(() => {});
+            }
+        } catch { /* ignore */ }
     }, []);
 
     /* 사용자 활동 감지 → 마지막 활동 시각 갱신(+ 영속). 262차: localStorage 영속으로 재시작에도 유휴 계산 유지. */
@@ -130,6 +142,20 @@ export function AuthProvider({ children }) {
         const events = ["mousedown", "mousemove", "keydown", "scroll", "touchstart", "click"];
         events.forEach(e => window.addEventListener(e, onActivity, { passive: true }));
         return () => events.forEach(e => window.removeEventListener(e, onActivity));
+    }, [token, autoLogoutMin]);
+
+    /* 262차: 기존 클라이언트 유휴 설정을 서버로 1회 동기화(서버측 유휴 강제 진실원천 채우기).
+       사용자가 재설정하지 않아도 다음 로그인 시 서버가 임계를 알게 됨. 값 변경 시마다 1회만 전송. */
+    const almSyncedRef = useRef(0);
+    useEffect(() => {
+        if (!token || autoLogoutMin <= 0) return;
+        if (almSyncedRef.current === autoLogoutMin) return;
+        almSyncedRef.current = autoLogoutMin;
+        fetch(`${API}/auth/profile`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+            body: JSON.stringify({ auto_logout_min: autoLogoutMin }),
+        }).catch(() => {});
     }, [token, autoLogoutMin]);
 
     /* Idle 체크 인터벌(15초) + 탭 복귀 즉시 재검사. 262차: 백그라운드 스로틀/복귀 시에도 유휴 초과 즉시 로그아웃. */
@@ -250,6 +276,17 @@ export function AuthProvider({ children }) {
         try {
             const tid = usr?.tenant_id || usr?.tenantId;
             if (tid) localStorage.setItem('tenantId', String(tid));
+        } catch { /* ignore */ }
+        // 262차: 서버가 보관한 유휴 임계를 클라가 채택(다른 기기서 설정한 값 동기화).
+        //   로컬 미설정(0)일 때만 서버값을 반영 → 로컬 최신 설정을 덮어쓰지 않음.
+        try {
+            const srvAlm = parseInt(usr?.auto_logout_min ?? usr?.profile?.auto_logout_min ?? 0, 10) || 0;
+            const localAlm = parseInt(localStorage.getItem(AUTO_LOGOUT_KEY) || "0", 10) || 0;
+            if (srvAlm > 0 && localAlm === 0) {
+                localStorage.setItem(AUTO_LOGOUT_KEY, String(srvAlm));
+                localStorage.setItem(LAST_ACTIVITY_KEY, String(Date.now()));
+                setAutoLogoutMinState(srvAlm);
+            }
         } catch { /* ignore */ }
     }, []);
 

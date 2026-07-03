@@ -181,6 +181,15 @@ final class UserAuth
         $done = true;
     }
 
+    /** 262차 — user_session.last_seen_at 보강(서버측 유휴 자동로그아웃). 멱등 ALTER. */
+    private static function ensureSessionIdleColumn(\PDO $pdo): void
+    {
+        static $done = false;
+        if ($done) return;
+        try { $pdo->exec("ALTER TABLE user_session ADD COLUMN last_seen_at VARCHAR(32) NULL"); } catch (\Throwable $e) { /* 이미 존재 or 미지원 */ }
+        $done = true;
+    }
+
     /**
      * 180차 — 사용자 행에서 tenant_id 해석(+필요 시 lazy 영속).
      *   하위계정(parent_user_id 보유)은 상위 owner 의 tenant_id 를 그대로 따름(데이터 공유).
@@ -219,6 +228,7 @@ final class UserAuth
     {
         $pdo = Db::pdo();
         self::ensureTenantColumns($pdo); // 180차: tenant/팀 컬럼 보강
+        self::ensureSessionIdleColumn($pdo); // 262차: 서버측 유휴 자동로그아웃 last_seen_at 보강
         // subscription_expires_at, plans 컬럼 포함 조회 (없으면 null)
         try {
             $stmt = $pdo->prepare(
@@ -229,7 +239,8 @@ final class UserAuth
                         u.subscription_cycle,
                         u.phone, u.extra_data,
                         u.tenant_id, u.parent_user_id, u.team_role,
-                        u.admin_level, u.admin_menus
+                        u.admin_level, u.admin_menus,
+                        s.last_seen_at AS _sess_last_seen
                    FROM user_session s
                    JOIN app_user u ON u.id = s.user_id
                   WHERE s.token = ? AND s.expires_at > ? AND u.is_active = 1'
@@ -251,6 +262,32 @@ final class UserAuth
         }
 
         if (!$row) return null;
+
+        // 262차 서버측 유휴 자동로그아웃(은행급 defense-in-depth): 클라 게이트가 우회/변조돼도
+        //   서버가 유휴 초과 세션을 무효화한다. 유휴 임계는 사용자 설정(extra_data.auto_logout_min)이
+        //   진실원천. 마지막 접속(last_seen_at) 이후 임계 경과 → 세션 삭제·null 반환(재로그인 강제).
+        //   활동 시각은 인증 요청마다 throttle(60s) 로 갱신(쓰기 폭주 방지).
+        if (array_key_exists('_sess_last_seen', $row)) {
+            $lastSeen = $row['_sess_last_seen'] ?? null;
+            unset($row['_sess_last_seen']);
+            $almMin = 0;
+            if (!empty($row['extra_data']) && is_string($row['extra_data'])) {
+                $ed = json_decode($row['extra_data'], true);
+                if (is_array($ed)) $almMin = (int)($ed['auto_logout_min'] ?? 0);
+            }
+            $nowTs = time();
+            $lastTs = $lastSeen ? (int)strtotime((string)$lastSeen) : 0;
+            if ($almMin > 0 && $lastTs > 0 && ($nowTs - $lastTs) >= $almMin * 60) {
+                // 유휴 초과 → 세션 폐기(재로그인 강제).
+                try { $pdo->prepare('DELETE FROM user_session WHERE token = ?')->execute([$token]); } catch (\Throwable $e) {}
+                return null;
+            }
+            // 활동 갱신(throttle: 최초 또는 60s 초과 시에만 write).
+            if ($lastTs === 0 || ($nowTs - $lastTs) >= 60) {
+                try { $pdo->prepare('UPDATE user_session SET last_seen_at = ? WHERE token = ?')->execute([self::now(), $token]); } catch (\Throwable $e) {}
+            }
+        }
+
         // 180차: tenant_id 해석/lazy 영속 → 응답에 항상 포함(프론트 격리 스코프 활성화)
         $row['tenant_id'] = self::resolveTenantId($pdo, $row);
         $row['parent_user_id'] = isset($row['parent_user_id']) ? (int)$row['parent_user_id'] : null;
@@ -272,6 +309,8 @@ final class UserAuth
             'country'         => (string)($profile['country'] ?? ''),
             'website'         => (string)($profile['website'] ?? ''),
         ];
+        // 262차: 유휴 자동로그아웃 임계를 응답에 노출(클라가 다른 기기 로그인 시 서버값 채택 가능).
+        $row['auto_logout_min'] = (int)($profile['auto_logout_min'] ?? 0);
         unset($row['extra_data']); // 원본 JSON 은 응답에서 제거(profile 로 정규화 노출)
         return self::resolveActivePlan($row);
     }
@@ -1476,6 +1515,22 @@ final class UserAuth
             try { Db::pdo()->prepare("UPDATE app_user SET agent_mode=? WHERE id=?")->execute([$mode, (int)($user['id'] ?? 0)]); } catch (\Throwable $e) {}
             self::audit($req, 'agent_mode_change', "AI Agent 권한모드 변경: {$mode}", 'high', $user);
             if (count(array_diff(array_keys($body), ['agent_mode'])) === 0) return self::json($res, ['ok' => true, 'agent_mode' => $mode]);
+        }
+
+        // [262차] 유휴 자동로그아웃 임계(분) 서버 영속 — 서버측 유휴 강제(userByToken)의 진실원천.
+        //   클라 setAutoLogoutMin 이 동반 PATCH. 단독 변경 시 이름검증 전 조기 반환.
+        if (array_key_exists('auto_logout_min', $body)) {
+            $alm = max(0, min(1440, (int)$body['auto_logout_min']));
+            $uid = (int)($user['id'] ?? $user['idx'] ?? 0);
+            try {
+                $p = Db::pdo();
+                $cur = $p->prepare('SELECT extra_data FROM app_user WHERE id = ? LIMIT 1'); $cur->execute([$uid]);
+                $curEd = (string)($cur->fetchColumn() ?: '');
+                $merged = []; if ($curEd !== '') { $dec = json_decode($curEd, true); if (is_array($dec)) $merged = $dec; }
+                $merged['auto_logout_min'] = $alm;
+                $p->prepare('UPDATE app_user SET extra_data = ? WHERE id = ?')->execute([json_encode($merged, JSON_UNESCAPED_UNICODE), $uid]);
+            } catch (\Throwable $e) { /* extra_data 부재 → 무시(클라 게이트가 여전히 동작) */ }
+            if (count(array_diff(array_keys($body), ['auto_logout_min'])) === 0) return self::json($res, ['ok' => true, 'auto_logout_min' => $alm]);
         }
 
         $name    = trim((string)($body['name']    ?? ''));
