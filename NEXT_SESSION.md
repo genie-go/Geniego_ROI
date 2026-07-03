@@ -3529,3 +3529,40 @@ i18n 15국 70키 acorn splice(신규 ns freshness/pwa/cro+기존 email/attrData/
 - php-l 전건 통과·라이브 SHOW COLUMNS/쿼리 무오류·home/demo 200 검증.
 
 (★본 인계서 = 사용자 명시 승인. 자격증명 평문노출 0. master 미접촉·feat/n236-admin-growth-automation push 완료.)
+
+---
+
+# 263차 — 전수감사(6도메인)+연속심화+PG전환보류+초고도화 Track A/C/E+경쟁재평가 정정 (브랜치 feat/n236-admin-growth-automation, master 미접촉)
+
+## A. 전수 정밀감사 6도메인 (스키마드리프트·React크래시·미영속/오염·격리/인증·채널연동·마케팅자동화·분석산출) — 커밋 2e334a55b54
+- **확정결함 수정·운영/데모 배포·라이브검증**:
+  - **[HIGH·분석] CRM LTV/RFM/CLV 취소·반품 역분개**: 활성→취소/반품 전이가 crm_customers.ltv·crm_activities(구매) 미역분개 → LTV/AOV/RFM/예측CLV·VIP등급·타겟팅 과대매출 결정(운영전용). `recordCrmRefund`(ltv MAX(0,-)차감+type='refund' order_id멱등)+취소전이 배선. 소비 4곳 순액식: CustomerAI:118·CRM:283(ltv재계산)·CRM:310(RFM)·CRM:867(세그먼트) `SUM(CASE WHEN type='refund' THEN -amount ELSE amount END) WHERE type IN('purchase','refund')`·건수/recency는 purchase-only.
+  - **[MED·채널 관측성] 비-commerce 채널 sync상태 미기록**: commerce만 last_synced/sync_status stamp → ad/analytics/cs/esp/pg/logistics/sns/review는 토큰만료/오류로 멈춰도 UI 무기한'정상'. `ChannelCreds::stampSyncStatus` 공용헬퍼+저장직후 디스패처+cron 5종(analytics/cs/esp/sns_live/connectors).
+  - **[MED·분석] Marketing 트렌드 CTR/CPC/CPM ≠ KPI 산식**(CPC=매출/클릭) → `trMetricVal` 실산식(Marketing.jsx). **CampaignManager avgRoas 단순평균→spend가중·A/B 가짜p-value→실 2-표본 z검정**. **PriceOpt loadChannelCred/appSetting 격리sqlite 핸들오류(channel_credential/app_setting 부재+컬럼드리프트)→Db::pdo()+live스키마**(Naver 경쟁가 harvest 복구).
+  - **[LOW] AbTesting CONNECTOR_KEY line/coupang 누락** 정합(A/B 패자 매체정지 no-op).
+- **plan_prices 유령테이블 고아 제거**(라이브 SHOW TABLES 부재확정·SSOT=plan_period_pricing)·**Payment.php:608 paddle_audit_log event_id→ref_id**(라이브=ref_id 정합)·MarketingAIPanel 파생지표 IS_DEMO게이트·WmsManager 무가드 크래시·PlanPricing Rules-of-Hooks·DeveloperHub API레퍼런스 정직.
+- **격리/인증/sync대칭/크로스탭발신/죽은EP = 결함0**(성숙 재확인). **마케팅 실집행 HIGH/MED 0**.
+
+## B. ★Paddle 스키마드리프트 = 오탐→원복 (교훈)
+- 에이전트가 `_live_schema_utf8.txt` 덤프를 정본삼아 paddle_events(notification_id/error)·paddle_subscriptions(6컬럼)·paddle_audit_log(ref_id) 드리프트로 HIGH 플래그 → **배포전 라이브 SHOW COLUMNS 실검증 결과 운영+데모 모두 원본 스키마 보유(260차 반영됨)**. Paddle.php 전량 원복(git checkout). **★교훈: 스키마드리프트 fix는 배포전 라이브 SHOW COLUMNS 필수·덤프 일부테이블 부정확(맹신금지)**.
+
+## C. 구독결제 PG Paddle→Stripe 전환 = 구현 후 보류·원복
+- 사용자 지시로 Stripe 전환 완전구현·배포(Stripe.php Checkout+webhook서명검증+멱등·setUserPlan/recordPaid/CouponEngine 재사용·stripe_price_id·프론트 전환·Stripe Tax). **Stripe가 한국 소재 사업자 판매자계정 미지원**→사용자 결정으로 **운영/데모 Paddle 원복**(라이브검증 hasPaddle✓/Stripe✗). Stripe 코드 로컬보관·미배포·미커밋. 상세 [[project_pg_provider_migration_planned]]. ★교훈: 결제연동은 지원국 선확인.
+
+## D. 초고도화 Track A/C/E + 경쟁재평가 정정 — 커밋 ec2a90a27ef
+- **Track A [신규] CRM 메시지레벨 RL 1:1 결정(OfferFit式 contextual bandit)**: JourneyBuilder `decision` 노드 — 콘텐츠×채널 변형을 고객 컨텍스트버킷(grade×recency(rfm_r)×frequency(rfm_f))별 Thompson으로 1:1 선택+전환(goal) 리워드 학습. journey_decision_arm(밴딧state·UNIQUE)+journey_decision_log(크레딧). ★nbaNode(채널레벨)·AbTesting(캠페인 글로벌승자)과 구분=고객별 상이변형(중복0·nbaThompson/send노드 재사용). 프론트 JourneyCanvas decision 노드타입+변형 에디터. 밴딧테이블 양DB 생성·journey_cron 무fatal 검증.
+- **Track C [신규]** OmniChannel sync관측성 배지(263차 백엔드 stamp·엔드포인트 이미반환→렌더만). **Track E [신규]** LiveCommerce 취소 선제가드(status NOT IN).
+- **★경쟁재평가 정정(docs/COMPETITIVE_REVALIDATION_263.md)**: 초판이 뷰스루/영상DCO/Meta·LINE빈도캡/결정론적크로스디바이스/WhatsApp·WebPush를 "갭" 오판(전부 이미구현). 코드존재분 감점제거 → Genie 실질 **93.1 > 경쟁사 합성 91.0**. **★교훈([[feedback_competitive_gap_verify]]): 경쟁 갭분석도 부재증명(grep/read) 후만 갭 주장 — 과소평가→중복작업→자원낭비 방지.**
+
+## E. 트랩(263차)
+- ★스키마드리프트/경쟁갭 = 배포전·주장전 라이브 SHOW COLUMNS·grep 실검증 필수(덤프/추측 맹신금지).
+- 라이브 정본: paddle_events=notification_id(덤프의 paddle_event_id 아님)·paddle_audit_log=ref_id·app_setting=skey/svalue(v/tenant_id/k 아님)·channel_credential에 last_synced_at/sync_status 존재.
+- 데모 경로=`/home/wwwroot/roidemo.geniego.com`(하이픈없음·백엔드)·도메인 roidemo.genie-go.com(하이픈). PowerShell→plink 트랩: `$var`/`$(...)`/`%`/`:` 파서충돌→스크립트파일 방식.
+
+## F. 다음 차수 잔여 (코드 아님·외부의존/성숙도)
+- 원시 판매채널 수(벤더 실API 크리덴셜)·SOC2/ISO 인증(외부감사)·Meta 네이티브 이미지→비디오 원클릭(자사 영상DCO로 대체)·Naver/Kakao 해시오디언스(별도 광고상품). Stripe 재개(한국지원 PG 확정 시).
+
+## 배포/브랜치
+- 운영/데모 동반 배포·서버 php-l 전건 통과·라이브검증(홈200·CRM/segments/daily-trends 200·cron 무fatal·decision테이블 양DB생성). **master 미접촉·feat/n236만 push**.
+
+(★263차 인계서 = 사용자 명시 승인. 자격증명 평문노출 0.)
