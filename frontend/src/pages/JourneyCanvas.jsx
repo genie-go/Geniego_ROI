@@ -18,6 +18,7 @@ const NODE_TYPES = {
   split:     { label: 'A/B 스플릿', icon: '🧪', color: '#06b6d4', branches: ['a', 'b'] },
   webhook:   { label: '웹훅(외부호출)', icon: '🔗', color: '#0891b2' }, // [255차 심화] 외부 HTTP 액션
   nba:       { label: 'AI 최적채널(NBA)', icon: '🧠', color: '#8b5cf6' }, // [현 차수 초고도화 ②] Thompson 밴딧 = 고객별 최적 채널 자동선택 발송
+  decision:  { label: 'AI 1:1 결정(개인화)', icon: '🎲', color: '#7c3aed' }, // [263차 Track A] 콘텐츠×채널 변형을 고객 컨텍스트(등급×최근성×빈도)별 contextual bandit 로 1:1 선택+전환학습(OfferFit式)
   attr:      { label: '속성 업데이트(태그)', icon: '🏷️', color: '#0d9488' }, // [현 차수 초고도화 ⑥] 여정 중 고객 태그 갱신(Braze Update Attribute)
   goal:      { label: '목표(전환)', icon: '🎯', color: '#ef4444' },
 };
@@ -204,6 +205,27 @@ export default function JourneyCanvas({ nodes: initNodes, edges: initEdges, onSa
               <div style={{ fontSize: 10.5, color: '#94a3b8', marginTop: 2 }}>고객 컨텍스트를 외부 시스템(슬랙·CRM·웨어하우스)으로 전송합니다. 미입력 시 전체 컨텍스트 JSON 전송.</div>
             </>)}
             {selNode.type === 'goal' && (<div style={{ fontSize: 11, color: '#64748b', lineHeight: 1.6 }}>전환 목표 노드. 고객이 이 노드에 도달하면 여정 전환으로 집계됩니다(분석 탭 전환율).</div>)}
+            {selNode.type === 'decision' && (() => {
+              const variants = Array.isArray(selNode.config?.variants) ? selNode.config.variants : [];
+              const setV = (vs) => updateConfig(selNode.id, 'variants', vs);
+              const upd = (i, k, v) => setV(variants.map((x, j) => j === i ? { ...x, [k]: v } : x));
+              return (<>
+                <div style={{ fontSize: 10.5, color: '#7c3aed', marginBottom: 6, lineHeight: 1.5 }}>🎲 고객 컨텍스트(등급×최근성×빈도)별 최적 변형을 <b>1:1 개인화 선택</b>하고 전환으로 학습합니다(OfferFit式 contextual bandit). 변형 2개 이상 권장 · 데이터 적으면 탐색 우선.</div>
+                {variants.map((v, i) => (
+                  <div key={i} style={{ border: '1px solid rgba(124,58,237,0.25)', borderRadius: 8, padding: 8, marginBottom: 6 }}>
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 4 }}>
+                      <input value={v.id || ''} onChange={e => upd(i, 'id', e.target.value)} placeholder={`변형ID(v${i + 1})`} style={{ ...inp, width: 92 }} />
+                      <select value={v.channel || 'email'} onChange={e => upd(i, 'channel', e.target.value)} style={{ ...inp, width: 92 }}>{[['email', '이메일'], ['kakao', '카카오'], ['sms', 'SMS']].map(([vv, l]) => <option key={vv} value={vv}>{l}</option>)}</select>
+                      <button onClick={() => setV(variants.filter((_, j) => j !== i))} style={{ ...delBtn, padding: '1px 6px' }}>×</button>
+                    </div>
+                    {v.channel === 'email' && <input value={v.subject || ''} onChange={e => upd(i, 'subject', e.target.value)} placeholder="제목" style={{ ...inp, marginBottom: 4 }} />}
+                    {v.channel === 'kakao' && <input value={v.template_code || ''} onChange={e => upd(i, 'template_code', e.target.value)} placeholder="알림톡 템플릿 코드" style={{ ...inp, marginBottom: 4 }} />}
+                    <textarea value={(v.channel === 'email' ? v.html : v.content) || ''} onChange={e => upd(i, v.channel === 'email' ? 'html' : 'content', e.target.value)} rows={2} placeholder={v.channel === 'email' ? '본문(HTML 가능)' : '메시지'} style={{ ...inp, resize: 'vertical' }} />
+                  </div>
+                ))}
+                <button onClick={() => setV([...variants, { id: `v${variants.length + 1}`, channel: 'email', subject: '', html: '' }])} style={{ fontSize: 11, fontWeight: 700, color: '#7c3aed', background: 'rgba(124,58,237,0.08)', border: '1px solid rgba(124,58,237,0.25)', borderRadius: 8, padding: '5px 10px', cursor: 'pointer' }}>+ 변형 추가</button>
+              </>);
+            })()}
             {/* 연결 목록 */}
             <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px dashed rgba(0,0,0,0.1)' }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: '#64748b', marginBottom: 6 }}>다음 연결</div>

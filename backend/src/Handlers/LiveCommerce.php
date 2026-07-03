@@ -944,11 +944,12 @@ class LiveCommerce
             $pdo->prepare("UPDATE live_sessions SET viewer_count=:v WHERE id=:id AND tenant_id=:t")->execute([':v' => $viewers, ':id' => $sid, ':t' => $t]);
         }
 
-        $o = $pdo->prepare("SELECT COUNT(*) c, COALESCE(SUM(total),0) rev, COALESCE(SUM(qty),0) units FROM live_orders WHERE tenant_id=:t AND session_id=:s");
+        // [263차 Track E] 선제 취소제외 가드 — 현재 live_orders 는 항상 'paid' 적재라 무영향이나, 향후 라이브주문 취소/반품 배선 시 매출/AOV 과대집계 방지(머니경로 취소제외 SSOT 정합).
+        $o = $pdo->prepare("SELECT COUNT(*) c, COALESCE(SUM(total),0) rev, COALESCE(SUM(qty),0) units FROM live_orders WHERE tenant_id=:t AND session_id=:s AND status NOT IN ('cancelled','canceled','returned','refunded')");
         $o->execute([':t' => $t, ':s' => $sid]);
         $orow = $o->fetch(\PDO::FETCH_ASSOC) ?: ['c' => 0, 'rev' => 0, 'units' => 0];
 
-        $top = $pdo->prepare("SELECT name, COALESCE(SUM(qty),0) units, COALESCE(SUM(total),0) rev FROM live_orders WHERE tenant_id=:t AND session_id=:s GROUP BY name ORDER BY rev DESC LIMIT 5");
+        $top = $pdo->prepare("SELECT name, COALESCE(SUM(qty),0) units, COALESCE(SUM(total),0) rev FROM live_orders WHERE tenant_id=:t AND session_id=:s AND status NOT IN ('cancelled','canceled','returned','refunded') GROUP BY name ORDER BY rev DESC LIMIT 5");
         $top->execute([':t' => $t, ':s' => $sid]);
 
         $chatCnt = $pdo->prepare("SELECT COUNT(*) FROM live_chat WHERE tenant_id=:t AND session_id=:s");

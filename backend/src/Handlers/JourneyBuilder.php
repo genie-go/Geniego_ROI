@@ -50,12 +50,29 @@ class JourneyBuilder
                 enrollment_id INT NOT NULL, journey_id INT NOT NULL, node_id VARCHAR(80) NOT NULL, node_type VARCHAR(40) NOT NULL,
                 action VARCHAR(60), result TEXT, executed_at VARCHAR(32), KEY idx_journey_logs_eid (enrollment_id)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            // [263차 초고도화 Track A] 메시지레벨 RL 1:1 결정(OfferFit式 contextual bandit) — 변형×고객컨텍스트버킷 Thompson.
+            $pdo->exec("CREATE TABLE IF NOT EXISTS journey_decision_arm (
+                id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo',
+                scope_key VARCHAR(120) NOT NULL, variant_id VARCHAR(80) NOT NULL, context_bucket VARCHAR(60) NOT NULL DEFAULT '_',
+                successes INT DEFAULT 0, trials INT DEFAULT 0, updated_at VARCHAR(32),
+                UNIQUE KEY uq_jda (tenant_id, scope_key, variant_id, context_bucket)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS journey_decision_log (
+                id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo',
+                scope_key VARCHAR(120) NOT NULL, enrollment_id INT NOT NULL, customer_id INT, variant_id VARCHAR(80) NOT NULL,
+                channel VARCHAR(20), context_bucket VARCHAR(60) DEFAULT '_', rewarded INT DEFAULT 0, sent_at VARCHAR(32), reward_at VARCHAR(32),
+                KEY idx_jdl_enr (enrollment_id), KEY idx_jdl_tenant (tenant_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
         } else {
             $pdo->exec("CREATE TABLE IF NOT EXISTS journeys (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', name TEXT NOT NULL, description TEXT, trigger_type TEXT NOT NULL DEFAULT 'manual', trigger_config TEXT DEFAULT '{}', nodes TEXT DEFAULT '[]', edges TEXT DEFAULT '[]', status TEXT DEFAULT 'draft', stats_entered INTEGER DEFAULT 0, stats_completed INTEGER DEFAULT 0, stats_revenue REAL DEFAULT 0, created_at TEXT, updated_at TEXT)");
             $pdo->exec("CREATE TABLE IF NOT EXISTS journey_enrollments (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', journey_id INTEGER NOT NULL, customer_id INTEGER, session_id TEXT, current_node TEXT, status TEXT DEFAULT 'active', entered_at TEXT, completed_at TEXT, revenue REAL DEFAULT 0)");
             $pdo->exec("CREATE TABLE IF NOT EXISTS journey_node_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', enrollment_id INTEGER NOT NULL, journey_id INTEGER NOT NULL, node_id TEXT NOT NULL, node_type TEXT NOT NULL, action TEXT, result TEXT DEFAULT '{}', executed_at TEXT)");
             $pdo->exec("CREATE INDEX IF NOT EXISTS idx_journey_enroll_jid ON journey_enrollments(journey_id)");
             $pdo->exec("CREATE INDEX IF NOT EXISTS idx_journey_logs_eid ON journey_node_logs(enrollment_id)");
+            // [263차 초고도화 Track A] 메시지레벨 RL 1:1 결정(contextual bandit)
+            $pdo->exec("CREATE TABLE IF NOT EXISTS journey_decision_arm (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', scope_key TEXT NOT NULL, variant_id TEXT NOT NULL, context_bucket TEXT NOT NULL DEFAULT '_', successes INTEGER DEFAULT 0, trials INTEGER DEFAULT 0, updated_at TEXT, UNIQUE(tenant_id, scope_key, variant_id, context_bucket))");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS journey_decision_log (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', scope_key TEXT NOT NULL, enrollment_id INTEGER NOT NULL, customer_id INTEGER, variant_id TEXT NOT NULL, channel TEXT, context_bucket TEXT DEFAULT '_', rewarded INTEGER DEFAULT 0, sent_at TEXT, reward_at TEXT)");
+            $pdo->exec("CREATE INDEX IF NOT EXISTS idx_jdl_enr ON journey_decision_log(enrollment_id)");
         }
         foreach (['journeys','journey_enrollments','journey_node_logs'] as $tbl) {
             try { $pdo->exec("ALTER TABLE {$tbl} ADD COLUMN tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo'"); } catch (\Throwable $e) {}
@@ -567,6 +584,7 @@ class JourneyBuilder
                 self::logNode($pdo, $tenant, $enrollId, $jid, $nodeId, 'goal', 'goal_reached', ['goal'=>(string)($node['label'] ?? 'goal')]);
                 try { $pdo->prepare("UPDATE journeys SET stats_converted=stats_converted+1 WHERE id=:id AND tenant_id=:t")->execute([':id'=>$jid, ':t'=>$tenant]); } catch (\Throwable $e) {}
                 try { $pdo->prepare("UPDATE journey_enrollments SET converted=1 WHERE id=:id AND tenant_id=:t")->execute([':id'=>$enrollId, ':t'=>$tenant]); } catch (\Throwable $e) {}
+                self::rewardDecisions($pdo, $tenant, (int)$enrollId); // [263차 Track A] 전환→선택변형 밴딧 리워드(1:1 학습)
                 $actions[] = ['node'=>$nodeId, 'action'=>'goal_reached'];
                 $nodeId = self::nextNode($edges, $nodeId, null);
                 continue;
@@ -579,6 +597,7 @@ class JourneyBuilder
                 case 'sms':   $a = self::sendSmsNode($pdo, $tenant, $enr, $node); break;
                 case 'webhook': $a = self::webhookNode($pdo, $tenant, $enr, $node); break; // [255차 심화] 외부 HTTP 액션
                 case 'nba':   $a = self::nbaNode($pdo, $tenant, $enr, $node); break; // [현 차수 초고도화 ②] RL/Next-Best-Action(Thompson). defer 전파는 기존 로직(하단) 재사용.
+                case 'decision': $a = self::decisionNode($pdo, $tenant, $enr, $node); break; // [263차 Track A] 메시지레벨 1:1 결정(contextual bandit)
                 default:      $a = ['action' => 'processed']; break;
             }
             self::logNode($pdo, $tenant, $enrollId, $jid, $nodeId, $type, (string)($a['action'] ?? 'processed'), $a);
@@ -741,7 +760,7 @@ class JourneyBuilder
     {
         if ($cid <= 0) return [];
         try {
-            $s = $pdo->prepare("SELECT email, phone, name FROM crm_customers WHERE id=:id AND tenant_id=:t");
+            $s = $pdo->prepare("SELECT email, phone, name, grade, rfm_r, rfm_f, rfm_score, ltv FROM crm_customers WHERE id=:id AND tenant_id=:t");
             $s->execute([':id'=>$cid, ':t'=>$tenant]);
             return $s->fetch(\PDO::FETCH_ASSOC) ?: [];
         } catch (\Throwable $e) { return []; }
@@ -907,6 +926,106 @@ class JourneyBuilder
         $u2 = mt_rand() / mt_getrandmax();
         $z  = sqrt(-2.0 * log($u1)) * cos(2.0 * M_PI * $u2); // Box-Muller
         return min(1.0, max(0.0, $mean + $std * $z));
+    }
+
+    /* ─── [263차 초고도화 Track A] 메시지레벨 RL 1:1 결정(OfferFit式 contextual bandit) ───────────────
+     *   ★기존 nbaNode(채널레벨)·AbTesting(캠페인 글로벌 승자)과 구분: 여기는 고객 컨텍스트버킷(grade×recency×frequency)
+     *   마다 상이한 최적 변형(콘텐츠×오퍼×채널)을 1:1 개인화 선택 + 전환(goal) 리워드로 학습. nbaThompson·send노드 재사용(중복0).
+     *   변형 미지정 시 단일 발송 폴백(회귀0). 데이터 적으면 분산↑=탐색 우선(cold-start 안전). */
+    private static function decisionNode(\PDO $pdo, string $tenant, array $enr, array $node): array
+    {
+        $cid = (int)($enr['customer_id'] ?? 0);
+        $c   = self::contact($pdo, $tenant, $cid);
+        $hasEmail = trim((string)($c['email'] ?? '')) !== '';
+        $hasPhone = preg_replace('/[^0-9]/', '', (string)($c['phone'] ?? '')) !== '';
+        $cfg      = (array)($node['config'] ?? []);
+        $variants = is_array($cfg['variants'] ?? null) ? $cfg['variants'] : [];
+        if (!$variants) { // 변형 없음 → 단일 발송 폴백(기존 노드 재사용)
+            $ch = (string)($cfg['channel'] ?? 'email');
+            return match ($ch) { 'kakao' => self::sendKakaoNode($pdo,$tenant,$enr,$node), 'sms' => self::sendSmsNode($pdo,$tenant,$enr,$node), default => self::sendEmailNode($pdo,$tenant,$enr,$node) };
+        }
+        $cands = [];
+        foreach ($variants as $i => $v) {
+            if (!is_array($v)) continue;
+            $vch = (string)($v['channel'] ?? 'email');
+            if ($vch === 'email' && !$hasEmail) continue;
+            if (($vch === 'kakao' || $vch === 'sms') && !$hasPhone) continue;
+            $cands[] = ['id' => (string)($v['id'] ?? ('v' . $i)), 'channel' => $vch, 'cfg' => $v];
+        }
+        if (!$cands) return ['action' => 'skipped', 'reason' => 'no_reachable_variant'];
+        $scope  = (string)($enr['journey_id'] ?? '0') . ':' . (string)($node['id'] ?? '_');
+        $bucket = self::decisionContextBucket($c);
+        $best = $cands[0]; $bestScore = -1.0; $samples = [];
+        foreach ($cands as $cd) {
+            $score = self::nbaThompson(self::decisionArmStat($pdo, $tenant, $scope, $cd['id'], $bucket)); // Beta-Bernoulli Thompson 재사용
+            $samples[$cd['id']] = round($score, 4);
+            if ($score > $bestScore) { $bestScore = $score; $best = $cd; }
+        }
+        $sendNode = ['id' => $node['id'] ?? '', 'label' => $node['label'] ?? '', 'config' => $best['cfg']];
+        $r = match ($best['channel']) {
+            'kakao' => self::sendKakaoNode($pdo, $tenant, $enr, $sendNode),
+            'sms'   => self::sendSmsNode($pdo, $tenant, $enr, $sendNode),
+            default => self::sendEmailNode($pdo, $tenant, $enr, $sendNode),
+        };
+        $act = (string)($r['action'] ?? 'sent');
+        if (empty($r['defer']) && strpos($act, 'skipped') === false && strpos($act, 'deferred') === false) {
+            self::bumpDecisionArm($pdo, $tenant, $scope, $best['id'], $bucket, 0, 1); // trials+1
+            try { $pdo->prepare("INSERT INTO journey_decision_log(tenant_id,scope_key,enrollment_id,customer_id,variant_id,channel,context_bucket,rewarded,sent_at) VALUES(?,?,?,?,?,?,?,0,?)")
+                ->execute([$tenant, $scope, (int)($enr['id'] ?? 0), $cid, $best['id'], $best['channel'], $bucket, self::now()]); } catch (\Throwable $e) {}
+        }
+        $out = ['action' => 'decision:' . $best['id'] . ':' . $act, 'chosen_variant' => $best['id'], 'chosen_channel' => $best['channel'], 'context' => $bucket, 'samples' => $samples];
+        if (!empty($r['defer'])) $out['defer'] = true;
+        return $out;
+    }
+
+    /** 고객 컨텍스트 버킷 = grade × recency(rfm_r) × frequency(rfm_f) — 버킷별 상이한 최적변형 학습(개인화 축). 저장컬럼만 사용(무유령). */
+    private static function decisionContextBucket(array $c): string
+    {
+        $grade = strtolower((string)($c['grade'] ?? 'normal')); if ($grade === '') $grade = 'normal';
+        $r = (int)($c['rfm_r'] ?? 0); $f = (int)($c['rfm_f'] ?? 0);
+        $rt = $r >= 4 ? 'r' : ($r >= 2 ? 'w' : 'c');
+        $ft = $f >= 4 ? 'h' : ($f >= 2 ? 'm' : 'l');
+        return substr($grade, 0, 6) . '|' . $rt . '|' . $ft;
+    }
+
+    private static function decisionArmStat(\PDO $pdo, string $tenant, string $scope, string $variantId, string $bucket): array
+    {
+        try {
+            $st = $pdo->prepare("SELECT successes, trials FROM journey_decision_arm WHERE tenant_id=? AND scope_key=? AND variant_id=? AND context_bucket=? LIMIT 1");
+            $st->execute([$tenant, $scope, $variantId, $bucket]);
+            $r = $st->fetch(\PDO::FETCH_ASSOC);
+            if ($r) return ['s' => (int)$r['successes'], 't' => (int)$r['trials']];
+        } catch (\Throwable $e) {}
+        return ['s' => 0, 't' => 0];
+    }
+
+    private static function bumpDecisionArm(\PDO $pdo, string $tenant, string $scope, string $variantId, string $bucket, int $dS, int $dT): void
+    {
+        $now = self::now();
+        try {
+            if (self::isMysql($pdo)) {
+                $pdo->prepare("INSERT INTO journey_decision_arm(tenant_id,scope_key,variant_id,context_bucket,successes,trials,updated_at) VALUES(?,?,?,?,?,?,?)
+                               ON DUPLICATE KEY UPDATE successes=successes+VALUES(successes), trials=trials+VALUES(trials), updated_at=VALUES(updated_at)")
+                    ->execute([$tenant, $scope, $variantId, $bucket, $dS, $dT, $now]);
+            } else {
+                $pdo->prepare("INSERT INTO journey_decision_arm(tenant_id,scope_key,variant_id,context_bucket,successes,trials,updated_at) VALUES(?,?,?,?,?,?,?)
+                               ON CONFLICT(tenant_id,scope_key,variant_id,context_bucket) DO UPDATE SET successes=successes+excluded.successes, trials=trials+excluded.trials, updated_at=excluded.updated_at")
+                    ->execute([$tenant, $scope, $variantId, $bucket, $dS, $dT, $now]);
+            }
+        } catch (\Throwable $e) { error_log('[JourneyBuilder.bumpDecisionArm] ' . $e->getMessage()); }
+    }
+
+    /** [Track A 리워드] 전환(goal) 도달 시 이 enrollment 의 미보상 결정에 success 크레딧 — 선택 변형이 전환 유도(OfferFit 크레딧할당). */
+    private static function rewardDecisions(\PDO $pdo, string $tenant, int $enrollId): void
+    {
+        try {
+            $st = $pdo->prepare("SELECT id, scope_key, variant_id, context_bucket FROM journey_decision_log WHERE tenant_id=? AND enrollment_id=? AND rewarded=0");
+            $st->execute([$tenant, $enrollId]);
+            foreach ($st->fetchAll(\PDO::FETCH_ASSOC) ?: [] as $r) {
+                self::bumpDecisionArm($pdo, $tenant, (string)$r['scope_key'], (string)$r['variant_id'], (string)$r['context_bucket'], 1, 0); // success+1
+                try { $pdo->prepare("UPDATE journey_decision_log SET rewarded=1, reward_at=? WHERE id=?")->execute([self::now(), (int)$r['id']]); } catch (\Throwable $e) {}
+            }
+        } catch (\Throwable $e) { error_log('[JourneyBuilder.rewardDecisions] ' . $e->getMessage()); }
     }
 
     private static function sendEmailNode(\PDO $pdo, string $tenant, array $enr, array $node): array

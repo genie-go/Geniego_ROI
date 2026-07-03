@@ -49,6 +49,7 @@
 - DECOMP.RSSD(Robyn)+spend-weighted R²/NRMSE. `Mmm.php:710-736`
 - 부트스트랩 CI+model agreement(**엔드포인트 있음·프론트 미소비=갭**). `AttributionEngine.php:1247-1302`
 - **ATT-1/2(2026-07 완료)**: 전환셋 취소제외+결정정렬. `AttributionEngine.php:987`
+- **★결정론적 뷰스루(view-through) 어트리뷰션 = 완전 구현(재플래그/재구현 금지)**: 공개 픽셀비콘 `/pixel/collect`→`PixelTracking::bridgeToAttribution` view_through/interaction=view·impression stamp(:331-333)→`attribution_touch.extra_json`→`AttributionEngine::buildJourneys` `isViewThrough()` 파싱+**클릭우선 dedup**(:1047-1056)→`computeModels` vtWeight/vtHalflife 적용(:1134-1149)→엔드포인트 vt_weight/vt_halflife/vt_auto 설정(:70-71). 240차⑧-A+260차+227차Tier3. **경쟁분석서 "뷰스루 부재"는 오판**([[feedback_competitive_gap_verify]]).
 
 ## 4) 마케팅 자동화·실집행 (Marketing Automation) — ✅ Smartly 근접
 - propose→승인→집행→학습 폐루프 실 매체 API 배선(자격증명 등록 즉시 실집행). 

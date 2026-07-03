@@ -283,6 +283,8 @@ function ChannelTab({ channelStatus, onRefresh, plan, isDemo, t, csIsConnected }
                                         <div style={{ fontWeight: 700, fontSize: 13 }}>{ch.name}</div>
                                         <div style={{ fontSize: 10, color: '#6b7280', marginTop: 2 }}>
                                             {t('omniChannel.colProduct')} {(st.product_count || 0).toLocaleString()} · {t('omniChannel.colOrderNo')} {(st.order_count || 0).toLocaleString()} · {t('omniChannel.colRevenue')} {fmt(st.revenue || 0)}
+                                            {/* [263차 Track C] 동기화 관측성 — 마지막 동기화 경과/오류 배지(263차 백엔드가 비-commerce 채널도 stamp). */}
+                                            {st.last_synced && (() => { const mins = Math.max(0, Math.round((Date.now() - new Date(st.last_synced).getTime()) / 60000)); const ago = mins < 60 ? `${mins}분 전` : mins < 1440 ? `${Math.round(mins / 60)}시간 전` : `${Math.round(mins / 1440)}일 전`; return <span style={{ marginLeft: 8, color: st.sync_status === 'error' ? '#ef4444' : '#16a34a', fontWeight: 700 }} title={`${t('omniChannel.colLastSync', '마지막 동기화')}: ${st.last_synced}`}>{st.sync_status === 'error' ? `⚠ ${t('omniChannel.syncError', '동기화 오류')}` : `🕒 ${ago}`}</span>; })()}
                                         </div>
                                     </div>
                                     <Tag label={sStyle.label} color={sStyle.color} />
