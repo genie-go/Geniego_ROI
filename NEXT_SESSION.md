@@ -1,3 +1,46 @@
+# 262차 세션 인계서 — **★사용자버그: 자동로그아웃 근본수정(클라 로드게이트+서버 유휴강제, 은행급) + 261 잔여 3건(리뷰설정영속·웹팝업 임베드스니펫/Overview실지표·admin roles e2e) + 259 잔여스윕 + i18n 15국 + ★공개 홈/랜딩 포지셔닝 전환(생성형AI→마케팅 애널리틱스)**
+
+> **작성일**: 2026-07-03 (사용자 명시 승인) · 운영 roi.genie-go.com / 데모 roidemo.genie-go.com · 브랜치 `feat/n236-admin-growth-automation` (**master 미접촉**) · 커밋 `36eeb08·7973c84·8763e2d·4bec6bd·bafb8b1` **origin push 완료**(0 ahead/0 behind). 전 항목 운영+데모 동반 배포·php-l PASS·프론트빌드 PASS·라이브 e2e. **회귀0·거짓집행0·운영목데이터0·오염0**.
+
+## ★0. 다음 차수 필독
+- 착수 전 `docs/IMPLEMENTATION_STATUS.md` + `reference_audit_false_positives`(메모리) + `project_n262_autologout_rootfix`(메모리, 본 차수 정본) 주입.
+- **이번 세션 핵심 = 사용자 실버그(유휴 자동로그아웃 미작동+다음날 자동로그인) 근본 규명·양계층 수정·라이브검증.** 원인=인메모리 idle타이머+비영속 lastActivityRef→브라우저 닫으면 소실+서버세션30일. admin·일반 공통.
+
+## 1. 262차 완료(전부 운영+데모 라이브·push)
+| # | 영역 | 항목 |
+|---|------|------|
+| A | ★사용자버그: 자동로그아웃 근본수정 | **클라(AuthContext)**: `genie_last_activity` localStorage 영속(throttle 5s)+`restorableToken()` 로드시 유휴게이트(auto_logout_min>0 & 경과≥설정→토큰 폐기·재로그인 강제, admin 영속블록보다 먼저)+visibilitychange/focus 즉시 재검사. SessionExpiryWarning 영속본 정합+데모토큰키 오타교정. **서버(UserAuth)**: user_session.last_seen_at 추적(60s throttle 터치)+extra_data.auto_logout_min 임계 경과시 세션 DELETE·null(은행급 defense-in-depth). PATCH /auth/profile auto_logout_min 병합영속(agent_mode패턴)·로그인시 서버값채택·마운트1회 동기화. **라이브 e2e**: 클라(유휴20>15 폐기·2<15 유지·off유지·레거시안전 Playwright 실리로드)+서버(last_seen 3분전 조작→GET /auth/me 401+세션실삭제·복원) 전건 PASS. |
+| B | 리뷰 응대설정 영속(261잔여#1) | Reviews::getSettings/saveSettings(review_setting 테넌트스코프·화이트리스트 aiTone/autoEscalate/slackWebhook(https검증)·XSS). SettingsTab 저장버튼+로드. 운영=백엔드·데모=localStorage. 라이브 PUT 익명401. |
+| C | 웹팝업 임베드스니펫+Overview실지표(261잔여#3) | WebPopupCampaign::embedJs(GET /v424/web-popups/embed.js 공개 로더 JS·트리거감지→active fetch→모달렌더 XSS esc→impression/click/conversion sendBeacon)+index bypass+$register. OverviewTab 운영 실지표(list 비콘집계 fetch)+EmbedSnippet 컴포넌트. 라이브 embed.js 200/JS(운영+데모). |
+| D | admin roles e2e(261잔여#2) | 서버측 curl e2e: admin 로그인(plan=admin)·GET /v423/admin/roles 200·**admin_roles/user_roles 운영DB 실존**·upsert/list/delete 왕복·escalation차단 코드 배포확인. 데모DB는 첫 데모-admin 호출시 lazy 생성. |
+| E | 259 잔여 스윕 | 미영속 클래스 **전건 CLEAN**(Approvals/Writeback/EmailMarketing/WebPopup/ApiKeys SettingsTab 전부 localStorage/백엔드 영속). 크래시 실결함1=ReturnsPortal OverviewTab(:55) r.reason/r.status.charAt 무가드(같은 페이지 RequestsTab은 가드=불일치)→가드미러링. 오탐기각5(PerformanceHub/CatalogSync/PriceOpt 가드有·DataProduct 정적·ConfidenceTab 완비). DataTable.jsx=import0 고아. |
+| F | i18n 15국 병합 | reviews.settingsSave/Saving/Saved/SaveFail·slackWebhookInvalid(5)+webPopup.embedTitle/Desc/Copy/Copied(4)=9키×14국(ko선반영). ja/zh sacred SHA baseline 갱신·G2/G6 통과·라이브 로케일청크 확인. |
+| G | ★공개 홈/랜딩 포지셔닝 전환(사용자 지시) | **로그인 전 공개 페이지 문구·메타·SEO·CTA·FAQ만** 생성형AI→마케팅 애널리틱스/어트리뷰션/ROAS 재포지셔닝. Hero="Measure, attribute, and optimize marketing performance across every channel". GPT/Generative/AI Agent/Autonomous/AI소재생성 전 언어 전멸(Playwright 실검증). AI소프트표현=analytics-assisted/data-driven 유지. **변경 5파일 전부 공개문구**(index.html·public/Landing.jsx·public/PricingPublic.jsx·pages/AuthPage.jsx 플랜카드텍스트·layout/PremiumLayout.jsx LogoOrbit오빗칩). |
+
+## 2. CLEAN 재확인(회귀0)
+- 로그인후 기능/메뉴/라우팅/대시보드/API/DB/인증·결제·권한 로직 **절대 불변**(G항목=공개 문구 5파일뿐, git 실증). LogoOrbit=공개3페이지(Landing/CompanyIntro/TeamIntro)에서만 사용=로그인후 무영향. Pricing/Auth=기능key·구조 불변·표시문구만.
+
+## 3. ★트랩(262차)
+- **★$register 트랩 재현(embed.js 405)**: routes.php는 `$custom`맵 추가만으로는 미등록 → **반드시 `$register(method,path)` 동반**. 누락시 GET이 `{id}` 변수경로로 흘러 405("Must be one of PUT,DELETE"). static은 {id} 앞 등록.
+- **i18n inject dedup 트랩**: ko webPopup ns는 **비따옴표 키**(`embedTitle:`)라 dedup `"key":`만 검사시 중복삽입 → `[\s,{"]key"?:`로 양쪽 탐지. ★ja/zh 편집시 `.githooks/baseline.json` sacred_sha 갱신 필수(G2 게이트).
+- **channel_orders 스키마**(상수): order_id·currency·quantity·created_at 없음(channel_order_id·total_price=KRW). `_live_schema_utf8.txt` 대조.
+- **PowerShell**: plink/pscp 원격 bash에 `$(...)`·중첩인용·SQL리터럴 전달 실패→**스크립트/SQL은 파일 작성(Write)→pscp→plink 실행**. here-string 파이프 BOM("set: command not found")→파일방식. `Remove-Item` 특수경로 차단→새 폴더명 우회. mysql 인증=MYSQL_PWD env.
+- **dist 델타**: 공유모듈(AuthContext/PremiumLayout/ko.js) 변경시 144~145/155 청크 해시 전파(정상). ko.js 미변경시 i18n-locales 13.5MB 스킵. 서버자산목록 UTF-16 주의.
+- **frontend/index.html 정적부(스플래시/PWA)**: SEO메타 밖 스플래시 자막도 노출 → 편집 후 **재빌드해야 dist/index.html 반영**(청크 불변시 해시 동일·index.html만 재배포).
+
+## 4. 다음 차수 우선순위
+1. **[P3] 검출기 CI가드화**(260차 권장) · **WebPopup A/B 백엔드**(현 프론트 stub).
+2. **[선택] 자동로그아웃 추가 하드닝**: 절대 세션수명 캡·서버세션 TTL 30일 단축.
+3. **[선택] ToS 법률 약관 본문의 "AI 마케팅 ROI 분석 플랫폼"** — 법률문서라 이번 범위서 보존. 조정 시 별도 승인.
+4. **[저위험] 259 잔여**: DataTable.jsx 고아 죽은코드 제거.
+
+## 5. 배포/브랜치
+- 운영+데모 **동반 배포**(백엔드 /tmp→php-l→양 backend 복사·fpm restart·신규핸들러 필수 restart / 프론트 dist 델타·index.html swap·bak.262 보존). 라이브 DB 반영(last_seen_at ALTER·review_setting/web_popup CREATE). **master 미접촉**·`feat/n236` origin push 완료(최신 bafb8b1).
+
+(★본 인계서 = 사용자 명시 승인. 자격증명 평문노출 0. master 미접촉·feat/n236 push 완료.)
+
+---
+
 # 261차 세션 인계서 — **정전중단 보안WIP 완결(SAML XSW+권한상승차단) + 전수 정밀감사 확정결함 수정 + 웹팝업 테넌트 백엔드 완결**
 
 > **작성일**: 2026-07-02 (사용자 명시 승인) · 운영 roi.genie-go.com / 데모 roidemo.genie-go.com · 브랜치 `feat/n236-admin-growth-automation` (**master 미접촉**) · 커밋 `96cf50c3584` push완료. 전 항목 운영+데모 배포·php-l PASS·프론트빌드 PASS·라이브 e2e. **회귀0·거짓집행0·운영목데이터0·오염0**.
