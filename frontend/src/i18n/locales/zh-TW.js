@@ -7941,7 +7941,7 @@ export default {"paymentSuccess": {"invalidInfo":"付款資訊不正確。","ver
       more: "更多",
       ariaLabel: "底部導航"
     },
-  webPopup: {"embedTitle":"網站嵌入程式碼","embedDesc":"將以下程式碼貼到您商城的 <head> 或 </body> 之前一次，啟用的彈窗即會自動向訪客顯示(含觸發與轉換信標)。無需另外登入·自動更新。","embedCopy":"複製程式碼","embedCopied":"已複製 ✓",
+  webPopup: {"abVariantPerf":"Variant Performance","abSelectPopup":"Select popup…","abSelectPopupFirst":"Select a popup first.","abVariantLimit":"Up to 6 variants allowed.","abSaveFail":"Failed to save variant.","abSaving":"Saving…","abAddVariant":"Add Variant","abColLabel":"Variant","abColWeight":"Weight","abColAction":"Action","abControl":"Control","abToggle":"Active/Pause","abPromote":"Promote to default","abPromoteConfirm":"Promote this variant to the popup default and pause the others. Continue?","abNoVariants":"No variants yet. Add your first variant below.","abNeedTwo":"Need 2+ variants","abCollecting":"Collecting data","abSignificant":"Significant winner","abNoWinner":"No significant difference","abWinnerLine":"Winner","abHint":"When 2+ variants are active, visitors are deterministically split by weight and each variant is served. Impressions/clicks/conversions are tracked per variant, and a winner is called via a z-test once the sample is large enough.","paused":"Paused","embedTitle":"網站嵌入程式碼","embedDesc":"將以下程式碼貼到您商城的 <head> 或 </body> 之前一次，啟用的彈窗即會自動向訪客顯示(含觸發與轉換信標)。無需另外登入·自動更新。","embedCopy":"複製程式碼","embedCopied":"已複製 ✓",
       heroTitle: "網頁彈窗 & 即時離開偵測",
       heroDesc: "滑鼠離開 → 3秒內自動觸發 · 購物車挽回 · A/B測試 · 符合GDPR",
       badgeExit: "Exit-Intent偵測",
@@ -15281,6 +15281,12 @@ export default {"paymentSuccess": {"invalidInfo":"付款資訊不正確。","ver
 
   // 176차 PM8 S6-P1: attrData live channel/touches append (last-key-wins, append-only)
   attrData: {
+    "vtcPure": "Pure View-through (VTC)",
+    "vtcRateLabel": "Conv. rate",
+    "ctc": "Click-through (CTC)",
+    "vtAssisted": "View-assisted",
+    "vtOutWindow": "Out-of-window (unattributed)",
+    "vtWindowDays": "Window",
     "blendTitle": '融合增量信賴度',
     "blendSignals": '活躍訊號',
     "blendDecision": '決策信賴度',

@@ -11209,7 +11209,7 @@ export default {"paymentSuccess": {"invalidInfo":"As informações de pagamento 
       permCreate: "Criar",
       permUpdate: "Editar"
     },
-  webPopup: {"embedTitle":"Código de incorporação do site","embedDesc":"Cole este código uma vez no <head> da sua loja ou logo antes de </body>, e os pop-ups ativos serão exibidos automaticamente aos visitantes (com beacons de gatilho e conversão). Sem login separado · atualização automática.","embedCopy":"Copiar código","embedCopied":"Copiado ✓",
+  webPopup: {"abVariantPerf":"Variant Performance","abSelectPopup":"Select popup…","abSelectPopupFirst":"Select a popup first.","abVariantLimit":"Up to 6 variants allowed.","abSaveFail":"Failed to save variant.","abSaving":"Saving…","abAddVariant":"Add Variant","abColLabel":"Variant","abColWeight":"Weight","abColAction":"Action","abControl":"Control","abToggle":"Active/Pause","abPromote":"Promote to default","abPromoteConfirm":"Promote this variant to the popup default and pause the others. Continue?","abNoVariants":"No variants yet. Add your first variant below.","abNeedTwo":"Need 2+ variants","abCollecting":"Collecting data","abSignificant":"Significant winner","abNoWinner":"No significant difference","abWinnerLine":"Winner","abHint":"When 2+ variants are active, visitors are deterministically split by weight and each variant is served. Impressions/clicks/conversions are tracked per variant, and a winner is called via a z-test once the sample is large enough.","paused":"Paused","embedTitle":"Código de incorporação do site","embedDesc":"Cole este código uma vez no <head> da sua loja ou logo antes de </body>, e os pop-ups ativos serão exibidos automaticamente aos visitantes (com beacons de gatilho e conversão). Sem login separado · atualização automática.","embedCopy":"Copiar código","embedCopied":"Copiado ✓",
       heroTitle: "Pop-up web e detecção de saída em tempo real",
       heroDesc: "Cadastre chaves de API dos canais de vendas, publicidade e análise e gerencie o status de conexão.",
       badgeExit: "Detecção de Exit-Intent",
@@ -14962,6 +14962,12 @@ export default {"paymentSuccess": {"invalidInfo":"As informações de pagamento 
 
   // 176차 PM8 S6-P1: attrData live channel/touches append (last-key-wins, append-only)
   attrData: {
+    "vtcPure": "Pure View-through (VTC)",
+    "vtcRateLabel": "Conv. rate",
+    "ctc": "Click-through (CTC)",
+    "vtAssisted": "View-assisted",
+    "vtOutWindow": "Out-of-window (unattributed)",
+    "vtWindowDays": "Window",
     "blendTitle": 'Confiança de incrementalidade combinada',
     "blendSignals": 'Sinais ativos',
     "blendDecision": 'Confiança de decisão',

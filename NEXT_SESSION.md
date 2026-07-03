@@ -1,3 +1,45 @@
+# 264차 세션 인계서 — **PG전환 재보류(Paddle유지) + WebPopup A/B 백엔드 신설 + 경쟁재평가(264/265) + 우선순위 A 순수코드갭 4건 초고도화(뷰스루성숙화·OfferFit RL·온사이트CRO i18n·BI시각화)**
+
+> **작성일**: 2026-07-03 (사용자 명시 승인) · 운영 roi.genie-go.com / 데모 roidemo.genie-go.com · 브랜치 `feat/n236-admin-growth-automation` (**master 미접촉**) · 전 항목 운영+데모 동반 배포·서버 php-l PASS·프론트빌드 PASS·라이브 청크/DDL 검증. **회귀0·거짓집행0·운영목데이터0·오염0·중복구현0**.
+
+## ★0. 다음 차수 필독
+- 착수 전 `docs/IMPLEMENTATION_STATUS.md` + `reference_audit_false_positives`(메모리) + `project_n264_webpopup_ab_backend`(메모리 정본) 주입.
+- ★PG Paddle→Stripe **재보류 확정**(263 이력 근거·Stripe 한국 미지원). 재요청 시 즉시 안내. `project_pg_provider_migration_planned` 참조.
+- ★경쟁 갭 주장 전 grep/read 부재증명 필수(`feedback_competitive_gap_verify`)·capability-ready 기준(자격증명 미등록 감점 제외).
+
+## 1. 264차 완료(전부 운영+데모 라이브)
+| # | 영역 | 항목 |
+|---|------|------|
+| A | PG 전환 재보류 | 사용자 Paddle→Stripe 재요청 → 263 원복이력(Stripe 한국 사업자 미지원) 근거 즉시 안내 → **Paddle 유지 확정**. 코드 무변경(Stripe.php 부재·routes stripe 0·paddle 24 재확인). |
+| B | WebPopup A/B 백엔드 신설 | 프론트 A/B탭이 빈 stub(noAbTests)·백엔드 variant 전무 → 완결. `web_popup_variant` 테이블+`assign.variant_id` sticky ALTER. 변형 CRUD 5EP+`promoteVariant`(승자→본문 복사, 나머지 paused 무손실). **2-표본 비율 pooled z-검정**(propZTest·normCdf A&S erf)+승자판정(evaluateTest, control 대비 min표본 WEBPOPUP_AB_MIN_SAMPLE 100·p<.05). `active`=활성변형≥2 첨부·`event`=variant_id 소유검증+first-write-wins sticky+변형별 멱등집계·`embedJs`=FNV 해시 결정론적 가중 버킷팅. routes 5라우트(+api, static variants/{vid} 를 {id} 앞 $register). ABTab 전면 실구현(운영=백엔드/데모=localStorage+클라 z검정·격리가드). |
+| C | 경쟁 재평가 264/265 | docs/COMPETITIVE_REVALIDATION_264.md·265.md. capability-ready+부재증명 기준. 실질 92.6 > 경쟁사 91.0. |
+| A1 | 결정론적 뷰스루 성숙화 | AttributionEngine: 기존 vtWeight/auto/vtHalflife 위 **vt_window 하드컷오프**(전환-노출 초과 노출 기여0)+**VTC/CTC 분리 리포팅**(순수뷰스루/클릭기여/노출보조/윈도우外·vtc_rate·매출분리). computeModels/precompute/endpoint 배선(기본 vt_window=0=회귀0·캐시가드). 프론트 Attribution.jsx ServerMtaPanel 자동감쇠 시 vt_window=1+세그먼트카드. |
+| A2 | OfferFit급 RL 심화 | JourneyBuilder decision 노드(263): **비정상성(concept drift) forgetting**(bumpDecisionArm 발송시 trials>cap(400) 시 successes/trials 절반→신뢰도감쇠 재탐색·DB무관 PHP·cap0=회귀0)+**monetary(LTV) 컨텍스트 축**(decisionContextBucket grade×r×f×ltv티어). STO 중복회피(딜리버러빌리티층 별도). |
+| A3 | 온사이트 CRO i18n | 신규 UI 29키(webPopup.ab*22+paused+attrData VT 6) **15국 435건 미러링**(ko/en 확정·13국 영어폴백·중복0·임의번역0). i18n-sync 에이전트. ja/zh sacred SHA+ko leaf(18484→18522) baseline 갱신. |
+| A4 | 데이터·BI 시각화 | Reports+ReportBuilder: **라인/트렌드 viz**(미사용 LineChart 배선)+**드릴다운**(백엔드 filter_val 파라미터 바인드·프론트 차원값클릭→하위breakdown+브레드크럼 뒤로). 기존 피벗/사용자메트릭/저장리포트 비중복 확장. |
+
+## 2. 검증(회귀0)
+- 백엔드 서버 php-l 전건 PASS(WebPopupCampaign·routes·AttributionEngine·JourneyBuilder·Reports). 프론트 빌드 PASS. DB: web_popup_variant 테이블·assign.variant_id 양DB 라이브 생성확인(A1/A2/A4=스키마 무변경). 라이브 e2e: 홈200·신규청크(WebPopup/Attribution/ReportBuilder) 200+마커·embed.js pickVariant·variant CRUD 익명401·데모 콘솔0. php-fpm restart(opcache).
+- 전 초고도화 기본값=회귀0(vt_window=0·decision cap 무영향 시 기존·filter_val 없으면 기존 쿼리).
+
+## 3. ★트랩(264차)
+- **plink 멀티라인 heredoc 트랩 재현**: `for f in ...; do ... \$f`·다중 cp 루프가 PowerShell→plink 전달 시 깨짐(첫 iteration만 실행·`$f` 소실) → **스크립트파일(Write→pscp→bash 실행) 방식만 안정**. SQL도 파일 방식.
+- **배포 echo `ls chunk-*.js | tail -1` 오표시**: 동일 prefix 다중 청크(누적)에서 tail이 옛 파일 표시 → 검증은 **로컬 빌드 실제 해시**로 대조(WebPopup-EBoNoAiV 등).
+- **프론트 dist 델타**: i18n 로케일 변경 시 i18n-locales(13.5MB) 청크 해시 변경 → 델타 tar에 **포함 필수**(미변경 시에만 스킵).
+- **cross-origin fetch 차단**: roi 페이지에서 roidemo fetch=CSP Failed to fetch → 각 호스트 same-origin 검증.
+
+## 4. 다음 차수 우선순위
+1. **[외부의존·투기금지]** 영상 DCO(text-to-video API)·Meta Advantage+ 자산깊이·Naver/Kakao 해시오디언스·원시 판매채널수(사방넷 650) — 실 크리덴셜 등록 시.
+2. **[성숙도·코드아님]** SOC2 Type II·ISO 27001 인증(외부감사)·실 SFU·발신 DNS.
+3. **[잔여 코드심화]** 뷰스루 결정론 크로스디바이스 그래프 규모화·검출기 CI가드화(P3).
+
+## 5. 배포/브랜치
+- 운영+데모 **동반 배포 완료**(백엔드 bak.264 보존·fpm restart / 프론트 dist 델타·index.html swap·bak.264/264b). **master 미접촉**·feat/n236. (본 커밋에 반영)
+
+(★264차 인계서 = 사용자 명시 승인. 자격증명 평문노출 0. master 미접촉.)
+
+---
+
 # 262차 세션 인계서 — **★사용자버그: 자동로그아웃 근본수정(클라 로드게이트+서버 유휴강제, 은행급) + 261 잔여 3건(리뷰설정영속·웹팝업 임베드스니펫/Overview실지표·admin roles e2e) + 259 잔여스윕 + i18n 15국 + ★공개 홈/랜딩 포지셔닝 전환(생성형AI→마케팅 애널리틱스)**
 
 > **작성일**: 2026-07-03 (사용자 명시 승인) · 운영 roi.genie-go.com / 데모 roidemo.genie-go.com · 브랜치 `feat/n236-admin-growth-automation` (**master 미접촉**) · 커밋 `36eeb08·7973c84·8763e2d·4bec6bd·bafb8b1` **origin push 완료**(0 ahead/0 behind). 전 항목 운영+데모 동반 배포·php-l PASS·프론트빌드 PASS·라이브 e2e. **회귀0·거짓집행0·운영목데이터0·오염0**.

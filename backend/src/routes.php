@@ -953,6 +953,17 @@ return function (App $app): void {
         'DELETE /api/v424/web-popups/{id}'        => 'Genie\\Handlers\\WebPopupCampaign::delete',
         'POST /v424/web-popups/{id}/toggle'       => 'Genie\\Handlers\\WebPopupCampaign::toggle',
         'POST /api/v424/web-popups/{id}/toggle'   => 'Genie\\Handlers\\WebPopupCampaign::toggle',
+        // [264차] A/B 변형 — 팝업별 변형 CRUD + z검정 유의성/승자 + 승자승격
+        'GET /v424/web-popups/{id}/variants'       => 'Genie\\Handlers\\WebPopupCampaign::variants',
+        'GET /api/v424/web-popups/{id}/variants'   => 'Genie\\Handlers\\WebPopupCampaign::variants',
+        'POST /v424/web-popups/{id}/variants'      => 'Genie\\Handlers\\WebPopupCampaign::createVariant',
+        'POST /api/v424/web-popups/{id}/variants'  => 'Genie\\Handlers\\WebPopupCampaign::createVariant',
+        'PUT /v424/web-popups/variants/{vid}'      => 'Genie\\Handlers\\WebPopupCampaign::updateVariant',
+        'PUT /api/v424/web-popups/variants/{vid}'  => 'Genie\\Handlers\\WebPopupCampaign::updateVariant',
+        'DELETE /v424/web-popups/variants/{vid}'   => 'Genie\\Handlers\\WebPopupCampaign::deleteVariant',
+        'DELETE /api/v424/web-popups/variants/{vid}' => 'Genie\\Handlers\\WebPopupCampaign::deleteVariant',
+        'POST /v424/web-popups/variants/{vid}/promote'     => 'Genie\\Handlers\\WebPopupCampaign::promoteVariant',
+        'POST /api/v424/web-popups/variants/{vid}/promote' => 'Genie\\Handlers\\WebPopupCampaign::promoteVariant',
         'GET /v424/web-popups/active'             => 'Genie\\Handlers\\WebPopupCampaign::active',   // 공개(tenant 파라미터)
         'GET /api/v424/web-popups/active'         => 'Genie\\Handlers\\WebPopupCampaign::active',
         'GET /v424/web-popups/embed.js'           => 'Genie\\Handlers\\WebPopupCampaign::embedJs', // [262차] 공개 임베드 로더 JS
@@ -3145,6 +3156,12 @@ return function (App $app): void {
     $register('POST',   '/v424/web-popups/event');        $register('POST',   '/api/v424/web-popups/event');
     $register('GET',    '/v424/web-popups');              $register('GET',    '/api/v424/web-popups');
     $register('POST',   '/v424/web-popups');              $register('POST',   '/api/v424/web-popups');
+    // [264차] A/B 변형 — static "variants/{vid}" 를 generic {id} 앞에 등록(shadow 회피).
+    $register('PUT',    '/v424/web-popups/variants/{vid}');         $register('PUT',    '/api/v424/web-popups/variants/{vid}');
+    $register('DELETE', '/v424/web-popups/variants/{vid}');         $register('DELETE', '/api/v424/web-popups/variants/{vid}');
+    $register('POST',   '/v424/web-popups/variants/{vid}/promote'); $register('POST',   '/api/v424/web-popups/variants/{vid}/promote');
+    $register('GET',    '/v424/web-popups/{id}/variants');          $register('GET',    '/api/v424/web-popups/{id}/variants');
+    $register('POST',   '/v424/web-popups/{id}/variants');          $register('POST',   '/api/v424/web-popups/{id}/variants');
     $register('POST',   '/v424/web-popups/{id}/toggle');  $register('POST',   '/api/v424/web-popups/{id}/toggle');
     $register('PUT',    '/v424/web-popups/{id}');         $register('PUT',    '/api/v424/web-popups/{id}');
     $register('DELETE', '/v424/web-popups/{id}');         $register('DELETE', '/api/v424/web-popups/{id}');

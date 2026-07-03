@@ -1055,7 +1055,8 @@ const ServerMtaPanel = memo(function ServerMtaPanel() {
   useEffect(() => {
     let alive = true;
     setLoading(true);
-    const url = '/v424/attribution/models?window=90' + (vtAuto ? '&vt_weight=auto&vt_halflife=1' : '');
+    // [264차] 자동감쇠 시 결정론적 뷰스루 윈도우(1일) 동반 → VTC/CTC 세그먼트 산출.
+    const url = '/v424/attribution/models?window=90' + (vtAuto ? '&vt_weight=auto&vt_halflife=1&vt_window=1' : '');
     getJsonAuth(url)
       .then(r => { if (alive) setData(r || null); })
       .catch(() => { if (alive) setData(null); })
@@ -1080,6 +1081,23 @@ const ServerMtaPanel = memo(function ServerMtaPanel() {
       <div style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 12, lineHeight: 1.6 }}>
         {t('attrData.serverMtaDesc', '서버가 attribution_touch 여정을 전환과 결합해 6개 모델을 계산합니다. Markov removal-effect(제거 효과)는 채널 부재 시 전환 손실을 측정하는 데이터기반(data-driven) 어트리뷰션입니다.')}
       </div>
+      {/* [264차] 결정론적 뷰스루 세그먼트(VTC/CTC) — 자동감쇠 ON 시 vt_window=1로 산출 */}
+      {vtAuto && data?.view_through && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(120px,1fr))', gap: 8, marginBottom: 12 }}>
+          {[
+            { k: 'view_through_conversions', label: t('attrData.vtcPure', '순수 뷰스루(VTC)'), c: '#8b5cf6', sub: t('attrData.vtcRateLabel', '전환비율') + ' ' + Number(data.view_through.vtc_rate || 0).toFixed(1) + '%' },
+            { k: 'click_through_conversions', label: t('attrData.ctc', '클릭기여(CTC)'), c: '#3b82f6' },
+            { k: 'view_assisted_conversions', label: t('attrData.vtAssisted', '노출보조 전환'), c: '#22c55e' },
+            { k: 'out_of_window_view_conversions', label: t('attrData.vtOutWindow', '윈도우 밖(미귀속)'), c: '#94a3b8', sub: t('attrData.vtWindowDays', '윈도우') + ' ' + Number(data.view_through.window_days || 0) + t('attrData.serverMtaDays', '일') },
+          ].map(m => (
+            <div key={m.k} style={{ background: m.c + '10', border: '1px solid ' + m.c + '30', borderRadius: 10, padding: '8px 10px' }}>
+              <div style={{ fontSize: 18, fontWeight: 900, color: m.c }}>{Number(data.view_through[m.k] || 0).toLocaleString()}</div>
+              <div style={{ fontSize: 10.5, color: 'var(--text-3)', fontWeight: 700 }}>{m.label}</div>
+              {m.sub && <div style={{ fontSize: 9.5, color: 'var(--text-3)', marginTop: 2 }}>{m.sub}</div>}
+            </div>
+          ))}
+        </div>
+      )}
       {loading ? (
         <div style={{ padding: '24px 0', textAlign: 'center', color: 'var(--text-3)', fontSize: 12 }}>{t('attrData.serverMtaLoading', '서버 어트리뷰션 계산 중…')}</div>
       ) : rows.length === 0 ? (

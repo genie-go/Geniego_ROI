@@ -69,6 +69,8 @@ final class AttributionEngine
             $vtAuto = strtolower(trim((string)($q['vt_weight'] ?? ''))) === 'auto';
             $vtWeight = $vtAuto ? 1.0 : max(0.0, min(1.0, (float)($q['vt_weight'] ?? 1.0)));
             $vtHalflife = max(0.0, min(90.0, (float)($q['vt_halflife'] ?? 0.0)));
+            // [264차 성숙화] vt_window(일)>0 → 결정론적 뷰스루 윈도우(전환-노출 간격 초과 노출 기여 0). 클릭윈도우와 분리.
+            $vtWindow = max(0.0, min(365.0, (float)($q['vt_window'] ?? 0.0)));
             // [차기 P1 준실시간] fresh=1 → 캐시 우회 강제 재계산(대시보드 "지금 새로고침"). max_age 로 신선도 임계 조정 가능(기본 1800s).
             $fresh = in_array((string)($q['fresh'] ?? ''), ['1', 'true', 'yes'], true);
             $maxAge = max(60, min(1800, (int)($q['max_age'] ?? 1800)));
@@ -76,7 +78,7 @@ final class AttributionEngine
             $pdo = Db::pdo();
             // [228차 S2] ★캐시 우선 — attribution_cron 선계산 결과가 신선하면 즉시 반환.
             //   기존엔 대시보드 히트마다 동기 재계산(대용량 테넌트 MAX_ORDERS=20000 스캔 지연). 캐시 미스 시 라이브 계산+저장.
-            if ($vtWeight >= 1.0 && $vtHalflife <= 0.0 && !$vtAuto && !$fresh) {
+            if ($vtWeight >= 1.0 && $vtHalflife <= 0.0 && !$vtAuto && $vtWindow <= 0.0 && !$fresh) {
                 $cached = self::cacheGet($pdo, $t, $window, $halflife, $maxAge);
                 if ($cached !== null) {
                     $cached['cached'] = true;
@@ -84,7 +86,7 @@ final class AttributionEngine
                     return self::ok($response, $cached);
                 }
             }
-            $result = self::precompute($pdo, $t, $window, $halflife, $vtWeight, $vtHalflife, $vtAuto);
+            $result = self::precompute($pdo, $t, $window, $halflife, $vtWeight, $vtHalflife, $vtAuto, $vtWindow);
             $result['response_time_ms'] = self::elapsed($start);
             return self::ok($response, $result);
         } catch (Throwable $e) {
@@ -1104,14 +1106,21 @@ final class AttributionEngine
      * @param array $nullJourneys 비전환 여정(channels)
      * @return array{models: array, channels: array}
      */
-    public static function computeModels(array $convJourneys, array $nullJourneys, float $halflife = self::DEFAULT_HALFLIFE, float $vtWeight = 1.0, float $vtHalflife = 0.0): array
+    public static function computeModels(array $convJourneys, array $nullJourneys, float $halflife = self::DEFAULT_HALFLIFE, float $vtWeight = 1.0, float $vtHalflife = 0.0, float $vtWindow = 0.0): array
     {
         // [240차 ⑧-A] 뷰스루 가중치 — 노출(view-through) 터치는 클릭 대비 낮은 기여(vtWeight, 기본 1.0=영향없음/회귀0).
         //   view_through 플래그가 있는 포지션만 vtWeight 배율 후 재정규화. iOS 프라이버시 시대 노출기여 반영.
         // [260차 심화] 뷰스루 자동감쇠 — vtHalflife>0 이면 노출 터치를 "전용 반감기(클릭보다 짧음)"로 시간감쇠.
         //   전환에서 먼 노출은 기여 급감(업계 표준 VT 윈도우). vtHalflife=0(기본)=기존 flat 유지(회귀0).
+        // [264차 성숙화] ① VT 윈도우 하드 컷오프 — vtWindow>0(일)이면 전환-노출 간격이 윈도우 초과한 노출은 기여 0(결정론적
+        //   뷰스루 윈도우, Triple Whale Deterministic Views 표준). 클릭윈도우(window)와 분리. vtWindow=0(기본)=컷오프 없음(회귀0).
+        //   ② VTC/CTC 분리 집계 — 전환을 순수 뷰스루(view-through)·클릭기여(click-through)·뷰보조클릭으로 분류해 리포팅.
         $vtWeight = max(0.0, min(1.0, $vtWeight));
         $vtHalflife = max(0.0, min(90.0, $vtHalflife));
+        $vtWindow = max(0.0, min(365.0, $vtWindow));
+        // [264차] VTC/CTC 세그먼트 카운터
+        $vtcConv = 0.0; $ctcConv = 0.0; $viewAssistedConv = 0.0;
+        $vtcRev = 0.0; $viewAssistedRev = 0.0; $outWindowViewConv = 0.0;
         $modelsConv = [
             'last_touch' => [], 'first_touch' => [], 'linear' => [],
             'time_decay' => [], 'position_based' => [],
@@ -1136,21 +1145,37 @@ final class AttributionEngine
             $times = $j['times'] ?? [];
             $convT = (float)($j['conv_time'] ?? 0);
             $vm = []; $sumVm = 0.0;
+            $jHasClick = false; $jHasView = false; $jHasOutWindowView = false;
             for ($i = 0; $i < $n; $i++) {
                 if (!empty($views[$i])) {
-                    if ($vtHalflife > 0.0) {
-                        $tt = (float)($times[$i] ?? $convT);
-                        $dDaysV = max(0.0, ($convT - $tt) / 86400.0);
+                    $tt = (float)($times[$i] ?? $convT);
+                    $dDaysV = max(0.0, ($convT - $tt) / 86400.0);
+                    if ($vtWindow > 0.0 && $dDaysV > $vtWindow) {
+                        $vm[$i] = 0.0; // [264차] VT 윈도우 초과 노출 = 결정론적 제외(기여 0)
+                        $jHasOutWindowView = true;
+                    } elseif ($vtHalflife > 0.0) {
                         $vm[$i] = $vtWeight * pow(2.0, -$dDaysV / $vtHalflife); // 뷰스루 전용 반감기 시간감쇠
+                        if ($vm[$i] > 0) $jHasView = true;
                     } else {
                         $vm[$i] = $vtWeight; // 기존 flat(회귀0)
+                        if ($vm[$i] > 0) $jHasView = true;
                     }
                 } else {
                     $vm[$i] = 1.0;
+                    $jHasClick = true;
                 }
                 $sumVm += $vm[$i];
             }
             if ($sumVm <= 0) { $vm = array_fill(0, $n, 1.0); $sumVm = (float)$n; }
+            // [264차] VTC/CTC 분류 — 클릭기여(하나라도 클릭)·순수뷰스루(윈도우내 노출만)·뷰보조클릭·윈도우外노출전용.
+            if ($jHasClick) {
+                $ctcConv += 1.0;
+                if ($jHasView) { $viewAssistedConv += 1.0; $viewAssistedRev += $rev; }
+            } elseif ($jHasView) {
+                $vtcConv += 1.0; $vtcRev += $rev;
+            } elseif ($jHasOutWindowView) {
+                $outWindowViewConv += 1.0; // 윈도우 밖 노출만 → 뷰스루 미귀속(결정론적 배제)
+            }
 
             // last / first (단일터치 모델 — 시퀀스 의미 유지)
             self::addCredit($modelsConv['last_touch'], $modelsRev['last_touch'], $chs[$n - 1], 1.0, $rev);
@@ -1214,6 +1239,17 @@ final class AttributionEngine
             'channels' => $crosstab,
             'total_conversions' => round($totalConv, 2),
             'total_revenue' => round($totalRev, 2),
+            // [264차 성숙화] 결정론적 뷰스루 세그먼트 — VTC(순수 뷰스루)·CTC(클릭기여)·뷰보조·윈도우外배제.
+            'view_through' => [
+                'window_days'              => round($vtWindow, 2),
+                'view_through_conversions' => round($vtcConv, 2),      // 순수 뷰스루 전환(클릭없이 윈도우내 노출만)
+                'view_through_revenue'     => round($vtcRev, 2),
+                'click_through_conversions'=> round($ctcConv, 2),      // 클릭기여 전환
+                'view_assisted_conversions'=> round($viewAssistedConv, 2), // 클릭이 닫았으나 노출이 보조
+                'view_assisted_revenue'    => round($viewAssistedRev, 2),
+                'out_of_window_view_conversions' => round($outWindowViewConv, 2), // 윈도우 밖 노출만→미귀속
+                'vtc_rate' => $totalConv > 0 ? round($vtcConv / $totalConv * 100, 2) : 0.0,
+            ],
         ];
     }
 
@@ -1464,7 +1500,7 @@ final class AttributionEngine
      * markov 모델 계산 + 캐시 저장(attribution_cron·models 공용). 전환 여정이 없으면 빈 결과도 캐시한다.
      *   (cron 이 주기 선계산 → models 는 캐시 신선 시 즉시 반환. 캐시 미스 시 본 메서드가 라이브 계산+저장.)
      */
-    public static function precompute(PDO $pdo, string $t, int $window = self::DEFAULT_WINDOW, float $halflife = self::DEFAULT_HALFLIFE, float $vtWeight = 1.0, float $vtHalflife = 0.0, bool $vtAuto = false): array
+    public static function precompute(PDO $pdo, string $t, int $window = self::DEFAULT_WINDOW, float $halflife = self::DEFAULT_HALFLIFE, float $vtWeight = 1.0, float $vtHalflife = 0.0, bool $vtAuto = false, float $vtWindow = 0.0): array
     {
         [$convJourneys, $nullJourneys] = self::loadJourneys($pdo, $t, $window);
         if (empty($convJourneys)) {
@@ -1473,14 +1509,15 @@ final class AttributionEngine
                   'note' => '전환(attribution_result)에 연결된 터치 여정이 아직 없습니다. 전환 스코어링 후 자동 반영됩니다.'];
         } else {
             if ($vtAuto) $vtWeight = self::autoVtWeight($convJourneys); // [260차] 데이터 기반 뷰스루 가중 자동보정
-            $r = self::computeModels($convJourneys, $nullJourneys, $halflife, $vtWeight, $vtHalflife);
+            $r = self::computeModels($convJourneys, $nullJourneys, $halflife, $vtWeight, $vtHalflife, $vtWindow);
             $r['window_days'] = $window; $r['halflife_days'] = $halflife; $r['vt_weight'] = $vtWeight;
             $r['vt_halflife_days'] = $vtHalflife; $r['vt_auto'] = $vtAuto; // [260차 심화]
+            $r['vt_window_days'] = $vtWindow; // [264차 성숙화]
             $r['journeys'] = count($convJourneys) + count($nullJourneys);
             $r['converted'] = count($convJourneys); $r['data_driven'] = 'markov';
         }
-        // [240차 ⑧-A · 260차] 비기본(vtWeight≠1·vtHalflife>0·auto) 결과는 캐시 저장 스킵(기본 캐시 오염 방지).
-        if ($vtWeight >= 1.0 && $vtHalflife <= 0.0 && !$vtAuto) self::cachePut($pdo, $t, $window, $halflife, $r);
+        // [240차 ⑧-A · 260차 · 264차] 비기본(vtWeight≠1·vtHalflife>0·auto·vtWindow>0) 결과는 캐시 저장 스킵(기본 캐시 오염 방지).
+        if ($vtWeight >= 1.0 && $vtHalflife <= 0.0 && !$vtAuto && $vtWindow <= 0.0) self::cachePut($pdo, $t, $window, $halflife, $r);
         return $r;
     }
 

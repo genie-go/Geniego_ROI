@@ -978,14 +978,17 @@ class JourneyBuilder
         return $out;
     }
 
-    /** 고객 컨텍스트 버킷 = grade × recency(rfm_r) × frequency(rfm_f) — 버킷별 상이한 최적변형 학습(개인화 축). 저장컬럼만 사용(무유령). */
+    /** 고객 컨텍스트 버킷 = grade × recency(rfm_r) × frequency(rfm_f) × [264차] monetary(ltv) — 버킷별 상이한 최적변형 학습(개인화 축).
+     *   저장컬럼만 사용(무유령). [264차] 고LTV 고객은 프리미엄 오퍼에 반응 상이 → monetary 축(hi/lo) 추가로 1:1 정밀도↑(OfferFit式 다차원 컨텍스트). */
     private static function decisionContextBucket(array $c): string
     {
         $grade = strtolower((string)($c['grade'] ?? 'normal')); if ($grade === '') $grade = 'normal';
         $r = (int)($c['rfm_r'] ?? 0); $f = (int)($c['rfm_f'] ?? 0);
         $rt = $r >= 4 ? 'r' : ($r >= 2 ? 'w' : 'c');
         $ft = $f >= 4 ? 'h' : ($f >= 2 ? 'm' : 'l');
-        return substr($grade, 0, 6) . '|' . $rt . '|' . $ft;
+        $ltv = (float)($c['ltv'] ?? 0);
+        $mt = $ltv >= 300000 ? 'M' : ($ltv >= 50000 ? 'm' : 'l'); // 원화 LTV 임계(고/중/저) — monetary 축
+        return substr($grade, 0, 6) . '|' . $rt . '|' . $ft . '|' . $mt;
     }
 
     private static function decisionArmStat(\PDO $pdo, string $tenant, string $scope, string $variantId, string $bucket): array
@@ -1011,6 +1014,23 @@ class JourneyBuilder
                 $pdo->prepare("INSERT INTO journey_decision_arm(tenant_id,scope_key,variant_id,context_bucket,successes,trials,updated_at) VALUES(?,?,?,?,?,?,?)
                                ON CONFLICT(tenant_id,scope_key,variant_id,context_bucket) DO UPDATE SET successes=successes+excluded.successes, trials=trials+excluded.trials, updated_at=excluded.updated_at")
                     ->execute([$tenant, $scope, $variantId, $bucket, $dS, $dT, $now]);
+            }
+            // [264차 심화] 비정상성(concept drift) 대응 — 발송(dT>0) 시 trials 가 cap 초과하면 successes/trials 를 절반 forgetting.
+            //   비율(전환율)은 보존하되 신뢰도(표본)를 감쇠 → 밴딧이 최근 선호변화에 재적응(OfferFit式 non-stationary). DB무관 PHP산출.
+            //   cap=0 이면 비활성(기존 정상성 유지·회귀0). 기본 400 = 최근 ~400 발송 유효기억.
+            if ($dT > 0) {
+                $cap = (int)(getenv('JOURNEY_DECISION_ARM_CAP') ?: 400);
+                if ($cap > 0) {
+                    $q = $pdo->prepare("SELECT successes, trials FROM journey_decision_arm WHERE tenant_id=? AND scope_key=? AND variant_id=? AND context_bucket=?");
+                    $q->execute([$tenant, $scope, $variantId, $bucket]);
+                    $row = $q->fetch(\PDO::FETCH_ASSOC);
+                    if ($row && (int)$row['trials'] > $cap) {
+                        $ns = (int)floor(((int)$row['successes'] + 1) / 2);
+                        $nt = (int)floor(((int)$row['trials'] + 1) / 2);
+                        $pdo->prepare("UPDATE journey_decision_arm SET successes=?, trials=?, updated_at=? WHERE tenant_id=? AND scope_key=? AND variant_id=? AND context_bucket=?")
+                            ->execute([$ns, $nt, $now, $tenant, $scope, $variantId, $bucket]);
+                    }
+                }
             }
         } catch (\Throwable $e) { error_log('[JourneyBuilder.bumpDecisionArm] ' . $e->getMessage()); }
     }

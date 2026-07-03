@@ -11394,7 +11394,7 @@ export default {"paymentSuccess": {"invalidInfo":"Thông tin thanh toán không 
       more: "Thêm",
       ariaLabel: "Điều hướng dưới"
     },
-  webPopup: {"embedTitle":"Mã nhúng trang web","embedDesc":"Dán mã này một lần vào <head> của cửa hàng hoặc ngay trước </body>, các popup đang hoạt động sẽ tự động hiển thị cho khách truy cập (kèm beacon kích hoạt & chuyển đổi). Không cần đăng nhập riêng · tự động cập nhật.","embedCopy":"Sao chép mã","embedCopied":"Đã sao chép ✓",
+  webPopup: {"abVariantPerf":"Variant Performance","abSelectPopup":"Select popup…","abSelectPopupFirst":"Select a popup first.","abVariantLimit":"Up to 6 variants allowed.","abSaveFail":"Failed to save variant.","abSaving":"Saving…","abAddVariant":"Add Variant","abColLabel":"Variant","abColWeight":"Weight","abColAction":"Action","abControl":"Control","abToggle":"Active/Pause","abPromote":"Promote to default","abPromoteConfirm":"Promote this variant to the popup default and pause the others. Continue?","abNoVariants":"No variants yet. Add your first variant below.","abNeedTwo":"Need 2+ variants","abCollecting":"Collecting data","abSignificant":"Significant winner","abNoWinner":"No significant difference","abWinnerLine":"Winner","abHint":"When 2+ variants are active, visitors are deterministically split by weight and each variant is served. Impressions/clicks/conversions are tracked per variant, and a winner is called via a z-test once the sample is large enough.","paused":"Paused","embedTitle":"Mã nhúng trang web","embedDesc":"Dán mã này một lần vào <head> của cửa hàng hoặc ngay trước </body>, các popup đang hoạt động sẽ tự động hiển thị cho khách truy cập (kèm beacon kích hoạt & chuyển đổi). Không cần đăng nhập riêng · tự động cập nhật.","embedCopy":"Sao chép mã","embedCopied":"Đã sao chép ✓",
       heroTitle: "Web Popup & Phát Hiện Thoát Thời Gian Thực",
       heroDesc: "Chuột thoát → Tự động kích hoạt trong 3 giây · Phục hồi giỏ hàng · A/B Test · Tuân thủ GDPR",
       badgeExit: "Phát hiện Exit-Intent",
@@ -16863,6 +16863,12 @@ export default {"paymentSuccess": {"invalidInfo":"Thông tin thanh toán không 
 
   // 176차 PM8 S6-P1: attrData live channel/touches append (last-key-wins, append-only)
   attrData: {
+    "vtcPure": "Pure View-through (VTC)",
+    "vtcRateLabel": "Conv. rate",
+    "ctc": "Click-through (CTC)",
+    "vtAssisted": "View-assisted",
+    "vtOutWindow": "Out-of-window (unattributed)",
+    "vtWindowDays": "Window",
     "blendTitle": 'Độ tin cậy gia tăng tổng hợp',
     "blendSignals": 'Tín hiệu hoạt động',
     "blendDecision": 'Độ tin cậy quyết định',

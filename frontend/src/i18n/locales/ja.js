@@ -10620,7 +10620,7 @@ export default {"paymentSuccess": {"invalidInfo":"決済情報が正しくあり
       prodDesc: '実運用環境',
       loginProd: '🏢 本番ログイン・新規登録',
   },
-  "webPopup": {"embedTitle":"サイト埋め込みコード","embedDesc":"以下のコードを自社サイトの <head> または </body> の直前に一度貼り付けると、アクティブなポップアップが訪問者に自動表示されます(トリガー・コンバージョンビーコン付き)。別途ログイン不要・自動更新。","embedCopy":"コードをコピー","embedCopied":"コピーしました ✓",
+  "webPopup": {"abVariantPerf":"Variant Performance","abSelectPopup":"Select popup…","abSelectPopupFirst":"Select a popup first.","abVariantLimit":"Up to 6 variants allowed.","abSaveFail":"Failed to save variant.","abSaving":"Saving…","abAddVariant":"Add Variant","abColLabel":"Variant","abColWeight":"Weight","abColAction":"Action","abControl":"Control","abToggle":"Active/Pause","abPromote":"Promote to default","abPromoteConfirm":"Promote this variant to the popup default and pause the others. Continue?","abNoVariants":"No variants yet. Add your first variant below.","abNeedTwo":"Need 2+ variants","abCollecting":"Collecting data","abSignificant":"Significant winner","abNoWinner":"No significant difference","abWinnerLine":"Winner","abHint":"When 2+ variants are active, visitors are deterministically split by weight and each variant is served. Impressions/clicks/conversions are tracked per variant, and a winner is called via a z-test once the sample is large enough.","paused":"Paused","embedTitle":"サイト埋め込みコード","embedDesc":"以下のコードを自社サイトの <head> または </body> の直前に一度貼り付けると、アクティブなポップアップが訪問者に自動表示されます(トリガー・コンバージョンビーコン付き)。別途ログイン不要・自動更新。","embedCopy":"コードをコピー","embedCopied":"コピーしました ✓",
     "heroTitle": "Webポップアップ & リアルタイム離脱検知",
     "heroDesc": "マウス離脱 → 3秒以内に自動トリガー · カート放棄復旧 · A/Bテスト · GDPR準拠",
     "badgeExit": "Exit-Intent検知",
@@ -14860,6 +14860,12 @@ export default {"paymentSuccess": {"invalidInfo":"決済情報が正しくあり
 
   // 176차 PM8 S6-P1: attrData live channel/touches append (last-key-wins, append-only)
   attrData: {
+    "vtcPure": "Pure View-through (VTC)",
+    "vtcRateLabel": "Conv. rate",
+    "ctc": "Click-through (CTC)",
+    "vtAssisted": "View-assisted",
+    "vtOutWindow": "Out-of-window (unattributed)",
+    "vtWindowDays": "Window",
     "blendTitle": '統合インクリメンタリティ信頼度',
     "blendSignals": 'アクティブ信号',
     "blendDecision": '意思決定信頼度',

@@ -10742,7 +10742,7 @@ export default {"paymentSuccess": {"invalidInfo":"The payment information is inv
       permCreate: "Create",
       permUpdate: "Update"
     },
-  webPopup: {"embedTitle":"Site Embed Code","embedDesc":"Paste this code once into your store’s <head> or right before </body>, and active popups will show to visitors automatically (with trigger & conversion beacons). No separate login required · auto-updating.","embedCopy":"Copy Code","embedCopied":"Copied ✓",
+  webPopup: {"abVariantPerf":"Variant Performance","abSelectPopup":"Select popup…","abSelectPopupFirst":"Select a popup first.","abVariantLimit":"Up to 6 variants allowed.","abSaveFail":"Failed to save variant.","abSaving":"Saving…","abAddVariant":"Add Variant","abColLabel":"Variant","abColWeight":"Weight","abColAction":"Action","abControl":"Control","abToggle":"Active/Pause","abPromote":"Promote to default","abPromoteConfirm":"Promote this variant to the popup default and pause the others. Continue?","abNoVariants":"No variants yet. Add your first variant below.","abNeedTwo":"Need 2+ variants","abCollecting":"Collecting data","abSignificant":"Significant winner","abNoWinner":"No significant difference","abWinnerLine":"Winner","abHint":"When 2+ variants are active, visitors are deterministically split by weight and each variant is served. Impressions/clicks/conversions are tracked per variant, and a winner is called via a z-test once the sample is large enough.","paused":"Paused","embedTitle":"Site Embed Code","embedDesc":"Paste this code once into your store’s <head> or right before </body>, and active popups will show to visitors automatically (with trigger & conversion beacons). No separate login required · auto-updating.","embedCopy":"Copy Code","embedCopied":"Copied ✓",
       heroTitle: "Web Popup & Real-Time Exit Detection",
       heroDesc: "Mouse exit → auto-trigger in 3 sec · Cart abandonment recovery · A/B Test · GDPR compliant",
       badgeExit: "Exit-Intent Detection",
@@ -14862,6 +14862,12 @@ export default {"paymentSuccess": {"invalidInfo":"The payment information is inv
 
   // 176차 PM8 S6-P1: attrData live channel/touches append (last-key-wins, append-only)
   attrData: {
+    "vtcPure": "Pure View-through (VTC)",
+    "vtcRateLabel": "Conv. rate",
+    "ctc": "Click-through (CTC)",
+    "vtAssisted": "View-assisted",
+    "vtOutWindow": "Out-of-window (unattributed)",
+    "vtWindowDays": "Window",
     "blendTitle": 'Blended incrementality confidence',
     "blendSignals": 'Active signals',
     "blendDecision": 'Decision confidence',

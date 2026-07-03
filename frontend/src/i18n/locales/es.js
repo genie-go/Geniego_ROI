@@ -10909,7 +10909,7 @@ export default {"paymentSuccess": {"invalidInfo":"La información de pago no es 
       permCreate: "Creación",
       permUpdate: "Edición"
     },
-  webPopup: {"embedTitle":"Código de inserción del sitio","embedDesc":"Pega este código una vez en el <head> de tu tienda o justo antes de </body>, y los pop-ups activos se mostrarán automáticamente a los visitantes (con balizas de activación y conversión). No requiere inicio de sesión aparte · actualización automática.","embedCopy":"Copiar código","embedCopied":"Copiado ✓",
+  webPopup: {"abVariantPerf":"Variant Performance","abSelectPopup":"Select popup…","abSelectPopupFirst":"Select a popup first.","abVariantLimit":"Up to 6 variants allowed.","abSaveFail":"Failed to save variant.","abSaving":"Saving…","abAddVariant":"Add Variant","abColLabel":"Variant","abColWeight":"Weight","abColAction":"Action","abControl":"Control","abToggle":"Active/Pause","abPromote":"Promote to default","abPromoteConfirm":"Promote this variant to the popup default and pause the others. Continue?","abNoVariants":"No variants yet. Add your first variant below.","abNeedTwo":"Need 2+ variants","abCollecting":"Collecting data","abSignificant":"Significant winner","abNoWinner":"No significant difference","abWinnerLine":"Winner","abHint":"When 2+ variants are active, visitors are deterministically split by weight and each variant is served. Impressions/clicks/conversions are tracked per variant, and a winner is called via a z-test once the sample is large enough.","paused":"Paused","embedTitle":"Código de inserción del sitio","embedDesc":"Pega este código una vez en el <head> de tu tienda o justo antes de </body>, y los pop-ups activos se mostrarán automáticamente a los visitantes (con balizas de activación y conversión). No requiere inicio de sesión aparte · actualización automática.","embedCopy":"Copiar código","embedCopied":"Copiado ✓",
       heroTitle: "Pop-ups web y detección de abandono en tiempo real",
       heroDesc: "Registra las claves API de los canales de ventas, publicidad y analítica y gestiona el estado de conexión.",
       badgeExit: "Detección de intención de salida",
@@ -14993,6 +14993,12 @@ export default {"paymentSuccess": {"invalidInfo":"La información de pago no es 
 
   // 176차 PM8 S6-P1: attrData live channel/touches append (last-key-wins, append-only)
   attrData: {
+    "vtcPure": "Pure View-through (VTC)",
+    "vtcRateLabel": "Conv. rate",
+    "ctc": "Click-through (CTC)",
+    "vtAssisted": "View-assisted",
+    "vtOutWindow": "Out-of-window (unattributed)",
+    "vtWindowDays": "Window",
     "blendTitle": 'Confianza de incrementalidad combinada',
     "blendSignals": 'Señales activas',
     "blendDecision": 'Confianza de decisión',

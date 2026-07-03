@@ -412,15 +412,226 @@ function LiveTab({ t }) {
 }
 
 /* ══ A/B Tab ══ */
+/* [264차] 클라이언트 z-검정(데모용·백엔드 propZTest 와 대칭). 운영은 서버 test 결과 사용. */
+function _normCdf(x) {
+  const t = 1 / (1 + 0.3275911 * Math.abs(x) / Math.SQRT2);
+  const y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-(x * x) / 2);
+  return x >= 0 ? 0.5 * (1 + y) : 0.5 * (1 - y);
+}
+function _propZTest(cA, nA, cB, nB) {
+  if (nA < 1 || nB < 1) return { p: 1, lift: 0 };
+  const pA = cA / nA, pB = cB / nB, pPool = (cA + cB) / (nA + nB);
+  const se = Math.sqrt(Math.max(0, pPool * (1 - pPool) * (1 / nA + 1 / nB)));
+  if (se <= 0) return { p: 1, lift: 0 };
+  const z = (pB - pA) / se, p = 2 * (1 - _normCdf(Math.abs(z)));
+  return { p: Math.max(0, Math.min(1, p)), lift: pA > 0 ? +(((pB - pA) / pA) * 100).toFixed(1) : 0 };
+}
+function _evaluateTest(variants, minSample = 100) {
+  const active = variants.filter(v => (v.status || "active") === "active");
+  if (active.length < 2) return { status: "insufficient_variants", significant: false, winnerId: 0, pValue: 1, lift: 0, confidence: 0, minSample };
+  const control = active[0];
+  let best = control, bestCvr = control.impressions > 0 ? control.conversions / control.impressions : -1;
+  active.forEach(v => { const c = v.impressions > 0 ? v.conversions / v.impressions : -1; if (c > bestCvr) { bestCvr = c; best = v; } });
+  const z = _propZTest(control.conversions, control.impressions, best.conversions, best.impressions);
+  const enough = control.impressions >= minSample && best.impressions >= minSample;
+  const ctrlCvr = control.impressions > 0 ? control.conversions / control.impressions : 0;
+  const significant = enough && best.id !== control.id && z.p < 0.05 && bestCvr > ctrlCvr;
+  return { status: !enough ? "collecting" : (significant ? "significant" : "no_winner"), significant, winnerId: significant ? best.id : 0, controlId: control.id, pValue: z.p, lift: z.lift, confidence: +Math.max(0, Math.min(100, (1 - z.p) * 100)).toFixed(1), minSample };
+}
+const _AB_DEMO_KEY = pid => `wp_ab_${pid}`;
+function _loadDemoVariants(pid) { try { return JSON.parse(localStorage.getItem(_AB_DEMO_KEY(pid)) || "[]"); } catch { return []; } }
+function _saveDemoVariants(pid, arr) { try { localStorage.setItem(_AB_DEMO_KEY(pid), JSON.stringify(arr)); } catch {} }
+
+const _EMPTY_VARIANT = { label: "", title: "", subtitle: "", body: "", cta: "", linkUrl: "", discount: 0, weight: 1 };
+
 function ABTab({ t }) {
-  return (<div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e5e7eb", padding: 20 }}>
-    <div style={{ fontWeight: 800, fontSize: 15, color: "#1f2937", marginBottom: 8 }}>🧪 {t("webPopup.abResult")}</div>
-    <div style={{ textAlign: "center", padding: 40 }}>
-      <div style={{ fontSize: 40, marginBottom: 12 }}>📊</div>
-      <div style={{ fontSize: 14, fontWeight: 700, color: "#6b7280" }}>{t("webPopup.noAbTests")}</div>
-      <div style={{ fontSize: 12, color: "#9ca3af", marginTop: 4 }}>{t("webPopup.noAbTestsDesc")}</div>
+  const { webPopupCampaigns } = useGlobalData();
+  const [popups, setPopups] = useState([]);
+  const [selId, setSelId] = useState(0);
+  const [variants, setVariants] = useState([]);
+  const [test, setTest] = useState(null);
+  const [form, setForm] = useState(_EMPTY_VARIANT);
+  const [busy, setBusy] = useState(false);
+  const F = (k, v) => setForm(p => ({ ...p, [k]: v }));
+
+  // 팝업 목록 로드 — 운영: 백엔드, 데모: 공유 컨텍스트.
+  useEffect(() => {
+    if (_IS_DEMO) { setPopups(Array.isArray(webPopupCampaigns) ? webPopupCampaigns : []); return; }
+    let alive = true;
+    getJsonAuth("/api/v424/web-popups")
+      .then(r => { if (alive && r?.ok && Array.isArray(r.popups)) setPopups(r.popups); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [webPopupCampaigns]);
+
+  useEffect(() => { if (!selId && popups.length) setSelId(popups[0].id); }, [popups, selId]);
+
+  const reloadVariants = useCallback((pid) => {
+    if (!pid) { setVariants([]); setTest(null); return; }
+    if (_IS_DEMO) {
+      const vs = _loadDemoVariants(pid);
+      setVariants(vs); setTest(_evaluateTest(vs));
+      return;
+    }
+    getJsonAuth(`/api/v424/web-popups/${pid}/variants`)
+      .then(r => { if (r?.ok) { setVariants(r.variants || []); setTest(r.test || null); } })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => { reloadVariants(selId); }, [selId, reloadVariants]);
+
+  const createVariant = async () => {
+    if (!selId) { alert(t("webPopup.abSelectPopupFirst", "먼저 팝업을 선택하세요.")); return; }
+    if (variants.length >= 6) { alert(t("webPopup.abVariantLimit", "변형은 최대 6개까지 생성할 수 있습니다.")); return; }
+    setBusy(true);
+    try {
+      if (_IS_DEMO) {
+        const vs = _loadDemoVariants(selId);
+        // 데모: 정의만 저장(가상 지표는 노출 전 0). 격리 원칙 — 실데이터 혼입 없음.
+        const nv = { ...form, id: Date.now(), label: form.label || `V${vs.length + 1}`, status: "active", impressions: 0, clicks: 0, conversions: 0, ctr: 0, cvr: 0 };
+        const next = [...vs, nv]; _saveDemoVariants(selId, next); setVariants(next); setTest(_evaluateTest(next));
+      } else {
+        const r = await postJsonAuth(`/api/v424/web-popups/${selId}/variants`, form);
+        if (!r?.ok) { alert(t("webPopup.abSaveFail", "변형 저장에 실패했습니다.")); }
+        reloadVariants(selId);
+      }
+      setForm(_EMPTY_VARIANT);
+    } catch { alert(t("webPopup.abSaveFail", "변형 저장에 실패했습니다.")); }
+    finally { setBusy(false); }
+  };
+
+  const delVariant = async (vid) => {
+    if (_IS_DEMO) { const next = _loadDemoVariants(selId).filter(v => v.id !== vid); _saveDemoVariants(selId, next); setVariants(next); setTest(_evaluateTest(next)); return; }
+    try { await requestJsonAuth(`/api/v424/web-popups/variants/${vid}`, "DELETE"); } catch {}
+    reloadVariants(selId);
+  };
+
+  const toggleVariant = async (v) => {
+    const next = (v.status || "active") === "active" ? "paused" : "active";
+    if (_IS_DEMO) { const arr = _loadDemoVariants(selId).map(x => x.id === v.id ? { ...x, status: next } : x); _saveDemoVariants(selId, arr); setVariants(arr); setTest(_evaluateTest(arr)); return; }
+    try { await requestJsonAuth(`/api/v424/web-popups/variants/${v.id}`, "PUT", { ...v, status: next }); } catch {}
+    reloadVariants(selId);
+  };
+
+  const promoteVariant = async (vid) => {
+    if (!confirm(t("webPopup.abPromoteConfirm", "이 변형을 팝업 기본 콘텐츠로 승격하고 나머지 변형을 일시중지합니다. 계속할까요?"))) return;
+    if (_IS_DEMO) { const arr = _loadDemoVariants(selId).map(x => ({ ...x, status: x.id === vid ? "active" : "paused" })); _saveDemoVariants(selId, arr); setVariants(arr); setTest(_evaluateTest(arr)); return; }
+    try { await postJsonAuth(`/api/v424/web-popups/variants/${vid}/promote`, {}); } catch {}
+    reloadVariants(selId);
+  };
+
+  const th = { textAlign: "left", padding: "8px 6px", color: "#6b7280", fontWeight: 700, fontSize: 12 };
+  const td = { padding: "8px 6px", fontSize: 13, borderBottom: "1px solid #f3f4f6" };
+  const statusBadge = () => {
+    if (!test || test.status === "insufficient_variants") return { txt: t("webPopup.abNeedTwo", "변형 2개 이상 필요"), bg: "#f1f5f9", fg: "#6b7280" };
+    if (test.status === "collecting") return { txt: t("webPopup.abCollecting", "데이터 수집 중") + ` (min ${test.minSample})`, bg: "#eff6ff", fg: "#3b82f6" };
+    if (test.status === "significant") return { txt: t("webPopup.abSignificant", "유의한 승자 확정") + ` · ${test.confidence}%`, bg: "#f0fdf4", fg: "#16a34a" };
+    return { txt: t("webPopup.abNoWinner", "유의차 없음") + ` (p=${test.pValue})`, bg: "#fffbeb", fg: "#d97706" };
+  };
+  const sb = statusBadge();
+
+  return (
+    <div style={{ display: "grid", gap: 16 }}>
+      {/* 팝업 선택 + 테스트 상태 */}
+      <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e5e7eb", padding: 18 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ fontWeight: 800, fontSize: 15, color: "#1f2937" }}>🧪 {t("webPopup.abResult", "A/B 테스트")}</span>
+            <select value={selId} onChange={e => setSelId(+e.target.value)}
+              style={{ padding: "7px 12px", borderRadius: 8, border: "1px solid #d1d5db", fontSize: 13, minWidth: 180 }}>
+              <option value={0}>{t("webPopup.abSelectPopup", "팝업 선택…")}</option>
+              {popups.map(p => <option key={p.id} value={p.id}>{p.name || `#${p.id}`}</option>)}
+            </select>
+          </div>
+          <span style={{ padding: "6px 14px", borderRadius: 99, fontSize: 12, fontWeight: 800, background: sb.bg, color: sb.fg }}>{sb.txt}</span>
+        </div>
+        {test && test.significant && (
+          <div style={{ marginTop: 10, fontSize: 12, color: "#16a34a", fontWeight: 700 }}>
+            🏆 {t("webPopup.abWinnerLine", "승자")}: {(variants.find(v => v.id === test.winnerId) || {}).label} · lift +{test.lift}% · p={test.pValue}
+          </div>
+        )}
+      </div>
+
+      {/* 변형 성과표 */}
+      {selId > 0 && (
+        <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e5e7eb", padding: 18, overflowX: "auto" }}>
+          <div style={{ fontWeight: 800, fontSize: 14, color: "#1f2937", marginBottom: 12 }}>📊 {t("webPopup.abVariantPerf", "변형별 성과")} ({variants.length})</div>
+          {variants.length === 0 ? (
+            <div style={{ textAlign: "center", padding: 32, color: "#9ca3af", fontSize: 13 }}>{t("webPopup.abNoVariants", "변형이 없습니다. 아래에서 첫 변형을 추가하세요.")}</div>
+          ) : (
+            <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 640 }}>
+              <thead><tr style={{ borderBottom: "2px solid #e5e7eb" }}>
+                <th style={th}>{t("webPopup.abColLabel", "변형")}</th>
+                <th style={th}>{t("webPopup.abColWeight", "가중")}</th>
+                <th style={{ ...th, textAlign: "right" }}>{t("webPopup.colViews", "노출")}</th>
+                <th style={{ ...th, textAlign: "right" }}>{t("webPopup.colClicks", "클릭")}</th>
+                <th style={{ ...th, textAlign: "right" }}>{t("webPopup.colConv", "전환")}</th>
+                <th style={{ ...th, textAlign: "right" }}>CTR</th>
+                <th style={{ ...th, textAlign: "right" }}>CVR</th>
+                <th style={{ ...th, textAlign: "center" }}>{t("webPopup.colStatus", "상태")}</th>
+                <th style={{ ...th, textAlign: "right" }}>{t("webPopup.abColAction", "작업")}</th>
+              </tr></thead>
+              <tbody>
+                {variants.map(v => {
+                  const isWinner = test && test.winnerId === v.id;
+                  const isControl = test && test.controlId === v.id;
+                  return (
+                    <tr key={v.id} style={{ background: isWinner ? "#f0fdf4" : "transparent" }}>
+                      <td style={{ ...td, fontWeight: 700, color: "#1f2937" }}>
+                        {isWinner && "🏆 "}{v.label}{isControl && <span style={{ fontSize: 10, color: "#9ca3af", marginLeft: 4 }}>({t("webPopup.abControl", "기준")})</span>}
+                        {v.title && <div style={{ fontSize: 11, color: "#9ca3af", fontWeight: 400 }}>{v.title}</div>}
+                      </td>
+                      <td style={td}>{v.weight}</td>
+                      <td style={{ ...td, textAlign: "right" }}>{(v.impressions || 0).toLocaleString()}</td>
+                      <td style={{ ...td, textAlign: "right" }}>{(v.clicks || 0).toLocaleString()}</td>
+                      <td style={{ ...td, textAlign: "right", fontWeight: 700, color: "#22c55e" }}>{(v.conversions || 0).toLocaleString()}</td>
+                      <td style={{ ...td, textAlign: "right" }}>{v.ctr || 0}%</td>
+                      <td style={{ ...td, textAlign: "right", fontWeight: 700 }}>{v.cvr || 0}%</td>
+                      <td style={{ ...td, textAlign: "center" }}>
+                        <button onClick={() => toggleVariant(v)} title={t("webPopup.abToggle", "활성/일시중지")}
+                          style={{ padding: "3px 10px", borderRadius: 99, border: "none", cursor: "pointer", fontSize: 11, fontWeight: 700, background: (v.status || "active") === "active" ? "#dcfce7" : "#f1f5f9", color: (v.status || "active") === "active" ? "#16a34a" : "#6b7280" }}>
+                          ● {(v.status || "active") === "active" ? t("webPopup.active", "활성") : t("webPopup.paused", "중지")}
+                        </button>
+                      </td>
+                      <td style={{ ...td, textAlign: "right", whiteSpace: "nowrap" }}>
+                        <button onClick={() => promoteVariant(v.id)} title={t("webPopup.abPromote", "기본으로 승격")}
+                          style={{ padding: "4px 8px", borderRadius: 6, border: "1px solid #bbf7d0", background: "#fff", color: "#16a34a", fontSize: 11, fontWeight: 700, cursor: "pointer", marginRight: 4 }}>⭐</button>
+                        <button onClick={() => delVariant(v.id)}
+                          style={{ padding: "4px 8px", borderRadius: 6, border: "1px solid #fecaca", background: "#fff", color: "#ef4444", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>🗑</button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </div>
+      )}
+
+      {/* 변형 추가 폼 */}
+      {selId > 0 && (
+        <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e5e7eb", padding: 18 }}>
+          <div style={{ fontWeight: 800, fontSize: 14, color: "#1f2937", marginBottom: 12 }}>➕ {t("webPopup.abAddVariant", "변형 추가")}</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: 10 }}>
+            <label style={lbl}>{t("webPopup.abColLabel", "변형 이름")}<input value={form.label} onChange={e => F("label", e.target.value)} placeholder="A / B / 대안카피" style={inp} /></label>
+            <label style={lbl}>{t("webPopup.title", "제목")}<input value={form.title} onChange={e => F("title", e.target.value)} style={inp} /></label>
+            <label style={lbl}>{t("webPopup.ctaBtn", "CTA 버튼")}<input value={form.cta} onChange={e => F("cta", e.target.value)} style={inp} /></label>
+            <label style={lbl}>{t("webPopup.discountPct", "할인율(%)")}<input type="number" value={form.discount} onChange={e => F("discount", +e.target.value)} style={inp} /></label>
+            <label style={lbl}>{t("webPopup.abColWeight", "트래픽 가중")}<input type="number" min={1} value={form.weight} onChange={e => F("weight", Math.max(1, +e.target.value))} style={inp} /></label>
+            <label style={lbl}>{t("webPopup.linkUrl", "링크 URL")}<input value={form.linkUrl} onChange={e => F("linkUrl", e.target.value)} style={inp} /></label>
+          </div>
+          <label style={{ ...lbl, marginTop: 8, display: "block" }}>{t("webPopup.bodyContent", "본문")}<textarea value={form.body} onChange={e => F("body", e.target.value)} rows={2} style={{ ...inp, resize: "vertical" }} /></label>
+          <button onClick={createVariant} disabled={busy}
+            style={{ marginTop: 12, padding: "10px 24px", borderRadius: 10, border: "none", cursor: busy ? "wait" : "pointer", background: busy ? "#d1d5db" : "linear-gradient(135deg,#f97316,#ea580c)", color: "#fff", fontWeight: 800, fontSize: 13 }}>
+            {busy ? t("webPopup.abSaving", "저장 중…") : "➕ " + t("webPopup.abAddVariant", "변형 추가")}
+          </button>
+          <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 8, lineHeight: 1.6 }}>
+            {t("webPopup.abHint", "변형이 2개 이상 활성이면 방문자는 가중치에 따라 결정론적으로 분배되어 각 변형이 노출됩니다. 노출/클릭/전환은 변형별로 집계되고, 표본이 충분하면 z-검정으로 승자를 판정합니다.")}
+          </div>
+        </div>
+      )}
     </div>
-  </div>);
+  );
 }
 
 /* ══ Settings Tab ══ */

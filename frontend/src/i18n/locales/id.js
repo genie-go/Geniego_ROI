@@ -7490,7 +7490,7 @@ export default {"paymentSuccess": {"invalidInfo":"Informasi pembayaran tidak val
       oauthLogin: "OAuth Login",
       noConnectors: "No connectors available."
     },
-  webPopup: {"embedTitle":"Kode Sematan Situs","embedDesc":"Tempel kode ini sekali di <head> toko Anda atau tepat sebelum </body>, dan popup aktif akan otomatis tampil ke pengunjung (dengan beacon pemicu & konversi). Tanpa login terpisah · pembaruan otomatis.","embedCopy":"Salin Kode","embedCopied":"Tersalin ✓",
+  webPopup: {"abVariantPerf":"Variant Performance","abSelectPopup":"Select popup…","abSelectPopupFirst":"Select a popup first.","abVariantLimit":"Up to 6 variants allowed.","abSaveFail":"Failed to save variant.","abSaving":"Saving…","abAddVariant":"Add Variant","abColLabel":"Variant","abColWeight":"Weight","abColAction":"Action","abControl":"Control","abToggle":"Active/Pause","abPromote":"Promote to default","abPromoteConfirm":"Promote this variant to the popup default and pause the others. Continue?","abNoVariants":"No variants yet. Add your first variant below.","abNeedTwo":"Need 2+ variants","abCollecting":"Collecting data","abSignificant":"Significant winner","abNoWinner":"No significant difference","abWinnerLine":"Winner","abHint":"When 2+ variants are active, visitors are deterministically split by weight and each variant is served. Impressions/clicks/conversions are tracked per variant, and a winner is called via a z-test once the sample is large enough.","paused":"Paused","embedTitle":"Kode Sematan Situs","embedDesc":"Tempel kode ini sekali di <head> toko Anda atau tepat sebelum </body>, dan popup aktif akan otomatis tampil ke pengunjung (dengan beacon pemicu & konversi). Tanpa login terpisah · pembaruan otomatis.","embedCopy":"Salin Kode","embedCopied":"Tersalin ✓",
       heroTitle: "Web Popup & Deteksi Keluar Real-Time",
       heroDesc: "Kursor keluar → Pemicu otomatis dalam 3 detik · Pemulihan keranjang · A/B Test · Sesuai GDPR",
       badgeExit: "Deteksi Exit-Intent",
@@ -15208,6 +15208,12 @@ export default {"paymentSuccess": {"invalidInfo":"Informasi pembayaran tidak val
 
   // 176차 PM8 S6-P1: attrData live channel/touches append (last-key-wins, append-only)
   attrData: {
+    "vtcPure": "Pure View-through (VTC)",
+    "vtcRateLabel": "Conv. rate",
+    "ctc": "Click-through (CTC)",
+    "vtAssisted": "View-assisted",
+    "vtOutWindow": "Out-of-window (unattributed)",
+    "vtWindowDays": "Window",
     "blendTitle": 'Keyakinan inkrementalitas gabungan',
     "blendSignals": 'Sinyal aktif',
     "blendDecision": 'Keyakinan keputusan',

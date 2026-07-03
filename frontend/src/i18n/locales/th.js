@@ -7545,7 +7545,7 @@ export default {"paymentSuccess": {"invalidInfo":"ข้อมูลการช
       more: "เพิ่มเติม",
       ariaLabel: "การนำทางด้านล่าง"
     },
-  webPopup: {"embedTitle":"โค้ดฝังเว็บไซต์","embedDesc":"วางโค้ดนี้ลงใน <head> ของร้านค้าหรือก่อน </body> เพียงครั้งเดียว ป๊อปอัปที่เปิดใช้งานจะแสดงต่อผู้เข้าชมโดยอัตโนมัติ (พร้อมบีคอนทริกเกอร์และคอนเวอร์ชัน) ไม่ต้องเข้าสู่ระบบแยก · อัปเดตอัตโนมัติ","embedCopy":"คัดลอกโค้ด","embedCopied":"คัดลอกแล้ว ✓",
+  webPopup: {"abVariantPerf":"Variant Performance","abSelectPopup":"Select popup…","abSelectPopupFirst":"Select a popup first.","abVariantLimit":"Up to 6 variants allowed.","abSaveFail":"Failed to save variant.","abSaving":"Saving…","abAddVariant":"Add Variant","abColLabel":"Variant","abColWeight":"Weight","abColAction":"Action","abControl":"Control","abToggle":"Active/Pause","abPromote":"Promote to default","abPromoteConfirm":"Promote this variant to the popup default and pause the others. Continue?","abNoVariants":"No variants yet. Add your first variant below.","abNeedTwo":"Need 2+ variants","abCollecting":"Collecting data","abSignificant":"Significant winner","abNoWinner":"No significant difference","abWinnerLine":"Winner","abHint":"When 2+ variants are active, visitors are deterministically split by weight and each variant is served. Impressions/clicks/conversions are tracked per variant, and a winner is called via a z-test once the sample is large enough.","paused":"Paused","embedTitle":"โค้ดฝังเว็บไซต์","embedDesc":"วางโค้ดนี้ลงใน <head> ของร้านค้าหรือก่อน </body> เพียงครั้งเดียว ป๊อปอัปที่เปิดใช้งานจะแสดงต่อผู้เข้าชมโดยอัตโนมัติ (พร้อมบีคอนทริกเกอร์และคอนเวอร์ชัน) ไม่ต้องเข้าสู่ระบบแยก · อัปเดตอัตโนมัติ","embedCopy":"คัดลอกโค้ด","embedCopied":"คัดลอกแล้ว ✓",
       heroTitle: "เว็บป็อปอัพ & การตรวจจับการออกแบบเรียลไทม์",
       heroDesc: "เมาส์ออก → ทริกเกอร์อัตโนมัติใน 3 วินาที · กู้คืนตะกร้าสินค้า · A/B Test · รองรับ GDPR",
       badgeExit: "ตรวจจับ Exit-Intent",
@@ -15250,6 +15250,12 @@ export default {"paymentSuccess": {"invalidInfo":"ข้อมูลการช
 
   // 176차 PM8 S6-P1: attrData live channel/touches append (last-key-wins, append-only)
   attrData: {
+    "vtcPure": "Pure View-through (VTC)",
+    "vtcRateLabel": "Conv. rate",
+    "ctc": "Click-through (CTC)",
+    "vtAssisted": "View-assisted",
+    "vtOutWindow": "Out-of-window (unattributed)",
+    "vtWindowDays": "Window",
     "blendTitle": 'ความเชื่อมั่นอินครีเมนทัลแบบรวม',
     "blendSignals": 'สัญญาณที่ใช้งาน',
     "blendDecision": 'ความเชื่อมั่นการตัดสินใจ',

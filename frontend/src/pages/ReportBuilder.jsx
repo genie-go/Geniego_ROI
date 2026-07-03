@@ -149,6 +149,19 @@ export default function ReportBuilder() {
     catch (e) { setQResult({ rows: [], columns: [], note: String(e.message).slice(0, 80) }); }
     finally { setQLoading(false); }
   }, [qForm, t]);
+  // [264차 BI 성숙화] 드릴다운 — 1차 차원값 클릭 → 그 값으로 필터 + 하위(2차) 차원 breakdown 재조회.
+  const runWith = useCallback(async (form) => {
+    setQForm(form); setQLoading(true);
+    try { const d = await postJsonAuth("/api/reports/query", form); setQResult(d.ok ? d : { rows: [], columns: [], note: d.error || "오류" }); }
+    catch (e) { setQResult({ rows: [], columns: [], note: String(e.message).slice(0, 80) }); }
+    finally { setQLoading(false); }
+  }, []);
+  const drillInto = (val) => {
+    const drillDim = (Q_DIMS.find(d => d[0] !== qForm.dimension) || [])[0] || "";
+    if (!drillDim) return;
+    runWith({ ...qForm, filter_val: val, breakdown: drillDim });
+  };
+  const clearDrill = () => runWith({ ...qForm, filter_val: "", breakdown: "" });
   // [239차+ BI심화] 저장된 리포트(saved_report)
   const loadSaved = useCallback(() => { getJsonAuth("/api/reports/saved").then(d => { if (d?.ok) setSaved(d.reports || []); }).catch(() => {}); }, []);
   useEffect(() => { loadSaved(); }, [loadSaved]);
@@ -278,7 +291,7 @@ export default function ReportBuilder() {
             <div>
               <div style={{ fontSize: 11, color: "var(--text-3)", marginBottom: 6 }}>{t("reportBuilder.viz", "시각화")}</div>
               <div style={{ display: "flex", gap: 4 }}>
-                {[["table", "📋"], ["bar", "📊"], ["donut", "🍩"]].map(([v, ic]) => (
+                {[["table", "📋"], ["bar", "📊"], ["line", "📈"], ["donut", "🍩"]].map(([v, ic]) => (
                   <button key={v} onClick={() => setViz(v)} title={v} style={{ padding: "6px 9px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 13, background: viz === v ? "#4f8ef7" : "rgba(0,0,0,0.05)" }}>{ic}</button>
                 ))}
               </div>
@@ -305,14 +318,24 @@ export default function ReportBuilder() {
             const pm = (qResult.metrics || [])[0] || "spend";
             const colLabel = (c) => c === "dim" ? (Q_DIMS.find(d => d[0] === qResult.dimension)?.[1] || "") : c === "brk" ? (Q_DIMS.find(d => d[0] === qResult.breakdown)?.[1] || "") : (Q_METRICS.find(m => m[0] === c)?.[1] || c);
             const isChart = viz !== "table" && !qResult.breakdown && (qResult.rows || []).length > 0;
+            const canDrill = !qResult.breakdown && !qResult.filter_val && qResult.dimension !== "date" && qResult.dimension !== "period" && Q_DIMS.length > 1;
             return (
             <div style={{ ...card, marginTop: 12, overflowX: "auto" }}>
+              {qResult.filter_val && (
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10, fontSize: 12, flexWrap: "wrap" }}>
+                  <span style={{ color: "var(--text-3)" }}>🔍 {colLabel("dim")} =</span>
+                  <span style={{ fontWeight: 800, color: "#4f8ef7" }}>{qResult.filter_val}</span>
+                  <span style={{ color: "var(--text-3)" }}>→ {t("reportBuilder.drillBy", "하위")} {(Q_DIMS.find(d => d[0] === qResult.breakdown) || [])[1] || qResult.breakdown}</span>
+                  <button onClick={clearDrill} style={{ ...btn("ghost"), padding: "3px 10px", fontSize: 11 }}>← {t("reportBuilder.drillBack", "뒤로")}</button>
+                </div>
+              )}
               {(!qResult.rows || qResult.rows.length === 0) ? (
                 <div style={{ color: "var(--text-3)", fontSize: 12, padding: 20, textAlign: "center" }}>{qResult.note || t("reportBuilder.noData", "데이터가 없습니다.")}</div>
               ) : isChart ? (
                 <div style={{ padding: "8px 4px" }}>
                   <div style={{ fontSize: 11, color: "var(--text-3)", marginBottom: 8 }}>{colLabel("dim")} · {colLabel(pm)} ({t("reportBuilder.top", "상위")} {Math.min(viz === "donut" ? 8 : 14, qResult.rows.length)})</div>
                   {viz === "bar" && <BarChart data={qResult.rows.slice(0, 14).map(r => ({ dim: r.dim, [pm]: Number(r[pm] ?? 0) }))} xKey="dim" yKey={pm} width={680} height={240} color={PALETTE} />}
+                  {viz === "line" && <div style={{ overflowX: "auto" }}><LineChart data={qResult.rows.slice(0, 90).map(r => ({ dim: String(r.dim), [pm]: Number(r[pm] ?? 0) }))} labels={qResult.rows.slice(0, 90).map(r => String(r.dim))} series={[{ key: pm, name: colLabel(pm), color: PALETTE[0] }]} width={720} height={240} /></div>}
                   {viz === "donut" && (
                     <div style={{ display: "flex", gap: 20, alignItems: "center", flexWrap: "wrap" }}>
                       <DonutChart data={qResult.rows.slice(0, 8).map((r, i) => ({ value: Number(r[pm] ?? 0), color: PALETTE[i % PALETTE.length] }))} size={200} label={colLabel(pm)} />
@@ -336,7 +359,7 @@ export default function ReportBuilder() {
                   <tbody>
                     {qResult.rows.map((r, i) => (
                       <tr key={i} style={{ borderBottom: "1px solid var(--border)" }}>
-                        {(qResult.columns || []).map(c => <td key={c} style={{ padding: "8px 10px", textAlign: (c === "dim" || c === "brk") ? "left" : "right", fontWeight: (c === "dim" || c === "brk") ? 700 : 400, color: "var(--text-1)" }}>{c === "dim" ? r.dim : c === "brk" ? r.brk : Number(r[c] ?? 0).toLocaleString()}</td>)}
+                        {(qResult.columns || []).map(c => <td key={c} style={{ padding: "8px 10px", textAlign: (c === "dim" || c === "brk") ? "left" : "right", fontWeight: (c === "dim" || c === "brk") ? 700 : 400, color: "var(--text-1)" }}>{c === "dim" ? (canDrill ? <button onClick={() => drillInto(r.dim)} title={t("reportBuilder.drillHint", "클릭하여 하위 차원으로 드릴다운")} style={{ border: "none", background: "transparent", cursor: "pointer", color: "#4f8ef7", fontWeight: 700, textDecoration: "underline dotted", padding: 0, font: "inherit" }}>{r.dim} 🔎</button> : r.dim) : c === "brk" ? r.brk : Number(r[c] ?? 0).toLocaleString()}</td>)}
                       </tr>
                     ))}
                   </tbody>

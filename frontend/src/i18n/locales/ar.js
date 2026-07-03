@@ -11209,7 +11209,7 @@ export default {"paymentSuccess": {"invalidInfo":"معلومات الدفع غي
       permCreate: "إنشاء",
       permUpdate: "تعديل"
     },
-  webPopup: {"embedTitle":"كود تضمين الموقع","embedDesc":"الصق هذا الكود مرة واحدة في <head> متجرك أو قبل </body> مباشرة، وستظهر النوافذ المنبثقة النشطة للزوار تلقائيًا (مع منارات التشغيل والتحويل). لا حاجة لتسجيل دخول منفصل · تحديث تلقائي.","embedCopy":"نسخ الكود","embedCopied":"تم النسخ ✓",
+  webPopup: {"abVariantPerf":"Variant Performance","abSelectPopup":"Select popup…","abSelectPopupFirst":"Select a popup first.","abVariantLimit":"Up to 6 variants allowed.","abSaveFail":"Failed to save variant.","abSaving":"Saving…","abAddVariant":"Add Variant","abColLabel":"Variant","abColWeight":"Weight","abColAction":"Action","abControl":"Control","abToggle":"Active/Pause","abPromote":"Promote to default","abPromoteConfirm":"Promote this variant to the popup default and pause the others. Continue?","abNoVariants":"No variants yet. Add your first variant below.","abNeedTwo":"Need 2+ variants","abCollecting":"Collecting data","abSignificant":"Significant winner","abNoWinner":"No significant difference","abWinnerLine":"Winner","abHint":"When 2+ variants are active, visitors are deterministically split by weight and each variant is served. Impressions/clicks/conversions are tracked per variant, and a winner is called via a z-test once the sample is large enough.","paused":"Paused","embedTitle":"كود تضمين الموقع","embedDesc":"الصق هذا الكود مرة واحدة في <head> متجرك أو قبل </body> مباشرة، وستظهر النوافذ المنبثقة النشطة للزوار تلقائيًا (مع منارات التشغيل والتحويل). لا حاجة لتسجيل دخول منفصل · تحديث تلقائي.","embedCopy":"نسخ الكود","embedCopied":"تم النسخ ✓",
       heroTitle: "النوافذ المنبثقة على الويب ورصد المغادرة الفوري",
       heroDesc: "سجّل مفاتيح API لقنوات المبيعات والإعلانات والتحليلات وأدر حالة الاتصال.",
       badgeExit: "رصد نية المغادرة",
@@ -14962,6 +14962,12 @@ export default {"paymentSuccess": {"invalidInfo":"معلومات الدفع غي
 
   // 176차 PM8 S6-P1: attrData live channel/touches append (last-key-wins, append-only)
   attrData: {
+    "vtcPure": "Pure View-through (VTC)",
+    "vtcRateLabel": "Conv. rate",
+    "ctc": "Click-through (CTC)",
+    "vtAssisted": "View-assisted",
+    "vtOutWindow": "Out-of-window (unattributed)",
+    "vtWindowDays": "Window",
     "blendTitle": 'ثقة التزايدية المدمجة',
     "blendSignals": 'الإشارات النشطة',
     "blendDecision": 'ثقة القرار',

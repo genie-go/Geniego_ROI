@@ -397,6 +397,9 @@ class Reports
         $brk = (string)($body['breakdown'] ?? '');
         $brkValid = ($brk !== '' && isset($DIMS[$brk]) && $brk !== $dim);
         $brkCol = $brkValid ? $DIMS[$brk] : null;
+        // [264차 BI 성숙화] 드릴다운 — 1차 차원의 특정 값으로 필터(파라미터 바인드, 인젝션 불가). 차원값 클릭→하위 breakdown 조회.
+        $filterVal = trim((string)($body['filter_val'] ?? ''));
+        if (mb_strlen($filterVal) > 200) $filterVal = mb_substr($filterVal, 0, 200);
         $period = max(1, min(365, (int)($body['period_days'] ?? 30)));
         $limit = max(1, min(2000, (int)($body['limit'] ?? ($brkValid ? 1000 : 100))));
         // [현 차수] settlement.period 는 'YYYY-MM' 문자열이라 일자비교가 아니라 월 prefix(>=) 비교를 쓴다(레코드 누락 방지).
@@ -409,15 +412,19 @@ class Reports
         $orderMetric = $reqMetrics[0];
         $groupBy = $brkCol ? "{$dimCol}, {$brkCol}" : $dimCol;
         $whereBrk = $brkCol ? " AND {$brkCol} IS NOT NULL AND {$brkCol} <> ''" : '';
+        // [264차] 드릴다운 필터(1차 차원값 고정) — 바인드 파라미터. baseParams 다음 순서로 바인드.
+        $whereFilter = ($filterVal !== '') ? " AND {$dimCol} = ?" : '';
         $sql = "SELECT " . implode(', ', $selects) . "
                   FROM {$TABLE}
-                 WHERE tenant_id = ? AND {$PERIOD_COL} >= ? AND {$dimCol} IS NOT NULL AND {$dimCol} <> ''{$BASE_WHERE}{$whereBrk}
+                 WHERE tenant_id = ? AND {$PERIOD_COL} >= ? AND {$dimCol} IS NOT NULL AND {$dimCol} <> ''{$BASE_WHERE}{$whereBrk}{$whereFilter}
                  GROUP BY {$groupBy}
                  ORDER BY " . (($dim === 'date' || $dim === 'period') ? 'dim ASC' : "{$orderMetric} DESC") . "
                  LIMIT {$limit}";
         try {
+            $execParams = array_merge([$tenant, $since], $baseParams);
+            if ($filterVal !== '') $execParams[] = $filterVal;
             $st = $pdo->prepare($sql);
-            $st->execute(array_merge([$tenant, $since], $baseParams));
+            $st->execute($execParams);
             $rows = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
         } catch (\Throwable $e) {
             return self::json($res, ['ok' => false, 'error' => 'query_failed'], 500);
@@ -442,7 +449,7 @@ class Reports
                 ? '선택 기간·차원에 집계할 주문 데이터가 없습니다.'
                 : '선택 기간·차원에 집계할 광고 성과 데이터가 없습니다(집행·수집 후 표시).');
         return self::json($res, [
-            'ok' => true, 'source' => $source, 'dimension' => $dim, 'breakdown' => ($brkValid ? $brk : null), 'metrics' => $reqMetrics, 'period_days' => $period,
+            'ok' => true, 'source' => $source, 'dimension' => $dim, 'breakdown' => ($brkValid ? $brk : null), 'filter_val' => ($filterVal !== '' ? $filterVal : null), 'metrics' => $reqMetrics, 'period_days' => $period,
             'columns' => array_merge(['dim'], ($brkCol ? ['brk'] : []), $reqMetrics), 'rows' => $rows, 'totals' => $totals,
             'count' => count($rows),
             'note' => count($rows) === 0 ? $emptyNote : null,

@@ -10436,7 +10436,7 @@ export default {"paymentSuccess": {"invalidInfo":"Die Zahlungsinformationen sind
     "demoBeauty2": "Eine Skincare-Marke quantifizierte den Influencer-ROI und gestaltete die Zusammenarbeit neu.",
     "demoFashion2": "Eine Outdoor-Marke steuerte saisonale Promotions und Coupons datenbasiert und verbesserte die Margen."
   },
-    webPopup: {"embedTitle":"Website-Einbettungscode","embedDesc":"Fügen Sie diesen Code einmal in den <head> Ihres Shops oder direkt vor </body> ein, und aktive Pop-ups werden Besuchern automatisch angezeigt (mit Trigger- und Conversion-Beacons). Kein separater Login erforderlich · automatische Aktualisierung.","embedCopy":"Code kopieren","embedCopied":"Kopiert ✓",
+    webPopup: {"abVariantPerf":"Variant Performance","abSelectPopup":"Select popup…","abSelectPopupFirst":"Select a popup first.","abVariantLimit":"Up to 6 variants allowed.","abSaveFail":"Failed to save variant.","abSaving":"Saving…","abAddVariant":"Add Variant","abColLabel":"Variant","abColWeight":"Weight","abColAction":"Action","abControl":"Control","abToggle":"Active/Pause","abPromote":"Promote to default","abPromoteConfirm":"Promote this variant to the popup default and pause the others. Continue?","abNoVariants":"No variants yet. Add your first variant below.","abNeedTwo":"Need 2+ variants","abCollecting":"Collecting data","abSignificant":"Significant winner","abNoWinner":"No significant difference","abWinnerLine":"Winner","abHint":"When 2+ variants are active, visitors are deterministically split by weight and each variant is served. Impressions/clicks/conversions are tracked per variant, and a winner is called via a z-test once the sample is large enough.","paused":"Paused","embedTitle":"Website-Einbettungscode","embedDesc":"Fügen Sie diesen Code einmal in den <head> Ihres Shops oder direkt vor </body> ein, und aktive Pop-ups werden Besuchern automatisch angezeigt (mit Trigger- und Conversion-Beacons). Kein separater Login erforderlich · automatische Aktualisierung.","embedCopy":"Code kopieren","embedCopied":"Kopiert ✓",
       heroTitle: "Web-Popup & Echtzeit-Verlassserkennung",
       heroDesc: "Mausverlassen → Auto-Trigger in 3 Sek. · Warenkorbabbruch-Rückgewinnung · A/B-Test · DSGVO-konform",
       badgeExit: "Exit-Intent-Erkennung",
@@ -14978,6 +14978,12 @@ export default {"paymentSuccess": {"invalidInfo":"Die Zahlungsinformationen sind
 
   // 176차 PM8 S6-P1: attrData live channel/touches append (last-key-wins, append-only)
   attrData: {
+    "vtcPure": "Pure View-through (VTC)",
+    "vtcRateLabel": "Conv. rate",
+    "ctc": "Click-through (CTC)",
+    "vtAssisted": "View-assisted",
+    "vtOutWindow": "Out-of-window (unattributed)",
+    "vtWindowDays": "Window",
     "blendTitle": 'Kombinierte Inkrementalitäts-Konfidenz',
     "blendSignals": 'Aktive Signale',
     "blendDecision": 'Entscheidungskonfidenz',

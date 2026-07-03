@@ -97,7 +97,64 @@ final class WebPopupCampaign
                 seen_at VARCHAR(32), clicked_at VARCHAR(32), converted_at VARCHAR(32),
                 PRIMARY KEY (tenant_id, popup_id, vid)
             )");
+            // [264차] A/B 변형 — 한 팝업의 콘텐츠 변형(A/B/…). 방문자는 vid 결정론적 가중 버킷팅으로 1:1 sticky 할당.
+            //   변형별 노출/클릭/전환을 멱등 집계 → 2-표본 비율 z-검정으로 승자 판정. weight=트래픽 배분(정수 가중).
+            $pdo->exec("CREATE TABLE IF NOT EXISTS web_popup_variant (
+                id $AI, tenant_id VARCHAR(100) NOT NULL, popup_id INT NOT NULL,
+                label VARCHAR(60), title VARCHAR(200), subtitle VARCHAR(200), body TEXT,
+                cta VARCHAR(120), link_url VARCHAR(500), discount INT DEFAULT 0,
+                weight INT DEFAULT 1, status VARCHAR(20) DEFAULT 'active',
+                impressions INT DEFAULT 0, clicks INT DEFAULT 0, conversions INT DEFAULT 0,
+                created_at VARCHAR(32), updated_at VARCHAR(32)
+            )");
+            // 원장에 sticky 변형 할당 기록(변형 교차오염·다변형 노출조작 차단). 기존 테이블엔 멱등 ALTER.
+            try { $pdo->exec("ALTER TABLE web_popup_assign ADD COLUMN variant_id INT DEFAULT 0"); } catch (\Throwable $e2) { /* 이미 존재 */ }
         } catch (\Throwable $e) { /* graceful */ }
+    }
+
+    private static function variantMap(array $r): array
+    {
+        $impr = (int)($r['impressions'] ?? 0);
+        return [
+            'id'          => (int)$r['id'],
+            'popupId'     => (int)($r['popup_id'] ?? 0),
+            'label'       => (string)($r['label'] ?? ''),
+            'title'       => (string)($r['title'] ?? ''),
+            'subtitle'    => (string)($r['subtitle'] ?? ''),
+            'body'        => (string)($r['body'] ?? ''),
+            'cta'         => (string)($r['cta'] ?? ''),
+            'linkUrl'     => (string)($r['link_url'] ?? ''),
+            'discount'    => (int)($r['discount'] ?? 0),
+            'weight'      => max(0, (int)($r['weight'] ?? 1)),
+            'status'      => (string)($r['status'] ?? 'active'),
+            'impressions' => $impr,
+            'clicks'      => (int)($r['clicks'] ?? 0),
+            'conversions' => (int)($r['conversions'] ?? 0),
+            'ctr'         => $impr > 0 ? round(((int)($r['clicks'] ?? 0) / $impr) * 100, 2) : 0,
+            'cvr'         => $impr > 0 ? round(((int)($r['conversions'] ?? 0) / $impr) * 100, 2) : 0,
+        ];
+    }
+
+    /** 표준정규 CDF(erf 근사, Abramowitz–Stegun 7.1.26). 외부 라이브러리 불요. */
+    private static function normCdf(float $x): float
+    {
+        $t = 1.0 / (1.0 + 0.3275911 * abs($x) / M_SQRT2);
+        $y = 1.0 - (((((1.061405429 * $t - 1.453152027) * $t) + 1.421413741) * $t - 0.284496736) * $t + 0.254829592) * $t * exp(-($x * $x) / 2.0);
+        return $x >= 0 ? 0.5 * (1 + $y) : 0.5 * (1 - $y);
+    }
+
+    /** 2-표본 비율 z-검정(pooled) — 변형 B의 전환율이 기준 A와 유의하게 다른지. two-tailed p-value 반환. */
+    private static function propZTest(int $cA, int $nA, int $cB, int $nB): array
+    {
+        if ($nA < 1 || $nB < 1) return ['z' => 0.0, 'p' => 1.0, 'lift' => 0.0];
+        $pA = $cA / $nA; $pB = $cB / $nB;
+        $pPool = ($cA + $cB) / ($nA + $nB);
+        $se = sqrt(max(0.0, $pPool * (1 - $pPool) * (1 / $nA + 1 / $nB)));
+        if ($se <= 0) return ['z' => 0.0, 'p' => 1.0, 'lift' => 0.0];
+        $z = ($pB - $pA) / $se;
+        $p = 2 * (1 - self::normCdf(abs($z)));
+        $lift = $pA > 0 ? round((($pB - $pA) / $pA) * 100, 1) : 0.0;
+        return ['z' => round($z, 3), 'p' => round(max(0.0, min(1.0, $p)), 4), 'lift' => $lift];
     }
 
     private static function mapRow(array $r): array
@@ -222,6 +279,156 @@ final class WebPopupCampaign
         return self::json($res, ['ok' => true, 'status' => $next]);
     }
 
+    /* ═══════════ A/B 변형 (세션 authed) ═══════════ */
+
+    /** 팝업이 이 테넌트 소유인지 확인. 소유면 popup_id, 아니면 0. */
+    private static function ownsPopup(PDO $pdo, string $t, int $pid): int
+    {
+        if ($pid <= 0 || $t === '') return 0;
+        $st = $pdo->prepare("SELECT id FROM web_popup WHERE id=? AND tenant_id=?");
+        $st->execute([$pid, $t]);
+        return (int)$st->fetchColumn();
+    }
+
+    /** GET /v424/web-popups/{id}/variants — 변형 목록 + 변형별 지표 + z-검정 유의성/승자. */
+    public static function variants(Request $req, Response $res, array $args): Response
+    {
+        $pdo = Db::pdo(); self::ensure($pdo);
+        $t = self::tenant($req);
+        if ($t === '') return self::json($res, ['ok' => false, 'error' => 'unauthorized'], 401);
+        $pid = (int)($args['id'] ?? 0);
+        if (!self::ownsPopup($pdo, $t, $pid)) return self::json($res, ['ok' => false, 'error' => 'not found'], 404);
+        $st = $pdo->prepare("SELECT * FROM web_popup_variant WHERE tenant_id=? AND popup_id=? ORDER BY id ASC LIMIT 20");
+        $st->execute([$t, $pid]);
+        $variants = array_map([self::class, 'variantMap'], $st->fetchAll(PDO::FETCH_ASSOC) ?: []);
+        return self::json($res, ['ok' => true, 'variants' => $variants, 'test' => self::evaluateTest($variants)]);
+    }
+
+    /** 변형 배열 → 승자/유의성 판정. 기준(control)=최초 변형. 전환율(conversions/impressions) 비교. */
+    private static function evaluateTest(array $variants): array
+    {
+        $active = array_values(array_filter($variants, fn($v) => $v['status'] === 'active'));
+        if (count($active) < 2) {
+            return ['status' => 'insufficient_variants', 'significant' => false, 'winnerId' => 0, 'pValue' => 1.0, 'lift' => 0.0, 'confidence' => 0.0];
+        }
+        $minSample = (int)(getenv('WEBPOPUP_AB_MIN_SAMPLE') ?: 100);
+        $control = $active[0];
+        // 승자 후보 = 전환율 최고 변형(노출>0). control 대비 z-검정.
+        $best = $control; $bestCvr = $control['impressions'] > 0 ? $control['conversions'] / $control['impressions'] : -1;
+        foreach ($active as $v) {
+            $cvr = $v['impressions'] > 0 ? $v['conversions'] / $v['impressions'] : -1;
+            if ($cvr > $bestCvr) { $bestCvr = $cvr; $best = $v; }
+        }
+        $z = self::propZTest((int)$control['conversions'], (int)$control['impressions'], (int)$best['conversions'], (int)$best['impressions']);
+        $enoughSample = $control['impressions'] >= $minSample && $best['impressions'] >= $minSample;
+        $significant = $enoughSample && $best['id'] !== $control['id'] && $z['p'] < 0.05 && $bestCvr > ($control['impressions'] > 0 ? $control['conversions'] / $control['impressions'] : 0);
+        return [
+            'status'      => !$enoughSample ? 'collecting' : ($significant ? 'significant' : 'no_winner'),
+            'significant' => $significant,
+            'winnerId'    => $significant ? $best['id'] : 0,
+            'controlId'   => $control['id'],
+            'pValue'      => $z['p'],
+            'lift'        => $z['lift'],
+            'confidence'  => round(max(0.0, min(100.0, (1 - $z['p']) * 100)), 1),
+            'minSample'   => $minSample,
+        ];
+    }
+
+    public static function createVariant(Request $req, Response $res, array $args): Response
+    {
+        $pdo = Db::pdo(); self::ensure($pdo);
+        $t = self::tenant($req);
+        if ($t === '') return self::json($res, ['ok' => false, 'error' => 'unauthorized'], 401);
+        $pid = (int)($args['id'] ?? 0);
+        if (!self::ownsPopup($pdo, $t, $pid)) return self::json($res, ['ok' => false, 'error' => 'not found'], 404);
+        $cnt = $pdo->prepare("SELECT COUNT(*) FROM web_popup_variant WHERE tenant_id=? AND popup_id=?");
+        $cnt->execute([$t, $pid]);
+        $existing = (int)$cnt->fetchColumn();
+        if ($existing >= 6) return self::json($res, ['ok' => false, 'error' => 'variant limit (6) reached'], 422);
+        $b = (array)($req->getParsedBody() ?? []);
+        if (!$b) { $b = json_decode((string)$req->getBody(), true) ?: []; }
+        $label = self::clean((string)($b['label'] ?? ''));
+        if ($label === '') $label = 'V' . ($existing + 1);
+        $now = self::now();
+        $st = $pdo->prepare("INSERT INTO web_popup_variant
+            (tenant_id,popup_id,label,title,subtitle,body,cta,link_url,discount,weight,status,created_at,updated_at)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)");
+        $st->execute([
+            $t, $pid, mb_substr($label, 0, 60),
+            self::clean((string)($b['title'] ?? '')),
+            self::clean((string)($b['subtitle'] ?? '')),
+            self::clean((string)($b['body'] ?? '')),
+            self::clean((string)($b['cta'] ?? '')),
+            self::clean((string)($b['linkUrl'] ?? '')),
+            (int)($b['discount'] ?? 0),
+            max(1, min(1000, (int)($b['weight'] ?? 1))),
+            in_array(($b['status'] ?? 'active'), ['active', 'paused'], true) ? (string)$b['status'] : 'active',
+            $now, $now,
+        ]);
+        $id = (int)$pdo->lastInsertId();
+        $r = $pdo->prepare("SELECT * FROM web_popup_variant WHERE id=? AND tenant_id=?"); $r->execute([$id, $t]);
+        return self::json($res, ['ok' => true, 'variant' => self::variantMap($r->fetch(PDO::FETCH_ASSOC) ?: ['id' => $id])]);
+    }
+
+    public static function updateVariant(Request $req, Response $res, array $args): Response
+    {
+        $pdo = Db::pdo(); self::ensure($pdo);
+        $t = self::tenant($req);
+        if ($t === '') return self::json($res, ['ok' => false, 'error' => 'unauthorized'], 401);
+        $vid = (int)($args['vid'] ?? 0);
+        $chk = $pdo->prepare("SELECT id FROM web_popup_variant WHERE id=? AND tenant_id=?"); $chk->execute([$vid, $t]);
+        if (!$chk->fetchColumn()) return self::json($res, ['ok' => false, 'error' => 'not found'], 404);
+        $b = (array)($req->getParsedBody() ?? []);
+        if (!$b) { $b = json_decode((string)$req->getBody(), true) ?: []; }
+        $st = $pdo->prepare("UPDATE web_popup_variant SET label=?,title=?,subtitle=?,body=?,cta=?,link_url=?,discount=?,weight=?,status=?,updated_at=? WHERE id=? AND tenant_id=?");
+        $st->execute([
+            mb_substr(self::clean((string)($b['label'] ?? '')), 0, 60),
+            self::clean((string)($b['title'] ?? '')),
+            self::clean((string)($b['subtitle'] ?? '')),
+            self::clean((string)($b['body'] ?? '')),
+            self::clean((string)($b['cta'] ?? '')),
+            self::clean((string)($b['linkUrl'] ?? '')),
+            (int)($b['discount'] ?? 0),
+            max(1, min(1000, (int)($b['weight'] ?? 1))),
+            in_array(($b['status'] ?? 'active'), ['active', 'paused'], true) ? (string)$b['status'] : 'active',
+            self::now(), $vid, $t,
+        ]);
+        return self::json($res, ['ok' => true, 'id' => $vid]);
+    }
+
+    public static function deleteVariant(Request $req, Response $res, array $args): Response
+    {
+        $pdo = Db::pdo(); self::ensure($pdo);
+        $t = self::tenant($req);
+        if ($t === '') return self::json($res, ['ok' => false, 'error' => 'unauthorized'], 401);
+        $vid = (int)($args['vid'] ?? 0);
+        $pdo->prepare("DELETE FROM web_popup_variant WHERE id=? AND tenant_id=?")->execute([$vid, $t]);
+        return self::json($res, ['ok' => true]);
+    }
+
+    /** POST /v424/web-popups/variants/{vid}/promote — 승자 변형을 팝업 본문으로 승격(무손실: 변형은 유지). */
+    public static function promoteVariant(Request $req, Response $res, array $args): Response
+    {
+        $pdo = Db::pdo(); self::ensure($pdo);
+        $t = self::tenant($req);
+        if ($t === '') return self::json($res, ['ok' => false, 'error' => 'unauthorized'], 401);
+        $vid = (int)($args['vid'] ?? 0);
+        $v = $pdo->prepare("SELECT * FROM web_popup_variant WHERE id=? AND tenant_id=?"); $v->execute([$vid, $t]);
+        $row = $v->fetch(PDO::FETCH_ASSOC);
+        if (!$row) return self::json($res, ['ok' => false, 'error' => 'not found'], 404);
+        $pid = (int)$row['popup_id'];
+        // 승자 콘텐츠를 팝업 본문으로 복사(방문자 서빙 기본값). 나머지 변형은 paused(무손실 보존).
+        $upd = $pdo->prepare("UPDATE web_popup SET title=?,subtitle=?,body=?,cta=?,link_url=?,discount=?,updated_at=? WHERE id=? AND tenant_id=?");
+        $upd->execute([
+            (string)($row['title'] ?? ''), (string)($row['subtitle'] ?? ''), (string)($row['body'] ?? ''),
+            (string)($row['cta'] ?? ''), (string)($row['link_url'] ?? ''), (int)($row['discount'] ?? 0),
+            self::now(), $pid, $t,
+        ]);
+        $pdo->prepare("UPDATE web_popup_variant SET status='paused', updated_at=? WHERE popup_id=? AND tenant_id=? AND id<>?")
+            ->execute([self::now(), $pid, $t, $vid]);
+        return self::json($res, ['ok' => true, 'promoted' => $vid, 'popupId' => $pid]);
+    }
+
     /* ═══════════ 전역 설정 (세션 authed) ═══════════ */
 
     public static function getSettings(Request $req, Response $res): Response
@@ -271,9 +478,24 @@ final class WebPopupCampaign
         $ss = $pdo->prepare("SELECT settings_json FROM web_popup_setting WHERE tenant_id=?"); $ss->execute([$t]);
         $raw = $ss->fetchColumn();
         $settings = $raw ? (json_decode((string)$raw, true) ?: []) : [];
-        // 서빙 응답은 지표 필드 제외(외부 노출 최소화).
-        $out = array_map(function ($p) {
+        // [264차] 활성 A/B 변형을 팝업별 그룹핑(방문자 서빙용 — 콘텐츠+가중치만, 지표 제외).
+        $vst = $pdo->prepare("SELECT id,popup_id,label,title,subtitle,body,cta,link_url,discount,weight FROM web_popup_variant WHERE tenant_id=? AND status='active' ORDER BY id ASC");
+        $vst->execute([$t]);
+        $vByPopup = [];
+        foreach ($vst->fetchAll(PDO::FETCH_ASSOC) ?: [] as $vr) {
+            $vByPopup[(int)$vr['popup_id']][] = [
+                'id' => (int)$vr['id'], 'label' => (string)($vr['label'] ?? ''),
+                'title' => (string)($vr['title'] ?? ''), 'subtitle' => (string)($vr['subtitle'] ?? ''),
+                'body' => (string)($vr['body'] ?? ''), 'cta' => (string)($vr['cta'] ?? ''),
+                'linkUrl' => (string)($vr['link_url'] ?? ''), 'discount' => (int)($vr['discount'] ?? 0),
+                'weight' => max(1, (int)($vr['weight'] ?? 1)),
+            ];
+        }
+        // 서빙 응답은 지표 필드 제외(외부 노출 최소화). 변형 ≥2개면 A/B 활성.
+        $out = array_map(function ($p) use ($vByPopup) {
             unset($p['impressions'], $p['clicks'], $p['conversions'], $p['created_at']);
+            $vs = $vByPopup[(int)$p['id']] ?? [];
+            if (count($vs) >= 2) { $p['variants'] = $vs; }
             return $p;
         }, $popups);
         return self::json($res, ['ok' => true, 'popups' => $out, 'settings' => $settings]);
@@ -289,6 +511,7 @@ final class WebPopupCampaign
         $pid = (int)($b['popup_id'] ?? 0);
         $type = (string)($b['type'] ?? '');
         $vid = substr(preg_replace('/[^a-zA-Z0-9_-]/', '', (string)($b['vid'] ?? '')), 0, 120);
+        $clientVar = (int)($b['variant_id'] ?? 0);
         if ($t === '' || $pid <= 0 || $vid === '' || !in_array($type, ['impression', 'click', 'conversion'], true)) {
             return self::json($res, ['ok' => false, 'error' => 'bad request'], 400);
         }
@@ -296,27 +519,39 @@ final class WebPopupCampaign
         // 팝업이 해당 테넌트 소유인지 확인(교차 테넌트 지표 오염 차단).
         $own = $pdo->prepare("SELECT id FROM web_popup WHERE id=? AND tenant_id=?"); $own->execute([$pid, $t]);
         if (!$own->fetchColumn()) return self::json($res, ['ok' => false, 'error' => 'not found'], 404);
+        // 클라 제출 변형이 이 팝업/테넌트 소유인지 검증(위조 차단). 미소유·0이면 변형집계 없음(0).
+        $var = 0;
+        if ($clientVar > 0) {
+            $vchk = $pdo->prepare("SELECT id FROM web_popup_variant WHERE id=? AND popup_id=? AND tenant_id=?");
+            $vchk->execute([$clientVar, $pid, $t]);
+            if ($vchk->fetchColumn()) $var = $clientVar;
+        }
         $now = self::now();
         try {
-            // 원장 upsert.
             $isMy = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql';
+            // 원장 upsert — 최초 노출 시 sticky 변형 할당 확정(first-write-wins). 이후 이벤트는 저장된 변형 사용.
             $ins = $isMy
-                ? "INSERT INTO web_popup_assign(tenant_id,popup_id,vid,seen_at) VALUES(?,?,?,?) ON DUPLICATE KEY UPDATE tenant_id=tenant_id"
-                : "INSERT INTO web_popup_assign(tenant_id,popup_id,vid,seen_at) VALUES(?,?,?,?) ON CONFLICT(tenant_id,popup_id,vid) DO NOTHING";
-            $pdo->prepare($ins)->execute([$t, $pid, $vid, $now]);
-            $row = $pdo->prepare("SELECT seen_at,clicked_at,converted_at FROM web_popup_assign WHERE tenant_id=? AND popup_id=? AND vid=?");
+                ? "INSERT INTO web_popup_assign(tenant_id,popup_id,vid,seen_at,variant_id) VALUES(?,?,?,?,?) ON DUPLICATE KEY UPDATE tenant_id=tenant_id"
+                : "INSERT INTO web_popup_assign(tenant_id,popup_id,vid,seen_at,variant_id) VALUES(?,?,?,?,?) ON CONFLICT(tenant_id,popup_id,vid) DO NOTHING";
+            $pdo->prepare($ins)->execute([$t, $pid, $vid, $now, $var]);
+            $row = $pdo->prepare("SELECT seen_at,clicked_at,converted_at,variant_id FROM web_popup_assign WHERE tenant_id=? AND popup_id=? AND vid=?");
             $row->execute([$t, $pid, $vid]);
             $a = $row->fetch(PDO::FETCH_ASSOC) ?: [];
+            // sticky 변형 = 원장에 최초 확정된 값(클라가 이후 다른 변형 제출해도 무시 → 다변형 노출조작 차단).
+            $sv = (int)($a['variant_id'] ?? 0);
+            $bumpVar = function (string $col) use ($pdo, $sv, $t, $pid) {
+                if ($sv > 0) { $pdo->prepare("UPDATE web_popup_variant SET $col=$col+1 WHERE id=? AND popup_id=? AND tenant_id=?")->execute([$sv, $pid, $t]); }
+            };
             if ($type === 'impression') {
-                // 최초 노출만 카운트(원장에 seen 이 방금 생성됐고 이전 카운트 안 됨 → 신규행 판정).
-                // 신규행 여부: rowCount 로 판단이 어려워, seen 카운트는 "원장 신규생성 시"만. 여기선 노출은 항상 sticky 1회.
                 if (($a['seen_at'] ?? '') === $now) {
                     $pdo->prepare("UPDATE web_popup SET impressions=impressions+1 WHERE id=? AND tenant_id=?")->execute([$pid, $t]);
+                    $bumpVar('impressions');
                 }
             } elseif ($type === 'click') {
                 if (($a['clicked_at'] ?? null) === null || ($a['clicked_at'] ?? '') === '') {
                     $pdo->prepare("UPDATE web_popup_assign SET clicked_at=? WHERE tenant_id=? AND popup_id=? AND vid=? AND (clicked_at IS NULL OR clicked_at='')")->execute([$now, $t, $pid, $vid]);
                     $pdo->prepare("UPDATE web_popup SET clicks=clicks+1 WHERE id=? AND tenant_id=?")->execute([$pid, $t]);
+                    $bumpVar('clicks');
                 }
             } elseif ($type === 'conversion') {
                 // 선행 노출 보유 + 미전환일 때만 1회(전환 위조 차단).
@@ -325,6 +560,7 @@ final class WebPopupCampaign
                 if ($hasSeen && $notConv) {
                     $pdo->prepare("UPDATE web_popup_assign SET converted_at=? WHERE tenant_id=? AND popup_id=? AND vid=? AND (converted_at IS NULL OR converted_at='')")->execute([$now, $t, $pid, $vid]);
                     $pdo->prepare("UPDATE web_popup SET conversions=conversions+1 WHERE id=? AND tenant_id=?")->execute([$pid, $t]);
+                    $bumpVar('conversions');
                 }
             }
         } catch (\Throwable $e) { /* graceful */ }
@@ -352,12 +588,21 @@ final class WebPopupCampaign
   try {
     var VK="__gg_pop_vid", vid=localStorage.getItem(VK);
     if(!vid){ vid=(Date.now().toString(36)+Math.random().toString(36).slice(2,10)); localStorage.setItem(VK,vid); }
-    function beacon(pid,type){
+    function beacon(pid,type,vr){
       try{
-        var body=JSON.stringify({tenant:TENANT,popup_id:pid,type:type,vid:vid});
+        var body=JSON.stringify({tenant:TENANT,popup_id:pid,type:type,vid:vid,variant_id:vr||0});
         if(navigator.sendBeacon){ navigator.sendBeacon(BASE+"/v424/web-popups/event", new Blob([body],{type:"application/json"})); }
         else{ fetch(BASE+"/v424/web-popups/event",{method:"POST",headers:{"Content-Type":"application/json"},body:body,keepalive:true}).catch(function(){}); }
       }catch(e){}
+    }
+    /* A/B: vid+popup 결정론적 가중 버킷팅 — 방문자당 sticky 1변형(서버 원장과 정합). */
+    function hashStr(s){ var h=2166136261,i; for(i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=(h*16777619)>>>0; } return h>>>0; }
+    function pickVariant(p){
+      var vs=p&&p.variants; if(!vs||vs.length<2) return null;
+      var total=0,i,w; for(i=0;i<vs.length;i++){ total+=Math.max(1,(vs[i].weight|0)||1); }
+      var r=hashStr(vid+":"+p.id)%total, acc=0;
+      for(i=0;i<vs.length;i++){ acc+=Math.max(1,(vs[i].weight|0)||1); if(r<acc) return vs[i]; }
+      return vs[0];
     }
     var SHOWN={};
     function esc(s){ var d=document.createElement("div"); d.textContent=(s==null?"":String(s)); return d.innerHTML; }
@@ -382,13 +627,13 @@ final class WebPopupCampaign
         var a=document.createElement("a");
         a.textContent=p.cta; a.href=p.linkUrl||"#"; if(p.linkUrl) a.target="_blank"; a.rel="noopener";
         a.style.cssText="display:inline-block;margin-top:6px;padding:12px 28px;border-radius:99px;background:linear-gradient(135deg,#f97316,#f7931e);color:#fff;font-weight:800;font-size:14px;text-decoration:none;cursor:pointer";
-        a.onclick=function(){ beacon(p.id,"click"); beacon(p.id,"conversion"); };
+        a.onclick=function(){ beacon(p.id,"click",p.__variant); beacon(p.id,"conversion",p.__variant); };
         card.appendChild(a);
       }
       card.appendChild(x); ov.appendChild(card);
       ov.addEventListener("click",function(e){ if(e.target===ov && ov.parentNode) ov.parentNode.removeChild(ov); });
       document.body.appendChild(ov);
-      beacon(p.id,"impression");
+      beacon(p.id,"impression",p.__variant);
     }
     function arm(p){
       var trig=(p.trigger||"exit");
@@ -402,7 +647,15 @@ final class WebPopupCampaign
     }
     fetch(BASE+"/v424/web-popups/active?tenant="+encodeURIComponent(TENANT))
       .then(function(r){ return r.ok?r.json():null; })
-      .then(function(d){ if(d&&d.ok&&d.popups&&d.popups.length){ arm(d.popups[0]); } })
+      .then(function(d){ if(d&&d.ok&&d.popups&&d.popups.length){
+        var p=d.popups[0], v=pickVariant(p);
+        if(v){ p.__variant=v.id;
+          if(v.title) p.title=v.title; if(v.subtitle) p.subtitle=v.subtitle; if(v.body) p.body=v.body;
+          if(v.cta) p.cta=v.cta; if(v.linkUrl) p.linkUrl=v.linkUrl;
+          if(typeof v.discount==="number") p.discount=v.discount;
+        }
+        arm(p);
+      } })
       .catch(function(){});
   } catch(e){}
 })();

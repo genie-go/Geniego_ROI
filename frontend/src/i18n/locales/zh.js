@@ -10891,7 +10891,7 @@ export default {"paymentSuccess": {"invalidInfo":"支付信息不正确。","ver
     "elapsed": "已用时间",
     "processed": "已处理",
   },
-    "webPopup": {"embedTitle":"网站嵌入代码","embedDesc":"将以下代码粘贴到您商城的 <head> 或 </body> 之前一次，激活的弹窗即会自动向访客展示(含触发与转化信标)。无需单独登录·自动更新。","embedCopy":"复制代码","embedCopied":"已复制 ✓",
+    "webPopup": {"abVariantPerf":"Variant Performance","abSelectPopup":"Select popup…","abSelectPopupFirst":"Select a popup first.","abVariantLimit":"Up to 6 variants allowed.","abSaveFail":"Failed to save variant.","abSaving":"Saving…","abAddVariant":"Add Variant","abColLabel":"Variant","abColWeight":"Weight","abColAction":"Action","abControl":"Control","abToggle":"Active/Pause","abPromote":"Promote to default","abPromoteConfirm":"Promote this variant to the popup default and pause the others. Continue?","abNoVariants":"No variants yet. Add your first variant below.","abNeedTwo":"Need 2+ variants","abCollecting":"Collecting data","abSignificant":"Significant winner","abNoWinner":"No significant difference","abWinnerLine":"Winner","abHint":"When 2+ variants are active, visitors are deterministically split by weight and each variant is served. Impressions/clicks/conversions are tracked per variant, and a winner is called via a z-test once the sample is large enough.","paused":"Paused","embedTitle":"网站嵌入代码","embedDesc":"将以下代码粘贴到您商城的 <head> 或 </body> 之前一次，激活的弹窗即会自动向访客展示(含触发与转化信标)。无需单独登录·自动更新。","embedCopy":"复制代码","embedCopied":"已复制 ✓",
     "heroTitle": "网页弹窗 & 实时离开检测",
     "heroDesc": "鼠标离开 → 3秒内自动触发 · 购物车abandonment恢复 · A/B测试 · 符合GDPR",
     "badgeExit": "Exit-Intent检测",
@@ -14704,6 +14704,12 @@ export default {"paymentSuccess": {"invalidInfo":"支付信息不正确。","ver
 
   // 176차 PM8 S6-P1: attrData live channel/touches append (last-key-wins, append-only)
   attrData: {
+    "vtcPure": "Pure View-through (VTC)",
+    "vtcRateLabel": "Conv. rate",
+    "ctc": "Click-through (CTC)",
+    "vtAssisted": "View-assisted",
+    "vtOutWindow": "Out-of-window (unattributed)",
+    "vtWindowDays": "Window",
     "blendTitle": '融合增量置信度',
     "blendSignals": '活跃信号',
     "blendDecision": '决策置信度',
