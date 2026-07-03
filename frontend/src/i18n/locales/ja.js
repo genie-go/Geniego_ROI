@@ -10620,7 +10620,7 @@ export default {"paymentSuccess": {"invalidInfo":"決済情報が正しくあり
       prodDesc: '実運用環境',
       loginProd: '🏢 本番ログイン・新規登録',
   },
-  "webPopup": {
+  "webPopup": {"embedTitle":"サイト埋め込みコード","embedDesc":"以下のコードを自社サイトの <head> または </body> の直前に一度貼り付けると、アクティブなポップアップが訪問者に自動表示されます(トリガー・コンバージョンビーコン付き)。別途ログイン不要・自動更新。","embedCopy":"コードをコピー","embedCopied":"コピーしました ✓",
     "heroTitle": "Webポップアップ & リアルタイム離脱検知",
     "heroDesc": "マウス離脱 → 3秒以内に自動トリガー · カート放棄復旧 · A/Bテスト · GDPR準拠",
     "badgeExit": "Exit-Intent検知",
@@ -11836,7 +11836,7 @@ export default {"paymentSuccess": {"invalidInfo":"決済情報が正しくあり
     permCreate: "作成(Create)",
     permUpdate: "更新(Update)"
     },
-  "reviews": {"tabWidget": "表示/ウィジェット","collectErr": "レビュー収集に失敗しました","collectNone": "収集された新規レビューはありません","collectDone": "レビュー収集が完了しました","widgetErr": "ウィジェットコードを読み込めませんでした。しばらくしてから再度お試しください。","widgetRotateHint": "トークンを再発行すると、既に挿入したコードは動作を停止します（セキュリティローテーション用）。","widgetRotate": "トークン再発行","widgetPreview": "ライブプレビュー","badgeLabel": "信頼バッジ（平均評価）","copyCode": "コードをコピー","widgetEmbedLabel": "レビューウィジェット (iframe)","widgetLoading": "ウィジェットコードを読み込み中…","widgetDemo": "デモモードでは埋め込みコードは生成されません。実アカウントで実際のレビューを収集すると、専用ウィジェットコードが発行されます。","widgetDesc": "収集・検証済みのレビューを自社モール・ランディングページ・ブログなど、どこにでも埋め込めます。下のコードをコピーして貼り付けるだけです（別途ログイン不要・自動更新）。","widgetTitle": "レビュー表示 · 埋め込みウィジェット","collectHint": "連携ハブに認証情報を登録したチャネルのみ収集されます","collectTitle": "チャネルレビュー収集",
+  "reviews": {"settingsSave":"設定を保存","settingsSaving":"保存中…","settingsSaved":"設定を保存しました","settingsSaveFail":"設定の保存に失敗しました","slackWebhookInvalid":"Slack Webhook URL の形式が正しくありません","tabWidget": "表示/ウィジェット","collectErr": "レビュー収集に失敗しました","collectNone": "収集された新規レビューはありません","collectDone": "レビュー収集が完了しました","widgetErr": "ウィジェットコードを読み込めませんでした。しばらくしてから再度お試しください。","widgetRotateHint": "トークンを再発行すると、既に挿入したコードは動作を停止します（セキュリティローテーション用）。","widgetRotate": "トークン再発行","widgetPreview": "ライブプレビュー","badgeLabel": "信頼バッジ（平均評価）","copyCode": "コードをコピー","widgetEmbedLabel": "レビューウィジェット (iframe)","widgetLoading": "ウィジェットコードを読み込み中…","widgetDemo": "デモモードでは埋め込みコードは生成されません。実アカウントで実際のレビューを収集すると、専用ウィジェットコードが発行されます。","widgetDesc": "収集・検証済みのレビューを自社モール・ランディングページ・ブログなど、どこにでも埋め込めます。下のコードをコピーして貼り付けるだけです（別途ログイン不要・自動更新）。","widgetTitle": "レビュー表示 · 埋め込みウィジェット","collectHint": "連携ハブに認証情報を登録したチャネルのみ収集されます","collectTitle": "チャネルレビュー収集",
     "positive": "ポジティブ",
     "neutral": "ニュートラル",
     "negative": "ネガティブ",

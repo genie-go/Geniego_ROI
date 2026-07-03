@@ -7941,7 +7941,7 @@ export default {"paymentSuccess": {"invalidInfo":"付款資訊不正確。","ver
       more: "更多",
       ariaLabel: "底部導航"
     },
-  webPopup: {
+  webPopup: {"embedTitle":"網站嵌入程式碼","embedDesc":"將以下程式碼貼到您商城的 <head> 或 </body> 之前一次，啟用的彈窗即會自動向訪客顯示(含觸發與轉換信標)。無需另外登入·自動更新。","embedCopy":"複製程式碼","embedCopied":"已複製 ✓",
       heroTitle: "網頁彈窗 & 即時離開偵測",
       heroDesc: "滑鼠離開 → 3秒內自動觸發 · 購物車挽回 · A/B測試 · 符合GDPR",
       badgeExit: "Exit-Intent偵測",
@@ -9587,7 +9587,7 @@ export default {"paymentSuccess": {"invalidInfo":"付款資訊不正確。","ver
       period6m: "6 Months",
       period1y: "1 Year"
     },
-  reviews: {"tabWidget": "展示/小工具","collectErr": "評論收集失敗","collectNone": "沒有收集到新評論","collectDone": "評論收集完成","widgetErr": "無法載入小工具程式碼。請稍後再試。","widgetRotateHint": "重新核發權杖後，先前已嵌入的程式碼將停止運作（用於安全輪替）。","widgetRotate": "重新核發權杖","widgetPreview": "即時預覽","badgeLabel": "信任徽章（平均星級）","copyCode": "複製程式碼","widgetEmbedLabel": "評論小工具 (iframe)","widgetLoading": "正在載入小工具程式碼…","widgetDemo": "示範模式下不會產生嵌入程式碼。在真實帳戶中收集到真實評論後，將核發專用小工具程式碼。","widgetDesc": "將已收集並驗證的評論嵌入到自有商城、著陸頁、部落格等任何位置。只需複製下方程式碼貼上即可（無需另外登入·自動更新）。","widgetTitle": "評論展示 · 嵌入小工具","collectHint": "僅收集已在整合中心註冊憑證的通路","collectTitle": "通路評論收集",
+  reviews: {"settingsSave":"儲存設定","settingsSaving":"儲存中…","settingsSaved":"設定已儲存","settingsSaveFail":"設定儲存失敗","slackWebhookInvalid":"Slack Webhook URL 格式無效","tabWidget": "展示/小工具","collectErr": "評論收集失敗","collectNone": "沒有收集到新評論","collectDone": "評論收集完成","widgetErr": "無法載入小工具程式碼。請稍後再試。","widgetRotateHint": "重新核發權杖後，先前已嵌入的程式碼將停止運作（用於安全輪替）。","widgetRotate": "重新核發權杖","widgetPreview": "即時預覽","badgeLabel": "信任徽章（平均星級）","copyCode": "複製程式碼","widgetEmbedLabel": "評論小工具 (iframe)","widgetLoading": "正在載入小工具程式碼…","widgetDemo": "示範模式下不會產生嵌入程式碼。在真實帳戶中收集到真實評論後，將核發專用小工具程式碼。","widgetDesc": "將已收集並驗證的評論嵌入到自有商城、著陸頁、部落格等任何位置。只需複製下方程式碼貼上即可（無需另外登入·自動更新）。","widgetTitle": "評論展示 · 嵌入小工具","collectHint": "僅收集已在整合中心註冊憑證的通路","collectTitle": "通路評論收集",
       positive: "正面",
       neutral: "中立",
       negative: "負面",

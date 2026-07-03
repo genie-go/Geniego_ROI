@@ -1,9 +1,9 @@
 {
-  "version": "259-profile-i18n",
-  "updated": "2026-07-01 (257차 감사수정 i18n: CRO 비주얼에디터 9키 15국 누락보강[에디터 커밋이 i18n 커밋 뒤라 미러 누락]. crm.actPurchase는 15국 기존존재=오탐 제외)",
+  "version": "262-idle-embed-i18n",
+  "updated": "2026-07-03 (262차 신규 UI i18n: 리뷰 응대설정 저장 reviews.settingsSave/Saving/Saved/SaveFail·slackWebhookInvalid 5키 + 웹팝업 임베드 스니펫 webPopup.embedTitle/Desc/Copy/Copied 4키 = 9키×14국 주입. ko는 직전 커밋서 선반영=skip. ja/zh sacred SHA 동반 갱신. tools inject 스크립트 dedup=따옴표/비따옴표 양쪽 탐지. admin 페이지는 한글 유지=범위 외)",
   "sacred_sha": {
-    "ja.js": "2d909b36bfb3299fb69d394aebc903f92136d64518197f755441033391dad0fc",
-    "zh.js": "1cdd9577bdabbe03030825380584406a00f49191898c74b13aa624579974122f"
+    "ja.js": "5fc225a02d39e303bbade074b82d5bb71c78c6e3315783599b3ba1c2183d8f18",
+    "zh.js": "9c21bcf037149bc336e730b7c6c9b5de12994176239e41f228bf4d51671f1791"
   },
   "ko_leaf_count": 18484,
   "leaf_tolerance_pct": 5,

@@ -7490,7 +7490,7 @@ export default {"paymentSuccess": {"invalidInfo":"Informasi pembayaran tidak val
       oauthLogin: "OAuth Login",
       noConnectors: "No connectors available."
     },
-  webPopup: {
+  webPopup: {"embedTitle":"Kode Sematan Situs","embedDesc":"Tempel kode ini sekali di <head> toko Anda atau tepat sebelum </body>, dan popup aktif akan otomatis tampil ke pengunjung (dengan beacon pemicu & konversi). Tanpa login terpisah · pembaruan otomatis.","embedCopy":"Salin Kode","embedCopied":"Tersalin ✓",
       heroTitle: "Web Popup & Deteksi Keluar Real-Time",
       heroDesc: "Kursor keluar → Pemicu otomatis dalam 3 detik · Pemulihan keranjang · A/B Test · Sesuai GDPR",
       badgeExit: "Deteksi Exit-Intent",
@@ -9813,7 +9813,7 @@ export default {"paymentSuccess": {"invalidInfo":"Informasi pembayaran tidak val
       period6m: "6 Bulan",
       period1y: "1 Tahun"
     },
-  reviews: {"tabWidget": "Tampilan / Widget","collectErr": "Gagal mengumpulkan ulasan","collectNone": "Tidak ada ulasan baru yang dikumpulkan","collectDone": "Pengumpulan ulasan selesai","widgetErr": "Gagal memuat kode widget. Silakan coba lagi nanti.","widgetRotateHint": "Menerbitkan ulang token akan menghentikan kode yang sebelumnya disematkan agar tidak berfungsi (untuk rotasi keamanan).","widgetRotate": "Terbitkan Ulang Token","widgetPreview": "Pratinjau Langsung","badgeLabel": "Lencana Kepercayaan (Rating Rata-rata)","copyCode": "Salin Kode","widgetEmbedLabel": "Widget Ulasan (iframe)","widgetLoading": "Memuat kode widget…","widgetDemo": "Kode sematan tidak dibuat dalam mode demo. Setelah Anda mengumpulkan ulasan asli dari akun nyata, kode widget khusus akan diterbitkan.","widgetDesc": "Sematkan ulasan yang telah dikumpulkan dan diverifikasi di mana saja — toko Anda, halaman landing, atau blog. Cukup salin dan tempel kode di bawah ini (tanpa login terpisah · pembaruan otomatis).","widgetTitle": "Tampilan Ulasan · Widget Sematan","collectHint": "Hanya channel dengan kredensial yang terdaftar di Integration Hub yang dikumpulkan","collectTitle": "Kumpulkan Ulasan Channel",
+  reviews: {"settingsSave":"Simpan Pengaturan","settingsSaving":"Menyimpan…","settingsSaved":"Pengaturan disimpan","settingsSaveFail":"Gagal menyimpan pengaturan","slackWebhookInvalid":"Format URL Slack Webhook tidak valid","tabWidget": "Tampilan / Widget","collectErr": "Gagal mengumpulkan ulasan","collectNone": "Tidak ada ulasan baru yang dikumpulkan","collectDone": "Pengumpulan ulasan selesai","widgetErr": "Gagal memuat kode widget. Silakan coba lagi nanti.","widgetRotateHint": "Menerbitkan ulang token akan menghentikan kode yang sebelumnya disematkan agar tidak berfungsi (untuk rotasi keamanan).","widgetRotate": "Terbitkan Ulang Token","widgetPreview": "Pratinjau Langsung","badgeLabel": "Lencana Kepercayaan (Rating Rata-rata)","copyCode": "Salin Kode","widgetEmbedLabel": "Widget Ulasan (iframe)","widgetLoading": "Memuat kode widget…","widgetDemo": "Kode sematan tidak dibuat dalam mode demo. Setelah Anda mengumpulkan ulasan asli dari akun nyata, kode widget khusus akan diterbitkan.","widgetDesc": "Sematkan ulasan yang telah dikumpulkan dan diverifikasi di mana saja — toko Anda, halaman landing, atau blog. Cukup salin dan tempel kode di bawah ini (tanpa login terpisah · pembaruan otomatis).","widgetTitle": "Tampilan Ulasan · Widget Sematan","collectHint": "Hanya channel dengan kredensial yang terdaftar di Integration Hub yang dikumpulkan","collectTitle": "Kumpulkan Ulasan Channel",
       positive: "Positif",
       neutral: "Netral",
       negative: "Negatif",

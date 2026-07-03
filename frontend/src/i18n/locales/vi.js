@@ -11394,7 +11394,7 @@ export default {"paymentSuccess": {"invalidInfo":"Thông tin thanh toán không 
       more: "Thêm",
       ariaLabel: "Điều hướng dưới"
     },
-  webPopup: {
+  webPopup: {"embedTitle":"Mã nhúng trang web","embedDesc":"Dán mã này một lần vào <head> của cửa hàng hoặc ngay trước </body>, các popup đang hoạt động sẽ tự động hiển thị cho khách truy cập (kèm beacon kích hoạt & chuyển đổi). Không cần đăng nhập riêng · tự động cập nhật.","embedCopy":"Sao chép mã","embedCopied":"Đã sao chép ✓",
       heroTitle: "Web Popup & Phát Hiện Thoát Thời Gian Thực",
       heroDesc: "Chuột thoát → Tự động kích hoạt trong 3 giây · Phục hồi giỏ hàng · A/B Test · Tuân thủ GDPR",
       badgeExit: "Phát hiện Exit-Intent",
@@ -12473,7 +12473,7 @@ export default {"paymentSuccess": {"invalidInfo":"Thông tin thanh toán không 
       permCreate: "Tạo",
       permUpdate: "Chỉnh sửa"
     },
-  reviews: {"tabWidget": "Hiển thị / Widget","collectErr": "Thu thập đánh giá thất bại","collectNone": "Không có đánh giá mới nào được thu thập","collectDone": "Đã hoàn tất thu thập đánh giá","widgetErr": "Không tải được mã widget. Vui lòng thử lại sau giây lát.","widgetRotateHint": "Việc cấp lại token sẽ khiến mã đã nhúng trước đó ngừng hoạt động (dùng để xoay vòng bảo mật).","widgetRotate": "Cấp lại token","widgetPreview": "Xem trước trực tiếp","badgeLabel": "Huy hiệu tin cậy (Điểm trung bình)","copyCode": "Sao chép mã","widgetEmbedLabel": "Widget đánh giá (iframe)","widgetLoading": "Đang tải mã widget…","widgetDemo": "Mã nhúng không được tạo ở chế độ demo. Khi bạn thu thập đánh giá thực từ tài khoản thật, mã widget riêng sẽ được cấp.","widgetDesc": "Nhúng các đánh giá đã thu thập và xác minh ở bất kỳ đâu — cửa hàng riêng, trang đích hay blog. Chỉ cần sao chép và dán đoạn mã bên dưới (không cần đăng nhập riêng · tự động cập nhật).","widgetTitle": "Hiển thị đánh giá · Widget nhúng","collectHint": "Chỉ thu thập các kênh đã đăng ký thông tin xác thực trong Trung tâm tích hợp","collectTitle": "Thu thập đánh giá kênh",
+  reviews: {"settingsSave":"Lưu cài đặt","settingsSaving":"Đang lưu…","settingsSaved":"Đã lưu cài đặt","settingsSaveFail":"Lưu cài đặt thất bại","slackWebhookInvalid":"Định dạng URL Slack Webhook không hợp lệ","tabWidget": "Hiển thị / Widget","collectErr": "Thu thập đánh giá thất bại","collectNone": "Không có đánh giá mới nào được thu thập","collectDone": "Đã hoàn tất thu thập đánh giá","widgetErr": "Không tải được mã widget. Vui lòng thử lại sau giây lát.","widgetRotateHint": "Việc cấp lại token sẽ khiến mã đã nhúng trước đó ngừng hoạt động (dùng để xoay vòng bảo mật).","widgetRotate": "Cấp lại token","widgetPreview": "Xem trước trực tiếp","badgeLabel": "Huy hiệu tin cậy (Điểm trung bình)","copyCode": "Sao chép mã","widgetEmbedLabel": "Widget đánh giá (iframe)","widgetLoading": "Đang tải mã widget…","widgetDemo": "Mã nhúng không được tạo ở chế độ demo. Khi bạn thu thập đánh giá thực từ tài khoản thật, mã widget riêng sẽ được cấp.","widgetDesc": "Nhúng các đánh giá đã thu thập và xác minh ở bất kỳ đâu — cửa hàng riêng, trang đích hay blog. Chỉ cần sao chép và dán đoạn mã bên dưới (không cần đăng nhập riêng · tự động cập nhật).","widgetTitle": "Hiển thị đánh giá · Widget nhúng","collectHint": "Chỉ thu thập các kênh đã đăng ký thông tin xác thực trong Trung tâm tích hợp","collectTitle": "Thu thập đánh giá kênh",
       positive: "Tích cực",
       neutral: "Trung lập",
       negative: "Tiêu cực",

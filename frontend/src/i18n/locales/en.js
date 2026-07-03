@@ -10742,7 +10742,7 @@ export default {"paymentSuccess": {"invalidInfo":"The payment information is inv
       permCreate: "Create",
       permUpdate: "Update"
     },
-  webPopup: {
+  webPopup: {"embedTitle":"Site Embed Code","embedDesc":"Paste this code once into your store’s <head> or right before </body>, and active popups will show to visitors automatically (with trigger & conversion beacons). No separate login required · auto-updating.","embedCopy":"Copy Code","embedCopied":"Copied ✓",
       heroTitle: "Web Popup & Real-Time Exit Detection",
       heroDesc: "Mouse exit → auto-trigger in 3 sec · Cart abandonment recovery · A/B Test · GDPR compliant",
       badgeExit: "Exit-Intent Detection",
@@ -11183,7 +11183,7 @@ export default {"paymentSuccess": {"invalidInfo":"The payment information is inv
     copilotEngine: "AI Copilot Engine",
     enterpriseEngine: "Enterprise AI Engine",
     },
-  reviews: {"tabWidget": "Display / Widget","collectErr": "Failed to collect reviews","collectNone": "No new reviews collected","collectDone": "Review collection complete","widgetErr": "Failed to load widget code. Please try again shortly.","widgetRotateHint": "Reissuing the token stops any previously embedded code from working (for security rotation).","widgetRotate": "Reissue Token","widgetPreview": "Live Preview","badgeLabel": "Trust Badge (Average Rating)","copyCode": "Copy Code","widgetEmbedLabel": "Review Widget (iframe)","widgetLoading": "Loading widget code…","widgetDemo": "Embed code is not generated in demo mode. Once you collect real reviews from an actual account, a dedicated widget code is issued.","widgetDesc": "Embed collected and verified reviews anywhere — your own store, landing pages, or blog. Just copy and paste the code below (no separate login required · auto-updating).","widgetTitle": "Review Display · Embed Widget","collectHint": "Only channels with credentials registered in the Integration Hub are collected","collectTitle": "Collect Channel Reviews",
+  reviews: {"settingsSave":"Save Settings","settingsSaving":"Saving…","settingsSaved":"Settings saved","settingsSaveFail":"Failed to save settings","slackWebhookInvalid":"Invalid Slack Webhook URL format","tabWidget": "Display / Widget","collectErr": "Failed to collect reviews","collectNone": "No new reviews collected","collectDone": "Review collection complete","widgetErr": "Failed to load widget code. Please try again shortly.","widgetRotateHint": "Reissuing the token stops any previously embedded code from working (for security rotation).","widgetRotate": "Reissue Token","widgetPreview": "Live Preview","badgeLabel": "Trust Badge (Average Rating)","copyCode": "Copy Code","widgetEmbedLabel": "Review Widget (iframe)","widgetLoading": "Loading widget code…","widgetDemo": "Embed code is not generated in demo mode. Once you collect real reviews from an actual account, a dedicated widget code is issued.","widgetDesc": "Embed collected and verified reviews anywhere — your own store, landing pages, or blog. Just copy and paste the code below (no separate login required · auto-updating).","widgetTitle": "Review Display · Embed Widget","collectHint": "Only channels with credentials registered in the Integration Hub are collected","collectTitle": "Collect Channel Reviews",
       positive: "Positive",
       neutral: "Neutral",
       negative: "Negative",

@@ -10891,7 +10891,7 @@ export default {"paymentSuccess": {"invalidInfo":"支付信息不正确。","ver
     "elapsed": "已用时间",
     "processed": "已处理",
   },
-    "webPopup": {
+    "webPopup": {"embedTitle":"网站嵌入代码","embedDesc":"将以下代码粘贴到您商城的 <head> 或 </body> 之前一次，激活的弹窗即会自动向访客展示(含触发与转化信标)。无需单独登录·自动更新。","embedCopy":"复制代码","embedCopied":"已复制 ✓",
     "heroTitle": "网页弹窗 & 实时离开检测",
     "heroDesc": "鼠标离开 → 3秒内自动触发 · 购物车abandonment恢复 · A/B测试 · 符合GDPR",
     "badgeExit": "Exit-Intent检测",
@@ -11788,7 +11788,7 @@ export default {"paymentSuccess": {"invalidInfo":"支付信息不正确。","ver
     "item_ai": "AI",
     "item_admin": "Admin"
     },
-  "reviews": {"tabWidget": "展示/组件","collectErr": "评论收集失败","collectNone": "没有采集到新评论","collectDone": "评论采集完成","widgetErr": "无法加载小组件代码。请稍后重试。","widgetRotateHint": "重新发放令牌后，此前已嵌入的代码将停止工作（用于安全轮换）。","widgetRotate": "重新发放令牌","widgetPreview": "实时预览","badgeLabel": "信任徽章（平均星级）","copyCode": "复制代码","widgetEmbedLabel": "评论小组件 (iframe)","widgetLoading": "正在加载小组件代码…","widgetDemo": "演示模式下不会生成嵌入代码。在真实账户中采集到真实评论后，将发放专用小组件代码。","widgetDesc": "将已采集并验证的评论嵌入到自有商城、落地页、博客等任何位置。只需复制下方代码粘贴即可（无需单独登录·自动更新）。","widgetTitle": "评论展示 · 嵌入小组件","collectHint": "仅采集已在集成中心注册凭证的渠道","collectTitle": "渠道评论采集",
+  "reviews": {"settingsSave":"保存设置","settingsSaving":"保存中…","settingsSaved":"设置已保存","settingsSaveFail":"设置保存失败","slackWebhookInvalid":"Slack Webhook URL 格式无效","tabWidget": "展示/组件","collectErr": "评论收集失败","collectNone": "没有采集到新评论","collectDone": "评论采集完成","widgetErr": "无法加载小组件代码。请稍后重试。","widgetRotateHint": "重新发放令牌后，此前已嵌入的代码将停止工作（用于安全轮换）。","widgetRotate": "重新发放令牌","widgetPreview": "实时预览","badgeLabel": "信任徽章（平均星级）","copyCode": "复制代码","widgetEmbedLabel": "评论小组件 (iframe)","widgetLoading": "正在加载小组件代码…","widgetDemo": "演示模式下不会生成嵌入代码。在真实账户中采集到真实评论后，将发放专用小组件代码。","widgetDesc": "将已采集并验证的评论嵌入到自有商城、落地页、博客等任何位置。只需复制下方代码粘贴即可（无需单独登录·自动更新）。","widgetTitle": "评论展示 · 嵌入小组件","collectHint": "仅采集已在集成中心注册凭证的渠道","collectTitle": "渠道评论采集",
     "positive": "积极",
     "neutral": "中性",
     "negative": "负面",
