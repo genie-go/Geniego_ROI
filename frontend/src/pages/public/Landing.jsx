@@ -79,48 +79,48 @@ const DICT = {
     /* ── [254차 감사] Growth 캡처 팝업(전 방문자 노출·기존 하드코딩 한글 → 11국 현지화) ── */
     capThanks: { ko:"감사합니다! 곧 안내드리겠습니다.", en:"Thank you! We'll be in touch shortly.", ja:"ありがとうございます！まもなくご案内します。", zh:"感谢！我们将尽快与您联系。", "zh-TW":"感謝！我們將盡快與您聯繫。", vi:"Cảm ơn bạn! Chúng tôi sẽ liên hệ sớm.", th:"ขอบคุณ! เราจะติดต่อกลับเร็วๆ นี้", id:"Terima kasih! Kami akan segera menghubungi Anda.", de:"Danke! Wir melden uns in Kürze.", fr:"Merci ! Nous vous contacterons sous peu.", es:"¡Gracias! Le contactaremos en breve." },
     capTitle: { ko:"🚀 전 광고매체 ROI를 한 곳에서", en:"🚀 All your ad-channel ROI in one place", ja:"🚀 すべての広告媒体のROIを一か所で", zh:"🚀 所有广告渠道的ROI集中管理", "zh-TW":"🚀 所有廣告渠道的ROI集中管理", vi:"🚀 Toàn bộ ROI kênh quảng cáo tại một nơi", th:"🚀 ROI ของทุกช่องทางโฆษณาในที่เดียว", id:"🚀 Semua ROI kanal iklan dalam satu tempat", de:"🚀 Alle Werbekanal-ROIs an einem Ort", fr:"🚀 Tout le ROI de vos canaux publicitaires au même endroit", es:"🚀 Todo el ROI de tus canales publicitarios en un solo lugar" },
-    capDesc: { ko:"20일 무료 체험 안내를 받아보세요. AI가 채널별 예산을 자동 최적화합니다.", en:"Get your 20-day free trial guide. AI auto-optimizes budget per channel.", ja:"20日間の無料トライアル案内を受け取りましょう。AIがチャネル別予算を自動最適化します。", zh:"领取20天免费试用指南。AI自动优化各渠道预算。", "zh-TW":"領取20天免費試用指南。AI自動優化各渠道預算。", vi:"Nhận hướng dẫn dùng thử miễn phí 20 ngày. AI tự động tối ưu ngân sách từng kênh.", th:"รับคำแนะนำทดลองใช้ฟรี 20 วัน AI ปรับงบประมาณแต่ละช่องทางอัตโนมัติ", id:"Dapatkan panduan uji coba gratis 20 hari. AI mengoptimalkan anggaran tiap kanal secara otomatis.", de:"Erhalten Sie Ihren 20-tägigen Testleitfaden. Die KI optimiert das Budget pro Kanal automatisch.", fr:"Recevez votre guide d'essai gratuit de 20 jours. L'IA optimise automatiquement le budget par canal.", es:"Reciba su guía de prueba gratuita de 20 días. La IA optimiza el presupuesto por canal automáticamente." },
+    capDesc: { ko:"20일 무료 체험 안내를 받아보세요. 채널별 예산 효율과 ROAS를 한 곳에서 분석합니다.", en:"Get your 20-day free trial guide. Analyze channel budget efficiency and ROAS in one place.", ja:"20日間の無料トライアル案内を受け取りましょう。チャネル別の予算効率とROASを一か所で分析します。", zh:"领取20天免费试用指南。在一处分析各渠道预算效率与ROAS。", "zh-TW":"領取20天免費試用指南。在一處分析各通路預算效率與ROAS。", vi:"Nhận hướng dẫn dùng thử miễn phí 20 ngày. Phân tích hiệu quả ngân sách và ROAS từng kênh tại một nơi.", th:"รับคำแนะนำทดลองใช้ฟรี 20 วัน วิเคราะห์ประสิทธิภาพงบและ ROAS แต่ละช่องทางในที่เดียว", id:"Dapatkan panduan uji coba gratis 20 hari. Analisis efisiensi anggaran dan ROAS tiap kanal di satu tempat.", de:"Erhalten Sie Ihren 20-tägigen Testleitfaden. Analysieren Sie Budgeteffizienz und ROAS pro Kanal an einem Ort.", fr:"Recevez votre guide d'essai gratuit de 20 jours. Analysez l'efficacité budgétaire et le ROAS par canal en un seul endroit.", es:"Reciba su guía de prueba gratuita de 20 días. Analice la eficiencia del presupuesto y el ROAS por canal en un solo lugar." },
     capEmailPh: { ko:"이메일 주소", en:"Email address", ja:"メールアドレス", zh:"电子邮箱", "zh-TW":"電子郵箱", vi:"Địa chỉ email", th:"ที่อยู่อีเมล", id:"Alamat email", de:"E-Mail-Adresse", fr:"Adresse e-mail", es:"Correo electrónico" },
     capCta: { ko:"무료 체험 안내 받기", en:"Get free trial info", ja:"無料トライアル案内を受け取る", zh:"获取免费试用信息", "zh-TW":"取得免費試用資訊", vi:"Nhận thông tin dùng thử miễn phí", th:"รับข้อมูลทดลองใช้ฟรี", id:"Dapatkan info uji coba gratis", de:"Kostenlose Testinfos erhalten", fr:"Obtenir les infos d'essai gratuit", es:"Obtener info de prueba gratis" },
     /* ── Badge ── */
     heroBadge: {
-        ko: "🚀 올인원 커머스 AI 자동화 플랫폼",
-        en: "🚀 All-in-One AI Commerce Automation Platform",
-        ja: "🚀 オールインワン AI コマース自動化プラットフォーム",
-        zh: "🚀 一站式 AI 电商自动化平台",
-        "zh-TW": "🚀 一站式 AI 電商自動化平台",
-        vi: "🚀 Nền tảng Tự động hóa Thương mại AI Toàn diện",
-        th: "🚀 แพลตฟอร์ม AI อีคอมเมิร์ซครบวงจร",
-        id: "🚀 Platform Otomatisasi Commerce AI All-in-One",
-        de: "🚀 All-in-One KI-Commerce-Automatisierungsplattform",
-        fr: "🚀 Plateforme d'automatisation commerce IA tout-en-un",
-        es: "🚀 Plataforma de automatización comercial IA todo-en-uno",
+        ko: "🚀 마케팅 성과 분석 · 어트리뷰션 · ROAS 최적화 플랫폼",
+        en: "🚀 Marketing Analytics · Attribution · ROAS Optimization Platform",
+        ja: "🚀 マーケティング成果分析 · アトリビューション · ROAS最適化プラットフォーム",
+        zh: "🚀 营销绩效分析 · 归因 · ROAS 优化平台",
+        "zh-TW": "🚀 行銷成效分析 · 歸因 · ROAS 最佳化平台",
+        vi: "🚀 Nền tảng Phân tích Hiệu suất Marketing · Attribution · Tối ưu ROAS",
+        th: "🚀 แพลตฟอร์มวิเคราะห์ประสิทธิภาพการตลาด · Attribution · เพิ่มประสิทธิภาพ ROAS",
+        id: "🚀 Platform Analitik Performa Marketing · Atribusi · Optimasi ROAS",
+        de: "🚀 Plattform für Marketing-Analytics · Attribution · ROAS-Optimierung",
+        fr: "🚀 Plateforme d'analyse marketing · Attribution · Optimisation du ROAS",
+        es: "🚀 Plataforma de análisis de marketing · Atribución · Optimización de ROAS",
     },
     heroTitle: {
-        ko: "인공지능 데이터 분석을 통한\n광고 · 판매 · 재고 · 배송 · 정산\n모든 채널 운영을 하나의 플랫폼으로 자동화",
-        en: "Through AI Data Analytics\nAds · Sales · Inventory · Shipping · Settlement\nAll Channel Operations Automated in One Platform",
-        ja: "AI データ分析による\n広告 · 販売 · 在庫 · 配送 · 精算\n全チャネル運営をワンプラットフォームで自動化",
-        zh: "通过 AI 数据分析\n广告 · 销售 · 库存 · 物流 · 结算\n所有渠道运营 一个平台自动化",
-        "zh-TW": "透過 AI 數據分析\n廣告 · 銷售 · 庫存 · 物流 · 結算\n所有通路營運 一個平台自動化",
-        vi: "Thông qua Phân tích Dữ liệu AI\nQuảng cáo · Bán hàng · Tồn kho · Vận chuyển · Thanh toán\nVận hành mọi kênh tự động hóa trong một nền tảng",
-        th: "ผ่านการวิเคราะห์ข้อมูล AI\nโฆษณา · ขาย · สต็อก · ขนส่ง · ชำระเงิน\nดำเนินงานทุกช่องทาง อัตโนมัติในแพลตฟอร์มเดียว",
-        id: "Melalui Analisis Data AI\nIklan · Penjualan · Stok · Pengiriman · Settlement\nOperasi semua channel otomatis dalam satu platform",
-        de: "Durch KI-Datenanalyse\nWerbung · Verkauf · Lager · Versand · Abrechnung\nAlle Kanäle automatisiert in einer Plattform",
-        fr: "Grâce à l'Analyse de Données IA\nPub · Vente · Stock · Livraison · Règlement\nTous les canaux automatisés en une plateforme",
-        es: "Mediante Análisis de Datos con IA\nAnuncios · Ventas · Inventario · Envíos · Liquidación\nTodos los canales automatizados en una plataforma",
+        ko: "모든 채널의 마케팅 성과를\n측정 · 기여도 분석 · 최적화",
+        en: "Measure, attribute, and optimize\nmarketing performance\nacross every channel.",
+        ja: "すべてのチャネルのマーケティング成果を\n測定 · アトリビューション · 最適化",
+        zh: "衡量、归因并优化\n每个渠道的营销绩效",
+        "zh-TW": "衡量、歸因並最佳化\n每個通路的行銷成效",
+        vi: "Đo lường, phân bổ và tối ưu\nhiệu suất marketing trên mọi kênh",
+        th: "วัดผล จัดสรรเครดิต และเพิ่มประสิทธิภาพ\nการตลาดในทุกช่องทาง",
+        id: "Ukur, atribusikan, dan optimalkan\nperforma marketing di setiap kanal",
+        de: "Messen, attribuieren und optimieren Sie\ndie Marketing-Performance über alle Kanäle",
+        fr: "Mesurez, attribuez et optimisez\nla performance marketing sur tous les canaux",
+        es: "Mida, atribuya y optimice\nel rendimiento de marketing en cada canal",
     },
     heroDesc: {
-        ko: "광고 자동화 · 상품 등록 · 재고 관리 · 주문 처리 · 배송 추적 · 성과 분석 · 정산 대사까지 — 커머스 운영의 A부터 Z를 AI가 자동화합니다.",
-        en: "Ad automation · Product listing · Inventory management · Order processing · Shipping tracking · Performance analytics · Settlement — AI automates your commerce from A to Z.",
-        ja: "広告自動化 · 商品登録 · 在庫管理 · 受注処理 · 配送追跡 · 成果分析 · 精算まで — コマース運営のA〜ZをAIが自動化。",
-        zh: "广告自动化 · 商品上架 · 库存管理 · 订单处理 · 物流追踪 · 绩效分析 · 结算对账 — AI 将电商运营从 A 到 Z 全面自动化。",
-        "zh-TW": "廣告自動化 · 商品上架 · 庫存管理 · 訂單處理 · 物流追蹤 · 績效分析 · 結算對帳 — AI 將電商營運從 A 到 Z 全面自動化。",
-        vi: "Tự động quảng cáo · Đăng sản phẩm · Quản lý tồn kho · Xử lý đơn hàng · Theo dõi vận chuyển · Phân tích hiệu suất · Đối soát — AI tự động hóa thương mại từ A đến Z.",
-        th: "โฆษณาอัตโนมัติ · ลงสินค้า · จัดการสต็อก · ประมวลผลออเดอร์ · ติดตามขนส่ง · วิเคราะห์ผล · เคลียร์บัญชี — AI ทำให้อีคอมเมิร์ซอัตโนมัติครบ A ถึง Z",
-        id: "Otomasi iklan · Listing produk · Manajemen stok · Pemrosesan pesanan · Pelacakan pengiriman · Analitik performa · Settlement — AI mengotomatisasi commerce dari A sampai Z.",
-        de: "Anzeigen-Automatisierung · Produktlisting · Lagerverwaltung · Auftragsabwicklung · Versandverfolgung · Leistungsanalyse · Abrechnung — KI automatisiert Ihren Commerce von A bis Z.",
-        fr: "Automatisation pub · Mise en ligne · Gestion de stock · Traitement des commandes · Suivi livraison · Analyse de performance · Règlement — l'IA automatise votre commerce de A à Z.",
-        es: "Automatización de anuncios · Listado de productos · Gestión de inventario · Procesamiento de pedidos · Seguimiento de envíos · Análisis de rendimiento · Liquidación — la IA automatiza su comercio de la A a la Z.",
+        ko: "GeniegoROI는 커머스 팀이 연결된 판매·마케팅 채널의 데이터로 ROAS, 고객 여정, 어트리뷰션, LTV, CAC, 전환 기회를 이해하도록 돕습니다.",
+        en: "GeniegoROI helps commerce teams understand ROAS, customer journeys, attribution, LTV, CAC, and conversion opportunities from connected sales and marketing channels.",
+        ja: "GeniegoROIは、コマースチームが連携した販売・マーケティングチャネルのデータからROAS、カスタマージャーニー、アトリビューション、LTV、CAC、コンバージョン機会を把握できるよう支援します。",
+        zh: "GeniegoROI 帮助电商团队从已连接的销售与营销渠道数据中理解 ROAS、客户旅程、归因、LTV、CAC 和转化机会。",
+        "zh-TW": "GeniegoROI 幫助電商團隊從已連接的銷售與行銷通路數據中理解 ROAS、顧客旅程、歸因、LTV、CAC 和轉換機會。",
+        vi: "GeniegoROI giúp các đội thương mại hiểu ROAS, hành trình khách hàng, attribution, LTV, CAC và cơ hội chuyển đổi từ dữ liệu các kênh bán hàng và marketing đã kết nối.",
+        th: "GeniegoROI ช่วยให้ทีมคอมเมิร์ซเข้าใจ ROAS เส้นทางลูกค้า Attribution, LTV, CAC และโอกาสในการเพิ่ม Conversion จากข้อมูลช่องทางการขายและการตลาดที่เชื่อมต่อ",
+        id: "GeniegoROI membantu tim commerce memahami ROAS, customer journey, atribusi, LTV, CAC, dan peluang konversi dari data kanal penjualan dan marketing yang terhubung.",
+        de: "GeniegoROI hilft Commerce-Teams, ROAS, Customer Journeys, Attribution, LTV, CAC und Conversion-Chancen aus verbundenen Vertriebs- und Marketingkanälen zu verstehen.",
+        fr: "GeniegoROI aide les équipes commerce à comprendre le ROAS, les parcours clients, l'attribution, la LTV, le CAC et les opportunités de conversion à partir des canaux de vente et marketing connectés.",
+        es: "GeniegoROI ayuda a los equipos de comercio a entender el ROAS, los recorridos del cliente, la atribución, el LTV, el CAC y las oportunidades de conversión a partir de los canales de ventas y marketing conectados.",
     },
     btnTrial: {
         ko: "무료 체험 시작 →", en: "Start Free Trial →", ja: "無料トライアル開始 →", zh: "开始免费试用 →",
@@ -165,22 +165,22 @@ const DICT = {
     f1d: { ko: "쿠팡, 네이버, 아마존, 쇼피파이, 틱톡샵 등 30개 이상 마켓을 하나의 허브로 연결. 주문·재고·배송을 표준화합니다.", en: "Connect 30+ domestic & global marketplaces — Coupang, Naver, Amazon, Shopify, TikTok Shop. Standardize orders, inventory, and fulfillment in one unified hub.", ja: "30以上の国内外マーケットプレイスを接続。注文・在庫・出荷を統合ハブで標準化。", zh: "连接30+国内外市场，统一管理订单、库存和履约。", "zh-TW": "連接30+國內外市場，統一管理訂單、庫存和履約。", vi: "Kết nối 30+ sàn thương mại, chuẩn hoá đơn hàng, tồn kho và vận chuyển.", th: "เชื่อมต่อ 30+ ตลาด มาตรฐานคำสั่งซื้อ สินค้า และการจัดส่ง", id: "Hubungkan 30+ marketplace, standarisasi pesanan, inventori, dan fulfillment.", de: "Verbinden Sie 30+ Marktplätze. Standardisieren Sie Bestellungen, Lager & Versand.", fr: "Connectez 30+ places de marché. Standardisez commandes, stock et expédition.", es: "Conecte 30+ marketplaces. Estandarice pedidos, inventario y fulfillment." },
     f2t: { ko: "WMS — 창고·물류 관리", en: "WMS — Warehouse & Logistics", ja: "WMS — 倉庫・物流", zh: "WMS — 仓储物流", "zh-TW": "WMS — 倉儲物流", vi: "WMS — Kho & Logistics", th: "WMS — คลังสินค้า & โลจิสติกส์", id: "WMS — Gudang & Logistik", de: "WMS — Lager & Logistik", fr: "WMS — Entrepôt & Logistique", es: "WMS — Almacén y Logística" },
     f2d: { ko: "다중 창고 재고 추적, 합배송 관리, 운송사 API 연동, 국제 특송 상업 송장 자동 생성.", en: "Multi-warehouse inventory tracking, combined-shipment management, carrier API integration, and auto-generated commercial invoices for international express.", ja: "マルチ倉庫在庫管理、合配送、キャリアAPI連携、国際速達の商業送り状自動作成。", zh: "多仓库库存追踪、合单管理、承运商API集成及国际快递商业发票自动生成。", "zh-TW": "多倉庫庫存追蹤、合單管理、承運商API整合及國際快遞商業發票自動生成。", vi: "Theo dõi kho đa điểm, quản lý gộp đơn, tích hợp API vận chuyển, tự động tạo hoá đơn quốc tế.", th: "ติดตามสินค้าคลังหลายแห่ง จัดการรวมส่ง เชื่อม API ขนส่ง ออกใบกำกับสินค้าอัตโนมัติ", id: "Pelacakan inventori multi-gudang, manajemen gabung kirim, integrasi carrier API, invoice komersial otomatis.", de: "Multi-Lager-Tracking, Kombi-Versand, Carrier-API und automatische Handelsrechnungen.", fr: "Suivi multi-entrepôt, gestion groupée, API transporteurs et factures automatiques.", es: "Seguimiento multi-almacén, envío combinado, API de transporte y facturas automáticas." },
-    f3t: { ko: "AI 마케팅 인텔리전스", en: "AI Marketing Intelligence", ja: "AIマーケティングインテリジェンス", zh: "AI营销智能", "zh-TW": "AI行銷智慧", vi: "AI Marketing thông minh", th: "AI Marketing Intelligence", id: "AI Marketing Intelligence", de: "KI-Marketing-Intelligenz", fr: "Intelligence Marketing IA", es: "Inteligencia de Marketing IA" },
-    f3d: { ko: "8차원 광고 기여도 분석, 인플루언서 캠페인, 쿠폰 흐름 종합 분석. AI 예산 추천과 실시간 승인.", en: "8-dimensional contribution scoring across ad channels, influencer campaigns, and coupon flows. AI-driven budget recommendations with human-in-the-loop approval.", ja: "8次元の広告貢献度分析、インフルエンサーキャンペーン、クーポン分析。AIの予算提案と人間承認。", zh: "8维广告贡献度分析，覆盖网红活动和优惠券流向，AI预算建议。", "zh-TW": "8維廣告貢獻度分析，涵蓋網紅活動和優惠券流向，AI預算建議。", vi: "Phân tích đóng góp quảng cáo 8 chiều, chiến dịch influencer, dòng coupon. AI đề xuất ngân sách.", th: "การวิเคราะห์โฆษณา 8 มิติ แคมเปญอินฟลูเอนเซอร์ AI แนะนำงบ", id: "Skor kontribusi 8-dimensi, kampanye influencer, alur kupon. Rekomendasi budget AI.", de: "8-dimensionale Beitragsanalyse, Influencer-Kampagnen, KI-Budgetempfehlungen.", fr: "Scoring 8 dimensions, campagnes influenceurs, suggestions budget IA.", es: "Análisis 8 dimensiones, campañas influencer, recomendaciones presupuesto IA." },
+    f3t: { ko: "멀티채널 어트리뷰션 분석", en: "Multi-Channel Attribution Analytics", ja: "マルチチャネル・アトリビューション分析", zh: "多渠道归因分析", "zh-TW": "多通路歸因分析", vi: "Phân tích Attribution đa kênh", th: "การวิเคราะห์ Attribution หลายช่องทาง", id: "Analitik Atribusi Multi-Channel", de: "Multi-Channel-Attributionsanalyse", fr: "Analyse d'attribution multicanal", es: "Análisis de atribución multicanal" },
+    f3d: { ko: "8차원 광고 기여도 분석, 인플루언서 캠페인, 쿠폰 흐름 종합 분석. 데이터 기반 예산 추천과 사람 검토·승인.", en: "8-dimensional contribution scoring across ad channels, influencer campaigns, and coupon flows. Analytics-assisted budget recommendations with human review and approval.", ja: "8次元の広告貢献度分析、インフルエンサーキャンペーン、クーポン分析。データに基づく予算提案と人による確認・承認。", zh: "8维广告贡献度分析，覆盖网红活动和优惠券流向。基于数据的预算建议，由人工审核批准。", "zh-TW": "8維廣告貢獻度分析，涵蓋網紅活動和優惠券流向。基於數據的預算建議，由人工審核批准。", vi: "Phân tích đóng góp quảng cáo 8 chiều, chiến dịch influencer, dòng coupon. Đề xuất ngân sách dựa trên dữ liệu, con người xem xét và phê duyệt.", th: "การวิเคราะห์โฆษณา 8 มิติ แคมเปญอินฟลูเอนเซอร์ และคูปอง คำแนะนำงบจากข้อมูล พร้อมการตรวจสอบและอนุมัติโดยคน", id: "Skor kontribusi 8-dimensi, kampanye influencer, alur kupon. Rekomendasi anggaran berbasis data dengan peninjauan dan persetujuan manusia.", de: "8-dimensionale Beitragsanalyse, Influencer-Kampagnen, Coupon-Flüsse. Datenbasierte Budgetempfehlungen mit menschlicher Prüfung und Freigabe.", fr: "Scoring 8 dimensions, campagnes influenceurs, flux de coupons. Recommandations budgétaires basées sur les données, avec revue et approbation humaines.", es: "Análisis de contribución en 8 dimensiones, campañas de influencers, flujos de cupones. Recomendaciones de presupuesto basadas en datos con revisión y aprobación humana." },
     f4t: { ko: "인플루언서 분석", en: "Influencer Analytics", ja: "インフルエンサー分析", zh: "网红分析", "zh-TW": "網紅分析", vi: "Phân tích Influencer", th: "วิเคราะห์อินฟลูเอนเซอร์", id: "Analitik Influencer", de: "Influencer-Analytik", fr: "Analytique Influenceur", es: "Analítica de Influencer" },
     f4d: { ko: "도달률, 참여율, 전환율, ROI 평가. 자동 수수료 관리와 실시간 캠페인 성과 추적.", en: "Evaluate influencers by reach, engagement rate, conversion, and estimated ROI. Automated commission management and real-time campaign performance tracking.", ja: "リーチ、エンゲージメント率、CVR、ROIでインフルエンサーを評価。自動コミッション管理。", zh: "按触达、互动率、转化和ROI评估网红。自动佣金管理与实时跟踪。", "zh-TW": "按觸達、互動率、轉化和ROI評估網紅。自動佣金管理與即時追蹤。", vi: "Đánh giá influencer theo reach, tương tác, chuyển đổi, ROI. Quản lý hoa hồng tự động.", th: "ประเมินอินฟลูเอนเซอร์ด้วย Reach, Engagement, ROI ติดตามแคมเปญแบบเรียลไทม์", id: "Evaluasi influencer berdasarkan reach, engagement, konversi & ROI. Manajemen komisi otomatis.", de: "Influencer-Bewertung nach Reichweite, Engagement, Konversion & ROI. Auto-Provisionen.", fr: "Évaluez les influenceurs par portée, engagement, conversion et ROI. Commissions auto.", es: "Evalúe influencers por alcance, engagement, conversión y ROI. Comisiones automáticas." },
     f5t: { ko: "통합 손익 분석", en: "Unified P&L Analytics", ja: "統合P&L分析", zh: "统一损益分析", "zh-TW": "統一損益分析", vi: "Phân tích P&L hợp nhất", th: "วิเคราะห์กำไร-ขาดทุนรวม", id: "Analitik P&L Terpadu", de: "Vereinte P&L-Analytik", fr: "Analytique P&L unifiée", es: "Analítica P&L unificada" },
     f5d: { ko: "SKU·채널·캠페인·크리에이터별 실시간 손익. ROAS 하락, 반품 급증, 쿠폰 이상 패턴 자동 감지.", en: "Real-time Profit & Loss by SKU, channel, campaign, and creator. Anomaly detection for ROAS drops, return surges, and coupon abuse patterns.", ja: "SKU・チャネル・キャンペーン別のリアルタイムP/L。ROAS低下、返品急増の異常検知。", zh: "按SKU、渠道、活动实时损益。自动检测ROAS下降和退货异常。", "zh-TW": "按SKU、通路、活動即時損益。自動偵測ROAS下降和退貨異常。", vi: "Lãi/lỗ theo SKU, kênh, chiến dịch. Phát hiện bất thường ROAS, hoàn hàng.", th: "กำไร-ขาดทุนตาม SKU ช่องทาง แคมเปญ ตรวจจับ ROAS ผิดปกติ", id: "P&L real-time per SKU, channel, kampanye. Deteksi anomali ROAS & retur.", de: "Echtzeit-P&L nach SKU, Kanal, Kampagne. Anomalieerkennung für ROAS & Retouren.", fr: "P&L en temps réel par SKU, canal, campagne. Détection d'anomalies ROAS.", es: "P&L en tiempo real por SKU, canal, campaña. Detección de anomalías ROAS." },
     f6t: { ko: "정산·대사", en: "Settlement & Reconciliation", ja: "決済・照合", zh: "结算与对账", "zh-TW": "結算與對帳", vi: "Thanh toán & Đối soát", th: "การชำระเงินและกระทบยอด", id: "Settlement & Rekonsiliasi", de: "Abrechnung & Abstimmung", fr: "Règlement & Rapprochement", es: "Liquidación y Conciliación" },
     f6d: { ko: "모든 채널의 정산 자동 대사. 채널 지급액과 예상 금액 간 불일치를 즉시 포착.", en: "Automated settlement reconciliation across all channels. Catch discrepancies between channel payouts and expected amounts instantly.", ja: "全チャネルの自動決済照合。支払金額と予定金額の不一致を即時検出。", zh: "全渠道自动结算对账，即时发现支付差异。", "zh-TW": "全通路自動結算對帳，即時發現支付差異。", vi: "Đối soát thanh toán tự động. Phát hiện sai lệch ngay lập tức.", th: "กระทบยอดอัตโนมัติ ตรวจจับความต่างระหว่างยอดจ่ายและยอดที่คาดหวัง", id: "Rekonsiliasi otomatis. Deteksi selisih payout channel secara instan.", de: "Automatisierte Abrechnungsabstimmung. Sofortige Diskrepanzerkennung.", fr: "Rapprochement automatisé. Détection instantanée des écarts.", es: "Conciliación automatizada. Detección instantánea de discrepancias." },
-    f7t: { ko: "AI 자동화 엔진", en: "AI Automation Engine", ja: "AI自動化エンジン", zh: "AI自动化引擎", "zh-TW": "AI自動化引擎", vi: "AI tự động hoá", th: "เครื่องยนต์ AI อัตโนมัติ", id: "Mesin Otomatisasi AI", de: "KI-Automatisierungsengine", fr: "Moteur d'automatisation IA", es: "Motor de Automatización IA" },
-    f7d: { ko: "규칙 기반 + GPT 자동화 워크플로우. 임계값 설정, AI 제안, 원클릭 승인·오버라이드.", en: "Rule-based and GPT-powered automation with approval workflows. Set thresholds, get AI suggestions, approve or override with one click.", ja: "ルールベース＋GPT自動化。閾値設定、AI提案、ワンクリック承認。", zh: "基于规则和GPT的自动化，一键审批或覆盖。", "zh-TW": "基於規則和GPT的自動化，一鍵審批或覆蓋。", vi: "Tự động hoá dựa trên quy tắc & GPT. Đặt ngưỡng, nhận gợi ý AI, duyệt 1 click.", th: "อัตโนมัติตามกฎ + GPT ตั้งเกณฑ์ รับคำแนะนำ AI อนุมัติด้วยคลิกเดียว", id: "Otomasi berbasis aturan + GPT. Atur threshold, dapat saran AI, setujui satu klik.", de: "Regel- & GPT-basierte Automatisierung. KI-Vorschläge, Ein-Klick-Genehmigung.", fr: "Automatisation par règles & GPT. Suggestions IA, approbation en un clic.", es: "Automatización basada en reglas y GPT. Sugerencias IA, aprobación en un clic." },
+    f7t: { ko: "마케팅 자동화 지원", en: "Marketing Automation Support", ja: "マーケティング自動化サポート", zh: "营销自动化支持", "zh-TW": "行銷自動化支援", vi: "Hỗ trợ tự động hoá marketing", th: "การสนับสนุนระบบอัตโนมัติการตลาด", id: "Dukungan Otomasi Marketing", de: "Marketing-Automatisierungs-Support", fr: "Support d'automatisation marketing", es: "Soporte de automatización de marketing" },
+    f7d: { ko: "규칙 기반 자동화 워크플로우와 분석 기반 추천. 임계값 설정, 추천 검토, 원클릭 승인·오버라이드.", en: "Rule-based automation workflows with analytics-assisted recommendations. Set thresholds, review suggestions, approve or override with one click.", ja: "ルールベースの自動化ワークフローと分析に基づく推奨。閾値設定、推奨の確認、ワンクリック承認・上書き。", zh: "基于规则的自动化工作流与分析辅助建议。设置阈值、审阅建议、一键批准或覆盖。", "zh-TW": "基於規則的自動化工作流與分析輔助建議。設定閾值、審閱建議、一鍵批准或覆蓋。", vi: "Quy trình tự động hoá dựa trên quy tắc kèm khuyến nghị hỗ trợ bằng phân tích. Đặt ngưỡng, xem xét gợi ý, phê duyệt hoặc ghi đè bằng một cú nhấp.", th: "เวิร์กโฟลว์อัตโนมัติตามกฎ พร้อมคำแนะนำที่ช่วยด้วยการวิเคราะห์ ตั้งเกณฑ์ ตรวจสอบคำแนะนำ อนุมัติหรือแก้ไขด้วยคลิกเดียว", id: "Alur kerja otomasi berbasis aturan dengan rekomendasi berbantuan analitik. Atur threshold, tinjau saran, setujui atau timpa dengan satu klik.", de: "Regelbasierte Automatisierungs-Workflows mit analytikgestützten Empfehlungen. Schwellenwerte festlegen, Vorschläge prüfen, per Klick freigeben oder überschreiben.", fr: "Workflows d'automatisation basés sur des règles avec recommandations assistées par l'analyse. Définissez des seuils, examinez les suggestions, approuvez ou remplacez en un clic.", es: "Flujos de automatización basados en reglas con recomendaciones asistidas por análisis. Defina umbrales, revise sugerencias, apruebe o anule con un clic." },
     f8t: { ko: "30+ 채널 커넥터", en: "30+ Channel Connectors", ja: "30+チャネルコネクタ", zh: "30+渠道连接器", "zh-TW": "30+通路連接器", vi: "30+ Kết nối kênh", th: "30+ ตัวเชื่อมต่อช่องทาง", id: "30+ Konektor Channel", de: "30+ Kanal-Konnektoren", fr: "30+ Connecteurs de canaux", es: "30+ Conectores de Canal" },
     f8d: { ko: "쿠팡, 네이버, 11번가 등 국내 채널과 아마존, 메타, 틱톡 등 글로벌 플랫폼의 사전 구축 API. OAuth 인증 관리.", en: "Pre-built API connectors for domestic channels (Coupang, Naver, 11st) and global platforms (Amazon, Meta, TikTok). OAuth-ready credential management.", ja: "国内（Coupang/Naver/11st）と海外（Amazon/Meta/TikTok）の事前構築APIコネクタ。OAuth認証管理。", zh: "为国内渠道(Coupang/Naver/11st)和全球平台(Amazon/Meta/TikTok)预建API。OAuth凭证管理。", "zh-TW": "為國內通路和全球平台預建API連接器。OAuth憑證管理。", vi: "Kết nối API sẵn có cho kênh nội địa và toàn cầu. Quản lý OAuth.", th: "API สำเร็จรูปสำหรับช่องทางในประเทศและทั่วโลก จัดการ OAuth", id: "Konektor API pra-bangun untuk channel domestik & global. Manajemen OAuth.", de: "Vorgefertigte API-Konnektoren für lokale & globale Kanäle. OAuth-Verwaltung.", fr: "Connecteurs API pré-construits pour canaux locaux & globaux. Gestion OAuth.", es: "Conectores API preconstruidos para canales nacionales y globales. Gestión OAuth." },
     /* ── Testimonials ── */
     testimonialBadge: { ko: "고객 후기", en: "What Our Clients Say", ja: "お客様の声", zh: "客户评价", "zh-TW": "客戶評價", vi: "Khách hàng nói gì", th: "ลูกค้าพูดถึงเรา", id: "Apa Kata Klien Kami", de: "Was unsere Kunden sagen", fr: "Ce que disent nos clients", es: "Lo que dicen nuestros clientes" },
     testimonialTitle: { ko: "커머스 리더들이 신뢰합니다", en: "Trusted by Commerce Leaders", ja: "コマースリーダーに信頼される", zh: "深受电商领军者信赖", "zh-TW": "深受電商領軍者信賴", vi: "Được các nhà lãnh đạo thương mại tin dùng", th: "ผู้นำเทรดต่างไว้วางใจ", id: "Dipercaya Pemimpin Commerce", de: "Von Commerce-Leadern vertraut", fr: "Approuvé par les leaders du commerce", es: "Confiado por líderes del comercio" },
-    t1: { ko: "Geniego-ROI 덕분에 8개 채널에서 ROAS가 340% 상승했습니다. AI 예산 배분기만으로도 주당 20시간의 수작업이 절감됐어요.", en: "Geniego-ROI helped us increase ROAS by 340% across 8 channels. The AI budget allocator alone saved 20 hours of manual work per week.", ja: "Geniego-ROIで8チャネルのROASが340%向上。AI予算配分で週20時間の手作業を削減。", zh: "Geniego-ROI帮助我们在8个渠道上将ROAS提高了340%。AI预算分配器每周节省20小时。", "zh-TW": "Geniego-ROI幫助我們在8個通路提高了340%的ROAS。AI預算分配器每週節省20小時。", vi: "Geniego-ROI giúp tăng ROAS 340% trên 8 kênh. AI phân bổ ngân sách tiết kiệm 20 giờ/tuần.", th: "Geniego-ROI ช่วยเพิ่ม ROAS 340% ใน 8 ช่องทาง AI จัดสรรงบช่วยลดงานมือ 20 ชม./สัปดาห์", id: "Geniego-ROI meningkatkan ROAS 340% di 8 channel. AI budget allocator menghemat 20 jam/minggu.", de: "Geniego-ROI steigerte unseren ROAS um 340% auf 8 Kanälen. KI-Budget sparte 20 Std./Woche.", fr: "Geniego-ROI a augmenté notre ROAS de 340% sur 8 canaux. L'IA budget économise 20h/semaine.", es: "Geniego-ROI elevó nuestro ROAS 340% en 8 canales. El presupuesto IA ahorró 20h/semana." },
+    t1: { ko: "Geniego-ROI 덕분에 8개 채널에서 ROAS가 340% 상승했습니다. 예산 최적화 분석만으로도 주당 20시간의 수작업이 절감됐어요.", en: "Geniego-ROI helped us increase ROAS by 340% across 8 channels. The budget optimization analytics alone saved 20 hours of manual work per week.", ja: "Geniego-ROIで8チャネルのROASが340%向上。予算最適化分析だけで週20時間の手作業を削減。", zh: "Geniego-ROI帮助我们在8个渠道上将ROAS提高了340%。仅预算优化分析每周就节省20小时。", "zh-TW": "Geniego-ROI幫助我們在8個通路提高了340%的ROAS。僅預算最佳化分析每週就節省20小時。", vi: "Geniego-ROI giúp tăng ROAS 340% trên 8 kênh. Chỉ riêng phân tích tối ưu ngân sách đã tiết kiệm 20 giờ/tuần.", th: "Geniego-ROI ช่วยเพิ่ม ROAS 340% ใน 8 ช่องทาง แค่การวิเคราะห์เพิ่มประสิทธิภาพงบก็ช่วยลดงานมือ 20 ชม./สัปดาห์", id: "Geniego-ROI meningkatkan ROAS 340% di 8 channel. Analitik optimasi anggaran saja menghemat 20 jam/minggu.", de: "Geniego-ROI steigerte unseren ROAS um 340% auf 8 Kanälen. Allein die Budgetoptimierungsanalyse sparte 20 Std./Woche.", fr: "Geniego-ROI a augmenté notre ROAS de 340% sur 8 canaux. L'analyse d'optimisation budgétaire à elle seule a économisé 20h/semaine.", es: "Geniego-ROI elevó nuestro ROAS 340% en 8 canales. Solo el análisis de optimización de presupuesto ahorró 20h/semana." },
     t2: { ko: "아마존, 쿠팡, 쇼피파이를 아우르는 통합 손익 뷰가 그동안 없던 명확한 인사이트를 제공했습니다. 6개월 만에 매출 2.8배 성장.", en: "The unified P&L view across Amazon, Coupang, and Shopify gave us clarity we never had. Revenue grew 2.8x in 6 months.", ja: "Amazon、Coupang、ShopifyのP/L統合ビューで6ヶ月で売上2.8倍。", zh: "跨Amazon、Coupang、Shopify的统一损益视图，6个月收入增长2.8倍。", "zh-TW": "跨Amazon、Coupang、Shopify的統一損益視圖，6個月營收增長2.8倍。", vi: "P&L hợp nhất trên Amazon, Coupang, Shopify cho insight rõ ràng. Doanh thu x2.8 trong 6 tháng.", th: "มุมมอง P&L รวมข้าม Amazon, Coupang, Shopify รายได้โต 2.8 เท่าใน 6 เดือน", id: "View P&L terpadu Amazon, Coupang, Shopify. Revenue naik 2.8x dalam 6 bulan.", de: "Die vereinte P&L über Amazon, Coupang und Shopify: 2,8x Umsatz in 6 Monaten.", fr: "Vue P&L unifiée Amazon, Coupang, Shopify : revenus x2,8 en 6 mois.", es: "Vista P&L unificada Amazon, Coupang, Shopify: ingresos x2.8 en 6 meses." },
     t3: { ko: "인플루언서 분석 엔진은 게임 체인저입니다. ROI 상위 5명의 크리에이터를 발굴하고 낭비 지출을 65% 줄였습니다.", en: "Influencer analytics engine is a game-changer. We identified our top 5 ROI creators and cut wasted spend by 65%.", ja: "インフルエンサー分析エンジンは革命的。上位5名のROIクリエイターを特定し、無駄を65%削減。", zh: "网红分析引擎改变了游戏规则。我们找到ROI前5位创作者，减少65%浪费。", "zh-TW": "網紅分析引擎改變了遊戲規則。找到ROI前5位創作者，減少65%浪費。", vi: "Công cụ phân tích influencer thật sự đột phá. Tìm top 5 ROI, giảm 65% chi phí lãng phí.", th: "เครื่องวิเคราะห์อินฟลูเอนเซอร์เปลี่ยนเกม! พบ 5 อันดับ ROI ลดค่าใช้จ่ายเปล่า 65%", id: "Engine analitik influencer adalah game-changer. Menemukan top 5 ROI, mengurangi 65% spending.", de: "Influencer-Analytik ist ein Game-Changer. Top-5-ROI-Creator identifiziert, 65% weniger Verschwendung.", fr: "L'analyse influenceurs est un game-changer. Top 5 ROI identifiés, 65% de dépenses réduites.", es: "La analítica de influencers es un game-changer. Top 5 ROI identificados, 65% menos gasto." },
     /* ── CTA ── */
@@ -212,22 +212,22 @@ const DICT = {
 
 const DICT_EXT = {
     "heroBadge": {
-        "pt": "🚀 Plataforma All-in-One de Automação de Commerce com IA",
-        "ru": "🚀 Универсальная платформа AI-автоматизации коммерции",
-        "ar": "🚀 منصة متكاملة لأتمتة التجارة بالذكاء الاصطناعي",
-        "hi": "🚀 ऑल-इन-वन AI कॉमर्स ऑटोमेशन प्लेटफ़ॉर्म"
+        "pt": "🚀 Plataforma de Análise de Marketing · Atribuição · Otimização de ROAS",
+        "ru": "🚀 Платформа маркетинговой аналитики · Атрибуции · Оптимизации ROAS",
+        "ar": "🚀 منصة تحليلات التسويق · الإسناد · تحسين ROAS",
+        "hi": "🚀 मार्केटिंग एनालिटिक्स · एट्रिब्यूशन · ROAS ऑप्टिमाइज़ेशन प्लेटफ़ॉर्म"
     },
     "heroTitle": {
-        "pt": "Com Análise de Dados por IA\nAnúncios · Vendas · Estoque · Envio · Liquidação\nToda a operação de canais automatizada em uma plataforma",
-        "ru": "С помощью AI-аналитики данных\nРеклама · Продажи · Склад · Доставка · Расчёты\nВсе каналы автоматизированы на одной платформе",
-        "ar": "عبر تحليلات البيانات بالذكاء الاصطناعي\nالإعلانات · المبيعات · المخزون · الشحن · التسوية\nأتمتة تشغيل جميع القنوات في منصة واحدة",
-        "hi": "AI डेटा एनालिटिक्स के माध्यम से\nविज्ञापन · बिक्री · इन्वेंटरी · शिपिंग · सेटलमेंट\nसभी चैनल संचालन एक प्लेटफ़ॉर्म में स्वचालित"
+        "pt": "Meça, atribua e otimize\no desempenho de marketing\nem todos os canais",
+        "ru": "Измеряйте, атрибутируйте и оптимизируйте\nэффективность маркетинга\nпо всем каналам",
+        "ar": "قِس وأسنِد وحسّن\nأداء التسويق عبر كل قناة",
+        "hi": "हर चैनल पर मार्केटिंग प्रदर्शन को\nमापें, एट्रिब्यूट करें और ऑप्टिमाइज़ करें"
     },
     "heroDesc": {
-        "pt": "Automação de anúncios · Cadastro de produtos · Gestão de estoque · Processamento de pedidos · Rastreamento · Análise de desempenho · Liquidação — a IA automatiza seu comércio de A a Z.",
-        "ru": "Автоматизация рекламы · Листинг товаров · Управление складом · Обработка заказов · Отслеживание доставки · Аналитика · Расчёты — AI автоматизирует коммерцию от А до Я.",
-        "ar": "أتمتة الإعلانات · إدراج المنتجات · إدارة المخزون · معالجة الطلبات · تتبّع الشحن · تحليل الأداء · التسوية — الذكاء الاصطناعي يؤتمت تجارتك من الألف إلى الياء.",
-        "hi": "विज्ञापन ऑटोमेशन · प्रोडक्ट लिस्टिंग · इन्वेंटरी प्रबंधन · ऑर्डर प्रोसेसिंग · शिपिंग ट्रैकिंग · प्रदर्शन एनालिटिक्स · सेटलमेंट — AI आपके कॉमर्स को A से Z तक स्वचालित करता है।"
+        "pt": "A GeniegoROI ajuda equipes de commerce a entender ROAS, jornadas do cliente, atribuição, LTV, CAC e oportunidades de conversão a partir dos canais de vendas e marketing conectados.",
+        "ru": "GeniegoROI помогает командам электронной коммерции понимать ROAS, пути клиентов, атрибуцию, LTV, CAC и возможности конверсии на основе подключённых каналов продаж и маркетинга.",
+        "ar": "تساعد GeniegoROI فرق التجارة على فهم ROAS ورحلات العملاء والإسناد وLTV وCAC وفرص التحويل من قنوات المبيعات والتسويق المتصلة.",
+        "hi": "GeniegoROI कॉमर्स टीमों को जुड़े हुए बिक्री और मार्केटिंग चैनलों के डेटा से ROAS, कस्टमर जर्नी, एट्रिब्यूशन, LTV, CAC और कन्वर्ज़न अवसरों को समझने में मदद करता है।"
     },
     "btnTrial": {
         "pt": "Iniciar teste grátis →",
@@ -314,16 +314,16 @@ const DICT_EXT = {
         "hi": "बहु-गोदाम इन्वेंटरी ट्रैकिंग, संयुक्त शिपमेंट प्रबंधन, कैरियर API इंटीग्रेशन और स्वतः वाणिज्यिक चालान।"
     },
     "f3t": {
-        "pt": "Inteligência de Marketing IA",
-        "ru": "AI-маркетинг-аналитика",
-        "ar": "ذكاء التسويق بالـ AI",
-        "hi": "AI मार्केटिंग इंटेलिजेंस"
+        "pt": "Análise de Atribuição Multicanal",
+        "ru": "Аналитика мультиканальной атрибуции",
+        "ar": "تحليلات الإسناد متعدد القنوات",
+        "hi": "मल्टी-चैनल एट्रिब्यूशन एनालिटिक्स"
     },
     "f3d": {
-        "pt": "Pontuação de contribuição em 8 dimensões, campanhas de influenciadores e fluxos de cupom. Recomendações de orçamento por IA com aprovação humana.",
-        "ru": "8-мерная оценка вклада по каналам, кампании с инфлюенсерами и купоны. AI-рекомендации бюджета с подтверждением человеком.",
-        "ar": "تقييم إسهام ثماني الأبعاد عبر القنوات وحملات المؤثرين والكوبونات. توصيات ميزانية بالـ AI مع موافقة بشرية.",
-        "hi": "8-आयामी योगदान स्कोरिंग, इन्फ्लुएंसर अभियान और कूपन प्रवाह। मानव-अनुमोदन के साथ AI बजट सिफ़ारिशें।"
+        "pt": "Pontuação de contribuição em 8 dimensões, campanhas de influenciadores e fluxos de cupom. Recomendações de orçamento baseadas em dados com revisão e aprovação humana.",
+        "ru": "8-мерная оценка вклада по каналам, кампании с инфлюенсерами и купоны. Рекомендации бюджета на основе данных с проверкой и подтверждением человеком.",
+        "ar": "تقييم إسهام ثماني الأبعاد عبر القنوات وحملات المؤثرين والكوبونات. توصيات ميزانية قائمة على البيانات مع مراجعة وموافقة بشرية.",
+        "hi": "8-आयामी योगदान स्कोरिंग, इन्फ्लुएंसर अभियान और कूपन प्रवाह। डेटा-आधारित बजट सिफ़ारिशें, मानव समीक्षा और अनुमोदन के साथ।"
     },
     "f4t": {
         "pt": "Analítica de Influenciadores",
@@ -362,16 +362,16 @@ const DICT_EXT = {
         "hi": "सभी चैनलों में स्वतः सेटलमेंट मिलान। पेआउट और अपेक्षित राशि के बीच विसंगतियाँ तुरंत पकड़ें।"
     },
     "f7t": {
-        "pt": "Motor de Automação IA",
-        "ru": "Движок AI-автоматизации",
-        "ar": "محرّك الأتمتة بالـ AI",
-        "hi": "AI ऑटोमेशन इंजन"
+        "pt": "Suporte de Automação de Marketing",
+        "ru": "Поддержка автоматизации маркетинга",
+        "ar": "دعم أتمتة التسويق",
+        "hi": "मार्केटिंग ऑटोमेशन सपोर्ट"
     },
     "f7d": {
-        "pt": "Automação baseada em regras e GPT com fluxos de aprovação. Defina limites, receba sugestões de IA, aprove ou substitua com um clique.",
-        "ru": "Автоматизация на правилах и GPT с согласованиями. Задавайте пороги, получайте AI-подсказки, подтверждайте одним кликом.",
-        "ar": "أتمتة قائمة على القواعد وGPT مع مسارات موافقة. حدّد العتبات واحصل على اقتراحات AI ووافق بنقرة واحدة.",
-        "hi": "नियम-आधारित और GPT ऑटोमेशन, अनुमोदन वर्कफ़्लो के साथ। थ्रेशोल्ड सेट करें, AI सुझाव पाएं, एक क्लिक में अनुमोदित करें।"
+        "pt": "Fluxos de automação baseados em regras com recomendações assistidas por análise. Defina limites, revise sugestões, aprove ou substitua com um clique.",
+        "ru": "Автоматизация на основе правил с рекомендациями на базе аналитики. Задавайте пороги, проверяйте предложения, подтверждайте или переопределяйте одним кликом.",
+        "ar": "مسارات أتمتة قائمة على القواعد مع توصيات مدعومة بالتحليلات. حدّد العتبات، وراجع الاقتراحات، ووافق أو تجاوز بنقرة واحدة.",
+        "hi": "नियम-आधारित ऑटोमेशन वर्कफ़्लो, एनालिटिक्स-सहायित सिफ़ारिशों के साथ। थ्रेशोल्ड सेट करें, सुझाव देखें, एक क्लिक में अनुमोदित या ओवरराइड करें।"
     },
     "f8t": {
         "pt": "30+ Conectores de Canal",
@@ -398,10 +398,10 @@ const DICT_EXT = {
         "hi": "कॉमर्स लीडर्स का भरोसा"
     },
     "t1": {
-        "pt": "O Geniego-ROI aumentou nosso ROAS em 340% em 8 canais. Só o alocador de orçamento por IA economizou 20 horas de trabalho manual por semana.",
-        "ru": "Geniego-ROI повысил наш ROAS на 340% по 8 каналам. Один только AI-распределитель бюджета сэкономил 20 часов ручной работы в неделю.",
-        "ar": "ساعدنا Geniego-ROI على رفع ROAS بنسبة 340% عبر 8 قنوات. وفّر موزّع الميزانية بالـ AI وحده 20 ساعة عمل يدوي أسبوعيًا.",
-        "hi": "Geniego-ROI ने 8 चैनलों पर हमारा ROAS 340% बढ़ाया। अकेले AI बजट एलोकेटर ने प्रति सप्ताह 20 घंटे का मैन्युअल काम बचाया।"
+        "pt": "O Geniego-ROI aumentou nosso ROAS em 340% em 8 canais. Só a análise de otimização de orçamento economizou 20 horas de trabalho manual por semana.",
+        "ru": "Geniego-ROI повысил наш ROAS на 340% по 8 каналам. Одна только аналитика оптимизации бюджета сэкономила 20 часов ручной работы в неделю.",
+        "ar": "ساعدنا Geniego-ROI على رفع ROAS بنسبة 340% عبر 8 قنوات. وفّر تحليل تحسين الميزانية وحده 20 ساعة عمل يدوي أسبوعيًا.",
+        "hi": "Geniego-ROI ने 8 चैनलों पर हमारा ROAS 340% बढ़ाया। अकेले बजट ऑप्टिमाइज़ेशन एनालिटिक्स ने प्रति सप्ताह 20 घंटे का मैन्युअल काम बचाया।"
     },
     "t2": {
         "pt": "A visão unificada de P&L entre Amazon, Coupang e Shopify nos deu clareza inédita. A receita cresceu 2,8x em 6 meses.",
@@ -577,8 +577,8 @@ const DICT_RICH = {
     "en": "How we turn your data into trust"
   },
   "daDesc": {
-    "ko": "GeniegoROI는 흩어진 모든 커머스 데이터를 빠짐없이 수집하고, 검증된 분석 방법론으로 가공해, 원천까지 추적 가능한 신뢰할 수 있는 의사결정 자료로 제공합니다. 그리고 그 분석을 근거로 마케팅을 자동으로 전개합니다.",
-    "en": "GeniegoROI collects every piece of your scattered commerce data, processes it with proven analytics methodologies, and delivers trustworthy, fully traceable decision-making insights — then acts on that analysis to run your marketing automatically."
+    "ko": "GeniegoROI는 흩어진 모든 커머스 데이터를 빠짐없이 수집하고, 검증된 분석 방법론으로 가공해, 원천까지 추적 가능한 신뢰할 수 있는 의사결정 자료로 제공합니다. 그리고 그 분석을 근거로 사람 승인 하에 마케팅 실행을 지원합니다.",
+    "en": "GeniegoROI collects every piece of your scattered commerce data, processes it with proven analytics methodologies, and delivers trustworthy, fully traceable decision-making insights — then supports acting on that analysis with human-approved marketing execution."
   },
   "da1t": { "ko": "수집", "en": "Collect" },
   "da1d": {
@@ -597,8 +597,8 @@ const DICT_RICH = {
   },
   "da4t": { "ko": "실행", "en": "Act" },
   "da4d": {
-    "ko": "분석 결과를 근거로 AI가 예산을 추천하고, 사람 승인 하에 광고를 자동 집행합니다. 월 예산 한도 내 안전한 페이싱으로 분석에서 실행까지 끊김이 없습니다.",
-    "en": "Act on the analysis: AI recommends budgets and runs ads automatically with human approval — safely paced within your monthly budget cap, from insight to execution without a gap."
+    "ko": "분석 결과를 바탕으로 데이터 기반 예산 추천을 받고, 사람 승인 하에 캠페인을 집행합니다. 월 예산 한도 내 안전한 페이싱으로 분석에서 실행까지 끊김이 없습니다.",
+    "en": "Act on the analysis: get analytics-assisted budget recommendations and run campaigns with human approval — safely paced within your monthly budget cap, from insight to execution without a gap."
   },
   "daDataTitle": {
     "ko": "수집하고 분석하는 데이터",
@@ -662,8 +662,8 @@ const DICT_RICH = {
     "en": "Fragmented commerce ops,\nnow one intelligent platform"
   },
   "problemDesc": {
-    "ko": "채널마다 다른 광고 대시보드, 엑셀로 맞추는 정산, 흩어진 재고와 주문 — 커머스 운영의 복잡함이 성장의 발목을 잡습니다. GeniegoROI는 30개 이상 채널의 데이터를 실시간으로 통합하고, AI가 광고·판매·재고·배송·정산을 자동으로 분석·실행합니다. 운영자는 의사결정에만 집중하면 됩니다.",
-    "en": "Different ad dashboards per channel, settlements stitched together in spreadsheets, scattered inventory and orders — operational complexity caps your growth. GeniegoROI unifies 30+ channels in real time, and AI automatically analyzes and acts across ads, sales, inventory, shipping and settlement. You focus only on decisions."
+    "ko": "채널마다 다른 광고 대시보드, 엑셀로 맞추는 정산, 흩어진 재고와 주문 — 커머스 운영의 복잡함이 성장의 발목을 잡습니다. GeniegoROI는 30개 이상 채널의 데이터를 실시간으로 통합해 광고·판매·재고·배송·정산의 성과를 한눈에 분석합니다. 운영자는 의사결정에만 집중하면 됩니다.",
+    "en": "Different ad dashboards per channel, settlements stitched together in spreadsheets, scattered inventory and orders — operational complexity caps your growth. GeniegoROI unifies 30+ channels in real time so you can analyze performance across ads, sales, inventory, shipping and settlement in one place. You focus only on decisions."
   },
   "modulesBadge": {
     "ko": "하나의 플랫폼, 모든 기능",
@@ -698,24 +698,24 @@ const DICT_RICH = {
     "en": "OAuth credential management & auto-sync"
   },
   "m2t": {
-    "ko": "AI 마케팅 인텔리전스",
-    "en": "AI Marketing Intelligence"
+    "ko": "멀티채널 어트리뷰션 분석",
+    "en": "Multi-Channel Attribution Analytics"
   },
   "m2d": {
-    "ko": "8차원 광고 기여도 분석과 AI 예산 추천으로 ROAS를 극대화합니다.",
-    "en": "Maximize ROAS with 8-dimensional attribution and AI budget recommendations."
+    "ko": "8차원 광고 기여도 분석과 데이터 기반 예산 추천으로 ROAS를 극대화합니다.",
+    "en": "Maximize ROAS with 8-dimensional attribution and analytics-assisted budget recommendations."
   },
   "m2b1": {
     "ko": "멀티터치 어트리뷰션·채널 KPI·경쟁사 분석",
     "en": "Multi-touch attribution, channel KPIs, competitor analysis"
   },
   "m2b2": {
-    "ko": "AI 광고 소재 생성·콘텐츠 캘린더",
-    "en": "AI ad-creative generation & content calendar"
+    "ko": "크리에이티브 성과 분석·콘텐츠 캘린더",
+    "en": "Creative performance analytics & content calendar"
   },
   "m2b3": {
-    "ko": "AI 예산 배분 + 사람 승인 워크플로우",
-    "en": "AI budget allocation with human-in-the-loop approval"
+    "ko": "데이터 기반 예산 배분 + 사람 승인 워크플로우",
+    "en": "Data-driven budget allocation with human-in-the-loop approval"
   },
   "m3t": {
     "ko": "WMS — 창고·물류",
@@ -766,8 +766,8 @@ const DICT_RICH = {
     "en": "Run customer journeys and influencer ROI on data, automatically."
   },
   "m5b1": {
-    "ko": "RFM·VIP·AI 세그먼트, 고객 여정 빌더",
-    "en": "RFM/VIP/AI segments, customer journey builder"
+    "ko": "RFM·VIP·예측 세그먼트, 고객 여정 빌더",
+    "en": "RFM/VIP/predictive segments, customer journey builder"
   },
   "m5b2": {
     "ko": "이메일·카카오·LINE·WhatsApp·Instagram DM",
@@ -778,20 +778,20 @@ const DICT_RICH = {
     "en": "Influencer reach/conversion/ROI scoring & commission management"
   },
   "m6t": {
-    "ko": "AI 자동화 엔진",
-    "en": "AI Automation Engine"
+    "ko": "마케팅 자동화 지원",
+    "en": "Marketing Automation Support"
   },
   "m6d": {
-    "ko": "규칙 + GPT 기반 워크플로우로 운영을 자율 실행합니다.",
-    "en": "Autonomous operations via rule + GPT-powered workflows."
+    "ko": "규칙 기반 워크플로우와 분석 기반 추천으로 운영을 효율화합니다.",
+    "en": "Streamline operations with rule-based workflows and analytics-assisted recommendations."
   },
   "m6b1": {
-    "ko": "AI 룰 엔진·알림 정책·액션 프리셋",
-    "en": "AI rule engine, alert policies, action presets"
+    "ko": "룰 엔진·알림 정책·액션 프리셋",
+    "en": "Rule engine, alert policies, action presets"
   },
   "m6b2": {
-    "ko": "임계값 설정·AI 제안·원클릭 승인",
-    "en": "Set thresholds, get AI suggestions, one-click approval"
+    "ko": "임계값 설정·분석 기반 제안·원클릭 승인",
+    "en": "Set thresholds, get analytics-assisted suggestions, one-click approval"
   },
   "m6b3": {
     "ko": "데이터 라이트백·즉시 롤백 안전망",
@@ -814,20 +814,20 @@ const DICT_RICH = {
     "en": "Connect 30+ channels via OAuth in 5 minutes. Data unifies in real time."
   },
   "how2t": {
-    "ko": "2. AI 분석",
-    "en": "2. AI analyzes"
+    "ko": "2. 성과 분석",
+    "en": "2. Analyze performance"
   },
   "how2d": {
-    "ko": "AI가 광고·매출·재고·정산을 분석해 기회와 위험을 자동으로 찾아냅니다.",
-    "en": "AI analyzes ads, sales, inventory and settlement to surface opportunities and risks."
+    "ko": "광고·매출·재고·정산 데이터를 분석해 기회와 위험을 한눈에 찾아냅니다.",
+    "en": "Analyze ads, sales, inventory and settlement data to surface opportunities and risks at a glance."
   },
   "how3t": {
-    "ko": "3. 자동 실행·성장",
-    "en": "3. Automate & grow"
+    "ko": "3. 최적화·성장",
+    "en": "3. Optimize & grow"
   },
   "how3d": {
-    "ko": "AI 추천을 원클릭 승인하면 운영이 자율 실행됩니다. 성장에만 집중하세요.",
-    "en": "Approve AI recommendations with one click and operations run themselves. Focus on growth."
+    "ko": "분석 기반 추천을 원클릭으로 승인해 실행하세요. 성장에만 집중하면 됩니다.",
+    "en": "Approve analytics-assisted recommendations with one click and execute. Focus on growth."
   },
   "useBadge": {
     "ko": "누구를 위한 플랫폼인가",
@@ -950,8 +950,8 @@ const DICT_RICH = {
     "en": "Across 15 countries, 200+ companies automate commerce with GeniegoROI."
   },
   "ftTagline": {
-    "ko": "AI로 커머스 운영의 A부터 Z까지 자동화하는 글로벌 SaaS",
-    "en": "The global SaaS that automates commerce from A to Z with AI"
+    "ko": "모든 채널의 마케팅 성과를 측정·기여도 분석·최적화하는 글로벌 애널리틱스 SaaS",
+    "en": "The global analytics SaaS to measure, attribute, and optimize marketing performance across every channel"
   },
   "ftProduct": {
     "ko": "제품",
@@ -992,19 +992,19 @@ const DICT_RICH_EXT = {
   "ar": "كيف نحوّل بياناتك إلى ثقة", "hi": "हम आपके डेटा को भरोसे में कैसे बदलते हैं"
  },
  "daDesc": {
-  "ja": "GeniegoROIは、散在するすべてのコマースデータを漏れなく収集し、実証済みの分析手法で加工して、源泉まで追跡可能な信頼できる意思決定資料として提供します。そしてその分析を根拠に、マーケティングを自動で展開します。",
-  "zh": "GeniegoROI 完整收集您分散的所有电商数据，以经过验证的分析方法进行处理，提供可追溯至源头、值得信赖的决策依据，并据此自动开展营销。",
-  "zh-TW": "GeniegoROI 完整收集您分散的所有電商數據，以經過驗證的分析方法進行處理，提供可追溯至源頭、值得信賴的決策依據，並據此自動展開行銷。",
-  "vi": "GeniegoROI thu thập đầy đủ mọi dữ liệu thương mại phân tán của bạn, xử lý bằng các phương pháp phân tích đã được kiểm chứng và cung cấp thông tin ra quyết định đáng tin cậy, truy xuất được đến nguồn gốc — rồi dựa trên phân tích đó để tự động triển khai marketing.",
-  "th": "GeniegoROI รวบรวมข้อมูลคอมเมิร์ซที่กระจัดกระจายของคุณอย่างครบถ้วน ประมวลผลด้วยวิธีวิเคราะห์ที่ผ่านการพิสูจน์ และส่งมอบข้อมูลการตัดสินใจที่เชื่อถือได้และตรวจสอบย้อนกลับถึงต้นทางได้ จากนั้นดำเนินการตลาดโดยอัตโนมัติบนพื้นฐานของการวิเคราะห์นั้น",
-  "id": "GeniegoROI mengumpulkan seluruh data commerce Anda yang tersebar secara lengkap, mengolahnya dengan metodologi analitik teruji, dan menyajikan wawasan keputusan yang tepercaya serta dapat dilacak hingga ke sumbernya — lalu menjalankan pemasaran secara otomatis berdasarkan analisis tersebut.",
-  "de": "GeniegoROI erfasst lückenlos all Ihre verstreuten Commerce-Daten, verarbeitet sie mit bewährten Analysemethoden und liefert vertrauenswürdige, bis zur Quelle nachverfolgbare Entscheidungsgrundlagen — und setzt Ihr Marketing auf Basis dieser Analyse automatisch um.",
-  "fr": "GeniegoROI collecte l'intégralité de vos données commerce dispersées, les traite avec des méthodes d'analyse éprouvées et fournit des informations de décision fiables et traçables jusqu'à la source — puis déploie automatiquement votre marketing sur la base de cette analyse.",
-  "es": "GeniegoROI recopila por completo todos sus datos de comercio dispersos, los procesa con metodologías de análisis probadas y ofrece información de decisión fiable y rastreable hasta su origen, y luego ejecuta su marketing automáticamente a partir de ese análisis.",
-  "pt": "A GeniegoROI recolhe integralmente todos os seus dados de comércio dispersos, processa-os com metodologias de análise comprovadas e fornece informações de decisão fiáveis e rastreáveis até à origem — e depois executa o seu marketing automaticamente com base nessa análise.",
-  "ru": "GeniegoROI полностью собирает все ваши разрозненные коммерческие данные, обрабатывает их проверенными методами аналитики и предоставляет надёжные, прослеживаемые до источника данные для принятия решений — а затем на основе этого анализа автоматически ведёт маркетинг.",
-  "ar": "تجمع GeniegoROI كل بيانات التجارة المتناثرة لديك دون أي نقص، وتعالجها بمنهجيات تحليل مثبتة، وتقدّم رؤى قرار موثوقة يمكن تتبّعها حتى المصدر — ثم تنفّذ تسويقك تلقائيًا بناءً على ذلك التحليل.",
-  "hi": "GeniegoROI आपके बिखरे हुए सभी कॉमर्स डेटा को पूरी तरह एकत्र करता है, उसे सिद्ध विश्लेषण पद्धतियों से संसाधित करता है, और स्रोत तक पता लगाने योग्य भरोसेमंद निर्णय-जानकारी प्रदान करता है — फिर उसी विश्लेषण के आधार पर आपकी मार्केटिंग स्वतः चलाता है।"
+  "ja": "GeniegoROIは、散在するすべてのコマースデータを漏れなく収集し、実証済みの分析手法で加工して、源泉まで追跡可能な信頼できる意思決定資料として提供します。そしてその分析を根拠に、人の承認のもとでマーケティング実行を支援します。",
+  "zh": "GeniegoROI 完整收集您分散的所有电商数据，以经过验证的分析方法进行处理，提供可追溯至源头、值得信赖的决策依据，并在人工审批下支持据此执行营销。",
+  "zh-TW": "GeniegoROI 完整收集您分散的所有電商數據，以經過驗證的分析方法進行處理，提供可追溯至源頭、值得信賴的決策依據，並在人工審批下支持據此執行行銷。",
+  "vi": "GeniegoROI thu thập đầy đủ mọi dữ liệu thương mại phân tán của bạn, xử lý bằng các phương pháp phân tích đã được kiểm chứng và cung cấp thông tin ra quyết định đáng tin cậy, truy xuất được đến nguồn gốc — rồi hỗ trợ thực thi marketing dựa trên phân tích đó với sự phê duyệt của con người.",
+  "th": "GeniegoROI รวบรวมข้อมูลคอมเมิร์ซที่กระจัดกระจายของคุณอย่างครบถ้วน ประมวลผลด้วยวิธีวิเคราะห์ที่ผ่านการพิสูจน์ และส่งมอบข้อมูลการตัดสินใจที่เชื่อถือได้และตรวจสอบย้อนกลับถึงต้นทางได้ จากนั้นสนับสนุนการดำเนินการตลาดบนพื้นฐานการวิเคราะห์นั้นภายใต้การอนุมัติของมนุษย์",
+  "id": "GeniegoROI mengumpulkan seluruh data commerce Anda yang tersebar secara lengkap, mengolahnya dengan metodologi analitik teruji, dan menyajikan wawasan keputusan yang tepercaya serta dapat dilacak hingga ke sumbernya — lalu mendukung eksekusi pemasaran berdasarkan analisis tersebut dengan persetujuan manusia.",
+  "de": "GeniegoROI erfasst lückenlos all Ihre verstreuten Commerce-Daten, verarbeitet sie mit bewährten Analysemethoden und liefert vertrauenswürdige, bis zur Quelle nachverfolgbare Entscheidungsgrundlagen — und unterstützt die Marketingumsetzung auf Basis dieser Analyse mit menschlicher Freigabe.",
+  "fr": "GeniegoROI collecte l'intégralité de vos données commerce dispersées, les traite avec des méthodes d'analyse éprouvées et fournit des informations de décision fiables et traçables jusqu'à la source — puis accompagne l'exécution de votre marketing sur la base de cette analyse, avec validation humaine.",
+  "es": "GeniegoROI recopila por completo todos sus datos de comercio dispersos, los procesa con metodologías de análisis probadas y ofrece información de decisión fiable y rastreable hasta su origen, y luego apoya la ejecución de su marketing a partir de ese análisis con aprobación humana.",
+  "pt": "A GeniegoROI recolhe integralmente todos os seus dados de comércio dispersos, processa-os com metodologias de análise comprovadas e fornece informações de decisão fiáveis e rastreáveis até à origem — e depois apoia a execução do seu marketing com base nessa análise, com aprovação humana.",
+  "ru": "GeniegoROI полностью собирает все ваши разрозненные коммерческие данные, обрабатывает их проверенными методами аналитики и предоставляет надёжные, прослеживаемые до источника данные для принятия решений — а затем поддерживает выполнение маркетинга на основе этого анализа с одобрением человеком.",
+  "ar": "تجمع GeniegoROI كل بيانات التجارة المتناثرة لديك دون أي نقص، وتعالجها بمنهجيات تحليل مثبتة، وتقدّم رؤى قرار موثوقة يمكن تتبّعها حتى المصدر — ثم تدعم تنفيذ تسويقك بناءً على ذلك التحليل بموافقة بشرية.",
+  "hi": "GeniegoROI आपके बिखरे हुए सभी कॉमर्स डेटा को पूरी तरह एकत्र करता है, उसे सिद्ध विश्लेषण पद्धतियों से संसाधित करता है, और स्रोत तक पता लगाने योग्य भरोसेमंद निर्णय-जानकारी प्रदान करता है — फिर उसी विश्लेषण के आधार पर मानव अनुमोदन के साथ मार्केटिंग निष्पादन में सहायता करता है।"
  },
  "da1t": { "ja": "収集", "zh": "收集", "zh-TW": "收集", "vi": "Thu thập", "th": "รวบรวม", "id": "Kumpulkan", "de": "Erfassen", "fr": "Collecter", "es": "Recopilar", "pt": "Recolher", "ru": "Сбор", "ar": "الجمع", "hi": "संग्रह" },
  "da1d": {
@@ -1056,19 +1056,19 @@ const DICT_RICH_EXT = {
  },
  "da4t": { "ja": "実行", "zh": "执行", "zh-TW": "執行", "vi": "Thực thi", "th": "ดำเนินการ", "id": "Eksekusi", "de": "Handeln", "fr": "Agir", "es": "Actuar", "pt": "Agir", "ru": "Действие", "ar": "التنفيذ", "hi": "क्रियान्वयन" },
  "da4d": {
-  "ja": "分析結果を根拠にAIが予算を提案し、人の承認のもとで広告を自動実行します。月予算の上限内で安全にペース配分し、分析から実行までシームレスにつなぎます。",
-  "zh": "AI 以分析结果为依据推荐预算，并在人工审批下自动投放广告。在月度预算上限内安全配速，让分析到执行无缝衔接。",
-  "zh-TW": "AI 以分析結果為依據推薦預算，並在人工審批下自動投放廣告。在月度預算上限內安全配速，讓分析到執行無縫銜接。",
-  "vi": "Dựa trên kết quả phân tích, AI đề xuất ngân sách và tự động chạy quảng cáo khi có sự phê duyệt của con người. Điều phối an toàn trong hạn mức ngân sách hằng tháng, liền mạch từ phân tích đến thực thi.",
-  "th": "AI แนะนำงบประมาณจากผลการวิเคราะห์ และรันโฆษณาอัตโนมัติภายใต้การอนุมัติของมนุษย์ จัดสรรอย่างปลอดภัยภายในเพดานงบรายเดือน เชื่อมจากการวิเคราะห์สู่การดำเนินการอย่างไร้รอยต่อ",
-  "id": "Berdasarkan hasil analisis, AI merekomendasikan anggaran dan menjalankan iklan secara otomatis dengan persetujuan manusia. Pacing aman dalam batas anggaran bulanan, mulus dari analisis hingga eksekusi.",
-  "de": "Auf Basis der Analyse empfiehlt die KI Budgets und schaltet Anzeigen automatisch nach menschlicher Freigabe — sicher getaktet innerhalb Ihres Monatsbudgets, nahtlos von der Analyse bis zur Umsetzung.",
-  "fr": "Sur la base de l'analyse, l'IA recommande des budgets et diffuse les publicités automatiquement après validation humaine — avec un rythme sécurisé dans la limite de votre budget mensuel, de l'analyse à l'exécution sans rupture.",
-  "es": "A partir del análisis, la IA recomienda presupuestos y ejecuta los anuncios automáticamente con aprobación humana, con un ritmo seguro dentro de su límite de presupuesto mensual, del análisis a la ejecución sin interrupciones.",
-  "pt": "Com base na análise, a IA recomenda orçamentos e executa anúncios automaticamente com aprovação humana — com ritmo seguro dentro do limite do orçamento mensal, da análise à execução sem interrupções.",
-  "ru": "На основе анализа ИИ рекомендует бюджеты и автоматически запускает рекламу после одобрения человеком — с безопасным распределением в пределах месячного лимита, без разрывов от анализа до исполнения.",
-  "ar": "استنادًا إلى نتائج التحليل، يوصي الذكاء الاصطناعي بالميزانيات ويشغّل الإعلانات تلقائيًا بموافقة بشرية — بوتيرة آمنة ضمن سقف ميزانيتك الشهرية، ومن التحليل إلى التنفيذ بلا انقطاع.",
-  "hi": "विश्लेषण के आधार पर AI बजट की सिफारिश करता है और मानव अनुमोदन के साथ विज्ञापन स्वतः चलाता है — मासिक बजट सीमा के भीतर सुरक्षित पेसिंग के साथ, विश्लेषण से क्रियान्वयन तक निर्बाध।"
+  "ja": "分析結果に基づくデータドリブンな予算提案を受け取り、人の承認のもとで施策を実行します。月予算の上限内で安全にペース配分し、分析から実行までシームレスにつなぎます。",
+  "zh": "获取基于分析的数据驱动预算建议，并在人工审批下执行投放。在月度预算上限内安全配速，让分析到执行无缝衔接。",
+  "zh-TW": "取得基於分析的數據驅動預算建議，並在人工審批下執行投放。在月度預算上限內安全配速，讓分析到執行無縫銜接。",
+  "vi": "Nhận đề xuất ngân sách dựa trên dữ liệu từ kết quả phân tích và thực thi chiến dịch khi có sự phê duyệt của con người. Điều phối an toàn trong hạn mức ngân sách hằng tháng, liền mạch từ phân tích đến thực thi.",
+  "th": "รับคำแนะนำงบประมาณเชิงข้อมูลจากผลการวิเคราะห์ และดำเนินแคมเปญภายใต้การอนุมัติของมนุษย์ จัดสรรอย่างปลอดภัยภายในเพดานงบรายเดือน เชื่อมจากการวิเคราะห์สู่การดำเนินการอย่างไร้รอยต่อ",
+  "id": "Dapatkan rekomendasi anggaran berbasis data dari hasil analisis dan jalankan kampanye dengan persetujuan manusia. Pacing aman dalam batas anggaran bulanan, mulus dari analisis hingga eksekusi.",
+  "de": "Erhalten Sie datenbasierte Budgetempfehlungen aus der Analyse und führen Sie Kampagnen nach menschlicher Freigabe aus — sicher getaktet innerhalb Ihres Monatsbudgets, nahtlos von der Analyse bis zur Umsetzung.",
+  "fr": "Recevez des recommandations budgétaires basées sur les données issues de l'analyse et exécutez les campagnes après validation humaine — avec un rythme sécurisé dans la limite de votre budget mensuel, de l'analyse à l'exécution sans rupture.",
+  "es": "Reciba recomendaciones de presupuesto basadas en datos a partir del análisis y ejecute campañas con aprobación humana, con un ritmo seguro dentro de su límite de presupuesto mensual, del análisis a la ejecución sin interrupciones.",
+  "pt": "Receba recomendações de orçamento baseadas em dados a partir da análise e execute campanhas com aprovação humana — com ritmo seguro dentro do limite do orçamento mensal, da análise à execução sem interrupções.",
+  "ru": "Получайте рекомендации бюджета на основе данных из анализа и запускайте кампании после одобрения человеком — с безопасным распределением в пределах месячного лимита, без разрывов от анализа до исполнения.",
+  "ar": "احصل على توصيات ميزانية قائمة على البيانات من نتائج التحليل ونفّذ الحملات بموافقة بشرية — بوتيرة آمنة ضمن سقف ميزانيتك الشهرية، ومن التحليل إلى التنفيذ بلا انقطاع.",
+  "hi": "विश्लेषण के आधार पर डेटा-आधारित बजट सिफ़ारिशें प्राप्त करें और मानव अनुमोदन के साथ अभियान चलाएँ — मासिक बजट सीमा के भीतर सुरक्षित पेसिंग के साथ, विश्लेषण से क्रियान्वयन तक निर्बाध।"
  },
  "daDataTitle": {
   "ja": "収集・分析するデータ", "zh": "我们收集与分析的数据", "zh-TW": "我們收集與分析的數據",
@@ -1261,19 +1261,19 @@ const DICT_RICH_EXT = {
   "hi": "बिखरा हुआ कॉमर्स संचालन,\nअब एक बुद्धिमान प्लेटफ़ॉर्म"
  },
  "problemDesc": {
-  "ja": "チャネルごとに異なる広告ダッシュボード、Excelで合わせる精算、バラバラの在庫と注文 — 運営の複雑さが成長を阻みます。GeniegoROIは30以上のチャネルのデータをリアルタイムで統合し、AIが広告・販売・在庫・配送・精算を自動で分析・実行します。運営者は意思決定に集中できます。",
-  "zh": "各渠道不同的广告看板、用Excel拼凑的对账、分散的库存与订单 —— 运营的复杂度限制了增长。GeniegoROI 实时统一 30+ 渠道数据，AI 自动分析并执行广告、销售、库存、物流与结算。您只需专注决策。",
-  "zh-TW": "各通路不同的廣告看板、用Excel拼湊的對帳、分散的庫存與訂單 —— 營運的複雜度限制了成長。GeniegoROI 即時統一 30+ 通路資料，AI 自動分析並執行廣告、銷售、庫存、物流與結算。您只需專注決策。",
-  "vi": "Bảng quảng cáo khác nhau theo từng kênh, đối soát bằng bảng tính, tồn kho và đơn hàng rời rạc — sự phức tạp kìm hãm tăng trưởng. GeniegoROI hợp nhất dữ liệu 30+ kênh theo thời gian thực, AI tự động phân tích và thực thi quảng cáo, bán hàng, tồn kho, vận chuyển và thanh toán. Bạn chỉ tập trung vào quyết định.",
-  "th": "แดชบอร์ดโฆษณาต่างกันในแต่ละช่องทาง การกระทบยอดด้วยสเปรดชีต สต็อกและออเดอร์ที่กระจัดกระจาย — ความซับซ้อนจำกัดการเติบโต GeniegoROI รวมข้อมูล 30+ ช่องทางแบบเรียลไทม์ และ AI วิเคราะห์และดำเนินการโฆษณา ขาย สต็อก ขนส่ง และการชำระเงินอัตโนมัติ คุณเพียงโฟกัสที่การตัดสินใจ",
-  "id": "Dasbor iklan berbeda per channel, rekonsiliasi via spreadsheet, inventori dan pesanan tersebar — kompleksitas membatasi pertumbuhan. GeniegoROI menyatukan data 30+ channel secara real-time, dan AI otomatis menganalisis serta menjalankan iklan, penjualan, inventori, pengiriman, dan settlement. Anda fokus pada keputusan.",
-  "de": "Unterschiedliche Werbe-Dashboards je Kanal, Abstimmung per Tabelle, verstreute Bestände und Bestellungen — Komplexität bremst Wachstum. GeniegoROI vereint 30+ Kanäle in Echtzeit, und KI analysiert und steuert automatisch Werbung, Verkauf, Lager, Versand und Abrechnung. Sie konzentrieren sich nur auf Entscheidungen.",
-  "fr": "Des tableaux de bord publicitaires différents par canal, des rapprochements sur tableur, des stocks et commandes dispersés — la complexité freine la croissance. GeniegoROI unifie 30+ canaux en temps réel, et l'IA analyse et exécute automatiquement publicité, ventes, stock, livraison et règlement. Vous vous concentrez sur les décisions.",
-  "es": "Paneles de anuncios distintos por canal, conciliación en hojas de cálculo, inventario y pedidos dispersos — la complejidad limita el crecimiento. GeniegoROI unifica 30+ canales en tiempo real, y la IA analiza y ejecuta automáticamente anuncios, ventas, inventario, envíos y liquidación. Usted solo decide.",
-  "pt": "Painéis de anúncios diferentes por canal, conciliação em planilhas, estoque e pedidos dispersos — a complexidade limita o crescimento. A GeniegoROI unifica 30+ canais em tempo real, e a IA analisa e executa automaticamente anúncios, vendas, estoque, envio e liquidação. Você foca apenas nas decisões.",
-  "ru": "Разные рекламные панели по каналам, сверка в таблицах, разрозненные склад и заказы — сложность тормозит рост. GeniegoROI объединяет 30+ каналов в реальном времени, а AI автоматически анализирует и выполняет рекламу, продажи, склад, доставку и расчёты. Вы лишь принимаете решения.",
-  "ar": "لوحات إعلانات مختلفة لكل قناة، تسويات عبر الجداول، مخزون وطلبات مبعثرة — التعقيد يحدّ من النمو. توحّد GeniegoROI بيانات أكثر من 30 قناة لحظيًا، ويحلّل الذكاء الاصطناعي وينفّذ تلقائيًا الإعلانات والمبيعات والمخزون والشحن والتسوية. تركّز أنت على القرارات فقط.",
-  "hi": "हर चैनल पर अलग विज्ञापन डैशबोर्ड, स्प्रेडशीट से मिलान, बिखरी इन्वेंटरी और ऑर्डर — जटिलता विकास को रोकती है। GeniegoROI 30+ चैनलों का डेटा रियल-टाइम एकीकृत करता है, और AI विज्ञापन, बिक्री, इन्वेंटरी, शिपिंग और सेटलमेंट का स्वतः विश्लेषण व निष्पादन करता है। आप केवल निर्णयों पर ध्यान दें।"
+  "ja": "チャネルごとに異なる広告ダッシュボード、Excelで合わせる精算、バラバラの在庫と注文 — 運営の複雑さが成長を阻みます。GeniegoROIは30以上のチャネルのデータをリアルタイムで統合し、広告・販売・在庫・配送・精算の成果を一目で分析できます。運営者は意思決定に集中できます。",
+  "zh": "各渠道不同的广告看板、用Excel拼凑的对账、分散的库存与订单 —— 运营的复杂度限制了增长。GeniegoROI 实时统一 30+ 渠道数据，让您在一处分析广告、销售、库存、物流与结算的绩效。您只需专注决策。",
+  "zh-TW": "各通路不同的廣告看板、用Excel拼湊的對帳、分散的庫存與訂單 —— 營運的複雜度限制了成長。GeniegoROI 即時統一 30+ 通路資料，讓您在一處分析廣告、銷售、庫存、物流與結算的成效。您只需專注決策。",
+  "vi": "Bảng quảng cáo khác nhau theo từng kênh, đối soát bằng bảng tính, tồn kho và đơn hàng rời rạc — sự phức tạp kìm hãm tăng trưởng. GeniegoROI hợp nhất dữ liệu 30+ kênh theo thời gian thực để bạn phân tích hiệu suất quảng cáo, bán hàng, tồn kho, vận chuyển và thanh toán tại một nơi. Bạn chỉ tập trung vào quyết định.",
+  "th": "แดชบอร์ดโฆษณาต่างกันในแต่ละช่องทาง การกระทบยอดด้วยสเปรดชีต สต็อกและออเดอร์ที่กระจัดกระจาย — ความซับซ้อนจำกัดการเติบโต GeniegoROI รวมข้อมูล 30+ ช่องทางแบบเรียลไทม์ ให้คุณวิเคราะห์ประสิทธิภาพโฆษณา ขาย สต็อก ขนส่ง และการชำระเงินในที่เดียว คุณเพียงโฟกัสที่การตัดสินใจ",
+  "id": "Dasbor iklan berbeda per channel, rekonsiliasi via spreadsheet, inventori dan pesanan tersebar — kompleksitas membatasi pertumbuhan. GeniegoROI menyatukan data 30+ channel secara real-time sehingga Anda dapat menganalisis performa iklan, penjualan, inventori, pengiriman, dan settlement di satu tempat. Anda fokus pada keputusan.",
+  "de": "Unterschiedliche Werbe-Dashboards je Kanal, Abstimmung per Tabelle, verstreute Bestände und Bestellungen — Komplexität bremst Wachstum. GeniegoROI vereint 30+ Kanäle in Echtzeit, sodass Sie die Performance über Werbung, Verkauf, Lager, Versand und Abrechnung an einem Ort analysieren. Sie konzentrieren sich nur auf Entscheidungen.",
+  "fr": "Des tableaux de bord publicitaires différents par canal, des rapprochements sur tableur, des stocks et commandes dispersés — la complexité freine la croissance. GeniegoROI unifie 30+ canaux en temps réel pour vous permettre d'analyser la performance sur la publicité, les ventes, le stock, la livraison et le règlement au même endroit. Vous vous concentrez sur les décisions.",
+  "es": "Paneles de anuncios distintos por canal, conciliación en hojas de cálculo, inventario y pedidos dispersos — la complejidad limita el crecimiento. GeniegoROI unifica 30+ canales en tiempo real para que analice el rendimiento de anuncios, ventas, inventario, envíos y liquidación en un solo lugar. Usted solo decide.",
+  "pt": "Painéis de anúncios diferentes por canal, conciliação em planilhas, estoque e pedidos dispersos — a complexidade limita o crescimento. A GeniegoROI unifica 30+ canais em tempo real para você analisar o desempenho de anúncios, vendas, estoque, envio e liquidação num só lugar. Você foca apenas nas decisões.",
+  "ru": "Разные рекламные панели по каналам, сверка в таблицах, разрозненные склад и заказы — сложность тормозит рост. GeniegoROI объединяет 30+ каналов в реальном времени, чтобы вы анализировали эффективность рекламы, продаж, склада, доставки и расчётов в одном месте. Вы лишь принимаете решения.",
+  "ar": "لوحات إعلانات مختلفة لكل قناة، تسويات عبر الجداول، مخزون وطلبات مبعثرة — التعقيد يحدّ من النمو. توحّد GeniegoROI بيانات أكثر من 30 قناة لحظيًا لتحلّل أداء الإعلانات والمبيعات والمخزون والشحن والتسوية في مكان واحد. تركّز أنت على القرارات فقط.",
+  "hi": "हर चैनल पर अलग विज्ञापन डैशबोर्ड, स्प्रेडशीट से मिलान, बिखरी इन्वेंटरी और ऑर्डर — जटिलता विकास को रोकती है। GeniegoROI 30+ चैनलों का डेटा रियल-टाइम एकीकृत करता है ताकि आप विज्ञापन, बिक्री, इन्वेंटरी, शिपिंग और सेटलमेंट के प्रदर्शन का एक ही जगह विश्लेषण कर सकें। आप केवल निर्णयों पर ध्यान दें।"
  },
  "modulesBadge": {
   "ja": "一つのプラットフォーム、全機能",
@@ -1396,34 +1396,34 @@ const DICT_RICH_EXT = {
   "hi": "OAuth प्रबंधन व स्वतः सिंक"
  },
  "m2t": {
-  "ja": "AIマーケティングインテリジェンス",
-  "zh": "AI营销智能",
-  "zh-TW": "AI行銷智慧",
-  "vi": "AI Marketing thông minh",
-  "th": "AI Marketing Intelligence",
-  "id": "AI Marketing Intelligence",
-  "de": "KI-Marketing-Intelligenz",
-  "fr": "Intelligence marketing IA",
-  "es": "Inteligencia de marketing IA",
-  "pt": "Inteligência de marketing IA",
-  "ru": "AI-маркетинг-аналитика",
-  "ar": "ذكاء التسويق بالـ AI",
-  "hi": "AI मार्केटिंग इंटेलिजेंस"
+  "ja": "マルチチャネル・アトリビューション分析",
+  "zh": "多渠道归因分析",
+  "zh-TW": "多通路歸因分析",
+  "vi": "Phân tích Attribution đa kênh",
+  "th": "การวิเคราะห์ Attribution หลายช่องทาง",
+  "id": "Analitik Atribusi Multi-Channel",
+  "de": "Multi-Channel-Attributionsanalyse",
+  "fr": "Analyse d'attribution multicanal",
+  "es": "Análisis de atribución multicanal",
+  "pt": "Análise de atribuição multicanal",
+  "ru": "Аналитика мультиканальной атрибуции",
+  "ar": "تحليلات الإسناد متعدد القنوات",
+  "hi": "मल्टी-चैनल एट्रिब्यूशन एनालिटिक्स"
  },
  "m2d": {
-  "ja": "8次元の広告貢献度分析とAI予算提案でROASを最大化。",
-  "zh": "8维广告贡献度分析与AI预算建议，最大化ROAS。",
-  "zh-TW": "8維廣告貢獻度分析與AI預算建議，最大化ROAS。",
-  "vi": "Phân tích đóng góp 8 chiều và đề xuất ngân sách AI để tối đa ROAS.",
-  "th": "วิเคราะห์ 8 มิติและ AI แนะนำงบเพื่อ ROAS สูงสุด",
-  "id": "Atribusi 8-dimensi dan rekomendasi budget AI untuk ROAS maksimal.",
-  "de": "8-dimensionale Attribution und KI-Budgetempfehlungen für maximalen ROAS.",
-  "fr": "Attribution 8 dimensions et suggestions budget IA pour un ROAS maximal.",
-  "es": "Atribución de 8 dimensiones y recomendaciones de presupuesto IA para máximo ROAS.",
-  "pt": "Atribuição 8 dimensões e recomendações de orçamento IA para ROAS máximo.",
-  "ru": "8-мерная атрибуция и AI-рекомендации бюджета для максимального ROAS.",
-  "ar": "إسناد ثماني الأبعاد وتوصيات ميزانية بالـ AI لتعظيم ROAS.",
-  "hi": "अधिकतम ROAS के लिए 8-आयामी एट्रिब्यूशन और AI बजट सिफ़ारिशें।"
+  "ja": "8次元の広告貢献度分析とデータに基づく予算提案でROASを最大化。",
+  "zh": "8维广告贡献度分析与数据驱动的预算建议，最大化ROAS。",
+  "zh-TW": "8維廣告貢獻度分析與數據驅動的預算建議，最大化ROAS。",
+  "vi": "Phân tích đóng góp 8 chiều và đề xuất ngân sách dựa trên dữ liệu để tối đa ROAS.",
+  "th": "วิเคราะห์ 8 มิติและคำแนะนำงบจากข้อมูลเพื่อ ROAS สูงสุด",
+  "id": "Atribusi 8-dimensi dan rekomendasi budget berbasis data untuk ROAS maksimal.",
+  "de": "8-dimensionale Attribution und datenbasierte Budgetempfehlungen für maximalen ROAS.",
+  "fr": "Attribution 8 dimensions et recommandations budgétaires basées sur les données pour un ROAS maximal.",
+  "es": "Atribución de 8 dimensiones y recomendaciones de presupuesto basadas en datos para máximo ROAS.",
+  "pt": "Atribuição 8 dimensões e recomendações de orçamento baseadas em dados para ROAS máximo.",
+  "ru": "8-мерная атрибуция и рекомендации бюджета на основе данных для максимального ROAS.",
+  "ar": "إسناد ثماني الأبعاد وتوصيات ميزانية قائمة على البيانات لتعظيم ROAS.",
+  "hi": "अधिकतम ROAS के लिए 8-आयामी एट्रिब्यूशन और डेटा-आधारित बजट सिफ़ारिशें।"
  },
  "m2b1": {
   "ja": "マルチタッチ・アトリビューション、チャネルKPI、競合分析",
@@ -1441,34 +1441,34 @@ const DICT_RICH_EXT = {
   "hi": "मल्टी-टच एट्रिब्यूशन, चैनल KPI, प्रतिस्पर्धी विश्लेषण"
  },
  "m2b2": {
-  "ja": "AI広告クリエイティブ生成・コンテンツカレンダー",
-  "zh": "AI广告素材生成与内容日历",
-  "zh-TW": "AI廣告素材生成與內容日曆",
-  "vi": "Tạo quảng cáo AI & lịch nội dung",
-  "th": "สร้างครีเอทีฟ AI และปฏิทินคอนเทนต์",
-  "id": "Generasi kreatif iklan AI & kalender konten",
-  "de": "KI-Werbemittel-Generierung & Content-Kalender",
-  "fr": "Génération de créas IA & calendrier de contenu",
-  "es": "Generación de creatividades IA y calendario de contenido",
-  "pt": "Geração de criativos IA & calendário de conteúdo",
-  "ru": "AI-генерация креативов и контент-календарь",
-  "ar": "إنشاء إعلانات بالـ AI وتقويم المحتوى",
-  "hi": "AI विज्ञापन क्रिएटिव जनरेशन व कंटेंट कैलेंडर"
+  "ja": "クリエイティブ成果分析・コンテンツカレンダー",
+  "zh": "创意绩效分析与内容日历",
+  "zh-TW": "創意成效分析與內容日曆",
+  "vi": "Phân tích hiệu suất sáng tạo & lịch nội dung",
+  "th": "วิเคราะห์ประสิทธิภาพครีเอทีฟ & ปฏิทินคอนเทนต์",
+  "id": "Analitik performa kreatif & kalender konten",
+  "de": "Creative-Performance-Analyse & Content-Kalender",
+  "fr": "Analyse de performance créative & calendrier de contenu",
+  "es": "Análisis de rendimiento creativo y calendario de contenido",
+  "pt": "Análise de desempenho criativo & calendário de conteúdo",
+  "ru": "Аналитика эффективности креативов и контент-календарь",
+  "ar": "تحليل أداء الإعلانات وتقويم المحتوى",
+  "hi": "क्रिएटिव प्रदर्शन विश्लेषण व कंटेंट कैलेंडर"
  },
  "m2b3": {
-  "ja": "AI予算配分＋人による承認ワークフロー",
-  "zh": "AI预算分配＋人工审批流程",
-  "zh-TW": "AI預算分配＋人工審批流程",
-  "vi": "Phân bổ ngân sách AI + duyệt bởi con người",
-  "th": "จัดสรรงบ AI + อนุมัติโดยมนุษย์",
-  "id": "Alokasi budget AI + persetujuan manusia",
-  "de": "KI-Budgetverteilung + menschliche Freigabe",
-  "fr": "Allocation budget IA + validation humaine",
-  "es": "Asignación de presupuesto IA + aprobación humana",
-  "pt": "Alocação de orçamento IA + aprovação humana",
-  "ru": "AI-распределение бюджета + подтверждение человеком",
-  "ar": "توزيع الميزانية بالـ AI + موافقة بشرية",
-  "hi": "AI बजट आवंटन + मानव अनुमोदन"
+  "ja": "データに基づく予算配分＋人による承認ワークフロー",
+  "zh": "数据驱动的预算分配＋人工审批流程",
+  "zh-TW": "數據驅動的預算分配＋人工審批流程",
+  "vi": "Phân bổ ngân sách dựa trên dữ liệu + duyệt bởi con người",
+  "th": "จัดสรรงบจากข้อมูล + อนุมัติโดยมนุษย์",
+  "id": "Alokasi budget berbasis data + persetujuan manusia",
+  "de": "Datenbasierte Budgetverteilung + menschliche Freigabe",
+  "fr": "Allocation budgétaire basée sur les données + validation humaine",
+  "es": "Asignación de presupuesto basada en datos + aprobación humana",
+  "pt": "Alocação de orçamento baseada em dados + aprovação humana",
+  "ru": "Распределение бюджета на основе данных + подтверждение человеком",
+  "ar": "توزيع الميزانية قائم على البيانات + موافقة بشرية",
+  "hi": "डेटा-आधारित बजट आवंटन + मानव अनुमोदन"
  },
  "m3t": {
   "ja": "WMS — 倉庫・物流",
@@ -1651,19 +1651,19 @@ const DICT_RICH_EXT = {
   "hi": "डेटा पर ग्राहक यात्रा और इन्फ्लुएंसर ROI चलाएं, स्वतः।"
  },
  "m5b1": {
-  "ja": "RFM・VIP・AIセグメント、顧客ジャーニービルダー",
-  "zh": "RFM/VIP/AI细分、客户旅程构建器",
-  "zh-TW": "RFM/VIP/AI分群、客戶旅程建構器",
-  "vi": "Phân khúc RFM/VIP/AI, trình tạo hành trình",
-  "th": "เซกเมนต์ RFM/VIP/AI, ตัวสร้าง journey",
-  "id": "Segmen RFM/VIP/AI, journey builder",
-  "de": "RFM/VIP/KI-Segmente, Journey-Builder",
-  "fr": "Segments RFM/VIP/IA, créateur de parcours",
-  "es": "Segmentos RFM/VIP/IA, creador de journeys",
-  "pt": "Segmentos RFM/VIP/IA, criador de jornadas",
-  "ru": "Сегменты RFM/VIP/AI, конструктор путей",
-  "ar": "شرائح RFM/VIP/AI، منشئ رحلة العميل",
-  "hi": "RFM/VIP/AI सेगमेंट, जर्नी बिल्डर"
+  "ja": "RFM・VIP・予測セグメント、顧客ジャーニービルダー",
+  "zh": "RFM/VIP/预测细分、客户旅程构建器",
+  "zh-TW": "RFM/VIP/預測分群、客戶旅程建構器",
+  "vi": "Phân khúc RFM/VIP/dự đoán, trình tạo hành trình",
+  "th": "เซกเมนต์ RFM/VIP/เชิงคาดการณ์, ตัวสร้าง journey",
+  "id": "Segmen RFM/VIP/prediktif, journey builder",
+  "de": "RFM/VIP/prädiktive Segmente, Journey-Builder",
+  "fr": "Segments RFM/VIP/prédictifs, créateur de parcours",
+  "es": "Segmentos RFM/VIP/predictivos, creador de journeys",
+  "pt": "Segmentos RFM/VIP/preditivos, criador de jornadas",
+  "ru": "Сегменты RFM/VIP/прогнозные, конструктор путей",
+  "ar": "شرائح RFM/VIP/تنبؤية، منشئ رحلة العميل",
+  "hi": "RFM/VIP/पूर्वानुमानित सेगमेंट, जर्नी बिल्डर"
  },
  "m5b2": {
   "ja": "メール・Kakao・LINE・WhatsApp・Instagram DM",
@@ -1696,64 +1696,64 @@ const DICT_RICH_EXT = {
   "hi": "इन्फ्लुएंसर रीच/कन्वर्ज़न/ROI मूल्यांकन व कमीशन प्रबंधन"
  },
  "m6t": {
-  "ja": "AI自動化エンジン",
-  "zh": "AI自动化引擎",
-  "zh-TW": "AI自動化引擎",
-  "vi": "AI tự động hoá",
-  "th": "เครื่องยนต์ AI อัตโนมัติ",
-  "id": "Mesin Otomatisasi AI",
-  "de": "KI-Automatisierungsengine",
-  "fr": "Moteur d'automatisation IA",
-  "es": "Motor de automatización IA",
-  "pt": "Motor de automação IA",
-  "ru": "Движок AI-автоматизации",
-  "ar": "محرّك الأتمتة بالـ AI",
-  "hi": "AI ऑटोमेशन इंजन"
+  "ja": "マーケティング自動化サポート",
+  "zh": "营销自动化支持",
+  "zh-TW": "行銷自動化支援",
+  "vi": "Hỗ trợ tự động hoá marketing",
+  "th": "การสนับสนุนระบบอัตโนมัติการตลาด",
+  "id": "Dukungan Otomasi Marketing",
+  "de": "Marketing-Automatisierungs-Support",
+  "fr": "Support d'automatisation marketing",
+  "es": "Soporte de automatización de marketing",
+  "pt": "Suporte de automação de marketing",
+  "ru": "Поддержка автоматизации маркетинга",
+  "ar": "دعم أتمتة التسويق",
+  "hi": "मार्केटिंग ऑटोमेशन सपोर्ट"
  },
  "m6d": {
-  "ja": "ルール＋GPTベースのワークフローで運営を自律実行。",
-  "zh": "以规则+GPT工作流自主执行运营。",
-  "zh-TW": "以規則+GPT工作流自主執行營運。",
-  "vi": "Vận hành tự động qua workflow dựa trên quy tắc + GPT.",
-  "th": "ดำเนินงานอัตโนมัติด้วยเวิร์กโฟลว์กฎ + GPT",
-  "id": "Operasi otonom via workflow berbasis aturan + GPT.",
-  "de": "Autonomer Betrieb über regel- & GPT-basierte Workflows.",
-  "fr": "Opérations autonomes via des workflows à règles + GPT.",
-  "es": "Operaciones autónomas mediante flujos basados en reglas + GPT.",
-  "pt": "Operações autônomas via workflows baseados em regras + GPT.",
-  "ru": "Автономная работа через workflow на правилах + GPT.",
-  "ar": "تشغيل ذاتي عبر مسارات عمل قائمة على القواعد + GPT.",
-  "hi": "नियम + GPT वर्कफ़्लो से स्वायत्त संचालन।"
+  "ja": "ルールベースのワークフローと分析に基づく推奨で運営を効率化。",
+  "zh": "以规则化工作流与分析辅助建议提升运营效率。",
+  "zh-TW": "以規則化工作流與分析輔助建議提升營運效率。",
+  "vi": "Tối ưu vận hành với workflow dựa trên quy tắc và khuyến nghị hỗ trợ bằng phân tích.",
+  "th": "เพิ่มประสิทธิภาพการดำเนินงานด้วยเวิร์กโฟลว์ตามกฎและคำแนะนำที่ช่วยด้วยการวิเคราะห์",
+  "id": "Efisienkan operasi dengan workflow berbasis aturan dan rekomendasi berbantuan analitik.",
+  "de": "Optimieren Sie den Betrieb mit regelbasierten Workflows und analytikgestützten Empfehlungen.",
+  "fr": "Optimisez les opérations avec des workflows à règles et des recommandations assistées par l'analyse.",
+  "es": "Optimice las operaciones con flujos basados en reglas y recomendaciones asistidas por análisis.",
+  "pt": "Otimize as operações com workflows baseados em regras e recomendações assistidas por análise.",
+  "ru": "Оптимизируйте работу с помощью процессов на основе правил и рекомендаций на базе аналитики.",
+  "ar": "حسّن العمليات عبر مسارات عمل قائمة على القواعد وتوصيات مدعومة بالتحليلات.",
+  "hi": "नियम-आधारित वर्कफ़्लो और एनालिटिक्स-सहायित सिफ़ारिशों से संचालन को कुशल बनाएँ।"
  },
  "m6b1": {
-  "ja": "AIルールエンジン・通知ポリシー・アクションプリセット",
-  "zh": "AI规则引擎、通知策略、动作预设",
-  "zh-TW": "AI規則引擎、通知策略、動作預設",
-  "vi": "AI rule engine, chính sách thông báo, action preset",
-  "th": "AI rule engine นโยบายแจ้งเตือน action preset",
-  "id": "AI rule engine, kebijakan notifikasi, action preset",
-  "de": "KI-Regel-Engine, Benachrichtigungsrichtlinien, Aktions-Presets",
-  "fr": "Moteur de règles IA, politiques d'alerte, presets d'action",
-  "es": "Motor de reglas IA, políticas de alerta, presets de acción",
-  "pt": "Motor de regras IA, políticas de alerta, presets de ação",
-  "ru": "AI-движок правил, политики уведомлений, пресеты действий",
-  "ar": "محرّك قواعد AI، سياسات التنبيه، إعدادات الإجراءات",
-  "hi": "AI रूल इंजन, अलर्ट नीतियाँ, एक्शन प्रीसेट"
+  "ja": "ルールエンジン・通知ポリシー・アクションプリセット",
+  "zh": "规则引擎、通知策略、动作预设",
+  "zh-TW": "規則引擎、通知策略、動作預設",
+  "vi": "Rule engine, chính sách thông báo, action preset",
+  "th": "Rule engine นโยบายแจ้งเตือน action preset",
+  "id": "Rule engine, kebijakan notifikasi, action preset",
+  "de": "Regel-Engine, Benachrichtigungsrichtlinien, Aktions-Presets",
+  "fr": "Moteur de règles, politiques d'alerte, presets d'action",
+  "es": "Motor de reglas, políticas de alerta, presets de acción",
+  "pt": "Motor de regras, políticas de alerta, presets de ação",
+  "ru": "Движок правил, политики уведомлений, пресеты действий",
+  "ar": "محرّك القواعد، سياسات التنبيه، إعدادات الإجراءات",
+  "hi": "रूल इंजन, अलर्ट नीतियाँ, एक्शन प्रीसेट"
  },
  "m6b2": {
-  "ja": "閾値設定・AI提案・ワンクリック承認",
-  "zh": "阈值设定、AI建议、一键审批",
-  "zh-TW": "閾值設定、AI建議、一鍵審批",
-  "vi": "Đặt ngưỡng, gợi ý AI, duyệt một chạm",
-  "th": "ตั้งเกณฑ์ คำแนะนำ AI อนุมัติคลิกเดียว",
-  "id": "Atur threshold, saran AI, persetujuan satu klik",
-  "de": "Schwellenwerte, KI-Vorschläge, Ein-Klick-Freigabe",
-  "fr": "Seuils, suggestions IA, validation en un clic",
-  "es": "Umbrales, sugerencias IA, aprobación con un clic",
-  "pt": "Limiares, sugestões IA, aprovação com um clique",
-  "ru": "Пороги, AI-подсказки, подтверждение в один клик",
-  "ar": "عتبات، اقتراحات AI، موافقة بنقرة واحدة",
-  "hi": "थ्रेशोल्ड, AI सुझाव, एक-क्लिक अनुमोदन"
+  "ja": "閾値設定・分析に基づく提案・ワンクリック承認",
+  "zh": "阈值设定、分析辅助建议、一键审批",
+  "zh-TW": "閾值設定、分析輔助建議、一鍵審批",
+  "vi": "Đặt ngưỡng, gợi ý hỗ trợ bằng phân tích, duyệt một chạm",
+  "th": "ตั้งเกณฑ์ คำแนะนำจากการวิเคราะห์ อนุมัติคลิกเดียว",
+  "id": "Atur threshold, saran berbantuan analitik, persetujuan satu klik",
+  "de": "Schwellenwerte, analytikgestützte Vorschläge, Ein-Klick-Freigabe",
+  "fr": "Seuils, suggestions assistées par l'analyse, validation en un clic",
+  "es": "Umbrales, sugerencias asistidas por análisis, aprobación con un clic",
+  "pt": "Limiares, sugestões assistidas por análise, aprovação com um clique",
+  "ru": "Пороги, подсказки на базе аналитики, подтверждение в один клик",
+  "ar": "عتبات، اقتراحات مدعومة بالتحليلات، موافقة بنقرة واحدة",
+  "hi": "थ्रेशोल्ड, एनालिटिक्स-सहायित सुझाव, एक-क्लिक अनुमोदन"
  },
  "m6b3": {
   "ja": "データライトバック・即時ロールバックの安全網",
@@ -1831,64 +1831,64 @@ const DICT_RICH_EXT = {
   "hi": "OAuth से 5 मिनट में 30+ चैनल जोड़ें। डेटा रियल-टाइम एकीकृत।"
  },
  "how2t": {
-  "ja": "2. AI分析",
-  "zh": "2. AI分析",
-  "zh-TW": "2. AI分析",
-  "vi": "2. AI phân tích",
-  "th": "2. AI วิเคราะห์",
-  "id": "2. AI menganalisis",
-  "de": "2. KI analysiert",
-  "fr": "2. L'IA analyse",
-  "es": "2. La IA analiza",
-  "pt": "2. A IA analisa",
-  "ru": "2. AI анализирует",
-  "ar": "2. الذكاء الاصطناعي يحلّل",
-  "hi": "2. AI विश्लेषण करता है"
+  "ja": "2. 成果分析",
+  "zh": "2. 绩效分析",
+  "zh-TW": "2. 成效分析",
+  "vi": "2. Phân tích hiệu suất",
+  "th": "2. วิเคราะห์ประสิทธิภาพ",
+  "id": "2. Analisis performa",
+  "de": "2. Performance analysieren",
+  "fr": "2. Analysez la performance",
+  "es": "2. Analice el rendimiento",
+  "pt": "2. Analise o desempenho",
+  "ru": "2. Анализируйте эффективность",
+  "ar": "2. حلّل الأداء",
+  "hi": "2. प्रदर्शन विश्लेषण"
  },
  "how2d": {
-  "ja": "AIが広告・売上・在庫・精算を分析し、機会とリスクを自動で見つけ出します。",
-  "zh": "AI分析广告、销售、库存与结算，自动发现机会与风险。",
-  "zh-TW": "AI分析廣告、銷售、庫存與結算，自動發現機會與風險。",
-  "vi": "AI phân tích quảng cáo, doanh thu, tồn kho, thanh toán để tìm cơ hội và rủi ro.",
-  "th": "AI วิเคราะห์โฆษณา ยอดขาย สต็อก การชำระเงิน หาโอกาสและความเสี่ยง",
-  "id": "AI menganalisis iklan, penjualan, inventori, settlement untuk peluang & risiko.",
-  "de": "KI analysiert Werbung, Umsatz, Lager und Abrechnung und findet Chancen und Risiken.",
-  "fr": "L'IA analyse pub, ventes, stock et règlement pour révéler opportunités et risques.",
-  "es": "La IA analiza anuncios, ventas, inventario y liquidación para hallar oportunidades y riesgos.",
-  "pt": "A IA analisa anúncios, vendas, estoque e liquidação para achar oportunidades e riscos.",
-  "ru": "AI анализирует рекламу, продажи, склад и расчёты, находя возможности и риски.",
-  "ar": "يحلّل الذكاء الاصطناعي الإعلانات والمبيعات والمخزون والتسوية ليكشف الفرص والمخاطر.",
-  "hi": "AI विज्ञापन, बिक्री, इन्वेंटरी, सेटलमेंट का विश्लेषण कर अवसर व जोखिम खोजता है।"
+  "ja": "広告・売上・在庫・精算のデータを分析し、機会とリスクを一目で見つけ出します。",
+  "zh": "分析广告、销售、库存与结算数据，一目了然地发现机会与风险。",
+  "zh-TW": "分析廣告、銷售、庫存與結算數據，一目了然地發現機會與風險。",
+  "vi": "Phân tích dữ liệu quảng cáo, doanh thu, tồn kho, thanh toán để thấy cơ hội và rủi ro trong nháy mắt.",
+  "th": "วิเคราะห์ข้อมูลโฆษณา ยอดขาย สต็อก การชำระเงิน เห็นโอกาสและความเสี่ยงในพริบตา",
+  "id": "Analisis data iklan, penjualan, inventori, settlement untuk melihat peluang & risiko sekilas.",
+  "de": "Analysieren Sie Werbe-, Umsatz-, Lager- und Abrechnungsdaten, um Chancen und Risiken auf einen Blick zu erkennen.",
+  "fr": "Analysez les données pub, ventes, stock et règlement pour repérer opportunités et risques d'un coup d'œil.",
+  "es": "Analice datos de anuncios, ventas, inventario y liquidación para ver oportunidades y riesgos de un vistazo.",
+  "pt": "Analise dados de anúncios, vendas, estoque e liquidação para ver oportunidades e riscos num relance.",
+  "ru": "Анализируйте данные рекламы, продаж, склада и расчётов, чтобы видеть возможности и риски с первого взгляда.",
+  "ar": "حلّل بيانات الإعلانات والمبيعات والمخزون والتسوية لاكتشاف الفرص والمخاطر بلمحة.",
+  "hi": "विज्ञापन, बिक्री, इन्वेंटरी, सेटलमेंट डेटा का विश्लेषण कर अवसर व जोखिम एक नज़र में देखें।"
  },
  "how3t": {
-  "ja": "3. 自動実行・成長",
-  "zh": "3. 自动执行与增长",
-  "zh-TW": "3. 自動執行與成長",
-  "vi": "3. Tự động & tăng trưởng",
-  "th": "3. อัตโนมัติ & เติบโต",
-  "id": "3. Otomatisasi & tumbuh",
-  "de": "3. Automatisieren & wachsen",
-  "fr": "3. Automatisez & croissez",
-  "es": "3. Automatice y crezca",
-  "pt": "3. Automatize & cresça",
-  "ru": "3. Автоматизируйте и растите",
-  "ar": "3. أتمت وانمُ",
-  "hi": "3. ऑटोमेट करें व बढ़ें"
+  "ja": "3. 最適化・成長",
+  "zh": "3. 优化与增长",
+  "zh-TW": "3. 最佳化與成長",
+  "vi": "3. Tối ưu & tăng trưởng",
+  "th": "3. เพิ่มประสิทธิภาพ & เติบโต",
+  "id": "3. Optimalkan & tumbuh",
+  "de": "3. Optimieren & wachsen",
+  "fr": "3. Optimisez & croissez",
+  "es": "3. Optimice y crezca",
+  "pt": "3. Otimize & cresça",
+  "ru": "3. Оптимизируйте и растите",
+  "ar": "3. حسّن وانمُ",
+  "hi": "3. ऑप्टिमाइज़ करें व बढ़ें"
  },
  "how3d": {
-  "ja": "AI提案をワンクリック承認すれば運営が自律実行。成長に集中できます。",
-  "zh": "一键审批AI建议，运营即自主执行。专注增长。",
-  "zh-TW": "一鍵審批AI建議，營運即自主執行。專注成長。",
-  "vi": "Duyệt gợi ý AI một chạm, vận hành tự chạy. Tập trung tăng trưởng.",
-  "th": "อนุมัติคำแนะนำ AI คลิกเดียว ระบบทำงานเอง โฟกัสการเติบโต",
-  "id": "Setujui saran AI satu klik, operasi berjalan sendiri. Fokus tumbuh.",
-  "de": "KI-Vorschläge per Klick freigeben, der Betrieb läuft selbst. Fokus aufs Wachstum.",
-  "fr": "Validez les suggestions IA en un clic, les opérations tournent seules. Place à la croissance.",
-  "es": "Apruebe sugerencias IA con un clic y las operaciones se ejecutan solas. Enfóquese en crecer.",
-  "pt": "Aprove sugestões IA com um clique e as operações rodam sozinhas. Foque no crescimento.",
-  "ru": "Подтвердите AI-подсказки одним кликом — операции выполняются сами. Сосредоточьтесь на росте.",
-  "ar": "وافق على اقتراحات AI بنقرة، وتعمل العمليات ذاتيًا. ركّز على النمو.",
-  "hi": "AI सुझाव एक-क्लिक अनुमोदित करें, संचालन स्वतः चले। विकास पर ध्यान दें।"
+  "ja": "分析に基づく推奨をワンクリックで承認・実行。成長に集中できます。",
+  "zh": "一键审批并执行分析辅助建议。专注增长。",
+  "zh-TW": "一鍵審批並執行分析輔助建議。專注成長。",
+  "vi": "Duyệt và thực thi khuyến nghị hỗ trợ bằng phân tích chỉ một chạm. Tập trung tăng trưởng.",
+  "th": "อนุมัติและดำเนินการคำแนะนำจากการวิเคราะห์ด้วยคลิกเดียว โฟกัสการเติบโต",
+  "id": "Setujui dan jalankan rekomendasi berbantuan analitik satu klik. Fokus tumbuh.",
+  "de": "Analytikgestützte Empfehlungen per Klick freigeben und ausführen. Fokus aufs Wachstum.",
+  "fr": "Validez et exécutez les recommandations assistées par l'analyse en un clic. Place à la croissance.",
+  "es": "Apruebe y ejecute recomendaciones asistidas por análisis con un clic. Enfóquese en crecer.",
+  "pt": "Aprove e execute recomendações assistidas por análise com um clique. Foque no crescimento.",
+  "ru": "Подтверждайте и выполняйте рекомендации на базе аналитики одним кликом. Сосредоточьтесь на росте.",
+  "ar": "وافق ونفّذ التوصيات المدعومة بالتحليلات بنقرة واحدة. ركّز على النمو.",
+  "hi": "एनालिटिक्स-सहायित सिफ़ारिशें एक-क्लिक अनुमोदित व निष्पादित करें। विकास पर ध्यान दें।"
  },
  "useBadge": {
   "ja": "誰のためのプラットフォームか",
@@ -2296,19 +2296,19 @@ const DICT_RICH_EXT = {
   "hi": "15 देशों में, 200+ कंपनियाँ GeniegoROI से कॉमर्स ऑटोमेट करती हैं।"
  },
  "ftTagline": {
-  "ja": "AIでコマース運営のAからZまで自動化するグローバルSaaS",
-  "zh": "用AI将电商运营从A到Z自动化的全球SaaS",
-  "zh-TW": "用AI將電商營運從A到Z自動化的全球SaaS",
-  "vi": "SaaS toàn cầu tự động hoá thương mại từ A đến Z bằng AI",
-  "th": "SaaS ระดับโลกที่อัตโนมัติคอมเมิร์ซตั้งแต่ A ถึง Z ด้วย AI",
-  "id": "SaaS global yang mengotomatiskan commerce dari A sampai Z dengan AI",
-  "de": "Das globale SaaS, das Commerce mit KI von A bis Z automatisiert",
-  "fr": "Le SaaS mondial qui automatise le commerce de A à Z avec l'IA",
-  "es": "El SaaS global que automatiza el comercio de la A a la Z con IA",
-  "pt": "O SaaS global que automatiza o commerce de A a Z com IA",
-  "ru": "Глобальный SaaS, автоматизирующий коммерцию от А до Я с помощью AI",
-  "ar": "SaaS عالمي يؤتمت التجارة من الألف إلى الياء بالذكاء الاصطناعي",
-  "hi": "AI से कॉमर्स को A से Z तक स्वचालित करने वाला वैश्विक SaaS"
+  "ja": "すべてのチャネルのマーケティング成果を測定・アトリビューション・最適化するグローバル分析SaaS",
+  "zh": "衡量、归因并优化每个渠道营销绩效的全球分析SaaS",
+  "zh-TW": "衡量、歸因並最佳化每個通路行銷成效的全球分析SaaS",
+  "vi": "SaaS phân tích toàn cầu giúp đo lường, phân bổ và tối ưu hiệu suất marketing trên mọi kênh",
+  "th": "SaaS วิเคราะห์ระดับโลกที่วัดผล จัดสรรเครดิต และเพิ่มประสิทธิภาพการตลาดในทุกช่องทาง",
+  "id": "SaaS analitik global untuk mengukur, mengatribusikan, dan mengoptimalkan performa marketing di setiap kanal",
+  "de": "Das globale Analytics-SaaS zum Messen, Attribuieren und Optimieren der Marketing-Performance über alle Kanäle",
+  "fr": "Le SaaS d'analyse mondial pour mesurer, attribuer et optimiser la performance marketing sur tous les canaux",
+  "es": "El SaaS de análisis global para medir, atribuir y optimizar el rendimiento de marketing en cada canal",
+  "pt": "O SaaS de análise global para medir, atribuir e otimizar o desempenho de marketing em todos os canais",
+  "ru": "Глобальный аналитический SaaS для измерения, атрибуции и оптимизации эффективности маркетинга по всем каналам",
+  "ar": "منصة SaaS تحليلية عالمية لقياس وإسناد وتحسين أداء التسويق عبر كل قناة",
+  "hi": "हर चैनल पर मार्केटिंग प्रदर्शन को मापने, एट्रिब्यूट करने और ऑप्टिमाइज़ करने वाला वैश्विक एनालिटिक्स SaaS"
  },
  "ftProduct": {
   "ja": "製品",
