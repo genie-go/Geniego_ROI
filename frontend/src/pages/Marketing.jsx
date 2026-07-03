@@ -97,6 +97,19 @@ const TREND_METRIC_MAP = {
 
 const CORE_CHART_METRICS = ['spend', 'impressions', 'clicks', 'ctr', 'roas'];
 
+// [263차] 트렌드 행에서 ctr/cpc/cpm 을 KPI 타일(calcMetric)과 동일 산식으로 계산 — 기존 TREND_METRIC_MAP 은
+//   cpc/cpm→avgOrderValue(매출/클릭), ctr→conversionRate 로 오매핑해 트렌드 차트가 KPI 와 다른 값(특히 CPC 가 '비용'이
+//   아닌 '클릭당 매출')을 표시했다. 트렌드 행은 visitors(=impressions)/orders(=clicks)/adSpend(=spend) 보유.
+const trMetricVal = (tr, mId) => {
+    if (!tr) return undefined;
+    const imp = Number(tr.visitors || 0), clk = Number(tr.orders || 0), spd = Number(tr.adSpend || 0);
+    if (mId === 'ctr') return imp > 0 ? (clk / imp) * 100 : 0;
+    if (mId === 'cpc') return clk > 0 ? spd / clk : 0;
+    if (mId === 'cpm') return imp > 0 ? (spd / imp) * 1000 : 0;
+    const tf = TREND_METRIC_MAP[mId] || 'revenue';
+    return tr[tf] !== undefined ? Number(tr[tf]) : undefined;
+};
+
 /** Generate daily trend data for ALL requested metrics using existing campaign data pipeline */
 /** 176차 PM7: production 분기에서 prodTrends (실 backend daily-trends fetch 결과) 우선 사용 */
 const generateTrendData = (campaigns, startDate, endDate, metric1, metric2, isDemoMode, prodTrends) => {
@@ -158,15 +171,17 @@ const generateTrendData = (campaigns, startDate, endDate, metric1, metric2, isDe
             let val = 0;
             if (isDemoMode) {
                 if (isRatio) {
-                    // 비율/배수(CTR·ROAS 등): 합산 분배 불가 → 당일 트렌드값, 없으면 전체값 ±변동(연속).
-                    val = tr ? Number(tr[tf] ?? total) : total * (0.9 + seed(i * 7 + mId.charCodeAt(0)) * 0.2);
+                    // 비율/배수(CTR·CPC·CPM·ROAS 등): 합산 분배 불가 → 당일 트렌드값(ctr/cpc/cpm 은 실산식), 없으면 전체값 ±변동(연속).
+                    const tv = trMetricVal(tr, mId);
+                    val = tr ? (tv !== undefined ? tv : total) : total * (0.9 + seed(i * 7 + mId.charCodeAt(0)) * 0.2);
                 } else {
                     const dw = demoW[mId];
                     val = total * (dw.w[idx] / dw.sum); // Σ=total, 단차/과대스케일 0
                 }
             } else if (tr) {
-                // 176차 PM7: production 실 backend trend point — 실 데이터 직접 사용
-                val = tr[tf] !== undefined ? Number(tr[tf]) : (total / days);
+                // 176차 PM7: production 실 backend trend point — 실 데이터 직접 사용(263차: ctr/cpc/cpm 은 실산식 계산).
+                const tv = trMetricVal(tr, mId);
+                val = tv !== undefined ? tv : (total / days);
             } else {
                 // Production fallback (실 backend 미공급 + 데이터 없음): flat avg
                 val = total / days;

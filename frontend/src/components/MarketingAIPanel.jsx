@@ -6,6 +6,7 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { useI18n } from '../i18n/index.js';
 import { secureFetch } from '../security/SecurityGuard.js';
+import { IS_DEMO } from '../utils/demoEnv';
 
 const API = '/api';
 const GRADE_COL = { S: '#ffd700', A: '#4f8ef7', B: '#22c55e', C: '#f97316', D: '#f87171' };
@@ -97,8 +98,9 @@ export default function MarketingAIPanel({ channels = {}, campaigns = [], compar
         const chArr = Object.entries(channels).map(([key, ch]) => ({
             channel: ch.name || key,
             impressions: ch.impressions ?? 0,
-            reach: ch.reach ?? Math.round((ch.impressions ?? 0) * 0.72),
-            frequency: ch.frequency ?? +((ch.impressions ?? 1) / Math.max(ch.reach ?? 1, 1)).toFixed(2),
+            // [263차] 도달/빈도는 매체 미수집 파생필드 → 운영은 하드코딩 비율(0.72) 미주입(AI가 '미측정=0'으로 취급). 데모만 근사(DashMarketing fbReach·AdStatusAnalysis reach와 동일 259차 게이트)
+            reach: ch.reach ?? (IS_DEMO ? Math.round((ch.impressions ?? 0) * 0.72) : 0),
+            frequency: ch.frequency ?? (IS_DEMO ? +((ch.impressions ?? 1) / Math.max(ch.reach ?? 1, 1)).toFixed(2) : 0),
             cpm: ch.cpm ?? (ch.spend && ch.impressions ? Math.round(ch.spend / ch.impressions * 1000) : 0),
             ad_spend: ch.spend ?? 0,
             clicks: ch.clicks ?? 0,
@@ -110,9 +112,9 @@ export default function MarketingAIPanel({ channels = {}, campaigns = [], compar
             view_rate: ch.viewRate ?? ch.view_rate ?? 0,
             cpc: ch.cpc ?? (ch.spend && ch.clicks ? Math.round(ch.spend / Math.max(ch.clicks, 1)) : 0),
             landing_views: ch.landingViews ?? ch.clicks ?? 0,
-            bounce_rate: ch.bounceRate ?? 45,
+            bounce_rate: ch.bounceRate ?? (IS_DEMO ? 45 : 0),
             sessions: ch.sessions ?? ch.clicks ?? 0,
-            avg_session_time: ch.avgSessionTime ?? 120,
+            avg_session_time: ch.avgSessionTime ?? (IS_DEMO ? 120 : 0),
             conversions: ch.conversions ?? ch.conv ?? 0,
             conv_rate: ch.convRate ?? (ch.clicks && ch.conversions ? +((ch.conversions / ch.clicks) * 100).toFixed(2) : 0),
             cpa: ch.cpa ?? (ch.spend && ch.conversions ? Math.round(ch.spend / Math.max(ch.conversions, 1)) : 0),

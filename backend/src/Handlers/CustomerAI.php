@@ -112,12 +112,13 @@ class CustomerAI
                    COALESCE(a.avg_order_value, 0) AS avg_order_value
             FROM crm_customers c
             LEFT JOIN (
+                -- [263차] 취소/반품 순액 반영: 총액은 refund 차감, 건수/AOV/최근구매는 purchase 만(refund 는 음의 매출)
                 SELECT customer_id,
-                       MAX(created_at) AS last_purchase_date,
-                       COUNT(*) AS purchase_count,
-                       SUM(amount) AS total_amount,
-                       AVG(amount) AS avg_order_value
-                FROM crm_activities WHERE type='purchase' AND tenant_id=:t
+                       MAX(CASE WHEN type='purchase' THEN created_at END) AS last_purchase_date,
+                       SUM(CASE WHEN type='purchase' THEN 1 ELSE 0 END) AS purchase_count,
+                       SUM(CASE WHEN type='refund' THEN -amount ELSE amount END) AS total_amount,
+                       AVG(CASE WHEN type='purchase' THEN amount END) AS avg_order_value
+                FROM crm_activities WHERE type IN ('purchase','refund') AND tenant_id=:t
                 GROUP BY customer_id
             ) a ON a.customer_id = c.id
             WHERE c.tenant_id=:t

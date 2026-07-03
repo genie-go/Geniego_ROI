@@ -123,7 +123,10 @@
 
 ## 13) 조직·구독·플랫폼 (Platform) — ✅ 구현
 - **팀/권한**: TeamPermissions(team/acl/data_scope·위임상한·표준조직), 하위계정 신원체계, 멀티테넌트 tenant_id 발급·전파.
-- **구독/과금**: 5티어 플랜·계정수(seat) 차등가격·플랜별 메뉴접근(planMenuPolicy fail-secure)·쿠폰/빌링/관리형지출월렛·Paddle(MoR) 웹훅/plans/migrate·플랜게이팅.
+- **구독/과금**: 5티어 플랜·계정수(seat) 차등가격·플랜별 메뉴접근(planMenuPolicy fail-secure)·쿠폰/빌링/관리형지출월렛·**Paddle(MoR) 웹훅/plans/migrate**·플랜게이팅.
+- **⏸ 263차(2026-07-03) 구독결제 PG Paddle→Stripe 전환 = 보류(운영 원복)**: 사용자 지시로 Stripe 전환을 구현·배포했으나 **Stripe가 한국 소재 사업자의 판매자 계정을 미지원**(한국은 Stripe 지원국 제외)이라 사용자 결정으로 **운영/데모를 Paddle로 즉시 원복**. Stripe 구현 자체(Stripe.php·Checkout·webhook서명검증·setUserPlan/recordPaid/CouponEngine 재사용·stripe_price_id·프론트 전환)는 완성돼 있으나 **미배포·미커밋 보관**. 향후 한국지원 PG(Paddle 유지 or 대안) 확정 시 참조. Paddle이 현행 유지. 상세 [[project_pg_provider_migration_planned]].
+- **★263차(2026-07-03) Paddle 스키마 드리프트 근본수정(HIGH·재플래그 금지)**: 260차가 "빈 테이블 재생성으로 정합화"라 기록했으나 `CREATE IF NOT EXISTS`는 선존재 라이브 테이블에 no-op → 드리프트 잔존(259차 EventNorm 동일 클래스). ①`paddle_events`: 핸들러가 `notification_id`(정본=`paddle_event_id`)+`error`(부재) 참조 → webhook 첫 INSERT가 매 웹훅 500(구독동기화 전면중단). ②`paddle_subscriptions`: 6컬럼(paddle_customer_id/price_id/product_id/current_period_end/last_event_at/updated_at) 부재 → 구독상태 쓰기 전부 무음실패(유료전환·환불다운그레이드 안됨). ③`paddle_audit_log.ref_id`(정본=`event_id`, Payment.php:608 정합). **수정**: 정본 컬럼명(paddle_event_id/event_id) 핸들러+CREATE 정렬 + ensureSchema 멱등 ALTER 블록으로 error·구독6컬럼 실보강. AdminPlans.php:270 `current_period_end` 월매출0도 동반해소. `Paddle.php:90-206,373-395,900`.
+- **★263차 plan_prices 유령테이블 고아 제거(재신설 금지)**: UserAdmin `/v423/admin/plan-prices` GET/POST/DELETE 3종이 CREATE 부재·프론트 호출0인 `plan_prices` 테이블 참조(매 호출 500). 기간별 구독요금 SSOT는 `plan_period_pricing`(AdminPlans UI·PlanPricing/AuthPage/GlobalDataContext 소비)으로 일원화됨 → 중복 회피 위해 라우트 3종+핸들러 3메서드 제거. `UserAdmin.php:603`, `routes.php:1427,2434`.
 - **관리자**: AdminGrowth(자체 마케팅 자동화 콘솔·리드스코어링·퍼널CAC/LTV·Test/Live 게이트), MenuAccessManager, AdminPlans, DbAdmin, PgConfig, SiteIntro/LegalDocs 관리.
 - **온보딩/가이드**: OnboardingGuide, 발급매뉴얼 제너레이터, DashGuide, GuideWizard.
 - **★259차 프로필/세션 설정(재구현 금지)**: **자동 로그아웃(유휴) 시간 설정** = AuthContext `autoLogoutMin`/`setAutoLogoutMin`(idle 타이머·localStorage, 기존 존재·UI만 누락이었음=중복 아님) → 프로필 설정 모달 "세션/기기" 탭에 UI 통합(Off/15/30/60/120분·이 기기 적용·서버 세션만료는 별도). 우측 상단 프로필 버튼 title/aria "나의 프로필 관리"(topbar.myProfile 15국)+드롭다운 헤더. `Topbar.jsx`.

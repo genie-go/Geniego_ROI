@@ -555,7 +555,7 @@ const API_REF = [
   ]},
   { group: 'Analytics', color: '#a855f7', items: [
     { m: 'GET', p: '/v423/rollup/summary',    dk: 'epRollup' },
-    { m: 'GET', p: '/v420/channel-mix',       dk: 'epChannelMix' },
+    { m: 'GET', p: '/v420/channel-mix/results', dk: 'epChannelMix' },
     { m: 'POST', p: '/v422/ai/analyze',       dk: 'epAi' },
   ]},
 ];

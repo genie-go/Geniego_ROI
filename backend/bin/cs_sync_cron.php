@@ -59,7 +59,9 @@ try {
         $totalPersisted += $p;
         $parts = [];
         foreach (($r['channels'] ?? []) as $ch => $info) {
-            $parts[] = $ch . ':' . ($info['status'] ?? '?') . (isset($info['rows']) ? '(' . $info['rows'] . ')' : '');
+            $st = $info['status'] ?? '';
+            if ($st === 'ok' || $st === 'error') { \Genie\Handlers\ChannelCreds::stampSyncStatus(Db::pdo(), $tenant, (string)$ch, $st === 'ok'); } // [263차 관측성]
+            $parts[] = $ch . ':' . ($st ?: '?') . (isset($info['rows']) ? '(' . $info['rows'] . ')' : '');
         }
         if ($p > 0 || $parts) {
             echo "  [{$tenant}] persisted={$p} " . implode(' ', $parts) . "\n";

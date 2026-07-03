@@ -400,7 +400,8 @@ final class AbTesting
         return $decisions;
     }
 
-    private const CONNECTOR_KEY = ['meta' => 'meta_ads', 'google' => 'google_ads', 'tiktok' => 'tiktok_business', 'naver' => 'naver_sa', 'kakao' => 'kakao_moment', 'coupang_ads' => 'coupang'];
+    // [263차] AutoCampaign/AdAdapters 정규화 맵과 정합(line/coupang 누락 → A/B 패자 매체정지 no-op 방지). SSOT 공유 리팩터는 별도.
+    private const CONNECTOR_KEY = ['meta' => 'meta_ads', 'google' => 'google_ads', 'tiktok' => 'tiktok_business', 'naver' => 'naver_sa', 'kakao' => 'kakao_moment', 'line' => 'line_ads', 'coupang_ads' => 'coupang', 'coupang' => 'coupang'];
     private static function connectorKey(string $channel): string { return self::CONNECTOR_KEY[$channel] ?? $channel; }
 
     private static function jsonRes(Response $res, array $data, int $status = 200): Response

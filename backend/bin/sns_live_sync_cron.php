@@ -35,7 +35,8 @@ try {
     foreach ($tenants as $tenant) {
         $r = Connectors::syncSnsLiveForTenant($tenant);
         foreach ($r as $ch => $info) {
-            if (!empty($info['synced'])) { $synced++; echo "  [{$tenant}] {$ch}: synced followers=" . (int)($info['followers'] ?? 0) . "\n"; }
+            if (!empty($info['synced'])) { $synced++; echo "  [{$tenant}] {$ch}: synced followers=" . (int)($info['followers'] ?? 0) . "\n"; \Genie\Handlers\ChannelCreds::stampSyncStatus(Db::pdo(), $tenant, (string)$ch, true); } // [263차 관측성]
+            elseif (!empty($info['error'])) { \Genie\Handlers\ChannelCreds::stampSyncStatus(Db::pdo(), $tenant, (string)$ch, false); }
         }
     }
     echo "  → total channels synced={$synced}\n";

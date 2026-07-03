@@ -890,15 +890,18 @@ class PriceOpt
 
     private static function appSetting(\PDO $db, string $t, string $k): string
     {
-        try { $st = $db->prepare("SELECT v FROM app_setting WHERE tenant_id=? AND k=? LIMIT 1"); $st->execute([$t, $k]); $v = $st->fetchColumn(); return $v ? (string)$v : ''; }
+        // [263차] $db 는 격리된 priceopt.sqlite(po_* 만) 이라 app_setting 부재 + 컬럼(v/tenant_id/k)도 live(skey/svalue) 와 드리프트
+        //   → 항상 예외→''(Naver 크레덴셜 3차 폴백 사문화). 메인DB + live 스키마 + 테넌트 네임스페이스 skey 로 교정.
+        try { $st = \Genie\Db::pdo()->prepare("SELECT svalue FROM app_setting WHERE skey=? LIMIT 1"); $st->execute([$t . ':' . $k]); $v = $st->fetchColumn(); return $v ? (string)$v : ''; }
         catch (\Throwable $e) { return ''; }
     }
 
-    /** [240차] 연동허브 자격증명 읽기 — channel_credential(channel/key_name/key_value, AES-256-GCM 복호화). Connectors::loadCred 패턴 정합. */
+    /** [240차] 연동허브 자격증명 읽기 — channel_credential(channel/key_name/key_value, AES-256-GCM 복호화). Connectors::loadCred 패턴 정합.
+     *  [263차] ★channel_credential 은 메인DB 테이블 — 호출부가 self::db()(priceopt.sqlite)를 넘겨 "no such table"→''(Naver 경쟁가 harvest 사문화)였음. 내부에서 Db::pdo() 사용. */
     private static function loadChannelCred(\PDO $db, string $t, string $channel, string $key): string
     {
         try {
-            $st = $db->prepare("SELECT key_value FROM channel_credential WHERE tenant_id=? AND channel=? AND key_name=? AND is_active=1 LIMIT 1");
+            $st = \Genie\Db::pdo()->prepare("SELECT key_value FROM channel_credential WHERE tenant_id=? AND channel=? AND key_name=? AND is_active=1 LIMIT 1");
             $st->execute([$t, $channel, $key]);
             $row = $st->fetch(\PDO::FETCH_ASSOC);
             return \Genie\Crypto::decrypt((string)($row['key_value'] ?? ''));

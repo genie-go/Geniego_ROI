@@ -2759,6 +2759,8 @@ final class ChannelSync
                 $claimTotal = (float)($existing['total_price'] ?? 0);
                 if ($claimTotal <= 0) $claimTotal = (float)($o['total_price'] ?? 0);
                 self::recordClaim($pdo, $tenant, $channel, (string)$o['channel_order_id'], $incCR, $claimTotal, (string)($o['reason'] ?? ''), (string)($o['buyer_name'] ?? ''), $now);
+                // [263차 HIGH] CRM LTV 역분개(활성→취소/반품 전이 1회·멱등) — LTV/RFM/AOV/예측CLV·VIP등급·타겟팅 과대매출 왜곡 해소.
+                self::recordCrmRefund($pdo, $tenant, $channel, (string)($o['buyer_email'] ?? ''), (string)($o['buyer_name'] ?? ''), $claimTotal, (string)$o['channel_order_id']);
                 // [현 차수 P1-2] 웹훅 — order.cancelled(활성→취소/반품 전이 1회·멱등). 취소·환불 공통.
                 \Genie\Handlers\OpenPlatform::emit($tenant, 'order.cancelled', ['order_id' => (string)$o['channel_order_id'], 'channel' => $channel, 'amount' => $claimTotal, 'currency' => 'KRW', 'reason' => $incCR, 'occurred_at' => $now]);
                 // [현 차수] 단방향 자동진입: 활성→취소/반품 전이 → 물리 창고 재고 복원(reflectChannelSale 차감분
@@ -3050,6 +3052,38 @@ final class ChannelSync
             //   → markov/linear 등 멀티터치 모델이 캠페인 매출 자동 크레딧. 실 email 기준(합성 noemail 은 hash null=무동작). 30일 윈도.
             if ($email !== '') { try { Attribution::backfillOwnedTouches($pdo, $tenant, $orderId !== '' ? $orderId : ('ORD-' . (int)$cid), $email, null, $now, 30); } catch (\Throwable $e) {} }
         } catch (\Throwable $e) { error_log('[ChannelSync.recordCrmPurchase] ' . $e->getMessage()); }
+    }
+
+    /** [263차 HIGH] 활성→취소/반품 전이 시 CRM LTV 역분개 — 기존엔 취소/반품이 crm_customers.ltv·crm_activities(구매)를
+     *  절대 되돌리지 않아 LTV/RFM/AOV/예측CLV·VIP등급·타겟팅이 과대매출 위에서 결정(운영 전용 왜곡)됐다.
+     *  recordCrmPurchase 대칭: 동일 matchEmail·order_id 멱등(refund 1회)·ltv 차감(0 floor)+crm_activities type='refund' 적재.
+     *  소비 SUM 은 type IN('purchase','refund') 순액식으로 정합(CustomerAI/CRM). 신규 고객 생성 안 함(구매 없으면 무동작). */
+    private static function recordCrmRefund(PDO $pdo, string $tenant, string $channel, ?string $email, ?string $name, float $refund, string $orderId): void
+    {
+        $email = trim((string)$email); $name = trim((string)$name);
+        if ($tenant === 'demo' || $refund <= 0) return;
+        $matchEmail = $email;
+        if ($matchEmail === '') {
+            if ($name === '') return;
+            $matchEmail = strtolower(preg_replace('/[^\p{L}\p{N}]+/u', '', $name)) . '@' . $channel . '.noemail';
+        }
+        $now = gmdate('Y-m-d H:i:s');
+        try {
+            $sel = $pdo->prepare("SELECT id FROM crm_customers WHERE tenant_id=? AND email=? LIMIT 1");
+            $sel->execute([$tenant, $matchEmail]);
+            $cid = $sel->fetchColumn();
+            if (!$cid) return; // 구매 이력 없는 고객은 되돌릴 것 없음
+            // 멱등: 동일 주문 refund 활동 존재 시 skip(재폴링 이중 역분개 차단)
+            if ($orderId !== '') {
+                $dup = $pdo->prepare("SELECT 1 FROM crm_activities WHERE tenant_id=? AND type='refund' AND channel=? AND data LIKE ? LIMIT 1");
+                $dup->execute([$tenant, $channel, '%"order_id":"' . $orderId . '"%']);
+                if ($dup->fetchColumn()) return;
+            }
+            // ltv 컬럼 차감(0 floor·recordCrmPurchase 증분 대칭). GREATEST 는 SQLite 미지원 → MAX() 드라이버 공통.
+            $pdo->prepare("UPDATE crm_customers SET ltv=MAX(0, ltv-?), updated_at=? WHERE id=?")->execute([$refund, $now, (int)$cid]);
+            $pdo->prepare("INSERT INTO crm_activities(tenant_id,customer_id,type,channel,amount,data,created_at) VALUES(?,?,'refund',?,?,?,?)")
+                ->execute([$tenant, (int)$cid, $channel, $refund, json_encode(['order_id' => $orderId, 'refund' => $refund], JSON_UNESCAPED_UNICODE), $now]);
+        } catch (\Throwable $e) { error_log('[ChannelSync.recordCrmRefund] ' . $e->getMessage()); }
     }
 
     /** 208차 동기화 P0: 취소/반품 시 orderhub_claims 적재 → 정산 롤업 returnFee 자동반영. 멱등 id(채널+주문). */

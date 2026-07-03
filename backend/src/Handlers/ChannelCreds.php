@@ -387,6 +387,8 @@ final class ChannelCreds
                 }
             } catch (\Throwable $e) {
                 error_log('[ChannelCreds::upsert] auto-sync failed: ' . $e->getMessage());
+                // [263차] 비-commerce 동기화 예외 → 연결상태 error stamp(UI가 무기한 '정상' 표시 방지). commerce 는 self-stamp.
+                if (!ChannelSync::isCommerceChannel($channel)) self::stampSyncStatus($pdo, $tenant, $channel, false);
             }
             // ── [227차] 자격증명 등록 시 writeback 큐 자동 push ──────────────
             //   상품 일괄등록/가격수정이 자격증명 미등록으로 'awaiting_credentials'/'queued' 보류돼 있던 것을
@@ -403,6 +405,14 @@ final class ChannelCreds
                     $rv = Reviews::collectForTenant($pdo, $tenant, $channel);
                     $autoSync = $autoSync ?: ['kind' => 'review', 'result' => $rv];
                 } catch (\Throwable $e) { error_log('[ChannelCreds::upsert] review auto-collect failed: ' . $e->getMessage()); }
+            }
+            // [263차 관측성] 비-commerce 채널(ad/analytics/cs/esp/pg/logistics/sns_live/review)도 동기화 상태 stamp —
+            //   기존엔 commerce(ChannelSync self-stamp)만 last_synced_at/sync_status 기록 → 비-commerce 는 토큰만료/오류로
+            //   수집이 멈춰도 UI 가 저장시점 test_status='ok' 로 무기한 '정상' 표시(관측성 갭). result['error'] 유무로 ok/error.
+            if ($autoSync !== null && ($autoSync['kind'] ?? '') !== 'commerce') {
+                $r = $autoSync['result'] ?? [];
+                $skipped = is_array($r) && !empty($r['skipped']);
+                if (!$skipped) self::stampSyncStatus($pdo, $tenant, $channel, !(is_array($r) && !empty($r['error'])));
             }
         }
 
@@ -526,6 +536,18 @@ final class ChannelCreds
             'tested_at'=> $now,
             'verified' => $success && self::hasLiveVerify($channel),
         ]);
+    }
+
+    /** [263차 관측성] 채널 동기화 상태 stamp — 비-commerce 채널 대칭화(commerce 는 ChannelSync self-stamp).
+     *  last_synced_at + sync_status(ok/error) 갱신 → UI 연결상태/마지막동기화가 실제 수집결과 반영(무기한 '정상' 방지).
+     *  best-effort·데모/익명 skip. commerce sync cron 도 이 헬퍼 재사용 가능. */
+    public static function stampSyncStatus(\PDO $pdo, string $tenant, string $channel, bool $ok): void
+    {
+        if ($tenant === '' || $tenant === 'demo' || $channel === '') return;
+        try {
+            $pdo->prepare("UPDATE channel_credential SET last_synced_at=?, sync_status=? WHERE tenant_id=? AND channel=? AND is_active=1")
+                ->execute([gmdate('Y-m-d\TH:i:s\Z'), $ok ? 'ok' : 'error', $tenant, $channel]);
+        } catch (\Throwable $e) { /* best-effort — 상태기록 실패가 sync 를 막지 않음 */ }
     }
 
     // ── Channel ping helpers ────────────────────────────────────────────────

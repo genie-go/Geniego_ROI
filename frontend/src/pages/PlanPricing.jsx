@@ -2323,6 +2323,8 @@ function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk
   const [filter, setFilter] = useState('');
   const sections = useMemo(() => [...MEMBER_MENU, ...ADMIN_MENU], []);
   // 186차: 매트릭스는 sidebar manifest(sections) 기준 렌더. menu_tree(DB) 비어도 plan_menu_access 는 menu_key 로 저장되므로 전체 토글 허용.
+  // [263차 재발방지] 전체 menuKey 수 useMemo 를 early-return 앞으로 호이스팅(Rules of Hooks — return 뒤 훅 배치 원인제거). 부모가 plans.length>0 게이트라 현재 도달불가였으나 구조적 안정화.
+  const totalMenuKeys = useMemo(() => { const s = new Set(); for (const sec of sections) for (const it of sec.items) if (it.menuKey) s.add(it.menuKey); return s.size; }, [sections]);
 
   if (!plans.length) {
     return (<div style={{ padding: 40, borderRadius: 14, textAlign: 'center', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', color: 'var(--text-3)', fontSize: 14 }}>플랜이 없습니다. 먼저 "💰 플랜별 설정" 탭에서 플랜을 등록하세요.</div>);
@@ -2363,8 +2365,7 @@ function MenuAccessTree({ plans, menus, access, setMenuAccess, setMenuAccessBulk
   const keysOfGroup = (g) => { const ks = [g.menuKey]; for (const it of g.items) { if (it.to) ks.push(it.to); ks.push(...subKeysOfLeaf(it)); } return ks; };
   // 186차: 모든 중메뉴는 하위메뉴(페이지) 를 가지므로 항상 펼침 가능 (단일 페이지도 드릴다운 일관성)
   const groupHasChildren = (g) => (g.items && g.items.length > 0);
-  // 전체 menuKey 수 (manifest 기준, 중복 제거)
-  const totalMenuKeys = useMemo(() => { const s = new Set(); for (const sec of sections) for (const it of sec.items) if (it.menuKey) s.add(it.menuKey); return s.size; }, [sections]);
+  // 전체 menuKey 수 (manifest 기준, 중복 제거) — totalMenuKeys 는 위(early-return 앞)로 호이스팅됨[263차]
   const planStats = plans.map(p => ({ on: Object.values(access[p.plan_id] || {}).filter(Boolean).length, total: totalMenuKeys }));
   const cellPad = { padding: '7px 8px', borderBottom: '1px solid rgba(255,255,255,0.05)' };
 

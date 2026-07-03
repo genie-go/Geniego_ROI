@@ -143,7 +143,9 @@ export default function CampaignManager(){
         const all=sharedCampaigns||[];const active=all.filter(c=>c.status==='active');
         const totalBudget=all.reduce((s,c)=>s+(c.budget||0),0);const totalSpent=all.reduce((s,c)=>s+(c.spent||0),0);
         const totalImpressions=all.reduce((s,c)=>s+(c.impressions||0),0);const totalClicks=all.reduce((s,c)=>s+(c.clicks||0),0);const totalConv=all.reduce((s,c)=>s+(c.conv||0),0);
-        const activeRoas=active.filter(c=>c.roas>0);const avgRoas=activeRoas.length?(activeRoas.reduce((s,c)=>s+c.roas,0)/activeRoas.length).toFixed(1):'0';
+        // [263차] 요약 ROAS = spend-가중(AccountPerformance/PerformanceHub blended 정합) — 단순평균은 저예산·고ROAS 캠페인 과대반영.
+        const activeRoas=active.filter(c=>c.roas>0);const wSpend=activeRoas.reduce((s,c)=>s+(c.spent||0),0);
+        const avgRoas=wSpend>0?(activeRoas.reduce((s,c)=>s+c.roas*(c.spent||0),0)/wSpend).toFixed(1):(activeRoas.length?(activeRoas.reduce((s,c)=>s+c.roas,0)/activeRoas.length).toFixed(1):'0');
         const byStatus={};all.forEach(c=>{byStatus[c.status]=(byStatus[c.status]||0)+1;});
         const byChannel={};all.forEach(c=>{(c.channels||[]).forEach(ch=>{const n=ch.name||ch.id;byChannel[n]=(byChannel[n]||0)+1;});});
         const top5=[...all].filter(c=>c.roas>0).sort((a,b)=>b.roas-a.roas).slice(0,5);
@@ -164,8 +166,15 @@ export default function CampaignManager(){
         if(!a||!b)return;
         const aS=abForm.metric==='roas'?a.roas:abForm.metric==='ctr'?(a.impressions?(a.clicks/a.impressions*100):0):(a.clicks?(a.conv/a.clicks*100):0);
         const bS=abForm.metric==='roas'?b.roas:abForm.metric==='ctr'?(b.impressions?(b.clicks/b.impressions*100):0):(b.clicks?(b.conv/b.clicks*100):0);
-        const winner=aS>=bS?'a':'b';const conf=Math.min(99,Math.round(60+Math.abs(aS-bS)*8));
-        if(addAbTestResult){addAbTestResult({name:abForm.name,winner,confidence:conf,pValue:parseFloat(Math.max(0.001,(1-conf/100)).toFixed(3)),variants:[{id:'a',name:a.name,metric:abForm.metric,value:parseFloat(aS.toFixed(2))},{id:'b',name:b.name,metric:abForm.metric,value:parseFloat(bS.toFixed(2))}],source:'campaign_manager'});}
+        const winner=aS>=bS?'a':'b';
+        // [263차] 실 2-표본 비율 z-검정(가짜 공식 60+|diff|*8 제거). 지표별 실 카운트: ctr=clicks/impr·conv/roas=conv/clicks.
+        //   비율검정이라 표본수(노출/클릭) 반영 → 데이터 부족 시 정직하게 낮은 신뢰도. roas 는 전환(구매확률) 유의성을 근거로.
+        const cnt={ctr:[a.clicks||0,a.impressions||0,b.clicks||0,b.impressions||0],conv:[a.conv||0,a.clicks||0,b.conv||0,b.clicks||0],roas:[a.conv||0,a.clicks||0,b.conv||0,b.clicks||0]}[abForm.metric]||[0,0,0,0];
+        const [sa2,na2,sb2,nb2]=cnt;
+        const normCdf=(z)=>{const t=1/(1+0.2316419*Math.abs(z));const d=0.3989423*Math.exp(-z*z/2);let pr=d*t*(0.3193815+t*(-0.3565638+t*(1.781478+t*(-1.821256+t*1.330274))));return z>0?1-pr:pr;};
+        let conf=0,pVal=1;
+        if(na2>0&&nb2>0){const pa=sa2/na2,pb=sb2/nb2,pp=(sa2+sb2)/(na2+nb2),se=Math.sqrt(pp*(1-pp)*(1/na2+1/nb2));if(se>0){const z=Math.abs(pa-pb)/se;pVal=Math.max(0.0001,2*(1-normCdf(z)));conf=Math.round(Math.max(0,Math.min(99.9,(1-pVal)*100))*10)/10;}}
+        if(addAbTestResult){addAbTestResult({name:abForm.name,winner,confidence:conf,pValue:parseFloat(pVal.toFixed(3)),variants:[{id:'a',name:a.name,metric:abForm.metric,value:parseFloat(aS.toFixed(2))},{id:'b',name:b.name,metric:abForm.metric,value:parseFloat(bS.toFixed(2))}],source:'campaign_manager'});}
         setShowAbCreate(false);setAbForm({name:'',baselineId:'',variantId:'',metric:'roas'});
     };
 

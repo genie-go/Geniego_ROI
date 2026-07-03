@@ -280,7 +280,7 @@ class CRM
         ]);
         $pdo->prepare("
             UPDATE crm_customers SET ltv=(
-                SELECT COALESCE(SUM(amount),0) FROM crm_activities WHERE customer_id=:cid AND type='purchase' AND tenant_id=:t
+                SELECT COALESCE(SUM(CASE WHEN type='refund' THEN -amount ELSE amount END),0) FROM crm_activities WHERE customer_id=:cid AND type IN ('purchase','refund') AND tenant_id=:t
             ), updated_at=:ua WHERE id=:cid AND tenant_id=:t
         ")->execute([':cid'=>$cid, ':t'=>$tenant, ':ua'=>self::now()]);
         return self::jsonRes($res, ['ok'=>true,'id'=>(int)$pdo->lastInsertId()]);
@@ -307,8 +307,8 @@ class CRM
                    END AS recency
             FROM crm_customers c
             LEFT JOIN (
-                SELECT customer_id, COUNT(*) AS purchase_count, SUM(amount) AS total_amount, MAX(created_at) AS last_purchase, MIN(created_at) AS first_purchase
-                FROM crm_activities WHERE type='purchase' AND tenant_id=:t GROUP BY customer_id
+                SELECT customer_id, SUM(CASE WHEN type='purchase' THEN 1 ELSE 0 END) AS purchase_count, SUM(CASE WHEN type='refund' THEN -amount ELSE amount END) AS total_amount, MAX(CASE WHEN type='purchase' THEN created_at END) AS last_purchase, MIN(CASE WHEN type='purchase' THEN created_at END) AS first_purchase
+                FROM crm_activities WHERE type IN ('purchase','refund') AND tenant_id=:t GROUP BY customer_id
             ) a ON a.customer_id = c.id
             WHERE c.tenant_id=:t ORDER BY monetary DESC LIMIT 500
         ");
@@ -858,14 +858,16 @@ class CRM
         $sidQ = (int)$sid;
         $ignore = $isMy ? 'IGNORE' : 'OR IGNORE';
         // [239차+ CDP] recency_days = 최근 구매 경과일(드라이버별 date diff). 실 구매(crm_activities) 라이브 집계.
-        $recencyExpr  = $isMy ? "DATEDIFF(NOW(), MAX(created_at))" : "CAST(julianday('now') - julianday(MAX(created_at)) AS INTEGER)";
+        // [263차] recency/lifespan 은 실 구매(type='purchase')만 — refund 행이 최근성/수명을 오염하지 않도록 CASE 로 격리.
+        $mpur = "MAX(CASE WHEN type='purchase' THEN created_at END)"; $ipur = "MIN(CASE WHEN type='purchase' THEN created_at END)";
+        $recencyExpr  = $isMy ? "DATEDIFF(NOW(), {$mpur})" : "CAST(julianday('now') - julianday({$mpur}) AS INTEGER)";
         // [현 차수 약점②] 구매 수명(첫↔마지막 구매 경과일) — 평균 구매주기 산출용.
-        $lifespanExpr = $isMy ? "DATEDIFF(MAX(created_at), MIN(created_at))" : "CAST(julianday(MAX(created_at)) - julianday(MIN(created_at)) AS INTEGER)";
+        $lifespanExpr = $isMy ? "DATEDIFF({$mpur}, {$ipur})" : "CAST(julianday({$mpur}) - julianday({$ipur}) AS INTEGER)";
         try {
             $pdo->exec("INSERT {$ignore} INTO crm_segment_members (tenant_id, segment_id, customer_id)
                         SELECT {$tQ}, {$sidQ}, c.id FROM crm_customers c
-                        LEFT JOIN (SELECT customer_id, SUM(amount) AS ltv, COUNT(*) AS freq, {$recencyExpr} AS recency_days, {$lifespanExpr} AS lifespan_days
-                                   FROM crm_activities WHERE type='purchase' AND tenant_id={$tQ} GROUP BY customer_id) a
+                        LEFT JOIN (SELECT customer_id, SUM(CASE WHEN type='refund' THEN -amount ELSE amount END) AS ltv, SUM(CASE WHEN type='purchase' THEN 1 ELSE 0 END) AS freq, {$recencyExpr} AS recency_days, {$lifespanExpr} AS lifespan_days
+                                   FROM crm_activities WHERE type IN ('purchase','refund') AND tenant_id={$tQ} GROUP BY customer_id) a
                           ON a.customer_id = c.id
                         WHERE {$whereStr}");
         } catch (\Throwable $e) { /* 룰 필드 오류 시 0 멤버 — 세그먼트 생성 자체는 성공(정직) */ }

@@ -605,7 +605,7 @@ final class Payment
             }
             // ★ 201차 P1: 결제 게이트웨이 설정 변경 서버측 감사기록(시크릿 값은 절대 기록 안 함 — 메타만).
             try {
-                $pdo->prepare("INSERT INTO paddle_audit_log (event_id, action, detail) VALUES (?,?,?)")
+                $pdo->prepare("INSERT INTO paddle_audit_log (ref_id, action, detail) VALUES (?,?,?)")
                     ->execute([
                         'admin#' . ($user['id'] ?? '?'),
                         'admin:pg_config_save',

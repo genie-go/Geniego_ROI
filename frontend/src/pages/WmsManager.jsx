@@ -363,7 +363,7 @@ const InOutTab = memo(function InOutTab({ whs }) {
     const filtered = [...beMoves, ...inOutHistory].filter(r => {
         const q = searchTxt.trim().toLowerCase();
         const matchType = filter === 'All' || r.type === filter;
-        const matchQ = !q || r.sku.toLowerCase().includes(q) || (r.name || '').toLowerCase().includes(q) || (r.ref || '').toLowerCase().includes(q);
+        const matchQ = !q || (r.sku || '').toLowerCase().includes(q) || (r.name || '').toLowerCase().includes(q) || (r.ref || '').toLowerCase().includes(q);
         // [현 차수] 기간조회 — 입출고 감사이력을 선택 기간으로 필터(ts ISO 우선, ko-KR at 폴백)
         const matchP = inPeriodAny(r, period, ['ts', 'atISO', 'created_at', 'at']);
         return matchType && matchQ && matchP;

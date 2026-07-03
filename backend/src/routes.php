@@ -1424,10 +1424,8 @@ return function (App $app): void {
         'POST /v423/admin/users/{id}/impersonate'        => 'Genie\\Handlers\\UserAdmin::impersonate', // 회원세션(관리자 대행 열람)
         'GET /v423/admin/stats'                          => 'Genie\\Handlers\\UserAdmin::stats',
 
-        // ── v423 Subscription Plan Pricing (period-based) ─────────────────────
-        'GET /v423/admin/plan-prices'                    => 'Genie\\Handlers\\UserAdmin::listPlanPrices',
-        'POST /v423/admin/plan-prices'                   => 'Genie\\Handlers\\UserAdmin::upsertPlanPrice',
-        'DELETE /v423/admin/plan-prices/{plan}/{period}' => 'Genie\\Handlers\\UserAdmin::deletePlanPrice',
+        // [263차] v423 admin/plan-prices(period-based) 제거 — plan_prices 유령테이블(CREATE 부재·프론트 호출0) 참조 고아.
+        // 기간별 구독요금 SSOT 는 plan_period_pricing(AdminPlans UI·PlanPricing/AuthPage 소비) 으로 일원화됨. 중복 재신설 금지.
         'GET /v423/admin/migrate'                        => 'Genie\\Handlers\\UserAdmin::migrate',
         'GET /v423/admin/roles'                          => 'Genie\\Handlers\\UserAdmin::listRoles',
         'POST /v423/admin/roles'                         => 'Genie\\Handlers\\UserAdmin::upsertRole',
@@ -2431,9 +2429,7 @@ return function (App $app): void {
     $register('POST',   '/v423/admin/users/{id}/reset-password');
     $register('POST',   '/v423/admin/users/{id}/impersonate'); // 회원세션(관리자 대행 열람)
     $register('GET',    '/v423/admin/stats');
-    $register('GET',    '/v423/admin/plan-prices');
-    $register('POST',   '/v423/admin/plan-prices');
-    $register('DELETE', '/v423/admin/plan-prices/{plan}/{period}');
+    // [263차] admin/plan-prices 제거(위 참조) — plan_period_pricing SSOT 로 일원화
     $register('GET',    '/v423/admin/migrate');
     $register('GET',    '/v423/admin/roles');
     $register('POST',   '/v423/admin/roles');
