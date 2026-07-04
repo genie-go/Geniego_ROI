@@ -123,5 +123,6 @@
 - **스키마 판정은 라이브 `SHOW COLUMNS`만 정본**(덤프/메모리 프로즈 맹신 금지·263/265차 Paddle 사례).
 - **도메인 구분 명시**: 유사해 보여도 다른 엔티티면 신설 정당(예: 머천트 프로모션 ≠ 플랫폼 구독쿠폰·키워드SoS ≠ SKU가격경쟁).
 
-## 신규 구현 시 기록 의무 (게이트 통과 후)
-신규/확장 완료 시 즉시 반영: `docs/IMPLEMENTATION_STATUS.md`(구현 이력) + `NEXT_SESSION.md`(차수 로그) + 해당 `project_n*` 메모리. 다음 세션이 같은 것을 다시 만들지 않도록 이력을 남긴다.
+## 신규 구현 시 기록 의무 (게이트 통과 후) — ★기억 의존 금지·문서 갱신 필수
+신규/확장 완료 시 즉시 반영: `docs/IMPLEMENTATION_STATUS.md`(구현 이력) + `NEXT_SESSION.md`(차수 로그) + 해당 `project_n*` 메모리.
+**추가로 `docs/registry/` 레지스트리 시스템의 해당 문서를 반드시 갱신한다**(265차·기억 의존 금지). 19 레지스트리 ↔ 정본 매핑 = `docs/registry/README.md`. 정본형은 정본을, 실보관형(RepeatedDefect/RootCause/Regression/Decision/PMApproval/DuplicatePrevention/Analytics/Component)은 해당 registry 파일에 append(삭제 금지). 다음 세션이 같은 것을 다시 만들지 않도록 이력을 남긴다.
