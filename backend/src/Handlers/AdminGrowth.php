@@ -1240,9 +1240,14 @@ final class AdminGrowth
         $missing = [];
         foreach ($channels as $ch) {
             $ch = (string)$ch;
+            if (!\Genie\Handlers\Connectors::isAdChannel($ch)) continue; // 비광고 채널은 매체 자격증명 게이트 대상 아님(별도 발송 경로)
             try {
-                $st = $pdo->prepare("SELECT COUNT(*) FROM channel_credential WHERE tenant_id=? AND channel=? AND is_active=1");
-                $st->execute([self::TENANT, $ch]);
+                // [265차] AdAdapters::cred() 와 동일 별칭 키공간(short 'meta'/full 'meta_ads' 혼용 저장 대응) — 단일 정확매치라
+                //   full 저장 시 항상 pending_credentials 로 Live 실행 영구 차단되던 비대칭 해소.
+                $aliases = \Genie\Handlers\AdAdapters::credChannelAliases($ch);
+                $ph = implode(',', array_fill(0, count($aliases), '?'));
+                $st = $pdo->prepare("SELECT COUNT(*) FROM channel_credential WHERE tenant_id=? AND channel IN ($ph) AND is_active=1");
+                $st->execute(array_merge([self::TENANT], $aliases));
                 if ((int)$st->fetchColumn() === 0) $missing[] = $ch;
             } catch (\Throwable $e) { $missing[] = $ch; }
         }

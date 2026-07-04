@@ -133,7 +133,7 @@ final class UserAdmin
                     COALESCE(u.subscription_expires_at,'')  AS subscription_expires_at,
                     COALESCE(u.subscription_cycle,'')        AS subscription_cycle,
                     ps.status AS paddle_status, ps.plan_name AS paddle_plan,
-                    ps.next_bill_date, ps.currency, ps.unit_price,
+                    ps.current_period_end AS next_bill_date, ps.currency, ps.unit_price,
                     (SELECT MAX(fc.redeemed_at) FROM free_coupons fc WHERE fc.redeemed_by_user_id = u.id) AS coupon_used_at,
                     (SELECT MAX(s.created_at) FROM user_session s WHERE s.user_id = u.id) AS last_login
                FROM app_user u
@@ -222,7 +222,7 @@ final class UserAdmin
 
         $stmt = $pdo->prepare(
             "SELECT u.*, ps.status AS paddle_status, ps.plan_name AS paddle_plan,
-                    ps.paddle_subscription_id, ps.next_bill_date, ps.cancelled_at,
+                    ps.paddle_subscription_id, ps.current_period_end AS next_bill_date, ps.cancelled_at,
                     ps.currency, ps.unit_price, ps.billing_cycle
                FROM app_user u
                LEFT JOIN paddle_subscriptions ps ON ps.user_email = u.email
@@ -236,7 +236,7 @@ final class UserAdmin
         // Paddle event history
         if (!empty($user['email'])) {
             $evtStmt = $pdo->prepare(
-                "SELECT paddle_event_id, event_type, occurred_at, processed
+                "SELECT notification_id AS paddle_event_id, event_type, occurred_at, processed
                    FROM paddle_events
                   WHERE payload LIKE ?
                   ORDER BY occurred_at DESC LIMIT 10"
@@ -591,7 +591,7 @@ final class UserAdmin
     {
         try {
             Db::pdo()->prepare(
-                "INSERT INTO paddle_audit_log (event_id, action, detail)
+                "INSERT INTO paddle_audit_log (ref_id, action, detail)
                  VALUES (?, ?, ?)"
             )->execute(["admin#{$admin['id']}", "admin:$action", $detail]);
         } catch (\Exception $e) {
@@ -846,7 +846,7 @@ final class UserAdmin
         // Recent payment events
         try {
             $evtStmt = $pdo->prepare("
-                SELECT paddle_event_id, event_type, occurred_at, processed
+                SELECT notification_id AS paddle_event_id, event_type, occurred_at, processed
                   FROM paddle_events
                  WHERE event_type IN ('subscription_payment_succeeded','subscription_payment_failed','payment_refunded')
                  ORDER BY occurred_at DESC LIMIT 50

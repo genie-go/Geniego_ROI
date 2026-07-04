@@ -3891,14 +3891,23 @@ final class ChannelSync
             $existing = $sel->fetch(PDO::FETCH_ASSOC);
             if ($existing) {
                 $wasReturn = in_array((string)($existing['event_type'] ?? ''), ['cancel','return'], true);
+                // [265차] 폴링(saveOrders)·웹훅 신규주문 경로와 대칭: status 토큰으로만 취소/반품을 신호하는 채널
+                //   (event='order_update' + status='취소완료' 등)도 classifyCancelReturn 로 정규화해 전이 감지 + event_type 캐논 저장.
+                //   (기존엔 raw $eventType 만 봐서 status-신호 취소가 전이 미감지 → claim/역분개 누락, event_type 비캐논으로 남아 하위 집계 오염)
+                $incCR = self::classifyCancelReturn((string)($body['status'] ?? ''), (string)$eventType);
+                $evtNorm = $incCR ?? $eventType;
                 $pdo->prepare("UPDATE channel_orders SET status=?, event_type=?, synced_at=? WHERE tenant_id=? AND channel=? AND channel_order_id=?")
-                    ->execute([$body['status']??'pending', $eventType, $now, $tenant, $channel, $body['order_id']]);
+                    ->execute([$body['status']??'pending', $evtNorm, $now, $tenant, $channel, $body['order_id']]);
                 // 208차 동기화 P0: 취소/반품 전이(최초 1회) → 재고 복원 + claim 적재(정산 returnFee 자동반영).
-                if (in_array($eventType, ['cancel','return'], true) && !$wasReturn) {
+                if ($incCR !== null && !$wasReturn) {
+                    $eventType = $incCR; // 이하 로직(OpenPlatform reason·return 분기)에 캐논 토큰 사용
                     $affectedMonth = substr((string)($existing['ordered_at'] ?? ''), 0, 7); // 원주문 월(정산 재롤업 대상)
                     $sku = (string)($existing['sku'] ?? ''); $qty = (int)($existing['qty'] ?? 0);
                     if ($sku !== '' && $qty > 0) self::incInventory($pdo, $tenant, $channel, $sku, $qty);
                     self::recordClaim($pdo, $tenant, $channel, (string)$body['order_id'], $eventType, (float)($existing['total_price'] ?? 0), (string)($body['reason'] ?? ''), (string)($body['buyer_name'] ?? ''), $now);
+                    // [265차 HIGH] CRM LTV 역분개(활성→취소/반품 전이 1회·멱등) — 폴링(saveOrders:2763)만 있던 것을 웹훅 전이에도 대칭 적용.
+                    //   기존엔 웹훅 취소/반품 시 정산·재고는 되돌리면서 LTV/RFM/CLV/VIP등급/타겟팅 과대분개만 잔존. buyer 정보는 웹훅 body best-effort(멱등·미매칭 시 no-op).
+                    self::recordCrmRefund($pdo, $tenant, $channel, (string)($body['buyer_email'] ?? ''), (string)($body['buyer_name'] ?? ''), (float)($existing['total_price'] ?? 0), (string)$body['order_id']);
                     // [현 차수 감사] 오픈플랫폼 order.cancelled — 폴링(saveOrders:2754)과 대칭(전이 1회·멱등·구독0=no-op).
                     \Genie\Handlers\OpenPlatform::emit($tenant, 'order.cancelled', ['order_id' => (string)$body['order_id'], 'channel' => $channel, 'amount' => (float)($existing['total_price'] ?? 0), 'currency' => 'KRW', 'reason' => $eventType, 'occurred_at' => $now]);
                     // [현 차수] 단방향 자동진입(webhook=범용 ingest 경로도 saveOrders 와 동등): 물리 창고 재고 복원

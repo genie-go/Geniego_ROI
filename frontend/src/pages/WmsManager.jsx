@@ -446,7 +446,7 @@ const InOutTab = memo(function InOutTab({ whs }) {
             const sku = row.SKU || row.sku || '';
             const qty = Number(row.Qty || row.qty || 0);
             if (!sku || !qty) return;
-            registerInOut({
+            const payload = {
                 type, sku, qty: Math.abs(qty),
                 whId: row.WarehouseID || row.warehouseId || 'W001',
                 name: row.ProductName || row.productName || row.name || '',
@@ -455,9 +455,14 @@ const InOutTab = memo(function InOutTab({ whs }) {
                 ref: row.RefNo || row.refNo || row.ref || '',
                 reason: row.Reason || row.reason || '',
                 by: 'BulkUpload',
-            });
+            };
+            registerInOut(payload);
+            // [265차] 대량 입출고 백엔드 영속 — 단건(wmsApi.createMovement:358)·CSV(:719)·조정(:779) 형제와 대칭.
+            //   기존엔 registerInOut(로컬 state)만 호출 → 운영 새로고침 시 대량 입출고 이력 소실(비영속).
+            wmsApi.createMovement(payload).catch(() => {});
             ok++;
         });
+        if (ok > 0) { try { reloadMoves(); } catch { /* no-op */ } }
         setBulkStatus({ count: ok, total: bulkData.length, success: true });
         setBulkData([]);
         setTimeout(() => { setShowBulk(false); setBulkStatus(null); }, 3000);

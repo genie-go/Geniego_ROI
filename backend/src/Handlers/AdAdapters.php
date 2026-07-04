@@ -58,18 +58,27 @@ final class AdAdapters
     /** channel_credential 에서 자격증명 1건 조회(테넌트 스코프).
      *  [현 차수] 채널·키 별칭 통합 — AdChannelConnect 수동등록('meta_ads'/'access_token')과
      *  OAuth 콜백 저장('meta'/'oauth_access_token') 양 경로 모두에서 자격증명을 찾는다. */
+    /** [265차 SSOT] 채널 자격증명 별칭 맵(short/full 혼용 저장 대응). cred()·credChannelAliases() 공유 — 중복 맵 드리프트 방지. */
+    private const CRED_CHAN_ALIAS = [
+        'meta_ads'        => ['meta_ads', 'meta', 'facebook'],
+        'google_ads'      => ['google_ads', 'google'],
+        'tiktok_business' => ['tiktok_business', 'tiktok'],
+        'naver_sa'        => ['naver_sa', 'naver'],
+        'kakao_moment'    => ['kakao_moment', 'kakao'], // [232차 Sprint3] Kakao Moment 집행
+        'line_ads'        => ['line_ads'],             // [232차] LINE Ads 집행(메시징 'line'과 별개)
+    ];
+
+    /** [265차] 채널의 자격증명 조회 별칭 집합(short 입력도 정규화 후 반환). AdminGrowth::missingCreds 등 cred 존재 게이트가 cred() 와 동일 키공간을 쓰도록. */
+    public static function credChannelAliases(string $channel): array
+    {
+        $full = self::normConnKey($channel);
+        return self::CRED_CHAN_ALIAS[$full] ?? array_values(array_unique([$full, strtolower(trim($channel))]));
+    }
+
     private static function cred(PDO $pdo, string $tenant, string $channel, string $keyName): string
     {
-        static $chanAlias = [
-            'meta_ads'        => ['meta_ads', 'meta', 'facebook'],
-            'google_ads'      => ['google_ads', 'google'],
-            'tiktok_business' => ['tiktok_business', 'tiktok'],
-            'naver_sa'        => ['naver_sa', 'naver'],
-            'kakao_moment'    => ['kakao_moment', 'kakao'], // [232차 Sprint3] Kakao Moment 집행
-            'line_ads'        => ['line_ads'],             // [232차] LINE Ads 집행(메시징 'line'과 별개)
-        ];
         static $keyAlias = ['access_token' => ['access_token', 'oauth_access_token']];
-        $chans = $chanAlias[$channel] ?? [$channel];
+        $chans = self::CRED_CHAN_ALIAS[$channel] ?? [$channel];
         $keys  = $keyAlias[$keyName] ?? [$keyName];
         foreach ($chans as $c) {
             foreach ($keys as $k) {
@@ -181,6 +190,7 @@ final class AdAdapters
     /** 캠페인 생성(PAUSED). $camp: name, budget(채널 배정액), period, objective. */
     public static function createCampaign(PDO $pdo, string $tenant, string $channel, array $camp): array
     {
+        $channel = self::normConnKey($channel); // [265차] short('meta')↔connector('meta_ads') 경계 정규화 — caller(ClaudeAI 코파일럿·AdminGrowth Live) raw short key 유입 시 unsupported 무집행 방지(멱등)
         if (!self::executionEnabled()) {
             return ['ok' => false, 'external_id' => '', 'status' => 'execution_disabled',
                 'note' => '집행 어댑터 비활성. AD_EXECUTION_ENABLED=1 + 매체 자격증명 연결 후 PAUSED 로 생성됩니다.'];
@@ -220,6 +230,7 @@ final class AdAdapters
     /** 예산 변경(최적화 액추에이터). */
     public static function updateBudget(PDO $pdo, string $tenant, string $channel, string $externalId, int $newDaily): array
     {
+        $channel = self::normConnKey($channel); // [265차] 경계 정규화(멱등) — raw short key 유입 시 unsupported 방지
         if (!self::executionEnabled() || $externalId === '') return ['ok' => false, 'status' => 'skipped'];
         try {
             switch ($channel) {
@@ -237,6 +248,7 @@ final class AdAdapters
     /** 일시정지(손해 채널 회수). */
     public static function pause(PDO $pdo, string $tenant, string $channel, string $externalId): array
     {
+        $channel = self::normConnKey($channel); // [265차] 경계 정규화(멱등) — raw short key 유입 시 unsupported 방지
         if (!self::executionEnabled() || $externalId === '') return ['ok' => false, 'status' => 'skipped'];
         try {
             $res = match ($channel) {
@@ -1000,6 +1012,7 @@ final class AdAdapters
     /** 캠페인 하위 adset/adgroup + ad 생성(PAUSED). 매체별 딜리버리 완성 레이어. */
     public static function buildDelivery(PDO $pdo, string $tenant, string $channel, string $campExtId, int $designId, int $daily, string $landing, array $settings = []): array
     {
+        $channel = self::normConnKey($channel); // [265차] 경계 정규화(멱등) — raw short key 유입 시 unsupported 방지
         if (!self::executionEnabled() || $campExtId === '') return ['ok' => false, 'status' => 'skipped'];
         $d = self::loadDesign($pdo, $tenant, $designId);
         if ($landing === '') $landing = 'https://roi.genie-go.com';
