@@ -19,6 +19,31 @@
 | 9 | **기존 확장 가능성 먼저 검토** | 데모전용→운영배선·얕음→심화·미배선→배선·미노출→노출. 기존 인프라(Db/UserAuth/apiClient/ClaudeAI/ad_design 등) 재사용 |
 | 10 | **확장 불가 시에만 신설 허용** | 진짜 부재(존재증명 완료) + 도메인 구분 명시 시에만. **신설은 기존보다 우수·기존과 무중복 필수** |
 
+## ★ Change Impact Analysis (수정 실행 전 필수 — 265차 사용자 지시)
+
+**영향 분석 없이 수정 금지.** 게이트 10단계 통과 후, 실제 코드 수정 착수 전 아래 11개 차원의 영향을 먼저 분석·기술한다. 각 차원의 이 코드베이스 추적 방법:
+
+| 차원 | 추적 방법(grep/read 대상) |
+|------|---------------------------|
+| **Menu(메뉴)** | 사이드바 매니페스트·`frontend/src/App.jsx`(라우트/lazy import)·`planMenuPolicy`/`tabPlanPolicy`(플랜 게이팅) |
+| **API** | `backend/src/routes.php`($custom+$register)에서 수정 핸들러 메서드가 서빙하는 엔드포인트 + `/api` 변형 |
+| **Service** | 수정 핸들러 클래스/메서드의 **호출자 전수 grep**(`ClassName::method`·내부 self::) |
+| **Screen(화면)** | 그 엔드포인트/함수를 소비하는 `frontend/src/pages`·`components` grep(경로 문자열·apiClient 호출) |
+| **DB** | 쿼리가 만지는 테이블/컬럼 — `Db.php` CREATE + 런타임 ensure/ALTER + **라이브 SHOW COLUMNS**(스키마 판정 정본) |
+| **Queue(큐)** | async outbox(`Omnichannel` outbox·`ad_delivery_dlq`·webhook DLQ·server_conversion_log)·멱등 원장 영향 |
+| **Scheduler(크론)** | `backend/bin/*_cron.php` 러너·`install_crontab.sh` SSOT·`check_cron_ssot` — 그 함수가 cron 호출자인지 |
+| **Automation** | `AutoCampaign`/`AutoRecommend`/`RuleEngine`/`AbTesting`/`JourneyBuilder` 트리거·집행 경로 영향 |
+| **Analytics** | `Rollup`/`AttributionEngine`/`Mmm`/`Reports`/`CustomerAI`·산출 SSOT(순이익/ROAS/LTV) 소비처 |
+| **Channel(채널)** | `ChannelSync`/`AdAdapters`/`Connectors`/`ChannelCreds`·채널키 정규화·자동sync 디스패치 영향 |
+| **Component** | 수정 컴포넌트/훅/Context/util 를 **import 하는 파일 전수 grep**(재사용 파급) |
+
+### 실행 규칙
+1. 위 11차원 중 **해당되는 것만** 명시(무영향 차원은 "영향 없음" 표기해 분석했음을 증명).
+2. 특히 **머니경로(주문→정산→순이익)·마케팅 실집행·테넌트 격리·크로스탭 동기화**를 만지면 반드시 Automation/Analytics/Channel/Queue 파급을 grep 으로 확인.
+3. 스키마 변경 판단은 **라이브 SHOW COLUMNS** 필수(덤프/주석 맹신 금지).
+4. 분석 결과 **회귀 위험**(무후퇴 원칙 위반) 발견 시 수정 방식을 additive/멱등/게이트로 재설계.
+5. 분석을 커밋 메시지·인계서에 요약 기록.
+
 ## 판정 원칙
 - **핸들러 미배선 ≠ 미배선 실백엔드**: 존재증명 시 응답이 **실데이터인지 빈 스텁/데모전용인지**까지 확인. 스텁 배선은 철칙(운영 목데이터 금지) 위반이므로 배선 대상 아님(265차 CustomerAI 사례).
 - **"배선 존재 ≠ 필드 정합"**: 배선돼 있어도 프론트/백엔드 필드 키 불일치가 잠복할 수 있음(265차 geo readiness 사례).
