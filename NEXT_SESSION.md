@@ -1,3 +1,50 @@
+# 265차 세션 인계서 — **전수감사(확정5) + 신규백엔드2(DigitalShelf/Promotion) + 확장 초고도화14 + 라이브스키마 드리프트 전수감사(5수정) + 검출기 CI가드3(라우트/훅/php-l) + ★거버넌스 5중게이트 + 레지스트리 시스템(19) 확립**
+
+> **작성일**: 2026-07-04 (사용자 명시 승인: 종결+인계서+커밋+푸쉬) · 운영 roi.genie-go.com / 데모 roidemo.genie-go.com · 브랜치 `feat/n236-admin-growth-automation` (**master 미접촉**) · 전 항목 운영+데모 동반 배포·php-l/빌드 PASS·라이브 검증. **회귀0·거짓집행0·운영목데이터0·오염0·중복구현0(dedup 1건 정정)**.
+
+## ★0. 다음 차수 필독 (재발/오탐/중복 방지)
+- ★**착수 전 `docs/CHANGE_GATE.md` 필독**(265차 신설·5중 게이트): ①10단계 pre-mod ②Duplicate Prevention(15카테고리·tools/bin 포함) ③Change Impact Analysis(11차원) ④Regression Prevention(7회귀·post-mod) ⑤Repeat-Modification Escalation(2차 PM승인/3차 RCA/4차+ 근본원인제거).
+- ★**기억 의존 금지**: 모든 변경은 `docs/registry/`(19 레지스트리) 해당 문서 갱신. 매핑=`docs/registry/README.md`.
+- 필독 주입: `docs/IMPLEMENTATION_STATUS.md`+FP레지스트리(`reference_audit_false_positives`)+`project_n265_full_audit`(메모리 정본).
+- ★스키마 판정=**라이브 SHOW COLUMNS만 정본**(덤프/메모리/주석 맹신 금지·Paddle/UserAdmin 교훈). DB정본주의=`docs/registry/DatabaseRegistry.md`.
+- ★PG=Paddle 유지(Stripe 한국 미지원·재보류 확정).
+
+## 1. 265차 완료(전부 운영+데모 라이브·커밋·push·master 미접촉)
+| # | 영역 | 커밋 |
+|---|------|------|
+| A | 전수감사 확정결함5 수정(UserAdmin Paddle역방향드리프트 관리자500·AdAdapters 채널키경계정규화·AdminGrowth missingCreds별칭·웹훅 LTV역분개·WMS 대량입출고영속) | 5ff01556d50 |
+| B | DigitalShelf SoS 키워드 백엔드 신설(digital_shelf_keyword CRUD·부재증명 후) | 923707a7ea5 |
+| C | OperationsHub 머천트 프로모션 백엔드 신설(merchant_promotion·CouponAdmin과 도메인구분) | 216f0577116 |
+| D | 확장 초고도화14(기존 백엔드 산출물 프론트배선: geo MDE버그·identity-coverage·AI분석이력·MMM λ/accept_rate·한계ROAS·RFM예측요약·상품연관역방향·리포트합계행·수요예측곡선·키워드성과탭·Rollup CAC툴팁 등) | ae49e023f8f·26df5ea5ef1·ccf38572df6·0159462075f |
+| E | 라이브 스키마 드리프트 전수감사(Handlers88+cron8) → 5수정(EventNorm creator_id·UserAuth idx·UserAdmin business_type×2·Health version) | 3b195f6eeea |
+| F | 검출기 CI가드3: G9 라우트등록정합·G10 rules-of-hooks(잠복3정합)·G11 php-l(backend전체 index.php+cron) + pre-commit | 9ccc89e·abd0fc9·94258fb·730f420 |
+| G | 중복제거: bin/audit_routes.php(167차)→node가드 통합(게이트 자가위반 정정) | c11393a6478 |
+| H | 거버넌스 5중게이트 문서 + 레지스트리 시스템(19+README) | b09b~a1d1·efd7f9ba3e6 |
+
+## 2. 검증(회귀0)
+- 백엔드 php-l 전건 PASS(운영+데모)·라이브 수정쿼리 실증(SHOW COLUMNS/실행)·fpm restart. 프론트 빌드 PASS·홈200/청크200(양쪽)·신규EP e2e(DigitalShelf/Promotion/키워드).
+- 드리프트5=라이브 컬럼부재 실증 후 수정(별칭/제거/extra_data JSON/id단독). 운영↔데모 파리티·cron 드리프트=clean.
+- 전 커밋 회귀검증=`docs/registry/RegressionHistory.md`.
+
+## 3. ★트랩(265차)
+- **라우트 2단계**: $custom(정의)+$register(등록) 둘 다 필수(누락=Not found). v429+는 /api 접두만 nginx도달(v3~v427 직접). $pfx 변수접두 등록(admin/growth).
+- **eslint 로컬파손**: Windows 파일잠금 `.DELETE.<hash>` 잔여물→node_modules 부분손상·eslint 실행불가. 복원 후 재시도(CI 클린설치 무관).
+- **PowerShell→plink 따옴표/`$?`/멀티라인 트랩** 재현: 스크립트파일(pscp+bash) 방식만 안정. mysql -e 도 파일방식.
+- **스키마드리프트=라이브 SHOW COLUMNS 필수**(덤프 stale·Paddle.php 오탐 회피).
+
+## 4. 다음 차수 우선순위
+1. **[코드 자율백로그 소진]** 265차에 재발클래스(라우트/훅/php-l/스키마드리프트/크로스탭/파리티) 전부 감사·수정·가드완료. 새 자율 코드백로그 없음.
+2. **[사용자 지시 필요]** 도메인 심화(CRM/AI/커머스 등 지정) 또는 외부 크리덴셜(실광고키/검색API→마케팅집행·SoS harvest).
+3. **[외부의존·투기금지]** 영상DCO·CTV/DSP·해시오디언스·SOC2인증·SFU·발송DNS — 실 크리덴셜/인프라 확보 시.
+4. **[선택]** eslint 로컬 완전복구(npm ci) 후 rules-of-hooks 상시 로컬가드.
+
+## 5. 배포/브랜치
+- 운영+데모 동반 배포 완료(백엔드 bak.265*·fpm restart / 프론트 dist 델타·index.html bak.265*). **master 절대 미접촉**·feat/n236. 전 커밋 push 완료.
+
+(★265차 인계서 = 사용자 명시 승인. 자격증명 평문노출 0. master 미접촉. 5중게이트+레지스트리로 기억 의존 종결.)
+
+---
+
 # 264차 세션 인계서 — **PG전환 재보류(Paddle유지) + WebPopup A/B 백엔드 신설 + 경쟁재평가(264/265) + 우선순위 A 순수코드갭 4건 초고도화(뷰스루성숙화·OfferFit RL·온사이트CRO i18n·BI시각화)**
 
 > **작성일**: 2026-07-03 (사용자 명시 승인) · 운영 roi.genie-go.com / 데모 roidemo.genie-go.com · 브랜치 `feat/n236-admin-growth-automation` (**master 미접촉**) · 전 항목 운영+데모 동반 배포·서버 php-l PASS·프론트빌드 PASS·라이브 청크/DDL 검증. **회귀0·거짓집행0·운영목데이터0·오염0·중복구현0**.
