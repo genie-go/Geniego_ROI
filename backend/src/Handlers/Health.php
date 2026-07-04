@@ -100,7 +100,8 @@ final class Health
     private static function latestMigration(PDO $pdo): ?array
     {
         try {
-            $stmt = $pdo->query('SELECT version, applied_at FROM schema_migrations ORDER BY applied_at DESC LIMIT 1');
+            // [265차 스키마드리프트] schema_migrations 라이브 컬럼=filename/applied_at/checksum(version 없음) → filename 을 version 으로 별칭(응답키 보존).
+            $stmt = $pdo->query('SELECT filename AS version, applied_at FROM schema_migrations ORDER BY applied_at DESC LIMIT 1');
             if (!$stmt) return null;
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
             return $row ?: null;

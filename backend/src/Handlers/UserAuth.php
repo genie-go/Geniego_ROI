@@ -127,8 +127,10 @@ final class UserAuth
                     $id = $user['id'] ?? $user['idx'] ?? 0;
                     // [261차] plans 컬럼도 함께 'free' 로 강등해야 한다. plan 만 내리면 재로그인 시
                     //   effectivePlan=COALESCE(plans,plan) 가 여전히 유료로 해석돼 만료 후 유료가 영구부활한다.
-                    $pdo->prepare("UPDATE app_user SET plan = 'free', plans = 'free', subscription_expires_at = NULL WHERE id = ? OR idx = ?")
-                        ->execute([$id, $id]);
+                    // [265차 스키마드리프트] app_user 엔 idx 컬럼 없음 → `OR idx=?` 가 문장 전체를 1054 예외로 만들어
+                    //   만료 유료→free 강등이 무음 무효화(261차 취지 훼손)되던 것 수정. id 단독 조건.
+                    $pdo->prepare("UPDATE app_user SET plan = 'free', plans = 'free', subscription_expires_at = NULL WHERE id = ?")
+                        ->execute([$id]);
                 } catch (\Throwable $e) { /* 조용히 처리 */ }
 
                 return array_merge($user, [

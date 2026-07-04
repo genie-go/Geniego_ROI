@@ -311,7 +311,9 @@ final class EventNorm
             return array_merge($base, [
                 'event_type'          => 'ugc_view',
                 'domain'              => 'influencer',
-                'creator_id'          => $payload['creator_id'] ?? null,
+                // [265차 스키마드리프트] normalized_activity_event 엔 creator_id 컬럼 없음(라이브=creative_id/creator_handle) →
+                //   동적 INSERT(array_keys)에 실려 매 TikTok UGC 이벤트가 1054 예외로 무음실패(UGC 정규화 파이프라인 전면 사망)하던 것 제거.
+                //   크리에이터 식별은 creator_handle 로 충분(숫자 creator_id 는 전용컬럼 부재).
                 'creator_handle'      => $payload['handle'] ?? null,
                 'ugc_content_id'      => $payload['video_id'] ?? null,
                 'ugc_platform'        => 'tiktok',

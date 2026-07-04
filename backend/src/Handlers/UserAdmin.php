@@ -1130,7 +1130,8 @@ final class UserAdmin
         $isProfileRequired = strpos($coupon['note'] ?? '', '[profile_required]') !== false;
         if ($isProfileRequired || $user['plan'] === 'pro' /*replaced demo*/) {
             // 필수 프로필 필드 체크
-            $pStmt = $pdo->prepare("SELECT company, phone, representative, business_type FROM app_user WHERE id = ?");
+            // [265차 스키마드리프트] app_user 엔 business_type 컬럼 없음(하드 500) + $missing 체크는 company/phone/representative 만 사용 → 제거.
+            $pStmt = $pdo->prepare("SELECT company, phone, representative FROM app_user WHERE id = ?");
             $pStmt->execute([$user['id']]);
             $profile = $pStmt->fetch(\PDO::FETCH_ASSOC) ?: [];
 
@@ -1316,19 +1317,25 @@ final class UserAdmin
         $driver = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME);
         $now    = $driver === 'mysql' ? 'NOW()' : "datetime('now')";
 
-        // app_user 프로필 업데이트
+        // [265차 스키마드리프트] app_user 엔 business_type/website/monthly_sales/ad_channels 컬럼 없음(전 사용자 하드 500) →
+        //   존재 컬럼(company/phone/representative/updated_at)만 직접 갱신하고 나머지는 기존 extra_data JSON 에 병합(스키마변경0).
+        $exStmt = $pdo->prepare("SELECT extra_data FROM app_user WHERE id = ?");
+        $exStmt->execute([$user['id']]);
+        $extra = json_decode((string)($exStmt->fetchColumn() ?: '{}'), true);
+        if (!is_array($extra)) $extra = [];
+        $extra['business_type'] = $bizType;
+        $extra['website']       = $website;
+        $extra['monthly_sales'] = $monthlySales;
+        $extra['ad_channels']   = $adChannels;
         $pdo->prepare("
             UPDATE app_user
                SET company          = ?,
                    phone             = ?,
                    representative    = ?,
-                   business_type     = ?,
-                   website           = ?,
-                   monthly_sales     = ?,
-                   ad_channels       = ?,
+                   extra_data        = ?,
                    updated_at        = $now
              WHERE id = ?
-        ")->execute([$company, $phone, $repr, $bizType, $website, $monthlySales, $adChannels, $user['id']]);
+        ")->execute([$company, $phone, $repr, json_encode($extra, JSON_UNESCAPED_UNICODE), $user['id']]);
 
         return self::json($res, [
             'ok'      => true,
