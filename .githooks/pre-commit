@@ -128,6 +128,18 @@ if echo "$STAGED" | grep -qE '^backend/src/routes\.php$'; then
   fi
 fi
 
+# G10 — React rules-of-hooks (Session 265)
+#   조건부/early-return 뒤/try-catch 훅 = 화이트스크린 크래시(261/263 클래스). staged jsx 만 검사(고속).
+#   의도적 예외는 소스에 // eslint-disable-next-line react-hooks/rules-of-hooks + 근거주석.
+HOOKS_STAGED=$(echo "$STAGED" | grep -E '^frontend/src/.*\.(js|jsx)$' | sed 's#^frontend/##' || true)
+if [ -n "$HOOKS_STAGED" ]; then
+  if bash tools/check_rules_of_hooks.sh $HOOKS_STAGED; then
+    ok "G10: react-hooks/rules-of-hooks 정합"
+  else
+    fail "G10: react-hooks/rules-of-hooks 위반(화이트스크린 위험) — 훅 상단이동 또는 eslint-disable 근거명시"
+  fi
+fi
+
 if [ "$FAIL" -ne 0 ]; then
   echo ""
   echo "Pre-commit blocked. Resolve issues or bypass with: git commit --no-verify (N-145-G)"

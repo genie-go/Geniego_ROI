@@ -42,6 +42,9 @@ const getRfmGrade = (t) => ({
 
 /* ── Currency Formatting ────────────────────────────────────────────────────── */
 function useCurrencyFmt() {
+  // [265차] 훅 try/catch = GlobalDataProvider 밖 렌더 대비 의도적 fallback(useGlobalData 는 provider 밖에서 throw).
+  //   현 CRM 페이지는 항상 provider 내라 catch 미발생(잠복 위반이지 능동 크래시 아님). 리팩터 시 fallback 후퇴 위험 → 의도적 예외.
+  /* eslint-disable react-hooks/rules-of-hooks */
   try {
     const { currency, exchangeRates } = useGlobalData();
     const fmt = useCallback((krwAmount) => {
@@ -59,6 +62,7 @@ function useCurrencyFmt() {
   } catch {
     return (v) => new Intl.NumberFormat(navigator.language || 'ko-KR', { style: 'currency', currency: 'KRW', maximumFractionDigits: 0 }).format(Math.round(v || 0));
   }
+  /* eslint-enable react-hooks/rules-of-hooks */
 }
 
 /* ── CSV Export ──────────────────────────────────────────────────────────────── */

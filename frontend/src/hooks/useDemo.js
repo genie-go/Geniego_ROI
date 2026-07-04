@@ -7,7 +7,7 @@ import { useAuth } from "../auth/AuthContext";
  *   const { is, Or } = use();
  *   const customers = Or(_CRM_CUSTOMERS, realCustomers);
  */
-export default function use() {
+export default function useDemo() {
     const { user, plan } = useAuth();
     const is = false;
 

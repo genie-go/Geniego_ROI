@@ -46,6 +46,8 @@ jobs:
         run: |
           cd frontend
           npm install
+          # [265차] React rules-of-hooks 가드 — 조건부/early-return 뒤 훅(화이트스크린 크래시 261/263) CI 차단
+          bash ../tools/check_rules_of_hooks.sh
           npm run build --silent
 
       - name: "[PHASE 3] Secure Deploy (SFTP)"

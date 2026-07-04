@@ -54,6 +54,9 @@ const INPUT = {
 
 /* ── Currency Format ──────────────────────────────────────────────────────── */
 function useCurrencyFmt() {
+  // [265차] 훅 try/catch = GlobalDataProvider 밖 렌더 대비 의도적 fallback(useGlobalData 는 provider 밖 throw).
+  //   현 페이지 항상 provider 내라 catch 미발생(잠복 위반이지 능동 크래시 아님). 리팩터 시 후퇴 위험 → 의도적 예외.
+  /* eslint-disable react-hooks/rules-of-hooks */
   try {
     const { currency, exchangeRates, isDemo } = useGlobalData();
     return useCallback((krw) => {
@@ -66,6 +69,7 @@ function useCurrencyFmt() {
       return `${sym}${converted.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:2})}`;
     }, [currency, exchangeRates]);
   } catch { return v => `₩${Math.round(v||0).toLocaleString()}`; }
+  /* eslint-enable react-hooks/rules-of-hooks */
 }
 
 /* ── CSV Export ───────────────────────────────────────────────────────────── */
