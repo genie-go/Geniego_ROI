@@ -2,6 +2,25 @@ import React, { useState, useMemo, useEffect } from "react";
 
 import { useT } from '../i18n/index.js';
 import { IS_DEMO } from '../utils/demoEnv'; // 181차 가상데이터 운영오염 차단
+import { getJsonAuth, postJsonAuth } from '../services/apiClient'; // [265차] 키워드 영속 배선
+
+/* [265차] 백엔드 flat 행(키워드×채널) → 프론트 중첩 모델 그룹화(키워드별 채널맵). 외부 harvest 전 ctr/vol=0(정직). */
+function mapShelfRows(rows) {
+  const byKw = {};
+  (rows || []).forEach(r => {
+    const k = r.keyword || '';
+    if (!k) return;
+    if (!byKw[k]) byKw[k] = { keyword: k, channels: {}, trend: 'stable', _id: r.id };
+    byKw[k].channels[r.channel || 'all'] = {
+      brand_sos: r.ourSos != null ? r.ourSos : 0,
+      comp_sos: r.compSos != null ? r.compSos : 0,
+      rank: r.rank != null ? r.rank : 99,
+      ctr: 0, rev_share: 0, vol: 0,
+    };
+    if (r.trend === 'up' || r.trend === 'down') byKw[k].trend = r.trend;
+  });
+  return Object.values(byKw);
+}
 /* ─── CSV ───────────────────────────────────────────────────── */
 function downloadCSV(filename, headers, rows) {
   const BOM = '\uFEFF';
@@ -181,6 +200,15 @@ export default function DigitalShelf() {
   const [toast, setToast] = useState(null);
   const [activeTab, setActiveTab] = useState("sos"); // 신규 Tab 시스템
 
+  // [265차] 운영: 백엔드 영속 추적 키워드 로드(데모는 로컬 KEYWORDS_INIT 유지=IS_DEMO 격리).
+  const reloadKeywords = React.useCallback(() => {
+    if (IS_DEMO) return;
+    getJsonAuth('/api/v429/shelf/keywords') // nginx는 v429 직접 프록시 안 함 → /api 접두(basePath strip 매치)
+      .then(r => { if (r && r.ok && Array.isArray(r.keywords)) setKeywords(mapShelfRows(r.keywords)); })
+      .catch(() => {});
+  }, []);
+  useEffect(() => { reloadKeywords(); }, [reloadKeywords]);
+
   // Channelper Aggregate 함Count
   const getChannelData = (kw, chId) => {
     if (chId === "all") {
@@ -224,6 +252,15 @@ export default function DigitalShelf() {
   const avgCtr = allData.length ? (allData.reduce((s, c) => s + c.ctr, 0) / allData.length).toFixed(1) : 0;
 
   const handleAdd = ({ keyword, channel, brandSos, compSos }) => {
+    if (!IS_DEMO) {
+      // [265차] 운영: 백엔드 영속(새로고침 유지) → 성공 시 재로드. 실 SoS/순위는 외부 harvest 로드맵(값 날조 없음).
+      postJsonAuth('/api/v429/shelf/keywords', { keyword, channel, ourSos: brandSos, compSos })
+        .then(() => reloadKeywords())
+        .catch(() => {});
+      setToast(t('digitalShelf.toastAdded', '✓ "{{kw}}" 추가됨', { kw: keyword }));
+      return;
+    }
+    // 데모: 로컬 시드(IS_DEMO 격리·기존 동작)
     setKeywords(prev => [...prev, {
       keyword,
       channels: { [channel]: { brand_sos: brandSos, comp_sos: compSos, rank: 10, ctr: 3.0, rev_share: 15.0, vol: 10000 } },

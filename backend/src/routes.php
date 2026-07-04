@@ -749,6 +749,15 @@ return function (App $app): void {
         'DELETE /v429/exports/destinations/{id}' => 'Genie\\Handlers\\DataExport::deleteDestination',
         'POST /v429/exports/destinations/{id}/run' => 'Genie\\Handlers\\DataExport::runNow',
         'GET /v429/exports/runs'                 => 'Genie\\Handlers\\DataExport::listRuns',
+        // [265차] 디지털 셸프 SoS 추적 키워드 — 세션 self-auth(requirePro+authedTenant 격리). /v429/ 이미 bypass.
+        'GET /v429/shelf/keywords'               => 'Genie\\Handlers\\DigitalShelf::list',
+        'GET /api/v429/shelf/keywords'           => 'Genie\\Handlers\\DigitalShelf::list',
+        'POST /v429/shelf/keywords'              => 'Genie\\Handlers\\DigitalShelf::add',
+        'POST /api/v429/shelf/keywords'          => 'Genie\\Handlers\\DigitalShelf::add',
+        'PATCH /v429/shelf/keywords/{id}'        => 'Genie\\Handlers\\DigitalShelf::update',
+        'PATCH /api/v429/shelf/keywords/{id}'    => 'Genie\\Handlers\\DigitalShelf::update',
+        'DELETE /v429/shelf/keywords/{id}'       => 'Genie\\Handlers\\DigitalShelf::remove',
+        'DELETE /api/v429/shelf/keywords/{id}'   => 'Genie\\Handlers\\DigitalShelf::remove',
         // [245차 P2-3] 엔터프라이즈 SSO(OIDC/SAML) + SCIM 2.0 프로비저닝
         'GET /v430/sso/config'                   => 'Genie\\Handlers\\EnterpriseAuth::getConfig',
         'PUT /v430/sso/config'                   => 'Genie\\Handlers\\EnterpriseAuth::saveConfig',
@@ -2131,6 +2140,11 @@ return function (App $app): void {
     $register('DELETE', '/v429/exports/destinations/{id}');
     $register('POST',   '/v429/exports/destinations/{id}/run');
     $register('GET',    '/v429/exports/runs');
+    // [265차] 디지털 셸프 SoS 추적 키워드(세션 self-auth). /api 접두는 basePath strip 으로 동일 매치.
+    $register('GET',    '/v429/shelf/keywords');
+    $register('POST',   '/v429/shelf/keywords');
+    $register('PATCH',  '/v429/shelf/keywords/{id}');
+    $register('DELETE', '/v429/shelf/keywords/{id}');
     // [245차 P2-3] 엔터프라이즈 SSO + SCIM
     $register('GET',    '/v430/sso/config');
     $register('PUT',    '/v430/sso/config');
