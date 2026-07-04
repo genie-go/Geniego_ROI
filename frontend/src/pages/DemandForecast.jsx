@@ -142,6 +142,17 @@ export default function DemandForecast() {
                 💡 {t('demandForecast.noForecastForSku', '이 상품은 예측 가능한 주문 이력이 부족합니다. 판매가 누적되면 자동으로 수요예측·안전재고·재주문점이 산출됩니다.')}
               </div>
             )}
+            {/* [265차 확장] 일별 예측 수요 곡선 — 서버가 이미 반환하던 forecast 일별배열(합계만 표시하고 폐기)을 시각화. 수요 급증일=프로모/재입고 타이밍 근거. */}
+            {sf && Array.isArray(sf.forecast) && sf.forecast.length > 0 && (
+              <div style={{ marginTop: 12 }}>
+                <div style={{ fontSize: 10.5, color: '#94a3b8', fontWeight: 700, marginBottom: 4 }}>{t('demandForecast.dailyCurve', '일별 예측 수요')} ({sf.forecast.length}{t('demandForecast.daysUnit', '일')})</div>
+                <div style={{ display: 'flex', alignItems: 'flex-end', gap: 2, height: 42 }}>
+                  {(() => { const arr = sf.forecast.map(Number); const mx = Math.max(...arr, 1); return arr.map((v, i) => (
+                    <div key={i} title={`D+${i + 1}: ${v.toFixed(1)}`} style={{ flex: 1, minWidth: 2, height: Math.max(2, (v / mx) * 42), background: '#4f8ef7', opacity: 0.35 + 0.65 * (v / mx), borderRadius: 1 }} />
+                  )); })()}
+                </div>
+              </div>
+            )}
           </div>
         );
       })()}

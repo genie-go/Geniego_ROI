@@ -30,6 +30,9 @@ function KpiGrid({ s, t }) {
     ["👆", "CTR", (s.ctr ?? 0) + "%", "#06b6d4"],
     ["✅", "CVR", (s.cvr ?? 0) + "%", "#10b981"],
     ["💵", "CPA", "₩" + fmt(s.cpa), "#f97316"],
+    // [265차 확장] 노출·클릭 — 서버 summary(generateKpiSummary)가 이미 산출(이메일 본문엔 노출)하나 미리보기 grid에 누락됐던 것. 값 있을 때만.
+    ...(s.impressions != null ? [["👁️", t("reportBuilder.kImpr", "노출"), fmt(s.impressions), "#64748b"]] : []),
+    ...(s.clicks != null ? [["🖱️", t("reportBuilder.kClicks", "클릭"), fmt(s.clicks), "#0ea5e9"]] : []),
   ];
   return (
     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(150px,1fr))", gap: 12 }}>

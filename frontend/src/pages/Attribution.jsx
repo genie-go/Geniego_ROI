@@ -1633,6 +1633,13 @@ function IncrementalityTab() {
               {t('attrData.blendSignals', '활성 신호')}: {(blended.signals_available || []).map(s => s.toUpperCase()).join(' · ') || '—'}
               {' · '}{t('attrData.blendDecision', '의사결정 신뢰도')}:{' '}
               <b style={{ color: blended.decision_confidence >= 70 ? '#16a34a' : blended.decision_confidence >= 45 ? '#d97706' : '#dc2626' }}>{blended.decision_confidence}%</b>
+              {/* [265차 확장] 모델↔실험 캘리브레이션(holdout 보유 채널의 예측·실측 lift 방향 일치율) — 서버 이미 산출·미노출이던 것 */}
+              {blended.calibration && blended.calibration.score != null && (
+                <span title={blended.calibration.note || ''}>{' · '}{t('attrData.blendCalib', '모델↔실험 정합')}:{' '}
+                  <b style={{ color: blended.calibration.score >= 70 ? '#16a34a' : blended.calibration.score >= 45 ? '#d97706' : '#dc2626' }}>{blended.calibration.score}%</b>
+                  <span style={{ color: 'var(--text-3)' }}> ({blended.calibration.aligned}/{blended.calibration.covered})</span>
+                </span>
+              )}
             </div>
           </div>
           <div style={{ fontSize: 11.5, color: 'var(--text-3)', lineHeight: 1.6, marginBottom: 10 }}>
