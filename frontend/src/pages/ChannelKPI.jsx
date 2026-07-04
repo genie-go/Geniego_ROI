@@ -765,6 +765,71 @@ function WebAnalyticsTab() {
     );
 }
 
+/* [265차 확장] 검색광고 키워드 성과 — GET /v424/connectors/keywords(keyword_insight·테넌트스코프·실적재)가 라우트등록·live인데
+   프론트 소비처 0이던 미배선 백엔드를 자립 탭으로 배선. 기존 apiClient/useCurrency/useT 재사용(신규 인프라 0). */
+function KeywordPerfTab() {
+  const t = useT();
+  const { fmt } = useCurrency();
+  const [rows, setRows] = useState([]);
+  const [channel, setChannel] = useState('');
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    let alive = true; setLoading(true);
+    getJsonAuth(`${API}/v424/connectors/keywords${channel ? `?channel=${encodeURIComponent(channel)}` : ''}`)
+      .then(d => { if (alive) { setRows(d && d.ok && Array.isArray(d.keywords) ? d.keywords : []); setLoading(false); } })
+      .catch(() => { if (alive) setLoading(false); });
+    return () => { alive = false; };
+  }, [channel]);
+  const channels = useMemo(() => [...new Set(rows.map(r => r.channel).filter(Boolean))], [rows]);
+  const th = { padding: '7px 10px', textAlign: 'left', fontSize: 11, color: 'var(--text-3)', fontWeight: 700, borderBottom: '1px solid var(--border)' };
+  const td = { padding: '7px 10px', fontSize: 12, borderBottom: '1px solid var(--border)' };
+  return (
+    <div style={{ display: 'grid', gap: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+        <div style={{ fontWeight: 800, fontSize: 14 }}>🔑 {t('channelKpiPage.kwTitle', '검색광고 키워드 성과')}</div>
+        {channels.length > 1 && (
+          <select value={channel} onChange={e => setChannel(e.target.value)} style={{ padding: '4px 8px', borderRadius: 6, border: '1px solid var(--border)', fontSize: 12 }}>
+            <option value="">{t('channelKpiPage.kwAllCh', '전체 채널')}</option>
+            {channels.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+        )}
+      </div>
+      {loading ? <div style={{ color: 'var(--text-3)', padding: 20 }}>{t('common.loading', '불러오는 중…')}</div>
+        : rows.length === 0 ? <div style={{ color: 'var(--text-3)', padding: 20, fontSize: 12.5, lineHeight: 1.6 }}>{t('channelKpiPage.kwEmpty', '검색광고 키워드 성과 데이터가 없습니다. 네이버/구글 검색광고 자격증명을 연동하면 키워드 단위 노출·클릭·전환·ROAS·CPC가 수집됩니다.')}</div>
+        : (
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead><tr>
+                <th style={th}>{t('channelKpiPage.kwChannel', '채널')}</th>
+                <th style={th}>{t('channelKpiPage.kwKeyword', '키워드')}</th>
+                <th style={{ ...th, textAlign: 'right' }}>{t('channelKpiPage.kwImpr', '노출')}</th>
+                <th style={{ ...th, textAlign: 'right' }}>{t('channelKpiPage.kwClicks', '클릭')}</th>
+                <th style={{ ...th, textAlign: 'right' }}>{t('channelKpiPage.kwSpend', '광고비')}</th>
+                <th style={{ ...th, textAlign: 'right' }}>CPC</th>
+                <th style={{ ...th, textAlign: 'right' }}>{t('channelKpiPage.kwConv', '전환')}</th>
+                <th style={{ ...th, textAlign: 'right' }}>ROAS</th>
+              </tr></thead>
+              <tbody>
+                {rows.map((r, i) => (
+                  <tr key={i}>
+                    <td style={td}>{r.channel}</td>
+                    <td style={{ ...td, fontWeight: 600 }}>{r.keyword}{r.match_type ? <span style={{ fontSize: 9, color: 'var(--text-3)', marginLeft: 5 }}>{r.match_type}</span> : null}</td>
+                    <td style={{ ...td, textAlign: 'right' }}>{Number(r.impressions || 0).toLocaleString()}</td>
+                    <td style={{ ...td, textAlign: 'right' }}>{Number(r.clicks || 0).toLocaleString()}</td>
+                    <td style={{ ...td, textAlign: 'right' }}>{fmt(r.spend)}</td>
+                    <td style={{ ...td, textAlign: 'right' }}>{fmt(r.cpc)}</td>
+                    <td style={{ ...td, textAlign: 'right' }}>{r.conversions}</td>
+                    <td style={{ ...td, textAlign: 'right', fontWeight: 800, color: r.roas >= 2 ? '#16a34a' : r.roas > 0 ? '#d97706' : 'var(--text-3)' }}>{r.roas}x</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+    </div>
+  );
+}
+
 /* ══════════════════════════════
    Main Component
 ══════════════════════════════ */
@@ -784,6 +849,7 @@ export default function ChannelKPI() {
     { id: 'target', label: t('channelKpiPage.tabTargets') },
     { id: 'monitor', label: t('channelKpiPage.tabMonitor') },
     { id: 'web', label: `📈 ${t('channelKpiPage.tabWeb', '웹 분석')}` },
+    { id: 'keywords', label: `🔑 ${t('channelKpiPage.tabKeywords', '검색 키워드')}` },
     { id: 'guide', label: `📖 ${ckg('tabGuide')}` },
 ];
 
@@ -912,6 +978,7 @@ export default function ChannelKPI() {
                 {tab === 'target' && <KpiTargetTab kpiTargets={kpiTargets} globalOrderStats={orderStats} globalBudgetStats={budgetStats} globalChannels={channelBudgets} globalCampaigns={sharedCampaigns} />}
                 {tab === 'monitor' && <MonitoringTab goals={goals} kpiTargets={kpiTargets} />}
                 {tab === 'web' && <WebAnalyticsTab />}
+                {tab === 'keywords' && <KeywordPerfTab />}
                 {tab === 'guide' && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 20, animation: 'fadeIn 0.3s' }}>
                         <div style={{ background: 'linear-gradient(135deg,rgba(79,142,247,0.10),rgba(168,85,247,0.06))', border: '1px solid rgba(79,142,247,0.20)', borderRadius: 16, textAlign: 'center', padding: 32 }}>
