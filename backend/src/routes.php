@@ -3388,7 +3388,8 @@ return function (App $app): void {
     $register('GET',   '/api/v425/admin/menu-tree/audit-log');
 
     // ── 167차 routes audit 일괄 정합 보강 ($custom 정의되었으나 $register 미호출 78건) ──
-    // backend/bin/audit_routes.php 로 재검출 가능. v410/v418*/v420 광범위.
+    // [265차] 정합 검출 정본=tools/check_routes_registered.mjs(CI PHASE1+pre-commit G9·$pfx/api 정확처리).
+    //   구 backend/bin/audit_routes.php 는 $pfx 변수접두·/api 변형 오탐으로 중복제거됨(node 가드로 통합).
     // v410 Alerting action_requests
     $register('POST', '/v410/action_requests/{id}/decide');
     $register('POST', '/v410/action_requests/{id}/execute');
