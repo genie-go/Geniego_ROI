@@ -5,7 +5,7 @@ import { useI18n } from '../i18n';
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
-import { postJson } from '../services/apiClient.js';
+import { postJson, getJsonAuth } from '../services/apiClient.js';
 import { useNavigate } from 'react-router-dom'; // [231차 OS#5] Copilot 추천 액션 딥링크
 import { AreaChart, Area, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts";
 import { sanitizeHtml } from '../utils/xssSanitizer.js';
@@ -342,8 +342,14 @@ const HistoryTab = memo(function HistoryTab({ t }) {
     const [rows, setRows] = useState([]);
 
     // 181차 가상데이터 오염 해소: 운영=실 분석이력 없으면 빈값, 데모(IS_DEMO)만 시드 노출
+    // [265차 확장] 운영: 이미 영속되는 ai_analyses 이력(GET /v422/ai/analyses·테넌트스코프)을 배선(그간 무조건 빈값이던 미배선 해소).
     useEffect(() => {
-        if (!IS_DEMO) { setRows([]); return; }
+        if (!IS_DEMO) {
+            getJsonAuth('/v422/ai/analyses?limit=20')
+                .then(d => { if (d && d.ok && Array.isArray(d.analyses)) setRows(d.analyses); })
+                .catch(() => {});
+            return;
+        }
         setRows([
             { id: 1, context: 'roas', question: '매출 견인 매체 식별', summary: 'Meta Ads가 60% 비중 기여', recommendation: 'Meta 예산 증액 권장', created_at: new Date().toISOString(), status: 'ok', tokens_used: 1420 },
             { id: 2, context: 'pnl', question: '적자 발생 요인 진단', summary: '물류 비용 초과 및 타겟 CVR 하락', recommendation: '패키징 단가 재협상 및 광고 타겟팅 롤백', created_at: new Date(Date.now() - 86400000).toISOString(), status: 'ok', tokens_used: 3205 },

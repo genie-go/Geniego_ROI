@@ -688,7 +688,7 @@ function ProductAffinityPanel({ t }) {
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
               <thead><tr>
-                {[t('crm.affA', '상품 A'), t('crm.affB', '함께 산 상품 B'), t('crm.affCo', '동시구매'), t('crm.affConf', 'B 구매율(A→B)'), t('crm.affLift', '연관강도')].map(h => <th key={h} style={{ padding: '6px 10px', textAlign: 'left', color: C.muted, fontWeight: 700 }}>{h}</th>)}
+                {[t('crm.affA', '상품 A'), t('crm.affB', '함께 산 상품 B'), t('crm.affCo', '동시구매'), t('crm.affConf', 'B 구매율(A→B)'), t('crm.affConfBa', 'A 구매율(B→A)'), t('crm.affLift', '연관강도')].map(h => <th key={h} style={{ padding: '6px 10px', textAlign: 'left', color: C.muted, fontWeight: 700 }}>{h}</th>)}
               </tr></thead>
               <tbody>
                 {pairs.map((p, i) => (
@@ -697,6 +697,7 @@ function ProductAffinityPanel({ t }) {
                     <td style={{ padding: '6px 10px', color: C.text, fontWeight: 600 }}>{p.b_name}</td>
                     <td style={{ padding: '6px 10px', textAlign: 'center', color: C.muted }}>{p.co_buyers}{t('crm.affPeople', '명')}</td>
                     <td style={{ padding: '6px 10px', textAlign: 'center', color: C.muted }}>{p.conf_ab}%</td>
+                    <td style={{ padding: '6px 10px', textAlign: 'center', color: C.muted }}>{p.conf_ba != null ? p.conf_ba + '%' : '—'}</td>
                     <td style={{ padding: '6px 10px', textAlign: 'center', fontWeight: 800, color: liftColor(p.lift) }}>{p.lift}×</td>
                   </tr>
                 ))}
@@ -717,8 +718,29 @@ function RFMTab({ derivedCustomers }) {
     return s;
   }, [derivedCustomers]);
   const total = derivedCustomers.length || 1;
+  // [265차 확장] 예측형 CDP 요약 KPI — 기존 predRowScore(운영=백엔드 churn_prob/predicted_clv 단일소스·데모=근사) 재집계.
+  //   행 단위 점수는 이미 표시 중이나 코호트 상단 요약(평균 이탈·고위험수·예측 CLV 합)이 없었음. 추가 fetch·백엔드 변경 0.
+  const pred = useMemo(() => {
+    let sumChurn = 0, high = 0, sumClv = 0, n = 0;
+    derivedCustomers.forEach(c => { const s = predRowScore(c); sumChurn += s.churn; sumClv += s.clv; if (s.churn >= 0.6) high++; n++; });
+    return { avgChurn: n ? sumChurn / n : 0, highChurn: high, totalClv: sumClv, n };
+  }, [derivedCustomers]);
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+      {pred.n > 0 && (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
+          {[
+            { l: t('crm.predAvgChurn', '평균 이탈확률'), v: Math.round(pred.avgChurn * 100) + '%', c: pred.avgChurn >= 0.5 ? '#dc2626' : pred.avgChurn >= 0.3 ? '#d97706' : '#16a34a' },
+            { l: t('crm.predHighRisk', '고위험 고객(이탈≥60%)'), v: pred.highChurn.toLocaleString() + t('crm.affPeople', '명'), c: '#dc2626' },
+            { l: t('crm.predTotalClv', '예측 CLV 합계'), v: fmt(pred.totalClv), c: '#4f8ef7' },
+          ].map(m => (
+            <div key={m.l} style={{ background: C.card, borderRadius: 12, padding: "14px 16px", borderLeft: `3px solid ${m.c}` }}>
+              <div style={{ fontSize: 11, color: C.muted, fontWeight: 600 }}>{m.l}</div>
+              <div style={{ fontSize: 22, fontWeight: 900, color: m.c, marginTop: 3 }}>{m.v}</div>
+            </div>
+          ))}
+        </div>
+      )}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 12 }}>
         {Object.entries(getRfmGrade(t)).filter(([k]) => k !== "normal").map(([key, { label, color }]) => {
           const pct = Math.round(((stats[key] || 0) / total) * 100);

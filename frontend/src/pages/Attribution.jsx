@@ -1486,6 +1486,8 @@ function IncrementalityTab() {
   const [ltBusy, setLtBusy] = useState(false);
   const [blended, setBlended] = useState(null); // [R-P1-1] 통합 증분성 신뢰도
   const [geo, setGeo] = useState(null); // [현 차수 초고도화 ③-5] geo-holdout readiness(서버 설계 추천)
+  const [idcov, setIdcov] = useState(null); // [265차 확장] cross-device 결정론 식별그래프 커버리지(서버 실적재·미노출이던 것)
+  const [prob, setProb] = useState(null);   // [265차 확장] 확률적 스티칭 opt-in 상태+커버리지
 
   useEffect(() => {
     let alive = true;
@@ -1498,8 +1500,19 @@ function IncrementalityTab() {
     getJsonAuth('/v424/attribution/experiments/geo-readiness?window=90')
       .then(d => { if (alive) setGeo(d); })
       .catch(() => { /* graceful */ });
+    getJsonAuth('/v424/attribution/identity-coverage')
+      .then(d => { if (alive) setIdcov(d); })
+      .catch(() => { /* graceful */ });
+    getJsonAuth('/v424/attribution/probabilistic')
+      .then(d => { if (alive) setProb(d); })
+      .catch(() => { /* graceful */ });
     return () => { alive = false; };
   }, []);
+
+  // [265차 확장] 확률적 cross-device 스티칭 opt-in 토글(서버 POST). 기본 OFF·PII 미저장.
+  const toggleProb = async () => {
+    try { const r = await postJsonAuth('/v424/attribution/probabilistic', { enabled: !(prob && prob.enabled) }); setProb(p => ({ ...(p || {}), enabled: !!(r && r.enabled) })); } catch { /* graceful */ }
+  };
 
   const runLift = async () => {
     setLtBusy(true);
@@ -1561,6 +1574,22 @@ function IncrementalityTab() {
       </div>
 
       {/* [현 차수 초고도화 ③-5] 지오 홀드아웃 설계 준비도 — 서버 geo-readiness(균형분할·검정력·실험/대조군 추천) 노출 */}
+      {(idcov || prob) && (
+          <div style={card}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
+              <span style={{ fontWeight: 900, fontSize: 13 }}>🔗 {t('attrData.idcovTitle', '크로스디바이스 식별 그래프')}</span>
+              {prob && <button onClick={toggleProb} title={t('attrData.probStitchTip', '확률적 스티칭(ip+ua 디바이스 시그니처·14일·PII 미저장). 켜면 익명 기기 여정도 동일인으로 어트리뷰션 크레딧.')} style={{ fontSize: 10.5, fontWeight: 800, padding: '3px 10px', borderRadius: 20, cursor: 'pointer', border: '1px solid', borderColor: prob.enabled ? '#16a34a' : 'var(--border)', background: prob.enabled ? 'rgba(22,163,74,0.12)' : 'transparent', color: prob.enabled ? '#16a34a' : 'var(--text-3)' }}>{t('attrData.probStitch', '확률적 스티칭')}: {prob.enabled ? 'ON' : 'OFF'}</button>}
+            </div>
+            <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', fontSize: 11.5, marginBottom: 6 }}>
+              <span>{t('attrData.idcovIdentities', '식별 고객')}: <b>{(idcov?.identities || 0).toLocaleString()}</b></span>
+              <span>{t('attrData.idcovLinked', '연결 세션')}: <b>{(idcov?.linked_sessions || 0).toLocaleString()}</b></span>
+              <span>{t('attrData.idcovCross', '크로스디바이스')}: <b>{(idcov?.cross_device_identities || 0).toLocaleString()}</b></span>
+              <span>{t('attrData.idcovMax', '최대 기기수/인')}: <b>{idcov?.max_devices_per_identity || 0}</b></span>
+              {prob && Number(prob.probabilistic_links) > 0 && <span>{t('attrData.idcovProbLinks', '확률적 링크')}: <b>{Number(prob.probabilistic_links).toLocaleString()}</b></span>}
+            </div>
+            <div style={{ fontSize: 10, color: 'var(--text-3)', lineHeight: 1.6 }}>{idcov?.note || t('attrData.idcovNote', '해시 기반 결정론 식별 그래프(PII 미저장). 모바일↔데스크톱 여정을 동일인으로 스티칭해 어트리뷰션 여정 완전성을 높입니다.')}</div>
+          </div>
+        )}
       {geo && Array.isArray(geo.regions) && (
         <div style={card}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
@@ -1576,8 +1605,8 @@ function IncrementalityTab() {
             <>
               <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', fontSize: 11.5, marginBottom: 8 }}>
                 <span>{t('attrData.geoBalance', '균형도')}: <b>{Math.round((geo.recommended_split?.balance_score || 0) * 100)}%</b></span>
-                {geo.power && <span>MDE: <b>{geo.power.mde != null ? Number(geo.power.mde).toFixed(1) + '%' : '—'}</b></span>}
-                {geo.power && <span>{t('attrData.geoDays', '필요기간')}: <b>{geo.power.required_days != null ? geo.power.required_days + t('attrData.daysUnit', '일') : '—'}</b></span>}
+                {geo.power && <span>MDE(14d): <b>{geo.power.mde_14d_pct != null ? Number(geo.power.mde_14d_pct).toFixed(1) + '%' : '—'}</b></span>}
+                {geo.power && <span>{t('attrData.geoDays', '필요기간')}: <b>{geo.power.days_for_10pct_lift != null ? geo.power.days_for_10pct_lift + t('attrData.daysUnit', '일') : '—'}</b></span>}
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                 <div style={{ padding: '8px 10px', borderRadius: 8, background: 'rgba(79,142,247,0.06)', border: '1px solid rgba(79,142,247,0.2)' }}>

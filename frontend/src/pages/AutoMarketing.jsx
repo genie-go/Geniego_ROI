@@ -1515,7 +1515,7 @@ export default function AutoMarketing() {
                                 {/* Channelper 배분 */}
                                 <div style={cardStyle}>
                                     <div style={{ fontWeight: 700, fontSize: 13, color: '#4f8ef7', marginBottom: 16 }}>{t("marketing.channelAlloc")}</div>
-                                    {strategy.allocations.map(({ ch, alloc, impressions, clicks, conversions, roas, cac, confidence, exploration, dailyPace, channelRationale, source }) => {
+                                    {strategy.allocations.map(({ ch, alloc, impressions, clicks, conversions, roas, cac, confidence, exploration, dailyPace, channelRationale, source, marginalRoas, curveFit }) => {
                                         const pct = ((alloc / strategy.budget) * 100).toFixed(1);
                                         const confPct = Math.round((Number(confidence) || 0) * 100);
                                         return (
@@ -1563,6 +1563,13 @@ export default function AutoMarketing() {
                                                                 <b style={{ color: '#475569' }}>{confPct}%</b>
                                                             </span>
                                                         )}
+                                                    </div>
+                                                )}
+                                                {/* [265차 확장] 한계ROAS(marginal_roas)·포화곡선 적합(curve_fit)=water-filling 배분의 채널별 근거. 서버가 이미 반환·매핑돼 있으나 미렌더였음. */}
+                                                {marginalRoas != null && (
+                                                    <div style={{ marginTop: 6, fontSize: 9.5, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                                                        <span style={{ padding: '1px 6px', borderRadius: 10, background: 'rgba(34,197,94,0.1)', color: '#16a34a', fontWeight: 800 }} title={t('marketing.marginalRoasTip', '한계 ROAS=추가 1원 지출당 예상 매출. 채널 간 한계ROAS 균등화가 최적 배분(water-filling).')}>{t('marketing.marginalRoas', '한계ROAS')} {Number(marginalRoas).toFixed(2)}x</span>
+                                                        {curveFit && curveFit.r2 != null && <span style={{ padding: '1px 6px', borderRadius: 10, background: 'rgba(99,102,241,0.1)', color: '#6366f1', fontWeight: 700 }} title={t('marketing.satFitTip', '지출→매출 포화곡선 적합도(R²). truth_adjusted=진실ROAS 보정 반영.')}>{t('marketing.satFit', '포화적합')} R²={Number(curveFit.r2).toFixed(2)}{curveFit.truth_adjusted ? ' ✓' : ''}</span>}
                                                     </div>
                                                 )}
                                                 {(exploration || channelRationale) && (

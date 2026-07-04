@@ -363,6 +363,12 @@ export default function ReportBuilder() {
                       </tr>
                     ))}
                   </tbody>
+                  {/* [265차 확장] 서버가 이미 반환하는 가중 합계행(totals) 렌더 — Looker Grand Total 파리티. 백엔드 무변경. */}
+                  {qResult.totals && Object.keys(qResult.totals).length > 0 && (
+                    <tfoot><tr style={{ borderTop: "2px solid var(--border)", background: "var(--surface-2, rgba(127,127,127,0.05))" }}>
+                      {(qResult.columns || []).map((c, ci) => <td key={c} style={{ padding: "8px 10px", textAlign: (c === "dim" || c === "brk") ? "left" : "right", fontWeight: 800, color: "var(--text-1)" }}>{ci === 0 ? t("reportBuilder.grandTotal", "합계") : (qResult.totals[c] != null ? Number(qResult.totals[c]).toLocaleString() : "")}</td>)}
+                    </tr></tfoot>
+                  )}
                 </table>
               )}
             </div>

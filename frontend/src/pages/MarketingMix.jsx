@@ -290,6 +290,7 @@ export default function MarketingMix() {
                       { l: t('mmm.currentRoas', '현재 ROAS'), v: c.current_roas + 'x' },
                       { l: t('mmm.marginalRoas', '한계 ROAS'), v: c.marginal_roas + 'x' },
                       { l: t('mmm.saturation', '포화 수준'), v: Math.round(c.saturation * 100) + '%' },
+                      { l: t('mmm.adstock', '애드스톡 λ(이월)'), v: c.lambda != null ? Number(c.lambda).toFixed(2) : '—' },
                     ].map(m => (
                       <div key={m.l} style={{ padding: '8px 10px', borderRadius: 10, background: '#f8fafc', border: '1px solid #eef2f7' }}>
                         <div style={{ fontSize: 10.5, color: '#64748b', fontWeight: 600 }}>{m.l}</div>
@@ -340,7 +341,7 @@ export default function MarketingMix() {
                             )}
                             {c.ess != null && (
                               <span title={t('mmm.bayesEssTip', '유효표본수(ESS)=사후분포 독립표본 수(클수록 신뢰↑) · MCSE=몬테카를로 표준오차(작을수록 정밀). Stan/PyMC 표준 진단.')} style={{ fontSize: 10, fontWeight: 800, color: Number(c.ess) >= 200 ? '#16a34a' : '#d97706', background: 'rgba(99,102,241,0.08)', padding: '2px 7px', borderRadius: 99 }}>
-                                ESS={Math.round(Number(c.ess))}{c.mcse != null ? ` · MCSE ${Number(c.mcse).toFixed(3)}` : ''}
+                                ESS={Math.round(Number(c.ess))}{c.mcse != null ? ` · MCSE ${Number(c.mcse).toFixed(3)}` : ''}{c.accept_rate != null ? ` · acc ${Math.round(Number(c.accept_rate) * 100)}%` : ''}
                               </span>
                             )}
                             <span style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8' }}>{c.stability === 'high' ? t('mmm.bayesStable', '안정') : c.stability === 'medium' ? t('mmm.bayesMid', '보통') : t('mmm.bayesVolatile', '변동')}</span>
