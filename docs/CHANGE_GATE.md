@@ -19,6 +19,34 @@
 | 9 | **기존 확장 가능성 먼저 검토** | 데모전용→운영배선·얕음→심화·미배선→배선·미노출→노출. 기존 인프라(Db/UserAuth/apiClient/ClaudeAI/ad_design 등) 재사용 |
 | 10 | **확장 불가 시에만 신설 허용** | 진짜 부재(존재증명 완료) + 도메인 구분 명시 시에만. **신설은 기존보다 우수·기존과 무중복 필수** |
 
+## ★ Duplicate Prevention Gate (신규 코드 작성 전 필수 — 265차 사용자 지시)
+
+**신규 생성 전 아래 15개 카테고리에서 동일한 것이 이미 있는지 grep/read 로 검사한다. 하나라도 있으면 새로 만들지 않고 기존 것을 확장한다.** (265차 실책: check_routes_registered.mjs 를 기존 bin/audit_routes.php 미확인 후 중복 신설 → 이 게이트로 사전 차단 가능했음.)
+
+| 카테고리 | 이 코드베이스 검색 대상 |
+|----------|-------------------------|
+| **Component** | `frontend/src/components`·`pages` — 컴포넌트명/유사 JSX grep |
+| **API** | `backend/src/routes.php`($custom+$register)·Handlers — 동일 METHOD+경로/목적 |
+| **Hook** | `frontend/src/hooks`·전 파일 `use[A-Z]` 커스텀훅 grep |
+| **Service** | `backend/src/Handlers`·`frontend/src/services`(apiClient/wmsApi/crmApi 등) |
+| **Utility** | `frontend/src/utils`·`tools/`·백엔드 헬퍼(Crypto/Db/TemplateResponder 등) |
+| **Context** | `frontend/src/context` **및** `frontend/src/contexts`(★둘 다 존재) |
+| **Store** | 상태관리=Context/`tenantStorage`(tGetJSON/tSetJSON)·localStorage 키·GlobalDataContext |
+| **SQL** | 동일 데이터 조회 쿼리(테이블+연산 grep)·집계 SSOT(rollupSettlementsCore 등) |
+| **Event** | `OpenPlatform::emit` 이벤트타입·`EventNorm` event_type·BroadcastChannel 메시지타입 |
+| **Queue** | `ad_delivery_dlq`·Omnichannel outbox·webhook_dispatch·server_conversion_log 원장 |
+| **Batch** | `backend/bin/*.php` 배치 스크립트 |
+| **Scheduler** | `backend/bin/*_cron.php`·`install_crontab.sh`·check_cron_ssot |
+| **Workflow** | `JourneyBuilder`(노드)·`Approvals`/action_request·`RuleEngine` |
+| **Automation** | `AutoCampaign`/`AutoRecommend`/`AbTesting`/`AutoMarketing`/`RuleEngine` |
+| **Analytics** | `Rollup`/`AttributionEngine`/`Mmm`/`Reports`/`CustomerAI`·산출 SSOT |
+
+### 규칙
+1. **존재하면 신설 금지 → 기존 확장**(데모→운영배선·얕음→심화·미배선→배선). 기존 인프라 재사용(Db/UserAuth/apiClient/ClaudeAI/ad_design).
+2. **도구/스크립트(tools/·bin/)도 반드시 검사** — 265차 audit_routes 중복 교훈.
+3. **도메인이 진짜 다르면 신설 정당**(예: 머천트 프로모션 ≠ 플랫폼 구독쿠폰). 도메인 구분을 명시.
+4. 중복 발견 시 **통합/제거**(고아 stub·오탐 하위버전 제거).
+
 ## ★ Change Impact Analysis (수정 실행 전 필수 — 265차 사용자 지시)
 
 **영향 분석 없이 수정 금지.** 게이트 10단계 통과 후, 실제 코드 수정 착수 전 아래 11개 차원의 영향을 먼저 분석·기술한다. 각 차원의 이 코드베이스 추적 방법:
