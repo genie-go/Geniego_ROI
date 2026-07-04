@@ -1377,7 +1377,7 @@ function ChannelProductMatrixTab({ period, n, txt, fc }) {
                 if (!cell) return <td key={c} style={{ ...S.tdCell, textAlign:'center', color:'#e2e8f0' }}>·</td>;
                 const act = CPM_ACTION[cell.action] || CPM_ACTION.monitor;
                 return (
-                  <td key={c} style={{ ...S.tdCell, textAlign:'right' }} title={cell.reason||''}>
+                  <td key={c} style={{ ...S.tdCell, textAlign:'right' }} title={`${cell.reason||''}${cell.spend!=null?`\n${txt('cpmSpend','광고비')} ${Math.round(cell.spend).toLocaleString()}`:''}${cell.cac!=null?` · CAC ${Math.round(cell.cac).toLocaleString()}`:''}${cell.conversions!=null?` · ${txt('cpmConv','전환')} ${cell.conversions}`:''}${cell.ctr!=null?` · CTR ${cell.ctr}%`:''}${cell.profit_roi!=null?` · ${txt('cpmProfitRoi','순이익ROI')} ${cell.profit_roi}%`:''}`}>
                     <div style={{ fontWeight:800, color: cell.net_profit==null?'#64748b':(cell.net_profit>=0?'#16a34a':'#ef4444') }}>{cell.net_profit==null?(cell.revenue!=null?fc.c(cell.revenue):'—'):fc.c(cell.net_profit)}</div>
                     {cell.roas!=null && <div style={{ fontSize:10, color:'#64748b' }}>ROAS {cell.roas}x</div>}
                     {cell.action && cell.action!=='sales' && <div style={{ fontSize:9, fontWeight:700, color:act.c, background:act.bg, borderRadius:4, padding:'1px 4px', display:'inline-block', marginTop:2 }}>{act.l}</div>}
