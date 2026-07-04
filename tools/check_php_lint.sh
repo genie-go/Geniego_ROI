@@ -14,8 +14,8 @@ fi
 
 FILES=("$@")
 if [ ${#FILES[@]} -eq 0 ]; then
-  # vendor/backup 제외 backend 전체
-  while IFS= read -r f; do FILES+=("$f"); done < <(find backend/src -name '*.php' -not -path '*/vendor/*' 2>/dev/null)
+  # vendor 제외 backend 전체 — ★진입점 public/index.php + cron bin/*.php 포함(src 만 보면 API진입/크론 구문오류 미검출).
+  while IFS= read -r f; do FILES+=("$f"); done < <(find backend -name '*.php' -not -path '*/vendor/*' 2>/dev/null)
 fi
 
 FAIL=0
