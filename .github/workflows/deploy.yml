@@ -41,6 +41,8 @@ jobs:
             node -e "require('fs').readFileSync('./frontend/src/i18n/locales/en.js', 'utf8'); console.log('[OK] EN_JS_EXISTS');"
           # [265차] 라우트 등록 정합 가드 — routes.php $custom(정의)↔$register(등록) 불일치=런타임 Not found 무음실패 CI 검출
           node tools/check_routes_registered.mjs backend/src/routes.php
+          # [265차] 백엔드 PHP 구문 가드 — php -l 전 핸들러(배포 전 구문오류 차단·ubuntu 내장 php)
+          bash tools/check_php_lint.sh
 
       - name: "[PHASE 2] Production Build"
         run: |

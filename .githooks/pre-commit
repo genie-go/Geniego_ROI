@@ -140,6 +140,17 @@ if [ -n "$HOOKS_STAGED" ]; then
   fi
 fi
 
+# G11 — backend PHP syntax (Session 265)
+#   php -l staged 백엔드 php(배포 전 구문오류 차단). php 미설치 시 non-blocking 스킵(CI 는 php 내장).
+PHP_STAGED=$(echo "$STAGED" | grep -E '^backend/.*\.php$' || true)
+if [ -n "$PHP_STAGED" ]; then
+  if bash tools/check_php_lint.sh $PHP_STAGED; then
+    ok "G11: 백엔드 php -l 구문 정합"
+  else
+    fail "G11: 백엔드 PHP 구문오류 — 배포 차단"
+  fi
+fi
+
 if [ "$FAIL" -ne 0 ]; then
   echo ""
   echo "Pre-commit blocked. Resolve issues or bypass with: git commit --no-verify (N-145-G)"
