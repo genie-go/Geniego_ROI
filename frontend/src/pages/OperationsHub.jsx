@@ -5,6 +5,7 @@ import useSecurityMonitor from "../hooks/useSecurityMonitor.js";
 import CreativeStudioTab from "./CreativeStudioTab.jsx";
 import { useGlobalData } from "../context/GlobalDataContext.jsx";
 import { IS_DEMO } from "../utils/demoEnv.js";
+import { getJsonAuth, postJson, patchJson } from "../services/apiClient.js"; // [265차] 프로모션 영속 배선
 
 const API = "/api";
 // [현 차수] 단일소스 자동파생: inventory(창고별 stock 객체) → 운영 상품 행. 임의 시드 아님, 재고 단일소스 매핑.
@@ -355,8 +356,20 @@ function PromoTab() {
   const [form,setForm] = useState({});
   const upd=(k,v)=>setForm(f=>({...f,[k]:v}));
   const openNew=()=>{setForm({name:"",type:"percent",value:"",code:"",maxUse:1000,channels:["shopify"],startDate:"",endDate:"",budget:500});setModal(true);};
-  const create=()=>{setPromos(ps=>[...ps,{id:`PROMO-${String(ps.length+1).padStart(3,"0")}`, ...form,status:"draft",used:0}]);setModal(false);};
-  const PROMO_STATUS={active:"#22c55e",ended:"#ef4444",draft:"#eab308"};
+  // [265차] 운영: 백엔드 영속 프로모션 로드(데모는 로컬 _DEMO_PROMOS 유지=IS_DEMO 격리). merchant_promotion 테넌트스코프.
+  const reload=useCallback(()=>{
+    if (IS_DEMO) return;
+    getJsonAuth('/api/v429/promotions').then(r=>{ if(r&&r.ok&&Array.isArray(r.promotions)) setPromos(r.promotions); }).catch(()=>{});
+  },[]);
+  useEffect(()=>{ reload(); },[reload]);
+  const create=()=>{
+    if (!IS_DEMO) { // 운영: 백엔드 영속(새로고침 유지)+실 상태전이
+      postJson('/api/v429/promotions', form).then(()=>reload()).catch(()=>{});
+      setModal(false); return;
+    }
+    setPromos(ps=>[...ps,{id:`PROMO-${String(ps.length+1).padStart(3,"0")}`, ...form,status:"draft",used:0}]);setModal(false);
+  };
+  const PROMO_STATUS={active:"#22c55e",ended:"#ef4444",draft:"#eab308",paused:"#94a3b8"};
 
   return (
     <div style={{ display:"grid", gap:16 }}>
@@ -375,8 +388,8 @@ function PromoTab() {
             <div style={{ fontWeight:800, fontSize:14, marginBottom:4 }}>{p.name}</div>
             <div style={{ fontSize:11, color:"var(--text-3)", marginBottom:12 }}>{p.type} {"\u00b7"} {p.value}</div>
             <div style={{ display:"flex", gap:6 }}>
-              <button onClick={()=>{ const nn = window.prompt(t('operations.edit'), p.name); if(nn && nn.trim()) setPromos(ps=>ps.map(q=>q.id===p.id?{...q,name:nn.trim()}:q)); }} className="btn-ghost" style={{ flex:1, fontSize:10, padding:"5px 0", cursor:"pointer" }}>{t('operations.edit')}</button>
-              {p.status==="draft"&&<button className="btn-primary" style={{ flex:1, fontSize:10, padding:"5px 0" }} onClick={()=>setPromos(ps=>ps.map(q=>q.id===p.id?{...q,status:"active"}:q))}>{t('operations.activate')}</button>}
+              <button onClick={()=>{ const nn = window.prompt(t('operations.edit'), p.name); if(nn && nn.trim()){ if(!IS_DEMO){ patchJson(`/api/v429/promotions/${p._pk}`, {name:nn.trim()}).then(()=>reload()).catch(()=>{}); } else { setPromos(ps=>ps.map(q=>q.id===p.id?{...q,name:nn.trim()}:q)); } } }} className="btn-ghost" style={{ flex:1, fontSize:10, padding:"5px 0", cursor:"pointer" }}>{t('operations.edit')}</button>
+              {p.status==="draft"&&<button className="btn-primary" style={{ flex:1, fontSize:10, padding:"5px 0" }} onClick={()=>{ if(!IS_DEMO){ patchJson(`/api/v429/promotions/${p._pk}`, {status:'active'}).then(()=>reload()).catch(()=>{}); } else { setPromos(ps=>ps.map(q=>q.id===p.id?{...q,status:"active"}:q)); } }}>{t('operations.activate')}</button>}
             </div>
           </div>
         ))}

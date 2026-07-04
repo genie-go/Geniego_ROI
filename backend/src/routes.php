@@ -758,6 +758,15 @@ return function (App $app): void {
         'PATCH /api/v429/shelf/keywords/{id}'    => 'Genie\\Handlers\\DigitalShelf::update',
         'DELETE /v429/shelf/keywords/{id}'       => 'Genie\\Handlers\\DigitalShelf::remove',
         'DELETE /api/v429/shelf/keywords/{id}'   => 'Genie\\Handlers\\DigitalShelf::remove',
+        // [265차] 머천트 스토어 프로모션(할인캠페인) — 세션 self-auth. CouponAdmin(플랫폼 구독쿠폰)과 별개 도메인.
+        'GET /v429/promotions'                   => 'Genie\\Handlers\\Promotion::list',
+        'GET /api/v429/promotions'               => 'Genie\\Handlers\\Promotion::list',
+        'POST /v429/promotions'                  => 'Genie\\Handlers\\Promotion::create',
+        'POST /api/v429/promotions'              => 'Genie\\Handlers\\Promotion::create',
+        'PATCH /v429/promotions/{id}'            => 'Genie\\Handlers\\Promotion::update',
+        'PATCH /api/v429/promotions/{id}'        => 'Genie\\Handlers\\Promotion::update',
+        'DELETE /v429/promotions/{id}'           => 'Genie\\Handlers\\Promotion::remove',
+        'DELETE /api/v429/promotions/{id}'       => 'Genie\\Handlers\\Promotion::remove',
         // [245차 P2-3] 엔터프라이즈 SSO(OIDC/SAML) + SCIM 2.0 프로비저닝
         'GET /v430/sso/config'                   => 'Genie\\Handlers\\EnterpriseAuth::getConfig',
         'PUT /v430/sso/config'                   => 'Genie\\Handlers\\EnterpriseAuth::saveConfig',
@@ -2145,6 +2154,11 @@ return function (App $app): void {
     $register('POST',   '/v429/shelf/keywords');
     $register('PATCH',  '/v429/shelf/keywords/{id}');
     $register('DELETE', '/v429/shelf/keywords/{id}');
+    // [265차] 머천트 프로모션 캠페인(세션 self-auth). /api 접두는 basePath strip 매치.
+    $register('GET',    '/v429/promotions');
+    $register('POST',   '/v429/promotions');
+    $register('PATCH',  '/v429/promotions/{id}');
+    $register('DELETE', '/v429/promotions/{id}');
     // [245차 P2-3] 엔터프라이즈 SSO + SCIM
     $register('GET',    '/v430/sso/config');
     $register('PUT',    '/v430/sso/config');
