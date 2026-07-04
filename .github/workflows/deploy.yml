@@ -39,6 +39,8 @@ jobs:
         run: |
           # en.js 구문 검증
             node -e "require('fs').readFileSync('./frontend/src/i18n/locales/en.js', 'utf8'); console.log('[OK] EN_JS_EXISTS');"
+          # [265차] 라우트 등록 정합 가드 — routes.php $custom(정의)↔$register(등록) 불일치=런타임 Not found 무음실패 CI 검출
+          node tools/check_routes_registered.mjs backend/src/routes.php
 
       - name: "[PHASE 2] Production Build"
         run: |

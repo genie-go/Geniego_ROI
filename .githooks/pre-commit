@@ -117,6 +117,17 @@ else
   fi
 fi
 
+# G9 — route registration consistency (Session 265)
+#   routes.php $custom(정의)↔$register(등록) 2단계 불일치 = 런타임 "Not found"(404) 무음실패(php -l 미검출).
+#   routes.php staged 시에만 실행. 우회: 의도적 미등록은 tools/check_routes_registered.mjs 의 ALLOW 등록.
+if echo "$STAGED" | grep -qE '^backend/src/routes\.php$'; then
+  if node tools/check_routes_registered.mjs backend/src/routes.php; then
+    ok "G9: routes \$custom↔\$register 등록 정합"
+  else
+    fail "G9: routes.php 라우트 등록 정합 실패 — \$custom 정의 라우트에 \$register 누락(런타임 Not found)"
+  fi
+fi
+
 if [ "$FAIL" -ne 0 ]; then
   echo ""
   echo "Pre-commit blocked. Resolve issues or bypass with: git commit --no-verify (N-145-G)"
