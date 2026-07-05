@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+> **최상위 개발 헌법**: [`docs/CONSTITUTION.md`](docs/CONSTITUTION.md) — 사명·Golden Rule(Replace가 아니라 Extend)·절대금지·완료의 정의. 실행 게이트/레지스트리 정본은 그 문서 §11에서 [`docs/CHANGE_GATE.md`](docs/CHANGE_GATE.md)·[`docs/registry/`](docs/registry/README.md)로 연결된다.
+
 ## Project overview
 
 GeniegoROI is a multi-tenant ROI analytics dashboard (CRM, KPI, Operations, P&L domains) deployed to https://roi.genie-go.com. The repo is a **monorepo** with two independently-built apps that share a directory tree:
