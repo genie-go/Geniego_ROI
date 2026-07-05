@@ -19,10 +19,23 @@ final class Reviews
     /** [239차+] 리뷰 수집 지원 채널 단일소스(SSOT) — review_collect_cron + ChannelCreds 자동트리거 공용. */
     public const REVIEW_CHANNELS = ['cafe24', 'naver', 'naver_smartstore', 'coupang', 'shopify', 'trustpilot', 'yotpo', 'google_business'];
 
-    /** 채널이 리뷰 수집 지원 채널인가(별칭 정규화 포함). */
-    public static function isReviewChannel(string $channel): bool
+    /** 채널이 리뷰 수집 지원 채널인가(별칭 정규화 포함).
+     *  [266차] admin 이 UI 로 추가한 레지스트리 리뷰 채널(sync_kind='review')도 대칭 인식 —
+     *  analytics/cs/esp/logistics 는 258차에 registry 병합됐으나 review/pg 분류기 2종만 누락됐던 것 완성.
+     *  $pdo 미제공(=cron const 경로) 시 기존 동작 불변(내장 목록만). 어댑터 없는 신규 채널은 collectForTenant 가 정직 pending. */
+    public static function isReviewChannel(string $channel, ?\PDO $pdo = null): bool
     {
-        return in_array(strtolower(trim($channel)), self::REVIEW_CHANNELS, true);
+        $c = strtolower(trim($channel));
+        if ($c === '') return false;
+        if (in_array($c, self::REVIEW_CHANNELS, true)) return true; // 내장 = 선단락(DB 무접근)
+        if ($pdo !== null) {
+            try {
+                $st = $pdo->prepare("SELECT 1 FROM channel_registry WHERE is_active=1 AND channel_key=? AND sync_kind='review' LIMIT 1");
+                $st->execute([$channel]);
+                return (bool)$st->fetchColumn();
+            } catch (\Throwable $e) { return false; }
+        }
+        return false;
     }
 
     /** R1 부정 키워드 사전(뷰티/커머스) — 실 리뷰 텍스트에서 빈도 추출(하드코딩 카운트 아님). R2에서 AI 추출로 대체. */

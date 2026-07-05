@@ -29,6 +29,8 @@
 
 - **★258차(2026-07-01 완료) 채널추가 UI sync_kind 매핑 완비**: admin 연동허브 채널추가 모달이 web_analytics/support/esp/review/payment/logistics 카테고리를 고르면 `sync_kind='none'`(보관전용)으로 저장돼 자동수집 미편입되던 것 수정(백엔드 ChannelRegistry·isXxxSource 는 대칭 지원했음). `GROUP_TO_SYNC` forward 매핑(SK2G 역매핑과 정합)으로 analytics/cs/esp/review/pg/logistics 정확 분류 → 저장 즉시 자동 sync 대상. `ApiKeys.jsx:881`. (커머스/광고 3종은 기존 동작 불변=회귀0)
 
+- **★266차(2026-07-06 완료·배포·라이브검증) review/pg 분류기 레지스트리 병합 완성(258차 미완성분·재플래그 금지)**: 258차 프론트가 admin 추가 review/pg 채널의 자동수집을 약속하고 백엔드도 analytics/cs/esp/logistics 4종은 `channel_registry` 병합했으나 **review/pg 분류기 2종만 const-only로 누락** → admin이 UI로 새 review/pg 채널 추가 시 `ChannelCreds::upsert` 디스패치(374/403)가 `false/null` 반환해 자동sync 죽은약속(내장 cafe24/stripe 등은 정상). **수정**: `Reviews::isReviewChannel($channel, ?PDO $pdo)`·`PgSettlement::providerForChannel($channel, ?PDO $pdo)` 에 `isLogisticsChannel:56` 과 동일한 레지스트리 병합(sync_kind='review'/'pg') 추가 — 내장은 const 선단락(DB 무접근), 신규는 정직 인식+상태 stamp. `syncForTenant:308` 이 PROVIDERS 미등재 provider 를 `no-live-adapter` self-guard → 어댑터 없는 신규 채널은 정직 pending(거짓성공0). 호출부 3곳(`ChannelCreds.php:374,403`·`pg_settlement_cron.php:61`)에 `$pdo` 전달(옵셔널=구경로 불변). **라이브검증**: 운영+데모 php-l PASS·fpm reload·라이브 e2e(const/registry 경로 무오류·`channel_registry` 실컬럼 channel_key/sync_kind/is_active 일치·운영 실 registry review/pg 채널 3건 인식). 스키마리스크0(운영 Logistics 검증 쿼리와 동일컬럼). `Reviews.php:23`·`PgSettlement.php:288`·`ChannelCreds.php:374,403`·`pg_settlement_cron.php:61`. (내장 채널·구 호출부 동작 불변=회귀0)
+
 ## 2) 데이터 수집·정합 (Data Collection & Sync) — ✅ CLEAN
 - ingest 멱등(자연키 upsert)·fxToKrw 단일 정규화·raw_json 원통화 보존·active→cancel 1회 side-effect. `ChannelSync.php:2664-2771`
 - 정산 서버집계(SQL GROUP BY·캡 없음)·취소제외 SSOT·실정산 우선. `OrderHub.php:1075-1121`

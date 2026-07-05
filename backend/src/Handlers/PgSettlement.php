@@ -285,13 +285,23 @@ final class PgSettlement
         return self::json($response, array_merge(['ok' => true], $r));
     }
 
-    public static function providerForChannel(string $channel): ?string
+    public static function providerForChannel(string $channel, ?\PDO $pdo = null): ?string
     {
         $c = strtolower(trim($channel));
         if ($c === '') return null;
         if (isset(self::PROVIDERS[$c])) return $c; // canonical provider 키 그대로
         foreach (self::PROVIDERS as $prov => $meta) {
             if (in_array($c, $meta['creds'], true)) return $prov; // 별칭(toss→tosspayments 등)
+        }
+        // [266차] admin UI 로 추가한 레지스트리 PG 채널(sync_kind='pg')도 대칭 인식(258차 의도 완성).
+        //   syncForTenant 는 PROVIDERS 미등재 provider 를 'no-live-adapter' 로 self-guard(:308) → 정직 pending.
+        //   $pdo 미제공(=구 호출부) 시 기존 동작 불변.
+        if ($pdo !== null) {
+            try {
+                $st = $pdo->prepare("SELECT 1 FROM channel_registry WHERE is_active=1 AND channel_key=? AND sync_kind='pg' LIMIT 1");
+                $st->execute([$channel]);
+                if ($st->fetchColumn()) return $c;
+            } catch (\Throwable $e) { /* 레지스트리 부재 → 기존 동작(null) */ }
         }
         return null;
     }

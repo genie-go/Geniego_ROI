@@ -58,7 +58,7 @@ try {
             $t  = (string)($r['tenant_id'] ?? '');
             $ch = (string)($r['channel'] ?? '');
             if ($t === '' || $ch === '') continue;
-            $prov = PgSettlement::providerForChannel($ch); // 비-PG 채널 → null(자동 제외)
+            $prov = PgSettlement::providerForChannel($ch, $pdo); // 비-PG 채널 → null(자동 제외). [266차] 레지스트리 PG 채널도 대칭 인식(syncForTenant self-guard)
             if ($prov === null) continue;
             $pairs[$t . "\0" . $prov] = [$t, $prov];
         }

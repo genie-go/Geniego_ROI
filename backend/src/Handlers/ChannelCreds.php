@@ -371,7 +371,7 @@ final class ChannelCreds
                     $autoSync = ['kind' => 'ad', 'result' => Connectors::syncAdChannelOnSave($tenant, $channel)];
                 } elseif (ChannelSync::isCommerceChannel($channel)) { // [현 차수] 별칭 인식(silent break 방지)
                     $autoSync = ['kind' => 'commerce', 'result' => ChannelSync::syncTenantChannel($tenant, $channel, $userPlan !== '' ? $userPlan : 'pro')];
-                } elseif (($pgProv = PgSettlement::providerForChannel($channel)) !== null) {
+                } elseif (($pgProv = PgSettlement::providerForChannel($channel, $pdo)) !== null) {
                     // [227차 Tier2] PG 정산 채널(stripe/tosspayments/toss/paypal…)도 자격증명 등록 즉시 자동 수집.
                     //   기존엔 PG만 자동 트리거 누락 → 사용자가 /v427/pg/sync 를 수동 호출해야 정산이 들어왔다.
                     $autoSync = ['kind' => 'pg', 'result' => PgSettlement::syncForTenant($pdo, $tenant, $pgProv)];
@@ -400,7 +400,7 @@ final class ChannelCreds
             // ── [239차+ GAP-1] 리뷰 수집 채널도 자격증명 등록 즉시 자동 수집(ad/commerce/pg/물류와 대칭) ──
             //   기존엔 리뷰만 트리거 누락 → 등록해도 다음 review_collect_cron(*/6h)까지 미수집(비대칭).
             //   리뷰 지원 채널(Reviews::REVIEW_CHANNELS)일 때만, best-effort(실패는 무음·cron 백업).
-            if (Reviews::isReviewChannel($channel)) {
+            if (Reviews::isReviewChannel($channel, $pdo)) {
                 try {
                     $rv = Reviews::collectForTenant($pdo, $tenant, $channel);
                     $autoSync = $autoSync ?: ['kind' => 'review', 'result' => $rv];
