@@ -10,6 +10,7 @@ import { useGlobalData } from '../context/GlobalDataContext';
 import { useNavigate } from 'react-router-dom';
 import { useCurrency } from '../contexts/CurrencyContext';
 import { IS_DEMO } from '../utils/demoEnv';
+import { postJson } from '../services/apiClient.js'; // [266차] pause/resume 실 매체 반영(/v423/auto-campaign/status)
 import { useAuth } from '../auth/AuthContext'; // [현 차수] 플랜별 탭 노출
 import { tabAllowedByPlan } from '../auth/tabPlanPolicy.js';
 import CardRequiredBanner from '../components/CardRequiredBanner.jsx'; // 광고비 결제카드 미등록 안내
@@ -154,6 +155,14 @@ export default function CampaignManager(){
     },[sharedCampaigns]);
 
     const detail=useMemo(()=>detailId?(sharedCampaigns||[]).find(c=>c.id===detailId):null,[detailId,sharedCampaigns]);
+    // [266차] pause/resume 를 인메모리에서 끝내지 않고 실 백엔드(AdAdapters 경유) 반영. 운영만 호출(best-effort:
+    //   실 백엔드 캠페인(정수 id)이면 매체 실제 pause/activate, 로컬전용 id 는 422→로컬 상태만(무해). 데모=로컬.
+    const changeCampaignStatus=useCallback(async(camp,status)=>{
+        if(!camp)return;
+        updateCampaignStatus(camp.id,status); // 낙관적 로컬 UI
+        setDetailId(null);
+        if(!IS_DEMO){ try{ await postJson('/api/v423/auto-campaign/status',{id:camp.id,status}); }catch(_){/* best-effort */} }
+    },[updateCampaignStatus]);
     const stsLabel=s=>({active:tr(T.statusActive),paused:tr(T.statusPaused),draft:tr(T.statusDraft),ended:tr(T.statusEnded),pending:tr(T.statusPending)}[s]||s);
 
     const openEdit=(c)=>{setEditId(c.id);setEditForm({name:c.name||'',budget:c.budget||0,status:c.status||'draft'});};
@@ -489,8 +498,8 @@ export default function CampaignManager(){
                 </div>
                 <div style={{ marginBottom: 8, fontSize: 11, fontWeight: 700, color: '#4f8ef7', display: 'flex', gap: 6, flexWrap: 'wrap', padding: '6px 12px', borderRadius: 8, background: 'rgba(79,142,247,0.08)', border: '1px solid rgba(79,142,247,0.2)' }} ><div>{tr(T.channels)}</div><div>{(detail.channels || []).map((ch, i) => (<div key={i}>{ch.name || ch.id} ({fmtW(ch.budget)})</div>))}</div></div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                    {detail.status === 'active' && updateCampaignStatus && (<button onClick={() => { updateCampaignStatus(detail.id, 'paused'); setDetailId(null); }} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#f59e0b,#ef4444)', color: '#fff', fontWeight: 800, fontSize: 13 }}>⏸ {tr(T.pause)}</button>)}
-                    {detail.status === 'paused' && updateCampaignStatus && (<button onClick={() => { updateCampaignStatus(detail.id, 'active'); setDetailId(null); }} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#22c55e,#14d9b0)', color: '#fff', fontWeight: 800, fontSize: 13 }}>▶ {tr(T.resume)}</button>)}
+                    {detail.status === 'active' && updateCampaignStatus && (<button onClick={() => changeCampaignStatus(detail, 'paused')} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#f59e0b,#ef4444)', color: '#fff', fontWeight: 800, fontSize: 13 }}>⏸ {tr(T.pause)}</button>)}
+                    {detail.status === 'paused' && updateCampaignStatus && (<button onClick={() => changeCampaignStatus(detail, 'active')} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#22c55e,#14d9b0)', color: '#fff', fontWeight: 800, fontSize: 13 }}>▶ {tr(T.resume)}</button>)}
                     <ActBtn icon="✏️" label={tr(T.edit)} color="#4f8ef7" onClick={() => { setDetailId(null); openEdit(detail); }} />
                     <ActBtn icon="📋" label={tr(T.duplicate)} color="#22c55e" onClick={() => handleDuplicate(detail.id)} />
                     <ActBtn icon="🗑️" label={tr(T.delete)} color="#ef4444" onClick={() => { setDetailId(null); setDeleteConfirmId(detail.id); }} />

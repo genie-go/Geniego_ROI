@@ -1,6 +1,7 @@
-import React,{useState,useMemo,useCallback,useEffect} from "react";
+import React,{useState,useMemo,useCallback,useEffect,useRef} from "react";
 import {useI18n} from '../i18n/index.js';
 import {useGlobalData} from '../context/GlobalDataContext';
+import {loadWorkspace,saveWorkspace,wsEnabled} from '../services/workspaceState.js';
 import {useSecurityGuard} from '../security/SecurityGuard.js';
 import MarketingAIPanel from '../components/MarketingAIPanel.jsx';
 import {CC_GUIDE} from './contentCalGuideI18n.js';
@@ -260,6 +261,14 @@ export default function ContentCalendar(){
   const nextMonth=()=>{if(viewMonth===11){setViewYear(y=>y+1);setViewMonth(0);}else{setViewMonth(m=>m+1);}};
   const monthEvents=useMemo(()=>calEvents.filter(e=>{if(!e.date)return false;const d=new Date(e.date);return d.getFullYear()===viewYear&&d.getMonth()===viewMonth;}),[calEvents,viewYear,viewMonth]);
   const handleSaveContent=useCallback((content)=>{if(typeof setSharedCalendarEvents==='function'){setSharedCalendarEvents(prev=>[...(Array.isArray(prev)?prev:[]),content]);}},[setSharedCalendarEvents]);
+  // [266차] 운영 영속 — 마운트 시 백엔드 로드, 변경 시 저장(데모=헬퍼 내부서 no-op, 기존 localStorage 유지).
+  const wsHydrated=useRef(false);
+  useEffect(()=>{let alive=true;
+    if(wsEnabled){loadWorkspace('calendar_events').then(v=>{if(alive){if(Array.isArray(v))setSharedCalendarEvents(v);wsHydrated.current=true;}});}
+    else{wsHydrated.current=true;}
+    return()=>{alive=false;};
+  },[]); // eslint-disable-line
+  useEffect(()=>{if(wsEnabled&&wsHydrated.current)saveWorkspace('calendar_events',sharedCalendarEvents);},[sharedCalendarEvents]); // eslint-disable-line
   const TABS=useMemo(()=>[
     {id:"calendar",label:`📅 ${t('contentCal.tabCalendar')}`},
     {id:"list",label:`📋 ${t('contentCal.tabList')}`},

@@ -8,6 +8,7 @@ import ProductSelectBar from '../components/dashboards/ProductSelectBar.jsx';
 import ProductMarketingPanel from '../components/dashboards/ProductMarketingPanel.jsx';
 import { CHANNEL_RATES, calcRecommendedPrice as calcRecPrice } from '../constants/channelRates.js';
 import { postJson } from '../services/apiClient.js'; // 192차: 상품 writeback/bulk-price 실배선
+import { loadWorkspace, saveWorkspace, wsEnabled } from '../services/workspaceState.js'; // [266차] 보조 설정탭 운영 영속
 
 /* ── Enterprise Dynamic Locale Map (module-scope, shared) ─────── */
 const LANG_LOCALE_MAP = {
@@ -1461,6 +1462,14 @@ const SchedulePanel = memo(function SchedulePanel({ t, addAlert }) {
     const [freq, setFreq] = useState('6h');
     const [time, setTime] = useState('03:00');
     const [enabled, setEnabled] = useState(true);
+    // [266차] 동기화 스케줄 운영 영속(테넌트 백엔드) — 기존 localStorage 병행.
+    const wsRef = useRef(false);
+    useEffect(() => { let a = true;
+        if (wsEnabled) loadWorkspace('catalog_schedules').then(v => { if (a) { if (Array.isArray(v)) setSchedules(v); wsRef.current = true; } });
+        else wsRef.current = true;
+        return () => { a = false; };
+    }, []); // eslint-disable-line
+    useEffect(() => { if (wsEnabled && wsRef.current) saveWorkspace('catalog_schedules', schedules); }, [schedules]); // eslint-disable-line
 
     const saveSchedule = () => {
         const newSch = { id: `SCH-${Date.now()}`, freq, time, enabled, createdAt: new Date().toLocaleString(LANG_LOCALE_MAP[lang] || 'ko-KR', { hour12: false }) };
@@ -1704,6 +1713,15 @@ const PriceSyncTab = memo(function PriceSyncTab() {
 
     const updateRule = (cid, k, v) => setChannelRules(r => ({ ...r, [cid]: { ...r[cid], [k]: v } }));
 
+    // [266차] 가격규칙 운영 영속(테넌트 백엔드) — 마운트 로드 + 변경 저장(데모=no-op).
+    const wsRef = useRef(false);
+    useEffect(() => { let a = true;
+        if (wsEnabled) loadWorkspace('catalog_price_rules').then(v => { if (a) { if (v && typeof v === 'object') { if (v.globalMarkup != null) setGlobalMarkup(v.globalMarkup); if (v.rounding != null) setRounding(v.rounding); if (v.exchangeRate != null) setExchangeRate(v.exchangeRate); if (v.channelRules && typeof v.channelRules === 'object') setChannelRules(r => ({ ...r, ...v.channelRules })); } wsRef.current = true; } });
+        else wsRef.current = true;
+        return () => { a = false; };
+    }, []); // eslint-disable-line
+    useEffect(() => { if (wsEnabled && wsRef.current) saveWorkspace('catalog_price_rules', { globalMarkup, rounding, exchangeRate, channelRules }); }, [globalMarkup, rounding, exchangeRate, channelRules]); // eslint-disable-line
+
     // 신규 채널이 dynamicChannels에 추가되면 channelRules에도 자동 반영
     useEffect(() => {
         setChannelRules(prev => {
@@ -1860,6 +1878,15 @@ const InventorySyncTab = memo(function InventorySyncTab() {
     const [threshold, setThreshold] = useState(20);
     const [reserve, setReserve] = useState(10);
     const [strategy, setStrategy] = useState("proportional");
+
+    // [266차] 재고 동기화 설정 운영 영속.
+    const wsRef = useRef(false);
+    useEffect(() => { let a = true;
+        if (wsEnabled) loadWorkspace('catalog_inventory').then(v => { if (a) { if (v && typeof v === 'object') { if (v.threshold != null) setThreshold(v.threshold); if (v.reserve != null) setReserve(v.reserve); if (v.strategy) setStrategy(v.strategy); } wsRef.current = true; } });
+        else wsRef.current = true;
+        return () => { a = false; };
+    }, []); // eslint-disable-line
+    useEffect(() => { if (wsEnabled && wsRef.current) saveWorkspace('catalog_inventory', { threshold, reserve, strategy }); }, [threshold, reserve, strategy]); // eslint-disable-line
 
     const lowStock = PRODUCTS_INIT.filter(p => p.inventory < 80).slice(0, 8);
 
@@ -2022,6 +2049,15 @@ const CategoryMappingTab = memo(function CategoryMappingTab() {
         };
         return () => bc.close();
     }, []);
+
+    // [266차] 카테고리 매핑 운영 영속(테넌트 백엔드) — 추가/삭제/저장 시 자동 동기(기존 localStorage 병행).
+    const wsRef = useRef(false);
+    useEffect(() => { let a = true;
+        if (wsEnabled) loadWorkspace('catalog_category_map').then(v => { if (a) { if (v && typeof v === 'object') { if (Array.isArray(v.customCats)) setCustomCats(v.customCats); if (Array.isArray(v.mappings)) setMappings(v.mappings); } wsRef.current = true; } });
+        else wsRef.current = true;
+        return () => { a = false; };
+    }, []); // eslint-disable-line
+    useEffect(() => { if (wsEnabled && wsRef.current) saveWorkspace('catalog_category_map', { customCats, mappings }); }, [customCats, mappings]); // eslint-disable-line
 
     const broadcastUpdate = (newCustomCats, newMappings) => {
         try {

@@ -7,6 +7,7 @@ import { useAuth } from '../auth/AuthContext.jsx';
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
 import { getJsonAuth, postJsonAuth } from '../services/apiClient.js'; // [259차] 가짜 집행 → 실 action_request 백엔드 배선
+import { loadWorkspace, saveWorkspace, wsEnabled } from '../services/workspaceState.js'; // [266차] 설정탭 운영 영속
 
 /* ─── Channel Detection ─── */
 function useConnectedChannels() {
@@ -303,6 +304,14 @@ function SettingsTab({ t }) {
       return updated;
     });
   };
+  // [266차] 승인 설정탭 운영 영속(테넌트 백엔드) — 새로고침/기기 간 유지(기존 localStorage 병행).
+  const cfgHydrated = useRef(false);
+  useEffect(() => { let alive = true;
+    if (wsEnabled) loadWorkspace('approval_cfg').then(v => { if (alive) { if (v && typeof v === 'object') setCfg(prev => ({ ...prev, ...v })); cfgHydrated.current = true; } });
+    else cfgHydrated.current = true;
+    return () => { alive = false; };
+  }, []); // eslint-disable-line
+  useEffect(() => { if (wsEnabled && cfgHydrated.current) saveWorkspace('approval_cfg', cfg); }, [cfg]); // eslint-disable-line
 
   const configs = [
     { id: 'auto_approve_low', label: t('approvalsPage.cfgAutoApprove', 'Auto-Approve Low Priority'), desc: t('approvalsPage.cfgAutoApproveDesc', 'Automatically approve low-priority requests'), icon: '🟢' },

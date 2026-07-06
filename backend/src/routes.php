@@ -722,6 +722,11 @@ return function (App $app): void {
         'GET /v423/auto-campaign/optimize-history' => 'Genie\\Handlers\\AutoCampaign::optimizeHistory',
         'GET /v423/auto-campaign/execution-log' => 'Genie\\Handlers\\AutoCampaign::executionLog',
         'GET /v423/auto-campaign/ab-status'   => 'Genie\\Handlers\\AbTesting::status',
+        // ── [266차] WorkspaceState — 테넌트 스코프 워크스페이스 KV(ContentCalendar/FeedbackCenter/CatalogSync/Approvals 운영 영속) ──
+        'GET /v424/workspace'                  => 'Genie\\Handlers\\WorkspaceState::get',
+        'GET /api/v424/workspace'              => 'Genie\\Handlers\\WorkspaceState::get',
+        'POST /v424/workspace'                 => 'Genie\\Handlers\\WorkspaceState::put',
+        'POST /api/v424/workspace'             => 'Genie\\Handlers\\WorkspaceState::put',
         'POST /v422/ai/campaign-search'        => 'Genie\\Handlers\\ClaudeAI::campaignSearch',
 
         // ── v421 API Key Management (admin:keys scope) ─────────────────────────
@@ -2272,6 +2277,10 @@ return function (App $app): void {
     $register('GET',  '/v423/auto-campaign/optimize-history');
     $register('GET',  '/v423/auto-campaign/execution-log');
     $register('GET',  '/v423/auto-campaign/ab-status');
+
+    // [266차] WorkspaceState KV
+    $register('GET',  '/v424/workspace');   $register('GET',  '/api/v424/workspace');
+    $register('POST', '/v424/workspace');   $register('POST', '/api/v424/workspace');
 
     // ── Auth ────────────────────────────────────────────────────────
     $register('POST', '/auth/register');

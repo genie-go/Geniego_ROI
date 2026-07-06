@@ -186,6 +186,8 @@ $app->add(function (Request $request, $handler) {
         // [245차 P2-3] 엔터프라이즈 SSO/SCIM — 설정(/v430/sso/* 세션 self-auth requirePlan), 콜백은 /auth/sso/* 라 /auth/ 로 이미 bypass.
         //   SCIM(/scim/v2/* 은 외부 IdP가 Bearer scim_token 으로 호출 — api_key 아님). 미bypass 시 api_key 미들웨어 401.
         || strpos($path, '/api/v430/sso/') === 0 || strpos($path, '/v430/sso/') === 0
+        // [266차] WorkspaceState — 테넌트 워크스페이스 KV(세션 self-auth·authedTenant 격리·key 화이트리스트). 미bypass 시 api_key 미들웨어가 세션토큰 401.
+        || strpos($path, '/api/v424/workspace') === 0 || strpos($path, '/v424/workspace') === 0
         || strpos($path, '/api/scim/') === 0     || strpos($path, '/scim/') === 0
         // [245차 P3-6] 알림 채널(/v431/alerts/* 세션 self-auth requirePro + authedTenant)
         || strpos($path, '/api/v431/alerts/') === 0 || strpos($path, '/v431/alerts/') === 0

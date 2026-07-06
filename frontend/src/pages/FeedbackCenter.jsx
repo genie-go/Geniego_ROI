@@ -1,7 +1,8 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import BeginnerGuide from "../components/BeginnerGuide.jsx";
 import { GUIDE } from "../lib/guideSpecs.js";
 import { IS_DEMO } from '../utils/demoEnv';
+import { loadWorkspace, saveWorkspace, wsEnabled } from '../services/workspaceState.js';
 import { useI18n } from '../i18n';
 import { tGetJSON, tSetJSON } from '../utils/tenantStorage.js';
 
@@ -44,6 +45,14 @@ export default function FeedbackCenter() {
     ? (tGetJSON('fb_entries', DEMO_FEEDBACK) || DEMO_FEEDBACK)
     : (tGetJSON('fb_entries', []) || []));
   useEffect(() => { tSetJSON('fb_entries', entries); }, [entries]);
+  // [266차] 운영 영속(테넌트 백엔드) — 새로고침/기기 간 유지(데모=헬퍼 내부 no-op, 기존 localStorage 유지).
+  const wsHydrated = useRef(false);
+  useEffect(() => { let alive = true;
+    if (wsEnabled) loadWorkspace('feedback_entries').then(v => { if (alive) { if (Array.isArray(v)) setEntries(v); wsHydrated.current = true; } });
+    else wsHydrated.current = true;
+    return () => { alive = false; };
+  }, []); // eslint-disable-line
+  useEffect(() => { if (wsEnabled && wsHydrated.current) saveWorkspace('feedback_entries', entries); }, [entries]); // eslint-disable-line
 
   const [form, setForm] = useState({ channel: 'web', sentiment: 'positive', rating: 5, text: '' });
   const [showGuide, setShowGuide] = useState(false);
