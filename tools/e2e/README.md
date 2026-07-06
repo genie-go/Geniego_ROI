@@ -8,6 +8,7 @@
 |----------|------|-----------|
 | `smoke.mjs` (무의존) | 로그인 + GET 엔드포인트 500 스윕 + 계약키 검증 | 스키마드리프트→**런타임 500 무음실패**, 프론트-백엔드 **계약키 누락**(share/roas/team/content/monthly_sent/keywords/summary/type 등 266차 수정분) |
 | `render.mjs` (Playwright opt-in) | 전 메뉴 admin 세션 렌더 | **마운트 React 크래시**(undefined 식별자·Rules-of-Hooks·정의 안 된 컴포넌트) |
+| `scenarios.mjs` (쓰기·가역) | 핵심 유저 플로우 write→read→검증(영속 왕복·엔티티 CRUD) | **쓰기 경로 무결**(저장 실패·계약키 회귀). ★자가정리(원복/삭제)·**데모 백엔드 권장**·CI 자동실행 금지 |
 
 ## 실행
 
@@ -18,8 +19,9 @@ export E2E_PASSWORD='...'       # 비밀번호
 export E2E_ACCESS_CODE='GENIEGO-ADMIN'   # 선택(기본값)
 export E2E_BASE='https://roi.genie-go.com'  # 선택(기본=운영). 데모=https://roidemo.genie-go.com
 
-npm run e2e            # 코어 API 스모크(무의존·비파괴·반복안전)
+npm run e2e            # 코어 API 스모크(무의존·비파괴·반복안전·CI 게이트)
 npm run e2e:render     # 렌더 스윕(Playwright 필요: npm i -D playwright && npx playwright install chromium)
+npm run e2e:scenario   # 쓰기 시나리오(가역·자가정리). ★데모 백엔드 권장: E2E_BASE=https://roidemo.genie-go.com. CI 자동실행 금지
 ```
 
 종료코드: `0`=통과 · `1`=실패(500 또는 계약키 누락 또는 렌더 크래시) · `2`=자격증명 미주입 · `3`=Playwright 미설치(render skip).
