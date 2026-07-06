@@ -407,7 +407,7 @@ final class InstagramDM
 
     private static function demoConversations(): array
     {
-        $names = [];
+        $names = ['지민','현우','서연','도윤','하은']; // [266차] 빈 배열→인덱스 접근 시 null(Undefined array key) 경고 방지(데모 전용)
         $msgs  = ['안녕하세요! 상품 문의드릴게요','배송은 언제쯤 될까요?','할인 쿠폰 있나요?','협업 제안드리고 싶어요','좋아요 눌렀어요!'];
         $convs = [];
         foreach (range(0, 4) as $i) {

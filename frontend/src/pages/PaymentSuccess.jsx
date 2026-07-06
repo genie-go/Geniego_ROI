@@ -65,6 +65,9 @@ export default function PaymentSuccess() {
         quarterly: t('paymentSuccess.cycleQuarterly', "분기 (3개월)"),
         yearly: t('paymentSuccess.cycleYearly', "연간 (12개월)"),
     }[cycle] || t('paymentSuccess.cycleMonthlyShort', "월간");
+    // [266차] 하드코딩 "Pro" 제거 — 실제 결제/승격된 플랜명 표시(Starter/Growth/Enterprise 오라벨 방지).
+    const planRaw = String(result?.user?.plan || searchParams.get("plan") || "pro");
+    const planLabel = planRaw.charAt(0).toUpperCase() + planRaw.slice(1);
 
     return (
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "60vh", padding: "40px 20px" }}>
@@ -81,7 +84,7 @@ export default function PaymentSuccess() {
                 <div style={{ textAlign: "center", maxWidth: 480, width: "100%" }}>
                     <div style={{ fontSize: 56, marginBottom: 16 }}>🎉</div>
                     <div style={{ fontSize: 22, fontWeight: 900, color: '#fff', marginBottom: 8 }}>
-                        {t('paymentSuccess.activated', "Pro 플랜 활성화 완료!")}
+                        {`${planLabel} ${t('paymentSuccess.activatedSuffix', "플랜 활성화 완료!")}`}
                     </div>
                     <div style={{ fontSize: 13, color: "var(--text-3)", marginBottom: 28, lineHeight: 1.7 }}>
                         {t('paymentSuccess.activatedDesc', "결제가 완료되었습니다. 모든 Pro 기능을 즉시 이용하실 수 있습니다.")}
@@ -91,7 +94,7 @@ export default function PaymentSuccess() {
                     <div style={{ padding: "20px 24px", borderRadius: 14, background: "rgba(79,142,247,0.06)", border: "1px solid rgba(79,142,247,0.2)", marginBottom: 24, textAlign: "left" }}>
                         <div style={{ fontWeight: 800, fontSize: 12, color: "#4f8ef7", marginBottom: 12 }}>📋 {t('paymentSuccess.detailTitle', "결제 내역")}</div>
                         {[
-                            [t('paymentSuccess.fieldPlan', "플랜"), t('paymentSuccess.proPlan', "Pro 플랜")],
+                            [t('paymentSuccess.fieldPlan', "플랜"), `${planLabel} ${t('paymentSuccess.planWord', "플랜")}`],
                             [t('paymentSuccess.fieldCycle', "구독 주기"), cycleLabel],
                             [t('paymentSuccess.fieldAmount', "결제 금액"), amount > 0 ? USD(amount) : "—"],
                             [t('paymentSuccess.fieldExpires', "만료일"), result?.payment?.expires_at

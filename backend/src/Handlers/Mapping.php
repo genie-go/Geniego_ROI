@@ -266,14 +266,32 @@ final class Mapping {
         $raw = (string)($body["raw_value"] ?? "");
         $newCanon = (string)($body["new_canonical"] ?? "");
 
-        // In the Python code this estimates impacted events/rollups; in this repo it's best-effort.
+        // [266차] 스텁 제거 — 정규화 정본 테이블(normalized_activity_event)에서 이 raw_value 를 쓰는
+        //   실제 행수를 테넌트 스코프로 카운트(재캐노니컬라이즈 영향 추정). field 는 SQL 주입 차단 위해 화이트리스트.
+        $tenant = (string)($request->getAttribute('auth_tenant') ?? '');
+        $COLMAP = [ // 매핑 field → normalized_activity_event 실컬럼
+            'vendor'=>'vendor', 'channel'=>'channel', 'campaign'=>'campaign_name', 'campaign_name'=>'campaign_name',
+            'adset'=>'adset_name', 'adset_name'=>'adset_name', 'keyword'=>'keyword',
+            'audience'=>'audience_segment', 'audience_segment'=>'audience_segment', 'sku'=>'sku',
+        ];
+        $col = $COLMAP[strtolower($field)] ?? null;
+        $rows = 0; $note = "정규화 정본(normalized_activity_event) 기준 추정";
+        if ($col !== null && $tenant !== '' && $raw !== '') {
+            try {
+                $st = $pdo->prepare("SELECT COUNT(*) FROM normalized_activity_event WHERE tenant_id=? AND $col=?");
+                $st->execute([$tenant, $raw]);
+                $rows = (int)$st->fetchColumn();
+            } catch (\Throwable $e) { $note = "카운트 불가(스키마/권한) — 적용은 가능"; }
+        } elseif ($col === null) {
+            $note = "지원하지 않는 필드(vendor/channel/campaign/adset/keyword/audience/sku) — 영향 추정 생략";
+        }
         $out = [
             "platform"=>$platform,
             "field"=>$field,
             "raw_value"=>$raw,
             "new_canonical"=>$newCanon,
-            "estimated_impacted_rows"=>0,
-            "notes"=>["stub preview"],
+            "estimated_impacted_rows"=>$rows,
+            "notes"=>[$note],
         ];
         return TemplateResponder::respond($response, $out);
     }

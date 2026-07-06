@@ -577,7 +577,7 @@ export default function Audit() {
             {logs.filter(l => l.risk === "high").slice(0, 5).map((l, i) => (
               <div key={l.id || i} style={{ padding: "8px 10px", background: "rgba(239,68,68,0.05)", border: "1px solid rgba(239,68,68,0.15)", borderRadius: 8 }}>
                 <div style={{ display: "flex", gap: 6, alignItems: "center", marginBottom: 3 }}>
-                  <span style={{ fontSize: 10, fontWeight: 700, color: "#ef4444" }}>{ACTION_ICONS[l.action]} {t(`audit.action_${l.action}`) || l.action.replace(/_/g, " ")}</span>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: "#ef4444" }}>{ACTION_ICONS[l.action]} {t(`audit.action_${l.action}`) || (l.action || '').replace(/_/g, " ")}</span>
                   <span style={{ fontSize: 9, color: "var(--text-3)", marginLeft: "auto" }}>{timeAgo(l.at, t)}</span>
                 </div>
                 <div style={{ fontSize: 11, color: "var(--text-2)", lineHeight: 1.4 }}>{l.detail}</div>

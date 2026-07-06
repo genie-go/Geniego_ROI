@@ -757,6 +757,7 @@ function PlanPricing() {
 
   /** 새 플랜 추가 — admin 이 plan_id/이름 입력 후 빈 플랜 생성 */
   const addNewPlan = async () => {
+    if (blockRO()) return; // [266차] 하위관리자 열람전용 게이트(231차 패턴·누락 보강)
     const planId = window.prompt('새 플랜 ID (영문 소문자, 예: business)');
     if (!planId) return;
     const id = String(planId).trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
@@ -791,6 +792,7 @@ function PlanPricing() {
   };
 
   const archivePlan = async (plan) => {
+    if (blockRO()) return; // [266차] 하위관리자 열람전용 게이트(누락 보강)
     if (!window.confirm(`${plan.name} 을 비활성화합니다. 진행할까요?`)) return;
     try {
       await requestJsonAuth(`/v424/admin/plans/${encodeURIComponent(plan.plan_id)}`, 'DELETE');
@@ -1896,6 +1898,7 @@ function CouponAdminPanel({ plans }) {
   }, []);
 
   const grantFreePlan = useCallback(async () => {
+    if (blockRO()) return; // [266차] 하위관리자 열람전용 게이트(회원 플랜 직접 변경 방어·누락 보강)
     if (!selMember) return;
     setGrantBusy(true); setGrantMsg(null);
     try {

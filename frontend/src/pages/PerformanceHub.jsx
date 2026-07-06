@@ -1151,9 +1151,13 @@ export default function PerformanceHub() {
     const pollingRef = useRef(null);
 
     const expiredSoon = useMemo(() => (ctxCreators || []).filter(c => {
-        const ms = c?.contract?.whitelistExpiry;
-        if (!Number.isFinite(ms)) return false;
-        return ms / 86400000 <= 90;
+        // [266차] whitelistExpiry 는 'YYYY-MM-DD' 문자열(CreatorTab 과 동일) — epoch millis 로 오판해
+        //   Number.isFinite 가 항상 false→뱃지 영구 0 이던 것 날짜 파싱으로 복구.
+        const exp = c?.contract?.whitelistExpiry;
+        if (!exp) return false;
+        const ts = new Date(exp).getTime();
+        if (isNaN(ts)) return false;
+        return (ts - Date.now()) / 86400000 <= 90; // 90일 내 만료(이미 만료 포함)
     }).length, [ctxCreators]);
 
     /* ── BroadcastChannel: Cross-tab Sync ── */
