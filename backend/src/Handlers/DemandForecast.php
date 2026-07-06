@@ -284,7 +284,7 @@ class DemandForecast
             'ok' => true, 'tenant' => $tenant, 'horizon' => $horizon, 'lead_time' => $lead,
             'count' => count($items), 'items' => $items,
             'optimization' => 'abc-differentiated (A 98%/B 95%/C 90%)',
-            '_env' => Db::env(),
+            '_env' => Db::envLabel(),
         ]);
     }
 
@@ -300,7 +300,7 @@ class DemandForecast
         $lead    = max(1, min(60, (int)($b['lead'] ?? 7)));
         $horizon = max(7, min(60, (int)($b['horizon'] ?? 14)));
         $created = self::autoReplenishForTenant($tenant, $lead, $horizon);
-        return self::json($res, ['ok' => true, 'created' => count($created), 'orders' => $created, '_env' => Db::env()]);
+        return self::json($res, ['ok' => true, 'created' => count($created), 'orders' => $created, '_env' => Db::envLabel()]);
     }
 
     /** [255차 심화] 자동발주 코어(CLI/cron 공용) — 스케줄형 자동 재주문(Inventory Planner 정합). HTTP 핸들러와 공유(중복0). */
@@ -383,7 +383,7 @@ class DemandForecast
             'forecastable'   => $forecastable,
             'avg_accuracy'   => $accs ? round(array_sum($accs) / count($accs), 1) : 0.0,
             'history_days'   => $maxDays,
-            '_env' => Db::env(),
+            '_env' => Db::envLabel(),
         ]);
     }
 
@@ -411,7 +411,7 @@ class DemandForecast
         foreach ($dowAvg as $dow => $avg) {
             $index[] = ['dow' => $labels[$dow], 'avg' => round($avg, 2), 'index' => round($avg / $base, 3)];
         }
-        return self::json($res, ['ok' => true, 'tenant' => $tenant, 'baseline' => round($base, 2), 'seasonality' => $index, '_env' => Db::env()]);
+        return self::json($res, ['ok' => true, 'tenant' => $tenant, 'baseline' => round($base, 2), 'seasonality' => $index, '_env' => Db::envLabel()]);
     }
 
     /* ─── GET /api/demand/dead-stock — 재고 노후/악성재고 분석 (신규 net-new) ───
@@ -449,7 +449,7 @@ class DemandForecast
         if (!$inv) {
             return self::json($res, ['ok' => true, 'tenant' => $tenant, 'items' => [], 'summary' =>
                 ['in_stock_skus' => 0, 'healthy' => 0, 'slow' => 0, 'dead' => 0, 'total_tied_capital' => 0, 'dead_tied_capital' => 0, 'slow_tied_capital' => 0],
-                'params' => ['dead_days' => $deadDays, 'slow_days' => $slowDays], '_env' => Db::env()]);
+                'params' => ['dead_days' => $deadDays, 'slow_days' => $slowDays], '_env' => Db::envLabel()]);
         }
 
         // 2) SKU별 판매활동(취소/반품 제외 — loadSeries 와 동일 규칙): 최근판매일·30일 판매량·평균단가
@@ -517,6 +517,6 @@ class DemandForecast
         foreach (['total_tied_capital', 'dead_tied_capital', 'slow_tied_capital'] as $k) $sum[$k] = round($sum[$k]);
 
         return self::json($res, ['ok' => true, 'tenant' => $tenant, 'items' => $items, 'summary' => $sum,
-            'params' => ['dead_days' => $deadDays, 'slow_days' => $slowDays], '_env' => Db::env()]);
+            'params' => ['dead_days' => $deadDays, 'slow_days' => $slowDays], '_env' => Db::envLabel()]);
     }
 }

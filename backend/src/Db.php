@@ -47,6 +47,19 @@ final class Db
         return $env === 'demo' ? 'demo' : 'production';
     }
 
+    /**
+     * 표시(관측성) 전용 env 라벨 — 게이트용 env()와 분리.
+     *   실제 연결 DB명이 '_demo' 접미면 데모 호스트로 정직 표기(GENIE_ENV 미설정으로 env()=production 라도).
+     *   ★게이트 로직(env())은 절대 이걸 쓰지 말 것 — demo 호스트의 비-demo 관리자 테넌트를 403 차단하게 됨.
+     *   응답 메타(_env)에만 사용해 roidemo(=geniego_roi_demo)가 'demo'로 보이도록 한다.
+     */
+    public static function envLabel(): string
+    {
+        self::loadEnvFile();
+        $db = getenv('GENIE_DB_NAME') ?: 'geniego_roi';
+        return substr($db, -5) === '_demo' ? 'demo' : self::env();
+    }
+
     private static function pdoProd(): PDO
     {
         if (self::$pdoProd instanceof PDO) return self::$pdoProd;

@@ -315,7 +315,7 @@ final class Pnl
             'by_currency' => $byCurrency,
             'period_from' => $from !== '' ? $from : null,
             'period_to'   => $to   !== '' ? $to   : null,
-            '_env' => Db::env(), '_isDemo' => $isDemo,
+            '_env' => Db::envLabel(), '_isDemo' => $isDemo,
         ]);
     }
 
@@ -512,7 +512,7 @@ final class Pnl
             'paddle_mor' => $paddleMor,           // 구독 MoR 납부뷰(admin only)
             'period_from' => $from !== '' ? $from : null,
             'period_to'   => $to   !== '' ? $to   : null,
-            '_env' => Db::env(), '_isDemo' => $isDemo,
+            '_env' => Db::envLabel(), '_isDemo' => $isDemo,
         ]);
     }
 }

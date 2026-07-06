@@ -1020,7 +1020,7 @@ class CRM
         $pairs = array_slice($pairs, 0, $top);
 
         return self::jsonRes($res, ['ok' => true, 'pairs' => $pairs, 'total_buyers' => $totalBuyers,
-            'params' => ['min_co' => $minCo], '_env' => Db::env()]);
+            'params' => ['min_co' => $minCo], '_env' => Db::envLabel()]);
     }
 
     /* ─── GET /crm/segments ─────────────────────────────────────────── */

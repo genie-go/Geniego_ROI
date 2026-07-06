@@ -272,7 +272,7 @@ final class OrderHub
             'total' => $total,
             'limit' => $limit,
             'offset' => $offset,
-            '_env' => Db::env(),
+            '_env' => Db::envLabel(),
             '_isDemo' => $isDemo,
         ]);
     }
@@ -630,7 +630,7 @@ final class OrderHub
             //   echo 부재 → 프론트가 클라 배열 폴백). 배포 순서 무관 안전.
             'period_from' => $from !== '' ? $from : null,
             'period_to'   => $to   !== '' ? $to   : null,
-            '_env'      => Db::env(),
+            '_env'      => Db::envLabel(),
             '_isDemo'   => $isDemo,
         ]);
     }
@@ -673,7 +673,7 @@ final class OrderHub
             'restocked' => (int)($byStatus['restocked'] ?? 0),
             'disposed'  => (int)($byStatus['disposed'] ?? 0),
             'amount'    => round($amount, 2),
-            '_env'      => Db::env(),
+            '_env'      => Db::envLabel(),
             '_isDemo'   => $isDemo,
         ]);
     }
@@ -727,7 +727,7 @@ final class OrderHub
             'total' => $total,
             'limit' => $limit,
             'offset' => $offset,
-            '_env' => Db::env(),
+            '_env' => Db::envLabel(),
             '_isDemo' => $isDemo,
         ]);
     }
@@ -784,7 +784,7 @@ final class OrderHub
             'total' => $total,
             'limit' => $limit,
             'offset' => $offset,
-            '_env' => Db::env(),
+            '_env' => Db::envLabel(),
             '_isDemo' => $isDemo,
         ]);
     }
@@ -875,7 +875,7 @@ final class OrderHub
             'totalOrders'         => $orders,
             'totalReturns'        => $returns,
             'returnRate'          => $orders > 0 ? $returns / $orders : 0,
-            '_env'                => Db::env(),
+            '_env'                => Db::envLabel(),
             '_isDemo'             => $isDemo,
         ]);
     }
@@ -984,7 +984,7 @@ final class OrderHub
         foreach (array_keys($affected) as $pm) {
             try { self::rollupSettlementsCore($pdo, $tenant, $pm, null, $now); } catch (\Throwable $e) {}
         }
-        return self::json($resp, ['ok' => true, 'ingested' => $ingested, 'skipped' => $skipped, 'rerolled' => array_keys($affected), '_env' => Db::env(), '_isDemo' => $isDemo]);
+        return self::json($resp, ['ok' => true, 'ingested' => $ingested, 'skipped' => $skipped, 'rerolled' => array_keys($affected), '_env' => Db::envLabel(), '_isDemo' => $isDemo]);
     }
 
     public static function ingestSettlements(Request $req, Response $resp): Response
@@ -1025,7 +1025,7 @@ final class OrderHub
         } catch (\Throwable $e) {
             return self::json($resp, ['ok' => false, 'error' => 'db_error', 'message' => $e->getMessage()], 500);
         }
-        return self::json($resp, ['ok' => true, 'ingested' => $ingested, 'skipped' => $skipped, '_env' => Db::env(), '_isDemo' => $isDemo]);
+        return self::json($resp, ['ok' => true, 'ingested' => $ingested, 'skipped' => $skipped, '_env' => Db::envLabel(), '_isDemo' => $isDemo]);
     }
 
     /**
@@ -1078,7 +1078,7 @@ final class OrderHub
         } catch (\Throwable $e) {
             return self::json($resp, ['ok' => false, 'error' => 'db_error', 'message' => $e->getMessage()], 500);
         }
-        return self::json($resp, ['ok' => true, 'period' => $period, 'fee_rate' => $feeRate ?? 'per-channel', 'rolled' => $rolled, '_env' => Db::env(), '_isDemo' => $isDemo]);
+        return self::json($resp, ['ok' => true, 'period' => $period, 'fee_rate' => $feeRate ?? 'per-channel', 'rolled' => $rolled, '_env' => Db::envLabel(), '_isDemo' => $isDemo]);
     }
 
     /**
