@@ -10,9 +10,11 @@ namespace Genie;
  * - 저장: encrypt() → "enc:v1:" + base64(iv|tag|ciphertext). GCM 태그로 변조 감지.
  * - 읽기: decrypt() → "enc:v1:" 접두면 복호화, 아니면 평문 그대로 반환(기존 평문 행 하위호환).
  * - 키: 환경변수 CRED_ENC_KEY 우선, 없으면 app_setting('cred_enc_key')에 1회 생성·보관(안정).
- *   둘 다 불가 시 DB명 파생 키(기능 유지·약함, 로그). 키 회전 시 재암호화 필요.
+ *   둘 다 불가 시 → 하드 실패(fail-closed). 추측 가능한 DB명 파생 키/평문 폴백은 은행급 하드닝으로 제거됨.
+ *   키 회전 시 재암호화 필요.
  *
- * ★ 평문 fallback: 암호화 실패(openssl 부재 등) 시 원문 저장 → decrypt passthrough 로 무중단.
+ * ★ [은행급 fail-closed] openssl 부재/키 미가용 시 평문 저장 금지 — encrypt()/key() 는 예외를 던진다
+ *   (비밀을 평문·추측키로 저장하느니 저장 자체를 거부). decrypt() 는 읽기 실패 시 '' 반환(누출 없음).
  */
 final class Crypto
 {
@@ -40,12 +42,6 @@ final class Crypto
         return self::key(); // 미등록 버전 → 현재키 폴백(graceful)
     }
 
-    /** 레거시 파생 키(앱 부팅 초기·DB 미가용 시 사용했던 폴백). 이중키 복호화 호환용. */
-    private static function derivedKey(): string
-    {
-        return self::normalizeKey('genie-roi-cred-' . (getenv('GENIE_DB_NAME') ?: 'geniego_roi'));
-    }
-
     private static function key(): string
     {
         if (self::$key !== null) return self::$key;
@@ -70,8 +66,10 @@ final class Crypto
             $stored = (string)($sel->fetchColumn() ?: $gen);
             return self::$key = self::normalizeKey($stored);
         } catch (\Throwable $e) {
-            error_log('[Crypto] key fallback (derived): ' . $e->getMessage());
-            return self::$key = self::derivedKey();
+            // [은행급 fail-closed] 키 해석 실패 시 추측 가능한 파생키로 폴백하지 않고 하드 실패한다.
+            //   (약한 키로 비밀을 암호화하느니 암호화 자체를 거부 — 저장측이 500 으로 안전 실패.)
+            error_log('[Crypto] key resolution failed (fail-closed, no insecure fallback): ' . $e->getMessage());
+            throw new \RuntimeException('[Crypto] encryption key unavailable — refusing insecure key fallback (fail-closed)');
         }
     }
 
@@ -103,24 +101,28 @@ final class Crypto
         return substr($hex, 0, $len);
     }
 
-    /** 평문 → "enc:v1:..." (실패 시 평문 그대로 — decrypt 가 passthrough). */
+    /**
+     * 평문 → "enc:vN:...". [은행급 fail-closed] 암호화 불가 시 평문을 저장하지 않고 예외를 던진다.
+     *   (openssl 부재·키 미가용·GCM 실패 어느 경우든 비밀을 평문으로 남기지 않음.)
+     */
     public static function encrypt(?string $plain): string
     {
         $plain = (string)$plain;
         if ($plain === '') return '';
         if (self::isEncrypted($plain)) return $plain; // 이미 암호문
-        if (!function_exists('openssl_encrypt')) return $plain;
-        try {
-            // [255차 심화] 활성 버전 KEK 로 암호화·버전태그 봉투(키회전 후 신규 쓰기만 신버전·기존 암호문 불변).
-            $ver = self::activeVersion();
-            $iv = random_bytes(12);
-            $tag = '';
-            $ct = openssl_encrypt($plain, 'aes-256-gcm', self::keyForVersion($ver), OPENSSL_RAW_DATA, $iv, $tag, '', 16);
-            if ($ct === false) return $plain;
-            return 'enc:' . $ver . ':' . base64_encode($iv . $tag . $ct);
-        } catch (\Throwable $e) {
-            return $plain;
+        if (!function_exists('openssl_encrypt')) {
+            throw new \RuntimeException('[Crypto] openssl_encrypt unavailable — refusing to store secret as plaintext (fail-closed)');
         }
+        // [255차 심화] 활성 버전 KEK 로 암호화·버전태그 봉투(키회전 후 신규 쓰기만 신버전·기존 암호문 불변).
+        //   keyForVersion→key() 가 키 미가용 시 예외를 전파(추측키 폴백 없음).
+        $ver = self::activeVersion();
+        $iv = random_bytes(12);
+        $tag = '';
+        $ct = openssl_encrypt($plain, 'aes-256-gcm', self::keyForVersion($ver), OPENSSL_RAW_DATA, $iv, $tag, '', 16);
+        if ($ct === false) {
+            throw new \RuntimeException('[Crypto] AES-256-GCM encryption failed — refusing plaintext fallback (fail-closed)');
+        }
+        return 'enc:' . $ver . ':' . base64_encode($iv . $tag . $ct);
     }
 
     /**
@@ -170,12 +172,9 @@ final class Crypto
             $iv = substr($raw, 0, 12);
             $tag = substr($raw, 12, 16);
             $ct = substr($raw, 28);
-            // [255차 심화] 버전별 KEK 로 복호화(무파괴 키회전). v1 은 레거시 파생키까지 폴백(전환기 호환).
+            // [255차 심화] 버전별 KEK 로 복호화(무파괴 키회전). keyForVersion('v1')=key() 이므로 v1 도 정본 키로 복호화.
+            //   ★은행급 하드닝: 추측 가능한 DB명 파생키 복호화 폴백은 제거(약한 키 의존 제거). 실패 시 '' 반환(누출 없음).
             $pt = openssl_decrypt($ct, 'aes-256-gcm', self::keyForVersion($ver), OPENSSL_RAW_DATA, $iv, $tag);
-            if ($pt === false && ($ver === 'v1' || $ver === '')) {
-                $pt = openssl_decrypt($ct, 'aes-256-gcm', self::key(), OPENSSL_RAW_DATA, $iv, $tag);
-                if ($pt === false) $pt = openssl_decrypt($ct, 'aes-256-gcm', self::derivedKey(), OPENSSL_RAW_DATA, $iv, $tag);
-            }
             return $pt === false ? '' : $pt;
         } catch (\Throwable $e) {
             return '';

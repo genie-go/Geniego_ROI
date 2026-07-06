@@ -5,7 +5,7 @@ import React, { useState, useCallback, useMemo, useEffect, useRef } from "react"
 import PlanGate from "../components/PlanGate.jsx";
 import { useNavigate } from "react-router-dom";
 import GuideWizard from '../components/GuideWizard.jsx'; // [237차] 인앱 순차 완료 위저드(필수등록 게이팅)
-import { getJsonAuth as _gjaCrm, postJsonAuth as _pjaCrm, delJson as _delCrm } from '../services/apiClient.js';
+import { getJsonAuth as _gjaCrm, postJsonAuth as _pjaCrm, delJson as _delCrm, requestJsonAuth as _reqCrm } from '../services/apiClient.js';
 import { useGlobalData } from "../context/GlobalDataContext.jsx";
 import { crmApi } from "../services/crmApi.js"; // 191차 4단계: 운영 백엔드 실배선(/api/crm/*)
 import { useConnectorSync } from "../context/ConnectorSyncContext.jsx";
@@ -133,8 +133,21 @@ function StatCard({ icon, label, value, sub, color }) {
 function CustomerPanel({ customer, onClose, onSendEmail, onSendKakao, onDelete, crmCustomerHistory, timeline = [] }) {
   const { t } = useI18n();
   const fmt = useCurrencyFmt();
+  // [현 차수] 통합 고객 아이덴티티 360 — email/phone/kakao 병합 후 집계된 LTV/빈도/타임라인.
+  const [identity, setIdentity] = React.useState(null);
+  React.useEffect(() => {
+    if (_isDemo || customer?.id == null) { setIdentity(null); return; }
+    let alive = true;
+    _gjaCrm(`/api/crm/identity/${customer.id}`).then(r => { if (alive) setIdentity(r && (r.ok !== false) ? r : null); }).catch(() => { if (alive) setIdentity(null); });
+    return () => { alive = false; };
+  }, [customer?.id]);
   if (!customer) return null;
   const grade = getRfmGrade(t)[customer.grade] || getRfmGrade(t).normal;
+  // 링크된 연락처 행 수(다중 email/phone/kakao 병합 결과) — 응답 필드 방어적 파싱
+  const idLinked = identity ? (Array.isArray(identity.contacts) ? identity.contacts : Array.isArray(identity.linked_contacts) ? identity.linked_contacts : []) : [];
+  const idLinkedCount = identity ? (idLinked.length || Number(identity.linked_count ?? identity.linked ?? 0)) : 0;
+  const idLtv = identity ? Number(identity.ltv ?? identity.total_ltv ?? identity.monetary ?? 0) : 0;
+  const idFreq = identity ? Number(identity.frequency ?? identity.purchase_count ?? 0) : 0;
   const acts = crmCustomerHistory[customer.id] || [];
   // [257차] 360 전체 활동 타임라인 — 활동 유형별 아이콘/라벨(구매 외 전 접점).
   const actMeta = (type) => {
@@ -183,6 +196,33 @@ function CustomerPanel({ customer, onClose, onSendEmail, onSendKakao, onDelete, 
           <button onClick={() => onSendKakao(customer)} style={{ flex: 1, padding: "10px", borderRadius: 10, border: "none", background: "#fee08b22", color: "#fbbf24", fontWeight: 700, cursor: "pointer", fontSize: 13 }}>{t('crm.btnKakao')}</button>
           <button onClick={() => { if(window.confirm(t('crm.deleteConfirm'))) onDelete(customer.id); }} style={{ padding: "10px 14px", borderRadius: 10, border: "none", background: "rgba(248,113,113,0.12)", color: "#f87171", fontWeight: 700, cursor: "pointer", fontSize: 13 }}>{t('crm.deleteCustomer')}</button>
         </div>
+        {/* [현 차수] 통합 고객 아이덴티티 360 — 병합된 연락처 전체 집계(운영 전용) */}
+        {!_isDemo && identity && (
+          <div style={{ background: `${C.purple}12`, border: `1px solid ${C.purple}33`, borderRadius: 12, padding: 16 }}>
+            <div style={{ fontSize: 13, fontWeight: 800, color: C.purple, marginBottom: 10 }}>🪪 {t('crm.identity.title', '통합 고객 아이덴티티')}</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+              {[
+                [t('crm.identityLinked', '병합 연락처'), `${idLinkedCount}${t('crm.affPeople', '명')}`],
+                ["💰 LTV", fmt(idLtv)],
+                [t('crm.colCnt'), `${idFreq} ${t('crm.unitTimes')}`],
+              ].map(([k, v]) => (
+                <div key={k} style={{ background: C.card, borderRadius: 8, padding: "8px 10px" }}>
+                  <div style={{ fontSize: 10, color: C.muted }}>{k}</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: C.text }}>{v}</div>
+                </div>
+              ))}
+            </div>
+            {idLinked.length > 0 && (
+              <div style={{ marginTop: 10, display: "flex", flexWrap: "wrap", gap: 6 }}>
+                {idLinked.slice(0, 12).map((lc, i) => (
+                  <span key={i} style={{ fontSize: 10.5, fontWeight: 600, padding: "3px 9px", borderRadius: 20, background: C.surface, color: C.muted, border: `1px solid ${C.border}` }}>
+                    {lc.email || lc.phone || lc.kakao_id || lc.identifier || lc.value || (typeof lc === 'string' ? lc : '-')}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
         <div>
           <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>{t('crm.lblAct')} ({acts.length})</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
@@ -568,6 +608,8 @@ function DeliverabilityTab({ t }) {
       </div>
 
       <SuppressionPanel t={t} card={card} labelSt={labelSt} descSt={descSt} inputSt={inputSt} />
+
+      <PreferencesPanel t={t} card={card} labelSt={labelSt} descSt={descSt} inputSt={inputSt} />
     </div>
   );
 }
@@ -632,6 +674,113 @@ function SuppressionPanel({ t, card, labelSt, descSt, inputSt }) {
           </table>
         </div>
       )}
+    </div>
+  );
+}
+
+/* ── [현 차수] 수신 선호 관리(Preference Center) — 채널별 옵트인/아웃 + 콰이어트아워 + 옵트아웃 요약 ──
+ *   경쟁사 Iterable/Braze Subscription Center 정합. 운영은 /api/crm/preferences GET/PUT·/summary 실배선.
+ *   데모는 로컬 상태만(운영 격리·PII 미저장). 채널: email/sms/kakao/whatsapp/push. */
+function PreferencesPanel({ t, card, labelSt, descSt, inputSt }) {
+  const CHANNELS = [
+    { id: 'email', label: t('crm.channel.email', '이메일'), color: '#2563eb' },
+    { id: 'sms', label: t('crm.channel.sms', 'SMS'), color: '#16a34a' },
+    { id: 'kakao', label: t('crm.channel.kakao', '카카오'), color: '#d97706' },
+    { id: 'whatsapp', label: t('crm.channel.whatsapp', 'WhatsApp'), color: '#059669' },
+    { id: 'push', label: t('crm.channel.push', '푸시'), color: '#7c3aed' },
+  ];
+  const [summary, setSummary] = React.useState(null);
+  const [custId, setCustId] = React.useState('');
+  const [prefs, setPrefs] = React.useState(null); // { [channel]: {opted_in, quiet_start, quiet_end} }
+  const [busy, setBusy] = React.useState(false);
+  const [msg, setMsg] = React.useState('');
+
+  const loadSummary = React.useCallback(async () => {
+    if (IS_DEMO) { setSummary({}); return; }
+    try { const r = await _gjaCrm('/api/crm/preferences/summary'); setSummary(r?.summary || r?.by_channel || r?.opt_out || (r && !r.ok ? r : r) || {}); }
+    catch { setSummary({}); }
+  }, []);
+  React.useEffect(() => { loadSummary(); }, [loadSummary]);
+
+  const blankPrefs = () => { const b = {}; CHANNELS.forEach(c => { b[c.id] = { opted_in: true, quiet_start: 21, quiet_end: 8 }; }); return b; };
+  const loadCustomer = async () => {
+    const id = custId.trim(); if (!id) return;
+    setMsg('');
+    const base = blankPrefs();
+    if (IS_DEMO) { setPrefs(base); return; }
+    try {
+      const r = await _gjaCrm(`/api/crm/preferences?customer_id=${encodeURIComponent(id)}`);
+      const rows = Array.isArray(r?.preferences) ? r.preferences : Array.isArray(r?.rows) ? r.rows : Array.isArray(r) ? r : [];
+      rows.forEach(p => { const ch = p.channel; if (base[ch]) base[ch] = { opted_in: p.opted_in !== 0 && p.opted_in !== false && p.opted_in !== '0', quiet_start: p.quiet_start ?? 21, quiet_end: p.quiet_end ?? 8 }; });
+      setPrefs(base);
+    } catch (e) { setPrefs(base); }
+  };
+  const setPref = (ch, k, v) => setPrefs(p => ({ ...p, [ch]: { ...p[ch], [k]: v } }));
+  const savePref = async (ch) => {
+    const id = custId.trim(); if (!id || !prefs?.[ch]) return;
+    const row = prefs[ch];
+    const clamp = (v) => Math.max(0, Math.min(23, isNaN(+v) ? 0 : Math.round(+v)));
+    const body = { customer_id: id, channel: ch, opted_in: !!row.opted_in, quiet_start: clamp(row.quiet_start), quiet_end: clamp(row.quiet_end) };
+    setBusy(true); setMsg('');
+    try {
+      if (!IS_DEMO) await _reqCrm('/api/crm/preferences', 'PUT', body);
+      setMsg(`${CHANNELS.find(c => c.id === ch)?.label || ch} · ${t('crm.prefSaved', '저장되었습니다')}`);
+      loadSummary();
+    } catch (e) { setMsg(t('crm.prefSaveErr', '저장 실패: 권한 또는 네트워크를 확인하세요')); }
+    finally { setBusy(false); }
+  };
+
+  const optOutOf = (ch) => {
+    if (!summary) return null;
+    const v = summary[ch] ?? summary[`${ch}_opt_out`] ?? summary[`${ch}_optout`];
+    return v == null ? null : Number(v);
+  };
+
+  return (
+    <div style={card}>
+      <div style={labelSt}>📬 {t('crm.preferences.title', '수신 선호 관리')}</div>
+      <div style={descSt}>{t('crm.prefDesc', '고객이 채널별로 마케팅 수신을 켜고 끌 수 있습니다. 콰이어트아워(야간 미발송)와 옵트아웃 현황을 관리하세요(경쟁사 Iterable/Braze Subscription Center 동급).')}</div>
+
+      {/* 옵트아웃 요약(채널별) */}
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
+        {CHANNELS.map(c => {
+          const n = optOutOf(c.id);
+          return (
+            <span key={c.id} style={{ fontSize: 11.5, fontWeight: 700, padding: '4px 11px', borderRadius: 20, background: `${c.color}14`, color: c.color }}>
+              {c.label} · {t('crm.prefOptOut', '수신거부')} {n == null ? '—' : n.toLocaleString()}
+            </span>
+          );
+        })}
+      </div>
+
+      {/* 고객별 채널 선호 편집 */}
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
+        <input value={custId} onChange={e => setCustId(e.target.value)} placeholder={t('crm.prefCustPh', '고객 ID')} style={{ ...inputSt, width: 200 }} onKeyDown={e => { if (e.key === 'Enter') loadCustomer(); }} />
+        <button onClick={loadCustomer} disabled={!custId.trim()} style={{ padding: '8px 18px', borderRadius: 8, border: 'none', background: !custId.trim() ? '#cbd5e1' : C.accent, color: '#fff', fontWeight: 700, fontSize: 12.5, cursor: !custId.trim() ? 'default' : 'pointer' }}>{t('crm.prefLoad', '선호 불러오기')}</button>
+      </div>
+
+      {prefs && (
+        <div style={{ border: `1px solid ${C.border}`, borderRadius: 10, overflow: 'hidden' }}>
+          {CHANNELS.map((c, i) => {
+            const row = prefs[c.id];
+            return (
+              <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderTop: i ? `1px solid ${C.border}` : 'none', flexWrap: 'wrap' }}>
+                <span style={{ fontWeight: 700, fontSize: 13, color: c.color, minWidth: 88 }}>{c.label}</span>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12.5, color: C.text, cursor: 'pointer' }}>
+                  <input type="checkbox" checked={!!row.opted_in} onChange={e => setPref(c.id, 'opted_in', e.target.checked)} style={{ width: 15, height: 15 }} />
+                  {row.opted_in ? t('crm.prefOptIn', '수신 동의') : t('crm.prefOptOut', '수신거부')}
+                </label>
+                <span style={{ fontSize: 11.5, color: C.muted }}>{t('crm.prefQuiet', '콰이어트아워')}</span>
+                <input type="number" min={0} max={23} value={row.quiet_start} onChange={e => setPref(c.id, 'quiet_start', e.target.value)} style={{ ...inputSt, width: 66 }} />
+                <span style={{ fontSize: 12, color: C.muted }}>~</span>
+                <input type="number" min={0} max={23} value={row.quiet_end} onChange={e => setPref(c.id, 'quiet_end', e.target.value)} style={{ ...inputSt, width: 66 }} />
+                <button onClick={() => savePref(c.id)} disabled={busy} style={{ marginLeft: 'auto', padding: '6px 14px', borderRadius: 8, border: 'none', background: busy ? '#cbd5e1' : c.color, color: '#fff', fontWeight: 700, fontSize: 12, cursor: busy ? 'default' : 'pointer' }}>{t('crm.prefSave', '저장')}</button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+      {msg && <div style={{ fontSize: 12.5, fontWeight: 600, color: C.green, marginTop: 10 }}>{msg}</div>}
     </div>
   );
 }
@@ -787,6 +936,11 @@ function RFMTab({ derivedCustomers }) {
                 // [240차 약점③] 이탈확률·예측CLV — 운영=백엔드 churn_prob/predicted_clv(단일소스). 데모=표시용 근사(recency/freq 기반, 샌드박스 전용).
                 const { churn, clv } = predRowScore(c);
                 const churnColor = churn >= 0.6 ? '#ef4444' : churn >= 0.35 ? '#f59e0b' : '#22c55e';
+                // [현 차수] CLV 모델 배지 — 백엔드 clv_model('bgnbd'=BG/NBD 확률모델, 그 외=희소데이터 휴리스틱 폴백).
+                const isBgnbd = c.clv_model === 'bgnbd';
+                const clvBadge = isBgnbd
+                  ? { text: 'BG/NBD', title: t('crm.clv.modelBgnbd', 'BG/NBD 예측 모델'), color: '#8b5cf6' }
+                  : { text: 'Heuristic (sparse)', title: t('crm.clv.modelHeuristic', '휴리스틱(데이터 부족)'), color: '#94a3b8' };
                 return (
                   <tr key={c.id || i} style={{ borderTop: `1px solid ${C.border}`, background: i % 2 ? "#f1f5f9" : "transparent" }}>
                     <td style={{ padding: "8px 14px", fontWeight: 600 }}>{c.name || "-"}</td>
@@ -796,7 +950,12 @@ function RFMTab({ derivedCustomers }) {
                     <td style={{ padding: "8px 14px", color: C.muted, fontSize: 12 }}>{c.last_purchase || "-"}</td>
                     <td style={{ fontSize: 11, fontWeight: 700, background: `${g.color}22`, color: g.color, borderRadius: 6, padding: "3px 8px" }} ><span>{g.label}</span></td>
                     <td style={{ padding: "8px 14px", fontWeight: 700, color: churnColor }}>{churn != null ? Math.round(churn * 100) + '%' : '-'}</td>
-                    <td style={{ padding: "8px 14px", color: '#8b5cf6', fontWeight: 700 }}>{clv != null ? fmt(clv) : '-'}</td>
+                    <td style={{ padding: "8px 14px", color: '#8b5cf6', fontWeight: 700 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                        <span>{clv != null ? fmt(clv) : '-'}</span>
+                        <span title={clvBadge.title} style={{ fontSize: 9, fontWeight: 800, padding: '1px 6px', borderRadius: 5, background: `${clvBadge.color}1f`, color: clvBadge.color, border: `1px solid ${clvBadge.color}44`, whiteSpace: 'nowrap' }}>{clvBadge.text}</span>
+                      </div>
+                    </td>
                   </tr>
                 );
               })}
@@ -1130,7 +1289,7 @@ function CRMContent() {
   const mapCust = (r) => ({ id: r.id, name: r.name || '', email: r.email || '', phone: r.phone || '-', grade: r.grade || 'normal', ltv: Number(r.ltv || 0), purchase_count: Number(r.purchase_count || 0), last_purchase: (r.last_purchase || '').slice(0, 10), tags: Array.isArray(r.tags) ? r.tags : [] });
   const reloadOpCustomers = useCallback(() => { crmApi.listCustomers().then(r => setOpCustomers((r.customers || []).map(mapCust))).catch(() => {}); }, []);
   const reloadOpSegments = useCallback(() => { crmApi.listSegments().then(r => setOpSegments((r.segments || []).map(s => ({ ...s, count: Number(s.member_count || 0) })))).catch(() => {}); }, []);
-  const reloadOpRfm = useCallback(() => { crmApi.rfm().then(r => setOpRfm((r.customers || []).map(c => ({ id: c.id, name: c.name || '', email: c.email || '', phone: '-', grade: c.rfm_grade || 'normal', ltv: Number(c.monetary || 0), purchase_count: Number(c.frequency || 0), last_purchase: (c.last_purchase || '').slice(0, 10), churn_prob: c.churn_prob, predicted_clv: c.predicted_clv, tags: [] })))).catch(() => {}); }, []); // [240차 약점③] 예측형 CDP: 백엔드 churn_prob/predicted_clv(단일소스) 전달
+  const reloadOpRfm = useCallback(() => { crmApi.rfm().then(r => setOpRfm((r.customers || []).map(c => ({ id: c.id, name: c.name || '', email: c.email || '', phone: '-', grade: c.rfm_grade || 'normal', ltv: Number(c.monetary || 0), purchase_count: Number(c.frequency || 0), last_purchase: (c.last_purchase || '').slice(0, 10), churn_prob: c.churn_prob, predicted_clv: c.predicted_clv, clv_model: c.clv_model, tags: [] })))).catch(() => {}); }, []); // [240차 약점③] 예측형 CDP: 백엔드 churn_prob/predicted_clv/clv_model(BG/NBD·단일소스) 전달
   useEffect(() => { if (IS_DEMO) return; reloadOpCustomers(); reloadOpSegments(); reloadOpRfm(); }, [reloadOpCustomers, reloadOpSegments, reloadOpRfm]);
 
   const customers = useMemo(() => (
@@ -1208,6 +1367,20 @@ function CRMContent() {
       if (IS_DEMO) reloadOpSegments?.(); else reloadOpSegments();
       addAlert?.({ type: 'success', msg: `스마트 세그먼트 ${(d?.created || []).length}개 생성 (이미 있으면 건너뜀)` });
     } catch (e) { addAlert?.({ type: 'error', msg: '스마트 세그먼트 생성 실패: ' + (e?.message || '') }); }
+  };
+
+  // [현 차수] 아이덴티티 재해석 — email/phone/kakao 교차 union-find 병합(테넌트 단위). 병합 건수 안내 후 목록 재적재.
+  const [resolvingId, setResolvingId] = useState(false);
+  const onResolveIdentities = async () => {
+    if (IS_DEMO) { addAlert?.({ type: 'info', msg: t('crm.identityDemo', '데모에서는 아이덴티티 병합이 시뮬레이션됩니다.') }); return; }
+    setResolvingId(true);
+    try {
+      const r = await _pjaCrm('/api/crm/identity/resolve', {});
+      const merged = Number(r?.merged ?? r?.merged_count ?? r?.merges ?? r?.linked ?? 0);
+      addAlert?.({ type: 'success', msg: `${t('crm.identityResolved', '아이덴티티 병합 완료')}: ${merged}` });
+      reloadOpCustomers(); reloadOpRfm();
+    } catch (e) { addAlert?.({ type: 'error', msg: t('crm.identityFail', '아이덴티티 재해석 실패') + ': ' + (e?.message || '') }); }
+    finally { setResolvingId(false); }
   };
 
   const handleExportCsv = () => {
@@ -1293,6 +1466,7 @@ function CRMContent() {
         {tab === "customers" && (
           <>
             <button onClick={handleExportCsv} style={{ padding: "9px 18px", borderRadius: 10, border: `1px solid ${C.border}`, background: "transparent", color: C.muted, fontWeight: 700, cursor: "pointer", fontSize: 13 }}>📥 {t('crm.exportCsv')}</button>
+            <button onClick={onResolveIdentities} disabled={resolvingId} title={t('crm.identity.title', '통합 고객 아이덴티티')} style={{ padding: "9px 18px", borderRadius: 10, border: `1px solid ${C.purple}55`, background: `${C.purple}12`, color: C.purple, fontWeight: 700, cursor: resolvingId ? "default" : "pointer", fontSize: 13, opacity: resolvingId ? 0.6 : 1 }}>🪪 {resolvingId ? '…' : t('crm.identity.resolve', '아이덴티티 재해석')}</button>
             <button onClick={() => setShowForm(f => !f)} data-onboard-cta="crm-customer" data-onboard-hint={t('crm.onboardHint', '여기서 첫 고객을 추가하세요')} style={{ marginLeft: "auto", padding: "9px 18px", borderRadius: 10, border: "none", background: C.green, color: '#ffffff', fontWeight: 700, cursor: "pointer", fontSize: 13 }}>+ {t('crm.btnRegister')}</button>
           </>
         )}

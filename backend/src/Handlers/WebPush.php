@@ -102,7 +102,8 @@ final class WebPush
     {
         if ($err = UserAuth::requirePro($req, $res)) return $err;
         $t = self::tenant($req);
-        $r = self::sendToTenant($t);
+        // [현 차수 동의센터 SSOT] 진단용 테스트 푸시 — 마케팅 캠페인이 아니므로 동의 게이트 우회($marketing=false).
+        $r = self::sendToTenant($t, false);
         return self::json($res, ['ok' => $r['ok'], 'sent' => $r['sent'], 'failed' => $r['failed'], 'note' => $r['note'] ?? null]);
     }
 
@@ -129,13 +130,22 @@ final class WebPush
      * 테넌트 구독 전체에 payload-less 푸시 발송(VAPID JWT ES256 인증). VAPID 미설정 시 graceful skip.
      * @return array{ok:bool, sent:int, failed:int, note?:string}
      */
-    public static function sendToTenant(string $tenant): array
+    public static function sendToTenant(string $tenant, bool $marketing = true): array
     {
         try {
             $pdo = Db::pdo(); self::ensure($pdo);
             $priv = self::vapidPrivateKey($pdo); $pub = self::vapidPublicKey($pdo);
             if ($priv === '' || $pub === '') return ['ok' => false, 'sent' => 0, 'failed' => 0, 'note' => 'VAPID 키 미설정 — admin 푸시 설정에서 키를 등록하세요.'];
             $sub = self::vapidSubject($pdo);
+            // [현 차수 동의센터 SSOT] 통합 발송 게이트 — 마케팅 브로드캐스트 한정($marketing=true).
+            //   ★한계: push_subscription 행은 per-customer 식별자(customer_id/email/phone)를 저장하지 않는
+            //   익명 엔드포인트 구독(무PII 정책)이라 수신자별 옵트아웃 해석이 구조적으로 불가하다.
+            //   따라서 테넌트 스코프(cid=0)로 1회 평가해 테넌트 옵트아웃/조용시간/빈도캡만 존중(fail-open).
+            //   진단용 test push 는 마케팅이 아니므로 test()가 $marketing=false 로 우회(트랜잭션/관리자 알림 비게이트 원칙).
+            if ($marketing) {
+                $g = CRM::isMarketingSendAllowed($tenant, 0, 'push');
+                if (!($g['allowed'] ?? true)) return ['ok' => true, 'sent' => 0, 'failed' => 0, 'note' => 'consent_gate:' . ($g['reason'] ?? 'blocked')];
+            }
             $st = $pdo->prepare("SELECT id, endpoint FROM push_subscription WHERE tenant_id=?");
             $st->execute([$tenant]);
             $rows = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];

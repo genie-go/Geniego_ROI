@@ -41,6 +41,18 @@ final class WhatsApp
         return ($t !== null && $t !== '') ? $t : 'demo';
     }
 
+    /** [현 차수 동의센터 SSOT] 전화번호(숫자열)로 CRM 고객 id 해석 — SmsMarketing 패턴 재사용. 없으면 0. */
+    private static function customerIdByPhone(\PDO $pdo, string $tenant, string $digits): int
+    {
+        if ($digits === '') return 0;
+        try {
+            $norm = "REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(phone,''),'-',''),' ',''),'(',''),')',''),'+','')";
+            $st = $pdo->prepare("SELECT id FROM crm_customers WHERE tenant_id=? AND {$norm}=? LIMIT 1");
+            $st->execute([$tenant, $digits]);
+            return (int)($st->fetchColumn() ?: 0);
+        } catch (\Throwable $e) { return 0; }
+    }
+
     private static function ensureTables(): void
     {
         $pdo = Db::pdo();
@@ -230,6 +242,9 @@ final class WhatsApp
         $now     = gmdate('c');
         $sent    = 0;
         $failed  = 0;
+        $optout  = 0;
+        $capped  = 0;
+        $quiet   = 0;
 
         $cfg = null;
         if ($plan !== 'demo') {
@@ -250,6 +265,17 @@ final class WhatsApp
         foreach (array_slice($numbers, 0, 200) as $to) {
             $to = preg_replace('/\D/', '', (string)$to);
             if (strlen($to) < 8) continue;
+            // [현 차수 동의센터 SSOT] 통합 발송 게이트 — WhatsApp 채널 옵트아웃/조용시간 단일소스(crm_channel_prefs). cid=0이면 fail-open. fail-open on error.
+            $cid = self::customerIdByPhone($pdo, $tenant, $to);
+            // [R4 라벨교정] 게이트 거부사유별 정확 집계 — 빈도=capped·조용시간=quiet·그 외(옵트아웃/suppression)만 opted_out.
+            $g = CRM::isMarketingSendAllowed($tenant, $cid, 'whatsapp', ['phone'=>$to]);
+            if (!($g['allowed'] ?? false)) {
+                $rc = (string)($g['reason'] ?? '');
+                if (strpos($rc, 'freq') !== false) { $capped++; }
+                elseif (strpos($rc, 'quiet') !== false) { $quiet++; }
+                else { $optout++; }
+                continue;
+            }
             if ($plan === 'demo') {
                 $status = rand(0, 9) < 9 ? 'delivered' : 'failed'; // 데모 시뮬레이션 한정
             } else {
@@ -261,7 +287,7 @@ final class WhatsApp
             $status === 'failed' ? $failed++ : $sent++;
         }
 
-        return TemplateResponder::respond($res, ['ok' => true, 'sent' => $sent, 'failed' => $failed, 'total' => $sent + $failed]);
+        return TemplateResponder::respond($res, ['ok' => true, 'sent' => $sent, 'failed' => $failed, 'capped' => $capped, 'quiet_deferred' => $quiet, 'opted_out' => $optout, 'total' => $sent + $failed]);
     }
 
     // GET /api/whatsapp/templates

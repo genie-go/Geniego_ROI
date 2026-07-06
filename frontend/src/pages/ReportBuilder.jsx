@@ -6,7 +6,7 @@ import { getJsonAuth, postJsonAuth, patchJson, delJson, requestJsonAuth } from "
 import { useVisibleTabs } from "../auth/useVisibleTabs.js";
 import ProductSelectBar from '../components/dashboards/ProductSelectBar.jsx';
 import ProductMarketingPanel from '../components/dashboards/ProductMarketingPanel.jsx';
-import { BarChart, LineChart, DonutChart } from "../components/dashboards/ChartUtils.jsx"; // [239차+ BI심화] 시각화 재사용
+import { BarChart, LineChart, DonutChart, StackedBarChart, AreaChart, ComboChart, Heatmap } from "../components/dashboards/ChartUtils.jsx"; // [239차+ BI심화 / 현 차수 BI확장] 시각화 재사용
 
 /*
  * ReportBuilder — 리포트 빌더 + 예약 발송 (193차 Sprint4 실구현).
@@ -126,7 +126,7 @@ export default function ReportBuilder() {
   }));
   const [qResult, setQResult] = useState(null);
   const [qLoading, setQLoading] = useState(false);
-  const [viz, setViz] = useState("table"); // [239차+ BI심화] table|bar|line|donut
+  const [viz, setViz] = useState("table"); // [239차+ BI심화 / 현 차수 BI확장] table|bar|line|donut|stacked|combo|area|heatmap
   const [saved, setSaved] = useState([]);
   // [255차 심화] 사용자정의 메트릭(시맨틱 레이어) — 소스별 로드/저장. 백엔드 /reports/metrics(중복0).
   const [userMetrics, setUserMetrics] = useState([]);
@@ -293,9 +293,9 @@ export default function ReportBuilder() {
             </div>
             <div>
               <div style={{ fontSize: 11, color: "var(--text-3)", marginBottom: 6 }}>{t("reportBuilder.viz", "시각화")}</div>
-              <div style={{ display: "flex", gap: 4 }}>
-                {[["table", "📋"], ["bar", "📊"], ["line", "📈"], ["donut", "🍩"]].map(([v, ic]) => (
-                  <button key={v} onClick={() => setViz(v)} title={v} style={{ padding: "6px 9px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 13, background: viz === v ? "#4f8ef7" : "rgba(0,0,0,0.05)" }}>{ic}</button>
+              <div style={{ display: "flex", gap: 4, flexWrap: "wrap", maxWidth: 300 }}>
+                {[["table", "📋", t("reportBuilder.vizTable", "표")], ["bar", "📊", t("reportBuilder.vizBar", "막대")], ["line", "📈", t("reportBuilder.vizLine", "선")], ["donut", "🍩", t("reportBuilder.vizDonut", "도넛")], ["stacked", "🧱", t("reportBuilder.vizStacked", "누적 막대")], ["combo", "🔀", t("reportBuilder.vizCombo", "콤보(막대+선)")], ["area", "🏔️", t("reportBuilder.vizArea", "면적")], ["heatmap", "🔥", t("reportBuilder.vizHeatmap", "히트맵")]].map(([v, ic, lab]) => (
+                  <button key={v} onClick={() => setViz(v)} title={lab} style={{ padding: "6px 9px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 13, background: viz === v ? "#4f8ef7" : "rgba(0,0,0,0.05)" }}>{ic}</button>
                 ))}
               </div>
             </div>
@@ -320,7 +320,11 @@ export default function ReportBuilder() {
             const PALETTE = ["#4f8ef7", "#22c55e", "#a855f7", "#f59e0b", "#ec4899", "#14d9b0", "#ef4444", "#6366f1"];
             const pm = (qResult.metrics || [])[0] || "spend";
             const colLabel = (c) => c === "dim" ? (Q_DIMS.find(d => d[0] === qResult.dimension)?.[1] || "") : c === "brk" ? (Q_DIMS.find(d => d[0] === qResult.breakdown)?.[1] || "") : (Q_METRICS.find(m => m[0] === c)?.[1] || c);
-            const isChart = viz !== "table" && !qResult.breakdown && (qResult.rows || []).length > 0;
+            const rowsN = (qResult.rows || []).length;
+            // [현 차수 BI확장] 히트맵은 2차원(피벗) 전용, 그 외 차트는 단일차원(피벗 없음) 전용.
+            const isHeatmap = viz === "heatmap" && !!qResult.breakdown && rowsN > 0;
+            const flatVizes = ["bar", "line", "donut", "stacked", "combo", "area"];
+            const isChart = flatVizes.includes(viz) && !qResult.breakdown && rowsN > 0;
             const canDrill = !qResult.breakdown && !qResult.filter_val && qResult.dimension !== "date" && qResult.dimension !== "period" && Q_DIMS.length > 1;
             return (
             <div style={{ ...card, marginTop: 12, overflowX: "auto" }}>
@@ -334,11 +338,50 @@ export default function ReportBuilder() {
               )}
               {(!qResult.rows || qResult.rows.length === 0) ? (
                 <div style={{ color: "var(--text-3)", fontSize: 12, padding: 20, textAlign: "center" }}>{qResult.note || t("reportBuilder.noData", "데이터가 없습니다.")}</div>
+              ) : isHeatmap ? (
+                <div style={{ padding: "8px 4px" }}>
+                  {(() => {
+                    const dims = [...new Set(qResult.rows.map(r => String(r.dim)))].slice(0, 40);
+                    const brks = [...new Set(qResult.rows.map(r => String(r.brk)))].slice(0, 24);
+                    const idx = {};
+                    qResult.rows.forEach(r => { idx[String(r.dim) + " " + String(r.brk)] = Number(r[pm] ?? 0); });
+                    const matrix = dims.map(dv => brks.map(bv => idx[dv + " " + bv] ?? 0));
+                    return (<>
+                      <div style={{ fontSize: 11, color: "var(--text-3)", marginBottom: 8 }}>{colLabel("dim")} × {colLabel("brk")} · {colLabel(pm)}</div>
+                      <Heatmap rows={dims} cols={brks} matrix={matrix} color={PALETTE[0]} width={720} />
+                    </>);
+                  })()}
+                </div>
               ) : isChart ? (
                 <div style={{ padding: "8px 4px" }}>
-                  <div style={{ fontSize: 11, color: "var(--text-3)", marginBottom: 8 }}>{colLabel("dim")} · {colLabel(pm)} ({t("reportBuilder.top", "상위")} {Math.min(viz === "donut" ? 8 : 14, qResult.rows.length)})</div>
+                  <div style={{ fontSize: 11, color: "var(--text-3)", marginBottom: 8 }}>{colLabel("dim")} · {colLabel(pm)} ({t("reportBuilder.top", "상위")} {Math.min(viz === "donut" ? 8 : (viz === "line" || viz === "area") ? 90 : 14, qResult.rows.length)})</div>
                   {viz === "bar" && <BarChart data={qResult.rows.slice(0, 14).map(r => ({ dim: r.dim, [pm]: Number(r[pm] ?? 0) }))} xKey="dim" yKey={pm} width={680} height={240} color={PALETTE} />}
                   {viz === "line" && <div style={{ overflowX: "auto" }}><LineChart data={qResult.rows.slice(0, 90).map(r => ({ dim: String(r.dim), [pm]: Number(r[pm] ?? 0) }))} labels={qResult.rows.slice(0, 90).map(r => String(r.dim))} series={[{ key: pm, name: colLabel(pm), color: PALETTE[0] }]} width={720} height={240} /></div>}
+                  {viz === "area" && <div style={{ overflowX: "auto" }}><AreaChart data={qResult.rows.slice(0, 90).map(r => ({ dim: String(r.dim), [pm]: Number(r[pm] ?? 0) }))} labels={qResult.rows.slice(0, 90).map(r => String(r.dim))} series={[{ key: pm, name: colLabel(pm), color: PALETTE[0] }]} width={720} height={240} /></div>}
+                  {viz === "stacked" && (() => {
+                    const ms = (qResult.metrics || [pm]).slice(0, 6);
+                    const series = ms.map((m, i) => ({ key: m, name: colLabel(m), color: PALETTE[i % PALETTE.length] }));
+                    return (
+                      <div style={{ overflowX: "auto" }}>
+                        <StackedBarChart data={qResult.rows.slice(0, 14).map(r => { const o = { dim: String(r.dim) }; ms.forEach(m => { o[m] = Number(r[m] ?? 0); }); return o; })} xKey="dim" series={series} width={700} height={260} />
+                        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 8 }}>
+                          {series.map(s => (<span key={s.key} style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, color: "var(--text-2)" }}><span style={{ width: 10, height: 10, borderRadius: 3, background: s.color }} />{s.name}</span>))}
+                        </div>
+                      </div>
+                    );
+                  })()}
+                  {viz === "combo" && (() => {
+                    const lk = (qResult.metrics || []).find(m => m !== pm) || null;
+                    return (
+                      <div style={{ overflowX: "auto" }}>
+                        <ComboChart data={qResult.rows.slice(0, 14).map(r => { const o = { dim: String(r.dim), [pm]: Number(r[pm] ?? 0) }; if (lk) o[lk] = Number(r[lk] ?? 0); return o; })} xKey="dim" barKey={pm} lineKey={lk} barName={colLabel(pm)} lineName={lk ? colLabel(lk) : ""} barColor={PALETTE[0]} lineColor={PALETTE[3]} width={700} height={260} />
+                        <div style={{ display: "flex", gap: 12, marginTop: 8, fontSize: 11, color: "var(--text-2)" }}>
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><span style={{ width: 10, height: 10, borderRadius: 3, background: PALETTE[0] }} />{colLabel(pm)}</span>
+                          {lk && <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><span style={{ width: 14, height: 3, background: PALETTE[3] }} />{colLabel(lk)}</span>}
+                        </div>
+                      </div>
+                    );
+                  })()}
                   {viz === "donut" && (
                     <div style={{ display: "flex", gap: 20, alignItems: "center", flexWrap: "wrap" }}>
                       <DonutChart data={qResult.rows.slice(0, 8).map((r, i) => ({ value: Number(r[pm] ?? 0), color: PALETTE[i % PALETTE.length] }))} size={200} label={colLabel(pm)} />
@@ -355,6 +398,9 @@ export default function ReportBuilder() {
                   )}
                 </div>
               ) : (
+                <>
+                  {viz === "heatmap" && !qResult.breakdown && <div style={{ fontSize: 11, color: "#f59e0b", marginBottom: 8 }}>💡 {t("reportBuilder.heatmapNeedsBreakdown", "히트맵은 2차 차원(피벗)이 필요합니다. 위에서 2차 차원을 선택하세요.")}</div>}
+                  {["bar", "line", "donut", "stacked", "combo", "area"].includes(viz) && qResult.breakdown && <div style={{ fontSize: 11, color: "#f59e0b", marginBottom: 8 }}>💡 {t("reportBuilder.chartNeedsSingleDim", "이 차트는 단일 차원 전용입니다. 2차 차원(피벗) 데이터는 표 또는 히트맵으로 보세요.")}</div>}
                 <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
                   <thead><tr style={{ borderBottom: "2px solid var(--border)" }}>
                     {(qResult.columns || []).map(c => <th key={c} style={{ padding: "8px 10px", textAlign: (c === "dim" || c === "brk") ? "left" : "right", color: "var(--text-3)", fontWeight: 700, fontSize: 11 }}>{colLabel(c)}</th>)}
@@ -373,6 +419,7 @@ export default function ReportBuilder() {
                     </tr></tfoot>
                   )}
                 </table>
+                </>
               )}
             </div>
             );

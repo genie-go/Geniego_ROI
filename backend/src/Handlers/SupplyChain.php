@@ -11,50 +11,123 @@ use Psr\Http\Message\ResponseInterface as Response;
  *
  * 206차 #6: 기존 `sqlite::memory:`(요청마다 소실 + 테넌트 미격리)를 영속 SQLite 파일 +
  *   전 테이블 tenant_id + 전 쿼리 테넌트 스코핑으로 전환(PriceOpt 와 동일 패턴).
- *   영속: backend/data/supplychain.sqlite(운영/데모 디렉터리 분리로 파일 자동 분리).
+ * [현 차수 #6] 별도 backend/data/supplychain.sqlite 파일 → 저장소 나머지와 동일한 공유 DB(\Genie\Db::pdo:
+ *   MySQL 우선 · SQLite 자동 폴백)로 이관. 효과: ①sc_suppliers↔wms_suppliers wms_id 링크가 동일 커넥션에서
+ *   조인(교차 파일 불일치 제거) ②운영/데모 격리는 Db.php 가 이미 처리 ③백업/마이그레이션 일원화. 스키마
+ *   (sc_lines/sc_stages/sc_suppliers/sc_risk_rules + wms_id)·테넌트 격리·멱등 DDL 보존. 기존 파일 데이터는
+ *   최초 1회 best-effort 임포트(아래 migrateLegacySqlite)로 무손실 이관(파일은 보존).
+ *   ★MySQL TEXT DEFAULT 거부 트랩 회피 — 문자열 기본값은 VARCHAR 컬럼만 사용(MySQL 분기).
  *   격리: tenant = UserAuth::authedTenant(익명/데모→'demo').
  */
 class SupplyChain
 {
     private static ?\PDO $db = null;
 
+    private static function isMysql(\PDO $pdo): bool { return $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql'; }
+
     private static function db(): \PDO
     {
         if (self::$db !== null) return self::$db;
 
-        $dir = __DIR__ . '/../../data';
-        if (!is_dir($dir)) { @mkdir($dir, 0775, true); }
-        $pdo = new \PDO('sqlite:' . $dir . '/supplychain.sqlite');
-        $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
-        $pdo->exec("PRAGMA journal_mode=WAL");
-        $pdo->exec("PRAGMA busy_timeout=5000");
+        // [현 차수 #6] 공유 DB 사용(MySQL 우선 · SQLite 폴백). Db::pdo 불가 시(초기화 실패) 종전 파일 SQLite 로 강등(회귀0).
+        try { $pdo = \Genie\Db::pdo(); }
+        catch (\Throwable $e) {
+            $dir = __DIR__ . '/../../data';
+            if (!is_dir($dir)) { @mkdir($dir, 0775, true); }
+            $pdo = new \PDO('sqlite:' . $dir . '/supplychain.sqlite');
+            $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+        }
+        $mysql = self::isMysql($pdo);
 
-        $pdo->exec("CREATE TABLE IF NOT EXISTS sc_lines (
-            id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo',
-            line_id TEXT, supplier TEXT, sku TEXT, name TEXT, leadTime INTEGER DEFAULT 14,
-            risk TEXT DEFAULT 'low', delayRate REAL DEFAULT 0, totalCost REAL DEFAULT 0, created_at TEXT,
-            UNIQUE(tenant_id, line_id))");
-
-        $pdo->exec("CREATE TABLE IF NOT EXISTS sc_stages (
-            id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo',
-            line_id TEXT NOT NULL, stage TEXT, stageDate TEXT, done INTEGER DEFAULT 0,
-            note TEXT, sort_order INTEGER DEFAULT 0)");
-
-        $pdo->exec("CREATE TABLE IF NOT EXISTS sc_suppliers (
-            id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo',
-            sup_id TEXT, name TEXT, country TEXT, category TEXT, leadTime INTEGER, delayRate REAL,
-            orderCount INTEGER DEFAULT 0, reliability REAL DEFAULT 95, contact TEXT, created_at TEXT,
-            UNIQUE(tenant_id, sup_id))");
-        // [257차 통합] 공급업체 SSOT 일원화 — sc_suppliers(공급망 분석)를 wms_suppliers(거래처 마스터, Db::pdo)에
-        //   wms_id 로 링크. 마스터=wms_suppliers(TeamMembers 거래처+WMS 발주/입고), 분석오버레이=sc_suppliers.
+        if ($mysql) {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS sc_lines (
+                id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo',
+                line_id VARCHAR(80), supplier VARCHAR(200), sku VARCHAR(120), name VARCHAR(255),
+                leadTime INT DEFAULT 14, risk VARCHAR(20) DEFAULT 'low', delayRate DOUBLE DEFAULT 0,
+                totalCost DOUBLE DEFAULT 0, created_at VARCHAR(32),
+                UNIQUE KEY uq_sc_lines (tenant_id, line_id), KEY idx_sc_lines_tenant (tenant_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS sc_stages (
+                id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo',
+                line_id VARCHAR(80) NOT NULL, stage VARCHAR(120), stageDate VARCHAR(32), done TINYINT(1) DEFAULT 0,
+                note VARCHAR(255), sort_order INT DEFAULT 0, KEY idx_sc_stages (tenant_id, line_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS sc_suppliers (
+                id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo',
+                sup_id VARCHAR(80), name VARCHAR(200), country VARCHAR(80), category VARCHAR(120),
+                leadTime INT DEFAULT 14, delayRate DOUBLE DEFAULT 0, orderCount INT DEFAULT 0,
+                reliability DOUBLE DEFAULT 95, contact VARCHAR(255), wms_id INT, created_at VARCHAR(32),
+                UNIQUE KEY uq_sc_suppliers (tenant_id, sup_id), KEY idx_sc_sup_tenant (tenant_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS sc_risk_rules (
+                id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo',
+                rule VARCHAR(255), action VARCHAR(255), active TINYINT(1) DEFAULT 1, created_at VARCHAR(32),
+                KEY idx_sc_rr_tenant (tenant_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        } else {
+            $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+            try { $pdo->exec("PRAGMA busy_timeout=5000"); } catch (\Throwable $e) {}
+            $pdo->exec("CREATE TABLE IF NOT EXISTS sc_lines (
+                id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo',
+                line_id TEXT, supplier TEXT, sku TEXT, name TEXT, leadTime INTEGER DEFAULT 14,
+                risk TEXT DEFAULT 'low', delayRate REAL DEFAULT 0, totalCost REAL DEFAULT 0, created_at TEXT,
+                UNIQUE(tenant_id, line_id))");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS sc_stages (
+                id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo',
+                line_id TEXT NOT NULL, stage TEXT, stageDate TEXT, done INTEGER DEFAULT 0,
+                note TEXT, sort_order INTEGER DEFAULT 0)");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS sc_suppliers (
+                id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo',
+                sup_id TEXT, name TEXT, country TEXT, category TEXT, leadTime INTEGER, delayRate REAL,
+                orderCount INTEGER DEFAULT 0, reliability REAL DEFAULT 95, contact TEXT, created_at TEXT,
+                UNIQUE(tenant_id, sup_id))");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS sc_risk_rules (
+                id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo',
+                rule TEXT, action TEXT, active INTEGER DEFAULT 1, created_at TEXT)");
+        }
+        // [257차 통합] 공급업체 SSOT — sc_suppliers 를 wms_suppliers(거래처 마스터)에 wms_id 로 링크(멱등 ALTER; MySQL 은 위 DDL 에 이미 포함).
         try { $pdo->exec("ALTER TABLE sc_suppliers ADD COLUMN wms_id INTEGER"); } catch (\Throwable $e) { /* 이미 존재 */ }
 
-        $pdo->exec("CREATE TABLE IF NOT EXISTS sc_risk_rules (
-            id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo',
-            rule TEXT, action TEXT, active INTEGER DEFAULT 1, created_at TEXT)");
-
         self::$db = $pdo;
+        self::migrateLegacySqlite($pdo, $mysql); // [현 차수 #6] 기존 파일 SQLite 데이터 → 공유 DB 최초 1회 무손실 임포트(best-effort)
         return $pdo;
+    }
+
+    /**
+     * [현 차수 #6] 기존 backend/data/supplychain.sqlite 의 sc_* 데이터를 공유 DB 로 최초 1회 임포트(best-effort).
+     *   - 대상 PDO 가 그 파일 자신이면(강등 경로) skip. 센티넬 파일(.sc_migrated)로 재실행 방지.
+     *   - 행 단위 INSERT(중복은 무시) — 자연키(tenant_id+line_id/sup_id) UNIQUE 충돌 시 건너뜀(멱등). 실패는 무시(비차단).
+     *   - 원본 파일은 보존(삭제 안 함) — 롤백/감사 대비.
+     */
+    private static function migrateLegacySqlite(\PDO $pdo, bool $mysql): void
+    {
+        try {
+            $dir = __DIR__ . '/../../data';
+            $legacyPath = $dir . '/supplychain.sqlite';
+            $sentinel = $dir . '/supplychain.migrated';
+            if (!is_file($legacyPath) || is_file($sentinel)) return;
+            // 공유 DB 가 SQLite 이고 경로가 곧 legacy 파일이면(강등) 임포트 불필요.
+            if (!$mysql) { @touch($sentinel); return; }
+            $src = new \PDO('sqlite:' . $legacyPath);
+            $src->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+            $copy = function (string $table, array $cols) use ($src, $pdo) {
+                try {
+                    $rows = $src->query("SELECT " . implode(',', $cols) . " FROM {$table}")->fetchAll(\PDO::FETCH_ASSOC);
+                } catch (\Throwable $e) { return; }
+                if (!$rows) return;
+                $ph = implode(',', array_fill(0, count($cols), '?'));
+                $ins = $pdo->prepare("INSERT INTO {$table} (" . implode(',', $cols) . ") VALUES ({$ph})");
+                foreach ($rows as $r) {
+                    try { $ins->execute(array_map(fn($c) => $r[$c] ?? null, $cols)); }
+                    catch (\Throwable $e) { /* UNIQUE 충돌/중복 → skip(멱등) */ }
+                }
+            };
+            $copy('sc_lines', ['tenant_id','line_id','supplier','sku','name','leadTime','risk','delayRate','totalCost','created_at']);
+            $copy('sc_stages', ['tenant_id','line_id','stage','stageDate','done','note','sort_order']);
+            $copy('sc_suppliers', ['tenant_id','sup_id','name','country','category','leadTime','delayRate','orderCount','reliability','contact','wms_id','created_at']);
+            $copy('sc_risk_rules', ['tenant_id','rule','action','active','created_at']);
+            @touch($sentinel);
+        } catch (\Throwable $e) { error_log('[SupplyChain.migrateLegacySqlite] ' . $e->getMessage()); }
     }
 
     private static function tenant(Request $request): string
@@ -110,7 +183,9 @@ class SupplyChain
         if ($err = UserAuth::requirePro($request, $response)) return $err; // [현 차수] 감사 P1: 익명/무권한 쓰기 차단
         $db = self::db(); $t = self::tenant($request); $b = self::body($request);
         $lid = $b['line_id'] ?? ('SUP-' . strtoupper(substr(uniqid('', true), -10))); // [현 차수] rand 충돌 → 시간기반 고유 ID
-        $db->prepare("INSERT OR REPLACE INTO sc_lines (tenant_id,line_id,supplier,sku,name,leadTime,risk,delayRate,totalCost,created_at) VALUES (?,?,?,?,?,?,?,?,?,?)")
+        // [현 차수 #6] MySQL 은 `INSERT OR REPLACE`(SQLite 전용) 미지원 → `REPLACE INTO`. UNIQUE(tenant_id,line_id) upsert.
+        $verb = self::isMysql($db) ? 'REPLACE INTO' : 'INSERT OR REPLACE INTO';
+        $db->prepare("{$verb} sc_lines (tenant_id,line_id,supplier,sku,name,leadTime,risk,delayRate,totalCost,created_at) VALUES (?,?,?,?,?,?,?,?,?,?)")
             ->execute([$t,$lid,$b['supplier']??'',$b['sku']??'',$b['name']??'',(int)($b['leadTime']??14),$b['risk']??'low',(float)($b['delayRate']??0),(float)($b['totalCost']??0),gmdate('c')]);
         // 재생성 시 기존 stage 정리(중복 방지)
         $db->prepare("DELETE FROM sc_stages WHERE line_id=? AND tenant_id=?")->execute([$lid, $t]);
@@ -234,7 +309,9 @@ class SupplyChain
         // 마스터 wms_suppliers 생성 → 거래처(TeamMembers)에도 등록(이중등록 해소). 실패 시 sc-only.
         $wid = null; $w = self::wmsPdo();
         if ($w) { try { $now=gmdate('c'); $w->prepare("INSERT INTO wms_suppliers (tenant_id,name,contact,active,created_at,updated_at) VALUES (?,?,?,1,?,?)")->execute([$t,(string)($b['name']??''),(string)($b['contact']??''),$now,$now]); $wid=(int)$w->lastInsertId(); } catch (\Throwable $e) { $wid=null; } }
-        $db->prepare("INSERT OR REPLACE INTO sc_suppliers (tenant_id,sup_id,wms_id,name,country,category,leadTime,delayRate,orderCount,reliability,contact,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)")
+        // [현 차수 #6] MySQL 은 `INSERT OR REPLACE`(SQLite 전용) 미지원 → `REPLACE INTO`. UNIQUE(tenant_id,sup_id) upsert.
+        $verb = self::isMysql($db) ? 'REPLACE INTO' : 'INSERT OR REPLACE INTO';
+        $db->prepare("{$verb} sc_suppliers (tenant_id,sup_id,wms_id,name,country,category,leadTime,delayRate,orderCount,reliability,contact,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)")
             ->execute([$t,$sid,$wid,$b['name']??'',$b['country']??'',$b['category']??'',(int)($b['leadTime']??14),(float)($b['delayRate']??0),(int)($b['orderCount']??0),(float)($b['reliability']??95),$b['contact']??'',gmdate('c')]);
         return self::json($response, ['ok'=>true,'sup_id'=>$sid,'id'=>$wid]);
     }

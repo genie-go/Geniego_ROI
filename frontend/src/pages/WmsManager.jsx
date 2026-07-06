@@ -11,7 +11,7 @@ import { detectXSS, sanitizeInput } from '../security/SecurityGuard.js';
 import ApprovalModal from '../components/ApprovalModal.jsx';
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
 import GuideWizard from '../components/GuideWizard.jsx'; // [237차] 인앱 순차 완료 위저드(필수등록 게이팅)
-import { getJsonAuth as _gjaWms } from '../services/apiClient.js';
+import { getJsonAuth as _gjaWms, requestJsonAuth as _rjaWms } from '../services/apiClient.js';
 import * as wmsApi from '../services/wmsApi.js';
 import { IS_DEMO } from '../utils/demoEnv.js';
 import { WmsDashboardTab, WmsReportsTab, WmsTollProcessingTab } from '../components/wms/WmsOpsTabs.jsx'; // [현 차수] 물류 대시보드·정기리포트·임가공
@@ -100,6 +100,54 @@ const initCombined = [];
 const IO_TYPES = ["Inbound", "Outbound", "ReturnsInbound", "ReturnsOutbound", "WarehouseTransfer", "StockAdj", "Disposal"];
 const IO_COLORS = { "Inbound": "#22c55e", "Outbound": "#4f8ef7", "ReturnsInbound": "#a855f7", "ReturnsOutbound": "#f97316", "WarehouseTransfer": "#eab308", "StockAdj": "#14d9b0", "Disposal": "#ef4444" };
 const CARRIER_TYPES = ["Domestic", "IntlExpress", "IntlPost", "Freight", "SameDay"];
+
+/* ─── [현 차수] WMS 물리집행 백엔드 클라이언트 (bins·barcodes·scan·waves) ──────────
+   wmsApi.js 는 스코프잠금(이 파일만 편집)으로 확장 불가 → apiClient 의 getJsonAuth/requestJsonAuth
+   를 직접 사용. 인증은 기존 WMS 호출과 동일(세션 self-auth, /api/wms 접두).                 */
+const binsApi = {
+    list:    ()       => _gjaWms('/api/wms/bins'),
+    create:  (b)      => _rjaWms('/api/wms/bins', 'POST', b),
+    update:  (id, b)  => _rjaWms(`/api/wms/bins/${id}`, 'PUT', b),
+    remove:  (id)     => _rjaWms(`/api/wms/bins/${id}`, 'DELETE'),
+    stock:   ()       => _gjaWms('/api/wms/bin-stock'),
+};
+const barcodesApi = {
+    list:    ()       => _gjaWms('/api/wms/barcodes'),
+    create:  (b)      => _rjaWms('/api/wms/barcodes', 'POST', b),
+    remove:  (id)     => _rjaWms(`/api/wms/barcodes/${id}`, 'DELETE'),
+};
+const scanApi = {
+    scanIn:  (b)      => _rjaWms('/api/wms/scan-in', 'POST', b),
+    scanOut: (b)      => _rjaWms('/api/wms/scan-out', 'POST', b),
+    putaway: (b)      => _rjaWms('/api/wms/putaway', 'POST', b),
+};
+const wavesApi = {
+    list:    ()       => _gjaWms('/api/wms/waves'),
+    create:  (b)      => _rjaWms('/api/wms/waves', 'POST', b),
+    confirm: (id)     => _rjaWms(`/api/wms/waves/${id}/confirm`, 'POST', {}),
+    remove:  (id)     => _rjaWms(`/api/wms/waves/${id}`, 'DELETE'),
+};
+const WAVE_STATUS_COLOR = { completed: '#22c55e', partial: '#eab308', short: '#ef4444' };
+
+/* 창고 목록 로더 — 물리집행 탭들이 wh_id 선택지를 백엔드에서 확보(운영 whs=[] 폴백 대응) */
+function useWmsWarehouses() {
+    const [whs, setWhs] = useState(IS_DEMO ? DEMO_WAREHOUSES : []);
+    useEffect(() => {
+        let cancelled = false;
+        (async () => {
+            try {
+                const r = await _gjaWms('/api/wms/warehouses');
+                if (!cancelled && Array.isArray(r?.warehouses) && r.warehouses.length) setWhs(r.warehouses);
+            } catch { /* 폴백 유지 */ }
+        })();
+        return () => { cancelled = true; };
+    }, []);
+    return whs;
+}
+function whOpts(whs) {
+    const opts = (whs || []).map(w => ({ v: w.id, l: w.name || w.id }));
+    return opts.length ? opts : [{ v: 'W001', l: 'W001' }];
+}
 
 /* ═══ TAB 1: Warehouse Management ═══════════════════════════ */
 const WarehouseTab = memo(function WarehouseTab({ showForm, setShowForm, showPerms, setShowPerms }) {
@@ -2220,6 +2268,350 @@ const WmsGuideTab = memo(function WmsGuideTab() {
     );
 });
 
+/* ═══ TAB: Bin Locations (로케이션/빈 관리 + 빈재고) ═══════════════ */
+const BinLocationsTab = memo(function BinLocationsTab() {
+    const { t } = useI18n();
+    const whs = useWmsWarehouses();
+    const [bins, setBins] = useState([]);
+    const [binStock, setBinStock] = useState([]);
+    const [form, setForm] = useState({ code: '', zone: '', aisle: '', rack: '', level: '', seq: '', wh_id: 'W001' });
+    const [editing, setEditing] = useState(null); // id or null
+    const [showForm, setShowForm] = useState(false);
+    const [view, setView] = useState('bins'); // 'bins' | 'stock'
+
+    const reload = useCallback(async () => {
+        try { const r = await binsApi.list(); setBins(Array.isArray(r?.bins) ? r.bins : (Array.isArray(r?.rows) ? r.rows : (Array.isArray(r) ? r : []))); } catch (e) { /* keep */ }
+    }, []);
+    const reloadStock = useCallback(async () => {
+        try { const r = await binsApi.stock(); setBinStock(Array.isArray(r?.stock) ? r.stock : (Array.isArray(r?.rows) ? r.rows : (Array.isArray(r) ? r : []))); } catch (e) { /* keep */ }
+    }, []);
+    useEffect(() => { reload(); reloadStock(); }, [reload, reloadStock]);
+
+    const reset = () => { setForm({ code: '', zone: '', aisle: '', rack: '', level: '', seq: '', wh_id: whOpts(whs)[0].v }); setEditing(null); };
+    const save = async () => {
+        if (!form.code) return alert(t('wms.bins.codeRequired', '빈 코드를 입력하세요'));
+        const body = { ...form, seq: form.seq === '' ? 0 : Number(form.seq) };
+        try {
+            if (editing) await binsApi.update(editing, body);
+            else await binsApi.create(body);
+            await reload();
+        } catch (e) { if (handlePlanLimit(e)) return; return alert(String(e?.message || e)); }
+        reset(); setShowForm(false);
+    };
+    const editBin = (b) => { setForm({ code: b.code || '', zone: b.zone || '', aisle: b.aisle || '', rack: b.rack || '', level: b.level || '', seq: b.seq ?? '', wh_id: b.wh_id || 'W001' }); setEditing(b.id); setShowForm(true); };
+    const removeBin = async (id) => {
+        if (!window.confirm(t('wms.bins.deleteConfirm', '이 로케이션을 삭제할까요?'))) return;
+        try { await binsApi.remove(id); await reload(); await reloadStock(); } catch (e) { alert(String(e?.message || e)); }
+    };
+    const setF = (k, v) => setForm(p => ({ ...p, [k]: v }));
+
+    return (
+        <div style={{ display: 'grid', gap: 14 }}>
+            <Sec action={<div style={{ display: 'flex', gap: 6 }}>
+                <button onClick={() => setView('bins')} style={{ padding: '5px 12px', borderRadius: 20, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 700, background: view === 'bins' ? '#2563eb' : '#eef2ff', color: view === 'bins' ? '#fff' : '#374151' }}>{t('wms.bins.tabBins', '로케이션')}</button>
+                <button onClick={() => setView('stock')} style={{ padding: '5px 12px', borderRadius: 20, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 700, background: view === 'stock' ? '#2563eb' : '#eef2ff', color: view === 'stock' ? '#fff' : '#374151' }}>{t('wms.bins.tabStock', '빈 재고')}</button>
+                <Btn onClick={() => { reset(); setShowForm(s => !s); }} color="#4f8ef7">+ {t('wms.bins.addBtn', '빈 추가')}</Btn>
+            </div>}>{t('wms.bins.title', '로케이션(빈) 관리')}</Sec>
+
+            {showForm && view === 'bins' && (
+                <div className="card card-glass" style={{ padding: 18 }}>
+                    <Sec>{editing ? t('wms.bins.editTitle', '빈 수정') : t('wms.bins.newTitle', '새 빈 등록')}</Sec>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(120px,1fr))', gap: 12 }}>
+                        <Input label={t('wms.bins.code', '빈 코드')} value={form.code} onChange={v => setF('code', v)} placeholder="A-01-01-1" />
+                        <Select label={t('wms.bins.wh', '창고')} value={form.wh_id} onChange={v => setF('wh_id', v)} opts={whOpts(whs)} />
+                        <Input label={t('wms.bins.zone', '존')} value={form.zone} onChange={v => setF('zone', v)} placeholder="A" />
+                        <Input label={t('wms.bins.aisle', '통로')} value={form.aisle} onChange={v => setF('aisle', v)} placeholder="01" />
+                        <Input label={t('wms.bins.rack', '랙')} value={form.rack} onChange={v => setF('rack', v)} placeholder="01" />
+                        <Input label={t('wms.bins.level', '단')} value={form.level} onChange={v => setF('level', v)} placeholder="1" />
+                        <Input label={t('wms.bins.seq', '피킹 순서')} value={form.seq} onChange={v => setF('seq', v)} type="number" placeholder="0" />
+                    </div>
+                    <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
+                        <Btn onClick={save} color="#22c55e">{t('wms.bins.saveBtn', '저장')}</Btn>
+                        <Btn onClick={() => { reset(); setShowForm(false); }} color="#666">{t('wms.whCancelBtn')}</Btn>
+                    </div>
+                </div>
+            )}
+
+            {view === 'bins' && (
+                <div className="card card-glass">
+                    <table className="table">
+                        <thead><tr>
+                            <th>{t('wms.bins.code', '빈 코드')}</th><th>{t('wms.bins.wh', '창고')}</th><th>{t('wms.bins.zone', '존')}</th>
+                            <th>{t('wms.bins.aisle', '통로')}</th><th>{t('wms.bins.rack', '랙')}</th><th>{t('wms.bins.level', '단')}</th>
+                            <th>{t('wms.bins.seq', '피킹 순서')}</th><th>{t('wms.permColAction')}</th>
+                        </tr></thead>
+                        <tbody>
+                            {bins.length === 0 && <tr><td colSpan={8} style={{ textAlign: 'center', padding: 20, color: '#6b7280', fontSize: 12 }}>{t('wms.bins.empty', '등록된 로케이션이 없습니다')}</td></tr>}
+                            {bins.map(b => (
+                                <tr key={b.id}>
+                                    <td style={{ fontFamily: 'monospace', fontWeight: 700, color: '#2563eb' }}>{b.code}</td>
+                                    <td style={{ fontSize: 11 }}>{(whs.find(w => w.id === b.wh_id)?.code) || b.wh_id}</td>
+                                    <td style={{ fontSize: 11 }}>{b.zone}</td>
+                                    <td style={{ fontSize: 11 }}>{b.aisle}</td>
+                                    <td style={{ fontSize: 11 }}>{b.rack}</td>
+                                    <td style={{ fontSize: 11 }}>{b.level}</td>
+                                    <td style={{ textAlign: 'center', fontWeight: 700 }}>{b.seq ?? '—'}</td>
+                                    <td style={{ display: 'flex', gap: 6 }}>
+                                        <Btn onClick={() => editBin(b)} color="#6366f1" small>{t('wms.supEditBtn')}</Btn>
+                                        <Btn onClick={() => removeBin(b.id)} color="#ef4444" small>🗑</Btn>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
+
+            {view === 'stock' && (
+                <div className="card card-glass">
+                    <table className="table">
+                        <thead><tr>
+                            <th>{t('wms.bins.code', '빈 코드')}</th><th>{t('wms.bins.wh', '창고')}</th>
+                            <th>{t('wms.ioColSku')}</th><th>{t('wms.ioColProduct')}</th><th>{t('wms.ioColQty')}</th>
+                        </tr></thead>
+                        <tbody>
+                            {binStock.length === 0 && <tr><td colSpan={5} style={{ textAlign: 'center', padding: 20, color: '#6b7280', fontSize: 12 }}>{t('wms.bins.stockEmpty', '빈 재고가 없습니다')}</td></tr>}
+                            {binStock.map((s, i) => (
+                                <tr key={s.id || i}>
+                                    <td style={{ fontFamily: 'monospace', fontWeight: 700, color: '#2563eb' }}>{s.bin || s.code || s.bin_code}</td>
+                                    <td style={{ fontSize: 11 }}>{(whs.find(w => w.id === s.wh_id)?.code) || s.wh_id}</td>
+                                    <td style={{ fontFamily: 'monospace', fontSize: 11, color: '#6b7280' }}>{s.sku}</td>
+                                    <td style={{ fontSize: 12 }}>{s.name}</td>
+                                    <td style={{ textAlign: 'center', fontWeight: 700, color: '#22c55e' }}>{Number(s.qty ?? s.on_hand ?? 0)}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
+        </div>
+    );
+});
+
+/* ═══ TAB: Barcode / Serial Registry (바코드·시리얼 매핑) ═══════════════ */
+const BarcodeRegistryTab = memo(function BarcodeRegistryTab() {
+    const { t } = useI18n();
+    const [rows, setRows] = useState([]);
+    const [form, setForm] = useState({ code: '', sku: '', kind: 'barcode', status: 'active' });
+    const [showForm, setShowForm] = useState(false);
+    const [search, setSearch] = useState('');
+
+    const reload = useCallback(async () => {
+        try { const r = await barcodesApi.list(); setRows(Array.isArray(r?.barcodes) ? r.barcodes : (Array.isArray(r?.rows) ? r.rows : (Array.isArray(r) ? r : []))); } catch (e) { /* keep */ }
+    }, []);
+    useEffect(() => { reload(); }, [reload]);
+
+    const save = async () => {
+        if (!form.code || !form.sku) return alert(t('wms.barcodes.required', '바코드와 SKU를 입력하세요'));
+        try { await barcodesApi.create(form); await reload(); } catch (e) { if (handlePlanLimit(e)) return; return alert(String(e?.message || e)); }
+        setForm({ code: '', sku: '', kind: 'barcode', status: 'active' }); setShowForm(false);
+    };
+    const remove = async (id) => {
+        if (!window.confirm(t('wms.barcodes.deleteConfirm', '이 매핑을 삭제할까요?'))) return;
+        try { await barcodesApi.remove(id); await reload(); } catch (e) { alert(String(e?.message || e)); }
+    };
+    const setF = (k, v) => setForm(p => ({ ...p, [k]: v }));
+    const q = search.trim().toLowerCase();
+    const filtered = q ? rows.filter(r => (r.code || '').toLowerCase().includes(q) || (r.sku || '').toLowerCase().includes(q)) : rows;
+
+    return (
+        <div style={{ display: 'grid', gap: 14 }}>
+            <Sec action={<Btn onClick={() => setShowForm(s => !s)} color="#4f8ef7">+ {t('wms.barcodes.addBtn', '매핑 추가')}</Btn>}>{t('wms.barcodes.title', '바코드/시리얼 매핑')}</Sec>
+            <div style={{ fontSize: 11, color: '#6b7280' }}>{t('wms.barcodes.desc', '바코드 또는 시리얼번호를 SKU에 연결해 스캔 입출고를 인식합니다.')}</div>
+
+            {showForm && (
+                <div className="card card-glass" style={{ padding: 18 }}>
+                    <Sec>{t('wms.barcodes.newTitle', '새 매핑 등록')}</Sec>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(140px,1fr))', gap: 12 }}>
+                        <Input label={t('wms.barcodes.code', '바코드/시리얼')} value={form.code} onChange={v => setF('code', v)} placeholder="8801234567890" />
+                        <Input label={t('wms.ioSkuLabel')} value={form.sku} onChange={v => setF('sku', v)} placeholder="EP-PRX-001" />
+                        <Select label={t('wms.barcodes.kind', '유형')} value={form.kind} onChange={v => setF('kind', v)} opts={[{ v: 'barcode', l: t('wms.barcodes.kindBarcode', '바코드') }, { v: 'serial', l: t('wms.barcodes.kindSerial', '시리얼') }]} />
+                        <Select label={t('wms.barcodes.status', '상태')} value={form.status} onChange={v => setF('status', v)} opts={[{ v: 'active', l: t('wms.barcodes.statusActive', '활성') }, { v: 'inactive', l: t('wms.barcodes.statusInactive', '비활성') }]} />
+                    </div>
+                    <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
+                        <Btn onClick={save} color="#22c55e">{t('wms.bins.saveBtn', '저장')}</Btn>
+                        <Btn onClick={() => setShowForm(false)} color="#666">{t('wms.whCancelBtn')}</Btn>
+                    </div>
+                </div>
+            )}
+
+            <div style={{ position: 'relative' }}>
+                <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('wms.barcodes.searchPh', '바코드 / SKU 검색')}
+                    style={{ width: '100%', boxSizing: 'border-box', padding: '8px 12px', borderRadius: 9, background: '#fff', border: '1px solid #d1d5db', color: '#1f2937', fontSize: 12, outline: 'none' }} />
+            </div>
+
+            <div className="card card-glass">
+                <table className="table">
+                    <thead><tr>
+                        <th>{t('wms.barcodes.code', '바코드/시리얼')}</th><th>{t('wms.ioColSku')}</th>
+                        <th>{t('wms.barcodes.kind', '유형')}</th><th>{t('wms.barcodes.status', '상태')}</th><th>{t('wms.permColAction')}</th>
+                    </tr></thead>
+                    <tbody>
+                        {filtered.length === 0 && <tr><td colSpan={5} style={{ textAlign: 'center', padding: 20, color: '#6b7280', fontSize: 12 }}>{t('wms.barcodes.empty', '등록된 매핑이 없습니다')}</td></tr>}
+                        {filtered.map(r => (
+                            <tr key={r.id}>
+                                <td style={{ fontFamily: 'monospace', fontWeight: 700, color: '#2563eb' }}>{r.code}</td>
+                                <td style={{ fontFamily: 'monospace', fontSize: 11 }}>{r.sku}</td>
+                                <td><Tag label={r.kind === 'serial' ? t('wms.barcodes.kindSerial', '시리얼') : t('wms.barcodes.kindBarcode', '바코드')} color={r.kind === 'serial' ? '#a855f7' : '#4f8ef7'} /></td>
+                                <td><Tag label={(r.status === 'inactive') ? t('wms.barcodes.statusInactive', '비활성') : t('wms.barcodes.statusActive', '활성')} color={(r.status === 'inactive') ? '#666' : '#22c55e'} /></td>
+                                <td><Btn onClick={() => remove(r.id)} color="#ef4444" small>🗑</Btn></td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    );
+});
+
+/* ═══ TAB: Scan (스캔 입고·출고·적치) ═══════════════ */
+const ScanForm = memo(function ScanForm({ kind, whs, title, color }) {
+    const { t } = useI18n();
+    const [form, setForm] = useState({ code: '', qty: '1', wh_id: whOpts(whs)[0].v, bin: '' });
+    const [result, setResult] = useState(null); // {ok, msg, unresolved}
+    const [busy, setBusy] = useState(false);
+    const setF = (k, v) => setForm(p => ({ ...p, [k]: v }));
+
+    const submit = async () => {
+        if (!form.code) { setResult({ ok: false, msg: t('wms.scan.codeRequired', '바코드/SKU를 입력하세요') }); return; }
+        const body = { barcode: form.code, sku: form.code, qty: Number(form.qty) || 1, wh_id: form.wh_id, bin: form.bin };
+        setBusy(true); setResult(null);
+        try {
+            const fn = kind === 'in' ? scanApi.scanIn : kind === 'out' ? scanApi.scanOut : scanApi.putaway;
+            const res = await fn(body);
+            // 백엔드가 바코드/SKU 를 해석하지 못한 경우
+            if (res?.unresolved || res?.resolved === false || (res && res.ok === false && /unresolv|not\s*found|no\s*match/i.test(String(res.error || res.message || '')))) {
+                setResult({ ok: false, unresolved: true, msg: t('wms.scan.unresolved', '바코드/SKU를 인식할 수 없습니다') });
+            } else if (res && res.ok === false) {
+                setResult({ ok: false, msg: String(res.error || res.message || t('wms.scan.failed', '처리 실패')) });
+            } else {
+                const sku = res?.sku || res?.resolved_sku || form.code;
+                setResult({ ok: true, msg: t('wms.scan.done', '처리 완료') + (sku ? ` · ${sku}` : '') });
+                setForm(p => ({ ...p, code: '' }));
+            }
+        } catch (e) {
+            if (handlePlanLimit(e)) { setBusy(false); return; }
+            const em = String(e?.message || e);
+            if (/unresolv|not\s*found|no\s*match|404/i.test(em)) setResult({ ok: false, unresolved: true, msg: t('wms.scan.unresolved', '바코드/SKU를 인식할 수 없습니다') });
+            else setResult({ ok: false, msg: em });
+        } finally { setBusy(false); }
+    };
+
+    return (
+        <div className="card card-glass" style={{ padding: 18, borderTop: `3px solid ${color}` }}>
+            <Sec>{title}</Sec>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(120px,1fr))', gap: 12 }}>
+                <Input label={t('wms.scan.code', '바코드 / SKU')} value={form.code} onChange={v => setF('code', v)} placeholder="8801234567890 / EP-PRX-001" />
+                <Input label={t('wms.ioQtyLabel')} value={form.qty} onChange={v => setF('qty', v)} type="number" placeholder="1" />
+                <Select label={t('wms.bins.wh', '창고')} value={form.wh_id} onChange={v => setF('wh_id', v)} opts={whOpts(whs)} />
+                <Input label={t('wms.scan.bin', '로케이션(빈)')} value={form.bin} onChange={v => setF('bin', v)} placeholder="A-01-01-1" />
+            </div>
+            <div style={{ display: 'flex', gap: 8, marginTop: 14, alignItems: 'center' }}>
+                <Btn onClick={submit} color={color}>{busy ? '…' : title}</Btn>
+                {result && (
+                    <span style={{ fontSize: 12, fontWeight: 700, color: result.ok ? '#22c55e' : (result.unresolved ? '#f97316' : '#ef4444') }}>
+                        {result.ok ? '✅' : (result.unresolved ? '⚠️' : '⛔')} {result.msg}
+                    </span>
+                )}
+            </div>
+        </div>
+    );
+});
+const ScanTab = memo(function ScanTab() {
+    const { t } = useI18n();
+    const whs = useWmsWarehouses();
+    return (
+        <div style={{ display: 'grid', gap: 14 }}>
+            <Sec>{t('wms.scan.title', '스캔 입출고·적치')}</Sec>
+            <div style={{ fontSize: 11, color: '#6b7280' }}>{t('wms.scan.desc', '바코드 또는 SKU를 입력해 입고/출고/적치를 처리합니다. 등록된 바코드↔SKU 매핑으로 자동 인식됩니다.')}</div>
+            <ScanForm kind="in" whs={whs} title={t('wms.scan.in', '스캔 입고')} color="#22c55e" />
+            <ScanForm kind="out" whs={whs} title={t('wms.scan.out', '스캔 출고')} color="#4f8ef7" />
+            <ScanForm kind="putaway" whs={whs} title={t('wms.scan.putaway', '적치(Put-away)')} color="#a855f7" />
+        </div>
+    );
+});
+
+/* ═══ TAB: Wave Picking (웨이브 피킹) ═══════════════ */
+const WavePickingTab = memo(function WavePickingTab() {
+    const { t } = useI18n();
+    const whs = useWmsWarehouses();
+    const [waves, setWaves] = useState([]);
+    const [form, setForm] = useState({ name: '', zone: '', wh_id: whOpts(whs)[0].v, orders: '' });
+    const [showForm, setShowForm] = useState(false);
+
+    const reload = useCallback(async () => {
+        try { const r = await wavesApi.list(); setWaves(Array.isArray(r?.waves) ? r.waves : (Array.isArray(r?.rows) ? r.rows : (Array.isArray(r) ? r : []))); } catch (e) { /* keep */ }
+    }, []);
+    useEffect(() => { reload(); }, [reload]);
+
+    const create = async () => {
+        const orders = form.orders.split(/[,\s]+/).map(s => s.trim()).filter(Boolean);
+        const body = { name: form.name || undefined, zone: form.zone || undefined, wh_id: form.wh_id, orders };
+        try { await wavesApi.create(body); await reload(); } catch (e) { if (handlePlanLimit(e)) return; return alert(String(e?.message || e)); }
+        setForm({ name: '', zone: '', wh_id: whOpts(whs)[0].v, orders: '' }); setShowForm(false);
+    };
+    const confirm = async (id) => {
+        try { const r = await wavesApi.confirm(id); await reload(); if (r?.status) { /* status reflected on reload */ } } catch (e) { alert(String(e?.message || e)); }
+    };
+    const remove = async (id) => {
+        if (!window.confirm(t('wms.wave.deleteConfirm', '이 웨이브를 삭제할까요?'))) return;
+        try { await wavesApi.remove(id); await reload(); } catch (e) { alert(String(e?.message || e)); }
+    };
+    const setF = (k, v) => setForm(p => ({ ...p, [k]: v }));
+
+    return (
+        <div style={{ display: 'grid', gap: 14 }}>
+            <Sec action={<Btn onClick={() => setShowForm(s => !s)} color="#4f8ef7">+ {t('wms.wave.addBtn', '웨이브 생성')}</Btn>}>{t('wms.wave.title', '웨이브 피킹')}</Sec>
+            <div style={{ fontSize: 11, color: '#6b7280' }}>{t('wms.wave.desc', '여러 주문을 존별로 묶어 피킹 동선 순서로 정렬합니다. 확정 시 출고 이동으로 전환됩니다.')}</div>
+
+            {showForm && (
+                <div className="card card-glass" style={{ padding: 18 }}>
+                    <Sec>{t('wms.wave.newTitle', '새 웨이브')}</Sec>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(140px,1fr))', gap: 12 }}>
+                        <Input label={t('wms.wave.name', '웨이브명')} value={form.name} onChange={v => setF('name', v)} placeholder="WAVE-2026-001" />
+                        <Select label={t('wms.bins.wh', '창고')} value={form.wh_id} onChange={v => setF('wh_id', v)} opts={whOpts(whs)} />
+                        <Input label={t('wms.bins.zone', '존')} value={form.zone} onChange={v => setF('zone', v)} placeholder="A" />
+                        <Input label={t('wms.wave.orders', '주문번호(쉼표 구분)')} value={form.orders} onChange={v => setF('orders', v)} placeholder="ORD-1, ORD-2, ORD-3" style={{ gridColumn: '1 / -1' }} />
+                    </div>
+                    <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
+                        <Btn onClick={create} color="#22c55e">{t('wms.wave.createBtn', '생성')}</Btn>
+                        <Btn onClick={() => setShowForm(false)} color="#666">{t('wms.whCancelBtn')}</Btn>
+                    </div>
+                </div>
+            )}
+
+            <div className="card card-glass">
+                <table className="table">
+                    <thead><tr>
+                        <th>{t('wms.wave.name', '웨이브명')}</th><th>{t('wms.bins.wh', '창고')}</th><th>{t('wms.bins.zone', '존')}</th>
+                        <th>{t('wms.wave.orderCount', '주문 수')}</th><th>{t('wms.barcodes.status', '상태')}</th><th>{t('wms.ioColDate')}</th><th>{t('wms.permColAction')}</th>
+                    </tr></thead>
+                    <tbody>
+                        {waves.length === 0 && <tr><td colSpan={7} style={{ textAlign: 'center', padding: 20, color: '#6b7280', fontSize: 12 }}>{t('wms.wave.empty', '생성된 웨이브가 없습니다')}</td></tr>}
+                        {waves.map(w => {
+                            const oc = w.order_count ?? (Array.isArray(w.orders) ? w.orders.length : (w.orders || '—'));
+                            return (
+                                <tr key={w.id}>
+                                    <td style={{ fontWeight: 700, color: '#2563eb' }}>{w.name || w.code || ('WAVE-' + w.id)}</td>
+                                    <td style={{ fontSize: 11 }}>{(whs.find(x => x.id === w.wh_id)?.code) || w.wh_id || '—'}</td>
+                                    <td style={{ fontSize: 11 }}>{w.zone || '—'}</td>
+                                    <td style={{ textAlign: 'center', fontWeight: 700 }}>{oc}</td>
+                                    <td>{w.status ? <Tag label={w.status} color={WAVE_STATUS_COLOR[String(w.status).toLowerCase()] || '#4f8ef7'} /> : <Tag label={t('wms.wave.statusOpen', '대기')} color="#4f8ef7" />}</td>
+                                    <td style={{ fontSize: 11, color: '#6b7280' }}>{w.created_at || w.at || '—'}</td>
+                                    <td style={{ display: 'flex', gap: 6 }}>
+                                        {!(w.status && /completed/i.test(String(w.status))) && <Btn onClick={() => confirm(w.id)} color="#22c55e" small>{t('wms.wave.confirmBtn', '피킹 확정')}</Btn>}
+                                        <Btn onClick={() => remove(w.id)} color="#ef4444" small>🗑</Btn>
+                                    </td>
+                                </tr>
+                            );
+                        })}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    );
+});
+
 export default function WmsManager() {
     const { fmt } = useCurrency();
     const navigate = useNavigate();
@@ -2295,6 +2687,10 @@ export default function WmsManager() {
         { id: "warehouse", label: t("wms.tabWarehouse"), desc: t("wms.tabWarehouseDesc") },
         { id: "inout", label: t("wms.tabInOut"), desc: t("wms.tabInOutDesc") },
         { id: "inventory", label: t("wms.tabInventory"), desc: t("wms.tabInventoryDesc") },
+        { id: "bins", label: t("wms.tabBins", "📍 로케이션"), desc: t("wms.tabBinsDesc", "빈 로케이션·피킹순서·빈재고") },
+        { id: "barcodes", label: t("wms.tabBarcodes", "🏷️ 바코드"), desc: t("wms.tabBarcodesDesc", "바코드/시리얼↔SKU 매핑") },
+        { id: "scan", label: t("wms.tabScan", "📷 스캔"), desc: t("wms.tabScanDesc", "스캔 입고·출고·적치") },
+        { id: "wave", label: t("wms.tabWave", "🌊 웨이브"), desc: t("wms.tabWaveDesc", "웨이브 피킹·동선 확정") },
         { id: "tollprocessing", label: t("wms.tabToll", "🛠️ 임가공"), desc: t("wms.tabTollDesc", "외주 임가공 재고·이력 현황") },
         { id: "reports", label: t("wms.tabReports", "📈 정기 리포트"), desc: t("wms.tabReportsDesc", "일/월/분기/연간 리포트·물류 분석") },
         { id: "receiving", label: t("wms.tabReceiving"), desc: t("wms.tabReceivingDesc") },
@@ -2480,6 +2876,10 @@ export default function WmsManager() {
             {tab === "warehouse" && <WarehouseTab showForm={whShowForm} setShowForm={setWhShowForm} showPerms={whShowPerms} setShowPerms={setWhShowPerms} />}
             {tab === "inout" && <InOutTab whs={whs} />}
             {tab === "inventory" && <InventoryTab whs={whs} />}
+            {tab === "bins" && <BinLocationsTab />}
+            {tab === "barcodes" && <BarcodeRegistryTab />}
+            {tab === "scan" && <ScanTab />}
+            {tab === "wave" && <WavePickingTab />}
             {tab === "receiving" && <ReceivingTab supplyOrders={supplyOrders} updateSupplyOrderStatus={updateSupplyOrderStatus} />}
             {tab === "picking" && <PickingListTab pickingLists={pickingLists} />}
             {tab === "lot" && <LotManagementTab lotManagement={lotManagement} registerLot={registerLot} inventory={inventory} />}

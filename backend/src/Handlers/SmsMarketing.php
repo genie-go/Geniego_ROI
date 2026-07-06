@@ -232,11 +232,21 @@ final class SmsMarketing
         if (!$numbers) return TemplateResponder::respond($res->withStatus(422), ['ok'=>false,'error'=>'발송 대상(세그먼트 고객 전화번호)이 없습니다.','sent'=>0]);
 
         $freqCfg = CRM::commsFreqConfig($pdo, $tenant);
-        $sent = $failed = $capped = 0;
+        $sent = $failed = $capped = $optout = $quiet = 0;
         foreach (array_slice($numbers, 0, 500) as $to) {
             $to = preg_replace('/\D/', '', (string)$to);
             if (strlen($to) < 8) continue;
             $cid = self::customerIdByPhone($pdo, $tenant, $to);
+            // [현 차수 동의센터 SSOT] 통합 발송 게이트 — SMS 채널 옵트아웃/조용시간 단일소스(crm_channel_prefs). cid=0이면 fail-open. fail-open on error.
+            // [R4 라벨교정] 게이트 거부사유별 정확 집계 — 빈도=capped·조용시간=quiet·그 외(옵트아웃/suppression)만 opted_out.
+            $g = CRM::isMarketingSendAllowed($tenant, $cid, 'sms', ['phone'=>$to]);
+            if (!($g['allowed'] ?? false)) {
+                $rc = (string)($g['reason'] ?? '');
+                if (strpos($rc, 'freq') !== false) { $capped++; }
+                elseif (strpos($rc, 'quiet') !== false) { $quiet++; }
+                else { $optout++; }
+                continue;
+            }
             if ($cid > 0 && CRM::isFrequencyCapped($pdo, $tenant, $cid, $freqCfg['cap'], $freqCfg['window'])) { $capped++; continue; }
             if ($plan === 'demo') {
                 $status = rand(0, 9) < 95 ? 'delivered' : 'failed';
@@ -255,7 +265,7 @@ final class SmsMarketing
         }
         $pdo->prepare("UPDATE sms_campaigns SET status='sent', sent_count=?, updated_at=? WHERE id=? AND tenant_id=?")
             ->execute([$sent, $now, $id, $tenant]);
-        return TemplateResponder::respond($res, ['ok'=>true,'id'=>$id,'status'=>'sent','sent'=>$sent,'failed'=>$failed,'capped'=>$capped,'total'=>$sent+$failed]);
+        return TemplateResponder::respond($res, ['ok'=>true,'id'=>$id,'status'=>'sent','sent'=>$sent,'failed'=>$failed,'capped'=>$capped,'quiet_deferred'=>$quiet,'opted_out'=>$optout,'total'=>$sent+$failed]);
     }
 
     // POST /api/sms/settings

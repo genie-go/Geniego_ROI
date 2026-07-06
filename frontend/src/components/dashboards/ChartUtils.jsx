@@ -271,5 +271,160 @@ export function StackBar({ segments, height = 10, borderRadius = 6 }) {
     );
 }
 
+// ── StackedBarChart ────────────────────────────────────────────────────────
+//  [현 차수 BI확장] 수직 누적 막대 — x=dim, 각 series(선택 지표 또는 2차원값)를 색으로 쌓음. Tableau 격차 축소.
+//  단일축 규칙 준수(모든 세그먼트 동일 y스케일). 세그먼트 간 2px surface gap. 값 라벨은 hover(<title>)로만.
+export function StackedBarChart({ data, xKey, series, width = 680, height = 260, format }) {
+    if (!data?.length || !series?.length) return null;
+    const f = typeof format === 'function' ? format : (v) => fmt(v);
+    const pad = { t: 16, r: 12, b: 40, l: 48 };
+    const W = width - pad.l - pad.r;
+    const H = height - pad.t - pad.b;
+    const totals = data.map(d => series.reduce((s, ser) => s + Math.max(0, Number(d[ser.key] ?? 0)), 0));
+    const maxV = Math.max(1, ...totals) * 1.12;
+    const gap = W / data.length;
+    const bw = Math.min(48, gap * 0.62);
+    const yScale = v => (v / maxV) * H;
+    const gridT = [0, 0.25, 0.5, 0.75, 1];
+    return (
+        <svg width="100%" viewBox={`0 0 ${width} ${height}`} style={{ overflow: 'hidden', display: 'block' }}>
+            <g transform={`translate(${pad.l},${pad.t})`}>
+                {gridT.map(t => (
+                    <g key={t}>
+                        <line x1={0} y1={H * (1 - t)} x2={W} y2={H * (1 - t)} stroke="var(--border)" strokeWidth={1} strokeDasharray="3,4" />
+                        <text x={-8} y={H * (1 - t) + 4} {...FONT} fill="var(--text-2)" textAnchor="end">{f(maxV * t)}</text>
+                    </g>
+                ))}
+                {data.map((d, i) => {
+                    const x = i * gap + (gap - bw) / 2;
+                    let acc = 0;
+                    return (
+                        <g key={i}>
+                            {series.map((ser, si) => {
+                                const v = Math.max(0, Number(d[ser.key] ?? 0));
+                                const segH = yScale(v);
+                                if (segH <= 0) return null;
+                                const y = H - acc - segH;
+                                acc += segH;
+                                return (
+                                    <rect key={ser.key} x={x} y={y} width={bw} height={Math.max(0, segH - 2)} rx={si === series.length - 1 ? 4 : 2}
+                                        fill={ser.color} opacity={0.9}>
+                                        <title>{`${d[xKey]} · ${ser.name || ser.key}: ${f(v)}`}</title>
+                                    </rect>
+                                );
+                            })}
+                            <text x={x + bw / 2} y={H + 22} {...FONT} fill="var(--text-2)" textAnchor="middle">{d[xKey]}</text>
+                        </g>
+                    );
+                })}
+                <line x1={0} y1={H} x2={W} y2={H} stroke="var(--border)" />
+            </g>
+        </svg>
+    );
+}
+
+// ── AreaChart ──────────────────────────────────────────────────────────────
+//  [현 차수 BI확장] 면적 차트 — LineChart 코어 재사용(area 강제). 시계열 추세의 누적감 표현.
+export function AreaChart({ data, labels, series, width = 720, height = 240, format }) {
+    if (!data?.length || !series?.length) return null;
+    const areaSeries = series.map(s => ({ ...s, area: true }));
+    return <LineChart data={data} labels={labels} series={areaSeries} width={width} height={height} format={format} />;
+}
+
+// ── ComboChart (bar + line, 단일 y축) ───────────────────────────────────────
+//  [현 차수 BI확장] 막대+선 콤보. ★단일축 규칙 준수 — 막대·선 모두 동일 y스케일(이중축 금지, dataviz 원칙).
+//  용례: 같은 지표를 막대(값)+선(추세/이동평균)으로 병기, 또는 동일 스케일대의 두 지표.
+export function ComboChart({ data, xKey, barKey, lineKey, barColor = '#4f8ef7', lineColor = '#f59e0b', barName, lineName, width = 680, height = 260, format }) {
+    if (!data?.length) return null;
+    const f = typeof format === 'function' ? format : (v) => fmt(v);
+    const pad = { t: 16, r: 14, b: 40, l: 48 };
+    const W = width - pad.l - pad.r;
+    const H = height - pad.t - pad.b;
+    const vals = data.flatMap(d => [Number(d[barKey] ?? 0), lineKey ? Number(d[lineKey] ?? 0) : 0]);
+    const maxV = Math.max(1, ...vals) * 1.12;
+    const gap = W / data.length;
+    const bw = Math.min(46, gap * 0.55);
+    const yScale = v => H - (v / maxV) * H;
+    const gridT = [0, 0.25, 0.5, 0.75, 1];
+    const linePts = lineKey ? data.map((d, i) => `${i * gap + gap / 2},${yScale(Number(d[lineKey] ?? 0))}`).join(' ') : '';
+    return (
+        <svg width="100%" viewBox={`0 0 ${width} ${height}`} style={{ overflow: 'hidden', display: 'block' }}>
+            <g transform={`translate(${pad.l},${pad.t})`}>
+                {gridT.map(t => (
+                    <g key={t}>
+                        <line x1={0} y1={H * (1 - t)} x2={W} y2={H * (1 - t)} stroke="var(--border)" strokeWidth={1} strokeDasharray="3,4" />
+                        <text x={-8} y={H * (1 - t) + 4} {...FONT} fill="var(--text-2)" textAnchor="end">{f(maxV * t)}</text>
+                    </g>
+                ))}
+                {data.map((d, i) => {
+                    const v = Number(d[barKey] ?? 0);
+                    const bh = Math.max(0, (v / maxV) * H);
+                    const x = i * gap + (gap - bw) / 2;
+                    return (
+                        <g key={i}>
+                            <rect x={x} y={H - bh} width={bw} height={bh} rx={4} fill={barColor} opacity={0.85}>
+                                <title>{`${d[xKey]} · ${barName || barKey}: ${f(v)}`}</title>
+                            </rect>
+                            <text x={i * gap + gap / 2} y={H + 22} {...FONT} fill="var(--text-2)" textAnchor="middle">{d[xKey]}</text>
+                        </g>
+                    );
+                })}
+                {lineKey && <polyline points={linePts} fill="none" stroke={lineColor} strokeWidth={2.2} strokeLinejoin="round" strokeLinecap="round" />}
+                {lineKey && data.map((d, i) => (
+                    <circle key={i} cx={i * gap + gap / 2} cy={yScale(Number(d[lineKey] ?? 0))} r={3.2} fill={lineColor} stroke="var(--surface)" strokeWidth={1.5}>
+                        <title>{`${d[xKey]} · ${lineName || lineKey}: ${f(Number(d[lineKey] ?? 0))}`}</title>
+                    </circle>
+                ))}
+                <line x1={0} y1={H} x2={W} y2={H} stroke="var(--border)" />
+            </g>
+        </svg>
+    );
+}
+
+// ── Heatmap ────────────────────────────────────────────────────────────────
+//  [현 차수 BI확장] 히트맵 — 2D(행×열) 강도맵. 순차 스케일(단일 hue, 값→불투명도) → 명/암 테마 모두 안전.
+//  matrix[r][c] 숫자. rows/cols = 라벨 배열. dim×breakdown 피벗 시각화에 최적.
+export function Heatmap({ rows, cols, matrix, color = '#4f8ef7', width = 720, cellH = 30, rowLabelW = 110, format }) {
+    if (!rows?.length || !cols?.length) return null;
+    const f = typeof format === 'function' ? format : (v) => fmt(v);
+    let maxV = 0;
+    matrix.forEach(r => r.forEach(v => { const n = Number(v ?? 0); if (n > maxV) maxV = n; }));
+    maxV = maxV || 1;
+    const gridW = Math.max(60, width - rowLabelW - 8);
+    const cw = gridW / cols.length;
+    const H = rows.length * cellH + 26; // + column header row
+    return (
+        <div style={{ overflowX: 'auto' }}>
+            <svg width="100%" viewBox={`0 0 ${width} ${H}`} style={{ display: 'block', minWidth: Math.max(width, rowLabelW + cols.length * 44) }}>
+                {/* 열 헤더 */}
+                {cols.map((c, ci) => (
+                    <text key={ci} x={rowLabelW + ci * cw + cw / 2} y={16} {...FONT} fill="var(--text-2)" textAnchor="middle">{String(c).length > 8 ? String(c).slice(0, 7) + '…' : c}</text>
+                ))}
+                {rows.map((r, ri) => (
+                    <g key={ri}>
+                        <text x={rowLabelW - 8} y={26 + ri * cellH + cellH / 2 + 4} {...FONT} fill="var(--text-2)" textAnchor="end">{String(r).length > 14 ? String(r).slice(0, 13) + '…' : r}</text>
+                        {cols.map((c, ci) => {
+                            const v = Number(matrix?.[ri]?.[ci] ?? 0);
+                            const op = maxV > 0 ? 0.12 + 0.78 * (v / maxV) : 0.12; // 순차: 값→불투명도(0.12~0.9)
+                            return (
+                                <g key={ci}>
+                                    <rect x={rowLabelW + ci * cw + 1} y={26 + ri * cellH + 1} width={Math.max(1, cw - 2)} height={cellH - 2} rx={3}
+                                        fill={color} opacity={v > 0 ? op : 0.04} stroke="var(--surface)" strokeWidth={1}>
+                                        <title>{`${r} · ${c}: ${f(v)}`}</title>
+                                    </rect>
+                                    {cw > 34 && v > 0 && (
+                                        <text x={rowLabelW + ci * cw + cw / 2} y={26 + ri * cellH + cellH / 2 + 3.5} fontSize={8.5} fontFamily="inherit" fontWeight={600}
+                                            fill={op > 0.55 ? '#fff' : 'var(--text-1)'} textAnchor="middle">{f(v)}</text>
+                                    )}
+                                </g>
+                            );
+                        })}
+                    </g>
+                ))}
+            </svg>
+        </div>
+    );
+}
+
 // ── seedSeries ────────────────────────────────────────────────────────────
 

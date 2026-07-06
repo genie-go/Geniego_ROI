@@ -129,6 +129,75 @@ class Wms
         foreach (['region VARCHAR(60)', 'country VARCHAR(60)', 'lat DOUBLE', 'lng DOUBLE'] as $col) {
             try { $pdo->exec("ALTER TABLE wms_warehouses ADD COLUMN {$col}"); } catch (\Throwable $e) {}
         }
+        // [현 차수] FEFO 원가 기반 — wms_lots 에 cost(단위원가)·landed_cost(관세/운임 포함 도착원가) 보강(멱등).
+        //   ★MySQL TEXT DEFAULT 거부 트랩 회피 — 숫자(DOUBLE) 컬럼만 DEFAULT 사용. 출고 시 소비된 lot 원가를
+        //   wms_lot_consumptions 원장에 적재해 COGS 를 WAC 뿐 아니라 FEFO/lot-layer 로 소싱 가능(WAC 폴백 유지).
+        foreach (['cost DOUBLE DEFAULT 0', 'landed_cost DOUBLE DEFAULT 0'] as $col) {
+            try { $pdo->exec("ALTER TABLE wms_lots ADD COLUMN {$col}"); } catch (\Throwable $e) {}
+        }
+        self::ensurePhysicalTables($pdo, $mysql); // 바코드/빈/웨이브/lot 소비원장(멱등)
+    }
+
+    /**
+     * [현 차수] 물리 실행 계층 테이블(멱등 DDL) — 바코드/시리얼 registry, 빈 로케이션·빈별 재고,
+     *   웨이브/존 피킹, FEFO lot 소비원가 원장. wms_stock(창고단위 권위)·wms_lots(FEFO)·wms_picking 를
+     *   교체하지 않고 확장한다(하위 원장·상위 배치). ★MySQL TEXT DEFAULT 금지 — 문자열 기본값은 VARCHAR 만.
+     */
+    private static function ensurePhysicalTables(\PDO $pdo, bool $mysql): void
+    {
+        if ($mysql) {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS wms_bins (
+                id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo',
+                wh_id VARCHAR(60) NOT NULL DEFAULT '', code VARCHAR(80) NOT NULL, zone VARCHAR(60),
+                aisle VARCHAR(40), rack VARCHAR(40), level VARCHAR(40), seq INT DEFAULT 0,
+                barcode VARCHAR(120), capacity DOUBLE DEFAULT 0, active TINYINT(1) DEFAULT 1,
+                created_at VARCHAR(32), updated_at VARCHAR(32),
+                UNIQUE KEY uq_wms_bin (tenant_id, wh_id, code), KEY idx_wms_bin_tenant (tenant_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS wms_bin_stock (
+                id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo',
+                wh_id VARCHAR(60) NOT NULL DEFAULT '', bin_id INT NOT NULL DEFAULT 0, sku VARCHAR(120) NOT NULL,
+                name VARCHAR(255), on_hand DOUBLE DEFAULT 0, updated_at VARCHAR(32),
+                UNIQUE KEY uq_wms_bin_stock (tenant_id, wh_id, bin_id, sku), KEY idx_wms_bstk_tenant (tenant_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS wms_barcodes (
+                id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo',
+                code VARCHAR(160) NOT NULL, sku VARCHAR(120) NOT NULL, name VARCHAR(255),
+                kind VARCHAR(20) DEFAULT 'barcode', status VARCHAR(20) DEFAULT 'active', bin_id INT DEFAULT 0,
+                created_at VARCHAR(32), updated_at VARCHAR(32),
+                UNIQUE KEY uq_wms_barcode (tenant_id, code), KEY idx_wms_bc_tenant (tenant_id), KEY idx_wms_bc_sku (tenant_id, sku)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS wms_waves (
+                id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo',
+                code VARCHAR(80), wh_id VARCHAR(60), zone VARCHAR(60), status VARCHAR(30) DEFAULT 'created',
+                order_count INT DEFAULT 0, item_count INT DEFAULT 0, note VARCHAR(255),
+                created_at VARCHAR(32), updated_at VARCHAR(32), KEY idx_wms_wave_tenant (tenant_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS wms_wave_items (
+                id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo',
+                wave_id INT NOT NULL DEFAULT 0, order_ref VARCHAR(120), sku VARCHAR(120), name VARCHAR(255),
+                qty DOUBLE DEFAULT 0, picked_qty DOUBLE DEFAULT 0, wh_id VARCHAR(60), bin_id INT DEFAULT 0,
+                bin_code VARCHAR(80), zone VARCHAR(60), seq INT DEFAULT 0, status VARCHAR(30) DEFAULT 'pending',
+                created_at VARCHAR(32), updated_at VARCHAR(32),
+                KEY idx_wms_wi_tenant (tenant_id), KEY idx_wms_wi_wave (tenant_id, wave_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS wms_lot_consumptions (
+                id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo',
+                ref VARCHAR(120), sku VARCHAR(120), wh_id VARCHAR(60), lot_id INT DEFAULT 0, lot_no VARCHAR(120),
+                qty DOUBLE DEFAULT 0, unit_cost DOUBLE DEFAULT 0, cost_total DOUBLE DEFAULT 0, created_at VARCHAR(32),
+                KEY idx_wms_lc_tenant (tenant_id), KEY idx_wms_lc_ref (tenant_id, ref), KEY idx_wms_lc_sku (tenant_id, sku)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        } else {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS wms_bins (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', wh_id TEXT NOT NULL DEFAULT '', code TEXT NOT NULL, zone TEXT, aisle TEXT, rack TEXT, level TEXT, seq INTEGER DEFAULT 0, barcode TEXT, capacity REAL DEFAULT 0, active INTEGER DEFAULT 1, created_at TEXT, updated_at TEXT)");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS wms_bin_stock (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', wh_id TEXT NOT NULL DEFAULT '', bin_id INTEGER NOT NULL DEFAULT 0, sku TEXT NOT NULL, name TEXT, on_hand REAL DEFAULT 0, updated_at TEXT)");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS wms_barcodes (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', code TEXT NOT NULL, sku TEXT NOT NULL, name TEXT, kind TEXT DEFAULT 'barcode', status TEXT DEFAULT 'active', bin_id INTEGER DEFAULT 0, created_at TEXT, updated_at TEXT)");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS wms_waves (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', code TEXT, wh_id TEXT, zone TEXT, status TEXT DEFAULT 'created', order_count INTEGER DEFAULT 0, item_count INTEGER DEFAULT 0, note TEXT, created_at TEXT, updated_at TEXT)");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS wms_wave_items (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', wave_id INTEGER NOT NULL DEFAULT 0, order_ref TEXT, sku TEXT, name TEXT, qty REAL DEFAULT 0, picked_qty REAL DEFAULT 0, wh_id TEXT, bin_id INTEGER DEFAULT 0, bin_code TEXT, zone TEXT, seq INTEGER DEFAULT 0, status TEXT DEFAULT 'pending', created_at TEXT, updated_at TEXT)");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS wms_lot_consumptions (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', ref TEXT, sku TEXT, wh_id TEXT, lot_id INTEGER DEFAULT 0, lot_no TEXT, qty REAL DEFAULT 0, unit_cost REAL DEFAULT 0, cost_total REAL DEFAULT 0, created_at TEXT)");
+            try { $pdo->exec("CREATE UNIQUE INDEX IF NOT EXISTS uq_wms_bin ON wms_bins(tenant_id, wh_id, code)"); } catch (\Throwable $e) {}
+            try { $pdo->exec("CREATE UNIQUE INDEX IF NOT EXISTS uq_wms_bin_stock ON wms_bin_stock(tenant_id, wh_id, bin_id, sku)"); } catch (\Throwable $e) {}
+            try { $pdo->exec("CREATE UNIQUE INDEX IF NOT EXISTS uq_wms_barcode ON wms_barcodes(tenant_id, code)"); } catch (\Throwable $e) {}
+        }
     }
 
     /* ════════════════ 창고(Warehouses) ════════════════ */
@@ -387,37 +456,55 @@ class Wms
     }
 
     /**
-     * [현 차수] 219 P2: wms_permissions 창고 접근 강제(백워드 호환). 그동안 권한표가 있어도 CRUD 가
-     *   전혀 검사하지 않아, 같은 테넌트 내 임의 사용자가 모든 창고 재고를 변동할 수 있었다.
-     *   ★안전 가드: ①테넌트에 권한행 0개 → 허용(미설정 보존) ②팀 owner → 전 창고 허용
-     *   ③api_key/세션 미해결 → 허용(인증은 requirePro, 격리는 tenant) ④WMS role='admin' → 전 창고
-     *   ⑤그 외: warehouses JSON 에 대상 창고 포함 시 허용, 미포함/권한행 없음 → 403. 가드 오류=비차단(가용성).
+     * [현 차수] 창고 접근 강제 — FAIL-CLOSED 재설계(종전 219 P2 가드는 :420 catch 가 모든 예외를 null=허용으로
+     *   흡수 + 세션 미해결을 허용해, 권한표가 있어도 가드를 우회할 수 있었다. 이제 권한표가 존재하면 명시적
+     *   화이트리스트 통과만 허용하고, 모호/미해결/평가오류는 거부한다).
+     *
+     *   판정 로직(위→아래, 먼저 참인 규칙 적용):
+     *   ① 팀 owner → 항상 허용(권한표 유무·평가오류 무관 최우선 bypass — 관리자 lockout 원천 차단).
+     *      team_role 미상(솔로 계정 등)은 owner 로 간주(단일 사용자 정상 소유주).
+     *   ② 테넌트에 wms_permissions 행 0개 → 허용(WMS RBAC 미설정 테넌트 = 명시적 opt-out, 기존 동작 보존).
+     *   ③ 권한표 존재 + 세션 미해결(authedUser=null) → **거부**(fail-closed). 권한표를 만든 테넌트는 강제
+     *      의도가 명확하므로 미해결 주체를 통과시키지 않는다(종전 fail-open 제거). api_key 경로는 index.php
+     *      RBAC 로 이미 통제되고, WMS 세션 self-auth 는 여기서 화이트리스트가 필수.
+     *   ④ WMS role='admin' → 전 창고 허용.  ⑤ 창고 미지정(whId='') 액션 → 통과(tenant 격리 read).
+     *   ⑥ warehouses JSON 에 대상 창고 포함 → 허용. 미포함/권한행 없음/이메일 미상 → 거부.
+     *   ⑦ 가드 평가 중 예외 → **거부**(fail-closed). owner 는 위 ①에서 이미 통과했으므로 정상 관리자 영향 없음.
      * @return ?Response 거부 시 403, 허용 시 null.
      */
     private static function guardWarehouse(Request $req, Response $res, string $whId): ?Response
     {
+        $forbid = fn(string $msg, string $code) => self::json($res, ['ok'=>false, 'error'=>$msg, 'code'=>$code], 403);
         try {
             $t = self::tenant($req);
             $pdo = self::db();
+            // ① 팀 owner = 전 창고(최우선 bypass — 평가오류/권한표 무관하게 lockout 방지).
+            $u = UserAuth::authedUser($req);
+            if ($u && (string)($u['team_role'] ?? 'owner') === 'owner') return null;
+            // ② 권한 미설정 테넌트 → WMS RBAC opt-out(강제 안 함).
             $cnt = $pdo->prepare("SELECT COUNT(*) FROM wms_permissions WHERE tenant_id=?");
             $cnt->execute([$t]);
-            if ((int)$cnt->fetchColumn() === 0) return null;            // 권한 미설정 테넌트 → 강제 안 함
-            $u = UserAuth::authedUser($req);
-            if (!$u) return null;                                       // 세션 미해결(api_key 등)
-            if ((string)($u['team_role'] ?? 'owner') === 'owner') return null; // 팀 owner = 전 창고
+            if ((int)$cnt->fetchColumn() === 0) return null;
+            // 여기부터: 권한표 존재 → 반드시 화이트리스트 통과(fail-closed).
+            // ③ 세션 미해결 + 권한표 존재 → 거부(모호 우회 차단).
+            if (!$u) return $forbid('WMS 접근 주체가 확인되지 않았습니다 — 세션 인증이 필요합니다.', 'WMS_UNRESOLVED');
             $email = strtolower(trim((string)($u['email'] ?? '')));
-            if ($email === '') return null;
+            if ($email === '') return $forbid('WMS 접근 계정(이메일)이 확인되지 않았습니다.', 'WMS_UNRESOLVED');
             $pr = $pdo->prepare("SELECT role, warehouses FROM wms_permissions WHERE tenant_id=? AND LOWER(user_email)=? LIMIT 1");
             $pr->execute([$t, $email]);
             $row = $pr->fetch(\PDO::FETCH_ASSOC);
-            if (!$row) return self::json($res, ['ok'=>false, 'error'=>'WMS 접근 권한이 없습니다.', 'code'=>'WMS_FORBIDDEN'], 403);
-            if ((string)($row['role'] ?? '') === 'admin') return null;  // WMS admin = 전 창고
-            if ($whId === '') return null;                             // 창고 미지정 액션은 통과(read=tenant 격리)
+            if (!$row) return $forbid('WMS 접근 권한이 없습니다.', 'WMS_FORBIDDEN');
+            if ((string)($row['role'] ?? '') === 'admin') return null;  // ④ WMS admin = 전 창고
+            if ($whId === '') return null;                              // ⑤ 창고 미지정 액션은 통과(read=tenant 격리)
             $whs = json_decode((string)($row['warehouses'] ?? '[]'), true);
             if (!is_array($whs)) $whs = [];
-            if (in_array($whId, $whs, true)) return null;
-            return self::json($res, ['ok'=>false, 'error'=>'해당 창고 접근 권한이 없습니다.', 'code'=>'WMS_WAREHOUSE_FORBIDDEN'], 403);
-        } catch (\Throwable $e) { return null; }                       // 가드 오류 → 비차단(격리는 tenant 가 처리)
+            if (in_array($whId, $whs, true)) return null;               // ⑥ 화이트리스트 통과
+            return $forbid('해당 창고 접근 권한이 없습니다.', 'WMS_WAREHOUSE_FORBIDDEN');
+        } catch (\Throwable $e) {
+            // ⑦ 평가오류 → FAIL-CLOSED(거부). owner 는 위 ①에서 이미 통과.
+            error_log('[Wms.guardWarehouse] ' . $e->getMessage());
+            return $forbid('WMS 권한 확인에 실패하여 접근이 거부되었습니다.', 'WMS_GUARD_ERROR');
+        }
     }
 
     public static function createMovement(Request $req, Response $res): Response
@@ -475,7 +562,7 @@ class Wms
             $pdo->prepare("INSERT INTO wms_movements (tenant_id,type,wh_id,dest_wh_id,sku,name,qty,unit,memo,ref,reason,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)")
                 ->execute([$t, $type, $wh, $dwh, $sku, $name, $qty, (string)($d['unit'] ?? ''), (string)($d['memo'] ?? ''), (string)($d['ref'] ?? ''), (string)($d['reason'] ?? ''), $now]);
             $id = (int)$pdo->lastInsertId();
-            self::applyMovementToStock($t, $type, $wh, $dwh, $sku, $name, $qty);
+            self::applyMovementToStock($t, $type, $wh, $dwh, $sku, $name, $qty, $ref); // ref → FEFO lot 소비원가 원장 키
             if ($ownTxn) $pdo->commit();
             return $id;
         } catch (\Throwable $e) {
@@ -782,22 +869,22 @@ class Wms
         return $sel !== '' ? $sel : self::primaryWarehouse($tenant);
     }
 
-    /** 입출고 유형 → 물리재고 부호 적용(영문 IO_TYPES + 한글 데모 라벨 모두 지원). */
-    private static function applyMovementToStock(string $t, string $type, string $wh, string $dwh, string $sku, string $name, float $qty): void
+    /** 입출고 유형 → 물리재고 부호 적용(영문 IO_TYPES + 한글 데모 라벨 모두 지원). $ref = FEFO lot 소비원가 원장 키(출고). */
+    private static function applyMovementToStock(string $t, string $type, string $wh, string $dwh, string $sku, string $name, float $qty, string $ref = ''): void
     {
         if ($sku === '' || $qty == 0.0) return;
         $tl = strtolower($type);
         $isIn  = in_array($type, ['Inbound','ReturnsInbound'], true) || str_contains($type, '입고');
         $isOut = in_array($type, ['Outbound','ReturnsOutbound','Disposal'], true) || (str_contains($type, '출고') && !str_contains($type, '입고')) || str_contains($type, '폐기');
         if ($type === 'WarehouseTransfer' || str_contains($type, '이고') || str_contains($type, '이동')) {
-            self::adjustStock($t, $sku, $wh, $name, -abs($qty), true); // 출고 leg=strict(재고부족 거부)
+            self::adjustStock($t, $sku, $wh, $name, -abs($qty), true, $ref); // 출고 leg=strict(재고부족 거부)
             self::adjustStock($t, $sku, $dwh !== '' ? $dwh : $wh, $name, abs($qty));
         } elseif ($type === 'StockAdj' || str_contains($type, '조정')) {
             self::adjustStock($t, $sku, $wh, $name, $qty); // 조정은 부호 그대로(증감, 음수=0클램프)
         } elseif ($isIn) {
             self::adjustStock($t, $sku, $wh, $name, abs($qty));
         } elseif ($isOut) {
-            self::adjustStock($t, $sku, $wh, $name, -abs($qty), true); // 실출고=strict(오버셀 거부)
+            self::adjustStock($t, $sku, $wh, $name, -abs($qty), true, $ref); // 실출고=strict(오버셀 거부)
         }
     }
 
@@ -809,7 +896,7 @@ class Wms
      * 예외는 호출측(recordMovement) 트랜잭션에서 롤백 → 이력/재고 원자성 보장.
      * @throws \RuntimeException 'insufficient_stock:...' 출고 재고부족
      */
-    private static function adjustStock(string $t, string $sku, string $wh, string $name, float $delta, bool $strictOut = false): void
+    private static function adjustStock(string $t, string $sku, string $wh, string $name, float $delta, bool $strictOut = false, string $ref = ''): void
     {
         if ($sku === '' || $delta == 0.0) return;
         $pdo = self::db(); $now = self::now();
@@ -822,7 +909,8 @@ class Wms
             }
             // [현 차수 P3-2] FEFO 실소비 — 출고 시 유통기한 임박 lot 부터 실차감(기존엔 wms_lots 미소비=등록부에 머묾).
             //   lot 미추적 SKU 는 no-op(전 SKU 가 lot 추적 대상은 아님). 비throw(재고는 wms_stock 권위).
-            self::consumeLotsFefo($pdo, $t, $sku, $wh, $need);
+            //   $ref 전달 시 소비된 lot 원가를 wms_lot_consumptions 원장에 적재(FEFO COGS 소싱 SSOT).
+            self::consumeLotsFefo($pdo, $t, $sku, $wh, $need, $ref);
             return;
         }
         // 입고/조정: read-modify-write(조정 음수는 0 클램프). recordMovement 트랜잭션 내 호출로 일관성 확보.
@@ -844,25 +932,93 @@ class Wms
      *   wh 일치 lot 우선, 만료일 ASC(NULL/빈 만료는 후순위) → id ASC. lot 합이 부족하면 가능분만 차감(재고는
      *   wms_stock 이 권위·이미 검증). lot 미추적 SKU(=lot 0개)는 no-op. 전과정 비throw(보조 등록부).
      */
-    private static function consumeLotsFefo(\PDO $pdo, string $t, string $sku, string $wh, float $qty): void
+    private static function consumeLotsFefo(\PDO $pdo, string $t, string $sku, string $wh, float $qty, string $ref = ''): void
     {
         if ($qty <= 0 || $sku === '') return;
         try {
-            $sel = $pdo->prepare("SELECT id, qty FROM wms_lots WHERE tenant_id=:t AND sku=:s AND qty>0 AND (wh_id=:w OR wh_id IS NULL OR wh_id='')
+            // [현 차수] lot 원가(cost·landed_cost) 를 함께 조회 — 소비 시 FEFO COGS 원장(wms_lot_consumptions) 적재.
+            //   landed_cost(도착원가) 우선, 없으면 cost. 컬럼 부재(구 스키마)면 0(무해 폴백).
+            $sel = $pdo->prepare("SELECT id, qty, lot_no,
+                                         COALESCE(NULLIF(landed_cost,0), NULLIF(cost,0), 0) AS unit_cost
+                                  FROM wms_lots WHERE tenant_id=:t AND sku=:s AND qty>0 AND (wh_id=:w OR wh_id IS NULL OR wh_id='')
                                   ORDER BY (expiry_date IS NULL OR expiry_date=''), expiry_date ASC, id ASC");
             $sel->execute([':t' => $t, ':s' => $sku, ':w' => $wh]);
             $lots = $sel->fetchAll(\PDO::FETCH_ASSOC) ?: [];
             if (!$lots) return; // lot 미추적 SKU → no-op
             $need = $qty;
             $dec = $pdo->prepare("UPDATE wms_lots SET qty = qty - :take WHERE id = :id");
+            $now = self::now();
+            $logC = $pdo->prepare("INSERT INTO wms_lot_consumptions (tenant_id,ref,sku,wh_id,lot_id,lot_no,qty,unit_cost,cost_total,created_at) VALUES (?,?,?,?,?,?,?,?,?,?)");
             foreach ($lots as $lot) {
                 if ($need <= 0) break;
                 $take = min((float)$lot['qty'], $need);
                 if ($take <= 0) continue;
                 $dec->execute([':take' => $take, ':id' => (int)$lot['id']]);
+                $uc = (float)($lot['unit_cost'] ?? 0);
+                // FEFO 소비원가 원장 — Pnl 이 (tenant,ref) 로 합산해 COGS 를 lot-layer 로 소싱(WAC 폴백 유지).
+                try { $logC->execute([$t, $ref, $sku, $wh, (int)$lot['id'], (string)($lot['lot_no'] ?? ''), $take, $uc, $take * $uc, $now]); } catch (\Throwable $e) {}
                 $need -= $take;
             }
         } catch (\Throwable $e) { /* lot 소비 실패 = 정직 무시(wms_stock 권위) */ }
+    }
+
+    /**
+     * [현 차수] FEFO COGS SSOT 노출 — 판매/출고 ref 별 FEFO 소비원가 합계를 읽는 클린 API.
+     *   채널 판매 출고 ref 규약 = 'CHS-{channel}-{channel_order_id}' (ChannelSync::reflectChannelSale).
+     *
+     *   ★실 소비 경로(무음 write-only 아님): OrderHub::aggregateCogs(P&L COGS SSOT, Pnl.php 도 공용) 가
+     *     주문 단위로 이 원장을 LEFT JOIN(ref='CHS-{channel}-{channel_order_id}') 하여
+     *     COALESCE(FEFO cost_total, WAC(channel_inventory.cost)) 로 집계한다 — 즉 소비원장이 있으면 FEFO
+     *     lot 실원가를, 없으면 기존 WAC 를 사용(원장 empty 시 WAC 와 byte-identical, 무회귀). 아래 fefoCogsForRef(s)
+     *     는 Pnl 등이 핸들러 결합 없이 동일 원장을 조회하도록 노출하는 순수 API 다.
+     *
+     *   ★Pnl 이 직접 쓸 수 있는 순수 SQL(핸들러 결합 없이 재사용 가능):
+     *     SELECT ref, SUM(cost_total) AS fefo_cogs FROM wms_lot_consumptions
+     *      WHERE tenant_id = ? AND ref IN (…) GROUP BY ref
+     *
+     * @param string[] $refs
+     * @return array<string,float> ref => FEFO COGS(원). 소비원장 없는 ref 는 결과에서 생략(호출측이 WAC 폴백).
+     */
+    public static function fefoCogsForRefs(string $tenant, array $refs): array
+    {
+        $refs = array_values(array_unique(array_filter(array_map('strval', $refs), fn($r) => $r !== '')));
+        if ($tenant === '' || !$refs) return [];
+        try {
+            self::ensureTables();
+            $in = implode(',', array_fill(0, count($refs), '?'));
+            $st = self::db()->prepare("SELECT ref, SUM(cost_total) AS c FROM wms_lot_consumptions WHERE tenant_id=? AND ref IN ($in) GROUP BY ref");
+            $st->execute(array_merge([$tenant], $refs));
+            $out = [];
+            foreach ($st->fetchAll(\PDO::FETCH_ASSOC) ?: [] as $r) { $out[(string)$r['ref']] = (float)$r['c']; }
+            return $out;
+        } catch (\Throwable $e) { error_log('[Wms.fefoCogsForRefs] ' . $e->getMessage()); return []; }
+    }
+
+    /** 단일 ref FEFO 소비원가. 원장 없으면 null → 호출측(Pnl) 이 WAC 로 폴백. */
+    public static function fefoCogsForRef(string $tenant, string $ref): ?float
+    {
+        $m = self::fefoCogsForRefs($tenant, [$ref]);
+        return $m[$ref] ?? null;
+    }
+
+    /**
+     * SKU 의 현 FEFO 최선(유통기한 임박) lot 단위원가 — 실시간 원가 견적/폴백(landed_cost 우선). lot·원가 없으면 null.
+     *   출고 전 예상 COGS 견적, 또는 소비원장 부재 시 단위원가 폴백에 사용.
+     */
+    public static function fefoUnitCost(string $tenant, string $sku, string $wh = ''): ?float
+    {
+        if ($tenant === '' || $sku === '') return null;
+        try {
+            self::ensureTables();
+            $st = self::db()->prepare("SELECT COALESCE(NULLIF(landed_cost,0), NULLIF(cost,0), 0) AS uc
+                                       FROM wms_lots WHERE tenant_id=:t AND sku=:s AND qty>0 AND (wh_id=:w OR :w='' OR wh_id IS NULL OR wh_id='')
+                                       ORDER BY (expiry_date IS NULL OR expiry_date=''), expiry_date ASC, id ASC LIMIT 1");
+            $st->execute([':t' => $tenant, ':s' => $sku, ':w' => $wh]);
+            $v = $st->fetchColumn();
+            if ($v === false || $v === null) return null;
+            $uc = (float)$v;
+            return $uc > 0 ? $uc : null;
+        } catch (\Throwable $e) { return null; }
     }
 
     /** GET /wms/stock — 물리 창고 재고(입출고 파생). by_sku=1 이면 SKU별 합산. */
@@ -1009,12 +1165,15 @@ class Wms
         if ($err = UserAuth::requirePro($req, $res)) return $err;
         self::ensureTables();
         $t = self::tenant($req); $b = self::body($req); $pdo = self::db();
-        $st = $pdo->prepare("INSERT INTO wms_lots (tenant_id,sku,name,lot_no,mfg_date,expiry_date,qty,wh_id,created_at) VALUES (:t,:sku,:name,:lot,:mfg,:exp,:qty,:wh,:ca)");
+        // [현 차수] FEFO 원가 기반 — lot 등록 시 cost(단위원가)·landed_cost(도착원가) 수집(출고 시 COGS 소싱).
+        $st = $pdo->prepare("INSERT INTO wms_lots (tenant_id,sku,name,lot_no,mfg_date,expiry_date,qty,wh_id,cost,landed_cost,created_at) VALUES (:t,:sku,:name,:lot,:mfg,:exp,:qty,:wh,:cost,:landed,:ca)");
         $st->execute([
             ':t' => $t, ':sku' => (string)($b['sku'] ?? ''), ':name' => (string)($b['name'] ?? ''),
             ':lot' => (string)($b['lotNo'] ?? $b['lot_no'] ?? ''), ':mfg' => (string)($b['mfgDate'] ?? $b['mfg_date'] ?? ''),
             ':exp' => (string)($b['expiryDate'] ?? $b['expiry_date'] ?? ''), ':qty' => (float)($b['qty'] ?? 0),
-            ':wh' => (string)($b['wh'] ?? $b['wh_id'] ?? ''), ':ca' => self::now(),
+            ':wh' => (string)($b['wh'] ?? $b['wh_id'] ?? ''),
+            ':cost' => (float)($b['cost'] ?? $b['unit_cost'] ?? 0), ':landed' => (float)($b['landedCost'] ?? $b['landed_cost'] ?? 0),
+            ':ca' => self::now(),
         ]);
         return self::json($res, ['ok' => true, 'id' => (int)$pdo->lastInsertId()]);
     }
@@ -1025,6 +1184,429 @@ class Wms
         self::ensureTables();
         $st = self::db()->prepare("DELETE FROM wms_lots WHERE id=:id AND tenant_id=:t");
         $st->execute([':id' => (int)$args['id'], ':t' => self::tenant($req)]);
+        return self::json($res, ['ok' => true, 'deleted' => $st->rowCount()]);
+    }
+
+    /* ════════════════ [현 차수] 바코드/시리얼 스캔 · 빈 로케이션 · 웨이브 피킹 ════════════════
+     *   ★기존 흐름을 교체하지 않고 확장: recordMovement(원자·멱등)·wms_stock(창고단위 권위)·wms_lots(FEFO)·
+     *     wms_picking 는 그대로 사용하고, 그 위에 바코드 해석·빈 로케이션 하위원장·웨이브 배치를 얹는다.
+     *   ★빈별 재고(wms_bin_stock)는 창고단위 on_hand(wms_stock)의 하위 분할(informational + pick-from-bin)로,
+     *     스캔입출고는 양측(창고+빈) 동시 반영, 창고내 이동(put-away)은 빈 원장만 이동(창고 on_hand 불변=무회귀). */
+
+    /** 바코드/시리얼 → SKU 해석. 미등록이면 null(호출측이 코드=SKU 폴백 판단). */
+    private static function resolveBarcode(string $t, string $code): ?array
+    {
+        if ($code === '') return null;
+        try {
+            $st = self::db()->prepare("SELECT sku, name, kind, status, bin_id FROM wms_barcodes WHERE tenant_id=? AND code=? LIMIT 1");
+            $st->execute([$t, $code]);
+            $r = $st->fetch(\PDO::FETCH_ASSOC);
+            return $r ?: null;
+        } catch (\Throwable $e) { return null; }
+    }
+
+    /** bin 참조(id 정수 또는 code/barcode 문자) → [bin_id, bin_code]. 미해결 시 [0, 원문]. */
+    private static function resolveBin(string $t, string $whId, $binRef): array
+    {
+        if ($binRef === null || $binRef === '' || $binRef === 0) return [0, ''];
+        try {
+            $pdo = self::db();
+            if (is_numeric($binRef)) {
+                $st = $pdo->prepare("SELECT id, code FROM wms_bins WHERE tenant_id=? AND id=? LIMIT 1");
+                $st->execute([$t, (int)$binRef]);
+            } else {
+                $st = $pdo->prepare("SELECT id, code FROM wms_bins WHERE tenant_id=? AND (code=? OR barcode=?) AND (wh_id=? OR ?='') ORDER BY (wh_id=?) DESC LIMIT 1");
+                $st->execute([$t, (string)$binRef, (string)$binRef, $whId, $whId, $whId]);
+            }
+            $r = $st->fetch(\PDO::FETCH_ASSOC);
+            if ($r) return [(int)$r['id'], (string)$r['code']];
+        } catch (\Throwable $e) {}
+        return [0, is_numeric($binRef) ? '' : (string)$binRef];
+    }
+
+    /** 빈별 재고 하위원장 증감(0 클램프). 창고단위 wms_stock 은 recordMovement 가 별도로 권위 관리. */
+    private static function adjustBinStock(string $t, string $whId, int $binId, string $sku, string $name, float $delta): void
+    {
+        if ($sku === '' || $binId <= 0 || $delta == 0.0) return;
+        $pdo = self::db(); $now = self::now();
+        $sel = $pdo->prepare("SELECT id, on_hand FROM wms_bin_stock WHERE tenant_id=? AND wh_id=? AND bin_id=? AND sku=? LIMIT 1");
+        $sel->execute([$t, $whId, $binId, $sku]);
+        $row = $sel->fetch(\PDO::FETCH_ASSOC);
+        if ($row) {
+            $newQty = max(0, (float)$row['on_hand'] + $delta);
+            $pdo->prepare("UPDATE wms_bin_stock SET on_hand=?, name=COALESCE(NULLIF(name,''),?), updated_at=? WHERE id=?")
+                ->execute([$newQty, $name, $now, (int)$row['id']]);
+        } elseif ($delta > 0) {
+            try {
+                $pdo->prepare("INSERT INTO wms_bin_stock (tenant_id,wh_id,bin_id,sku,name,on_hand,updated_at) VALUES (?,?,?,?,?,?,?)")
+                    ->execute([$t, $whId, $binId, $sku, $name, $delta, $now]);
+            } catch (\Throwable $e) { /* UNIQUE 경합 → 재조정 */
+                $pdo->prepare("UPDATE wms_bin_stock SET on_hand=on_hand+?, updated_at=? WHERE tenant_id=? AND wh_id=? AND bin_id=? AND sku=?")
+                    ->execute([$delta, $now, $t, $whId, $binId, $sku]);
+            }
+        }
+    }
+
+    /** pick-path 정렬 seq — aisle/rack/level 숫자부를 자릿수 결합(구역 내 순회 순서). */
+    private static function binSeq(string $aisle, string $rack, string $level): int
+    {
+        $n = fn(string $s): int => (int)preg_replace('/\D+/', '', $s);
+        return $n($aisle) * 10000 + $n($rack) * 100 + $n($level);
+    }
+
+    /* ── 빈 로케이션(Bins) ── */
+
+    public static function listBins(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $t = self::tenant($req); $q = $req->getQueryParams();
+        $sql = "SELECT * FROM wms_bins WHERE tenant_id=:t"; $p = [':t' => $t];
+        if (!empty($q['wh_id'])) { $sql .= " AND wh_id=:w"; $p[':w'] = (string)$q['wh_id']; }
+        $sql .= " ORDER BY zone, seq, code";
+        $st = self::db()->prepare($sql); $st->execute($p);
+        $rows = $st->fetchAll(\PDO::FETCH_ASSOC);
+        foreach ($rows as &$r) { $r['active'] = (bool)(int)($r['active'] ?? 1); }
+        return self::json($res, ['ok' => true, 'bins' => $rows]);
+    }
+
+    public static function saveBin(Request $req, Response $res, array $args = []): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $t = self::tenant($req); $b = self::body($req); $now = self::now(); $pdo = self::db();
+        $whId = (string)($b['whId'] ?? $b['wh_id'] ?? '');
+        if ($err = self::guardWarehouse($req, $res, $whId)) return $err;
+        $code = trim((string)($b['code'] ?? ''));
+        if ($code === '') return self::json($res, ['ok' => false, 'error' => '로케이션 코드를 입력하세요.'], 422);
+        $aisle = (string)($b['aisle'] ?? ''); $rack = (string)($b['rack'] ?? ''); $level = (string)($b['level'] ?? '');
+        $seq = (isset($b['seq']) && is_numeric($b['seq'])) ? (int)$b['seq'] : self::binSeq($aisle, $rack, $level);
+        $f = [
+            ':wh' => $whId, ':code' => $code, ':zone' => (string)($b['zone'] ?? ''), ':aisle' => $aisle,
+            ':rack' => $rack, ':level' => $level, ':seq' => $seq, ':barcode' => (string)($b['barcode'] ?? ''),
+            ':cap' => (float)($b['capacity'] ?? 0), ':active' => isset($b['active']) ? (!empty($b['active']) ? 1 : 0) : 1,
+        ];
+        $id = (int)($args['id'] ?? $b['id'] ?? 0);
+        if ($id > 0) {
+            $f[':id'] = $id; $f[':t'] = $t; $f[':ua'] = $now;
+            $st = $pdo->prepare("UPDATE wms_bins SET wh_id=:wh,code=:code,zone=:zone,aisle=:aisle,rack=:rack,level=:level,seq=:seq,barcode=:barcode,capacity=:cap,active=:active,updated_at=:ua WHERE id=:id AND tenant_id=:t");
+            $st->execute($f);
+            if ($st->rowCount() === 0 && !self::exists('wms_bins', $id, $t)) return self::json($res, ['ok' => false, 'error' => '없음'], 404);
+            return self::json($res, ['ok' => true, 'id' => $id]);
+        }
+        $f[':t'] = $t; $f[':ca'] = $now; $f[':ua'] = $now;
+        try {
+            $st = $pdo->prepare("INSERT INTO wms_bins (tenant_id,wh_id,code,zone,aisle,rack,level,seq,barcode,capacity,active,created_at,updated_at) VALUES (:t,:wh,:code,:zone,:aisle,:rack,:level,:seq,:barcode,:cap,:active,:ca,:ua)");
+            $st->execute($f);
+        } catch (\Throwable $e) { // UNIQUE(tenant,wh,code) 충돌 → 기존 반환(멱등)
+            $ex = $pdo->prepare("SELECT id FROM wms_bins WHERE tenant_id=? AND wh_id=? AND code=? LIMIT 1");
+            $ex->execute([$t, $whId, $code]);
+            $eid = $ex->fetchColumn();
+            if ($eid !== false) return self::json($res, ['ok' => true, 'id' => (int)$eid, 'existing' => true]);
+            throw $e;
+        }
+        return self::json($res, ['ok' => true, 'id' => (int)$pdo->lastInsertId()]);
+    }
+
+    public static function deleteBin(Request $req, Response $res, array $args): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $st = self::db()->prepare("DELETE FROM wms_bins WHERE id=:id AND tenant_id=:t");
+        $st->execute([':id' => (int)$args['id'], ':t' => self::tenant($req)]);
+        return self::json($res, ['ok' => true, 'deleted' => $st->rowCount()]);
+    }
+
+    /** GET /wms/bin-stock — 빈별 재고(로케이션 조인). wh_id/sku 필터. */
+    public static function listBinStock(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $t = self::tenant($req); $q = $req->getQueryParams();
+        $sql = "SELECT bs.id, bs.wh_id, bs.bin_id, bs.sku, bs.name, bs.on_hand, bs.updated_at, b.code AS bin_code, b.zone
+                FROM wms_bin_stock bs LEFT JOIN wms_bins b ON b.id=bs.bin_id AND b.tenant_id=bs.tenant_id
+                WHERE bs.tenant_id=:t";
+        $p = [':t' => $t];
+        if (!empty($q['wh_id'])) { $sql .= " AND bs.wh_id=:w"; $p[':w'] = (string)$q['wh_id']; }
+        if (!empty($q['sku']))   { $sql .= " AND bs.sku=:s"; $p[':s'] = (string)$q['sku']; }
+        $sql .= " ORDER BY bs.sku, b.zone, b.seq";
+        $st = self::db()->prepare($sql); $st->execute($p);
+        return self::json($res, ['ok' => true, 'binStock' => $st->fetchAll(\PDO::FETCH_ASSOC)]);
+    }
+
+    /* ── 바코드/시리얼 registry ── */
+
+    public static function listBarcodes(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $t = self::tenant($req); $q = $req->getQueryParams();
+        $sql = "SELECT * FROM wms_barcodes WHERE tenant_id=:t"; $p = [':t' => $t];
+        if (!empty($q['sku'])) { $sql .= " AND sku=:s"; $p[':s'] = (string)$q['sku']; }
+        $sql .= " ORDER BY id DESC LIMIT 1000";
+        $st = self::db()->prepare($sql); $st->execute($p);
+        return self::json($res, ['ok' => true, 'barcodes' => $st->fetchAll(\PDO::FETCH_ASSOC)]);
+    }
+
+    /** POST /wms/barcodes — 바코드/시리얼 → SKU 매핑 upsert(멱등, (tenant,code) 유니크). kind=barcode|serial. */
+    public static function saveBarcode(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $t = self::tenant($req); $b = self::body($req); $now = self::now(); $pdo = self::db();
+        $code = trim((string)($b['code'] ?? $b['barcode'] ?? $b['serial'] ?? ''));
+        $sku  = trim((string)($b['sku'] ?? ''));
+        if ($code === '' || $sku === '') return self::json($res, ['ok' => false, 'error' => 'code(바코드/시리얼)와 sku가 필요합니다.'], 422);
+        $kind = (string)($b['kind'] ?? (isset($b['serial']) ? 'serial' : 'barcode'));
+        $sel = $pdo->prepare("SELECT id FROM wms_barcodes WHERE tenant_id=? AND code=? LIMIT 1");
+        $sel->execute([$t, $code]); $eid = $sel->fetchColumn();
+        if ($eid !== false) {
+            $pdo->prepare("UPDATE wms_barcodes SET sku=?,name=?,kind=?,updated_at=? WHERE id=?")
+                ->execute([$sku, (string)($b['name'] ?? ''), $kind, $now, (int)$eid]);
+            return self::json($res, ['ok' => true, 'id' => (int)$eid]);
+        }
+        $pdo->prepare("INSERT INTO wms_barcodes (tenant_id,code,sku,name,kind,status,bin_id,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?)")
+            ->execute([$t, $code, $sku, (string)($b['name'] ?? ''), $kind, 'active', 0, $now, $now]);
+        return self::json($res, ['ok' => true, 'id' => (int)$pdo->lastInsertId()]);
+    }
+
+    public static function deleteBarcode(Request $req, Response $res, array $args): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $st = self::db()->prepare("DELETE FROM wms_barcodes WHERE id=:id AND tenant_id=:t");
+        $st->execute([':id' => (int)$args['id'], ':t' => self::tenant($req)]);
+        return self::json($res, ['ok' => true, 'deleted' => $st->rowCount()]);
+    }
+
+    /* ── 스캔 입/출고 + put-away ── */
+
+    /** POST /wms/scan-in — 바코드/시리얼/SKU 스캔 입고. recordMovement(Inbound) + 빈 put-away(선택). serial 은 멱등(qty=1). */
+    public static function scanIn(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $t = self::tenant($req); $b = self::body($req);
+        $code = trim((string)($b['barcode'] ?? $b['serial'] ?? $b['code'] ?? ''));
+        $sku  = trim((string)($b['sku'] ?? ''));
+        $name = (string)($b['name'] ?? '');
+        $resolved = $code !== '' ? self::resolveBarcode($t, $code) : null;
+        if ($resolved) { $sku = (string)$resolved['sku']; if ($name === '') $name = (string)($resolved['name'] ?? ''); }
+        elseif ($sku === '' && $code !== '') { $sku = $code; } // 미등록 바코드 → 코드=SKU 폴백
+        if ($sku === '') return self::json($res, ['ok' => false, 'error' => '바코드/시리얼 또는 SKU가 필요합니다.', 'code' => 'SCAN_UNRESOLVED'], 422);
+        $whId = (string)($b['whId'] ?? $b['wh_id'] ?? '');
+        if ($whId === '') $whId = self::primaryWarehouse($t);
+        if ($err = self::guardWarehouse($req, $res, $whId)) return $err;
+        $isSerial = $resolved && (string)($resolved['kind'] ?? '') === 'serial';
+        $qty = $isSerial ? 1.0 : max(1.0, (float)($b['qty'] ?? 1));
+        // serial 은 code 기반 멱등 ref(재스캔 무해), 일반 바코드는 요청 ref 또는 타임스탬프.
+        $ref = trim((string)($b['ref'] ?? ''));
+        if ($ref === '') $ref = $isSerial ? ('SERIN-' . $code) : ('SCANIN-' . ($code !== '' ? $code : $sku) . '-' . gmdate('YmdHis'));
+        [$binId, $binCode] = self::resolveBin($t, $whId, $b['bin'] ?? $b['bin_id'] ?? $b['bin_code'] ?? '');
+        $mid = self::recordMovement($t, ['type' => 'Inbound', 'wh_id' => $whId, 'sku' => $sku, 'name' => $name, 'qty' => $qty, 'ref' => $ref, 'reason' => '스캔입고']);
+        if ($binId > 0) self::adjustBinStock($t, $whId, $binId, $sku, $name, $qty);
+        if ($isSerial) { try { self::db()->prepare("UPDATE wms_barcodes SET status='in', bin_id=?, updated_at=? WHERE tenant_id=? AND code=?")->execute([$binId, self::now(), $t, $code]); } catch (\Throwable $e) {} }
+        Db::audit(self::db(), $t, 'wms.scan_in', ['sku' => $sku, 'qty' => $qty, 'wh_id' => $whId, 'bin_id' => $binId, 'serial' => $isSerial]);
+        return self::json($res, ['ok' => true, 'sku' => $sku, 'qty' => $qty, 'wh_id' => $whId, 'bin_id' => $binId, 'bin_code' => $binCode, 'movement_id' => $mid]);
+    }
+
+    /** POST /wms/scan-out — 바코드/시리얼/SKU 스캔 출고. recordMovement(Outbound·strict) + 빈 차감. 재고부족=422. */
+    public static function scanOut(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $t = self::tenant($req); $b = self::body($req);
+        $code = trim((string)($b['barcode'] ?? $b['serial'] ?? $b['code'] ?? ''));
+        $sku  = trim((string)($b['sku'] ?? ''));
+        $name = (string)($b['name'] ?? '');
+        $resolved = $code !== '' ? self::resolveBarcode($t, $code) : null;
+        if ($resolved) { $sku = (string)$resolved['sku']; if ($name === '') $name = (string)($resolved['name'] ?? ''); }
+        elseif ($sku === '' && $code !== '') { $sku = $code; }
+        if ($sku === '') return self::json($res, ['ok' => false, 'error' => '바코드/시리얼 또는 SKU가 필요합니다.', 'code' => 'SCAN_UNRESOLVED'], 422);
+        $whId = (string)($b['whId'] ?? $b['wh_id'] ?? '');
+        if ($whId === '') $whId = self::primaryWarehouse($t);
+        if ($err = self::guardWarehouse($req, $res, $whId)) return $err;
+        $isSerial = $resolved && (string)($resolved['kind'] ?? '') === 'serial';
+        $qty = $isSerial ? 1.0 : max(1.0, (float)($b['qty'] ?? 1));
+        $ref = trim((string)($b['ref'] ?? ''));
+        if ($ref === '') $ref = $isSerial ? ('SEROUT-' . $code) : ('SCANOUT-' . ($code !== '' ? $code : $sku) . '-' . gmdate('YmdHis'));
+        [$binId, $binCode] = self::resolveBin($t, $whId, $b['bin'] ?? $b['bin_id'] ?? $b['bin_code'] ?? '');
+        try {
+            $mid = self::recordMovement($t, ['type' => 'Outbound', 'wh_id' => $whId, 'sku' => $sku, 'name' => $name, 'qty' => $qty, 'ref' => $ref, 'reason' => '스캔출고']);
+        } catch (\RuntimeException $e) {
+            if (str_starts_with($e->getMessage(), 'insufficient_stock')) return self::json($res, ['ok' => false, 'error' => '재고 부족: 출고 수량이 가용 재고를 초과합니다.', 'code' => 'INSUFFICIENT_STOCK'], 422);
+            throw $e;
+        }
+        if ($binId > 0) self::adjustBinStock($t, $whId, $binId, $sku, $name, -$qty);
+        if ($isSerial) { try { self::db()->prepare("UPDATE wms_barcodes SET status='out', updated_at=? WHERE tenant_id=? AND code=?")->execute([self::now(), $t, $code]); } catch (\Throwable $e) {} }
+        Db::audit(self::db(), $t, 'wms.scan_out', ['sku' => $sku, 'qty' => $qty, 'wh_id' => $whId, 'bin_id' => $binId, 'serial' => $isSerial]);
+        return self::json($res, ['ok' => true, 'sku' => $sku, 'qty' => $qty, 'wh_id' => $whId, 'bin_id' => $binId, 'bin_code' => $binCode, 'movement_id' => $mid]);
+    }
+
+    /** POST /wms/putaway — 창고 내 재고를 특정 빈으로 배치/이동(빈 원장만; 창고단위 on_hand 불변 = 무회귀). */
+    public static function putAway(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $t = self::tenant($req); $b = self::body($req);
+        $sku = trim((string)($b['sku'] ?? ''));
+        if ($sku === '') return self::json($res, ['ok' => false, 'error' => 'sku가 필요합니다.'], 422);
+        $whId = (string)($b['whId'] ?? $b['wh_id'] ?? '');
+        if ($whId === '') $whId = self::primaryWarehouse($t);
+        if ($err = self::guardWarehouse($req, $res, $whId)) return $err;
+        $qty = max(0.0, (float)($b['qty'] ?? 0));
+        if ($qty <= 0) return self::json($res, ['ok' => false, 'error' => 'qty가 필요합니다.'], 422);
+        $name = (string)($b['name'] ?? '');
+        [$toBin, $toCode] = self::resolveBin($t, $whId, $b['bin'] ?? $b['to_bin'] ?? $b['bin_code'] ?? '');
+        if ($toBin <= 0) return self::json($res, ['ok' => false, 'error' => '대상 로케이션을 찾을 수 없습니다.', 'code' => 'BIN_NOT_FOUND'], 422);
+        [$fromBin] = self::resolveBin($t, $whId, $b['from_bin'] ?? $b['fromBin'] ?? '');
+        if ($fromBin > 0) self::adjustBinStock($t, $whId, $fromBin, $sku, $name, -$qty); // 빈→빈 이동
+        self::adjustBinStock($t, $whId, $toBin, $sku, $name, $qty);
+        return self::json($res, ['ok' => true, 'sku' => $sku, 'qty' => $qty, 'wh_id' => $whId, 'to_bin' => $toBin, 'to_bin_code' => $toCode, 'from_bin' => $fromBin]);
+    }
+
+    /* ── 웨이브/존 피킹 ── */
+
+    /** 특정 창고·SKU 의 pick-path 최우선 빈(zone·seq) — 없으면 [0,'','']. */
+    private static function pickBinForSku(string $t, string $whId, string $sku): array
+    {
+        try {
+            $st = self::db()->prepare("SELECT b.id, b.code, b.zone, b.seq FROM wms_bin_stock bs
+                                       JOIN wms_bins b ON b.id=bs.bin_id AND b.tenant_id=bs.tenant_id
+                                       WHERE bs.tenant_id=? AND bs.sku=? AND bs.on_hand>0 AND (bs.wh_id=? OR ?='')
+                                       ORDER BY b.zone, b.seq LIMIT 1");
+            $st->execute([$t, $sku, $whId, $whId]);
+            $r = $st->fetch(\PDO::FETCH_ASSOC);
+            if ($r) return [(int)$r['id'], (string)$r['code'], (string)($r['zone'] ?? ''), (int)($r['seq'] ?? 0)];
+        } catch (\Throwable $e) {}
+        return [0, '', '', 0];
+    }
+
+    /** GET /wms/waves — 웨이브 목록 + 항목(pick-path 순). */
+    public static function listWaves(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $t = self::tenant($req); $pdo = self::db();
+        $st = $pdo->prepare("SELECT * FROM wms_waves WHERE tenant_id=:t ORDER BY id DESC LIMIT 200");
+        $st->execute([':t' => $t]);
+        $waves = $st->fetchAll(\PDO::FETCH_ASSOC);
+        $iq = $pdo->prepare("SELECT * FROM wms_wave_items WHERE tenant_id=:t AND wave_id=:w ORDER BY zone, seq, id");
+        foreach ($waves as &$w) { $iq->execute([':t' => $t, ':w' => (int)$w['id']]); $w['items'] = $iq->fetchAll(\PDO::FETCH_ASSOC); }
+        return self::json($res, ['ok' => true, 'waves' => $waves]);
+    }
+
+    /**
+     * POST /wms/waves — 주문 배치로 웨이브 생성. order_refs[] 지정 시 그 피킹 행만, 미지정 시 창고의 pending 피킹 자동 수집.
+     *   각 라인 → wave_item(빈 로케이션·zone·pick-path seq 매핑). 원 피킹 status→'waved'(중복 웨이브 방지). zone 그룹핑.
+     */
+    public static function createWave(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $t = self::tenant($req); $b = self::body($req); $now = self::now(); $pdo = self::db();
+        $whId = (string)($b['whId'] ?? $b['wh_id'] ?? '');
+        if ($err = self::guardWarehouse($req, $res, $whId)) return $err;
+        $zoneFilter = trim((string)($b['zone'] ?? ''));
+        $orderRefs = array_values(array_filter(array_map('strval', (array)($b['order_refs'] ?? $b['orderRefs'] ?? [])), fn($r) => $r !== ''));
+        // 후보 피킹 수집(pending·미웨이브). order_refs 지정 시 그 주문만.
+        $sql = "SELECT id, order_ref, sku, name, qty, wh_id FROM wms_picking WHERE tenant_id=? AND status='pending'";
+        $p = [$t];
+        if ($whId !== '') { $sql .= " AND wh_id=?"; $p[] = $whId; }
+        if ($orderRefs) { $sql .= " AND order_ref IN (" . implode(',', array_fill(0, count($orderRefs), '?')) . ")"; foreach ($orderRefs as $r) $p[] = $r; }
+        $sql .= " ORDER BY id ASC LIMIT 500";
+        $st = $pdo->prepare($sql); $st->execute($p);
+        $picks = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+        if (!$picks) return self::json($res, ['ok' => false, 'error' => '웨이브에 담을 대기 피킹이 없습니다.', 'code' => 'NO_PENDING_PICKS'], 422);
+        $ownTxn = !$pdo->inTransaction();
+        if ($ownTxn) $pdo->beginTransaction();
+        try {
+            $code = 'WAVE-' . gmdate('YmdHis') . '-' . substr((string)mt_rand(1000, 9999), 0, 4);
+            $pdo->prepare("INSERT INTO wms_waves (tenant_id,code,wh_id,zone,status,order_count,item_count,note,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?)")
+                ->execute([$t, $code, $whId, $zoneFilter, 'created', 0, 0, (string)($b['note'] ?? ''), $now, $now]);
+            $waveId = (int)$pdo->lastInsertId();
+            $ins = $pdo->prepare("INSERT INTO wms_wave_items (tenant_id,wave_id,order_ref,sku,name,qty,picked_qty,wh_id,bin_id,bin_code,zone,seq,status,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+            $mark = $pdo->prepare("UPDATE wms_picking SET status='waved', updated_at=? WHERE id=? AND tenant_id=?");
+            $orders = []; $items = 0;
+            foreach ($picks as $pk) {
+                $psku = (string)($pk['sku'] ?? ''); $pwh = (string)($pk['wh_id'] ?? $whId);
+                [$binId, $binCode, $zone, $seq] = $psku !== '' ? self::pickBinForSku($t, $pwh, $psku) : [0, '', '', 0];
+                if ($zoneFilter !== '' && $zone !== '' && $zone !== $zoneFilter) continue; // zone 그룹핑
+                $ins->execute([$t, $waveId, (string)($pk['order_ref'] ?? ''), $psku, (string)($pk['name'] ?? ''), (float)($pk['qty'] ?? 0), 0, $pwh, $binId, $binCode, $zone, $seq, 'pending', $now, $now]);
+                $mark->execute([$now, (int)$pk['id'], $t]);
+                $orders[(string)($pk['order_ref'] ?? '')] = true; $items++;
+            }
+            $pdo->prepare("UPDATE wms_waves SET order_count=?, item_count=?, updated_at=? WHERE id=? AND tenant_id=?")
+                ->execute([count($orders), $items, $now, $waveId, $t]);
+            if ($ownTxn) $pdo->commit();
+            return self::json($res, ['ok' => true, 'id' => $waveId, 'code' => $code, 'order_count' => count($orders), 'item_count' => $items]);
+        } catch (\Throwable $e) {
+            if ($ownTxn && $pdo->inTransaction()) $pdo->rollBack();
+            throw $e;
+        }
+    }
+
+    /**
+     * POST /wms/waves/{id}/confirm — 웨이브 피킹 확정. 각 pending 항목 → Outbound(strict·멱등 ref WAVE-{waveId}-{itemId})
+     *   + 빈 재고 차감 + 원 피킹 status→shipped. 재고부족 항목은 status='short'(부분 확정, 나머지 진행). 전량 성공 시 wave='completed'.
+     */
+    public static function confirmWave(Request $req, Response $res, array $args): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $t = self::tenant($req); $pdo = self::db(); $now = self::now();
+        $waveId = (int)($args['id'] ?? 0);
+        $wq = $pdo->prepare("SELECT id, wh_id, status FROM wms_waves WHERE id=? AND tenant_id=? LIMIT 1");
+        $wq->execute([$waveId, $t]);
+        $wave = $wq->fetch(\PDO::FETCH_ASSOC);
+        if (!$wave) return self::json($res, ['ok' => false, 'error' => '웨이브 없음'], 404);
+        if ($err = self::guardWarehouse($req, $res, (string)($wave['wh_id'] ?? ''))) return $err;
+        // pending + short(직전 재고부족) 모두 처리 — 재입고 후 재확정 시 short 항목도 재시도(ref 멱등).
+        $iq = $pdo->prepare("SELECT * FROM wms_wave_items WHERE wave_id=? AND tenant_id=? AND status IN ('pending','short') ORDER BY zone, seq, id");
+        $iq->execute([$waveId, $t]);
+        $items = $iq->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+        $picked = 0; $short = 0;
+        $upItem = $pdo->prepare("UPDATE wms_wave_items SET status=?, picked_qty=?, updated_at=? WHERE id=? AND tenant_id=?");
+        $upPick = $pdo->prepare("UPDATE wms_picking SET status='shipped', updated_at=? WHERE tenant_id=? AND order_ref=? AND sku=? AND status IN ('waved','pending')");
+        foreach ($items as $it) {
+            $sku = (string)($it['sku'] ?? ''); $qty = (float)($it['qty'] ?? 0); $wh = (string)($it['wh_id'] ?? '');
+            if ($sku === '' || $qty <= 0) { $upItem->execute(['picked', 0, $now, (int)$it['id'], $t]); continue; }
+            $ref = 'WAVE-' . $waveId . '-' . (int)$it['id'];
+            try {
+                self::recordMovement($t, ['type' => 'Outbound', 'wh_id' => $wh, 'sku' => $sku, 'name' => (string)($it['name'] ?? ''), 'qty' => $qty, 'ref' => $ref, 'reason' => '웨이브피킹']);
+                if ((int)($it['bin_id'] ?? 0) > 0) self::adjustBinStock($t, $wh, (int)$it['bin_id'], $sku, (string)($it['name'] ?? ''), -$qty);
+                $upItem->execute(['picked', $qty, $now, (int)$it['id'], $t]);
+                $upPick->execute([$now, $t, (string)($it['order_ref'] ?? ''), $sku]);
+                $picked++;
+            } catch (\RuntimeException $e) {
+                if (str_starts_with($e->getMessage(), 'insufficient_stock')) { $upItem->execute(['short', 0, $now, (int)$it['id'], $t]); $short++; continue; }
+                throw $e;
+            }
+        }
+        // 잔여 pending/short 유무로 wave status 판정(멱등 재확정 가능).
+        $rem = $pdo->prepare("SELECT COUNT(*) FROM wms_wave_items WHERE wave_id=? AND tenant_id=? AND status IN ('pending','short')");
+        $rem->execute([$waveId, $t]);
+        $status = ((int)$rem->fetchColumn() === 0) ? 'completed' : 'partial';
+        $pdo->prepare("UPDATE wms_waves SET status=?, updated_at=? WHERE id=? AND tenant_id=?")->execute([$status, $now, $waveId, $t]);
+        Db::audit($pdo, $t, 'wms.wave_confirm', ['wave_id' => $waveId, 'picked' => $picked, 'short' => $short, 'status' => $status]);
+        return self::json($res, ['ok' => true, 'wave_id' => $waveId, 'picked' => $picked, 'short' => $short, 'status' => $status]);
+    }
+
+    public static function deleteWave(Request $req, Response $res, array $args): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $t = self::tenant($req); $pdo = self::db(); $id = (int)$args['id'];
+        // 미확정 웨이브 삭제 시 원 피킹을 pending 으로 복원(재웨이브 가능). 확정분(shipped)은 불변.
+        try {
+            $its = $pdo->prepare("SELECT order_ref, sku FROM wms_wave_items WHERE wave_id=? AND tenant_id=? AND status IN ('pending','short')");
+            $its->execute([$id, $t]);
+            $rev = $pdo->prepare("UPDATE wms_picking SET status='pending', updated_at=? WHERE tenant_id=? AND order_ref=? AND sku=? AND status='waved'");
+            foreach ($its->fetchAll(\PDO::FETCH_ASSOC) ?: [] as $it) { $rev->execute([self::now(), $t, (string)($it['order_ref'] ?? ''), (string)($it['sku'] ?? '')]); }
+        } catch (\Throwable $e) {}
+        $pdo->prepare("DELETE FROM wms_wave_items WHERE wave_id=? AND tenant_id=?")->execute([$id, $t]);
+        $st = $pdo->prepare("DELETE FROM wms_waves WHERE id=? AND tenant_id=?");
+        $st->execute([$id, $t]);
         return self::json($res, ['ok' => true, 'deleted' => $st->rowCount()]);
     }
 

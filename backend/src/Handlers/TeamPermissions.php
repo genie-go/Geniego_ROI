@@ -121,8 +121,13 @@ class TeamPermissions
     {
         $r = strtolower(trim((string)($c['team_role'] ?? '')));
         if (in_array($r, ['owner','manager','member'], true)) return $r;
-        // fail-open(레거시): team_role 미설정 + 상위계정 없으면 owner, 있으면 member
-        return !empty($c['parent_user_id']) ? 'member' : 'owner';
+        // [은행급 fail-closed] team_role 미해결 → 최소권한(member) 기본.
+        //   단, positive 증거(parent_user_id 키 존재 + 값 비어있음 = 상위계정 없는 top-level 계정)일 때만
+        //   owner 로 인정한다(정당한 계정소유자 락아웃 방지). parent_user_id 키 자체가 부재(모호·부분조회)면
+        //   owner 로 승격하지 않고 member 로 강등한다(구 로직의 '키 부재→owner' 권한상승 벡터 제거).
+        //   ※ admin(plan=admin)은 roleOf 와 독립적으로 isAdmin()이 별도 허용하므로 이 변경의 영향 없음.
+        if (array_key_exists('parent_user_id', $c) && empty($c['parent_user_id'])) return 'owner';
+        return 'member';
     }
     private static function isAdmin(array $c): bool { return (($c['plan'] ?? '') === 'admin') || (($c['plans'] ?? '') === 'admin'); }
     /** 최고관리자(admin) 또는 owner — 팀 CRUD·팀권한 설정 권한. */
@@ -225,23 +230,38 @@ class TeamPermissions
      *   사용자 본인 스코프 우선, 없으면 소속 팀 스코프 상속.
      * @return array{scope_type:string,values:array}|null
      */
+    /** [은행급 fail-closed] 스코프 해석 실패/모호 시 사용하는 명시적 거부 센티넬(행 0건 강제). */
+    private const DENY_SCOPE = ['scope_type' => '__deny__', 'values' => []];
+
     public static function effectiveScope(\Psr\Http\Message\ServerRequestInterface $req): ?array
     {
+        // ── 역할 판정은 try 밖에서 먼저(정당한 owner/admin 무제한 경로를 DB 오류가 삼키지 않도록) ──
         try {
             $u = \Genie\Handlers\UserAuth::authedUser($req);
-            if (!$u) return null;
-            $role = strtolower((string)($u['team_role'] ?? $u['role'] ?? ''));
-            if (in_array($role, ['owner', 'admin'], true)) return null; // 소유자/관리자 = 무제한
+        } catch (\Throwable $e) { $u = null; }
+        // 미인증(토큰 없음/무효) = 스코프 객체 없음(null). 실제 접근 차단은 상위 게이트(requirePro/requirePlan/
+        //   미들웨어 401)가 담당하므로 여기서 deny 를 반환하면 정당한 공개/데모 흐름까지 오차단될 수 있어 null 유지.
+        if (!$u) return null;
+        $role = strtolower((string)($u['team_role'] ?? $u['role'] ?? ''));
+        if (in_array($role, ['owner', 'admin'], true)) return null; // 소유자/관리자 = 무제한(정당 우회 보존)
+        // ── 비-owner: 스코프 해석. 여기서부터의 실패/모호는 무제한이 아니라 명시적 거부(fail-closed) ──
+        try {
             $tenant = (string)(\Genie\Handlers\UserAuth::authedTenant($req) ?? '');
-            if ($tenant === '') return null;
+            // 인증된 비-owner 인데 테넌트를 도출 못 함 = 모호 → 무제한 부여 금지(거부).
+            if ($tenant === '') return self::DENY_SCOPE;
             $pdo = \Genie\Db::pdo();
             $sc = self::subjectScope($pdo, $tenant, 'user', (int)($u['id'] ?? 0));
             if (!$sc && !empty($u['team_id'])) $sc = self::subjectScope($pdo, $tenant, 'team', (int)$u['team_id']);
+            // 스코프 미설정 = 테넌트 내 무제한(설정 미완 사용자 잠금 방지 — 기존 동작 보존·무회귀).
             if (!$sc) return null;
             $st = (string)($sc['scope_type'] ?? 'own');
             if ($st === 'company') return null;       // 전사 = 무제한
             return $sc;
-        } catch (\Throwable $e) { return null; } // 안전측 — 강제 실패 시 무제한(기존 동작 보존)
+        } catch (\Throwable $e) {
+            // [은행급 fail-closed] 비-owner 스코프 해석 오류 → 무제한 누출 금지, 행 0건으로 거부.
+            //   (DB 일시장애 등에서만 발동. 정당한 owner/admin/미설정 경로는 위에서 이미 null 반환됨.)
+            return self::DENY_SCOPE;
+        }
     }
 
     /**
@@ -252,10 +272,11 @@ class TeamPermissions
     public static function scopeValuesFor(\Psr\Http\Message\ServerRequestInterface $req, string $dimension): ?array
     {
         $sc = self::effectiveScope($req);
-        if ($sc === null) return null;
+        if ($sc === null) return null;                                    // 무제한
+        if ((string)($sc['scope_type'] ?? '') === '__deny__') return [];  // [fail-closed] 거부 → 빈 허용목록(1=0 강제)
         if ((string)($sc['scope_type'] ?? '') !== $dimension) return null;
         $vals = array_values(array_filter(array_map('strval', (array)($sc['values'] ?? [])), fn($v) => $v !== ''));
-        return $vals ? $vals : null;
+        return $vals ? $vals : null; // 정상경로: 빈 값목록은 무제한(null) — 기존 계약 보존(무회귀)
     }
 
     /**
@@ -265,7 +286,8 @@ class TeamPermissions
     public static function scopeSql(\Psr\Http\Message\ServerRequestInterface $req, string $dimension, string $column): array
     {
         $vals = self::scopeValuesFor($req, $dimension);
-        if ($vals === null) return ['', []];
+        if ($vals === null) return ['', []];         // 무제한
+        if (!$vals) return [' AND 1=0', []];         // [fail-closed] 거부 센티넬 → 행 0건(IN () SQL오류 회피)
         $ph = implode(',', array_fill(0, count($vals), '?'));
         return [" AND {$column} IN ({$ph})", $vals];
     }
@@ -277,7 +299,8 @@ class TeamPermissions
     public static function scopeSqlNamed(\Psr\Http\Message\ServerRequestInterface $req, string $dimension, string $column, string $prefix): array
     {
         $vals = self::scopeValuesFor($req, $dimension);
-        if ($vals === null) return ['', []];
+        if ($vals === null) return ['', []];         // 무제한
+        if (!$vals) return [' AND 1=0', []];         // [fail-closed] 거부 센티넬 → 행 0건
         $ph = []; $p = [];
         foreach (array_values($vals) as $i => $v) { $k = ":{$prefix}{$i}"; $ph[] = $k; $p[$k] = $v; }
         return [" AND {$column} IN (" . implode(',', $ph) . ")", $p];
@@ -757,7 +780,9 @@ class TeamPermissions
     {
         try {
             $teamMap = self::subjectPerms($pdo, $tenant, 'team', $teamId);
-            $s = $pdo->prepare("SELECT id, team_role FROM app_user WHERE tenant_id=? AND team_id=?");
+            // parent_user_id 포함 조회 — roleOf 가 fail-closed 판정에 필요(부분조회 시 member 로 강등되어
+            //   정당한 owner/manager 도 클램프 대상이 될 수 있으므로 완전 증거 제공).
+            $s = $pdo->prepare("SELECT id, team_role, parent_user_id FROM app_user WHERE tenant_id=? AND team_id=?");
             $s->execute([$tenant, $teamId]);
             foreach ($s->fetchAll(\PDO::FETCH_ASSOC) ?: [] as $m) {
                 if (in_array(self::roleOf($m), ['owner','manager'], true)) continue; // 멤버만 클램프

@@ -104,6 +104,10 @@ class CRM
         foreach (['crm_customers','crm_activities','crm_segments','crm_segment_members'] as $tbl) {
             try { $pdo->exec("ALTER TABLE {$tbl} ADD COLUMN tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo'"); } catch (\Throwable $e) {}
         }
+        // [현 차수] 아이덴티티 해석 — 한 사람의 다중 연락처(email/phone/kakao)를 canonical identity_id 로 통합
+        //   (LTV/세그먼트 파편화 방지). 원본 행은 보존(비파괴), identity_id 링크만 부여. 멱등 ALTER(있으면 무시).
+        try { $pdo->exec("ALTER TABLE crm_customers ADD COLUMN identity_id VARCHAR(64) DEFAULT NULL"); } catch (\Throwable $e) {}
+        try { $pdo->exec("CREATE INDEX idx_crm_identity ON crm_customers(tenant_id, identity_id)"); } catch (\Throwable $e) {}
     }
 
     private static function customerOwned(\PDO $pdo, int $id, string $tenant): bool
@@ -187,6 +191,8 @@ class CRM
                 ':ca'    => $now, ':ua' => $now,
             ]);
             $newId = (int)$pdo->lastInsertId();
+            // [현 차수] 아이덴티티 링크 — 동일 phone/kakao 를 가진 기존 고객과 canonical identity 통합(best-effort).
+            try { self::linkCustomerIdentity($pdo, $tenant, $newId); } catch (\Throwable $e) {}
             // [현 차수] 신규 고객 등록 → 'signup' 트리거 여정 자동 진입. best-effort(여정 미정의 시 무동작).
             try { JourneyBuilder::enrollByTrigger($pdo, $tenant, 'signup', $newId); } catch (\Throwable $e) {}
             return self::jsonRes($res, ['ok'=>true,'id'=>$newId]);
@@ -350,13 +356,22 @@ class CRM
             $rsCol = "(CASE WHEN a.last_purchase >= :c30 THEN 5 WHEN a.last_purchase >= :c60 THEN 4 WHEN a.last_purchase >= :c90 THEN 3 WHEN a.last_purchase >= :c180 THEN 2 ELSE 1 END)";
             $fsCol = "(CASE WHEN COALESCE(a.purchase_count,0) >= 10 THEN 5 WHEN COALESCE(a.purchase_count,0) >= 5 THEN 4 WHEN COALESCE(a.purchase_count,0) >= 3 THEN 3 WHEN COALESCE(a.purchase_count,0) >= 1 THEN 2 ELSE 1 END)";
             $grade = "CASE WHEN rs >= 4 AND fs >= 4 THEN 'champions' WHEN rs >= 3 AND fs >= 3 THEN 'loyal' WHEN rs <= 2 AND fs >= 3 THEN 'at_risk' WHEN rs <= 2 AND fs <= 2 THEN 'lost' ELSE 'new' END";
+            // [현 차수 H4] identity_id 로 연결된 다중 연락처를 **한 논리적 사람**으로 통합 후 RFM 등급 집계.
+            //   idk = COALESCE(NULLIF(c.identity_id,''), CAST(c.id AS CHAR)) — identity_id 는 항상 'idt_' 접두(정수 id 와 무충돌).
+            //   identity_id 가 NULL/'' 이면 idk=고객 id 문자열 = 고객당 1행 → 기존 per-customer 집계와 완전 동일(회귀0).
+            $idk = "COALESCE(NULLIF(c.identity_id,''), CAST(c.id AS CHAR))";
             $sql = "SELECT g AS grd, COUNT(*) AS cnt FROM (
                         SELECT ($grade) AS g FROM (
-                            SELECT $rsCol AS rs, $fsCol AS fs FROM crm_customers c
-                            LEFT JOIN (SELECT customer_id, COUNT(*) AS purchase_count, MAX(created_at) AS last_purchase
-                                       FROM crm_activities WHERE type='purchase' AND tenant_id=:t GROUP BY customer_id) a
-                              ON a.customer_id = c.id
-                            WHERE c.tenant_id=:t
+                            SELECT $rsCol AS rs, $fsCol AS fs FROM (
+                                SELECT $idk AS idk,
+                                       COUNT(act.id) AS purchase_count,
+                                       MAX(act.created_at) AS last_purchase
+                                FROM crm_customers c
+                                LEFT JOIN crm_activities act
+                                       ON act.customer_id = c.id AND act.tenant_id=:t AND act.type='purchase'
+                                WHERE c.tenant_id=:t
+                                GROUP BY $idk
+                            ) a
                         ) s
                     ) x GROUP BY g";
             $st = $pdo->prepare($sql);
@@ -370,41 +385,300 @@ class CRM
         return $out;
     }
 
-    /* ─── [240차 약점③] 예측형 CDP — 구매이력 기반 통계 예측(외부의존 0, 경쟁사 Klaviyo predictive 정합) ─────
-     *   churn_prob   : 생존모델 1-exp(-recency/(주기×2)) — 고객 고유 구매주기 대비 경과로 이탈확률 추정.
-     *   predicted_clv: 12개월 예측가치 = AOV × 연구매빈도 × P(alive). ★실 구매데이터(crm_activities)만, 데이터부족=보수적기본. */
+    /* ─── [현 차수] 예측 CLV 고도화 — BG/NBD(기대거래수) × Gamma-Gamma(예측 객단가) ────────────────
+     *   240차의 단일 생존휴리스틱(1-exp)에서 확률모델로 승격. 외부 ML 라이브러리 0(MMM 코드처럼 hand-rolled).
+     *   ① population 파라미터 추정(method-of-moments):
+     *        Gamma(r,α)  = 개인 거래율 λ_i=freq/T 의 표본 평균/분산 → α=mean/var, r=mean·α.
+     *        Beta(a,b)   = 개인 이탈확률 프록시(휴리스틱 churn)의 표본 평균/분산 MoM(a>1 클램프로 공식 안정).
+     *   ② 개인 예측:
+     *        P(alive|x,t_x,T) 과 E[Y(t)|x,t_x,T](Gauss 초기하 2F1 급수 hand-roll)로 12개월 기대거래수·잔존확률,
+     *        Gamma-Gamma 근사(정밀도가중 객단가 수축추정)로 예측 객단가 → predicted_clv = E[Y(t)]·E[M].
+     *   ③ 폴백: 표본 부족(<MIN) 또는 단일구매(x<1)·수치불안정 시 기존 휴리스틱(heuristicScore)으로 복귀(문서화).
+     *   ★실 구매데이터(crm_activities)만. 응답 스키마(churn_prob/predicted_clv/churn_tier) 불변(프론트 회귀0). */
     private static function addPredictiveScores(array &$rows): array
     {
         $now = time();
-        $sumChurn = 0.0; $highChurn = 0; $sumPredClv = 0.0; $n = 0;
+        $HORIZON = 365.0; // 예측 지평(일)
+        $pop = self::estimatePopParams($rows, $now);
+        $useModel = !empty($pop['ok']);
+        $popAov = (float)($pop['pop_aov'] ?? 0);
+
+        $sumChurn = 0.0; $highChurn = 0; $sumPredClv = 0.0; $n = 0; $modeled = 0;
         foreach ($rows as &$r) {
             $freq  = (int)($r['frequency'] ?? 0);
             $monet = (float)($r['monetary'] ?? 0);
             $last  = !empty($r['last_purchase'])  ? strtotime((string)$r['last_purchase'])  : false;
             $first = !empty($r['first_purchase']) ? strtotime((string)$r['first_purchase']) : false;
-            $aov   = $freq > 0 ? $monet / $freq : 0;
-            $recencyDays = $last ? max(0, ($now - $last) / 86400) : 999;
-            $churn = 0.5; $predClv = 0.0;
-            if ($freq >= 2 && $first && $last && $last > $first) {
-                $interval   = max(1, (($last - $first) / 86400) / ($freq - 1));   // 평균 구매주기(일)
-                $churn      = 1 - exp(-$recencyDays / ($interval * 2));           // recency=2×주기 → 0.63
-                $ageYears   = max(0.25, ($now - $first) / 31536000);
-                $annualFreq = min(52, $freq / $ageYears);
-                $predClv    = $aov * $annualFreq * (1 - $churn);                  // 12개월 예측가치
-            } elseif ($freq == 1) {
-                $churn   = min(0.95, $recencyDays / 180);                         // 단일구매: recency 기반
-                $predClv = $aov * (1 - $churn) * 0.5;                             // 보수적 재구매 기대
+            $aov   = $freq > 0 ? $monet / $freq : 0.0;
+
+            $scored = false;
+            if ($useModel && $freq >= 2 && $first && $last && $last >= $first) {
+                $T  = max(1.0, ($now - $first) / 86400.0);  // 관측기간(일)
+                $tx = ($last - $first) / 86400.0;           // 마지막 반복구매 시점(일)
+                $x  = $freq - 1;                            // 반복거래수(BG/NBD frequency)
+                $pAlive = self::bgnbdPAlive($x, $tx, $T, $pop);
+                $eY     = self::bgnbdExpected($x, $tx, $T, $HORIZON, $pop);
+                if (is_finite($pAlive) && is_finite($eY) && $eY >= 0) {
+                    // Gamma-Gamma 근사: 정밀도가중 객단가 수축(고빈도일수록 개인 AOV 신뢰, 저빈도는 population 으로 수축).
+                    $eM = ($pop['gg_pseudo'] * $popAov + $freq * $aov) / ($pop['gg_pseudo'] + $freq);
+                    $r['churn_prob']    = round(max(0.0, min(0.99, 1.0 - $pAlive)), 3);
+                    $r['predicted_clv'] = round(max(0.0, $eY * $eM));
+                    $r['clv_model']     = 'bgnbd';
+                    $scored = true; $modeled++;
+                }
             }
-            $churn   = round(max(0.0, min(0.99, $churn)), 3);
-            $predClv = round(max(0.0, $predClv));
-            $r['churn_prob']    = $churn;
-            $r['predicted_clv'] = $predClv;
-            $r['churn_tier']    = $churn >= 0.6 ? 'high' : ($churn >= 0.35 ? 'medium' : 'low');
-            if ($freq > 0) { $sumChurn += $churn; $sumPredClv += $predClv; if ($churn >= 0.6) $highChurn++; $n++; }
+            if (!$scored) {
+                [$churn, $predClv] = self::heuristicScore($freq, $aov, $first, $last, $now);
+                $r['churn_prob']    = round(max(0.0, min(0.99, $churn)), 3);
+                $r['predicted_clv'] = round(max(0.0, $predClv));
+                $r['clv_model']     = 'heuristic';
+            }
+            $cp = (float)$r['churn_prob'];
+            $r['churn_tier'] = $cp >= 0.6 ? 'high' : ($cp >= 0.35 ? 'medium' : 'low');
+            if ($freq > 0) { $sumChurn += $cp; $sumPredClv += (float)$r['predicted_clv']; if ($cp >= 0.6) $highChurn++; $n++; }
         }
         unset($r);
         return ['avg_churn' => $n ? round($sumChurn / $n, 3) : 0, 'high_churn_count' => $highChurn,
-                'total_predicted_clv' => round($sumPredClv), 'scored' => $n];
+                'total_predicted_clv' => round($sumPredClv), 'scored' => $n,
+                'model' => ($modeled > 0 ? 'bgnbd' : 'heuristic'), 'modeled' => $modeled,
+                'params' => $useModel ? ['r'=>round($pop['r'],4), 'alpha'=>round($pop['alpha'],4), 'a'=>round($pop['a'],4), 'b'=>round($pop['b'],4), 'pop_aov'=>round($popAov)] : null];
+    }
+
+    /** [기존 폴백] 단일 생존휴리스틱 — BG/NBD 표본부족·단일구매·수치불안정 시 사용. 240차 로직 그대로(문서화된 fallback). */
+    private static function heuristicScore(int $freq, float $aov, $first, $last, int $now): array
+    {
+        $recencyDays = $last ? max(0, ($now - $last) / 86400) : 999;
+        $churn = 0.5; $predClv = 0.0;
+        if ($freq >= 2 && $first && $last && $last > $first) {
+            $interval   = max(1, (($last - $first) / 86400) / ($freq - 1));   // 평균 구매주기(일)
+            $churn      = 1 - exp(-$recencyDays / ($interval * 2));           // recency=2×주기 → 0.63
+            $ageYears   = max(0.25, ($now - $first) / 31536000);
+            $annualFreq = min(52, $freq / $ageYears);
+            $predClv    = $aov * $annualFreq * (1 - $churn);                  // 12개월 예측가치
+        } elseif ($freq == 1) {
+            $churn   = min(0.95, $recencyDays / 180);                         // 단일구매: recency 기반
+            $predClv = $aov * (1 - $churn) * 0.5;                             // 보수적 재구매 기대
+        }
+        return [$churn, $predClv];
+    }
+
+    /** [현 차수] BG/NBD population 파라미터 추정(method-of-moments). 표본 부족 시 ok=false → 휴리스틱 폴백. */
+    private static function estimatePopParams(array $rows, int $now): array
+    {
+        $lam = []; $ch = []; $aovs = [];
+        foreach ($rows as $r) {
+            $freq  = (int)($r['frequency'] ?? 0);
+            $monet = (float)($r['monetary'] ?? 0);
+            $first = !empty($r['first_purchase']) ? strtotime((string)$r['first_purchase']) : false;
+            $last  = !empty($r['last_purchase'])  ? strtotime((string)$r['last_purchase'])  : false;
+            if ($freq >= 1 && $first) {
+                $T = max(1.0, ($now - $first) / 86400.0);
+                $lam[] = $freq / $T;                 // 개인 거래율(건/일)
+                $aovs[] = $monet / $freq;
+            }
+            if ($freq >= 2 && $first && $last && $last >= $first) {
+                [$c, ] = self::heuristicScore($freq, ($freq > 0 ? $monet / $freq : 0.0), $first, $last, $now);
+                $ch[] = max(0.01, min(0.99, $c));
+            }
+        }
+        $nLam = count($lam); $nCh = count($ch);
+        if ($nLam < 20 || $nCh < 10) return ['ok' => false]; // 표본 부족 → 신뢰불가
+        // Gamma(r,α) MoM
+        $mL = array_sum($lam) / $nLam;
+        $vL = 0.0; foreach ($lam as $v) { $vL += ($v - $mL) ** 2; } $vL /= max(1, $nLam - 1);
+        if ($mL <= 0 || $vL <= 0) return ['ok' => false];
+        $alpha = $mL / $vL; $r = $mL * $alpha;
+        // Beta(a,b) MoM
+        $mC = array_sum($ch) / $nCh;
+        $vC = 0.0; foreach ($ch as $v) { $vC += ($v - $mC) ** 2; } $vC /= max(1, $nCh - 1);
+        $a = 1.5; $b = 3.0;
+        if ($vC > 0 && $mC > 0 && $mC < 1) {
+            $common = $mC * (1 - $mC) / $vC - 1;
+            if ($common > 0) { $a = $mC * $common; $b = (1 - $mC) * $common; }
+        }
+        $popAov = $aovs ? array_sum($aovs) / count($aovs) : 0.0;
+        // 수치 안정 클램프(2F1 발산·a<=1 방지).
+        $r = max(0.01, min(50.0, $r)); $alpha = max(0.01, min(10000.0, $alpha));
+        $a = max(1.05, min(50.0, $a)); $b = max(0.1, min(50.0, $b));
+        return ['ok' => true, 'r' => $r, 'alpha' => $alpha, 'a' => $a, 'b' => $b, 'pop_aov' => $popAov, 'gg_pseudo' => 3.0];
+    }
+
+    /** BG/NBD 잔존확률 P(alive | x, t_x, T). x=반복거래수. */
+    private static function bgnbdPAlive(int $x, float $tx, float $T, array $p): float
+    {
+        if ($x <= 0) return 1.0;
+        $r = $p['r']; $alpha = $p['alpha']; $a = $p['a']; $b = $p['b'];
+        $denomBeta = $b + $x - 1;
+        if ($denomBeta <= 0) return 1.0;
+        $ratio = ($alpha + $T) / ($alpha + $tx + $T);
+        $term = ($a / $denomBeta) * ($ratio ** ($r + $x));
+        return 1.0 / (1.0 + $term);
+    }
+
+    /** BG/NBD 조건부 기대거래수 E[Y(t) | x, t_x, T] (지평 t 일). */
+    private static function bgnbdExpected(int $x, float $tx, float $T, float $t, array $p): float
+    {
+        $r = $p['r']; $alpha = $p['alpha']; $a = $p['a']; $b = $p['b'];
+        if ($a <= 1.0) return NAN;
+        $A = $r + $x; $B = $b + $x; $C = $a + $b + $x - 1;
+        if ($C <= 0) return NAN;
+        $z = $t / ($alpha + $T + $t);
+        $hyp = self::hyp2f1($A, $B, $C, $z);
+        if (!is_finite($hyp)) return NAN;
+        $base = ($alpha + $T) / ($alpha + $T + $t);
+        $num = ($C / ($a - 1)) * (1.0 - ($base ** $A) * $hyp);
+        $denom = 1.0;
+        if ($x > 0 && ($b + $x - 1) > 0) {
+            $ratio = ($alpha + $T) / ($alpha + $tx + $T);
+            $denom = 1.0 + ($a / ($b + $x - 1)) * ($ratio ** $A);
+        }
+        return $num / $denom;
+    }
+
+    /** Gauss 초기하함수 2F1(A,B;C;z) 급수합(|z|<1 수렴). hand-rolled(외부의존 0). */
+    private static function hyp2f1(float $A, float $B, float $C, float $z): float
+    {
+        if ($z <= 0.0) return 1.0;
+        if ($z >= 1.0) $z = 0.999999; // 안전 클램프
+        $term = 1.0; $sum = 1.0;
+        for ($k = 0; $k < 400; $k++) {
+            $term *= (($A + $k) * ($B + $k)) / (($C + $k) * ($k + 1)) * $z;
+            $sum += $term;
+            if (abs($term) < 1e-12 * abs($sum)) break;
+            if (!is_finite($sum)) return NAN;
+        }
+        return $sum;
+    }
+
+    /* ═══ [현 차수] 아이덴티티 해석 — 다중 연락처를 canonical identity 로 통합(LTV/세그먼트 파편화 방지) ═══ */
+
+    /** 전화번호 정규화(숫자만, 9자리 미만은 무시 → 오매칭 방지). */
+    private static function normalizePhone(string $p): string { $d = preg_replace('/[^0-9]/', '', $p); return strlen($d) >= 9 ? $d : ''; }
+    private static function normalizeKakao(string $k): string { return strtolower(trim($k)); }
+
+    /**
+     * 단일 고객 아이덴티티 링크(create 훅·lazy). 동일 phone/kakao 를 가진 기존 고객의 identity 채택(없으면 신규 mint).
+     * 원본 행 보존(비파괴). 전부 테넌트 스코프. 반환=부여된 identity_id.
+     */
+    public static function linkCustomerIdentity(\PDO $pdo, string $tenant, int $customerId): string
+    {
+        try {
+            $c = $pdo->prepare("SELECT id, phone, kakao_id FROM crm_customers WHERE id=:id AND tenant_id=:t");
+            $c->execute([':id'=>$customerId, ':t'=>$tenant]);
+            $me = $c->fetch(\PDO::FETCH_ASSOC);
+            if (!$me) return '';
+            $ph = self::normalizePhone((string)($me['phone'] ?? ''));
+            $kk = self::normalizeKakao((string)($me['kakao_id'] ?? ''));
+            $adopt = null; $rootId = $customerId;
+            if ($ph !== '' || $kk !== '') {
+                $q = $pdo->prepare("SELECT id, phone, kakao_id, identity_id FROM crm_customers
+                    WHERE tenant_id=:t AND id<>:id AND ((phone IS NOT NULL AND phone<>'') OR (kakao_id IS NOT NULL AND kakao_id<>''))");
+                $q->execute([':t'=>$tenant, ':id'=>$customerId]);
+                foreach ($q->fetchAll(\PDO::FETCH_ASSOC) ?: [] as $o) {
+                    $oph = self::normalizePhone((string)($o['phone'] ?? '')); $okk = self::normalizeKakao((string)($o['kakao_id'] ?? ''));
+                    if (($ph !== '' && $oph === $ph) || ($kk !== '' && $okk === $kk)) {
+                        $oid = (int)$o['id'];
+                        if ($oid < $rootId) $rootId = $oid;
+                        if ($adopt === null && !empty($o['identity_id'])) $adopt = (string)$o['identity_id'];
+                    }
+                }
+            }
+            $idt = $adopt ?: ('idt_' . substr(sha1($tenant . ':' . $rootId), 0, 24));
+            $pdo->prepare("UPDATE crm_customers SET identity_id=:idt WHERE id=:id AND tenant_id=:t")
+                ->execute([':idt'=>$idt, ':id'=>$customerId, ':t'=>$tenant]);
+            return $idt;
+        } catch (\Throwable $e) { return ''; }
+    }
+
+    /**
+     * 테넌트 전체 아이덴티티 재해석 — union-find 로 phone/kakao 공유 고객을 클러스터링, canonical identity_id 부여.
+     *   email 은 이미 UNIQUE(tenant,email) 라 별도 키로 취급하지 않음(같은 이메일=같은 행). 원본 보존.
+     */
+    public static function resolveIdentitiesForTenant(\PDO $pdo, string $tenant): array
+    {
+        $st = $pdo->prepare("SELECT id, phone, kakao_id FROM crm_customers WHERE tenant_id=:t");
+        $st->execute([':t'=>$tenant]);
+        $custs = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+        if (!$custs) return ['ok'=>true, 'customers'=>0, 'clusters'=>0, 'merged'=>0];
+
+        $parent = [];
+        $find = function ($x) use (&$parent, &$find) { while ($parent[$x] !== $x) { $parent[$x] = $parent[$parent[$x]]; $x = $parent[$x]; } return $x; };
+        $union = function ($p, $q) use (&$parent, $find) { $rp = $find($p); $rq = $find($q); if ($rp !== $rq) $parent[max($rp, $rq)] = min($rp, $rq); };
+        foreach ($custs as $c) { $parent[(int)$c['id']] = (int)$c['id']; }
+
+        $byPhone = []; $byKakao = [];
+        foreach ($custs as $c) {
+            $id = (int)$c['id'];
+            $ph = self::normalizePhone((string)($c['phone'] ?? ''));
+            $kk = self::normalizeKakao((string)($c['kakao_id'] ?? ''));
+            if ($ph !== '') { if (isset($byPhone[$ph])) $union($byPhone[$ph], $id); else $byPhone[$ph] = $id; }
+            if ($kk !== '') { if (isset($byKakao[$kk])) $union($byKakao[$kk], $id); else $byKakao[$kk] = $id; }
+        }
+
+        $sizes = [];
+        foreach ($custs as $c) { $root = $find((int)$c['id']); $sizes[$root] = ($sizes[$root] ?? 0) + 1; }
+        $roots = []; $merged = 0;
+        foreach ($custs as $c) {
+            $id = (int)$c['id']; $root = $find($id);
+            $idt = 'idt_' . substr(sha1($tenant . ':' . $root), 0, 24);
+            $roots[$root] = true;
+            try { $pdo->prepare("UPDATE crm_customers SET identity_id=:idt WHERE id=:id AND tenant_id=:t")->execute([':idt'=>$idt, ':id'=>$id, ':t'=>$tenant]); } catch (\Throwable $e) {}
+            if (($sizes[$root] ?? 1) > 1) $merged++;
+        }
+        return ['ok'=>true, 'customers'=>count($custs), 'clusters'=>count($roots), 'merged'=>$merged];
+    }
+
+    /* ─── POST /crm/identity/resolve — 테넌트 전체 아이덴티티 재해석(관리자 배치) ─── */
+    public static function resolveIdentity(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $pdo = self::db(); $tenant = self::tenant($req);
+        return self::jsonRes($res, self::resolveIdentitiesForTenant($pdo, $tenant));
+    }
+
+    /* ─── GET /crm/identity/{id} — 통합 아이덴티티 360(파편화된 다중 연락처 합산 LTV/타임라인) ─── */
+    public static function identityView(Request $req, Response $res, array $args): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $pdo = self::db(); $tenant = self::tenant($req); $id = (int)$args['id'];
+        $c = $pdo->prepare("SELECT identity_id FROM crm_customers WHERE id=:id AND tenant_id=:t");
+        $c->execute([':id'=>$id, ':t'=>$tenant]);
+        $row = $c->fetch(\PDO::FETCH_ASSOC);
+        if (!$row) return self::jsonRes($res, ['ok'=>false, 'error'=>'고객 없음'], 404);
+        $idt = (string)($row['identity_id'] ?? '');
+        if ($idt === '') { $idt = self::linkCustomerIdentity($pdo, $tenant, $id); }
+
+        $members = [];
+        if ($idt !== '') {
+            $ms = $pdo->prepare("SELECT id, email, name, phone, kakao_id, ltv, grade FROM crm_customers WHERE tenant_id=:t AND identity_id=:idt");
+            $ms->execute([':t'=>$tenant, ':idt'=>$idt]);
+            $members = $ms->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+        }
+        $ids = array_values(array_filter(array_map(fn($m) => (int)$m['id'], $members)));
+        if (!$ids) $ids = [$id];
+        $in = implode(',', array_map('intval', $ids));
+        $tQ = $pdo->quote($tenant);
+
+        $agg = ['ltv'=>0.0, 'frequency'=>0, 'last_purchase'=>null, 'first_purchase'=>null];
+        try {
+            $a = $pdo->query("SELECT SUM(CASE WHEN type='refund' THEN -amount ELSE amount END) AS ltv,
+                              SUM(CASE WHEN type='purchase' THEN 1 ELSE 0 END) AS freq,
+                              MAX(CASE WHEN type='purchase' THEN created_at END) AS last_p,
+                              MIN(CASE WHEN type='purchase' THEN created_at END) AS first_p
+                              FROM crm_activities WHERE tenant_id={$tQ} AND type IN ('purchase','refund') AND customer_id IN ($in)")->fetch(\PDO::FETCH_ASSOC);
+            if ($a) $agg = ['ltv'=>(float)($a['ltv'] ?? 0), 'frequency'=>(int)($a['freq'] ?? 0), 'last_purchase'=>$a['last_p'], 'first_purchase'=>$a['first_p']];
+        } catch (\Throwable $e) {}
+
+        $acts = [];
+        try {
+            $acts = $pdo->query("SELECT customer_id, type, channel, amount, created_at FROM crm_activities
+                WHERE tenant_id={$tQ} AND customer_id IN ($in) ORDER BY created_at DESC LIMIT 100")->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+        } catch (\Throwable $e) {}
+
+        return self::jsonRes($res, ['ok'=>true, 'identity_id'=>$idt, 'members'=>$members,
+            'member_count'=>count($members), 'aggregate'=>$agg, 'activities'=>$acts]);
     }
 
     /* ─── [240차 약점⑥] 메시징 빈도캡(Frequency Capping) + 발송시간 최적화 — 딜리버러빌리티 보호(경쟁사 Braze/Klaviyo 정합) ───
@@ -516,6 +790,105 @@ class CRM
         // quiet 구간이 자정을 넘는 경우(21~08) 처리
         $inQuiet = ($s > $e) ? ($h >= $s || $h < $e) : ($h >= $s && $h < $e);
         return !$inQuiet;
+    }
+
+    /* ═══ 통합 마케팅 발송 게이트(단일 정본) ═══════════════════════════════
+     *   [현 차수 동기화감사] 신규 동의센터(crm_channel_prefs)·quiet-hours·빈도캡을 **하나의 게이트**로 통합.
+     *   중복 시스템 신설 금지 — 기존 실가동 로직(PreferenceCenter::isChannelAllowed / isQuietNow /
+     *   EmailMarketing::isSuppressed / CRM::commsSendAllowedNow / CRM::isFrequencyCapped)을 재사용해 편입.
+     *   RuleEngine 의 신규 frequency_window(일/주 캡·크로스채널) 설정도 기존 crm_activities *_sent 신호로
+     *   라이브 강제 → inert 였던 설정을 별도 frequency_event 테이블 없이 실가동시킴(단일 집행경로).
+     *   ★거래성/MFA(OTP·배송알림 등)는 절대 게이트 대상 아님 — 이 메서드는 **마케팅 발송 전용**이며 호출은 발송측이 결정.
+     *   무회귀 원칙: 미설정/오류 시 allowed=true(기존 발송경로 그대로).
+     *
+     *   @param array $contact ['email'=>string] 등(이메일 suppression·선호 email 스코프 대조용, 선택).
+     *   @return array ['allowed'=>bool, 'reason'=>string]  reason: ok|channel_opt_out|email_suppressed|
+     *                 quiet_hours|quiet_hours_tenant|frequency_capped|freq_window_daily|freq_window_weekly|gate_error_open
+     */
+    public static function isMarketingSendAllowed(string $tenant, int $customerId, string $channel, array $contact = []): array
+    {
+        $tenant  = ($tenant !== '') ? $tenant : 'demo';
+        $channel = strtolower(trim($channel));
+        $email   = strtolower(trim((string)($contact['email'] ?? '')));
+        try {
+            $pdo = self::db();
+
+            // (a) 채널 옵트아웃 — 동의센터(crm_channel_prefs). 명시적 opted_in=0('all'/채널) 있으면 차단.
+            if (!PreferenceCenter::isChannelAllowed($pdo, $tenant, $customerId, $channel, $email)) {
+                return ['allowed' => false, 'reason' => 'channel_opt_out'];
+            }
+            // (a') 이메일 채널 하드 suppression(하드바운스/스팸/수신거부) — defense-in-depth(정적 재사용, 로직 무중복).
+            if ($channel === 'email' && $email !== '' && EmailMarketing::isSuppressed($pdo, $tenant, $email)) {
+                return ['allowed' => false, 'reason' => 'email_suppressed'];
+            }
+
+            // (b) quiet-hours — 고객 개인(crm_customer_prefs) 우선, 없으면 테넌트 STO 로 폴백.
+            $cfg = self::commsFreqConfig($pdo, $tenant);
+            if (PreferenceCenter::isQuietNow($pdo, $tenant, $customerId)) {
+                return ['allowed' => false, 'reason' => 'quiet_hours'];
+            }
+            if (!self::commsSendAllowedNow($cfg)) {
+                return ['allowed' => false, 'reason' => 'quiet_hours_tenant'];
+            }
+
+            // (c) 빈도캡 — 기존 테넌트 빈도캡(crm_activities *_sent 윈도 카운트).
+            if (self::isFrequencyCapped($pdo, $tenant, $customerId, (int)$cfg['cap'], (int)$cfg['window'])) {
+                return ['allowed' => false, 'reason' => 'frequency_capped'];
+            }
+            // (c') RuleEngine frequency_window(일/주 캡·channel=''=크로스채널) — 동일 crm_activities 신호로 라이브 강제.
+            $fw = self::frequencyWindowReason($pdo, $tenant, $customerId, $channel);
+            if ($fw !== '') {
+                return ['allowed' => false, 'reason' => $fw];
+            }
+        } catch (\Throwable $e) {
+            return ['allowed' => true, 'reason' => 'gate_error_open']; // 무회귀: 게이트 오류 시 발송 비차단(안전)
+        }
+        return ['allowed' => true, 'reason' => 'ok'];
+    }
+
+    /** RuleEngine frequency_window 룰을 기존 crm_activities *_sent 신호로 평가(초과 시 사유, 아니면 '').
+     *   frequency_window 테이블은 RuleEngine 소유 — 부재/비어있어도 안전(무회귀). 별도 frequency_event 미사용. */
+    private static function frequencyWindowReason(\PDO $pdo, string $tenant, int $customerId, string $channel): string
+    {
+        if ($customerId <= 0) return '';
+        $channel = strtolower(trim($channel));
+        try {
+            // 해당 채널 룰 + 크로스채널(channel=''/NULL) 룰만 방어적 조회.
+            $st = $pdo->prepare("SELECT channel, daily_cap, weekly_cap FROM frequency_window
+                                  WHERE tenant_id=? AND enabled=1 AND (channel=? OR channel='' OR channel IS NULL)");
+            $st->execute([$tenant, $channel]);
+            $wins = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+        } catch (\Throwable $e) { return ''; } // 테이블 부재/오류 = 미적용
+        if (!$wins) return '';
+        foreach ($wins as $w) {
+            $wch    = strtolower((string)($w['channel'] ?? ''));
+            $daily  = (int)($w['daily_cap'] ?? 0);
+            $weekly = (int)($w['weekly_cap'] ?? 0);
+            foreach ([[$daily, 1, 'freq_window_daily'], [$weekly, 7, 'freq_window_weekly']] as [$cap, $days, $reason]) {
+                if ($cap <= 0) continue;
+                if (self::countSentSignals($pdo, $tenant, $customerId, $wch, $days) >= $cap) return $reason;
+            }
+        }
+        return '';
+    }
+
+    /** crm_activities *_sent 신호 카운트 — $channel='' 이면 전 채널 합산(크로스채널), 아니면 해당 채널만. */
+    private static function countSentSignals(\PDO $pdo, string $tenant, int $customerId, string $channel, int $days): int
+    {
+        $cutoff = gmdate('Y-m-d H:i:s', time() - max(1, $days) * 86400);
+        try {
+            if ($channel === '') {
+                // 고정 화이트리스트(SQL 인젝션 불가) — 모든 채널 발송 신호 합산.
+                $st = $pdo->prepare("SELECT COUNT(*) FROM crm_activities WHERE tenant_id=? AND customer_id=?
+                    AND type IN ('email_sent','kakao_sent','sms_sent','whatsapp_sent','push_sent') AND created_at >= ?");
+                $st->execute([$tenant, $customerId, $cutoff]);
+            } else {
+                $st = $pdo->prepare("SELECT COUNT(*) FROM crm_activities WHERE tenant_id=? AND customer_id=?
+                    AND type=? AND created_at >= ?");
+                $st->execute([$tenant, $customerId, $channel . '_sent', $cutoff]);
+            }
+            return (int)$st->fetchColumn();
+        } catch (\Throwable $e) { return 0; }
     }
 
     /* ─── GET /crm/cohort-retention — 가입월 코호트 × N개월 재구매율(리텐션). [현 차수] Klaviyo 코호트 정합. ─── */
@@ -859,16 +1232,23 @@ class CRM
         $ignore = $isMy ? 'IGNORE' : 'OR IGNORE';
         // [239차+ CDP] recency_days = 최근 구매 경과일(드라이버별 date diff). 실 구매(crm_activities) 라이브 집계.
         // [263차] recency/lifespan 은 실 구매(type='purchase')만 — refund 행이 최근성/수명을 오염하지 않도록 CASE 로 격리.
-        $mpur = "MAX(CASE WHEN type='purchase' THEN created_at END)"; $ipur = "MIN(CASE WHEN type='purchase' THEN created_at END)";
+        // [현 차수 H4] identity_id 로 연결된 다중 연락처를 **한 논리적 사람**으로 통합해 ltv/freq/recency/lifespan 집계.
+        //   집계는 identity(idk) 단위, 삽입 멤버는 원본 고객 행(c.id) 그대로 유지(원본 비파괴). identity 공유 고객은
+        //   동일한 통합 지표를 공유 → 룰 매칭 일관. identity_id NULL/'' 이면 idk=고객 id 문자열 = 고객당 1행
+        //   → 기존 per-customer 집계와 완전 동일(회귀0). crm_customers 조인으로 type/created_at 모호성 회피(act. 정규화).
+        $idkA = "COALESCE(NULLIF(cc.identity_id,''), CAST(cc.id AS CHAR))";      // 집계 서브쿼리 내부(cc)
+        $idkC = "COALESCE(NULLIF(c.identity_id,''), CAST(c.id AS CHAR))";        // 외부 고객 행(c)
+        $mpur = "MAX(CASE WHEN act.type='purchase' THEN act.created_at END)"; $ipur = "MIN(CASE WHEN act.type='purchase' THEN act.created_at END)";
         $recencyExpr  = $isMy ? "DATEDIFF(NOW(), {$mpur})" : "CAST(julianday('now') - julianday({$mpur}) AS INTEGER)";
         // [현 차수 약점②] 구매 수명(첫↔마지막 구매 경과일) — 평균 구매주기 산출용.
         $lifespanExpr = $isMy ? "DATEDIFF({$mpur}, {$ipur})" : "CAST(julianday({$mpur}) - julianday({$ipur}) AS INTEGER)";
         try {
             $pdo->exec("INSERT {$ignore} INTO crm_segment_members (tenant_id, segment_id, customer_id)
                         SELECT {$tQ}, {$sidQ}, c.id FROM crm_customers c
-                        LEFT JOIN (SELECT customer_id, SUM(CASE WHEN type='refund' THEN -amount ELSE amount END) AS ltv, SUM(CASE WHEN type='purchase' THEN 1 ELSE 0 END) AS freq, {$recencyExpr} AS recency_days, {$lifespanExpr} AS lifespan_days
-                                   FROM crm_activities WHERE type IN ('purchase','refund') AND tenant_id={$tQ} GROUP BY customer_id) a
-                          ON a.customer_id = c.id
+                        LEFT JOIN (SELECT {$idkA} AS idk, SUM(CASE WHEN act.type='refund' THEN -act.amount ELSE act.amount END) AS ltv, SUM(CASE WHEN act.type='purchase' THEN 1 ELSE 0 END) AS freq, {$recencyExpr} AS recency_days, {$lifespanExpr} AS lifespan_days
+                                   FROM crm_activities act JOIN crm_customers cc ON cc.id = act.customer_id AND cc.tenant_id={$tQ}
+                                   WHERE act.type IN ('purchase','refund') AND act.tenant_id={$tQ} GROUP BY {$idkA}) a
+                          ON a.idk = {$idkC}
                         WHERE {$whereStr}");
         } catch (\Throwable $e) { /* 룰 필드 오류 시 0 멤버 — 세그먼트 생성 자체는 성공(정직) */ }
 
@@ -885,10 +1265,18 @@ class CRM
         $pdo = self::db();
         $tenant = self::tenant($req);
 
-        $q1 = $pdo->prepare("SELECT COUNT(*) FROM crm_customers WHERE tenant_id=:t");
+        // [현 차수 H4] 총 고객수·활성수는 identity_id 로 연결된 다중 연락처를 **한 논리적 사람**으로 통합 후 카운트.
+        //   idk = COALESCE(NULLIF(identity_id,''), CAST(id AS CHAR)); identity_id 가 NULL/'' 이면 id 문자열 = 고객당 유일
+        //   → COUNT(DISTINCT idk) == COUNT(*)/COUNT(DISTINCT customer_id)(회귀0). total_ltv(SUM)·grades 는 행 단위로
+        //   합/분포 불변이라 유지(부분합=전체합, 중복산정 없음).
+        $q1 = $pdo->prepare("SELECT COUNT(DISTINCT COALESCE(NULLIF(identity_id,''), CAST(id AS CHAR))) FROM crm_customers WHERE tenant_id=:t");
         $q1->execute([':t'=>$tenant]); $total = (int)$q1->fetchColumn();
 
-        $q2 = $pdo->prepare("SELECT COUNT(DISTINCT customer_id) FROM crm_activities WHERE tenant_id=:t AND created_at >= :c30 AND type='purchase'");
+        // 활성(30일 내 구매) — 주문 customer_id 를 고객 identity 로 해석해 논리적 사람 기준 distinct. 고아 활동은 customer_id 로 폴백.
+        $q2 = $pdo->prepare("SELECT COUNT(DISTINCT COALESCE(NULLIF(c.identity_id,''), CAST(a.customer_id AS CHAR)))
+                             FROM crm_activities a
+                             LEFT JOIN crm_customers c ON c.id = a.customer_id AND c.tenant_id = a.tenant_id
+                             WHERE a.tenant_id=:t AND a.created_at >= :c30 AND a.type='purchase'");
         $q2->execute([':t'=>$tenant, ':c30'=>self::cutoff(30)]); $active = (int)$q2->fetchColumn();
 
         $q3 = $pdo->prepare("SELECT COALESCE(SUM(ltv),0) FROM crm_customers WHERE tenant_id=:t");

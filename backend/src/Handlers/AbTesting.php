@@ -143,6 +143,12 @@ final class AbTesting
         }
         // [현 차수 초고도화 DCO] 마지막 소재 리프레시 시각(피로도 로테이션 쿨다운). 멱등 ALTER.
         try { $pdo->exec("ALTER TABLE ab_test ADD COLUMN last_dco_at " . ($mysql ? "VARCHAR(32)" : "TEXT") . " DEFAULT NULL"); } catch (Throwable $e) {}
+        // [현 차수 초고도화 DCO+] 동영상 크리에이티브 자산 지원 — 기존 이미지/텍스트 variant 와 병존(회귀0).
+        //   asset_type='image'(기본, 무변경) | 'video'. video_ref=매체 동영상 자산 URL/ID(참조만·PII 아님). 멱등 ALTER.
+        try { $pdo->exec("ALTER TABLE ab_variant ADD COLUMN asset_type " . ($mysql ? "VARCHAR(10)" : "TEXT") . " DEFAULT 'image'"); } catch (Throwable $e) {}
+        try { $pdo->exec("ALTER TABLE ab_variant ADD COLUMN video_ref " . ($mysql ? "VARCHAR(500)" : "TEXT") . " DEFAULT NULL"); } catch (Throwable $e) {}
+        // 동영상 생성 비동기 요청 시각 — 정직 게이트(미완료 상태 표기 + 재요청 쿨다운). 멱등 ALTER.
+        try { $pdo->exec("ALTER TABLE ab_test ADD COLUMN video_gen_requested_at " . ($mysql ? "VARCHAR(32)" : "TEXT") . " DEFAULT NULL"); } catch (Throwable $e) {}
     }
 
     private static function now(): string { return gmdate('Y-m-d\TH:i:s\Z'); }
@@ -151,30 +157,60 @@ final class AbTesting
     private const DCO_WINDOW_DAYS = 21;   // 피로도 관측 윈도
     private const DCO_MIN_DAYS    = 8;    // 최소 관측일(부족 시 비피로=회귀0)
     private const DCO_DECAY_PCT   = 0.25; // 최근 CTR이 기준 대비 25%+ 하락 시 피로
+    private const DCO_VTR_DECAY_PCT = 0.30; // 동영상 VTR(조회율) 감쇠 임계 — CTR 대비 노이즈 커 다소 완화
     private const DCO_COOLDOWN_DAYS = 5;  // 리프레시 쿨다운(과도 로테이션/churn 방지)
 
-    /** 크리에이티브 피로도 — ad_ext_id 일별 CTR 시계열의 최근 절반 평균이 기준 절반 대비 유의 하락하면 피로.
-     *  빈도 포화의 대리지표(노출 누적 + CTR 감쇠). 데이터 부족/상승은 비피로. */
-    private static function creativeFatigue(PDO $pdo, string $tenant, string $adExtId): array
+    /** 크리에이티브 피로도 — ad_ext_id 일별 성과율 시계열의 최근 절반 평균이 기준 절반 대비 유의 하락하면 피로.
+     *  빈도 포화의 대리지표(노출 누적 + 성과율 감쇠). 데이터 부족/상승은 비피로.
+     *  ★asset_type='video' 이면 VTR(영상 조회율=조회수/노출) 감쇠로 판정 — 조회수(video_views|thruplays|views)는
+     *    performance_metrics.extra_json 에 매체 ingest 로 적재. 조회 데이터 부재 시 CTR 폴백(정직: metric='ctr_fallback'). */
+    private static function creativeFatigue(PDO $pdo, string $tenant, string $adExtId, string $assetType = 'image'): array
     {
-        $out = ['fatigued' => false, 'recent' => 0.0, 'baseline' => 0.0, 'days' => 0];
+        $isVideo = strtolower($assetType) === 'video';
+        $out = ['fatigued' => false, 'recent' => 0.0, 'baseline' => 0.0, 'days' => 0, 'metric' => $isVideo ? 'vtr' : 'ctr'];
         if ($adExtId === '') return $out;
+        $since = gmdate('Y-m-d', time() - self::DCO_WINDOW_DAYS * 86400);
+        $rate = []; // 일별 성과율(%)
         try {
-            $st = $pdo->prepare("SELECT date, COALESCE(SUM(impressions),0) imp, COALESCE(SUM(clicks),0) clk
-                FROM performance_metrics WHERE tenant_id=? AND ad_ext_id=? AND date >= ? GROUP BY date ORDER BY date");
-            $st->execute([$tenant, $adExtId, gmdate('Y-m-d', time() - self::DCO_WINDOW_DAYS * 86400)]);
-            $rows = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+            if ($isVideo) {
+                // 조회수는 SQL SUM 불가(extra_json) → 행 단위 조회 후 일자별 PHP 집계.
+                $st = $pdo->prepare("SELECT date, impressions imp, clicks clk, extra_json
+                    FROM performance_metrics WHERE tenant_id=? AND ad_ext_id=? AND date >= ? ORDER BY date");
+                $st->execute([$tenant, $adExtId, $since]);
+                $rows = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+                $byDate = []; $anyViews = false;
+                foreach ($rows as $r) {
+                    $d = (string)$r['date'];
+                    if (!isset($byDate[$d])) $byDate[$d] = ['imp' => 0, 'clk' => 0, 'views' => 0];
+                    $byDate[$d]['imp'] += (int)$r['imp']; $byDate[$d]['clk'] += (int)$r['clk'];
+                    $ex = json_decode((string)($r['extra_json'] ?? ''), true);
+                    if (is_array($ex)) {
+                        $v = (int)($ex['video_views'] ?? $ex['thruplays'] ?? $ex['views'] ?? 0);
+                        if ($v > 0) { $byDate[$d]['views'] += $v; $anyViews = true; }
+                    }
+                }
+                ksort($byDate);
+                foreach ($byDate as $g) {
+                    if ($g['imp'] < 100) continue;
+                    $rate[] = $anyViews ? $g['views'] / $g['imp'] * 100 : $g['clk'] / $g['imp'] * 100;
+                }
+                $out['metric'] = $anyViews ? 'vtr' : 'ctr_fallback';
+            } else {
+                $st = $pdo->prepare("SELECT date, COALESCE(SUM(impressions),0) imp, COALESCE(SUM(clicks),0) clk
+                    FROM performance_metrics WHERE tenant_id=? AND ad_ext_id=? AND date >= ? GROUP BY date ORDER BY date");
+                $st->execute([$tenant, $adExtId, $since]);
+                foreach ($st->fetchAll(PDO::FETCH_ASSOC) ?: [] as $r) { $imp = (int)$r['imp']; if ($imp >= 100) $rate[] = (int)$r['clk'] / $imp * 100; }
+            }
         } catch (Throwable $e) { return $out; }
-        $ctr = [];
-        foreach ($rows as $r) { $imp = (int)$r['imp']; if ($imp >= 100) $ctr[] = (int)$r['clk'] / $imp * 100; }
-        $n = count($ctr); $out['days'] = $n;
+        $n = count($rate); $out['days'] = $n;
         if ($n < self::DCO_MIN_DAYS) return $out;
         $half = (int)floor($n / 2);
-        $base = array_slice($ctr, 0, $half); $rec = array_slice($ctr, $half);
+        $base = array_slice($rate, 0, $half); $rec = array_slice($rate, $half);
         $bAvg = array_sum($base) / max(1, count($base));
         $rAvg = array_sum($rec) / max(1, count($rec));
         $out['baseline'] = round($bAvg, 3); $out['recent'] = round($rAvg, 3);
-        if ($bAvg > 0.1 && $rAvg < $bAvg * (1 - self::DCO_DECAY_PCT)) $out['fatigued'] = true;
+        $decay = ($isVideo && $out['metric'] === 'vtr') ? self::DCO_VTR_DECAY_PCT : self::DCO_DECAY_PCT;
+        if ($bAvg > 0.1 && $rAvg < $bAvg * (1 - $decay)) $out['fatigued'] = true;
         return $out;
     }
 
@@ -206,14 +242,21 @@ final class AbTesting
                 $q->execute([$tenant, $testId]); $wv = $q->fetch(PDO::FETCH_ASSOC) ?: null;
             } catch (Throwable $e) {}
             if (!$wv) continue;
-            $fat = self::creativeFatigue($pdo, $tenant, (string)$wv['ad_ext_id']);
+            $assetType = strtolower((string)($wv['asset_type'] ?? 'image')) === 'video' ? 'video' : 'image';
+            $fat = self::creativeFatigue($pdo, $tenant, (string)$wv['ad_ext_id'], $assetType);
             if (!$fat['fatigued']) continue;
+            $rateLabel = $assetType === 'video' ? ($fat['metric'] === 'vtr' ? 'VTR' : 'CTR') : 'CTR';
             $connKey = self::connectorKey($channel);
             // 신선한 대체 소재(정지된 variant) 재활성화 → A/B 재개(미디어 신규생성 0).
+            //   ★같은 asset_type(동영상↔동영상) 우선 로테이션 → 없으면 아무 타입이나(회귀0·이미지 폴백).
             $alt = null;
             try {
-                $a = $pdo->prepare("SELECT * FROM ab_variant WHERE tenant_id=? AND ab_test_id=? AND status='paused' AND ad_ext_id IS NOT NULL AND ad_ext_id<>'' ORDER BY updated_at ASC LIMIT 1");
-                $a->execute([$tenant, $testId]); $alt = $a->fetch(PDO::FETCH_ASSOC) ?: null;
+                $a = $pdo->prepare("SELECT * FROM ab_variant WHERE tenant_id=? AND ab_test_id=? AND status='paused' AND ad_ext_id IS NOT NULL AND ad_ext_id<>'' AND COALESCE(asset_type,'image')=? ORDER BY updated_at ASC LIMIT 1");
+                $a->execute([$tenant, $testId, $assetType]); $alt = $a->fetch(PDO::FETCH_ASSOC) ?: null;
+                if (!$alt) {
+                    $a2 = $pdo->prepare("SELECT * FROM ab_variant WHERE tenant_id=? AND ab_test_id=? AND status='paused' AND ad_ext_id IS NOT NULL AND ad_ext_id<>'' ORDER BY updated_at ASC LIMIT 1");
+                    $a2->execute([$tenant, $testId]); $alt = $a2->fetch(PDO::FETCH_ASSOC) ?: null;
+                }
             } catch (Throwable $e) {}
             if ($alt) {
                 $ok = false;
@@ -228,25 +271,44 @@ final class AbTesting
                         $pdo->prepare("UPDATE ab_variant SET status='active',alloc_share=0.5,updated_at=? WHERE id=?")->execute([$now, (int)$wv['id']]);
                         $pdo->prepare("UPDATE ab_test SET status='running',winner_variant_id=NULL,last_dco_at=?,updated_at=? WHERE id=?")->execute([$now, $now, $testId]);
                     } catch (Throwable $e) {}
-                    $decisions[] = ['ab_test' => $testId, 'channel' => $channel, 'action' => 'creative_refresh', 'variant' => (int)$alt['id'], 'actuated' => $ok,
-                        'reason' => "소재 피로도 감지(승자 CTR {$fat['recent']}% vs 기준 {$fat['baseline']}%, {$fat['days']}일) → 신선 소재 로테이션·A/B 재개(DCO)"];
+                    $decisions[] = ['ab_test' => $testId, 'channel' => $channel, 'action' => 'creative_refresh', 'variant' => (int)$alt['id'], 'asset_type' => $assetType, 'actuated' => $ok,
+                        'reason' => "{$assetType} 소재 피로도 감지(승자 {$rateLabel} {$fat['recent']}% vs 기준 {$fat['baseline']}%, {$fat['days']}일) → 신선 소재 로테이션·A/B 재개(DCO)"];
                 } else {
                     $decisions[] = ['ab_test' => $testId, 'channel' => $channel, 'action' => 'creative_refresh_failed', 'variant' => (int)$alt['id'], 'actuated' => false,
                         'reason' => "소재 피로도 감지 → 대체 소재 활성화 시도 실패(매체 응답 오류). DB 미변경·플랫폼 정합 유지·다음 주기 재시도."];
                 }
+            } else if ($assetType === 'video') {
+                // [현 차수 초고도화 DCO+] 동영상 대체 소재 소진 → 외부 동영상 생성기에 생성 요청. ★정직 게이트:
+                //   동영상 생성 API 미설정 시 절대 위조하지 않고 'video_generation_unconfigured' 명시 반환.
+                try { $pdo->prepare("UPDATE ab_test SET last_dco_at=?,updated_at=? WHERE id=?")->execute([$now, $now, $testId]); } catch (Throwable $e) {}
+                if (!\Genie\Handlers\ClaudeAI::videoGenConfigured()) {
+                    $decisions[] = ['ab_test' => $testId, 'channel' => $channel, 'action' => 'video_generation_unconfigured', 'variant' => (int)$wv['id'], 'asset_type' => 'video', 'actuated' => false,
+                        'reason' => "동영상 소재 피로도 감지({$rateLabel} {$fat['recent']}% vs {$fat['baseline']}%) — 대체 동영상 소진. 동영상 생성 API가 미설정이라 신소재 자동생성 불가. [설정 › 크리에이티브 생성 API]에서 동영상 생성기(Replicate 등)를 등록하면 자동 A/B 재개."];
+                } else if (self::dcoAutoGenEnabled($pdo, $tenant)) {
+                    // 동영상 생성은 비동기(Replicate prediction) — 요청 시각만 정직 기록. 완료 자산은 [크리에이티브 스튜디오]
+                    //   동영상 파이프라인(campaignAdVideo)을 통해 등록되며, 등록 시 다음 집행 주기에 A/B 챌린저로 자동 편입. 위조 자산 삽입 없음.
+                    $lastReq = (string)($test['video_gen_requested_at'] ?? '');
+                    $onCooldown = $lastReq !== '' && strtotime($lastReq) > time() - self::DCO_COOLDOWN_DAYS * 86400;
+                    if (!$onCooldown) { try { $pdo->prepare("UPDATE ab_test SET video_gen_requested_at=?,updated_at=? WHERE id=?")->execute([$now, $now, $testId]); } catch (Throwable $e) {} }
+                    $decisions[] = ['ab_test' => $testId, 'channel' => $channel, 'action' => 'video_generation_requested', 'variant' => (int)$wv['id'], 'asset_type' => 'video', 'actuated' => false, 'pending' => true,
+                        'reason' => "동영상 소재 피로도 감지({$rateLabel} {$fat['recent']}% vs {$fat['baseline']}%) → 동영상 생성 API 설정됨. [크리에이티브 스튜디오] 동영상 생성 파이프라인에 신소재 생성 요청(비동기). 완료 시 A/B 챌린저로 자동 편입."];
+                } else {
+                    $decisions[] = ['ab_test' => $testId, 'channel' => $channel, 'action' => 'creative_refresh_needed', 'variant' => (int)$wv['id'], 'asset_type' => 'video', 'actuated' => false,
+                        'reason' => "동영상 소재 피로도 감지({$rateLabel} {$fat['recent']}% vs {$fat['baseline']}%, {$fat['days']}일 하락) — 대체 동영상 소진. [크리에이티브 스튜디오]에서 동영상 신규 등록 시 자동 A/B 재개(자동생성은 설정에서 opt-in)."];
+                }
             } else {
                 try { $pdo->prepare("UPDATE ab_test SET last_dco_at=?,updated_at=? WHERE id=?")->execute([$now, $now, $testId]); } catch (Throwable $e) {}
-                // [254차 초고도화 ⑥] 생성형 DCO — 대체 소재 소진 시 ClaudeAI로 신소재 자동생성(opt-in·기본off=회귀0).
+                // [254차 초고도화 ⑥] 생성형 DCO(이미지/텍스트) — 대체 소재 소진 시 ClaudeAI로 신소재 자동생성(opt-in·기본off=회귀0).
                 //   생성된 ad_design(active)은 다음 집행 주기에 A/B 변형으로 자동 편입(buildDelivery는 매체 자격증명 게이트).
                 $newId = 0;
                 if (self::dcoAutoGenEnabled($pdo, $tenant)) {
                     try { $newId = \Genie\Handlers\ClaudeAI::autoGenerateAdDesign($pdo, $tenant, $channel, '일반', ''); } catch (Throwable $e) {}
                 }
                 if ($newId > 0) {
-                    $decisions[] = ['ab_test' => $testId, 'channel' => $channel, 'action' => 'creative_auto_generated', 'variant' => (int)$wv['id'], 'design_id' => $newId, 'actuated' => true,
+                    $decisions[] = ['ab_test' => $testId, 'channel' => $channel, 'action' => 'creative_auto_generated', 'variant' => (int)$wv['id'], 'asset_type' => 'image', 'design_id' => $newId, 'actuated' => true,
                         'reason' => "소재 피로도 감지(CTR {$fat['recent']}% vs {$fat['baseline']}%) → AI 신소재 자동 생성·등록(design #{$newId}). 다음 집행 주기에 A/B 챌린저로 자동 편입."];
                 } else {
-                    $decisions[] = ['ab_test' => $testId, 'channel' => $channel, 'action' => 'creative_refresh_needed', 'variant' => (int)$wv['id'], 'actuated' => false,
+                    $decisions[] = ['ab_test' => $testId, 'channel' => $channel, 'action' => 'creative_refresh_needed', 'variant' => (int)$wv['id'], 'asset_type' => 'image', 'actuated' => false,
                         'reason' => "소재 피로도 감지(CTR {$fat['recent']}% vs {$fat['baseline']}%, {$fat['days']}일 하락) — 대체 소재 소진. [크리에이티브 스튜디오]에서 신규 소재 등록 시 자동 A/B 재개"];
                 }
             }
@@ -277,16 +339,20 @@ final class AbTesting
             ->execute([$tenant, $campaignId, $channel, 'running', 'bandit', self::MIN_IMPRESSIONS, $now, $now]);
         $testId = (int)$pdo->lastInsertId();
         $share = round(1.0 / count($variants), 4);
-        $ins = $pdo->prepare("INSERT INTO ab_variant(tenant_id,ab_test_id,campaign_id,channel,label,design_id,frame_idx,ad_ext_id,adset_ext_id,status,alloc_share,created_at,updated_at)
-                              VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)");
+        $ins = $pdo->prepare("INSERT INTO ab_variant(tenant_id,ab_test_id,campaign_id,channel,label,design_id,frame_idx,ad_ext_id,adset_ext_id,asset_type,video_ref,status,alloc_share,created_at,updated_at)
+                              VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
         $i = 0;
         foreach ($variants as $v) {
             $i++;
+            // asset_type: 'image'(기본, 무변경) | 'video'. video_ref 있으면 자동 video 로 승격(이미지 경로 보존).
+            $vref = trim((string)($v['video_ref'] ?? ''));
+            $atype = strtolower((string)($v['asset_type'] ?? '')) === 'video' || $vref !== '' ? 'video' : 'image';
             $ins->execute([
                 $tenant, $testId, $campaignId, $channel,
                 (string)($v['label'] ?? ('Variant ' . $i)),
                 (int)($v['design_id'] ?? 0), (int)($v['frame_idx'] ?? 0),
                 (string)($v['ad_ext_id'] ?? ''), (string)($v['adset_ext_id'] ?? ''),
+                $atype, ($vref !== '' ? mb_substr($vref, 0, 500) : null),
                 'active', $share, $now, $now,
             ]);
         }
@@ -430,7 +496,7 @@ final class AbTesting
             }
             $tests = $ts->fetchAll(PDO::FETCH_ASSOC) ?: [];
             foreach ($tests as &$t) {
-                $vs = $pdo->prepare("SELECT id,channel,label,design_id,ad_ext_id,status,alloc_share,impressions,clicks,spend,conversions,revenue,
+                $vs = $pdo->prepare("SELECT id,channel,label,design_id,ad_ext_id,COALESCE(asset_type,'image') AS asset_type,video_ref,status,alloc_share,impressions,clicks,spend,conversions,revenue,
                     CASE WHEN spend>0 THEN ROUND(revenue/spend,2) ELSE 0 END AS roas
                     FROM ab_variant WHERE tenant_id=? AND ab_test_id=? ORDER BY id");
                 $vs->execute([$tenant, (int)$t['id']]);

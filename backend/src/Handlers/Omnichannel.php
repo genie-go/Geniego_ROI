@@ -87,6 +87,11 @@ final class Omnichannel
                 $pdo->exec("CREATE INDEX IF NOT EXISTS idx_omni_ob_cmp ON omni_outbox(campaign_id)");
             }
         } catch (\Throwable $e) { /* graceful */ }
+        // [현 차수] 원자적 클레임/리스 컬럼 — 동시 cron 이중발송 방지(SELECT..FOR UPDATE SKIP LOCKED / 조건부 UPDATE 클레임).
+        //   레포 관례대로 멱등 ALTER(이미 있으면 throw → 무시). MySQL TEXT DEFAULT 회피(VARCHAR).
+        foreach (['claim_id', 'claimed_at'] as $col) {
+            try { $pdo->exec("ALTER TABLE omni_outbox ADD COLUMN {$col} VARCHAR(64) DEFAULT NULL"); } catch (\Throwable $e) {}
+        }
     }
 
     /** 워터폴 채널 정규화 — 알 수 없는/브로드캐스트 채널 제거, 순서 보존, 중복 제거. */
@@ -184,7 +189,7 @@ final class Omnichannel
         //   재발송 = 신규/실패 수신자만 추가 큐잉(SaaS 표준: 같은 캠페인 중복발송 방지). 실패(failed)·건너뜀(skipped)은 재시도 허용.
         $already = [];
         try {
-            $ex = $pdo->prepare("SELECT customer_id FROM omni_outbox WHERE campaign_id=:c AND tenant_id=:t AND status IN ('queued','sent')");
+            $ex = $pdo->prepare("SELECT customer_id FROM omni_outbox WHERE campaign_id=:c AND tenant_id=:t AND status IN ('queued','processing','sent')");
             $ex->execute([':c'=>$cid, ':t'=>$tenant]);
             foreach ($ex->fetchAll(PDO::FETCH_COLUMN) as $x) { $already[(int)$x] = true; }
         } catch (\Throwable $e) {}
@@ -235,7 +240,7 @@ final class Omnichannel
             $s2 = $pdo->prepare("SELECT chosen_channel, COUNT(*) AS cnt FROM omni_outbox WHERE campaign_id=:c AND tenant_id=:t AND chosen_channel IS NOT NULL AND chosen_channel<>'' GROUP BY chosen_channel");
             $s2->execute([':c'=>$cid, ':t'=>$tenant]); $byChannel = $s2->fetchAll(PDO::FETCH_KEY_PAIR) ?: [];
         } catch (\Throwable $e) {}
-        $queuedRemain = (int)($byStatus['queued'] ?? 0);
+        $queuedRemain = (int)($byStatus['queued'] ?? 0) + (int)($byStatus['processing'] ?? 0);
         return self::json($res, ['ok'=>true, 'campaign'=>$camp, 'by_status'=>$byStatus, 'by_channel'=>$byChannel,
             'progress_done'=> ($camp['total'] > 0 ? round((1 - $queuedRemain / max(1,(int)$camp['total'])) * 100, 1) : 100.0)]);
     }
@@ -295,9 +300,8 @@ final class Omnichannel
             $tn = (string)$tn;
             $freqCfg = CRM::commsFreqConfig($pdo, $tn);
             if (!CRM::commsSendAllowedNow($freqCfg)) { $deferred++; continue; } // quiet-hours → 다음 cron
-            $rowsSt = $pdo->prepare("SELECT * FROM omni_outbox WHERE tenant_id=:t AND status='queued' ORDER BY id LIMIT $batch");
-            $rowsSt->execute([':t'=>$tn]);
-            $rows = $rowsSt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+            // [현 차수] 원자적 배치 클레임 — 동시 cron 이중발송 차단(FOR UPDATE SKIP LOCKED / 조건부 UPDATE).
+            $rows = self::claimBatch($pdo, $tn, $batch);
             $campCache = []; $now = self::now();
             foreach ($rows as $row) {
                 $obId = (int)$row['id']; $cid = (int)$row['campaign_id']; $uid = (int)$row['customer_id'];
@@ -314,6 +318,10 @@ final class Omnichannel
                 $cs->execute([':id'=>$uid, ':t'=>$tn]);
                 $cust = $cs->fetch(PDO::FETCH_ASSOC);
                 if (!$cust) { self::mark($pdo, $obId, 'skipped', null, 'no_customer', $now); $skipped++; continue; }
+                // [현 차수] 개인 방해금지시간(quiet-hours) → 발송 보류(재큐, attempts 미증가). 다음 cron 재시도.
+                if (PreferenceCenter::isQuietNow($pdo, $tn, $uid)) {
+                    self::mark($pdo, $obId, 'queued', null, 'quiet_hours_defer', $now, (int)$row['attempts']); continue;
+                }
                 // 빈도캡(수신자 1회) — 과발송 차단.
                 if (CRM::isFrequencyCapped($pdo, $tn, $uid, (int)$freqCfg['cap'], (int)$freqCfg['window'])) {
                     self::mark($pdo, $obId, 'skipped', null, 'frequency_capped', $now); $skipped++; continue;
@@ -341,6 +349,73 @@ final class Omnichannel
         return ['sent'=>$sent, 'failed'=>$failed, 'skipped'=>$skipped, 'tenants_deferred'=>$deferred];
     }
 
+    /**
+     * [현 차수] 원자적 배치 클레임 — 동시 워커(cron × HTTP 인라인 드레인) 이중발송 방지.
+     *   MySQL: 트랜잭션 + SELECT..FOR UPDATE SKIP LOCKED 로 잠금 후 claim_id 마킹(다른 워커는 잠긴 행 건너뜀).
+     *   SQLite/구형MySQL: 조건부 UPDATE 클레임(쓰기락 직렬화 + status='queued' 가드로 원자성 확보).
+     *   크래시 워커의 stale 'processing'(리스 15분 초과)은 재큐(회수)해 유실 방지.
+     * @return array<int,array> 이 워커가 소유한(status='processing', claim_id 일치) 행들.
+     */
+    private static function claimBatch(PDO $pdo, string $tn, int $batch): array
+    {
+        $claimId = bin2hex(random_bytes(8));
+        $now = self::now();
+        // 리스 만료(15분) stale 'processing' 회수 → 재발송.
+        $staleTtl = gmdate('Y-m-d H:i:s', time() - 900);
+        try {
+            $pdo->prepare("UPDATE omni_outbox SET status='queued', claim_id=NULL, claimed_at=NULL
+                           WHERE tenant_id=:t AND status='processing' AND (claimed_at IS NULL OR claimed_at < :ttl)")
+                ->execute([':t'=>$tn, ':ttl'=>$staleTtl]);
+        } catch (\Throwable $e) {}
+
+        if (self::isMysql($pdo)) {
+            try {
+                $pdo->beginTransaction();
+                $sel = $pdo->prepare("SELECT id FROM omni_outbox WHERE tenant_id=:t AND status='queued' ORDER BY id LIMIT $batch FOR UPDATE SKIP LOCKED");
+                $sel->execute([':t'=>$tn]);
+                $ids = array_map('intval', $sel->fetchAll(PDO::FETCH_COLUMN) ?: []);
+                if ($ids) {
+                    $in = implode(',', $ids);
+                    $pdo->prepare("UPDATE omni_outbox SET status='processing', claim_id=:cid, claimed_at=:now WHERE id IN ($in)")
+                        ->execute([':cid'=>$claimId, ':now'=>$now]);
+                }
+                $pdo->commit();
+            } catch (\Throwable $e) {
+                if ($pdo->inTransaction()) { try { $pdo->rollBack(); } catch (\Throwable $e2) {} }
+                return self::claimConditional($pdo, $tn, $batch, $claimId, $now); // SKIP LOCKED 미지원(MySQL<8) 폴백
+            }
+            $rowsSt = $pdo->prepare("SELECT * FROM omni_outbox WHERE tenant_id=:t AND claim_id=:cid AND status='processing' ORDER BY id");
+            $rowsSt->execute([':t'=>$tn, ':cid'=>$claimId]);
+            return $rowsSt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        }
+        return self::claimConditional($pdo, $tn, $batch, $claimId, $now); // SQLite
+    }
+
+    /** 조건부 UPDATE 클레임(SKIP LOCKED 미지원 드라이버). status='queued' 배치만 claim_id 마킹 후 소유행 로드. */
+    private static function claimConditional(PDO $pdo, string $tn, int $batch, string $claimId, string $now): array
+    {
+        try {
+            $pdo->prepare("UPDATE omni_outbox SET status='processing', claim_id=:cid, claimed_at=:now
+                           WHERE id IN (SELECT id FROM omni_outbox WHERE tenant_id=:t AND status='queued' ORDER BY id LIMIT $batch)")
+                ->execute([':cid'=>$claimId, ':now'=>$now, ':t'=>$tn]);
+        } catch (\Throwable $e) {
+            // 일부 SQLite 빌드가 UPDATE..IN(subquery+LIMIT) 를 거부 → 2단계(SELECT 후 IN 목록 + status 가드) 폴백.
+            try {
+                $sel = $pdo->prepare("SELECT id FROM omni_outbox WHERE tenant_id=:t AND status='queued' ORDER BY id LIMIT $batch");
+                $sel->execute([':t'=>$tn]);
+                $ids = array_map('intval', $sel->fetchAll(PDO::FETCH_COLUMN) ?: []);
+                if ($ids) {
+                    $in = implode(',', $ids);
+                    $pdo->prepare("UPDATE omni_outbox SET status='processing', claim_id=:cid, claimed_at=:now WHERE id IN ($in) AND status='queued'")
+                        ->execute([':cid'=>$claimId, ':now'=>$now]);
+                }
+            } catch (\Throwable $e2) { return []; }
+        }
+        $rowsSt = $pdo->prepare("SELECT * FROM omni_outbox WHERE tenant_id=:t AND claim_id=:cid AND status='processing' ORDER BY id");
+        $rowsSt->execute([':t'=>$tn, ':cid'=>$claimId]);
+        return $rowsSt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    }
+
     /** 수신자별 채널 워터폴 — 도달 가능 + 자격 등록된 첫 채널로 발송. 모두 미설정/미도달 = reason 'unavailable'. */
     private static function deliverWaterfall(PDO $pdo, string $tenant, array $cust, array $channels, array $config): array
     {
@@ -348,7 +423,11 @@ final class Omnichannel
         $phone = preg_replace('/[^0-9]/', '', (string)($cust['phone'] ?? ''));
         $name = (string)($cust['name'] ?? '고객');
         $anyAttempt = false; $lastErr = null;
+        $uid = (int)($cust['id'] ?? 0);
         foreach ($channels as $ch) {
+            // [현 차수] 선호센터 채널 옵트아웃 게이트 — 수신자가 해당 채널을 거부했으면 폴백(다음 채널).
+            //   옵트아웃 모델(무회귀): 명시적 opted_in=0 행이 없으면 기존과 동일하게 발송. 전부 테넌트 스코프.
+            if (!PreferenceCenter::isChannelAllowed($pdo, $tenant, $uid, $ch, $email)) { continue; }
             if ($ch === 'whatsapp') {
                 if ($phone === '') continue;
                 $tpl = (string)($config['whatsapp_template'] ?? '');
@@ -420,12 +499,13 @@ final class Omnichannel
     /** 아웃박스 행 상태 갱신. */
     private static function mark(PDO $pdo, int $id, string $status, ?string $channel, ?string $err, string $now, ?int $attempts = null): void
     {
+        // [현 차수] 처리 완료(또는 재큐) 시 클레임 해제(claim_id=NULL) — 재큐 행이 다음 cron 에 재클레임 가능하도록.
         try {
             if ($attempts === null) {
-                $pdo->prepare("UPDATE omni_outbox SET status=:s, chosen_channel=:c, error=:e, sent_at=:sa WHERE id=:id")
+                $pdo->prepare("UPDATE omni_outbox SET status=:s, chosen_channel=:c, error=:e, sent_at=:sa, claim_id=NULL, claimed_at=NULL WHERE id=:id")
                     ->execute([':s'=>$status, ':c'=>$channel, ':e'=>$err, ':sa'=>$now, ':id'=>$id]);
             } else {
-                $pdo->prepare("UPDATE omni_outbox SET status=:s, chosen_channel=:c, error=:e, sent_at=:sa, attempts=:a WHERE id=:id")
+                $pdo->prepare("UPDATE omni_outbox SET status=:s, chosen_channel=:c, error=:e, sent_at=:sa, attempts=:a, claim_id=NULL, claimed_at=NULL WHERE id=:id")
                     ->execute([':s'=>$status, ':c'=>$channel, ':e'=>$err, ':sa'=>$now, ':a'=>$attempts, ':id'=>$id]);
             }
         } catch (\Throwable $e) {}
@@ -456,7 +536,7 @@ final class Omnichannel
                 sent    = (SELECT COUNT(*) FROM omni_outbox o WHERE o.campaign_id=omni_campaigns.id AND o.tenant_id=omni_campaigns.tenant_id AND o.status='sent'),
                 failed  = (SELECT COUNT(*) FROM omni_outbox o WHERE o.campaign_id=omni_campaigns.id AND o.tenant_id=omni_campaigns.tenant_id AND o.status='failed'),
                 skipped = (SELECT COUNT(*) FROM omni_outbox o WHERE o.campaign_id=omni_campaigns.id AND o.tenant_id=omni_campaigns.tenant_id AND o.status='skipped'),
-                status  = CASE WHEN (SELECT COUNT(*) FROM omni_outbox o WHERE o.campaign_id=omni_campaigns.id AND o.tenant_id=omni_campaigns.tenant_id AND o.status='queued')=0 THEN 'sent' ELSE 'sending' END
+                status  = CASE WHEN (SELECT COUNT(*) FROM omni_outbox o WHERE o.campaign_id=omni_campaigns.id AND o.tenant_id=omni_campaigns.tenant_id AND o.status IN ('queued','processing'))=0 THEN 'sent' ELSE 'sending' END
                 WHERE tenant_id=:t")->execute([':t'=>$tenant]);
         } catch (\Throwable $e) {}
     }

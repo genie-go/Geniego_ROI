@@ -1727,6 +1727,28 @@ final class Connectors
         return $rate > 0 ? $amount * $rate : $amount; // 미상 통화 → 무변환
     }
 
+    /**
+     * [현 차수] 보고통화 지원 — KRW(내부 base) → 보고통화 환산. fxToKrw 의 역방향.
+     *   내부 집계는 KRW SSOT 로 유지하고 표기(reporting)만 테넌트 지정 통화로 변환한다(P&L 다통화 리포팅).
+     *   rate = KRW/1단위 보고통화. KRW·미상통화(rate<=0)는 무변환(정직).
+     */
+    public static function krwToCurrency(float $krwAmount, string $currency): float
+    {
+        $currency = strtoupper(trim($currency));
+        if ($currency === '' || $currency === 'KRW') return $krwAmount;
+        $rate = self::fxRateKrwPerUnit($currency);
+        return $rate > 0 ? $krwAmount / $rate : $krwAmount; // 미상 통화 → 무변환(KRW 값 유지)
+    }
+
+    /** [현 차수] 통화 1단위당 KRW 환율(KRW=1.0, 미상=0.0). 보고통화 환산·표기용 공개 접근자. */
+    public static function fxRateKrwPerUnit(string $currency): float
+    {
+        $currency = strtoupper(trim($currency));
+        if ($currency === 'KRW' || $currency === '') return 1.0;
+        $rates = self::fxRates();
+        return (float)($rates[$currency] ?? 0.0);
+    }
+
     /** 통화별 KRW 환율(1단위당 KRW). 캐시(app_setting fx_rates_krw, 24h) → 무료 API → 폴백 기본값. */
     private static function fxRates(): array
     {

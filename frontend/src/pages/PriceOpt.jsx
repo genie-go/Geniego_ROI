@@ -1238,6 +1238,18 @@ function CompetitorPriceTab({ token, inventory, digitalShelfData }) {
     const { fmt } = useCurrency();
     const { t } = useI18n();
     const [competitorData, setCompetitorData] = useState([]);
+    // [현 차수] 멀티 마켓플레이스 경쟁가 수집 결과 서피싱(Naver·Coupang·11번가·Amazon)
+    const [harvesting, setHarvesting] = useState(false);
+    const [harvestRes, setHarvestRes] = useState(null);
+    // 소스 마켓플레이스 라벨(백엔드 harvest sources/by_source 키 매핑)
+    const MP_META = {
+        naver_shopping: { label: t('priceOpt.mpNaver', '네이버쇼핑'), color: '#22c55e' },
+        coupang:        { label: t('priceOpt.mpCoupang', '쿠팡'), color: '#ef4444' },
+        '11st':         { label: t('priceOpt.mp11st', '11번가'), color: '#f97316' },
+        amazon:         { label: t('priceOpt.mpAmazon', 'Amazon'), color: '#6366f1' },
+    };
+    const mpLabel = (k) => (MP_META[k]?.label || k);
+    const mpColor = (k) => (MP_META[k]?.color || '#64748b');
 
     useEffect(() => {
         const ac = new AbortController();
@@ -1246,9 +1258,52 @@ function CompetitorPriceTab({ token, inventory, digitalShelfData }) {
         return () => ac.abort();
     }, [token]);
 
+    const runHarvest = async () => {
+        setHarvesting(true); setHarvestRes(null);
+        try {
+            const d = await postJsonAuth(`/v420/price/competitor/harvest`, {});
+            setHarvestRes(d);
+            // 수집 후 경쟁가 테이블 갱신
+            try { const c = await getJsonAuth(`/v420/price/competitor`); if (c.items) setCompetitorData(c.items); } catch {}
+        } catch (e) {
+            setHarvestRes({ ok: false, error: e?.message || String(e) });
+        } finally { setHarvesting(false); }
+    };
+
     const alerts = competitorData.filter(d => d.alert);
     return (
         <div style={{ display:'grid', gap:14 }}>
+            {/* [현 차수] 경쟁가 자동 수집(4개 마켓플레이스) + 소스별 응답 서피싱 */}
+            <div style={{ padding:'12px 16px', background:'rgba(79,142,247,0.06)', border:'1px solid rgba(79,142,247,0.15)', borderRadius:12, display:'grid', gap:10 }}>
+                <div style={{ display:'flex', alignItems:'center', gap:12, flexWrap:'wrap' }}>
+                    <button onClick={runHarvest} disabled={harvesting} style={{ padding:'8px 18px', borderRadius:9, border:'none', cursor:harvesting?'default':'pointer', fontWeight:800, fontSize:12, background:harvesting?'#cbd5e1':'linear-gradient(135deg,#4f8ef7,#6366f1)', color:'#fff' }}>
+                        {harvesting ? t('priceOpt.harvesting', '수집 중…') : `🛰️ ${t('priceOpt.harvestNow', '경쟁가 자동 수집')}`}
+                    </button>
+                    <span style={{ fontSize:11, color:'#7c8fa8' }}>{t('priceOpt.harvestSources', '수집 마켓플레이스')}: {t('priceOpt.mpNaver', '네이버쇼핑')} · {t('priceOpt.mpCoupang', '쿠팡')} · {t('priceOpt.mp11st', '11번가')} · Amazon</span>
+                </div>
+                {harvestRes && (
+                    harvestRes.ok === false ? (
+                        <div style={{ fontSize:11, color:'#ef4444', fontWeight:700 }}>❌ {harvestRes.error}</div>
+                    ) : harvestRes.pending ? (
+                        <div style={{ fontSize:11, color:'#b45309' }}>⏳ {harvestRes.note || t('priceOpt.harvestPending', '수집 자격증명 미설정 — 연동 후 라이브 경쟁가 자동 수집')}</div>
+                    ) : (
+                        <div style={{ display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
+                            <span style={{ fontSize:11, color:'#0e7490', fontWeight:700 }}>✅ {t('priceOpt.harvestUpdated', '갱신')}: {harvestRes.updated || 0}</span>
+                            {(harvestRes.sources || []).map(s => {
+                                const cnt = harvestRes.by_source?.[s] || 0;
+                                const got = cnt > 0;
+                                return (
+                                    <span key={s} title={got ? `${cnt} ${t('priceOpt.harvestReturned', '응답')}` : t('priceOpt.harvestNoData', '데이터 없음')}
+                                        style={{ fontSize:10, fontWeight:700, padding:'2px 8px', borderRadius:20, background:got?mpColor(s)+'1f':'rgba(100,116,139,0.12)', color:got?mpColor(s):'#94a3b8', border:`1px solid ${got?mpColor(s)+'55':'#e2e8f0'}` }}>
+                                        {got ? '● ' : '○ '}{mpLabel(s)}{got ? ` ${cnt}` : ` · ${t('priceOpt.harvestPendingShort', '대기')}`}
+                                    </span>
+                                );
+                            })}
+                            {(harvestRes.sources || []).length === 0 && <span style={{ fontSize:10, color:'#94a3b8' }}>{t('priceOpt.harvestNoSource', '활성 소스 없음')}</span>}
+                        </div>
+                    )
+                )}
+            </div>
             {alerts.length > 0 && (
                 <div style={{ padding:'12px 16px', background:'rgba(239,68,68,0.08)', border:'1px solid rgba(239,68,68,0.25)', borderRadius:12 }}>
                     <div style={{ fontWeight:700, fontSize:12, color:'#ef4444', marginBottom:8 }}>⚠️ {t("priceOpt.minPriceAlert")} ({alerts.length}{t("priceOpt.minPriceAlertSuffix")})</div>

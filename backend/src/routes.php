@@ -72,6 +72,15 @@ return function (App $app): void {
         // [현 차수] 메시징 빈도캡(Frequency Capping)/STO 설정 — admin 조정(딜리버러빌리티 제어, Braze/Klaviyo 정합)
         'GET /crm/comms-freq'                  => 'Genie\\Handlers\\CRM::getCommsFreqConfig',
         'PUT /crm/comms-freq'                  => 'Genie\\Handlers\\CRM::saveCommsFreqConfig',
+        // [267차] 동의/선호센터 + 아이덴티티 레절루션. /crm/* full-public bypass·핸들러 self-auth(requirePro/authedTenant),
+        //   preferences/public 은 외부 수신거부 링크(HMAC 토큰 자체검증·무세션).
+        'GET /crm/preferences'                 => 'Genie\\Handlers\\PreferenceCenter::getPreferences',
+        'PUT /crm/preferences'                 => 'Genie\\Handlers\\PreferenceCenter::savePreferences',
+        'GET /crm/preferences/summary'         => 'Genie\\Handlers\\PreferenceCenter::summary',
+        'GET /crm/preferences/public'          => 'Genie\\Handlers\\PreferenceCenter::publicCenter',
+        'POST /crm/preferences/public'         => 'Genie\\Handlers\\PreferenceCenter::publicCenter',
+        'POST /crm/identity/resolve'           => 'Genie\\Handlers\\CRM::resolveIdentity',
+        'GET /crm/identity/{id}'               => 'Genie\\Handlers\\CRM::identityView',
 
         // ── 상품 카탈로그 writeback (192차: 일괄 등록/가격수정 실배선, dead-route 404 대체) ──
         'POST /catalog/writeback/{channel}/{sku}' => 'Genie\\Handlers\\Catalog::writeback',
@@ -201,6 +210,22 @@ return function (App $app): void {
         'GET /wms/lots'                        => 'Genie\\Handlers\\Wms::listLots',
         'POST /wms/lots'                       => 'Genie\\Handlers\\Wms::createLot',
         'DELETE /wms/lots/{id}'                => 'Genie\\Handlers\\Wms::deleteLot',
+        // [267차] 물리실행 깊이 — 로케이션(빈)·바코드/시리얼 스캔·웨이브 피킹. /wms/* 세션 self-auth(requirePro).
+        'GET /wms/bins'                        => 'Genie\\Handlers\\Wms::listBins',
+        'POST /wms/bins'                       => 'Genie\\Handlers\\Wms::saveBin',
+        'PUT /wms/bins/{id}'                   => 'Genie\\Handlers\\Wms::saveBin',
+        'DELETE /wms/bins/{id}'                => 'Genie\\Handlers\\Wms::deleteBin',
+        'GET /wms/bin-stock'                   => 'Genie\\Handlers\\Wms::listBinStock',
+        'GET /wms/barcodes'                    => 'Genie\\Handlers\\Wms::listBarcodes',
+        'POST /wms/barcodes'                   => 'Genie\\Handlers\\Wms::saveBarcode',
+        'DELETE /wms/barcodes/{id}'            => 'Genie\\Handlers\\Wms::deleteBarcode',
+        'POST /wms/scan-in'                    => 'Genie\\Handlers\\Wms::scanIn',
+        'POST /wms/scan-out'                   => 'Genie\\Handlers\\Wms::scanOut',
+        'POST /wms/putaway'                    => 'Genie\\Handlers\\Wms::putAway',
+        'GET /wms/waves'                       => 'Genie\\Handlers\\Wms::listWaves',
+        'POST /wms/waves'                      => 'Genie\\Handlers\\Wms::createWave',
+        'POST /wms/waves/{id}/confirm'         => 'Genie\\Handlers\\Wms::confirmWave',
+        'DELETE /wms/waves/{id}'               => 'Genie\\Handlers\\Wms::deleteWave',
         // 212차 #3: 매입처(suppliers) registry
         'GET /wms/suppliers'                   => 'Genie\\Handlers\\Wms::listSuppliers',
         'POST /wms/suppliers'                  => 'Genie\\Handlers\\Wms::saveSupplier',
@@ -763,6 +788,11 @@ return function (App $app): void {
         'PATCH /api/v429/shelf/keywords/{id}'    => 'Genie\\Handlers\\DigitalShelf::update',
         'DELETE /v429/shelf/keywords/{id}'       => 'Genie\\Handlers\\DigitalShelf::remove',
         'DELETE /api/v429/shelf/keywords/{id}'   => 'Genie\\Handlers\\DigitalShelf::remove',
+        // [267차] 디지털 셸프 라이브 순위/SoS 수집 — Naver쇼핑/쿠팡 검색순위 하베스트(자격증명 게이트·무날조). /v429/ bypass.
+        'POST /v429/shelf/harvest'               => 'Genie\\Handlers\\DigitalShelf::harvest',
+        'POST /api/v429/shelf/harvest'           => 'Genie\\Handlers\\DigitalShelf::harvest',
+        'POST /v429/shelf/harvest/{id}'          => 'Genie\\Handlers\\DigitalShelf::harvestOne',
+        'POST /api/v429/shelf/harvest/{id}'      => 'Genie\\Handlers\\DigitalShelf::harvestOne',
         // [265차] 머천트 스토어 프로모션(할인캠페인) — 세션 self-auth. CouponAdmin(플랫폼 구독쿠폰)과 별개 도메인.
         'GET /v429/promotions'                   => 'Genie\\Handlers\\Promotion::list',
         'GET /api/v429/promotions'               => 'Genie\\Handlers\\Promotion::list',
@@ -844,6 +874,13 @@ return function (App $app): void {
         // ── v424 OrderHub Aggregator (PM Phase 2, spec: docs/spec/backend_orderhub_aggregator_165.md) ─
         'GET /v424/orderhub/orders'      => 'Genie\\Handlers\\OrderHub::orders',
         'GET /v424/orderhub/orders/stats' => 'Genie\\Handlers\\OrderHub::ordersStats',
+        // [267차] P&L 서버 SSOT + VAT 정산엔진 — 세션→auth_tenant 게이트 편입(index.php). 읽기 전용.
+        'GET /v424/pnl'                  => 'Genie\\Handlers\\Pnl::summary',
+        'GET /api/v424/pnl'              => 'Genie\\Handlers\\Pnl::summary',
+        'GET /v424/pnl/vat'              => 'Genie\\Handlers\\Pnl::vat',
+        'GET /api/v424/pnl/vat'          => 'Genie\\Handlers\\Pnl::vat',
+        'POST /v424/pnl/reporting-currency'     => 'Genie\\Handlers\\Pnl::setReportingCurrency',
+        'POST /api/v424/pnl/reporting-currency' => 'Genie\\Handlers\\Pnl::setReportingCurrency',
         'GET /v424/orderhub/claims/stats' => 'Genie\\Handlers\\OrderHub::claimsStats',
         'GET /v424/orderhub/claims'      => 'Genie\\Handlers\\OrderHub::claims',
         'GET /v424/orderhub/settlements/stats' => 'Genie\\Handlers\\OrderHub::settlementsStats',
@@ -1044,6 +1081,20 @@ return function (App $app): void {
         'POST /v424/rules/run'       => 'Genie\\Handlers\\RuleEngine::runEndpoint',
         'GET /v424/rules/logs'       => 'Genie\\Handlers\\RuleEngine::logs',
         'GET /api/v424/rules/logs'   => 'Genie\\Handlers\\RuleEngine::logs',
+        // [267차] 세분 데이파팅(요일×시간) + 사용자별 크로스채널 빈도캡. /v424/rules 프리픽스=세션게이트 기포함.
+        'GET /v424/rules/dayparts'              => 'Genie\\Handlers\\RuleEngine::daypartList',
+        'GET /api/v424/rules/dayparts'          => 'Genie\\Handlers\\RuleEngine::daypartList',
+        'POST /v424/rules/dayparts'             => 'Genie\\Handlers\\RuleEngine::daypartSave',
+        'PUT /v424/rules/dayparts/{id}'         => 'Genie\\Handlers\\RuleEngine::daypartSave',
+        'DELETE /v424/rules/dayparts/{id}'      => 'Genie\\Handlers\\RuleEngine::daypartDelete',
+        'POST /v424/rules/dayparts/run'         => 'Genie\\Handlers\\RuleEngine::daypartRun',
+        'GET /v424/rules/frequency'             => 'Genie\\Handlers\\RuleEngine::freqList',
+        'GET /api/v424/rules/frequency'         => 'Genie\\Handlers\\RuleEngine::freqList',
+        'POST /v424/rules/frequency'            => 'Genie\\Handlers\\RuleEngine::freqSave',
+        'PUT /v424/rules/frequency/{id}'        => 'Genie\\Handlers\\RuleEngine::freqSave',
+        'DELETE /v424/rules/frequency/{id}'     => 'Genie\\Handlers\\RuleEngine::freqDelete',
+        'POST /v424/rules/frequency/touch'      => 'Genie\\Handlers\\RuleEngine::freqTouch',
+        'GET /v424/rules/frequency/check'       => 'Genie\\Handlers\\RuleEngine::freqCheck',
         // [228차 S1] 매체보고 vs 실주문귀속 ROAS 정합
         'GET /v423/connectors/roas-reconciliation'     => 'Genie\\Handlers\\Connectors::roasReconciliation',
         'GET /api/v423/connectors/roas-reconciliation' => 'Genie\\Handlers\\Connectors::roasReconciliation',
@@ -2159,6 +2210,8 @@ return function (App $app): void {
     $register('POST',   '/v429/shelf/keywords');
     $register('PATCH',  '/v429/shelf/keywords/{id}');
     $register('DELETE', '/v429/shelf/keywords/{id}');
+    $register('POST',   '/v429/shelf/harvest');
+    $register('POST',   '/v429/shelf/harvest/{id}');
     // [265차] 머천트 프로모션 캠페인(세션 self-auth). /api 접두는 basePath strip 매치.
     $register('GET',    '/v429/promotions');
     $register('POST',   '/v429/promotions');
@@ -2711,6 +2764,14 @@ return function (App $app): void {
     $register('GET',    '/crm/segments');
     $register('POST',   '/crm/segments');
     $register('DELETE', '/crm/segments/{id}');
+    // [267차] 선호센터 + 아이덴티티
+    $register('GET',    '/crm/preferences');
+    $register('PUT',    '/crm/preferences');
+    $register('GET',    '/crm/preferences/summary');
+    $register('GET',    '/crm/preferences/public');
+    $register('POST',   '/crm/preferences/public');
+    $register('POST',   '/crm/identity/resolve');
+    $register('GET',    '/crm/identity/{id}');
     $register('POST',   '/crm/segments/{id}/refresh');
     $register('POST',   '/crm/segments/smart-seed'); // [239차+ CDP] 표준 행동 세그먼트 원클릭
     $register('GET',    '/crm/stats');
@@ -2833,6 +2894,22 @@ return function (App $app): void {
     $register('GET',    '/wms/lots');
     $register('POST',   '/wms/lots');
     $register('DELETE', '/wms/lots/{id}');
+    // [267차] 물리실행 깊이 — 빈/바코드/웨이브
+    $register('GET',    '/wms/bins');
+    $register('POST',   '/wms/bins');
+    $register('PUT',    '/wms/bins/{id}');
+    $register('DELETE', '/wms/bins/{id}');
+    $register('GET',    '/wms/bin-stock');
+    $register('GET',    '/wms/barcodes');
+    $register('POST',   '/wms/barcodes');
+    $register('DELETE', '/wms/barcodes/{id}');
+    $register('POST',   '/wms/scan-in');
+    $register('POST',   '/wms/scan-out');
+    $register('POST',   '/wms/putaway');
+    $register('GET',    '/wms/waves');
+    $register('POST',   '/wms/waves');
+    $register('POST',   '/wms/waves/{id}/confirm');
+    $register('DELETE', '/wms/waves/{id}');
     // 212차 #3: 매입처(suppliers) registry
     $register('GET',    '/wms/suppliers');
     $register('POST',   '/wms/suppliers');
@@ -3087,6 +3164,12 @@ return function (App $app): void {
     // ── V424 OrderHub Aggregator (165차 deploy + 167차 register 매핑 보강) ──
     $register('GET', '/v424/orderhub/orders');
     $register('GET', '/v424/orderhub/orders/stats');
+    $register('GET', '/v424/pnl');
+    $register('GET', '/api/v424/pnl');
+    $register('GET', '/v424/pnl/vat');
+    $register('GET', '/api/v424/pnl/vat');
+    $register('POST', '/v424/pnl/reporting-currency');
+    $register('POST', '/api/v424/pnl/reporting-currency');
     $register('GET', '/v424/orderhub/claims/stats');
     $register('GET', '/v424/orderhub/claims');
     $register('GET', '/v424/orderhub/settlements/stats');
@@ -3228,6 +3311,15 @@ return function (App $app): void {
     $register('POST', '/v424/rules/{id}/toggle');
     $register('POST', '/v424/rules/run');
     $register('GET', '/v424/rules/logs');   $register('GET', '/api/v424/rules/logs');
+    $register('GET', '/v424/rules/dayparts');      $register('GET', '/api/v424/rules/dayparts');
+    $register('POST', '/v424/rules/dayparts');
+    $register('PUT', '/v424/rules/dayparts/{id}'); $register('DELETE', '/v424/rules/dayparts/{id}');
+    $register('POST', '/v424/rules/dayparts/run');
+    $register('GET', '/v424/rules/frequency');     $register('GET', '/api/v424/rules/frequency');
+    $register('POST', '/v424/rules/frequency');
+    $register('PUT', '/v424/rules/frequency/{id}'); $register('DELETE', '/v424/rules/frequency/{id}');
+    $register('POST', '/v424/rules/frequency/touch');
+    $register('GET', '/v424/rules/frequency/check');
     $register('GET', '/v423/connectors/roas-reconciliation');
     $register('GET', '/api/v423/connectors/roas-reconciliation');
     // [228차 R1] 리뷰/UGC

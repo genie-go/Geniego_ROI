@@ -1058,6 +1058,13 @@ class JourneyBuilder
         if (CRM::isFrequencyCapped($pdo, $tenant, (int)($enr['customer_id'] ?? 0), $fc['cap'], $fc['window'])) return ['action' => 'skipped', 'reason' => 'frequency_capped'];
         // [초고도화 #3] 조용시간(STO ON 시 야간 defer) — 최적 시간대 발송(Klaviyo STO 정합·기본 OFF=무영향).
         if (!CRM::commsSendAllowedNow($fc)) return ['action' => 'deferred_quiet_hours', 'defer' => true, 'reason' => 'quiet_hours'];
+        // [현 차수 동의센터 SSOT] 통합 발송 게이트 — 채널 옵트아웃/suppression 등 단일소스(crm_channel_prefs). fail-open(오류 시 발송).
+        // [R1 메시지손실 방지] 조용시간(quiet_hours/quiet_hours_tenant) 거부는 노드 유지 defer(뒤 실행에서 재시도)·그 외(옵트아웃/suppression/빈도)만 종결 skip.
+        $g = CRM::isMarketingSendAllowed($tenant, (int)($enr['customer_id'] ?? 0), 'email', ['email' => $email]);
+        if (!($g['allowed'] ?? false)) {
+            if (strpos((string)($g['reason'] ?? ''), 'quiet') !== false) return ['action' => 'deferred_quiet_hours', 'defer' => true, 'reason' => (string)($g['reason'] ?? 'quiet_hours')];
+            return ['action' => 'skipped', 'reason' => (string)($g['reason'] ?? '') ?: 'consent_opt_out'];
+        }
         $cfg     = (array)($node['config'] ?? []);
         $subject = (string)($cfg['subject'] ?? '') ?: (string)($node['label'] ?? '안내');
         $html    = (string)($cfg['html'] ?? $cfg['body'] ?? '');
@@ -1082,6 +1089,13 @@ class JourneyBuilder
         $fc = CRM::commsFreqConfig($pdo, $tenant);
         if (CRM::isFrequencyCapped($pdo, $tenant, (int)($enr['customer_id'] ?? 0), $fc['cap'], $fc['window'])) return ['action' => 'skipped', 'reason' => 'frequency_capped'];
         if (!CRM::commsSendAllowedNow($fc)) return ['action' => 'deferred_quiet_hours', 'defer' => true, 'reason' => 'quiet_hours'];
+        // [현 차수 동의센터 SSOT] 통합 발송 게이트 — SMS 채널 옵트아웃 단일소스(crm_channel_prefs). fail-open.
+        // [R1 메시지손실 방지] 조용시간 거부는 노드 유지 defer(재시도)·그 외만 종결 skip.
+        $g = CRM::isMarketingSendAllowed($tenant, (int)($enr['customer_id'] ?? 0), 'sms');
+        if (!($g['allowed'] ?? false)) {
+            if (strpos((string)($g['reason'] ?? ''), 'quiet') !== false) return ['action' => 'deferred_quiet_hours', 'defer' => true, 'reason' => (string)($g['reason'] ?? 'quiet_hours')];
+            return ['action' => 'skipped', 'reason' => (string)($g['reason'] ?? '') ?: 'consent_opt_out'];
+        }
         $cfg     = (array)($node['config'] ?? []);
         $content = (string)($cfg['content'] ?? $cfg['message'] ?? '') ?: (string)($node['label'] ?? '안내');
         $r = \Genie\NaverSms::sendPlatform($pdo, $phone, $content);
@@ -1100,6 +1114,13 @@ class JourneyBuilder
         $fc = CRM::commsFreqConfig($pdo, $tenant);
         if (CRM::isFrequencyCapped($pdo, $tenant, (int)($enr['customer_id'] ?? 0), $fc['cap'], $fc['window'])) return ['action' => 'skipped', 'reason' => 'frequency_capped'];
         if (!CRM::commsSendAllowedNow($fc)) return ['action' => 'deferred_quiet_hours', 'defer' => true, 'reason' => 'quiet_hours'];
+        // [현 차수 동의센터 SSOT] 통합 발송 게이트 — 카카오 채널 옵트아웃 단일소스(crm_channel_prefs). fail-open.
+        // [R1 메시지손실 방지] 조용시간 거부는 노드 유지 defer(재시도)·그 외만 종결 skip.
+        $g = CRM::isMarketingSendAllowed($tenant, (int)($enr['customer_id'] ?? 0), 'kakao');
+        if (!($g['allowed'] ?? false)) {
+            if (strpos((string)($g['reason'] ?? ''), 'quiet') !== false) return ['action' => 'deferred_quiet_hours', 'defer' => true, 'reason' => (string)($g['reason'] ?? 'quiet_hours')];
+            return ['action' => 'skipped', 'reason' => (string)($g['reason'] ?? '') ?: 'consent_opt_out'];
+        }
         $cfg     = (array)($node['config'] ?? []);
         $tplCode = (string)($cfg['template_code'] ?? '');
         $content = (string)($cfg['content'] ?? '') ?: (string)($node['label'] ?? '안내');

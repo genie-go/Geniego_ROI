@@ -206,60 +206,47 @@ class Paddle
 
     public static function plans(Request $req, Response $res): Response
     {
-        $plans = [
-            [
-                'id'               => 'starter',
-                'name'             => 'Starter',
-                'price_usd'        => 49,
-                'price_annual_usd' => 39,   // ~20% off
-                'price_id_monthly' => getenv('PADDLE_PRICE_STARTER_MONTHLY') ?: '',
-                'price_id_annual'  => getenv('PADDLE_PRICE_STARTER_ANNUAL')  ?: '',
-                'features'         => [
-                    '3 sales channels',
-                    'Basic WMS (1 warehouse)',
-                    'Marketing analytics',
-                    'Email support (48h)',
-                    '10,000 API calls/month',
-                ],
-                'limits' => ['warehouses' => 1, 'channels' => 3, 'users' => 2],
-            ],
-            [
-                'id'               => 'pro',
-                'name'             => 'Pro',
-                'price_usd'        => 149,
-                'price_annual_usd' => 119,
-                'price_id_monthly' => getenv('PADDLE_PRICE_PRO_MONTHLY') ?: '',
-                'price_id_annual'  => getenv('PADDLE_PRICE_PRO_ANNUAL')  ?: '',
-                'features'         => [
-                    'Unlimited channels',
-                    'Full WMS (unlimited warehouses)',
-                    'AI Marketing Intelligence',
-                    'Influencer evaluation engine',
-                    'Commercial invoice auto-generation',
-                    'Priority support (8h)',
-                    '500,000 API calls/month',
-                ],
-                'limits' => ['warehouses' => -1, 'channels' => -1, 'users' => 10],
-            ],
-            [
-                'id'               => 'enterprise',
-                'name'             => 'Enterprise',
-                'price_usd'        => null,
-                'price_annual_usd' => null,
-                'price_id_monthly' => '',
-                'price_id_annual'  => '',
-                'features'         => [
-                    'Everything in Pro',
-                    'Custom AI model training',
-                    'Dedicated account manager',
-                    'SLA 99.9% uptime',
-                    'Custom integrations & webhooks',
-                    'Unlimited API calls',
-                    'On-premise deployment option',
-                ],
-                'limits' => ['warehouses' => -1, 'channels' => -1, 'users' => -1],
-            ],
-        ];
+        // [은행급 SSOT 정합] 요금제는 plan_config(AdminPlans 정본)를 단일 소스로 읽는다.
+        //   과거엔 여기서 3티어(starter/pro/enterprise)를 하드코딩해 5티어 SSOT
+        //   (free/starter/growth/pro/enterprise·AdminPlans::publicPlans)와 드리프트했다.
+        //   이제 plan_config(is_active=1)를 조회·매핑하고, 미시드 환경에서만 canonical 5티어로 폴백한다.
+        $plans = [];
+        try {
+            $stmt = self::db()->query(
+                "SELECT plan_id, name, description, price_usd, price_annual_usd,
+                        price_id_monthly, price_id_annual, features_json, limits_json,
+                        is_custom_quote, display_order
+                 FROM plan_config WHERE is_active = 1
+                 ORDER BY display_order, plan_id"
+            );
+            foreach ($stmt->fetchAll(\PDO::FETCH_ASSOC) as $row) {
+                $features = json_decode((string)($row['features_json'] ?? '[]'), true) ?: [];
+                $limits   = json_decode((string)($row['limits_json']   ?? '{}'), true) ?: [];
+                $plans[] = [
+                    'id'               => (string)$row['plan_id'],
+                    'name'             => (string)$row['name'],
+                    'description'      => $row['description'] ?? null,
+                    'price_usd'        => $row['price_usd'] !== null ? (float)$row['price_usd'] : null,
+                    'price_annual_usd' => $row['price_annual_usd'] !== null ? (float)$row['price_annual_usd'] : null,
+                    'price_id_monthly' => (string)($row['price_id_monthly'] ?? ''),
+                    'price_id_annual'  => (string)($row['price_id_annual'] ?? ''),
+                    'features'         => is_array($features) ? $features : [],
+                    'limits'           => is_array($limits) ? $limits : [],
+                    'is_custom_quote'  => (bool)$row['is_custom_quote'],
+                ];
+            }
+        } catch (\Throwable $e) { $plans = []; /* graceful — canonical 폴백 사용 */ }
+
+        // canonical 5티어 폴백 — AdminPlans::publicPlans 정본과 동일(id/가격/설명). plan_config 미시드 환경 정합.
+        if (!$plans) {
+            $plans = [
+                ['id'=>'free','name'=>'Free','price_usd'=>0.0,'price_annual_usd'=>0.0,'price_id_monthly'=>'','price_id_annual'=>'','description'=>'무료 진입 · 판매 채널 3개','features'=>[],'limits'=>['channels'=>3],'is_custom_quote'=>false],
+                ['id'=>'starter','name'=>'Starter','price_usd'=>49.0,'price_annual_usd'=>39.0,'price_id_monthly'=>getenv('PADDLE_PRICE_STARTER_MONTHLY') ?: '','price_id_annual'=>getenv('PADDLE_PRICE_STARTER_ANNUAL') ?: '','description'=>'마케팅 입문 · 1계정 기준','features'=>[],'limits'=>[],'is_custom_quote'=>false],
+                ['id'=>'growth','name'=>'Growth','price_usd'=>149.0,'price_annual_usd'=>119.0,'price_id_monthly'=>'','price_id_annual'=>'','description'=>'데이터 기반 성장 · 1계정 기준','features'=>[],'limits'=>[],'is_custom_quote'=>false],
+                ['id'=>'pro','name'=>'Pro','price_usd'=>399.0,'price_annual_usd'=>319.0,'price_id_monthly'=>getenv('PADDLE_PRICE_PRO_MONTHLY') ?: '','price_id_annual'=>getenv('PADDLE_PRICE_PRO_ANNUAL') ?: '','description'=>'풀 운영 자동화 · 1계정 기준','features'=>[],'limits'=>[],'is_custom_quote'=>false],
+                ['id'=>'enterprise','name'=>'Enterprise','price_usd'=>1500.0,'price_annual_usd'=>1200.0,'price_id_monthly'=>'','price_id_annual'=>'','description'=>'대규모 운영 · 맞춤 통합','features'=>[],'limits'=>[],'is_custom_quote'=>true],
+            ];
+        }
 
         return self::json($res, ['ok' => true, 'plans' => $plans, 'env' => self::env()]);
     }
@@ -764,8 +751,11 @@ class Paddle
         if (str_contains($lower, 'pro'))        return 'pro';
         if (str_contains($lower, 'starter'))    return 'starter';
 
-        // 5. fallback
-        return 'pro';
+        // 5. fallback — [은행급 fail-secure] 미해결 price_id 는 유료 상위티어(pro)를 관대하게 부여하지 않고
+        //    최소권한 'free' 로 귀속한다. (매핑 실패 시 무상 상위권한 승격을 차단; 실 결제건은 1~4단계에서
+        //    plan_period_pricing/plan_config/env/heuristic 로 해석되며, 여기 도달=매핑 누락 → 운영 점검 대상.)
+        error_log("[Paddle] resolveAppPlan unresolved priceId={$priceId} prodId={$prodId} → fail-secure 'free'");
+        return 'free';
     }
 
     /**

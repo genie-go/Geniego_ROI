@@ -836,24 +836,42 @@ class PriceOpt
      */
     public static function harvestCompetitorsForTenant(\PDO $db, string $t): array
     {
-        // [240차] 자격증명 우선순위: 연동허브(channel_credential naver_shopping) → env → app_setting(레거시).
+        // [현 차수] 멀티 마켓플레이스 경쟁가 수집 — Naver(기존·무변경) + Coupang + 11번가 + Amazon 어댑터.
+        //   각 어댑터는 독립 자격증명 게이트(연동허브 channel_credential AES-GCM → env → app_setting 폴백)이며,
+        //   자격 미설정/호출 실패 시 해당 어댑터만 graceful skip(값 날조 없음). 최소 1개 소스라도 있으면 진행.
+        // [240차] Naver 자격증명 우선순위: 연동허브 → env → app_setting(레거시).
         $cid = (string)(self::loadChannelCred($db, $t, 'naver_shopping', 'client_id')     ?: getenv('NAVER_SHOP_CLIENT_ID')     ?: self::appSetting($db, $t, 'naver_shop_client_id'));
         $sec = (string)(self::loadChannelCred($db, $t, 'naver_shopping', 'client_secret') ?: getenv('NAVER_SHOP_CLIENT_SECRET') ?: self::appSetting($db, $t, 'naver_shop_client_secret'));
-        if ($cid === '' || $sec === '')
-            return ['ok'=>true,'pending'=>true,'updated'=>0,'note'=>'Naver 쇼핑 API 자격증명(client_id/secret) 미설정 — 설정 후 라이브 경쟁가 자동 수집(현재는 수동 입력 사용)'];
+        $coupang = [
+            'access_key' => self::loadChannelCred($db, $t, 'coupang', 'access_key'),
+            'secret_key' => self::loadChannelCred($db, $t, 'coupang', 'secret_key'),
+            'vendor_id'  => self::loadChannelCred($db, $t, 'coupang', 'vendor_id'),
+        ];
+        $st11Key = (string)(self::loadChannelCred($db, $t, '11st', 'api_key') ?: self::loadChannelCred($db, $t, 'st11', 'api_key') ?: getenv('ST11_OPENAPI_KEY') ?: self::appSetting($db, $t, 'st11_openapi_key'));
+        $amazon = [
+            'access_key'  => self::loadChannelCred($db, $t, 'amazon', 'access_key') ?: self::loadChannelCred($db, $t, 'amazon_spapi', 'access_key'),
+            'secret_key'  => self::loadChannelCred($db, $t, 'amazon', 'secret_key') ?: self::loadChannelCred($db, $t, 'amazon_spapi', 'secret_key'),
+            'partner_tag' => self::loadChannelCred($db, $t, 'amazon', 'partner_tag') ?: self::loadChannelCred($db, $t, 'amazon', 'associate_tag'),
+            'marketplace' => self::loadChannelCred($db, $t, 'amazon', 'marketplace') ?: 'www.amazon.com',
+        ];
+        $sources = [];
+        if ($cid !== '' && $sec !== '') $sources[] = 'naver_shopping';
+        if ($coupang['access_key'] !== '' && $coupang['secret_key'] !== '' && $coupang['vendor_id'] !== '') $sources[] = 'coupang';
+        if ($st11Key !== '') $sources[] = '11st';
+        if ($amazon['access_key'] !== '' && $amazon['secret_key'] !== '' && $amazon['partner_tag'] !== '') $sources[] = 'amazon';
+        if (!$sources)
+            return ['ok'=>true,'pending'=>true,'updated'=>0,'sources'=>[],'note'=>'경쟁가 수집 자격증명(Naver 쇼핑/쿠팡/11번가/Amazon 중 1개+) 미설정 — 설정 후 라이브 경쟁가 자동 수집(현재는 수동 입력 사용)'];
+
         $ps = $db->prepare("SELECT sku, product_name, base_price FROM po_products WHERE tenant_id=? AND product_name<>'' LIMIT 50");
         $ps->execute([$t]);
-        $updated = 0;
+        $updated = 0; $bySource = array_fill_keys($sources, 0);
         foreach ($ps->fetchAll(\PDO::FETCH_ASSOC) as $p) {
             $q = trim((string)$p['product_name']); if ($q === '') continue;
-            $ch = curl_init('https://openapi.naver.com/v1/search/shop.json?display=10&sort=asc&query=' . rawurlencode($q));
-            curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER=>true, CURLOPT_TIMEOUT=>8, CURLOPT_SSL_VERIFYPEER=>true,
-                CURLOPT_HTTPHEADER=>["X-Naver-Client-Id: {$cid}", "X-Naver-Client-Secret: {$sec}"]]);
-            $raw = curl_exec($ch); $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE); curl_close($ch);
-            if ($code !== 200 || !$raw) continue;
-            $j = json_decode((string)$raw, true);
             $prices = [];
-            foreach ((array)($j['items'] ?? []) as $it) { $lp = (float)($it['lprice'] ?? 0); if ($lp > 0) $prices[] = $lp; }
+            if (in_array('naver_shopping', $sources, true)) { $pr = self::naverSearchPrices($cid, $sec, $q); if ($pr) { $bySource['naver_shopping']++; array_push($prices, ...$pr); } }
+            if (in_array('coupang', $sources, true))        { $pr = self::coupangSearchPrices($coupang, $q); if ($pr) { $bySource['coupang']++; array_push($prices, ...$pr); } }
+            if (in_array('11st', $sources, true))           { $pr = self::st11SearchPrices($st11Key, $q); if ($pr) { $bySource['11st']++; array_push($prices, ...$pr); } }
+            if (in_array('amazon', $sources, true))         { $pr = self::amazonSearchPrices($amazon, $q); if ($pr) { $bySource['amazon']++; array_push($prices, ...$pr); } }
             if (!$prices) continue;
             sort($prices);
             $compA = $prices[0]; $compB = $prices[1] ?? $prices[0]; $our = (float)($p['base_price'] ?? 0);
@@ -862,7 +880,150 @@ class PriceOpt
                 ->execute([$t, (string)$p['sku'], $q, $our, $compA, $compB, 99, $alert, gmdate('c')]);
             $updated++;
         }
-        return ['ok'=>true,'updated'=>$updated,'source'=>'naver_shopping','live'=>true];
+        return ['ok'=>true,'updated'=>$updated,'sources'=>$sources,'by_source'=>$bySource,'live'=>true];
+    }
+
+    /**
+     * Naver 쇼핑 최저가 검색(sort=asc) → 가격 목록. 기존 harvestCompetitors 인라인 로직을 어댑터로 추출(동작 무변경).
+     * @return float[] 검색결과 lprice 목록(빈 배열=수집 실패/무결과, 날조 없음).
+     */
+    private static function naverSearchPrices(string $cid, string $sec, string $q): array
+    {
+        $ch = curl_init('https://openapi.naver.com/v1/search/shop.json?display=10&sort=asc&query=' . rawurlencode($q));
+        curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER=>true, CURLOPT_TIMEOUT=>8, CURLOPT_SSL_VERIFYPEER=>true,
+            CURLOPT_HTTPHEADER=>["X-Naver-Client-Id: {$cid}", "X-Naver-Client-Secret: {$sec}"]]);
+        $raw = curl_exec($ch); $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE); curl_close($ch);
+        if ($code !== 200 || !$raw) return [];
+        $j = json_decode((string)$raw, true);
+        $prices = [];
+        foreach ((array)($j['items'] ?? []) as $it) { $lp = (float)($it['lprice'] ?? 0); if ($lp > 0) $prices[] = $lp; }
+        return $prices;
+    }
+
+    /**
+     * Coupang 경쟁가 검색 — 판매자 자격(access_key/secret_key/vendor_id) CEA HMAC-SHA256 서명(ChannelSync 정합).
+     *   ★Coupang 은 공개 키워드 검색가를 제공하지 않아 라이브 검증은 실 벤더 계정 필요 — 실패/미지원 시 graceful []
+     *   (날조 금지). 응답 파싱 성공분(가격>0)만 반환.
+     * @return float[]
+     */
+    private static function coupangSearchPrices(array $creds, string $q): array
+    {
+        $accessKey = trim((string)($creds['access_key'] ?? ''));
+        $secretKey = trim((string)($creds['secret_key'] ?? ''));
+        $vendorId  = trim((string)($creds['vendor_id'] ?? ''));
+        if ($accessKey === '' || $secretKey === '' || $vendorId === '') return [];
+        $host  = 'https://api-gateway.coupang.com';
+        $path  = '/v2/providers/seller_api/apis/api/v1/marketplace/meta/search';
+        $query = 'keyword=' . rawurlencode($q) . '&limit=20';
+        $datetime  = gmdate('ymd\THis\Z');
+        $signature = hash_hmac('sha256', $datetime . 'GET' . $path . $query, $secretKey);
+        $auth = "CEA algorithm=HmacSHA256, access-key={$accessKey}, signed-date={$datetime}, signature={$signature}";
+        $ch = curl_init($host . $path . '?' . $query);
+        curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER=>true, CURLOPT_TIMEOUT=>10, CURLOPT_SSL_VERIFYPEER=>true,
+            CURLOPT_HTTPHEADER=>["Authorization: {$auth}", "Content-Type: application/json;charset=UTF-8"]]);
+        $raw = curl_exec($ch); $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE); curl_close($ch);
+        if ($code !== 200 || !$raw) return [];
+        $j = json_decode((string)$raw, true);
+        $items = (array)($j['data'] ?? $j['productData'] ?? $j['products'] ?? []);
+        $prices = [];
+        foreach ($items as $it) {
+            $px = (float)($it['salePrice'] ?? $it['price'] ?? $it['productPrice'] ?? 0);
+            if ($px > 0) $prices[] = $px;
+        }
+        return $prices;
+    }
+
+    /**
+     * 11번가 OpenAPI ProductSearch(최저가 정렬) → 가격 목록. 자격=api_key(오픈API 인증키). XML 응답을 simplexml 파싱.
+     *   자격 미설정/실패/파싱불가 시 graceful [](날조 없음).
+     * @return float[]
+     */
+    private static function st11SearchPrices(string $apiKey, string $q): array
+    {
+        if (trim($apiKey) === '') return [];
+        $url = 'http://openapi.11st.co.kr/openapi/OpenApiService.tmall'
+             . '?key=' . rawurlencode($apiKey) . '&apiCode=ProductSearch&sortCd=CP&pageSize=20&keyword=' . rawurlencode($q);
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER=>true, CURLOPT_TIMEOUT=>10]);
+        $raw = curl_exec($ch); $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE); curl_close($ch);
+        if ($code !== 200 || !$raw) return [];
+        $prev = libxml_use_internal_errors(true);
+        $xml = simplexml_load_string((string)$raw);
+        libxml_use_internal_errors($prev);
+        if ($xml === false) return [];
+        $prices = [];
+        foreach ($xml->xpath('//Product') ?: [] as $prod) {
+            $px = (float)preg_replace('/[^0-9.]/', '', (string)($prod->SellPrice ?? $prod->ProductPrice ?? ''));
+            if ($px > 0) $prices[] = $px;
+        }
+        return $prices;
+    }
+
+    /**
+     * Amazon Product Advertising API v5 SearchItems(AWS SigV4 서명) → Offer 가격 목록.
+     *   자격=access_key/secret_key/partner_tag(+marketplace). 자격 미설정/실패 시 graceful [](날조 없음).
+     * @return float[]
+     */
+    private static function amazonSearchPrices(array $creds, string $q): array
+    {
+        $ak = trim((string)($creds['access_key'] ?? '')); $sk = trim((string)($creds['secret_key'] ?? ''));
+        $tag = trim((string)($creds['partner_tag'] ?? '')); $market = trim((string)($creds['marketplace'] ?? 'www.amazon.com')) ?: 'www.amazon.com';
+        if ($ak === '' || $sk === '' || $tag === '') return [];
+        // marketplace → host/region(PA-API v5 엔드포인트 매핑). 미매핑 마켓은 US 기본.
+        $map = [
+            'www.amazon.com'   => ['webservices.amazon.com',   'us-east-1'],
+            'www.amazon.co.uk' => ['webservices.amazon.co.uk', 'eu-west-1'],
+            'www.amazon.de'    => ['webservices.amazon.de',    'eu-west-1'],
+            'www.amazon.fr'    => ['webservices.amazon.fr',    'eu-west-1'],
+            'www.amazon.it'    => ['webservices.amazon.it',    'eu-west-1'],
+            'www.amazon.es'    => ['webservices.amazon.es',    'eu-west-1'],
+            'www.amazon.co.jp' => ['webservices.amazon.co.jp', 'us-west-2'],
+            'www.amazon.ca'    => ['webservices.amazon.ca',    'us-east-1'],
+        ];
+        [$host, $region] = $map[$market] ?? ['webservices.amazon.com', 'us-east-1'];
+        $service = 'ProductAdvertisingAPI'; $uri = '/paapi5/searchitems';
+        $target  = 'com.amazon.paapi5.v1.ProductAdvertisingAPIv1.SearchItems';
+        $payload = json_encode([
+            'Keywords' => $q, 'SearchIndex' => 'All', 'ItemCount' => 10,
+            'PartnerTag' => $tag, 'PartnerType' => 'Associates', 'Marketplace' => $market,
+            'Resources' => ['Offers.Listings.Price'],
+        ], JSON_UNESCAPED_UNICODE);
+
+        $amzDate = gmdate('Ymd\THis\Z'); $dateStamp = gmdate('Ymd');
+        $ct = 'application/json; charset=utf-8'; $enc = 'amz-1.0';
+        $payloadHash = hash('sha256', (string)$payload);
+        // Canonical request (헤더는 소문자·이름순 정렬).
+        $canonicalHeaders = "content-encoding:{$enc}\n" . "content-type:{$ct}\n" . "host:{$host}\n"
+            . "x-amz-date:{$amzDate}\n" . "x-amz-target:{$target}\n";
+        $signedHeaders = 'content-encoding;content-type;host;x-amz-date;x-amz-target';
+        $canonicalRequest = "POST\n{$uri}\n\n{$canonicalHeaders}\n{$signedHeaders}\n{$payloadHash}";
+        $scope = "{$dateStamp}/{$region}/{$service}/aws4_request";
+        $stringToSign = "AWS4-HMAC-SHA256\n{$amzDate}\n{$scope}\n" . hash('sha256', $canonicalRequest);
+        // Signing key(HMAC chain).
+        $kDate = hash_hmac('sha256', $dateStamp, 'AWS4' . $sk, true);
+        $kRegion = hash_hmac('sha256', $region, $kDate, true);
+        $kService = hash_hmac('sha256', $service, $kRegion, true);
+        $kSigning = hash_hmac('sha256', 'aws4_request', $kService, true);
+        $signature = hash_hmac('sha256', $stringToSign, $kSigning);
+        $authorization = "AWS4-HMAC-SHA256 Credential={$ak}/{$scope}, SignedHeaders={$signedHeaders}, Signature={$signature}";
+
+        $ch = curl_init("https://{$host}{$uri}");
+        curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER=>true, CURLOPT_TIMEOUT=>10, CURLOPT_SSL_VERIFYPEER=>true,
+            CURLOPT_POST=>true, CURLOPT_POSTFIELDS=>$payload,
+            CURLOPT_HTTPHEADER=>[
+                "Host: {$host}", "Content-Type: {$ct}", "Content-Encoding: {$enc}",
+                "X-Amz-Date: {$amzDate}", "X-Amz-Target: {$target}", "Authorization: {$authorization}",
+            ]]);
+        $raw = curl_exec($ch); $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE); curl_close($ch);
+        if ($code !== 200 || !$raw) return [];
+        $j = json_decode((string)$raw, true);
+        $prices = [];
+        foreach ((array)($j['SearchResult']['Items'] ?? []) as $it) {
+            foreach ((array)($it['Offers']['Listings'] ?? []) as $ls) {
+                $px = (float)($ls['Price']['Amount'] ?? 0); if ($px > 0) $prices[] = $px;
+            }
+        }
+        return $prices;
     }
 
     /**

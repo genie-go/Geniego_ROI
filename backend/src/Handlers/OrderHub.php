@@ -115,6 +115,82 @@ final class OrderHub
     }
 
     /**
+     * [P&L SSOT] 서버측 COGS 집계 — ordersStats·Pnl 공용 단일소스(중복 divergence 방지).
+     *   원가 소싱 우선순위(주문 단위):
+     *     ① FEFO lot-layer 실원가 — wms_lot_consumptions(ref='CHS-{channel}-{channel_order_id}',
+     *        Wms::consumeLotsFefo 가 출고 시 적재)에 소비원장이 있으면 그 lot 원가 합계를 사용.
+     *     ② WAC 폴백 — 소비원장이 없으면 기존 channel_inventory WAC(Σ(cost×available)/Σavailable,
+     *        cost>0 행만; 재고0이면 비영 cost 평균)를 사용.
+     *   즉 per-order COALESCE(FEFO cost_total, WAC(qty×cost)). 원가 미등록분은 uncosted units 로
+     *   정직 노출(WAC 기준 유지 — FEFO 유무와 무관하게 costed/uncosted 정의 불변).
+     *   ★무회귀 보장: wms_lot_consumptions 가 비어있으면(현 상태 — 라이브 FEFO 데이터 이전) FEFO LEFT JOIN
+     *     이 매칭 0행 → fc.fefo_cost 전부 NULL → COALESCE 가 항상 WAC 를 택해 출력이 기존 WAC 와 byte-identical.
+     *     FEFO 조인 자체가 실패(예: 원장 테이블 부재)하면 원본 WAC 쿼리로 폴백(동일 결과).
+     *   호출측이 이미 만든 baseSql/baseArgs/cancelExpr/cancelTokens 를 그대로 받아 SQL 을 완전 동일하게 유지.
+     *   @return array{0:?float,1:?int,2:?int} [cogs, uncostedUnits, costedUnits]. 실패 시 [null,null,null](프론트 배열 폴백).
+     */
+    public static function aggregateCogs(\PDO $pdo, string $tenant, string $baseSql, array $baseArgs, string $cancelExpr, array $cancelTokens): array
+    {
+        // channel_inventory WAC 서브쿼리 — FEFO/폴백 경로가 동일하게 재사용(드리프트 제거).
+        $icJoin =
+            "LEFT JOIN (
+                        SELECT tenant_id, sku,
+                            CASE WHEN SUM(CASE WHEN cost>0 THEN available ELSE 0 END) > 0
+                                 THEN SUM(CASE WHEN cost>0 THEN cost*available ELSE 0 END)*1.0 / SUM(CASE WHEN cost>0 THEN available ELSE 0 END)
+                                 ELSE AVG(NULLIF(cost,0)) END AS cost
+                          FROM channel_inventory WHERE tenant_id=? GROUP BY tenant_id, sku
+                   ) ic ON ic.tenant_id = o.tenant_id AND ic.sku = o.sku";
+        // uncosted/costed 정의는 WAC 원가 등록 여부 기준으로 불변(FEFO 유무와 독립).
+        $uncostedExpr = "COALESCE(SUM(CASE WHEN ic.cost IS NULL OR ic.cost<=0 THEN o.qty ELSE 0 END),0) AS uncosted";
+        $costedExpr   = "COALESCE(SUM(CASE WHEN ic.cost>0 THEN o.qty ELSE 0 END),0) AS costed";
+
+        try {
+            // 판매/출고 ref 규약 'CHS-{channel}-{channel_order_id}' 를 DB 별 문자열결합으로 재구성.
+            //   (MySQL 기본 sql_mode 는 '||'=논리 OR 이므로 CONCAT 필수, SQLite 는 '||' 만 지원.)
+            $isMy = false;
+            try { $isMy = strtolower((string)$pdo->getAttribute(\PDO::ATTR_DRIVER_NAME)) === 'mysql'; } catch (\Throwable $e) {}
+            $refExpr = $isMy
+                ? "CONCAT('CHS-', o.channel, '-', o.channel_order_id)"
+                : "('CHS-' || o.channel || '-' || o.channel_order_id)";
+            $stCogs = $pdo->prepare(
+                "SELECT
+                    COALESCE(SUM(COALESCE(fc.fefo_cost, o.qty * ic.cost)),0) AS cogs,
+                    $uncostedExpr,
+                    $costedExpr
+                   FROM channel_orders o
+                   $icJoin
+                   LEFT JOIN (
+                        SELECT ref, SUM(cost_total) AS fefo_cost
+                          FROM wms_lot_consumptions WHERE tenant_id=? GROUP BY ref
+                   ) fc ON fc.ref = $refExpr
+                  WHERE o.$baseSql AND NOT $cancelExpr"
+            );
+            // 바인드 순서 = SQL 등장순: ic.tenant, fc.tenant, baseArgs, cancelTokens.
+            $stCogs->execute(array_merge([$tenant, $tenant], $baseArgs, $cancelTokens));
+            $cogsRow = $stCogs->fetch(\PDO::FETCH_ASSOC) ?: [];
+            return [(float)($cogsRow['cogs'] ?? 0), (int)($cogsRow['uncosted'] ?? 0), (int)($cogsRow['costed'] ?? 0)];
+        } catch (\Throwable $e) {
+            // FEFO 조인 실패(원장 테이블 부재 등) → 원본 WAC 쿼리로 폴백(무회귀 보장: 기존 결과와 동일).
+            try {
+                $stW = $pdo->prepare(
+                    "SELECT
+                        COALESCE(SUM(o.qty * ic.cost),0) AS cogs,
+                        $uncostedExpr,
+                        $costedExpr
+                       FROM channel_orders o
+                       $icJoin
+                      WHERE o.$baseSql AND NOT $cancelExpr"
+                );
+                $stW->execute(array_merge([$tenant], $baseArgs, $cancelTokens));
+                $r = $stW->fetch(\PDO::FETCH_ASSOC) ?: [];
+                return [(float)($r['cogs'] ?? 0), (int)($r['uncosted'] ?? 0), (int)($r['costed'] ?? 0)];
+            } catch (\Throwable $e2) {
+                return [null, null, null]; // 프론트가 클라 배열 COGS 로 폴백
+            }
+        }
+    }
+
+    /**
      * 공통 진입 가드 — 모든 endpoint method 가 호출.
      * 반환: 정상 시 ['tenant','isDemo','pdo'], 실패 시 ['error' => Response].
      */
@@ -534,29 +610,8 @@ final class OrderHub
         //     실제 재고수량 가중평균(WAC=Σ(cost×available)/Σavailable, cost>0 행만; 재고 0 이면 비영(非零) cost 평균)
         //     으로 교체 → 실제 원가·재고에서 자동산출. ②원가 미등록 SKU 주문을 0(무료)으로 묵살하지 않고
         //     uncosted_units 로 정직 노출(소비측이 "원가 등록분 기준" 임을 인지). 실패 시 cogs=null(프론트 배열 폴백).
-        $cogs = null; $cogsUncostedUnits = null; $cogsCostedUnits = null;
-        try {
-            $stCogs = $pdo->prepare(
-                "SELECT
-                    COALESCE(SUM(o.qty * ic.cost),0) AS cogs,
-                    COALESCE(SUM(CASE WHEN ic.cost IS NULL OR ic.cost<=0 THEN o.qty ELSE 0 END),0) AS uncosted,
-                    COALESCE(SUM(CASE WHEN ic.cost>0 THEN o.qty ELSE 0 END),0) AS costed
-                   FROM channel_orders o
-                   LEFT JOIN (
-                        SELECT tenant_id, sku,
-                            CASE WHEN SUM(CASE WHEN cost>0 THEN available ELSE 0 END) > 0
-                                 THEN SUM(CASE WHEN cost>0 THEN cost*available ELSE 0 END)*1.0 / SUM(CASE WHEN cost>0 THEN available ELSE 0 END)
-                                 ELSE AVG(NULLIF(cost,0)) END AS cost
-                          FROM channel_inventory WHERE tenant_id=? GROUP BY tenant_id, sku
-                   ) ic ON ic.tenant_id = o.tenant_id AND ic.sku = o.sku
-                  WHERE o.$baseSql AND NOT $cancelExpr"
-            );
-            $stCogs->execute(array_merge([$tenant], $baseArgs, $cancelTokens));
-            $cogsRow = $stCogs->fetch(\PDO::FETCH_ASSOC) ?: [];
-            $cogs = (float)($cogsRow['cogs'] ?? 0);
-            $cogsUncostedUnits = (int)($cogsRow['uncosted'] ?? 0);
-            $cogsCostedUnits = (int)($cogsRow['costed'] ?? 0);
-        } catch (\Throwable $e) { $cogs = null; /* 프론트가 클라 배열 COGS 로 폴백 */ }
+        //   [현 차수] COGS(WAC) 집계는 self::aggregateCogs SSOT 로 위임 — Pnl 핸들러와 동일 로직 공유(divergence 방지).
+        [$cogs, $cogsUncostedUnits, $cogsCostedUnits] = self::aggregateCogs($pdo, $tenant, $baseSql, $baseArgs, $cancelExpr, $cancelTokens);
 
         return self::json($resp, [
             'ok'        => true,

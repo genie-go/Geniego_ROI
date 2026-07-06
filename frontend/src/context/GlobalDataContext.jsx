@@ -313,6 +313,10 @@ export function GlobalDataProvider({ children }) {
     const [influencerCostServer, setInfluencerCostServer] = useState(null);
     // [225차 P0-1] 운영 정산 통계 서버측 집계(settlements?limit=200 재집계 과소 해소). 데모는 null 유지.
     const [settlementStatsServer, setSettlementStatsServer] = useState(null);
+    // [현 차수] ★P&L 서버 SSOT — 최종 손익 조립(gross/operating/net)을 서버(/v424/pnl)에서 단일소스로 산출.
+    //   기존 클라 pnlStats 는 graceful fallback(server-first, client-fallback). 소스가 동일해 값 회귀 없음.
+    //   데모는 런타임 단일소스 파생이라 null 유지(클라 계산 사용).
+    const [pnlServer, setPnlServer] = useState(null);
     // [225차 P1-16] 운영 클레임(반품) 통계 서버집계(claims?limit=200 재집계 과소 해소). 데모는 null 유지.
     const [claimStatsServer, setClaimStatsServer] = useState(null);
     /* ════════════════════════════════════════════════
@@ -533,6 +537,9 @@ export function GlobalDataProvider({ children }) {
             getJsonAuth('/api/v424/orderhub/settlements?limit=200').then(r => { if (!cancelled && r?.ok && Array.isArray(r.items)) setSettlement(r.items); }).catch(() => {});
             // [225차 P0-1] 정산 통계 서버집계 갱신(200건 초과 테넌트 정확 집계).
             getJsonAuth('/api/v424/orderhub/settlements/stats').then(r => { if (!cancelled && r?.ok) setSettlementStatsServer(r); }).catch(() => {});
+            // [현 차수] ★P&L 서버 SSOT 하이드레이션 — 최종 손익 조립을 서버에서 받아 pnlStats 가 server-first 로 사용.
+            //   실패/구버전 백엔드면 null 유지 → 클라 계산 폴백(무회귀).
+            getJsonAuth('/api/v424/pnl').then(r => { if (!cancelled && r?.ok) setPnlServer(r); }).catch(() => {});
             fetch(`${BASE}/api/channel-sync/inventory`, { headers: { Authorization: `Bearer ${token}` } })
                 .then(r => r.ok ? r.json() : null).then(d => {
                     if (cancelled || !d) return;
@@ -1917,15 +1924,30 @@ export function GlobalDataProvider({ children }) {
             ? netPayout - cogs - adSpend - couponDiscount - influencerCost  // 정산 기준 순이익(쿠폰·인플루언서 반영)
             : operatingProfit;
 
+        // [현 차수] ★P&L 서버 SSOT server-first: 서버(/v424/pnl)가 동일 소스로 조립한 손익이 있으면 그것을 정본으로
+        //   사용(최종 산식이 서버 단일소스로 승격). 소스가 프론트 컴포넌트 stats 와 동일해 값 회귀 없음.
+        //   데모/서버부재/실패 시 위 클라 계산을 그대로 폴백(무회귀). roas·margin 포맷은 클라에서 재계산해 표기 일관.
+        const srvPnl = (!_isDemo && pnlServer && pnlServer.ok) ? pnlServer : null;
+        const f = srvPnl || { revenue, cogs, grossProfit, cogsUncostedUnits, adSpend, platformFee,
+            couponDiscount, returnFee, shippingCost, influencerCost, operatingProfit, netProfit, netPayout };
+        const R = Number(f.revenue) || 0;
+        const AS = Number(f.adSpend) || 0;
         return {
-            revenue, cogs, grossProfit, cogsUncostedUnits,
-            adSpend, platformFee, couponDiscount, returnFee, shippingCost, influencerCost,
-            operatingProfit, netProfit, netPayout,
-            margin: revenue > 0 ? (operatingProfit / revenue * 100).toFixed(1) : '0',
-            netMargin: revenue > 0 ? (netProfit / revenue * 100).toFixed(1) : '0',
-            roas: adSpend > 0 ? budgetStats.blendedRoas : 0,
+            revenue: R, cogs: Number(f.cogs) || 0, grossProfit: Number(f.grossProfit) || 0,
+            cogsUncostedUnits: Number(f.cogsUncostedUnits) || 0,
+            adSpend: AS, platformFee: Number(f.platformFee) || 0, couponDiscount: Number(f.couponDiscount) || 0,
+            returnFee: Number(f.returnFee) || 0, shippingCost: Number(f.shippingCost) || 0,
+            influencerCost: Number(f.influencerCost) || 0,
+            operatingProfit: Number(f.operatingProfit) || 0, netProfit: Number(f.netProfit) || 0,
+            netPayout: Number(f.netPayout) || 0,
+            margin: R > 0 ? (Number(f.operatingProfit) / R * 100).toFixed(1) : '0',
+            netMargin: R > 0 ? (Number(f.netProfit) / R * 100).toFixed(1) : '0',
+            roas: AS > 0 ? budgetStats.blendedRoas : 0,
+            // [현 차수] 보고통화 환산 뷰(서버 제공, KRW base 불변). 소비측(선택 표기)용 — 미사용 시 무해.
+            reporting: srvPnl ? srvPnl.reporting : null,
+            byCurrency: srvPnl ? srvPnl.by_currency : null,
         };
-    }, [orders, inventory, budgetStats, settlementStats, orderStats, orderStatsServer, creators, influencerCostServer]);
+    }, [orders, inventory, budgetStats, settlementStats, orderStats, orderStatsServer, creators, influencerCostServer, pnlServer]);
 
     // Notification 집계
     const unreadAlertCount = useMemo(() => alerts.filter(a => !a.read).length, [alerts]);

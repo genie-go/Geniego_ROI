@@ -8,7 +8,7 @@ import { useI18n } from '../i18n';
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
 import { useAuth } from '../auth/AuthContext.jsx'; // [현 차수] 플랜별 탭 노출
 import { tabAllowedByPlan } from '../auth/tabPlanPolicy.js';
-import { getJsonAuth } from '../services/apiClient.js'; // [231차 OS#2] Root Cause: anomaly scan 보강(best-effort)
+import { getJsonAuth, postJsonAuth } from '../services/apiClient.js'; // [231차 OS#2] Root Cause: anomaly scan 보강(best-effort) / [H5] 보고통화 setter
 import ProductSelectBar from '../components/dashboards/ProductSelectBar.jsx';
 import ProductMarketingPanel from '../components/dashboards/ProductMarketingPanel.jsx';
 
@@ -626,6 +626,238 @@ function ForecastTab({ live, t, fmt }) {
     );
 }
 
+/* ═══════ TAB: VAT Settlement + Reporting Currency (v424 서버 P&L 부가세 엔진) ═══════
+   서버 SSOT(/api/v424/pnl/vat)에서 매출세액·매입세액·납부세액(환급)·과세기간을 노출하고,
+   보고통화 지표(/api/v424/pnl → reporting / by_currency)로 KRW 기준 환산 표기를 명시.
+   세션 셀프인증(getJsonAuth). 빈/제로 응답은 안내로 gracefully 처리(무위험·기존 P&L 뷰 불변). */
+function VatTab({ t, fmt, isAdmin }) {
+    const [vat, setVat] = useState(null);   // null=loading, 객체=데이터(빈 {} 포함)
+    const [rep, setRep] = useState(null);   // reporting / by_currency
+    const [err, setErr] = useState(false);
+    const [savingCur, setSavingCur] = useState(false); // [H5] 보고통화 저장 중
+    const loadRep = useCallback(() => {                 // [H5] 보고통화 setter 후 재조회
+        return getJsonAuth('/api/v424/pnl')
+            .then(d => { setRep(d && typeof d === 'object' ? d : {}); })
+            .catch(() => { setRep({}); });
+    }, []);
+    useEffect(() => {
+        let on = true;
+        getJsonAuth('/api/v424/pnl/vat')
+            .then(d => { if (on) setVat(d && typeof d === 'object' ? d : {}); })
+            .catch(() => { if (on) { setVat({}); setErr(true); } });
+        getJsonAuth('/api/v424/pnl')
+            .then(d => { if (on) setRep(d && typeof d === 'object' ? d : {}); })
+            .catch(() => { if (on) setRep({}); });
+        return () => { on = false; };
+    }, []);
+
+    if (vat === null) {
+        return <div style={{ ...CARD, textAlign: 'center', color: 'var(--text-3)', fontSize: 12 }}>{t('pnl.loading', '불러오는 중…')}</div>;
+    }
+
+    const num = (v) => Number(v || 0);
+    const outputVat = num(vat.output_vat ?? vat.outputVat);
+    const inputVat = num(vat.input_vat ?? vat.inputVat);
+    const netVat = (vat.net_vat_payable ?? vat.netVatPayable) != null ? num(vat.net_vat_payable ?? vat.netVatPayable) : (outputVat - inputVat);
+    const isRefund = netVat < 0;
+    const taxablePeriod = vat.taxable_period || vat.taxablePeriod || '';
+    const monthly = Array.isArray(vat.monthly) ? vat.monthly : (Array.isArray(vat.monthly_buckets) ? vat.monthly_buckets : []);
+    const paddleMor = vat.paddle_mor || vat.paddleMor || null;
+    const hasVat = outputVat !== 0 || inputVat !== 0 || monthly.length > 0;
+
+    // 보고통화 지표(KRW base → reporting 환산). 내부 집계는 KRW SSOT 불변 — 본 패널만 환산 표기.
+    const reporting = (rep && rep.reporting) || {};
+    const repCurrency = reporting.currency || 'KRW';
+    const rateKrwPerUnit = Number(reporting.fx_krw_per_unit || 0);
+    const isConverted = !!repCurrency && repCurrency !== 'KRW'; // 비-KRW 보고통화일 때만 환산 뷰 노출
+    // 보고통화 금액 포매터(통화코드 접미). fmt(KRW)와 구분해 별도 표기(앱 전역 KRW 표시는 불변).
+    const fmtRep = (v) => `${Number(v || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })} ${repCurrency}`;
+    const repRows = isConverted ? [
+        { k: t('pnl.colRevenue', '매출'), v: reporting.revenue, base: rep && rep.revenue, color: ACCENT },
+        { k: t('pnl.kpiCogs', '매출원가'), v: reporting.cogs, base: rep && rep.cogs, color: '#a855f7' },
+        { k: t('pnl.kpiGrossProfit', '매출총이익'), v: reporting.grossProfit, base: rep && rep.grossProfit, color: GREEN },
+        { k: t('pnl.kpiAdSpend', '광고비'), v: reporting.adSpend, base: rep && rep.adSpend, color: '#f97316' },
+        { k: t('pnl.kpiOperatingProfit', '영업이익'), v: reporting.operatingProfit, base: rep && rep.operatingProfit, color: GREEN },
+        { k: t('pnl.kpiNetProfit', '순이익'), v: reporting.netProfit, base: rep && rep.netProfit, color: GREEN },
+    ] : [];
+    const byCurrencyRaw = rep && rep.by_currency;
+    const byCurrency = Array.isArray(byCurrencyRaw)
+        ? byCurrencyRaw
+        : (byCurrencyRaw && typeof byCurrencyRaw === 'object'
+            ? Object.entries(byCurrencyRaw).map(([currency, v]) => (typeof v === 'object' && v ? { currency, ...v } : { currency, amount: v }))
+            : []);
+
+    // [H5] 보고통화 변경 → setter EP 영속 후 summary 재조회(환산 뷰 갱신). 내부 KRW 집계엔 무영향.
+    const CUR_OPTS = ['KRW', 'USD', 'EUR', 'JPY', 'CNY', 'GBP', 'SGD', 'HKD', 'AUD', 'TWD', 'THB', 'VND'];
+    const changeReportingCurrency = async (next) => {
+        const cur = String(next || '').toUpperCase();
+        if (!cur || cur === repCurrency || savingCur) return;
+        setSavingCur(true);
+        try {
+            await postJsonAuth('/api/v424/pnl/reporting-currency', { currency: cur });
+            await loadRep();
+        } catch (e) { /* 실패 시 기존 보고통화 유지(무회귀) */ }
+        finally { setSavingCur(false); }
+    };
+
+    const netCol = isRefund ? GREEN : RED;
+
+    return (
+        <div style={{ display: 'grid', gap: 16 }}>
+            {/* 보고통화 지표 — 내부 집계는 KRW SSOT(불변), 본 패널만 보고통화로 환산 표기 */}
+            <div style={{ ...CARD, display: 'grid', gap: 14, background: 'rgba(79,142,247,0.05)', borderColor: 'rgba(79,142,247,0.2)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: 20 }}>💱</span>
+                    <div style={{ flex: 1, minWidth: 200 }}>
+                        <div style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 700 }}>{t('pnl.reporting.currency', '보고통화')}</div>
+                        <div style={{ fontSize: 20, fontWeight: 900, color: ACCENT }}>{repCurrency}</div>
+                        <div style={{ fontSize: 10.5, color: 'var(--text-3)', marginTop: 2 }}>
+                            {isConverted
+                                ? `${t('pnl.reporting.fxNote', 'KRW 기준 환산 표기')} · 1 ${repCurrency} ≈ ${rateKrwPerUnit ? rateKrwPerUnit.toLocaleString() : '—'} KRW`
+                                : t('pnl.reporting.fxNote', 'KRW 기준 환산 표기')}
+                        </div>
+                    </div>
+                    {/* [H5] 보고통화 선택 — setter EP 호출 후 재조회. 앱 전역 KRW 표시엔 무영향(본 패널 한정). */}
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, color: 'var(--text-3)', fontWeight: 700 }}>
+                        {t('pnl.reporting.select', '보고통화 선택')}
+                        <select
+                            value={repCurrency}
+                            disabled={savingCur || !rep}
+                            onChange={(e) => changeReportingCurrency(e.target.value)}
+                            style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text-1)', fontSize: 12, fontWeight: 700, cursor: savingCur ? 'wait' : 'pointer' }}>
+                            {Array.from(new Set([repCurrency, ...CUR_OPTS])).map(cur => (
+                                <option key={cur} value={cur}>{cur}</option>
+                            ))}
+                        </select>
+                        {savingCur && <span style={{ fontSize: 10.5, color: 'var(--text-3)' }}>{t('pnl.loading', '불러오는 중…')}</span>}
+                    </label>
+                    {byCurrency.length > 0 && (
+                        <div style={{ overflowX: 'auto', maxWidth: '100%' }}>
+                            <table style={{ borderCollapse: 'collapse', fontSize: 11 }}>
+                                <thead>
+                                    <tr style={{ color: 'var(--text-3)' }}>
+                                        <th style={{ padding: '4px 10px', textAlign: 'left', fontWeight: 700 }}>{t('pnl.colChannel', '통화')}</th>
+                                        <th style={{ padding: '4px 10px', textAlign: 'right', fontWeight: 700 }}>{t('pnl.kpiAdSpend', '광고비')}</th>
+                                        <th style={{ padding: '4px 10px', textAlign: 'right', fontWeight: 700 }}>KRW</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {byCurrency.map((c, i) => (
+                                        <tr key={c.currency || i} style={{ borderTop: '1px solid var(--border)' }}>
+                                            <td style={{ padding: '4px 10px', fontWeight: 700 }}>{c.currency || '—'}</td>
+                                            <td style={{ padding: '4px 10px', textAlign: 'right', fontFamily: 'monospace' }}>{Number(c.amount ?? c.adSpendKrw ?? 0).toLocaleString()}</td>
+                                            <td style={{ padding: '4px 10px', textAlign: 'right', fontFamily: 'monospace', color: 'var(--text-2)' }}>{fmt(Number(c.krwEquivalent ?? c.adSpendKrw ?? 0))}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </div>
+
+                {/* [H5] 보고통화 환산 손익 — 비-KRW 보고통화일 때만. KRW base 병기(무회귀·본 패널 한정). */}
+                {isConverted && repRows.length > 0 && (
+                    <div style={{ borderTop: '1px solid var(--border)', paddingTop: 12 }}>
+                        <div style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', marginBottom: 8 }}>
+                            🌐 {t('pnl.reporting.convertedTitle', '보고통화 환산 손익')} ({repCurrency}) · {t('pnl.reporting.baseNote', 'KRW 기준 병기')}
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 10 }}>
+                            {repRows.map((r) => (
+                                <div key={r.k} style={{ ...CARD, padding: '10px 12px' }}>
+                                    <div style={{ fontSize: 10, color: 'var(--text-3)', fontWeight: 700 }}>{r.k}</div>
+                                    <div style={{ fontSize: 14, fontWeight: 900, color: r.color, marginTop: 3, fontFamily: 'monospace' }}>{fmtRep(r.v)}</div>
+                                    <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 2, fontFamily: 'monospace' }}>{fmt(Number(r.base || 0))}</div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            {/* VAT Settlement */}
+            <div style={{ ...CARD }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap', marginBottom: 4 }}>
+                    <div style={{ fontWeight: 800, fontSize: 14 }}>🧾 {t('pnl.vat.title', '부가세 정산')}</div>
+                    {taxablePeriod && (
+                        <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 10px', borderRadius: 999, background: 'rgba(79,142,247,0.12)', color: ACCENT }}>
+                            {t('pnl.vat.taxablePeriod', '과세기간')}: {taxablePeriod}
+                        </span>
+                    )}
+                </div>
+
+                {err && (
+                    <div style={{ fontSize: 11.5, color: 'var(--text-3)', marginTop: 6 }}>⚠ {t('pnl.rcNone', '데이터를 불러오지 못했습니다. 잠시 후 다시 시도하세요.')}</div>
+                )}
+                {!err && !hasVat && (
+                    <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 8 }}>
+                        {t('pnl.vat.taxablePeriod', '과세기간')} {taxablePeriod || '—'} · {t('pnl.forecastChartEmpty', '거래 데이터가 들어오면 부가세 정산 내역이 표시됩니다.')}
+                    </div>
+                )}
+
+                {!err && hasVat && (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 10, marginTop: 12 }}>
+                        <KpiCard label={t('pnl.vat.outputVat', '매출세액')} value={fmt(outputVat)} color={ACCENT} icon="📤" />
+                        <KpiCard label={t('pnl.vat.inputVat', '매입세액')} value={fmt(inputVat)} color="#a855f7" icon="📥" />
+                        <KpiCard
+                            label={isRefund ? t('pnl.vat.netPayable', '납부세액(환급)') + ' · ' + t('pnl.vat.taxablePeriod', '환급') : t('pnl.vat.netPayable', '납부세액(환급)')}
+                            value={(isRefund ? '▲ ' : '') + fmt(Math.abs(netVat))}
+                            color={netCol} icon={isRefund ? '💚' : '🏦'} />
+                    </div>
+                )}
+            </div>
+
+            {/* 월별 과세기간 버킷 */}
+            {monthly.length > 0 && (
+                <div style={{ ...CARD }}>
+                    <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 12 }}>📆 {t('pnl.vat.taxablePeriod', '과세기간')} · {t('pnl.forecastChartTitle', '월별 내역')}</div>
+                    <div style={{ overflowX: 'auto' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, minWidth: 480 }}>
+                            <thead>
+                                <tr style={{ background: 'rgba(79,142,247,0.08)' }}>
+                                    <th style={{ padding: '8px 10px', textAlign: 'left', color: 'var(--text-3)', fontWeight: 700 }}>{t('pnl.colMonth', '월')}</th>
+                                    <th style={{ padding: '8px 10px', textAlign: 'right', color: 'var(--text-3)', fontWeight: 700 }}>{t('pnl.vat.outputVat', '매출세액')}</th>
+                                    <th style={{ padding: '8px 10px', textAlign: 'right', color: 'var(--text-3)', fontWeight: 700 }}>{t('pnl.vat.inputVat', '매입세액')}</th>
+                                    <th style={{ padding: '8px 10px', textAlign: 'right', color: 'var(--text-3)', fontWeight: 700 }}>{t('pnl.vat.netPayable', '납부세액(환급)')}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {monthly.map((m, i) => {
+                                    const mo = num(m.output_vat ?? m.outputVat);
+                                    const mi = num(m.input_vat ?? m.inputVat);
+                                    const mn = (m.net_vat_payable ?? m.netVatPayable) != null ? num(m.net_vat_payable ?? m.netVatPayable) : (mo - mi);
+                                    return (
+                                        <tr key={m.month || m.period || i} style={{ borderBottom: '1px solid var(--border)' }}>
+                                            <td style={{ padding: '8px 10px', fontWeight: 700 }}>{m.month || m.period || m.label || '—'}</td>
+                                            <td style={{ padding: '8px 10px', textAlign: 'right', fontFamily: 'monospace', color: ACCENT }}>{fmt(mo)}</td>
+                                            <td style={{ padding: '8px 10px', textAlign: 'right', fontFamily: 'monospace', color: '#a855f7' }}>{fmt(mi)}</td>
+                                            <td style={{ padding: '8px 10px', textAlign: 'right', fontFamily: 'monospace', fontWeight: 700, color: mn < 0 ? GREEN : RED }}>{fmt(mn)}</td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
+
+            {/* 관리자 전용: Paddle MoR 송금 뷰 */}
+            {isAdmin && paddleMor && (
+                <div style={{ ...CARD, background: 'rgba(99,102,241,0.05)', borderColor: 'rgba(99,102,241,0.2)' }}>
+                    <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 8, color: '#818cf8' }}>🌐 Paddle MoR {t('pnl.vat.netPayable', '송금(Remittance)')}</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 10 }}>
+                        {Object.entries(paddleMor).filter(([, v]) => typeof v !== 'object').map(([k, v]) => (
+                            <div key={k} style={{ ...CARD, padding: '12px 14px' }}>
+                                <div style={{ fontSize: 10, color: 'var(--text-3)', fontWeight: 700 }}>{k}</div>
+                                <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--text-1)', marginTop: 3 }}>{typeof v === 'number' ? fmt(v) : String(v)}</div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
+
 /* ═══════ TAB 6: Guide ═══════ */
 function GuideTab({ t }) {
     const steps = [
@@ -804,6 +1036,7 @@ export default function PnLDashboard() {
         { id: 'pnl', icon: '📊', labelKey: 'pnl.tabUnitPnl', descKey: 'pnl.descUnitPnl' },
         { id: 'anomaly', icon: '🚨', labelKey: 'pnl.tabAnomaly', descKey: 'pnl.descAnomaly' },
         { id: 'action', icon: '📋', labelKey: 'pnl.tabAction', descKey: 'pnl.descAction' },
+        { id: 'vat', icon: '🧾', labelKey: 'pnl.vat.title', descKey: 'pnl.reporting.fxNote', labelFb: '부가세 정산', descFb: 'KRW 기준 환산 표기' },
         { id: 'forecast', icon: '🔮', labelKey: 'pnl.tabForecast', descKey: 'pnl.descForecast' },
         { id: 'guide', icon: '📖', labelKey: 'pnl.tabGuide', descKey: 'pnl.descGuide' },
     ];
@@ -883,8 +1116,8 @@ export default function PnLDashboard() {
                         flex: 1, padding: '10px 8px', border: 'none', cursor: 'pointer', textAlign: 'center', borderRadius: '8px 8px 0 0',
                         background: tab === tb.id ? 'rgba(79,142,247,0.1)' : 'transparent',
                         borderBottom: `2px solid ${tab === tb.id ? ACCENT : 'transparent'}`, transition: 'all 200ms' }}>
-                        <div style={{ fontSize: 12, fontWeight: 800, color: tab === tb.id ? 'var(--text-1)' : 'var(--text-2)' }}>{tb.icon} {t(tb.labelKey)}</div>
-                        <div style={{ fontSize: 9, color: 'var(--text-3)', marginTop: 2 }}>{t(tb.descKey)}</div>
+                        <div style={{ fontSize: 12, fontWeight: 800, color: tab === tb.id ? 'var(--text-1)' : 'var(--text-2)' }}>{tb.icon} {t(tb.labelKey, tb.labelFb)}</div>
+                        <div style={{ fontSize: 9, color: 'var(--text-3)', marginTop: 2 }}>{t(tb.descKey, tb.descFb)}</div>
                     </button>
                 ))}
             </div>
@@ -901,6 +1134,7 @@ export default function PnLDashboard() {
                 {tab === 'pnl' && <PnlUnitTab live={live} t={t} fmt={fmt} connectedChannels={connectedChannels} />}
                 {tab === 'anomaly' && <AnomalyTab t={t} live={live} fmt={fmt} navigate={navigate} />}
                 {tab === 'action' && <ActionTab t={t} navigate={navigate} />}
+                {tab === 'vat' && <VatTab t={t} fmt={fmt} isAdmin={isAdmin} />}
                 {tab === 'forecast' && <ForecastTab live={live} t={t} fmt={fmt} />}
                 {tab === 'guide' && <GuideTab t={t} />}
             </div>

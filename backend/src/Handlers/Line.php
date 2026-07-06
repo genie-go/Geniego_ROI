@@ -211,6 +211,11 @@ final class Line
             try { $tq = $pdo->prepare("SELECT content FROM line_templates WHERE id=? AND tenant_id=?"); $tq->execute([$tid, $tenant]); $msg = trim((string)($tq->fetchColumn() ?: '')); } catch (\Throwable $e) {}
         }
         if ($msg === '') $msg = trim((string)($campaign['name'] ?? '')) ?: 'GenieGo';
+        // [현 차수 동의센터 SSOT — 구조적 한계 문서화] LINE Messaging API 의 broadcast 는 채널 전체 팔로워에게
+        //   서버측에서 팬아웃하며 요청에 수신자 식별자(userId/전화/이메일)가 전혀 없다. 따라서 CRM::isMarketingSendAllowed
+        //   기반의 per-customer 옵트아웃/조용시간/빈도캡 게이팅을 broadcast 지점에서 적용하는 것은 구조적으로 불가능하다
+        //   (가짜 게이팅 금지). 본 핸들러에는 multicast/push-to-user(수신자 지정) 경로가 없어 게이트 대상 지점도 없다.
+        //   → 향후 LINE multicast(userId 배열) 도입 시 그 지점에서 userId→customer 매핑 후 채널='kakao'/'line' 게이트를 배선할 것.
         $r = self::broadcast(\Genie\Crypto::decrypt((string)$s['access_token']), $msg); // [현 차수] Low: 복호화(평문 passthrough 하위호환)
         // [259차] 브로드캐스트 실패(토큰만료·쿼터) 시 status='sent' 확정하던 것 수정 — 실 결과로 sent/failed 분기(WhatsApp/Kakao 정합·재발송 판단 정확).
         $st = !empty($r['ok']) ? 'sent' : 'failed';

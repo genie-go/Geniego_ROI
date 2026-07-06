@@ -270,6 +270,10 @@ $app->add(function (Request $request, $handler) {
         //   신뢰하므로(no_tenant 401), full bypass(인증 skip=tenant 미주입)가 아니라 세션→auth_tenant 주입을
         //   수행하는 본 게이트에 편입해야 한다. api_key 경유 호출(원래 설계)도 그대로 보존(키 tenant 주입).
         || strpos($path, '/v424/orderhub/') === 0 || strpos($path, '/api/v424/orderhub/') === 0
+        // [267차] P&L 서버 SSOT(/v424/pnl·/v424/pnl/vat) — 프론트(GlobalDataContext)가 세션 토큰으로 호출.
+        //   Pnl::gate 는 OrderHub 와 동일 규약(미들웨어 auth_tenant 만 신뢰, self-auth 폴백 없음)이므로
+        //   세션→auth_tenant 주입 게이트에 편입해야 한다(미편입 시 strict api_key 미들웨어가 세션토큰 401 → 서버 SSOT inert).
+        || strpos($path, '/v424/pnl') === 0 || strpos($path, '/api/v424/pnl') === 0
         // [237차] KrChannel(국내채널 정산/수수료/대사 /v419/kr/*) — 프론트(/kr-channel)가 세션 토큰으로
         //   호출하나 bypass·세션게이트 부재로 strict api_key 미들웨어가 거부(401). 핸들러는 OrderHub 와
         //   동일하게 self-auth 없이 미들웨어 auth_tenant 만 신뢰하므로 세션→auth_tenant 주입 게이트에 편입.
@@ -446,6 +450,14 @@ $app->add(function (Request $request, $handler) {
                 return $makeJson(403, ['error' => 'Forbidden', 'detail' => 'Write access requires analyst role or write:* scope']);
             }
         }
+    }
+
+    // [은행급 fail-closed, 선택적 strict 모드] 인증된 키인데 tenant_id 가 비어있음 = 테넌트 격리 모호.
+    //   기본(availability 보존): 기존대로 진행하되 auth_tenant='' 로 주입(핸들러 격리에 위임).
+    //   GENIE_STRICT_AUTH=1: 모호한 무-테넌트 키를 즉시 거부(모호성 시 allow 보다 deny 우선).
+    //   기본 OFF 이므로 정상 흐름 무회귀. 운영에서 strict 활성화 시 무-테넌트 키만 차단됨.
+    if (getenv('GENIE_STRICT_AUTH') === '1' && trim((string)($keyRow['tenant_id'] ?? '')) === '') {
+        return $makeJson(403, ['error' => 'Forbidden', 'detail' => 'API key has no tenant binding (strict mode)']);
     }
 
     // Attach auth context to request

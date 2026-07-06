@@ -281,12 +281,22 @@ class KakaoChannel
         }
         $customers = $cst->fetchAll(\PDO::FETCH_ASSOC);
 
-        $success = 0; $failed = 0; $capped = 0; $now = self::now();
+        $success = 0; $failed = 0; $capped = 0; $optout = 0; $quiet = 0; $now = self::now();
         // [240차 약점⑥] 빈도캡 — 과발송 차단(딜리버러빌리티 보호).
         $freqCfg = CRM::commsFreqConfig($pdo, $tenant);
         foreach ($customers as $c) {
-            if (CRM::isFrequencyCapped($pdo, $tenant, (int)$c['id'], $freqCfg['cap'], $freqCfg['window'])) { $capped++; continue; }
             $phone   = preg_replace('/[^0-9]/', '', $c['phone']);
+            // [현 차수 동의센터 SSOT] 통합 발송 게이트 — 카카오 채널 옵트아웃/조용시간 단일소스(crm_channel_prefs). 세그먼트 조회에서 c.id=customer_id. fail-open.
+            // [R4 라벨교정] 게이트 거부사유별 정확 집계 — 빈도=capped·조용시간=quiet·그 외(옵트아웃/suppression)만 opted_out.
+            $g = CRM::isMarketingSendAllowed($tenant, (int)$c['id'], 'kakao', ['phone'=>$phone]);
+            if (!($g['allowed'] ?? false)) {
+                $rc = (string)($g['reason'] ?? '');
+                if (strpos($rc, 'freq') !== false) { $capped++; }
+                elseif (strpos($rc, 'quiet') !== false) { $quiet++; }
+                else { $optout++; }
+                continue;
+            }
+            if (CRM::isFrequencyCapped($pdo, $tenant, (int)$c['id'], $freqCfg['cap'], $freqCfg['window'])) { $capped++; continue; }
             $content = $template ? str_replace('{{name}}', $c['name']??'고객', $template['content']) : '';
             $status  = 'mock_sent';
             if ($mode === 'live' && !empty($cfg['sender_key'])) {
@@ -308,7 +318,7 @@ class KakaoChannel
         $pdo->prepare("UPDATE kakao_campaigns SET status='sent', sent_at=:sa, total=:t, success=:s, failed=:f WHERE id=:id AND tenant_id=:tn")->execute([
             ':sa'=>$now, ':t'=>$total, ':s'=>$success, ':f'=>$failed, ':id'=>$cid, ':tn'=>$tenant,
         ]);
-        return self::jsonRes($res, ['ok'=>true,'mode'=>$mode,'total'=>$total,'success'=>$success,'failed'=>$failed,'frequency_capped'=>$capped]);
+        return self::jsonRes($res, ['ok'=>true,'mode'=>$mode,'total'=>$total,'success'=>$success,'failed'=>$failed,'frequency_capped'=>$capped,'quiet_deferred'=>$quiet,'opted_out'=>$optout]);
     }
 
     /* ─── 성과 조회 ────────────────────────────────────────────────── */

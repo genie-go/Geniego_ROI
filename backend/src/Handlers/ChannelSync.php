@@ -579,15 +579,68 @@ final class ChannelSync
                 'total_price' => $total,
                 'status'      => strtolower((string)($os['status'] ?? 'accept')),
                 'ordered_at'  => (string)($os['orderedAt'] ?? gmdate('c')),
-                // [현 차수 감사] 상태→event_type 방어매핑(취소 토큰 시 전이). ★완전한 취소수집은 별도 returnRequests/
-                //   cancelRequests 엔드포인트 폴링 필요(ordersheets status=ACCEPT 는 취소건 미반환) — 로드맵.
+                // [현 차수 감사] 상태→event_type 방어매핑(취소 토큰 시 전이). 완전한 취소/반품 수집은 아래 coupangClaims
+                //   (returnRequests 별도 폴링)가 담당한다(ordersheets status=ACCEPT 는 취소/반품 미반환).
                 'event_type'  => self::classifyCancelReturn((string)($os['status'] ?? ''), '') ?? 'order',
                 'source'      => 'coupang_api',
             ];
         }
         // [M6] 상품 수집 — Coupang seller-products(동일 CEA HMAC 서명 재사용). 실패 시 빈배열.
         $products = self::coupangProducts($host, $accessKey, $secretKey, $vendorId);
-        return ['ok'=>true, 'products'=>$products, 'orders'=>$orders, 'note'=>count($orders) . ' Coupang orders + ' . count($products) . ' products synced'];
+        // [현 차수] 취소/반품 별도 폴링 — ordersheets(status=ACCEPT)가 미반환하는 취소·반품건을 returnRequests 로 수집.
+        //   원 주문과 동일 channel_order_id 의 취소/반품 이벤트 행으로 정규화 → saveOrders 활성→취소/반품 전이
+        //   (재고복원·claim·CRM LTV 역분개·정산 재롤업·멱등) 자동 처리. 클레임을 뒤에 배치(전이 순서 보장).
+        $claims = self::coupangClaims($host, $accessKey, $secretKey, $vendorId);
+        $orders = array_merge($orders, $claims);
+        return ['ok'=>true, 'products'=>$products, 'orders'=>$orders, 'note'=>count($orders) . ' Coupang rows (' . count($claims) . ' claims) + ' . count($products) . ' products synced'];
+    }
+
+    /**
+     * [현 차수] Coupang 취소/반품 수집 — ordersheets(status=ACCEPT)가 미반환하는 취소·반품 클레임을 returnRequests
+     *   엔드포인트로 별도 폴링(주문/상품과 동일 CEA HMAC 서명 재사용). 각 클레임을 원 주문과 같은 channel_order_id 의
+     *   취소/반품 이벤트 행으로 정규화 → saveOrders 의 활성→취소/반품 전이 로직(재고복원·claim·CRM LTV 역분개·정산
+     *   재롤업·멱등)으로 흘려보낸다. 실패/미지원 계정/빈 데이터는 빈배열(비차단). (라이브 검증은 실 벤더 계정 필요.)
+     */
+    private static function coupangClaims(string $host, string $accessKey, string $secretKey, string $vendorId): array
+    {
+        $path  = "/v2/providers/openapi/apis/api/v4/vendors/{$vendorId}/returnRequests";
+        $from  = gmdate('Y-m-d', time() - 7 * 86400);
+        $to    = gmdate('Y-m-d');
+        // createdAt 기준 취소/반품 클레임(status=RU: 반품/취소 접수). CEA HMAC = signedDate + method + path + query.
+        $query = "createdAtFrom={$from}&createdAtTo={$to}&status=RU&maxPerPage=50";
+        $datetime  = gmdate('ymd\THis\Z');
+        $signature = hash_hmac('sha256', $datetime . 'GET' . $path . $query, $secretKey);
+        $auth = "CEA algorithm=HmacSHA256, access-key={$accessKey}, signed-date={$datetime}, signature={$signature}";
+        [$code, $body] = self::httpGet($host . $path . '?' . $query, ['Authorization' => $auth, 'Content-Type' => 'application/json;charset=UTF-8']);
+        if ($code >= 400) return [];
+        $claims = [];
+        foreach ((array)($body['data'] ?? []) as $rr) {
+            $oid = (string)($rr['orderId'] ?? '');
+            if ($oid === '') continue;
+            $items = (array)($rr['returnItems'] ?? []);
+            $first = $items[0] ?? [];
+            $qty = 0;
+            foreach ($items as $it) { $qty += (int)($it['purchaseCount'] ?? $it['cancelCount'] ?? 0); }
+            // receiptType/returnType: CANCEL(취소)·RETURN(반품)·EXCHANGE(교환→반품 처리). 반품 우선.
+            $ctype = strtoupper((string)($rr['receiptType'] ?? $rr['returnType'] ?? 'RETURN'));
+            $statusText = ($ctype === 'CANCEL') ? 'cancel' : 'return';
+            $claims[] = [
+                'channel_order_id' => $oid,
+                'buyer_name'  => (string)($rr['requesterName'] ?? ($rr['orderer']['name'] ?? '')),
+                'buyer_email' => (string)($rr['orderer']['email'] ?? ''),
+                'product_name'=> (string)($first['vendorItemName'] ?? $first['sellerProductName'] ?? ''),
+                'sku'         => (string)($first['sellerProductItemId'] ?? $first['vendorItemId'] ?? ''),
+                'qty'         => $qty ?: count($items),
+                'unit_price'  => 0,
+                'total_price' => (float)($rr['refundAmount'] ?? $rr['returnDeliveryCharge'] ?? 0),
+                'status'      => $statusText,
+                'reason'      => (string)($rr['reason'] ?? $rr['cancelReason'] ?? ($rr['returnReason'] ?? '')),
+                'ordered_at'  => (string)($rr['createdAt'] ?? $rr['modifiedAt'] ?? gmdate('c')),
+                'event_type'  => self::classifyCancelReturn($statusText, '') ?? $statusText,
+                'source'      => 'coupang_api',
+            ];
+        }
+        return $claims;
     }
 
     /** [M6] Coupang 등록상품 목록(seller-products) → 상품 매핑. 주문과 동일 CEA HMAC 서명. 실패 시 빈배열. */
