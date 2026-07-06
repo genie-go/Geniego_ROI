@@ -1283,6 +1283,7 @@ const Section = memo(function Section() {
 const AIEvalTab = memo(function AIEvalTab() {
     const CREATORS = useSafeCreators();
     const { t } = useI18n();
+    const { fmt } = useCurrency(); // [266차 크래시] :1411 fmt 미정의 ReferenceError(형제 탭은 정의·이 탭만 누락) 해소
     const [evalResult, setEvalResult] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);

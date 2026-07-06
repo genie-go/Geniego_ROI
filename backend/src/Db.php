@@ -1191,6 +1191,9 @@ final class Db
             "ALTER TABLE app_user ADD COLUMN extra_data TEXT NULL",
             "ALTER TABLE app_user ADD COLUMN subscription_started_at VARCHAR(32) NULL",
             "ALTER TABLE app_user ADD COLUMN subscription_renewed_at VARCHAR(32) NULL",
+            // [266차 하드닝] updated_at — 라이브엔 수동시드로 존재하나 CREATE/ALTER 부재라 신규설치/SQLite 폴백 시
+            //   UserAdmin::registerCouponProfile(try/catch 없는 UPDATE ...updated_at=NOW())가 500. 멱등 보강.
+            "ALTER TABLE app_user ADD COLUMN updated_at VARCHAR(32) NULL",
         ];
         foreach ($extraCols as $sql) {
             try { $pdo->exec($sql); } catch (\Throwable $e) {}

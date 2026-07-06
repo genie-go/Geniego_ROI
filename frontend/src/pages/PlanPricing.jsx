@@ -1867,6 +1867,10 @@ function ProductAddonPackEditor() {
 }
 
 function CouponAdminPanel({ plans }) {
+  // [266차 회귀수정] grantFreePlan 이 이 컴포넌트 소속인데 blockRO 는 PlanPricing 스코프라 ReferenceError(클릭 크래시)였다.
+  //   CouponAdminPanel 자체 열람전용 게이트 정의(하위관리자 쓰기차단·231차 패턴 정합).
+  const readOnly = useAdminReadOnly();
+  const blockRO = () => { if (readOnly) { try { alert('열람 전용 권한입니다. 수정 권한은 최고관리자에게 요청하세요.'); } catch {} return true; } return false; };
   const [data, setData] = useState(null); // { ok, rules, stats, recent }
   const [loading, setLoading] = useState(false);
   const [issueForm, setIssueForm] = useState({

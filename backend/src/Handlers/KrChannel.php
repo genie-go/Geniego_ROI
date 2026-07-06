@@ -421,6 +421,7 @@ final class KrChannel {
         $grossDiff  = 0.0;
         $feeDiff    = 0.0;
         $netDiff    = 0.0;
+        $grossSalesTotal = 0.0; // [266차] 총 매출(gross_sales 합계) — 프론트 result.total_sales(정산 grossSales) 소비
         $tickets    = [];
         $now        = gmdate('c');
 
@@ -434,6 +435,7 @@ final class KrChannel {
             $gross   = (float)$line['gross_sales'];
             $pFee    = (float)$line['platform_fee'];
             $net     = (float)$line['net_payout'];
+            $grossSalesTotal += $gross;
 
             // Expected fee based on registered rule
             $expectedFee = $feeRate > 0 ? round($gross * $feeRate, 0) : $pFee;
@@ -507,6 +509,7 @@ final class KrChannel {
             'channel_key' => $key,
             'period_start' => $since,
             'period_end'   => $until,
+            'total_sales'  => round($grossSalesTotal, 0),
             'total_orders' => $total,
             'matched'      => $matched,
             'mismatch'     => $mismatch,

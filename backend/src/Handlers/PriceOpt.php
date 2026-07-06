@@ -47,6 +47,15 @@ class PriceOpt
             created_at   TEXT NOT NULL,
             UNIQUE(tenant_id, sku)
         )");
+        // [266차 계약불일치·데이터손실] 프론트 상품등록이 보내는 부가필드(카테고리/규격/물류비/재고/이미지)가
+        //   기존 8컬럼 스키마에 없어 저장 시 전량 소실됐다 → 멱등 ALTER 로 컬럼 보강(SQLite·이미존재 시 예외무시).
+        foreach ([
+            'category TEXT', 'spec TEXT', 'io_fee REAL', 'storage_fee REAL', 'work_fee REAL', 'shipping_fee REAL',
+            'purchase_cost REAL', 'qty_per_box INTEGER', 'boxes_per_pallet INTEGER', 'initial_stock INTEGER',
+            'stock_boxes INTEGER', 'stock_pallets INTEGER', 'product_image TEXT',
+        ] as $col) {
+            try { $pdo->exec("ALTER TABLE po_products ADD COLUMN $col"); } catch (\Throwable $e) { /* 이미 존재 */ }
+        }
 
         $pdo->exec("CREATE TABLE IF NOT EXISTS po_elasticity (
             id         INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -286,9 +295,16 @@ class PriceOpt
             }
         }
 
+        // [266차] 부가필드 영속(저장 후 소실 해소). 미제공 필드는 NULL(기존 동작 무변경).
+        $numOrNull = fn($k) => isset($body[$k]) && $body[$k] !== '' ? (float)$body[$k] : null;
+        $intOrNull = fn($k) => isset($body[$k]) && $body[$k] !== '' ? (int)$body[$k] : null;
+        $strOrNull = fn($k) => isset($body[$k]) && $body[$k] !== '' ? (string)$body[$k] : null;
         $stmt = $db->prepare("INSERT OR REPLACE INTO po_products
-            (tenant_id, sku, product_name, cost_price, target_margin, base_price, unit, created_at)
-            VALUES (:t, :sku, :pn, :cp, :tm, :bp, :unit, :ts)");
+            (tenant_id, sku, product_name, cost_price, target_margin, base_price, unit, created_at,
+             category, spec, io_fee, storage_fee, work_fee, shipping_fee, purchase_cost,
+             qty_per_box, boxes_per_pallet, initial_stock, stock_boxes, stock_pallets, product_image)
+            VALUES (:t, :sku, :pn, :cp, :tm, :bp, :unit, :ts,
+             :cat, :spec, :io, :stor, :work, :ship, :pc, :qpb, :bpp, :ist, :sb, :sp, :img)");
         $stmt->execute([
             ':t'    => $t,
             ':sku'  => $sku,
@@ -298,6 +314,19 @@ class PriceOpt
             ':bp'   => isset($body['base_price']) ? (float)$body['base_price'] : null,
             ':unit' => $body['unit'] ?? 'KRW',
             ':ts'   => gmdate('c'),
+            ':cat'  => $strOrNull('category'),
+            ':spec' => $strOrNull('spec'),
+            ':io'   => $numOrNull('io_fee'),
+            ':stor' => $numOrNull('storage_fee'),
+            ':work' => $numOrNull('work_fee'),
+            ':ship' => $numOrNull('shipping_fee'),
+            ':pc'   => $numOrNull('purchase_cost'),
+            ':qpb'  => $intOrNull('qty_per_box'),
+            ':bpp'  => $intOrNull('boxes_per_pallet'),
+            ':ist'  => $intOrNull('initial_stock'),
+            ':sb'   => $intOrNull('stock_boxes'),
+            ':sp'   => $intOrNull('stock_pallets'),
+            ':img'  => $strOrNull('product_image'),
         ]);
         return self::json($response, ['ok' => true, 'sku' => $sku]);
     }

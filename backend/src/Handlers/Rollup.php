@@ -638,6 +638,11 @@ final class Rollup {
                 }
                 $rows[] = self::platformRowFromSeries($pf, $palette[$ci++ % count($palette)], $series);
             }
+            // [266차 계약불일치] 매출 점유율(share, %) 파생 — 프론트 by-platform 테이블 '점유율' 컬럼(fc.pct(r.share)=toFixed(1)+'%')이
+            //   share 미반환으로 항상 '-' 였다. 플랫폼별 total_revenue / 전체합 × 100.
+            $shareTot = array_sum(array_column($rows, 'total_revenue'));
+            foreach ($rows as &$rw) { $rw['share'] = $shareTot > 0 ? round($rw['total_revenue'] / $shareTot * 100, 1) : 0; }
+            unset($rw);
             return $rows;
         } catch (\Throwable $e) { return []; }
     }
@@ -697,7 +702,8 @@ final class Rollup {
         $byPlatform = [];
         foreach ($platformRows as $p) $byPlatform[$p['platform']] = $p['total_revenue'];
         usort($skuRows, fn($a, $b) => $b['total_revenue'] <=> $a['total_revenue']);
-        $topSkus = array_map(fn($s) => ['sku_id'=>$s['sku_id'], 'name'=>$s['name'], 'revenue'=>$s['total_revenue'], 'orders'=>$s['total_orders'], 'return_rate'=>$s['avg_return_rate']], array_slice($skuRows, 0, 8));
+        // [266차 계약불일치] top_skus 에 roas 포함(프론트 s.roas 소비·데모 rollupDemoDerive 는 이미 포함이라 운영만 빈값이었음).
+        $topSkus = array_map(fn($s) => ['sku_id'=>$s['sku_id'], 'name'=>$s['name'], 'revenue'=>$s['total_revenue'], 'orders'=>$s['total_orders'], 'roas'=>round($s['avg_roas'] ?? 0, 2), 'return_rate'=>$s['avg_return_rate']], array_slice($skuRows, 0, 8));
 
         // 실 alert: 반품률 임계(>=12%) 또는 ROAS 미달 SKU 파생
         $alerts = [];
