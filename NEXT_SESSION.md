@@ -1,3 +1,42 @@
+# 267차 세션 인계 — 경쟁약점18 초고도화 + 동기화갭7 근절 + 서비스 도메인 전환(genie-go→genieroi) (사용자 명시 승인)
+
+## 0. 개요
+경쟁 재검증(유효≈92.5 vs 90.9) 후 지적 약점18을 초엔터프라이즈급 구현 → **동기화 재검수로 갭7 검출·근절** → 적대검수2회(회귀R1~4 수정) → 운영+데모 배포·런타임/정적 양면 수렴검증 → **서비스 도메인 전환**(www.genieroi.com/demo.genieroi.com) 소스+인프라 완결. feat/n236 브랜치(master 미접촉).
+
+## 1. 신규물 (재구현 금지)
+- **Pnl.php** — 서버 P&L SSOT(`GET /v424/pnl`·`/pnl/vat`·`POST /v424/pnl/reporting-currency`). grossProfit/operatingProfit/netProfit 서버조립(클라 pnlStats 산식 100%정합·값후퇴0)·VAT 출력/입력 넷팅·per-tenant 보고통화. ★index.php **세션→auth_tenant 주입게이트** 편입(OrderHub 규약, 단순bypass 아님).
+- **PreferenceCenter.php** — 동의/선호센터(crm_channel_prefs·quiet-hours). ★통합 발송게이트는 `CRM::isMarketingSendAllowed`(옵트아웃+suppression+quiet+빈도 단일SSOT·fail-open).
+- **Db::envLabel()** — 표시용 env(DB명 '_demo'접미→demo). ★게이트용 `Db::env()`(GENIE_ENV)는 불변(안 그러면 데모admin 403).
+- **WMS 물리실행**(Wms.php) — wms_bins/barcodes/waves/lot_consumptions·스캔/putaway/웨이브 15EP·FEFO원가(aggregateCogs가 lot소비 우선·빈원장→WAC byte-identical). **shelf_rank_cron.php** 신설.
+- CRM identity_id(union-find·COALESCE로 RFM/세그/stats 전파)·BG/NBD CLV·SmtpClient CRAM-MD5. AbTesting 영상DCO. RuleEngine 요일×시간 데이파팅(AutoCampaign 디컨플릭트)·frequency_window(CRM가 소비=단일enforcement). DigitalShelf 라이브 하베스터·PriceOpt 4마켓.
+
+## 2. 주요 수정 (클래스별)
+- **약점18(채널수 제외)**: SoS하베스터·경쟁가4마켓·서버P&L·VAT엔진·보고통화·보안fail-closed(RBAC/Crypto/Paddle·Auth.php삭제)·FEFO원가·WMS바코드/빈/웨이브·쿠팡취소폴·SupplyChain MySQL·원자outbox·선호센터·아이덴티티·SMTP·DCO영상·데이파팅·BI히트맵.
+- **★동기화갭7(재검수 검출)**: 동의 10발송경로 우회→통합게이트 7핸들러 배선·by_currency 필드정합·FEFO COGS 배선·빈도 RuleEngine중복 무력화·identity 미전파·quiet-hours **저니 메시지손실→defer**(R1)·데이파팅 이중충돌.
+- **적대검수 R1~4**: 저니 quiet defer·게이트 ensureTables hoist·이메일 quiet 큐라우팅·카운터 라벨.
+- **★도메인전환**: 소스 리터럴 59파일 genie-go→genieroi(경로 geniego.com 불변). **switchEnv 데모전환 no-op 버그**(구 roi↔roidemo prefix정규식이 www.genieroi 미매칭)·App.jsx SSO호스트·CSP·.env.capacitor·vite proxy·db_restore host-match·cleanup_30acct 경로·.env.example geniego.io트랩·Mailer apex·ja/zh:501(baseline.json sacred SHA갱신+--no-verify).
+
+## 3. ★교훈/트랩 (재발방지)
+- **★도메인 변경=리터럴 치환만으론 부족**: host 문자열조작(`/^roi`·startsWith·in_array host-match)·URL기본값(.env*·VITE_API_BASE·PROXY)·제3도메인(geniego.io)·sacred 로케일을 **별도 grep 필수**. switchEnv가 대표 사례(치환이 못 잡아 데모전환 무동작).
+- **값후퇴0 검증은 산식+소스+윈도 대조**: adSpend 서버=당월 vs 클라=전월+당월(rollup nRange 최소2 클램프)를 적대검수가 검출→정합.
+- **데모/운영 격리=GENIE_DB_NAME(물리분리)**: roidemo가 GENIE_ENV미설정→_env=production 라벨이지만 DB=geniego_roi_demo라 실격리 정상(라이브 1.5M 데모DB내·운영DB 0). PriceOpt는 호스트별 priceopt.sqlite.
+- **sacred SHA 의도적 변경**: `.githooks/baseline.json` 갱신 후 `--no-verify`(게이트가 안내).
+
+## 4. 최종 검증
+- php-l 전건·npm build·i18n 파싱/충돌게이트0. **인증 e2e**(admin로그인→신규EP 11종 라이브200·바디구조정합·DDL20+자동생성). P&L 6산식 실데이터 정합(1.5M)·리프라이서 실행(경쟁10000×beat1%=9900·원가플로어·승인큐·Buybox100%). 적대검수2회·도메인 전수감사(라이브 request-path clean). 데모↔운영 전환 브라우저 양방향 검증.
+
+## 5. 배포/브랜치
+- 운영(www.genieroi.com)+데모(demo.genieroi.com) 동반 배포·php-fpm reload·라이브스모크. **구 도메인 vhost 완전제거**(301 거쳐→제거·`vhost_removed_20260706/` 백업). dist 클린스왑(구 해시번들 제거). ★**master 미push·feat/n236만 push**(파일카피 배포·CI inert). 배포게이트=app_setting.cred_enc_key 양DB 존재확인(복호정합). 커밋 3cf4d1f22ca·5debb114bb6·cb2caad3d5b·07124f85964·f737cffee13·7558f5bb905.
+
+## 6. 다음 차수 잔여 (사용자 조치)
+- ★**외부 URL 갱신**(호스트만 교체·경로 동일): SSO(SAML ACS `/api/auth/sso/saml/acs`·OIDC `/api/auth/sso/oidc/callback`·entityID `/sso/{t}`·SCIM `/api/scim/v2`, 고객사 IdP콘솔)·OAuth redirect(`/api/v425/oauth/{provider}/callback`, provider콘솔)·**Paddle 웹훅**(`/api/v423/paddle/webhook`, 대시보드). 채널웹훅·픽셀·embed는 host파생=자가치유(불필요).
+- ★**네이티브앱**: `.env.capacitor`(www.genieroi.com) 커밋·cap copy 완료. **iOS/Android 서명빌드·스토어 제출은 사용자 환경**(Mac/Xcode·keystore·개발자계정).
+- demo.genieroi.com 공개DNS는 해결됨(확인). 잔여 약점=채널수(외부·의도적 보류)·트레인드ML·스케일.
+
+(★267차 인계서 = 사용자 명시 승인. 자격증명 평문노출 0.)
+
+---
+
 # 266차 세션 인계 — 개발 헌법 + 전수감사/전수스윕 + 운영영속 + E2E 회귀 자동화 (사용자 명시 승인)
 
 ## 0. 개요
