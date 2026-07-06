@@ -350,7 +350,7 @@ export function injectCSPMeta() {
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
         "font-src 'self' https://fonts.gstatic.com",
         "img-src 'self' data: blob: https:",
-        "connect-src 'self' https://ipapi.co https://*.geniego.com ws://localhost:*",
+        "connect-src 'self' https://ipapi.co https://*.genieroi.com https://*.geniego.com ws://localhost:*",
         "frame-ancestors 'self'",
         "base-uri 'self'",
         "form-action 'self'",

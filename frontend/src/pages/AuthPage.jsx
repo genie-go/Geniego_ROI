@@ -1549,10 +1549,19 @@ function AdminLoginForm({ onBack }) {
   const curEnv = IS_DEMO ? 'demo' : 'ops';
   const switchEnv = (env) => {
     if (env === curEnv) return;
-    const toDemo = (h) => h.startsWith('roidemo') ? h : h.replace(/^roi(?=\.)/, 'roidemo');
-    const toOps  = (h) => h.startsWith('roidemo') ? h.replace(/^roidemo/, 'roi') : h;
-    const target = env === 'demo' ? toDemo(_host) : toOps(_host);
-    if (!target || target === _host) return; // 로컬/미인식 도메인 → 전환 불가(no-op)
+    const h = _host;
+    // [도메인전환] 신 도메인(www.genieroi.com ↔ demo.genieroi.com) 우선, 구 도메인(roi.* ↔ roidemo.*) 하위호환.
+    let target = '';
+    if (env === 'demo') {
+      if (h === 'www.genieroi.com' || h === 'genieroi.com') target = 'demo.genieroi.com';
+      else if (h.startsWith('roidemo')) target = h;                       // 이미 데모(legacy)
+      else target = h.replace(/^roi(?=\.)/, 'roidemo');                   // legacy roi.* → roidemo.*
+    } else { // ops
+      if (h === 'demo.genieroi.com') target = 'www.genieroi.com';
+      else if (h.startsWith('roidemo')) target = h.replace(/^roidemo/, 'roi'); // legacy roidemo.* → roi.*
+      else target = h;
+    }
+    if (!target || target === h) return; // 로컬/미인식 도메인 → 전환 불가(no-op)
     window.location.href = `${window.location.protocol}//${target}${window.location.pathname}?mode=admin`;
   };
 

@@ -315,7 +315,7 @@ function LoginRoute() {
   const ssoTok = q && q.get('sso_token');
   if (ssoTok) {
     try {
-      const isDemoHost = typeof window !== 'undefined' && /^roidemo\./.test(window.location.hostname);
+      const isDemoHost = typeof window !== 'undefined' && (/^roidemo\./.test(window.location.hostname) || window.location.hostname === 'demo.genieroi.com');
       localStorage.setItem(isDemoHost ? 'demo_genie_token' : 'genie_token', ssoTok);
       localStorage.setItem('genie_token', ssoTok);
     } catch (e) {}
