@@ -178,7 +178,7 @@ export default function AccountPerformance() {
             const impressions = Number(c.impressions || 0);
             const clicks = Number(c.clicks || 0);
             const conv = Number(c.conv || c.conversions || 0);
-            const budget = Number(c.budget || Math.round(spend * 1.3));
+            const budget = Number(c.budget || spend); // [현 차수] 임의계수(spend*1.3) 폴백 제거 — 실 예산 부재 시 실지출=배정(정직). 백엔드 AdPerformance 와 대칭.
             const chans = (Array.isArray(c.channels) && c.channels.length) ? c.channels : [{ id: 'meta', name: 'Meta', budget: spend }];
             const totB = chans.reduce((s, ch) => s + Number(ch.budget || 1), 0) || 1;
             const adsets = chans.slice(0, 3).map((ch, ai) => {

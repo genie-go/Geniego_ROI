@@ -39,8 +39,16 @@ export default function PaymentSuccess() {
 
         (async () => {
             try {
-                const d = await postJson("/api/auth/payment/confirm", { paymentKey, orderId, amount, plan, cycle });
-                if (!d.ok) throw new Error(d.error || t('paymentSuccess.verifyFailed', "결제 확인 실패"));
+                let d;
+                try {
+                    d = await postJson("/api/auth/payment/confirm", { paymentKey, orderId, amount, plan, cycle });
+                } catch (netErr) {
+                    // [현 차수] Toss 결제확인 EP 는 Paddle(MoR) 이관으로 은퇴 — 구 Toss successUrl 도달 시 404.
+                    //   실패 오표기 대신 구독/요금제 관리로 안내(Paddle 은 웹훅으로 서버측 확인·승격). 데드패스 정리.
+                    navigate('/app-pricing', { replace: true });
+                    return;
+                }
+                if (!d || !d.ok) { navigate('/app-pricing', { replace: true }); return; }
 
                 // AuthContext 사용자 정보 갱신
                 if (d.user) {

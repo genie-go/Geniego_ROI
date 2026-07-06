@@ -439,9 +439,10 @@ final class OrderHub
             //   'delivered' 로 바꾸면 event_type='order'+status비취소 → 매출 재진입(cancelExclusion 무력화)됐다.
             //   ① 취소/반품 status 전이 시 event_type 도 sticky 분류(채널폴링 saveOrders 정규화와 정합).
             //   ② 취소/반품(event_type) 주문을 활성으로 되돌리는 역전이는 차단(force=true 로만 강제, un-cancel).
-            $sel = $pdo->prepare("SELECT event_type FROM channel_orders WHERE tenant_id=? AND $idClause LIMIT 1");
+            $sel = $pdo->prepare("SELECT event_type, channel, channel_order_id, sku, qty, total_price, buyer_email, buyer_name, product_name FROM channel_orders WHERE tenant_id=? AND $idClause LIMIT 1");
             $sel->execute(array_merge([$tenant], $idParams));
-            $curEvt = (string)($sel->fetchColumn() ?: 'order');
+            $curRow = $sel->fetch(\PDO::FETCH_ASSOC) ?: [];
+            $curEvt = (string)($curRow['event_type'] ?? 'order');
             $wasCR = in_array($curEvt, ['cancel', 'return'], true);
             // [커머스 보강] 캐논 claimType(cancel|return|exchange) 우선 → 폴백 정규식. 교환=매출중립(취소/반품 어디에도 미산입).
             $newEvt = self::claimType($status);
@@ -458,6 +459,20 @@ final class OrderHub
             $setEvt = $newEvt ?? (($force && $wasCR) ? 'order' : $curEvt);
             $stmt = $pdo->prepare("UPDATE channel_orders SET status = ?, event_type = ? WHERE tenant_id = ? AND $idClause");
             $stmt->execute(array_merge([$status, $setEvt, $tenant], $idParams));
+            // [현 차수 P1] 운영자 수동 활성→취소/반품 전이 → 자동 폴링/웹훅과 대칭 부수효과(CRM LTV 역분개·채널/물리재고 복원·
+            //   claim(returnFee)·order.cancelled emit·반품포탈). 기존엔 정산 재롤업만 해 LTV/RFM/예측CLV·재고가 과대 잔존
+            //   (263/265차가 자동경로에서 근절한 결함의 수동경로 잔존). event_type 을 위에서 sticky 전이시켰으므로 이후 폴링
+            //   재발화 없음 → 1회 수행 안전. 전부 멱등(order_id/CLM-/CHR- dedup).
+            if (!$wasCR && in_array($newEvt, ['cancel', 'return'], true)) {
+                try {
+                    \Genie\Handlers\ChannelSync::applyManualCancelReturn(
+                        $pdo, $tenant, (string)($curRow['channel'] ?? ''), (string)($curRow['channel_order_id'] ?? ''), $newEvt,
+                        (string)($curRow['buyer_email'] ?? ''), (string)($curRow['buyer_name'] ?? ''),
+                        (float)($curRow['total_price'] ?? 0), (string)($curRow['sku'] ?? ''),
+                        (int)($curRow['qty'] ?? 0), (string)($curRow['product_name'] ?? '')
+                    );
+                } catch (\Throwable $e) { error_log('[OrderHub.setOrderStatus.sideEffects] ' . $e->getMessage()); }
+            }
             // [현 차수 D] 정산 stale-table 신선도 — 정산 읽기(settlementsStats)는 orderhub_settlements 저장본을
             //   직독하므로, 주문 상태변경(취소/반품 전이·force 활성복구 포함)이 재롤업 전까지 옛 매출/취소를 노출한다.
             //   ingestClaims 와 동일 패턴으로 해당 주문 월(YYYY-MM)을 즉시 재롤업해 정산을 실시간 일치시킨다(비치명).
@@ -976,6 +991,23 @@ final class OrderHub
                     $pm = (string)($po->fetchColumn() ?: '');
                     if (preg_match('/^\d{4}-\d{2}$/', $pm)) $affected[$pm] = true;
                 } catch (\Throwable $e) {}
+                // [현 차수 P1] 취소/반품 claim 등록 시 CRM LTV 역분개(자동 폴링/웹훅과 대칭) — 원주문 총액 기준.
+                //   ingestClaims 는 event_type 을 바꾸지 않아 재고/claim 은 폴링이 담당 → 여기선 CRM 역분개만(재고 이중복원 방지).
+                //   order_id 멱등이라 이후 채널 폴링 recordCrmRefund 와 중복돼도 이중역분개 없음.
+                if (in_array($type, ['cancel', 'return'], true)) {
+                    try {
+                        $bo = $pdo->prepare("SELECT channel, buyer_email, buyer_name, total_price FROM channel_orders WHERE tenant_id=? AND (channel_order_id=? OR order_no=?) LIMIT 1");
+                        $bo->execute([$tenant, $orderId, $orderId]);
+                        $br = $bo->fetch(\PDO::FETCH_ASSOC);
+                        if ($br) {
+                            \Genie\Handlers\ChannelSync::crmRefundForOrder(
+                                $pdo, $tenant, (string)($channel ?: ($br['channel'] ?? '')),
+                                (string)($br['buyer_email'] ?? ''), (string)($br['buyer_name'] ?? ''),
+                                (float)($br['total_price'] ?? $amount), $orderId
+                            );
+                        }
+                    } catch (\Throwable $e) {}
+                }
             }
         } catch (\Throwable $e) {
             return self::json($resp, ['ok' => false, 'error' => 'db_error', 'message' => $e->getMessage()], 500);

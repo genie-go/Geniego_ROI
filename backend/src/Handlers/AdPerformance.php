@@ -202,7 +202,7 @@ class AdPerformance {
                     'clicks'      => $clk,
                     'ctr'         => $imp > 0 ? round($clk * 100 / $imp, 2) : 0,
                     'conv'        => (int)($r['conv'] ?? 0),
-                    'budget'      => $spend > 0 ? (int)($spend * 1.3) : 0,
+                    'budget'      => (int)$spend, // [현 차수] 임의계수(spend*1.3) 날조 제거 — 별도 예산 SSOT 부재 → 실지출=배정(정직). 절대원칙: 임의숫자 금지.
                     'adsets'      => [],
                     'history'     => [],
                 ];

@@ -17,19 +17,19 @@ function mapShelfRows(rows) {
       comp_sos: r.compSos != null ? r.compSos : 0,
       rank: r.rank != null ? r.rank : 99,
       ctr: 0, rev_share: 0, vol: 0,
-      // [267차] 채널별 자동수집 메타(harvest 미실행 시 빈값=정직)
-      harvest_source: r.harvest_source || '',
-      harvest_status: r.harvest_status || '',
-      harvest_note: r.harvest_note || '',
-      harvested_at: r.harvested_at || '',
+      // [267차] 채널별 자동수집 메타(harvest 미실행 시 빈값=정직). ★핸들러는 camelCase 반환(DigitalShelf.php:97-101).
+      harvest_source: r.harvestSource || '',
+      harvest_status: r.harvestStatus || '',
+      harvest_note: r.harvestNote || '',
+      harvested_at: r.harvestedAt || '',
     };
     // [267차] 키워드 대표값: brand 및 harvest 상태(행 중 값 존재 시 갱신)
     if (r.brand) byKw[k].brand = r.brand;
-    if (r.harvest_status) {
-      byKw[k].harvest_status = r.harvest_status;
-      byKw[k].harvest_source = r.harvest_source || byKw[k].harvest_source;
-      byKw[k].harvest_note = r.harvest_note || byKw[k].harvest_note;
-      byKw[k].harvested_at = r.harvested_at || byKw[k].harvested_at;
+    if (r.harvestStatus) {
+      byKw[k].harvest_status = r.harvestStatus;
+      byKw[k].harvest_source = r.harvestSource || byKw[k].harvest_source;
+      byKw[k].harvest_note = r.harvestNote || byKw[k].harvest_note;
+      byKw[k].harvested_at = r.harvestedAt || byKw[k].harvested_at;
     }
     if (r.trend === 'up' || r.trend === 'down') byKw[k].trend = r.trend;
   });
@@ -646,7 +646,7 @@ export default function DigitalShelf() {
                   ))}
                 </div>
                 <div style={{ marginTop: 8, height: 4, background: "rgba(255,255,255,0.06)", borderRadius: 4 }}>
-                  <div style={{ width: `${(covered / KEYWORDS_INIT.length) * 100}%`, height: "100%", background: ch.color, borderRadius: 4 }} />
+                  <div style={{ width: `${keywords.length ? (covered / keywords.length) * 100 : 0}%`, height: "100%", background: ch.color, borderRadius: 4 }} />
                 </div>
               </div>
             

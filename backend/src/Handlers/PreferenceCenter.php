@@ -175,7 +175,8 @@ final class PreferenceCenter
     /* ═══ 공개 선호센터(HMAC 토큰, 로그인 불필요) ══════════════════════ */
     private static function prefToken(string $tenant, string $email): string
     {
-        $secret = getenv('APP_KEY') ?: 'genie-unsub-secret-v1'; // EmailMarketing::unsubToken 과 동일 SSOT
+        // [현 차수 보안] 공개 상수 폴백 제거 — APP_KEY 미설정 시 설치별 PG_ENC_KEY 로 강등(위조 차단). EmailMarketing::unsubToken 과 동일 SSOT.
+        $secret = getenv('APP_KEY') ?: getenv('PG_ENC_KEY') ?: 'genie-unsub-secret-v1';
         return substr(hash_hmac('sha256', $tenant . '|pref|' . strtolower(trim($email)), $secret), 0, 32);
     }
 

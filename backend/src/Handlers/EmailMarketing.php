@@ -140,7 +140,9 @@ class EmailMarketing
         return ($u === '' || strpos($u, 'http') !== 0) ? 'https://www.genieroi.com' : $u;
     }
     private static function unsubToken(string $tenant, string $email): string {
-        $secret = getenv('APP_KEY') ?: 'genie-unsub-secret-v1';
+        // [현 차수 보안] 공개 상수 폴백 제거 — APP_KEY 미설정 시 설치별 PG_ENC_KEY 로 강등(소스공개 상수로 위조 차단).
+        //   ★시크릿 변경으로 기 발송 구독취소 링크는 무효화됨(신규 링크는 유효). unsub 생성/검증 동일 SSOT.
+        $secret = getenv('APP_KEY') ?: getenv('PG_ENC_KEY') ?: 'genie-unsub-secret-v1';
         return substr(hash_hmac('sha256', $tenant . '|' . strtolower(trim($email)), $secret), 0, 32);
     }
     private static function unsubUrl(string $tenant, string $email): string {

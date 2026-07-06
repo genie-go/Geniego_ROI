@@ -477,7 +477,7 @@ final class Rollup {
                 foreach ($dates as $d) {
                     $b = $info['buckets'][$d] ?? ['orders'=>0, 'revenue'=>0.0, 'returns'=>0];
                     $tot = $b['orders'] + $b['returns'];
-                    $series[] = ['date'=>$d, 'orders'=>$b['orders'], 'revenue'=>round($b['revenue'],2), 'spend'=>0, 'net_payout'=>round($b['revenue'],2), 'roas'=>0, 'return_rate'=>$tot > 0 ? round($b['returns']/$tot*100,1) : 0];
+                    $series[] = ['date'=>$d, 'orders'=>$b['orders'], 'returns'=>$b['returns'], 'revenue'=>round($b['revenue'],2), 'spend'=>0, 'net_payout'=>round($b['revenue'],2), 'roas'=>0, 'return_rate'=>$tot > 0 ? round($b['returns']/$tot*100,1) : 0];
                 }
                 $rows[] = self::skuRowFromSeries($sku, $info['name'], $info['channel'], 0, $series);
             }
@@ -488,12 +488,17 @@ final class Rollup {
     private static function skuRowFromSeries(string $id, string $name, string $platform, $price, array $series): array {
         $totalRev = array_sum(array_column($series, 'revenue'));
         $totalSpe = array_sum(array_column($series, 'spend'));
+        $totalOrd = array_sum(array_column($series, 'orders'));
+        $totalRet = array_sum(array_column($series, 'returns')); // [현 차수] volume 가중 반품률(ratio-of-sums)용
+        $retDenom = $totalOrd + $totalRet;
         return [
             'sku_id'=>$id, 'name'=>$name, 'platform'=>$platform, 'unit_price'=>$price,
             'avg_roas'=>$totalSpe > 0 ? round($totalRev/$totalSpe,2) : 0,
             'total_revenue'=>$totalRev, 'total_spend'=>$totalSpe,
-            'total_orders'=>array_sum(array_column($series, 'orders')),
-            'avg_return_rate'=>count($series) ? round(array_sum(array_column($series, 'return_rate'))/count($series),1) : 0,
+            'total_orders'=>$totalOrd,
+            // [현 차수] avg_return_rate ratio-of-sums(형제 avg_roas 와 대칭) — 기존 average-of-ratios 는 저볼륨 버킷이
+            //   허위 고반품률 경보(top_skus ≥12% 임계) 유발. 정본 = SUM(returns)/SUM(orders+returns).
+            'avg_return_rate'=>$retDenom > 0 ? round($totalRet/$retDenom*100,1) : 0,
             'series'=>$series,
         ];
     }

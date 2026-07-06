@@ -3139,6 +3139,41 @@ final class ChannelSync
         } catch (\Throwable $e) { error_log('[ChannelSync.recordCrmRefund] ' . $e->getMessage()); }
     }
 
+    /**
+     * [현 차수 P1] 운영자 수동 취소/반품 전이 부수효과 — 자동 폴링/웹훅(saveOrders:2805-2829)과 1:1 대칭.
+     *   OrderHub::setOrderStatus(주문 드롭다운)가 channel_orders.event_type 을 취소/반품으로 sticky 전이시키므로
+     *   이후 채널 폴링은 $wasCR=true 로 재발화하지 않는다 → 여기서 전체 부수효과(재고복원·claim·CRM역분개·emit·
+     *   물류복원·반품포탈)를 1회 수행해도 이중집계 없음. 전부 멱등(recordClaim=CLM-·recordCrmRefund=order_id·restock=CHR-).
+     *   263/265차가 자동경로에서 근절한 'LTV/재고 과대잔존' 결함의 수동경로 잔존을 대칭 해소.
+     */
+    public static function applyManualCancelReturn(PDO $pdo, string $tenant, string $channel, string $orderId, string $type, ?string $email, ?string $name, float $total, string $sku, int $qty, string $productName): void
+    {
+        if ($tenant === 'demo' || !in_array($type, ['cancel', 'return'], true) || $orderId === '') return;
+        $now = gmdate('Y-m-d H:i:s');
+        try {
+            if ($sku !== '' && $qty > 0) self::incInventory($pdo, $tenant, $channel, $sku, $qty);
+            self::recordClaim($pdo, $tenant, $channel, $orderId, $type, $total, '', (string)$name, $now);
+            self::recordCrmRefund($pdo, $tenant, $channel, $email, $name, $total, $orderId);
+            \Genie\Handlers\OpenPlatform::emit($tenant, 'order.cancelled', ['order_id' => $orderId, 'channel' => $channel, 'amount' => $total, 'currency' => 'KRW', 'reason' => $type, 'occurred_at' => $now]);
+            if ($sku !== '' && $qty > 0) {
+                Wms::reflectChannelRestock($tenant, $sku, (string)$productName, (float)$qty, 'CHS-' . $channel . '-' . $orderId, 'CHR-' . $channel . '-' . $orderId);
+                if ($type === 'return') {
+                    ReturnsPortal::ingestChannelReturn($tenant, ['order_id' => $orderId, 'channel' => $channel, 'sku' => $sku, 'name' => (string)$productName, 'qty' => $qty, 'reason' => '', 'refund_amt' => $total]);
+                }
+            }
+        } catch (\Throwable $e) { error_log('[ChannelSync.applyManualCancelReturn] ' . $e->getMessage()); }
+    }
+
+    /**
+     * [현 차수 P1] CRM LTV 역분개 공개 래퍼 — claim 등록 경로(OrderHub::ingestClaims)용.
+     *   ingestClaims 는 자체 claim(clm_hash) 적재 + 정산 재롤업을 하나 event_type 을 바꾸지 않아 재고/claim 은
+     *   이후 채널 폴링이 담당한다 → 여기선 CRM 역분개만 수행(재고 이중복원 방지). order_id 멱등이라 폴링과 중복돼도 안전.
+     */
+    public static function crmRefundForOrder(PDO $pdo, string $tenant, string $channel, ?string $email, ?string $name, float $refund, string $orderId): void
+    {
+        self::recordCrmRefund($pdo, $tenant, $channel, $email, $name, $refund, $orderId);
+    }
+
     /** 208차 동기화 P0: 취소/반품 시 orderhub_claims 적재 → 정산 롤업 returnFee 자동반영. 멱등 id(채널+주문). */
     private static function recordClaim(PDO $pdo, string $tenant, string $channel, string $orderId, string $type, float $orderTotal, string $reason, string $buyer, string $now): void
     {

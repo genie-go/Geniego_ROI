@@ -1,3 +1,35 @@
+# 268차 세션 인계 — 전수 초정밀 감사(6도메인 병렬) + 확정 8건 수정 + 운영/데모 배포·라이브검증 (사용자 명시 승인)
+
+## 0. 개요
+267차 당일 연속. 사용자 "전수 초초초정밀 감사+수정" 지시. **E2E smoke(데모 118 GET EP) 선접지=실 500 0·계약키 정합**(배포본 런타임 건강)으로 정적 추측을 종결 후, 정적이 못 잡는 층위만 **6도메인 병렬 정밀감사**(오탐방지 브리프 주입·부재증명강제)+PM 직접 코드 재증명. 스키마드리프트 8배치까지 전 핸들러 커버. **확정 8건(확정5+보류3 사용자승인) 수정·운영+데모 배포·양환경 e2e 재통과·번들 부팅0에러**. feat/n236(master 미접촉).
+
+## 1. 확정 결함 8건 (수정·배포 완료 — 재플래그/재구현 금지)
+- **①[HIGH 머니] OrderHub 수동 취소/반품 CRM+재고 역분개 누락** — 폴링/웹훅 자동경로(ChannelSync:2805-2829)는 활성→취소/반품 전이 시 6종 부수효과(incInventory·recordClaim·recordCrmRefund·emit·reflectChannelRestock·ingestChannelReturn)를 수행하나, **운영자 수동경로**(setOrderStatus 드롭다운·ingestClaims CSV)는 정산재롤업만 → CRM LTV/RFM/예측CLV·채널/물리재고 과대잔존(263/265차가 자동경로에서 근절한 결함의 수동경로 잔존). **수정: ChannelSync 공개래퍼 2종 신설**(`applyManualCancelReturn`=자동경로1:1대칭·setOrderStatus용 / `crmRefundForOrder`=CRM역분개만·ingestClaims용). setOrderStatus는 event_type sticky전이 후 전체 부수효과(이후 폴링 재발화없어 안전)·ingestClaims는 event_type 미변경이라 CRM역분개만(재고 이중복원 방지). 전부 멱등(order_id/CLM-/CHR- dedup).
+- **②[MED 산출] Rollup:496 avg_return_rate** average-of-ratios→ratio-of-sums(series에 returns 캐리·SUM(returns)/SUM(orders+returns)·형제 avg_roas 대칭). 저볼륨 버킷 허위 고반품경보(top_skus ≥12%) 해소.
+- **③[MED 계약] DigitalShelf.jsx mapShelfRows** — harvest_source(snake) 읽기 vs 핸들러 harvestSource(camelCase) 반환 불일치→267차 수집 출처/상태/시각 배지 영구 미렌더. camelCase 정합.
+- **④[LOW 크래시] DigitalShelf.jsx:649** 커버리지바가 KEYWORDS_INIT(영구 빈배열).length 로 0나눗셈(259차가 형제만 고침)→keywords.length 가드.
+- **⑤[MED i18n] 267차 신규 UI 159키 en.js 부재→14국 한글누출**(AIRuleEngine 데이파팅/빈도캡·WMS 빈/바코드/웨이브/스캔·PriceOpt 게임이론/harvest/경쟁가·CRM 선호센터/identity/CLV·PnL 보고통화·ReportBuilder·DigitalShelf 카운터). **en.js +162 / ko.js +158 additive 병합**(ja/zh 등 13국 무수정=deep-merge 폴백·node ESM 파싱검증).
+- **⑥[보안] APP_KEY 부재→토큰 시크릿 공개상수** — 운영 .env에 APP_KEY 부재→PreferenceCenter::prefToken:178·EmailMarketing::unsubToken:143 이 하드코딩 공개상수 'genie-unsub-secret-v1'로 HMAC(구독취소/선호센터 토큰 위조가능). EmailMarketing:255/375는 빈시크릿 fail-closed=결함아님. **수정: 2 토큰생성 폴백을 `getenv('APP_KEY') ?: getenv('PG_ENC_KEY') ?: 상수`로 강등**(운영 PG_ENC_KEY 존재=설치별 시크릿·.env쓰기 불필요). ★기 발송 링크는 무효화됨(수용).
+- **⑦[절대원칙] AdPerformance:205 + AccountPerformance.jsx:181 budget=spend×1.3 날조 제거**→실 spend=배정(정직). ★263차 FP레지스트리 "표시추정 화이트리스트"는 268차에 **해제**(임의숫자금지 우선).
+- **⑧[정리] PaymentSuccess.jsx** Payment::confirm(은퇴·Paddle이관·routes 주석) 404→실패 오표기 대신 /app-pricing 리다이렉트.
+
+## 2. 검증
+- php -l 6핸들러 0실패(E:\php\php.exe -n). 프론트 빌드 3회 통과(~46s). 로케일 en/ko ESM 파싱 OK.
+- **라이브: 운영+데모 e2e smoke 재통과**(500=0·계약키 정합·무회귀). 데모 번들 브라우저 부팅 콘솔에러 0.
+
+## 3. CLEAN 재확인 (재플래그 금지)
+스키마드리프트 전 핸들러0(259/265/266 근절·self-healing ALTER/CREATE 유지). 마케팅 실집행/채널연동 6채널(normConnKey·activate캐스케이드·killswitch·CRM통합게이트 7핸들러·거짓집행0). 테넌트격리/운영목데이터/at-rest AES-256-GCM/267 Crypto fail-closed. 머니 **자동경로** 대칭·SSOT 멱등·markov/MMM/Shapley. 267차 회귀 7종.
+
+## 4. 배포/브랜치
+- **pscp/plink 파일카피** — 운영(roi.geniego.com)+데모(roidemo.geniego.com) docroot(nginx server_name→root 실확인). 백엔드6+dist tarball·chown www:www·php-fpm reload. **★master 미push·feat/n236만**(CI inert). 커밋=이 세션 신규.
+
+## 5. 다음 차수 잔여 (선택·결함아님)
+- RuleEngine::resumeChannelAds raw strtolower vs pauseChannel normConnKey(도달성 미확인·short키 일관 하 정상). EmailMarketing:255/375 빈시크릿 fail-closed는 APP_KEY 시드 시 자동 활성(선택). budget 실 SSOT(예산관리 연동) 심화.
+
+(★268차 인계서 = 사용자 명시 승인. 자격증명 평문노출 0.)
+
+---
+
 # 267차 세션 인계 — 경쟁약점18 초고도화 + 동기화갭7 근절 + 서비스 도메인 전환(genie-go→genieroi) (사용자 명시 승인)
 
 ## 0. 개요
