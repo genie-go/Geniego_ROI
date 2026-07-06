@@ -91,11 +91,11 @@ class OAuth
         if ($envBase !== '') {
             return rtrim($envBase, '/') . '/api/v425/oauth/' . $provider . '/callback';
         }
-        $allowHosts = ['roi.genie-go.com', 'roi.geniego.com', 'roidemo.genie-go.com', 'roidemo.geniego.com'];
+        $allowHosts = ['www.genieroi.com', 'roi.geniego.com', 'demo.genieroi.com', 'roidemo.geniego.com'];
         $uri = $req->getUri();
         $scheme = $uri->getScheme() ?: 'https';
         $host = $uri->getHost();
-        if (!in_array($host, $allowHosts, true)) $host = 'roi.genie-go.com'; // 미인가 호스트 → 기본 도메인
+        if (!in_array($host, $allowHosts, true)) $host = 'www.genieroi.com'; // 미인가 호스트 → 기본 도메인
         return $scheme . '://' . $host . '/api/v425/oauth/' . $provider . '/callback';
     }
 

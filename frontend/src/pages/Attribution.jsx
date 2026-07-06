@@ -187,8 +187,8 @@ function buildDemoCohorts() {
 /* ═══════════════════════════════════════════════════════════════════
    🛡️ ENVIRONMENT ISOLATION GUARD — Enterprise-grade demo/production split
    ───────────────────────────────────────────────────────────────────
-   • Production (roi.genie-go.com): Empty arrays. Data ONLY from real APIs.
-   • Demo (roidemo.genie-go.com):  Seeded with buildDemo*() for rich demo.
+   • Production (www.genieroi.com): Empty arrays. Data ONLY from real APIs.
+   • Demo (demo.genieroi.com):  Seeded with buildDemo*() for rich demo.
    • NEVER cross-contaminate. This is an absolute, non-negotiable rule.
    ═══════════════════════════════════════════════════════════════════ */
 const _IS_DEMO_ENV = IS_DEMO; // 180차: broad includes('demo') 제거 → demoEnv 정본 격리

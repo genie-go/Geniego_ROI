@@ -4,15 +4,15 @@
  *
  * smoke(읽기)·render(마운트)가 못 잡는 **쓰기 경로**를 커버. 핵심 유저 플로우를 실제로 write→read→검증한다.
  *   ★모든 시나리오는 가역(생성→검증→삭제 / PUT→검증→원복)으로 자가정리 → 운영 데이터 오염 0.
- *   ★그래도 안전을 위해 데모 백엔드(격리 DB) 대상 실행 권장: E2E_BASE=https://roidemo.genie-go.com
+ *   ★그래도 안전을 위해 데모 백엔드(격리 DB) 대상 실행 권장: E2E_BASE=https://demo.genieroi.com
  *
  * ★CI 자동 실행 금지(쓰기·부하) — 온디맨드/수동만. smoke 는 CI, scenario 는 배포 후 수동 npm run e2e:scenario.
  *
- * 사용: E2E_EMAIL=... E2E_PASSWORD=... [E2E_BASE=https://roidemo.genie-go.com] node tools/e2e/scenarios.mjs
+ * 사용: E2E_EMAIL=... E2E_PASSWORD=... [E2E_BASE=https://demo.genieroi.com] node tools/e2e/scenarios.mjs
  * 종료코드: 0=전부 통과, 1=실패. 자격증명 env 로만(하드코딩 금지).
  */
 
-const BASE = (process.env.E2E_BASE || 'https://roi.genie-go.com').replace(/\/$/, '');
+const BASE = (process.env.E2E_BASE || 'https://www.genieroi.com').replace(/\/$/, '');
 const EMAIL = process.env.E2E_EMAIL || '';
 const PASSWORD = process.env.E2E_PASSWORD || '';
 const ACCESS_CODE = process.env.E2E_ACCESS_CODE || 'GENIEGO-ADMIN';

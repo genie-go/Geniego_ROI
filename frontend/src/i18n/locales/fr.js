@@ -498,7 +498,7 @@ export default {"paymentSuccess": {"invalidInfo":"Les informations de paiement s
     "kpiSdks": "Exemples SDK",
     "kpiWebhooks": "Événements webhook",
     "kpiMyKeys": "Mes clés API",
-    "refIntro": "Chaque requête nécessite l’en-tête Authorization: Bearer <clé API>. URL de base : https://roi.genie-go.com/api",
+    "refIntro": "Chaque requête nécessite l’en-tête Authorization: Bearer <clé API>. URL de base : https://www.genieroi.com/api",
     "epLogin": "Connexion par e-mail/mot de passe et obtention d’un token",
     "epMe": "Récupérer compte, forfait et autorisations actuels",
     "epKeysList": "Lister les clés API émises (propriétaire uniquement)",

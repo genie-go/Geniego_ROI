@@ -135,9 +135,9 @@ class EmailMarketing
 
     /* ═══ [현 차수] Klaviyo급 딜리버러빌리티/컴플라이언스 — Suppression·Unsubscribe·개인화 ═══ */
     private static function appBaseUrl(): string {
-        $u = getenv('APP_PUBLIC_URL') ?: getenv('APP_URL') ?: 'https://roi.genie-go.com';
+        $u = getenv('APP_PUBLIC_URL') ?: getenv('APP_URL') ?: 'https://www.genieroi.com';
         $u = rtrim((string)$u, '/');
-        return ($u === '' || strpos($u, 'http') !== 0) ? 'https://roi.genie-go.com' : $u;
+        return ($u === '' || strpos($u, 'http') !== 0) ? 'https://www.genieroi.com' : $u;
     }
     private static function unsubToken(string $tenant, string $email): string {
         $secret = getenv('APP_KEY') ?: 'genie-unsub-secret-v1';
@@ -1118,7 +1118,7 @@ class EmailMarketing
     private static function publicBase(): string {
         $b = getenv('APP_PUBLIC_URL');
         if ($b) return rtrim($b, '/');
-        return (Db::env() === 'demo') ? 'https://roidemo.genie-go.com' : 'https://roi.genie-go.com';
+        return (Db::env() === 'demo') ? 'https://demo.genieroi.com' : 'https://www.genieroi.com';
     }
 
     /** 발송 HTML 에 오픈 추적 픽셀 + 클릭 추적 링크리라이팅 주입(기존엔 미주입→추적 카운터 0이던 갭 해소).

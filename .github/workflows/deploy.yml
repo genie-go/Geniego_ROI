@@ -79,7 +79,7 @@ jobs:
         run: |
           # 5초 대기 후 로그인 API 검증
           sleep 5
-          RESPONSE=$(curl -sk -X POST "https://roi.genie-go.com/api/auth/login" \
+          RESPONSE=$(curl -sk -X POST "https://www.genieroi.com/api/auth/login" \
             -H "Content-Type: application/json" \
             -d "{\"email\":\"${{ secrets.TEST_EMAIL }}\",\"password\":\"${{ secrets.TEST_PASS }}\"}")
           if [[ $RESPONSE != *"token"* ]]; then
@@ -95,7 +95,7 @@ jobs:
           E2E_EMAIL: ${{ secrets.TEST_EMAIL }}
           E2E_PASSWORD: ${{ secrets.TEST_PASS }}
           E2E_ACCESS_CODE: ${{ secrets.TEST_ACCESS_CODE }}
-          E2E_BASE: https://roi.genie-go.com
+          E2E_BASE: https://www.genieroi.com
         run: |
           sleep 3
           node tools/e2e/smoke.mjs

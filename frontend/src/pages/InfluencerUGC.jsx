@@ -145,7 +145,7 @@ const AttributionEditor = memo(function AttributionEditor({ creator, onClose, on
         const utmT = utm.trim().toLowerCase();
         const method = (couponT || utmT) ? 'tracked' : 'manual';
         onSave({
-            attribution: { method, couponCode: couponT || null, utmSource: utmT || null, measured: method === 'tracked', trackingUrl: utmT ? `https://roi.genie-go.com/r/${utmT}` : null },
+            attribution: { method, couponCode: couponT || null, utmSource: utmT || null, measured: method === 'tracked', trackingUrl: utmT ? `https://www.genieroi.com/r/${utmT}` : null },
             activationType: act, objective: obj,
         });
     };

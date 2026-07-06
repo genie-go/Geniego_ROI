@@ -104,14 +104,14 @@ function Admin() {
               : "실제 운영 데이터를 관리 중입니다. 체험/시연 데이터는 데모 환경에서 관리합니다."}
           </div>
         </div>
-        <a href="https://roi.genie-go.com/admin" style={{
+        <a href="https://www.genieroi.com/admin" style={{
           padding: "9px 16px", borderRadius: 9, fontSize: 12, fontWeight: 800, textDecoration: "none",
           background: !IS_DEMO ? "#22c55e" : "rgba(34,197,94,0.12)",
           color: !IS_DEMO ? "#fff" : "#22c55e",
           border: `1px solid ${!IS_DEMO ? "#22c55e" : "rgba(34,197,94,0.4)"}`,
           cursor: "pointer", whiteSpace: "nowrap",
         }}>🏢 운영 시스템 {!IS_DEMO ? "(현재)" : "보기"}</a>
-        <a href="https://roidemo.genie-go.com/admin" style={{
+        <a href="https://demo.genieroi.com/admin" style={{
           padding: "9px 16px", borderRadius: 9, fontSize: 12, fontWeight: 800, textDecoration: "none",
           background: IS_DEMO ? "#fb923c" : "rgba(251,146,60,0.12)",
           color: IS_DEMO ? "#fff" : "#fb923c",
@@ -654,7 +654,7 @@ function TabBackupRestore() {
         "rollback: tar -xzf pre*.tgz → 즉시 복원",
       ]} />
       <SectionCard title="설정 파일 백업" items={[
-        "nginx vhost: roi.genie-go.com.conf.bak_pre*_*",
+        "nginx vhost: www.genieroi.com.conf.bak_pre*_*",
         "backend .env: 운영자 별도 보관",
         "운영 .my.cnf.bak: chmod 600 root:root",
       ]} />

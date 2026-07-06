@@ -40,7 +40,7 @@ final class SiteIntro
         try {
             $pdo->prepare("UPDATE site_company SET biz_reg=? WHERE id=1 AND (biz_reg IS NULL OR biz_reg='')")->execute(['104-81-65037']);
             $pdo->prepare("UPDATE site_company SET copyright=? WHERE id=1 AND (copyright IS NULL OR copyright='')")->execute(['© 2001. 09. 11. Ociell Co., Ltd. All rights reserved.']);
-            $pdo->prepare("UPDATE site_company SET email=? WHERE id=1 AND (email IS NULL OR email='' OR email='support@genie-go.com')")->execute(['geniegoroi@ociell.com']);
+            $pdo->prepare("UPDATE site_company SET email=? WHERE id=1 AND (email IS NULL OR email='' OR email='support@genieroi.com')")->execute(['geniegoroi@ociell.com']);
         } catch (\Throwable $e) { /* best-effort */ }
         $pdo->exec("CREATE TABLE IF NOT EXISTS site_team (
             id $AI,
@@ -70,9 +70,9 @@ final class SiteIntro
                 '2024',
                 '',
                 '서울특별시, 대한민국',
-                'support@genie-go.com',
+                'support@genieroi.com',
                 '',
-                'https://roi.genie-go.com',
+                'https://www.genieroi.com',
                 '데이터로 연결된 커머스, 누구나 글로벌로 성장하는 세상',
                 'AI 자동화로 커머스 운영의 복잡함을 없애고, 모든 셀러가 데이터에 기반해 성장하도록 돕습니다.',
                 $now,

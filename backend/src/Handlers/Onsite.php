@@ -374,7 +374,7 @@ final class Onsite
             $expAt = gmdate('Y-m-d\TH:i:s\Z', time() + 3600); // 1시간 유효
             $pdo->prepare("INSERT INTO onsite_edit_token(token,tenant_id,exp_key,expires_at,created_at) VALUES(?,?,?,?,?)")
                 ->execute([$token, $t, $expKey, $expAt, gmdate('c')]);
-            $host = (string)($req->getHeaderLine('Host') ?: ($req->getServerParams()['HTTP_HOST'] ?? 'roi.genie-go.com'));
+            $host = (string)($req->getHeaderLine('Host') ?: ($req->getServerParams()['HTTP_HOST'] ?? 'www.genieroi.com'));
             $origin = 'https://' . $host;
             $editorUrl = $origin . '/cro-editor.js';
             $bookmarklet = "javascript:(function(){var s=document.createElement('script');s.src='" . $editorUrl . "?t=" . $token . "&exp=" . rawurlencode($expKey) . "&api=" . rawurlencode($origin) . "';s.setAttribute('data-genie-cro','1');document.body.appendChild(s);})();";

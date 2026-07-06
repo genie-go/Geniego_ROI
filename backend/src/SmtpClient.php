@@ -265,7 +265,7 @@ final class SmtpClient
         $encSubject = '=?UTF-8?B?' . base64_encode($subject) . '?=';
         $encFromNm  = '=?UTF-8?B?' . base64_encode($fromName) . '?=';
         $date = gmdate('D, d M Y H:i:s') . ' +0000';
-        $msgId = bin2hex(random_bytes(12)) . '@' . (explode('@', $from)[1] ?? 'roi.genie-go.com');
+        $msgId = bin2hex(random_bytes(12)) . '@' . (explode('@', $from)[1] ?? 'www.genieroi.com');
 
         $headers = [
             "Date: {$date}",

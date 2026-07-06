@@ -671,8 +671,8 @@ final class UserAuth
             if ((int)$q->fetchColumn() <= 0) return null;
             // 현재가 데모면 형제(운영) 계정 → 운영 사이트 안내. 현재가 운영이면 형제(데모) → 데모 사이트 안내.
             return $isDemo
-                ? ['site' => 'production', 'url' => 'https://roi.genie-go.com',     'msg' => '이 이메일은 운영시스템 정식 계정입니다. 운영 사이트(roi.genie-go.com)에서 로그인하세요.']
-                : ['site' => 'demo',       'url' => 'https://roidemo.genie-go.com', 'msg' => '이 이메일은 데모 체험 계정입니다. 데모 체험 사이트(roidemo.genie-go.com)에서 로그인하세요.'];
+                ? ['site' => 'production', 'url' => 'https://www.genieroi.com',     'msg' => '이 이메일은 운영시스템 정식 계정입니다. 운영 사이트(www.genieroi.com)에서 로그인하세요.']
+                : ['site' => 'demo',       'url' => 'https://demo.genieroi.com', 'msg' => '이 이메일은 데모 체험 계정입니다. 데모 체험 사이트(demo.genieroi.com)에서 로그인하세요.'];
         } catch (\Throwable $e) {
             return null; // 권한/스키마 부재 등 → 일반 401 폴백(무해)
         }
@@ -2311,7 +2311,7 @@ final class UserAuth
 
         // 190차+203차: 재설정 링크를 이메일(SMTP) + 문자(네이버 SENS) 로 발송하고 응답에서 토큰 제거.
         //   둘 다 미설정/실패 시 기존 본인확인 기반(인라인 토큰) 폴백(무회귀).
-        $link = 'https://roi.genie-go.com/login?reset=' . urlencode($rtok);
+        $link = 'https://www.genieroi.com/login?reset=' . urlencode($rtok);
         $emailSent = false; $smsSent = false;
         if (\Genie\Mailer::isConfigured($pdo)) {
             $safeName = htmlspecialchars($name, ENT_QUOTES, 'UTF-8');
@@ -2698,8 +2698,8 @@ final class UserAuth
         if ($base === '') {
             $uri = $req->getUri();
             $host = $uri->getHost();
-            $allow = ['roi.genie-go.com', 'roi.geniego.com', 'roidemo.genie-go.com', 'roidemo.geniego.com'];
-            if (!in_array($host, $allow, true)) $host = 'roi.genie-go.com';
+            $allow = ['www.genieroi.com', 'roi.geniego.com', 'demo.genieroi.com', 'roidemo.geniego.com'];
+            if (!in_array($host, $allow, true)) $host = 'www.genieroi.com';
             $base = ($uri->getScheme() ?: 'https') . '://' . $host;
         }
         return rtrim($base, '/');

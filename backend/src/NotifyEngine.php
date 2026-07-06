@@ -70,7 +70,7 @@ final class NotifyEngine
             try { $pdo = \Genie\Db::pdo(); } catch (\Throwable $e) { $pdo = null; }
             $r = \Genie\Mailer::send($to, $subject, $body, [
                 'pdo' => $pdo,
-                'from' => 'noreply@genie-go.com',
+                'from' => 'noreply@genieroi.com',
                 'from_name' => 'Geniego ROI',
             ]);
             $sent = (bool)($r['ok'] ?? false);
@@ -129,7 +129,7 @@ final class NotifyEngine
             $months = self::daysToMonthLabel($days);
             $name   = $user['name']  ?? '회원';
 
-            $message = "[Geniego ROI]\n{$name}님 안녕하세요!\n{$plan} {$months} 무료 이용권이 발급되었습니다.\n\n쿠폰번호: {$code}\n\n지금 바로 사용해보세요!\nhttps://roi.genie-go.com";
+            $message = "[Geniego ROI]\n{$name}님 안녕하세요!\n{$plan} {$months} 무료 이용권이 발급되었습니다.\n\n쿠폰번호: {$code}\n\n지금 바로 사용해보세요!\nhttps://www.genieroi.com";
 
             // 189차+ 카카오 알림톡은 사전 승인된 템플릿(template_code)+sender_key 가 필수라
             //   쿠폰 자유문구를 ad-hoc 발송할 수 없다(알림톡 정책). 발송은 KakaoChannel(템플릿 기반)로
@@ -256,9 +256,9 @@ final class NotifyEngine
           </tr>
         </table>
         <div style="text-align:center;margin:0 0 24px;">
-          <a href="https://roi.genie-go.com/my-coupons" style="display:inline-block;background:linear-gradient(135deg,#4f8ef7,#6366f1);color:#fff;text-decoration:none;padding:14px 36px;border-radius:10px;font-weight:800;font-size:15px;">보유쿠폰 확인 →</a>
+          <a href="https://www.genieroi.com/my-coupons" style="display:inline-block;background:linear-gradient(135deg,#4f8ef7,#6366f1);color:#fff;text-decoration:none;padding:14px 36px;border-radius:10px;font-weight:800;font-size:15px;">보유쿠폰 확인 →</a>
         </div>
-        <p style="color:rgba(255,255,255,0.4);font-size:12px;text-align:center;margin:0;">이 이메일은 Geniego ROI에서 자동 발송된 알림입니다.<br>문의: support@genie-go.com</p>
+        <p style="color:rgba(255,255,255,0.4);font-size:12px;text-align:center;margin:0;">이 이메일은 Geniego ROI에서 자동 발송된 알림입니다.<br>문의: support@genieroi.com</p>
       </td></tr>
     </table>
   </td></tr>

@@ -672,9 +672,9 @@ JS;
     private static function publicBase(Request $req): string
     {
         $uri = $req->getUri();
-        $host = $uri->getHost() ?: 'roi.genie-go.com';
+        $host = $uri->getHost() ?: 'www.genieroi.com';
         $scheme = $uri->getScheme() ?: 'https';
-        if ($host === 'localhost' || $host === '127.0.0.1') { $host = 'roi.genie-go.com'; $scheme = 'https'; }
+        if ($host === 'localhost' || $host === '127.0.0.1') { $host = 'www.genieroi.com'; $scheme = 'https'; }
         return $scheme . '://' . $host;
     }
 }

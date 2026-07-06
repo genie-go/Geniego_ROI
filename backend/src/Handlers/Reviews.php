@@ -654,10 +654,10 @@ final class Reviews
     private static function publicBase(Request $req): string
     {
         $uri = $req->getUri();
-        $host = $uri->getHost() ?: 'roi.genie-go.com';
+        $host = $uri->getHost() ?: 'www.genieroi.com';
         $scheme = $uri->getScheme() ?: 'https';
         // 내부 localhost 호출은 운영 도메인으로 정규화(임베드 코드가 외부에서 동작하도록).
-        if ($host === 'localhost' || $host === '127.0.0.1') { $host = 'roi.genie-go.com'; $scheme = 'https'; }
+        if ($host === 'localhost' || $host === '127.0.0.1') { $host = 'www.genieroi.com'; $scheme = 'https'; }
         return $scheme . '://' . $host;
     }
 

@@ -572,7 +572,7 @@ class PixelTracking
         if (!$own->fetchColumn()) return self::json($res, ['ok'=>false,'error'=>'픽셀 없음'], 404);
 
         $pixelId = addslashes($args['pixel_id']);
-        $baseUrl = (isset($_SERVER['HTTPS']) ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'roi.genie-go.com');
+        $baseUrl = (isset($_SERVER['HTTPS']) ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'www.genieroi.com');
         $snippet = <<<JS
 <!-- Geniego-ROI 1st-Party Pixel | pixel_id: {$pixelId} -->
 <script>

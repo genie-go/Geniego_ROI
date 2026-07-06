@@ -1793,13 +1793,13 @@ export default function AuthPage() {
     // 1. 데모 회원가입 (Demo Registration) → uses "demo_free" mode
     if (target === "demo_register") {
       if (isDemoDomain || isLocalhost) { setMode("demo_free"); }
-      else { window.location.href = "https://roidemo.genie-go.com/login?mode=free"; }
+      else { window.location.href = "https://demo.genieroi.com/login?mode=free"; }
       return;
     }
     // 2. 운영시스템 회원가입 (Production Registration) → 바로 가입폼으로 이동
     if (target === "prod_register") {
       if (!isDemoDomain || isLocalhost) { setMode("free"); }
-      else { window.location.href = "https://roi.genie-go.com/login?mode=free"; }
+      else { window.location.href = "https://www.genieroi.com/login?mode=free"; }
       return;
     }
     // 3. 데모 로그인 (Demo Login) — 도메인 리다이렉트 없이 로컬 전환
@@ -1979,7 +1979,7 @@ export default function AuthPage() {
             <div style={{ textAlign: 'center', padding: 20 }}>
               <div style={{ fontSize: 14, fontWeight: 800, color: '#4f8ef7', marginBottom: 12 }}>🏢 {t('auth.prodRegister')}</div>
               <div style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 16 }}>{t('auth.prodRegisterRedirect')}</div>
-              <a href="https://roi.genie-go.com/login?mode=register" style={{ display: 'inline-block', padding: '12px 28px', borderRadius: 10, background: 'linear-gradient(135deg,#4f8ef7,#6366f1)', color: '#fff', fontWeight: 800, fontSize: 13, textDecoration: 'none' }}>{t('auth.goToProduction')}</a>
+              <a href="https://www.genieroi.com/login?mode=register" style={{ display: 'inline-block', padding: '12px 28px', borderRadius: 10, background: 'linear-gradient(135deg,#4f8ef7,#6366f1)', color: '#fff', fontWeight: 800, fontSize: 13, textDecoration: 'none' }}>{t('auth.goToProduction')}</a>
               <div style={{ marginTop: 12 }}>
                 <button type="button" onClick={() => handleSwitch('login')} style={{ background: 'none', border: 'none', color: 'var(--text-3)', cursor: 'pointer', fontSize: 11 }}>← {t('auth.goBack')}</button>
               </div>

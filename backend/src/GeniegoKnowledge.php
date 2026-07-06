@@ -606,7 +606,7 @@ TXT;
     /** "GeniegoROI는 뭐야?" 플랫폼 강점 소개. */
     public static function platformPitch(): string {
         return <<<'TXT'
-GeniegoROI는 "광고 ROI 측정 + 커머스 운영(주문·정산) + 물류(WMS·수요예측·반품) + CRM/리텐션 + 라이브커머스 + AI"를 하나로 통합한 멀티테넌트 이커머스 순이익(ROI) 분석 플랫폼입니다(roi.genie-go.com, 15개국 지원).
+GeniegoROI는 "광고 ROI 측정 + 커머스 운영(주문·정산) + 물류(WMS·수요예측·반품) + CRM/리텐션 + 라이브커머스 + AI"를 하나로 통합한 멀티테넌트 이커머스 순이익(ROI) 분석 플랫폼입니다(www.genieroi.com, 15개국 지원).
 
 핵심 강점(경쟁사 대비):
 1) 실제 순이익(Net Profit) 산출 — 단순 매출/ROAS가 아니라 광고비·원가(COGS)·물류비·반품비·결제수수료·다통화를 모두 반영한 "진짜 순이익 ROI"를 광고~주문~물류~정산 전 경로에서 단일 기준(SSOT)으로 계산. 데이터 한 건도 누락 없이 집계.

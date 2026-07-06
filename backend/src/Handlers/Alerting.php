@@ -697,7 +697,7 @@ final class Alerting {
                 'elements' => [[
                     'type' => 'button',
                     'text' => ['type' => 'plain_text', 'text' => '대응 화면 열기'],
-                    'url'  => 'https://roi.genie-go.com/alert-policies',
+                    'url'  => 'https://www.genieroi.com/alert-policies',
                     'style' => 'danger',
                 ]],
             ],
@@ -748,7 +748,7 @@ final class Alerting {
         {$extraRows}
       </table>
       <div style="margin-top:24px">
-        <a href="https://roi.genie-go.com/alert-policies" style="background:#667eea;color:white;padding:10px 20px;border-radius:6px;text-decoration:none">대응 화면 열기</a>
+        <a href="https://www.genieroi.com/alert-policies" style="background:#667eea;color:white;padding:10px 20px;border-radius:6px;text-decoration:none">대응 화면 열기</a>
       </div>
     </div>
   </div>

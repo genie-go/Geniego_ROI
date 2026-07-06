@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project overview
 
-GeniegoROI is a multi-tenant ROI analytics dashboard (CRM, KPI, Operations, P&L domains) deployed to https://roi.genie-go.com. The repo is a **monorepo** with two independently-built apps that share a directory tree:
+GeniegoROI is a multi-tenant ROI analytics dashboard (CRM, KPI, Operations, P&L domains) deployed to https://www.genieroi.com. The repo is a **monorepo** with two independently-built apps that share a directory tree:
 
 - `frontend/` — React 18 + Vite 7 SPA, ~116 lazy-loaded pages, 15-language i18n
 - `backend/` — PHP 8.1+ / Slim 4 REST API, PSR-4 namespace `Genie\`, MySQL primary + SQLite fallback
@@ -38,7 +38,7 @@ The root `package.json` only declares `build`. Vite's `root` is set to `frontend
 2. `cd frontend && npm install && npm run build`
 3. SCP `frontend/dist/*` → remote `/home/wwwroot/roi.geniego.com/frontend`
 4. SSH chown + `nginx -s reload`
-5. Login API smoke test against `https://roi.genie-go.com/api/auth/login`
+5. Login API smoke test against `https://www.genieroi.com/api/auth/login`
 
 All SSH/test/Slack steps are **gated on secrets being present** (`HAS_SSH_SECRETS`, `HAS_TEST_SECRETS`, `HAS_SLACK_WEBHOOK`) — the workflow runs in any fork without failing on missing secrets.
 

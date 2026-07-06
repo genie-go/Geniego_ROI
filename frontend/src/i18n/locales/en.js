@@ -366,7 +366,7 @@ export default {
     "kpiSdks": "SDK examples",
     "kpiWebhooks": "Webhook events",
     "kpiMyKeys": "My API keys",
-    "refIntro": "Every request needs an Authorization: Bearer <API key> header. The base URL is https://roi.genie-go.com/api",
+    "refIntro": "Every request needs an Authorization: Bearer <API key> header. The base URL is https://www.genieroi.com/api",
     "epLogin": "Sign in with email/password and obtain a token",
     "epMe": "Get current account, plan and permission info",
     "epKeysList": "List issued API keys (owner only)",

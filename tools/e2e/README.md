@@ -17,11 +17,11 @@
 export E2E_EMAIL='...'          # 앱 admin 이메일
 export E2E_PASSWORD='...'       # 비밀번호
 export E2E_ACCESS_CODE='GENIEGO-ADMIN'   # 선택(기본값)
-export E2E_BASE='https://roi.genie-go.com'  # 선택(기본=운영). 데모=https://roidemo.genie-go.com
+export E2E_BASE='https://www.genieroi.com'  # 선택(기본=운영). 데모=https://demo.genieroi.com
 
 npm run e2e            # 코어 API 스모크(무의존·비파괴·반복안전·CI 게이트)
 npm run e2e:render     # 렌더 스윕(Playwright 필요: npm i -D playwright && npx playwright install chromium)
-npm run e2e:scenario   # 쓰기 시나리오(가역·자가정리). ★데모 백엔드 권장: E2E_BASE=https://roidemo.genie-go.com. CI 자동실행 금지
+npm run e2e:scenario   # 쓰기 시나리오(가역·자가정리). ★데모 백엔드 권장: E2E_BASE=https://demo.genieroi.com. CI 자동실행 금지
 ```
 
 종료코드: `0`=통과 · `1`=실패(500 또는 계약키 누락 또는 렌더 크래시) · `2`=자격증명 미주입 · `3`=Playwright 미설치(render skip).

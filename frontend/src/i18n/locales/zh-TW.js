@@ -498,7 +498,7 @@ export default {"paymentSuccess": {"invalidInfo":"付款資訊不正確。","ver
     "kpiSdks": "SDK 範例",
     "kpiWebhooks": "Webhook 事件",
     "kpiMyKeys": "我的 API 金鑰",
-    "refIntro": "每個請求都需要 Authorization: Bearer <API 金鑰> 標頭。基礎 URL 為 https://roi.genie-go.com/api",
+    "refIntro": "每個請求都需要 Authorization: Bearer <API 金鑰> 標頭。基礎 URL 為 https://www.genieroi.com/api",
     "epLogin": "使用電郵密碼登入並取得權杖",
     "epMe": "取得目前帳戶、方案與權限資訊",
     "epKeysList": "列出已發放的 API 金鑰（僅擁有者）",

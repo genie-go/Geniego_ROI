@@ -1015,7 +1015,7 @@ final class AdAdapters
         $channel = self::normConnKey($channel); // [265차] 경계 정규화(멱등) — raw short key 유입 시 unsupported 방지
         if (!self::executionEnabled() || $campExtId === '') return ['ok' => false, 'status' => 'skipped'];
         $d = self::loadDesign($pdo, $tenant, $designId);
-        if ($landing === '') $landing = 'https://roi.genie-go.com';
+        if ($landing === '') $landing = 'https://www.genieroi.com';
         try {
             switch ($channel) {
                 case 'google_ads':      $r = self::googleDeliver($pdo, $tenant, $campExtId, $d, $daily, $landing, $settings); break;
@@ -1414,7 +1414,7 @@ final class AdAdapters
             'image_ids'        => $imageId !== '' ? [$imageId] : null,
             'ad_text'          => mb_substr($d['copy'] ?: $d['headline'], 0, 100),
             'call_to_action'   => 'LEARN_MORE',
-            'landing_page_url' => $landing !== '' ? $landing : 'https://roi.genie-go.com',
+            'landing_page_url' => $landing !== '' ? $landing : 'https://www.genieroi.com',
             'operation_status' => 'DISABLE',
         ], fn($v) => $v !== null);
         $adBody = json_encode(['advertiser_id' => $advId, 'adgroup_id' => $agId, 'creatives' => [$creative]], JSON_UNESCAPED_UNICODE);

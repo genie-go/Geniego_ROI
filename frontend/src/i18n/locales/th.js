@@ -499,7 +499,7 @@ export default {"paymentSuccess": {"invalidInfo":"ข้อมูลการช
     "kpiSdks": "ตัวอย่าง SDK",
     "kpiWebhooks": "เหตุการณ์ Webhook",
     "kpiMyKeys": "คีย์ API ของฉัน",
-    "refIntro": "ทุกคำขอต้องมีส่วนหัว Authorization: Bearer <คีย์ API> โดย URL ฐานคือ https://roi.genie-go.com/api",
+    "refIntro": "ทุกคำขอต้องมีส่วนหัว Authorization: Bearer <คีย์ API> โดย URL ฐานคือ https://www.genieroi.com/api",
     "epLogin": "เข้าสู่ระบบด้วยอีเมล/รหัสผ่านและรับโทเค็น",
     "epMe": "ดูบัญชี แผน และสิทธิ์ปัจจุบัน",
     "epKeysList": "แสดงรายการคีย์ API ที่ออกแล้ว (เจ้าของเท่านั้น)",

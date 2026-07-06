@@ -1,6 +1,6 @@
 {
   "name": "genie/roi-enterprise-core",
-  "description": "High-Performance ROI Analysis Backend for roi.genie-go.com",
+  "description": "High-Performance ROI Analysis Backend for www.genieroi.com",
   "type": "project",
   "require": {
     "php": ">=8.1",

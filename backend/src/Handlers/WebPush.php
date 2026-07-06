@@ -53,7 +53,7 @@ final class WebPush
 
     private static function vapidPublicKey(PDO $pdo): string { return (string)(getenv('VAPID_PUBLIC_KEY') ?: self::setting($pdo, 'webpush_vapid_public')); }
     private static function vapidPrivateKey(PDO $pdo): string { $env = (string)getenv('VAPID_PRIVATE_KEY'); if ($env !== '') return $env; $s = self::setting($pdo, 'webpush_vapid_private'); return $s !== '' ? (string)\Genie\Crypto::decrypt($s) : ''; } // [259차] at-rest 복호화(평문 passthrough 하위호환)
-    private static function vapidSubject(PDO $pdo): string { $s = (string)(getenv('VAPID_SUBJECT') ?: self::setting($pdo, 'webpush_vapid_subject')); return $s !== '' ? $s : 'mailto:admin@genie-go.com'; }
+    private static function vapidSubject(PDO $pdo): string { $s = (string)(getenv('VAPID_SUBJECT') ?: self::setting($pdo, 'webpush_vapid_subject')); return $s !== '' ? $s : 'mailto:admin@genieroi.com'; }
 
     /** [공개] GET /v426/push/vapid-key — 구독용 VAPID 공개키(미설정 시 enabled=false). */
     public static function vapidKey(Request $req, Response $res): Response

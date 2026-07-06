@@ -335,7 +335,7 @@ export default function Topbar() {
                 bizno: pr.business_number || '', phone: pr.phone || '',
               });
               // 운영 도메인 회원가입으로 이동(별도 DB) — 운영 신규 INSERT라 데모 가상데이터는 구조적으로 유입 불가.
-              window.location.href = 'https://roi.genie-go.com/login?' + q.toString();
+              window.location.href = 'https://www.genieroi.com/login?' + q.toString();
             }}
             title={t('topbar.convertTitle', '데모 가입정보로 운영(유료) 회원 전환 — 체험용 가상데이터는 이관되지 않습니다')}
             style={{
@@ -360,7 +360,7 @@ export default function Topbar() {
               border: `1px solid ${IS_DEMO ? 'rgba(251,146,60,0.35)' : 'rgba(34,197,94,0.35)'}`,
             }}>{IS_DEMO ? t('topbar.envDemo', '🎪 데모 환경') : t('topbar.envProd', '🏢 운영 환경')}</span>
             <a
-              href={IS_DEMO ? 'https://roi.genie-go.com/admin' : 'https://roidemo.genie-go.com/admin'}
+              href={IS_DEMO ? 'https://www.genieroi.com/admin' : 'https://demo.genieroi.com/admin'}
               title={IS_DEMO ? t('topbar.switchToProdTitle', '운영 시스템(실데이터) 관리로 전환') : t('topbar.switchToDemoTitle', '데모(체험) 환경 관리로 전환')}
               style={{
                 padding: '2px 10px', borderRadius: 99, fontSize: 9, fontWeight: 800, textDecoration: 'none',

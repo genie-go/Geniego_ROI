@@ -817,7 +817,7 @@ function _enrichCreator(c) {
     couponCode: _at.couponCode || null,
     utmSource: _at.utmSource || null,
     measured: _at.method === 'tracked',
-    trackingUrl: _at.utmSource ? `https://roi.genie-go.com/r/${_at.utmSource}` : null,
+    trackingUrl: _at.utmSource ? `https://www.genieroi.com/r/${_at.utmSource}` : null,
   };
   return {
     ...c, platform, handle: primary.handle || '', followers, revenue, purchases,

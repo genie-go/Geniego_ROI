@@ -38,10 +38,10 @@ function authHeaders() {
 /* ── 데모 시뮬레이션 (tenant 스코프 — 다른 체험자와 분리) ── */
 function demoSeed() {
   return [
-    { id: 'owner', email: 'owner@genie-go.com', name: '대표 계정', team_role: 'owner', team_name: '본사', team_id: null, is_active: 1, created_at: '2026-01-02' },
-    { id: 'tm_1', email: 'manager.kim@genie-go.com', name: '김매니저', team_role: 'manager', team_name: '마케팅팀', team_id: 1, is_active: 1, created_at: '2026-02-10' },
-    { id: 'tm_2', email: 'staff.lee@genie-go.com', name: '이담당', team_role: 'member', team_name: '마케팅팀', team_id: 1, is_active: 1, created_at: '2026-03-05' },
-    { id: 'tm_3', email: 'staff.park@genie-go.com', name: '박담당', team_role: 'member', team_name: '커머스팀', team_id: 2, is_active: 1, created_at: '2026-03-22' },
+    { id: 'owner', email: 'owner@genieroi.com', name: '대표 계정', team_role: 'owner', team_name: '본사', team_id: null, is_active: 1, created_at: '2026-01-02' },
+    { id: 'tm_1', email: 'manager.kim@genieroi.com', name: '김매니저', team_role: 'manager', team_name: '마케팅팀', team_id: 1, is_active: 1, created_at: '2026-02-10' },
+    { id: 'tm_2', email: 'staff.lee@genieroi.com', name: '이담당', team_role: 'member', team_name: '마케팅팀', team_id: 1, is_active: 1, created_at: '2026-03-05' },
+    { id: 'tm_3', email: 'staff.park@genieroi.com', name: '박담당', team_role: 'member', team_name: '커머스팀', team_id: 2, is_active: 1, created_at: '2026-03-22' },
   ];
 }
 function demoLoad() {

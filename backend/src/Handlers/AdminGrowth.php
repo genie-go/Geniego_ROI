@@ -403,7 +403,7 @@ final class AdminGrowth
 
     private static function welcomeEmailHtml(string $name): string
     {
-        $cta = 'https://roi.genie-go.com/app-pricing';
+        $cta = 'https://www.genieroi.com/app-pricing';
         $n = htmlspecialchars($name, ENT_QUOTES, 'UTF-8');
         return '<div style="font-family:Apple SD Gothic Neo,Malgun Gothic,sans-serif;max-width:560px;margin:0 auto;color:#1e293b">'
             . '<h2 style="color:#4f8ef7">' . $n . '님, GeniegoROI에 오신 것을 환영합니다 🎉</h2>'
@@ -1088,7 +1088,7 @@ final class AdminGrowth
             'landing_headline' => "{$seg}를 위한 AI 커머스 운영 자동화, GeniegoROI",
             'email_subject'    => "[{$seg}] 운영 비효율, 데이터로 해결하는 방법",
             'email_body'       => "안녕하세요.\n\n{$pain} 때문에 고민이신가요? GeniegoROI는 {$msg}합니다.\n무료 데모로 직접 확인해 보세요.\n\n— GeniegoROI 팀",
-            'sms'              => "[GeniegoROI] {$seg} 맞춤 운영 자동화 — 무료 데모 신청: roi.genie-go.com",
+            'sms'              => "[GeniegoROI] {$seg} 맞춤 운영 자동화 — 무료 데모 신청: www.genieroi.com",
             'alimtalk'         => "안녕하세요, GeniegoROI입니다. {$seg} 운영 자동화 무료 진단을 신청하시겠어요?",
             'line'             => "GeniegoROI — {$msg}. 무료 데모를 신청하세요.",
             'blog_outline'     => ["{$seg}의 운영 문제 정의", "데이터 기반 해결 접근", "GeniegoROI 적용 워크플로우", "도입 효과와 다음 단계"],
@@ -1153,7 +1153,7 @@ final class AdminGrowth
                 foreach ($ds->fetchAll(\PDO::FETCH_ASSOC) ?: [] as $dr) $designCh[(int)$dr['id']] = (string)($dr['channel'] ?? '');
             } catch (\Throwable $e) {}
         }
-        $landing = 'https://roi.genie-go.com/app-pricing';
+        $landing = 'https://www.genieroi.com/app-pricing';
         $daily = (int)max(1000, round((float)$c['budget'] / 30));
         $results = []; $anyLive = false; $anyErr = false;
         foreach ($channels as $ch) {

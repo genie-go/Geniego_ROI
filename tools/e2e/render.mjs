@@ -16,7 +16,7 @@
  * 종료코드: 0=크래시 0, 1=크래시 발견, 3=Playwright 미설치(skip).
  */
 
-const BASE = (process.env.E2E_BASE || 'https://roi.genie-go.com').replace(/\/$/, '');
+const BASE = (process.env.E2E_BASE || 'https://www.genieroi.com').replace(/\/$/, '');
 const EMAIL = process.env.E2E_EMAIL || '';
 const PASSWORD = process.env.E2E_PASSWORD || '';
 const ACCESS_CODE = process.env.E2E_ACCESS_CODE || 'GENIEGO-ADMIN';

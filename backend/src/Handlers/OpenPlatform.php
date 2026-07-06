@@ -486,7 +486,7 @@ final class OpenPlatform
                 'version' => '1.0.0',
                 'description' => 'GeniegoROI 파트너/개발자용 공개 REST + 아웃바운드 웹훅 카탈로그. 인증: `Authorization: Bearer <api_key>` (v421 키 관리에서 발급). RBAC 스코프: read:* / write:* / write:ingest / admin:keys.',
             ],
-            'servers' => [['url' => 'https://roi.genie-go.com/api', 'description' => 'production']],
+            'servers' => [['url' => 'https://www.genieroi.com/api', 'description' => 'production']],
             'components' => [
                 'securitySchemes' => [
                     'ApiKeyAuth' => ['type' => 'http', 'scheme' => 'bearer', 'description' => 'v421 API 키. SHA-256 해시 대조.'],

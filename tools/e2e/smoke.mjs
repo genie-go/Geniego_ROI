@@ -7,7 +7,7 @@
  *   - 비파괴적: 읽기(GET)만 발사 + 응답 키 검증. 운영 DB 무오염·반복 실행 안전.
  *
  * 사용:
- *   E2E_EMAIL=... E2E_PASSWORD=... [E2E_ACCESS_CODE=GENIEGO-ADMIN] [E2E_BASE=https://roi.genie-go.com] \
+ *   E2E_EMAIL=... E2E_PASSWORD=... [E2E_ACCESS_CODE=GENIEGO-ADMIN] [E2E_BASE=https://www.genieroi.com] \
  *     node tools/e2e/smoke.mjs
  *   또는  npm run e2e  (자격증명 env 필요)
  *
@@ -15,7 +15,7 @@
  * 종료코드: 0=전부 통과, 1=실패(500 발생 또는 계약키 누락). CI 게이트로 사용.
  */
 
-const BASE = (process.env.E2E_BASE || 'https://roi.genie-go.com').replace(/\/$/, '');
+const BASE = (process.env.E2E_BASE || 'https://www.genieroi.com').replace(/\/$/, '');
 const EMAIL = process.env.E2E_EMAIL || '';
 const PASSWORD = process.env.E2E_PASSWORD || '';
 const ACCESS_CODE = process.env.E2E_ACCESS_CODE || 'GENIEGO-ADMIN';

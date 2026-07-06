@@ -498,7 +498,7 @@ export default {"paymentSuccess": {"invalidInfo":"Informasi pembayaran tidak val
     "kpiSdks": "Contoh SDK",
     "kpiWebhooks": "Event webhook",
     "kpiMyKeys": "Kunci API saya",
-    "refIntro": "Setiap permintaan butuh header Authorization: Bearer <kunci API>. URL dasar https://roi.genie-go.com/api",
+    "refIntro": "Setiap permintaan butuh header Authorization: Bearer <kunci API>. URL dasar https://www.genieroi.com/api",
     "epLogin": "Masuk dengan email/kata sandi dan dapatkan token",
     "epMe": "Ambil info akun, paket, dan izin saat ini",
     "epKeysList": "Daftar kunci API yang diterbitkan (hanya pemilik)",

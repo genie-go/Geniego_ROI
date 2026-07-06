@@ -3,7 +3,7 @@
  * 260차 완전 패리티(Optimizely/VWO급): prompt() 제거 → 인라인 액션 패널 · 라이브 프리뷰(즉시 DOM 반영) ·
  *   되돌리기(원복) · 요소 인스펙터(브레드크럼 부모탐색) · 전체 액션(text/html/hide/remove/css/attr/class/insert/img/redirect).
  * 저장 스키마는 lib/onsiteCro.js applyChanges + Onsite.php editSave 화이트리스트와 3자 정합.
- * 크로스오리진: roi.genie-go.com 서빙, edit-save 는 CORS + 단기 edit-token 인증.
+ * 크로스오리진: www.genieroi.com 서빙, edit-save 는 CORS + 단기 edit-token 인증.
  */
 (function () {
   if (window.__GENIE_CRO_EDITOR__) { alert('GenieGo CRO 에디터가 이미 실행 중입니다.'); return; }

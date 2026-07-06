@@ -651,7 +651,7 @@ export default function Sidebar() {
           </div>
           {/* 데모 회원: 운영시스템 전환 안내 */}
           {IS_DEMO_MODE && (
-            <a href="https://roi.genie-go.com/login" style={{
+            <a href="https://www.genieroi.com/login" style={{
               display: 'block', width: '100%', padding: '6px 0', borderRadius: 7,
               background: 'linear-gradient(135deg, rgba(79,142,247,0.12), rgba(99,102,241,0.08))',
               border: '1px solid rgba(79,142,247,0.25)',
@@ -666,7 +666,7 @@ export default function Sidebar() {
               ★격리: target=_blank + rel=noopener 로 데모 탭이 운영 window 에 접근 불가. 데모는 별도
               origin(roidemo)·별도 DB(geniego_roi_demo)·상대 API 라 목데이터가 운영에 유입될 경로 없음. */}
           {!IS_DEMO_MODE && (
-            <a href="https://roidemo.genie-go.com/" target="_blank" rel="noopener noreferrer" style={{
+            <a href="https://demo.genieroi.com/" target="_blank" rel="noopener noreferrer" style={{
               display: 'block', width: '100%', padding: '6px 0', borderRadius: 7,
               background: 'linear-gradient(135deg, rgba(251,146,60,0.12), rgba(245,158,11,0.08))',
               border: '1px solid rgba(251,146,60,0.3)',

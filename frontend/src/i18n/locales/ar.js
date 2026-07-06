@@ -498,7 +498,7 @@ export default {"paymentSuccess": {"invalidInfo":"معلومات الدفع غي
     "kpiSdks": "أمثلة SDK",
     "kpiWebhooks": "أحداث Webhook",
     "kpiMyKeys": "مفاتيح API الخاصة بي",
-    "refIntro": "يحتاج كل طلب إلى ترويسة Authorization: Bearer <مفتاح API>. عنوان الأساس https://roi.genie-go.com/api",
+    "refIntro": "يحتاج كل طلب إلى ترويسة Authorization: Bearer <مفتاح API>. عنوان الأساس https://www.genieroi.com/api",
     "epLogin": "تسجيل الدخول بالبريد/كلمة المرور والحصول على رمز",
     "epMe": "الحصول على الحساب والخطة والصلاحيات الحالية",
     "epKeysList": "عرض مفاتيح API المُصدرة (للمالك فقط)",

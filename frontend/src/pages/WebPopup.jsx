@@ -78,7 +78,7 @@ const _POPUP_STATUS_COLOR = { active: "#22c55e", scheduled: "#3b82f6", ended: "#
 function EmbedSnippet({ t }) {
   const [copied, setCopied] = useState(false);
   const tenant = (typeof localStorage !== "undefined" && localStorage.getItem("tenantId")) || "";
-  const origin = (typeof window !== "undefined" && window.location && window.location.origin) || "https://roi.genie-go.com";
+  const origin = (typeof window !== "undefined" && window.location && window.location.origin) || "https://www.genieroi.com";
   const snippet = `<script src="${origin}/api/v424/web-popups/embed.js?tenant=${encodeURIComponent(tenant)}" async></script>`;
   const copy = () => { navigator.clipboard.writeText(snippet).catch(() => {}); setCopied(true); setTimeout(() => setCopied(false), 1800); };
   return (

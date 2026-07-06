@@ -5,7 +5,7 @@ import { tGetJSON, tSetJSON } from '../utils/tenantStorage.js';
 
 /* ═══════════════════════════════════════════════════════════════
    CaseStudy — 성공 사례 (Enterprise)
-   ★ 격리 원칙(189차): 운영(roi.genie-go.com)에는 가짜/목데이터 절대 유입 금지.
+   ★ 격리 원칙(189차): 운영(www.genieroi.com)에는 가짜/목데이터 절대 유입 금지.
      - 데모(IS_DEMO)만 샘플 사례 노출.
      - 운영은 실데이터 또는 빈 상태(0). KPI 는 배열에서 계산 → 운영은 자동 0.
      - 북마크는 테넌트 격리 키(tKey)로 저장 → 타 계정 데이터 유입 차단.

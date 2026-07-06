@@ -79,7 +79,7 @@ final class Line
         // [266차 계약불일치] 설정탭 월발송 카드가 settings.monthly_sent 소비(stats 와 동일 line_campaigns 집계). 미반환→"—" 해소.
         $ms = 0;
         try { $ag = $pdo->prepare("SELECT COALESCE(SUM(sent),0) FROM line_campaigns WHERE tenant_id=?"); $ag->execute([$tenant]); $ms = (int)($ag->fetchColumn() ?: 0); } catch (\Throwable $e) {}
-        $host = ($_SERVER['HTTP_HOST'] ?? 'roi.genie-go.com');
+        $host = ($_SERVER['HTTP_HOST'] ?? 'www.genieroi.com');
         return TemplateResponder::respond($res, [
             'ok'           => true,
             'channel_id'   => $row['channel_id'] ?? null,

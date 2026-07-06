@@ -36,7 +36,7 @@ if (strpos($requestUri, '/api/') === 0 || $requestUri === '/api') {
 // ── CORS ─────────────────────────────────────────────────────────────────────
 // 189차+ 보안: 와일드카드 '*' 제거 → 허용 출처 화이트리스트(요청 Origin 반향, 미허용은 운영 도메인 폴백).
 $GENIE_ALLOWED_ORIGINS = [
-    'https://roi.genie-go.com', 'https://roidemo.genie-go.com',
+    'https://www.genieroi.com', 'https://demo.genieroi.com',
     'https://roi.geniego.com',  'https://roidemo.geniego.com',
     'http://localhost:5173', 'http://localhost:4173', 'http://localhost:4180',
     // 203차 Phase M1 — Capacitor 네이티브 앱(iOS capacitor://, Android https://localhost) WebView 출처
@@ -44,7 +44,7 @@ $GENIE_ALLOWED_ORIGINS = [
 ];
 $app->add(function (Request $request, $handler) use ($GENIE_ALLOWED_ORIGINS) {
     $origin = $request->getHeaderLine('Origin');
-    $allow  = in_array($origin, $GENIE_ALLOWED_ORIGINS, true) ? $origin : 'https://roi.genie-go.com';
+    $allow  = in_array($origin, $GENIE_ALLOWED_ORIGINS, true) ? $origin : 'https://www.genieroi.com';
     $cors = function ($resp) use ($allow) {
         return $resp
             ->withHeader('Access-Control-Allow-Origin', $allow)
@@ -531,7 +531,7 @@ $errorMiddleware->setDefaultErrorHandler(function (
     $response->getBody()->write(json_encode($payload, JSON_UNESCAPED_UNICODE));
     // ★ 201차 P1: 에러 응답도 와일드카드(*) 대신 허용 origin 만 반영(메인 CORS 정책과 일치).
     $eOrigin = $request->getHeaderLine('Origin');
-    $eAllow  = in_array($eOrigin, $GENIE_ALLOWED_ORIGINS, true) ? $eOrigin : 'https://roi.genie-go.com';
+    $eAllow  = in_array($eOrigin, $GENIE_ALLOWED_ORIGINS, true) ? $eOrigin : 'https://www.genieroi.com';
     return $response
         ->withStatus($statusCode)
         ->withHeader('Content-Type', 'application/json')

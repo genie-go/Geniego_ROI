@@ -666,7 +666,7 @@ class LiveCommerce
     {
         $b = getenv('APP_PUBLIC_URL');
         if ($b) return rtrim($b, '/');
-        return (Db::env() === 'demo') ? 'https://roidemo.genie-go.com' : 'https://roi.genie-go.com';
+        return (Db::env() === 'demo') ? 'https://demo.genieroi.com' : 'https://www.genieroi.com';
     }
 
     /* ════════════════ [현 차수] 미디어 평면(WHIP/WHEP) — 실제 영상 송출/재생 ════════════════

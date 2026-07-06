@@ -296,7 +296,7 @@ export default {
     "kpiSdks": "SDK 예제",
     "kpiWebhooks": "웹훅 이벤트",
     "kpiMyKeys": "내 API 키",
-    "refIntro": "모든 요청은 Authorization: Bearer <API 키> 헤더가 필요합니다. 기준 URL은 https://roi.genie-go.com/api 입니다.",
+    "refIntro": "모든 요청은 Authorization: Bearer <API 키> 헤더가 필요합니다. 기준 URL은 https://www.genieroi.com/api 입니다.",
     "epLogin": "이메일·비밀번호로 로그인하고 토큰을 발급받습니다.",
     "epMe": "현재 로그인한 계정·플랜·권한 정보를 조회합니다.",
     "epKeysList": "발급된 API 키 목록을 조회합니다(소유자 전용).",

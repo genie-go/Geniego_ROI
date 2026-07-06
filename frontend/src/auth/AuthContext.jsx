@@ -9,7 +9,7 @@ export const AuthContext = createContext(null);
 
 // ★Capacitor 네이티브 로그인 수정: 네이티브 앱은 https://localhost(Android)/capacitor://localhost(iOS)
 //   스킴에서 서빙되므로 상대경로 "/api" 는 존재하지 않는 곳으로 호출돼 로그인/회원가입/admin 인증이 전부
-//   실패한다. 빌드 시 주입되는 VITE_API_BASE(.env.capacitor=https://roi.genie-go.com)를 접두해 절대 URL 로
+//   실패한다. 빌드 시 주입되는 VITE_API_BASE(.env.capacitor=https://www.genieroi.com)를 접두해 절대 URL 로
 //   강제한다. 웹/PWA 빌드는 VITE_API_BASE 미설정(빈 문자열) → 기존과 동일한 상대경로 "/api" 유지.
 const API = (import.meta.env.VITE_API_BASE || "") + "/api";
 

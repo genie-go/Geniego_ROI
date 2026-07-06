@@ -560,9 +560,9 @@ const API_REF = [
   ]},
 ];
 const SDK_LIST = [
-  { id: 'curl', name: 'cURL', icon: '🖥️', code: "curl -H \"Authorization: Bearer $API_KEY\" \\\n  https://roi.genie-go.com/api/v423/rollup/summary" },
+  { id: 'curl', name: 'cURL', icon: '🖥️', code: "curl -H \"Authorization: Bearer $API_KEY\" \\\n  https://www.genieroi.com/api/v423/rollup/summary" },
   { id: 'js',   name: 'JavaScript', icon: '🟨', code: "const r = await fetch('/api/v423/rollup/summary', {\n  headers: { Authorization: `Bearer ${apiKey}` }\n});\nconst data = await r.json();" },
-  { id: 'py',   name: 'Python', icon: '🐍', code: "import requests\nr = requests.get(\n  'https://roi.genie-go.com/api/v423/rollup/summary',\n  headers={'Authorization': f'Bearer {api_key}'})\nprint(r.json())" },
+  { id: 'py',   name: 'Python', icon: '🐍', code: "import requests\nr = requests.get(\n  'https://www.genieroi.com/api/v423/rollup/summary',\n  headers={'Authorization': f'Bearer {api_key}'})\nprint(r.json())" },
 ];
 // P1: 실제 OpenPlatform 발신 이벤트(웹훅 카탈로그와 정합). KPI 카운트용 — 실관리 UI 는 /v429/webhooks/events 동적 로드.
 const WEBHOOK_EVENTS = ['order.created', 'order.cancelled', 'settlement.created', 'conversion.recorded', 'attribution.computed'];
@@ -636,7 +636,7 @@ export default function DeveloperHub() {
         {activeTab === 1 && (
           <div style={{ display: 'grid', gap: 18 }}>
             <div style={{ fontSize: 12, color: '#64748b', lineHeight: 1.7 }}>
-              📡 {t('devHub.refIntro', '모든 요청은 Authorization: Bearer <API 키> 헤더가 필요합니다. 기준 URL은 https://roi.genie-go.com/api 입니다.')}
+              📡 {t('devHub.refIntro', '모든 요청은 Authorization: Bearer <API 키> 헤더가 필요합니다. 기준 URL은 https://www.genieroi.com/api 입니다.')}
             </div>
             {API_REF.map(g => (
               <div key={g.group}>

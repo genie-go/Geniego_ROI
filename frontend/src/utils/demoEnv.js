@@ -1,7 +1,7 @@
 /**
  * 데모 환경 단일 판별 (은행·공공기관급 격리 — 운영 데이터 오염 방지)
  * ──────────────────────────────────────────────────────────────────────────
- * ★ 절대 원칙: 운영(roi.genie-go.com / roi.geniego.com)에서는 어떤 경우에도 false.
+ * ★ 절대 원칙: 운영(www.genieroi.com / roi.geniego.com)에서는 어떤 경우에도 false.
  *   데모 가상데이터가 운영에 단 한 건도 유입되면 안 됨(데이터 오염 = 신뢰 붕괴).
  *
  * 3중 격리 보장:
@@ -26,8 +26,8 @@ export const IS_DEMO = (() => {
       ? window.location.hostname.toLowerCase() : '';
     if (!host) return false;
     return (
-      /^roidemo\./.test(host) ||       // roidemo.genie-go.com / roidemo.geniego.com
-      host === 'demo.genie-go.com' ||
+      /^roidemo\./.test(host) ||       // demo.genieroi.com / roidemo.geniego.com
+      host === 'demo.genieroi.com' ||
       host === 'demo.geniego.com'
     );
   } catch {

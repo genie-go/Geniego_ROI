@@ -20,7 +20,7 @@ const DEMO_LINE_TEMPLATES = [
   { id: "tpl_d2", name: "配送ステータス", type: "transactional", status: "approved", usage: 156 },
   { id: "tpl_d3", name: "クーポン配布", type: "marketing", status: "approved", usage: 18 },
 ];
-const DEMO_LINE_SETTINGS = { ok: true, channel_id: "@geniego_demo", connected: true, webhook: "https://roidemo.genie-go.com/api/line/webhook", plan: "Messaging API" };
+const DEMO_LINE_SETTINGS = { ok: true, channel_id: "@geniego_demo", connected: true, webhook: "https://demo.genieroi.com/api/line/webhook", plan: "Messaging API" };
 
 const C = {
     bg: "var(--bg)", surface: "var(--surface)", card: "var(--bg-card, rgba(255,255,255,0.95))",

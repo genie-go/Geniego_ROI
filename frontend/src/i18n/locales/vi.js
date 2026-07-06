@@ -498,7 +498,7 @@ export default {"paymentSuccess": {"invalidInfo":"Thông tin thanh toán không 
     "kpiSdks": "Ví dụ SDK",
     "kpiWebhooks": "Sự kiện webhook",
     "kpiMyKeys": "Khóa API của tôi",
-    "refIntro": "Mọi yêu cầu cần header Authorization: Bearer <khóa API>. URL gốc là https://roi.genie-go.com/api",
+    "refIntro": "Mọi yêu cầu cần header Authorization: Bearer <khóa API>. URL gốc là https://www.genieroi.com/api",
     "epLogin": "Đăng nhập bằng email/mật khẩu và nhận token",
     "epMe": "Lấy thông tin tài khoản, gói và quyền hiện tại",
     "epKeysList": "Liệt kê khóa API đã cấp (chỉ chủ sở hữu)",

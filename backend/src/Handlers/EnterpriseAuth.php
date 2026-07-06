@@ -34,7 +34,7 @@ class EnterpriseAuth
     { $res->getBody()->write(json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)); return $res->withHeader('Content-Type', 'application/json')->withStatus($status); }
     private static function scimJson(Response $res, array $data, int $status = 200): Response
     { $res->getBody()->write(json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)); return $res->withHeader('Content-Type', 'application/scim+json')->withStatus($status); }
-    private static function publicBase(): string { $b = getenv('APP_PUBLIC_URL'); if ($b) return rtrim($b, '/'); return (Db::env() === 'demo') ? 'https://roidemo.genie-go.com' : 'https://roi.genie-go.com'; }
+    private static function publicBase(): string { $b = getenv('APP_PUBLIC_URL'); if ($b) return rtrim($b, '/'); return (Db::env() === 'demo') ? 'https://demo.genieroi.com' : 'https://www.genieroi.com'; }
 
     private static function ensureTables(): void
     {

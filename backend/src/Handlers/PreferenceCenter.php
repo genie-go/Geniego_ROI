@@ -182,8 +182,8 @@ final class PreferenceCenter
     /** 발송측이 선호센터 링크 생성 시 사용(공개, 인증 불필요). */
     public static function prefUrl(string $tenant, string $email): string
     {
-        $u = getenv('APP_PUBLIC_URL') ?: getenv('APP_URL') ?: 'https://roi.genie-go.com';
-        $u = rtrim((string)$u, '/'); if ($u === '' || strpos($u, 'http') !== 0) $u = 'https://roi.genie-go.com';
+        $u = getenv('APP_PUBLIC_URL') ?: getenv('APP_URL') ?: 'https://www.genieroi.com';
+        $u = rtrim((string)$u, '/'); if ($u === '' || strpos($u, 'http') !== 0) $u = 'https://www.genieroi.com';
         return $u . '/api/crm/preferences/public?t=' . rawurlencode($tenant)
             . '&e=' . rawurlencode($email) . '&k=' . self::prefToken($tenant, $email);
     }

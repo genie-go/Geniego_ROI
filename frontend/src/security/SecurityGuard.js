@@ -281,7 +281,7 @@ export function useSecurityGuard({ addAlert, enabled = true } = {}) {
 
         // ── 2. Monitor postMessage for suspicious origins ──
         const handleMessage = (e) => {
-            const trustedOrigins = [window.location.origin, 'https://roi.genie-go.com'];
+            const trustedOrigins = [window.location.origin, 'https://www.genieroi.com'];
             if (!trustedOrigins.includes(e.origin)) {
                 notify('warn', `⚠️ Untrusted postMessage from ${e.origin}`);
                 return;
