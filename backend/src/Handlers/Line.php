@@ -72,16 +72,21 @@ final class Line
         if ($err = UserAuth::requirePro($req, $res)) return $err;
         self::ensureTables();
         $tenant = self::tenant($req);
-        $st = Db::pdo()->prepare("SELECT channel_id, test_status, updated_at FROM line_settings WHERE tenant_id=?");
+        $pdo = Db::pdo();
+        $st = $pdo->prepare("SELECT channel_id, test_status, updated_at FROM line_settings WHERE tenant_id=?");
         $st->execute([$tenant]);
         $row = $st->fetch(PDO::FETCH_ASSOC) ?: null;
+        // [266차 계약불일치] 설정탭 월발송 카드가 settings.monthly_sent 소비(stats 와 동일 line_campaigns 집계). 미반환→"—" 해소.
+        $ms = 0;
+        try { $ag = $pdo->prepare("SELECT COALESCE(SUM(sent),0) FROM line_campaigns WHERE tenant_id=?"); $ag->execute([$tenant]); $ms = (int)($ag->fetchColumn() ?: 0); } catch (\Throwable $e) {}
         $host = ($_SERVER['HTTP_HOST'] ?? 'roi.genie-go.com');
         return TemplateResponder::respond($res, [
-            'ok'         => true,
-            'channel_id' => $row['channel_id'] ?? null,
-            'connected'  => $row ? ($row['test_status'] === 'ok') : false,
-            'webhook'    => 'https://' . $host . '/api/line/webhooks',
-            'plan'       => 'Messaging API',
+            'ok'           => true,
+            'channel_id'   => $row['channel_id'] ?? null,
+            'connected'    => $row ? ($row['test_status'] === 'ok') : false,
+            'monthly_sent' => $ms,
+            'webhook'      => 'https://' . $host . '/api/line/webhooks',
+            'plan'         => 'Messaging API',
         ]);
     }
 

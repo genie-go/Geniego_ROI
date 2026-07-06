@@ -661,7 +661,7 @@ export default function Audit() {
                 <tbody>
                   {filtered.map((l, idx) => (
                     <tr key={l.id || idx}>
-                      <td style={{ color: "var(--text-3)", fontFamily: "monospace" }}>#{l.id}</td>
+                      <td style={{ color: "var(--text-3)", fontFamily: "monospace" }}>#{l.id ?? (idx + 1)}{/*[266차] auth_audit_log 는 id 컬럼 부재(PK=at)→행번호 폴백(빈 '#' 해소)*/}</td>
                       <td style={{ color: "var(--text-3)", whiteSpace: "nowrap" }}>{fmtTs(l.at)}</td>
                       <td>
                         <div style={{ fontWeight: 600, color: l.actor === "system" || l.actor === "operator" ? "var(--text-3)" : "var(--text-1)" }}>
@@ -672,8 +672,9 @@ export default function Audit() {
                       <td><ActionBadge action={l.action} t={t} /></td>
                       <td><RiskBadge risk={l.risk} t={t} /></td>
                       <td style={{ color: "var(--text-3)", fontSize: 10 }}>
-                        {l.entity_type}<br />
-                        <span style={{ fontFamily: "monospace", color: "#4f8ef7" }}>#{l.entity_id}</span>
+                        {/*[266차] entity_type/entity_id 는 auth_audit_log 에 부재(데모 아티팩트)→부재 시 '—'(빈값 해소)*/}
+                        {l.entity_type || '—'}
+                        {l.entity_id ? (<><br /><span style={{ fontFamily: "monospace", color: "#4f8ef7" }}>#{l.entity_id}</span></>) : null}
                       </td>
                       <td style={{ fontFamily: "monospace", fontSize: 10, color: "var(--text-3)" }}>{l.ip}</td>
                       <td style={{ color: "var(--text-2)", maxWidth: 320 }}>{l.detail}</td>

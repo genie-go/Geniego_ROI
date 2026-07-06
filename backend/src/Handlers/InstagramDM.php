@@ -412,6 +412,23 @@ final class InstagramDM
         }
         // 191차: 빈 통계 가짜값(142/89/...)은 데모 전용. 운영은 정직한 0.
         if (array_sum($stats) === 0 && $plan === 'demo') $stats = ['received'=>142,'sent'=>89,'unread'=>12,'followers'=>8400];
+        // [266차 계약불일치] keywords TOP5 — 인바운드 메시지 본문 상위 단어 실산출(2자 이상). 프론트 stats.keywords 소비.
+        //   (avgResponse/conversion/autoReplyRate 는 응답페어링·귀속 데이터 부재로 실산출 불가 → 프론트 '—' 정직 유지·날조 금지)
+        $kw = [];
+        try {
+            $km = $pdo->prepare("SELECT message FROM instagram_messages WHERE tenant_id=? AND direction='inbound' AND message IS NOT NULL ORDER BY created_at DESC LIMIT 500");
+            $km->execute([$tenant]);
+            $freq = [];
+            foreach ($km->fetchAll(PDO::FETCH_COLUMN) as $msg) {
+                foreach (preg_split('/[\s,.!?~()\[\]"\'\/]+/u', (string)$msg) as $w) {
+                    $w = trim($w); if (mb_strlen($w) < 2) continue;
+                    $freq[$w] = ($freq[$w] ?? 0) + 1;
+                }
+            }
+            arsort($freq);
+            foreach (array_slice($freq, 0, 5, true) as $word => $cnt) $kw[] = ['word' => $word, 'count' => $cnt];
+        } catch (\Throwable $e) {}
+        $stats['keywords'] = $kw;
         return $stats;
     }
 

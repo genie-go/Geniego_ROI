@@ -280,10 +280,18 @@ final class GraphScore {
             $paths[] = ['creative' => $cid, 'sku' => null, 'order' => $oid, 'path_weight' => round($ow, 4), 'note' => 'direct'];
         }
         $score = round(min(1.0, $totalW / max(1.0, count($orderSet) * 2.0)), 4);
+        // [266차 계약불일치] 프론트 "연결 인플루언서" KPI(influencers_linked) 소비 — 상위(influencer→creative) 엣지 실카운트(scoreSku 패턴). 미반환→항상 0 해소.
+        $influencersLinked = 0;
+        try {
+            $ic = $pdo->prepare("SELECT COUNT(DISTINCT src_id) FROM graph_edge WHERE tenant_id=? AND src_type='influencer' AND dst_type='creative' AND dst_id=?");
+            $ic->execute([$tenant, $cid]);
+            $influencersLinked = (int)($ic->fetchColumn() ?: 0);
+        } catch (\Throwable $e) {}
         return TemplateResponder::respond($response, [
-            'ok'             => true,
-            'creative_id'    => $cid,
-            'graph_score'    => $score,
+            'ok'                => true,
+            'creative_id'       => $cid,
+            'graph_score'       => $score,
+            'influencers_linked'=> $influencersLinked,
             'total_weight'   => round($totalW, 4),
             'creatives_used' => count($skuSet) > 0 ? 1 : 0,
             'skus_reached'   => array_map(fn($k, $v) => ['sku' => $k, 'weight' => round($v, 4)], array_keys($skuSet), $skuSet),
