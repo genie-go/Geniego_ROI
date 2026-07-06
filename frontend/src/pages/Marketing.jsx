@@ -308,9 +308,9 @@ function AmazonOverviewTab() {
                         const isPrimary = slotIdx === 0;
                         const isSecondary = slotIdx === 1;
                         return (
-                            <div key={slotIdx} style={{ padding: "16px", borderRadius: 12, background: isPrimary ? "rgba(79,142,247,0.08)" : isSecondary ? "rgba(249,115,22,0.08)" : "rgba(241,245,249,0.7))", border: isPrimary ? "1px solid rgba(79, 142, 247, 0.25)" : "1px solid rgba(0, 115, 22, 0, 0.06))", position: 'relative' }}>
+                            <div key={slotIdx} style={{ padding: "16px", borderRadius: 12, background: isPrimary ? "rgba(79,142,247,0.08)" : isSecondary ? "rgba(249,115,22,0.08)" : "rgba(241,245,249,0.7)", border: isPrimary ? "1px solid rgba(79, 142, 247, 0.25)" : "1px solid rgba(0, 115, 22, 0.06)", position: 'relative' }}>
                                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-                                    <select value={slotMetricId} onChange={e => { const ns = [...slots]; ns[slotIdx] = e.target.value; setSlots(ns); }} style={{ background: "rgba(241,245,249,0.7)", border: '1px solid rgba(0,0,0,0.06))', borderRadius: 6, padding: "4px 8px", color: '#1e293b', fontSize: 11, fontWeight: 700, outline: "none", cursor: 'pointer', maxWidth: '100%', textOverflow: 'ellipsis' }}>
+                                    <select value={slotMetricId} onChange={e => { const ns = [...slots]; ns[slotIdx] = e.target.value; setSlots(ns); }} style={{ background: "rgba(241,245,249,0.7)", border: '1px solid rgba(0,0,0,0.06)', borderRadius: 6, padding: "4px 8px", color: '#1e293b', fontSize: 11, fontWeight: 700, outline: "none", cursor: 'pointer', maxWidth: '100%', textOverflow: 'ellipsis' }}>
                                         {ALL_METRICS.map(opt => (<option key={opt.id} value={opt.id}>{t(opt.labelKey, opt.label)}</option>))}
                                     </select>
                                     {(isPrimary || isSecondary) && <div style={{ width: 12, height: 12, borderRadius: 2, background: isPrimary ? "#4f8ef7" : "#f97316", flexShrink: 0 }} />}
@@ -369,7 +369,7 @@ function AmazonOverviewTab() {
                                 <YAxis yAxisId="spend" stroke="#f97316" fontSize={10} tickFormatter={v => v >= 1e6 ? (v/1e6).toFixed(1)+'M' : v >= 1e3 ? (v/1e3).toFixed(0)+'K' : v} />
                                 <YAxis yAxisId="counts" orientation="right" stroke="#4f8ef7" fontSize={10} tickFormatter={v => v >= 1e6 ? (v/1e6).toFixed(1)+'M' : v >= 1e3 ? (v/1e3).toFixed(0)+'K' : v} />
                                 <YAxis yAxisId="ratio" orientation="right" hide={true} domain={[0, 'auto']} />
-                                <RechartsTooltip contentStyle={{ background: '#fff', border: '1px solid rgba(0,0,0,0.06))', borderRadius: 10, color: '#1e293b', fontSize: 12, boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }} formatter={(value, name) => { const md = ALL_METRICS.find(m => t(m.labelKey, m.label) === name); if (md?.isRate) return [value.toFixed(2) + '%', name]; if (md?.isMultiplier) return [value.toFixed(2) + 'x', name]; if (md?.isCurrency || md?.id === 'spend') return [fmt(value), name]; return [Number(value).toLocaleString(), name]; }} />
+                                <RechartsTooltip contentStyle={{ background: '#fff', border: '1px solid rgba(0,0,0,0.06)', borderRadius: 10, color: '#1e293b', fontSize: 12, boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }} formatter={(value, name) => { const md = ALL_METRICS.find(m => t(m.labelKey, m.label) === name); if (md?.isRate) return [value.toFixed(2) + '%', name]; if (md?.isMultiplier) return [value.toFixed(2) + 'x', name]; if (md?.isCurrency || md?.id === 'spend') return [fmt(value), name]; return [Number(value).toLocaleString(), name]; }} />
                                 <Area yAxisId="spend" type="monotone" name={t('marketing.metSpend', 'Spend')} dataKey="spend" stroke="#f97316" strokeWidth={2.5} fillOpacity={1} fill="url(#gradSpend)" />
                                 <Area yAxisId="counts" type="monotone" name={t('marketing.metImpressions', 'Impressions')} dataKey="impressions" stroke="#4f8ef7" strokeWidth={2} fillOpacity={1} fill="url(#gradImpressions)" />
                                 <Line yAxisId="counts" type="monotone" name={t('marketing.metClicks', 'Clicks')} dataKey="clicks" stroke="#a855f7" strokeWidth={2.5} dot={false} />
@@ -474,7 +474,7 @@ function CreativeAnalysisTab() {
                                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(99,140,255,0.08)" />
                                     <XAxis dataKey="name" stroke="#94a3b8" fontSize={10} angle={-20} textAnchor="end" />
                                     <YAxis stroke="#94a3b8" fontSize={11} />
-                                    <RechartsTooltip contentStyle={{ background: '#fff', border: '1px solid rgba(0,0,0,0.06))', borderRadius: 8, color: '#1e293b', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }} />
+                                    <RechartsTooltip contentStyle={{ background: '#fff', border: '1px solid rgba(0,0,0,0.06)', borderRadius: 8, color: '#1e293b', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }} />
                                     <Bar dataKey="clicks" fill="#4f8ef7" name={t('marketing.metClicks')} radius={[4,4,0,0]} />
                                     <Bar dataKey="conv" fill="#22c55e" name={t('marketing.metConv')} radius={[4,4,0,0]} />
                                 </BarChart>
@@ -569,7 +569,7 @@ function CampaignCompareTab() {
                             const idx = selected.indexOf(c.id);
                             return (
                                 <button key={c.id} onClick={() => toggleSelect(c.id)} style={{
-                                    padding: '8px 16px', borderRadius: 8, border: `1px solid ${isSelected ? COLORS[idx] : 'rgba(0,0,0,0.06))'}`,
+                                    padding: '8px 16px', borderRadius: 8, border: `1px solid ${isSelected ? COLORS[idx] : 'rgba(0,0,0,0.06)'}`,
                                     background: isSelected ? COLORS[idx] + '12' : 'transparent',
                                     color: isSelected ? COLORS[idx] : '#64748b', cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>{c.name}</button>
                             );

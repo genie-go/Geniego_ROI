@@ -339,7 +339,8 @@ const InOutTab = memo(function InOutTab({ whs }) {
             if (Array.isArray(r?.movements)) setBeMoves(r.movements.map(m => ({
                 id: 'BE' + m.id, type: m.type, sku: m.sku, name: m.name, qty: Number(m.qty) || 0,
                 whId: m.wh_id, unit: Number(m.unit) || 0, memo: m.memo, ref: m.ref, reason: m.reason,
-                ts: m.created_at, by: '-',
+                // [269차 수정] 렌더 테이블은 r.at 를 읽는데 백엔드행엔 at 미세팅→날짜 공란이었다. created_at 을 at 으로 포맷.
+                ts: m.created_at, at: (m.created_at || '').replace('T', ' ').slice(0, 16), by: '-',
             })));
         } catch {}
     }, []);

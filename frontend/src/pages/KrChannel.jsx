@@ -173,7 +173,10 @@ function FeeRulesTab() {
         if (sel) loadRules(sel);
     };
 
-    const Inp = ({ label, k, ph }) => (
+    // [269차 수정] 컴포넌트를 렌더 본문 안에서 정의하면(<Inp/>) 매 렌더마다 새 함수 참조가 생성돼
+    //   React 가 unmount/remount → input 포커스 소실(한 글자마다 입력 끊김). 함수 호출(renderInp(...))로
+    //   전환해 동일 트리 유지(형제 MediaServerConfig 의 field(...) 패턴과 동일).
+    const renderInp = (label, k, ph) => (
         <div>
             <label style={{ fontSize: 11, color: "#7c8fa8", display: "block", marginBottom: 2 }}>{label}</label>
             <input value={form[k]} onChange={(e) => setForm((f) => ({ ...f, [k]: e.target.value }))} placeholder={ph}
@@ -193,21 +196,21 @@ function FeeRulesTab() {
                     </select>
                 </div>
                 <div style={{ display: "grid", gap: 7, marginBottom: 10 }}>
-                    <Inp label={t('krChannel.categoryAll', '카테고리 (* = 전체)')} k="category" ph="electronics" />
+                    {renderInp(t('krChannel.categoryAll', '카테고리 (* = 전체)'), "category", "electronics")}
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 7 }}>
-                        <Inp label={`${t('krChannel.platformFeeRate', '플랫폼 수수료율')} (예: 0.109)`} k="platform_fee_rate" ph="0.109" />
-                        <Inp label={t('krChannel.adSpendRate', '광고비율')} k="ad_fee_rate" ph="0.03" />
+                        {renderInp(`${t('krChannel.platformFeeRate', '플랫폼 수수료율')} (예: 0.109)`, "platform_fee_rate", "0.109")}
+                        {renderInp(t('krChannel.adSpendRate', '광고비율'), "ad_fee_rate", "0.03")}
                     </div>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 7 }}>
-                        <Inp label={t('krChannel.shippingFee', '기본 배송비 (₩)')} k="shipping_standard" ph="3000" />
-                        <Inp label={t('krChannel.returnFee', '기본 반품비 (₩)')} k="return_fee_standard" ph="5000" />
+                        {renderInp(t('krChannel.shippingFee', '기본 배송비 (₩)'), "shipping_standard", "3000")}
+                        {renderInp(t('krChannel.returnFee', '기본 반품비 (₩)'), "return_fee_standard", "5000")}
                     </div>
-                    <Inp label={t('krChannel.freeShipThreshold', '무료배송 기준금액 (₩, 이상 구매 시 배송비 무료 · 0=항상 유료)')} k="free_ship_threshold" ph="50000" />
+                    {renderInp(t('krChannel.freeShipThreshold', '무료배송 기준금액 (₩, 이상 구매 시 배송비 무료 · 0=항상 유료)'), "free_ship_threshold", "50000")}
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 7 }}>
-                        <Inp label={t('krChannel.vatRateLabel', '부가세율')} k="vat_rate" ph="0.10" />
-                        <Inp label={t('krChannel.effectiveDate', '적용 시작일')} k="effective_from" ph="2024-01-01" />
+                        {renderInp(t('krChannel.vatRateLabel', '부가세율'), "vat_rate", "0.10")}
+                        {renderInp(t('krChannel.effectiveDate', '적용 시작일'), "effective_from", "2024-01-01")}
                     </div>
-                    <Inp label={t('krChannel.note', '노트')} k="note" ph="2024년 쿠팡 기본 수수료" />
+                    {renderInp(t('krChannel.note', '노트'), "note", "2024년 쿠팡 기본 수수료")}
                 </div>
                 <button className="btn" onClick={save} disabled={!form.channel_key} style={{ width: "100%" }}>
                     {t('krChannel.saveCommission', '+ 수수료 규칙 저장')}

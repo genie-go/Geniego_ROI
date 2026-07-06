@@ -768,9 +768,9 @@ const CreatorTab = memo(function CreatorTab() {
                         </div>
                         {/* Calculation */}
                         {[
-                            [t('performance.contractAmount'), fmtKRW(selected.contractRate), "var(--text-1)"],
-                            [t('performance.bizIncomeTax'), "- " + fmtKRW(Math.round(selected.contractRate * 0.033)), "#ef4444"],
-                            [t('performance.localIncomeTax'), "- " + fmtKRW(Math.round(selected.contractRate * 0.0033)), "#f97316"],
+                            [t('performance.contractAmount'), fmtC(selected.contractRate), "var(--text-1)"],
+                            [t('performance.bizIncomeTax'), "- " + fmtC(Math.round(selected.contractRate * 0.033)), "#ef4444"],
+                            [t('performance.localIncomeTax'), "- " + fmtC(Math.round(selected.contractRate * 0.0033)), "#f97316"],
                         ].map(([l, v, c]) => (
                             <div key={l} style={{ display: "flex", justifyContent: "space-between", padding: "9px 0", borderBottom: "1px solid rgba(99,140,255,0.07)", fontSize: 12 }}>
                                 <span style={{ color: "var(--text-3)" }}>{l}</span>
@@ -780,7 +780,7 @@ const CreatorTab = memo(function CreatorTab() {
                         <div style={{ display: "flex", justifyContent: "space-between", padding: "12px 0", fontSize: 14 }}>
                             <span style={{ fontWeight: 700 }}>{t('performance.netPayoutInclTax')}</span>
                             <span style={{ fontWeight: 900, color: "#22c55e", fontSize: 18 }}>
-                                {fmtKRW(selected.contractRate - Math.round(selected.contractRate * 0.033) - Math.round(selected.contractRate * 0.0033))}
+                                {fmtC(selected.contractRate - Math.round(selected.contractRate * 0.033) - Math.round(selected.contractRate * 0.0033))}
                             </span>
                         </div>
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 4 }}>
@@ -960,7 +960,7 @@ const CohortTab = memo(function CohortTab() {
         }));
     }, [orders]);
     const fmtPct = (a, b) => b === 0 ? '-' : (a / b * 100).toFixed(1) + '%';
-    const fmtKRW = v => v; // NOTE: replaced by useCurrency in component
+    const { fmt: fmtC } = useCurrency(); // [269차 수정] 코호트 매출을 통화 포맷(과거 raw 정수 노출)
     const btnStyle = active => ({
         padding: '6px 14px', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700,
         background: active ? 'linear-gradient(135deg,#a855f7,#6366f1)' : 'rgba(255,255,255,0.07)', color: active ? '#fff' : 'var(--text-2)'
@@ -1016,7 +1016,7 @@ const CohortTab = memo(function CohortTab() {
                                         <span style={{ color: '#f59e0b', fontWeight: 700 }}>{fmtPct(c.retained90, c.newUsers)}</span>
                                     </td>
                                     <td style={{ padding: '10px 14px', textAlign: 'center', fontWeight: 700, color: '#a855f7' }}>
-                                        {view === 'retention' ? fmtPct(c.retained90, c.newUsers) : fmtKRW(c.revenue)}
+                                        {view === 'retention' ? fmtPct(c.retained90, c.newUsers) : fmtC(c.revenue)}
                                     </td>
                                 </tr>
                             ))}

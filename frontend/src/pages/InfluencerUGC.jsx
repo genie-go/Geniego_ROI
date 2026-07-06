@@ -963,7 +963,7 @@ const UGCTab = memo(function UGCTab() {
             if (search && !(r.text || "").includes(search) && !(r.product || "").includes(search)) return false;
             return true;
         });
-    }, [channel, sentiment, search]);
+    }, [ugcReviews, channel, sentiment, search]);
 
     const totalReviews = channelStats.reduce((s, c) => s + c.total, 0);
     const avgRating = totalReviews > 0 ? (channelStats.reduce((s, c) => s + c.avg * c.total, 0) / totalReviews).toFixed(2) : "0.00";

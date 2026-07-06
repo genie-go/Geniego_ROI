@@ -467,19 +467,13 @@ export default function Reconciliation() {
   }, [onMessage]);
 
   const handleReconDone = useCallback((result) => {
-    if (result && result.channel_key) {
-      updateSettlement(result.channel_key, {
-        period: new Date().toISOString().slice(0, 7),
-        grossSales: result.total_sales || 0,
-        platformFee: result.fee_diff_krw || 0,
-        netPayout: result.net_diff_krw || 0,
-        orders: result.total_orders || 0,
-        status: result.mismatch === 0 ? 'settled' : 'pending',
-      });
-    }
+    // [269차 수정] 대사(reconciliation) 결과는 리포트/티켓 SSOT만 갱신한다.
+    //   과거엔 fee_diff_krw/net_diff_krw(=채널보고 vs 내부 예상의 '편차')를 정산 SSOT의
+    //   절대필드 platformFee/netPayout 에 기입해 정산/PnL 머니 표면을 오염시켰다(편차≠실 정산액).
+    //   정산 절대액의 정본은 KrChannel 정산 롤업이므로 여기서 updateSettlement 를 호출하지 않는다.
     setReconRefresh(p => p + 1);
     broadcast('recon_done', { ts: Date.now() });
-  }, [updateSettlement, broadcast]);
+  }, [broadcast]);
 
   const TABS = [
     { key: 'upload', label: `📤 ${t('recon.tabUpload')}` },
