@@ -25,9 +25,10 @@ define('RESTORE_TOKEN', 'genie_restore_2026');
 // ── 도메인 감지 ───────────────────────────────────────────────────────────────
 $httpHost   = strtolower(explode(':', $_SERVER['HTTP_HOST'] ?? '')[0]);
 $serverName = strtolower($_SERVER['SERVER_NAME'] ?? '');
-$isProd     = in_array('roi.genie-go.com', [$httpHost, $serverName], true);
+// [도메인전환] 신 도메인(www.genieroi.com)·서버경로 도메인(roi.geniego.com)·구 도메인 모두 프로덕션으로 인식.
+$isProd     = (bool)array_intersect([$httpHost, $serverName], ['www.genieroi.com', 'genieroi.com', 'roi.geniego.com', 'roi.genie-go.com']);
 
-// ── DB 설정: roi.genie-go.com → 로컬 MySQL / 그 외 → 환경변수 → localhost fallback ──
+// ── DB 설정: 프로덕션 호스트 → 로컬 MySQL / 그 외 → 환경변수 → localhost fallback ──
 if ($isProd) {
     define('DB_HOST', 'localhost');
     define('DB_NAME', 'geniego_roi');
@@ -36,7 +37,7 @@ if ($isProd) {
     define('DB_PORT', '3306');
 } else {
     define('DB_HOST', getenv('GENIE_DB_HOST') ?: 'localhost');
-    define('DB_NAME', getenv('GENIE_DB_NAME') ?: 'genie_roi');
+    define('DB_NAME', getenv('GENIE_DB_NAME') ?: 'geniego_roi');
     define('DB_USER', getenv('GENIE_DB_USER') ?: 'root');
     define('DB_PASS', getenv('GENIE_DB_PASS') ?: '');
     define('DB_PORT', getenv('GENIE_DB_PORT') ?: '3306');

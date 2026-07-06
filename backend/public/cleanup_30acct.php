@@ -1,7 +1,7 @@
 <?php
 // 30계정 레코드 즉시 비활성화 스크립트
 // 사용 후 반드시 삭제할 것
-$bsPath = '/home/ec2-user/roi.genie-go.com/backend/src/bootstrap.php';
+$bsPath = '/home/wwwroot/roi.geniego.com/backend/src/bootstrap.php';
 if (!file_exists($bsPath)) {
     // Apache 환경에서 실행 시 경로 탐색
     $bsPath = realpath(__DIR__ . '/../src/bootstrap.php');

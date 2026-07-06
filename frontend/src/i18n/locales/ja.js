@@ -498,7 +498,7 @@ export default {"paymentSuccess": {"invalidInfo":"決済情報が正しくあり
     "kpiSdks": "SDK例",
     "kpiWebhooks": "Webhookイベント",
     "kpiMyKeys": "自分のAPIキー",
-    "refIntro": "すべてのリクエストに Authorization: Bearer <APIキー> ヘッダーが必要です。基準URLは https://roi.genie-go.com/api です",
+    "refIntro": "すべてのリクエストに Authorization: Bearer <APIキー> ヘッダーが必要です。基準URLは https://www.genieroi.com/api です",
     "epLogin": "メール・パスワードでログインしトークンを取得",
     "epMe": "現在の認証情報・プラン・権限を取得",
     "epKeysList": "発行済みAPIキーを一覧（オーナー専用）",

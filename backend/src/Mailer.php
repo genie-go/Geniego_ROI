@@ -54,7 +54,7 @@ final class Mailer
 
         // ② 로컬 sendmail 폴백 (명시적 opt-in)
         if (self::truthy(getenv('GENIE_MAIL_USE_SENDMAIL'))) {
-            $from = $cfg['from'] !== '' ? $cfg['from'] : 'noreply@www.genieroi.com';
+            $from = $cfg['from'] !== '' ? $cfg['from'] : 'noreply@genieroi.com';
             $headers  = 'From: ' . ($cfg['from_name'] ?: 'Geniego-ROI') . " <{$from}>\r\n";
             $headers .= "Reply-To: {$from}\r\n";
             $headers .= "MIME-Version: 1.0\r\n";

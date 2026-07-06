@@ -1,9 +1,9 @@
 {
-  "version": "264-webpopup-ab-vt-i18n",
-  "updated": "2026-07-03 (264차 신규 UI i18n: WebPopup A/B 탭 webPopup.ab*(22)+paused, Attribution 뷰스루 VTC/CTC attrData.vtc*/ctc/vtAssisted/vtOutWindow/vtWindowDays(6) = 29키×15국 미러링(ko/en 확정·13국 영어폴백·중복0). i18n-sync 에이전트 435건. ja/zh sacred SHA 동반 갱신·ko leaf 18484→18522)",
+  "version": "267-domain-migration",
+  "updated": "2026-07-06 (267차 도메인전환: 서비스 도메인 genie-go.com→genieroi.com. ja/zh:501 refIntro API문서 기준URL만 갱신 https://roi.genie-go.com/api→https://www.genieroi.com/api. 번역 무변경·의도적 도메인 수정으로 sacred SHA 동반 갱신)",
   "sacred_sha": {
-    "ja.js": "dea3f7b8afcbbbd3469481a6ecc37b140346f3fd0db6382aa126e72e026d59c1",
-    "zh.js": "cf463fa873bd2c07acdfee334ba78a809fd7674bca7c3c1d52326bc79e92ae0e"
+    "ja.js": "592edf1bb5e67485ce7b8384ce9fef8443243d8a6740b686e9c4282c0449de13",
+    "zh.js": "72f17ce8be78c84e589c917b0420bfd257ebe536f433add416af47dfed4d3e99"
   },
   "ko_leaf_count": 18521,
   "leaf_tolerance_pct": 5,

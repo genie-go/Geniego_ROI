@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react';
 
 // [현 차수] 로컬 인스톨러 지원 — 개발 프록시 타깃을 env로 제어(기본=운영, 비파괴).
 //   로컬 풀스택 구동 시 install 스크립트가 VITE_PROXY_TARGET=http://localhost:8080 설정 → 로컬 백엔드로 프록시.
-const PROXY_TARGET = process.env.VITE_PROXY_TARGET || 'https://roi.genie-go.com';
+const PROXY_TARGET = process.env.VITE_PROXY_TARGET || 'https://www.genieroi.com';
 
 export default defineConfig({
   plugins: [react()],
