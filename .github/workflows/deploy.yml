@@ -4,6 +4,7 @@ name: GENIE-GO ROI TITAN SUPREME V10
 # backend deploy는 cc plink 직접 패턴 (NEXT_SESSION.md §1.4 참조)
 # frontend deploy job은 Phase 1-2 (syntax guard + npm build) CI validation 가치로 보존
 # Phase 3-5 (SCP/SSH/Health/Slack)는 HAS_SSH_SECRETS / HAS_TEST_SECRETS / HAS_SLACK_WEBHOOK 미등록으로 자동 skip (inert)
+# Phase 6 (E2E Smoke)는 266차 신설 — 배포 후 tools/e2e/smoke.mjs 로 런타임 500/계약 회귀 게이트 (HAS_TEST_SECRETS 게이트·기존 TEST 시크릿 재사용)
 
 on:
   push:
@@ -85,6 +86,19 @@ jobs:
             echo "Login Failure! Initiating Rollback..."
             exit 1 # 실패 시 워크플로우 중단 및 알림
           fi
+
+      - name: "[PHASE 6] E2E Smoke (런타임 500 + 계약 회귀 게이트)"
+        # [266차] 배포 후 tools/e2e/smoke.mjs 실행 — GET 엔드포인트 무음실패(500)·프론트/백엔드 계약키 누락 회귀를
+        #   실 세션으로 즉시 검출(비파괴·읽기전용). 실패=워크플로우 중단(회귀 배포 차단). 기존 TEST 시크릿 재사용.
+        if: ${{ env.HAS_TEST_SECRETS == 'true' }}
+        env:
+          E2E_EMAIL: ${{ secrets.TEST_EMAIL }}
+          E2E_PASSWORD: ${{ secrets.TEST_PASS }}
+          E2E_ACCESS_CODE: ${{ secrets.TEST_ACCESS_CODE }}
+          E2E_BASE: https://roi.genie-go.com
+        run: |
+          sleep 3
+          node tools/e2e/smoke.mjs
 
       - name: Slack Notification
         if: ${{ always() && env.HAS_SLACK_WEBHOOK == 'true' }}
