@@ -644,6 +644,7 @@ class EmailMarketing
                     } catch (\Throwable $e) {}
                     $quietSkipped++; continue;
                 }
+                if (strpos((string)($g['reason'] ?? ''), 'freq') !== false) { $capped++; continue; } // [R4확장] 빈도캡=capped 집계(opted_out 오분류 방지)
                 $optout++; continue; // 옵트아웃/suppression 등 종결 skip(동의 강제 유지)
             }
             if (CRM::isFrequencyCapped($pdo, $tenant, (int)$c['id'], $freqCfg['cap'], $freqCfg['window'])) { $capped++; continue; }
@@ -726,7 +727,7 @@ class EmailMarketing
             // [현 차수 동의센터 SSOT] 큐 적재 전 통합 게이트 — 옵트아웃/suppression/빈도캡은 여기서 종결 제외.
             //   단 quiet-hours 계열은 defer(적재 후 runQueue 게이트가 허용시각까지 큐 유지)이므로 여기서는 skip하지 않음.
             $ge = CRM::isMarketingSendAllowed($tenant, (int)$c['id'], 'email', ['email'=>$email]);
-            if (!$ge['allowed'] && strpos((string)$ge['reason'], 'quiet') === false) { $optout++; continue; }
+            if (!$ge['allowed'] && strpos((string)$ge['reason'], 'quiet') === false) { if (strpos((string)$ge['reason'], 'freq') !== false) { $capped++; } else { $optout++; } continue; }
             if ($cap > 0 && ($capMap[(int)$c['id']] ?? 0) >= $cap) { $capped++; continue; }
             $variant = $abTest ? (((int)$c['id'] % 2 === 0) ? 'A' : 'B') : null;
             // STO on: 개인 최적시각(과거 오픈 최빈). deferAll(차단시간)인데 STO off 면 sto_hour=NULL → 다음 사이클 즉시.
