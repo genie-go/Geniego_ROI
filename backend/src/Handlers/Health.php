@@ -77,22 +77,21 @@ final class Health
             $stmt = $pdo->query('SELECT 1');
             $ok = $stmt && (int)$stmt->fetchColumn() === 1;
             $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
-            $serverVer = @$pdo->getAttribute(PDO::ATTR_SERVER_VERSION);
-            $env = Db::env();
             $latest = self::latestMigration($pdo);
+            // [266차 보안] 무인증 공개 /health 는 상태/지연/드라이버만 노출. server_version·env·raw PDO 예외메시지는
+            //   지문수집(fingerprinting) 소지 → 차폐(SystemMetrics 259차 하드닝과 정합, 상세는 인증된 관리자 메트릭에서).
             return [
                 'ok' => (bool)$ok,
-                'env' => $env,
                 'driver' => (string)$driver,
-                'server_version' => (string)$serverVer,
                 'connect_ms' => round((microtime(true) - $t0) * 1000, 2),
                 'latest_migration' => $latest,
             ];
         } catch (Throwable $e) {
+            error_log('[Health::dbProbe] ' . $e->getMessage());
             return [
                 'ok' => false,
                 'connect_ms' => round((microtime(true) - $t0) * 1000, 2),
-                'error' => $e->getMessage(),
+                'error' => 'db_unavailable',
             ];
         }
     }

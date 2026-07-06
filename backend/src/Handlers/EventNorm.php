@@ -482,7 +482,7 @@ final class EventNorm
         $params = $req->getQueryParams();
         $limit  = min((int)($params['limit'] ?? 50), 200);
         $where  = ['tenant_id=?']; $bind  = [$tenant];
-        foreach (['domain','event_type','vendor','sku','creator_id'] as $f) {
+        foreach (['domain','event_type','vendor','sku','creator_handle'] as $f) { // [266차] creator_id 는 normalized_activity_event 부재 컬럼(265차 확인)→creator_handle 로 정정(?creator_id 요청 시 Unknown column 500 방지)
             if (!empty($params[$f])) { $where[] = "$f=?"; $bind[] = $params[$f]; }
         }
         $sql = 'SELECT id,raw_event_id,event_date,event_type,domain,vendor,campaign_name,adset_name,keyword,'

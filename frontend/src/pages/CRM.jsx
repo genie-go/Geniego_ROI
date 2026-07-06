@@ -251,7 +251,13 @@ function AISegmentsTab({ navigate, derivedCustomers }) {
   }, [derivedCustomers, t]);
 
   const triggerAction = (segId, action) => {
-    const msgs = { email: t('crm.msgEmailDone'), kakao: t('crm.msgKakaoDone'), journey: t('crm.msgJourneyDone') };
+    // [266차] 이 액션은 실제 발송이 아니라 해당 실행 화면으로 '이동'만 한다(발송은 이동한 화면에서 수행).
+    //   기존 msgEmailDone/…="발송 완료" 는 거짓 성공 표기 → 이동 안내로 정정(t 2번째 인자=한글 fallback·15국 즉시정상).
+    const msgs = {
+      email: t('crm.msgNavEmail', '이메일 마케팅 화면으로 이동합니다'),
+      kakao: t('crm.msgNavKakao', '카카오 채널 화면으로 이동합니다'),
+      journey: t('crm.msgNavJourney', '저니 빌더 화면으로 이동합니다'),
+    };
     setActionMsg(p => ({ ...p, [segId + action]: msgs[action] }));
     setTimeout(() => setActionMsg(p => { const n = { ...p }; delete n[segId + action]; return n; }), 3000);
     if (action === "email") navigate("/email-marketing");

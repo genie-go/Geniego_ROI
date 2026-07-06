@@ -660,5 +660,5 @@ function AIRecommendTab() {
     );
 }
 
-export { AIRecommendTab, BudgetPanel, ChannelBarCard, ChannelAdCard, CHANNEL_COLORS, CHANNEL_ICONS };
+export { AIRecommendTab, AdMockup, BudgetPanel, ChannelBarCard, ChannelAdCard, CHANNEL_COLORS, CHANNEL_ICONS };
 export default AIRecommendTab;

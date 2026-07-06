@@ -221,23 +221,28 @@ class ReturnsPortal
             && $cur && (string)($cur['order_id'] ?? '') !== ''
             && $t !== 'demo' && !str_starts_with($t, 'demo')) {
             try {
+                // ★[266차 HIGH 수정] 정산전파는 메인 DB(orderhub_claims/channel_orders/rollupSettlementsCore) 대상 —
+                //   이 핸들러의 $db 는 returns.sqlite3(returns/settings/automation 3테이블만 보유)라
+                //   기존엔 $db 로 조회해 'no such table' 예외를 try/catch 가 삼켜 **수동 반품 정산전파가 무음 무동작**이었다.
+                //   Db::pdo()(메인)로 라우팅해 실제 claim 적재+원월 재롤업 복구. (WMS restock:211 은 이미 Db::pdo() 내부사용=정상)
+                $mdb = \Genie\Db::pdo();
                 $oid = (string)$cur['order_id']; $ch = (string)($cur['channel'] ?? '');
                 $cid = 'CLM-' . $ch . '-' . $oid; // recordClaim 과 동일 스킴(채널 origin 중복 차단)
-                $chk = $db->prepare("SELECT 1 FROM orderhub_claims WHERE id=? AND tenant_id=? LIMIT 1");
+                $chk = $mdb->prepare("SELECT 1 FROM orderhub_claims WHERE id=? AND tenant_id=? LIMIT 1");
                 $chk->execute([$cid, $t]);
                 if (!$chk->fetchColumn()) {
                     $fee = round((float)($cur['refund_amt'] ?? 0) * 0.02, 2); // 반품 처리비 2%(recordClaim 정합)
                     $nowc = gmdate('c');
-                    $db->prepare("INSERT INTO orderhub_claims(id,tenant_id,order_id,buyer,channel,type,reason,status,amount,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)")
+                    $mdb->prepare("INSERT INTO orderhub_claims(id,tenant_id,order_id,buyer,channel,type,reason,status,amount,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)")
                         ->execute([$cid, $t, $oid, null, $ch !== '' ? $ch : null, 'return', null, 'accepted', $fee, $nowc, $nowc]);
                 }
                 // 원주문 월 재롤업(늦은 반품이 판매월 정산에 정확 반영) — ingestClaims(OrderHub:899) 패턴.
-                $po = $db->prepare("SELECT SUBSTR(ordered_at,1,7) FROM channel_orders WHERE tenant_id=? AND (channel_order_id=? OR order_no=?) LIMIT 1");
+                $po = $mdb->prepare("SELECT SUBSTR(ordered_at,1,7) FROM channel_orders WHERE tenant_id=? AND (channel_order_id=? OR order_no=?) LIMIT 1");
                 $po->execute([$t, $oid, $oid]);
                 $pm = (string)($po->fetchColumn() ?: '');
                 if (!preg_match('/^\d{4}-\d{2}$/', $pm)) $pm = gmdate('Y-m');
-                \Genie\Handlers\OrderHub::rollupSettlementsCore($db, $t, $pm, null, gmdate('Y-m-d H:i:s'));
-            } catch (\Throwable $e) {}
+                \Genie\Handlers\OrderHub::rollupSettlementsCore($mdb, $t, $pm, null, gmdate('Y-m-d H:i:s'));
+            } catch (\Throwable $e) { error_log('[ReturnsPortal::updateStatus] settlement propagate failed: ' . $e->getMessage()); }
         }
         return self::json($response, ['ok' => true, 'restored' => $restored]);
     }

@@ -1,10 +1,107 @@
 import React from "react";
 import { ImgCreativeEditor } from './ImgCreativeEditor.jsx';
 import MediaEditor from '../components/MediaEditor.jsx';
-import { BudgetPanel, ChannelBarCard, ChannelAdCard } from './AIRecommendTab.jsx';
+import { BudgetPanel, ChannelBarCard, ChannelAdCard, AdMockup } from './AIRecommendTab.jsx';
 import { CHANNEL_COLORS, CHANNEL_ICONS } from './AIRecommendTab.jsx';
 import { useI18n } from '../i18n/index.js';
 import { sanitizeHtml } from '../utils/xssSanitizer.js';
+
+// ★[266차 HIGH 크래시 수정] 채널 결과 카드 — /ai-recommend 기본 'channels' 탭이 참조하던 <ChannelResultCard> 가
+//   231차 pages_backup 삭제 시 소실돼 매 렌더 ReferenceError 화이트스크린이었다(259차 ResultSection 추출 이후 잠복).
+//   손상된 자동번역 원본을 복원하지 않고, 현재 프리미티브(AdMockup·CHANNEL_COLORS/ICONS)로 클린 재구성(승인/집행/재생성 워크플로 보존).
+function ChannelResultCard({ ch, idx, creative, svcLabel, approved, executed, executing, onApprove, onExecute, onRegenImg, regenLoading }) {
+    const { t } = useI18n();
+    const color = CHANNEL_COLORS[ch.channel_id] || CHANNEL_COLORS.default || '#4f8ef7';
+    const icon = CHANNEL_ICONS[ch.channel_id] || '📣';
+    const size = ch.channel_id === 'youtube' ? 'banner'
+        : (ch.channel_id === 'instagram' || ch.channel_id === 'tiktok') ? 'story' : 'feed';
+    const loading = regenLoading === ch.channel_id;
+    const kpis = [
+        [t('gAiRec.kpiRoas', '예상 ROAS'), ch.expected_roas],
+        [t('gAiRec.kpiGoal', 'KPI 목표'), ch.kpi_goal],
+        [t('gAiRec.kpiTarget', '타겟팅'), ch.targeting],
+        [t('gAiRec.kpiCpa', '예상 CPA'), ch.expected_cpa],
+        [t('gAiRec.kpiMetric', '핵심 지표'), ch.key_metric],
+    ].filter(([, v]) => v);
+    return (
+        <div style={{ borderRadius: 14, border: `1px solid ${approved ? color + '66' : 'rgba(99,140,255,0.13)'}`, background: approved ? color + '07' : 'rgba(9,15,30,0.55)', overflow: 'hidden' }}>
+            <div style={{ padding: '13px 16px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+                <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                    <div style={{ width: 32, height: 32, borderRadius: 9, background: color + '25', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>{icon}</div>
+                    <div>
+                        <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+                            <span style={{ fontWeight: 900, color, fontSize: 15 }}>#{idx + 1}</span>
+                            <span style={{ fontWeight: 800, fontSize: 13 }}>{ch.channel_name}</span>
+                            {ch.ad_type && <span style={{ fontSize: 9, padding: '2px 8px', borderRadius: 99, background: color + '18', color, border: `1px solid ${color}33` }}>{ch.ad_type}</span>}
+                        </div>
+                        {ch.reason && <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 2 }}>{ch.reason}</div>}
+                    </div>
+                </div>
+                <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                    {ch.effectiveness_score ? <div style={{ fontSize: 15, fontWeight: 900, color }}>{ch.effectiveness_score}</div> : null}
+                    <div style={{ fontSize: 10, color: 'var(--text-3)' }}>₩{(ch.monthly_budget || 0).toLocaleString()}/mo</div>
+                </div>
+            </div>
+            <div style={{ padding: '14px 16px', display: 'grid', gap: 12 }}>
+                {ch.budget_pct != null && (
+                    <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, marginBottom: 4 }}>
+                            <span style={{ color, fontWeight: 700 }}>{t('gAiRec.budgetAlloc', '예산 배분')} {ch.budget_pct}%</span>
+                        </div>
+                        <div style={{ height: 7, background: 'var(--border)', borderRadius: 4 }}>
+                            <div style={{ width: (ch.budget_pct || 0) + '%', height: '100%', background: `linear-gradient(90deg,${color},${color}99)`, borderRadius: 4 }} />
+                        </div>
+                    </div>
+                )}
+                {kpis.length > 0 && (
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 7 }}>
+                        {kpis.map(([l, v]) => (
+                            <div key={l} style={{ background: 'rgba(0,0,0,0.22)', borderRadius: 8, padding: '6px 9px' }}>
+                                <div style={{ fontSize: 9, color: 'var(--text-3)', marginBottom: 2 }}>{l}</div>
+                                <div style={{ fontSize: 10, fontWeight: 700 }}>{v}</div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+                <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                    <div style={{ flexShrink: 0 }}>
+                        {loading ? (
+                            <div style={{ width: 140, height: 140, borderRadius: 10, background: 'rgba(99,102,241,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: 22 }}>🎨</span></div>
+                        ) : (
+                            <AdMockup chId={ch.channel_id} headline={creative?.headline || ch.action_plan || ch.channel_name} copy={creative?.copy || ch.ad_type || ''} color={color} size={size} />
+                        )}
+                        <button onClick={() => onRegenImg(ch.channel_id)} disabled={loading} style={{ marginTop: 5, width: '100%', padding: '4px 0', borderRadius: 6, border: 'none', background: color + '22', color, fontSize: 9, fontWeight: 700, cursor: loading ? 'default' : 'pointer' }}>
+                            {loading ? '⏳' : `🔄 ${t('gAiRec.regenImage', '이미지 재생성')}`}
+                        </button>
+                    </div>
+                    <div style={{ flex: 1, display: 'grid', gap: 6 }}>
+                        {ch.action_plan && <div style={{ fontSize: 10, color: 'var(--text-2)', padding: '7px 10px', borderRadius: 8, background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.12)', lineHeight: 1.6 }}>📋 {ch.action_plan}</div>}
+                        {creative && (creative.headline || creative.copy) && (
+                            <div style={{ padding: '7px 10px', borderRadius: 8, background: 'var(--surface)', border: `1px solid ${color}22` }}>
+                                {creative.headline && <div style={{ fontSize: 12, fontWeight: 900, marginBottom: 3 }}>"{creative.headline}"</div>}
+                                {creative.copy && <div style={{ fontSize: 10, color: 'var(--text-2)', lineHeight: 1.5 }}>{creative.copy}</div>}
+                                {creative.cta && <div style={{ marginTop: 4, fontSize: 9, padding: '2px 8px', borderRadius: 6, background: color + '18', color, display: 'inline-block', fontWeight: 700 }}>CTA: {creative.cta}</div>}
+                            </div>
+                        )}
+                    </div>
+                </div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                    <button onClick={() => onApprove(ch.channel_id)} style={{ flex: 1, padding: '8px 0', borderRadius: 8, border: `1px solid ${approved ? color : 'rgba(99,140,255,0.22)'}`, background: approved ? color + '1a' : 'transparent', color: approved ? color : 'var(--text-3)', fontWeight: 700, fontSize: 11, cursor: 'pointer' }}>
+                        {approved ? `✅ ${t('gAiRec.approved', '승인됨')}` : t('gAiRec.approve', '승인하기')}
+                    </button>
+                    {approved && !executed && (
+                        <button onClick={() => onExecute(ch)} disabled={executing} style={{ flex: 1, padding: '8px 0', borderRadius: 8, border: 'none', cursor: executing ? 'default' : 'pointer', background: executing ? 'rgba(99,102,241,0.3)' : `linear-gradient(135deg,${color},#6366f1)`, color: '#fff', fontWeight: 800, fontSize: 11 }}>
+                            {executing ? `⏳ ${t('gAiRec.running', '실행 중...')}` : `▶ ${t('gAiRec.runAd', '광고 자동화 실행')}`}
+                        </button>
+                    )}
+                    {executed && (
+                        <div style={{ flex: 1, padding: '8px 0', borderRadius: 8, background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)', color: '#22c55e', fontWeight: 800, fontSize: 11, textAlign: 'center' }}>✅ {t('gAiRec.runDone', '자동화 실행 완료')}</div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+}
 
 function ResultSection(props) {
     const { t } = useI18n();
