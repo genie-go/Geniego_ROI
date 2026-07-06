@@ -618,7 +618,7 @@ function AnalyticsTab() {
         const totalSent=sentC.reduce((s,c)=>s+(c.total_sent||0),0);
         const totalOpened=sentC.reduce((s,c)=>s+(c.opened||0),0);
         const totalClicked=sentC.reduce((s,c)=>s+(c.clicked||0),0);
-        const totalFailed=sentC.reduce((s,c)=>s+(c.failed||0),0);
+        const totalFailed=sentC.reduce((s,c)=>s+(c.failed||c.bounced||0),0);/*[266차 계약불일치] 백엔드 컬럼=bounced(failed 아님)→전송률 항상100%·실패0 이던 것 정합*/
         const bySegment={};
         sentC.forEach(c=>{const seg=c.targetSegmentName||c.segment_name||'All';if(!bySegment[seg])bySegment[seg]={sent:0,opened:0,clicked:0,campaigns:0};bySegment[seg].sent+=(c.total_sent||0);bySegment[seg].opened+=(c.opened||0);bySegment[seg].clicked+=(c.clicked||0);bySegment[seg].campaigns+=1;});
         return {totalSent,totalOpened,totalClicked,totalFailed,sentCount:sentC.length,bySegment};

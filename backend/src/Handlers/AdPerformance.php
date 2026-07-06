@@ -193,6 +193,7 @@ class AdPerformance {
                 $payload['campaigns'][] = [
                     'id'          => $id,
                     'name'        => $name,
+                    'team'        => $team !== '' ? $team : null, // [266차 계약불일치] 프론트 팀 세분화 소비(GROUP BY 에 존재하나 미반환→'Operations' 단일버킷 붕괴)
                     'status'      => 'active',
                     'objective'   => 'Conversion',
                     'spend'       => $spend,

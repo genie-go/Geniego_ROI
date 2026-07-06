@@ -670,6 +670,7 @@ KB;
             return [
                 'summary'        => $data['summary']        ?? $text,
                 'bullets'        => is_array($data['bullets']) ? $data['bullets'] : [],
+                'risks'          => is_array($data['risks'] ?? null) ? $data['risks'] : [], // [266차 계약불일치] 프론트 insight.risks 소비(프롬프트가 생성 지시하나 파서가 드롭했음)
                 'recommendation' => $data['recommendation'] ?? null,
             ];
         }

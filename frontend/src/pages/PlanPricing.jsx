@@ -1137,7 +1137,7 @@ function PlanPricing() {
                 setMenuAccess={setMenuAccess}
                 setMenuAccessBulk={setMenuAccessBulk}
                 togglePlanAll={togglePlanAll}
-                menuScores={menuPricingSync?.menuScores || {}}
+                menuScores={Object.fromEntries((Array.isArray(menuPricingSync?.menuScores) ? menuPricingSync.menuScores : []).map(s => [s.menu_key, s]))/*[266차 계약불일치] 백엔드는 배열 반환·이 카드는 menuScores[mk] 키접근→맵 변환(catOf 항상 standard 붕괴 해소). 스코어에디터는 sync.menuScores 배열 직접사용이라 무영향*/}
                 monthlyPrice={basePeriods(periodPricing[plan.plan_id])?.[1]?.price_usd ?? plan.price_usd}
               />
             </div>

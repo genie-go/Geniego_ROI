@@ -385,7 +385,7 @@ function AnomalyTab({ t, live, fmt, navigate }) {
                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', fontSize: 12, padding: '6px 0', borderBottom: '1px solid var(--border,#f1f5f9)' }}>
                         <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 7px', borderRadius: 10, background: a.severity === 'critical' ? 'rgba(239,68,68,0.15)' : 'rgba(234,179,8,0.15)', color: a.severity === 'critical' ? '#ef4444' : '#b45309' }}>{a.severity === 'critical' ? '긴급' : '경계'}</span>
                         <b>{a.channel}</b>
-                        <span style={{ color: 'var(--text-2)' }}>{a.metric_label || a.metric} {a.direction === 'down' || (a.bad === 'down') ? '↓' : '↑'} {a.message || ''}</span>
+                        <span style={{ color: 'var(--text-2)' }}>{a.metric_label || a.metric} {(a.direction === '하락' || a.direction === 'down' || a.bad === 'down') ? '↓' : '↑'} {a.reason || a.message || ''}</span>
                     </div>
                 ))}
             </div>
@@ -719,8 +719,11 @@ export default function PnLDashboard() {
         let cancelled = false;
         getJsonAuth('/api/v427/pg/settlements')
             .then(r => {
-                if (!cancelled && r && r.ok && (Number(r.count) || 0) > 0) {
-                    setPgSum({ count: Number(r.count) || 0, gross: Number(r.gross) || 0, fee: Number(r.fee) || 0, net: Number(r.net) || 0 });
+                // [266차 계약불일치·머니표면] 백엔드는 count/gross/fee/net 을 summary 하위로 반환(루트엔 ok/settlements/summary)
+                //   → 루트 r.count 는 undefined 라 게이트 항상 false 로 PG정산 카드가 운영서 미표시였다. summary 우선.
+                const sm = (r && r.summary && typeof r.summary === 'object') ? r.summary : (r || {});
+                if (!cancelled && r && r.ok && (Number(sm.count) || 0) > 0) {
+                    setPgSum({ count: Number(sm.count) || 0, gross: Number(sm.gross) || 0, fee: Number(sm.fee) || 0, net: Number(sm.net) || 0 });
                 } else if (!cancelled) setPgSum(null);
             })
             .catch(() => { if (!cancelled) setPgSum(null); });

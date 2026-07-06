@@ -171,6 +171,7 @@ final class WebPopupCampaign
             'template'    => (string)($r['template'] ?? ''),
             'layout'      => (string)($r['layout'] ?? ''),
             'ptype'       => (string)($r['ptype'] ?? ''),
+            'type'        => (string)($r['ptype'] ?? ''), // [266차 계약불일치] 프론트 p.type 소비(트리거 라벨)→ptype 별칭
             'trigger'     => (string)($r['trig'] ?? ''),
             'status'      => (string)($r['status'] ?? 'active'),
             'impressions' => (int)($r['impressions'] ?? 0),

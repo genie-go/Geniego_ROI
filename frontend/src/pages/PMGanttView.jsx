@@ -112,7 +112,7 @@ export default function PMGanttView() {
                   <td style={td}>{t2.ef ?? '—'}</td>
                   <td style={td}>{t2.ls ?? '—'}</td>
                   <td style={td}>{t2.lf ?? '—'}</td>
-                  <td style={{ ...td, fontFamily: 'monospace' }}>{t2.slack ?? '—'}</td>
+                  <td style={{ ...td, fontFamily: 'monospace' }}>{t2.slack_days ?? t2.slack ?? '—'}</td>
                   <td style={td}>
                     {crit
                       ? <span style={{ ...badge, background: 'rgba(239,68,68,0.15)', color: '#ef4444' }}>★ {t('pmExt.gantt.criticalLabel','Critical')}</span>

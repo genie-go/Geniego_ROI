@@ -209,6 +209,16 @@ final class InstagramDM
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         if (empty($rows) && $plan === 'demo') $rows = self::demoConversations();
+        // [266차 계약불일치] 프론트 소비키 매핑 — 특히 c.id 미정의 시 selectedConv?.id===c.id 가 전행 매칭돼
+        //   대화 하나 클릭 시 전체 선택/읽음처리되던 기능버그 근본수정. time/platform/status/avatar 도 채움.
+        foreach ($rows as &$rr) {
+            $rr['id']       = (string)($rr['id'] ?? $rr['thread_id'] ?? '');
+            $rr['time']     = (string)($rr['time'] ?? $rr['last_msg'] ?? '');
+            $rr['platform'] = (string)($rr['platform'] ?? 'instagram');
+            $rr['status']   = (string)($rr['status'] ?? 'read');
+            $rr['avatar']   = (string)($rr['avatar'] ?? '');
+        }
+        unset($rr);
         return TemplateResponder::respond($res, ['ok' => true, 'conversations' => $rows]);
     }
 

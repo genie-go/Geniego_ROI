@@ -1072,7 +1072,7 @@ final class UserAuth
         $rows = [];
         try {
             $st = $pdo->prepare(
-                "SELECT id, email, name, team_role, team_name, is_active, created_at, parent_user_id, photo
+                "SELECT id, email, name, team_role, team_name, team_id, is_active, created_at, parent_user_id, photo
                    FROM app_user WHERE tenant_id = ?
                   ORDER BY (CASE WHEN team_role = 'owner' THEN 0 ELSE 1 END), id ASC"
             );

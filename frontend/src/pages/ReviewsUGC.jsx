@@ -156,7 +156,7 @@ function DashboardTab({ t, channelStats, negKeywords, ugcReviews, totalReviews, 
                         {channelStats.length === 0 && <div style={{ textAlign: "center", color: "#6b7280", padding: 20, fontSize: 12 }}>{t("reviews.noData")}</div>}
                         {channelStats.map(c => (
                             <div key={c.channel} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", background: "rgba(241,245,249,0.8)", borderRadius: 8, border: "1px solid rgba(0,0,0,0.06)" }}>
-                                <span style={{ fontSize: 18 }}>{c.icon}</span>
+                                <span style={{ fontSize: 18 }}>{c.icon || '⭐'}</span>
                                 <div style={{ flex: 1 }}>
                                     <div style={{ fontWeight: 700, fontSize: 12, marginBottom: 4 }}>{c.channel}</div>
                                     <div style={{ display: "flex", gap: 10, fontSize: 11, color: "#6b7280" }}>

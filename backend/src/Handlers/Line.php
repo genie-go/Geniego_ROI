@@ -123,7 +123,7 @@ final class Line
         if ($err = UserAuth::requirePro($req, $res)) return $err;
         self::ensureTables();
         // usage 는 MySQL 예약어 → usage_count 로 받아 PHP 에서 'usage' 키로 매핑(프론트 기대 필드).
-        $st = Db::pdo()->prepare("SELECT id, name, type, status, usage_count FROM line_templates WHERE tenant_id=? ORDER BY id DESC");
+        $st = Db::pdo()->prepare("SELECT id, name, type, status, usage_count, content FROM line_templates WHERE tenant_id=? ORDER BY id DESC"); // [266차 계약불일치] content 추가(프론트 템플릿 미리보기 소비)
         $st->execute([self::tenant($req)]);
         $rows = $st->fetchAll(PDO::FETCH_ASSOC);
         foreach ($rows as &$r) { $r['usage'] = (int)($r['usage_count'] ?? 0); unset($r['usage_count']); }
