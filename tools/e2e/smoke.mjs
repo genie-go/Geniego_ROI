@@ -63,9 +63,9 @@ const GET_ENDPOINTS = [
   '/api/v427/pg/reconciliation', '/api/v427/pg/settlements', '/api/v428/reviews', '/api/v428/reviews/badge',
   '/api/v428/reviews/channel-stats', '/api/v428/reviews/neg-keywords', '/api/v428/reviews/requests',
   '/api/v428/reviews/settings', '/api/v429/promotions', '/api/v429/shelf/keywords',
-  '/api/instagram/settings', '/api/line/settings', '/api/line/templates', '/api/kakao/stats',
+  '/api/instagram/settings', '/api/line/settings', '/api/line/templates', '/api/kakao/settings',
   '/api/whatsapp/settings', '/api/crm/segments', '/api/wms/stock', '/api/demand/summary',
-  '/api/reports/list', '/api/email/campaigns', '/api/email/templates',
+  '/api/reports/saved', '/api/email/campaigns', '/api/email/templates',
 ];
 
 // ── 계약키 회귀 가드: 이 세션(266차) 수정한 계약불일치가 되돌아오면 잡는다 ──────────
@@ -74,6 +74,7 @@ const GET_ENDPOINTS = [
 const CONTRACT = [
   { path: '/api/v423/rollup/platform?period=daily&n=14', arrayKey: 'rows', keys: ['share', 'avg_roas', 'total_revenue'] },
   { path: '/api/v423/rollup/summary?period=daily&n=14', arrayKey: 'top_skus', keys: ['roas', 'revenue'] },
+  { path: '/api/v423/rollup/summary?period=daily&n=14', nestKey: 'kpi', keys: ['total_revenue', 'avg_roas', 'total_orders'] },
   { path: '/api/performance/meta-ads', arrayKey: 'campaigns', keys: ['team', 'roas'] },
   { path: '/api/line/settings', obj: true, keys: ['monthly_sent'] },
   { path: '/api/line/templates', arrayKey: 'templates', keys: ['content'] },

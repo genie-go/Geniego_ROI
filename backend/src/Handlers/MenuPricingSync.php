@@ -28,7 +28,10 @@ final class MenuPricingSync
         $gate = UserAuth::requirePlan($req, $res, 'admin');
         if ($gate !== null) return $gate;
         $pdo = Db::pdo();
-
+        // [266차] menu_value_score/plan_config/plan_menu_access 는 마이그레이션·시드로 프로비저닝 —
+        //   미시드 환경(데모/신규설치/SQLite 폴백)에선 조회가 예외→500 이었다(자가치유 부재·e2e가 데모서 검출).
+        //   전체를 try/catch 로 감싸 500 대신 graceful 빈결과(200) 반환. 계약(menuScores=배열)도 유지.
+        try {
         $scores = $pdo->query(
             'SELECT menu_key, weight_usd, category, ai_premium_pct, bundle_count, description
              FROM menu_value_score ORDER BY category, menu_key'
@@ -119,6 +122,10 @@ final class MenuPricingSync
                 'menuCount'     => count($scores),
             ],
         ]);
+        } catch (\Throwable $e) {
+            error_log('[MenuPricingSync::syncAll] ' . $e->getMessage());
+            return self::json($res, ['ok' => true, 'menuScores' => [], 'plans' => [], 'totals' => ['allMenusValue' => 0, 'menuCount' => 0], 'note' => 'menu-value 스키마 미프로비저닝']);
+        }
     }
 
     private static function classifyTier(array $breakdown, int $count): string

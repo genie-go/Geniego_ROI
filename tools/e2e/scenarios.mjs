@@ -81,9 +81,35 @@ async function scenarioWebPopupCrud() {
   }
 }
 
+// ── 시나리오 3: CRM 세그먼트 수명주기(생성→목록검증→삭제→소멸검증) — CRM 핵심 쓰기 플로우 ──
+async function scenarioCrmSegment() {
+  const name = 'E2E-SCN-' + Math.floor(Date.now() / 1000);
+  let id = null;
+  const pickArr = (j) => Array.isArray(j?.segments) ? j.segments : (Array.isArray(j?.data) ? j.data : (Array.isArray(j?.rows) ? j.rows : (Array.isArray(j) ? j : [])));
+  try {
+    const cr = await req('POST', '/api/crm/segments', { name, description: 'e2e probe', rules: [], color: '#4f8ef7' });
+    assert(cr.s === 200 && cr.json && cr.json.ok, `segment 생성 HTTP ${cr.s} ${cr.txt.slice(0, 80)}`);
+    id = cr.json.id;
+    assert(id, 'segment 생성 응답에 id 없음');
+    assert('member_count' in cr.json, 'segment 계약키 member_count 누락');
+    const list = await req('GET', '/api/crm/segments');
+    assert(list.s === 200, `segment 목록 HTTP ${list.s}`);
+    const found = pickArr(list.json).find(x => x && x.id === id);
+    assert(found, '생성한 세그먼트가 목록에 없음(영속 실패)');
+    ok(`S3 CRM 세그먼트 수명주기(생성→목록 id=${id})`);
+  } finally {
+    if (id) {
+      const del = await req('DELETE', `/api/crm/segments/${id}`);
+      if (del.s === 200) { const chk = await req('GET', '/api/crm/segments'); const gone = !pickArr(chk.json).some(x => x && x.id === id); if (gone) ok(`   정리: 세그먼트 ${id} 삭제`); else bad(`   정리 실패: ${id} 잔존`); }
+      else bad(`   정리 실패: DELETE HTTP ${del.s}`);
+    }
+  }
+}
+
 const SCENARIOS = [
   ['워크스페이스 영속 왕복', scenarioWorkspace],
   ['웹팝업 CRUD 수명주기', scenarioWebPopupCrud],
+  ['CRM 세그먼트 CRUD 수명주기', scenarioCrmSegment],
 ];
 
 async function main() {
