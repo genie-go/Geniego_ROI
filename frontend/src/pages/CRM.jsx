@@ -241,11 +241,13 @@ function AISegmentsTab({ navigate, derivedCustomers }) {
     const highVal = derivedCustomers.filter(c => c.ltv > 500000);
     const risk = derivedCustomers.filter(c => c.ltv > 0 && c.purchase_count === 1);
     const res = [];
+    // [266차] 임의 상수(×150000/×50000) 제거 → 세그먼트 실 LTV 합계로 파생(임의숫자 금지·SSOT). VIP=보유가치, 이탈위험=위험노출액.
+    const sumLtv = (arr) => arr.reduce((s, c) => s + (Number(c.ltv) || 0), 0);
     if (highVal.length > 0) {
-      res.push({ id: "vip_upsell", name: t('crm.aiSegVip'), icon: "💎", color: "#a855f7", priority: "medium", count: highVal.length, predicted_revenue: highVal.length * 150000, reason: t('crm.aiSegVipReason'), ai_insight: t('crm.aiSegVipInsight') });
+      res.push({ id: "vip_upsell", name: t('crm.aiSegVip'), icon: "💎", color: "#a855f7", priority: "medium", count: highVal.length, predicted_revenue: sumLtv(highVal), reason: t('crm.aiSegVipReason'), ai_insight: t('crm.aiSegVipInsight') });
     }
     if (risk.length > 0) {
-      res.push({ id: "churn_risk", name: t('crm.aiSegChurn'), icon: "⚠️", color: "#f87171", priority: "urgent", count: risk.length, predicted_revenue: risk.length * 50000, reason: t('crm.aiSegChurnReason'), ai_insight: t('crm.aiSegChurnInsight') });
+      res.push({ id: "churn_risk", name: t('crm.aiSegChurn'), icon: "⚠️", color: "#f87171", priority: "urgent", count: risk.length, predicted_revenue: sumLtv(risk), reason: t('crm.aiSegChurnReason'), ai_insight: t('crm.aiSegChurnInsight') });
     }
     return res;
   }, [derivedCustomers, t]);

@@ -227,7 +227,14 @@ class ReturnsPortal
                 //   Db::pdo()(메인)로 라우팅해 실제 claim 적재+원월 재롤업 복구. (WMS restock:211 은 이미 Db::pdo() 내부사용=정상)
                 $mdb = \Genie\Db::pdo();
                 $oid = (string)$cur['order_id']; $ch = (string)($cur['channel'] ?? '');
-                $cid = 'CLM-' . $ch . '-' . $oid; // recordClaim 과 동일 스킴(채널 origin 중복 차단)
+                // [266차 잔여] 원주문에서 채널+월 1회 도출 — 반품레코드 채널이 비면 주문 채널 사용.
+                //   기존엔 채널 없는 수동반품이 claim channel=NULL 로 적재돼 rollupSettlementsCore 의
+                //   claims JOIN(o.channel=c.channel) 에 미매칭→returnFee 가 정산에 미귀속(누락)이었다.
+                $po = $mdb->prepare("SELECT channel, SUBSTR(ordered_at,1,7) AS ym FROM channel_orders WHERE tenant_id=? AND (channel_order_id=? OR order_no=?) LIMIT 1");
+                $po->execute([$t, $oid, $oid]);
+                $orow = $po->fetch(\PDO::FETCH_ASSOC) ?: [];
+                if ($ch === '') $ch = (string)($orow['channel'] ?? '');
+                $cid = 'CLM-' . $ch . '-' . $oid; // recordClaim 과 동일 스킴(채널 origin 중복 차단·채널도출로 웹훅 claim 과 id 정합)
                 $chk = $mdb->prepare("SELECT 1 FROM orderhub_claims WHERE id=? AND tenant_id=? LIMIT 1");
                 $chk->execute([$cid, $t]);
                 if (!$chk->fetchColumn()) {
@@ -237,9 +244,7 @@ class ReturnsPortal
                         ->execute([$cid, $t, $oid, null, $ch !== '' ? $ch : null, 'return', null, 'accepted', $fee, $nowc, $nowc]);
                 }
                 // 원주문 월 재롤업(늦은 반품이 판매월 정산에 정확 반영) — ingestClaims(OrderHub:899) 패턴.
-                $po = $mdb->prepare("SELECT SUBSTR(ordered_at,1,7) FROM channel_orders WHERE tenant_id=? AND (channel_order_id=? OR order_no=?) LIMIT 1");
-                $po->execute([$t, $oid, $oid]);
-                $pm = (string)($po->fetchColumn() ?: '');
+                $pm = (string)($orow['ym'] ?? '');
                 if (!preg_match('/^\d{4}-\d{2}$/', $pm)) $pm = gmdate('Y-m');
                 \Genie\Handlers\OrderHub::rollupSettlementsCore($mdb, $t, $pm, null, gmdate('Y-m-d H:i:s'));
             } catch (\Throwable $e) { error_log('[ReturnsPortal::updateStatus] settlement propagate failed: ' . $e->getMessage()); }
