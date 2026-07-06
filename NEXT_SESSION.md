@@ -23,8 +23,13 @@
 ## 4. 배포/브랜치
 - **pscp/plink 파일카피** — 운영(roi.geniego.com)+데모(roidemo.geniego.com) docroot(nginx server_name→root 실확인). 백엔드6+dist tarball·chown www:www·php-fpm reload. **★master 미push·feat/n236만**(CI inert). 커밋=이 세션 신규.
 
-## 5. 다음 차수 잔여 (선택·결함아님)
-- RuleEngine::resumeChannelAds raw strtolower vs pauseChannel normConnKey(도달성 미확인·short키 일관 하 정상). EmailMarketing:255/375 빈시크릿 fail-closed는 APP_KEY 시드 시 자동 활성(선택). budget 실 SSOT(예산관리 연동) 심화.
+## 5. 다음 차수 — ★최우선 액션: APP_KEY 시드(운영·데모 .env)
+- **★★[우선순위 1·보안] 운영+데모 backend/.env 에 `APP_KEY` 시드** — 현재 양 .env 에 APP_KEY 부재(운영=DB키6+PG_ENC_KEY만). 268차 코드수정으로 토큰 시크릿은 `getenv('APP_KEY') ?: getenv('PG_ENC_KEY') ?: 상수` 폴백이라 **운영은 PG_ENC_KEY로 이미 위조 차단**(응급 안전)이나, **전용 APP_KEY 시드가 정본**: ①토큰 시크릿을 PG_ENC_KEY(결제 암호화용)와 분리(용도별 키 위생) ②EmailMarketing 이메일큐 cron(:255)·웹훅 서명검증(:375)이 **빈 시크릿 fail-closed로 현재 비활성** → APP_KEY 시드 시 자동 활성(정상 동작 복구) ③선호센터/구독취소 토큰이 안정적 전용 시크릿 사용.
+  - **적용(운영·데모 각각 동일)**: `backend/.env` 에 `APP_KEY=<32+바이트 랜덤>` 한 줄 추가(예: `openssl rand -hex 32`) → `chown www:www .env` → `php-fpm reload`(putenv 재로딩 Db.php:107).
+  - **경로**: 운영 `/home/wwwroot/roi.geniego.com/backend/.env` · 데모 `/home/wwwroot/roidemo.geniego.com/backend/.env`. **양쪽 동일 값 권장**(교차환경 토큰 일관은 불필요하나 관리 단순).
+  - **★부수효과(수용)**: APP_KEY 로 시크릿이 바뀌면 PG_ENC_KEY 폴백·구 상수로 발급된 기존 구독취소/선호센터 링크는 무효화됨(다음 발송 시 재발급). 저심각.
+  - **검증**: 시드 후 `getenv('APP_KEY')!==''` → Compliance posture encKey=true·EmailMarketing 큐 cron_key 서명 통과 확인.
+- (기타·선택·결함아님) RuleEngine::resumeChannelAds raw strtolower vs pauseChannel normConnKey(도달성 미확인·short키 일관 하 정상). budget 실 SSOT(예산관리 연동) 심화. DigitalShelf/기타 wms.tabDashboard en 라벨 "Tab Dashboard" 개선(cosmetic).
 
 (★268차 인계서 = 사용자 명시 승인. 자격증명 평문노출 0.)
 
