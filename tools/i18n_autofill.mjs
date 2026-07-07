@@ -109,9 +109,48 @@ async function fillBackend() {
   console.error('[i18n_autofill:backend] ' + report.join(' | '));
 }
 
+// ── 인라인 폴백 모드: JSX 의 t('key','한글fb') 중 key 가 ko.js 부재 → 폴백을 ko 소스로 14국 번역→오버레이 ──
+//   (컴포넌트가 인라인 한글 폴백만 쓰고 로케일에 키를 안 넣은 경우 = 전 비한국어 UI 한글 누출. 백필 사각지대.)
+async function fillInline() {
+  const SRC = path.join(ROOT, 'frontend/src');
+  const ko = flatten(await loadLocale('ko'));
+  const koFlat = new Set(Object.keys(ko));
+  // JSX 전수 스캔
+  const files = [];
+  const walk = d => { for (const e of fs.readdirSync(d, { withFileTypes: true })) { const fp = path.join(d, e.name); if (e.isDirectory()) { if (!/node_modules|dist|locales|__|backup/.test(fp)) walk(fp); } else if (/\.jsx?$/.test(e.name)) files.push(fp); } };
+  walk(SRC);
+  const re = /\bt\(\s*["']([\w.]+)["']\s*,\s*["']([^"']*[가-힣][^"']*)["']/g;
+  const koMap = {}; // key → 한글폴백 (ko.js·pages. 부재만)
+  for (const f of files) { const s = fs.readFileSync(f, 'utf8'); let m; while ((m = re.exec(s))) { const [, k, kv] = m; if (!koFlat.has(k) && !koFlat.has('pages.' + k) && !koMap[k]) koMap[k] = kv; } }
+  const allKeys = Object.keys(koMap).filter(inScope);
+  const overlay = (() => { try { return JSON.parse(fs.readFileSync(OVERLAY, 'utf8')); } catch { return {}; } })();
+  const report = [];
+  for (const [lang, langName] of Object.entries(LANGS)) {
+    if (lang === 'ko') continue;
+    overlay[lang] = overlay[lang] || {};
+    let missing = allKeys.filter(k => overlay[lang][k] === undefined);
+    if (MAX_PER_LANG > 0) missing = missing.slice(0, MAX_PER_LANG);
+    if (!missing.length) { report.push(`${lang}:0`); continue; }
+    if (!API_KEY) { report.push(`${lang}:${missing.length} (NO KEY)`); continue; }
+    let filled = 0;
+    for (let i = 0; i < missing.length; i += MAX_PER_BATCH) {
+      const chunk = missing.slice(i, i + MAX_PER_BATCH).map(k => [k, koMap[k]]);
+      try { const res = await translateBatch(lang, langName, chunk); for (const [k] of chunk) if (typeof res[k] === 'string' && res[k].trim()) { overlay[lang][k] = res[k].trim(); filled++; } }
+      catch (e) { report.push(`${lang}:batch@${i} FAIL ${e.message}`); }
+    }
+    report.push(`${lang}:${missing.length}→${filled}`);
+    try { fs.writeFileSync(OVERLAY, JSON.stringify(overlay, null, 0) + '\n', 'utf8'); } catch {}
+  }
+  const sorted = {};
+  for (const l of Object.keys(overlay).sort()) { sorted[l] = {}; for (const k of Object.keys(overlay[l]).sort()) sorted[l][k] = overlay[l][k]; }
+  fs.writeFileSync(OVERLAY, JSON.stringify(sorted, null, 0) + '\n', 'utf8');
+  console.error(`[i18n_autofill:inline] 부재키 ${allKeys.length}개 | ` + report.join(' | '));
+}
+
 (async () => {
   if ((process.env.AUTOFILL_TARGET || '') === 'sidebar') { await fillSidebar(); return; }
   if ((process.env.AUTOFILL_TARGET || '') === 'backend') { await fillBackend(); return; }
+  if ((process.env.AUTOFILL_TARGET || '') === 'inline') { await fillInline(); return; }
   const ko = flatten(await loadLocale('ko'));
   const overlay = (() => { try { return JSON.parse(fs.readFileSync(OVERLAY, 'utf8')); } catch { return {}; } })();
   const report = [];
