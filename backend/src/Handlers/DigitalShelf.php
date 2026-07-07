@@ -276,7 +276,7 @@ final class DigitalShelf
     }
 
     /** 채널 → harvest 어댑터 디스패치. 미지원 채널은 graceful skip(현재 naver/coupang 구현, 그 외 로드맵). */
-    private static function harvestOneRow(PDO $pdo, string $t, array $row, array $creds): array
+    private static function harvestOneRow(PDO $pdo, string $t, array $row, array $creds, string $lang = 'ko'): array
     {
         $keyword = (string)($row['keyword'] ?? '');
         $brand   = trim((string)($row['brand'] ?? ''));
@@ -311,7 +311,9 @@ final class DigitalShelf
         }
         $ourSos  = $m['ourSos'] !== null ? (float)$m['ourSos'] : ($row['our_sos'] !== null ? (float)$row['our_sos'] : null);
         $compSos = $m['compSos'] !== null ? (float)$m['compSos'] : ($row['comp_sos'] !== null ? (float)$row['comp_sos'] : null);
-        $hnote = $m['rank'] === null ? "상위 {$res['total']}개 중 우리 노출 없음(brand='{$brand}')" : "상위 {$res['total']}개 중 우리 {$m['rank']}위·SoS {$ourSos}%";
+        $hnote = $m['rank'] === null
+            ? \Genie\I18n::t('shelf.harvest.noExposure', ['total' => $res['total'], 'brand' => $brand], $lang)
+            : \Genie\I18n::t('shelf.harvest.ranked', ['total' => $res['total'], 'rank' => $m['rank'], 'ourSos' => $ourSos], $lang);
         $now = self::now();
         $pdo->prepare("UPDATE digital_shelf_keyword SET our_sos=?, comp_sos=?, rank_now=?, rank_prev=?, harvest_source=?, harvest_status='ok', harvest_note=?, harvested_at=?, updated_at=? WHERE id=? AND tenant_id=?")
             ->execute([$ourSos, $compSos, $rankNow, $rankPrev, $source, mb_substr($hnote, 0, 300), $now, $now, (int)$row['id'], $t]);
@@ -333,7 +335,7 @@ final class DigitalShelf
     }
 
     /** 테넌트 전 키워드 순위 harvest 코어(HTTP 핸들러 + cron 공용, 중복 0). @return array 요약 */
-    public static function harvestAllForTenant(string $t): array
+    public static function harvestAllForTenant(string $t, string $lang = 'ko'): array
     {
         if ($t === '') return ['ok' => false, 'error' => 'unauthorized'];
         $pdo = Db::pdo(); self::ensure($pdo);
@@ -346,7 +348,7 @@ final class DigitalShelf
         $rows = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
         $summary = ['ok' => true, 'harvested' => 0, 'no_brand' => 0, 'pending' => 0, 'errors' => 0, 'results' => []];
         foreach ($rows as $row) {
-            try { $r = self::harvestOneRow($pdo, $t, $row, $creds); }
+            try { $r = self::harvestOneRow($pdo, $t, $row, $creds, $lang); }
             catch (\Throwable $e) { $r = ['status' => 'error', 'note' => $e->getMessage()]; }
             $s = (string)($r['status'] ?? 'error');
             if ($s === 'ok') $summary['harvested']++;
@@ -375,7 +377,7 @@ final class DigitalShelf
         if ($err = UserAuth::requirePro($req, $res)) return $err;
         $t = self::tenant($req);
         if ($t === '') return self::json($res, ['ok' => false, 'error' => 'unauthorized'], 401);
-        return self::json($res, self::harvestAllForTenant($t));
+        return self::json($res, self::harvestAllForTenant($t, \Genie\I18n::lang($req)));
     }
 
     /** POST /v429/shelf/harvest/{id} — 단일 키워드 라이브 순위/SoS 수집. */
@@ -391,7 +393,7 @@ final class DigitalShelf
         $row = $cur->fetch(PDO::FETCH_ASSOC);
         if (!$row) return self::json($res, ['ok' => false, 'error' => 'not_found'], 404);
         $creds = self::loadTenantCreds($pdo, $t);
-        try { $r = self::harvestOneRow($pdo, $t, $row, $creds); }
+        try { $r = self::harvestOneRow($pdo, $t, $row, $creds, \Genie\I18n::lang($req)); }
         catch (\Throwable $e) { return self::json($res, ['ok' => false, 'error' => $e->getMessage()], 500); }
         return self::json($res, ['ok' => ($r['status'] ?? '') === 'ok'] + $r);
     }

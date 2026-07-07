@@ -146,6 +146,7 @@ class AutoCampaign
             $gate = UserAuth::requireFeaturePlan($req, $res, 'auto_campaign');
             if ($gate !== null) return $gate;
             $d = self::body($req);
+            $lang = \Genie\I18n::lang($req);
 
             $name     = trim((string)($d['name'] ?? '')) ?: '자동 캠페인';
             $category = trim((string)($d['category'] ?? ''));
@@ -316,21 +317,21 @@ class AutoCampaign
             $activation = null;
             if (!empty($d['activate']) && $activeCount > 0) {
                 try {
-                    $ar = self::applyStatus($pdo, $tenant, $id, 'active', !empty($d['force']));
+                    $ar = self::applyStatus($pdo, $tenant, $id, 'active', !empty($d['force']), $lang);
                     $activation = $ar['body'] ?? null;
                 } catch (\Throwable $e) { $activation = ['ok' => false, 'error' => substr($e->getMessage(), 0, 120)]; }
             }
             $liveNow = is_array($activation) && !empty($activation['ok']);
 
+            $pendingTail = $pendingCount > 0 ? \Genie\I18n::t('autocamp.msg.pendingTail', ['p' => $pendingCount], $lang) : "";
             if ($liveNow) {
-                $msg = "캠페인이 승인되어 즉시 집행(라이브)되었습니다. {$activeCount}개 채널 노출 시작"
-                     . ($pendingCount > 0 ? ", {$pendingCount}개 채널은 연결 대기" : "") . ". 이후 성과는 자동 수집·최적화됩니다.";
+                $msg = \Genie\I18n::t('autocamp.msg.launchLive', ['n' => $activeCount, 'tail' => $pendingTail], $lang);
             } elseif (is_array($activation) && !empty($activation['message'])) {
-                $msg = "캠페인이 생성되었으나 즉시 활성화는 보류되었습니다 — " . (string)$activation['message'];
+                $msg = \Genie\I18n::t('autocamp.msg.launchHold', ['msg' => (string)$activation['message']], $lang);
             } else {
                 $msg = $activeCount > 0
-                    ? "캠페인이 실행되었습니다. {$activeCount}개 채널 집행 시작" . ($pendingCount > 0 ? ", {$pendingCount}개 채널은 연결 대기" : "")
-                    : "캠페인이 생성·예약되었습니다. 채널 API 연결 후 자동 집행됩니다(연결 대기 {$pendingCount}개).";
+                    ? \Genie\I18n::t('autocamp.msg.launchStarted', ['n' => $activeCount, 'tail' => $pendingTail], $lang)
+                    : \Genie\I18n::t('autocamp.msg.launchScheduled', ['p' => $pendingCount], $lang);
             }
 
             return self::json($res, [
@@ -463,7 +464,7 @@ class AutoCampaign
             }
             $pdo = Db::pdo();
             self::migrate($pdo);
-            $r = self::applyStatus($pdo, $tenant, $id, $status, !empty($d['force']));
+            $r = self::applyStatus($pdo, $tenant, $id, $status, !empty($d['force']), \Genie\I18n::lang($req));
             return self::json($res, $r['body'], $r['http']);
         } catch (\Throwable $e) {
             return self::json($res, ['ok' => false, 'error' => $e->getMessage()], 500);
@@ -475,7 +476,7 @@ class AutoCampaign
      *   ★중복 구현 금지: 승인→즉시집행 1단계도 동일 게이트(킬스위치·결제수단·딜리버리 준비)·동일 캐스케이드 활성화를 거친다.
      *   @return array ['http'=>int, 'body'=>array]  (호출부가 json 응답으로 래핑)
      */
-    private static function applyStatus(PDO $pdo, string $tenant, int $id, string $status, bool $force): array
+    private static function applyStatus(PDO $pdo, string $tenant, int $id, string $status, bool $force, string $lang = 'ko'): array
     {
         // 캠페인 로드(allocations 의 매체 external_id 필요).
         $cs = $pdo->prepare("SELECT id, allocations FROM auto_campaign WHERE id=? AND tenant_id=? LIMIT 1");
@@ -489,11 +490,11 @@ class AutoCampaign
         if ($status === 'active' && $isRealTenant) {
             if (!AdAdapters::executionEnabled()) {
                 return ['http' => 409, 'body' => ['ok' => false, 'error' => 'execution_disabled',
-                    'message' => '집행이 비활성화되어 있습니다(긴급 킬스위치). 관리자에게 문의하세요.']];
+                    'message' => \Genie\I18n::t('autocamp.msg.execDisabled', [], $lang)]];
             }
             if (!BillingMethod::hasActiveMethod($pdo, $tenant)) {
                 return ['http' => 402, 'body' => ['ok' => false, 'error' => 'billing_required',
-                    'message' => '광고를 활성화하려면 광고비 결제수단(카드)을 먼저 등록해야 합니다. [재무·정산 > 결제수단]에서 등록 후 다시 시도하세요.']];
+                    'message' => \Genie\I18n::t('autocamp.msg.billingRequired', [], $lang)]];
             }
             // [현 차수 초고도화] 활성화 사전검증(readiness) — 딜리버리 미완성(캠페인 external_id 는 있으나 광고(ad_ext_id)·
             //   A/B variant 둘 다 없음 = 광고 미생성) 채널이 있으면 차단. 활성화해도 노출0(매체 effective_status=레벨 AND)
@@ -515,7 +516,7 @@ class AutoCampaign
                 if ($notReady) {
                     $nr = array_values(array_unique($notReady));
                     return ['http' => 422, 'body' => ['ok' => false, 'error' => 'delivery_incomplete', 'channels' => $nr,
-                        'message' => '광고 소재/딜리버리가 미완성인 채널이 있습니다(' . implode(', ', $nr) . '). 활성화해도 노출되지 않습니다(매체가 광고를 생성하지 못함). 매체 자격증명(Meta page_id·픽셀·이미지 소재 등)을 보강한 뒤 재시도하거나, 그대로 진행하려면 force 로 재요청하세요.']];
+                        'message' => \Genie\I18n::t('autocamp.msg.deliveryIncomplete', ['list' => implode(', ', $nr)], $lang)]];
                 }
             }
         }
@@ -563,7 +564,7 @@ class AutoCampaign
             foreach ($pushed as $p) { if (empty($p['ok'])) { $allPushOk = false; break; } }
             if ($isRealTenant && !$allPushOk) {
                 return ['http' => 502, 'body' => ['ok' => false, 'error' => 'platform_push_failed', 'id' => $id, 'status' => 'unchanged',
-                    'pushed' => $pushed, 'message' => '플랫폼 반영 실패 — 상태를 변경하지 않았습니다. 플랫폼 광고관리자에서 직접 확인/재시도하세요.']];
+                    'pushed' => $pushed, 'message' => \Genie\I18n::t('autocamp.msg.pushFail', [], $lang)]];
             }
             $st = $pdo->prepare("UPDATE auto_campaign SET status=?, updated_at=? WHERE id=? AND tenant_id=?");
             $st->execute([$status, gmdate('Y-m-d\TH:i:s\Z'), $id, $tenant]);
@@ -873,7 +874,7 @@ class AutoCampaign
      * @param bool $allowActuate 매체 실제 집행(예산변경/정지 push) 허용 여부. 데모 DB/env 는 false 로
      *   호출해 실 광고비 변경을 절대 일으키지 않는다(DB 재배분 시뮬레이션만).
      */
-    public static function optimizeCampaign(PDO $pdo, array $camp, bool $allowActuate = true): array
+    public static function optimizeCampaign(PDO $pdo, array $camp, bool $allowActuate = true, string $lang = 'ko'): array
     {
         $tenant = (string)$camp['tenant_id'];
         $channels = json_decode((string)($camp['channels'] ?? '[]'), true) ?: [];
@@ -920,7 +921,7 @@ class AutoCampaign
                     try { $pdo->prepare("INSERT INTO optimization_log(tenant_id,campaign_id,channel,action,old_alloc,new_alloc,roas,ctr,reason,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)")
                         ->execute([$tenant, (int)$camp['id'], '(데이파팅)', 'dayparting_pause', 0, 0, '', '', '광고 스케줄 윈도 밖 — 전 채널 자동 정지(데이파팅)', $dpNow]); } catch (\Throwable $e) {}
                 }
-                return ['optimized' => true, 'allocations' => [], 'decisions' => [['channel' => '(데이파팅)', 'action' => 'dayparting_pause', 'reason' => '스케줄 윈도 밖 — 정지 유지']],
+                return ['optimized' => true, 'allocations' => [], 'decisions' => [['channel' => '(데이파팅)', 'action' => 'dayparting_pause', 'reason' => \Genie\I18n::t('autocamp.reason.daypartingPause', [], $lang)]],
                     'metrics' => $metrics, 'cadence' => self::computeCadenceHours($metrics, $gr, $minRoas)];
             }
             if ($within && $wasPaused) {
@@ -931,7 +932,7 @@ class AutoCampaign
             }
         }
         if (!$anyData) {
-            return ['optimized' => false, 'reason' => '성과 데이터가 아직 충분하지 않습니다. 채널 집행·데이터 수집 후 자동 최적화됩니다.',
+            return ['optimized' => false, 'reason' => \Genie\I18n::t('autocamp.reason.noData', [], $lang),
                 'metrics' => $metrics, 'cadence' => self::computeCadenceHours($metrics, $gr, $minRoas)];
         }
         $zeroConvFloor = isset($gr['zero_conv_spend_floor']) ? (float)$gr['zero_conv_spend_floor'] : 50000.0;
@@ -955,7 +956,7 @@ class AutoCampaign
             $m = $metrics[$ch];
             if ($budgetCapHit) {  // 월 예산 전액 소진 → 전 채널 정지(과지출 차단)
                 $weights[$ch] = 0.0;
-                $decisions[] = ['channel' => $ch, 'action' => 'pause', 'old' => $oldMap[strtolower($ch)] ?? 0, 'new' => 0, 'roas' => $m['roas'], 'ctr' => $m['ctr'], 'reason' => "1개월 예산 소진(당월 지출 ₩" . number_format($spentMTD) . " / 예산 ₩" . number_format($budget) . ") → 전 채널 자동 정지"];
+                $decisions[] = ['channel' => $ch, 'action' => 'pause', 'old' => $oldMap[strtolower($ch)] ?? 0, 'new' => 0, 'roas' => $m['roas'], 'ctr' => $m['ctr'], 'reason' => \Genie\I18n::t('autocamp.reason.budgetExhausted', ['a' => number_format($spentMTD), 'b' => number_format($budget)], $lang)];
                 continue;
             }
             if (!$m['has_data']) { $weights[$ch] = 0.5; continue; }
@@ -963,17 +964,17 @@ class AutoCampaign
             //   귀속 데이터 부족 시 adj_roas==roas 라 회귀 없음. truthRatio 적용 시 결정 사유에 투명 표기.
             $decRoas = (float)($m['adj_roas'] ?? $m['roas']);
             $tr = $m['truth_ratio'] ?? null;
-            $trNote = ($tr !== null && $tr < 0.98) ? " · 진실ROAS {$decRoas}(매체보고 {$m['roas']}×귀속 {$tr})" : '';
+            $trNote = ($tr !== null && $tr < 0.98) ? \Genie\I18n::t('autocamp.reason.truthNote', ['decRoas' => $decRoas, 'roas' => $m['roas'], 'tr' => $tr], $lang) : '';
             // ① 이상감지: 지출은 있는데 전환 0 (낭비) → 즉시 회수(다채널 시).
             if ($m['conversions'] === 0 && $m['spend'] >= $zeroConvFloor && count($channels) > 1) {
                 $weights[$ch] = 0.0;
-                $decisions[] = ['channel' => $ch, 'action' => 'pause', 'old' => $oldMap[strtolower($ch)] ?? 0, 'new' => 0, 'roas' => $m['roas'], 'ctr' => $m['ctr'], 'reason' => "이상감지: 지출 ₩" . number_format($m['spend']) . " 대비 전환 0건 (낭비) → 자동 회수·정지"];
+                $decisions[] = ['channel' => $ch, 'action' => 'pause', 'old' => $oldMap[strtolower($ch)] ?? 0, 'new' => 0, 'roas' => $m['roas'], 'ctr' => $m['ctr'], 'reason' => \Genie\I18n::t('autocamp.reason.zeroConvWaste', ['a' => number_format($m['spend'])], $lang)];
                 continue;
             }
             // ② 손실 채널: 진실 ROAS < min_roas → 회수.
             if ($decRoas < $minRoas && count($channels) > 1) {
                 $weights[$ch] = 0.0;
-                $decisions[] = ['channel' => $ch, 'action' => 'pause', 'old' => $oldMap[strtolower($ch)] ?? 0, 'new' => 0, 'roas' => $m['roas'], 'ctr' => $m['ctr'], 'reason' => "ROAS {$decRoas} < {$minRoas} (손실) → 예산 회수·일시정지{$trNote}"];
+                $decisions[] = ['channel' => $ch, 'action' => 'pause', 'old' => $oldMap[strtolower($ch)] ?? 0, 'new' => 0, 'roas' => $m['roas'], 'ctr' => $m['ctr'], 'reason' => \Genie\I18n::t('autocamp.reason.lossCut', ['r' => $decRoas, 'min' => $minRoas, 'trNote' => $trNote], $lang)];
             } else {
                 $w = max(0.05, $decRoas);
                 // 203차 ⓑ: 드리프트 저하 채널은 소프트 패널티(하드정지 아님)로 비중 하향 + 투명 로그.
@@ -981,7 +982,7 @@ class AutoCampaign
                 if (($dr['drift'] ?? '') === 'degrading') {
                     $w *= 0.7;
                     $old0 = (int)($oldMap[strtolower($ch)] ?? 0);
-                    $decisions[] = ['channel' => $ch, 'action' => 'drift_warning', 'old' => $old0, 'new' => $old0, 'roas' => $m['roas'], 'ctr' => $m['ctr'], 'reason' => "성과 드리프트 감지: 최근 ROAS {$dr['recent']} vs 기준 {$dr['baseline']} (z={$dr['z']}σ, {$dr['days']}일) → 예산 비중 30% 하향"];
+                    $decisions[] = ['channel' => $ch, 'action' => 'drift_warning', 'old' => $old0, 'new' => $old0, 'roas' => $m['roas'], 'ctr' => $m['ctr'], 'reason' => \Genie\I18n::t('autocamp.reason.driftWarning', ['r' => $dr['recent'], 'b' => $dr['baseline'], 'z' => $dr['z'], 'd' => $dr['days']], $lang)];
                 }
                 $weights[$ch] = $w;
             }
@@ -999,11 +1000,11 @@ class AutoCampaign
             $newAlloc[] = $entry;
             $old = $oldMap[strtolower($ch)] ?? 0;
             if ($weights[$ch] > 0 && abs($a - $old) >= 10000) {
-                $dir = $a > $old ? '증액' : '감액';
+                $reallocCode = $a > $old ? 'autocamp.reason.reallocUp' : 'autocamp.reason.reallocDown';
                 // [현 차수 P1] 재배분 근거 ROAS = 진실 ROAS(adj_roas). 매체보고 대비 보정됐으면 투명 병기.
                 $mr = $metrics[$ch]; $dRoas = (float)($mr['adj_roas'] ?? $mr['roas']); $tRatio = $mr['truth_ratio'] ?? null;
-                $tNote = ($tRatio !== null && $tRatio < 0.98) ? " (매체보고 {$mr['roas']}×귀속 {$tRatio} 보정)" : '';
-                $decisions[] = ['channel' => $ch, 'action' => 'realloc', 'old' => (int)$old, 'new' => $a, 'roas' => $mr['roas'], 'ctr' => $mr['ctr'], 'reason' => "진실 ROAS {$dRoas}{$tNote} → 예산 {$dir}"];
+                $tNote = ($tRatio !== null && $tRatio < 0.98) ? \Genie\I18n::t('autocamp.reason.truthNoteRealloc', ['roas' => $mr['roas'], 'tRatio' => $tRatio], $lang) : '';
+                $decisions[] = ['channel' => $ch, 'action' => 'realloc', 'old' => (int)$old, 'new' => $a, 'roas' => $mr['roas'], 'ctr' => $mr['ctr'], 'reason' => \Genie\I18n::t($reallocCode, ['dRoas' => $dRoas, 'tNote' => $tNote], $lang)];
             }
         }
 
@@ -1039,7 +1040,7 @@ class AutoCampaign
         if ($allowActuate && $isRealTenant && !BillingMethod::hasActiveMethod($pdo, $tenant)) {
             $allowActuate = false;
             $decisions[] = ['channel' => '—', 'action' => 'billing_required', 'old' => 0, 'new' => 0, 'roas' => '', 'ctr' => '',
-                'reason' => '광고비 결제수단(카드) 미등록 → 실집행 보류. [재무·정산 > 결제수단]에서 카드를 등록하면 월 예산 한도 내에서 자동 집행됩니다.'];
+                'reason' => \Genie\I18n::t('autocamp.reason.billingHold', [], $lang)];
             try {
                 $pdo->prepare("INSERT INTO optimization_log(tenant_id,campaign_id,channel,action,old_alloc,new_alloc,roas,ctr,reason,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)")
                     ->execute([$tenant, (int)$camp['id'], '—', 'billing_required', 0, 0, '', '', '광고비 결제수단 미등록 → 실집행 보류', $now]);
@@ -1081,7 +1082,7 @@ class AutoCampaign
             $settle = BillingMethod::settleManagedSpend($pdo, $tenant, $spentMTD, $budget, (int)$camp['id']);
             if (!empty($settle['charged'])) {
                 $decisions[] = ['channel' => '—', 'action' => 'charge', 'old' => 0, 'new' => (int)$settle['charged'], 'roas' => '', 'ctr' => '',
-                    'reason' => '광고비 카드 청구 ₩' . number_format((int)$settle['charged']) . ' (당월 누적 한도 ₩' . number_format($budget) . ' 내)'];
+                    'reason' => \Genie\I18n::t('autocamp.reason.settleCharge', ['c' => number_format((int)$settle['charged']), 'b' => number_format($budget)], $lang)];
             }
         }
 
@@ -1120,7 +1121,7 @@ class AutoCampaign
             $camp = $st->fetch(PDO::FETCH_ASSOC);
             if (!$camp) return self::json($res, ['ok' => false, 'error' => '캠페인을 찾을 수 없습니다.'], 404);
             // 212차 #6: 데모 env 는 실 매체 집행 금지(DB 재배분 시뮬레이션만).
-            $r = self::optimizeCampaign($pdo, $camp, Db::env() !== 'demo');
+            $r = self::optimizeCampaign($pdo, $camp, Db::env() !== 'demo', \Genie\I18n::lang($req));
             // [현 차수] 수동 즉시 최적화도 적응형 주기 갱신 → cron 이 직후 중복 재배분하지 않도록 next_optimize_at 전진.
             if (!empty($r['cadence'])) self::persistCadence($pdo, $id, $tenant, (array)$r['cadence']);
             return self::json($res, array_merge(['ok' => true, 'id' => $id], $r));

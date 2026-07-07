@@ -53,6 +53,7 @@ final class Mmm
     public static function model(Request $req, Response $res): Response
     {
         $tenant = self::tenant($req);
+        $lang = \Genie\I18n::lang($req);
         $qs = $req->getQueryParams();
         $window = max(14, min(365, (int)($qs['window'] ?? 90)));
 
@@ -76,7 +77,7 @@ final class Mmm
                 'channels' => $channels,
                 'model_diagnostics' => self::mmmDiagnostics($channels),
                 'data_driven' => count($channels) > 0,
-                'note' => count($channels) > 0 ? '실측 performance_metrics 기반 적합' : '성과 데이터가 아직 충분하지 않습니다. 채널 집행·수집 후 적합됩니다.',
+                'note' => count($channels) > 0 ? \Genie\I18n::t('mmm.note.modelFit', [], $lang) : \Genie\I18n::t('mmm.note.modelEmpty', [], $lang),
             ]);
         } catch (\Throwable $e) {
             return self::json($res, ['ok' => false, 'error' => 'DB 오류: ' . $e->getMessage()], 500);
@@ -197,6 +198,7 @@ final class Mmm
     public static function optimize(Request $req, Response $res): Response
     {
         $tenant = self::tenant($req);
+        $lang = \Genie\I18n::lang($req);
         $body = (array)($req->getParsedBody() ?? []);
         if (empty($body)) { $d = json_decode((string)$req->getBody(), true); if (is_array($d)) $body = $d; }
         $window = max(14, min(365, (int)($body['window'] ?? 90)));
@@ -216,7 +218,7 @@ final class Mmm
             }
         }
         if (empty($channels)) {
-            return self::json($res, ['ok' => true, 'optimized' => false, 'reason' => '적합된 채널 모델이 없습니다(데이터 부족).']);
+            return self::json($res, ['ok' => true, 'optimized' => false, 'reason' => \Genie\I18n::t('mmm.reason.optimizeNoModel', [], $lang)]);
         }
         // 현재 일평균 지출 합(기본 예산 = 미입력 시 현재 수준)
         $curDaily = array_sum(array_map(fn($c) => $c['current_daily_spend'], $channels));
@@ -325,6 +327,7 @@ final class Mmm
     public static function frontier(Request $req, Response $res): Response
     {
         $tenant = self::tenant($req);
+        $lang = \Genie\I18n::lang($req);
         $body = (array)($req->getParsedBody() ?? []);
         if (empty($body)) { $d = json_decode((string)$req->getBody(), true); if (is_array($d)) $body = $d; }
         $window = max(14, min(365, (int)($body['window'] ?? 90)));
@@ -342,10 +345,10 @@ final class Mmm
         } catch (\Throwable $e) {
             return self::json($res, ['ok' => false, 'error' => 'DB 오류: ' . $e->getMessage()], 500);
         }
-        if (empty($channels)) return self::json($res, ['ok' => true, 'optimized' => false, 'reason' => '적합된 채널 모델이 없습니다(광고 데이터 부족).']);
+        if (empty($channels)) return self::json($res, ['ok' => true, 'optimized' => false, 'reason' => \Genie\I18n::t('mmm.reason.frontierNoModel', [], $lang)]);
         $override = isset($body['margin_override']) ? max(0.0, min(1.0, (float)$body['margin_override'])) : null;
         if ($override === null && $marg['overall'] === null && empty($marg['byChannel'])) {
-            return self::json($res, ['ok' => true, 'optimized' => false, 'reason' => 'SKU 원가 미등록 — 이익 최적화 불가. 상품 원가를 등록하면 이익 프론티어가 활성화됩니다.', 'needs' => 'sku_cost']);
+            return self::json($res, ['ok' => true, 'optimized' => false, 'reason' => \Genie\I18n::t('mmm.reason.frontierNoCost', [], $lang), 'needs' => 'sku_cost']);
         }
         // 채널별 마진 확정(override > 채널 > 전사).
         $marginOf = function (string $ch) use ($marg, $override): float {

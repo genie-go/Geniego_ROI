@@ -372,11 +372,12 @@ final class AutoRecommend
         $qp = (array)$req->getQueryParams();
         $period = (string)($qp['period'] ?? $b['period'] ?? 'monthly');
         $tenant = self::tenant($req);
+        $lang = \Genie\I18n::lang($req);
         if ($tenant === '') {
             return self::json($res, ['ok' => true, 'channels' => [], 'best' => null, 'worst' => null,
-                'note' => '로그인/연동 후 실측 성과가 쌓이면 채널 효과가 분석됩니다.', 'source' => 'empty']);
+                'note' => \Genie\I18n::t('autorec.note.effAuth', [], $lang), 'source' => 'empty']);
         }
-        return self::json($res, self::effectivenessData($tenant, $period));
+        return self::json($res, self::effectivenessData($tenant, $period, $lang));
     }
 
     /**
@@ -384,14 +385,14 @@ final class AutoRecommend
      *   AdminGrowth(플랫폼 자체 성장 — 모든 광고매체 종합분석으로 가입 유입 최대화)가 공용 재사용(중복 구현 금지).
      *   @return array 효과 스코어카드 payload(ok/channels/best/worst/totals/source/note).
      */
-    public static function effectivenessData(string $tenant, string $period = 'monthly'): array
+    public static function effectivenessData(string $tenant, string $period = 'monthly', string $lang = 'ko'): array
     {
         $days = self::PERIOD_DAYS[$period] ?? 30;
         if ($tenant === '') return ['ok' => true, 'channels' => [], 'best' => null, 'worst' => null, 'source' => 'empty'];
         $measured = self::measured($tenant, max(30, $days));
         if (empty($measured)) {
             return ['ok' => true, 'channels' => [], 'best' => null, 'worst' => null,
-                'note' => '아직 집행/성과 데이터가 없습니다. 캠페인 집행 후 채널별 효과가 분석됩니다.', 'source' => 'no_data'];
+                'note' => \Genie\I18n::t('autorec.note.effNoData', [], $lang), 'source' => 'no_data'];
         }
         $bench = self::priorFor($tenant);   // 학습 prior 오버레이된 채널 기대치(없으면 전역 benchmark)
         $learned = [];
@@ -446,15 +447,15 @@ final class AutoRecommend
             $r['confidence'] = round($r['conversions'] / ($r['conversions'] + self::PRIOR_CONV), 2);
             // 3) 액션 판정(은행급 honest). 데이터 부족은 단정 금지.
             if ($r['conversions'] < self::MIN_LEARN_CONV) {
-                $r['verdict'] = 'collecting'; $r['action'] = '데이터 수집 중 — 판단 보류(전환 표본 부족)';
+                $r['verdict'] = 'collecting'; $r['action'] = \Genie\I18n::t('autorec.action.collecting', [], $lang);
             } elseif ($exp > 0 && $r['roas'] >= $exp * 1.1 && $trend >= 0.5) {
-                $r['verdict'] = 'scale_up'; $r['action'] = '최고 효과 — 예산 증액 권장(한계ROAS 양호)';
+                $r['verdict'] = 'scale_up'; $r['action'] = \Genie\I18n::t('autorec.action.scaleUp', [], $lang);
             } elseif ($r['roas'] < 1.0 || ($exp > 0 && $r['roas'] < $exp * 0.6)) {
-                $r['verdict'] = 'cut'; $r['action'] = '최저 효과 — 예산 회수·정지 권장(손실/기대 미달)';
+                $r['verdict'] = 'cut'; $r['action'] = \Genie\I18n::t('autorec.action.cut', [], $lang);
             } elseif ($trend < 0.5) {
-                $r['verdict'] = 'optimize'; $r['action'] = '효과 둔화 — 소재/타겟 최적화 필요';
+                $r['verdict'] = 'optimize'; $r['action'] = \Genie\I18n::t('autorec.action.optimize', [], $lang);
             } else {
-                $r['verdict'] = 'maintain'; $r['action'] = '효과 안정 — 현 예산 유지';
+                $r['verdict'] = 'maintain'; $r['action'] = \Genie\I18n::t('autorec.action.maintain', [], $lang);
             }
         }
         unset($r);
@@ -478,7 +479,7 @@ final class AutoRecommend
             'worst' => $worst ? ['channel' => $worst['channel'], 'label' => $worst['label'], 'effectiveness' => $worst['effectiveness'], 'roas' => $worst['roas'], 'action' => $worst['action']] : null,
             'totals' => $tot,
             'source' => 'measured',
-            'note' => '효과점수=ROAS·CAC효율·전환량·추세 종합(진실 ROAS 보정). 최고=예산 증액 후보, 최저=회수·정지 후보. 자가학습 prior 반영.',
+            'note' => \Genie\I18n::t('autorec.note.effScorecard', [], $lang),
         ];
     }
 
@@ -503,6 +504,7 @@ final class AutoRecommend
     public static function recommend(Request $req, Response $res): Response
     {
         $b = self::body($req);
+        $lang = \Genie\I18n::lang($req);
         $budget = max(0, (int)($b['budget'] ?? 0));
         $category = (string)($b['category'] ?? 'DEFAULT');
         $period = (string)($b['period'] ?? 'monthly');
@@ -584,7 +586,7 @@ final class AutoRecommend
         //   다음 1원의 한계수익이 목표 밑인 곳엔 추가 투입 안 함. 기본=기존 점수비례(안전·무회귀). 모든 값 실측 파생.
         $allocMode = strtolower((string)($b['mode'] ?? $b['alloc'] ?? ''));
         if ($allocMode === 'marginal') {
-            return self::marginalRecommend($res, $tenant, $budget, $category, $period, $days, $objective, $maxShare, $minRoasGate, $cand, $measured);
+            return self::marginalRecommend($res, $tenant, $budget, $category, $period, $days, $objective, $maxShare, $minRoasGate, $cand, $measured, $lang);
         }
 
         // 2) 다목표 점수 = 정규화된 ROAS·CAC(역)·성장 가중 결합 + UCB 탐색 보너스.
@@ -638,10 +640,10 @@ final class AutoRecommend
             $estRevenue = (int)round($alloc * $x['expRoas']);
             $isExplore = $x['conf'] < 0.3 && $x['ucb'] > 0.05;   // 데이터 적은 탐색 채널 표시
             $rationale = $x['src'] === 'measured'
-                ? "실측 전환 {$m['conversions']}건(신뢰도 " . round($x['conf'] * 100) . "%) 기반 — 성과 검증 채널"
+                ? \Genie\I18n::t('autorec.rationale.channel.measured', ['n' => $m['conversions'], 'p' => round($x['conf'] * 100)], $lang)
                 : ($x['src'] === 'blended'
-                    ? "벤치마크+실측 블렌드(신뢰도 " . round($x['conf'] * 100) . "%)"
-                    : ($isExplore ? "업계 벤치마크 기반 — 탐색(미검증 고잠재) 채널" : "업계 벤치마크 기반 추천"));
+                    ? \Genie\I18n::t('autorec.rationale.channel.blended', ['p' => round($x['conf'] * 100)], $lang)
+                    : ($isExplore ? \Genie\I18n::t('autorec.rationale.channel.explore', [], $lang) : \Genie\I18n::t('autorec.rationale.channel.benchmark', [], $lang)));
             $out[] = [
                 'channel' => $id,
                 'label' => $c['label'],
@@ -682,8 +684,8 @@ final class AutoRecommend
             'source' => $hasMeasured ? 'blended' : 'benchmark',
             'engine' => 'multi-objective-v2',
             'rationale' => $hasMeasured
-                ? "목표('{$objective}') 기준 다목표 최적화 — 실측 전환 데이터(경험적 베이즈)를 반영해 효율·획득비용·성장·다양성을 균형있게 재배분했습니다. 데이터가 적은 고잠재 채널엔 탐색 예산을 일부 배정했습니다."
-                : "목표('{$objective}') 기준 다목표 최적화 — 업계 벤치마크×카테고리 적합도로 효율·획득비용·성장을 평가해 배분했습니다. 집행 실측이 쌓이면 경험적 베이즈로 자동 재학습됩니다.",
+                ? \Genie\I18n::t('autorec.rationale.strategy.measured', ['obj' => $objective], $lang)
+                : \Genie\I18n::t('autorec.rationale.strategy.benchmark', ['obj' => $objective], $lang),
         ]);
     }
 
@@ -752,7 +754,7 @@ final class AutoRecommend
      *   채널에 증분 배정을 반복하되, 목표ROAS 미만이면 정지(잔여 예산=절감). 곡선 미적합 채널은 평탄(상수 한계=expRoas)
      *   폴백. min_budget floor·max_share cap 준수. ★모든 값 실측 파생(날조 0)·정직 라벨(절감액·적합점수).
      */
-    private static function marginalRecommend(Response $res, string $tenant, int $budget, string $category, string $period, int $days, string $objective, float $maxShare, float $minRoasGate, array $cand, array $measured): Response
+    private static function marginalRecommend(Response $res, string $tenant, int $budget, string $category, string $period, int $days, string $objective, float $maxShare, float $minRoasGate, array $cand, array $measured, string $lang = 'ko'): Response
     {
         $fits = self::fitChannelResponse($tenant, max(30, $days));
         $targetRoas = $minRoasGate > 0 ? $minRoasGate : 1.0;   // 목표(가드레일 없으면 손익분기 1.0x)
@@ -795,8 +797,12 @@ final class AutoRecommend
             $estRevenue = $f ? (int)round($f['a'] * pow($a, $f['b'])) : (int)round($a * $x['expRoas']);
             $avgRoas = $a > 0 ? round($estRevenue / $a, 2) : 0;
             $rationale = $f
-                ? ("포화곡선 적합(일별 {$f['n']}점·R² {$f['r2']}" . (!empty($f['truth_adjusted']) ? "·증분보정" : "") . ") — 추천 지출의 한계ROAS {$mRoas}x 가 목표 {$targetRoas}x 이상인 구간까지만 투입(체감수익" . (!empty($f['truth_adjusted']) ? "·실귀속 매출 기준" : "") . " 반영).")
-                : "곡선 적합 데이터 부족 — 평균 ROAS 평탄가정 배분(집행 누적 시 자동 곡선화).";
+                ? \Genie\I18n::t('autorec.rationale.channelMarginal.fit', [
+                    'n' => $f['n'], 'r2' => $f['r2'], 'm' => $mRoas, 't' => $targetRoas,
+                    'adj' => !empty($f['truth_adjusted']) ? '·증분보정' : '',
+                    'basis' => !empty($f['truth_adjusted']) ? '·실귀속 매출 기준' : '',
+                  ], $lang)
+                : \Genie\I18n::t('autorec.rationale.channelMarginal.flat', [], $lang);
             $out[] = [
                 'channel' => $id, 'label' => $c['label'], 'connectorKey' => $c['connectorKey'],
                 'allocation' => $a, 'allocation_pct' => $budget > 0 ? round($a / $budget * 100, 1) : 0,
@@ -827,8 +833,11 @@ final class AutoRecommend
             'blended_cac' => $totalConv > 0 ? (int)round($recSpent / $totalConv) : 0,
             'engine' => 'marginal-roas-v1',
             'rationale' => ($savings > 0
-                ? "한계수익(체감) 최적화 — 다음 1원의 한계ROAS가 목표 {$targetRoas}x 밑으로 떨어지는 채널엔 추가 투입을 멈췄습니다. 예산 " . number_format($budget) . "원 중 " . number_format($recSpent) . "원만 집행 권장(" . number_format($savings) . "원 절감 = 동일 효과·최소 비용). 곡선 미적합 채널은 평탄가정으로 정직 폴백."
-                : "한계수익(체감) 최적화 — 채널 간 한계ROAS를 균등화해 효율 프론티어에서 배분했습니다. 모든 구간의 한계ROAS가 목표 이상이라 전액 집행이 효율적입니다."),
+                ? \Genie\I18n::t('autorec.rationale.strategyMarginal.saved', [
+                    't' => $targetRoas, 'budget' => number_format($budget),
+                    'spend' => number_format($recSpent), 'saved' => number_format($savings),
+                  ], $lang)
+                : \Genie\I18n::t('autorec.rationale.strategyMarginal.full', [], $lang)),
         ]);
     }
 

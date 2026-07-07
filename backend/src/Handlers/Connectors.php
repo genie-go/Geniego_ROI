@@ -348,8 +348,9 @@ final class Connectors
     public static function audienceSync(Request $request, Response $response, array $args): Response
     {
         $tenant = self::tenantId($request);
+        $lang = \Genie\I18n::lang($request);
         if ($tenant === '' || $tenant === 'demo' || strncmp($tenant, 'demo', 4) === 0) {
-            return TemplateResponder::respond($response, ['ok' => false, 'demo' => true, 'note' => '체험 데모에서는 오디언스 업로드를 하지 않습니다.']);
+            return TemplateResponder::respond($response, ['ok' => false, 'demo' => true, 'note' => \Genie\I18n::t('conn.audience.demoBlock', [], $lang)]);
         }
         $body = (array)($request->getParsedBody() ?? []);
         if (empty($body)) { $d = json_decode((string)$request->getBody(), true); if (is_array($d)) $body = $d; }

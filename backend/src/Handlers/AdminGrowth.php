@@ -424,7 +424,7 @@ final class AdminGrowth
         $pdo = Db::pdo(); self::ensureTables($pdo);
         $q = (array)$req->getQueryParams();
         $period = (string)($q['period'] ?? 'monthly');
-        $data = \Genie\Handlers\AutoRecommend::effectivenessData(self::TENANT, $period);
+        $data = \Genie\Handlers\AutoRecommend::effectivenessData(self::TENANT, $period, \Genie\I18n::lang($req));
         $data['tenant'] = self::TENANT;
         // [Phase2 ⑤] 가입 유입 어트리뷰션(첫터치 채널/소스 → 가입·유료·MRR·진실 CAC) 동봉.
         $data['acquisition'] = self::acquisitionByChannel($pdo);

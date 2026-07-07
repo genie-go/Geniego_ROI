@@ -53,6 +53,7 @@ final class Compliance
     public static function posture(Request $req, Response $res): Response
     {
         if ($err = UserAuth::requirePro($req, $res)) return $err;
+        $lang = \Genie\I18n::lang($req);
         $t = self::tenant($req);
         $controls = [];
 
@@ -89,27 +90,27 @@ final class Compliance
         $add = function (string $id, string $title, string $soc2, string $iso, string $status, string $evidence) use (&$controls) {
             $controls[] = compact('id', 'title', 'soc2', 'iso', 'status', 'evidence');
         };
-        $add('access-rbac', '역할 기반 접근통제(RBAC/ABAC)', 'CC6.1, CC6.3', 'A.5.15, A.5.18', 'implemented',
-            'api_key 역할(viewer<connector<analyst<admin)+scope, 팀 역할(owner/manager/member) 서버측 강제.');
-        $add('sso', '엔터프라이즈 SSO(OIDC/SAML)', 'CC6.1', 'A.5.16, A.5.17', $ssoConfigured ? 'implemented' : 'available',
-            $ssoConfigured ? 'sso_config 활성(IdP 연동). SAML 서명검증(C14N)·OIDC JWKS 검증.' : '코드 완비 — IdP 자격증명 등록 시 즉시 활성.');
-        $add('scim', 'SCIM 2.0 사용자 자동 프로비저닝', 'CC6.2', 'A.5.16', $scimEnabled ? 'implemented' : 'available',
-            $scimEnabled ? 'SCIM 토큰 발급·IdP 자동 동기화.' : '코드 완비 — SCIM 토큰 발급 시 즉시 활성.');
-        $add('enc-rest', '저장 데이터 암호화(AES-256-GCM)', 'CC6.1', 'A.8.24', $encKey ? 'implemented' : 'available',
-            $encKey ? '자격증명·토큰 AES-256-GCM 암호화(APP_KEY 설정됨).' : 'Crypto 모듈 완비 — APP_KEY 설정 시 활성.');
-        $add('enc-transit', '전송 데이터 암호화(TLS)', 'CC6.7', 'A.8.24', 'implemented', '전 트래픽 HTTPS/TLS. 보안 헤더(HSTS 등) 적용.');
-        $add('audit', '감사 로깅·활동 추적', 'CC7.2, CC7.3', 'A.8.15, A.5.28', $auditRows > 0 ? 'implemented' : 'available',
-            $auditRows > 0 ? "audit_log {$auditRows}건 기록(actor·action·details·시각)." : 'audit_log 테이블 완비 — 활동 발생 시 자동 기록.');
-        $add('isolation', '멀티테넌트 데이터 격리', 'CC6.1', 'A.8.3', 'implemented', '전 쿼리 tenant_id 스코프 강제 + X-Tenant 위조 차단. 운영/데모 물리 DB 분리.');
-        $add('privacy', '개인정보 동의·GDPR', 'P3.1, P4.1', 'A.5.34', $gdprRows > 0 ? 'implemented' : 'available',
-            $gdprRows > 0 ? "동의 기록 {$gdprRows}건. 집계 전용(PII 비저장) 설계." : '동의 관리 완비 — 동의 수집 시 기록. 집계 전용 설계.');
-        $add('canspam', '발송 컴플라이언스(CAN-SPAM/수신거부)', 'P6.1', 'A.5.34', $suppRows >= 0 ? 'implemented' : 'available',
-            "수신거부/하드바운스 suppression 자동 차단(현재 {$suppRows}건).");
-        $add('ratelimit', 'DoS 방어·rate limiting', 'CC6.6, A1.1', 'A.8.6, A.8.20', 'implemented', 'nginx api_limit + 로그인 rate-limit. 교차테넌트 DoS 차단.');
-        $add('mfa', '다중인증(MFA)', 'CC6.1', 'A.5.17', 'available', 'TOTP 기반 MFA 코드 완비 — 조직 정책으로 활성화.');
-        $add('availability', '가용성·백업·DR', 'A1.2, A1.3', 'A.8.13, A.5.30', 'manual', 'DB 백업·복구는 운영 인프라 프로세스(외부 증적 필요).');
-        $add('change-mgmt', '변경관리·취약점 관리', 'CC8.1', 'A.8.8, A.8.32', 'manual', 'CI 게이트·코드리뷰 적용. 정식 SOC2 심사는 외부 감사 프로세스.');
-        $add('vendor', '공급업체·서브프로세서 관리', 'CC9.2', 'A.5.19, A.5.21', 'manual', '결제(Paddle MoR)·인프라 서브프로세서 — 계약·DPA 프로세스.');
+        $add('access-rbac', \Genie\I18n::t('cmpl.ctrl.rbac.title', [], $lang), 'CC6.1, CC6.3', 'A.5.15, A.5.18', 'implemented',
+            \Genie\I18n::t('cmpl.ctrl.rbac.evidence', [], $lang));
+        $add('sso', \Genie\I18n::t('cmpl.ctrl.sso.title', [], $lang), 'CC6.1', 'A.5.16, A.5.17', $ssoConfigured ? 'implemented' : 'available',
+            $ssoConfigured ? \Genie\I18n::t('cmpl.ctrl.sso.evidenceImplemented', [], $lang) : \Genie\I18n::t('cmpl.ctrl.sso.evidenceAvailable', [], $lang));
+        $add('scim', \Genie\I18n::t('cmpl.ctrl.scim.title', [], $lang), 'CC6.2', 'A.5.16', $scimEnabled ? 'implemented' : 'available',
+            $scimEnabled ? \Genie\I18n::t('cmpl.ctrl.scim.evidenceImplemented', [], $lang) : \Genie\I18n::t('cmpl.ctrl.scim.evidenceAvailable', [], $lang));
+        $add('enc-rest', \Genie\I18n::t('cmpl.ctrl.encRest.title', [], $lang), 'CC6.1', 'A.8.24', $encKey ? 'implemented' : 'available',
+            $encKey ? \Genie\I18n::t('cmpl.ctrl.encRest.evidenceImplemented', [], $lang) : \Genie\I18n::t('cmpl.ctrl.encRest.evidenceAvailable', [], $lang));
+        $add('enc-transit', \Genie\I18n::t('cmpl.ctrl.encTransit.title', [], $lang), 'CC6.7', 'A.8.24', 'implemented', \Genie\I18n::t('cmpl.ctrl.encTransit.evidence', [], $lang));
+        $add('audit', \Genie\I18n::t('cmpl.ctrl.audit.title', [], $lang), 'CC7.2, CC7.3', 'A.8.15, A.5.28', $auditRows > 0 ? 'implemented' : 'available',
+            $auditRows > 0 ? \Genie\I18n::t('cmpl.ctrl.audit.evidenceImplemented', ['n' => $auditRows], $lang) : \Genie\I18n::t('cmpl.ctrl.audit.evidenceAvailable', [], $lang));
+        $add('isolation', \Genie\I18n::t('cmpl.ctrl.isolation.title', [], $lang), 'CC6.1', 'A.8.3', 'implemented', \Genie\I18n::t('cmpl.ctrl.isolation.evidence', [], $lang));
+        $add('privacy', \Genie\I18n::t('cmpl.ctrl.privacy.title', [], $lang), 'P3.1, P4.1', 'A.5.34', $gdprRows > 0 ? 'implemented' : 'available',
+            $gdprRows > 0 ? \Genie\I18n::t('cmpl.ctrl.privacy.evidenceImplemented', ['n' => $gdprRows], $lang) : \Genie\I18n::t('cmpl.ctrl.privacy.evidenceAvailable', [], $lang));
+        $add('canspam', \Genie\I18n::t('cmpl.ctrl.canspam.title', [], $lang), 'P6.1', 'A.5.34', $suppRows >= 0 ? 'implemented' : 'available',
+            \Genie\I18n::t('cmpl.ctrl.canspam.evidence', ['n' => $suppRows], $lang));
+        $add('ratelimit', \Genie\I18n::t('cmpl.ctrl.ratelimit.title', [], $lang), 'CC6.6, A1.1', 'A.8.6, A.8.20', 'implemented', \Genie\I18n::t('cmpl.ctrl.ratelimit.evidence', [], $lang));
+        $add('mfa', \Genie\I18n::t('cmpl.ctrl.mfa.title', [], $lang), 'CC6.1', 'A.5.17', 'available', \Genie\I18n::t('cmpl.ctrl.mfa.evidence', [], $lang));
+        $add('availability', \Genie\I18n::t('cmpl.ctrl.availability.title', [], $lang), 'A1.2, A1.3', 'A.8.13, A.5.30', 'manual', \Genie\I18n::t('cmpl.ctrl.availability.evidence', [], $lang));
+        $add('change-mgmt', \Genie\I18n::t('cmpl.ctrl.changeMgmt.title', [], $lang), 'CC8.1', 'A.8.8, A.8.32', 'manual', \Genie\I18n::t('cmpl.ctrl.changeMgmt.evidence', [], $lang));
+        $add('vendor', \Genie\I18n::t('cmpl.ctrl.vendor.title', [], $lang), 'CC9.2', 'A.5.19, A.5.21', 'manual', \Genie\I18n::t('cmpl.ctrl.vendor.evidence', [], $lang));
 
         $impl = count(array_filter($controls, fn($c) => $c['status'] === 'implemented'));
         $avail = count(array_filter($controls, fn($c) => $c['status'] === 'available'));
@@ -124,7 +125,7 @@ final class Compliance
             'summary' => ['implemented' => $impl, 'available' => $avail, 'manual' => $manual, 'total' => $total],
             'controls' => $controls,
             'frameworks' => ['SOC 2 (Trust Service Criteria)', 'ISO/IEC 27001:2022 (Annex A)'],
-            'note' => '구현 컨트롤 실측 introspection 기반 준비도. available=코드 완비·설정 시 즉시 활성, manual=외부 감사/인프라 프로세스. 정식 인증은 외부 감사인의 심사가 필요합니다.',
+            'note' => \Genie\I18n::t('cmpl.posture.note', [], $lang),
         ]);
     }
 

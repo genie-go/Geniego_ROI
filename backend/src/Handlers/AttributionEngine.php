@@ -211,6 +211,7 @@ final class AttributionEngine
     public static function blendedIncrementality(Request $request, Response $response, array $args): Response
     {
         $start = microtime(true);
+        $lang = \Genie\I18n::lang($request);
         $t = self::tenant($request);
         $empty = ['channels' => [], 'decision_confidence' => 0, 'signals_available' => []];
         if ($t === '') return self::ok($response, $empty + ['response_time_ms' => self::elapsed($start)]);
@@ -314,7 +315,7 @@ final class AttributionEngine
                 // [현 차수 초고도화 ③] 모델 vs 실험 캘리브레이션 — holdout 보유 채널의 방향 일치 비율.
                 'calibration' => ['covered' => $calCovered, 'aligned' => $calAligned,
                     'score' => $calCovered > 0 ? round($calAligned / $calCovered * 100, 1) : null,
-                    'note' => '실험(holdout) 보유 채널에서 모델 예측과 실측 lift 방향 일치 비율(%). 낮으면 모델 과대/과소귀속 재보정 권고.'],
+                    'note' => \Genie\I18n::t('attr.note.calibration', [], $lang)],
                 'window_days' => $window,
                 'note' => '3개 증분성 신호(Markov 제거효과·MMM Bayesian 사후·Holdout 검증)의 신뢰도 가중 통합. holdout 은 share 비반영·신뢰도 가중.',
                 'response_time_ms' => self::elapsed($start),
@@ -347,7 +348,7 @@ final class AttributionEngine
             if ($cc > $cs || $tc > $ts) {
                 return self::ok($response, ['ok' => false, 'error' => '전환수는 그룹 크기를 초과할 수 없습니다.']);
             }
-            $r = self::computeLift($cc, $cs, $tc, $ts, $rpc);
+            $r = self::computeLift($cc, $cs, $tc, $ts, $rpc, \Genie\I18n::lang($request));
             $r['ok'] = true;
             $r['response_time_ms'] = self::elapsed($start);
             return self::ok($response, $r);
@@ -360,7 +361,7 @@ final class AttributionEngine
      * 2-비율 z검정 핵심 계산(엔드포인트/실험 레지스트리 공용 — 중복 0). 입력 검증은 호출측 책임.
      * @return array 리프트 지표(ok/response_time 제외).
      */
-    public static function computeLift(float $cc, float $cs, float $tc, float $ts, float $rpc): array
+    public static function computeLift(float $cc, float $cs, float $tc, float $ts, float $rpc, string $lang = 'ko'): array
     {
         $p1 = $cs > 0 ? $cc / $cs : 0.0;     // control 전환율
         $p2 = $ts > 0 ? $tc / $ts : 0.0;     // treatment 전환율
@@ -388,8 +389,8 @@ final class AttributionEngine
             'incremental_conversions' => round($incrementalConv, 1),
             'incremental_value'  => $incrementalValue !== null ? round($incrementalValue, 0) : null,
             'verdict'            => $significant
-                ? '통계적으로 유의한 증분 효과 (95% 신뢰수준)'
-                : ($liftAbs <= 0 ? '증분 효과 없음/음수 — 노출이 전환을 끌어올리지 못함' : '아직 유의하지 않음 — 표본/기간 확대 필요'),
+                ? \Genie\I18n::t('attr.verdict.liftSignificant', [], $lang)
+                : ($liftAbs <= 0 ? \Genie\I18n::t('attr.verdict.liftNone', [], $lang) : \Genie\I18n::t('attr.verdict.liftNotYet', [], $lang)),
         ];
     }
 
@@ -399,7 +400,7 @@ final class AttributionEngine
      *   여기서는 로그 성장비 차이(=ln(curT/baseT) − ln(curC/baseC))를 Poisson 분산(Var(ln N)≈1/N)으로 검정한다.
      *   ★중복 아님: computeLift 는 모수(size) 분모의 전환율 검정(HTTP 결과입력 엔드포인트 전용)으로 그대로 유지.
      */
-    public static function computeGeoLift(float $curT, float $baseT, float $curC, float $baseC, float $rpc): array
+    public static function computeGeoLift(float $curT, float $baseT, float $curC, float $baseC, float $rpc, string $lang = 'ko'): array
     {
         $gT = $baseT > 0 ? $curT / $baseT : 0.0;   // 치료 지역 성장비
         $gC = $baseC > 0 ? $curC / $baseC : 0.0;   // 대조 지역 성장비
@@ -428,8 +429,8 @@ final class AttributionEngine
             'incremental_conversions' => round($incrementalConv, 1),
             'incremental_value' => $incrementalValue !== null ? round($incrementalValue, 0) : null,
             'method'            => 'poisson-did',
-            'verdict'           => $significant ? '통계적으로 유의한 지오 증분 리프트 (95% 신뢰수준)'
-                : ($liftAbs <= 0 ? '증분 리프트 없음/음수 — 노출이 지역 성장을 끌어올리지 못함' : '아직 유의하지 않음 — 기간/전환 확대 필요'),
+            'verdict'           => $significant ? \Genie\I18n::t('attr.verdict.geoSignificant', [], $lang)
+                : ($liftAbs <= 0 ? \Genie\I18n::t('attr.verdict.geoNone', [], $lang) : \Genie\I18n::t('attr.verdict.geoNotYet', [], $lang)),
         ];
     }
 
@@ -618,7 +619,7 @@ final class AttributionEngine
     }
 
     /** running geo 실험 일일 검증 — 실측 전환 집계→리프트 검정→가드레일→자동 결론(기간종료/유의/조기중단). 반환: 갱신수. */
-    public static function validateRunningHoldouts(PDO $pdo, string $tenant): int
+    public static function validateRunningHoldouts(PDO $pdo, string $tenant, string $lang = 'ko'): int
     {
         self::ensureExpTable($pdo); $n = 0;
         try {
@@ -638,7 +639,7 @@ final class AttributionEngine
                 $rpc = $curT > 0 ? $revT / $curT : 0.0;
                 // [254차 감사] 카운트 기반 Poisson diff-in-diff(치료 성장비 − 대조 성장비). 과거 computeLift(2-비율 z검정)는
                 //   성장비>1 에서 분산 0 퇴화로 조기 유의 영구 미발화였다 → computeGeoLift 로 교정(rate 검정과 분리).
-                $lift = self::computeGeoLift($curT, $baseT, $curC, $baseC, $rpc);
+                $lift = self::computeGeoLift($curT, $baseT, $curC, $baseC, $rpc, $lang);
                 $daysRun = $start !== '' ? max(0, (int)floor((time() - strtotime($start)) / 86400)) : 0;
                 $minDays = (int)($meta['guardrails']['min_days'] ?? 7);
                 $minConv = (int)($meta['guardrails']['min_conv'] ?? 30);
@@ -647,9 +648,9 @@ final class AttributionEngine
                 $geoResults = ['as_of' => gmdate('c'), 'days_run' => $daysRun, 'mode' => 'observational',
                     'treatment' => ['conv' => $curT, 'baseline' => $baseT], 'control' => ['conv' => $curC, 'baseline' => $baseC], 'lift' => $lift];
                 $conclude = false; $verdict = '';
-                if ($end !== '' && gmdate('Y-m-d') >= $end) { $conclude = true; $verdict = '기간 종료 — 최종 리프트 확정'; }
-                elseif ($enough && $daysRun >= $minDays && !empty($lift['significant'])) { $conclude = true; $verdict = '통계 유의 도달 — 조기 확정'; }
-                elseif ($enough && $daysRun >= $minDays && (float)($lift['lift_abs_pct'] ?? 0) < $earlyStop) { $conclude = true; $verdict = '가드레일: 강한 음의 리프트 — 조기 종료'; }
+                if ($end !== '' && gmdate('Y-m-d') >= $end) { $conclude = true; $verdict = \Genie\I18n::t('attr.verdict.concludePeriodEnd', [], $lang); }
+                elseif ($enough && $daysRun >= $minDays && !empty($lift['significant'])) { $conclude = true; $verdict = \Genie\I18n::t('attr.verdict.concludeEarlySig', [], $lang); }
+                elseif ($enough && $daysRun >= $minDays && (float)($lift['lift_abs_pct'] ?? 0) < $earlyStop) { $conclude = true; $verdict = \Genie\I18n::t('attr.verdict.concludeGuardrailStop', [], $lang); }
                 $rj['interim'] = $geoResults; if ($conclude) { $rj['final'] = $lift; $rj['verdict'] = $verdict; }
                 try {
                     $pdo->prepare("UPDATE holdout_experiment SET status=?,control_conversions=?,treatment_conversions=?,revenue_per_conversion=?,geo_results=?,result_json=?,updated_at=? WHERE id=? AND tenant_id=?")
@@ -736,6 +737,7 @@ final class AttributionEngine
             $cur->execute([$id, $t]); $row = $cur->fetch(PDO::FETCH_ASSOC);
             if (!$row) return self::ok($response, ['ok' => false, 'error' => '실험을 찾을 수 없습니다.']);
             $b = (array)($request->getParsedBody() ?? []);
+            $lang = \Genie\I18n::lang($request);
             $f = fn($k, $d) => array_key_exists($k, $b) ? $b[$k] : $d;
             $cs = (float)$f('control_size', $row['control_size']);
             $ts = (float)$f('treatment_size', $row['treatment_size']);
@@ -748,7 +750,7 @@ final class AttributionEngine
             // concluded 로 전환(또는 이미 concluded) + 유효 규모 → 자동 검정.
             $resultJson = $row['result_json'];
             if ($status === 'concluded' && $cs > 0 && $ts > 0 && $cc <= $cs && $tc <= $ts) {
-                $resultJson = json_encode(self::computeLift($cc, $cs, $tc, $ts, $rpc), JSON_UNESCAPED_UNICODE);
+                $resultJson = json_encode(self::computeLift($cc, $cs, $tc, $ts, $rpc, $lang), JSON_UNESCAPED_UNICODE);
             }
             // [R-P1-1] geo 홀드아웃 — 지역별 control/treatment 입력 시 지역 서브그룹 리프트 자동검정(이질성 포착).
             $geoStrategy = in_array(($b['geo_strategy'] ?? ($row['geo_strategy'] ?? 'national')), ['national', 'regional', 'demographic'], true)
@@ -764,7 +766,7 @@ final class AttributionEngine
                     $gcs = (float)($g['control_size'] ?? 0); $gts = (float)($g['treatment_size'] ?? 0);
                     $gcc = (float)($g['control_conversions'] ?? 0); $gtc = (float)($g['treatment_conversions'] ?? 0);
                     if ($gcs <= 0 || $gts <= 0 || $gcc > $gcs || $gtc > $gts) continue;
-                    $gr[] = ['region' => substr((string)($g['region'] ?? ''), 0, 60)] + self::computeLift($gcc, $gcs, $gtc, $gts, $rpc);
+                    $gr[] = ['region' => substr((string)($g['region'] ?? ''), 0, 60)] + self::computeLift($gcc, $gcs, $gtc, $gts, $rpc, $lang);
                 }
                 $geoResults = $gr ? json_encode($gr, JSON_UNESCAPED_UNICODE) : $geoResults;
             }
@@ -804,8 +806,9 @@ final class AttributionEngine
     public static function geoReadiness(Request $request, Response $response, array $args): Response
     {
         $start = microtime(true);
+        $lang = \Genie\I18n::lang($request);
         $t = self::tenant($request);
-        $empty = ['ok' => true, 'regions' => [], 'feasible' => false, 'reason' => '인증/데이터 없음'];
+        $empty = ['ok' => true, 'regions' => [], 'feasible' => false, 'reason' => \Genie\I18n::t('attr.reason.geoEmpty', [], $lang)];
         if ($t === '') return self::ok($response, $empty + ['response_time_ms' => self::elapsed($start)]);
         try {
             $q = $request->getQueryParams();
@@ -833,7 +836,7 @@ final class AttributionEngine
                 ];
             }
             if (count($regions) < 2) {
-                return self::ok($response, $empty + ['regions' => $regions, 'reason' => '지역 차원 데이터가 2개 미만입니다. 지역 분해 수집(ad_insight_agg.region) 후 설계됩니다.', 'response_time_ms' => self::elapsed($start)]);
+                return self::ok($response, $empty + ['regions' => $regions, 'reason' => \Genie\I18n::t('attr.reason.geoNeedRegions', [], $lang), 'response_time_ms' => self::elapsed($start)]);
             }
 
             // LPT 그리디 — 노출(클릭) 균형 2그룹 분할(A=treatment 후보, B=control 후보).
@@ -862,7 +865,7 @@ final class AttributionEngine
                 ],
                 'power' => $power,
                 'feasible' => ($power['feasible'] ?? false) && $balance >= 0.6,
-                'note' => '지역별 실측 노출 기반 균형 분할(treatment/control) 추천 + 검정력. 실제 증분 리프트는 무노출 control 지역의 전환을 플랫폼 conversion-lift 또는 자체 측정으로 입력(geo_breakdown)해야 검정됩니다.',
+                'note' => \Genie\I18n::t('attr.note.geoReadiness', [], $lang),
                 'response_time_ms' => self::elapsed($start),
             ]);
         } catch (Throwable $e) {

@@ -20,7 +20,7 @@ const OVERLAY = path.join(ROOT, 'frontend/src/i18n/autofill.json');
 const LANGS = { ja:'Japanese', zh:'Simplified Chinese', 'zh-TW':'Traditional Chinese', de:'German', th:'Thai', vi:'Vietnamese', id:'Indonesian', ar:'Arabic', es:'Spanish', fr:'French', hi:'Hindi', pt:'Portuguese (Brazil)', ru:'Russian', en:'English' };
 const API_KEY = process.env.CLAUDE_API_KEY || process.env.ANTHROPIC_API_KEY || '';
 const MODEL = process.env.CLAUDE_MODEL || 'claude-haiku-4-5-20251001';
-const MAX_PER_BATCH = 60;
+const MAX_PER_BATCH = parseInt(process.env.AUTOFILL_BATCH || '', 10) || 40; // 긴 문자열 응답 잘림 방지(40으로 하향)
 // 스코프 제어: AUTOFILL_ONLY=쉼표구분 키접두(예: rulesEditorPage,mmm) → 해당 키만. AUTOFILL_MAX=언어당 최대 키수(런어웨이 방지).
 const ONLY = (process.env.AUTOFILL_ONLY || '').split(',').map(s => s.trim()).filter(Boolean);
 const MAX_PER_LANG = parseInt(process.env.AUTOFILL_MAX || '0', 10) || 0;
@@ -43,7 +43,7 @@ async function loadLocale(lang) {
 async function translateBatch(lang, langName, entries) {
   // entries: [[key, koText], ...] → {key: translated}
   const sys = `You are a professional UI localizer for GeniegoROI, an e-commerce ROI/marketing SaaS. Translate the given Korean UI strings into ${langName}, using natural, native, concise product-UI phrasing. Keep technical tokens unchanged: ROAS, CPA, CPC, CPM, ROI, SKU, MMM, CAPI, A/B, T*, KPI, VAT, {{...}} placeholders, brand/menu names in Latin. Return ONLY a JSON object mapping each key to its translation, no prose.`;
-  const payload = { model: MODEL, max_tokens: 4096, system: sys,
+  const payload = { model: MODEL, max_tokens: 8192, system: sys,
     messages: [{ role: 'user', content: 'Translate these keys to ' + langName + ' (JSON in → JSON out):\n' + JSON.stringify(Object.fromEntries(entries), null, 0) }] };
   const r = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST', headers: { 'x-api-key': API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
