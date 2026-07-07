@@ -1,0 +1,117 @@
+GENIEGOROI 전체 기능 맵 (상담 챗봇 정본 — 이 목록의 모든 메뉴는 실제로 존재한다. 사용자가 아래 어떤 메뉴/기능을 물어도 "없다"고 하지 말고, 정확한 경로와 핵심 서브기능으로 초보자에게 단계별로 상세히 설명하라. ★=최근 추가/고도화 기능):
+
+**홈**
+- 대시보드(/dashboard) — 통합 메인. 탭: 개요·마케팅·채널KPI·커머스·글로벌매출·인플루언서·시스템·가이드. 상단 기간선택·상품 조회바(선택 시 전 메뉴 동기화)
+- 통합 롤업(/rollup) — SKU·캠페인·크리에이터·플랫폼 × 일/주/월/연/시즌 집계. 탭: 요약·캠페인·크리에이터·플랫폼·세그먼트·위험예산·상품성과
+
+**AI 전략 & 캠페인**
+- AI 자동 마케팅(/auto-marketing) — AI 광고 생성·집행 파이프라인. 크리에이티브 스튜디오·캠페인 설정·AI 전략 미리보기·채널 효과 분석. ★A/B 동시집행·데이파팅·입찰전략(tCPA/tROAS)·프리퀀시캡·한계ROAS·킬스위치·승인큐
+- 캠페인 매니저(/campaign-manager) — 캠페인 통합 관리. 개요·목록·분석·★A/B 테스트(실 z검정)·상태필터
+- 여정 빌더(/journey-builder) — 고객여정 자동화 캔버스. 빌더·목록·로그·분석·A/B 분기
+- ★온사이트 CRO(/onsite-cro) — 노코드 A/B 실험(랜딩·팝업·CTA 변형). 결정론 버킷팅·z검정 승자판정·코드 2줄 연동
+- ★웹 팝업(/web-popup) — 팝업 빌더. 개요·관리·라이브·★A/B 테스트(2표본 z검정)·AI 카피·설정
+- ★피드 규칙 에디터 v2(/rules-editor-v2) — ★드래그&드롭 필드 매핑·채널 프리셋(shopee/qoo10/rakuten/amazon)·★버전관리(초안→제출→승인→배포·채널당 배포본 1개)
+- AI 추천(/ai-recommend) — 채널별 예산 배분·이미지/크리에이티브 생성·승인·집행
+- AI 규칙 엔진(/ai-rule-engine) — 규칙·규칙생성·실행로그·★데이파팅·★빈도캡. IF 조건→THEN 액션(알림/웹훅/채널정지/재주문)
+- 승인(/approvals) — 대기열·감사·설정(자동승인·2FA·Slack/이메일 알림·실행지연)
+- 라이트백(/writeback) — 채널 역동기화. 콘솔·작업·설정(재고/주문/예산/AI규칙 푸시)
+- 온보딩(/onboarding) — 진행 단계·역할별 경로·도움말
+
+**광고 성과 분석**
+- 광고 성과(/marketing) — 광고 대시보드. 개요·광고상태·크리에이티브·비교·AI 디자인(노출·CTR·CPC·CPM·ROAS)
+- 예산 추적(/budget-tracker) — 개요·배분·소진율(번레이트·소진예상일)·알림
+- 계정 성과(/account-performance) — 대시보드·드릴다운(blended ROAS)
+- 어트리뷰션(/attribution) — 멀티터치 기여도 10탭: ★MTA 6모델·Shapley·MMM·Markov·신뢰도(부트스트랩)·★증분성(홀드아웃)·★삼각융합(blended)·베이지안 A/B·코호트·LTV/CAC·이상탐지·뷰스루(VTC/CTC)
+- ★마케팅 믹스(/marketing-mix) — MMM 예산 최적화. ★이익 효율 프론티어·★적정 총예산 T*(한계이익=0 되는 이익 최대 총지출)·★손익분기ROAS(=1/공헌마진)·★증액여력·한계ROAS·포화·베이지안 MMM(MCMC·신뢰구간)·OOS 백테스트·★이익 오토파일럿 토글(매출최대/이익최대, 원가 미등록 시 비활성)
+- 채널 KPI(/channel-kpi) — 목표·역할·KPI설정·SNS·콘텐츠·커뮤니티·타겟·모니터·웹분석
+- 그래프 스코어(/graph-score) — 요약·브라우저·인플루언서·SKU·크리에이티브(3-hop 가중 전파)
+- 국내 채널(/kr-channel) — 네이버·쿠팡·11번가 등 국내 커머스 채널 정산·수수료 규칙·대사·티켓·VAT(gross/11)
+
+**고객 & 채널 (CRM/UGC/메시징)**
+- CRM(/crm) — 통합 CRM. 고객·★AI 예측세그(churn/CLV)·수동세그·옴니채널·RFM·딜리버러빌리티·CS지원. ★아이덴티티360(email+phone 병합 고객)·빈도캡·선호센터(동의)
+- 카카오 채널(/kakao-channel) — 캠페인·템플릿·크리에이티브·설정(발신프로필·API키)
+- 이메일 마케팅(/email-marketing) — 캠페인·템플릿·분석·ESP연동·크리에이티브. ★제목 A/B(베이지안 오픈율 승자)·STO·suppression·Liquid 개인화
+- SMS 마케팅(/sms-marketing) — 작성·브로드캐스트·템플릿·캠페인·이력·통계
+- LINE 채널(/line-channel, 일본) — 캠페인·템플릿·설정·브로드캐스트
+- WhatsApp(/whatsapp) — 개요·발송·브로드캐스트·템플릿·이력·인증설정(승인 템플릿)
+- 인스타 DM(/instagram-dm) — DM관리·단체발송(24h 윈도우)·자동응답 규칙·분석·연동
+- 인플루언서·UGC(/influencer) — 크리에이터 통합·계약&화이트리스트·정산&검증(원천징수 3.3%)·ROI 랭킹·UGC 리뷰·AI 평가
+- 콘텐츠 캘린더(/content-calendar) — 캘린더·목록·AI 추천
+- 리뷰·UGC(/reviews-ugc) — 대시보드·피드·트렌드·노출/위젯·설정(감성분석)
+
+**커머스 & 물류**
+- 옴니채널(/omni-channel) — 국내/글로벌/일본 마켓 커넥터 허브. 채널연동·상품·주문·재고·현황
+- 카탈로그 동기화(/catalog-sync) — 카탈로그·동기화 실행·카테고리 매핑·가격 규칙·재고 정책·이력·writeback
+- ★라이브 커머스(/live-commerce) — SSE 실시간 방송+OMS+WMS. 방송 스튜디오·실시간 대시보드·상품 편성·★게스트/코호스트·AI 쇼호스트·시청자 구매(WHIP/WHEP 송출)
+- 주문 허브(/order-hub) — 통합 OMS. 개요·주문·클레임·배송·정산·해외·B2B·설정·라우팅(SLA·해외캐리어). 취소/반품 시 CRM·재고 역분개
+- ★WMS 물류(/wms-manager) — ★빈/로케이션·★바코드(시리얼↔SKU)·스캔·★웨이브 피킹·★임가공·물류 대시보드·입고·★LOT/유통기한(FEFO)·보충·합포장·캐리어·추적·송장·번들·감사
+- 가격 최적화(/price-opt) — 요약·상품·최적화·시나리오·믹스·★리프라이서(승인큐)·★경쟁사(게임이론)·캘린더·채널수수료·탄력성·상품 원가 등록(이익 최적화 활성화)
+- 공급망(/supply-chain) — 타임라인·공급사·재고·발주(PO)·리드타임·리스크·랜디드코스트
+- 수요 예측(/demand-forecast) — 대시보드·SKU 예측·계절성·재고 노후(Dead Stock)·모델 설정
+- 반품 포털(/returns-portal) — 개요·요청·검수·환불·재입고·분석·정책(정산·재고·CRM 역분개)
+- 운영 허브(/operations) — 프로모션·크리에이티브
+- ★디지털 셸프(/digital-shelf) — ★SoS 키워드 점유율 모니터링·리스팅 품질 점수·리뷰 분석·라이브 하베스터
+- 아마존 리스크(/amazon-risk) — 리스크 KPI·알림·Account Health·Buy Box·FBA 재고율
+
+**인사이트 & 리포트**
+- 성과 허브(/performance) — Performance·Settlement·Creator Settlement·SKU Profitability·Cohort·ESG
+- 리포트 빌더(/report-builder) — 미리보기·커스텀 분석·예약 리포트·실행 이력(셀프서비스 BI)
+- P&L 대시보드(/pnl) — 건전성·머니흐름·단위손익·이상탐지·액션·★부가세정산(매출/매입/납부)·예측·다통화·순이익 워터폴
+- AI 인사이트(/ai-insights) — 예측·가드레일·AI Agency 챗·감사로그
+- 데이터 프로덕트(/data-product) — 개요·스키마·플랫폼·지표·규칙(정규화 이벤트/룰)
+
+**데이터 & 연동**
+- 통합 허브(/integration-hub) — 채널 연동·API키. 개요·활성키·로테이션·설정·배송추적·정산(PG)·실시간 Webhook·연결테스트·발급상태
+- 데이터 스키마(/data-schema) — 스키마·파이프라인·지표·알림
+- 데이터 신뢰도(/data-trust) — 신뢰도·데이터 계보·품질규칙·컴플라이언스(GDPR/PII)·지표 사전
+- 픽셀 추적(/pixel-tracking) — Meta/TikTok 픽셀·서버이벤트(CAPI). 대시보드·설정·이벤트·HMAC 서명
+- 라이선스 활성화(/license) — 채널별 API키 발급 위저드
+- 개발자 허브(/developer-hub) — API키·레퍼런스·SDK·웹훅·샌드박스·데이터 익스포트·알림채널
+
+**재무 & 결산**
+- 정산(/settlements) — 상품 단위 정산 패널 + 정산현황/대사/성과 교차링크·다통화 KRW 정규화
+- 결제 대사(/reconciliation) — PG↔주문 매칭(Coupang/Naver/11번가/Gmarket). 업로드·대사·리포트·티켓
+- 결제수단(/payment-methods) — 결제수단 등록(토스 등)·관리형 지출(월 예산 한도)·청구/결제 내역·구독 취소·환불
+- 요금제(/pricing·/app-pricing) — 동적 플랜(USD·Paddle)·seat 가격·쿠폰·결제 전 사업자정보 게이트
+- 결제 결과(/payment/success·/payment/fail) — Paddle 결제 성공/실패 처리
+
+**운영 & 지원 · 팀**
+- 팀원 구성(/team-members) — 팀원·팀 관리·권한 매트릭스(RBAC/ABAC)·위임 상한·감사·파트너 계정·거래처·(owner) SSO/SCIM
+- 워크스페이스(/workspace) — 팀 협업(멤버·활동피드·태스크)
+- 성공사례(/case-study) — 전체·업종별·ROI순·북마크
+- 도움말(/help) — 메뉴·FAQ·API·역할
+- 피드백(/feedback) — 채널·감정별 수집·감성분석·액션
+- 감사 로그(/audit) — 활동/보안 이벤트(리스크 색상)·키워드 검색·필터
+- 내 쿠폰(/my-coupons) — 사용가능·사용내역·소진/만료
+- 개인 메뉴 설정(/me/menu) — 본인용 메뉴 표시/숨김
+
+**프로젝트 관리(PM)**
+- PM 개요(/pm) — 프로젝트 카드·KPI·신규 생성
+- 포트폴리오(/pm/portfolio) — 프로그램 롤업 EVM(SPI/CPI)
+- 리소스(/pm/resources) — 담당자별 워크로드·부하율
+- 프로젝트 상세(/pm/projects/:id): RAID·EVM·칸반보드·간트·태스크표·마일스톤·활동·설정·태스크 상세
+
+**관리자(Admin) 전용**
+- 플랫폼 환경(/admin) — 개요·AI 엔진(Claude/DALL·E/Stability/SMTP 키)·운영정책·보안정책·백업·채널 OAuth
+- ★성장 센터(/admin/growth) — GeniegoROI 자체 마케팅 자동화(리드→데모→체험→유료). 대시보드·세그먼트·리드·캠페인·승인·설정(격리 테넌트)
+- 플랜/가격(/admin/plan-pricing) — 플랜별 요금·제공메뉴·접근권한·추가팩·쿠폰·메뉴 접근 트리
+- 회원관리(/user-management) — 대시보드·회원(플랜변경/무료부여/비번리셋)·권한·결제내역·감사·회원로그
+- 하위 관리자(/admin/sub-admins) — sub-admin 발급·메뉴별 view/edit 권한·정지(master 전용)
+- 사이트 소개(/admin/site-intro) — 회사/연혁/운영진 CRUD
+- 법적 페이지(/admin/legal-docs) — 약관/개인정보/환불 15개국 편집
+- 메뉴 트리(/admin/menu-tree) — 4계층 메뉴 가시성 토글
+- 메뉴 접근 관리(/menu-access-manager) — 플랜×메뉴 접근 매트릭스
+- DB 관리(/db-admin) — 현황·테이블·쿼리 실행기·백업
+- PG 설정(/pg-config) — Paddle 설정·결제정책·수수료/환불·Webhook 로그
+- 시스템 모니터(/system-monitor) — API Status·Pipeline·Error Log
+
+**공개/파트너 (로그인 불요)**
+- 랜딩(/) — 15개국·이메일 캡처 팝업(리드 자동생성)
+- 회사소개(/about)·운영진(/team)·공개 요금제(/pricing)·약관(/terms)·개인정보(/privacy)·환불(/refund)
+- PG 테스트(/pg-test) — Paddle Sandbox/Toss
+- ★파트너 포털(/partner) — 매입처/물류처/창고처 전용(유형별 스코프). 발주 등록·내역·납품/정산 (매출·고객·PII 미노출)
+- ★라이브 게스트(/live-guest) — 계정 불요 초대 토큰 게스트/코호스트 송출 참여
+
+**★ 자동 감지된 메뉴 (라우트에서 발견·큐레이션 상세 대기 — 실제로 존재하는 기능이니 경로로 안내하라)**
+- Commerce(/commerce)
+- Supplier Portal(/supplier-portal)

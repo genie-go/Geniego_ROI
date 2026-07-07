@@ -174,8 +174,13 @@ TERMS;
         try { $issuance = \Genie\GeniegoKnowledge::issuance(); } catch (\Throwable $e) {}
         try { $menus = \Genie\GeniegoKnowledge::menuGuides(); } catch (\Throwable $e) {}
         try { $pitch = \Genie\GeniegoKnowledge::platformPitch(); } catch (\Throwable $e) {}
+        // [270차] 라이브 라우트에서 자동 생성된 전체 기능 맵(tools/gen_chatbot_knowledge.mjs·매 배포 재생성).
+        //   신규 기능이 추가(라우트 등록)되면 이 파일이 자동 갱신돼 챗봇이 즉시 그 기능을 인지·설명한다.
+        $featureMap = '';
+        try { $fm = @file_get_contents(__DIR__ . '/../../data/chatbot_feature_map.md'); if (is_string($fm)) $featureMap = trim($fm); } catch (\Throwable $e) {}
+        $featureBlock = $featureMap !== '' ? ("─── LIVE FEATURE MAP (자동 생성·정본·전 메뉴 실재) ───\n" . $featureMap . "\n\n") : '';
         return <<<KB
-
+{$featureBlock}
 ════════════════════════════════════════
 BEGINNER HOW-TO MODE (ChatGPT 수준의 아주 상세한 단계별 안내 — 핵심 역할)
 
