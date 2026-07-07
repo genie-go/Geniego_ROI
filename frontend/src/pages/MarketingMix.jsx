@@ -54,6 +54,14 @@ export default function MarketingMix() {
   const [insight, setInsight] = useState(null); // [현 차수] 자연어 AI 인사이트
   const [insightBusy, setInsightBusy] = useState(false);
   const [frontier, setFrontier] = useState(null); // [270차 초고도화] 이익 효율 프론티어(적정 총예산 T*)
+  const [autoObj, setAutoObj] = useState(null); // 자율 최적화 목표(revenue|profit)
+  const [objBusy, setObjBusy] = useState(false);
+  const toggleAutoObj = async (val) => {
+    setObjBusy(true);
+    try { const r = await postJsonAuth('/v423/auto-campaign/objective', { objective: val }); setAutoObj(o => ({ ...(o || {}), objective: r.objective })); }
+    catch (e) { /* keep */ }
+    finally { setObjBusy(false); }
+  };
 
   const runInsight = async () => {
     setInsightBusy(true); setInsight(null);
@@ -70,6 +78,7 @@ export default function MarketingMix() {
     getJsonAuth(`/v424/mmm/bayesian?window=${window}&method=mcmc`).then(d => setBayes(d)).catch(() => setBayes(null));
     getJsonAuth(`/v424/mmm/backtest?window=${window}&holdout=14`).then(d => setBt(d)).catch(() => setBt(null));
     postJsonAuth('/v424/mmm/frontier', { window }).then(d => setFrontier(d)).catch(() => setFrontier(null)); // 이익 효율 프론티어
+    getJsonAuth('/v423/auto-campaign/objective').then(d => setAutoObj(d)).catch(() => setAutoObj(null)); // 자율 최적화 목표
   }, [window]);
   useEffect(() => { loadModel(); }, [loadModel]);
 
@@ -263,6 +272,19 @@ export default function MarketingMix() {
                 <div style={{ fontSize: 12, color: '#475569', marginTop: 6, lineHeight: 1.5 }}>
                   {t('mmm.frontierDesc', '경쟁사는 주어진 예산의 배분만 최적화합니다. GeniegoROI는 SKU 실원가 기반 공헌이익 반응곡선으로 이익이 최대가 되는 총지출(한계이익=0)을 계산합니다.')}
                   {' '}<span style={{ color: '#94a3b8' }}>({t('mmm.marginSource', '마진 출처')}: {frontier.margin_source === 'per_channel' ? t('mmm.msPerCh', '채널별 실마진') : frontier.margin_source === 'override' ? t('mmm.msOverride', '수동') : t('mmm.msTenant', '전사 실마진')})</span>
+                </div>
+                {/* [270차] 자율 최적화 목표 토글 — 켜면 오토파일럿(포트폴리오 재배분)이 순이익 기준으로 실행 */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '12px 0', flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: '#334155' }}>{t('mmm.autoObjective', '자율 최적화 목표')}:</span>
+                  <div style={{ display: 'inline-flex', border: '1px solid #cbd5e1', borderRadius: 999, overflow: 'hidden' }}>
+                    {[['revenue', t('mmm.objRevenue', '매출 최대')], ['profit', t('mmm.objProfit', '이익 최대')]].map(([v, lbl]) => {
+                      const active = (autoObj?.objective || 'revenue') === v;
+                      const disabled = objBusy || (v === 'profit' && autoObj && autoObj.profit_ready === false);
+                      return <button key={v} disabled={disabled} onClick={() => toggleAutoObj(v)} style={{ padding: '6px 14px', border: 'none', cursor: disabled ? 'not-allowed' : 'pointer', background: active ? (v === 'profit' ? '#16a34a' : '#4f46e5') : '#fff', color: active ? '#fff' : (disabled ? '#cbd5e1' : '#475569'), fontSize: 12, fontWeight: 800 }}>{lbl}</button>;
+                    })}
+                  </div>
+                  {autoObj?.objective === 'profit' && <span style={{ fontSize: 11, color: '#16a34a', fontWeight: 700 }}>✓ {t('mmm.profitModeOn', '자동 재배분이 순이익 기준으로 실행됩니다')}</span>}
+                  {autoObj && autoObj.profit_ready === false && <span style={{ fontSize: 11, color: '#d97706' }}>{t('mmm.needCostForProfit', '이익 모드는 상품 원가 등록 후 활성화')}</span>}
                 </div>
                 <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', margin: '14px 0' }}>
                   <div style={{ padding: '12px 18px', borderRadius: 12, background: '#fff', border: '1px solid #eef2f7' }}>

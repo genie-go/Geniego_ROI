@@ -756,6 +756,8 @@ return function (App $app): void {
         'POST /v423/auto-campaign/optimize'   => 'Genie\\Handlers\\AutoCampaign::optimize',
         'GET /v423/auto-campaign/optimize-history' => 'Genie\\Handlers\\AutoCampaign::optimizeHistory',
         'GET /v423/auto-campaign/execution-log' => 'Genie\\Handlers\\AutoCampaign::executionLog',
+        'GET /v423/auto-campaign/objective'   => 'Genie\\Handlers\\AutoCampaign::getObjective',  // [270차] 자율 최적화 목표(매출/이익)
+        'POST /v423/auto-campaign/objective'  => 'Genie\\Handlers\\AutoCampaign::setObjective',
         'GET /v423/auto-campaign/ab-status'   => 'Genie\\Handlers\\AbTesting::status',
         // ── [266차] WorkspaceState — 테넌트 스코프 워크스페이스 KV(ContentCalendar/FeedbackCenter/CatalogSync/Approvals 운영 영속) ──
         'GET /v424/workspace'                  => 'Genie\\Handlers\\WorkspaceState::get',
@@ -2341,6 +2343,7 @@ return function (App $app): void {
     $register('POST', '/v423/auto-campaign/optimize');
     $register('GET',  '/v423/auto-campaign/optimize-history');
     $register('GET',  '/v423/auto-campaign/execution-log');
+    $register('GET',  '/v423/auto-campaign/objective');  $register('POST', '/v423/auto-campaign/objective'); // [270차] 최적화 목표
     $register('GET',  '/v423/auto-campaign/ab-status');
 
     // [266차] WorkspaceState KV

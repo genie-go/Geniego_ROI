@@ -1188,21 +1188,31 @@ class AutoCampaign
             $st = $pdo->prepare("SELECT id, name, budget, allocations FROM auto_campaign WHERE tenant_id=? AND status='active'");
             $st->execute([$tenant]);
             $camps = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+            // [270차 초고도화] 이익 최적화 모드(opt-in) — 테넌트가 'profit' 설정 시 평균ROAS 대신 공헌이익 효율
+            //   (margin×adj_roas)로 재배분 가중해 포트폴리오 순이익 최대화. 기본 'revenue'=기존 동작(무회귀).
+            //   마진 미가용(SKU원가 전무) 시 revenue 폴백(fail-safe·거짓최적화 금지).
+            $objective = self::getFlag($pdo, 'auto_obj:' . $tenant) === 'profit' ? 'profit' : 'revenue';
+            $margins = ['byChannel' => [], 'overall' => null];
+            if ($objective === 'profit') { try { $margins = Mmm::channelMargins($pdo, $tenant, 90); } catch (\Throwable $e) { $objective = 'revenue'; } }
+            if ($objective === 'profit' && $margins['overall'] === null && empty($margins['byChannel'])) $objective = 'revenue';
             $items = []; $totalBudget = 0;
             foreach ($camps as $c) {
                 $b = (int)($c['budget'] ?? 0); if ($b <= 0) continue;
                 $alloc = json_decode((string)($c['allocations'] ?? '[]'), true) ?: [];
                 // 진실 ROAS(adj_roas) 캠페인 집계 — 채널별 aggMetrics(campaign_ext_id 입도) 합산(매체과대 보정·중복0).
-                $sp = 0.0; $adjRev = 0.0;
+                $sp = 0.0; $adjRev = 0.0; $mSp = 0.0; $mW = 0.0;
                 foreach ($alloc as $a) {
                     if (!is_array($a)) continue;
                     $ch = (string)($a['channel'] ?? ''); if ($ch === '') continue;
                     $m = self::aggMetrics($pdo, $tenant, $ch, (string)($a['external_id'] ?? ''));
-                    $sp += (float)($m['spend'] ?? 0); $adjRev += (float)($m['adj_revenue'] ?? ($m['revenue'] ?? 0));
+                    $chSp = (float)($m['spend'] ?? 0);
+                    $sp += $chSp; $adjRev += (float)($m['adj_revenue'] ?? ($m['revenue'] ?? 0));
+                    if ($objective === 'profit') { $mg = (float)($margins['byChannel'][strtolower($ch)] ?? $margins['overall'] ?? 0.0); $mSp += $mg * max($chSp, 1.0); $mW += max($chSp, 1.0); }
                 }
                 $roas = $sp > 0 ? round($adjRev / $sp, 2) : 0.0;
+                $margin = ($objective === 'profit' && $mW > 0) ? ($mSp / $mW) : (float)($margins['overall'] ?? 0.0);
                 $items[] = ['id' => (int)$c['id'], 'name' => (string)($c['name'] ?? ('#' . $c['id'])),
-                    'budget' => $b, 'spend' => $sp, 'roas' => $roas, 'has_data' => ($sp > 0)];
+                    'budget' => $b, 'spend' => $sp, 'roas' => $roas, 'margin' => round($margin, 3), 'has_data' => ($sp > 0)];
                 $totalBudget += $b;
             }
             $withData = array_filter($items, fn($i) => $i['has_data']);
@@ -1213,7 +1223,13 @@ class AutoCampaign
             $equalShare = $totalBudget / $N;
             $floor = 0.5 * $equalShare; $cap = 2.0 * $equalShare;
             $weights = []; $sumW = 0.0;
-            foreach ($items as $i) { $w = $i['has_data'] ? max(0.1, (float)$i['roas']) : 1.0; $weights[$i['id']] = $w; $sumW += $w; }
+            foreach ($items as $i) {
+                // [270차] 이익모드=margin×adj_roas(공헌이익 효율) 가중 / 매출모드=adj_roas 가중(기존).
+                $w = $i['has_data']
+                    ? ($objective === 'profit' ? max(0.05, (float)$i['margin'] * (float)$i['roas']) : max(0.1, (float)$i['roas']))
+                    : 1.0;
+                $weights[$i['id']] = $w; $sumW += $w;
+            }
             if ($sumW <= 0) return $out;
             // 1차 타깃(진실ROAS 가중 비례) → [floor,cap] 클램프 → 재정규화(총예산 보존).
             $target = [];
@@ -1234,14 +1250,43 @@ class AutoCampaign
                     try { $pdo->prepare("UPDATE auto_campaign SET next_optimize_at=? WHERE id=? AND tenant_id=?")->execute([$now, $i['id'], $tenant]); } catch (\Throwable $e) {}
                     $pdo->prepare("INSERT INTO optimization_log(tenant_id,campaign_id,channel,action,old_alloc,new_alloc,roas,ctr,reason,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)")
                         ->execute([$tenant, $i['id'], '(포트폴리오)', 'portfolio_realloc', (int)$old, (int)$new, (string)$i['roas'], '',
-                            '포트폴리오 재배분: 진실 ROAS ' . $i['roas'] . '× 기준 캠페인 간 총예산 효율 재분배 (₩' . number_format((int)$old) . ' → ₩' . number_format((int)$new) . ')', $now]);
+                            ($objective === 'profit'
+                                ? '포트폴리오 재배분[이익모드]: 공헌마진 ' . round($i['margin'] * 100) . '% × 진실ROAS ' . $i['roas'] . '× = 이익효율 기준 재분배'
+                                : '포트폴리오 재배분: 진실 ROAS ' . $i['roas'] . '× 기준 캠페인 간 총예산 효율 재분배')
+                            . ' (₩' . number_format((int)$old) . ' → ₩' . number_format((int)$new) . ')', $now]);
                     $out['reallocated']++; $moved += abs($new - $old);
                     $out['detail'][] = ['campaign_id' => $i['id'], 'name' => $i['name'], 'old' => (int)$old, 'new' => (int)$new, 'roas' => $i['roas']];
                 } catch (\Throwable $e) {}
             }
             $out['moved'] = round($moved);
+            $out['objective'] = $objective;
         } catch (\Throwable $e) {}
         return $out;
+    }
+
+    /** GET /v423/auto-campaign/objective — 자율 최적화 목표(revenue|profit) 조회. */
+    public static function getObjective(Request $req, Response $res): Response
+    {
+        $tenant = self::tenant($req);
+        if ($tenant === 'unknown') return self::json($res, ['ok' => false, 'error' => '로그인이 필요합니다.'], 401);
+        $pdo = Db::pdo();
+        $obj = self::getFlag($pdo, 'auto_obj:' . $tenant) === 'profit' ? 'profit' : 'revenue';
+        // 이익모드 가용성(SKU 원가 존재) 안내 — 미등록이면 프론트가 원가등록 유도.
+        $profitReady = false;
+        try { $mg = Mmm::channelMargins($pdo, $tenant, 90); $profitReady = ($mg['overall'] !== null || !empty($mg['byChannel'])); } catch (\Throwable $e) {}
+        return self::json($res, ['ok' => true, 'objective' => $obj, 'profit_ready' => $profitReady]);
+    }
+
+    /** POST /v423/auto-campaign/objective {objective:revenue|profit} — 목표 설정. */
+    public static function setObjective(Request $req, Response $res): Response
+    {
+        $tenant = self::tenant($req);
+        if ($tenant === 'unknown') return self::json($res, ['ok' => false, 'error' => '로그인이 필요합니다.'], 401);
+        $pdo = Db::pdo();
+        $b = (array)$req->getParsedBody();
+        $obj = strtolower((string)($b['objective'] ?? '')) === 'profit' ? 'profit' : 'revenue';
+        self::setFlag($pdo, 'auto_obj:' . $tenant, $obj);
+        return self::json($res, ['ok' => true, 'objective' => $obj]);
     }
 
     /** CLI(cron) — 전체 테넌트 active 캠페인 자동 최적화. 반환: 최적화된 캠페인 수.
