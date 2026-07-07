@@ -80,10 +80,12 @@ class KakaoChannel
         if ($err = UserAuth::requirePro($req, $res)) return $err;
         self::ensureTables();
         $tenant = self::tenant($req);
-        $st = self::db()->prepare("SELECT id, sender_key, channel_id, channel_name, mode, updated_at FROM kakao_settings WHERE tenant_id=? ORDER BY id DESC LIMIT 1");
+        // [270차 수정] api_key 도 SELECT+복호화 반환(sender_key 와 일관) — 과거 미반환→재진입 공란→재저장시 '' 덮어써 API키 파괴.
+        $st = self::db()->prepare("SELECT id, sender_key, api_key, channel_id, channel_name, mode, updated_at FROM kakao_settings WHERE tenant_id=? ORDER BY id DESC LIMIT 1");
         $st->execute([$tenant]);
         $row = $st->fetch(\PDO::FETCH_ASSOC);
         if ($row && !empty($row['sender_key'])) $row['sender_key'] = \Genie\Crypto::decrypt((string)$row['sender_key']); // 209차 P1: secret-at-rest(소유자 본인 표시)
+        if ($row && !empty($row['api_key'])) $row['api_key'] = \Genie\Crypto::decrypt((string)$row['api_key']);
         return self::jsonRes($res, ['ok'=>true,'settings'=>$row ?: null]);
     }
 
@@ -99,8 +101,9 @@ class KakaoChannel
         $exists = $ex->fetch();
         $now = self::now();
         if ($exists) {
-            $pdo->prepare("UPDATE kakao_settings SET sender_key=:sk, api_key=:ak, channel_id=:ci, channel_name=:cn, mode=:m, updated_at=:ua WHERE id=:id AND tenant_id=:t")->execute([
-                ':id'=>$exists['id'], ':t'=>$tenant, ':sk'=>(($b['sender_key']??'')==='' ? '' : \Genie\Crypto::encrypt($b['sender_key'])), ':ak'=>(($b['api_key']??'')==='' ? '' : \Genie\Crypto::encrypt($b['api_key'])), // 209차 P1: secret-at-rest
+            // [270차 수정] 빈 입력 시 기존 시크릿 보존(COALESCE) — 과거 빈값 '' 덮어쓰기로 sender_key/api_key 파괴.
+            $pdo->prepare("UPDATE kakao_settings SET sender_key=COALESCE(:sk, sender_key), api_key=COALESCE(:ak, api_key), channel_id=:ci, channel_name=:cn, mode=:m, updated_at=:ua WHERE id=:id AND tenant_id=:t")->execute([
+                ':id'=>$exists['id'], ':t'=>$tenant, ':sk'=>(($b['sender_key']??'')==='' ? null : \Genie\Crypto::encrypt($b['sender_key'])), ':ak'=>(($b['api_key']??'')==='' ? null : \Genie\Crypto::encrypt($b['api_key'])), // 209차 P1: secret-at-rest
                 ':ci'=>$b['channel_id']??'', ':cn'=>$b['channel_name']??'', ':m'=>$b['mode']??'mock', ':ua'=>$now,
             ]);
         } else {

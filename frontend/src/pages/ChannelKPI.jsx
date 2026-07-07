@@ -925,8 +925,8 @@ export default function ChannelKPI() {
                                 </span>
                             </div>
                             <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
-                                <button onClick={() => navigate('/pnl-dashboard')} style={{ padding: '4px 12px', borderRadius: 8, border: '1px solid rgba(100,116,139,0.2)', background: 'transparent', color: '#64748b', fontSize: 10, cursor: 'pointer' }}>🌊 P&L →</button>
-                                <button onClick={() => navigate('/budget-planner')} style={{ padding: '4px 12px', borderRadius: 8, border: '1px solid rgba(100,116,139,0.2)', background: 'transparent', color: '#64748b', fontSize: 10, cursor: 'pointer' }}>💰 Budget →</button>
+                                <button onClick={() => navigate('/pnl')} style={{ padding: '4px 12px', borderRadius: 8, border: '1px solid rgba(100,116,139,0.2)', background: 'transparent', color: '#64748b', fontSize: 10, cursor: 'pointer' }}>🌊 P&L →</button>
+                                <button onClick={() => navigate('/budget-tracker')} style={{ padding: '4px 12px', borderRadius: 8, border: '1px solid rgba(100,116,139,0.2)', background: 'transparent', color: '#64748b', fontSize: 10, cursor: 'pointer' }}>💰 Budget →</button>
                                 <button onClick={() => navigate('/omni-channel')} style={{ padding: '4px 12px', borderRadius: 8, border: '1px solid rgba(100,116,139,0.2)', background: 'transparent', color: '#64748b', fontSize: 10, cursor: 'pointer' }}>📡 Channel Orders →</button>
                             </div>
                         </div>

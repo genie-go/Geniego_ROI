@@ -144,10 +144,12 @@ function CustomerPanel({ customer, onClose, onSendEmail, onSendKakao, onDelete, 
   if (!customer) return null;
   const grade = getRfmGrade(t)[customer.grade] || getRfmGrade(t).normal;
   // 링크된 연락처 행 수(다중 email/phone/kakao 병합 결과) — 응답 필드 방어적 파싱
-  const idLinked = identity ? (Array.isArray(identity.contacts) ? identity.contacts : Array.isArray(identity.linked_contacts) ? identity.linked_contacts : []) : [];
-  const idLinkedCount = identity ? (idLinked.length || Number(identity.linked_count ?? identity.linked ?? 0)) : 0;
-  const idLtv = identity ? Number(identity.ltv ?? identity.total_ltv ?? identity.monetary ?? 0) : 0;
-  const idFreq = identity ? Number(identity.frequency ?? identity.purchase_count ?? 0) : 0;
+  // [270차 수정] 핸들러 identityView 는 {members, member_count, aggregate:{ltv,frequency}} 네스팅 반환.
+  //   과거 flat 키(contacts/linked_count/ltv/frequency) 소비로 병합고객 상세가 항상 0명·₩0·0회 은폐.
+  const idLinked = identity ? (Array.isArray(identity.members) ? identity.members : []) : [];
+  const idLinkedCount = identity ? (Number(identity.member_count ?? idLinked.length) || 0) : 0;
+  const idLtv = identity ? Number(identity.aggregate?.ltv ?? 0) : 0;
+  const idFreq = identity ? Number(identity.aggregate?.frequency ?? 0) : 0;
   const acts = crmCustomerHistory[customer.id] || [];
   // [257차] 360 전체 활동 타임라인 — 활동 유형별 아이콘/라벨(구매 외 전 접점).
   const actMeta = (type) => {
@@ -1256,7 +1258,8 @@ function CRMContent() {
   useEffect(() => {
     try {
       bcRef.current = new BroadcastChannel(tChannelName('geniego_crm'));
-      bcRef.current.onmessage = (ev) => { if (ev.data?.type === 'CRM_REFRESH') {} };
+      // [270차 수정] 과거 빈 본문 → 크로스탭 CRM_REFRESH 수신해도 no-op(타 탭 미갱신). 운영 리로드 배선.
+      bcRef.current.onmessage = (ev) => { if (ev.data?.type === 'CRM_REFRESH' && !IS_DEMO) { reloadOpCustomers(); reloadOpSegments(); reloadOpRfm(); } };
     } catch {}
     return () => { try { bcRef.current?.close(); } catch {} };
   }, []);
@@ -1441,7 +1444,7 @@ function CRMContent() {
             <div style={{ fontSize: 13, color: '#475569', marginTop: 4 }}>{t('crm.pageSub')}</div>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={broadcastRefresh} style={{ padding: '8px 14px', borderRadius: 8, border: `1px solid ${C.border}`, background: 'transparent', color: C.muted, fontWeight: 700, fontSize: 11, cursor: 'pointer' }}>🔄 {t('crm.syncNow')}</button>
+            <button onClick={() => { broadcastRefresh(); if (!IS_DEMO) { reloadOpCustomers(); reloadOpSegments(); reloadOpRfm(); } }} style={{ padding: '8px 14px', borderRadius: 8, border: `1px solid ${C.border}`, background: 'transparent', color: C.muted, fontWeight: 700, fontSize: 11, cursor: 'pointer' }}>🔄 {t('crm.syncNow')}</button>
           </div>
         </div>
       </div>

@@ -457,6 +457,17 @@ final class Pnl
         $outputVat = round($outputVat);
         $netVat = $outputVat - $inputVat; // 납부(+)/환급(-) 세액
 
+        // [270차 수정] 월별표 매입/납부세액 프로라타 분배 — 과거 monthly 는 output_vat 만 반환해
+        //   프론트 월별표가 매입=0·납부=매출세액(과대납부 오인)이었다. 집계 input_vat 를 월별 매출세액 비중으로 안분.
+        $totOutForShare = array_sum(array_column($monthly, 'output_vat'));
+        foreach ($monthly as &$_m) {
+            $share = $totOutForShare > 0 ? ((float)$_m['output_vat'] / $totOutForShare) : 0;
+            $mIn = round($inputVat * $share);
+            $_m['input_vat'] = $mIn;
+            $_m['net_vat_payable'] = round((float)$_m['output_vat']) - $mIn;
+        }
+        unset($_m);
+
         $taxablePeriod = self::taxablePeriodLabel($from);
 
         // Paddle MoR 납부뷰 — GenieGo 자체 구독매출(Paddle=MoR)의 부가세는 Paddle 이 징수·대납.

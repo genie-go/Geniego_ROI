@@ -366,12 +366,14 @@ final class GraphScore {
         foreach ($skuEdges->fetchAll(PDO::FETCH_ASSOC) as $se) {
             $sku  = (string)$se['sku'];
             $sw   = (float)$se['edge_weight'];
+            $skuBefore = count($chains); // [270차 수정] 지역 판정 — 과거 전역 empty($chains)라 2번째+ SKU 폴백체인 누락→confidence 과소.
 
             $creEdges = $pdo->prepare('SELECT src_id AS creative_id, edge_weight FROM graph_edge WHERE tenant_id=? AND dst_type=\'sku\' AND dst_id=? AND src_type=\'creative\'');
             $creEdges->execute([$tenant, $sku]);
             foreach ($creEdges->fetchAll(PDO::FETCH_ASSOC) as $ce) {
                 $cid = (string)$ce['creative_id'];
                 $cw  = $sw * (float)$ce['edge_weight'];
+                $creBefore = count($chains);
 
                 $infEdges = $pdo->prepare('SELECT src_id AS inf_id, edge_weight FROM graph_edge WHERE tenant_id=? AND dst_type=\'creative\' AND dst_id=? AND src_type=\'influencer\'');
                 $infEdges->execute([$tenant, $cid]);
@@ -380,11 +382,11 @@ final class GraphScore {
                     $iw  = $cw * (float)$ie['edge_weight'];
                     $chains[] = ['influencer' => $iid, 'creative' => $cid, 'sku' => $sku, 'order' => $orderId, 'chain_weight' => round($iw, 4)];
                 }
-                if (empty($chains)) {
+                if (count($chains) === $creBefore) {
                     $chains[] = ['influencer' => null, 'creative' => $cid, 'sku' => $sku, 'order' => $orderId, 'chain_weight' => round($cw, 4)];
                 }
             }
-            if (empty($chains)) {
+            if (count($chains) === $skuBefore) {
                 $chains[] = ['influencer' => null, 'creative' => null, 'sku' => $sku, 'order' => $orderId, 'chain_weight' => round($sw, 4)];
             }
         }

@@ -830,7 +830,7 @@ final class UserAdmin
         try {
             $total = (int)$pdo->query("SELECT COUNT(*) FROM paddle_subscriptions")->fetchColumn();
             $subs  = $pdo->prepare("
-                SELECT ps.*, u.name AS user_name
+                SELECT ps.*, ps.current_period_end AS next_bill_date, u.name AS user_name
                   FROM paddle_subscriptions ps
                   LEFT JOIN app_user u ON u.email = ps.user_email
                  ORDER BY ps.created_at DESC

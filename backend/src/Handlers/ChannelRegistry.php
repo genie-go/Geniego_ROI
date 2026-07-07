@@ -144,6 +144,11 @@ class ChannelRegistry
             ['shopee','Shopee','sales','🟠','#ee4d2d','commerce',[$ftext('partner_id','Partner ID',false),$ftext('partner_key','Partner Key'),$ftext('shop_id','Shop ID',false)]],
             ['lazada','Lazada','sales','🔵','#0f146d','commerce',[$ftext('app_key','App Key',false),$ftext('app_secret','App Secret'),$ftext('access_token','액세스 토큰')]],
             ['qoo10','Qoo10','sales','🐧','#ff5e00','commerce',[$ftext('api_key','API 키'),$ftext('seller_id','Seller ID',false)]],
+            // [270차 ENHANCE] 실 fetch/write 어댑터 보유(COMMERCE_CHANNELS)인데 레지스트리 시드 누락→admin 채널관리 UI 미노출이던 4종 top-up.
+            ['magento','Magento','sales','🧱','#ee672f','commerce',[$ftext('base_url','상점 URL',false),$ftext('access_token','Admin API 토큰')]],
+            ['walmart','Walmart','sales','🔵','#0071dc','commerce',[$ftext('client_id','Client ID',false),$ftext('client_secret','Client Secret')]],
+            ['etsy','Etsy','sales','🧶','#f45800','commerce',[$ftext('api_key','API 키'),$ftext('shop_id','Shop ID',false),$ftext('oauth_token','OAuth 토큰')]],
+            ['godomall','고도몰','sales','🏬','#2e6ff2','commerce',[$ftext('partner_key','파트너 키'),$ftext('api_key','API 키'),$ftext('mall_url','몰 URL',false)]],
             // ── 메시징 ──
             ['kakao','Kakao 알림톡','messaging','💛','#fee500','messaging',[$ftext('sender_key','발신프로필 키'),$ftext('api_key','API 키')]],
             ['line','LINE','messaging','💚','#06c755','messaging',[$ftext('channel_secret','Channel Secret'),$ftext('access_token','액세스 토큰')]],

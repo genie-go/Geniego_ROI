@@ -729,6 +729,19 @@ class PriceOpt
         $db = self::db(); $t = self::tenant($request); $body = self::body($request);
         $budget = (float)($body['total_budget'] ?? 1000000);
         $channels = $body['channels'] ?? [];
+        // [270차 수정] 프론트가 channels 미전송 시(현행) → 항상 빈 결과였다. 실 채널 ROI(performance_metrics 최근30일
+        //   revenue/spend)에서 서버측 자동 파생해 시뮬레이터가 실데이터로 동작. 데이터 부재 시 빈 결과(정직).
+        if (empty($channels)) {
+            try {
+                $main = \Genie\Db::pdo();
+                $q = $main->prepare("SELECT channel, SUM(spend) s, SUM(revenue) r FROM performance_metrics WHERE tenant_id=? AND date >= ? GROUP BY channel HAVING SUM(spend) > 0");
+                $q->execute([$t, gmdate('Y-m-d', time() - 30 * 86400)]);
+                foreach ($q->fetchAll(\PDO::FETCH_ASSOC) as $row) {
+                    $roi = (float)$row['s'] > 0 ? (float)$row['r'] / (float)$row['s'] : 0;
+                    if ($roi > 0) $channels[] = ['channel' => (string)$row['channel'], 'roi_per_won' => round($roi, 4), 'min_pct' => 0, 'max_pct' => 1];
+                }
+            } catch (\Throwable $e) {}
+        }
         $totalRoi = array_sum(array_column($channels, 'roi_per_won'));
         $alloc = []; $allocated = 0;
         foreach ($channels as $ch) {

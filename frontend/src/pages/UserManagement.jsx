@@ -639,7 +639,7 @@ function AuditTab() {
                         {logs.map((l, i) => (
                             <tr key={i}>
                                 <td style={css.td}><span style={{ fontSize: 10, color: 'var(--text-3)' }}>{l.created_at?.slice(0, 16)}</span></td>
-                                <td style={css.td}><span style={{ fontSize: 10, color: "var(--text-3)" }}>{l.event_id}</span></td>
+                                <td style={css.td}><span style={{ fontSize: 10, color: "var(--text-3)" }}>{l.ref_id || l.event_id || '—'}</span></td>
                                 <td style={css.td}><span style={{ fontSize: 11, fontWeight: 700, color: "#4f8ef7" }}>{l.action}</span></td>
                                 <td style={css.td}><span style={{ fontSize: 11, color: 'var(--text-2)' }}>{l.detail}</span></td>
                             </tr>

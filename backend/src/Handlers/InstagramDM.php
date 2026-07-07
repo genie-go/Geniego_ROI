@@ -209,6 +209,20 @@ final class InstagramDM
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         if (empty($rows) && $plan === 'demo') $rows = self::demoConversations();
+        // [270차 수정] 스레드별 메시지 배열 동봉 — 프론트 selectedConv.messages({id,mine,text,time}) 소비.
+        //   과거 스레드 집계행만 반환하고 messages 미동봉→대화 클릭 시 우측 스레드 패널 항상 공백이었다.
+        $tids = array_values(array_filter(array_map(fn($r) => (string)($r['thread_id'] ?? ''), $rows)));
+        $msgMap = [];
+        if ($tids) {
+            try {
+                $ph = implode(',', array_fill(0, count($tids), '?'));
+                $mq = $pdo->prepare("SELECT id, thread_id, direction, message, created_at FROM instagram_messages WHERE tenant_id=? AND thread_id IN ($ph) ORDER BY created_at ASC");
+                $mq->execute(array_merge([$tenant], $tids));
+                foreach ($mq->fetchAll(PDO::FETCH_ASSOC) as $mm) {
+                    $msgMap[(string)$mm['thread_id']][] = ['id' => (string)$mm['id'], 'mine' => ((string)($mm['direction'] ?? '') === 'outbound'), 'text' => (string)($mm['message'] ?? ''), 'time' => (string)($mm['created_at'] ?? '')];
+                }
+            } catch (\Throwable $e) {}
+        }
         // [266차 계약불일치] 프론트 소비키 매핑 — 특히 c.id 미정의 시 selectedConv?.id===c.id 가 전행 매칭돼
         //   대화 하나 클릭 시 전체 선택/읽음처리되던 기능버그 근본수정. time/platform/status/avatar 도 채움.
         foreach ($rows as &$rr) {
@@ -217,6 +231,7 @@ final class InstagramDM
             $rr['platform'] = (string)($rr['platform'] ?? 'instagram');
             $rr['status']   = (string)($rr['status'] ?? 'read');
             $rr['avatar']   = (string)($rr['avatar'] ?? '');
+            $rr['messages'] = $msgMap[(string)($rr['thread_id'] ?? '')] ?? ($rr['messages'] ?? []);
         }
         unset($rr);
         return TemplateResponder::respond($res, ['ok' => true, 'conversations' => $rows]);
@@ -426,7 +441,9 @@ final class InstagramDM
                 }
             }
             arsort($freq);
-            foreach (array_slice($freq, 0, 5, true) as $word => $cnt) $kw[] = ['word' => $word, 'count' => $cnt];
+            // [270차 수정] 프론트 소비키 정합(k/cnt/pct) — 과거 word/count 반환+pct 부재로 TOP5 막대 undefined·폭0.
+            $vals = array_values($freq); $max = $vals[0] ?? 1;
+            foreach (array_slice($freq, 0, 5, true) as $word => $cnt) $kw[] = ['k' => $word, 'cnt' => $cnt, 'pct' => $max > 0 ? (int)round($cnt / $max * 100) : 0];
         } catch (\Throwable $e) {}
         $stats['keywords'] = $kw;
         return $stats;

@@ -230,7 +230,7 @@ class ReturnsPortal
                 // [266차 잔여] 원주문에서 채널+월 1회 도출 — 반품레코드 채널이 비면 주문 채널 사용.
                 //   기존엔 채널 없는 수동반품이 claim channel=NULL 로 적재돼 rollupSettlementsCore 의
                 //   claims JOIN(o.channel=c.channel) 에 미매칭→returnFee 가 정산에 미귀속(누락)이었다.
-                $po = $mdb->prepare("SELECT channel, SUBSTR(ordered_at,1,7) AS ym FROM channel_orders WHERE tenant_id=? AND (channel_order_id=? OR order_no=?) LIMIT 1");
+                $po = $mdb->prepare("SELECT channel, buyer_email, buyer_name, SUBSTR(ordered_at,1,7) AS ym FROM channel_orders WHERE tenant_id=? AND (channel_order_id=? OR order_no=?) LIMIT 1");
                 $po->execute([$t, $oid, $oid]);
                 $orow = $po->fetch(\PDO::FETCH_ASSOC) ?: [];
                 if ($ch === '') $ch = (string)($orow['channel'] ?? '');
@@ -243,6 +243,10 @@ class ReturnsPortal
                     $mdb->prepare("INSERT INTO orderhub_claims(id,tenant_id,order_id,buyer,channel,type,reason,status,amount,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)")
                         ->execute([$cid, $t, $oid, null, $ch !== '' ? $ch : null, 'return', null, 'accepted', $fee, $nowc, $nowc]);
                 }
+                // [270차 수정] CRM LTV 역분개 — 정산/재고와 달리 CRM 순액화가 누락돼 있었다(4개 수동경로 중 유일 비대칭).
+                //   원구매는 recordCrmPurchase 로 ltv 증분됐으나 포탈 반품은 crm_activities(refund) 미기입→LTV/RFM/예측CLV/VIP 과대.
+                //   crmRefundForOrder 는 order_id 멱등(채널 origin 반품과 중복 시에도 안전). 268 OrderHub 수동경로 대칭.
+                \Genie\Handlers\ChannelSync::crmRefundForOrder($mdb, $t, $ch, ($orow['buyer_email'] ?? null), ($orow['buyer_name'] ?? null), (float)($cur['refund_amt'] ?? 0), $oid);
                 // 원주문 월 재롤업(늦은 반품이 판매월 정산에 정확 반영) — ingestClaims(OrderHub:899) 패턴.
                 $pm = (string)($orow['ym'] ?? '');
                 if (!preg_match('/^\d{4}-\d{2}$/', $pm)) $pm = gmdate('Y-m');

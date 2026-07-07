@@ -1786,18 +1786,8 @@ export default function PriceOpt() {
     const { inventory, digitalShelfData, priceCalendar, addPriceCalendarEvent, addAlert } = useGlobalData();
     const { connectedChannels, connectedCount } = useConnectorSync();
 
-    /* ── BroadcastChannel: Listen for price & promo updates from other tabs ── */
-    useEffect(() => {
-        const bc = new BroadcastChannel(tChannelName('genie_price_opt_sync'));
-        bc.onmessage = (e) => {
-            if (e.data?.source === 'priceOpt') return;
-            if (e.data?.type === 'PRICE_UPDATE' || e.data?.type === 'PROMO_UPDATE') {
-                /* Force re-render on cross-tab price/promo changes */
-                setTab(prev => prev);
-            }
-        };
-        return () => bc.close();
-    }, []);
+    /* [270차 정리] genie_price_opt_sync 수신자 제거 — 발신자 부재(전 코드베이스 0)로 영원히 미발화하던 死코드.
+       크로스탭 가격/상품 갱신은 이미 genie_product_sync(PRODUCT_UPDATE) 수신으로 커버됨(중복). */
 
     /* ── BroadcastChannel: Listen for connector hub changes ── */
     useEffect(() => {

@@ -107,6 +107,7 @@ class CustomerAI
         $stmt = $pdo->prepare("
             SELECT c.id, c.email, c.name, c.grade, c.ltv, c.rfm_score,
                    COALESCE(a.last_purchase_date, c.created_at) AS last_purchase_date,
+                   COALESCE(a.first_purchase_date, c.created_at) AS first_purchase_date,
                    COALESCE(a.purchase_count, 0) AS purchase_count,
                    COALESCE(a.total_amount, 0) AS total_amount,
                    COALESCE(a.avg_order_value, 0) AS avg_order_value
@@ -115,6 +116,7 @@ class CustomerAI
                 -- [263차] 취소/반품 순액 반영: 총액은 refund 차감, 건수/AOV/최근구매는 purchase 만(refund 는 음의 매출)
                 SELECT customer_id,
                        MAX(CASE WHEN type='purchase' THEN created_at END) AS last_purchase_date,
+                       MIN(CASE WHEN type='purchase' THEN created_at END) AS first_purchase_date,
                        SUM(CASE WHEN type='purchase' THEN 1 ELSE 0 END) AS purchase_count,
                        SUM(CASE WHEN type='refund' THEN -amount ELSE amount END) AS total_amount,
                        AVG(CASE WHEN type='purchase' THEN amount END) AS avg_order_value
@@ -162,7 +164,9 @@ class CustomerAI
             // LTV 예측
             $avgCycle = $purchaseCount > 1 ? ($daysSincePurchase / $purchaseCount) : 90;
             $lifespan = max(6, min(36, (int)round(12 / max(1, $avgCycle / 30))));
-            $monthlyRev = $purchaseCount > 0 ? ($totalAmount / max(1, $daysSincePurchase / 30)) : 0;
+            // [270차 수정] 월매출 분모=tenure(첫구매~현재), 과거 recency(마지막구매 이후일) 오용으로 최근구매 고객 LTV 12배+ 과대.
+            $tenureDays = $c['first_purchase_date'] ? max(1, ($now - strtotime($c['first_purchase_date'])) / 86400) : 30;
+            $monthlyRev = $purchaseCount > 0 ? ($totalAmount / max(1, $tenureDays / 30)) : 0;
 
             $result[] = [
                 'id'                  => $c['id'],

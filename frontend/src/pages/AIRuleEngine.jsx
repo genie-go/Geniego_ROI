@@ -85,7 +85,7 @@ export default function AIRuleEngine() {
     } catch (e) { setMsg(String(e?.message || e)); } finally { setBusy(false); }
   };
   const dpDelete = async (id) => { if (!window.confirm(tr('dpDelConfirm', '이 스케줄을 삭제하시겠습니까?'))) return; try { await requestJsonAuth(`/v424/rules/dayparts/${id}`, 'DELETE'); if (dpForm.id === id) dpReset(); await load(); } catch (e) { alert(String(e?.message || e)); } };
-  const dpRun = async () => { setBusy(true); try { const r = await postJsonAuth('/v424/rules/dayparts/run', {}); setMsg(tr('dpRan', '데이파팅 적용 완료') + (r?.paused != null ? ` — ${tr('dpPaused', '정지')} ${r.paused} · ${tr('dpResumed', '재개')} ${r?.resumed ?? 0}` : '')); await load(); } catch (e) { setMsg(String(e?.message || e)); } finally { setBusy(false); } };
+  const dpRun = async () => { setBusy(true); try { const r = await postJsonAuth('/v424/rules/dayparts/run', {}); const dpP = r?.daypart_paused ?? r?.paused; setMsg(tr('dpRan', '데이파팅 적용 완료') + (dpP != null ? ` — ${tr('dpPaused', '정지')} ${dpP} · ${tr('dpResumed', '재개')} ${r?.daypart_resumed ?? r?.resumed ?? 0}` : '')); await load(); } catch (e) { setMsg(String(e?.message || e)); } finally { setBusy(false); } };
   const dpSummary = (dh) => { if (!dh || typeof dh !== 'object') return '—'; const days = Object.keys(dh).length; const hours = Object.values(dh).reduce((s, a) => s + (Array.isArray(a) ? a.length : 0), 0); return `${days}${tr('dpDays', '일')} · ${hours}${tr('dpHours', '시간')}`; };
 
   // ── per-user 크로스채널 빈도캡 ────────────────────────────────────────

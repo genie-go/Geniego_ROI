@@ -2809,7 +2809,7 @@ export default function WmsManager() {
                         </div>
                         <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
                             <button onClick={() => navigate('/omni-channel')} style={{ padding: "5px 12px", borderRadius: 8, border: "1px solid rgba(99,140,255,0.2)", background: "transparent", color: "#6b7280", fontSize: 10, cursor: "pointer" }}>{t("wms.wmsBtnSalesChannel")}</button>
-                            <button onClick={() => navigate('/budget-planner')} style={{ padding: "5px 12px", borderRadius: 8, border: "1px solid rgba(99,140,255,0.2)", background: "transparent", color: "#6b7280", fontSize: 10, cursor: "pointer" }}>{t("wms.wmsBtnBudget")}</button>
+                            <button onClick={() => navigate('/budget-tracker')} style={{ padding: "5px 12px", borderRadius: 8, border: "1px solid rgba(99,140,255,0.2)", background: "transparent", color: "#6b7280", fontSize: 10, cursor: "pointer" }}>{t("wms.wmsBtnBudget")}</button>
                         </div>
                     </div>
                     <div style={{ textAlign: "right" }}>

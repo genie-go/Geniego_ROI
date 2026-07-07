@@ -1103,8 +1103,8 @@ export default function PnLDashboard() {
                     )}
                 </div>
                 <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
-                    <button onClick={() => navigate('/budget-planner')} style={{ padding: '4px 12px', borderRadius: 8, border: '1px solid rgba(99,140,255,0.2)', background: 'transparent', color: 'var(--text-3)', fontSize: 10, cursor: 'pointer' }}>💰 {t('pnl.linkBudget')}</button>
-                    <button onClick={() => navigate('/wms')} style={{ padding: '4px 12px', borderRadius: 8, border: '1px solid rgba(99,140,255,0.2)', background: 'transparent', color: 'var(--text-3)', fontSize: 10, cursor: 'pointer' }}>🏭 {t('pnl.linkInventory')}</button>
+                    <button onClick={() => navigate('/budget-tracker')} style={{ padding: '4px 12px', borderRadius: 8, border: '1px solid rgba(99,140,255,0.2)', background: 'transparent', color: 'var(--text-3)', fontSize: 10, cursor: 'pointer' }}>💰 {t('pnl.linkBudget')}</button>
+                    <button onClick={() => navigate('/wms-manager')} style={{ padding: '4px 12px', borderRadius: 8, border: '1px solid rgba(99,140,255,0.2)', background: 'transparent', color: 'var(--text-3)', fontSize: 10, cursor: 'pointer' }}>🏭 {t('pnl.linkInventory')}</button>
                     <button onClick={() => navigate('/kr-channel')} style={{ padding: '4px 12px', borderRadius: 8, border: '1px solid rgba(99,140,255,0.2)', background: 'transparent', color: 'var(--text-3)', fontSize: 10, cursor: 'pointer' }}>⚖️ {t('pnl.linkRecon')}</button>
                 </div>
             </div>

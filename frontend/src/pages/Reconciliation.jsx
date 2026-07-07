@@ -520,7 +520,7 @@ export default function Reconciliation() {
           <div style={{ padding: '8px 16px', borderRadius: 10, background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.2)', fontSize: 12 }}>
             🏪 <strong style={{ color: '#c084fc' }}>{t('recon.platformCommission')}</strong> {fmtC(settlementStats.totalPlatformFee)}
           </div>
-          <button onClick={() => navigate('/pnl-dashboard')} style={{ padding: '8px 16px', borderRadius: 10, border: '1px solid rgba(79,142,247,0.3)', background: 'rgba(79,142,247,0.08)', color: '#60a5fa', fontSize: 12, cursor: 'pointer', fontWeight: 700 }}>
+          <button onClick={() => navigate('/pnl')} style={{ padding: '8px 16px', borderRadius: 10, border: '1px solid rgba(79,142,247,0.3)', background: 'rgba(79,142,247,0.08)', color: '#60a5fa', fontSize: 12, cursor: 'pointer', fontWeight: 700 }}>
             {t('recon.viewPnl')}
           </button>
         </div>

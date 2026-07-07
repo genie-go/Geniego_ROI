@@ -42,6 +42,8 @@ final class AutoRecommend
         'naver'       => ['label' => 'Naver SA',  'cpm' => 7000,  'ctr' => 2.50, 'cvr' => 3.0, 'roas' => 3.8, 'minBudget' => 100000, 'connectorKey' => 'naver_sa'],
         'kakao'       => ['label' => 'Kakao',     'cpm' => 6000,  'ctr' => 1.00, 'cvr' => 2.2, 'roas' => 3.0, 'minBudget' => 100000, 'connectorKey' => 'kakao_moment'],
         'coupang_ads' => ['label' => 'Coupang',   'cpm' => 9000,  'ctr' => 1.50, 'cvr' => 4.0, 'roas' => 4.5, 'minBudget' => 50000,  'connectorKey' => 'coupang'],
+        // [270차 ENHANCE] LINE Ads 벤치 추가 — AdAdapters 는 line 실집행 완비인데 추천엔진에 부재해 LINE 예산 제안 불가였다(추천↔집행 대칭).
+        'line'        => ['label' => 'LINE',      'cpm' => 6500,  'ctr' => 0.95, 'cvr' => 2.0, 'roas' => 2.9, 'minBudget' => 100000, 'connectorKey' => 'line_ads'],
     ];
 
     /** 카테고리 → 채널 적합도 가중(업계 관행). 미정의 카테고리는 DEFAULT. */
@@ -484,7 +486,7 @@ final class AutoRecommend
     /** [현 차수] 선택 카테고리들의 채널 적합도를 평균 블렌딩. 빈 입력은 DEFAULT(균일). */
     private static function blendAffinity(array $categories): array
     {
-        $chans = ['meta', 'google', 'tiktok', 'naver', 'kakao', 'coupang_ads'];
+        $chans = ['meta', 'google', 'tiktok', 'naver', 'kakao', 'coupang_ads', 'line'];
         $cats = array_values(array_filter($categories, fn($c) => $c !== '' && $c !== 'DEFAULT'));
         if (empty($cats)) return self::AFFINITY['DEFAULT'];
         $sum = array_fill_keys($chans, 0.0); $n = 0;
