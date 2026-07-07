@@ -56,7 +56,34 @@ async function translateBatch(lang, langName, entries) {
   return JSON.parse(txt);
 }
 
+// ── 사이드바 모드: sidebarI18n.js(const D={ko:{...},...}) 를 SSOT=ko 로 14국 채움·직접 재생성 ──
+async function fillSidebar() {
+  const SBFILE = path.join(ROOT, 'frontend/src/layout/sidebarI18n.js');
+  const mod = await import(url.pathToFileURL(SBFILE).href + '?t=' + Date.now());
+  const D = mod.default || {};
+  const ko = D.ko || {};
+  const TECH = /^(whatsapp|WhatsApp|CRM|WMS|SMS|DB|PG|AI|KPI|P&L|BI|SNS)/;
+  const report = [];
+  for (const [lang, langName] of Object.entries(LANGS)) {
+    if (lang === 'ko') continue;
+    D[lang] = D[lang] || {};
+    const missing = Object.keys(ko).filter(k => inScope(k) && typeof ko[k] === 'string' && (D[lang][k] === undefined || (D[lang][k] === ko[k] && !TECH.test(ko[k]))));
+    if (!missing.length) { report.push(`${lang}:0`); continue; }
+    if (!API_KEY) { report.push(`${lang}:${missing.length} missing (NO KEY)`); continue; }
+    let filled = 0;
+    for (let i = 0; i < missing.length; i += MAX_PER_BATCH) {
+      const chunk = missing.slice(i, i + MAX_PER_BATCH).map(k => [k, ko[k]]);
+      try { const res = await translateBatch(lang, langName, chunk); for (const [k] of chunk) if (typeof res[k] === 'string' && res[k].trim()) { D[lang][k] = res[k].trim(); filled++; } }
+      catch (e) { report.push(`${lang}:batch@${i} FAIL ${e.message}`); }
+    }
+    report.push(`${lang}:${missing.length}→${filled}`);
+  }
+  fs.writeFileSync(SBFILE, 'const D=' + JSON.stringify(D) + ';\nexport default D;\n', 'utf8');
+  console.error('[i18n_autofill:sidebar] ' + report.join(' | '));
+}
+
 (async () => {
+  if ((process.env.AUTOFILL_TARGET || '') === 'sidebar') { await fillSidebar(); return; }
   const ko = flatten(await loadLocale('ko'));
   const overlay = (() => { try { return JSON.parse(fs.readFileSync(OVERLAY, 'utf8')); } catch { return {}; } })();
   const report = [];
