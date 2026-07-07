@@ -648,6 +648,16 @@ return function (App $app): void {
         'GET /v419/kr/recon/reports/{id}'              => 'Genie\\Handlers\\KrChannel::getReport',
         'PATCH /v419/kr/recon/tickets/{id}'            => 'Genie\\Handlers\\KrChannel::patchTicket',
 
+        // ── v395 피드템플릿 버전관리(RulesEditorV2 실배선·270차) — 기존 아래 $register 스텁을 실핸들러로 override ──
+        'GET /v395/templates/v2/{channel}/versions'                    => 'Genie\\Handlers\\FeedTemplate::versions',
+        'GET /v395/templates/v2/{channel}/current'                     => 'Genie\\Handlers\\FeedTemplate::current',
+        'POST /v395/templates/v2/{channel}/drafts'                     => 'Genie\\Handlers\\FeedTemplate::createDraft',
+        'GET /v395/templates/v2/{channel}/drafts/{draft_id}'           => 'Genie\\Handlers\\FeedTemplate::getDraft',
+        'PUT /v395/templates/v2/{channel}/drafts/{draft_id}'           => 'Genie\\Handlers\\FeedTemplate::saveDraft',
+        'POST /v395/templates/v2/{channel}/drafts/{draft_id}/submit'   => 'Genie\\Handlers\\FeedTemplate::submitDraft',
+        'POST /v395/templates/v2/{channel}/drafts/{draft_id}/approve'  => 'Genie\\Handlers\\FeedTemplate::approveDraft',
+        'POST /v395/templates/v2/{channel}/drafts/{draft_id}/publish'  => 'Genie\\Handlers\\FeedTemplate::publishDraft',
+
 
         // ── v420 Price Optimisation ───────────────────────────────────────────
         'POST /v420/price/products'          => 'Genie\\Handlers\\PriceOpt::createProduct',

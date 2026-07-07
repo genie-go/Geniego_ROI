@@ -81,6 +81,10 @@ $app->add(function (Request $request, $handler) {
         || strpos($path, '/api/v420/price/') === 0
         || strpos($path, '/v420/channel-mix/') === 0
         || strpos($path, '/api/v420/channel-mix/') === 0
+        // [270차] 피드템플릿 버전관리(RulesEditorV2) — FeedTemplate 핸들러가 세션 self-auth(authedTenant)+테넌트격리.
+        //   프론트가 세션 토큰으로 호출 → api_key 미들웨어 401 회피(WorkspaceState/priceOpt 패턴).
+        || strpos($path, '/v395/templates/') === 0
+        || strpos($path, '/api/v395/templates/') === 0
         || strpos($path, '/v423/creds') === 0
         || strpos($path, '/api/v423/creds') === 0
         // [현 차수] 발급 신청(connectors/apply)·채널 연결테스트(connectors/{ch}/test) — ChannelCreds 핸들러가
