@@ -82,8 +82,36 @@ async function fillSidebar() {
   console.error('[i18n_autofill:sidebar] ' + report.join(' | '));
 }
 
+// ── 백엔드 모드: backend/data/backend_i18n.json({ko:{code:text},...}) 를 SSOT=ko 로 14국 채움 ──
+async function fillBackend() {
+  const BFILE = path.join(ROOT, 'backend/data/backend_i18n.json');
+  const D = (() => { try { return JSON.parse(fs.readFileSync(BFILE, 'utf8')); } catch { return { ko: {} }; } })();
+  const ko = D.ko || {};
+  const report = [];
+  for (const [lang, langName] of Object.entries(LANGS)) {
+    if (lang === 'ko') continue;
+    D[lang] = D[lang] || {};
+    const missing = Object.keys(ko).filter(k => inScope(k) && typeof ko[k] === 'string' && D[lang][k] === undefined);
+    if (!missing.length) { report.push(`${lang}:0`); continue; }
+    if (!API_KEY) { report.push(`${lang}:${missing.length} missing (NO KEY)`); continue; }
+    let filled = 0;
+    for (let i = 0; i < missing.length; i += MAX_PER_BATCH) {
+      const chunk = missing.slice(i, i + MAX_PER_BATCH).map(k => [k, ko[k]]);
+      try { const res = await translateBatch(lang, langName, chunk); for (const [k] of chunk) if (typeof res[k] === 'string' && res[k].trim()) { D[lang][k] = res[k].trim(); filled++; } }
+      catch (e) { report.push(`${lang}:batch@${i} FAIL ${e.message}`); }
+    }
+    report.push(`${lang}:${missing.length}→${filled}`);
+    try { fs.writeFileSync(BFILE, JSON.stringify(D) + '\n', 'utf8'); } catch {}
+  }
+  const sorted = {};
+  for (const l of Object.keys(D).sort()) { sorted[l] = {}; for (const k of Object.keys(D[l]).sort()) sorted[l][k] = D[l][k]; }
+  fs.writeFileSync(BFILE, JSON.stringify(sorted) + '\n', 'utf8');
+  console.error('[i18n_autofill:backend] ' + report.join(' | '));
+}
+
 (async () => {
   if ((process.env.AUTOFILL_TARGET || '') === 'sidebar') { await fillSidebar(); return; }
+  if ((process.env.AUTOFILL_TARGET || '') === 'backend') { await fillBackend(); return; }
   const ko = flatten(await loadLocale('ko'));
   const overlay = (() => { try { return JSON.parse(fs.readFileSync(OVERLAY, 'utf8')); } catch { return {}; } })();
   const report = [];

@@ -135,7 +135,7 @@ export default function MarketingMix() {
                   <span style={{ fontSize: 10.5, fontWeight: 900, color: '#fff', background: sev ? '#dc2626' : '#f59e0b', padding: '3px 8px', borderRadius: 6, whiteSpace: 'nowrap' }}>{sev ? t('mmm.sevCritical', '심각') : t('mmm.sevWarning', '경고')}</span>
                   <span style={{ fontSize: 13, fontWeight: 800, minWidth: 70 }}>{chName(a.channel)}</span>
                   <span style={{ fontSize: 12.5, color: '#334155' }}>
-                    <b>{a.metric_label}</b> {a.direction} — {a.value}{a.unit} <span style={{ color: '#94a3b8' }}>(기준 {a.expected}{a.unit}, {a.sigma}σ)</span>
+                    <b>{a.metric_label}</b> {a.direction} — {a.value}{a.unit} <span style={{ color: '#94a3b8' }}>({t('mmm.anomBaseline', '기준')} {a.expected}{a.unit}, {a.sigma}σ)</span>
                   </span>
                   <span style={{ marginLeft: 'auto', fontSize: 11, color: '#94a3b8' }}>{a.date}</span>
                   <div style={{ width: '100%', fontSize: 11.5, color: '#b45309' }}>↳ {a.action}</div>

@@ -52,15 +52,16 @@ final class AnomalyDetection
         $tenant = self::tenant($req);
         $qs = $req->getQueryParams();
         $window = max(14, min(180, (int)($qs['window'] ?? 60)));
+        $lang = \Genie\I18n::lang($req); // [270차] X-Lang 기반 서버측 현지어(이상 사유·조치·방향·라벨)
 
         if (self::isDemo($tenant)) {
-            return self::json($res, self::demoScan($window));
+            return self::json($res, self::demoScan($window, $lang));
         }
         try {
             $series = self::loadSeries(Db::pdo(), $tenant, $window);
             $anoms = [];
             foreach ($series as $ch => $rows) {
-                foreach (self::channelAnomalies($ch, $rows) as $a) $anoms[] = $a;
+                foreach (self::channelAnomalies($ch, $rows, $lang) as $a) $anoms[] = $a;
             }
             // 심각도(sigma 절대값) + 최신순 정렬
             usort($anoms, function ($a, $b) {
@@ -106,7 +107,7 @@ final class AnomalyDetection
     }
 
     /** 한 채널의 지표별 SPC 이상점 탐지. */
-    private static function channelAnomalies(string $channel, array $rows): array
+    private static function channelAnomalies(string $channel, array $rows, string $lang = 'ko'): array
     {
         $n = count($rows);
         if ($n < 10) return []; // 통계적 신뢰 최소 표본
@@ -151,51 +152,65 @@ final class AnomalyDetection
                 $isBad = ($m['bad'] === 'down' && $z < 0) || ($m['bad'] === 'up' && $z > 0);
                 $severity = $absZ >= 3.0 ? 'critical' : 'warning';
                 if (!$isBad && $severity !== 'critical') continue; // 좋은 방향 약신호는 생략
-                $dir = $z < 0 ? '하락' : '상승';
-                $reason = self::reasonText($m['label'], $dir, $isBad);
+                $dir = \Genie\I18n::t($z < 0 ? 'anom.dir.down' : 'anom.dir.up', [], $lang);
+                $mlabel = ($key === 'spend') ? \Genie\I18n::t('anom.metric.spend', [], $lang) : $m['label'];
+                $unit = ($m['unit'] === '원') ? \Genie\I18n::t('anom.unit.won', [], $lang) : $m['unit'];
+                $reason = self::reasonText($lang, $mlabel, $dir, $isBad);
                 $anoms[] = [
-                    'channel' => $channel, 'metric' => $key, 'metric_label' => $m['label'], 'unit' => $m['unit'],
+                    'channel' => $channel, 'metric' => $key, 'metric_label' => $mlabel, 'unit' => $unit,
                     'date' => $dates[$i], 'value' => round($v, 3), 'expected' => round($mean, 3),
-                    'sigma' => round($z, 2), 'direction' => $dir, 'is_bad' => $isBad,
+                    'sigma' => round($z, 2), 'direction' => $dir, 'dir_code' => ($z < 0 ? 'down' : 'up'),
+                    'is_bad' => $isBad, 'action_code' => ($isBad ? $key : 'ok'),
                     'severity' => $severity, 'severity_rank' => ($severity === 'critical' ? 2 : 1) + ($isBad ? 0.5 : 0),
-                    'reason' => $reason, 'action' => self::actionText($key, $isBad, $dir),
+                    'reason' => $reason, 'action' => self::actionText($lang, $key, $isBad),
                 ];
             }
         }
         return $anoms;
     }
 
-    private static function reasonText(string $label, string $dir, bool $isBad): string
+    private static function reasonText(string $lang, string $label, string $dir, bool $isBad): string
     {
-        $tag = $isBad ? '⚠ 악화' : '↕ 급변';
-        return "{$tag}: {$label} {$dir}(기준 대비 통계적 이탈)";
+        // [270차] X-Lang 현지어 템플릿({{label}} {{dir}} 치환). 기존 하드코딩 한글 대체.
+        return \Genie\I18n::t($isBad ? 'anom.reason.bad' : 'anom.reason.info', ['label' => $label, 'dir' => $dir], $lang);
     }
 
-    private static function actionText(string $metric, bool $isBad, string $dir): string
+    private static function actionText(string $lang, string $metric, bool $isBad): string
     {
-        if (!$isBad) return '원인 확인(이벤트·시즌성 여부) 후 기준선 재학습';
-        return match ($metric) {
-            'roas'  => 'ROAS 급락 — 소재·타겟 점검, 손실 채널 예산 회수 검토',
-            'cpa'   => 'CPA 급등 — 입찰가·타겟 과열 점검, 예산 페이싱 강화',
-            'spend' => '지출 급증 — 일예산 캡·과집행 점검(예산 한도 확인)',
-            'ctr'   => 'CTR 하락 — 크리에이티브 피로도·소재 교체 검토',
-            'cvr'   => 'CVR 하락 — 랜딩·퍼널·재고/가격 점검',
-            default => '지표 이탈 — 원인 진단 권장',
-        };
+        if (!$isBad) return \Genie\I18n::t('anom.action.ok', [], $lang);
+        $code = 'anom.action.' . $metric;
+        $v = \Genie\I18n::t($code, [], $lang);
+        return $v === $code ? \Genie\I18n::t('anom.action.default', [], $lang) : $v;
     }
 
     /* ── 데모 합성 이상 사례 ── */
-    private static function demoScan(int $window): array
+    private static function demoScan(int $window, string $lang = 'ko'): array
     {
         $today = gmdate('Y-m-d');
         $d1 = gmdate('Y-m-d', time() - 86400);
         $d2 = gmdate('Y-m-d', time() - 2 * 86400);
+        // [270차] 데모 합성 이상도 X-Lang 현지어(메트릭라벨·단위·방향·사유·조치). 프론트 렌더 그대로 15국화.
         $anoms = [
-            ['channel' => 'meta_ads', 'metric' => 'roas', 'metric_label' => 'ROAS', 'unit' => 'x', 'date' => $today, 'value' => 1.8, 'expected' => 3.4, 'sigma' => -3.6, 'direction' => '하락', 'is_bad' => true, 'severity' => 'critical', 'severity_rank' => 2.5, 'reason' => '⚠ 악화: ROAS 하락(기준 대비 통계적 이탈)', 'action' => 'ROAS 급락 — 소재·타겟 점검, 손실 채널 예산 회수 검토'],
-            ['channel' => 'google_ads', 'metric' => 'spend', 'metric_label' => '일 지출', 'unit' => '원', 'date' => $today, 'value' => 620000, 'expected' => 300000, 'sigma' => 3.1, 'direction' => '상승', 'is_bad' => true, 'severity' => 'critical', 'severity_rank' => 2.5, 'reason' => '⚠ 악화: 일 지출 상승(기준 대비 통계적 이탈)', 'action' => '지출 급증 — 일예산 캡·과집행 점검(예산 한도 확인)'],
-            ['channel' => 'tiktok_business', 'metric' => 'cpa', 'metric_label' => 'CPA', 'unit' => '원', 'date' => $d1, 'value' => 48000, 'expected' => 22000, 'sigma' => 2.7, 'direction' => '상승', 'is_bad' => true, 'severity' => 'warning', 'severity_rank' => 1.5, 'reason' => '⚠ 악화: CPA 상승(기준 대비 통계적 이탈)', 'action' => 'CPA 급등 — 입찰가·타겟 과열 점검, 예산 페이싱 강화'],
-            ['channel' => 'naver_sa', 'metric' => 'ctr', 'metric_label' => 'CTR', 'unit' => '%', 'date' => $d2, 'value' => 0.9, 'expected' => 1.7, 'sigma' => -2.3, 'direction' => '하락', 'is_bad' => true, 'severity' => 'warning', 'severity_rank' => 1.5, 'reason' => '⚠ 악화: CTR 하락(기준 대비 통계적 이탈)', 'action' => 'CTR 하락 — 크리에이티브 피로도·소재 교체 검토'],
+            self::demoAnom($lang, 'meta_ads',       'roas',  'ROAS', 'x', $today, 1.8,    3.4,    -3.6, 'critical'),
+            self::demoAnom($lang, 'google_ads',     'spend', '일 지출', '원', $today, 620000, 300000, 3.1,  'critical'),
+            self::demoAnom($lang, 'tiktok_business', 'cpa',  'CPA', '원', $d1,    48000,  22000,  2.7,  'warning'),
+            self::demoAnom($lang, 'naver_sa',       'ctr',   'CTR', '%', $d2,    0.9,    1.7,    -2.3, 'warning'),
         ];
-        return ['ok' => true, 'demo' => true, 'window_days' => $window, 'anomalies' => $anoms, 'summary' => ['total' => 4, 'critical' => 2, 'warning' => 2], 'data_driven' => true, 'note' => '데모 합성 이상 사례(체험용)'];
+        return ['ok' => true, 'demo' => true, 'window_days' => $window, 'anomalies' => $anoms, 'summary' => ['total' => 4, 'critical' => 2, 'warning' => 2], 'data_driven' => true, 'note' => \Genie\I18n::t('anom.demoNote', [], $lang)];
+    }
+
+    /** 데모 합성 이상 1건 — 현지어 라벨/단위/방향/사유/조치로 조립. */
+    private static function demoAnom(string $lang, string $channel, string $metric, string $labelKo, string $unitKo, string $date, $value, $expected, float $sigma, string $severity): array
+    {
+        $mlabel = ($metric === 'spend') ? \Genie\I18n::t('anom.metric.spend', [], $lang) : $labelKo;
+        $unit   = ($unitKo === '원') ? \Genie\I18n::t('anom.unit.won', [], $lang) : $unitKo;
+        $dir    = \Genie\I18n::t($sigma < 0 ? 'anom.dir.down' : 'anom.dir.up', [], $lang);
+        return [
+            'channel' => $channel, 'metric' => $metric, 'metric_label' => $mlabel, 'unit' => $unit,
+            'date' => $date, 'value' => $value, 'expected' => $expected, 'sigma' => $sigma,
+            'direction' => $dir, 'dir_code' => ($sigma < 0 ? 'down' : 'up'), 'is_bad' => true, 'action_code' => $metric,
+            'severity' => $severity, 'severity_rank' => ($severity === 'critical' ? 2 : 1) + 0.5,
+            'reason' => self::reasonText($lang, $mlabel, $dir, true), 'action' => self::actionText($lang, $metric, true),
+        ];
     }
 }
