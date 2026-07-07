@@ -153,7 +153,7 @@ const CHANNEL_FIELDS = {
   facebook:  [{ k: 'access_token', label: '페이지 액세스 토큰', secret: true }, { k: 'page_id', label: '페이지 ID' }],
   twitch:    [{ k: 'client_id', label: 'Client ID' }, { k: 'client_secret', label: 'Client Secret', secret: true }, { k: 'login', label: '채널 로그인명 (twitch.tv/ 뒤의 이름)' }],
   // [현 차수] 그립(Grip) 라이브 커머스 — 파트너 API 키 + 셀러/스토어 ID
-  grip:      [{ k: 'api_key', label: 'Grip 파트너 API 키', secret: true }, { k: 'seller_id', label: '셀러/스토어 ID (선택)', opt: true }],
+  grip:      [{ k: 'api_key', label: 'Grip 파트너 API 키', labelKey: 'ak.fieldGrip.apiKey', secret: true }, { k: 'seller_id', label: '셀러/스토어 ID (선택)', labelKey: 'ak.fieldGrip.sellerId', opt: true }],
   // 국내 오픈마켓
   coupang:   [{ k: 'access_key', label: '액세스 키', secret: true }, { k: 'secret_key', label: '시크릿 키', secret: true }, { k: 'vendor_id', label: '벤더 ID' }],
   naver_smartstore: [{ k: 'client_id', label: 'Client ID' }, { k: 'client_secret', label: 'Client Secret', secret: true }],
@@ -2551,7 +2551,7 @@ function ConnectModal({ channel, onClose, onSubmit, t, extraFields = {}, postOau
             {coveredFields.length > 0 && (
               <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                 {coveredFields.map(f => (
-                  <span key={f.k} style={{ fontSize: 10.5, fontWeight: 700, padding: '3px 9px', borderRadius: 20, background: 'rgba(34,197,94,0.14)', color: '#16a34a' }}>✓ {f.label} {t('ak.autoRegistered','자동 등록됨')}</span>
+                  <span key={f.k} style={{ fontSize: 10.5, fontWeight: 700, padding: '3px 9px', borderRadius: 20, background: 'rgba(34,197,94,0.14)', color: '#16a34a' }}>✓ {f.labelKey ? t(f.labelKey, f.label) : f.label} {t('ak.autoRegistered','자동 등록됨')}</span>
                 ))}
               </div>
             )}
@@ -2574,7 +2574,7 @@ function ConnectModal({ channel, onClose, onSubmit, t, extraFields = {}, postOau
             </div>
             {missList.length > 0 && (
               <div style={{ fontSize: 11, color: 'var(--text-2)', lineHeight: 1.6 }}>
-                {t('ak.missingLabel','미등록')}: <b>{missList.map(f => f.label).join(', ')}</b><br/>
+                {t('ak.missingLabel','미등록')}: <b>{missList.map(f => f.labelKey ? t(f.labelKey, f.label) : f.label).join(', ')}</b><br/>
                 {t('ak.fillMissingHint','아래에서 미등록(✗) 항목을 입력해 저장하면 연동이 완성됩니다. 이미 등록된 항목은 비워두면 유지됩니다.')}
               </div>
             )}
@@ -2586,7 +2586,7 @@ function ConnectModal({ channel, onClose, onSubmit, t, extraFields = {}, postOau
           return (
             <Field key={f.k} label={(
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                <span>{f.label}{f.secret ? ' 🔒' : ''}</span>
+                <span>{f.labelKey ? t(f.labelKey, f.label) : f.label}{f.secret ? ' 🔒' : ''}</span>
                 {isReg
                   ? <span style={{ fontSize: 10, fontWeight: 800, color: '#16a34a', background: 'rgba(34,197,94,0.12)', padding: '1px 8px', borderRadius: 20 }}>✓ {isVerified ? t('ak.fieldVerified','등록·확인됨') : t('ak.fieldRegistered','등록됨')}</span>
                   : <span style={{ fontSize: 10, fontWeight: 800, color: '#d97706', background: 'rgba(245,158,11,0.12)', padding: '1px 8px', borderRadius: 20 }}>✗ {t('ak.fieldMissing','미등록')}</span>}
