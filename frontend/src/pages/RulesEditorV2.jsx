@@ -78,13 +78,13 @@ export default function RulesEditorV2(){
   }, [channel]);
 
   function addMapping(src){
-    const dst = prompt(`'${src}' 를 어떤 Channel 필드로 매핑할까요?`, channelFields[0] || "");
+    const dst = prompt(t('rulesEditorPage.mapPrompt', "'{{src}}' 를 어떤 채널 필드로 매핑할까요?", { src }), channelFields[0] || "");
     if (!dst) return;
     setMapping((m)=> ({...m, [src]: dst}));
   }
 
   function editDst(src){
-    const dst = prompt(`'${src}' 의 목적지(Channel 필드)를 Edit하세요`, mapping[src] || "");
+    const dst = prompt(t('rulesEditorPage.editPrompt', "'{{src}}' 의 목적지(채널 필드)를 수정하세요", { src }), mapping[src] || "");
     if (!dst) return;
     setMapping((m)=> ({...m, [src]: dst}));
   }
@@ -156,8 +156,8 @@ export default function RulesEditorV2(){
     <div className="container">
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
         <div>
-          <div style={{ fontSize: 20, fontWeight: 800 }}>Rules Editor v2 (드래그&드롭 + 버전/Approval/배포)</div>
-          <div className="sub" style={{ marginTop: 6 }}>Channelper 속성 매핑 Rule을 쉽고 안전하게 편집합니다. (V395)</div>
+          <div style={{ fontSize: 20, fontWeight: 800 }}>{t('rulesEditorPage.pageTitle', '규칙 에디터 v2 (드래그&드롭 + 버전/승인/배포)')}</div>
+          <div className="sub" style={{ marginTop: 6 }}>{t('rulesEditorPage.pageSub', '채널 속성 매핑 규칙을 쉽고 안전하게 편집합니다.')}</div>
         </div>
         <div style={{ display:"flex", gap: 8, alignItems:"center" }}>
           <select value={channel} onChange={(e)=>{ setDraftId(null); setChannel(e.target.value); }} style={{ padding:"8px 10px", borderRadius: 10 }}>
@@ -168,9 +168,9 @@ export default function RulesEditorV2(){
           </select>
           <button className="btn" onClick={createDraft}>{t("rulesEditorPage.draftCreate", "초안 생성")}</button>
           <button className="btn" onClick={saveDraft}>{t("rulesEditorPage.save", "저장")}</button>
-          <button className="btn" onClick={submit}>제출</button>
+          <button className="btn" onClick={submit}>{t('rulesEditorPage.submit', '제출')}</button>
           <button className="btn" onClick={approve}>{t("rulesEditorPage.approval", "승인")}</button>
-          <button className="btn" onClick={publish}>배포</button>
+          <button className="btn" onClick={publish}>{t('rulesEditorPage.publish', '배포')}</button>
         </div>
       </div>
 
@@ -178,15 +178,15 @@ export default function RulesEditorV2(){
 
       <div style={{ marginTop: 14, display:"grid", gridTemplateColumns:"1fr 2fr", gap: 14 }}>
         <div className="card">
-          <div style={{ fontWeight: 800, marginBottom: 10 }}>내부 필드 (드래그)</div>
+          <div style={{ fontWeight: 800, marginBottom: 10 }}>{t('rulesEditorPage.internalFields', '내부 필드 (드래그)')}</div>
           {INTERNAL_FIELDS.map((f)=> <DraggableField key={f} name={f} />)}
         </div>
 
         <div className="card">
-          <div style={{ fontWeight: 800, marginBottom: 10 }}>매핑 (드롭)</div>
+          <div style={{ fontWeight: 800, marginBottom: 10 }}>{t('rulesEditorPage.mappingDrop', '매핑 (드롭)')}</div>
           <DropZone onDrop={addMapping}>
             {Object.keys(mapping).length === 0 ? (
-              <div className="sub">여기로 내부 필드를 드래그해서 매핑을 Add하세요.</div>
+              <div className="sub">{t('rulesEditorPage.dragHint', '여기로 내부 필드를 드래그해 매핑을 추가하세요.')}</div>
             ) : null}
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr auto", gap: 10, marginTop: 6 }}>
               <div style={{ fontWeight: 700 }}>{t("rulesEditorPage.source", "소스")}</div>
@@ -195,7 +195,7 @@ export default function RulesEditorV2(){
               {Object.entries(mapping).map(([src,dst])=>(
                 <React.Fragment key={src}>
                   <div style={{ padding:"8px 10px", border:"1px solid #eee", borderRadius: 10 }}>{src}</div>
-                  <div onClick={()=>editDst(src)} style={{ padding:"8px 10px", border:"1px solid #eee", borderRadius: 10, cursor:"pointer" }} title="Clicks하여 Edit">{dst}</div>
+                  <div onClick={()=>editDst(src)} style={{ padding:"8px 10px", border:"1px solid #eee", borderRadius: 10, cursor:"pointer" }} title={t('rulesEditorPage.clickToEdit', '클릭하여 수정')}>{dst}</div>
                   <button className="btn" onClick={()=>remove(src)}>{t("rulesEditorPage.delete", "삭제")}</button>
                 </React.Fragment>
               ))}
@@ -203,7 +203,7 @@ export default function RulesEditorV2(){
           </DropZone>
 
           <div style={{ marginTop: 14 }} className="sub">
-            Draft ID: <b>{draftId || "-"}</b> / Published: <b>{meta?.current_published || "-"}</b>
+            {t('rulesEditorPage.draftId', '초안 ID')}: <b>{draftId || "-"}</b> / {t('rulesEditorPage.published', '배포됨')}: <b>{meta?.current_published || "-"}</b>
           </div>
         </div>
       </div>

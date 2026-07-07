@@ -26,6 +26,10 @@ import pt from "./locales/pt.js";
 import ru from "./locales/ru.js";
 import ar from "./locales/ar.js";
 import hi from "./locales/hi.js";
+// [270차] 자동 번역 오버레이 — tools/i18n_autofill.mjs 가 ko(SSOT)에만 있는 키를 Claude로 13~14개국
+//   현지 번역해 채운다(flat dotted-key). base 로케일 미존재 키의 gap 을 현지어로 메운다(영어폴백 대체).
+//   신규 UI 는 ko 에만 추가하면 배포 시 자동으로 15개국 현지어가 된다. 1MB base 파일은 미접촉(안전).
+import AUTOFILL from "./autofill.json";
 
 // ── Locale registry ────────────────────────────────────────
 export const LOCALES = { ko, en, ja, zh, de, th, vi, id, "zh-TW": zhTW, es, fr, pt, ru, ar, hi };
@@ -239,8 +243,11 @@ export function I18nProvider({ children }) {
         const locale  = LOCALES[lang] || en;
         const fallback = LOCALES["en"] || {};
         
-        // Primary lookup: root-level key
-        let value = deepGet(locale, key) ?? deepGet(fallback, key);
+        // Primary lookup: base 로케일 → [270차] 자동번역 오버레이(현지어) → en base → en 오버레이
+        let value = deepGet(locale, key)
+            ?? (AUTOFILL[lang] && AUTOFILL[lang][key])
+            ?? deepGet(fallback, key)
+            ?? (AUTOFILL["en"] && AUTOFILL["en"][key]);
         // Fallback: try "pages." prefix (keys were restructured under pages namespace)
         if (value === undefined && !key.startsWith("pages.")) {
             value = deepGet(locale, "pages." + key) ?? deepGet(fallback, "pages." + key);
