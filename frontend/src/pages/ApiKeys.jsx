@@ -1993,7 +1993,7 @@ function OverviewTab({ channels, summary, creds, applies = [], loading, onChanne
                 : status === 'none'
                   ? t('ak.needKeys', { count: reqCount, defaultValue: `자격증명 ${reqCount}개 필요 · 미등록` })
                   : status === 'partial'
-                    ? `🔑 ${credCount}/${reqCount} ${t('ak.registered','등록')} · ${t('ak.missingLabel','미등록')}: ${missing.map(f => f.label).join(', ')}`
+                    ? `🔑 ${credCount}/${reqCount} ${t('ak.registered','등록')} · ${t('ak.missingLabel','미등록')}: ${missing.map(f => f.labelKey ? t(f.labelKey, f.label) : t('ak.field.'+ch.key+'.'+f.k, f.label)).join(', ')}`
                     : `🔑 ${t('ak.keyRegistered', { count: shownCount, defaultValue: `${shownCount}개 키 등록됨` })}`}
             </div>
           </div>
@@ -2511,8 +2511,8 @@ function ConnectModal({ channel, onClose, onSubmit, t, extraFields = {}, postOau
     );
     if (missingRequired.length > 0) {
       setErr(t('ak.requiredMissing', {
-        fields: missingRequired.map(f => f.label).join(', '),
-        defaultValue: `다음 필수 항목을 모두 입력해야 정상 연동·동기화됩니다: ${missingRequired.map(f => f.label).join(', ')}`,
+        fields: missingRequired.map(f => f.labelKey ? t(f.labelKey, f.label) : t('ak.field.'+channel.key+'.'+f.k, f.label)).join(', '),
+        defaultValue: `다음 필수 항목을 모두 입력해야 정상 연동·동기화됩니다: ${missingRequired.map(f => f.labelKey ? t(f.labelKey, f.label) : t('ak.field.'+channel.key+'.'+f.k, f.label)).join(', ')}`,
       }));
       return;
     }
@@ -2551,7 +2551,7 @@ function ConnectModal({ channel, onClose, onSubmit, t, extraFields = {}, postOau
             {coveredFields.length > 0 && (
               <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                 {coveredFields.map(f => (
-                  <span key={f.k} style={{ fontSize: 10.5, fontWeight: 700, padding: '3px 9px', borderRadius: 20, background: 'rgba(34,197,94,0.14)', color: '#16a34a' }}>✓ {f.labelKey ? t(f.labelKey, f.label) : f.label} {t('ak.autoRegistered','자동 등록됨')}</span>
+                  <span key={f.k} style={{ fontSize: 10.5, fontWeight: 700, padding: '3px 9px', borderRadius: 20, background: 'rgba(34,197,94,0.14)', color: '#16a34a' }}>✓ {f.labelKey ? t(f.labelKey, f.label) : t('ak.field.' + channel.key + '.' + f.k, f.label)} {t('ak.autoRegistered','자동 등록됨')}</span>
                 ))}
               </div>
             )}
@@ -2574,7 +2574,7 @@ function ConnectModal({ channel, onClose, onSubmit, t, extraFields = {}, postOau
             </div>
             {missList.length > 0 && (
               <div style={{ fontSize: 11, color: 'var(--text-2)', lineHeight: 1.6 }}>
-                {t('ak.missingLabel','미등록')}: <b>{missList.map(f => f.labelKey ? t(f.labelKey, f.label) : f.label).join(', ')}</b><br/>
+                {t('ak.missingLabel','미등록')}: <b>{missList.map(f => f.labelKey ? t(f.labelKey, f.label) : t('ak.field.' + channel.key + '.' + f.k, f.label)).join(', ')}</b><br/>
                 {t('ak.fillMissingHint','아래에서 미등록(✗) 항목을 입력해 저장하면 연동이 완성됩니다. 이미 등록된 항목은 비워두면 유지됩니다.')}
               </div>
             )}
@@ -2586,7 +2586,7 @@ function ConnectModal({ channel, onClose, onSubmit, t, extraFields = {}, postOau
           return (
             <Field key={f.k} label={(
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                <span>{f.labelKey ? t(f.labelKey, f.label) : f.label}{f.secret ? ' 🔒' : ''}</span>
+                <span>{f.labelKey ? t(f.labelKey, f.label) : t('ak.field.' + channel.key + '.' + f.k, f.label)}{f.secret ? ' 🔒' : ''}</span>
                 {isReg
                   ? <span style={{ fontSize: 10, fontWeight: 800, color: '#16a34a', background: 'rgba(34,197,94,0.12)', padding: '1px 8px', borderRadius: 20 }}>✓ {isVerified ? t('ak.fieldVerified','등록·확인됨') : t('ak.fieldRegistered','등록됨')}</span>
                   : <span style={{ fontSize: 10, fontWeight: 800, color: '#d97706', background: 'rgba(245,158,11,0.12)', padding: '1px 8px', borderRadius: 20 }}>✗ {t('ak.fieldMissing','미등록')}</span>}
