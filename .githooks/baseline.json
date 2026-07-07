@@ -1,9 +1,9 @@
 {
-  "version": "267-domain-migration",
-  "updated": "2026-07-06 (267차 도메인전환: 서비스 도메인 genie-go.com→genieroi.com. ja/zh:501 refIntro API문서 기준URL만 갱신 https://roi.genie-go.com/api→https://www.genieroi.com/api. 번역 무변경·의도적 도메인 수정으로 sacred SHA 동반 갱신)",
+  "version": "270-profit-frontier-i18n",
+  "updated": "2026-07-07 (270차: 마케팅 이익 효율 프론티어·이익 오토파일럿 신규 UI 라벨 mmm.* 24키를 13개국(ja/zh 포함) 현지 자연어 추가. ko/en 기존. 의도적 신규키 추가로 ja/zh sacred SHA 동반 갱신. 브라우저 검증 ja 네이티브 렌더·한글누출0). │ 이전: 2026-07-06 (267차 도메인전환: 서비스 도메인 genie-go.com→genieroi.com. ja/zh:501 refIntro API문서 기준URL만 갱신 https://roi.genie-go.com/api→https://www.genieroi.com/api. 번역 무변경·의도적 도메인 수정으로 sacred SHA 동반 갱신)",
   "sacred_sha": {
-    "ja.js": "592edf1bb5e67485ce7b8384ce9fef8443243d8a6740b686e9c4282c0449de13",
-    "zh.js": "72f17ce8be78c84e589c917b0420bfd257ebe536f433add416af47dfed4d3e99"
+    "ja.js": "a851cc7253e56daae10cdd67e71da8b6a0e67d7bb8a910e882ee2f0b11235527",
+    "zh.js": "84fe5ac4b9bafb5d28ff393c2cc0f73d8f9efab424aeb823755db2d21b856fcb"
   },
   "ko_leaf_count": 18521,
   "leaf_tolerance_pct": 5,
