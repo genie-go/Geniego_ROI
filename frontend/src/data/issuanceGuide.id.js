@@ -4,6 +4,14 @@
  */
 
 export default {
+  grip: [
+    "Persiapan: Anda memerlukan akun mitra/penjual Grip. (Pendaftaran mitra Grip Company telah selesai)",
+    "Masuk ke Pusat Mitra Grip (admin mitra/penjual).",
+    "Temukan item manajemen API/integrasi di menu [Pengaturan] atau [Integrasi·Pengembang].",
+    "Ajukan dan buat permintaan penerbitan kunci API mitra (Kunci Akses). (Jika menu tidak terlihat, hubungi dukungan mitra Grip Company untuk menanyakan integrasi API.)",
+    "Periksa kunci API yang diterbitkan dan ID penjual/toko.",
+    "Di GenieGo Hub Integrasi > Grip [Daftar], masukkan dan simpan kunci API dan ID penjual.",
+  ],
   meta_ads: [
     'Yang dibutuhkan: akun pribadi Facebook dan akun iklan Meta yang sedang menjalankan iklan.',
     'Buka business.facebook.com di browser lalu masuk, klik [Buat Bisnis] untuk membuat akun bisnis, kemudian selesaikan verifikasi email.',

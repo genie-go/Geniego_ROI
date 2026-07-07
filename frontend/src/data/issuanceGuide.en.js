@@ -1,6 +1,14 @@
 /* Channel API key issuance guide — English (en). Mirrors ISSUANCE_GUIDE_KO 1:1 (same channel keys, same array lengths). */
 
 export default {
+  grip: [
+    "Prerequisites: You need a Grip partner/seller account. (Grip company partner registration must be completed)",
+    "Log in to the Grip Partner Center (partner/seller admin)",
+    "Find the API/Integration Management section in [Settings] or [Integration & Developer] menu",
+    "Request and generate a Partner API Key (Access Key). (If you don't see the menu, contact Grip company partner support to inquire about API integration)",
+    "Confirm your issued API Key and Seller/Store ID",
+    "Go to GenieGo Integration Hub > Grip [Register] and enter your API Key and Seller ID to save",
+  ],
   meta_ads: [
     "What you need: a personal Facebook account and a Meta Ads account that is already running ads.",
     "In your browser, go to business.facebook.com and sign in. Click [Create a business] to set up a Business account, then complete email verification.",

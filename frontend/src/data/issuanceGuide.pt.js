@@ -1,5 +1,13 @@
 /* Guia de emissão de chaves de API por canal — Português (pt). Tradução de ISSUANCE_GUIDE_KO. */
 export default {
+  grip: [
+    "Pré-requisitos: Você precisa de uma conta de Parceiro/Vendedor do Grip. (Com registro de parceiro da Grip Company já concluído)",
+    "Faça login no Centro de Parceiros do Grip (admin de Parceiro/Vendedor).",
+    "Encontre o item de gerenciamento de API/Integração no menu [Configurações] ou [Integrações·Desenvolvedor].",
+    "Solicite e crie a emissão da Chave API do Parceiro (Chave de Acesso). (Se o menu não aparecer, entre em contato com o suporte ao parceiro da Grip Company para consultar sobre integração de API.)",
+    "Confirme a Chave API emitida e o ID do Vendedor/Loja.",
+    "No Hub de Integração GenieGo > Grip [Registrar], insira a Chave API e o ID do Vendedor e salve.",
+  ],
   meta_ads: [
     "Pré-requisitos: você precisa de uma conta pessoal do Facebook e de uma conta de anúncios da Meta com campanhas em andamento.",
     "Abra business.facebook.com no navegador e faça login; clique em [Criar empresa] para criar uma conta empresarial e conclua a verificação por e-mail.",

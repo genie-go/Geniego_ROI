@@ -4,6 +4,14 @@
  */
 
 export default {
+  grip: [
+    "Chuẩn bị: Bạn cần có tài khoản Đối tác/Người bán Grip. (Đã hoàn thành đăng ký Đối tác Grip Company)",
+    "Đăng nhập vào Trung tâm Đối tác Grip (Admin Đối tác/Người bán).",
+    "Tìm mục quản lý API/Tích hợp trong menu [Cài đặt] hoặc [Tích hợp·Nhà phát triển].",
+    "Yêu cầu phát hành và tạo Khóa API Đối tác (Khóa truy cập). (Nếu không thấy menu, vui lòng liên hệ Hỗ trợ Đối tác Grip Company để hỏi về tích hợp API.)",
+    "Xác nhận Khóa API đã phát hành và ID Người bán/Cửa hàng.",
+    "Nhập Khóa API và ID Người bán vào GenieGo Hub tích hợp > Grip (Grip) [Đăng ký] và lưu.",
+  ],
   meta_ads: [
     'Chuẩn bị: cần tài khoản Facebook cá nhân và tài khoản quảng cáo Meta đang chạy quảng cáo.',
     'Mở business.facebook.com trên trình duyệt và đăng nhập, nhấn [Tạo doanh nghiệp] để tạo tài khoản doanh nghiệp, sau đó hoàn tất xác minh email.',

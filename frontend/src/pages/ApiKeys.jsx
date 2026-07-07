@@ -258,7 +258,9 @@ const MANUAL_KEYS = new Set(['adyen','amazon_spapi','auction','braintree','cafe2
   // [229차] Instagram/Facebook(자가발급·큐레이트본 ko) + 안내형(대행사/계약형) 채널 매뉴얼 추가
   'instagram','facebook','kakao_moment','naverpay','cj','lotte','hanjin','logen','epost','ocl_sameday','fulfillment','ems','cj_intl','tnt',
   // [229차] 신규 채널(사용자 큐레이트 매뉴얼)
-  'amazon_spapi','yahoo_japan','kakao_alimtalk','line']);
+  'amazon_spapi','yahoo_japan','kakao_alimtalk','line',
+  // [현 차수] 그립(Grip) 라이브 커머스 — 발급 매뉴얼(15개국) 노출
+  'grip']);
 // [229차] 15개국 현지 자연어 매뉴얼 — public/api_manuals/<lang>/<key>.html. 미지원 언어는 en 폴백.
 const MANUAL_LANGS = new Set(['ko','en','ja','zh','zh-TW','de','th','vi','id','ar','es','fr','hi','pt','ru']);
 const manualUrl = (key, lang) => `/api_manuals/${MANUAL_LANGS.has(lang) ? lang : 'en'}/${key}.html`;

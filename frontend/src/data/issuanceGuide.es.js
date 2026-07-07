@@ -1,5 +1,13 @@
 /* Guía de emisión de claves API por canal — Español (es). Traducción de ISSUANCE_GUIDE_KO. */
 export default {
+  grip: [
+    "Requisitos: Necesita una cuenta de Socio/Vendedor de Grip. (Registro de Socio de Grip Company completado)",
+    "Inicie sesión en el Centro de Socios de Grip (admin de Socio/Vendedor).",
+    "Busque el elemento de gestión de API/Integración en el menú [Configuración] o [Integración·Desarrollador].",
+    "Solicite y genere la emisión de la Clave API de Socio (Clave de Acceso). (Si el menú no aparece, consulte con el Soporte de Socios de Grip Company sobre la integración de API).",
+    "Verifique la Clave API emitida y el ID de Vendedor/Tienda.",
+    "En el Centro de Integración de GenieGo > Grip [Registrar], ingrese la Clave API y el ID de Vendedor y guarde.",
+  ],
   meta_ads: [
     "Requisitos: necesitas una cuenta personal de Facebook y una cuenta publicitaria de Meta con campañas activas.",
     "Abre business.facebook.com en tu navegador e inicia sesión; pulsa [Crear empresa] para crear una cuenta de empresa y completa la verificación por correo electrónico.",

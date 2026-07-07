@@ -2,6 +2,14 @@
  * Les clés de canal et le nombre d'étapes sont identiques à 100 % à l'original coréen. Les URL, noms de marque et jetons techniques (client_id, etc.) ne sont pas traduits.
  */
 export default {
+  grip: [
+    "Préalables : Vous avez besoin d'un compte partenaire/vendeur Grip. (L'enregistrement en tant que partenaire de Grip Company doit être terminé)",
+    "Connectez-vous au Centre Partenaires Grip (administration partenaire/vendeur).",
+    "Trouvez l'élément de gestion API/Intégration dans le menu [Paramètres] ou [Intégrations·Développeurs].",
+    "Demandez et générez l'émission d'une clé API partenaire (clé d'accès). (Si le menu n'apparaît pas, contactez le support partenaire de Grip Company pour vous renseigner sur l'intégration API.)",
+    "Vérifiez la clé API émise et votre ID vendeur/boutique.",
+    "Dans GenieGo Hub d'intégration > Grip [Enregistrement], entrez la clé API et l'ID vendeur et enregistrez.",
+  ],
   meta_ads: [
     'Prérequis : vous avez besoin d’un compte personnel Facebook ainsi que d’un compte publicitaire Meta sur lequel des annonces sont déjà diffusées.',
     'Dans votre navigateur, accédez à business.facebook.com et connectez-vous, créez un compte professionnel via [Créer une entreprise], puis effectuez la vérification par e-mail.',
