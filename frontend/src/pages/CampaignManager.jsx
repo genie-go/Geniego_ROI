@@ -17,9 +17,9 @@ import CardRequiredBanner from '../components/CardRequiredBanner.jsx'; // 광고
 import CardBillingGuide from '../components/CardBillingGuide.jsx'; // 이용가이드 내 결제카드 등록 설명
 import CrossLinkBar from '../components/CrossLinkBar.jsx';
 const BUDGET_LINKS = [
-  { to: '/auto-marketing', icon: '🚀', label: '마케팅 자동화' },
-  { to: '/campaign-manager', icon: '🎯', label: '캠페인 관리' },
-  { to: '/budget-tracker', icon: '💰', label: '예산 추적' },
+  { to: '/auto-marketing', icon: '🚀', label: '마케팅 자동화', labelKey: 'crossLink.autoMarketing' },
+  { to: '/campaign-manager', icon: '🎯', label: '캠페인 관리', labelKey: 'crossLink.campaignManager' },
+  { to: '/budget-tracker', icon: '💰', label: '예산 추적', labelKey: 'crossLink.budgetTracker' },
 ];
 
 /* ── Enterprise Demo Isolation Guard (unified with GlobalDataContext) ── */
@@ -246,7 +246,7 @@ export default function CampaignManager(){
 
             {/* 광고비 결제카드 미등록 안내 — 캠페인 실집행 전 카드 등록 유도 */}
             <CardRequiredBanner compact />
-            <CrossLinkBar links={BUDGET_LINKS} note="광고 예산·캠페인" />
+            <CrossLinkBar links={BUDGET_LINKS} note="광고 예산·캠페인" noteKey="crossLink.budgetNote" />
 
             {/* ══════ DASHBOARD ══════════════════════════════════ */}
             {tab === 'overview' && (

@@ -13,9 +13,9 @@ import { getJsonAuth, actAsHeader } from '../services/apiClient.js';
 import CrossLinkBar from '../components/CrossLinkBar.jsx';
 import AgentModeCard from '../components/AgentModeCard.jsx'; // [231차 OS#4] AI Agent 권한모드 거버넌스
 const BUDGET_LINKS = [
-  { to: '/auto-marketing', icon: '🚀', label: '마케팅 자동화' },
-  { to: '/campaign-manager', icon: '🎯', label: '캠페인 관리' },
-  { to: '/budget-tracker', icon: '💰', label: '예산 추적' },
+  { to: '/auto-marketing', icon: '🚀', label: '마케팅 자동화', labelKey: 'crossLink.autoMarketing' },
+  { to: '/campaign-manager', icon: '🎯', label: '캠페인 관리', labelKey: 'crossLink.campaignManager' },
+  { to: '/budget-tracker', icon: '💰', label: '예산 추적', labelKey: 'crossLink.budgetTracker' },
 ];
 import { useSecurityGuard } from '../security/SecurityGuard.js';
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
@@ -1076,7 +1076,7 @@ export default function AutoMarketing() {
                         <button onClick={() => navigate('/campaign-manager')} style={{ padding: "8px 18px", borderRadius: 10, border: "none", cursor: "pointer", whiteSpace: "nowrap", background: "linear-gradient(135deg,#a855f7,#6366f1)", color: '#fff', fontWeight: 800, fontSize: 11 }}>🚀 {t('marketing.aiHubBtn')}</button>
                     </div>
 
-                    <CrossLinkBar links={BUDGET_LINKS} note="광고 예산·캠페인" />
+                    <CrossLinkBar links={BUDGET_LINKS} note="광고 예산·캠페인" noteKey="crossLink.budgetNote" />
                     {/* 광고비 결제카드 미등록 안내 — 예산 설정 전 카드 등록 유도 */}
                     <CardRequiredBanner />
 

@@ -10,9 +10,9 @@ import CrossLinkBar from "../components/CrossLinkBar.jsx";
 
 // [현 차수] 광고 예산·캠페인 관련 화면 교차링크(비파괴 통합)
 const BUDGET_LINKS = [
-  { to: '/auto-marketing', icon: '🚀', label: '마케팅 자동화' },
-  { to: '/campaign-manager', icon: '🎯', label: '캠페인 관리' },
-  { to: '/budget-tracker', icon: '💰', label: '예산 추적' },
+  { to: '/auto-marketing', icon: '🚀', label: '마케팅 자동화', labelKey: 'crossLink.autoMarketing' },
+  { to: '/campaign-manager', icon: '🎯', label: '캠페인 관리', labelKey: 'crossLink.campaignManager' },
+  { to: '/budget-tracker', icon: '💰', label: '예산 추적', labelKey: 'crossLink.budgetTracker' },
 ];
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell, Legend } from "recharts";
 import AIRecommendBanner from "../components/AIRecommendBanner.jsx";
@@ -696,7 +696,7 @@ export default function BudgetTracker() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
 
-      <div style={{ flexShrink: 0, padding: '10px 24px 0' }}><CrossLinkBar links={BUDGET_LINKS} note="광고 예산·캠페인" /></div>
+      <div style={{ flexShrink: 0, padding: '10px 24px 0' }}><CrossLinkBar links={BUDGET_LINKS} note="광고 예산·캠페인" noteKey="crossLink.budgetNote" /></div>
       <AIRecommendBanner context="budget" />
 
       {/* ══════ Hero Header (flexShrink:0 — 고정) ══════ */}

@@ -18,6 +18,8 @@ const ROOT = path.resolve(path.dirname(url.fileURLToPath(import.meta.url)), '..'
 const LOCDIR = path.join(ROOT, 'frontend/src/i18n/locales');
 const OVERLAY = path.join(ROOT, 'frontend/src/i18n/autofill.json');
 const LANGS = { ja:'Japanese', zh:'Simplified Chinese', 'zh-TW':'Traditional Chinese', de:'German', th:'Thai', vi:'Vietnamese', id:'Indonesian', ar:'Arabic', es:'Spanish', fr:'French', hi:'Hindi', pt:'Portuguese (Brazil)', ru:'Russian', en:'English' };
+// inline 모드용: ko 포함 15국(영어폴백 키는 ko 로도 번역해야 함).
+const LANGS_ALL = { ko:'Korean', ...LANGS };
 const API_KEY = process.env.CLAUDE_API_KEY || process.env.ANTHROPIC_API_KEY || '';
 const MODEL = process.env.CLAUDE_MODEL || 'claude-haiku-4-5-20251001';
 const MAX_PER_BATCH = parseInt(process.env.AUTOFILL_BATCH || '', 10) || 40; // 긴 문자열 응답 잘림 방지(40으로 하향)
@@ -119,22 +121,26 @@ async function fillInline() {
   const files = [];
   const walk = d => { for (const e of fs.readdirSync(d, { withFileTypes: true })) { const fp = path.join(d, e.name); if (e.isDirectory()) { if (!/node_modules|dist|locales|__|backup/.test(fp)) walk(fp); } else if (/\.jsx?$/.test(e.name)) files.push(fp); } };
   walk(SRC);
-  const re = /\bt\(\s*["']([\w.]+)["']\s*,\s*["']([^"']*[가-힣][^"']*)["']/g;
-  const koMap = {}; // key → 한글폴백 (ko.js·pages. 부재만)
-  for (const f of files) { const s = fs.readFileSync(f, 'utf8'); let m; while ((m = re.exec(s))) { const [, k, kv] = m; if (!koFlat.has(k) && !koFlat.has('pages.' + k) && !koMap[k]) koMap[k] = kv; } }
-  const allKeys = Object.keys(koMap).filter(inScope);
+  // 한글폴백(source=ko) + 영어/기타 폴백(source=en) 모두 캡처. 소스언어 verbatim 저장 + 나머지 14국 번역.
+  const re = /\bt\(\s*["']([\w.]+)["']\s*,\s*["']([^"']*[A-Za-z가-힣][^"']*)["']/g;
+  const srcMap = {}; // key → { src:'ko'|'en', text }
+  for (const f of files) { const s = fs.readFileSync(f, 'utf8'); let m; while ((m = re.exec(s))) { const [, k, v] = m; if (koFlat.has(k) || koFlat.has('pages.' + k) || srcMap[k]) continue; srcMap[k] = { src: /[가-힣]/.test(v) ? 'ko' : 'en', text: v }; } }
+  const allKeys = Object.keys(srcMap).filter(inScope);
   const overlay = (() => { try { return JSON.parse(fs.readFileSync(OVERLAY, 'utf8')); } catch { return {}; } })();
   const report = [];
-  for (const [lang, langName] of Object.entries(LANGS)) {
-    if (lang === 'ko') continue;
+  // ①소스언어 verbatim 채움(번역 불요) — ko 회귀 방지(한글폴백 키의 ko 오버레이·영어폴백 키의 en 오버레이)
+  for (const k of allKeys) { const { src, text } = srcMap[k]; overlay[src] = overlay[src] || {}; if (overlay[src][k] === undefined) overlay[src][k] = text; }
+  try { fs.writeFileSync(OVERLAY, JSON.stringify(overlay, null, 0) + '\n', 'utf8'); } catch {}
+  // ②나머지 14국 번역
+  for (const [lang, langName] of Object.entries(LANGS_ALL)) {
     overlay[lang] = overlay[lang] || {};
-    let missing = allKeys.filter(k => overlay[lang][k] === undefined);
+    let missing = allKeys.filter(k => srcMap[k].src !== lang && overlay[lang][k] === undefined);
     if (MAX_PER_LANG > 0) missing = missing.slice(0, MAX_PER_LANG);
     if (!missing.length) { report.push(`${lang}:0`); continue; }
     if (!API_KEY) { report.push(`${lang}:${missing.length} (NO KEY)`); continue; }
     let filled = 0;
     for (let i = 0; i < missing.length; i += MAX_PER_BATCH) {
-      const chunk = missing.slice(i, i + MAX_PER_BATCH).map(k => [k, koMap[k]]);
+      const chunk = missing.slice(i, i + MAX_PER_BATCH).map(k => [k, srcMap[k].text]);
       try { const res = await translateBatch(lang, langName, chunk); for (const [k] of chunk) if (typeof res[k] === 'string' && res[k].trim()) { overlay[lang][k] = res[k].trim(); filled++; } }
       catch (e) { report.push(`${lang}:batch@${i} FAIL ${e.message}`); }
     }
