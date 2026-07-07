@@ -77,6 +77,8 @@ const CHANNELS = [
   { key: 'instagram',        name: 'Instagram Live',    icon: '📷', color: '#E1306C', group: 'sns_live' },
   { key: 'facebook',         name: 'Facebook Live',     icon: '👍', color: '#1877F2', group: 'sns_live' },
   { key: 'twitch',           name: 'Twitch',            icon: '🎮', color: '#9146FF', group: 'sns_live' },
+  // [현 차수] 그립(Grip) — 국내 대표 라이브 커머스 플랫폼. 파트너 API 키 발급·등록 지원(연동허브).
+  { key: 'grip',             name: '그립 (Grip)',        icon: '🛍️', color: '#FF4B4B', group: 'sns_live' },
   { key: 'coupang',          name: 'Coupang Wing',      icon: '🛒', color: '#C02525', group: 'domestic' },
   { key: 'naver_smartstore', name: 'Naver Smart Store', icon: '🟢', color: '#03C75A', group: 'domestic' },
   { key: 'naver_sa',         name: 'Naver Search Ads',  icon: '🟩', color: '#03C75A', group: 'domestic' },
@@ -150,6 +152,8 @@ const CHANNEL_FIELDS = {
   instagram: [{ k: 'access_token', label: '액세스 토큰', secret: true }, { k: 'ig_user_id', label: 'IG 비즈니스 계정 ID' }],
   facebook:  [{ k: 'access_token', label: '페이지 액세스 토큰', secret: true }, { k: 'page_id', label: '페이지 ID' }],
   twitch:    [{ k: 'client_id', label: 'Client ID' }, { k: 'client_secret', label: 'Client Secret', secret: true }, { k: 'login', label: '채널 로그인명 (twitch.tv/ 뒤의 이름)' }],
+  // [현 차수] 그립(Grip) 라이브 커머스 — 파트너 API 키 + 셀러/스토어 ID
+  grip:      [{ k: 'api_key', label: 'Grip 파트너 API 키', secret: true }, { k: 'seller_id', label: '셀러/스토어 ID (선택)', opt: true }],
   // 국내 오픈마켓
   coupang:   [{ k: 'access_key', label: '액세스 키', secret: true }, { k: 'secret_key', label: '시크릿 키', secret: true }, { k: 'vendor_id', label: '벤더 ID' }],
   naver_smartstore: [{ k: 'client_id', label: 'Client ID' }, { k: 'client_secret', label: 'Client Secret', secret: true }],
@@ -477,6 +481,7 @@ const CHANNEL_APPLY_NOTE = {
   instagram: { hard: false, note: 'Meta 앱 + IG 비즈니스 계정 연결 + 앱 심사가 필요합니다. (자가 발급)' },
   facebook:  { hard: false, note: 'Meta 앱 + 페이지 액세스 토큰 + 앱 심사가 필요합니다. (자가 발급)' },
   twitch:    { hard: false, note: 'dev.twitch.tv 콘솔에서 앱 등록 → client_id/secret을 발급합니다. (자가 발급)' },
+  grip:      { hard: false, note: '그립(Grip) 파트너/셀러 센터에서 파트너 API 키를 발급받아 등록하세요. 라이브 커머스 방송·상품·주문 연동에 사용됩니다. (자가 발급 · 그립컴퍼니 파트너 지원 문의)' },
   // ── 국내 오픈마켓
   coupang:          { hard: false, note: 'WING 판매자(사업자 인증) 계정에서 즉시 발급됩니다. 발급 시 회사명·홈페이지 URL·접근 IP(최대 10개)를 입력합니다.' },
   naver_smartstore: { hard: true,  note: '커머스API센터에서 애플리케이션을 등록합니다. 발급은 통합매니저 계정만 가능하며 호출 IP 등록·주기적 인증이 필수입니다.' },
