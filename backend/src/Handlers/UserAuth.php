@@ -471,6 +471,11 @@ final class UserAuth
         //   free 선택/미선택은 종전대로 평생 무료(만료 없음).
         $TRIAL_DAYS = 20;
         $requestedPlan = strtolower(trim((string)($body['plan'] ?? '')));
+        // [현 차수] 무료 체험 데모 회원가입 → 무조건 PRO 메뉴접근: 플랜 미선택/free 가입은 'pro' 로 승격해
+        //   기존 20일 PRO 체험 경로를 그대로 태운다(만료 시 resolveActivePlan 이 free 로 자동 강등 = 검증된 로직 재사용).
+        //   신규 회원은 20일간 전체(PRO) 메뉴를 체험하고, 종료 후 결제 없으면 free 로 내려간다(누수 없음).
+        $autoProTrial  = ($requestedPlan === '' || $requestedPlan === 'free');
+        if ($autoProTrial) { $requestedPlan = 'pro'; }
         $isPaidSignup  = in_array($requestedPlan, ['starter', 'growth', 'pro', 'enterprise'], true);
 
         // ── 추가 비즈니스 필드 파싱 ──────────────────────────────────
@@ -486,11 +491,12 @@ final class UserAuth
         }
 
         if ($isPaidSignup) {
-            $signupPlan = $requestedPlan;                                            // 선택 유료 플랜을 체험으로 부여
+            $signupPlan = $requestedPlan;                                            // 선택 유료 플랜(또는 무료가입 자동 PRO)을 체험으로 부여
             $expiresAt  = gmdate('Y-m-d\TH:i:s\Z', time() + $TRIAL_DAYS * 24 * 3600); // 20일 후 체험 만료
-            $extraFields['pending_plan'] = $requestedPlan;                           // 결제 전환 대상(체험 종료 후 결제)
+            $extraFields['pending_plan'] = $autoProTrial ? 'free' : $requestedPlan;  // 자동 PRO 체험은 종료 후 free(결제 유도 아님), 유료선택은 해당 플랜 결제
             $extraFields['trial']        = '1';
             $extraFields['trial_days']   = (string)$TRIAL_DAYS;
+            if ($autoProTrial) { $extraFields['trial_source'] = 'free_demo_pro'; }   // 무료 데모 가입 = 무조건 PRO 메뉴접근 체험 마커
         } else {
             $signupPlan = 'free';
             $expiresAt  = null; // free = 평생, 만료 없음
@@ -620,7 +626,7 @@ final class UserAuth
                 'subscription_expires_at' => $finalExpires,
                 'is_trial'                => $isPaidSignup,
                 'trial_days'              => $isPaidSignup ? $TRIAL_DAYS : 0,
-                'pending_plan'            => $isPaidSignup ? $requestedPlan : '',
+                'pending_plan'            => $autoProTrial ? 'free' : ($isPaidSignup ? $requestedPlan : ''),
                 'tenant_id'               => $tenantId, // 180차: 계정 격리 식별자
                 'parent_user_id'          => null,
                 'team_role'               => 'owner',
