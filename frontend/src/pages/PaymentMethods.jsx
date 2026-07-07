@@ -29,9 +29,9 @@ function deriveDemoLedger(orders, channelBudgets) {
 
 // [현 차수] 결제·청구 관련 화면 교차링크(비파괴 통합, 사용자 접근 가능 페이지만)
 const PAY_LINKS = [
-  { to: '/payment-methods', icon: '💳', label: '결제수단' },
-  { to: '/auto-marketing', icon: '🚀', label: '마케팅 자동화' },
-  { to: '/app-pricing', icon: '🧾', label: '구독 플랜' },
+  { to: '/payment-methods', icon: '💳', label: '결제수단', labelKey: 'crossLink.paymentMethods' },
+  { to: '/auto-marketing', icon: '🚀', label: '마케팅 자동화', labelKey: 'crossLink.marketingAuto' },
+  { to: '/app-pricing', icon: '🧾', label: '구독 플랜', labelKey: 'crossLink.subscriptionPlan' },
 ];
 
 const fmtKRW = (n) => '₩' + Number(n || 0).toLocaleString('ko-KR');
@@ -39,7 +39,7 @@ const tok = () => localStorage.getItem('genie_token') || localStorage.getItem('d
 const authHeaders = () => ({ 'Content-Type': 'application/json', Authorization: `Bearer ${tok()}` });
 
 export default function PaymentMethods() {
-  const { lang } = useI18n();
+  const { lang, t } = useI18n();
   const { addToast } = useToast();
   const navigate = useNavigate();
   const loc = useLocation();
@@ -146,16 +146,16 @@ export default function PaymentMethods() {
   const [refundBusy, setRefundBusy] = useState(false);
   const [refundMsg, setRefundMsg] = useState('');
   const requestRefund = useCallback(async () => {
-    if (IS_DEMO) { setRefundMsg('데모 환경에서는 환불이 적용되지 않습니다 (시연용).'); return; }
-    if (!window.confirm('구독을 취소하고 환불을 요청하시겠습니까?\n· 구독 시작 30일 이내에만 전액 환불됩니다.\n· 재가입 시 이번에 사용한 일수가 신규 구독에 소급 적용됩니다.')) return;
+    if (IS_DEMO) { setRefundMsg(t('paymentMethods.refundDemoMsg', '데모 환경에서는 환불이 적용되지 않습니다 (시연용).')); return; }
+    if (!window.confirm(t('paymentMethods.refundConfirm', '구독을 취소하고 환불을 요청하시겠습니까?\n· 구독 시작 30일 이내에만 전액 환불됩니다.\n· 재가입 시 이번에 사용한 일수가 신규 구독에 소급 적용됩니다.'))) return;
     setRefundBusy(true); setRefundMsg('');
     try {
       const r = await postJsonAuth('/auth/refund-request', {});
-      setRefundMsg(r?.ok ? (r.msg || '환불 처리되었습니다.') : (r?.error || '환불 요청에 실패했습니다.'));
+      setRefundMsg(r?.ok ? (r.msg || t('paymentMethods.refundSuccess', '환불 처리되었습니다.')) : (r?.error || t('paymentMethods.refundFailed', '환불 요청에 실패했습니다.')));
     } catch (e) {
-      setRefundMsg('환불 요청 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+      setRefundMsg(t('paymentMethods.refundError', '환불 요청 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.'));
     } finally { setRefundBusy(false); }
-  }, []);
+  }, [t]);
 
   return (
     <div style={{ maxWidth: 980, margin: '0 auto', padding: '28px 20px', color: '#0f172a', fontFamily: "'Pretendard','Inter',system-ui,sans-serif" }}>
@@ -164,17 +164,17 @@ export default function PaymentMethods() {
         <p style={{ fontSize: 14, color: '#64748b', lineHeight: 1.7, margin: 0, maxWidth: 760 }}>{tr('pageDesc')}</p>
       </div>
 
-      <CrossLinkBar links={PAY_LINKS} note="결제·청구 관련" />
+      <CrossLinkBar links={PAY_LINKS} note="결제·청구 관련" noteKey="crossLink.billingNote" />
       <div style={{ marginBottom: 18 }}><BeginnerGuide spec={GUIDE.paymentMethods} /></div>
 
       {/* 246차: 구독 취소·환불(1개월 내) — 재가입 시 사용분 소급 */}
       <div style={{ marginBottom: 18, padding: '16px 18px', borderRadius: 12, background: '#fff7ed', border: '1px solid #fed7aa' }}>
-        <div style={{ fontSize: 14, fontWeight: 800, color: '#9a3412', marginBottom: 4 }}>↩️ 구독 취소·환불</div>
+        <div style={{ fontSize: 14, fontWeight: 800, color: '#9a3412', marginBottom: 4 }}>↩️ {t('paymentMethods.refundSectionTitle', '구독 취소·환불')}</div>
         <div style={{ fontSize: 12.5, color: '#9a3412', lineHeight: 1.7, marginBottom: 10 }}>
-          구독 시작 <b>30일(1개월) 이내</b>에는 전액 환불됩니다. 단, <b>재가입 시 이번에 사용한 일수가 신규 구독 기간에서 소급 차감</b>됩니다(중복 환불 방지).
+          {t('paymentMethods.refundNotice1', '구독 시작 ')}<b>{t('paymentMethods.refundNotice2', '30일(1개월) 이내')}</b>{t('paymentMethods.refundNotice3', '에는 전액 환불됩니다. 단, ')}<b>{t('paymentMethods.refundNotice4', '재가입 시 이번에 사용한 일수가 신규 구독 기간에서 소급 차감')}</b>{t('paymentMethods.refundNotice5', '됩니다(중복 환불 방지).')}
         </div>
         <button onClick={requestRefund} disabled={refundBusy} style={{ padding: '9px 18px', borderRadius: 9, border: '1px solid #f97316', background: refundBusy ? '#fdba74' : '#fff', color: '#c2410c', fontSize: 13, fontWeight: 800, cursor: refundBusy ? 'default' : 'pointer' }}>
-          {refundBusy ? '처리 중…' : '구독 취소·환불 요청'}
+          {refundBusy ? t('paymentMethods.refundProcessing', '처리 중…') : t('paymentMethods.refundRequestBtn', '구독 취소·환불 요청')}
         </button>
         {refundMsg && <div style={{ marginTop: 10, fontSize: 12.5, fontWeight: 700, color: '#7c2d12' }}>{refundMsg}</div>}
       </div>
@@ -216,20 +216,20 @@ export default function PaymentMethods() {
       {/* [현 차수] 결제/청구 내역 — 기간 설정 후 조회(누락 기능 신설). 운영=v427/billing/ledger, 데모=주문 광고비 파생. */}
       <div style={{ ...card, marginBottom: 18 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10, marginBottom: 14 }}>
-          <div style={{ fontWeight: 800, fontSize: 14 }}>🧾 결제/청구 내역</div>
+          <div style={{ fontWeight: 800, fontSize: 14 }}>🧾 {t('paymentMethods.ledgerTitle', '결제/청구 내역')}</div>
           <PeriodFilterBar value={period} onChange={setPeriod} />
         </div>
         {(() => {
           const rows = (ledger || []).filter(r => inPeriodAny(r, period, ['created_at', 'ym', 'charged_at']));
           const total = rows.reduce((s, r) => s + Number(r.amount || 0), 0);
-          if (!rows.length) return <div style={{ padding: '24px 0', textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>선택 기간의 결제/청구 내역이 없습니다.</div>;
+          if (!rows.length) return <div style={{ padding: '24px 0', textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>{t('paymentMethods.ledgerEmpty', '선택 기간의 결제/청구 내역이 없습니다.')}</div>;
           return (
             <>
-              <div style={{ fontSize: 12.5, color: '#64748b', marginBottom: 12 }}>합계 <strong style={{ color: '#4f46e5', fontSize: 14 }}>{fmtKRW(total)}</strong> · {rows.length}건</div>
+              <div style={{ fontSize: 12.5, color: '#64748b', marginBottom: 12 }}>{t('paymentMethods.ledgerTotalLabel', '합계 ')}<strong style={{ color: '#4f46e5', fontSize: 14 }}>{fmtKRW(total)}</strong> · {rows.length}{t('paymentMethods.ledgerCountUnit', '건')}</div>
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12.5 }}>
                   <thead><tr style={{ borderBottom: '1px solid #eef2f7', color: '#94a3b8', fontSize: 11, textAlign: 'left' }}>
-                    <th style={{ padding: '8px 10px' }}>청구월</th><th style={{ padding: '8px 10px' }}>채널</th><th style={{ padding: '8px 10px', textAlign: 'right' }}>금액</th><th style={{ padding: '8px 10px' }}>상태</th>
+                    <th style={{ padding: '8px 10px' }}>{t('paymentMethods.colBillingMonth', '청구월')}</th><th style={{ padding: '8px 10px' }}>{t('paymentMethods.colChannel', '채널')}</th><th style={{ padding: '8px 10px', textAlign: 'right' }}>{t('paymentMethods.colAmount', '금액')}</th><th style={{ padding: '8px 10px' }}>{t('paymentMethods.colStatus', '상태')}</th>
                   </tr></thead>
                   <tbody>
                     {rows.slice(0, 200).map(r => (
@@ -237,7 +237,7 @@ export default function PaymentMethods() {
                         <td style={{ padding: '8px 10px', fontFamily: 'monospace', color: '#475569' }}>{r.ym || (r.created_at || '').slice(0, 7)}</td>
                         <td style={{ padding: '8px 10px', fontWeight: 700 }}>{r.channel_name || r.channel}</td>
                         <td style={{ padding: '8px 10px', textAlign: 'right', fontWeight: 800, color: '#dc2626' }}>{fmtKRW(r.amount)}</td>
-                        <td style={{ padding: '8px 10px' }}><span style={{ fontSize: 10.5, fontWeight: 700, padding: '2px 9px', borderRadius: 20, background: r.status === 'charged' ? 'rgba(34,197,94,0.12)' : 'rgba(234,179,8,0.12)', color: r.status === 'charged' ? '#16a34a' : '#a16207' }}>{r.status === 'charged' ? '청구완료' : (r.status || '대기')}</span></td>
+                        <td style={{ padding: '8px 10px' }}><span style={{ fontSize: 10.5, fontWeight: 700, padding: '2px 9px', borderRadius: 20, background: r.status === 'charged' ? 'rgba(34,197,94,0.12)' : 'rgba(234,179,8,0.12)', color: r.status === 'charged' ? '#16a34a' : '#a16207' }}>{r.status === 'charged' ? t('paymentMethods.statusCharged', '청구완료') : (r.status || t('paymentMethods.statusPending', '대기'))}</span></td>
                       </tr>
                     ))}
                   </tbody>

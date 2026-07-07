@@ -56,29 +56,7 @@ const CHANNELS = [
 /* Keywords — live API data */
 const KEYWORDS_INIT = [];
 
-const COMPETITORS = [
-  { name: "A사", color: "#ef4444", share: 38.2 },
-  { name: "B사", color: "#f97316", share: 24.5 },
-  { name: "자사", color: "#4f8ef7", share: 18.4 },
-  { name: "C사", color: "#a855f7", share: 11.3 },
-  { name: "기타", color: "#4e6080", share: 7.6 },
-];
-
 const _shelfFmt = new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW', maximumFractionDigits: 0 });
-const TOP_PRODUCTS = [
-  { sku: "WH-1000XM5",  name: "노이즈캔슬링 헤드폰 XM5",  rank: 1, prev: 3, rating: 4.8, reviews: 2841, price: _shelfFmt.format(428000), channel: "Coupang" },
-  { sku: "KB-MXM-RGB",  name: "세라마이딘(Ceramidin) 세라마이드 크림 MX",       rank: 2, prev: 2, rating: 4.6, reviews: 1203, price: _shelfFmt.format(189000), channel: "Naver" },
-  { sku: "HC-USB4-7P",  name: "USB4 7포트 허브 Pro",         rank: 4, prev: 6, rating: 4.5, reviews: 876,  price: _shelfFmt.format(132000), channel: "Amazon KR" },
-  { sku: "GM-PRO-X",    name: "게이밍 마우스 Pro X",         rank: 6, prev: 5, rating: 4.3, reviews: 2104, price: _shelfFmt.format(98000),  channel: "11Street" },
-  { sku: "WC-4K-PRO",   name: "더마클리어 마이크로 폼 수딩 젤",                 rank: 1, prev: 4, rating: 4.7, reviews: 634,  price: _shelfFmt.format(218000), channel: "Amazon KR" },
-];
-
-const AI_INSIGHTS = [
-  { level: "high",  icon: "🚀", title: "기계식 키보드 SoS 급등", desc: "Naver·Coupang에서 자사 SoS가 전월 대비 +8.4%p 상승. Budget 20% 증액 권장.", action: "Budget 증액" },
-  { level: "warn",  icon: "⚠", title: "스마트워치 경쟁사 SoS 우위", desc: "경쟁사 A사가 55.4%로 압도적. Price·리뷰·콘텐츠 전략 재검토 필요.", action: "전략 검토" },
-  { level: "warn",  icon: "📉", title: "포터블 충전기 Rank 하락", desc: "Coupang·Naver 모두 Rank 하락 트렌드. 리스팅 최적화 및 Ad 집행 검토.", action: "리스팅 최적화" },
-  { level: "info",  icon: "🎯", title: "4K 웹캠 1위 유지 중", desc: "Coupang·Amazon KR 모두 1위 안정 유지. CTR 7.2% — 업계 최고 수준.", action: "현상 유지" },
-];
 
 /* ─── helpers ────────────────────────────────────────────────── */
 function TrendIcon({ t: dir }) {
@@ -221,6 +199,27 @@ function ErrorFallback({ error, onRetry }) {
 
 export default function DigitalShelf() {
   const t = useT(); // 181차: 메인 컴포넌트 t 미정의(런타임 ReferenceError) 버그 수정
+  // [현 차수] i18n: 데모 렌더 시드 리터럴 t() 전환 — t 접근 위해 모듈상수→컴포넌트 스코프 이동(inline 폴백 원문 유지, 로직 동일).
+  const COMPETITORS = [
+    { name: t('digitalShelf.compA', 'A사'), color: "#ef4444", share: 38.2 },
+    { name: t('digitalShelf.compB', 'B사'), color: "#f97316", share: 24.5 },
+    { name: t('digitalShelf.ownLabel', '자사'), color: "#4f8ef7", share: 18.4 },
+    { name: t('digitalShelf.compC', 'C사'), color: "#a855f7", share: 11.3 },
+    { name: t('digitalShelf.compEtc', '기타'), color: "#4e6080", share: 7.6 },
+  ];
+  const TOP_PRODUCTS = [
+    { sku: "WH-1000XM5",  name: t('digitalShelf.prodXm5', '노이즈캔슬링 헤드폰 XM5'),  rank: 1, prev: 3, rating: 4.8, reviews: 2841, price: _shelfFmt.format(428000), channel: "Coupang" },
+    { sku: "KB-MXM-RGB",  name: t('digitalShelf.prodCeramidin', '세라마이딘(Ceramidin) 세라마이드 크림 MX'),       rank: 2, prev: 2, rating: 4.6, reviews: 1203, price: _shelfFmt.format(189000), channel: "Naver" },
+    { sku: "HC-USB4-7P",  name: t('digitalShelf.prodUsb4Hub', 'USB4 7포트 허브 Pro'),         rank: 4, prev: 6, rating: 4.5, reviews: 876,  price: _shelfFmt.format(132000), channel: "Amazon KR" },
+    { sku: "GM-PRO-X",    name: t('digitalShelf.prodGamingMouse', '게이밍 마우스 Pro X'),         rank: 6, prev: 5, rating: 4.3, reviews: 2104, price: _shelfFmt.format(98000),  channel: "11Street" },
+    { sku: "WC-4K-PRO",   name: t('digitalShelf.prodSoothingGel', '더마클리어 마이크로 폼 수딩 젤'),                 rank: 1, prev: 4, rating: 4.7, reviews: 634,  price: _shelfFmt.format(218000), channel: "Amazon KR" },
+  ];
+  const AI_INSIGHTS = [
+    { level: "high",  icon: "🚀", title: t('digitalShelf.insight1Title', '기계식 키보드 SoS 급등'), desc: t('digitalShelf.insight1Desc', 'Naver·Coupang에서 자사 SoS가 전월 대비 +8.4%p 상승. Budget 20% 증액 권장.'), action: t('digitalShelf.insight1Action', 'Budget 증액') },
+    { level: "warn",  icon: "⚠", title: t('digitalShelf.insight2Title', '스마트워치 경쟁사 SoS 우위'), desc: t('digitalShelf.insight2Desc', '경쟁사 A사가 55.4%로 압도적. Price·리뷰·콘텐츠 전략 재검토 필요.'), action: t('digitalShelf.insight2Action', '전략 검토') },
+    { level: "warn",  icon: "📉", title: t('digitalShelf.insight3Title', '포터블 충전기 Rank 하락'), desc: t('digitalShelf.insight3Desc', 'Coupang·Naver 모두 Rank 하락 트렌드. 리스팅 최적화 및 Ad 집행 검토.'), action: t('digitalShelf.insight3Action', '리스팅 최적화') },
+    { level: "info",  icon: "🎯", title: t('digitalShelf.insight4Title', '4K 웹캠 1위 유지 중'), desc: t('digitalShelf.insight4Desc', 'Coupang·Amazon KR 모두 1위 안정 유지. CTR 7.2% — 업계 최고 수준.'), action: t('digitalShelf.insight4Action', '현상 유지') },
+  ];
   const [_pageError, _setPageError] = React.useState(null);
   const [_retryCount, _setRetryCount] = React.useState(0);
   // 181차 가상데이터 운영오염 차단: 데모 시드는 IS_DEMO 에서만 노출
@@ -334,7 +333,7 @@ export default function DigitalShelf() {
   const handleDownload = () => {
     downloadCSV(
       `digital_shelf_${new Date().toISOString().slice(0, 10)}.csv`,
-      [t('digitalShelf.colKeyword', '키워드'), t('digitalShelf.channel', '채널'), "자사 SoS(%)", "경쟁사 SoS(%)", t('digitalShelf.csvImpRank', '노출 순위'), t('digitalShelf.colSearchVol', '검색량'), "CTR(%)", t('digitalShelf.csvRevShare', '매출 기여(%)'), t('digitalShelf.colTrend', '트렌드')],
+      [t('digitalShelf.colKeyword', '키워드'), t('digitalShelf.channel', '채널'), t('digitalShelf.csvOwnSos', '자사 SoS(%)'), t('digitalShelf.csvCompSos', '경쟁사 SoS(%)'), t('digitalShelf.csvImpRank', '노출 순위'), t('digitalShelf.colSearchVol', '검색량'), "CTR(%)", t('digitalShelf.csvRevShare', '매출 기여(%)'), t('digitalShelf.colTrend', '트렌드')],
       filtered.map(kw => {
         const ch = kw.chData;
         return [kw.keyword, filterChannel === "all" ? t('digitalShelf.allChannelAvgShort', '전채널 평균') : filterChannel, ch?.brand_sos?.toFixed(1), ch?.comp_sos?.toFixed(1), ch?.rank, ch?.vol?.toLocaleString(), ch?.ctr?.toFixed(1), ch?.rev_share?.toFixed(1), kw.trend];
@@ -390,7 +389,7 @@ export default function DigitalShelf() {
           <div style={{ display: "grid", gap: 8 }}>
             {[
               { l: t('digitalShelf.avgSos', '평균 SoS'),  v: `${avgBrand}%`, c: "#14d9b0" },
-              { l: t('digitalShelf.top3Keywords', 'Top 3 키워드'), v: `${top3Count}개`, c: "#4f8ef7" },
+              { l: t('digitalShelf.top3Keywords', 'Top 3 키워드'), v: `${top3Count}${t('digitalShelf.unitCount', '개')}`, c: "#4f8ef7" },
               { l: t('digitalShelf.avgCtr', '평균 CTR'), v: `${avgCtr}%`, c: "#a855f7" },
             ].map(({ l, v, c }) => (
               <div key={l} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px", background: "rgba(9,15,30,0.5)", borderRadius: 8, border: "1px solid rgba(99,140,255,0.1)" }}>
@@ -456,9 +455,9 @@ export default function DigitalShelf() {
       {/* KPIs */}
       <div className="grid4 fade-up fade-up-2">
         {[
-          { l: t('digitalShelf.kpiTracked', '추적 키워드'),  v: filtered.length + "개", s: t('digitalShelf.kpiTrackedSub', '추적 진행 중'), c: "#4f8ef7" },
+          { l: t('digitalShelf.kpiTracked', '추적 키워드'),  v: filtered.length + t('digitalShelf.unitCount', '개'), s: t('digitalShelf.kpiTrackedSub', '추적 진행 중'), c: "#4f8ef7" },
           { l: t('digitalShelf.kpiAvgOwnSos', '평균 자사 SoS'), v: `${avgBrand}%`, s: IS_DEMO ? t('digitalShelf.kpiAvgOwnSosSub', '↑ 2.3%p vs 전월') : '', c: "#14d9b0" }, // [259차] 하드코딩 증감 운영 미노출
-          { l: t('digitalShelf.kpiTop3', 'Top 3 진입'), v: `${top3Count}개`, s: t('digitalShelf.kpiTop3Sub', '전체 {{n}}개 진행 중', { n: filtered.length }), c: "#a855f7" },
+          { l: t('digitalShelf.kpiTop3', 'Top 3 진입'), v: `${top3Count}${t('digitalShelf.unitCount', '개')}`, s: t('digitalShelf.kpiTop3Sub', '전체 {{n}}개 진행 중', { n: filtered.length }), c: "#a855f7" },
           { l: t('digitalShelf.kpiAvgCtr', '평균 CTR'), v: `${avgCtr}%`, s: IS_DEMO ? t('digitalShelf.kpiAvgCtrSub', '업계 평균 2.9% 대비') : '', c: "#22c55e" }, // [259차] 하드코딩 비교 운영 미노출
         ].map(({ l, v, s, c }, i) => (
           <div key={l} className="kpi-card card-hover fade-up" style={{ "--accent": c, animationDelay: `${i * 60}ms` }}>
@@ -551,7 +550,7 @@ export default function DigitalShelf() {
                     </td>
                     <td><TrendIcon t={kw.trend} /></td>
                     <td>
-                      <span className="badge" style={{ fontSize: 9 }}>{Object.keys(kw.channels).length}개 Channel</span>
+                      <span className="badge" style={{ fontSize: 9 }}>{Object.keys(kw.channels).length}{t('digitalShelf.unitCount', '개')} Channel</span>
                     </td>
                     <td>
                       {kw.harvest_status ? (
@@ -708,15 +707,16 @@ export default function DigitalShelf() {
 }
 
 /* ═══ 리스팅 품질 점수 섹션 ═══════════════════════════════ */
-const LISTINGS_SEED = [
-  { sku:'DJ-CICA-101', name:'무선 노이즈캔슬링 헤드폰', title:92, images:85, desc:78, spec:95, keywords:88, channel:'coupang', issues:['이미지 수 부족 (3/8)'], ai:'제목에 "ANC" 키워드 추가 권장' },
-  { sku:'DJ-CERA-002', name:'세라마이딘(Ceramidin) 세라마이드 크림', title:71, images:95, desc:65, spec:80, keywords:72, channel:'naver', issues:['설명 글자 수 부족 (450/1000)','키워드 밀도 낮음'], ai:'제품 스펙(키압/배열) 상세 추가 필요' },
-  { sku:'HC-USB4-7P-01', name:'바이탈 하이드라 콜라겐 앰플', title:98, images:100, desc:95, spec:98, keywords:96, channel:'amazon', issues:[], ai:'최적 상태 유지' },
-  { sku:'CAM-4K-PRO-01', name:'4K 웹캠 Pro', title:82, images:90, desc:82, spec:75, keywords:84, channel:'coupang', issues:['스펙 미기재 (최대 해상도)'], ai:'UHD 4K 60fps 명시, 호환 OS 목록 추가' },
-  { sku:'MS-ERG-BL-01', name:'크라이오 고무 마스크 워터풀', title:68, images:75, desc:70, spec:72, keywords:65, channel:'11st', issues:['제목 키워드 누락','이미지 배경 미준수'], ai:'무소음·블루투스·인체공학 키워드 삽입' },
-];
 function ListingQualitySection() {
   const t = useT();
+  // [현 차수] i18n: 데모 시드 렌더 리터럴 t() 전환 — 모듈상수→함수 스코프 이동(inline 폴백 원문 유지, 로직 동일).
+  const LISTINGS_SEED = [
+    { sku:'DJ-CICA-101', name:t('digitalShelf.lqName1', '무선 노이즈캔슬링 헤드폰'), title:92, images:85, desc:78, spec:95, keywords:88, channel:'coupang', issues:[t('digitalShelf.lqIssue1', '이미지 수 부족 (3/8)')], ai:t('digitalShelf.lqAi1', '제목에 "ANC" 키워드 추가 권장') },
+    { sku:'DJ-CERA-002', name:t('digitalShelf.lqName2', '세라마이딘(Ceramidin) 세라마이드 크림'), title:71, images:95, desc:65, spec:80, keywords:72, channel:'naver', issues:[t('digitalShelf.lqIssue2a', '설명 글자 수 부족 (450/1000)'),t('digitalShelf.lqIssue2b', '키워드 밀도 낮음')], ai:t('digitalShelf.lqAi2', '제품 스펙(키압/배열) 상세 추가 필요') },
+    { sku:'HC-USB4-7P-01', name:t('digitalShelf.lqName3', '바이탈 하이드라 콜라겐 앰플'), title:98, images:100, desc:95, spec:98, keywords:96, channel:'amazon', issues:[], ai:t('digitalShelf.lqAi3', '최적 상태 유지') },
+    { sku:'CAM-4K-PRO-01', name:t('digitalShelf.lqName4', '4K 웹캠 Pro'), title:82, images:90, desc:82, spec:75, keywords:84, channel:'coupang', issues:[t('digitalShelf.lqIssue4', '스펙 미기재 (최대 해상도)')], ai:t('digitalShelf.lqAi4', 'UHD 4K 60fps 명시, 호환 OS 목록 추가') },
+    { sku:'MS-ERG-BL-01', name:t('digitalShelf.lqName5', '크라이오 고무 마스크 워터풀'), title:68, images:75, desc:70, spec:72, keywords:65, channel:'11st', issues:[t('digitalShelf.lqIssue5a', '제목 키워드 누락'),t('digitalShelf.lqIssue5b', '이미지 배경 미준수')], ai:t('digitalShelf.lqAi5', '무소음·블루투스·인체공학 키워드 삽입') },
+  ];
   const LISTINGS = IS_DEMO ? LISTINGS_SEED : []; // 181차 운영오염 차단
   const scoreColor = v => v >= 90 ? '#22c55e' : v >= 75 ? '#f97316' : '#ef4444';
   const totalScore = item => Math.round((item.title+item.images+item.desc+item.spec+item.keywords)/5);
@@ -724,7 +724,7 @@ function ListingQualitySection() {
   return (
     <div style={{ display:'grid', gap:14, padding:4 }}>
       <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10 }}>
-        {[{l:t('digitalShelf.lqOptimal', '최적 리스팅'),v:LISTINGS.filter(l=>totalScore(l)>=90).length+'개',c:'#22c55e'},{l:t('digitalShelf.lqNeedsWork', '개선 필요'),v:LISTINGS.filter(l=>totalScore(l)<75).length+'개',c:'#ef4444'},{l:t('digitalShelf.lqAvgScore', '평균 품질 점수'),v:Math.round(LISTINGS.reduce((s,l)=>s+totalScore(l),0)/LISTINGS.length)+'점',c:'#4f8ef7'}].map(({l,v,c})=>(
+        {[{l:t('digitalShelf.lqOptimal', '최적 리스팅'),v:LISTINGS.filter(l=>totalScore(l)>=90).length+t('digitalShelf.unitCount', '개'),c:'#22c55e'},{l:t('digitalShelf.lqNeedsWork', '개선 필요'),v:LISTINGS.filter(l=>totalScore(l)<75).length+t('digitalShelf.unitCount', '개'),c:'#ef4444'},{l:t('digitalShelf.lqAvgScore', '평균 품질 점수'),v:Math.round(LISTINGS.reduce((s,l)=>s+totalScore(l),0)/LISTINGS.length)+t('digitalShelf.unitScore', '점'),c:'#4f8ef7'}].map(({l,v,c})=>(
           <div key={l} style={{background: 'var(--surface)',borderRadius:12,padding:'12px',border:`1px solid ${c}22`}}>
             <div style={{ fontSize:10, color:'var(--text-3)', fontWeight:700 }}>{l}</div>
             <div style={{ fontSize:22, fontWeight:900, color:c, marginTop:4 }}>{v}</div>
@@ -772,13 +772,14 @@ function ListingQualitySection() {
 }
 
 /* ═══ 리뷰 분석 섹션 ════════════════════════════════════ */
-const REVIEWS_SEED = [
-  { sku:'DJ-CICA-101', name:'무선 헤드폰', rating:4.8, count:2841, positive:89, negative:5, neutral:6, keywords:[{w:'음질',s:92},{w:'노이즈캔슬',s:88},{w:'착용감',s:76},{w:'배터리',s:71}], negKw:[{w:'가격',s:45},{w:'배터리',s:22}], responseRate:78, channel:'coupang' },
-  { sku:'DJ-CERA-002', name:'RGB 키보드', rating:4.6, count:1203, positive:82, negative:11, neutral:7, keywords:[{w:'타건감',s:88},{w:'RGB',s:84},{w:'내구성',s:72}], negKw:[{w:'소음',s:55},{w:'드라이버',s:32}], responseRate:45, channel:'naver' },
-  { sku:'HC-USB4-7P-01', name:'USB-C 허브', rating:4.5, count:876, positive:80, negative:12, neutral:8, keywords:[{w:'연결 안정성',s:85},{w:'발열 없음',s:78},{w:'호환성',s:72}], negKw:[{w:'인식 오류',s:42},{w:'발열',s:28}], responseRate:62, channel:'amazon' },
-];
 function ReviewAnalysisSection() {
   const t = useT();
+  // [현 차수] i18n: 데모 시드 렌더 리터럴 t() 전환 — 모듈상수→함수 스코프 이동(inline 폴백 원문 유지, 로직 동일).
+  const REVIEWS_SEED = [
+    { sku:'DJ-CICA-101', name:t('digitalShelf.rvName1', '무선 헤드폰'), rating:4.8, count:2841, positive:89, negative:5, neutral:6, keywords:[{w:t('digitalShelf.rvSoundQuality', '음질'),s:92},{w:t('digitalShelf.rvNoiseCancel', '노이즈캔슬'),s:88},{w:t('digitalShelf.rvFit', '착용감'),s:76},{w:t('digitalShelf.rvBattery', '배터리'),s:71}], negKw:[{w:t('digitalShelf.rvPrice', '가격'),s:45},{w:t('digitalShelf.rvBattery', '배터리'),s:22}], responseRate:78, channel:'coupang' },
+    { sku:'DJ-CERA-002', name:t('digitalShelf.rvName2', 'RGB 키보드'), rating:4.6, count:1203, positive:82, negative:11, neutral:7, keywords:[{w:t('digitalShelf.rvKeyFeel', '타건감'),s:88},{w:'RGB',s:84},{w:t('digitalShelf.rvDurability', '내구성'),s:72}], negKw:[{w:t('digitalShelf.rvNoise', '소음'),s:55},{w:t('digitalShelf.rvDriver', '드라이버'),s:32}], responseRate:45, channel:'naver' },
+    { sku:'HC-USB4-7P-01', name:t('digitalShelf.rvName3', 'USB-C 허브'), rating:4.5, count:876, positive:80, negative:12, neutral:8, keywords:[{w:t('digitalShelf.rvConnStability', '연결 안정성'),s:85},{w:t('digitalShelf.rvNoHeat', '발열 없음'),s:78},{w:t('digitalShelf.rvCompat', '호환성'),s:72}], negKw:[{w:t('digitalShelf.rvRecogError', '인식 오류'),s:42},{w:t('digitalShelf.rvHeat', '발열'),s:28}], responseRate:62, channel:'amazon' },
+  ];
   const REVIEWS = IS_DEMO ? REVIEWS_SEED : []; // 181차 운영오염 차단
   if (!REVIEWS.length) return <div style={{ padding:24, textAlign:'center', color:'var(--text-3)', fontSize:13 }}>{t('digitalShelf.noReview', '리뷰 분석 데이터가 없습니다.')}</div>;
   return (
@@ -788,7 +789,7 @@ function ReviewAnalysisSection() {
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16 }}>
             <div>
               <div style={{ fontSize:14, fontWeight:800 }}>{r.name}</div>
-              <div style={{ fontSize:11, color:'var(--text-3)', marginTop:2 }}>{r.sku} · {r.channel} · {t('digitalShelf.reviewCount', '리뷰')} {r.count.toLocaleString()}개</div>
+              <div style={{ fontSize:11, color:'var(--text-3)', marginTop:2 }}>{r.sku} · {r.channel} · {t('digitalShelf.reviewCount', '리뷰')} {r.count.toLocaleString()}{t('digitalShelf.unitCount', '개')}</div>
             </div>
             <div style={{ textAlign:'center' }}>
               <div style={{ fontSize:32, fontWeight:900, color:'#f59e0b' }}>★ {r.rating}</div>

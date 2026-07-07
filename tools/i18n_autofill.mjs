@@ -125,6 +125,12 @@ async function fillInline() {
   const re = /\bt\(\s*["']([\w.]+)["']\s*,\s*["']([^"']*[A-Za-z가-힣][^"']*)["']/g;
   const srcMap = {}; // key → { src:'ko'|'en', text }
   for (const f of files) { const s = fs.readFileSync(f, 'utf8'); let m; while ((m = re.exec(s))) { const [, k, v] = m; if (koFlat.has(k) || koFlat.has('pages.' + k) || srcMap[k]) continue; srcMap[k] = { src: /[가-힣]/.test(v) ? 'ko' : 'en', text: v }; } }
+  // [현 차수] 모듈상수 동적키 패턴: 얕은 객체 리터럴에 {label:'한글', labelKey:'dotted.key'}(또는 lk/sectionKey 등) 가
+  //   같이 있고 t(x.labelKey, x.label) 로 렌더되는 경우 — 정적 스캔 사각지대. dotted key 만 추출(prefix 확정 가능).
+  const objRe = /\{[^{}]*\}/g;
+  const keyRe = /\b(?:labelKey|sectionKey|titleKey|descKey|nameKey|itemKey|tabKey|optKey)\s*:\s*["']([\w]+(?:\.[\w]+)+)["']/;
+  const valRe = /\b(?:label|title|desc|name|section|text|tab|opt)\s*:\s*["']([^"'\\]*[가-힣][^"'\\]*)["']/;
+  for (const f of files) { const s = fs.readFileSync(f, 'utf8'); for (const om of s.matchAll(objRe)) { const obj = om[0]; const km = obj.match(keyRe); const vm = obj.match(valRe); if (km && vm) { const k = km[1]; if (!koFlat.has(k) && !srcMap[k]) srcMap[k] = { src: 'ko', text: vm[1] }; } } }
   const allKeys = Object.keys(srcMap).filter(inScope);
   const overlay = (() => { try { return JSON.parse(fs.readFileSync(OVERLAY, 'utf8')); } catch { return {}; } })();
   const report = [];

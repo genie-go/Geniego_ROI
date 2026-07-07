@@ -769,7 +769,7 @@ const BayesianABTab = memo(function BayesianABTab() {
                   </div>
                   {[
                     { l: 'Conv. Rate', v: `${(v.cr * 100).toFixed(2)}%`, c: '#eab308' },
-                    { l: 'P(승리)', v: `${(v.winProb * 100).toFixed(1)}%`, c: isW ? '#22c55e' : 'var(--text-2)' },
+                    { l: t('attributionPage.abProbWin', 'P(승리)'), v: `${(v.winProb * 100).toFixed(1)}%`, c: isW ? '#22c55e' : 'var(--text-2)' },
                     { l: 'Lift', v: `${v.lift > 0 ? '+' : ''}${v.lift.toFixed(1)}%`, c: v.lift > 0 ? '#22c55e' : '#ef4444' },
                     { l: 'CI₉₅', v: (v.ci95 && v.ci95.length >= 2) ? `[${(v.ci95[0] * 100).toFixed(1)}, ${(v.ci95[1] * 100).toFixed(1)}]%` : '—', c: 'var(--text-3)' },
                   ].map(k => (
@@ -1038,12 +1038,12 @@ const RadarChart = memo(function RadarChart({ data, channels, colors, size = 220
    권위 있게 계산. 클라이언트 추정(MODEL_COMPARE_DATA)과 달리 실측·감사가능·테넌트 일관.
    데모/운영 공통: 빈 결과(터치 미축적) 시 안내만. */
 const MTA_MODEL_META = [
-  { id: 'markov',         label: '데이터기반 (Markov)', color: '#22c55e', tag: '권위' },
-  { id: 'time_decay',     label: '시간감쇠',           color: '#6366f1' },
-  { id: 'position_based', label: 'U자형 (위치기반)',    color: '#4f8ef7' },
-  { id: 'linear',         label: '선형',               color: '#f59e0b' },
-  { id: 'last_touch',     label: '라스트터치',         color: '#ef4444' },
-  { id: 'first_touch',    label: '퍼스트터치',         color: '#a855f7' },
+  { id: 'markov',         label: '데이터기반 (Markov)', lk: 'mtaModelDataDriven', color: '#22c55e', tag: '권위' },
+  { id: 'time_decay',     label: '시간감쇠',           lk: 'mtaModelTimeDecay', color: '#6366f1' },
+  { id: 'position_based', label: 'U자형 (위치기반)',    lk: 'mtaModelUShape', color: '#4f8ef7' },
+  { id: 'linear',         label: '선형',               lk: 'mtaModelLinear', color: '#f59e0b' },
+  { id: 'last_touch',     label: '라스트터치',         lk: 'mtaModelLastTouch', color: '#ef4444' },
+  { id: 'first_touch',    label: '퍼스트터치',         lk: 'mtaModelFirstTouch', color: '#a855f7' },
 ];
 
 const ServerMtaPanel = memo(function ServerMtaPanel() {
@@ -1112,7 +1112,7 @@ const ServerMtaPanel = memo(function ServerMtaPanel() {
                 <th>{t('attrData.colChannel', 'Channel')}</th>
                 {MTA_MODEL_META.map(m => (
                   <th key={m.id} style={{ color: m.color, whiteSpace: 'nowrap' }}>
-                    {m.tag ? `★ ${m.label}` : m.label}
+                    {m.tag ? `★ ${t('attributionPage.' + m.lk, m.label)}` : t('attributionPage.' + m.lk, m.label)}
                   </th>
                 ))}
               </tr>

@@ -16,6 +16,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { useGlobalData } from "../context/GlobalDataContext.jsx";
 import { planRank, planLabel } from "../auth/plans.js"; // 202차: 동적 표시명(admin 변경 전파)
+import { useI18n } from "../i18n/index.js";
 
 
 /* PLAN_RANK / PLAN_LABEL: ../auth/plans.js SSOT (152차 W2) */
@@ -55,6 +56,7 @@ const DEFAULT_PLAN_PRICING = {
 export default function PlanGate({ children, feature, minPlan, fallback }) {
     const { isPro, isAdmin, plan, isSubscriptionExpired } = useAuth();
     const navigate = useNavigate();
+    const { t } = useI18n();
     // 어드민 Save 요금 동적 읽기 (GlobalDataContext) — hooks 규칙 준수
     const globalData = useGlobalData();
     const planPricingFromCtx = globalData?.planPricing
@@ -118,13 +120,13 @@ export default function PlanGate({ children, feature, minPlan, fallback }) {
                 {/* 제목 */}
                 <div style={{ fontWeight: 900, fontSize: 20, marginBottom: 10 }}>
                     {isFreeUser
-                        ? `${featureInfo ? featureInfo.icon + " " + featureInfo.label : "프리미엄 기능"}을 사용하려면 Upgrade가 필요합니다`
-                        : `${planLabel(requiredPlan)} Plan 전용 기능입니다`}
+                        ? `${featureInfo ? featureInfo.icon + " " + t('planGate.feature.' + feature + '.label', featureInfo.label) : t('planGate.premiumFeature', '프리미엄 기능')}${t('planGate.upgradeRequiredSuffix', '을 사용하려면 Upgrade가 필요합니다')}`
+                        : `${planLabel(requiredPlan)} ${t('planGate.planOnlyFeature', 'Plan 전용 기능입니다')}`}
                 </div>
                 <div style={{ fontSize: 13, color: "var(--text-2)", marginBottom: 8, lineHeight: 1.6 }}>
                     {isFreeUser
-                        ? <>기능을 열람하고 실제 캠페인을 운영하려면 <strong style={{ color: "#c084fc" }}>유료 구독 또는 Free 쿠폰</strong>이 필요합니다.</>
-                        : <>{featureInfo ? featureInfo.label : "이 기능"}은 <strong style={{ color: "#4f8ef7" }}>{planLabel(requiredPlan)} Plan 이상</strong>에서 이용 가능합니다.</>}
+                        ? <>{t('planGate.freeDescPrefix', '기능을 열람하고 실제 캠페인을 운영하려면')} <strong style={{ color: "#c084fc" }}>{t('planGate.paidOrCoupon', '유료 구독 또는 Free 쿠폰')}</strong>{t('planGate.freeDescSuffix', '이 필요합니다.')}</>
+                        : <>{featureInfo ? t('planGate.feature.' + feature + '.label', featureInfo.label) : t('planGate.thisFeature', '이 기능')}{t('planGate.subjectParticle', '은')} <strong style={{ color: "#4f8ef7" }}>{planLabel(requiredPlan)} {t('planGate.planOrAbove', 'Plan 이상')}</strong>{t('planGate.availableSuffix', '에서 이용 가능합니다.')}</>}
                 </div>
 
                 {/* 구독 만료 메시지 */}
@@ -134,7 +136,7 @@ export default function PlanGate({ children, feature, minPlan, fallback }) {
                         background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.25)",
                         color: "#ef4444", fontSize: 12,
                     }}>
-                        ⚠️ 구독이 만료되었습니다. 갱신하면 즉시 이용 가능합니다.
+                        ⚠️ {t('planGate.subscriptionExpired', '구독이 만료되었습니다. 갱신하면 즉시 이용 가능합니다.')}
                     </div>
                 )}
 
@@ -145,8 +147,8 @@ export default function PlanGate({ children, feature, minPlan, fallback }) {
                     border: '1px solid var(--border)', fontSize: 11,
                     color: "var(--text-3)", marginBottom: 24,
                 }}>
-                    현재 Plan: <strong style={{ color: plan === "pro" ? "#4f8ef7" : "var(--text-2)" }}>
-                        {isSubscriptionExpired ? "만료됨" : isFreeUser ? planLabel("free") : planLabel(plan)}
+                    {t('planGate.currentPlan', '현재 Plan:')} <strong style={{ color: plan === "pro" ? "#4f8ef7" : "var(--text-2)" }}>
+                        {isSubscriptionExpired ? t('planGate.expired', '만료됨') : isFreeUser ? planLabel("free") : planLabel(plan)}
                     </strong>
                 </div>
 
@@ -157,8 +159,8 @@ export default function PlanGate({ children, feature, minPlan, fallback }) {
                     }}>
                         {[
                             { label: "Monthly", price: pricing.monthly },
-                            { label: "분기 (20% 할인)", price: pricing.quarterly },
-                            { label: "Annual (40% 할인)", price: pricing.yearly },
+                            { label: t('planGate.quarterlyDiscount', '분기 (20% 할인)'), price: pricing.quarterly },
+                            { label: t('planGate.annualDiscount', 'Annual (40% 할인)'), price: pricing.yearly },
                         ].map(({ label, price }) => (
                             <div key={label} style={{
                                 padding: "10px 8px", borderRadius: 12,
@@ -188,7 +190,7 @@ export default function PlanGate({ children, feature, minPlan, fallback }) {
                         onMouseOver={e => (e.currentTarget.style.transform = "translateY(-1px)")}
                         onMouseOut={e => (e.currentTarget.style.transform = "none")}
                     >
-                        💎 지금 {planLabel(requiredPlan) || "Pro"} Upgrade
+                        💎 {t('planGate.upgradeNow', '지금')} {planLabel(requiredPlan) || "Pro"} Upgrade
                     </button>
                     {isFreeUser && (
                         <button
@@ -200,7 +202,7 @@ export default function PlanGate({ children, feature, minPlan, fallback }) {
                                 fontWeight: 700, fontSize: 13, cursor: "pointer",
                             }}
                         >
-                            🎁 Free 쿠폰으로 시작하기
+                            🎁 {t('planGate.startWithCoupon', 'Free 쿠폰으로 시작하기')}
                         </button>
                     )}
                     <button
@@ -210,7 +212,7 @@ export default function PlanGate({ children, feature, minPlan, fallback }) {
                             background: "transparent", color: "var(--text-3)", fontSize: 12, cursor: "pointer",
                         }}
                     >
-                        ← 돌아가기
+                        ← {t('planGate.goBack', '돌아가기')}
                     </button>
                 </div>
 
@@ -218,7 +220,7 @@ export default function PlanGate({ children, feature, minPlan, fallback }) {
                 {requiredPlan === "pro" && (
                     <div style={{ marginTop: 28, paddingTop: 24, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
                         <div style={{ fontSize: 10, color: "var(--text-3)", marginBottom: 12 }}>
-                            Pro Plan에서 이용 가능한 기능
+                            {t('planGate.proFeaturesTitle', 'Pro Plan에서 이용 가능한 기능')}
                         </div>
                         <div style={{ display: "flex", flexWrap: "wrap", gap: 6, justifyContent: "center" }}>
                             {Object.entries(FEATURE_PLANS)
@@ -229,7 +231,7 @@ export default function PlanGate({ children, feature, minPlan, fallback }) {
                                         background: "rgba(79,142,247,0.06)", border: "1px solid rgba(79,142,247,0.15)",
                                         color: "var(--text-2)",
                                     }}>
-                                        {icon} {label}
+                                        {icon} {t('planGate.feature.' + key + '.label', label)}
                                     </div>
                                 ))}
                         </div>

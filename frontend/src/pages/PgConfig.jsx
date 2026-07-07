@@ -24,6 +24,7 @@ import { useT } from "../i18n/index.js";
 const NA = '—';
 
 function PgConfig() {
+  const t = useT();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -57,36 +58,41 @@ function PgConfig() {
     },
     {
       emoji: integrationOk ? '✅' : '⚠',
-      label: '연동 상태',
+      label: t('pgConfig.kpi.integrationStatus', '연동 상태'),
       // 201차: 긴 'PADDLE_CLIENT_TOKEN 미설정' 이 카드 폭을 넘어 이탈 → val 은 짧은 상태,
       //        상세(env 키명)는 sub 줄로 이동 + val/sub 에 줄바꿈 허용(아래 렌더 overflowWrap).
-      val: loading ? NA : (integrationOk ? '정상' : '미설정'),
+      val: loading ? NA : (integrationOk ? t('pgConfig.kpi.normal', '정상') : t('pgConfig.kpi.notSet', '미설정')),
       sub: loading ? null : (integrationOk ? 'configured' : 'PADDLE_CLIENT_TOKEN env'),
     },
     {
-      emoji: '📊', label: '금월 거래',
-      val: loading ? NA : (Number.isFinite(month.tx_count) ? `${month.tx_count}건` : NA),
+      emoji: '📊', label: t('pgConfig.kpi.monthTx', '금월 거래'),
+      val: loading ? NA : (Number.isFinite(month.tx_count) ? `${month.tx_count}${t('pgConfig.unit.cases', '건')}` : NA),
       sub: month.tx_count === 0 && stats?.data_source === 'paddle_subscriptions'
-        ? '실 데이터 (0건)' : null,
+        ? t('pgConfig.kpi.realDataZero', '실 데이터 (0건)') : null,
     },
     {
-      emoji: '💰', label: '금월 매출',
+      emoji: '💰', label: t('pgConfig.kpi.monthRevenue', '금월 매출'),
       val: loading ? NA : (Number.isFinite(month.revenue_usd)
         ? `$${month.revenue_usd.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : NA),
-      sub: 'USD (Paddle 정합)',
+      sub: t('pgConfig.kpi.usdPaddleReconciled', 'USD (Paddle 정합)'),
     },
     {
-      emoji: '👥', label: '활성 구독',
+      emoji: '👥', label: t('pgConfig.kpi.activeSubs', '활성 구독'),
       val: loading ? NA : (Number.isFinite(subs.active) ? `${subs.active}` : NA),
       sub: Number.isFinite(subs.total) ? `total ${subs.total}` : null,
     },
     {
-      emoji: '🚫', label: '취소 구독',
+      emoji: '🚫', label: t('pgConfig.kpi.cancelledSubs', '취소 구독'),
       val: loading ? NA : (Number.isFinite(subs.cancelled) ? `${subs.cancelled}` : NA),
     },
   ];
 
-  const tabs = ['Paddle 설정', '결제 정책', '수수료 / 환불', 'Webhook 로그'];
+  const tabs = [
+    t('pgConfig.tab.paddle', 'Paddle 설정'),
+    t('pgConfig.tab.policy', '결제 정책'),
+    t('pgConfig.tab.fees', '수수료 / 환불'),
+    t('pgConfig.tab.webhook', 'Webhook 로그'),
+  ];
 
   const cardStyle = {
     borderRadius: 14, padding: '14px 20px',
@@ -105,15 +111,15 @@ function PgConfig() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
             <span style={{ fontSize: 32 }}>💳</span>
             <div>
-              <div style={{ fontSize: 22, fontWeight: 800 }}>결제 게이트웨이 관리</div>
+              <div style={{ fontSize: 22, fontWeight: 800 }}>{t('pgConfig.title', '결제 게이트웨이 관리')}</div>
               <div style={{ fontSize: 13, color: 'var(--text-3)', marginTop: 2 }}>
-                Paddle MoR · USD 단일 · 카드 결제 전용 (168차 N-152-F 정책)
+                {t('pgConfig.subtitle', 'Paddle MoR · USD 단일 · 카드 결제 전용 (168차 N-152-F 정책)')}
               </div>
               <div style={{
                 fontSize: 10, color: '#a78bfa', fontWeight: 700, marginTop: 4,
                 padding: '2px 8px', borderRadius: 4,
                 background: 'rgba(167,139,250,0.10)', display: 'inline-block',
-              }}>⚠ 관리자 전용 · 모든 KPI 는 paddle_subscriptions 실 데이터</div>
+              }}>{t('pgConfig.adminBadge', '⚠ 관리자 전용 · 모든 KPI 는 paddle_subscriptions 실 데이터')}</div>
             </div>
           </div>
           <button onClick={fetchStats} disabled={loading} style={{
@@ -122,7 +128,7 @@ function PgConfig() {
             background: 'rgba(255,255,255,0.04)', color: 'var(--text-2)',
             fontSize: 12, fontWeight: 700, cursor: loading ? 'default' : 'pointer',
             opacity: loading ? 0.5 : 1,
-          }}>{loading ? '로딩…' : '🔄 새로고침'}</button>
+          }}>{loading ? t('pgConfig.loading', '로딩…') : t('pgConfig.refresh', '🔄 새로고침')}</button>
         </div>
       </div>
 
@@ -131,7 +137,7 @@ function PgConfig() {
           marginBottom: 18, padding: '12px 16px', borderRadius: 10,
           background: 'rgba(248,113,113,0.06)', border: '1px solid rgba(248,113,113,0.20)',
           color: '#f87171', fontSize: 12,
-        }}>⚠ 통계 조회 실패 — {error}. 모든 KPI 가 "{NA}" 로 표시됩니다 (mock 절대 사용 안 함).</div>
+        }}>{t('pgConfig.error.statsFailed', '⚠ 통계 조회 실패 — {{error}}. 모든 KPI 가 "{{na}}" 로 표시됩니다 (mock 절대 사용 안 함).', { error, na: NA })}</div>
       )}
 
       {stats?.data_source && stats.data_source !== 'paddle_subscriptions' && (
@@ -140,8 +146,7 @@ function PgConfig() {
           background: 'rgba(251,191,36,0.06)', border: '1px solid rgba(251,191,36,0.20)',
           color: '#fbbf24', fontSize: 12,
         }}>
-          ℹ data_source = <code>{stats.data_source}</code> — paddle_subscriptions 테이블 미생성 또는 query 실패.
-          모든 통계가 0 으로 표시됩니다. 운영 환경에서 Paddle webhook 적용 후 정상 데이터 채워짐.
+          ℹ data_source = <code>{stats.data_source}</code>{t('pgConfig.dataSourceWarn', ' — paddle_subscriptions 테이블 미생성 또는 query 실패. 모든 통계가 0 으로 표시됩니다. 운영 환경에서 Paddle webhook 적용 후 정상 데이터 채워짐.')}
         </div>
       )}
 
@@ -209,59 +214,62 @@ function TabPaddle({ stats }) {
   const tokenOk = stats?.integration_status === 'configured';
   return (
     <>
-      <div style={{ fontSize: 14, fontWeight: 800, marginBottom: 14 }}>Paddle Billing v2 통합</div>
+      <div style={{ fontSize: 14, fontWeight: 800, marginBottom: 14 }}>{t('pgConfig.paddle.heading', 'Paddle Billing v2 통합')}</div>
       <ConfigRow label={t('pgConfigPage.provider', '결제 제공자')} value={stats?.provider || 'Paddle (MoR)'} />
       <ConfigRow label={t('pgConfigPage.environment', '환경')} value={env} />
-      <ConfigRow label={t('pgConfigPage.currency', '통화')} value="USD (단일 정책 — 168차 N-152-F-billing)" />
-      <ConfigRow label={t('pgConfigPage.allowedMethods', '허용 결제 수단')} value="card 전용 (Toss/PayPal/Apple Pay/Google Pay 차단)" />
+      <ConfigRow label={t('pgConfigPage.currency', '통화')} value={t('pgConfig.paddle.currencyValue', 'USD (단일 정책 — 168차 N-152-F-billing)')} />
+      <ConfigRow label={t('pgConfigPage.allowedMethods', '허용 결제 수단')} value={t('pgConfig.paddle.methodsValue', 'card 전용 (Toss/PayPal/Apple Pay/Google Pay 차단)')} />
       <ConfigRow label={t('pgConfigPage.clientToken', '클라이언트 토큰')} value={tokenOk ? '✅ configured (PADDLE_CLIENT_TOKEN env)' : '⚠ not configured'} />
       <ConfigRow label={t('pgConfigPage.webhookEndpoint', '웹훅 엔드포인트')} value="POST /v423/paddle/webhook" />
-      <ConfigRow label="MoR (Merchant of Record)" value="Paddle.com — VAT/GST/환불 위임" />
+      <ConfigRow label="MoR (Merchant of Record)" value={t('pgConfig.paddle.morValue', 'Paddle.com — VAT/GST/환불 위임')} />
       <div style={{ marginTop: 18, padding: '12px 14px', borderRadius: 10, background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.18)', fontSize: 11, color: 'var(--text-3)' }}>
-        <strong style={{ color: 'var(--text-2)' }}>가격 source of truth:</strong>{' '}
-        Paddle Dashboard. 본 admin 콘솔의 priceId 매핑 변경은 admin/plan-pricing 페이지에서.
+        <strong style={{ color: 'var(--text-2)' }}>{t('pgConfig.paddle.priceSotLabel', '가격 source of truth:')}</strong>{' '}
+        {t('pgConfig.paddle.priceSotDesc', 'Paddle Dashboard. 본 admin 콘솔의 priceId 매핑 변경은 admin/plan-pricing 페이지에서.')}
       </div>
     </>
   );
 }
 
 function TabPolicy() {
+  const t = useT();
   return (
     <>
-      <div style={{ fontSize: 14, fontWeight: 800, marginBottom: 14 }}>결제 정책 (168차 U-168-C)</div>
+      <div style={{ fontSize: 14, fontWeight: 800, marginBottom: 14 }}>{t('pgConfig.policy.heading', '결제 정책 (168차 U-168-C)')}</div>
       {[
-        ['통화', 'USD 단일'],
-        ['결제 수단', 'Credit/Debit Card 전용'],
-        ['차단 수단', 'Toss / KakaoPay / NaverPay / 계좌이체 / PayPal / Apple Pay / Google Pay'],
-        ['MoR', 'Paddle (VAT/GST/세무 위임)'],
-        ['환불 정책', '30일 환불 (refund page 정합)'],
-        ['구독 cycle', 'monthly / annual (annual ~20% 할인)'],
+        [t('pgConfig.policy.currency', '통화'), t('pgConfig.policy.currencyVal', 'USD 단일')],
+        [t('pgConfig.policy.method', '결제 수단'), t('pgConfig.policy.methodVal', 'Credit/Debit Card 전용')],
+        [t('pgConfig.policy.blocked', '차단 수단'), t('pgConfig.policy.blockedVal', 'Toss / KakaoPay / NaverPay / 계좌이체 / PayPal / Apple Pay / Google Pay')],
+        ['MoR', t('pgConfig.policy.morVal', 'Paddle (VAT/GST/세무 위임)')],
+        [t('pgConfig.policy.refund', '환불 정책'), t('pgConfig.policy.refundVal', '30일 환불 (refund page 정합)')],
+        [t('pgConfig.policy.cycle', '구독 cycle'), t('pgConfig.policy.cycleVal', 'monthly / annual (annual ~20% 할인)')],
       ].map(([k, v]) => (<ConfigRow key={k} label={k} value={v} />))}
     </>
   );
 }
 
 function TabFees() {
+  const t = useT();
   return (
     <div style={{ fontSize: 13, color: 'var(--text-3)' }}>
-      <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-1)', marginBottom: 12 }}>수수료 / 환불 (Paddle MoR)</div>
-      Paddle.com 이 MoR 로서 결제/환불/VAT 를 관리. 본 시스템은 통계 read-only.
+      <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-1)', marginBottom: 12 }}>{t('pgConfig.fees.heading', '수수료 / 환불 (Paddle MoR)')}</div>
+      {t('pgConfig.fees.desc', 'Paddle.com 이 MoR 로서 결제/환불/VAT 를 관리. 본 시스템은 통계 read-only.')}
       <ul style={{ marginTop: 10, paddingLeft: 18, lineHeight: 1.8 }}>
-        <li>수수료율: Paddle 표준 (5% + $0.50 / transaction · 변동 가능)</li>
-        <li>VAT/GST: 사용자 IP 기반 자동 계산 (Paddle)</li>
-        <li>환불: Paddle Dashboard 또는 자동 — 본 시스템에 webhook 으로 반영</li>
+        <li>{t('pgConfig.fees.rate', '수수료율: Paddle 표준 (5% + $0.50 / transaction · 변동 가능)')}</li>
+        <li>{t('pgConfig.fees.vat', 'VAT/GST: 사용자 IP 기반 자동 계산 (Paddle)')}</li>
+        <li>{t('pgConfig.fees.refund', '환불: Paddle Dashboard 또는 자동 — 본 시스템에 webhook 으로 반영')}</li>
       </ul>
     </div>
   );
 }
 
 function TabWebhook() {
+  const t = useT();
   return (
     <div style={{ fontSize: 13, color: 'var(--text-3)' }}>
-      <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-1)', marginBottom: 12 }}>Webhook 이력 (paddle_events 테이블)</div>
-      Webhook event 상세 view 는 별도 트랙 (170차+). 본 페이지는 통계 KPI 중심.
+      <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-1)', marginBottom: 12 }}>{t('pgConfig.webhook.heading', 'Webhook 이력 (paddle_events 테이블)')}</div>
+      {t('pgConfig.webhook.desc', 'Webhook event 상세 view 는 별도 트랙 (170차+). 본 페이지는 통계 KPI 중심.')}
       <div style={{ marginTop: 12, fontSize: 11 }}>
-        Endpoint: <code>POST /v423/paddle/webhook</code> · 이벤트: subscription_created/updated/cancelled, transaction_completed
+        Endpoint: <code>POST /v423/paddle/webhook</code>{t('pgConfig.webhook.events', ' · 이벤트: subscription_created/updated/cancelled, transaction_completed')}
       </div>
     </div>
   );

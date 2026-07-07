@@ -341,7 +341,7 @@ final class Onsite
                 $ctrl = $variants[0];
                 $best = $variants[0]; foreach ($variants as $v) { if ($v['cvr'] > $best['cvr']) $best = $v; }
                 if ($best['key'] !== $ctrl['key'] && $ctrl['exposures'] > 0 && $best['exposures'] > 0) {
-                    $lift = AttributionEngine::computeLift((float)$ctrl['conversions'], (float)$ctrl['exposures'], (float)$best['conversions'], (float)$best['exposures'], 0);
+                    $lift = AttributionEngine::computeLift((float)$ctrl['conversions'], (float)$ctrl['exposures'], (float)$best['conversions'], (float)$best['exposures'], 0, \Genie\I18n::lang($req));
                     if (!empty($lift['significant'])) $winner = $best['key'];
                 }
             }

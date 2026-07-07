@@ -123,6 +123,7 @@ const PAID_PLANS = [
 
 /* ─── Terms Modal ──────────────────────────────────────────── */
 function TermsModal({ open, onClose, category }) {
+  const t = useT();
   const [content, setContent] = React.useState({ title: '', body: '' });
   React.useEffect(() => {
     if (!open || !category) return;
@@ -193,7 +194,7 @@ function TermsModal({ open, onClose, category }) {
           {content.body}
         </div>
         <div style={{ padding: '12px 20px', borderTop: '1px solid rgba(99,140,255,0.1)', textAlign: 'right' }}>
-          <button onClick={onClose} style={{ padding: '8px 24px', borderRadius: 8, border: 'none', background: 'linear-gradient(135deg,#4f8ef7,#6366f1)', color: '#fff', fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>확인</button>
+          <button onClick={onClose} style={{ padding: '8px 24px', borderRadius: 8, border: 'none', background: 'linear-gradient(135deg,#4f8ef7,#6366f1)', color: '#fff', fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>{t('authPage.confirm', '확인')}</button>
         </div>
       </div>
     </div>
@@ -248,6 +249,7 @@ function TermsAgreementSection({ agreeTerms, setAgreeTerms, agreePrivacy, setAgr
 
 /* ─── Input Field ──────────────────────────────────────────── */
 function Field({ label, type = "text", value, onChange, placeholder, required, autoComplete, hint, disabled }) {
+  const t = useT();
   // 207차: 비밀번호 보이기/숨기기 토글 — 자동완성으로 채워진 잘못된 값 확인용(로그인 디버깅).
   const isPw = type === "password";
   const [reveal, setReveal] = useState(false);
@@ -273,7 +275,7 @@ function Field({ label, type = "text", value, onChange, placeholder, required, a
         />
         {isPw && !disabled && (
           <button type="button" tabIndex={-1} onClick={() => setReveal(v => !v)}
-            title={reveal ? "숨기기" : "보이기"}
+            title={reveal ? t('authPage.hide', '숨기기') : t('authPage.show', '보이기')}
             style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", background: "transparent", border: "none", cursor: "pointer", fontSize: 15, padding: 4, lineHeight: 1, color: "#94a3b8" }}>
             {reveal ? "🙈" : "👁️"}
           </button>
@@ -1345,7 +1347,7 @@ function CycleSelectorSection({ planCfg, planPeriods, cycleMonths, setCycleMonth
             >
               <div style={{ fontSize: 12, marginBottom: 4 }}>{namedPeriod(c.months)}</div>
               <div style={{ fontSize: 16, fontWeight: 900 }}>${c.totalCharge.toFixed(c.totalCharge >= 100 ? 0 : 2)}</div>
-              <div style={{ fontSize: 10, opacity: 0.85, marginTop: 2 }}>${c.priceUsd}/월</div>
+              <div style={{ fontSize: 10, opacity: 0.85, marginTop: 2 }}>${c.priceUsd}/{t('authPage.perMonthUnit', '월')}</div>
               {c.discountPct > 0 && (
                 <div style={{
                   marginTop: 4, padding: '1px 6px', borderRadius: 8,
@@ -1528,6 +1530,7 @@ function CouponCodeInput({ planCfg, onApplied }) {
 
 /* ─── Admin Login Form (한국어 전용) ────────────────────────── */
 function AdminLoginForm({ onBack }) {
+  const t = useT();
   const { login, user } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -1576,11 +1579,11 @@ function AdminLoginForm({ onBack }) {
       });
       const d = await r.json().catch(() => ({}));
       if (r.ok && d.ok) { if (tryAutoLogin()) return; setStep(2); }
-      else setError(d.error || "접속 코드가 올바르지 않습니다.");
+      else setError(d.error || t('authPage.adminKeyInvalid', '접속 코드가 올바르지 않습니다.'));
     } catch {
       // 서버 미응답(오프라인) — 하위호환 기본 게이트로 폴백
       if (adminKey.trim().toUpperCase() === ADMIN_GATE) { if (tryAutoLogin()) return; setStep(2); }
-      else setError("접속 코드 확인에 실패했습니다. 다시 시도하세요.");
+      else setError(t('authPage.adminKeyVerifyFail', '접속 코드 확인에 실패했습니다. 다시 시도하세요.'));
     }
     setLoading(false);
   };
@@ -1613,7 +1616,7 @@ function AdminLoginForm({ onBack }) {
     try {
       // [현 차수] adminRemember=true → login 의 remember 인자(6번째)로 세션 영속 + 자동로그인 플래그 저장.
       const u = await login(liveEmail.trim(), livePw, "admin", adminKey.trim(), "", adminRemember);
-      if ((u.plans || u.plan) !== "admin") throw new Error("관리자 계정이 아닙니다. 관리자 전용 계정으로 로그인하세요.");
+      if ((u.plans || u.plan) !== "admin") throw new Error(t('authPage.adminNotAdminAccount', '관리자 계정이 아닙니다. 관리자 전용 계정으로 로그인하세요.'));
       try { if (adminRemember) localStorage.setItem('genie_admin_autologin', '1'); else localStorage.removeItem('genie_admin_autologin'); } catch {}
       navigate("/admin", { replace: true });
     } catch (err) { setError(err.message); }
@@ -1625,23 +1628,23 @@ function AdminLoginForm({ onBack }) {
       <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderRadius: 10, background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.2)" }}>
         <span style={{ fontSize: 20 }}>🔐</span>
         <div>
-          <div style={{ fontWeight: 800, fontSize: 12, color: "#ef4444" }}>플랫폼 관리자 로그인</div>
-          <div style={{ fontSize: 10, color: "#64748b", marginTop: 2 }}>접속 코드 인증 후 관리자 계정으로 로그인합니다</div>
+          <div style={{ fontWeight: 800, fontSize: 12, color: "#ef4444" }}>{t('authPage.adminLoginTitle', '플랫폼 관리자 로그인')}</div>
+          <div style={{ fontSize: 10, color: "#64748b", marginTop: 2 }}>{t('authPage.adminLoginDesc', '접속 코드 인증 후 관리자 계정으로 로그인합니다')}</div>
         </div>
       </div>
 
       {/* [225차] 관리 대상 시스템 선택(운영/데모) — 선택 시 해당 시스템 도메인 관리자 로그인으로 전환 */}
       <div style={{ display: "grid", gap: 6 }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: "#475569" }}>관리 대상 시스템 선택</div>
+        <div style={{ fontSize: 11, fontWeight: 700, color: "#475569" }}>{t('authPage.adminTargetSystem', '관리 대상 시스템 선택')}</div>
         <div style={{ display: "flex", gap: 8 }}>
           {[
-            { k: "ops",  icon: "🏢", label: "운영 시스템",  c: "#4f8ef7" },
-            { k: "demo", icon: "🎪", label: "데모 시스템",  c: "#fb923c" },
+            { k: "ops",  icon: "🏢", label: t('authPage.adminSysOps', '운영 시스템'),  c: "#4f8ef7" },
+            { k: "demo", icon: "🎪", label: t('authPage.adminSysDemo', '데모 시스템'),  c: "#fb923c" },
           ].map(o => {
             const on = curEnv === o.k;
             return (
               <button key={o.k} type="button" onClick={() => switchEnv(o.k)} disabled={on || _isLocal}
-                title={on ? "현재 접속 중인 시스템" : `${o.label}으로 전환`}
+                title={on ? t('authPage.adminCurrentSystem', '현재 접속 중인 시스템') : t('authPage.adminSwitchTo', '{{label}}으로 전환', { label: o.label })}
                 style={{ flex: 1, padding: "10px 8px", borderRadius: 10, textAlign: "center",
                   cursor: (on || _isLocal) ? "default" : "pointer",
                   border: `1px solid ${on ? o.c : "#e2e8f0"}`, background: on ? `${o.c}14` : "#fff",
@@ -1649,53 +1652,53 @@ function AdminLoginForm({ onBack }) {
                   opacity: (_isLocal && !on) ? 0.5 : 1, transition: "all 0.15s" }}>
                 <div>{o.icon} {o.label}</div>
                 <div style={{ fontSize: 9, marginTop: 2, opacity: 0.85 }}>
-                  {on ? "현재 접속 중" : "선택 시 전환"}
+                  {on ? t('authPage.adminConnected', '현재 접속 중') : t('authPage.adminSwitchOnSelect', '선택 시 전환')}
                 </div>
               </button>
             );
           })}
         </div>
-        {_isLocal && <div style={{ fontSize: 10, color: "#94a3b8" }}>로컬 개발 환경에서는 시스템 전환이 비활성화됩니다.</div>}
+        {_isLocal && <div style={{ fontSize: 10, color: "#94a3b8" }}>{t('authPage.adminLocalDisabled', '로컬 개발 환경에서는 시스템 전환이 비활성화됩니다.')}</div>}
       </div>
 
       {step === 1 ? (
         <form onSubmit={verifyKey} style={{ display: "grid", gap: 12 }}>
           <div>
-            <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#475569", marginBottom: 5 }}>접속 코드</label>
+            <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#475569", marginBottom: 5 }}>{t('authPage.adminKeyLabel', '접속 코드')}</label>
             {/* 207차 로그인 버그 수정: type=password 면 브라우저 비밀번호 관리자가 저장된 사이트
                 비밀번호를 이 '접속 코드' 칸에 자동완성 → 접속키 검증 실패(로그인 차단)의 원인.
                 type=text + autoComplete=off 로 자동완성을 차단하고, 마스킹은 CSS(WebkitTextSecurity)로 유지. */}
-            <input type="text" name="genie_admin_gate" value={adminKey} onChange={e => setAdminKey(e.target.value)} placeholder="관리자 접속 코드를 입력하세요" required
+            <input type="text" name="genie_admin_gate" value={adminKey} onChange={e => setAdminKey(e.target.value)} placeholder={t('authPage.adminKeyPh', '관리자 접속 코드를 입력하세요')} required
               autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck={false} data-lpignore="true" data-form-type="other"
               style={{ width: "100%", boxSizing: "border-box", padding: "10px 14px", borderRadius: 10, border: "1px solid rgba(239,68,68,0.3)", background: "rgba(239,68,68,0.04)", color: "#1e293b", fontSize: 13, outline: "none", WebkitTextSecurity: "disc", textSecurity: "disc" }} />
           </div>
           {error && <div style={{ padding: "8px 12px", borderRadius: 8, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.3)", color: "#ef4444", fontSize: 11 }}>{error}</div>}
-          <button type="submit" style={{ padding: "12px 0", borderRadius: 10, border: "none", background: "linear-gradient(135deg,#ef4444,#dc2626)", color: "#fff", fontWeight: 800, fontSize: 14, cursor: "pointer" }}>접속 코드 확인</button>
+          <button type="submit" style={{ padding: "12px 0", borderRadius: 10, border: "none", background: "linear-gradient(135deg,#ef4444,#dc2626)", color: "#fff", fontWeight: 800, fontSize: 14, cursor: "pointer" }}>{t('authPage.adminKeyVerifyBtn', '접속 코드 확인')}</button>
         </form>
       ) : (
         <form onSubmit={handleLogin} style={{ display: "grid", gap: 12 }}>
-          <div style={{ padding: "6px 12px", borderRadius: 8, background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.2)", fontSize: 11, color: "#22c55e" }}>✅ 접속 코드 인증 완료</div>
+          <div style={{ padding: "6px 12px", borderRadius: 8, background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.2)", fontSize: 11, color: "#22c55e" }}>✅ {t('authPage.adminKeyVerified', '접속 코드 인증 완료')}</div>
           {/* 207차: 옛 admin 비밀번호가 자동완성으로 채워져 로그인 실패하던 문제 — 자동완성 차단(new-password/off).
               데모 로그인 폼은 무영향. 👁️ 보이기 버튼으로 실제 입력값 확인 가능. */}
-          <Field label="관리자 이메일" type="email" value={email} onChange={setEmail} placeholder="admin@example.com" required autoComplete="off" />
-          <Field label="비밀번호" type="password" value={password} onChange={setPassword} placeholder="••••••••" required autoComplete="new-password" />
+          <Field label={t('authPage.adminEmailLabel', '관리자 이메일')} type="email" value={email} onChange={setEmail} placeholder="admin@example.com" required autoComplete="off" />
+          <Field label={t('authPage.adminPwLabel', '비밀번호')} type="password" value={password} onChange={setPassword} placeholder="••••••••" required autoComplete="new-password" />
           {/* [현 차수] admin 자동로그인 — 체크 시 다음 접속에서 접속코드만 인증하면 이메일/비번 없이 자동 진입(세션 재사용·비번 미저장) */}
           <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "#475569", cursor: "pointer", userSelect: "none" }}>
             <input type="checkbox" checked={adminRemember} onChange={e => setAdminRemember(e.target.checked)} style={{ width: 15, height: 15, accentColor: "#ef4444", cursor: "pointer" }} />
-            <span>자동 로그인</span>
-            <span style={{ fontSize: 10, color: "#94a3b8" }}>· 다음 접속 시 접속코드만 입력하면 자동 로그인 (공용 PC 사용 금지)</span>
+            <span>{t('authPage.adminAutoLogin', '자동 로그인')}</span>
+            <span style={{ fontSize: 10, color: "#94a3b8" }}>· {t('authPage.adminAutoLoginHint', '다음 접속 시 접속코드만 입력하면 자동 로그인 (공용 PC 사용 금지)')}</span>
           </label>
           {error && <div style={{ padding: "8px 12px", borderRadius: 8, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.3)", color: "#ef4444", fontSize: 11 }}>{error}</div>}
           <button type="submit" disabled={loading} style={{ padding: "12px 0", borderRadius: 10, border: "none", background: loading ? "rgba(239,68,68,0.4)" : "linear-gradient(135deg,#ef4444,#dc2626)", color: "#fff", fontWeight: 800, fontSize: 14, cursor: loading ? "not-allowed" : "pointer" }}>
-            {loading ? "로그인 중..." : "🔐 관리자 로그인"}
+            {loading ? t('authPage.adminLoggingIn', '로그인 중...') : `🔐 ${t('authPage.adminLoginBtn', '관리자 로그인')}`}
           </button>
-          <button type="button" onClick={() => { setStep(1); setError(null); setAdminKey(""); }} style={{ background: "none", border: "none", color: "#94a3b8", fontSize: 11, cursor: "pointer" }}>접속 코드 재입력</button>
+          <button type="button" onClick={() => { setStep(1); setError(null); setAdminKey(""); }} style={{ background: "none", border: "none", color: "#94a3b8", fontSize: 11, cursor: "pointer" }}>{t('authPage.adminKeyReenter', '접속 코드 재입력')}</button>
         </form>
       )}
       {/* 일반 로그인으로 돌아가기 */}
       <button type="button" onClick={() => onBack && onBack()}
         style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: 11, cursor: 'pointer', marginTop: 4, textAlign: 'center', width: '100%' }}>
-        ← 돌아가기
+        ← {t('authPage.adminBack', '돌아가기')}
       </button>
     </div>
   );

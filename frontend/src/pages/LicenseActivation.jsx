@@ -317,10 +317,11 @@ function Badge({ text, color }) {
 
 function StepGuide({ steps, docsUrl }) {
     const [open, setOpen] = useState(false);
+    const { t } = useI18n();
     return (
         <div style={{ marginTop: 10 }}>
             <button onClick={() => setOpen(v => !v)} style={{ fontSize: 11, color: "#4f8ef7", background: "none", border: "none", cursor: "pointer", padding: 0, fontWeight: 700 }}>
-                {open ? "▲ 가이드 접기" : "▼ Key 발급 방법 보기 (초보자용)"}
+                {open ? t('licenseActivation.guideCollapse', "▲ 가이드 접기") : t('licenseActivation.guideExpand', "▼ Key 발급 방법 보기 (초보자용)")}
             </button>
             {open && (
                 <div style={{ marginTop: 8, padding: "12px 14px", borderRadius: 10, background: "rgba(79,142,247,0.04)", border: "1px solid rgba(79,142,247,0.15)" }}>
@@ -332,7 +333,7 @@ function StepGuide({ steps, docsUrl }) {
                     {docsUrl && (
                         <a href={docsUrl} target="_blank" rel="noopener noreferrer"
                             style={{ display: "inline-block", marginTop: 10, fontSize: 11, color: "#4f8ef7", fontWeight: 700 }}>
-                            📖 공식 문서 바로가기 →
+                            {t('licenseActivation.officialDocs', '📖 공식 문서 바로가기 →')}
                         </a>
                     )}
                 </div>
@@ -346,11 +347,12 @@ function ChannelKeyForm({ ch, values, onChange, saved, token, onSaved, onCleared
     const [busy, setBusy] = useState(false);
     const [testMsg, setTestMsg] = useState(null); // { ok, message }
     const [status, setStatus] = useState(saved ? "saved" : "idle");
+    const { t } = useI18n();
 
     const handleSave = async () => {
         const missing = ch.keyFields.filter(f => f.required && !values[f.key]);
         if (missing.length > 0) {
-            alert(`필수 항목을 입력해주세요: ${missing.map(f => f.label).join(", ")}`);
+            alert(`${t('licenseActivation.fillRequired', '필수 항목을 입력해주세요')}: ${missing.map(f => f.label).join(", ")}`);
             return;
         }
         setBusy(true);
@@ -374,10 +376,10 @@ function ChannelKeyForm({ ch, values, onChange, saved, token, onSaved, onCleared
             // 저장 후 자동 동기화 테스트 (첫 번째 저장된 ID)
             if (savedIds[0]) {
                 const td = await postJsonAuth(`/api/v423/creds/${savedIds[0]}/test`);
-                setTestMsg({ ok: td.ok, message: td.message || (td.ok ? "연동 성공" : "연동 실패") });
+                setTestMsg({ ok: td.ok, message: td.message || (td.ok ? t('licenseActivation.connectSuccess', "연동 성공") : t('licenseActivation.connectFail', "연동 실패")) });
             }
         } catch (e) {
-            setTestMsg({ ok: false, message: "저장 중 오류: " + e.message });
+            setTestMsg({ ok: false, message: t('licenseActivation.saveError', "저장 중 오류: ") + e.message });
         } finally {
             setBusy(false);
         }
@@ -413,11 +415,11 @@ function ChannelKeyForm({ ch, values, onChange, saved, token, onSaved, onCleared
                     <div style={{ fontWeight: 700, fontSize: 13 }}>{ch.name}</div>
                     <div style={{ display: "flex", gap: 6, marginTop: 3, flexWrap: "wrap" }}>
                         <Badge text={ch.badge} color={ch.badge === "국내" ? "#22c55e" : ch.badge === "일본" ? "#ef4444" : "#4f8ef7"} />
-                        {status === "saved" && <Badge text="✓ 연동됨" color="#22c55e" />}
+                        {status === "saved" && <Badge text={t('licenseActivation.linked', "✓ 연동됨")} color="#22c55e" />}
                     </div>
                 </div>
                 {status === "saved" && (
-                    <button onClick={handleClear} style={{ fontSize: 10, color: "#ef4444", background: "none", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 6, cursor: "pointer", padding: "3px 8px" }}>삭제</button>
+                    <button onClick={handleClear} style={{ fontSize: 10, color: "#ef4444", background: "none", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 6, cursor: "pointer", padding: "3px 8px" }}>{t('licenseActivation.delete', '삭제')}</button>
                 )}
             </div>
 
@@ -453,17 +455,17 @@ function ChannelKeyForm({ ch, values, onChange, saved, token, onSaved, onCleared
 
             {/* 표시/숨김 + Save */}
             <div style={{ display: "flex", gap: 8, marginTop: 12, alignItems: "center", flexWrap: "wrap" }}>
-                <button onClick={() => setShow(v => !v)} style={{ fontSize: 11, color: "var(--text-3)", background: "none", border: "1px solid rgba(99,140,255,0.15)", borderRadius: 6, cursor: "pointer", padding: "5px 10px" }}>👁 {show ? "숨기기" : "보기"}</button>
+                <button onClick={() => setShow(v => !v)} style={{ fontSize: 11, color: "var(--text-3)", background: "none", border: "1px solid rgba(99,140,255,0.15)", borderRadius: 6, cursor: "pointer", padding: "5px 10px" }}>👁 {show ? t('licenseActivation.hide', "숨기기") : t('licenseActivation.show', "보기")}</button>
                 <button onClick={handleSave} disabled={busy} style={{
                     padding: "8px 18px", borderRadius: 8, border: "none",
                     background: `linear-gradient(135deg,${ch.color},${ch.color}bb)`,
                     color: '#fff', fontWeight: 700, fontSize: 12, cursor: "pointer",
                     opacity: busy ? 0.7 : 1 }}>
-                    {busy ? "⏳ 저장 중…" : status === "saved" ? "✓ 저장됨" : "💾 저장"}
+                    {busy ? t('licenseActivation.saving', "⏳ 저장 중…") : status === "saved" ? t('licenseActivation.saved', "✓ 저장됨") : t('licenseActivation.save', "💾 저장")}
                 </button>
                 {status === "saved" && !testMsg && (
                     <span style={{ fontSize: 11, color: "#22c55e", fontWeight: 700 }}>
-                        ✓ {ch.name} 연동 준비 완료
+                        ✓ {ch.name} {t('licenseActivation.readyToConnect', '연동 준비 완료')}
                     </span>
                 )}
             </div>
