@@ -642,8 +642,8 @@ const MediaServerConfig = memo(function MediaServerConfig({ t }) {
             <div style={{ marginTop: 8, padding: '8px 11px', borderRadius: 8, fontSize: 11.5, lineHeight: 1.6,
               background: testResult.reachable ? '#dcfce7' : '#fef2f2', border: `1px solid ${testResult.reachable ? '#86efac' : '#fecaca'}`, color: testResult.reachable ? '#15803d' : '#b91c1c' }}>
               <div style={{ fontWeight: 700 }}>{testResult.reachable ? '✅ ' + t('liveCommerce.mediaReachable', '미디어서버 응답 확인') : '⚠️ ' + t('liveCommerce.mediaUnreachable', '연결 실패')}</div>
-              {testResult.whip && <div>WHIP: {testResult.whip.reachable ? `OK (HTTP ${testResult.whip.http_code}, ${testResult.whip.latency_ms}ms)` : (testResult.whip.error || '실패')}</div>}
-              {testResult.whep && <div>WHEP: {testResult.whep.reachable ? `OK (HTTP ${testResult.whep.http_code}, ${testResult.whep.latency_ms}ms)` : (testResult.whep.error || '실패')}</div>}
+              {testResult.whip && <div>WHIP: {testResult.whip.reachable ? `OK (HTTP ${testResult.whip.http_code}, ${testResult.whip.latency_ms}ms)` : (testResult.whip.error || t('liveCommerce.failed', '실패'))}</div>}
+              {testResult.whep && <div>WHEP: {testResult.whep.reachable ? `OK (HTTP ${testResult.whep.http_code}, ${testResult.whep.latency_ms}ms)` : (testResult.whep.error || t('liveCommerce.failed', '실패'))}</div>}
               {testResult.note && <div style={{ marginTop: 3, opacity: 0.85 }}>{testResult.note}</div>}
             </div>
           )}
@@ -685,7 +685,7 @@ const MulticastManager = memo(function MulticastManager({ session, live, t }) {
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 12, fontWeight: 700 }}>{d.label || m.name}
                 <span style={{ marginLeft: 6, fontSize: 9, fontWeight: 800, padding: '1px 6px', borderRadius: 10, background: d.status === 'live' ? '#fee2e2' : '#f1f5f9', color: d.status === 'live' ? '#ef4444' : C.sub }}>{d.status === 'live' ? '● LIVE' : 'IDLE'}</span></div>
-              <div style={{ fontSize: 10, color: C.sub, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{d.rtmp_url || '(RTMP URL 미설정)'} · {d.hasKey ? '🔑 ' + d.stream_key : t('liveCommerce.noKey', '키 없음')}</div>
+              <div style={{ fontSize: 10, color: C.sub, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{d.rtmp_url || t('liveCommerce.rtmpUnset', '(RTMP URL 미설정)')} · {d.hasKey ? '🔑 ' + d.stream_key : t('liveCommerce.noKey', '키 없음')}</div>
             </div>
             <button onClick={() => toggle(d)} title={t('liveCommerce.toggle', '활성/비활성')} style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 16 }}>{d.enabled ? '🟢' : '⚪'}</button>
             <button onClick={() => del(d.id)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#ef4444' }}>🗑</button>
@@ -960,9 +960,9 @@ const IntegrationsTab = memo(function IntegrationsTab({ t }) {
           <Card key={g.key}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
               <SecTitle>{g.icon} {t('liveCommerce.group_' + g.key, g.label)}</SecTitle>
-              <Btn small ghost color="#6366f1" onClick={() => navigate(tgt.route)}>{tgt.menu} {t('liveCommerce.manageThere', '에서 등록')} →</Btn>
+              <Btn small ghost color="#6366f1" onClick={() => navigate(tgt.route)}>{t('liveCommerce.target_' + g.key + '_menu', tgt.menu)} {t('liveCommerce.manageThere', '에서 등록')} →</Btn>
             </div>
-            <div style={{ fontSize: 11, color: C.sub, marginBottom: 10 }}>{tgt.desc}</div>
+            <div style={{ fontSize: 11, color: C.sub, marginBottom: 10 }}>{t('liveCommerce.target_' + g.key + '_desc', tgt.desc)}</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(210px,1fr))', gap: 10 }}>
               {g.items.map(ch => {
                 const tracked = !!CREDS_KEY[ch.id];
@@ -1079,24 +1079,24 @@ const AiHostTab = memo(function AiHostTab({ session, gd, t }) {
   const generate = async () => {
     const name = (prodName.trim() || featured?.name || ''); if (!name) return;
     setGenBusy(true); setGen('');
-    try { const r = await aiAssist({ task: 'describe', product: name }); setGen(r?.ok ? r.text : ('⚠️ ' + (r?.error || '생성 실패'))); }
+    try { const r = await aiAssist({ task: 'describe', product: name }); setGen(r?.ok ? r.text : ('⚠️ ' + (r?.error || t('liveCommerce.genFail', '생성 실패')))); }
     catch (e) { setGen('⚠️ ' + String(e?.message || e)); } finally { setGenBusy(false); }
   };
   // 2) 실시간 번역
   const [src, setSrc] = useState(''); const [lang, setLang] = useState('English'); const [tr, setTr] = useState(''); const [trBusy, setTrBusy] = useState(false);
   const translate = async () => {
     if (!src.trim()) return; setTrBusy(true); setTr('');
-    try { const r = await aiAssist({ task: 'translate', text: src, lang }); setTr(r?.ok ? r.text : ('⚠️ ' + (r?.error || '번역 실패'))); }
+    try { const r = await aiAssist({ task: 'translate', text: src, lang }); setTr(r?.ok ? r.text : ('⚠️ ' + (r?.error || t('liveCommerce.translateFail', '번역 실패')))); }
     catch (e) { setTr('⚠️ ' + String(e?.message || e)); } finally { setTrBusy(false); }
   };
   // 3) FAQ 자동 응답
   const [q, setQ] = useState(''); const [ans, setAns] = useState(''); const [faqBusy, setFaqBusy] = useState(false);
   const askFaq = async () => {
     if (!q.trim()) return; setFaqBusy(true); setAns('');
-    try { const r = await aiAssist({ task: 'faq', text: q, product: productCtx }); setAns(r?.ok ? r.text : ('⚠️ ' + (r?.error || '응답 실패'))); }
+    try { const r = await aiAssist({ task: 'faq', text: q, product: productCtx }); setAns(r?.ok ? r.text : ('⚠️ ' + (r?.error || t('liveCommerce.faqFail', '응답 실패')))); }
     catch (e) { setAns('⚠️ ' + String(e?.message || e)); } finally { setFaqBusy(false); }
   };
-  const postAns = async () => { if (!ans || !sid) return; try { await liveApi.postChat(sid, { author: 'AI 호스트', message: ans, kind: 'chat' }); alert(t('liveCommerce.posted', '채팅에 게시했습니다')); } catch (e) { alert(String(e?.message || e)); } };
+  const postAns = async () => { if (!ans || !sid) return; try { await liveApi.postChat(sid, { author: t('liveCommerce.aiHost', 'AI 호스트'), message: ans, kind: 'chat' }); alert(t('liveCommerce.posted', '채팅에 게시했습니다')); } catch (e) { alert(String(e?.message || e)); } };
   // 4) 실시간 자막(음성인식)
   const recRef = useRef(null);
   const [listening, setListening] = useState(false);
@@ -1116,7 +1116,7 @@ const AiHostTab = memo(function AiHostTab({ session, gd, t }) {
     if (!transcript.trim()) return;
     try { const r = await aiAssist({ task: 'subtitle', text: transcript, lang: capLang }); setCaption(r?.ok ? r.text : ('⚠️ ' + (r?.error || ''))); } catch (e) { setCaption('⚠️ ' + String(e?.message || e)); }
   };
-  const sendCaption = async () => { const c = caption || transcript; if (!c || !sid) return; try { await liveApi.postChat(sid, { author: '자막', message: c, kind: 'system' }); alert(t('liveCommerce.captionSent', '자막을 전송했습니다')); } catch (e) { alert(String(e?.message || e)); } };
+  const sendCaption = async () => { const c = caption || transcript; if (!c || !sid) return; try { await liveApi.postChat(sid, { author: t('liveCommerce.captionAuthor', '자막'), message: c, kind: 'system' }); alert(t('liveCommerce.captionSent', '자막을 전송했습니다')); } catch (e) { alert(String(e?.message || e)); } };
 
   const box = { whiteSpace: 'pre-wrap', background: '#faf5ff', borderRadius: 10, padding: 12, marginTop: 10, fontSize: 13, lineHeight: 1.6, color: C.text };
   const inp = { padding: '9px 12px', borderRadius: 8, border: `1px solid ${C.border}`, fontSize: 13 };

@@ -1281,9 +1281,9 @@ export default function ApiKeys() {
       {/* Content */}
       {activeTab === 0 && !_IS_DEMO_ENV && (
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
-          <button onClick={() => setShowRegAdd(true)} title="관리자: 새 채널을 레지스트리에 추가 (코드 수정 불필요, 카테고리 자동 분류·즉시 등록 UI 반영)"
+          <button onClick={() => setShowRegAdd(true)} title={t('ak.regAddChannelTitle','관리자: 새 채널을 레지스트리에 추가 (코드 수정 불필요, 카테고리 자동 분류·즉시 등록 UI 반영)')}
             style={{ padding: '6px 13px', borderRadius: 8, border: '1px solid rgba(99,102,241,0.4)', background: 'rgba(99,102,241,0.1)', color: '#6366f1', fontSize: 12, fontWeight: 800, cursor: 'pointer' }}>
-            + 채널 추가 (관리자)
+            + {t('ak.regAddChannelBtn','채널 추가 (관리자)')}
           </button>
         </div>
       )}
@@ -2136,7 +2136,7 @@ function OverviewTab({ channels, summary, creds, applies = [], loading, onChanne
       {grouped.map(({ g, items }) => (
         <div key={g}>
           <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--text-2)', marginBottom: 10, paddingLeft: 2 }}>
-            {GROUP_LABELS[g] || t('ak.groupOther','기타')} <span style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 600 }}>({items.length})</span>
+            {GROUP_LABELS[g] ? t('ak.group_' + g, GROUP_LABELS[g]) : t('ak.groupOther','기타')} <span style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 600 }}>({items.length})</span>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 12 }}>
             {items.map(renderCard)}
@@ -2369,6 +2369,7 @@ function AddCredModal({ channels, onClose, onSubmit, t }) {
    카테고리(8종) 선택 → 해당 섹션에 자동 배치. 코드 수정 없이 신규 채널 등록.
    ═══════════════════════════════════════════════════════════════════ */
 function RegistryAddModal({ onClose, onSubmit }) {
+  const { t } = useI18n();
   const [form, setForm] = useState({ key: '', name: '', icon: '🔗', color: '#6366f1', group: 'domestic', fields: 'api_key' });
   const [busy, setBusy] = useState(false);
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
@@ -2378,8 +2379,8 @@ function RegistryAddModal({ onClose, onSubmit }) {
   return (
     <div role="dialog" aria-modal="true" onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(9,5,20,0.85)', backdropFilter: 'blur(10px)' }}>
       <div onClick={e => e.stopPropagation()} style={{ width: 'min(480px,92vw)', maxHeight: '88vh', overflowY: 'auto', background: '#fff', borderRadius: 16, padding: 22, boxShadow: '0 20px 60px rgba(0,0,0,0.4)' }}>
-        <div style={{ fontWeight: 900, fontSize: 16, color: '#1e293b', marginBottom: 4 }}>+ 채널 추가 (관리자)</div>
-        <div style={{ fontSize: 11.5, color: '#64748b', marginBottom: 8 }}>선택한 카테고리 섹션에 자동 분류되어 즉시 등록 UI 에 노출됩니다.</div>
+        <div style={{ fontWeight: 900, fontSize: 16, color: '#1e293b', marginBottom: 4 }}>+ {t('ak.regAddChannelBtn','채널 추가 (관리자)')}</div>
+        <div style={{ fontSize: 11.5, color: '#64748b', marginBottom: 8 }}>{t('ak.regAddSub','선택한 카테고리 섹션에 자동 분류되어 즉시 등록 UI 에 노출됩니다.')}</div>
         {/* [228차 S4] ★정직 안내 — 신규 채널은 자격증명 저장은 되나 전용 fetch 어댑터가 없어 '자동 수집'은 안 됨(push 경로만). */}
         {(() => {
           const sk = ['domestic', 'global_commerce', 'd2c'].includes(form.group) ? 'commerce' : (form.group === 'global_ad' ? 'ad' : 'none');
@@ -2392,23 +2393,23 @@ function RegistryAddModal({ onClose, onSubmit }) {
             </div>
           );
         })()}
-        <label style={lbl}>채널 키 (영문소문자/숫자/_)</label>
-        <input style={inp} value={form.key} onChange={e => set('key', e.target.value)} placeholder="예: cafe24_global" />
-        <label style={lbl}>표시명</label>
-        <input style={inp} value={form.name} onChange={e => set('name', e.target.value)} placeholder="예: Cafe24 글로벌" />
-        <label style={lbl}>카테고리</label>
+        <label style={lbl}>{t('ak.regKeyLabel','채널 키 (영문소문자/숫자/_)')}</label>
+        <input style={inp} value={form.key} onChange={e => set('key', e.target.value)} placeholder={t('ak.regKeyPh','예: cafe24_global')} />
+        <label style={lbl}>{t('ak.regNameLabel','표시명')}</label>
+        <input style={inp} value={form.name} onChange={e => set('name', e.target.value)} placeholder={t('ak.regNamePh','예: Cafe24 글로벌')} />
+        <label style={lbl}>{t('ak.regCategoryLabel','카테고리')}</label>
         <select style={inp} value={form.group} onChange={e => set('group', e.target.value)}>
-          {GROUP_ORDER.map(g => <option key={g} value={g}>{GROUP_LABELS[g]}</option>)}
+          {GROUP_ORDER.map(g => <option key={g} value={g}>{t('ak.group_' + g, GROUP_LABELS[g])}</option>)}
         </select>
         <div style={{ display: 'flex', gap: 10 }}>
-          <div style={{ flex: 1 }}><label style={lbl}>아이콘(이모지)</label><input style={inp} value={form.icon} onChange={e => set('icon', e.target.value)} placeholder="🔗" /></div>
-          <div style={{ flex: 1 }}><label style={lbl}>색상(hex)</label><input style={inp} value={form.color} onChange={e => set('color', e.target.value)} placeholder="#6366f1" /></div>
+          <div style={{ flex: 1 }}><label style={lbl}>{t('ak.regIconLabel','아이콘(이모지)')}</label><input style={inp} value={form.icon} onChange={e => set('icon', e.target.value)} placeholder="🔗" /></div>
+          <div style={{ flex: 1 }}><label style={lbl}>{t('ak.regColorLabel','색상(hex)')}</label><input style={inp} value={form.color} onChange={e => set('color', e.target.value)} placeholder="#6366f1" /></div>
         </div>
-        <label style={lbl}>자격증명 필드 키 (쉼표 구분)</label>
-        <input style={inp} value={form.fields} onChange={e => set('fields', e.target.value)} placeholder="예: api_key,secret_key" />
+        <label style={lbl}>{t('ak.regFieldsLabel','자격증명 필드 키 (쉼표 구분)')}</label>
+        <input style={inp} value={form.fields} onChange={e => set('fields', e.target.value)} placeholder={t('ak.regFieldsPh','예: api_key,secret_key')} />
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 18 }}>
-          <button onClick={onClose} style={{ padding: '9px 16px', borderRadius: 9, border: '1px solid rgba(0,0,0,0.15)', background: '#fff', color: '#64748b', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>취소</button>
-          <button onClick={submit} disabled={busy} style={{ padding: '9px 18px', borderRadius: 9, border: 'none', background: 'linear-gradient(135deg,#6366f1,#4f8ef7)', color: '#fff', fontWeight: 800, fontSize: 13, cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.6 : 1 }}>{busy ? '추가 중...' : '추가'}</button>
+          <button onClick={onClose} style={{ padding: '9px 16px', borderRadius: 9, border: '1px solid rgba(0,0,0,0.15)', background: '#fff', color: '#64748b', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>{t('ak.regCancelBtn','취소')}</button>
+          <button onClick={submit} disabled={busy} style={{ padding: '9px 18px', borderRadius: 9, border: 'none', background: 'linear-gradient(135deg,#6366f1,#4f8ef7)', color: '#fff', fontWeight: 800, fontSize: 13, cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.6 : 1 }}>{busy ? t('ak.regAdding','추가 중...') : t('ak.regAddBtn','추가')}</button>
         </div>
       </div>
     </div>
