@@ -53,6 +53,7 @@ export default function MarketingMix() {
   const [bt, setBt] = useState(null); // [현 차수 초고도화 ③-1] MMM OOS 백테스트(예측 vs 실측)
   const [insight, setInsight] = useState(null); // [현 차수] 자연어 AI 인사이트
   const [insightBusy, setInsightBusy] = useState(false);
+  const [frontier, setFrontier] = useState(null); // [270차 초고도화] 이익 효율 프론티어(적정 총예산 T*)
 
   const runInsight = async () => {
     setInsightBusy(true); setInsight(null);
@@ -68,6 +69,7 @@ export default function MarketingMix() {
     getJsonAuth(`/v424/anomaly/scan?window=${Math.min(window, 90)}`).then(d => setAnom(d)).catch(() => setAnom(null));
     getJsonAuth(`/v424/mmm/bayesian?window=${window}&method=mcmc`).then(d => setBayes(d)).catch(() => setBayes(null));
     getJsonAuth(`/v424/mmm/backtest?window=${window}&holdout=14`).then(d => setBt(d)).catch(() => setBt(null));
+    postJsonAuth('/v424/mmm/frontier', { window }).then(d => setFrontier(d)).catch(() => setFrontier(null)); // 이익 효율 프론티어
   }, [window]);
   useEffect(() => { loadModel(); }, [loadModel]);
 
@@ -240,6 +242,92 @@ export default function MarketingMix() {
             {opt && !opt.ok && <div style={{ marginTop: 10, color: '#dc2626', fontSize: 12.5 }}>⚠ {opt.error || opt.reason}</div>}
             {opt && opt.ok && !opt.optimized && <div style={{ marginTop: 10, color: '#64748b', fontSize: 12.5 }}>{opt.reason}</div>}
           </div>
+
+          {/* [270차 초고도화] 이익 효율 프론티어 — 경쟁사가 못 답하는 "이익 최대 총지출은 얼마인가" */}
+          {frontier && frontier.ok && frontier.optimized && (() => {
+            const up = frontier.profit_uplift >= 0;
+            const grow = frontier.headroom > 0;
+            const fr = frontier.frontier || [];
+            const bs = fr.map(p => p.budget), ps = fr.map(p => p.profit);
+            const bMax = Math.max(1, ...bs), pMin = Math.min(0, ...ps), pMax = Math.max(1, ...ps);
+            const W = 560, Hh = 90;
+            const xOf = b => (b / bMax) * W, yOf = p => Hh - ((p - pMin) / (pMax - pMin || 1)) * Hh;
+            const poly = fr.map(p => `${xOf(p.budget).toFixed(1)},${yOf(p.profit).toFixed(1)}`).join(' ');
+            const tx = xOf(frontier.optimal_daily_spend), cx = xOf(frontier.current_daily_spend);
+            return (
+              <div style={{ ...card, marginTop: 16, border: '1px solid #bbf7d0', background: 'linear-gradient(180deg,#f0fdf4,#ffffff)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+                  <h2 style={{ fontSize: 17, fontWeight: 900, margin: 0 }}>💰 {t('mmm.frontierTitle', '이익 효율 프론티어 · 적정 총예산')}</h2>
+                  <span style={{ fontSize: 11, color: '#16a34a', fontWeight: 700, background: '#dcfce7', borderRadius: 20, padding: '3px 10px' }}>{t('mmm.frontierBadge', '이익 최대화 · 경쟁사 미제공')}</span>
+                </div>
+                <div style={{ fontSize: 12, color: '#475569', marginTop: 6, lineHeight: 1.5 }}>
+                  {t('mmm.frontierDesc', '경쟁사는 주어진 예산의 배분만 최적화합니다. GeniegoROI는 SKU 실원가 기반 공헌이익 반응곡선으로 이익이 최대가 되는 총지출(한계이익=0)을 계산합니다.')}
+                  {' '}<span style={{ color: '#94a3b8' }}>({t('mmm.marginSource', '마진 출처')}: {frontier.margin_source === 'per_channel' ? t('mmm.msPerCh', '채널별 실마진') : frontier.margin_source === 'override' ? t('mmm.msOverride', '수동') : t('mmm.msTenant', '전사 실마진')})</span>
+                </div>
+                <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', margin: '14px 0' }}>
+                  <div style={{ padding: '12px 18px', borderRadius: 12, background: '#fff', border: '1px solid #eef2f7' }}>
+                    <div style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>{t('mmm.curSpend', '현재 일 광고비')}</div>
+                    <div style={{ fontSize: 18, fontWeight: 900, color: '#64748b' }}>{fmtKRW(frontier.current_daily_spend)}</div>
+                  </div>
+                  <div style={{ padding: '12px 18px', borderRadius: 12, background: '#f0fdf4', border: '1px solid #bbf7d0' }}>
+                    <div style={{ fontSize: 11, color: '#16a34a', fontWeight: 600 }}>{t('mmm.optSpend', '이익 최대 일 광고비 (T*)')}</div>
+                    <div style={{ fontSize: 18, fontWeight: 900, color: '#16a34a' }}>{fmtKRW(frontier.optimal_daily_spend)}</div>
+                  </div>
+                  <div style={{ padding: '12px 18px', borderRadius: 12, background: grow ? '#eff6ff' : '#fef2f2', border: '1px solid ' + (grow ? '#bfdbfe' : '#fecaca') }}>
+                    <div style={{ fontSize: 11, color: grow ? '#2563eb' : '#dc2626', fontWeight: 600 }}>{grow ? t('mmm.headroom', '증액 여력 (더 써도 이익↑)') : t('mmm.overspend', '과지출 (감액 시 이익↑)')}</div>
+                    <div style={{ fontSize: 18, fontWeight: 900, color: grow ? '#2563eb' : '#dc2626' }}>{grow ? '+' : ''}{fmtKRW(frontier.headroom)}/일</div>
+                  </div>
+                  <div style={{ padding: '12px 18px', borderRadius: 12, background: '#f5f3ff', border: '1px solid #ddd6fe' }}>
+                    <div style={{ fontSize: 11, color: '#7c3aed', fontWeight: 600 }}>{t('mmm.profitUplift', '이익 상승 여력 (월)')}</div>
+                    <div style={{ fontSize: 18, fontWeight: 900, color: '#7c3aed' }}>{up ? '+' : ''}{fmtKRW(frontier.profit_uplift * 30)}</div>
+                  </div>
+                </div>
+                {fr.length > 1 && (
+                  <div style={{ overflowX: 'auto', marginBottom: 12 }}>
+                    <svg width={W} height={Hh + 24} style={{ maxWidth: '100%' }}>
+                      <polyline points={poly} fill="none" stroke="#16a34a" strokeWidth="2.5" />
+                      {cx >= 0 && <line x1={cx} y1="0" x2={cx} y2={Hh} stroke="#94a3b8" strokeDasharray="3 3" />}
+                      {tx >= 0 && <line x1={tx} y1="0" x2={tx} y2={Hh} stroke="#16a34a" strokeWidth="1.5" />}
+                      {tx >= 0 && <text x={Math.min(tx + 4, W - 60)} y="12" fontSize="10" fill="#16a34a" fontWeight="700">T* {t('mmm.optLabel', '이익정점')}</text>}
+                      {cx >= 0 && <text x={Math.min(cx + 4, W - 40)} y={Hh + 14} fontSize="10" fill="#94a3b8">{t('mmm.nowLabel', '현재')}</text>}
+                    </svg>
+                    <div style={{ fontSize: 10.5, color: '#94a3b8' }}>{t('mmm.frontierAxis', '가로=일 광고비 · 세로=일 순이익 · 초록선 정점=이익 최대 지출')}</div>
+                  </div>
+                )}
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                    <thead>
+                      <tr style={{ color: '#64748b', fontSize: 11, textAlign: 'right' }}>
+                        <th style={{ textAlign: 'left', padding: '6px 8px' }}>{t('mmm.channel', '채널')}</th>
+                        <th style={{ padding: '6px 8px' }}>{t('mmm.margin', '공헌마진')}</th>
+                        <th style={{ padding: '6px 8px' }}>{t('mmm.current', '현재 일예산')}</th>
+                        <th style={{ padding: '6px 8px' }}>{t('mmm.profitOpt', '이익최적 일예산')}</th>
+                        <th style={{ padding: '6px 8px' }}>{t('mmm.change', '증감')}</th>
+                        <th style={{ padding: '6px 8px' }}>{t('mmm.breakevenRoas', '손익분기 ROAS')}</th>
+                        <th style={{ padding: '6px 8px' }}>{t('mmm.marginalRoas', '한계ROAS')}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(frontier.channels || []).map((a, i) => (
+                        <tr key={a.channel} style={{ borderTop: '1px solid #eef2f7', textAlign: 'right' }}>
+                          <td style={{ textAlign: 'left', padding: '8px', fontWeight: 800 }}><span style={{ color: CH_COLOR[i % CH_COLOR.length] }}>●</span> {chName(a.channel)}</td>
+                          <td style={{ padding: '8px', color: '#7c3aed', fontWeight: 700 }}>{Math.round(a.margin * 100)}%</td>
+                          <td style={{ padding: '8px', color: '#64748b' }}>{fmtKRW(a.current_daily)}</td>
+                          <td style={{ padding: '8px', fontWeight: 800, color: '#16a34a' }}>{fmtKRW(a.profit_optimal_daily)}</td>
+                          <td style={{ padding: '8px', fontWeight: 700, color: a.delta > 0 ? '#16a34a' : a.delta < 0 ? '#dc2626' : '#94a3b8' }}>{a.delta > 0 ? '▲' : a.delta < 0 ? '▼' : '–'} {fmtKRW(Math.abs(a.delta))}</td>
+                          <td style={{ padding: '8px', color: '#64748b' }}>{a.breakeven_roas != null ? a.breakeven_roas + 'x' : '–'}</td>
+                          <td style={{ padding: '8px', fontWeight: 700, color: (a.marginal_roas_now != null && a.breakeven_roas != null && a.marginal_roas_now >= a.breakeven_roas) ? '#16a34a' : '#dc2626' }}>{a.marginal_roas_now}x</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            );
+          })()}
+          {frontier && frontier.ok && !frontier.optimized && (
+            <div style={{ ...card, marginTop: 16, color: '#64748b', fontSize: 12.5 }}>💰 {t('mmm.frontierTitle', '이익 효율 프론티어')}: {frontier.reason}{frontier.needs === 'sku_cost' && <span> — <a href="/price-opt" style={{ color: '#4f46e5' }}>{t('mmm.registerCost', '상품 원가 등록하기')}</a></span>}</div>
+          )}
 
           {/* [P4] Robyn식 모델 진단 — DECOMP.RSSD(지출↔효과 정합) + 지출가중 R² */}
           {model?.model_diagnostics?.decomp_rssd != null && (() => {

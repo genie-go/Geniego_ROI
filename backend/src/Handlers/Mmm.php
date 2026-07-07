@@ -257,6 +257,159 @@ final class Mmm
         ]);
     }
 
+    /* ═══════════════════════ [270차 초고도화] 이익 최대화 마케팅 자동화 ═══════════════════════
+     *  경쟁사(Northbeam·Triple Whale·PMax·Advantage+)는 전부 매출/ROAS 로 배분한다. 그러나
+     *  ①채널마다 파는 SKU 믹스가 달라 동일 ROAS 라도 실 순이익이 다르고 ②"이익 최대 총지출은 얼마인가"
+     *  (포트폴리오 한계이익이 0 이 되는 지점)에 답하는 곳은 없다. 여기서는 이미 존재하는 반응곡선
+     *  (β·(1−exp(−x/κ)))+공헌마진(attribution⨝channel_orders+SKU원가)을 융합해 이익 프론티어를 산출한다.
+     *  한계이익(c,x)=margin_c·(β/κ)·exp(−x/κ)−1. x*_c=κ·ln(margin_c·β/κ). T*=Σx*_c(피크). */
+
+    /** 광고채널별 공헌마진율 — attribution_result(order-match)⨝channel_orders 로 귀속주문 SKU믹스 마진 도출
+     *  (광고채널≠커머스채널). 원가 커버리지 부족 채널은 전사 마진 폴백. 원가 전무=null(정직·이익최적화 불가). */
+    public static function channelMargins(\PDO $pdo, string $tenant, int $window): array
+    {
+        $since = gmdate('Y-m-d', time() - $window * 86400);
+        $cost = PriceOpt::costMap($tenant); // sku→cost_price (미등록=빈)
+        $byCh = [];
+        try {
+            $st = $pdo->prepare("SELECT ar.attributed_channel AS ch, co.sku AS sku, co.qty AS qty, co.total_price AS rev
+                FROM attribution_result ar JOIN channel_orders co ON co.tenant_id=ar.tenant_id AND co.channel_order_id=ar.order_id
+                WHERE ar.tenant_id=? AND ar.model='order-match' AND co.ordered_at>=? AND COALESCE(co.event_type,'order') NOT IN ('cancel','return')");
+            $st->execute([$tenant, $since]);
+            while ($r = $st->fetch(\PDO::FETCH_ASSOC)) {
+                $ch = strtolower((string)($r['ch'] ?? '')); if ($ch === '') continue;
+                $rev = (float)($r['rev'] ?? 0); $qty = (float)($r['qty'] ?? 0); $sku = (string)($r['sku'] ?? '');
+                if (!isset($byCh[$ch])) $byCh[$ch] = ['rev' => 0.0, 'cogs' => 0.0, 'covRev' => 0.0];
+                $byCh[$ch]['rev'] += $rev;
+                if (isset($cost[$sku]) && $cost[$sku] > 0) { $byCh[$ch]['cogs'] += $cost[$sku] * $qty; $byCh[$ch]['covRev'] += $rev; }
+            }
+        } catch (\Throwable $e) {}
+        // 전사 마진(폴백) — 전 주문 SKU 원가.
+        $ov = ['cogs' => 0.0, 'covRev' => 0.0];
+        try {
+            $st = $pdo->prepare("SELECT sku, qty, total_price rev FROM channel_orders WHERE tenant_id=? AND ordered_at>=? AND COALESCE(event_type,'order') NOT IN ('cancel','return')");
+            $st->execute([$tenant, $since]);
+            while ($r = $st->fetch(\PDO::FETCH_ASSOC)) {
+                $rev = (float)($r['rev'] ?? 0); $qty = (float)($r['qty'] ?? 0); $sku = (string)($r['sku'] ?? '');
+                if (isset($cost[$sku]) && $cost[$sku] > 0) { $ov['cogs'] += $cost[$sku] * $qty; $ov['covRev'] += $rev; }
+            }
+        } catch (\Throwable $e) {}
+        $overall = ($ov['covRev'] > 0) ? max(0.0, min(1.0, ($ov['covRev'] - $ov['cogs']) / $ov['covRev'])) : null;
+        $out = [];
+        foreach ($byCh as $ch => $v) {
+            if ($v['covRev'] > 0 && $v['rev'] > 0 && $v['covRev'] >= 0.5 * $v['rev']) {
+                $out[$ch] = max(0.0, min(1.0, ($v['covRev'] - $v['cogs']) / $v['covRev']));
+            } elseif ($overall !== null) {
+                $out[$ch] = $overall;
+            }
+        }
+        return ['byChannel' => $out, 'overall' => $overall];
+    }
+
+    /** 채널 c 의 이익 최적 일지출 x*(공통 shadow price λ≥0) — margin·(β/κ)·exp(−x/κ)=1+λ → x=κ·ln(margin·β/((1+λ)κ)).
+     *  λ=0 이 무제약 이익최대(T*). cap 으로 외삽 폭주 방지. */
+    private static function profitOptSpend(array $c, float $margin, float $lambda): float
+    {
+        $beta = (float)$c['beta']; $kappa = max(1e-9, (float)$c['kappa']);
+        $ratio = $margin * $beta / (max(1e-9, (1.0 + $lambda)) * $kappa);
+        if ($ratio <= 1.0) return 0.0; // 한계이익이 첫 원부터 음수 → 지출 0
+        $x = $kappa * log($ratio);
+        $cap = max(3.0 * (float)($c['current_daily_spend'] ?? 0), 5.0 * $kappa); // 관측범위 밖 외삽 억제
+        return max(0.0, min($x, $cap));
+    }
+
+    /**
+     * POST /v424/mmm/frontier — 이익 효율 프론티어(적정 총예산 T* + 이익곡선).
+     * body: {window?, margin_override?}. 반환: 채널별 이익최적 일지출·현행 대비·PROFIT(T) 곡선·T*·증액여력.
+     */
+    public static function frontier(Request $req, Response $res): Response
+    {
+        $tenant = self::tenant($req);
+        $body = (array)($req->getParsedBody() ?? []);
+        if (empty($body)) { $d = json_decode((string)$req->getBody(), true); if (is_array($d)) $body = $d; }
+        $window = max(14, min(365, (int)($body['window'] ?? 90)));
+
+        try {
+            if (self::isDemo($tenant)) {
+                $dm = self::demoModel($window); $channels = $dm['channels'];
+                $marg = ['byChannel' => [], 'overall' => 0.45]; // 데모: 대표 공헌마진 45%
+            } else {
+                $series = self::loadSeries(\Genie\Db::pdo(), $tenant, $window);
+                $channels = [];
+                foreach ($series as $ch => $rows) { $m = self::fitChannel($rows); if ($m !== null) $channels[] = ['channel' => $ch] + $m; }
+                $marg = self::channelMargins(\Genie\Db::pdo(), $tenant, $window);
+            }
+        } catch (\Throwable $e) {
+            return self::json($res, ['ok' => false, 'error' => 'DB 오류: ' . $e->getMessage()], 500);
+        }
+        if (empty($channels)) return self::json($res, ['ok' => true, 'optimized' => false, 'reason' => '적합된 채널 모델이 없습니다(광고 데이터 부족).']);
+        $override = isset($body['margin_override']) ? max(0.0, min(1.0, (float)$body['margin_override'])) : null;
+        if ($override === null && $marg['overall'] === null && empty($marg['byChannel'])) {
+            return self::json($res, ['ok' => true, 'optimized' => false, 'reason' => 'SKU 원가 미등록 — 이익 최적화 불가. 상품 원가를 등록하면 이익 프론티어가 활성화됩니다.', 'needs' => 'sku_cost']);
+        }
+        // 채널별 마진 확정(override > 채널 > 전사).
+        $marginOf = function (string $ch) use ($marg, $override): float {
+            if ($override !== null) return $override;
+            return (float)($marg['byChannel'][$ch] ?? $marg['overall'] ?? 0.4);
+        };
+
+        // 이익 최적(무제약 T*) 지출·현행 지출.
+        $curTotal = 0.0; $tstar = 0.0; $rows = []; $curProfit = 0.0; $optProfit = 0.0;
+        foreach ($channels as $c) {
+            $ch = (string)$c['channel']; $mg = $marginOf($ch);
+            $curX = (float)$c['current_daily_spend'];
+            $optX = self::profitOptSpend($c, $mg, 0.0);
+            $curTotal += $curX; $tstar += $optX;
+            $curProfit += $mg * self::response($c, $curX) - $curX;
+            $optProfit += $mg * self::response($c, $optX) - $optX;
+            $rows[] = [
+                'channel' => $ch, 'margin' => round($mg, 3),
+                'current_daily' => (int)round($curX),
+                'profit_optimal_daily' => (int)round($optX),
+                'delta' => (int)round($optX - $curX),
+                'marginal_roas_now' => round(self::marginal($c, $curX), 3),
+                'breakeven_roas' => $mg > 0 ? round(1.0 / $mg, 2) : null, // 한계ROAS 가 1/margin 에 도달할 때까지 증액이 이익
+                'saturation_now' => round(1 - exp(-$curX / max(1e-9, (float)$c['kappa'])), 3),
+            ];
+        }
+        usort($rows, fn($a, $b) => $b['profit_optimal_daily'] <=> $a['profit_optimal_daily']);
+
+        // PROFIT(T) 프론티어 곡선 — shadow price λ 스윕(무제약 T* 포함, T* 초과 구간까지 표시해 피크 시각화).
+        $curve = [];
+        $tmax = max($curTotal, $tstar) * 1.6 + 1;
+        for ($i = 0; $i <= 24; $i++) {
+            $T = $tmax * $i / 24.0;
+            // 주어진 T 에 대한 λ 이진탐색(T(λ) 은 λ 증가 시 감소).
+            $lo = -0.95; $hi = 50.0;
+            for ($it = 0; $it < 40; $it++) {
+                $mid = ($lo + $hi) / 2.0; $sum = 0.0;
+                foreach ($channels as $c) $sum += self::profitOptSpend($c, $marginOf((string)$c['channel']), $mid);
+                if ($sum > $T) $lo = $mid; else $hi = $mid;
+            }
+            $lam = ($lo + $hi) / 2.0; $prof = 0.0; $spent = 0.0;
+            foreach ($channels as $c) { $x = self::profitOptSpend($c, $marginOf((string)$c['channel']), $lam); $prof += $marginOf((string)$c['channel']) * self::response($c, $x) - $x; $spent += $x; }
+            $curve[] = ['budget' => (int)round($spent), 'profit' => (int)round($prof)];
+        }
+        // 중복 budget 제거·정렬.
+        usort($curve, fn($a, $b) => $a['budget'] <=> $b['budget']);
+
+        return self::json($res, [
+            'ok' => true, 'optimized' => true,
+            'window' => $window,
+            'current_daily_spend' => (int)round($curTotal),
+            'optimal_daily_spend' => (int)round($tstar),           // T* = 이익 최대 총지출
+            'headroom' => (int)round($tstar - $curTotal),          // 증액 여력(양수=더 써야 이익↑ / 음수=과지출)
+            'current_daily_profit' => (int)round($curProfit),
+            'optimal_daily_profit' => (int)round($optProfit),
+            'profit_uplift' => (int)round($optProfit - $curProfit),
+            'optimal_monthly_profit' => (int)round($optProfit * 30),
+            'channels' => $rows,
+            'frontier' => $curve,
+            'margin_source' => $override !== null ? 'override' : (!empty($marg['byChannel']) ? 'per_channel' : 'tenant_overall'),
+            'demo' => self::isDemo($tenant),
+        ]);
+    }
+
     /* ───────────────────────── 데이터 적재 ───────────────────────── */
 
     /** 채널별 일자 정렬 시계열: [channel => [ ['date'=>, 'spend'=>, 'revenue'=>], ... ]]. */

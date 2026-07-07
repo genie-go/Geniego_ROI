@@ -1052,6 +1052,8 @@ return function (App $app): void {
         'GET /api/v424/mmm/series'    => 'Genie\\Handlers\\Mmm::series',
         'POST /v424/mmm/optimize'     => 'Genie\\Handlers\\Mmm::optimize',
         'POST /api/v424/mmm/optimize' => 'Genie\\Handlers\\Mmm::optimize',
+        'POST /v424/mmm/frontier'     => 'Genie\\Handlers\\Mmm::frontier',   // [270차 초고도화] 이익 효율 프론티어(적정 총예산 T*)
+        'POST /api/v424/mmm/frontier' => 'Genie\\Handlers\\Mmm::frontier',
         // [현 차수] ② 이상감지(SPC)
         'GET /v424/anomaly/scan'      => 'Genie\\Handlers\\AnomalyDetection::scan',
         'GET /api/v424/anomaly/scan'  => 'Genie\\Handlers\\AnomalyDetection::scan',
@@ -3300,6 +3302,7 @@ return function (App $app): void {
     $register('GET',  '/v424/geo/lang'); $register('GET', '/api/v424/geo/lang');
     $register('GET',  '/v424/mmm/series');    $register('GET',  '/api/v424/mmm/series'); // [237차] 증분성 입력
     $register('POST', '/v424/mmm/optimize');  $register('POST', '/api/v424/mmm/optimize');
+    $register('POST', '/v424/mmm/frontier');  $register('POST', '/api/v424/mmm/frontier'); // [270차] 이익 효율 프론티어
     $register('GET',  '/v424/anomaly/scan');  $register('GET',  '/api/v424/anomaly/scan');
     // 201차 — 마케팅 자동화 추천/벤치마크 ($custom 등록 + $register 필수)
     $register('POST', '/v424/marketing/auto-recommend');
