@@ -109,6 +109,8 @@ async function fillSidebar() {
     }
     totalFilled += filled;
     report.push(`${lang}: ${missing.length} missing → ${filled} filled`);
+    // [하드닝] 언어별 증분 저장 — 장시간 백필 중단 시에도 진행분 보존·멱등 재개 가능.
+    try { fs.writeFileSync(OVERLAY, JSON.stringify(overlay, null, 0) + '\n', 'utf8'); } catch {}
   }
 
   // 오버레이 저장(키 정렬로 안정적 diff)
