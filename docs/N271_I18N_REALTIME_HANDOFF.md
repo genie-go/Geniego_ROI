@@ -40,6 +40,12 @@
 - **실시간 무리로드 확정**: 연동허브 ja→zh `国内オープンマーケット→国内开放市场` 즉시 변경 + `window.__noReloadMarker` 생존.
 - 전수감사(ja, 84라우트): 1,619 → 285. 잔여 285 = 고유명사 126(고객·상품명, 유지) + admin plan-pricing 설정 76(운영자 전용, 제외) + 산재 소수.
 
+## 4-2. 아랍어 RTL 레이아웃 (커밋 c92e7b0846e)
+- **`i18n/index.js`**: `RTL_LANGS = new Set(['ar'])` + `applyDir(code)`(html `dir=rtl`·`.lang-rtl` 토글). 기존 "항상 LTR 강제"(사이드바 좌측 고정용) 제거. setLang·초기 effect·geo 3경로 통일.
+- **`styles.css`** `[271차] 아랍어 RTL` 블록: 앱 셸이 flex-row(사이드바+본문)라 **dir=rtl 시 자동 반전 → 사이드바 우측·본문 우측정렬**(이것이 핵심, 과거 강제 LTR였던 이유). 사이드바 `border-right`→`border-left`, 본문/테이블 우측정렬, 차트(svg/recharts)·코드(pre/code)·`.keep-ltr`·`[data-ltr]`는 `direction:ltr` 유지, 모바일 사이드바 우측 오프캔버스.
+- 검증: 데모 대시보드 ar — 사이드바 우측(우측끝 1482/1492px)·전 UI RTL·메뉴 아랍어·데모알림 아랍어·크래시0(스크린샷). 운영 login ar `dir=rtl` 확정. 데모+운영 배포 완료.
+- 참고: 통화 압축표기(`¥…万` 등)는 currency compact(intlCompact) 소관으로 RTL 무관. RTL 언어 추가 시 `RTL_LANGS`에만 코드 추가.
+
 ## 5. 배포/도구
 - 데모 빌드=`npx vite build --mode demo`, 배포=`node deploy_demo.cjs`(→/home/wwwroot/roidemo.geniego.com/frontend/dist). **운영·master 미반영.**
 - 감사도구: playwright(`npm i playwright --no-save`)로 84라우트 렌더 후 한글 텍스트노드 수집. 세션토큰+`demo_genie_remember=1` localStorage 주입(restorableToken remember 게이트).
