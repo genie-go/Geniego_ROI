@@ -61,7 +61,11 @@ jobs:
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: "frontend/dist/*"
-          target: "/home/wwwroot/roi.geniego.com/frontend"
+          # 272차 fix: strip_components=2 로 'frontend/dist/' 접두를 제거해야 파일이 서빙 경로
+          #   (.../frontend/dist/)에 직접 안착한다. 미지정 시 .../frontend/frontend/dist/ 로 이중 중첩되어
+          #   실제 dist 에 반영되지 않는 잠복 버그가 있었다(CI inert 로 미노출).
+          target: "/home/wwwroot/roi.geniego.com/frontend/dist"
+          strip_components: 2
 
       - name: "[PHASE 4] Post-Deploy Infrastructure Refresh"
         if: ${{ env.HAS_SSH_SECRETS == 'true' }}
