@@ -189,9 +189,9 @@ export default function AdminMenuManager() {
       }}>
         <span style={{ fontSize: 22 }}>🗂</span>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 18, fontWeight: 800 }}>메뉴 가시성 관리 (4계층)</div>
+          <div style={{ fontSize: 18, fontWeight: 800 }}>{t('adminMenuManager.title', '메뉴 가시성 관리 (4계층)')}</div>
           <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2 }}>
-            대메뉴 → 중메뉴 → 하위 페이지 → 서브탭 4단계. 각 menu_tree row 의 visibility (visible/hidden/disabled) 직접 토글 또는 섹션 일괄.
+            {t('adminMenuManager.subtitle', '대메뉴 → 중메뉴 → 하위 페이지 → 서브탭 4단계. 각 menu_tree row 의 visibility (visible/hidden/disabled) 직접 토글 또는 섹션 일괄.')}
           </div>
         </div>
         <button onClick={fetchTree} disabled={loading} style={{
@@ -212,9 +212,9 @@ export default function AdminMenuManager() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 14 }}>
         {[
           { label: '전체 메뉴',  value: stats.total,    color: '#4f46e5' },
-          { label: '✓ 표시',    value: stats.visible,  color: '#16a34a' },
-          { label: '⊘ 숨김',    value: stats.hidden,   color: '#d97706' },
-          { label: '✗ 비활성',  value: stats.disabled, color: '#dc2626' },
+          { label: t('adminMenuManager.visShown', '✓ 표시'),    value: stats.visible,  color: '#16a34a' },
+          { label: t('adminMenuManager.visHidden', '⊘ 숨김'),    value: stats.hidden,   color: '#d97706' },
+          { label: t('adminMenuManager.visDisabled', '✗ 비활성'),  value: stats.disabled, color: '#dc2626' },
         ].map(s => (
           <div key={s.label} style={{
             padding: '12px 16px', borderRadius: 10,
@@ -305,12 +305,12 @@ export default function AdminMenuManager() {
                   padding: '5px 10px', borderRadius: 6, fontSize: 11, fontWeight: 700,
                   background: 'rgba(34,197,94,0.12)', color: '#16a34a',
                   border: '1px solid rgba(34,197,94,0.28)', cursor: 'pointer',
-                }}>✓ 중메뉴 전체 표시</button>
+                }}>{t('adminMenuManager.bulkShowGroup', '✓ 중메뉴 전체 표시')}</button>
                 <button onClick={e => { e.stopPropagation(); bulkUpdate(sectionKeys.filter(k => dbKeySet.has(k)), 'hidden'); }} disabled={bulkSaving} style={{
                   padding: '5px 10px', borderRadius: 6, fontSize: 11, fontWeight: 700,
                   background: 'rgba(217,119,6,0.12)', color: '#d97706',
                   border: '1px solid rgba(217,119,6,0.28)', cursor: 'pointer',
-                }}>⊘ 중메뉴 전체 숨김</button>
+                }}>{t('adminMenuManager.bulkHideGroup', '⊘ 중메뉴 전체 숨김')}</button>
               </div>
               {/* 중메뉴 그룹 */}
               {!isCollapsed && (
@@ -338,7 +338,7 @@ export default function AdminMenuManager() {
                           <code style={{ fontSize: 10, fontFamily: 'monospace', color: 'var(--text-3)', padding: '1px 5px', borderRadius: 3, background: 'rgba(0,0,0,0.2)' }}>
                             {group.menuKey}
                           </code>
-                          {!inDb && <span style={{ padding: '1px 7px', borderRadius: 8, fontSize: 9, background: 'rgba(251,146,60,0.12)', color: '#d97706' }}>⚠ menu_tree 미등록</span>}
+                          {!inDb && <span style={{ padding: '1px 7px', borderRadius: 8, fontSize: 9, background: 'rgba(251,146,60,0.12)', color: '#d97706' }}>{t('adminMenuManager.notRegistered', '⚠ menu_tree 미등록')}</span>}
                           <div style={{ flex: 1 }} />
                           {/* visibility 토글 */}
                           {inDb && (
@@ -375,7 +375,7 @@ export default function AdminMenuManager() {
                                   <code style={{ fontSize: 10, color: 'var(--text-3)', fontFamily: 'monospace' }}>{it.to}</code>
                                   {subTabs.length > 0 && (
                                     <span style={{ padding: '1px 6px', borderRadius: 8, fontSize: 9, fontWeight: 700, background: 'rgba(168,85,247,0.12)', color: '#9333ea' }}>
-                                      📑 서브탭 {subTabs.length}
+                                      {t('adminMenuManager.subTabLabel', '📑 서브탭')} {subTabs.length}
                                     </span>
                                   )}
                                   <div style={{ flex: 1 }} />
@@ -404,7 +404,7 @@ export default function AdminMenuManager() {
                                           <span style={{
                                             padding: '1px 6px', borderRadius: 6, fontSize: 9, fontWeight: 800,
                                             background: 'rgba(168,85,247,0.18)', color: '#9333ea',
-                                          }}>📑 서브탭</span>
+                                          }}>{t('adminMenuManager.subTabLabel', '📑 서브탭')}</span>
                                           <span style={{ fontWeight: 700 }}>{st.label}</span>
                                           <code style={{ fontSize: 9, color: 'var(--text-3)', fontFamily: 'monospace' }}>{st.id}</code>
                                           <div style={{ flex: 1 }} />
@@ -441,12 +441,12 @@ export default function AdminMenuManager() {
         background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.18)',
         fontSize: 12, color: 'var(--text-2)', lineHeight: 1.7,
       }}>
-        🆕 <strong>5계층 개별 토글</strong>:
+        🆕 <strong>{t('adminMenuManager.fiveTierToggleTitle', '5계층 개별 토글')}</strong>:
         <span style={{ color: '#4f46e5', fontWeight: 700, marginLeft: 6 }}>대메뉴</span> →
         <span style={{ color: '#16a34a', fontWeight: 700, marginLeft: 6 }}>중메뉴</span> →
-        <span style={{ color: '#d97706', fontWeight: 700, marginLeft: 6 }}>하위 페이지</span> →
-        <span style={{ color: '#9333ea', fontWeight: 700, marginLeft: 6 }}>📑 서브탭</span>
-        — 모든 레벨에서 ✓ 표시 / ⊘ 숨김 / ✗ 비활성 개별 선택 가능.
+        <span style={{ color: '#d97706', fontWeight: 700, marginLeft: 6 }}>{t('adminMenuManager.subPage', '하위 페이지')}</span> →
+        <span style={{ color: '#9333ea', fontWeight: 700, marginLeft: 6 }}>{t('adminMenuManager.subTabLabel', '📑 서브탭')}</span>
+        {t('adminMenuManager.allLevelsNote', '— 모든 레벨에서 ✓ 표시 / ⊘ 숨김 / ✗ 비활성 개별 선택 가능.')}
       </div>
 
       {/* 사용자 안내 */}
@@ -455,11 +455,11 @@ export default function AdminMenuManager() {
         background: 'rgba(0,0,0,0.10)', border: '1px solid rgba(255,255,255,0.06)',
         fontSize: 12, color: 'var(--text-2)', lineHeight: 1.7,
       }}>
-        💡 <strong>가시성 정책</strong>:
-        <span style={{ color: '#16a34a', fontWeight: 700, marginLeft: 6 }}>✓ 표시</span> 사이드바 노출 ·
-        <span style={{ color: '#d97706', fontWeight: 700, marginLeft: 6 }}>⊘ 숨김</span> 비노출 (자물쇠 없음) ·
-        <span style={{ color: '#dc2626', fontWeight: 700, marginLeft: 6 }}>✗ 비활성</span> 노출되지만 클릭 비활성. <br/>
-        변경 즉시 MenuVisibilityContext 캐시 무효 + 다음 페이지 로드 시 반영 (강제 새로고침은 불필요).
+        💡 <strong>{t('adminMenuManager.visibilityPolicyTitle', '가시성 정책')}</strong>:
+        <span style={{ color: '#16a34a', fontWeight: 700, marginLeft: 6 }}>{t('adminMenuManager.visShown', '✓ 표시')}</span> {t('adminMenuManager.sidebarShown', '사이드바 노출 ·')}
+        <span style={{ color: '#d97706', fontWeight: 700, marginLeft: 6 }}>{t('adminMenuManager.visHidden', '⊘ 숨김')}</span> {t('adminMenuManager.notShownNoLock', '비노출 (자물쇠 없음) ·')}
+        <span style={{ color: '#dc2626', fontWeight: 700, marginLeft: 6 }}>{t('adminMenuManager.visDisabled', '✗ 비활성')}</span> {t('adminMenuManager.shownButDisabled', '노출되지만 클릭 비활성.')} <br/>
+        {t('adminMenuManager.cacheInvalidateNote', '변경 즉시 MenuVisibilityContext 캐시 무효 + 다음 페이지 로드 시 반영 (강제 새로고침은 불필요).')}
       </div>
     </div>
   );
@@ -470,10 +470,11 @@ export default function AdminMenuManager() {
  * 3-state segmented control: visible / hidden / disabled.
  */
 function VisibilityToggle({ current, onChange, saving, size = 'md' }) {
+  const t = useT();
   const opts = [
-    { v: 'visible',  label: '✓ 표시',   color: '#16a34a' },
-    { v: 'hidden',   label: '⊘ 숨김',   color: '#d97706' },
-    { v: 'disabled', label: '✗ 비활성', color: '#dc2626' },
+    { v: 'visible',  label: t('adminMenuManager.visShown', '✓ 표시'),   color: '#16a34a' },
+    { v: 'hidden',   label: t('adminMenuManager.visHidden', '⊘ 숨김'),   color: '#d97706' },
+    { v: 'disabled', label: t('adminMenuManager.visDisabled', '✗ 비활성'), color: '#dc2626' },
   ];
   const fontSize = size === 'xs' ? 9 : size === 'sm' ? 10 : 11;
   const padding = size === 'xs' ? '2px 6px' : size === 'sm' ? '3px 7px' : '3px 8px';

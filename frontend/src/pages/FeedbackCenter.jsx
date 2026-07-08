@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
+import { localizeDeep as _dloc } from "../utils/demoUiLocalize.js";
 import BeginnerGuide from "../components/BeginnerGuide.jsx";
 import { GUIDE } from "../lib/guideSpecs.js";
 import { IS_DEMO } from '../utils/demoEnv';
@@ -18,6 +19,7 @@ const SENTIMENTS = {
   neutral:  { color: '#eab308', emoji: '😐', ko: '중립' },
   negative: { color: '#ef4444', emoji: '😞', ko: '부정' },
 };
+_dloc(SENTIMENTS);
 const CHANNELS = {
   web:    { ko: '웹', icon: '🌐' },
   app:    { ko: '앱', icon: '📱' },
@@ -25,6 +27,7 @@ const CHANNELS = {
   kakao:  { ko: '카카오', icon: '💬' },
   review: { ko: '리뷰', icon: '⭐' },
 };
+_dloc(CHANNELS);
 
 // 데모 전용 샘플 (운영에는 절대 들어가지 않음 — IS_DEMO 게이트)
 const DEMO_FEEDBACK = [
@@ -35,6 +38,7 @@ const DEMO_FEEDBACK = [
   { id: 'f5', channel: 'kakao',  sentiment: 'positive', rating: 4, author: 'Daniel C.',text: 'AI 추천 예산 배분이 실제 성과로 이어져서 만족합니다.', at: '2d', resolved: true },
   { id: 'f6', channel: 'web',    sentiment: 'neutral',  rating: 3, author: 'Yuna J.',  text: '온보딩 가이드가 더 자세하면 처음 쓰는 팀원이 따라하기 좋겠어요.', at: '3d', resolved: false },
 ];
+_dloc(DEMO_FEEDBACK);
 
 export default function FeedbackCenter() {
   const { t } = useI18n();

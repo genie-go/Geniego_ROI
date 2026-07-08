@@ -335,12 +335,12 @@ function CroGuide({ t }) {
       <div style={G.sec}>
         <div style={G.h}>🔌 {t('croGuide.codeTitle', '내 사이트에 실제로 적용하기 (개발자에게 전달)')}</div>
         <p style={G.p}>{t('croGuide.codeBody', '실험을 만든 뒤, 사이트 코드에 아래 2줄만 넣으면 자동으로 A/B가 분배되고 전환이 집계됩니다. 같은 방문자는 항상 같은 버전을 보게 됩니다(결정론 버킷팅).')}</p>
-        <div style={G.code}>{`// 1) 변형 받아서 보여주기
+        <div style={G.code}>{t('croGuide.codeSnippet', `// 1) 변형 받아서 보여주기
 const v = await assignVariant('실험키');
 if (v?.variant === 'B') { /* 새 버전 렌더 */ } else { /* 기존 버전 */ }
 
 // 2) 목표 행동(버튼 클릭·가입 완료 등)이 일어나면 호출
-trackConversion('실험키');`}</div>
+trackConversion('실험키');`)}</div>
         <p style={{ ...G.p, marginTop: 8, color: 'var(--text-3)', fontSize: 12 }}>⚠ {t('croGuide.codeWarn', '‘실험키’는 실험마다 고유해야 합니다. 같은 키를 여러 실험에 쓰면 데이터가 섞입니다.')}</p>
       </div>
 

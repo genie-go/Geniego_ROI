@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { localizeDeep as _dloc } from "../utils/demoUiLocalize.js";
 import BeginnerGuide from "../components/BeginnerGuide.jsx";
 import { GUIDE } from "../lib/guideSpecs.js";
 import { useAuth } from "../auth/AuthContext";
@@ -15,11 +16,13 @@ const DEMO_LINE_CAMPAIGNS = [
   { id: "ln_d2", name: "配送完了通知", type: "transactional", template_name: "配送ステータス", status: "active", sent: 15240, opened: 13980, clicked: 2210 },
   { id: "ln_d3", name: "リピート顧客クーポン", type: "marketing", template_name: "クーポン配布", status: "paused", sent: 5400, opened: 3720, clicked: 980 },
 ];
+_dloc(DEMO_LINE_CAMPAIGNS);
 const DEMO_LINE_TEMPLATES = [
   { id: "tpl_d1", name: "セール告知v2", type: "marketing", status: "approved", usage: 24 },
   { id: "tpl_d2", name: "配送ステータス", type: "transactional", status: "approved", usage: 156 },
   { id: "tpl_d3", name: "クーポン配布", type: "marketing", status: "approved", usage: 18 },
 ];
+_dloc(DEMO_LINE_TEMPLATES);
 const DEMO_LINE_SETTINGS = { ok: true, channel_id: "@geniego_demo", connected: true, webhook: "https://demo.genieroi.com/api/line/webhook", plan: "Messaging API" };
 
 const C = {

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { localizeDeep as _dloc } from "../utils/demoUiLocalize.js";
 import { tChannelName } from '../utils/tenantStorage.js'; // 180차: 회원 격리 크로스탭
 import { useAuth } from "../auth/AuthContext";
 import PlanGate from "../components/PlanGate.jsx";
@@ -22,6 +23,7 @@ const DEMO_KC_TEMPLATES = [
   { id: 3, code: 'TPL_CART',     name: '장바구니 리마인드', status: 'approved', content: '{고객명}님, 담아두신 상품이 품절되기 전에 확인하세요!' },
 ];
 const _TPL_LABEL = { alimtalk: '알림톡', friendtalk: '친구톡', bizboard: '비즈보드', marketing: '마케팅' };
+_dloc(DEMO_KC_TEMPLATES); _dloc(_TPL_LABEL); // [271차] 데모 표시데이터 15개국 현지화
 // 공유 kakaoCampaignsLinked({id,name,type,status,sent,estimatedReach,targetSegmentName,...}) → 테이블 표시 shape.
 // 원본 shape는 보존(LINEChannel/JourneyBuilder가 c.type 사용) — 표시 전용 파생.
 function mapKakaoForTable(list) {
@@ -315,7 +317,7 @@ function CampaignsTab({ API, campaigns, setCampaigns, fmt }) {
             setTemplates(DEMO_KC_TEMPLATES);
             setSegments(Array.isArray(crmSegments) && crmSegments.length
                 ? crmSegments.map(s => ({ id: s.id, name: s.name }))
-                : [{ id: 'seg-vip', name: 'VIP 고객' }, { id: 'seg-loyal', name: '충성 고객' }, { id: 'seg-churn', name: '최근 이탈자' }, { id: 'seg-new', name: '신규 가입' }]);
+                : [{ id: 'seg-vip', name: t('kakaoChannel.segVip', 'VIP 고객') }, { id: 'seg-loyal', name: t('kakaoChannel.segLoyal', '충성 고객') }, { id: 'seg-churn', name: '최근 이탈자' }, { id: 'seg-new', name: '신규 가입' }]);
             return;
         }
         API("/kakao/campaigns").then(r => r.ok && setCampaigns(r.campaigns || [])).catch(() => {});

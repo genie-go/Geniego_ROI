@@ -44,9 +44,9 @@ export default function JourneyBuilder() {
         try { const saved = localStorage.getItem('jb_journeys'); if (saved) return JSON.parse(saved); } catch {}
         // 179차 데모: 가상 여정 시드 (실제처럼 체험 — 사용자 추가분은 jb_journeys에 누적 유지)
         if (_isDemo) return [
-            { id: 'JRN-DEMO-1', name: '회원가입 환영 여정', trigger_type: 'signup', trigger_label: '회원가입', segment: '신규 가입 고객', channels: ['email', 'kakao'], delay: 'none', delay_label: '즉시', status: 'active', createdAt: '2026-05-20', executions: 12, entered: 1240, completed: 982 },
-            { id: 'JRN-DEMO-2', name: '장바구니 이탈 리마인더', trigger_type: 'abandon', trigger_label: '장바구니 이탈', segment: '최근 이탈자', channels: ['email', 'sms'], delay: '1h', delay_label: '1시간 후', status: 'active', createdAt: '2026-05-18', executions: 34, entered: 892, completed: 514 },
-            { id: 'JRN-DEMO-3', name: '구매 감사 메시지', trigger_type: 'purchase', trigger_label: '구매 완료', segment: '전체 구매자', channels: ['kakao'], delay: '30m', delay_label: '30분 후', status: 'active', createdAt: '2026-05-15', executions: 58, entered: 2310, completed: 2184 },
+            { id: 'JRN-DEMO-1', name: t('journeyBuilder.demoSignupName', '회원가입 환영 여정'), trigger_type: 'signup', trigger_label: '회원가입', segment: '신규 가입 고객', channels: ['email', 'kakao'], delay: 'none', delay_label: '즉시', status: 'active', createdAt: '2026-05-20', executions: 12, entered: 1240, completed: 982 },
+            { id: 'JRN-DEMO-2', name: t('journeyBuilder.demoCartName', '장바구니 이탈 리마인더'), trigger_type: 'abandon', trigger_label: t('journeyBuilder.demoCartTriggerLabel', '장바구니 이탈'), segment: '최근 이탈자', channels: ['email', 'sms'], delay: '1h', delay_label: t('journeyBuilder.demoCartDelayLabel', '1시간 후'), status: 'active', createdAt: '2026-05-18', executions: 34, entered: 892, completed: 514 },
+            { id: 'JRN-DEMO-3', name: t('journeyBuilder.demoPurchaseName', '구매 감사 메시지'), trigger_type: 'purchase', trigger_label: t('journeyBuilder.demoPurchaseTriggerLabel', '구매 완료'), segment: '전체 구매자', channels: ['kakao'], delay: '30m', delay_label: t('journeyBuilder.demoPurchaseDelayLabel', '30분 후'), status: 'active', createdAt: '2026-05-15', executions: 58, entered: 2310, completed: 2184 },
             { id: 'JRN-DEMO-4', name: '휴면 고객 이탈 방지', trigger_type: 'churn', trigger_label: '이탈 위험', segment: '휴면 고객', channels: ['email', 'kakao'], delay: '1d', delay_label: '1일 후', status: 'draft', createdAt: '2026-05-25', executions: 0, entered: 0, completed: 0 },
         ];
         return [];
@@ -417,7 +417,7 @@ export default function JourneyBuilder() {
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <div><div style={{ fontWeight: 800, fontSize: 15, color: '#334155' }}>🗺️ {tr(K.tabBuilder)}</div><div style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>{tr(K.sub)}</div></div>
                                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                                    <button onClick={openTemplates} style={{ padding: '10px 18px', borderRadius: 12, border: '1px solid rgba(168,85,247,0.4)', cursor: 'pointer', background: 'rgba(168,85,247,0.1)', color: '#7c3aed', fontWeight: 800, fontSize: 13 }}>✨ 추천 여정으로 시작</button>
+                                    <button onClick={openTemplates} style={{ padding: '10px 18px', borderRadius: 12, border: '1px solid rgba(168,85,247,0.4)', cursor: 'pointer', background: 'rgba(168,85,247,0.1)', color: '#7c3aed', fontWeight: 800, fontSize: 13 }}>{t('journeyBuilder.startWithTemplate', '✨ 추천 여정으로 시작')}</button>
                                     <button onClick={() => { setEditId(null); setForm({ name: '', trigger_type: 'signup', segment: '', channels: ['email'], delay: 'none' }); setShowCreate(true); }} style={{ padding: '10px 22px', borderRadius: 12, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#4f8ef7,#06b6d4)', color: '#fff', fontWeight: 800, fontSize: 13, boxShadow: '0 4px 16px rgba(79,142,247,0.3)' }}>+ {tr(K.createJourney)}</button>
                                 </div>
                             </div>
@@ -434,7 +434,7 @@ export default function JourneyBuilder() {
                                             <div><div style={{ fontWeight: 800, fontSize: 14, color: '#1e293b' }}>{j.name}</div><div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>{trigLabel(j.trigger_type)} → {(j.channels || []).map(c => c.toUpperCase()).join(', ')}</div></div>
                                         </div>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }} onClick={e => e.stopPropagation()}>
-                                            <button onClick={() => setCanvasId(j.id)} style={{ padding: '4px 11px', borderRadius: 7, border: '1px solid rgba(79,142,247,0.4)', background: 'rgba(79,142,247,0.1)', color: '#2563eb', fontSize: 11, fontWeight: 800, cursor: 'pointer' }}>🗺️ 비주얼 편집</button>
+                                            <button onClick={() => setCanvasId(j.id)} style={{ padding: '4px 11px', borderRadius: 7, border: '1px solid rgba(79,142,247,0.4)', background: 'rgba(79,142,247,0.1)', color: '#2563eb', fontSize: 11, fontWeight: 800, cursor: 'pointer' }}>{t('journeyBuilder.visualEdit', '🗺️ 비주얼 편집')}</button>
                                             <span style={{ padding: '3px 10px', borderRadius: 6, fontSize: 10, fontWeight: 700, background: cfg.bg, border: `1px solid ${cfg.border}`, color: cfg.color }}>{cfg.icon} {stsLabel(j.status)}</span>
                                         </div>
                                     </div>

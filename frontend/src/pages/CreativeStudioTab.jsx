@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback } from "react";
+import { localizeDeep as _dloc } from "../utils/demoUiLocalize.js";
 import { IS_DEMO } from '../utils/demoEnv';
 import { getJsonAuth, postJsonAuth } from '../services/apiClient.js';
 import { useI18n } from '../i18n';
@@ -18,6 +19,7 @@ const DEMO_GALLERY = [
   { id:'G5', name:'Retargeting DPA', format:'DPA', platform:'Meta', status:'active', ctr:2.9, conv:523, date:'2026-04-05', periodStart:'2026-04-10', periodEnd:'2026-07-10', animation:'shine' },
   { id:'G6', name:'YouTube Bumper Promo', format:'short', platform:'YouTube', status:'approved', ctr:4.7, conv:341, date:'2026-04-02', periodStart:'2026-05-05', periodEnd:'2026-05-19', animation:'float' },
 ];
+_dloc(DEMO_GALLERY);
 const DEMO_ASSETS = [
   { id:'BA1', name:'Primary Logo', type:'SVG', size:'24KB', updated:'2026-04-20' },
   { id:'BA2', name:'Brand Guidelines', type:'PDF', size:'4.2MB', updated:'2026-04-18' },
@@ -25,6 +27,7 @@ const DEMO_ASSETS = [
   { id:'BA4', name:'Typography Set', type:'WOFF2', size:'180KB', updated:'2026-04-10' },
   { id:'BA5', name:'Product Photos', type:'ZIP', size:'45MB', updated:'2026-04-08' },
 ];
+_dloc(DEMO_ASSETS);
 
 const card = { background:"rgba(255,255,255,0.85)", border:"1px solid rgba(0,0,0,0.08)", borderRadius:16, padding:24, backdropFilter:"blur(16px)", boxShadow:"0 4px 24px rgba(0,0,0,0.06)" };
 
@@ -54,6 +57,7 @@ const ANIM_CSS = {
   float:   { css: 'adFloat 2.8s ease-in-out infinite', label: '플로팅' },
   shine:   { css: 'adShine 2.2s ease-in-out infinite', label: '샤인' },
 };
+_dloc(ANIM_CSS);
 
 export default function CreativeStudioTab({ sourcePage, onUseCampaign }) {
   const { t } = useI18n();

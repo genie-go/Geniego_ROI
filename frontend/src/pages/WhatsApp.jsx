@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { localizeDeep as _dloc } from "../utils/demoUiLocalize.js";
 import BeginnerGuide from "../components/BeginnerGuide.jsx";
 import { GUIDE } from "../lib/guideSpecs.js";
 import PlanGate from "../components/PlanGate.jsx";
@@ -36,6 +37,7 @@ const DEMO_WA_MESSAGES = [
     { recipient: '+821077778888', template_name: 'cart_reminder',      status: 'failed',    sent_at: '2026-05-29T16:30:00' },
 ];
 const DEMO_WA_STATS = { sent: 1240, delivered: 1198, read: 1056, failed: 12 };
+_dloc(DEMO_WA_TEMPLATES); _dloc(DEMO_WA_MESSAGES); // [271차] 데모 표시데이터 15개국 현지화
 
 /* Auth Panel */
 function AuthPanel({ onSaved }) {

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { localizeDeep as _dloc } from "../utils/demoUiLocalize.js";
 import BeginnerGuide from "../components/BeginnerGuide.jsx";
 import { GUIDE } from "../lib/guideSpecs.js";
 import PlanGate from "../components/PlanGate.jsx";
@@ -45,6 +46,9 @@ const TABS = [
     { id: 'analytics', label: '📊 분석', labelKey: 'igdm.tabAnalytics' },
     { id: 'settings', label: '⚙️ 연동 설정', labelKey: 'igdm.tabSettings' },
 ];
+
+// [271차] 데모 표시데이터 15개국 현지화(대화/메시지/자동응답/탭)
+try { _dloc(_CONVERSATIONS); _dloc(_MESSAGES); _dloc(AUTO_REPLY_RULES); _dloc(TABS); } catch (_) {}
 
 export default function InstagramDM() {
   const t = useT();

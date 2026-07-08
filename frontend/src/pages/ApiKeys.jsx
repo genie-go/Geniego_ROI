@@ -3,6 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { useI18n } from '../i18n';
 import { getJsonAuth, postJson, delJson } from '../services/apiClient.js';
 import { IS_DEMO } from '../utils/demoEnv';
+// [271차] 채널 그룹라벨·채널/택배/PG 브랜드명 15개국 현지화 오버레이(로드시점 lang 기준 표시값 치환).
+import _CHAN_I18N from './chanI18n.json';
+import { registerRelocalize as _registerRelocalize } from '../utils/reactiveLocalize.js';
 import { handlePlanLimit } from '../utils/planLimit.js';
 import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
 import { useAuth } from '../auth/AuthContext.jsx';
@@ -899,7 +902,7 @@ export default function ApiKeys() {
     try {
       const r = await postJson('/api/v426/admin/channels', { channel_key: key, name, group_type: group, icon: form.icon || '🔗', color: form.color || '#6366f1', fields, sync_kind, is_active: 1 });
       if (r?.ok) {
-        const SK_HINT = { ad: '광고 성과 자동수집', commerce: '주문/정산 자동수집', analytics: '웹분석 자동수집', cs: 'CS 지표 자동수집', esp: '이메일/SMS 자동수집', review: '리뷰 자동수집', pg: '결제 정산 자동수집', logistics: '배송 추적 자동수집' };
+        const SK_HINT = { ad: '광고 성과 자동수집', commerce: '주문/정산 자동수집', analytics: '웹분석 자동수집', cs: 'CS 지표 자동수집', esp: '이메일/SMS 자동수집', review: '리뷰 자동수집', pg: '결제 정산 자동수집', logistics: t('apiKeys.skHintLogistics','배송 추적 자동수집') };
         show('success', `채널 추가됨: ${name} → ${GROUP_LABELS[group] || group} · 자격증명 저장 시 ${SK_HINT[sync_kind] || '보관 전용(전용 어댑터 연동 후 수집)'}`);
         setShowRegAdd(false); loadRegistry();
       }
@@ -1471,6 +1474,18 @@ const WEBHOOK_CHANNELS = [
   { id: 'rakuten',     name: 'Rakuten' },
   { id: 'cafe24',      name: 'Cafe24' },
 ];
+
+// [271차] ── 실시간 현지화(새로고침 없음): 한글 원본 스냅샷 → 언어변경마다 표시값(그룹라벨/채널명)만 재치환 ──
+//   key/id/group 은 로직키(불변). ko 또는 번역부재 시 한글 유지(무회귀).
+const _GL_ORIG = { ...GROUP_LABELS };
+const _CH_ORIG = CHANNELS.map(c => c.name);
+const _WH_ORIG = WEBHOOK_CHANNELS.map(c => c.name);
+_registerRelocalize((lang) => {
+  const _CT = lang !== 'ko' ? _CHAN_I18N[lang] : null;
+  for (const g in GROUP_LABELS) { GROUP_LABELS[g] = (_CT && _CT['chan::' + _GL_ORIG[g]]) || _GL_ORIG[g]; }
+  CHANNELS.forEach((c, i) => { c.name = (_CT && _CT['chan::' + _CH_ORIG[i]]) || _CH_ORIG[i]; });
+  WEBHOOK_CHANNELS.forEach((c, i) => { c.name = (_CT && _CT['chan::' + _WH_ORIG[i]]) || _WH_ORIG[i]; });
+});
 
 function WebhookTab({ t, show }) {
   const [tokens, setTokens]     = useState([]);

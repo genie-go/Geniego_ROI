@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { localizeDeep as _dloc } from "../utils/demoUiLocalize.js";
 import BeginnerGuide from '../components/BeginnerGuide.jsx';
 import { GUIDE } from '../lib/guideSpecs.js';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -13,6 +14,7 @@ import { useGlobalData } from '../context/GlobalDataContext.jsx'; // [현 차수
 
 // [현 차수] 데모 결제/청구 내역 파생 — v427/billing/ledger 부재 시 주문 광고비를 월×채널 청구행으로 집계(기간 반응).
 const _LEDGER_CH = { meta: 'Meta Ads', google: 'Google Ads', naver: 'Naver', naver_sa: 'Naver SA', coupang: 'Coupang', tiktok: 'TikTok', kakao: 'Kakao', oliveyoung: 'Olive Young', '11st': '11번가', gmarket: 'G마켓' };
+_dloc(_LEDGER_CH);
 function deriveDemoLedger(orders, channelBudgets) {
   const by = {};
   (orders || []).forEach(o => {
@@ -33,6 +35,7 @@ const PAY_LINKS = [
   { to: '/auto-marketing', icon: '🚀', label: '마케팅 자동화', labelKey: 'crossLink.marketingAuto' },
   { to: '/app-pricing', icon: '🧾', label: '구독 플랜', labelKey: 'crossLink.subscriptionPlan' },
 ];
+_dloc(PAY_LINKS);
 
 const fmtKRW = (n) => '₩' + Number(n || 0).toLocaleString('ko-KR');
 const tok = () => localStorage.getItem('genie_token') || localStorage.getItem('demo_genie_token') || '';

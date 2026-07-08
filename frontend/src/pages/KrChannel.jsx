@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { localizeDeep as _dloc } from "../utils/demoUiLocalize.js";
 import { IS_DEMO } from '../utils/demoEnv';
 import { useI18n } from '../i18n';
 
@@ -17,6 +18,7 @@ const API = "/api";
 /* [현 차수] 데모 KR 정산 요약 폴백 — v419 데모 백엔드 부재 시 주문(orders)에서 채널별 정산 파생(since~until 윈도우).
    ko-KR at 파싱불가 → atISO 사용. gross=Σtotal, 수수료=platformFeeRate, 광고비=fee, 정산=gross-수수료합. 선택 기간 반응. */
 const _KR_CH_NAME = { coupang: '쿠팡', naver: '네이버 스마트스토어', smartstore: '네이버 스마트스토어', oliveyoung: '올리브영', '11st': '11번가', gmarket: 'G마켓', auction: '옥션', kakao: '카카오선물하기', lotteon: '롯데ON', wemef: '위메프', tmon: '티몬' };
+_dloc(_KR_CH_NAME);
 function deriveKrSettleSummary(orders, since, until) {
   const sT = since ? new Date(since + 'T00:00:00').getTime() : 0;
   const uT = until ? new Date(until + 'T23:59:59').getTime() : Date.now();
@@ -65,6 +67,7 @@ const DEMO_KR_CHANNELS = [
     { channel_key: "wemef",     display_name: "위메프",          currency: "KRW", settlement_cycle: "월 1회",          vat_rate: 0.10, note: "" },
     { channel_key: "tmon",      display_name: "티몬",            currency: "KRW", settlement_cycle: "월 1회",          vat_rate: 0.10, note: "" },
 ];
+_dloc(DEMO_KR_CHANNELS);
 /** 채널 응답이 비었을 때의 폴백: 데모만 시드, 운영은 빈 배열(목 데이터 유입 0). */
 const krChannelsFallback = (d) => (d && d.channels && d.channels.length) ? d.channels : (_isDemo ? DEMO_KR_CHANNELS : []);
 
@@ -260,6 +263,7 @@ const _LINES = {
         other_deductions: 0, net_payout: 58255, currency: "KRW",
     }],
 };
+_dloc(_LINES);
 
 function IngestTab() {
     const t = useT();

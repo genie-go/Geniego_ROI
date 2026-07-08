@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback } from "react";
 //   /v424/admin/growth/* 는 requirePlan('admin') 세션 인증 필수인데 비인증 getJson 으로 호출해
 //   GET 전건 401(AUTH_REQUIRED) 이었음. postJson/putJson/delJson 은 이미 인증 헤더 부착(정상).
 import { getJsonAuth as getJson, postJson, putJson, delJson } from "../services/apiClient.js";
+import { useI18n } from "../i18n/index.js";
 
 /**
  * AdminGrowthCenter — 236차 신규.
@@ -63,6 +64,7 @@ function KpiCard({ label, value, sub }) {
 /* [251차] 플랫폼 성장 컨텍스트 토글 — ON 시 기존 모든 메뉴(크리에이티브 스튜디오·자동화 전략·어트리뷰션 등)가
    platform_growth 데이터로 동작(X-Act-As-Tenant 헤더, 서버는 admin 에만 허용). 신규 메뉴 0·기존 기능 재사용. */
 function PlatformContextToggle() {
+  const { t } = useI18n();
   const [on, setOn] = useState(() => { try { return localStorage.getItem("gg_act_as_tenant") === "platform_growth"; } catch (e) { return false; } });
   useEffect(() => {
     const h = () => { try { setOn(localStorage.getItem("gg_act_as_tenant") === "platform_growth"); } catch (e) {} };
@@ -82,12 +84,13 @@ function PlatformContextToggle() {
     <button onClick={toggle} title="기존 메뉴를 GeniegoROI 플랫폼 자체 데이터로 전환"
       style={{ padding: "5px 12px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 800,
         background: on ? "linear-gradient(90deg,#7c3aed,#4f8ef7)" : "rgba(124,58,237,0.12)", color: on ? "#fff" : "#7c3aed" }}>
-      {on ? "🚀 플랫폼 컨텍스트 ON (끄기)" : "🚀 기존 메뉴를 플랫폼 컨텍스트로 전환"}
+      {on ? t('adminGrowthCenter.platformToggleOnLabel', '🚀 플랫폼 컨텍스트 ON (끄기)') : "🚀 기존 메뉴를 플랫폼 컨텍스트로 전환"}
     </button>
   );
 }
 
 export default function AdminGrowthCenter() {
+  const { t } = useI18n();
   const [tab, setTab] = useState("dashboard");
   const [mode, setMode] = useState("test");
   const [msg, setMsg] = useState("");
@@ -106,20 +109,20 @@ export default function AdminGrowthCenter() {
   const flash = (m, isErr) => { if (isErr) { setErr(String(m)); setMsg(""); } else { setMsg(String(m)); setErr(""); } setTimeout(() => { setMsg(""); setErr(""); }, 4000); };
 
   const tabs = [
-    ["dashboard", "📊 대시보드"], ["segments", "🎯 세그먼트"], ["leads", "👥 리드"],
-    ["campaigns", "🚀 캠페인"], ["approvals", "✅ 승인"], ["settings", "⚙️ 설정 / 감사"],
+    ["dashboard", t('adminGrowthCenter.tabDashboard', '📊 대시보드')], ["segments", t('adminGrowthCenter.tabSegments', '🎯 세그먼트')], ["leads", t('adminGrowthCenter.tabLeads', '👥 리드')],
+    ["campaigns", t('adminGrowthCenter.tabCampaigns', '🚀 캠페인')], ["approvals", t('adminGrowthCenter.tabApprovals', '✅ 승인')], ["settings", t('adminGrowthCenter.tabSettings', '⚙️ 설정 / 감사')],
   ];
 
   return (
     <div style={S.wrap}>
       <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", marginBottom: 6 }}>
-        <h1 style={{ fontSize: 22, margin: 0 }}>그로스 센터</h1>
-        <span style={S.badge(mode === "live" ? "#22c55e" : "#f59e0b")}>{mode === "live" ? "LIVE 모드" : "TEST 모드"}</span>
+        <h1 style={{ fontSize: 22, margin: 0 }}>{t('adminGrowthCenter.growthCenterTitle', '그로스 센터')}</h1>
+        <span style={S.badge(mode === "live" ? "#22c55e" : "#f59e0b")}>{mode === "live" ? "LIVE 모드" : t('adminGrowthCenter.testModeBadge', 'TEST 모드')}</span>
         <PlatformContextToggle />
       </div>
       <p style={{ color: "var(--text-2,#9aa3b2)", fontSize: 13, marginTop: 0 }}>
-        GeniegoROI 플랫폼 자체 마케팅 자동화 — 리드 → 데모 → 체험 → 유료 전환 → 성과 검증.
-        <b style={{ color: "#7c3aed" }}> 소재·캠페인·어트리뷰션 등은 아래 "플랫폼 컨텍스트 ON" 후 기존 메뉴(크리에이티브 스튜디오·자동화 전략·어트리뷰션)를 그대로 사용하세요.</b>
+        {t('adminGrowthCenter.platformDesc', 'GeniegoROI 플랫폼 자체 마케팅 자동화 — 리드 → 데모 → 체험 → 유료 전환 → 성과 검증.')}
+        <b style={{ color: "#7c3aed" }}>{t('adminGrowthCenter.platformDescNote', ' 소재·캠페인·어트리뷰션 등은 아래 "플랫폼 컨텍스트 ON" 후 기존 메뉴(크리에이티브 스튜디오·자동화 전략·어트리뷰션)를 그대로 사용하세요.')}</b>
       </p>
 
       <div style={{ display: "flex", gap: 6, flexWrap: "wrap", margin: "12px 0" }}>
@@ -143,6 +146,7 @@ export default function AdminGrowthCenter() {
 
 // ── 대시보드 ────────────────────────────────────────────
 function DashboardTab({ setMode, flash }) {
+  const { t } = useI18n();
   const [d, setD] = useState(null);
   const load = useCallback(async () => {
     try { const r = unwrap(await getJson(`${API}/dashboard`)); setD(r); setMode(r?.mode || "test"); }
@@ -155,12 +159,12 @@ function DashboardTab({ setMode, flash }) {
   const stages = f.stages || {};
   const maxCount = Math.max(1, ...Object.values(stages).map((s) => (s && s.count) || 0));
   const cards = [
-    ["오늘 리드", c.todayLeads], ["이번 달 데모", c.monthDemos], ["무료 체험", c.trialSignups],
-    ["유료 전환", c.paidConversions], ["MRR", `₩${(c.mrr || 0).toLocaleString()}`], ["Hot 리드", c.hotLeads],
+    [t('adminGrowthCenter.kpiTodayLeads', '오늘 리드'), c.todayLeads], [t('adminGrowthCenter.kpiMonthDemos', '이번 달 데모'), c.monthDemos], [t('adminGrowthCenter.kpiTrialSignups', '무료 체험'), c.trialSignups],
+    [t('adminGrowthCenter.kpiPaidConversions', '유료 전환'), c.paidConversions], ["MRR", `₩${(c.mrr || 0).toLocaleString()}`], [t('adminGrowthCenter.kpiHotLeads', 'Hot 리드'), c.hotLeads],
     ["CAC", `₩${(c.cac || 0).toLocaleString()}`], ["LTV", `₩${(c.ltv || 0).toLocaleString()}`],
-    ["체험→유료", `${c.trialToPaidRate || 0}%`], ["ROAS", `${c.roas || 0}x`],
-    ["회수기간", `${c.paybackMonths || 0}개월`], ["실행 캠페인", `${c.runningCampaigns || 0}/${c.totalCampaigns || 0}`],
-    ["승인 대기", c.pendingApprovals], ["누적 광고비", `₩${(c.totalSpend || 0).toLocaleString()}`],
+    [t('adminGrowthCenter.kpiTrialToPaid', '체험→유료'), `${c.trialToPaidRate || 0}%`], ["ROAS", `${c.roas || 0}x`],
+    ["회수기간", `${c.paybackMonths || 0}개월`], [t('adminGrowthCenter.kpiRunningCampaigns', '실행 캠페인'), `${c.runningCampaigns || 0}/${c.totalCampaigns || 0}`],
+    [t('adminGrowthCenter.kpiPendingApprovals', '승인 대기'), c.pendingApprovals], [t('adminGrowthCenter.kpiTotalSpend', '누적 광고비'), `₩${(c.totalSpend || 0).toLocaleString()}`],
   ];
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -168,7 +172,7 @@ function DashboardTab({ setMode, flash }) {
         {cards.map(([l, v]) => <KpiCard key={l} label={l} value={v ?? 0} />)}
       </div>
       <div style={S.card}>
-        <h3 style={{ marginTop: 0 }}>퍼널 전환 (순이익 ROI {f.netProfitRoi || 0}%)</h3>
+        <h3 style={{ marginTop: 0 }}>{t('adminGrowthCenter.funnelTitle', '퍼널 전환 (순이익 ROI {{roi}}%)', { roi: f.netProfitRoi || 0 })}</h3>
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           {(f.order || []).map((sg) => {
             const s = stages[sg] || { count: 0 };
@@ -452,6 +456,7 @@ function ApprovalsTab({ flash }) {
 //   AutoRecommend::effectivenessData('platform_growth') 재사용 — 진실 ROAS·CAC·전환·추세·자가학습 prior
 //   종합 효과점수로 플랫폼 자체 광고비를 가입 전환 기준 최적화(최고=증액·최저=회수).
 function ChannelAnalysisTab({ flash }) {
+  const { t } = useI18n();
   const [d, setD] = useState(null);
   const [ab, setAb] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -485,7 +490,7 @@ function ChannelAnalysisTab({ flash }) {
           <select value={period} onChange={(e) => setPeriod(e.target.value)} style={S.btn}>
             <option value="monthly">월간</option><option value="quarter">분기</option>
           </select>
-          <button style={S.btnP} onClick={load}>🔄 새로고침</button>
+          <button style={S.btnP} onClick={load}>{t('adminGrowthCenter.refreshBtn', '🔄 새로고침')}</button>
         </div>
       </div>
       {loading && <div style={S.card}>분석 중…</div>}
@@ -524,7 +529,7 @@ function ChannelAnalysisTab({ flash }) {
       {/* [Phase2 ⑤] 가입 유입 어트리뷰션 — 첫터치 채널 → 가입/유료/MRR/진실 CAC */}
       {!loading && Array.isArray(d?.acquisition) && d.acquisition.length > 0 && (
         <div style={{ ...S.card, overflowX: "auto" }}>
-          <h3 style={{ marginTop: 0 }}>🎯 가입 유입 어트리뷰션 (첫터치 채널 기준)</h3>
+          <h3 style={{ marginTop: 0 }}>{t('adminGrowthCenter.attributionHeader', '🎯 가입 유입 어트리뷰션 (첫터치 채널 기준)')}</h3>
           <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 560 }}>
             <thead><tr><th style={S.th}>채널/소스</th><th style={S.th}>리드</th><th style={S.th}>가입</th><th style={S.th}>유료</th><th style={S.th}>MRR</th><th style={S.th}>가입→유료</th><th style={S.th}>진실 CAC</th></tr></thead>
             <tbody>
@@ -572,6 +577,7 @@ function ChannelAnalysisTab({ flash }) {
 
 // ── 설정 / 감사 ─────────────────────────────────────────
 function SettingsTab({ flash, setMode }) {
+  const { t } = useI18n();
   const [s, setS] = useState(null);
   const [logs, setLogs] = useState([]);
   const load = useCallback(async () => {
@@ -597,14 +603,14 @@ function SettingsTab({ flash, setMode }) {
           <b>TEST</b>: 실제 발송·광고 집행 차단, 시뮬레이션만. <b>LIVE</b>: 승인 후 실제 실행(감사 기록).
         </p>
         <div style={{ display: "flex", gap: 8 }}>
-          <button style={s.mode === "test" ? S.btnP : S.btn} onClick={() => setModeReq("test")}>TEST 모드</button>
+          <button style={s.mode === "test" ? S.btnP : S.btn} onClick={() => setModeReq("test")}>{t('adminGrowthCenter.testModeBadge', 'TEST 모드')}</button>
           <button style={s.mode === "live" ? S.btnP : S.btn} onClick={() => setModeReq("live")}>LIVE 모드 (승인 필요)</button>
         </div>
       </div>
       <div style={S.card}>
         <h3 style={{ marginTop: 0 }}>가입 환영 너처 자동발송</h3>
         <p style={{ fontSize: 13, color: "var(--text-2,#9aa3b2)" }}>
-          신규 가입자에게 환영·온보딩 이메일을 <b>자동 발송</b>합니다. ★안전: <b>이 토글 ON + LIVE 모드</b>일 때만 실제 발송됩니다(기본 OFF).
+          {t('adminGrowthCenter.nurtureIntro', '신규 가입자에게 환영·온보딩 이메일을 ')}<b>{t('adminGrowthCenter.nurtureAutoLabel', '자동 발송')}</b>{t('adminGrowthCenter.nurtureMid', '합니다. ★안전: ')}<b>{t('adminGrowthCenter.nurtureToggleLabel', '이 토글 ON + LIVE 모드')}</b>{t('adminGrowthCenter.nurtureSuffix', '일 때만 실제 발송됩니다(기본 OFF).')}
         </p>
         <button
           style={s.autoNurture ? { ...S.btnP, background: "#16a34a" } : S.btn}

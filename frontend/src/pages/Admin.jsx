@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { getJson } from "../services/apiClient.js";
 import { IS_DEMO } from "../utils/demoEnv";
+import { useI18n } from "../i18n/index.js";
 
 // 196차 — 관리자 환경 콘솔에서 플랫폼 AI(Claude)·SMTP 키 등록(등록 즉시 전체 이용자 적용)
 const ADMIN_TOKEN = () => localStorage.getItem(IS_DEMO ? "demo_genie_token" : "genie_token") || localStorage.getItem("genie_token") || localStorage.getItem("demo_genie_token") || "";
@@ -19,6 +20,7 @@ const ADMIN_TOKEN = () => localStorage.getItem(IS_DEMO ? "demo_genie_token" : "g
  * 한국어 고정 (DbAdmin.jsx 패턴 정합).
  */
 function Admin() {
+  const { t } = useI18n();
   const [activeTab, setActiveTab] = useState(0);
   const [health, setHealth] = useState(null);
   const [error, setError] = useState(null);
@@ -35,17 +37,17 @@ function Admin() {
 
   useEffect(() => { fetchHealth(); }, [fetchHealth]);
 
-  const tabs = ["개요", "🤖 AI 엔진", "운영 정책", "보안 정책", "백업 / 복구", "🔗 채널 OAuth"];
+  const tabs = ["개요", t('admin.tabs.aiEngine','🤖 AI 엔진'), t('admin.tabs.opsPolicy','운영 정책'), t('admin.tabs.securityPolicy','보안 정책'), t('admin.tabs.backupRestore','백업 / 복구'), t('admin.tabs.channelOauth','🔗 채널 OAuth')];
 
   const kpis = [
-    { emoji: "👥", label: "총 사용자", val: health?.users?.total ?? "—" },
-    { emoji: "🏢", label: "활성 Tenant", val: health?.tenants?.active ?? "—" },
+    { emoji: "👥", label: t('admin.kpi.totalUsers','총 사용자'), val: health?.users?.total ?? "—" },
+    { emoji: "🏢", label: t('admin.kpi.activeTenant','활성 Tenant'), val: health?.tenants?.active ?? "—" },
     { emoji: "🔑", label: "API Key", val: health?.api_keys?.total ?? "—" },
-    { emoji: "🟢", label: "활성 세션", val: health?.sessions?.active ?? "—" },
-    { emoji: "💾", label: "DB 사이즈", val: health?.db?.size_mb ? `${health.db.size_mb} MB` : "—" },
-    { emoji: "⏱️", label: "가동 시간", val: health?.uptime ?? "—" },
-    { emoji: "⚡", label: "평균 응답", val: health?.perf?.avg_ms ? `${health.perf.avg_ms} ms` : "—" },
-    { emoji: "🟥", label: "오류율 (1h)", val: health?.errors?.rate_1h ?? "—" },
+    { emoji: "🟢", label: t('admin.kpi.activeSessions','활성 세션'), val: health?.sessions?.active ?? "—" },
+    { emoji: "💾", label: t('admin.kpi.dbSize','DB 사이즈'), val: health?.db?.size_mb ? `${health.db.size_mb} MB` : "—" },
+    { emoji: "⏱️", label: t('admin.kpi.uptime','가동 시간'), val: health?.uptime ?? "—" },
+    { emoji: "⚡", label: t('admin.kpi.avgResponse','평균 응답'), val: health?.perf?.avg_ms ? `${health.perf.avg_ms} ms` : "—" },
+    { emoji: "🟥", label: t('admin.kpi.errorRate','오류율 (1h)'), val: health?.errors?.rate_1h ?? "—" },
   ];
 
   const cardStyle = {
@@ -67,9 +69,9 @@ function Admin() {
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
           <span style={{ fontSize: 32 }}>⚙</span>
           <div>
-            <div style={{ fontSize: 22, fontWeight: 800 }}>플랫폼 환경 관리</div>
+            <div style={{ fontSize: 22, fontWeight: 800 }}>{t('admin.header.title','플랫폼 환경 관리')}</div>
             <div style={{ fontSize: 13, color: "var(--text-3)", marginTop: 2 }}>
-              시스템 관리 · 전역 정책 · 운영 모니터링 콘솔
+              {t('admin.header.subtitle','시스템 관리 · 전역 정책 · 운영 모니터링 콘솔')}
             </div>
             <div style={{
               fontSize: 10,
@@ -80,7 +82,7 @@ function Admin() {
               borderRadius: 4,
               background: "rgba(167,139,250,0.10)",
               display: "inline-block",
-            }}>⚠ 관리자 전용 — 변경 사항은 모든 Tenant 에 영향</div>
+            }}>{t('admin.header.badge','⚠ 관리자 전용 — 변경 사항은 모든 Tenant 에 영향')}</div>
           </div>
         </div>
       </div>
@@ -96,11 +98,11 @@ function Admin() {
         <span style={{ fontSize: 22 }}>{IS_DEMO ? "🎪" : "🏢"}</span>
         <div style={{ flex: 1, minWidth: 200 }}>
           <div style={{ fontSize: 13, fontWeight: 800, color: IS_DEMO ? "#fb923c" : "#22c55e" }}>
-            현재 관리 환경: {IS_DEMO ? "🎪 데모 환경 (체험용 · 샌드박스)" : "🏢 운영 시스템 (실데이터)"}
+            {t('admin.envSwitch.currentLabel','현재 관리 환경:')} {IS_DEMO ? t('admin.envSwitch.demoLabel','🎪 데모 환경 (체험용 · 샌드박스)') : "🏢 운영 시스템 (실데이터)"}
           </div>
           <div style={{ fontSize: 11, color: "var(--text-3)", marginTop: 2 }}>
             {IS_DEMO
-              ? "지금은 데모(체험) 데이터를 관리 중입니다. 실제 고객·매출을 관리하려면 운영 시스템으로 전환하세요."
+              ? t('admin.envSwitch.demoDesc','지금은 데모(체험) 데이터를 관리 중입니다. 실제 고객·매출을 관리하려면 운영 시스템으로 전환하세요.')
               : "실제 운영 데이터를 관리 중입니다. 체험/시연 데이터는 데모 환경에서 관리합니다."}
           </div>
         </div>
@@ -110,14 +112,14 @@ function Admin() {
           color: !IS_DEMO ? "#fff" : "#22c55e",
           border: `1px solid ${!IS_DEMO ? "#22c55e" : "rgba(34,197,94,0.4)"}`,
           cursor: "pointer", whiteSpace: "nowrap",
-        }}>🏢 운영 시스템 {!IS_DEMO ? "(현재)" : "보기"}</a>
+        }}>{t('admin.envSwitch.prodBtn','🏢 운영 시스템')} {!IS_DEMO ? t('admin.envSwitch.current','(현재)') : "보기"}</a>
         <a href="https://demo.genieroi.com/admin" style={{
           padding: "9px 16px", borderRadius: 9, fontSize: 12, fontWeight: 800, textDecoration: "none",
           background: IS_DEMO ? "#fb923c" : "rgba(251,146,60,0.12)",
           color: IS_DEMO ? "#fff" : "#fb923c",
           border: `1px solid ${IS_DEMO ? "#fb923c" : "rgba(251,146,60,0.4)"}`,
           cursor: "pointer", whiteSpace: "nowrap",
-        }}>🎪 데모 환경 {IS_DEMO ? "(현재)" : "보기"}</a>
+        }}>{t('admin.envSwitch.demoBtn','🎪 데모 환경')} {IS_DEMO ? t('admin.envSwitch.current','(현재)') : "보기"}</a>
       </div>
 
       {error && (
@@ -235,6 +237,7 @@ function SectionCard({ title, items }) {
 }
 
 function TabAiEngine() {
+  const { t } = useI18n();
   const [aiKey, setAiKey] = useState("");
   const [aiKeySet, setAiKeySet] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -378,7 +381,7 @@ function TabAiEngine() {
           <option value="openai">OpenAI — DALL·E 3 (권장)</option>
           <option value="stability">Stability AI — Stable Diffusion</option>
         </select>
-        <label style={lbl}>API 키</label>
+        <label style={lbl}>{t('admin.aiEngine.imgApiKeyLabel','API 키')}</label>
         <input type="password" value={imgKey} onChange={e => setImgKey(e.target.value)} autoComplete="new-password"
           placeholder={imgKeySet ? "(변경 시에만 입력)" : (imgProvider === "openai" ? "sk-..." : "sk-...")} style={inp} />
         <button onClick={saveImgKey} disabled={imgBusy || !imgKey.trim()}
@@ -572,22 +575,23 @@ function TabChannelOauth() {
 }
 
 function TabOverview({ health }) {
+  const { t } = useI18n();
   return (
     <>
-      <SectionCard title="시스템 정보" items={[
+      <SectionCard title={t('admin.overview.sysInfoTitle','시스템 정보')} items={[
         `Geniego-ROI v${health?.version || "424"}`,
         `PHP ${health?.php_version || "8.1.34"}`,
         `MySQL ${health?.db?.version || "8.0.37"}`,
         `Nginx + PHP-FPM`,
-        `Tenant 격리: X-Tenant-Id`,
-        `인증: Bearer + RBAC (viewer / connector / analyst / admin)`,
+        t('admin.overview.tenantIsolation','Tenant 격리: X-Tenant-Id'),
+        t('admin.overview.authInfo','인증: Bearer + RBAC (viewer / connector / analyst / admin)'),
       ]} />
-      <SectionCard title="활성 트랙" items={[
+      <SectionCard title={t('admin.overview.activeTracksTitle','활성 트랙')} items={[
         "N-152-F PM-Core (Task / Milestone / Gantt)",
-        "N-152-F F2/F3 메뉴 가시성 토글",
-        "N-152-F 결제 정책 (USD 단일 / Paddle 카드 전용)",
-        "N-PH3 실시간 알림 + SSE",
-        "U-166-D 보안 자동화 폐기 → 수동 PR",
+        t('admin.overview.trackMenuToggle','N-152-F F2/F3 메뉴 가시성 토글'),
+        t('admin.overview.trackPaymentPolicy','N-152-F 결제 정책 (USD 단일 / Paddle 카드 전용)'),
+        t('admin.overview.trackRealtimeSse','N-PH3 실시간 알림 + SSE'),
+        t('admin.overview.trackSecurityAutomation','U-166-D 보안 자동화 폐기 → 수동 PR'),
       ]} />
     </>
   );
@@ -614,6 +618,7 @@ function TabOperationsPolicy() {
 }
 
 function TabSecurityPolicy() {
+  const { t } = useI18n();
   return (
     <>
       <SectionCard title="9 개 절대 원칙" items={[
@@ -628,7 +633,7 @@ function TabSecurityPolicy() {
         "connector: ingest 쓰기 (write:ingest)",
         "analyst: 일반 쓰기 (write:*)",
         "admin: 전체 + admin:keys",
-        "RBAC 우회: 거부 (감사 로그 필수)",
+        t('admin.security.rbacAuditLog','RBAC 우회: 거부 (감사 로그 필수)'),
       ]} />
       <SectionCard title="PII 정책" items={[
         "집계 only — 개별 구매자 레코드 비저장",

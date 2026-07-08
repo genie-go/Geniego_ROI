@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from "react"
 import { tChannelName } from '../utils/tenantStorage.js'; // 180차: 회원 격리 크로스탭
 import { getJsonAuth, requestJsonAuth } from "../services/apiClient.js";
 import { useT } from "../i18n/index.js";
+import { localizeDeep as _dloc } from "../utils/demoUiLocalize.js"; // [271차] 백엔드 플랜/메뉴 표시데이터 15개국 현지화
 import { MEMBER_MENU, ADMIN_MENU, buildMenuKeyIndex } from "../layout/sidebarManifest.js";
 import { MENU_KEY_LABEL, SUB_TABS_BY_PATH } from "../layout/sidebarMenuLabels.js";
 import SIDEBAR_DICT from "../layout/sidebarI18n.js"; // 186차: gNav.* 라벨 한글 해석 (하위메뉴 라벨)
@@ -172,7 +173,7 @@ function PlanPricing() {
     setLoading(true); setError(null);
     try {
       const data = await getJsonAuth('/v424/admin/plans');
-      setPlans(Array.isArray(data?.plans) ? data.plans : []);
+      setPlans(Array.isArray(data?.plans) ? data.plans.map(p => _dloc(p)) : []); // [271차] 백엔드 플랜 표시데이터 현지화
       setAuthLost(false); authRetryRef.current = 0;
     } catch (e) {
       const msg = String(e?.message || e);
@@ -205,7 +206,7 @@ function PlanPricing() {
   const fetchMenuAccess = useCallback(async () => {
     try {
       const data = await getJsonAuth('/v424/admin/plans-menu-access');
-      setMenus(Array.isArray(data?.menus) ? data.menus : []);
+      setMenus(Array.isArray(data?.menus) ? data.menus.map(mn => _dloc(mn)) : []); // [271차] 백엔드 메뉴명 현지화
       setAccess(data?.access && typeof data.access === 'object' ? data.access : {});
       setAccessDirty(false);
     } catch (e) {

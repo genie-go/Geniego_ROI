@@ -168,6 +168,9 @@ async function detectGeoLang() {
     return null;
 }
 
+// [271차] 한글 유니코드 블록(가-힣). 비한국어 로케일 값에 이 문자가 있으면 미번역 누출로 판단.
+const HANGUL_RE = /[가-힣]/;
+
 // ── Deep-get helper ────────────────────────────────────────
 function deepGet(obj, path) {
     return path.split(".").reduce(
@@ -190,6 +193,11 @@ export function I18nProvider({ children }) {
         localStorage.removeItem(LS_GEO_KEY);  // 다음 방문에도 사용자 선택 우선
         // 언어 변경 시 수동 화폐 선택 플래그 해제 → 화폐 자동 전환 허용
         try { localStorage.removeItem("genie_currency_manual"); } catch {}
+        // [271차] 언어 선택 즉시 실시간 전면 현지화(새로고침 없음):
+        //   ① t() 콘텐츠는 아래 setLangState 로 즉시 재렌더.
+        //   ② module-level 로드시점 현지화 데이터(메뉴 라벨/서브탭·연동허브 채널·데모 템플릿)는
+        //      아래 dispatch 되는 'genie-lang-change' 이벤트를 utils/reactiveLocalize 레지스트리가 수신해
+        //      스냅샷 원본에서 새 언어로 재치환 → 재렌더 시 반영.
         setLangState(code);
         document.documentElement.lang = code;
         // 🚨 레이아웃은 항상 LTR 유지 (사이드바 좌측 고정)
@@ -242,15 +250,24 @@ export function I18nProvider({ children }) {
 
         const locale  = LOCALES[lang] || en;
         const fallback = LOCALES["en"] || {};
-        
+
+        // [271차] ★한글누출 자가치유 — 비한국어 언어에서 base/오버레이 값에 한글(가-힣)이 섞이면
+        //   미번역 누출로 간주하고 gap 처리(다음 폴백으로 흘려보냄). 로더단 방어라 어떤 base 로케일에
+        //   한글이 남아 있어도 현지어 오버레이→영어로 자동 대체된다(한글 절대 렌더 안 함).
+        //   한자/가나는 한글 유니코드 블록과 겹치지 않으므로 zh/ja 에도 안전. inlineFallback 은
+        //   미치지 않게 두어(raw 키 노출 방지) 오버레이 미채움 키만 한글폴백 유지.
+        const clean = (v) => (lang !== "ko" && typeof v === "string" && HANGUL_RE.test(v)) ? undefined : v;
+
         // Primary lookup: base 로케일 → [270차] 자동번역 오버레이(현지어) → en base → en 오버레이
-        let value = deepGet(locale, key)
-            ?? (AUTOFILL[lang] && AUTOFILL[lang][key])
-            ?? deepGet(fallback, key)
+        let value = clean(deepGet(locale, key))
+            ?? clean(AUTOFILL[lang] && AUTOFILL[lang][key])
+            ?? clean(deepGet(fallback, key))
             ?? (AUTOFILL["en"] && AUTOFILL["en"][key]);
         // Fallback: try "pages." prefix (keys were restructured under pages namespace)
         if (value === undefined && !key.startsWith("pages.")) {
-            value = deepGet(locale, "pages." + key) ?? deepGet(fallback, "pages." + key);
+            value = clean(deepGet(locale, "pages." + key))
+                ?? clean(AUTOFILL[lang] && AUTOFILL[lang]["pages." + key])
+                ?? clean(deepGet(fallback, "pages." + key));
         }
         // SAFETY: never return objects to React — React error #31 prevention
         if (typeof value === "object" && value !== null) {

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef, memo } from "react";
+import { localizeDeep as _dloc } from "../utils/demoUiLocalize.js";
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import { useProductSelection } from '../contexts/ProductSelectionContext.jsx';
 import { useAuth } from '../auth/AuthContext.jsx';
@@ -87,6 +88,7 @@ const DEMO_WAREHOUSES = [
     { id: 'W002', name: '부산 물류센터', code: 'BSN-01', location: '부산 강서구', area: 2100, temp: 'Room Temp', manager: '이물류', phone: '051-987-6543', type: 'Direct', active: true },
     { id: 'W003', name: '인천 글로벌 허브', code: 'ICN-GH', location: '인천 중구', area: 4500, temp: 'Cold Chain', manager: '박글로벌', phone: '032-555-1212', type: '3PL', active: true },
 ];
+_dloc(DEMO_WAREHOUSES);
 const initWarehouses = IS_DEMO ? DEMO_WAREHOUSES : [];
 
 const initCarriers = [];

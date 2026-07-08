@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { getJsonAuth, requestJsonAuth, postJsonAuth } from "../services/apiClient.js";
+import { useI18n } from "../i18n/index.js";
 
 /* 187차 Phase2 — 회사소개·연혁·운영진 관리 (admin, 한글).
    숨기기 체크 시 첫페이지(공개) 메뉴/섹션 비표시. 수시 수정·등록 가능. */
@@ -21,13 +22,14 @@ function Field({ label, value, onChange, textarea, rows = 3, placeholder, half }
 }
 
 function Section({ title, emoji, open, setOpen, hidden, onToggleHidden, children }) {
+    const { t } = useI18n();
     return (
         <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, marginBottom: 18, overflow: "hidden" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 18px", borderBottom: open ? `1px solid ${C.border}` : "none", background: "#f1f5f9" }}>
                 <button onClick={() => setOpen(o => !o)} style={{ background: "none", border: "none", cursor: "pointer", flex: 1, textAlign: "left", display: "flex", alignItems: "center", gap: 10 }}>
                     <span style={{ fontSize: 18 }}>{emoji}</span>
                     <span style={{ fontSize: 15, fontWeight: 900, color: C.text1 }}>{title}</span>
-                    <span style={{ fontSize: 12, color: C.text3 }}>{open ? "▼ 접기" : "▶ 펼치기"}</span>
+                    <span style={{ fontSize: 12, color: C.text3 }}>{open ? t('siteIntroAdmin.collapse', '▼ 접기') : t('siteIntroAdmin.expand', '▶ 펼치기')}</span>
                 </button>
                 <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12.5, fontWeight: 700, color: hidden ? "#dc2626" : C.text2, cursor: "pointer", whiteSpace: "nowrap" }}>
                     <input type="checkbox" checked={!!hidden} onChange={e => onToggleHidden(e.target.checked)} style={{ width: 16, height: 16, cursor: "pointer" }} />
@@ -40,6 +42,7 @@ function Section({ title, emoji, open, setOpen, hidden, onToggleHidden, children
 }
 
 export default function SiteIntroAdmin() {
+    const { t } = useI18n();
     const [company, setCompany] = useState(null);
     const [team, setTeam] = useState([]);
     const [history, setHistory] = useState([]);
@@ -103,8 +106,8 @@ export default function SiteIntroAdmin() {
     return (
         <div style={{ padding: 24, paddingBottom: 80, background: C.bg, minHeight: "100%" }}>
             <div style={{ marginBottom: 8 }}>
-                <h1 style={{ fontSize: 22, fontWeight: 900, color: C.text1, margin: 0 }}>🏢 회사소개 · 연혁 · 운영진 관리</h1>
-                <p style={{ fontSize: 13, color: C.text3, marginTop: 4 }}>한글로 등록·수정하면 공개 소개 페이지(15개국 현지화 chrome)에 즉시 반영됩니다. <strong>숨기기</strong> 체크 시 첫페이지에서 해당 메뉴/섹션이 보이지 않습니다.</p>
+                <h1 style={{ fontSize: 22, fontWeight: 900, color: C.text1, margin: 0 }}>{t('siteIntroAdmin.pageTitle', '🏢 회사소개 · 연혁 · 운영진 관리')}</h1>
+                <p style={{ fontSize: 13, color: C.text3, marginTop: 4 }}>{t('siteIntroAdmin.pageDesc', '한글로 등록·수정하면 공개 소개 페이지(15개국 현지화 chrome)에 즉시 반영됩니다.')} <strong>숨기기</strong> {t('siteIntroAdmin.pageDescHideNote', '체크 시 첫페이지에서 해당 메뉴/섹션이 보이지 않습니다.')}</p>
             </div>
             {msg && <div style={{ margin: "10px 0", padding: "10px 16px", borderRadius: 10, background: "rgba(34,197,94,0.10)", border: "1px solid rgba(34,197,94,0.3)", color: "#15803d", fontSize: 13, fontWeight: 700 }}>{msg}</div>}
 
@@ -113,10 +116,10 @@ export default function SiteIntroAdmin() {
                 hidden={!company.about_visible} onToggleHidden={(h) => toggleVis("company", h)}>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
                     <Field label="회사명" value={company.name} onChange={v => setC("name", v)} />
-                    <Field label="태그라인 (한 줄 소개)" value={company.tagline} onChange={v => setC("tagline", v)} />
+                    <Field label={t('siteIntroAdmin.taglineLabel', '태그라인 (한 줄 소개)')} value={company.tagline} onChange={v => setC("tagline", v)} />
                 </div>
-                <Field label="요약 (히어로 하단)" value={company.summary} onChange={v => setC("summary", v)} textarea rows={2} />
-                <Field label="상세 소개" value={company.description} onChange={v => setC("description", v)} textarea rows={5} />
+                <Field label={t('siteIntroAdmin.summaryLabel', '요약 (히어로 하단)')} value={company.summary} onChange={v => setC("summary", v)} textarea rows={2} />
+                <Field label={t('siteIntroAdmin.descriptionLabel', '상세 소개')} value={company.description} onChange={v => setC("description", v)} textarea rows={5} />
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
                     <Field label="비전" value={company.vision} onChange={v => setC("vision", v)} textarea rows={2} />
                     <Field label="미션" value={company.mission} onChange={v => setC("mission", v)} textarea rows={2} />
@@ -133,10 +136,10 @@ export default function SiteIntroAdmin() {
                 </div>
                 {/* [239차+] 공개 footer 정보(전 공개페이지 하단 — 약관/개인정보/환불 포함) */}
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: 14 }}>
-                    <Field label="사업자등록번호 (footer)" value={company.biz_reg} onChange={v => setC("biz_reg", v)} placeholder="104-81-65037" />
-                    <Field label="저작권 표기 (footer · 전 페이지)" value={company.copyright} onChange={v => setC("copyright", v)} placeholder="© 2001. 09. 11. Ociell Co., Ltd. All rights reserved." />
+                    <Field label={t('siteIntroAdmin.bizRegLabel', '사업자등록번호 (footer)')} value={company.biz_reg} onChange={v => setC("biz_reg", v)} placeholder="104-81-65037" />
+                    <Field label={t('siteIntroAdmin.copyrightLabel', '저작권 표기 (footer · 전 페이지)')} value={company.copyright} onChange={v => setC("copyright", v)} placeholder="© 2001. 09. 11. Ociell Co., Ltd. All rights reserved." />
                 </div>
-                <button onClick={saveCompany} disabled={busy} style={{ ...btn("#16a34a"), opacity: busy ? 0.6 : 1 }}>💾 회사소개 저장</button>
+                <button onClick={saveCompany} disabled={busy} style={{ ...btn("#16a34a"), opacity: busy ? 0.6 : 1 }}>{t('siteIntroAdmin.saveCompanyBtn', '💾 회사소개 저장')}</button>
             </Section>
 
             {/* 연혁 */}

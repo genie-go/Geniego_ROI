@@ -4,6 +4,7 @@
 //   ★i18n: pxl 네임스페이스가 페이지 삭제 시 purge 됨 → t('pxl.x','한글초안') 인라인폴백(추후 15개국 정식화).
 //   운영=실 /api/pixel/*(세션토큰+requirePro+테넌트격리), 데모=세션 미달 시 honest 빈 상태(가짜데이터 없음).
 import React, { useState, useEffect, useCallback } from "react";
+import { localizeDeep as _dloc } from "../utils/demoUiLocalize.js";
 import { useT, useI18n } from "../i18n/index.js";
 import { useAuth } from "../auth/AuthContext";
 import PlanGate from "../components/PlanGate";
@@ -34,6 +35,7 @@ const _DEMO_PIXEL_ANALYTICS = {
 const _DEMO_PIXEL_CONFIGS = [
   { id: "px_demo1", name: "메인 쇼핑몰 픽셀", domain: "shop.demo-brand.com", meta_pixel_id: "1029384756", tiktok_pixel_id: "C9A1B2C3D4", created_at: "2026-05-18 09:30" },
 ];
+_dloc(_DEMO_PIXEL_CONFIGS);
 
 /* 인증 API 헬퍼: /api 접두(상대 /pixel 은 nginx SPA 폴백) + Bearer 세션토큰 */
 function makeAPI(token) {

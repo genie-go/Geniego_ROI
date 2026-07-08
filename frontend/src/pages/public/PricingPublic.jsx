@@ -6,6 +6,7 @@ import PremiumLayout from "../../layout/PremiumLayout.jsx";
 import { useT, useI18n } from "../../i18n/index.js"; // 187차: i18n 배선(앱 내부 한국어 표기 버그 수정)
 import SIDEBAR_DICT from "../../layout/sidebarI18n.js"; // 212차 #5 핫픽스: gNav.* 라벨은 sidebarI18n 전용(전역 i18n 부재) → 사이드바와 동일 해석
 import { useAuth } from "../../auth/AuthContext.jsx"; // 213차 결제 게이팅 #2: 로그인 사용자 전체정보 입력 게이트
+import { localizeDeep as _dloc } from "../../utils/demoUiLocalize.js"; // [271차] 백엔드 플랜 데이터(기능/설명) 15개국 현지화
 
 /**
  * 172차 PHASE 1-A — hardcoded PLANS 제거 → backend `/auth/pricing/public-plans` 기반 동적 fetch.
@@ -784,7 +785,7 @@ export default function PricingPublic() {
         fetch(`${apiBase}/api/v423/paddle/config`).then(r => r.json()).then(d => { if (d.clientToken) setClientToken(d.clientToken); }).catch(() => {});
         fetch(`${apiBase}/auth/pricing/public-plans`).then(r => r.json()).then(d => {
             if (d?.ok && Array.isArray(d.plans) && d.plans.length > 0) {
-                setPlans(d.plans.map(hydratePlanFromApi));
+                setPlans(d.plans.map(p => _dloc(hydratePlanFromApi(p)))); // [271차] 백엔드 플랜 표시데이터 현지화
             }
         })
         .catch(() => { /* fallback to default plans */ })

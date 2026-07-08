@@ -1,4 +1,5 @@
 import React, { useRef } from 'react';
+import { useI18n } from '../i18n/index.js';
 
 /*
  * AvatarField (231차 #3) — 멤버/파트너/하위관리자 프로필 사진 등록·표시 공용 컴포넌트.
@@ -33,6 +34,7 @@ function fileToResizedDataUrl(file, max = 160) {
 
 export default function AvatarField({ value, onChange, name = '', size = 44, editable = false }) {
   const inputRef = useRef(null);
+  const { t } = useI18n();
   const initial = (name || '?').trim().charAt(0).toUpperCase();
   const pick = async (e) => {
     const f = e.target.files && e.target.files[0];
@@ -53,7 +55,7 @@ export default function AvatarField({ value, onChange, name = '', size = 44, edi
   return (
     <div
       style={box}
-      title={editable ? '클릭하여 사진 등록/변경' : (name || '')}
+      title={editable ? t('avatarField.uploadHint', '클릭하여 사진 등록/변경') : (name || '')}
       onClick={editable ? () => inputRef.current && inputRef.current.click() : undefined}
     >
       {value

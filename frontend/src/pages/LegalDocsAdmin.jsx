@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { getJsonAuth, requestJsonAuth } from "../services/apiClient";
 import { SITE_LANGS } from "./public/siteI18n.js";
+import { useI18n } from "../i18n/index.js";
 
 /**
  * [239차+] 관리자 법적 페이지 편집기 — 이용약관·개인정보·환불을 15개국 다국어 편집.
@@ -11,6 +12,7 @@ const DOC_LABELS = { terms: "이용약관 (Terms)", privacy: "개인정보 (Priv
 const DOC_KEYS = ["terms", "privacy", "refund"];
 
 export default function LegalDocsAdmin() {
+    const { t } = useI18n();
     const [docs, setDocs] = useState({});
     const [key, setKey] = useState("terms");
     const [lang, setLang] = useState("ko");
@@ -61,8 +63,8 @@ export default function LegalDocsAdmin() {
     return (
         <div style={{ display: "grid", gap: 16, maxWidth: 980, margin: "0 auto", padding: "8px 4px 40px" }}>
             <div>
-                <div style={{ fontSize: 22, fontWeight: 900, color: "var(--text-1)" }}>📜 법적 페이지 편집</div>
-                <div style={{ fontSize: 12, color: "var(--text-3)", marginTop: 4 }}>이용약관·개인정보·환불을 15개국 현지 자연어로 편집합니다. 저장 즉시 공개 페이지(/terms·/privacy·/refund)에 반영됩니다. ★법적 효력 텍스트이므로 발행 전 법무 검토를 권장합니다.</div>
+                <div style={{ fontSize: 22, fontWeight: 900, color: "var(--text-1)" }}>{t('legalDocsAdmin.title', '📜 법적 페이지 편집')}</div>
+                <div style={{ fontSize: 12, color: "var(--text-3)", marginTop: 4 }}>{t('legalDocsAdmin.desc', '이용약관·개인정보·환불을 15개국 현지 자연어로 편집합니다. 저장 즉시 공개 페이지(/terms·/privacy·/refund)에 반영됩니다. ★법적 효력 텍스트이므로 발행 전 법무 검토를 권장합니다.')}</div>
             </div>
 
             {/* 문서 선택 */}
@@ -78,7 +80,7 @@ export default function LegalDocsAdmin() {
 
             {/* 언어 선택 */}
             <div style={{ ...card }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-3)", marginBottom: 8 }}>언어 (채워진 언어 ●)</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-3)", marginBottom: 8 }}>{t('legalDocsAdmin.langLabel', '언어 (채워진 언어 ●)')}</div>
                 <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                     {SITE_LANGS.map(l => (
                         <button key={l.code} onClick={() => setLang(l.code)} style={{
@@ -94,25 +96,25 @@ export default function LegalDocsAdmin() {
             {loading ? <div style={{ ...card, color: "var(--text-3)" }}>로드 중…</div> : (
                 <div style={{ ...card, display: "grid", gap: 12 }}>
                     <div>
-                        <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-3)" }}>제목 (Title)</label>
+                        <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-3)" }}>{t('legalDocsAdmin.titleLabel', '제목 (Title)')}</label>
                         <input style={inp} value={title} onChange={e => setTitle(e.target.value)} placeholder="예: 이용약관 / Terms of Service" />
                     </div>
                     <div>
-                        <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-3)" }}>부제 (Subtitle)</label>
+                        <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-3)" }}>{t('legalDocsAdmin.subtitleLabel', '부제 (Subtitle)')}</label>
                         <input style={inp} value={subtitle} onChange={e => setSubtitle(e.target.value)} placeholder="예: 최종 수정일 2026-04-01 · 즉시 발효" />
                     </div>
                     <div>
-                        <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-3)" }}>본문 (lite-markdown)</label>
+                        <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-3)" }}>{t('legalDocsAdmin.bodyLabel', '본문 (lite-markdown)')}</label>
                         <textarea style={{ ...inp, minHeight: 360, fontFamily: "ui-monospace, monospace", lineHeight: 1.6, resize: "vertical" }}
                             value={body} onChange={e => setBody(e.target.value)}
                             placeholder={"## 1. 제목\n문단 내용...\n\n- 항목 1\n- 항목 2\n\n### 소제목\n**굵게** 강조도 가능합니다."} />
-                        <div style={{ fontSize: 11, color: "var(--text-3)", marginTop: 6 }}>형식: <code>## 제목</code> · <code>### 소제목</code> · <code>- 불릿</code> · 빈 줄 = 문단 구분 · <code>**굵게**</code></div>
+                        <div style={{ fontSize: 11, color: "var(--text-3)", marginTop: 6 }}>{t('legalDocsAdmin.formatLabel', '형식:')} <code>{t('legalDocsAdmin.formatH1', '## 제목')}</code> · <code>{t('legalDocsAdmin.formatH2', '### 소제목')}</code> · <code>{t('legalDocsAdmin.formatBullet', '- 불릿')}</code> {t('legalDocsAdmin.formatParagraphSep', '· 빈 줄 = 문단 구분 ·')} <code>{t('legalDocsAdmin.formatBold', '**굵게**')}</code></div>
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                         <button onClick={save} disabled={saving} style={{
                             padding: "10px 22px", borderRadius: 10, border: "none", cursor: saving ? "default" : "pointer",
                             fontWeight: 800, fontSize: 13, background: saving ? "#cbd5e1" : "linear-gradient(135deg,#22c55e,#16a34a)", color: "#fff",
-                        }}>{saving ? "저장 중…" : "💾 저장"}</button>
+                        }}>{saving ? "저장 중…" : t('legalDocsAdmin.saveButton', '💾 저장')}</button>
                         {msg && <span style={{ fontSize: 12, fontWeight: 700, color: msg.startsWith("✓") ? "#16a34a" : "#ef4444" }}>{msg}</span>}
                     </div>
                 </div>

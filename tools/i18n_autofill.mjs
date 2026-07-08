@@ -172,8 +172,11 @@ async function fillInline() {
     if (lang === 'ko') continue;
     const base = flatten(await loadLocale(lang));
     overlay[lang] = overlay[lang] || {};
-    // 누락 = ko 에 있으나 base 로케일·오버레이에 없는 키
-    let missing = Object.keys(ko).filter(k => inScope(k) && base[k] === undefined && overlay[lang][k] === undefined && typeof ko[k] === 'string' && ko[k].length <= 400);
+    // 누락 = ko 에 있으나 (base 로케일 부재 OR base 값에 한글누출) 이고 오버레이에도 없는 키.
+    //   [271차] base 에 키가 있어도 값이 한글이면(미번역 누출) 채움 대상에 포함 — 로더가 한글 base 를
+    //   건너뛰고 오버레이를 쓰므로 오버레이만 채우면 현지어로 치유된다(1MB base 파일 미접촉).
+    const HANGUL = /[가-힣]/;
+    let missing = Object.keys(ko).filter(k => inScope(k) && (base[k] === undefined || HANGUL.test(base[k])) && overlay[lang][k] === undefined && typeof ko[k] === 'string' && ko[k].length <= 400);
     if (MAX_PER_LANG > 0) missing = missing.slice(0, MAX_PER_LANG);
     totalMissing += missing.length;
     if (!missing.length) { report.push(`${lang}: 0 missing`); continue; }

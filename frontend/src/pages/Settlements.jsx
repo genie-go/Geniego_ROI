@@ -11,11 +11,14 @@ import ProductSelectBar from '../components/dashboards/ProductSelectBar.jsx';
 import ProductMarketingPanel from '../components/dashboards/ProductMarketingPanel.jsx';
 
 // [현 차수] 정산 관련 화면 교차링크(비파괴 통합) — 정산 현황/대사/성과+정산
+import { localizeDeep as _dloc, localizeStr as _dls } from '../utils/demoUiLocalize.js'; // [271차] 교차링크 라벨 현지화
+// [현 차수] 정산 관련 화면 교차링크(비파괴 통합) — 정산 현황/대사/성과+정산
 const SETTLE_LINKS = [
   { to: '/settlements', icon: '📋', label: '정산 현황' },
   { to: '/reconciliation', icon: '💰', label: '정산 대사' },
   { to: '/performance', icon: '📊', label: '성과·정산' },
 ];
+_dloc(SETTLE_LINKS); // [271차] 링크 라벨 15개국 실시간 현지화
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
 
 /* ── Enterprise Demo Isolation Guard ─────────────────────── */
@@ -291,7 +294,7 @@ export default function Settlements() {
   return (
     <div style={{ display: "grid", gap: 16 }}>
       {toast && <Toast msg={toast} onClose={() => setToast(null)} />}
-      <CrossLinkBar links={SETTLE_LINKS} note="정산 관련 메뉴" />
+      <CrossLinkBar links={SETTLE_LINKS} note={_dls('정산 관련 메뉴')} />
 
       {/* Hero */}
       <div className="hero fade-up">

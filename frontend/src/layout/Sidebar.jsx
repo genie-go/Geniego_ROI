@@ -157,7 +157,9 @@ function NavSection({ section, t, isOpen, onToggle, hasMenuAccess, isDemo, onLoc
   if (section.items.length === 1) {
     const item = section.items[0];
     if (!itemIsVisible(item)) return null; // F2/F3: hidden item → 섹션 자체 비노출
-    const label = item.label ?? t(item.labelKey, item.labelKey.split('.')[1]);
+    // [271차] labelKey 우선 — 매니페스트에 한글 label 이 박혀 있어도 번역이 이김(label 은 최후 폴백).
+    //   기존 `item.label ?? t(...)` 는 한글 label 이 있으면 항상 한글 렌더(비한국어 누출). labelKey 부재시만 label.
+    const label = item.labelKey ? t(item.labelKey, item.label ?? item.labelKey.split('.')[1]) : item.label;
     const accessible = itemHasAccess(item);
     if (!accessible) return null; // [현 차수] 비접근 메뉴 숨김 — 구독플랜에 주어진 메뉴만 노출(잠금표시 대신 숨김)
     const disabled = itemIsDisabled(item);
@@ -234,7 +236,9 @@ function NavSection({ section, t, isOpen, onToggle, hasMenuAccess, isDemo, onLoc
         }}>
         <div style={{ paddingLeft: 10 }}>
           {_accessibleItems.map(item => {
-            const label = item.label ?? t(item.labelKey, item.labelKey.split('.')[1]);
+            // [271차] labelKey 우선 — 매니페스트에 한글 label 이 박혀 있어도 번역이 이김(label 은 최후 폴백).
+    //   기존 `item.label ?? t(...)` 는 한글 label 이 있으면 항상 한글 렌더(비한국어 누출). labelKey 부재시만 label.
+    const label = item.labelKey ? t(item.labelKey, item.label ?? item.labelKey.split('.')[1]) : item.label;
             const accessible = itemHasAccess(item);
             if (!accessible) {
               return (

@@ -6,13 +6,21 @@
  * 운영(production)에서는 절대 import되지 않습니다.
  */
 import { stageOf as _stageOf } from '../utils/adFunnel.js'; // [현 차수] 캠페인 목적→퍼널단계 SSOT
+import { localizeDeep as _dloc } from '../utils/demoUiLocalize.js'; // [271차] 데모 표시데이터 15개국 실시간 현지화
 
-const NOW = new Date().toLocaleString('ko-KR', { hour12: false });
+// [271차] 데모 날짜 표기 현지화 — 감지 언어의 BCP47 로케일로 포맷(ko-KR 하드코딩 제거).
+const _DEMO_DATE_LOCALE = (() => {
+  const map = { ko:'ko-KR', en:'en-US', ja:'ja-JP', zh:'zh-CN', 'zh-TW':'zh-TW', de:'de-DE', th:'th-TH', vi:'vi-VN', id:'id-ID', ar:'ar-SA', es:'es-ES', fr:'fr-FR', hi:'hi-IN', pt:'pt-BR', ru:'ru-RU' };
+  let l = 'ko';
+  try { l = localStorage.getItem('genie_roi_lang') || 'ko'; } catch (_) {}
+  return map[l] || 'en-US';
+})();
+const NOW = new Date().toLocaleString(_DEMO_DATE_LOCALE, { hour12: false });
 const TODAY = new Date().toISOString().slice(0, 10);
 const ts = (daysAgo = 0, h = 10, m = 30) => {
   const d = new Date(Date.now() - daysAgo * 86400000);
   d.setHours(h, m, 0, 0);
-  return d.toLocaleString('ko-KR', { hour12: false });
+  return d.toLocaleString(_DEMO_DATE_LOCALE, { hour12: false });
 };
 const isoDate = (daysAgo = 0) => new Date(Date.now() - daysAgo * 86400000).toISOString().slice(0, 10);
 
@@ -957,3 +965,15 @@ export function demoGraphScore(type, id) {
     skus_linked: skus, orders_linked: orders, influencers_linked: influencers, creatives_used: creatives, top_influencers,
   };
 }
+
+// [271차] ── 데모 표시데이터 15개국 실시간 현지화(새로고침 없이) ──
+//   한글 표시 문자열만 'demoui::<한글>' 오버레이로 재치환. 로직결합 문자열(주문상태 입고/출고/배송Done 등)·
+//   인명(CRM 히스토리 키)은 번역맵에서 제외되어 미변경(무회귀). 상품명 등은 전 export 에서 일관 치환.
+try {
+  _dloc(DEMO_PRODUCTS); _dloc(DEMO_INVENTORY); _dloc(DEMO_ORDERS); _dloc(DEMO_CHANNELS);
+  _dloc(DEMO_CAMPAIGNS); _dloc(DEMO_CRM_SEGMENTS); _dloc(DEMO_POPUPS); _dloc(DEMO_ALERTS);
+  _dloc(DEMO_EMAIL_CAMPAIGNS); _dloc(DEMO_KAKAO_CAMPAIGNS); _dloc(DEMO_KAKAO_CAMPAIGNS_EXTRA);
+  _dloc(DEMO_CONNECTED_CHANNELS); _dloc(DEMO_SNS_CAMPAIGNS); _dloc(DEMO_AI_RECOMMENDATIONS);
+  _dloc(DEMO_CREATORS); _dloc(DEMO_UGC_REVIEWS); _dloc(DEMO_CHANNEL_STATS); _dloc(DEMO_NEG_KEYWORDS);
+  _dloc(DEMO_CALENDAR_EVENTS); _dloc(DEMO_CRM_CUSTOMER_HISTORY); _dloc(DEMO_SETTLEMENT);
+} catch (_) { /* 현지화 실패 시 한글 유지(무회귀) */ }

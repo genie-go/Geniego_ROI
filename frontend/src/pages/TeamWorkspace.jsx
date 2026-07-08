@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
+import { localizeDeep as _dloc } from "../utils/demoUiLocalize.js";
 import { IS_DEMO } from '../utils/demoEnv';
 import { useI18n } from '../i18n';
 import { tGetJSON, tSetJSON } from '../utils/tenantStorage.js';
@@ -16,18 +17,22 @@ const DEMO_MEMBERS = [
   { id: 'm3', name: 'Tom Lee', role: 'member', avatar: '🧑‍🎨', online: false },
   { id: 'm4', name: 'Sora Kim', role: 'member', avatar: '👩‍🔬', online: true },
 ];
+_dloc(DEMO_MEMBERS);
 const DEMO_ACTIVITY = [
   { id: 'a1', who: 'Mina Park', action: 'actCampaign', ko: '캠페인을 생성했습니다', target: 'Spring Sale', at: '2h' },
   { id: 'a2', who: 'Tom Lee', action: 'actReport', ko: '리포트를 발행했습니다', target: 'P&L 2026-05', at: '5h' },
   { id: 'a3', who: 'Sora Kim', action: 'actComment', ko: '코멘트를 남겼습니다', target: 'TikTok ROAS', at: '1d' },
   { id: 'a4', who: 'Jiwoo Han', action: 'actApprove', ko: '예산을 승인했습니다', target: 'Budget +₩2M', at: '2d' },
 ];
+_dloc(DEMO_ACTIVITY);
 const ROLE_KO = { owner: '소유자', manager: '관리자', member: '멤버' };
+_dloc(ROLE_KO);
 const DEMO_TASKS = [
   { id: 't1', title: 'Q2 캠페인 예산 검토', assignee: 'Mina Park', done: false },
   { id: 't2', title: '신규 채널 연동 테스트', assignee: 'Tom Lee', done: false },
   { id: 't3', title: '월간 ROI 리포트 발송', assignee: 'Sora Kim', done: true },
 ];
+_dloc(DEMO_TASKS);
 
 export default function TeamWorkspace() {
   const { t } = useI18n();

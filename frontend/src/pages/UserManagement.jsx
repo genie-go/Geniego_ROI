@@ -66,6 +66,7 @@ async function adminDelete(token, path) {
 
 /* ─── TAB: 대시보드 ─────────────────────────────────────────────────────── */
 function StatsTab() {
+    const t = useT();
     const { data, loading } = useAdminApi("v423/admin/stats");
     if (loading) return <div style={{ color: "var(--text-3)", padding: 40, textAlign: "center" }}>로딩 중...</div>;
     if (!data) return null;
@@ -77,9 +78,9 @@ function StatsTab() {
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14, marginBottom: 24 }}>
                 {[
                     { label: "MRR (USD)", value: `$${(data.mrr_usd || 0).toLocaleString()}`, color: "#22c55e" },
-                    { label: "신규 가입 (30일)", value: data.new_users_30d ?? 0, color: "#4f8ef7" },
+                    { label: t('userManagement.stats.newSignups30d', '신규 가입 (30일)'), value: data.new_users_30d ?? 0, color: "#4f8ef7" },
                     { label: "활성 세션", value: data.active_sessions ?? 0, color: "#8b5cf6" },
-                    { label: "모든 플랜 종류", value: (data.by_plan || []).length, color: "#f59e0b" },
+                    { label: t('userManagement.stats.allPlanTypes', '모든 플랜 종류'), value: (data.by_plan || []).length, color: "#f59e0b" },
                 ].map(s => (
                     <div key={s.label} style={{ ...css.card, textAlign: "center" }}>
                         <div style={{ fontSize: 28, fontWeight: 900, color: s.color }}>{s.value}</div>
@@ -90,11 +91,11 @@ function StatsTab() {
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                 <div style={css.card}>
-                    <div style={{ fontWeight: 700, marginBottom: 14, fontSize: 13 }}>플랜per 회원 현황</div>
+                    <div style={{ fontWeight: 700, marginBottom: 14, fontSize: 13 }}>{t('userManagement.stats.planDistribution', '플랜per 회원 현황')}</div>
                     {(data.by_plan || []).map(p => (
                         <div key={p.plan} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                             <span style={css.badge(p.plan)}>{p.plan}</span>
-                            <div style={{ fontSize: 12, color: '#fff' }} >활성 <strong>{p.active}</strong> / 전체 {p.total}</div>
+                            <div style={{ fontSize: 12, color: '#fff' }} >활성 <strong>{p.active}</strong> {t('userManagement.members.ofTotal', '/ 전체')} {p.total}</div>
                             <div style={{ width: 80, height: 4, borderRadius: 2, background: "#e8edf3", overflow: "hidden" }}>
                                 <div style={{ width: `${(p.active / p.total) * 100}%`, height: "100%", background: planColors[p.plan] || "#64748b" }} />
                             </div>
@@ -102,7 +103,7 @@ function StatsTab() {
                     ))}
                 </div>
                 <div style={css.card}>
-                    <div style={{ fontWeight: 700, marginBottom: 14, fontSize: 13 }}>최근 가입 회원</div>
+                    <div style={{ fontWeight: 700, marginBottom: 14, fontSize: 13 }}>{t('userManagement.stats.recentSignups', '최근 가입 회원')}</div>
                     {(data.recent || []).map(u => (
                         <div key={u.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, fontSize: 12 }}>
                             <div>
@@ -124,6 +125,7 @@ function StatsTab() {
 
 /* ─── TAB: 회원 관리 ─────────────────────────────────────────────────────── */
 function MembersTab() {
+    const t = useT();
     const { token } = useAuth();
     const [q, setQ] = useState("");
     const [filterPlan, setFilterPlan] = useState("");
@@ -751,6 +753,7 @@ const TABS = [
 ];
 
 export default function UserManagement() {
+    const t = useT();
     const { user, token } = useAuth();
     const navigate = useNavigate();
     const [tab, setTab] = useState("stats");
@@ -780,14 +783,14 @@ export default function UserManagement() {
             {/* Header */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
                 <div>
-                    <h1 style={{ margin: 0, fontSize: 22, fontWeight: 900, color: '#fff' }}>⚙️ 통합 관리자 패널</h1>
-                    <p style={{ margin: "4px 0 0", fontSize: 12, color: "var(--text-3)" }}>회원 · 역할(RBAC) · 결제 · 감사 통합 관리 | 로그인: {user.email}</p>
+                    <h1 style={{ margin: 0, fontSize: 22, fontWeight: 900, color: '#fff' }}>{t('userManagement.header.title', '⚙️ 통합 관리자 패널')}</h1>
+                    <p style={{ margin: "4px 0 0", fontSize: 12, color: "var(--text-3)" }}>{t('userManagement.header.subtitle', '회원 · 역할(RBAC) · 결제 · 감사 통합 관리 | 로그인:')} {user.email}</p>
                 </div>
                 <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
                     {migMsg && <span style={{ fontSize: 11, color: migMsg.startsWith("✅") ? "#22c55e" : "#ef4444" }}>{migMsg}</span>}
                     {/* ★ 201차 통합: 요금제·플랜·쿠폰은 /admin/plan-pricing 단독 관리(정본). 중복 탭 제거 후 링크로 연결. */}
-                    <button style={{ ...css.btn(), fontSize: 11 }} onClick={() => navigate('/admin/plan-pricing')}>💳 요금제·플랜 설정 →</button>
-                    {!mig완료 && <button style={{ ...css.btn(), fontSize: 11 }} onClick={runMigrate}>🔧 DB 마이그레이션</button>}
+                    <button style={{ ...css.btn(), fontSize: 11 }} onClick={() => navigate('/admin/plan-pricing')}>{t('userManagement.header.planSettingsLink', '💳 요금제·플랜 설정 →')}</button>
+                    {!mig완료 && <button style={{ ...css.btn(), fontSize: 11 }} onClick={runMigrate}>{t('userManagement.header.dbMigrate', '🔧 DB 마이그레이션')}</button>}
                 </div>
             </div>
 

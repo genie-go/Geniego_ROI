@@ -5,6 +5,12 @@
  * PlanPricing (메뉴 접근 권한) + AdminMenuManager (메뉴 가시성) 양쪽에서 SSOT 로 사용.
  */
 
+// [271차] 메뉴 라벨/설명·서브탭 라벨 15개국 현지화 오버레이(로드시점 lang 기준 in-place 치환).
+//   MENU_KEY_LABEL/SUB_TABS_BY_PATH 는 SSOT(한글) 이고 menuKey/id 는 로직키(불변)·title/desc/label 은 표시값.
+//   표시값만 현지어로 바꾸므로 접근·필터 로직 무영향. ko 또는 번역부재 시 한글 유지(무회귀).
+import _MENU_I18N from './menuLabelI18n.json';
+import { registerRelocalize as _registerRelocalize } from '../utils/reactiveLocalize.js';
+
 /** menuKey → { title, desc } 한글 매핑 (대메뉴 + 중메뉴) */
 export const MENU_KEY_LABEL = {
   // 홈
@@ -443,3 +449,21 @@ export const SUB_TABS_BY_PATH = {
     { id: 'sandbox', label: '샌드박스' },
   ],
 };
+
+// [271차] ── 실시간 현지화(새로고침 없음): 한글 원본 스냅샷 → 언어변경마다 표시값만 재치환 ──
+const _MK_ORIG = JSON.parse(JSON.stringify(MENU_KEY_LABEL));
+const _ST_ORIG = JSON.parse(JSON.stringify(SUB_TABS_BY_PATH));
+_registerRelocalize((lang) => {
+  const _T = lang !== 'ko' ? _MENU_I18N[lang] : null;
+  for (const k in MENU_KEY_LABEL) {
+    const e = MENU_KEY_LABEL[k], o = _MK_ORIG[k]; if (!e || !o) continue;
+    e.title = (_T && _T['menuLabel::' + k + '::title']) || o.title;
+    e.desc  = (_T && _T['menuLabel::' + k + '::desc'])  || o.desc;
+  }
+  for (const p in SUB_TABS_BY_PATH) {
+    const arr = SUB_TABS_BY_PATH[p], oarr = _ST_ORIG[p]; if (!arr || !oarr) continue;
+    for (let i = 0; i < arr.length; i++) {
+      const ol = oarr[i] && oarr[i].label; if (ol) arr[i].label = (_T && _T['subtab::' + ol]) || ol;
+    }
+  }
+});

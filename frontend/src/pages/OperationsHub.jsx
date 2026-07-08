@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import { localizeDeep as _dloc } from "../utils/demoUiLocalize.js";
 import { useNotification } from "../context/NotificationContext.jsx";
 import { useT } from '../i18n/index.js';
 import useSecurityMonitor from "../hooks/useSecurityMonitor.js";
@@ -349,6 +350,7 @@ const _DEMO_PROMOS = IS_DEMO ? [
   { id:'PROMO-002', name:'신규회원 5천원 쿠폰', type:'amount', value:5000, code:'WELCOME5K', maxUse:5000, used:1284, channels:['shopify','coupang'], startDate:'2026-05-15', endDate:'2026-07-15', budget:8000, status:'active' },
   { id:'PROMO-003', name:'올영 기획전 1+1', type:'bogo', value:1, code:'OY1PLUS1', maxUse:500, used:97, channels:['11st'], startDate:'2026-06-10', endDate:'2026-06-20', budget:3000, status:'draft' },
 ] : [];
+_dloc(_DEMO_PROMOS);
 function PromoTab() {
   const t = useT();
   const [promos,setPromos] = useState(_DEMO_PROMOS);

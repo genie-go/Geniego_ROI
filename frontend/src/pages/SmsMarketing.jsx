@@ -3,6 +3,7 @@
  */
 import React,{useState,useEffect,useCallback,useMemo,useRef} from "react";
 import { IS_DEMO } from '../utils/demoEnv';
+import { localizeDeep as _dloc } from "../utils/demoUiLocalize.js";
 import PlanGate from "../components/PlanGate.jsx";
 import { useVisibleTabs } from "../auth/useVisibleTabs.js";
 import {useGlobalData} from "../context/GlobalDataContext.jsx";
@@ -35,6 +36,7 @@ const _DEMO_SMS_CAMPAIGNS=[
   {id:'c3',name:'주말 한정 프로모션',status:'scheduled',template_id:'t3',template_name:'단골 고객 쿠폰',segment_name:'최근 30일 미구매',scheduled_at:'2026-06-21 09:30',sent_count:0,delivered:0,clicked:0,created_at:'2026-06-12 13:44'},
   {id:'c4',name:'신규 가입 환영 시리즈',status:'draft',template_id:'t1',template_name:'주문 완료 안내',segment_name:'신규 가입 7일',scheduled_at:'',sent_count:0,delivered:0,clicked:0,created_at:'2026-06-13 10:11'},
 ];
+_dloc(_DEMO_SMS_TEMPLATES); _dloc(_DEMO_SMS_CAMPAIGNS); // [271차] 데모 표시데이터 15개국 현지화
 const apiFetch = async (path,opts={}) => {
   if (_isDemo) {
     const m=(opts.method||'GET').toUpperCase();

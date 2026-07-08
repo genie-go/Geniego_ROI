@@ -204,14 +204,26 @@ function buildCompactFormatter(currDef) {
 // ═══════════════════════════════════════════════════════════
 // 7. GLOBAL FMT SINGLETON (for non-React usage)
 // ═══════════════════════════════════════════════════════════
+// [271차] KRW 압축표기 언어별 현지화 — 한글 억/만 하드코딩 제거. CJK(ko/ja/zh/zh-TW)는 각 언어의
+//   만/억 문자, 그 외 언어는 서양식 K/M/B. 리로드 없이 현재 언어(localStorage) 기준 산출.
+function _krwCompact(val, sym) {
+  let lang = 'ko'; try { lang = localStorage.getItem('genie_roi_lang') || 'ko'; } catch (_) {}
+  const U = { ko: ['억', '만'], ja: ['億', '万'], zh: ['亿', '万'], 'zh-TW': ['億', '萬'] }[lang];
+  if (U) {
+    if (Math.abs(val) >= 1e8) return `${sym}${(val / 1e8).toFixed(1)}${U[0]}`;
+    if (Math.abs(val) >= 1e4) return `${sym}${(val / 1e4).toFixed(0)}${U[1]}`;
+    return `${sym}${Math.round(val).toLocaleString()}`;
+  }
+  if (Math.abs(val) >= 1e9) return `${sym}${(val / 1e9).toFixed(2)}B`;
+  if (Math.abs(val) >= 1e6) return `${sym}${(val / 1e6).toFixed(2)}M`;
+  if (Math.abs(val) >= 1e3) return `${sym}${(val / 1e3).toFixed(1)}K`;
+  return `${sym}${Math.round(val).toLocaleString()}`;
+}
+
 let _globalFmt = (krwAmount, opts = {}) => {
   const val = Number(krwAmount);
-  if (opts.compact) {
-    if (Math.abs(val) >= 1e8) return `₩${(val / 1e8).toFixed(1)}억`;
-    if (Math.abs(val) >= 1e4) return `₩${(val / 1e4).toFixed(0)}만`;
-    return `₩${Math.round(val).toLocaleString('ko-KR')}`;
-  }
-  return `₩${Math.round(val).toLocaleString('ko-KR')}`;
+  if (opts.compact) return _krwCompact(val, '₩');
+  return `₩${Math.round(val).toLocaleString()}`;
 };
 
 /**
@@ -338,15 +350,13 @@ export function CurrencyProvider({ children }) {
 
       // Compact mode
       if (options.compact) {
+        const sym = currency.symbol;
+        // [271차] KRW 압축표기는 통화로케일(ko-KR=만/억) 대신 UI 언어 기준으로 현지화(intlCompact 우선 안 함).
+        if (currency.code === 'KRW') {
+          return _krwCompact(val, sym);
+        }
         if (currency.intlCompact) {
           try { return currency.intlCompact.format(val); } catch { /* fallback */ }
-        }
-        // Manual compact fallback
-        const sym = currency.symbol;
-        if (currency.code === 'KRW') {
-          if (Math.abs(val) >= 1e8) return `${sym}${(val / 1e8).toFixed(1)}억`;
-          if (Math.abs(val) >= 1e4) return `${sym}${(val / 1e4).toFixed(0)}만`;
-          return `${sym}${Math.round(val).toLocaleString('ko-KR')}`;
         }
         if (Math.abs(val) >= 1e9) return `${sym}${(val / 1e9).toFixed(2)}B`;
         if (Math.abs(val) >= 1e6) return `${sym}${(val / 1e6).toFixed(2)}M`;

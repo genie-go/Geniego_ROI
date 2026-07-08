@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useCallback, useEffect } from "react";
+import { localizeDeep as _dloc } from "../utils/demoUiLocalize.js";
 import { useT } from "../i18n";
 import useSecurityMonitor from "../hooks/useSecurityMonitor.js";
 import { IS_DEMO } from "../utils/demoEnv.js";
@@ -22,6 +23,7 @@ const _DEMO_AUDIT_LOGS = IS_DEMO ? (() => {
     at: new Date(now - i * 5400000).toISOString(),
   })).map((l, i) => ({ ...l, detail: acts[i][6] }));
 })() : [];
+_dloc(_DEMO_AUDIT_LOGS);
 
 /* ── Constants ─────────────────────────────────────────────────────────── */
 const ACTION_COLORS = {

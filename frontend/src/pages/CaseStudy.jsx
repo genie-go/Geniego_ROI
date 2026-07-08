@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
+import { localizeDeep as _dloc } from "../utils/demoUiLocalize.js";
 import { IS_DEMO } from '../utils/demoEnv';
 import { useI18n } from '../i18n';
 import { tGetJSON, tSetJSON } from '../utils/tenantStorage.js';
@@ -20,6 +21,7 @@ const DEMO_CASES = [
   { id: 'cs-5', industry: 'beauty', company: 'PureSkin', logo: '🧴', sk: 'demoBeauty2', summaryKo: '스킨케어 브랜드가 인플루언서 ROI를 정량화해 협업 구조를 재설계했습니다.', roi: 287, period: 7, rating: 4.5, channels: ['Meta Ads', 'Coupang'], before: { roas: 1.9, revenue: 36 }, after: { roas: 4.8, revenue: 121 } },
   { id: 'cs-6', industry: 'fashion', company: 'NordWear', logo: '🧥', sk: 'demoFashion2', summaryKo: '아우터 브랜드가 시즌 프로모션과 쿠폰을 데이터 기반으로 운영해 마진을 개선했습니다.', roi: 233, period: 6, rating: 4.4, channels: ['Instagram', 'Naver'], before: { roas: 2.0, revenue: 28 }, after: { roas: 4.3, revenue: 84 } },
 ];
+_dloc(DEMO_CASES);
 
 const INDUSTRY = { all: '🗂', beauty: '💄', fashion: '👗', food: '🥗', electronics: '🔌' };
 

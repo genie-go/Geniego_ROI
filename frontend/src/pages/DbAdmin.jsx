@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { getJsonAuth } from "../services/apiClient.js";
+import { useI18n } from "../i18n/index.js";
 
 /**
  * DbAdmin — 데이터베이스 관리 admin 콘솔.
@@ -23,6 +24,7 @@ function fmtUptime(sec) {
 }
 
 function DbAdmin() {
+  const { t } = useI18n();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -43,19 +45,24 @@ function DbAdmin() {
 
   useEffect(() => { fetchStats(); }, [fetchStats]);
 
-  const tabs = ['데이터베이스 현황', '테이블 관리', '쿼리 실행기', '백업/복구'];
+  const tabs = [
+    t('dbAdmin.tabs.overview', '데이터베이스 현황'),
+    t('dbAdmin.tabs.tableManage', '테이블 관리'),
+    t('dbAdmin.tabs.queryRunner', '쿼리 실행기'),
+    t('dbAdmin.tabs.backupRestore', '백업/복구'),
+  ];
 
   const kpis = [
-    { emoji: '💾', label: 'DB 크기',
+    { emoji: '💾', label: t('dbAdmin.kpi.dbSize', 'DB 크기'),
       val: loading ? NA : (Number.isFinite(stats?.size_mb) ? `${stats.size_mb.toFixed(1)} MB` : NA),
       sub: stats?.database || null },
-    { emoji: '📊', label: '테이블 수',
+    { emoji: '📊', label: t('dbAdmin.kpi.tableCount', '테이블 수'),
       val: loading ? NA : (Number.isFinite(stats?.tables) ? stats.tables : NA) },
-    { emoji: '✅', label: '연결 상태',
-      val: loading ? NA : (stats ? '정상 (live)' : '실패') },
+    { emoji: '✅', label: t('dbAdmin.kpi.connectionStatus', '연결 상태'),
+      val: loading ? NA : (stats ? t('dbAdmin.kpi.connectionOk', '정상 (live)') : '실패') },
     { emoji: '⏱️', label: '가동 시간',
       val: loading ? NA : fmtUptime(stats?.uptime_sec) },
-    { emoji: '🔌', label: '활성 연결',
+    { emoji: '🔌', label: t('dbAdmin.kpi.activeConnections', '활성 연결'),
       val: loading ? NA : (Number.isFinite(stats?.connections) ? stats.connections : NA) },
     { emoji: '🏷', label: 'Driver / Version',
       val: stats ? `${stats.driver || NA} ${stats.version || ''}`.trim() : NA },
@@ -78,15 +85,15 @@ function DbAdmin() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
             <span style={{ fontSize: 32 }}>🗄️</span>
             <div>
-              <div style={{ fontSize: 22, fontWeight: 800 }}>데이터베이스 관리</div>
+              <div style={{ fontSize: 22, fontWeight: 800 }}>{t('dbAdmin.header.title', '데이터베이스 관리')}</div>
               <div style={{ fontSize: 13, color: 'var(--text-3)', marginTop: 2 }}>
-                관리자 전용 · DB 모니터링 (실 통계 / mock 절대 사용 금지)
+                {t('dbAdmin.header.subtitle', '관리자 전용 · DB 모니터링 (실 통계 / mock 절대 사용 금지)')}
               </div>
               <div style={{
                 fontSize: 10, color: '#ef4444', fontWeight: 700, marginTop: 4,
                 padding: '2px 8px', borderRadius: 4,
                 background: 'rgba(239,68,68,0.08)', display: 'inline-block',
-              }}>⚠ 관리자 전용 · 모든 KPI 는 information_schema 실 데이터</div>
+              }}>{t('dbAdmin.header.kpiNotice', '⚠ 관리자 전용 · 모든 KPI 는 information_schema 실 데이터')}</div>
             </div>
           </div>
           <button onClick={fetchStats} disabled={loading} style={{
@@ -154,7 +161,7 @@ function DbAdmin() {
           {tabs[activeTab]}
         </div>
         {activeTab === 0 && (
-          <div>실 DB 통계는 상단 KPI 참조. 본 탭의 phpMyAdmin 통합 / table inspector / index 분석 등 상세 기능은 170차+ 트랙.</div>
+          <div>{t('dbAdmin.tabContent.overviewNote', '실 DB 통계는 상단 KPI 참조. 본 탭의 phpMyAdmin 통합 / table inspector / index 분석 등 상세 기능은 170차+ 트랙.')}</div>
         )}
         {activeTab > 0 && (
           <div>본 기능은 별도 구현 트랙입니다 (170차+). mock placeholder 의도적 미표시.</div>

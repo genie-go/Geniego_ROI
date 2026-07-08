@@ -36,7 +36,7 @@ import { IS_DEMO as _isDemo } from '../utils/demoEnv.js';
 import { applyAttribution } from '../utils/influencerAttribution.js'; // 인플루언서 귀속 자동 산출
 
 const DEMO_LS_PREFIX = 'geniego_demo_';
-const DEMO_SEED_VERSION = 'v18.0';  // ★ v18: 단일소스 자동산출(주문→정산/채널매출/예산기여/캠페인) 일체화 + 런타임 변동 재파생 + 로그인시점 상대날짜 — 재방문 체험자 캐시 무효화
+const DEMO_SEED_VERSION = 'v19.0';  // ★ v19(271차): 데모 시드 15개국 현지화(로드시점 lang 기준) — 재방문자 한글 캐시 무효화해 현지어 시드 재적용. (v18: 단일소스 자동산출 일체화)
 
 // ★ 시드 버전 체크: 새 시드 배포 시 이전 localStorage 자동 초기화
 if (_isDemo && typeof window !== 'undefined') {

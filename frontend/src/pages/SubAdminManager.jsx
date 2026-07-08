@@ -85,7 +85,7 @@ export default function SubAdminManager() {
     });
     setBusy(false);
     if (ok) {
-      setMsg({ ok: true, text: d.message || "하위 관리자가 발급되었습니다." });
+      setMsg({ ok: true, text: d.message || t('subAdminManager.successIssued', '하위 관리자가 발급되었습니다.') });
       setEmail(""); setName(""); setPassword(""); setPhoto(""); setMenus({ "/dashboard": "edit" });
       load();
     } else {
@@ -139,7 +139,7 @@ export default function SubAdminManager() {
           <div key={s.key} style={{ border: isAdminSec ? "1.5px solid rgba(168,85,247,0.45)" : "1px solid rgba(0,0,0,0.08)", borderRadius: 10, padding: "8px 10px", background: isAdminSec ? "rgba(168,85,247,0.05)" : "transparent" }}>
             <label style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 800, fontSize: 12.5, cursor: "pointer" }}>
               <input type="checkbox" checked={allOn} onChange={() => toggleSection(selected, setter, paths, !allOn)} />
-              <span>{s.icon} {s.label}{isAdminSec && <span style={{ marginLeft: 6, fontSize: 10, color: "#a855f7" }}>· 관리자 시스템</span>}</span>
+              <span>{s.icon} {s.label}{isAdminSec && <span style={{ marginLeft: 6, fontSize: 10, color: "#a855f7" }}>{t('subAdminManager.adminSystemBadge', '· 관리자 시스템')}</span>}</span>
             </label>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(230px,1fr))", gap: 5, marginTop: 6, paddingLeft: 22 }}>
               {s.items.map((it) => {
@@ -172,10 +172,9 @@ export default function SubAdminManager() {
   return (
     <div style={{ padding: 24, maxWidth: 1100, margin: "0 auto" }}>
       <div style={{ marginBottom: 16 }}>
-        <div style={{ fontSize: 22, fontWeight: 900 }}>👤 하위 관리자 관리</div>
+        <div style={{ fontSize: 22, fontWeight: 900 }}>{t('subAdminManager.title', '👤 하위 관리자 관리')}</div>
         <div style={{ fontSize: 12.5, color: "var(--text-3)", marginTop: 6, lineHeight: 1.7 }}>
-          최고관리자가 하위 관리자를 발급하고 전체 메뉴 중 일부 권한을 부여합니다.
-          하위 관리자는 <b>최고관리자와 동일한 접속코드</b> + 발급받은 <b>이메일/비밀번호</b>로 로그인하며,
+          {t('subAdminManager.issueIntro', '최고관리자가 하위 관리자를 발급하고 전체 메뉴 중 일부 권한을 부여합니다. 하위 관리자는')} <b>{t('subAdminManager.sameLoginCode', '최고관리자와 동일한 접속코드')}</b> {t('subAdminManager.plusIssued', '+ 발급받은')} <b>{t('subAdminManager.emailPassword', '이메일/비밀번호')}</b>로 로그인하며,
           비밀번호는 본인이 상단 프로필에서 변경할 수 있습니다.
         </div>
       </div>
@@ -190,38 +189,38 @@ export default function SubAdminManager() {
 
       {/* 발급 폼 */}
       <div style={{ ...card, marginBottom: 18 }}>
-        <div style={{ fontSize: 15, fontWeight: 800, marginBottom: 12 }}>＋ 하위 관리자 발급</div>
+        <div style={{ fontSize: 15, fontWeight: 800, marginBottom: 12 }}>{t('subAdminManager.issueButtonTitle', '＋ 하위 관리자 발급')}</div>
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
           <AvatarField value={photo} name={name} size={56} editable onChange={setPhoto} />
-          <span style={{ fontSize: 12, color: "var(--text-3)" }}>관리자 프로필 사진 (선택) — 클릭하여 등록</span>
+          <span style={{ fontSize: 12, color: "var(--text-3)" }}>{t('subAdminManager.avatarHint', '관리자 프로필 사진 (선택) — 클릭하여 등록')}</span>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 12 }}>
-          <div><div style={lblS}>이메일(로그인 ID) · @ociell.com 만 허용</div><input style={input} type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@ociell.com" /></div>
+          <div><div style={lblS}>{t('subAdminManager.emailLabel', '이메일(로그인 ID) · @ociell.com 만 허용')}</div><input style={input} type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@ociell.com" /></div>
           <div><div style={lblS}>이름</div><input style={input} type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="홍길동" /></div>
-          <div><div style={lblS}>초기 비밀번호</div><input style={input} type="text" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="8자+ 영문 대/소문자·숫자·특수문자 3종" /></div>
+          <div><div style={lblS}>{t('subAdminManager.initialPasswordLabel', '초기 비밀번호')}</div><input style={input} type="text" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="8자+ 영문 대/소문자·숫자·특수문자 3종" /></div>
         </div>
         <div style={{ fontSize: 11, color: "var(--text-3)", marginTop: -4, marginBottom: 12, lineHeight: 1.6 }}>
-          💡 <b>@ociell.com</b> 도메인 이메일만 하위 관리자로 등록할 수 있습니다. 이미 운영/데모 회원으로 가입된 이메일이면 그 회원을 <b>하위 관리자로 전환</b>하며, 이때 비밀번호를 비워두면 <b>기존 회원 비밀번호가 그대로 유지</b>됩니다. (신규 발급은 비밀번호 필수)
+          💡 <b>@ociell.com</b> {t('subAdminManager.domainNote1', '도메인 이메일만 하위 관리자로 등록할 수 있습니다. 이미 운영/데모 회원으로 가입된 이메일이면 그 회원을')} <b>{t('subAdminManager.convertToSubAdmin', '하위 관리자로 전환')}</b>{t('subAdminManager.domainNote2', '하며, 이때 비밀번호를 비워두면')} <b>{t('subAdminManager.keepExistingPassword', '기존 회원 비밀번호가 그대로 유지')}</b>{t('subAdminManager.domainNote3', '됩니다. (신규 발급은 비밀번호 필수)')}
         </div>
-        <div style={lblS}>부여할 메뉴 권한 ({Object.keys(menus).length}개 선택) · 메뉴별 열람/수정 선택 · 🔧 관리자 시스템 메뉴 포함</div>
+        <div style={lblS}>{t('subAdminManager.grantMenuPrefix', '부여할 메뉴 권한 (')}{Object.keys(menus).length}{t('subAdminManager.grantMenuSuffix', '개 선택) · 메뉴별 열람/수정 선택 · 🔧 관리자 시스템 메뉴 포함')}</div>
         <MenuTree selected={menus} setter={setMenus} />
         <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-          <button style={btnGhost} onClick={() => setMenus({ ...Object.fromEntries(ALL_PATHS.map((p) => [p, "edit"])), "/dashboard": "edit" })}>전체 선택(수정)</button>
-          <button style={btnGhost} onClick={() => setMenus(Object.fromEntries(ALL_PATHS.concat("/dashboard").map((p) => [p, "view"])))}>전체 열람</button>
+          <button style={btnGhost} onClick={() => setMenus({ ...Object.fromEntries(ALL_PATHS.map((p) => [p, "edit"])), "/dashboard": "edit" })}>{t('subAdminManager.selectAllEdit', '전체 선택(수정)')}</button>
+          <button style={btnGhost} onClick={() => setMenus(Object.fromEntries(ALL_PATHS.concat("/dashboard").map((p) => [p, "view"])))}>{t('subAdminManager.selectAllView', '전체 열람')}</button>
           <button style={btnGhost} onClick={() => setMenus({ "/dashboard": "edit" })}>초기화</button>
           <div style={{ flex: 1 }} />
-          <button style={{ ...btnPrimary, opacity: busy ? 0.6 : 1 }} disabled={busy} onClick={create}>{busy ? "발급 중…" : "하위 관리자 발급"}</button>
+          <button style={{ ...btnPrimary, opacity: busy ? 0.6 : 1 }} disabled={busy} onClick={create}>{busy ? "발급 중…" : t('subAdminManager.issueButton', '하위 관리자 발급')}</button>
         </div>
       </div>
 
       {/* 목록 */}
       <div style={card}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 12, flexWrap: "wrap" }}>
-          <div style={{ fontSize: 15, fontWeight: 800 }}>발급된 하위 관리자 {Array.isArray(list) ? `(${list.filter(subMatch).length}${query ? `/${list.length}` : ""})` : ""}</div>
+          <div style={{ fontSize: 15, fontWeight: 800 }}>{t('subAdminManager.issuedListTitle', '발급된 하위 관리자')} {Array.isArray(list) ? `(${list.filter(subMatch).length}${query ? `/${list.length}` : ""})` : ""}</div>
           {Array.isArray(list) && list.length > 0 && <input style={{ ...input, maxWidth: 240 }} placeholder="🔍 이름·이메일 검색" value={query} onChange={(e) => setQuery(e.target.value)} />}
         </div>
         {list === null && <div style={{ color: "var(--text-3)", fontSize: 13 }}>불러오는 중…</div>}
-        {Array.isArray(list) && list.length === 0 && <div style={{ color: "var(--text-3)", fontSize: 13 }}>아직 발급된 하위 관리자가 없습니다.</div>}
+        {Array.isArray(list) && list.length === 0 && <div style={{ color: "var(--text-3)", fontSize: 13 }}>{t('subAdminManager.emptyList', '아직 발급된 하위 관리자가 없습니다.')}</div>}
         {Array.isArray(list) && list.filter(subMatch).map((m) => (
           <div key={m.id} style={{ borderTop: "1px solid rgba(0,0,0,0.06)", padding: "12px 0" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
@@ -256,7 +255,7 @@ export default function SubAdminManager() {
                 <div style={lblS}>부여할 메뉴 ({Object.keys(editMenus).length}개) · 각 메뉴 열람/수정 선택</div>
                 <MenuTree selected={editMenus} setter={setEditMenus} />
                 <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-                  <button style={btnGhost} onClick={() => setEditMenus({ ...Object.fromEntries(ALL_PATHS.map((p) => [p, "edit"])), "/dashboard": "edit" })}>전체 선택(수정)</button>
+                  <button style={btnGhost} onClick={() => setEditMenus({ ...Object.fromEntries(ALL_PATHS.map((p) => [p, "edit"])), "/dashboard": "edit" })}>{t('subAdminManager.selectAllEdit', '전체 선택(수정)')}</button>
                   <div style={{ flex: 1 }} />
                   <button style={btnGhost} onClick={() => setEditId(null)}>취소</button>
                   <button style={btnPrimary} onClick={() => saveMenus(m.id)}>저장</button>

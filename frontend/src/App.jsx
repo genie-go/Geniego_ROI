@@ -645,6 +645,7 @@ function VersionUpdateBanner() {
 /* [251차] 플랫폼 성장 컨텍스트 배너 — admin 이 'platform_growth' act-as 를 켜면 전 페이지 상단에 표시.
    기존 모든 메뉴(크리에이티브/자동화/어트리뷰션 등)가 GeniegoROI 플랫폼 자체 데이터로 동작 중임을 명확히 인지(안전). */
 function PlatformActAsBanner() {
+  const t = useT();
   const [on, setOn] = React.useState(() => { try { return localStorage.getItem('gg_act_as_tenant') === 'platform_growth'; } catch (e) { return false; } });
   React.useEffect(() => {
     const h = () => { try { setOn(localStorage.getItem('gg_act_as_tenant') === 'platform_growth'); } catch (e) {} };
@@ -657,8 +658,8 @@ function PlatformActAsBanner() {
   return (
     // [259차] 가독성 수정 — 흰바탕/흰글자 → 밝은 배경 + 찐한 회색 글자(테마 무관 고대비)
     <div style={{ background: '#ede9fe', color: '#374151', borderBottom: '1px solid #c4b5fd', padding: '7px 16px', fontSize: 12.5, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-      <span style={{ color: '#374151' }}>🚀 플랫폼 성장 컨텍스트(platform_growth) — 지금 보는 모든 메뉴는 GeniegoROI 플랫폼 자체 데이터입니다</span>
-      <button onClick={off} style={{ background: '#7c3aed', border: 'none', color: '#fff', borderRadius: 6, padding: '3px 12px', fontWeight: 800, cursor: 'pointer', fontSize: 12 }}>끄기(내 계정으로)</button>
+      <span style={{ color: '#374151' }}>{t('platformActAs.banner', '🚀 플랫폼 성장 컨텍스트(platform_growth) — 지금 보는 모든 메뉴는 GeniegoROI 플랫폼 자체 데이터입니다')}</span>
+      <button onClick={off} style={{ background: '#7c3aed', border: 'none', color: '#fff', borderRadius: 6, padding: '3px 12px', fontWeight: 800, cursor: 'pointer', fontSize: 12 }}>{t('platformActAs.off', '끄기(내 계정으로)')}</button>
     </div>
   );
 }
