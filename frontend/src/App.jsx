@@ -73,6 +73,7 @@ const AdminMenuManager = lazy(() => import("./pages/AdminMenuManager.jsx"));
 const UserMenuPreferences = lazy(() => import("./pages/UserMenuPreferences.jsx"));
 const PlanPricing = lazy(() => import("./pages/PlanPricing.jsx"));
 const SubAdminManager = lazy(() => import("./pages/SubAdminManager.jsx"));
+const AgencyManager = lazy(() => import("./pages/AgencyManager.jsx")); // [272차] 대행사 계정 발급(최고관리자)
 const PMOverview = lazy(() => import("./pages/PMOverview.jsx"));
 const PMProjectDetail = lazy(() => import("./pages/PMProjectDetail.jsx"));
 const PMTaskBoard = lazy(() => import("./pages/PMTaskBoard.jsx"));
@@ -129,6 +130,7 @@ const AIRecommendTab = lazy(() => import('./pages/AIRecommendTab.jsx'));
 const CaseStudy = lazy(() => import('./pages/CaseStudy.jsx'));
 
 const DataTrustDashboard = lazy(() => import('./pages/DataTrustDashboard.jsx'));
+const DataAssets = lazy(() => import('./pages/DataAssets.jsx')); // [272차] 통합 데이터 플랫폼 1단계 — 데이터 자산/소스 레지스트리
 const PixelTracking = lazy(() => import('./pages/PixelTracking.jsx')); // 191차 복원: 190차 부활 백엔드 실배선
 const DeveloperHub = lazy(() => import('./pages/DeveloperHub.jsx'));
 import { GdprController } from "./components/GdprBanner.jsx";
@@ -459,6 +461,7 @@ function AppLayout() {
                       <Route path="/admin/menu-tree" element={<AdminRouteGuard><AdminMenuManager /></AdminRouteGuard>} />
                       <Route path="/admin/plan-pricing" element={<AdminRouteGuard><PlanPricing /></AdminRouteGuard>} />
                       <Route path="/admin/sub-admins" element={<AdminRouteGuard><SubAdminManager /></AdminRouteGuard>} />
+                      <Route path="/admin/agencies" element={<AdminRouteGuard><AgencyManager /></AdminRouteGuard>} />{/* [272차] 대행사 계정 발급(최고관리자) */}
                       <Route path="/admin/site-intro" element={<AdminRouteGuard><SiteIntroAdmin /></AdminRouteGuard>} />
                       <Route path="/admin/legal-docs" element={<AdminRouteGuard><LegalDocsAdmin /></AdminRouteGuard>} />
                       <Route path="/admin/growth" element={<AdminRouteGuard><AdminGrowthCenter /></AdminRouteGuard>} />
@@ -546,6 +549,7 @@ function AppLayout() {
                           + ApiKeys 에 'smart' 탭 부재(184차 SmartConnect 제거). → /integration-hub 직접 지정. */}
                       <Route path="/smart-connect" element={<Navigate to="/integration-hub" replace />} />
                       <Route path="/data-trust" element={<DataTrustDashboard />} />
+                      <Route path="/data-assets" element={<DataAssets />} />{/* [272차] 데이터 자산/소스 레지스트리 */}
                       <Route path="/developer-hub" element={<DeveloperHub />} />
                       <Route path="/demand-forecast" element={<DemandForecast />} />
                       <Route path="/asia-logistics" element={<Navigate to="/supply-chain" replace />} />

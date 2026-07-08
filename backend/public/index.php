@@ -352,6 +352,9 @@ $app->add(function (Request $request, $handler) {
         //   ③ 웹푸시 구독/해지(WebPush, 결제 아님이나 익명 차단 바람직) ④ AI 카피/이메일/세그 생성(AiGenerate, authedTenant+isDemo게이트·공용 비용 → 익명 절대차단).
         // [272차 대행사] 클라이언트(테넌트 owner) 승인 게이트 — AgencyPortal 이 authedTenant+isTenantOwner self-auth·격리.
         || strpos($path, '/v423/agency-access/') === 0 || strpos($path, '/api/v423/agency-access/') === 0
+        // [272차 통합 데이터 플랫폼] 구독사 프로필·데이터 소스 레지스트리 — DataPlatform 이 auth_tenant/세션 self-auth·tenant 격리.
+        || strpos($path, '/data/business-profile') === 0 || strpos($path, '/api/data/business-profile') === 0
+        || strpos($path, '/data-sources') === 0 || strpos($path, '/api/data-sources') === 0
         || $path === '/v423/coupons/mine' || $path === '/api/v423/coupons/mine'
         || $path === '/v423/user/my-coupons' || $path === '/api/v423/user/my-coupons'
         || strpos($path, '/v423/member-logs') === 0 || strpos($path, '/api/v423/member-logs') === 0

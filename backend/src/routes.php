@@ -258,6 +258,13 @@ return function (App $app): void {
         'POST /agency/clients/exit'            => 'Genie\\Handlers\\AgencyPortal::exitClient',
         'GET /agency/brand'                    => 'Genie\\Handlers\\AgencyPortal::brand',
         'PUT /agency/brand'                    => 'Genie\\Handlers\\AgencyPortal::saveBrand',
+        // [272차 통합 데이터 플랫폼 1단계] 구독사 프로필 + 데이터 소스 레지스트리(세션 self-auth·tenant 격리)
+        'GET /data/business-profile'               => 'Genie\\Handlers\\DataPlatform::getBusinessProfile',
+        'PUT /data/business-profile'               => 'Genie\\Handlers\\DataPlatform::saveBusinessProfile',
+        'GET /data-sources'                        => 'Genie\\Handlers\\DataPlatform::listSources',
+        'POST /data-sources'                       => 'Genie\\Handlers\\DataPlatform::registerSource',
+        'GET /data-sources/subscriber-owned'       => 'Genie\\Handlers\\DataPlatform::subscriberOwned',
+        'GET /data-sources/external-channels'      => 'Genie\\Handlers\\DataPlatform::externalChannels',
         // 클라이언트(테넌트 owner) 승인 게이트 — 세션 self-auth
         'GET /v423/agency-access/requests'         => 'Genie\\Handlers\\AgencyPortal::myAgencyRequests',
         'POST /v423/agency-access/{id}/approve'    => 'Genie\\Handlers\\AgencyPortal::approveAgency',
@@ -2977,6 +2984,13 @@ return function (App $app): void {
     $register('GET',    '/v423/agency-access/requests');
     $register('POST',   '/v423/agency-access/{id}/approve');
     $register('POST',   '/v423/agency-access/{id}/revoke');
+    // [272차 통합 데이터 플랫폼 1단계]
+    $register('GET',    '/data/business-profile');
+    $register('PUT',    '/data/business-profile');
+    $register('GET',    '/data-sources');
+    $register('POST',   '/data-sources');
+    $register('GET',    '/data-sources/subscriber-owned');
+    $register('GET',    '/data-sources/external-channels');
     // 라이브 커머스(Live Commerce) — 208차
     $register('GET',    '/v425/live/sessions');
     $register('POST',   '/v425/live/sessions');
