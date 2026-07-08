@@ -63,16 +63,17 @@ export default defineConfig({
         // 170차 5회 화이트 + 171차 첫 시도 화이트 root cause = lazy chunk 가
         // shared-ui/vendor-react init 전에 React.useCallback 호출 → null.
         // React/Router/공유 컴포넌트 모두 entry chunk 흡수 → init order 보장.
-        // i18n locales 만 별도 청크 유지 (13MB, gzip 4.5MB — 반드시 분리).
+        // [272차 P0 Stage B] 기존 'i18n-locales' 단일 청크(13MB) 강제 병합 규칙 제거.
+        //   i18n/index.js 가 로케일을 정적 import → 동적 import(로더맵)로 전환했으므로, 여기서 하나로 묶으면
+        //   로케일 1개 로드가 13MB 전체를 끌어와 지연로드가 무의미해진다. 규칙을 제거하면 Vite 가 동적 import
+        //   대상(로케일 15개)을 각각 별도 청크로 자동 분할 → 활성 언어 + en 만 첫 페인트에 로드(나머지는 유휴 프리로드).
+        //   ※ 로케일은 React 를 import 하지 않는 순수 데이터라 171차 init-order race 와 무관(안전).
         manualChunks(id) {
           // [171차 N-170-vite-fix v3] page-group manualChunks 전부 제거.
           // 그룹화가 chunk 간 동일 React 모듈 참조를 만들어 init order race 야기.
-          // i18n locales 만 분리 (13MB / 4.5MB gzip — 반드시 별도 청크).
           // 페이지는 Vite 기본 chunking(파일별 lazy 청크)로 위임 → 각 페이지가 자체
           // 의존성 import → Rollup 이 React 등 공통 vendor 를 entry 에 안전 배치.
-          if (id.includes('/i18n/locales/')) {
-            return 'i18n-locales';
-          }
+          return undefined;
         },
         // 에셋 파일명 해시
         chunkFileNames: 'assets/[name]-[hash].js',
