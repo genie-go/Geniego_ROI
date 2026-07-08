@@ -7759,3 +7759,25 @@ button.cs-inactive-tab {
      로 해결한다(operations/case-study=그리드 루트는 위 규칙으로 해결, AutoMarketing 등=flex 루트는 자체 .fade-up
      내부 스크롤 보존). 즉 데스크톱은 페이지별 기존 스크롤 메커니즘을 건드리지 않는다. */
 }
+
+/* ════════════════════════════════════════════════════════════
+   [271차] 아랍어 RTL 레이아웃 — html[dir="rtl"] / .lang-rtl
+   flex-row 레이아웃(사이드바+본문)은 dir=rtl 로 자동 반전(사이드바 우측). 아래는 방향성 보정.
+   ════════════════════════════════════════════════════════════ */
+/* 사이드바 테두리: 우측 배치되므로 좌측 테두리로 전환 */
+html[dir="rtl"] .sidebar { border-right: none; border-left: 1px solid var(--border); }
+/* 아랍어 본문 기본 우측 정렬(블록 텍스트) — 숫자/차트/코드 컨테이너는 원 방향 유지 */
+html[dir="rtl"] body { text-align: right; }
+html[dir="rtl"] table { text-align: right; }
+/* 방향 무관 유지가 필요한 요소(차트·코드·숫자열·통화)는 LTR 고정 */
+html[dir="rtl"] .recharts-wrapper,
+html[dir="rtl"] svg,
+html[dir="rtl"] pre,
+html[dir="rtl"] code,
+html[dir="rtl"] [data-ltr],
+html[dir="rtl"] .keep-ltr { direction: ltr; }
+/* 모바일 사이드바 오프캔버스: RTL 은 우측에서 슬라이드 */
+@media (max-width: 900px) {
+  html[dir="rtl"] .sidebar { left: auto; right: 0; transform: translateX(100%); }
+  html[dir="rtl"] .sidebar.sidebar-open { transform: translateX(0); }
+}

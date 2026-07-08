@@ -171,6 +171,18 @@ async function detectGeoLang() {
 // [271차] 한글 유니코드 블록(가-힣). 비한국어 로케일 값에 이 문자가 있으면 미번역 누출로 판단.
 const HANGUL_RE = /[가-힣]/;
 
+// [271차] RTL 언어 집합 + 문서 방향 적용 헬퍼. 아랍어(ar)는 레이아웃까지 RTL(사이드바 우측·본문 우측정렬).
+//   dir=rtl 이면 flex-row 레이아웃(사이드바+본문)이 자동 반전되고, styles.css .lang-rtl 보정으로 테두리/여백 정리.
+const RTL_LANGS = new Set(["ar"]);
+function applyDir(code) {
+    try {
+        const rtl = RTL_LANGS.has(code);
+        document.documentElement.lang = code;
+        document.documentElement.dir = rtl ? "rtl" : "ltr";
+        document.body.classList.toggle("lang-rtl", rtl);
+    } catch (_) { /* SSR/노드 등 document 부재 */ }
+}
+
 // ── Deep-get helper ────────────────────────────────────────
 function deepGet(obj, path) {
     return path.split(".").reduce(
@@ -199,27 +211,14 @@ export function I18nProvider({ children }) {
         //      아래 dispatch 되는 'genie-lang-change' 이벤트를 utils/reactiveLocalize 레지스트리가 수신해
         //      스냅샷 원본에서 새 언어로 재치환 → 재렌더 시 반영.
         setLangState(code);
-        document.documentElement.lang = code;
-        // 🚨 레이아웃은 항상 LTR 유지 (사이드바 좌측 고정)
-        document.documentElement.dir = "ltr";
-        if (LOCALES[code]?.dir === "rtl") {
-            document.body.classList.add("lang-rtl");
-        } else {
-            document.body.classList.remove("lang-rtl");
-        }
+        applyDir(code); // [271차] 아랍어=RTL 레이아웃, 그 외=LTR
         // 🔗 CurrencyContext 연동: 언어→화폐 자동 전환 이벤트 발행
         window.dispatchEvent(new CustomEvent('genie-lang-change', { detail: { lang: code } }));
     }, []);
 
     useEffect(() => {
-        // 초기 html lang 설정 — dir은 항상 LTR (레이아웃 보존)
-        document.documentElement.lang = lang;
-        document.documentElement.dir = "ltr";
-        if (LOCALES[lang]?.dir === "rtl") {
-            document.body.classList.add("lang-rtl");
-        } else {
-            document.body.classList.remove("lang-rtl");
-        }
+        // 초기 html lang/dir 설정 — 아랍어면 RTL
+        applyDir(lang);
         // 🔗 초기 로드 시에도 CurrencyContext에 현재 언어 알림
         window.dispatchEvent(new CustomEvent('genie-lang-change', { detail: { lang } }));
 
@@ -227,13 +226,7 @@ export function I18nProvider({ children }) {
         detectGeoLang().then((geoLang) => {
             if (geoLang && geoLang !== lang) {
                 setLangState(geoLang);
-                document.documentElement.lang = geoLang;
-                document.documentElement.dir = "ltr";
-                if (LOCALES[geoLang]?.dir === "rtl") {
-                    document.body.classList.add("lang-rtl");
-                } else {
-                    document.body.classList.remove("lang-rtl");
-                }
+                applyDir(geoLang);
                 // 🔗 IP 감지된 언어도 CurrencyContext에 알림
                 window.dispatchEvent(new CustomEvent('genie-lang-change', { detail: { lang: geoLang } }));
             }
