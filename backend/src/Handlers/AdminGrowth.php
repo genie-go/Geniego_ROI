@@ -253,16 +253,22 @@ final class AdminGrowth
         $st->execute([$leadId]);
         $rows = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
         $score = 0; $lastAt = ''; $reachedIdx = 0; $mrr = 0.0;
+        // [272차 H-P1] 구독 종결(churn/refund) 추적 — 시간순 마지막 라이프사이클 상태로 MRR/stage 역분개.
+        //   rescore 는 원래 '최고 도달 stage + max MRR' 단조증가라 취소/환불이 반영 안 돼 성장콘솔 MRR/revenue/LTV
+        //   가 과대였다. paid/upsell 후 churn/refund 가 최신이면 churned 로 강등하고 MRR=0(revenue 집계서 제외).
+        $churned = false;
         foreach ($rows as $r) {
             $et = strtolower((string)$r['event_type']);
             $score += (int)(self::SCORE_WEIGHTS[$et] ?? 0);
             $lastAt = (string)($r['occurred_at'] ?? $lastAt);
             $fi = array_search($et, self::FUNNEL, true);
             if ($fi !== false && $fi > $reachedIdx) $reachedIdx = $fi;
-            if (in_array($et, ['paid', 'upsell'], true)) $mrr = max($mrr, (float)($r['value'] ?? 0));
+            if (in_array($et, ['paid', 'upsell'], true)) { $mrr = max($mrr, (float)($r['value'] ?? 0)); $churned = false; }
+            if (in_array($et, ['churn', 'refund', 'cancel'], true)) $churned = true;
         }
         $score = max(0, min(100, $score));
         $stage = self::FUNNEL[$reachedIdx] ?? 'visitor';
+        if ($churned) { $stage = 'churned'; $mrr = 0.0; } // 종결 시 revenue 집계(stage IN paid/active/upsell)서 제외
         $grade = self::gradeFor($score, $stage);
         $upd = $pdo->prepare("UPDATE admin_growth_lead SET score=?, grade=?, stage=?, mrr=?, last_activity_at=?, updated_at=? WHERE id=?");
         $upd->execute([$score, $grade, $stage, $mrr, $lastAt ?: gmdate('c'), gmdate('c'), $leadId]);
@@ -381,6 +387,13 @@ final class AdminGrowth
     public static function recordPaid(\PDO $pdo, string $email, float $mrr, array $ctx = []): int
     {
         return self::recordEvent($pdo, $email, 'paid', array_merge(['value' => $mrr, 'source' => 'subscription', 'channel' => 'product'], $ctx));
+    }
+
+    /** [272차 H-P1] 구독 취소/환불 역분개 — churn 이벤트 적재 → rescore 가 stage=churned·MRR=0 으로 강등.
+     *   Paddle::onSubscriptionCanceled / refund 비차단 훅. platform_growth 자체지표(고객 P&L 무관·격리). */
+    public static function recordChurn(\PDO $pdo, string $email, string $reason = 'canceled', array $ctx = []): int
+    {
+        return self::recordEvent($pdo, $email, 'churn', array_merge(['value' => 0, 'source' => 'subscription', 'channel' => 'product', 'meta' => ['reason' => $reason]], $ctx));
     }
 
     /**

@@ -770,9 +770,13 @@ const InventoryTab = memo(function InventoryTab({ whs }) {
             const qty = parseInt(String(qtyRaw).replace(/[^0-9-]/g, ''), 10);
             const wh = String(r.warehouse || r.wh || r.whId || r.WH || r['창고'] || 'W001').trim() || 'W001';
             if (sku && !isNaN(qty)) {
-                adjustStock(sku, wh, qty);
+                // [272차 H-P1] 운영은 CSV 수량=절대 목표재고 → 백엔드가 인식하는 StockAdj(델타)로 영속(doAdj 패턴).
+                //   기존 type:'csv_import' 는 applyMovementToStock 분기에 없어 no-op → 감사행만 남고 wms_stock 미반영,
+                //   30초 폴링(listStock)에 원복돼 CSV 재고등록이 운영에서 전량 소실되던 결함.
+                const cur = (inventory.find(p => p.sku === sku)?.stock?.[wh]) || 0;
+                adjustStock(sku, wh, qty); // 로컬 낙관 반영(절대값)
                 applied++;
-                if (!IS_DEMO) { try { wmsApi.createMovement({ sku, name: r.name || r.product || r['상품명'] || '', qty, wh_id: wh, type: 'csv_import', reason: 'CSV 재고 등록' }); } catch {} }
+                if (!IS_DEMO) { const delta = qty - cur; if (delta !== 0) { try { wmsApi.createMovement({ sku, name: r.name || r.product || r['상품명'] || '', qty: delta, wh_id: wh, type: 'StockAdj', reason: 'CSV 재고 등록' }); } catch {} } }
             }
         });
         setImportStatus({ count: applied, success: applied > 0 });
@@ -1944,7 +1948,9 @@ const InventoryAuditTab = memo(function InventoryAuditTab({ inventory }) {
             const counted = Number(i.countedQty) || 0;
             adjustStock(i.sku, wh, counted);
             if (!IS_DEMO) {
-                try { wmsApi.createMovement({ sku: i.sku, name: i.name, qty: Math.abs(i.diff), wh_id: wh, type: i.diff > 0 ? 'audit_in' : 'audit_out', reason: '재고실사 조정' }); } catch {}
+                // [272차 H-P1] audit_in/audit_out 은 applyMovementToStock 분기에 없어 no-op(감사행만·wms_stock 미반영,
+                //   폴링에 원복)였다. 부호있는 델타(diff=counted-book)를 StockAdj 로 보내 권위재고 반영(doAdj 동일 SSOT).
+                try { wmsApi.createMovement({ sku: i.sku, name: i.name, qty: i.diff, wh_id: wh, type: 'StockAdj', reason: '재고실사 조정' }); } catch {}
             }
         });
         setStatus('adjusted');

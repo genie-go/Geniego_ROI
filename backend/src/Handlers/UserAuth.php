@@ -2492,7 +2492,9 @@ final class UserAuth
     /** POST /auth/admin/smtp — SMTP 설정 저장. pass 는 비워두면 기존 유지. */
     public static function smtpSave(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
     {
-        [$user, $err] = self::requireAdminUser($req);
+        // [272차 H-P1] 플랫폼 전역 자격증명 쓰기는 최고관리자(master) 전용 — 기존 requireAdminUser 는 plan='admin'
+        //   만 확인해 admin_menus 로 제한된 하위관리자(sub)가 SMTP/SMS/AI키/OAuth secret 을 수평 덮어쓰기 가능했다.
+        [$user, $err] = self::requireMasterAdmin($req);
         if ($err) return self::json($res, ['ok' => false, 'error' => $err[0]], $err[1]);
         $pdo = Db::pdo(); self::ensureAppSetting($pdo);
         $b = self::readBody($req);
@@ -2517,7 +2519,7 @@ final class UserAuth
     /** POST /auth/admin/smtp/test {to} — 테스트 메일 발송. */
     public static function smtpTest(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
     {
-        [$user, $err] = self::requireAdminUser($req);
+        [$user, $err] = self::requireMasterAdmin($req); // [272차 H-P1] 플랫폼 SMTP 사용 테스트=master 전용
         if ($err) return self::json($res, ['ok' => false, 'error' => $err[0]], $err[1]);
         $pdo = Db::pdo(); self::ensureAppSetting($pdo);
         $b = self::readBody($req);
@@ -2552,7 +2554,7 @@ final class UserAuth
     /** POST /auth/admin/sms — SMS 설정 저장. secret_key 비우면 기존 유지(암호화 저장). */
     public static function smsSave(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
     {
-        [$user, $err] = self::requireAdminUser($req);
+        [$user, $err] = self::requireMasterAdmin($req); // [272차 H-P1] 플랫폼 SMS 자격증명 쓰기=master 전용
         if ($err) return self::json($res, ['ok' => false, 'error' => $err[0]], $err[1]);
         $pdo = Db::pdo(); self::ensureAppSetting($pdo);
         $b = self::readBody($req);
@@ -2575,7 +2577,7 @@ final class UserAuth
     /** POST /auth/admin/sms/test {to} — 테스트 SMS 발송. */
     public static function smsTest(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
     {
-        [$user, $err] = self::requireAdminUser($req);
+        [$user, $err] = self::requireMasterAdmin($req); // [272차 H-P1] 플랫폼 SMS 사용 테스트=master 전용
         if ($err) return self::json($res, ['ok' => false, 'error' => $err[0]], $err[1]);
         $pdo = Db::pdo(); self::ensureAppSetting($pdo);
         $b = self::readBody($req);
@@ -2602,7 +2604,7 @@ final class UserAuth
     /** POST /auth/admin/ai-key {api_key} — Claude(Anthropic) API 키 저장. */
     public static function aiKeySave(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
     {
-        [$user, $err] = self::requireAdminUser($req);
+        [$user, $err] = self::requireMasterAdmin($req); // [272차 H-P1] 플랫폼 공용 Claude API 키 쓰기=master 전용
         if ($err) return self::json($res, ['ok' => false, 'error' => $err[0]], $err[1]);
         $pdo = Db::pdo(); self::ensureAppSetting($pdo);
         $b = self::readBody($req);
@@ -2756,7 +2758,7 @@ final class UserAuth
     /** POST /auth/admin/oauth-apps {provider, client_id, client_secret | clear} — OAuth 앱 등록(암호화). */
     public static function oauthAppsSave(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
     {
-        [$user, $err] = self::requireAdminUser($req);
+        [$user, $err] = self::requireMasterAdmin($req); // [272차 H-P1] 플랫폼 채널 OAuth secret 쓰기=master 전용
         if ($err) return self::json($res, ['ok' => false, 'error' => $err[0]], $err[1]);
         $pdo = Db::pdo(); self::ensureAppSetting($pdo);
         $b = self::readBody($req);

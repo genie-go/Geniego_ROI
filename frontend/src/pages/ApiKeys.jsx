@@ -311,6 +311,9 @@ const REAL_ADAPTER = new Set([
   // [현 차수] 감사 A-1: PG 4종 REAL_ADAPTER 누락 해소 — PgSettlement.php live=true+fetchLive 실배선됨에도
   //   set 누락으로 "연동 예정" 오표기되던 언더클레임 수정(klarna/checkout와 동일 PG 실어댑터군).
   'paddle', 'square', 'mollie', 'razorpay',
+  // [272차 F-P2] 국내 PG 4종 — PgSettlement PROVIDERS live=true+fetchInicis/fetchKcp/fetchKakaoPay/fetchNaverPay
+  //   실배선인데 REAL_ADAPTER 누락으로 "연동 예정" 언더클레임이던 잔여분(글로벌 PG와 동일 클래스).
+  'inicis', 'kcp', 'kakaopay', 'naverpay',
   // [현 차수 감사 P2] 레지스트리 커넥터 16종 — 백엔드 실 자동sync(ChannelCreds::upsert analytics/cs/esp/review + AD_SHORT)
   //   보유에도 REAL_ADAPTER 누락으로 "연동 예정" 거짓 언더클레임이던 결함 해소(245차 F-2와 동일 클래스). 246/248차 배치 누락분.
   'ga4', 'adobe_analytics',                                   // 웹분석 인바운드(fetchGa4Rows/fetchAdobeAnalyticsRows)

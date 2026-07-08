@@ -790,7 +790,11 @@ class JourneyBuilder
     {
         $cfg = (array)($node['config'] ?? []);
         $url = trim((string)($cfg['url'] ?? ''));
-        if ($url === '' || !preg_match('#^https://#i', $url)) return ['action' => 'skipped', 'reason' => 'no_url']; // https 만(SSRF/평문 차단)
+        if ($url === '') return ['action' => 'skipped', 'reason' => 'no_url'];
+        // [272차 P1 SSRF] 스킴 검사만으로는 169.254.169.254(클라우드 메타데이터)·10.x·localhost 등
+        //   내부/사설/링크로컬 대역으로의 서버측 요청(고객 PII 유출·IAM 크리덴셜 탈취)을 못 막는다.
+        //   OpenPlatform/DataExport 와 동일한 공개 https 게이트(DNS 해석 후 사설/예약 IP 거부·전달 직전 검증)를 적용.
+        if (!self::isPublicHttpsUrl($url)) return ['action' => 'skipped', 'reason' => 'url_blocked'];
         $c = self::contact($pdo, $tenant, (int)($enr['customer_id'] ?? 0));
         // 머지 컨텍스트(PII 최소 — 이름/이메일/전화/매출). body 템플릿 {{var}} 치환.
         $ctx = ['name'=>(string)($c['name'] ?? ''), 'email'=>(string)($c['email'] ?? ''), 'phone'=>(string)($c['phone'] ?? ''),
@@ -811,6 +815,37 @@ class JourneyBuilder
             if ($err) return ['action'=>'webhook_failed', 'error'=>$err];
             return ['action'=>($code>=200 && $code<300)?'webhook_sent':'webhook_failed', 'code'=>$code];
         } catch (\Throwable $e) { return ['action'=>'webhook_failed', 'error'=>$e->getMessage()]; }
+    }
+
+    /** [272차] SSRF 방어 — 공개 https 호스트로 해석되는 URL만 허용(OpenPlatform::isPublicHttpsUrl 미러).
+     *   사설/루프백/링크로컬/169.254.169.254(메타데이터) 대역 차단 + DNS rebinding 대비 전달시점 검증. */
+    private static function isPublicHttpsUrl(string $url): bool
+    {
+        $p = parse_url($url);
+        if (!$p || (($p['scheme'] ?? '') !== 'https')) return false;
+        $host = (string)($p['host'] ?? '');
+        if ($host === '') return false;
+        $lh = strtolower($host);
+        if (in_array($lh, ['localhost', 'metadata.google.internal'], true)) return false;
+        if (substr($lh, -6) === '.local' || substr($lh, -9) === '.internal') return false;
+        $ips = [];
+        if (filter_var($host, FILTER_VALIDATE_IP)) {
+            $ips = [$host];
+        } else {
+            $recs = @dns_get_record($host, DNS_A | DNS_AAAA);
+            if (is_array($recs)) {
+                foreach ($recs as $r) {
+                    if (!empty($r['ip']))   $ips[] = $r['ip'];
+                    if (!empty($r['ipv6'])) $ips[] = $r['ipv6'];
+                }
+            }
+            if (!$ips) { $h = @gethostbyname($host); if ($h && $h !== $host) $ips[] = $h; }
+        }
+        if (!$ips) return false; // 해석 불가 → 안전측 거부.
+        foreach ($ips as $ip) {
+            if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) return false;
+        }
+        return true;
     }
 
     /**

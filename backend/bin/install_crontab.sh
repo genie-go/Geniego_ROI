@@ -82,6 +82,9 @@ read -r -d '' CRONTAB <<EOF || true
 # ── [255차 심화] 경쟁가 독립 수집(규칙 무관 전 테넌트·Prisync 정합) + 수요예측 자동발주(Inventory Planner 정합) ──
 15 * * * * GENIE_ENV=production php ${PROD}/bin/competitor_price_cron.php >> /var/log/genie_comp_price.log 2>&1
 25 */2 * * * GENIE_ENV=demo php ${DEMO}/bin/competitor_price_cron.php >> /var/log/genie_comp_price_demo.log 2>&1
+# ── [272차 F-P2] DigitalShelf SoS/순위 자동수집(267차 신설 shelf_rank_cron, competitor_price 동형) — SSOT 미등록분 등록(fresh provision/DR 재현성) ──
+35 * * * * GENIE_ENV=production php ${PROD}/bin/shelf_rank_cron.php >> /var/log/genie_shelf_rank.log 2>&1
+45 */2 * * * GENIE_ENV=demo php ${DEMO}/bin/shelf_rank_cron.php >> /var/log/genie_shelf_rank_demo.log 2>&1
 20 6 * * * GENIE_ENV=production php ${PROD}/bin/demand_cron.php >> /var/log/genie_demand.log 2>&1
 23 6 * * * GENIE_ENV=demo php ${DEMO}/bin/demand_cron.php >> /var/log/genie_demand_demo.log 2>&1
 # ── [정밀감사 SSOT 정합] 그동안 러너는 존재하나 본 정본에 미등록이던 6종 추가(fresh provision/DR 재현성) ──

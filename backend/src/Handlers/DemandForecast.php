@@ -467,6 +467,12 @@ class DemandForecast
             foreach ($st->fetchAll(\PDO::FETCH_ASSOC) as $r) $sales[(string)$r['sku']] = $r;
         } catch (\Throwable $e) { $sales = []; }
 
+        // [272차 D-P2] 묶인 자본(tied_capital)은 재고에 묶인 '매입원가(cost basis)' 여야 한다. 기존엔 판매단가(retail
+        //   AVG unit_price)로 산정해 마진율만큼 과대(예 원가5천/판매1.5만=3배). Rollup 이 gross_profit 에 쓰는
+        //   PriceOpt::costMap(원가 SSOT)을 재사용 — 원가 미등록 SKU 만 판매가로 폴백(정직 라벨 cost_src).
+        $costMap = [];
+        try { $costMap = \Genie\Handlers\PriceOpt::costMap($tenant); } catch (\Throwable $e) { $costMap = []; }
+
         // 3) SKU별 노후도 분류
         $items = [];
         $sum = ['in_stock_skus' => count($inv), 'healthy' => 0, 'slow' => 0, 'dead' => 0,
@@ -477,7 +483,10 @@ class DemandForecast
             $qty30    = $s ? (int)$s['qty30'] : 0;
             $avgPrice = $s && $s['avg_price'] !== null ? (float)$s['avg_price'] : 0.0;
             $qty      = $iv['qty'];
-            $tied     = round($qty * $avgPrice);
+            // [272차 D-P2] 원가 우선(cost basis), 미등록 SKU 만 판매가 폴백.
+            $cost     = isset($costMap[$sku]) && (float)$costMap[$sku] > 0 ? (float)$costMap[$sku] : 0.0;
+            $unitBase = $cost > 0 ? $cost : $avgPrice;
+            $tied     = round($qty * $unitBase);
 
             if ($lastSale !== '' && preg_match('/^\d{4}-\d{2}-\d{2}$/', $lastSale)) {
                 $lsTs      = gmmktime(0, 0, 0, (int)substr($lastSale, 5, 2), (int)substr($lastSale, 8, 2), (int)substr($lastSale, 0, 4));
@@ -508,6 +517,7 @@ class DemandForecast
                 'on_hand' => (int)$qty, 'last_sale' => $lastSale ?: null,
                 'days_since_sale' => $daysSince === -1 ? null : $daysSince,
                 'sold_30d' => $qty30, 'avg_price' => round($avgPrice),
+                'unit_cost' => round($unitBase), 'cost_src' => ($cost > 0 ? 'cost' : 'retail_fallback'),
                 'tied_capital' => $tied, 'days_of_supply' => $daysOfSupply, 'action' => $action,
             ];
         }

@@ -1180,11 +1180,24 @@ final class OrderHub
         //   매출 0 이므로, 취소 클레임까지 returnFee 로 빼면 이중차감(순이익 과소)이었다. 사용자 확정:
         //   취소는 매출 제외로만 처리(P&L 영향 0), 실제 취소수수료는 실 정산 ingest(status!='estimated')가 반영.
         //   → type IN('return','cancel') 을 type='return' 으로 좁혀 설계의도(주석 1080)와 정합. rcnt 도 반품수로 정확화.
-        $cs = $pdo->prepare("SELECT c.channel, COUNT(*) AS rcnt, COALESCE(SUM(c.amount),0) AS rfee
-            FROM orderhub_claims c
-            LEFT JOIN channel_orders o ON o.tenant_id=c.tenant_id AND o.channel=c.channel AND (o.channel_order_id=c.order_id OR o.order_no=c.order_id)
-            WHERE c.tenant_id=? AND c.type = 'return' AND SUBSTR(COALESCE(o.ordered_at, c.created_at),1,7)=?
-            GROUP BY c.channel");
+        // [272차 D-P2] 반품 claim 이중계상·팬아웃 차단:
+        //   ① 동일 반품이 두 경로(수동 ingestClaims=clm_{sha256} · 폴링 recordClaim=CLM-{ch}-{oid})로 서로 다른
+        //      id 2행이 되면 COUNT/SUM 이 2배(returnFee·returns_count 이중계상). ② LEFT JOIN 이 주문당 다라인(SKU
+        //      여러 행)일 때 claim 을 라인 수만큼 곱하는 팬아웃 위험. → (channel, order_id) 단위로 먼저 dedup(주문당
+        //      1행, MAX amount)하고, ordered_at 은 상관 서브쿼리 LIMIT 1 로 해석(조인 팬아웃 제거). Rollup:266 팬아웃
+        //      수정과 동일 패턴. SQLite/MySQL 공통 문법.
+        $cs = $pdo->prepare("SELECT t.channel, COUNT(*) AS rcnt, COALESCE(SUM(t.amt),0) AS rfee FROM (
+                SELECT c.channel AS channel, c.order_id AS oid, MAX(c.amount) AS amt,
+                       MIN(COALESCE((SELECT o.ordered_at FROM channel_orders o
+                                       WHERE o.tenant_id=c.tenant_id AND o.channel=c.channel
+                                         AND (o.channel_order_id=c.order_id OR o.order_no=c.order_id) LIMIT 1),
+                                    c.created_at)) AS oat
+                  FROM orderhub_claims c
+                 WHERE c.tenant_id=? AND c.type='return'
+                 GROUP BY c.channel, c.order_id
+            ) t
+            WHERE SUBSTR(t.oat,1,7)=?
+            GROUP BY t.channel");
         $cs->execute([$tenant, $period]);
         $claimsBy = [];
         foreach ($cs->fetchAll(\PDO::FETCH_ASSOC) as $r) {

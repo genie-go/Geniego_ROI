@@ -8,19 +8,21 @@
 import { stageOf as _stageOf } from '../utils/adFunnel.js'; // [현 차수] 캠페인 목적→퍼널단계 SSOT
 import { localizeDeep as _dloc } from '../utils/demoUiLocalize.js'; // [271차] 데모 표시데이터 15개국 실시간 현지화
 
-// [271차] 데모 날짜 표기 현지화 — 감지 언어의 BCP47 로케일로 포맷(ko-KR 하드코딩 제거).
-const _DEMO_DATE_LOCALE = (() => {
-  const map = { ko:'ko-KR', en:'en-US', ja:'ja-JP', zh:'zh-CN', 'zh-TW':'zh-TW', de:'de-DE', th:'th-TH', vi:'vi-VN', id:'id-ID', ar:'ar-SA', es:'es-ES', fr:'fr-FR', hi:'hi-IN', pt:'pt-BR', ru:'ru-RU' };
-  let l = 'ko';
-  try { l = localStorage.getItem('genie_roi_lang') || 'ko'; } catch (_) {}
-  return map[l] || 'en-US';
-})();
-const NOW = new Date().toLocaleString(_DEMO_DATE_LOCALE, { hour12: false });
+// [272차 A-P2] 데모 타임스탬프는 결정적 파싱가능 포맷(YYYY-MM-DD HH:mm:ss) 고정.
+//   271차가 감지언어 BCP47 로케일(toLocaleString)로 포맷했으나 이 값이 .at/time 필드로 저장돼 소비처의
+//   new Date(str) 로 재파싱된다: 아랍어(ar-SA)=아랍-인도 숫자→Invalid Date/NaN, 태국어(th-TH)=불기연도
+//   2569(+543년)→날짜산술 오작동(JourneyBuilder/Audit). 언어중립 ISO형은 전 로케일에서 안전 파싱된다.
+//   (날짜 '표시' 현지화는 소비처에서 new Date 후 toLocaleDateString 으로 처리 — 저장값은 파싱안전 유지.)
+const _fmtTs = (d) => {
+  const p = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+};
+const NOW = _fmtTs(new Date());
 const TODAY = new Date().toISOString().slice(0, 10);
 const ts = (daysAgo = 0, h = 10, m = 30) => {
   const d = new Date(Date.now() - daysAgo * 86400000);
   d.setHours(h, m, 0, 0);
-  return d.toLocaleString(_DEMO_DATE_LOCALE, { hour12: false });
+  return _fmtTs(d);
 };
 const isoDate = (daysAgo = 0) => new Date(Date.now() - daysAgo * 86400000).toISOString().slice(0, 10);
 

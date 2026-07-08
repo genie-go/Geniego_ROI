@@ -1167,12 +1167,16 @@ final class UserAdmin
             ? "DATE_ADD(NOW(), INTERVAL $days DAY)"
             : "datetime('now', '+$days days')";
 
+        // [272차 H-P1] plans 컬럼 동반 갱신 — 전 시스템 read 는 COALESCE(plans,plan,'demo') 이므로 plan 만 바꾸면
+        //   effective plan 이 구 plans 로 고정돼 메뉴접근 미반영(241차 회귀 클래스). 형제 경로(CouponEngine·UserAuth·
+        //   가입 INSERT)는 모두 plan,plans 동반 → 여기만 누락이었다.
         $pdo->prepare("
             UPDATE app_user
                SET plan = ?,
+                   plans = ?,
                    subscription_expires_at = $expiresAt
              WHERE id = ?
-        ")->execute([$coupon['plan'], $user['id']]);
+        ")->execute([$coupon['plan'], $coupon['plan'], $user['id']]);
 
         // use_count 증가 + 사용자 기록
         $pdo->prepare("UPDATE free_coupons SET use_count = use_count + 1, redeemed_at = " .

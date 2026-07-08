@@ -311,6 +311,17 @@ $app->add(function (Request $request, $handler) {
         //   bypass 제외(raw 헤더 보호) + 세션게이트 부재로 401 → 즉시 sync 불능(cron 시간당 백업만). 핸들러는
         //   authedTenant 세션 self-auth 폴백 보유 → 세션→auth_tenant 주입 게이트 편입이 정합(즉시 동기화 복구).
         || $path === '/v423/connectors/sync' || $path === '/api/v423/connectors/sync'
+        // [272차 B-P1] 세션 self-auth 엔드포인트 4계열이 bypass·세션게이트 어디에도 없어 strict api_key
+        //   미들웨어가 세션토큰(genie_token)을 401 거부 → 실사용자 전원 실패(데모는 catch 폴백에 은폐)였다.
+        //   전부 핸들러가 authedTenant/user_session self-auth + tenant_id 격리 → 세션→auth_tenant 주입 게이트 편입.
+        //   ① 내 쿠폰(UserAdmin::myCoupons, user_session 직접조회) ② 팀 멤버 감사로그(UserAuth::memberLogs, authedTenant)
+        //   ③ 웹푸시 구독/해지(WebPush, 결제 아님이나 익명 차단 바람직) ④ AI 카피/이메일/세그 생성(AiGenerate, authedTenant+isDemo게이트·공용 비용 → 익명 절대차단).
+        || $path === '/v423/coupons/mine' || $path === '/api/v423/coupons/mine'
+        || $path === '/v423/user/my-coupons' || $path === '/api/v423/user/my-coupons'
+        || strpos($path, '/v423/member-logs') === 0 || strpos($path, '/api/v423/member-logs') === 0
+        || strpos($path, '/v426/push/subscribe') === 0 || strpos($path, '/api/v426/push/subscribe') === 0
+        || strpos($path, '/v426/push/unsubscribe') === 0 || strpos($path, '/api/v426/push/unsubscribe') === 0
+        || strpos($path, '/ai/generate/') === 0 || strpos($path, '/api/ai/generate/') === 0
         || strpos($path, '/v1/ad-performance/') === 0 || strpos($path, '/api/v1/ad-performance/') === 0
         || $path === '/performance/meta-ads' || $path === '/api/performance/meta-ads') {
         $bearer = '';

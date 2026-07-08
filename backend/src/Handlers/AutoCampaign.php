@@ -286,7 +286,10 @@ class AutoCampaign
 
             // [현 차수] 일시 실패 딜리버리 → DLQ 적재(campaignId 로 성공 시 allocations 영속·cron 지수백오프 재시도).
             foreach ($retryQueue as $q) {
-                try { AdAdapters::enqueueDeliveryRetry($pdo, $tenant, $id, (string)$q['channel'], (string)$q['camp_ext'], (int)$q['design'], (int)$q['daily'], $settings, (string)$q['error']); } catch (\Throwable $e) {}
+                // [272차 G-P1] 인자수 정합 — 시그니처는 8번째가 string $landing, 9번째 array $settings, 10번째 string $error.
+                //   기존 호출은 $landing 을 누락(9인자)해 $settings 가 landing 자리로 밀리고 required $error 부재 →
+                //   ArgumentCountError 가 매번 발생(감싼 catch 가 삼킴) → DLQ enqueue 전량 무산 → 일시장애 딜리버리 영구 미집행.
+                try { AdAdapters::enqueueDeliveryRetry($pdo, $tenant, $id, (string)$q['channel'], (string)$q['camp_ext'], (int)$q['design'], (int)$q['daily'], $landing, $settings, (string)$q['error']); } catch (\Throwable $e) {}
             }
 
             // [237차 Creative AI Studio] 소재(design_id)↔매체 ad_ext_id 매핑 영속화 → Creative Insights 성과 조인 키

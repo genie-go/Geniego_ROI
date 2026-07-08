@@ -348,10 +348,23 @@ class Paddle
             )->execute([$notificationId, $eventType, $occurredAt, $rawBody]);
         } catch (\Exception $e) {
             if (str_contains($e->getMessage(), 'UNIQUE') || str_contains($e->getMessage(), 'Duplicate entry')) {
-                return self::json($res, ['ok' => true, 'message' => 'Duplicate notification, skipped']);
+                // [272차 H-P1] 멱등 skip 은 이미 '처리완료(processed=1)' 인 경우만. 과거 처리실패(processed=0)로
+                //   남은 이벤트는 Paddle 재전송 시 재처리를 허용한다(기존엔 무조건 skip → 일시적 처리실패가 영구
+                //   미처리 = 유료 사용자 무료 잔존). 아래로 흘려보내 processEvent 재시도.
+                try {
+                    $chk = $db->prepare("SELECT processed FROM paddle_events WHERE notification_id=? LIMIT 1");
+                    $chk->execute([$notificationId]);
+                    if ((int)$chk->fetchColumn() === 1) {
+                        return self::json($res, ['ok' => true, 'message' => 'Duplicate notification, skipped']);
+                    }
+                } catch (\Throwable $e2) {
+                    return self::json($res, ['ok' => true, 'message' => 'Duplicate notification, skipped']);
+                }
+                // processed=0 → 재처리 진행(아래 6단계).
+            } else {
+                error_log('[Paddle] Store error: ' . $e->getMessage());
+                return self::json($res, ['ok' => false, 'error' => 'DB error'], 500);
             }
-            error_log('[Paddle] Store error: ' . $e->getMessage());
-            return self::json($res, ['ok' => false, 'error' => 'DB error'], 500);
         }
 
         // 6. Process event
@@ -404,7 +417,7 @@ class Paddle
 
         match ($eventType) {
             'subscription.created',
-            'subscription.activated'       => self::onSubscriptionActivated($db, $data, $occurredAt),
+            'subscription.activated'       => self::onSubscriptionActivated($db, $data, $occurredAt, $notificationId),
             'subscription.updated'         => self::onSubscriptionUpdated($db, $data, $occurredAt),
             'subscription.canceled'        => self::onSubscriptionCanceled($db, $data, $occurredAt),
             'subscription.paused'          => self::onSubscriptionPaused($db, $data, $occurredAt),
@@ -419,7 +432,7 @@ class Paddle
 
     // ── Event handlers (Paddle Billing v2 payload shape) ─────────────────────
 
-    private static function onSubscriptionActivated(\PDO $db, array $d, string $at): void
+    private static function onSubscriptionActivated(\PDO $db, array $d, string $at, string $notificationId = ''): void
     {
         $subId    = $d['id']                    ?? '';
         $email    = $d['customer_id']           ?? '';   // resolved below
@@ -433,9 +446,23 @@ class Paddle
         $periodEnd = $d['current_billing_period']['ends_at'] ?? null;
 
         // Resolve email from customer metadata or custom_data
+        // [272차 H-P0] 프론트 미전달 대비 다중 폴백: custom_data → 페이로드 내 customer.email → Paddle /customers/{id}
+        //   역해석. 어느 경로로도 못 얻으면 이벤트에 명시 에러 stamp(무음 미승격 방지).
         $email = $d['custom_data']['user_email']
               ?? $d['custom_data']['email']
+              ?? ($d['customer']['email'] ?? '')
               ?? '';
+        if ($email === '' && $custId !== '') {
+            try {
+                $cr = self::paddleApiV2('GET', '/customers/' . rawurlencode($custId));
+                $em = $cr['data']['email'] ?? ($cr['email'] ?? '');
+                if (is_string($em) && $em !== '') $email = $em;
+            } catch (\Throwable $e) { error_log('[Paddle] customer email backfill failed: ' . $e->getMessage()); }
+        }
+        if ($email === '' && $notificationId !== '') {
+            try { $db->prepare("UPDATE paddle_events SET error=? WHERE notification_id=?")
+                     ->execute(['email_unresolved: plan not activated (custom_data.user_email/customer.email/customers-API all empty)', $notificationId]); } catch (\Throwable $e) {}
+        }
 
         // Determine app plan name
         $appPlan = self::resolveAppPlan($priceId, $prodId);
@@ -551,6 +578,14 @@ class Paddle
     {
         $subId = $d['id'] ?? '';
         $email = $d['custom_data']['user_email'] ?? $d['custom_data']['email'] ?? '';
+        // [272차 H-P1] 취소 페이로드는 custom_data 가 비는 경우가 많음 → 활성화 때 저장한 구독행에서 이메일 역해석.
+        if ($email === '' && $subId !== '') {
+            try {
+                $er = $db->prepare("SELECT user_email FROM paddle_subscriptions WHERE paddle_subscription_id=? LIMIT 1");
+                $er->execute([$subId]);
+                $email = (string)($er->fetchColumn() ?: '');
+            } catch (\Throwable $e) {}
+        }
 
         $db->prepare("
             UPDATE paddle_subscriptions SET
@@ -561,6 +596,8 @@ class Paddle
         // Downgrade user to demo
         if ($email) {
             self::setUserPlan($db, $email, 'demo', null);
+            // [272차 H-P1] platform_growth 성장콘솔 MRR/revenue 역분개(비차단·격리 자체지표).
+            try { \Genie\Handlers\AdminGrowth::recordChurn($db, $email, 'canceled'); } catch (\Throwable $e) {}
         }
 
         self::auditLog($subId, 'subscription_canceled', "email=$email at=$at");
@@ -683,6 +720,8 @@ class Paddle
             }
             if ($email) {
                 self::setUserPlan($db, $email, 'demo', null);
+                // [272차 H-P1] full/chargeback 환불 → platform_growth MRR 역분개(partial 은 서비스 유지라 제외).
+                try { \Genie\Handlers\AdminGrowth::recordChurn($db, $email, 'refund_' . $action); } catch (\Throwable $e) {}
             }
             self::auditLog($adjId ?: ($txnId ?: 'unknown'),
                 "refunded_$action",

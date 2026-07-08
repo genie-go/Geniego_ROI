@@ -412,7 +412,11 @@ final class ChannelCreds
             if ($autoSync !== null && ($autoSync['kind'] ?? '') !== 'commerce') {
                 $r = $autoSync['result'] ?? [];
                 $skipped = is_array($r) && !empty($r['skipped']);
-                if (!$skipped) self::stampSyncStatus($pdo, $tenant, $channel, !(is_array($r) && !empty($r['error'])));
+                // [272차 F-P2] 263차 stamp 가 최상위 $r['error'] 키만 봐서 8종 sync_kind 의 실패를 정상으로 오표시했다:
+                //   ad/analytics/cs/esp 는 실패를 channels[ch]['status']='error' 에 매장(최상위 error 없음),
+                //   pg 는 ['ok'=>false,'note'=>...], review/logistics/sns_live 도 error 키 미제공.
+                //   → 실제 계약에 맞춰 ok 판정: 최상위 error 부재 AND ok!==false AND channels[*].status!=='error'.
+                if (!$skipped) self::stampSyncStatus($pdo, $tenant, $channel, self::syncResultOk($r));
             }
         }
 
@@ -538,6 +542,22 @@ final class ChannelCreds
         ]);
     }
 
+    /** [272차 F-P2] 자동sync 결과 객체가 성공인지 판정 — sync_kind 별 반환계약 이질성 흡수.
+     *  실패 신호: 최상위 error 키 / ok===false / channels[*].status==='error'(ad/analytics/cs/esp 는 여기에 매장). */
+    private static function syncResultOk($r): bool
+    {
+        if (!is_array($r)) return true; // 판정불가(비배열)=관측성 보수적으로 ok(무기한 error 낙인 방지)
+        if (!empty($r['error'])) return false;
+        if (array_key_exists('ok', $r) && $r['ok'] === false) return false;
+        $chs = $r['channels'] ?? null;
+        if (is_array($chs)) {
+            foreach ($chs as $c) {
+                if (is_array($c) && (($c['status'] ?? '') === 'error' || !empty($c['error']))) return false;
+            }
+        }
+        return true;
+    }
+
     /** [263차 관측성] 채널 동기화 상태 stamp — 비-commerce 채널 대칭화(commerce 는 ChannelSync self-stamp).
      *  last_synced_at + sync_status(ok/error) 갱신 → UI 연결상태/마지막동기화가 실제 수집결과 반영(무기한 '정상' 방지).
      *  best-effort·데모/익명 skip. commerce sync cron 도 이 헬퍼 재사용 가능. */
@@ -603,6 +623,10 @@ final class ChannelCreds
             // [232차 Sprint2] 글로벌 커머스 실어댑터 9종(ChannelSync fetch) — 거짓 '준비중' 표기 제거.
             'woocommerce', 'magento', 'walmart', 'etsy', 'shopee', 'lazada', 'qoo10', 'yahoo_japan', 'yahoo_jp', 'godomall',
             'stripe', 'tosspayments', 'toss', 'paypal', 'adyen', // PG 정산 실 수집 어댑터(228차 Adyen 추가)
+            // [272차 F-P2] PgSettlement PROVIDERS 에 live=true+fetchLive 실구현인데 화이트리스트 누락으로 '준비중'
+            //   오표시되던 PG 10종 추가(글로벌6+국내4). providerForChannel→syncForTenant 로 저장 즉시 정산 자동수집.
+            'paddle', 'square', 'mollie', 'razorpay', 'klarna', 'checkout', 'checkout_com',
+            'inicis', 'kcp', 'kakaopay', 'naverpay',
         ];
         if (in_array($channel, $list, true)) return true;
         $c = ChannelSync::normalizeChannelKey($channel);

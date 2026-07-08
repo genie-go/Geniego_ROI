@@ -136,6 +136,9 @@ async function detectGeoLang() {
             const byCountry = data && data.country ? COUNTRY_LANG_MAP[data.country] : null;
             if (byCountry && LOCALES[byCountry]) {
                 localStorage.setItem(LS_GEO_KEY, "1");
+                // [272차 P2] 감지 언어 영속 — LS_KEY 미저장 시, navigator 가 미지원 언어인 사용자는
+                //   재방문마다 detectLang() 이 ko 로 폴백(LS_GEO_KEY 로 geo 재감지도 스킵)돼 영구 한국어 회귀.
+                try { localStorage.setItem(LS_KEY, byCountry); } catch (_) {}
                 return byCountry;
             }
             if (data && data.accept_lang && LOCALES[data.accept_lang]) acceptFallback = data.accept_lang;
@@ -153,6 +156,7 @@ async function detectGeoLang() {
             const lang = COUNTRY_LANG_MAP[data.country_code];
             if (lang && LOCALES[lang]) {
                 localStorage.setItem(LS_GEO_KEY, "1"); // 재감지 방지
+                try { localStorage.setItem(LS_KEY, lang); } catch (_) {} // [272차 P2] 감지 언어 영속(재방문 ko 회귀 방지)
                 return lang;
             }
         }
@@ -163,6 +167,7 @@ async function detectGeoLang() {
     // ③ 서버가 파싱한 Accept-Language (최후 약한 폴백)
     if (acceptFallback) {
         localStorage.setItem(LS_GEO_KEY, "1");
+        try { localStorage.setItem(LS_KEY, acceptFallback); } catch (_) {} // [272차 P2] 감지 언어 영속
         return acceptFallback;
     }
     return null;

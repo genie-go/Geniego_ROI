@@ -122,7 +122,7 @@ export default function Onboarding() {
             <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 10, color: 'var(--text-1,#0f172a)' }}>{o('helpTitle', '도움이 필요하신가요?')}</div>
             <div style={{ fontSize: 13, color: 'var(--text-2,#475569)', lineHeight: 1.7, marginBottom: 18 }}>{o('helpDesc', '각 기능의 자세한 사용법은 이용 가이드에서 확인하거나, 우측 상단 도움말을 이용하세요.')}</div>
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-              <a href="/help-center" style={{ padding: '10px 20px', borderRadius: 10, fontWeight: 800, fontSize: 13, color: '#fff', textDecoration: 'none', background: 'linear-gradient(135deg,#4f8ef7,#6366f1)' }}>{o('viewGuide', '이용 가이드')}</a>
+              <a href="/help" style={{ padding: '10px 20px', borderRadius: 10, fontWeight: 800, fontSize: 13, color: '#fff', textDecoration: 'none', background: 'linear-gradient(135deg,#4f8ef7,#6366f1)' }}>{o('viewGuide', '이용 가이드')}</a>
               <a href="/dashboard" style={{ padding: '10px 20px', borderRadius: 10, fontWeight: 700, fontSize: 13, color: 'var(--text-2,#475569)', textDecoration: 'none', background: 'var(--surface-2,#f1f5f9)', border: '1px solid var(--border,#e5e7eb)' }}>{o('goToDashboard', '대시보드로 이동')}</a>
             </div>
           </div>

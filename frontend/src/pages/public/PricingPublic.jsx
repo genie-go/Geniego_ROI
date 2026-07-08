@@ -830,9 +830,14 @@ export default function PricingPublic() {
         try {
             if (!clientToken) throw new Error("Payment system not configured");
             await loadPaddleV2(clientToken);
+            // [272차 H-P0] 로그인 사용자 이메일을 customData.user_email + customer.email 로 전달.
+            //   웹훅(onSubscriptionActivated)은 custom_data.user_email 로만 이메일을 해석하는데 기존엔 미전달 →
+            //   $email='' → app_user.plan 승격/쿠폰발화 블록 전체 스킵(결제 성공해도 free 잔존)이었다.
+            const _payerEmail = (user && user.email) ? String(user.email) : '';
             window.Paddle.Checkout.open({
                 items: [{ priceId, quantity: 1 }],
-                customData: { plan_id: plan.id, cycle_months: months, seat_tier: seatKey },
+                customData: { plan_id: plan.id, cycle_months: months, seat_tier: seatKey, ...(_payerEmail ? { user_email: _payerEmail } : {}) },
+                ...(_payerEmail ? { customer: { email: _payerEmail } } : {}),
                 settings: {
                     displayMode: "overlay",
                     theme: isAppContext ? "light" : "dark",

@@ -310,6 +310,7 @@ final class AdAdapters
     public static function activate(PDO $pdo, string $tenant, string $channel, string $externalId): array
     {
         if (!self::executionEnabled() || $externalId === '') return ['ok' => false, 'status' => 'skipped'];
+        $channel = self::normConnKey($channel); // [272차 G-P2] 진입부 정규화 — 다른 4진입점(create/pause/updateBudget/buildDelivery)과 대칭. raw short key 유입 시 unsupported 낙하 방지.
         try {
             switch ($channel) {
                 case 'meta_ads':        return self::metaSetStatus($pdo, $tenant, $externalId, 'ACTIVE');
@@ -333,6 +334,7 @@ final class AdAdapters
     public static function activateDelivery(PDO $pdo, string $tenant, string $channel, string $campExtId, string $adsetExtId = '', string $adExtId = ''): array
     {
         if (!self::executionEnabled()) return ['ok' => false, 'status' => 'skipped'];
+        $channel = self::normConnKey($channel); // [272차 G-P2] 진입부 정규화(대칭성 SSOT)
         $r = [];
         try {
             switch ($channel) {
