@@ -62,6 +62,40 @@ $app->add(function (Request $request, $handler) use ($GENIE_ALLOWED_ORIGINS) {
 $app->add(function (Request $request, $handler) {
     $path = $request->getUri()->getPath();
 
+    // [272차 대행사(Agency)] ① 대행사 자체 엔드포인트(/agency/*) = 핸들러 self-auth(agt_ 세션·별도 네임스페이스).
+    //   login 은 무토큰 공개, me/clients/switch/brand 등은 핸들러가 agt_ 토큰 자체검증. api_key 미들웨어 우회.
+    if (preg_match('#^(/api)?/agency(/|$)#', $path)) {
+        return $handler->handle($request);
+    }
+    // [272차 대행사(Agency)] ② agt_ 토큰 = 대행사가 '전환한 클라이언트'의 데이터에 접근(기존 핸들러 재사용·완전 동기화).
+    //   ★은행급 격리: 매 요청 agency_client_link.status='approved' 재검증(클라이언트 철회 즉시 403 = fail-closed),
+    //   클라이언트 tenant 를 링크에서 서버도출(요청 헤더 위조 불가), 스코프 write 미허용 시 변경메서드 차단(읽기전용 위임).
+    $agBearer = '';
+    $agAh = $request->getHeaderLine('Authorization');
+    if (stripos($agAh, 'Bearer ') === 0) { $agBearer = trim(substr($agAh, 7)); }
+    if ($agBearer === '') { $agqp = $request->getQueryParams(); $agBearer = (string)($agqp['agency_token'] ?? ''); }
+    if (strncmp($agBearer, 'agt_', 4) === 0) {
+        $agCtx = \Genie\Handlers\AgencyPortal::resolveAccessContext($request);
+        if ($agCtx === null) {
+            $body = json_encode(['ok' => false, 'error' => '대행사 접근 권한이 없습니다(클라이언트 승인 필요 또는 철회됨).', 'code' => 'AGENCY_NOT_AUTHORIZED'], JSON_UNESCAPED_UNICODE);
+            $r = new \Slim\Psr7\Response(); $r->getBody()->write($body);
+            return $r->withHeader('Content-Type', 'application/json')->withStatus(403);
+        }
+        $agMethod = strtoupper($request->getMethod());
+        if (empty($agCtx['write']) && in_array($agMethod, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
+            $body = json_encode(['ok' => false, 'error' => '읽기 전용으로 위임된 접근입니다(쓰기 권한 미승인).', 'code' => 'AGENCY_READ_ONLY'], JSON_UNESCAPED_UNICODE);
+            $r = new \Slim\Psr7\Response(); $r->getBody()->write($body);
+            return $r->withHeader('Content-Type', 'application/json')->withStatus(403);
+        }
+        // 클라이언트 tenant 서버바인딩 주입(위조불가) + 최소권한 role(쓰기허용=analyst·아니면 viewer).
+        $request = $request
+            ->withAttribute('auth_tenant', (string)$agCtx['tenant'])
+            ->withAttribute('auth_role', empty($agCtx['write']) ? 'viewer' : 'analyst')
+            ->withAttribute('agency_id', (int)$agCtx['agency_id'])
+            ->withHeader('X-Tenant-Id', (string)$agCtx['tenant']);
+        return $handler->handle($request);
+    }
+
     // Public paths — no API key required
     // Note: when using Alias /api, REQUEST_URI is /api/auth/login (not /auth/login)
     if ($path === '/'
@@ -316,6 +350,8 @@ $app->add(function (Request $request, $handler) {
         //   전부 핸들러가 authedTenant/user_session self-auth + tenant_id 격리 → 세션→auth_tenant 주입 게이트 편입.
         //   ① 내 쿠폰(UserAdmin::myCoupons, user_session 직접조회) ② 팀 멤버 감사로그(UserAuth::memberLogs, authedTenant)
         //   ③ 웹푸시 구독/해지(WebPush, 결제 아님이나 익명 차단 바람직) ④ AI 카피/이메일/세그 생성(AiGenerate, authedTenant+isDemo게이트·공용 비용 → 익명 절대차단).
+        // [272차 대행사] 클라이언트(테넌트 owner) 승인 게이트 — AgencyPortal 이 authedTenant+isTenantOwner self-auth·격리.
+        || strpos($path, '/v423/agency-access/') === 0 || strpos($path, '/api/v423/agency-access/') === 0
         || $path === '/v423/coupons/mine' || $path === '/api/v423/coupons/mine'
         || $path === '/v423/user/my-coupons' || $path === '/api/v423/user/my-coupons'
         || strpos($path, '/v423/member-logs') === 0 || strpos($path, '/api/v423/member-logs') === 0

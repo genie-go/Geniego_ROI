@@ -121,6 +121,8 @@ const DemandForecast = lazy(() => import('./pages/DemandForecast.jsx'));
 const ReturnsPortal = lazy(() => import('./pages/ReturnsPortal.jsx'));
 const SupplyChain = lazy(() => import('./pages/SupplyChain.jsx'));
 const SupplierPortal = lazy(() => import('./pages/SupplierPortal.jsx'));
+const AgencyConsole = lazy(() => import('./pages/AgencyConsole.jsx')); // [272차] 대행사 멀티클라이언트 콘솔(공개·별도 agt_ 로그인)
+const AgencyAccess = lazy(() => import('./pages/AgencyAccess.jsx'));   // [272차] 클라이언트 대행사 접근 승인 게이트(인증)
 const MyCoupons = lazy(() => import('./pages/MyCoupons.jsx'));
 const RulesEditorV2 = lazy(() => import('./pages/RulesEditorV2.jsx'));
 const AIRecommendTab = lazy(() => import('./pages/AIRecommendTab.jsx'));
@@ -551,6 +553,7 @@ function AppLayout() {
                       <Route path="/supply-chain" element={<SupplyChain />} />
                       <Route path="/supplier-portal" element={<SupplierPortal />} />
                       <Route path="/my-coupons" element={<MyCoupons />} />
+                      <Route path="/agency-access" element={<AgencyAccess />} />{/* [272차] 클라이언트 대행사 접근 승인 */}
                       <Route path="/rules-editor-v2" element={<RulesEditorV2 />} />
                       <Route path="/ai-recommend" element={<AIRecommendTab />} />
                       <Route path="/case-study" element={<CaseStudy />} />
@@ -732,6 +735,8 @@ export default function App() {
                 <Route path="/login" element={<LoginRoute />} />
                 {/* 212차 #3-B: 파트너(매입처/물류처/창고처) 전용 포털 — 본사 인증과 분리된 독립 페이지 */}
                 <Route path="/partner" element={<PartnerPortal />} />
+                {/* [272차] 대행사(Agency) 멀티클라이언트 콘솔 — 본사 인증과 분리된 독립 페이지(agt_ 세션) */}
+                <Route path="/agency" element={<AgencyConsole />} />
                 {/* [현 차수] 라이브 게스트/코호스트 송출 참여(초대 토큰, 계정 불요) */}
                 <Route path="/live-guest" element={<LiveGuest />} />
                 <Route path="/*" element={

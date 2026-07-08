@@ -25,8 +25,15 @@ export async function getJson(path) {
 }
 
 
+/** [272차 대행사] 인증 토큰 해석 — 대행사 콘솔이 클라이언트로 전환한 상태(agt_ 토큰 보유)면 그 토큰을 사용해
+ *  기존 전 앱(대시보드/캠페인/어트리뷰션 등)이 그대로 '클라이언트 스코프'로 동작(서버가 링크에서 tenant 도출·
+ *  매요청 승인 재검증). 대행사 로그아웃 시 genie_agency_token 제거 → 일반 세션 복귀. 데모는 미적용(격리). */
+export function agencyToken() {
+  try { const at = localStorage.getItem("genie_agency_token"); if (!IS_DEMO && at && at.indexOf("agt_") === 0) return at; } catch (e) {}
+  return "";
+}
 function defaultHeaders() {
-  const token = localStorage.getItem(TOKEN_KEY) || localStorage.getItem("accessToken") || localStorage.getItem("genie_auth_token") || "";
+  const token = agencyToken() || localStorage.getItem(TOKEN_KEY) || localStorage.getItem("accessToken") || localStorage.getItem("genie_auth_token") || "";
   const h = {
     "Content-Type": "application/json",
     "X-Tenant-ID": IS_DEMO ? "demo" : (localStorage.getItem("tenantId") || ""),

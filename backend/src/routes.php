@@ -243,6 +243,26 @@ return function (App $app): void {
         'GET /partner/data'                    => 'Genie\\Handlers\\PartnerPortal::data',
         'POST /partner/action'                 => 'Genie\\Handlers\\PartnerPortal::action',
 
+        // [272차 대행사(Agency) 멀티클라이언트 콘솔] — 플랫폼 최고관리자: 대행사 계정 발급/관리
+        'GET /auth/agencies'                   => 'Genie\\Handlers\\AgencyPortal::listAccounts',
+        'POST /auth/agencies'                  => 'Genie\\Handlers\\AgencyPortal::createAccount',
+        'PUT /auth/agencies/{id}'              => 'Genie\\Handlers\\AgencyPortal::updateAccount',
+        'DELETE /auth/agencies/{id}'           => 'Genie\\Handlers\\AgencyPortal::deleteAccount',
+        // 대행사 포털(agt_ 토큰 자가인증·별도 세션)
+        'POST /agency/login'                   => 'Genie\\Handlers\\AgencyPortal::login',
+        'POST /agency/logout'                  => 'Genie\\Handlers\\AgencyPortal::logout',
+        'GET /agency/me'                       => 'Genie\\Handlers\\AgencyPortal::me',
+        'GET /agency/clients'                  => 'Genie\\Handlers\\AgencyPortal::clients',
+        'POST /agency/clients/invite'          => 'Genie\\Handlers\\AgencyPortal::inviteClient',
+        'POST /agency/clients/{id}/switch'     => 'Genie\\Handlers\\AgencyPortal::switchClient',
+        'POST /agency/clients/exit'            => 'Genie\\Handlers\\AgencyPortal::exitClient',
+        'GET /agency/brand'                    => 'Genie\\Handlers\\AgencyPortal::brand',
+        'PUT /agency/brand'                    => 'Genie\\Handlers\\AgencyPortal::saveBrand',
+        // 클라이언트(테넌트 owner) 승인 게이트 — 세션 self-auth
+        'GET /v423/agency-access/requests'         => 'Genie\\Handlers\\AgencyPortal::myAgencyRequests',
+        'POST /v423/agency-access/{id}/approve'    => 'Genie\\Handlers\\AgencyPortal::approveAgency',
+        'POST /v423/agency-access/{id}/revoke'     => 'Genie\\Handlers\\AgencyPortal::revokeAgency',
+
         // ── 라이브 커머스(Live Commerce) — 208차 신설(세션/상품/구매/채팅/연동/SSE) ────
         'GET /v425/live/sessions'                      => 'Genie\\Handlers\\LiveCommerce::listSessions',
         'POST /v425/live/sessions'                     => 'Genie\\Handlers\\LiveCommerce::saveSession',
@@ -2940,6 +2960,23 @@ return function (App $app): void {
     $register('GET',    '/partner/me');
     $register('GET',    '/partner/data');
     $register('POST',   '/partner/action');
+    // [272차 대행사(Agency)] 관리자 발급 + 대행사 포털 + 클라이언트 승인 게이트
+    $register('GET',    '/auth/agencies');
+    $register('POST',   '/auth/agencies');
+    $register('PUT',    '/auth/agencies/{id}');
+    $register('DELETE', '/auth/agencies/{id}');
+    $register('POST',   '/agency/login');
+    $register('POST',   '/agency/logout');
+    $register('GET',    '/agency/me');
+    $register('GET',    '/agency/clients');
+    $register('POST',   '/agency/clients/invite');
+    $register('POST',   '/agency/clients/{id}/switch');
+    $register('POST',   '/agency/clients/exit');
+    $register('GET',    '/agency/brand');
+    $register('PUT',    '/agency/brand');
+    $register('GET',    '/v423/agency-access/requests');
+    $register('POST',   '/v423/agency-access/{id}/approve');
+    $register('POST',   '/v423/agency-access/{id}/revoke');
     // 라이브 커머스(Live Commerce) — 208차
     $register('GET',    '/v425/live/sessions');
     $register('POST',   '/v425/live/sessions');
