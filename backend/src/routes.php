@@ -265,6 +265,8 @@ return function (App $app): void {
         'POST /data-sources'                       => 'Genie\\Handlers\\DataPlatform::registerSource',
         'GET /data-sources/subscriber-owned'       => 'Genie\\Handlers\\DataPlatform::subscriberOwned',
         'GET /data-sources/external-channels'      => 'Genie\\Handlers\\DataPlatform::externalChannels',
+        'GET /data-quality'                        => 'Genie\\Handlers\\DataPlatform::dataQuality',
+        'GET /data-lineage'                        => 'Genie\\Handlers\\DataPlatform::dataLineage',
         // 클라이언트(테넌트 owner) 승인 게이트 — 세션 self-auth
         'GET /v423/agency-access/requests'         => 'Genie\\Handlers\\AgencyPortal::myAgencyRequests',
         'POST /v423/agency-access/{id}/approve'    => 'Genie\\Handlers\\AgencyPortal::approveAgency',
@@ -2991,6 +2993,8 @@ return function (App $app): void {
     $register('POST',   '/data-sources');
     $register('GET',    '/data-sources/subscriber-owned');
     $register('GET',    '/data-sources/external-channels');
+    $register('GET',    '/data-quality');
+    $register('GET',    '/data-lineage');
     // 라이브 커머스(Live Commerce) — 208차
     $register('GET',    '/v425/live/sessions');
     $register('POST',   '/v425/live/sessions');

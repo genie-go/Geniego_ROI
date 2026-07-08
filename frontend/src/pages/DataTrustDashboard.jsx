@@ -1,9 +1,10 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import BeginnerGuide from "../components/BeginnerGuide.jsx";
 import { GUIDE } from "../lib/guideSpecs.js";
 import { IS_DEMO } from '../utils/demoEnv';
 import { useI18n } from '../i18n';
 import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
+import { getJson } from '../services/apiClient.js'; // [272차] 실 데이터 품질/신뢰도 배선
 
 /* ═══════════════════════════════════════════════════════════════
    DataTrustDashboard — 데이터 신뢰도 (Enterprise)
@@ -27,6 +28,14 @@ export default function DataTrustDashboard() {
   const tr = (k, fb) => t(`dataTrust.${k}`, fb);
   const [activeTab, setActiveTab] = useState(0);
   const { connectors } = useConnectorSync?.() || { connectors: [] };
+  // [272차] 서버 실 데이터 품질/신뢰도(레코드 스캔·신선도·규칙) — 하드코딩 pass:true 셸 대체.
+  const [trust, setTrust] = useState(null);
+  useEffect(() => {
+    if (IS_DEMO) return; // 데모는 샘플 유지(격리)
+    let alive = true;
+    getJson('/api/data-quality').then(d => { if (alive && d && d.ok) setTrust(d); }).catch(() => {});
+    return () => { alive = false; };
+  }, []);
 
   // ★ 격리: 데모=샘플, 운영=실제 커넥터에서 파생(빈 상태 가능, 가짜숫자 없음)
   const sources = useMemo(() => {
@@ -37,22 +46,25 @@ export default function DataTrustDashboard() {
 
   const connected = sources.filter(s => s.status === 'connected').length;
   const issues = sources.filter(s => s.status !== 'connected').length;
-  // 신뢰도 점수: 연결 비율 + 완전성(데이터 있을 때만) — 소스 없으면 0
+  // 신뢰도 점수: [272차] 서버 실 reliability_score 우선(레코드 완전성·신선도·오류 반영), 없으면 커넥터 연결비율 폴백.
   const score = useMemo(() => {
+    if (trust && typeof trust.reliability_score === 'number') return trust.reliability_score;
     if (!sources.length) return 0;
     const withComp = sources.filter(s => typeof s.completeness === 'number');
     const compAvg = withComp.length ? withComp.reduce((a, s) => a + s.completeness, 0) / withComp.length : (connected / sources.length) * 100;
     const connRatio = (connected / sources.length) * 100;
     return Math.round((compAvg * 0.6 + connRatio * 0.4) * 10) / 10;
-  }, [sources, connected]);
+  }, [sources, connected, trust]);
 
-  // 품질 규칙 — 제품 정의(설정). 데이터에서 통과/위반 파생.
-  const RULES = [
-    { key: 'ruleFreshness', target: tr('ruleFreshnessT', '데이터 신선도 < 24h'), pass: sources.length ? sources.every(s => s.freshness == null || s.freshness < 1440) : null },
-    { key: 'ruleCompleteness', target: tr('ruleCompletenessT', '필드 완전성 ≥ 90%'), pass: sources.length ? sources.every(s => s.completeness == null || s.completeness >= 90) : null },
-    { key: 'ruleDup', target: tr('ruleDupT', '중복 레코드 0건'), pass: sources.length ? true : null },
-    { key: 'ruleSchema', target: tr('ruleSchemaT', '스키마 일치'), pass: sources.length ? true : null },
-  ];
+  // 품질 규칙 — [272차] 서버 실 규칙(레코드 스캔 결과) 우선. 없으면 제품 정의 셸(파생).
+  const RULES = (trust && Array.isArray(trust.rules) && trust.rules.length)
+    ? trust.rules.map(r => ({ key: r.key, target: r.label, pass: r.pass }))
+    : [
+      { key: 'ruleFreshness', target: tr('ruleFreshnessT', '데이터 신선도 < 24h'), pass: sources.length ? sources.every(s => s.freshness == null || s.freshness < 1440) : null },
+      { key: 'ruleCompleteness', target: tr('ruleCompletenessT', '필드 완전성 ≥ 90%'), pass: sources.length ? sources.every(s => s.completeness == null || s.completeness >= 90) : null },
+      { key: 'ruleDup', target: tr('ruleDupT', '중복 레코드 0건'), pass: sources.length ? true : null },
+      { key: 'ruleSchema', target: tr('ruleSchemaT', '스키마 일치'), pass: sources.length ? true : null },
+    ];
   // 컴플라이언스 — 제품 정의 체크리스트
   const COMPLIANCE = [
     { key: 'gdpr', label: tr('compGdpr', 'GDPR 동의 관리'), ok: true },

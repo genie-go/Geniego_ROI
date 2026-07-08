@@ -355,6 +355,8 @@ $app->add(function (Request $request, $handler) {
         // [272차 통합 데이터 플랫폼] 구독사 프로필·데이터 소스 레지스트리 — DataPlatform 이 auth_tenant/세션 self-auth·tenant 격리.
         || strpos($path, '/data/business-profile') === 0 || strpos($path, '/api/data/business-profile') === 0
         || strpos($path, '/data-sources') === 0 || strpos($path, '/api/data-sources') === 0
+        || strpos($path, '/data-quality') === 0 || strpos($path, '/api/data-quality') === 0
+        || strpos($path, '/data-lineage') === 0 || strpos($path, '/api/data-lineage') === 0
         || $path === '/v423/coupons/mine' || $path === '/api/v423/coupons/mine'
         || $path === '/v423/user/my-coupons' || $path === '/api/v423/user/my-coupons'
         || strpos($path, '/v423/member-logs') === 0 || strpos($path, '/api/v423/member-logs') === 0

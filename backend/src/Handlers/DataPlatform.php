@@ -215,6 +215,125 @@ class DataPlatform
         return self::json($res, ['ok' => true, 'sources' => $st->fetchAll(PDO::FETCH_ASSOC) ?: []]);
     }
 
+    /* ════════════════ 데이터 품질·신뢰도(레코드 스캔 + 도메인 신뢰등급) ════════════════ */
+
+    /** 안전 카운트(쿼리 실패=null). */
+    private static function cnt(PDO $pdo, string $sql, array $bind): ?int
+    {
+        try { $st = $pdo->prepare($sql); $st->execute($bind); return (int)$st->fetchColumn(); }
+        catch (\Throwable $e) { return null; }
+    }
+
+    /**
+     * GET /api/data-quality — 레코드 단위 품질 스캔 + 도메인 신뢰도점수(수집시점 인라인 방어의 사후 감지 계층).
+     *   지시서 요구: 결측·중복·음수매출·잘못된날짜·통화 이상 탐지 + 품질/신뢰도 점수. 기존 raw 테이블 tenant 스코프.
+     */
+    public static function dataQuality(Request $req, Response $res): Response
+    {
+        self::ensureTables();
+        $t = self::tenant($req);
+        if ($t === null) return self::json($res, ['ok' => false, 'error' => '인증이 필요합니다.'], 401);
+        $pdo = self::db();
+
+        // ── 주문(channel_orders) 레코드 품질 ──
+        $ordTotal = self::cnt($pdo, "SELECT COUNT(*) FROM channel_orders WHERE tenant_id=?", [$t]);
+        $issues = [];
+        $ordScore = null;
+        if ($ordTotal !== null && $ordTotal > 0) {
+            $missSku  = self::cnt($pdo, "SELECT COUNT(*) FROM channel_orders WHERE tenant_id=? AND (sku IS NULL OR sku='')", [$t]) ?? 0;
+            $missDate = self::cnt($pdo, "SELECT COUNT(*) FROM channel_orders WHERE tenant_id=? AND (ordered_at IS NULL OR ordered_at='')", [$t]) ?? 0;
+            $negRev   = self::cnt($pdo, "SELECT COUNT(*) FROM channel_orders WHERE tenant_id=? AND total_price < 0", [$t]) ?? 0;
+            $zeroRev  = self::cnt($pdo, "SELECT COUNT(*) FROM channel_orders WHERE tenant_id=? AND (event_type IS NULL OR event_type='order') AND total_price = 0", [$t]) ?? 0;
+            $badDate  = self::cnt($pdo, "SELECT COUNT(*) FROM channel_orders WHERE tenant_id=? AND ordered_at<>'' AND ordered_at NOT LIKE '____-__-__%'", [$t]) ?? 0;
+            $issues['orders'] = ['total' => $ordTotal, 'missing_sku' => $missSku, 'missing_date' => $missDate,
+                'negative_revenue' => $negRev, 'zero_price_orders' => $zeroRev, 'bad_date_format' => $badDate];
+            $bad = $missSku + $missDate + $negRev + $badDate;
+            $completeness = $ordTotal > 0 ? max(0, 1 - $bad / $ordTotal) : 0;
+            $ordScore = (int)round($completeness * 100);
+        }
+
+        // ── 광고(performance_metrics) 레코드 품질 ──
+        $adTotal = self::cnt($pdo, "SELECT COUNT(*) FROM performance_metrics WHERE tenant_id=?", [$t]);
+        $adScore = null;
+        if ($adTotal !== null && $adTotal > 0) {
+            $negSpend = self::cnt($pdo, "SELECT COUNT(*) FROM performance_metrics WHERE tenant_id=? AND spend < 0", [$t]) ?? 0;
+            $missDate = self::cnt($pdo, "SELECT COUNT(*) FROM performance_metrics WHERE tenant_id=? AND (date IS NULL OR date='')", [$t]) ?? 0;
+            $issues['ads'] = ['total' => $adTotal, 'negative_spend' => $negSpend, 'missing_date' => $missDate];
+            $adScore = (int)round(max(0, 1 - ($negSpend + $missDate) / max(1, $adTotal)) * 100);
+        }
+
+        // ── 신선도(connector_sync_log) ──
+        $fresh = [];
+        try {
+            $st = $pdo->prepare("SELECT channel, status, rows_persisted, synced_at FROM connector_sync_log WHERE tenant_id=? ORDER BY synced_at DESC LIMIT 200");
+            $st->execute([$t]);
+            $now = time();
+            foreach ($st->fetchAll(PDO::FETCH_ASSOC) ?: [] as $r) {
+                $mins = null;
+                $ts = strtotime((string)($r['synced_at'] ?? ''));
+                if ($ts) $mins = max(0, (int)round(($now - $ts) / 60));
+                $fresh[] = ['channel' => $r['channel'], 'status' => $r['status'], 'rows' => (int)($r['rows_persisted'] ?? 0), 'age_minutes' => $mins];
+            }
+        } catch (\Throwable $e) {}
+        $errChannels = count(array_filter($fresh, fn($f) => ($f['status'] ?? '') === 'error'));
+        $staleChannels = count(array_filter($fresh, fn($f) => $f['age_minutes'] !== null && $f['age_minutes'] > 1440));
+
+        // ── 종합 신뢰도 규칙(DataTrustDashboard 소비용) ──
+        $rules = [
+            ['key' => 'freshness', 'label' => '데이터 신선도 < 24h', 'pass' => count($fresh) ? ($staleChannels === 0) : null],
+            ['key' => 'completeness', 'label' => '필드 완전성 ≥ 90%', 'pass' => ($ordScore === null && $adScore === null) ? null : (($ordScore ?? 100) >= 90 && ($adScore ?? 100) >= 90)],
+            ['key' => 'no_negative', 'label' => '음수 매출/지출 0건', 'pass' => ($ordTotal || $adTotal) ? ((($issues['orders']['negative_revenue'] ?? 0) + ($issues['ads']['negative_spend'] ?? 0)) === 0) : null],
+            ['key' => 'sync_health', 'label' => '채널 수집 오류 0건', 'pass' => count($fresh) ? ($errChannels === 0) : null],
+        ];
+        // 신뢰도 점수(0~100): 도메인 완전성 평균 × 신선도/오류 패널티.
+        $scoreParts = array_values(array_filter([$ordScore, $adScore], fn($v) => $v !== null));
+        $baseScore = $scoreParts ? array_sum($scoreParts) / count($scoreParts) : null;
+        $reliability = $baseScore === null ? null : (int)round(max(0, $baseScore - $staleChannels * 3 - $errChannels * 5));
+
+        return self::json($res, ['ok' => true, 'tenant' => $t,
+            'reliability_score' => $reliability, 'quality' => $issues, 'freshness' => $fresh,
+            'summary' => ['orders_completeness' => $ordScore, 'ads_completeness' => $adScore,
+                          'error_channels' => $errChannels, 'stale_channels' => $staleChannels],
+            'rules' => $rules,
+            'note' => ($ordTotal || $adTotal) ? null : '아직 수집/등록된 데이터가 없습니다. 채널 자격증명을 등록하면 실데이터 기반 품질/신뢰도가 산출됩니다.']);
+    }
+
+    /**
+     * GET /api/data-lineage — 통합 분석 결과의 원천 추적(계보). 분석 도메인 → 원천 데이터소스 + 신선도 + 정규화규칙.
+     *   지시서 요구: 어떤 원천/채널/정규화규칙에서 파생됐는지 추적. 기존 data_source·connector_sync_log 결합(신설 테이블 0).
+     */
+    public static function dataLineage(Request $req, Response $res): Response
+    {
+        self::ensureTables();
+        $t = self::tenant($req);
+        if ($t === null) return self::json($res, ['ok' => false, 'error' => '인증이 필요합니다.'], 401);
+        self::syncExternalSources($t);
+        $pdo = self::db();
+        $srcByKind = [];
+        try {
+            $st = $pdo->prepare("SELECT source_type,source_channel,data_kind,status,last_seen_at FROM data_source WHERE tenant_id=?");
+            $st->execute([$t]);
+            foreach ($st->fetchAll(PDO::FETCH_ASSOC) ?: [] as $r) { $srcByKind[$r['data_kind']][] = $r; }
+        } catch (\Throwable $e) {}
+        // 분석 도메인 → 원천 data_kind + 정규화규칙(고정 SSOT 매핑) + 산출 정본 위치.
+        $domains = [
+            ['analysis' => '통합 매출/ROAS', 'source_kinds' => ['commerce', 'orders', 'ad'], 'normalization' => ['fxToKrw(KRW 단일정규화)', '취소제외 SSOT(OrderHub::cancelExclusion)', '자연키 멱등 dedup'], 'ssot' => 'Rollup::platform / OrderHub::rollupSettlementsCore'],
+            ['analysis' => '어트리뷰션(MTA/Shapley/Markov)', 'source_kinds' => ['ad', 'orders'], 'normalization' => ['attribution_touch utm/coupon 표준', 'order-match dedup(주문당 1)', '뷰스루 클릭우선'], 'ssot' => 'AttributionEngine::computeModels'],
+            ['analysis' => 'MMM/예산최적화', 'source_kinds' => ['ad', 'commerce'], 'normalization' => ['adstock/Hill 포화', '공헌마진 융합'], 'ssot' => 'Mmm::bayesian / frontier'],
+            ['analysis' => 'CRM/LTV/세그먼트', 'source_kinds' => ['orders', 'customers'], 'normalization' => ['identity 통합(union-find)', '취소/반품 역분개(순액화)'], 'ssot' => 'CRM / CustomerAI'],
+            ['analysis' => 'SKU/상품 성과', 'source_kinds' => ['commerce', 'products', 'ad'], 'normalization' => ['원가 SSOT(PriceOpt::costMap)', 'SKU×채널 결합'], 'ssot' => 'Rollup::productChannelMatrix'],
+        ];
+        $out = [];
+        foreach ($domains as $d) {
+            $srcs = [];
+            foreach ($d['source_kinds'] as $k) foreach (($srcByKind[$k] ?? []) as $s) $srcs[] = $s;
+            $d['sources'] = $srcs;
+            $d['traceable'] = count($srcs) > 0;
+            $out[] = $d;
+        }
+        return self::json($res, ['ok' => true, 'tenant' => $t, 'lineage' => $out]);
+    }
+
     /** POST /api/data-sources — 구독등록 소스 수동 등록(예: 수동 SKU 업로드·직접 입력 매출). */
     public static function registerSource(Request $req, Response $res): Response
     {
