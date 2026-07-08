@@ -7,6 +7,11 @@ import React, { useCallback, useEffect, useState } from "react";
 
 const AGT_KEY = "genie_agency_token";
 const base = import.meta.env.VITE_API_BASE || "";
+// [272차 전기능 브릿지] 대행사가 클라이언트로 전환하면 앱 인증 컨텍스트(TOKEN_KEY/USER_KEY)를 agt_ 세션으로
+//   심어 전 앱을 클라이언트 스코프로 운영한다. 키 접두는 빌드별(데모/운영) 정합.
+const _IS_DEMO = import.meta.env.VITE_DEMO_MODE === 'true';
+const APP_TOKEN_KEY = _IS_DEMO ? "demo_genie_token" : "genie_token";
+const APP_USER_KEY = _IS_DEMO ? "demo_genie_user" : "genie_user";
 
 async function agFetch(path, { method = "GET", body, token } = {}) {
   const h = { "Content-Type": "application/json" };
@@ -62,6 +67,8 @@ export default function AgencyConsole() {
   };
   const doLogout = async () => {
     try { await agFetch("/api/agency/logout", { method: "POST" }); } catch (e) {}
+    // 대행사 세션 + 전기능 브릿지 앱 세션 모두 정리(잔존 방지).
+    try { localStorage.removeItem(APP_TOKEN_KEY); localStorage.removeItem(APP_USER_KEY); localStorage.removeItem("genie_agency_client"); } catch (e) {}
     persist(""); setAgency(null); setClients([]); setActive(null); setPortfolio(null);
   };
   const doInvite = async (e) => {
@@ -78,7 +85,6 @@ export default function AgencyConsole() {
     setErr(""); setLoading(true); setActive(null);
     try {
       await agFetch(`/api/agency/clients/${link.id}/switch`, { method: "POST" });
-      // 전환 후: 서버가 세션 active_client 를 설정 → agt_ 토큰으로 클라이언트 데이터 조회.
       const [pnl, ordStats] = await Promise.all([
         agFetch("/api/v424/pnl").catch(() => null),
         agFetch("/api/v424/orderhub/orders/stats").catch(() => null),
@@ -86,6 +92,25 @@ export default function AgencyConsole() {
       setActive({ link, pnl, ordStats });
     } catch (e2) { setErr(String(e2.message || e2)); }
     finally { setLoading(false); }
+  };
+
+  // [272차 전기능 브릿지] 클라이언트로 전환 후 GeniegoROI 전 기능(대시보드/캠페인/CRM/WMS 등)을
+  //   클라이언트 스코프로 운영. agt_ 세션을 앱 인증 컨텍스트로 심고 전 앱 진입(권한=클라이언트 승인 스코프).
+  const operateClient = async (link) => {
+    setErr(""); setLoading(true);
+    try {
+      await agFetch(`/api/agency/clients/${link.id}/switch`, { method: "POST" });
+      const synthUser = {
+        id: (agency && agency.id) || 0, email: (agency && agency.login_id) || "agency",
+        name: (link.client_name || link.client_email) + " (대행 운영)", company: agency && agency.name,
+        tenant_id: link.client_tenant_id, plan: "pro", plans: "pro",
+        _agencyActing: true, _agencyClientName: link.client_name || link.client_email,
+      };
+      localStorage.setItem(APP_TOKEN_KEY, token);              // token=agt_ → apiClient 가 클라이언트 스코프로 전송
+      localStorage.setItem(APP_USER_KEY, JSON.stringify(synthUser));
+      localStorage.setItem("genie_agency_client", JSON.stringify({ name: link.client_name || link.client_email, tenant: link.client_tenant_id, write: !!(link.scope && link.scope.write) }));
+      window.location.href = "/dashboard";
+    } catch (e2) { setErr(String(e2.message || e2)); setLoading(false); }
   };
 
   // 포트폴리오: 승인된 전 클라이언트 KPI 합산(순차 전환·읽기).
@@ -173,7 +198,8 @@ export default function AgencyConsole() {
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <span style={{ background: b.bg, color: b.fg, padding: "3px 10px", borderRadius: 999, fontSize: 12, fontWeight: 700 }}>{b.label}</span>
-                {c.status === "approved" && <button onClick={() => openClient(c)} style={btn("#4f8ef7")}>열기</button>}
+                {c.status === "approved" && <button onClick={() => openClient(c)} style={btn("#64748b")}>요약</button>}
+                {c.status === "approved" && <button onClick={() => operateClient(c)} style={btn("#4f8ef7")}>전기능 운영 →</button>}
               </div>
             </div>
           );

@@ -307,6 +307,10 @@ export function AuthProvider({ children }) {
         if (!token) return;
         // 로컬 오프라인 토큰 (서버 없는 개발환경) → 서버 호출 건너뜀
         if (token.startsWith("local_admin_") || token.startsWith("local__")) return;
+        // [272차 대행사 전기능 브릿지] agt_ 토큰(대행사 세션)은 user_session 이 아니므로 /auth/me 를 호출하지 않는다.
+        //   대행사가 클라이언트로 전환하면 합성 user(클라이언트 스코프)로 전 앱을 운영하며, 데이터는 미들웨어가
+        //   agt_→클라이언트 tenant 주입으로 격리한다. 일반 사용자는 agt_ 를 갖지 않아 이 경로 무관(회귀0).
+        if (token.startsWith("agt_")) return;
         (async () => {
             try {
                 const r = await fetch(`${API}/auth/me?token=${token}`, {
