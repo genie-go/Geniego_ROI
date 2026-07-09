@@ -909,12 +909,16 @@ final class Connectors
             try {
                 // [228차 일관성 P0] ★order당 dedup — attribution_result 에 동일 order 의 order-match 중복행이 있어도
                 //   이중계산 방지(내부 GROUP BY ar.order_id 로 주문당 1행 → 외부에서 채널 집계). COUNT=distinct 전환수.
+                // [현 차수] 취소 제외를 OrderHub::observedExclusion SSOT 로 통일. 기존 인라인
+                //   `event_type NOT IN ('cancel','return')` 은 event_type 축만 봐서 status 토큰으로만
+                //   신호된 취소(레거시 행·토큰 드리프트)를 realRevenue 에 포함 → 진실 ROAS 과대.
+                [$exclExpr, $exclTokens] = OrderHub::observedExclusion('co');
                 $rs = $pdo->prepare("SELECT ch, COALESCE(SUM(rev),0) rev, COUNT(*) conv FROM (
                     SELECT LOWER(ar.attributed_channel) ch, ar.order_id, MAX(co.total_price) rev
                     FROM attribution_result ar JOIN channel_orders co ON co.tenant_id=ar.tenant_id AND co.channel_order_id=ar.order_id
-                    WHERE ar.tenant_id=? AND ar.model='order-match' AND COALESCE(co.event_type,'order') NOT IN ('cancel','return') GROUP BY ar.order_id, LOWER(ar.attributed_channel)
+                    WHERE ar.tenant_id=? AND ar.model='order-match' AND NOT $exclExpr GROUP BY ar.order_id, LOWER(ar.attributed_channel)
                 ) t GROUP BY ch");
-                $rs->execute([$tenant]);
+                $rs->execute(array_merge([$tenant], $exclTokens));
                 foreach ($rs->fetchAll(\PDO::FETCH_ASSOC) as $r) {
                     $ch = self::normAdCh((string)$r['ch']);
                     if (!isset($real[$ch])) $real[$ch] = ['rev' => 0, 'conv' => 0];

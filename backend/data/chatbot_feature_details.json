@@ -1,0 +1,7216 @@
+{
+ "generated_from": "i18n namespaces + App.jsx routes",
+ "features": {
+  "ak": {
+   "ns": "ak",
+   "title": "연동 허브",
+   "subtitle": "",
+   "paths": [
+    "/integration-hub"
+   ],
+   "actions": [
+    "이 자격증명을 삭제하시겠습니까?",
+    "키 추가",
+    "채널 추가 (관리자)",
+    "확인",
+    "+ 토큰 발급",
+    "복사",
+    "추적",
+    "전체 갱신",
+    "실시간 자동 갱신",
+    "새로고침",
+    "키 검증됨 · 동기화 준비중",
+    "키 검증됨·동기화 준비중",
+    "등록",
+    "관리",
+    "발급 확인",
+    "테스트",
+    "발급 매뉴얼 보기",
+    "직접 발급·연결"
+   ],
+   "fields": [
+    "메모(선택)",
+    "미등록",
+    "라벨 (선택)",
+    "채널 키 (영문소문자/숫자/_)",
+    "표시명",
+    "카테고리",
+    "아이콘(이모지)",
+    "색상(hex)",
+    "자격증명 필드 키 (쉼표 구분)"
+   ],
+   "notes": [
+    "이용 가이드",
+    "모든 채널의 API 자격증명을 통합 관리하고, 연결 테스트와 신규 발급 신청을 수행합니다",
+    "신청이 접수되지 않았습니다. 네트워크 또는 로그인 상태를 확인한 뒤 다시 시도해 주세요.",
+    "채널별 수신 토큰을 발급해 아래 Webhook URL 을 각 판매채널 콘솔(주문 알림/웹훅 설정)에 등록하세요. 등록하면 주문·취소·반품·재고 변경이 폴링 주기를 기다리지 않고 실시간으로 동기화됩니다. 토큰이 없으면 채널이 보낸 webhook 은 보안상 무시됩니다(주입 차단).",
+    "PG 자격증명을 [등록]한 뒤 아래에서 결제·정산 거래를 수집하면 매출/수수료/순액이 집계됩니다.",
+    "택배사를 선택하고 송장번호를 입력하면 실시간 배송 상태를 조회합니다. 국내 택배는 통합 추적 키(스마트택배), DHL은 DHL API 키를 [등록] 탭에서 먼저 등록하세요.",
+    "발급이 완료되었습니다. 발급된 키를 등록하면 즉시 자동 연동됩니다.",
+    "키는 검증됐으나 전용 동기화 어댑터는 연동 예정입니다(데이터는 아직 수집되지 않습니다)."
+   ],
+   "states": [
+    "상태",
+    "접수(처리 대기)",
+    "아직 발급된 웹훅 토큰이 없습니다.",
+    "수집된 정산 거래가 없습니다. 위에서 PG를 선택해 수집하세요.",
+    "추적 중인 송장이 없습니다. 위에서 송장번호를 등록하세요.",
+    "미테스트",
+    "테스트 이력이 없습니다"
+   ],
+   "names": [
+    "연동 허브",
+    "Integration Hub",
+    "連携ハブ",
+    "集成中心",
+    "整合中心",
+    "Integrations-Hub",
+    "ศูนย์เชื่อมต่อ",
+    "Trung tâm tích hợp",
+    "Pusat Integrasi",
+    "مركز التكامل",
+    "Hub integración",
+    "Hub intégration",
+    "एकीकरण हब",
+    "Hub integração",
+    "Хаб интеграции"
+   ],
+   "match": [
+    "연동 허브",
+    "Integration Hub",
+    "連携ハブ",
+    "集成中心",
+    "整合中心",
+    "Integrations-Hub",
+    "ศูนย์เชื่อมต่อ",
+    "Trung tâm tích hợp",
+    "Pusat Integrasi",
+    "مركز التكامل",
+    "Hub integración",
+    "Hub intégration",
+    "एकीकरण हब",
+    "Hub integração",
+    "Хаб интеграции",
+    "DHL",
+    "이 자격증명을 삭제하시겠습니까?",
+    "키 추가",
+    "채널 추가 (관리자)",
+    "+ 토큰 발급",
+    "전체 갱신",
+    "실시간 자동 갱신",
+    "키 검증됨 · 동기화 준비중",
+    "키 검증됨·동기화 준비중",
+    "발급 확인",
+    "발급 매뉴얼 보기",
+    "직접 발급·연결",
+    "메모(선택)",
+    "라벨 (선택)",
+    "채널 키 (영문소문자/숫자/_)",
+    "카테고리",
+    "아이콘(이모지)",
+    "색상(hex)",
+    "자격증명 필드 키 (쉼표 구분)",
+    "ak"
+   ]
+  },
+  "common": {
+   "ns": "common",
+   "title": "연동 허브",
+   "subtitle": "",
+   "paths": [
+    "/integration-hub",
+    "/my-coupons",
+    "/marketing-mix",
+    "/crm",
+    "/channel-kpi",
+    "/budget-tracker",
+    "/email-marketing",
+    "/account-performance",
+    "/system-monitor"
+   ],
+   "actions": [
+    "새로고침"
+   ],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "연동 허브",
+    "Integration Hub",
+    "連携ハブ",
+    "集成中心",
+    "整合中心",
+    "Integrations-Hub",
+    "ศูนย์เชื่อมต่อ",
+    "Trung tâm tích hợp",
+    "Pusat Integrasi",
+    "مركز التكامل",
+    "Hub integración",
+    "Hub intégration",
+    "एकीकरण हब",
+    "Hub integração",
+    "Хаб интеграции",
+    "마케팅 믹스",
+    "Marketing Mix",
+    "マーケティングミックス",
+    "营销组合",
+    "行銷組合",
+    "Marketing-Mix",
+    "มิกซ์การตลาด",
+    "مزيج التسويق",
+    "Mix marketing",
+    "मार्केटिंग मिक्स",
+    "Mix de Marketing",
+    "Маркетинг-микс",
+    "CRM 대시보드",
+    "CRM Dashboard",
+    "CRMダッシュボード",
+    "CRM仪表盘",
+    "CRM儀表板",
+    "CRM-Dashboard",
+    "แดชบอร์ด CRM",
+    "Bảng điều khiển CRM",
+    "Dasbor CRM",
+    "لوحة CRM",
+    "Panel CRM",
+    "Tableau CRM",
+    "CRM डैशबोर्ड",
+    "Painel CRM",
+    "Дашборд CRM",
+    "CRM",
+    "채널 KPI",
+    "Channel KPI",
+    "チャネルKPI",
+    "渠道KPI",
+    "頻道KPI",
+    "Kanal-KPI",
+    "KPI ช่องทาง",
+    "KPI kênh",
+    "KPI Saluran",
+    "مؤشرات القناة",
+    "KPI canal",
+    "चैनल KPI",
+    "KPI каналов",
+    "예산 관리",
+    "Budget Tracker",
+    "予算管理",
+    "预算管理",
+    "預算管理",
+    "Budgettracker",
+    "ติดตามงบ",
+    "Theo dõi ngân sách",
+    "Pelacak Anggaran",
+    "تتبع الميزانية",
+    "Rastreador presup.",
+    "Suivi budget",
+    "बजट ट्रैकर",
+    "Rastreador orçamento",
+    "Бюджет-трекер",
+    "이메일 마케팅",
+    "Email Marketing",
+    "メールマーケティング",
+    "邮件营销",
+    "電郵行銷",
+    "E-Mail-Marketing",
+    "อีเมลมาร์เก็ตติ้ง",
+    "تسويق بريدي",
+    "Email marketing",
+    "ईमेल मार्केटिंग",
+    "Email-маркетинг",
+    "어카운트 성과",
+    "Account Performance",
+    "アカウント成果",
+    "账户绩效",
+    "帳戶績效",
+    "Kontoleistung",
+    "ผลลัพธ์บัญชี",
+    "Hiệu suất tài khoản",
+    "Performa Akun",
+    "أداء الحساب",
+    "Rendimiento cuenta",
+    "Performance compte",
+    "खाता प्रदर्शन",
+    "Desempenho conta",
+    "Эффект. аккаунта",
+    "시스템 모니터",
+    "System Monitor",
+    "システムモニター",
+    "系统监控",
+    "系統監控",
+    "System-Monitor",
+    "การตรวจสอบระบบ",
+    "Giám sát hệ thống",
+    "Monitor Sistem",
+    "مراقبة النظام",
+    "Monitor del sistema",
+    "Moniteur système",
+    "सिस्टम मॉनिटर",
+    "Monitor do sistema",
+    "Системный монитор"
+   ],
+   "match": [
+    "연동 허브",
+    "Integration Hub",
+    "連携ハブ",
+    "集成中心",
+    "整合中心",
+    "Integrations-Hub",
+    "ศูนย์เชื่อมต่อ",
+    "Trung tâm tích hợp",
+    "Pusat Integrasi",
+    "مركز التكامل",
+    "Hub integración",
+    "Hub intégration",
+    "एकीकरण हब",
+    "Hub integração",
+    "Хаб интеграции",
+    "마케팅 믹스",
+    "Marketing Mix",
+    "マーケティングミックス",
+    "营销组合",
+    "行銷組合",
+    "Marketing-Mix",
+    "มิกซ์การตลาด",
+    "مزيج التسويق",
+    "Mix marketing",
+    "मार्केटिंग मिक्स",
+    "Mix de Marketing",
+    "Маркетинг-микс",
+    "CRM 대시보드",
+    "CRM Dashboard",
+    "CRMダッシュボード",
+    "CRM仪表盘",
+    "CRM儀表板",
+    "CRM-Dashboard",
+    "แดชบอร์ด CRM",
+    "Bảng điều khiển CRM",
+    "Dasbor CRM",
+    "لوحة CRM",
+    "Panel CRM",
+    "Tableau CRM",
+    "CRM डैशबोर्ड"
+   ]
+  },
+  "companyInfo": {
+   "ns": "companyInfo",
+   "title": "회사정보 완성",
+   "subtitle": "API 키 발급신청·채널 연동·정산에 자동으로 사용됩니다. 한 번만 입력하면 이후 다시 입력할 필요가 없습니다.",
+   "paths": [
+    "/integration-hub"
+   ],
+   "actions": [
+    "취소",
+    "저장하기"
+   ],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "회사정보 완성",
+    "Complete company info",
+    "会社情報の入力",
+    "完善公司信息",
+    "完善公司資訊",
+    "Firmendaten vervollständigen",
+    "กรอกข้อมูลบริษัทให้ครบ",
+    "Hoàn tất thông tin công ty",
+    "Lengkapi info perusahaan",
+    "إكمال معلومات الشركة",
+    "Completar datos de empresa",
+    "Compléter les infos d'entreprise",
+    "कंपनी जानकारी पूरी करें",
+    "Concluir dados da empresa",
+    "Заполнить данные компании"
+   ],
+   "match": [
+    "회사정보 완성",
+    "Complete company info",
+    "会社情報の入力",
+    "完善公司信息",
+    "完善公司資訊",
+    "Firmendaten vervollständigen",
+    "กรอกข้อมูลบริษัทให้ครบ",
+    "Hoàn tất thông tin công ty",
+    "Lengkapi info perusahaan",
+    "إكمال معلومات الشركة",
+    "Completar datos de empresa",
+    "Compléter les infos d'entreprise",
+    "कंपनी जानकारी पूरी करें",
+    "Concluir dados da empresa",
+    "Заполнить данные компании",
+    "저장하기",
+    "companyInfo"
+   ]
+  },
+  "gAiRec": {
+   "ns": "gAiRec",
+   "title": "🤖 AI 마케팅 추천 & 자동화 엔진",
+   "subtitle": "Claude AI가 최적의 채널, 예산, 광고 소재를 한 번의 검색으로 분석합니다",
+   "paths": [
+    "/ai-recommend"
+   ],
+   "actions": [
+    "✏️ 편집",
+    "이미지 생성 시작",
+    "광고 이미지 생성",
+    "소재 생성 시작",
+    "소재 생성",
+    "즉시 실행"
+   ],
+   "fields": [],
+   "notes": [
+    "AI 이미지 자동 생성",
+    "AI가 광고 이미지를 생성할 준비가 되었습니다."
+   ],
+   "states": [],
+   "names": [
+    "🤖 AI 마케팅 추천 & 자동화 엔진",
+    "Email Marketing",
+    "🤖 AIマーケティング推奨 & 自動化エンジン",
+    "🤖 AI营销推荐 & 自动化引擎",
+    "🤖 AI 行銷推薦與自動化引擎",
+    "🤖 KI-Marketing-Empfehlung & Automatisierungs-Engine",
+    "🤖 เอนจินแนะนำและอัตโนมัติมาร์เก็ตติ้งด้วย AI",
+    "🤖 AI Marketing Recommend & Automation Engine",
+    "🤖 Rekomendasi AI Marketing & Engine Otomatisasi",
+    "🤖 Motor de recomendación y automatización de marketing con IA",
+    "🤖 Moteur de recommandation & d'automatisation marketing IA"
+   ],
+   "match": [
+    "🤖 AI 마케팅 추천 & 자동화 엔진",
+    "Email Marketing",
+    "🤖 AIマーケティング推奨 & 自動化エンジン",
+    "🤖 AI营销推荐 & 自动化引擎",
+    "🤖 AI 行銷推薦與自動化引擎",
+    "🤖 KI-Marketing-Empfehlung & Automatisierungs-Engine",
+    "🤖 เอนจินแนะนำและอัตโนมัติมาร์เก็ตติ้งด้วย AI",
+    "🤖 AI Marketing Recommend & Automation Engine",
+    "🤖 Rekomendasi AI Marketing & Engine Otomatisasi",
+    "🤖 Motor de recomendación y automatización de marketing con IA",
+    "🤖 Moteur de recommandation & d'automatisation marketing IA",
+    "PNG",
+    "✏️ 편집",
+    "이미지 생성 시작",
+    "광고 이미지 생성",
+    "소재 생성 시작",
+    "소재 생성",
+    "즉시 실행",
+    "gAiRec"
+   ]
+  },
+  "pmx.pf": {
+   "ns": "pmx.pf",
+   "title": "포트폴리오 / 프로그램",
+   "subtitle": "",
+   "paths": [
+    "/pm/portfolio"
+   ],
+   "actions": [
+    "포트폴리오 ",
+    "포트폴리오 추가"
+   ],
+   "fields": [],
+   "notes": [],
+   "states": [
+    "포트폴리오가 없습니다. 추가하여 프로젝트를 묶으세요."
+   ],
+   "names": [
+    "포트폴리오 / 프로그램",
+    "Portfolio / Program",
+    "ポートフォリオ / プログラム",
+    "投资组合 / 项目群",
+    "投資組合 / 專案群",
+    "Portfolio / Programm",
+    "พอร์ตโฟลิโอ / โปรแกรม",
+    "Danh mục / Chương trình",
+    "Portofolio / Program",
+    "المحفظة / البرنامج",
+    "Cartera / Programa",
+    "Portefeuille / Programme",
+    "पोर्टफ़ोलियो / प्रोग्राम",
+    "Portfólio / Programa",
+    "Портфель / Программа"
+   ],
+   "match": [
+    "포트폴리오 / 프로그램",
+    "Portfolio / Program",
+    "ポートフォリオ / プログラム",
+    "投资组合 / 项目群",
+    "投資組合 / 專案群",
+    "Portfolio / Programm",
+    "พอร์ตโฟลิโอ / โปรแกรม",
+    "Danh mục / Chương trình",
+    "Portofolio / Program",
+    "المحفظة / البرنامج",
+    "Cartera / Programa",
+    "Portefeuille / Programme",
+    "पोर्टफ़ोलियो / प्रोग्राम",
+    "Portfólio / Programa",
+    "Портфель / Программа",
+    "EVM",
+    "포트폴리오 ",
+    "포트폴리오 추가",
+    "pf"
+   ]
+  },
+  "pm.common": {
+   "ns": "pm.common",
+   "title": "포트폴리오",
+   "subtitle": "",
+   "paths": [
+    "/pm/portfolio",
+    "/pm",
+    "/pm/resources"
+   ],
+   "actions": [
+    "새로고침"
+   ],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "포트폴리오",
+    "Portfolio",
+    "ポートフォリオ",
+    "投资组合",
+    "投資組合",
+    "พอร์ตโฟลิโอ",
+    "Danh Mục Đầu Tư",
+    "Portofolio",
+    "المحفظة",
+    "Cartera",
+    "Portefeuille",
+    "पोर्टफोलियो",
+    "Portfólio",
+    "Портфель",
+    "PM 개요",
+    "PM Overview",
+    "PM概要",
+    "项目管理概览",
+    "PM 概覽",
+    "PM-Übersicht",
+    "ภาพรวม PM",
+    "Tổng Quan PM",
+    "Ringkasan PM",
+    "نظرة عامة على إدارة المشاريع",
+    "Descripción general de PM",
+    "Aperçu PM",
+    "PM अवलोकन",
+    "Visão Geral do PM",
+    "Обзор PM",
+    "리소스",
+    "Resources",
+    "リソース",
+    "资源",
+    "資源",
+    "Ressourcen",
+    "ทรัพยากร",
+    "Tài Nguyên",
+    "Sumber Daya",
+    "الموارد",
+    "Recursos",
+    "Ressources",
+    "संसाधन",
+    "Ресурсы"
+   ],
+   "match": [
+    "포트폴리오",
+    "Portfolio",
+    "ポートフォリオ",
+    "投资组合",
+    "投資組合",
+    "พอร์ตโฟลิโอ",
+    "Danh Mục Đầu Tư",
+    "Portofolio",
+    "المحفظة",
+    "Cartera",
+    "Portefeuille",
+    "पोर्टफोलियो",
+    "Portfólio",
+    "Портфель",
+    "PM 개요",
+    "PM Overview",
+    "PM概要",
+    "项目管理概览",
+    "PM 概覽",
+    "PM-Übersicht",
+    "ภาพรวม PM",
+    "Tổng Quan PM",
+    "Ringkasan PM",
+    "نظرة عامة على إدارة المشاريع",
+    "Descripción general de PM",
+    "Aperçu PM",
+    "PM अवलोकन",
+    "Visão Geral do PM",
+    "Обзор PM",
+    "리소스",
+    "Resources",
+    "リソース",
+    "资源",
+    "資源",
+    "Ressourcen",
+    "ทรัพยากร",
+    "Tài Nguyên",
+    "Sumber Daya",
+    "الموارد",
+    "Recursos"
+   ]
+  },
+  "pmx.evm": {
+   "ns": "pmx.evm",
+   "title": "획득가치관리 (EVM)",
+   "subtitle": "",
+   "paths": [
+    "/pm/portfolio"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "획득가치관리 (EVM)",
+    "Earned Value Management (EVM)",
+    "アーンドバリューマネジメント (EVM)",
+    "挣值管理 (EVM)",
+    "實獲值管理 (EVM)",
+    "Earned-Value-Management (EVM)",
+    "การจัดการมูลค่าที่ได้รับ (EVM)",
+    "Quản lý giá trị thu được (EVM)",
+    "Manajemen Nilai Hasil (EVM)",
+    "إدارة القيمة المكتسبة (EVM)",
+    "Gestión del valor ganado (EVM)",
+    "Gestion de la valeur acquise (EVM)",
+    "अर्जित मूल्य प्रबंधन (EVM)",
+    "Gestão de Valor Agregado (EVM)",
+    "Управление освоенным объёмом (EVM)"
+   ],
+   "match": [
+    "획득가치관리 (EVM)",
+    "Earned Value Management (EVM)",
+    "アーンドバリューマネジメント (EVM)",
+    "挣值管理 (EVM)",
+    "實獲值管理 (EVM)",
+    "Earned-Value-Management (EVM)",
+    "การจัดการมูลค่าที่ได้รับ (EVM)",
+    "Quản lý giá trị thu được (EVM)",
+    "Manajemen Nilai Hasil (EVM)",
+    "إدارة القيمة المكتسبة (EVM)",
+    "Gestión del valor ganado (EVM)",
+    "Gestion de la valeur acquise (EVM)",
+    "अर्जित मूल्य प्रबंधन (EVM)",
+    "Gestão de Valor Agregado (EVM)",
+    "Управление освоенным объёмом (EVM)",
+    "BAC",
+    "EVM",
+    "SPI",
+    "CPI",
+    "evm"
+   ]
+  },
+  "pm.kpi": {
+   "ns": "pm.kpi",
+   "title": "포트폴리오",
+   "subtitle": "",
+   "paths": [
+    "/pm/portfolio",
+    "/pm"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [
+    "진행 중"
+   ],
+   "names": [
+    "포트폴리오",
+    "Portfolio",
+    "ポートフォリオ",
+    "投资组合",
+    "投資組合",
+    "พอร์ตโฟลิโอ",
+    "Danh Mục Đầu Tư",
+    "Portofolio",
+    "المحفظة",
+    "Cartera",
+    "Portefeuille",
+    "पोर्टफोलियो",
+    "Portfólio",
+    "Портфель",
+    "PM 개요",
+    "PM Overview",
+    "PM概要",
+    "项目管理概览",
+    "PM 概覽",
+    "PM-Übersicht",
+    "ภาพรวม PM",
+    "Tổng Quan PM",
+    "Ringkasan PM",
+    "نظرة عامة على إدارة المشاريع",
+    "Descripción general de PM",
+    "Aperçu PM",
+    "PM अवलोकन",
+    "Visão Geral do PM",
+    "Обзор PM"
+   ],
+   "match": [
+    "포트폴리오",
+    "Portfolio",
+    "ポートフォリオ",
+    "投资组合",
+    "投資組合",
+    "พอร์ตโฟลิโอ",
+    "Danh Mục Đầu Tư",
+    "Portofolio",
+    "المحفظة",
+    "Cartera",
+    "Portefeuille",
+    "पोर्टफोलियो",
+    "Portfólio",
+    "Портфель",
+    "PM 개요",
+    "PM Overview",
+    "PM概要",
+    "项目管理概览",
+    "PM 概覽",
+    "PM-Übersicht",
+    "ภาพรวม PM",
+    "Tổng Quan PM",
+    "Ringkasan PM",
+    "نظرة عامة على إدارة المشاريع",
+    "Descripción general de PM",
+    "Aperçu PM",
+    "PM अवलोकन",
+    "Visão Geral do PM",
+    "Обзор PM",
+    "kpi"
+   ]
+  },
+  "appPricing": {
+   "ns": "appPricing",
+   "title": "app Pricing",
+   "subtitle": "",
+   "paths": [
+    "/pricing"
+   ],
+   "actions": [
+    "최대 {{pct}}% 할인"
+   ],
+   "fields": [
+    "계정 수"
+   ],
+   "notes": [],
+   "states": [],
+   "names": [
+    "app Pricing"
+   ],
+   "match": [
+    "최대 {{pct}}% 할인",
+    "계정 수",
+    "appPricing"
+   ]
+  },
+  "appPricing.cycle": {
+   "ns": "appPricing.cycle",
+   "title": "app Pricing cycle",
+   "subtitle": "",
+   "paths": [
+    "/pricing"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "app Pricing cycle"
+   ],
+   "match": [
+    "cycle"
+   ]
+  },
+  "marketing": {
+   "ns": "marketing",
+   "title": "마케팅 & 광고 성과 (Overview)",
+   "subtitle": "",
+   "paths": [
+    "/marketing",
+    "/menu-access-manager",
+    "/operations",
+    "/sms-marketing",
+    "/email-marketing",
+    "/kakao-channel",
+    "/auto-marketing",
+    "/dashboard"
+   ],
+   "actions": [
+    "대량 생성",
+    "교체 권고",
+    "다운로드",
+    "최종 동기화: 방금",
+    "📋 제출 승인",
+    "새로고침",
+    "시작하기",
+    "AI 광고소재 카테고리 → 캠페인 설정 자동 연동",
+    "캠페인 설정으로 이동",
+    "AI 마케팅 허브",
+    "🚀 AI 마케팅 전략 자동 생성",
+    "↩ 처음부터",
+    "AI 디자인 생성",
+    "직접 업로드",
+    "저장 (캠페인에 활용)",
+    "이미지 직접 업로드"
+   ],
+   "fields": [
+    "총계",
+    "캠페인 이름 (미입력시 자동생성)",
+    "타겟 고객 (선택)",
+    "획득비용",
+    "신뢰도"
+   ],
+   "notes": [
+    "캐시를 무시하고 실시간 연동 운영 데이터를 즉시 불러옵니다.",
+    "실시간 채널 데이터 연동 전 — 캠페인 집계 기반 추정치입니다. 광고 매체를 연동하면 실측 일별 추세로 대체됩니다.",
+    "연동된 광고 채널의 수수료율을 확인하세요",
+    "AI 오토 마케팅에서 캠페인을 생성하면 소재별 성과가 여기에 표시됩니다.",
+    "비교할 캠페인을 2개 이상 선택하세요. 레이더 차트와 KPI 비교 테이블이 표시됩니다.",
+    "이용 가이드",
+    "매체 보고 ROAS는 뷰스루·중복으로 과대 평가됩니다. 광고 클릭ID·픽셀로 실제 주문에 귀속된 매출 기준 ROAS를 병기해 진짜 성과를 보여줍니다.",
+    "선택한 기간 내 캠페인 실적을 일별로 분석합니다."
+   ],
+   "states": [
+    "광고 채널 자격증명 등록·동기화 후, 광고 클릭ID·픽셀로 실 주문에 귀속된 데이터가 쌓이면 표시됩니다.",
+    "정상 액티브",
+    "종료됨",
+    "집행 성과 수집 후 피로도·스코어·차원분석이 표시됩니다.",
+    "⏳ 승인 대기",
+    "✅ 승인됨",
+    "⏸ 일시중지",
+    "❌ 반려됨",
+    "아직 집행/성과 데이터가 없습니다. 캠페인 집행 후 채널별 효과가 분석됩니다.",
+    "○ 비활성"
+   ],
+   "names": [
+    "마케팅 & 광고 성과 (Overview)"
+   ],
+   "match": [
+    "CPM",
+    "CAC",
+    "KST",
+    "CSS",
+    "대량 생성",
+    "교체 권고",
+    "다운로드",
+    "최종 동기화: 방금",
+    "📋 제출 승인",
+    "시작하기",
+    "AI 광고소재 카테고리 → 캠페인 설정 자동 연동",
+    "캠페인 설정으로 이동",
+    "AI 마케팅 허브",
+    "🚀 AI 마케팅 전략 자동 생성",
+    "↩ 처음부터",
+    "AI 디자인 생성",
+    "직접 업로드",
+    "저장 (캠페인에 활용)",
+    "이미지 직접 업로드",
+    "캠페인 이름 (미입력시 자동생성)",
+    "타겟 고객 (선택)",
+    "획득비용",
+    "marketing"
+   ]
+  },
+  "siteIntroAdmin": {
+   "ns": "siteIntroAdmin",
+   "title": "🏢 회사소개 · 연혁 · 운영진 관리",
+   "subtitle": "",
+   "paths": [
+    "/admin/site-intro"
+   ],
+   "actions": [
+    "💾 회사소개 저장"
+   ],
+   "fields": [
+    "태그라인 (한 줄 소개)",
+    "요약 (히어로 하단)",
+    "상세 소개",
+    "사업자등록번호 (footer)",
+    "저작권 표기 (footer · 전 페이지)"
+   ],
+   "notes": [
+    "한글로 등록·수정하면 공개 소개 페이지(15개국 현지화 chrome)에 즉시 반영됩니다.",
+    "체크 시 첫페이지에서 해당 메뉴/섹션이 보이지 않습니다."
+   ],
+   "states": [],
+   "names": [
+    "🏢 회사소개 · 연혁 · 운영진 관리"
+   ],
+   "match": [
+    "💾 회사소개 저장",
+    "태그라인 (한 줄 소개)",
+    "요약 (히어로 하단)",
+    "상세 소개",
+    "사업자등록번호 (footer)",
+    "저작권 표기 (footer · 전 페이지)",
+    "siteIntroAdmin"
+   ]
+  },
+  "amazonRisk": {
+   "ns": "amazonRisk",
+   "title": "amazon Risk",
+   "subtitle": "",
+   "paths": [
+    "/amazon-risk"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [
+    "Amazon 계정을 연동하면 계정 건강·리뷰·재고·정책 리스크가 실시간으로 감지되어 표시됩니다.",
+    "연동 후 핵심 지표가 표시됩니다."
+   ],
+   "names": [
+    "amazon Risk"
+   ],
+   "match": [
+    "FBA",
+    "amazonRisk"
+   ]
+  },
+  "settlements": {
+   "ns": "settlements",
+   "title": "채널 정산 관리",
+   "subtitle": "",
+   "paths": [
+    "/settlements"
+   ],
+   "actions": [
+    "+ 가져오기",
+    "CSV 다운로드",
+    "CSV 내보내기"
+   ],
+   "fields": [],
+   "notes": [
+    "커머스 플랫폼별 실정산액 파악 · 수수료 분석 · 원장 대조"
+   ],
+   "states": [
+    "확정",
+    "대기"
+   ],
+   "names": [
+    "채널 정산 관리"
+   ],
+   "match": [
+    "+ 가져오기",
+    "CSV 다운로드",
+    "settlements"
+   ]
+  },
+  "mr": {
+   "ns": "mr",
+   "title": "결제 내역",
+   "subtitle": "",
+   "paths": [
+    "/settlements"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [
+    "비정상적인 접근이 감지되어 30초간 잠겨 있습니다"
+   ],
+   "states": [],
+   "names": [
+    "결제 내역",
+    "Settlements",
+    "決済履歴",
+    "结算记录",
+    "結算紀錄",
+    "Zahlungen",
+    "การชำระเงิน",
+    "Thanh toán",
+    "Penyelesaian",
+    "التسويات",
+    "Liquidaciones",
+    "Règlements",
+    "भुगतान",
+    "Liquidações",
+    "Расчёты"
+   ],
+   "match": [
+    "결제 내역",
+    "Settlements",
+    "決済履歴",
+    "结算记录",
+    "結算紀錄",
+    "Zahlungen",
+    "การชำระเงิน",
+    "Thanh toán",
+    "Penyelesaian",
+    "التسويات",
+    "Liquidaciones",
+    "Règlements",
+    "भुगतान",
+    "Liquidações",
+    "Расчёты",
+    "mr"
+   ]
+  },
+  "webPopup": {
+   "ns": "webPopup",
+   "title": "웹 팝업",
+   "subtitle": "",
+   "paths": [
+    "/web-popup"
+   ],
+   "actions": [
+    "코드 복사",
+    "CTA 버튼 텍스트"
+   ],
+   "fields": [
+    "변형"
+   ],
+   "notes": [
+    "아래 코드를 자사몰 <head> 또는 </body> 직전에 한 번 붙여넣으면 활성 팝업이 방문자에게 자동 노출됩니다(트리거·전환 비콘 포함). 별도 로그인 불필요·자동 갱신.",
+    "주제와 테마를 입력하면 AI가 최적의 팝업 디자인을 자동 생성합니다.",
+    "변형이 2개 이상 활성이면 방문자는 가중치에 따라 결정론적으로 분배되어 각 변형이 노출됩니다. 노출/클릭/전환은 변형별로 집계되고, 표본이 충분하면 z-검정으로 승자를 판정합니다.",
+    "판매·광고·분석 채널의 API 키를 등록하고 연결 상태를 관리합니다.",
+    "이 변형을 팝업 기본 콘텐츠로 승격하고 나머지 변형을 일시중지합니다. 계속할까요?"
+   ],
+   "states": [
+    "총 노출수",
+    "전환수",
+    "활성",
+    "비활성"
+   ],
+   "names": [
+    "웹 팝업",
+    "Web Popup",
+    "Webポップアップ",
+    "网页弹窗",
+    "網頁彈窗",
+    "Web-Popup",
+    "เว็บป๊อปอัป",
+    "نافذة منبثقة",
+    "Popup web",
+    "वेब पॉपअप",
+    "Веб-попап"
+   ],
+   "match": [
+    "웹 팝업",
+    "Web Popup",
+    "Webポップアップ",
+    "网页弹窗",
+    "網頁彈窗",
+    "Web-Popup",
+    "เว็บป๊อปอัป",
+    "نافذة منبثقة",
+    "Popup web",
+    "वेब पॉपअप",
+    "Веб-попап",
+    "코드 복사",
+    "CTA 버튼 텍스트",
+    "webPopup"
+   ]
+  },
+  "pgConfig.kpi": {
+   "ns": "pgConfig.kpi",
+   "title": "게이트웨이 관리",
+   "subtitle": "",
+   "paths": [
+    "/pg-config"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "게이트웨이 관리",
+    "Payment Gateway",
+    "PG管理",
+    "支付网关",
+    "支付閘道",
+    "Zahlungs-Gateway",
+    "เกตเวย์ชำระเงิน",
+    "Cổng thanh toán",
+    "Gateway Pembayaran",
+    "بوابة الدفع",
+    "Pasarela de pago",
+    "Passerelle paiement",
+    "भुगतान गेटवे",
+    "Gateway pagamento",
+    "Платёжный шлюз"
+   ],
+   "match": [
+    "게이트웨이 관리",
+    "Payment Gateway",
+    "PG管理",
+    "支付网关",
+    "支付閘道",
+    "Zahlungs-Gateway",
+    "เกตเวย์ชำระเงิน",
+    "Cổng thanh toán",
+    "Gateway Pembayaran",
+    "بوابة الدفع",
+    "Pasarela de pago",
+    "Passerelle paiement",
+    "भुगतान गेटवे",
+    "Gateway pagamento",
+    "Платёжный шлюз",
+    "kpi"
+   ]
+  },
+  "pgConfig.tab": {
+   "ns": "pgConfig.tab",
+   "title": "게이트웨이 관리",
+   "subtitle": "",
+   "paths": [
+    "/pg-config"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "게이트웨이 관리",
+    "Payment Gateway",
+    "PG管理",
+    "支付网关",
+    "支付閘道",
+    "Zahlungs-Gateway",
+    "เกตเวย์ชำระเงิน",
+    "Cổng thanh toán",
+    "Gateway Pembayaran",
+    "بوابة الدفع",
+    "Pasarela de pago",
+    "Passerelle paiement",
+    "भुगतान गेटवे",
+    "Gateway pagamento",
+    "Платёжный шлюз"
+   ],
+   "match": [
+    "게이트웨이 관리",
+    "Payment Gateway",
+    "PG管理",
+    "支付网关",
+    "支付閘道",
+    "Zahlungs-Gateway",
+    "เกตเวย์ชำระเงิน",
+    "Cổng thanh toán",
+    "Gateway Pembayaran",
+    "بوابة الدفع",
+    "Pasarela de pago",
+    "Passerelle paiement",
+    "भुगतान गेटवे",
+    "Gateway pagamento",
+    "Платёжный шлюз",
+    "tab"
+   ]
+  },
+  "pgConfig": {
+   "ns": "pgConfig",
+   "title": "결제 게이트웨이 관리",
+   "subtitle": "Paddle MoR · USD 단일 · 카드 결제 전용 (168차 N-152-F 정책)",
+   "paths": [
+    "/pg-config"
+   ],
+   "actions": [
+    "🔄 새로고침"
+   ],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "결제 게이트웨이 관리"
+   ],
+   "match": [
+    "🔄 새로고침",
+    "pgConfig"
+   ]
+  },
+  "pgConfig.paddle": {
+   "ns": "pgConfig.paddle",
+   "title": "게이트웨이 관리",
+   "subtitle": "",
+   "paths": [
+    "/pg-config"
+   ],
+   "actions": [],
+   "fields": [
+    "가격 source of truth:"
+   ],
+   "notes": [
+    "Paddle Dashboard. 본 admin 콘솔의 priceId 매핑 변경은 admin/plan-pricing 페이지에서."
+   ],
+   "states": [],
+   "names": [
+    "게이트웨이 관리",
+    "Payment Gateway",
+    "PG管理",
+    "支付网关",
+    "支付閘道",
+    "Zahlungs-Gateway",
+    "เกตเวย์ชำระเงิน",
+    "Cổng thanh toán",
+    "Gateway Pembayaran",
+    "بوابة الدفع",
+    "Pasarela de pago",
+    "Passerelle paiement",
+    "भुगतान गेटवे",
+    "Gateway pagamento",
+    "Платёжный шлюз"
+   ],
+   "match": [
+    "게이트웨이 관리",
+    "Payment Gateway",
+    "PG管理",
+    "支付网关",
+    "支付閘道",
+    "Zahlungs-Gateway",
+    "เกตเวย์ชำระเงิน",
+    "Cổng thanh toán",
+    "Gateway Pembayaran",
+    "بوابة الدفع",
+    "Pasarela de pago",
+    "Passerelle paiement",
+    "भुगतान गेटवे",
+    "Gateway pagamento",
+    "Платёжный шлюз",
+    "GST",
+    "가격 source of truth:",
+    "paddle"
+   ]
+  },
+  "pgConfigPage": {
+   "ns": "pgConfigPage",
+   "title": "게이트웨이 관리",
+   "subtitle": "",
+   "paths": [
+    "/pg-config"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "게이트웨이 관리",
+    "Payment Gateway",
+    "PG管理",
+    "支付网关",
+    "支付閘道",
+    "Zahlungs-Gateway",
+    "เกตเวย์ชำระเงิน",
+    "Cổng thanh toán",
+    "Gateway Pembayaran",
+    "بوابة الدفع",
+    "Pasarela de pago",
+    "Passerelle paiement",
+    "भुगतान गेटवे",
+    "Gateway pagamento",
+    "Платёжный шлюз"
+   ],
+   "match": [
+    "게이트웨이 관리",
+    "Payment Gateway",
+    "PG管理",
+    "支付网关",
+    "支付閘道",
+    "Zahlungs-Gateway",
+    "เกตเวย์ชำระเงิน",
+    "Cổng thanh toán",
+    "Gateway Pembayaran",
+    "بوابة الدفع",
+    "Pasarela de pago",
+    "Passerelle paiement",
+    "भुगतान गेटवे",
+    "Gateway pagamento",
+    "Платёжный шлюз",
+    "pgConfigPage"
+   ]
+  },
+  "pgConfig.policy": {
+   "ns": "pgConfig.policy",
+   "title": "게이트웨이 관리",
+   "subtitle": "",
+   "paths": [
+    "/pg-config"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "게이트웨이 관리",
+    "Payment Gateway",
+    "PG管理",
+    "支付网关",
+    "支付閘道",
+    "Zahlungs-Gateway",
+    "เกตเวย์ชำระเงิน",
+    "Cổng thanh toán",
+    "Gateway Pembayaran",
+    "بوابة الدفع",
+    "Pasarela de pago",
+    "Passerelle paiement",
+    "भुगतान गेटवे",
+    "Gateway pagamento",
+    "Платёжный шлюз"
+   ],
+   "match": [
+    "게이트웨이 관리",
+    "Payment Gateway",
+    "PG管理",
+    "支付网关",
+    "支付閘道",
+    "Zahlungs-Gateway",
+    "เกตเวย์ชำระเงิน",
+    "Cổng thanh toán",
+    "Gateway Pembayaran",
+    "بوابة الدفع",
+    "Pasarela de pago",
+    "Passerelle paiement",
+    "भुगतान गेटवे",
+    "Gateway pagamento",
+    "Платёжный шлюз",
+    "GST",
+    "policy"
+   ]
+  },
+  "pgConfig.fees": {
+   "ns": "pgConfig.fees",
+   "title": "게이트웨이 관리",
+   "subtitle": "Paddle.com 이 MoR 로서 결제/환불/VAT 를 관리. 본 시스템은 통계 read-only.",
+   "paths": [
+    "/pg-config"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "게이트웨이 관리",
+    "Payment Gateway",
+    "PG管理",
+    "支付网关",
+    "支付閘道",
+    "Zahlungs-Gateway",
+    "เกตเวย์ชำระเงิน",
+    "Cổng thanh toán",
+    "Gateway Pembayaran",
+    "بوابة الدفع",
+    "Pasarela de pago",
+    "Passerelle paiement",
+    "भुगतान गेटवे",
+    "Gateway pagamento",
+    "Платёжный шлюз"
+   ],
+   "match": [
+    "게이트웨이 관리",
+    "Payment Gateway",
+    "PG管理",
+    "支付网关",
+    "支付閘道",
+    "Zahlungs-Gateway",
+    "เกตเวย์ชำระเงิน",
+    "Cổng thanh toán",
+    "Gateway Pembayaran",
+    "بوابة الدفع",
+    "Pasarela de pago",
+    "Passerelle paiement",
+    "भुगतान गेटवे",
+    "Gateway pagamento",
+    "Платёжный шлюз",
+    "GST",
+    "fees"
+   ]
+  },
+  "wa": {
+   "ns": "wa",
+   "title": "WhatsApp",
+   "subtitle": "",
+   "paths": [
+    "/whatsapp"
+   ],
+   "actions": [
+    "📤 발송",
+    "발송"
+   ],
+   "fields": [],
+   "notes": [
+    "인증키 등록 즉시 실연동 · 템플릿 메시지 · 일괄 발송 · 발송 이력 관리",
+    "Meta Business Suite에서 Phone Number ID와 Access Token을 복사하여 ⚙️ 인증 설정에 입력하면 즉시 연동됩니다."
+   ],
+   "states": [
+    "연결 진행 중…"
+   ],
+   "names": [
+    "WhatsApp"
+   ],
+   "match": [
+    "WhatsApp",
+    "📤 발송",
+    "wa"
+   ]
+  },
+  "omniChannel": {
+   "ns": "omniChannel",
+   "title": "옴니 채널",
+   "subtitle": "",
+   "paths": [
+    "/omni-channel"
+   ],
+   "actions": [
+    "연결 테스트",
+    "저장 및 동기화",
+    "마지막 동기화",
+    "동기화",
+    "닫기",
+    "새로고침"
+   ],
+   "fields": [],
+   "notes": [
+    "채널 목록 · 연결 상태",
+    "통합 상품 목록",
+    "통합 주문 현황",
+    "실시간 재고 모니터링",
+    "채널 KPI 대시보드",
+    "이용 가이드",
+    "단계별 설정 안내",
+    "글로벌·일본·국내 13개 판매채널을 하나의 대시보드에서 통합 관리합니다. API 키 등록, 상품/주문/재고 실시간 동기화, 채널별 수수료 자동 반영."
+   ],
+   "states": [
+    "연동 완료",
+    "오류",
+    "미테스트",
+    "미설정",
+    "활성"
+   ],
+   "names": [
+    "옴니 채널",
+    "Omni Channel",
+    "オムニチャネル",
+    "全渠道",
+    "全通路",
+    "Omni-Kanal",
+    "ออมนิแชนเนล",
+    "Đa kênh",
+    "قناة شاملة",
+    "Omnicanal",
+    "ऑम्नी चैनल",
+    "Омниканал"
+   ],
+   "match": [
+    "옴니 채널",
+    "Omni Channel",
+    "オムニチャネル",
+    "全渠道",
+    "全通路",
+    "Omni-Kanal",
+    "ออมนิแชนเนล",
+    "Đa kênh",
+    "قناة شاملة",
+    "Omnicanal",
+    "ऑम्नी चैनल",
+    "Омниканал",
+    "PRO",
+    "연결 테스트",
+    "저장 및 동기화",
+    "마지막 동기화",
+    "omniChannel"
+   ]
+  },
+  "catalogSync": {
+   "ns": "catalogSync",
+   "title": "옴니 채널",
+   "subtitle": "",
+   "paths": [
+    "/omni-channel",
+    "/catalog-sync"
+   ],
+   "actions": [
+    "전체 선택",
+    "전체 해제",
+    "취소",
+    "다음: 가격 설정",
+    "이전",
+    "다음: 최종 승인",
+    "일괄 가격 편집",
+    "{{n}}개 상품 가격 적용",
+    "💰 일괄 가격 편집 동기화: {{n}}개 상품 → 전역 가격 시스템 반영 완료",
+    "📤 CSV 내보내기 완료 · 상품 {{n}}개",
+    "📥 CSV 가져오기 완료 · 상품 {{n}}개 → 전역 재고 동기화",
+    "📊 Excel 가져오기 완료 · 상품 {{n}}개 → 전역 재고 동기화",
+    "📊 Excel 내보내기 완료 · 상품 {{n}}개",
+    "Excel 내보내기",
+    "엑셀 가져오기",
+    "CSV 내보내기",
+    "CSV 가져오기",
+    "채널 일괄 등록"
+   ],
+   "fields": [
+    "지역",
+    "직접 입력",
+    "실질 마진",
+    "수수료 + 세금",
+    "예상 수익",
+    "고정가 입력",
+    "마크업(%)",
+    "할인(%)",
+    "재고",
+    "판매 가능 재고",
+    "예약 재고",
+    "안전 재고",
+    "활성",
+    "예상 처리 건수",
+    "전체",
+    "증분",
+    "✓ 완료",
+    "기준 원가",
+    "분배 전략",
+    "품절 위험",
+    "주의",
+    "사용자 정의",
+    "연결됨"
+   ],
+   "notes": [
+    "선택한 채널에 상품을 등록합니다.",
+    "선택한 채널에서 상품을 해제합니다.",
+    "원가, 수수료율, 세금을 고려하여 자동 계산된 추천 가격입니다.",
+    "마진율을 조절하거나 직접 가격을 입력할 수 있습니다.",
+    "추천 판매가 공식: 원가 ÷ (1 - 수수료율 - 세금율 - 이익률). 노란색 가격은 수동 입력된 가격입니다.",
+    "모든 상품에 동일한 가격을 설정합니다.",
+    "현재 가격 대비 인상률을 적용합니다.",
+    "현재 가격 대비 할인율을 적용합니다."
+   ],
+   "states": [
+    "❌ CSV 파일에 유효한 데이터가 없습니다.",
+    "❌ Excel 파일에 유효한 데이터가 없습니다.",
+    "오류",
+    "정상",
+    "주의"
+   ],
+   "names": [
+    "옴니 채널",
+    "Omni Channel",
+    "オムニチャネル",
+    "全渠道",
+    "全通路",
+    "Omni-Kanal",
+    "ออมนิแชนเนล",
+    "Đa kênh",
+    "قناة شاملة",
+    "Omnicanal",
+    "ऑम्नी चैनल",
+    "Омниканал",
+    "카탈로그 동기화",
+    "Catalog Sync",
+    "カタログ同期",
+    "目录同步",
+    "目錄同步",
+    "Katalogsync",
+    "ซิงค์แคตตาล็อก",
+    "Đồng bộ danh mục",
+    "Sinkronisasi Katalog",
+    "مزامنة الكتالوج",
+    "Sync catálogo",
+    "Sync catalogue",
+    "कैटलॉग सिंक",
+    "Синхр. каталога"
+   ],
+   "match": [
+    "옴니 채널",
+    "Omni Channel",
+    "オムニチャネル",
+    "全渠道",
+    "全通路",
+    "Omni-Kanal",
+    "ออมนิแชนเนล",
+    "Đa kênh",
+    "قناة شاملة",
+    "Omnicanal",
+    "ऑम्नी चैनल",
+    "Омниканал",
+    "카탈로그 동기화",
+    "Catalog Sync",
+    "カタログ同期",
+    "目录同步",
+    "目錄同步",
+    "Katalogsync",
+    "ซิงค์แคตตาล็อก",
+    "Đồng bộ danh mục",
+    "Sinkronisasi Katalog",
+    "مزامنة الكتالوج",
+    "Sync catálogo",
+    "Sync catalogue",
+    "कैटलॉग सिंक",
+    "Синхр. каталога",
+    "전체 선택",
+    "전체 해제",
+    "다음: 가격 설정",
+    "다음: 최종 승인",
+    "일괄 가격 편집",
+    "{{n}}개 상품 가격 적용",
+    "💰 일괄 가격 편집 동기화: {{n}}개 상품 → 전역 가격 시스템 반영 완료",
+    "📤 CSV 내보내기 완료 · 상품 {{n}}개",
+    "📥 CSV 가져오기 완료 · 상품 {{n}}개 → 전역 재고 동기화",
+    "📊 Excel 가져오기 완료 · 상품 {{n}}개 → 전역 재고 동기화",
+    "📊 Excel 내보내기 완료 · 상품 {{n}}개",
+    "Excel 내보내기",
+    "엑셀 가져오기",
+    "CSV 가져오기"
+   ]
+  },
+  "priceOpt": {
+   "ns": "priceOpt",
+   "title": "가격 최적화 엔진",
+   "subtitle": "",
+   "paths": [
+    "/price-opt"
+   ],
+   "actions": [
+    "새로고침",
+    "일괄 업로드",
+    "상품 다운로드",
+    "Run Repricer",
+    "실시간 동기화"
+   ],
+   "fields": [
+    "대표",
+    "규격",
+    "원가",
+    "마진",
+    "기준가",
+    "배송 조건"
+   ],
+   "notes": [
+    "무료배송은 배송비가 실효원가에 가산되어 마진 보존 최적가로 상향됩니다. 자동 선택 시 채널 관행(Amazon·Shopify·쿠팡 등=무료배송, eBay·Etsy·Shopee 등=소비자 부담)이 적용됩니다.",
+    "해외 판매: 유류할증료는 배송비에 포함해 입력하세요. 관세·부가세는 통상 구매자(수입자) 부담(DDU)이며, DDP(판매자 관세부담) 조건일 때만 배송비 항목에 합산하세요.",
+    "경쟁사 가격 반응(언더컷)을 시뮬레이션해 내시 균형가 산출 — 순진한 이익최대가의 반응 함정 회피",
+    "경쟁가 자동수집",
+    "경쟁사 최저가 대비 언더컷 비율(%)",
+    "절대 최소가(원가마진 하한 위 추가 가드, 0=미설정)",
+    "절대 최대가(0=미설정)",
+    "경쟁가 최대 허용 나이(시간) — 더 오래된 경쟁가는 리프라이싱 제외(stale 방지). 0=무제한"
+   ],
+   "states": [
+    "예정",
+    "초안"
+   ],
+   "names": [
+    "가격 최적화 엔진"
+   ],
+   "match": [
+    "DDU",
+    "DDP",
+    "일괄 업로드",
+    "상품 다운로드",
+    "Run Repricer",
+    "배송 조건",
+    "priceOpt"
+   ]
+  },
+  "devHub": {
+   "ns": "devHub",
+   "title": "개발자 포털",
+   "subtitle": "",
+   "paths": [
+    "/developer-hub"
+   ],
+   "actions": [
+    "키 발급",
+    "구독 등록",
+    "테스트",
+    "삭제",
+    "익스포트 대상 수정",
+    "취소",
+    "저장",
+    "즉시 실행",
+    "테스트 발송",
+    "데이터 익스포트",
+    "복사"
+   ],
+   "fields": [],
+   "notes": [
+    "서버 간 연동(API)에 사용하는 키를 발급·회전·폐기합니다. 키는 발급 시 한 번만 표시되며 해시로만 저장됩니다. 계정 소유자(owner)만 관리할 수 있습니다.",
+    "이벤트 발생 시 등록한 URL로 서명된 POST 요청을 전송합니다. X-Genie-Signature 헤더(HMAC-SHA256)로 위변조를 검증하세요.",
+    "GeniegoROI 데이터(주문·광고지표·정산·어트리뷰션·KPI)를 BigQuery·Snowflake·Google Sheets·웨어하우스로 자동 싱크합니다. 자격증명만 등록하면 스케줄(또는 즉시 실행)에 따라 자동 전송됩니다.",
+    "이상감지 자동 정지·예산 소진·킬스위치 등 시스템 자율 액션과 임계치 알림을 Slack·웹훅(Teams/Discord/n8n)·이메일로 실시간 통지합니다.",
+    "API 키 관리, 엔드포인트 레퍼런스, SDK·웹훅 연동을 한곳에서",
+    "모든 요청은 Authorization: Bearer <API 키> 헤더가 필요합니다. 기준 URL은 https://www.genieroi.com/api 입니다.",
+    "아래 예제로 즉시 첫 호출을 시도할 수 있습니다. API 키는 ‘API 키’ 탭에서 발급하세요.",
+    "실데이터를 건드리지 않고 통합을 검증하세요. ‘API 키’ 탭에서 viewer(read) 역할 키를 발급하면 안전하게 읽기 호출만 테스트할 수 있습니다."
+   ],
+   "states": [
+    "복사되었습니다.",
+    "등록된 익스포트 대상이 없습니다."
+   ],
+   "names": [
+    "개발자 포털",
+    "Developer Hub",
+    "開発者ポータル",
+    "开发者门户",
+    "開發者入口",
+    "Entwickler-Hub",
+    "ศูนย์นักพัฒนา",
+    "Cổng nhà phát triển",
+    "Portal Pengembang",
+    "مركز المطورين",
+    "Hub desarrollador",
+    "Hub développeur",
+    "डेवलपर हब",
+    "Hub desenvolvedor",
+    "Хаб разработчика"
+   ],
+   "match": [
+    "개발자 포털",
+    "Developer Hub",
+    "開発者ポータル",
+    "开发者门户",
+    "開發者入口",
+    "Entwickler-Hub",
+    "ศูนย์นักพัฒนา",
+    "Cổng nhà phát triển",
+    "Portal Pengembang",
+    "مركز المطورين",
+    "Hub desarrollador",
+    "Hub développeur",
+    "डेवलपर हब",
+    "Hub desenvolvedor",
+    "Хаб разработчика",
+    "POST",
+    "HMAC",
+    "SHA256",
+    "SDK",
+    "키 발급",
+    "구독 등록",
+    "익스포트 대상 수정",
+    "즉시 실행",
+    "테스트 발송",
+    "데이터 익스포트",
+    "devHub"
+   ]
+  },
+  "krChannel": {
+   "ns": "krChannel",
+   "title": "🇰🇷 한국 채널 정산 허브",
+   "subtitle": "",
+   "paths": [
+    "/kr-channel"
+   ],
+   "actions": [
+    "📥 정산 재처리",
+    "대사 실행",
+    "🔍 대사 실행"
+   ],
+   "fields": [
+    "부가세율"
+   ],
+   "notes": [
+    "채널을 선택하면 이력이 표시됩니다"
+   ],
+   "states": [],
+   "names": [
+    "🇰🇷 한국 채널 정산 허브"
+   ],
+   "match": [
+    "MOCK",
+    "📥 정산 재처리",
+    "대사 실행",
+    "🔍 대사 실행",
+    "부가세율",
+    "krChannel"
+   ]
+  },
+  "line": {
+   "ns": "line",
+   "title": "LINE 채널",
+   "subtitle": "",
+   "paths": [
+    "/line-channel"
+   ],
+   "actions": [
+    "Create",
+    "Send",
+    "Delete"
+   ],
+   "fields": [],
+   "notes": [],
+   "states": [
+    "📤 Sent",
+    "✅ 배신중",
+    "📝 Draft",
+    "⏰ 예약됨",
+    "승인됨",
+    "심사중",
+    "연결 상태",
+    "Connecting…",
+    "팔로워",
+    "월간 배신수"
+   ],
+   "names": [
+    "LINE 채널",
+    "LINE Channel",
+    "LINE チャンネル",
+    "LINE 渠道",
+    "LINE 頻道",
+    "LINE-Kanal",
+    "ช่อง LINE",
+    "Kênh LINE",
+    "Saluran LINE",
+    "قناة LINE",
+    "Canal LINE",
+    "LINE चैनल",
+    "Канал LINE"
+   ],
+   "match": [
+    "LINE 채널",
+    "LINE Channel",
+    "LINE チャンネル",
+    "LINE 渠道",
+    "LINE 頻道",
+    "LINE-Kanal",
+    "ช่อง LINE",
+    "Kênh LINE",
+    "Saluran LINE",
+    "قناة LINE",
+    "Canal LINE",
+    "LINE चैनल",
+    "Канал LINE",
+    "LINE",
+    "Create",
+    "Send",
+    "Delete",
+    "line"
+   ]
+  },
+  "teamMembers": {
+   "ns": "teamMembers",
+   "title": "멤버 구성원",
+   "subtitle": "",
+   "paths": [
+    "/team-members"
+   ],
+   "actions": [
+    "'{{name}}({{email}})' 하위계정을 비활성(삭제)하시겠습니까?",
+    "삭제",
+    "⚠ 팀 ",
+    "저장",
+    "취소",
+    "수정",
+    "영구삭제",
+    "복사",
+    "SSO 설정 저장"
+   ],
+   "fields": [],
+   "notes": [
+    "프로필 사진 (선택) — 클릭하여 등록",
+    "팀 설명 (선택)",
+    "Okta·Azure AD·Google·Auth0 등 IdP와 SSO(OIDC/SAML)로 연결하고, SCIM 2.0으로 사용자 자동 프로비저닝/회수를 구성합니다. 자격증명 등록 후 활성화하면 즉시 적용됩니다.",
+    "IdP가 SCIM Base URL + 아래 토큰으로 사용자 생성/수정/비활성을 자동 동기화합니다."
+   ],
+   "states": [
+    "활성",
+    "비활성",
+    "등록된 구성원이 없습니다.",
+    "복사됨"
+   ],
+   "names": [
+    "멤버 구성원",
+    "Team Members",
+    "メンバー構成員",
+    "成员管理",
+    "成員管理",
+    "Teammitglieder",
+    "สมาชิกทีม",
+    "Thành viên nhóm",
+    "Anggota Tim",
+    "أعضاء الفريق",
+    "Miembros del equipo",
+    "Membres de l'équipe",
+    "टीम सदस्य",
+    "Membros da equipe",
+    "Участники команды"
+   ],
+   "match": [
+    "멤버 구성원",
+    "Team Members",
+    "メンバー構成員",
+    "成员管理",
+    "成員管理",
+    "Teammitglieder",
+    "สมาชิกทีม",
+    "Thành viên nhóm",
+    "Anggota Tim",
+    "أعضاء الفريق",
+    "Miembros del equipo",
+    "Membres de l'équipe",
+    "टीम सदस्य",
+    "Membros da equipe",
+    "Участники команды",
+    "SSO",
+    "SCIM",
+    "OIDC",
+    "SAML",
+    "'{{name}}({{email}})' 하위계정을 비활성(삭제)하시겠습니까?",
+    "⚠ 팀 ",
+    "영구삭제",
+    "SSO 설정 저장",
+    "teamMembers"
+   ]
+  },
+  "memberLog": {
+   "ns": "memberLog",
+   "title": "멤버 구성원",
+   "subtitle": "",
+   "paths": [
+    "/team-members",
+    "/user-management"
+   ],
+   "actions": [
+    "새로고침"
+   ],
+   "fields": [],
+   "notes": [],
+   "states": [
+    "기록 없음"
+   ],
+   "names": [
+    "멤버 구성원",
+    "Team Members",
+    "メンバー構成",
+    "成员管理",
+    "成員管理",
+    "Teammitglieder",
+    "สมาชิกทีม",
+    "Thành viên nhóm",
+    "Anggota Tim",
+    "أعضاء الفريق",
+    "Miembros del equipo",
+    "Membres d'équipe",
+    "टीम सदस्य",
+    "Membros da equipe",
+    "Участники команды",
+    "회원 관리",
+    "Members",
+    "会員管理",
+    "会员管理",
+    "會員管理",
+    "Mitglieder",
+    "สมาชิก",
+    "Thành viên",
+    "Anggota",
+    "الأعضاء",
+    "Miembros",
+    "Membres",
+    "सदस्य",
+    "Membros",
+    "Участники",
+    "User Management"
+   ],
+   "match": [
+    "멤버 구성원",
+    "Team Members",
+    "メンバー構成",
+    "成员管理",
+    "成員管理",
+    "Teammitglieder",
+    "สมาชิกทีม",
+    "Thành viên nhóm",
+    "Anggota Tim",
+    "أعضاء الفريق",
+    "Miembros del equipo",
+    "Membres d'équipe",
+    "टीम सदस्य",
+    "Membros da equipe",
+    "Участники команды",
+    "회원 관리",
+    "Members",
+    "会員管理",
+    "会员管理",
+    "會員管理",
+    "Mitglieder",
+    "สมาชิก",
+    "Thành viên",
+    "Anggota",
+    "الأعضاء",
+    "Miembros",
+    "Membres",
+    "सदस्य",
+    "Membros",
+    "Участники",
+    "User Management",
+    "memberLog"
+   ]
+  },
+  "teamPerms": {
+   "ns": "teamPerms",
+   "title": "멤버 구성원",
+   "subtitle": "",
+   "paths": [
+    "/team-members"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [
+    "팀관리자는 본인 권한 범위 내에서만 부여할 수 있습니다 (회색 = 부여 불가)."
+   ],
+   "states": [],
+   "names": [
+    "멤버 구성원",
+    "Team Members",
+    "メンバー構成",
+    "成员管理",
+    "成員管理",
+    "Teammitglieder",
+    "สมาชิกทีม",
+    "Thành viên nhóm",
+    "Anggota Tim",
+    "أعضاء الفريق",
+    "Miembros del equipo",
+    "Membres d'équipe",
+    "टीम सदस्य",
+    "Membros da equipe",
+    "Участники команды"
+   ],
+   "match": [
+    "멤버 구성원",
+    "Team Members",
+    "メンバー構成",
+    "成员管理",
+    "成員管理",
+    "Teammitglieder",
+    "สมาชิกทีม",
+    "Thành viên nhóm",
+    "Anggota Tim",
+    "أعضاء الفريق",
+    "Miembros del equipo",
+    "Membres d'équipe",
+    "टीम सदस्य",
+    "Membros da equipe",
+    "Участники команды",
+    "teamPerms"
+   ]
+  },
+  "teamPartner": {
+   "ns": "teamPartner",
+   "title": "멤버 구성원",
+   "subtitle": "",
+   "paths": [
+    "/team-members"
+   ],
+   "actions": [
+    "'{name}' 파트너 계정을 삭제하시겠습니까?"
+   ],
+   "fields": [],
+   "notes": [
+    "파트너에게 별도 로그인 ID를 발급합니다. 파트너는 /partner 포털로 접속해 공유된 본인 데이터(발주/출고/재고)만 등록·열람합니다. 발급 수는 구독 플랜 한도를 따릅니다.",
+    "파트너 사진/로고 (선택) — 클릭하여 등록"
+   ],
+   "states": [],
+   "names": [
+    "멤버 구성원",
+    "Team Members",
+    "メンバー構成",
+    "成员管理",
+    "成員管理",
+    "Teammitglieder",
+    "สมาชิกทีม",
+    "Thành viên nhóm",
+    "Anggota Tim",
+    "أعضاء الفريق",
+    "Miembros del equipo",
+    "Membres d'équipe",
+    "टीम सदस्य",
+    "Membros da equipe",
+    "Участники команды"
+   ],
+   "match": [
+    "멤버 구성원",
+    "Team Members",
+    "メンバー構成",
+    "成员管理",
+    "成員管理",
+    "Teammitglieder",
+    "สมาชิกทีม",
+    "Thành viên nhóm",
+    "Anggota Tim",
+    "أعضاء الفريق",
+    "Miembros del equipo",
+    "Membres d'équipe",
+    "टीम सदस्य",
+    "Membros da equipe",
+    "Участники команды",
+    "'{name}' 파트너 계정을 삭제하시겠습니까?",
+    "teamPartner"
+   ]
+  },
+  "menuAccess": {
+   "ns": "menuAccess",
+   "title": "menu Access",
+   "subtitle": "",
+   "paths": [
+    "/menu-access-manager"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "menu Access"
+   ],
+   "match": [
+    "menuAccess"
+   ]
+  },
+  "orderHub": {
+   "ns": "orderHub",
+   "title": "주문 허브",
+   "subtitle": "",
+   "paths": [
+    "/order-hub"
+   ],
+   "actions": [
+    "동기화 중...",
+    "CRM 동기화",
+    "CRM 바로가기",
+    "Excel 내보내기",
+    "CSV 내보내기",
+    "취소",
+    "상세",
+    "시뮬레이션",
+    "+ 규칙 추가"
+   ],
+   "fields": [
+    "규칙명",
+    "조건",
+    "대상 창고"
+   ],
+   "notes": [
+    "비고",
+    "주문 상태 수동 변경",
+    "주문 수집 및 알림 설정을 관리합니다.",
+    "연동된 채널에서 주문 데이터를 실시간 자동 수집합니다.",
+    "채널별 출고 SLA 기준시간을 모니터링합니다.",
+    "신규 주문, 클레임 접수, SLA 위반 시 알림을 전송합니다.",
+    "배송 가이드",
+    "DDP: 판매자가 관세 포함 배송합니다."
+   ],
+   "states": [
+    "결제완료",
+    "상품준비중",
+    "배송중",
+    "배송완료",
+    "구매확정",
+    "내보낼 데이터가 없습니다",
+    "정산완료",
+    "처리중"
+   ],
+   "names": [
+    "주문 허브",
+    "Order Hub",
+    "注文ハブ",
+    "订单中心",
+    "訂單中心",
+    "Bestellzentrale",
+    "ศูนย์คำสั่งซื้อ",
+    "Trung tâm đơn hàng",
+    "Pusat Pesanan",
+    "مركز الطلبات",
+    "Centro pedidos",
+    "Centre commandes",
+    "ऑर्डर हब",
+    "Central pedidos",
+    "Центр заказов"
+   ],
+   "match": [
+    "주문 허브",
+    "Order Hub",
+    "注文ハブ",
+    "订单中心",
+    "訂單中心",
+    "Bestellzentrale",
+    "ศูนย์คำสั่งซื้อ",
+    "Trung tâm đơn hàng",
+    "Pusat Pesanan",
+    "مركز الطلبات",
+    "Centro pedidos",
+    "Centre commandes",
+    "ऑर्डर हब",
+    "Central pedidos",
+    "Центр заказов",
+    "SLA",
+    "DDP",
+    "DDU",
+    "B2B",
+    "동기화 중...",
+    "CRM 동기화",
+    "CRM 바로가기",
+    "Excel 내보내기",
+    "시뮬레이션",
+    "+ 규칙 추가",
+    "대상 창고",
+    "orderHub"
+   ]
+  },
+  "igdm": {
+   "ns": "igdm",
+   "title": "인스타 DM",
+   "subtitle": "",
+   "paths": [
+    "/instagram-dm"
+   ],
+   "actions": [
+    "전송",
+    "📤 발송",
+    "🔗 연결 테스트 + 저장"
+   ],
+   "fields": [
+    "Page ID (선택)"
+   ],
+   "notes": [
+    "Page Access Token 1개 → 즉시 실연동 · Instagram + Facebook Messenger 연동 관리 · 자동 응답 규칙",
+    "📌  모드 — Page Access Token 등록 시 즉시 실연동",
+    "모든 DM 수신 허용 팔로워",
+    "48시간 이상 미응답",
+    "최근 7일 문의",
+    "⚠️ Meta 정책: 고객이 먼저 DM을 보낸 경우에만 발송 가능합니다",
+    "Page Access Token 1개 입력 → Instagram + Facebook Messenger 즉시 연동"
+   ],
+   "states": [
+    "왼쪽에서 대화를 선택하세요",
+    "완료",
+    "총 수신 DM",
+    "평균 응답 시간",
+    "4.2분",
+    "DM → 구매 전환",
+    "자동 응답률",
+    "⏳ 연결 중..."
+   ],
+   "names": [
+    "인스타 DM",
+    "Instagram DM",
+    "Instagram私信",
+    "Instagram私訊",
+    "رسائل Instagram"
+   ],
+   "match": [
+    "인스타 DM",
+    "Instagram DM",
+    "Instagram私信",
+    "Instagram私訊",
+    "رسائل Instagram",
+    "TOP",
+    "📤 발송",
+    "🔗 연결 테스트 + 저장",
+    "Page ID (선택)",
+    "igdm"
+   ]
+  },
+  "graphScore": {
+   "ns": "graphScore",
+   "title": "그래프 스코어링",
+   "subtitle": "",
+   "paths": [
+    "/graph-score"
+   ],
+   "actions": [
+    "가중치 적용"
+   ],
+   "fields": [
+    "그래프 스코어"
+   ],
+   "notes": [
+    "노드 타입별 가중치를 조절하여 스코어 산정 기준을 맞춤 설정합니다.",
+    "비정상적인 접근이 감지되어 차단되었습니다. 잠시 후 다시 시도하세요.",
+    "이용 가이드",
+    "인플루언서·크리에이티브·SKU·주문 간의 그래프 네트워크를 분석하고, 각 노드의 기여도를 스코어링합니다.",
+    "엣지 가중치 = 기여도 지표"
+   ],
+   "states": [],
+   "names": [
+    "그래프 스코어링"
+   ],
+   "match": [
+    "가중치 적용",
+    "그래프 스코어",
+    "graphScore"
+   ]
+  },
+  "graph": {
+   "ns": "graph",
+   "title": "그래프 스코어",
+   "subtitle": "",
+   "paths": [
+    "/graph-score"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "그래프 스코어",
+    "Graph Score",
+    "グラフスコア",
+    "图谱评分",
+    "圖譜評分",
+    "Graphscore",
+    "คะแนนกราฟ",
+    "Điểm đồ thị",
+    "Skor Grafik",
+    "تقييم الرسم",
+    "Puntuación grafo",
+    "Score graphe",
+    "ग्राफ स्कोर",
+    "Pontuação grafo",
+    "Граф-оценка"
+   ],
+   "match": [
+    "그래프 스코어",
+    "Graph Score",
+    "グラフスコア",
+    "图谱评分",
+    "圖譜評分",
+    "Graphscore",
+    "คะแนนกราฟ",
+    "Điểm đồ thị",
+    "Skor Grafik",
+    "تقييم الرسم",
+    "Puntuación grafo",
+    "Score graphe",
+    "ग्राफ स्कोर",
+    "Pontuação grafo",
+    "Граф-оценка",
+    "graph"
+   ]
+  },
+  "myCoupons": {
+   "ns": "myCoupons",
+   "title": "내 쿠폰",
+   "subtitle": "보유 쿠폰 조회 및 쿠폰 코드 등록",
+   "paths": [
+    "/my-coupons"
+   ],
+   "actions": [],
+   "fields": [
+    "플랜"
+   ],
+   "notes": [
+    "보유한 쿠폰 코드가 있다면 위에서 등록하세요."
+   ],
+   "states": [
+    "사용 가능",
+    "해당 쿠폰이 없습니다"
+   ],
+   "names": [
+    "내 쿠폰"
+   ],
+   "match": [
+    "myCoupons"
+   ]
+  },
+  "planPricing": {
+   "ns": "planPricing",
+   "title": "플랜별 구독요금",
+   "subtitle": "",
+   "paths": [
+    "/admin/plan-pricing"
+   ],
+   "actions": [
+    "🔐 관리자 로그인으로 이동",
+    "🔗 Paddle Dashboard",
+    "🌱 초기 3 플랜 등록",
+    "🔄 새로고침",
+    "💾 저장 → 즉시 반영",
+    "＋ 새 플랜 추가",
+    "＋ 기능 추가",
+    "권장 적용",
+    "플랜 비활성화",
+    "💾 가격 저장",
+    "🔍 회원 검색",
+    "🎁 결재없이 무료 부여",
+    "🎟️ 발급",
+    "무효화",
+    "🤖 요금 기반 추천",
+    "💰 추천가 일괄 채움(계정수·기간)",
+    "💾 전체 저장",
+    "✓ 저장됨"
+   ],
+   "fields": [
+    "이름",
+    "설명",
+    "기능 목록",
+    "제공 한도 (Limits) · -1 = 무제한",
+    "활성",
+    "⭐ 추천 플랜",
+    "트리:",
+    "현재",
+    "기본",
+    "비활성",
+    "플랜",
+    "부여 플랜",
+    "메모 (admin 참고용)",
+    "기간",
+    "👥 계정수 (같은 플랜, 계정수별 요금)"
+   ],
+   "notes": [
+    "상단 ",
+    "② 구독 요금(USD)을 입력하면, 요금에 맞는 메뉴 구성을 자동으로 추천합니다.",
+    " 탭에서 플랜(Starter/Pro/Enterprise/Admin)별 8개 영역 세부 메뉴 자유 활성/비활성.",
+    "각 menuKey 의 weight_usd / category / AI premium 변경. 저장 즉시 권장가 재계산.",
+    "signup/upgrade/renewal 이벤트 발생 시 자동 발급. 각 룰 on/off + 플랜/기간 조정 가능.",
+    "회원을 검색·선택한 뒤 구독 플랜을 결제 없이 무료로 부여합니다. 쿠폰 등록 절차 없이 즉시 반영됩니다. (체험 중인 회원은 체험 시작일 기준 산입)",
+    "또는 아래 쿠폰 발급에 이 회원 이메일이 자동 입력됩니다",
+    "플랜·무료 기간·발급 수량 자유 설정. 코드 자동 생성 (GENIE-XXXXXXXXXX)."
+   ],
+   "states": [
+    "전체 발급",
+    "미사용 활성",
+    "사용 완료",
+    "무효화"
+   ],
+   "names": [
+    "플랜별 구독요금",
+    "Plan Pricing",
+    "プラン料金",
+    "套餐定价",
+    "方案定價",
+    "Plan-Preise",
+    "ราคาแผน",
+    "Giá gói",
+    "Harga Paket",
+    "أسعار الباقات",
+    "Precios de planes",
+    "Tarifs des plans",
+    "प्लान मूल्य निर्धारण",
+    "Preços de planos",
+    "Цены тарифов"
+   ],
+   "match": [
+    "플랜별 구독요금",
+    "Plan Pricing",
+    "プラン料金",
+    "套餐定价",
+    "方案定價",
+    "Plan-Preise",
+    "ราคาแผน",
+    "Giá gói",
+    "Harga Paket",
+    "أسعار الباقات",
+    "Precios de planes",
+    "Tarifs des plans",
+    "प्लान मूल्य निर्धारण",
+    "Preços de planos",
+    "Цены тарифов",
+    "GENIE",
+    "XXXXXXXXXX",
+    "VIP",
+    "SSOT",
+    "🔐 관리자 로그인으로 이동",
+    "🔗 Paddle Dashboard",
+    "🌱 초기 3 플랜 등록",
+    "🔄 새로고침",
+    "💾 저장 → 즉시 반영",
+    "＋ 새 플랜 추가",
+    "＋ 기능 추가",
+    "권장 적용",
+    "플랜 비활성화",
+    "💾 가격 저장",
+    "🔍 회원 검색",
+    "🎁 결재없이 무료 부여",
+    "🎟️ 발급",
+    "🤖 요금 기반 추천",
+    "💰 추천가 일괄 채움(계정수·기간)",
+    "💾 전체 저장",
+    "✓ 저장됨",
+    "기능 목록",
+    "제공 한도 (Limits) · -1 = 무제한",
+    "⭐ 추천 플랜",
+    "부여 플랜"
+   ]
+  },
+  "pm.overview": {
+   "ns": "pm.overview",
+   "title": "프로젝트 관리",
+   "subtitle": "",
+   "paths": [
+    "/pm"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [
+    "아직 프로젝트가 없습니다. 새로 만들어 시작하세요."
+   ],
+   "names": [
+    "프로젝트 관리",
+    "Project Management",
+    "プロジェクト管理",
+    "项目管理",
+    "專案管理",
+    "Projektmanagement",
+    "การจัดการโครงการ",
+    "Quản lý dự án",
+    "Manajemen Proyek",
+    "إدارة المشاريع",
+    "Gestión de proyectos",
+    "Gestion de projet",
+    "प्रोजेक्ट प्रबंधन",
+    "Gestão de projetos",
+    "Управление проектами"
+   ],
+   "match": [
+    "프로젝트 관리",
+    "Project Management",
+    "プロジェクト管理",
+    "项目管理",
+    "專案管理",
+    "Projektmanagement",
+    "การจัดการโครงการ",
+    "Quản lý dự án",
+    "Manajemen Proyek",
+    "إدارة المشاريع",
+    "Gestión de proyectos",
+    "Gestion de projet",
+    "प्रोजेक्ट प्रबंधन",
+    "Gestão de projetos",
+    "Управление проектами",
+    "overview"
+   ]
+  },
+  "dbAdmin.tabs": {
+   "ns": "dbAdmin.tabs",
+   "title": "DB 어드민",
+   "subtitle": "",
+   "paths": [
+    "/db-admin"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "DB 어드민",
+    "DB Admin",
+    "DB管理",
+    "DB-Admin",
+    "إدارة قاعدة البيانات",
+    "Admin BD",
+    "DB एडमिन",
+    "Админ БД"
+   ],
+   "match": [
+    "DB 어드민",
+    "DB Admin",
+    "DB管理",
+    "DB-Admin",
+    "إدارة قاعدة البيانات",
+    "Admin BD",
+    "DB एडमिन",
+    "Админ БД",
+    "tabs"
+   ]
+  },
+  "dbAdmin.kpi": {
+   "ns": "dbAdmin.kpi",
+   "title": "DB 어드민",
+   "subtitle": "",
+   "paths": [
+    "/db-admin"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "DB 어드민",
+    "DB Admin",
+    "DB管理",
+    "DB-Admin",
+    "إدارة قاعدة البيانات",
+    "Admin BD",
+    "DB एडमिन",
+    "Админ БД"
+   ],
+   "match": [
+    "DB 어드민",
+    "DB Admin",
+    "DB管理",
+    "DB-Admin",
+    "إدارة قاعدة البيانات",
+    "Admin BD",
+    "DB एडमिन",
+    "Админ БД",
+    "kpi"
+   ]
+  },
+  "dash": {
+   "ns": "dash",
+   "title": "종합 대시보드",
+   "subtitle": "",
+   "paths": [
+    "/dashboard"
+   ],
+   "actions": [],
+   "fields": [
+    "추이",
+    "CTR"
+   ],
+   "notes": [
+    "채널 카드 클릭 → 5단계 분석"
+   ],
+   "states": [
+    "활성"
+   ],
+   "names": [
+    "종합 대시보드",
+    "Dashboard",
+    "ダッシュボード",
+    "综合仪表盘",
+    "綜合儀表板",
+    "แดชบอร์ด",
+    "Bảng điều khiển",
+    "Dasbor",
+    "لوحة المعلومات",
+    "Panel de control",
+    "Tableau de bord",
+    "डैशबोर्ड",
+    "Painel",
+    "Дашборд"
+   ],
+   "match": [
+    "종합 대시보드",
+    "Dashboard",
+    "ダッシュボード",
+    "综合仪表盘",
+    "綜合儀表板",
+    "แดชบอร์ด",
+    "Bảng điều khiển",
+    "Dasbor",
+    "لوحة المعلومات",
+    "Panel de control",
+    "Tableau de bord",
+    "डैशबोर्ड",
+    "Painel",
+    "Дашборд",
+    "CPM",
+    "dash"
+   ]
+  },
+  "cro": {
+   "ns": "cro",
+   "title": "온사이트 CRO 실험",
+   "subtitle": "랜딩·팝업·CTA 변형을 A/B로 실험하고, 방문자 결정론 버킷팅으로 노출/전환을 수집해 통계적 승자를 판정합니다.",
+   "paths": [
+    "/onsite-cro"
+   ],
+   "actions": [
+    "실험 생성",
+    "제거",
+    "추가(add)",
+    "제거(remove)",
+    "삭제",
+    "북마클릿 복사",
+    "닫기"
+   ],
+   "fields": [],
+   "notes": [
+    "이 실험을 삭제하시겠습니까?"
+   ],
+   "states": [
+    "아직 실험이 없습니다. 위에서 첫 실험을 생성하세요."
+   ],
+   "names": [
+    "온사이트 CRO 실험",
+    "Onsite CRO Experiments",
+    "オンサイトCRO実験",
+    "站内 CRO 实验",
+    "站內 CRO 實驗",
+    "Onsite-CRO-Experimente",
+    "การทดลอง CRO บนเว็บ",
+    "Thử nghiệm CRO trên site",
+    "Eksperimen CRO Onsite",
+    "تجارب CRO على الموقع",
+    "Experimentos CRO en sitio",
+    "Expériences CRO sur site",
+    "ऑनसाइट CRO प्रयोग",
+    "Experimentos CRO no site",
+    "Onsite CRO-эксперименты"
+   ],
+   "match": [
+    "온사이트 CRO 실험",
+    "Onsite CRO Experiments",
+    "オンサイトCRO実験",
+    "站内 CRO 实验",
+    "站內 CRO 實驗",
+    "Onsite-CRO-Experimente",
+    "การทดลอง CRO บนเว็บ",
+    "Thử nghiệm CRO trên site",
+    "Eksperimen CRO Onsite",
+    "تجارب CRO على الموقع",
+    "Experimentos CRO en sitio",
+    "Expériences CRO sur site",
+    "ऑनसाइट CRO प्रयोग",
+    "Experimentos CRO no site",
+    "Onsite CRO-эксперименты",
+    "CRO",
+    "CSS",
+    "HTML",
+    "실험 생성",
+    "추가(add)",
+    "제거(remove)",
+    "북마클릿 복사",
+    "cro"
+   ]
+  },
+  "croGuide": {
+   "ns": "croGuide",
+   "title": "온사이트 CRO",
+   "subtitle": "",
+   "paths": [
+    "/onsite-cro"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "온사이트 CRO",
+    "Onsite CRO",
+    "オンサイト CRO",
+    "页面内转化率优化",
+    "現場 CRO",
+    "Onsite-CRO",
+    "CRO บนไซต์",
+    "CRO Trên Trang",
+    "تحسين معدل التحويل على الموقع",
+    "CRO en el sitio",
+    "CRO sur site",
+    "ऑनसाइट CRO",
+    "CRO No Site",
+    "Оптимизация конверсии на сайте"
+   ],
+   "match": [
+    "온사이트 CRO",
+    "Onsite CRO",
+    "オンサイト CRO",
+    "页面内转化率优化",
+    "現場 CRO",
+    "Onsite-CRO",
+    "CRO บนไซต์",
+    "CRO Trên Trang",
+    "تحسين معدل التحويل على الموقع",
+    "CRO en el sitio",
+    "CRO sur site",
+    "ऑनसाइट CRO",
+    "CRO No Site",
+    "Оптимизация конверсии на сайте",
+    "CVR",
+    "croGuide"
+   ]
+  },
+  "liveCommerce": {
+   "ns": "liveCommerce",
+   "title": "라이브 커머스",
+   "subtitle": "실시간 방송으로 판매·결제·물류·마케팅·분석을 하나로 연결하는 엔터프라이즈 라이브 커머스 허브",
+   "paths": [
+    "/live-commerce"
+   ],
+   "actions": [
+    "새로고침",
+    "전송",
+    "미디어서버 설정 저장",
+    "연결 테스트",
+    "저장",
+    "취소",
+    "이 방송을 삭제할까요? 편성·주문·채팅이 모두 삭제됩니다.",
+    "생성",
+    "번역",
+    "투표 만들기",
+    "투표 마감"
+   ],
+   "fields": [],
+   "notes": [
+    "이용 가이드",
+    "SRS·MediaMTX·Cloudflare Stream 등 WHIP/WHEP 지원 미디어서버 주소를 등록하면, 다음 방송부터 호스트 카메라가 실시간 송출되고 시청자에게 영상이 전송됩니다. base_url(SRS)만 입력하면 WHIP/WHEP 경로는 자동 구성됩니다.",
+    "방송 시작 시 활성(🟢) 대상이 LIVE로 전환됩니다. 실제 영상 송출은 미디어 서버(SRS/nginx-rtmp) 릴레이가 카메라 인제스트를 받아 각 RTMP로 팬아웃합니다. 스트림 키는 AES-256-GCM 암호화 저장됩니다.",
+    "이 KPI는 커머스/주문허브/정산·P&L/CRM/홈 대시보드/성과 리포트에 실시간 동기화됩니다. 구매 발생 시 재고가 자동 차감되고 OMS에 주문이 적재됩니다.",
+    "채널·결제·물류·CRM 연동은 중복 운영하지 않고 기존 메뉴에서 단일 등록·관리합니다. 여기서는 연결 현황만 확인하고, 각 카드의 버튼으로 담당 메뉴에서 등록하세요. (자격증명은 AES-256-GCM 암호화 저장)",
+    "한 방송에 다중 진행자를 초대합니다. 게스트는 발급된 링크로 참여(계정 불요)하고, 발급된 송출키로 외부 미디어서버에 영상을 송출하면 방송에 합성됩니다.",
+    "이 게스트를 삭제하시겠습니까?"
+   ],
+   "states": [
+    "아직 채팅이 없습니다"
+   ],
+   "names": [
+    "라이브 커머스",
+    "Live Commerce",
+    "ライブコマース",
+    "直播电商",
+    "直播電商",
+    "Live-Commerce",
+    "ไลฟ์คอมเมิร์ซ",
+    "التجارة المباشرة",
+    "लाइव कॉमर्स"
+   ],
+   "match": [
+    "라이브 커머스",
+    "Live Commerce",
+    "ライブコマース",
+    "直播电商",
+    "直播電商",
+    "Live-Commerce",
+    "ไลฟ์คอมเมิร์ซ",
+    "التجارة المباشرة",
+    "लाइव कॉमर्स",
+    "SRS",
+    "WHIP",
+    "WHEP",
+    "STUN",
+    "TURN",
+    "RTMP",
+    "LIVE",
+    "TOP",
+    "OMS",
+    "FAQ",
+    "OCL",
+    "미디어서버 설정 저장",
+    "연결 테스트",
+    "이 방송을 삭제할까요? 편성·주문·채팅이 모두 삭제됩니다.",
+    "투표 만들기",
+    "투표 마감",
+    "liveCommerce"
+   ]
+  },
+  "ds": {
+   "ns": "ds",
+   "title": "데이터 스키마",
+   "subtitle": "",
+   "paths": [
+    "/data-schema"
+   ],
+   "actions": [],
+   "fields": [
+    "이벤트 ID",
+    "플랫폼",
+    "계정 ID",
+    "캠페인 ID",
+    "캠페인 이름",
+    "캠페인 목표",
+    "광고세트 ID",
+    "광고세트 이름",
+    "광고 ID",
+    "광고 이름",
+    "크리에이티브 타입",
+    "키워드 ID",
+    "키워드 텍스트",
+    "매치 타입",
+    "오디언스 ID",
+    "오디언스 타입",
+    "최소 연령",
+    "최대 연령",
+    "성별",
+    "지역 국가",
+    "노출 위치",
+    "기기 타입",
+    "이벤트 날짜",
+    "노출수"
+   ],
+   "notes": [
+    "광고 데이터 표준 이벤트",
+    "마켓 데이터 설명",
+    "UGC 데이터 설명",
+    "설명",
+    "Meta/Google/TikTok 광고 API 수집",
+    "쿠팡/네이버/11번가 정산 파일 업로드",
+    "Instagram/YouTube/TikTok 콘텐츠 수집",
+    "벤더별 필드명을 표준 스키마로 매핑"
+   ],
+   "states": [],
+   "names": [
+    "데이터 스키마",
+    "Data Schema",
+    "データスキーマ",
+    "数据模式",
+    "資料模式",
+    "Datenschema",
+    "สคีมาข้อมูล",
+    "Lược đồ dữ liệu",
+    "Skema Data",
+    "مخطط البيانات",
+    "Esquema datos",
+    "Schéma données",
+    "डेटा स्कीमा",
+    "Esquema dados",
+    "Схема данных"
+   ],
+   "match": [
+    "데이터 스키마",
+    "Data Schema",
+    "データスキーマ",
+    "数据模式",
+    "資料模式",
+    "Datenschema",
+    "สคีมาข้อมูล",
+    "Lược đồ dữ liệu",
+    "Skema Data",
+    "مخطط البيانات",
+    "Esquema datos",
+    "Schéma données",
+    "डेटा स्कीमा",
+    "Esquema dados",
+    "Схема данных",
+    "이벤트 ID",
+    "계정 ID",
+    "캠페인 ID",
+    "캠페인 이름",
+    "캠페인 목표",
+    "광고세트 ID",
+    "광고세트 이름",
+    "광고 ID",
+    "광고 이름",
+    "크리에이티브 타입",
+    "키워드 ID",
+    "키워드 텍스트",
+    "매치 타입",
+    "오디언스 ID",
+    "오디언스 타입",
+    "최소 연령",
+    "최대 연령",
+    "지역 국가",
+    "노출 위치",
+    "기기 타입",
+    "이벤트 날짜",
+    "ds"
+   ]
+  },
+  "wms": {
+   "ns": "wms",
+   "title": "WMS 재고관리",
+   "subtitle": "",
+   "paths": [
+    "/wms-manager"
+   ],
+   "actions": [
+    "💾 저장",
+    "취소",
+    "권한 추가",
+    "✏️ 편집",
+    "재개",
+    "엑셀 일괄등록",
+    "+ 입출고 등록",
+    "바코드 스캔",
+    "샘플 다운로드",
+    "파일 선택",
+    "일괄 등록 실행",
+    "입력",
+    "이 SKU 적용",
+    "💾 등록",
+    "적용",
+    "CSV 대량 가져오기",
+    "CSV 내보내기",
+    "Excel 내보내기"
+   ],
+   "fields": [
+    "창고명 *",
+    "창고 코드 *",
+    "전화번호",
+    "주소",
+    "면적(㎡)",
+    "보관유형",
+    "운영형태",
+    "담당자",
+    "사용자 이메일",
+    "역할",
+    "유형 *",
+    "창고 *",
+    "SKU *",
+    "상품명",
+    "수량 *",
+    "단가(원)",
+    "참조번호",
+    "사유/메모",
+    "주문번호 목록",
+    "묶음 배송사",
+    "송장",
+    "업체명 *",
+    "코드 *",
+    "국가코드"
+   ],
+   "notes": [
+    "사용자별 창고 접근 권한을 제어합니다. 역할에 따라 조회/수정/삭제 권한이 달라집니다.",
+    "카메라로 바코드를 확인한 뒤 코드를 직접 입력하세요.",
+    "CSV 파일로 SKU/재고를 일괄 등록합니다. 필수 컬럼:",
+    "국제특송 출고 시 세관 신고용 인보이스 자동 생성",
+    "품목 설명",
+    "장부 재고 vs 실제 재고 대조·차이 조정",
+    "택배사 API를 통해 배송 상태를 실시간 조회합니다.",
+    "실시간 출고율·재고·회전율·유통기한·반품처리율"
+   ],
+   "states": [
+    "등록된 권한이 없습니다. 사용자를 추가해주세요.",
+    "기록된 이동 이력이 없습니다."
+   ],
+   "names": [
+    "WMS 재고관리",
+    "WMS Inventory",
+    "WMS在庫管理",
+    "WMS库存",
+    "WMS庫存",
+    "WMS-Bestand",
+    "WMS คลังสินค้า",
+    "WMS Kho",
+    "WMS Inventaris",
+    "مستودعات WMS",
+    "WMS inventario",
+    "WMS stocks",
+    "WMS इन्वेंटरी",
+    "WMS estoque",
+    "WMS-склад",
+    "WMS Manager"
+   ],
+   "match": [
+    "WMS 재고관리",
+    "WMS Inventory",
+    "WMS在庫管理",
+    "WMS库存",
+    "WMS庫存",
+    "WMS-Bestand",
+    "WMS คลังสินค้า",
+    "WMS Kho",
+    "WMS Inventaris",
+    "مستودعات WMS",
+    "WMS inventario",
+    "WMS stocks",
+    "WMS इन्वेंटरी",
+    "WMS estoque",
+    "WMS-склад",
+    "WMS Manager",
+    "INCOTERM",
+    "BOM",
+    "XSS",
+    "SQL",
+    "LOT",
+    "💾 저장",
+    "권한 추가",
+    "✏️ 편집",
+    "엑셀 일괄등록",
+    "+ 입출고 등록",
+    "바코드 스캔",
+    "샘플 다운로드",
+    "파일 선택",
+    "일괄 등록 실행",
+    "이 SKU 적용",
+    "💾 등록",
+    "CSV 대량 가져오기",
+    "Excel 내보내기",
+    "창고명 *",
+    "창고 코드 *",
+    "전화번호",
+    "면적(㎡)",
+    "보관유형",
+    "운영형태"
+   ]
+  },
+  "wms.cctv": {
+   "ns": "wms.cctv",
+   "title": "CCTV 실시간 조회",
+   "subtitle": "자격등록을 마치면 언제든 원격으로 볼 수 있습니다",
+   "paths": [
+    "/wms-manager"
+   ],
+   "actions": [
+    "실시간 보기",
+    "전체 보기 닫기",
+    "전체 보기",
+    "브리지 관리",
+    "카메라 자격등록",
+    "복사",
+    "닫기",
+    "브리지 추가",
+    "코드 재발급",
+    "저장",
+    "취소",
+    "연결 테스트",
+    "수정"
+   ],
+   "fields": [
+    "브리지 선택",
+    "카메라 이름",
+    "창고 (선택)",
+    "설치 장소",
+    "프로그램",
+    "연결 방식",
+    "스트림 URL (공개 https)",
+    "LAN 주소 / IP",
+    "도메인 / IP",
+    "포트",
+    "RTSP 포트",
+    "채널",
+    "RTSP 주소 템플릿",
+    "스냅샷 주소 템플릿",
+    "아이디",
+    "비밀번호",
+    "상태"
+   ],
+   "notes": [
+    "현장 PC에서 아래 코드로 에이전트를 1회 페어링하세요. 이 코드는 지금만 표시됩니다.",
+    "P2P·ActiveX·독자VMS 등 인터넷으로 표준 스트림을 열지 않는 장비는, 현장 PC에 브리지 에이전트를 설치하면 LAN에서 물어 자동 재생됩니다.",
+    "치환 변수: {host} {port} {rtspPort} {user} {pass} {channel}",
+    "아이디·비밀번호는 AES-256-GCM으로 암호화 저장되며, 영상은 서버가 중계하므로 자격증명이 브라우저로 전달되지 않습니다.",
+    "각 카메라를 동시에 실시간 재생합니다. 대수가 많으면 대역폭·CPU 부하가 커질 수 있습니다.",
+    "이 브리지를 삭제할까요? 연결된 카메라는 재배정이 필요합니다.",
+    "이 카메라 등록을 삭제할까요?"
+   ],
+   "states": [
+    "카메라에 연결 중…",
+    "복사됨",
+    "등록된 브리지가 없습니다.",
+    "온라인",
+    "오프라인",
+    "미연결",
+    "사용",
+    "중지",
+    "등록된 카메라가 없습니다. 자격등록을 하면 실시간 조회가 가능합니다.",
+    "연결됨"
+   ],
+   "names": [
+    "CCTV 실시간 조회",
+    "CCTV live view"
+   ],
+   "match": [
+    "CCTV 실시간 조회",
+    "CCTV live view",
+    "CCTV",
+    "HLS",
+    "P2P",
+    "VMS",
+    "LAN",
+    "RTSP",
+    "CPU",
+    "실시간 보기",
+    "전체 보기 닫기",
+    "전체 보기",
+    "브리지 관리",
+    "카메라 자격등록",
+    "브리지 추가",
+    "코드 재발급",
+    "연결 테스트",
+    "브리지 선택",
+    "카메라 이름",
+    "창고 (선택)",
+    "설치 장소",
+    "프로그램",
+    "연결 방식",
+    "스트림 URL (공개 https)",
+    "LAN 주소 / IP",
+    "도메인 / IP",
+    "RTSP 포트",
+    "RTSP 주소 템플릿",
+    "스냅샷 주소 템플릿",
+    "비밀번호",
+    "cctv"
+   ]
+  },
+  "wms.bins": {
+   "ns": "wms.bins",
+   "title": "로케이션(빈) 관리",
+   "subtitle": "",
+   "paths": [
+    "/wms-manager"
+   ],
+   "actions": [
+    "빈 추가",
+    "저장"
+   ],
+   "fields": [],
+   "notes": [
+    "이 로케이션을 삭제할까요?"
+   ],
+   "states": [
+    "등록된 로케이션이 없습니다",
+    "빈 재고가 없습니다"
+   ],
+   "names": [
+    "로케이션(빈) 관리",
+    "Bin Locations"
+   ],
+   "match": [
+    "로케이션(빈) 관리",
+    "Bin Locations",
+    "빈 추가",
+    "bins"
+   ]
+  },
+  "wms.barcodes": {
+   "ns": "wms.barcodes",
+   "title": "바코드/시리얼 매핑",
+   "subtitle": "바코드 또는 시리얼번호를 SKU에 연결해 스캔 입출고를 인식합니다.",
+   "paths": [
+    "/wms-manager"
+   ],
+   "actions": [
+    "매핑 추가"
+   ],
+   "fields": [],
+   "notes": [
+    "이 매핑을 삭제할까요?"
+   ],
+   "states": [
+    "상태",
+    "활성",
+    "비활성",
+    "등록된 매핑이 없습니다"
+   ],
+   "names": [
+    "바코드/시리얼 매핑",
+    "Barcode / Serial Registry"
+   ],
+   "match": [
+    "바코드/시리얼 매핑",
+    "Barcode / Serial Registry",
+    "매핑 추가",
+    "barcodes"
+   ]
+  },
+  "wms.scan": {
+   "ns": "wms.scan",
+   "title": "스캔 입출고·적치",
+   "subtitle": "바코드 또는 SKU를 입력해 입고/출고/적치를 처리합니다. 등록된 바코드↔SKU 매핑으로 자동 인식됩니다.",
+   "paths": [
+    "/wms-manager"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "스캔 입출고·적치",
+    "Scan Inbound·Outbound·Putaway"
+   ],
+   "match": [
+    "스캔 입출고·적치",
+    "Scan Inbound·Outbound·Putaway",
+    "scan"
+   ]
+  },
+  "wms.wave": {
+   "ns": "wms.wave",
+   "title": "웨이브 피킹",
+   "subtitle": "여러 주문을 존별로 묶어 피킹 동선 순서로 정렬합니다. 확정 시 출고 이동으로 전환됩니다.",
+   "paths": [
+    "/wms-manager"
+   ],
+   "actions": [
+    "웨이브 생성",
+    "생성",
+    "피킹 확정"
+   ],
+   "fields": [],
+   "notes": [
+    "이 웨이브를 삭제할까요?"
+   ],
+   "states": [
+    "생성된 웨이브가 없습니다",
+    "대기"
+   ],
+   "names": [
+    "웨이브 피킹",
+    "Wave Picking"
+   ],
+   "match": [
+    "웨이브 피킹",
+    "Wave Picking",
+    "웨이브 생성",
+    "피킹 확정",
+    "wave"
+   ]
+  },
+  "attrData": {
+   "ns": "attrData",
+   "title": "마케팅 어트리뷰션 — 실시간 ML 엔진 v3.0",
+   "subtitle": "정밀 Shapley (2^n) · 베이지안 MMM · 마르코프 체인 · 증분 업리프트 (이중 ML) · 톰슨 샘플링 A/B",
+   "paths": [
+    "/attribution"
+   ],
+   "actions": [
+    "기여도 %",
+    "리프트 검정 실행",
+    "실험 등록",
+    "AI Marketing 허브 실행 결과",
+    "실시간 동기화 ✓"
+   ],
+   "fields": [
+    "정밀 Shapley",
+    "베이지안 MMM",
+    "마르코프+업리프트",
+    "베이지안 A/B",
+    "전환비율",
+    "멀티터치 MTA",
+    "🎯 신뢰도·설명",
+    "📊 증분성·홀드아웃",
+    "코호트 분석",
+    "LTV vs CAC",
+    "이상감지",
+    "모델 비교",
+    "이용 가이드"
+   ],
+   "notes": [
+    "실시간 이상감지 (Anomaly Detection)",
+    "노출(view-through) 터치를 전용 반감기(1일)로 시간감쇠 + 데이터 기반 자동 가중",
+    "서버가 attribution_touch 여정을 전환과 결합해 6개 모델을 계산합니다. Markov removal-effect(제거 효과)는 채널 부재 시 전환 손실을 측정하는 데이터기반(data-driven) 어트리뷰션입니다.",
+    "서버 실측 부트스트랩 · 90% 신뢰구간 + 6모델 합의도",
+    "부트스트랩 30회 재표본 · 90% 신뢰구간",
+    "좌측 메뉴에서 '어트리뷰션'을 선택하세요.",
+    "좌측 메뉴에서 어트리뷰션을 선택하세요.",
+    "데이터기반 증분 기여도(마르코프 제거효과)를 last-touch 보고치와 비교해 채널별 증분 ROAS·과대귀속을 산출하고, 실제 홀드아웃 실험에 필요한 검정력(최소검출효과·필요기간)을 안내합니다."
+   ],
+   "states": [
+    "전환에 연결된 터치 여정이 아직 없습니다. 픽셀/터치 수집 + 전환 스코어링 후 자동 반영됩니다."
+   ],
+   "names": [
+    "마케팅 어트리뷰션 — 실시간 ML 엔진 v3.0",
+    "Marketing Attribution — Real-time ML Engine v3.0",
+    "マーケティングアトリビューション — リアルタイムMLエンジン v3.0",
+    "营销归因 — 实时 ML 引擎 v3.0",
+    "行銷歸因 — 即時 ML 引擎 v3.0",
+    "Marketing-Attribution — Echtzeit-ML-Engine v3.0",
+    "Marketing Attribution — เครื่องมือ ML เรียลไทม์ v3.0",
+    "Attribution Marketing — Công cụ ML thời gian thực v3.0",
+    "Atribusi Pemasaran — Mesin ML Real-time v3.0",
+    "إسناد التسويق — محرك ML فوري v3.0",
+    "Atribución de marketing — Motor de ML en tiempo real v3.0",
+    "Attribution marketing — Moteur ML en temps réel v3.0",
+    "मार्केटिंग एट्रिब्यूशन — रीयल-टाइम ML इंजन v3.0",
+    "Atribuição de marketing — Mecanismo de ML em tempo real v3.0",
+    "Маркетинговая атрибуция — ML-движок реального времени v3.0"
+   ],
+   "match": [
+    "마케팅 어트리뷰션 — 실시간 ML 엔진 v3.0",
+    "Marketing Attribution — Real-time ML Engine v3.0",
+    "マーケティングアトリビューション — リアルタイムMLエンジン v3.0",
+    "营销归因 — 实时 ML 引擎 v3.0",
+    "行銷歸因 — 即時 ML 引擎 v3.0",
+    "Marketing-Attribution — Echtzeit-ML-Engine v3.0",
+    "Marketing Attribution — เครื่องมือ ML เรียลไทม์ v3.0",
+    "Attribution Marketing — Công cụ ML thời gian thực v3.0",
+    "Atribusi Pemasaran — Mesin ML Real-time v3.0",
+    "إسناد التسويق — محرك ML فوري v3.0",
+    "Atribución de marketing — Motor de ML en tiempo real v3.0",
+    "Attribution marketing — Moteur ML en temps réel v3.0",
+    "मार्केटिंग एट्रिब्यूशन — रीयल-टाइम ML इंजन v3.0",
+    "Atribuição de marketing — Mecanismo de ML em tempo real v3.0",
+    "Маркетинговая атрибуция — ML-движок реального времени v3.0",
+    "MMM",
+    "CAC",
+    "VTC",
+    "CTC",
+    "MTA",
+    "PII",
+    "CVR",
+    "기여도 %",
+    "리프트 검정 실행",
+    "실험 등록",
+    "AI Marketing 허브 실행 결과",
+    "실시간 동기화 ✓",
+    "정밀 Shapley",
+    "베이지안 MMM",
+    "마르코프+업리프트",
+    "베이지안 A/B",
+    "전환비율",
+    "멀티터치 MTA",
+    "🎯 신뢰도·설명",
+    "📊 증분성·홀드아웃",
+    "코호트 분석",
+    "LTV vs CAC",
+    "이상감지",
+    "모델 비교",
+    "이용 가이드"
+   ]
+  },
+  "approvalsPage": {
+   "ns": "approvalsPage",
+   "title": "결재 센터",
+   "subtitle": "",
+   "paths": [
+    "/approvals"
+   ],
+   "actions": [
+    "다른 탭에서 승인 동기화됨",
+    "💎 Pro 업그레이드",
+    "내보내기"
+   ],
+   "fields": [],
+   "notes": [
+    "의심스러운 활동이 감지되어 모듈이 잠겼습니다.",
+    "AI 규칙 엔진 및 AI 정책의 승인 요청이 실시간으로 여기에 표시됩니다.",
+    "승인 결정 및 실행 로그가 실시간으로 여기에 표시됩니다.",
+    "저위험 요청을 자동으로 승인",
+    "승인 시 2단계 인증 필요",
+    "승인 알림을 Slack으로 전송",
+    "대기 중인 승인 시 이메일 전송",
+    "액션 실행 전 5분 지연 추가"
+   ],
+   "states": [
+    "대기",
+    "승인됨",
+    "실행완료",
+    "반려",
+    "상태"
+   ],
+   "names": [
+    "결재 센터",
+    "Approvals",
+    "承認センター",
+    "审批中心",
+    "審批中心",
+    "Genehmigungen",
+    "การอนุมัติ",
+    "Phê duyệt",
+    "Persetujuan",
+    "الموافقات",
+    "Aprobaciones",
+    "Approbations",
+    "अनुमोदन",
+    "Aprovações",
+    "Согласования"
+   ],
+   "match": [
+    "결재 센터",
+    "Approvals",
+    "承認センター",
+    "审批中心",
+    "審批中心",
+    "Genehmigungen",
+    "การอนุมัติ",
+    "Phê duyệt",
+    "Persetujuan",
+    "الموافقات",
+    "Aprobaciones",
+    "Approbations",
+    "अनुमोदन",
+    "Aprovações",
+    "Согласования",
+    "DEMO",
+    "다른 탭에서 승인 동기화됨",
+    "💎 Pro 업그레이드",
+    "내보내기",
+    "approvalsPage"
+   ]
+  },
+  "paymentMethods": {
+   "ns": "paymentMethods",
+   "title": "결제수단",
+   "subtitle": "",
+   "paths": [
+    "/payment-methods"
+   ],
+   "actions": [
+    "구독 취소·환불 요청"
+   ],
+   "fields": [
+    "합계 "
+   ],
+   "notes": [
+    "구독을 취소하고 환불을 요청하시겠습니까?\\n· 구독 시작 30일 이내에만 전액 환불됩니다.\\n· 재가입 시 이번에 사용한 일수가 신규 구독에 소급 적용됩니다."
+   ],
+   "states": [
+    "선택 기간의 결제/청구 내역이 없습니다.",
+    "청구완료",
+    "대기"
+   ],
+   "names": [
+    "결제수단",
+    "Payment Methods",
+    "決済方法",
+    "支付方式",
+    "Zahlungsmethoden",
+    "วิธีการชำระเงิน",
+    "Phương Thức Thanh Toán",
+    "Metode Pembayaran",
+    "طرق الدفع",
+    "Métodos de pago",
+    "Moyens de paiement",
+    "भुगतान विधियाँ",
+    "Métodos de Pagamento",
+    "Способы оплаты"
+   ],
+   "match": [
+    "결제수단",
+    "Payment Methods",
+    "決済方法",
+    "支付方式",
+    "Zahlungsmethoden",
+    "วิธีการชำระเงิน",
+    "Phương Thức Thanh Toán",
+    "Metode Pembayaran",
+    "طرق الدفع",
+    "Métodos de pago",
+    "Moyens de paiement",
+    "भुगतान विधियाँ",
+    "Métodos de Pagamento",
+    "Способы оплаты",
+    "구독 취소·환불 요청",
+    "paymentMethods"
+   ]
+  },
+  "audit": {
+   "ns": "audit",
+   "title": "감사 로그",
+   "subtitle": "",
+   "paths": [
+    "/audit"
+   ],
+   "actions": [
+    "감사 증적 내보내기 (최근 30일)",
+    "SIEM 설정 저장",
+    "📥 CSV 내보내기"
+   ],
+   "fields": [],
+   "notes": [
+    "지난 24시간 내 고위험 이벤트가 감지되었습니다",
+    "정기적으로 감사 로그를 검토하여 비정상적인 활동 패턴을 식별하세요. 고위험 이벤트는 감지 시 즉시 확인하고",
+    "MFA 강제 정책·SIEM 감사 포워딩·증적 내보내기(관리자).",
+    "강제 시 해당 사용자는 로그인 후 MFA 등록 전까지 앱 사용이 차단됩니다.",
+    "SOC2/ISO 심사 증적·SIEM 적재용(인증·보안·운영 감사 통합).",
+    "모든 운영 이벤트에 대한 변경 불가능한 감사 기록",
+    "감사 로그 항목 총합",
+    "즉시 검토를 권장합니다"
+   ],
+   "states": [],
+   "names": [
+    "감사 로그",
+    "Audit Log",
+    "監査ログ",
+    "审核日志",
+    "Email Marketing",
+    "سجل التدقيق",
+    "Registro de auditoría",
+    "Journal d'audit",
+    "ऑडिट लॉग",
+    "Log de auditoria",
+    "Журнал аудита"
+   ],
+   "match": [
+    "감사 로그",
+    "Audit Log",
+    "監査ログ",
+    "审核日志",
+    "Email Marketing",
+    "سجل التدقيق",
+    "Registro de auditoría",
+    "Journal d'audit",
+    "ऑडिट लॉग",
+    "Log de auditoria",
+    "Журнал аудита",
+    "MFA",
+    "SIEM",
+    "SOC2",
+    "ISO",
+    "HEC",
+    "HTTPS",
+    "감사 증적 내보내기 (최근 30일)",
+    "SIEM 설정 저장",
+    "📥 CSV 내보내기",
+    "audit"
+   ]
+  },
+  "admin.tabs": {
+   "ns": "admin.tabs",
+   "title": "관리자 환경",
+   "subtitle": "",
+   "paths": [
+    "/admin"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "관리자 환경",
+    "Admin Settings",
+    "管理者設定",
+    "管理设置",
+    "管理設定",
+    "Admin-Einstellungen",
+    "การตั้งค่าผู้ดูแล",
+    "Cài đặt quản trị",
+    "Pengaturan Admin",
+    "إعدادات المسؤول",
+    "Config. admin",
+    "Paramètres admin",
+    "व्यवस्थापक सेटिंग",
+    "Настройки админа"
+   ],
+   "match": [
+    "관리자 환경",
+    "Admin Settings",
+    "管理者設定",
+    "管理设置",
+    "管理設定",
+    "Admin-Einstellungen",
+    "การตั้งค่าผู้ดูแล",
+    "Cài đặt quản trị",
+    "Pengaturan Admin",
+    "إعدادات المسؤول",
+    "Config. admin",
+    "Paramètres admin",
+    "व्यवस्थापक सेटिंग",
+    "Настройки админа",
+    "tabs"
+   ]
+  },
+  "admin.kpi": {
+   "ns": "admin.kpi",
+   "title": "관리자 환경",
+   "subtitle": "",
+   "paths": [
+    "/admin"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "관리자 환경",
+    "Admin Settings",
+    "管理者設定",
+    "管理设置",
+    "管理設定",
+    "Admin-Einstellungen",
+    "การตั้งค่าผู้ดูแล",
+    "Cài đặt quản trị",
+    "Pengaturan Admin",
+    "إعدادات المسؤول",
+    "Config. admin",
+    "Paramètres admin",
+    "व्यवस्थापक सेटिंग",
+    "Настройки админа"
+   ],
+   "match": [
+    "관리자 환경",
+    "Admin Settings",
+    "管理者設定",
+    "管理设置",
+    "管理設定",
+    "Admin-Einstellungen",
+    "การตั้งค่าผู้ดูแล",
+    "Cài đặt quản trị",
+    "Pengaturan Admin",
+    "إعدادات المسؤول",
+    "Config. admin",
+    "Paramètres admin",
+    "व्यवस्थापक सेटिंग",
+    "Настройки админа",
+    "kpi"
+   ]
+  },
+  "admin.envSwitch": {
+   "ns": "admin.envSwitch",
+   "title": "관리자 환경",
+   "subtitle": "",
+   "paths": [
+    "/admin"
+   ],
+   "actions": [
+    "🏢 운영 시스템",
+    "🎪 데모 환경"
+   ],
+   "fields": [
+    "현재 관리 환경:",
+    "🎪 데모 환경 (체험용 · 샌드박스)"
+   ],
+   "notes": [
+    "지금은 데모(체험) 데이터를 관리 중입니다. 실제 고객·매출을 관리하려면 운영 시스템으로 전환하세요."
+   ],
+   "states": [],
+   "names": [
+    "관리자 환경",
+    "Admin Settings",
+    "管理者設定",
+    "管理设置",
+    "管理設定",
+    "Admin-Einstellungen",
+    "การตั้งค่าผู้ดูแล",
+    "Cài đặt quản trị",
+    "Pengaturan Admin",
+    "إعدادات المسؤول",
+    "Config. admin",
+    "Paramètres admin",
+    "व्यवस्थापक सेटिंग",
+    "Настройки админа"
+   ],
+   "match": [
+    "관리자 환경",
+    "Admin Settings",
+    "管理者設定",
+    "管理设置",
+    "管理設定",
+    "Admin-Einstellungen",
+    "การตั้งค่าผู้ดูแล",
+    "Cài đặt quản trị",
+    "Pengaturan Admin",
+    "إعدادات المسؤول",
+    "Config. admin",
+    "Paramètres admin",
+    "व्यवस्थापक सेटिंग",
+    "Настройки админа",
+    "🏢 운영 시스템",
+    "🎪 데모 환경",
+    "현재 관리 환경:",
+    "🎪 데모 환경 (체험용 · 샌드박스)",
+    "envSwitch"
+   ]
+  },
+  "adminSms": {
+   "ns": "adminSms",
+   "title": "인증 SMS(Twilio) 설정",
+   "subtitle": "",
+   "paths": [
+    "/admin"
+   ],
+   "actions": [
+    "Twilio 저장",
+    "테스트 발송"
+   ],
+   "fields": [
+    "Account SID",
+    "Auth Token",
+    "발신번호(From)",
+    "Messaging Service SID",
+    "테스트 수신 번호"
+   ],
+   "notes": [
+    "Twilio 설정됨 — 로그인 2단계 인증·휴대폰 본인확인·비밀번호 재설정 SMS가 모두 Twilio로 발송됩니다.",
+    "미설정 시 SMS는 2단계 인증 수단으로 제공되지 않고 이메일 OTP로 자동 전환됩니다. (마케팅 SMS는 별도 공급자를 사용합니다.)",
+    "발신번호와 Messaging Service SID 중 최소 하나는 입력해야 합니다. 알파벳 발신자 ID는 발신번호 칸에 넣을 수 없고 Messaging Service를 사용해야 합니다.",
+    "Auth Token은 AES-256-GCM으로 암호화 저장되며 화면에 다시 표시되지 않습니다. 수신번호는 국내형(010…)을 자동으로 +82 국제형으로 변환합니다."
+   ],
+   "states": [],
+   "names": [
+    "인증 SMS(Twilio) 설정",
+    "Authentication SMS (Twilio) settings"
+   ],
+   "match": [
+    "인증 SMS(Twilio) 설정",
+    "Authentication SMS (Twilio) settings",
+    "SID",
+    "OTP",
+    "Twilio 저장",
+    "테스트 발송",
+    "Account SID",
+    "Auth Token",
+    "발신번호(From)",
+    "Messaging Service SID",
+    "테스트 수신 번호",
+    "adminSms"
+   ]
+  },
+  "admin.overview": {
+   "ns": "admin.overview",
+   "title": "관리자 환경",
+   "subtitle": "",
+   "paths": [
+    "/admin"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "관리자 환경",
+    "Admin Settings",
+    "管理者設定",
+    "管理设置",
+    "管理設定",
+    "Admin-Einstellungen",
+    "การตั้งค่าผู้ดูแล",
+    "Cài đặt quản trị",
+    "Pengaturan Admin",
+    "إعدادات المسؤول",
+    "Config. admin",
+    "Paramètres admin",
+    "व्यवस्थापक सेटिंग",
+    "Настройки админа"
+   ],
+   "match": [
+    "관리자 환경",
+    "Admin Settings",
+    "管理者設定",
+    "管理设置",
+    "管理設定",
+    "Admin-Einstellungen",
+    "การตั้งค่าผู้ดูแล",
+    "Cài đặt quản trị",
+    "Pengaturan Admin",
+    "إعدادات المسؤول",
+    "Config. admin",
+    "Paramètres admin",
+    "व्यवस्थापक सेटिंग",
+    "Настройки админа",
+    "RBAC",
+    "PH3",
+    "SSE",
+    "overview"
+   ]
+  },
+  "demandForecast": {
+   "ns": "demandForecast",
+   "title": "AI 수요예측",
+   "subtitle": "판매 신호(주문·재고) 기반 SKU 수요예측 — 채널 연동 데이터가 쌓일수록 정밀해집니다.",
+   "paths": [
+    "/demand-forecast"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [
+    "데이터 ≥ 14일 — 추세 + 주간 계절성 동시 반영",
+    "데이터 ≥ 4일 — 추세 반영(계절성 데이터 부족 시)",
+    "데이터 < 4일 — 평균 기반 보수적 예측",
+    "z(1.65)×잔차σ×√(리드타임) — 서비스레벨 95%",
+    "1-step in-sample sMAPE 기반(과적합·날조 지표 배제)"
+   ],
+   "states": [
+    "예측에 필요한 채널 주문 데이터가 아직 없습니다. 채널을 연동하면 주문이 쌓이며 자동으로 SKU별 수요예측이 생성됩니다.",
+    "{{n}}개 SKU 예측",
+    "{{a}}% 평균 정확도",
+    "모델 학습 중",
+    "시스템 정상",
+    "악성·저회전 재고가 없거나 재고/판매 데이터가 아직 부족합니다. 채널을 연동해 재고·주문이 쌓이면 자동으로 노후 재고가 진단됩니다."
+   ],
+   "names": [
+    "AI 수요예측",
+    "AI Demand Forecast",
+    "AI需要予測",
+    "AI 需求预测",
+    "AI 需求預測",
+    "KI-Nachfrageprognose",
+    "การพยากรณ์ความต้องการด้วย AI",
+    "Dự báo nhu cầu bằng AI",
+    "Prakiraan Permintaan AI",
+    "التنبؤ بالطلب بالذكاء الاصطناعي",
+    "Previsión de demanda con IA",
+    "Prévision de la demande par IA",
+    "AI मांग पूर्वानुमान",
+    "Previsão de demanda com IA",
+    "ИИ-прогнозирование спроса"
+   ],
+   "match": [
+    "AI 수요예측",
+    "AI Demand Forecast",
+    "AI需要予測",
+    "AI 需求预测",
+    "AI 需求預測",
+    "KI-Nachfrageprognose",
+    "การพยากรณ์ความต้องการด้วย AI",
+    "Dự báo nhu cầu bằng AI",
+    "Prakiraan Permintaan AI",
+    "التنبؤ بالطلب بالذكاء الاصطناعي",
+    "Previsión de demanda con IA",
+    "Prévision de la demande par IA",
+    "AI मांग पूर्वानुमान",
+    "Previsão de demanda com IA",
+    "ИИ-прогнозирование спроса",
+    "ABC",
+    "demandForecast"
+   ]
+  },
+  "dataProduct": {
+   "ns": "dataProduct",
+   "title": "데이터 프로덕트",
+   "subtitle": "",
+   "paths": [
+    "/data-product"
+   ],
+   "actions": [
+    "실시간 동기화",
+    "내보내기"
+   ],
+   "fields": [
+    "도메인"
+   ],
+   "notes": [
+    "악의적 입력이 감지되어 차단되었습니다.",
+    "ROAS가 1.5 미만이면 광고비가 수익을 초과할 위험이 있습니다.",
+    "CTR이 지속적으로 하락하면 소재 교체 시점입니다.",
+    "특정 SKU 또는 채널의 반품률이 임계값을 초과했습니다.",
+    "예상 정산액과 실제 정산액 차이가 임계값을 초과했습니다.",
+    "유료 협찬 콘텐츠에 #광고 또는 Paid Partnership 표기가 누락되었습니다.",
+    "광고에 사용 중인 UGC의 저작권 계약이 만료되었거나 화이트리스트가 해제되었습니다.",
+    "특정 SKU의 채널별 통합 ROAS가 채널 평균 대비 30% 이상 낮습니다."
+   ],
+   "states": [],
+   "names": [
+    "데이터 프로덕트",
+    "Data Product",
+    "データプロダクト",
+    "数据产品",
+    "資料產品",
+    "Datenprodukt",
+    "ผลิตภัณฑ์ข้อมูล",
+    "Sản phẩm dữ liệu",
+    "Produk Data",
+    "منتج البيانات",
+    "Producto datos",
+    "Produit données",
+    "डेटा प्रोडक्ट",
+    "Produto dados",
+    "Продукт данных"
+   ],
+   "match": [
+    "데이터 프로덕트",
+    "Data Product",
+    "データプロダクト",
+    "数据产品",
+    "資料產品",
+    "Datenprodukt",
+    "ผลิตภัณฑ์ข้อมูล",
+    "Sản phẩm dữ liệu",
+    "Produk Data",
+    "منتج البيانات",
+    "Producto datos",
+    "Produit données",
+    "डेटा प्रोडक्ट",
+    "Produto dados",
+    "Продукт данных",
+    "YYYY",
+    "ISO",
+    "UTC",
+    "EBITDA",
+    "NULL",
+    "내보내기",
+    "dataProduct"
+   ]
+  },
+  "writebackPage": {
+   "ns": "writebackPage",
+   "title": "데이터 라이트백",
+   "subtitle": "",
+   "paths": [
+    "/writeback"
+   ],
+   "actions": [
+    "매핑 추가",
+    "드라이 런 모드",
+    "다른 탭에서 라이트백이 동기화됨",
+    "💎 Pro 업그레이드",
+    "내보내기"
+   ],
+   "fields": [
+    "코드 설명(선택)"
+   ],
+   "notes": [
+    "의심스러운 활동이 감지되었습니다.",
+    "상품 JSON을 입력하고 미리보기로 실행 전 검증하세요.",
+    "마켓플레이스(쿠팡·네이버 등) 상품등록은 채널별 카테고리코드가 필수입니다. 내 상품 카테고리를 채널 코드에 한 번 매핑하면, 상품 송출 시 자동으로 해당 코드가 적용됩니다.",
+    "리프라이서 승인 대기 가격을 채널 반영 승인합니다",
+    "자격증명이 등록된 채널의 대기 작업을 지금 채널로 push합니다",
+    "라이트백 작업을 실행하면 여기에 작업 이력이 표시됩니다.",
+    "실패한 라이트백 작업을 자동으로 재시도",
+    "실제 채널 API 호출 없이 라이트백 시뮬레이션"
+   ],
+   "states": [
+    "이 채널의 매핑이 없습니다. 위에서 추가하세요."
+   ],
+   "names": [
+    "데이터 라이트백",
+    "Writeback",
+    "ライトバック",
+    "数据回写",
+    "資料回寫",
+    "Rückschreibung",
+    "เขียนกลับ",
+    "Ghi lại",
+    "Tulis Balik",
+    "إعادة الكتابة",
+    "Reescritura",
+    "Réécriture",
+    "राइटबैक",
+    "Reescrita",
+    "Обратная запись"
+   ],
+   "match": [
+    "데이터 라이트백",
+    "Writeback",
+    "ライトバック",
+    "数据回写",
+    "資料回寫",
+    "Rückschreibung",
+    "เขียนกลับ",
+    "Ghi lại",
+    "Tulis Balik",
+    "إعادة الكتابة",
+    "Reescritura",
+    "Réécriture",
+    "राइटबैक",
+    "Reescrita",
+    "Обратная запись",
+    "ERP",
+    "DEMO",
+    "매핑 추가",
+    "드라이 런 모드",
+    "다른 탭에서 라이트백이 동기화됨",
+    "💎 Pro 업그레이드",
+    "내보내기",
+    "코드 설명(선택)",
+    "writebackPage"
+   ]
+  },
+  "adminMenuManager": {
+   "ns": "adminMenuManager",
+   "title": "메뉴 가시성 관리 (4계층)",
+   "subtitle": "대메뉴 → 중메뉴 → 하위 페이지 → 서브탭 4단계. 각 menu_tree row 의 visibility (visible/hidden/disabled) 직접 토글 또는 섹션 일괄.",
+   "paths": [
+    "/admin/menu-tree"
+   ],
+   "actions": [],
+   "fields": [
+    "📑 서브탭"
+   ],
+   "notes": [
+    "— 모든 레벨에서 ✓ 표시 / ⊘ 숨김 / ✗ 비활성 개별 선택 가능.",
+    "변경 즉시 MenuVisibilityContext 캐시 무효 + 다음 페이지 로드 시 반영 (강제 새로고침은 불필요)."
+   ],
+   "states": [],
+   "names": [
+    "메뉴 가시성 관리 (4계층)"
+   ],
+   "match": [
+    "📑 서브탭",
+    "adminMenuManager"
+   ]
+  },
+  "subAdminManager": {
+   "ns": "subAdminManager",
+   "title": "👤 하위 관리자 관리",
+   "subtitle": "",
+   "paths": [
+    "/admin/sub-admins"
+   ],
+   "actions": [
+    "전체 선택(수정)"
+   ],
+   "fields": [
+    "이메일(로그인 ID) · @ociell.com 만 허용",
+    "초기 비밀번호"
+   ],
+   "notes": [
+    "최고관리자가 하위 관리자를 발급하고 전체 메뉴 중 일부 권한을 부여합니다. 하위 관리자는",
+    "관리자 프로필 사진 (선택) — 클릭하여 등록"
+   ],
+   "states": [],
+   "names": [
+    "👤 하위 관리자 관리"
+   ],
+   "match": [
+    "전체 선택(수정)",
+    "이메일(로그인 ID) · @ociell.com 만 허용",
+    "초기 비밀번호",
+    "subAdminManager"
+   ]
+  },
+  "paymentSuccess": {
+   "ns": "paymentSuccess",
+   "title": "payment Success",
+   "subtitle": "",
+   "paths": [
+    "/payment/success"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [
+    "결제가 완료되었습니다. 모든 Pro 기능을 즉시 이용하실 수 있습니다."
+   ],
+   "states": [],
+   "names": [
+    "payment Success"
+   ],
+   "match": [
+    "paymentSuccess"
+   ]
+  },
+  "pmx.res": {
+   "ns": "pmx.res",
+   "title": "리소스 가용량 / 워크로드",
+   "subtitle": "담당자별 진행 중 작업·추정 시간·지연·실투입 시간을 집계합니다. 부하율은 주 {{h}}시간 기준입니다.",
+   "paths": [
+    "/pm/resources"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [
+    "진행 중인 작업에 배정된 담당자가 없습니다."
+   ],
+   "names": [
+    "리소스 가용량 / 워크로드",
+    "Resource Capacity / Workload",
+    "リソース可用性 / ワークロード",
+    "资源可用量 / 工作负载",
+    "資源可用量 / 工作負載",
+    "Ressourcenkapazität / Auslastung",
+    "กำลังทรัพยากร / ปริมาณงาน",
+    "Năng lực nguồn lực / Khối lượng công việc",
+    "Kapasitas Sumber Daya / Beban Kerja",
+    "سعة الموارد / حجم العمل",
+    "Capacidad de recursos / Carga de trabajo",
+    "Capacité des ressources / Charge de travail",
+    "संसाधन क्षमता / कार्यभार",
+    "Capacidade de recursos / Carga de trabalho",
+    "Доступность ресурсов / Загрузка"
+   ],
+   "match": [
+    "리소스 가용량 / 워크로드",
+    "Resource Capacity / Workload",
+    "リソース可用性 / ワークロード",
+    "资源可用量 / 工作负载",
+    "資源可用量 / 工作負載",
+    "Ressourcenkapazität / Auslastung",
+    "กำลังทรัพยากร / ปริมาณงาน",
+    "Năng lực nguồn lực / Khối lượng công việc",
+    "Kapasitas Sumber Daya / Beban Kerja",
+    "سعة الموارد / حجم العمل",
+    "Capacidad de recursos / Carga de trabajo",
+    "Capacité des ressources / Charge de travail",
+    "संसाधन क्षमता / कार्यभार",
+    "Capacidade de recursos / Carga de trabalho",
+    "Доступность ресурсов / Загрузка",
+    "res"
+   ]
+  },
+  "mmm": {
+   "ns": "mmm",
+   "title": "마케팅 믹스 모델 (MMM) · 예산 최적화",
+   "subtitle": "채널별 광고비-매출 반응곡선을 애드스톡(이월효과)·포화(한계효용 체감)로 적합해, 각 채널의 기여도·현재 한계ROAS·포화수준을 산출합니다. 총 예산을 입력하면 한계수익이 높은 채널로 최적 배분해 예측 매출을 극대화합니다.",
+   "paths": [
+    "/marketing-mix"
+   ],
+   "actions": [],
+   "fields": [
+    "권장 액션",
+    "이익정점",
+    "현재"
+   ],
+   "notes": [
+    "데모 환경 — 합성 곡선으로 기능을 체험합니다. 실제 운영에서는 수집된 성과 데이터로 적합됩니다.",
+    "MMM·이상감지·성과 데이터를 종합해 경영진용 요약·원인·권장 액션을 자연어로 생성합니다.",
+    "경쟁사는 주어진 예산의 배분만 최적화합니다. GeniegoROI는 SKU 실원가 기반 공헌이익 반응곡선으로 이익이 최대가 되는 총지출(한계이익=0)을 계산합니다.",
+    "DECOMP.RSSD는 채널 지출비중과 모델 효과비중의 거리입니다(낮을수록 지출↔효과 정합·과적합 위험↓). 거리가 큰 채널은 모델이 효과를 과대/과소 추정하는 신호입니다.",
+    "(β·κ·λ·σ) 전 파라미터를 Metropolis-Hastings MCMC로 결합 사후표본화해 곡선형태 불확실성까지 반영한 일 기여매출의 95% 신뢰구간·신뢰도(trust)·수렴진단(R̂)을 제공합니다.",
+    "최근 검증셋을 예측해 실측과 비교(out-of-sample). MAPE 낮을수록·커버리지 높을수록 모델 신뢰. 보고 모델과 동일 곡선으로 예측합니다."
+   ],
+   "states": [
+    "성과 데이터가 아직 충분하지 않습니다. 채널을 집행·수집하면 자동으로 반응곡선이 적합됩니다."
+   ],
+   "names": [
+    "마케팅 믹스 모델 (MMM) · 예산 최적화",
+    "Marketing Mix Model (MMM) · Budget Optimization",
+    "マーケティング・ミックス・モデル (MMM) · 予算最適化",
+    "营销组合模型 (MMM) · 预算优化",
+    "行銷組合模型 (MMM) · 預算最佳化",
+    "Marketing-Mix-Modell (MMM) · Budgetoptimierung",
+    "โมเดลส่วนผสมการตลาด (MMM) · การเพิ่มประสิทธิภาพงบประมาณ",
+    "Mô hình Marketing Mix (MMM) · Tối ưu hóa ngân sách",
+    "Marketing Mix Model (MMM) · Optimasi Anggaran",
+    "نموذج المزيج التسويقي (MMM) · تحسين الميزانية",
+    "Modelo de Marketing Mix (MMM) · Optimización de presupuesto",
+    "Modèle de Marketing Mix (MMM) · Optimisation du budget",
+    "मार्केटिंग मिक्स मॉडल (MMM) · बजट अनुकूलन",
+    "Modelo de Marketing Mix (MMM) · Otimização de orçamento",
+    "Модель маркетингового микса (MMM) · Оптимизация бюджета"
+   ],
+   "match": [
+    "마케팅 믹스 모델 (MMM) · 예산 최적화",
+    "Marketing Mix Model (MMM) · Budget Optimization",
+    "マーケティング・ミックス・モデル (MMM) · 予算最適化",
+    "营销组合模型 (MMM) · 预算优化",
+    "行銷組合模型 (MMM) · 預算最佳化",
+    "Marketing-Mix-Modell (MMM) · Budgetoptimierung",
+    "โมเดลส่วนผสมการตลาด (MMM) · การเพิ่มประสิทธิภาพงบประมาณ",
+    "Mô hình Marketing Mix (MMM) · Tối ưu hóa ngân sách",
+    "Marketing Mix Model (MMM) · Optimasi Anggaran",
+    "نموذج المزيج التسويقي (MMM) · تحسين الميزانية",
+    "Modelo de Marketing Mix (MMM) · Optimización de presupuesto",
+    "Modèle de Marketing Mix (MMM) · Optimisation du budget",
+    "मार्केटिंग मिक्स मॉडल (MMM) · बजट अनुकूलन",
+    "Modelo de Marketing Mix (MMM) · Otimização de orçamento",
+    "Модель маркетингового микса (MMM) · Оптимизация бюджета",
+    "MMM",
+    "SPC",
+    "CVR",
+    "DECOMP",
+    "RSSD",
+    "MCMC",
+    "ESS",
+    "MCSE",
+    "OOS",
+    "MAPE",
+    "권장 액션",
+    "이익정점",
+    "mmm"
+   ]
+  },
+  "licenseActivation": {
+   "ns": "licenseActivation",
+   "title": "license Activation",
+   "subtitle": "",
+   "paths": [
+    "/license"
+   ],
+   "actions": [
+    "삭제",
+    "💾 저장"
+   ],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "license Activation"
+   ],
+   "match": [
+    "💾 저장",
+    "licenseActivation"
+   ]
+  },
+  "la": {
+   "ns": "la",
+   "title": "la",
+   "subtitle": "",
+   "paths": [
+    "/license"
+   ],
+   "actions": [
+    "🚀 라이선스 활성화"
+   ],
+   "fields": [
+    "① License Key 등록",
+    "② 채널 API Key 등록",
+    "License Key 입력 *"
+   ],
+   "notes": [
+    "License Key 등록 → 판매·광고·결제 채널 API Key 등록 → 모든 기능 즉시 사용 가능",
+    "X는 영문 대문자 또는 숫자 (예: GENIE-A1B2-C3D4-E5F6-G7H8)"
+   ],
+   "states": [],
+   "names": [
+    "la"
+   ],
+   "match": [
+    "GENIE",
+    "A1B2",
+    "C3D4",
+    "E5F6",
+    "G7H8",
+    "🚀 라이선스 활성화",
+    "① License Key 등록",
+    "② 채널 API Key 등록",
+    "License Key 입력 *",
+    "la"
+   ]
+  },
+  "crm": {
+   "ns": "crm",
+   "title": "고객 관리 (CRM)",
+   "subtitle": "",
+   "paths": [
+    "/crm"
+   ],
+   "actions": [
+    "세그먼트 추가",
+    "세그먼트 생성",
+    "멤버십 재계산 (실데이터 기준 동기화)",
+    "설정 저장",
+    "차단 추가",
+    "해제",
+    "저장",
+    "캠페인 생성",
+    "발송",
+    "취소"
+   ],
+   "fields": [
+    "이름",
+    "이메일 필터",
+    "전화번호 필터",
+    "등급 필터",
+    "등급 생성 필터",
+    "검색"
+   ],
+   "notes": [
+    "비정상적인 접근이 감지되어 차단되었습니다. 잠시 후 다시 시도하세요.",
+    "세그먼트",
+    "연동허브에서 Zendesk·Intercom·Freshdesk·Gorgias 자격증명을 등록하면 티켓·CSAT·응답시간이 인바운드 수집됩니다.",
+    "과발송을 차단해 스팸 신고·차단·발신자 평판 하락을 예방합니다. 이메일·카카오·SMS 발송에 공통 적용됩니다(경쟁사 Braze/Klaviyo 동급 제어).",
+    "지정한 기간 동안 한 고객에게 보낼 수 있는 최대 메시지 수입니다. 초과 시 자동 발송이 차단됩니다.",
+    "활성화 시 지정한 야간 시간대(한국시간 기준)에는 메시지 발송이 차단됩니다. 수신자 경험과 도달률을 보호합니다.",
+    "수신거부·바운스·스팸신고 주소는 발송에서 영구 제외됩니다. 직접 추가/해제할 수 있습니다.",
+    "고객이 채널별로 마케팅 수신을 켜고 끌 수 있습니다. 콰이어트아워(야간 미발송)와 옵트아웃 현황을 관리하세요(경쟁사 Iterable/Braze Subscription Center 동급)."
+   ],
+   "states": [
+    "활동 없음",
+    "활동 기록이 아직 없습니다.",
+    "세그먼트 없음",
+    "Zendesk·Intercom·Freshdesk·Gorgias 자격증명을 등록하면 CS 데이터가 표시됩니다.",
+    "차단된 주소 없음",
+    "코호트 데이터가 아직 없습니다(가입·구매 이력이 누적되면 표시됩니다).",
+    "함께 구매 데이터가 아직 부족합니다(동일 고객이 2개 이상 상품을 구매하면 표시됩니다).",
+    "생성된 캠페인이 없습니다",
+    "총 고객수",
+    "활성 고객"
+   ],
+   "names": [
+    "고객 관리 (CRM)"
+   ],
+   "match": [
+    "VIP",
+    "CSAT",
+    "STO",
+    "CLV",
+    "RFM",
+    "FAQ",
+    "세그먼트 추가",
+    "세그먼트 생성",
+    "멤버십 재계산 (실데이터 기준 동기화)",
+    "설정 저장",
+    "차단 추가",
+    "이메일 필터",
+    "전화번호 필터",
+    "등급 필터",
+    "등급 생성 필터",
+    "crm"
+   ]
+  },
+  "crm.channel": {
+   "ns": "crm.channel",
+   "title": "CRM 대시보드",
+   "subtitle": "",
+   "paths": [
+    "/crm"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "CRM 대시보드",
+    "CRM Dashboard",
+    "CRMダッシュボード",
+    "CRM仪表盘",
+    "CRM儀表板",
+    "CRM-Dashboard",
+    "แดชบอร์ด CRM",
+    "Bảng điều khiển CRM",
+    "Dasbor CRM",
+    "لوحة CRM",
+    "Panel CRM",
+    "Tableau CRM",
+    "CRM डैशबोर्ड",
+    "Painel CRM",
+    "Дашборд CRM",
+    "CRM"
+   ],
+   "match": [
+    "CRM 대시보드",
+    "CRM Dashboard",
+    "CRMダッシュボード",
+    "CRM仪表盘",
+    "CRM儀表板",
+    "CRM-Dashboard",
+    "แดชบอร์ด CRM",
+    "Bảng điều khiển CRM",
+    "Dasbor CRM",
+    "لوحة CRM",
+    "Panel CRM",
+    "Tableau CRM",
+    "CRM डैशबोर्ड",
+    "Painel CRM",
+    "Дашборд CRM",
+    "CRM",
+    "channel"
+   ]
+  },
+  "pxl": {
+   "ns": "pxl",
+   "title": "픽셀 추적",
+   "subtitle": "",
+   "paths": [
+    "/pixel-tracking"
+   ],
+   "actions": [
+    "픽셀 생성",
+    "삭제",
+    "복사",
+    "테스트 이벤트 전송"
+   ],
+   "fields": [],
+   "notes": [
+    "‘픽셀 설정’ 탭에서 픽셀을 생성하고 스니펫을 사이트에 설치하면 이벤트가 수집됩니다.",
+    "쿠키리스 시대의 서버사이드 전환 추적 (Meta CAPI · TikTok Events API)",
+    "이 픽셀을 삭제할까요? 수집이 중단됩니다."
+   ],
+   "states": [],
+   "names": [
+    "픽셀 추적",
+    "Pixel Tracking",
+    "ピクセルトラッキング",
+    "像素追踪",
+    "像素追蹤",
+    "Pixel-Tracking",
+    "ติดตามพิกเซล",
+    "Theo Dõi Pixel",
+    "Pelacakan Piksel",
+    "تتبع البكسل",
+    "Seguimiento de píxeles",
+    "Suivi des pixels",
+    "पिक्सल ट्रैकिंग",
+    "Rastreamento de Pixel",
+    "Отслеживание пикселей"
+   ],
+   "match": [
+    "픽셀 추적",
+    "Pixel Tracking",
+    "ピクセルトラッキング",
+    "像素追踪",
+    "像素追蹤",
+    "Pixel-Tracking",
+    "ติดตามพิกเซล",
+    "Theo Dõi Pixel",
+    "Pelacakan Piksel",
+    "تتبع البكسل",
+    "Seguimiento de píxeles",
+    "Suivi des pixels",
+    "पिक्सल ट्रैकिंग",
+    "Rastreamento de Pixel",
+    "Отслеживание пикселей",
+    "CAPI",
+    "픽셀 생성",
+    "테스트 이벤트 전송",
+    "pxl"
+   ]
+  },
+  "journeyBuilder": {
+   "ns": "journeyBuilder",
+   "title": "여정 빌더",
+   "subtitle": "",
+   "paths": [
+    "/journey-builder"
+   ],
+   "actions": [
+    "🗺️ 비주얼 편집"
+   ],
+   "fields": [
+    "장바구니 이탈",
+    "1시간 후",
+    "구매 완료",
+    "30분 후"
+   ],
+   "notes": [],
+   "states": [],
+   "names": [
+    "여정 빌더",
+    "Journey Builder",
+    "ジャーニービルダー",
+    "旅程构建",
+    "旅程建構",
+    "ตัวสร้างเส้นทาง",
+    "Xây dựng hành trình",
+    "Pembuat Perjalanan",
+    "منشئ الرحلات",
+    "Constructor viajes",
+    "Parcours client",
+    "जर्नी बिल्डर",
+    "Construtor jornadas",
+    "Построитель путей"
+   ],
+   "match": [
+    "여정 빌더",
+    "Journey Builder",
+    "ジャーニービルダー",
+    "旅程构建",
+    "旅程建構",
+    "ตัวสร้างเส้นทาง",
+    "Xây dựng hành trình",
+    "Pembuat Perjalanan",
+    "منشئ الرحلات",
+    "Constructor viajes",
+    "Parcours client",
+    "जर्नी बिल्डर",
+    "Construtor jornadas",
+    "Построитель путей",
+    "🗺️ 비주얼 편집",
+    "장바구니 이탈",
+    "1시간 후",
+    "구매 완료",
+    "30분 후",
+    "journeyBuilder"
+   ]
+  },
+  "channelKpiPage": {
+   "ns": "channelKpiPage",
+   "title": "기본 채널 KPI 관리망",
+   "subtitle": "",
+   "paths": [
+    "/channel-kpi"
+   ],
+   "actions": [],
+   "fields": [
+    "목표"
+   ],
+   "notes": [
+    "노출 및 도달 극대화, 신규 유입 증대",
+    "페이지 뷰 및 체류 시간 증대",
+    "실질적 세일즈 리드 및 매출 확보",
+    "채널 믹스 및 예산 최적화 추천 보고서",
+    "연동허브에서 Google Analytics 4·Adobe Analytics 자격증명을 등록하면 세션·사용자·전환·매출이 채널그룹·소스/매체별로 인바운드 수집됩니다. 광고 성과와 분리된 유입 분석입니다.",
+    "판매·광고·분석 채널의 API 키를 등록하고 연결 상태를 관리합니다."
+   ],
+   "states": [
+    "GA4·Adobe Analytics 자격증명을 등록하면 웹 분석 데이터가 여기에 표시됩니다.",
+    "검색광고 키워드 성과 데이터가 없습니다. 네이버/구글 검색광고 자격증명을 연동하면 키워드 단위 노출·클릭·전환·ROAS·CPC가 수집됩니다."
+   ],
+   "names": [
+    "기본 채널 KPI 관리망"
+   ],
+   "match": [
+    "SNS",
+    "SEO",
+    "GA4",
+    "channelKpiPage"
+   ]
+  },
+  "operations": {
+   "ns": "operations",
+   "title": "운영 실행 목록",
+   "subtitle": "",
+   "paths": [
+    "/operations"
+   ],
+   "actions": [
+    "✏️ 편집",
+    "취소",
+    "💾 저장",
+    "편집"
+   ],
+   "fields": [],
+   "notes": [
+    "프로모션과 AI 디자인을 함께 사용하면 효과가 더 좋습니다. 쿠폰 생성 후 AI 로 홍보 이미지를 생성하세요.",
+    "쿠폰 생성·캠페인 관리",
+    "AI 광고 디자인·이미지 생성·업로드",
+    "한 화면에서 쿠폰/프로모션과 AI 광고 마케팅 디자인을 관리합니다."
+   ],
+   "states": [
+    "판매 중",
+    "일시중지됨",
+    "품절",
+    "재고 부족"
+   ],
+   "names": [
+    "운영 실행 목록",
+    "Operations",
+    "運営実行",
+    "运营执行",
+    "營運執行",
+    "Betrieb",
+    "การดำเนินงาน",
+    "Vận hành",
+    "Operasi",
+    "العمليات",
+    "Operaciones",
+    "Opérations",
+    "संचालन",
+    "Operações",
+    "Операции"
+   ],
+   "match": [
+    "운영 실행 목록",
+    "Operations",
+    "運営実行",
+    "运营执行",
+    "營運執行",
+    "Betrieb",
+    "การดำเนินงาน",
+    "Vận hành",
+    "Operasi",
+    "العمليات",
+    "Operaciones",
+    "Opérations",
+    "संचालन",
+    "Operações",
+    "Операции",
+    "✏️ 편집",
+    "💾 저장",
+    "operations"
+   ]
+  },
+  "influencer": {
+   "ns": "influencer",
+   "title": "인플루언서 & UGC",
+   "subtitle": "인플루언서 관리 · UGC 콘텐츠 추적 · ROI 측정",
+   "paths": [
+    "/influencer"
+   ],
+   "actions": [
+    "저장",
+    "AI 평가 실행",
+    "AI 실행"
+   ],
+   "fields": [
+    "활용 유형",
+    "캠페인 목표",
+    "일치",
+    "실지급액",
+    "계약 금액",
+    "긍정",
+    "부정"
+   ],
+   "notes": [
+    "전용 쿠폰코드/UTM을 발급하면 해당 코드로 유입된 주문이 이 크리에이터에 실측 귀속됩니다.",
+    "쿠폰/UTM 주문 자동 귀속",
+    "추적 식별자 없음(저장 추정치 사용)",
+    "캠페인 목표(인지도/참여/유입/전환)에 따라 성공 기준이 다르게 평가됩니다. 목표성과점수는 해당 목표의 가중치 기준이며, 활용 유형·측정 방식(실측/추정)·계약비/광고집행비를 분리해 표시합니다.",
+    "조회수는 높지만 판매 전환이 낮은 크리에이터입니다."
+   ],
+   "states": [
+    "✓ 인증됨"
+   ],
+   "names": [
+    "인플루언서 & UGC",
+    "Influencer & UGC",
+    "インフルエンサー＆UGC",
+    "影响者和 UGC",
+    "網紅&UGC",
+    "อินฟลูเอนเซอร์ & UGC",
+    "Người ảnh hưởng & UGC",
+    "المؤثرون والمحتوى الذي ينشئه المستخدمون (UGC)",
+    "Influencers y UGC",
+    "Influenceurs & UGC",
+    "इन्फ्लुएंसर और UGC",
+    "Influenciadores & UGC",
+    "Инфлюенсеры и UGC"
+   ],
+   "match": [
+    "인플루언서 & UGC",
+    "Influencer & UGC",
+    "インフルエンサー＆UGC",
+    "影响者和 UGC",
+    "網紅&UGC",
+    "อินฟลูเอนเซอร์ & UGC",
+    "Người ảnh hưởng & UGC",
+    "المؤثرون والمحتوى الذي ينشئه المستخدمون (UGC)",
+    "Influencers y UGC",
+    "Influenceurs & UGC",
+    "इन्फ्लुएंसर और UGC",
+    "Influenciadores & UGC",
+    "Инфлюенсеры и UGC",
+    "UTM",
+    "AI 평가 실행",
+    "AI 실행",
+    "활용 유형",
+    "캠페인 목표",
+    "실지급액",
+    "계약 금액",
+    "influencer"
+   ]
+  },
+  "influencerUGC": {
+   "ns": "influencerUGC",
+   "title": "인플루언서",
+   "subtitle": "",
+   "paths": [
+    "/influencer"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "인플루언서",
+    "Influencer",
+    "インフルエンサー",
+    "达人管理",
+    "網紅管理",
+    "อินฟลูเอนเซอร์",
+    "المؤثرون",
+    "Influenceur",
+    "इन्फ्लुएंसर",
+    "Influenciador",
+    "Инфлюенсеры"
+   ],
+   "match": [
+    "인플루언서",
+    "Influencer",
+    "インフルエンサー",
+    "达人管理",
+    "網紅管理",
+    "อินฟลูเอนเซอร์",
+    "المؤثرون",
+    "Influenceur",
+    "इन्फ्लुएंसर",
+    "Influenciador",
+    "Инфлюенсеры",
+    "influencerUGC"
+   ]
+  },
+  "help": {
+   "ns": "help",
+   "title": "플랫폼 가이드",
+   "subtitle": "",
+   "paths": [
+    "/help"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [
+    "관리자(Admin) 페이지를 제외한 모든 메뉴를 자유롭게 열람할 수 있습니다."
+   ],
+   "states": [
+    "에 대한 결과가 없습니다."
+   ],
+   "names": [
+    "플랫폼 가이드",
+    "Platform Guide",
+    "ガイド",
+    "平台指南",
+    "Plattform-Guide",
+    "คู่มือแพลตฟอร์ม",
+    "Hướng dẫn nền tảng",
+    "Panduan Platform",
+    "دليل المنصة",
+    "Guía plataforma",
+    "Guide plateforme",
+    "प्लेटफ़ॉर्म गाइड",
+    "Guia plataforma",
+    "Руководство",
+    "Help Center"
+   ],
+   "match": [
+    "플랫폼 가이드",
+    "Platform Guide",
+    "ガイド",
+    "平台指南",
+    "Plattform-Guide",
+    "คู่มือแพลตฟอร์ม",
+    "Hướng dẫn nền tảng",
+    "Panduan Platform",
+    "دليل المنصة",
+    "Guía plataforma",
+    "Guide plateforme",
+    "प्लेटफ़ॉर्म गाइड",
+    "Guia plataforma",
+    "Руководство",
+    "Help Center",
+    "FAQ",
+    "RBAC",
+    "help"
+   ]
+  },
+  "sms": {
+   "ns": "sms",
+   "title": "SMS 마케팅",
+   "subtitle": "",
+   "paths": [
+    "/sms-marketing"
+   ],
+   "actions": [
+    "저장 + 연결 테스트",
+    "발송",
+    "템플릿 수정",
+    "템플릿 생성",
+    "취소",
+    "저장",
+    "수정",
+    "삭제",
+    "캠페인 생성",
+    "예약"
+   ],
+   "fields": [],
+   "notes": [
+    "국내 최대 SMS API (KT/SK/LG 네트워크)",
+    "소규모/스타트업 적합",
+    "개발자 친화적 API",
+    "비정상 접근이 감지되었습니다",
+    "판매·광고·분석 채널의 API 키를 등록하고 연결 상태를 관리합니다."
+   ],
+   "states": [
+    "등록된 템플릿이 없습니다. 새 템플릿을 만들어보세요.",
+    "등록된 캠페인이 없습니다. 새 캠페인을 만들어보세요.",
+    "상태",
+    "이번 달 발송",
+    "발송 성공률",
+    "예산 잔여"
+   ],
+   "names": [
+    "SMS 마케팅",
+    "SMS Marketing",
+    "SMSマーケティング",
+    "短信营销",
+    "簡訊行銷",
+    "SMS-Marketing",
+    "SMS มาร์เก็ตติ้ง",
+    "تسويق SMS",
+    "SMS marketing",
+    "SMS मार्केटिंग",
+    "SMS-маркетинг"
+   ],
+   "match": [
+    "SMS 마케팅",
+    "SMS Marketing",
+    "SMSマーケティング",
+    "短信营销",
+    "簡訊行銷",
+    "SMS-Marketing",
+    "SMS มาร์เก็ตติ้ง",
+    "تسويق SMS",
+    "SMS marketing",
+    "SMS मार्केटिंग",
+    "SMS-маркетинг",
+    "LMS",
+    "저장 + 연결 테스트",
+    "템플릿 수정",
+    "템플릿 생성",
+    "sms"
+   ]
+  },
+  "aiInsights": {
+   "ns": "aiInsights",
+   "title": "AI 인사이트",
+   "subtitle": "",
+   "paths": [
+    "/ai-insights"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [
+    "악의적 입력이 감지되어 차단되었습니다.",
+    "ROAS가 목표치 3.0x 미만입니다",
+    "반품률이 위험 수준(12%) 이상입니다",
+    "광고비가 매출의 20% 이상을 차지합니다",
+    "ROAS가 우수 수준을 달성했습니다",
+    "현재 감지된 이상 항목이 없습니다. 모든 KPI가 정상 범위 내에 있습니다.",
+    "AI 에이전트에서 분석을 실행하면 의사결정 이력이 자동으로 기록됩니다.",
+    "KPI 이상 징후를 실시간으로 감지하고 최적화 방안을 제안합니다."
+   ],
+   "states": [
+    "아직 분석 이력이 없습니다."
+   ],
+   "names": [
+    "AI 인사이트",
+    "AI Insights",
+    "AIインサイト",
+    "AI洞察",
+    "KI-Einblicke",
+    "تحليلات ذكية",
+    "Insights IA",
+    "AI अंतर्दृष्टि",
+    "ИИ-аналитика"
+   ],
+   "match": [
+    "AI 인사이트",
+    "AI Insights",
+    "AIインサイト",
+    "AI洞察",
+    "KI-Einblicke",
+    "تحليلات ذكية",
+    "Insights IA",
+    "AI अंतर्दृष्टि",
+    "ИИ-аналитика",
+    "aiInsights"
+   ]
+  },
+  "legalDocsAdmin": {
+   "ns": "legalDocsAdmin",
+   "title": "📜 법적 페이지 편집",
+   "subtitle": "이용약관·개인정보·환불을 15개국 현지 자연어로 편집합니다. 저장 즉시 공개 페이지(/terms·/privacy·/refund)에 반영됩니다. ★법적 효력 텍스트이므로 발행 전 법무 검토를 권장합니다.",
+   "paths": [
+    "/admin/legal-docs"
+   ],
+   "actions": [],
+   "fields": [
+    "언어 (채워진 언어 ●)",
+    "제목 (Title)",
+    "부제 (Subtitle)",
+    "본문 (lite-markdown)",
+    "형식:"
+   ],
+   "notes": [],
+   "states": [],
+   "names": [
+    "📜 법적 페이지 편집"
+   ],
+   "match": [
+    "언어 (채워진 언어 ●)",
+    "제목 (Title)",
+    "부제 (Subtitle)",
+    "본문 (lite-markdown)",
+    "legalDocsAdmin"
+   ]
+  },
+  "reportBuilder": {
+   "ns": "reportBuilder",
+   "title": "리포트 빌더",
+   "subtitle": "KPI 요약 리포트 생성 · 예약 이메일 발송 · 실행 이력",
+   "paths": [
+    "/report-builder"
+   ],
+   "actions": [
+    "새로고침",
+    "사용자정의 메트릭 추가",
+    "저장",
+    "예약 생성",
+    "다음 발송",
+    "삭제"
+   ],
+   "fields": [
+    "표시명"
+   ],
+   "notes": [
+    "기존 지표 키 + 사칙연산(+ - * /)만 사용. 예) (revenue - spend) / conversions",
+    "클릭하여 하위 차원으로 드릴다운",
+    "이 예약 리포트를 삭제할까요?"
+   ],
+   "states": [],
+   "names": [
+    "리포트 빌더",
+    "Report Builder",
+    "レポートビルダー",
+    "报表生成器",
+    "報告產生器",
+    "ตัวสร้างรายงาน",
+    "Trình tạo báo cáo",
+    "منشئ التقارير",
+    "Generador de informes",
+    "Générateur de reports",
+    "रिपोर्ट बिल्डर",
+    "Construtor de relatórios",
+    "Конструктор отчётов"
+   ],
+   "match": [
+    "리포트 빌더",
+    "Report Builder",
+    "レポートビルダー",
+    "报表生成器",
+    "報告產生器",
+    "ตัวสร้างรายงาน",
+    "Trình tạo báo cáo",
+    "منشئ التقارير",
+    "Generador de informes",
+    "Générateur de reports",
+    "रिपोर्ट बिल्डर",
+    "Construtor de relatórios",
+    "Конструктор отчётов",
+    "사용자정의 메트릭 추가",
+    "예약 생성",
+    "다음 발송",
+    "reportBuilder"
+   ]
+  },
+  "adminGrowthCenter": {
+   "ns": "adminGrowthCenter",
+   "title": "성장 센터",
+   "subtitle": "",
+   "paths": [
+    "/admin/growth"
+   ],
+   "actions": [
+    "🔄 새로고침"
+   ],
+   "fields": [
+    "🚀 플랫폼 컨텍스트 ON (끄기)",
+    "자동 발송",
+    "이 토글 ON + LIVE 모드"
+   ],
+   "notes": [
+    "GeniegoROI 플랫폼 자체 마케팅 자동화 — 리드 → 데모 → 체험 → 유료 전환 → 성과 검증.",
+    " 소재·캠페인·어트리뷰션 등은 아래 ",
+    "신규 가입자에게 환영·온보딩 이메일을 "
+   ],
+   "states": [],
+   "names": [
+    "성장 센터",
+    "Growth Center",
+    "グロースセンター",
+    "增长中心",
+    "成長中心",
+    "ศูนย์การเติบโต",
+    "Trung Tâm Tăng Trưởng",
+    "Pusat Pertumbuhan",
+    "مركز النمو",
+    "Centro de crecimiento",
+    "Centre de croissance",
+    "ग्रोथ सेंटर",
+    "Centro de Crescimento",
+    "Центр роста"
+   ],
+   "match": [
+    "성장 센터",
+    "Growth Center",
+    "グロースセンター",
+    "增长中心",
+    "成長中心",
+    "ศูนย์การเติบโต",
+    "Trung Tâm Tăng Trưởng",
+    "Pusat Pertumbuhan",
+    "مركز النمو",
+    "Centro de crecimiento",
+    "Centre de croissance",
+    "ग्रोथ सेंटर",
+    "Centro de Crescimento",
+    "Центр роста",
+    "TEST",
+    "LIVE",
+    "OFF",
+    "🔄 새로고침",
+    "🚀 플랫폼 컨텍스트 ON (끄기)",
+    "자동 발송",
+    "이 토글 ON + LIVE 모드",
+    "adminGrowthCenter"
+   ]
+  },
+  "contentCal": {
+   "ns": "contentCal",
+   "title": "콘텐츠 캘린더",
+   "subtitle": "콘텐츠 일정 관리 · 팀 협업 · 멀티채널 퍼블리싱 · AI 분석",
+   "paths": [
+    "/content-calendar"
+   ],
+   "actions": [
+    "취소",
+    "저장"
+   ],
+   "fields": [],
+   "notes": [],
+   "states": [
+    "상태"
+   ],
+   "names": [
+    "콘텐츠 캘린더",
+    "Content Calendar",
+    "コンテンツカレンダー",
+    "内容日历",
+    "內容日曆",
+    "Content-Kalender",
+    "ปฏิทินเนื้อหา",
+    "Lịch nội dung",
+    "Kalender Konten",
+    "تقويم المحتوى",
+    "Calendario de contenido",
+    "Calendrier de contenu",
+    "सामग्री कैलेंडर",
+    "Calendário de conteúdo",
+    "Контент-календарь"
+   ],
+   "match": [
+    "콘텐츠 캘린더",
+    "Content Calendar",
+    "コンテンツカレンダー",
+    "内容日历",
+    "內容日曆",
+    "Content-Kalender",
+    "ปฏิทินเนื้อหา",
+    "Lịch nội dung",
+    "Kalender Konten",
+    "تقويم المحتوى",
+    "Calendario de contenido",
+    "Calendrier de contenu",
+    "सामग्री कैलेंडर",
+    "Calendário de conteúdo",
+    "Контент-календарь",
+    "contentCal"
+   ]
+  },
+  "performance": {
+   "ns": "performance",
+   "title": "성과 허브",
+   "subtitle": "",
+   "paths": [
+    "/performance"
+   ],
+   "actions": [
+    "예상 총 지급액",
+    "취소",
+    "실시간 동기화"
+   ],
+   "fields": [
+    "업그레이드",
+    "신규",
+    "위협 감지됨"
+   ],
+   "notes": [
+    "비정상 접근이 감지되었습니다",
+    "주문·정산 채널을 연동하면 채널별 실제 정산 내역이 테넌트 단위로 안전하게 집계되어 여기에 표시됩니다.",
+    "이용 가이드",
+    "사용 가이드"
+   ],
+   "states": [
+    "활성"
+   ],
+   "names": [
+    "성과 허브",
+    "パフォーマンス ハブ",
+    "Trung tâm hiệu suất",
+    "Performance Hub"
+   ],
+   "match": [
+    "성과 허브",
+    "パフォーマンス ハブ",
+    "Trung tâm hiệu suất",
+    "Performance Hub",
+    "ESG",
+    "예상 총 지급액",
+    "업그레이드",
+    "위협 감지됨",
+    "performance"
+   ]
+  },
+  "digitalShelf": {
+   "ns": "digitalShelf",
+   "title": "디지털 쉘프",
+   "subtitle": "",
+   "paths": [
+    "/digital-shelf"
+   ],
+   "actions": [
+    "CSV 다운로드",
+    "노이즈캔슬"
+   ],
+   "fields": [
+    "자사",
+    "경쟁사",
+    "키워드",
+    "자사 SoS (%)",
+    "경쟁사 SoS (%)"
+   ],
+   "notes": [
+    "Naver·Coupang에서 자사 SoS가 전월 대비 +8.4%p 상승. Budget 20% 증액 권장.",
+    "경쟁사 A사가 55.4%로 압도적. Price·리뷰·콘텐츠 전략 재검토 필요.",
+    "Coupang·Naver 모두 Rank 하락 트렌드. 리스팅 최적화 및 Ad 집행 검토.",
+    "Coupang·Amazon KR 모두 1위 안정 유지. CTR 7.2% — 업계 최고 수준.",
+    "국내 5개 채널의 자사 상품 검색 가시성·경쟁 점유율(SoS)·키워드 순위를 실시간으로 모니터링합니다.",
+    "설명"
+   ],
+   "states": [],
+   "names": [
+    "디지털 쉘프",
+    "Digital Shelf",
+    "デジタルシェルフ",
+    "数字货架",
+    "數位貨架",
+    "Digitales Regal",
+    "ดิจิทัลเชลฟ์",
+    "Kệ kỹ thuật số",
+    "Rak Digital",
+    "الرف الرقمي",
+    "Estantería digital",
+    "Étagère numérique",
+    "डिजिटल शेल्फ",
+    "Prateleira digital",
+    "Цифровая полка"
+   ],
+   "match": [
+    "디지털 쉘프",
+    "Digital Shelf",
+    "デジタルシェルフ",
+    "数字货架",
+    "數位貨架",
+    "Digitales Regal",
+    "ดิจิทัลเชลฟ์",
+    "Kệ kỹ thuật số",
+    "Rak Digital",
+    "الرف الرقمي",
+    "Estantería digital",
+    "Étagère numérique",
+    "डिजिटल शेल्फ",
+    "Prateleira digital",
+    "Цифровая полка",
+    "XM5",
+    "USB4",
+    "TOP",
+    "UHD",
+    "RGB",
+    "USB",
+    "CSV 다운로드",
+    "노이즈캔슬",
+    "자사 SoS (%)",
+    "경쟁사 SoS (%)",
+    "digitalShelf"
+   ]
+  },
+  "digitalShelf.harvest": {
+   "ns": "digitalShelf.harvest",
+   "title": "digital Shelf harvest",
+   "subtitle": "",
+   "paths": [
+    "/digital-shelf"
+   ],
+   "actions": [],
+   "fields": [
+    "몰/브랜드명 (검색결과 매칭용)"
+   ],
+   "notes": [],
+   "states": [
+    "실시간 수집"
+   ],
+   "names": [
+    "digital Shelf harvest"
+   ],
+   "match": [
+    "몰/브랜드명 (검색결과 매칭용)",
+    "harvest"
+   ]
+  },
+  "reviews": {
+   "ns": "reviews",
+   "title": "리뷰 및 UGC",
+   "subtitle": "",
+   "paths": [
+    "/reviews-ugc"
+   ],
+   "actions": [
+    "복사",
+    "설정 저장",
+    "닫기"
+   ],
+   "fields": [
+    "AI 답변 톤 설정",
+    "자동 에스컬레이션",
+    "Slack 알림 Webhook",
+    "리뷰 위젯 (iframe)",
+    "신뢰 배지 (평균 별점)"
+   ],
+   "notes": [
+    "연동허브에 자격증명을 등록한 채널만 수집됩니다",
+    "부정 키워드 급증(+10건/일) 시 Slack #cs-alerts 채널로 자동 전송",
+    "부정 리뷰 1★ 자동 에스컬레이션 활성화",
+    "수집·검증된 리뷰를 자사몰·랜딩페이지·블로그 어디에나 임베드하세요. 아래 코드를 복사해 붙여넣으면 됩니다(별도 로그인 불필요·자동 갱신).",
+    "토큰을 재발급하면 기존에 삽입한 코드는 동작을 멈춥니다(보안 회전용).",
+    "이용 가이드",
+    "판매·광고·분석 채널의 API 키를 등록하고 연결 상태를 관리합니다."
+   ],
+   "states": [
+    "클립보드에 복사됨"
+   ],
+   "names": [
+    "리뷰 및 UGC",
+    "Reviews & UGC",
+    "レビュー＆UGC",
+    "评论与UGC",
+    "評論與UGC",
+    "Bewertungen & UGC",
+    "รีวิวและ UGC",
+    "Đánh giá & UGC",
+    "Ulasan & UGC",
+    "المراجعات و UGC",
+    "Reseñas & UGC",
+    "Avis & UGC",
+    "समीक्षा और UGC",
+    "Avaliações & UGC",
+    "Отзывы и UGC"
+   ],
+   "match": [
+    "리뷰 및 UGC",
+    "Reviews & UGC",
+    "レビュー＆UGC",
+    "评论与UGC",
+    "評論與UGC",
+    "Bewertungen & UGC",
+    "รีวิวและ UGC",
+    "Đánh giá & UGC",
+    "Ulasan & UGC",
+    "المراجعات و UGC",
+    "Reseñas & UGC",
+    "Avis & UGC",
+    "समीक्षा और UGC",
+    "Avaliações & UGC",
+    "Отзывы и UGC",
+    "설정 저장",
+    "AI 답변 톤 설정",
+    "자동 에스컬레이션",
+    "Slack 알림 Webhook",
+    "리뷰 위젯 (iframe)",
+    "신뢰 배지 (평균 별점)",
+    "reviews"
+   ]
+  },
+  "email": {
+   "ns": "email",
+   "title": "이메일 마케팅",
+   "subtitle": "",
+   "paths": [
+    "/email-marketing"
+   ],
+   "actions": [
+    "설정 저장",
+    "새 템플릿 작성",
+    "템플릿 수정",
+    "템플릿 저장",
+    "수정 내용 저장",
+    "캠페인 생성",
+    "📤 발송",
+    "A/B 결과"
+   ],
+   "fields": [
+    "캠페인명*",
+    "템플릿",
+    "대상 세그먼트 (미선택 시 전체 고객)"
+   ],
+   "notes": [
+    "여기서 이메일 템플릿을 만드세요",
+    "활성화 시 시작일 기준 14일간 일일 발송량을 단계적으로 늘려 스팸 차단·평판 하락을 방지합니다. 기존 대량 발신자는 비활성(기본) 유지 권장.",
+    "수신자를 50/50으로 나눠 베이지안 오픈율로 승자 선정",
+    "변형 A는 템플릿 제목을 사용합니다. 비우면 A/B 비활성화.",
+    "연동허브에서 Mailchimp·Klaviyo·SendGrid 자격증명을 등록하면 발송·오픈·클릭·매출이 인바운드 수집됩니다. 자체 발송 성과와 함께 통합 가시화합니다.",
+    "평판 시계열은 일별 스냅샷 누적 후 표시됩니다(현재값은 7일 롤링).",
+    "비정상 접근이 감지되었습니다.",
+    "가이드"
+   ],
+   "states": [
+    "Mailchimp·Klaviyo·SendGrid 자격증명을 등록하면 ESP 성과가 표시됩니다."
+   ],
+   "names": [
+    "이메일 마케팅",
+    "Email Marketing",
+    "メールマーケティング",
+    "邮件营销",
+    "電子郵件行銷",
+    "E-Mail-Marketing",
+    "การตลาดผ่านอีเมล",
+    "Pemasaran Email",
+    "التسويق عبر البريد الإلكتروني",
+    "Marketing por correo",
+    "Marketing par e-mail",
+    "ईमेल मार्केटिंग",
+    "E-mail Marketing",
+    "Email-маркетинг"
+   ],
+   "match": [
+    "이메일 마케팅",
+    "Email Marketing",
+    "メールマーケティング",
+    "邮件营销",
+    "電子郵件行銷",
+    "E-Mail-Marketing",
+    "การตลาดผ่านอีเมล",
+    "Pemasaran Email",
+    "التسويق عبر البريد الإلكتروني",
+    "Marketing por correo",
+    "Marketing par e-mail",
+    "ईमेल मार्केटिंग",
+    "E-mail Marketing",
+    "Email-маркетинг",
+    "SMTP",
+    "AWS",
+    "HTML",
+    "ESP",
+    "SPF",
+    "DMARC",
+    "설정 저장",
+    "새 템플릿 작성",
+    "템플릿 수정",
+    "템플릿 저장",
+    "수정 내용 저장",
+    "📤 발송",
+    "A/B 결과",
+    "캠페인명*",
+    "대상 세그먼트 (미선택 시 전체 고객)",
+    "email"
+   ]
+  },
+  "recon": {
+   "ns": "recon",
+   "title": "정산 검증",
+   "subtitle": "",
+   "paths": [
+    "/reconciliation"
+   ],
+   "actions": [
+    "데이터 업로드",
+    "업로드",
+    "정산 검증 실행"
+   ],
+   "fields": [],
+   "notes": [
+    "채널 정산 데이터를 JSON 배열로 붙여넣어주세요.",
+    "JSON 배열 형식으로 입력해주세요.",
+    "업로드된 데이터와 수수료 규칙을 비교하여 차이를 자동 계산합니다.",
+    "비정상 접근이 감지되었습니다. 일시 잠금.",
+    "채널 정산 데이터를 업로드하여 수수료 규칙과 자동 매칭합니다."
+   ],
+   "states": [
+    "오픈",
+    "조사 중",
+    "해결됨",
+    "면제됨"
+   ],
+   "names": [
+    "정산 검증"
+   ],
+   "match": [
+    "데이터 업로드",
+    "정산 검증 실행",
+    "recon"
+   ]
+  },
+  "appPricing.guide": {
+   "ns": "appPricing.guide",
+   "title": "플랜별 제공 서비스 안내",
+   "subtitle": "각 플랜에서 제공하는 기능과 서비스를 한눈에 비교해 보세요.",
+   "paths": [
+    "/pricing",
+    "/admin/plan-pricing"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "플랜별 제공 서비스 안내",
+    "Services provided by each plan",
+    "プラン別の提供サービス案内",
+    "各方案提供的服务说明",
+    "各方案提供的服務說明",
+    "Leistungen je Plan",
+    "บริการที่แต่ละแพ็กเกจมอบให้",
+    "Dịch vụ cung cấp theo từng gói",
+    "Layanan yang disediakan tiap paket",
+    "الخدمات المقدّمة لكل خطة",
+    "Servicios incluidos en cada plan",
+    "Services fournis par forfait",
+    "प्रत्येक प्लान में प्रदान की जाने वाली सेवाएँ",
+    "Serviços oferecidos por plano",
+    "Услуги по каждому тарифу"
+   ],
+   "match": [
+    "플랜별 제공 서비스 안내",
+    "Services provided by each plan",
+    "プラン別の提供サービス案内",
+    "各方案提供的服务说明",
+    "各方案提供的服務說明",
+    "Leistungen je Plan",
+    "บริการที่แต่ละแพ็กเกจมอบให้",
+    "Dịch vụ cung cấp theo từng gói",
+    "Layanan yang disediakan tiap paket",
+    "الخدمات المقدّمة لكل خطة",
+    "Servicios incluidos en cada plan",
+    "Services fournis par forfait",
+    "प्रत्येक प्लान में प्रदान की जाने वाली सेवाएँ",
+    "Serviços oferecidos por plano",
+    "Услуги по каждому тарифу",
+    "guide"
+   ]
+  },
+  "appPricing.gate": {
+   "ns": "appPricing.gate",
+   "title": "Complete your business profile",
+   "subtitle": "To switch from the demo/free experience to a live {{plan}} account, please provide your full business information. This is required before payment.",
+   "paths": [
+    "/pricing"
+   ],
+   "actions": [
+    "Cancel"
+   ],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "Complete your business profile"
+   ],
+   "match": [
+    "CEO",
+    "Cancel",
+    "gate"
+   ]
+  },
+  "appPricing.hero": {
+   "ns": "appPricing.hero",
+   "title": "비즈니스 성장에 맞춰 확장되는 요금제",
+   "subtitle": "숨은 비용 없이, 필요할 때 언제든 변경하거나 해지할 수 있습니다.",
+   "paths": [
+    "/pricing"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "비즈니스 성장에 맞춰 확장되는 요금제",
+    "Pricing that scales with your growth",
+    "ビジネスの成長に合わせて拡張する料金プラン",
+    "随业务增长而扩展的定价方案",
+    "隨業務成長而擴展的定價方案",
+    "Preise, die mit Ihrem Wachstum skalieren",
+    "ราคาที่ขยายตามการเติบโตของธุรกิจคุณ",
+    "Bảng giá mở rộng theo đà tăng trưởng của bạn",
+    "Harga yang berskala seiring pertumbuhan Anda",
+    "تسعير ينمو مع توسّع أعمالك",
+    "Precios que escalan con tu crecimiento",
+    "Une tarification qui évolue avec votre croissance",
+    "आपके विकास के साथ बढ़ने वाला मूल्य निर्धारण",
+    "Preços que escalam com o seu crescimento",
+    "Тарифы, которые растут вместе с вашим бизнесом"
+   ],
+   "match": [
+    "비즈니스 성장에 맞춰 확장되는 요금제",
+    "Pricing that scales with your growth",
+    "ビジネスの成長に合わせて拡張する料金プラン",
+    "随业务增长而扩展的定价方案",
+    "隨業務成長而擴展的定價方案",
+    "Preise, die mit Ihrem Wachstum skalieren",
+    "ราคาที่ขยายตามการเติบโตของธุรกิจคุณ",
+    "Bảng giá mở rộng theo đà tăng trưởng của bạn",
+    "Harga yang berskala seiring pertumbuhan Anda",
+    "تسعير ينمو مع توسّع أعمالك",
+    "Precios que escalan con tu crecimiento",
+    "Une tarification qui évolue avec votre croissance",
+    "आपके विकास के साथ बढ़ने वाला मूल्य निर्धारण",
+    "Preços que escalam com o seu crescimento",
+    "Тарифы, которые растут вместе с вашим бизнесом",
+    "hero"
+   ]
+  },
+  "appPricing.comparison": {
+   "ns": "appPricing.comparison",
+   "title": "app Pricing comparison",
+   "subtitle": "",
+   "paths": [
+    "/pricing"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "app Pricing comparison"
+   ],
+   "match": [
+    "comparison"
+   ]
+  },
+  "appPricing.legal": {
+   "ns": "appPricing.legal",
+   "title": "app Pricing legal",
+   "subtitle": "",
+   "paths": [
+    "/pricing"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "app Pricing legal"
+   ],
+   "match": [
+    "legal"
+   ]
+  },
+  "acctPerf": {
+   "ns": "acctPerf",
+   "title": "계정별 성과 분석",
+   "subtitle": "",
+   "paths": [
+    "/account-performance"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [
+    "이용 가이드",
+    "각 팀별 목표에 맞춘 고도화 전략 분석",
+    "행을 클릭하여 마이크로 지표까지 즉시 드릴다운하세요.",
+    "좌측 메뉴에서 '어카운트 성과'를 선택하세요.",
+    "전체 예산과 성과를 시각화합니다.",
+    "광고 계층별 상세 분석을 제공합니다.",
+    "좌측 메뉴에서 어카운트 성과를 선택하세요."
+   ],
+   "states": [],
+   "names": [
+    "계정별 성과 분석"
+   ],
+   "match": [
+    "acctPerf"
+   ]
+  },
+  "journeyCanvas": {
+   "ns": "journeyCanvas",
+   "title": "여정 빌더",
+   "subtitle": "",
+   "paths": [
+    "/journey-builder"
+   ],
+   "actions": [
+    "삭제"
+   ],
+   "fields": [],
+   "notes": [
+    "🔗 대상 노드 클릭…(취소: 다시)",
+    "YES(녹색)·NO(빨강) 분기로 두 노드를 연결하세요.",
+    "occurred(이벤트 발생)·timeout(미발생) 두 분기로 연결하세요.",
+    "고객 컨텍스트를 외부 시스템(슬랙·CRM·웨어하우스)으로 전송합니다. 미입력 시 전체 컨텍스트 JSON 전송.",
+    "전환 목표 노드. 고객이 이 노드에 도달하면 여정 전환으로 집계됩니다(분석 탭 전환율)."
+   ],
+   "states": [],
+   "names": [
+    "여정 빌더",
+    "Journey Builder",
+    "ジャーニービルダー",
+    "旅程构建",
+    "旅程建構",
+    "ตัวสร้างเส้นทาง",
+    "Xây dựng hành trình",
+    "Pembuat Perjalanan",
+    "منشئ الرحلات",
+    "Constructor viajes",
+    "Parcours client",
+    "जर्नी बिल्डर",
+    "Construtor jornadas",
+    "Построитель путей"
+   ],
+   "match": [
+    "여정 빌더",
+    "Journey Builder",
+    "ジャーニービルダー",
+    "旅程构建",
+    "旅程建構",
+    "ตัวสร้างเส้นทาง",
+    "Xây dựng hành trình",
+    "Pembuat Perjalanan",
+    "منشئ الرحلات",
+    "Constructor viajes",
+    "Parcours client",
+    "जर्नी बिल्डर",
+    "Construtor jornadas",
+    "Построитель путей",
+    "HTML",
+    "YES",
+    "YYYY",
+    "journeyCanvas"
+   ]
+  },
+  "journeyCanvas.trigger": {
+   "ns": "journeyCanvas.trigger",
+   "title": "여정 빌더",
+   "subtitle": "",
+   "paths": [
+    "/journey-builder"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "여정 빌더",
+    "Journey Builder",
+    "ジャーニービルダー",
+    "旅程构建",
+    "旅程建構",
+    "ตัวสร้างเส้นทาง",
+    "Xây dựng hành trình",
+    "Pembuat Perjalanan",
+    "منشئ الرحلات",
+    "Constructor viajes",
+    "Parcours client",
+    "जर्नी बिल्डर",
+    "Construtor jornadas",
+    "Построитель путей"
+   ],
+   "match": [
+    "여정 빌더",
+    "Journey Builder",
+    "ジャーニービルダー",
+    "旅程构建",
+    "旅程建構",
+    "ตัวสร้างเส้นทาง",
+    "Xây dựng hành trình",
+    "Pembuat Perjalanan",
+    "منشئ الرحلات",
+    "Constructor viajes",
+    "Parcours client",
+    "जर्नी बिल्डर",
+    "Construtor jornadas",
+    "Построитель путей",
+    "trigger"
+   ]
+  },
+  "kakao": {
+   "ns": "kakao",
+   "title": "카카오 비즈니스",
+   "subtitle": "",
+   "paths": [
+    "/kakao-channel"
+   ],
+   "actions": [
+    "⚙️ 설정 저장",
+    "템플릿 저장",
+    "테스트 발송",
+    "캠페인 생성",
+    "💬 발송"
+   ],
+   "fields": [
+    "채널명",
+    "채널 ID",
+    "발신 프로필 키",
+    "REST API 키",
+    "템플릿 코드* (카카오 승인 코드)",
+    "템플릿명*",
+    "메시지 유형",
+    "내용* (변수: #{name} 또는 {{name}})",
+    "캠페인명*",
+    "알림톡 템플릿",
+    "대상 세그먼트"
+   ],
+   "notes": [
+    "비정상적인 접근이 감지되어 차단되었습니다. 잠시 후 다시 시도하세요.",
+    "카카오 알림톡을 사용하려면 카카오 비즈니스 채널을 개설하고 발신 프로필 키를 발급받아야 합니다.",
+    "이용 가이드",
+    "삭제하시겠습니까?",
+    "알림톡을 발송하시겠습니까?",
+    "이 캠페인을 삭제하시겠습니까?"
+   ],
+   "states": [
+    "총 캠페인",
+    "총 발송",
+    "성공"
+   ],
+   "names": [
+    "카카오 비즈니스",
+    "Kakao Business",
+    "カカオビジネス",
+    "Kakao商务",
+    "Kakao 商務",
+    "Kakao बिज़नेस",
+    "Kakao для бизнеса"
+   ],
+   "match": [
+    "카카오 비즈니스",
+    "Kakao Business",
+    "カカオビジネス",
+    "Kakao商务",
+    "Kakao 商務",
+    "Kakao बिज़नेस",
+    "Kakao для бизнеса",
+    "REST",
+    "⚙️ 설정 저장",
+    "템플릿 저장",
+    "테스트 발송",
+    "💬 발송",
+    "채널 ID",
+    "발신 프로필 키",
+    "REST API 키",
+    "템플릿 코드* (카카오 승인 코드)",
+    "템플릿명*",
+    "메시지 유형",
+    "내용* (변수: #{name} 또는 {{name}})",
+    "캠페인명*",
+    "알림톡 템플릿",
+    "대상 세그먼트",
+    "kakao"
+   ]
+  },
+  "partnerPortal": {
+   "ns": "partnerPortal",
+   "title": "파트너 포털",
+   "subtitle": "",
+   "paths": [
+    "/partner"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "파트너 포털"
+   ],
+   "match": [
+    "partnerPortal"
+   ]
+  },
+  "systemMonitor": {
+   "ns": "systemMonitor",
+   "title": "🖥️ 시스템 모니터",
+   "subtitle": "",
+   "paths": [
+    "/system-monitor"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [
+    "광고 성과 수집·OAuth 토큰 갱신·자동 최적화 등 자동화 작업의 마지막 실행 시각입니다. 핵심(★) 작업이 "
+   ],
+   "states": [
+    "정상",
+    "경고",
+    "오류"
+   ],
+   "names": [
+    "🖥️ 시스템 모니터"
+   ],
+   "match": [
+    "systemMonitor"
+   ]
+  },
+  "userManagement.stats": {
+   "ns": "userManagement.stats",
+   "title": "회원 관리",
+   "subtitle": "",
+   "paths": [
+    "/user-management"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "회원 관리",
+    "Members",
+    "会員管理",
+    "会员管理",
+    "會員管理",
+    "Mitglieder",
+    "สมาชิก",
+    "Thành viên",
+    "Anggota",
+    "الأعضاء",
+    "Miembros",
+    "Membres",
+    "सदस्य",
+    "Membros",
+    "Участники",
+    "User Management"
+   ],
+   "match": [
+    "회원 관리",
+    "Members",
+    "会員管理",
+    "会员管理",
+    "會員管理",
+    "Mitglieder",
+    "สมาชิก",
+    "Thành viên",
+    "Anggota",
+    "الأعضاء",
+    "Miembros",
+    "Membres",
+    "सदस्य",
+    "Membros",
+    "Участники",
+    "User Management",
+    "stats"
+   ]
+  },
+  "userManagement.header": {
+   "ns": "userManagement.header",
+   "title": "⚙️ 통합 관리자 패널",
+   "subtitle": "회원 · 역할(RBAC) · 결제 · 감사 통합 관리 | 로그인:",
+   "paths": [
+    "/user-management"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "⚙️ 통합 관리자 패널"
+   ],
+   "match": [
+    "RBAC",
+    "header"
+   ]
+  },
+  "rulesEditorPage": {
+   "ns": "rulesEditorPage",
+   "title": "규칙 에디터 v2 (드래그&드롭 + 버전/승인/배포)",
+   "subtitle": "",
+   "paths": [
+    "/rules-editor-v2"
+   ],
+   "actions": [
+    "초안 생성",
+    "저장",
+    "제출",
+    "클릭하여 수정",
+    "삭제"
+   ],
+   "fields": [],
+   "notes": [
+    "여기로 내부 필드를 드래그해 매핑을 추가하세요."
+   ],
+   "states": [],
+   "names": [
+    "규칙 에디터 v2 (드래그&드롭 + 버전/승인/배포)"
+   ],
+   "match": [
+    "초안 생성",
+    "클릭하여 수정",
+    "rulesEditorPage"
+   ]
+  },
+  "pnl": {
+   "ns": "pnl",
+   "title": "손익 분석",
+   "subtitle": "",
+   "paths": [
+    "/pnl"
+   ],
+   "actions": [
+    "실시간 동기화"
+   ],
+   "fields": [],
+   "notes": [
+    "악의적 입력이 감지되어 차단되었습니다.",
+    "매출에서 비용을 단계별로 차감하여 영업이익까지의 흐름을 시각화합니다.",
+    "결제대행(Stripe·Toss·PayPal 등)으로 실제 수령한 금액 — ★매출 합계와는 별도(판매 대금의 현금 수령 기준, 이중계산 방지).",
+    "채널별·상품별 단위 손익을 분석합니다. 연동허브 API 키 등록 시 채널별 수수료가 자동 반영됩니다.",
+    "연동허브에 등록된 채널의 수수료율이 자동으로 반영됩니다.",
+    "※ 연동허브에서 API 키를 등록하면 채널별 실제 데이터가 자동으로 반영됩니다.",
+    "AI가 이상 탐지 결과를 기반으로 수익 개선 방안을 자동 제안합니다.",
+    "원인 분석에서 도출된 조치는 승인 센터에서 승인·실행·추적됩니다(폐쇄 루프)."
+   ],
+   "states": [
+    "채널 연동·매출 데이터가 들어오면 예측 그래프가 표시됩니다."
+   ],
+   "names": [
+    "손익 분석",
+    "P&L 대시보드",
+    "P&L Dashboard",
+    "P&Lダッシュボード",
+    "损益仪表板",
+    "P&L儀表板",
+    "P&L-Dashboard",
+    "แดชบอร์ด P&L",
+    "Bảng P&L",
+    "Dashboard P&L",
+    "لوحة P&L",
+    "Dashboard de P&L",
+    "Tableau de bord P&L",
+    "P&L डैशबोर्ड",
+    "Панель P&L"
+   ],
+   "match": [
+    "P&L 대시보드",
+    "P&L Dashboard",
+    "P&Lダッシュボード",
+    "损益仪表板",
+    "P&L儀表板",
+    "P&L-Dashboard",
+    "แดชบอร์ด P&L",
+    "Bảng P&L",
+    "Dashboard P&L",
+    "لوحة P&L",
+    "Dashboard de P&L",
+    "Tableau de bord P&L",
+    "P&L डैशबोर्ड",
+    "Панель P&L",
+    "COGS",
+    "PDF",
+    "pnl"
+   ]
+  },
+  "pnl.reporting": {
+   "ns": "pnl.reporting",
+   "title": "P&L 손익",
+   "subtitle": "",
+   "paths": [
+    "/pnl"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [
+    "KRW 기준 환산 표기",
+    "KRW 기준 병기"
+   ],
+   "states": [],
+   "names": [
+    "P&L 손익",
+    "P&L",
+    "P&L損益",
+    "损益表",
+    "損益表",
+    "GuV",
+    "กำไรขาดทุน",
+    "Lãi lỗ",
+    "Laba Rugi",
+    "الأرباح والخسائر",
+    "लाभ-हानि",
+    "P&L Dashboard"
+   ],
+   "match": [
+    "P&L 손익",
+    "P&L",
+    "P&L損益",
+    "损益表",
+    "損益表",
+    "GuV",
+    "กำไรขาดทุน",
+    "Lãi lỗ",
+    "Laba Rugi",
+    "الأرباح والخسائر",
+    "लाभ-हानि",
+    "P&L Dashboard",
+    "reporting"
+   ]
+  },
+  "pnl.vat": {
+   "ns": "pnl.vat",
+   "title": "부가세 정산",
+   "subtitle": "",
+   "paths": [
+    "/pnl"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "부가세 정산",
+    "VAT Settlement"
+   ],
+   "match": [
+    "부가세 정산",
+    "VAT Settlement",
+    "vat"
+   ]
+  },
+  "payment": {
+   "ns": "payment",
+   "title": "payment",
+   "subtitle": "",
+   "paths": [
+    "/payment/fail"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "payment"
+   ],
+   "match": [
+    "payment"
+   ]
+  },
+  "banner": {
+   "ns": "banner",
+   "title": "광고성과",
+   "subtitle": "",
+   "paths": [
+    "/marketing",
+    "/attribution",
+    "/crm",
+    "/budget-tracker",
+    "/sms-marketing",
+    "/email-marketing",
+    "/kakao-channel"
+   ],
+   "actions": [
+    "배송 지연이 예측되는 주문이 24건 감지되었습니다. (동남아시아 권역)",
+    "AI 실행"
+   ],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "광고성과",
+    "Ad Performance",
+    "広告成果",
+    "广告效果",
+    "廣告效果",
+    "Anzeigenleistung",
+    "ผลลัพธ์โฆษณา",
+    "Hiệu suất QC",
+    "Performa Iklan",
+    "أداء الإعلانات",
+    "Rendimiento ads",
+    "Performance pub",
+    "विज्ञापन प्रदर्शन",
+    "Desempenho ads",
+    "Эффективность рекл.",
+    "Marketing",
+    "어트리뷰션",
+    "Attribution",
+    "アトリビューション",
+    "归因分析",
+    "歸因分析",
+    "การระบุแหล่งที่มา",
+    "Phân bổ",
+    "Atribusi",
+    "الإسناد",
+    "Atribución",
+    "एट्रिब्यूशन",
+    "Atribuição",
+    "Атрибуция",
+    "CRM 대시보드",
+    "CRM Dashboard",
+    "CRMダッシュボード",
+    "CRM仪表盘",
+    "CRM儀表板",
+    "CRM-Dashboard",
+    "แดชบอร์ด CRM",
+    "Bảng điều khiển CRM",
+    "Dasbor CRM",
+    "لوحة CRM",
+    "Panel CRM",
+    "Tableau CRM",
+    "CRM डैशबोर्ड",
+    "Painel CRM",
+    "Дашборд CRM",
+    "CRM",
+    "예산 관리",
+    "Budget Tracker",
+    "予算管理",
+    "预算管理",
+    "預算管理",
+    "Budgettracker",
+    "ติดตามงบ",
+    "Theo dõi ngân sách",
+    "Pelacak Anggaran",
+    "تتبع الميزانية",
+    "Rastreador presup.",
+    "Suivi budget",
+    "बजट ट्रैकर",
+    "Rastreador orçamento",
+    "Бюджет-трекер",
+    "SMS 마케팅",
+    "SMS Marketing",
+    "SMSマーケティング",
+    "短信营销",
+    "簡訊行銷",
+    "SMS-Marketing",
+    "SMS มาร์เก็ตติ้ง",
+    "تسويق SMS",
+    "SMS marketing",
+    "SMS मार्केटिंग",
+    "SMS-маркетинг",
+    "이메일 마케팅",
+    "Email Marketing",
+    "メールマーケティング",
+    "邮件营销",
+    "電郵行銷",
+    "E-Mail-Marketing",
+    "อีเมลมาร์เก็ตติ้ง",
+    "تسويق بريدي",
+    "Email marketing",
+    "ईमेल मार्केटिंग",
+    "Email-маркетинг",
+    "카카오 비즈니스",
+    "Kakao Business",
+    "カカオビジネス",
+    "Kakao商务",
+    "Kakao商務",
+    "Kakao ธุรกิจ",
+    "Kakao Bisnis",
+    "Kakao أعمال",
+    "Kakao बिज़नेस"
+   ],
+   "match": [
+    "광고성과",
+    "Ad Performance",
+    "広告成果",
+    "广告效果",
+    "廣告效果",
+    "Anzeigenleistung",
+    "ผลลัพธ์โฆษณา",
+    "Hiệu suất QC",
+    "Performa Iklan",
+    "أداء الإعلانات",
+    "Rendimiento ads",
+    "Performance pub",
+    "विज्ञापन प्रदर्शन",
+    "Desempenho ads",
+    "Эффективность рекл.",
+    "Marketing",
+    "어트리뷰션",
+    "Attribution",
+    "アトリビューション",
+    "归因分析",
+    "歸因分析",
+    "การระบุแหล่งที่มา",
+    "Phân bổ",
+    "Atribusi",
+    "الإسناد",
+    "Atribución",
+    "एट्रिब्यूशन",
+    "Atribuição",
+    "Атрибуция",
+    "CRM 대시보드",
+    "CRM Dashboard",
+    "CRMダッシュボード",
+    "CRM仪表盘",
+    "CRM儀表板",
+    "CRM-Dashboard",
+    "แดชบอร์ด CRM",
+    "Bảng điều khiển CRM",
+    "Dasbor CRM",
+    "لوحة CRM",
+    "Panel CRM"
+   ]
+  },
+  "dashTabs": {
+   "ns": "dashTabs",
+   "title": "종합 대시보드",
+   "subtitle": "",
+   "paths": [
+    "/dashboard"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "종합 대시보드",
+    "Dashboard",
+    "ダッシュボード",
+    "综合仪表盘",
+    "綜合儀表板",
+    "แดชบอร์ด",
+    "Bảng điều khiển",
+    "Dasbor",
+    "لوحة المعلومات",
+    "Panel de control",
+    "Tableau de bord",
+    "डैशबोर्ड",
+    "Painel",
+    "Дашборд"
+   ],
+   "match": [
+    "종합 대시보드",
+    "Dashboard",
+    "ダッシュボード",
+    "综合仪表盘",
+    "綜合儀表板",
+    "แดชบอร์ด",
+    "Bảng điều khiển",
+    "Dasbor",
+    "لوحة المعلومات",
+    "Panel de control",
+    "Tableau de bord",
+    "डैशबोर्ड",
+    "Painel",
+    "Дашборд",
+    "dashTabs"
+   ]
+  },
+  "dashboard": {
+   "ns": "dashboard",
+   "title": "종합 대시보드",
+   "subtitle": "",
+   "paths": [
+    "/dashboard",
+    "/marketing",
+    "/settlements",
+    "/omni-channel",
+    "/price-opt",
+    "/catalog-sync",
+    "/kr-channel",
+    "/live-commerce",
+    "/attribution",
+    "/crm",
+    "/channel-kpi",
+    "/budget-tracker",
+    "/sms-marketing",
+    "/report-builder",
+    "/performance",
+    "/email-marketing",
+    "/reconciliation",
+    "/pnl"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [
+    "특정 상품을 선택하면 그 상품의 매출·주문·재구매율 등을 조회할 수 있습니다 (전체는 아래 대시보드)."
+   ],
+   "states": [],
+   "names": [
+    "종합 대시보드",
+    "Dashboard",
+    "ダッシュボード",
+    "综合仪表盘",
+    "綜合儀表板",
+    "แดชบอร์ด",
+    "Bảng điều khiển",
+    "Dasbor",
+    "لوحة المعلومات",
+    "Panel de control",
+    "Tableau de bord",
+    "डैशबोर्ड",
+    "Painel",
+    "Дашборд",
+    "광고성과",
+    "Ad Performance",
+    "広告成果",
+    "广告效果",
+    "廣告效果",
+    "Anzeigenleistung",
+    "ผลลัพธ์โฆษณา",
+    "Hiệu suất QC",
+    "Performa Iklan",
+    "أداء الإعلانات",
+    "Rendimiento ads",
+    "Performance pub",
+    "विज्ञापन प्रदर्शन",
+    "Desempenho ads",
+    "Эффективность рекл.",
+    "Marketing",
+    "결제 내역",
+    "Settlements",
+    "決済履歴",
+    "结算记录",
+    "結算紀錄",
+    "Zahlungen",
+    "การชำระเงิน",
+    "Thanh toán",
+    "Penyelesaian",
+    "التسويات",
+    "Liquidaciones",
+    "Règlements",
+    "भुगतान",
+    "Liquidações",
+    "Расчёты",
+    "옴니 채널",
+    "Omni Channel",
+    "オムニチャネル",
+    "全渠道",
+    "全通路",
+    "Omni-Kanal",
+    "ออมนิแชนเนล",
+    "Đa kênh",
+    "قناة شاملة",
+    "Omnicanal",
+    "ऑम्नी चैनल",
+    "Омниканал",
+    "최적 가격 설정",
+    "Price Optimization",
+    "価格最適化",
+    "价格优化",
+    "價格優化",
+    "Preisoptimierung",
+    "เพิ่มประสิทธิภาพราคา",
+    "Tối ưu giá",
+    "Optimasi Harga",
+    "تحسين الأسعار",
+    "Optimización precios",
+    "Optimisation prix",
+    "मूल्य अनुकूलन",
+    "Otimização preços",
+    "Оптимизация цен",
+    "카탈로그 동기화",
+    "Catalog Sync",
+    "カタログ同期",
+    "目录同步",
+    "目錄同步",
+    "Katalogsync",
+    "ซิงค์แคตตาล็อก",
+    "Đồng bộ danh mục",
+    "Sinkronisasi Katalog",
+    "مزامنة الكتالوج",
+    "Sync catálogo",
+    "Sync catalogue",
+    "कैटलॉग सिंक",
+    "Синхр. каталога",
+    "라이브 커머스",
+    "Live Commerce",
+    "ライブコマース",
+    "直播电商",
+    "直播電商",
+    "Live-Commerce",
+    "ไลฟ์คอมเมิร์ซ",
+    "التجارة المباشرة",
+    "लाइव कॉमर्स",
+    "Лайв-коммерс",
+    "어트리뷰션",
+    "Attribution",
+    "アトリビューション",
+    "归因分析",
+    "歸因分析",
+    "การระบุแหล่งที่มา",
+    "Phân bổ",
+    "Atribusi",
+    "الإسناد",
+    "Atribución",
+    "एट्रिब्यूशन",
+    "Atribuição",
+    "Атрибуция",
+    "CRM 대시보드",
+    "CRM Dashboard",
+    "CRMダッシュボード",
+    "CRM仪表盘",
+    "CRM儀表板",
+    "CRM-Dashboard",
+    "แดชบอร์ด CRM",
+    "Bảng điều khiển CRM",
+    "Dasbor CRM",
+    "لوحة CRM",
+    "Panel CRM",
+    "Tableau CRM",
+    "CRM डैशबोर्ड",
+    "Painel CRM",
+    "Дашборд CRM",
+    "CRM",
+    "채널 KPI",
+    "Channel KPI",
+    "チャネルKPI",
+    "渠道KPI",
+    "頻道KPI",
+    "Kanal-KPI",
+    "KPI ช่องทาง",
+    "KPI kênh",
+    "KPI Saluran",
+    "مؤشرات القناة",
+    "KPI canal",
+    "चैनल KPI",
+    "KPI каналов",
+    "예산 관리",
+    "Budget Tracker",
+    "予算管理",
+    "预算管理",
+    "預算管理",
+    "Budgettracker",
+    "ติดตามงบ",
+    "Theo dõi ngân sách",
+    "Pelacak Anggaran",
+    "تتبع الميزانية",
+    "Rastreador presup.",
+    "Suivi budget",
+    "बजट ट्रैकर",
+    "Rastreador orçamento",
+    "Бюджет-трекер",
+    "SMS 마케팅",
+    "SMS Marketing",
+    "SMSマーケティング",
+    "短信营销",
+    "簡訊行銷",
+    "SMS-Marketing",
+    "SMS มาร์เก็ตติ้ง",
+    "تسويق SMS",
+    "SMS marketing",
+    "SMS मार्केटिंग",
+    "SMS-маркетинг",
+    "리포트 빌더",
+    "Report Builder",
+    "レポートビルダー",
+    "报表构建",
+    "報表建構",
+    "Berichtersteller",
+    "ตัวสร้างรายงาน",
+    "Tạo báo cáo",
+    "Pembuat Laporan",
+    "منشئ التقارير",
+    "Creador informes",
+    "Créateur rapports",
+    "रिपोर्ट बिल्डर",
+    "Criador relatórios",
+    "Конструктор отчётов",
+    "퍼포먼스 인사이트",
+    "Performance Hub",
+    "パフォーマンス",
+    "绩效中心",
+    "績效中心",
+    "Performance-Hub",
+    "ศูนย์ประสิทธิภาพ",
+    "Trung tâm hiệu suất",
+    "Pusat Performa",
+    "مركز الأداء",
+    "Hub rendimiento",
+    "Hub performance",
+    "प्रदर्शन हब",
+    "Hub desempenho",
+    "Хаб показателей",
+    "이메일 마케팅",
+    "Email Marketing",
+    "メールマーケティング",
+    "邮件营销",
+    "電郵行銷",
+    "E-Mail-Marketing",
+    "อีเมลมาร์เก็ตติ้ง",
+    "تسويق بريدي",
+    "Email marketing",
+    "ईमेल मार्केटिंग",
+    "Email-маркетинг",
+    "정산 대조",
+    "Reconciliation",
+    "精算照合",
+    "对账",
+    "對帳",
+    "Abstimmung",
+    "กระทบยอด",
+    "Đối soát",
+    "Rekonsiliasi",
+    "المطابقة",
+    "Conciliación",
+    "Rapprochement",
+    "समाधान",
+    "Conciliação",
+    "Сверка",
+    "P&L 손익",
+    "P&L",
+    "P&L損益",
+    "损益表",
+    "損益表",
+    "GuV",
+    "กำไรขาดทุน",
+    "Lãi lỗ",
+    "Laba Rugi",
+    "الأرباح والخسائر",
+    "लाभ-हानि",
+    "P&L Dashboard"
+   ],
+   "match": [
+    "종합 대시보드",
+    "Dashboard",
+    "ダッシュボード",
+    "综合仪表盘",
+    "綜合儀表板",
+    "แดชบอร์ด",
+    "Bảng điều khiển",
+    "Dasbor",
+    "لوحة المعلومات",
+    "Panel de control",
+    "Tableau de bord",
+    "डैशबोर्ड",
+    "Painel",
+    "Дашборд",
+    "광고성과",
+    "Ad Performance",
+    "広告成果",
+    "广告效果",
+    "廣告效果",
+    "Anzeigenleistung",
+    "ผลลัพธ์โฆษณา",
+    "Hiệu suất QC",
+    "Performa Iklan",
+    "أداء الإعلانات",
+    "Rendimiento ads",
+    "Performance pub",
+    "विज्ञापन प्रदर्शन",
+    "Desempenho ads",
+    "Эффективность рекл.",
+    "Marketing",
+    "결제 내역",
+    "Settlements",
+    "決済履歴",
+    "结算记录",
+    "結算紀錄",
+    "Zahlungen",
+    "การชำระเงิน",
+    "Thanh toán",
+    "Penyelesaian",
+    "التسويات"
+   ]
+  },
+  "dashboard.productScope": {
+   "ns": "dashboard.productScope",
+   "title": "광고성과",
+   "subtitle": "",
+   "paths": [
+    "/marketing",
+    "/rollup",
+    "/dashboard"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "광고성과",
+    "Ad Performance",
+    "広告成果",
+    "广告效果",
+    "廣告效果",
+    "Anzeigenleistung",
+    "ผลลัพธ์โฆษณา",
+    "Hiệu suất QC",
+    "Performa Iklan",
+    "أداء الإعلانات",
+    "Rendimiento ads",
+    "Performance pub",
+    "विज्ञापन प्रदर्शन",
+    "Desempenho ads",
+    "Эффективность рекл.",
+    "Marketing",
+    "롤업 뷰",
+    "Rollup View",
+    "ロールアップ",
+    "汇总视图",
+    "匯總視圖",
+    "Rollup-Ansicht",
+    "สรุปภาพรวม",
+    "Tổng hợp",
+    "Ringkasan",
+    "العرض الموحد",
+    "Vista resumen",
+    "Vue consolidée",
+    "रोलअप व्यू",
+    "Visão consolidada",
+    "Сводный вид",
+    "Rollup Dashboard",
+    "종합 대시보드",
+    "Dashboard",
+    "ダッシュボード",
+    "综合仪表盘",
+    "綜合儀表板",
+    "แดชบอร์ด",
+    "Bảng điều khiển",
+    "Dasbor",
+    "لوحة المعلومات",
+    "Panel de control",
+    "Tableau de bord",
+    "डैशबोर्ड",
+    "Painel",
+    "Дашборд"
+   ],
+   "match": [
+    "광고성과",
+    "Ad Performance",
+    "広告成果",
+    "广告效果",
+    "廣告效果",
+    "Anzeigenleistung",
+    "ผลลัพธ์โฆษณา",
+    "Hiệu suất QC",
+    "Performa Iklan",
+    "أداء الإعلانات",
+    "Rendimiento ads",
+    "Performance pub",
+    "विज्ञापन प्रदर्शन",
+    "Desempenho ads",
+    "Эффективность рекл.",
+    "Marketing",
+    "롤업 뷰",
+    "Rollup View",
+    "ロールアップ",
+    "汇总视图",
+    "匯總視圖",
+    "Rollup-Ansicht",
+    "สรุปภาพรวม",
+    "Tổng hợp",
+    "Ringkasan",
+    "العرض الموحد",
+    "Vista resumen",
+    "Vue consolidée",
+    "रोलअप व्यू",
+    "Visão consolidada",
+    "Сводный вид",
+    "Rollup Dashboard",
+    "종합 대시보드",
+    "Dashboard",
+    "ダッシュボード",
+    "综合仪表盘",
+    "綜合儀表板",
+    "แดชบอร์ด",
+    "Bảng điều khiển",
+    "Dasbor"
+   ]
+  },
+  "dashboard.funnel": {
+   "ns": "dashboard.funnel",
+   "title": "고객 퍼널",
+   "subtitle": "",
+   "paths": [
+    "/rollup"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "고객 퍼널",
+    "Customer funnel",
+    "カスタマーファネル",
+    "客户漏斗",
+    "客戶漏斗",
+    "Kunden-Funnel",
+    "กรวยลูกค้า",
+    "Phễu khách hàng",
+    "Funnel pelanggan",
+    "مسار العميل",
+    "Embudo de clientes",
+    "Entonnoir client",
+    "ग्राहक फ़नल",
+    "Funil de clientes",
+    "Воронка клиентов"
+   ],
+   "match": [
+    "고객 퍼널",
+    "Customer funnel",
+    "カスタマーファネル",
+    "客户漏斗",
+    "客戶漏斗",
+    "Kunden-Funnel",
+    "กรวยลูกค้า",
+    "Phễu khách hàng",
+    "Funnel pelanggan",
+    "مسار العميل",
+    "Embudo de clientes",
+    "Entonnoir client",
+    "ग्राहक फ़नल",
+    "Funil de clientes",
+    "Воронка клиентов",
+    "funnel"
+   ]
+  },
+  "dashboard.productMkt": {
+   "ns": "dashboard.productMkt",
+   "title": "상품 마케팅 성과",
+   "subtitle": "",
+   "paths": [
+    "/marketing",
+    "/settlements",
+    "/omni-channel",
+    "/price-opt",
+    "/catalog-sync",
+    "/kr-channel",
+    "/live-commerce",
+    "/attribution",
+    "/crm",
+    "/channel-kpi",
+    "/budget-tracker",
+    "/sms-marketing",
+    "/report-builder",
+    "/performance",
+    "/email-marketing",
+    "/reconciliation",
+    "/pnl",
+    "/dashboard"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [
+    "이 상품의 광고 성과 데이터가 아직 없습니다. 광고-상품 매핑(캠페인에 상품 태깅) 또는 어트리뷰션을 연동하면 상품별 ROAS·광고비가 실집계로 자동 표시됩니다. (임의 배분 대신 실데이터 기준)"
+   ],
+   "names": [
+    "상품 마케팅 성과",
+    "Product Marketing Performance",
+    "商品マーケティング成果",
+    "商品营销绩效",
+    "商品行銷成效",
+    "Produkt-Marketing-Performance",
+    "ผลการตลาดของสินค้า",
+    "Hiệu quả marketing sản phẩm",
+    "Kinerja marketing produk",
+    "أداء تسويق المنتج",
+    "Rendimiento de marketing del producto",
+    "Performance marketing produit",
+    "उत्पाद मार्केटिंग प्रदर्शन",
+    "Desempenho de marketing do produto",
+    "Маркетинговая эффективность товара"
+   ],
+   "match": [
+    "상품 마케팅 성과",
+    "Product Marketing Performance",
+    "商品マーケティング成果",
+    "商品营销绩效",
+    "商品行銷成效",
+    "Produkt-Marketing-Performance",
+    "ผลการตลาดของสินค้า",
+    "Hiệu quả marketing sản phẩm",
+    "Kinerja marketing produk",
+    "أداء تسويق المنتج",
+    "Rendimiento de marketing del producto",
+    "Performance marketing produit",
+    "उत्पाद मार्केटिंग प्रदर्शन",
+    "Desempenho de marketing do produto",
+    "Маркетинговая эффективность товара",
+    "productMkt"
+   ]
+  },
+  "kpi": {
+   "ns": "kpi",
+   "title": "종합 대시보드",
+   "subtitle": "",
+   "paths": [
+    "/dashboard"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "종합 대시보드",
+    "Dashboard",
+    "ダッシュボード",
+    "综合仪表盘",
+    "綜合儀表板",
+    "แดชบอร์ด",
+    "Bảng điều khiển",
+    "Dasbor",
+    "لوحة المعلومات",
+    "Panel de control",
+    "Tableau de bord",
+    "डैशबोर्ड",
+    "Painel",
+    "Дашборд"
+   ],
+   "match": [
+    "종합 대시보드",
+    "Dashboard",
+    "ダッシュボード",
+    "综合仪表盘",
+    "綜合儀表板",
+    "แดชบอร์ด",
+    "Bảng điều khiển",
+    "Dasbor",
+    "لوحة المعلومات",
+    "Panel de control",
+    "Tableau de bord",
+    "डैशबोर्ड",
+    "Painel",
+    "Дашборд",
+    "kpi"
+   ]
+  },
+  "funnel": {
+   "ns": "funnel",
+   "title": "종합 대시보드",
+   "subtitle": "",
+   "paths": [
+    "/dashboard"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "종합 대시보드",
+    "Dashboard",
+    "ダッシュボード",
+    "综合仪表盘",
+    "綜合儀表板",
+    "แดชบอร์ด",
+    "Bảng điều khiển",
+    "Dasbor",
+    "لوحة المعلومات",
+    "Panel de control",
+    "Tableau de bord",
+    "डैशबोर्ड",
+    "Painel",
+    "Дашборд"
+   ],
+   "match": [
+    "종합 대시보드",
+    "Dashboard",
+    "ダッシュボード",
+    "综合仪表盘",
+    "綜合儀表板",
+    "แดชบอร์ด",
+    "Bảng điều khiển",
+    "Dasbor",
+    "لوحة المعلومات",
+    "Panel de control",
+    "Tableau de bord",
+    "डैशबोर्ड",
+    "Painel",
+    "Дашборд",
+    "funnel"
+   ]
+  },
+  "autoCamp": {
+   "ns": "autoCamp",
+   "title": "자동화 전략",
+   "subtitle": "",
+   "paths": [
+    "/auto-marketing"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [
+    "AI 디자인 스튜디오에서 적용한 광고 디자인을 이 캠페인에 연결합니다. 연결할 디자인을 선택하세요.",
+    "내 CRM 고객·구매자를 매체 맞춤 오디언스로 업로드해 정밀 리타겟팅합니다. 이메일은 sha256 해시로만 전송되어 안전합니다(원문 미저장).",
+    "선택한 디자인",
+    "최근 14일 성과(ROAS·CTR) 분석 → 최고 성과 채널로 예산 자동 재배분, 손해 채널 회수. (매시 자동 실행)",
+    "실행중인 모든 광고를 즉시 일시정지할까요? 매체 게재가 중단되어 광고비 집행이 멈춥니다."
+   ],
+   "states": [
+    "활성",
+    "일시정지"
+   ],
+   "names": [
+    "자동화 전략",
+    "Auto Strategy",
+    "自動化戦略",
+    "自动化策略",
+    "自動化策略",
+    "Auto-Strategie",
+    "กลยุทธ์อัตโนมัติ",
+    "Chiến lược tự động",
+    "Strategi Otomatis",
+    "استراتيجية تلقائية",
+    "Estrategia auto",
+    "Stratégie auto",
+    "ऑटो रणनीति",
+    "Estratégia auto",
+    "Авто-стратегия",
+    "Auto Marketing"
+   ],
+   "match": [
+    "자동화 전략",
+    "Auto Strategy",
+    "自動化戦略",
+    "自动化策略",
+    "自動化策略",
+    "Auto-Strategie",
+    "กลยุทธ์อัตโนมัติ",
+    "Chiến lược tự động",
+    "Strategi Otomatis",
+    "استراتيجية تلقائية",
+    "Estrategia auto",
+    "Stratégie auto",
+    "ऑटो रणनीति",
+    "Estratégia auto",
+    "Авто-стратегия",
+    "Auto Marketing",
+    "autoCamp"
+   ]
+  },
+  "agentMode": {
+   "ns": "agentMode",
+   "title": "AI Agent 권한모드",
+   "subtitle": "",
+   "paths": [
+    "/auto-marketing"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "AI Agent 권한모드",
+    "AI Agent permission mode",
+    "AI Agent 権限モード",
+    "AI Agent 权限模式",
+    "AI Agent 權限模式",
+    "AI-Agent-Berechtigungsmodus",
+    "โหมดสิทธิ์ AI Agent",
+    "Chế độ quyền AI Agent",
+    "Mode izin AI Agent",
+    "وضع صلاحيات AI Agent",
+    "Modo de permisos del AI Agent",
+    "Mode d'autorisation de l'AI Agent",
+    "AI Agent अनुमति मोड",
+    "Modo de permissão do AI Agent",
+    "Режим разрешений AI Agent"
+   ],
+   "match": [
+    "AI Agent 권한모드",
+    "AI Agent permission mode",
+    "AI Agent 権限モード",
+    "AI Agent 权限模式",
+    "AI Agent 權限模式",
+    "AI-Agent-Berechtigungsmodus",
+    "โหมดสิทธิ์ AI Agent",
+    "Chế độ quyền AI Agent",
+    "Mode izin AI Agent",
+    "وضع صلاحيات AI Agent",
+    "Modo de permisos del AI Agent",
+    "Mode d'autorisation de l'AI Agent",
+    "AI Agent अनुमति मोड",
+    "Modo de permissão do AI Agent",
+    "Режим разрешений AI Agent",
+    "agentMode"
+   ]
+  },
+  "period": {
+   "ns": "period",
+   "title": "어트리뷰션",
+   "subtitle": "",
+   "paths": [
+    "/attribution"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "어트리뷰션",
+    "Attribution",
+    "アトリビューション",
+    "归因分析",
+    "歸因分析",
+    "การระบุแหล่งที่มา",
+    "Phân bổ",
+    "Atribusi",
+    "الإسناد",
+    "Atribución",
+    "एट्रिब्यूशन",
+    "Atribuição",
+    "Атрибуция"
+   ],
+   "match": [
+    "어트리뷰션",
+    "Attribution",
+    "アトリビューション",
+    "归因分析",
+    "歸因分析",
+    "การระบุแหล่งที่มา",
+    "Phân bổ",
+    "Atribusi",
+    "الإسناد",
+    "Atribución",
+    "एट्रिब्यूशन",
+    "Atribuição",
+    "Атрибуция",
+    "period"
+   ]
+  },
+  "push": {
+   "ns": "push",
+   "title": "웹 푸시 알림",
+   "subtitle": "브라우저를 닫아도 중요한 KPI 경보·승인 요청·이상감지를 푸시로 받습니다.",
+   "paths": [
+    "/workspace"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "웹 푸시 알림",
+    "Web Push Notifications",
+    "Webプッシュ通知",
+    "网页推送通知",
+    "網頁推播通知",
+    "Web-Push-Benachrichtigungen",
+    "การแจ้งเตือนแบบ Web Push",
+    "Thông báo đẩy Web",
+    "Notifikasi Push Web",
+    "إشعارات الويب الفورية",
+    "Notificaciones push web",
+    "Notifications push web",
+    "वेब पुश सूचनाएं",
+    "Notificações push da web",
+    "Веб-push-уведомления"
+   ],
+   "match": [
+    "웹 푸시 알림",
+    "Web Push Notifications",
+    "Webプッシュ通知",
+    "网页推送通知",
+    "網頁推播通知",
+    "Web-Push-Benachrichtigungen",
+    "การแจ้งเตือนแบบ Web Push",
+    "Thông báo đẩy Web",
+    "Notifikasi Push Web",
+    "إشعارات الويب الفورية",
+    "Notificaciones push web",
+    "Notifications push web",
+    "वेब पुश सूचनाएं",
+    "Notificações push da web",
+    "Веб-push-уведомления",
+    "push"
+   ]
+  },
+  "mediaEditor.spec": {
+   "ns": "mediaEditor.spec",
+   "title": "media Editor spec",
+   "subtitle": "",
+   "paths": [
+    "/ai-recommend"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [
+    "정사각형 · JPG/PNG · 최대 30MB",
+    "세로형 · 텍스트 20% 이하 권장",
+    "링크 광고 · 뉴스피드 최적",
+    "기본 정사각형",
+    "세로형 영상 · 최대 60초",
+    "15초 이내 권장",
+    "세로형 영상 · 5~60초",
+    "첫 오픈 시 노출 · 최대 60초"
+   ],
+   "states": [],
+   "names": [
+    "media Editor spec"
+   ],
+   "match": [
+    "JPG",
+    "PNG",
+    "SNS",
+    "spec"
+   ]
+  },
+  "mediaEditor": {
+   "ns": "mediaEditor",
+   "title": "🖼️ 이미지/동영상 업로드 편집기",
+   "subtitle": "직접 만든 이미지·동영상을 업로드하고 텍스트 오버레이를 Add하세요",
+   "paths": [
+    "/ai-recommend"
+   ],
+   "actions": [
+    "🗑️ Delete",
+    "⬇️ PNG Save"
+   ],
+   "fields": [
+    "비율",
+    "크기"
+   ],
+   "notes": [
+    "AI가 생성한 헤드라인·카피·CTA를 텍스트 레이어로 자동 Add합니다",
+    "드래그&드롭 또는 클릭하여 파일 선택"
+   ],
+   "states": [],
+   "names": [
+    "🖼️ 이미지/동영상 업로드 편집기"
+   ],
+   "match": [
+    "JPG",
+    "PNG",
+    "GIF",
+    "MP4",
+    "MOV",
+    "🗑️ Delete",
+    "⬇️ PNG Save",
+    "mediaEditor"
+   ]
+  },
+  "planGate": {
+   "ns": "planGate",
+   "title": "WhatsApp",
+   "subtitle": "",
+   "paths": [
+    "/whatsapp",
+    "/omni-channel",
+    "/line-channel",
+    "/instagram-dm",
+    "/crm",
+    "/pixel-tracking",
+    "/sms-marketing",
+    "/email-marketing",
+    "/kakao-channel"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "WhatsApp",
+    "옴니 채널",
+    "Omni Channel",
+    "オムニチャネル",
+    "全渠道",
+    "全通路",
+    "Omni-Kanal",
+    "ออมนิแชนเนล",
+    "Đa kênh",
+    "قناة شاملة",
+    "Omnicanal",
+    "ऑम्नी चैनल",
+    "Омниканал",
+    "라인 채널",
+    "LINE Channel",
+    "LINEチャネル",
+    "LINE渠道",
+    "LINE頻道",
+    "LINE-Kanal",
+    "ช่อง LINE",
+    "Kênh LINE",
+    "Saluran LINE",
+    "قناة LINE",
+    "Canal LINE",
+    "LINE चैनल",
+    "Канал LINE",
+    "인스타 DM",
+    "Instagram DM",
+    "Instagram私信",
+    "Instagram私訊",
+    "رسائل Instagram",
+    "CRM 대시보드",
+    "CRM Dashboard",
+    "CRMダッシュボード",
+    "CRM仪表盘",
+    "CRM儀表板",
+    "CRM-Dashboard",
+    "แดชบอร์ด CRM",
+    "Bảng điều khiển CRM",
+    "Dasbor CRM",
+    "لوحة CRM",
+    "Panel CRM",
+    "Tableau CRM",
+    "CRM डैशबोर्ड",
+    "Painel CRM",
+    "Дашборд CRM",
+    "CRM",
+    "픽셀 추적",
+    "Pixel Tracking",
+    "ピクセルトラッキング",
+    "像素追踪",
+    "像素追蹤",
+    "Pixel-Tracking",
+    "ติดตามพิกเซล",
+    "Theo Dõi Pixel",
+    "Pelacakan Piksel",
+    "تتبع البكسل",
+    "Seguimiento de píxeles",
+    "Suivi des pixels",
+    "पिक्सल ट्रैकिंग",
+    "Rastreamento de Pixel",
+    "Отслеживание пикселей",
+    "SMS 마케팅",
+    "SMS Marketing",
+    "SMSマーケティング",
+    "短信营销",
+    "簡訊行銷",
+    "SMS-Marketing",
+    "SMS มาร์เก็ตติ้ง",
+    "تسويق SMS",
+    "SMS marketing",
+    "SMS मार्केटिंग",
+    "SMS-маркетинг",
+    "이메일 마케팅",
+    "Email Marketing",
+    "メールマーケティング",
+    "邮件营销",
+    "電郵行銷",
+    "E-Mail-Marketing",
+    "อีเมลมาร์เก็ตติ้ง",
+    "تسويق بريدي",
+    "Email marketing",
+    "ईमेल मार्केटिंग",
+    "Email-маркетинг",
+    "카카오 비즈니스",
+    "Kakao Business",
+    "カカオビジネス",
+    "Kakao商务",
+    "Kakao商務",
+    "Kakao ธุรกิจ",
+    "Kakao Bisnis",
+    "Kakao أعمال",
+    "Kakao बिज़नेस"
+   ],
+   "match": [
+    "WhatsApp",
+    "옴니 채널",
+    "Omni Channel",
+    "オムニチャネル",
+    "全渠道",
+    "全通路",
+    "Omni-Kanal",
+    "ออมนิแชนเนล",
+    "Đa kênh",
+    "قناة شاملة",
+    "Omnicanal",
+    "ऑम्नी चैनल",
+    "Омниканал",
+    "라인 채널",
+    "LINE Channel",
+    "LINEチャネル",
+    "LINE渠道",
+    "LINE頻道",
+    "LINE-Kanal",
+    "ช่อง LINE",
+    "Kênh LINE",
+    "Saluran LINE",
+    "قناة LINE",
+    "Canal LINE",
+    "LINE चैनल",
+    "Канал LINE",
+    "인스타 DM",
+    "Instagram DM",
+    "Instagram私信",
+    "Instagram私訊",
+    "رسائل Instagram",
+    "CRM 대시보드",
+    "CRM Dashboard",
+    "CRMダッシュボード",
+    "CRM仪表盘",
+    "CRM儀表板",
+    "CRM-Dashboard",
+    "แดชบอร์ด CRM",
+    "Bảng điều khiển CRM",
+    "Dasbor CRM"
+   ]
+  }
+ }
+}

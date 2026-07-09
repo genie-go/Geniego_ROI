@@ -2,7 +2,9 @@
 //   내 계정에 대한 대행사의 접근 요청을 열람하고 승인/거부/철회한다. 승인 시 권한 범위(읽기전용/쓰기허용)를
 //   내가 지정한다. 언제든 즉시 철회 가능(서버 fail-closed 재검증으로 다음 요청부터 즉시 차단).
 import React, { useCallback, useEffect, useState } from "react";
-import { getJson, postJson } from "../services/apiClient.js";
+// [현 차수] 헤더리스 getJson → getJsonAuth. AgencyPortal::myAgencyRequests 는 authedTenant null 시 401
+//   → 요청목록이 영원히 [] ("요청 없음" 오표시)이라 대행사 승인 게이트가 무동작이었다.
+import { getJsonAuth as getJson, postJson } from "../services/apiClient.js";
 
 const STATUS = {
   approved: { bg: "#dcfce7", fg: "#166534", label: "승인됨(접근 허용 중)" },

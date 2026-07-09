@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useI18n } from "../i18n";
-import { getJson, getJsonAuth } from "../services/apiClient.js";
+import { getJsonAuth } from "../services/apiClient.js";
 
 import { useT } from '../i18n/index.js';
 

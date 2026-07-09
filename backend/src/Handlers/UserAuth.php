@@ -2573,7 +2573,10 @@ final class UserAuth
             $sr = self::smsSend($pdo, $sendTo, "[GeniegoROI] 인증번호 {$code} — 5분 이내 입력하세요.");
             if (empty($sr['ok'])) return self::json($res, ['ok' => false, 'error' => 'SMS 발송에 실패했습니다. 잠시 후 다시 시도하세요.'], 502);
             $resp['delivery'] = 'sms';
-            if ($purpose === 'admin_key') $resp['sent_to'] = self::maskPhone($sendTo);
+            // [현 차수] 과거엔 admin_key 만 sent_to 를 채워, find_id/reset 안내가 번호 없이
+            //   "번호로 인증번호를 보냈습니다."로 렌더됐다. 마스킹 번호이고 find_id/reset 은
+            //   사용자가 직접 입력한 번호라 계정 열거 위험이 없다 → 전 목적 공통 반환.
+            $resp['sent_to'] = self::maskPhone($sendTo);
         } elseif ($pol['dev']) {
             // 비운영(데모·로컬) 편의 — 실발송 대신 코드 화면표시.
             $resp['delivery'] = 'dev';
@@ -3559,22 +3562,28 @@ final class UserAuth
         return false;
     }
 
-    /** [현 차수] 통합 SMS 발송 — Twilio(우선) → 네이버 SENS 폴백(둘 다 설정 시). 하나라도 성공하면 ok. */
+    /**
+     * [현 차수] 인증(2FA·OTP·본인확인) SMS 발송 — **Twilio 전용**.
+     *
+     * 사용자 지시: "2FA 실 SMS 발송은 모두 Twilio로 발송되도록". 기존엔 Twilio 실패 시 네이버 SENS 로
+     * 폴백해 인증 문자가 두 공급자로 갈렸다(발신번호·전달경로 불일치). 인증 경로는 단일 공급자로 고정한다.
+     *
+     * ★마케팅/CRM SMS(Omnichannel·JourneyBuilder·Reviews)는 이 함수를 쓰지 않으며 SENS 를 그대로 사용한다.
+     *   즉 이 변경은 인증 문자에만 적용된다.
+     *
+     * Twilio 미설정 시: sendPlatform 이 ['ok'=>false,'mode'=>'unconfigured'] 를 반환하지만, 애초에
+     *   smsProviderConfigured() 게이트가 false 라 SMS 가 2FA 수단으로 제시되지 않고 이메일 OTP 로 전환된다
+     *   (UserAuth:895). 데모·로컬은 dev_code 화면표시 경로가 유지된다 → 락아웃 없음(fail-closed).
+     */
     private static function smsSend(\PDO $pdo, string $to, string $content): array
     {
-        if (\Genie\Twilio::isConfigured($pdo)) {
-            $r = \Genie\Twilio::sendPlatform($pdo, $to, $content);
-            if (!empty($r['ok'])) return $r;
-            if (\Genie\NaverSms::isConfigured($pdo)) { $r2 = \Genie\NaverSms::sendPlatform($pdo, $to, $content); if (!empty($r2['ok'])) return $r2; }
-            return $r;
-        }
-        return \Genie\NaverSms::sendPlatform($pdo, $to, $content);
+        return \Genie\Twilio::sendPlatform($pdo, $to, $content);
     }
 
-    /** SMS 발송 채널(Twilio 또는 네이버 SENS)이 하나라도 설정됐는지. */
+    /** 인증 SMS 공급자(Twilio)가 설정됐는지 — 'sms' 를 2FA/OTP 수단으로 제시할지 결정하는 단일 게이트. */
     private static function smsProviderConfigured(\PDO $pdo): bool
     {
-        return \Genie\Twilio::isConfigured($pdo) || \Genie\NaverSms::isConfigured($pdo);
+        return \Genie\Twilio::isConfigured($pdo);
     }
 
     /**

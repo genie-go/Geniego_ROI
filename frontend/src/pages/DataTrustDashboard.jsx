@@ -4,7 +4,9 @@ import { GUIDE } from "../lib/guideSpecs.js";
 import { IS_DEMO } from '../utils/demoEnv';
 import { useI18n } from '../i18n';
 import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
-import { getJson } from '../services/apiClient.js'; // [272차] 실 데이터 품질/신뢰도 배선
+// [현 차수] 헤더리스 getJson → getJsonAuth. data-quality/data-lineage 는 핸들러 self-auth 401 fail-closed
+//   → 데모는 IS_DEMO early-return 으로 은폐됐고 운영에서만 무증상 실패(신뢰도/리니지 영구 미로드).
+import { getJsonAuth as getJson } from '../services/apiClient.js'; // [272차] 실 데이터 품질/신뢰도 배선
 
 /* ═══════════════════════════════════════════════════════════════
    DataTrustDashboard — 데이터 신뢰도 (Enterprise)

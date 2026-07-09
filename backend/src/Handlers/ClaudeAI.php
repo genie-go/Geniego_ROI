@@ -82,6 +82,10 @@ final class ClaudeAI {
             $ctx .= $role . ': ' . trim((string)($m['content'] ?? '')) . "\n";
         }
         $sys = self::geniegoSystemPrompt($lang) . "\n\n" . self::geniegoTermsBlock() . "\n\n" . self::geniegoKnowledgeBlock();
+        // [현 차수] 질문과 관련된 기능의 상세 인벤토리만 선별 주입(소형 결정적 검색 — 모델 호출 없음).
+        //   전량(약 100KB)을 상시 주입하면 매 질문 토큰이 폭증하므로 상위 3개만 넣는다.
+        //   대화 맥락도 매칭 근거에 포함 → "그거 어떻게 설정해?" 같은 후속 질문도 직전 기능을 유지한다.
+        $sys .= self::geniegoFeatureDetails($q . "\n" . $ctx);
         $userMsg = ($ctx ? "[대화 맥락]\n{$ctx}\n" : '') . "[질문]\n{$q}";
         $ans = self::complete($sys, $userMsg, 60); // [현 차수] 상세 단계별 답변 생성시간 여유(기존 22초→초과로 ai:false 나던 것 해소).
         if ($ans === null || $ans === '') {
@@ -163,6 +167,91 @@ REFERENCE GLOSSARY (50 terms — depth and definition reference, Korean source o
 ────────────────────────────────────────
 TERMS;
         return $block;
+    }
+
+    /**
+     * [현 차수] 질문과 관련된 **기능 상세 인벤토리**만 선별해 시스템프롬프트에 주입.
+     *
+     * 배경: 기존 LIVE FEATURE MAP 은 App.jsx 라우트만 담아, 페이지 **내부** 기능(예: WMS 안의 CCTV 실시간 조회)은
+     *   존재조차 몰랐고, 알아도 "라벨(경로)" 한 줄뿐이라 "CCTV 설정 진행순서" 같은 절차 질문에 답할 재료가 없었다.
+     *   tools/gen_chatbot_knowledge.mjs 가 i18n 네임스페이스(= 그 기능의 실제 UI 어휘)에서
+     *   진입경로·행동(버튼)·입력 필드·상태·주의사항을 기계 추출해 chatbot_feature_details.json 을 만든다.
+     *   → 신규 기능은 i18n 키만 추가하면(이미 저장소 필수 규칙) 챗봇이 자동으로 상세 설명하게 된다.
+     *
+     * 전량(약 100KB)을 상시 주입하면 매 질문 토큰이 폭증하므로, 여기서 결정적(비-AI) 점수화로 상위 N개만 넣는다.
+     * 다국어: 별칭에 15개 로케일의 기능명 + 라틴 대문자 토큰(CCTV·RTSP·HLS…)이 들어 있어 어떤 언어로 물어도 매칭된다.
+     * 매칭 실패 시 빈 문자열 → 기존 FEATURE MAP 만으로 동작(무회귀).
+     */
+    private static function geniegoFeatureDetails(string $question, int $topN = 3): string {
+        $raw = null;
+        try { $raw = @file_get_contents(__DIR__ . '/../../data/chatbot_feature_details.json'); } catch (\Throwable $e) {}
+        if (!is_string($raw) || $raw === '') return '';
+        $j = json_decode($raw, true);
+        $feats = is_array($j['features'] ?? null) ? $j['features'] : [];
+        if (!$feats) return '';
+
+        $q = mb_strtolower($question);
+        $scored = [];
+        foreach ($feats as $ns => $ft) {
+            $s = 0;
+            // 강한 단서: 기능명(15개 로케일). 일반 명사('제목' 등)는 생성기가 이미 제외했다.
+            //   전체 일치(+6)뿐 아니라 **토큰 부분일치**(+5)도 인정한다. 사용자는 "CCTV 실시간 조회" 대신
+            //   "CCTV 설정 진행순서"처럼 기능명을 통째로 쓰지 않기 때문이다.
+            foreach (($ft['names'] ?? []) as $n) {
+                $n = trim((string)$n);
+                if ($n === '' || mb_strlen($n) < 2) continue;
+                if (mb_stripos($q, mb_strtolower($n)) !== false) { $s += 6; continue; }
+                $toks = preg_split('/[\s·\/()\[\]]+/u', $n, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+                $toks = array_values(array_filter($toks, fn($t) => mb_strlen($t) >= 2));
+                if (count($toks) >= 2) {
+                    $hit = 0;
+                    foreach ($toks as $t) if (mb_stripos($q, mb_strtolower($t)) !== false) $hit++;
+                    if ($hit / count($toks) >= 0.6) $s += 5;
+                }
+            }
+            foreach (($ft['paths'] ?? []) as $pth) {
+                if ($pth !== '' && mb_stripos($q, (string)$pth) !== false) $s += 4;
+            }
+            // 약한 단서: 변별력 있는 어휘만(흔한 '저장/취소/테스트/API' 는 생성기가 df 로 제거).
+            foreach (($ft['match'] ?? []) as $m) {
+                $m = trim((string)$m);
+                if ($m === '' || mb_strlen($m) < 3) continue;
+                if (mb_stripos($q, mb_strtolower($m)) !== false) $s += 2;
+            }
+            if ($s > 0) $scored[$ns] = $s;
+        }
+        if (!$scored) return '';
+        arsort($scored);
+        // 압도적 1위가 있으면 잡음 후보를 버린다(상위 점수의 40% 미만은 제외).
+        $best = reset($scored);
+        $scored = array_filter($scored, fn($v) => $v >= max(2, (int)floor($best * 0.4)));
+
+        $blocks = [];
+        foreach (array_slice(array_keys($scored), 0, max(1, $topN)) as $ns) {
+            $ft = $feats[$ns];
+            $line = function (string $label, $arr): string {
+                $arr = array_values(array_filter(array_map('strval', (array)$arr), fn($v) => trim($v) !== ''));
+                return $arr ? "- {$label}: " . implode(' / ', $arr) . "\n" : '';
+            };
+            $b  = "### {$ft['title']}  (진입 경로: " . implode(', ', (array)($ft['paths'] ?? [])) . ")\n";
+            if (trim((string)($ft['subtitle'] ?? '')) !== '') $b .= "- 한 줄 요약: {$ft['subtitle']}\n";
+            $b .= $line('화면에서 할 수 있는 행동(버튼)', $ft['actions'] ?? []);
+            $b .= $line('입력/선택 항목', $ft['fields'] ?? []);
+            $b .= $line('상태 표시', $ft['states'] ?? []);
+            $b .= $line('주의·안내 문구(원문)', $ft['notes'] ?? []);
+            $blocks[] = $b;
+        }
+
+        return "\n\n─── RELEVANT FEATURE DETAILS (i18n 정본에서 자동 추출한 **실제 화면의 라벨**) ───\n"
+             . "이 인벤토리는 실제로 화면에 존재하는 버튼·필드·안내문이다. 아래 지침을 따르라:\n"
+             . "1. 사용자가 절차/진행순서를 물으면, 위 라벨을 근거로 **번호가 매겨진 단계별 안내**를 하라.\n"
+             . "   권장 흐름: ①진입 경로로 이동 → ②시작 버튼 클릭 → ③입력 항목을 순서대로 채움(각 항목이 무엇인지 설명)\n"
+             . "   → ④검증 버튼(예: 연결 테스트)으로 확인 → ⑤저장 → ⑥상태 표시로 성공 확인.\n"
+             . "2. 여기 없는 버튼·필드를 지어내지 마라. 모르는 부분은 모른다고 말하고 해당 화면을 열어보라고 안내하라.\n"
+             . "3. 주의·안내 문구는 사용자에게 꼭 전달하라(보안·과금·성능 관련이 많다).\n"
+             . "4. 라벨은 한국어 원문이다. 반드시 사용자의 응답 언어로 **자연스럽게 번역**해 제시하고,\n"
+             . "   원문 라벨을 괄호로 함께 보여줘 화면에서 찾기 쉽게 하라. 예: \"Register camera credentials(카메라 자격등록)\".\n\n"
+             . implode("\n", $blocks);
     }
 
     /**
@@ -1214,13 +1303,15 @@ PROMPT;
             }
             if ($tc) $ctx['top_campaigns_30d'] = $tc;
         } catch (\Throwable $e) {}
-        // 주문/매출(channel_orders, KRW 정규화·취소 제외 근사) — 채널별 30일
+        // 주문/매출(channel_orders, KRW 정규화·취소 제외) — 채널별 30일
+        // [현 차수] 인라인 6토큰(취소요청/취소접수/Cancel요청 누락 + event_type 축 부재) → OrderHub SSOT 재사용.
         try {
+            [$cancelExpr, $cancelTokens] = OrderHub::cancelExclusion();
             $st = $pdo->prepare("SELECT channel, COUNT(*) cnt, COALESCE(SUM(total_price),0) gmv
                                    FROM channel_orders WHERE tenant_id=? AND ordered_at >= ?
-                                     AND COALESCE(status,'') NOT IN ('cancelled','canceled','취소완료','취소','주문취소','CancelDone')
+                                     AND NOT $cancelExpr
                                   GROUP BY channel ORDER BY gmv DESC LIMIT 12");
-            $st->execute([$tenant, $d30 . ' 00:00:00']);
+            $st->execute(array_merge([$tenant, $d30 . ' 00:00:00'], $cancelTokens));
             $oc = []; $tCnt = 0; $tGmv = 0.0;
             foreach ($st->fetchAll(\PDO::FETCH_ASSOC) as $r) { $tCnt += (int)$r['cnt']; $tGmv += (float)$r['gmv'];
                 $oc[] = ['channel' => (string)$r['channel'], 'orders' => (int)$r['cnt'], 'gmv_krw' => round((float)$r['gmv'])]; }

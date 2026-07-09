@@ -196,6 +196,35 @@ final class EventNorm
         ];
     }
 
+    /**
+     * Meta Insights 광고 귀속매출 파싱 SSOT.
+     *   ① action_values[purchase] = 절대 전환매출(가장 정확)
+     *   ② purchase_roas × spend  = ROAS 파생(Meta 가 action_values 미제공 시)
+     *   ③ 둘 다 없으면 0 — 임의 상수 날조 금지(feedback_real_value_autoderive).
+     * 두 필드 모두 action_type 이 'purchase' 로 끝나는 항목을 집계한다
+     * (offsite_conversion.fb_pixel_purchase / omni_purchase / purchase).
+     */
+    private static function metaAttributedRevenue(array $row): float
+    {
+        $pick = static function (array $items): ?float {
+            $sum = null;
+            foreach ($items as $it) {
+                $at = (string)($it['action_type'] ?? '');
+                if ($at !== '' && !preg_match('/(^|[._])purchase$/', $at)) continue;
+                $sum = ($sum ?? 0.0) + (float)($it['value'] ?? 0);
+            }
+            return $sum;
+        };
+
+        $abs = $pick(\is_array($row['action_values'] ?? null) ? $row['action_values'] : []);
+        if ($abs !== null) return $abs;
+
+        $roas = $pick(\is_array($row['purchase_roas'] ?? null) ? $row['purchase_roas'] : []);
+        if ($roas !== null) return (float)($row['spend'] ?? 0) * $roas;
+
+        return 0.0;
+    }
+
     // ─────────────────────────────────────────────────────────────
     // Normalize rule engine: raw → normalized
     // ─────────────────────────────────────────────────────────────
@@ -220,6 +249,9 @@ final class EventNorm
         $et = $raw['event_type'];
 
         // ── Meta ad_report ────────────────────────────────────────
+        // [현 차수 수정] 과거 `spend * 4.18` 상수(목 payload 예시값)를 하드코딩해 운영 테넌트의
+        //   Meta 귀속매출이 실제와 무관하게 광고비의 4.18배로 고정됐다. 형제 규칙(TikTok
+        //   total_purchase_value / Google conversionValue)과 동일하게 payload 실값을 파싱한다.
         if ($v === 'meta' && $et === 'ad_report') {
             $row = $payload['data']['insights']['data'][0] ?? [];
             return array_merge($base, [
@@ -237,7 +269,7 @@ final class EventNorm
                 'clicks'           => (int)($row['clicks'] ?? 0),
                 'spend'            => (float)($row['spend'] ?? 0),
                 'conversions'      => (int)($row['purchase'] ?? 0),
-                'attributed_revenue' => (float)($row['spend'] ?? 0) * 4.18,
+                'attributed_revenue' => self::metaAttributedRevenue($row),
                 'event_date'       => $row['date_start'] ?? $date,
             ]);
         }

@@ -75,6 +75,57 @@ final class Migrate
     }
 
     /**
+     * [현 차수] 지정한 마이그레이션 파일만 적용 — 핸들러 런타임 자가치유(ensure*)용.
+     *
+     * 배경: 배포 파이프라인(deploy.ps1/deploy.sh/deploy.yml)이 `bin/migrate.php` 를 호출하지 않아
+     *   마이그레이션은 수동 실행에만 의존한다. 그 결과 마이그레이션-전용 테이블(pm_* 8종)은
+     *   신규 프로비저닝·DR 복원·SQLite 폴백 환경에서 부재하고, PM 핸들러의 무가드 INSERT 가 500 을 낸다.
+     *   run() 은 디렉터리 전체를 적용해 운영 DB 에 부작용 위험이 있으므로, 도메인별 파일만 적용한다.
+     *
+     * 안전성: 대상 DDL 은 전부 `CREATE TABLE IF NOT EXISTS` → 이미 존재하면 no-op(운영 무영향).
+     *   schema_migrations 기록도 run() 과 동일하게 남겨 이후 run() 이 재적용하지 않는다.
+     *
+     * @param string[] $paths 절대 경로 .sql 목록
+     */
+    public static function applyFiles(\PDO $pdo, array $paths): array
+    {
+        self::ensureTable($pdo);
+        $applied = [];
+
+        foreach ($paths as $path) {
+            if (!is_file($path)) continue;
+            $basename = basename($path);
+
+            $check = $pdo->prepare("SELECT 1 FROM schema_migrations WHERE filename = ?");
+            $check->execute([$basename]);
+            if ($check->fetchColumn()) continue;
+
+            $sql = file_get_contents($path);
+            if ($sql === false || trim($sql) === '') continue;
+
+            $driver = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME);
+            try {
+                foreach (self::splitStatements($sql) as $stmt) {
+                    if (trim($stmt) === '') continue;
+                    $resolved = ($driver === 'mysql') ? [$stmt] : self::convertForSqlite($stmt);
+                    foreach ($resolved as $exec) {
+                        if (trim($exec) === '') continue;
+                        $pdo->exec($exec);
+                    }
+                }
+                $ins = $pdo->prepare("INSERT INTO schema_migrations (filename, checksum) VALUES (?, ?)");
+                $ins->execute([$basename, hash('sha256', $sql)]);
+                $applied[] = $basename;
+            } catch (\Throwable $e) {
+                // 자가치유는 best-effort — 실패해도 호출자를 죽이지 않는다(기존 동작 유지).
+                error_log('[Migrate.applyFiles] ' . $basename . ' failed: ' . $e->getMessage());
+            }
+        }
+
+        return $applied;
+    }
+
+    /**
      * 운영 + 데모 양쪽 동시 실행 — U-165-C 자동 동기화 핵심.
      */
     public static function runBoth(?string $dir = null): array

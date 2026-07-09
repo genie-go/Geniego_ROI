@@ -293,7 +293,7 @@ class DataPlatform
         // [현 차수 잔여] ★컴플라이언스 — 하드코딩 ok:true 대신 검증가능 항목은 실측. audit=감사로그 실존여부,
         //   pii=집계전용 설계 불변(원본 PII 미저장)이라 verified. gdpr/retention 은 플랫폼 표준(verified=false 로 정직 표기).
         $auditActive = null;
-        try { $auditActive = (self::cnt($pdo, "SELECT COUNT(*) FROM security_audit WHERE tenant_id=?", [$t]) ?? 0) > 0; } catch (\Throwable $e) {}
+        try { $auditActive = (self::cnt($pdo, "SELECT COUNT(*) FROM security_audit_log WHERE tenant_id=?", [$t]) ?? 0) > 0; } catch (\Throwable $e) {}
         $compliance = [
             ['key' => 'gdpr',      'ok' => true, 'verified' => false],
             ['key' => 'pii',       'ok' => true, 'verified' => true],  // 집계전용 아키텍처 = 원본 PII 미저장(설계 불변)

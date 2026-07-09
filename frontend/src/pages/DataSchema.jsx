@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { tChannelName } from '../utils/tenantStorage.js'; // 180차: 회원 격리 크로스탭
 import { useI18n } from '../i18n';
 import { DS_GUIDE } from './dataSchemaGuideI18n.js';
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
@@ -480,7 +479,6 @@ export default function DataSchema() {
   const { addAlert, isDemo } = useGlobalData();
   const { locked, setLocked } = useSecurityGuard(addAlert);
   const { connectors } = useConnectorSync?.() || { connectors: [] };
-  const bcRef = useRef(null);
   const [tab, setTab] = useState("schema");
 
   // Integration Hub sync: get connected platforms dynamically
@@ -514,16 +512,8 @@ export default function DataSchema() {
     addAlert?.({ type: 'info', msg: `${t('ds.exportSchema')} (${ext.toUpperCase()})` });
   }, [t, addAlert]);
 
-  // BroadcastChannel
-  useEffect(() => {
-    try {
-      bcRef.current = new BroadcastChannel(tChannelName('genie_dataschema_sync'));
-      bcRef.current.onmessage = (e) => {
-        if (e.data?.type === 'schema_updated') addAlert?.({ type: 'info', msg: t('ds.crossTabSync') });
-      };
-    } catch (_) {}
-    return () => { try { bcRef.current?.close(); } catch (_) {} };
-  }, []);
+  // [현 차수] 'genie_dataschema_sync' 는 전역 postMessage 발신자가 0건이고, 청취하던 'schema_updated'
+  //   를 보낼 주체도 없다(이 페이지는 buildSchemas(t) 로 만드는 정적 스키마 뷰어). 죽은 구독 제거.
 
   const SCHEMAS = buildSchemas(t);
   const METRICS = buildMetrics(t);

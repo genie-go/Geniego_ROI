@@ -863,18 +863,21 @@ export default function ChannelKPI() {
     // ConnectorSync: auto-sync channels from Integration Hub
     try { useConnectorSync(); } catch(e) {}
     // BroadcastChannel: cross-tab real-time sync
+    // [현 차수] 기존엔 'geniego-channelkpi-sync' 를 구독만 하고 발신자가 전역 0건이었고, 수신 시 던지던
+    //   'geniego-refresh' window 이벤트도 청취자가 0건이라 이중으로 죽은 코드였다(동기화 무동작).
+    //   실발신자가 있는 공용 채널 genie_connector_sync(ApiKeys::publishConnectorSync)를 구독하고,
+    //   실제 로더(loadHistory)를 호출해 크로스탭 즉시반영을 복구한다.
     const bcRef = useRef(null);
     useEffect(() => {
         try {
-            bcRef.current = new BroadcastChannel(tChannelName('geniego-channelkpi-sync'));
+            bcRef.current = new BroadcastChannel(tChannelName('genie_connector_sync'));
             bcRef.current.onmessage = (ev) => {
-                if (ev.data?.type === 'KPI_UPDATE' || ev.data?.type === 'CONNECTOR_UPDATE') {
-                    window.dispatchEvent(new Event('geniego-refresh'));
-                }
+                const t = ev.data?.type;
+                if (t === 'CHANNEL_REGISTERED' || t === 'CHANNEL_REMOVED') loadHistory();
             };
         } catch(e) {}
         return () => { try { bcRef.current?.close(); } catch(e) {} };
-    }, []);
+    }, [loadHistory]);
 
     const [tab, setTab] = useState('goal');
     const [goals, setGoals] = useState({ awareness: true, traffic: true, conversion: false });

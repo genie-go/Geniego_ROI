@@ -30,23 +30,32 @@ function useFavorites() {
 }
 
 /* 최근 방문 */
+/* [현 차수] 과거엔 방문 시점의 **번역된 라벨 문자열**을 localStorage 에 스냅샷 저장했다. 그 결과 일본어로
+ *   방문한 항목은 이후 한국어/영어로 바꿔도 칩이 영원히 일본어로 남았다(브라우저 검증에서 "WMS在庫管理" 실측).
+ *   즐겨찾기(QuickAccessPanel:322)는 이미 경로만 저장하고 allItems 에서 매번 재해석하는 올바른 패턴이므로 통일한다.
+ *   경로만 저장 → 렌더 시 현재 언어로 재해석. 기존에 저장된 {to,label,icon} 항목도 to 만 취해 자동 치유된다. */
 function useRecentVisits(allItems, maxItems = 5) {
   const location = useLocation();
-  const [recents, setRecents] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('g_sidebar_recents') || '[]'); }
-    catch { return []; }
+  const [recentPaths, setRecentPaths] = useState(() => {
+    try {
+      const raw = JSON.parse(localStorage.getItem('g_sidebar_recents') || '[]');
+      return raw.map(r => (typeof r === 'string' ? r : r?.to)).filter(Boolean);
+    } catch { return []; }
   });
   useEffect(() => {
     const matched = allItems.find(it => it.to === location.pathname);
     if (!matched) return;
-    setRecents(prev => {
-      const filtered = prev.filter(r => r.to !== location.pathname);
-      const next = [{ to: matched.to, label: matched.label, icon: matched.icon }, ...filtered].slice(0, maxItems);
+    setRecentPaths(prev => {
+      const next = [location.pathname, ...prev.filter(p => p !== location.pathname)].slice(0, maxItems);
       try { localStorage.setItem('g_sidebar_recents', JSON.stringify(next)); } catch {}
       return next;
     });
   }, [location.pathname]);
-  return recents;
+  // 라벨/아이콘은 저장하지 않고 현재 언어의 allItems 에서 해석(언어 전환 즉시 반영).
+  return useMemo(
+    () => recentPaths.map(p => allItems.find(it => it.to === p)).filter(Boolean),
+    [recentPaths, allItems]
+  );
 }
 
 // Upgrade 안내 모달 (유료 Plan 전용 메뉴 접근 시)

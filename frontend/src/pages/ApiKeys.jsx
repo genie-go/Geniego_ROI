@@ -322,7 +322,8 @@ const REAL_ADAPTER = new Set([
   'trustpilot', 'yotpo', 'google_business',                   // 리뷰(Reviews collectForTenant·REVIEW_CHANNELS)
   'applovin', 'mintegral', 'yandex_ads', 'yahoo_jp_ads',      // 롱테일 광고(AD_SHORT + runSync fetchers)
   // [현 차수] SNS 라이브 채널 통계 동기화(Connectors::syncSnsLiveOnSave) — 등록 즉시 채널 통계(구독자/조회수/팔로워) 수집.
-  //   Twitch 는 브로드캐스터 OAuth 스코프 필요로 미편입(honest pending).
+  //   [현 차수 정정] 과거 "Twitch 미편입(honest pending)" 주석은 stale — Connectors::fetchTwitchStats
+  //   (Twitch Helix, client_id/secret+login) 실어댑터 보유·runSync 배선됨. 편입이 정확하다.
   'youtube', 'instagram', 'facebook', 'twitch',               // YouTube Data API / Instagram·Facebook Graph API / Twitch Helix
 ]);
 /* [현 차수] ★연결 테스트가 '실제 발급 검증'(라이브 채널 API 호출로 키 유효성 확인)인 채널 — 백엔드 hasLiveVerify 정합.

@@ -20,6 +20,38 @@ use Genie\Db;
  */
 abstract class Shared
 {
+    /** ensurePmTables 메모(운영/데모 각각 1회) — 요청당 반복 SHOW/SELECT 방지. */
+    private static array $pmEnsured = [];
+
+    /**
+     * [현 차수] PM 8테이블 런타임 자가치유.
+     *
+     * pm_projects/pm_tasks/pm_milestones/pm_task_dependencies/pm_task_assignees/
+     * pm_task_comments/pm_attachments/pm_audit_log 는 `backend/migrations/20260526_168_00*.sql`
+     * 에만 정의돼 있고 Db.php migrate() 에는 없다. 그런데 배포 파이프라인이 bin/migrate.php 를
+     * 호출하지 않으므로(신규 프로비저닝·DR 복원·SQLite 폴백), 테이블 부재 시 PM/Tasks::create 등의
+     * 무가드 INSERT 가 곧바로 500 → PM 기능 전면 사망한다. 다른 핸들러 계열의 ensure* 패턴에 맞춘다.
+     *
+     * 라이브(운영/데모 MySQL)에는 이미 8테이블이 존재하므로 존재검사 1회로 즉시 반환(무영향).
+     */
+    private static function ensurePmTables(\PDO $pdo, bool $isDemo): void
+    {
+        $memo = $isDemo ? 'demo' : 'ops';
+        if (isset(self::$pmEnsured[$memo])) return;
+        self::$pmEnsured[$memo] = true;
+
+        try {
+            $pdo->query('SELECT 1 FROM pm_projects LIMIT 1');
+            return; // 이미 존재 — 라이브 정상경로
+        } catch (\Throwable $e) {
+            // 부재 → 아래에서 DDL 적용
+        }
+
+        $files = glob(__DIR__ . '/../../../migrations/20260526_168_00*.sql') ?: [];
+        sort($files);
+        if ($files) \Genie\Migrate::applyFiles($pdo, $files);
+    }
+
     /* ──────────────────────────────────────────────────────────────────
      * tenant + role gate (OrderHub 패턴 재사용)
      * ────────────────────────────────────────────────────────────────── */
@@ -54,6 +86,7 @@ abstract class Shared
 
         $isDemo = self::isDemoTenant($tenant);
         $pdo = Db::pdoFor($isDemo);
+        self::ensurePmTables($pdo, $isDemo);
 
         return [
             'tenant'  => $tenant,

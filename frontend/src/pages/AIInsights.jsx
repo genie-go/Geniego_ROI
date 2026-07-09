@@ -447,11 +447,12 @@ export default function AIInsights() {
 
     useEffect(() => {
         if (typeof BroadcastChannel === 'undefined') return;
-        const ch1 = new BroadcastChannel(tChannelName('genie_ai_sync'));
+        // [현 차수] 'genie_ai_sync' 는 전역 postMessage 발신자가 0건인 죽은 채널이었고, 동일 handler 가
+        //   실발신자를 가진 'genie_connector_sync'(ApiKeys::publishConnectorSync)에도 바인딩돼 있어
+        //   순수 중복이었다. 동작 변화 없이 죽은 구독만 제거한다.
         const ch2 = new BroadcastChannel(tChannelName('genie_connector_sync'));
-        const handler = () => setSyncTick(p => p + 1);
-        ch1.onmessage = handler; ch2.onmessage = handler;
-        return () => { ch1.close(); ch2.close(); };
+        ch2.onmessage = () => setSyncTick(p => p + 1);
+        return () => { ch2.close(); };
     }, []);
 
     const safeguard = useCallback((value, fieldName) => {

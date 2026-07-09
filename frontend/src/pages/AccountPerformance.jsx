@@ -11,6 +11,7 @@
  */
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useI18n } from '../i18n';
+import { tChannelName } from '../utils/tenantStorage.js';
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
 import {
     AreaChart, Area, BarChart, Bar, Cell,
@@ -24,9 +25,13 @@ import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
 import { IS_DEMO } from '../utils/demoEnv';
 
 /* ─── BroadcastChannel Cross-Tab Sync ─── */
-const AP_SYNC_CH = 'geniego-acctperf-sync';
-let _apChannel = null;
-try { if (typeof BroadcastChannel !== 'undefined') _apChannel = new BroadcastChannel(AP_SYNC_CH); } catch { /* */ }
+/* [현 차수] 기존 채널 'geniego-acctperf-sync' 는 전역 발신자 0건, 청취하던 'AP_REFRESH'/'__ap_sync__'
+ *   도 발신자 0건, 그리고 수신 시 세팅하던 lastRefresh 는 어디서도 읽히지 않아 삼중으로 죽어 있었다.
+ *   실발신자가 있는 공용 채널(genie_connector_sync — ApiKeys::publishConnectorSync)을 구독하고,
+ *   lastRefresh 를 실제 재조회 트리거로 연결해 크로스탭 즉시반영을 복구한다. */
+/*   ★모듈 레벨 생성 금지(tenantStorage.js:46) — tChannelName 은 테넌트 확정 후 effect 안에서만 호출한다.
+ *   과거 모듈 레벨 `new BroadcastChannel('geniego-acctperf-sync')` 는 테넌트 스코프도 없었다. */
+const AP_SYNC_CH = 'genie_connector_sync';
 
 /* ─── Enterprise Light Card Style ─── */
 const CARD = {
@@ -140,11 +145,16 @@ export default function AccountPerformance() {
 
     /* ─ BroadcastChannel ─ */
     useEffect(() => {
-        const handler = (msg) => { const { type } = msg?.data || msg; if (type === 'AP_REFRESH') setLastRefresh(Date.now()); };
-        if (_apChannel) _apChannel.onmessage = handler;
-        const storageHandler = (e) => { if (e.key === '__ap_sync__' && e.newValue) { try { handler(JSON.parse(e.newValue)); } catch {} } };
-        window.addEventListener('storage', storageHandler);
-        return () => { if (_apChannel) _apChannel.onmessage = null; window.removeEventListener('storage', storageHandler); };
+        if (typeof BroadcastChannel === 'undefined') return;
+        let ch = null;
+        try {
+            ch = new BroadcastChannel(tChannelName(AP_SYNC_CH));
+            ch.onmessage = (msg) => {
+                const type = msg?.data?.type;
+                if (type === 'CHANNEL_REGISTERED' || type === 'CHANNEL_REMOVED') setLastRefresh(Date.now());
+            };
+        } catch { /* BroadcastChannel 미지원 환경 무음 */ }
+        return () => { try { ch?.close(); } catch {} };
     }, []);
 
     /* ─ API Fetch ─ */
@@ -159,7 +169,9 @@ export default function AccountPerformance() {
             .then(data => { if (data?.ok) { setRealCampaigns(data.campaigns || []); setLastRefresh(Date.now()); } })
             .catch(() => {});
         return () => controller.abort();
-    }, [token]);
+        // [현 차수] lastRefresh 를 의존성에 편입 — 크로스탭 자격증명 변경 시 실제 재조회(기존엔 setter 만
+        //   존재하고 읽는 곳이 없어 동기화가 무동작이었다).
+    }, [token, lastRefresh]);
 
     /* ─ Real-Time Sync ─ */
     const { sharedCampaigns } = useGlobalData();

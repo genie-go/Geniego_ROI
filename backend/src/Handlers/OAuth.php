@@ -23,6 +23,20 @@ use Genie\Crypto;
  */
 class OAuth
 {
+    /**
+     * [현 차수] 공급자 토큰교환 실패 응답에서 진단용 메타만 화이트리스트 추출.
+     * 응답 전문(json_encode)을 로그에 남기면 부분 토큰·내부 식별자가 로그로 유출될 수 있다.
+     */
+    private static function errDigest(mixed $resp): string
+    {
+        if (!is_array($resp)) return 'non_array_response';
+        $out = [];
+        foreach (['error', 'error_description', 'code', 'message', 'log_id', 'request_id'] as $k) {
+            if (isset($resp[$k]) && is_scalar($resp[$k])) $out[$k] = (string)$resp[$k];
+        }
+        return $out ? json_encode($out, JSON_UNESCAPED_UNICODE) : 'no_error_metadata';
+    }
+
     /** provider 별 엔드포인트/스코프 정적 레지스트리(client_id/secret 은 config 에서). */
     private const PROVIDERS = [
         'google'   => ['auth' => 'https://accounts.google.com/o/oauth2/v2/auth', 'token' => 'https://oauth2.googleapis.com/token', 'scope' => 'https://www.googleapis.com/auth/adwords', 'extra' => ['access_type' => 'offline', 'prompt' => 'consent']],
@@ -194,7 +208,8 @@ class OAuth
             $data   = is_array($tok['data'] ?? null) ? $tok['data'] : [];
             $access = (string)($data['access_token'] ?? '');
             if ($access === '') {
-                error_log('[OAuth.callback] TikTok token exchange failed: ' . json_encode($tok));
+                // [현 차수] 응답 전문 직렬화 금지 — 에러 메타만 기록(자격증명·부분토큰 로그 유출 회피).
+                error_log('[OAuth.callback] TikTok token exchange failed: ' . self::errDigest($tok));
                 return $res->withHeader('Location', $front . '?oauth=token_failed')->withStatus(302);
             }
             try {
@@ -220,7 +235,8 @@ class OAuth
         $token = self::httpPost($p['token'], $body);
         $access = (string)($token['access_token'] ?? '');
         if ($access === '') {
-            error_log('[OAuth.callback] token exchange failed: ' . json_encode($token));
+            // [현 차수] 응답 전문 직렬화 금지 — 에러 메타만 기록.
+            error_log('[OAuth.callback] token exchange failed: ' . self::errDigest($token));
             return $res->withHeader('Location', $front . '?oauth=token_failed')->withStatus(302);
         }
         // channel_credential 에 암호화 저장(채널=provider, key_name=oauth_access_token / oauth_refresh_token)

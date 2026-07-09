@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { getJson, postJson, putJson } from "../services/apiClient";
+// [현 차수] 헤더리스 getJson → getJsonAuth. FeedTemplate::versions/current 는 tenant '' 시 401
+//   → 저장(postJson)은 되는데 버전/현재본 로드만 실패하던 비대칭 해소.
+import { getJsonAuth as getJson, postJson, putJson } from "../services/apiClient";
 
 import { useT } from '../i18n/index.js';
 // Simple HTML5 drag/drop mapping editor (no external deps)

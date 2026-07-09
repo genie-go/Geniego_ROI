@@ -266,16 +266,19 @@ final class Rollup {
                 // [현 차수 감사 P1] ★주문당 dedup — attribution_touch 는 주문당 N 터치행이라 channel_orders 와 직접
                 //   JOIN+SUM 하면 주문 매출이 터치수만큼 곱해져 귀속매출/ROAS 과대(팬아웃). Connectors:910·AutoCampaign:541
                 //   과 동일 패턴으로 내부 서브쿼리 GROUP BY (채널,sku,주문) MAX 로 주문당 1행 선dedup 후 외부 합산.
+                // [현 차수] 취소 제외 SSOT 통일(OrderHub::observedExclusion) — 본선 isCancel() 은 event_type+status
+                //   2축인데 이 서브쿼리만 event_type 축만 봐서 동일 함수 내부에서 비대칭이었다.
+                [$exclExpr, $exclTokens] = OrderHub::observedExclusion('co');
                 $aj = $pdo->prepare(
                     "SELECT ch, sku, SUM(rv) rv FROM (
                          SELECT LOWER(at.channel) ch, co.sku sku, co.channel_order_id oid, MAX(co.total_price) rv
                            FROM attribution_touch at
                            JOIN channel_orders co ON co.tenant_id = at.tenant_id AND (co.channel_order_id = at.order_id OR co.order_no = at.order_id)
-                          WHERE at.tenant_id = ? AND at.order_id IS NOT NULL AND at.order_id <> '' AND co.sku IS NOT NULL AND co.sku <> '' AND COALESCE(co.event_type,'order') NOT IN ('cancel','return')
+                          WHERE at.tenant_id = ? AND at.order_id IS NOT NULL AND at.order_id <> '' AND co.sku IS NOT NULL AND co.sku <> '' AND NOT $exclExpr
                           GROUP BY LOWER(at.channel), co.sku, co.channel_order_id
                      ) t GROUP BY ch, sku"
                 );
-                $aj->execute([$tenant]);
+                $aj->execute(array_merge([$tenant], $exclTokens));
                 $chSkuRev = []; $chTotRev = [];
                 while ($r = $aj->fetch(\PDO::FETCH_ASSOC)) {
                     $ch = (string)$r['ch']; $sku = (string)$r['sku']; $rv = (float)($r['rv'] ?? 0);

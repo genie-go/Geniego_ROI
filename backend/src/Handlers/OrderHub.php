@@ -106,12 +106,24 @@ final class OrderHub
     }
 
     /** 취소주문 제외용 SQL 단편 + 바인드 파라미터(NULL-safe). @return array{0:string,1:array}
-     *  [현 차수] public — Reports(BI 커머스 소스)가 동일 취소 SSOT 재사용(드리프트 제거). */
-    public static function cancelExclusion(): array
+     *  [현 차수] public — Reports(BI 커머스 소스)가 동일 취소 SSOT 재사용(드리프트 제거).
+     *  @param string $alias channel_orders 가 별칭으로 조인된 쿼리용 접두(예 'co'). 미지정 시 기존과 동일. */
+    public static function cancelExclusion(string $alias = ''): array
     {
+        $p  = $alias === '' ? '' : $alias . '.';
         $ph = implode(',', array_fill(0, count(self::CANCEL_TOKENS), '?'));
-        $sql = "(COALESCE(event_type,'order') = 'cancel' OR COALESCE(status,'') IN ($ph))";
+        $sql = "(COALESCE({$p}event_type,'order') = 'cancel' OR COALESCE({$p}status,'') IN ($ph))";
         return [$sql, self::CANCEL_TOKENS];
+    }
+
+    /** 광고성과 대조·탄력성·수요예측 등 '관측' 쿼리용 제외절 — 취소(2축: event_type+status) + 반품(event_type).
+     *  머니경로(Pnl/ordersStats)는 반품을 매출에 포함(returnFee 로 반영)하므로 이 헬퍼를 쓰지 않는다.
+     *  [현 차수] 인라인 `event_type NOT IN ('cancel','return')` 드리프트 제거(status 토큰 취소 누락 해소). */
+    public static function observedExclusion(string $alias = ''): array
+    {
+        $p = $alias === '' ? '' : $alias . '.';
+        [$cancelSql, $tokens] = self::cancelExclusion($alias);
+        return ["($cancelSql OR COALESCE({$p}event_type,'order') = 'return')", $tokens];
     }
 
     /**

@@ -3,7 +3,7 @@ import { useI18n } from '../../i18n';
 import { useGlobalData } from '../../context/GlobalDataContext.jsx';
 import { useSecurityGuard, getSecurityAlerts } from '../../security/SecurityGuard.js';
 // LineChart/fmt 제거 (실측 시계열 데이터 미공급 → EmptyState 노출 중)
-import { getJson, getJsonAuth } from '../../services/apiClient.js';
+import { getJsonAuth } from '../../services/apiClient.js';
 
 // ══════════════════════════════════════════════════════════════════════
 //  🖥️ DashSystem — System Status (176차 ZERO-MOCK REWRITE)

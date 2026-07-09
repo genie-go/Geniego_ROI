@@ -256,6 +256,14 @@ function TabAiEngine() {
   const [smtp, setSmtp] = useState({ host: "", port: "587", user: "", pass: "", from: "", from_name: "Geniego-ROI", secure: "tls" });
   const [smtpSet, setSmtpSet] = useState(false);
   const [smtpBusy, setSmtpBusy] = useState(false);
+  // [현 차수] Twilio SMS — 인증(2FA·OTP·본인확인) 문자 발송 전용 공급자.
+  //   백엔드 EP(/auth/admin/twilio)는 이미 있었으나 프론트 호출자가 0건이라 앱에서 설정할 수 없었다.
+  //   GET 응답 계약: { ok, sid, from, msg_sid, token_set, configured } — SMTP 와 달리 중첩 없이 최상위.
+  const [twilio, setTwilio] = useState({ sid: "", token: "", from: "", msg_sid: "" });
+  const [twilioSet, setTwilioSet] = useState(false);
+  const [twilioTokenSet, setTwilioTokenSet] = useState(false);
+  const [twilioBusy, setTwilioBusy] = useState(false);
+  const [twilioTestTo, setTwilioTestTo] = useState("");
 
   useEffect(() => {
     (async () => {
@@ -268,6 +276,16 @@ function TabAiEngine() {
         const r = await fetch("/api/auth/admin/smtp", { headers: { Authorization: `Bearer ${ADMIN_TOKEN()}` } });
         const d = await r.json().catch(() => ({}));
         if (r.ok && d.ok) { setSmtpSet(!!d.configured); if (d.smtp) setSmtp(s => ({ ...s, ...d.smtp, port: String(d.smtp.port ?? s.port), pass: "" })); }
+      } catch {}
+      try {
+        const r = await fetch("/api/auth/admin/twilio", { headers: { Authorization: `Bearer ${ADMIN_TOKEN()}` } });
+        const d = await r.json().catch(() => ({}));
+        if (r.ok && d.ok) {
+          setTwilioSet(!!d.configured);
+          setTwilioTokenSet(!!d.token_set);
+          // Auth Token 은 서버가 반환하지 않는다(암호화 저장) → 입력칸은 항상 빈 값으로 시작.
+          setTwilio(s => ({ ...s, sid: d.sid || "", from: d.from || "", msg_sid: d.msg_sid || "", token: "" }));
+        }
       } catch {}
       try {
         const r = await fetch("/api/auth/admin/img-key", { headers: { Authorization: `Bearer ${ADMIN_TOKEN()}` } });
@@ -328,6 +346,39 @@ function TabAiEngine() {
       else setMsg({ t: "err", m: d.error || "SMTP 저장 실패." });
     } catch { setMsg({ t: "err", m: "서버 오류." }); }
     setSmtpBusy(false);
+  };
+
+  const saveTwilio = async () => {
+    // 서버(twilioSave) 검증과 동일: sid 필수 + (from | msg_sid) 중 최소 하나.
+    if (!twilio.sid.trim()) { setMsg({ t: "err", m: t('adminSms.errSid', 'Account SID를 입력하세요.') }); return; }
+    if (!twilio.from.trim() && !twilio.msg_sid.trim()) { setMsg({ t: "err", m: t('adminSms.errSender', '발신번호(From) 또는 Messaging Service SID 중 하나는 필수입니다.') }); return; }
+    setTwilioBusy(true); setMsg(null);
+    try {
+      // token 이 빈 값이면 서버가 기존 토큰을 유지한다 → 전송에서 제외.
+      const body = { sid: twilio.sid.trim(), from: twilio.from.trim(), msg_sid: twilio.msg_sid.trim() };
+      if (twilio.token.trim()) body.token = twilio.token.trim();
+      const r = await fetch("/api/auth/admin/twilio", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${ADMIN_TOKEN()}` }, body: JSON.stringify(body) });
+      const d = await r.json().catch(() => ({}));
+      if (r.ok && d.ok) {
+        setMsg({ t: "ok", m: d.message || "Twilio 설정이 저장되었습니다." });
+        setTwilioSet(!!d.configured);
+        if (twilio.token.trim()) setTwilioTokenSet(true);
+        setTwilio(s => ({ ...s, token: "" }));
+      } else setMsg({ t: "err", m: d.error || "Twilio 저장 실패." });
+    } catch { setMsg({ t: "err", m: "서버 오류." }); }
+    setTwilioBusy(false);
+  };
+
+  const testTwilio = async () => {
+    if (!twilioTestTo.trim()) { setMsg({ t: "err", m: t('adminSms.errTestTo', '테스트 수신 번호를 입력하세요.') }); return; }
+    setTwilioBusy(true); setMsg(null);
+    try {
+      const r = await fetch("/api/auth/admin/twilio/test", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${ADMIN_TOKEN()}` }, body: JSON.stringify({ to: twilioTestTo.trim() }) });
+      const d = await r.json().catch(() => ({}));
+      if (r.ok && d.ok) setMsg({ t: "ok", m: d.message || "테스트 SMS를 보냈습니다." });
+      else setMsg({ t: "err", m: d.error || "테스트 발송 실패." });
+    } catch { setMsg({ t: "err", m: "서버 오류." }); }
+    setTwilioBusy(false);
   };
 
   const inp = { width: "100%", boxSizing: "border-box", padding: "11px 13px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.05)", color: "var(--text-1)", fontSize: 13, outline: "none" };
@@ -442,6 +493,51 @@ function TabAiEngine() {
             cursor: smtpBusy ? "not-allowed" : "pointer", background: smtpBusy ? "rgba(79,142,247,0.2)" : "linear-gradient(135deg,#4f8ef7,#06b6d4)", color: "#fff", fontSize: 14, fontWeight: 800 }}>
           {smtpBusy ? "저장 중..." : "📧 SMTP 저장"}
         </button>
+      </div>
+
+      {/* [현 차수] Twilio — 인증 SMS(2FA·OTP·본인확인) 발송 공급자. UserAuth::smsSend 는 Twilio 전용.
+       *  ★모든 문자열은 i18n 키(adminSms.*)로 둔다. 이 저장소의 규칙이자, 상담 챗봇 지식 파이프라인
+       *  (tools/gen_chatbot_knowledge.mjs)이 i18n 네임스페이스에서 기능의 절차를 자동 추출하는 근거다.
+       *  하드코딩하면 ①14개국에 한글이 새고 ②챗봇이 이 기능을 영원히 모른다. */}
+      <div style={{ borderRadius: 16, padding: "22px 26px",
+        background: "rgba(255,255,255,0.03)", border: `1px solid ${twilioSet ? "rgba(34,197,94,0.25)" : "rgba(255,255,255,0.08)"}` }}>
+        <div style={{ fontSize: 15, fontWeight: 800, marginBottom: 6 }}>💬 {t('adminSms.title', '인증 SMS(Twilio) 설정')}</div>
+        <div style={{ fontSize: 12, lineHeight: 1.7, color: "var(--text-3)", marginBottom: 12 }}>
+          {twilioSet
+            ? `✅ ${t('adminSms.onNote', 'Twilio 설정됨 — 로그인 2단계 인증·휴대폰 본인확인·비밀번호 재설정 SMS가 모두 Twilio로 발송됩니다.')}`
+            : t('adminSms.offNote', '미설정 시 SMS는 2단계 인증 수단으로 제공되지 않고 이메일 OTP로 자동 전환됩니다. (마케팅 SMS는 별도 공급자를 사용합니다.)')}
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 12 }}>
+          <div><label style={lbl}>{t('adminSms.fSid', 'Account SID')} *</label><input value={twilio.sid} onChange={e => setTwilio(s => ({ ...s, sid: e.target.value }))} placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" style={inp} autoComplete="off" /></div>
+          <div><label style={lbl}>{t('adminSms.fToken', 'Auth Token')}</label><input type="password" value={twilio.token} onChange={e => setTwilio(s => ({ ...s, token: e.target.value }))} placeholder={twilioTokenSet ? t('adminSms.phKeep', '(변경 시에만 입력)') : t('adminSms.fToken', 'Auth Token')} style={inp} autoComplete="new-password" /></div>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div><label style={lbl}>{t('adminSms.fFrom', '발신번호(From)')}</label><input value={twilio.from} onChange={e => setTwilio(s => ({ ...s, from: e.target.value }))} placeholder="+15551234567" style={inp} /></div>
+          <div><label style={lbl}>{t('adminSms.fMsgSid', 'Messaging Service SID')}</label><input value={twilio.msg_sid} onChange={e => setTwilio(s => ({ ...s, msg_sid: e.target.value }))} placeholder="MGxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" style={inp} autoComplete="off" /></div>
+        </div>
+        <div style={{ fontSize: 11.5, color: "var(--text-3)", marginTop: 8 }}>
+          {t('adminSms.reqNote', '발신번호와 Messaging Service SID 중 최소 하나는 입력해야 합니다. 알파벳 발신자 ID는 발신번호 칸에 넣을 수 없고 Messaging Service를 사용해야 합니다.')}
+        </div>
+        <div style={{ fontSize: 11.5, color: "var(--text-3)", marginTop: 4 }}>
+          {t('adminSms.secNote', 'Auth Token은 AES-256-GCM으로 암호화 저장되며 화면에 다시 표시되지 않습니다. 수신번호는 국내형(010…)을 자동으로 +82 국제형으로 변환합니다.')}
+        </div>
+        <button onClick={saveTwilio} disabled={twilioBusy}
+          style={{ width: "100%", marginTop: 16, padding: "12px 0", borderRadius: 12, border: "none",
+            cursor: twilioBusy ? "not-allowed" : "pointer", background: twilioBusy ? "rgba(79,142,247,0.2)" : "linear-gradient(135deg,#4f8ef7,#06b6d4)", color: "#fff", fontSize: 14, fontWeight: 800 }}>
+          {twilioBusy ? t('adminSms.busy', '처리 중...') : `💬 ${t('adminSms.saveBtn', 'Twilio 저장')}`}
+        </button>
+
+        <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 12, marginTop: 6 }}>
+          <div><label style={lbl}>{t('adminSms.fTestTo', '테스트 수신 번호')}</label><input value={twilioTestTo} onChange={e => setTwilioTestTo(e.target.value)} placeholder="+821012345678" style={inp} /></div>
+          <div style={{ display: "flex", alignItems: "flex-end" }}>
+            <button onClick={testTwilio} disabled={twilioBusy || !twilioSet}
+              style={{ width: "100%", padding: "11px 0", borderRadius: 10, border: "1px solid rgba(255,255,255,0.14)",
+                cursor: (twilioBusy || !twilioSet) ? "not-allowed" : "pointer", background: "rgba(255,255,255,0.05)",
+                color: "var(--text-1)", fontSize: 13, fontWeight: 700, opacity: (twilioBusy || !twilioSet) ? 0.5 : 1 }}>
+              {t('adminSms.testBtn', '테스트 발송')}
+            </button>
+          </div>
+        </div>
       </div>
     </>
   );

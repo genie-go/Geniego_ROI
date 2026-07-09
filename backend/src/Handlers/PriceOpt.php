@@ -241,16 +241,19 @@ class PriceOpt
             // 주별·SKU·채널 평균단가/총수량(unit price=total_price/qty, KRW 정규화 적재). 컬럼=channel_orders.qty(스키마 정본 Db.php:385).
             // [259차 복구] 과거 존재하지 않는 `quantity` 컬럼 참조로 쿼리가 항상 예외→try/catch no-op(탄력성 자동수집 영구 사망)였음. qty 로 정정.
             // [259차] 취소/반품 관측 제외(형제 집계 roasRecon/realRevMap/productPerf 와 동일 취소제외 정책) — 탄력성 곡선 오염 방지.
+            // [현 차수] 취소 제외 SSOT 통일 — 인라인 event_type 축 단독 검사는 status 토큰 취소를
+            //   탄력성 관측치에 포함시켜 가격탄력성 추정을 왜곡했다.
+            [$exclExpr, $exclTokens] = OrderHub::observedExclusion();
             $sql = "SELECT sku, LOWER(channel) ch,
                            " . (\Genie\Db::pdo()->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql'
                                 ? "DATE_FORMAT(ordered_at,'%x-W%v')" : "strftime('%Y-W%W', ordered_at)") . " AS wk,
                            SUM(total_price) rev, SUM(qty) qty
                       FROM channel_orders
                      WHERE tenant_id=? AND ordered_at>=? AND qty>0 AND total_price>0 AND sku IS NOT NULL AND sku<>''
-                       AND COALESCE(event_type,'order') NOT IN('cancel','return')
+                       AND NOT $exclExpr
                      GROUP BY sku, LOWER(channel), wk
                      HAVING qty>0";
-            $st = $main->prepare($sql); $st->execute([$t, $since]);
+            $st = $main->prepare($sql); $st->execute(array_merge([$t, $since], $exclTokens));
             $obs = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
         } catch (\Throwable $e) { return 0; } // 스키마 상이/미가용 → no-op
         if (!$obs) return 0;

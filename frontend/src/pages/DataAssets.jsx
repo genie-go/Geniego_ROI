@@ -2,7 +2,9 @@
 //   구독회원이 등록한 1차 데이터와 외부 채널 수집 데이터를 "출처가 명시된 자산"으로 관리한다.
 //   외부 채널 소스는 연동허브(channel_credential)에서 자동 유도되며, 구독 직접등록 소스는 여기서 등록.
 import React, { useCallback, useEffect, useState } from "react";
-import { getJson, postJson, putJson } from "../services/apiClient.js";
+// [현 차수] 헤더리스 getJson → getJsonAuth. business-profile/data-sources 는 index.php bypass 이나
+//   핸들러 self-auth(DataPlatform::tenant → null 시 401)라 Bearer 없이는 운영에서 항상 401(빈 화면).
+import { getJsonAuth as getJson, postJson, putJson } from "../services/apiClient.js";
 
 const KIND_LABEL = {
   commerce: "커머스/주문", ad: "광고", analytics: "웹분석", cs: "CS/헬프데스크", esp: "이메일(ESP)",

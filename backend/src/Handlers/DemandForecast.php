@@ -38,16 +38,21 @@ class DemandForecast
         $pdo = self::db();
         $since = gmdate('Y-m-d', time() - $days * 86400);
         // SKU별 일자 합계 — ordered_at 은 'Y-m-d...' 또는 ISO('Y-m-dT...'), 앞 10자리=날짜
+        // [현 차수] event_type 화이트리스트만으로는 status 토큰으로만 신호된 취소(레거시 행·토큰 드리프트)가
+        //   수요에 남아 과대예측 → 과잉발주(묶인자본↑). OrderHub::cancelExclusion 2축 검사를 추가한다.
+        //   화이트리스트는 유지 → 신규 유입 행 없음(순수 추가 제외, 회귀 0).
+        [$cancelExpr, $cancelTokens] = OrderHub::cancelExclusion();
         $sql = "SELECT sku, SUBSTR(ordered_at,1,10) AS d,
                        SUM(qty) AS q, MAX(product_name) AS name
                   FROM channel_orders
-                 WHERE tenant_id = :t AND sku IS NOT NULL AND sku <> ''
-                   AND SUBSTR(ordered_at,1,10) >= :since
+                 WHERE tenant_id = ? AND sku IS NOT NULL AND sku <> ''
+                   AND SUBSTR(ordered_at,1,10) >= ?
                    AND (event_type IS NULL OR event_type = 'order')
+                   AND NOT $cancelExpr
                  GROUP BY sku, SUBSTR(ordered_at,1,10)";
         try {
             $st = $pdo->prepare($sql);
-            $st->execute([':t' => $tenant, ':since' => $since]);
+            $st->execute(array_merge([$tenant, $since], $cancelTokens));
             $rows = $st->fetchAll(\PDO::FETCH_ASSOC);
         } catch (\Throwable $e) { return []; }
         if (!$rows) return [];
