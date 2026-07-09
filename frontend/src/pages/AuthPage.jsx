@@ -167,16 +167,6 @@ const GR_CSS = `
 .gr-sso{display:grid;gap:clamp(8px,1.2vh,12px)}
 .gr-sso button{height:clamp(44px,5vh,50px)}
 
-/* 세로가 짧은 화면: 중복 정보(환경 배너)를 접어 카드가 한 화면에 담기게 한다.
- * 임계값 1020px 는 실측 기준 — 카드(≈960px)+상하 패딩이 그 아래에서는 담기지 않는다. */
-@media(min-width:1101px) and (max-height:1020px){
-  .gr-envbadge{display:none !important}
-  .gr-demo{padding:13px 16px}
-  .gr-avatar{width:46px;height:46px;border-radius:15px;font-size:18px}
-  .gr-welcome{margin-bottom:14px}
-  .gr-envtabs{margin-bottom:13px}
-}
-
 .gr-demo{margin-top:clamp(16px,2.4vh,26px);border-radius:18px;background:linear-gradient(135deg,#eef6ff,#f8fbff);border:1px solid #e5eefb;
   padding:16px 18px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
 .gr-avatar{width:54px;height:54px;border-radius:18px;background:linear-gradient(135deg,#bfdbfe,#e0f2fe);
@@ -266,6 +256,68 @@ const GR_CSS = `
 @media(prefers-reduced-motion:reduce){
   .gr-dash,.gr-mini,.gr-insight{animation:none}
   .gr-btn,.gr-demo-btn,.gr-logo{transition:none}
+}
+
+/* ══ 세로가 짧은 데스크톱 화면의 높이 티어 (1020 → 860 → 740, 좁아지는 순서) ══
+ * ★위치 고정: 이 세 블록은 GR_CSS 의 **맨 끝**에 있어야 한다. .gr-demo / .gr-avatar / .gr-footer 의
+ *   기본 규칙과 특이도가 같으므로(0,1,0), 앞에 두면 뒤의 기본 규칙이 이겨 선언이 죽는다.
+ *   [276차] 실제로 1020px 티어의 gr-demo 패딩·gr-avatar 크기가 이 이유로 무력화돼 있었다. */
+
+/* [276차] 1920x1080: 환경 배너가 보이는 구간이라 카드가 상하 패딩 108px 과 합쳐 3px 넘쳤다(숨은 스크롤).
+ * 배너를 접는 1020px 티어까지 가지 않고 패딩만 소폭 줄여 해소. ★1020px 티어보다 앞에 와야 한다. */
+@media(min-width:1101px) and (max-height:1100px){
+  .gr-side{padding-top:50px;padding-bottom:50px}
+}
+
+/* 세로가 짧은 화면: 중복 정보(환경 배너)를 접어 카드가 한 화면에 담기게 한다.
+ * 임계값 1020px 는 실측 기준 — 카드(≈960px)+상하 패딩이 그 아래에서는 담기지 않는다. */
+@media(min-width:1101px) and (max-height:1020px){
+  .gr-envbadge{display:none !important}
+  .gr-demo{padding:13px 16px}
+  .gr-avatar{width:46px;height:46px;border-radius:15px;font-size:18px}
+  .gr-welcome{margin-bottom:14px}
+  .gr-envtabs{margin-bottom:13px}
+  /* [276차] 1600x900 실측: 카드 823 + 상하 패딩 90 = 913 > 900. 패딩만 줄여 카드를 온전히 담는다. */
+  .gr-side{padding-top:36px;padding-bottom:36px}
+}
+
+/* [276차] 1366x768 등 세로 768px 급 노트북: 위 1020px 티어로도 카드가 102px, 히어로가 140px 넘쳤다.
+ * 두 열은 overflow:auto 라 잘리진 않았으나 오버레이 스크롤바가 보이지 않아 "카드가 잘린 화면"으로 읽혔다.
+ * 실측 기준으로 양 열의 세로 여백만 압축 — 폰트/컴포넌트 구조는 유지. 적용 후 두 열 모두 초과 0px. */
+@media(min-width:1101px) and (max-height:860px){
+  .gr-hero{padding-top:18px;padding-bottom:18px;gap:20px}
+  .gr-copy{margin-top:20px}
+  .gr-copy h1{font-size:clamp(28px,2.6vw,36px);margin-bottom:12px}
+  .gr-envchip{margin-top:10px}
+  .gr-features{margin-top:10px;gap:10px}
+  .gr-visual{margin-top:20px}
+  .gr-side{padding-top:10px;padding-bottom:10px}
+  .gr-card{padding-top:16px;padding-bottom:12px}
+  .gr-welcome{margin-bottom:6px}
+  .gr-envtabs{margin-bottom:6px}
+  .gr-form{gap:9px}
+  .gr-demo{margin-top:8px;padding:9px 14px}
+  .gr-avatar{width:40px;height:40px;border-radius:13px;font-size:16px}
+  .gr-footer{margin-top:8px;padding-top:8px;gap:6px}
+}
+
+/* [276차] 1280x720 급(세로 720px): 위 860px 티어로도 카드가 38px, 히어로가 79px 넘쳤다.
+ * 폭이 좁아지면 히어로 피처/카피가 더 접혀 세로가 늘어나므로 여백만으로는 부족 —
+ * h1 을 clamp 로 한 단계 더 축소한다. 경계 740px 은 768px 화면을 건드리지 않는 값이다. */
+@media(min-width:1101px) and (max-height:740px){
+  .gr-hero{padding-top:10px;padding-bottom:10px;gap:12px}
+  .gr-copy{margin-top:8px}
+  .gr-copy h1{font-size:clamp(24px,2.2vw,30px);margin-bottom:8px}
+  .gr-envchip{margin-top:6px}
+  .gr-features{margin-top:6px;gap:7px}
+  .gr-visual{margin-top:10px}
+  .gr-side{padding-top:8px;padding-bottom:8px}
+  .gr-card{padding-top:12px;padding-bottom:8px}
+  .gr-welcome{margin-bottom:4px}
+  .gr-envtabs{margin-bottom:4px}
+  .gr-form{gap:7px}
+  .gr-demo{margin-top:6px;padding:7px 12px}
+  .gr-footer{margin-top:6px;padding-top:6px;gap:4px}
 }
 `;
 

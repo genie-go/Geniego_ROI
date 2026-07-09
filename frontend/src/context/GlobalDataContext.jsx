@@ -12,6 +12,11 @@
 import React, { createContext, useContext, useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { guardProductionState } from '../security/ContaminationGuard.js';
 import { getJsonAuth } from '../services/apiClient.js';
+
+// [276차] 미인증(로그인 화면) 상태에서 인증 필요 EP 를 호출해 401 을 만들지 않기 위한 게이트.
+//   로그인 시 TenantScopedProviders 의 key(tenantKey) 가 'anon'→tenant 로 바뀌며 Provider 가
+//   리마운트되므로, 여기서 early-return 해도 로그인 직후 모든 effect 가 다시 돈다.
+const authToken = () => localStorage.getItem('genie_token') || localStorage.getItem('demo_genie_token') || '';
 // [225차 P2-3] 취소/반품 판정 공용 캐논(dashPeriod 와 단일 소스 공유, 백엔드 OrderHub 토큰 정합).
 import { isCancelledStatus as _isCancelledCanon, isReturnStatus as _isReturnCanon } from '../components/dashboards/orderStatusCanon.js';
 import { tGet, tSet, currentTenant } from '../utils/tenantStorage.js'; // 180차: 회원(테넌트) 격리 영속
@@ -457,7 +462,7 @@ export function GlobalDataProvider({ children }) {
     // 토큰 있는 유료 User 전용; 데모는 시드 데이터 사용 (API 스킵)
     useEffect(() => {
         if (_isDemo) return; // ★ 데모 모드: 시드 데이터 유지, API 스킵
-        const token = localStorage.getItem('genie_token') || localStorage.getItem('demo_genie_token') || '';
+        const token = authToken();
         if (!token) return;
         const BASE = import.meta.env.VITE_API_BASE || '';
         fetch(`${BASE}/api/channel-sync/inventory`, {
@@ -478,6 +483,7 @@ export function GlobalDataProvider({ children }) {
     //    데모 모드: 시드 데이터 유지 (API 스킵). 운영 모드: /api/v424/orderhub/* 호출.
     useEffect(() => {
         if (_isDemo) return;
+        if (!authToken()) return; // [276차] 로그인 화면 미인증 401 차단
         let cancelled = false;
         getJsonAuth('/api/v424/orderhub/orders?limit=200')
             .then(res => { if (!cancelled && res?.ok && Array.isArray(res.items)) setOrders(res.items); })
@@ -496,6 +502,7 @@ export function GlobalDataProvider({ children }) {
 
     useEffect(() => {
         if (_isDemo) return;
+        if (!authToken()) return; // [276차] 로그인 화면 미인증 401 차단
         let cancelled = false;
         getJsonAuth('/api/v424/orderhub/claims?limit=200')
             .then(res => { if (!cancelled && res?.ok && Array.isArray(res.items)) setClaimHistory(res.items); })
@@ -509,6 +516,7 @@ export function GlobalDataProvider({ children }) {
 
     useEffect(() => {
         if (_isDemo) return;
+        if (!authToken()) return; // [276차] 로그인 화면 미인증 401 차단
         let cancelled = false;
         getJsonAuth('/api/v424/orderhub/settlements?limit=200')
             .then(res => { if (!cancelled && res?.ok && Array.isArray(res.items)) setSettlement(res.items); })
@@ -524,7 +532,7 @@ export function GlobalDataProvider({ children }) {
     //    기존엔 마운트 시 1회만 fetch → 신규 주문/정산 롤업이 새로고침 전까지 미반영이던 갭 해소.
     useEffect(() => {
         if (_isDemo) return;
-        const token = localStorage.getItem('genie_token') || localStorage.getItem('demo_genie_token') || '';
+        const token = authToken();
         if (!token) return;
         let cancelled = false;
         const BASE = import.meta.env.VITE_API_BASE || '';

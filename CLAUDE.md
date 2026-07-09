@@ -23,8 +23,12 @@ All commands assume the working directory is the repo root.
 | Frontend dev server | `cd frontend && npx vite` (port 5173, proxies `/api`, `/auth`, `/v3`–`/v419` → `localhost:8080`) |
 | Backend install | `cd backend && composer install` |
 | Backend dev server | `cd backend && php -S 0.0.0.0:8000 -t public` (vite.config proxies expect 8080 — adjust port to match your local Apache/XAMPP setup) |
-| Manual deploy (Windows) | `.\deploy.ps1` (runs `inject_journey_ko.cjs` → `vite build` → `package_deploy.py` → `deploy_paramiko.py`) |
+| Build for deploy (Windows) | `.\deploy.ps1` (runs `gen_chatbot_knowledge.mjs` → `i18n_autofill.mjs` ×4 modes → `vite build`). **Build only — does not upload.** |
 | Manual deploy (Linux/Mac) | `./deploy.sh` (rsync `frontend/dist/` → `root@1.201.177.46:/home/wwwroot/roi.geniego.com/frontend/dist`) |
+
+**Actual deploys are manual `pscp`/`plink` file copies** (dist tarball → docroot, `chown www:www`, `php-fpm reload`) against production `roi.geniego.com` and demo `roidemo.geniego.com`. `deploy.ps1` stops after the build; there is no working Windows upload script.
+
+DB migrations (`php backend/bin/migrate.php [both|production|demo|current]`) must be run **on the remote server**. `Db.php:120` defaults `GENIE_DB_HOST` to `127.0.0.1`, so running the migrator locally targets your local dev DB, not production. `backend/migrations/` stops at session 172; every schema change since is applied by per-handler self-healing `ensureTables`.
 
 There are **no configured lint or test scripts** in this repo (no `npm test`, no PHPUnit suite). Verification is manual / by deploying.
 
@@ -136,7 +140,7 @@ The repo's root contains many `deploy_*` scripts. Most have been archived; a sma
 
 | File | Status | Notes |
 |------|--------|-------|
-| `deploy.ps1` | **Keep** | Windows orchestrator: `inject_journey_ko.cjs` → `vite build` → `package_deploy.py` → `deploy_paramiko.py` |
+| `deploy.ps1` | **Keep** | Windows **build** orchestrator: `gen_chatbot_knowledge.mjs` → `i18n_autofill.mjs` ×4 → `vite build`. Session 276 removed 3 calls (`inject_journey_ko.cjs`, `package_deploy.py`, `deploy_paramiko.py`) that never existed in git history and killed the script at line 1. Save as **UTF-8 with BOM** — PS 5.1 reads BOM-less `.ps1` as ANSI and mangles the Korean strings. |
 | `deploy.sh` | **Keep** | Linux rsync to `roi.geniego.com:/home/wwwroot/.../frontend/dist` |
 | `deploy_gitbash.sh` | **Keep** | Git Bash deploy with SSH key auth (plaintext password was scrubbed in session 11) |
 | `deploy_demo.cjs` | **Keep** | Referenced by `docs/JOURNEY_BUILDER_KPI_FIX.md`, `docs/BUG-013_*` |
