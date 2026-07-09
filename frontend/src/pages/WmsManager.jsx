@@ -12,6 +12,7 @@ import { detectXSS, sanitizeInput } from '../security/SecurityGuard.js';
 import ApprovalModal from '../components/ApprovalModal.jsx';
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
 import GuideWizard from '../components/GuideWizard.jsx'; // [237차] 인앱 순차 완료 위저드(필수등록 게이팅)
+import CctvManager from '../components/CctvManager.jsx'; // [현 차수] CCTV 자격등록+원격 실시간 조회
 import { getJsonAuth as _gjaWms, requestJsonAuth as _rjaWms } from '../services/apiClient.js';
 import * as wmsApi from '../services/wmsApi.js';
 import { IS_DEMO } from '../utils/demoEnv.js';
@@ -160,6 +161,7 @@ const WarehouseTab = memo(function WarehouseTab({ showForm, setShowForm, showPer
     const [whs, setWhs] = useState(initWarehouses);
     const [form, setForm] = useState({ id: "", name: "", code: "", location: "", area: "", temp: "Room Temp", manager: "", phone: "", type: "Direct", active: true });
     const [editing, setEditing] = useState(false);
+    const [cctvWh, setCctvWh] = useState(null); // CCTV 모달 대상 창고(null=닫힘)
     const isMobile = useIsMobile();
 
     /* ── 205차: 백엔드 영속화(/api/wms/warehouses). 새로고침 후에도 유지 ── */
@@ -292,8 +294,9 @@ const WarehouseTab = memo(function WarehouseTab({ showForm, setShowForm, showPer
                                 <Tag label={w.type} color="#a855f7" />
                             </div>
                             {/* Action Button */}
-                            <div style={{ display: "flex", gap: 8 }}>
+                            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                                 <Btn onClick={() => editWh(w)} color="#6366f1" small>{t("wms.whEditBtn")}</Btn>
+                                <Btn onClick={() => setCctvWh(w)} color="#0ea5e9" small>📹 {t("wms.cctv.viewBtn", "CCTV 보기")}</Btn>
                                 <Btn onClick={() => toggleActive(w.id)} color={w.active ? "#ef4444" : "#22c55e"} small>{w.active ? t("wms.whInactive") : t("wms.whResumeBtn")}</Btn>
                             </div>
                         </div>
@@ -315,14 +318,27 @@ const WarehouseTab = memo(function WarehouseTab({ showForm, setShowForm, showPer
                                 <div style={{ fontSize: 10, color: "#6b7280" }}>{t("wms.whCurrentStock")}</div>
                             </div>
                             <Tag label={w.active ? t("wms.whActive") : t("wms.whInactive")} color={w.active ? "#22c55e" : "#666"} />
-                            <div style={{ display: "flex", gap: 6 }}>
+                            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                                 <Btn onClick={() => editWh(w)} color="#6366f1" small>{t('wms.supEditBtn')}</Btn>
+                                <Btn onClick={() => setCctvWh(w)} color="#0ea5e9" small>📹 {t("wms.cctv.viewBtn", "CCTV 보기")}</Btn>
                                 <Btn onClick={() => toggleActive(w.id)} color={w.active ? "#ef4444" : "#22c55e"} small>{w.active ? t("wms.whInactive") : t("wms.whResumeBtn")}</Btn>
                             </div>
                         </div>
                     );
                 })}
             </div>
+
+            {cctvWh && (
+                <div onClick={() => setCctvWh(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 1000, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '5vh 16px', overflowY: 'auto' }}>
+                    <div onClick={e => e.stopPropagation()} className="card" style={{ background: 'var(--card-bg,#fff)', borderRadius: 14, padding: 18, width: '100%', maxWidth: 720, boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+                            <div style={{ fontSize: 15, fontWeight: 800 }}>📹 {cctvWh.name} — {t('wms.cctv.title', 'CCTV 실시간 조회')}</div>
+                            <button onClick={() => setCctvWh(null)} style={{ border: 'none', background: 'transparent', fontSize: 22, cursor: 'pointer', color: '#6b7280', lineHeight: 1 }}>×</button>
+                        </div>
+                        <CctvManager whId={cctvWh.id} warehouses={whs} compact />
+                    </div>
+                </div>
+            )}
         </div>
     );
 });

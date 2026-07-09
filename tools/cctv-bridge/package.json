@@ -1,0 +1,13 @@
+{
+  "name": "genieroi-cctv-bridge",
+  "version": "1.0.0",
+  "private": true,
+  "description": "GenieROI WMS 온프렘 CCTV 브리지 에이전트 — 현장 LAN에서 DVR/NVR을 RTSP로 물어 HLS로 클라우드에 중계",
+  "bin": { "genieroi-cctv-bridge": "bridge.js" },
+  "scripts": {
+    "start": "node bridge.js",
+    "check": "node --check bridge.js"
+  },
+  "engines": { "node": ">=18" },
+  "dependencies": {}
+}

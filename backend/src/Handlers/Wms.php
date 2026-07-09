@@ -149,7 +149,7 @@ class Wms
             $pdo->exec("CREATE TABLE IF NOT EXISTS wms_bins (
                 id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo',
                 wh_id VARCHAR(60) NOT NULL DEFAULT '', code VARCHAR(80) NOT NULL, zone VARCHAR(60),
-                aisle VARCHAR(40), rack VARCHAR(40), level VARCHAR(40), seq INT DEFAULT 0,
+                aisle VARCHAR(40), rack VARCHAR(40), level VARCHAR(40), slot VARCHAR(40), seq INT DEFAULT 0,
                 barcode VARCHAR(120), capacity DOUBLE DEFAULT 0, active TINYINT(1) DEFAULT 1,
                 created_at VARCHAR(32), updated_at VARCHAR(32),
                 UNIQUE KEY uq_wms_bin (tenant_id, wh_id, code), KEY idx_wms_bin_tenant (tenant_id)
@@ -188,7 +188,7 @@ class Wms
                 KEY idx_wms_lc_tenant (tenant_id), KEY idx_wms_lc_ref (tenant_id, ref), KEY idx_wms_lc_sku (tenant_id, sku)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
         } else {
-            $pdo->exec("CREATE TABLE IF NOT EXISTS wms_bins (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', wh_id TEXT NOT NULL DEFAULT '', code TEXT NOT NULL, zone TEXT, aisle TEXT, rack TEXT, level TEXT, seq INTEGER DEFAULT 0, barcode TEXT, capacity REAL DEFAULT 0, active INTEGER DEFAULT 1, created_at TEXT, updated_at TEXT)");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS wms_bins (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', wh_id TEXT NOT NULL DEFAULT '', code TEXT NOT NULL, zone TEXT, aisle TEXT, rack TEXT, level TEXT, slot TEXT, seq INTEGER DEFAULT 0, barcode TEXT, capacity REAL DEFAULT 0, active INTEGER DEFAULT 1, created_at TEXT, updated_at TEXT)");
             $pdo->exec("CREATE TABLE IF NOT EXISTS wms_bin_stock (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', wh_id TEXT NOT NULL DEFAULT '', bin_id INTEGER NOT NULL DEFAULT 0, sku TEXT NOT NULL, name TEXT, on_hand REAL DEFAULT 0, updated_at TEXT)");
             $pdo->exec("CREATE TABLE IF NOT EXISTS wms_barcodes (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', code TEXT NOT NULL, sku TEXT NOT NULL, name TEXT, kind TEXT DEFAULT 'barcode', status TEXT DEFAULT 'active', bin_id INTEGER DEFAULT 0, created_at TEXT, updated_at TEXT)");
             $pdo->exec("CREATE TABLE IF NOT EXISTS wms_waves (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', code TEXT, wh_id TEXT, zone TEXT, status TEXT DEFAULT 'created', order_count INTEGER DEFAULT 0, item_count INTEGER DEFAULT 0, note TEXT, created_at TEXT, updated_at TEXT)");
@@ -198,6 +198,11 @@ class Wms
             try { $pdo->exec("CREATE UNIQUE INDEX IF NOT EXISTS uq_wms_bin_stock ON wms_bin_stock(tenant_id, wh_id, bin_id, sku)"); } catch (\Throwable $e) {}
             try { $pdo->exec("CREATE UNIQUE INDEX IF NOT EXISTS uq_wms_barcode ON wms_barcodes(tenant_id, code)"); } catch (\Throwable $e) {}
         }
+
+        // [현 차수] 로케이션 4단계 명시화 — 창고/랙/단/'번(slot)'. 기 배포된 wms_bins 는 CREATE 가 건너뛰므로
+        //   ALTER 로 보강해야 한다(멱등: 이미 있으면 예외 무시). ★MySQL TEXT DEFAULT 거부 트랩 회피 → VARCHAR·무DEFAULT.
+        //   기존 행의 slot 은 NULL 로 남고, saveBin 이 빈 코드(A-01-01-1)의 마지막 마디에서 백필한다.
+        try { $pdo->exec($mysql ? "ALTER TABLE wms_bins ADD COLUMN slot VARCHAR(40)" : "ALTER TABLE wms_bins ADD COLUMN slot TEXT"); } catch (\Throwable $e) {}
     }
 
     /* ════════════════ 창고(Warehouses) ════════════════ */
@@ -1288,11 +1293,24 @@ class Wms
         }
     }
 
-    /** pick-path 정렬 seq — aisle/rack/level 숫자부를 자릿수 결합(구역 내 순회 순서). */
+    /**
+     * pick-path 정렬 seq — aisle/rack/level 숫자부를 자릿수 결합(구역 내 순회 순서).
+     *
+     * ★slot(번)은 의도적으로 seq 에 넣지 않는다. 자릿수를 늘리면(예: aisle*1e6) 이미 저장된 행의
+     *   seq(구 척도)와 신규 행의 seq(신 척도)가 한 테이블에서 섞여 피킹 동선 정렬이 깨진다.
+     *   대신 slot 은 ORDER BY 의 2차 키(seq → slot)로 참여한다 — 기존 값 무변경, 회귀 0.
+     */
     private static function binSeq(string $aisle, string $rack, string $level): int
     {
         $n = fn(string $s): int => (int)preg_replace('/\D+/', '', $s);
         return $n($aisle) * 10000 + $n($rack) * 100 + $n($level);
+    }
+
+    /** 빈 코드(A-01-01-1)의 마지막 마디를 '번'으로 해석 — slot 미입력 행 백필용. 4마디 미만이면 빈 값. */
+    private static function slotFromCode(string $code): string
+    {
+        $parts = explode('-', $code);
+        return count($parts) >= 4 ? trim(end($parts)) : '';
     }
 
     /* ── 빈 로케이션(Bins) ── */
@@ -1304,10 +1322,14 @@ class Wms
         $t = self::tenant($req); $q = $req->getQueryParams();
         $sql = "SELECT * FROM wms_bins WHERE tenant_id=:t"; $p = [':t' => $t];
         if (!empty($q['wh_id'])) { $sql .= " AND wh_id=:w"; $p[':w'] = (string)$q['wh_id']; }
-        $sql .= " ORDER BY zone, seq, code";
+        // slot 은 seq 다음 2차 정렬키(binSeq 주석 참조 — seq 척도 변경 없이 '번' 순서 반영).
+        $sql .= " ORDER BY zone, seq, slot, code";
         $st = self::db()->prepare($sql); $st->execute($p);
         $rows = $st->fetchAll(\PDO::FETCH_ASSOC);
-        foreach ($rows as &$r) { $r['active'] = (bool)(int)($r['active'] ?? 1); }
+        foreach ($rows as &$r) {
+            $r['active'] = (bool)(int)($r['active'] ?? 1);
+            if (($r['slot'] ?? '') === '' || $r['slot'] === null) $r['slot'] = self::slotFromCode((string)$r['code']);
+        }
         return self::json($res, ['ok' => true, 'bins' => $rows]);
     }
 
@@ -1321,23 +1343,26 @@ class Wms
         $code = trim((string)($b['code'] ?? ''));
         if ($code === '') return self::json($res, ['ok' => false, 'error' => '로케이션 코드를 입력하세요.'], 422);
         $aisle = (string)($b['aisle'] ?? ''); $rack = (string)($b['rack'] ?? ''); $level = (string)($b['level'] ?? '');
+        // 번(slot) 미입력 시 빈 코드 마지막 마디에서 백필 — 기존 코드 규약(A-01-01-1)을 그대로 승계.
+        $slot = trim((string)($b['slot'] ?? ''));
+        if ($slot === '') $slot = self::slotFromCode($code);
         $seq = (isset($b['seq']) && is_numeric($b['seq'])) ? (int)$b['seq'] : self::binSeq($aisle, $rack, $level);
         $f = [
             ':wh' => $whId, ':code' => $code, ':zone' => (string)($b['zone'] ?? ''), ':aisle' => $aisle,
-            ':rack' => $rack, ':level' => $level, ':seq' => $seq, ':barcode' => (string)($b['barcode'] ?? ''),
+            ':rack' => $rack, ':level' => $level, ':slot' => $slot, ':seq' => $seq, ':barcode' => (string)($b['barcode'] ?? ''),
             ':cap' => (float)($b['capacity'] ?? 0), ':active' => isset($b['active']) ? (!empty($b['active']) ? 1 : 0) : 1,
         ];
         $id = (int)($args['id'] ?? $b['id'] ?? 0);
         if ($id > 0) {
             $f[':id'] = $id; $f[':t'] = $t; $f[':ua'] = $now;
-            $st = $pdo->prepare("UPDATE wms_bins SET wh_id=:wh,code=:code,zone=:zone,aisle=:aisle,rack=:rack,level=:level,seq=:seq,barcode=:barcode,capacity=:cap,active=:active,updated_at=:ua WHERE id=:id AND tenant_id=:t");
+            $st = $pdo->prepare("UPDATE wms_bins SET wh_id=:wh,code=:code,zone=:zone,aisle=:aisle,rack=:rack,level=:level,slot=:slot,seq=:seq,barcode=:barcode,capacity=:cap,active=:active,updated_at=:ua WHERE id=:id AND tenant_id=:t");
             $st->execute($f);
             if ($st->rowCount() === 0 && !self::exists('wms_bins', $id, $t)) return self::json($res, ['ok' => false, 'error' => '없음'], 404);
             return self::json($res, ['ok' => true, 'id' => $id]);
         }
         $f[':t'] = $t; $f[':ca'] = $now; $f[':ua'] = $now;
         try {
-            $st = $pdo->prepare("INSERT INTO wms_bins (tenant_id,wh_id,code,zone,aisle,rack,level,seq,barcode,capacity,active,created_at,updated_at) VALUES (:t,:wh,:code,:zone,:aisle,:rack,:level,:seq,:barcode,:cap,:active,:ca,:ua)");
+            $st = $pdo->prepare("INSERT INTO wms_bins (tenant_id,wh_id,code,zone,aisle,rack,level,slot,seq,barcode,capacity,active,created_at,updated_at) VALUES (:t,:wh,:code,:zone,:aisle,:rack,:level,:slot,:seq,:barcode,:cap,:active,:ca,:ua)");
             $st->execute($f);
         } catch (\Throwable $e) { // UNIQUE(tenant,wh,code) 충돌 → 기존 반환(멱등)
             $ex = $pdo->prepare("SELECT id FROM wms_bins WHERE tenant_id=? AND wh_id=? AND code=? LIMIT 1");
@@ -1364,15 +1389,21 @@ class Wms
         if ($err = UserAuth::requirePro($req, $res)) return $err;
         self::ensureTables();
         $t = self::tenant($req); $q = $req->getQueryParams();
-        $sql = "SELECT bs.id, bs.wh_id, bs.bin_id, bs.sku, bs.name, bs.on_hand, bs.updated_at, b.code AS bin_code, b.zone
+        // 상품이 '어느 창고 / 몇 번 랙 / 몇 단 / 몇 번'에 있는지 한 행으로 읽히도록 로케이션 전 마디를 조인한다.
+        $sql = "SELECT bs.id, bs.wh_id, bs.bin_id, bs.sku, bs.name, bs.on_hand, bs.updated_at,
+                       b.code AS bin_code, b.zone, b.aisle, b.rack, b.level, b.slot, b.seq
                 FROM wms_bin_stock bs LEFT JOIN wms_bins b ON b.id=bs.bin_id AND b.tenant_id=bs.tenant_id
                 WHERE bs.tenant_id=:t";
         $p = [':t' => $t];
         if (!empty($q['wh_id'])) { $sql .= " AND bs.wh_id=:w"; $p[':w'] = (string)$q['wh_id']; }
         if (!empty($q['sku']))   { $sql .= " AND bs.sku=:s"; $p[':s'] = (string)$q['sku']; }
-        $sql .= " ORDER BY bs.sku, b.zone, b.seq";
+        $sql .= " ORDER BY bs.sku, b.zone, b.seq, b.slot";
         $st = self::db()->prepare($sql); $st->execute($p);
-        return self::json($res, ['ok' => true, 'binStock' => $st->fetchAll(\PDO::FETCH_ASSOC)]);
+        $rows = $st->fetchAll(\PDO::FETCH_ASSOC);
+        foreach ($rows as &$r) {
+            if (($r['slot'] ?? '') === '' || $r['slot'] === null) $r['slot'] = self::slotFromCode((string)($r['bin_code'] ?? ''));
+        }
+        return self::json($res, ['ok' => true, 'binStock' => $rows]);
     }
 
     /* ── 바코드/시리얼 registry ── */
@@ -1515,7 +1546,7 @@ class Wms
             $st = self::db()->prepare("SELECT b.id, b.code, b.zone, b.seq FROM wms_bin_stock bs
                                        JOIN wms_bins b ON b.id=bs.bin_id AND b.tenant_id=bs.tenant_id
                                        WHERE bs.tenant_id=? AND bs.sku=? AND bs.on_hand>0 AND (bs.wh_id=? OR ?='')
-                                       ORDER BY b.zone, b.seq LIMIT 1");
+                                       ORDER BY b.zone, b.seq, b.slot LIMIT 1");
             $st->execute([$t, $sku, $whId, $whId]);
             $r = $st->fetch(\PDO::FETCH_ASSOC);
             if ($r) return [(int)$r['id'], (string)$r['code'], (string)($r['zone'] ?? ''), (int)($r['seq'] ?? 0)];

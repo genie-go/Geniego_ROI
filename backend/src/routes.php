@@ -227,6 +227,34 @@ return function (App $app): void {
         'POST /wms/waves/{id}/confirm'         => 'Genie\\Handlers\\Wms::confirmWave',
         'DELETE /wms/waves/{id}'               => 'Genie\\Handlers\\Wms::deleteWave',
         // 212차 #3: 매입처(suppliers) registry
+        // [현 차수] CCTV — 창고/사용자지정 장소 카메라 자격등록 + 원격 실시간 조회.
+        //   자격증명은 Crypto(AES-256-GCM) 저장, 재생은 서버 중계(브라우저로 평문 미노출).
+        //   hls/seg/local/snapshot/whep 은 세션이 발급한 단기 HMAC 재생토큰(?tk=)으로 인가.
+        'GET /wms/cctv/vendors'                => 'Genie\\Handlers\\WmsCctv::vendors',
+        'GET /wms/cameras'                     => 'Genie\\Handlers\\WmsCctv::listCameras',
+        'POST /wms/cameras'                    => 'Genie\\Handlers\\WmsCctv::saveCamera',
+        'PUT /wms/cameras/{id}'                => 'Genie\\Handlers\\WmsCctv::saveCamera',
+        'DELETE /wms/cameras/{id}'             => 'Genie\\Handlers\\WmsCctv::deleteCamera',
+        'POST /wms/cameras/{id}/test'          => 'Genie\\Handlers\\WmsCctv::testCamera',
+        'POST /wms/cameras/{id}/session'       => 'Genie\\Handlers\\WmsCctv::session',
+        'POST /wms/cameras/{id}/keepalive'     => 'Genie\\Handlers\\WmsCctv::keepalive',
+        'GET /wms/cameras/{id}/hls'            => 'Genie\\Handlers\\WmsCctv::hls',
+        'GET /wms/cameras/{id}/seg'            => 'Genie\\Handlers\\WmsCctv::segment',
+        'GET /wms/cameras/{id}/local'          => 'Genie\\Handlers\\WmsCctv::localSegment',
+        'GET /wms/cameras/{id}/snapshot'       => 'Genie\\Handlers\\WmsCctv::snapshot',
+        'POST /wms/cameras/{id}/whep'          => 'Genie\\Handlers\\WmsCctv::whep',
+        // 온프렘 브리지 — 현장 LAN 에이전트(P2P·ActiveX·독자VMS 포함 범용 재생).
+        //   bridges/* 는 세션(콘솔). bridge/pair 는 페어코드 공개엔드포인트. bridge/{poll,heartbeat,ingest}
+        //   는 브리지 Bearer 토큰 자체검증(세션 아님) — /wms/ 는 index.php api_key bypass 대상.
+        'GET /wms/cctv/bridges'                => 'Genie\\Handlers\\WmsCctv::listBridges',
+        'POST /wms/cctv/bridges'               => 'Genie\\Handlers\\WmsCctv::createBridge',
+        'DELETE /wms/cctv/bridges/{id}'        => 'Genie\\Handlers\\WmsCctv::deleteBridge',
+        'POST /wms/cctv/bridges/{id}/rotate'   => 'Genie\\Handlers\\WmsCctv::rotateBridge',
+        'POST /wms/cctv/bridge/pair'           => 'Genie\\Handlers\\WmsCctv::pairBridge',
+        'POST /wms/cctv/bridge/heartbeat'      => 'Genie\\Handlers\\WmsCctv::heartbeatBridge',
+        'GET /wms/cctv/bridge/poll'            => 'Genie\\Handlers\\WmsCctv::pollBridge',
+        'POST /wms/cctv/bridge/ingest/{id}'    => 'Genie\\Handlers\\WmsCctv::ingestBridge',
+
         'GET /wms/suppliers'                   => 'Genie\\Handlers\\Wms::listSuppliers',
         'POST /wms/suppliers'                  => 'Genie\\Handlers\\Wms::saveSupplier',
         'PUT /wms/suppliers/{id}'              => 'Genie\\Handlers\\Wms::saveSupplier',
@@ -2970,6 +2998,30 @@ return function (App $app): void {
     $register('POST',   '/wms/waves');
     $register('POST',   '/wms/waves/{id}/confirm');
     $register('DELETE', '/wms/waves/{id}');
+    // [현 차수] CCTV — 자격등록 + 원격 실시간 조회. 미디어 경로는 재생토큰(?tk=) 인가.
+    $register('GET',    '/wms/cctv/vendors');
+    $register('GET',    '/wms/cameras');
+    $register('POST',   '/wms/cameras');
+    $register('PUT',    '/wms/cameras/{id}');
+    $register('DELETE', '/wms/cameras/{id}');
+    $register('POST',   '/wms/cameras/{id}/test');
+    $register('POST',   '/wms/cameras/{id}/session');
+    $register('POST',   '/wms/cameras/{id}/keepalive');
+    $register('GET',    '/wms/cameras/{id}/hls');
+    $register('GET',    '/wms/cameras/{id}/seg');
+    $register('GET',    '/wms/cameras/{id}/local');
+    $register('GET',    '/wms/cameras/{id}/snapshot');
+    $register('POST',   '/wms/cameras/{id}/whep');
+    // 온프렘 브리지 — 현장 LAN 에이전트
+    $register('GET',    '/wms/cctv/bridges');
+    $register('POST',   '/wms/cctv/bridges');
+    $register('DELETE', '/wms/cctv/bridges/{id}');
+    $register('POST',   '/wms/cctv/bridges/{id}/rotate');
+    $register('POST',   '/wms/cctv/bridge/pair');
+    $register('POST',   '/wms/cctv/bridge/heartbeat');
+    $register('GET',    '/wms/cctv/bridge/poll');
+    $register('POST',   '/wms/cctv/bridge/ingest/{id}');
+
     // 212차 #3: 매입처(suppliers) registry
     $register('GET',    '/wms/suppliers');
     $register('POST',   '/wms/suppliers');
