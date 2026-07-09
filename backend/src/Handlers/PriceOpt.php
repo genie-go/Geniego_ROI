@@ -53,6 +53,12 @@ class PriceOpt
             'category TEXT', 'spec TEXT', 'io_fee REAL', 'storage_fee REAL', 'work_fee REAL', 'shipping_fee REAL',
             'purchase_cost REAL', 'qty_per_box INTEGER', 'boxes_per_pallet INTEGER', 'initial_stock INTEGER',
             'stock_boxes INTEGER', 'stock_pallets INTEGER', 'product_image TEXT',
+            // [현 차수] 국내 쇼핑몰(네이버·쿠팡 등) 등록 필수/권장 항목 + 옵션 + 복수이미지 + 상세설명(HTML).
+            //   기존 컬럼과 동일한 멱등 ALTER 패턴. 미제공 시 NULL(무영향).
+            'brand TEXT', 'manufacturer TEXT', 'origin TEXT', 'model_name TEXT', 'barcode TEXT',
+            'tax_type TEXT', 'ship_method TEXT', 'ship_fee_type TEXT', 'ship_fee INTEGER',
+            'as_phone TEXT', 'as_guide TEXT', 'warranty TEXT',
+            'detail_html TEXT', 'images_json TEXT', 'options_json TEXT', 'option_stocks_json TEXT',
         ] as $col) {
             try { $pdo->exec("ALTER TABLE po_products ADD COLUMN $col"); } catch (\Throwable $e) { /* 이미 존재 */ }
         }
@@ -299,12 +305,24 @@ class PriceOpt
         $numOrNull = fn($k) => isset($body[$k]) && $body[$k] !== '' ? (float)$body[$k] : null;
         $intOrNull = fn($k) => isset($body[$k]) && $body[$k] !== '' ? (int)$body[$k] : null;
         $strOrNull = fn($k) => isset($body[$k]) && $body[$k] !== '' ? (string)$body[$k] : null;
+        // [현 차수] 배열/객체 필드(옵션·복수이미지) → JSON 문자열 영속. 문자열로 오면 그대로 저장.
+        $jsonOrNull = function($k) use ($body) {
+            if (!isset($body[$k]) || $body[$k] === '' || $body[$k] === null) return null;
+            $v = $body[$k];
+            if (is_string($v)) return $v;
+            $enc = json_encode($v, JSON_UNESCAPED_UNICODE);
+            return ($enc === '[]' || $enc === '{}' || $enc === false) ? null : $enc;
+        };
         $stmt = $db->prepare("INSERT OR REPLACE INTO po_products
             (tenant_id, sku, product_name, cost_price, target_margin, base_price, unit, created_at,
              category, spec, io_fee, storage_fee, work_fee, shipping_fee, purchase_cost,
-             qty_per_box, boxes_per_pallet, initial_stock, stock_boxes, stock_pallets, product_image)
+             qty_per_box, boxes_per_pallet, initial_stock, stock_boxes, stock_pallets, product_image,
+             brand, manufacturer, origin, model_name, barcode, tax_type, ship_method, ship_fee_type, ship_fee,
+             as_phone, as_guide, warranty, detail_html, images_json, options_json, option_stocks_json)
             VALUES (:t, :sku, :pn, :cp, :tm, :bp, :unit, :ts,
-             :cat, :spec, :io, :stor, :work, :ship, :pc, :qpb, :bpp, :ist, :sb, :sp, :img)");
+             :cat, :spec, :io, :stor, :work, :ship, :pc, :qpb, :bpp, :ist, :sb, :sp, :img,
+             :brand, :mfr, :origin, :model, :barcode, :tax, :shipm, :shipft, :shipf,
+             :asp, :asg, :warr, :detail, :imgs, :opts, :ostk)");
         $stmt->execute([
             ':t'    => $t,
             ':sku'  => $sku,
@@ -327,8 +345,78 @@ class PriceOpt
             ':sb'   => $intOrNull('stock_boxes'),
             ':sp'   => $intOrNull('stock_pallets'),
             ':img'  => $strOrNull('product_image'),
+            ':brand'  => $strOrNull('brand'),
+            ':mfr'    => $strOrNull('manufacturer'),
+            ':origin' => $strOrNull('origin'),
+            ':model'  => $strOrNull('model_name'),
+            ':barcode'=> $strOrNull('barcode'),
+            ':tax'    => $strOrNull('tax_type'),
+            ':shipm'  => $strOrNull('ship_method'),
+            ':shipft' => $strOrNull('ship_fee_type'),
+            ':shipf'  => $intOrNull('ship_fee'),
+            ':asp'    => $strOrNull('as_phone'),
+            ':asg'    => $strOrNull('as_guide'),
+            ':warr'   => $strOrNull('warranty'),
+            ':detail' => $strOrNull('detail_html'),
+            ':imgs'   => $jsonOrNull('images'),
+            ':opts'   => $jsonOrNull('options'),
+            ':ostk'   => $jsonOrNull('option_stocks'),
         ]);
+        // [현 차수] 옵션재고 → WMS 재고 반영(옵션 조합별 SKU 재고 upsert + 입고 이동 기록). best-effort.
+        self::reflectStockToWms($t, $sku, $body['product_name'] ?? $sku, $body, $intOrNull('initial_stock') ?? 0);
         return self::json($response, ['ok' => true, 'sku' => $sku]);
+    }
+
+    /**
+     * [현 차수] 상품 등록/수정 시 재고를 WMS(wms_stock/MySQL)에 반영한다.
+     *   - 옵션 조합별 재고(option_stocks)가 있으면 조합 SKU 별로 on_hand upsert.
+     *   - 없으면 대표 SKU 로 initial_stock upsert.
+     *   PriceOpt 는 전용 SQLite, WMS 는 Db::pdo(MySQL) 라 교차 반영이며, 실패해도 상품저장은 성공 유지.
+     */
+    private static function reflectStockToWms(string $tenant, string $baseSku, string $name, array $body, int $baseStock): void
+    {
+        try {
+            $pdo = \Genie\Db::pdo();
+            // wms_stock 스키마 보장(멱등) — Wms 핸들러와 동일 구조.
+            try {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS wms_stock (id INTEGER PRIMARY KEY AUTO_INCREMENT, tenant_id VARCHAR(190) NOT NULL DEFAULT 'demo', sku VARCHAR(190) NOT NULL, wh_id VARCHAR(60) NOT NULL DEFAULT '', name VARCHAR(255), on_hand DOUBLE DEFAULT 0, updated_at VARCHAR(32), UNIQUE KEY uq_wms_stock (tenant_id, sku, wh_id))");
+            } catch (\Throwable $e) {
+                try { $pdo->exec("CREATE TABLE IF NOT EXISTS wms_stock (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', sku TEXT NOT NULL, wh_id TEXT NOT NULL DEFAULT '', name TEXT, on_hand REAL DEFAULT 0, updated_at TEXT)"); } catch (\Throwable $e2) {}
+                try { $pdo->exec("CREATE UNIQUE INDEX IF NOT EXISTS uq_wms_stock ON wms_stock(tenant_id, sku, wh_id)"); } catch (\Throwable $e2) {}
+            }
+            $now = gmdate('c');
+            $rows = [];
+            $ostk = $body['option_stocks'] ?? null;
+            if (is_string($ostk)) { $tmp = json_decode($ostk, true); $ostk = is_array($tmp) ? $tmp : null; }
+            if (is_array($ostk) && count($ostk)) {
+                foreach ($ostk as $o) {
+                    if (!is_array($o)) continue;
+                    $osku = trim((string)($o['sku'] ?? ''));
+                    if ($osku === '') {
+                        $sfx = trim((string)($o['suffix'] ?? implode('-', array_map('strval', (array)($o['values'] ?? [])))));
+                        $osku = $sfx !== '' ? ($baseSku . '-' . $sfx) : $baseSku;
+                    }
+                    $rows[] = [$osku, (float)($o['stock'] ?? 0), $name . (isset($o['label']) ? ' / ' . $o['label'] : '')];
+                }
+            } else {
+                $rows[] = [$baseSku, (float)$baseStock, $name];
+            }
+            // upsert (MySQL: ON DUPLICATE, SQLite 폴백: DELETE+INSERT)
+            foreach ($rows as [$sk, $qty, $nm]) {
+                if ($sk === '') continue;
+                try {
+                    $pdo->prepare("INSERT INTO wms_stock (tenant_id, sku, wh_id, name, on_hand, updated_at) VALUES (?,?,?,?,?,?)
+                                   ON DUPLICATE KEY UPDATE on_hand = VALUES(on_hand), name = VALUES(name), updated_at = VALUES(updated_at)")
+                        ->execute([$tenant, $sk, '', $nm, $qty, $now]);
+                } catch (\Throwable $e) {
+                    try {
+                        $pdo->prepare("DELETE FROM wms_stock WHERE tenant_id=? AND sku=? AND wh_id=''")->execute([$tenant, $sk]);
+                        $pdo->prepare("INSERT INTO wms_stock (tenant_id, sku, wh_id, name, on_hand, updated_at) VALUES (?,?,?,?,?,?)")
+                            ->execute([$tenant, $sk, '', $nm, $qty, $now]);
+                    } catch (\Throwable $e2) { /* best-effort */ }
+                }
+            }
+        } catch (\Throwable $e) { /* WMS 반영 실패는 상품저장에 영향 없음 */ }
     }
 
     /** PUT /v420/price/products/{sku} */
@@ -341,11 +429,29 @@ class PriceOpt
         $sku  = $args['sku'] ?? '';
         if (!$sku) return self::json($response, ['ok' => false, 'error' => 'sku required'], 400);
         $sets = []; $params = [':sku' => $sku, ':t' => $t];
-        foreach (['product_name','cost_price','target_margin','base_price','unit'] as $f) {
-            if (isset($body[$f])) { $sets[] = "$f = :$f"; $params[":$f"] = $body[$f]; }
+        // [현 차수] 스칼라 필드 확장(신규 필수/물류 컬럼 포함).
+        $scalarFields = ['product_name','cost_price','target_margin','base_price','unit','category','spec',
+            'io_fee','storage_fee','work_fee','shipping_fee','purchase_cost','qty_per_box','boxes_per_pallet',
+            'initial_stock','stock_boxes','stock_pallets','product_image',
+            'brand','manufacturer','origin','model_name','barcode','tax_type','ship_method','ship_fee_type','ship_fee',
+            'as_phone','as_guide','warranty','detail_html'];
+        foreach ($scalarFields as $f) {
+            if (array_key_exists($f, $body)) { $sets[] = "$f = :$f"; $params[":$f"] = $body[$f]; }
+        }
+        // JSON 필드(옵션·복수이미지) — 배열/객체는 인코딩, 문자열은 그대로.
+        foreach (['images' => 'images_json', 'options' => 'options_json', 'option_stocks' => 'option_stocks_json'] as $src => $col) {
+            if (array_key_exists($src, $body)) {
+                $v = $body[$src];
+                $sets[] = "$col = :$col";
+                $params[":$col"] = is_string($v) ? $v : json_encode($v, JSON_UNESCAPED_UNICODE);
+            }
         }
         if (!count($sets)) return self::json($response, ['ok' => false, 'error' => 'no fields'], 400);
         $db->prepare("UPDATE po_products SET " . implode(',', $sets) . " WHERE sku = :sku AND tenant_id = :t")->execute($params);
+        // 재고/옵션이 수정되면 WMS 재반영.
+        if (array_key_exists('option_stocks', $body) || array_key_exists('initial_stock', $body)) {
+            self::reflectStockToWms($t, $sku, (string)($body['product_name'] ?? $sku), $body, (int)($body['initial_stock'] ?? 0));
+        }
         return self::json($response, ['ok' => true, 'sku' => $sku]);
     }
 
@@ -366,7 +472,16 @@ class PriceOpt
         $t = self::tenant($request);
         $stmt = self::db()->prepare("SELECT * FROM po_products WHERE tenant_id = ? ORDER BY created_at DESC");
         $stmt->execute([$t]);
-        return self::json($response, ['ok' => true, 'products' => $stmt->fetchAll(\PDO::FETCH_ASSOC)]);
+        $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        // [현 차수] JSON 컬럼(복수이미지·옵션·옵션재고)을 구조화해 반환(프론트 즉시 사용).
+        foreach ($rows as &$r) {
+            foreach (['images_json' => 'images', 'options_json' => 'options', 'option_stocks_json' => 'option_stocks'] as $col => $key) {
+                $dec = isset($r[$col]) && $r[$col] !== '' && $r[$col] !== null ? json_decode((string)$r[$col], true) : null;
+                $r[$key] = is_array($dec) ? $dec : [];
+            }
+        }
+        unset($r);
+        return self::json($response, ['ok' => true, 'products' => $rows]);
     }
 
     /** POST /v420/price/elasticity */

@@ -103,11 +103,31 @@ export default function JourneyBuilder() {
             edges: Array.isArray(r.edges) ? r.edges : [],
         };
     };
-    const toBackend = (j) => ({
-        name: j.name, description: j.segment || '',
-        trigger_type: j.trigger_type || 'manual',
-        trigger_config: { channels: j.channels || ['email'], delay: j.delay || 'none', segment: j.segment || '', executions: j.executions || 0 },
-    });
+    // [현 차수 P1] ★간편폼 → 실행가능 노드/엣지 그래프 컴파일. 기존엔 trigger_config 만 보내 백엔드가
+    //   하드코딩 defaultNodes(제목없는 환영메일 1통)로 생성 → 사용자가 고른 채널/지연이 실행 미반영이었다.
+    //   실행엔진 지원 채널(email/kakao/sms)만 send 노드화(push/line 미지원 → 제외). delay 는 대기 노드로.
+    const _delayCfg = (d) => ({ '1h': { unit: 'hours', value: 1 }, '1d': { unit: 'days', value: 1 }, '3d': { unit: 'days', value: 3 }, '7d': { unit: 'days', value: 7 } }[d] || null);
+    const compileGraph = (j) => {
+        const supported = (j.channels || ['email']).filter(c => ['email', 'kakao', 'sms'].includes(c));
+        const chans = supported.length ? supported : ['email'];
+        const nodes = [{ id: 'trigger_1', type: 'trigger', label: 'trigger', config: { type: j.trigger_type || 'manual' }, x: 300, y: 40 }];
+        const edges = [];
+        let prev = 'trigger_1', y = 40;
+        const dc = _delayCfg(j.delay);
+        if (dc) { y += 140; nodes.push({ id: 'delay_1', type: 'delay', label: j.delay_label || 'delay', config: dc, x: 300, y }); edges.push({ from: prev, to: 'delay_1' }); prev = 'delay_1'; }
+        chans.forEach((ch, i) => { y += 140; const nid = `${ch}_${i + 1}`; nodes.push({ id: nid, type: ch, label: ch, config: { template_id: null, subject: '' }, x: 300, y }); edges.push({ from: prev, to: nid }); prev = nid; });
+        return { nodes, edges };
+    };
+    const toBackend = (j, withGraph = false) => {
+        const base = {
+            name: j.name, description: j.segment || '',
+            trigger_type: j.trigger_type || 'manual',
+            trigger_config: { channels: j.channels || ['email'], delay: j.delay || 'none', segment: j.segment || '', executions: j.executions || 0 },
+        };
+        // 신규 생성만 그래프 동봉(수정은 캔버스 편집 그래프 보존 — 덮어쓰기 방지).
+        if (withGraph) { const g = compileGraph(j); base.nodes = g.nodes; base.edges = g.edges; }
+        return base;
+    };
     const reloadJourneys = () => { journeyApi.list().then(r => setJourneys((r.journeys || []).map(mapFromBackend))).catch(() => {}); };
     // [현 차수] 비주얼 캔버스 저장 — 실 nodes/edges 그래프를 백엔드(updateJourney)로 영속(데모는 로컬).
     const saveCanvas = useCallback(async (graph) => {
@@ -205,8 +225,8 @@ export default function JourneyBuilder() {
             persist(next);
         } else {
             try {
-                if (editId) await journeyApi.update(editId, toBackend(journey)); // 수정 시 status 미전송 → 백엔드 상태 보존
-                else await journeyApi.create(toBackend(journey));
+                if (editId) await journeyApi.update(editId, toBackend(journey)); // 수정=trigger_config만(캔버스 그래프 보존)
+                else await journeyApi.create(toBackend(journey, true)); // 신규=실행 노드그래프 컴파일 동봉
                 reloadJourneys();
             } catch (e) { addToast('저장 실패: ' + (e?.message || ''), 'error', 5000); return; }
         }

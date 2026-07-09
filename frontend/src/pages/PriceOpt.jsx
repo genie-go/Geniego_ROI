@@ -3,6 +3,7 @@ import { tChannelName } from '../utils/tenantStorage.js'; // 180차: 회원 격�
 import { useAuth } from "../auth/AuthContext.jsx";
 import ProductSelectBar from '../components/dashboards/ProductSelectBar.jsx';
 import ProductMarketingPanel from '../components/dashboards/ProductMarketingPanel.jsx';
+import SummernoteEditor from '../components/SummernoteEditor.jsx'; // [현 차수] 제품 상세내용 WYSIWYG
 import { useI18n as _useI18n } from "../i18n";
 import PO_DICT from './poI18n.js';
 /* Wrap useI18n: priceOpt.* keys resolved from embedded dict first */
@@ -15,6 +16,8 @@ function useI18n() {
       const k = key.slice(9);
       const loc = PO_DICT[lang] || PO_DICT.en || {};
       if (loc[k] !== undefined) return loc[k];
+      // [현 차수] 현재 언어블록에 없는 신규 키는 영어 사전으로 폴백(비-ko 언어에 한글 누출 방지).
+      if (PO_DICT.en && PO_DICT.en[k] !== undefined) return PO_DICT.en[k];
     }
     return origT(key, fb);
   };
@@ -253,7 +256,16 @@ function ProductsTab({ token }) {
         qty_per_box: "", boxes_per_pallet: "", initial_stock: "",
         stock_input_type: "each", // each | box | pallet
         product_image: null, image_preview: null,
+        // ── [현 차수] 국내 쇼핑몰 필수/권장 항목 + 상세HTML ──
+        brand: "", manufacturer: "", origin: "대한민국", model_name: "", barcode: "",
+        tax_type: "taxable", ship_method: "courier", ship_fee_type: "free", ship_fee: "",
+        as_phone: "", as_guide: "", warranty: "",
+        detail_html: "",
     });
+    // [현 차수] 복수 이미지(대표=첫 번째) · 옵션 그룹 · 옵션 조합 재고
+    const [images, setImages] = useState([]); // [dataURL,...] (max 8)
+    const [optGroups, setOptGroups] = useState([]); // [{name, values:[...]}]
+    const [combos, setCombos] = useState([]); // [{values:[...], label, sku, stock, add_price}]
     const [msg, setMsg] = useState("");
     const [uploading, setUploading] = useState(false);
     const [dragOver, setDragOver] = useState(false);
@@ -301,6 +313,12 @@ function ProductsTab({ token }) {
         }
         return { totalUnits, totalBoxes, totalPallets, qpb, bpp };
     }, [form.qty_per_box, form.boxes_per_pallet, form.initial_stock, form.stock_input_type]);
+
+    // [현 차수] 옵션 조합이 있으면 대표 재고 = 조합 재고 합계(WMS 반영·목록 표시 정합). 없으면 null.
+    const comboStockTotal = React.useMemo(() => {
+        if (!combos.length) return null;
+        return combos.reduce((s, c) => s + (parseInt(c.stock) || 0), 0);
+    }, [combos]);
 
     useEffect(() => {
         const ac = new AbortController();
@@ -364,10 +382,24 @@ function ProductsTab({ token }) {
                 base_price: form.base_price ? parseFloat(form.base_price) : undefined,
                 qty_per_box: parseInt(form.qty_per_box) || 0,
                 boxes_per_pallet: parseInt(form.boxes_per_pallet) || 0,
-                initial_stock: stockSummary.totalUnits,
+                initial_stock: comboStockTotal != null ? comboStockTotal : stockSummary.totalUnits,
                 stock_boxes: stockSummary.totalBoxes,
                 stock_pallets: stockSummary.totalPallets,
-                product_image: form.image_preview || null,
+                product_image: images[0] || form.image_preview || null,
+                // [현 차수] 국내 쇼핑몰 필수/권장 항목
+                brand: form.brand, manufacturer: form.manufacturer, origin: form.origin,
+                model_name: form.model_name, barcode: form.barcode, tax_type: form.tax_type,
+                ship_method: form.ship_method, ship_fee_type: form.ship_fee_type,
+                ship_fee: form.ship_fee_type === 'free' ? 0 : (parseInt(form.ship_fee) || 0),
+                as_phone: form.as_phone, as_guide: form.as_guide, warranty: form.warranty,
+                // 상세HTML · 복수이미지 · 옵션 · 옵션조합 재고
+                detail_html: form.detail_html || '',
+                images: images,
+                options: optGroups.filter(g => g.name.trim() && g.values.length).map(g => ({ name: g.name.trim(), values: g.values })),
+                option_stocks: combos.map(c => ({
+                    values: c.values, label: c.label, suffix: c.suffix, sku: c.sku,
+                    stock: parseInt(c.stock) || 0, add_price: parseInt(c.add_price) || 0,
+                })),
             });
         } catch (e) {
             d = { ok: false, error: e.message };
@@ -382,16 +414,48 @@ function ProductsTab({ token }) {
     };
 
     /* ═══ Image handling ═══ */
-    const handleImageFile = (file) => {
-        if (!file || !file.type.startsWith('image/')) return;
-        if (file.size > 5 * 1024 * 1024) { setMsg('\u274c ' + t('priceOpt.imgMaxSize')); return; }
-        const reader = new FileReader();
-        reader.onload = (e) => setForm(f => ({ ...f, product_image: file, image_preview: e.target.result }));
-        reader.readAsDataURL(file);
+    /* \u2550\u2550\u2550 [\ud604 \ucc28\uc218] \ubcf5\uc218 \uc774\ubbf8\uc9c0(\ucd5c\ub300 8\uc7a5, \uccab \ubc88\uc9f8=\ub300\ud45c) \u2550\u2550\u2550 */
+    const MAX_IMAGES = 8;
+    const addImageFiles = (fileList) => {
+        const files = Array.from(fileList || []).filter(f => f && f.type && f.type.startsWith('image/'));
+        if (!files.length) return;
+        files.forEach(file => {
+            if (file.size > 5 * 1024 * 1024) { setMsg('\u274c ' + t('priceOpt.imgMaxSize')); return; }
+            const reader = new FileReader();
+            reader.onload = (e) => setImages(prev => prev.length >= MAX_IMAGES ? prev : [...prev, e.target.result]);
+            reader.readAsDataURL(file);
+        });
     };
-    const handleImageDrop = (e) => { e.preventDefault(); setDragOver(false); handleImageFile(e.dataTransfer.files?.[0]); };
-    const handleImageSelect = (e) => { handleImageFile(e.target.files?.[0]); };
-    const removeImage = () => setForm(f => ({ ...f, product_image: null, image_preview: null }));
+    const handleImageDrop = (e) => { e.preventDefault(); setDragOver(false); addImageFiles(e.dataTransfer.files); };
+    const handleImageSelect = (e) => { addImageFiles(e.target.files); e.target.value = ''; };
+    const removeImageAt = (idx) => setImages(prev => prev.filter((_, i) => i !== idx));
+    const moveImageFirst = (idx) => setImages(prev => { const a = [...prev]; const [x] = a.splice(idx, 1); a.unshift(x); return a; });
+
+    /* \u2550\u2550\u2550 [\ud604 \ucc28\uc218] \uc635\uc158 \uadf8\ub8f9 + \uc870\ud569 \uc7ac\uace0 \u2550\u2550\u2550 */
+    const addOptGroup = () => setOptGroups(prev => prev.length >= 3 ? prev : [...prev, { name: '', values: [] }]);
+    const removeOptGroup = (gi) => setOptGroups(prev => prev.filter((_, i) => i !== gi));
+    const setOptGroupName = (gi, name) => setOptGroups(prev => prev.map((g, i) => i === gi ? { ...g, name } : g));
+    const setOptGroupValues = (gi, raw) => setOptGroups(prev => prev.map((g, i) => i === gi ? { ...g, values: raw.split(',').map(s => s.trim()).filter(Boolean) } : g));
+    // \uc635\uc158 \uadf8\ub8f9 \u2192 \ub370\uce74\ub974\ud2b8 \uacf1\uc73c\ub85c \uc870\ud569 \uc0dd\uc131(\uae30\uc874 \uc7ac\uace0/\ucd94\uac00\uae08\uc561 \ubcf4\uc874).
+    const generateCombos = () => {
+        const groups = optGroups.filter(g => g.name.trim() && g.values.length);
+        if (!groups.length) { setCombos([]); return; }
+        let acc = [[]];
+        groups.forEach(g => { const next = []; acc.forEach(a => g.values.forEach(v => next.push([...a, v]))); acc = next; });
+        const base = (form.sku || '').trim();
+        setCombos(prevCombos => acc.map(vals => {
+            const label = groups.map((g, i) => `${g.name}:${vals[i]}`).join(' / ');
+            const suffix = vals.join('-');
+            const existing = prevCombos.find(c => (c.values || []).join('') === vals.join(''));
+            return {
+                values: vals, label, suffix,
+                sku: existing?.sku || (base ? `${base}-${suffix}` : suffix),
+                stock: existing?.stock ?? '',
+                add_price: existing?.add_price ?? '',
+            };
+        }));
+    };
+    const setComboField = (ci, k, v) => setCombos(prev => prev.map((c, i) => i === ci ? { ...c, [k]: v } : c));
 
     /* ═══ Excel Download ═══ */
     const downloadExcel = async () => {
@@ -400,13 +464,24 @@ function ProductsTab({ token }) {
             t('priceOpt.unit'), t('priceOpt.purchaseCost'), t('priceOpt.ioFee'), t('priceOpt.storageFee'),
             t('priceOpt.workFee'), t('priceOpt.shippingFee'), t('priceOpt.productCostAuto'),
             t('priceOpt.targetMarginRate'), t('priceOpt.baseSalePrice'),
-            t('priceOpt.qtyPerBox'), t('priceOpt.boxesPerPallet'), t('priceOpt.initialStockUnits')];
+            t('priceOpt.qtyPerBox'), t('priceOpt.boxesPerPallet'), t('priceOpt.initialStockUnits'),
+            // [현 차수] 신규 컬럼(뒤에 추가 — 기존 업로드 인덱스 0~15 무변경)
+            t('priceOpt.brand'), t('priceOpt.manufacturer'), t('priceOpt.origin'), t('priceOpt.modelName'),
+            t('priceOpt.barcode'), t('priceOpt.taxType'), t('priceOpt.shipMethod'), t('priceOpt.shipFeeType'),
+            t('priceOpt.shipFee'), t('priceOpt.asPhone'), t('priceOpt.asGuide'), t('priceOpt.warranty'),
+            'Options', t('priceOpt.detailTitle')];
+        const optStr = (p) => (Array.isArray(p.options) ? p.options : []).map(g => `${g.name}:${(g.values || []).join('|')}`).join(';');
+        const stripHtml = (h) => String(h || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
         const rows = products.map(p => [
             p.sku, p.product_name, p.category || '', p.spec || '', p.unit || '',
             p.purchase_cost || p.cost_price || 0, p.io_fee || 0, p.storage_fee || 0,
             p.work_fee || 0, p.shipping_fee || 0, p.cost_price || 0,
             p.target_margin || 0.30, p.base_price || 0,
             p.qty_per_box || 0, p.boxes_per_pallet || 0, p.initial_stock || 0,
+            p.brand || '', p.manufacturer || '', p.origin || '', p.model_name || '',
+            p.barcode || '', p.tax_type || '', p.ship_method || '', p.ship_fee_type || '',
+            p.ship_fee || 0, p.as_phone || '', p.as_guide || '', p.warranty || '',
+            optStr(p), stripHtml(p.detail_html),
         ]);
         const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
         ws['!cols'] = headers.map(() => ({ wch: 16 }));
@@ -439,6 +514,12 @@ function ProductsTab({ token }) {
                     const workFee = parseFloat(row[8]) || 0;
                     const shippingFee = parseFloat(row[9]) || 0;
                     const totalCost = purchaseCost + ioFee + storageFee + workFee + shippingFee;
+                    // [현 차수] 옵션 정의 문자열 파싱: "색상:빨강|파랑;사이즈:S|M" → [{name,values}]
+                    const parseOpts = (s) => String(s || '').split(';').map(g => {
+                        const [name, vals] = g.split(':');
+                        if (!name || !vals) return null;
+                        return { name: name.trim(), values: vals.split('|').map(v => v.trim()).filter(Boolean) };
+                    }).filter(g => g && g.values.length);
                     const d = await postJsonAuth(`/v420/price/products`, {
                         sku: String(row[0]).trim(),
                         product_name: String(row[1] || '').trim(),
@@ -453,6 +534,14 @@ function ProductsTab({ token }) {
                         qty_per_box: parseInt(row[13]) || 0,
                         boxes_per_pallet: parseInt(row[14]) || 0,
                         initial_stock: parseInt(row[15]) || 0,
+                        // [현 차수] 신규 컬럼(16~29)
+                        brand: String(row[16] || '').trim(), manufacturer: String(row[17] || '').trim(),
+                        origin: String(row[18] || '').trim(), model_name: String(row[19] || '').trim(),
+                        barcode: String(row[20] || '').trim(), tax_type: String(row[21] || '').trim() || 'taxable',
+                        ship_method: String(row[22] || '').trim() || 'courier', ship_fee_type: String(row[23] || '').trim() || 'free',
+                        ship_fee: parseInt(row[24]) || 0, as_phone: String(row[25] || '').trim(),
+                        as_guide: String(row[26] || '').trim(), warranty: String(row[27] || '').trim(),
+                        options: parseOpts(row[28]), detail_html: String(row[29] || '').trim(),
                         _replace: true, // 206차 #6: 엑셀 일괄 업로드는 기존 SKU 덮어쓰기 허용(중복차단 예외)
                     });
                     if (d.ok) successCount++; else failCount++;
@@ -475,9 +564,16 @@ function ProductsTab({ token }) {
         const headers = ['SKU', 'Product Name', 'Category', 'Spec', 'Unit',
             'Purchase Cost', 'IO Fee', 'Storage Fee', 'Work Fee', 'Shipping Fee',
             'Total Cost (auto)', 'Target Margin (0.30=30%)', 'Base Sale Price',
-            'Qty per Box', 'Boxes per Pallet', 'Initial Stock (units)'];
+            'Qty per Box', 'Boxes per Pallet', 'Initial Stock (units)',
+            // [현 차수] 신규 컬럼(국내몰 필수 + 옵션 + 상세)
+            'Brand', 'Manufacturer', 'Origin', 'Model', 'Barcode', 'TaxType(taxable/exempt)',
+            'ShipMethod(courier/direct/pickup/install)', 'ShipFeeType(free/paid/conditional)', 'ShipFee',
+            'A/S Phone', 'A/S Guide', 'Warranty', 'Options(색상:빨강|파랑;사이즈:S|M)', 'Detail(text/HTML)'];
         const example = ['SKU-001', 'Sample Product', 'catElecAudio', '100x50mm', 'unitEach',
-            10000, 500, 300, 200, 1500, 12500, 0.30, 18000, 24, 40, 960];
+            10000, 500, 300, 200, 1500, 12500, 0.30, 18000, 24, 40, 960,
+            'GenieBrand', 'Genie Mfg', '대한민국', 'GB-100', '8809000000001', 'taxable',
+            'courier', 'free', 0, '1588-0000', '구매 후 1년 무상 A/S', '전자제품 품질보증기준 준수',
+            '색상:빨강|파랑;사이즈:S|M', '<p>제품 상세 설명 예시</p>'];
         const ws = XLSX.utils.aoa_to_sheet([headers, example]);
         ws['!cols'] = headers.map(() => ({ wch: 18 }));
         const wb = XLSX.utils.book_new();
@@ -519,32 +615,31 @@ function ProductsTab({ token }) {
                 <div>
                     <h4 style={{ marginTop: 0, fontSize: 13 }}>{t("priceOpt.tabProducts")}</h4>
                     <div style={{ display: "grid", gap: 8, marginBottom: 10 }}>
-                        {/* ── Product Image Upload ── */}
+                        {/* ── [현 차수] 복수 제품 이미지 (첫 번째=대표) ── */}
                         <div style={{ background: 'rgba(99,102,241,0.04)', border: '1px solid rgba(99,102,241,0.15)', borderRadius: 10, padding: 12 }}>
-                            <div style={{ fontSize: 11, color: '#6366f1', fontWeight: 700, marginBottom: 8 }}>📷 {t('priceOpt.productImageTitle')}</div>
-                            {form.image_preview ? (
-                                <div style={{ position: 'relative', display: 'inline-block' }}>
-                                    <img src={form.image_preview} alt="Product" style={{ width: 120, height: 120, objectFit: 'cover', borderRadius: 8, border: '2px solid #6366f155' }} />
-                                    <button onClick={removeImage} style={{ position: 'absolute', top: -6, right: -6, width: 22, height: 22, borderRadius: '50%', background: '#ef4444', border: 'none', color: '#fff', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
-                                </div>
-                            ) : (
-                                <div
-                                    onDrop={handleImageDrop}
-                                    onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-                                    onDragLeave={() => setDragOver(false)}
-                                    onClick={() => document.getElementById('prod-img-input')?.click()}
-                                    style={{
-                                        border: `2px dashed ${dragOver ? '#6366f1' : '#1c2842'}`,
-                                        borderRadius: 8, padding: '18px 12px', textAlign: 'center',
-                                        cursor: 'pointer', transition: 'border-color 0.2s',
-                                        background: dragOver ? 'rgba(99,102,241,0.06)' : 'transparent' }}
-                                >
-                                    <div style={{ fontSize: 24, marginBottom: 4 }}>🖼️</div>
-                                    <div style={{ fontSize: 11, color: '#7c8fa8' }}>{t('priceOpt.imgDragDrop')}</div>
-                                    <div style={{ fontSize: 10, color: '#475569', marginTop: 2 }}>PNG, JPG, WebP ({t('priceOpt.imgMaxLabel')} 5MB)</div>
-                                    <input id="prod-img-input" type="file" accept="image/*" onChange={handleImageSelect} style={{ display: 'none' }} />
-                                </div>
-                            )}
+                            <div style={{ fontSize: 11, color: '#6366f1', fontWeight: 700, marginBottom: 8 }}>📷 {t('priceOpt.imagesTitle')} <span style={{ color: '#94a3b8', fontWeight: 500 }}>({images.length}/{MAX_IMAGES} · {t('priceOpt.imageMax')})</span></div>
+                            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                                {images.map((src, i) => (
+                                    <div key={i} style={{ position: 'relative' }}>
+                                        <img src={src} alt="" style={{ width: 82, height: 82, objectFit: 'cover', borderRadius: 8, border: i === 0 ? '2px solid #6366f1' : '1px solid #e2e8f0' }} />
+                                        {i === 0 && <span style={{ position: 'absolute', bottom: 2, left: 2, fontSize: 8, background: '#6366f1', color: '#fff', padding: '1px 4px', borderRadius: 3, fontWeight: 700 }}>{t('priceOpt.imgMainLabel', '대표')}</span>}
+                                        {i !== 0 && <button onClick={() => moveImageFirst(i)} title={t('priceOpt.imgSetMain', '대표로')} style={{ position: 'absolute', bottom: 2, left: 2, fontSize: 8, background: 'rgba(0,0,0,0.55)', color: '#fff', border: 'none', padding: '1px 4px', borderRadius: 3, cursor: 'pointer' }}>★</button>}
+                                        <button onClick={() => removeImageAt(i)} style={{ position: 'absolute', top: -6, right: -6, width: 20, height: 20, borderRadius: '50%', background: '#ef4444', border: 'none', color: '#fff', fontSize: 11, cursor: 'pointer' }}>✕</button>
+                                    </div>
+                                ))}
+                                {images.length < MAX_IMAGES && (
+                                    <div
+                                        onDrop={handleImageDrop}
+                                        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                                        onDragLeave={() => setDragOver(false)}
+                                        onClick={() => document.getElementById('prod-img-input')?.click()}
+                                        style={{ width: 82, height: 82, border: `2px dashed ${dragOver ? '#6366f1' : '#cbd5e1'}`, borderRadius: 8, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', background: dragOver ? 'rgba(99,102,241,0.06)' : 'transparent' }}>
+                                        <div style={{ fontSize: 20 }}>＋</div>
+                                        <div style={{ fontSize: 9, color: '#7c8fa8' }}>{t('priceOpt.imageAdd')}</div>
+                                    </div>
+                                )}
+                            </div>
+                            <input id="prod-img-input" type="file" accept="image/*" multiple onChange={handleImageSelect} style={{ display: 'none' }} />
                         </div>
 
                         {/* SKU / Product Name */}
@@ -561,6 +656,73 @@ function ProductsTab({ token }) {
                             <div>{lbl(t('priceOpt.unit'))}<select style={inpStyle} value={form.unit} onChange={e => set("unit", e.target.value)}>
                                 {UNIT_KEYS.map(k => <option key={k} value={k}>{t('priceOpt.'+k)}</option>)}
                             </select></div>
+                        </div>
+
+                        {/* ── [현 차수] 쇼핑몰 필수정보 (네이버·쿠팡 등 국내몰 등록 필수/권장) ── */}
+                        <div style={{ background: 'rgba(239,68,68,0.04)', border: '1px solid rgba(239,68,68,0.18)', borderRadius: 8, padding: '10px 12px' }}>
+                            <div style={{ fontSize: 11, color: '#ef4444', fontWeight: 700, marginBottom: 8 }}>🛒 {t('priceOpt.reqFieldsTitle')} <span style={{ color: '#94a3b8', fontWeight: 500 }}>({t('priceOpt.requiredMark')})</span></div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                                <div>{lbl(t('priceOpt.brand'))}<input style={inpStyle} value={form.brand} onChange={e => set('brand', e.target.value)} placeholder="Brand" /></div>
+                                <div>{lbl(t('priceOpt.manufacturer'))}<input style={inpStyle} value={form.manufacturer} onChange={e => set('manufacturer', e.target.value)} placeholder="Maker" /></div>
+                                <div>{lbl(t('priceOpt.origin'))}<input style={inpStyle} value={form.origin} onChange={e => set('origin', e.target.value)} placeholder="대한민국" /></div>
+                                <div>{lbl(t('priceOpt.modelName'))}<input style={inpStyle} value={form.model_name} onChange={e => set('model_name', e.target.value)} placeholder="Model" /></div>
+                                <div>{lbl(t('priceOpt.barcode'))}<input style={inpStyle} value={form.barcode} onChange={e => set('barcode', e.target.value)} placeholder="8809..." /></div>
+                                <div>{lbl(t('priceOpt.taxType'))}<select style={inpStyle} value={form.tax_type} onChange={e => set('tax_type', e.target.value)}>
+                                    <option value="taxable">{t('priceOpt.taxable')}</option>
+                                    <option value="exempt">{t('priceOpt.taxExempt')}</option>
+                                </select></div>
+                                <div>{lbl(t('priceOpt.shipMethod'))}<select style={inpStyle} value={form.ship_method} onChange={e => set('ship_method', e.target.value)}>
+                                    <option value="courier">{t('priceOpt.shipCourier')}</option>
+                                    <option value="direct">{t('priceOpt.shipDirect')}</option>
+                                    <option value="pickup">{t('priceOpt.shipPickup')}</option>
+                                    <option value="install">{t('priceOpt.shipInstall')}</option>
+                                </select></div>
+                                <div>{lbl(t('priceOpt.shipFeeType'))}<select style={inpStyle} value={form.ship_fee_type} onChange={e => set('ship_fee_type', e.target.value)}>
+                                    <option value="free">{t('priceOpt.shipFree')}</option>
+                                    <option value="paid">{t('priceOpt.shipPaid')}</option>
+                                    <option value="conditional">{t('priceOpt.shipConditional')}</option>
+                                </select></div>
+                                {form.ship_fee_type !== 'free' && (
+                                    <div>{lbl(t('priceOpt.shipFee'))}<input style={inpStyle} type="number" min="0" value={form.ship_fee} onChange={e => set('ship_fee', e.target.value)} placeholder="3000" /></div>
+                                )}
+                                <div>{lbl(t('priceOpt.asPhone'))}<input style={inpStyle} value={form.as_phone} onChange={e => set('as_phone', e.target.value)} placeholder="1588-0000" /></div>
+                                <div style={{ gridColumn: '1 / -1' }}>{lbl(t('priceOpt.asGuide'))}<input style={inpStyle} value={form.as_guide} onChange={e => set('as_guide', e.target.value)} placeholder={t('priceOpt.asGuide')} /></div>
+                                <div style={{ gridColumn: '1 / -1' }}>{lbl(t('priceOpt.warranty'))}<input style={inpStyle} value={form.warranty} onChange={e => set('warranty', e.target.value)} placeholder={t('priceOpt.warranty')} /></div>
+                            </div>
+                        </div>
+
+                        {/* ── [현 차수] 옵션 설정 + 조합별 재고 (WMS 반영) ── */}
+                        <div style={{ background: 'rgba(168,85,247,0.05)', border: '1px solid rgba(168,85,247,0.18)', borderRadius: 8, padding: '10px 12px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                                <div style={{ fontSize: 11, color: '#a855f7', fontWeight: 700 }}>🎨 {t('priceOpt.optionsTitle')}</div>
+                                <button type="button" onClick={addOptGroup} disabled={optGroups.length >= 3} style={{ fontSize: 10, padding: '3px 8px', borderRadius: 6, border: '1px solid rgba(168,85,247,0.3)', background: 'rgba(168,85,247,0.1)', color: '#a855f7', cursor: optGroups.length >= 3 ? 'default' : 'pointer', fontWeight: 700 }}>＋ {t('priceOpt.addOptionGroup')}</button>
+                            </div>
+                            {optGroups.length === 0 && <div style={{ fontSize: 10, color: '#94a3b8' }}>{t('priceOpt.noOptions')}</div>}
+                            {optGroups.map((g, gi) => (
+                                <div key={gi} style={{ display: 'grid', gridTemplateColumns: '1fr 1.6fr auto', gap: 6, marginBottom: 6, alignItems: 'end' }}>
+                                    <div>{lbl(t('priceOpt.optionGroupName'))}<input style={inpStyle} value={g.name} onChange={e => setOptGroupName(gi, e.target.value)} placeholder={t('priceOpt.optionGroupName')} /></div>
+                                    <div>{lbl(t('priceOpt.optionValues'))}<input style={inpStyle} defaultValue={g.values.join(', ')} onBlur={e => setOptGroupValues(gi, e.target.value)} placeholder="빨강, 파랑, 검정" /></div>
+                                    <button type="button" onClick={() => removeOptGroup(gi)} style={{ height: 30, padding: '0 8px', borderRadius: 6, border: '1px solid #e2e8f0', background: 'transparent', color: '#ef4444', cursor: 'pointer', fontSize: 12 }}>✕</button>
+                                </div>
+                            ))}
+                            {optGroups.some(g => g.name.trim() && g.values.length) && (
+                                <button type="button" onClick={generateCombos} style={{ marginTop: 4, fontSize: 10, padding: '4px 10px', borderRadius: 6, border: 'none', background: 'linear-gradient(135deg,#a855f7,#6366f1)', color: '#fff', cursor: 'pointer', fontWeight: 700 }}>⚙ {t('priceOpt.genCombos')}</button>
+                            )}
+                            {combos.length > 0 && (
+                                <div style={{ marginTop: 10 }}>
+                                    <div style={{ fontSize: 10, color: '#a855f7', fontWeight: 700, marginBottom: 4 }}>{t('priceOpt.optionCombos')} ({combos.length}) · {t('priceOpt.totalUnits')}: <b>{(comboStockTotal || 0).toLocaleString()}</b></div>
+                                    <div style={{ maxHeight: 210, overflowY: 'auto', display: 'grid', gap: 4 }}>
+                                        {combos.map((c, ci) => (
+                                            <div key={ci} style={{ display: 'grid', gridTemplateColumns: '1.3fr 1.2fr 0.8fr 0.9fr', gap: 4, alignItems: 'center', background: '#faf5ff', borderRadius: 6, padding: '4px 6px' }}>
+                                                <span style={{ fontSize: 10, fontWeight: 700, color: '#7c3aed' }}>{c.label}</span>
+                                                <input style={{ ...inpStyle, fontSize: 10, padding: '3px 6px' }} value={c.sku} onChange={e => setComboField(ci, 'sku', e.target.value)} placeholder={t('priceOpt.comboSku')} />
+                                                <input style={{ ...inpStyle, fontSize: 10, padding: '3px 6px' }} type="number" min="0" value={c.stock} onChange={e => setComboField(ci, 'stock', e.target.value)} placeholder={t('priceOpt.optionStock')} />
+                                                <input style={{ ...inpStyle, fontSize: 10, padding: '3px 6px' }} type="number" value={c.add_price} onChange={e => setComboField(ci, 'add_price', e.target.value)} placeholder={t('priceOpt.optionAddPrice')} />
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         {/* ── Box / Pallet Details ── */}
@@ -701,6 +863,13 @@ function ProductsTab({ token }) {
                     {filteredProducts.length === 0 && <div style={{ color: "#64748b", fontSize: 11, padding: 12 }}>{q ? `"${searchQuery}" ${t('priceOpt.noSearchResult', '검색 결과가 없습니다')}` : t("priceOpt.noProducts")}</div>}
                 </div>
                   ); })()}
+            </div>
+
+            {/* ── [현 차수] 제품 상세내용 (Summernote WYSIWYG · 전체폭) ── */}
+            <div style={{ background: 'rgba(15,23,42,0.02)', border: '1px solid #e2e8f0', borderRadius: 10, padding: 14 }}>
+                <div style={{ fontSize: 13, fontWeight: 800, color: '#0f172a', marginBottom: 4 }}>📝 {t('priceOpt.detailTitle')}</div>
+                <div style={{ fontSize: 11, color: '#7c8fa8', marginBottom: 10 }}>{t('priceOpt.detailHint')}</div>
+                <SummernoteEditor value={form.detail_html} onChange={(html) => set('detail_html', html)} height={340} placeholder={t('priceOpt.detailTitle')} />
             </div>
         </div>
     );

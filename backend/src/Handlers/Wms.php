@@ -877,8 +877,13 @@ class Wms
         $isIn  = in_array($type, ['Inbound','ReturnsInbound'], true) || str_contains($type, '입고');
         $isOut = in_array($type, ['Outbound','ReturnsOutbound','Disposal'], true) || (str_contains($type, '출고') && !str_contains($type, '입고')) || str_contains($type, '폐기');
         if ($type === 'WarehouseTransfer' || str_contains($type, '이고') || str_contains($type, '이동')) {
-            self::adjustStock($t, $sku, $wh, $name, -abs($qty), true, $ref); // 출고 leg=strict(재고부족 거부)
-            self::adjustStock($t, $sku, $dwh !== '' ? $dwh : $wh, $name, abs($qty));
+            // [현 차수 P3] ★창고이동 lot 이관 — 출발 leg 은 strict(재고부족 거부)하되 lot 소비원장은 만들지 않고
+            //   (전송은 판매/COGS 아님), FEFO lot 자체를 도착 창고로 재생성(lot_no·유통기한·원가 보존).
+            //   기존엔 출발 lot 만 줄고 도착엔 lot 미생성 → 도착 창고 FEFO/유통기한/원가 추적이 영구 소실됐다.
+            $dstWh = $dwh !== '' ? $dwh : $wh;
+            self::adjustStock($t, $sku, $wh, $name, -abs($qty), true, '', false); // strict, 소비원장·lot차감 skip
+            self::adjustStock($t, $sku, $dstWh, $name, abs($qty));
+            self::transferLotsFefo($t, $sku, $wh, $dstWh, abs($qty)); // FEFO lot 이관(출발 차감+도착 생성)
         } elseif ($type === 'StockAdj' || str_contains($type, '조정')) {
             self::adjustStock($t, $sku, $wh, $name, $qty); // 조정은 부호 그대로(증감, 음수=0클램프)
         } elseif ($isIn) {
@@ -896,7 +901,7 @@ class Wms
      * 예외는 호출측(recordMovement) 트랜잭션에서 롤백 → 이력/재고 원자성 보장.
      * @throws \RuntimeException 'insufficient_stock:...' 출고 재고부족
      */
-    private static function adjustStock(string $t, string $sku, string $wh, string $name, float $delta, bool $strictOut = false, string $ref = ''): void
+    private static function adjustStock(string $t, string $sku, string $wh, string $name, float $delta, bool $strictOut = false, string $ref = '', bool $consumeLots = true): void
     {
         if ($sku === '' || $delta == 0.0) return;
         $pdo = self::db(); $now = self::now();
@@ -910,7 +915,8 @@ class Wms
             // [현 차수 P3-2] FEFO 실소비 — 출고 시 유통기한 임박 lot 부터 실차감(기존엔 wms_lots 미소비=등록부에 머묾).
             //   lot 미추적 SKU 는 no-op(전 SKU 가 lot 추적 대상은 아님). 비throw(재고는 wms_stock 권위).
             //   $ref 전달 시 소비된 lot 원가를 wms_lot_consumptions 원장에 적재(FEFO COGS 소싱 SSOT).
-            self::consumeLotsFefo($pdo, $t, $sku, $wh, $need, $ref);
+            //   [현 차수 P3] $consumeLots=false(창고이동 출발 leg)면 lot 소비 skip → transferLotsFefo 가 이관 전담.
+            if ($consumeLots) self::consumeLotsFefo($pdo, $t, $sku, $wh, $need, $ref);
             return;
         }
         // 입고/조정: read-modify-write(조정 음수는 0 클램프). recordMovement 트랜잭션 내 호출로 일관성 확보.
@@ -960,6 +966,41 @@ class Wms
                 $need -= $take;
             }
         } catch (\Throwable $e) { /* lot 소비 실패 = 정직 무시(wms_stock 권위) */ }
+    }
+
+    /**
+     * [현 차수 P3] 창고 간 FEFO lot 이관 — 출발 창고의 임박 lot 부터 차감하며 동일 lot(lot_no·유통기한·원가)을
+     *   도착 창고에 재생성. 판매/소비가 아니므로 wms_lot_consumptions(COGS 원장)에는 적재하지 않는다.
+     *   lot 미추적 SKU(lot 0개)는 no-op. 전과정 비throw(보조 등록부·wms_stock 이 재고 권위).
+     */
+    private static function transferLotsFefo(string $t, string $sku, string $srcWh, string $dstWh, float $qty): void
+    {
+        if ($qty <= 0 || $sku === '' || $srcWh === $dstWh) return;
+        try {
+            $pdo = self::db(); $now = self::now();
+            $sel = $pdo->prepare("SELECT id, qty, lot_no, mfg_date, expiry_date, name,
+                                         COALESCE(NULLIF(cost,0),0) AS cost, COALESCE(NULLIF(landed_cost,0),0) AS landed_cost
+                                  FROM wms_lots WHERE tenant_id=:t AND sku=:s AND qty>0 AND (wh_id=:w OR wh_id IS NULL OR wh_id='')
+                                  ORDER BY (expiry_date IS NULL OR expiry_date=''), expiry_date ASC, id ASC");
+            $sel->execute([':t' => $t, ':s' => $sku, ':w' => $srcWh]);
+            $lots = $sel->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+            if (!$lots) return; // lot 미추적 SKU → no-op
+            $need = $qty;
+            $dec = $pdo->prepare("UPDATE wms_lots SET qty = qty - :take WHERE id = :id");
+            $ins = $pdo->prepare("INSERT INTO wms_lots (tenant_id, sku, name, lot_no, mfg_date, expiry_date, qty, wh_id, cost, landed_cost, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)");
+            foreach ($lots as $lot) {
+                if ($need <= 0) break;
+                $take = min((float)$lot['qty'], $need);
+                if ($take <= 0) continue;
+                $dec->execute([':take' => $take, ':id' => (int)$lot['id']]);
+                try {
+                    $ins->execute([$t, $sku, (string)($lot['name'] ?? ''), (string)($lot['lot_no'] ?? ''), (string)($lot['mfg_date'] ?? ''), (string)($lot['expiry_date'] ?? ''), $take, $dstWh, (float)($lot['cost'] ?? 0), (float)($lot['landed_cost'] ?? 0), $now]);
+                } catch (\Throwable $e) { /* cost/landed_cost 컬럼 부재 구스키마 폴백 */
+                    try { $pdo->prepare("INSERT INTO wms_lots (tenant_id, sku, name, lot_no, mfg_date, expiry_date, qty, wh_id, created_at) VALUES (?,?,?,?,?,?,?,?,?)")->execute([$t, $sku, (string)($lot['name'] ?? ''), (string)($lot['lot_no'] ?? ''), (string)($lot['mfg_date'] ?? ''), (string)($lot['expiry_date'] ?? ''), $take, $dstWh, $now]); } catch (\Throwable $e2) {}
+                }
+                $need -= $take;
+            }
+        } catch (\Throwable $e) { /* lot 이관 실패 = 정직 무시(wms_stock 권위) */ }
     }
 
     /**

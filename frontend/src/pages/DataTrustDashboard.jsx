@@ -30,10 +30,12 @@ export default function DataTrustDashboard() {
   const { connectors } = useConnectorSync?.() || { connectors: [] };
   // [272차] 서버 실 데이터 품질/신뢰도(레코드 스캔·신선도·규칙) — 하드코딩 pass:true 셸 대체.
   const [trust, setTrust] = useState(null);
+  const [lineage, setLineage] = useState(null); // [현 차수 P1] 데이터 계보 — 고아였던 /api/data-lineage 실배선
   useEffect(() => {
     if (IS_DEMO) return; // 데모는 샘플 유지(격리)
     let alive = true;
     getJson('/api/data-quality').then(d => { if (alive && d && d.ok) setTrust(d); }).catch(() => {});
+    getJson('/api/data-lineage').then(d => { if (alive && d && d.ok) setLineage(Array.isArray(d.lineage) ? d.lineage : (d.lineage || [])); }).catch(() => {});
     return () => { alive = false; };
   }, []);
 
@@ -65,13 +67,20 @@ export default function DataTrustDashboard() {
       { key: 'ruleDup', target: tr('ruleDupT', '중복 레코드 0건'), pass: sources.length ? true : null },
       { key: 'ruleSchema', target: tr('ruleSchemaT', '스키마 일치'), pass: sources.length ? true : null },
     ];
-  // 컴플라이언스 — 제품 정의 체크리스트
-  const COMPLIANCE = [
-    { key: 'gdpr', label: tr('compGdpr', 'GDPR 동의 관리'), ok: true },
-    { key: 'pii', label: tr('compPii', 'PII 비저장(집계 전용)'), ok: true },
-    { key: 'retention', label: tr('compRetention', '데이터 보존 정책'), ok: true },
-    { key: 'audit', label: tr('compAudit', '감사 로그 활성'), ok: true },
-  ];
+  // 컴플라이언스 — [현 차수 잔여] 서버 실측(trust.compliance) 우선. audit=감사로그 실존, pii=집계전용 설계(검증됨).
+  //   verified=false 항목은 '플랫폼 표준'으로 정직 표기(하드코딩 ok:true 오해 방지). 서버 미제공 시 제품표준 폴백.
+  const _compLabels = {
+    gdpr: tr('compGdpr', 'GDPR 동의 관리'), pii: tr('compPii', 'PII 비저장(집계 전용)'),
+    retention: tr('compRetention', '데이터 보존 정책'), audit: tr('compAudit', '감사 로그 활성'),
+  };
+  const COMPLIANCE = (!IS_DEMO && trust && Array.isArray(trust.compliance) && trust.compliance.length)
+    ? trust.compliance.map(c => ({ key: c.key, label: _compLabels[c.key] || c.key, ok: c.ok !== false, verified: !!c.verified }))
+    : [
+      { key: 'gdpr', label: _compLabels.gdpr, ok: true, verified: false },
+      { key: 'pii', label: _compLabels.pii, ok: true, verified: true },
+      { key: 'retention', label: _compLabels.retention, ok: true, verified: false },
+      { key: 'audit', label: _compLabels.audit, ok: true, verified: false },
+    ];
 
   const tabs = [tr('tabScore', '신뢰도 개요'), tr('tabLineage', '데이터 계보'), tr('tabRules', '품질 규칙'), tr('tabCompliance', '컴플라이언스'), tr('tabMetrics', '지표 사전·공식')];
   // [231차 거버넌스 #6#7] 메트릭 사전 + ROI 공식 버전 — 전 역할이 '같은 정의/숫자'로 의사결정(SSOT·설명가능).
@@ -148,10 +157,34 @@ export default function DataTrustDashboard() {
             ))}
           </div>
         ) : activeTab === 1 ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', fontSize: 12, fontWeight: 700, padding: '8px 0' }}>
-            {[[tr('flowSource', '데이터 소스'), '#4f8ef7'], ['→', null], [tr('flowNormalize', '정규화'), '#a855f7'], ['→', null], [tr('flowMetrics', '메트릭 집계'), '#22c55e'], ['→', null], [tr('flowDashboard', '대시보드'), '#f59e0b']].map(([l, c], i) => c
-              ? <span key={i} style={{ padding: '6px 14px', borderRadius: 8, background: c + '18', color: c, border: `1px solid ${c}33` }}>{l}</span>
-              : <span key={i} style={{ color: 'var(--text-3)' }}>{l}</span>)}
+          <div style={{ display: 'grid', gap: 12 }}>
+            {/* 표준 흐름도(헤더) */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', fontSize: 12, fontWeight: 700, padding: '4px 0' }}>
+              {[[tr('flowSource', '데이터 소스'), '#4f8ef7'], ['→', null], [tr('flowNormalize', '정규화'), '#a855f7'], ['→', null], [tr('flowMetrics', '메트릭 집계'), '#22c55e'], ['→', null], [tr('flowDashboard', '대시보드'), '#f59e0b']].map(([l, c], i) => c
+                ? <span key={i} style={{ padding: '6px 14px', borderRadius: 8, background: c + '18', color: c, border: `1px solid ${c}33` }}>{l}</span>
+                : <span key={i} style={{ color: 'var(--text-3)' }}>{l}</span>)}
+            </div>
+            {/* [현 차수 P1] 도메인별 실 계보(/api/data-lineage) — 운영 실배선. 미로드/데모는 흐름도만. */}
+            {(!IS_DEMO && Array.isArray(lineage) && lineage.length > 0) ? lineage.map((ln, i) => {
+              const traceable = ln.traceable !== false;
+              const srcs = Array.isArray(ln.sources) ? ln.sources : [];
+              return (
+                <div key={i} style={{ padding: '12px 14px', borderRadius: 12, background: 'var(--surface2, var(--surface))', border: '1px solid var(--border)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                    <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--text-1)' }}>{ln.analysis || ln.domain || ln.metric || tr('lineageDomain', '분석 지표')}</span>
+                    <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 20, background: traceable ? 'rgba(34,197,94,0.14)' : 'rgba(239,68,68,0.14)', color: traceable ? '#16a34a' : '#dc2626' }}>
+                      {traceable ? tr('lineageTraceable', '원천 추적가능') : tr('lineageNoSource', '원천 미연결')}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: 11, color: 'var(--text-3)' }}>
+                    {srcs.length ? srcs.map(s => (typeof s === 'string' ? s : (s.name || s.source || s.source_channel || s.channel || s.table))).filter(Boolean).join(' · ') : tr('lineageNoSourceDesc', '연결된 데이터 원천이 없습니다.')}
+                    {ln.ssot ? ` → SSOT: ${ln.ssot}` : ''}
+                  </div>
+                </div>
+              );
+            }) : (!IS_DEMO && lineage && lineage.length === 0) ? (
+              <div style={{ fontSize: 12, color: 'var(--text-3)', padding: '8px 0' }}>{tr('lineageEmpty', '연결된 데이터 원천이 없어 계보를 표시할 수 없습니다. 채널을 연동하세요.')}</div>
+            ) : null}
           </div>
         ) : activeTab === 2 ? (
           <div style={{ display: 'grid', gap: 10 }}>
@@ -168,7 +201,11 @@ export default function DataTrustDashboard() {
             {COMPLIANCE.map(c => (
               <div key={c.key} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 16px', borderRadius: 12, background: 'rgba(34,197,94,0.06)', border: '1px solid rgba(34,197,94,0.18)' }}>
                 <span style={{ fontSize: 18 }}>{c.ok ? '✅' : '⚠️'}</span>
-                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-1)' }}>{c.label}</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-1)', flex: 1 }}>{c.label}</span>
+                {/* [현 차수 잔여] 검증 출처 정직 표기 — 실측(감사로그 등) vs 플랫폼 표준(설계 약속) */}
+                <span style={{ fontSize: 9, fontWeight: 700, padding: '2px 7px', borderRadius: 20, background: c.verified ? 'rgba(34,197,94,0.16)' : 'rgba(148,163,184,0.16)', color: c.verified ? '#16a34a' : 'var(--text-3)' }}>
+                  {c.verified ? tr('compVerified', '실측') : tr('compStandard', '플랫폼 표준')}
+                </span>
               </div>
             ))}
           </div>

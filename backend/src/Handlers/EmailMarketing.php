@@ -591,13 +591,16 @@ class EmailMarketing
         $segId = (int)$campaign['segment_id'];
         // [현 차수 약점①] 발송 직전 동적 세그먼트 멤버 최신화(stale 방지). best-effort — 실패해도 발송 진행.
         if ($segId) { CRM::refreshSegmentForSend($pdo, $tenant, $segId); }
+        // [현 차수 P2] 실 이메일 없는 수신자 제외 — Kakao/SMS 동기화 고객의 합성 '@채널.noemail'·빈값·비정상 주소가
+        //   이메일 캠페인 수신자에 섞여 대량 발송실패/딜리버러빌리티 훼손을 일으켰다(SMS/Kakao 필터와 정합).
+        $mailFilter = "c.email IS NOT NULL AND c.email <> '' AND c.email LIKE '%@%' AND c.email NOT LIKE '%.noemail'";
         if ($segId) {
             $cust = $pdo->prepare("SELECT c.id, c.email, c.name FROM crm_customers c
                 JOIN crm_segment_members sm ON sm.customer_id=c.id AND sm.tenant_id=c.tenant_id
-                WHERE sm.segment_id=:sid AND c.tenant_id=:t");
+                WHERE sm.segment_id=:sid AND c.tenant_id=:t AND $mailFilter");
             $cust->execute([':sid'=>$segId, ':t'=>$tenant]);
         } else {
-            $cust = $pdo->prepare("SELECT id, email, name FROM crm_customers WHERE tenant_id=:t");
+            $cust = $pdo->prepare("SELECT id, email, name FROM crm_customers c WHERE c.tenant_id=:t AND $mailFilter");
             $cust->execute([':t'=>$tenant]);
         }
         $customerList = $cust->fetchAll(\PDO::FETCH_ASSOC);

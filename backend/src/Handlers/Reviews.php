@@ -297,34 +297,49 @@ final class Reviews
         if ($tenant === '' || self::isDemo($tenant)) return self::json($res, ['ok' => true, 'keywords' => []]);
         try {
             $pdo = Db::pdo(); self::ensureTable($pdo);
+            // [현 차수 잔여] ★기간대비 change 산출 — 기존 change=0 하드코딩(추세 화살표 항상 0). 최근 30일(cur) vs
+            //   이전 30일(prev) 키워드 빈도 차이. created_at 컬럼 부재 등 실패 시 change=0 폴백(무해).
+            $cutCur  = gmdate('Y-m-d H:i:s', time() - 30 * 86400);
+            $cutPrev = gmdate('Y-m-d H:i:s', time() - 60 * 86400);
             // R2 우선: AI 추출 키워드 집계(부정·중립 리뷰의 ai_topics.keywords).
-            $aiCounts = [];
+            $aiCounts = []; $aiCur = []; $aiPrev = []; $hasWin = false;
             try {
-                $sa = $pdo->prepare("SELECT ai_topics FROM product_review WHERE tenant_id=? AND sentiment IN('negative','neutral') AND ai_topics IS NOT NULL AND ai_topics<>'' ORDER BY id DESC LIMIT 3000");
-                $sa->execute([$tenant]);
-                foreach ($sa->fetchAll(\PDO::FETCH_COLUMN) as $tj) {
-                    $d = json_decode((string)$tj, true);
+                $sa = $pdo->prepare("SELECT ai_topics, created_at FROM product_review WHERE tenant_id=? AND sentiment IN('negative','neutral') AND ai_topics IS NOT NULL AND ai_topics<>'' ORDER BY id DESC LIMIT 3000");
+                $sa->execute([$tenant]); $hasWin = true;
+                foreach ($sa->fetchAll(\PDO::FETCH_ASSOC) as $r) {
+                    $d = json_decode((string)($r['ai_topics'] ?? ''), true);
                     $kws = is_array($d['keywords'] ?? null) ? $d['keywords'] : [];
-                    foreach ($kws as $kw) { $kw = trim((string)$kw); if ($kw !== '') $aiCounts[$kw] = ($aiCounts[$kw] ?? 0) + 1; }
+                    $ca = (string)($r['created_at'] ?? '');
+                    $win = ($ca >= $cutCur) ? 'cur' : (($ca >= $cutPrev) ? 'prev' : 'old');
+                    foreach ($kws as $kw) { $kw = trim((string)$kw); if ($kw === '') continue; $aiCounts[$kw] = ($aiCounts[$kw] ?? 0) + 1; if ($win === 'cur') $aiCur[$kw] = ($aiCur[$kw] ?? 0) + 1; elseif ($win === 'prev') $aiPrev[$kw] = ($aiPrev[$kw] ?? 0) + 1; }
                 }
-            } catch (\Throwable $e) {}
+            } catch (\Throwable $e) { $hasWin = false; }
             if ($aiCounts) {
                 arsort($aiCounts);
                 $out = [];
-                foreach ($aiCounts as $word => $c) { $out[] = ['word' => $word, 'count' => $c, 'change' => 0, 'src' => 'ai']; }
+                foreach ($aiCounts as $word => $c) { $out[] = ['word' => $word, 'count' => $c, 'change' => $hasWin ? (($aiCur[$word] ?? 0) - ($aiPrev[$word] ?? 0)) : 0, 'src' => 'ai']; }
                 return self::json($res, ['ok' => true, 'mode' => 'ai', 'keywords' => array_slice($out, 0, 15)]);
             }
-            // R1 폴백: 사전 매칭 빈도.
-            $st = $pdo->prepare("SELECT body FROM product_review WHERE tenant_id=? AND sentiment='negative' ORDER BY id DESC LIMIT 2000");
-            $st->execute([$tenant]);
-            $counts = array_fill_keys(self::NEG_DICT, 0);
-            foreach ($st->fetchAll(\PDO::FETCH_COLUMN) as $body) {
-                $b = (string)$body;
-                foreach (self::NEG_DICT as $kw) { if ($kw !== '' && mb_strpos($b, $kw) !== false) $counts[$kw]++; }
+            // R1 폴백: 사전 매칭 빈도(기간대비 포함).
+            $counts = array_fill_keys(self::NEG_DICT, 0); $cur = array_fill_keys(self::NEG_DICT, 0); $prev = array_fill_keys(self::NEG_DICT, 0); $hasWin = false;
+            try {
+                $st = $pdo->prepare("SELECT body, created_at FROM product_review WHERE tenant_id=? AND sentiment='negative' ORDER BY id DESC LIMIT 2000");
+                $st->execute([$tenant]); $hasWin = true;
+                foreach ($st->fetchAll(\PDO::FETCH_ASSOC) as $r) {
+                    $b = (string)($r['body'] ?? ''); $ca = (string)($r['created_at'] ?? '');
+                    $win = ($ca >= $cutCur) ? 'cur' : (($ca >= $cutPrev) ? 'prev' : 'old');
+                    foreach (self::NEG_DICT as $kw) { if ($kw !== '' && mb_strpos($b, $kw) !== false) { $counts[$kw]++; if ($win === 'cur') $cur[$kw]++; elseif ($win === 'prev') $prev[$kw]++; } }
+                }
+            } catch (\Throwable $e) {
+                // created_at 부재 구스키마 폴백: body 만 집계(change=0)
+                $st = $pdo->prepare("SELECT body FROM product_review WHERE tenant_id=? AND sentiment='negative' ORDER BY id DESC LIMIT 2000");
+                $st->execute([$tenant]);
+                foreach ($st->fetchAll(\PDO::FETCH_COLUMN) as $body) { $b = (string)$body; foreach (self::NEG_DICT as $kw) { if ($kw !== '' && mb_strpos($b, $kw) !== false) $counts[$kw]++; } }
+                $hasWin = false;
             }
             arsort($counts);
             $out = [];
-            foreach ($counts as $word => $c) { if ($c > 0) $out[] = ['word' => $word, 'count' => $c, 'change' => 0, 'src' => 'dict']; }
+            foreach ($counts as $word => $c) { if ($c > 0) $out[] = ['word' => $word, 'count' => $c, 'change' => $hasWin ? (($cur[$word] ?? 0) - ($prev[$word] ?? 0)) : 0, 'src' => 'dict']; }
             return self::json($res, ['ok' => true, 'mode' => 'dict', 'keywords' => array_slice($out, 0, 15)]);
         } catch (\Throwable $e) { return self::json($res, ['ok' => true, 'keywords' => []]); }
     }

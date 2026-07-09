@@ -332,6 +332,8 @@ return function (App $app): void {
         'GET /customer-ai/churn-scores'        => 'Genie\\Handlers\\CustomerAI::churnScores',
         'GET /customer-ai/ltv-segments'        => 'Genie\\Handlers\\CustomerAI::ltvSegments',
         'POST /customer-ai/auto-action'        => 'Genie\\Handlers\\CustomerAI::autoAction',
+        'GET /customer-ai/auto-actions'        => 'Genie\\Handlers\\CustomerAI::listAutoActions',
+        'POST /customer-ai/auto-action/dispatch' => 'Genie\\Handlers\\CustomerAI::dispatchAutoAction',
         'GET /customer-ai/next-best-action'    => 'Genie\\Handlers\\CustomerAI::nextBestAction',
         'GET /customer-ai/model-performance'   => 'Genie\\Handlers\\CustomerAI::modelPerformance',
         'GET /customer-ai/product-recommendations' => 'Genie\\Handlers\\CustomerAI::productRecommendations',
@@ -1417,6 +1419,10 @@ return function (App $app): void {
         'POST /auth/find-id'         => 'Genie\\Handlers\\UserAuth::findId',
         'POST /auth/forgot-password' => 'Genie\\Handlers\\UserAuth::forgotPassword',
         'POST /auth/reset-password'  => 'Genie\\Handlers\\UserAuth::resetPassword',
+        // [현 차수] 휴대폰 SMS 인증번호(OTP) — 가입/아이디·비번찾기/최고관리자 접속코드 복구 공용
+        'POST /auth/phone/send-code'          => 'Genie\\Handlers\\UserAuth::phoneSendCode',
+        'POST /auth/phone/verify-code'        => 'Genie\\Handlers\\UserAuth::phoneVerifyCode',
+        'POST /auth/admin/access-key/recover' => 'Genie\\Handlers\\UserAuth::adminRecoverAccessKey',
         // 188차 관리자 보안강화 — 접속키 검증/변경
         'POST /auth/admin/verify-access-key' => 'Genie\\Handlers\\UserAuth::verifyAdminKey',
         'POST /auth/admin/access-key'        => 'Genie\\Handlers\\UserAuth::adminChangeAccessKey',
@@ -1427,6 +1433,10 @@ return function (App $app): void {
         'GET /auth/admin/sms'                => 'Genie\\Handlers\\UserAuth::smsGet',
         'POST /auth/admin/sms'               => 'Genie\\Handlers\\UserAuth::smsSave',
         'POST /auth/admin/sms/test'          => 'Genie\\Handlers\\UserAuth::smsTest',
+        // [현 차수] Twilio SMS 설정(로그인 2FA·본인인증 OTP 채널)
+        'GET /auth/admin/twilio'             => 'Genie\\Handlers\\UserAuth::twilioGet',
+        'POST /auth/admin/twilio'            => 'Genie\\Handlers\\UserAuth::twilioSave',
+        'POST /auth/admin/twilio/test'       => 'Genie\\Handlers\\UserAuth::twilioTest',
         'GET /auth/admin/ai-key'             => 'Genie\\Handlers\\UserAuth::aiKeyGet',
         'POST /auth/admin/ai-key'            => 'Genie\\Handlers\\UserAuth::aiKeySave',
         'GET /auth/admin/img-key'            => 'Genie\\Handlers\\UserAuth::imgKeyGet',
@@ -2389,6 +2399,9 @@ return function (App $app): void {
     $register('POST', '/auth/find-id');
     $register('POST', '/auth/forgot-password');
     $register('POST', '/auth/reset-password');
+    $register('POST', '/auth/phone/send-code');
+    $register('POST', '/auth/phone/verify-code');
+    $register('POST', '/auth/admin/access-key/recover');
     $register('POST', '/auth/admin/verify-access-key');
     $register('POST', '/auth/admin/access-key');
     $register('GET',  '/auth/admin/smtp');
@@ -2397,6 +2410,9 @@ return function (App $app): void {
     $register('GET',  '/auth/admin/sms');
     $register('POST', '/auth/admin/sms');
     $register('POST', '/auth/admin/sms/test');
+    $register('GET',  '/auth/admin/twilio');
+    $register('POST', '/auth/admin/twilio');
+    $register('POST', '/auth/admin/twilio/test');
     $register('GET',  '/auth/admin/ai-key');
     $register('POST', '/auth/admin/ai-key');
     $register('GET',  '/auth/admin/img-key');
@@ -3046,6 +3062,8 @@ return function (App $app): void {
     $register('GET',    '/customer-ai/churn-scores');
     $register('GET',    '/customer-ai/ltv-segments');
     $register('POST',   '/customer-ai/auto-action');
+    $register('GET',    '/customer-ai/auto-actions');
+    $register('POST',   '/customer-ai/auto-action/dispatch');
     $register('GET',    '/customer-ai/next-best-action');
     $register('GET',    '/customer-ai/model-performance');
     $register('GET',    '/customer-ai/product-recommendations');

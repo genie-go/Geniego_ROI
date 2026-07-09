@@ -461,15 +461,21 @@ final class Mmm
             if ($kap <= 0 || $lam < 0 || $lam >= 0.97) return null;
             $ad = []; $prev = 0.0;
             foreach ($spend as $s) { $prev = $s + $lam * $prev; $ad[] = $prev; }
-            $sNum = 0.0; $sDen = 0.0;
-            foreach ($ad as $i => $x) { $sat = 1.0 - exp(-$x / $kap); $sNum += $rev[$i] * $sat; $sDen += $sat * $sat; }
-            if ($sDen <= 1e-9) return null;
-            $beta = $sNum / $sDen;
+            // [현 차수 P2] ★organic baseline 절편 포함 2-파라미터 OLS(rev = base + beta·sat).
+            //   기존 원점회귀(base=0)는 beta 가 organic(무광고) 매출까지 흡수 → marginal ROAS·광고기여 과대·과잉예산 유발.
+            //   rev 를 sat 에 대해 절편 포함 최소제곱 회귀. base<0(구석해)는 0 클램프(음의 유기매출 방지).
+            $sSat = 0.0; $sRev = 0.0; $sSatSat = 0.0; $sRevSat = 0.0;
+            foreach ($ad as $i => $x) { $sat = 1.0 - exp(-$x / $kap); $sSat += $sat; $sRev += $rev[$i]; $sSatSat += $sat * $sat; $sRevSat += $rev[$i] * $sat; }
+            $den = $n * $sSatSat - $sSat * $sSat;
+            if (abs($den) <= 1e-9) return null;
+            $beta = ($n * $sRevSat - $sRev * $sSat) / $den;
             if ($beta <= 0) return null;
+            $base = ($sRev - $beta * $sSat) / $n;
+            if ($base < 0) { $base = 0.0; $beta = $sSatSat > 1e-9 ? $sRevSat / $sSatSat : $beta; if ($beta <= 0) return null; } // base=0 재적합(원점회귀)
             $sse = 0.0;
-            foreach ($ad as $i => $x) { $pred = $beta * (1.0 - exp(-$x / $kap)); $sse += ($rev[$i] - $pred) ** 2; }
+            foreach ($ad as $i => $x) { $pred = $base + $beta * (1.0 - exp(-$x / $kap)); $sse += ($rev[$i] - $pred) ** 2; }
             $r2 = $ssTot > 1e-9 ? (1.0 - $sse / $ssTot) : 0.0;
-            return ['beta' => $beta, 'r2' => $r2, 'sse' => $sse, 'lambda' => $lam, 'kappa_raw' => $kap];
+            return ['beta' => $beta, 'base' => $base, 'r2' => $r2, 'sse' => $sse, 'lambda' => $lam, 'kappa_raw' => $kap];
         };
         // 1) coarse 그리드(λ 9 × κ 7) → 2) best 주변 fine 정제(coarse→fine, 고정 28→적응형 88+). 결정론·R²는 단조 개선.
         $best = null;
@@ -488,10 +494,10 @@ final class Mmm
         $lamBest = $best['lambda']; $kapRaw = $best['kappa_raw'];
         $kappaEff = $kapRaw * (1.0 - $lamBest); if ($kappaEff <= 0) $kappaEff = $kapRaw;
         $nrmse = $meanRev > 0 ? sqrt($best['sse'] / $n) / $meanRev : 0.0; // Robyn 기본 지표(정규화 RMSE=상대오차)
-        $best = ['beta' => $best['beta'], 'kappa' => $kappaEff, 'lambda' => $lamBest, 'r2' => $best['r2'], 'nrmse' => $nrmse];
+        $best = ['beta' => $best['beta'], 'base' => $best['base'] ?? 0.0, 'kappa' => $kappaEff, 'lambda' => $lamBest, 'r2' => $best['r2'], 'nrmse' => $nrmse];
 
-        $beta = $best['beta']; $kappa = $best['kappa'];
-        $curRev = $beta * (1.0 - exp(-$avgSpend / $kappa)); // 예측 일매출(현 지출)
+        $beta = $best['beta']; $kappa = $best['kappa']; $baseline = $best['base'];
+        $curRev = $beta * (1.0 - exp(-$avgSpend / $kappa)); // [현 차수 P2] 광고 기여 매출(organic baseline 제외)
         $marginal = ($beta / $kappa) * exp(-$avgSpend / $kappa); // dRev/dSpend
         $saturation = 1.0 - exp(-$avgSpend / $kappa);
         return [
@@ -508,7 +514,9 @@ final class Mmm
             'current_roas' => $totalSpend > 0 ? round($totalRev / $totalSpend, 3) : 0,
             'marginal_roas' => round($marginal, 3),
             'saturation' => round($saturation, 3),
-            'contribution' => round($curRev, 2), // 현 지출에서의 예측 기여 매출(일)
+            'contribution' => round($curRev, 2), // 현 지출에서의 광고 기여 매출(일, organic 제외)
+            'baseline' => round($baseline, 2),   // [현 차수 P2] 유기(무광고) 일매출 절편 — 광고기여와 분리 노출
+            'baseline_daily' => round($baseline, 2),
         ];
     }
 

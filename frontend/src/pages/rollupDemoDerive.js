@@ -208,6 +208,7 @@ export function deriveRollup(dimension, period, n, gd) {
   const totalRevenue = skuRows.reduce((s, r) => s + r.total_revenue, 0);          // 판매 매출(=대시보드/P&L)
   const totalOrders = skuRows.reduce((s, r) => s + r.total_orders, 0);
   const totalSpend = pfRows.reduce((s, r) => s + r.total_spend, 0);               // 광고 지출(=마케팅 메뉴)
+  const adRevenue = pfRows.reduce((s, r) => s + (r.total_revenue || 0), 0);       // [현 차수 P2] 광고 기여매출(ROAS 분자)
   const byPlatform = {};
   pfRows.forEach(p => { byPlatform[p.platform] = p.total_revenue; });
   const topSkus = skuRows.slice(0, 8).map(s => ({ sku_id: s.sku_id, name: s.name, revenue: s.total_revenue, orders: s.total_orders, roas: s.avg_roas, return_rate: s.avg_return_rate }));
@@ -216,7 +217,7 @@ export function deriveRollup(dimension, period, n, gd) {
     ...base,
     kpi: {
       total_revenue: _round(totalRevenue), total_spend: _round(totalSpend), total_orders: totalOrders,
-      avg_roas: totalSpend > 0 ? _round(totalRevenue / totalSpend, 2) : 0,
+      avg_roas: totalSpend > 0 ? _round(adRevenue / totalSpend, 2) : 0, // [현 차수 P2] 광고기여매출/지출(백엔드 Rollup.php:726 정합) — 총주문매출/지출은 ROAS 과대
       revenue_per_order: totalOrders > 0 ? Math.round(totalRevenue / totalOrders) : 0,
     },
     by_platform: byPlatform, top_skus: topSkus, alerts,

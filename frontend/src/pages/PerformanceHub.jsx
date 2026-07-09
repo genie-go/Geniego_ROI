@@ -47,7 +47,7 @@ const SecurityOverlay = memo(function SecurityOverlay({ threats, onDismiss }) {
 /* ─── Shared utils ────────────────────────────────────────────── */
 const fmtKRW = v => v == null ? "—" : v; // NOTE: replaced by useCurrency in component
 const fmtM = v => v >= 1e6 ? (v / 1e6).toFixed(1) + "M" : v >= 1e3 ? (v / 1e3).toFixed(0) + "K" : String(v);
-const pct = v => (Number(v) * 100).toFixed(1) + "%";
+const pct = v => { const n = Number(v); return (Number.isFinite(n) ? n * 100 : 0).toFixed(1) + "%"; }; // [현 차수 P2] grossSales=0 시 Infinity/NaN% 방지
 const round2 = v => Number(v).toFixed(2);
 
 const get_EXCHANGE = () => ({ USD: 1330, JPY: 8.8, EUR: 1450, CNY: 183 });
@@ -495,7 +495,7 @@ const SettlementTab = memo(function SettlementTab() {
                         <tbody>
                             {channels.map(ch => {
                                 const kr = toBase(ch.netPayout, ch.currency);
-                                const rate = ch.netPayout / ch.grossSales;
+                                const rate = ch.grossSales > 0 ? ch.netPayout / ch.grossSales : 0; // [현 차수 P2] 0나눗셈 가드
                                 const fmt = v => ch.currency === "KRW" ? fmtC(v) : "$" + fmtM(v);
                                 return (
                                     <tr key={ch.id}>
@@ -561,7 +561,7 @@ const CreatorTab = memo(function CreatorTab() {
         if (!selected) return;
         setSettling(true);
         const gross = Number(selected.contractRate) || 0;
-        const tax = Math.round(gross * 0.033) + Math.round(gross * 0.0033);
+        const tax = Math.round(gross * 0.03) + Math.round(gross * 0.003); // [현 차수 P2] 표준 3.3%(소득세3%+지방0.3%). 기존 3.63% 과다공제
         try {
             const r = await postJsonAuth('/api/v423/influencer/settlement-record', {
                 creator_id: String(selected.id ?? ''), creator_name: selected.name || '',
@@ -769,8 +769,8 @@ const CreatorTab = memo(function CreatorTab() {
                         {/* Calculation */}
                         {[
                             [t('performance.contractAmount'), fmtC(selected.contractRate), "var(--text-1)"],
-                            [t('performance.bizIncomeTax'), "- " + fmtC(Math.round(selected.contractRate * 0.033)), "#ef4444"],
-                            [t('performance.localIncomeTax'), "- " + fmtC(Math.round(selected.contractRate * 0.0033)), "#f97316"],
+                            [t('performance.bizIncomeTax'), "- " + fmtC(Math.round(selected.contractRate * 0.03)), "#ef4444"],
+                            [t('performance.localIncomeTax'), "- " + fmtC(Math.round(selected.contractRate * 0.003)), "#f97316"],
                         ].map(([l, v, c]) => (
                             <div key={l} style={{ display: "flex", justifyContent: "space-between", padding: "9px 0", borderBottom: "1px solid rgba(99,140,255,0.07)", fontSize: 12 }}>
                                 <span style={{ color: "var(--text-3)" }}>{l}</span>
@@ -780,7 +780,7 @@ const CreatorTab = memo(function CreatorTab() {
                         <div style={{ display: "flex", justifyContent: "space-between", padding: "12px 0", fontSize: 14 }}>
                             <span style={{ fontWeight: 700 }}>{t('performance.netPayoutInclTax')}</span>
                             <span style={{ fontWeight: 900, color: "#22c55e", fontSize: 18 }}>
-                                {fmtC(selected.contractRate - Math.round(selected.contractRate * 0.033) - Math.round(selected.contractRate * 0.0033))}
+                                {fmtC(selected.contractRate - Math.round(selected.contractRate * 0.03) - Math.round(selected.contractRate * 0.003))}
                             </span>
                         </div>
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 4 }}>

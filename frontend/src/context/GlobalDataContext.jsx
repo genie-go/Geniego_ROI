@@ -605,6 +605,10 @@ export function GlobalDataProvider({ children }) {
     const _bc = useCallback((type, val) => {
         if (_bcReady.current && _bcRecv.current[type] !== val) broadcastUpdate(type, val);
     }, []);
+    // [현 차수 P2] ★INVENTORY 송신부 실제 부재 교정 — registerInOut/adjustStock 이 raw setInventory 만 호출해
+    //   WMS 입출고/조정이 다른 탭(대시보드·주문)에 실시간 전파 안 됐다(수신부 case 'INVENTORY_UPDATE' 만 존재).
+    //   echo 가드(_bcRecv)로 수신값 재전파 방지 — 중복/무한루프 없음.
+    useEffect(() => { _bc('INVENTORY_UPDATE', inventory); }, [inventory, _bc]);
     useEffect(() => { _bc('CREATORS_UPDATE', creators); }, [creators, _bc]);
     useEffect(() => { _bc('CRM_UPDATE', crmSegments); }, [crmSegments, _bc]);
     useEffect(() => { _bc('CAMPAIGNS_UPDATE', sharedCampaigns); }, [sharedCampaigns, _bc]);

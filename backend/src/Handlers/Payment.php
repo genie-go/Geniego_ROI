@@ -488,7 +488,7 @@ final class Payment
             $pdo = Db::pdo();
             $now = self::now();
             $stmt = $pdo->prepare(
-                'SELECT u.id, u.email, COALESCE(u.plans,u.plan,\'demo\') AS plan FROM user_session s
+                'SELECT u.id, u.email, COALESCE(u.plans,u.plan,\'demo\') AS plan, COALESCE(u.admin_level,\'\') AS admin_level FROM user_session s
                    JOIN app_user u ON u.id = s.user_id
                   WHERE s.token = ? AND s.expires_at > ? AND u.is_active = 1'
             );
@@ -497,8 +497,9 @@ final class Payment
         } catch (\Throwable $e) {
             return self::json($res, ['ok' => false, 'error' => 'DB 오류'], 500);
         }
-        if (!$user || $user['plan'] !== 'admin') {
-            return self::json($res, ['ok' => false, 'error' => '관리자 권한이 필요합니다.'], 403);
+        // [현 차수 P2] 결제(PG)·플랫폼 요금 저장은 최고관리자(master) 전용 — 하위관리자(sub)의 자금흐름 탈취/요금 위변조 차단.
+        if (!$user || $user['plan'] !== 'admin' || ($user['admin_level'] ?? '') === 'sub') {
+            return self::json($res, ['ok' => false, 'error' => '최고관리자만 결제·요금 설정을 변경할 수 있습니다.'], 403);
         }
 
         // pg_config 목록 조회
@@ -547,7 +548,7 @@ final class Payment
             $pdo = Db::pdo();
             $now = self::now();
             $stmt = $pdo->prepare(
-                'SELECT u.id, u.email, COALESCE(u.plans,u.plan,\'demo\') AS plan FROM user_session s
+                'SELECT u.id, u.email, COALESCE(u.plans,u.plan,\'demo\') AS plan, COALESCE(u.admin_level,\'\') AS admin_level FROM user_session s
                    JOIN app_user u ON u.id = s.user_id
                   WHERE s.token = ? AND s.expires_at > ? AND u.is_active = 1'
             );
@@ -556,8 +557,9 @@ final class Payment
         } catch (\Throwable $e) {
             return self::json($res, ['ok' => false, 'error' => 'DB 오류'], 500);
         }
-        if (!$user || $user['plan'] !== 'admin') {
-            return self::json($res, ['ok' => false, 'error' => '관리자 권한이 필요합니다.'], 403);
+        // [현 차수 P2] 결제(PG)·플랫폼 요금 저장은 최고관리자(master) 전용 — 하위관리자(sub)의 자금흐름 탈취/요금 위변조 차단.
+        if (!$user || $user['plan'] !== 'admin' || ($user['admin_level'] ?? '') === 'sub') {
+            return self::json($res, ['ok' => false, 'error' => '최고관리자만 결제·요금 설정을 변경할 수 있습니다.'], 403);
         }
 
         $body = (array)($req->getParsedBody() ?? []);
@@ -1403,7 +1405,7 @@ final class Payment
     // ── 구독 패키지 저장 ──────────────────────────────────────────────
     public static function saveSubscriptionPackage(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
     {
-        if (!self::checkAdmin($req)) {
+        if (!self::checkMaster($req)) { // [현 차수 P2] 구독 패키지/요금 저장=최고관리자 전용
             return self::json($res->withStatus(403), ['ok' => false, 'error' => 'Admin only']);
         }
         $raw = (string)$req->getBody();
@@ -1637,6 +1639,24 @@ final class Payment
     // ── 관리자 인증 헬퍼 ──────────────────────────────────────────────────────
     private static function checkAdmin(ServerRequestInterface $req): bool { return self::checkAdminToken($req); }
 
+    // [현 차수 P2] 최고관리자(master) 전용 게이트 — PG 시크릿키·플랫폼 요금·메뉴접근·구독팩 같은 결제 인프라
+    //   쓰기는 하위관리자(admin_level='sub')를 차단해야 한다(회원관리 계열은 259/261차에 master 게이트 있으나
+    //   결제/요금 저장에는 없어, 메뉴 제한된 하위관리자가 직접 API 로 PG secret 을 교체하거나 요금을 위변조 가능했다).
+    private static function checkMaster(ServerRequestInterface $req): bool
+    {
+        $authHeader=$req->getHeaderLine('Authorization'); $token=null;
+        if(preg_match('/^Bearer\s+(.+)$/i',$authHeader,$m)) $token=trim($m[1]);
+        if(!$token) return false;
+        $demoKey=getenv('DEMO_ADMIN_KEY');
+        if($demoKey && hash_equals($demoKey,$token)) return true;
+        try {
+            $pdo=Db::pdo(); $now=self::now();
+            $stmt=$pdo->prepare('SELECT COALESCE(u.plans,u.plan,\'demo\') AS plan, COALESCE(u.admin_level,\'\') AS lvl FROM user_session s JOIN app_user u ON u.id=s.user_id WHERE s.token=? AND s.expires_at>? AND u.is_active=1');
+            $stmt->execute([$token,$now]); $user=$stmt->fetch(\PDO::FETCH_ASSOC);
+            return $user && $user['plan']==='admin' && $user['lvl']!=='sub';
+        } catch(\Throwable $e){ return false; }
+    }
+
     private static function checkAdminToken(ServerRequestInterface $req): bool
     {
         $authHeader=$req->getHeaderLine('Authorization'); $token=null;
@@ -1703,7 +1723,7 @@ final class Payment
     // ─────────────────────────────────────────────────────────────
     public static function saveMenuAccess(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
     {
-        if (!self::checkAdmin($req)) {
+        if (!self::checkMaster($req)) { // [현 차수 P2] 메뉴접근 권한 저장=최고관리자 전용(하위관리자 위변조 차단)
             return self::json($res->withStatus(403), ['ok' => false, 'error' => '관리자 권한이 필요합니다.']);
         }
 

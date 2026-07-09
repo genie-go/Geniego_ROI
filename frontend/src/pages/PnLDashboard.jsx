@@ -458,9 +458,14 @@ function ForecastChart({ rows, fmt, t }) {
 /* ═══════ TAB 5: Forecast ═══════ */
 function ForecastTab({ live, t, fmt }) {
     const [growthRate, setGrowthRate] = useState(15);
-    const [adRatio, setAdRatio] = useState(12);
-    const [feeRatio, setFeeRatio] = useState(10);
-    const [returnRatePct, setReturnRatePct] = useState(8);
+    // [현 차수 P1] ★비율 초기값을 live(SSOT) 실비율에서 파생 — 기존 하드코딩(ad12·fee10·ret8, COGS 아예 없음)은
+    //   같은 페이지 Overview 영업이익률과 3배 자기모순을 냈다. 특히 최대비용 COGS 누락이 순이익을 대폭 과대계상.
+    const _gr = live.grossRevenue || 0;
+    const _pct = (v) => (_gr > 0 ? Math.round((v || 0) / _gr * 1000) / 10 : 0);
+    const [cogsRatio, setCogsRatio] = useState(() => _pct(live.cogs) || 45);
+    const [adRatio, setAdRatio] = useState(() => _pct(live.adCost) || 12);
+    const [feeRatio, setFeeRatio] = useState(() => _pct(live.fees ?? live.settlementFee) || 10);
+    const [returnRatePct, setReturnRatePct] = useState(() => _pct(live.returnCost ?? live.returns) || 8);
     const [months, setMonths] = useState(6);
     // [231차 OS#3] What-if Scenario — 실제 워터폴(live) 기준 ±% 레버. 기본 0=baseline 동일(무서프라이즈).
     const [scRev, setScRev] = useState(0);   // 매출/판매량
@@ -473,20 +478,21 @@ function ForecastTab({ live, t, fmt }) {
     const forecastRows = Array.from({ length: months }, (_, i) => {
         const m = i + 1;
         const revenue = Math.round(baseRevenue * Math.pow(1 + growthRate / 100, m / 12));
+        const cogs = Math.round(revenue * cogsRatio / 100); // [현 차수 P1] 최대비용 원가 반영
         const adCost = Math.round(revenue * adRatio / 100);
         const fees = Math.round(revenue * feeRatio / 100);
         const returns = Math.round(revenue * returnRatePct / 100);
-        const netProfit = revenue - adCost - fees - returns;
+        const netProfit = revenue - cogs - adCost - fees - returns;
         const margin = revenue > 0 ? (netProfit / revenue * 100).toFixed(1) : "0.0";
-        return { m, revenue, adCost, fees, returns, netProfit, margin };
+        return { m, revenue, cogs, adCost, fees, returns, netProfit, margin };
     });
     const totalFR = forecastRows.reduce((s, r) => s + r.revenue, 0);
     const totalFP = forecastRows.reduce((s, r) => s + r.netProfit, 0);
 
-    const slider = (labelKey, val, set, min, max, unit = '%') => (
+    const slider = (labelKey, val, set, min, max, unit = '%', fb) => (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11 }}>
-                <span style={{ color: 'var(--text-3)' }}>{t(labelKey)}</span>
+                <span style={{ color: 'var(--text-3)' }}>{fb ? t(labelKey, fb) : t(labelKey)}</span>
                 <strong style={{ color: ACCENT }}>{val}{unit}</strong>
             </div>
             <input type="range" min={min} max={max} value={val} onChange={e => set(Number(e.target.value))} style={{ width: '100%', accentColor: ACCENT }} />
@@ -503,8 +509,9 @@ function ForecastTab({ live, t, fmt }) {
         coupon: (live.couponDiscount || 0) * vf,
         ret: (live.returnFee || 0) * vf * (1 + scRet / 100),
         ship: (live.shippingCost || 0) * vf * (1 + scShip / 100),
+        infl: (live.influencerCost || 0), // [현 차수 P2] 인플루언서비용 — 무변동에서 baseline 델타≠0 이던 원인
     };
-    const scOp = sc.rev - sc.cogs - sc.ad - sc.fee - sc.coupon - sc.ret - sc.ship;
+    const scOp = sc.rev - sc.cogs - sc.ad - sc.fee - sc.coupon - sc.ret - sc.ship - sc.infl;
     const baseOp = live.operatingProfit || 0;
     const dOp = scOp - baseOp;
     const dPct = baseOp !== 0 ? (dOp / Math.abs(baseOp) * 100) : 0;
@@ -558,6 +565,7 @@ function ForecastTab({ live, t, fmt }) {
                 <div style={{ padding: 16, borderRadius: 12, background: 'rgba(79,142,247,0.06)', border: '1px solid rgba(79,142,247,0.2)', display: 'grid', gap: 14 }}>
                     <div style={{ fontWeight: 700, fontSize: 13 }}>{t('pnl.paramSettings')}</div>
                     {slider('pnl.paramGrowth', growthRate, setGrowthRate, 0, 50)}
+                    {slider('pnl.paramCogsRatio', cogsRatio, setCogsRatio, 0, 90, '%', 'COGS %')}
                     {slider('pnl.paramAdRatio', adRatio, setAdRatio, 5, 30)}
                     {slider('pnl.paramFeeRate', feeRatio, setFeeRatio, 5, 20)}
                     {slider('pnl.paramReturnRate', returnRatePct, setReturnRatePct, 2, 20)}
@@ -1010,6 +1018,16 @@ export default function PnLDashboard() {
         (orders || []).forEach(o => { if (/cancel|취소/i.test(String(o.status || ''))) return; const rev = Number(o.total ?? o.total_price ?? o.revenue ?? 0); tot += rev; const d = od(o); if (d && d.getTime() >= cutoff) win += rev; });
         return tot > 0 ? Math.min(1, win / tot) : 1;
     }, [orders, dateRange]);
+    // [현 차수 P2] ★주문 '건수' 전용 기간계수 — 금액계수(매출가중)를 건수에 곱하면 고단가 주문이 많은 윈도우에서
+    //   건수가 과대/과소됐다(50건인데 매출비중 0.3→1000×0.3=300). 건수는 윈도우 실건수 비율로 스코프.
+    const periodOrderFactor = useMemo(() => {
+        const days = _drDays[dateRange]; if (!days) return 1;
+        const cutoff = Date.now() - days * 86400000;
+        const od = (o) => { const c = o.atISO || o.created_at || o.ordered_at || (o.month ? o.month + '-01' : null); if (!c) return null; const d = new Date(c); return isNaN(d.getTime()) ? null : d; };
+        let tot = 0, win = 0;
+        (orders || []).forEach(o => { if (/cancel|취소/i.test(String(o.status || ''))) return; tot += 1; const d = od(o); if (d && d.getTime() >= cutoff) win += 1; });
+        return tot > 0 ? Math.min(1, win / tot) : 1;
+    }, [orders, dateRange]);
 
     /* ── Live Data ── */
     const live = (() => {
@@ -1023,10 +1041,11 @@ export default function PnLDashboard() {
 
             grossProfit: sc(pnlStats.grossProfit), operatingProfit: sc(pnlStats.operatingProfit),
             netPayout: sc(pnlStats.netPayout), pendingPayout: sc(settlementStats.pendingAmount),
-            roas: budgetStats.blendedRoas || 0, // 비율 보존(분자·분모 동률 스케일)
-            // 209차: 정산 우선, 없으면 주문수(이중계산 회피). 기간 계수 비례.
-            totalOrders: sc((settlementStats.totalOrders || 0) > 0 ? settlementStats.totalOrders : (orderStats.count || 0)),
-            totalReturns: sc(settlementStats.totalReturns), returnRate: settlementStats.returnRate || 0, // 반품률 비율 보존
+            roas: budgetStats.blendedRoas || 0, // 비율(전기간 집계 — 윈도우별 지출 데이터 부재로 재계산 불가)
+            // [현 차수 P2] 주문/반품 건수는 '건수 계수'(periodOrderFactor)로 스코프 — 금액계수 곱하던 왜곡 수정.
+            totalOrders: Math.round(((settlementStats.totalOrders || 0) > 0 ? settlementStats.totalOrders : (orderStats.count || 0)) * periodOrderFactor),
+            totalReturns: Math.round((settlementStats.totalReturns || 0) * periodOrderFactor), returnRate: settlementStats.returnRate || 0, // 반품률=전기간 비율
+            periodScoped: !!_drDays[dateRange], // [현 차수 P2] 기간뷰 여부(ROAS/반품률은 전기간 배지 표기용)
         };
     })();
 

@@ -311,10 +311,15 @@ function OrderTab() {
     const STATUS_VALUES = ['paid', 'preparing', 'shipping', 'delivered', 'confirmed', 'CancelDone', '반품Done'];
     const handleStatusChange = async (o, ns) => {
         if (!ns || ns === o.status) return;
+        const prev = o.status; // [현 차수 P2] 롤백용 원상태 캡처
         if (typeof updateOrderStatus === 'function') updateOrderStatus(o.id, ns);
         if (!isDemo) {
             try { await apiClient.postJson('/api/v424/orderhub/orders/status', { id: o.id, status: ns }); }
-            catch { addAlert?.({ type: 'warn', message: t('orderHub.statusSaveFail', '주문 상태 저장 실패 — 재시도하세요') }); }
+            catch {
+                // [현 차수 P2] 백엔드 실패 시 낙관적 UI 롤백 — 기존엔 UI만 새 상태로 남아 백엔드와 영구 발산했다.
+                if (typeof updateOrderStatus === 'function') updateOrderStatus(o.id, prev);
+                addAlert?.({ type: 'warn', message: t('orderHub.statusSaveFail', '주문 상태 저장 실패 — 재시도하세요') });
+            }
         }
     };
     const [search, setSearch] = useState("");

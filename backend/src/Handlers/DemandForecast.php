@@ -95,13 +95,17 @@ class DemandForecast
      */
     private static function forecast(array $y, int $horizon, int $season = 7): array
     {
+        // [현 차수 P2] ★모델 자동선택을 '비영(실판매) 관측수' 기준으로 — 시계열을 연속일자축에 0채움하면
+        //   count($y)=91 고정이라 mean/holtLinear 분기가 영원히 dead 이고 항상 holtWinters 였다. 결과: 90일 중
+        //   3일만 판매된 간헐수요 SKU 도 주간계절성 예측 → sigma 팽창 → 안전재고·reorder point 과대 → 과잉발주.
         $n = count($y);
+        $nz = count(array_filter($y, fn($v) => $v > 0)); // 실판매 관측일수
         $avg = max(0.0, self::mean($y));
-        if ($n < 4) {
+        if ($nz < 4) {
             $f = array_fill(0, $horizon, round($avg, 2));
             return ['method' => 'mean', 'forecast' => $f, 'accuracy' => 0.0, 'sigma' => self::stddev($y), 'avg' => $avg];
         }
-        if ($n >= 2 * $season) return self::holtWinters($y, $horizon, $season);
+        if ($nz >= 2 * $season && $n >= 2 * $season) return self::holtWinters($y, $horizon, $season);
         return self::holtLinear($y, $horizon);
     }
 
@@ -311,12 +315,20 @@ class DemandForecast
         $pdo = self::db();
         // wms_supply_orders 보장 — SSOT: Db::ensureWmsSupplyOrders 로 일원화(종전 Wms 와 중복 제거, IF NOT EXISTS 멱등)
         Db::ensureWmsSupplyOrders($pdo);
-        // 현재 재고 맵(channel_inventory.available 합산)
+        // [현 차수 잔여] ★현재고 SSOT = 물리재고(wms_stock.on_hand) 우선 — Wms::reflectChannelSale 이 채널 주문과
+        //   라이브 판매를 '모두' wms_stock 에 차감하므로 이것이 진짜 현재고다. 기존 channel_inventory 만 읽으면
+        //   라이브 판매(decInventory 미호출 경로)가 미반영돼 현재고 과대→reorder 과소→발주 부족이었다.
+        //   WMS 미추적 SKU 는 channel_inventory 로 폴백(회귀 안전).
         $stockMap = [];
         try {
             $rs = $pdo->prepare("SELECT sku, SUM(available) av FROM channel_inventory WHERE tenant_id=? GROUP BY sku");
             $rs->execute([$tenant]);
             foreach ($rs->fetchAll(\PDO::FETCH_ASSOC) as $r) { if ($r['sku'] !== null && $r['sku'] !== '') $stockMap[(string)$r['sku']] = (float)$r['av']; }
+        } catch (\Throwable $e) {}
+        try {
+            $rw = $pdo->prepare("SELECT sku, SUM(on_hand) oh FROM wms_stock WHERE tenant_id=? GROUP BY sku");
+            $rw->execute([$tenant]);
+            foreach ($rw->fetchAll(\PDO::FETCH_ASSOC) as $r) { if ($r['sku'] !== null && $r['sku'] !== '') $stockMap[(string)$r['sku']] = (float)$r['oh']; } // 물리 우선 덮어쓰기
         } catch (\Throwable $e) {}
         $all = self::loadSeries($tenant, 90, 200);
         // [255차 심화] 프로모 반응 — horizon 내 프로모(po_calendar)가 있는 SKU 는 수요 증폭(promo uplift) 반영해 사전 비축.

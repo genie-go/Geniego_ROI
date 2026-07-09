@@ -376,6 +376,11 @@ class LiveCommerce
         $price = (float)($prod['special_price'] ?: $prod['price']);
         $total = $price * $qty;
 
+        // [현 차수 P2] 품절 오버셀 차단 — 기존엔 stock>0 일 때만 부족판정이라 stock=0 을 '무제한'으로 오해해
+        //   이미 팔린(sold>0) 상품을 무한 재판매(팬텀 매출)했다. 재고를 추적한 상품(sold>0)의 stock<=0 은 품절.
+        if ((float)$prod['stock'] <= 0 && (float)($prod['sold'] ?? 0) > 0) {
+            return self::json($res, ['ok' => false, 'error' => '품절된 상품입니다.', 'stock' => 0], 409);
+        }
         if ((float)$prod['stock'] > 0 && (float)$prod['stock'] < $qty) {
             return self::json($res, ['ok' => false, 'error' => '재고가 부족합니다.', 'stock' => (float)$prod['stock']], 409);
         }
@@ -966,7 +971,9 @@ class LiveCommerce
             'units' => (float)$orow['units'],
             'revenue' => (float)$orow['rev'],
             'aov' => $orders > 0 ? round((float)$orow['rev'] / $orders) : 0,
-            'conversion' => $viewers > 0 ? round($orders / $viewers * 100, 1) : 0,
+            // [현 차수 P2] 전환율 분모를 '누적 최다 시청자(peak)'로 — 기존 '현재 동시시청자'는 시간축 불일치라
+            //   누적주문÷현재시청자가 1000%로 튀거나 방송종료(시청자0) 시 0%가 됐다. peak 는 단조증가라 안정.
+            'conversion' => (function() use ($orders, $viewers, $s) { $den = max($viewers, (int)($s['peak_viewers'] ?? 0)); return $den > 0 ? round($orders / $den * 100, 1) : 0; })(),
             'chat_count' => (int)$chatCnt->fetchColumn(),
             'top_products' => $top->fetchAll(\PDO::FETCH_ASSOC),
             'started_at' => $s['started_at'] ?? null,

@@ -225,17 +225,20 @@ final class PgSettlement
         $matched = []; $feeMismatch = []; $orphan = []; $matchGross = 0.0; $matchFee = 0.0;
         foreach ($settles as $s) {
             $g = (float)$s['gross']; $ref = trim((string)($s['order_ref'] ?? '')); $sts = strtotime((string)$s['txn_at']) ?: 0;
+            // [현 차수 P1] 외화 정산을 KRW 정규화 후 금액매칭 — channel_orders.total_price 는 KRW 인데
+            //   기존엔 정산 원통화(USD/EUR/JPY) $g 로 버킷/거리비교해 해외 PG 전건이 거짓-고아였다.
+            $gk = Connectors::fxToKrw($g, (string)($s['currency'] ?? 'KRW'));
             $mi = -1;
             if ($ref !== '' && isset($byRef[$ref])) { foreach ($byRef[$ref] as $idx) if (!$used[$idx]) { $mi = $idx; break; } }
             if ($mi < 0) {
-                $gr = (int)round($g); $best = PHP_INT_MAX;
+                $gr = (int)round($gk); $best = PHP_INT_MAX;
                 for ($b = $gr - 1; $b <= $gr + 1; $b++) {
                     if (!isset($byAmt[$b])) continue;
                     foreach ($byAmt[$b] as $idx) {
                         if ($used[$idx]) continue;
                         $ots = strtotime((string)$orders[$idx]['ordered_at']) ?: 0;
                         if ($sts && $ots && abs($sts - $ots) > $win) continue;
-                        $d = abs((float)$orders[$idx]['total_price'] - $g) + ($sts && $ots ? abs($sts - $ots) / 86400.0 : 0);
+                        $d = abs((float)$orders[$idx]['total_price'] - $gk) + ($sts && $ots ? abs($sts - $ots) / 86400.0 : 0);
                         if ($d < $best) { $best = $d; $mi = $idx; }
                     }
                 }
@@ -256,7 +259,8 @@ final class PgSettlement
             if ($used[$idx]) continue; $unsettledAmt += (float)$o['total_price'];
             if (count($unsettled) < 200) $unsettled[] = ['order_id'=>(int)$o['id'],'channel'=>$o['channel'],'channel_order_id'=>$o['channel_order_id'],'total_price'=>(float)$o['total_price'],'ordered_at'=>$o['ordered_at'],'status'=>$o['status']];
         }
-        $orphanAmt = array_sum(array_map(fn($x) => (float)$x['gross'], $orphan));
+        // [현 차수 P1] 고아 정산 합계도 KRW 정규화(원통화 혼합 합산 방지).
+        $orphanAmt = array_sum(array_map(fn($x) => Connectors::fxToKrw((float)$x['gross'], (string)($x['currency'] ?? 'KRW')), $orphan));
         return [
             'as_of' => gmdate('c'), 'window_days' => $windowDays,
             'summary' => [

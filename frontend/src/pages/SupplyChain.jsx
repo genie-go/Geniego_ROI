@@ -8,6 +8,7 @@ import{BarChart,Bar,XAxis,YAxis,CartesianGrid,Tooltip as RTooltip,ResponsiveCont
 import AIRecommendBanner from'../components/AIRecommendBanner.jsx';
 import SC_DICT from'./scI18n.js';
 import{DEMO_PRODUCTS}from'../data/demoSeedData.js';
+import{IS_DEMO}from'../utils/demoEnv';// [현 차수 P2] 시드 게이트 정본(빌드플래그 OR 런타임 데모호스트)
 import{useGlobalData}from'../context/GlobalDataContext.jsx';
 import{useProductSelection}from'../contexts/ProductSelectionContext.jsx';
 import ProductScopeNotice from'../components/dashboards/ProductScopeNotice.jsx';
@@ -172,7 +173,7 @@ const _mapLine=(r,supByName)=>{
   return{id:r.id??r.line_id,lineDbId:r.id,product:r.name||r.sku||r.line_id||'',sku:r.sku||'',supplier:r.supplier||'',leadTime:Number(r.leadTime)||0,risk:r.risk==='high'?'high':'normal',stages:pct,country:sup?sup.country:''};
 };
 function useSupplyLines(){
-const{isDemoMode}=useAuth();
+const isDemoMode=IS_DEMO;// [현 차수 P2] 정본 IS_DEMO 사용(기존 useAuth().isDemoMode 는 빌드플래그만 봐 데모호스트에 운영빌드 배포 시 빈화면)
 const[lines,setLines]=useState(isDemoMode?DEMO_LINES:[]);
 const[suppliers,setSuppliers]=useState(isDemoMode?DEMO_SUPPLIERS:[]);
 const[loading,setLoading]=useState(!isDemoMode);

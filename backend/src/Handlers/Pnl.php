@@ -141,24 +141,22 @@ final class Pnl
             $shipFee = (float)($shipSt->fetchColumn() ?: 0);
         } catch (\Throwable $e) { $shipFee = 0.0; }
 
-        // ── 3) 광고비(performance_metrics.spend, KRW 정규화됨) : rollup/platform 과 동일 소스 ──
-        //   from 지정 시 [from,to], 미지정 시 ★전월+당월(프론트 budgetStats 는 rollup?period=monthly&n=1 을
-        //   호출하나 Rollup::nRange 가 monthly 를 최소 2개월로 클램프 → total_spend=전월+당월. 값 후퇴 0 을
-        //   위해 서버도 전월 1일부터 합산해 동일값 재현. (tz drift 없는 연·월 산술)
-        $adFrom = $from;
-        if ($adFrom === '') {
-            $yy = (int)gmdate('Y'); $mm = (int)gmdate('n');
-            $pm = $mm - 1; $py = $yy; if ($pm < 1) { $pm = 12; $py--; }
-            $adFrom = sprintf('%04d-%02d-01', $py, $pm);
-        }
+        // ── 3) 광고비(performance_metrics.spend, KRW 정규화됨) ──
+        //   [현 차수 P1] ★기간 정합 수정: 기존엔 from 미지정 시 광고비만 '전월+당월'로 고정 집계하고
+        //   매출·원가·수수료는 전기간이라, 영업/순이익이 광고비 누락분만큼 과대계상됐다(예: 12개월 운영
+        //   테넌트가 광고비 2개월치만 차감). → 광고비도 매출과 동일 윈도우로 집계: from/to 지정 시 그 구간,
+        //   미지정 시 '전기간'. (KPI 카드 budgetStats(rollup monthly)는 별개 위젯으로 무영향.)
         $adSpend = 0.0;
         try {
-            if ($to !== '') {
+            if ($from !== '' && $to !== '') {
                 $st = $pdo->prepare("SELECT COALESCE(SUM(spend),0) FROM performance_metrics WHERE tenant_id=? AND SUBSTR(date,1,10) >= ? AND SUBSTR(date,1,10) <= ?");
-                $st->execute([$tenant, $adFrom, $to]);
-            } else {
+                $st->execute([$tenant, $from, $to]);
+            } elseif ($from !== '') {
                 $st = $pdo->prepare("SELECT COALESCE(SUM(spend),0) FROM performance_metrics WHERE tenant_id=? AND SUBSTR(date,1,10) >= ?");
-                $st->execute([$tenant, $adFrom]);
+                $st->execute([$tenant, $from]);
+            } else {
+                $st = $pdo->prepare("SELECT COALESCE(SUM(spend),0) FROM performance_metrics WHERE tenant_id=?");
+                $st->execute([$tenant]);
             }
             $adSpend = (float)$st->fetchColumn();
         } catch (\Throwable $e) { $adSpend = 0.0; }

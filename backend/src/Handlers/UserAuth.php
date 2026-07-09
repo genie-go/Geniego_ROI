@@ -490,6 +490,18 @@ final class UserAuth
             if ($v !== '') $extraFields[$fk] = $v;
         }
 
+        // [현 차수] 휴대폰 SMS 인증 게이트 — 발송 채널(SMS 실발송 또는 dev 코드)이 사용 가능한 환경에서는
+        //   가입 전 인증번호 검증(phone_verify_token)을 필수로 요구한다. 운영에서 SMS(SENS) 자격증명이
+        //   아직 미설정이면 검증을 강제할 수 없으므로 통과시켜 기존 가입 경로를 보존한다(무후퇴).
+        //   → SENS 키를 운영에 등록하는 순간 자동으로 강제 검증이 활성화된다.
+        $otpPol = self::otpDelivery($pdo);
+        if ($otpPol['enforce']) {
+            $vtok = trim((string)($body['phone_verify_token'] ?? ''));
+            if ($phone === '' || !self::consumePhoneVerifyToken($pdo, $phone, 'register', $vtok)) {
+                return self::json($res, ['ok' => false, 'error' => '휴대폰 본인인증을 완료해 주세요. (인증번호 확인 필요)'], 403);
+            }
+        }
+
         if ($isPaidSignup) {
             $signupPlan = $requestedPlan;                                            // 선택 유료 플랜(또는 무료가입 자동 PRO)을 체험으로 부여
             $expiresAt  = gmdate('Y-m-d\TH:i:s\Z', time() + $TRIAL_DAYS * 24 * 3600); // 20일 후 체험 만료
@@ -754,11 +766,16 @@ final class UserAuth
                 }
             }
 
-            // 관리자 계정의 경우 is_active가 실수로 0으로 설정되어 있어도 강제 복구 (원천 해결)
+            // [현 차수 보안 P1] 정지 계정 재활성화 우회 차단 — 기존 로직은 (a)비밀번호 검증 前에 즉시 커밋되고
+            //   (b)하위관리자(sub)까지 무차별 적용돼, 정지된 (하위)관리자 이메일을 아는 사람이 로그인 시도만으로
+            //   is_active=1 을 되살려 계정정지 통제를 무력화했다. → 재활성화는 (1)비밀번호 검증 성공 이후에만
+            //   실행하고 (2)최고관리자(master)에 한정한다. 하위관리자·일반회원은 무조건 403(정지 유지).
+            $inactiveMasterRecover = false;
             if ($user && empty($user['is_active']) && !$isMasterAuth) {
-                if (($user['plan'] ?? '') === 'admin' || ($user['plans'] ?? '') === 'admin') {
-                    $pdo->prepare('UPDATE app_user SET is_active = 1 WHERE id = ?')->execute([$user['id'] ?? $user['idx']]);
-                    $user['is_active'] = 1;
+                $isAdminAcct = (($user['plan'] ?? '') === 'admin' || ($user['plans'] ?? '') === 'admin');
+                $isSubAdmin  = (($user['admin_level'] ?? '') === 'sub');
+                if ($isAdminAcct && !$isSubAdmin) {
+                    $inactiveMasterRecover = true; // 비번 검증 성공 후 복구(아래). 정지 우회 아님(자격증명 필요).
                 } else {
                     return self::json($res, ['ok' => false, 'error' => '계정이 비활성화되었습니다.'], 403);
                 }
@@ -801,6 +818,13 @@ final class UserAuth
                 // [240차 약점⑦] 불변 보안 감사 — 로그인 실패 기록(무차별 대입 탐지·감사 추적).
                 try { \Genie\SecurityAudit::log($pdo, (string)($user['tenant_id'] ?? ''), $email, 'auth.login_failed', ['reason' => 'bad_password'], $req); } catch (\Throwable $e) {}
                 return self::json($res, ['ok' => false, 'error' => '이메일 또는 비밀번호가 올바르지 않습니다.'], 401);
+            }
+
+            // [현 차수 보안 P1] 비밀번호 검증 성공 후에만 최고관리자 오배치(is_active=0) 복구 — 정지 우회 차단.
+            if ($inactiveMasterRecover) {
+                $pdo->prepare('UPDATE app_user SET is_active = 1 WHERE id = ?')->execute([$user['id'] ?? $user['idx']]);
+                $user['is_active'] = 1;
+                self::audit($req, 'admin_reactivate_selfrecover', '최고관리자 비활성 자가복구(비번검증 후): ' . $email, 'high', $user);
             }
 
             // Membership type strict validation
@@ -851,25 +875,27 @@ final class UserAuth
                 }
             }
 
-            // 189차 MFA 2단계 인증: 비밀번호 통과 후 MFA 활성 계정은 OTP(또는 복구코드) 추가 검증.
+            // 189차 MFA 2단계 인증 + [현 차수] 전체 로그인 2FA 강제(mfa_policy=all).
             //   break-glass(isMasterAuth)는 비상 접근이므로 MFA 우회.
-            if (!$isMasterAuth && !empty($user['mfa_enabled'])) {
+            //   정책: off=없음 · admin=관리자만 · all=전원. 등록(mfa_enabled) 사용자는 정책무관 항상 검증.
+            //   미등록 강제 대상은 (휴대폰+SMS설정→sms / 아니면 email) OTP 챌린지. 비운영은 dev코드 화면표시.
+            //   ★락아웃 방지: 강제이나 미등록+발송채널 전무(운영·비dev)면 통과시키고 감사기록.
+            $planForMfa = (($user['plan'] ?? '') === 'admin' || ($user['plans'] ?? '') === 'admin')
+                ? 'admin' : strtolower((string)($user['plans'] ?? $user['plan'] ?? 'free'));
+            // [현 차수] 신규 '전원 강제 챌린지'는 정책 'all' 에서만 발동(기존 admin/off 정책 동작 무회귀:
+            //   등록 사용자만 검증). $planForMfa 는 향후 확장 여지용으로 계산만 유지.
+            $mfaPol   = self::mfaPolicy($pdo);
+            $enforced = !$isMasterAuth && ($mfaPol === 'all');
+            $enrolled = !$isMasterAuth && !empty($user['mfa_enabled']);
+            if ($enrolled || $enforced) {
                 $mfaUid    = (int)($user['id'] ?? $user['idx'] ?? 0);
-                $mfaMethod = (string)($user['mfa_method'] ?? 'totp');
-                if ($mfaMethod === '') $mfaMethod = 'totp';
+                $mfaMethod = (string)($user['mfa_method'] ?? '');
+                if ($mfaMethod === '' || !$enrolled) {
+                    $hasPhone  = trim((string)($user['phone'] ?? '')) !== '';
+                    $mfaMethod = ($hasPhone && self::smsProviderConfigured($pdo)) ? 'sms' : 'email';
+                }
                 $otp = trim((string)($body['otp'] ?? $body['mfa_code'] ?? ''));
-                if ($mfaMethod === 'email' || $mfaMethod === 'sms' || $mfaMethod === 'kakao') {
-                    // 195차 #3: 발송형 OTP — 코드 미입력 시 코드 발송 후 재시도 요구(복구코드도 허용).
-                    if ($otp === '') {
-                        $snd = self::dispatchMfaOtp($pdo, $user, $mfaMethod);
-                        return self::json($res, ['ok' => false, 'mfa_required' => true, 'mfa_method' => $mfaMethod, 'otp_sent' => $snd['sent'], 'error' => $snd['msg']], 401);
-                    }
-                    if (!self::verifyMfaOtp($pdo, $mfaUid, $otp) && !self::consumeRecoveryCode($pdo, $mfaUid, $otp)) {
-                        self::rateLimitFail($pdo, $rlIdent);
-                        return self::json($res, ['ok' => false, 'mfa_required' => true, 'mfa_method' => $mfaMethod, 'error' => '인증 코드가 올바르지 않거나 만료되었습니다.'], 401);
-                    }
-                } else {
-                    // TOTP(인증 앱) — 기존 흐름 보존
+                if ($mfaMethod === 'totp') {
                     if ($otp === '') {
                         return self::json($res, ['ok' => false, 'mfa_required' => true, 'mfa_method' => 'totp', 'error' => '2단계 인증 코드를 입력하세요.'], 401);
                     }
@@ -877,6 +903,20 @@ final class UserAuth
                         && !self::consumeRecoveryCode($pdo, $mfaUid, $otp)) {
                         self::rateLimitFail($pdo, $rlIdent);
                         return self::json($res, ['ok' => false, 'mfa_required' => true, 'mfa_method' => 'totp', 'error' => '인증 코드가 올바르지 않습니다.'], 401);
+                    }
+                } else {
+                    $devExpose    = (\Genie\Db::envLabel() !== 'production') || (getenv('GENIE_OTP_DEV') === '1');
+                    $channelReady = self::mfaMethodConfigured($mfaMethod, $pdo) || $devExpose;
+                    if ($enforced && !$enrolled && !$channelReady) {
+                        // 락아웃 방지: 강제이나 발송 채널이 전무(운영·미설정) → 통과(감사기록). 채널 설정 시 자동 강제.
+                        self::audit($req, 'login_2fa_skipped', '2FA 강제이나 발송채널 미설정 — 통과(락아웃 방지): ' . $email, 'high', $user);
+                    } elseif ($otp === '') {
+                        $snd = self::issueLoginOtp($pdo, $user, $mfaMethod);
+                        return self::json($res, ['ok' => false, 'mfa_required' => true, 'mfa_method' => $mfaMethod,
+                            'otp_sent' => $snd['sent'], 'otp_dev' => $snd['dev_code'], 'error' => $snd['msg']], 401);
+                    } elseif (!self::verifyMfaOtp($pdo, $mfaUid, $otp) && !self::consumeRecoveryCode($pdo, $mfaUid, $otp)) {
+                        self::rateLimitFail($pdo, $rlIdent);
+                        return self::json($res, ['ok' => false, 'mfa_required' => true, 'mfa_method' => $mfaMethod, 'error' => '인증 코드가 올바르지 않거나 만료되었습니다.'], 401);
                     }
                 }
             }
@@ -2334,8 +2374,8 @@ final class UserAuth
             $emailSent = !empty($mr['ok']);
         }
         // 203차: SMS(네이버 SENS) — 계정에 전화 등록 + SMS 설정 시 재설정 링크 문자 발송.
-        if ($dbPhone !== '' && \Genie\NaverSms::isConfigured($pdo)) {
-            $sr = \Genie\NaverSms::sendPlatform($pdo, $dbPhone, "[GeniegoROI] 비밀번호 재설정 링크(15분 유효): {$link}");
+        if ($dbPhone !== '' && self::smsProviderConfigured($pdo)) {
+            $sr = self::smsSend($pdo, $dbPhone, "[GeniegoROI] 비밀번호 재설정 링크(15분 유효): {$link}");
             $smsSent = !empty($sr['ok']);
         }
         if ($emailSent || $smsSent) {
@@ -2368,6 +2408,269 @@ final class UserAuth
         try { $pdo->prepare('DELETE FROM user_session WHERE user_id=?')->execute([$uid]); } catch (\Throwable $e) {} // 전 세션 무효화
         self::audit($req, 'password_reset', '비밀번호 재설정 완료', 'high', ['id' => (int)$uid]);
         return self::json($res, ['ok' => true, 'message' => '비밀번호가 재설정되었습니다. 새 비밀번호로 로그인하세요.']);
+    }
+
+    // ═════════════════════════════════════════════════════════════
+    // [현 차수] 휴대폰 SMS 인증번호(OTP) — 공개 공용 인프라
+    //   회원가입 본인확인 + 아이디/비밀번호 찾기 + 최고관리자 접속코드 재설정 공통.
+    //   • POST /auth/phone/send-code   {phone, purpose, email?}       → 6자리 코드 발송
+    //   • POST /auth/phone/verify-code {phone, purpose, code, email?} → 검증 + 목적별 결과
+    //   발송 정책(otpDelivery): SMS(SENS) 설정 시 실발송 / 비운영·GENIE_OTP_DEV=1 시 dev_code 화면표시
+    //     / 운영·미설정 시 register 는 bypass(무후퇴), 계정찾기/재설정/접속키는 fail-closed.
+    //   purpose: register | find_id | reset | admin_key
+    // ═════════════════════════════════════════════════════════════
+    private const OTP_PURPOSES = ['register', 'find_id', 'reset', 'admin_key'];
+
+    private static function ensurePhoneVerifySchema(\PDO $pdo): void
+    {
+        static $done = false;
+        if ($done) return;
+        $done = true;
+        try {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS phone_verification (phone VARCHAR(32) NOT NULL, purpose VARCHAR(24) NOT NULL, code_hash VARCHAR(255) NOT NULL, verify_token VARCHAR(80), attempts INT DEFAULT 0, expires_at VARCHAR(32) NOT NULL, verified_at VARCHAR(32), created_at VARCHAR(32) NOT NULL, PRIMARY KEY (phone, purpose))");
+        } catch (\Throwable $e) { /* best-effort */ }
+    }
+
+    /** 휴대폰 번호 → 숫자만 정규화(하이픈·공백·+ 제거). 저장/조회 일관성 확보. */
+    private static function normPhone(string $p): string { return preg_replace('/[^0-9]/', '', $p) ?? ''; }
+
+    private static function maskPhone(string $p): string
+    {
+        $d = self::normPhone($p); $n = strlen($d);
+        if ($n < 5) return str_repeat('*', $n);
+        return substr($d, 0, 3) . str_repeat('*', max(2, $n - 5)) . substr($d, -2);
+    }
+
+    /** OTP 발송 채널·노출·강제 정책 판정. */
+    private static function otpDelivery(\PDO $pdo): array
+    {
+        $smsOn = self::smsProviderConfigured($pdo);
+        $devExpose = (\Genie\Db::envLabel() !== 'production') || (getenv('GENIE_OTP_DEV') === '1');
+        return ['sms' => $smsOn, 'dev' => $devExpose, 'enforce' => ($smsOn || $devExpose)];
+    }
+
+    /** 국가코드 결합 번호(+82 10…)와 레거시 국내형(010…)을 뒤 8자리(가입자번호)로 유연 매칭. */
+    private static function phoneTailMatch(string $a, string $b): bool
+    {
+        $na = self::normPhone($a); $nb = self::normPhone($b);
+        if ($na === '' || $nb === '') return false;
+        if ($na === $nb) return true;
+        $k = 8;
+        if (strlen($na) >= $k && strlen($nb) >= $k) return substr($na, -$k) === substr($nb, -$k);
+        return false;
+    }
+
+    /** 번호로 계정(마스킹 이메일) 조회 — 아이디 찾기용. tail 매칭으로 국가코드/레거시 혼용 호환. */
+    private static function accountsByPhone(\PDO $pdo, string $phone): array
+    {
+        if (self::normPhone($phone) === '') return [];
+        try {
+            $st = $pdo->query("SELECT email, created_at, phone FROM app_user WHERE is_active=1 AND phone IS NOT NULL AND phone<>'' ORDER BY id LIMIT 500");
+            $rows = $st ? $st->fetchAll(\PDO::FETCH_ASSOC) : [];
+        } catch (\Throwable $e) { $rows = []; }
+        $out = [];
+        foreach ($rows as $r) {
+            if (self::phoneTailMatch((string)($r['phone'] ?? ''), $phone)) {
+                $out[] = ['email' => self::maskEmail((string)$r['email']), 'joined' => substr((string)($r['created_at'] ?? ''), 0, 10)];
+                if (count($out) >= 5) break;
+            }
+        }
+        return $out;
+    }
+
+    /** 이메일+번호(tail 매칭)가 모두 일치하는 계정 — 비밀번호 재설정용. */
+    private static function userByEmailPhone(\PDO $pdo, string $email, string $phone): ?array
+    {
+        if (self::normPhone($phone) === '' || $email === '') return null;
+        try {
+            $st = $pdo->prepare("SELECT id, email, phone FROM app_user WHERE LOWER(email)=? AND is_active=1 LIMIT 1");
+            $st->execute([strtolower($email)]);
+            $u = $st->fetch(\PDO::FETCH_ASSOC) ?: null;
+        } catch (\Throwable $e) { $u = null; }
+        if (!$u) return null;
+        return self::phoneTailMatch((string)($u['phone'] ?? ''), $phone) ? $u : null;
+    }
+
+    /** 이메일로 최고관리자(master) 계정 조회 — 접속코드 복구용(하위관리자·비관리자 제외). */
+    private static function masterAdminByEmail(\PDO $pdo, string $email): ?array
+    {
+        if ($email === '') return null;
+        try {
+            $st = $pdo->prepare("SELECT id, email, phone, admin_level FROM app_user WHERE LOWER(email)=? AND plan='admin' AND is_active=1 LIMIT 1");
+            $st->execute([strtolower($email)]);
+            $u = $st->fetch(\PDO::FETCH_ASSOC) ?: null;
+        } catch (\Throwable $e) { $u = null; }
+        if (!$u || ($u['admin_level'] ?? '') === 'sub') return null;
+        return $u;
+    }
+
+    /** 검증 완료 토큰 1회 소비(consume). 유효하면 삭제 후 true. */
+    private static function consumePhoneVerifyToken(\PDO $pdo, string $phone, string $purpose, string $token): bool
+    {
+        if ($token === '') return false;
+        $pn = self::normPhone($phone);
+        try {
+            self::ensurePhoneVerifySchema($pdo);
+            $st = $pdo->prepare('SELECT verify_token, verified_at, expires_at FROM phone_verification WHERE phone=? AND purpose=?');
+            $st->execute([$pn, $purpose]);
+            $row = $st->fetch(\PDO::FETCH_ASSOC) ?: null;
+            if (!$row || empty($row['verified_at']) || (string)$row['verify_token'] !== $token) return false;
+            if (strtotime((string)$row['expires_at']) < time()) return false;
+            $pdo->prepare('DELETE FROM phone_verification WHERE phone=? AND purpose=?')->execute([$pn, $purpose]);
+            return true;
+        } catch (\Throwable $e) { return false; }
+    }
+
+    /** POST /auth/phone/send-code — 목적별 사전검증 후 6자리 OTP 발송. */
+    public static function phoneSendCode(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        if (($ra = self::recoveryThrottle($req)) !== null) return self::json($res, ['ok' => false, 'error' => '시도가 너무 많습니다. 잠시 후 다시 시도하세요.', 'retry_after' => $ra], 429);
+        $b = self::readBody($req);
+        $purpose = (string)($b['purpose'] ?? 'register');
+        if (!in_array($purpose, self::OTP_PURPOSES, true)) return self::json($res, ['ok' => false, 'error' => '잘못된 요청입니다.'], 422);
+        $email = trim(strtolower((string)($b['email'] ?? '')));
+        $phone = self::normPhone((string)($b['phone'] ?? ''));
+        $pdo = Db::pdo();
+        self::ensureTenantColumns($pdo);
+        self::ensurePhoneVerifySchema($pdo);
+        $pol = self::otpDelivery($pdo);
+
+        // 목적별 사전 검증 + 발송 대상 번호 결정
+        $sendTo = $phone;
+        if ($purpose === 'register') {
+            if (strlen($phone) < 9 || strlen($phone) > 15) return self::json($res, ['ok' => false, 'error' => '올바른 휴대폰 번호를 입력하세요.'], 422);
+        } elseif ($purpose === 'find_id') {
+            if (!self::accountsByPhone($pdo, $phone)) return self::json($res, ['ok' => false, 'error' => '해당 번호로 가입된 계정이 없습니다.'], 404);
+        } elseif ($purpose === 'reset') {
+            if ($email === '') return self::json($res, ['ok' => false, 'error' => '이메일을 입력하세요.'], 422);
+            if (!self::userByEmailPhone($pdo, $email, $phone)) return self::json($res, ['ok' => false, 'error' => '이메일과 휴대폰 번호가 일치하는 계정이 없습니다.'], 404);
+        } elseif ($purpose === 'admin_key') {
+            $au = self::masterAdminByEmail($pdo, $email);
+            if (!$au) return self::json($res, ['ok' => false, 'error' => '최고관리자 계정을 찾을 수 없습니다.'], 404);
+            $regPhone = self::normPhone((string)($au['phone'] ?? ''));
+            if ($regPhone === '') return self::json($res, ['ok' => false, 'error' => '등록된 휴대폰이 없어 자동 복구가 불가합니다. 서버 관리자에게 문의하세요.'], 400);
+            // 스푸핑 차단: 입력 번호를 무시하고 계정에 등록된 번호로만 발송·검증한다.
+            $phone = $regPhone; $sendTo = $regPhone;
+        }
+
+        // 접속코드 복구는 발송 채널이 반드시 필요(운영 fail-closed) — 우회(bypass) 금지.
+        //   운영(dev 미노출)에서 SMS 미설정이면 차단. 비운영(데모·로컬)은 dev 코드로 검증 가능.
+        if ($purpose === 'admin_key' && !$pol['sms'] && !$pol['dev']) {
+            return self::json($res, ['ok' => false, 'error' => 'SMS 복구 채널이 아직 설정되지 않았습니다. 서버 관리자에게 문의하세요.'], 503);
+        }
+
+        $code = self::genOtp6();
+        $now  = self::now();
+        $exp  = gmdate('Y-m-d\TH:i:s\Z', time() + 300); // 5분
+        try {
+            $pdo->prepare('DELETE FROM phone_verification WHERE phone=? AND purpose=?')->execute([$phone, $purpose]);
+            $pdo->prepare('INSERT INTO phone_verification(phone,purpose,code_hash,verify_token,attempts,expires_at,verified_at,created_at) VALUES(?,?,?,NULL,0,?,NULL,?)')
+                ->execute([$phone, $purpose, password_hash($code, PASSWORD_DEFAULT), $exp, $now]);
+        } catch (\Throwable $e) { return self::json($res, ['ok' => false, 'error' => '인증코드 저장 중 오류가 발생했습니다.'], 500); }
+
+        $resp = ['ok' => true, 'ttl' => 300];
+        if ($pol['sms']) {
+            $sr = self::smsSend($pdo, $sendTo, "[GeniegoROI] 인증번호 {$code} — 5분 이내 입력하세요.");
+            if (empty($sr['ok'])) return self::json($res, ['ok' => false, 'error' => 'SMS 발송에 실패했습니다. 잠시 후 다시 시도하세요.'], 502);
+            $resp['delivery'] = 'sms';
+            if ($purpose === 'admin_key') $resp['sent_to'] = self::maskPhone($sendTo);
+        } elseif ($pol['dev']) {
+            // 비운영(데모·로컬) 편의 — 실발송 대신 코드 화면표시.
+            $resp['delivery'] = 'dev';
+            $resp['dev_code'] = $code;
+        } else {
+            // 운영·SMS 미설정: register 만 우회 허용(무후퇴). 그 외 목적은 위에서 이미 차단.
+            try { $pdo->prepare('DELETE FROM phone_verification WHERE phone=? AND purpose=?')->execute([$phone, $purpose]); } catch (\Throwable $e) {}
+            $resp['delivery'] = 'none';
+            $resp['bypass']   = ($purpose === 'register');
+        }
+        return self::json($res, $resp);
+    }
+
+    /** POST /auth/phone/verify-code — OTP 검증 + 목적별 결과(계정목록·재설정토큰·인증토큰).
+     *  검증 단계는 IP 스로틀 대상에서 제외(코드별 attempts 5회 + 5분 만료로 무차별 대입 방어) —
+     *  사용자가 인증번호 재입력(오타)만으로 IP 잠김에 빠지지 않도록 한다. 발송(send-code)은 스로틀 유지. */
+    public static function phoneVerifyCode(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        $b = self::readBody($req);
+        $purpose = (string)($b['purpose'] ?? 'register');
+        if (!in_array($purpose, self::OTP_PURPOSES, true)) return self::json($res, ['ok' => false, 'error' => '잘못된 요청입니다.'], 422);
+        $email = trim(strtolower((string)($b['email'] ?? '')));
+        $phone = self::normPhone((string)($b['phone'] ?? ''));
+        $code  = trim((string)($b['code'] ?? ''));
+        $pdo = Db::pdo();
+        self::ensurePhoneVerifySchema($pdo);
+
+        // 접속코드 복구는 등록번호 기준 — 입력 phone 무시하고 이메일로 재해석(발송과 동일).
+        if ($purpose === 'admin_key') {
+            $au = self::masterAdminByEmail($pdo, $email);
+            if (!$au) return self::json($res, ['ok' => false, 'error' => '최고관리자 계정을 찾을 수 없습니다.'], 404);
+            $phone = self::normPhone((string)($au['phone'] ?? ''));
+        }
+        if (!preg_match('/^\d{6}$/', $code)) return self::json($res, ['ok' => false, 'error' => '인증번호 6자리를 입력하세요.'], 422);
+
+        $now = self::now();
+        try {
+            $st = $pdo->prepare('SELECT code_hash, attempts, expires_at FROM phone_verification WHERE phone=? AND purpose=?');
+            $st->execute([$phone, $purpose]);
+            $row = $st->fetch(\PDO::FETCH_ASSOC) ?: null;
+        } catch (\Throwable $e) { $row = null; }
+        if (!$row || strtotime((string)$row['expires_at']) < time()) return self::json($res, ['ok' => false, 'error' => '인증번호가 만료되었습니다. 다시 요청하세요.'], 401);
+        if ((int)$row['attempts'] >= 5) return self::json($res, ['ok' => false, 'error' => '인증 시도 횟수를 초과했습니다. 다시 요청하세요.'], 429);
+        if (!password_verify($code, (string)$row['code_hash'])) {
+            try { $pdo->prepare('UPDATE phone_verification SET attempts=attempts+1 WHERE phone=? AND purpose=?')->execute([$phone, $purpose]); } catch (\Throwable $e) {}
+            return self::json($res, ['ok' => false, 'error' => '인증번호가 올바르지 않습니다.'], 400);
+        }
+
+        // 검증 성공 — 목적별 처리
+        if ($purpose === 'find_id') {
+            $accts = self::accountsByPhone($pdo, $phone);
+            try { $pdo->prepare('DELETE FROM phone_verification WHERE phone=? AND purpose=?')->execute([$phone, $purpose]); } catch (\Throwable $e) {}
+            return self::json($res, ['ok' => true, 'accounts' => $accts]);
+        }
+        if ($purpose === 'reset') {
+            $u = self::userByEmailPhone($pdo, $email, $phone);
+            try { $pdo->prepare('DELETE FROM phone_verification WHERE phone=? AND purpose=?')->execute([$phone, $purpose]); } catch (\Throwable $e) {}
+            if (!$u) return self::json($res, ['ok' => false, 'error' => '계정 정보가 일치하지 않습니다.'], 400);
+            self::ensureResetSchema($pdo);
+            $rtok = self::generateToken();
+            $exp  = gmdate('Y-m-d\TH:i:s\Z', time() + 900);
+            try { $pdo->prepare('DELETE FROM password_reset WHERE user_id=?')->execute([$u['id']]); } catch (\Throwable $e) {}
+            $pdo->prepare('INSERT INTO password_reset(token,user_id,expires_at,created_at) VALUES(?,?,?,?)')->execute([$rtok, $u['id'], $exp, $now]);
+            self::audit($req, 'password_reset_request', 'SMS 본인확인 통과: ' . $email, 'high', $u + ['email' => $email]);
+            return self::json($res, ['ok' => true, 'reset_token' => $rtok]);
+        }
+        // register | admin_key → 단기 verify_token 발급(소비 시 삭제)
+        $vtok = self::generateToken();
+        $exp  = gmdate('Y-m-d\TH:i:s\Z', time() + 900);
+        try {
+            $pdo->prepare('UPDATE phone_verification SET verify_token=?, verified_at=?, expires_at=? WHERE phone=? AND purpose=?')
+                ->execute([$vtok, $now, $exp, $phone, $purpose]);
+        } catch (\Throwable $e) { return self::json($res, ['ok' => false, 'error' => '인증 처리 중 오류가 발생했습니다.'], 500); }
+        return self::json($res, ['ok' => true, 'verify_token' => $vtok]);
+    }
+
+    /** POST /auth/admin/access-key/recover — SMS 본인확인(admin_key OTP) 후 최고관리자 접속코드 재설정. */
+    public static function adminRecoverAccessKey(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        if (($ra = self::recoveryThrottle($req)) !== null) return self::json($res, ['ok' => false, 'error' => '시도가 너무 많습니다. 잠시 후 다시 시도하세요.', 'retry_after' => $ra], 429);
+        $b = self::readBody($req);
+        $email  = trim(strtolower((string)($b['email'] ?? '')));
+        $vtok   = trim((string)($b['verify_token'] ?? ''));
+        $newKey = trim((string)($b['new_access_key'] ?? ''));
+        if ($email === '' || $vtok === '') return self::json($res, ['ok' => false, 'error' => '인증 정보가 없습니다.'], 422);
+        if (strlen($newKey) < 8) return self::json($res, ['ok' => false, 'error' => '새 접속코드는 8자 이상이어야 합니다.'], 422);
+        $pdo = Db::pdo();
+        $au = self::masterAdminByEmail($pdo, $email);
+        if (!$au) return self::json($res, ['ok' => false, 'error' => '최고관리자 계정을 찾을 수 없습니다.'], 404);
+        $phone = self::normPhone((string)($au['phone'] ?? ''));
+        if (!self::consumePhoneVerifyToken($pdo, $phone, 'admin_key', $vtok)) {
+            return self::json($res, ['ok' => false, 'error' => '휴대폰 인증이 확인되지 않았습니다. 다시 시도하세요.'], 403);
+        }
+        self::ensureAppSetting($pdo);
+        self::setAppSetting($pdo, 'admin_access_key_hash', password_hash($newKey, PASSWORD_DEFAULT));
+        self::audit($req, 'admin_access_key_recover', '최고관리자 접속코드 재설정(SMS 본인확인): ' . $email, 'high', $au);
+        return self::json($res, ['ok' => true, 'message' => '접속코드가 재설정되었습니다. 새 접속코드로 로그인하세요.']);
     }
 
     // ═════════════════════════════════════════════════════════════
@@ -2416,12 +2719,19 @@ final class UserAuth
 
     public static function verifyAdminKey(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
     {
+        // [현 차수 P2] 공개·무인증 접속키 검증 엔드포인트에 IP 레이트리밋 — 무제한 시도로 접속코드(2차 게이트)를
+        //   무차별 대입하던 취약점 차단. 실패만 카운트(성공 시 클리어).
+        $pdo = Db::pdo(); self::ensureAppSetting($pdo);
+        $ident = 'adminkey|' . self::clientIp($req);
+        $ra = self::rateLimitRetryAfter($pdo, $ident);
+        if ($ra !== null) return self::json($res, ['ok' => false, 'error' => '시도가 너무 많습니다. 잠시 후 다시 시도하세요.', 'retry_after' => $ra], 429);
         $b = self::readBody($req);
         $key = trim((string)($b['access_key'] ?? $b['code'] ?? ''));
-        $pdo = Db::pdo(); self::ensureAppSetting($pdo);
         if ($key === '' || !self::verifyAdminAccessKey($pdo, $key)) {
+            self::rateLimitFail($pdo, $ident);
             return self::json($res, ['ok' => false, 'error' => '접속키가 올바르지 않습니다.'], 403);
         }
+        self::rateLimitClear($pdo, $ident);
         return self::json($res, ['ok' => true]);
     }
 
@@ -2587,6 +2897,60 @@ final class UserAuth
         $r = \Genie\NaverSms::sendPlatform($pdo, $to, '[GeniegoROI] SMS 테스트 발송 — 설정이 정상 동작합니다.');
         if (empty($r['ok'])) return self::json($res, ['ok' => false, 'error' => '발송 실패: ' . (string)($r['detail'] ?? '알 수 없는 오류')], 502);
         return self::json($res, ['ok' => true, 'message' => "{$to} 로 테스트 SMS를 보냈습니다."]);
+    }
+
+    // ── [현 차수] Twilio SMS 설정(관리자). 로그인 2FA·본인인증 OTP 발송 채널. ──
+    /** GET /auth/admin/twilio — 설정 여부(토큰 미반환). */
+    public static function twilioGet(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        [$user, $err] = self::requireMasterAdmin($req);
+        if ($err) return self::json($res, ['ok' => false, 'error' => $err[0]], $err[1]);
+        $pdo = Db::pdo(); self::ensureAppSetting($pdo);
+        $g = fn($k) => self::getAppSetting($pdo, $k);
+        return self::json($res, ['ok' => true,
+            'sid'      => $g('twilio_sid'),
+            'from'     => $g('twilio_from'),
+            'msg_sid'  => $g('twilio_msg_sid'),
+            'token_set'=> $g('twilio_token') !== '',
+            'configured' => \Genie\Twilio::isConfigured($pdo),
+        ]);
+    }
+
+    /** POST /auth/admin/twilio {sid, token?, from, msg_sid?} — Twilio 자격증명 저장(토큰 암호화). */
+    public static function twilioSave(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        [$user, $err] = self::requireMasterAdmin($req);
+        if ($err) return self::json($res, ['ok' => false, 'error' => $err[0]], $err[1]);
+        $pdo = Db::pdo(); self::ensureAppSetting($pdo);
+        $b = self::readBody($req);
+        $sid    = trim((string)($b['sid'] ?? ''));
+        $from   = trim((string)($b['from'] ?? ''));
+        $msgSid = trim((string)($b['msg_sid'] ?? ''));
+        if ($sid === '') return self::json($res, ['ok' => false, 'error' => 'Account SID 를 입력하세요.'], 422);
+        if ($from === '' && $msgSid === '') return self::json($res, ['ok' => false, 'error' => '발신번호(From) 또는 Messaging Service SID 를 입력하세요.'], 422);
+        self::setAppSetting($pdo, 'sms_provider', 'twilio');
+        self::setAppSetting($pdo, 'twilio_sid', $sid);
+        if ($from !== '')   self::setAppSetting($pdo, 'twilio_from', $from);
+        if ($msgSid !== '') self::setAppSetting($pdo, 'twilio_msg_sid', $msgSid);
+        // Auth Token 은 은행급 암호화 저장(빈값=기존 유지).
+        if (isset($b['token']) && (string)$b['token'] !== '') self::setAppSetting($pdo, 'twilio_token', \Genie\Crypto::encrypt((string)$b['token']));
+        self::audit($req, 'twilio_config', 'Twilio SMS 설정 변경', 'high', $user);
+        return self::json($res, ['ok' => true, 'message' => 'Twilio 설정이 저장되었습니다.', 'configured' => \Genie\Twilio::isConfigured($pdo)]);
+    }
+
+    /** POST /auth/admin/twilio/test {to} — 테스트 SMS 발송. */
+    public static function twilioTest(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
+        [$user, $err] = self::requireMasterAdmin($req);
+        if ($err) return self::json($res, ['ok' => false, 'error' => $err[0]], $err[1]);
+        $pdo = Db::pdo(); self::ensureAppSetting($pdo);
+        $b = self::readBody($req);
+        $to = trim((string)($b['to'] ?? ''));
+        if ($to === '') return self::json($res, ['ok' => false, 'error' => '수신 휴대폰 번호를 입력하세요.'], 422);
+        if (!\Genie\Twilio::isConfigured($pdo)) return self::json($res, ['ok' => false, 'error' => 'Twilio가 아직 설정되지 않았습니다.'], 400);
+        $r = \Genie\Twilio::sendPlatform($pdo, $to, '[GeniegoROI] Twilio 테스트 발송 — 설정이 정상 동작합니다.');
+        if (empty($r['ok'])) return self::json($res, ['ok' => false, 'error' => '발송 실패: ' . (string)($r['detail'] ?? '알 수 없는 오류')], 502);
+        return self::json($res, ['ok' => true, 'message' => "{$to} 로 테스트 SMS를 보냈습니다.", 'sid' => $r['request_id'] ?? null]);
     }
 
     // ── 196차 — 플랫폼 AI(Claude/Anthropic) API 키 설정(관리자). 실 AI 디자인·분석 활성화. ──
@@ -3190,9 +3554,66 @@ final class UserAuth
     private static function mfaMethodConfigured(string $method, \PDO $pdo): bool
     {
         if ($method === 'email') return \Genie\Mailer::isConfigured($pdo);
-        if ($method === 'sms')   return \Genie\NaverSms::isConfigured($pdo);
+        if ($method === 'sms')   return self::smsProviderConfigured($pdo);
         if ($method === 'kakao') return trim((string)getenv('KAKAO_ALIMTALK_KEY')) !== '';
         return false;
+    }
+
+    /** [현 차수] 통합 SMS 발송 — Twilio(우선) → 네이버 SENS 폴백(둘 다 설정 시). 하나라도 성공하면 ok. */
+    private static function smsSend(\PDO $pdo, string $to, string $content): array
+    {
+        if (\Genie\Twilio::isConfigured($pdo)) {
+            $r = \Genie\Twilio::sendPlatform($pdo, $to, $content);
+            if (!empty($r['ok'])) return $r;
+            if (\Genie\NaverSms::isConfigured($pdo)) { $r2 = \Genie\NaverSms::sendPlatform($pdo, $to, $content); if (!empty($r2['ok'])) return $r2; }
+            return $r;
+        }
+        return \Genie\NaverSms::sendPlatform($pdo, $to, $content);
+    }
+
+    /** SMS 발송 채널(Twilio 또는 네이버 SENS)이 하나라도 설정됐는지. */
+    private static function smsProviderConfigured(\PDO $pdo): bool
+    {
+        return \Genie\Twilio::isConfigured($pdo) || \Genie\NaverSms::isConfigured($pdo);
+    }
+
+    /**
+     * [현 차수] 로그인 2FA OTP 발급 — 6자리 코드 생성·해시저장(5분)·발송(sms/email).
+     *   dispatchMfaOtp 와 달리 '미등록 강제' 사용자도 대상(제공자 미설정이라도 코드 저장).
+     *   비운영(데모·로컬·GENIE_OTP_DEV)은 dev_code 를 반환해 화면표시(테스트·락아웃 방지).
+     * @return array{sent:bool, msg:string, dev_code:?string}
+     */
+    private static function issueLoginOtp(\PDO $pdo, array $user, string $method): array
+    {
+        $code = self::genOtp6();
+        $exp  = gmdate('Y-m-d\TH:i:s\Z', time() + 300);
+        try {
+            $pdo->prepare('UPDATE app_user SET mfa_otp_hash=?, mfa_otp_expires=? WHERE id=?')
+                ->execute([password_hash($code, PASSWORD_DEFAULT), $exp, (int)($user['id'] ?? 0)]);
+        } catch (\Throwable $e) { return ['sent' => false, 'msg' => '인증 코드 저장 중 오류가 발생했습니다.', 'dev_code' => null]; }
+        $devExpose = (\Genie\Db::envLabel() !== 'production') || (getenv('GENIE_OTP_DEV') === '1');
+        $sent = false; $msg = '';
+        if ($method === 'sms') {
+            $to = preg_replace('/[^0-9]/', '', (string)($user['phone'] ?? $user['mobile'] ?? ''));
+            if ($to !== '' && self::smsProviderConfigured($pdo)) {
+                $r = self::smsSend($pdo, $to, "[GeniegoROI] 로그인 인증코드 {$code} — 5분 이내 입력하세요.");
+                $sent = !empty($r['ok']);
+            }
+            $msg = $sent ? '인증코드를 문자(SMS)로 보냈습니다. (5분 유효)'
+                 : ($devExpose ? '개발/데모 환경 — 인증코드를 화면에 표시합니다.' : '문자 발송에 실패했거나 발송 채널이 준비되지 않았습니다.');
+        } else { // email (기본 폴백)
+            $to = (string)($user['email'] ?? '');
+            if ($to !== '' && \Genie\Mailer::isConfigured($pdo)) {
+                $html = \Genie\Mailer::wrapHtml('로그인 인증코드',
+                    "<p>아래 6자리 인증코드를 입력해 로그인을 완료하세요. 코드는 5분간 유효합니다.</p>"
+                    . "<div style='font-size:30px;font-weight:800;letter-spacing:8px;margin:18px 0;color:#1e293b'>{$code}</div>");
+                $r = \Genie\Mailer::send($to, '[Geniego-ROI] 로그인 인증코드', $html, ['pdo' => $pdo]);
+                $sent = !empty($r['ok']);
+            }
+            $msg = $sent ? '인증코드를 이메일로 보냈습니다. 메일함(스팸 포함)을 확인하세요. (5분 유효)'
+                 : ($devExpose ? '개발/데모 환경 — 인증코드를 화면에 표시합니다.' : '이메일 발송에 실패했거나 발송 채널이 준비되지 않았습니다.');
+        }
+        return ['sent' => $sent, 'msg' => $msg, 'dev_code' => ($devExpose ? $code : null)];
     }
 
     private static function genOtp6(): string
@@ -3230,7 +3651,7 @@ final class UserAuth
         if ($method === 'sms') {
             $to = preg_replace('/[^0-9]/', '', (string)($user['phone'] ?? $user['mobile'] ?? ''));
             if ($to === '') return ['sent'=>false,'error'=>'no_phone','msg'=>'등록된 휴대폰 번호가 없습니다. 프로필에서 번호를 등록하세요.'];
-            $r = \Genie\NaverSms::sendPlatform($pdo, $to, "[GeniegoROI] 인증코드 {$code} — 5분 이내 입력하세요.");
+            $r = self::smsSend($pdo, $to, "[GeniegoROI] 인증코드 {$code} — 5분 이내 입력하세요.");
             if (empty($r['ok'])) return ['sent'=>false,'error'=>'send_failed','msg'=>'SMS 발송에 실패했습니다. 잠시 후 다시 시도하세요.'];
             return ['sent'=>true,'msg'=>'인증 코드를 SMS로 보냈습니다. 휴대폰을 확인하세요.'];
         }

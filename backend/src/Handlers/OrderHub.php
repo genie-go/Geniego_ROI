@@ -152,15 +152,20 @@ final class OrderHub
             $refExpr = $isMy
                 ? "CONCAT('CHS-', o.channel, '-', o.channel_order_id)"
                 : "('CHS-' || o.channel || '-' || o.channel_order_id)";
+            // [현 차수 잔여] ★부분출고 COGS 보전 — FEFO 가 주문수량보다 적게 소비(재고부족 부분출고)한 경우
+            //   기존 COALESCE(fefo_cost, qty×WAC) 는 fefo_cost(부분분)만 택해 COGS 과소·마진 과대였다.
+            //   COGS = FEFO실원가 + (주문수량 − FEFO소비수량)×WAC 로 부족분을 WAC 보전. 원장 없으면 fefo_qty=0
+            //   → 전량 WAC(기존과 byte-identical, 무회귀). uncosted(WAC 미등록)면 보전분×0=0(정의 불변).
+            $shortExpr = $isMy ? 'GREATEST(0, o.qty - COALESCE(fc.fefo_qty,0))' : 'MAX(0, o.qty - COALESCE(fc.fefo_qty,0))';
             $stCogs = $pdo->prepare(
                 "SELECT
-                    COALESCE(SUM(COALESCE(fc.fefo_cost, o.qty * ic.cost)),0) AS cogs,
+                    COALESCE(SUM(COALESCE(fc.fefo_cost,0) + ($shortExpr) * COALESCE(ic.cost,0)),0) AS cogs,
                     $uncostedExpr,
                     $costedExpr
                    FROM channel_orders o
                    $icJoin
                    LEFT JOIN (
-                        SELECT ref, SUM(cost_total) AS fefo_cost
+                        SELECT ref, SUM(cost_total) AS fefo_cost, SUM(qty) AS fefo_qty
                           FROM wms_lot_consumptions WHERE tenant_id=? GROUP BY ref
                    ) fc ON fc.ref = $refExpr
                   WHERE o.$baseSql AND NOT $cancelExpr"
@@ -664,14 +669,19 @@ final class OrderHub
         $byStatus = [];
         $total = 0; $amount = 0.0;
         try {
-            $st = $pdo->prepare("SELECT COALESCE(status,'pending') AS status, COUNT(*) AS cnt, COALESCE(SUM(amount),0) AS amt
-                FROM orderhub_claims WHERE tenant_id=? GROUP BY COALESCE(status,'pending')");
+            // [현 차수 P2] (channel, order_id) 로 dedup(MAX amount) 후 집계 — 정산 롤업(272차)은 이미 dedup 하는데
+            //   claimsStats 만 전 행 카운트라, 폴링('CLM-')+CSV('clm_') 공존 시 건수·금액이 부풀어 정산과 발산했다.
+            $st = $pdo->prepare("SELECT COALESCE(channel,'') ch, COALESCE(order_id,'') oid, COALESCE(status,'pending') status, COALESCE(amount,0) amt FROM orderhub_claims WHERE tenant_id=?");
             $st->execute([$tenant]);
+            $dedup = []; $rn = 0;
             foreach ($st->fetchAll(\PDO::FETCH_ASSOC) as $r) {
-                $s = (string)$r['status'];
-                $byStatus[$s] = (int)$r['cnt'];
-                $total  += (int)$r['cnt'];
-                $amount += (float)$r['amt'];
+                $key = ($r['oid'] === '') ? ('row_' . ($rn++)) : ($r['ch'] . '|' . $r['oid']); // order_id 없으면 개별 카운트
+                if (!isset($dedup[$key]) || (float)$r['amt'] > $dedup[$key]['amt']) $dedup[$key] = ['status' => (string)$r['status'], 'amt' => (float)$r['amt']];
+            }
+            foreach ($dedup as $d) {
+                $byStatus[$d['status']] = ($byStatus[$d['status']] ?? 0) + 1;
+                $total  += 1;
+                $amount += $d['amt'];
             }
         } catch (\Throwable $e) {
             return self::json($resp, ['ok' => false, 'error' => 'db_error', 'message' => $e->getMessage()], 500);
@@ -1000,10 +1010,15 @@ final class OrderHub
                         $bo->execute([$tenant, $orderId, $orderId]);
                         $br = $bo->fetch(\PDO::FETCH_ASSOC);
                         if ($br) {
+                            // [현 차수 P1] 부분클레임 과다역분개 수정 — 클레임 실환불액($amount)이 있으면 그 값(원주문 상한),
+                            //   없을 때만 원주문 전액. 기존엔 항상 total_price 를 차감해 부분반품이 전액 LTV 차감→오염.
+                            $orderTotal = (float)($br['total_price'] ?? 0);
+                            $claimAmt   = (float)$amount;
+                            $refundAmt  = $claimAmt > 0 ? ($orderTotal > 0 ? min($claimAmt, $orderTotal) : $claimAmt) : $orderTotal;
                             \Genie\Handlers\ChannelSync::crmRefundForOrder(
                                 $pdo, $tenant, (string)($channel ?: ($br['channel'] ?? '')),
                                 (string)($br['buyer_email'] ?? ''), (string)($br['buyer_name'] ?? ''),
-                                (float)($br['total_price'] ?? $amount), $orderId
+                                $refundAmt, $orderId
                             );
                         }
                     } catch (\Throwable $e) {}

@@ -313,11 +313,13 @@ export default function AccountPerformance() {
         const teams = {};
         ACTIVE_META_DATA.forEach(c => {
             const tn = c.account_team;
-            if (!teams[tn]) teams[tn] = { spend: 0, roas: 0, conv: 0, count: 0 };
-            teams[tn].spend += c.spend; teams[tn].roas += c.roas; teams[tn].conv += c.conv; teams[tn].count++;
+            if (!teams[tn]) teams[tn] = { spend: 0, rev: 0, conv: 0, count: 0 };
+            // [현 차수 P1] 팀 ROAS는 지출가중(Σ매출/Σ지출)이어야 — 단순평균은 소액 고ROAS 캠페인이 팀 평균을
+            //   끌어올려 저효율 팀에 '예산 증액' 오추천을 냈다(objAggregates 는 이미 지출가중, aiInsights만 잔존).
+            teams[tn].spend += (c.spend || 0); teams[tn].rev += (c.roas || 0) * (c.spend || 0); teams[tn].conv += c.conv; teams[tn].count++;
         });
         Object.entries(teams).forEach(([team, data]) => {
-            const avgRoas = data.count > 0 ? data.roas / data.count : 0;
+            const avgRoas = data.spend > 0 ? data.rev / data.spend : 0;
             if (avgRoas >= 4) insights.push({ team, type: 'success', message: `${team}: ROAS ${avgRoas.toFixed(1)}x — ${t('acctPerf.aiInsightHigh', 'Top performer. Budget increase recommended.')}` });
             else if (avgRoas > 0 && avgRoas < 2) insights.push({ team, type: 'warning', message: `${team}: ROAS ${avgRoas.toFixed(1)}x — ${t('acctPerf.aiInsightLow', 'Low efficiency. Creative refresh needed.')}` });
         });

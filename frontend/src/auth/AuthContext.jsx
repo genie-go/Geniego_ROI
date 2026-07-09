@@ -470,6 +470,7 @@ export function AuthProvider({ children }) {
                 mfaErr.mfaRequired = true;
                 mfaErr.mfaMethod = d.mfa_method || "totp"; // 195차 #3: 인증 방식(email/sms/kakao/totp)
                 mfaErr.otpSent = !!d.otp_sent;
+                mfaErr.otpDev = d.otp_dev || null; // [현 차수] 비운영(데모) dev 코드 화면표시
                 throw mfaErr;
             }
 

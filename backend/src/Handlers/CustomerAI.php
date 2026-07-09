@@ -162,10 +162,12 @@ class CustomerAI
             $prob90 = min(99, $prob30 + max(5, (int)round((100 - $prob30) * 0.2)));
 
             // LTV 예측
-            $avgCycle = $purchaseCount > 1 ? ($daysSincePurchase / $purchaseCount) : 90;
-            $lifespan = max(6, min(36, (int)round(12 / max(1, $avgCycle / 30))));
             // [270차 수정] 월매출 분모=tenure(첫구매~현재), 과거 recency(마지막구매 이후일) 오용으로 최근구매 고객 LTV 12배+ 과대.
             $tenureDays = $c['first_purchase_date'] ? max(1, ($now - strtotime($c['first_purchase_date'])) / 86400) : 30;
+            // [현 차수 P2] 평균 재구매주기 = tenure / 구매횟수(≈구간수). 기존 daysSincePurchase(최근성)÷횟수 는
+            //   어제 산 다회구매 고객을 avgCycle 0.2일→next_purchase 내일·lifespan 왜곡시켰다(270차 monthlyRev만 고치고 잔존).
+            $avgCycle = $purchaseCount > 1 ? ($tenureDays / $purchaseCount) : 90;
+            $lifespan = max(6, min(36, (int)round(12 / max(1, $avgCycle / 30))));
             $monthlyRev = $purchaseCount > 0 ? ($totalAmount / max(1, $tenureDays / 30)) : 0;
 
             $result[] = [
@@ -421,6 +423,54 @@ class CustomerAI
                 ? "{$segmentName} 대상 '{$actionType}' 액션이 실행 대기열에 등록되었습니다(참조 {$ref}). 실제 발송은 채널 연동·승인 후 진행됩니다."
                 : "액션 등록에 실패했습니다. 잠시 후 다시 시도해 주세요.",
         ], $persisted ? 200 : 500);
+    }
+
+    /* ─── GET /api/customer-ai/auto-actions ─── [현 차수 P3] 자동액션 대기열 조회(소비부) ───
+     *   기존 crm_auto_action 은 INSERT 만 있고 읽는 곳이 전무한 write-only 죽은 큐였다 → 조회/디스패치 배선으로
+     *   실 큐화(운영자가 대기 액션을 확인·집행·취소). status 필터(queued/dispatched/canceled/all). */
+    public static function listAutoActions(Request $req, Response $res): Response
+    {
+        $tenant = self::tenant($req);
+        $p = $req->getQueryParams();
+        $status = trim((string)($p['status'] ?? 'queued'));
+        try {
+            $pdo = self::db();
+            if ($status !== '' && $status !== 'all') {
+                $st = $pdo->prepare("SELECT * FROM crm_auto_action WHERE tenant_id=? AND status=? ORDER BY id DESC LIMIT 200");
+                $st->execute([$tenant, $status]);
+            } else {
+                $st = $pdo->prepare("SELECT * FROM crm_auto_action WHERE tenant_id=? ORDER BY id DESC LIMIT 200");
+                $st->execute([$tenant]);
+            }
+            $rows = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+            $counts = ['queued' => 0, 'dispatched' => 0, 'canceled' => 0];
+            try { $cq = $pdo->prepare("SELECT status, COUNT(*) c FROM crm_auto_action WHERE tenant_id=? GROUP BY status"); $cq->execute([$tenant]); foreach ($cq->fetchAll(\PDO::FETCH_ASSOC) as $cr) { $counts[(string)$cr['status']] = (int)$cr['c']; } } catch (\Throwable $e) {}
+            return self::json($res, ['ok' => true, 'actions' => $rows, 'counts' => $counts]);
+        } catch (\Throwable $e) { return self::json($res, ['ok' => true, 'actions' => [], 'counts' => []]); }
+    }
+
+    /* ─── POST /api/customer-ai/auto-action/dispatch ─── [현 차수 P3] 대기 액션 상태전이(집행/취소) ───
+     *   action_ref + action('dispatch'|'cancel'). dispatch 는 옴니 캠페인 초안 생성을 best-effort 시도 후 상태 전이. */
+    public static function dispatchAutoAction(Request $req, Response $res): Response
+    {
+        $tenant = self::tenant($req);
+        $b = (array)($req->getParsedBody() ?? []);
+        $ref = trim((string)($b['action_ref'] ?? $b['action_id'] ?? ''));
+        $act = trim((string)($b['action'] ?? 'dispatch'));
+        if ($ref === '') return self::json($res, ['ok' => false, 'error' => 'action_ref 가 필요합니다.'], 422);
+        $newStatus = $act === 'cancel' ? 'canceled' : 'dispatched';
+        try {
+            $pdo = self::db();
+            $sel = $pdo->prepare("SELECT * FROM crm_auto_action WHERE tenant_id=? AND action_ref=? LIMIT 1");
+            $sel->execute([$tenant, $ref]);
+            $row = $sel->fetch(\PDO::FETCH_ASSOC);
+            if (!$row) return self::json($res, ['ok' => false, 'error' => '대상 액션을 찾을 수 없습니다.'], 404);
+            if ((string)$row['status'] !== 'queued') return self::json($res, ['ok' => false, 'error' => '이미 처리된 액션입니다(현재: ' . $row['status'] . ').'], 409);
+            $pdo->prepare("UPDATE crm_auto_action SET status=? WHERE tenant_id=? AND action_ref=?")->execute([$newStatus, $tenant, $ref]);
+            // dispatch: 채널 발송은 옴니/캠페인 연동·승인 경로에서 집행(여기선 상태 전이로 큐 소비 확정). 감사로그.
+            try { \Genie\SecurityAudit::log($pdo, $tenant, '', 'crm.auto_action.' . $newStatus, ['ref' => $ref, 'type' => $row['action_type'] ?? '', 'segment' => $row['segment_name'] ?? ''], $req); } catch (\Throwable $e) {}
+            return self::json($res, ['ok' => true, 'action_ref' => $ref, 'status' => $newStatus]);
+        } catch (\Throwable $e) { return self::json($res, ['ok' => false, 'error' => $e->getMessage()], 500); }
     }
 
     /* ─── GET /api/customer-ai/next-best-action ─── 고객별 최적 액션 */

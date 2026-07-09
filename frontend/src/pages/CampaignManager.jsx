@@ -161,7 +161,9 @@ export default function CampaignManager(){
         if(!camp)return;
         updateCampaignStatus(camp.id,status); // 낙관적 로컬 UI
         setDetailId(null);
-        if(!IS_DEMO){ try{ await postJson('/api/v423/auto-campaign/status',{id:camp.id,status}); }catch(_){/* best-effort */} }
+        // [현 차수 P1] ★킬스위치 배선 — 백엔드 정수 id(backendId) 우선 전송. 기존엔 로컬 문자열 id(camp.id)만
+        //   보내 (int)"AM-…"=0→422 삼켜져 매체 집행이 계속 지출됐다. backendId 없는 로컬/데모는 종전대로.
+        if(!IS_DEMO){ const bid = (camp.backendId!=null && camp.backendId!=='') ? camp.backendId : camp.id; try{ await postJson('/api/v423/auto-campaign/status',{id:bid,status}); }catch(_){/* best-effort */} }
     },[updateCampaignStatus]);
     const stsLabel=s=>({active:tr(T.statusActive),paused:tr(T.statusPaused),draft:tr(T.statusDraft),ended:tr(T.statusEnded),pending:tr(T.statusPending)}[s]||s);
 

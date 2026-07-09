@@ -290,11 +290,22 @@ class DataPlatform
         $baseScore = $scoreParts ? array_sum($scoreParts) / count($scoreParts) : null;
         $reliability = $baseScore === null ? null : (int)round(max(0, $baseScore - $staleChannels * 3 - $errChannels * 5));
 
+        // [현 차수 잔여] ★컴플라이언스 — 하드코딩 ok:true 대신 검증가능 항목은 실측. audit=감사로그 실존여부,
+        //   pii=집계전용 설계 불변(원본 PII 미저장)이라 verified. gdpr/retention 은 플랫폼 표준(verified=false 로 정직 표기).
+        $auditActive = null;
+        try { $auditActive = (self::cnt($pdo, "SELECT COUNT(*) FROM security_audit WHERE tenant_id=?", [$t]) ?? 0) > 0; } catch (\Throwable $e) {}
+        $compliance = [
+            ['key' => 'gdpr',      'ok' => true, 'verified' => false],
+            ['key' => 'pii',       'ok' => true, 'verified' => true],  // 집계전용 아키텍처 = 원본 PII 미저장(설계 불변)
+            ['key' => 'retention', 'ok' => true, 'verified' => false],
+            ['key' => 'audit',     'ok' => ($auditActive === null ? true : $auditActive), 'verified' => ($auditActive !== null)],
+        ];
+
         return self::json($res, ['ok' => true, 'tenant' => $t,
             'reliability_score' => $reliability, 'quality' => $issues, 'freshness' => $fresh,
             'summary' => ['orders_completeness' => $ordScore, 'ads_completeness' => $adScore,
                           'error_channels' => $errChannels, 'stale_channels' => $staleChannels],
-            'rules' => $rules,
+            'rules' => $rules, 'compliance' => $compliance,
             'note' => ($ordTotal || $adTotal) ? null : '아직 수집/등록된 데이터가 없습니다. 채널 자격증명을 등록하면 실데이터 기반 품질/신뢰도가 산출됩니다.']);
     }
 

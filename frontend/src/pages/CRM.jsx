@@ -1285,12 +1285,16 @@ function CRMContent() {
 
   /* ── 191차 4단계: 운영=백엔드(/api/crm/*) 실배선, 데모=주문이력 파생+로컬 유지 ── */
   const [opCustomers, setOpCustomers] = useState([]);
+  const [opStats, setOpStats] = useState(null); // [현 차수 P1] 서버 전체집계(총/활성/총LTV) — 100행 캡 언더카운트 해소
   const [opSegments, setOpSegments] = useState([]);
   const [opRfm, setOpRfm] = useState([]);
   const [opPanelActs, setOpPanelActs] = useState([]);
   const [opPanelTimeline, setOpPanelTimeline] = useState([]); // [257차] 360 전체 활동 타임라인(전 유형)
   const mapCust = (r) => ({ id: r.id, name: r.name || '', email: r.email || '', phone: r.phone || '-', grade: r.grade || 'normal', ltv: Number(r.ltv || 0), purchase_count: Number(r.purchase_count || 0), last_purchase: (r.last_purchase || '').slice(0, 10), tags: Array.isArray(r.tags) ? r.tags : [] });
-  const reloadOpCustomers = useCallback(() => { crmApi.listCustomers().then(r => setOpCustomers((r.customers || []).map(mapCust))).catch(() => {}); }, []);
+  const reloadOpCustomers = useCallback(() => {
+    crmApi.listCustomers("", 1, 100).then(r => setOpCustomers((r.customers || []).map(mapCust))).catch(() => {});
+    crmApi.stats().then(s => setOpStats(s || null)).catch(() => {}); // 전체 KPI는 서버집계 사용
+  }, []);
   const reloadOpSegments = useCallback(() => { crmApi.listSegments().then(r => setOpSegments((r.segments || []).map(s => ({ ...s, count: Number(s.member_count || 0) })))).catch(() => {}); }, []);
   const reloadOpRfm = useCallback(() => { crmApi.rfm().then(r => setOpRfm((r.customers || []).map(c => ({ id: c.id, name: c.name || '', email: c.email || '', phone: '-', grade: c.rfm_grade || 'normal', ltv: Number(c.monetary || 0), purchase_count: Number(c.frequency || 0), last_purchase: (c.last_purchase || '').slice(0, 10), churn_prob: c.churn_prob, predicted_clv: c.predicted_clv, clv_model: c.clv_model, tags: [] })))).catch(() => {}); }, []); // [240차 약점③] 예측형 CDP: 백엔드 churn_prob/predicted_clv/clv_model(BG/NBD·단일소스) 전달
   useEffect(() => { if (IS_DEMO) return; reloadOpCustomers(); reloadOpSegments(); reloadOpRfm(); }, [reloadOpCustomers, reloadOpSegments, reloadOpRfm]);
@@ -1386,9 +1390,14 @@ function CRMContent() {
     finally { setResolvingId(false); }
   };
 
-  const handleExportCsv = () => {
+  const handleExportCsv = async () => {
     const headers = [t('crm.fName'), t('crm.colEmail'), t('crm.colPhone'), t('crm.colGrade'), 'LTV', t('crm.colCnt'), t('crm.colLast')];
-    const rows = customers.map(c => [c.name, c.email, c.phone, c.grade, c.ltv, c.purchase_count, c.last_purchase || '']);
+    // [현 차수 P1] 운영 CSV는 전건 수집(page 루프) — 목록 100행 캡으로 잘려 내보내던 문제 해소. 데모는 로컬 전건.
+    let src = customers;
+    if (!IS_DEMO) {
+      try { const all = await crmApi.listAllCustomers(); src = (all.customers || []).map(mapCust); } catch { src = customers; }
+    }
+    const rows = src.map(c => [c.name, c.email, c.phone, c.grade, c.ltv, c.purchase_count, c.last_purchase || '']);
     downloadCsv(headers, rows, `crm_customers_${new Date().toISOString().slice(0, 10)}.csv`);
   };
 
@@ -1416,7 +1425,13 @@ function CRMContent() {
     ];
   }, []);
 
-  const displayStats = {
+  // [현 차수 P1] 운영 전체 KPI는 서버집계(opStats) 사용 — 목록 100행 캡으로 언더카운트되던 문제 해소.
+  //   데모는 파생 전건이 로컬에 있어 그대로 집계. 서버집계 미로드 시 목록 폴백(회귀 0).
+  const displayStats = (!IS_DEMO && opStats) ? {
+    total: Number(opStats.total ?? opStats.total_customers ?? customers.length),
+    active_30d: Number(opStats.active ?? opStats.active_30d ?? customers.filter(c => c.purchase_count > 0).length),
+    total_ltv: Number(opStats.total_ltv ?? customers.reduce((sum, c) => sum + c.ltv, 0)),
+  } : {
     total: customers.length,
     active_30d: customers.filter(c => c.purchase_count > 0).length,
     total_ltv: customers.reduce((sum, c) => sum + c.ltv, 0),

@@ -350,7 +350,12 @@ const InOutTab = memo(function InOutTab({ whs }) {
     const [filter, setFilter] = useState('All');
     const [searchTxt, setSearchTxt] = useState('');
     const [period, setPeriod] = useState({ preset: 'all' }); // [현 차수] 입출고 기간조회
-    const [form, setForm] = useState({ type: 'Inbound', whId: 'W001', destWhId: '', sku: '', name: '', qty: '', unit: '', memo: '', ref: '', reason: '' });
+    const [form, setForm] = useState({ type: 'Inbound', whId: '', destWhId: '', sku: '', name: '', qty: '', unit: '', memo: '', ref: '', reason: '' });
+    // [현 차수 P1] ★창고 기본값을 실제 창고로 동기화 — 기존 하드코딩 'W001'(데모 시드 id)은 운영 창고(정수 PK)에
+    //   없어, 폼/CSV가 유령창고 'W001' 로 wms_stock 을 적재→allocationPlan 후보 제외→채널판매가 영구 미차감이었다.
+    useEffect(() => {
+        if (whs && whs.length) setForm(p => (whs.some(w => String(w.id) === String(p.whId)) ? p : { ...p, whId: whs[0].id }));
+    }, [whs]);
     const [showForm, setShowForm] = useState(false);
     const [showScanner, setShowScanner] = useState(false);
     const [scanResult, setScanResult] = useState(null);
@@ -390,6 +395,9 @@ const InOutTab = memo(function InOutTab({ whs }) {
             setShowForm(false);
             return;
         }
+        // [현 차수 P1] 유효 창고 검증 — 유령창고 적재 차단.
+        if (!whs.length) { alert(t('wms.ioNoWarehouse', '등록된 창고가 없습니다. 먼저 창고를 등록하세요.')); return; }
+        if (!whs.some(w => String(w.id) === String(form.whId))) { alert(t('wms.ioPickWarehouse', '유효한 창고를 선택하세요.')); return; }
         // ✅ GlobalDataContext.registerInOut() → Stock Auto Change + Notification
         const payload = {
             type: form.type,
@@ -407,7 +415,7 @@ const InOutTab = memo(function InOutTab({ whs }) {
         registerInOut(payload);
         // 205차: 백엔드 영속(감사추적). 실패해도 로컬 동작 유지
         wmsApi.createMovement(payload).then(reloadMoves).catch(() => {});
-        setForm({ type: 'Inbound', whId: 'W001', destWhId: '', sku: '', name: '', qty: '', unit: '', memo: '', ref: '', reason: '' });
+        setForm({ type: 'Inbound', whId: whs[0]?.id || '', destWhId: '', sku: '', name: '', qty: '', unit: '', memo: '', ref: '', reason: '' });
         setShowForm(false);
     };
 
@@ -491,15 +499,20 @@ const InOutTab = memo(function InOutTab({ whs }) {
 
     const executeBulkImport = () => {
         if (isDemo) { alert(t('wms.ioDemoMsg')); return; }
+        // [현 차수 P1] CSV 창고 폴백을 실제 창고로 — 창고 미등록 시 임포트 차단(유령 'W001' 적재 방지).
+        if (!whs.length) { alert(t('wms.ioNoWarehouse', '등록된 창고가 없습니다. 먼저 창고를 등록하세요.')); return; }
+        const validWh = new Set(whs.map(w => String(w.id)));
+        const defWh = whs[0].id;
         let ok = 0;
         bulkData.forEach(row => {
             const type = row.Type || row.type || 'Inbound';
             const sku = row.SKU || row.sku || '';
             const qty = Number(row.Qty || row.qty || 0);
             if (!sku || !qty) return;
+            const rawWh = row.WarehouseID || row.warehouseId || '';
             const payload = {
                 type, sku, qty: Math.abs(qty),
-                whId: row.WarehouseID || row.warehouseId || 'W001',
+                whId: validWh.has(String(rawWh)) ? rawWh : defWh,
                 name: row.ProductName || row.productName || row.name || '',
                 unit: Number(row.UnitCost || row.unitCost || 0),
                 memo: row.Memo || row.memo || '',

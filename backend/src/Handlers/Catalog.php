@@ -249,19 +249,29 @@ class Catalog
         $pdo->beginTransaction();
         try {
             $upd = $pdo->prepare("UPDATE catalog_listing SET price=:p, updated_at=:now WHERE tenant_id=:t AND channel=:c AND sku=:s");
+            $lst = $pdo->prepare("SELECT DISTINCT channel FROM catalog_listing WHERE tenant_id=? AND sku=?");
             foreach ($items as $it) {
                 if (!is_array($it)) continue;
                 $ch = (string)($it['channel'] ?? '');
                 $sk = (string)($it['sku'] ?? '');
-                if ($ch === '' || $sk === '') continue;
+                if ($sk === '') continue;
                 $newP = (float)($it['price'] ?? 0);
-                $oldP = self::currentPrice($pdo, $tenant, $ch, $sk); // 변경 전 가격
-                $upd->execute([':p' => $newP, ':now' => $now, ':t' => $tenant, ':c' => $ch, ':s' => $sk]);
-                $n = $upd->rowCount();
-                $updated += $n;
-                if ($n > 0) {
-                    if ($oldP !== null) self::recordPriceChange($pdo, $tenant, $ch, $sk, $oldP, $newP, 'bulk');
-                    $changed[] = ['channel' => $ch, 'sku' => $sk, 'price' => $newP];
+                // [현 차수 P3] ★와일드카드 채널('*'/'all'/빈값) 팬아웃 — 기존엔 channel='all' 리터럴로 UPDATE 해
+                //   실제 채널행(coupang/naver…)과 0행 매칭 = PriceOpt 전채널 최적가 적용이 완전 no-op 이었다.
+                //   해당 SKU 의 전 채널 리스팅을 조회해 각각 갱신(writeback enqueue 도 채널별로 이어진다).
+                $isWild = ($ch === '' || $ch === '*' || strtolower($ch) === 'all');
+                $targets = [$ch];
+                if ($isWild) { $lst->execute([$tenant, $sk]); $targets = $lst->fetchAll(\PDO::FETCH_COLUMN) ?: []; }
+                foreach ($targets as $tc) {
+                    if ((string)$tc === '') continue;
+                    $oldP = self::currentPrice($pdo, $tenant, (string)$tc, $sk); // 변경 전 가격
+                    $upd->execute([':p' => $newP, ':now' => $now, ':t' => $tenant, ':c' => (string)$tc, ':s' => $sk]);
+                    $n = $upd->rowCount();
+                    $updated += $n;
+                    if ($n > 0) {
+                        if ($oldP !== null) self::recordPriceChange($pdo, $tenant, (string)$tc, $sk, $oldP, $newP, 'bulk');
+                        $changed[] = ['channel' => (string)$tc, 'sku' => $sk, 'price' => $newP];
+                    }
                 }
             }
             $pdo->commit();

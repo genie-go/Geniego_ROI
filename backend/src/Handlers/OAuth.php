@@ -106,6 +106,13 @@ class OAuth
         self::ensureTables();
         $provider = strtolower((string)($args['provider'] ?? ''));
         if (!isset(self::PROVIDERS[$provider])) return self::json($res, ['ok' => false, 'error' => '지원하지 않는 provider'], 422);
+        // [현 차수 잔여] ★Naver 로그인(NID) OAuth 는 커머스/광고 API 권한을 제공하지 않는다(scope='' = 프로필/로그인만).
+        //   스마트스토어=커머스API HMAC(client_id/secret), 검색광고=API 라이선스 키로 '수동 등록'해야 실제 동기화된다.
+        //   OAuth 로 연동한 NID 토큰으로 커머스 sync 를 시도하면 영구 실패하므로, 채널연동 시작 단계에서 정직 안내로 차단.
+        if ($provider === 'naver') {
+            return self::json($res, ['ok' => false, 'configured' => false, 'manual_required' => true,
+                'error' => 'Naver 로그인(NID) OAuth 는 커머스/광고 권한을 제공하지 않습니다. 스마트스토어는 커머스 API client_id·client_secret(HMAC), 검색광고는 API 라이선스 키를 수동 등록하세요.'], 200);
+        }
         $cfg = self::config($provider);
         if ($cfg['client_id'] === '') {
             return self::json($res, ['ok' => false, 'configured' => false, 'error' => $provider . ' OAuth 앱이 미설정입니다. 관리자가 client_id/secret을 등록하면 활성화됩니다.'], 200);

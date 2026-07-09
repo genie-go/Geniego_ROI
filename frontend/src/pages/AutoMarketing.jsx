@@ -644,6 +644,7 @@ export default function AutoMarketing() {
                 //   연결된 채널은 집행 대기열로, 미연결은 'pending_connection'(정직). best-effort — UI 무중단.
                 // [현 차수 초고도화] 승인=즉시 자동 집행 — activate:true 로 생성 직후 게이트(킬스위치·결제수단·소재 준비)
                 //   통과 시 바로 라이브. 게이트 미충족(결제수단 미등록 등)은 캠페인은 생성되고 활성화만 보류 → 사유 안내.
+                let backendId = null; // [현 차수 P1] 발행 응답의 백엔드 정수 id — 일시정지/상태변경 킬스위치 배선용
                 try {
                     const tok = localStorage.getItem('genie_token') || localStorage.getItem('demo_genie_token') || '';
                     const lr = await fetch('/api/v423/auto-campaign/launch', {
@@ -669,6 +670,7 @@ export default function AutoMarketing() {
                     });
                     try {
                         const ld = await lr.json();
+                        if (ld && (ld.id != null)) backendId = ld.id; // 백엔드 정수 id 캡처
                         if (ld && ld.live) {
                             addAlert({ type: 'success', msg: `${name} — 승인 즉시 집행(라이브) 시작. 성과 자동 수집·최적화 진행`, channel: selAds[0] });
                         } else if (ld && ld.activation && ld.activation.message) {
@@ -677,7 +679,7 @@ export default function AutoMarketing() {
                     } catch (_) { /* 응답 파싱 실패 무해 */ }
                 } catch (_) {}
                 const camp = {
-                    id: mkId(), name, period, targetAudience, budget: strategy.budget,
+                    id: mkId(), backendId, name, period, targetAudience, budget: strategy.budget,
                     categories: selCats.map(id => PRODUCT_CATEGORIES.find(c => c.id === id)),
                     // 206차: 필드명 통일 — 데모시드 캠페인은 channels 필드. 자동생성도 channels 로 맞춰
                     //   Marketing/BudgetTracker 채널 집계가 'other' 오분류되던 동기화 실패 해소(adChannels 병행 유지).

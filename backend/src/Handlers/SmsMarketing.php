@@ -199,15 +199,30 @@ final class SmsMarketing
     private static function dispatchCampaign(Request $req, Response $res, \PDO $pdo, string $tenant, int $id): Response
     {
         $plan = self::plan($req);
-        $c = $pdo->prepare("SELECT id,segment_id,message,status FROM sms_campaigns WHERE id=? AND tenant_id=?");
-        $c->execute([$id, $tenant]);
-        $camp = $c->fetch(PDO::FETCH_ASSOC);
+        // [현 차수 P1] template_id 도 조회 — 템플릿 기반 캠페인은 message 가 비어 무음 미발송(422)이었다.
+        try {
+            $c = $pdo->prepare("SELECT id,segment_id,message,template_id,status FROM sms_campaigns WHERE id=? AND tenant_id=?");
+            $c->execute([$id, $tenant]);
+            $camp = $c->fetch(PDO::FETCH_ASSOC);
+        } catch (\Throwable $e) {
+            $c = $pdo->prepare("SELECT id,segment_id,message,status FROM sms_campaigns WHERE id=? AND tenant_id=?");
+            $c->execute([$id, $tenant]);
+            $camp = $c->fetch(PDO::FETCH_ASSOC);
+        }
         if (!$camp) return TemplateResponder::respond($res->withStatus(404), ['ok'=>false,'error'=>'not found']);
         if (($camp['status'] ?? '') === 'sent') {
             return TemplateResponder::respond($res, ['ok'=>true,'id'=>$id,'status'=>'sent','already'=>true,'sent'=>0]);
         }
         $message = trim((string)($camp['message'] ?? ''));
-        if ($message === '') return TemplateResponder::respond($res->withStatus(422), ['ok'=>false,'error'=>'캠페인 메시지가 비어 있습니다.']);
+        // 메시지가 비고 template_id 가 있으면 sms_templates 본문 로드(템플릿 캠페인 발송 정상화).
+        if ($message === '' && (int)($camp['template_id'] ?? 0) > 0) {
+            try {
+                $tq = $pdo->prepare("SELECT COALESCE(content, body, message, '') AS body FROM sms_templates WHERE id=? AND tenant_id=?");
+                $tq->execute([(int)$camp['template_id'], $tenant]);
+                $message = trim((string)($tq->fetchColumn() ?: ''));
+            } catch (\Throwable $e) { /* 컬럼/테이블 변형 — 아래 422 폴백 */ }
+        }
+        if ($message === '') return TemplateResponder::respond($res->withStatus(422), ['ok'=>false,'error'=>'캠페인 메시지 또는 템플릿 본문이 비어 있습니다.']);
         $type = strlen($message) > 90 ? 'LMS' : 'SMS';
         $now  = gmdate('c');
 

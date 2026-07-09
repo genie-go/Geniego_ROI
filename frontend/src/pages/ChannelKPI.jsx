@@ -248,7 +248,10 @@ function SnsKpiTab({ globalChannels }) {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12 }}>
                 {METRICS.map(m => (
                     <MetCard key={m.key} icon={m.icon} label={m.label}
-                        value={m.fmt(SNS_DATA.reduce((s, d) => s + (d[m.key] || 0), 0))}
+                        value={m.fmt(m.key === 'ctr'
+                            /* [현 차수 P2] 전체 CTR = 노출가중 blended(Σclicks/Σimpr) — 채널별 백분율 단순합산(2%+2%+2%=6%) 오류 수정. */
+                            ? (() => { const imp = SNS_DATA.reduce((s, d) => s + (d.reach || 0), 0); const clk = SNS_DATA.reduce((s, d) => s + ((d.ctr || 0) * (d.reach || 0) / 100), 0); return imp > 0 ? clk / imp * 100 : 0; })()
+                            : SNS_DATA.reduce((s, d) => s + (d[m.key] || 0), 0))}
                         sub={t('channelKpiPage.allChannels')} color={m.color} />
                 ))}
             </div>

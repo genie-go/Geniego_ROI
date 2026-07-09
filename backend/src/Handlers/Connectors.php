@@ -3582,7 +3582,9 @@ final class Connectors
         [$code, $body, $err] = self::httpPost('https://api.direct.yandex.com/json/v5/reports', $payload, $headers);
         // Yandex 는 TSV(200)/async(201·202) → 본문은 비JSON. 자격 확인됨·라이브 매핑은 TSV 파서 라운드(정직).
         if ($err || $code >= 400) return ['hasCreds' => true, 'live' => false, 'error' => ($err ?: "yandex http $code") . ' (라이브 검증 후 TSV 매핑)'];
-        return ['hasCreds' => true, 'live' => true, 'rows' => [], 'note' => 'Yandex 리포트 수락(' . $code . ') — TSV 매핑은 라이브 자격증명 검증 라운드에서 활성화'];
+        // [현 차수 P2] TSV 파서 미구현 상태에서 live:true+0행 반환하면 persistMetricRows 가 구간 DELETE 후 0행 적재해
+        //   기존 데이터를 소실시키고 '정상 동기화(0행)'로 위장했다 → live:false 로 낮춰 기존 데이터 보존+note 표면화.
+        return ['hasCreds' => true, 'live' => false, 'rows' => [], 'error' => 'Yandex 리포트 수락(' . $code . ') — TSV 응답 매핑 미구현(적재 보류, 데이터 보존)'];
     }
 
     /** [246차 P3] Yahoo! JAPAN Ads — ReportDefinition(비동기: 생성→폴링→다운로드). 등록 후 라이브 매핑. */
@@ -3600,7 +3602,8 @@ final class Connectors
         [$code, $body, $err] = self::httpPost('https://ads-search.yahooapis.jp/api/v9/ReportDefinitionService/add', $payload,
             ['Authorization' => 'Bearer ' . $token, 'Content-Type' => 'application/json', 'Accept' => 'application/json']);
         if ($err || $code >= 400) return ['hasCreds' => true, 'live' => false, 'error' => ($err ?: "yahoo_jp http $code") . ' (라이브 검증 후 비동기 매핑)'];
-        return ['hasCreds' => true, 'live' => true, 'rows' => [], 'note' => 'Yahoo! JAPAN Ads 리포트 정의 생성(' . $code . ') — 비동기 다운로드 매핑은 라이브 검증 라운드에서 활성화'];
+        // [현 차수 P2] 비동기 다운로드 파서 미구현 → live:false(기존 데이터 보존·note 표면화, '0행 정상' 위장 차단).
+        return ['hasCreds' => true, 'live' => false, 'rows' => [], 'error' => 'Yahoo! JAPAN Ads 리포트 정의 생성(' . $code . ') — 비동기 다운로드 매핑 미구현(적재 보류, 데이터 보존)'];
     }
 
     /** [현 차수] X Ads OAuth1.0a 서명 GET. params 는 쿼리이자 서명 베이스 스트링 일부. graceful 반환 [code, json, err]. */

@@ -1321,16 +1321,21 @@ const ProductDetail = memo(function ProductDetail({ product: p, onClose }) {
         return () => window.removeEventListener("keydown", fn);
     }, [onClose]);
 
+    // [현 차수 P1] ★채널별 하드코딩 가격오프셋 제거 — 표시용 임의가(amazon+3000·coupang-2000·11st-1000)가
+    //   260차에 실배선된 writeback payload 로 그대로 실채널 리스팅을 갱신·push 했다(사용자 미지정 임의가 유출).
+    //   실 판매가(p.price) 를 사용한다. 채널별 최적가는 가격최적화(PriceOpt)에서 명시 산출·전파한다.
     const channelPrices = CHANNELS.filter(c => p.channels.includes(c.id)).map(c => ({
         ...c,
-        price: p.price + (c.id === "amazon" ? 3000 : c.id === "coupang" ? -2000 : c.id === "11st" ? -1000 : 0),
+        price: p.price,
         stock: p.inventory,  // 197차: 채널별 재고 난수 조작 제거 — 실 재고 표시(가짜 변동 금지)
         lastSync: p.lastSync,
     }));
 
-    const options = [
-        { name: t('catalogSync.optionColor'), values: ["블랙", "화이트", "네이비"] },
-        { name: t('catalogSync.optionSize'), values: ["S", "M", "L", "XL"] },
+    // [현 차수 P2] 하드코딩 가짜 옵션(블랙/화이트·S~XL) 제거 — 실 상품 옵션이 있으면 사용, 없으면 미표시(허위 옵션 노출 차단).
+    const options = (Array.isArray(p.options) && p.options.length) ? p.options : [
+        // 폴백: 표시할 실 옵션이 없으면 빈 배열(아래 예시는 데모 전용 게이트).
+        ...(IS_DEMO ? [{ name: t('catalogSync.optionColor'), values: ["블랙", "화이트", "네이비"] },
+        { name: t('catalogSync.optionSize'), values: ["S", "M", "L", "XL"] }] : []),
     ];
 
     return (

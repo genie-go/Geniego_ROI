@@ -5,6 +5,7 @@ import { useGlobalData } from "../context/GlobalDataContext.jsx";
 import ProductSelectBar from '../components/dashboards/ProductSelectBar.jsx';
 import ProductMarketingPanel from '../components/dashboards/ProductMarketingPanel.jsx';
 import { useAuth } from "../auth/AuthContext";
+import { IS_DEMO } from "../utils/demoEnv"; // [현 차수 P2] 시드/합성데이터 게이트 정본
 import { useSecurityGuard } from "../security/SecurityGuard.js";
 import CrossLinkBar from "../components/CrossLinkBar.jsx";
 
@@ -337,7 +338,7 @@ function AllocationTab({ campaigns, tr, fmt }) {
 
 /* ─── Burn Rate Tab ─── */
 function BurnRateTab({ campaigns, tr, fmt }) {
-  const { isDemoMode } = useAuth();
+  const isDemoMode = IS_DEMO; // [현 차수 P2] 정본 IS_DEMO(빌드플래그 OR 데모호스트) 사용
   const totalBudget = useMemo(() => campaigns.reduce((s, c) => s + (c.budget || c.spent || 0), 0), [campaigns]);
   const totalSpent = useMemo(() => campaigns.reduce((s, c) => s + (c.spent || 0), 0), [campaigns]);
 

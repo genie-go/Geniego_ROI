@@ -137,7 +137,9 @@ export default function Settlements() {
       gross_sales: s.grossSales || 0, platform_fee: s.platformFee || 0, ad_fee: s.adFee || 0,
       payment_fee: s.paymentFee || 0, refunds, net_payout: s.netPayout || 0,
       orders: s.orders || 0, fee_rate: s.grossSales ? Math.round((s.platformFee || 0) / s.grossSales * 1000) / 10 : 0,
-      status: s.status === 'settled' ? 'confirmed' : (s.status === 'confirmed' ? 'pending' : (s.status || 'pending')),
+      // [현 차수 P2] 확정(settled)만 confirmed, 그 외(confirmed·estimated·pending 등)는 전부 pending —
+      //   기존엔 'estimated'가 else 통과해 대기 KPI에서 누락, Reconciliation(비-settled=대기)과 대기금액 발산했다.
+      status: s.status === 'settled' ? 'confirmed' : 'pending',
       color: meta.color, icon: meta.icon,
     };
   };

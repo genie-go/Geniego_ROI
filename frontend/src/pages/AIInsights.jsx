@@ -171,10 +171,12 @@ const TrendsTab = memo(function TrendsTab({ live, t, fmt }) {
     const FORECAST_DATA = useMemo(() => {
         const base = live.roas || (IS_DEMO ? 3.5 : 0);
         if (!base) return [];
+        // [현 차수 P1] ★과거 3점(D-3~D-1)은 데모 시연용 계수(base*0.9/1.05/0.95)라 운영에선 '실측'으로 표기하면
+        //   목데이터 날조가 된다 → 운영은 과거점 null(오늘 실측 단일점만). 데모만 시연 곡선 노출.
         return [
-            { day: "D-3", roas: base * 0.9, pred: null },
-            { day: "D-2", roas: base * 1.05, pred: null },
-            { day: "D-1", roas: base * 0.95, pred: null },
+            { day: "D-3", roas: IS_DEMO ? base * 0.9 : null, pred: null },
+            { day: "D-2", roas: IS_DEMO ? base * 1.05 : null, pred: null },
+            { day: "D-1", roas: IS_DEMO ? base * 0.95 : null, pred: null },
             { day: "Today", roas: base, pred: IS_DEMO ? base : null },
             { day: "D+1", roas: null, pred: IS_DEMO ? base * 1.1 : null },
             { day: "D+2", roas: null, pred: IS_DEMO ? base * 1.15 : null },
@@ -468,7 +470,7 @@ export default function AIInsights() {
         platformFee: pnlStats.platformFee || (IS_DEMO ? 450000 : 0),
         operatingProfit: pnlStats.operatingProfit || (IS_DEMO ? 1800000 : 0),
         roas: budgetStats.blendedRoas || (IS_DEMO ? 4.25 : 0),
-        totalOrders: (orderStats.count || 0) + (settlementStats.totalOrders || (IS_DEMO ? 1245 : 0)),
+        totalOrders: Math.max(orderStats.count || 0, settlementStats.totalOrders || (IS_DEMO ? 1245 : 0)), // [현 차수 P2] 동일 주문 이중합산(주문원장+정산행) → 단일 SSOT(max)
         totalReturns: settlementStats.totalReturns || (IS_DEMO ? 45 : 0),
         returnRate: settlementStats.returnRate || (IS_DEMO ? 0.036 : 0),
         // [231차 OS#5] Copilot 근거 grounding — 전체 워터폴

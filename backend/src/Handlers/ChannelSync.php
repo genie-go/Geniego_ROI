@@ -1257,7 +1257,9 @@ final class ChannelSync
         $products = [];
         foreach ((array)($iBody['ItemResponse'] ?? []) as $p) {
             $products[] = [
-                'channel_product_id'=>(string)($p['mart'] ?? $p['sku'] ?? ''), 'sku'=>(string)($p['sku'] ?? ''),
+                // [현 차수 P1] channel_product_id 를 상품 고유키(wpid/itemId/sku)로 — 기존 'mart'는 마켓 상수(WALMART_US)라
+                //   전 상품이 동일값→(tenant,channel,channel_product_id) upsert 로 1행으로 붕괴했다.
+                'channel_product_id'=>(string)($p['wpid'] ?? $p['itemId'] ?? $p['sku'] ?? ''), 'sku'=>(string)($p['sku'] ?? ''),
                 'name'=>(string)($p['productName'] ?? ''), 'price'=>(float)($p['price']['amount'] ?? 0), 'compare_price'=>0.0,
                 'inventory'=>0, 'status'=>(string)($p['publishedStatus'] ?? 'PUBLISHED'), 'source'=>'live',
             ];
@@ -2116,15 +2118,26 @@ final class ChannelSync
     {
         $accessKey = trim((string)($creds['access_key'] ?? '')); $secretKey = trim((string)($creds['secret_key'] ?? '')); $vendorId = trim((string)($creds['vendor_id'] ?? ''));
         if ($accessKey === '' || $secretKey === '' || $vendorId === '') return ['ok' => false, 'error' => 'Coupang: access_key·secret_key·vendor_id 필요'];
-        $catCode = (int)preg_replace('/\D/', '', (string)($p['category_code'] ?? $p['category'] ?? ''));
-        if ($catCode <= 0) return ['ok' => false, 'error' => 'Coupang 상품등록은 노출카테고리코드(displayCategoryCode)가 필요합니다 — 채널 카테고리 매핑에서 쿠팡 코드를 지정하세요'];
         $host = 'https://api-gateway.coupang.com';
-        $method = 'POST'; $path = "/v2/providers/seller_api/apis/api/v1/marketplace/seller-products";
-        $datetime = gmdate('ymd\THis\Z');
-        $sig = hash_hmac('sha256', $datetime . $method . $path, $secretKey);
-        $auth = "CEA algorithm=HmacSHA256, access-key={$accessKey}, signed-date={$datetime}, signature={$sig}";
+        $basePath = '/v2/providers/seller_api/apis/api/v1/marketplace/seller-products';
+        $sign = function (string $method, string $path) use ($secretKey, $accessKey) {
+            $dt = gmdate('ymd\THis\Z');
+            $sig = hash_hmac('sha256', $dt . $method . $path, $secretKey);
+            return "CEA algorithm=HmacSHA256, access-key={$accessKey}, signed-date={$dt}, signature={$sig}";
+        };
+        // [현 차수 P1] ★op/cpid 분기 — 기존엔 항상 신규등록(POST)만 수행해, 가격/재고 writeback(update)·판매중지
+        //   (unregister) 요청마다 쿠팡에 동일 상품이 중복 생성됐다(의도와 정반대).
+        if ($op === 'unregister') {
+            if ($cpid === null || $cpid === '') return ['ok' => true, 'channel_product_id' => null, 'note' => 'no cpid — skip'];
+            $path = $basePath . '/' . rawurlencode((string)$cpid) . '/sales/stop';
+            [$c, $b] = self::httpReq('PUT', $host . $path, ['Authorization' => $sign('PUT', $path), 'Content-Type' => 'application/json;charset=UTF-8'], '');
+            if ($c >= 200 && $c < 300) return ['ok' => true, 'channel_product_id' => (string)$cpid];
+            return ['ok' => false, 'error' => "Coupang stop HTTP {$c}", 'detail' => mb_substr(json_encode($b['message'] ?? $b, JSON_UNESCAPED_UNICODE), 0, 200)];
+        }
+        $catCode = (int)preg_replace('/\D/', '', (string)($p['category_code'] ?? $p['category'] ?? ''));
+        if ($catCode <= 0) return ['ok' => false, 'error' => 'Coupang 상품등록/수정은 노출카테고리코드(displayCategoryCode)가 필요합니다 — 채널 카테고리 매핑에서 쿠팡 코드를 지정하세요'];
         $price = (float)($p['price'] ?? 0); $name = (string)($p['name'] ?? $p['sku'] ?? ''); $sku = (string)($p['sku'] ?? '');
-        $payload = json_encode([
+        $prod = [
             'sellerProductName' => $name, 'vendorId' => $vendorId, 'displayCategoryCode' => $catCode,
             'saleStartedAt' => gmdate('Y-m-d\TH:i:s'), 'saleEndedAt' => '2099-12-31T23:59:59',
             'displayProductName' => $name, 'sellerProductCode' => $sku,
@@ -2132,10 +2145,14 @@ final class ChannelSync
                 'itemName' => $name, 'originalPrice' => $price, 'salePrice' => $price,
                 'maximumBuyCount' => (int)($p['inventory'] ?? 0), 'sellerProductItemCode' => $sku,
             ]],
-        ], JSON_UNESCAPED_UNICODE);
-        [$c, $b] = self::httpReq($method, $host . $path, ['Authorization' => $auth, 'Content-Type' => 'application/json;charset=UTF-8'], $payload);
+        ];
+        // cpid 있으면 수정(PUT, sellerProductId 동봉), 없으면 신규등록(POST).
+        if ($cpid !== null && $cpid !== '') { $method = 'PUT'; $prod['sellerProductId'] = (int)$cpid; }
+        else { $method = 'POST'; }
+        $payload = json_encode($prod, JSON_UNESCAPED_UNICODE);
+        [$c, $b] = self::httpReq($method, $host . $basePath, ['Authorization' => $sign($method, $basePath), 'Content-Type' => 'application/json;charset=UTF-8'], $payload);
         if ($c >= 200 && $c < 300 && (($b['code'] ?? '') === 'SUCCESS' || isset($b['data']))) {
-            $pid = $b['data'] ?? null; return ['ok' => true, 'channel_product_id' => $pid !== null ? (string)$pid : null];
+            $pid = $b['data'] ?? $cpid; return ['ok' => true, 'channel_product_id' => $pid !== null ? (string)$pid : null];
         }
         return ['ok' => false, 'error' => "Coupang HTTP {$c}", 'detail' => mb_substr(json_encode($b['message'] ?? $b, JSON_UNESCAPED_UNICODE), 0, 200)];
     }
@@ -2146,7 +2163,9 @@ final class ChannelSync
         $clientId = trim((string)($creds['client_id'] ?? '')); $clientSecret = trim((string)($creds['client_secret'] ?? ''));
         if ($clientId === '' || $clientSecret === '') return ['ok' => false, 'error' => 'Naver: client_id·client_secret 필요'];
         $leaf = (string)($p['category_code'] ?? $p['category'] ?? '');
-        if ($leaf === '') return ['ok' => false, 'error' => 'Naver 상품등록은 leafCategoryId 가 필요합니다 — 채널 카테고리 매핑에서 네이버 리프카테고리ID를 지정하세요'];
+        // [현 차수 P2] leafCategoryId 필수를 '신규등록'에 한정 — 기존엔 update 분기보다 앞서 있어 기존 상품의
+        //   가격/재고만 갱신(주용도)할 때도 카테고리코드 없으면 차단됐다. 수정/판매중지는 leaf 없이 진행 허용.
+        if ($leaf === '' && $cpid === null && $op !== 'unregister') return ['ok' => false, 'error' => 'Naver 신규 상품등록은 leafCategoryId 가 필요합니다 — 채널 카테고리 매핑에서 네이버 리프카테고리ID를 지정하세요'];
         $ts = (int)(microtime(true) * 1000);
         $sign = base64_encode(hash_hmac('sha256', "{$clientId}_{$ts}", $clientSecret, true));
         [$tc, $tb] = self::httpPost('https://api.commerce.naver.com/external/v1/oauth2/token', ['Content-Type' => 'application/x-www-form-urlencoded'],
@@ -2806,7 +2825,8 @@ final class ChannelSync
                 // [현 차수 P0] 활성→취소/반품 전이(최초 1회) → 재고 복원 + claim 적재(정산 returnFee 자동반영). recordClaim 멱등.
                 $rsku = (string)($existing['sku'] ?? ($o['sku'] ?? ''));
                 $rqty = (int)($existing['qty'] ?? ($o['qty'] ?? 0));
-                if ($rsku !== '' && $rqty > 0) self::incInventory($pdo, $tenant, $channel, $rsku, $rqty);
+                $rOid = (string)($o['channel_order_id'] ?? $existing['channel_order_id'] ?? '');
+                if ($rsku !== '' && $rqty > 0) self::incInventory($pdo, $tenant, $channel, $rsku, $rqty, $rOid !== '' ? ('inc-' . $channel . '-' . $rOid) : '');
                 $am = substr((string)($existing['ordered_at'] ?? ''), 0, 7); // [P1] 활성→취소/반품 전이 원주문 월
                 if (preg_match('/^\d{4}-\d{2}$/', $am) && $am !== $curMonth) $affectedMonths[$am] = true;
                 $claimTotal = (float)($existing['total_price'] ?? 0);
@@ -2860,10 +2880,17 @@ final class ChannelSync
     }
 
     /** 208차 동기화: 취소/반품 시 channel_inventory.available 복원(단일 행, 기본창고 우선). */
-    private static function incInventory(PDO $pdo, string $tenant, string $channel, string $sku, int $qty): void
+    private static function incInventory(PDO $pdo, string $tenant, string $channel, string $sku, int $qty, string $ref = ''): void
     {
         if ($sku === '' || $qty <= 0) return;
         try {
+            // [현 차수 P2] ★멱등 가드 — force 활성복구 후 재취소 시 채널재고가 이중 복원되던 결함 차단
+            //   (decInventory·reflectChannelRestock·recordCrmRefund 는 이미 dedup, incInventory만 무방비였다).
+            if ($ref !== '') {
+                try { $pdo->exec("CREATE TABLE IF NOT EXISTS channel_inv_restock_log (tenant_id VARCHAR(190), ref VARCHAR(190), sku VARCHAR(190), created_at VARCHAR(32), PRIMARY KEY(tenant_id, ref, sku))"); } catch (\Throwable $e) {}
+                try { $pdo->prepare("INSERT INTO channel_inv_restock_log (tenant_id, ref, sku, created_at) VALUES (?,?,?,?)")->execute([$tenant, $ref, $sku, gmdate('c')]); }
+                catch (\Throwable $e) { return; } // 중복 ref = 이미 복원됨 → skip
+            }
             $sel = $pdo->prepare("SELECT id FROM channel_inventory WHERE tenant_id=? AND channel=? AND sku=? ORDER BY (warehouse='default') DESC, id ASC LIMIT 1");
             $sel->execute([$tenant, $channel, $sku]);
             $id = $sel->fetchColumn();
@@ -3099,6 +3126,16 @@ final class ChannelSync
             }
             $pdo->prepare("INSERT INTO crm_activities(tenant_id,customer_id,type,channel,amount,data,created_at) VALUES(?,?,'purchase',?,?,?,?)")
                 ->execute([$tenant, (int)$cid, $channel, $total, json_encode(['sku' => $sku, 'qty' => $qty, 'order_id' => $orderId], JSON_UNESCAPED_UNICODE), $now]);
+            // [현 차수 P2] 등급 자동파생 — 채널동기화 고객이 영구 'normal'이라 grade 세그먼트가 0명 매칭이었다.
+            //   파생기준=프론트 데모(CRM.jsx: >500k champions·>200k loyal·단일구매 new) 정합.
+            try {
+                $lg = $pdo->prepare("SELECT ltv,(SELECT COUNT(*) FROM crm_activities WHERE tenant_id=? AND customer_id=? AND type='purchase') pc FROM crm_customers WHERE id=?");
+                $lg->execute([$tenant, (int)$cid, (int)$cid]);
+                $lr = $lg->fetch(\PDO::FETCH_ASSOC) ?: [];
+                $lv = (float)($lr['ltv'] ?? 0); $pc = (int)($lr['pc'] ?? 1);
+                $grade = $lv > 500000 ? 'champions' : ($lv > 200000 ? 'loyal' : ($pc <= 1 ? 'new' : 'normal'));
+                $pdo->prepare("UPDATE crm_customers SET grade=? WHERE id=?")->execute([$grade, (int)$cid]);
+            } catch (\Throwable $e) {}
             // [현 차수] 구매 이벤트 → 'purchase' 트리거 여정 자동 진입(전환 귀속 revenue 포함). best-effort.
             try { JourneyBuilder::enrollByTrigger($pdo, $tenant, 'purchase', (int)$cid, ['revenue' => $total]); } catch (\Throwable $e) {}
             // [240차 약점②] 오운드채널 어트리뷰션 귀속 — 이 고객의 미귀속 이메일/저니 발송 터치(own:<emailHash>)에 order_id 백필
@@ -3126,10 +3163,12 @@ final class ChannelSync
             $sel->execute([$tenant, $matchEmail]);
             $cid = $sel->fetchColumn();
             if (!$cid) return; // 구매 이력 없는 고객은 되돌릴 것 없음
-            // 멱등: 동일 주문 refund 활동 존재 시 skip(재폴링 이중 역분개 차단)
+            // 멱등: 동일 주문 refund 활동 존재 시 skip. [현 차수 P2] dedup 키에서 가변 channel 제거 —
+            //   같은 주문이 채널표기 상이(폴링 'coupang' vs CSV 'coupang_kr')로 유입되면 이중 역분개됐다.
+            //   고객+order_id 만으로 판정(order_id 는 주문 고유키).
             if ($orderId !== '') {
-                $dup = $pdo->prepare("SELECT 1 FROM crm_activities WHERE tenant_id=? AND type='refund' AND channel=? AND data LIKE ? LIMIT 1");
-                $dup->execute([$tenant, $channel, '%"order_id":"' . $orderId . '"%']);
+                $dup = $pdo->prepare("SELECT 1 FROM crm_activities WHERE tenant_id=? AND customer_id=? AND type='refund' AND data LIKE ? LIMIT 1");
+                $dup->execute([$tenant, (int)$cid, '%"order_id":"' . $orderId . '"%']);
                 if ($dup->fetchColumn()) return;
             }
             // ltv 컬럼 차감(0 floor·recordCrmPurchase 증분 대칭). GREATEST 는 SQLite 미지원 → MAX() 드라이버 공통.
@@ -3328,14 +3367,20 @@ final class ChannelSync
         if (!$channel) return TemplateResponder::respond($res->withStatus(422), ['error'=>'channel required']);
 
         $now = gmdate('c');
+        // [현 차수 P1] ★계약 정합 수정: 프론트(OmniChannel 연동탭)는 채널별 필수 부가필드를 top-level 로 보내는데
+        //   기존엔 6키 화이트리스트만 수집해 coupang(access_key·vendor_id)·tiktok_shop(app_key·access_token)·
+        //   rakuten·yahoo_jp·gmarket·cafe24 필수키가 즉시동기화·cron 양쪽에서 소실→영구 미연동이었다.
+        //   → 예약키를 제외한 모든 스칼라 body 필드를 extra 로 편입한다.
+        $reserved = ['channel','cred_type','label','key_name','key_value','extra_json'];
         $extra = [];
-        foreach (['shop_domain','marketplace_id','store_id','refresh_token','client_id','client_secret'] as $k) {
-            if (!empty($body[$k])) $extra[$k] = $body[$k];
+        foreach ($body as $k => $v) {
+            if (in_array($k, $reserved, true)) continue;
+            if (is_scalar($v) && trim((string)$v) !== '') $extra[$k] = (string)$v;
         }
-        // [현 차수] 저장용 extra: secret 필드(refresh_token/client_secret) 은행급 암호화. 즉시 동기화는 평문 $extra 사용.
+        // 저장용 extra: 시크릿성 필드(secret/token/password/access_key/license 등) 은행급 암호화. 즉시 동기화는 평문 $extra.
         $extraStore = $extra;
-        foreach (['refresh_token','client_secret'] as $sk) {
-            if (!empty($extraStore[$sk])) $extraStore[$sk] = \Genie\Crypto::encrypt((string)$extraStore[$sk]);
+        foreach ($extraStore as $k => $v) {
+            if (preg_match('/secret|token|password|license|access_key|secret_key|private/i', (string)$k)) $extraStore[$k] = \Genie\Crypto::encrypt((string)$v);
         }
 
         // 자격증명 저장 — 207차 driver-aware upsert(빈 key_value 는 기존값 보존)
@@ -3447,15 +3492,22 @@ final class ChannelSync
             default => [true, "{$channel}: credentials stored successfully"],
         };
 
-        // DB 업데이트
+        // [현 차수 P2] ★거짓 '연결됨' 방지 — 실 API 핑으로 검증한 채널(shopify/ebay)만 'connected/ok'.
+        //   나머지(amazon/coupang/naver/default)는 자격증명 저장만 확인했으므로 'stored'(대기)로 정직 표기.
+        //   잘못된 자격증명에도 '정상'이라 stamp 하던 문제 해소(ChannelCreds hasRealAdapter 게이팅과 정합).
+        $pingVerified = in_array($channel, ['shopify', 'ebay'], true);
+        $statusVal  = $success ? ($pingVerified ? 'connected' : 'stored') : 'error';
+        $testStatus = $success ? ($pingVerified ? 'ok' : 'stored') : 'error';
+        if ($success && !$pingVerified) $message .= ' (실연결 검증은 첫 동기화 시 확인)';
         $now = gmdate('c');
         $pdo->prepare("UPDATE channel_credential SET last_tested_at=?,test_status=? WHERE tenant_id=? AND channel=?")
-            ->execute([$now, $success ? 'ok' : 'error', $tenant, $channel]);
+            ->execute([$now, $testStatus, $tenant, $channel]);
 
         return TemplateResponder::respond($res, [
             'ok'      => $success,
             'channel' => $channel,
-            'status'  => $success ? 'connected' : 'error',
+            'status'  => $statusVal,
+            'verified'=> $pingVerified && $success,
             'message' => $message,
         ]);
     }

@@ -168,13 +168,38 @@ class AgencyPortal
         $loginId = strtolower(trim((string)($b['login_id'] ?? '')));
         $pw = (string)($b['password'] ?? '');
         if ($loginId === '' || $pw === '') return self::json($res, ['ok' => false, 'error' => '로그인 ID 와 비밀번호를 입력하세요.'], 422);
-        // 간이 레이트리밋(로그인 무차별 방지) — 실패 누적 시 지연은 상위 인프라, 여기선 계정 잠금 없이 표준검증.
+        // [현 차수 P2] ★로그인 무차별 대입 방지 — IP+login_id 기준 실패 카운터(15분窓 8회 초과 시 15분 잠금).
+        //   기존 주석만 있고 실제 구현 부재로 agt_ 세션(12h)을 온라인 브루트포스에 무방비였다.
+        $sp = $req->getServerParams();
+        $ip = (string)($sp['HTTP_X_FORWARDED_FOR'] ?? $sp['REMOTE_ADDR'] ?? '');
+        $ip = trim(explode(',', $ip)[0]);
+        $ident = 'agy|' . $ip . '|' . $loginId;
+        $nowTs = time();
+        try {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS agency_login_attempt (ident VARCHAR(190) PRIMARY KEY, fail_count INT DEFAULT 0, first_at INT, locked_until INT)");
+            $qr = $pdo->prepare("SELECT fail_count, first_at, locked_until FROM agency_login_attempt WHERE ident=?");
+            $qr->execute([$ident]); $rl = $qr->fetch(PDO::FETCH_ASSOC);
+            if ($rl && (int)($rl['locked_until'] ?? 0) > $nowTs) {
+                return self::json($res, ['ok' => false, 'error' => '로그인 시도가 너무 많습니다. 잠시 후 다시 시도하세요.', 'retry_after' => (int)$rl['locked_until'] - $nowTs], 429);
+            }
+        } catch (\Throwable $e) {}
         $st = $pdo->prepare("SELECT * FROM agency_account WHERE login_id=? AND active=1 LIMIT 1");
         $st->execute([$loginId]);
         $acct = $st->fetch(PDO::FETCH_ASSOC);
         if (!$acct || !password_verify($pw, (string)$acct['password_hash'])) {
+            // 실패 카운트 증가(15분 윈도우 리셋·8회 초과 시 15분 잠금).
+            try {
+                if (!$rl) { $pdo->prepare("INSERT INTO agency_login_attempt (ident,fail_count,first_at,locked_until) VALUES (?,1,?,0)")->execute([$ident, $nowTs]); }
+                else {
+                    $fc = ((int)$rl['first_at'] < $nowTs - 900) ? 1 : ((int)$rl['fail_count'] + 1);
+                    $fa = ((int)$rl['first_at'] < $nowTs - 900) ? $nowTs : (int)$rl['first_at'];
+                    $lu = $fc >= 8 ? $nowTs + 900 : 0;
+                    $pdo->prepare("UPDATE agency_login_attempt SET fail_count=?, first_at=?, locked_until=? WHERE ident=?")->execute([$fc, $fa, $lu, $ident]);
+                }
+            } catch (\Throwable $e) {}
             return self::json($res, ['ok' => false, 'error' => '로그인 ID 또는 비밀번호가 올바르지 않습니다.'], 401);
         }
+        try { $pdo->prepare("DELETE FROM agency_login_attempt WHERE ident=?")->execute([$ident]); } catch (\Throwable $e) {} // 성공 → 클리어
         $token = 'agt_' . bin2hex(random_bytes(32));
         $now = self::now(); $exp = gmdate('Y-m-d H:i:s', time() + 12 * 3600);
         $pdo->prepare("INSERT INTO agency_session (token,agency_id,active_link_id,active_client_tenant,expires_at,created_at) VALUES (?,?,NULL,NULL,?,?)")

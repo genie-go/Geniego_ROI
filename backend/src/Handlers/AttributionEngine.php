@@ -955,15 +955,27 @@ final class AttributionEngine
         }
         if (!$sets) return ['ok' => true, 'method' => 'shapley-exact', 'channels' => [], 'journeys' => 0, 'total_conversions' => 0, 'total_revenue' => 0];
         arsort($freq);
-        $universe = array_slice(array_keys($freq), 0, 12);
-        $idx = array_flip($universe); $n = count($universe); $hasOther = count($freq) > $n;
+        // [현 차수 P3] ★tail 채널을 'other' 단일 연합 플레이어로 승격 — 기존엔 top-12 밖 채널을 비트에서 통째로
+        //   무시(혼합 여정 [A(in),Z(out)]→A 단독 크레딧)해 in-universe 과대·tail 과소였다. universe 상한을 11 로
+        //   낮추고 12번째 슬롯을 'other'(권외 채널 any → 세팅)로 배정 → Shapley 가 tail 기여를 공정 분배(혼합 여정 포함).
+        $topReal = array_slice(array_keys($freq), 0, 11);
+        $realSet = array_flip($topReal);
+        $hasOther = count($freq) > count($topReal);
+        $universe = $topReal;
+        $otherBitIndex = null;
+        if ($hasOther) { $otherBitIndex = count($universe); $universe[] = '__OTHER__'; }
+        $idx = array_flip($topReal); $n = count($universe);
         $size = 1 << $n;
         $cnt = array_fill(0, $size, 0.0); $cntRev = array_fill(0, $size, 0.0);
-        $otherConv = 0.0; $otherRev = 0.0;
+        $otherConv = 0.0; $otherRev = 0.0; // 잔여(권외만·other플레이어 미사용 시) — 회귀 안전 폴백
         foreach ($sets as $s) {
-            $mask = 0;
-            foreach ($s['chs'] as $c) if (isset($idx[$c])) $mask |= (1 << $idx[$c]);
-            if ($mask === 0) { $otherConv += 1.0; $otherRev += $s['rev']; continue; }
+            $mask = 0; $touchesOther = false;
+            foreach ($s['chs'] as $c) {
+                if (isset($idx[$c])) $mask |= (1 << $idx[$c]);
+                elseif (!isset($realSet[$c])) $touchesOther = true; // top-11 밖 = other
+            }
+            if ($touchesOther && $otherBitIndex !== null) $mask |= (1 << $otherBitIndex);
+            if ($mask === 0) { $otherConv += 1.0; $otherRev += $s['rev']; continue; } // 어떤 플레이어도 없음(이론상 없음)
             $cnt[$mask] += 1.0; $cntRev[$mask] += $s['rev'];
         }
         // zeta transform: v(S)=Σ_{m⊆S} cnt[m]
@@ -981,8 +993,13 @@ final class AttributionEngine
         }
         $totConv = array_sum($phi) + $otherConv; $totRev = array_sum($phiR) + $otherRev;
         $channels = [];
-        for ($i = 0; $i < $n; $i++) $channels[] = ['channel' => $universe[$i], 'shapley_conversions' => round($phi[$i], 3), 'shapley_revenue' => round($phiR[$i], 0), 'credit_pct' => $totConv > 0 ? round($phi[$i] / $totConv * 100, 2) : 0];
-        if ($hasOther && $otherConv > 0) $channels[] = ['channel' => 'other', 'shapley_conversions' => round($otherConv, 3), 'shapley_revenue' => round($otherRev, 0), 'credit_pct' => $totConv > 0 ? round($otherConv / $totConv * 100, 2) : 0];
+        for ($i = 0; $i < $n; $i++) {
+            // '__OTHER__' 플레이어는 'other' 로 표기(tail 채널 집합의 Shapley 몫).
+            $label = ($universe[$i] === '__OTHER__') ? 'other' : $universe[$i];
+            $channels[] = ['channel' => $label, 'shapley_conversions' => round($phi[$i], 3), 'shapley_revenue' => round($phiR[$i], 0), 'credit_pct' => $totConv > 0 ? round($phi[$i] / $totConv * 100, 2) : 0];
+        }
+        // 폴백 잔여(어떤 플레이어에도 안 잡힌 journey — 이론상 0) 는 'other' 에 합산.
+        if ($otherConv > 0) $channels[] = ['channel' => 'other', 'shapley_conversions' => round($otherConv, 3), 'shapley_revenue' => round($otherRev, 0), 'credit_pct' => $totConv > 0 ? round($otherConv / $totConv * 100, 2) : 0];
         usort($channels, fn($a, $b) => $b['shapley_conversions'] <=> $a['shapley_conversions']);
         return ['ok' => true, 'method' => 'shapley-exact', 'n_channels' => $n, 'journeys' => count($sets), 'total_conversions' => round($totConv, 3), 'total_revenue' => round($totRev, 0), 'channels' => $channels];
     }
@@ -1044,6 +1061,16 @@ final class AttributionEngine
                 $oid = (string)$row['order_id'];
                 $byOrder[$oid][] = $row;
             }
+            // [현 차수 P1] 여정 매출을 channel_orders(취소/반품 제외)에서 산출 — recordTouch 가 extra_json 에
+            //   revenue 를 넣지 않아 매출가중/증분 ROAS 가 전 계층 0 이었다(형제 AttributionMetrics 와 동일 조인).
+            $revMap = [];
+            try {
+                $rs = $pdo->prepare('SELECT channel_order_id, MAX(COALESCE(total_price,0)) rev FROM channel_orders '
+                    . 'WHERE tenant_id = ? AND channel_order_id IN (' . $ph . ') '
+                    . "AND COALESCE(event_type,'order') NOT IN ('cancel','return') GROUP BY channel_order_id");
+                $rs->execute(array_merge([$tenant], $chunk));
+                foreach ($rs->fetchAll(PDO::FETCH_ASSOC) ?: [] as $r) $revMap[(string)$r['channel_order_id']] = (float)$r['rev'];
+            } catch (\Throwable $e) { /* 스키마 변형 폴백 — extra_json 사용 */ }
             foreach ($byOrder as $oid => $touches) {
                 $channels = []; $times = []; $views = []; $revenue = 0.0;
                 foreach ($touches as $tr) {
@@ -1062,6 +1089,8 @@ final class AttributionEngine
                     if ($revenue <= 0) $revenue = self::extractRevenue((string)($tr['extra_json'] ?? ''));
                 }
                 if (empty($channels)) continue;
+                // channel_orders 실매출 우선, 없으면 extra_json 폴백.
+                if (isset($revMap[$oid]) && $revMap[$oid] > 0) $revenue = $revMap[$oid];
                 $ct = $convAt[$oid] ?? end($times);
                 if ($ct <= 0) $ct = end($times);
                 $convJourneys[] = ['channels' => $channels, 'times' => $times, 'views' => $views, 'conv_time' => $ct, 'revenue' => $revenue];
@@ -1086,11 +1115,19 @@ final class AttributionEngine
         } catch (Throwable $e) {
             return [];
         }
-        $bySession = [];
-        foreach ($st->fetchAll(PDO::FETCH_ASSOC) ?: [] as $row) {
+        $rows = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        // [현 차수 P3] ★전환 세션 '전체' 제외 — 기존엔 전환 order_id 를 가진 '행'만 skip 하고 같은 세션의 나머지
+        //   비전환 터치(order_id 공백/미백필)는 null journey 로 남겨, 실제 전환한 세션이 전환+비전환 양쪽에
+        //   이중 계수됐다 → Markov removal effect(전환/비전환 대비) 왜곡. 세션에 전환 터치가 하나라도 있으면 통째 제외.
+        $convertedSessions = [];
+        foreach ($rows as $row) {
             $oid = (string)($row['order_id'] ?? '');
-            if ($oid !== '' && isset($convOrderSet[$oid])) continue; // 전환 여정은 제외(중복 방지)
+            if ($oid !== '' && isset($convOrderSet[$oid])) $convertedSessions[(string)$row['session_id']] = true;
+        }
+        $bySession = [];
+        foreach ($rows as $row) {
             $sid = (string)$row['session_id'];
+            if (isset($convertedSessions[$sid])) continue; // 전환 세션 전체 제외(비전환 여정 아님)
             $ch = self::normChannel((string)$row['channel']);
             if ($ch === '') continue;
             if (!empty($bySession[$sid]) && end($bySession[$sid]) === $ch) continue; // 연속중복 축약
@@ -1147,29 +1184,30 @@ final class AttributionEngine
             $views = $j['views'] ?? [];
             $times = $j['times'] ?? [];
             $convT = (float)($j['conv_time'] ?? 0);
-            $vm = []; $sumVm = 0.0;
+            $vm = []; $vmFlat = []; $sumVm = 0.0;
             $jHasClick = false; $jHasView = false; $jHasOutWindowView = false;
             for ($i = 0; $i < $n; $i++) {
                 if (!empty($views[$i])) {
                     $tt = (float)($times[$i] ?? $convT);
                     $dDaysV = max(0.0, ($convT - $tt) / 86400.0);
                     if ($vtWindow > 0.0 && $dDaysV > $vtWindow) {
-                        $vm[$i] = 0.0; // [264차] VT 윈도우 초과 노출 = 결정론적 제외(기여 0)
+                        $vm[$i] = 0.0; $vmFlat[$i] = 0.0; // [264차] VT 윈도우 초과 노출 = 결정론적 제외(기여 0)
                         $jHasOutWindowView = true;
                     } elseif ($vtHalflife > 0.0) {
-                        $vm[$i] = $vtWeight * pow(2.0, -$dDaysV / $vtHalflife); // 뷰스루 전용 반감기 시간감쇠
+                        $vm[$i] = $vtWeight * pow(2.0, -$dDaysV / $vtHalflife); // 뷰스루 전용 반감기 시간감쇠(무시간 모델용)
+                        $vmFlat[$i] = $vtWeight; // [현 차수 P2] time_decay 는 자체 시간감쇠가 있어 vt시간감쇠를 빼야 이중감쇠가 안 된다
                         if ($vm[$i] > 0) $jHasView = true;
                     } else {
-                        $vm[$i] = $vtWeight; // 기존 flat(회귀0)
+                        $vm[$i] = $vtWeight; $vmFlat[$i] = $vtWeight; // 기존 flat(회귀0)
                         if ($vm[$i] > 0) $jHasView = true;
                     }
                 } else {
-                    $vm[$i] = 1.0;
+                    $vm[$i] = 1.0; $vmFlat[$i] = 1.0;
                     $jHasClick = true;
                 }
                 $sumVm += $vm[$i];
             }
-            if ($sumVm <= 0) { $vm = array_fill(0, $n, 1.0); $sumVm = (float)$n; }
+            if ($sumVm <= 0) { $vm = array_fill(0, $n, 1.0); $vmFlat = array_fill(0, $n, 1.0); $sumVm = (float)$n; }
             // [264차] VTC/CTC 분류 — 클릭기여(하나라도 클릭)·순수뷰스루(윈도우내 노출만)·뷰보조클릭·윈도우外노출전용.
             if ($jHasClick) {
                 $ctcConv += 1.0;
@@ -1196,7 +1234,9 @@ final class AttributionEngine
             for ($i = 0; $i < $n; $i++) {
                 $tt = (float)($times[$i] ?? $convT);
                 $dDays = max(0.0, ($convT - $tt) / 86400.0);
-                $wi = pow(2.0, -$dDays / max(0.5, $halflife)) * $vm[$i];
+                // [현 차수 P2] flat 뷰가중 사용 — 뷰스루 vm 의 vtHalflife 감쇠와 time_decay 자체 감쇠가 겹쳐
+                //   뷰스루 터치가 이중으로 과소평가되던 것을 해소(윈도우外 제외·vtWeight 배율은 보존).
+                $wi = pow(2.0, -$dDays / max(0.5, $halflife)) * $vmFlat[$i];
                 $w[$i] = $wi; $sumW += $wi;
             }
             if ($sumW <= 0) { $sumW = $n; $w = array_fill(0, $n, 1.0); }

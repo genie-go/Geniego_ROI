@@ -476,8 +476,9 @@ final class Rollup {
                 $series = [];
                 foreach ($dates as $d) {
                     $b = $info['buckets'][$d] ?? ['orders'=>0, 'revenue'=>0.0, 'returns'=>0];
-                    $tot = $b['orders'] + $b['returns'];
-                    $series[] = ['date'=>$d, 'orders'=>$b['orders'], 'returns'=>$b['returns'], 'revenue'=>round($b['revenue'],2), 'spend'=>0, 'net_payout'=>round($b['revenue'],2), 'roas'=>0, 'return_rate'=>$tot > 0 ? round($b['returns']/$tot*100,1) : 0];
+                    // [현 차수 P2] 반품률 분모=orders(총주문). 반품은 별도 행이 아니라 기존 주문의 상태변경이라
+                    //   orders 에 이미 포함 → (orders+returns) 는 반품 이중계수(OrderHub SSOT 12% vs 여기 10.7% 불일치).
+                    $series[] = ['date'=>$d, 'orders'=>$b['orders'], 'returns'=>$b['returns'], 'revenue'=>round($b['revenue'],2), 'spend'=>0, 'net_payout'=>round($b['revenue'],2), 'roas'=>0, 'return_rate'=>$b['orders'] > 0 ? round($b['returns']/$b['orders']*100,1) : 0];
                 }
                 $rows[] = self::skuRowFromSeries($sku, $info['name'], $info['channel'], 0, $series);
             }
@@ -490,7 +491,7 @@ final class Rollup {
         $totalSpe = array_sum(array_column($series, 'spend'));
         $totalOrd = array_sum(array_column($series, 'orders'));
         $totalRet = array_sum(array_column($series, 'returns')); // [현 차수] volume 가중 반품률(ratio-of-sums)용
-        $retDenom = $totalOrd + $totalRet;
+        $retDenom = $totalOrd; // [현 차수 P2] 분모=총주문(반품 이미 포함) — OrderHub SSOT·productPerformance 와 일치
         return [
             'sku_id'=>$id, 'name'=>$name, 'platform'=>$platform, 'unit_price'=>$price,
             'avg_roas'=>$totalSpe > 0 ? round($totalRev/$totalSpe,2) : 0,

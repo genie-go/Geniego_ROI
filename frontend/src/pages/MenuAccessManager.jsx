@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from '../auth/AuthContext.jsx';
+import { IS_DEMO } from '../utils/demoEnv'; // [현 차수 P2] 데모 게이트 정본
 import { useI18n } from '../i18n/index.js';
 import { getJsonAuth, requestJsonAuth } from '../services/apiClient.js';
 import { MEMBER_MENU } from '../layout/sidebarManifest.js';
@@ -49,7 +50,7 @@ function buildMenuRows(t) {
 
 export default function MenuAccessManager() {
   const { t } = useI18n();
-  const { isDemoMode } = useAuth();
+  const isDemoMode = IS_DEMO; // [현 차수 P2] 정본 IS_DEMO 사용(데모호스트 운영빌드 시에도 정확)
   const [plans, setPlans] = useState([]);
   const [access, setAccess] = useState({});
   const [loading, setLoading] = useState(true);

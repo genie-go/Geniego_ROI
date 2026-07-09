@@ -322,13 +322,19 @@ final class WebPopupCampaign
         }
         $z = self::propZTest((int)$control['conversions'], (int)$control['impressions'], (int)$best['conversions'], (int)$best['impressions']);
         $enoughSample = $control['impressions'] >= $minSample && $best['impressions'] >= $minSample;
-        $significant = $enoughSample && $best['id'] !== $control['id'] && $z['p'] < 0.05 && $bestCvr > ($control['impressions'] > 0 ? $control['conversions'] / $control['impressions'] : 0);
+        // [현 차수 잔여] ★Bonferroni 다중비교 보정 — best-of-N 변형을 α=0.05 로 판정하면 변형 수만큼 위양성이
+        //   팽창(5개 변형 → 실질 α≈0.23)해 무효 변형을 '승자'로 오선언했다. 비교횟수(=대조군 제외 변형수)로 α 보정.
+        $numComparisons = max(1, count($active) - 1);
+        $alpha = 0.05 / $numComparisons;
+        $significant = $enoughSample && $best['id'] !== $control['id'] && $z['p'] < $alpha && $bestCvr > ($control['impressions'] > 0 ? $control['conversions'] / $control['impressions'] : 0);
         return [
             'status'      => !$enoughSample ? 'collecting' : ($significant ? 'significant' : 'no_winner'),
             'significant' => $significant,
             'winnerId'    => $significant ? $best['id'] : 0,
             'controlId'   => $control['id'],
             'pValue'      => $z['p'],
+            'alpha'       => round($alpha, 5),       // Bonferroni 보정 임계
+            'comparisons' => $numComparisons,
             'lift'        => $z['lift'],
             'confidence'  => round(max(0.0, min(100.0, (1 - $z['p']) * 100)), 1),
             'minSample'   => $minSample,
@@ -628,7 +634,9 @@ final class WebPopupCampaign
         var a=document.createElement("a");
         a.textContent=p.cta; a.href=p.linkUrl||"#"; if(p.linkUrl) a.target="_blank"; a.rel="noopener";
         a.style.cssText="display:inline-block;margin-top:6px;padding:12px 28px;border-radius:99px;background:linear-gradient(135deg,#f97316,#f7931e);color:#fff;font-weight:800;font-size:14px;text-decoration:none;cursor:pointer";
-        a.onclick=function(){ beacon(p.id,"click",p.__variant); beacon(p.id,"conversion",p.__variant); };
+        /* [현 차수 P3] CTA 클릭은 'click' 만 기록 — 기존엔 클릭 즉시 'conversion' 도 쐈다(클릭=전환 오등식→
+           전환율 100% 날조). 실 전환은 머천트 구매완료 페이지에서 GenieGoPopup.conversion(pid) 호출로 집계. */
+        a.onclick=function(){ beacon(p.id,"click",p.__variant); };
         card.appendChild(a);
       }
       card.appendChild(x); ov.appendChild(card);
@@ -646,17 +654,35 @@ final class WebPopupCampaign
       else if(trig==="inactive"){ var tm; var r=function(){ clearTimeout(tm); tm=setTimeout(function(){ render(p); },15000); }; ["mousemove","keydown","scroll","touchstart"].forEach(function(ev){ document.addEventListener(ev,r,{passive:true}); }); r(); }
       else { /* exit-intent */ var g=function(e){ if(e.clientY<=0){ render(p); document.removeEventListener("mouseout",g); } }; document.addEventListener("mouseout",g); }
     }
+    /* [현 차수 P3] 머천트 구매완료 페이지에서 실 전환 집계용 공개 API — 기존엔 settings 미소비로
+       빈도캡·모바일·조용시간이 전혀 작동 안 했고 전환은 클릭으로 날조됐다. window.GenieGoPopup.conversion(pid) 로 실 전환 기록. */
+    window.GenieGoPopup=window.GenieGoPopup||{ conversion:function(pid,vr){ beacon(pid,"conversion",vr||0); } };
     fetch(BASE+"/v424/web-popups/active?tenant="+encodeURIComponent(TENANT))
       .then(function(r){ return r.ok?r.json():null; })
-      .then(function(d){ if(d&&d.ok&&d.popups&&d.popups.length){
-        var p=d.popups[0], v=pickVariant(p);
-        if(v){ p.__variant=v.id;
-          if(v.title) p.title=v.title; if(v.subtitle) p.subtitle=v.subtitle; if(v.body) p.body=v.body;
-          if(v.cta) p.cta=v.cta; if(v.linkUrl) p.linkUrl=v.linkUrl;
-          if(typeof v.discount==="number") p.discount=v.discount;
+      .then(function(d){ if(!d||!d.ok) return;
+        var S=d.settings||{};
+        /* 모바일 노출 토글 — 설정이 명시적으로 끄면 모바일에서 미표시 */
+        var isMobile=/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent||"");
+        if(isMobile && (S.showOnMobile===false||S.mobile===false||S.mobileEnabled===false)) return;
+        /* 조용시간(quiet hours) — 방문자 로컬시간 기준 차단 */
+        var qs=(S.quietStart!=null?(S.quietStart|0):null), qe=(S.quietEnd!=null?(S.quietEnd|0):null);
+        if(qs!=null&&qe!=null&&qs!==qe){ var hr=new Date().getHours(); var inQ=(qs<qe)?(hr>=qs&&hr<qe):(hr>=qs||hr<qe); if(inQ) return; }
+        /* 빈도캡 — 방문자당 표시 간격(시간). 미설정 시 세션당 1회 */
+        var capH=(S.frequencyHours!=null?S.frequencyHours:(S.frequency!=null?S.frequency:null));
+        var FK="__gg_pop_last_"+TENANT;
+        if(capH!=null){ var last=+(localStorage.getItem(FK)||0); if(last && (Date.now()-last)<capH*3600000) return; }
+        else { if(sessionStorage.getItem(FK)) return; }
+        if(d.popups&&d.popups.length){
+          var p=d.popups[0], v=pickVariant(p);
+          if(v){ p.__variant=v.id;
+            if(v.title) p.title=v.title; if(v.subtitle) p.subtitle=v.subtitle; if(v.body) p.body=v.body;
+            if(v.cta) p.cta=v.cta; if(v.linkUrl) p.linkUrl=v.linkUrl;
+            if(typeof v.discount==="number") p.discount=v.discount;
+          }
+          try{ if(capH!=null) localStorage.setItem(FK,String(Date.now())); else sessionStorage.setItem(FK,"1"); }catch(e){}
+          arm(p);
         }
-        arm(p);
-      } })
+      })
       .catch(function(){});
   } catch(e){}
 })();

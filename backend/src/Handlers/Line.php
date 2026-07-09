@@ -219,8 +219,13 @@ final class Line
         $r = self::broadcast(\Genie\Crypto::decrypt((string)$s['access_token']), $msg); // [현 차수] Low: 복호화(평문 passthrough 하위호환)
         // [259차] 브로드캐스트 실패(토큰만료·쿼터) 시 status='sent' 확정하던 것 수정 — 실 결과로 sent/failed 분기(WhatsApp/Kakao 정합·재발송 판단 정확).
         $st = !empty($r['ok']) ? 'sent' : 'failed';
-        $pdo->prepare("UPDATE line_campaigns SET status=?, sent_at=? WHERE id=? AND tenant_id=?")->execute([$st, self::now(), $cid, $tenant]);
-        return TemplateResponder::respond($res, ['ok' => $r['ok'], 'mode' => 'live', 'error' => $r['error'] ?? null]);
+        // [현 차수 P2] sent_count 기록 — 미기록으로 stats·월발송이 영구 0 이었다. broadcast 는 수신자 식별자가 없어
+        //   정확 인원 불가하나, 성공 시 최소 1(브로드캐스트 1건 발송) 이상으로 집계되게 한다(응답에 팔로워 수 있으면 사용).
+        $sentN = (int)($r['recipients'] ?? $r['count'] ?? $r['followers'] ?? 0);
+        $sc = $st === 'sent' ? max(1, $sentN) : 0;
+        try { $pdo->prepare("UPDATE line_campaigns SET status=?, sent_at=?, sent_count=? WHERE id=? AND tenant_id=?")->execute([$st, self::now(), $sc, $cid, $tenant]); }
+        catch (\Throwable $e) { $pdo->prepare("UPDATE line_campaigns SET status=?, sent_at=? WHERE id=? AND tenant_id=?")->execute([$st, self::now(), $cid, $tenant]); }
+        return TemplateResponder::respond($res, ['ok' => $r['ok'], 'mode' => 'live', 'sent' => $sc, 'error' => $r['error'] ?? null]);
     }
 
     /* ─── DELETE /line/campaigns/{id} ─── */
