@@ -54,7 +54,8 @@ export default function CctvManager({ whId = '', warehouses = [], compact = fals
     const [ffmpeg, setFfmpeg] = useState(true);
     const [form, setForm] = useState({ ...emptyForm, wh_id: whId });
     const [showForm, setShowForm] = useState(false);
-    const [viewing, setViewing] = useState(null); // camera object
+    const [viewing, setViewing] = useState(null); // camera object (단일 보기)
+    const [wall, setWall] = useState(false);       // 전체 보기(비디오월)
     const [busy, setBusy] = useState('');
     const [notice, setNotice] = useState('');
     // 브리지(온프렘 에이전트)
@@ -185,6 +186,11 @@ export default function CctvManager({ whId = '', warehouses = [], compact = fals
                     </span>
                 </div>
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    {cams.filter(c => c.active).length > 0 && (
+                        <Btn onClick={() => setWall(w => !w)} color={wall ? '#0891b2' : '#0ea5e9'}>
+                            {wall ? `▣ ${t('wms.cctv.wallClose', '전체 보기 닫기')}` : `▣ ${t('wms.cctv.wallBtn', '전체 보기')} (${cams.filter(c => c.active).length})`}
+                        </Btn>
+                    )}
                     <Btn onClick={() => setShowBridges(s => !s)} color="#8b5cf6">
                         🖥️ {t('wms.cctv.bridgeBtn', '브리지 관리')}{bridges.length ? ` (${bridges.filter(b => b.online).length}/${bridges.length})` : ''}
                     </Btn>
@@ -396,7 +402,25 @@ export default function CctvManager({ whId = '', warehouses = [], compact = fals
                 </div>
             )}
 
-            {viewing && (
+            {/* 전체 보기(비디오월) — 한 창고의 모든 활성 카메라를 동시 재생 */}
+            {wall && (
+                <div className="card card-glass" style={{ padding: 14 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                        <div style={{ fontSize: 12, fontWeight: 800 }}>▣ {t('wms.cctv.wallTitle', '전체 카메라')} ({cams.filter(c => c.active).length})</div>
+                        <Btn onClick={() => setWall(false)} color="#6b7280" small>{t('wms.cctv.closeBtn', '닫기')}</Btn>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: compact ? 'repeat(auto-fill,minmax(260px,1fr))' : 'repeat(auto-fill,minmax(320px,1fr))', gap: 10 }}>
+                        {cams.filter(c => c.active).map(c => (
+                            <CctvPlayer key={c.id} camera={c} height={compact ? 190 : 220} />
+                        ))}
+                    </div>
+                    <div style={{ fontSize: 10, color: '#6b7280', marginTop: 8 }}>
+                        {t('wms.cctv.wallHint', '각 카메라를 동시에 실시간 재생합니다. 대수가 많으면 대역폭·CPU 부하가 커질 수 있습니다.')}
+                    </div>
+                </div>
+            )}
+
+            {viewing && !wall && (
                 <div className="card card-glass" style={{ padding: 14 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
                         <div style={{ fontSize: 12, fontWeight: 800 }}>{viewing.name}</div>

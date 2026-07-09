@@ -2312,7 +2312,7 @@ const BinLocationsTab = memo(function BinLocationsTab() {
     const whs = useWmsWarehouses();
     const [bins, setBins] = useState([]);
     const [binStock, setBinStock] = useState([]);
-    const [form, setForm] = useState({ code: '', zone: '', aisle: '', rack: '', level: '', seq: '', wh_id: 'W001' });
+    const [form, setForm] = useState({ code: '', zone: '', aisle: '', rack: '', level: '', slot: '', seq: '', wh_id: 'W001' });
     const [editing, setEditing] = useState(null); // id or null
     const [showForm, setShowForm] = useState(false);
     const [view, setView] = useState('bins'); // 'bins' | 'stock'
@@ -2325,7 +2325,7 @@ const BinLocationsTab = memo(function BinLocationsTab() {
     }, []);
     useEffect(() => { reload(); reloadStock(); }, [reload, reloadStock]);
 
-    const reset = () => { setForm({ code: '', zone: '', aisle: '', rack: '', level: '', seq: '', wh_id: whOpts(whs)[0].v }); setEditing(null); };
+    const reset = () => { setForm({ code: '', zone: '', aisle: '', rack: '', level: '', slot: '', seq: '', wh_id: whOpts(whs)[0].v }); setEditing(null); };
     const save = async () => {
         if (!form.code) return alert(t('wms.bins.codeRequired', '빈 코드를 입력하세요'));
         const body = { ...form, seq: form.seq === '' ? 0 : Number(form.seq) };
@@ -2336,7 +2336,7 @@ const BinLocationsTab = memo(function BinLocationsTab() {
         } catch (e) { if (handlePlanLimit(e)) return; return alert(String(e?.message || e)); }
         reset(); setShowForm(false);
     };
-    const editBin = (b) => { setForm({ code: b.code || '', zone: b.zone || '', aisle: b.aisle || '', rack: b.rack || '', level: b.level || '', seq: b.seq ?? '', wh_id: b.wh_id || 'W001' }); setEditing(b.id); setShowForm(true); };
+    const editBin = (b) => { setForm({ code: b.code || '', zone: b.zone || '', aisle: b.aisle || '', rack: b.rack || '', level: b.level || '', slot: b.slot || '', seq: b.seq ?? '', wh_id: b.wh_id || 'W001' }); setEditing(b.id); setShowForm(true); };
     const removeBin = async (id) => {
         if (!window.confirm(t('wms.bins.deleteConfirm', '이 로케이션을 삭제할까요?'))) return;
         try { await binsApi.remove(id); await reload(); await reloadStock(); } catch (e) { alert(String(e?.message || e)); }
@@ -2361,6 +2361,7 @@ const BinLocationsTab = memo(function BinLocationsTab() {
                         <Input label={t('wms.bins.aisle', '통로')} value={form.aisle} onChange={v => setF('aisle', v)} placeholder="01" />
                         <Input label={t('wms.bins.rack', '랙')} value={form.rack} onChange={v => setF('rack', v)} placeholder="01" />
                         <Input label={t('wms.bins.level', '단')} value={form.level} onChange={v => setF('level', v)} placeholder="1" />
+                        <Input label={t('wms.bins.slot', '번')} value={form.slot} onChange={v => setF('slot', v)} placeholder="1" />
                         <Input label={t('wms.bins.seq', '피킹 순서')} value={form.seq} onChange={v => setF('seq', v)} type="number" placeholder="0" />
                     </div>
                     <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
@@ -2376,10 +2377,10 @@ const BinLocationsTab = memo(function BinLocationsTab() {
                         <thead><tr>
                             <th>{t('wms.bins.code', '빈 코드')}</th><th>{t('wms.bins.wh', '창고')}</th><th>{t('wms.bins.zone', '존')}</th>
                             <th>{t('wms.bins.aisle', '통로')}</th><th>{t('wms.bins.rack', '랙')}</th><th>{t('wms.bins.level', '단')}</th>
-                            <th>{t('wms.bins.seq', '피킹 순서')}</th><th>{t('wms.permColAction')}</th>
+                            <th>{t('wms.bins.slot', '번')}</th><th>{t('wms.bins.seq', '피킹 순서')}</th><th>{t('wms.permColAction')}</th>
                         </tr></thead>
                         <tbody>
-                            {bins.length === 0 && <tr><td colSpan={8} style={{ textAlign: 'center', padding: 20, color: '#6b7280', fontSize: 12 }}>{t('wms.bins.empty', '등록된 로케이션이 없습니다')}</td></tr>}
+                            {bins.length === 0 && <tr><td colSpan={9} style={{ textAlign: 'center', padding: 20, color: '#6b7280', fontSize: 12 }}>{t('wms.bins.empty', '등록된 로케이션이 없습니다')}</td></tr>}
                             {bins.map(b => (
                                 <tr key={b.id}>
                                     <td style={{ fontFamily: 'monospace', fontWeight: 700, color: '#2563eb' }}>{b.code}</td>
@@ -2388,6 +2389,7 @@ const BinLocationsTab = memo(function BinLocationsTab() {
                                     <td style={{ fontSize: 11 }}>{b.aisle}</td>
                                     <td style={{ fontSize: 11 }}>{b.rack}</td>
                                     <td style={{ fontSize: 11 }}>{b.level}</td>
+                                    <td style={{ fontSize: 11, textAlign: 'center' }}>{b.slot || '—'}</td>
                                     <td style={{ textAlign: 'center', fontWeight: 700 }}>{b.seq ?? '—'}</td>
                                     <td style={{ display: 'flex', gap: 6 }}>
                                         <Btn onClick={() => editBin(b)} color="#6366f1" small>{t('wms.supEditBtn')}</Btn>
@@ -2405,19 +2407,30 @@ const BinLocationsTab = memo(function BinLocationsTab() {
                     <table className="table">
                         <thead><tr>
                             <th>{t('wms.bins.code', '빈 코드')}</th><th>{t('wms.bins.wh', '창고')}</th>
+                            <th>{t('wms.bins.locPath', '보관 위치(랙·단·번)')}</th>
                             <th>{t('wms.ioColSku')}</th><th>{t('wms.ioColProduct')}</th><th>{t('wms.ioColQty')}</th>
                         </tr></thead>
                         <tbody>
-                            {binStock.length === 0 && <tr><td colSpan={5} style={{ textAlign: 'center', padding: 20, color: '#6b7280', fontSize: 12 }}>{t('wms.bins.stockEmpty', '빈 재고가 없습니다')}</td></tr>}
-                            {binStock.map((s, i) => (
+                            {binStock.length === 0 && <tr><td colSpan={6} style={{ textAlign: 'center', padding: 20, color: '#6b7280', fontSize: 12 }}>{t('wms.bins.stockEmpty', '빈 재고가 없습니다')}</td></tr>}
+                            {binStock.map((s, i) => {
+                                // 상품이 '어느 창고 / 몇 번 랙 / 몇 단 / 몇 번'에 있는지 한 눈에.
+                                const parts = [];
+                                if (s.zone) parts.push(`${t('wms.bins.zone', '존')} ${s.zone}`);
+                                if (s.rack) parts.push(`${t('wms.bins.rack', '랙')} ${s.rack}`);
+                                if (s.level) parts.push(`${t('wms.bins.level', '단')} ${s.level}`);
+                                if (s.slot) parts.push(`${t('wms.bins.slot', '번')} ${s.slot}`);
+                                const loc = parts.join(' · ');
+                                return (
                                 <tr key={s.id || i}>
                                     <td style={{ fontFamily: 'monospace', fontWeight: 700, color: '#2563eb' }}>{s.bin || s.code || s.bin_code}</td>
                                     <td style={{ fontSize: 11 }}>{(whs.find(w => w.id === s.wh_id)?.code) || s.wh_id}</td>
+                                    <td style={{ fontSize: 11, color: loc ? '#111827' : '#9ca3af' }}>{loc || '—'}</td>
                                     <td style={{ fontFamily: 'monospace', fontSize: 11, color: '#6b7280' }}>{s.sku}</td>
                                     <td style={{ fontSize: 12 }}>{s.name}</td>
                                     <td style={{ textAlign: 'center', fontWeight: 700, color: '#22c55e' }}>{Number(s.qty ?? s.on_hand ?? 0)}</td>
                                 </tr>
-                            ))}
+                                );
+                            })}
                         </tbody>
                     </table>
                 </div>
