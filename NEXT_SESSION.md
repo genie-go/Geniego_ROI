@@ -1,4 +1,5 @@
-> **최신 인계서(273차)**: [`docs/N273_AUDIT_HANDOFF.md`](docs/N273_AUDIT_HANDOFF.md) — 6도메인 전수 초정밀감사 **P0/P1 19건+P2/P3 전량+잔여5건** 근본수정·데모+운영 배포·무회귀. + SMS OTP/최고관리자 접속키복구/15개국 국가코드연동 + Twilio·NaverSMS 통합발신기 + 2FA(mfa_policy). ★실발송 활성화 대기=SENS 4값 미설정(운영). ★배포트랩=데모빌드 운영혼입→rsync --delete 클린복구·DB유입0 검증. master 미push.
+> **최신 인계서(274차)**: [`docs/N274_WMS_CCTV_HANDOFF.md`](docs/N274_WMS_CCTV_HANDOFF.md) — WMS 창고 **CCTV 자격등록·원격 실시간 조회**(AES-256-GCM·서버중계·재생토큰·SSRF이중검증) + **다중 카메라 전체 보기(비디오월)** + **온프렘 브리지**(P2P·ActiveX·독자VMS 범용재생, `tools/cctv-bridge/` Node 무의존 에이전트·ONVIF자동발견) + 로케이션 **번(slot)** 확장. ★데모 배포·브라우저 실검증 완료(비디오월 3대 동시 LIVE·실 1.9MB TS 릴레이). **운영 미배포(승인대기)**. ★실장비(JWC/NETUS/이지피스/아이씨큐/SmartPSS) 전부 표준스트림 미노출→브리지 필수. 작업PC=현장LAN(ffmpeg 설치완료)이나 JWC DVR RTSP 미기동(재부팅 필요). master 미push.
+> **인계서(273차)**: [`docs/N273_AUDIT_HANDOFF.md`](docs/N273_AUDIT_HANDOFF.md) — 6도메인 전수 초정밀감사 **P0/P1 19건+P2/P3 전량+잔여5건** 근본수정·데모+운영 배포·무회귀. + SMS OTP/최고관리자 접속키복구/15개국 국가코드연동 + Twilio·NaverSMS 통합발신기 + 2FA(mfa_policy). ★실발송 활성화 대기=SENS 4값 미설정(운영). ★배포트랩=데모빌드 운영혼입→rsync --delete 클린복구·DB유입0 검증. master 미push.
 > **인계서(272차)**: [`docs/N272_HANDOFF.md`](docs/N272_HANDOFF.md) — 대행사 전기능 브릿지 + 통합 데이터 플랫폼 1~2단계 + CI 라이브화 준비(SSH키·스모크계정). master=feat/n236 정합·운영/데모 배포·검증 완료. (269~271차는 각 docs/N2XX_HANDOFF.md 및 memory 참조)
 
 # 268차 세션 인계 — 전수 초정밀 감사(6도메인 병렬) + 확정 8건 수정 + 운영/데모 배포·라이브검증 (사용자 명시 승인)
