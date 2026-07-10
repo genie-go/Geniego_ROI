@@ -987,6 +987,19 @@ return function (App $app): void {
         // ── v424 enterprise health endpoint (167차 5순위, U-166-E) ──
         'GET /v424/health'      => 'Genie\\Handlers\\Health::check',
         'GET /api/v424/health'  => 'Genie\\Handlers\\Health::check',
+        // [현 차수] 비버전 헬스 — index.php 가 "except / and /health" 라고 자기문서화해 왔으나 그런 라우트가
+        //   없어 /api/health 는 401(우회목록 누락) 이었다. 외부 모니터가 흔히 치는 경로라 실제로 등록한다.
+        //   ★맨 `/health` 는 nginx vhost 가 백엔드로 보내지 않는다(/auth|/vNNN|/api 만) → SPA HTML 이 응답한다.
+        //   따라서 백엔드 헬스의 정본 경로는 `/api/health[z]` 다.
+        'GET /health'           => 'Genie\\Handlers\\Health::check',
+        'GET /healthz'          => 'Genie\\Handlers\\Health::check',
+        'GET /api/health'       => 'Genie\\Handlers\\Health::check',
+        'GET /api/healthz'      => 'Genie\\Handlers\\Health::check',
+
+        // [현 차수] 상품 이미지 공개 호스팅 — 채널 서버가 무인증으로 가져간다(공개 자산·PII 없음).
+        //   내용주소(sha256) 라 URL 추측 불가·영구 캐시 안전. 쓰기는 writeback 경로에서만 일어난다.
+        'GET /media/{name}'     => 'Genie\\Handlers\\MediaHost::serve',
+        'GET /api/media/{name}' => 'Genie\\Handlers\\MediaHost::serve',
 
         // ── v424 system metrics — DashSystem 시스템 서브탭 실측 (176차) ──
         'GET /v424/system/metrics'     => 'Genie\\Handlers\\SystemMetrics::metrics',
@@ -3350,6 +3363,13 @@ return function (App $app): void {
     // ── V424 enterprise health (167차 5순위) ──
     $register('GET', '/v424/health');
     $register('GET', '/api/v424/health');
+    // [현 차수] 비버전 헬스 — 맵 등록만으론 라우트가 살지 않는다($register 필수).
+    $register('GET', '/health');
+    $register('GET', '/healthz');
+    $register('GET', '/api/health');
+    $register('GET', '/api/healthz');
+    $register('GET', '/media/{name}');
+    $register('GET', '/api/media/{name}');
 
     // ── V424 system metrics (176차 — DashSystem 시스템 서브탭 실측) ──
     $register('GET', '/v424/system/metrics');

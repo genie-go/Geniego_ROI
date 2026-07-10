@@ -453,15 +453,15 @@ class Catalog
         $rawImgs = array_values(array_filter(array_map('strval', (array)($body['images'] ?? [])), static fn($u) => $u !== ''));
         if (!$rawImgs && (string)($body['image_url'] ?? '') !== '') $rawImgs = [(string)$body['image_url']];
         if ($rawImgs && !in_array($action, ['unregister', 'disconnect'], true)) {
-            $creds = self::loadChannelCreds($pdo, $tenant, $channel);
-            $up = $creds ? ChannelSync::uploadImagesForChannel($channel, $creds, $rawImgs)
-                         : ['urls' => array_values(array_filter($rawImgs, static fn($u) => !str_starts_with($u, 'data:'))),
-                            'dropped' => count(array_filter($rawImgs, static fn($u) => str_starts_with($u, 'data:')))];
+            // [현 차수] 자격증명이 없어도 이미지는 호스팅한다 — 종전엔 $creds 가 비면 dataURL 을 통째로 버렸다.
+            //   MediaHost 공개 URL 발급은 채널 자격증명이 필요 없으므로, 자격증명 등록 전에 저장해 둔 상품도
+            //   나중에 큐가 소비될 때 이미지를 그대로 실어 보낸다(awaiting_credentials 경로에서 이미지 유실 방지).
+            $creds = self::loadChannelCreds($pdo, $tenant, $channel) ?: [];
+            $up = ChannelSync::uploadImagesForChannel($channel, $creds, $rawImgs);
             $body['images']    = $up['urls'];
             $body['image_url'] = $up['urls'][0] ?? '';
             if (!empty($up['dropped'])) {
-                $imgNote = "이미지 {$up['dropped']}장을 채널에 업로드하지 못했습니다"
-                    . ($creds ? '(채널이 이미지 업로드를 지원하지 않거나 파일이 유효하지 않습니다).' : '(채널 자격증명 없음).');
+                $imgNote = "이미지 {$up['dropped']}장을 등록하지 못했습니다(파일이 유효한 이미지가 아니거나 8MB 를 초과했습니다).";
             }
         }
 
@@ -494,12 +494,17 @@ class Catalog
             if ($err !== null && preg_match('/leafCategoryId|카테고리|displayCategoryCode|category/iu', (string)$err)) {
                 $suggestions = self::rankChannelCategories($pdo, $tenant, $channel, $f, 5);
             }
+            // [현 차수] 경고는 두 군데서 난다: ①저장 시점 이미지 호스팅 실패($imgNote) ②채널 전송 시 어댑터 경고
+            //   (이미지 규격 미확정 채널 · Etsy 부분 업로드). 둘 다 보여야 조용한 누락이 없다.
+            $warnings = array_values(array_filter([$imgNote, $jr['warning'] ?? null]));
             return self::jsonRes($res, [
                 'ok'      => $jobDone,
                 'status'  => $jr['status'] ?? $status,   // done | failed | queued(재시도 대기) | awaiting_credentials
                 'channel' => $channel, 'sku' => $sku,
                 'error'   => $err,
-                'warning' => $imgNote,                   // 이미지 일부 업로드 실패 등(등록 자체는 진행)
+                'warning' => $warnings ? implode(' ', $warnings) : null,
+                'missing' => $jr['missing'] ?? null,      // 계약검사 누락 항목 — 한 번에 전부
+                'images_uploaded' => $jr['images_uploaded'] ?? null,
                 'category_suggestions' => $suggestions,  // [{code,label,score}]
                 'attempt' => $jr['attempt'] ?? null,
                 'summary' => $sum,
@@ -831,7 +836,16 @@ class Catalog
                 if (!empty($res['detail'])) $err .= ' — ' . (is_string($res['detail']) ? $res['detail'] : json_encode($res['detail'], JSON_UNESCAPED_UNICODE));
                 if ($err === '') $err = null;
             }
-            return ['status' => (string)$r['status'], 'attempt' => (int)$r['attempt'], 'error' => $err];
+            // [현 차수] 어댑터 경고(이미지 미첨부·부분 업로드)와 계약검사 누락목록을 끌어올린다.
+            //   종전엔 잡 결과 JSON 에만 남고 버려져, ok=true 로 보이는 등록의 이미지 누락이 사용자에게 보이지 않았다.
+            return [
+                'status'  => (string)$r['status'],
+                'attempt' => (int)$r['attempt'],
+                'error'   => $err,
+                'warning' => (is_array($res) && !empty($res['warning'])) ? (string)$res['warning'] : null,
+                'missing' => (is_array($res) && !empty($res['missing']) && is_array($res['missing'])) ? array_values($res['missing']) : null,
+                'images_uploaded' => (is_array($res) && isset($res['images_uploaded'])) ? (int)$res['images_uploaded'] : null,
+            ];
         } catch (\Throwable $e) { return []; }
     }
 

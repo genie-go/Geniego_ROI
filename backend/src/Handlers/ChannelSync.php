@@ -903,8 +903,11 @@ final class ChannelSync
                 return ['urls' => array_merge($urls, $up), 'dropped' => count($pending) - count($up)];
             }
         }
-        // 미지원 채널: dataURL 은 DB 에 저장하지 않고 버린다(이미지 없이 등록되며, 호출부가 이 사실을 알린다).
-        return ['urls' => $urls, 'dropped' => count($pending)];
+        // [현 차수] 나머지 전 채널 — 종전엔 여기서 dataURL 을 통째로 버렸다(그래서 naver/shopify 외에는
+        //   이미지가 영원히 전송되지 않았다). 채널별 업로드 API 를 추측하는 대신 우리가 공개 URL 을 발급한다.
+        //   거의 모든 채널 상품 API 의 공통 계약이 "공개 이미지 URL" 이므로 이 한 지점이 전 채널을 덮는다.
+        $host = MediaHost::storeMany($pending);
+        return ['urls' => array_merge($urls, $host['urls']), 'dropped' => $host['dropped']];
     }
 
     private static function naverUploadImages(string $token, array $imgs): array
@@ -2373,7 +2376,95 @@ final class ChannelSync
         return ['reviews' => $reviews, 'mode' => 'live', 'note' => count($reviews) . '건 Google Business 리뷰 수집'];
     }
 
+    /**
+     * [현 차수] 어댑터 공통 — 상품 이미지의 **공개 URL 목록**.
+     *   MediaHost/네이버 업로드를 거친 뒤라 여기 남는 건 http(s) URL 뿐이다. dataURL 이 남아 있으면
+     *   그건 호스팅에 실패했다는 뜻이므로 절대 채널에 보내지 않는다(보내면 400·500 이 난다).
+     *   @param int $max 채널별 이미지 장수 상한
+     */
+    public static function imageUrls(array $p, int $max = 10): array
+    {
+        $src = array_map('strval', (array)($p['images'] ?? []));
+        if (!$src && (string)($p['image_url'] ?? '') !== '') $src = [(string)$p['image_url']];
+        $out = [];
+        foreach ($src as $u) {
+            $u = trim($u);
+            if ($u === '' || in_array($u, $out, true)) continue;
+            if (!str_starts_with($u, 'http://') && !str_starts_with($u, 'https://')) continue;
+            $out[] = $u;
+            if (count($out) >= $max) break;
+        }
+        return $out;
+    }
+
+    /**
+     * [현 차수] 공개 URL → 원본 바이트. 채널이 URL 이 아니라 **파일 본문**을 요구할 때 쓴다
+     *   (Shopee/TikTok/Etsy multipart · Magento base64 갤러리).
+     *   MediaHost 가 발급한 URL 이면 네트워크를 타지 않고 로컬 파일에서 바로 읽는다(자기 자신에게 HTTP 호출 금지).
+     *   @return array{bin:string, mime:string, ext:string}|null
+     */
+    public static function imageBytes(string $url): ?array
+    {
+        $local = MediaHost::localPath($url);
+        $bin = null;
+        if ($local !== null) {
+            $bin = @file_get_contents($local);
+        } elseif (str_starts_with($url, 'http://') || str_starts_with($url, 'https://')) {
+            $ch = curl_init($url);
+            curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 20, CURLOPT_FOLLOWLOCATION => true, CURLOPT_MAXREDIRS => 3]);
+            $r = curl_exec($ch);
+            $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+            if ($r !== false && $code >= 200 && $code < 300) $bin = (string)$r;
+        }
+        if ($bin === null || $bin === false || strlen($bin) < 64) return null;
+        $info = @getimagesizefromstring($bin);
+        if ($info === false || empty($info['mime'])) return null;
+        $mime = strtolower((string)$info['mime']);
+        $ext = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/gif' => 'gif', 'image/webp' => 'webp'][$mime] ?? null;
+        if ($ext === null) return null;
+        return ['bin' => $bin, 'mime' => $mime, 'ext' => $ext];
+    }
+
+    /** multipart/form-data 로 이미지 1장 업로드(채널 미디어 서버). @return array{code:int, body:mixed} */
+    private static function uploadMultipart(string $url, array $headers, string $field, array $img, array $extraFields = []): array
+    {
+        $tmp = tempnam(sys_get_temp_dir(), 'gimg_');
+        if ($tmp === false || @file_put_contents($tmp, $img['bin']) === false) { if ($tmp) @unlink($tmp); return ['code' => 0, 'body' => null]; }
+        $post = $extraFields;
+        $post[$field] = new \CURLFile($tmp, $img['mime'], 'image.' . $img['ext']);
+        $hdr = [];
+        foreach ($headers as $k => $v) $hdr[] = "$k: $v";   // Content-Type 은 curl 이 boundary 와 함께 설정
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [CURLOPT_POST => true, CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 60, CURLOPT_HTTPHEADER => $hdr, CURLOPT_POSTFIELDS => $post]);
+        $resp = curl_exec($ch);
+        $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        @unlink($tmp);
+        return ['code' => $code, 'body' => json_decode((string)$resp, true)];
+    }
+
     public static function pushProduct(string $channel, array $creds, array $product, string $operation, ?string $channelProductId): array
+    {
+        // [현 차수] ★전송 전 계약 검사 — 채널은 오류를 한 번에 하나씩만 알려준다(네이버에서 수정이 반복된 구조적 원인).
+        //   빠진 필수 항목을 여기서 **전부** 모아 한 번에 알려주고, 채널 API 는 아예 부르지 않는다
+        //   (실패 카운트·페널티·중복 등록 방지). 신규 등록에만 전체 계약을 적용한다.
+        //   ★기존 어댑터의 개별 honest-gate 는 그대로 둔다 — 이 검사는 그 앞단의 추가 그물이다.
+        $isNew = ($channelProductId === null || $channelProductId === '');
+        $pre = ChannelContract::preflight($channel, $product, $isNew ? 'register' : 'update');
+        if (!$pre['ok']) return ['ok' => false, 'error' => $pre['error'], 'missing' => $pre['missing'], 'preflight' => true];
+
+        $r = self::pushProductInner($channel, $creds, $product, $operation, $channelProductId);
+        // [현 차수] 이미지 규격이 확정되지 않은 채널은 이미지를 빼고 등록하되, 그 사실을 반드시 노출한다.
+        //   종전엔 아무 말 없이 이미지 없는 상품이 채널에 올라갔다(사용자 신고의 근원).
+        if (!empty($r['ok']) && $operation !== 'unregister') {
+            $w = ChannelImage::warning($channel, $product);
+            if ($w !== null) $r['warning'] = $w;
+        }
+        return $r;
+    }
+
+    private static function pushProductInner(string $channel, array $creds, array $product, string $operation, ?string $channelProductId): array
     {
         $ch = strtolower($channel);
         switch ($ch) {
@@ -2450,7 +2541,28 @@ final class ChannelSync
         [$c, $b, $err] = self::httpReq('POST', $base, $h, $payload);
         if ($err) return ['ok' => false, 'error' => 'Etsy: ' . $err];
         $newId = (string)($b['listing_id'] ?? '');
-        return ($c >= 200 && $c < 300 && $newId !== '') ? ['ok' => true, 'channel_product_id' => $newId, 'op' => 'register'] : ['ok' => false, 'error' => 'Etsy 등록 실패(code=' . $c . ')', 'detail' => $b['error'] ?? null];
+        if ($c < 200 || $c >= 300 || $newId === '') {
+            return ['ok' => false, 'error' => 'Etsy 등록 실패(code=' . $c . ')', 'detail' => $b['error'] ?? null];
+        }
+        // [현 차수] 이미지 — Etsy 는 상품 생성 payload 에 이미지를 넣을 수 없다. 초안(listing) 을 만든 뒤
+        //   listing_id 로 uploadListingImage(multipart) 를 장당 1회 호출해야 한다(2단계).
+        //   rank 1 이 대표 이미지. 업로드 실패는 등록 자체를 되돌리지 않는다(초안은 이미 생겼다) —
+        //   대신 몇 장이 올라갔는지 결과에 실어 사용자가 즉시 알 수 있게 한다.
+        $res = ['ok' => true, 'channel_product_id' => $newId, 'op' => 'register'];
+        $imgs = ChannelImage::blobs('etsy', $p);
+        if ($imgs) {
+            $uploaded = 0;
+            $imgUrl = $base . '/' . rawurlencode($newId) . '/images';
+            foreach ($imgs as $i => $img) {
+                $up = self::uploadMultipart($imgUrl, ['x-api-key' => $key, 'Authorization' => 'Bearer ' . $oauth], 'image', $img, ['rank' => (string)($i + 1)]);
+                if ($up['code'] >= 200 && $up['code'] < 300) $uploaded++;
+            }
+            $res['images_uploaded'] = $uploaded;
+            if ($uploaded < count($imgs)) {
+                $res['warning'] = '이미지 ' . (count($imgs) - $uploaded) . '/' . count($imgs) . '장이 Etsy 에 업로드되지 않았습니다(상품은 등록됨).';
+            }
+        }
+        return $res;
     }
 
     /** Cafe24 Admin API 상품 등록/수정 — refresh_token grant → access_token → /admin/products. */
@@ -2468,6 +2580,17 @@ final class ChannelSync
         $prod = ['product_name' => (string)($p['name'] ?? $p['sku'] ?? ''), 'price' => (string)(float)($p['price'] ?? 0),
                  'supply_price' => (string)(float)($p['price'] ?? 0), 'display' => $unreg ? 'F' : 'T', 'selling' => $unreg ? 'F' : 'T',
                  'description' => (string)($p['spec'] ?? ''), 'custom_product_code' => (string)($p['sku'] ?? '')];
+        // [현 차수] 이미지 — Cafe24 는 대표/목록/작은 이미지를 각각 공개 URL 로 받고, 추가 이미지는
+        //   additional_image[] 로 받는다. 대표 한 장을 4개 슬롯에 동일 지정해야 목록·상세 어디서도 깨지지 않는다.
+        $imgs = self::imageUrls($p, 10);
+        if ($imgs) {
+            $prod['detail_image'] = $imgs[0];
+            $prod['list_image']   = $imgs[0];
+            $prod['tiny_image']   = $imgs[0];
+            $prod['small_image']  = $imgs[0];
+            $extra = array_slice($imgs, 1);
+            if ($extra) $prod['additional_image'] = $extra;
+        }
         $body = json_encode(['shop_no' => 1, 'request' => ['product' => $prod]], JSON_UNESCAPED_UNICODE);
         if ($cpid !== null) { [$c, $b] = self::httpReq('PUT', "{$apiBase}/admin/products/{$cpid}", $hdr, $body); }
         else { [$c, $b] = self::httpPost("{$apiBase}/admin/products", $hdr, $body); }
@@ -2499,14 +2622,24 @@ final class ChannelSync
         $catCode = (int)preg_replace('/\D/', '', (string)($p['category_code'] ?? $p['category'] ?? ''));
         if ($catCode <= 0) return ['ok' => false, 'error' => 'Coupang 상품등록/수정은 노출카테고리코드(displayCategoryCode)가 필요합니다 — 채널 카테고리 매핑에서 쿠팡 코드를 지정하세요'];
         $price = (float)($p['price'] ?? 0); $name = (string)($p['name'] ?? $p['sku'] ?? ''); $sku = (string)($p['sku'] ?? '');
+        $item = [
+            'itemName' => $name, 'originalPrice' => $price, 'salePrice' => $price,
+            'maximumBuyCount' => (int)($p['inventory'] ?? 0), 'sellerProductItemCode' => $sku,
+        ];
+        // [현 차수] 이미지 — 쿠팡은 item 단위 images[] 를 받는다. 첫 장이 대표(REPRESENTATION), 나머지는 상세(DETAIL).
+        //   vendorPath 는 **공개 URL** 이며 쿠팡이 이를 가져가 자체 CDN 에 복사한다. 종전엔 미전송이었다.
+        $imgs = self::imageUrls($p, 10);
+        if ($imgs) {
+            $item['images'] = [];
+            foreach ($imgs as $i => $u) {
+                $item['images'][] = ['imageOrder' => $i, 'imageType' => $i === 0 ? 'REPRESENTATION' : 'DETAIL', 'vendorPath' => $u];
+            }
+        }
         $prod = [
             'sellerProductName' => $name, 'vendorId' => $vendorId, 'displayCategoryCode' => $catCode,
             'saleStartedAt' => gmdate('Y-m-d\TH:i:s'), 'saleEndedAt' => '2099-12-31T23:59:59',
             'displayProductName' => $name, 'sellerProductCode' => $sku,
-            'items' => [[
-                'itemName' => $name, 'originalPrice' => $price, 'salePrice' => $price,
-                'maximumBuyCount' => (int)($p['inventory'] ?? 0), 'sellerProductItemCode' => $sku,
-            ]],
+            'items' => [$item],
         ];
         // cpid 있으면 수정(PUT, sellerProductId 동봉), 없으면 신규등록(POST).
         if ($cpid !== null && $cpid !== '') { $method = 'PUT'; $prod['sellerProductId'] = (int)$cpid; }
@@ -2924,10 +3057,15 @@ final class ChannelSync
             [$c] = self::httpReq('DELETE', $url, $hdr, null);
             return ($c >= 200 && $c < 300) ? ['ok' => true, 'deleted' => $sku] : ['ok' => false, 'error' => "eBay DELETE HTTP {$c}"];
         }
+        $product = ['title' => (string)($p['name'] ?? $sku), 'description' => (string)($p['spec'] ?? $p['name'] ?? '')];
+        // [현 차수] 이미지 — eBay inventory_item 은 product.imageUrls 에 **공개 URL 배열**을 받는다(최대 12장).
+        //   HTTPS 여야 하며 eBay 가 가져가 자체 호스팅한다. 종전엔 미전송이라 이미지 없는 리스팅이 만들어졌다.
+        $imgs = array_values(array_filter(self::imageUrls($p, 12), static fn($u) => str_starts_with($u, 'https://')));
+        if ($imgs) $product['imageUrls'] = $imgs;
         $body = json_encode([
             'availability' => ['shipToLocationAvailability' => ['quantity' => (int)($p['inventory'] ?? 0)]],
             'condition' => 'NEW',
-            'product' => ['title' => (string)($p['name'] ?? $sku), 'description' => (string)($p['spec'] ?? $p['name'] ?? '')],
+            'product' => $product,
         ], JSON_UNESCAPED_UNICODE);
         [$c, $b] = self::httpReq('PUT', $url, $hdr, $body);
         if ($c >= 200 && $c < 300) return ['ok' => true, 'channel_product_id' => $sku, 'note' => 'inventory_item 등록 완료 — 판매 노출(offer)은 카테고리·정책 ID 필요'];
@@ -3091,12 +3229,17 @@ final class ChannelSync
         if (!str_starts_with($site, 'http')) $site = 'https://' . $site;
         $auth = 'consumer_key=' . rawurlencode($ck) . '&consumer_secret=' . rawurlencode($cs);
         $unreg = ($op === 'unregister' || ($p['action'] ?? '') === 'unregister');
-        $payload = json_encode([
+        $prod = [
             'name' => (string)($p['name'] ?? $p['sku'] ?? ''), 'type' => 'simple',
             'regular_price' => (string)(float)($p['price'] ?? 0), 'description' => (string)($p['spec'] ?? ''),
             'sku' => (string)($p['sku'] ?? ''), 'manage_stock' => true, 'stock_quantity' => (int)($p['inventory'] ?? 0),
             'status' => $unreg ? 'draft' : 'publish',
-        ], JSON_UNESCAPED_UNICODE);
+        ];
+        // [현 차수] 이미지 — WooCommerce 는 공개 URL 을 그대로 받아 자기 미디어 라이브러리로 사이드로드한다.
+        //   첫 장이 대표 이미지. 종전엔 아예 보내지 않아 이미지 없는 상품이 등록됐다.
+        $imgs = self::imageUrls($p, 10);
+        if ($imgs) $prod['images'] = array_map(static fn($u) => ['src' => $u], $imgs);
+        $payload = json_encode($prod, JSON_UNESCAPED_UNICODE);
         $hdr = ['Content-Type' => 'application/json'];
         if ($cpid !== null) { [$c, $b] = self::httpReq('PUT', "{$site}/wp-json/wc/v3/products/{$cpid}?{$auth}", $hdr, $payload); }
         else { [$c, $b] = self::httpPost("{$site}/wp-json/wc/v3/products?{$auth}", $hdr, $payload); }
@@ -3118,11 +3261,32 @@ final class ChannelSync
             [$c] = self::httpReq('DELETE', "{$base}/rest/V1/products/" . rawurlencode($sku), $hdr, null);
             return ($c >= 200 && $c < 300) ? ['ok' => true, 'deleted' => $sku] : ['ok' => false, 'error' => "Magento DELETE HTTP {$c}"];
         }
-        $payload = json_encode(['product' => [
+        $prod = [
             'sku' => $sku, 'name' => (string)($p['name'] ?? $sku), 'price' => (float)($p['price'] ?? 0),
             'status' => 1, 'type_id' => 'simple', 'attribute_set_id' => (int)($p['attribute_set_id'] ?? 4), 'weight' => 1,
             'extension_attributes' => ['stock_item' => ['qty' => (int)($p['inventory'] ?? 0), 'is_in_stock' => true]],
-        ]], JSON_UNESCAPED_UNICODE);
+        ];
+        // [현 차수] 이미지 — Magento 는 URL 이 아니라 media_gallery_entries[].content.base64_encoded_data(파일 본문)를 받는다.
+        //   첫 장만 image/small_image/thumbnail 역할(types)을 갖는다. 본문은 MediaHost 로컬 파일에서 읽는다(자기 HTTP 호출 회피).
+        $gallery = [];
+        foreach (self::imageUrls($p, 8) as $i => $u) {
+            $img = self::imageBytes($u);
+            if ($img === null) continue;
+            $gallery[] = [
+                'media_type' => 'image',
+                'label' => (string)($p['name'] ?? $sku),
+                'position' => $i + 1,
+                'disabled' => false,
+                'types' => $i === 0 ? ['image', 'small_image', 'thumbnail'] : [],
+                'content' => [
+                    'base64_encoded_data' => base64_encode($img['bin']),
+                    'type' => $img['mime'],
+                    'name' => $sku . '-' . ($i + 1) . '.' . $img['ext'],
+                ],
+            ];
+        }
+        if ($gallery) $prod['media_gallery_entries'] = $gallery;
+        $payload = json_encode(['product' => $prod], JSON_UNESCAPED_UNICODE);
         [$c, $b] = self::httpPost("{$base}/rest/V1/products", $hdr, $payload); // SKU 키 upsert(POST)
         if ($c >= 200 && $c < 300 && isset($b['sku'])) return ['ok' => true, 'channel_product_id' => (string)($b['id'] ?? $b['sku'])];
         return ['ok' => false, 'error' => "Magento HTTP {$c}", 'detail' => mb_substr(json_encode($b['message'] ?? $b, JSON_UNESCAPED_UNICODE), 0, 200)];
@@ -3170,7 +3334,20 @@ final class ChannelSync
             'original_price' => (float)($p['price'] ?? 0), 'normal_stock' => (int)($p['inventory'] ?? 0),
             'weight' => (float)($p['weight'] ?? 0.5), 'item_status' => 'NORMAL',
         ];
-        if (!empty($p['image_id_list']) && is_array($p['image_id_list'])) $add['image'] = ['image_id_list' => array_values($p['image_id_list'])];
+        // [현 차수] 이미지 — Shopee 는 상품 API 가 URL 을 받지 않는다. media_space 에 파일 본문을 먼저 올려
+        //   image_id 를 받아 image_id_list 로 넣어야 한다. 종전엔 호출부가 image_id_list 를 넣어준 적이 없어
+        //   이미지가 영원히 누락됐다. 업로드 실패분은 건너뛴다(부분성공 우선).
+        $imageIds = [];
+        if (!empty($p['image_id_list']) && is_array($p['image_id_list'])) {
+            $imageIds = array_values($p['image_id_list']);   // 호출부가 이미 id 를 준 경우 존중
+        } else {
+            foreach (ChannelImage::blobs('shopee', $p) as $img) {
+                $up = self::uploadMultipart($url('/api/v2/media_space/upload_image'), [], 'image', $img);
+                $iid = $up['body']['response']['image_info']['image_id'] ?? null;
+                if ($iid) $imageIds[] = (string)$iid;
+            }
+        }
+        if ($imageIds) $add['image'] = ['image_id_list' => $imageIds];
         if (!empty($p['logistic_info']) && is_array($p['logistic_info'])) $add['logistic_info'] = $p['logistic_info'];
         $path = '/api/v2/product/add_item';
         [$c, $b] = self::httpPost($url($path), $hdr, json_encode($add, JSON_UNESCAPED_UNICODE));
@@ -3213,7 +3390,27 @@ final class ChannelSync
         $name = htmlspecialchars((string)($p['name'] ?? $p['sku'] ?? ''), ENT_XML1);
         $desc = htmlspecialchars((string)($p['spec'] ?? ($p['name'] ?? '')), ENT_XML1);
         $price = (float)($p['price'] ?? 0); $qty = (int)($p['inventory'] ?? 0);
+        // [현 차수] 이미지 — Lazada 상품 XML 은 **Lazada 가 호스팅하는 URL** 만 받는다. 외부 URL 은 /image/migrate 로
+        //   Lazada CDN 에 복사한 뒤 그 URL 을 써야 한다(외부 URL 을 그대로 넣으면 거부된다). 종전엔 미전송이었다.
+        $lzImgs = [];
+        $srcImgs = ChannelImage::urls('lazada', $p);
+        if ($srcImgs) {
+            [$mc, $mb] = $call('/image/migrate', ['payload' => json_encode(['images' => $srcImgs], JSON_UNESCAPED_SLASHES)]);
+            if ($ok($mc, $mb)) {
+                foreach ((array)($mb['data']['image'] ?? []) as $im) {
+                    $u = is_array($im) ? (string)($im['url'] ?? '') : (string)$im;
+                    if ($u !== '') $lzImgs[] = $u;
+                }
+            }
+        }
+        $imgXml = '';
+        if ($lzImgs) {
+            $imgXml = '<Images>';
+            foreach ($lzImgs as $u) $imgXml .= '<Image>' . htmlspecialchars($u, ENT_XML1) . '</Image>';
+            $imgXml .= '</Images>';
+        }
         $xml = "<Request><Product><PrimaryCategory>" . htmlspecialchars($cat, ENT_XML1) . "</PrimaryCategory>"
+            . $imgXml
             . "<Attributes><name>{$name}</name><short_description>{$desc}</short_description></Attributes>"
             . "<Skus><Sku><SellerSku>{$sku}</SellerSku><quantity>{$qty}</quantity><price>{$price}</price></Sku></Skus>"
             . "</Product></Request>";
@@ -3247,14 +3444,24 @@ final class ChannelSync
         $productType = (string)($p['category_code'] ?? '');
         if ($productType === '') return ['ok' => false, 'error' => 'Amazon 상품등록은 productType 이 필요합니다 — 채널 카테고리 매핑에서 Amazon productType(예: LUGGAGE)을 지정하세요'];
         $price = (float)($p['price'] ?? 0); $name = (string)($p['name'] ?? $sku); $cur = self::amazonCurrency($marketplaceId);
+        $attrs = [
+            'item_name'              => [['value' => $name, 'marketplace_id' => $marketplaceId]],
+            'purchasable_offer'      => [['marketplace_id' => $marketplaceId, 'currency' => $cur, 'our_price' => [['schedule' => [['value_with_tax' => $price]]]]]],
+            'fulfillment_availability' => [['fulfillment_channel_code' => 'DEFAULT', 'quantity' => (int)($p['inventory'] ?? 0)]],
+        ];
+        // [현 차수] 이미지 — Listings Items 는 이미지 '위치(공개 URL)'를 속성으로 받는다.
+        //   대표 = main_product_image_locator, 추가 = other_product_image_locator_1..8. Amazon 이 URL 을 가져간다.
+        $imgs = ChannelImage::urls('amazon', $p);
+        if ($imgs) {
+            $attrs['main_product_image_locator'] = [['marketplace_id' => $marketplaceId, 'media_location' => $imgs[0]]];
+            foreach (array_slice($imgs, 1, 8) as $i => $u) {
+                $attrs['other_product_image_locator_' . ($i + 1)] = [['marketplace_id' => $marketplaceId, 'media_location' => $u]];
+            }
+        }
         $body = json_encode([
             'productType'  => $productType,
             'requirements' => 'LISTING',
-            'attributes'   => [
-                'item_name'              => [['value' => $name, 'marketplace_id' => $marketplaceId]],
-                'purchasable_offer'      => [['marketplace_id' => $marketplaceId, 'currency' => $cur, 'our_price' => [['schedule' => [['value_with_tax' => $price]]]]]],
-                'fulfillment_availability' => [['fulfillment_channel_code' => 'DEFAULT', 'quantity' => (int)($p['inventory'] ?? 0)]],
-            ],
+            'attributes'   => $attrs,
         ], JSON_UNESCAPED_UNICODE);
         [$c, $b] = self::httpReq('PUT', $url, $hdr, $body);
         if ($c >= 200 && $c < 300 && (($b['status'] ?? '') === 'ACCEPTED' || isset($b['sku']))) return ['ok' => true, 'channel_product_id' => $sku];
@@ -3356,10 +3563,18 @@ final class ChannelSync
         if ($cat === '') return ['ok' => false, 'error' => '11번가 상품등록은 표시카테고리(dispCtgrNo)가 필요합니다 — 채널 카테고리 매핑에서 11번가 카테고리번호를 지정하세요'];
         $name = htmlspecialchars((string)($p['name'] ?? $p['sku'] ?? ''), ENT_XML1); $sku = htmlspecialchars((string)($p['sku'] ?? ''), ENT_XML1);
         $price = (int)round((float)($p['price'] ?? 0)); $qty = (int)($p['inventory'] ?? 0);
+        // [현 차수] 이미지 — 11번가는 prdImage01~prdImage10 에 **공개 URL** 을 받는다(01=대표).
+        //   종전엔 미전송이라 이미지 없는 상품이 등록됐다.
+        $imgXml = '';
+        foreach (self::imageUrls($p, 10) as $i => $u) {
+            $imgXml .= '<prdImage' . str_pad((string)($i + 1), 2, '0', STR_PAD_LEFT) . '>'
+                     . htmlspecialchars($u, ENT_XML1) . '</prdImage' . str_pad((string)($i + 1), 2, '0', STR_PAD_LEFT) . '>';
+        }
         $xml = '<?xml version="1.0" encoding="EUC-KR"?>'
              . '<Product><dispCtgrNo>' . htmlspecialchars($cat, ENT_XML1) . '</dispCtgrNo>'
              . '<prdNm>' . $name . '</prdNm><sellPrc>' . $price . '</sellPrc>'
              . '<prdStockQty>' . $qty . '</prdStockQty><sellerPrdCd>' . $sku . '</sellerPrdCd>'
+             . $imgXml
              . '<dispCtgrStatCd>1</dispCtgrStatCd></Product>';
         $method = $cpid !== null ? 'PUT' : 'POST';
         $url = $cpid !== null ? "http://api.11st.co.kr/rest/prodservices/product/" . rawurlencode($cpid) : 'http://api.11st.co.kr/rest/prodservices/product';
