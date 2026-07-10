@@ -288,10 +288,10 @@ class Catalog
         // 즉시 전송 — logJob 이 기존 미완료 잡을 superseded 로 마감하고 새 대기 잡 1건만 남긴다.
         //   실패로 굳은 잡(failed)도 여기서 새 잡으로 대체되므로 재시도 카운터가 초기화된다.
         $st = self::channelStatus($pdo, $tenant, $channel, 'register');
-        self::logJob($pdo, $tenant, $channel, $sku, 'publish', $st === 'saved' ? 'awaiting_credentials' : $st, ['sku' => $sku]);
+        $jobId = self::logJob($pdo, $tenant, $channel, $sku, 'publish', $st === 'saved' ? 'awaiting_credentials' : $st, ['sku' => $sku]);
 
-        $sum = self::processWritebackQueue($pdo, $tenant, $channel, 1);
-        $jr  = self::latestJobResult($pdo, $tenant, $channel, $sku);
+        $sum = $jobId > 0 ? self::processJobById($pdo, $jobId) : ['processed' => 0];
+        $jr  = $jobId > 0 ? self::jobResultById($pdo, $jobId) : [];
         $done = ($jr['status'] ?? '') === 'done';
         return self::jsonRes($res, [
             'ok' => $done, 'assigned' => $code, 'status' => $jr['status'] ?? 'queued',
@@ -474,7 +474,7 @@ class Catalog
         //   'awaiting_credentials' 이며, ChannelCreds::upsert 가 자격증명 등록 즉시 큐를 플러시한다.
         //   catalog_listing.status 는 'saved'(리스팅 저장됨) 그대로 두고, 잡 상태만 정합화한다.
         $jobStatus = ($status === 'saved') ? 'awaiting_credentials' : $status;
-        self::logJob($pdo, $tenant, $channel, $sku, (string)($body['operation'] ?? 'publish'), $jobStatus, $f);
+        $jobId = self::logJob($pdo, $tenant, $channel, $sku, (string)($body['operation'] ?? 'publish'), $jobStatus, $f);
         Db::audit($pdo, $tenant, 'catalog.writeback', ['channel'=>$channel, 'sku'=>$sku, 'action'=>$action, 'status'=>$status]); // 감사: 상품 writeback
 
         // [277차] ★"동기화 성공"인데 채널에 등록되지 않는 문제의 근본 — 종전엔 큐에 넣고 'queued' 를 반환했고
@@ -483,9 +483,9 @@ class Catalog
         //   **채널의 진짜 응답**을 반환한다. 실패 사유(예: leafCategoryId 필요)가 즉시 UI 에 뜬다.
         //   sync=false 로 명시하면 종전처럼 큐에만 넣는다(대량 전송용).
         $wantSync = !array_key_exists('sync', $body) || !empty($body['sync']);
-        if ($wantSync && $status === 'queued') {
-            $sum = self::processWritebackQueue($pdo, $tenant, $channel, 1);
-            $jr = self::latestJobResult($pdo, $tenant, $channel, $sku);
+        if ($wantSync && $status === 'queued' && $jobId > 0) {
+            $sum = self::processJobById($pdo, $jobId);
+            $jr = self::jobResultById($pdo, $jobId);
             $jobDone = ($jr['status'] ?? '') === 'done';
             $err = $jobDone ? null : ($jr['error'] ?? null);
             // [277차] 카테고리 때문에 실패했다면 후보를 함께 준다 — 사용자가 5,011개 리프 중 하나를
@@ -560,12 +560,15 @@ class Catalog
         //   변경된 가격이 실제 채널(쿠팡/네이버/카페24 등)로 영원히 push 되지 않았다(단일 writeback() 만 enqueue).
         //   이제 자격증명 활성 채널 항목을 'price' 작업으로 enqueue 하고 즉시 큐를 플러시한다.
         //   자격증명 미등록 채널은 enqueue 제외(saved 상태로 catalog_listing 만 갱신 — 등록 시 자동 재개).
-        $enqueued = 0;
+        //   [277차] ★채널에 아직 등록되지 않은 상품은 price 잡을 만들지 않는다. 만들면 어댑터가 신규등록으로
+        //   시도해 'leafCategoryId 필요' 같은 엉뚱한 오류를 남기고, 등록 잡과 뒤섞여 사용자를 혼란시킨다.
+        //   (실측: 일괄등록 직후 price 잡이 publish 잡을 덮어써 화면에 사유 없는 queued 가 떴다.)
+        $enqueued = 0; $skippedUnlisted = 0;
         foreach ($changed as $c) {
-            if (self::channelStatus($pdo, $tenant, $c['channel'], 'register') === 'queued') {
-                self::logJob($pdo, $tenant, $c['channel'], $c['sku'], 'price', 'queued', ['sku' => $c['sku'], 'price' => $c['price']]);
-                $enqueued++;
-            }
+            if (self::channelStatus($pdo, $tenant, $c['channel'], 'register') !== 'queued') continue;
+            if (self::priorChannelProductId($pdo, $tenant, (string)$c['channel'], (string)$c['sku']) === null) { $skippedUnlisted++; continue; }
+            self::logJob($pdo, $tenant, $c['channel'], $c['sku'], 'price', 'queued', ['sku' => $c['sku'], 'price' => $c['price']]);
+            $enqueued++;
         }
         $pushed = null;
         if ($enqueued > 0) {
@@ -772,17 +775,19 @@ class Catalog
     }
 
     /** writeback_job 기록(best-effort). */
-    private static function logJob(\PDO $pdo, string $tenant, string $channel, string $sku, string $operation, string $status, array $payload): void
+    /** @return int 생성된 잡 id(실패 시 0) — 호출부가 **자기 잡**의 결과만 읽을 수 있게 한다. */
+    private static function logJob(\PDO $pdo, string $tenant, string $channel, string $sku, string $operation, string $status, array $payload): int
     {
         try {
             $now = self::now();
-            // [277차] ★중복 대기 잡 제거 — 같은 (tenant,channel,sku)에 미완료 잡이 쌓이면
-            //   소비는 ORDER BY id ASC(가장 오래된 것), 결과 조회(latestJobResult)는 ORDER BY id DESC(가장 새 것)라
-            //   서로 다른 잡을 보게 된다. 그 결과 카테고리를 지정해도 **옛 잡의 오류**가 계속 표시됐다.
-            //   새 잡을 넣기 전에 기존 미완료 잡을 마감해 항상 대기 잡이 1건만 남게 한다.
+            // [277차] ★중복 대기 잡 제거 — 같은 (tenant,channel,sku,operation)에 미완료 잡이 쌓이면
+            //   소비는 ORDER BY id ASC(가장 오래된 것), 결과 조회는 ORDER BY id DESC(가장 새 것)라
+            //   서로 다른 잡을 보게 된다(카테고리를 고쳐도 옛 잡의 오류가 계속 표시됐다).
+            //   ★operation 을 가려서 마감한다 — 등록(publish) 직후 가격(price) 잡이 생성되며
+            //   **아직 처리되지 않은 등록 잡을 지워버리던** 회귀를 막는다(실측: #15 publish 가 #16 price 에 의해 superseded).
             $pdo->prepare("UPDATE catalog_writeback_job SET status='superseded', updated_at=?
-                            WHERE tenant_id=? AND channel=? AND sku=? AND status IN ('queued','awaiting_credentials','pending_approval')")
-                ->execute([$now, $tenant, $channel, $sku]);
+                            WHERE tenant_id=? AND channel=? AND sku=? AND operation=? AND status IN ('queued','awaiting_credentials','pending_approval')")
+                ->execute([$now, $tenant, $channel, $sku, $operation]);
             // [277차] 대용량 필드(base64 dataURL 이미지·상세HTML)는 catalog_listing 에 이미 저장되고
             //   큐 소비 시 currentListing 으로 복원된다. payload 에 중복 저장하면 잡 테이블이 수 MB 씩 비대해지고
             //   TEXT 한계를 넘겨 기록이 조용히 실패한다(logJob 은 best-effort catch). 참조용 요약만 남긴다.
@@ -792,7 +797,42 @@ class Catalog
             $pdo->prepare("INSERT INTO catalog_writeback_job(tenant_id,channel,sku,operation,status,attempt,payload,created_at,updated_at)
                            VALUES(?,?,?,?,?,1,?,?,?)")
                 ->execute([$tenant, $channel, $sku, $operation, $status, json_encode($payload, JSON_UNESCAPED_UNICODE), $now, $now]);
-        } catch (\Throwable $e) { /* best-effort */ }
+            return (int)$pdo->lastInsertId();
+        } catch (\Throwable $e) { return 0; /* best-effort */ }
+    }
+
+    /**
+     * [277차] 특정 잡 1건만 처리한다(동기 전송 전용).
+     *   processWritebackQueue 는 tenant/channel 범위에서 가장 오래된 잡을 집으므로, 방금 만든 잡이 아닌
+     *   **다른 상품의 잡**을 처리할 수 있다. 그러면 응답이 엉뚱한 상품의 결과를 말하게 된다.
+     *   동기 경로는 항상 자기가 만든 잡만 처리하고 그 결과만 읽는다.
+     */
+    private static function processJobById(\PDO $pdo, int $jobId): array
+    {
+        $st = $pdo->prepare("SELECT tenant_id, channel, sku FROM catalog_writeback_job WHERE id=? AND status IN ('queued','awaiting_credentials')");
+        $st->execute([$jobId]);
+        $j = $st->fetch(\PDO::FETCH_ASSOC);
+        if (!$j) return ['processed' => 0];
+        return self::processWritebackQueue($pdo, (string)$j['tenant_id'], (string)$j['channel'], 1, $jobId);
+    }
+
+    /** [277차] 잡 id 로 결과를 읽는다 — 동기 전송이 **자기 잡**의 결과만 보게 한다. */
+    private static function jobResultById(\PDO $pdo, int $jobId): array
+    {
+        try {
+            $st = $pdo->prepare("SELECT status, attempt, result FROM catalog_writeback_job WHERE id=?");
+            $st->execute([$jobId]);
+            $r = $st->fetch(\PDO::FETCH_ASSOC);
+            if (!$r) return [];
+            $res = json_decode((string)($r['result'] ?? ''), true);
+            $err = null;
+            if (is_array($res) && empty($res['ok'])) {
+                $err = (string)($res['error'] ?? '');
+                if (!empty($res['detail'])) $err .= ' — ' . (is_string($res['detail']) ? $res['detail'] : json_encode($res['detail'], JSON_UNESCAPED_UNICODE));
+                if ($err === '') $err = null;
+            }
+            return ['status' => (string)$r['status'], 'attempt' => (int)$r['attempt'], 'error' => $err];
+        } catch (\Throwable $e) { return []; }
     }
 
     /* ═══════════════════════════════════════════════════════════════════
@@ -1006,13 +1046,15 @@ class Catalog
      *   자격증명 없으면 'awaiting_credentials' 보류(등록 시 자동 재개). 어댑터 미구현이면 'queued' 유지.
      *   반환: ['processed','done','awaiting','pending','failed'].
      */
-    public static function processWritebackQueue(\PDO $pdo, ?string $tenant = null, ?string $channel = null, int $limit = 50): array
+    public static function processWritebackQueue(\PDO $pdo, ?string $tenant = null, ?string $channel = null, int $limit = 50, ?int $onlyJobId = null): array
     {
         self::ensureTables();
         $where = "status IN ('queued','awaiting_credentials')";
         $params = [];
         if ($tenant !== null)  { $where .= " AND tenant_id=?"; $params[] = $tenant; }
         if ($channel !== null) { $where .= " AND channel=?";   $params[] = $channel; }
+        // [277차] 동기 전송은 자기가 만든 잡만 처리한다(다른 상품의 잡을 집어 엉뚱한 결과를 반환하던 문제).
+        if ($onlyJobId !== null) { $where .= " AND id=?"; $params[] = $onlyJobId; }
         $sum = ['processed' => 0, 'done' => 0, 'awaiting' => 0, 'pending' => 0, 'failed' => 0];
         try {
             $st = $pdo->prepare("SELECT id,tenant_id,channel,sku,operation,payload,attempt FROM catalog_writeback_job WHERE $where ORDER BY id ASC LIMIT " . (int)$limit);
@@ -1135,8 +1177,8 @@ class Catalog
     }
 
     /**
-     * [277차] 방금 처리된 잡의 실제 결과(채널 응답)를 꺼낸다 — 동기 전송 응답에 진짜 성공/실패를 싣기 위함.
-     *   result 는 pushToChannel 반환 JSON(`{ok,error,detail,channel_product_id}`).
+     * [277차] (은퇴) sku 기준 최신 잡 결과 — 같은 sku 에 operation 이 다른 잡(publish/price)이 공존하면
+     *   엉뚱한 잡을 읽는다. 동기 전송은 jobResultById 로 **자기 잡**만 본다. 크론/디버그 용도로만 남긴다.
      */
     private static function latestJobResult(\PDO $pdo, string $tenant, string $channel, string $sku): array
     {

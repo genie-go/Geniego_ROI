@@ -85,8 +85,18 @@ check('Shopify: detail_html + 이미지(attachment)',
 
 /* ── ⑤ 정직한 결과 전달 (성공 오표기 금지) ──────────────────────────── */
 check('writeback: 동기 실행 후 채널의 진짜 결과 반환',
-  /latestJobResult/.test(CATALOG) && /processWritebackQueue\(\$pdo, \$tenant, \$channel, 1\)/.test(CATALOG),
+  /function jobResultById/.test(CATALOG) && /function processJobById/.test(CATALOG)
+  && /\$sum = self::processJobById\(\$pdo, \$jobId\)/.test(CATALOG),
   "'queued'(대기열 등록)를 성공으로 반환하면 사용자는 실패를 영원히 알 수 없다");
+check('writeback: 자기가 만든 잡만 처리·조회(jobId 추적)',
+  /\$jobId = self::logJob\(/.test(CATALOG) && /\$jr = self::jobResultById\(\$pdo, \$jobId\)/.test(CATALOG),
+  '다른 상품/다른 operation 의 잡을 읽으면 사유 없는 queued 가 표시된다(실측 회귀)');
+check('logJob: operation 을 가려 superseded 마감',
+  /AND operation=\? AND status IN \('queued','awaiting_credentials','pending_approval'\)/.test(CATALOG),
+  '등록(publish) 잡이 가격(price) 잡에 의해 처리 전 삭제되던 회귀');
+check('bulkPrice: 미등록 상품에 price 잡을 만들지 않음',
+  /priorChannelProductId\(\$pdo, \$tenant, \(string\)\$c\['channel'\], \(string\)\$c\['sku'\]\) === null/.test(CATALOG),
+  '미등록 상품의 price 잡은 신규등록으로 오인돼 엉뚱한 오류를 남긴다');
 check('writeback: 자격증명 없을 때 잡을 awaiting_credentials 로 기록',
   /'awaiting_credentials'\s*:\s*\$status|\$jobStatus = \(\$status === 'saved'\)/.test(CATALOG),
   "'saved' 잡은 processWritebackQueue 가 절대 소비하지 않는다(영구 미발송)");

@@ -2576,24 +2576,30 @@ final class ChannelSync
             [$gc, $gb] = self::httpGet($url, $hdr, 30);
             if ($gc === 200 && is_array($gb) && !empty($gb['originProduct'])) {
                 $base = (array)$gb['originProduct'];
-                // 조회 응답은 값이 없는 객체 필드를 빈 배열 `[]` 로 내려주는데(예: customerBenefit),
-                // PUT 은 그 자리에 객체를 기대해 역직렬화 400 이 난다. 최상위 빈 배열은 제거한다(값 없음 = 미전송).
-                foreach ($base as $k => $v) { if (is_array($v) && $v === []) unset($base[$k]); }
+                // 조회 응답은 값이 없는 객체 필드를 빈 배열 `[]` 로 내려주는데(customerBenefit,
+                // detailAttribute.certificationTargetExcludeContent 등 **중첩 포함**), PUT 은 그 자리에 객체를
+                // 기대해 역직렬화 400 이 난다(실측: 판매중지·수정 전건 실패). 재귀적으로 제거한다(값 없음 = 미전송).
+                $base = self::stripEmptyArrays($base);
                 // 우리가 확정적으로 바꾸는 필드만 덮어쓴다(빈 값은 기존 유지 — 값 소실 방지).
-                $over = ['statusType' => $origin['statusType'], 'salePrice' => $origin['salePrice'],
-                         'stockQuantity' => $origin['stockQuantity']];
-                if ($name !== '') $over['name'] = $name;
-                if ((string)($p['detail_html'] ?? '') !== '') $over['detailContent'] = $detail;
-                if (!empty($origin['images'])) $over['images'] = $origin['images'];
-                if ($leaf !== '') $over['leafCategoryId'] = $leaf;
-                if ((string)($p['sku'] ?? '') !== '') $over['sellerCodeInfo'] = $origin['sellerCodeInfo'];
-                // 배송/고시는 사용자가 이번 요청에 값을 실어 보냈을 때만 교체(미전달 시 채널 기존값 보존).
-                if (isset($p['ship_fee_type']) || isset($p['return_ship_fee'])) $over['deliveryInfo'] = $origin['deliveryInfo'];
-                if (!empty($p['notice_category']) || !empty($p['notice_json'])) $over['detailAttribute'] = $origin['detailAttribute'];
+                //   ★판매중지(unregister)는 statusType 만 바꾼다. 가격/재고/이름을 함께 보내면 0 으로 덮어써
+                //   'salePrice 는 0보다 커야 합니다' 400 이 나고 상품 정보까지 훼손된다(실측).
+                $over = ['statusType' => $origin['statusType']];
+                if ($op !== 'unregister') {
+                    if ($price > 0) $over['salePrice'] = $price;                       // 0/미지정이면 기존 가격 유지
+                    if (array_key_exists('inventory', $p)) $over['stockQuantity'] = (int)$p['inventory'];
+                    if ($name !== '') $over['name'] = $name;
+                    if ((string)($p['detail_html'] ?? '') !== '') $over['detailContent'] = $detail;
+                    if (!empty($origin['images'])) $over['images'] = $origin['images'];
+                    if ($leaf !== '') $over['leafCategoryId'] = $leaf;
+                    if ((string)($p['sku'] ?? '') !== '') $over['sellerCodeInfo'] = $origin['sellerCodeInfo'];
+                    // 배송/고시는 사용자가 이번 요청에 값을 실어 보냈을 때만 교체(미전달 시 채널 기존값 보존).
+                    if (isset($p['ship_fee_type']) || isset($p['return_ship_fee'])) $over['deliveryInfo'] = $origin['deliveryInfo'];
+                    if (!empty($p['notice_category']) || !empty($p['notice_json'])) $over['detailAttribute'] = $origin['detailAttribute'];
+                }
                 $body['originProduct'] = array_merge($base, $over);
                 if (!empty($gb['smartstoreChannelProduct'])) {
                     $body['smartstoreChannelProduct'] = array_merge(
-                        (array)$gb['smartstoreChannelProduct'],
+                        self::stripEmptyArrays((array)$gb['smartstoreChannelProduct']),
                         ['channelProductDisplayStatusType' => ($op === 'unregister' ? 'SUSPENSION' : 'ON')]
                     );
                 }
@@ -2789,6 +2795,24 @@ final class ChannelSync
             unset($ref);
         }
         return $changed;
+    }
+
+    /**
+     * [277차] 조회 응답의 빈 배열 `[]` 을 **재귀적으로** 제거한다.
+     *   네이버 GET 은 값이 없는 객체 필드를 `[]` 로 내려주지만 PUT 은 그 자리에 객체를 기대해 400 이 난다
+     *   (customerBenefit, detailAttribute.certificationTargetExcludeContent 등). 값 없음 = 미전송이 정답.
+     *   ★리스트 필드(optionalImages 등)의 빈 배열도 제거되지만, 미전송 시 채널 기존값이 유지되므로 안전하다.
+     */
+    private static function stripEmptyArrays(array $a): array
+    {
+        foreach ($a as $k => $v) {
+            if (is_array($v)) {
+                if ($v === []) { unset($a[$k]); continue; }
+                $a[$k] = self::stripEmptyArrays($v);
+                if ($a[$k] === []) unset($a[$k]);
+            }
+        }
+        return $a;
     }
 
     /**
