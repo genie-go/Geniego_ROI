@@ -131,9 +131,108 @@ class Catalog
         }
         // [277차] 상품 상세페이지(HTML)·이미지가 writeback 페이로드에 실리지 않아 채널에 빈 상세로 등록됐다.
         //   catalog_listing 에 보관 컬럼 보강(MySQL·SQLite 공통 멱등 ALTER — 이미 존재 시 예외무시).
-        foreach (['detail_html TEXT', 'images_json TEXT', 'image_url TEXT'] as $col) {
+        //   category_code: 상품별 채널 카테고리 코드(네이버 leafCategoryId). 큐 소비는 catalog_listing 에서
+        //   product 를 복원하므로 여기 보존하지 않으면 전송 시점에 코드가 사라져 신규등록이 거부된다.
+        foreach (['detail_html TEXT', 'images_json TEXT', 'image_url TEXT', 'category_code TEXT'] as $col) {
             try { $pdo->exec("ALTER TABLE catalog_listing ADD COLUMN $col"); } catch (\Throwable $e) { /* 이미 존재 */ }
         }
+        // [277차] 채널 카테고리 카탈로그 캐시 — 네이버 leafCategoryId(5,827건) 등 채널 필수 코드의 로컬 사본.
+        //   종전엔 코드를 얻을 수단이 없어 신규 상품등록이 전부 거부됐다. 채널당 1회 수집 → 검색·매핑에 재사용.
+        if (self::isMysql($pdo)) {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS channel_category_catalog (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo',
+                channel VARCHAR(100) NOT NULL,
+                code VARCHAR(190) NOT NULL,
+                name VARCHAR(255),
+                whole_name VARCHAR(500),
+                is_leaf TINYINT(1) NOT NULL DEFAULT 0,
+                synced_at VARCHAR(32),
+                UNIQUE KEY uq_ccc (tenant_id, channel, code),
+                KEY idx_ccc_leaf (tenant_id, channel, is_leaf)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        } else {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS channel_category_catalog (
+                id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo',
+                channel TEXT NOT NULL, code TEXT NOT NULL, name TEXT, whole_name TEXT,
+                is_leaf INTEGER NOT NULL DEFAULT 0, synced_at TEXT,
+                UNIQUE (tenant_id, channel, code)
+            )");
+        }
+    }
+
+    /**
+     * [277차] GET /catalog/channel-categories?channel=&q=&refresh=1
+     *   채널의 카테고리 코드(네이버 leafCategoryId 등)를 검색한다. 캐시가 비었거나 refresh=1 이면 채널에서 1회 수집.
+     *   신규 상품등록의 필수값을 UI 가 조회할 수 있는 유일한 경로(종전 부재 → 등록 전면 불가).
+     */
+    public static function channelCategories(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $pdo = self::db();
+        $tenant = self::tenant($req);
+        $q = $req->getQueryParams();
+        $channel = strtolower(trim((string)($q['channel'] ?? '')));
+        $term    = trim((string)($q['q'] ?? ''));
+        $refresh = ((string)($q['refresh'] ?? '')) === '1';
+        if ($channel === '') return self::jsonRes($res, ['ok' => false, 'error' => 'channel required'], 400);
+
+        $cnt = 0;
+        try {
+            $st = $pdo->prepare("SELECT COUNT(*) FROM channel_category_catalog WHERE tenant_id=? AND channel=?");
+            $st->execute([$tenant, $channel]);
+            $cnt = (int)$st->fetchColumn();
+        } catch (\Throwable $e) { /* 최초 호출 */ }
+
+        if ($refresh || $cnt === 0) {
+            $synced = self::syncChannelCategories($pdo, $tenant, $channel);
+            if ($synced === 0 && $cnt === 0) {
+                return self::jsonRes($res, ['ok' => false, 'error' => 'category_fetch_failed',
+                    'hint' => '채널 자격증명을 확인하세요. 카테고리 조회는 채널 인증이 필요합니다.'], 200);
+            }
+            $cnt = $synced ?: $cnt;
+        }
+
+        // 리프(등록 가능)만 노출 — 상위 카테고리는 상품등록에 사용할 수 없다.
+        $sql = "SELECT code, name, whole_name FROM channel_category_catalog
+                WHERE tenant_id=? AND channel=? AND is_leaf=1";
+        $bind = [$tenant, $channel];
+        if ($term !== '') { $sql .= " AND (whole_name LIKE ? OR name LIKE ? OR code=?)"; $bind[] = "%{$term}%"; $bind[] = "%{$term}%"; $bind[] = $term; }
+        $sql .= " ORDER BY whole_name LIMIT 50";
+        $st = $pdo->prepare($sql);
+        $st->execute($bind);
+        return self::jsonRes($res, ['ok' => true, 'channel' => $channel, 'total_cached' => $cnt,
+            'categories' => $st->fetchAll(\PDO::FETCH_ASSOC)]);
+    }
+
+    /** [277차] 채널에서 카테고리 카탈로그를 받아 캐시에 upsert. 반환=저장 건수(실패 0). */
+    private static function syncChannelCategories(\PDO $pdo, string $tenant, string $channel): int
+    {
+        $creds = self::loadChannelCreds($pdo, $tenant, $channel);
+        if (!$creds) return 0;
+        $rows = [];
+        foreach (self::channelAliases($channel) as $a) {
+            if ($a === 'naver' || $a === 'naver_smartstore') { $rows = ChannelSync::naverCategoryCatalog($creds); break; }
+        }
+        if (!$rows) return 0;   // 미지원 채널은 정직하게 0(가짜 카테고리 생성 금지)
+        $now = self::now();
+        $sql = self::isMysql($pdo)
+            ? "INSERT INTO channel_category_catalog(tenant_id,channel,code,name,whole_name,is_leaf,synced_at) VALUES(?,?,?,?,?,?,?)
+               ON DUPLICATE KEY UPDATE name=VALUES(name),whole_name=VALUES(whole_name),is_leaf=VALUES(is_leaf),synced_at=VALUES(synced_at)"
+            : "INSERT INTO channel_category_catalog(tenant_id,channel,code,name,whole_name,is_leaf,synced_at) VALUES(?,?,?,?,?,?,?)
+               ON CONFLICT(tenant_id,channel,code) DO UPDATE SET name=excluded.name,whole_name=excluded.whole_name,is_leaf=excluded.is_leaf,synced_at=excluded.synced_at";
+        $st = $pdo->prepare($sql);
+        $n = 0;
+        $pdo->beginTransaction();
+        try {
+            foreach ($rows as $r) {
+                $st->execute([$tenant, $channel, $r['code'], $r['name'], $r['whole'], $r['leaf'] ? 1 : 0, $now]);
+                $n++;
+            }
+            $pdo->commit();
+        } catch (\Throwable $e) { $pdo->rollBack(); return 0; }
+        return $n;
     }
 
     /** 가격 변경(old≠new) 시에만 price_history 기록(테넌트 격리). best-effort. */
@@ -190,22 +289,24 @@ class Catalog
         // [277차] detail_html·images_json·image_url 영속. 새 값이 빈 문자열이면 기존 값을 지우지 않는다
         //   (COALESCE/NULLIF — 가격만 바꾸는 repricer 경로가 상세·이미지를 날리는 회귀 방지).
         if (self::isMysql($pdo)) {
-            $sql = "INSERT INTO catalog_listing (tenant_id,channel,sku,name,category,price,inventory,spec,action,status,created_at,updated_at,detail_html,images_json,image_url)
-                    VALUES (:t,:c,:s,:n,:cat,:p,:inv,:spec,:act,:st,:now,:now2,:dh,:ij,:iu)
+            $sql = "INSERT INTO catalog_listing (tenant_id,channel,sku,name,category,price,inventory,spec,action,status,created_at,updated_at,detail_html,images_json,image_url,category_code)
+                    VALUES (:t,:c,:s,:n,:cat,:p,:inv,:spec,:act,:st,:now,:now2,:dh,:ij,:iu,:cc)
                     ON DUPLICATE KEY UPDATE name=VALUES(name),category=VALUES(category),price=VALUES(price),
                       inventory=VALUES(inventory),spec=VALUES(spec),action=VALUES(action),status=VALUES(status),updated_at=VALUES(updated_at),
                       detail_html=COALESCE(NULLIF(VALUES(detail_html),''),detail_html),
                       images_json=COALESCE(NULLIF(VALUES(images_json),''),images_json),
-                      image_url=COALESCE(NULLIF(VALUES(image_url),''),image_url)";
+                      image_url=COALESCE(NULLIF(VALUES(image_url),''),image_url),
+                      category_code=COALESCE(NULLIF(VALUES(category_code),''),category_code)";
         } else {
-            $sql = "INSERT INTO catalog_listing (tenant_id,channel,sku,name,category,price,inventory,spec,action,status,created_at,updated_at,detail_html,images_json,image_url)
-                    VALUES (:t,:c,:s,:n,:cat,:p,:inv,:spec,:act,:st,:now,:now2,:dh,:ij,:iu)
+            $sql = "INSERT INTO catalog_listing (tenant_id,channel,sku,name,category,price,inventory,spec,action,status,created_at,updated_at,detail_html,images_json,image_url,category_code)
+                    VALUES (:t,:c,:s,:n,:cat,:p,:inv,:spec,:act,:st,:now,:now2,:dh,:ij,:iu,:cc)
                     ON CONFLICT(tenant_id,channel,sku) DO UPDATE SET name=excluded.name,category=excluded.category,
                       price=excluded.price,inventory=excluded.inventory,spec=excluded.spec,action=excluded.action,
                       status=excluded.status,updated_at=excluded.updated_at,
                       detail_html=COALESCE(NULLIF(excluded.detail_html,''),catalog_listing.detail_html),
                       images_json=COALESCE(NULLIF(excluded.images_json,''),catalog_listing.images_json),
-                      image_url=COALESCE(NULLIF(excluded.image_url,''),catalog_listing.image_url)";
+                      image_url=COALESCE(NULLIF(excluded.image_url,''),catalog_listing.image_url),
+                      category_code=COALESCE(NULLIF(excluded.category_code,''),catalog_listing.category_code)";
         }
         $oldPrice = self::currentPrice($pdo, $tenant, $channel, $sku); // 변경 전 등록가(없으면 null)
         $newPrice = (float)($f['price'] ?? 0);
@@ -220,6 +321,7 @@ class Catalog
             ':dh' => (string)($f['detail_html'] ?? ''),
             ':ij' => $imgs ? json_encode($imgs, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : '',
             ':iu' => (string)($f['image_url'] ?? ''),
+            ':cc' => (string)($f['category_code'] ?? ''),
         ]);
         // 기존 리스팅의 실제 가격 변경만 이력화(신규 등록은 변경 아님 → 제외).
         if ($oldPrice !== null && array_key_exists('price', $f)) {
@@ -257,6 +359,26 @@ class Catalog
         $jobStatus = ($status === 'saved') ? 'awaiting_credentials' : $status;
         self::logJob($pdo, $tenant, $channel, $sku, (string)($body['operation'] ?? 'publish'), $jobStatus, $f);
         Db::audit($pdo, $tenant, 'catalog.writeback', ['channel'=>$channel, 'sku'=>$sku, 'action'=>$action, 'status'=>$status]); // 감사: 상품 writeback
+
+        // [277차] ★"동기화 성공"인데 채널에 등록되지 않는 문제의 근본 — 종전엔 큐에 넣고 'queued' 를 반환했고
+        //   프론트가 이를 성공으로 표기했다. 실제 채널 push 는 10분 주기 크론이 나중에 시도하며, 거기서 실패해도
+        //   사용자는 영원히 알 수 없었다(3회 후 조용히 failed). 이제 queued 면 그 자리에서 1건을 실제로 소비해
+        //   **채널의 진짜 응답**을 반환한다. 실패 사유(예: leafCategoryId 필요)가 즉시 UI 에 뜬다.
+        //   sync=false 로 명시하면 종전처럼 큐에만 넣는다(대량 전송용).
+        $wantSync = !array_key_exists('sync', $body) || !empty($body['sync']);
+        if ($wantSync && $status === 'queued') {
+            $sum = self::processWritebackQueue($pdo, $tenant, $channel, 1);
+            $jr = self::latestJobResult($pdo, $tenant, $channel, $sku);
+            $jobDone = ($jr['status'] ?? '') === 'done';
+            return self::jsonRes($res, [
+                'ok'      => $jobDone,
+                'status'  => $jr['status'] ?? $status,   // done | failed | queued(재시도 대기) | awaiting_credentials
+                'channel' => $channel, 'sku' => $sku,
+                'error'   => $jobDone ? null : ($jr['error'] ?? null),
+                'attempt' => $jr['attempt'] ?? null,
+                'summary' => $sum,
+            ]);
+        }
         return self::jsonRes($res, ['ok' => true, 'status' => $status, 'channel' => $channel, 'sku' => $sku]);
     }
 
@@ -378,7 +500,7 @@ class Catalog
     {
         $existing = [];
         try {
-            $st = $pdo->prepare("SELECT name,category,price,inventory,spec,detail_html,images_json,image_url FROM catalog_listing WHERE tenant_id=? AND channel=? AND sku=? LIMIT 1");
+            $st = $pdo->prepare("SELECT name,category,price,inventory,spec,detail_html,images_json,image_url,category_code FROM catalog_listing WHERE tenant_id=? AND channel=? AND sku=? LIMIT 1");
             $st->execute([$tenant, $channel, $sku]);
             $existing = $st->fetch(\PDO::FETCH_ASSOC) ?: [];
         } catch (\Throwable $e) { /* best-effort */ }
@@ -400,8 +522,25 @@ class Catalog
             'detail_html' => array_key_exists('detail_html', $body) ? (string)$body['detail_html'] : (string)($existing['detail_html'] ?? ''),
             'image_url' => array_key_exists('image_url', $body) ? (string)$body['image_url'] : (string)($existing['image_url'] ?? ''),
             'images'    => $images,
+            // [277차] 상품별 채널 카테고리 코드(네이버 leafCategoryId 등) — 신규등록 필수값.
+            'category_code' => array_key_exists('category_code', $body) ? (string)$body['category_code'] : (string)($existing['category_code'] ?? ''),
+            // [277차] 채널 필수 메타(상품정보제공고시·배송/반품·AS·원산지·미성년자). catalog_listing 에 컬럼을 늘리지 않고
+            //   writeback job payload 로 운반한다(큐 소비 시 currentListing 결과에 병합).
+            //   네이버 신규등록은 이 값들이 없으면 400 이다(실 API 확정).
+            'channel_meta' => self::pickChannelMeta($body),
             'action'    => $action,
         ];
+    }
+
+    /** [277차] 채널 필수 메타만 추려낸다(화이트리스트 — 임의 필드 유입 차단). */
+    private static function pickChannelMeta(array $body): array
+    {
+        $keys = ['notice_category', 'notice_json', 'as_phone', 'as_guide', 'origin', 'minor_purchase',
+                 'ship_fee_type', 'ship_fee', 'return_ship_fee', 'exchange_ship_fee', 'brand', 'manufacturer',
+                 'model_name', 'barcode', 'naver_shopping', 'mfg_date', 'expiry_date', 'return_courier'];
+        $out = [];
+        foreach ($keys as $k) { if (array_key_exists($k, $body) && $body[$k] !== null && $body[$k] !== '') $out[$k] = $body[$k]; }
+        return $out;
     }
 
     /** 결정적 정책 검증(랜덤 없음·테넌트 무관 규칙). findings + 승인필요 여부 산출. */
@@ -638,7 +777,7 @@ class Catalog
         try {
             // [277차] detail_html·images 도 복원. 네이버 등은 update 가 originProduct 전체 교체(PUT)라
             //   상세·이미지를 빼고 push 하면 채널에 등록된 상세페이지가 지워진다(가격만 바꾸는 리프라이서 경로 포함).
-            $st = $pdo->prepare("SELECT name,category,price,inventory,spec,action,detail_html,images_json,image_url FROM catalog_listing WHERE tenant_id=? AND channel=? AND sku=? LIMIT 1");
+            $st = $pdo->prepare("SELECT name,category,price,inventory,spec,action,detail_html,images_json,image_url,category_code FROM catalog_listing WHERE tenant_id=? AND channel=? AND sku=? LIMIT 1");
             $st->execute([$tenant, $channel, $sku]);
             $r = $st->fetch(\PDO::FETCH_ASSOC);
             if (!$r) return null;
@@ -697,8 +836,14 @@ class Catalog
                 $upd->execute(['awaiting_credentials', json_encode(['reason' => 'no_active_credentials'], JSON_UNESCAPED_UNICODE), $attempt, $now, $j['id']]);
                 $sum['awaiting']++; continue;
             }
-            $product = self::currentListing($pdo, $t, $ch, $sku) ?: (json_decode((string)$j['payload'], true) ?: []);
+            $jobPayload = json_decode((string)$j['payload'], true) ?: [];
+            $product = self::currentListing($pdo, $t, $ch, $sku) ?: $jobPayload;
             $product['sku'] = $sku;
+            // [277차] 채널 필수 메타(고시·배송/반품·AS·원산지) 복원 — catalog_listing 에 없는 필드라 payload 가 유일 출처.
+            //   이게 빠지면 네이버 신규등록이 400(productInfoProvidedNotice NotEmpty 등)으로 영구 실패한다.
+            foreach ((array)($jobPayload['channel_meta'] ?? []) as $mk => $mv) {
+                if (!isset($product[$mk]) || $product[$mk] === '' || $product[$mk] === null) $product[$mk] = $mv;
+            }
             // [239차] 리프라이서 price_update: payload 의 새 가격을 listing 위에 overlay.
             //   리프라이서는 priceopt.sqlite(po_products)만 갱신하므로 메인DB catalog_listing 가격은 stale →
             //   payload(source=repricer) 의 새 가격을 우선 반영해야 채널에 올바른 가격이 push 된다.
@@ -748,6 +893,29 @@ class Catalog
         $channel = (isset($body['channel']) && $body['channel'] !== '') ? (string)$body['channel'] : null;
         $sum = self::processWritebackQueue($pdo, $tenant, $channel, 100);
         return self::jsonRes($res, ['ok' => true, 'summary' => $sum]);
+    }
+
+    /**
+     * [277차] 방금 처리된 잡의 실제 결과(채널 응답)를 꺼낸다 — 동기 전송 응답에 진짜 성공/실패를 싣기 위함.
+     *   result 는 pushToChannel 반환 JSON(`{ok,error,detail,channel_product_id}`).
+     */
+    private static function latestJobResult(\PDO $pdo, string $tenant, string $channel, string $sku): array
+    {
+        try {
+            $st = $pdo->prepare("SELECT status, attempt, result FROM catalog_writeback_job
+                                 WHERE tenant_id=? AND channel=? AND sku=? ORDER BY id DESC LIMIT 1");
+            $st->execute([$tenant, $channel, $sku]);
+            $r = $st->fetch(\PDO::FETCH_ASSOC);
+            if (!$r) return [];
+            $res = json_decode((string)($r['result'] ?? ''), true);
+            $err = null;
+            if (is_array($res) && empty($res['ok'])) {
+                $err = (string)($res['error'] ?? '');
+                if (!empty($res['detail'])) $err .= ' — ' . (is_string($res['detail']) ? $res['detail'] : json_encode($res['detail'], JSON_UNESCAPED_UNICODE));
+                if ($err === '') $err = null;
+            }
+            return ['status' => (string)$r['status'], 'attempt' => (int)$r['attempt'], 'error' => $err];
+        } catch (\Throwable $e) { return []; }
     }
 
     /** [227차] 채널 카테고리코드 해석: ①상품 명시 category_code ②채널 매핑(channel_category_map[category]) ③빈값. */

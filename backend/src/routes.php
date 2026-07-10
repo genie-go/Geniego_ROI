@@ -94,6 +94,7 @@ return function (App $app): void {
         'GET /catalog/writeback/jobs'                     => 'Genie\\Handlers\\Catalog::jobs',
         'POST /catalog/writeback/process'                 => 'Genie\\Handlers\\Catalog::processQueue', // [227차] 큐 소비(채널 push)
         'POST /catalog/writeback/approve'                 => 'Genie\\Handlers\\Catalog::approveQueue',  // [239차] pending_approval→queued 승인(human-in-loop)
+        'GET /catalog/channel-categories'                 => 'Genie\\Handlers\\Catalog::channelCategories', // [277차] 채널 카테고리 코드 조회/검색(네이버 leafCategoryId 등)
         'GET /catalog/category-map'                       => 'Genie\\Handlers\\Catalog::categoryMapList',   // [227차] 채널 카테고리 매핑
         'POST /catalog/category-map'                      => 'Genie\\Handlers\\Catalog::categoryMapSave',
         'DELETE /catalog/category-map/{id}'               => 'Genie\\Handlers\\Catalog::categoryMapDelete',
@@ -2882,6 +2883,7 @@ return function (App $app): void {
     $register('GET',    '/catalog/writeback/jobs');
     $register('POST',   '/catalog/writeback/process'); // [227차] 큐 소비(채널 push)
     $register('POST',   '/catalog/writeback/approve'); // [239차] pending_approval→queued 승인(human-in-loop)
+    $register('GET',    '/catalog/channel-categories'); // [277차] 채널 카테고리 코드 조회/검색
     $register('GET',    '/catalog/category-map');       // [227차] 채널 카테고리 매핑
     $register('POST',   '/catalog/category-map');
     $register('DELETE', '/catalog/category-map/{id}');

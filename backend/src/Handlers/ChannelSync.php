@@ -838,6 +838,35 @@ final class ChannelSync
     }
 
     /**
+     * [277차] 네이버 카테고리 카탈로그 조회 — 신규 상품등록 필수값 `leafCategoryId` 의 유일한 출처.
+     *   종전엔 이 API 를 부르는 코드가 없어(부재증명: `external/v1/categories` grep 0건) 사용자가 코드를
+     *   손으로 입력할 수밖에 없었고, channel_category_map 이 비어 있으면 모든 신규등록이 거부됐다.
+     *   `GET /external/v1/categories` → 5,827건(leaf 5,011건). 실 응답 검증 완료:
+     *   `{wholeCategoryName, id, name, last}` — `last=true` 가 리프(등록 가능 카테고리).
+     *   @return array<int,array{code:string,name:string,whole:string,leaf:bool}> 실패 시 빈배열
+     */
+    public static function naverCategoryCatalog(array $creds): array
+    {
+        $token = self::naverAccessToken($creds);
+        if (!$token) return [];
+        [$code, $body] = self::httpGet('https://api.commerce.naver.com/external/v1/categories',
+            ['Authorization' => "Bearer {$token}", 'Content-Type' => 'application/json'], 60);
+        if ($code !== 200 || !is_array($body)) return [];
+        $out = [];
+        foreach ($body as $c) {
+            $id = (string)($c['id'] ?? '');
+            if ($id === '') continue;
+            $out[] = [
+                'code'  => $id,
+                'name'  => (string)($c['name'] ?? ''),
+                'whole' => (string)($c['wholeCategoryName'] ?? ''),
+                'leaf'  => !empty($c['last']),
+            ];
+        }
+        return $out;
+    }
+
+    /**
      * [277차] 네이버 이미지 업로드 — originProduct.images 는 **공개 URL** 만 받는다.
      *   그런데 상품등록(PriceOpt)은 이미지를 base64 dataURL 로 보관하므로 그대로 push 하면 400 이다.
      *   dataURL 만 네이버 이미지 서버에 업로드해 URL 로 치환하고, 이미 http(s) URL 인 항목은 그대로 통과시킨다.
@@ -2489,12 +2518,273 @@ final class ChannelSync
             $extra = array_slice($imgs, 1, 9);
             if ($extra) $origin['images']['optionalImages'] = array_map(static fn($u) => ['url' => $u], $extra);
         }
-        $payload = json_encode(['originProduct' => $origin], JSON_UNESCAPED_UNICODE);
+
+        // ── [277차] ★신규등록 필수 블록 — 종전 payload 는 이 셋이 전부 빠져 있어 어떤 상품도 등록될 수 없었다.
+        //   실 API 400 응답으로 확정: smartstoreChannelProduct(NotNull) · detailAttribute.minorPurchasable(NotNull)
+        //   · detailAttribute.productInfoProvidedNotice(NotEmpty). 등록 성공 재현 완료(originProductNo 발급).
+        $origin['deliveryInfo'] = self::naverDeliveryInfo($p);
+        $origin['detailAttribute'] = self::naverDetailAttribute($p);
+        $body = ['originProduct' => $origin, 'smartstoreChannelProduct' => [
+            'naverShoppingRegistration'       => (bool)($p['naver_shopping'] ?? false),
+            'channelProductDisplayStatusType' => ($op === 'unregister' ? 'SUSPENSION' : 'ON'),
+        ]];
+
         $hdr = ['Authorization' => "Bearer {$token}", 'Content-Type' => 'application/json'];
-        if ($cpid !== null) { [$c, $b] = self::httpReq('PUT', "https://api.commerce.naver.com/external/v2/products/origin-products/{$cpid}", $hdr, $payload); }
-        else { [$c, $b] = self::httpPost('https://api.commerce.naver.com/external/v2/products', $hdr, $payload); }
-        if ($c >= 200 && $c < 300) { $pid = $b['originProductNo'] ?? $b['smartstoreChannelProductNo'] ?? $cpid; return ['ok' => true, 'channel_product_id' => $pid !== null ? (string)$pid : null]; }
-        return ['ok' => false, 'error' => "Naver HTTP {$c}", 'detail' => mb_substr(json_encode($b['message'] ?? $b, JSON_UNESCAPED_UNICODE), 0, 200)];
+        $url = $cpid !== null
+            ? "https://api.commerce.naver.com/external/v2/products/origin-products/{$cpid}"
+            : 'https://api.commerce.naver.com/external/v2/products';
+        $method = $cpid !== null ? 'PUT' : 'POST';
+
+        // ★자가치유 재시도 — 상품정보제공고시는 품목마다 필수 필드가 다르고(예: WEAR 는 size·material·manufacturer…),
+        //   네이버가 400 invalidInputs 로 누락 필드를 정확히 알려준다. 29품목×수십 필드를 하드코딩하는 대신
+        //   응답을 읽어 사용자 고시값(있으면) 또는 법정 허용문구 '상품상세참조'로 채워 재시도한다(최대 2회).
+        //   → 네이버가 필드 스펙을 바꿔도 코드 수정 없이 따라간다.
+        //   라운드: ①그룹 하위 필수필드 ②조건부 필수(expirationDate 등) ③날짜 포맷 보정 … 여유 있게 6회.
+        //   매 라운드 최소 1개 필드가 확정되므로 무한루프는 불가(채울 게 없으면 즉시 break).
+        for ($try = 0; $try < 6; $try++) {
+            [$c, $b] = self::httpReq($method, $url, $hdr, json_encode($body, JSON_UNESCAPED_UNICODE));
+            if ($c >= 200 && $c < 300) {
+                $pid = $b['originProductNo'] ?? $b['smartstoreChannelProductNo'] ?? $cpid;
+                return ['ok' => true, 'channel_product_id' => $pid !== null ? (string)$pid : null];
+            }
+            // 날짜 포맷 자가치유 — 네이버는 필드별로 요구 포맷이 다르다(예: cosmetic.expirationDate = 'YYYY-MM').
+            //   "날짜 필드[2029-01-01]를 파싱 실패 … at index 7" 을 읽어 값을 index 만큼 잘라 재시도한다.
+            //   → 필드별 포맷을 하드코딩하지 않고도 네이버 스펙을 따라간다.
+            if (self::naverFixDateFormat($body, (string)($b['message'] ?? ''))) continue;
+            $filled = self::naverFillMissingFields($body, (array)($b['invalidInputs'] ?? []), $p);
+            if (!$filled) break;   // 채울 게 없으면 재시도 무의미
+        }
+        // 사용자가 무엇을 고쳐야 하는지 알 수 있도록 네이버의 지적사항을 그대로 전달한다(name 이 없으면 message).
+        $detailMsg = $b['message'] ?? $b;
+        if (!empty($b['invalidInputs'])) {
+            $hints = [];
+            foreach ((array)$b['invalidInputs'] as $i) {
+                $n = (string)($i['name'] ?? '');
+                $hints[] = $n !== '' ? preg_replace('/^originProduct\.(detailAttribute\.)?/', '', $n) : (string)($i['message'] ?? '');
+            }
+            $hints = array_values(array_filter(array_unique($hints)));
+            $detailMsg = ($b['message'] ?? '') . ' → ' . implode(', ', array_slice($hints, 0, 5));
+        }
+        return ['ok' => false, 'error' => "Naver HTTP {$c}", 'detail' => mb_substr(is_string($detailMsg) ? $detailMsg : json_encode($detailMsg, JSON_UNESCAPED_UNICODE), 0, 300)];
+    }
+
+    /**
+     * [277차] 네이버 배송정보 — 신규등록 필수. 계정 공통 배송/반품 설정(po_fulfillment, 276차)과 상품별 예외를 반영.
+     *   값이 없으면 무료배송·기본 반품/교환비로 안전 기본값(등록 자체가 막히지 않도록).
+     */
+    private static function naverDeliveryInfo(array $p): array
+    {
+        $shipFeeType = (string)($p['ship_fee_type'] ?? '');
+        $shipFee     = (int)($p['ship_fee'] ?? 0);
+        $isFree      = ($shipFeeType === 'free') || $shipFee <= 0;
+        return [
+            'deliveryType'          => 'DELIVERY',
+            'deliveryAttributeType' => 'NORMAL',
+            // deliveryCompany 는 네이버 택배사 enum(필수). 사용자가 지정한 반품택배사를 매핑하고, 미지정 시 CJ대한통운.
+            'deliveryCompany'       => self::naverCourierCode((string)($p['return_courier'] ?? '')),
+            // deliveryFeePayType: 배송비 결제방식(선결제). 신규등록 필수 enum — 조회 응답에는 나오지 않는다.
+            'deliveryFee' => $isFree
+                ? ['deliveryFeeType' => 'FREE', 'baseFee' => 0, 'deliveryFeePayType' => 'PREPAID']
+                : ['deliveryFeeType' => 'PAID', 'baseFee' => $shipFee, 'deliveryFeePayType' => 'PREPAID'],
+            'claimDeliveryInfo' => [
+                'returnDeliveryFee'   => (int)($p['return_ship_fee'] ?? 3000),
+                'exchangeDeliveryFee' => (int)($p['exchange_ship_fee'] ?? 6000),
+            ],
+        ];
+    }
+
+    /** 택배사명(한글/영문) → 네이버 deliveryCompany enum. 미지정·미매핑은 CJ대한통운(국내 점유 1위·안전 기본값). */
+    private static function naverCourierCode(string $name): string
+    {
+        $n = strtolower(str_replace(' ', '', trim($name)));
+        if ($n === '') return 'CJGLS';
+        static $map = [
+            'cj' => 'CJGLS', 'cj대한통운' => 'CJGLS', '대한통운' => 'CJGLS', 'cjgls' => 'CJGLS',
+            '한진' => 'HANJIN', '한진택배' => 'HANJIN', 'hanjin' => 'HANJIN',
+            '롯데' => 'HYUNDAI', '롯데택배' => 'HYUNDAI', '현대' => 'HYUNDAI', 'hyundai' => 'HYUNDAI',
+            '로젠' => 'KGB', '로젠택배' => 'KGB', 'kgb' => 'KGB',
+            '우체국' => 'EPOST', '우체국택배' => 'EPOST', 'epost' => 'EPOST',
+            '경동' => 'KDEXP', '경동택배' => 'KDEXP', 'kdexp' => 'KDEXP',
+            '대신' => 'DAESIN', '일양' => 'ILYANG', '천일' => 'CHUNIL', '건영' => 'KUNYOUNG',
+        ];
+        return $map[$n] ?? 'CJGLS';
+    }
+
+    /** [277차] 네이버 detailAttribute — AS·원산지·미성년자 구매가능·상품정보제공고시(법정). 전부 신규등록 필수. */
+    private static function naverDetailAttribute(array $p): array
+    {
+        $asPhone = trim((string)($p['as_phone'] ?? ''));
+        $asGuide = trim((string)($p['as_guide'] ?? ''));
+        $minor   = (string)($p['minor_purchase'] ?? '');
+        return [
+            'afterServiceInfo' => [
+                'afterServiceTelephoneNumber' => $asPhone !== '' ? $asPhone : '000-0000-0000',
+                'afterServiceGuideContent'    => $asGuide !== '' ? $asGuide : '상품상세참조',
+            ],
+            'originAreaInfo' => [
+                'originAreaCode' => '00',            // 00 = 국산(네이버 코드)
+                'content'        => trim((string)($p['origin'] ?? '')) ?: '상품상세참조',
+                'plural'         => false,
+            ],
+            // 'N'/'false' 만 불가로 보고 그 외에는 구매가능(기본값). 276차 폼의 minor_purchase 를 그대로 해석.
+            'minorPurchasable' => !in_array(strtolower($minor), ['n', 'no', 'false', '0', '불가'], true),
+            // 고시는 {type, <groupKey>:{...}} 구조. 그룹 객체를 미리 만들어 둬야 네이버가 하위 필수필드를
+            //   invalidInputs 로 알려주고, 자가치유가 그 필드만 채운다(그룹을 문자열로 채우면 역직렬화 400).
+            'productInfoProvidedNotice' => [
+                'productInfoProvidedNoticeType' => ($nt = self::naverNoticeType($p)),
+                self::naverNoticeGroupKey($nt) => new \stdClass(),
+            ],
+        ];
+    }
+
+    /** 네이버 고시 타입(ENUM) → payload 그룹 키(camelCase). 예: GENERAL_FOOD → generalFood, WEAR → wear. */
+    private static function naverNoticeGroupKey(string $type): string
+    {
+        $parts = explode('_', strtolower($type));
+        return $parts[0] . implode('', array_map('ucfirst', array_slice($parts, 1)));
+    }
+
+    /** 우리 상품정보제공고시 품목(276차 productNoticeTemplates 29종) → 네이버 productInfoProvidedNoticeType. */
+    private static function naverNoticeType(array $p): string
+    {
+        static $map = [
+            'wear' => 'WEAR', 'shoes' => 'SHOES', 'bag' => 'BAG', 'fashion' => 'FASHION_ITEMS',
+            'bedding' => 'SLEEPING_GEAR', 'furniture' => 'FURNITURE', 'av' => 'IMAGE_APPLIANCES',
+            'homeappliance' => 'HOME_APPLIANCES', 'seasonappliance' => 'SEASON_APPLIANCES',
+            'office' => 'OFFICE_APPLIANCES', 'optics' => 'OPTICS_APPLIANCES', 'smallelec' => 'MICROELECTRONICS',
+            'mobile' => 'CELLPHONE', 'navigation' => 'NAVIGATION', 'carparts' => 'CAR_ARTICLES',
+            'medical' => 'MEDICAL_APPLIANCES', 'kitchen' => 'KITCHEN_UTENSILS', 'cosmetic' => 'COSMETIC',
+            'jewelry' => 'JEWELLERY', 'food' => 'GENERAL_FOOD', 'healthfood' => 'HEALTH_FUNCTIONAL_FOOD',
+            'baby' => 'KIDS', 'sports' => 'SPORTS_EQUIPMENT', 'instrument' => 'MUSICAL_INSTRUMENT',
+            'book' => 'BOOKS', 'chemical' => 'BIOCHEMISTRY', 'biocidal' => 'BIOCIDAL',
+            'digitalcontent' => 'GIFT_CARD', 'etc' => 'ETC',
+        ];
+        $k = strtolower(trim((string)($p['notice_category'] ?? '')));
+        return $map[$k] ?? 'ETC';   // 미지정/미매핑은 '기타 재화'(전 품목 공통) — 네이버가 허용하는 안전 기본값
+    }
+
+    /**
+     * [277차] 400 invalidInputs 를 읽어 누락 필드를 채운다(자가치유). 반환=하나라도 채웠는가.
+     *   값 우선순위: ① 사용자가 상품등록에서 입력한 고시값(라벨 유사매칭) ② 법정 허용문구 '상품상세참조'.
+     *   ★날조 금지 — 실제 값을 지어내지 않고, 법이 허용하는 참조문구만 사용한다.
+     */
+    private static function naverFillMissingFields(array &$body, array $invalidInputs, array $product): bool
+    {
+        if (!$invalidInputs) return false;
+        $noticeItems = [];
+        $nj = $product['notice_json'] ?? '';
+        if (is_string($nj) && $nj !== '') { $d = json_decode($nj, true); if (is_array($d)) $noticeItems = (array)($d['items'] ?? []); }
+        elseif (is_array($nj)) { $noticeItems = (array)($nj['items'] ?? []); }
+
+        // enum·코드성 필드는 임의 문자열로 채우면 그대로 다시 400 이다. 자가치유 대상에서 제외하고
+        // 정식 매핑(naverDeliveryInfo 등)이 책임진다 — 값을 지어내지 않기 위한 안전장치.
+        static $noAutoFill = ['deliveryCompany', 'deliveryType', 'deliveryAttributeType', 'deliveryFeeType',
+                              'deliveryFeePayType', 'originAreaCode', 'productInfoProvidedNoticeType',
+                              'statusType', 'saleType'];
+
+        $changed = false;
+        foreach ($invalidInputs as $iv) {
+            $name = (string)($iv['name'] ?? '');
+            if ($name === '' || !str_starts_with($name, 'originProduct.')) continue;
+            $path = explode('.', substr($name, strlen('originProduct.')));
+            $leafKey = (string)end($path);
+            if (in_array($leafKey, $noAutoFill, true)) continue;
+            // ★그룹/컨테이너 레벨(예: …productInfoProvidedNotice 또는 …productInfoProvidedNotice.wear)은
+            //   문자열로 채우면 역직렬화 400 이다. 객체로 만들어 두고 하위 필드 요구를 기다린다.
+            $isContainer = ($leafKey === 'productInfoProvidedNotice')
+                || (count($path) >= 2 && $path[count($path) - 2] === 'productInfoProvidedNotice');
+
+            $ref = &$body['originProduct'];
+            foreach (array_slice($path, 0, -1) as $seg) {
+                if (!isset($ref[$seg]) || (!is_array($ref[$seg]) && !($ref[$seg] instanceof \stdClass))) $ref[$seg] = [];
+                if ($ref[$seg] instanceof \stdClass) $ref[$seg] = (array)$ref[$seg];
+                $ref = &$ref[$seg];
+            }
+            $cur = $ref[$leafKey] ?? null;
+            $empty = ($cur === null || $cur === '' || ($cur instanceof \stdClass) || (is_array($cur) && !$cur));
+            $type = (string)($iv['type'] ?? '');
+            if ($empty && in_array($type, ['NotNull', 'NotEmpty', 'NotBlank'], true)) {
+                if ($isContainer) {
+                    if ($cur === null) { $ref[$leafKey] = new \stdClass(); $changed = true; }
+                } elseif (preg_match('/(Yn|Check|geneticallyModified|importDeclarationCheck)$/i', $leafKey)) {
+                    $ref[$leafKey] = false; $changed = true;   // 불리언성 필드
+                } elseif (preg_match('/(date|expiration|expiry|useBy)/i', $leafKey)) {
+                    // ★날짜 필드는 '상품상세참조' 문자열을 넣으면 파싱 400 이다. 값을 지어내지도 않는다.
+                    //   상품등록 폼의 제조일자/유효기간(276차)에서만 채우고, 없으면 채우지 않아 네이버 오류를
+                    //   그대로 사용자에게 노출한다(무엇을 입력해야 하는지 알 수 있게).
+                    $d = self::noticeDateValue($leafKey, $product);
+                    if ($d !== null) { $ref[$leafKey] = $d; $changed = true; }
+                } else {
+                    $ref[$leafKey] = self::matchNoticeValue($leafKey, $noticeItems) ?? '상품상세참조';
+                    $changed = true;
+                }
+            }
+            unset($ref);
+        }
+        return $changed;
+    }
+
+    /**
+     * [277차] 날짜 포맷 자가치유 — 네이버 400 message 에서 실패한 값과 파싱 중단 위치를 읽어 값을 잘라낸다.
+     *   예: "날짜 필드[2029-01-01]를 파싱 실패하였습니다. … unparsed text found at index 7" → '2029-01'.
+     *   반환=치환했는가. 값을 지어내지 않고 사용자가 입력한 날짜를 필드가 요구하는 정밀도로 줄일 뿐이다.
+     */
+    private static function naverFixDateFormat(array &$body, string $message): bool
+    {
+        if ($message === '' || !str_contains($message, '날짜 필드')) return false;
+        if (!preg_match('/날짜 필드\[([^\]]+)\]/u', $message, $m)) return false;
+        $bad = $m[1];
+        if (!preg_match('/index (\d+)/', $message, $im)) return false;
+        $cut = (int)$im[1];
+        if ($cut <= 0 || $cut >= mb_strlen($bad)) return false;
+        $fixed = mb_substr($bad, 0, $cut);
+        $replaced = false;
+        $walk = function (&$node) use (&$walk, $bad, $fixed, &$replaced) {
+            if (is_array($node)) { foreach ($node as &$v) { $walk($v); } unset($v); return; }
+            if (is_string($node) && $node === $bad) { $node = $fixed; $replaced = true; }
+        };
+        $walk($body);
+        return $replaced;
+    }
+
+    /**
+     * [277차] 고시의 날짜성 필드 값 — 상품등록 폼의 제조일자/유효기간(mfg_date·expiry_date)에서만 가져온다.
+     *   임의 날짜를 지어내지 않는다(헌법: 날조 금지). 값이 없으면 null → 네이버 오류를 사용자에게 전달.
+     *   네이버는 'YYYY-MM-DD' 를 수용한다.
+     */
+    private static function noticeDateValue(string $field, array $product): ?string
+    {
+        $mfg = trim((string)($product['mfg_date'] ?? ''));
+        $exp = trim((string)($product['expiry_date'] ?? ''));
+        $isMfg = (bool)preg_match('/(manufactur|pack|production)/i', $field);
+        $v = $isMfg ? $mfg : ($exp ?: $mfg);
+        if ($v === '') return null;
+        // 'YYYY.MM.DD' / 'YYYYMMDD' → 'YYYY-MM-DD'
+        $v = str_replace(['.', '/'], '-', $v);
+        if (preg_match('/^\d{8}$/', $v)) $v = substr($v, 0, 4) . '-' . substr($v, 4, 2) . '-' . substr($v, 6, 2);
+        return preg_match('/^\d{4}-\d{2}-\d{2}$/', $v) ? $v : null;
+    }
+
+    /** 네이버 필드명(camelCase) 과 사용자 고시 항목(한글 라벨)을 느슨 매칭. 없으면 null. */
+    private static function matchNoticeValue(string $field, array $items): ?string
+    {
+        if (!$items) return null;
+        static $hint = [
+            'productName' => ['제품명', '상품명'], 'manufacturer' => ['제조자', '제조사', '수입자'],
+            'material' => ['소재', '재질'], 'size' => ['치수', '크기', '사이즈'], 'color' => ['색상'],
+            'warrantyPolicy' => ['품질보증', '보증'], 'afterServiceDirector' => ['A/S', 'AS', '책임자', '전화'],
+            'caution' => ['취급', '주의'], 'modelName' => ['모델', '모델명'], 'itemName' => ['품명'],
+            'customerServicePhoneNumber' => ['전화', '연락처'], 'producer' => ['생산자', '제조'],
+            'location' => ['소재지', '원산지'], 'ingredients' => ['원재료', '성분'],
+            'weight' => ['중량', '용량'], 'amount' => ['수량', '용량'],
+        ];
+        $cands = $hint[$field] ?? [];
+        foreach ($items as $label => $val) {
+            $v = trim((string)$val);
+            if ($v === '') continue;
+            foreach ($cands as $c) { if (mb_strpos((string)$label, $c) !== false) return $v; }
+        }
+        return null;
     }
 
     /** eBay Sell Inventory API 상품(inventory_item) 등록/수정 — Bearer OAuth, SKU 키 멱등 PUT.

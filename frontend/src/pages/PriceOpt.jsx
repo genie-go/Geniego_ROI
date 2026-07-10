@@ -307,6 +307,13 @@ function ProductsTab({ token }) {
     const [pubChannels, setPubChannels] = useState([]);   // [{id,label}]
     const [pubBusy, setPubBusy] = useState("");            // `${sku}:${channel}` 전송 중
     const [pubMsg, setPubMsg] = useState({});              // { [sku]: {text, ok} }
+    // [277차] 채널 카테고리 선택 — 네이버 등은 신규등록에 leafCategoryId 가 필수인데 앱에 조회수단이 없어
+    //   모든 등록이 거부됐다. 서버가 카테고리 필요를 알리면 이 모달로 검색·선택해 즉시 재전송한다.
+    const [catModal, setCatModal] = useState(null);        // {product, channel}
+    const [catQuery, setCatQuery] = useState("");
+    const [catList, setCatList] = useState([]);
+    const [catLoading, setCatLoading] = useState(false);
+    const [catErr, setCatErr] = useState("");
     const [dragOver, setDragOver] = useState(false);
     const [searchQuery, setSearchQuery] = useState(""); // 206차 #6: 등록 제품 검색
 
@@ -435,7 +442,7 @@ function ProductsTab({ token }) {
 
     /** [277차] 상품 1건을 지정 판매채널로 전송. 기존 writeback 엔진(정책검증→승인큐→어댑터)에 그대로 위임한다.
      *  상세HTML·이미지까지 body 로 실어 보낸다(백엔드 mergeWithExisting 이 body 우선). */
-    const publishToChannel = async (p, channel) => {
+    const publishToChannel = async (p, channel, categoryCode) => {
         const sku = (p.sku || '').trim();
         if (!sku) return;
         setPubBusy(`${sku}:${channel}`);
@@ -451,27 +458,76 @@ function ProductsTab({ token }) {
                 detail_html: p.detail_html || '',
                 image_url: p.product_image || imgs[0] || '',
                 images: imgs,
+                ...(categoryCode ? { category_code: categoryCode } : {}),
+                // [277차] 채널 필수 메타 — 네이버는 상품정보제공고시·배송/반품·AS·원산지·미성년자 없이 등록을 거부한다.
+                //   276차 상품등록 폼이 이미 수집해 po_products 에 보관 중인 값을 그대로 전달.
+                notice_category: p.notice_category || '',
+                notice_json: p.notice_json || '',
+                as_phone: p.as_phone || '',
+                as_guide: p.as_guide || '',
+                origin: p.origin || '',
+                minor_purchase: p.minor_purchase || '',
+                ship_fee_type: p.ship_fee_type || '',
+                ship_fee: p.ship_fee || 0,
+                return_ship_fee: p.return_ship_fee || 0,
+                exchange_ship_fee: p.exchange_ship_fee || 0,
+                return_courier: p.return_courier || '',
+                mfg_date: p.mfg_date || '',
+                expiry_date: p.expiry_date || '',
             });
-            // 서버 status: queued(전송대기) · pending_approval(승인대기) · saved(채널 미연동—리스팅만 저장)
-            //   · unregistered(판매중지) · done. ★'saved' 는 실패가 아니라 "자격증명 없음"이다(종전엔 실패로 오표기).
-            //   자격증명 등록 시 ChannelCreds::upsert 가 대기 잡을 자동 플러시한다.
+            // [277차] 서버가 채널의 진짜 응답을 돌려준다. 카테고리 코드가 필요하다면 선택 모달을 열어 즉시 재전송.
+            if (!d.ok && typeof d.error === 'string' && /leafCategoryId|카테고리/i.test(d.error)) {
+                setPubBusy("");
+                setCatErr(""); setCatQuery(p.category || ''); setCatList([]);
+                setCatModal({ product: p, channel });
+                setPubMsg(m => ({ ...m, [sku]: { ok: false, warn: true, text: t('priceOpt.pubNeedCategory', '채널 카테고리를 선택해야 등록됩니다') } }));
+                return;
+            }
+            // [277차] 서버가 동기 전송 결과를 준다. done=실제 채널 등록 완료. failed/queued=채널이 거부(사유 포함).
+            //   ★'queued'(대기열 등록)를 성공으로 표기하던 것이 "동기화 성공인데 스마트스토어 미등록"의 원인이었다.
             const st = d.status || (d.ok ? 'queued' : 'failed');
-            const okStates = ['queued', 'pending_approval', 'done', 'awaiting_credentials', 'saved', 'unregistered'];
+            const successStates = ['done', 'unregistered'];
+            const warnStates = ['saved', 'awaiting_credentials', 'pending_approval', 'queued'];
             const label = {
-                queued: t('priceOpt.pubQueued', '전송 대기열에 등록했습니다'),
+                queued: `${t('priceOpt.pubRetry', '채널이 아직 수락하지 않았습니다 — 재시도 대기')}${d.error ? `: ${d.error}` : ''}`,
                 pending_approval: t('priceOpt.pubApproval', '승인 대기 — 승인 후 채널에 반영됩니다'),
                 awaiting_credentials: t('priceOpt.pubNoCreds', '채널 자격증명 대기 — 연동허브에서 인증을 완료하세요'),
                 saved: t('priceOpt.pubSavedNoCreds', '채널 미연동 — 저장했습니다. 연동허브에서 자격증명을 등록하면 자동 전송됩니다'),
                 unregistered: t('priceOpt.pubUnregistered', '판매중지 처리했습니다'),
                 done: t('priceOpt.pubDone', '채널에 반영했습니다'),
+                failed: `${t('priceOpt.pubFail', '전송 실패')}${d.error ? `: ${d.error}` : ''}`,
             }[st] || (d.error || t('priceOpt.pubFail', '전송 실패'));
-            setPubMsg(m => ({ ...m, [sku]: { ok: okStates.includes(st), text: label, warn: st === 'saved' } }));
+            setPubMsg(m => ({ ...m, [sku]: {
+                ok: successStates.includes(st),
+                warn: warnStates.includes(st),
+                text: label,
+            } }));
         } catch (e) {
             setPubMsg(m => ({ ...m, [sku]: { ok: false, text: `${t('priceOpt.pubFail', '전송 실패')}: ${e.message}` } }));
         } finally {
             setPubBusy("");
         }
     };
+
+    /** [277차] 채널 카테고리 검색 — 최초 호출 시 서버가 채널에서 전체 카탈로그(네이버 5,827건)를 수집·캐시한다. */
+    const searchCategories = useCallback(async (channel, term) => {
+        setCatLoading(true); setCatErr("");
+        try {
+            const qs = new URLSearchParams({ channel, ...(term ? { q: term } : {}) }).toString();
+            const d = await getJsonAuth(`/api/catalog/channel-categories?${qs}`);
+            if (!d.ok) { setCatErr(d.hint || d.error || t('priceOpt.catFail', '카테고리를 불러오지 못했습니다')); setCatList([]); }
+            else setCatList(d.categories || []);
+        } catch (e) {
+            setCatErr(e.message); setCatList([]);
+        } finally { setCatLoading(false); }
+    }, [t]);
+
+    // 모달이 열리면 초기 검색 1회.
+    useEffect(() => {
+        if (!catModal) return;
+        searchCategories(catModal.channel, catQuery);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [catModal]);
 
     const save = async () => {
         // 206차 #6: 클라이언트 사전 중복 검사 + 서버 중복 차단 알림.
@@ -1145,6 +1201,56 @@ function ProductsTab({ token }) {
                         </div>
                     ))}
                     {filteredProducts.length === 0 && <div style={{ color: "#64748b", fontSize: 11, padding: 12 }}>{q ? `"${searchQuery}" ${t('priceOpt.noSearchResult', '검색 결과가 없습니다')}` : t("priceOpt.noProducts")}</div>}
+
+                    {/* [277차] 채널 카테고리 선택 모달 — 네이버 leafCategoryId 등 신규등록 필수 코드. 선택 즉시 재전송. */}
+                    {catModal && (
+                        <div onClick={() => setCatModal(null)}
+                            style={{ position: "fixed", inset: 0, background: "rgba(15,23,42,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+                            <div onClick={e => e.stopPropagation()}
+                                style={{ background: "#fff", borderRadius: 12, width: "min(560px,100%)", maxHeight: "80vh", display: "flex", flexDirection: "column", boxShadow: "0 20px 60px rgba(0,0,0,0.3)" }}>
+                                <div style={{ padding: "14px 16px", borderBottom: "1px solid #eef2f7" }}>
+                                    <div style={{ fontSize: 14, fontWeight: 800, color: "#0f172a" }}>
+                                        📂 {t('priceOpt.catTitle', '채널 카테고리 선택')}
+                                    </div>
+                                    <div style={{ fontSize: 11, color: "#7c8fa8", marginTop: 3 }}>
+                                        {catModal.product.sku} · {pubChannels.find(c => c.id === catModal.channel)?.label || catModal.channel} — {t('priceOpt.catHint', '채널이 요구하는 카테고리를 선택해야 상품이 등록됩니다')}
+                                    </div>
+                                </div>
+                                <div style={{ padding: "10px 16px", display: "flex", gap: 8 }}>
+                                    <input value={catQuery} onChange={e => setCatQuery(e.target.value)}
+                                        onKeyDown={e => { if (e.key === 'Enter') searchCategories(catModal.channel, catQuery); }}
+                                        placeholder={t('priceOpt.catSearchPh', '카테고리 검색 (예: 건강식품, 니트)')}
+                                        style={{ flex: 1, border: "1px solid #e2e8f0", borderRadius: 6, padding: "8px 10px", fontSize: 12 }} />
+                                    <button onClick={() => searchCategories(catModal.channel, catQuery)} disabled={catLoading}
+                                        style={{ padding: "8px 14px", borderRadius: 6, border: "none", background: "#4f8ef7", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+                                        {catLoading ? '…' : t('priceOpt.catSearch', '검색')}
+                                    </button>
+                                </div>
+                                <div style={{ flex: 1, overflowY: "auto", padding: "0 16px 12px" }}>
+                                    {catErr && <div style={{ fontSize: 11, color: "#ef4444", padding: 8 }}>❌ {catErr}</div>}
+                                    {catLoading && <div style={{ fontSize: 11, color: "#7c8fa8", padding: 8 }}>{t('priceOpt.catLoading', '카테고리를 불러오는 중… (최초 1회는 수천 건 수집으로 시간이 걸립니다)')}</div>}
+                                    {!catLoading && !catErr && catList.length === 0 && (
+                                        <div style={{ fontSize: 11, color: "#94a3b8", padding: 8 }}>{t('priceOpt.catNoResult', '검색 결과가 없습니다')}</div>
+                                    )}
+                                    {catList.map(c => (
+                                        <div key={c.code} onClick={() => { setCatModal(null); publishToChannel(catModal.product, catModal.channel, c.code); }}
+                                            style={{ padding: "9px 10px", borderRadius: 6, cursor: "pointer", fontSize: 11, borderBottom: "1px solid #f1f5f9" }}
+                                            onMouseEnter={e => e.currentTarget.style.background = "#f8fafc"}
+                                            onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
+                                            <div style={{ color: "#0f172a", fontWeight: 600 }}>{c.whole_name || c.name}</div>
+                                            <div style={{ color: "#94a3b8", fontFamily: "monospace", fontSize: 10 }}>{c.code}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div style={{ padding: "10px 16px", borderTop: "1px solid #eef2f7", textAlign: "right" }}>
+                                    <button onClick={() => setCatModal(null)}
+                                        style={{ padding: "7px 14px", borderRadius: 6, border: "1px solid #e2e8f0", background: "#fff", fontSize: 12, cursor: "pointer" }}>
+                                        {t('priceOpt.catCancel', '취소')}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
                   ); })()}
             </div>
