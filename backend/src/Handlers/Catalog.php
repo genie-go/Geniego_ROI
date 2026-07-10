@@ -825,11 +825,33 @@ class Catalog
             $st = $pdo->prepare("SELECT result FROM catalog_writeback_job WHERE tenant_id=? AND channel=? AND sku=? AND status='done' ORDER BY id DESC LIMIT 1");
             $st->execute([$tenant, $channel, $sku]);
             $r = $st->fetchColumn();
-            if ($r === false) return null;
-            $d = json_decode((string)$r, true);
-            $pid = $d['channel_product_id'] ?? null;
-            return ($pid !== null && $pid !== '') ? (string)$pid : null;
-        } catch (\Throwable $e) { return null; }
+            if ($r !== false) {
+                $d = json_decode((string)$r, true);
+                $pid = $d['channel_product_id'] ?? null;
+                if ($pid !== null && $pid !== '') return (string)$pid;
+            }
+        } catch (\Throwable $e) { /* 아래 폴백 */ }
+
+        // [277차] ★기존 등록상품 '정보 변경'이 불가하던 근본원인 — 우리 앱에서 등록한 이력(done 잡)이 없으면
+        //   항상 null 을 반환해 **신규등록**으로 시도했다. 그러나 채널 동기화로 수집한 상품은
+        //   channel_products.channel_product_id 를 이미 보유한다(셀러가 채널에서 직접 만든 상품 포함).
+        //   그 id 를 찾아 PUT(수정) 경로로 보낸다 → 중복 등록·400 방지, 가격/재고/상세 변경이 실제로 반영된다.
+        try {
+            $aliases = self::channelAliases($channel);
+            $ph = implode(',', array_fill(0, count($aliases), '?'));
+            // ★네이버는 수정(PUT /origin-products/{no})에 originProductNo 를 요구한다. channel_product_id 는
+            //   channelProductNo(다른 번호)이므로 그대로 쓰면 404/400 이다 → origin_product_id 우선.
+            $isNaver = (bool)array_intersect($aliases, ['naver', 'naver_smartstore']);
+            $idCol = $isNaver ? "COALESCE(NULLIF(origin_product_id,''), channel_product_id)" : "channel_product_id";
+            // sku 우선(셀러관리코드), 없으면 channel_product_id 자체가 sku 로 쓰인 경우(수집분 폴백)
+            $st = $pdo->prepare("SELECT {$idCol} AS pid FROM channel_products
+                                  WHERE tenant_id=? AND channel IN ($ph) AND (sku=? OR channel_product_id=?)
+                                  ORDER BY (sku=?) DESC LIMIT 1");
+            $st->execute(array_merge([$tenant], $aliases, [$sku, $sku, $sku]));
+            $pid = $st->fetchColumn();
+            if ($pid !== false && $pid !== null && (string)$pid !== '') return (string)$pid;
+        } catch (\Throwable $e) { /* 테이블 부재 등 */ }
+        return null;
     }
 
     /**

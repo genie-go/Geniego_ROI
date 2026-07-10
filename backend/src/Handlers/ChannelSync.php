@@ -221,7 +221,9 @@ final class ChannelSync
         )");
         // [277차] 카탈로그 수집이 이미지·상세페이지를 저장할 곳이 없었다(image_url 은 있으나 saveProducts 가
         //   INSERT 목록에서 누락, 상세HTML·추가이미지는 컬럼 자체가 부재). 멱등 ALTER 로 보강 — 이미 존재 시 예외무시.
-        foreach (['detail_html TEXT', 'images_json TEXT'] as $col) {
+        //   origin_product_id: 네이버는 수정(PUT)에 originProductNo 를 쓰는데 channel_product_id 는 channelProductNo(다른 번호)다.
+        //   이 값이 없으면 기존 상품 정보 변경이 불가능하다(항상 신규등록으로 시도 → 400/중복).
+        foreach (['detail_html TEXT', 'images_json TEXT', 'origin_product_id TEXT'] as $col) {
             try { $pdo->exec("ALTER TABLE channel_products ADD COLUMN $col"); } catch (\Throwable $e) { /* 이미 존재 */ }
         }
         Db::ensureChannelOrders($pdo); // SSOT: channel_orders 를 Db::ensureChannelOrders 로 일원화(종전 LiveCommerce 와 중복 제거)
@@ -2535,6 +2537,38 @@ final class ChannelSync
             : 'https://api.commerce.naver.com/external/v2/products';
         $method = $cpid !== null ? 'PUT' : 'POST';
 
+        // ── [277차] ★기존 상품 '정보 변경' — 네이버 PUT 은 originProduct **전체 교체**다.
+        //   우리가 만든 payload 만 보내면 채널의 기존 상세·고시·배송·카테고리가 지워지거나(데이터 손실)
+        //   leafCategoryId 누락으로 400 이 난다(실증). 그래서 기존 상품을 먼저 조회해 그 위에
+        //   **변경 필드만 덮어쓴다**. 가격만 바꾸는 리프라이서도 이 경로라 상세가 보존된다.
+        if ($cpid !== null) {
+            [$gc, $gb] = self::httpGet($url, $hdr, 30);
+            if ($gc === 200 && is_array($gb) && !empty($gb['originProduct'])) {
+                $base = (array)$gb['originProduct'];
+                // 조회 응답은 값이 없는 객체 필드를 빈 배열 `[]` 로 내려주는데(예: customerBenefit),
+                // PUT 은 그 자리에 객체를 기대해 역직렬화 400 이 난다. 최상위 빈 배열은 제거한다(값 없음 = 미전송).
+                foreach ($base as $k => $v) { if (is_array($v) && $v === []) unset($base[$k]); }
+                // 우리가 확정적으로 바꾸는 필드만 덮어쓴다(빈 값은 기존 유지 — 값 소실 방지).
+                $over = ['statusType' => $origin['statusType'], 'salePrice' => $origin['salePrice'],
+                         'stockQuantity' => $origin['stockQuantity']];
+                if ($name !== '') $over['name'] = $name;
+                if ((string)($p['detail_html'] ?? '') !== '') $over['detailContent'] = $detail;
+                if (!empty($origin['images'])) $over['images'] = $origin['images'];
+                if ($leaf !== '') $over['leafCategoryId'] = $leaf;
+                if ((string)($p['sku'] ?? '') !== '') $over['sellerCodeInfo'] = $origin['sellerCodeInfo'];
+                // 배송/고시는 사용자가 이번 요청에 값을 실어 보냈을 때만 교체(미전달 시 채널 기존값 보존).
+                if (isset($p['ship_fee_type']) || isset($p['return_ship_fee'])) $over['deliveryInfo'] = $origin['deliveryInfo'];
+                if (!empty($p['notice_category']) || !empty($p['notice_json'])) $over['detailAttribute'] = $origin['detailAttribute'];
+                $body['originProduct'] = array_merge($base, $over);
+                if (!empty($gb['smartstoreChannelProduct'])) {
+                    $body['smartstoreChannelProduct'] = array_merge(
+                        (array)$gb['smartstoreChannelProduct'],
+                        ['channelProductDisplayStatusType' => ($op === 'unregister' ? 'SUSPENSION' : 'ON')]
+                    );
+                }
+            }
+        }
+
         // ★자가치유 재시도 — 상품정보제공고시는 품목마다 필수 필드가 다르고(예: WEAR 는 size·material·manufacturer…),
         //   네이버가 400 invalidInputs 로 누락 필드를 정확히 알려준다. 29품목×수십 필드를 하드코딩하는 대신
         //   응답을 읽어 사용자 고시값(있으면) 또는 법정 허용문구 '상품상세참조'로 채워 재시도한다(최대 2회).
@@ -3309,11 +3343,11 @@ final class ChannelSync
         //   Shopify/WooCommerce 가 읽어온 이미지도 raw_json 안에만 남고 버려졌다(네이버는 읽지도 않았음).
         //   이미지·상세는 목록수집/상세수집이 시점을 달리하므로 COALESCE 병합(새 값 NULL 이면 기존 보존).
         $stmt  = $pdo->prepare("INSERT INTO channel_products
-            (tenant_id,channel,channel_product_id,sku,name,price,compare_price,inventory,status,category,weight,variants_json,raw_json,synced_at,image_url,detail_html,images_json)
-            VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+            (tenant_id,channel,channel_product_id,sku,name,price,compare_price,inventory,status,category,weight,variants_json,raw_json,synced_at,image_url,detail_html,images_json,origin_product_id)
+            VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
             . self::upsertTail($pdo, 'tenant_id,channel,channel_product_id',
                 ['name','price','inventory','status','category','synced_at'],
-                ['image_url','detail_html','images_json'], 'channel_products'));
+                ['image_url','detail_html','images_json','origin_product_id'], 'channel_products'));
         foreach ($products as $p) {
             if (!($p['channel_product_id'] ?? null)) continue;
             // 188차 P0 보안: 데모 데이터의 운영 DB 유입 차단(전 채널 단일 chokepoint).
@@ -3331,6 +3365,7 @@ final class ChannelSync
                 (($p['image_url'] ?? '') !== '') ? $p['image_url'] : null,
                 (($p['detail_html'] ?? '') !== '') ? $p['detail_html'] : null,
                 !empty($p['images']) ? json_encode($p['images'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : null,
+                (($p['origin_product_no'] ?? '') !== '') ? (string)$p['origin_product_no'] : null,
             ]);
             // 재고 테이블도 업데이트
             $inv = $pdo->prepare("INSERT INTO channel_inventory(tenant_id,channel,sku,product_name,available,synced_at)

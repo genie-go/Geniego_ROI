@@ -288,6 +288,8 @@ const BulkRegisterModal = memo(function BulkRegisterModal({ selectedIds, product
     const [approved, setApproved] = useState(false);
     const [running, setRunning] = useState(false);
     const [done, setDone] = useState(false);
+    // [277차] 채널이 반환한 실제 결과(성공/실패 사유). 종전엔 console 로만 흘려 화면은 성공처럼 보였다.
+    const [results, setResults] = useState([]);
 
     const selProds = products.filter(p => selectedIds.has(p.id));
     const toggleCh = id => { const n = new Set(selChs); n.has(id) ? n.delete(id) : n.add(id); setSelChs(n); };
@@ -311,13 +313,15 @@ const BulkRegisterModal = memo(function BulkRegisterModal({ selectedIds, product
 
     const handleApply = async () => {
         if (!selChs.size) return;
-        // [277차] ★재고/채널 유래 항목(_fallback)은 이미지·상세·고시·카테고리가 없어, 전송하면 채널에
-        //   빈 상세·0원·엉뚱한 값으로 등록된다("일괄등록하니 이미지가 안 올라가고 정보가 엉뚱하다"의 원인).
-        //   등록상품(po_products)만 전송한다.
-        const sendable = selProds.filter(p => !p._fallback);
-        if (!sendable.length) {
-            alert(t('catalogSync.needRegistered', '전송하려면 상품등록에서 등록한 상품을 선택하세요 — 재고·채널에서 불러온 항목은 이미지·상세·고시정보가 없어 채널에 등록할 수 없습니다'));
-            return;
+        // [277차] 재고/채널 유래 항목(_fallback)은 이미지·상세·고시가 없어 **신규 등록**이 불가능하다.
+        //   다만 채널에 이미 존재하는 상품이면 서버가 PUT(수정) 경로로 보내 가격·재고 변경은 성공한다.
+        //   그래서 전면 차단하지 않고, 신규 등록 액션일 때만 등록상품을 요구한다(서버는 어차피 정직하게 거부).
+        const sendable = selProds;
+        const hasFallback = selProds.some(p => p._fallback);
+        if (hasFallback && action === 'register') {
+            const ok = window.confirm(t('catalogSync.fallbackRegisterWarn',
+                '선택 항목 중 재고·채널에서 불러온 상품이 있습니다. 이미지·상세·상품정보제공고시가 없어 신규 등록은 실패합니다.\n(채널에 이미 있는 상품이면 가격·재고 수정은 반영됩니다)\n\n계속하시겠습니까?'));
+            if (!ok) return;
         }
         setRunning(true);
 
@@ -347,10 +351,12 @@ const BulkRegisterModal = memo(function BulkRegisterModal({ selectedIds, product
                             ...(prod._meta || {}),   // [277차] 고시·배송/반품·AS·원산지·유효일(채널 필수)
                             action,
                         });
-                        results.push({ chId, sku: prod.sku, ok: !!d.ok, status: d.status });
+                        // [277차] 서버는 이제 동기 실행 후 **채널의 진짜 결과**를 준다(done/failed/queued + error).
+                        //   종전엔 성공 개수만 세어, 채널이 거부해도 사용자는 이유를 알 수 없었다(문제 반복의 근본).
+                        results.push({ chId, sku: prod.sku, ok: !!d.ok, status: d.status, error: d.error || null });
                         if (!d.ok) hasError = true;
-                    } catch {
-                        results.push({ chId, sku: prod.sku, ok: false, status: 'network_error' });
+                    } catch (e) {
+                        results.push({ chId, sku: prod.sku, ok: false, status: 'network_error', error: e.message });
                         hasError = true;
                     }
                 }
@@ -360,16 +366,17 @@ const BulkRegisterModal = memo(function BulkRegisterModal({ selectedIds, product
             const successChannels = [...new Set(results.filter(r => r.ok).map(r => r.chId))];
             onApply(action, successChannels.length > 0 ? successChannels : [...selChs], recPrices);
             setDone(true);
+            // [277차] ★실패를 console.warn 으로만 흘려 화면은 성공처럼 보였다 — 같은 문제가 반복 신고된 직접 원인.
+            //   채널이 준 실제 사유를 사용자에게 그대로 보여준다(모달 유지 → 사용자가 읽고 조치 가능).
+            setResults(results);
             if (hasError) {
                 console.warn('[CatalogSync] 일부 Channel writeback Failed:', results.filter(r => !r.ok));
+                return;   // 자동 닫기 하지 않는다
             }
             setTimeout(onClose, 1500);
         } catch (err) {
             console.error('[CatalogSync] writeback Error:', err);
-            // 에러 시 로컬 onApply 폴백
-            onApply(action, [...selChs], recPrices);
-            setDone(true);
-            setTimeout(onClose, 1500);
+            setResults([{ chId: '-', sku: '-', ok: false, status: 'error', error: err.message }]);
         } finally {
             setRunning(false);
         }
@@ -620,6 +627,34 @@ const BulkRegisterModal = memo(function BulkRegisterModal({ selectedIds, product
                                 >
                                     {running ? t('catalogSync.registeringMsg') : t('catalogSync.registerRunMsg', { prodCount: selProds.length, chCount: selChsArr.length })}
                                 </button>
+                            </div>
+                        )}
+
+                        {/* [277차] 채널이 반환한 실제 결과 — 실패 사유를 그대로 노출(종전엔 console 로만 흘림). */}
+                        {results.length > 0 && (
+                            <div style={{ marginTop: 14, borderTop: "1px solid #e5e7eb", paddingTop: 10 }}>
+                                <div style={{ fontSize: 12, fontWeight: 800, marginBottom: 6, color: "#0f172a" }}>
+                                    {t('catalogSync.resultTitle', '채널 응답')}
+                                </div>
+                                <div style={{ maxHeight: 180, overflowY: "auto" }}>
+                                    {results.map((r, i) => (
+                                        <div key={i} style={{ fontSize: 11, padding: "6px 8px", borderRadius: 6, marginBottom: 4,
+                                            background: r.ok ? "rgba(34,197,94,0.08)" : "rgba(239,68,68,0.08)" }}>
+                                            <span style={{ fontWeight: 700, color: r.ok ? "#16a34a" : "#dc2626" }}>
+                                                {r.ok ? '✅' : '❌'} {r.chId} · {r.sku}
+                                            </span>
+                                            <span style={{ color: "#64748b", marginLeft: 6 }}>{r.status}</span>
+                                            {r.error && <div style={{ color: "#b91c1c", marginTop: 2, wordBreak: "break-word" }}>{r.error}</div>}
+                                        </div>
+                                    ))}
+                                </div>
+                                {results.some(r => !r.ok) && (
+                                    <div style={{ textAlign: "right", marginTop: 8 }}>
+                                        <button onClick={onClose} style={{ padding: "7px 16px", borderRadius: 6, border: "1px solid #e2e8f0", background: "#fff", fontSize: 12, cursor: "pointer" }}>
+                                            {t('catalogSync.close')}
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </>
@@ -1452,6 +1487,21 @@ const ProductDetail = memo(function ProductDetail({ product: p, onClose }) {
         return () => window.removeEventListener("keydown", fn);
     }, [onClose]);
 
+    // [277차] 가격 변경 이력 — 백엔드는 catalog_listing upsert 시 old≠new 일 때 price_history 에 기록해 왔으나
+    //   조회 UI 가 없어 확인할 수 없었다(GET /catalog/price-history 는 193차부터 존재·프론트 소비 0건).
+    const [priceHist, setPriceHist] = useState([]);
+    const [phLoading, setPhLoading] = useState(false);
+    useEffect(() => {
+        if (!p?.sku) return;
+        let alive = true;
+        setPhLoading(true);
+        getJsonAuth(`/api/catalog/price-history?sku=${encodeURIComponent(p.sku)}`)
+            .then(d => { if (alive) setPriceHist(d.history || []); })
+            .catch(() => { if (alive) setPriceHist([]); })
+            .finally(() => { if (alive) setPhLoading(false); });
+        return () => { alive = false; };
+    }, [p?.sku]);
+
     // [현 차수 P1] ★채널별 하드코딩 가격오프셋 제거 — 표시용 임의가(amazon+3000·coupang-2000·11st-1000)가
     //   260차에 실배선된 writeback payload 로 그대로 실채널 리스팅을 갱신·push 했다(사용자 미지정 임의가 유출).
     //   실 판매가(p.price) 를 사용한다. 채널별 최적가는 가격최적화(PriceOpt)에서 명시 산출·전파한다.
@@ -1480,6 +1530,33 @@ const ProductDetail = memo(function ProductDetail({ product: p, onClose }) {
                         <div style={{ fontSize: 10, color: "#6b7280", marginTop: 3 }}>{p.category}</div>
                     </div>
                     <button onClick={onClose} className="btn-ghost" style={{ padding: "5px 10px" }}>✕</button>
+                </div>
+
+                {/* [277차] 가격 변경 이력 — 채널별 old→new, 변경 출처(writeback/repricer/bulk), 시각 */}
+                <div style={{ marginBottom: 18, padding: 12, borderRadius: 10, background: "#f8fafc", border: "1px solid #e2e8f0" }}>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: "#0f172a", marginBottom: 6 }}>
+                        💱 {t('catalogSync.priceHistoryTitle', '가격 변경 이력')}
+                    </div>
+                    {phLoading && <div style={{ fontSize: 11, color: "#7c8fa8" }}>…</div>}
+                    {!phLoading && priceHist.length === 0 && (
+                        <div style={{ fontSize: 11, color: "#94a3b8" }}>{t('catalogSync.priceHistoryEmpty', '가격 변경 이력이 없습니다')}</div>
+                    )}
+                    {!phLoading && priceHist.length > 0 && (
+                        <div style={{ maxHeight: 160, overflowY: "auto" }}>
+                            {priceHist.map((h, i) => {
+                                const up = Number(h.new_price) > Number(h.old_price);
+                                return (
+                                    <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 11, padding: "5px 0", borderBottom: "1px solid #eef2f7" }}>
+                                        <span style={{ color: "#64748b" }}>{h.channel}</span>
+                                        <span style={{ fontFamily: "monospace" }}>
+                                            {fmtKRW(h.old_price)} <span style={{ color: up ? "#dc2626" : "#16a34a", fontWeight: 700 }}>{up ? '▲' : '▼'}</span> {fmtKRW(h.new_price)}
+                                        </span>
+                                        <span style={{ color: "#94a3b8", fontSize: 10 }}>{h.source} · {String(h.created_at).slice(0, 16).replace('T', ' ')}</span>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
                 </div>
 
                 {/* Product Image */}

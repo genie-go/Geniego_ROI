@@ -9976,7 +9976,7 @@ export default {
 
   "rfmListTit": "RFM 분석 목록",
 
-  "catalogSync": {"needRegistered": "전송하려면 상품등록에서 등록한 상품을 선택하세요 — 재고·채널에서 불러온 항목은 이미지·상세·고시정보가 없어 채널에 등록할 수 없습니다", "fallbackItem": "재고·채널에서 불러온 항목 (전송 불가)","syncRun": "동기화","onboardAddHint": "여기서 판매할 상품/서비스를 등록하세요",
+  "catalogSync": {"fallbackRegisterWarn": "선택 항목 중 재고·채널에서 불러온 상품이 있습니다. 이미지·상세·상품정보제공고시가 없어 신규 등록은 실패합니다.\n(채널에 이미 있는 상품이면 가격·재고 수정은 반영됩니다)\n\n계속하시겠습니까?", "resultTitle": "채널 응답", "priceHistoryTitle": "가격 변경 이력", "priceHistoryEmpty": "가격 변경 이력이 없습니다", "needRegistered": "전송하려면 상품등록에서 등록한 상품을 선택하세요 — 재고·채널에서 불러온 항목은 이미지·상세·고시정보가 없어 채널에 등록할 수 없습니다", "fallbackItem": "재고·채널에서 불러온 항목 (전송 불가)","syncRun": "동기화","onboardAddHint": "여기서 판매할 상품/서비스를 등록하세요",
 
     "serviceMode": "서비스·플랜 등록 모드",
     "serviceModeDesc": "실물 상품이 없는 서비스·구독·디지털 사업자는 광고로 알릴 서비스/플랜(오퍼)을 아래 [등록]으로 추가하세요(상품명=서비스명, 가격=플랜가). 등록 후 채널 연동 → 결제 → 마케팅 자동화로 진행됩니다.",

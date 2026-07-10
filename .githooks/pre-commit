@@ -151,6 +151,18 @@ if [ -n "$PHP_STAGED" ]; then
   fi
 fi
 
+# G12 — 채널 상품등록/수정 배선 회귀 가드 (277차 신설)
+#   277차에 같은 클래스의 결함이 반복 신고됐다(필수 payload 누락·성공 오표기·카테고리 키 불일치·
+#   상세/이미지 미전송·기존상품 수정 불가). 실 API 로 확정한 배선이 끊기면 여기서 즉시 차단한다.
+CHWB_STAGED=$(echo "$STAGED" | grep -E '^(backend/src/Handlers/(Catalog|ChannelSync)\.php|frontend/src/pages/(PriceOpt|CatalogSync)\.jsx)$' || true)
+if [ -n "$CHWB_STAGED" ]; then
+  if node tools/guard_channel_writeback.mjs; then
+    ok "G12: 채널 등록/수정 배선 정합"
+  else
+    fail "G12: 채널 등록/수정 배선 회귀 — 상품이 채널에 등록되지 않는 결함이 재발한다"
+  fi
+fi
+
 if [ "$FAIL" -ne 0 ]; then
   echo ""
   echo "Pre-commit blocked. Resolve issues or bypass with: git commit --no-verify (N-145-G)"

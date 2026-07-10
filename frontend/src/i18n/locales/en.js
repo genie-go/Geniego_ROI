@@ -9113,7 +9113,7 @@ export default {
     "demoIsolation": "Demo environment — isolated from production data",
     "liveSyncMsg": "Real-time cross-tab sync active — data across all menus updates in real time.",
     },
-  catalogSync: {"needRegistered": "Select a product registered in Product Registration — items pulled from inventory or a channel have no images, description or legal notice and cannot be listed", "fallbackItem": "Pulled from inventory/channel (not publishable)","syncRun": "Sync","onboardAddHint": "Register the products/services you want to sell here",
+  catalogSync: {"fallbackRegisterWarn": "Some selected items were pulled from inventory or a channel. They have no images, description or legal notice, so a new listing will fail.\n(If the product already exists on the channel, price and stock updates will apply.)\n\nContinue?", "resultTitle": "Channel response", "priceHistoryTitle": "Price change history", "priceHistoryEmpty": "No price changes recorded", "needRegistered": "Select a product registered in Product Registration — items pulled from inventory or a channel have no images, description or legal notice and cannot be listed", "fallbackItem": "Pulled from inventory/channel (not publishable)","syncRun": "Sync","onboardAddHint": "Register the products/services you want to sell here",
     "serviceMode": "Service / Plan registration mode",
     "serviceModeDesc": "Service/subscription/digital businesses without physical products: add the service/plan (offer) you'll advertise via [Register] below (item name = service name, price = plan price). After registering, proceed to channel connection → payment → marketing automation.",
     "serviceToMarketing": "Go to Marketing Automation",
