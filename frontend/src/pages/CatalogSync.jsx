@@ -397,7 +397,9 @@ const BulkRegisterModal = memo(function BulkRegisterModal({ selectedIds, product
                         // [277차] 서버는 이제 동기 실행 후 **채널의 진짜 결과**를 준다(done/failed/queued + error).
                         //   종전엔 성공 개수만 세어, 채널이 거부해도 사용자는 이유를 알 수 없었다(문제 반복의 근본).
                         results.push({ chId, sku: prod.sku, ok: !!d.ok, status: d.status, error: d.error || null,
-                                       warning: d.warning || null, suggestions: d.category_suggestions || [], prod });
+                                       warning: d.warning || null, missing: d.missing || null,
+                                       imagesUploaded: d.images_uploaded ?? null,
+                                       suggestions: d.category_suggestions || [], prod });
                         if (!d.ok) hasError = true;
                     } catch (e) {
                         results.push({ chId, sku: prod.sku, ok: false, status: 'network_error', error: e.message });
@@ -694,7 +696,19 @@ const BulkRegisterModal = memo(function BulkRegisterModal({ selectedIds, product
                                             </span>
                                             <span style={{ color: "#64748b", marginLeft: 6 }}>{r.status}</span>
                                             {r.error && <div style={{ color: "#b91c1c", marginTop: 2, wordBreak: "break-word" }}>{r.error}</div>}
+                                            {/* [현 차수] 계약검사 누락 항목 — 채널이 한 번에 하나씩 알려주던 것을 전송 전에 전부 나열한다.
+                                                한 줄로 뭉치면 무엇부터 채워야 할지 보이지 않아 왕복이 다시 늘어난다. */}
+                                            {Array.isArray(r.missing) && r.missing.length > 0 && (
+                                                <ul style={{ margin: "4px 0 0", paddingLeft: 16, color: "#b91c1c" }}>
+                                                    {r.missing.map((m, k) => <li key={k} style={{ marginTop: 2 }}>{m}</li>)}
+                                                </ul>
+                                            )}
                                             {r.warning && <div style={{ color: "#b45309", marginTop: 2 }}>⚠️ {r.warning}</div>}
+                                            {r.ok && r.imagesUploaded != null && (
+                                                <div style={{ color: "#475569", marginTop: 2 }}>
+                                                    {t('catalogSync.imagesUploaded', '이미지 {{n}}장 업로드됨').replace('{{n}}', r.imagesUploaded)}
+                                                </div>
+                                            )}
                                             {/* [277차] 카테고리 후보 — 클릭 시 그 코드로 즉시 재전송(수동 ID 입력 불가 대응) */}
                                             {!r.ok && r.suggestions && r.suggestions.length > 0 && (
                                                 <div style={{ marginTop: 6 }}>
@@ -1049,6 +1063,7 @@ const CatalogTab = memo(function CatalogTab() {
     const [search, setSearch] = useState("");
     const [selCh, setSelCh] = useState("all");
     const [selSt, setSelSt] = useState("all");
+    const [selLink, setSelLink] = useState("all");   // all | linked | unlinked
     const [sortKey, setSortKey] = useState("id");
     const [sortDir, setSortDir] = useState(1);
     const [selected, setSelected] = useState(new Set());
@@ -1067,112 +1082,179 @@ const CatalogTab = memo(function CatalogTab() {
      *   등록 상품이 있으면 그것을 SSOT 로 쓰고(이미지·상세·고시정보 보유), 없을 때만 기존 inventory 폴백.
      *   전송은 아래 handleApply 의 기존 writeback 경로를 그대로 탄다(신규 엔드포인트 0).
      */
+    // [277차] 세 소스(등록상품·채널수집·재고)를 각자 도착하는 대로 setProducts 로 덮어쓰던 구조가
+    //   "목록이 잠깐 보였다가 사라지는" 현상의 원인이었다(늦게 온 응답이 먼저 그린 목록을 통째로 교체).
+    //   → 원본을 그대로 담아두고(poRows/chRows) 아래 한 곳에서만 병합해 그린다. 경쟁 자체를 없앤다.
+    const [poRows, setPoRows] = useState(null);   // null = 로딩중
+    const [chRows, setChRows] = useState(null);
+
     useEffect(() => {
         let alive = true;
         getJsonAuth(`/v420/price/products`)
-            .then(d => {
-                if (!alive) return;
-                const rows = d.products || [];
-                if (!rows.length) return;   // 없으면 아래 inventory 폴백 effect 가 처리
-                setProducts(rows.map((p, i) => {
-                    const imgs = Array.isArray(p.images) ? p.images.filter(Boolean) : [];
-                    const stock = Number(p.initial_stock) || 0;
-                    return {
-                        id: `POP-${String(i + 1).padStart(3, '0')}`,
-                        sku: p.sku,
-                        name: p.product_name || p.sku,
-                        category: p.category || '',
-                        image: p.product_image || imgs[0] || '📦',
-                        price: Number(p.base_price) || Number(p.cost_price) || 0,
-                        // [277차 감사 P1] 존재한 적 없는 '정가'를 판매가×1.2 로 합성해 취소선으로 노출하던 날조 제거.
-                        //   po_products 에 compare_price 컬럼 자체가 없다(SSOT 부재) → 표시하지 않는다.
-                        comparePrice: 0,
-                        purchaseCost: Number(p.purchase_cost) || Number(p.cost_price) || 0,
-                        productCost: Number(p.cost_price) || 0,
-                        spec: p.spec || '',
-                        unitType: p.unit || 'ea',
-                        eaPerBox: String(p.qty_per_box || ''),
-                        boxPerPl: String(p.boxes_per_pallet || ''),
-                        inventory: stock,
-                        channels: [],
-                        channelPrices: channelProductPrices?.[p.sku] || {},
-                        status: stock <= 0 ? 'error' : stock < 30 ? 'warn' : 'ok',
-                        lastSync: '-',
-                        delta: { price: false, stock: false, title: false },
-                        // 채널 전송 시 함께 실어야 빈 상세로 등록되지 않는다.
-                        detailHtml: p.detail_html || '',
-                        images: imgs,
-                        _registered: true,
-                        // [277차] 채널 필수 메타 — 네이버는 상품정보제공고시·배송/반품·AS·원산지 없이 등록을 거부한다.
-                        _meta: {
-                            notice_category: p.notice_category || '', notice_json: p.notice_json || '',
-                            as_phone: p.as_phone || '', as_guide: p.as_guide || '', origin: p.origin || '',
-                            minor_purchase: p.minor_purchase || '', ship_fee_type: p.ship_fee_type || '',
-                            ship_fee: p.ship_fee || 0, return_ship_fee: p.return_ship_fee || 0,
-                            exchange_ship_fee: p.exchange_ship_fee || 0, return_courier: p.return_courier || '',
-                            mfg_date: p.mfg_date || '', expiry_date: p.expiry_date || '',
-                        },
-                    };
-                }));
-            })
-            .catch(() => { /* 폴백은 아래 effect 가 담당 */ });
-        return () => { alive = false; };
-    }, [channelProductPrices]);
-
-    /**
-     * [277차] 채널에서 수집한 상품 이미지 — channel_products.image_url 은 이미 저장돼 있는데(수집 정상)
-     *   이 화면이 읽지 않아 "동기화해도 이미지를 못 가져온다"로 보였다. sku→image_url 맵으로 목록에 주입.
-     */
-    const [syncedImages, setSyncedImages] = useState({});
-    useEffect(() => {
-        let alive = true;
-        getJsonAuth(`/api/channel-sync/products?limit=200`)
-            .then(d => {
-                if (!alive) return;
-                const m = {};
-                (d.products || []).forEach(p => {
-                    const sku = String(p.sku || p.channel_product_id || '');
-                    const url = String(p.image_url || '');
-                    if (sku && url && !m[sku]) m[sku] = url;
-                });
-                setSyncedImages(m);
-            })
-            .catch(() => { if (alive) setSyncedImages({}); });
+            .then(d => { if (alive) setPoRows(d.products || []); })
+            .catch(() => { if (alive) setPoRows([]); });
         return () => { alive = false; };
     }, []);
 
-    // ★ Demo fallback: inventory 시드 데이터 → CatalogSync 상품 자동 로딩
     useEffect(() => {
-        if (products.length === 0 && inventory && inventory.length > 0) {
-            const mapped = inventory.map((item, i) => ({
+        let alive = true;
+        getJsonAuth(`/api/channel-sync/products?limit=200`)
+            .then(d => { if (alive) setChRows(d.products || []); })
+            .catch(() => { if (alive) setChRows([]); });
+        return () => { alive = false; };
+    }, []);
+
+    const syncedImages = useMemo(() => {
+        const m = {};
+        (chRows || []).forEach(p => {
+            const sku = String(p.sku || p.channel_product_id || '');
+            const url = String(p.image_url || '');
+            if (sku && url && !m[sku]) m[sku] = url;
+        });
+        return m;
+    }, [chRows]);
+
+    /**
+     * 세 소스를 하나의 목록으로 병합한다.
+     *   - 등록상품(po_products): 이미지·상세·고시정보 보유 → 신규 등록 가능(_registered)
+     *   - 채널수집(channel_products): 실제로 채널에 올라가 있는 상품 → 연동 배지·수정 대상
+     *   - 재고(inventory): 위 둘에 없는 항목만 보조 표시(_fallback)
+     * SKU 가 키. 등록상품이 우선하고, 채널수집은 '어느 채널에 올라가 있는가'(channels)를 덧씌운다.
+     */
+    useEffect(() => {
+        if (poRows === null || chRows === null) return;   // 두 소스가 모두 도착한 뒤 단 한 번 그린다
+        const bySku = new Map();
+
+        poRows.forEach((p, i) => {
+            const imgs = Array.isArray(p.images) ? p.images.filter(Boolean) : [];
+            const stock = Number(p.initial_stock) || 0;
+            const sku = String(p.sku || '');
+            if (!sku) return;
+            bySku.set(sku, {
+                id: `POP-${String(i + 1).padStart(3, '0')}`,
+                sku,
+                name: p.product_name || sku,
+                category: p.category || '',
+                image: p.product_image || imgs[0] || '📦',
+                price: Number(p.base_price) || Number(p.cost_price) || 0,
+                // [277차 감사 P1] 존재한 적 없는 '정가'를 판매가×1.2 로 합성해 취소선으로 노출하던 날조 제거.
+                //   po_products 에 compare_price 컬럼 자체가 없다(SSOT 부재) → 표시하지 않는다.
+                comparePrice: 0,
+                purchaseCost: Number(p.purchase_cost) || Number(p.cost_price) || 0,
+                productCost: Number(p.cost_price) || 0,
+                spec: p.spec || '',
+                unitType: p.unit || 'ea',
+                eaPerBox: String(p.qty_per_box || ''),
+                boxPerPl: String(p.boxes_per_pallet || ''),
+                inventory: stock,
+                channels: [],
+                channelPrices: channelProductPrices?.[sku] || {},
+                status: stock <= 0 ? 'error' : stock < 30 ? 'warn' : 'ok',
+                lastSync: '-',
+                delta: { price: false, stock: false, title: false },
+                // 채널 전송 시 함께 실어야 빈 상세로 등록되지 않는다.
+                detailHtml: p.detail_html || '',
+                images: imgs,
+                _registered: true,
+                // [277차] 채널 필수 메타 — 네이버는 상품정보제공고시·배송/반품·AS·원산지 없이 등록을 거부한다.
+                _meta: {
+                    notice_category: p.notice_category || '', notice_json: p.notice_json || '',
+                    as_phone: p.as_phone || '', as_guide: p.as_guide || '', origin: p.origin || '',
+                    minor_purchase: p.minor_purchase || '', ship_fee_type: p.ship_fee_type || '',
+                    ship_fee: p.ship_fee || 0, return_ship_fee: p.return_ship_fee || 0,
+                    exchange_ship_fee: p.exchange_ship_fee || 0, return_courier: p.return_courier || '',
+                    mfg_date: p.mfg_date || '', expiry_date: p.expiry_date || '',
+                },
+            });
+        });
+
+        // 채널에서 수집한 상품 — 등록상품에 없으면 목록에 추가(종전엔 아예 표시되지 않았다).
+        chRows.forEach((r, i) => {
+            const sku = String(r.sku || r.channel_product_id || '');
+            const ch = String(r.channel || '');
+            if (!sku) return;
+            let row = bySku.get(sku);
+            if (!row) {
+                const inv = Number(r.inventory) || 0;
+                row = {
+                    id: `CHP-${String(i + 1).padStart(3, '0')}`,
+                    sku,
+                    name: r.name || sku,
+                    category: r.category || '',
+                    image: r.image_url || '📦',
+                    price: Number(r.price) || 0,
+                    comparePrice: 0,
+                    purchaseCost: 0, productCost: 0,
+                    spec: '', unitType: 'ea', eaPerBox: '', boxPerPl: '',
+                    inventory: inv,
+                    channels: [],
+                    channelPrices: channelProductPrices?.[sku] || {},
+                    status: inv <= 0 ? 'error' : inv < 30 ? 'warn' : 'ok',
+                    lastSync: r.synced_at || '-',
+                    delta: { price: false, stock: false, title: false },
+                    detailHtml: r.detail_html || '',
+                    images: [],
+                    // 채널에만 있는 상품 — 우리 원장에 고시정보·상세가 없어 '신규 등록'은 불가(수정/중지는 가능).
+                    _channelOnly: true, _fallback: true,
+                };
+                bySku.set(sku, row);
+            }
+            if (!row.image || row.image === '📦') row.image = r.image_url || row.image;
+            if (ch && !row.channels.includes(ch)) row.channels.push(ch);
+            if (r.synced_at && (row.lastSync === '-' || r.synced_at > row.lastSync)) row.lastSync = r.synced_at;
+        });
+
+        // 재고에만 있는 항목(등록도 채널연동도 안 된 상품) 보조 표시.
+        (inventory || []).forEach((item, i) => {
+            const sku = String(item.sku || '');
+            if (!sku || bySku.has(sku)) return;
+            const inv = Object.values(item.stock || {}).reduce((s, v) => s + (Number(v) || 0), 0);
+            bySku.set(sku, {
                 id: `CAT-${String(i + 1).padStart(3, '0')}`,
-                sku: item.sku,
+                sku,
                 name: item.name,
-                category: item.category || 'beauty/skincare',
-                image: item.image || syncedImages[String(item.sku)] || '📦',
+                category: item.category || '',
+                image: item.image || syncedImages[sku] || '📦',
                 price: item.price || 0,
                 // [277차] 존재한 적 없는 '정가'를 price×1.2 로 합성하지 않는다(감사 확정 P1 · 헌법: 날조 금지).
                 comparePrice: 0,
-                // [277차] 등록상품(po_products)이 아니라 재고/채널 유래 항목 — 이미지·상세·고시·카테고리가 없어
-                //   이대로 채널에 전송하면 엉뚱한 값이 등록된다. 전송 대상에서 제외한다.
+                // [277차] 등록상품(po_products)이 아니라 재고 유래 항목 — 이미지·상세·고시·카테고리가 없어
+                //   이대로 채널에 신규 등록하면 엉뚱한 값이 올라간다.
                 _fallback: true,
                 purchaseCost: item.cost || 0,
                 productCost: item.cost || 0,
-                spec: '',
-                unitType: 'ea',
-                eaPerBox: '24',
-                boxPerPl: '40',
-                inventory: Object.values(item.stock || {}).reduce((s, v) => s + v, 0),
-                channels: item.channels || [],
-                channelPrices: channelProductPrices?.[item.sku] || {},
+                spec: '', unitType: 'ea', eaPerBox: '24', boxPerPl: '40',
+                inventory: inv,
+                channels: [],
+                channelPrices: channelProductPrices?.[sku] || {},
                 // [현 차수] 죽은 status 필터 수정 — 전 상품 'ok' 하드코딩 → 실재고 기준 결정적 산출(경고/오류 필터 동작).
-                status: (() => { const inv = Object.values(item.stock || {}).reduce((s, v) => s + (Number(v) || 0), 0); return inv <= 0 ? 'error' : inv < (item.safeQty || 30) ? 'warn' : 'ok'; })(),
-                lastSync: new Date().toLocaleString(LANG_LOCALE_MAP[lang] || 'ko-KR', { hour12: false }),
+                status: inv <= 0 ? 'error' : inv < (item.safeQty || 30) ? 'warn' : 'ok',
+                lastSync: '-',
                 delta: { price: false, stock: false, title: false },
-            }));
-            setProducts(mapped);
-        }
-    }, [inventory, channelProductPrices]);
+            });
+        });
+
+        // ★서버 목록으로 '교체'하지 않고 '조정'한다. 이 effect 는 inventory/channelProductPrices 가 바뀔 때마다
+        //   다시 도는데(엑셀 임포트 직후 syncCatalogItem 이 inventory 를 갱신한다), 통째로 교체하면
+        //   ①임포트·수동추가한 행과 ②아직 채널에 반영 안 한 가격/재고 편집이 눈앞에서 사라진다.
+        setProducts(prev => {
+            const prevBySku = new Map(prev.map(r => [r.sku, r]));
+            const out = [];
+            bySku.forEach((row, sku) => {
+                const old = prevBySku.get(sku);
+                prevBySku.delete(sku);
+                // 미저장 편집(delta)이 걸린 행은 사용자가 바꾼 값을 서버값으로 되돌리지 않는다.
+                const dirty = old && (old.delta?.price || old.delta?.stock || old.delta?.title);
+                out.push(dirty
+                    ? { ...row, name: old.name, price: old.price, inventory: old.inventory, delta: old.delta, lastSync: old.lastSync }
+                    : row);
+            });
+            // 세 소스 어디에도 없는 행 = 로컬 임포트/수동추가분. 서버에 아직 없을 뿐 유효하므로 보존한다.
+            const locals = [];
+            prevBySku.forEach(r => { if (r._local) locals.push(r); });
+            return [...locals, ...out];
+        });
+    }, [poRows, chRows, inventory, channelProductPrices, syncedImages]);
 
     const showToast = (msg, color = "#22c55e") => {
         setToast({ msg, color });
@@ -1243,7 +1325,8 @@ const CatalogTab = memo(function CatalogTab() {
     };
 
     const handleAddProduct = p => {
-        setProducts(prev => [p, ...prev]);
+        // _local: 서버 3소스에 아직 없는 행 — 목록 재조정 시 보존 대상(없으면 다음 재조정에서 사라진다).
+        setProducts(prev => [{ ...p, _local: true }, ...prev]);
         syncCatalogItem({
             sku: p.sku, name: p.name, price: p.price || 0,
             cost: p.productCost || p.purchaseCost || 0, safeQty: 30,
@@ -1286,6 +1369,7 @@ const CatalogTab = memo(function CatalogTab() {
                     if (clean.length < 2 || !clean[0]) continue;
                     imported.push({
                         id: `P-IMP-${Date.now()}-${i}`,
+                        _local: true,
                         sku: sanitize(clean[0]), name: sanitize(clean[1]),
                         category: clean[2] || '', price: Number(clean[3]) || 0,
                         productCost: Number(clean[4]) || 0, stock: Number(clean[5]) || 0,
@@ -1338,6 +1422,7 @@ const CatalogTab = memo(function CatalogTab() {
                 if (!mapped.sku && !mapped.name) return null;
                 return {
                     id: `P-XLS-${Date.now()}-${i}`,
+                    _local: true,
                     sku: sanitize(String(mapped.sku || `AUTO-${i + 1}`)),
                     name: sanitize(String(mapped.name || '')),
                     category: String(mapped.category || ''),
@@ -1405,10 +1490,13 @@ const CatalogTab = memo(function CatalogTab() {
         if (search) rows = rows.filter(r => r.name.includes(search) || r.sku.includes(search));
         if (selCh !== "all") rows = rows.filter(r => r.channels.includes(selCh));
         if (selSt !== "all") rows = rows.filter(r => r.status === selSt);
+        // [277차] 연동상태 필터 — channels 는 channel_products(채널 실원장)에서만 채워진다(추측 없음).
+        if (selLink === "linked") rows = rows.filter(r => r.channels.length > 0);
+        else if (selLink === "unlinked") rows = rows.filter(r => r.channels.length === 0);
         const k = sortKey;
         rows = [...rows].sort((a, b) => (a[k] > b[k] ? 1 : -1) * sortDir);
         return rows;
-    }, [products, search, selCh, selSt, sortKey, sortDir]);
+    }, [products, search, selCh, selSt, selLink, sortKey, sortDir]);
 
     const paged = filtered.slice(page * PAGE, page * PAGE + PAGE);
     const totalPages = Math.ceil(filtered.length / PAGE);
@@ -1465,6 +1553,12 @@ const CatalogTab = memo(function CatalogTab() {
                     <option value="ok">{t('catalogSync.statusNormal')}</option>
                     <option value="warn">{t('catalogSync.statusWarning')}</option>
                     <option value="error">{t('catalogSync.statusError')}</option>
+                </select>
+                {/* [277차] 채널 연동/미연동 필터 — 어떤 상품이 아직 채널에 안 올라갔는지 한눈에 본다. */}
+                <select aria-label={t('catalogSync.linkAll', '연동 전체')} style={{ padding: "6px 10px", borderRadius: 8, border: "1px solid #e5e7eb", background: "#fff", color: "#1f2937", fontSize: 12, width: 130 }} value={selLink} onChange={e => { setSelLink(e.target.value); setPage(0); }}>
+                    <option value="all">{t('catalogSync.linkAll', '연동 전체')}</option>
+                    <option value="linked">{t('catalogSync.linkLinked', '연동됨')}</option>
+                    <option value="unlinked">{t('catalogSync.linkUnlinked', '미연동')}</option>
                 </select>
                 <span style={{ marginLeft: "auto", fontSize: 11, color: "#6b7280" }}>{t('catalogSync.productCount').replace('{{n}}', filtered.length)}</span>
                 <button onClick={handleDownloadTemplate} style={{ padding: "7px 12px", borderRadius: 8, background: "rgba(168,85,247,0.10)", border: "1px solid rgba(168,85,247,0.3)", color: "#374151", fontWeight: 700, fontSize: 10, cursor: "pointer", whiteSpace: "nowrap" }}>📋 {t('catalogSync.excelTemplate')}</button>

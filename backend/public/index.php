@@ -100,6 +100,12 @@ $app->add(function (Request $request, $handler) {
     // Note: when using Alias /api, REQUEST_URI is /api/auth/login (not /auth/login)
     if ($path === '/'
         || preg_match('#^(/api)?/v\d+[\w.]*/health[z]?$#', $path)
+        // [현 차수] 비버전 헬스(/api/health[z]) — 라우트는 있었던 적이 없고 우회목록에도 없어 401 이었다.
+        //   외부 모니터가 표준으로 치는 경로. 인증 없이 상태만 반환한다(비밀 미포함).
+        || preg_match('#^(/api)?/health[z]?$#', $path)
+        // [현 차수] 상품 이미지 공개 서빙 — 채널 서버(네이버/쿠팡/Shopee…)가 토큰 없이 이 URL 을 가져가야
+        //   상품에 이미지가 등록된다. 내용주소(sha256) 읽기 전용이며 쓰기는 인증된 writeback 경로뿐이다.
+        || preg_match('#^(/api)?/media/[a-f0-9]{64}\.(jpg|png|gif|webp)$#', $path)
         || preg_match('#^(/api)?/v\d+[\w.]*/system/metrics$#', $path)
         // [237차] 헬스 프로브(대시보드 시스템현황 위젯 HEAD 핑) — 인증 불요 공개 라우트. 라우트 부재로
         //   /api/ping 은 401(미들웨어), /api/auth/check 는 404 라 위젯이 정상인데도 항상 경고를 띄웠다.
@@ -538,7 +544,7 @@ $app->get('/', function (Request $request, Response $response) {
         'name'   => 'GENIE ROI PHP API',
         'status' => 'ok',
         'ts'     => gmdate('c'),
-        'auth'   => 'API Key required for all routes (except / and /health)',
+        'auth'   => 'API Key required for all routes (except /, /api/health[z], /v{N}/health, /auth/*)',
         // 189차+ 보안: 동작하는 데모 API 키 평문 노출 제거(무인증 / 응답이 키를 광고하던 결함).
     ];
     $response->getBody()->write(json_encode($payload, JSON_UNESCAPED_UNICODE));
