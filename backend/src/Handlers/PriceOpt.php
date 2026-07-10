@@ -418,6 +418,23 @@ class PriceOpt
                 try { $pdo->exec("CREATE UNIQUE INDEX IF NOT EXISTS uq_wms_stock ON wms_stock(tenant_id, sku, wh_id)"); } catch (\Throwable $e2) {}
             }
             $now = gmdate('c');
+            // [277차] ★유령창고 근본수정 — 종전엔 wh_id='' 로 적재했다. 출고 할당(Wms::allocationPlan:825)은 활성 창고
+            //   재고만 후보로 삼고 폴백도 primaryWarehouse 이므로, '' 행은 영원히 선택되지 않아 채널 판매가
+            //   물리재고에서 차감되지 않았다(유령 재고 → 자동발주 미실행·오배송·리프라이서 오판).
+            //   Wms 와 동일한 창고 해석기를 써서 정합을 강제한다(창고 미등록 테넌트는 양쪽 다 'default').
+            $whId = \Genie\Handlers\Wms::resolvePrimaryWarehouse($tenant);
+            // 과거 '' 행 1회 이관. 대상 창고에 같은 sku 행이 이미 있으면 '' 행을 버린다(합산 시 재고 이중계상).
+            try {
+                $dup = $pdo->prepare("SELECT sku FROM wms_stock WHERE tenant_id=? AND wh_id=?");
+                $dup->execute([$tenant, $whId]);
+                $have = $dup->fetchAll(\PDO::FETCH_COLUMN) ?: [];
+                if ($have) {
+                    $ph = implode(',', array_fill(0, count($have), '?'));
+                    $pdo->prepare("DELETE FROM wms_stock WHERE tenant_id=? AND wh_id='' AND sku IN ($ph)")
+                        ->execute(array_merge([$tenant], $have));
+                }
+                $pdo->prepare("UPDATE wms_stock SET wh_id=? WHERE tenant_id=? AND wh_id=''")->execute([$whId, $tenant]);
+            } catch (\Throwable $e) { /* best-effort 마이그레이션 */ }
             $rows = [];
             $ostk = $body['option_stocks'] ?? null;
             if (is_string($ostk)) { $tmp = json_decode($ostk, true); $ostk = is_array($tmp) ? $tmp : null; }
@@ -440,12 +457,12 @@ class PriceOpt
                 try {
                     $pdo->prepare("INSERT INTO wms_stock (tenant_id, sku, wh_id, name, on_hand, updated_at) VALUES (?,?,?,?,?,?)
                                    ON DUPLICATE KEY UPDATE on_hand = VALUES(on_hand), name = VALUES(name), updated_at = VALUES(updated_at)")
-                        ->execute([$tenant, $sk, '', $nm, $qty, $now]);
+                        ->execute([$tenant, $sk, $whId, $nm, $qty, $now]);
                 } catch (\Throwable $e) {
                     try {
-                        $pdo->prepare("DELETE FROM wms_stock WHERE tenant_id=? AND sku=? AND wh_id=''")->execute([$tenant, $sk]);
+                        $pdo->prepare("DELETE FROM wms_stock WHERE tenant_id=? AND sku=? AND wh_id=?")->execute([$tenant, $sk, $whId]);
                         $pdo->prepare("INSERT INTO wms_stock (tenant_id, sku, wh_id, name, on_hand, updated_at) VALUES (?,?,?,?,?,?)")
-                            ->execute([$tenant, $sk, '', $nm, $qty, $now]);
+                            ->execute([$tenant, $sk, $whId, $nm, $qty, $now]);
                     } catch (\Throwable $e2) { /* best-effort */ }
                 }
             }

@@ -670,6 +670,17 @@ class Wms
     }
 
     /** 테넌트 기본(우선) 창고 wh_id. 활성 창고 중 최소 id, 없으면 'default'. */
+    /**
+     * [277차] 재고를 적재할 대상 창고 id — 외부(PriceOpt 상품등록)에서 재사용.
+     *   종전 PriceOpt::reflectStockToWms 는 wh_id='' 로 적재했는데, 출고 할당(allocationPlan)은 활성 창고
+     *   재고만 후보로 삼고(:825) 폴백도 primaryWarehouse 이므로 '' 행은 **영원히 선택되지 않아 판매 차감이
+     *   일어나지 않았다**(유령 재고 → 자동발주 미실행·리프라이서 오판). 동일 해석기를 공유해 정합을 강제한다.
+     */
+    public static function resolvePrimaryWarehouse(string $tenant): string
+    {
+        return self::primaryWarehouse($tenant);
+    }
+
     private static function primaryWarehouse(string $tenant): string
     {
         try {

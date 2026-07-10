@@ -390,6 +390,13 @@ class JourneyBuilder
         self::ensureTables();
         $pdo = self::db();
         $now = self::now();
+        // [277차] stale 회수 — 프로세스가 발송 도중 종료되면 status='processing' 이 고착돼 저니가 영구 정지한다.
+        //   30분 이상 방치된 선점은 회수한다(재개 시 아래 노드 멱등 마커가 재발송을 막는다).
+        try {
+            $pdo->prepare("UPDATE journey_enrollments SET status='waiting'
+                            WHERE status='processing' AND (last_run_at IS NULL OR last_run_at < :stale)")
+                ->execute([':stale' => gmdate('Y-m-d H:i:s', time() - 1800)]);
+        } catch (\Throwable $e) { /* best-effort */ }
         $sql = "SELECT e.*, j.nodes AS j_nodes, j.edges AS j_edges
                   FROM journey_enrollments e
                   JOIN journeys j ON j.id = e.journey_id AND j.tenant_id = e.tenant_id
@@ -401,17 +408,90 @@ class JourneyBuilder
         $st->execute($bind);
         $rows = $st->fetchAll(\PDO::FETCH_ASSOC);
 
-        $processed = 0; $completed = 0; $waiting = 0;
+        // [277차] ★원자적 선점(claim) — 종전엔 선점 없이 곧바로 advanceEnrollment 를 호출했고, 발송 후에도
+        //   status='waiting'·resume_at(과거) 이 그대로여서 다음 크론(*/5)이 같은 행을 다시 집었다.
+        //   크론 겹침 또는 발송-커밋 사이 프로세스 종료 시 이메일/SMS/카카오가 중복 발송된다(실비용·정보통신망법).
+        //   형제 경로 Omnichannel::runOutbox 는 이미 claim 을 구현했다 — 동일 방어를 저니에도 적용.
+        $claim = $pdo->prepare("UPDATE journey_enrollments SET status='processing', last_run_at=:lr
+                                 WHERE id=:id AND tenant_id=:t AND status='waiting' AND resume_at <= :now");
+        $release = $pdo->prepare("UPDATE journey_enrollments SET status='waiting'
+                                   WHERE id=:id AND tenant_id=:t AND status='processing'");
+
+        $processed = 0; $completed = 0; $waiting = 0; $skipped = 0;
         foreach ($rows as $r) {
+            $id = (int)$r['id']; $tenant = (string)$r['tenant_id'];
+            try {
+                $claim->execute([':lr' => $now, ':id' => $id, ':t' => $tenant, ':now' => $now]);
+                if ($claim->rowCount() !== 1) { $skipped++; continue; }   // 다른 프로세스가 이미 선점
+            } catch (\Throwable $e) { $skipped++; continue; }
+
             $journey = ['id' => (int)$r['journey_id'], 'nodes' => $r['j_nodes'], 'edges' => $r['j_edges']];
             try {
-                $res = self::advanceEnrollment($pdo, (string)$r['tenant_id'], $r, $journey);
+                $res = self::advanceEnrollment($pdo, $tenant, $r, $journey);
                 $processed++;
                 if (($res['status'] ?? '') === 'completed') $completed++;
                 elseif (($res['status'] ?? '') === 'waiting') $waiting++;
             } catch (\Throwable $e) { /* 단일 등록건 실패가 전체 배치를 막지 않게 */ }
+            finally {
+                // advanceEnrollment 가 status 를 직접 바꿨으면(completed/exited) 존중하고,
+                // 여전히 processing 이면 waiting 으로 되돌린다(다음 주기 재개).
+                try { $release->execute([':id' => $id, ':t' => $tenant]); } catch (\Throwable $e) {}
+            }
         }
-        return ['ok' => true, 'scanned' => count($rows), 'processed' => $processed, 'completed' => $completed, 'waiting' => $waiting];
+        return ['ok' => true, 'scanned' => count($rows), 'processed' => $processed,
+                'completed' => $completed, 'waiting' => $waiting, 'skipped_claimed' => $skipped];
+    }
+
+    /**
+     * [277차] 발송 노드 멱등 선점 — (tenant, enrollment_id, node_id) 유니크. INSERT 성공 = 이번에 내가 보낸다.
+     *   중복(이미 발송됨)이면 false → 발송을 건너뛴다. 발송 **전에** 선점하므로 발송-커밋 사이 크래시에도
+     *   재발송되지 않는다. 조용시간 defer 처럼 실제로 보내지 않은 경우엔 releaseSendOnce 로 해제해야 한다.
+     */
+    private static function claimSendOnce(\PDO $pdo, string $tenant, int $enrollmentId, string $nodeId): bool
+    {
+        try {
+            self::ensureSendOnceTable($pdo);
+            $st = $pdo->prepare("INSERT INTO journey_node_sent(tenant_id, enrollment_id, node_id, sent_at) VALUES(?,?,?,?)");
+            $st->execute([$tenant, $enrollmentId, $nodeId, self::now()]);
+            return true;
+        } catch (\Throwable $e) {
+            return false;   // UNIQUE 위반 = 이미 발송됨
+        }
+    }
+
+    /** 실제로 발송하지 않았을 때(조용시간 defer 등) 선점 해제 — 해제하지 않으면 영구 미발송. */
+    private static function releaseSendOnce(\PDO $pdo, string $tenant, int $enrollmentId, string $nodeId): void
+    {
+        try {
+            $pdo->prepare("DELETE FROM journey_node_sent WHERE tenant_id=? AND enrollment_id=? AND node_id=?")
+                ->execute([$tenant, $enrollmentId, $nodeId]);
+        } catch (\Throwable $e) { /* best-effort */ }
+    }
+
+    private static function ensureSendOnceTable(\PDO $pdo): void
+    {
+        static $done = false;
+        if ($done) return;
+        $isMy = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql';
+        try {
+            if ($isMy) {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS journey_node_sent (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo',
+                    enrollment_id INT NOT NULL,
+                    node_id VARCHAR(80) NOT NULL,
+                    sent_at VARCHAR(32),
+                    UNIQUE KEY uq_jns (tenant_id, enrollment_id, node_id)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            } else {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS journey_node_sent (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo',
+                    enrollment_id INTEGER NOT NULL, node_id TEXT NOT NULL, sent_at TEXT,
+                    UNIQUE (tenant_id, enrollment_id, node_id)
+                )");
+            }
+        } catch (\Throwable $e) { /* best-effort */ }
+        $done = true;
     }
 
     /** 단일 등록건을 다음 delay(중단) 또는 완료까지 진행. */
@@ -591,6 +671,16 @@ class JourneyBuilder
             }
 
             // ── 실행 노드(email/kakao/sms/action/...) ──
+            // [277차] ★발송 노드 멱등 — 발송(HTTP) 직후 current_node 커밋 전에 프로세스가 죽으면(배포/OOM/kill)
+            //   다음 크론이 같은 노드를 다시 실행해 **재발송**한다. claim 만으로는 이 창을 막지 못한다.
+            //   발송 전에 (enrollment_id, node_id) 마커를 선점하고, 이미 있으면 건너뛴다(실비용·정보통신망법 방어).
+            if (in_array($type, ['email', 'kakao', 'sms'], true)) {
+                if (!self::claimSendOnce($pdo, $tenant, (int)$enrollId, (string)$nodeId)) {
+                    $actions[] = ['node' => $nodeId, 'action' => 'skipped_already_sent'];
+                    $nodeId = self::nextNode($edges, $nodeId, null);
+                    continue;
+                }
+            }
             switch ($type) {
                 case 'email': $a = self::sendEmailNode($pdo, $tenant, $enr, $node); break;
                 case 'kakao': $a = self::sendKakaoNode($pdo, $tenant, $enr, $node); break;
@@ -605,6 +695,9 @@ class JourneyBuilder
 
             // [초고도화 #3] 조용시간 등 defer — 현 노드 유지(미진행)·다음 실행에서 재시도(야간발송 회피·최적시간 발송).
             if (!empty($a['defer'])) {
+                // [277차] ★defer 는 '발송하지 않음'이다 — 선점한 멱등 마커를 반드시 해제해야 다음 주기에 실제로 발송된다.
+                //   해제하지 않으면 조용시간에 걸린 메시지가 영구 미발송된다(267차 R1 quiet defer 회귀 방지).
+                self::releaseSendOnce($pdo, $tenant, (int)$enrollId, (string)$nodeId);
                 try { $pdo->prepare("UPDATE journey_enrollments SET last_run_at=:lr WHERE id=:id AND tenant_id=:t")->execute([':lr'=>$now, ':id'=>$enrollId, ':t'=>$tenant]); } catch (\Throwable $e) {}
                 return ['ok'=>true, 'status'=>'deferred', 'actions'=>$actions];
             }
