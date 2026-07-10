@@ -32,6 +32,19 @@ import { getJsonAuth, getJsonAuthAbortable, postJsonAuth } from "../services/api
 import { PRODUCT_NOTICE_TEMPLATES, noticeTemplateByKey, NOTICE_REFERENCE_TEXT } from '../constants/productNoticeTemplates.js';
 
 /* ── Security Monitor ── */
+/**
+ * [277차] 상품 전송(writeback)을 실제로 지원하는 판매채널 화이트리스트.
+ *   자격증명 보유 채널을 그대로 노출하면 광고·미디어 커넥터(youtube·meta 등)까지 "판매채널 전송" 칩으로 떠서
+ *   누르는 순간 백엔드가 write_adapter_pending 을 반환한다(가짜 버튼). 백엔드 사실과 1:1로 맞춘다.
+ *   출처: ChannelSync::pushProduct 의 case 목록 + Catalog::pushToChannel 이 자체 처리하는 shopify.
+ */
+const PUBLISHABLE_CHANNELS = new Set([
+    'shopify',
+    'cafe24', 'coupang', 'naver', 'naver_smartstore', 'ebay', 'amazon', 'amazon_spapi',
+    'tiktok', 'tiktok_shop', 'rakuten', '11st', 'st11', 'gmarket', 'auction', 'lotteon',
+    'woocommerce', 'magento', 'shopee', 'lazada', 'walmart', 'qoo10', 'yahoo_jp', 'godomall', 'etsy',
+]);
+
 const SEC_PATTERNS = [/[<>]script/i, /union\s+select/i, /drop\s+table/i, /;\s*--/i, /\.\.\/\.\.\//i, /eval\s*\(/i, /javascript:/i, /on(error|load|click)\s*=/i];
 function checkSecurity(value) {
     if (!value || typeof value !== 'string') return null;
@@ -406,8 +419,10 @@ function ProductsTab({ token }) {
                 const seen = new Map();
                 (d.creds || []).forEach(c => {
                     if (String(c.is_active) === '0') return;
-                    const id = String(c.channel || '').trim();
-                    if (id && !seen.has(id)) { const m = channelMeta(id); seen.set(id, { id, label: m.name, icon: m.icon, color: m.color }); }
+                    const id = String(c.channel || '').trim().toLowerCase();
+                    // 상품 전송을 실제로 지원하는 채널만 — 광고/미디어 커넥터(youtube 등) 가짜 버튼 차단.
+                    if (!PUBLISHABLE_CHANNELS.has(id)) return;
+                    if (!seen.has(id)) { const m = channelMeta(id); seen.set(id, { id, label: m.name, icon: m.icon, color: m.color }); }
                 });
                 setPubChannels([...seen.values()]);
             })
