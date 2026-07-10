@@ -367,7 +367,9 @@ function EventStreamTab() {
 export default function PixelTracking() {
   const t = usePxlT();
   const { token } = useAuth();
-  const API = makeAPI(token);
+  // [276차] makeAPI(token) 를 매 렌더 새로 만들면 자식(PixelConfigTab 등)의 load useCallback([API])→
+  //   useEffect([load]) 가 부모 재렌더마다 재fetch. token 기준 memo 로 참조 안정화(방어적 하드닝).
+  const API = useMemo(() => makeAPI(token), [token]);
   const [tab, setTab] = useState("dashboard");
 
   const TABS = [

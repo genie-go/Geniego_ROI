@@ -759,7 +759,10 @@ function OmniChannelInner() {
     const navigate = useNavigate();
     const globalData = useGlobalData();
     const { orderStats, addAlert } = globalData;
-    const connectors = globalData.connectors || [];
+    // [276차] ★무한 렌더루프 근본수정: `globalData.connectors || []` 는 connectors 가 falsy 일 때 매 렌더
+    //   새 [] 리터럴을 만들어 hubChannels(useMemo)→loadStatus(useCallback)→useEffect 를 매 렌더 재실행,
+    //   /api/channel-sync/status 를 초당 수백~수천회 호출(nginx 429). useMemo 로 참조 안정화.
+    const connectors = useMemo(() => globalData.connectors || [], [globalData.connectors]);
     const { isDemo } = useAuth();
 
     /* ── ConnectorSyncContext — Integration Hub channel awareness ── */
@@ -835,7 +838,11 @@ function OmniChannelInner() {
         //   (기존 [hubChannels]만이라 주문 변동 후 정체). 데모=buildDemoOmniStatus 재파생, 운영=status 재조회.
     }, [hubChannels, globalData.orders]);
 
-    useEffect(() => { loadStatus(); }, [loadStatus]);
+    // [276차] effect 를 loadStatus 의 identity 대신 안정 원시값(hubChannels 수·주문 수)에만 반응하도록 분리 —
+    //   상위 참조(csChannels 등) 가 불안정해도 API 폭주 재발 방지. 최신 loadStatus 는 ref 로 호출.
+    const loadStatusRef = useRef(loadStatus);
+    loadStatusRef.current = loadStatus;
+    useEffect(() => { loadStatusRef.current(); }, [hubChannels.length, globalData.orders?.length]);
 
     const plan = status?.plan || '';
 

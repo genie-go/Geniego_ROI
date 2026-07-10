@@ -198,7 +198,9 @@ export default function CreativeStudioTab({ sourcePage, onUseCampaign }) {
   useEffect(() => { if (!IS_DEMO && activeTab === 2 && insights === null) loadInsights(); }, [activeTab, insights, loadInsights]);
   useEffect(() => { if (!IS_DEMO && activeTab === 2 && cockpit === null) loadCockpit(); }, [activeTab, cockpit, loadCockpit]);
 
-  const gallery = IS_DEMO ? DEMO_GALLERY : (realDesigns || []);
+  // [276차] realDesigns falsy 시 매 렌더 새 [] → gallery 소비 useMemo(KPI·filteredGallery) 매 렌더 재계산.
+  //   루프는 아니나(useMemo=fetch/재렌더 유발 안 함) 불필요 재계산 방지로 참조 안정화.
+  const gallery = useMemo(() => IS_DEMO ? DEMO_GALLERY : (realDesigns || []), [realDesigns]);
   const loadingReal = !IS_DEMO && realDesigns === null;
 
   /* ── Format label map ─────────────────────────────── */
