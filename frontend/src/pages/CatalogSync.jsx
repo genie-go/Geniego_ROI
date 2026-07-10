@@ -7,7 +7,7 @@ import { useI18n } from '../i18n/index.js';
 import ProductSelectBar from '../components/dashboards/ProductSelectBar.jsx';
 import ProductMarketingPanel from '../components/dashboards/ProductMarketingPanel.jsx';
 import { CHANNEL_RATES, calcRecommendedPrice as calcRecPrice } from '../constants/channelRates.js';
-import { postJson } from '../services/apiClient.js'; // 192차: 상품 writeback/bulk-price 실배선
+import { postJson, getJsonAuth } from '../services/apiClient.js'; // 192차: 상품 writeback/bulk-price 실배선 · [277차] 등록상품 로드
 import { loadWorkspace, saveWorkspace, wsEnabled } from '../services/workspaceState.js'; // [266차] 보조 설정탭 운영 영속
 
 /* ── Enterprise Dynamic Locale Map (module-scope, shared) ─────── */
@@ -109,20 +109,46 @@ const CHANNEL_META_FALLBACK = {
     twitter_ads: { name: "X (Twitter) Ads", icon: "🐦", color: "#1da1f2" },
 };
 
+/**
+ * [277차] ★채널 키 별칭 — 연동돼 있는데 "미연동"으로 표시되던 근본원인.
+ *   DEFAULT_CHANNELS 는 짧은 키(naver·amazon·11st)를 쓰는데 실제 커넥터/자격증명 키는
+ *   긴 키(naver_smartstore·amazon_spapi·st11)다. isConnected(ch.id) 가 항상 false 였고,
+ *   동시에 긴 키가 "신규 채널"로 자동추가돼 같은 채널이 두 장 뜨는 중복까지 발생했다.
+ *   백엔드 ChannelSync::normConnKey 의 별칭 규약과 정합.
+ */
+const CHANNEL_KEY_ALIASES = {
+    naver: ["naver", "naver_smartstore"],
+    amazon: ["amazon", "amazon_spapi"],
+    tiktok: ["tiktok", "tiktok_shop", "tiktok_business"],
+    "11st": ["11st", "st11"],
+    gmarket: ["gmarket", "esm"],
+    lotteon: ["lotteon"],
+    coupang: ["coupang"],
+    cafe24: ["cafe24"],
+    shopify: ["shopify"],
+    rakuten: ["rakuten"],
+    lazada: ["lazada"],
+    qoo10: ["qoo10"],
+};
+/** 위 별칭 중 canonical 이 아닌 키들 — "신규 채널 자동추가"에서 제외해 중복 카드를 막는다. */
+const ALIASED_NON_CANONICAL = new Set(
+    Object.entries(CHANNEL_KEY_ALIASES).flatMap(([canon, keys]) => keys.filter(k => k !== canon))
+);
+
 function useDynamicChannels() {
     const { connectedChannels, isConnected } = useConnectorSync();
     return useMemo(() => {
         const existingIds = new Set(DEFAULT_CHANNELS.map(c => c.id));
 
-        // 1) 기존 채널에 연결 상태 표시
+        // 1) 기존 채널에 연결 상태 표시(별칭 키 중 하나라도 연결이면 연결로 본다)
         const existing = DEFAULT_CHANNELS.map(ch => ({
             ...ch,
-            connected: isConnected(ch.id),
+            connected: (CHANNEL_KEY_ALIASES[ch.id] || [ch.id]).some(k => isConnected(k)),
         }));
 
         // 2) ConnectorSync에 등록되었으나 DEFAULT_CHANNELS에 없는 신규 채널 자동 추가
         const newChannels = Object.entries(connectedChannels)
-            .filter(([id, info]) => !existingIds.has(id) && info.connected)
+            .filter(([id, info]) => !existingIds.has(id) && !ALIASED_NON_CANONICAL.has(id) && info.connected)
             .map(([id]) => {
                 const meta = CHANNEL_META_FALLBACK[id] || {
                     name: id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
@@ -298,12 +324,18 @@ const BulkRegisterModal = memo(function BulkRegisterModal({ selectedIds, product
             for (const chId of selChs) {
                 for (const prod of selProds) {
                     try {
+                        // [277차] 상세HTML·이미지 동봉 — 종전엔 name/price/inventory/spec 만 보내
+                        //   채널에 이미지 없는 빈 상세로 등록됐다. 등록상품(po_products) 유래 항목만 값이 있다.
+                        const imgs = Array.isArray(prod.images) ? prod.images.filter(Boolean) : [];
                         const d = await postJson(`/api/catalog/writeback/${encodeURIComponent(chId)}/${encodeURIComponent(prod.sku)}`, {
                             price: recPrices[chId] ?? prod.price,
                             name: prod.name,
                             category: prod.category,
                             inventory: prod.inventory,
                             spec: prod.spec,
+                            detail_html: prod.detailHtml || '',
+                            image_url: (typeof prod.image === 'string' && /^(https?:|data:)/.test(prod.image)) ? prod.image : (imgs[0] || ''),
+                            images: imgs,
                             action,
                         });
                         results.push({ chId, sku: prod.sku, ok: !!d.ok, status: d.status });
@@ -766,6 +798,53 @@ const CatalogTab = memo(function CatalogTab() {
     const [toast, setToast] = useState(null);
     const isMobile = useIsMobile();
     const PAGE = 8;
+
+    /**
+     * [277차] 수동 등록 상품(po_products)을 이 페이지에 노출 — 종전엔 inventory 시드만 읽어
+     *   "상품등록에서 등록한 상품이 카탈로그 동기화에 안 보이고, 여기서 채널로 보낼 수도 없다".
+     *   등록 상품이 있으면 그것을 SSOT 로 쓰고(이미지·상세·고시정보 보유), 없을 때만 기존 inventory 폴백.
+     *   전송은 아래 handleApply 의 기존 writeback 경로를 그대로 탄다(신규 엔드포인트 0).
+     */
+    useEffect(() => {
+        let alive = true;
+        getJsonAuth(`/v420/price/products`)
+            .then(d => {
+                if (!alive) return;
+                const rows = d.products || [];
+                if (!rows.length) return;   // 없으면 아래 inventory 폴백 effect 가 처리
+                setProducts(rows.map((p, i) => {
+                    const imgs = Array.isArray(p.images) ? p.images.filter(Boolean) : [];
+                    const stock = Number(p.initial_stock) || 0;
+                    return {
+                        id: `POP-${String(i + 1).padStart(3, '0')}`,
+                        sku: p.sku,
+                        name: p.product_name || p.sku,
+                        category: p.category || '',
+                        image: p.product_image || imgs[0] || '📦',
+                        price: Number(p.base_price) || Number(p.cost_price) || 0,
+                        comparePrice: Math.round((Number(p.base_price) || 0) * 1.2),
+                        purchaseCost: Number(p.purchase_cost) || Number(p.cost_price) || 0,
+                        productCost: Number(p.cost_price) || 0,
+                        spec: p.spec || '',
+                        unitType: p.unit || 'ea',
+                        eaPerBox: String(p.qty_per_box || ''),
+                        boxPerPl: String(p.boxes_per_pallet || ''),
+                        inventory: stock,
+                        channels: [],
+                        channelPrices: channelProductPrices?.[p.sku] || {},
+                        status: stock <= 0 ? 'error' : stock < 30 ? 'warn' : 'ok',
+                        lastSync: '-',
+                        delta: { price: false, stock: false, title: false },
+                        // 채널 전송 시 함께 실어야 빈 상세로 등록되지 않는다.
+                        detailHtml: p.detail_html || '',
+                        images: imgs,
+                        _registered: true,
+                    };
+                }));
+            })
+            .catch(() => { /* 폴백은 아래 effect 가 담당 */ });
+        return () => { alive = false; };
+    }, [channelProductPrices]);
 
     // ★ Demo fallback: inventory 시드 데이터 → CatalogSync 상품 자동 로딩
     useEffect(() => {

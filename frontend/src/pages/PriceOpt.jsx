@@ -322,6 +322,9 @@ function ProductsTab({ token }) {
             target_margin: item.price > 0 ? parseFloat(((item.price - (item.cost || 0)) / item.price).toFixed(2)) : 0.30,
             base_price: item.price || 0,
             initial_stock: Object.values(item.stock || {}).reduce((s, v) => s + v, 0),
+            // [277차] 재고/채널 유래 대체 목록 표식 — 등록상품(po_products)이 아니라 이미지·상세·고시정보가 없다.
+            //   이 상태로 채널에 전송하면 빈 상세로 등록되므로 전송 버튼을 노출하지 않는다.
+            _fallback: true,
         }));
     }, [inventory]);
 
@@ -449,16 +452,20 @@ function ProductsTab({ token }) {
                 image_url: p.product_image || imgs[0] || '',
                 images: imgs,
             });
-            // 서버 status: queued(전송대기) · pending_approval(승인대기) · awaiting_credentials(자격증명대기) · done
+            // 서버 status: queued(전송대기) · pending_approval(승인대기) · saved(채널 미연동—리스팅만 저장)
+            //   · unregistered(판매중지) · done. ★'saved' 는 실패가 아니라 "자격증명 없음"이다(종전엔 실패로 오표기).
+            //   자격증명 등록 시 ChannelCreds::upsert 가 대기 잡을 자동 플러시한다.
             const st = d.status || (d.ok ? 'queued' : 'failed');
-            const okStates = ['queued', 'pending_approval', 'done', 'awaiting_credentials'];
+            const okStates = ['queued', 'pending_approval', 'done', 'awaiting_credentials', 'saved', 'unregistered'];
             const label = {
                 queued: t('priceOpt.pubQueued', '전송 대기열에 등록했습니다'),
                 pending_approval: t('priceOpt.pubApproval', '승인 대기 — 승인 후 채널에 반영됩니다'),
                 awaiting_credentials: t('priceOpt.pubNoCreds', '채널 자격증명 대기 — 연동허브에서 인증을 완료하세요'),
+                saved: t('priceOpt.pubSavedNoCreds', '채널 미연동 — 저장했습니다. 연동허브에서 자격증명을 등록하면 자동 전송됩니다'),
+                unregistered: t('priceOpt.pubUnregistered', '판매중지 처리했습니다'),
                 done: t('priceOpt.pubDone', '채널에 반영했습니다'),
             }[st] || (d.error || t('priceOpt.pubFail', '전송 실패'));
-            setPubMsg(m => ({ ...m, [sku]: { ok: okStates.includes(st), text: label } }));
+            setPubMsg(m => ({ ...m, [sku]: { ok: okStates.includes(st), text: label, warn: st === 'saved' } }));
         } catch (e) {
             setPubMsg(m => ({ ...m, [sku]: { ok: false, text: `${t('priceOpt.pubFail', '전송 실패')}: ${e.message}` } }));
         } finally {
@@ -1101,10 +1108,15 @@ function ProductsTab({ token }) {
                                     {p.initial_stock > 0 && <span style={{ fontSize: 10, background: 'rgba(34,197,94,0.1)', color: '#22c55e', padding: '1px 6px', borderRadius: 4 }}>📊 {p.initial_stock.toLocaleString()}{t('priceOpt.unitEach')}</span>}
                                 </div>
                             )}
-                            {/* [277차] 판매채널 전송 — 연동된 채널만 노출. 클릭 1회로 기존 writeback 큐(정책검증·승인·어댑터)에 위임. */}
+                            {/* [277차] 판매채널 전송 — 연동된 채널만 노출. 클릭 1회로 기존 writeback 큐(정책검증·승인·어댑터)에 위임.
+                                ★대체 목록(_fallback: 재고/채널 수집 유래)은 이미지·상세가 없어 전송 시 빈 상세로 등록된다 → 버튼 미노출. */}
                             <div style={{ marginTop: 8, paddingTop: 8, borderTop: "1px dashed #e2e8f0" }}>
                                 <div style={{ fontSize: 10, color: "#7c8fa8", marginBottom: 5 }}>📤 {t('priceOpt.pubTitle', '판매채널 전송')}</div>
-                                {pubChannels.length === 0 ? (
+                                {p._fallback ? (
+                                    <div style={{ fontSize: 10, color: "#94a3b8" }}>
+                                        {t('priceOpt.pubFallbackOnly', '재고·채널에서 불러온 항목입니다 — 전송하려면 이 상품을 먼저 등록하세요(이미지·상세 필요)')}
+                                    </div>
+                                ) : pubChannels.length === 0 ? (
                                     <div style={{ fontSize: 10, color: "#94a3b8" }}>{t('priceOpt.pubNoChannel', '연동된 판매채널이 없습니다 — 연동허브에서 채널을 먼저 연결하세요')}</div>
                                 ) : (
                                     <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
@@ -1125,8 +1137,8 @@ function ProductsTab({ token }) {
                                     </div>
                                 )}
                                 {pubMsg[p.sku] && (
-                                    <div style={{ marginTop: 6, fontSize: 10, fontWeight: 700, color: pubMsg[p.sku].ok ? "#22c55e" : "#ef4444" }}>
-                                        {pubMsg[p.sku].ok ? "✅" : "❌"} {pubMsg[p.sku].text}
+                                    <div style={{ marginTop: 6, fontSize: 10, fontWeight: 700, color: pubMsg[p.sku].warn ? "#f59e0b" : (pubMsg[p.sku].ok ? "#22c55e" : "#ef4444") }}>
+                                        {pubMsg[p.sku].warn ? "⚠️" : (pubMsg[p.sku].ok ? "✅" : "❌")} {pubMsg[p.sku].text}
                                     </div>
                                 )}
                             </div>

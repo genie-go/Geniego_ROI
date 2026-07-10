@@ -173,8 +173,13 @@ class Catalog
     {
         if ($action === 'unregister' || $action === 'disconnect') return 'unregistered';
         try {
-            $st = $pdo->prepare("SELECT 1 FROM channel_credential WHERE tenant_id=:t AND channel=:c AND is_active=1 LIMIT 1");
-            $st->execute([':t' => $tenant, ':c' => $channel]);
+            // [277차] ★별칭 해석 누락 — loadChannelCreds 는 channelAliases 로 naver↔naver_smartstore 를 풀지만
+            //   여기선 raw 키로만 조회해, 짧은 키(naver·amazon·11st)로 전송하면 자격증명이 있어도 'saved'(전송 안 함)가 됐다.
+            //   CatalogSync 가 DEFAULT_CHANNELS 의 짧은 키를 그대로 보내므로 실제로 도달하는 경로다.
+            $aliases = self::channelAliases($channel);
+            $in = implode(',', array_fill(0, count($aliases), '?'));
+            $st = $pdo->prepare("SELECT 1 FROM channel_credential WHERE tenant_id=? AND channel IN ($in) AND is_active=1 LIMIT 1");
+            $st->execute(array_merge([$tenant], $aliases));
             return $st->fetchColumn() ? 'queued' : 'saved';
         } catch (\Throwable $e) { return 'saved'; }
     }
@@ -245,7 +250,12 @@ class Catalog
         $f = self::mergeWithExisting($pdo, $tenant, $channel, $sku, $body, $action);
         $status = self::channelStatus($pdo, $tenant, $channel, $action);
         self::upsert($pdo, $tenant, $channel, $sku, $f, $status);
-        self::logJob($pdo, $tenant, $channel, $sku, (string)($body['operation'] ?? 'publish'), $status, $f);
+        // [277차] ★큐 잡을 'saved' 로 기록하면 processWritebackQueue 가 영원히 소비하지 않는다
+        //   (소비 조건 = status IN ('queued','awaiting_credentials')). 자격증명이 없어 대기하는 상태의 정본은
+        //   'awaiting_credentials' 이며, ChannelCreds::upsert 가 자격증명 등록 즉시 큐를 플러시한다.
+        //   catalog_listing.status 는 'saved'(리스팅 저장됨) 그대로 두고, 잡 상태만 정합화한다.
+        $jobStatus = ($status === 'saved') ? 'awaiting_credentials' : $status;
+        self::logJob($pdo, $tenant, $channel, $sku, (string)($body['operation'] ?? 'publish'), $jobStatus, $f);
         Db::audit($pdo, $tenant, 'catalog.writeback', ['channel'=>$channel, 'sku'=>$sku, 'action'=>$action, 'status'=>$status]); // 감사: 상품 writeback
         return self::jsonRes($res, ['ok' => true, 'status' => $status, 'channel' => $channel, 'sku' => $sku]);
     }
