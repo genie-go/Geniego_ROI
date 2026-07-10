@@ -311,6 +311,14 @@ const BulkRegisterModal = memo(function BulkRegisterModal({ selectedIds, product
 
     const handleApply = async () => {
         if (!selChs.size) return;
+        // [277차] ★재고/채널 유래 항목(_fallback)은 이미지·상세·고시·카테고리가 없어, 전송하면 채널에
+        //   빈 상세·0원·엉뚱한 값으로 등록된다("일괄등록하니 이미지가 안 올라가고 정보가 엉뚱하다"의 원인).
+        //   등록상품(po_products)만 전송한다.
+        const sendable = selProds.filter(p => !p._fallback);
+        if (!sendable.length) {
+            alert(t('catalogSync.needRegistered', '전송하려면 상품등록에서 등록한 상품을 선택하세요 — 재고·채널에서 불러온 항목은 이미지·상세·고시정보가 없어 채널에 등록할 수 없습니다'));
+            return;
+        }
         setRunning(true);
 
         try {
@@ -322,7 +330,7 @@ const BulkRegisterModal = memo(function BulkRegisterModal({ selectedIds, product
 
             // Product×Channel 조합마다 writeback Run
             for (const chId of selChs) {
-                for (const prod of selProds) {
+                for (const prod of sendable) {
                     try {
                         // [277차] 상세HTML·이미지 동봉 — 종전엔 name/price/inventory/spec 만 보내
                         //   채널에 이미지 없는 빈 상세로 등록됐다. 등록상품(po_products) 유래 항목만 값이 있다.
@@ -336,6 +344,7 @@ const BulkRegisterModal = memo(function BulkRegisterModal({ selectedIds, product
                             detail_html: prod.detailHtml || '',
                             image_url: (typeof prod.image === 'string' && /^(https?:|data:)/.test(prod.image)) ? prod.image : (imgs[0] || ''),
                             images: imgs,
+                            ...(prod._meta || {}),   // [277차] 고시·배송/반품·AS·원산지·유효일(채널 필수)
                             action,
                         });
                         results.push({ chId, sku: prod.sku, ok: !!d.ok, status: d.status });
@@ -822,7 +831,9 @@ const CatalogTab = memo(function CatalogTab() {
                         category: p.category || '',
                         image: p.product_image || imgs[0] || '📦',
                         price: Number(p.base_price) || Number(p.cost_price) || 0,
-                        comparePrice: Math.round((Number(p.base_price) || 0) * 1.2),
+                        // [277차 감사 P1] 존재한 적 없는 '정가'를 판매가×1.2 로 합성해 취소선으로 노출하던 날조 제거.
+                        //   po_products 에 compare_price 컬럼 자체가 없다(SSOT 부재) → 표시하지 않는다.
+                        comparePrice: 0,
                         purchaseCost: Number(p.purchase_cost) || Number(p.cost_price) || 0,
                         productCost: Number(p.cost_price) || 0,
                         spec: p.spec || '',
@@ -839,12 +850,43 @@ const CatalogTab = memo(function CatalogTab() {
                         detailHtml: p.detail_html || '',
                         images: imgs,
                         _registered: true,
+                        // [277차] 채널 필수 메타 — 네이버는 상품정보제공고시·배송/반품·AS·원산지 없이 등록을 거부한다.
+                        _meta: {
+                            notice_category: p.notice_category || '', notice_json: p.notice_json || '',
+                            as_phone: p.as_phone || '', as_guide: p.as_guide || '', origin: p.origin || '',
+                            minor_purchase: p.minor_purchase || '', ship_fee_type: p.ship_fee_type || '',
+                            ship_fee: p.ship_fee || 0, return_ship_fee: p.return_ship_fee || 0,
+                            exchange_ship_fee: p.exchange_ship_fee || 0, return_courier: p.return_courier || '',
+                            mfg_date: p.mfg_date || '', expiry_date: p.expiry_date || '',
+                        },
                     };
                 }));
             })
             .catch(() => { /* 폴백은 아래 effect 가 담당 */ });
         return () => { alive = false; };
     }, [channelProductPrices]);
+
+    /**
+     * [277차] 채널에서 수집한 상품 이미지 — channel_products.image_url 은 이미 저장돼 있는데(수집 정상)
+     *   이 화면이 읽지 않아 "동기화해도 이미지를 못 가져온다"로 보였다. sku→image_url 맵으로 목록에 주입.
+     */
+    const [syncedImages, setSyncedImages] = useState({});
+    useEffect(() => {
+        let alive = true;
+        getJsonAuth(`/api/channel-sync/products?limit=200`)
+            .then(d => {
+                if (!alive) return;
+                const m = {};
+                (d.products || []).forEach(p => {
+                    const sku = String(p.sku || p.channel_product_id || '');
+                    const url = String(p.image_url || '');
+                    if (sku && url && !m[sku]) m[sku] = url;
+                });
+                setSyncedImages(m);
+            })
+            .catch(() => { if (alive) setSyncedImages({}); });
+        return () => { alive = false; };
+    }, []);
 
     // ★ Demo fallback: inventory 시드 데이터 → CatalogSync 상품 자동 로딩
     useEffect(() => {
@@ -854,9 +896,13 @@ const CatalogTab = memo(function CatalogTab() {
                 sku: item.sku,
                 name: item.name,
                 category: item.category || 'beauty/skincare',
-                image: item.image || '📦',
+                image: item.image || syncedImages[String(item.sku)] || '📦',
                 price: item.price || 0,
-                comparePrice: Math.round((item.price || 0) * 1.2),
+                // [277차] 존재한 적 없는 '정가'를 price×1.2 로 합성하지 않는다(감사 확정 P1 · 헌법: 날조 금지).
+                comparePrice: 0,
+                // [277차] 등록상품(po_products)이 아니라 재고/채널 유래 항목 — 이미지·상세·고시·카테고리가 없어
+                //   이대로 채널에 전송하면 엉뚱한 값이 등록된다. 전송 대상에서 제외한다.
+                _fallback: true,
                 purchaseCost: item.cost || 0,
                 productCost: item.cost || 0,
                 spec: '',
@@ -1298,6 +1344,12 @@ const CatalogTab = memo(function CatalogTab() {
                                         <td>
                                             <div style={{ fontWeight: 600, fontSize: 12 }}>{r.name}</div>
                                             <div style={{ fontSize: 10, color: "#6b7280", fontFamily: "monospace" }}>{r.sku}</div>
+                                            {/* [277차] 등록상품이 아닌 항목은 채널 전송 대상이 아니다(이미지·상세·고시 부재). */}
+                                            {r._fallback && (
+                                                <div style={{ fontSize: 9, color: "#f59e0b", marginTop: 2 }}>
+                                                    ⚠️ {t('catalogSync.fallbackItem', '재고·채널에서 불러온 항목 (전송 불가)')}
+                                                </div>
+                                            )}
                                         </td>
                                         <td style={{ fontSize: 11, color: "#374151" }}>{r.category}</td>
                                         <td style={{ fontSize: 10, color: "#6b7280", maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={r.spec || ""}>{r.spec || "-"}</td>
@@ -1310,7 +1362,7 @@ const CatalogTab = memo(function CatalogTab() {
                                             <div style={{ fontWeight: 700, fontSize: 12, color: r.delta?.price ? "#f97316" : "#1f2937" }}>
                                                 {fmtKRW(r.price)} {r.delta?.price && <span style={{ fontSize: 9 }}>{t('catalogSync.change')}</span>}
                                             </div>
-                                            <div style={{ fontSize: 10, color: "#6b7280", textDecoration: "line-through" }}>{fmtKRW(r.comparePrice)}</div>
+                                            {r.comparePrice > 0 && <div style={{ fontSize: 10, color: "#6b7280", textDecoration: "line-through" }}>{fmtKRW(r.comparePrice)}</div>}
                                         </td>
                                         <td style={{ fontFamily: "monospace", fontSize: 11, color: "#a78bfa" }}>{fmtKRW(r.purchaseCost)}</td>
                                         <td style={{ fontFamily: "monospace", fontSize: 12, fontWeight: 700, color: "#f97316" }}>{fmtKRW(r.productCost)}</td>

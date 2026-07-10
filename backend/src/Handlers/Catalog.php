@@ -879,6 +879,14 @@ class Catalog
             }
             // [227차] 채널 카테고리 매핑 해석 — 내 카테고리→채널 카테고리코드(쿠팡/네이버 등 필수). 어댑터가 category_code 우선 사용.
             $product['category_code'] = self::resolveChannelCategory($pdo, $t, $ch, $product);
+            // [277차] ★어댑터 간 payload 키 정규화 — 전수감사에서 확정된 클래스 결함 2종을 단일 지점에서 해소한다.
+            //   ①카테고리 키 불일치: resolveChannelCategory 는 'category_code' 에만 쓰는데 shopee/lazada 는 'category_id',
+            //     walmart/qoo10/yahoo_jp/godomall/esm 은 'channel_category' 를 읽는다 → 사용자가 매핑을 채워도
+            //     코드가 어댑터에 도달하지 않아 등록이 거부됐다(shopee/lazada 는 게이트가 항상 발화).
+            //   ②상세 미전송: 18개 어댑터가 detail_html 을 쓰지 않고 'spec'(규격 한 줄)만 description 에 넣어
+            //     채널에 빈 상세로 등록됐다. spec 사용처는 전부 description 계열이므로 상세HTML 로 대체한다.
+            //   어댑터 21개를 개별 수정하지 않고 여기서 정규화(회귀면 최소, 효과는 전 채널).
+            $product = self::normalizeAdapterPayload($product);
             $priorId = self::priorChannelProductId($pdo, $t, $ch, $sku);
             // 신규 op('price_update')은 어댑터엔 알려진 upsert('publish')로 정규화 전달(가격 포함 listing 갱신).
             $pushOp = ($op === 'price_update') ? 'publish' : $op;
@@ -919,6 +927,38 @@ class Catalog
         $channel = (isset($body['channel']) && $body['channel'] !== '') ? (string)$body['channel'] : null;
         $sum = self::processWritebackQueue($pdo, $tenant, $channel, 100);
         return self::jsonRes($res, ['ok' => true, 'summary' => $sum]);
+    }
+
+    /**
+     * [277차] 어댑터 payload 키 정규화 — 채널마다 다른 키 이름 때문에 값이 도달하지 못하던 문제를 한 곳에서 해소.
+     *   ★값을 지어내지 않는다. 이미 해석된 값(category_code / detail_html)을 어댑터가 읽는 이름으로 복제할 뿐이다.
+     */
+    private static function normalizeAdapterPayload(array $product): array
+    {
+        // ① 카테고리 코드 별칭 — 빈 값이면 만들지 않는다(honest-gate 가 그대로 발화해야 한다).
+        $code = trim((string)($product['category_code'] ?? ''));
+        if ($code !== '') {
+            foreach (['category_id', 'channel_category', 'taxonomy_id'] as $alias) {
+                if (!isset($product[$alias]) || $product[$alias] === '' || $product[$alias] === null) $product[$alias] = $code;
+            }
+        }
+        // ② 상세 설명 — detail_html 이 있으면 description/spec 계열에 주입(어댑터는 이 키들만 읽는다).
+        $detail = (string)($product['detail_html'] ?? '');
+        if ($detail !== '') {
+            $product['spec'] = $detail;          // 18개 어댑터가 description 필드에 넣는 값
+            $product['description'] = $detail;   // etsy 등 'description' 키를 읽는 어댑터
+        } elseif (($product['spec'] ?? '') !== '' && !isset($product['description'])) {
+            $product['description'] = (string)$product['spec'];
+        }
+        // ③ 단일 이미지 키('image') — godomall/qoo10 이 읽는다. ★공개 URL 일 때만 채운다.
+        //   base64 dataURL 을 넘기면 채널이 거부하므로, 업로드 경로가 없는 채널엔 아예 보내지 않는다(빈 값 = 정직).
+        if (!isset($product['image']) || $product['image'] === '') {
+            $cands = array_merge([(string)($product['image_url'] ?? '')], array_map('strval', (array)($product['images'] ?? [])));
+            foreach ($cands as $u) {
+                if (str_starts_with($u, 'http://') || str_starts_with($u, 'https://')) { $product['image'] = $u; break; }
+            }
+        }
+        return $product;
     }
 
     /**
