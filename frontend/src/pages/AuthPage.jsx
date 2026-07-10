@@ -2182,7 +2182,6 @@ function AdminLoginForm({ onBack }) {
   const [mfaMethod, setMfaMethod] = useState("");
   const [mfaInfo, setMfaInfo] = useState("");
   const [mfaDevCode, setMfaDevCode] = useState("");
-  const ADMIN_GATE = "GENIEGO-ADMIN";
 
   // [225차] 관리 대상 시스템(운영/데모) 선택 — 데모/운영은 별도 빌드·백엔드(도메인 분리)이므로
   //   다른 시스템 선택 시 해당 도메인 관리자 로그인으로 전환(매칭된 빌드+백엔드에서 인증). ?mode=admin 로
@@ -2221,9 +2220,10 @@ function AdminLoginForm({ onBack }) {
       if (r.ok && d.ok) { if (tryAutoLogin()) return; setStep(2); }
       else setError(d.error || t('authPage.adminKeyInvalid', '접속 코드가 올바르지 않습니다.'));
     } catch {
-      // 서버 미응답(오프라인) — 하위호환 기본 게이트로 폴백
-      if (adminKey.trim().toUpperCase() === ADMIN_GATE) { if (tryAutoLogin()) return; setStep(2); }
-      else setError(t('authPage.adminKeyVerifyFail', '접속 코드 확인에 실패했습니다. 다시 시도하세요.'));
+      // [276차 보안] 서버 미응답 시 공개 리터럴(ADMIN_GATE)로 클라측 통과하던 폴백 제거(fail-closed).
+      //   admin 로그인은 2단계(이메일/비번)가 서버 검증이라 이 폴백은 UI 노출만 조기 허용했다.
+      //   서버 미응답이면 접속코드 검증 자체를 실패 처리한다(공개 상수 자동통과 차단).
+      setError(t('authPage.adminKeyVerifyFail', '접속 코드 확인에 실패했습니다. 다시 시도하세요.'));
     }
     setLoading(false);
   };

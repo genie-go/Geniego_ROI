@@ -517,7 +517,10 @@ function AppLayout() {
                       <Route path="/omni-channel" element={<OmniChannel />} />
                       <Route path="/wms-manager" element={<WmsManager />} />
                       <Route path="/user-management" element={<UserManagement />} />
-                      <Route path="/menu-access-manager" element={<MenuAccessManager />} />
+                      {/* [276차 보안] admin 전용 페이지이나 sidebarManifest 미등재 → pathToMenuKey=null →
+                          MenuAccessGuard 통과 갭. 일반 로그인 사용자가 UI 렌더 가능(백엔드 /v424/admin/* 는 차단)
+                          이던 노출을 AdminRouteGuard(=/admin/* 와 동일 클라 게이트)로 봉쇄. */}
+                      <Route path="/menu-access-manager" element={<AdminRouteGuard><MenuAccessManager /></AdminRouteGuard>} />
                       <Route path="/content-calendar" element={<ContentCalendar />} />
                       <Route path="/budget-tracker" element={<BudgetTracker />} />
                       <Route path="/system-monitor" element={<SystemMonitor />} />

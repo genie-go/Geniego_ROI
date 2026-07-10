@@ -885,7 +885,10 @@ final class UserAuth
             // [현 차수] 신규 '전원 강제 챌린지'는 정책 'all' 에서만 발동(기존 admin/off 정책 동작 무회귀:
             //   등록 사용자만 검증). $planForMfa 는 향후 확장 여지용으로 계산만 유지.
             $mfaPol   = self::mfaPolicy($pdo);
-            $enforced = !$isMasterAuth && ($mfaPol === 'all');
+            // [276차 보안] 정책 'admin' 이 실제로 관리자에게 MFA 를 강제하도록 활성화(기존엔 'all' 에서만
+            //   발동해 기본정책 'admin' 은 무동작이었다 — 미등록 관리자 사실상 MFA 없음). 관리자 계정만 대상.
+            //   ★락아웃 방지: 아래 910행 분기가 발송채널 전무 시 통과+감사(high) 유지 → 무채널 환경 무회귀.
+            $enforced = !$isMasterAuth && ($mfaPol === 'all' || ($mfaPol === 'admin' && $planForMfa === 'admin'));
             $enrolled = !$isMasterAuth && !empty($user['mfa_enabled']);
             if ($enrolled || $enforced) {
                 $mfaUid    = (int)($user['id'] ?? $user['idx'] ?? 0);
@@ -2714,9 +2717,12 @@ final class UserAuth
     private static function verifyAdminAccessKey(\PDO $pdo, string $key): bool
     {
         $hash = self::getAppSetting($pdo, 'admin_access_key_hash');
-        if ($hash !== '') return password_verify($key, $hash); // 회전됨 → 엄격 검증
-        // 미회전(기본) 상태: 하위호환 — 기본값 'GENIEGO-ADMIN' 또는 빈 값 허용(구 프론트 무파손, 락아웃 방지).
-        // 관리자가 접속키를 한 번 변경하면 이후부터 엄격 검증된다.
+        if ($hash !== '') return password_verify($key, $hash); // 회전됨(DB) → 엄격 검증
+        // [276차 보안] 미회전 상태 폴백 강화: 번들에 노출된 공개 리터럴('GENIEGO-ADMIN') 자동수용 대신
+        //   서버 전용 env(ADMIN_ACCESS_KEY, .env=미번들) 를 우선한다. env 설정 시 공개 리터럴은 즉시 무효.
+        //   env 도 미설정이면 기존 하위호환(로컬/미구성 환경 락아웃 방지) 유지 = 무회귀.
+        $envKey = (string)(getenv('ADMIN_ACCESS_KEY') ?: '');
+        if ($envKey !== '') return hash_equals($envKey, trim($key)); // 상수시간 비교(공개 리터럴 무효화)
         return $key === '' || strcasecmp(trim($key), 'GENIEGO-ADMIN') === 0;
     }
 
