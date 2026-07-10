@@ -718,6 +718,26 @@ class Catalog
     }
 
     /** Shopify Admin API 상품 등록/수정/해제(실연동). creds: shop_domain + access_token. */
+    /**
+     * [277차] Shopify 이미지 배열 — 공개 URL 은 `src`, base64 dataURL 은 `attachment`(헤더 제외 base64)로 보낸다.
+     *   Shopify 가 attachment 를 받아 자체 CDN URL 을 발급하므로 별도 업로드 API 가 필요 없다(네이버와 다름).
+     *   상품등록 폼은 dataURL 로 보관하므로 이 변환이 없으면 이미지가 전송되지 않는다. 상한 250장.
+     */
+    private static function shopifyImages(array $p): array
+    {
+        $src = array_values(array_filter(array_map('strval', (array)($p['images'] ?? [])), static fn($u) => $u !== ''));
+        if (!$src && (string)($p['image_url'] ?? '') !== '') $src = [(string)$p['image_url']];
+        $out = [];
+        foreach (array_slice($src, 0, 250) as $i => $u) {
+            if (str_starts_with($u, 'http://') || str_starts_with($u, 'https://')) { $out[] = ['src' => $u]; continue; }
+            if (preg_match('#^data:image/([a-zA-Z0-9.+-]+);base64,(.+)$#s', $u, $m)) {
+                $ext = ['jpeg' => 'jpg', 'png' => 'png', 'gif' => 'gif', 'webp' => 'webp'][$m[1]] ?? 'jpg';
+                $out[] = ['attachment' => $m[2], 'filename' => 'image-' . ($i + 1) . '.' . $ext];
+            }
+        }
+        return $out;
+    }
+
     private static function shopifyWrite(array $creds, array $p, string $operation, ?string $channelProductId): array
     {
         $token = $creds['access_token'] ?? $creds['api_password'] ?? '';
@@ -732,9 +752,13 @@ class Catalog
             return ($code >= 200 && $code < 300) ? ['ok' => true, 'deleted' => $channelProductId] : ['ok' => false, 'error' => "Shopify DELETE HTTP {$code}"];
         }
 
+        // [277차] 종전엔 body_html 에 spec(규격 한 줄)만 넣고 이미지는 아예 보내지 않아, Shopify 에 등록된 상품이
+        //   이미지 없는 빈 상세로 올라갔다(네이버와 동일 결함 클래스). 상세HTML 우선 + 이미지 전송.
+        $bodyHtml = (string)($p['detail_html'] ?? '');
+        if ($bodyHtml === '') $bodyHtml = (string)($p['spec'] ?? '');
         $product = [
             'title'        => (string)($p['name'] ?? $p['sku'] ?? ''),
-            'body_html'    => (string)($p['spec'] ?? ''),
+            'body_html'    => $bodyHtml,
             'product_type' => (string)($p['category'] ?? ''),
             'status'       => 'active',
             'variants'     => [[
@@ -744,6 +768,8 @@ class Catalog
                 'inventory_management' => 'shopify',
             ]],
         ];
+        $imgs = self::shopifyImages($p);
+        if ($imgs) $product['images'] = $imgs;
         if ($channelProductId !== null) {
             $body = json_encode(['product' => array_merge(['id' => (int)$channelProductId], $product)], JSON_UNESCAPED_UNICODE);
             [$code, $resp] = self::httpReq('PUT', "https://{$shop}/admin/api/2024-01/products/{$channelProductId}.json", $headers, $body);
