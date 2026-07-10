@@ -26,6 +26,7 @@ function useI18n() {
 import { useGlobalData } from "../context/GlobalDataContext";
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
 import { CHANNEL_RATES, getChannelRate } from '../constants/channelRates.js';
+import { channelMeta } from '../utils/channelMeta.js'; // [277차] 판매채널 전송 — 채널 표시메타 단일 리졸버 재사용
 import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
 import { getJsonAuth, getJsonAuthAbortable, postJsonAuth } from "../services/apiClient";
 import { PRODUCT_NOTICE_TEMPLATES, noticeTemplateByKey, NOTICE_REFERENCE_TEXT } from '../constants/productNoticeTemplates.js';
@@ -287,6 +288,12 @@ function ProductsTab({ token }) {
     const [combos, setCombos] = useState([]); // [{values:[...], label, sku, stock, add_price}]
     const [msg, setMsg] = useState("");
     const [uploading, setUploading] = useState(false);
+    // [277차] 판매채널 전송 — 등록한 상품을 연동채널로 보낼 방법이 없었다(엔진 `/api/catalog/writeback/*` 는
+    //   이미 존재했으나 이 페이지에 진입점이 없어 /writeback 에서 SKU·JSON 을 손입력해야 했음).
+    //   연동된 채널만 노출(자격증명 보유 채널) → 카드에서 1클릭 전송. 신규 백엔드 없음(기존 큐/승인/어댑터 재사용).
+    const [pubChannels, setPubChannels] = useState([]);   // [{id,label}]
+    const [pubBusy, setPubBusy] = useState("");            // `${sku}:${channel}` 전송 중
+    const [pubMsg, setPubMsg] = useState({});              // { [sku]: {text, ok} }
     const [dragOver, setDragOver] = useState(false);
     const [searchQuery, setSearchQuery] = useState(""); // 206차 #6: 등록 제품 검색
 
@@ -389,6 +396,60 @@ function ProductsTab({ token }) {
     const load = () =>
         getJsonAuth(`/v420/price/products`)
             .then(d => setProducts(d.products || [])).catch(() => { });
+
+    // [277차] 연동된 판매채널 목록 — channel_credential 보유(활성) 채널만. 미연동 채널로는 전송 버튼을 띄우지 않는다.
+    useEffect(() => {
+        let alive = true;
+        getJsonAuth(`/api/v423/creds`)
+            .then(d => {
+                if (!alive) return;
+                const seen = new Map();
+                (d.creds || []).forEach(c => {
+                    if (String(c.is_active) === '0') return;
+                    const id = String(c.channel || '').trim();
+                    if (id && !seen.has(id)) { const m = channelMeta(id); seen.set(id, { id, label: m.name, icon: m.icon, color: m.color }); }
+                });
+                setPubChannels([...seen.values()]);
+            })
+            .catch(() => { if (alive) setPubChannels([]); });
+        return () => { alive = false; };
+    }, []);
+
+    /** [277차] 상품 1건을 지정 판매채널로 전송. 기존 writeback 엔진(정책검증→승인큐→어댑터)에 그대로 위임한다.
+     *  상세HTML·이미지까지 body 로 실어 보낸다(백엔드 mergeWithExisting 이 body 우선). */
+    const publishToChannel = async (p, channel) => {
+        const sku = (p.sku || '').trim();
+        if (!sku) return;
+        setPubBusy(`${sku}:${channel}`);
+        setPubMsg(m => ({ ...m, [sku]: null }));
+        try {
+            const imgs = Array.isArray(p.images) ? p.images.filter(Boolean) : [];
+            const d = await postJsonAuth(`/api/catalog/writeback/${encodeURIComponent(channel)}/${encodeURIComponent(sku)}`, {
+                name: p.product_name || sku,
+                price: Number(p.base_price) || Number(p.cost_price) || 0,
+                inventory: Number(p.initial_stock) || 0,
+                category: p.category || '',
+                spec: p.spec || '',
+                detail_html: p.detail_html || '',
+                image_url: p.product_image || imgs[0] || '',
+                images: imgs,
+            });
+            // 서버 status: queued(전송대기) · pending_approval(승인대기) · awaiting_credentials(자격증명대기) · done
+            const st = d.status || (d.ok ? 'queued' : 'failed');
+            const okStates = ['queued', 'pending_approval', 'done', 'awaiting_credentials'];
+            const label = {
+                queued: t('priceOpt.pubQueued', '전송 대기열에 등록했습니다'),
+                pending_approval: t('priceOpt.pubApproval', '승인 대기 — 승인 후 채널에 반영됩니다'),
+                awaiting_credentials: t('priceOpt.pubNoCreds', '채널 자격증명 대기 — 연동허브에서 인증을 완료하세요'),
+                done: t('priceOpt.pubDone', '채널에 반영했습니다'),
+            }[st] || (d.error || t('priceOpt.pubFail', '전송 실패'));
+            setPubMsg(m => ({ ...m, [sku]: { ok: okStates.includes(st), text: label } }));
+        } catch (e) {
+            setPubMsg(m => ({ ...m, [sku]: { ok: false, text: `${t('priceOpt.pubFail', '전송 실패')}: ${e.message}` } }));
+        } finally {
+            setPubBusy("");
+        }
+    };
 
     const save = async () => {
         // 206차 #6: 클라이언트 사전 중복 검사 + 서버 중복 차단 알림.
@@ -1025,6 +1086,35 @@ function ProductsTab({ token }) {
                                     {p.initial_stock > 0 && <span style={{ fontSize: 10, background: 'rgba(34,197,94,0.1)', color: '#22c55e', padding: '1px 6px', borderRadius: 4 }}>📊 {p.initial_stock.toLocaleString()}{t('priceOpt.unitEach')}</span>}
                                 </div>
                             )}
+                            {/* [277차] 판매채널 전송 — 연동된 채널만 노출. 클릭 1회로 기존 writeback 큐(정책검증·승인·어댑터)에 위임. */}
+                            <div style={{ marginTop: 8, paddingTop: 8, borderTop: "1px dashed #e2e8f0" }}>
+                                <div style={{ fontSize: 10, color: "#7c8fa8", marginBottom: 5 }}>📤 {t('priceOpt.pubTitle', '판매채널 전송')}</div>
+                                {pubChannels.length === 0 ? (
+                                    <div style={{ fontSize: 10, color: "#94a3b8" }}>{t('priceOpt.pubNoChannel', '연동된 판매채널이 없습니다 — 연동허브에서 채널을 먼저 연결하세요')}</div>
+                                ) : (
+                                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                                        {pubChannels.map(c => {
+                                            const busy = pubBusy === `${p.sku}:${c.id}`;
+                                            return (
+                                                <button key={c.id} onClick={() => publishToChannel(p, c.id)} disabled={!!pubBusy}
+                                                    title={`${c.label} ${t('priceOpt.pubTitle', '판매채널 전송')}`}
+                                                    style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "4px 9px", borderRadius: 999,
+                                                        border: `1px solid ${c.color || '#cbd5e1'}`, background: busy ? "#e2e8f0" : "#fff",
+                                                        color: busy ? "#64748b" : (c.color || "#334155"), fontSize: 10, fontWeight: 700,
+                                                        cursor: pubBusy ? "not-allowed" : "pointer", opacity: (pubBusy && !busy) ? 0.5 : 1 }}>
+                                                    <span>{c.icon}</span>
+                                                    <span>{busy ? t('priceOpt.pubSending', '전송 중…') : c.label}</span>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                                {pubMsg[p.sku] && (
+                                    <div style={{ marginTop: 6, fontSize: 10, fontWeight: 700, color: pubMsg[p.sku].ok ? "#22c55e" : "#ef4444" }}>
+                                        {pubMsg[p.sku].ok ? "✅" : "❌"} {pubMsg[p.sku].text}
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     ))}
                     {filteredProducts.length === 0 && <div style={{ color: "#64748b", fontSize: 11, padding: 12 }}>{q ? `"${searchQuery}" ${t('priceOpt.noSearchResult', '검색 결과가 없습니다')}` : t("priceOpt.noProducts")}</div>}

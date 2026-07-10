@@ -129,6 +129,11 @@ class Catalog
                 UNIQUE (tenant_id, channel, src_category)
             )");
         }
+        // [277차] 상품 상세페이지(HTML)·이미지가 writeback 페이로드에 실리지 않아 채널에 빈 상세로 등록됐다.
+        //   catalog_listing 에 보관 컬럼 보강(MySQL·SQLite 공통 멱등 ALTER — 이미 존재 시 예외무시).
+        foreach (['detail_html TEXT', 'images_json TEXT', 'image_url TEXT'] as $col) {
+            try { $pdo->exec("ALTER TABLE catalog_listing ADD COLUMN $col"); } catch (\Throwable $e) { /* 이미 존재 */ }
+        }
     }
 
     /** 가격 변경(old≠new) 시에만 price_history 기록(테넌트 격리). best-effort. */
@@ -177,20 +182,29 @@ class Catalog
     private static function upsert(\PDO $pdo, string $tenant, string $channel, string $sku, array $f, string $status): void
     {
         $now = self::now();
+        // [277차] detail_html·images_json·image_url 영속. 새 값이 빈 문자열이면 기존 값을 지우지 않는다
+        //   (COALESCE/NULLIF — 가격만 바꾸는 repricer 경로가 상세·이미지를 날리는 회귀 방지).
         if (self::isMysql($pdo)) {
-            $sql = "INSERT INTO catalog_listing (tenant_id,channel,sku,name,category,price,inventory,spec,action,status,created_at,updated_at)
-                    VALUES (:t,:c,:s,:n,:cat,:p,:inv,:spec,:act,:st,:now,:now2)
+            $sql = "INSERT INTO catalog_listing (tenant_id,channel,sku,name,category,price,inventory,spec,action,status,created_at,updated_at,detail_html,images_json,image_url)
+                    VALUES (:t,:c,:s,:n,:cat,:p,:inv,:spec,:act,:st,:now,:now2,:dh,:ij,:iu)
                     ON DUPLICATE KEY UPDATE name=VALUES(name),category=VALUES(category),price=VALUES(price),
-                      inventory=VALUES(inventory),spec=VALUES(spec),action=VALUES(action),status=VALUES(status),updated_at=VALUES(updated_at)";
+                      inventory=VALUES(inventory),spec=VALUES(spec),action=VALUES(action),status=VALUES(status),updated_at=VALUES(updated_at),
+                      detail_html=COALESCE(NULLIF(VALUES(detail_html),''),detail_html),
+                      images_json=COALESCE(NULLIF(VALUES(images_json),''),images_json),
+                      image_url=COALESCE(NULLIF(VALUES(image_url),''),image_url)";
         } else {
-            $sql = "INSERT INTO catalog_listing (tenant_id,channel,sku,name,category,price,inventory,spec,action,status,created_at,updated_at)
-                    VALUES (:t,:c,:s,:n,:cat,:p,:inv,:spec,:act,:st,:now,:now2)
+            $sql = "INSERT INTO catalog_listing (tenant_id,channel,sku,name,category,price,inventory,spec,action,status,created_at,updated_at,detail_html,images_json,image_url)
+                    VALUES (:t,:c,:s,:n,:cat,:p,:inv,:spec,:act,:st,:now,:now2,:dh,:ij,:iu)
                     ON CONFLICT(tenant_id,channel,sku) DO UPDATE SET name=excluded.name,category=excluded.category,
                       price=excluded.price,inventory=excluded.inventory,spec=excluded.spec,action=excluded.action,
-                      status=excluded.status,updated_at=excluded.updated_at";
+                      status=excluded.status,updated_at=excluded.updated_at,
+                      detail_html=COALESCE(NULLIF(excluded.detail_html,''),catalog_listing.detail_html),
+                      images_json=COALESCE(NULLIF(excluded.images_json,''),catalog_listing.images_json),
+                      image_url=COALESCE(NULLIF(excluded.image_url,''),catalog_listing.image_url)";
         }
         $oldPrice = self::currentPrice($pdo, $tenant, $channel, $sku); // 변경 전 등록가(없으면 null)
         $newPrice = (float)($f['price'] ?? 0);
+        $imgs = array_values(array_filter(array_map('strval', (array)($f['images'] ?? [])), static fn($u) => $u !== ''));
         $st = $pdo->prepare($sql);
         $st->execute([
             ':t' => $tenant, ':c' => $channel, ':s' => $sku,
@@ -198,6 +212,9 @@ class Catalog
             ':p' => $newPrice, ':inv' => (int)($f['inventory'] ?? 0),
             ':spec' => (string)($f['spec'] ?? ''), ':act' => (string)($f['action'] ?? 'register'),
             ':st' => $status, ':now' => $now, ':now2' => $now,
+            ':dh' => (string)($f['detail_html'] ?? ''),
+            ':ij' => $imgs ? json_encode($imgs, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : '',
+            ':iu' => (string)($f['image_url'] ?? ''),
         ]);
         // 기존 리스팅의 실제 가격 변경만 이력화(신규 등록은 변경 아님 → 제외).
         if ($oldPrice !== null && array_key_exists('price', $f)) {
@@ -351,17 +368,28 @@ class Catalog
     {
         $existing = [];
         try {
-            $st = $pdo->prepare("SELECT name,category,price,inventory,spec FROM catalog_listing WHERE tenant_id=? AND channel=? AND sku=? LIMIT 1");
+            $st = $pdo->prepare("SELECT name,category,price,inventory,spec,detail_html,images_json,image_url FROM catalog_listing WHERE tenant_id=? AND channel=? AND sku=? LIMIT 1");
             $st->execute([$tenant, $channel, $sku]);
             $existing = $st->fetch(\PDO::FETCH_ASSOC) ?: [];
         } catch (\Throwable $e) { /* best-effort */ }
         $name = $body['name'] ?? $body['title'] ?? null;
+        // [277차] 이미지 배열은 body(images) 우선, 없으면 기존 images_json 복원. 단일 image_url 은 폴백.
+        $images = [];
+        if (array_key_exists('images', $body) && is_array($body['images'])) {
+            $images = array_values(array_filter(array_map('strval', $body['images']), static fn($u) => $u !== ''));
+        } elseif (!empty($existing['images_json'])) {
+            $dec = json_decode((string)$existing['images_json'], true);
+            if (is_array($dec)) $images = array_values(array_filter(array_map('strval', $dec), static fn($u) => $u !== ''));
+        }
         return [
             'name'      => ($name !== null && $name !== '') ? (string)$name : (string)($existing['name'] ?? ''),
             'category'  => array_key_exists('category', $body) ? (string)$body['category'] : (string)($existing['category'] ?? ''),
             'price'     => array_key_exists('price', $body) ? $body['price'] : ($existing['price'] ?? 0),
             'inventory' => array_key_exists('inventory', $body) ? $body['inventory'] : ($existing['inventory'] ?? 0),
             'spec'      => array_key_exists('spec', $body) ? (string)$body['spec'] : (string)($existing['spec'] ?? ''),
+            'detail_html' => array_key_exists('detail_html', $body) ? (string)$body['detail_html'] : (string)($existing['detail_html'] ?? ''),
+            'image_url' => array_key_exists('image_url', $body) ? (string)$body['image_url'] : (string)($existing['image_url'] ?? ''),
+            'images'    => $images,
             'action'    => $action,
         ];
     }
@@ -453,6 +481,10 @@ class Catalog
             'inventory' => (int)($product['inventory'] ?? 0),
             'category'  => (string)($product['category'] ?? ''),
             'spec'      => (string)($product['spec'] ?? ''),
+            // [277차] 상세HTML·이미지 — writeback job payload 에 실어 어댑터(naverWrite 등)까지 전달.
+            'detail_html' => (string)($product['detail_html'] ?? ''),
+            'image_url'   => (string)($product['image_url'] ?? ''),
+            'images'      => array_values((array)($product['images'] ?? [])),
         ];
     }
 
@@ -594,10 +626,20 @@ class Catalog
     private static function currentListing(\PDO $pdo, string $tenant, string $channel, string $sku): ?array
     {
         try {
-            $st = $pdo->prepare("SELECT name,category,price,inventory,spec,action FROM catalog_listing WHERE tenant_id=? AND channel=? AND sku=? LIMIT 1");
+            // [277차] detail_html·images 도 복원. 네이버 등은 update 가 originProduct 전체 교체(PUT)라
+            //   상세·이미지를 빼고 push 하면 채널에 등록된 상세페이지가 지워진다(가격만 바꾸는 리프라이서 경로 포함).
+            $st = $pdo->prepare("SELECT name,category,price,inventory,spec,action,detail_html,images_json,image_url FROM catalog_listing WHERE tenant_id=? AND channel=? AND sku=? LIMIT 1");
             $st->execute([$tenant, $channel, $sku]);
             $r = $st->fetch(\PDO::FETCH_ASSOC);
-            return $r ?: null;
+            if (!$r) return null;
+            $imgs = [];
+            if (!empty($r['images_json'])) {
+                $dec = json_decode((string)$r['images_json'], true);
+                if (is_array($dec)) $imgs = array_values(array_filter(array_map('strval', $dec), static fn($u) => $u !== ''));
+            }
+            $r['images'] = $imgs;
+            unset($r['images_json']);
+            return $r;
         } catch (\Throwable $e) { return null; }
     }
 

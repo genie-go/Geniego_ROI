@@ -219,6 +219,11 @@ final class ChannelSync
             synced_at TEXT,
             UNIQUE(tenant_id, channel, channel_product_id)
         )");
+        // [277차] 카탈로그 수집이 이미지·상세페이지를 저장할 곳이 없었다(image_url 은 있으나 saveProducts 가
+        //   INSERT 목록에서 누락, 상세HTML·추가이미지는 컬럼 자체가 부재). 멱등 ALTER 로 보강 — 이미 존재 시 예외무시.
+        foreach (['detail_html TEXT', 'images_json TEXT'] as $col) {
+            try { $pdo->exec("ALTER TABLE channel_products ADD COLUMN $col"); } catch (\Throwable $e) { /* 이미 존재 */ }
+        }
         Db::ensureChannelOrders($pdo); // SSOT: channel_orders 를 Db::ensureChannelOrders 로 일원화(종전 LiveCommerce 와 중복 제거)
         $exec("CREATE TABLE IF NOT EXISTS channel_inventory (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -282,15 +287,22 @@ final class ChannelSync
      * 기존 'ON CONFLICT ... DO UPDATE'(SQLite 전용)는 운영 MySQL 에서 1064 문법오류로
      * 커머스 동기화 영속(saveProducts/saveOrders/inventory/saveCredential)이 통째로 실패했다.
      */
-    private static function upsertTail(PDO $pdo, string $conflictCols, array $setCols): string
+    /**
+     * [277차] $coalesceCols — 새 값이 NULL 이면 기존 값을 보존하는 컬럼(이미지·상세HTML 등 '가끔만 채워지는' 필드).
+     *   목록수집(대표이미지만)과 상세수집(상세HTML·추가이미지)이 서로 다른 시점에 같은 행을 upsert 하므로,
+     *   무조건 excluded.* 로 덮으면 나중 수집이 앞선 수집분을 NULL 로 지운다. $table 은 SQLite 참조용.
+     */
+    private static function upsertTail(PDO $pdo, string $conflictCols, array $setCols, array $coalesceCols = [], string $table = ''): string
     {
         $isMy = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql';
         if ($isMy) {
-            $sets = implode(',', array_map(static fn($c) => "$c=VALUES($c)", $setCols));
-            return " ON DUPLICATE KEY UPDATE $sets";
+            $sets = array_map(static fn($c) => "$c=VALUES($c)", $setCols);
+            foreach ($coalesceCols as $c) { $sets[] = "$c=COALESCE(VALUES($c), $c)"; }
+            return " ON DUPLICATE KEY UPDATE " . implode(',', $sets);
         }
-        $sets = implode(',', array_map(static fn($c) => "$c=excluded.$c", $setCols));
-        return " ON CONFLICT($conflictCols) DO UPDATE SET $sets";
+        $sets = array_map(static fn($c) => "$c=excluded.$c", $setCols);
+        foreach ($coalesceCols as $c) { $sets[] = "$c=COALESCE(excluded.$c, {$table}.$c)"; }
+        return " ON CONFLICT($conflictCols) DO UPDATE SET " . implode(',', $sets);
     }
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -809,6 +821,11 @@ final class ChannelSync
                 'price'     => (float)($cp['discountedPrice'] ?? $cp['salePrice'] ?? 0),
                 'inventory' => (int)($cp['stockQuantity'] ?? 0),
                 'status'    => strtolower((string)($cp['statusType'] ?? 'sale')),
+                // [277차] 목록 응답에도 대표이미지가 이미 실려 온다(channelProducts[0].representativeImage.url).
+                //   추가 호출 0회인데 종전엔 읽지 않아 버렸다. 상세HTML·추가이미지는 상세 EP 전용 → naverEnrichDetails.
+                'image_url' => (string)($cp['representativeImage']['url'] ?? '') ?: null,
+                'category'  => (string)($cp['wholeCategoryName'] ?? ''),
+                'origin_product_no' => (string)($c['originProductNo'] ?? $pid),
                 'source'    => 'live',
             ];
         }
@@ -820,9 +837,84 @@ final class ChannelSync
         ];
     }
 
+    /**
+     * [277차] 네이버 이미지 업로드 — originProduct.images 는 **공개 URL** 만 받는다.
+     *   그런데 상품등록(PriceOpt)은 이미지를 base64 dataURL 로 보관하므로 그대로 push 하면 400 이다.
+     *   dataURL 만 네이버 이미지 서버에 업로드해 URL 로 치환하고, 이미 http(s) URL 인 항목은 그대로 통과시킨다.
+     *   업로드 실패분은 제외(이미지 없는 등록이 전체 400 보다 낫다 — 부분성공 우선).
+     *   @param array $imgs 원본(dataURL 또는 URL) 목록
+     *   @return array 공개 URL 목록
+     */
+    private static function naverUploadImages(string $token, array $imgs): array
+    {
+        $out = [];
+        foreach ($imgs as $img) {
+            $img = (string)$img;
+            if ($img === '') continue;
+            if (str_starts_with($img, 'http://') || str_starts_with($img, 'https://')) { $out[] = $img; continue; }
+            if (!preg_match('#^data:(image/[a-zA-Z0-9.+-]+);base64,(.+)$#s', $img, $m)) continue;
+            $bin = base64_decode($m[2], true);
+            if ($bin === false || strlen($bin) < 64) continue;
+            $mime = $m[1];
+            $ext  = ['image/png' => 'png', 'image/jpeg' => 'jpg', 'image/gif' => 'gif', 'image/webp' => 'webp'][$mime] ?? 'jpg';
+            $tmp  = tempnam(sys_get_temp_dir(), 'gnv_');
+            if ($tmp === false || @file_put_contents($tmp, $bin) === false) { if ($tmp) @unlink($tmp); continue; }
+            $ch = curl_init('https://api.commerce.naver.com/external/v1/product-images/upload');
+            curl_setopt_array($ch, [
+                CURLOPT_POST => true, CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 30,
+                CURLOPT_HTTPHEADER => ["Authorization: Bearer {$token}"], // Content-Type 은 curl 이 boundary 와 함께 설정
+                CURLOPT_POSTFIELDS => ['imageFiles' => new \CURLFile($tmp, $mime, 'image.' . $ext)],
+            ]);
+            $resp = curl_exec($ch);
+            $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+            @unlink($tmp);
+            if ($code < 200 || $code >= 300) continue;
+            $body = json_decode((string)$resp, true);
+            $u = (string)($body['images'][0]['url'] ?? '');
+            if ($u !== '') $out[] = $u;
+        }
+        return $out;
+    }
+
+    /**
+     * [277차] 네이버 상품 상세 보강 — 상세HTML·추가이미지는 목록(products/search)에 없고
+     *   `GET /external/v2/products/origin-products/{originProductNo}` 에만 있다(실 응답 검증 완료).
+     *   상품당 1회 호출(N+1)이라 $limit 로 상한. 초과분은 catalog_sync_job 백그라운드가 이어받는다.
+     *   실패 건은 조용히 건너뛴다(목록 수집분은 그대로 저장 — 부분성공 우선).
+     *   @param array $products naverProductsPage 산출물(origin_product_no 보유)
+     */
+    private static function naverEnrichDetails(string $token, array $products, int $limit): array
+    {
+        $hdr = ['Authorization' => "Bearer {$token}", 'Content-Type' => 'application/json'];
+        $done = 0;
+        foreach ($products as $i => $p) {
+            if ($done >= $limit) break;
+            $no = (string)($p['origin_product_no'] ?? '');
+            if ($no === '') continue;
+            [$code, $body] = self::httpGet("https://api.commerce.naver.com/external/v2/products/origin-products/{$no}", $hdr);
+            $done++;
+            if ($code !== 200 || !is_array($body)) continue;
+            $op = (array)($body['originProduct'] ?? []);
+            $detail = (string)($op['detailContent'] ?? '');
+            if ($detail !== '') $products[$i]['detail_html'] = $detail;
+            $rep = (string)($op['images']['representativeImage']['url'] ?? '');
+            if ($rep !== '') $products[$i]['image_url'] = $rep;
+            $imgs = [];
+            if ($rep !== '') $imgs[] = $rep;
+            foreach ((array)($op['images']['optionalImages'] ?? []) as $oi) {
+                $u = (string)($oi['url'] ?? '');
+                if ($u !== '') $imgs[] = $u;
+            }
+            if ($imgs) $products[$i]['images'] = $imgs;
+        }
+        return $products;
+    }
+
     /** [M6/276차] 네이버 상품 수집 — 페이지네이션(최대 $maxPages 페이지×100). 대량 카탈로그는 상위(syncTenantChannel)가
-     *   나머지를 catalog_sync_job 백그라운드로 위임한다. 실패 시 빈배열. */
-    private static function naverProducts(string $token, int $maxPages = 10): array
+     *   나머지를 catalog_sync_job 백그라운드로 위임한다. 실패 시 빈배열.
+     *   [277차] 수집 후 상세(이미지·상세HTML) 보강 — 동기 경로는 $detailLimit 건까지만. */
+    private static function naverProducts(string $token, int $maxPages = 10, int $detailLimit = 20): array
     {
         $all = []; $page = 1; $size = 100;
         do {
@@ -832,6 +924,7 @@ final class ChannelSync
             $totalPages = (int)($r['totalPages'] ?? 1);
             $page++;
         } while ($page <= $totalPages && $page <= $maxPages);
+        if ($detailLimit > 0 && $all) $all = self::naverEnrichDetails($token, $all, $detailLimit);
         return $all;
     }
 
@@ -930,6 +1023,9 @@ final class ChannelSync
                 if ((int)($r['http'] ?? 0) !== 200) break;
                 $prods = (array)($r['products'] ?? []);
                 if (!$prods) { $lastTotalPages = (int)($r['totalPages'] ?? $page); break; }
+                // [277차] 백그라운드는 시간 여유가 있으므로 페이지 전량(최대 $size)을 상세 보강해 저장한다.
+                //   대표이미지는 목록에 이미 있고, 상세HTML·추가이미지만 상품당 1회 추가 호출.
+                $prods = self::naverEnrichDetails($token, $prods, count($prods));
                 $saved += self::saveProducts($pdo, $tenant, $channel, $prods);
                 $fetched += count($prods);
                 $lastTotalPages = (int)($r['totalPages'] ?? $page);
@@ -2373,11 +2469,27 @@ final class ChannelSync
         $token = (string)($tb['access_token'] ?? '');
         if ($token === '') return ['ok' => false, 'error' => "Naver 토큰 발급 실패(code={$tc})"];
         $price = (int)round((float)($p['price'] ?? 0)); $name = (string)($p['name'] ?? $p['sku'] ?? '');
-        $payload = json_encode(['originProduct' => [
+        // [277차] 상세페이지(HTML)·상품이미지 실림. 종전엔 detailContent 에 spec(규격 한 줄)만 넣고 이미지는
+        //   아예 전송하지 않아, 채널에 등록된 상품이 이미지 없는 빈 상세로 올라갔다.
+        //   실 API 구조(진단 검증): originProduct.images.{representativeImage:{url}, optionalImages:[{url}]}
+        $detail = (string)($p['detail_html'] ?? '');
+        if ($detail === '') $detail = (string)($p['spec'] ?? $name);
+        $origin = [
             'statusType' => ($op === 'unregister' ? 'SUSPENSION' : 'SALE'), 'saleType' => 'NEW', 'leafCategoryId' => $leaf,
-            'name' => $name, 'detailContent' => (string)($p['spec'] ?? $name), 'salePrice' => $price,
+            'name' => $name, 'detailContent' => $detail, 'salePrice' => $price,
             'stockQuantity' => (int)($p['inventory'] ?? 0), 'sellerCodeInfo' => ['sellerManagementCode' => (string)($p['sku'] ?? '')],
-        ]], JSON_UNESCAPED_UNICODE);
+        ];
+        // 이미지: 첫 장이 대표, 나머지는 추가이미지(네이버 상한 9장).
+        //   ★상품등록 폼은 base64 dataURL 로 보관 → 업로드해 공개 URL 로 치환해야 API 가 수용한다.
+        $imgs = array_values(array_filter(array_map('strval', (array)($p['images'] ?? [])), static fn($u) => $u !== ''));
+        if (!$imgs && (string)($p['image_url'] ?? '') !== '') $imgs = [(string)$p['image_url']];
+        if ($imgs) $imgs = self::naverUploadImages($token, $imgs);
+        if ($imgs) {
+            $origin['images'] = ['representativeImage' => ['url' => $imgs[0]]];
+            $extra = array_slice($imgs, 1, 9);
+            if ($extra) $origin['images']['optionalImages'] = array_map(static fn($u) => ['url' => $u], $extra);
+        }
+        $payload = json_encode(['originProduct' => $origin], JSON_UNESCAPED_UNICODE);
         $hdr = ['Authorization' => "Bearer {$token}", 'Content-Type' => 'application/json'];
         if ($cpid !== null) { [$c, $b] = self::httpReq('PUT', "https://api.commerce.naver.com/external/v2/products/origin-products/{$cpid}", $hdr, $payload); }
         else { [$c, $b] = self::httpPost('https://api.commerce.naver.com/external/v2/products', $hdr, $payload); }
@@ -2903,11 +3015,15 @@ final class ChannelSync
     {
         $count = 0;
         $now   = gmdate('c');
+        // [277차] image_url·detail_html·images_json 저장 배선. 종전엔 INSERT 목록에 image_url 조차 없어
+        //   Shopify/WooCommerce 가 읽어온 이미지도 raw_json 안에만 남고 버려졌다(네이버는 읽지도 않았음).
+        //   이미지·상세는 목록수집/상세수집이 시점을 달리하므로 COALESCE 병합(새 값 NULL 이면 기존 보존).
         $stmt  = $pdo->prepare("INSERT INTO channel_products
-            (tenant_id,channel,channel_product_id,sku,name,price,compare_price,inventory,status,category,weight,variants_json,raw_json,synced_at)
-            VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+            (tenant_id,channel,channel_product_id,sku,name,price,compare_price,inventory,status,category,weight,variants_json,raw_json,synced_at,image_url,detail_html,images_json)
+            VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
             . self::upsertTail($pdo, 'tenant_id,channel,channel_product_id',
-                ['name','price','inventory','status','category','synced_at']));
+                ['name','price','inventory','status','category','synced_at'],
+                ['image_url','detail_html','images_json'], 'channel_products'));
         foreach ($products as $p) {
             if (!($p['channel_product_id'] ?? null)) continue;
             // 188차 P0 보안: 데모 데이터의 운영 DB 유입 차단(전 채널 단일 chokepoint).
@@ -2921,6 +3037,10 @@ final class ChannelSync
                 (int)($p['inventory'] ?? 0), $p['status'] ?? 'active',
                 $p['category'] ?? null, (float)($p['weight'] ?? 0),
                 json_encode($p['variants'] ?? []), json_encode($p), $now,
+                // 빈 문자열은 NULL 로 정규화해야 COALESCE 병합이 기존 값을 보존한다.
+                (($p['image_url'] ?? '') !== '') ? $p['image_url'] : null,
+                (($p['detail_html'] ?? '') !== '') ? $p['detail_html'] : null,
+                !empty($p['images']) ? json_encode($p['images'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : null,
             ]);
             // 재고 테이블도 업데이트
             $inv = $pdo->prepare("INSERT INTO channel_inventory(tenant_id,channel,sku,product_name,available,synced_at)
