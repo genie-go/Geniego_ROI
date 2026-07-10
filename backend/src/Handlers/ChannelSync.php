@@ -876,6 +876,37 @@ final class ChannelSync
      *   @param array $imgs 원본(dataURL 또는 URL) 목록
      *   @return array 공개 URL 목록
      */
+    /**
+     * [277차] 채널별 이미지 선업로드 — base64 dataURL 을 **공개 URL** 로 바꾼다.
+     *   왜 필요한가: 상품등록 폼은 이미지를 dataURL(장당 1~2MB)로 보관하는데, 이를 catalog_listing 에 저장하면
+     *   MySQL max_allowed_packet(1MB)·TEXT 한계를 넘겨 HTTP 500 이 난다. 저장 전에 URL 로 치환하면
+     *   DB 에는 수백 바이트만 남고, 큐 재시도·수정(PUT) 때도 같은 URL 을 재사용할 수 있다.
+     *   업로드를 지원하지 않는 채널은 dataURL 을 **버린다**(가짜 URL 을 만들지 않는다 — 정직).
+     *   @return array{urls: array<string>, dropped: int} 공개 URL 목록과 버린 dataURL 수
+     */
+    public static function uploadImagesForChannel(string $channel, array $creds, array $images): array
+    {
+        $urls = []; $pending = [];
+        foreach ($images as $u) {
+            $u = (string)$u;
+            if ($u === '') continue;
+            if (str_starts_with($u, 'http://') || str_starts_with($u, 'https://')) $urls[] = $u;
+            elseif (str_starts_with($u, 'data:')) $pending[] = $u;
+        }
+        if (!$pending) return ['urls' => $urls, 'dropped' => 0];
+
+        $ch = strtolower(trim($channel));
+        if (in_array($ch, ['naver', 'naver_smartstore'], true)) {
+            $token = self::naverAccessToken($creds);
+            if ($token) {
+                $up = self::naverUploadImages($token, $pending);
+                return ['urls' => array_merge($urls, $up), 'dropped' => count($pending) - count($up)];
+            }
+        }
+        // 미지원 채널: dataURL 은 DB 에 저장하지 않고 버린다(이미지 없이 등록되며, 호출부가 이 사실을 알린다).
+        return ['urls' => $urls, 'dropped' => count($pending)];
+    }
+
     private static function naverUploadImages(string $token, array $imgs): array
     {
         $out = [];
@@ -2588,16 +2619,18 @@ final class ChannelSync
             $filled = self::naverFillMissingFields($body, (array)($b['invalidInputs'] ?? []), $p);
             if (!$filled) break;   // 채울 게 없으면 재시도 무의미
         }
-        // 사용자가 무엇을 고쳐야 하는지 알 수 있도록 네이버의 지적사항을 그대로 전달한다(name 이 없으면 message).
+        // 사용자가 무엇을 고쳐야 하는지 알 수 있도록 네이버의 지적사항을 **행동 가능한 한국어**로 전달한다.
         $detailMsg = $b['message'] ?? $b;
         if (!empty($b['invalidInputs'])) {
             $hints = [];
             foreach ((array)$b['invalidInputs'] as $i) {
                 $n = (string)($i['name'] ?? '');
-                $hints[] = $n !== '' ? preg_replace('/^originProduct\.(detailAttribute\.)?/', '', $n) : (string)($i['message'] ?? '');
+                if ($n === '') { $hints[] = (string)($i['message'] ?? ''); continue; }
+                $short = preg_replace('/^originProduct\.(detailAttribute\.)?/', '', $n);
+                $hints[] = self::naverFieldHint($short);
             }
             $hints = array_values(array_filter(array_unique($hints)));
-            $detailMsg = ($b['message'] ?? '') . ' → ' . implode(', ', array_slice($hints, 0, 5));
+            $detailMsg = ($b['message'] ?? '') . ' → ' . implode(' / ', array_slice($hints, 0, 4));
         }
         return ['ok' => false, 'error' => "Naver HTTP {$c}", 'detail' => mb_substr(is_string($detailMsg) ? $detailMsg : json_encode($detailMsg, JSON_UNESCAPED_UNICODE), 0, 300)];
     }
@@ -2756,6 +2789,33 @@ final class ChannelSync
             unset($ref);
         }
         return $changed;
+    }
+
+    /**
+     * [277차] 네이버 필드 경로 → 사용자가 무엇을 해야 하는지 알 수 있는 한국어 안내.
+     *   자가치유가 채우지 못하는 필드(=사용자 입력이 필요한 값)만 실제로 노출된다.
+     */
+    private static function naverFieldHint(string $path): string
+    {
+        $leaf = (string)(explode('.', $path)[count(explode('.', $path)) - 1] ?? $path);
+        static $map = [
+            'expirationDate' => "상품등록의 '유효일자(사용기한)'를 입력하세요",
+            'manufactureDate' => "상품등록의 '제조일자'를 입력하세요",
+            'leafCategoryId'  => '채널 카테고리를 선택하세요',
+            'deliveryCompany' => "배송/반품 설정의 '택배사'를 지정하세요",
+            'images'          => '대표 이미지가 필요합니다 — 상품등록에서 이미지를 추가하세요',
+            'representativeImage' => '대표 이미지가 필요합니다 — 상품등록에서 이미지를 추가하세요',
+            'salePrice'       => '판매가는 0보다 커야 합니다',
+            'stockQuantity'   => '재고 수량을 입력하세요',
+            'name'            => '상품명을 입력하세요',
+            'afterServiceTelephoneNumber' => "상품등록의 'A/S 전화번호'를 입력하세요",
+            'originAreaCode'  => '원산지를 입력하세요',
+        ];
+        if (isset($map[$leaf])) return $map[$leaf];
+        if (str_contains($path, 'productInfoProvidedNotice')) {
+            return "상품정보제공고시 항목({$leaf})을 입력하세요";
+        }
+        return $path;   // 매핑 없는 필드는 원문 그대로(거짓 안내 금지)
     }
 
     /**

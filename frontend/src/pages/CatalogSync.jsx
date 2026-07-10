@@ -290,6 +290,38 @@ const BulkRegisterModal = memo(function BulkRegisterModal({ selectedIds, product
     const [done, setDone] = useState(false);
     // [277차] 채널이 반환한 실제 결과(성공/실패 사유). 종전엔 console 로만 흘려 화면은 성공처럼 보였다.
     const [results, setResults] = useState([]);
+    const [retrying, setRetrying] = useState('');
+
+    /**
+     * [277차] 카테고리 후보 선택 → 그 코드로 즉시 재전송.
+     *   네이버 리프카테고리(5,011개)를 사용자가 손으로 찾는 것은 불가능하므로, 서버가 상품명 기반으로
+     *   추린 후보를 눌러 바로 등록한다(선택 결과는 서버가 채널 카테고리 매핑에 학습 저장).
+     */
+    const retryWithCategory = async (r, code) => {
+        const key = `${r.chId}:${r.sku}`;
+        setRetrying(key);
+        try {
+            const prod = r.prod || {};
+            const imgs = Array.isArray(prod.images) ? prod.images.filter(Boolean) : [];
+            const d = await postJson(`/api/catalog/writeback/${encodeURIComponent(r.chId)}/${encodeURIComponent(r.sku)}`, {
+                price: prod.price, name: prod.name, category: prod.category, inventory: prod.inventory, spec: prod.spec,
+                detail_html: prod.detailHtml || '',
+                image_url: (typeof prod.image === 'string' && /^(https?:|data:)/.test(prod.image)) ? prod.image : (imgs[0] || ''),
+                images: imgs,
+                ...(prod._meta || {}),
+                category_code: code,
+                action: 'register',
+            });
+            setResults(prev => prev.map(x => (x.chId === r.chId && x.sku === r.sku)
+                ? { ...x, ok: !!d.ok, status: d.status, error: d.error || null, suggestions: d.category_suggestions || [] }
+                : x));
+        } catch (e) {
+            setResults(prev => prev.map(x => (x.chId === r.chId && x.sku === r.sku)
+                ? { ...x, ok: false, status: 'network_error', error: e.message } : x));
+        } finally {
+            setRetrying('');
+        }
+    };
 
     const selProds = products.filter(p => selectedIds.has(p.id));
     const toggleCh = id => { const n = new Set(selChs); n.has(id) ? n.delete(id) : n.add(id); setSelChs(n); };
@@ -353,7 +385,8 @@ const BulkRegisterModal = memo(function BulkRegisterModal({ selectedIds, product
                         });
                         // [277차] 서버는 이제 동기 실행 후 **채널의 진짜 결과**를 준다(done/failed/queued + error).
                         //   종전엔 성공 개수만 세어, 채널이 거부해도 사용자는 이유를 알 수 없었다(문제 반복의 근본).
-                        results.push({ chId, sku: prod.sku, ok: !!d.ok, status: d.status, error: d.error || null });
+                        results.push({ chId, sku: prod.sku, ok: !!d.ok, status: d.status, error: d.error || null,
+                                       warning: d.warning || null, suggestions: d.category_suggestions || [], prod });
                         if (!d.ok) hasError = true;
                     } catch (e) {
                         results.push({ chId, sku: prod.sku, ok: false, status: 'network_error', error: e.message });
@@ -613,9 +646,14 @@ const BulkRegisterModal = memo(function BulkRegisterModal({ selectedIds, product
                             </div>
                         </label>
 
-                        {done ? (
+                        {/* [277차] ★실패했는데 "등록 완료"가 함께 뜨던 오표기 수정 — 하나라도 실패하면 완료 배너를 띄우지 않는다. */}
+                        {done && results.length > 0 && results.every(r => r.ok) ? (
                             <div style={{ textAlign: "center", padding: "14px", borderRadius: 10, background: "rgba(34,197,94,0.1)", color: "#22c55e", fontWeight: 700, fontSize: 14 }}>
                                 {t('catalogSync.registerDoneMsg', { prodCount: selProds.length, chCount: selChsArr.length })}
+                            </div>
+                        ) : done && results.some(r => !r.ok) ? (
+                            <div style={{ textAlign: "center", padding: "14px", borderRadius: 10, background: "rgba(239,68,68,0.08)", color: "#dc2626", fontWeight: 700, fontSize: 14 }}>
+                                {t('catalogSync.registerFailedMsg', '채널 등록에 실패했습니다 — 아래 채널 응답을 확인하세요')}
                             </div>
                         ) : (
                             <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
@@ -645,6 +683,27 @@ const BulkRegisterModal = memo(function BulkRegisterModal({ selectedIds, product
                                             </span>
                                             <span style={{ color: "#64748b", marginLeft: 6 }}>{r.status}</span>
                                             {r.error && <div style={{ color: "#b91c1c", marginTop: 2, wordBreak: "break-word" }}>{r.error}</div>}
+                                            {r.warning && <div style={{ color: "#b45309", marginTop: 2 }}>⚠️ {r.warning}</div>}
+                                            {/* [277차] 카테고리 후보 — 클릭 시 그 코드로 즉시 재전송(수동 ID 입력 불가 대응) */}
+                                            {!r.ok && r.suggestions && r.suggestions.length > 0 && (
+                                                <div style={{ marginTop: 6 }}>
+                                                    <div style={{ color: "#475569", marginBottom: 4 }}>
+                                                        {t('catalogSync.pickCategory', '카테고리를 선택하면 바로 등록합니다')}
+                                                    </div>
+                                                    <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+                                                        {r.suggestions.map(s => (
+                                                            <button key={s.code} disabled={!!retrying}
+                                                                onClick={() => retryWithCategory(r, s.code)}
+                                                                title={`${s.label} (${s.code})`}
+                                                                style={{ padding: "4px 8px", borderRadius: 999, border: "1px solid #cbd5e1",
+                                                                    background: retrying === `${r.chId}:${r.sku}` ? "#e2e8f0" : "#fff",
+                                                                    fontSize: 10, cursor: retrying ? "not-allowed" : "pointer", color: "#334155" }}>
+                                                                {s.label}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     ))}
                                 </div>

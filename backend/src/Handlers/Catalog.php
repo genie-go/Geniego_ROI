@@ -136,6 +136,20 @@ class Catalog
         foreach (['detail_html TEXT', 'images_json TEXT', 'image_url TEXT', 'category_code TEXT'] as $col) {
             try { $pdo->exec("ALTER TABLE catalog_listing ADD COLUMN $col"); } catch (\Throwable $e) { /* 이미 존재 */ }
         }
+        // [277차] ★TEXT(64KB) 초과로 500 — 상품등록 폼은 이미지를 base64 dataURL(장당 1~2MB)로 보관하므로
+        //   images_json/image_url/detail_html 이 TEXT 한계를 즉시 넘겨 "Data too long" 예외 → HTTP 500.
+        //   MySQL 만 LONGTEXT 로 승격(멱등·SQLite 는 타입 길이 제한 없음).
+        if (self::isMysql($pdo)) {
+            foreach ([
+                'catalog_listing MODIFY COLUMN detail_html LONGTEXT',
+                'catalog_listing MODIFY COLUMN images_json LONGTEXT',
+                'catalog_listing MODIFY COLUMN image_url LONGTEXT',
+                'catalog_writeback_job MODIFY COLUMN payload LONGTEXT',
+                'catalog_writeback_job MODIFY COLUMN result LONGTEXT',
+            ] as $mod) {
+                try { $pdo->exec("ALTER TABLE $mod"); } catch (\Throwable $e) { /* 이미 승격됨 */ }
+            }
+        }
         // [277차] 채널 카테고리 카탈로그 캐시 — 네이버 leafCategoryId(5,827건) 등 채널 필수 코드의 로컬 사본.
         //   종전엔 코드를 얻을 수단이 없어 신규 상품등록이 전부 거부됐다. 채널당 1회 수집 → 검색·매핑에 재사용.
         if (self::isMysql($pdo)) {
@@ -310,7 +324,11 @@ class Catalog
         }
         $oldPrice = self::currentPrice($pdo, $tenant, $channel, $sku); // 변경 전 등록가(없으면 null)
         $newPrice = (float)($f['price'] ?? 0);
-        $imgs = array_values(array_filter(array_map('strval', (array)($f['images'] ?? [])), static fn($u) => $u !== ''));
+        // [277차] MySQL max_allowed_packet(기본 1MB) 방어 — 이미지는 writeback 진입 시 URL 로 치환되지만,
+        //   dataURL 이 남아 있거나 상세HTML 이 과대하면 쿼리 자체가 실패해 500 이 된다. 저장 대상만 안전하게 제한한다.
+        //   (전송에는 원본이 이미 쓰였으므로 채널 등록 결과에는 영향 없다.)
+        $imgs = array_values(array_filter(array_map('strval', (array)($f['images'] ?? [])),
+            static fn($u) => $u !== '' && !str_starts_with($u, 'data:')));
         $st = $pdo->prepare($sql);
         $st->execute([
             ':t' => $tenant, ':c' => $channel, ':s' => $sku,
@@ -318,9 +336,9 @@ class Catalog
             ':p' => $newPrice, ':inv' => (int)($f['inventory'] ?? 0),
             ':spec' => (string)($f['spec'] ?? ''), ':act' => (string)($f['action'] ?? 'register'),
             ':st' => $status, ':now' => $now, ':now2' => $now,
-            ':dh' => (string)($f['detail_html'] ?? ''),
+            ':dh' => mb_substr((string)($f['detail_html'] ?? ''), 0, 400000),   // 상세HTML 저장 상한(전송본은 원본)
             ':ij' => $imgs ? json_encode($imgs, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : '',
-            ':iu' => (string)($f['image_url'] ?? ''),
+            ':iu' => str_starts_with((string)($f['image_url'] ?? ''), 'data:') ? '' : (string)($f['image_url'] ?? ''),
             ':cc' => (string)($f['category_code'] ?? ''),
         ]);
         // 기존 리스팅의 실제 가격 변경만 이력화(신규 등록은 변경 아님 → 제외).
@@ -348,6 +366,26 @@ class Catalog
             $ov = \Genie\PlanLimits::productOverage($pdo, $tenant, \Genie\PlanLimits::productCount($pdo, $tenant));
             if ($ov !== null) return self::jsonRes($res, $ov, 402);
         }
+        // [277차] ★이미지 선업로드 — 상품등록 폼은 이미지를 base64 dataURL(장당 1~2MB)로 보관한다.
+        //   그대로 catalog_listing 에 저장하면 MySQL max_allowed_packet(1MB)·TEXT 한계를 넘겨 HTTP 500 이 난다
+        //   (사용자 신고: "채널 등록 최종 단계에서 500"). 저장 **전에** 채널에 업로드해 공개 URL 로 치환하면
+        //   DB 에는 수백 바이트만 남고, 큐 재시도·수정(PUT)에서도 같은 URL 을 재사용한다.
+        $imgNote = null;
+        $rawImgs = array_values(array_filter(array_map('strval', (array)($body['images'] ?? [])), static fn($u) => $u !== ''));
+        if (!$rawImgs && (string)($body['image_url'] ?? '') !== '') $rawImgs = [(string)$body['image_url']];
+        if ($rawImgs && !in_array($action, ['unregister', 'disconnect'], true)) {
+            $creds = self::loadChannelCreds($pdo, $tenant, $channel);
+            $up = $creds ? ChannelSync::uploadImagesForChannel($channel, $creds, $rawImgs)
+                         : ['urls' => array_values(array_filter($rawImgs, static fn($u) => !str_starts_with($u, 'data:'))),
+                            'dropped' => count(array_filter($rawImgs, static fn($u) => str_starts_with($u, 'data:')))];
+            $body['images']    = $up['urls'];
+            $body['image_url'] = $up['urls'][0] ?? '';
+            if (!empty($up['dropped'])) {
+                $imgNote = "이미지 {$up['dropped']}장을 채널에 업로드하지 못했습니다"
+                    . ($creds ? '(채널이 이미지 업로드를 지원하지 않거나 파일이 유효하지 않습니다).' : '(채널 자격증명 없음).');
+            }
+        }
+
         // 기존 리스팅과 병합(누락 필드는 기존값 보존 → execute 시 부분 payload 로 인한 데이터 손실 방지).
         $f = self::mergeWithExisting($pdo, $tenant, $channel, $sku, $body, $action);
         $status = self::channelStatus($pdo, $tenant, $channel, $action);
@@ -370,11 +408,20 @@ class Catalog
             $sum = self::processWritebackQueue($pdo, $tenant, $channel, 1);
             $jr = self::latestJobResult($pdo, $tenant, $channel, $sku);
             $jobDone = ($jr['status'] ?? '') === 'done';
+            $err = $jobDone ? null : ($jr['error'] ?? null);
+            // [277차] 카테고리 때문에 실패했다면 후보를 함께 준다 — 사용자가 5,011개 리프 중 하나를
+            //   손으로 찾는 것은 불가능하다. 자동매칭 상위 후보를 제시하고, 선택 시 category_code 로 재전송한다.
+            $suggestions = [];
+            if ($err !== null && preg_match('/leafCategoryId|카테고리|displayCategoryCode|category/iu', (string)$err)) {
+                $suggestions = self::rankChannelCategories($pdo, $tenant, $channel, $f, 5);
+            }
             return self::jsonRes($res, [
                 'ok'      => $jobDone,
                 'status'  => $jr['status'] ?? $status,   // done | failed | queued(재시도 대기) | awaiting_credentials
                 'channel' => $channel, 'sku' => $sku,
-                'error'   => $jobDone ? null : ($jr['error'] ?? null),
+                'error'   => $err,
+                'warning' => $imgNote,                   // 이미지 일부 업로드 실패 등(등록 자체는 진행)
+                'category_suggestions' => $suggestions,  // [{code,label,score}]
                 'attempt' => $jr['attempt'] ?? null,
                 'summary' => $sum,
             ]);
@@ -494,6 +541,14 @@ class Catalog
        ════════════════════════════════════════════════════════════════════════ */
 
     private const HIGH_VALUE_KRW = 5000000.0; // 고액 상품 → 승인 게이트 임계
+
+    /**
+     * [277차] 채널 카테고리 자동 적용 임계 점수.
+     *   말단 카테고리명 정확일치(3.0) 또는 부분일치(1.8)+경로일치(1.0) 이상이어야 자동 적용한다.
+     *   실측: 3.0 미만에서는 '수분크림'→화장품세트, '비타민C'→비타민A 같은 오매칭이 나온다.
+     *   미달 시 자동 적용하지 않고 후보를 사용자에게 제시한다(잘못된 카테고리 등록 = 채널 페널티).
+     */
+    private const CATEGORY_AUTO_THRESHOLD = 3.0;
 
     /** 기존 catalog_listing 행과 병합(body 우선, 누락 필드는 기존값 보존). title→name 폴백. */
     private static function mergeWithExisting(\PDO $pdo, string $tenant, string $channel, string $sku, array $body, string $action): array
@@ -642,6 +697,12 @@ class Catalog
     {
         try {
             $now = self::now();
+            // [277차] 대용량 필드(base64 dataURL 이미지·상세HTML)는 catalog_listing 에 이미 저장되고
+            //   큐 소비 시 currentListing 으로 복원된다. payload 에 중복 저장하면 잡 테이블이 수 MB 씩 비대해지고
+            //   TEXT 한계를 넘겨 기록이 조용히 실패한다(logJob 은 best-effort catch). 참조용 요약만 남긴다.
+            $payload['images'] = count((array)($payload['images'] ?? []));
+            $payload['detail_html'] = strlen((string)($payload['detail_html'] ?? '')) . 'B';
+            $payload['image_url'] = mb_substr((string)($payload['image_url'] ?? ''), 0, 120);
             $pdo->prepare("INSERT INTO catalog_writeback_job(tenant_id,channel,sku,operation,status,attempt,payload,created_at,updated_at)
                            VALUES(?,?,?,?,?,1,?,?,?)")
                 ->execute([$tenant, $channel, $sku, $operation, $status, json_encode($payload, JSON_UNESCAPED_UNICODE), $now, $now]);
@@ -886,6 +947,10 @@ class Catalog
             }
             $jobPayload = json_decode((string)$j['payload'], true) ?: [];
             $product = self::currentListing($pdo, $t, $ch, $sku) ?: $jobPayload;
+            // [277차] payload 의 images/detail_html 은 용량 절감을 위한 **요약값**(개수·바이트수)이다.
+            //   currentListing 폴백 시 그 요약이 실제 데이터로 오인되지 않도록 정규화한다.
+            if (!is_array($product['images'] ?? null)) $product['images'] = [];
+            if (isset($product['detail_html']) && preg_match('/^\d+B$/', (string)$product['detail_html'])) $product['detail_html'] = '';
             $product['sku'] = $sku;
             // [277차] 채널 필수 메타(고시·배송/반품·AS·원산지) 복원 — catalog_listing 에 없는 필드라 payload 가 유일 출처.
             //   이게 빠지면 네이버 신규등록이 400(productInfoProvidedNotice NotEmpty 등)으로 영구 실패한다.
@@ -1006,22 +1071,112 @@ class Catalog
         } catch (\Throwable $e) { return []; }
     }
 
-    /** [227차] 채널 카테고리코드 해석: ①상품 명시 category_code ②채널 매핑(channel_category_map[category]) ③빈값. */
+    /**
+     * [227차] 채널 카테고리코드 해석: ①상품 명시 category_code ②채널 매핑(channel_category_map[category])
+     * [277차] ③**자동 매칭** — 채널 카테고리 카탈로그(리프)에서 상품명/카테고리 텍스트와 가장 잘 맞는 리프를 고른다.
+     *   사용자가 네이버 리프카테고리ID(5,011개)를 손으로 지정하는 것은 현실적으로 불가능하다.
+     *   확신이 낮으면 **지어내지 않고 빈값을 반환**해 어댑터가 정직하게 거부하게 둔다.
+     */
     private static function resolveChannelCategory(\PDO $pdo, string $tenant, string $channel, array $product): string
     {
         $explicit = trim((string)($product['category_code'] ?? ''));
         if ($explicit !== '') return $explicit;
         $cat = trim((string)($product['category'] ?? ''));
-        if ($cat === '') return '';
         try {
             // [228차] 별칭 정합 — 카테고리맵이 registry키(amazon_spapi)로 저장돼도 job채널(amazon)에서 찾도록.
             $aliases = self::channelAliases($channel);
+            if ($cat !== '') {
+                $ph = implode(',', array_fill(0, count($aliases), '?'));
+                $st = $pdo->prepare("SELECT channel_code FROM channel_category_map WHERE tenant_id=? AND channel IN ($ph) AND src_category=? LIMIT 1");
+                $st->execute(array_merge([$tenant], $aliases, [$cat]));
+                $code = $st->fetchColumn();
+                if ($code !== false && (string)$code !== '') return (string)$code;
+            }
+        } catch (\Throwable $e) { /* 아래 자동매칭 */ }
+
+        // ③ 자동 매칭 — ★고확신일 때만 자동 적용한다. 애매한 매칭을 강행하면 엉뚱한 카테고리로 등록돼
+        //   채널 페널티·노출 불이익이 발생한다(실측: '수분크림'→화장품세트, '비타민C'→비타민A 같은 오매칭).
+        //   확신이 낮으면 빈값을 반환하고, 호출부(writeback)가 후보를 사용자에게 제시한다.
+        $auto = self::autoMatchChannelCategory($pdo, $tenant, $channel, $product);
+        if ($auto !== null && $auto['score'] >= self::CATEGORY_AUTO_THRESHOLD) {
+            if ($cat !== '') { try { self::saveCategoryMap($pdo, $tenant, $channel, $cat, $auto['code'], $auto['label']); } catch (\Throwable $e) {} }
+            return $auto['code'];
+        }
+        return '';
+    }
+
+    /**
+     * [277차] 채널 카테고리 자동 매칭.
+     *   후보 = channel_category_catalog 의 리프(등록 가능 카테고리). 카탈로그가 비었으면 채널에서 1회 수집.
+     *   점수 = 상품 텍스트(상품명·카테고리·규격)의 토큰이 카테고리 전체경로에 얼마나 나타나는가 +
+     *          말단 카테고리명 일치 가중. 최고점이 임계값 미만이면 null(날조 금지).
+     *   @return array{code:string,label:string,score:float}|null
+     */
+    private static function autoMatchChannelCategory(\PDO $pdo, string $tenant, string $channel, array $product): ?array
+    {
+        $top = self::rankChannelCategories($pdo, $tenant, $channel, $product, 1);
+        return $top[0] ?? null;
+    }
+
+    /**
+     * [277차] 상품 텍스트로 채널 리프 카테고리 후보를 점수순 반환(자동적용/후보제시 공용).
+     *   @return array<int,array{code:string,label:string,score:float}>
+     */
+    public static function rankChannelCategories(\PDO $pdo, string $tenant, string $channel, array $product, int $limit = 5): array
+    {
+        $text = trim(((string)($product['name'] ?? '')) . ' ' . ((string)($product['category'] ?? '')) . ' ' . ((string)($product['spec'] ?? '')));
+        if ($text === '') return [];
+
+        try {
+            $aliases = self::channelAliases($channel);
             $ph = implode(',', array_fill(0, count($aliases), '?'));
-            $st = $pdo->prepare("SELECT channel_code FROM channel_category_map WHERE tenant_id=? AND channel IN ($ph) AND src_category=? LIMIT 1");
-            $st->execute(array_merge([$tenant], $aliases, [$cat]));
-            $code = $st->fetchColumn();
-            return $code !== false ? (string)$code : '';
-        } catch (\Throwable $e) { return ''; }
+            $cnt = $pdo->prepare("SELECT COUNT(*) FROM channel_category_catalog WHERE tenant_id=? AND channel IN ($ph) AND is_leaf=1");
+            $cnt->execute(array_merge([$tenant], $aliases));
+            if ((int)$cnt->fetchColumn() === 0) {
+                if (self::syncChannelCategories($pdo, $tenant, $channel) === 0) return [];   // 미지원 채널
+            }
+            $st = $pdo->prepare("SELECT code, name, whole_name FROM channel_category_catalog WHERE tenant_id=? AND channel IN ($ph) AND is_leaf=1");
+            $st->execute(array_merge([$tenant], $aliases));
+            $rows = $st->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Throwable $e) { return []; }
+        if (!$rows) return [];
+
+        // 상품 텍스트 토큰(2글자 이상 한글/영문/숫자 덩어리)
+        preg_match_all('/[가-힣]{2,}|[A-Za-z]{3,}|\d{2,}/u', $text, $m);
+        $tokens = array_values(array_unique(array_map(static fn($s) => mb_strtolower($s), $m[0] ?? [])));
+        if (!$tokens) return [];
+
+        $scored = [];
+        foreach ($rows as $r) {
+            $whole = mb_strtolower((string)$r['whole_name']);
+            $leaf  = mb_strtolower((string)$r['name']);
+            $score = 0.0;
+            foreach ($tokens as $tk) {
+                if ($leaf !== '' && $leaf === $tk)                   { $score += 3.0; continue; }  // 말단 정확일치
+                if ($leaf !== '' && mb_strpos($leaf, $tk) !== false) { $score += 1.8; continue; }
+                if (mb_strpos($whole, $tk) !== false)                { $score += 1.0; }
+            }
+            if ($score <= 0) continue;
+            $scored[] = ['code' => (string)$r['code'], 'label' => (string)$r['whole_name'], 'score' => $score, 'len' => mb_strlen($whole)];
+        }
+        if (!$scored) return [];
+        usort($scored, static fn($a, $b) => ($b['score'] <=> $a['score']) ?: ($a['len'] <=> $b['len']));
+        return array_map(
+            static fn($s) => ['code' => $s['code'], 'label' => $s['label'], 'score' => round($s['score'], 1)],
+            array_slice($scored, 0, max(1, $limit))
+        );
+    }
+
+    /** 자동 매칭 결과를 채널 카테고리 매핑에 학습 저장(사용자가 나중에 수정 가능). 멱등. */
+    private static function saveCategoryMap(\PDO $pdo, string $tenant, string $channel, string $srcCategory, string $code, string $label): void
+    {
+        $now = self::now();
+        $sql = self::isMysql($pdo)
+            ? "INSERT INTO channel_category_map(tenant_id,channel,src_category,channel_code,channel_label,created_at,updated_at)
+               VALUES(?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE channel_code=VALUES(channel_code),channel_label=VALUES(channel_label),updated_at=VALUES(updated_at)"
+            : "INSERT INTO channel_category_map(tenant_id,channel,src_category,channel_code,channel_label,created_at,updated_at)
+               VALUES(?,?,?,?,?,?,?) ON CONFLICT(tenant_id,channel,src_category) DO UPDATE SET channel_code=excluded.channel_code,channel_label=excluded.channel_label,updated_at=excluded.updated_at";
+        $pdo->prepare($sql)->execute([$tenant, $channel, $srcCategory, $code, $label, $now, $now]);
     }
 
     /* GET /catalog/category-map[?channel=] — 채널 카테고리 매핑 목록. */
