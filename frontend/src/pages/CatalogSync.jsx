@@ -881,6 +881,154 @@ const BulkPriceModal = memo(function BulkPriceModal({ selectedIds, products, onC
 });
 
 /* ─── Tab: Product 카탈로그 ─────────────────────────────────────────────────────────── */
+/**
+ * [277차] 카테고리 확정 필요 패널.
+ *   자동 매칭 임계(고확신)에 못 미쳐 카테고리가 정해지지 않은 리스팅만 모아 보여준다.
+ *   자동 적용된 상품은 여기 나오지 않는다(확인 불필요). 후보 클릭 또는 직접 검색으로 확정하고 즉시 등록한다.
+ *   ★네이버 리프카테고리는 5,011개 — 사용자가 ID 를 손으로 지정하는 것은 불가능하다.
+ */
+const PendingCategoryPanel = memo(function PendingCategoryPanel({ onDone }) {
+    const { t } = useI18n();
+    const [items, setItems] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [busy, setBusy] = useState('');
+    const [msg, setMsg] = useState({});           // { [key]: {ok, text} }
+    const [searchFor, setSearchFor] = useState(null);  // 검색 모달 대상 item
+    const [q, setQ] = useState('');
+    const [found, setFound] = useState([]);
+    const [searching, setSearching] = useState(false);
+
+    const load = useCallback(() => {
+        setLoading(true);
+        getJsonAuth('/api/catalog/pending-categories')
+            .then(d => setItems(d.items || []))
+            .catch(() => setItems([]))
+            .finally(() => setLoading(false));
+    }, []);
+    useEffect(() => { load(); }, [load]);
+
+    const assign = async (it, code, label) => {
+        const key = `${it.channel}:${it.sku}`;
+        setBusy(key); setMsg(m => ({ ...m, [key]: null }));
+        try {
+            const d = await postJson('/api/catalog/assign-category', {
+                channel: it.channel, sku: it.sku, category_code: code, category_label: label || '', publish: true,
+            });
+            setMsg(m => ({ ...m, [key]: { ok: !!d.ok, text: d.ok ? t('catalogSync.pcDone', '채널에 등록했습니다') : (d.error || d.status) } }));
+            if (d.ok) { setItems(prev => prev.filter(x => !(x.channel === it.channel && x.sku === it.sku))); onDone && onDone(); }
+        } catch (e) {
+            setMsg(m => ({ ...m, [key]: { ok: false, text: e.message } }));
+        } finally { setBusy(''); }
+    };
+
+    const doSearch = async (it, term) => {
+        setSearching(true);
+        try {
+            const qs = new URLSearchParams({ channel: it.channel, ...(term ? { q: term } : {}) }).toString();
+            const d = await getJsonAuth(`/api/catalog/channel-categories?${qs}`);
+            setFound(d.ok ? (d.categories || []) : []);
+        } catch { setFound([]); }
+        finally { setSearching(false); }
+    };
+
+    if (!loading && items.length === 0) return null;   // 확정할 게 없으면 아예 표시하지 않는다
+
+    return (
+        <div style={{ marginBottom: 16, padding: 14, borderRadius: 12, background: "rgba(245,158,11,0.06)", border: "1px solid rgba(245,158,11,0.3)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                <div style={{ fontSize: 13, fontWeight: 800, color: "#b45309" }}>
+                    ⚠️ {t('catalogSync.pcTitle', '카테고리 확정 필요')} ({items.length})
+                </div>
+                <button onClick={load} disabled={loading} style={{ padding: "5px 12px", borderRadius: 6, border: "1px solid #e2e8f0", background: "#fff", fontSize: 11, cursor: "pointer" }}>
+                    {loading ? '…' : t('catalogSync.pcRefresh', '새로고침')}
+                </button>
+            </div>
+            <div style={{ fontSize: 11, color: "#92400e", marginBottom: 10 }}>
+                {t('catalogSync.pcHint', '자동으로 확실하게 매칭된 상품은 여기 나오지 않습니다. 아래 상품만 카테고리를 골라주세요.')}
+            </div>
+
+            {items.map(it => {
+                const key = `${it.channel}:${it.sku}`;
+                return (
+                    <div key={key} style={{ background: "#fff", borderRadius: 8, padding: 10, marginBottom: 8, border: "1px solid #fde68a" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12 }}>
+                            <span style={{ fontWeight: 700, color: "#0f172a" }}>{it.name || it.sku}</span>
+                            <span style={{ color: "#94a3b8", fontFamily: "monospace", fontSize: 10 }}>{it.channel} · {it.sku}</span>
+                        </div>
+                        {it.suggestions && it.suggestions.length > 0 ? (
+                            <div style={{ marginTop: 6, display: "flex", flexWrap: "wrap", gap: 4 }}>
+                                {it.suggestions.map(s => (
+                                    <button key={s.code} disabled={!!busy} onClick={() => assign(it, s.code, s.label)}
+                                        title={`${s.label} (${s.code}) · score ${s.score}`}
+                                        style={{ padding: "4px 9px", borderRadius: 999, border: "1px solid #cbd5e1",
+                                            background: busy === key ? "#e2e8f0" : "#fff", fontSize: 10,
+                                            cursor: busy ? "not-allowed" : "pointer", color: "#334155" }}>
+                                        {s.label}
+                                    </button>
+                                ))}
+                            </div>
+                        ) : (
+                            <div style={{ marginTop: 6, fontSize: 10, color: "#94a3b8" }}>
+                                {t('catalogSync.pcNoSuggest', '추천 후보가 없습니다 — 직접 검색해 선택하세요')}
+                            </div>
+                        )}
+                        <div style={{ marginTop: 6, display: "flex", gap: 6, alignItems: "center" }}>
+                            <button onClick={() => { setSearchFor(it); setQ(it.name || ''); setFound([]); doSearch(it, it.name || ''); }}
+                                style={{ padding: "4px 10px", borderRadius: 6, border: "1px solid #4f8ef7", background: "#fff", color: "#4f8ef7", fontSize: 10, fontWeight: 700, cursor: "pointer" }}>
+                                🔍 {t('catalogSync.pcSearch', '카테고리 검색')}
+                            </button>
+                            {msg[key] && (
+                                <span style={{ fontSize: 10, fontWeight: 700, color: msg[key].ok ? "#16a34a" : "#dc2626" }}>
+                                    {msg[key].ok ? '✅' : '❌'} {msg[key].text}
+                                </span>
+                            )}
+                        </div>
+                    </div>
+                );
+            })}
+
+            {/* 직접 검색 모달 — 후보가 없거나 마음에 들지 않을 때 */}
+            {searchFor && (
+                <div onClick={() => setSearchFor(null)} style={{ position: "fixed", inset: 0, background: "rgba(15,23,42,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+                    <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: 12, width: "min(560px,100%)", maxHeight: "80vh", display: "flex", flexDirection: "column" }}>
+                        <div style={{ padding: "14px 16px", borderBottom: "1px solid #eef2f7" }}>
+                            <div style={{ fontSize: 14, fontWeight: 800 }}>📂 {t('catalogSync.pcSearchTitle', '채널 카테고리 검색')}</div>
+                            <div style={{ fontSize: 11, color: "#7c8fa8", marginTop: 3 }}>{searchFor.name || searchFor.sku} · {searchFor.channel}</div>
+                        </div>
+                        <div style={{ padding: "10px 16px", display: "flex", gap: 8 }}>
+                            <input value={q} onChange={e => setQ(e.target.value)}
+                                onKeyDown={e => { if (e.key === 'Enter') doSearch(searchFor, q); }}
+                                placeholder={t('catalogSync.pcSearchPh', '예: 건강식품, 니트, 이어폰')}
+                                style={{ flex: 1, border: "1px solid #e2e8f0", borderRadius: 6, padding: "8px 10px", fontSize: 12 }} />
+                            <button onClick={() => doSearch(searchFor, q)} disabled={searching}
+                                style={{ padding: "8px 14px", borderRadius: 6, border: "none", background: "#4f8ef7", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+                                {searching ? '…' : t('catalogSync.pcSearchBtn', '검색')}
+                            </button>
+                        </div>
+                        <div style={{ flex: 1, overflowY: "auto", padding: "0 16px 12px" }}>
+                            {!searching && found.length === 0 && <div style={{ fontSize: 11, color: "#94a3b8", padding: 8 }}>{t('catalogSync.pcNoResult', '검색 결과가 없습니다')}</div>}
+                            {found.map(c => (
+                                <div key={c.code} onClick={() => { const it = searchFor; setSearchFor(null); assign(it, c.code, c.whole_name || c.name); }}
+                                    style={{ padding: "9px 10px", borderRadius: 6, cursor: "pointer", fontSize: 11, borderBottom: "1px solid #f1f5f9" }}
+                                    onMouseEnter={e => e.currentTarget.style.background = "#f8fafc"}
+                                    onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
+                                    <div style={{ color: "#0f172a", fontWeight: 600 }}>{c.whole_name || c.name}</div>
+                                    <div style={{ color: "#94a3b8", fontFamily: "monospace", fontSize: 10 }}>{c.code}</div>
+                                </div>
+                            ))}
+                        </div>
+                        <div style={{ padding: "10px 16px", borderTop: "1px solid #eef2f7", textAlign: "right" }}>
+                            <button onClick={() => setSearchFor(null)} style={{ padding: "7px 14px", borderRadius: 6, border: "1px solid #e2e8f0", background: "#fff", fontSize: 12, cursor: "pointer" }}>
+                                {t('catalogSync.close')}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+});
+
 const CatalogTab = memo(function CatalogTab() {
     const { t, lang } = useI18n();
     const { updateCatalogChannelPrices, syncCatalogItem, addAlert, inventory, channelProductPrices } = useGlobalData();
@@ -1260,6 +1408,9 @@ const CatalogTab = memo(function CatalogTab() {
 
     return (
         <div style={{ display: "grid", gap: 14 }}>
+
+            {/* [277차] 카테고리 확정 필요 — 자동 매칭이 고확신이 아니었던 상품만 노출(자동 적용분은 표시하지 않음). */}
+            <PendingCategoryPanel onDone={() => { }} />
 
             {/* [237차] 서비스·플랜 등록 모드 — 온보딩에서 '서비스·구독·디지털'(bizModel=service) 선택한 사업자.
                 무형 서비스/구독 사업자는 실물 상품 대신 '서비스/플랜(오퍼)'을 카탈로그 항목으로 등록한다. */}

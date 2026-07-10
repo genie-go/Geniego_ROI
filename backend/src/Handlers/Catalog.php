@@ -220,6 +220,85 @@ class Catalog
             'categories' => $st->fetchAll(\PDO::FETCH_ASSOC)]);
     }
 
+    /**
+     * [277차] GET /catalog/pending-categories[?channel=]
+     *   ★자동 매칭 임계에 못 미쳐 **카테고리가 확정되지 않은 리스팅**만 모아서 반환한다.
+     *   자동 적용된 상품은 여기 나오지 않는다(확인할 필요가 없다). 각 상품에 대해 추천 후보를 함께 준다.
+     *   → 사용자는 이 목록만 훑어 카테고리를 고르면 되고, 후보가 없으면 검색으로 지정한다.
+     */
+    public static function pendingCategories(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $pdo = self::db();
+        $tenant = self::tenant($req);
+        $q = $req->getQueryParams();
+        $channel = strtolower(trim((string)($q['channel'] ?? '')));
+
+        $where = ["tenant_id = ?", "(category_code IS NULL OR category_code = '')", "action <> 'unregister'"];
+        $bind = [$tenant];
+        if ($channel !== '') { $where[] = 'channel = ?'; $bind[] = $channel; }
+        try {
+            $st = $pdo->prepare("SELECT channel, sku, name, category, price, inventory, status, updated_at
+                                 FROM catalog_listing WHERE " . implode(' AND ', $where) . " ORDER BY updated_at DESC LIMIT 100");
+            $st->execute($bind);
+            $rows = $st->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Throwable $e) { $rows = []; }
+
+        $items = [];
+        foreach ($rows as $r) {
+            $items[] = $r + ['suggestions' => self::rankChannelCategories($pdo, $tenant, (string)$r['channel'], $r, 5)];
+        }
+        return self::jsonRes($res, ['ok' => true, 'count' => count($items), 'items' => $items]);
+    }
+
+    /**
+     * [277차] POST /catalog/assign-category — body:{channel,sku,category_code[,category_label][,publish]}
+     *   선택한 카테고리를 리스팅에 확정 저장하고(+매핑 학습), publish=true 면 즉시 채널 전송까지 수행한다.
+     */
+    public static function assignCategory(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $pdo = self::db();
+        $tenant = self::tenant($req);
+        $b = (array)($req->getParsedBody() ?? []);
+        $channel = strtolower(trim((string)($b['channel'] ?? '')));
+        $sku     = trim((string)($b['sku'] ?? ''));
+        $code    = trim((string)($b['category_code'] ?? ''));
+        if ($channel === '' || $sku === '' || $code === '') {
+            return self::jsonRes($res, ['ok' => false, 'error' => 'channel/sku/category_code required'], 400);
+        }
+        try {
+            $pdo->prepare("UPDATE catalog_listing SET category_code=?, updated_at=? WHERE tenant_id=? AND channel=? AND sku=?")
+                ->execute([$code, self::now(), $tenant, $channel, $sku]);
+        } catch (\Throwable $e) {
+            return self::jsonRes($res, ['ok' => false, 'error' => 'listing update failed'], 500);
+        }
+        // 내 카테고리 → 채널코드 학습(같은 카테고리의 다음 상품은 자동 해석)
+        try {
+            $st = $pdo->prepare("SELECT category FROM catalog_listing WHERE tenant_id=? AND channel=? AND sku=? LIMIT 1");
+            $st->execute([$tenant, $channel, $sku]);
+            $src = (string)$st->fetchColumn();
+            if ($src !== '') self::saveCategoryMap($pdo, $tenant, $channel, $src, $code, (string)($b['category_label'] ?? ''));
+        } catch (\Throwable $e) { /* best-effort */ }
+
+        if (empty($b['publish'])) return self::jsonRes($res, ['ok' => true, 'assigned' => $code]);
+
+        // 즉시 전송 — logJob 이 기존 미완료 잡을 superseded 로 마감하고 새 대기 잡 1건만 남긴다.
+        //   실패로 굳은 잡(failed)도 여기서 새 잡으로 대체되므로 재시도 카운터가 초기화된다.
+        $st = self::channelStatus($pdo, $tenant, $channel, 'register');
+        self::logJob($pdo, $tenant, $channel, $sku, 'publish', $st === 'saved' ? 'awaiting_credentials' : $st, ['sku' => $sku]);
+
+        $sum = self::processWritebackQueue($pdo, $tenant, $channel, 1);
+        $jr  = self::latestJobResult($pdo, $tenant, $channel, $sku);
+        $done = ($jr['status'] ?? '') === 'done';
+        return self::jsonRes($res, [
+            'ok' => $done, 'assigned' => $code, 'status' => $jr['status'] ?? 'queued',
+            'error' => $done ? null : ($jr['error'] ?? null), 'summary' => $sum,
+        ]);
+    }
+
     /** [277차] 채널에서 카테고리 카탈로그를 받아 캐시에 upsert. 반환=저장 건수(실패 0). */
     private static function syncChannelCategories(\PDO $pdo, string $tenant, string $channel): int
     {
@@ -697,6 +776,13 @@ class Catalog
     {
         try {
             $now = self::now();
+            // [277차] ★중복 대기 잡 제거 — 같은 (tenant,channel,sku)에 미완료 잡이 쌓이면
+            //   소비는 ORDER BY id ASC(가장 오래된 것), 결과 조회(latestJobResult)는 ORDER BY id DESC(가장 새 것)라
+            //   서로 다른 잡을 보게 된다. 그 결과 카테고리를 지정해도 **옛 잡의 오류**가 계속 표시됐다.
+            //   새 잡을 넣기 전에 기존 미완료 잡을 마감해 항상 대기 잡이 1건만 남게 한다.
+            $pdo->prepare("UPDATE catalog_writeback_job SET status='superseded', updated_at=?
+                            WHERE tenant_id=? AND channel=? AND sku=? AND status IN ('queued','awaiting_credentials','pending_approval')")
+                ->execute([$now, $tenant, $channel, $sku]);
             // [277차] 대용량 필드(base64 dataURL 이미지·상세HTML)는 catalog_listing 에 이미 저장되고
             //   큐 소비 시 currentListing 으로 복원된다. payload 에 중복 저장하면 잡 테이블이 수 MB 씩 비대해지고
             //   TEXT 한계를 넘겨 기록이 조용히 실패한다(logJob 은 best-effort catch). 참조용 요약만 남긴다.
@@ -1055,8 +1141,10 @@ class Catalog
     private static function latestJobResult(\PDO $pdo, string $tenant, string $channel, string $sku): array
     {
         try {
+            // superseded(대체된 옛 잡)는 결과 판정에서 제외 — 그 결과를 읽으면 해결된 오류가 계속 표시된다.
             $st = $pdo->prepare("SELECT status, attempt, result FROM catalog_writeback_job
-                                 WHERE tenant_id=? AND channel=? AND sku=? ORDER BY id DESC LIMIT 1");
+                                 WHERE tenant_id=? AND channel=? AND sku=? AND status <> 'superseded'
+                                 ORDER BY id DESC LIMIT 1");
             $st->execute([$tenant, $channel, $sku]);
             $r = $st->fetch(\PDO::FETCH_ASSOC);
             if (!$r) return [];
