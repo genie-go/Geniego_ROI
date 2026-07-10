@@ -38,7 +38,7 @@ const _localeListeners = new Set();
 function loadLocale(code) {
     if (!LOCALE_LOADERS[code] || _localeCache[code]) return Promise.resolve();
     return LOCALE_LOADERS[code]()
-        .then((m) => { _localeCache[code] = (m && m.default) ? m.default : m; _localeListeners.forEach((fn) => { try { fn(); } catch (_) {} }); })
+        .then((m) => { _localeCache[code] = (m && m.default) ? m.default : m; _localeListeners.forEach((fn) => { try { fn(code); } catch (_) {} }); })
         .catch(() => { /* 개별 로케일 로드 실패 = en/폴백으로 계속 동작(치명 아님) */ });
 }
 // [270차] 자동 번역 오버레이 — tools/i18n_autofill.mjs 가 ko(SSOT)에만 있는 키를 Claude로 13~14개국
@@ -230,10 +230,17 @@ const I18nContext = createContext(null);
 export function I18nProvider({ children }) {
     const [lang, setLangState] = useState(detectLang);
     // [272차 P0 Stage A] autofill(동적 import) 로드 완료 시 1회 재렌더 → 폴백 오버레이 키 반영.
-    const [, _autofillBump] = useState(0);
+    // [277차] ★재렌더 전파 결함 수정 — bump 는 Provider 만 재렌더시켰고 t(useCallback[lang])·ctx(useMemo[lang,..])
+    //   가 불변이라 Context 소비자는 bail out 했다(오버레이가 첫 렌더보다 늦게 도착하면 en base 값이 그대로 굳음).
+    //   tick 을 t 의 의존성에 실어 ctx 참조를 갱신 → 소비자까지 재렌더가 전파된다.
+    const [i18nTick, bumpTick] = useState(0);
+    // 로케일 도착 리스너는 deps:[] 로 1회만 등록되므로 lang 을 클로저로 잡으면 stale 이 된다(언어 전환 후
+    // 새 로케일이 도착해도 발화 조건 불일치). ref 로 최신 언어를 참조한다.
+    const langRef = React.useRef(lang);
+    langRef.current = lang;
     useEffect(() => {
         if (_autofillLoaded) return;               // 이미 로드됨(빠른 캐시) → 훅 불요
-        const fn = () => _autofillBump((x) => x + 1);
+        const fn = () => bumpTick((x) => x + 1);
         _autofillListeners.add(fn);
         return () => { _autofillListeners.delete(fn); };
     }, []);
@@ -242,7 +249,10 @@ export function I18nProvider({ children }) {
     //   (raw 키/한글폴백 flash 방지). 로드 실패도 loadLocale 이 resolve 하므로 splash 무한대기 없음.
     const [localesReady, setLocalesReady] = useState(() => !!(_localeCache[detectLang()] && _localeCache.en));
     useEffect(() => {
-        const fn = () => setLangState((c) => c); // 로케일 도착 시 재렌더 유도(값 동일=no-op 안전)
+        // [277차] 로케일 도착 시 재렌더 유도. 구 구현 setLangState((c)=>c) 는 동일 값이라 React 가 bail out 해
+        //   실제로 재렌더되지 않았다. tick 으로 교체하되, idle 프리로드(13개)까지 전 앱을 재렌더하지 않도록
+        //   렌더에 실제 쓰이는 로케일(활성 언어 · en 폴백) 도착 시에만 발화한다.
+        const fn = (code) => { if (code === langRef.current || code === "en") bumpTick((x) => x + 1); };
         _localeListeners.add(fn);
         let alive = true;
         Promise.all([loadLocale("en"), loadLocale(lang)]).then(() => { if (alive) setLocalesReady(true); });
@@ -337,7 +347,8 @@ export function I18nProvider({ children }) {
             });
         }
         return value;
-    }, [lang]);
+        // [277차] i18nTick — 오버레이/로케일 도착 시 t 참조를 갱신해 ctx→소비자까지 재렌더를 전파.
+    }, [lang, i18nTick]);
 
     const ctx = useMemo(
         () => ({ lang, setLang, t, locales: LANG_OPTIONS }),
