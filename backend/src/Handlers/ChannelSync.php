@@ -1946,7 +1946,11 @@ final class ChannelSync
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => $timeout,
             CURLOPT_HTTPHEADER => array_map(fn($k, $v) => "$k: $v", array_keys($headers), array_values($headers)),
-            CURLOPT_SSL_VERIFYPEER => false, CURLOPT_USERAGENT => 'GeniegoROI/v423',
+            // [277차 보안] ★TLS 서버 인증서 검증 활성화 — 형제 헬퍼 7종은 전부 true 인데 이 함수만 false 였다.
+            //   호출자 specFetch(:1874)는 admin 이 등록한 제네릭 REST 채널에 `Authorization: Bearer <secret>` 를
+            //   실어 보낸다. 검증이 꺼져 있으면 능동적 MITM 이 인증서를 위조해 **채널 자격증명을 탈취**할 수 있다.
+            //   (다른 호출자 elevenStFetch 는 평문 http 라 TLS 무관 — 이 변경의 영향 없음.)
+            CURLOPT_SSL_VERIFYPEER => true, CURLOPT_SSL_VERIFYHOST => 2, CURLOPT_USERAGENT => 'GeniegoROI/v423',
         ]);
         $raw  = curl_exec($ch);
         $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);

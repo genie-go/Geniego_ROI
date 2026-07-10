@@ -7,7 +7,7 @@ import { useI18n } from '../i18n/index.js';
 import ProductSelectBar from '../components/dashboards/ProductSelectBar.jsx';
 import ProductMarketingPanel from '../components/dashboards/ProductMarketingPanel.jsx';
 import { CHANNEL_RATES, calcRecommendedPrice as calcRecPrice } from '../constants/channelRates.js';
-import { postJson, getJsonAuth } from '../services/apiClient.js'; // 192차: 상품 writeback/bulk-price 실배선 · [277차] 등록상품 로드
+import { postJson, getJsonAuth, requestJsonAuth } from '../services/apiClient.js'; // 192차: 상품 writeback/bulk-price 실배선 · [277차] 등록상품 로드·카테고리 매핑 서버 실배선
 import { loadWorkspace, saveWorkspace, wsEnabled } from '../services/workspaceState.js'; // [266차] 보조 설정탭 운영 영속
 
 /* ── Enterprise Dynamic Locale Map (module-scope, shared) ─────── */
@@ -134,6 +134,17 @@ const CHANNEL_KEY_ALIASES = {
 const ALIASED_NON_CANONICAL = new Set(
     Object.entries(CHANNEL_KEY_ALIASES).flatMap(([canon, keys]) => keys.filter(k => k !== canon))
 );
+
+/**
+ * [277차] 상품 전송(writeback)을 실제로 지원하는 채널 — 카테고리 매핑이 의미 있는 대상.
+ *   백엔드 ChannelSync::pushProduct 의 case 목록 + Catalog::pushToChannel 이 자체 처리하는 shopify 와 1:1.
+ *   광고·미디어 커넥터(youtube 등)를 매핑 대상으로 보여주면 사용자를 혼란시킨다.
+ */
+const PUBLISHABLE_CHANNELS_UI = new Set([
+    'shopify', 'cafe24', 'coupang', 'naver', 'naver_smartstore', 'ebay', 'amazon', 'amazon_spapi',
+    'tiktok', 'tiktok_shop', 'rakuten', '11st', 'st11', 'gmarket', 'auction', 'lotteon',
+    'woocommerce', 'magento', 'shopee', 'lazada', 'walmart', 'qoo10', 'yahoo_jp', 'godomall', 'etsy',
+]);
 
 function useDynamicChannels() {
     const { connectedChannels, isConnected } = useConnectorSync();
@@ -2416,200 +2427,243 @@ const JobHistoryTab = memo(function JobHistoryTab({ jobs }) {
     );
 });
 /* ─── Tab: Category Mapping (Enterprise Grade — Custom CRUD + localStorage) ─ */
+/**
+ * [277차 재작성] 채널 카테고리 매핑 — 서버 실배선 + 채널 카테고리 조회·선택.
+ *
+ * 종전 문제(가짜 기능): 이 탭은 매핑을 **localStorage 에만** 저장했고 서버 channel_category_map 과
+ *   전혀 연결돼 있지 않았다. 여기서 매핑해도 채널 등록(writeback)에는 반영되지 않았다.
+ *   게다가 채널 카테고리 코드를 사용자가 **직접 타이핑**해야 했는데, 네이버 리프카테고리는 5,011개다.
+ *
+ * 현재: GET/POST/DELETE /api/catalog/category-map 으로 서버에 영속하고,
+ *   GET /api/catalog/channel-categories?channel=&q= 로 **채널의 실제 카테고리를 검색해 선택**한다.
+ *   여기서 저장한 매핑은 resolveChannelCategory 가 즉시 사용한다(자동 매칭보다 우선).
+ */
 const CategoryMappingTab = memo(function CategoryMappingTab() {
     const { t } = useI18n();
     const dynamicChannels = useDynamicChannels();
-    const connectedChs = useMemo(() => dynamicChannels.filter(c => c.connected).slice(0, 5).length > 0 ? dynamicChannels.filter(c => c.connected).slice(0, 5) : dynamicChannels.slice(0, 5), [dynamicChannels]);
+    const { inventory } = useGlobalData();
 
-    // Load custom categories from localStorage
-    const [customCats, setCustomCats] = useState(() => {
-        try { return JSON.parse(tGet('genie_catalog_custom_cats') || '[]'); } catch { return []; }
-    });
+    // 상품 전송이 가능한(=카테고리 코드가 필요한) 연동 채널만 대상으로 한다.
+    const targetChs = useMemo(
+        () => dynamicChannels.filter(c => c.connected && PUBLISHABLE_CHANNELS_UI.has(c.id)),
+        [dynamicChannels]
+    );
+    const [channel, setChannel] = useState('');
+    useEffect(() => { if (!channel && targetChs.length) setChannel(targetChs[0].id); }, [targetChs, channel]);
 
-    // Merge preset + custom categories
-    const allCategories = useMemo(() => {
-        const presets = CATEGORIES.filter(c => c.id).map(c => ({ ...c, isCustom: false }));
-        const customs = customCats.map(c => ({ id: c.id, labelKey: null, label: c.label, isCustom: true }));
-        return [...presets, ...customs];
-    }, [customCats]);
+    const [rows, setRows] = useState([]);          // 서버 매핑
+    const [loading, setLoading] = useState(false);
+    const [msg, setMsg] = useState(null);
 
-    const [mappings, setMappings] = useState(() => {
-        // Load saved mappings from localStorage
+    // 내 카테고리 후보 — 등록상품/재고에서 실제로 쓰이는 값(임의 목록이 아니라 실데이터)
+    const [myCats, setMyCats] = useState([]);
+    useEffect(() => {
+        let alive = true;
+        getJsonAuth('/v420/price/products')
+            .then(d => {
+                if (!alive) return;
+                const fromProducts = (d.products || []).map(p => (p.category || '').trim()).filter(Boolean);
+                const fromInv = (inventory || []).map(i => (i.category || '').trim()).filter(Boolean);
+                setMyCats([...new Set([...fromProducts, ...fromInv])].sort());
+            })
+            .catch(() => {
+                const fromInv = (inventory || []).map(i => (i.category || '').trim()).filter(Boolean);
+                setMyCats([...new Set(fromInv)].sort());
+            });
+        return () => { alive = false; };
+    }, [inventory]);
+
+    const load = useCallback(() => {
+        if (!channel) return;
+        setLoading(true);
+        getJsonAuth(`/api/catalog/category-map?channel=${encodeURIComponent(channel)}`)
+            .then(r => setRows(r.mappings || []))
+            .catch(() => setRows([]))
+            .finally(() => setLoading(false));
+    }, [channel]);
+    useEffect(() => { load(); }, [load]);
+
+    // ── 채널 카테고리 검색 모달 ─────────────────────────────────────────────
+    const [pickFor, setPickFor] = useState(null);   // 내 카테고리 문자열
+    const [q, setQ] = useState('');
+    const [found, setFound] = useState([]);
+    const [searching, setSearching] = useState(false);
+    const [searchErr, setSearchErr] = useState('');
+
+    const search = useCallback(async (term) => {
+        setSearching(true); setSearchErr('');
         try {
-            const saved = JSON.parse(tGet('genie_catalog_mappings') || 'null');
-            if (saved && Array.isArray(saved)) return saved;
-        } catch { }
-        return allCategories.map(c => ({
-            internal: c.id,
-            labelKey: c.labelKey,
-            label: c.label || null,
-            isCustom: c.isCustom || false,
-            channels: Object.fromEntries(connectedChs.map(ch => [ch.id, ''])),
-        }));
-    });
-    const [toast, setToast] = useState(null);
-    const [newCatId, setNewCatId] = useState('');
-    const [newCatLabel, setNewCatLabel] = useState('');
+            const qs = new URLSearchParams({ channel, ...(term ? { q: term } : {}) }).toString();
+            const d = await getJsonAuth(`/api/catalog/channel-categories?${qs}`);
+            if (!d.ok) { setSearchErr(d.hint || d.error || t('catalogSync.cmFail', '카테고리를 불러오지 못했습니다')); setFound([]); }
+            else setFound(d.categories || []);
+        } catch (e) { setSearchErr(e.message); setFound([]); }
+        finally { setSearching(false); }
+    }, [channel, t]);
 
-    // Persist mappings to localStorage on change
-    useEffect(() => {
-        tSet('genie_catalog_mappings', JSON.stringify(mappings));
-    }, [mappings]);
+    const openPicker = (srcCategory) => {
+        setPickFor(srcCategory); setQ(srcCategory); setFound([]); setSearchErr('');
+        search(srcCategory);
+    };
 
-    // Persist custom categories to localStorage
-    useEffect(() => {
-        tSet('genie_catalog_custom_cats', JSON.stringify(customCats));
-    }, [customCats]);
-
-    // BroadcastChannel: sync categories across tabs
-    useEffect(() => {
-        const bc = new BroadcastChannel(tChannelName('genie_catalog_sync'));
-        bc.onmessage = (e) => {
-            if (e.data?.type === 'CATEGORY_UPDATE') {
-                setCustomCats(e.data.customCats || []);
-                setMappings(e.data.mappings || []);
-            }
-        };
-        return () => bc.close();
-    }, []);
-
-    // [266차] 카테고리 매핑 운영 영속(테넌트 백엔드) — 추가/삭제/저장 시 자동 동기(기존 localStorage 병행).
-    const wsRef = useRef(false);
-    useEffect(() => { let a = true;
-        if (wsEnabled) loadWorkspace('catalog_category_map').then(v => { if (a) { if (v && typeof v === 'object') { if (Array.isArray(v.customCats)) setCustomCats(v.customCats); if (Array.isArray(v.mappings)) setMappings(v.mappings); } wsRef.current = true; } });
-        else wsRef.current = true;
-        return () => { a = false; };
-    }, []); // eslint-disable-line
-    useEffect(() => { if (wsEnabled && wsRef.current) saveWorkspace('catalog_category_map', { customCats, mappings }); }, [customCats, mappings]); // eslint-disable-line
-
-    const broadcastUpdate = (newCustomCats, newMappings) => {
+    const saveMapping = async (srcCategory, code, label) => {
+        setMsg(null);
         try {
-            const bc = new BroadcastChannel(tChannelName('genie_catalog_sync'));
-            bc.postMessage({ type: 'CATEGORY_UPDATE', customCats: newCustomCats, mappings: newMappings });
-            bc.close();
-        } catch { }
+            const d = await postJson('/api/catalog/category-map', {
+                channel, src_category: srcCategory, channel_code: code, channel_label: label || '',
+            });
+            if (!d.ok) throw new Error(d.error || 'save failed');
+            setMsg({ ok: true, text: t('catalogSync.cmSaved', '매핑을 저장했습니다') });
+            load();
+        } catch (e) {
+            setMsg({ ok: false, text: e.message });
+        }
     };
 
-    const updateMapping = (catId, chId, value) => {
-        setMappings(prev => prev.map(m =>
-            m.internal === catId ? { ...m, channels: { ...m.channels, [chId]: value } } : m
-        ));
+    const removeMapping = async (id) => {
+        setMsg(null);
+        try {
+            await requestJsonAuth(`/api/catalog/category-map/${id}`, 'DELETE');
+            load();
+        } catch (e) { setMsg({ ok: false, text: e.message }); }
     };
 
-    const handleAddCategory = () => {
-        if (!newCatId.trim() || !newCatLabel.trim()) return;
-        if (allCategories.some(c => c.id === newCatId.trim())) return;
-        const nc = { id: newCatId.trim(), label: newCatLabel.trim() };
-        const updatedCats = [...customCats, nc];
-        setCustomCats(updatedCats);
-        const newMapping = { internal: nc.id, labelKey: null, label: nc.label, isCustom: true, channels: Object.fromEntries(connectedChs.map(ch => [ch.id, ''])) };
-        setMappings(prev => [...prev, newMapping]);
-        broadcastUpdate(updatedCats, [...mappings, newMapping]);
-        setNewCatId(''); setNewCatLabel('');
-        setToast(t('catalogSync.categoryAdded'));
-        setTimeout(() => setToast(null), 3000);
-    };
+    const mapOf = (src) => rows.find(r => r.src_category === src) || null;
+    // 서버에 이미 매핑된 카테고리 중 내 상품 목록에 없는 것도 함께 보여준다(과거 매핑 확인·삭제).
+    const allSrc = useMemo(
+        () => [...new Set([...myCats, ...rows.map(r => r.src_category)])].sort(),
+        [myCats, rows]
+    );
 
-    const handleDeleteCategory = (catId) => {
-        const updatedCats = customCats.filter(c => c.id !== catId);
-        setCustomCats(updatedCats);
-        const updatedMappings = mappings.filter(m => m.internal !== catId);
-        setMappings(updatedMappings);
-        broadcastUpdate(updatedCats, updatedMappings);
-        setToast(t('catalogSync.categoryDeleted'));
-        setTimeout(() => setToast(null), 3000);
-    };
-
-    const handleSave = () => {
-        tSet('genie_catalog_mappings', JSON.stringify(mappings));
-        broadcastUpdate(customCats, mappings);
-        setToast(t('catalogSync.catMapSaved'));
-        setTimeout(() => setToast(null), 3000);
-    };
-
-    const inputStyle = { width: "100%", padding: "5px 8px", borderRadius: 6, border: "1px solid #e5e7eb", background: "#ffffff", color: "#1f2937", fontSize: 11 };
+    const cell = { padding: "8px 10px", fontSize: 11, borderBottom: "1px solid #f1f5f9" };
 
     return (
-        <div style={{ display: "grid", gap: 16 }}>
-            {toast && (
-                <div style={{ position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)", padding: "10px 20px", borderRadius: 10, background: "#22c55e", color: "#fff", fontWeight: 700, fontSize: 13, zIndex: 500 }}>
-                    {toast}
+        <div style={{ display: "grid", gap: 12 }}>
+            <div style={{ padding: 12, borderRadius: 10, background: "rgba(79,142,247,0.05)", border: "1px solid rgba(79,142,247,0.2)" }}>
+                <div style={{ fontSize: 13, fontWeight: 800, color: "#0f172a" }}>🗂 {t('catalogSync.cmTitle', '채널 카테고리 매핑')}</div>
+                <div style={{ fontSize: 11, color: "#64748b", marginTop: 4, lineHeight: 1.6 }}>
+                    {t('catalogSync.cmDesc', '내 상품 카테고리를 채널의 실제 카테고리에 연결합니다. 여기서 저장한 매핑은 채널 등록 시 즉시 사용되며, 자동 매칭보다 우선합니다.')}
+                </div>
+            </div>
+
+            {targetChs.length === 0 ? (
+                <div style={{ fontSize: 12, color: "#94a3b8", padding: 12 }}>
+                    {t('catalogSync.cmNoChannel', '상품 전송이 가능한 연동 채널이 없습니다 — 연동허브에서 채널을 먼저 연결하세요')}
+                </div>
+            ) : (
+                <>
+                    <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                        <span style={{ fontSize: 11, color: "#64748b" }}>{t('catalogSync.cmChannel', '채널')}</span>
+                        <select value={channel} onChange={e => setChannel(e.target.value)}
+                            style={{ padding: "6px 10px", borderRadius: 6, border: "1px solid #e2e8f0", fontSize: 12 }}>
+                            {targetChs.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                        </select>
+                        <button onClick={load} disabled={loading}
+                            style={{ padding: "6px 12px", borderRadius: 6, border: "1px solid #e2e8f0", background: "#fff", fontSize: 11, cursor: "pointer" }}>
+                            {loading ? '…' : t('catalogSync.cmRefresh', '새로고침')}
+                        </button>
+                        {msg && (
+                            <span style={{ fontSize: 11, fontWeight: 700, color: msg.ok ? "#16a34a" : "#dc2626" }}>
+                                {msg.ok ? '✅' : '❌'} {msg.text}
+                            </span>
+                        )}
+                    </div>
+
+                    <div style={{ background: "#fff", borderRadius: 10, border: "1px solid #e2e8f0", overflow: "hidden" }}>
+                        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                            <thead>
+                                <tr style={{ background: "#f8fafc" }}>
+                                    <th style={{ ...cell, textAlign: "left", fontWeight: 800 }}>{t('catalogSync.cmMyCategory', '내 카테고리')}</th>
+                                    <th style={{ ...cell, textAlign: "left", fontWeight: 800 }}>{t('catalogSync.cmChannelCategory', '채널 카테고리')}</th>
+                                    <th style={{ ...cell, textAlign: "right", fontWeight: 800, width: 160 }}></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {allSrc.length === 0 && (
+                                    <tr><td colSpan={3} style={{ ...cell, color: "#94a3b8" }}>
+                                        {t('catalogSync.cmNoCategory', '상품에 카테고리가 없습니다 — 상품등록에서 카테고리를 지정하세요')}
+                                    </td></tr>
+                                )}
+                                {allSrc.map(src => {
+                                    const m = mapOf(src);
+                                    return (
+                                        <tr key={src}>
+                                            <td style={{ ...cell, fontWeight: 600, color: "#0f172a" }}>{src}</td>
+                                            <td style={cell}>
+                                                {m ? (
+                                                    <div>
+                                                        <div style={{ color: "#0f172a" }}>{m.channel_label || '(라벨 없음)'}</div>
+                                                        <div style={{ color: "#94a3b8", fontFamily: "monospace", fontSize: 10 }}>{m.channel_code}</div>
+                                                    </div>
+                                                ) : (
+                                                    <span style={{ color: "#f59e0b" }}>{t('catalogSync.cmUnmapped', '미매핑 — 자동 매칭에 의존')}</span>
+                                                )}
+                                            </td>
+                                            <td style={{ ...cell, textAlign: "right" }}>
+                                                <button onClick={() => openPicker(src)}
+                                                    style={{ padding: "4px 10px", borderRadius: 6, border: "1px solid #4f8ef7", background: "#fff", color: "#4f8ef7", fontSize: 10, fontWeight: 700, cursor: "pointer" }}>
+                                                    🔍 {m ? t('catalogSync.cmChange', '변경') : t('catalogSync.cmPick', '선택')}
+                                                </button>
+                                                {m && (
+                                                    <button onClick={() => removeMapping(m.id)}
+                                                        style={{ marginLeft: 6, padding: "4px 8px", borderRadius: 6, border: "1px solid #e2e8f0", background: "#fff", color: "#64748b", fontSize: 10, cursor: "pointer" }}>
+                                                        {t('catalogSync.cmDelete', '삭제')}
+                                                    </button>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                </>
+            )}
+
+            {/* 채널 카테고리 검색·선택 모달 */}
+            {pickFor !== null && (
+                <div onClick={() => setPickFor(null)} style={{ position: "fixed", inset: 0, background: "rgba(15,23,42,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+                    <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: 12, width: "min(600px,100%)", maxHeight: "80vh", display: "flex", flexDirection: "column" }}>
+                        <div style={{ padding: "14px 16px", borderBottom: "1px solid #eef2f7" }}>
+                            <div style={{ fontSize: 14, fontWeight: 800 }}>📂 {t('catalogSync.cmPickTitle', '채널 카테고리 선택')}</div>
+                            <div style={{ fontSize: 11, color: "#7c8fa8", marginTop: 3 }}>
+                                {t('catalogSync.cmMyCategory', '내 카테고리')}: <b>{pickFor}</b> · {targetChs.find(c => c.id === channel)?.name || channel}
+                            </div>
+                        </div>
+                        <div style={{ padding: "10px 16px", display: "flex", gap: 8 }}>
+                            <input value={q} onChange={e => setQ(e.target.value)}
+                                onKeyDown={e => { if (e.key === 'Enter') search(q); }}
+                                placeholder={t('catalogSync.cmSearchPh', '예: 건강식품, 니트, 이어폰')}
+                                style={{ flex: 1, border: "1px solid #e2e8f0", borderRadius: 6, padding: "8px 10px", fontSize: 12 }} />
+                            <button onClick={() => search(q)} disabled={searching}
+                                style={{ padding: "8px 14px", borderRadius: 6, border: "none", background: "#4f8ef7", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+                                {searching ? '…' : t('catalogSync.cmSearchBtn', '검색')}
+                            </button>
+                        </div>
+                        <div style={{ flex: 1, overflowY: "auto", padding: "0 16px 12px" }}>
+                            {searchErr && <div style={{ fontSize: 11, color: "#ef4444", padding: 8 }}>❌ {searchErr}</div>}
+                            {searching && <div style={{ fontSize: 11, color: "#7c8fa8", padding: 8 }}>{t('catalogSync.cmLoading', '카테고리를 불러오는 중… (최초 1회는 수천 건 수집으로 시간이 걸립니다)')}</div>}
+                            {!searching && !searchErr && found.length === 0 && (
+                                <div style={{ fontSize: 11, color: "#94a3b8", padding: 8 }}>{t('catalogSync.cmNoResult', '검색 결과가 없습니다')}</div>
+                            )}
+                            {found.map(c => (
+                                <div key={c.code} onClick={() => { const src = pickFor; setPickFor(null); saveMapping(src, c.code, c.whole_name || c.name); }}
+                                    style={{ padding: "9px 10px", borderRadius: 6, cursor: "pointer", fontSize: 11, borderBottom: "1px solid #f1f5f9" }}
+                                    onMouseEnter={e => e.currentTarget.style.background = "#f8fafc"}
+                                    onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
+                                    <div style={{ color: "#0f172a", fontWeight: 600 }}>{c.whole_name || c.name}</div>
+                                    <div style={{ color: "#94a3b8", fontFamily: "monospace", fontSize: 10 }}>{c.code}</div>
+                                </div>
+                            ))}
+                        </div>
+                        <div style={{ padding: "10px 16px", borderTop: "1px solid #eef2f7", textAlign: "right" }}>
+                            <button onClick={() => setPickFor(null)} style={{ padding: "7px 14px", borderRadius: 6, border: "1px solid #e2e8f0", background: "#fff", fontSize: 12, cursor: "pointer" }}>
+                                {t('catalogSync.close')}
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div>
-                    <div style={{ fontWeight: 700, fontSize: 14, color: "#1f2937" }}>{t('catalogSync.catMapTitle')}</div>
-                    <div style={{ fontSize: 11, color: "#6b7280", marginTop: 4 }}>{t('catalogSync.catMapDesc')}</div>
-                </div>
-                <button onClick={handleSave} style={{ padding: "8px 20px", borderRadius: 8, background: "#2563eb", color: "#fff", border: "none", fontWeight: 700, fontSize: 12, cursor: "pointer" }}>
-                    {t('catalogSync.save')}
-                </button>
-            </div>
-            <div style={{ background: "#ffffff", borderRadius: 14, border: "1px solid rgba(99,140,255,0.15)", padding: "10px 14px", display: "flex", gap: 10, alignItems: "center" }}>
-                <span style={{ fontSize: 16 }}>➕</span>
-                <input style={{ ...inputStyle, flex: 1, maxWidth: 200 }} placeholder={t('catalogSync.addCategoryPh')} value={newCatId} onChange={e => setNewCatId(e.target.value)} />
-                <input style={{ ...inputStyle, flex: 1, maxWidth: 250 }} placeholder={t('catalogSync.addCategoryLabelPh')} value={newCatLabel} onChange={e => setNewCatLabel(e.target.value)} />
-                <button onClick={handleAddCategory} style={{ padding: "6px 14px", borderRadius: 8, background: "#2563eb", color: "#fff", border: "none", fontWeight: 700, fontSize: 11, cursor: "pointer", whiteSpace: "nowrap" }}>
-                    {t('catalogSync.addCustomCategory')}
-                </button>
-            </div>
-            <div style={{ overflowX: "auto" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
-                    <thead>
-                        <tr style={{ borderBottom: "1px solid #e5e7eb" }}>
-                            <th style={{ padding: "8px", textAlign: "left", fontSize: 10, color: "#6b7280", minWidth: 160 }}>{t('catalogSync.internalCategory')}</th>
-                            {connectedChs.map(ch => (
-                                <th key={ch.id} style={{ padding: "8px", textAlign: "left", fontSize: 10, color: "#6b7280", minWidth: 140 }}>
-                                    <span style={{ fontSize: 14 }}>{ch.icon}</span> {ch.name} {ch.connected && <span style={{ fontSize: 8, color: "#22c55e" }}>✅</span>}
-                                </th>
-                            ))}
-                            <th style={{ padding: "8px", textAlign: "left", fontSize: 10, color: "#6b7280", width: 80 }}>{t('catalogSync.mappingStatus')}</th>
-                            <th style={{ width: 50 }}></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {mappings.map(m => {
-                            const mappedCount = Object.values(m.channels).filter(v => v).length;
-                            const isMapped = mappedCount > 0;
-                            const displayLabel = m.labelKey ? t(`catalogSync.${m.labelKey}`) : (m.label || m.internal);
-                            return (
-                                <tr key={m.internal} style={{ borderBottom: "1px solid #f1f5f9" }}>
-                                    <td style={{ padding: "8px" }}>
-                                        <div style={{ fontWeight: 600, fontSize: 12, color: "#1f2937" }}>
-                                            {displayLabel}
-                                            {m.isCustom && <span style={{ fontSize: 8, marginLeft: 6, padding: "1px 5px", borderRadius: 4, background: "#dbeafe", color: "#2563eb" }}>{t('catalogSync.customCategoryLabel')}</span>}
-                                        </div>
-                                        <div style={{ fontSize: 10, color: "#6b7280", fontFamily: "monospace" }}>{m.internal}</div>
-                                    </td>
-                                    {connectedChs.map(ch => (
-                                        <td key={ch.id} style={{ padding: "8px" }}>
-                                            <input
-
-                                                style={inputStyle}
-                                                placeholder={`${ch.name} categ...`}
-                                                value={m.channels[ch.id] || ''}
-                                                onChange={e => updateMapping(m.internal, ch.id, e.target.value)}
-                                            />
-                                        </td>
-                                    ))}
-                                    <td style={{ textAlign: "center" }}>
-                                        <span style={{ fontSize: 9, fontWeight: 700, padding: "2px 8px", borderRadius: 12 }}>
-                                            {isMapped ? `${t('catalogSync.mapped')} (${mappedCount})` : t('catalogSync.unmapped')}
-                                        </span>
-                                    </td>
-                                    <td style={{ textAlign: "center" }}>
-                                        {m.isCustom && (
-                                            <button onClick={() => handleDeleteCategory(m.internal)} style={{ background: "none", border: "none", color: "#ef4444", cursor: "pointer", fontSize: 10, padding: "2px 6px" }} title={t('catalogSync.deleteCategory')}>
-                                                🗑️
-                                            </button>
-                                        )}
-                                    </td>
-                                </tr>
-                            );
-                        })}
-                    </tbody>
-                </table>
-            </div>
         </div>
     );
 });

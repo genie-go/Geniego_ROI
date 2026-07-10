@@ -106,9 +106,15 @@ final class Mmm
                 $test  = array_slice($chRows, $n - $holdout);
                 $fit = self::fitChannel($train);
                 if ($fit === null) continue;
+                // [277차] ★백테스트 예측에 organic baseline(절편)을 더한다.
+                //   fitChannel 은 `rev = baseline + β·(1-exp(-x/κ))` 로 적합하지만 response() 는 **광고 기여분만**
+                //   반환한다. 그 값을 organic 이 포함된 실매출과 직접 비교해 왔다 → baseline 이 클수록 MAPE 가 폭증해
+                //   완벽히 적합된 모델도 항상 'poor'(ci_coverage≈0)로 보고됐다. r2_insample(base 포함)과 자기모순.
+                //   ※ optimize()/frontier() 에서 baseline 생략은 정상(할당 간 상수라 lift/T* 에서 상쇄).
+                $predict = static fn(array $c, float $x): float => self::response($c, $x) + (float)($c['baseline'] ?? 0.0);
                 // train 잔차 표준편차 → 예측구간(±1.96σ).
                 $resid = [];
-                foreach ($train as $r) $resid[] = ((float)$r['revenue'] - self::response($fit, (float)$r['spend']));
+                foreach ($train as $r) $resid[] = ((float)$r['revenue'] - $predict($fit, (float)$r['spend']));
                 $cr = count($resid); $mR = $cr ? array_sum($resid) / $cr : 0.0;
                 $vR = 0.0; foreach ($resid as $e) $vR += ($e - $mR) ** 2; $sd = $cr ? sqrt($vR / $cr) : 0.0;
                 // OOS 예측/오차.
@@ -116,7 +122,7 @@ final class Mmm
                 $actMean = 0.0; foreach ($test as $r) $actMean += (float)$r['revenue']; $actMean /= $m;
                 $absPctSum = 0.0; $seSum = 0.0; $within = 0;
                 foreach ($test as $r) {
-                    $act = (float)$r['revenue']; $pred = self::response($fit, (float)$r['spend']);
+                    $act = (float)$r['revenue']; $pred = $predict($fit, (float)$r['spend']);
                     $absPctSum += abs($act - $pred) / max(1.0, $act);
                     $seSum += ($act - $pred) ** 2;
                     if (abs($act - $pred) <= 1.96 * $sd) $within++;
