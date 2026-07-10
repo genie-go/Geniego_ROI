@@ -128,6 +128,17 @@ final class ChannelSync
         return [$code, $body, $err];
     }
 
+    /**
+     * [276차] 네이버 커머스 API 전자서명 — bcrypt(정본). 애플리케이션 시크릿은 그 자체가 bcrypt salt($2a$...)다.
+     *   서명 = base64( bcrypt("{애플리케이션ID}_{timestamp(ms)}", salt=애플리케이션시크릿) ).
+     *   ★기존 hash_hmac('sha256',...) 은 네이버 정책과 불일치 → 토큰발급 400/"유효하지 않은 데이터". 5곳 공통사용.
+     *   시크릿이 bcrypt salt 형식이 아니면 crypt() 가 짧은 문자열을 반환(호출부가 토큰발급 실패로 자연 처리).
+     */
+    private static function naverSign(string $clientId, string $clientSecret, int $timestamp): string
+    {
+        return base64_encode(crypt("{$clientId}_{$timestamp}", $clientSecret));
+    }
+
     private static function httpPost(string $url, array $headers, string $body, int $timeout = 15): array
     {
         $ch = curl_init($url);
@@ -681,7 +692,7 @@ final class ChannelSync
         if ($clientId && $clientSecret) {
             // 네이버 OAuth2 토큰 요청
             $timestamp = (int)(microtime(true) * 1000);
-            $sign = base64_encode(hash_hmac('sha256', "{$clientId}_{$timestamp}", $clientSecret, true));
+            $sign = self::naverSign($clientId, $clientSecret, $timestamp);
             [$code, $body] = self::httpPost(
                 'https://api.commerce.naver.com/external/v1/oauth2/token',
                 ['Content-Type' => 'application/x-www-form-urlencoded'],
@@ -1888,7 +1899,7 @@ final class ChannelSync
         $clientId = (string)($creds['client_id'] ?? ''); $clientSecret = (string)($creds['client_secret'] ?? '');
         if ($clientId === '' || $clientSecret === '') return ['reviews' => [], 'mode' => 'no_credentials', 'note' => '네이버 커머스: client_id·client_secret 필요'];
         $timestamp = (int)(microtime(true) * 1000);
-        $sign = base64_encode(hash_hmac('sha256', "{$clientId}_{$timestamp}", $clientSecret, true));
+        $sign = self::naverSign($clientId, $clientSecret, $timestamp);
         [$code, $body] = self::httpPost('https://api.commerce.naver.com/external/v1/oauth2/token',
             ['Content-Type' => 'application/x-www-form-urlencoded'],
             "client_id={$clientId}&timestamp={$timestamp}&client_secret_sign={$sign}&grant_type=client_credentials&type=SELF");
@@ -2167,7 +2178,7 @@ final class ChannelSync
         //   가격/재고만 갱신(주용도)할 때도 카테고리코드 없으면 차단됐다. 수정/판매중지는 leaf 없이 진행 허용.
         if ($leaf === '' && $cpid === null && $op !== 'unregister') return ['ok' => false, 'error' => 'Naver 신규 상품등록은 leafCategoryId 가 필요합니다 — 채널 카테고리 매핑에서 네이버 리프카테고리ID를 지정하세요'];
         $ts = (int)(microtime(true) * 1000);
-        $sign = base64_encode(hash_hmac('sha256', "{$clientId}_{$ts}", $clientSecret, true));
+        $sign = self::naverSign($clientId, $clientSecret, $ts);
         [$tc, $tb] = self::httpPost('https://api.commerce.naver.com/external/v1/oauth2/token', ['Content-Type' => 'application/x-www-form-urlencoded'],
             "client_id={$clientId}&timestamp={$ts}&client_secret_sign={$sign}&grant_type=client_credentials&type=SELF");
         $token = (string)($tb['access_token'] ?? '');
@@ -3733,7 +3744,7 @@ final class ChannelSync
         if ($clientId === '' || $clientSecret === '')
             return ['ok' => true, 'settlements' => [], 'pending' => true, 'note' => 'Naver 정산: client_id·client_secret 필요'];
         $timestamp = (int)(microtime(true) * 1000);
-        $sign = base64_encode(hash_hmac('sha256', "{$clientId}_{$timestamp}", $clientSecret, true));
+        $sign = self::naverSign($clientId, $clientSecret, $timestamp);
         [$code, $body] = self::httpPost(
             'https://api.commerce.naver.com/external/v1/oauth2/token',
             ['Content-Type' => 'application/x-www-form-urlencoded'],

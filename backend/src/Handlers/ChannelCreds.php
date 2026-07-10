@@ -742,7 +742,10 @@ final class ChannelCreds
         $cid = trim((string)($m['client_id'] ?? '')); $sec = trim((string)($m['client_secret'] ?? ''));
         if ($cid === '' || $sec === '') return [false, 'Naver: client_id·client_secret 모두 등록해야 발급 확인됩니다.'];
         $ts = (int)(microtime(true) * 1000);
-        $sign = base64_encode(hash_hmac('sha256', "{$cid}_{$ts}", $sec, true));
+        // [276차] 네이버 커머스 API 전자서명 = bcrypt(정본). 애플리케이션 시크릿 자체가 bcrypt salt($2a$...).
+        //   기존 hash_hmac('sha256') 은 네이버 정책 불일치 → "유효하지 않은 데이터" 검증실패의 원인.
+        //   (ChannelSync::naverSign 과 동일 방식 — 검증과 실동기화 서명 일치 유지.)
+        $sign = base64_encode(crypt("{$cid}_{$ts}", $sec));
         [$code, $body, $err] = self::httpPostForm('https://api.commerce.naver.com/external/v1/oauth2/token',
             "client_id={$cid}&timestamp={$ts}&client_secret_sign=" . urlencode($sign) . "&grant_type=client_credentials&type=SELF");
         if ($err) return [false, "Naver 연결 오류: $err"];
