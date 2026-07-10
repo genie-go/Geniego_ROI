@@ -25,6 +25,9 @@ use Psr\Http\Message\ResponseInterface as Response;
 final class BillingMethod
 {
     private const TOSS_BILLING_BASE = 'https://api.tosspayments.com/v1/billing';
+    private const TOSS_ORDER_BASE   = 'https://api.tosspayments.com/v1/payments/orders';
+    /** 'charging' 선점이 이 초 이상 방치되면 크래시로 보고 Toss 조회 후 회수. */
+    private const CLAIM_STALE_SEC   = 600;
 
     private static function json(Response $res, array $data, int $status = 200): Response
     {
@@ -142,6 +145,10 @@ final class BillingMethod
                 created_at VARCHAR(40) NULL,
                 INDEX idx_asl_tenant_ym (tenant_id, ym)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+            // ★[현 차수 P0] 청구 선점 유니크: 같은 정산지점(tenant+order_id)은 단 한 행만 존재 →
+            //   동시에 도는 크론/수동 optimize 가 같은 금액을 카드에 두 번 청구할 수 없다.
+            //   기존 행의 order_id 는 전부 난수라 충돌 없이 부여된다.
+            try { $pdo->exec("CREATE UNIQUE INDEX uq_asl_order ON ad_spend_ledger(tenant_id, order_id)"); } catch (\Throwable $e) {}
         } else {
             $pdo->exec("CREATE TABLE IF NOT EXISTS billing_method (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -172,6 +179,7 @@ final class BillingMethod
                 reason TEXT,
                 created_at TEXT
             )");
+            try { $pdo->exec("CREATE UNIQUE INDEX IF NOT EXISTS uq_asl_order ON ad_spend_ledger(tenant_id, order_id)"); } catch (\Throwable $e) {}
         }
     }
 
@@ -213,6 +221,38 @@ final class BillingMethod
         if (!is_array($data)) return ['ok' => false, 'error' => 'Toss 응답 파싱 실패', 'http' => $code];
         if ($code >= 200 && $code < 300) return ['ok' => true, 'data' => $data];
         return ['ok' => false, 'http' => $code, 'error' => (string)($data['message'] ?? 'Toss 오류'), 'code' => (string)($data['code'] ?? '')];
+    }
+
+    /**
+     * orderId 로 Toss 결제 조회 — 청구 직후 크래시했거나 중복 orderId 거절을 받았을 때
+     * "실제로 돈이 빠져나갔는가"를 매입사 원장(=Toss)에서 되찾아온다. 우리 DB 를 신뢰하지 않는다.
+     * @return array{paid:bool, paymentKey:string}
+     */
+    private static function tossGetOrder(string $orderId): array
+    {
+        $sk = self::tossSecretKey();
+        if ($sk === '' || $orderId === '') return ['paid' => false, 'paymentKey' => ''];
+        $ch = curl_init(self::TOSS_ORDER_BASE . '/' . rawurlencode($orderId));
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPHEADER => ['Authorization: Basic ' . base64_encode($sk . ':')],
+            CURLOPT_TIMEOUT => 15,
+        ]);
+        $raw = curl_exec($ch);
+        $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        if ($raw === false || $code < 200 || $code >= 300) return ['paid' => false, 'paymentKey' => ''];
+        $d = json_decode((string)$raw, true);
+        if (!is_array($d)) return ['paid' => false, 'paymentKey' => ''];
+        $st = strtoupper((string)($d['status'] ?? ''));
+        return ['paid' => in_array($st, ['DONE', 'IN_PROGRESS', 'WAITING_FOR_DEPOSIT'], true), 'paymentKey' => (string)($d['paymentKey'] ?? '')];
+    }
+
+    /** Toss 가 "이 orderId 는 이미 처리됨"이라고 응답했는지. */
+    private static function isDuplicateOrder(array $r): bool
+    {
+        $c = strtoupper((string)($r['code'] ?? ''));
+        return in_array($c, ['ALREADY_PROCESSED_PAYMENT', 'DUPLICATED_ORDER_ID', 'ALREADY_COMPLETED_PAYMENT'], true);
     }
 
     /* ─────────────────────────── 엔드포인트 ─────────────────────────── */
@@ -400,20 +440,40 @@ final class BillingMethod
         } catch (\Throwable $e) { return 0; }
     }
 
-    /** 당월 카드 청구 누적(charged+pending = 약정 금액). */
+    /**
+     * 당월 카드 청구 누적(charged+pending = 약정 금액) + 'charging'(선점된 진행중 청구).
+     * ★'charging'/'reconciling'(진행중 청구) 도 반드시 포함해야 한다 — 빠지면 동시 실행 프로세스가
+     *   "아직 아무것도 청구 안 됨"으로 읽고 같은 delta 를 다시 청구하려 든다(=이중청구의 원인이었다).
+     */
     private static function mtdCharged(\PDO $pdo, string $tenant, string $ym): int
     {
         try {
-            $st = $pdo->prepare("SELECT COALESCE(SUM(amount),0) FROM ad_spend_ledger WHERE tenant_id=? AND ym=? AND status IN('charged','pending')");
+            $st = $pdo->prepare("SELECT COALESCE(SUM(amount),0) FROM ad_spend_ledger WHERE tenant_id=? AND ym=? AND status IN('charged','pending','charging','reconciling')");
             $st->execute([$tenant, $ym]);
             return (int)$st->fetchColumn();
         } catch (\Throwable $e) { return 0; }
     }
 
     /**
+     * 정산지점(settlement point) → 결정적 orderId.
+     * ★microtime 을 쓰면 안 된다: 같은 정산지점을 두 프로세스가 각자 다른 orderId 로 청구하면
+     *   Toss 가 중복을 걸러줄 수 없어 카드에 두 번 긁힌다. 같은 (테넌트·월·캠페인·목표누적액) 은
+     *   언제 몇 번 실행하든 같은 orderId 를 만들어야 하고, 그러면 Toss 가 최후의 방어선이 된다.
+     */
+    private static function orderIdFor(string $tenant, string $ym, int $campaignId, int $target): string
+    {
+        return 'ADS-' . $ym . '-' . substr(hash('sha256', $tenant . '|' . $ym . '|' . $campaignId . '|' . $target), 0, 20);
+    }
+
+    /**
      * 관리형 지출 정산: 당월 집행 광고비($mtdSpend)를 카드로 청구하되, 누적 청구가 월 예산($budget)을
      * 절대 넘지 않도록 캡. delta = min(spend, budget) - alreadyCharged 만 신규 청구.
      * Toss 빌링키 미설정/청구 실패 시 원장 'pending' 으로 정직 기록(실청구 0). 절대 throw 안 함.
+     *
+     * ★이중청구 방어 3중:
+     *   ① 결정적 orderId — Toss 자체 멱등(같은 orderId 재청구 거절)
+     *   ② 카드 긁기 '전에' 원장에 'charging' 행을 UNIQUE(tenant,order_id) 로 선점 — 경쟁 프로세스는 즉시 탈락
+     *   ③ 중복 거절/크래시 회수 — Toss 주문조회로 "실제로 돈이 나갔는지"를 매입사 원장에서 확인 후 정정
      * @return array{charged:int, status:string}
      */
     public static function settleManagedSpend(\PDO $pdo, string $tenant, float $mtdSpend, int $budget, int $campaignId = 0, string $channel = ''): array
@@ -422,32 +482,41 @@ final class BillingMethod
             if (self::isDemoTenant($tenant) || $budget <= 0) return ['charged' => 0, 'status' => 'skip'];
             self::ensureTables($pdo);
             $ym = self::ym();
+            // ③ 방치된 선점 회수를 '누적액 계산 전에' 수행 — 안 하면 크래시로 남은 charging 행이
+            //    영원히 delta 를 0 으로 만들어 이후 모든 정산이 조용히 멈춘다.
+            self::reconcileStaleClaims($pdo, $tenant, $ym);
             $target = (int)min((float)$budget, max(0.0, $mtdSpend));   // 캡: 예산 초과 금지
             $already = self::mtdCharged($pdo, $tenant, $ym);
             $delta = $target - $already;
             if ($delta < 1000) return ['charged' => 0, 'status' => 'noop']; // 1000원 미만 변동 무시(노이즈)
 
+            $now = self::now();
+            $orderId = self::orderIdFor($tenant, $ym, $campaignId, $target);
+
+            // ② 카드 긁기 전 선점. 경쟁자가 이미 이 정산지점을 잡았거나 끝냈으면 여기서 끝난다.
+            $claim = self::claimLedger($pdo, $tenant, $ym, $campaignId, $channel, $delta, $orderId, $now);
+            if ($claim['status'] !== 'claimed') return ['charged' => 0, 'status' => $claim['status']];
+            $rowId = $claim['id'];
+
             // 기본 결제수단
             $bm = $pdo->prepare("SELECT id, billing_key, customer_key FROM billing_method WHERE tenant_id=? AND status='active' AND billing_key IS NOT NULL ORDER BY is_default DESC, id DESC LIMIT 1");
             $bm->execute([$tenant]);
             $method = $bm->fetch(\PDO::FETCH_ASSOC);
-            $now = self::now();
-            $orderId = 'ADS-' . substr(hash('sha256', $tenant . '|' . $ym . '|' . microtime(true)), 0, 24);
 
             if (!$method) {
                 // 카드 미등록 → 원장 pending(미청구). 집행 게이트가 별도 차단.
-                self::insertLedger($pdo, $tenant, $ym, $campaignId, $channel, $delta, 0, '', $orderId, 'pending', '결제수단 미등록(미청구)', $now);
+                self::finalizeLedger($pdo, $rowId, 'pending', 0, '', '결제수단 미등록(미청구)');
                 return ['charged' => 0, 'status' => 'no_method'];
             }
 
             $billingKey = Crypto::decrypt((string)$method['billing_key']);
             $customerKey = (string)$method['customer_key'];
             if ($billingKey === '' || self::tossSecretKey() === '') {
-                self::insertLedger($pdo, $tenant, $ym, $campaignId, $channel, $delta, (int)$method['id'], '', $orderId, 'pending', 'Toss 빌링 미설정(미청구 약정)', $now);
+                self::finalizeLedger($pdo, $rowId, 'pending', (int)$method['id'], '', 'Toss 빌링 미설정(미청구 약정)');
                 return ['charged' => 0, 'status' => 'pending'];
             }
 
-            // 실제 카드 청구
+            // ① 실제 카드 청구 — orderId 는 결정적이므로 재시도해도 Toss 가 두 번 긁지 않는다.
             $r = self::tossPost(self::TOSS_BILLING_BASE . '/' . rawurlencode($billingKey), [
                 'customerKey' => $customerKey,
                 'amount' => $delta,
@@ -456,21 +525,90 @@ final class BillingMethod
             ]);
             if (!empty($r['ok'])) {
                 $pk = (string)(($r['data']['paymentKey'] ?? '') ?: '');
-                self::insertLedger($pdo, $tenant, $ym, $campaignId, $channel, $delta, (int)$method['id'], $pk, $orderId, 'charged', '관리형 광고비 청구', $now);
+                self::finalizeLedger($pdo, $rowId, 'charged', (int)$method['id'], $pk, '관리형 광고비 청구');
                 return ['charged' => $delta, 'status' => 'charged'];
             }
-            self::insertLedger($pdo, $tenant, $ym, $campaignId, $channel, $delta, (int)$method['id'], '', $orderId, 'failed', '청구 실패: ' . mb_substr((string)($r['error'] ?? ''), 0, 180), $now);
+
+            // ③ "이미 처리된 orderId" 거절 → 과거 시도가 실제로 성공했다는 뜻. Toss 원장에서 확인해 정정.
+            if (self::isDuplicateOrder($r)) {
+                $ord = self::tossGetOrder($orderId);
+                if ($ord['paid']) {
+                    self::finalizeLedger($pdo, $rowId, 'charged', (int)$method['id'], $ord['paymentKey'], '중복 청구 차단 — 기청구 확인(회수)');
+                    return ['charged' => $delta, 'status' => 'recovered'];
+                }
+            }
+            self::finalizeLedger($pdo, $rowId, 'failed', (int)$method['id'], '', '청구 실패: ' . mb_substr((string)($r['error'] ?? ''), 0, 180));
             return ['charged' => 0, 'status' => 'failed'];
         } catch (\Throwable $e) {
             return ['charged' => 0, 'status' => 'error'];
         }
     }
 
-    private static function insertLedger(\PDO $pdo, string $tenant, string $ym, int $campaignId, string $channel, int $amount, int $methodId, string $paymentKey, string $orderId, string $status, string $reason, string $now): void
+    /**
+     * 크래시 등으로 'charging' 상태로 방치된 선점을 Toss 주문조회로 진실 확정(charged/failed).
+     * 우리 DB 가 아니라 매입사 원장이 진실이다. 회수 자체도 원자적 상태전이로 단일 프로세스만 수행.
+     */
+    private static function reconcileStaleClaims(\PDO $pdo, string $tenant, string $ym): void
     {
         try {
-            $pdo->prepare("INSERT INTO ad_spend_ledger(tenant_id,ym,campaign_id,channel,amount,billing_method_id,payment_key,order_id,status,reason,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)")
-                ->execute([$tenant, $ym, $campaignId, mb_substr($channel, 0, 60), $amount, $methodId, $paymentKey, $orderId, $status, mb_substr($reason, 0, 255), $now]);
+            $st = $pdo->prepare("SELECT id, status, order_id, created_at FROM ad_spend_ledger WHERE tenant_id=? AND ym=? AND status IN('charging','reconciling')");
+            $st->execute([$tenant, $ym]);
+            foreach ($st->fetchAll(\PDO::FETCH_ASSOC) ?: [] as $row) {
+                if (time() - (int)strtotime((string)$row['created_at']) < self::CLAIM_STALE_SEC) continue; // 진행중
+                $up = $pdo->prepare("UPDATE ad_spend_ledger SET status='reconciling' WHERE id=? AND status=?");
+                $up->execute([(int)$row['id'], (string)$row['status']]);
+                if ($up->rowCount() !== 1) continue; // 다른 프로세스가 먼저 잡음
+                $ord = self::tossGetOrder((string)$row['order_id']);
+                $ord['paid']
+                    ? self::finalizeLedger($pdo, (int)$row['id'], 'charged', -1, $ord['paymentKey'], '중단된 청구 회수 — Toss 기청구 확인')
+                    : self::finalizeLedger($pdo, (int)$row['id'], 'failed', -1, '', '중단된 청구 회수 — 미청구 확인(재시도 대상)');
+            }
+        } catch (\Throwable $e) {}
+    }
+
+    /**
+     * 정산지점 선점. UNIQUE(tenant_id, order_id) 가 유일한 락이다(MySQL/SQLite 공통, 별도 락 인프라 불필요).
+     * @return array{status:string, id:int}  status: claimed|in_progress|duplicate|error
+     */
+    private static function claimLedger(\PDO $pdo, string $tenant, string $ym, int $campaignId, string $channel, int $amount, string $orderId, string $now): array
+    {
+        try {
+            $pdo->prepare("INSERT INTO ad_spend_ledger(tenant_id,ym,campaign_id,channel,amount,billing_method_id,payment_key,order_id,status,reason,created_at) VALUES(?,?,?,?,?,0,'',?,'charging','청구 선점',?)")
+                ->execute([$tenant, $ym, $campaignId, mb_substr($channel, 0, 60), $amount, $orderId, $now]);
+            return ['status' => 'claimed', 'id' => (int)$pdo->lastInsertId()];
+        } catch (\Throwable $e) {
+            // UNIQUE 충돌 = 다른 프로세스가 같은 정산지점을 이미 잡았거나 끝냈다.
+        }
+        try {
+            $st = $pdo->prepare("SELECT id, status, created_at FROM ad_spend_ledger WHERE tenant_id=? AND order_id=? LIMIT 1");
+            $st->execute([$tenant, $orderId]);
+            $row = $st->fetch(\PDO::FETCH_ASSOC);
+            if (!$row) return ['status' => 'error', 'id' => 0];
+            $st0 = (string)$row['status'];
+            if ($st0 === 'charged' || $st0 === 'pending') return ['status' => 'duplicate', 'id' => 0];
+            if ($st0 === 'charging' || $st0 === 'reconciling') {
+                $age = time() - (int)strtotime((string)$row['created_at']);
+                if ($age < self::CLAIM_STALE_SEC) return ['status' => 'in_progress', 'id' => 0]; // 진행중 — 절대 재청구 금지
+            }
+            // 방치된 'charging'(크래시) 또는 'failed' → 같은 orderId 로 재선점. Toss 가 최후 방어선.
+            $up = $pdo->prepare("UPDATE ad_spend_ledger SET status='charging', amount=?, created_at=? WHERE id=? AND status=?");
+            $up->execute([$amount, $now, (int)$row['id'], $st0]);
+            if ($up->rowCount() !== 1) return ['status' => 'in_progress', 'id' => 0]; // 경쟁자가 먼저 회수
+            return ['status' => 'claimed', 'id' => (int)$row['id']];
+        } catch (\Throwable $e) { return ['status' => 'error', 'id' => 0]; }
+    }
+
+    /** $methodId < 0 이면 billing_method_id 는 보존(회수 경로가 원 카드 정보를 지우지 않도록). */
+    private static function finalizeLedger(\PDO $pdo, int $rowId, string $status, int $methodId, string $paymentKey, string $reason): void
+    {
+        try {
+            if ($methodId < 0) {
+                $pdo->prepare("UPDATE ad_spend_ledger SET status=?, payment_key=?, reason=? WHERE id=?")
+                    ->execute([$status, $paymentKey, mb_substr($reason, 0, 255), $rowId]);
+                return;
+            }
+            $pdo->prepare("UPDATE ad_spend_ledger SET status=?, billing_method_id=?, payment_key=?, reason=? WHERE id=?")
+                ->execute([$status, $methodId, $paymentKey, mb_substr($reason, 0, 255), $rowId]);
         } catch (\Throwable $e) {}
     }
 }

@@ -240,7 +240,19 @@ export default function PaymentMethods() {
                         <td style={{ padding: '8px 10px', fontFamily: 'monospace', color: '#475569' }}>{r.ym || (r.created_at || '').slice(0, 7)}</td>
                         <td style={{ padding: '8px 10px', fontWeight: 700 }}>{r.channel_name || r.channel}</td>
                         <td style={{ padding: '8px 10px', textAlign: 'right', fontWeight: 800, color: '#dc2626' }}>{fmtKRW(r.amount)}</td>
-                        <td style={{ padding: '8px 10px' }}><span style={{ fontSize: 10.5, fontWeight: 700, padding: '2px 9px', borderRadius: 20, background: r.status === 'charged' ? 'rgba(34,197,94,0.12)' : 'rgba(234,179,8,0.12)', color: r.status === 'charged' ? '#16a34a' : '#a16207' }}>{r.status === 'charged' ? t('paymentMethods.statusCharged', '청구완료') : (r.status || t('paymentMethods.statusPending', '대기'))}</span></td>
+                        <td style={{ padding: '8px 10px' }}>{(() => {
+                          // 원장 상태 → 사람이 읽는 라벨. charging/reconciling/failed 를 영문 raw 로 노출하지 않는다.
+                          const ok = r.status === 'charged';
+                          const bad = r.status === 'failed';
+                          const label = ok ? t('paymentMethods.statusCharged', '청구완료')
+                            : bad ? t('paymentMethods.statusFailed', '청구실패')
+                            : r.status === 'charging' ? t('paymentMethods.statusCharging', '청구중')
+                            : r.status === 'reconciling' ? t('paymentMethods.statusReconciling', '확인중')
+                            : t('paymentMethods.statusPending', '대기');
+                          const bg = ok ? 'rgba(34,197,94,0.12)' : bad ? 'rgba(239,68,68,0.12)' : 'rgba(234,179,8,0.12)';
+                          const fg = ok ? '#16a34a' : bad ? '#dc2626' : '#a16207';
+                          return <span style={{ fontSize: 10.5, fontWeight: 700, padding: '2px 9px', borderRadius: 20, background: bg, color: fg }}>{label}</span>;
+                        })()}</td>
                       </tr>
                     ))}
                   </tbody>
