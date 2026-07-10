@@ -233,6 +233,24 @@ final class ChannelSync
             UNIQUE(tenant_id, channel, sku, warehouse)
         )");
 
+        // [276차] 대량 카탈로그 백그라운드 수집 잡 — 온디맨드 동기화가 첫 N페이지만 즉시 반영하고,
+        //   나머지 페이지를 commerce_sync_cron(::processCatalogJobs)이 나눠 수집·완료 시 알림.
+        $exec("CREATE TABLE IF NOT EXISTS catalog_sync_job (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            tenant_id TEXT NOT NULL,
+            channel TEXT NOT NULL,
+            user_id INTEGER DEFAULT 0,
+            status TEXT NOT NULL DEFAULT 'pending',
+            total_elements INTEGER DEFAULT 0,
+            fetched INTEGER DEFAULT 0,
+            next_page INTEGER DEFAULT 1,
+            page_size INTEGER DEFAULT 100,
+            message TEXT,
+            created_at TEXT,
+            updated_at TEXT,
+            UNIQUE(tenant_id, channel)
+        )");
+
         // ★ 202차: channel_credential 은 ChannelCreds 가 먼저 생성할 수 있어(스키마 분기)
         //   ChannelSync 가 쓰는 컬럼이 누락될 수 있다. 누락 컬럼을 idempotent ALTER 로 보강
         //   (이미 있으면 예외 → 무시). status() 의 last_synced_at/sync_status SELECT 500 해소.
@@ -727,9 +745,26 @@ final class ChannelSync
                         'source'      => 'live',
                     ];
                 }
-                // [M6] 상품 수집 — 네이버 커머스 products/search(동일 access_token 재사용). 데모는 데모상품, 운영은 실 API.
-                $products = ($tenant === 'demo') ? self::buildDemoChannelProducts('naver','네이버') : self::naverProducts($token);
-                return ['ok'=>true, 'products'=>$products, 'orders'=>$orders];
+                // [M6/276차] 상품 수집 — 페이지네이션(첫 $cap 페이지 즉시). total_available 로 대량 오버플로 판정
+                //   → 상위(syncTenantChannel)가 나머지를 catalog_sync_job 백그라운드로 위임(완료 시 알림).
+                if ($tenant === 'demo') {
+                    $products = self::buildDemoChannelProducts('naver', '네이버');
+                    return ['ok'=>true, 'products'=>$products, 'orders'=>$orders,
+                            'total_available'=>count($products), 'total_pages'=>1, 'fetched_pages'=>1, 'page_size'=>max(1, count($products))];
+                }
+                $cap = 10; $size = 100;
+                $first = self::naverProductsPage($token, 1, $size);
+                $products = (array)($first['products'] ?? []);
+                $totalPages = (int)($first['totalPages'] ?? 1);
+                $totalAvail = (int)($first['totalElements'] ?? count($products));
+                for ($pg = 2; $pg <= min($totalPages, $cap); $pg++) {
+                    $rp = self::naverProductsPage($token, $pg, $size);
+                    if ((int)($rp['http'] ?? 0) !== 200) break;
+                    $products = array_merge($products, (array)($rp['products'] ?? []));
+                }
+                return ['ok'=>true, 'products'=>$products, 'orders'=>$orders,
+                        'total_available'=>$totalAvail, 'total_pages'=>$totalPages,
+                        'fetched_pages'=>min($totalPages, $cap), 'page_size'=>$size];
             }
         }
 
@@ -745,31 +780,185 @@ final class ChannelSync
         return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>'네이버 Commerce API: Client ID/Secret 등록 시 실데이터가 동기화됩니다.'];
     }
 
-    /** [M6] 네이버 커머스 products/search → 상품 매핑(SALE 상태 50건). 실패 시 빈배열. */
-    private static function naverProducts(string $token): array
+    /**
+     * [276차] 네이버 커머스 products/search 한 페이지 조회+매핑.
+     *   ★API 응답구조 정정: 상품 상세는 content.channelProducts[0] 에 있다(name/salePrice/discountedPrice/
+     *     stockQuantity/statusType). 기존 코드는 존재하지 않는 content.originProduct 를 읽어 이름·가격·재고가
+     *     전부 빈값/0 으로 저장 → "동기화 성공인데 상품 없음" 근본원인. sellerManagementCode 는 검색응답에
+     *     없어 originProductNo 를 sku 폴백으로 사용.
+     *   반환: ['products'=>[], 'totalPages'=>int, 'totalElements'=>int, 'http'=>int]
+     */
+    private static function naverProductsPage(string $token, int $page, int $size): array
     {
         [$code, $body] = self::httpPost(
             'https://api.commerce.naver.com/external/v1/products/search',
             ['Authorization' => "Bearer {$token}", 'Content-Type' => 'application/json'],
-            json_encode(['productStatusTypes' => ['SALE'], 'page' => 1, 'size' => 50], JSON_UNESCAPED_UNICODE)
+            json_encode(['productStatusTypes' => ['SALE', 'OUTOFSTOCK', 'SUSPENSION', 'WAIT'], 'page' => $page, 'size' => $size], JSON_UNESCAPED_UNICODE)
         );
-        if ($code !== 200) return [];
+        if ($code !== 200) return ['products' => [], 'totalPages' => 0, 'totalElements' => 0, 'http' => $code];
         $products = [];
         foreach ((array)($body['contents'] ?? []) as $c) {
-            $op = (array)($c['originProduct'] ?? $c);
-            $pid = (string)($c['originProductNo'] ?? $op['originProductNo'] ?? '');
+            $cps = (array)($c['channelProducts'] ?? []);
+            $cp  = (array)(($cps[0] ?? null) ?: []);
+            $pid = (string)($c['originProductNo'] ?? $cp['originProductNo'] ?? '');
             if ($pid === '') continue;
             $products[] = [
-                'channel_product_id' => $pid,
-                'sku'       => (string)($op['sellerManagementCode'] ?? ''),
-                'name'      => (string)($op['name'] ?? ''),
-                'price'     => (float)($op['salePrice'] ?? 0),
-                'inventory' => (int)($op['stockQuantity'] ?? 0),
-                'status'    => strtolower((string)($op['statusType'] ?? 'sale')),
+                'channel_product_id' => (string)($cp['channelProductNo'] ?? $pid),
+                'sku'       => (string)($cp['sellerManagementCode'] ?? $pid), // 검색응답 미포함 → originProductNo 폴백
+                'name'      => (string)($cp['name'] ?? ''),
+                'price'     => (float)($cp['discountedPrice'] ?? $cp['salePrice'] ?? 0),
+                'inventory' => (int)($cp['stockQuantity'] ?? 0),
+                'status'    => strtolower((string)($cp['statusType'] ?? 'sale')),
                 'source'    => 'live',
             ];
         }
-        return $products;
+        return [
+            'products'      => $products,
+            'totalPages'    => (int)($body['totalPages'] ?? 1),
+            'totalElements' => (int)($body['totalElements'] ?? count($products)),
+            'http'          => 200,
+        ];
+    }
+
+    /** [M6/276차] 네이버 상품 수집 — 페이지네이션(최대 $maxPages 페이지×100). 대량 카탈로그는 상위(syncTenantChannel)가
+     *   나머지를 catalog_sync_job 백그라운드로 위임한다. 실패 시 빈배열. */
+    private static function naverProducts(string $token, int $maxPages = 10): array
+    {
+        $all = []; $page = 1; $size = 100;
+        do {
+            $r = self::naverProductsPage($token, $page, $size);
+            if (($r['http'] ?? 0) !== 200) break;
+            $all = array_merge($all, $r['products']);
+            $totalPages = (int)($r['totalPages'] ?? 1);
+            $page++;
+        } while ($page <= $totalPages && $page <= $maxPages);
+        return $all;
+    }
+
+    /** [276차] 네이버 액세스 토큰 획득(bcrypt 전자서명). 백그라운드 잡·재사용. 실패 시 null. */
+    private static function naverAccessToken(array $creds): ?string
+    {
+        $cid = trim((string)($creds['client_id'] ?? ''));
+        $sec = trim((string)($creds['client_secret'] ?? ''));
+        if ($cid === '' || $sec === '') return null;
+        $ts   = (int)(microtime(true) * 1000);
+        $sign = self::naverSign($cid, $sec, $ts);
+        [$code, $body] = self::httpPost(
+            'https://api.commerce.naver.com/external/v1/oauth2/token',
+            ['Content-Type' => 'application/x-www-form-urlencoded'],
+            "client_id={$cid}&timestamp={$ts}&client_secret_sign=" . urlencode($sign) . "&grant_type=client_credentials&type=SELF"
+        );
+        return ($code === 200 && !empty($body['access_token'])) ? (string)$body['access_token'] : null;
+    }
+
+    /** [276차] 대량 카탈로그 백그라운드 잡 적재(tenant+channel 단일 활성 잡, upsert). fetched=이미 즉시반영한 수. */
+    private static function enqueueCatalogJob(\PDO $pdo, string $tenant, string $channel, int $userId, int $total, int $fetched, int $nextPage, int $pageSize): void
+    {
+        try {
+            $now = gmdate('c');
+            // 이미 done 이 아닌 활성 잡이 있으면 진행상태 보존, 없으면 신규.
+            $ex = $pdo->prepare("SELECT id,status FROM catalog_sync_job WHERE tenant_id=? AND channel=?");
+            $ex->execute([$tenant, $channel]);
+            $row = $ex->fetch(\PDO::FETCH_ASSOC);
+            if ($row) {
+                // 진행 중이면 그대로 두고, done/error 였으면 재개(next_page 재설정).
+                if (in_array((string)$row['status'], ['done', 'error'], true)) {
+                    $pdo->prepare("UPDATE catalog_sync_job SET status='pending', user_id=?, total_elements=?, fetched=?, next_page=?, page_size=?, message=?, updated_at=? WHERE id=?")
+                        ->execute([$userId, $total, $fetched, $nextPage, $pageSize, '대량 카탈로그 백그라운드 수집 대기', $now, (int)$row['id']]);
+                }
+            } else {
+                $pdo->prepare("INSERT INTO catalog_sync_job(tenant_id,channel,user_id,status,total_elements,fetched,next_page,page_size,message,created_at,updated_at)
+                    VALUES(?,?,?,'pending',?,?,?,?,?,?,?)")
+                    ->execute([$tenant, $channel, $userId, $total, $fetched, $nextPage, $pageSize, '대량 카탈로그 백그라운드 수집 대기', $now, $now]);
+            }
+        } catch (\Throwable $e) { /* 잡 적재 실패는 온디맨드 결과에 영향 없음 */ }
+    }
+
+    /** [276차] 사용자 알림 적재(user_notification 재사용). userId=0 이면 무동작. */
+    private static function notifyUser(\PDO $pdo, int $userId, string $tenant, string $type, string $title, string $body, string $link = ''): void
+    {
+        if ($userId <= 0) return;
+        // 테이블 생성은 driver-aware + INSERT 와 별도 try (CREATE 실패가 INSERT 를 막지 않도록).
+        //   ★user_notification 은 운영에선 UserAuth 가 이미 생성. 여기 CREATE 는 fresh DB 안전망.
+        $isMy = strtolower((string)$pdo->getAttribute(\PDO::ATTR_DRIVER_NAME)) === 'mysql';
+        $idCol = $isMy ? 'id INT AUTO_INCREMENT PRIMARY KEY' : 'id INTEGER PRIMARY KEY AUTOINCREMENT';
+        try { $pdo->exec("CREATE TABLE IF NOT EXISTS user_notification ($idCol, user_id INT, tenant_id VARCHAR(64), type VARCHAR(32), title TEXT, body TEXT, link VARCHAR(255), is_read TINYINT DEFAULT 0, created_at VARCHAR(32))"); } catch (\Throwable $e) {}
+        try {
+            $pdo->prepare("INSERT INTO user_notification(user_id,tenant_id,type,title,body,link,is_read,created_at) VALUES(?,?,?,?,?,?,0,?)")
+                ->execute([$userId, $tenant, $type, $title, $body, $link, gmdate('c')]);
+        } catch (\Throwable $e) { /* best-effort */ }
+    }
+
+    /**
+     * [276차] 백그라운드 카탈로그 잡 처리 — commerce_sync_cron 에서 호출.
+     *   pending/running 잡별로 다음 배치(최대 $maxPagesPerRun 페이지) 수집·저장, 진행 갱신.
+     *   완료(fetched>=total 또는 페이지 소진) 시 status='done' + 사용자 알림.
+     *   현재 네이버(products/search 페이지네이션) 지원. 다른 채널은 무동작(graceful).
+     * 반환: ['processed'=>int, 'done'=>int, 'saved'=>int]
+     */
+    public static function processCatalogJobs(?\PDO $pdo = null, int $maxPagesPerRun = 10): array
+    {
+        $pdo = $pdo ?: Db::pdo();
+        self::ensureTables();
+        $processed = 0; $doneCnt = 0; $savedTotal = 0;
+        try {
+            $jobs = $pdo->query("SELECT * FROM catalog_sync_job WHERE status IN ('pending','running') ORDER BY updated_at ASC")->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Throwable $e) { return ['processed'=>0,'done'=>0,'saved'=>0,'error'=>$e->getMessage()]; }
+        foreach ($jobs as $job) {
+            $tenant = (string)$job['tenant_id']; $channel = (string)$job['channel'];
+            $c = self::normalizeChannelKey($channel);
+            if (!in_array($c, ['naver','naver_smartstore'], true) && !in_array($channel, ['naver','naver_smartstore'], true)) continue; // 미지원 채널 skip
+            $processed++;
+            $now = gmdate('c');
+            // 자격증명 로드 → 토큰
+            $st = $pdo->prepare("SELECT key_name,key_value FROM channel_credential WHERE tenant_id=? AND channel=? AND is_active=1");
+            $st->execute([$tenant, $channel]);
+            $creds = [];
+            foreach ($st->fetchAll(\PDO::FETCH_ASSOC) as $r) { $creds[$r['key_name']] = \Genie\Crypto::decrypt((string)($r['key_value'] ?? '')); }
+            $token = self::naverAccessToken($creds);
+            if ($token === null) {
+                $pdo->prepare("UPDATE catalog_sync_job SET status='error', message=?, updated_at=? WHERE id=?")
+                    ->execute(['토큰 발급 실패(자격증명 확인)', $now, (int)$job['id']]);
+                continue;
+            }
+            $pdo->prepare("UPDATE catalog_sync_job SET status='running', updated_at=? WHERE id=?")->execute([$now, (int)$job['id']]);
+            $page = (int)$job['next_page']; $size = (int)$job['page_size'] ?: 100;
+            $total = (int)$job['total_elements']; $fetched = (int)$job['fetched'];
+            $saved = 0; $pagesRun = 0; $lastTotalPages = null;
+            while ($pagesRun < $maxPagesPerRun) {
+                $r = self::naverProductsPage($token, $page, $size);
+                if ((int)($r['http'] ?? 0) !== 200) break;
+                $prods = (array)($r['products'] ?? []);
+                if (!$prods) { $lastTotalPages = (int)($r['totalPages'] ?? $page); break; }
+                $saved += self::saveProducts($pdo, $tenant, $channel, $prods);
+                $fetched += count($prods);
+                $lastTotalPages = (int)($r['totalPages'] ?? $page);
+                $page++; $pagesRun++;
+                if ($lastTotalPages > 0 && $page > $lastTotalPages) break; // 페이지 소진
+            }
+            $savedTotal += $saved;
+            $complete = ($lastTotalPages !== null && $page > $lastTotalPages) || ($total > 0 && $fetched >= $total);
+            if ($complete) {
+                $pdo->prepare("UPDATE catalog_sync_job SET status='done', fetched=?, next_page=?, message=?, updated_at=? WHERE id=?")
+                    ->execute([$fetched, $page, "완료: {$fetched}개 상품 수집", $now, (int)$job['id']]);
+                $doneCnt++;
+                self::notifyUser($pdo, (int)$job['user_id'], $tenant, 'catalog_sync',
+                    '카탈로그 동기화 완료',
+                    self::channelLabel($channel) . " 상품 {$fetched}개 수집이 완료되었습니다.",
+                    '/omni-channel');
+            } else {
+                $pdo->prepare("UPDATE catalog_sync_job SET status='pending', fetched=?, next_page=?, message=?, updated_at=? WHERE id=?")
+                    ->execute([$fetched, $page, "진행 중: {$fetched}" . ($total>0?"/{$total}":'') . "개", $now, (int)$job['id']]);
+            }
+        }
+        return ['processed'=>$processed, 'done'=>$doneCnt, 'saved'=>$savedTotal];
+    }
+
+    /** 채널 표시명(알림용). 미정의 채널은 원문. */
+    private static function channelLabel(string $channel): string
+    {
+        $map = ['naver'=>'네이버 스마트스토어','naver_smartstore'=>'네이버 스마트스토어','coupang'=>'쿠팡','shopify'=>'Shopify','amazon'=>'Amazon','amazon_spapi'=>'Amazon'];
+        return $map[strtolower($channel)] ?? $channel;
     }
 
     // ── eBay ─────────────────────────────────────────────────────────────
@@ -3589,7 +3778,7 @@ final class ChannelSync
      *   데모 오염 차단은 saveProducts/saveOrders 의 단일 chokepoint(tenant!=='demo' 가드)가 처리.
      * @return array{ok:bool,product_count:int,order_count:int,synced_at:string,note:?string,error:?string}
      */
-    public static function syncTenantChannel(string $tenant, string $channel, string $plan = 'pro'): array
+    public static function syncTenantChannel(string $tenant, string $channel, string $plan = 'pro', int $userId = 0): array
     {
         self::ensureTables();
         $pdo = Db::pdo();
@@ -3624,6 +3813,21 @@ final class ChannelSync
             try { \Genie\Handlers\OrderHub::rollupSettlementsCore($pdo, $tenant, gmdate('Y-m'), null, gmdate('Y-m-d H:i:s')); } catch (\Throwable $e) {}
         }
 
+        // [276차] 대량 카탈로그 오버플로 → 백그라운드 잡 위임. fetchFromChannel 이 total_available/fetched_pages/
+        //   total_pages 를 준 채널(현재 네이버)만. 즉시 반영분 이후 페이지를 commerce_sync_cron 이 나눠 수집·알림.
+        $bgPending = false;
+        $totalAvail = (int)($result['total_available'] ?? 0);
+        $fetchedNow = count((array)($result['products'] ?? []));
+        $totalPages = (int)($result['total_pages'] ?? 0);
+        $fetchedPages = (int)($result['fetched_pages'] ?? 0);
+        if ($tenant !== '' && $tenant !== 'demo' && !str_starts_with($tenant, 'demo')
+            && $totalAvail > $fetchedNow && $totalPages > $fetchedPages) {
+            self::enqueueCatalogJob($pdo, $tenant, $channel, $userId, $totalAvail, $fetchedNow,
+                $fetchedPages + 1, (int)($result['page_size'] ?? 100));
+            $bgPending = true;
+            $result['note'] = "총 {$totalAvail}개 중 {$fetchedNow}개 즉시 반영 — 나머지는 백그라운드 수집 중(완료 시 알림).";
+        }
+
         $pending = !empty($result['pending']); // [현 차수] H1: stub 채널 연동 대기 표기
         $newStatus = !($result['ok'] ?? false) ? 'error' : ($pending ? 'pending' : 'ok');
         $pdo->prepare("UPDATE channel_credential SET last_synced_at=?,sync_status=? WHERE tenant_id=? AND channel=?")
@@ -3637,6 +3841,8 @@ final class ChannelSync
             'synced_at'     => $now,
             'note'          => $result['note'] ?? null,
             'error'         => $result['error'] ?? null,
+            'background'    => $bgPending,                        // [276차] 대량 백그라운드 수집 진행 여부
+            'total_available' => $totalAvail ?: $pCount,          // 채널 전체 상품 수(있으면)
         ];
     }
 
@@ -3837,7 +4043,11 @@ final class ChannelSync
         $plan    = self::plan($req);
         $channel = (string)($args['channel'] ?? '');
 
-        $r = self::syncTenantChannel($tenant, $channel, $plan);
+        // [276차] 대량 백그라운드 잡 완료 알림 수신자 = 동기화 트리거한 사용자.
+        $au = \Genie\Handlers\UserAuth::authedUser($req);
+        $userId = (int)($au['id'] ?? 0);
+
+        $r = self::syncTenantChannel($tenant, $channel, $plan, $userId);
 
         return TemplateResponder::respond($res, [
             'ok'            => $r['ok'],
@@ -3848,6 +4058,8 @@ final class ChannelSync
             'order_count'   => $r['order_count'],
             'synced_at'     => $r['synced_at'],
             'note'          => $r['note'] ?? null,
+            'background'    => $r['background'] ?? false,        // [276차] 대량 백그라운드 수집 진행 표시
+            'total_available' => $r['total_available'] ?? $r['product_count'],
         ]);
     }
 

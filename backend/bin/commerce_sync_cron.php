@@ -87,6 +87,15 @@ try {
     }
     echo "  → total products={$totalProducts} orders={$totalOrders} errors={$errors}\n";
 
+    // [276차] 대량 카탈로그 백그라운드 잡 처리 — 온디맨드 동기화가 첫 N페이지만 즉시 반영한 뒤 남긴 잡을
+    //   매 실행마다 다음 배치(최대 10페이지)씩 수집·완료 시 사용자 알림. (env DB 는 Db::pdo() 가 GENIE_ENV 기반)
+    try {
+        $bg = ChannelSync::processCatalogJobs(null, 10);
+        echo "  → catalog bg jobs processed={$bg['processed']} done={$bg['done']} saved={$bg['saved']}\n";
+    } catch (\Throwable $e) {
+        echo "  [catalog-bg] EXCEPTION " . $e->getMessage() . "\n";
+    }
+
     // 208차 동기화 P0: 주문 폴링 후 테넌트별 정산 자동 롤업(수동 /settlements/rollup 의존 제거).
     //   channel_orders → orderhub_settlements 당월 집계. 운영 정산/대시보드가 새로고침만으로 채워짐.
     try {
