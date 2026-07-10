@@ -59,9 +59,21 @@ class PriceOpt
             'tax_type TEXT', 'ship_method TEXT', 'ship_fee_type TEXT', 'ship_fee INTEGER',
             'as_phone TEXT', 'as_guide TEXT', 'warranty TEXT',
             'detail_html TEXT', 'images_json TEXT', 'options_json TEXT', 'option_stocks_json TEXT',
+            // [276차] 상품정보제공고시(법정) + 인증·판매 + 배송/반품(상품별). 멱등 ALTER.
+            'notice_category TEXT', 'notice_json TEXT', 'kc_type TEXT', 'kc_cert_no TEXT',
+            'minor_purchase TEXT', 'mfg_date TEXT', 'expiry_date TEXT',
+            'return_ship_fee INTEGER', 'exchange_ship_fee INTEGER',
+            'ship_use_default INTEGER DEFAULT 1', 'release_addr TEXT', 'return_addr TEXT', 'return_courier TEXT',
         ] as $col) {
             try { $pdo->exec("ALTER TABLE po_products ADD COLUMN $col"); } catch (\Throwable $e) { /* 이미 존재 */ }
         }
+
+        // [276차] 계정 공통 배송/반품 설정(출고지·반품지·택배사·기본배송비) — 테넌트당 1행.
+        $pdo->exec("CREATE TABLE IF NOT EXISTS po_fulfillment (
+            tenant_id TEXT PRIMARY KEY,
+            settings_json TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        )");
 
         $pdo->exec("CREATE TABLE IF NOT EXISTS po_elasticity (
             id         INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -321,11 +333,15 @@ class PriceOpt
              category, spec, io_fee, storage_fee, work_fee, shipping_fee, purchase_cost,
              qty_per_box, boxes_per_pallet, initial_stock, stock_boxes, stock_pallets, product_image,
              brand, manufacturer, origin, model_name, barcode, tax_type, ship_method, ship_fee_type, ship_fee,
-             as_phone, as_guide, warranty, detail_html, images_json, options_json, option_stocks_json)
+             as_phone, as_guide, warranty, detail_html, images_json, options_json, option_stocks_json,
+             notice_category, notice_json, kc_type, kc_cert_no, minor_purchase, mfg_date, expiry_date,
+             return_ship_fee, exchange_ship_fee, ship_use_default, release_addr, return_addr, return_courier)
             VALUES (:t, :sku, :pn, :cp, :tm, :bp, :unit, :ts,
              :cat, :spec, :io, :stor, :work, :ship, :pc, :qpb, :bpp, :ist, :sb, :sp, :img,
              :brand, :mfr, :origin, :model, :barcode, :tax, :shipm, :shipft, :shipf,
-             :asp, :asg, :warr, :detail, :imgs, :opts, :ostk)");
+             :asp, :asg, :warr, :detail, :imgs, :opts, :ostk,
+             :ncat, :njson, :kct, :kcno, :minor, :mfgd, :expd,
+             :rfee, :efee, :shipdef, :reladdr, :retaddr, :retcour)");
         $stmt->execute([
             ':t'    => $t,
             ':sku'  => $sku,
@@ -364,6 +380,20 @@ class PriceOpt
             ':imgs'   => $jsonOrNull('images'),
             ':opts'   => $jsonOrNull('options'),
             ':ostk'   => $jsonOrNull('option_stocks'),
+            // [276차] 상품정보제공고시 + 인증·판매 + 배송/반품(상품별)
+            ':ncat'   => $strOrNull('notice_category'),
+            ':njson'  => $jsonOrNull('notice_json'),
+            ':kct'    => $strOrNull('kc_type'),
+            ':kcno'   => $strOrNull('kc_cert_no'),
+            ':minor'  => $strOrNull('minor_purchase'),
+            ':mfgd'   => $strOrNull('mfg_date'),
+            ':expd'   => $strOrNull('expiry_date'),
+            ':rfee'   => $intOrNull('return_ship_fee'),
+            ':efee'   => $intOrNull('exchange_ship_fee'),
+            ':shipdef'=> isset($body['ship_use_default']) ? (int)$body['ship_use_default'] : 1,
+            ':reladdr'=> $strOrNull('release_addr'),
+            ':retaddr'=> $strOrNull('return_addr'),
+            ':retcour'=> $strOrNull('return_courier'),
         ]);
         // [현 차수] 옵션재고 → WMS 재고 반영(옵션 조합별 SKU 재고 upsert + 입고 이동 기록). best-effort.
         self::reflectStockToWms($t, $sku, $body['product_name'] ?? $sku, $body, $intOrNull('initial_stock') ?? 0);
@@ -420,6 +450,32 @@ class PriceOpt
                 }
             }
         } catch (\Throwable $e) { /* WMS 반영 실패는 상품저장에 영향 없음 */ }
+    }
+
+    /** [276차] GET /v420/price/fulfillment — 계정 공통 배송/반품 설정 조회. */
+    public static function getFulfillment(Request $request, Response $response, array $args): Response
+    {
+        if ($err = UserAuth::requirePro($request, $response)) return $err;
+        $db = self::db(); $t = self::tenant($request);
+        $st = $db->prepare("SELECT settings_json FROM po_fulfillment WHERE tenant_id=?");
+        $st->execute([$t]);
+        $row = $st->fetchColumn();
+        return self::json($response, ['ok' => true, 'settings' => $row ? json_decode((string)$row, true) : null]);
+    }
+
+    /** [276차] POST /v420/price/fulfillment — 계정 공통 배송/반품 설정 저장(출고지·반품지·택배사·기본배송비). */
+    public static function saveFulfillment(Request $request, Response $response, array $args): Response
+    {
+        if ($err = UserAuth::requirePro($request, $response)) return $err;
+        $db = self::db(); $t = self::tenant($request);
+        $body = self::body($request);
+        $allow = ['courier', 'sender_name', 'release_zip', 'release_addr', 'return_zip', 'return_addr',
+                  'return_phone', 'default_return_fee', 'default_exchange_fee'];
+        $settings = [];
+        foreach ($allow as $k) { if (isset($body[$k]) && $body[$k] !== null) $settings[$k] = is_scalar($body[$k]) ? (string)$body[$k] : ''; }
+        $db->prepare("INSERT OR REPLACE INTO po_fulfillment(tenant_id, settings_json, updated_at) VALUES(?,?,?)")
+           ->execute([$t, json_encode($settings, JSON_UNESCAPED_UNICODE), gmdate('c')]);
+        return self::json($response, ['ok' => true, 'settings' => $settings]);
     }
 
     /** PUT /v420/price/products/{sku} */

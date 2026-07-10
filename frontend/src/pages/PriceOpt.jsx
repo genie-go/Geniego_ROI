@@ -28,6 +28,7 @@ import { useCurrency } from '../contexts/CurrencyContext.jsx';
 import { CHANNEL_RATES, getChannelRate } from '../constants/channelRates.js';
 import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
 import { getJsonAuth, getJsonAuthAbortable, postJsonAuth } from "../services/apiClient";
+import { PRODUCT_NOTICE_TEMPLATES, noticeTemplateByKey, NOTICE_REFERENCE_TEXT } from '../constants/productNoticeTemplates.js';
 
 /* ── Security Monitor ── */
 const SEC_PATTERNS = [/[<>]script/i, /union\s+select/i, /drop\s+table/i, /;\s*--/i, /\.\.\/\.\.\//i, /eval\s*\(/i, /javascript:/i, /on(error|load|click)\s*=/i];
@@ -261,7 +262,25 @@ function ProductsTab({ token }) {
         tax_type: "taxable", ship_method: "courier", ship_fee_type: "free", ship_fee: "",
         as_phone: "", as_guide: "", warranty: "",
         detail_html: "",
+        // ── [276차] 상품정보제공고시(법정) + 플랫폼 필수 보강 ──
+        notice_category: "etc",   // 품목 key (productNoticeTemplates)
+        kc_type: "none",          // none | target(인증대상) | supplier(공급자적합성확인) | exempt(해당없음)
+        kc_cert_no: "",           // KC 인증번호
+        minor_purchase: "yes",    // yes | no (미성년자 구매 가능 여부)
+        mfg_date: "",             // 제조연월일
+        expiry_date: "",          // 유효일자(유통/사용기한)
+        return_ship_fee: "",      // 반품 배송비
+        exchange_ship_fee: "",    // 교환 배송비
+        ship_use_default: true,   // 배송/반품지: 계정 공통 기본값 사용
+        release_addr: "",         // (예외 시) 출고지
+        return_addr: "",          // (예외 시) 반품지
+        return_courier: "",       // (예외 시) 택배사
     });
+    // [276차] 상품정보제공고시 항목값 { 항목라벨: 값 }
+    const [noticeItems, setNoticeItems] = useState({});
+    // [276차] 계정 공통 배송/반품 설정(출고지·반품지·택배사·기본배송비)
+    const [fulfillment, setFulfillment] = useState(null);
+    const [fulfillMsg, setFulfillMsg] = useState("");
     // [현 차수] 복수 이미지(대표=첫 번째) · 옵션 그룹 · 옵션 조합 재고
     const [images, setImages] = useState([]); // [dataURL,...] (max 8)
     const [optGroups, setOptGroups] = useState([]); // [{name, values:[...]}]
@@ -344,6 +363,21 @@ function ProductsTab({ token }) {
         return () => bc.close();
     }, []);
 
+    // [276차] 계정 공통 배송/반품 설정 로드
+    useEffect(() => {
+        getJsonAuth('/v420/price/fulfillment').then(d => { if (d?.ok && d.settings) setFulfillment(d.settings); }).catch(() => {});
+    }, []);
+
+    // [276차] 계정 배송/반품 설정 저장
+    const saveFulfillment = async (next) => {
+        setFulfillMsg("");
+        try {
+            const d = await postJsonAuth('/v420/price/fulfillment', next);
+            if (d?.ok) { setFulfillment(next); setFulfillMsg(`✅ ${t('priceOpt.saved', '저장되었습니다')}`); }
+            else setFulfillMsg(`❌ ${d?.error || t('priceOpt.saveFail', '저장 실패')}`);
+        } catch (e) { setFulfillMsg(`❌ ${t('priceOpt.saveFail', '저장 실패')}`); }
+    };
+
     const broadcastProductUpdate = () => {
         try {
             const bc = new BroadcastChannel(tChannelName('genie_product_sync'));
@@ -392,6 +426,17 @@ function ProductsTab({ token }) {
                 ship_method: form.ship_method, ship_fee_type: form.ship_fee_type,
                 ship_fee: form.ship_fee_type === 'free' ? 0 : (parseInt(form.ship_fee) || 0),
                 as_phone: form.as_phone, as_guide: form.as_guide, warranty: form.warranty,
+                // [276차] 상품정보제공고시(법정) + 인증·판매 + 배송/반품
+                notice_category: form.notice_category,
+                notice_json: JSON.stringify({ category: form.notice_category, items: noticeItems }),
+                kc_type: form.kc_type, kc_cert_no: form.kc_cert_no,
+                minor_purchase: form.minor_purchase, mfg_date: form.mfg_date, expiry_date: form.expiry_date,
+                return_ship_fee: parseInt(form.return_ship_fee) || 0,
+                exchange_ship_fee: parseInt(form.exchange_ship_fee) || 0,
+                ship_use_default: form.ship_use_default ? 1 : 0,
+                release_addr: form.ship_use_default ? '' : form.release_addr,
+                return_addr: form.ship_use_default ? '' : form.return_addr,
+                return_courier: form.ship_use_default ? '' : form.return_courier,
                 // 상세HTML · 복수이미지 · 옵션 · 옵션조합 재고
                 detail_html: form.detail_html || '',
                 images: images,
@@ -614,6 +659,46 @@ function ProductsTab({ token }) {
                 {/* ═══ Enterprise Registration Form ═══ */}
                 <div>
                     <h4 style={{ marginTop: 0, fontSize: 13 }}>{t("priceOpt.tabProducts")}</h4>
+
+                    {/* ── [276차] 계정 공통 배송/반품 설정 (한 번 등록 → 전 상품 기본값) ── */}
+                    <details style={{ marginBottom: 10, background: 'rgba(249,115,22,0.05)', border: '1px solid rgba(249,115,22,0.2)', borderRadius: 10, padding: '10px 12px' }} open={!fulfillment?.return_zip}>
+                        <summary style={{ cursor: 'pointer', fontSize: 12, fontWeight: 800, color: '#f97316' }}>
+                            🏬 {t('priceOpt.fulfillmentTitle', '배송/반품 설정 (계정 공통)')} {fulfillment?.return_zip ? <span style={{ color: '#16a34a', fontSize: 11 }}>✓ {t('priceOpt.shipDefaultSet', '설정됨')}</span> : <span style={{ color: '#ef4444', fontSize: 11 }}>({t('priceOpt.shipDefaultNone', '미설정')})</span>}
+                        </summary>
+                        {(() => {
+                            const f = fulfillment || {};
+                            const upd = (k, v) => setFulfillment({ ...f, [k]: v });
+                            return (
+                                <div style={{ display: 'grid', gap: 6, marginTop: 10 }}>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                                        <div>{lbl(t('priceOpt.courier', '계약 택배사'))}<input style={inpStyle} value={f.courier || ''} onChange={e => upd('courier', e.target.value)} placeholder="예: CJ대한통운" /></div>
+                                        <div>{lbl(t('priceOpt.senderName', '보내는 분/업체'))}<input style={inpStyle} value={f.sender_name || ''} onChange={e => upd('sender_name', e.target.value)} placeholder={t('priceOpt.senderName', '보내는 분/업체')} /></div>
+                                    </div>
+                                    <div style={{ fontSize: 11, color: '#f97316', fontWeight: 700, marginTop: 4 }}>📦 {t('priceOpt.releaseAddr', '출고지 주소')}</div>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '110px 1fr', gap: 8 }}>
+                                        <div>{lbl(t('priceOpt.zip', '우편번호'))}<input style={inpStyle} value={f.release_zip || ''} onChange={e => upd('release_zip', e.target.value)} placeholder="00000" /></div>
+                                        <div>{lbl(t('priceOpt.addr', '주소'))}<input style={inpStyle} value={f.release_addr || ''} onChange={e => upd('release_addr', e.target.value)} placeholder={t('priceOpt.addr', '주소')} /></div>
+                                    </div>
+                                    <div style={{ fontSize: 11, color: '#f97316', fontWeight: 700, marginTop: 4 }}>↩️ {t('priceOpt.returnAddr', '반품/교환지 주소')}</div>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '110px 1fr', gap: 8 }}>
+                                        <div>{lbl(t('priceOpt.zip', '우편번호'))}<input style={inpStyle} value={f.return_zip || ''} onChange={e => upd('return_zip', e.target.value)} placeholder="00000" /></div>
+                                        <div>{lbl(t('priceOpt.addr', '주소'))}<input style={inpStyle} value={f.return_addr || ''} onChange={e => upd('return_addr', e.target.value)} placeholder={t('priceOpt.addr', '주소')} /></div>
+                                    </div>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+                                        <div>{lbl(t('priceOpt.returnPhone', '반품 연락처'))}<input style={inpStyle} value={f.return_phone || ''} onChange={e => upd('return_phone', e.target.value)} placeholder="010-0000-0000" /></div>
+                                        <div>{lbl(t('priceOpt.defReturnFee', '기본 반품비'))}<input type="number" style={inpStyle} value={f.default_return_fee ?? ''} onChange={e => upd('default_return_fee', e.target.value)} placeholder="3000" /></div>
+                                        <div>{lbl(t('priceOpt.defExchangeFee', '기본 교환비'))}<input type="number" style={inpStyle} value={f.default_exchange_fee ?? ''} onChange={e => upd('default_exchange_fee', e.target.value)} placeholder="6000" /></div>
+                                    </div>
+                                    <button type="button" onClick={() => saveFulfillment(fulfillment || {})}
+                                        style={{ marginTop: 4, padding: '9px', borderRadius: 8, border: 'none', background: 'linear-gradient(135deg,#f97316,#fb923c)', color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
+                                        {t('priceOpt.saveFulfillment', '배송/반품 설정 저장')}
+                                    </button>
+                                    {fulfillMsg && <div style={{ fontSize: 12, textAlign: 'center', color: fulfillMsg.startsWith('✅') ? '#22c55e' : '#ef4444' }}>{fulfillMsg}</div>}
+                                </div>
+                            );
+                        })()}
+                    </details>
+
                     <div style={{ display: "grid", gap: 8, marginBottom: 10 }}>
                         {/* ── [현 차수] 복수 제품 이미지 (첫 번째=대표) ── */}
                         <div style={{ background: 'rgba(99,102,241,0.04)', border: '1px solid rgba(99,102,241,0.15)', borderRadius: 10, padding: 12 }}>
@@ -689,6 +774,76 @@ function ProductsTab({ token }) {
                                 <div style={{ gridColumn: '1 / -1' }}>{lbl(t('priceOpt.asGuide'))}<input style={inpStyle} value={form.as_guide} onChange={e => set('as_guide', e.target.value)} placeholder={t('priceOpt.asGuide')} /></div>
                                 <div style={{ gridColumn: '1 / -1' }}>{lbl(t('priceOpt.warranty'))}<input style={inpStyle} value={form.warranty} onChange={e => set('warranty', e.target.value)} placeholder={t('priceOpt.warranty')} /></div>
                             </div>
+                        </div>
+
+                        {/* ── [276차] 상품정보제공고시 (전자상거래법 법정 필수) ── */}
+                        <div style={{ background: 'rgba(34,197,94,0.05)', border: '1px solid rgba(34,197,94,0.2)', borderRadius: 8, padding: '10px 12px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, flexWrap: 'wrap', gap: 6 }}>
+                                <div style={{ fontSize: 11, color: '#16a34a', fontWeight: 700 }}>📋 {t('priceOpt.noticeTitle', '상품정보제공고시')} <span style={{ color: '#94a3b8', fontWeight: 500 }}>({t('priceOpt.legalRequired', '법정 필수')})</span></div>
+                                <button type="button" onClick={() => {
+                                    const tpl = noticeTemplateByKey(form.notice_category);
+                                    if (!tpl) return;
+                                    const filled = {}; tpl.items.forEach(it => { filled[it] = noticeItems[it] || NOTICE_REFERENCE_TEXT; });
+                                    setNoticeItems(filled);
+                                }} style={{ fontSize: 10, padding: '3px 8px', borderRadius: 6, border: '1px solid rgba(34,197,94,0.3)', background: 'rgba(34,197,94,0.1)', color: '#16a34a', cursor: 'pointer', fontWeight: 700 }}>{t('priceOpt.noticeFillRef', "전체 '상품상세 참조'로 채우기")}</button>
+                            </div>
+                            <div style={{ marginBottom: 8 }}>{lbl(t('priceOpt.noticeCategory', '품목 (고시 카테고리)'))}
+                                <select style={inpStyle} value={form.notice_category} onChange={e => { set('notice_category', e.target.value); setNoticeItems({}); }}>
+                                    {PRODUCT_NOTICE_TEMPLATES.map(tp => <option key={tp.key} value={tp.key}>{tp.label}</option>)}
+                                </select>
+                            </div>
+                            <div style={{ display: 'grid', gap: 6 }}>
+                                {(noticeTemplateByKey(form.notice_category)?.items || []).map(it => (
+                                    <div key={it}>{lbl(it)}
+                                        <input style={inpStyle} value={noticeItems[it] || ''} onChange={e => setNoticeItems(prev => ({ ...prev, [it]: e.target.value }))} placeholder={NOTICE_REFERENCE_TEXT} />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* ── [276차] 인증·판매 정보 (플랫폼 공통 필수) ── */}
+                        <div style={{ background: 'rgba(79,142,247,0.05)', border: '1px solid rgba(79,142,247,0.18)', borderRadius: 8, padding: '10px 12px' }}>
+                            <div style={{ fontSize: 11, color: '#4f8ef7', fontWeight: 700, marginBottom: 8 }}>🛡️ {t('priceOpt.certSalesTitle', '인증·판매 정보')}</div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                                <div>{lbl(t('priceOpt.kcType', 'KC 인증'))}
+                                    <select style={inpStyle} value={form.kc_type} onChange={e => set('kc_type', e.target.value)}>
+                                        <option value="none">{t('priceOpt.kcNone', '해당 없음/선택 안 함')}</option>
+                                        <option value="target">{t('priceOpt.kcTarget', 'KC 인증 대상')}</option>
+                                        <option value="supplier">{t('priceOpt.kcSupplier', '공급자 적합성 확인')}</option>
+                                        <option value="exempt">{t('priceOpt.kcExempt', '안전기준 준수/면제')}</option>
+                                    </select>
+                                </div>
+                                <div>{lbl(t('priceOpt.kcCertNo', 'KC 인증번호'))}<input style={inpStyle} value={form.kc_cert_no} onChange={e => set('kc_cert_no', e.target.value)} placeholder="예: XU-12345-6789" disabled={form.kc_type === 'none'} /></div>
+                                <div>{lbl(t('priceOpt.minorPurchase', '미성년자 구매'))}
+                                    <select style={inpStyle} value={form.minor_purchase} onChange={e => set('minor_purchase', e.target.value)}>
+                                        <option value="yes">{t('priceOpt.minorYes', '가능')}</option>
+                                        <option value="no">{t('priceOpt.minorNo', '불가(성인용품/주류 등)')}</option>
+                                    </select>
+                                </div>
+                                <div />
+                                <div>{lbl(t('priceOpt.mfgDate', '제조연월일'))}<input type="date" style={inpStyle} value={form.mfg_date} onChange={e => set('mfg_date', e.target.value)} /></div>
+                                <div>{lbl(t('priceOpt.expiryDate', '유효일자(유통/사용기한)'))}<input type="date" style={inpStyle} value={form.expiry_date} onChange={e => set('expiry_date', e.target.value)} /></div>
+                            </div>
+                        </div>
+
+                        {/* ── [276차] 배송·반품/교환 (계정 공통 기본값 + 상품별 예외) ── */}
+                        <div style={{ background: 'rgba(249,115,22,0.05)', border: '1px solid rgba(249,115,22,0.18)', borderRadius: 8, padding: '10px 12px' }}>
+                            <div style={{ fontSize: 11, color: '#f97316', fontWeight: 700, marginBottom: 8 }}>🚚 {t('priceOpt.returnTitle', '배송·반품/교환')}</div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
+                                <div>{lbl(t('priceOpt.returnShipFee', '반품 배송비'))}<input type="number" style={inpStyle} value={form.return_ship_fee} onChange={e => set('return_ship_fee', e.target.value)} placeholder="0" /></div>
+                                <div>{lbl(t('priceOpt.exchangeShipFee', '교환 배송비'))}<input type="number" style={inpStyle} value={form.exchange_ship_fee} onChange={e => set('exchange_ship_fee', e.target.value)} placeholder="0" /></div>
+                            </div>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12, color: '#475569', cursor: 'pointer', marginBottom: form.ship_use_default ? 0 : 8 }}>
+                                <input type="checkbox" checked={form.ship_use_default} onChange={e => set('ship_use_default', e.target.checked)} />
+                                {t('priceOpt.shipUseDefault', '계정 공통 출고지·반품지·택배사 사용')} {fulfillment?.return_zip ? <span style={{ color: '#16a34a', fontWeight: 700 }}>✓ {t('priceOpt.shipDefaultSet', '설정됨')}</span> : <span style={{ color: '#ef4444' }}>({t('priceOpt.shipDefaultNone', '미설정 — 아래 배송/반품 설정에서 등록')})</span>}
+                            </label>
+                            {!form.ship_use_default && (
+                                <div style={{ display: 'grid', gap: 6 }}>
+                                    <div>{lbl(t('priceOpt.releaseAddr', '출고지 주소'))}<input style={inpStyle} value={form.release_addr} onChange={e => set('release_addr', e.target.value)} placeholder={t('priceOpt.releaseAddr', '출고지 주소')} /></div>
+                                    <div>{lbl(t('priceOpt.returnAddr', '반품/교환지 주소'))}<input style={inpStyle} value={form.return_addr} onChange={e => set('return_addr', e.target.value)} placeholder={t('priceOpt.returnAddr', '반품/교환지 주소')} /></div>
+                                    <div>{lbl(t('priceOpt.returnCourier', '택배사'))}<input style={inpStyle} value={form.return_courier} onChange={e => set('return_courier', e.target.value)} placeholder="예: CJ대한통운" /></div>
+                                </div>
+                            )}
                         </div>
 
                         {/* ── [현 차수] 옵션 설정 + 조합별 재고 (WMS 반영) ── */}
@@ -810,8 +965,20 @@ function ProductsTab({ token }) {
                             <div>{lbl(t('priceOpt.baseSalePrice'))}<input style={inpStyle} type="number" value={form.base_price} onChange={e => set("base_price", e.target.value)} placeholder="65000" /></div>
                         </div>
                     </div>
-                    <button className="btn" onClick={save} disabled={!form.sku} style={{ width: "100%" }}>{t('priceOpt.saveProduct')}</button>
-                    {msg && <div style={{ marginTop: 8, fontSize: 12, color: msg.startsWith("\u2705") ? "#22c55e" : "#ef4444" }}>{msg}</div>}
+                    {/* [276\ucc28] \uc800\uc7a5 \ubc84\ud2bc \uac00\uc2dc\uc131 \uc218\uc815: \ud3fc\uc774 \uae38\uc5b4(\uc774\ubbf8\uc9c0\u00b7\uc635\uc158\u00b7\uc6d0\uac00) \uc800\uc7a5 \ubc84\ud2bc\uc774 \ud654\uba74 \ubc16 1700px \uc544\ub798\uc5d0
+                        \uc704\uce58 + `.btn`(\ubc30\uacbd 4%)\u00b7disabled(opacity .45) \ub85c \uac70\uc758 \uc548 \ubcf4\uc600\ub2e4. sticky \ud558\ub2e8\uace0\uc815 + \uac15\uc870 \uc2a4\ud0c0\uc77c +
+                        \ube44\ud65c\uc131 \uc0ac\uc720 \uc548\ub0b4\ub85c "\uc800\uc7a5\ubc84\ud2bc \uc548\ubcf4\uc784" \uadfc\ubcf8\ud574\uc18c. */}
+                    <div style={{ position: "sticky", bottom: 0, background: "#ffffff", paddingTop: 12, marginTop: 6, borderTop: "1px solid #eef2f7", zIndex: 5 }}>
+                        <button onClick={save} disabled={!form.sku}
+                            style={{ width: "100%", padding: "14px", borderRadius: 10, border: "none",
+                                background: form.sku ? "linear-gradient(135deg,#4f8ef7,#a855f7)" : "#cbd5e1",
+                                color: "#fff", fontSize: 15, fontWeight: 800, cursor: form.sku ? "pointer" : "not-allowed",
+                                boxShadow: form.sku ? "0 10px 26px rgba(79,142,247,0.4)" : "none", transition: "all .2s" }}>
+                            {t('priceOpt.saveProduct')}
+                        </button>
+                        {!form.sku && <div style={{ fontSize: 12, color: "#ef4444", marginTop: 7, textAlign: "center" }}>{t('priceOpt.saveNeedSku', 'SKU(\uc0c1\ud488\ucf54\ub4dc)\ub97c \uba3c\uc800 \uc785\ub825\ud558\uba74 \uc800\uc7a5\ud560 \uc218 \uc788\uc2b5\ub2c8\ub2e4')}</div>}
+                        {msg && <div style={{ marginTop: 8, fontSize: 12, color: msg.startsWith("\u2705") ? "#22c55e" : "#ef4444", textAlign: "center" }}>{msg}</div>}
+                    </div>
                 </div>
 
                 {/* ═══ Product List ═══ */}

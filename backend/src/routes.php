@@ -721,6 +721,8 @@ return function (App $app): void {
         // ── v420 Price Optimisation ───────────────────────────────────────────
         'POST /v420/price/products'          => 'Genie\\Handlers\\PriceOpt::createProduct',
         'GET /v420/price/products'           => 'Genie\\Handlers\\PriceOpt::listProducts',
+        'GET /v420/price/fulfillment'        => 'Genie\\Handlers\\PriceOpt::getFulfillment',
+        'POST /v420/price/fulfillment'       => 'Genie\\Handlers\\PriceOpt::saveFulfillment',
         'PUT /v420/price/products/{sku}'     => 'Genie\\Handlers\\PriceOpt::updateProduct',
         'DELETE /v420/price/products/{sku}'  => 'Genie\\Handlers\\PriceOpt::deleteProduct',
         'POST /v420/price/elasticity'        => 'Genie\\Handlers\\PriceOpt::addElasticity',
@@ -2252,6 +2254,8 @@ return function (App $app): void {
     $register('GET',  '/v420/price/summary');
     $register('GET',  '/v420/price/products');
     $register('POST', '/v420/price/products');
+    $register('GET',  '/v420/price/fulfillment');
+    $register('POST', '/v420/price/fulfillment');
     $register('POST', '/v420/price/elasticity');
     $register('POST', '/v420/price/optimize');
     $register('POST', '/v420/price/game-theory'); // [260차 심화] 게임이론 경쟁반응 시뮬레이션
