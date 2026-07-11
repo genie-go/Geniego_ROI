@@ -2536,7 +2536,7 @@ final class ChannelSync
         if ($title === '' || $price <= 0) return ['ok' => false, 'error' => 'Etsy register: title·price 필수'];
         $payload = http_build_query([
             'quantity' => max(1, $qty), 'title' => mb_substr($title, 0, 140), 'description' => mb_substr($desc, 0, 2000),
-            'price' => $price, 'who_made' => 'i_did', 'when_made' => 'made_to_order', 'taxonomy_id' => $taxonomy, 'type' => 'physical',
+            'price' => self::channelPrice($price, (string)($creds['currency'] ?? 'USD')), 'who_made' => 'i_did', 'when_made' => 'made_to_order', 'taxonomy_id' => $taxonomy, 'type' => 'physical',
         ]);
         [$c, $b, $err] = self::httpReq('POST', $base, $h, $payload);
         if ($err) return ['ok' => false, 'error' => 'Etsy: ' . $err];
@@ -3106,7 +3106,7 @@ final class ChannelSync
         // 가격/재고 push(writeback 핵심). 둘 중 하나라도 성공하면 ok.
         $price = (float)($p['price'] ?? 0); $qty = (int)($p['inventory'] ?? 0); $okAny = false; $errs = [];
         if ($price > 0) {
-            $pp = json_encode(['sku' => $sku, 'pricing' => [['currentPriceType' => 'BASE', 'currentPrice' => ['currency' => 'USD', 'amount' => $price]]]], JSON_UNESCAPED_UNICODE);
+            $pp = json_encode(['sku' => $sku, 'pricing' => [['currentPriceType' => 'BASE', 'currentPrice' => ['currency' => 'USD', 'amount' => self::channelPrice($price, 'USD')]]]], JSON_UNESCAPED_UNICODE);
             [$pc] = self::httpReq('PUT', 'https://marketplace.walmartapis.com/v3/price', $h, $pp);
             if ($pc >= 200 && $pc < 300) $okAny = true; else $errs[] = "price HTTP {$pc}";
         }
@@ -3133,8 +3133,9 @@ final class ChannelSync
             $shipNo = (string)($creds['shipping_no'] ?? $p['shipping_no'] ?? '');
             if ($cate === '' || $name === '' || $shipNo === '')
                 return ['ok' => false, 'pending' => true, 'error' => 'Qoo10 신규등록(SetNewGoods): 상품명·SecondSubCat(category)·ShippingNo(creds shipping_no) 필요'];
+            // [279차 감사 A-1] Qoo10 site 통화(QSM Korea=KRW 기본). creds.currency 지정 시 환산, 미지정=무변환(KRW).
             $q = http_build_query(['v' => '1.1', 'method' => 'ItemsBasic.SetNewGoods', 'key' => $key, 'SecondSubCat' => $cate, 'ItemTitle' => $name,
-                'SellPrice' => (float)($p['price'] ?? 0), 'ItemQty' => (int)($p['inventory'] ?? 0), 'SellerCode' => $sellerCode, 'ShippingNo' => $shipNo,
+                'SellPrice' => self::channelPrice((float)($p['price'] ?? 0), (string)($creds['currency'] ?? '')), 'ItemQty' => (int)($p['inventory'] ?? 0), 'SellerCode' => $sellerCode, 'ShippingNo' => $shipNo,
                 'AdultYN' => 'N', 'StandardImage' => (string)($p['image'] ?? ''), 'returnType' => 'json']);
             [$cc, $cb] = self::httpGet("{$base}?{$q}");
             if ($cc < 400 && (int)($cb['ResultCode'] ?? -1) === 0) return ['ok' => true, 'channel_product_id' => (string)($cb['ResultObject'] ?? $sellerCode), 'note' => 'Qoo10 신규 상품 등록 완료'];
@@ -3165,7 +3166,7 @@ final class ChannelSync
         if ($op === 'register' || ($p['action'] ?? '') === 'register') {
             $cate = (string)($p['channel_category'] ?? $p['category'] ?? ''); $name = (string)($p['name'] ?? '');
             if ($cate === '' || $name === '') return ['ok' => false, 'pending' => true, 'error' => 'Yahoo! Japan 신규등록(addItem): ItemName·CategoryId(category) 필요'];
-            $cbody = '<Req><SellerId>' . htmlspecialchars($seller) . '</SellerId><ItemCode>' . htmlspecialchars($itemCode) . '</ItemCode><CategoryId>' . htmlspecialchars($cate) . '</CategoryId><ItemName>' . htmlspecialchars($name) . '</ItemName><Price>' . ((int)round((float)($p['price'] ?? 0))) . '</Price><Quantity>' . ((int)($p['inventory'] ?? 0)) . '</Quantity><Available>true</Available></Req>';
+            $cbody = '<Req><SellerId>' . htmlspecialchars($seller) . '</SellerId><ItemCode>' . htmlspecialchars($itemCode) . '</ItemCode><CategoryId>' . htmlspecialchars($cate) . '</CategoryId><ItemName>' . htmlspecialchars($name) . '</ItemName><Price>' . ((int)self::channelPrice((float)($p['price'] ?? 0), 'JPY')) . '</Price><Quantity>' . ((int)($p['inventory'] ?? 0)) . '</Quantity><Available>true</Available></Req>';
             [$cc, $craw] = self::httpReqXml('https://circus.shopping.yahooapis.jp/ShoppingWebService/V1/addItem', ['Authorization' => 'Bearer ' . $tok, 'Content-Type' => 'application/xml'], $cbody);
             if ($cc >= 200 && $cc < 300 && stripos((string)$craw, '<Error') === false) return ['ok' => true, 'channel_product_id' => $itemCode, 'note' => 'Yahoo! Japan 신규 상품 등록 완료'];
             return ['ok' => false, 'error' => "Yahoo! Japan 신규등록 실패(code={$cc})", 'detail' => mb_substr((string)$craw, 0, 200)];
@@ -3318,12 +3319,41 @@ final class ChannelSync
             return ($c >= 200 && $c < 300 && empty($b['error'])) ? ['ok' => true, 'unlisted' => $cpid] : $fail($c, $b, 'unlist');
         }
         if ($cpid !== null && $cpid !== '') {
-            $path = '/api/v2/product/update_item';
-            $upd = ['item_id' => (int)$cpid];
-            if (isset($p['name'])) $upd['item_name'] = (string)$p['name'];
-            if (isset($p['spec'])) $upd['description'] = (string)$p['spec'];
-            [$c, $b] = self::httpPost($url($path), $hdr, json_encode($upd, JSON_UNESCAPED_UNICODE));
-            return ($c >= 200 && $c < 300 && empty($b['error'])) ? ['ok' => true, 'channel_product_id' => (string)$cpid] : $fail($c, $b, 'update');
+            // [279차 감사 A-2] writeback 의 주용도는 가격/재고 push(리프라이서·재고동기화)인데, 종전엔 update_item 으로
+            //   item_name/description 만 싣고 price·inventory 를 전송하지 않은 채 HTTP 성공이면 ok=true 반환 → 채널
+            //   실가격 불변인데 UI/DB 는 "동기화 완료·신가격"으로 표기(거짓성공+가격불일치). Shopee 는 가격/재고가
+            //   별도 엔드포인트(update_price/update_stock)라 각각 호출하고, 시도한 것 중 하나라도 실패면 ok=false.
+            $itemId = (int)$cpid;
+            $attempted = 0; $errs = [];
+            // (a) 이름/설명 변경분(있을 때만)
+            if (isset($p['name']) || isset($p['spec'])) {
+                $upd = ['item_id' => $itemId];
+                if (isset($p['name'])) $upd['item_name'] = (string)$p['name'];
+                if (isset($p['spec'])) $upd['description'] = (string)$p['spec'];
+                $attempted++;
+                [$c, $b] = self::httpPost($url('/api/v2/product/update_item'), $hdr, json_encode($upd, JSON_UNESCAPED_UNICODE));
+                if (!($c >= 200 && $c < 300 && empty($b['error']))) $errs[] = "item HTTP {$c}" . ($b['error'] ?? '');
+            }
+            // (b) 가격 push(리프라이서 핵심) — update_price
+            $pxRaw = (float)($p['price'] ?? 0);
+            if ($pxRaw > 0) {
+                $px = self::channelPrice($pxRaw, (string)($creds['currency'] ?? ''));
+                $attempted++;
+                $body = json_encode(['item_id' => $itemId, 'price_list' => [['model_id' => 0, 'original_price' => $px]]], JSON_UNESCAPED_UNICODE);
+                [$c, $b] = self::httpPost($url('/api/v2/product/update_price'), $hdr, $body);
+                if (!($c >= 200 && $c < 300 && empty($b['error']))) $errs[] = "price HTTP {$c} " . mb_substr((string)($b['message'] ?? ''), 0, 80);
+            }
+            // (c) 재고 push — update_stock(inventory 명시 시)
+            if (array_key_exists('inventory', $p)) {
+                $attempted++;
+                $body = json_encode(['item_id' => $itemId, 'stock_list' => [['model_id' => 0, 'seller_stock' => [['stock' => (int)($p['inventory'] ?? 0)]]]]], JSON_UNESCAPED_UNICODE);
+                [$c, $b] = self::httpPost($url('/api/v2/product/update_stock'), $hdr, $body);
+                if (!($c >= 200 && $c < 300 && empty($b['error']))) $errs[] = "stock HTTP {$c} " . mb_substr((string)($b['message'] ?? ''), 0, 80);
+            }
+            if ($attempted === 0) return ['ok' => false, 'error' => 'Shopee update: 변경할 항목(name/spec/price/inventory)이 없습니다'];
+            return empty($errs)
+                ? ['ok' => true, 'channel_product_id' => (string)$cpid]
+                : ['ok' => false, 'channel_product_id' => (string)$cpid, 'error' => 'Shopee update 일부 실패: ' . implode('; ', $errs)];
         }
         // register = add_item — category_id 필수(honest 게이트). image/logistic 은 $p extras 가 있으면 통과.
         $cat = (int)($p['category_id'] ?? 0);
@@ -3331,7 +3361,7 @@ final class ChannelSync
         $add = [
             'category_id' => $cat, 'item_name' => (string)($p['name'] ?? $p['sku'] ?? ''),
             'description' => (string)($p['spec'] ?? ($p['name'] ?? '')),
-            'original_price' => (float)($p['price'] ?? 0), 'normal_stock' => (int)($p['inventory'] ?? 0),
+            'original_price' => self::channelPrice((float)($p['price'] ?? 0), (string)($creds['currency'] ?? '')), 'normal_stock' => (int)($p['inventory'] ?? 0),
             'weight' => (float)($p['weight'] ?? 0.5), 'item_status' => 'NORMAL',
         ];
         // [현 차수] 이미지 — Shopee 는 상품 API 가 URL 을 받지 않는다. media_space 에 파일 본문을 먼저 올려
@@ -3389,7 +3419,9 @@ final class ChannelSync
         $sku = htmlspecialchars((string)($p['sku'] ?? ''), ENT_XML1);
         $name = htmlspecialchars((string)($p['name'] ?? $p['sku'] ?? ''), ENT_XML1);
         $desc = htmlspecialchars((string)($p['spec'] ?? ($p['name'] ?? '')), ENT_XML1);
-        $price = (float)($p['price'] ?? 0); $qty = (int)($p['inventory'] ?? 0);
+        // [279차 감사 A-1] KRW → Lazada 벤처 통화 환산(region 매핑). 미상 통화는 무변환(fail-safe).
+        $lzCur = ['sg' => 'SGD', 'my' => 'MYR', 'th' => 'THB', 'id' => 'IDR', 'ph' => 'PHP', 'vn' => 'VND'][$region] ?? '';
+        $price = self::channelPrice((float)($p['price'] ?? 0), $lzCur); $qty = (int)($p['inventory'] ?? 0);
         // [현 차수] 이미지 — Lazada 상품 XML 은 **Lazada 가 호스팅하는 URL** 만 받는다. 외부 URL 은 /image/migrate 로
         //   Lazada CDN 에 복사한 뒤 그 URL 을 써야 한다(외부 URL 을 그대로 넣으면 거부된다). 종전엔 미전송이었다.
         $lzImgs = [];
@@ -3446,7 +3478,7 @@ final class ChannelSync
         $price = (float)($p['price'] ?? 0); $name = (string)($p['name'] ?? $sku); $cur = self::amazonCurrency($marketplaceId);
         $attrs = [
             'item_name'              => [['value' => $name, 'marketplace_id' => $marketplaceId]],
-            'purchasable_offer'      => [['marketplace_id' => $marketplaceId, 'currency' => $cur, 'our_price' => [['schedule' => [['value_with_tax' => $price]]]]]],
+            'purchasable_offer'      => [['marketplace_id' => $marketplaceId, 'currency' => $cur, 'our_price' => [['schedule' => [['value_with_tax' => self::channelPrice($price, $cur)]]]]]],
             'fulfillment_availability' => [['fulfillment_channel_code' => 'DEFAULT', 'quantity' => (int)($p['inventory'] ?? 0)]],
         ];
         // [현 차수] 이미지 — Listings Items 는 이미지 '위치(공개 URL)'를 속성으로 받는다.
@@ -3477,6 +3509,16 @@ final class ChannelSync
         return $map[$mp] ?? 'USD';
     }
 
+    /** [279차 감사 A-1] 글로벌 채널 writeback 가격 통화 변환 — 카탈로그 가격은 KRW SSOT(calcRecommendedPrice=원가×마진)라
+     *   채널 판매통화로 환산해 싣지 않으면 KRW 숫자가 USD/JPY 등 라벨로 그대로 나가 수백~수천배 과대 등재된다.
+     *   Connectors::krwToCurrency 재사용(미상/KRW 통화 → 무변환 fail-safe). 소수 없는 통화(JPY/VND/IDR/TWD 등)는 정수. */
+    private static function channelPrice(float $krw, string $cur): float
+    {
+        $cur = strtoupper(trim($cur));
+        $v = Connectors::krwToCurrency($krw, $cur);
+        return in_array($cur, ['KRW', 'JPY', 'VND', 'IDR', 'TWD', 'HUF', 'CLP'], true) ? round($v) : round($v, 2);
+    }
+
     /** [228차] TikTok Shop 상품 등록/수정 — HMAC 서명(tiktokSign)+shop_cipher 재사용. ★category_id(category_code) 필수. 라이브 검증=실 판매자 계정. */
     private static function tiktokWrite(array $creds, array $p, string $op, ?string $cpid): array
     {
@@ -3501,7 +3543,7 @@ final class ChannelSync
         $price = (float)($p['price'] ?? 0); $name = (string)($p['name'] ?? $p['sku'] ?? '');
         $payload = ['title' => $name, 'category_id' => $catId, 'description' => ((string)($p['spec'] ?? '') ?: $name),
             'skus' => [['seller_sku' => (string)($p['sku'] ?? ''),
-                'price' => ['amount' => (string)$price, 'currency' => (string)($creds['currency'] ?? 'USD')],
+                'price' => ['amount' => (string)self::channelPrice($price, (string)($creds['currency'] ?? 'USD')), 'currency' => (string)($creds['currency'] ?? 'USD')],
                 'inventory' => [['quantity' => (int)($p['inventory'] ?? 0)]]]]];
         $isUpdate = $cpid !== null;
         $path = $isUpdate ? ('/product/202309/products/' . rawurlencode($cpid)) : '/product/202309/products';

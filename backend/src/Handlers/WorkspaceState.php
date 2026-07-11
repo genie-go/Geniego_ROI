@@ -28,6 +28,8 @@ final class WorkspaceState
     private const KEYS = [
         'calendar_events', 'feedback_entries', 'approval_cfg',
         'catalog_price_rules', 'catalog_inventory', 'catalog_schedules', 'catalog_category_map',
+        // [279차 감사 E-P1] 그간 localStorage/컴포넌트 state 전용(새로고침·타기기 소실)이던 운영 데이터를 서버 영속.
+        'wms_combine', 'wms_bundle', 'wms_toll', 'orderhub_routing_rules', 'reviews_escalated',
     ];
     private const MAX_BYTES = 524288; // 키당 512KB 캡(폭주 방지)
 

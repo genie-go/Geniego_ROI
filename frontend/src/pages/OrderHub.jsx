@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { useI18n } from '../i18n';
 import { IS_DEMO } from '../utils/demoEnv'; // [259차] 하드코딩 관세(total*0.08) 운영 미노출 게이트
+import { loadWorkspace, saveWorkspace, wsEnabled } from '../services/workspaceState'; // [279차] 라우팅 규칙 서버 영속
 import { useGlobalData } from '../context/GlobalDataContext';
 import { useAuth } from '../auth/AuthContext';
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
@@ -853,17 +854,37 @@ function AutoRoutingTab() {
     const { t } = useI18n();
     const { fmt } = useCurrency();
     const { orders } = useGlobalData();
-    // 207차 후속: 라우팅 규칙 localStorage 영속(테넌트 스코프) — 새로고침 시 소실되던 것 해소.
+    // [279차 감사 E-P1] 라우팅 규칙 = 종전 localStorage 전용(새로고침·타기기 소실). 서버 영속(WorkspaceState)으로
+    //   전환(데모는 localStorage 폴백). 하이드레이션 가드로 로드 전 저장 방지(CatalogSync 경쟁 클래스 회피).
     const _RR_KEY = 'orderhub_routing_rules_' + ((typeof localStorage !== 'undefined' && localStorage.getItem('tenantId')) || 'demo');
     const [rules, setRules] = React.useState(() => { try { const s = localStorage.getItem(_RR_KEY); return s ? JSON.parse(s) : []; } catch { return []; } });
-    React.useEffect(() => { try { localStorage.setItem(_RR_KEY, JSON.stringify(rules)); } catch {} }, [rules, _RR_KEY]);
+    const _rrHydrated = React.useRef(!wsEnabled); // 데모=즉시 저장 허용, 운영=서버 로드 후 허용
+    React.useEffect(() => {
+        let alive = true;
+        if (wsEnabled) loadWorkspace('orderhub_routing_rules').then(v => { if (alive) { if (Array.isArray(v)) setRules(v); _rrHydrated.current = true; } }).catch(() => { _rrHydrated.current = true; });
+        return () => { alive = false; };
+    }, []);
+    React.useEffect(() => {
+        if (!_rrHydrated.current) return;
+        if (wsEnabled) saveWorkspace('orderhub_routing_rules', rules).catch(() => {});
+        else { try { localStorage.setItem(_RR_KEY, JSON.stringify(rules)); } catch {} }
+    }, [rules, _RR_KEY]);
     const [showForm, setShowForm] = React.useState(false);
     const [form, setForm] = React.useState({ name: '', condition: '', targetWh: '', priority: 5 });
     const [simResult, setSimResult] = React.useState(null);
     const toggleRule = (id) => setRules(p => p.map(r => r.id === id ? { ...r, active: !r.active } : r));
+    // [279차 감사 E-P1] 종전 simulate 는 r.matched(생성 시 0 하드코딩·증가로직 없음)를 합산해 항상 0건/₩0였다.
+    //   실주문에 규칙 조건(채널/상품명 부분일치)을 실제 평가해 매칭 건수를 산출한다(어느 규칙이든 매칭=1회 카운트).
     const simulate = () => {
         const total = orders.length;
-        const matched = rules.filter(r => r.active).reduce((s, r) => s + r.matched, 0);
+        const active = rules.filter(r => r.active);
+        const matchOrder = (o) => active.some(r => {
+            const cond = String(r.condition || '').trim().toLowerCase();
+            if (cond === '') return false;
+            const hay = `${o.channel || o.ch || ''} ${o.product_name || o.name || ''} ${o.buyer_name || o.buyer || ''}`.toLowerCase();
+            return hay.includes(cond);
+        });
+        const matched = orders.reduce((s, o) => s + (matchOrder(o) ? 1 : 0), 0);
         setSimResult({ total, matched, ratio: total > 0 ? ((matched / total) * 100).toFixed(1) : '0', savings: fmt(matched * 800) });
     };
     const addRule = () => {

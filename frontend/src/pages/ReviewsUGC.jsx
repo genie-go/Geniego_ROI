@@ -1,5 +1,6 @@
 /* build:20260426-0852 */
 import React, { useEffect, useState, useMemo, useCallback, useRef } from "react";
+import { loadWorkspace, saveWorkspace, wsEnabled } from "../services/workspaceState"; // [279차] CS 에스컬레이션 서버 영속
 import { useNotification } from "../context/NotificationContext.jsx";
 import { useGlobalData } from "../context/GlobalDataContext.jsx";
 import { useI18n } from "../i18n";
@@ -571,7 +572,16 @@ export default function ReviewsUGC() {
 
     const [tab, setTab] = useState("dashboard");
     const [replyState, setReplyState] = useState({});
+    // [279차 감사 E-P1] CS 에스컬레이션 표시 = 종전 컴포넌트 state 전용(새로고침·타기기 소실). 서버 영속(WorkspaceState)으로
+    //   전환해 "CS 배정 표시"가 유지되게 한다(실 CS 티켓 라우팅은 별개·데모는 no-op).
     const [escalateState, setEscalateState] = useState({});
+    const _escHydrated = useRef(!wsEnabled);
+    useEffect(() => {
+        let alive = true;
+        if (wsEnabled) loadWorkspace('reviews_escalated').then(v => { if (alive) { if (v && typeof v === 'object') setEscalateState(v); _escHydrated.current = true; } }).catch(() => { _escHydrated.current = true; });
+        return () => { alive = false; };
+    }, []);
+    useEffect(() => { if (wsEnabled && _escHydrated.current) saveWorkspace('reviews_escalated', escalateState).catch(() => {}); }, [escalateState]);
     const [toast, setToast] = useState(null);
     const [analyzing, setAnalyzing] = useState(false);
     const [collecting, setCollecting] = useState("");

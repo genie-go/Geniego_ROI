@@ -453,11 +453,22 @@ function OrdersTab({ t }) {
 
     const handleStatusUpdate = React.useCallback(async (orderId, newStatus) => {
         if (isDemo) { alert(t('omniChannel.demoStatusMsg')); return; }
-        await postJson(`/api/channel-sync/webhooks/${channel || 'shopify'}`, { order_id: orderId, status: newStatus, event: 'order_update' });
-        if (updateOrderStatus) updateOrderStatus(orderId, { status: newStatus });
-        addAlert?.({ type: 'success', msg: `Order ${orderId} → ${newStatus}` });
-        load();
-    }, [isDemo, t, channel, updateOrderStatus, addAlert, load]);
+        // [279차 감사 E-P1] 종전엔 미검증 웹훅 수신 엔드포인트(/channel-sync/webhooks/{ch}, X-Webhook-Token 필수)로
+        //   보내 서버가 아무것도 쓰지 않는데(fail-secure) 무조건 성공표기 → load() 재조회 시 원상복구(무음 no-op)였다.
+        //   인증된 상태변경 SSOT(OrderHub::setOrderStatus)로 전송하고 응답 확인 후에만 낙관적 갱신·토스트.
+        try {
+            const r = await postJson('/api/v424/orderhub/orders/status', { id: orderId, status: newStatus });
+            if (r && r.ok === false) {
+                addAlert?.({ type: 'error', msg: r.message || r.error || t('omniChannel.statusFail', '상태 변경 실패') });
+                return;
+            }
+            if (updateOrderStatus) updateOrderStatus(orderId, { status: newStatus });
+            addAlert?.({ type: 'success', msg: `Order ${orderId} → ${newStatus}` });
+            load();
+        } catch (e) {
+            addAlert?.({ type: 'error', msg: (e && e.message) || t('omniChannel.statusFail', '상태 변경 실패') });
+        }
+    }, [isDemo, t, updateOrderStatus, addAlert, load]);
 
     const summary = React.useMemo(() => STATUSES.map(s => ({ s, cnt: displayOrders.filter(o => o.status === s).length })), [STATUSES, displayOrders]);
 

@@ -111,6 +111,10 @@ read -r -d '' CRONTAB <<EOF || true
 # ── [현 차수] SNS 라이브 채널 통계 동기화(YouTube/Instagram/Facebook 구독자·조회수·팔로워; 저장직후 + 시간별 백업) ──
 50 * * * * GENIE_ENV=production php ${PROD}/bin/sns_live_sync_cron.php >> /var/log/genie_sns_live.log 2>&1
 53 * * * * GENIE_ENV=demo php ${DEMO}/bin/sns_live_sync_cron.php >> /var/log/genie_sns_live_demo.log 2>&1
+# ── [279차 감사 J-P1] MediaHost 이미지 저장소 고아 GC + DB 로그 테이블 retention(주 1회). 278차 dist.bak 27G 루트FS
+#    100% 사고를 이미지/로그 쪽에서 반복하지 않도록 정본 등록(그간 라이브 crontab 수동등록만·SSOT 누락으로 DR 재현성 결여). ──
+17 4 * * 0 GENIE_ENV=production php ${PROD}/bin/media_gc_cron.php --apply >> /var/log/genie_media_gc.log 2>&1
+37 4 * * 0 GENIE_ENV=demo php ${DEMO}/bin/media_gc_cron.php --apply >> /var/log/genie_media_gc_demo.log 2>&1
 EOF
 
 if [ "${1:-}" = "--apply" ]; then

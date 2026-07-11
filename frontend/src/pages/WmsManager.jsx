@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef, memo } from "react";
+import { loadWorkspace, saveWorkspace, wsEnabled } from "../services/workspaceState"; // [279차] 합포장·번들 서버 영속
 import { localizeDeep as _dloc } from "../utils/demoUiLocalize.js";
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import { useProductSelection } from '../contexts/ProductSelectionContext.jsx';
@@ -1000,6 +1001,14 @@ const CombineTab = memo(function CombineTab() {
     const { t } = useI18n();
     const { isDemo } = useAuth();
     const [list, setList] = useState(initCombined);
+    // [279차 감사 E-P1] 합포장 요청/승인/발송 = 종전 인메모리 전용(새로고침 소실). 서버 영속(WorkspaceState).
+    const _cbHydrated = useRef(!wsEnabled);
+    useEffect(() => {
+        let alive = true;
+        if (wsEnabled) loadWorkspace('wms_combine').then(v => { if (alive) { if (Array.isArray(v)) setList(v); _cbHydrated.current = true; } }).catch(() => { _cbHydrated.current = true; });
+        return () => { alive = false; };
+    }, []);
+    useEffect(() => { if (wsEnabled && _cbHydrated.current) saveWorkspace('wms_combine', list).catch(() => {}); }, [list]);
     const [newOrders, setNewOrders] = useState("");
     const [carrier, setCarrier] = useState("CJ Logistics");
     const carriers = initCarriers.filter(c => c.type === "Domestic").map(c => c.name);
@@ -1827,6 +1836,14 @@ const BundleTab = memo(function BundleTab() {
     const { inventory, registerInOut, addAlert } = useGlobalData();
     // currency formatting via useCurrency fmt()
     const [bundles, setBundles] = useState(INIT_BUNDLES);
+    // [279차 감사 E-P1] 번들/키트 BOM 정의 = 종전 인메모리 전용(새로고침 소실→출고 시 참조불가). 서버 영속(WorkspaceState).
+    const _bdlHydrated = useRef(!wsEnabled);
+    useEffect(() => {
+        let alive = true;
+        if (wsEnabled) loadWorkspace('wms_bundle').then(v => { if (alive) { if (Array.isArray(v)) setBundles(v); _bdlHydrated.current = true; } }).catch(() => { _bdlHydrated.current = true; });
+        return () => { alive = false; };
+    }, []);
+    useEffect(() => { if (wsEnabled && _bdlHydrated.current) saveWorkspace('wms_bundle', bundles).catch(() => {}); }, [bundles]);
     const [showForm, setShowForm] = useState(false);
     const [form, setForm] = useState({ name: '', sku: '', price: '', components: [] });
     const [newComp, setNewComp] = useState({ sku: '', qty: 1 });

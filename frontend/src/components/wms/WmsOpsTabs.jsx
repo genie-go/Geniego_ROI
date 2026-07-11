@@ -4,12 +4,13 @@
 //   ★데이터 SSOT = 주문(orders)·재고(inventory)·LOT(lotManagement+백엔드)·입출고(inOutHistory+백엔드 movements).
 //   가짜 데이터 합성 없이 기존 단일소스에서 파생(임의배분/날조 금지). 임가공은 신규 엔터티라 tenant-scoped
 //   localStorage 영속(기존 wms_audit_log 패턴과 동형 — 운영 백엔드 영속은 후속 확장).
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useGlobalData } from '../../context/GlobalDataContext.jsx';
 import { useI18n } from '../../i18n';
 import { useCurrency } from '../../contexts/CurrencyContext.jsx';
 import { IS_DEMO } from '../../utils/demoEnv.js';
 import { tScopedKey } from '../../utils/tenantStorage.js';
+import { loadWorkspace, saveWorkspace, wsEnabled } from '../../services/workspaceState.js'; // [279차] 임가공 작업지시 서버 영속
 import * as wmsApi from '../../services/wmsApi.js';
 
 /* ── 공용 스타일 (WMS 라이트 테마 정합) ───────────────────────── */
@@ -398,14 +399,24 @@ export const WmsTollProcessingTab = memoGuard(function WmsTollProcessingTab() {
   const [form, setForm] = useState({ partner: '', inSku: '', inName: '', inQty: '', outSku: '', outName: '', outQty: '', startDate: '', dueDate: '', note: '' });
   const [showForm, setShowForm] = useState(false);
 
+  // [279차 감사 E-P1] 임가공(외주가공) 작업지시 = 실 물류 운영 데이터인데 종전 localStorage 전용(타기기·팀원 미공유·
+  //   캐시삭제 소실)이면서 UI 는 "회원별로 안전하게 저장됩니다"라 오인 유발. 서버 영속(WorkspaceState·테넌트 스코프)으로
+  //   전환해 라벨과 실제 동작을 일치시킨다(데모는 localStorage 폴백).
+  const _tollHydrated = useRef(!wsEnabled);
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(tScopedKey(TOLL_KEY));
-      if (raw) { setOrders(JSON.parse(raw)); return; }
-    } catch {}
-    if (IS_DEMO) setOrders(DEMO_TOLL);
+    let alive = true;
+    if (wsEnabled) {
+      loadWorkspace('wms_toll').then(v => { if (alive) { if (Array.isArray(v)) setOrders(v); _tollHydrated.current = true; } }).catch(() => { _tollHydrated.current = true; });
+    } else {
+      try { const raw = localStorage.getItem(tScopedKey(TOLL_KEY)); if (raw) { setOrders(JSON.parse(raw)); return; } } catch {}
+      if (IS_DEMO) setOrders(DEMO_TOLL);
+    }
   }, []);
-  const persist = useCallback((next) => { setOrders(next); try { localStorage.setItem(tScopedKey(TOLL_KEY), JSON.stringify(next)); } catch {} }, []);
+  const persist = useCallback((next) => {
+    setOrders(next);
+    if (wsEnabled) { if (_tollHydrated.current) saveWorkspace('wms_toll', next).catch(() => {}); }
+    else { try { localStorage.setItem(tScopedKey(TOLL_KEY), JSON.stringify(next)); } catch {} }
+  }, []);
 
   const stLabel = (id) => { const s = TOLL_STATUS.find(s => s.id === id) || TOLL_STATUS[0]; return { l: t('wms.tollSt_' + id, s.l), c: s.c }; };
 

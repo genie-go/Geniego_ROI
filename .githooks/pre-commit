@@ -163,6 +163,18 @@ if [ -n "$CHWB_STAGED" ]; then
   fi
 fi
 
+# G13 — cron 러너 SSOT 정합 (279차 감사 J-P2)
+#   backend/bin/*.php 러너 추가/변경 또는 install_crontab.sh 변경 시, 러너가 정본(install_crontab.sh)에 등록됐는지 검사.
+#   미등록 시 신규서버/DR 에서 영원히 안 돎(media_gc 가 라이브엔 있으나 SSOT 누락이던 클래스). 우회는 check_cron_ssot.sh 의 ALLOW.
+CRON_STAGED=$(echo "$STAGED" | grep -E '^backend/bin/.*\.php$|^backend/bin/install_crontab\.sh$' || true)
+if [ -n "$CRON_STAGED" ]; then
+  if bash backend/bin/check_cron_ssot.sh >/dev/null 2>&1; then
+    ok "G13: cron 러너 install_crontab.sh SSOT 정합"
+  else
+    fail "G13: cron 러너가 install_crontab.sh 에 미등록 — DR/신규서버서 안 돎. 정본에 등록하거나 ALLOW 명시"
+  fi
+fi
+
 if [ "$FAIL" -ne 0 ]; then
   echo ""
   echo "Pre-commit blocked. Resolve issues or bypass with: git commit --no-verify (N-145-G)"

@@ -395,8 +395,13 @@ export default function DashMarketing({ period }) {
   // [정밀감사 E] '광고 기여 매출'은 광고 귀속 매출(totalAdRevenue)만 사용 — 과거 pnlStats.revenue(총 판매매출)
   //   폴백이 광고데이터 0일 때 전체 판매매출을 광고매출로 오표시해 ROAS 가 대폭 과대 착시되던 결함 제거.
   //   광고 귀속 매출 미적재 시 채널 합산(c.revenue=광고채널 매출), 그것도 0이면 0(정직).
-  const totalRev = budgetStats?.totalAdRevenue ? (budgetStats.totalAdRevenue * f) : liveChannels.reduce((s, c) => s + c.revenue, 0);
-  const totalSpend = (budgetStats?.totalSpent || pnlStats?.adSpend) ? ((budgetStats?.totalSpent || pnlStats?.adSpend) * f) : liveChannels.reduce((s, c) => s + c.spend, 0);
+  // [279차 감사 G2] budgetStats(광고비/광고매출)는 /rollup/platform?period=monthly&n=1 = 최근 ~30일 집계다.
+  //   그런데 f(scope.factor)는 "전체 누적값" 전제로 periodDays/주문윈도우 로 스케일 → 주문윈도우≠30일이면
+  //   광고비가 기간과 어긋난다(윈도우90일·기간30일 → f=0.333로 30일 광고비를 1/3로 과소). 광고집계의 실제
+  //   윈도우(30일) 기준 계수로 교정(period 미선택=1=원값). 비율 지표(ROAS)는 분자·분모 동일계수라 불변.
+  const adF = periodActive ? Math.min(1, (scope.days || 30) / 30) : 1;
+  const totalRev = budgetStats?.totalAdRevenue ? (budgetStats.totalAdRevenue * adF) : liveChannels.reduce((s, c) => s + c.revenue, 0);
+  const totalSpend = (budgetStats?.totalSpent || pnlStats?.adSpend) ? ((budgetStats?.totalSpent || pnlStats?.adSpend) * adF) : liveChannels.reduce((s, c) => s + c.spend, 0);
   const avgROAS = totalSpend > 0
     ? (budgetStats?.blendedRoas || totalRev / totalSpend).toFixed(2)   // ROAS=비율→기간 불변
     : '0.00';
