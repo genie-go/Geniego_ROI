@@ -861,7 +861,9 @@ function AutoRoutingTab() {
     const _rrHydrated = React.useRef(!wsEnabled); // 데모=즉시 저장 허용, 운영=서버 로드 후 허용
     React.useEffect(() => {
         let alive = true;
-        if (wsEnabled) loadWorkspace('orderhub_routing_rules').then(v => { if (alive) { if (Array.isArray(v)) setRules(v); _rrHydrated.current = true; } }).catch(() => { _rrHydrated.current = true; });
+        // [279차 재감사 M3-P1] 하이드레이션 가드는 로드 성공(then)에서만 연다. 실패(catch)에 열면 빈 시드가
+        //   서버 실값을 덮어써 기존 데이터 소실 → 실패 시 저장 비활성 유지(다음 성공로드/재마운트까지 서버값 보존).
+        if (wsEnabled) loadWorkspace('orderhub_routing_rules').then(v => { if (alive) { if (Array.isArray(v)) setRules(v); _rrHydrated.current = true; } }).catch(() => {});
         return () => { alive = false; };
     }, []);
     React.useEffect(() => {

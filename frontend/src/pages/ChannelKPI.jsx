@@ -897,7 +897,9 @@ export default function ChannelKPI() {
             const c = r?.config || {};
             if (c.goals && typeof c.goals === 'object') setGoals(g => ({ ...g, ...c.goals }));
             if (c.kpiTargets && typeof c.kpiTargets === 'object') setKpiTargets(c.kpiTargets);
-        }).catch(() => {}).finally(() => { if (alive) kpiCfgLoaded.current = true; });
+            // [279차 재감사 M3-P1] 로드 성공에서만 저장 가드를 연다(finally는 실패에도 플립→빈 상태가 서버값 덮어씀).
+            kpiCfgLoaded.current = true;
+        }).catch(() => {});
         return () => { alive = false; };
     }, []);
     useEffect(() => {

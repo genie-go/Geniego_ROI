@@ -1005,7 +1005,7 @@ const CombineTab = memo(function CombineTab() {
     const _cbHydrated = useRef(!wsEnabled);
     useEffect(() => {
         let alive = true;
-        if (wsEnabled) loadWorkspace('wms_combine').then(v => { if (alive) { if (Array.isArray(v)) setList(v); _cbHydrated.current = true; } }).catch(() => { _cbHydrated.current = true; });
+        if (wsEnabled) loadWorkspace('wms_combine').then(v => { if (alive) { if (Array.isArray(v)) setList(v); _cbHydrated.current = true; } }).catch(() => {}); // [M3-P1] 실패 시 가드 미개방(서버값 보존)
         return () => { alive = false; };
     }, []);
     useEffect(() => { if (wsEnabled && _cbHydrated.current) saveWorkspace('wms_combine', list).catch(() => {}); }, [list]);
@@ -1840,7 +1840,7 @@ const BundleTab = memo(function BundleTab() {
     const _bdlHydrated = useRef(!wsEnabled);
     useEffect(() => {
         let alive = true;
-        if (wsEnabled) loadWorkspace('wms_bundle').then(v => { if (alive) { if (Array.isArray(v)) setBundles(v); _bdlHydrated.current = true; } }).catch(() => { _bdlHydrated.current = true; });
+        if (wsEnabled) loadWorkspace('wms_bundle').then(v => { if (alive) { if (Array.isArray(v)) setBundles(v); _bdlHydrated.current = true; } }).catch(() => {}); // [M3-P1] 실패 시 가드 미개방(서버값 보존)
         return () => { alive = false; };
     }, []);
     useEffect(() => { if (wsEnabled && _bdlHydrated.current) saveWorkspace('wms_bundle', bundles).catch(() => {}); }, [bundles]);

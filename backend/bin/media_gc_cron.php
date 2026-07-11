@@ -52,7 +52,7 @@ function pruneLogTables(\PDO $pdo, int $days, bool $apply): void
     // [table, timestampCol, terminalWhere] — terminalWhere 는 진행중 행 보호(종결 상태만 대상).
     $specs = [
         ['rule_engine_log',        'created_at', ''],
-        ['webhook_delivery',       'created_at', "status IN ('delivered','failed','dead','sent')"],
+        ['webhook_delivery',       'created_at', "status IN ('delivered','failed','dropped')"],
         ['catalog_writeback_job',  'created_at', "status IN ('done','superseded','failed')"],
         ['server_conversion_log',  'created_at', ''],
     ];

@@ -406,7 +406,7 @@ export const WmsTollProcessingTab = memoGuard(function WmsTollProcessingTab() {
   useEffect(() => {
     let alive = true;
     if (wsEnabled) {
-      loadWorkspace('wms_toll').then(v => { if (alive) { if (Array.isArray(v)) setOrders(v); _tollHydrated.current = true; } }).catch(() => { _tollHydrated.current = true; });
+      loadWorkspace('wms_toll').then(v => { if (alive) { if (Array.isArray(v)) setOrders(v); _tollHydrated.current = true; } }).catch(() => {}); // [M3-P1] 실패 시 가드 미개방(서버값 보존)
     } else {
       try { const raw = localStorage.getItem(tScopedKey(TOLL_KEY)); if (raw) { setOrders(JSON.parse(raw)); return; } } catch {}
       if (IS_DEMO) setOrders(DEMO_TOLL);

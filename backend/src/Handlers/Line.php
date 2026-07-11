@@ -81,7 +81,7 @@ final class Line
         $row = $st->fetch(PDO::FETCH_ASSOC) ?: null;
         // [266차 계약불일치] 설정탭 월발송 카드가 settings.monthly_sent 소비(stats 와 동일 line_campaigns 집계). 미반환→"—" 해소.
         $ms = 0;
-        try { $ag = $pdo->prepare("SELECT COALESCE(SUM(sent),0) FROM line_campaigns WHERE tenant_id=?"); $ag->execute([$tenant]); $ms = (int)($ag->fetchColumn() ?: 0); } catch (\Throwable $e) {}
+        try { $ag = $pdo->prepare("SELECT COALESCE(SUM(sent_count),0) FROM line_campaigns WHERE tenant_id=?"); $ag->execute([$tenant]); $ms = (int)($ag->fetchColumn() ?: 0); } catch (\Throwable $e) {}
         $host = ($_SERVER['HTTP_HOST'] ?? 'www.genieroi.com');
         return TemplateResponder::respond($res, [
             'ok'           => true,
@@ -166,7 +166,7 @@ final class Line
     {
         if ($err = UserAuth::requirePro($req, $res)) return $err;
         self::ensureTables();
-        $st = Db::pdo()->prepare("SELECT c.id, c.name, c.type, c.status, c.sent, c.opened, c.clicked, t.name AS template_name
+        $st = Db::pdo()->prepare("SELECT c.id, c.name, c.type, c.status, c.sent_count AS sent, c.opened, c.clicked, t.name AS template_name
             FROM line_campaigns c LEFT JOIN line_templates t ON t.id=c.template_id AND t.tenant_id=c.tenant_id
             WHERE c.tenant_id=? ORDER BY c.id DESC");
         $st->execute([self::tenant($req)]);
@@ -251,7 +251,7 @@ final class Line
         self::ensureTables();
         $pdo = Db::pdo();
         $tenant = self::tenant($req);
-        $agg = $pdo->prepare("SELECT COALESCE(SUM(sent),0) AS sent, COALESCE(SUM(opened),0) AS opened, COALESCE(SUM(clicked),0) AS clicked FROM line_campaigns WHERE tenant_id=?");
+        $agg = $pdo->prepare("SELECT COALESCE(SUM(sent_count),0) AS sent, COALESCE(SUM(opened),0) AS opened, COALESCE(SUM(clicked),0) AS clicked FROM line_campaigns WHERE tenant_id=?");
         $agg->execute([$tenant]);
         $a = $agg->fetch(PDO::FETCH_ASSOC) ?: ['sent' => 0, 'opened' => 0, 'clicked' => 0];
         $sent = (int)$a['sent'];

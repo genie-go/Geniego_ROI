@@ -510,8 +510,11 @@ final class AttributionEngine
         $set = array_flip(array_map('strval', $regionSet));
         $conv = 0; $rev = 0.0;
         try {
-            $st = $pdo->prepare("SELECT addr, total_price FROM channel_orders WHERE tenant_id=? AND COALESCE(event_type,'order') NOT IN ('cancel','return') AND ordered_at >= ?");
-            $st->execute([$tenant, $since]);
+            // [279차 재감사 M6-P2] 취소제외 SSOT(OrderHub::observedExclusion) 사용 — 인라인 event_type NOT IN 은
+            //   status 토큰만으로 신호된 취소(event_type='order'+status='cancelled')를 놓쳐 전환/매출 과대였음.
+            [$exSql, $exTok] = \Genie\Handlers\OrderHub::observedExclusion();
+            $st = $pdo->prepare("SELECT addr, total_price FROM channel_orders WHERE tenant_id=? AND NOT $exSql AND ordered_at >= ?");
+            $st->execute(array_merge([$tenant], $exTok, [$since]));
             foreach ($st->fetchAll(PDO::FETCH_ASSOC) ?: [] as $r) {
                 $reg = self::regionOf((string)($r['addr'] ?? '')); if ($reg === '' || !isset($set[$reg])) continue;
                 $conv++; $rev += (float)($r['total_price'] ?? 0);
@@ -528,8 +531,9 @@ final class AttributionEngine
         $baseWin = max(14, (int)($opts['baseline_days'] ?? 28));
         $regions = [];
         try {
-            $st = $pdo->prepare("SELECT addr, total_price FROM channel_orders WHERE tenant_id=? AND COALESCE(event_type,'order') NOT IN ('cancel','return') AND ordered_at >= ?");
-            $st->execute([$tenant, gmdate('Y-m-d', time() - $baseWin * 86400)]);
+            [$exSql, $exTok] = \Genie\Handlers\OrderHub::observedExclusion(); // [M6-P2] 취소제외 SSOT
+            $st = $pdo->prepare("SELECT addr, total_price FROM channel_orders WHERE tenant_id=? AND NOT $exSql AND ordered_at >= ?");
+            $st->execute(array_merge([$tenant], $exTok, [gmdate('Y-m-d', time() - $baseWin * 86400)]));
             foreach ($st->fetchAll(PDO::FETCH_ASSOC) ?: [] as $r) {
                 $reg = self::regionOf((string)($r['addr'] ?? '')); if ($reg === '') continue;
                 if (!isset($regions[$reg])) $regions[$reg] = 0;

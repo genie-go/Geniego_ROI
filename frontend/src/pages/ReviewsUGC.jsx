@@ -578,7 +578,7 @@ export default function ReviewsUGC() {
     const _escHydrated = useRef(!wsEnabled);
     useEffect(() => {
         let alive = true;
-        if (wsEnabled) loadWorkspace('reviews_escalated').then(v => { if (alive) { if (v && typeof v === 'object') setEscalateState(v); _escHydrated.current = true; } }).catch(() => { _escHydrated.current = true; });
+        if (wsEnabled) loadWorkspace('reviews_escalated').then(v => { if (alive) { if (v && typeof v === 'object') setEscalateState(v); _escHydrated.current = true; } }).catch(() => {}); // [M3-P1] 실패 시 가드 미개방(서버값 보존)
         return () => { alive = false; };
     }, []);
     useEffect(() => { if (wsEnabled && _escHydrated.current) saveWorkspace('reviews_escalated', escalateState).catch(() => {}); }, [escalateState]);

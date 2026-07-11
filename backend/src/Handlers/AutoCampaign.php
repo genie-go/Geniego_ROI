@@ -320,7 +320,7 @@ class AutoCampaign
             // [279차 초고도화·사용자 요구] auto 에이전트 모드 = 최초 실행부터 사람 클릭 없이 추천→자동 실행.
             //   agent_mode='auto' 면 activate 플래그가 없어도 자율 활성화(applyStatus 동일 게이트: 킬스위치·결제수단·
             //   딜리버리 준비 통과 시에만 라이브, 미충족은 정직 보류). approval/recommend 는 기존처럼 activate 명시 필요.
-            $autoMode = (self::agentMode($pdo, $tenant) === 'auto');
+            $autoMode = (AdAdapters::agentMode($pdo, $tenant) === 'auto');
             $activation = null;
             if ((!empty($d['activate']) || $autoMode) && $activeCount > 0) {
                 try {
@@ -1102,7 +1102,7 @@ class AutoCampaign
         // [279차 초고도화·사용자 요구] auto 에이전트 모드 = 진짜 폐루프 자율. 실집행+실테넌트+결제수단 게이트를 통과한
         //   'auto' 모드에서만 성과로 껐던 채널의 자율 재활성화(explore)를 연다. approval/recommend 모드는 기존처럼
         //   사람-인-루프 유지(끄기·재배분만 자율, 켜기는 승인). 무단 지출 폭주 방지 가드는 explore 패스에서 재확인.
-        $autoMode = ($allowActuate && $isRealTenant && self::agentMode($pdo, $tenant) === 'auto');
+        $autoMode = ($allowActuate && $isRealTenant && AdAdapters::agentMode($pdo, $tenant) === 'auto');
         // ★201차 액추에이터: external_id 보유 채널은 매체에 실제 예산변경/정지 push(AD_EXECUTION_ENABLED ON 시).
         //   게이트 OFF/external_id 없음/allowActuate=false(데모) 면 skip(DB 재배분만). 결과는 정직하게 actuated 표기.
         foreach ($decisions as &$d) {
