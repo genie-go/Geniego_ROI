@@ -249,7 +249,11 @@ final class AdAdapters
     public static function pause(PDO $pdo, string $tenant, string $channel, string $externalId): array
     {
         $channel = self::normConnKey($channel); // [265차] 경계 정규화(멱등) — raw short key 유입 시 unsupported 방지
-        if (!self::executionEnabled() || $externalId === '') return ['ok' => false, 'status' => 'skipped'];
+        // ★[279차 감사 D-P1] 킬스위치(AD_EXECUTION_DISABLED)는 "지출을 늘리는 방향"(create/activate/증액)만 차단해야 한다.
+        //   정지(pause)는 지출을 멈추는 안전 방향이므로 킬스위치와 무관하게 항상 허용한다. 종전엔 executionEnabled()
+        //   게이트가 pause 까지 막아, 킬스위치를 켜면 이미 라이브인 캠페인을 못 멈추고(계속 소진) pauseChannel·
+        //   손실컷·예산소진 자동정지·데이파팅 자동정지(전부 pause 경유)까지 no-op 이 되던 설계 모순이었다.
+        if ($externalId === '') return ['ok' => false, 'status' => 'skipped'];
         try {
             $res = match ($channel) {
                 'meta_ads'        => self::metaSetStatus($pdo, $tenant, $externalId, 'PAUSED'),

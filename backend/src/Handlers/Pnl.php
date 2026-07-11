@@ -196,10 +196,16 @@ final class Pnl
         $netPayout   = $sett['net'];
         $shippingCost = $shipFee;
 
+        // ★[279차 감사 C-P1] 쿠폰 이중차감 근본수정. revenue(=gross_sales=SUM(total_price)) 는 채널 결제금액
+        //   (payment/totalPayAmount)이라 쿠폰이 이미 차감된 값이다(post-coupon). 정산 SSOT 도 동일:
+        //   OrderHub::rollupSettlementsCore 의 gross_sales=SUM(total_price)·net_payout=gross-platform-returnFee 로
+        //   쿠폰을 net 에서 빼지 않는다(coupon_discount 는 정보용 컬럼). 그런데 여기서 couponDiscount 를 또 빼
+        //   operating/net 이 쿠폰액만큼 과소였다(Rollup.php:310 주석과 정합하지 않던 유일 지점). 쿠폰은 이미
+        //   revenue 에 반영됐으므로 별도 재차감하지 않는다(couponDiscount 는 응답에 정보용으로만 유지).
         $grossProfit     = $revenue - $cogs;
-        $operatingProfit = $grossProfit - $adSpend - $platformFee - $couponDiscount - $returnFee - $shippingCost - $influencerCost;
+        $operatingProfit = $grossProfit - $adSpend - $platformFee - $returnFee - $shippingCost - $influencerCost;
         $netProfit       = $netPayout > 0
-            ? $netPayout - $cogs - $adSpend - $couponDiscount - $influencerCost
+            ? $netPayout - $cogs - $adSpend - $influencerCost
             : $operatingProfit;
 
         return [

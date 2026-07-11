@@ -1929,11 +1929,12 @@ export function GlobalDataProvider({ children }) {
 
         // 손익 계산
         const grossProfit = revenue - cogs;                              // Revenue총이익 = Revenue - 원가
-        const operatingProfit = grossProfit - adSpend - platformFee - couponDiscount - returnFee - shippingCost - influencerCost; // 영업이익(배송비·인플루언서 비용 포함)
-        // [227차 감사 P1] 순이익에 쿠폰할인 반영 — netPayout(=gross-platform-returnFee)은 쿠폰 미차감이라
-        //   기존엔 영업이익엔 쿠폰 차감/순이익엔 누락되어 netProfit>operatingProfit 역전 가능했음(데모/운영 공통).
+        // ★[279차 감사 C-P1] 쿠폰 이중차감 제거(서버 Pnl.php 와 정합). revenue(=SUM(total_price)=채널 결제금액)는
+        //   쿠폰이 이미 빠진 post-coupon 값이고, netPayout(=gross-platform-returnFee)도 쿠폰을 별도로 빼지 않는다
+        //   (coupon_discount 는 정보용). 여기서 couponDiscount 를 또 빼면 순이익이 쿠폰액만큼 과소였다.
+        const operatingProfit = grossProfit - adSpend - platformFee - returnFee - shippingCost - influencerCost; // 영업이익(배송비·인플루언서 포함·쿠폰은 revenue에 이미 반영)
         const netProfit = netPayout > 0
-            ? netPayout - cogs - adSpend - couponDiscount - influencerCost  // 정산 기준 순이익(쿠폰·인플루언서 반영)
+            ? netPayout - cogs - adSpend - influencerCost                 // 정산 기준 순이익(쿠폰은 gross/netPayout에 이미 반영)
             : operatingProfit;
 
         // [현 차수] ★P&L 서버 SSOT server-first: 서버(/v424/pnl)가 동일 소스로 조립한 손익이 있으면 그것을 정본으로
