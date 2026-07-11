@@ -106,19 +106,23 @@ final class Pnl
         if ($from !== '') { $sw[] = "period >= ?"; $sa[] = substr($from, 0, 7); }
         if ($to   !== '') { $sw[] = "period <= ?"; $sa[] = substr($to,   0, 7); }
         $swSql = implode(' AND ', $sw);
-        $sett = ['gross' => 0.0, 'net' => 0.0, 'pfee' => 0.0, 'coupon' => 0.0, 'rfee' => 0.0];
+        $sett = ['gross' => 0.0, 'net' => 0.0, 'pfee' => 0.0, 'coupon' => 0.0, 'rfee' => 0.0, 'net_est' => 0.0];
         try {
+            // [279차 재감사] net_est = 추정(estimated) 정산분 net_payout. 추정 net_payout 은 배송비 미반영,
+            //   실 정산 ingest net_payout 은 배송비 이미 net out(KrChannel) → 배송비는 estimated 비중만큼만 차감해야
+            //   실 정산 업로드 테넌트의 이중차감을 막는다.
             $st = $pdo->prepare(
                 "SELECT COALESCE(SUM(gross_sales),0) AS gross, COALESCE(SUM(net_payout),0) AS net,
                         COALESCE(SUM(platform_fee),0) AS pfee, COALESCE(SUM(coupon_discount),0) AS coupon,
-                        COALESCE(SUM(return_fee),0) AS rfee
+                        COALESCE(SUM(return_fee),0) AS rfee,
+                        COALESCE(SUM(CASE WHEN status='estimated' THEN net_payout ELSE 0 END),0) AS net_est
                  FROM orderhub_settlements WHERE $swSql"
             );
             $st->execute($sa);
             $r = $st->fetch(\PDO::FETCH_ASSOC) ?: [];
             $sett = ['gross' => (float)($r['gross'] ?? 0), 'net' => (float)($r['net'] ?? 0),
                      'pfee' => (float)($r['pfee'] ?? 0), 'coupon' => (float)($r['coupon'] ?? 0),
-                     'rfee' => (float)($r['rfee'] ?? 0)];
+                     'rfee' => (float)($r['rfee'] ?? 0), 'net_est' => (float)($r['net_est'] ?? 0)];
         } catch (\Throwable $e) { /* 빈 정산 → 0 (프론트 클라 폴백과 동일 결과) */ }
 
         // 배송비 — settlementsStats 와 동일 로직(채널별 정률·무료배송 기준금액, 활성 주문만).
@@ -205,10 +209,13 @@ final class Pnl
         $grossProfit     = $revenue - $cogs;
         $operatingProfit = $grossProfit - $adSpend - $platformFee - $returnFee - $shippingCost - $influencerCost;
         // ★[279차 재감사] 배송비(shippingCost)는 판매자 실부담(무료배송 등) — operatingProfit 과 정합되게 netProfit 에도
-        //   차감한다. 추정 정산 net_payout(=gross-platform-returnFee)엔 배송비가 미반영이라 정확. (엣지: 실 정산 ingest
-        //   net_payout 이 배송비를 이미 net out 한 경우 이중차감 소지 — 현 라이브는 estimated 지배적. status 분리 시 재검토.)
+        //   차감한다. 단 추정 정산 net_payout 은 배송비 미반영·실 정산 ingest net_payout 은 배송비 이미 net out 이라,
+        //   배송비를 **estimated 정산 비중(estShare)만큼만** 차감해 실 정산 업로드 테넌트의 이중차감을 막는다.
+        //   estimated-only(현 라이브 지배적)면 estShare=1(전액 차감·정확), 실 정산 100%면 estShare=0(미차감·정확).
+        $estShare        = ($sett['net'] > 0) ? max(0.0, min(1.0, $sett['net_est'] / $sett['net'])) : 1.0;
+        $shipInNet       = $shippingCost * $estShare;
         $netProfit       = $netPayout > 0
-            ? $netPayout - $cogs - $adSpend - $shippingCost - $influencerCost
+            ? $netPayout - $cogs - $adSpend - $shipInNet - $influencerCost
             : $operatingProfit;
 
         return [
