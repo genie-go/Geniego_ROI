@@ -204,8 +204,11 @@ final class Pnl
         //   revenue 에 반영됐으므로 별도 재차감하지 않는다(couponDiscount 는 응답에 정보용으로만 유지).
         $grossProfit     = $revenue - $cogs;
         $operatingProfit = $grossProfit - $adSpend - $platformFee - $returnFee - $shippingCost - $influencerCost;
+        // ★[279차 재감사] 배송비(shippingCost)는 판매자 실부담(무료배송 등) — operatingProfit 과 정합되게 netProfit 에도
+        //   차감한다. 추정 정산 net_payout(=gross-platform-returnFee)엔 배송비가 미반영이라 정확. (엣지: 실 정산 ingest
+        //   net_payout 이 배송비를 이미 net out 한 경우 이중차감 소지 — 현 라이브는 estimated 지배적. status 분리 시 재검토.)
         $netProfit       = $netPayout > 0
-            ? $netPayout - $cogs - $adSpend - $influencerCost
+            ? $netPayout - $cogs - $adSpend - $shippingCost - $influencerCost
             : $operatingProfit;
 
         return [

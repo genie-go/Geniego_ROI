@@ -1933,8 +1933,9 @@ export function GlobalDataProvider({ children }) {
         //   쿠폰이 이미 빠진 post-coupon 값이고, netPayout(=gross-platform-returnFee)도 쿠폰을 별도로 빼지 않는다
         //   (coupon_discount 는 정보용). 여기서 couponDiscount 를 또 빼면 순이익이 쿠폰액만큼 과소였다.
         const operatingProfit = grossProfit - adSpend - platformFee - returnFee - shippingCost - influencerCost; // 영업이익(배송비·인플루언서 포함·쿠폰은 revenue에 이미 반영)
+        // ★[279차 재감사] 배송비=판매자 실부담 → operatingProfit 과 정합되게 netProfit 에도 차감(추정 정산 net_payout 엔 배송비 미반영).
         const netProfit = netPayout > 0
-            ? netPayout - cogs - adSpend - influencerCost                 // 정산 기준 순이익(쿠폰은 gross/netPayout에 이미 반영)
+            ? netPayout - cogs - adSpend - shippingCost - influencerCost  // 정산 기준 순이익(배송비 실부담 반영·쿠폰은 이미 반영)
             : operatingProfit;
 
         // [현 차수] ★P&L 서버 SSOT server-first: 서버(/v424/pnl)가 동일 소스로 조립한 손익이 있으면 그것을 정본으로
