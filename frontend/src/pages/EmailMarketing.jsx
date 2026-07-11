@@ -268,8 +268,8 @@ function CampaignsTab() {
         reloadCampaigns();
         emailApi.listTemplates().then(r=>setOpTemplates(r.templates||[])).catch(()=>{});
         emailApi.listSegments().then(r=>setOpSegments((r.segments||[]).map(s=>({...s,count:s.member_count??0})))).catch(()=>{});
-        _gjaEmail('/email/deliverability?window=90').then(d=>{ if(d&&d.ok) setDeliv(d); }).catch(()=>{});
-        _gjaEmail('/email/warmup').then(w=>{ if(w&&w.ok) setWarmup(w); }).catch(()=>{});
+        _gjaEmail('/api/email/deliverability?window=90').then(d=>{ if(d&&d.ok) setDeliv(d); }).catch(()=>{});
+        _gjaEmail('/api/email/warmup').then(w=>{ if(w&&w.ok) setWarmup(w); }).catch(()=>{});
     },[isDemo]);
     const totalCustomers=isDemo?Object.keys(crmCustomerHistory).length:0;
     const computeTargetSize=(segId)=>{if(!segId)return totalCustomers;const s=crmSegments.find(x=>String(x.id)===String(segId));return s?(s.count||0):totalCustomers;};
@@ -386,7 +386,7 @@ function CampaignsTab() {
                         const enabled=e.target.checked;
                         const start=warmup?.start_date || new Date().toISOString().slice(0,10);
                         setWarmup(w=>({...(w||{}),enabled,start_date:start}));
-                        try{ const r=await _pjaEmail('/email/warmup',{enabled,start_date:start}); if(r?.ok) setWarmup(r); }catch(_){}
+                        try{ const r=await _pjaEmail('/api/email/warmup',{enabled,start_date:start}); if(r?.ok) setWarmup(r); }catch(_){}
                     }} />
                     <span>{t('email.warmupEnable','워밍업 활성화')} {warmup?.enabled && warmup?.start_date && <span style={{ color:'#6b7280', fontSize:11 }}>({t('email.warmupStart','시작')} {warmup.start_date})</span>}</span>
                 </label>

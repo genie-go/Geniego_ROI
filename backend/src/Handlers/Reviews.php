@@ -304,7 +304,7 @@ final class Reviews
             // R2 우선: AI 추출 키워드 집계(부정·중립 리뷰의 ai_topics.keywords).
             $aiCounts = []; $aiCur = []; $aiPrev = []; $hasWin = false;
             try {
-                $sa = $pdo->prepare("SELECT ai_topics, created_at FROM product_review WHERE tenant_id=? AND sentiment IN('negative','neutral') AND ai_topics IS NOT NULL AND ai_topics<>'' ORDER BY id DESC LIMIT 3000");
+                $sa = $pdo->prepare("SELECT ai_topics, collected_at AS created_at FROM product_review WHERE tenant_id=? AND sentiment IN('negative','neutral') AND ai_topics IS NOT NULL AND ai_topics<>'' ORDER BY id DESC LIMIT 3000");
                 $sa->execute([$tenant]); $hasWin = true;
                 foreach ($sa->fetchAll(\PDO::FETCH_ASSOC) as $r) {
                     $d = json_decode((string)($r['ai_topics'] ?? ''), true);
@@ -323,7 +323,7 @@ final class Reviews
             // R1 폴백: 사전 매칭 빈도(기간대비 포함).
             $counts = array_fill_keys(self::NEG_DICT, 0); $cur = array_fill_keys(self::NEG_DICT, 0); $prev = array_fill_keys(self::NEG_DICT, 0); $hasWin = false;
             try {
-                $st = $pdo->prepare("SELECT body, created_at FROM product_review WHERE tenant_id=? AND sentiment='negative' ORDER BY id DESC LIMIT 2000");
+                $st = $pdo->prepare("SELECT body, collected_at AS created_at FROM product_review WHERE tenant_id=? AND sentiment='negative' ORDER BY id DESC LIMIT 2000");
                 $st->execute([$tenant]); $hasWin = true;
                 foreach ($st->fetchAll(\PDO::FETCH_ASSOC) as $r) {
                     $b = (string)($r['body'] ?? ''); $ca = (string)($r['created_at'] ?? '');

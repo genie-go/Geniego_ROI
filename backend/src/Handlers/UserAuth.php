@@ -2279,7 +2279,7 @@ final class UserAuth
         if (($pwErr = self::passwordPolicyError($new)) !== null) return self::json($res, ['ok' => false, 'error' => $pwErr], 422); // 189차 비번정책 강화
         $pdo = Db::pdo();
         try {
-            $st = $pdo->prepare('SELECT password_hash, password_hashs, password FROM app_user WHERE id=?');
+            $st = $pdo->prepare('SELECT password_hash, password_hashs FROM app_user WHERE id=?');
             $st->execute([$user['id']]); $row = $st->fetch(\PDO::FETCH_ASSOC) ?: [];
         } catch (\Throwable $e) {
             $st = $pdo->prepare('SELECT password_hash FROM app_user WHERE id=?');
@@ -3539,7 +3539,7 @@ final class UserAuth
         $b = self::readBody($req);
         $cur = (string)($b['current_password'] ?? '');
         try {
-            $st = $pdo->prepare('SELECT password_hash, password_hashs, password FROM app_user WHERE id=?');
+            $st = $pdo->prepare('SELECT password_hash, password_hashs FROM app_user WHERE id=?');
             $st->execute([$user['id']]); $row = $st->fetch(\PDO::FETCH_ASSOC) ?: [];
         } catch (\Throwable $e) {
             $st = $pdo->prepare('SELECT password_hash FROM app_user WHERE id=?');
@@ -3600,13 +3600,32 @@ final class UserAuth
      */
     private static function issueLoginOtp(\PDO $pdo, array $user, string $method): array
     {
+        $uid = (int)($user['id'] ?? 0);
+        $devExpose = (\Genie\Db::envLabel() !== 'production') || (getenv('GENIE_OTP_DEV') === '1');
+        // ★재발송 스로틀 — 로그인 요청이 짧은 시간에 여러 번 발화(더블서브밋·재시도·자동완성)해도
+        //   인증코드 이메일이 여러 통 가지 않도록, 최근(THROTTLE초 내) 발급된 유효 코드가 있으면 새로 생성·발송하지 않는다.
+        //   저장하는 만료(exp=발급+300)로 "언제 발급됐는지"를 역산한다(별도 컬럼 불필요). resend 버튼은 THROTTLE 경과 후에만 실발송.
+        $THROTTLE = 90; // 초
+        try {
+            $st = $pdo->prepare('SELECT mfa_otp_hash, mfa_otp_expires FROM app_user WHERE id=?');
+            $st->execute([$uid]);
+            $prev = $st->fetch(\PDO::FETCH_ASSOC) ?: [];
+            $prevExp = strtotime((string)($prev['mfa_otp_expires'] ?? '')) ?: 0;
+            // 남은 수명 > (300 - THROTTLE) ⇒ 발급된 지 THROTTLE초 미만 ⇒ 방금 보낸 코드 재사용(재발송 억제)
+            if (!empty($prev['mfa_otp_hash']) && ($prevExp - time()) > (300 - $THROTTLE)) {
+                $msg = ($method === 'sms')
+                    ? '인증코드를 방금 문자로 보냈습니다. 잠시 후 도착합니다. (5분 유효)'
+                    : '인증코드를 방금 이메일로 보냈습니다. 메일함(스팸 포함)을 확인하세요. (5분 유효)';
+                // 이미 보낸 코드라 평문 복구 불가 → dev_code는 null(프론트는 첫 응답의 dev_code를 유지: `if(err.otpDev)` 가드).
+                return ['sent' => true, 'msg' => $msg, 'dev_code' => null, 'throttled' => true];
+            }
+        } catch (\Throwable $e) { /* 스로틀 조회 실패는 무시하고 정상 발급 */ }
         $code = self::genOtp6();
         $exp  = gmdate('Y-m-d\TH:i:s\Z', time() + 300);
         try {
             $pdo->prepare('UPDATE app_user SET mfa_otp_hash=?, mfa_otp_expires=? WHERE id=?')
-                ->execute([password_hash($code, PASSWORD_DEFAULT), $exp, (int)($user['id'] ?? 0)]);
+                ->execute([password_hash($code, PASSWORD_DEFAULT), $exp, $uid]);
         } catch (\Throwable $e) { return ['sent' => false, 'msg' => '인증 코드 저장 중 오류가 발생했습니다.', 'dev_code' => null]; }
-        $devExpose = (\Genie\Db::envLabel() !== 'production') || (getenv('GENIE_OTP_DEV') === '1');
         $sent = false; $msg = '';
         if ($method === 'sms') {
             $to = preg_replace('/[^0-9]/', '', (string)($user['phone'] ?? $user['mobile'] ?? ''));

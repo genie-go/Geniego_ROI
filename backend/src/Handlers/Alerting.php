@@ -635,9 +635,32 @@ final class Alerting {
      * $webhookUrl: https://hooks.slack.com/services/...
      * $blocks: Slack Block Kit 배열 또는 null (text fallback)
      */
+    /** [현 차수 감사 H-P2] 사용자 저장 웹훅/Slack URL 의 SSRF 차단(사설·예약 IP 거부).
+     *   다른 핸들러(OpenPlatform/WmsCctv/DataExport/JourneyBuilder)의 가드와 정합 — Alerting 만 누락이었음. */
+    private static function isSafeWebhookUrl(string $url): bool
+    {
+        $p = parse_url($url);
+        if (!$p) return false;
+        $scheme = strtolower((string)($p['scheme'] ?? ''));
+        if (!in_array($scheme, ['http', 'https'], true)) return false;
+        $host = strtolower((string)($p['host'] ?? ''));
+        if ($host === '') return false;
+        if (in_array($host, ['localhost', 'metadata.google.internal'], true)) return false;
+        if (substr($host, -6) === '.local' || substr($host, -9) === '.internal') return false;
+        $ips = [];
+        if (filter_var($host, FILTER_VALIDATE_IP)) { $ips = [$host]; }
+        else { $recs = @dns_get_record($host, DNS_A | DNS_AAAA); if (is_array($recs)) foreach ($recs as $r) { if (!empty($r['ip'])) $ips[] = $r['ip']; if (!empty($r['ipv6'])) $ips[] = $r['ipv6']; } }
+        if (!$ips) return false; // 해석 불가 → 거부(fail-closed)
+        foreach ($ips as $ip) {
+            if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) return false;
+        }
+        return true;
+    }
+
     private static function sendSlack(string $webhookUrl, string $text, array $blocks = []): bool
     {
         if ($webhookUrl === '') return false;
+        if (!self::isSafeWebhookUrl($webhookUrl)) return false;
 
         $payload = ['text' => $text];
         if (!empty($blocks)) {
@@ -838,6 +861,7 @@ HTML;
     private static function sendWebhook(string $url, array $payload, string $secret): bool
     {
         if (!function_exists('curl_init')) return false;
+        if (!self::isSafeWebhookUrl($url)) return false; // [H-P2] SSRF 차단
         $body = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         $h = ['Content-Type: application/json'];
         if ($secret !== '') { $ts = (string)time(); $h[] = 'X-Genie-Signature: t=' . $ts . ',v1=' . hash_hmac('sha256', $ts . '.' . $body, $secret); }

@@ -510,7 +510,9 @@ class CRM
         $r = $p['r']; $alpha = $p['alpha']; $a = $p['a']; $b = $p['b'];
         $denomBeta = $b + $x - 1;
         if ($denomBeta <= 0) return 1.0;
-        $ratio = ($alpha + $T) / ($alpha + $tx + $T);
+        // BG/NBD(Fader-Hardie-Lee 2005) P(alive) 정본 비율 = (α+T)/(α+t_x). t_x·T 모두 first 기준이라 분모는 α+t_x.
+        //   (종전 α+t_x+T 는 T 이중가산 → ratio 축소 → P(alive) 과대 → churn 과소. 고위험 고객이 저위험으로 오분류되던 버그.)
+        $ratio = ($alpha + $T) / ($alpha + $tx);
         $term = ($a / $denomBeta) * ($ratio ** ($r + $x));
         return 1.0 / (1.0 + $term);
     }
@@ -529,7 +531,8 @@ class CRM
         $num = ($C / ($a - 1)) * (1.0 - ($base ** $A) * $hyp);
         $denom = 1.0;
         if ($x > 0 && ($b + $x - 1) > 0) {
-            $ratio = ($alpha + $T) / ($alpha + $tx + $T);
+            // 정본 P(alive) 정규화 분모와 동일 비율 = (α+T)/(α+t_x) (T 이중가산 제거).
+            $ratio = ($alpha + $T) / ($alpha + $tx);
             $denom = 1.0 + ($a / ($b + $x - 1)) * ($ratio ** $A);
         }
         return $num / $denom;

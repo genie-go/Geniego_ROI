@@ -500,6 +500,20 @@ function MonitoringTab({ goals, kpiTargets }) {
         if (!history && status === 'idle') loadHistory();
     }, [history, status, loadHistory]);
 
+    // [현 차수 감사 E-P0] 크로스탭 채널 등록/해제 시 즉시 반영(원래 ChannelKPI 본체에 있었으나 스코프 밖
+    //   loadHistory 참조로 페이지가 크래시했음 → loadHistory 가 실재하는 이 컴포넌트로 이전).
+    const _bcRef = React.useRef(null);
+    React.useEffect(() => {
+        try {
+            _bcRef.current = new BroadcastChannel(tChannelName('genie_connector_sync'));
+            _bcRef.current.onmessage = (ev) => {
+                const ty = ev.data?.type;
+                if (ty === 'CHANNEL_REGISTERED' || ty === 'CHANNEL_REMOVED') loadHistory();
+            };
+        } catch (e) {}
+        return () => { try { _bcRef.current?.close(); } catch (e) {} };
+    }, [loadHistory]);
+
     return (
         <div style={{ display: 'grid', gap: 14 }}>
             <div style={SEC}>{t('channelKpiPage.monitorAi')}</div>
@@ -867,18 +881,9 @@ export default function ChannelKPI() {
     //   'geniego-refresh' window 이벤트도 청취자가 0건이라 이중으로 죽은 코드였다(동기화 무동작).
     //   실발신자가 있는 공용 채널 genie_connector_sync(ApiKeys::publishConnectorSync)를 구독하고,
     //   실제 로더(loadHistory)를 호출해 크로스탭 즉시반영을 복구한다.
-    const bcRef = useRef(null);
-    useEffect(() => {
-        try {
-            bcRef.current = new BroadcastChannel(tChannelName('genie_connector_sync'));
-            bcRef.current.onmessage = (ev) => {
-                const t = ev.data?.type;
-                if (t === 'CHANNEL_REGISTERED' || t === 'CHANNEL_REMOVED') loadHistory();
-            };
-        } catch(e) {}
-        return () => { try { bcRef.current?.close(); } catch(e) {} };
-    }, [loadHistory]);
-
+    // [현 차수 감사 E-P0] 크로스탭 구독 effect 가 ChannelKPI 본체에 있었으나 loadHistory 는 MonitoringTab
+    //   내부에서만 정의된다 → deps 배열 [loadHistory] 가 매 렌더 평가되며 ReferenceError → 페이지 전체 화이트스크린.
+    //   구독을 loadHistory 가 실재하는 MonitoringTab 내부로 이전(아래)해 크래시 제거 + 크로스탭 반영 보존.
     const [tab, setTab] = useState('goal');
     const [goals, setGoals] = useState({ awareness: true, traffic: true, conversion: false });
     const [kpiTargets, setKpiTargets] = useState({});

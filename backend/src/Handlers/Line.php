@@ -46,9 +46,11 @@ final class Line
             $pdo->exec("CREATE TABLE IF NOT EXISTS line_campaigns (
                 id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL, name VARCHAR(200) NOT NULL,
                 type VARCHAR(30) DEFAULT 'marketing', template_id INT, status VARCHAR(20) DEFAULT 'draft',
-                sent INT DEFAULT 0, opened INT DEFAULT 0, clicked INT DEFAULT 0, created_at VARCHAR(32), sent_at VARCHAR(32),
+                sent INT DEFAULT 0, opened INT DEFAULT 0, clicked INT DEFAULT 0, sent_count INT DEFAULT 0, created_at VARCHAR(32), sent_at VARCHAR(32),
                 KEY idx_line_cmp_tenant (tenant_id)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            // [현 차수 감사 B-P2] 선존재 라이브 테이블에 sent_count 부재 → send UPDATE 무음실패였음. 멱등 ALTER 로 보강.
+            try { $pdo->exec("ALTER TABLE line_campaigns ADD COLUMN sent_count INT DEFAULT 0"); } catch (\Throwable $e) { /* 이미 존재 */ }
             $pdo->exec("CREATE TABLE IF NOT EXISTS line_sends (
                 id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL, campaign_id INT, recipient VARCHAR(120),
                 status VARCHAR(20) DEFAULT 'pending', sent_at VARCHAR(32), KEY idx_line_send_tenant (tenant_id)
@@ -60,7 +62,8 @@ final class Line
                 name TEXT NOT NULL, type TEXT DEFAULT 'marketing', content TEXT, status TEXT DEFAULT 'approved', usage_count INTEGER DEFAULT 0, created_at TEXT)");
             $pdo->exec("CREATE TABLE IF NOT EXISTS line_campaigns (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL,
                 name TEXT NOT NULL, type TEXT DEFAULT 'marketing', template_id INTEGER, status TEXT DEFAULT 'draft',
-                sent INTEGER DEFAULT 0, opened INTEGER DEFAULT 0, clicked INTEGER DEFAULT 0, created_at TEXT, sent_at TEXT)");
+                sent INTEGER DEFAULT 0, opened INTEGER DEFAULT 0, clicked INTEGER DEFAULT 0, sent_count INTEGER DEFAULT 0, created_at TEXT, sent_at TEXT)");
+            try { $pdo->exec("ALTER TABLE line_campaigns ADD COLUMN sent_count INTEGER DEFAULT 0"); } catch (\Throwable $e) { /* 이미 존재 */ }
             $pdo->exec("CREATE TABLE IF NOT EXISTS line_sends (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL,
                 campaign_id INTEGER, recipient TEXT, status TEXT DEFAULT 'pending', sent_at TEXT)");
         }

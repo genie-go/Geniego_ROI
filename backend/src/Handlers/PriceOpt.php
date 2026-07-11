@@ -224,6 +224,11 @@ class PriceOpt
         $lxs = array_map('log', array_map(fn($v) => max($v, 1.0), $xs));
         $lys = array_map('log', array_map(fn($v) => max($v, 0.1), $ys));
         $reg = self::linReg($lxs, $lys);
+        // ★[현 차수 감사 G3] log-log 회귀 slope = 가격탄력성. 정상 수요는 가격↑→수량↓ 이므로 slope 는 음수여야 한다.
+        //   시즌·프로모 교란으로 2점만으로도 우상향(slope≥0)이 흔한데, 그러면 이익이 상한가에서 최대가 되어
+        //   "현재가 1.5배/원가 3배" 최고가를 상시 추천(가격 의사결정 오도). 우상향·저설명력 곡선은 배제하고
+        //   호출부의 cost-plus/규칙 폴백으로 넘긴다.
+        if (!isset($reg['slope']) || $reg['slope'] >= 0 || (isset($reg['r2']) && $reg['r2'] < 0.10)) return null;
         $step = max(100.0, $cost * 0.02);
         $hi = max($cost * 3, ($currentPx ?? $minPrice) * 1.5);
         $lo = max($minPrice, $cost * 1.05);
@@ -451,18 +456,29 @@ class PriceOpt
             } else {
                 $rows[] = [$baseSku, (float)$baseStock, $name];
             }
-            // upsert (MySQL: ON DUPLICATE, SQLite 폴백: DELETE+INSERT)
+            // ★[현 차수 감사 K-P0] on_hand 는 입출고 원장(Wms::recordMovement/reflectChannelSale)이 유지하는
+            //   running balance 다. 상품 재저장(정보수정·엑셀재업로드)이 이를 폼 정적값(initial_stock)으로 덮으면
+            //   그간 팔린/입고된 수량이 소실돼 유령재고·초과판매·자동발주 오판을 유발한다(원장과 영구 발산).
+            //   → 신규 SKU 행에만 초기재고를 세팅하고, 기존 행은 on_hand 를 절대 건드리지 않는다(name/updated_at 만 갱신).
+            //   등록 후 재고 조정은 WMS 입출고(원장 단일권위)로만 이뤄져야 한다.
             foreach ($rows as [$sk, $qty, $nm]) {
                 if ($sk === '') continue;
                 try {
                     $pdo->prepare("INSERT INTO wms_stock (tenant_id, sku, wh_id, name, on_hand, updated_at) VALUES (?,?,?,?,?,?)
-                                   ON DUPLICATE KEY UPDATE on_hand = VALUES(on_hand), name = VALUES(name), updated_at = VALUES(updated_at)")
+                                   ON DUPLICATE KEY UPDATE name = VALUES(name), updated_at = VALUES(updated_at)")
                         ->execute([$tenant, $sk, $whId, $nm, $qty, $now]);
                 } catch (\Throwable $e) {
+                    // SQLite 폴백: 존재하면 name 만 갱신(on_hand 보존), 없으면 초기재고로 삽입.
                     try {
-                        $pdo->prepare("DELETE FROM wms_stock WHERE tenant_id=? AND sku=? AND wh_id=?")->execute([$tenant, $sk, $whId]);
-                        $pdo->prepare("INSERT INTO wms_stock (tenant_id, sku, wh_id, name, on_hand, updated_at) VALUES (?,?,?,?,?,?)")
-                            ->execute([$tenant, $sk, $whId, $nm, $qty, $now]);
+                        $ex = $pdo->prepare("SELECT id FROM wms_stock WHERE tenant_id=? AND sku=? AND wh_id=? LIMIT 1");
+                        $ex->execute([$tenant, $sk, $whId]);
+                        if ($ex->fetchColumn()) {
+                            $pdo->prepare("UPDATE wms_stock SET name=?, updated_at=? WHERE tenant_id=? AND sku=? AND wh_id=?")
+                                ->execute([$nm, $now, $tenant, $sk, $whId]);
+                        } else {
+                            $pdo->prepare("INSERT INTO wms_stock (tenant_id, sku, wh_id, name, on_hand, updated_at) VALUES (?,?,?,?,?,?)")
+                                ->execute([$tenant, $sk, $whId, $nm, $qty, $now]);
+                        }
                     } catch (\Throwable $e2) { /* best-effort */ }
                 }
             }
