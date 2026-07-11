@@ -317,8 +317,12 @@ class AutoCampaign
             //   딜리버리 준비) 통과 시 캐스케이드 활성화까지 1단계로 수행(추천→승인→배정예산 한도 내 즉시 라이브).
             //   ★중복 구현 금지: setStatus 와 동일한 applyStatus 코어 재사용. 게이트 미충족(예: 결제수단 미등록)은
             //   캠페인은 생성된 채 활성화만 보류하고 사유를 반환(UI 가 결제수단/소재 보강 유도). 데모는 매체 호출 skip.
+            // [279차 초고도화·사용자 요구] auto 에이전트 모드 = 최초 실행부터 사람 클릭 없이 추천→자동 실행.
+            //   agent_mode='auto' 면 activate 플래그가 없어도 자율 활성화(applyStatus 동일 게이트: 킬스위치·결제수단·
+            //   딜리버리 준비 통과 시에만 라이브, 미충족은 정직 보류). approval/recommend 는 기존처럼 activate 명시 필요.
+            $autoMode = (self::agentMode($pdo, $tenant) === 'auto');
             $activation = null;
-            if (!empty($d['activate']) && $activeCount > 0) {
+            if ((!empty($d['activate']) || $autoMode) && $activeCount > 0) {
                 try {
                     $ar = self::applyStatus($pdo, $tenant, $id, 'active', !empty($d['force']), $lang);
                     $activation = $ar['body'] ?? null;
@@ -580,6 +584,7 @@ class AutoCampaign
 
     private const PAUSE_FLOOR = 1.0;   // ROAS < 1.0 (손해) → 예산 회수
     private const OPT_WINDOW_DAYS = 14; // 최근 14일 성과 분석
+    private const EXPLORE_COOLDOWN_DAYS = 7; // [279차] auto 모드 자율 재활성화(explore) 쿨다운 — 껐던 채널 재탐색 최소 간격
     private const MIN_ATTR_CONV = 5;   // [현 차수 P1] 진실 ROAS 보정 적용 최소 귀속 전환수(이 미만이면 매체보고 그대로=회귀 없음)
 
     /** [현 차수 P1] 광고채널 패밀리 정규화(매체보고 채널명 ↔ 귀속채널명 정합용). meta/google/tiktok/naver/kakao. */
@@ -699,6 +704,49 @@ class AutoCampaign
             'truth_ratio'  => $truthRatio !== null ? round($truthRatio, 3) : null,
             'adj_revenue'  => round($adjRev),
             'adj_roas'     => $spend > 0 ? round($adjRev / $spend, 2) : 0,
+        ];
+    }
+
+    /**
+     * [279차 초고도화·사용자 요구] 종합 채널 점수(holistic) — "최고 효과 모든 기준 총동원". 단일 지표(전환/ROAS)가
+     *   아니라 실구매 ROAS(이익 앵커)에 전환효율(CVR)·비용효율(CPA)·상단퍼널(CTR)·성과 추세(drift)·데이터 신뢰도를
+     *   결합해 자율 재배분·재활성화 판단에 쓴다. 각 상대치는 캠페인 평균 대비 클램프(과격한 스윙 방지). 저표본은
+     *   ROAS 앵커로 수축(과적합 방지). 데이터/평균 부재 시 모든 계수=1.0 → 기존 max(0.05,adj_roas)와 동일(회귀0).
+     */
+    private static function holisticScore(array $m, array $avg): float
+    {
+        $base  = max(0.05, (float)($m['adj_roas'] ?? $m['roas'] ?? 0)); // 실구매 이익 앵커
+        $spend = (float)($m['spend'] ?? 0); $clk = (int)($m['clicks'] ?? 0); $conv = (int)($m['conversions'] ?? 0);
+        $realConv = (int)($m['real_conv'] ?? 0);
+        $cvr = $clk > 0 ? ($conv / $clk) : 0.0;          // 전환효율
+        $cpa = $conv > 0 ? ($spend / $conv) : 0.0;       // 비용효율(낮을수록 우수)
+        $ctr = (float)($m['ctr'] ?? 0);                  // 상단퍼널 참여
+        $cl  = fn($x, $lo, $hi) => max($lo, min($hi, $x));
+        $cvrF = (($avg['cvr'] ?? 0) > 0 && $cvr > 0) ? $cl($cvr / $avg['cvr'], 0.7, 1.3) : 1.0;
+        $cpaF = (($avg['cpa'] ?? 0) > 0 && $cpa > 0) ? $cl($avg['cpa'] / $cpa, 0.7, 1.3) : 1.0; // 역수(낮은 CPA=가점)
+        $ctrF = (($avg['ctr'] ?? 0) > 0 && $ctr > 0) ? $cl($ctr / $avg['ctr'], 0.85, 1.15) : 1.0;
+        $dr   = (string)(($m['drift'] ?? [])['drift'] ?? '');
+        $driftF = $dr === 'improving' ? 1.15 : ($dr === 'degrading' ? 0.7 : 1.0); // 추세
+        $conf = $realConv >= self::MIN_ATTR_CONV ? 1.0 : $cl($realConv / max(1, self::MIN_ATTR_CONV), 0.0, 1.0); // 신뢰도
+        $score = $base * $cvrF * $cpaF * $ctrF * $driftF;
+        $score = $conf * $score + (1.0 - $conf) * $base; // 저표본은 ROAS 앵커로 수축(급격 재배분 억제)
+        return max(0.05, $score);
+    }
+
+    /** [279차 초고도화] 종합 점수 정규화용 캠페인 평균(데이터 보유 채널 볼륨가중 ratio-of-sums). */
+    private static function campaignAverages(array $channels, array $metrics): array
+    {
+        $cvrN = 0; $cvrD = 0; $cpaS = 0.0; $cpaC = 0; $ctrSum = 0.0; $ctrCnt = 0;
+        foreach ($channels as $ch) {
+            $m = $metrics[$ch] ?? []; if (empty($m['has_data'])) continue;
+            $cvrN += (int)($m['conversions'] ?? 0); $cvrD += (int)($m['clicks'] ?? 0);
+            $cpaS += (float)($m['spend'] ?? 0);      $cpaC += (int)($m['conversions'] ?? 0);
+            $ctrSum += (float)($m['ctr'] ?? 0);      $ctrCnt += 1;
+        }
+        return [
+            'cvr' => $cvrD > 0 ? $cvrN / $cvrD : 0.0,
+            'cpa' => $cpaC > 0 ? $cpaS / $cpaC : 0.0,
+            'ctr' => $ctrCnt > 0 ? $ctrSum / $ctrCnt : 0.0,
         ];
     }
 
@@ -954,6 +1002,8 @@ class AutoCampaign
         $budgetCapHit = ($period === 'monthly' && $budget > 0 && $spentMTD >= $budget);
 
         // ROAS 기반 가중치 + 이상감지(zero-conv 낭비/손실 채널 자동 회수). 데이터 없으면 중립.
+        // [279차 초고도화] 종합 점수 정규화용 캠페인 평균(CVR/CPA/CTR) 선산출 — 상대평가 기준.
+        $campAvg = self::campaignAverages($channels, $metrics);
         $weights = []; $decisions = [];
         foreach ($channels as $ch) {
             $m = $metrics[$ch];
@@ -979,11 +1029,11 @@ class AutoCampaign
                 $weights[$ch] = 0.0;
                 $decisions[] = ['channel' => $ch, 'action' => 'pause', 'old' => $oldMap[strtolower($ch)] ?? 0, 'new' => 0, 'roas' => $m['roas'], 'ctr' => $m['ctr'], 'reason' => \Genie\I18n::t('autocamp.reason.lossCut', ['r' => $decRoas, 'min' => $minRoas, 'trNote' => $trNote], $lang)];
             } else {
-                $w = max(0.05, $decRoas);
-                // 203차 ⓑ: 드리프트 저하 채널은 소프트 패널티(하드정지 아님)로 비중 하향 + 투명 로그.
+                // [279차 초고도화] 단일 지표가 아닌 종합 점수(실구매 ROAS 앵커 + CVR·CPA·CTR·추세·신뢰도 총동원)로 가중.
+                //   드리프트는 holisticScore 에 이미 반영(이중감점 없음) — 여기선 투명성 로그만 유지.
+                $w = self::holisticScore($m, $campAvg);
                 $dr = $m['drift'] ?? [];
                 if (($dr['drift'] ?? '') === 'degrading') {
-                    $w *= 0.7;
                     $old0 = (int)($oldMap[strtolower($ch)] ?? 0);
                     $decisions[] = ['channel' => $ch, 'action' => 'drift_warning', 'old' => $old0, 'new' => $old0, 'roas' => $m['roas'], 'ctr' => $m['ctr'], 'reason' => \Genie\I18n::t('autocamp.reason.driftWarning', ['r' => $dr['recent'], 'b' => $dr['baseline'], 'z' => $dr['z'], 'd' => $dr['days']], $lang)];
                 }
@@ -1049,6 +1099,10 @@ class AutoCampaign
                     ->execute([$tenant, (int)$camp['id'], '—', 'billing_required', 0, 0, '', '', '광고비 결제수단 미등록 → 실집행 보류', $now]);
             } catch (\Throwable $e) {}
         }
+        // [279차 초고도화·사용자 요구] auto 에이전트 모드 = 진짜 폐루프 자율. 실집행+실테넌트+결제수단 게이트를 통과한
+        //   'auto' 모드에서만 성과로 껐던 채널의 자율 재활성화(explore)를 연다. approval/recommend 모드는 기존처럼
+        //   사람-인-루프 유지(끄기·재배분만 자율, 켜기는 승인). 무단 지출 폭주 방지 가드는 explore 패스에서 재확인.
+        $autoMode = ($allowActuate && $isRealTenant && self::agentMode($pdo, $tenant) === 'auto');
         // ★201차 액추에이터: external_id 보유 채널은 매체에 실제 예산변경/정지 push(AD_EXECUTION_ENABLED ON 시).
         //   게이트 OFF/external_id 없음/allowActuate=false(데모) 면 skip(DB 재배분만). 결과는 정직하게 actuated 표기.
         foreach ($decisions as &$d) {
@@ -1073,10 +1127,43 @@ class AutoCampaign
                 $oldDaily = (int)round(((int)($d['old'] ?? 0)) / max(1, $pdays));
                 if ($tenantCapHit && $daily > $oldDaily) { $d['actuated'] = false; $d['cap_blocked'] = true; continue; }
                 $rr = AdAdapters::updateBudget($pdo, $tenant, $connKey, $extId, $daily);
+                // [279차 초고도화] auto 모드: 예산 배분받은(positive weight) 채널을 자율 활성화(cold-start 자동 실행·
+                //   회복 채널 자동 재개). 예산 소진/전역캡/데이파팅-밖은 위에서 이미 차단·조기반환. activate 는 안전 방향
+                //   재확인(캠페인 ACTIVE). approval/recommend 모드는 미실행(사람-인-루프).
+                if ($autoMode && !$budgetCapHit && ($weights[$d['channel']] ?? ($weights[$ck] ?? 0)) > 0) {
+                    try { AdAdapters::activate($pdo, $tenant, $connKey, $extId); } catch (\Throwable $e) {}
+                }
             }
             $d['actuated'] = !empty($rr['ok']);
         }
         unset($d);
+        // [279차 초고도화·사용자 요구] auto 모드 폐루프 채널 전환 — 성과로 껐던(weight 0) 채널을 쿨다운 후 소액 프로브로
+        //   자율 재활성화(explore)해 실구매 기준 회복 여부를 재수집한다. 다음 사이클에 종합점수로 유지/재정지 자율 판정.
+        //   ★재무 안전: auto 모드 + 실집행 + 결제수단 + 월예산 캡 미도달 + 잔여예산>0 에서만, 채널당 EXPLORE_COOLDOWN 쿨다운 · 소액.
+        if ($autoMode && !$budgetCapHit && $remaining > 0 && !empty($extIdMap)) {
+            $cool = self::EXPLORE_COOLDOWN_DAYS * 86400; $nowTs = time();
+            $probeDaily = (int)round(min($remaining / max(1, $daysLeft) * 0.15, ($maxDaily > 0 ? $maxDaily : 20000)) / 100) * 100;
+            $probeDaily = max(1000, $probeDaily);
+            foreach ($channels as $ch) {
+                $ck2 = strtolower($ch);
+                if (($weights[$ch] ?? 0) > 0) continue;         // 이번 사이클 배분 채널은 대상 아님
+                $ext2 = $extIdMap[$ck2] ?? '';
+                if ($ext2 === '') continue;                     // 매체 미생성 채널 제외
+                $fk = 'explore@' . $tenant . ':' . (int)$camp['id'] . ':' . $ck2;
+                $last = strtotime((string)self::getFlag($pdo, $fk));
+                if (!$last) { self::setFlag($pdo, $fk, gmdate('Y-m-d\TH:i:s\Z')); continue; } // 최초관측=쿨다운 시작(즉시 프로브 금지)
+                if (($nowTs - $last) < $cool) continue;         // 쿨다운 미경과
+                $connKey2 = self::connectorKey($ch);
+                $okAct = false;
+                try { AdAdapters::updateBudget($pdo, $tenant, $connKey2, $ext2, $probeDaily); $ar = AdAdapters::activate($pdo, $tenant, $connKey2, $ext2); $okAct = !empty($ar['ok']); } catch (\Throwable $e) {}
+                self::setFlag($pdo, $fk, gmdate('Y-m-d\TH:i:s\Z')); // 쿨다운 리셋
+                $reason = \Genie\I18n::t('autocamp.reason.exploreReactivate', ['d' => number_format($probeDaily)], $lang);
+                $decisions[] = ['channel' => $ch, 'action' => 'explore_reactivate', 'old' => 0, 'new' => $probeDaily,
+                    'roas' => $metrics[$ch]['roas'] ?? '', 'ctr' => $metrics[$ch]['ctr'] ?? '', 'actuated' => $okAct, 'reason' => $reason];
+                try { $pdo->prepare("INSERT INTO optimization_log(tenant_id,campaign_id,channel,action,old_alloc,new_alloc,roas,ctr,reason,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)")
+                    ->execute([$tenant, (int)$camp['id'], $ch, 'explore_reactivate', 0, $probeDaily, (string)($metrics[$ch]['roas'] ?? ''), (string)($metrics[$ch]['ctr'] ?? ''), $reason, gmdate('Y-m-d\TH:i:s\Z')]); } catch (\Throwable $e) {}
+            }
+        }
 
         // [현 차수] 관리형 지출 월렛 정산: 당월 실집행 광고비를 등록 카드로 청구하되, 누적 청구가
         //   월 예산을 절대 넘지 않도록 캡(min(spend,budget) - 기청구분 만 신규 청구). monthly + 실집행 가능 + 실테넌트만.
