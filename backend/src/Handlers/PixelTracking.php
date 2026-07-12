@@ -583,12 +583,22 @@ class PixelTracking
         $pdo = self::db();
         $tenant = self::tenant($req);
         $b = (array)$req->getParsedBody();
+        // [280차] 도메인 필수(서버 게이트 — 프론트 검증만으론 API 직접 호출로 우회된다).
+        //   수집 신뢰모델이 fail-closed 라 domain 이 비면 Origin 일치 판정 자체가 불가능해 모든 이벤트가
+        //   'custom'·value=0 으로 중립화된다(collect() $trusted) → 픽셀이 조용히 무용지물이 된다.
+        //   종전엔 선택 입력이라 도메인 없이 만든 픽셀이 그대로 그 함정에 빠졌다.
+        $domain = strtolower(trim((string)($b['domain'] ?? '')));
+        $domain = preg_replace('~^https?://~i', '', $domain);   // 사용자가 URL 을 붙여넣는 흔한 실수 흡수
+        $domain = explode('/', $domain)[0];
+        if ($domain === '') {
+            return self::json($res, ['ok'=>false, 'error'=>'도메인은 필수입니다. 픽셀을 설치할 사이트 도메인(예: shop.example.com)을 입력하세요 — 도메인이 없으면 이벤트가 수집되지 않습니다.'], 400);
+        }
         $pixelId = self::genPixelId(); // [현 차수] HMAC 서명 pixel_id(위조 차단)
         $now = self::now();
         $pdo->prepare("INSERT INTO pixel_configs (tenant_id, pixel_id, name, domain, meta_pixel_id, meta_api_token, tiktok_pixel_id, tiktok_access_token, ga4_measurement_id, ga4_api_secret, pinterest_ad_account_id, pinterest_conversion_token, snap_pixel_id, snap_api_token, reddit_ad_account_id, reddit_conversion_token, created_at, updated_at)
             VALUES (:t,:pid,:name,:dom,:mpid,:mapi,:tpid,:tapi,:ga4id,:ga4sec,:pinid,:pintok,:snpid,:sntok,:rdid,:rdtok,:ca,:ua)
         ")->execute([
-            ':t'=>$tenant, ':pid'=>$pixelId, ':name'=>$b['name'] ?? '기본 픽셀', ':dom'=>$b['domain'] ?? '',
+            ':t'=>$tenant, ':pid'=>$pixelId, ':name'=>$b['name'] ?? '기본 픽셀', ':dom'=>$domain,
             ':mpid'=>$b['meta_pixel_id'] ?? '', ':mapi'=>self::enc($b['meta_api_token'] ?? ''), ':tpid'=>$b['tiktok_pixel_id'] ?? '',
             ':tapi'=>self::enc($b['tiktok_access_token'] ?? ''), ':ga4id'=>$b['ga4_measurement_id'] ?? '', ':ga4sec'=>self::enc($b['ga4_api_secret'] ?? ''),
             ':pinid'=>$b['pinterest_ad_account_id'] ?? '', ':pintok'=>self::enc($b['pinterest_conversion_token'] ?? ''),
