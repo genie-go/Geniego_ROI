@@ -125,6 +125,14 @@ class PixelTracking
         self::ensureTables();
         $pdo = self::db();
         $b = (array)$req->getParsedBody();
+        // [280차 P0] 원시 바디 JSON 폴백 — 비콘(pixel.js)은 CORS-simple 전송을 위해
+        //   Content-Type: text/plain 으로 보낸다(프리플라이트를 만들지 않아야 고객사 임의 도메인에서 차단 없이
+        //   나가고, 이탈 직전 purchase 를 navigator.sendBeacon 으로 보낼 수 있다 — sendBeacon 은 커스텀 헤더 불가).
+        //   Slim 은 application/json 만 파싱하므로 text/plain 은 여기서 직접 디코드한다. 기존 JSON 전송은 무영향.
+        if (!$b) {
+            $raw = (string)$req->getBody();
+            if ($raw !== '') { $d = json_decode($raw, true); if (is_array($d)) $b = $d; }
+        }
 
         $pixelId   = trim($b['pixel_id'] ?? '');
         $eventName = trim($b['event_name'] ?? 'page_view');
@@ -232,6 +240,12 @@ class PixelTracking
             if ($trusted && $sessionId) { self::bridgeToAttribution($pdo, $tenant, $sessionId, $eventName, $b, $eventId, $effValue); }
 
             if ($trusted && $config && (int)($config['enabled'] ?? 0) === 1) {
+                // [280차 P0] 매칭신호 서버권위 주입. 종전 포워더는 $b['user_agent'](비콘 바디)를 읽었는데 이를 보내는
+                //   비콘 자체가 없었고(pixel.js 부재), Meta 는 client_ip_address 를 하드코딩 null 로 보냈다
+                //   → 비로그인 이벤트(상단퍼널 대다수)는 매칭신호 0. Reddit/Pinterest 는 "attribution signal 최소 1개"
+                //   규격이라 그런 이벤트를 통째로 거부한다. 요청 헤더의 UA·클라이언트 IP 가 위조불가 정본이다.
+                $b['user_agent'] = $ua;
+                $b['client_ip']  = $ipRaw;
                 self::forwardToMeta($pdo, $config, $eventId, $eventName, $emailHash, $phoneHash, $b, $deviceType);
                 self::forwardToTikTok($pdo, $config, $eventId, $eventName, $emailHash, $b);
                 self::forwardToGA4($pdo, $config, $eventId, $eventName, (string)$sessionId, $b); // [227차 P0] GA4 Measurement Protocol
@@ -382,7 +396,13 @@ class PixelTracking
         $metaEvent = $metaEventMap[$eventName] ?? 'CustomEvent';
         $payload = ['data' => [[
             'event_name'=>$metaEvent, 'event_time'=>time(), 'event_id'=>$eventId, 'event_source_url'=>$b['page_url'] ?? '', 'action_source'=>'website',
-            'user_data'=>array_filter(['em'=>$emailHash ? [$emailHash] : null, 'ph'=>$phoneHash ? [$phoneHash] : null, 'client_ip_address'=>null, 'client_user_agent'=>$b['user_agent'] ?? '']),
+            // [280차] fbc/fbp = Meta 매칭품질(EMQ) 최상위 신호. pixel.js 가 _fbc/_fbp 쿠키·fbclid 합성으로 실어 보낸다.
+            'user_data'=>array_filter([
+                'em'=>$emailHash ? [$emailHash] : null, 'ph'=>$phoneHash ? [$phoneHash] : null,
+                'client_ip_address'=>$b['client_ip'] ?? null, 'client_user_agent'=>$b['user_agent'] ?? '',
+                'fbc'=>$b['fbc'] ?? null, 'fbp'=>$b['fbp'] ?? null,
+                'external_id'=>!empty($b['user_id']) ? hash('sha256', strtolower(trim((string)$b['user_id']))) : null,
+            ]),
             'custom_data'=>array_filter(['value'=>(float)($b['value'] ?? 0) ?: null, 'currency'=>$b['currency'] ?? 'KRW', 'content_ids'=>$b['product_ids'] ?? null]),
         ]]];
         try {
@@ -407,7 +427,12 @@ class PixelTracking
         $ev = $map[$eventName] ?? 'custom';
         $payload = ['data' => [array_filter([
             'event_name'=>$ev, 'action_source'=>'web', 'event_time'=>time(), 'event_id'=>$eventId, 'event_source_url'=>$b['page_url'] ?? null,
-            'user_data'=>array_filter(['em'=>$emailHash ? [$emailHash] : null, 'ph'=>$phoneHash ? [$phoneHash] : null, 'client_user_agent'=>$b['user_agent'] ?? null]),
+            // [280차] client_ip_address·click_id(epik) 추가 — Pinterest 는 매칭신호 부재 이벤트를 거부한다.
+            'user_data'=>array_filter([
+                'em'=>$emailHash ? [$emailHash] : null, 'ph'=>$phoneHash ? [$phoneHash] : null,
+                'client_user_agent'=>$b['user_agent'] ?? null, 'client_ip_address'=>$b['client_ip'] ?? null,
+                'click_id'=>$b['epik'] ?? null,
+            ]),
             'custom_data'=>array_filter(['value'=>((float)($b['value'] ?? 0) ?: null) ? (string)(float)$b['value'] : null, 'currency'=>$b['currency'] ?? 'KRW']),
         ], fn($v) => $v !== null && $v !== [])]];
         try {
@@ -427,7 +452,11 @@ class PixelTracking
         $ev = $map[$eventName] ?? 'CUSTOM_EVENT_1';
         $payload = ['data' => [array_filter([
             'event_name'=>$ev, 'action_source'=>'WEB', 'event_time'=>time() * 1000, 'event_id'=>$eventId, 'event_source_url'=>$b['page_url'] ?? null,
-            'user_data'=>array_filter(['em'=>$emailHash ? [$emailHash] : null, 'client_user_agent'=>$b['user_agent'] ?? null]),
+            // [280차] client_ip_address·sc_click_id 추가 — Snapchat CAPI 도 매칭신호 최소 1개 요구.
+            'user_data'=>array_filter([
+                'em'=>$emailHash ? [$emailHash] : null, 'client_user_agent'=>$b['user_agent'] ?? null,
+                'client_ip_address'=>$b['client_ip'] ?? null, 'sc_click_id'=>$b['sc_cid'] ?? null,
+            ]),
             'custom_data'=>array_filter(['value'=>(float)($b['value'] ?? 0) ?: null, 'currency'=>$b['currency'] ?? 'KRW']),
         ], fn($v) => $v !== null && $v !== [])]];
         try {
@@ -450,8 +479,16 @@ class PixelTracking
         $payload = ['events' => [array_filter([
             'event_at'       => gmdate('Y-m-d\TH:i:s\Z'),
             'event_type'     => ['tracking_type' => $tracking],
-            'click_id'       => $b['rdt_cid'] ?? null,
-            'user'           => array_filter(['email' => $emailHash ?: null, 'user_agent' => $b['user_agent'] ?? null]),
+            'click_id'       => $b['rdt_cid'] ?? null,   // 스펙상 최상위(event_at/action_source/test_mode 와 동렬)
+            // [280차] ip_address·uuid(_rdt_uuid 쿠키)·external_id 추가. Reddit 은 attribution signal 최소 1개를
+            //   요구하는데 종전엔 email 뿐이라 비로그인 이벤트(대다수)가 통째로 거부됐다.
+            'user'           => array_filter([
+                'email'      => $emailHash ?: null,
+                'user_agent' => $b['user_agent'] ?? null,
+                'ip_address' => $b['client_ip'] ?? null,
+                'uuid'       => $b['rdt_uuid'] ?? null,
+                'external_id'=> !empty($b['user_id']) ? hash('sha256', strtolower(trim((string)$b['user_id']))) : null,
+            ]),
             'event_metadata' => array_filter([
                 'currency'      => $b['currency'] ?? 'KRW',
                 'value_decimal' => (float)($b['value'] ?? 0) ?: null,
@@ -474,7 +511,15 @@ class PixelTracking
         $tiktokEventMap = ['page_view'=>'PageView', 'view_content'=>'ViewContent', 'add_to_cart'=>'AddToCart', 'purchase'=>'CompletePayment', 'lead'=>'SubmitForm'];
         $tiktokEvent = $tiktokEventMap[$eventName] ?? 'CustomEvent';
         $payload = ['pixel_code'=>$cfg['tiktok_pixel_id'], 'event'=>$tiktokEvent, 'event_id'=>$eventId, 'timestamp'=>gmdate('Y-m-d\TH:i:s+00:00'),
-            'context'=>['page'=>['url'=>$b['page_url'] ?? ''], 'user'=>array_filter(['sha256_email'=>$emailHash])],
+            // [280차] ip·user_agent·ad.callback(ttclid) 추가 — TikTok 매칭키. 종전엔 sha256_email 뿐이라
+            //   비로그인 이벤트 매칭 불가(page_view/add_to_cart 대다수).
+            'context'=>array_filter([
+                'page'=>array_filter(['url'=>$b['page_url'] ?? '', 'referrer'=>$b['referrer'] ?? null]),
+                'user'=>array_filter(['sha256_email'=>$emailHash]),
+                'ad'=>array_filter(['callback'=>$b['ttclid'] ?? null]),
+                'ip'=>$b['client_ip'] ?? null,
+                'user_agent'=>$b['user_agent'] ?? null,
+            ], fn($v) => $v !== null && $v !== []),
             'properties'=>array_filter(['value'=>(float)($b['value'] ?? 0) ?: null, 'currency'=>$b['currency'] ?? 'KRW', 'content_id'=>!empty($b['product_ids']) ? $b['product_ids'][0] : null])];
         try {
             $ch = curl_init('https://business-api.tiktok.com/open_api/v1.3/pixel/track/');

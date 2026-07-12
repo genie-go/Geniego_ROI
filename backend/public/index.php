@@ -45,6 +45,13 @@ $GENIE_ALLOWED_ORIGINS = [
 $app->add(function (Request $request, $handler) use ($GENIE_ALLOWED_ORIGINS) {
     $origin = $request->getHeaderLine('Origin');
     $allow  = in_array($origin, $GENIE_ALLOWED_ORIGINS, true) ? $origin : 'https://www.genieroi.com';
+    // [280차 P0] 공개 픽셀 비콘(/pixel/*)만 임의 출처 허용. 고객사 상점 도메인은 본질적으로 화이트리스트 불가
+    //   (테넌트마다 다름) → 종전엔 ACAO 가 www.genieroi.com 으로 고정 반향돼 브라우저가 비콘을 차단했다.
+    //   ★안전: 이 경로의 신뢰모델은 CORS 가 아니다 — HMAC 서명 pixel_id + 등록도메인 Origin 일치(fail-closed
+    //   $trusted) + IP 레이트리밋 + value 클램프가 오염을 막는다(collect() 참조). 자격증명도 싣지 않는다.
+    if (preg_match('#^(/api)?/pixel(/|$)#', $request->getUri()->getPath())) {
+        $allow = $origin !== '' ? $origin : '*';
+    }
     $cors = function ($resp) use ($allow) {
         return $resp
             ->withHeader('Access-Control-Allow-Origin', $allow)
