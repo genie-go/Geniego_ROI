@@ -7,9 +7,13 @@
  *   - 비파괴적: 읽기(GET)만 발사 + 응답 키 검증. 운영 DB 무오염·반복 실행 안전.
  *
  * 사용:
- *   E2E_EMAIL=... E2E_PASSWORD=... [E2E_ACCESS_CODE=GENIEGO-ADMIN] [E2E_BASE=https://www.genieroi.com] \
+ *   E2E_EMAIL=... E2E_PASSWORD=... [E2E_ACCESS_CODE=...] [E2E_BASE=https://www.genieroi.com] [E2E_OTP=123456] \
  *     node tools/e2e/smoke.mjs
  *   또는  npm run e2e  (자격증명 env 필요)
+ *
+ * ★2FA(273차): 전 계정 2단계 인증이 켜져 있어 로그인이 2단계다.
+ *   - 데모(E2E_BASE=https://demo.genieroi.com)는 응답에 otp_dev 가 실려 자동 통과 → 무인 CI 게이트로 이걸 쓴다.
+ *   - 운영은 otp_dev=null(메일 발송) → 메일함 코드를 E2E_OTP 로 주입해야 로그인 구간을 넘는다.
  *
  * ★자격증명은 절대 소스에 하드코딩하지 않는다 — env 로만 주입(로컬 .env·CI Secrets).
  * 종료코드: 0=전부 통과, 1=실패(500 발생 또는 계약키 누락). CI 게이트로 사용.
@@ -19,6 +23,8 @@ const BASE = (process.env.E2E_BASE || 'https://www.genieroi.com').replace(/\/$/,
 const EMAIL = process.env.E2E_EMAIL || '';
 const PASSWORD = process.env.E2E_PASSWORD || '';
 const ACCESS_CODE = process.env.E2E_ACCESS_CODE || 'GENIEGO-ADMIN';
+// [280차] 2FA OTP. 데모는 응답의 otp_dev 로 자동 통과하므로 불필요. 운영 검사 시에만 메일함 코드를 주입.
+const OTP = process.env.E2E_OTP || '';
 
 const C = { red: '\x1b[31m', grn: '\x1b[32m', yel: '\x1b[33m', dim: '\x1b[2m', rst: '\x1b[0m' };
 const ok = (m) => console.log(`${C.grn}✓${C.rst} ${m}`);
@@ -91,14 +97,33 @@ async function main() {
   }
   info(`BASE=${BASE}`);
 
-  // 1) 로그인
-  const lr = await fetch(`${BASE}/api/auth/login`, {
+  // 1) 로그인 — [280차] 2FA(273차 도입) 대응. 종전엔 전 계정 MFA 정책이 켜진 뒤로 여기서 401
+  //    (mfa_required)에 걸려 스모크 자체가 항상 죽어 있었다(= 회귀 안전망 무력화).
+  //    서버는 동일 /auth/login 에 otp 를 동봉하는 2단계 방식이다(AuthContext.login 정합).
+  const doLogin = (otp = '') => fetch(`${BASE}/api/auth/login`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: EMAIL, password: PASSWORD, access_code: ACCESS_CODE }),
+    body: JSON.stringify({ email: EMAIL, password: PASSWORD, access_code: ACCESS_CODE, otp }),
   });
-  const lj = await lr.json().catch(() => ({}));
+
+  let lr = await doLogin();
+  let lj = await lr.json().catch(() => ({}));
+
+  if (lj.mfa_required) {
+    // otp_dev = 데모 환경만 응답에 코드를 실어준다(운영은 null → 메일함 확인 필요).
+    const code = String(lj.otp_dev || OTP || '').trim();
+    if (!code) {
+      bad('2FA 필요 — 코드를 얻을 수 없습니다.');
+      info('데모(E2E_BASE=https://demo.genieroi.com)는 otp_dev 를 응답에 실어주므로 자동 통과합니다.');
+      info('운영을 검사하려면 메일함의 코드를 E2E_OTP=<6자리> 로 주입하세요(5분 유효).');
+      process.exit(1);
+    }
+    info(`2FA 단계 — OTP 제출(${lj.otp_dev ? 'otp_dev' : 'E2E_OTP'})`);
+    lr = await doLogin(code);
+    lj = await lr.json().catch(() => ({}));
+  }
+
   const token = lj.token || lj.access_token || (lj.data && lj.data.token) || '';
-  if (lr.status !== 200 || !token) { bad(`로그인 실패 HTTP ${lr.status}`); process.exit(1); }
+  if (lr.status !== 200 || !token) { bad(`로그인 실패 HTTP ${lr.status} ${lj.error || ''}`); process.exit(1); }
   ok(`로그인 (tenant=${lj.tenant_id || lj.tenant || '?'}, plan=${(lj.user && lj.user.plan) || lj.plan || '?'})`);
   const H = { 'Authorization': `Bearer ${token}`, 'X-Lang': 'ko' };
 
