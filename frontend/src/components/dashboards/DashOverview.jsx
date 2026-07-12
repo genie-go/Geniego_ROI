@@ -162,14 +162,21 @@ function SystemHealthMonitor({ t }) {
         { n: 'API Gateway', u: A + '/api/ping', i: '🌐' },
         { n: 'Auth Service', u: A + '/api/auth/check', i: '🔐' },
         { n: 'Data Store', u: A + '/api/ping', i: '💾' },
-        { n: 'CDN Assets', u: '/favicon.ico', i: '⚡' },
+        { n: 'CDN Assets', u: '/icon-192.png', i: '⚡', asset: true },
         { n: 'WebSocket', u: A + '/api/ping', i: '🔌' },
       ].forEach(ep => {
         const s = performance.now();
         fetch(ep.u, { method: 'HEAD', cache: 'no-store', signal: AbortSignal.timeout(5000) })
-          .then(() => {
+          .then(res => {
+            // [280차] 종전엔 응답이 오기만 하면 무조건 'ok' 였다(res 미검사) → 5xx 도, nginx SPA HTML 폴백도 초록.
+            //   특히 CDN Assets 는 존재하지도 않는 /favicon.ico 를 핑해 index.html(200 text/html)을 받고
+            //   영구 가짜-초록이었다 = 정적자산 장애를 구조적으로 절대 못 잡는 위젯.
+            //   판정: 5xx = 장애(4xx 는 인증 헤더 없는 HEAD 라 정상 도달로 본다). 정적자산은 HTML 이
+            //   돌아오면 폴백=자산 부재로 간주(팬텀 /pixel.js 와 동일한 은폐 메커니즘).
+            const ct = res.headers.get('content-type') || '';
+            const bad = res.status >= 500 || (ep.asset && ct.includes('text/html'));
             const ms = Math.round(performance.now() - s);
-            setSysStatus(p => p.map(x => x.name === ep.n ? { ...x, status: 'ok', ms, icon: ep.i } : x));
+            setSysStatus(p => p.map(x => x.name === ep.n ? { ...x, status: bad ? 'warn' : 'ok', ms, icon: ep.i } : x));
           })
           .catch(() => {
             setSysStatus(p => p.map(x => x.name === ep.n ? { ...x, status: 'warn', ms: 999, icon: ep.i } : x));

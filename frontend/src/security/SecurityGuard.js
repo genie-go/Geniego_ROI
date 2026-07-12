@@ -253,7 +253,7 @@ export function useSecurityGuard({ addAlert, enabled = true } = {}) {
         }
         // Browser notification for critical alerts
         if (type === 'critical' && Notification.permission === 'granted') {
-            new Notification('🚨 Security Alert — Geniego-ROI', { body: msg, icon: '/favicon.ico' });
+            new Notification('🚨 Security Alert — Geniego-ROI', { body: msg, icon: '/icon-192.png' });   // [280차] /favicon.ico 는 실존하지 않는 팬텀(SPA HTML 폴백 수신 → 아이콘 디코드 실패)
         }
     }, []);
 
