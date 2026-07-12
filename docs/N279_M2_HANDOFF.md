@@ -28,6 +28,19 @@
 1. **netProfit 배송비 이중차감 엣지 근본해결**: 현 산식 수정은 estimated 지배 환경 정확하나, **실 정산 업로드(KrChannel) 테넌트는 net_payout이 이미 shipping_fee 차감(KrChannel.php:443)** → 산식에서 또 차감 = 이중. 근본책=정산행 status-aware 집계(estimated만 배송비 차감) 또는 orderhub_settlements에 shipping_fee 컬럼 추가해 소스 무관 일관 반영. (Pnl.php:208 문서화 트레이드오프)
 2. **CAPI 잔여 목적지 확대 검토**: LinkedIn/Criteo 서버전환 + Google Enhanced Conversions 커버리지 확대(기존 forwardTo* 패턴 재사용, 저위험).
 
+> **[280차 갱신]** P1-1(netProfit 배송비) = 커밋 `57656d36b19` 로 해소(estShare 방식). P1-2 = 아래대로 처리 완료.
+> - **LinkedIn CAPI = 구현·배포 완료**(280차): `PixelTracking::forwardToLinkedIn` — `POST /rest/conversionEvents`,
+>   전환룰 URN + `LinkedIn-Version`/`X-Restli-Protocol-Version` 헤더, 매칭식별자(SHA256_EMAIL / li_fat_id /
+>   PLAINTEXT_IP)가 0이면 발사 안 함(400 회피·정직 no-op). 전환룰은 type 고정이라 `linkedin_events`
+>   화이트리스트(기본 purchase)로만 전송 — 무차별 전송 시 룰 오염.
+> - **Criteo CAPI = 구현하지 않음(의도된 보류)**: Criteo 개발자 문서(developers.criteo.com) 전체 인덱스에
+>   **공개 서버사이드 Conversions API 엔드포인트가 존재하지 않는다**(Marketing Solutions·Retail Media 양쪽 모두).
+>   실제 서버전환은 파트너 통합(Segment/Tealium/CommandersAct) 경유 + GUM ID(`crto_mapped_user_id` 쿠키) 매칭이
+>   전제라 계약·파트너 온보딩이 선행돼야 한다. **계약 없이 추측 페이로드로 선구현하는 것은 §4 원칙 위반** →
+>   외부 의존 항목(P3)으로 강등. 파트너 자격 확보 시 착수.
+> - **Google Enhanced Conversions = 이미 구현**(`AdAdapters::googleUploadConversion` / `uploadPendingGoogleConversions`,
+>   gclid+hashedEmail `uploadClickConversions`) → 재구현 금지.
+
 ### P2 — 기능 심화(경쟁 격차 축소)
 3. **CRM 생성형 저니 빌더 + 실시간 스트리밍**(Klaviyo/Braze 대비 82→90 목표).
 4. **프리퀀시캡·소재피로 파리티**: Meta/TikTok 외 채널(Google/Naver/Kakao) 확장.

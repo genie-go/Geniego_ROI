@@ -113,9 +113,17 @@ class PixelTracking
             // [279차 M2 초고도화] Reddit Conversions API — CAPI 목적지 완결(유일 미배선 채널). 패턴=Pinterest/Snapchat.
             "pixel_configs ADD COLUMN reddit_ad_account_id " . (self::isMysql($pdo) ? "VARCHAR(64)" : "TEXT"),
             "pixel_configs ADD COLUMN reddit_conversion_token {$txtc}",
+            // [280차] LinkedIn Conversions API — 전환룰 URN + 액세스 토큰. B2B 리드/구매 귀속.
+            //   linkedin_conversion_urn = 'urn:lla:llaPartnerConversion:<id>' (또는 숫자 ID만 넣어도 정규화).
+            //   linkedin_events = 이 전환룰로 보낼 이벤트 화이트리스트(기본 purchase). LinkedIn 전환룰은
+            //   생성 시 type(PURCHASE/LEAD/…)이 고정되므로 아무 이벤트나 보내면 룰이 오염된다 → 명시 화이트리스트.
+            "pixel_configs ADD COLUMN linkedin_conversion_urn " . (self::isMysql($pdo) ? "VARCHAR(128)" : "TEXT"),
+            "pixel_configs ADD COLUMN linkedin_access_token {$txtc}",
+            "pixel_configs ADD COLUMN linkedin_events " . (self::isMysql($pdo) ? "VARCHAR(255)" : "TEXT"),
             "pixel_events ADD COLUMN forwarded_pinterest {$intc}",
             "pixel_events ADD COLUMN forwarded_snap {$intc}",
             "pixel_events ADD COLUMN forwarded_reddit {$intc}",
+            "pixel_events ADD COLUMN forwarded_linkedin {$intc}",
         ] as $alt) { try { $pdo->exec("ALTER TABLE {$alt}"); } catch (\Throwable $e) {} }
     }
 
@@ -164,7 +172,7 @@ class PixelTracking
         $cfgStmt->execute([':pid' => $pixelId]);
         $config = $cfgStmt->fetch(\PDO::FETCH_ASSOC);
         // 209차 P1: secret-at-rest 복호화(서버 전송 API 토큰). 평문 행은 passthrough.
-        if ($config) foreach (['meta_api_token','tiktok_access_token','ga4_api_secret','pinterest_conversion_token','snap_api_token','reddit_conversion_token'] as $sk) { if (!empty($config[$sk])) $config[$sk] = self::dec((string)$config[$sk]); }
+        if ($config) foreach (['meta_api_token','tiktok_access_token','ga4_api_secret','pinterest_conversion_token','snap_api_token','reddit_conversion_token','linkedin_access_token'] as $sk) { if (!empty($config[$sk])) $config[$sk] = self::dec((string)$config[$sk]); }
         $tenant = $config['tenant_id'] ?? 'unknown';
 
         // 209차 P1: 익명 공개 비콘 오염 방어(pixel_id 는 사이트 스니펫에 공개 → 수집·위조 가능).
@@ -252,6 +260,7 @@ class PixelTracking
                 self::forwardToPinterest($pdo, $config, $eventId, $eventName, $emailHash, $phoneHash, $b); // [현 차수 P2] Pinterest CAPI
                 self::forwardToSnapchat($pdo, $config, $eventId, $eventName, $emailHash, $b);              // [현 차수 P2] Snapchat CAPI
                 self::forwardToReddit($pdo, $config, $eventId, $eventName, $emailHash, $b);               // [279차 초고도화] Reddit Conversions API
+                self::forwardToLinkedIn($pdo, $config, $eventId, $eventName, $emailHash, $b);            // [280차] LinkedIn Conversions API
             }
         }
         return self::json($res, ['ok' => true, 'event_id' => $eventId, 'deduped' => !$inserted]);
@@ -505,6 +514,55 @@ class PixelTracking
         } catch (\Exception $e) {}
     }
 
+    /** [280차] LinkedIn Conversions API — 서버측 전환 스트리밍.
+     *  POST /rest/conversionEvents (성공 201). 전환룰(conversionMethod=CONVERSIONS_API)을 LinkedIn 쪽에서
+     *  미리 만들고 그 URN 을 등록해야 한다. 룰은 type(PURCHASE/LEAD/…)이 고정이라 이벤트를 무차별 전송하면
+     *  룰이 오염된다 → linkedin_events 화이트리스트(기본 purchase)로만 발사.
+     *  매칭 식별자는 최소 1개 필수(SHA256_EMAIL / LINKEDIN_FIRST_PARTY_ADS_TRACKING_UUID(li_fat_id) /
+     *  PLAINTEXT_IP_ADDRESS) — 하나도 없으면 400 이므로 아예 보내지 않는다(정직 no-op).
+     *  전환 시각은 과거 90일 이내만 유효(현재 이벤트라 항상 충족).
+     */
+    private static function forwardToLinkedIn(\PDO $pdo, array $cfg, string $eventId, string $eventName, ?string $emailHash, array $b): void
+    {
+        if (empty($cfg['linkedin_conversion_urn']) || empty($cfg['linkedin_access_token'])) return;
+
+        $allowed = array_filter(array_map('trim', explode(',', strtolower((string)($cfg['linkedin_events'] ?? '')))));
+        if (!$allowed) $allowed = ['purchase'];
+        if (!in_array($eventName, $allowed, true)) return;
+
+        // 숫자 ID 만 입력한 경우도 흡수(사용자 실수 방지). 이미 URN 이면 그대로.
+        $urn = trim((string)$cfg['linkedin_conversion_urn']);
+        if (ctype_digit($urn)) $urn = 'urn:lla:llaPartnerConversion:' . $urn;
+
+        $userIds = [];
+        if ($emailHash)                   $userIds[] = ['idType'=>'SHA256_EMAIL', 'idValue'=>$emailHash];
+        if (!empty($b['li_fat_id']))      $userIds[] = ['idType'=>'LINKEDIN_FIRST_PARTY_ADS_TRACKING_UUID', 'idValue'=>(string)$b['li_fat_id']];
+        if (!empty($b['client_ip']))      $userIds[] = ['idType'=>'PLAINTEXT_IP_ADDRESS', 'idValue'=>(string)$b['client_ip']];
+        if (!$userIds) return;            // 식별자 0 → LinkedIn 이 400 으로 거부. 발사 자체를 안 한다.
+
+        $val = (float)($b['value'] ?? 0);
+        $payload = array_filter([
+            'conversion'           => $urn,
+            'conversionHappenedAt' => time() * 1000,                       // ms epoch
+            'conversionValue'      => $val > 0 ? ['currencyCode'=>$b['currency'] ?? 'KRW', 'amount'=>(string)$val] : null,
+            'user'                 => ['userIds'=>$userIds],
+            'eventId'              => $eventId,                            // 브라우저 픽셀과 dedup
+        ], fn($v) => $v !== null);
+
+        try {
+            $ch = curl_init('https://api.linkedin.com/rest/conversionEvents');
+            curl_setopt_array($ch, [CURLOPT_POST=>true, CURLOPT_POSTFIELDS=>json_encode($payload), CURLOPT_RETURNTRANSFER=>true, CURLOPT_TIMEOUT=>5, CURLOPT_HTTPHEADER=>[
+                'Content-Type: application/json',
+                'Authorization: Bearer ' . $cfg['linkedin_access_token'],
+                'LinkedIn-Version: ' . gmdate('Ym'),                       // 필수 헤더(YYYYMM)
+                'X-Restli-Protocol-Version: 2.0.0',                        // 필수 헤더
+            ]]);
+            $resp = curl_exec($ch); $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE); curl_close($ch);
+            if ($code >= 200 && $code < 300) { try { $pdo->prepare("UPDATE pixel_events SET forwarded_linkedin=1 WHERE event_id=:eid")->execute([':eid'=>$eventId]); } catch (\Throwable $e) {} }
+            else error_log("[CAPI linkedin] event={$eventId} http={$code} resp=" . substr((string)$resp, 0, 160));
+        } catch (\Exception $e) {}
+    }
+
     private static function forwardToTikTok(\PDO $pdo, array $cfg, string $eventId, string $eventName, ?string $emailHash, array $b): void
     {
         if (empty($cfg['tiktok_pixel_id']) || empty($cfg['tiktok_access_token'])) return;
@@ -595,15 +653,19 @@ class PixelTracking
         }
         $pixelId = self::genPixelId(); // [현 차수] HMAC 서명 pixel_id(위조 차단)
         $now = self::now();
-        $pdo->prepare("INSERT INTO pixel_configs (tenant_id, pixel_id, name, domain, meta_pixel_id, meta_api_token, tiktok_pixel_id, tiktok_access_token, ga4_measurement_id, ga4_api_secret, pinterest_ad_account_id, pinterest_conversion_token, snap_pixel_id, snap_api_token, reddit_ad_account_id, reddit_conversion_token, created_at, updated_at)
-            VALUES (:t,:pid,:name,:dom,:mpid,:mapi,:tpid,:tapi,:ga4id,:ga4sec,:pinid,:pintok,:snpid,:sntok,:rdid,:rdtok,:ca,:ua)
+        $pdo->prepare("INSERT INTO pixel_configs (tenant_id, pixel_id, name, domain, meta_pixel_id, meta_api_token, tiktok_pixel_id, tiktok_access_token, ga4_measurement_id, ga4_api_secret, pinterest_ad_account_id, pinterest_conversion_token, snap_pixel_id, snap_api_token, reddit_ad_account_id, reddit_conversion_token, linkedin_conversion_urn, linkedin_access_token, linkedin_events, created_at, updated_at)
+            VALUES (:t,:pid,:name,:dom,:mpid,:mapi,:tpid,:tapi,:ga4id,:ga4sec,:pinid,:pintok,:snpid,:sntok,:rdid,:rdtok,:liurn,:litok,:liev,:ca,:ua)
         ")->execute([
             ':t'=>$tenant, ':pid'=>$pixelId, ':name'=>$b['name'] ?? '기본 픽셀', ':dom'=>$domain,
             ':mpid'=>$b['meta_pixel_id'] ?? '', ':mapi'=>self::enc($b['meta_api_token'] ?? ''), ':tpid'=>$b['tiktok_pixel_id'] ?? '',
             ':tapi'=>self::enc($b['tiktok_access_token'] ?? ''), ':ga4id'=>$b['ga4_measurement_id'] ?? '', ':ga4sec'=>self::enc($b['ga4_api_secret'] ?? ''),
             ':pinid'=>$b['pinterest_ad_account_id'] ?? '', ':pintok'=>self::enc($b['pinterest_conversion_token'] ?? ''),
             ':snpid'=>$b['snap_pixel_id'] ?? '', ':sntok'=>self::enc($b['snap_api_token'] ?? ''),
-            ':rdid'=>$b['reddit_ad_account_id'] ?? '', ':rdtok'=>self::enc($b['reddit_conversion_token'] ?? ''), ':ca'=>$now, ':ua'=>$now,
+            ':rdid'=>$b['reddit_ad_account_id'] ?? '', ':rdtok'=>self::enc($b['reddit_conversion_token'] ?? ''),
+            // [280차] LinkedIn — 전환룰 URN·토큰·이벤트 화이트리스트(미지정 시 purchase 만).
+            ':liurn'=>$b['linkedin_conversion_urn'] ?? '', ':litok'=>self::enc($b['linkedin_access_token'] ?? ''),
+            ':liev'=>$b['linkedin_events'] ?? 'purchase',
+            ':ca'=>$now, ':ua'=>$now,
         ]);
         return self::json($res, ['ok' => true, 'pixel_id' => $pixelId]);
     }
