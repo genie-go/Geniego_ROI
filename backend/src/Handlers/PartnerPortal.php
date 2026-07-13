@@ -276,6 +276,13 @@ class PartnerPortal
                     // 본인 발주의 상태만 수정(확인/출고 등)
                     $id = (int)($b['id'] ?? 0); $status = (string)($b['status'] ?? '');
                     if ($id <= 0 || $status === '') return self::json($res, ['ok' => false, 'error' => 'id/status 필요'], 422);
+                    // [281차 P2] ★파트너 허용 상태 화이트리스트 — 'received'(입고확정)는 본사 전용이다. 파트너가
+                    //   received 를 위조하면 이후 본사가 Wms::saveSupplyOrder 로 입고확정해도 `old.status===received`
+                    //   가드에 걸려 Inbound 원장이 영영 기록되지 않는다(입고 루프 영구 차단). 매입처는 진행상태만 갱신.
+                    $partnerAllowed = ['pending','confirmed','in_transit','shipped','cancelled'];
+                    if (!in_array($status, $partnerAllowed, true)) {
+                        return self::json($res, ['ok' => false, 'error' => "'{$status}' 상태로는 변경할 수 없습니다(입고확정은 본사 전용)."], 422);
+                    }
                     $st = $pdo->prepare("UPDATE wms_supply_orders SET status=?, updated_at=? WHERE id=? AND tenant_id=? AND supplier=?");
                     $st->execute([$status, $now, $id, $t, $pname]);
                     return self::json($res, ['ok' => $st->rowCount() > 0]);

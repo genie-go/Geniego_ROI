@@ -91,6 +91,10 @@ final class AdminPlans
         $actor = (string)($req->getAttribute('auth_key') ?? 'admin');
 
         $pdo = Db::pdo();
+        // [281차 P2] is_recommended/discount_pct self-heal — 이 컬럼은 migration 171(MySQL 전용 문법)에만
+        //   선언돼 SQLite 폴백/신규 프로비저닝 환경에선 부재할 수 있다(INSERT/SELECT 참조로 500). 멱등 ALTER 보강.
+        try { $pdo->exec("ALTER TABLE plan_config ADD COLUMN is_recommended " . ($pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql' ? "TINYINT DEFAULT 0" : "INTEGER DEFAULT 0")); } catch (\Throwable $e) {}
+        try { $pdo->exec("ALTER TABLE plan_config ADD COLUMN discount_pct " . ($pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql' ? "INT DEFAULT 20" : "INTEGER DEFAULT 20")); } catch (\Throwable $e) {}
         // [171차] is_recommended + discount_pct 컬럼 추가 — 추천 플랜 + 자동 산출 비율
         // [225차 P1-12] ON DUPLICATE KEY 는 MySQL 전용 → SQLite 폴백서 플랜 저장 500. 드라이버 분기(SQLite=ON CONFLICT).
         $isMy = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql';

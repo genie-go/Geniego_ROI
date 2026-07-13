@@ -348,7 +348,7 @@ const WarehouseTab = memo(function WarehouseTab({ showForm, setShowForm, showPer
 const InOutTab = memo(function InOutTab({ whs }) {
     const { fmt } = useCurrency();
     const { t } = useI18n();
-    const { inOutHistory, registerInOut } = useGlobalData();
+    const { inOutHistory, registerInOut, addAlert } = useGlobalData();   // [281차 P2] addAlert — IO 실패 표면화
     const {isDemo} = useAuth();
     /* ── 205차: 입출고 이력 백엔드 영속화(/api/wms/movements). 감사추적·새로고침 후 유지 ── */
     const [beMoves, setBeMoves] = useState([]);
@@ -430,8 +430,11 @@ const InOutTab = memo(function InOutTab({ whs }) {
             by: 'User',
         };
         registerInOut(payload);
-        // 205차: 백엔드 영속(감사추적). 실패해도 로컬 동작 유지
-        wmsApi.createMovement(payload).then(reloadMoves).catch(() => {});
+        // 205차: 백엔드 영속(감사추적). [281차 P2] 종전 .catch(()=>{}) 는 422(재고부족)·403(창고권한)을 삼켜
+        //   화면엔 "등록됨"처럼 보였다(로컬 registerInOut 만 반영). 서버 실패를 표면화한다.
+        wmsApi.createMovement(payload)
+            .then(r => { if (r && r.ok === false) addAlert({ type: 'error', msg: r.error || t('wms.ioFail', '입출고 등록 실패') }); reloadMoves(); })
+            .catch(e => addAlert({ type: 'error', msg: (e && e.message) || t('wms.ioFail', '입출고 등록 실패') }));
         setForm({ type: 'Inbound', whId: whs[0]?.id || '', destWhId: '', sku: '', name: '', qty: '', unit: '', memo: '', ref: '', reason: '' });
         setShowForm(false);
     };
@@ -521,6 +524,8 @@ const InOutTab = memo(function InOutTab({ whs }) {
         const validWh = new Set(whs.map(w => String(w.id)));
         const defWh = whs[0].id;
         let ok = 0;
+        let srvFail = 0;   // [281차 P2] 서버 영속 실패 집계(종전 .catch(()=>{}) 무음)
+        const pending = [];
         bulkData.forEach(row => {
             const type = row.Type || row.type || 'Inbound';
             const sku = row.SKU || row.sku || '';
@@ -540,13 +545,17 @@ const InOutTab = memo(function InOutTab({ whs }) {
             registerInOut(payload);
             // [265차] 대량 입출고 백엔드 영속 — 단건(wmsApi.createMovement:358)·CSV(:719)·조정(:779) 형제와 대칭.
             //   기존엔 registerInOut(로컬 state)만 호출 → 운영 새로고침 시 대량 입출고 이력 소실(비영속).
-            wmsApi.createMovement(payload).catch(() => {});
+            // [281차 P2] 서버 실패(재고부족/권한)를 집계해 표면화(종전 무음).
+            pending.push(wmsApi.createMovement(payload).then(r => { if (r && r.ok === false) srvFail++; }).catch(() => { srvFail++; }));
             ok++;
         });
-        if (ok > 0) { try { reloadMoves(); } catch { /* no-op */ } }
-        setBulkStatus({ count: ok, total: bulkData.length, success: true });
-        setBulkData([]);
-        setTimeout(() => { setShowBulk(false); setBulkStatus(null); }, 3000);
+        Promise.allSettled(pending).then(() => {
+            if (ok > 0) { try { reloadMoves(); } catch { /* no-op */ } }
+            if (srvFail > 0) addAlert({ type: 'error', msg: t('wms.bulkPartialFail', '{f}건 서버 반영 실패').replace('{f}', String(srvFail)) });
+            setBulkStatus({ count: ok - srvFail, total: bulkData.length, success: srvFail === 0 });
+            setBulkData([]);
+            setTimeout(() => { setShowBulk(false); setBulkStatus(null); }, 3000);
+        });
     };
 
     return (

@@ -734,7 +734,13 @@ class PixelTracking
         }
         $timeSeries = $run("SELECT DATE(created_at) AS dt, COUNT(*) AS events, SUM(CASE WHEN event_name='purchase' THEN 1 ELSE 0 END) AS purchases, COALESCE(SUM(CASE WHEN event_name='purchase' THEN value ELSE 0 END),0) AS revenue FROM pixel_events WHERE $where GROUP BY DATE(created_at) ORDER BY dt ASC")->fetchAll(\PDO::FETCH_ASSOC);
         $devices = $run("SELECT device_type, COUNT(*) AS cnt FROM pixel_events WHERE $where GROUP BY device_type")->fetchAll(\PDO::FETCH_ASSOC);
-        $forwarding = $run("SELECT COALESCE(SUM(forwarded_meta),0) AS meta_forwarded, COALESCE(SUM(forwarded_tiktok),0) AS tiktok_forwarded, COUNT(*) AS total_events FROM pixel_events WHERE $where")->fetch(\PDO::FETCH_ASSOC);
+        // [281차 P2] forwarding 집계에 GA4/Pinterest/Snap/Reddit/LinkedIn 추가 — 컬럼·UPDATE 는 있는데 SELECT 가
+        //   Meta/TikTok 뿐이라 대시보드가 나머지 5종 전송현황을 못 봤다(280차 UI 개통으로 실제 등록 가능해진 채널들).
+        //   컬럼 부재 환경 대비 개별 try(멱등 ALTER 는 ensureTables 가 보장하나 방어적으로 COALESCE).
+        $forwarding = $run("SELECT COALESCE(SUM(forwarded_meta),0) AS meta_forwarded, COALESCE(SUM(forwarded_tiktok),0) AS tiktok_forwarded,
+                                   COALESCE(SUM(forwarded_ga4),0) AS ga4_forwarded, COALESCE(SUM(forwarded_pinterest),0) AS pinterest_forwarded,
+                                   COALESCE(SUM(forwarded_snap),0) AS snap_forwarded, COALESCE(SUM(forwarded_reddit),0) AS reddit_forwarded,
+                                   COALESCE(SUM(forwarded_linkedin),0) AS linkedin_forwarded, COUNT(*) AS total_events FROM pixel_events WHERE $where")->fetch(\PDO::FETCH_ASSOC);
 
         return self::json($res, ['ok'=>true, 'events'=>$events, 'channels'=>$channels, 'funnel'=>$funnelData, 'time_series'=>$timeSeries, 'devices'=>$devices, 'forwarding'=>$forwarding, 'days'=>$days]);
     }

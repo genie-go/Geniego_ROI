@@ -128,6 +128,8 @@ export const MEMBER_MENU = [
       { to: "/integration-hub",  icon: "🔗", labelKey: "gNav.integrationHubLabel", menuKey: "data||integration_hub" },
       { to: "/data-schema",      icon: "📋", labelKey: "gNav.dataSchemaLabel",     menuKey: "data||data_schema" },
       { to: "/data-trust",       icon: "🔬", labelKey: "gNav.dataTrustLabel",      menuKey: "data||data_trust" },
+      // [281차 P2] 데이터 자산/소스 레지스트리(272차) — 라우트만 있고 진입점 전무해 도달불가였다.
+      { to: "/data-assets",      icon: "🗃️", labelKey: "gNav.dataAssetsLabel",     menuKey: "data||data_schema" },
       { to: "/pixel-tracking",   icon: "🎯", labelKey: "gNav.pixelTracking", menuKey: "data||data_trust" },
       { to: "/data-product",     icon: "🗂️", labelKey: "gNav.dataProductLabel", menuKey: "analytics||data_product" }, // [246차 배치교정] 인사이트→데이터(데이터마트+SQL)
     ],
@@ -174,6 +176,8 @@ export const ADMIN_MENU = [
       { to: "/admin/plan-pricing", icon: "💳", labelKey: "gNav.planPricingLabel",  menuKey: "system||plan_pricing" },
       { to: "/user-management",    icon: "👥", labelKey: "gNav.memberMgmtLabel",  menuKey: "system||user_management" },
       { to: "/admin/sub-admins",   icon: "👤", label: "하위 관리자 관리", labelKey: "gNav.subAdminMgmtLabel", menuKey: "system||sub_admin_mgmt" },
+      // [281차 P2] 대행사 계정 발급(최고관리자) — 라우트만 있고 진입점 전무해 URL 직접입력 외 도달불가였다.
+      { to: "/admin/agencies",     icon: "🤝", label: "대행사 계정 관리", labelKey: "gNav.agencyMgmtLabel", menuKey: "system||admin" },
       { to: "/admin/site-intro",   icon: "🏢", labelKey: "gNav.siteIntroLabel",   menuKey: "system||admin" },
       { to: "/admin/legal-docs",   icon: "📜", label: "법적 페이지", labelKey: "gNav.legalDocsLabel", menuKey: "system||admin" },
       { to: "/admin/menu-tree",    icon: "🗂", labelKey: "gNav.menuTreeLabel",     menuKey: "system||menu_tree" },

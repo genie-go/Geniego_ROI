@@ -519,6 +519,12 @@ class Wms
         $t = self::tenant($req); $b = self::body($req);
         $whId = (string)($b['whId'] ?? $b['wh_id'] ?? '');
         if ($err = self::guardWarehouse($req, $res, $whId)) return $err;   // [현 차수] 219 P2 창고 권한 강제
+        // [281차 P2] ★창고이동은 도착창고도 검사해야 한다 — applyMovementToStock 이 dest_wh_id 로 재고를 가산하므로,
+        //   출발창고만 검사하면 창고 A 만 허용된 사용자가 destWhId=B 로 B 의 on_hand/lot 을 조작할 수 있었다(ABAC 우회).
+        $destWhId = (string)($b['destWhId'] ?? $b['dest_wh_id'] ?? '');
+        if ($destWhId !== '' && $destWhId !== $whId) {
+            if ($err = self::guardWarehouse($req, $res, $destWhId)) return $err;
+        }
         try {
             $id = self::recordMovement($t, [
                 'type' => (string)($b['type'] ?? 'Inbound'), 'wh_id' => (string)($b['whId'] ?? $b['wh_id'] ?? ''),

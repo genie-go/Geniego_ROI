@@ -470,17 +470,23 @@ class DemandForecast
         }
 
         // 2) SKU별 판매활동(취소/반품 제외 — loadSeries 와 동일 규칙): 최근판매일·30일 판매량·평균단가
+        // [281차 P2] ★주석은 "취소/반품 제외"라 했지만 실제로는 cancelExclusion 2축 검사가 빠져 있었다 →
+        //   status 토큰으로만 취소된 주문(레거시/드리프트)이 판매로 잡혀 last_sale 최신화·qty30 과대 → 실제
+        //   90일+ 무판매 SKU 가 healthy/slow 로 오분류(악성재고·묶인자본 과소보고·권장액션 누락). loadSeries 와 대칭.
         $sales = [];
         try {
+            // ★cancelExclusion 토큰은 positional(?) 이라 이 쿼리도 전부 positional 로 통일한다(named 혼용 불가).
+            [$cancelExpr, $cancelTokens] = OrderHub::cancelExclusion();
             $st = $pdo->prepare("SELECT sku,
                                         MAX(SUBSTR(ordered_at,1,10)) AS last_sale,
-                                        SUM(CASE WHEN SUBSTR(ordered_at,1,10) >= :d30 THEN qty ELSE 0 END) AS qty30,
+                                        SUM(CASE WHEN SUBSTR(ordered_at,1,10) >= ? THEN qty ELSE 0 END) AS qty30,
                                         AVG(CASE WHEN unit_price > 0 THEN unit_price ELSE NULL END) AS avg_price
                                    FROM channel_orders
-                                  WHERE tenant_id = :t AND sku IS NOT NULL AND sku <> ''
+                                  WHERE tenant_id = ? AND sku IS NOT NULL AND sku <> ''
                                     AND (event_type IS NULL OR event_type = 'order')
+                                    AND NOT $cancelExpr
                                   GROUP BY sku");
-            $st->execute([':t' => $tenant, ':d30' => $d30]);
+            $st->execute(array_merge([$d30, $tenant], $cancelTokens));
             foreach ($st->fetchAll(\PDO::FETCH_ASSOC) as $r) $sales[(string)$r['sku']] = $r;
         } catch (\Throwable $e) { $sales = []; }
 

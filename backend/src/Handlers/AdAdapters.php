@@ -653,7 +653,9 @@ final class AdAdapters
             // [259차] ★channel_orders 에 currency 컬럼 없음(FP-2: saveOrders 가 total_price 를 fxToKrw 로 KRW 정규화) →
             //   기존 SELECT ...,currency 는 존재하지 않는 컬럼 참조로 매 쿼리 예외→catch→전환 업로드 항상 0건이었다(CAPI/오프라인전환 무음 미집행).
             //   currency 제거하고 total_price=KRW 상수 통화로 전달(정합).
-            $st = $pdo->prepare("SELECT channel_order_id AS order_id, total_price, ordered_at, raw_json FROM channel_orders WHERE tenant_id=:t AND ordered_at >= :c AND raw_json LIKE '%gclid%' ORDER BY ordered_at DESC LIMIT 500");
+            // [281차 P2] 취소/반품 주문 제외 — 종전엔 필터가 없어 취소로 전이된 주문도 Google 전환으로 업로드될 수
+            //   있었다(멱등 로그로 1회지만 철회 없음 → 매체 전환·자동입찰 과대). event_type 2축 검사.
+            $st = $pdo->prepare("SELECT channel_order_id AS order_id, total_price, ordered_at, raw_json FROM channel_orders WHERE tenant_id=:t AND ordered_at >= :c AND raw_json LIKE '%gclid%' AND COALESCE(event_type,'order') NOT IN ('cancel','return') ORDER BY ordered_at DESC LIMIT 500");
             $st->execute([':t' => $tenant, ':c' => $cut]);
             $rows = $st->fetchAll(PDO::FETCH_ASSOC);
         } catch (\Throwable $e) { return ['ok' => false, 'error' => 'orders_query_failed']; }
@@ -754,7 +756,8 @@ final class AdAdapters
         $cut = gmdate('Y-m-d H:i:s', time() - max(1, $days) * 86400);
         try {
             // [259차] currency 컬럼 부재(FP-2, total_price=KRW 정규화) → 존재하지 않는 컬럼 참조 예외로 Meta CAPI/TikTok Events 전환 업로드 항상 0건이었음. currency 제거.
-            $st = $pdo->prepare("SELECT channel_order_id AS order_id, total_price, ordered_at, buyer_email, raw_json FROM channel_orders WHERE tenant_id=:t AND ordered_at >= :c AND buyer_email IS NOT NULL AND buyer_email<>'' ORDER BY ordered_at DESC LIMIT 1000");
+            // [281차 P2] 취소/반품 제외 — Meta/TikTok 서버전환도 취소된 주문을 업로드하지 않도록(매체 전환 과대 방지).
+            $st = $pdo->prepare("SELECT channel_order_id AS order_id, total_price, ordered_at, buyer_email, raw_json FROM channel_orders WHERE tenant_id=:t AND ordered_at >= :c AND buyer_email IS NOT NULL AND buyer_email<>'' AND COALESCE(event_type,'order') NOT IN ('cancel','return') ORDER BY ordered_at DESC LIMIT 1000");
             $st->execute([':t' => $tenant, ':c' => $cut]);
             $rows = $st->fetchAll(PDO::FETCH_ASSOC);
         } catch (\Throwable $e) { return ['ok' => false, 'error' => 'orders_query_failed']; }
