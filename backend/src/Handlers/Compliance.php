@@ -242,6 +242,10 @@ final class Compliance
             if ($endpoint !== '' && !preg_match('#^https://#i', $endpoint)) {
                 return self::json($res, ['ok' => false, 'error' => 'SIEM 엔드포인트는 https:// 여야 합니다.'], 422);
             }
+            // [280차 P2] SSRF 차단 — 사설/예약 IP·메타데이터 IP 로의 엔드포인트 저장 거부(형제 핸들러 정합).
+            if ($endpoint !== '' && !self::isSafeSiemUrl($endpoint)) {
+                return self::json($res, ['ok' => false, 'error' => 'SIEM 엔드포인트가 허용되지 않는 주소(사설/내부/메타데이터 IP)입니다.'], 422);
+            }
             $cur = self::siemCfg($pdo);
             $rawTok = (string)($b['token'] ?? '');
             $tok = ($rawTok === '' || strpos($rawTok, '•') !== false) ? (string)($cur['token'] ?? '') : \Genie\Crypto::encrypt($rawTok);
@@ -282,6 +286,28 @@ final class Compliance
      *   ★opt-in: siem_config.realtime=1 일 때만 동작(기본 off=배치만, 회귀0). 고심각도(min_severity, 기본 high)만
      *   전송해 볼륨 제한. logAudit 훅이 high 이벤트에서만 호출(저/중 severity는 DB read조차 없음).
      */
+    /** [280차 P2] SSRF 가드 — 형제 핸들러(DataExport/Alerting/OpenPlatform)와 동형. SIEM 엔드포인트가
+     *  사설/예약 IP·클라우드 메타데이터(169.254.169.254)로 향하는 것을 차단. siem_config 는 전역이라 전 테넌트
+     *  high 보안이벤트가 유출될 수 있어(설정은 admin 등급 액터) TOCTOU 대비 전달 시점에도 재검사한다. */
+    private static function isSafeSiemUrl(string $url): bool
+    {
+        $p = parse_url($url);
+        if (!$p || (($p['scheme'] ?? '') !== 'https')) return false;
+        $host = strtolower((string)($p['host'] ?? ''));
+        if ($host === '' || in_array($host, ['localhost', 'metadata.google.internal'], true)) return false;
+        if (substr($host, -6) === '.local' || substr($host, -9) === '.internal') return false;
+        $ips = [];
+        if (filter_var($host, FILTER_VALIDATE_IP)) $ips = [$host];
+        else {
+            $recs = @dns_get_record($host, DNS_A | DNS_AAAA);
+            if (is_array($recs)) foreach ($recs as $r) { if (!empty($r['ip'])) $ips[] = $r['ip']; if (!empty($r['ipv6'])) $ips[] = $r['ipv6']; }
+            if (!$ips) { $h = @gethostbyname($host); if ($h && $h !== $host) $ips[] = $h; }
+        }
+        if (!$ips) return false;
+        foreach ($ips as $ip) { if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) return false; }
+        return true;
+    }
+
     public static function forwardEvent(array $event): void
     {
         try {
@@ -292,7 +318,7 @@ final class Compliance
             $minSev = (string)($cfg['realtime_min_severity'] ?? 'high');
             if (($rank[$sev] ?? 1) < ($rank[$minSev] ?? 3)) return;
             $endpoint = (string)$cfg['endpoint'];
-            if (!preg_match('#^https://#i', $endpoint)) return;
+            if (!preg_match('#^https://#i', $endpoint) || !self::isSafeSiemUrl($endpoint)) return;   // [280차 P2] 전달시점 SSRF 재검사(TOCTOU)
             $fmt = (string)($cfg['format'] ?? 'ndjson');
             $token = (string)($cfg['token'] ?? '');
             if ($token !== '') { try { $token = \Genie\Crypto::decrypt($token); } catch (\Throwable $e) {} }
@@ -320,7 +346,7 @@ final class Compliance
         if ($endpoint === '' || empty($cfg['enabled'])) {
             return self::json($res, ['ok' => false, 'error' => 'SIEM 대상이 설정/활성화되지 않았습니다.'], 422);
         }
-        if (!preg_match('#^https://#i', $endpoint)) return self::json($res, ['ok' => false, 'error' => 'bad_endpoint'], 422);
+        if (!preg_match('#^https://#i', $endpoint) || !self::isSafeSiemUrl($endpoint)) return self::json($res, ['ok' => false, 'error' => 'bad_endpoint'], 422);   // [280차 P2] SSRF
         $days = max(1, min(30, (int)($req->getQueryParams()['window'] ?? 1)));
         $events = self::collectAuditEvents($pdo, $days, 2000);
         if (!$events) return self::json($res, ['ok' => true, 'sent' => 0, 'note' => '내보낼 이벤트가 없습니다.']);

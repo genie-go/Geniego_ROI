@@ -1834,6 +1834,7 @@ const BundleTab = memo(function BundleTab() {
     const { t } = useI18n();
     const { fmt } = useCurrency();
     const { inventory, registerInOut, addAlert } = useGlobalData();
+    const whs = useWmsWarehouses();   // [280차 P1] 번들 출고를 실제 주창고로 서버 원장에 반영(하드코딩 W001 제거)
     // currency formatting via useCurrency fmt()
     const [bundles, setBundles] = useState(INIT_BUNDLES);
     // [279차 감사 E-P1] 번들/키트 BOM 정의 = 종전 인메모리 전용(새로고침 소실→출고 시 참조불가). 서버 영속(WorkspaceState).
@@ -1865,9 +1866,20 @@ const BundleTab = memo(function BundleTab() {
     };
 
     const handleOutbound = (bundle, qty) => {
+        // [280차 P1] ★번들 출고 = 가짜 버튼이었다: ① type:'Outbound'(영문)는 registerInOut 이 인식 못 해
+        //   (한글 '출고'만) 로컬 재고 delta=0 ② wmsApi.createMovement(서버 원장) 미호출 ③ whId 'W001' 하드코딩.
+        //   → 번들 판매 시 구성품 재고가 서버·로컬 어디서도 차감 안 됨 = 초과판매·COGS 누락. 형제 단건출고
+        //   패턴대로 서버 원장에 보내고 한글 type·실제 주창고·실패 표면화로 교정.
+        const wh = whs[0]?.id || '';
+        if (!wh) { addAlert({ type: 'error', msg: t('wms.noWarehouse', '창고가 없습니다. 먼저 창고를 등록하세요.') }); return; }
+        const ref = `BDL-${bundle.id || bundle.name}-${Date.now()}`;
         bundle.components.forEach(comp => {
-            registerInOut({ type: 'Outbound', sku: comp.sku, qty: comp.qty * qty,
-                whId: 'W001', name: comp.name, by: `Bundle(${bundle.name})`, reason: 'Bundle Sale' });
+            const payload = { type: '출고', sku: comp.sku, qty: comp.qty * qty, whId: wh,
+                name: comp.name, by: `Bundle(${bundle.name})`, reason: 'Bundle Sale', ref };
+            registerInOut(payload);
+            if (!IS_DEMO) wmsApi.createMovement({ ...payload, wh_id: wh }).catch(e => {
+                addAlert({ type: 'error', msg: `${comp.sku}: ${(e && e.message) || t('wms.outboundFail', '출고 반영 실패')}` });
+            });
         });
         addAlert({ type: 'success', msg: `📦 ${t('wms.bdlShipAlert')} [${bundle.name}] x${qty}` });
     };

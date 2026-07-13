@@ -148,6 +148,9 @@ export const MEMBER_MENU = [
     items: [
       { to: "/team-members",    icon: "🧑‍🤝‍🧑", labelKey: "gNav.memberComposeLabel", menuKey: "system||workspace" },
       { to: "/workspace",       icon: "👥", labelKey: "gNav.workspaceLabel",     menuKey: "system||workspace" },
+      // [280차 P1] 대행사 접근 승인 진입점 — 종전엔 라우트만 있고 사이드바·링크가 전무해 클라이언트가
+      //   승인 화면에 도달 불가 → 대행사 요청이 영원히 pending(대행사 멀티클라이언트 기능 end-to-end 사망).
+      { to: "/agency-access",   icon: "🤝", labelKey: "gNav.agencyAccessLabel",  menuKey: "system||workspace" },
       // [257차 중복제거] /operations 는 246차 배치교정으로 커머스&물류 그룹(line 91)으로 이동됐으나 원본이
       //   본 그룹에 잔존해 사이드바에 같은 페이지 링크가 2번 노출됐다(동일 라우트·라벨·권한키). 커머스 그룹만 정본 유지.
       { to: "/case-study",      icon: "🏆", labelKey: "gNav.caseStudyLabel",     menuKey: "system||case_study" },

@@ -205,7 +205,7 @@ const CHANNEL_FIELDS = {
   kcp:       [{ k: 'site_cd', label: '사이트 코드' }, { k: 'site_key', label: '사이트 키', secret: true }],
   // [229차] 신 카카오페이 개발자센터(developers.kakaopay.com)는 Secret Key(Authorization: SECRET_KEY)+CID 방식. 구 admin_key(KakaoAK) 폐기.
   kakaopay:  [{ k: 'cid', label: '가맹점 코드(CID)' }, { k: 'secret_key', label: 'Secret Key (Authorization: SECRET_KEY)', secret: true }],
-  naverpay:  [{ k: 'client_id', label: 'Client ID' }, { k: 'client_secret', label: 'Client Secret', secret: true }, { k: 'chain_id', label: 'Chain ID' }],
+  naverpay:  [{ k: 'client_id', label: 'Client ID' }, { k: 'client_secret', label: 'Client Secret', secret: true }, { k: 'partner_id', label: '파트너 ID(선택)' }],
   paypal:    [{ k: 'client_id', label: 'Client ID' }, { k: 'client_secret', label: 'Secret', secret: true }],
   stripe:    [{ k: 'publishable_key', label: 'Publishable Key' }, { k: 'secret_key', label: 'Secret Key', secret: true }],
   // [228차] 글로벌 결제 전문 PG 자격증명

@@ -293,10 +293,15 @@ export default function DigitalShelf() {
     if (!IS_DEMO) {
       // [265차] 운영: 백엔드 영속(새로고침 유지) → 성공 시 재로드. 실 SoS/순위는 외부 harvest 로드맵(값 날조 없음).
       // [267차] brand(검색결과 매칭용 몰/브랜드명) 함께 영속 → shelf/harvest 가 이 값으로 "자사" 리스팅 매칭.
+      // [280차 P2] 종전엔 .catch(()=>{}) 로 실패를 삼키고 setToast('추가됨')를 프로미스와 무관하게 동기 실행 →
+      //   5xx·저장실패에도 항상 "추가됨" 표시(겉보기 정상·실제 사망). 성공 분기 안으로 토스트 이동·실패 표면화.
       postJsonAuth('/api/v429/shelf/keywords', { keyword, channel, brand: brand || '', ourSos: brandSos, compSos })
-        .then(() => reloadKeywords())
-        .catch(() => {});
-      setToast(t('digitalShelf.toastAdded', '✓ "{{kw}}" 추가됨', { kw: keyword }));
+        .then(r => {
+          if (r && r.ok === false) { setToast(r.error || t('digitalShelf.toastAddFail', '추가 실패')); return; }
+          reloadKeywords();
+          setToast(t('digitalShelf.toastAdded', '✓ "{{kw}}" 추가됨', { kw: keyword }));
+        })
+        .catch(() => setToast(t('digitalShelf.toastAddFail', '추가 실패')));
       return;
     }
     // 데모: 로컬 시드(IS_DEMO 격리·기존 동작)

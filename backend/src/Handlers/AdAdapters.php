@@ -208,6 +208,12 @@ final class AdAdapters
             'target_cpa'   => (float)($camp['target_cpa'] ?? 0),   // KRW(계정통화 환산)
             'target_roas'  => (float)($camp['target_roas'] ?? 0),  // 비율(예: 3.0 = 300%)
             'countries'    => (is_array($camp['countries'] ?? null) && $camp['countries']) ? array_values(array_filter(array_map('strval', $camp['countries']))) : ['KR'],
+            // [280차 P2] ★google_channel_type/frequency_cap 유실 교정 — createCampaign 이 $settings 를 5개 키만
+            //   재구성하는 바람에, googleCreate 는 항상 SEARCH 캠페인을 만들고 googleDeliver 는 DISPLAY/VIDEO
+            //   광고그룹을 만들어 타입 불일치로 매체가 거부(딜리버리 실패)했다. launch 가 넘긴 값을 보존한다.
+            'google_channel_type' => strtoupper((string)($camp['google_channel_type'] ?? 'SEARCH')),
+            'frequency_cap'  => (int)($camp['frequency_cap'] ?? 0),
+            'frequency_days' => (int)($camp['frequency_days'] ?? 0),
         ];
         try {
             $res = match ($channel) {

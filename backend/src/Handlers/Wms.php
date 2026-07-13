@@ -1182,6 +1182,11 @@ class Wms
             if ($old && ($err = self::guardWarehouse($req, $res, (string)($old['wh_id'] ?? '')))) return $err;
             if ($old && (string)($old['status'] ?? '') !== 'received' && $newStatus === 'received') {
                 $ssku = (string)($old['sku'] ?? ''); $sqty = (float)($old['qty'] ?? 0); $swh = (string)($old['wh_id'] ?? '');
+                // [280차 P1] ★발주 입고확정이 재고에 절대 반영되지 않던 근본원인: 발주 생성 경로(자동발주
+                //   DemandForecast·WmsManager/SupplyChain 폼)가 wh_id 를 빈 문자열로 넣어, 여기 $swh!=='' 가드에
+                //   걸려 Inbound 원장 기록이 영구 skip → 입고 루프 전체가 재고에 미도달(오류도 없이). wh_id 가
+                //   비면 주창고로 폴백해 반영한다(입고확정은 반드시 어딘가로 들어가야 한다).
+                if ($swh === '') $swh = self::resolvePrimaryWarehouse($t);
                 if ($ssku !== '' && $sqty > 0 && $swh !== '') {
                     $ref = 'SUPPLY-' . $id;
                     $dup = $pdo->prepare("SELECT 1 FROM wms_movements WHERE tenant_id=? AND ref=? AND type='Inbound' LIMIT 1");

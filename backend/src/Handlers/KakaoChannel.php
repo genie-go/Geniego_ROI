@@ -112,6 +112,16 @@ class KakaoChannel
                 ':ci'=>$b['channel_id']??'', ':cn'=>$b['channel_name']??'', ':m'=>$b['mode']??'mock', ':ua'=>$now,
             ]);
         }
+        // [280차 P1] ★live 모드 전환 UI 부재로 발송이 영구 mock 이던 것 해소. SettingsTab 에 mode 입력이 없어
+        //   최초 저장은 항상 mock → sendCampaign 422·저니/옴니 무발송(데모만 통과해 은폐). sender_key+api_key 가
+        //   둘 다 실제 등록되면 자동 live 승격(발송 전제 충족 = 정직). 클라가 명시 mode 를 보내면 그 값을 존중.
+        if (!isset($b['mode'])) {
+            $chk = $pdo->prepare("SELECT sender_key, api_key FROM kakao_settings WHERE tenant_id=:t LIMIT 1");
+            $chk->execute([':t'=>$tenant]);
+            $row = $chk->fetch(\PDO::FETCH_ASSOC) ?: [];
+            $hasCreds = !empty($row['sender_key']) && !empty($row['api_key']);
+            $pdo->prepare("UPDATE kakao_settings SET mode=:m WHERE tenant_id=:t")->execute([':m'=>$hasCreds ? 'live' : 'mock', ':t'=>$tenant]);
+        }
         return self::jsonRes($res, ['ok'=>true]);
     }
 

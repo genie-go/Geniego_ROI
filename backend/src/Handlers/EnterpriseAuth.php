@@ -459,7 +459,9 @@ class EnterpriseAuth
     /** [255차 심화] KEK 무파괴 회전(admin). 신규 버전 KEK 활성화·기존 암호문 계속 복호화(재암호화 0). */
     public static function rotateKek(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requireAdmin($req, $res)) return $err;
+        // [280차 P1] UserAuth::requireAdmin 미정의 → 매 호출 fatal 500(KEK 회전 영구 불능, 255차 도입 이래).
+        //   형제 admin 게이트로 교체.
+        if ($err = UserAuth::requirePlan($req, $res, 'admin')) return $err;
         return self::json($res, Crypto::rotateKek());
     }
 

@@ -110,7 +110,9 @@ final class WebPush
     /** [admin] POST /v426/push/vapid-config — VAPID 키 설정(public/private PEM/subject). */
     public static function saveVapidConfig(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requireAdmin($req, $res)) return $err;
+        // [280차 P1] UserAuth::requireAdmin 은 정의되지 않은 메서드 → 매 호출 fatal 500(VAPID 설정 저장 영구 불능,
+        //   246차 도입 이래). 형제 admin 게이트 requirePlan(...,'admin')로 교체(동일 시그니처).
+        if ($err = UserAuth::requirePlan($req, $res, 'admin')) return $err;
         $b = (array)($req->getParsedBody() ?? []);
         try {
             $pdo = Db::pdo();

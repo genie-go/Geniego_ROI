@@ -573,6 +573,10 @@ final class AdminPlans
         }
 
         $pdo = Db::pdo();
+        // [280차 P2] ★seat_tier 스키마 드리프트 self-heal — 이 컬럼은 레포 전체(src/·migrations/)에 CREATE/ALTER 가
+        //   0건이라, 신규 프로비저닝·DR·SQLite 폴백 환경에선 부재 → savePlanPricing INSERT 가 매번 500(관리자
+        //   계정수 차등가격 저장 불능). CLAUDE.md "172 이후 스키마는 핸들러 self-healing" 계약대로 멱등 ALTER 보강.
+        try { $pdo->exec("ALTER TABLE plan_period_pricing ADD COLUMN seat_tier VARCHAR(8) NOT NULL DEFAULT '1'"); } catch (\Throwable $e) {}
         $pdo->beginTransaction();
         try {
             // 1) 본 플랜의 기존 row 전체 제거 → 누락 (seat,기간) 은 자연스럽게 삭제됨

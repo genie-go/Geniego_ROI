@@ -225,7 +225,10 @@ final class Pnl
             'returnFee' => $returnFee, 'shippingCost' => $shippingCost, 'influencerCost' => $influencerCost,
             'netPayout' => $netPayout,
             'grossProfit' => $grossProfit, 'operatingProfit' => $operatingProfit, 'netProfit' => $netProfit,
-            'adWindowFrom' => $adFrom,
+            // [280차 P2] ★$adFrom 은 이 함수 어디에도 대입되지 않아 항상 null 이었다 → summary()의 by_currency
+            //   쿼리가 `date >= NULL`(항상 거짓)로 0행 → 원통화별 광고비 표가 실광고비와 무관하게 KRW ₩0만
+            //   표시(display_errors=0 라 500 없이 무음). adSpend 메인 쿼리와 동일 윈도우(=$from)로 정합.
+            'adWindowFrom' => $from,
         ];
     }
 
@@ -295,7 +298,7 @@ final class Pnl
         //   프론트(PnLDashboard)는 amount(원통화)·krwEquivalent(KRW) 키를 정확히 읽는다(C2 계약 불일치 해소).
         $byCurrency = ['KRW' => ['amount' => 0.0, 'krwEquivalent' => 0.0, 'adSpendKrw' => 0.0]];
         try {
-            $adFrom = $c['adWindowFrom'];
+            $adFrom = $c['adWindowFrom'] ?? $from ?? '';   // [280차 P2] null 방어(위 components 수정과 이중 안전망)
             if ($to !== '') {
                 $st = $pdo->prepare("SELECT COALESCE(UPPER(currency),'KRW') cur, COALESCE(SUM(spend),0) sp FROM performance_metrics WHERE tenant_id=? AND SUBSTR(date,1,10) >= ? AND SUBSTR(date,1,10) <= ? GROUP BY COALESCE(UPPER(currency),'KRW')");
                 $st->execute([$tenant, $adFrom, $to]);

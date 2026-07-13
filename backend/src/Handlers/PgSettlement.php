@@ -412,7 +412,10 @@ final class PgSettlement
         }
         if ($provider === 'kcp') {
             $site = self::loadCred($pdo, $tenant, $creds, 'site_cd');
-            $key = self::loadCred($pdo, $tenant, $creds, 'api_key') ?: self::loadCred($pdo, $tenant, $creds, 'key');
+            // [280차 P2] ★UI(ApiKeys.jsx)는 'site_key'로 저장하는데 백엔드는 api_key/key 만 읽어, 사용자가
+            //   매뉴얼대로 입력해도 KCP 정산이 영구 "미등록"이었다(등록해도 미작동 = 겉보기 정상·실제 사망).
+            //   'site_key' 폴백 추가(기존 저장분 호환·무회귀).
+            $key = self::loadCred($pdo, $tenant, $creds, 'api_key') ?: self::loadCred($pdo, $tenant, $creds, 'key') ?: self::loadCred($pdo, $tenant, $creds, 'site_key');
             if ($site === '' || $key === '') return ['ok' => false, 'configured' => false, 'note' => 'NHN KCP Site Code/Key 미등록 — 등록 후 자동 수집됩니다.'];
             return self::fetchKcp($site, $key);
         }

@@ -239,7 +239,7 @@ class PixelTracking
         $inserted = $insStmt->rowCount() > 0;
         if ($inserted) {
             if ($sessionId) { self::updateSession($pdo, $tenant, $sessionId, $pixelId, $effEvent, $effValue, $b); }
-            if ($trusted && $eventName === 'purchase' && $emailHash) { self::syncToCRM($pdo, $tenant, $eventName, $effValue, $eventId); }
+            if ($trusted && $eventName === 'purchase' && $emailHash) { self::syncToCRM($pdo, $tenant, $eventName, $effValue, $eventId, (string)($b['email'] ?? '')); }
             // [227차 Tier3] Pixel → attribution_touch 브릿지: 1st-party 멀티터치 데이터로 markov 엔진 활성화.
             //   기존엔 픽셀 이벤트가 attribution_touch 에 안 들어가 AttributionEngine(markov-removal-effect)이
             //   실 전환 여정 0 → 항상 빈 결과였다. 이제 마케팅 터치(utm_source 보유)와 구매 전환을 적재한다.
@@ -301,17 +301,35 @@ class PixelTracking
         }
     }
 
-    private static function syncToCRM(\PDO $pdo, string $tenant, string $eventName, float $value, string $eventId): void
+    private static function syncToCRM(\PDO $pdo, string $tenant, string $eventName, float $value, string $eventId, string $email = ''): void
     {
-        // 픽셀 구매 이벤트를 해당 테넌트 CRM 활동으로 best-effort 기록(sha256 직접매칭 불가 → 테넌트 스코프 안전).
+        // [280차 P0] 픽셀 구매를 CRM 활동으로 기록 — 반드시 그 구매를 한 고객(email 매칭)에게만.
+        //   ★종전 버그: `SELECT id ... WHERE tenant_id=:t LIMIT 1`(ORDER BY·매칭 없음)이 테넌트의 첫 고객 행에
+        //   전 픽셀 매출을 꽂아, 한 명이 전체 매출을 흡수 → LTV/RFM/세그먼트/예측CLV 오염(라이브 crm_activities
+        //   집계 기반). 279차까진 픽셀 이벤트 0이라 잠복, 280차 파이프라인 개통으로 실피해가 시작됐다.
+        //   collect() 는 $b['email'] 원문을 갖고 있고 crm_customers.email 은 평문 UNIQUE(tenant_id,email)라 매칭 가능하다.
+        //   매칭 고객이 없으면 no-op(픽셀 익명 데이터로 CRM 프로필을 임의 생성하지 않는다 — PII 최소화·오염방지).
+        $email = strtolower(trim($email));
+        if ($email === '') return;
         try {
+            $cst = $pdo->prepare("SELECT id FROM crm_customers WHERE tenant_id=:t AND email=:e LIMIT 1");
+            $cst->execute([':t' => $tenant, ':e' => $email]);
+            $cid = $cst->fetchColumn();
+            if (!$cid) return;   // 이 구매자가 CRM 에 없음 → 기장 안 함(첫 고객 오염 금지)
+
             $ignore = self::isMysql($pdo) ? 'IGNORE' : 'OR IGNORE';
+            $type = $eventName === 'purchase' ? 'purchase' : 'event';
             $pdo->prepare("INSERT {$ignore} INTO crm_activities (tenant_id, customer_id, type, channel, amount, data, created_at)
-                SELECT tenant_id, id, :type, 'pixel', :amt, :data, :ca FROM crm_customers WHERE tenant_id=:t LIMIT 1
+                VALUES (:t,:cid,:type,'pixel',:amt,:data,:ca)
             ")->execute([
-                ':type' => $eventName === 'purchase' ? 'purchase' : 'event',
-                ':amt' => $value, ':data' => json_encode(['source' => 'pixel', 'event_id' => $eventId]), ':ca' => self::now(), ':t' => $tenant,
+                ':t' => $tenant, ':cid' => $cid, ':type' => $type,
+                ':amt' => $value, ':data' => json_encode(['source' => 'pixel', 'event_id' => $eventId]), ':ca' => self::now(),
             ]);
+            // LTV 재계산(refund 음수 반영) — addActivity 와 동일 규약. 매칭 고객에게만.
+            if ($type === 'purchase') {
+                $pdo->prepare("UPDATE crm_customers SET ltv=(SELECT COALESCE(SUM(CASE WHEN type='refund' THEN -amount ELSE amount END),0) FROM crm_activities WHERE tenant_id=:t AND customer_id=:cid AND type IN ('purchase','refund')), updated_at=:u WHERE tenant_id=:t AND id=:cid")
+                    ->execute([':t' => $tenant, ':cid' => $cid, ':u' => self::now()]);
+            }
         } catch (\Exception $e) { /* CRM 테이블 없으면 무시 */ }
     }
 
@@ -398,13 +416,28 @@ class PixelTracking
         } catch (\Throwable $e) { /* attribution_touch/result 미존재 등 — best-effort */ }
     }
 
+    /** [280차 P1] 매체 dedup event_id — 주문 기반 서버전환 cron(AdAdapters::uploadPendingServerConversions)은
+     *  같은 구매를 ch_order_id 로 매체에 올린다. 픽셀 forward 가 다른 event_id(cid_/evt_ 접두)를 쓰면
+     *  Meta/TikTok 이 dedup 하지 못해 동일 구매가 2건의 Purchase 로 계상된다(자동입찰·ROAS 왜곡).
+     *  purchase 에 order_id 가 실리면 cron 과 동일 규칙으로 맞춰 매체가 dedup 하게 한다. (DB 의 forwarded_* 는
+     *  실제 pixel_events.event_id 로 갱신 — 이 값은 payload 전용이다.) */
+    private static function capiDedupId(string $channel, string $eventId, string $eventName, array $b): string
+    {
+        if ($eventName === 'purchase' && !empty($b['order_id'])) {
+            $oid = preg_replace('/[^A-Za-z0-9._-]/', '', (string)$b['order_id']);
+            if ($oid !== '') return $channel . '_' . $oid;
+        }
+        return $eventId;
+    }
+
     private static function forwardToMeta(\PDO $pdo, array $cfg, string $eventId, string $eventName, ?string $emailHash, ?string $phoneHash, array $b, string $deviceType): void
     {
         if (empty($cfg['meta_pixel_id']) || empty($cfg['meta_api_token'])) return;
         $metaEventMap = ['page_view'=>'PageView', 'view_content'=>'ViewContent', 'add_to_cart'=>'AddToCart', 'initiate_checkout'=>'InitiateCheckout', 'purchase'=>'Purchase', 'lead'=>'Lead', 'subscribe'=>'Subscribe'];
         $metaEvent = $metaEventMap[$eventName] ?? 'CustomEvent';
+        $dedupId = self::capiDedupId('meta', $eventId, $eventName, $b);
         $payload = ['data' => [[
-            'event_name'=>$metaEvent, 'event_time'=>time(), 'event_id'=>$eventId, 'event_source_url'=>$b['page_url'] ?? '', 'action_source'=>'website',
+            'event_name'=>$metaEvent, 'event_time'=>time(), 'event_id'=>$dedupId, 'event_source_url'=>$b['page_url'] ?? '', 'action_source'=>'website',
             // [280차] fbc/fbp = Meta 매칭품질(EMQ) 최상위 신호. pixel.js 가 _fbc/_fbp 쿠키·fbclid 합성으로 실어 보낸다.
             'user_data'=>array_filter([
                 'em'=>$emailHash ? [$emailHash] : null, 'ph'=>$phoneHash ? [$phoneHash] : null,
@@ -568,7 +601,8 @@ class PixelTracking
         if (empty($cfg['tiktok_pixel_id']) || empty($cfg['tiktok_access_token'])) return;
         $tiktokEventMap = ['page_view'=>'PageView', 'view_content'=>'ViewContent', 'add_to_cart'=>'AddToCart', 'purchase'=>'CompletePayment', 'lead'=>'SubmitForm'];
         $tiktokEvent = $tiktokEventMap[$eventName] ?? 'CustomEvent';
-        $payload = ['pixel_code'=>$cfg['tiktok_pixel_id'], 'event'=>$tiktokEvent, 'event_id'=>$eventId, 'timestamp'=>gmdate('Y-m-d\TH:i:s+00:00'),
+        $dedupId = self::capiDedupId('tiktok', $eventId, $eventName, $b);   // [280차 P1] 주문 서버전환 cron 과 dedup
+        $payload = ['pixel_code'=>$cfg['tiktok_pixel_id'], 'event'=>$tiktokEvent, 'event_id'=>$dedupId, 'timestamp'=>gmdate('Y-m-d\TH:i:s+00:00'),
             // [280차] ip·user_agent·ad.callback(ttclid) 추가 — TikTok 매칭키. 종전엔 sha256_email 뿐이라
             //   비로그인 이벤트 매칭 불가(page_view/add_to_cart 대다수).
             'context'=>array_filter([
@@ -689,7 +723,10 @@ class PixelTracking
         $run = function(string $sql) use ($pdo, $bind) { $s = $pdo->prepare($sql); $s->execute($bind); return $s; };
 
         $events = $run("SELECT event_name, COUNT(*) AS total, COUNT(DISTINCT session_id) AS unique_sessions, COALESCE(SUM(value),0) AS total_value FROM pixel_events WHERE $where GROUP BY event_name ORDER BY total DESC")->fetchAll(\PDO::FETCH_ASSOC);
-        $channels = $run("SELECT COALESCE(utm_source,'direct') AS source, COALESCE(utm_medium,'none') AS medium, COUNT(*) AS sessions, SUM(CASE WHEN event_name='purchase' THEN 1 ELSE 0 END) AS conversions, COALESCE(SUM(CASE WHEN event_name='purchase' THEN value ELSE 0 END),0) AS revenue FROM pixel_events WHERE $where GROUP BY utm_source, utm_medium ORDER BY revenue DESC LIMIT 20")->fetchAll(\PDO::FETCH_ASSOC);
+        // [280차 P1] '세션'은 COUNT(DISTINCT session_id) 여야 한다 — 종전 COUNT(*)는 page_view 등 전 이벤트 행을
+        //   세어 세션을 수십 배 부풀렸고(형제 unique_sessions 쿼리는 이미 DISTINCT), 그 결과 채널 전환율(전환/세션)이
+        //   수십 배 과소로 보였다.
+        $channels = $run("SELECT COALESCE(utm_source,'direct') AS source, COALESCE(utm_medium,'none') AS medium, COUNT(DISTINCT session_id) AS sessions, SUM(CASE WHEN event_name='purchase' THEN 1 ELSE 0 END) AS conversions, COALESCE(SUM(CASE WHEN event_name='purchase' THEN value ELSE 0 END),0) AS revenue FROM pixel_events WHERE $where GROUP BY utm_source, utm_medium ORDER BY revenue DESC LIMIT 20")->fetchAll(\PDO::FETCH_ASSOC);
 
         $funnelData = ['page_view'=>0,'view_content'=>0,'add_to_cart'=>0,'initiate_checkout'=>0,'purchase'=>0];
         foreach ($run("SELECT event_name, COUNT(*) AS cnt FROM pixel_events WHERE $where AND event_name IN ('page_view','view_content','add_to_cart','initiate_checkout','purchase') GROUP BY event_name")->fetchAll(\PDO::FETCH_ASSOC) as $row) {
@@ -737,6 +774,19 @@ s.src='{$baseUrl}/pixel.js?v=1';document.head.appendChild(s);
 })(window);
 GeniePixel.track('page_view', {});
 </script>
+<!--
+  [구매 전환 추적] page_view 는 자동 수집되지만 purchase 는 자동 감지되지 않습니다.
+  주문완료(감사) 페이지에 아래를 추가하세요 — 값은 서버 실제 주문 데이터로 치환:
+  <script>
+    GeniePixel.identify({ email: '<구매자 이메일>' });
+    GeniePixel.track('purchase', {
+      value: <결제금액 숫자>, currency: 'KRW',
+      order_id: '<주문번호>',            // 서버전환 dedup·어트리뷰션에 필수
+      product_ids: ['<상품ID>']
+    });
+  </script>
+  add_to_cart 등 다른 이벤트도 같은 방식(GeniePixel.track('add_to_cart',{...}))으로 호출합니다.
+-->
 <!-- /Geniego-ROI Pixel -->
 JS;
         return self::json($res, ['ok' => true, 'snippet' => $snippet, 'pixel_id' => $pixelId]);

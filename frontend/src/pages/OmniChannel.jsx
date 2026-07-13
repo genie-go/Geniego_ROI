@@ -409,13 +409,26 @@ function OrdersTab({ t }) {
     const [period, setPeriod] = React.useState({ preset: 'all' }); // [현 차수] 기간조회
 
     const STATUS_KEYS = React.useMemo(() => ['statusConfirm','statusShipPending','statusShipping','statusDelivered','statusCancelReq','statusReturnRecv'], []);
-    const STATUSES = React.useMemo(() => STATUS_KEYS.map(k => t(`omniChannel.${k}`)), [t, STATUS_KEYS]);
+    // [280차 P1] ★status 값은 반드시 백엔드가 인식하는 캐논 토큰이어야 한다(OrderHub CANCEL_TOKENS/RETURN_TOKENS).
+    //   종전엔 드롭다운 value 가 현지화 라벨(예: de "Stornierungsanfrage")이라, ko/en 외 10~13개 언어 운영자가
+    //   취소/반품 처리하면 setOrderStatus 가 claimType=null 로 판정 → 매출/정산에 계속 포함(과대) + CRM 역분개·
+    //   재고복원·returnFee claim 전부 미발생. OrderTab 은 이미 캐논 토큰을 전송(안전) — OmniChannel 만 결함이었다.
+    //   value=캐논 토큰, 표시=현지화 라벨로 분리한다.
+    const STATUS_CANON = React.useMemo(() => ({
+        statusConfirm: 'confirmed', statusShipPending: 'paid', statusShipping: 'shipping',
+        statusDelivered: 'delivered', statusCancelReq: '취소요청', statusReturnRecv: '반품접수',
+    }), []);
+    const STATUS_OPTIONS = React.useMemo(
+        () => STATUS_KEYS.map(k => ({ value: STATUS_CANON[k], label: t(`omniChannel.${k}`) })),
+        [t, STATUS_KEYS, STATUS_CANON]);
     const STATUS_COLORS = React.useMemo(() => {
         const colors = ['#eab308','#a855f7','#4f8ef7','#22c55e','#ef4444','#f97316'];
         const map = {};
-        STATUSES.forEach((s, i) => { map[s] = colors[i]; });
+        STATUS_OPTIONS.forEach((o, i) => { map[o.value] = colors[i]; });
         return map;
-    }, [STATUSES]);
+    }, [STATUS_OPTIONS]);
+    // 하위호환: 데모 시드/필터가 참조하는 라벨 배열(표시용).
+    const STATUSES = React.useMemo(() => STATUS_OPTIONS.map(o => o.label), [STATUS_OPTIONS]);
 
     const load = React.useCallback(async () => {
         // 204차 P0: 데모는 전역 orders(DEMO_ORDERS)를 절대 setOrders([])로 덮어쓰지 않는다(타 메뉴 오염 차단).
@@ -513,7 +526,12 @@ function OrdersTab({ t }) {
                                         <td style={{ fontWeight: 700, color: '#22c55e' }}>{fmt(o.total_price)}</td>
                                         <td>
                                             <select onChange={e => handleStatusUpdate(o.channel_order_id, e.target.value)} value={o.status} style={{ padding: '3px 6px', borderRadius: 6, background: '#f3f4f6', border: `1px solid ${sc}44`, color: sc, fontSize: 11, cursor: 'pointer' }}>
-                                                {STATUSES.map(s => <option key={s} value={s} style={{ color: '#1f2937' }}>{s}</option>)}
+                                                {/* [280차 P1] value=캐논 토큰(백엔드 인식), 표시=현지화 라벨. 현재 status 가
+                                                    옵션에 없으면(freeform/데모 라벨) 그 값을 첫 옵션으로 노출해 선택 표시 유지. */}
+                                                {!STATUS_OPTIONS.some(op => op.value === o.status) && o.status && (
+                                                    <option value={o.status} style={{ color: '#1f2937' }}>{o.status}</option>
+                                                )}
+                                                {STATUS_OPTIONS.map(op => <option key={op.value} value={op.value} style={{ color: '#1f2937' }}>{op.label}</option>)}
                                             </select>
                                         </td>
                                         <td style={{ fontSize: 11, color: '#6b7280' }}>{o.carrier || '—'}</td>
