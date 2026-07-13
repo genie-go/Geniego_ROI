@@ -6,7 +6,7 @@ import { useCurrency } from '../contexts/CurrencyContext.jsx';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
-import { getJsonAuth, postJsonAuth } from '../services/apiClient.js'; // [259차] 가짜 집행 → 실 action_request 백엔드 배선
+import { getJsonAuth, postJsonAuth, putJson, requestJsonAuth } from '../services/apiClient.js'; // [259차] 가짜 집행 → 실 action_request 백엔드 배선. [281차] putJson/requestJsonAuth = 알림 정책 CRUD
 import { loadWorkspace, saveWorkspace, wsEnabled } from '../services/workspaceState.js'; // [266차] 설정탭 운영 영속
 
 /* ─── Channel Detection ─── */
@@ -242,6 +242,129 @@ function QueueTab({ requests, onDecide, onExecute, busy, msg, isDemo, t }) {
 /* ═══════════════════════════════════════════════════
    TAB 2: Audit History — from GlobalDataContext
    ═══════════════════════════════════════════════════ */
+/* [281차 P2] 알림 정책(alert_policy) 관리 탭 — 임계치 초과 시 Slack/이메일 자동 알림 정책 CRUD.
+ *   ★백엔드(Alerting::createPolicy/runEvaluation·alerts_cron)·통지채널(DeveloperHub 알림채널 탭)은
+ *   전부 살아있었으나 정책 생성 UI 가 없어(정책 0건→cron 헛돎) 완결 기능이 죽어 있던 것을 개통.
+ *   RuleEngine(AIRuleEngine)은 alert 액션이 감사로그만 남겨 Slack/Email 통지를 못 보내므로 대체 불가. */
+const _POLICY_METRICS = [
+  { v: 'roas', label: 'ROAS (광고수익률)' }, { v: 'ctr', label: 'CTR (클릭률 %)' },
+  { v: 'cpa', label: 'CPA (전환당비용)' }, { v: 'cpc', label: 'CPC (클릭당비용)' },
+  { v: 'cvr', label: 'CVR (전환율 %)' }, { v: 'spend', label: 'Spend (지출)' },
+  { v: 'conversions', label: 'Conversions (전환수)' }, { v: 'revenue', label: 'Revenue (매출)' },
+];
+const _POLICY_DIMS = [
+  { v: 'channel', label: '채널별' }, { v: 'account', label: '광고계정별' },
+  { v: 'team', label: '팀별' }, { v: 'campaign', label: '캠페인별' },
+];
+const _POLICY_OPS = [{ v: '<', label: '미만 <' }, { v: '<=', label: '이하 ≤' }, { v: '>', label: '초과 >' }, { v: '>=', label: '이상 ≥' }];
+const _POLICY_SEV = [{ v: 'low', label: '낮음' }, { v: 'medium', label: '보통' }, { v: 'high', label: '높음' }, { v: 'critical', label: '심각' }];
+
+function PolicyTab({ t, isDemo }) {
+  const { addAlert } = useGlobalData();
+  const [policies, setPolicies] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const emptyForm = { name: '', dimension: 'channel', metric: 'roas', op: '<', threshold: '', severity: 'medium', slackEnabled: false };
+  const [form, setForm] = useState(emptyForm);
+  const [editId, setEditId] = useState(null);
+  const [saving, setSaving] = useState(false);
+
+  const load = React.useCallback(() => {
+    if (isDemo) { setPolicies([]); return; }
+    setLoading(true);
+    getJsonAuth('/api/v418/alert_policies')
+      .then(d => setPolicies(Array.isArray(d) ? d : (d?.data || d?.policies || [])))
+      .catch(() => setPolicies([]))
+      .finally(() => setLoading(false));
+  }, [isDemo]);
+  useEffect(() => { load(); }, [load]);
+
+  const submit = async () => {
+    if (!form.name.trim()) { addAlert?.({ type: 'error', msg: t('approvalsPage.polNameReq', '정책 이름을 입력하세요.') }); return; }
+    if (form.threshold === '' || isNaN(Number(form.threshold))) { addAlert?.({ type: 'error', msg: t('approvalsPage.polThrReq', '임계값(숫자)을 입력하세요.') }); return; }
+    if (isDemo) { addAlert?.({ type: 'info', msg: t('approvalsPage.polDemo', '데모에서는 정책이 저장되지 않습니다.') }); return; }
+    setSaving(true);
+    const payload = {
+      name: form.name.trim(), dimension: form.dimension, severity: form.severity, is_enabled: true,
+      condition_tree: { op: 'AND', children: [{ metric: form.metric, op: form.op, threshold: Number(form.threshold) }] },
+      slack: { enabled: !!form.slackEnabled },
+    };
+    try {
+      const r = editId
+        ? await putJson(`/api/v418/alert_policies/${editId}`, payload)
+        : await postJsonAuth('/api/v418/alert_policies', payload);
+      if (r && r.ok === false) { addAlert?.({ type: 'error', msg: r.error || t('approvalsPage.polSaveFail', '저장 실패') }); }
+      else { addAlert?.({ type: 'success', msg: t('approvalsPage.polSaved', '정책이 저장되었습니다.') }); setForm(emptyForm); setEditId(null); load(); }
+    } catch (e) { addAlert?.({ type: 'error', msg: (e && e.message) || t('approvalsPage.polSaveFail', '저장 실패') }); }
+    setSaving(false);
+  };
+
+  const startEdit = (p) => {
+    const c = (p.condition_tree?.children || [])[0] || {};
+    setEditId(p.id);
+    setForm({ name: p.name || '', dimension: p.dimension || 'channel', metric: c.metric || 'roas', op: c.op || '<',
+      threshold: c.threshold != null ? String(c.threshold) : '', severity: p.severity || 'medium', slackEnabled: !!(p.slack?.enabled) });
+  };
+  const remove = async (id) => {
+    if (!window.confirm(t('approvalsPage.polDelConfirm', '이 정책을 삭제할까요?'))) return;
+    try { await requestJsonAuth(`/api/v418/alert_policies/${id}`, 'DELETE'); load(); } catch { /* no-op */ }
+  };
+
+  const INPUT = { width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid var(--border, #334155)', background: 'var(--surface)', color: 'var(--text-1, #e5e7eb)', fontSize: 13 };
+  const LBL = { fontSize: 11, color: 'var(--text-3, #94a3b8)', marginBottom: 3, display: 'block' };
+
+  return (
+    <div style={{ display: 'grid', gap: 16 }}>
+      <div className="card card-glass" style={{ padding: 18 }}>
+        <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 4 }}>🔔 {editId ? t('approvalsPage.polEditTitle', '알림 정책 수정') : t('approvalsPage.polNewTitle', '새 알림 정책')}</div>
+        <div style={{ fontSize: 12, color: 'var(--text-3, #94a3b8)', marginBottom: 14 }}>
+          {t('approvalsPage.polDesc', '지표가 임계값을 넘으면 자동으로 알림이 발화됩니다. 발송 채널(Slack·이메일)은 개발자 포털 > 알림 채널에서 설정합니다.')}
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10 }}>
+          <div style={{ gridColumn: '1 / -1' }}><label style={LBL}>{t('approvalsPage.polName', '정책 이름')}</label>
+            <input style={INPUT} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder={t('approvalsPage.polNamePh', '예: 채널 ROAS 급락 경보')} /></div>
+          <div><label style={LBL}>{t('approvalsPage.polDim', '집계 차원')}</label>
+            <select style={INPUT} value={form.dimension} onChange={e => setForm({ ...form, dimension: e.target.value })}>{_POLICY_DIMS.map(d => <option key={d.v} value={d.v}>{d.label}</option>)}</select></div>
+          <div><label style={LBL}>{t('approvalsPage.polMetric', '지표')}</label>
+            <select style={INPUT} value={form.metric} onChange={e => setForm({ ...form, metric: e.target.value })}>{_POLICY_METRICS.map(m => <option key={m.v} value={m.v}>{m.label}</option>)}</select></div>
+          <div><label style={LBL}>{t('approvalsPage.polOp', '조건')}</label>
+            <select style={INPUT} value={form.op} onChange={e => setForm({ ...form, op: e.target.value })}>{_POLICY_OPS.map(o => <option key={o.v} value={o.v}>{o.label}</option>)}</select></div>
+          <div><label style={LBL}>{t('approvalsPage.polThr', '임계값')}</label>
+            <input style={INPUT} type="number" value={form.threshold} onChange={e => setForm({ ...form, threshold: e.target.value })} placeholder="0" /></div>
+          <div><label style={LBL}>{t('approvalsPage.polSev', '심각도')}</label>
+            <select style={INPUT} value={form.severity} onChange={e => setForm({ ...form, severity: e.target.value })}>{_POLICY_SEV.map(s => <option key={s.v} value={s.v}>{s.label}</option>)}</select></div>
+          <div style={{ display: 'flex', alignItems: 'flex-end', paddingBottom: 6 }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, cursor: 'pointer' }}>
+              <input type="checkbox" checked={form.slackEnabled} onChange={e => setForm({ ...form, slackEnabled: e.target.checked })} /> {t('approvalsPage.polSlack', 'Slack 통지')}</label>
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
+          <button onClick={submit} disabled={saving} style={{ padding: '9px 22px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg, #4f8ef7, #6366f1)', color: '#fff', fontWeight: 700, fontSize: 13 }}>{saving ? '…' : (editId ? `💾 ${t('approvalsPage.polUpdate', '수정 저장')}` : `➕ ${t('approvalsPage.polCreate', '정책 생성')}`)}</button>
+          {editId && <button onClick={() => { setForm(emptyForm); setEditId(null); }} style={{ padding: '9px 18px', borderRadius: 8, border: '1px solid var(--border, #334155)', cursor: 'pointer', background: 'var(--surface)', color: 'var(--text-1, #e5e7eb)', fontSize: 13 }}>{t('approvalsPage.polCancel', '취소')}</button>}
+        </div>
+      </div>
+
+      <div className="card card-glass" style={{ padding: 18 }}>
+        <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 12 }}>{t('approvalsPage.polList', '등록된 알림 정책')} ({policies.length})</div>
+        {loading && <div style={{ textAlign: 'center', padding: 20, color: 'var(--text-3, #94a3b8)', fontSize: 12 }}>{t('approvalsPage.loading', '불러오는 중…')}</div>}
+        {!loading && policies.length === 0 && <div style={{ textAlign: 'center', padding: 24, color: 'var(--text-3, #94a3b8)', fontSize: 12 }}>{isDemo ? t('approvalsPage.polDemoEmpty', '데모에서는 정책 목록이 표시되지 않습니다.') : t('approvalsPage.polEmpty', '아직 등록된 정책이 없습니다. 위에서 첫 정책을 만들어보세요.')}</div>}
+        {!loading && policies.map(p => {
+          const c = (p.condition_tree?.children || [])[0] || {};
+          return (
+            <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: '1px solid var(--border, #1e293b)', fontSize: 13 }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 700 }}>{p.name} {p.is_enabled ? '' : <span style={{ fontSize: 10, color: '#ef4444' }}>(비활성)</span>}</div>
+                <div style={{ fontSize: 11, color: 'var(--text-3, #94a3b8)', marginTop: 2 }}>{p.dimension} · {c.metric} {c.op} {c.threshold} · {p.severity}{p.slack?.enabled ? ' · Slack' : ''}</div>
+              </div>
+              <button onClick={() => startEdit(p)} style={{ padding: '5px 12px', borderRadius: 7, border: 'none', cursor: 'pointer', background: 'var(--surface)', color: '#4f8ef7', fontSize: 12 }}>✏️</button>
+              <button onClick={() => remove(p.id)} style={{ padding: '5px 12px', borderRadius: 7, border: 'none', cursor: 'pointer', background: 'var(--surface)', color: '#ef4444', fontSize: 12 }}>🗑</button>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function AuditTab({ t }) {
   const { rulesFired, alerts } = useGlobalData();
 
@@ -518,6 +641,7 @@ export default function Approvals() {
 
   const TABS = [
     { id: 'queue', icon: '✅', label: t('approvalsPage.tabQueue'), desc: t('approvalsPage.tabQueueDesc') },
+    { id: 'policies', icon: '🔔', label: t('approvalsPage.tabPolicies', '알림 정책'), desc: t('approvalsPage.tabPoliciesDesc', '임계치 기반 자동 알림 정책') },
     { id: 'audit', icon: '📜', label: t('approvalsPage.tabAudit'), desc: t('approvalsPage.tabAuditDesc') },
     { id: 'settings', icon: '⚙', label: t('approvalsPage.tabSettings'), desc: t('approvalsPage.tabSettingsDesc') },
     { id: 'guide', icon: '📖', label: t('approvalsPage.tabGuide'), desc: t('approvalsPage.tabGuideDesc') },
@@ -580,6 +704,7 @@ export default function Approvals() {
 
       <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '16px', paddingBottom: 80 }}>
         {tab === 'queue' && <QueueTab requests={requests} onDecide={decide} onExecute={execute} busy={busy} msg={msg} isDemo={isDemo} t={t} />}
+        {tab === 'policies' && <PolicyTab t={t} isDemo={isDemo} />}
         {tab === 'audit' && <AuditTab t={t} />}
         {tab === 'settings' && <SettingsTab t={t} />}
         {tab === 'guide' && <GuideTab />}

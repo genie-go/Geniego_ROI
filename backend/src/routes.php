@@ -424,6 +424,11 @@ return function (App $app): void {
         'POST /v418/alert_policies' => 'Genie\\Handlers\\Alerting::createPolicy',
         'PUT /v418/alert_policies/{policy_id}' => 'Genie\\Handlers\\Alerting::updatePolicy',
         'DELETE /v418/alert_policies/{policy_id}' => 'Genie\\Handlers\\Alerting::deletePolicy',
+        // [281차 P2] /api 접두 변형 명시 등록(Approvals 알림정책 UI·approvals 패턴 정합·basePath strip 이중안전).
+        'GET /api/v418/alert_policies' => 'Genie\\Handlers\\Alerting::listPolicies',
+        'POST /api/v418/alert_policies' => 'Genie\\Handlers\\Alerting::createPolicy',
+        'PUT /api/v418/alert_policies/{policy_id}' => 'Genie\\Handlers\\Alerting::updatePolicy',
+        'DELETE /api/v418/alert_policies/{policy_id}' => 'Genie\\Handlers\\Alerting::deletePolicy',
         'POST /v418/alerts/evaluate' => 'Genie\\Handlers\\Alerting::evaluate',
         'GET /v418/alerts' => 'Genie\\Handlers\\Alerting::listAlerts',
         'GET /v418/mappings' => 'Genie\\Handlers\\Mapping::listMappings',
@@ -2213,6 +2218,10 @@ return function (App $app): void {
     $register('POST', '/v418/alert_policies');
     $register('PUT', '/v418/alert_policies/{policy_id}');
     $register('DELETE', '/v418/alert_policies/{policy_id}');
+    $register('GET', '/api/v418/alert_policies');
+    $register('POST', '/api/v418/alert_policies');
+    $register('PUT', '/api/v418/alert_policies/{policy_id}');
+    $register('DELETE', '/api/v418/alert_policies/{policy_id}');
     $register('POST', '/v418/alerts/evaluate');
     $register('GET', '/v418/alerts');
     $register('GET', '/v418/actions/presets');
