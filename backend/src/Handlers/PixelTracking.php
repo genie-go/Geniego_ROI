@@ -217,6 +217,13 @@ class PixelTracking
             $s = trim($s);
             return $s === '' ? null : mb_substr($s, 0, $max);
         };
+        // [281차 P2] 클릭ID(gclid/ga_client_id/msclkid/wbraid/gbraid/li_fat_id/epik 등)를 custom_data 에 보존한다.
+        //   종전엔 로더가 이 값들을 실어 보내도 collect 가 어느 컬럼에도 저장하지 않아 유실됐다(gclid=Google
+        //   오프라인 전환·ga_client_id=GA4 정합에 필요). 별도 컬럼 신설 대신 기존 custom_data(JSON) 에 병합.
+        $customData = is_array($b['custom_data'] ?? null) ? $b['custom_data'] : [];
+        foreach (['gclid','ga_client_id','msclkid','wbraid','gbraid','li_fat_id','epik','sc_cid','ttclid','rdt_cid','fbclid'] as $ck) {
+            if (!empty($b[$ck]) && !isset($customData[$ck])) $customData[$ck] = mb_substr((string)$b[$ck], 0, 200);
+        }
         $ignore = self::isMysql($pdo) ? 'IGNORE' : 'OR IGNORE';
         $insStmt = $pdo->prepare("INSERT {$ignore} INTO pixel_events
             (tenant_id, event_id, pixel_id, event_name, session_id, user_id, email_hash, phone_hash,
@@ -230,7 +237,7 @@ class PixelTracking
             ':ref'=>$clean($b['referrer'] ?? null, 500), ':us'=>$clean($b['utm_source'] ?? null, 120), ':um'=>$clean($b['utm_medium'] ?? null, 120),
             ':uc'=>$clean($b['utm_campaign'] ?? null, 160), ':uco'=>$clean($b['utm_content'] ?? null, 160), ':ut'=>$clean($b['utm_term'] ?? null, 160),
             ':val'=>$effValue, ':cur'=>$b['currency'] ?? 'KRW', ':prod'=>json_encode($b['product_ids'] ?? []),
-            ':cdata'=>json_encode($b['custom_data'] ?? []), ':iph'=>$ipHash, ':ua'=>substr($ua, 0, 500), ':dev'=>$deviceType, ':ca'=>self::now(),
+            ':cdata'=>json_encode($customData), ':iph'=>$ipHash, ':ua'=>substr($ua, 0, 500), ':dev'=>$deviceType, ':ca'=>self::now(),
         ]);
 
         // [225차 P1-5] dedup 가드: 실제 신규 적재(IGNORE 로 스킵 안 됨) 시에만 부수효과 실행.
@@ -634,7 +641,10 @@ class PixelTracking
                 'initiate_checkout'=>'begin_checkout', 'add_payment_info'=>'add_payment_info', 'purchase'=>'purchase',
                 'lead'=>'generate_lead', 'subscribe'=>'sign_up', 'complete_registration'=>'sign_up'];
         $ev = $map[$eventName] ?? $eventName;
-        $clientId = $sessionId !== '' ? $sessionId : ('px.' . substr($eventId, 0, 16));
+        // [281차 P2] GA4 client_id 는 브라우저 _ga 쿠키값(ga_client_id)을 우선 사용해야 브라우저 gtag 와 서버 MP 가
+        //   동일 사용자로 합쳐진다. 종전엔 session_id 를 써서 GA4 세션/사용자가 분열됐다(로더가 _ga 를 실어 보낸다).
+        $clientId = !empty($b['ga_client_id']) ? (string)$b['ga_client_id']
+                  : ($sessionId !== '' ? $sessionId : ('px.' . substr($eventId, 0, 16)));
         $params = array_filter([
             'currency'             => $b['currency'] ?? 'KRW',
             'value'                => (float)($b['value'] ?? 0) ?: null,

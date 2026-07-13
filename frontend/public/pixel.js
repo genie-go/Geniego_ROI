@@ -107,7 +107,13 @@
       var f = CLICK_IDS[k], v = get('_gnr_cid_' + f), ts = parseInt(get('_gnr_cid_' + f + '_ts') || '0', 10);
       if (v && ts && (now - ts) < ATTR_TTL) out[f] = v;
     }
-    for (var i = 0; i < UTMS.length; i++) { var u = get('_gnr_' + UTMS[i]); if (u) out[UTMS[i]] = u; }
+    // [281차 P2] UTM 라스트터치도 클릭ID 와 동일하게 ATTR_TTL(90일) 만료 적용. 종전엔 _gnr_utm_ts 를
+    //   쓰기만 하고 안 읽어(dead write) UTM 이 무기한 붙어, 2년 전 캠페인으로 들어온 방문자의 모든 이벤트에
+    //   utm_source=meta 가 영구 귀속됐다(만료 캠페인 과대귀속). ts 초과 시 UTM 을 버린다.
+    var utmTs = parseInt(get('_gnr_utm_ts') || '0', 10);
+    if (utmTs && (now - utmTs) < ATTR_TTL) {
+      for (var i = 0; i < UTMS.length; i++) { var u = get('_gnr_' + UTMS[i]); if (u) out[UTMS[i]] = u; }
+    }
 
     // 매체 네이티브 쿠키(브라우저 픽셀이 심어둔 것) — 서버전환 매칭품질 직결
     var fbp = cookie('_fbp'); if (fbp) out.fbp = fbp;

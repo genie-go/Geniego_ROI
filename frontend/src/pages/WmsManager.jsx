@@ -2756,19 +2756,26 @@ export default function WmsManager() {
         } catch { return []; }
     }, []);
 
+    // [281\uCC28 P2] \u2605\uAC10\uC0AC\uCD94\uC801\uC744 \uC11C\uBC84 \uC6D0\uC7A5(wms_movements) \uAE30\uBC18\uC73C\uB85C \uAD50\uCCB4. \uC885\uC804\uC5D4 localStorage('wms_audit_log')
+    //   \uAE30\uBC18\uC778\uB370 addAuditEntry \uD638\uCD9C\uBD80\uAC00 0\uAC74\uC774\uB77C \uD56D\uC0C1 \uBE44\uC5B4 \uC788\uC5C8\uACE0(\uAC89\uBCF4\uAE30 \uAC10\uC0AC\uAE30\uB2A5\u00B7\uC2E4\uC81C \uBBF8\uC791\uB3D9), \uCE90\uC2DC \uC0AD\uC81C\u00B7\uD0C0
+    //   \uAE30\uAE30\uC5D0\uC11C \uC18C\uC2E4\uB418\uBA70 \uBCC0\uC870 \uBC29\uC9C0\uB3C4 \uC5C6\uC5C8\uB2E4("\uC740\uD589\uAE09 \uAC10\uC0AC"\uB85C \uBCF4\uC774\uB098 \uC2E4\uC81C \uAC10\uC0AC \uC6D0\uC7A5 \uC544\uB2D8). \uC2E4 \uC7AC\uACE0 \uC774\uB3D9\uC740 \uC774\uBBF8
+    //   \uC11C\uBC84 wms_movements(\uBCC0\uC870\uBC29\uC9C0\u00B7tenant\uC2A4\uCF54\uD504)\uC5D0 \uAE30\uB85D\uB418\uBBC0\uB85C \uADF8\uAC78 \uC870\uD68C\uD574 \uD45C\uC2DC\uD55C\uB2E4(\uC9C4\uC9DC \uAC10\uC0AC \uAC00\uCE58).
     const [showAuditLog, setShowAuditLog] = useState(false);
-    const [auditLog, setAuditLog] = useState(() => {
-        try { return JSON.parse(localStorage.getItem('wms_audit_log') || '[]'); } catch { return []; }
-    });
-    const addAuditEntry = React.useCallback((action, details) => {
-        const entry = { id: Date.now().toString(36), timestamp: new Date().toISOString(), action, details, user: 'Admin' };
-        setAuditLog(prev => { const next = [entry, ...prev].slice(0, 500); localStorage.setItem('wms_audit_log', JSON.stringify(next)); return next; });
+    const [auditLog, setAuditLog] = useState([]);
+    const [auditLoading, setAuditLoading] = useState(false);
+    const loadAuditLog = React.useCallback(() => {
+        setAuditLoading(true);
+        wmsApi.listMovements(500)
+            .then(r => setAuditLog(Array.isArray(r?.movements) ? r.movements : (Array.isArray(r) ? r : [])))
+            .catch(() => setAuditLog([]))
+            .finally(() => setAuditLoading(false));
     }, []);
-    const clearAuditLog = () => { if (window.confirm(t('wms.auditLogClearConfirm'))) { localStorage.removeItem('wms_audit_log'); setAuditLog([]); } };
+    React.useEffect(() => { if (showAuditLog) loadAuditLog(); }, [showAuditLog, loadAuditLog]);
     const exportAuditLog = () => {
-        const csv = [['Timestamp','Action','Details','User'].join(','), ...auditLog.map(e => [e.timestamp, e.action, `"${e.details}"`, e.user].join(','))].join('\n');
+        const rows = auditLog.map(e => [e.created_at || e.timestamp || '', e.type || e.action || '', `"${(e.sku || '') + ' ' + (e.name || '') + ' x' + (e.qty ?? '')}"`, e.wh_id || '', e.reason || e.ref || ''].join(','));
+        const csv = [['Timestamp','Type','Item','Warehouse','Reason'].join(','), ...rows].join('\n');
         const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `audit_trail_${new Date().toISOString().slice(0,10)}.csv`; a.click();
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `wms_audit_trail_${new Date().toISOString().slice(0,10)}.csv`; a.click();
     };
 
     const TABS_I18N = [
@@ -2937,24 +2944,29 @@ export default function WmsManager() {
                         </div>
                         <div style={{ display: 'flex', gap: 6 }}>
                             <Btn onClick={exportAuditLog} color="#4f8ef7" small>{t('wms.exportCsvBtn')}</Btn>
-                            <Btn onClick={clearAuditLog} color="#ef4444" small>{t('wms.auditLogClearBtn')}</Btn>
                         </div>
                     </div>
                     <div style={{ maxHeight: 400, overflowY: 'auto' }}>
-                        {auditLog.length === 0 && <div style={{ textAlign: 'center', padding: 30, color: '#6b7280', fontSize: 12 }}>{t('wms.auditLogEmpty')}</div>}
-                        {auditLog.map(entry => (
-                            <div key={entry.id} style={{ display: 'flex', gap: 12, padding: '8px 0', borderBottom: '1px solid #e5e7eb', fontSize: 12 }}>
-                                <div style={{ width: 4, minHeight: 30, borderRadius: 2, background: entry.action.includes('Delete') || entry.action.includes('삭제') ? '#ef4444' : entry.action.includes('Add') || entry.action.includes('등록') ? '#22c55e' : '#4f8ef7', flexShrink: 0 }} />
+                        {auditLoading && <div style={{ textAlign: 'center', padding: 30, color: '#6b7280', fontSize: 12 }}>{t('wms.loading', '불러오는 중…')}</div>}
+                        {!auditLoading && auditLog.length === 0 && <div style={{ textAlign: 'center', padding: 30, color: '#6b7280', fontSize: 12 }}>{t('wms.auditLogEmpty')}</div>}
+                        {!auditLoading && auditLog.map((entry, i) => {
+                            const typ = String(entry.type || entry.action || '');
+                            const isOut = /out|출고|폐기/i.test(typ);
+                            const isIn = /in|입고|등록/i.test(typ);
+                            return (
+                            <div key={entry.id || i} style={{ display: 'flex', gap: 12, padding: '8px 0', borderBottom: '1px solid #e5e7eb', fontSize: 12 }}>
+                                <div style={{ width: 4, minHeight: 30, borderRadius: 2, background: isOut ? '#ef4444' : isIn ? '#22c55e' : '#4f8ef7', flexShrink: 0 }} />
                                 <div style={{ flex: 1 }}>
-                                    <div style={{ fontWeight: 700, color: '#1e293b' }}>{entry.action}</div>
-                                    <div style={{ fontSize: 10, color: '#6b7280', marginTop: 2 }}>{entry.details}</div>
+                                    <div style={{ fontWeight: 700, color: '#1e293b' }}>{typ} · {entry.sku || ''} {entry.qty != null ? `×${entry.qty}` : ''}</div>
+                                    <div style={{ fontSize: 10, color: '#6b7280', marginTop: 2 }}>{entry.name || ''} {entry.wh_id ? `@${entry.wh_id}` : ''} {entry.reason || entry.ref || ''}</div>
                                 </div>
                                 <div style={{ fontSize: 10, color: '#6b7280', whiteSpace: 'nowrap', flexShrink: 0 }}>
-                                    <div>{entry.user}</div>
-                                    <div>{new Date(entry.timestamp).toLocaleString()}</div>
+                                    <div>{entry.by || entry.user || '—'}</div>
+                                    <div>{entry.created_at || entry.timestamp ? new Date(entry.created_at || entry.timestamp).toLocaleString() : ''}</div>
                                 </div>
                             </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </div>
             )}
