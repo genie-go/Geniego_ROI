@@ -452,7 +452,12 @@ function OrdersTab({ t }) {
     React.useEffect(() => { load(); }, [load]);
 
     // 데모: 전역 orders(DEMO_ORDERS) → OmniChannel 표시 스키마로 매핑(상태=현지화 라벨, 채널/상태 필터 적용). 운영=API orders.
-    const _DEMO_ST = React.useMemo(() => ({ paid: STATUSES[0], confirmed: STATUSES[0], preparing: STATUSES[1], shipping: STATUSES[2], delivered: STATUSES[3], cancelled: STATUSES[4], canceled: STATUSES[4], returned: STATUSES[5] }), [STATUSES]);
+    // [281차 회귀수정] 데모 주문 status 를 캐논 value 로 매핑(STATUS_OPTIONS[i].value) — 라벨 매핑이면 캐논 기반
+    //   필터·요약·색상과 불일치. STATUS_KEYS 순서: confirm/shipPending/shipping/delivered/cancelReq/returnRecv.
+    const _DEMO_ST = React.useMemo(() => {
+        const v = STATUS_OPTIONS.map(o => o.value);
+        return { paid: v[1], confirmed: v[0], preparing: v[1], shipping: v[2], delivered: v[3], cancelled: v[4], canceled: v[4], returned: v[5] };
+    }, [STATUS_OPTIONS]);
     const displayOrders = React.useMemo(() => {
         // [현 차수] 기간조회 — 수집 주문을 선택 기간으로 정확 필터(원본 atISO 기준, ko-KR at 폴백).
         const inP = (o) => inPeriodAny(o, period, ['atISO', 'ordered_at', 'created_at', 'at']);
@@ -460,9 +465,9 @@ function OrdersTab({ t }) {
         return (Array.isArray(orders) ? orders : []).filter(inP).map(o => ({
             id: o.id, channel: o.ch || o.channel, channel_order_id: o.id, buyer_name: String(o.buyer || '').split(' ')[0] || o.buyer,
             product_name: o.name || o.product_name, qty: o.qty, total_price: o.total ?? o.total_price,
-            status: _DEMO_ST[o.status] || STATUSES[0], carrier: o.carrier, ordered_at: o.atISO || o.at || o.ordered_at,
+            status: _DEMO_ST[o.status] || STATUS_OPTIONS[0].value, carrier: o.carrier, ordered_at: o.atISO || o.at || o.ordered_at,
         })).filter(o => (!channel || o.channel === channel) && (!statusFilter || o.status === statusFilter));
-    }, [orders, channel, statusFilter, _DEMO_ST, STATUSES, period]);
+    }, [orders, channel, statusFilter, _DEMO_ST, STATUS_OPTIONS, period]);
 
     const handleStatusUpdate = React.useCallback(async (orderId, newStatus) => {
         if (isDemo) { alert(t('omniChannel.demoStatusMsg')); return; }
@@ -483,15 +488,20 @@ function OrdersTab({ t }) {
         }
     }, [isDemo, t, updateOrderStatus, addAlert, load]);
 
-    const summary = React.useMemo(() => STATUSES.map(s => ({ s, cnt: displayOrders.filter(o => o.status === s).length })), [STATUSES, displayOrders]);
+    // [281차 회귀수정] ★C-P1(status 캐논토큰화)의 부작용 교정 — STATUS_COLORS·필터는 캐논 value 키인데
+    //   summary 가 라벨(STATUSES) 기반이라 STATUS_COLORS[라벨]=undefined(카드색 전부 회색)·statusFilter(라벨)와
+    //   운영 o.status(캐논)가 불일치했다. summary 를 캐논 value 기반으로 통일(카드 표시는 label).
+    const summary = React.useMemo(
+        () => STATUS_OPTIONS.map(({ value, label }) => ({ s: value, label, cnt: displayOrders.filter(o => o.status === value).length })),
+        [STATUS_OPTIONS, displayOrders]);
 
     return (
         <div style={{ display: 'grid', gap: 14 }}>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                {summary.map(({ s, cnt }) => (
+                {summary.map(({ s, label, cnt }) => (
                     <div key={s} onClick={() => setStatusFilter(statusFilter === s ? '' : s)} style={{ padding: '8px 14px', borderRadius: 10, cursor: 'pointer', textAlign: 'center', background: `${STATUS_COLORS[s] || '#666'}${statusFilter === s ? '20' : '08'}`, border: `1px solid ${STATUS_COLORS[s] || '#666'}${statusFilter === s ? '55' : '22'}` }}>
                         <div style={{ fontSize: 18, fontWeight: 900, color: STATUS_COLORS[s] || '#666' }}>{cnt}</div>
-                        <div style={{ fontSize: 10, color: '#6b7280' }}>{s}</div>
+                        <div style={{ fontSize: 10, color: '#6b7280' }}>{label}</div>
                     </div>
                 ))}
             </div>

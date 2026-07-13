@@ -1813,6 +1813,7 @@ export function GlobalDataProvider({ children }) {
             return {
                 totalGross: Number(srv.totalGross) || 0,
                 totalNetPayout: Number(srv.totalNetPayout) || 0,
+                totalNetEst: Number(srv.totalNetEst) || 0,   // [281차 P2] estimated 정산 net — netProfit 배송비 estShare 정합
                 totalPlatformFee: Number(srv.totalPlatformFee) || 0,
                 totalAdFee: Number(srv.totalAdFee) || 0,
                 totalCouponDiscount: Number(srv.totalCouponDiscount) || 0,
@@ -1934,8 +1935,14 @@ export function GlobalDataProvider({ children }) {
         //   (coupon_discount 는 정보용). 여기서 couponDiscount 를 또 빼면 순이익이 쿠폰액만큼 과소였다.
         const operatingProfit = grossProfit - adSpend - platformFee - returnFee - shippingCost - influencerCost; // 영업이익(배송비·인플루언서 포함·쿠폰은 revenue에 이미 반영)
         // ★[279차 재감사] 배송비=판매자 실부담 → operatingProfit 과 정합되게 netProfit 에도 차감(추정 정산 net_payout 엔 배송비 미반영).
+        // [281차 P2] ★배송비 estShare 정합 — 백엔드 Pnl.php:215 는 estimated 정산 비중(net_est/net)만큼만 배송비를
+        //   차감한다(실 정산 net_payout 엔 배송비가 이미 net out 돼 이중차감 방지). 프론트 폴백도 동일 산식으로 맞춰
+        //   server-first 실패 순간의 과도기 표시값 불일치를 제거. net_est 미제공(구백엔드) 시 estShare=1(전액=기존동작).
+        const _netEst = settlementStats.totalNetEst || 0;
+        const _estShare = netPayout > 0 ? Math.min(1, Math.max(0, _netEst / netPayout)) : 1;
+        const _shipInNet = shippingCost * (settlementStats.totalNetEst != null ? _estShare : 1);
         const netProfit = netPayout > 0
-            ? netPayout - cogs - adSpend - shippingCost - influencerCost  // 정산 기준 순이익(배송비 실부담 반영·쿠폰은 이미 반영)
+            ? netPayout - cogs - adSpend - _shipInNet - influencerCost  // 정산 기준 순이익(배송비 estShare 반영·쿠폰은 이미 반영)
             : operatingProfit;
 
         // [현 차수] ★P&L 서버 SSOT server-first: 서버(/v424/pnl)가 동일 소스로 조립한 손익이 있으면 그것을 정본으로

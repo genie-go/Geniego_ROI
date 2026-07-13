@@ -125,11 +125,24 @@ final class PgSettlement
         $pdo = Db::pdo(); self::ensureTables($pdo);
         $tenant = self::tenant($request);
         $out = [];
+        // [281차 P2] ★connected 판정을 provider 별 대표 키로 — 종전엔 전 provider 를 'secret_key' 로만 판정해
+        //   inicis(mid)·kcp(site_cd)·naverpay(client_id)·adyen(api_key)·paddle(api_key)·square(access_token)·
+        //   mollie(api_key)·razorpay(key_id)·klarna(username) 9종이 **등록해도 "미연결"로 표시**됐다(fetchLive 는
+        //   올바른 키를 읽어 기능은 정상 → "겉보기 미등록·실제 정상"의 신뢰 훼손). fetchLive 각 분기의 primary 키와 정합.
+        $probeKey = [
+            'stripe'=>'secret_key', 'tosspayments'=>'secret_key', 'checkout'=>'secret_key', 'kakaopay'=>'secret_key',
+            'paypal'=>'client_id', 'naverpay'=>'client_id',
+            'adyen'=>'api_key', 'paddle'=>'api_key', 'mollie'=>'api_key',
+            'square'=>'access_token', 'razorpay'=>'key_id', 'klarna'=>'username',
+            'inicis'=>'mid', 'kcp'=>'site_cd',
+        ];
         foreach (self::PROVIDERS as $key => $p) {
             $connected = false;
             if ($tenant !== 'demo') {
-                $kn = $key === 'paypal' ? 'client_id' : 'secret_key';
+                $kn = $probeKey[$key] ?? 'secret_key';
                 $connected = self::loadCred($pdo, $tenant, $p['creds'], $kn) !== '';
+                // kakaopay 는 secret_key||admin_key, kcp 보조키 등 폴백 provider 는 대표키 부재 시 2차 확인.
+                if (!$connected && $key === 'kakaopay') $connected = self::loadCred($pdo, $tenant, $p['creds'], 'admin_key') !== '';
             }
             $out[] = ['key' => $key, 'label' => $p['label'], 'live' => $p['live'], 'connected' => $connected];
         }

@@ -862,6 +862,7 @@ final class OrderHub
                         COALESCE(SUM(return_fee),0)      AS rfee,
                         COALESCE(SUM(CASE WHEN COALESCE(status,'')='settled'  THEN net_payout ELSE 0 END),0) AS settled_amt,
                         COALESCE(SUM(CASE WHEN COALESCE(status,'')<>'settled' THEN net_payout ELSE 0 END),0) AS pending_amt,
+                        COALESCE(SUM(CASE WHEN COALESCE(status,'')='estimated' THEN net_payout ELSE 0 END),0) AS net_est,
                         COALESCE(SUM(orders_count),0)    AS ord,
                         COALESCE(SUM(returns_count),0)   AS ret
                  FROM orderhub_settlements WHERE $whereSql"
@@ -902,6 +903,7 @@ final class OrderHub
             'rowsCount'           => (int)($r['rows_count'] ?? 0),
             'totalGross'          => (float)($r['gross'] ?? 0),
             'totalNetPayout'      => (float)($r['net'] ?? 0),
+            'totalNetEst'         => (float)($r['net_est'] ?? 0),   // [281차 P2] estimated 정산 net_payout — 프론트 netProfit 배송비 estShare 정합용
             'totalPlatformFee'    => (float)($r['pfee'] ?? 0),
             'totalAdFee'          => (float)($r['adfee'] ?? 0),
             'totalCouponDiscount' => (float)($r['coupon'] ?? 0),

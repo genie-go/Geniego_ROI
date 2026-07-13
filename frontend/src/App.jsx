@@ -740,7 +740,9 @@ export default function App() {
                 <Route path="/terms" element={<Terms />} />
                 <Route path="/privacy" element={<Privacy />} />
                 <Route path="/refund" element={<Refund />} />
-                <Route path="/pg-test" element={<PgTest />} />
+                {/* [281차 P2] PG/웹훅 테스트 하네스는 개발 전용 — 운영 빌드에선 라우트 미노출(비로그인 프로브 표면 제거).
+                    개발(vite dev)에서만 접근. 운영에선 SPA 폴백(대시보드/404)로 처리된다. */}
+                {import.meta.env.DEV && <Route path="/pg-test" element={<PgTest />} />}
                 <Route path="/login" element={<LoginRoute />} />
                 {/* 212차 #3-B: 파트너(매입처/물류처/창고처) 전용 포털 — 본사 인증과 분리된 독립 페이지 */}
                 <Route path="/partner" element={<PartnerPortal />} />

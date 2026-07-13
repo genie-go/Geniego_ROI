@@ -255,6 +255,18 @@ export function recommendPlanPricing(opts = {}) {
 
 /* ── path → menuKey 역인덱스 (라우트 딥링크 가드용) ── */
 let _pathIndex = null;
+// [281차 P2] 사이드바 미등재 실기능 페이지 — pathToMenuKey 가 null 을 반환해 MenuAccessGuard 를 무조건 통과,
+//   무료 회원도 URL 직접입력으로 Pro/Growth 기능을 업그레이드 없이 사용할 수 있었다(수익화 티어 갭). 사이드바엔
+//   나타나지 않게(메뉴 인덱스와 분리) 게이트용 menuKey 만 부여한다. 테넌트 격리는 서버 미들웨어가 별도 유지.
+const _EXTRA_PATH_MENUKEYS = [
+  ["/digital-shelf", "marketing_advanced"],  // SoS/키워드 고급분석(Growth)
+  ["/amazon-risk", "marketing_advanced"],    // Amazon 위험분석(Growth)
+  ["/ai-recommend", "marketing_advanced"],   // AI 소재추천(Growth)
+  ["/rules-editor-v2", "data||data_schema"], // 피드/매핑 편집(데이터)
+  // kr-channel 은 국내몰 채널로 commerce_channel(free)에 편입 — 채널수 한도는 별도 강제.
+  ["/kr-channel", "commerce_channel"],
+];
+
 function _buildPathIndex() {
   const idx = [];
   for (const section of [...MEMBER_MENU, ...ADMIN_MENU]) {
@@ -262,6 +274,7 @@ function _buildPathIndex() {
       if (item.to && item.menuKey) idx.push([item.to, item.menuKey]);
     }
   }
+  for (const [p, k] of _EXTRA_PATH_MENUKEYS) idx.push([p, k]);
   // 긴 경로 우선 매칭을 위해 내림차순 정렬
   idx.sort((a, b) => b[0].length - a[0].length);
   return idx;

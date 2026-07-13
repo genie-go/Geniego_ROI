@@ -60,8 +60,14 @@ class PixelTracking
         return hash_equals($expect, $tag);
     }
 
+    /** [281차 성능 O-1] 프로세스 정적 가드 — collect() 는 고객사 전 브라우저 page_view 마다 호출되는 고빈도
+     *  공개 비콘이다. 매 호출 ensureTables 가 CREATE×3 + 항상 실패(중복)해서 throw/catch 되는 멱등 ALTER ~18개를
+     *  실행해 왔다(실패 ALTER 도 MySQL 메타데이터 락 검사 유발 → 고동시성 락 경합·왕복 오버헤드). PHP-FPM 워커는
+     *  장수명이라 워커당 1회만 실행하면 충분하고, 배포는 fpm reload 동반이라 신규 컬럼도 안전히 반영된다. 회귀 0. */
+    private static bool $ensured = false;
     private static function ensureTables(): void
     {
+        if (self::$ensured) return;
         $pdo = self::db();
         if (self::isMysql($pdo)) {
             $pdo->exec("CREATE TABLE IF NOT EXISTS pixel_events (
@@ -125,6 +131,11 @@ class PixelTracking
             "pixel_events ADD COLUMN forwarded_reddit {$intc}",
             "pixel_events ADD COLUMN forwarded_linkedin {$intc}",
         ] as $alt) { try { $pdo->exec("ALTER TABLE {$alt}"); } catch (\Throwable $e) {} }
+        // [281차 성능 O-2] 레이트리밋 COUNT 커버 복합 인덱스 — 매 비콘의 rate-limit 쿼리가
+        //   WHERE pixel_id=? AND ip_hash=? AND created_at>? 3조건인데 단일컬럼 인덱스뿐이라 인기 pixel_id 의
+        //   행 성장에 비례해 스캔이 커졌다. 순수 additive(쿼리 결과 불변·회귀 0).
+        try { $pdo->exec("CREATE INDEX " . (self::isMysql($pdo) ? "" : "IF NOT EXISTS ") . "idx_pixel_evt_rl ON pixel_events(pixel_id, ip_hash, created_at)"); } catch (\Throwable $e) {}
+        self::$ensured = true;
     }
 
     /* ─── POST /pixel/collect ─── 픽셀 이벤트 수집 (공개 비콘) ─────────── */
