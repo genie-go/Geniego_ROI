@@ -128,15 +128,31 @@ if echo "$STAGED" | grep -qE '^backend/src/routes\.php$'; then
   fi
 fi
 
-# G10 — React rules-of-hooks (Session 265)
+# G10 — React rules-of-hooks + no-undef (Session 265 / 280차 확장)
 #   조건부/early-return 뒤/try-catch 훅 = 화이트스크린 크래시(261/263 클래스). staged jsx 만 검사(고속).
-#   의도적 예외는 소스에 // eslint-disable-next-line react-hooks/rules-of-hooks + 근거주석.
+#   [280차] no-undef 추가 — 미임포트/스코프밖 식별자는 vite build 를 통과하고 런타임 ReferenceError 로
+#   터진다(PixelTracking useMemo 미임포트로 픽셀 관리 페이지가 276차부터 사망했던 부류).
+#   의도적 예외는 소스에 // eslint-disable-next-line <rule> + 근거주석.
 HOOKS_STAGED=$(echo "$STAGED" | grep -E '^frontend/src/.*\.(js|jsx)$' | sed 's#^frontend/##' || true)
 if [ -n "$HOOKS_STAGED" ]; then
   if bash tools/check_rules_of_hooks.sh $HOOKS_STAGED; then
-    ok "G10: react-hooks/rules-of-hooks 정합"
+    ok "G10: react-hooks/rules-of-hooks + no-undef 정합"
   else
-    fail "G10: react-hooks/rules-of-hooks 위반(화이트스크린 위험) — 훅 상단이동 또는 eslint-disable 근거명시"
+    fail "G10: rules-of-hooks/no-undef 위반(화이트스크린 위험) — 훅 상단이동·import 추가 또는 eslint-disable 근거명시"
+  fi
+fi
+
+# G14 — 팬텀 정적자산 참조 (280차 신설)
+#   코드가 로드/배포하는 루트 상대 정적파일(/pixel.js 등)이 frontend/public 에 실재하는지 검증.
+#   ★nginx SPA 폴백이 index.html 을 200 으로 돌려주므로 404 조차 안 나고 기능이 조용히 죽는다
+#   (280차: getSnippet 이 고객사에 배포한 /pixel.js 가 팬텀 → 픽셀 파이프라인 전체가 데이터 0).
+#   vite build·eslint 전부 못 잡는 유일한 사각지대라 별도 가드가 필요하다.
+REF_STAGED=$(echo "$STAGED" | grep -E '^(frontend/src|backend/src|frontend/public)/' || true)
+if [ -n "$REF_STAGED" ]; then
+  if node tools/check_static_refs.mjs; then
+    ok "G14: 정적자산 참조 정합(팬텀 없음)"
+  else
+    fail "G14: 팬텀 정적자산 참조 — 파일 추가 또는 참조 경로 수정"
   fi
 fi
 

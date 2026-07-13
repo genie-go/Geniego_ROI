@@ -6,18 +6,22 @@ name: GENIE-GO ROI TITAN SUPREME V10
 # Phase 3-5 (SCP/SSH/Health/Slack)는 HAS_SSH_SECRETS / HAS_TEST_SECRETS / HAS_SLACK_WEBHOOK 미등록으로 자동 skip (inert)
 # Phase 6 (E2E Smoke)는 266차 신설 — 배포 후 tools/e2e/smoke.mjs 로 런타임 500/계약 회귀 게이트 (HAS_TEST_SECRETS 게이트·기존 TEST 시크릿 재사용)
 
+# [280차] 게이트를 실제 작업 흐름에 물린다.
+#   종전 트리거는 `push: branches: [master]` 뿐이라 실 개발 브랜치(feat/*)에선 어떤 게이트도 돌지 않았고,
+#   paths-ignore 가 backend/**·tools/** 를 제외해 백엔드 변경은 php lint·라우트 가드조차 안 돌았다.
+#   → 280차에 발견된 팬텀 /pixel.js·화이트스크린 4건이 전부 CI 를 그대로 통과해 배포됐다.
+#   이제 모든 브랜치 push·PR 에서 verify 가 돌고, deploy 는 master push 에서만(job 레벨 if) 실행된다.
+#   verify 는 배포하지 않으므로 어느 브랜치에서 돌아도 안전하다.
 on:
   push:
-    branches: [ master ]
     paths-ignore:
       - '**.md'
       - '**.txt'
       - 'docs/**'
       - '.claude/**'
       - '.gitignore'
-      - 'tools/**'
-      - '.githooks/**'
-      - 'backend/**'
+  pull_request:
+  workflow_dispatch:
 
 env:
   HAS_SSH_SECRETS: ${{ secrets.REMOTE_IP != '' && secrets.REMOTE_USER != '' && secrets.SSH_PRIVATE_KEY != '' }}
@@ -25,8 +29,55 @@ env:
   HAS_SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL != '' }}
 
 jobs:
+  # ── [280차] 정적 게이트 — 배포 없음. 모든 브랜치/PR 에서 실행(시크릿 불요).
+  #    여기 담긴 4개 가드가 280차에 발견된 결함들을 각각 잡는다:
+  #      · check_static_refs   → 팬텀 /pixel.js (vite build·eslint 둘 다 못 잡는 사각지대)
+  #      · check_rules_of_hooks(+no-undef) → 화이트스크린 4건(useMemo 미임포트 등)
+  #      · check_routes_registered / check_php_lint → 백엔드 무음실패
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: "[GATE 1] 팬텀 정적자산 참조"
+        run: node tools/check_static_refs.mjs
+
+      - name: "[GATE 2] 라우트 등록 정합 + 백엔드 PHP 구문"
+        run: |
+          node tools/check_routes_registered.mjs backend/src/routes.php
+          bash tools/check_php_lint.sh
+
+      - name: "[GATE 3] rules-of-hooks + no-undef (런타임 ReferenceError 차단)"
+        run: |
+          cd frontend
+          npm install --silent
+          bash ../tools/check_rules_of_hooks.sh
+
+      - name: "[GATE 4] 프로덕션 빌드"
+        run: |
+          cd frontend
+          npm run build --silent
+
+      - name: "[GATE 5] E2E 스모크 (데모 대상 · 런타임 500/계약 회귀)"
+        # ★데모를 대상으로 한다: 273차 2FA 이후 로그인이 2단계가 됐는데 데모만 응답에 otp_dev 를 실어줘
+        #   무인 자동통과가 가능하다(운영은 otp_dev=null → 메일함 코드 필요 = CI 불가). 운영/데모는 동일
+        #   코드베이스라 런타임 500·계약키 회귀는 데모에서 동일하게 드러난다.
+        #   시크릿 미등록 시 자동 skip(포크에서도 실패하지 않음).
+        if: ${{ env.HAS_TEST_SECRETS == 'true' }}
+        env:
+          E2E_EMAIL: ${{ secrets.TEST_EMAIL }}
+          E2E_PASSWORD: ${{ secrets.TEST_PASS }}
+          E2E_ACCESS_CODE: ${{ secrets.TEST_ACCESS_CODE }}
+          E2E_BASE: https://demo.genieroi.com
+        run: node tools/e2e/smoke.mjs
+
   deploy:
     runs-on: ubuntu-latest
+    needs: verify          # [280차] 게이트 통과 없이는 배포하지 않는다.
+    if: ${{ github.ref == 'refs/heads/master' && github.event_name == 'push' }}
     steps:
       - name: Checkout Source Code
         uses: actions/checkout@v4
@@ -36,21 +87,15 @@ jobs:
         with:
           node-version: '18'
 
-      - name: "[PHASE 1] Syntax Guard & I18N Patch"
-        run: |
-          # en.js 구문 검증
-            node -e "require('fs').readFileSync('./frontend/src/i18n/locales/en.js', 'utf8'); console.log('[OK] EN_JS_EXISTS');"
-          # [265차] 라우트 등록 정합 가드 — routes.php $custom(정의)↔$register(등록) 불일치=런타임 Not found 무음실패 CI 검출
-          node tools/check_routes_registered.mjs backend/src/routes.php
-          # [265차] 백엔드 PHP 구문 가드 — php -l 전 핸들러(배포 전 구문오류 차단·ubuntu 내장 php)
-          bash tools/check_php_lint.sh
+      # [280차] 정적 게이트(구 PHASE 1·2 가드)는 verify job 으로 이관됐다(needs: verify 로 선행 보장).
+      #   여기서는 배포용 산출물만 만든다 — 중복 실행 제거.
+      - name: "[PHASE 1] EN 로케일 존재 검증"
+        run: node -e "require('fs').readFileSync('./frontend/src/i18n/locales/en.js', 'utf8'); console.log('[OK] EN_JS_EXISTS');"
 
       - name: "[PHASE 2] Production Build"
         run: |
           cd frontend
           npm install
-          # [265차] React rules-of-hooks 가드 — 조건부/early-return 뒤 훅(화이트스크린 크래시 261/263) CI 차단
-          bash ../tools/check_rules_of_hooks.sh
           npm run build --silent
 
       - name: "[PHASE 3] Secure Deploy (SFTP)"
@@ -78,31 +123,40 @@ jobs:
             chown -R www:www /home/wwwroot/roi.geniego.com
             /usr/local/nginx/sbin/nginx -s reload
 
-      - name: "[PHASE 5] Health Check & Rollback"
+      - name: "[PHASE 5] Post-Deploy Health Check (운영)"
+        # [280차 수정] 종전엔 로그인 응답에 "token" 이 있는지만 봤는데, 273차 전계정 2FA 도입 이후
+        #   정상 응답이 {"ok":false,"mfa_required":true,...} 라 **정상인데도 롤백을 외치는** 상태였다
+        #   (CI inert 라 아무도 몰랐다). mfa_required = 자격증명 검증 통과 + OTP 발급 = 인증 서비스 정상.
+        #   운영은 otp_dev 를 안 주므로 CI 가 2단계를 완료할 수 없다 → 여기선 "살아있음"까지만 검증하고,
+        #   런타임 500/계약 회귀는 verify job 의 데모 E2E 스모크가 담당한다.
         if: ${{ env.HAS_TEST_SECRETS == 'true' }}
         run: |
-          # 5초 대기 후 로그인 API 검증
           sleep 5
+          curl -sk -o /dev/null -w '%{http_code}' https://www.genieroi.com/ | grep -q '^200$' \
+            || { echo "운영 홈 비정상"; exit 1; }
           RESPONSE=$(curl -sk -X POST "https://www.genieroi.com/api/auth/login" \
             -H "Content-Type: application/json" \
             -d "{\"email\":\"${{ secrets.TEST_EMAIL }}\",\"password\":\"${{ secrets.TEST_PASS }}\"}")
-          if [[ $RESPONSE != *"token"* ]]; then
-            echo "Login Failure! Initiating Rollback..."
-            exit 1 # 실패 시 워크플로우 중단 및 알림
+          if [[ $RESPONSE != *"token"* && $RESPONSE != *"mfa_required"* ]]; then
+            echo "인증 서비스 비정상(토큰·MFA 요구 둘 다 아님): $RESPONSE"
+            exit 1
           fi
+          echo "[OK] 운영 홈 200 · 인증 서비스 정상"
 
-      - name: "[PHASE 6] E2E Smoke (런타임 500 + 계약 회귀 게이트)"
-        # [266차] 배포 후 tools/e2e/smoke.mjs 실행 — GET 엔드포인트 무음실패(500)·프론트/백엔드 계약키 누락 회귀를
-        #   실 세션으로 즉시 검출(비파괴·읽기전용). 실패=워크플로우 중단(회귀 배포 차단). 기존 TEST 시크릿 재사용.
-        if: ${{ env.HAS_TEST_SECRETS == 'true' }}
-        env:
-          E2E_EMAIL: ${{ secrets.TEST_EMAIL }}
-          E2E_PASSWORD: ${{ secrets.TEST_PASS }}
-          E2E_ACCESS_CODE: ${{ secrets.TEST_ACCESS_CODE }}
-          E2E_BASE: https://www.genieroi.com
+      - name: "[PHASE 6] 팬텀 정적자산 라이브 검증 (배포본 실측)"
+        # [280차] 배포된 산출물에서 정적자산이 실제로 그 타입으로 서빙되는지 확인. nginx SPA 폴백은
+        #   없는 파일에도 index.html 을 200 으로 돌려주므로 **상태코드만 보면 속는다** → Content-Type 검사.
+        #   (280차 /pixel.js 사건이 정확히 이 형태로 은폐돼 있었다.)
+        if: ${{ env.HAS_SSH_SECRETS == 'true' }}
         run: |
-          sleep 3
-          node tools/e2e/smoke.mjs
+          for asset in /pixel.js /cro-editor.js /sw.js; do
+            CT=$(curl -sk -o /dev/null -w '%{content_type}' "https://www.genieroi.com${asset}")
+            echo "${asset} → ${CT}"
+            case "$CT" in
+              text/html*) echo "[FAIL] ${asset} 가 SPA 폴백(HTML)으로 응답 — 파일이 배포되지 않았습니다."; exit 1 ;;
+            esac
+          done
+          echo "[OK] 정적자산 라이브 서빙 정합"
 
       - name: Slack Notification
         if: ${{ always() && env.HAS_SLACK_WEBHOOK == 'true' }}
