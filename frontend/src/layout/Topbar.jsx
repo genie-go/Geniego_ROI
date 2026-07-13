@@ -642,6 +642,13 @@ const ProfileDropdown = memo(function ProfileDropdown({ user, navigate, logout, 
                 onMouseEnter={e => e.currentTarget.style.background = 'rgba(79,142,247,0.08)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
               ><span style={{ fontSize: 14 }}>👤</span> {t('topbar.editProfile', 'Edit Profile')}</button>
+              {/* [281차 P2] 내 메뉴 설정(개인별 메뉴 표시/숨김) — 라우트만 있고 진입점 전무했다.
+                  MenuVisibilityContext 로 실제 동작(전역 트리는 서버·개인 prefs 는 localStorage). */}
+              <button onClick={() => { setShowProfile(false); navigate('/me/menu'); }}
+                style={menuBtnStyle}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(79,142,247,0.08)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+              ><span style={{ fontSize: 14 }}>🧭</span> {t('topbar.myMenuPrefs', '내 메뉴 설정')}</button>
               {user.plan === 'admin' && (
                 // [280차 P1] setTab 은 ProfileEditModal 내부 상태다 — 부모(Topbar)에서 부를 수 없어
                 //   관리자가 이 메뉴를 누르면 ReferenceError('setTab is not defined') → 화이트스크린이었다.

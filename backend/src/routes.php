@@ -166,6 +166,7 @@ return function (App $app): void {
         'POST /pixel/collect'                  => 'Genie\\Handlers\\PixelTracking::collect',
         'GET /pixel/configs'                   => 'Genie\\Handlers\\PixelTracking::listConfigs',
         'POST /pixel/configs'                  => 'Genie\\Handlers\\PixelTracking::createConfig',
+        'PUT /pixel/configs/{id}'              => 'Genie\\Handlers\\PixelTracking::updateConfig',
         'DELETE /pixel/configs/{id}'           => 'Genie\\Handlers\\PixelTracking::deleteConfig',
         'GET /pixel/analytics'                 => 'Genie\\Handlers\\PixelTracking::analytics',
         'GET /pixel/snippet/{pixel_id}'        => 'Genie\\Handlers\\PixelTracking::getSnippet',
@@ -2961,6 +2962,7 @@ return function (App $app): void {
     $register('POST',   '/pixel/collect');
     $register('GET',    '/pixel/configs');
     $register('POST',   '/pixel/configs');
+    $register('PUT',    '/pixel/configs/{id}');
     $register('DELETE', '/pixel/configs/{id}');
     $register('GET',    '/pixel/analytics');
     $register('GET',    '/pixel/snippet/{pixel_id}');

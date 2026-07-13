@@ -662,9 +662,66 @@ class PixelTracking
         if ($err = UserAuth::requirePro($req, $res)) return $err;
         self::ensureTables();
         $tenant = self::tenant($req);
-        $st = self::db()->prepare("SELECT id, pixel_id, name, domain, enabled, created_at FROM pixel_configs WHERE tenant_id=? ORDER BY created_at DESC");
-        $st->execute([$tenant]);
-        return self::json($res, ['ok' => true, 'configs' => $st->fetchAll(\PDO::FETCH_ASSOC)]);
+        // [281차 P2] 어느 CAPI 채널이 설정됐는지 boolean 으로 반환(자격증명 값 자체는 노출 금지·편집 UI 표시용).
+        //   종전엔 meta/tiktok/ga4/pinterest/snap/reddit/linkedin 설정 여부를 대시보드가 알 수 없었다.
+        $rows = self::db()->prepare("SELECT * FROM pixel_configs WHERE tenant_id=? ORDER BY created_at DESC");
+        $rows->execute([$tenant]);
+        $configs = [];
+        foreach ($rows->fetchAll(\PDO::FETCH_ASSOC) as $r) {
+            $configs[] = [
+                'id' => $r['id'] ?? null, 'pixel_id' => $r['pixel_id'] ?? '', 'name' => $r['name'] ?? '',
+                'domain' => $r['domain'] ?? '', 'enabled' => (int)($r['enabled'] ?? 1), 'created_at' => $r['created_at'] ?? '',
+                'capi' => [
+                    'meta'      => !empty($r['meta_pixel_id']) && !empty($r['meta_api_token']),
+                    'tiktok'    => !empty($r['tiktok_pixel_id']) && !empty($r['tiktok_access_token']),
+                    'ga4'       => !empty($r['ga4_measurement_id']) && !empty($r['ga4_api_secret']),
+                    'pinterest' => !empty($r['pinterest_ad_account_id']) && !empty($r['pinterest_conversion_token']),
+                    'snap'      => !empty($r['snap_pixel_id']) && !empty($r['snap_api_token']),
+                    'reddit'    => !empty($r['reddit_ad_account_id']) && !empty($r['reddit_conversion_token']),
+                    'linkedin'  => !empty($r['linkedin_conversion_urn']) && !empty($r['linkedin_access_token']),
+                ],
+            ];
+        }
+        return self::json($res, ['ok' => true, 'configs' => $configs]);
+    }
+
+    /* ─── PUT /pixel/configs/{id} ─── 기존 픽셀 부분갱신(CAPI 자격증명 주입) ─────
+     *   [281차 P2] 종전엔 생성(POST)·삭제만 있어 279차 이전에 만든 픽셀에 GA4/Pinterest/Snap/Reddit/LinkedIn
+     *   자격증명을 넣을 방법이 없었다(재생성하면 pixel_id 가 바뀌어 고객사 스니펫 전면 재설치 필요). 부분갱신:
+     *   빈 문자열/미전송 필드는 미변경(기존 시크릿 보존), 값이 오면 갱신. 토큰류는 at-rest 암호화. */
+    public static function updateConfig(Request $req, Response $res, array $args): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $pdo = self::db();
+        $tenant = self::tenant($req);
+        $b = (array)$req->getParsedBody();
+        $id = (int)($args['id'] ?? ($b['id'] ?? 0));
+        if ($id <= 0) return self::json($res, ['ok' => false, 'error' => 'id 필요'], 422);
+
+        // 소유권 검증
+        $own = $pdo->prepare("SELECT id FROM pixel_configs WHERE id=:id AND tenant_id=:t LIMIT 1");
+        $own->execute([':id' => $id, ':t' => $tenant]);
+        if (!$own->fetchColumn()) return self::json($res, ['ok' => false, 'error' => '픽셀 없음'], 404);
+
+        // 필드별 부분갱신 — 평문 컬럼과 암호화 컬럼 구분. 빈값/미전송은 스킵(기존값 보존).
+        $plain = ['name', 'meta_pixel_id', 'tiktok_pixel_id', 'ga4_measurement_id', 'pinterest_ad_account_id', 'snap_pixel_id', 'reddit_ad_account_id', 'linkedin_conversion_urn', 'linkedin_events'];
+        $enc   = ['meta_api_token', 'tiktok_access_token', 'ga4_api_secret', 'pinterest_conversion_token', 'snap_api_token', 'reddit_conversion_token', 'linkedin_access_token'];
+        $sets = []; $vals = [];
+        foreach ($plain as $f) { if (isset($b[$f]) && $b[$f] !== '') { $sets[] = "$f=?"; $vals[] = (string)$b[$f]; } }
+        foreach ($enc as $f)   { if (isset($b[$f]) && $b[$f] !== '') { $sets[] = "$f=?"; $vals[] = self::enc((string)$b[$f]); } }
+        // domain 은 갱신 허용하되 비우기는 금지(수집 신뢰모델). enabled 토글 허용.
+        if (isset($b['domain']) && trim((string)$b['domain']) !== '') {
+            $dom = strtolower(trim((string)$b['domain'])); $dom = preg_replace('~^https?://~i', '', $dom); $dom = explode('/', $dom)[0];
+            if ($dom !== '') { $sets[] = "domain=?"; $vals[] = $dom; }
+        }
+        if (isset($b['enabled'])) { $sets[] = "enabled=?"; $vals[] = ((int)$b['enabled']) ? 1 : 0; }
+        if (!$sets) return self::json($res, ['ok' => true, 'unchanged' => true]);
+
+        $sets[] = "updated_at=?"; $vals[] = self::now();
+        $vals[] = $id; $vals[] = $tenant;
+        $pdo->prepare("UPDATE pixel_configs SET " . implode(', ', $sets) . " WHERE id=? AND tenant_id=?")->execute($vals);
+        return self::json($res, ['ok' => true, 'id' => $id]);
     }
 
     /* ─── POST /pixel/configs ─── 픽셀 생성 ─────────────────── */

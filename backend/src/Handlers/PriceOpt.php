@@ -428,17 +428,26 @@ class PriceOpt
             //   물리재고에서 차감되지 않았다(유령 재고 → 자동발주 미실행·오배송·리프라이서 오판).
             //   Wms 와 동일한 창고 해석기를 써서 정합을 강제한다(창고 미등록 테넌트는 양쪽 다 'default').
             $whId = \Genie\Handlers\Wms::resolvePrimaryWarehouse($tenant);
-            // 과거 '' 행 1회 이관. 대상 창고에 같은 sku 행이 이미 있으면 '' 행을 버린다(합산 시 재고 이중계상).
+            // [281차 P2] ★고아 재고 이관 대상을 wh_id IN ('','default') 로 확장한다.
+            //   종전엔 '' 행만 이관했는데, 창고 미등록 테넌트는 resolvePrimaryWarehouse 가 'default' 를 주므로
+            //   재고가 'default' 로 적재된다. 이후 실 창고(id=1)를 만들고 상품을 재저장하면 whId='1' 이 되어
+            //   (sku,'1') 신규행이 (sku,'default') 행과 공존 → listStock by_sku·DemandForecast 의 SUM(on_hand) 이
+            //   두 행을 합산해 재고 이중계상(자동발주 과소). allocationPlan 은 'default' 를 실창고로 인식 못 해
+            //   그 재고는 판매 차감도 안 된다. 실 창고가 생긴 시점(whId!=='default')에만 고아행을 승격·수렴한다.
+            //   대상 창고 자신이 'default' 일 때(아직 실창고 0개)는 이관하지 않는다(자기 자신 이동 무의미).
             try {
-                $dup = $pdo->prepare("SELECT sku FROM wms_stock WHERE tenant_id=? AND wh_id=?");
-                $dup->execute([$tenant, $whId]);
-                $have = $dup->fetchAll(\PDO::FETCH_COLUMN) ?: [];
-                if ($have) {
-                    $ph = implode(',', array_fill(0, count($have), '?'));
-                    $pdo->prepare("DELETE FROM wms_stock WHERE tenant_id=? AND wh_id='' AND sku IN ($ph)")
-                        ->execute(array_merge([$tenant], $have));
+                if ($whId !== 'default' && $whId !== '') {
+                    $dup = $pdo->prepare("SELECT sku FROM wms_stock WHERE tenant_id=? AND wh_id=?");
+                    $dup->execute([$tenant, $whId]);
+                    $have = $dup->fetchAll(\PDO::FETCH_COLUMN) ?: [];
+                    if ($have) {
+                        // 대상 창고에 같은 sku 행이 이미 있으면 고아행을 버린다(합산 시 재고 이중계상).
+                        $ph = implode(',', array_fill(0, count($have), '?'));
+                        $pdo->prepare("DELETE FROM wms_stock WHERE tenant_id=? AND wh_id IN ('','default') AND sku IN ($ph)")
+                            ->execute(array_merge([$tenant], $have));
+                    }
+                    $pdo->prepare("UPDATE wms_stock SET wh_id=? WHERE tenant_id=? AND wh_id IN ('','default')")->execute([$whId, $tenant]);
                 }
-                $pdo->prepare("UPDATE wms_stock SET wh_id=? WHERE tenant_id=? AND wh_id=''")->execute([$whId, $tenant]);
             } catch (\Throwable $e) { /* best-effort 마이그레이션 */ }
             $rows = [];
             $ostk = $body['option_stocks'] ?? null;
@@ -463,10 +472,12 @@ class PriceOpt
             //   등록 후 재고 조정은 WMS 입출고(원장 단일권위)로만 이뤄져야 한다.
             foreach ($rows as [$sk, $qty, $nm]) {
                 if ($sk === '') continue;
+                $isNew = false;
                 try {
-                    $pdo->prepare("INSERT INTO wms_stock (tenant_id, sku, wh_id, name, on_hand, updated_at) VALUES (?,?,?,?,?,?)
-                                   ON DUPLICATE KEY UPDATE name = VALUES(name), updated_at = VALUES(updated_at)")
-                        ->execute([$tenant, $sk, $whId, $nm, $qty, $now]);
+                    $ins = $pdo->prepare("INSERT INTO wms_stock (tenant_id, sku, wh_id, name, on_hand, updated_at) VALUES (?,?,?,?,?,?)
+                                   ON DUPLICATE KEY UPDATE name = VALUES(name), updated_at = VALUES(updated_at)");
+                    $ins->execute([$tenant, $sk, $whId, $nm, $qty, $now]);
+                    $isNew = $ins->rowCount() === 1;   // MySQL ON DUPLICATE: 1=insert(신규), 2=update(기존 보존)
                 } catch (\Throwable $e) {
                     // SQLite 폴백: 존재하면 name 만 갱신(on_hand 보존), 없으면 초기재고로 삽입.
                     try {
@@ -478,8 +489,19 @@ class PriceOpt
                         } else {
                             $pdo->prepare("INSERT INTO wms_stock (tenant_id, sku, wh_id, name, on_hand, updated_at) VALUES (?,?,?,?,?,?)")
                                 ->execute([$tenant, $sk, $whId, $nm, $qty, $now]);
+                            $isNew = true;
                         }
                     } catch (\Throwable $e2) { /* best-effort */ }
+                }
+                // [281차 P2] ★신규 SKU 행에만 초기재고 Inbound 원장을 동반 기록한다(재고엔 재적용 안 함 —
+                //   on_hand 는 위에서 이미 세팅됨). 종전엔 원장 없이 wms_stock 에 직접 INSERT 만 해서 초기재고분을
+                //   wms_movements 로 재구축·대사할 수 없었다(재고실사 정합 불가·초기재고 FEFO/COGS 는 WAC 폴백).
+                //   ref='INIT-{sku}-{wh}' 로 멱등(신규행 조건이라 재저장 시 재실행 안 됨). applyMovementToStock 미호출.
+                if ($isNew && $qty > 0) {
+                    try {
+                        $pdo->prepare("INSERT INTO wms_movements (tenant_id,type,wh_id,dest_wh_id,sku,name,qty,unit,memo,ref,reason,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)")
+                            ->execute([$tenant, 'Inbound', $whId, '', $sk, $nm, $qty, '', '', 'INIT-' . $sk . '-' . $whId, '상품등록 초기재고', $now]);
+                    } catch (\Throwable $e3) { /* wms_movements 미존재 등 — best-effort(재고엔 무영향) */ }
                 }
             }
         } catch (\Throwable $e) { /* WMS 반영 실패는 상품저장에 영향 없음 */ }
