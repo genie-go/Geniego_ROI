@@ -3,7 +3,11 @@
 //   백업본(pages_backup/PixelTracking.jsx)은 JSX 손상으로 컴파일 불가 → 동일 3탭을 well-formed 로 복원.
 //   ★i18n: pxl 네임스페이스가 페이지 삭제 시 purge 됨 → t('pxl.x','한글초안') 인라인폴백(추후 15개국 정식화).
 //   운영=실 /api/pixel/*(세션토큰+requirePro+테넌트격리), 데모=세션 미달 시 honest 빈 상태(가짜데이터 없음).
-import React, { useState, useEffect, useCallback } from "react";
+// [280차 P0] useMemo 누락 import 복구 — 276차(3b43a039730)에 useMemo(() => makeAPI(token))를 도입하면서
+//   import 에 추가하지 않아 이 페이지는 렌더 즉시 ReferenceError('useMemo is not defined') → 에러바운더리
+//   화이트스크린. 픽셀을 생성하고 설치 스니펫을 복사하는 바로 그 페이지가 그 뒤로 계속 죽어 있었다.
+//   (pre-commit G10 rules-of-hooks 는 훅 호출 순서만 보고 미임포트 식별자는 못 잡는다. 린트 스크립트 부재.)
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { localizeDeep as _dloc } from "../utils/demoUiLocalize.js";
 import { useT, useI18n } from "../i18n/index.js";
 import { useAuth } from "../auth/AuthContext";

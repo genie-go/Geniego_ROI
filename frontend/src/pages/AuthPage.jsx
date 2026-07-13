@@ -447,6 +447,10 @@ const PAID_PLANS = [
 /* ─── Terms Modal ──────────────────────────────────────────── */
 function TermsModal({ open, onClose, category }) {
   const t = useT();
+  // [280차 P1] lang 미정의(no-undef) 복구 — 아래 요금 안내 조립부가 LANG_LOCALE_MAP[lang] 을 참조하는데
+  //   이 컴포넌트엔 lang 이 없었다(다른 컴포넌트의 useI18n 을 착각). fetch .then 안이라 ReferenceError 가
+  //   unhandled rejection 으로 삼켜져 요금 안내가 조용히 렌더되지 않았다(화이트스크린 아님 = 무음실패).
+  const { lang } = useI18n();
   const [content, setContent] = React.useState({ title: '', body: '' });
   React.useEffect(() => {
     if (!open || !category) return;
@@ -504,7 +508,7 @@ function TermsModal({ open, onClose, category }) {
         })
         .catch(() => {});
     }
-  }, [open, category]);
+  }, [open, category, lang]);   // [280차] lang 추가 — 요금 표기 로케일이 언어 전환에 반응해야 한다.
   if (!open) return null;
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>

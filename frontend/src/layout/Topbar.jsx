@@ -567,6 +567,7 @@ export default function Topbar() {
 const ProfileDropdown = memo(function ProfileDropdown({ user, navigate, logout, token, t }) {
   const [showProfile, setShowProfile] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [editTab, setEditTab] = useState('info');   // [280차] 프로필 모달을 열 탭(info | security)
   const profRef = useRef(null);
 
   useEffect(() => {
@@ -636,13 +637,16 @@ const ProfileDropdown = memo(function ProfileDropdown({ user, navigate, logout, 
             </div>
             {/* 메뉴 항목 */}
             <div style={{ display: 'grid', gap: 2 }}>
-              <button onClick={() => { setShowProfile(false); setShowEditModal(true); }}
+              <button onClick={() => { setShowProfile(false); setEditTab('info'); setShowEditModal(true); }}
                 style={menuBtnStyle}
                 onMouseEnter={e => e.currentTarget.style.background = 'rgba(79,142,247,0.08)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
               ><span style={{ fontSize: 14 }}>👤</span> {t('topbar.editProfile', 'Edit Profile')}</button>
               {user.plan === 'admin' && (
-                <button onClick={() => { setShowProfile(false); setTab('security'); setShowEditModal(true); }}
+                // [280차 P1] setTab 은 ProfileEditModal 내부 상태다 — 부모(Topbar)에서 부를 수 없어
+                //   관리자가 이 메뉴를 누르면 ReferenceError('setTab is not defined') → 화이트스크린이었다.
+                //   의도(보안 탭으로 바로 열기)를 initialTab prop 으로 정상 배선한다.
+                <button onClick={() => { setShowProfile(false); setEditTab('security'); setShowEditModal(true); }}
                   style={menuBtnStyle}
                   onMouseEnter={e => e.currentTarget.style.background = 'rgba(168,85,247,0.1)'}
                   onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
@@ -677,17 +681,19 @@ const ProfileDropdown = memo(function ProfileDropdown({ user, navigate, logout, 
       </div>
       {/* 회원정보 수정 모달 */}
       {showEditModal && (
-        <ProfileEditModal user={user} token={token} onClose={() => setShowEditModal(false)} />
+        <ProfileEditModal user={user} token={token} initialTab={editTab} onClose={() => setShowEditModal(false)} />
       )}
     </>
   );
 });
 
 /* ─── 회원정보 수정 + 비밀번호 변경 모달 ────────────────────────────── */
-const ProfileEditModal = memo(function ProfileEditModal({ user, token, onClose }) {
+const ProfileEditModal = memo(function ProfileEditModal({ user, token, onClose, initialTab = 'info' }) {
   const { t } = useI18n();
   const { autoLogoutMin, setAutoLogoutMin } = useAuth(); // [259차] 자동 로그아웃(유휴) 시간 설정 — 계정 프로필 관리 통합
-  const [tab, setTab] = useState('info'); // 'info' | 'password'
+  // [280차] initialTab — Topbar 의 '보안/AI 설정' 진입점이 이 탭으로 바로 열도록(종전엔 부모가 내부 setTab 을
+  //   부르려다 ReferenceError). 'security' 는 admin 전용 탭.
+  const [tab, setTab] = useState(initialTab); // 'info' | 'password' | 'security' | 'mfa' | 'sessions'
   const [name, setName] = useState(user.name || '');
   const [phone, setPhone] = useState(user.phone || (user.profile && user.profile.phone) || '');
   const [company, setCompany] = useState(user.company || (user.profile && user.profile.company) || '');

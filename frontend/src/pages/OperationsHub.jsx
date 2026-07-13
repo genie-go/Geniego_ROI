@@ -142,7 +142,10 @@ function ProductTab() {
                   <td style={{ textAlign:'center', fontFamily:'monospace', fontWeight:700, fontSize:13 }}>{fmtW(p.price)}</td>
                   <td style={{ textAlign:'center', fontWeight:700, color:p.stock===0?'#ef4444':low?'#f97316':'#22c55e' }}>{p.stock}</td>
                   <td style={{ textAlign:'center', fontSize:11, color:'var(--text-3)' }}>{p.safeQty}</td>
-                  <td><div style={{ display:'flex', gap:4, flexWrap:'wrap', fontSize:13, opacity:p.channels?.includes(c.id)?1:0.2, filter:p.channels?.includes(c.id)?'none':'grayscale(1)' }} >{CH.map(c=><span key={c.id}>{c.icon}</span>)}</div></td>
+                  {/* [280차 P0] 채널별 흐림 스타일이 CH.map(c=>…) 스코프 밖(래퍼 div)에 붙어 있어 c 가 미정의
+                      → 상품 행이 하나라도 있으면 렌더 즉시 ReferenceError = 이 페이지 전체 화이트스크린.
+                      의도대로 각 채널 아이콘(span)에 적용한다(미입점 채널만 흐리게). */}
+                  <td><div style={{ display:'flex', gap:4, flexWrap:'wrap', fontSize:13 }}>{CH.map(c=><span key={c.id} style={{ opacity:p.channels?.includes(c.id)?1:0.2, filter:p.channels?.includes(c.id)?'none':'grayscale(1)' }}>{c.icon}</span>)}</div></td>
                   <td>{p.promo?<Badge color="#f97316">{p.promo.type} -{p.promo.rate}%</Badge>:<span style={{ color:'var(--text-3)', fontSize:11 }}>{"\u2014"}</span>}</td>
                   <td><Badge color={sc?.color||'#64748b'}>{sc?.label||p.status}</Badge></td>
                   <td><div style={{ display:'flex', gap:4, justifyContent:'flex-end', flexWrap:'wrap' }}>
