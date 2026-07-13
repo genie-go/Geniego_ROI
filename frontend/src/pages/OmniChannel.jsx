@@ -176,13 +176,19 @@ function ChannelAuthPanel({ ch, onSaved, isDemo, t }) {
                     {loading ? `⏳ ${t('omniChannel.savingProgress')}` : `💾 ${t('omniChannel.btnSaveSync')}`}
                 </button>
             </div>
-            {result && (
-                <div style={{ padding: '8px 12px', borderRadius: 8, fontSize: 12, lineHeight: 1.6, background: result.ok ? 'rgba(34,197,94,0.08)' : 'rgba(239,68,68,0.08)', border: `1px solid ${result.ok ? '#22c55e' : '#ef4444'}33`, color: result.ok ? '#22c55e' : '#ef4444' }}>
-                    {result.ok
-                        ? `✓ ${result.message || t('omniChannel.integSuccess').replace('{{products}}', result.product_count ?? 0).replace('{{orders}}', result.order_count ?? 0)}`
-                        : `✗ ${result.message || result.error || t('omniChannel.integFail')}`}
-                </div>
-            )}
+            {result && (() => {
+                // [282차 A-P1] 응답 ok 는 항상 true(저장 성공)라 녹색 위장이 됐다. 실제 연동 성사(synced)와
+                //   원인 note 를 반영해 정직 표기: synced=true 만 녹색, 그 외(자격증명 불완전/수집 0)는 경고색+원인.
+                const ok = !!result.synced;
+                const hue = ok ? '#22c55e' : '#f59e0b';
+                return (
+                    <div style={{ padding: '8px 12px', borderRadius: 8, fontSize: 12, lineHeight: 1.6, background: `${hue}14`, border: `1px solid ${hue}33`, color: hue }}>
+                        {ok
+                            ? `✓ ${result.message || t('omniChannel.integSuccess').replace('{{products}}', result.product_count ?? 0).replace('{{orders}}', result.order_count ?? 0)}`
+                            : `⚠ ${result.note || result.message || result.error || t('omniChannel.integFail')}`}
+                    </div>
+                );
+            })()}
         </div>
     );
 }

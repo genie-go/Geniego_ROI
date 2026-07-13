@@ -467,6 +467,34 @@ final class Alerting {
                 $sent = true;
             }
         }
+
+        // [282차 R2 P1] 알림 통지 죽음 근본수정 — 정책 폼(Approvals.jsx)은 slack:{enabled}만 보내고 webhook_url 은
+        //   "개발자포털>알림채널"(notification_channel 테이블)에 저장한다. 종전 dispatch 는 정책 컬럼(빈 slack_webhook_url)만
+        //   봐서 임계 초과 시 Slack/이메일이 영원히 무발송이었다(인앱 alert_instance 만 생성). 정책이 자체 채널을
+        //   명시하지 않았으면 테넌트 notification_channel SSOT(pushEvent 소비처)로 폴백 발송한다(min_severity 존중).
+        if (!$sent) {
+            try {
+                $tn = (string)($p['tenant_id'] ?? '');
+                if ($tn !== '' && $tn !== 'demo') {
+                    $pdo = Db::pdo(); self::ensureNotifyTable($pdo);
+                    $cst = $pdo->prepare("SELECT * FROM notification_channel WHERE tenant_id=? AND enabled=1");
+                    $cst->execute([$tn]);
+                    $c = $cst->fetch(\PDO::FETCH_ASSOC);
+                    if ($c) {
+                        $rank = ['low'=>0,'medium'=>1,'high'=>2,'critical'=>3];
+                        if (($rank[$severity] ?? 1) >= ($rank[$c['min_severity'] ?? 'medium'] ?? 1)) {
+                            $title = "[{$p['name']}] {$entity} — 임계 초과 (" . count($breaches) . "건)";
+                            $chSlack = self::nDec($c['slack_webhook'] ?? '');
+                            if ($chSlack !== '' && self::sendSlack($chSlack, "🚨 " . $title, self::buildSlackBlocks($policyMeta, $window, $severity, $extraFields))) { $sent = true; }
+                            $chWh = self::nDec($c['generic_webhook'] ?? '');
+                            if ($chWh !== '') { self::sendWebhook($chWh, ['event'=>'alert','severity'=>$severity,'title'=>$title,'entity'=>$entity,'breaches'=>count($breaches),'ts'=>gmdate('c')], self::nDec($c['webhook_secret'] ?? '')); $sent = true; }
+                            $chEmail = (string)($c['email_to'] ?? '');
+                            if ($chEmail !== '' && self::sendEmail($chEmail, "[Geniego-ROI] 알림: {$p['name']} ({$entity})", self::buildEmailHtml($policyMeta, $window, $severity, $extraFields))) { $sent = true; }
+                        }
+                    }
+                }
+            } catch (\Throwable $e) { error_log('[Alerting.dispatch fallback] ' . $e->getMessage()); }
+        }
         return $sent;
     }
 

@@ -1086,6 +1086,15 @@ final class UserAdmin
      */
     public static function redeemCoupon(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
     {
+        // [282차 R2 중복제거] 쿠폰 redeem SSOT = CouponRedeem::redeem 로 위임. 이 구버전은 프론트 호출 0 고아이며
+        //   172차 admin/enterprise 다운그레이드 방지 가드 부재 + 만료 flat계산(더 긴 구독 잘라먹음) + 대상검증 상이라
+        //   값/보안 드리프트 위험이었다. 라우트(/v423/coupons/redeem)는 유지하되 정본 로직으로 위임(무회귀·Extend).
+        return \Genie\Handlers\CouponRedeem::redeem($req, $res);
+    }
+
+    /** [282차 R2] 아래는 위임으로 대체된 구 구현(도달 불가·미사용). 참조 이력 보존용 — 신규 호출 금지. */
+    private static function redeemCoupon__legacy_unused(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
+    {
         // 일반 로그인 사용자 인증
         $h = $req->getHeaderLine('Authorization');
         preg_match('/^Bearer\s+(.+)$/i', $h, $m);
@@ -1221,9 +1230,10 @@ final class UserAdmin
         $userId = (int)($sStmt->fetchColumn() ?: 0);
         if (!$userId) return self::json($res, ['ok' => false, 'error' => 'Session expired'], 401);
 
+        try { Db::ensureCouponTables($pdo); } catch (\Throwable $e) {} // [282차 R3] valid_until/usable_from 컬럼 보장
         try {
             $stmt = $pdo->prepare("
-                SELECT code, plan, duration_days, max_uses, use_count, is_revoked, created_at
+                SELECT code, plan, duration_days, max_uses, use_count, is_revoked, created_at, valid_until, usable_from
                   FROM free_coupons
                  WHERE (issued_to_user_id = ? OR issued_to_user_id IS NULL)
                    AND is_revoked = 0

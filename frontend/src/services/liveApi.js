@@ -60,10 +60,8 @@ export const inviteGuest  = (sid, body) => postJsonAuth(`${BASE}/sessions/${sid}
 export const updateGuest  = (gid, body) => requestJsonAuth(`${BASE}/guests/${gid}`, 'PUT', body);
 export const removeGuest  = (gid) => requestJsonAuth(`${BASE}/guests/${gid}`, 'DELETE');
 
-/* ── 연동 프레임워크 ── */
-export const listIntegrations = () => getJsonAuth(`${BASE}/integrations`);
-export const saveIntegration  = (body) => postJsonAuth(`${BASE}/integrations`, body);
-export const deleteIntegration = (channel) => requestJsonAuth(`${BASE}/integrations/${encodeURIComponent(channel)}`, 'DELETE');
+/* [282차 R3] 연동 프레임워크 CRUD(listIntegrations/saveIntegration/deleteIntegration) 제거 —
+   호출처 0 고아이며 채널 자격증명 등록은 IntegrationHub(/integration-hub)가 SSOT로 담당(중복 회피). */
 
 /**
  * SSE 스트림 URL. EventSource 는 커스텀 헤더 불가 → ?token=<genie_token>.

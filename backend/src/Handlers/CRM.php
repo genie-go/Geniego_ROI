@@ -618,6 +618,18 @@ class CRM
             if ($kk !== '') { if (isset($byKakao[$kk])) $union($byKakao[$kk], $id); else $byKakao[$kk] = $id; }
         }
 
+        // [282차 R3] 관리자 승인 확률병합(crm_identity_merge_link) 을 union 시드로 반영 — 재해석이 수동병합을 덮어쓰지 않도록.
+        //   양쪽 고객이 현재 테넌트 고객목록($parent)에 있을 때만 union(삭제된 고객 링크는 무시).
+        try {
+            self::ensureIdentityMergeLog($pdo);
+            $lk = $pdo->prepare("SELECT a_id, b_id FROM crm_identity_merge_link WHERE tenant_id=:t");
+            $lk->execute([':t'=>$tenant]);
+            foreach ($lk->fetchAll(\PDO::FETCH_ASSOC) ?: [] as $e) {
+                $a = (int)$e['a_id']; $b = (int)$e['b_id'];
+                if (isset($parent[$a]) && isset($parent[$b])) $union($a, $b);
+            }
+        } catch (\Throwable $e) { /* 링크 부재/오류 시 기존 결정적 해석만(무회귀) */ }
+
         $sizes = [];
         foreach ($custs as $c) { $root = $find((int)$c['id']); $sizes[$root] = ($sizes[$root] ?? 0) + 1; }
         $roots = []; $merged = 0;
@@ -682,6 +694,243 @@ class CRM
 
         return self::jsonRes($res, ['ok'=>true, 'identity_id'=>$idt, 'members'=>$members,
             'member_count'=>count($members), 'aggregate'=>$agg, 'activities'=>$acts]);
+    }
+
+    /* ═══ [282차 R3] 확률적 아이덴티티 매칭 — 결정적(phone/kakao 정확일치) 위에 얹는 human-in-the-loop 레이어 ═══
+     *   자동 병합 절대 금지(확률=불확실 → 오병합 시 LTV/세그 오염). 3단계: 후보제안(read-only) → 관리자 승인 병합 → 되돌리기.
+     *   병합 승인분은 crm_identity_merge_link 에 영속 → resolveIdentitiesForTenant 재해석 시에도 유지(덮어쓰기 방지). */
+
+    /** 확률매칭 승인 병합 영속 테이블(멱등 생성). */
+    private static function ensureIdentityMergeLog(\PDO $pdo): void
+    {
+        try {
+            if (self::isMysqlPdo($pdo)) {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS crm_identity_merge_link (
+                    id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL,
+                    a_id INT NOT NULL, b_id INT NOT NULL, score DECIMAL(4,3) DEFAULT 0,
+                    actor VARCHAR(120) DEFAULT '', created_at VARCHAR(32),
+                    UNIQUE KEY uq_link (tenant_id, a_id, b_id), KEY idx_link_t (tenant_id)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            } else {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS crm_identity_merge_link (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL,
+                    a_id INTEGER NOT NULL, b_id INTEGER NOT NULL, score REAL DEFAULT 0,
+                    actor TEXT DEFAULT '', created_at TEXT, UNIQUE (tenant_id, a_id, b_id))");
+            }
+        } catch (\Throwable $e) { /* graceful */ }
+    }
+
+    private static function isMysqlPdo(\PDO $pdo): bool
+    { try { return $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql'; } catch (\Throwable $e) { return false; } }
+
+    /** 이름 정규화 — 소문자·공백/구두점 제거(한글·라틴 공통). 빈 문자열이면 블로킹 제외. */
+    private static function normalizeName(string $n): string
+    { $s = preg_replace('/[\s\.\-_,]+/u', '', mb_strtolower(trim($n), 'UTF-8')); return (string)$s; }
+
+    /** 이메일 로컬파트 정규화 — @앞부분 소문자, gmail 류 점/+태그 제거(오매칭 완화). */
+    private static function emailLocal(string $e): string
+    {
+        $e = strtolower(trim($e)); $at = strpos($e, '@'); if ($at === false || $at === 0) return '';
+        $local = substr($e, 0, $at);
+        $local = preg_replace('/\+.*$/', '', $local);   // +tag 제거
+        $local = str_replace('.', '', $local);          // 점 제거(gmail 무시 규칙)
+        return $local;
+    }
+
+    /** 두 정규화 문자열 유사도(0~1). similar_text 백분율 기반. */
+    private static function strSim(string $a, string $b): float
+    {
+        if ($a === '' || $b === '') return 0.0;
+        if ($a === $b) return 1.0;
+        $pct = 0.0; similar_text($a, $b, $pct); return round($pct / 100, 3);
+    }
+
+    /** 두 고객 메타(정규화 필드 _el/_ph/_nm 포함)의 확률 매칭 점수·근거 산정(순수 함수 — 테스트 가능).
+     *   @return array [float score(0~1), string[] reasons] */
+    private static function scoreIdentityPair(array $ma, array $mb): array
+    {
+        $reasons = []; $score = 0.0;
+        // (1) 이메일 로컬파트 정확일치(도메인만 다름) = 강신호
+        if ($ma['_el'] !== '' && $ma['_el'] === $mb['_el']) { $score = max($score, 0.7); $reasons[] = 'email_local_exact'; }
+        elseif ($ma['_el'] !== '' && $mb['_el'] !== '') { $es = self::strSim($ma['_el'], $mb['_el']); if ($es >= 0.85) { $score = max($score, 0.45 + ($es - 0.85) * 2); $reasons[] = 'email_local_similar'; } }
+        // (2) 전화 접미 8자리 일치(전체 정규화는 다름 = 국가코드/표기 차이 추정). 완전일치는 결정적 레이어 몫 → 가산 안 함.
+        if ($ma['_ph'] !== '' && $mb['_ph'] !== '' && substr($ma['_ph'], -8) === substr($mb['_ph'], -8) && $ma['_ph'] !== $mb['_ph']) {
+            $score += 0.4; $reasons[] = 'phone_suffix';
+        }
+        // (3) 이름 유사(정규화)
+        if ($ma['_nm'] !== '' && $mb['_nm'] !== '') {
+            $ns = self::strSim($ma['_nm'], $mb['_nm']);
+            if ($ns >= 0.99) { $score += 0.25; $reasons[] = 'name_exact'; }
+            elseif ($ns >= 0.8) { $score += 0.15; $reasons[] = 'name_similar'; }
+        }
+        return [round(min(1.0, $score), 3), $reasons];
+    }
+
+    /* ─── GET /crm/identity/candidates — 확률적 병합 후보(read-only, 무변경) ───
+     *   결정적으로 이미 같은 identity 인 쌍은 제외. 블로킹(phone 접미8·이름·이메일 로컬)으로 O(n²) 폭주 방지.
+     *   점수 = 신호 가중합(이메일 로컬 정확일치·이름 유사·전화 접미 일치 등). 임계 이상만 반환. */
+    public static function identityCandidates(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $pdo = self::db(); $tenant = self::tenant($req);
+        $q = $req->getQueryParams();
+        $minScore = isset($q['min_score']) ? max(0.3, min(0.99, (float)$q['min_score'])) : 0.55;
+        $limit    = isset($q['limit']) ? max(1, min(200, (int)$q['limit'])) : 100;
+
+        $rows = [];
+        try {
+            // 안전 상한 — 너무 큰 테넌트는 최근 활동 우선 5000건만 스캔(블로킹으로 이보다 훨씬 적게 비교됨).
+            $st = $pdo->prepare("SELECT id, email, name, phone, kakao_id,
+                COALESCE(NULLIF(identity_id,''), CONCAT('#', id)) AS idk, COALESCE(ltv,0) AS ltv, grade
+                FROM crm_customers WHERE tenant_id=:t ORDER BY id DESC LIMIT 5000");
+            $st->execute([':t'=>$tenant]);
+            $rows = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+        } catch (\Throwable $e) { return self::jsonRes($res, ['ok'=>true, 'candidates'=>[], 'scanned'=>0, '_env'=>Db::envLabel()]); }
+
+        // 블로킹 인덱스 구성.
+        $meta = [];   // id → 정규화 필드
+        $blkPhone = []; $blkName = []; $blkEmail = [];
+        foreach ($rows as $r) {
+            $id = (int)$r['id'];
+            $ph = self::normalizePhone((string)($r['phone'] ?? ''));
+            $nm = self::normalizeName((string)($r['name'] ?? ''));
+            $el = self::emailLocal((string)($r['email'] ?? ''));
+            $meta[$id] = ['id'=>$id, 'email'=>(string)($r['email'] ?? ''), 'name'=>(string)($r['name'] ?? ''),
+                'phone'=>(string)($r['phone'] ?? ''), 'idk'=>(string)$r['idk'], 'ltv'=>(float)$r['ltv'],
+                'grade'=>(string)($r['grade'] ?? ''), '_ph'=>$ph, '_nm'=>$nm, '_el'=>$el];
+            if ($ph !== '') { $suf = substr($ph, -8); $blkPhone[$suf][] = $id; }
+            if ($nm !== '' && mb_strlen($nm, 'UTF-8') >= 2) { $blkName[$nm][] = $id; }
+            if ($el !== '' && strlen($el) >= 3) { $blkEmail[$el][] = $id; }
+        }
+
+        // 후보 쌍 수집(중복 제거) — 각 블록 내부 조합만.
+        $seen = []; $cands = [];
+        $addBlock = function (array $ids) use (&$seen, &$cands, $meta, $minScore) {
+            $n = count($ids); if ($n < 2 || $n > 60) return; // 과대 블록(흔한 이름 등)은 신뢰도 낮아 스킵
+            for ($i = 0; $i < $n; $i++) for ($j = $i + 1; $j < $n; $j++) {
+                $a = $ids[$i]; $b = $ids[$j]; if ($a === $b) continue;
+                $lo = min($a, $b); $hi = max($a, $b); $key = $lo . '-' . $hi;
+                if (isset($seen[$key])) continue; $seen[$key] = true;
+                $ma = $meta[$lo]; $mb = $meta[$hi];
+                if ($ma['idk'] === $mb['idk']) continue; // 이미 같은 아이덴티티(결정적/기병합) → 후보 아님
+
+                [$score, $reasons] = self::scoreIdentityPair($ma, $mb);
+                // 임계 이상 + 강신호(≥0.7 또는 2신호 이상)만 채택 — 이름만 유사한 단일 약신호는 오탐이라 배제.
+                if ($score >= $minScore && (($score >= 0.7) || count($reasons) >= 2)) {
+                    $cands[] = [
+                        'a' => ['id'=>$ma['id'], 'email'=>$ma['email'], 'name'=>$ma['name'], 'phone'=>self::maskPhone($ma['phone']), 'ltv'=>$ma['ltv'], 'grade'=>$ma['grade']],
+                        'b' => ['id'=>$mb['id'], 'email'=>$mb['email'], 'name'=>$mb['name'], 'phone'=>self::maskPhone($mb['phone']), 'ltv'=>$mb['ltv'], 'grade'=>$mb['grade']],
+                        'score' => $score, 'reasons' => $reasons,
+                    ];
+                }
+            }
+        };
+        foreach ($blkEmail as $ids) $addBlock($ids);
+        foreach ($blkPhone as $ids) $addBlock($ids);
+        foreach ($blkName as $ids) $addBlock($ids);
+
+        usort($cands, fn($x, $y) => $y['score'] <=> $x['score']);
+        $cands = array_slice($cands, 0, $limit);
+        return self::jsonRes($res, ['ok'=>true, 'candidates'=>$cands, 'count'=>count($cands),
+            'scanned'=>count($rows), 'min_score'=>$minScore, '_env'=>Db::envLabel()]);
+    }
+
+    /** 전화번호 마스킹(중간 가림) — 관리자 화면 표시용. PII 최소노출. */
+    private static function maskPhone(string $p): string
+    {
+        $d = preg_replace('/[^0-9]/', '', $p); $n = strlen($d);
+        if ($n < 7) return $p === '' ? '' : '***';
+        return substr($d, 0, 3) . str_repeat('*', max(0, $n - 7)) . substr($d, -4);
+    }
+
+    /** 두 고객 아이덴티티 병합(핵심) — 두 클러스터 union. 관리자 승인 시에만 호출. 반환=결과 배열. */
+    public static function mergeIdentities(\PDO $pdo, string $tenant, int $aId, int $bId, float $score, string $actor): array
+    {
+        if ($aId <= 0 || $bId <= 0 || $aId === $bId) return ['ok'=>false, 'error'=>'invalid_ids'];
+        $ld = $pdo->prepare("SELECT id, identity_id FROM crm_customers WHERE id=:id AND tenant_id=:t");
+        $ld->execute([':id'=>$aId, ':t'=>$tenant]); $a = $ld->fetch(\PDO::FETCH_ASSOC);
+        $ld->execute([':id'=>$bId, ':t'=>$tenant]); $b = $ld->fetch(\PDO::FETCH_ASSOC);
+        if (!$a || !$b) return ['ok'=>false, 'error'=>'customer_not_found'];
+
+        // 양쪽 아이덴티티 확보(없으면 solo mint).
+        $idtA = trim((string)($a['identity_id'] ?? '')); if ($idtA === '') { $idtA = 'idt_' . substr(sha1($tenant . ':' . $aId), 0, 24); $pdo->prepare("UPDATE crm_customers SET identity_id=:i WHERE id=:id AND tenant_id=:t")->execute([':i'=>$idtA, ':id'=>$aId, ':t'=>$tenant]); }
+        $idtB = trim((string)($b['identity_id'] ?? '')); if ($idtB === '') { $idtB = 'idt_' . substr(sha1($tenant . ':' . $bId), 0, 24); $pdo->prepare("UPDATE crm_customers SET identity_id=:i WHERE id=:id AND tenant_id=:t")->execute([':i'=>$idtB, ':id'=>$bId, ':t'=>$tenant]); }
+
+        self::ensureIdentityMergeLog($pdo);
+        $lo = min($aId, $bId); $hi = max($aId, $bId);
+        // 링크 영속(멱등) — 재해석 시 유지용.
+        try {
+            if (self::isMysqlPdo($pdo)) {
+                $pdo->prepare("INSERT INTO crm_identity_merge_link (tenant_id,a_id,b_id,score,actor,created_at) VALUES (:t,:a,:b,:s,:ac,:c)
+                    ON DUPLICATE KEY UPDATE score=VALUES(score), actor=VALUES(actor), created_at=VALUES(created_at)")
+                    ->execute([':t'=>$tenant, ':a'=>$lo, ':b'=>$hi, ':s'=>$score, ':ac'=>$actor, ':c'=>gmdate('c')]);
+            } else {
+                $pdo->prepare("INSERT INTO crm_identity_merge_link (tenant_id,a_id,b_id,score,actor,created_at) VALUES (:t,:a,:b,:s,:ac,:c)
+                    ON CONFLICT(tenant_id,a_id,b_id) DO UPDATE SET score=excluded.score, actor=excluded.actor, created_at=excluded.created_at")
+                    ->execute([':t'=>$tenant, ':a'=>$lo, ':b'=>$hi, ':s'=>$score, ':ac'=>$actor, ':c'=>gmdate('c')]);
+            }
+        } catch (\Throwable $e) { /* 링크 로그 실패는 병합 자체를 막지 않음 */ }
+
+        if ($idtA === $idtB) return ['ok'=>true, 'already_merged'=>true, 'identity_id'=>$idtA, 'moved'=>0];
+
+        // canonical = 더 큰 클러스터(안정) — 작은 쪽 멤버 전부를 canonical 로 이전.
+        $cnt = function ($idt) use ($pdo, $tenant) { $s = $pdo->prepare("SELECT COUNT(*) FROM crm_customers WHERE tenant_id=:t AND identity_id=:i"); $s->execute([':t'=>$tenant, ':i'=>$idt]); return (int)$s->fetchColumn(); };
+        $cA = $cnt($idtA); $cB = $cnt($idtB);
+        $canonical = ($cA >= $cB) ? $idtA : $idtB; $other = ($canonical === $idtA) ? $idtB : $idtA;
+        $moved = 0;
+        try {
+            $up = $pdo->prepare("UPDATE crm_customers SET identity_id=:can WHERE tenant_id=:t AND identity_id=:oth");
+            $up->execute([':can'=>$canonical, ':t'=>$tenant, ':oth'=>$other]); $moved = $up->rowCount();
+        } catch (\Throwable $e) { return ['ok'=>false, 'error'=>'merge_write_failed']; }
+        return ['ok'=>true, 'identity_id'=>$canonical, 'moved'=>$moved, 'merged_a'=>$aId, 'merged_b'=>$bId];
+    }
+
+    /* ─── POST /crm/identity/merge — 관리자 승인 병합. body:{a_id,b_id,score?} 또는 {pairs:[{a_id,b_id,score}]} ─── */
+    public static function identityMerge(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $pdo = self::db(); $tenant = self::tenant($req);
+        $actor = (string)($req->getAttribute('auth_tenant') ?: 'admin');
+        $b = (array)($req->getParsedBody() ?? []);
+        $pairs = [];
+        if (isset($b['pairs']) && is_array($b['pairs'])) { $pairs = $b['pairs']; }
+        elseif (isset($b['a_id']) && isset($b['b_id'])) { $pairs = [['a_id'=>$b['a_id'], 'b_id'=>$b['b_id'], 'score'=>$b['score'] ?? 0]]; }
+        if (!$pairs) return self::jsonRes($res, ['ok'=>false, 'error'=>'a_id/b_id 또는 pairs 필수'], 400);
+        if (count($pairs) > 200) $pairs = array_slice($pairs, 0, 200);
+
+        $results = []; $okCount = 0;
+        foreach ($pairs as $p) {
+            $r = self::mergeIdentities($pdo, $tenant, (int)($p['a_id'] ?? 0), (int)($p['b_id'] ?? 0), (float)($p['score'] ?? 0), $actor);
+            if (!empty($r['ok'])) $okCount++;
+            $results[] = $r;
+        }
+        return self::jsonRes($res, ['ok'=>true, 'merged'=>$okCount, 'results'=>$results]);
+    }
+
+    /* ─── POST /crm/identity/unmerge — 오병합 되돌리기. body:{customer_id}. 해당 고객을 solo 아이덴티티로 분리 + 링크 제거 ─── */
+    public static function identityUnmerge(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $pdo = self::db(); $tenant = self::tenant($req);
+        $b = (array)($req->getParsedBody() ?? []);
+        $cid = (int)($b['customer_id'] ?? 0);
+        if ($cid <= 0) return self::jsonRes($res, ['ok'=>false, 'error'=>'customer_id 필수'], 400);
+        // 소유 검증.
+        $ck = $pdo->prepare("SELECT id FROM crm_customers WHERE id=:id AND tenant_id=:t");
+        $ck->execute([':id'=>$cid, ':t'=>$tenant]);
+        if (!$ck->fetchColumn()) return self::jsonRes($res, ['ok'=>false, 'error'=>'고객 없음'], 404);
+
+        // 이 고객이 관여한 수동 병합 링크 제거(재해석 시 재병합 방지) — 단, 결정적 phone/kakao 공유 시엔 resolve 가 다시 병합(정상).
+        self::ensureIdentityMergeLog($pdo);
+        try { $pdo->prepare("DELETE FROM crm_identity_merge_link WHERE tenant_id=:t AND (a_id=:c OR b_id=:c)")->execute([':t'=>$tenant, ':c'=>$cid]); } catch (\Throwable $e) {}
+        // solo 아이덴티티(idts_ 접두 — 클러스터 idt_ 와 무충돌)로 분리.
+        $solo = 'idts_' . substr(sha1($tenant . ':' . $cid), 0, 23);
+        try { $pdo->prepare("UPDATE crm_customers SET identity_id=:i WHERE id=:id AND tenant_id=:t")->execute([':i'=>$solo, ':id'=>$cid, ':t'=>$tenant]); }
+        catch (\Throwable $e) { return self::jsonRes($res, ['ok'=>false, 'error'=>'분리 실패'], 500); }
+        return self::jsonRes($res, ['ok'=>true, 'customer_id'=>$cid, 'identity_id'=>$solo]);
     }
 
     /* ─── [240차 약점⑥] 메시징 빈도캡(Frequency Capping) + 발송시간 최적화 — 딜리버러빌리티 보호(경쟁사 Braze/Klaviyo 정합) ───
@@ -795,6 +1044,30 @@ class CRM
         return !$inQuiet;
     }
 
+    /** [282차 R3] 개인별 예측 발송시각(STO) — 고객 과거 참여(오픈/클릭/구매)의 최빈 KST 시각(0~23).
+     *   경쟁사(Klaviyo/Braze) Smart Send Time 정합. 데이터 3건 미만이면 null(불충분 → STO 미적용). */
+    public static function bestSendHour(\PDO $pdo, string $tenant, int $customerId): ?int
+    {
+        if ($customerId <= 0) return null;
+        try {
+            $st = $pdo->prepare("SELECT created_at FROM crm_activities
+                WHERE tenant_id=:t AND customer_id=:c
+                  AND type IN ('email_open','open','click','email_click','sms_click','kakao_open','purchase')
+                ORDER BY id DESC LIMIT 300");
+            $st->execute([':t' => $tenant, ':c' => $customerId]);
+            $hours = array_fill(0, 24, 0); $n = 0;
+            foreach ($st->fetchAll(\PDO::FETCH_COLUMN) ?: [] as $ts) {
+                $u = is_numeric($ts) ? (int)$ts : strtotime((string)$ts);
+                if (!$u) continue;
+                $hours[(int)gmdate('G', $u + 9 * 3600)]++; $n++; // KST(UTC+9) 시각으로 집계
+            }
+            if ($n < 3) return null;
+            $best = 0; $bv = -1;
+            for ($i = 0; $i < 24; $i++) { if ($hours[$i] > $bv) { $bv = $hours[$i]; $best = $i; } }
+            return $best;
+        } catch (\Throwable $e) { return null; }
+    }
+
     /* ═══ 통합 마케팅 발송 게이트(단일 정본) ═══════════════════════════════
      *   [현 차수 동기화감사] 신규 동의센터(crm_channel_prefs)·quiet-hours·빈도캡을 **하나의 게이트**로 통합.
      *   중복 시스템 신설 금지 — 기존 실가동 로직(PreferenceCenter::isChannelAllowed / isQuietNow /
@@ -805,8 +1078,8 @@ class CRM
      *   무회귀 원칙: 미설정/오류 시 allowed=true(기존 발송경로 그대로).
      *
      *   @param array $contact ['email'=>string] 등(이메일 suppression·선호 email 스코프 대조용, 선택).
-     *   @return array ['allowed'=>bool, 'reason'=>string]  reason: ok|channel_opt_out|email_suppressed|
-     *                 quiet_hours|quiet_hours_tenant|frequency_capped|freq_window_daily|freq_window_weekly|gate_error_open
+     *   @return array ['allowed'=>bool, 'reason'=>string]  reason: ok|channel_opt_out|topic_opt_out|email_suppressed|
+     *                 quiet_hours|quiet_hours_tenant|sto_defer|frequency_capped|freq_window_daily|freq_window_weekly|gate_error_open
      */
     public static function isMarketingSendAllowed(string $tenant, int $customerId, string $channel, array $contact = []): array
     {
@@ -820,6 +1093,11 @@ class CRM
             if (!PreferenceCenter::isChannelAllowed($pdo, $tenant, $customerId, $channel, $email)) {
                 return ['allowed' => false, 'reason' => 'channel_opt_out'];
             }
+            // (a2) [282차 R3] 토픽(콘텐츠 카테고리) 옵트아웃 — 캠페인이 $contact['topic'] 지정 시만 적용(미지정=무회귀).
+            $topic = strtolower(trim((string)($contact['topic'] ?? '')));
+            if ($topic !== '' && !PreferenceCenter::isTopicAllowed($pdo, $tenant, $customerId, $topic, $email)) {
+                return ['allowed' => false, 'reason' => 'topic_opt_out'];
+            }
             // (a') 이메일 채널 하드 suppression(하드바운스/스팸/수신거부) — defense-in-depth(정적 재사용, 로직 무중복).
             if ($channel === 'email' && $email !== '' && EmailMarketing::isSuppressed($pdo, $tenant, $email)) {
                 return ['allowed' => false, 'reason' => 'email_suppressed'];
@@ -829,6 +1107,17 @@ class CRM
             $cfg = self::commsFreqConfig($pdo, $tenant);
             if (PreferenceCenter::isQuietNow($pdo, $tenant, $customerId)) {
                 return ['allowed' => false, 'reason' => 'quiet_hours'];
+            }
+            // (b2) [282차 R3] 개인별 예측 발송시간(STO) — 캠페인이 $contact['sto']=true 지정 시만 적용(미지정=무회귀).
+            //   고객 과거 참여 최빈시각 ±window(기본2h) 밖이면 defer → 발송측이 best_hour 로 재스케줄. 데이터 부족 시 통과.
+            if (!empty($contact['sto'])) {
+                $bh = self::bestSendHour($pdo, $tenant, $customerId);
+                if ($bh !== null) {
+                    $win = max(0, min(6, (int)($contact['sto_window'] ?? 2)));
+                    $h = (int)gmdate('G', time() + 9 * 3600); // KST
+                    $diff = min(abs($h - $bh), 24 - abs($h - $bh)); // 원형(자정 넘김) 거리
+                    if ($diff > $win) return ['allowed' => false, 'reason' => 'sto_defer', 'best_hour' => $bh];
+                }
             }
             if (!self::commsSendAllowedNow($cfg)) {
                 return ['allowed' => false, 'reason' => 'quiet_hours_tenant'];
@@ -1002,12 +1291,15 @@ class CRM
         }
 
         $pairs = [];
+        $sim = []; // [282차 R3] item-item 협업필터: SKU별 유사 SKU(코사인) 리스트
         foreach ($pairCo as $key => $co) {
             if ($co < $minCo) continue;
             [$a, $b] = explode('||', $key, 2);
             $ba = $skuBuyers[$a] ?? 0; $bb = $skuBuyers[$b] ?? 0;
             if ($ba <= 0 || $bb <= 0) continue;
             $pa = $ba / $totalBuyers; $pb = $bb / $totalBuyers; $pab = $co / $totalBuyers;
+            // [282차 R3] item-item 코사인 유사도 = co / √(|A|·|B|). lift(연관강도)보다 인기SKU 편향에 강건한 CF 지표.
+            $cosine = round($co / sqrt($ba * $bb), 3);
             $pairs[] = [
                 'a' => $a, 'a_name' => $skuName[$a] ?? $a,
                 'b' => $b, 'b_name' => $skuName[$b] ?? $b,
@@ -1016,14 +1308,28 @@ class CRM
                 'conf_ab'   => round($co / $ba * 100, 1),  // A 구매자 중 B도 구매(%)
                 'conf_ba'   => round($co / $bb * 100, 1),  // B 구매자 중 A도 구매(%)
                 'lift'      => ($pa > 0 && $pb > 0) ? round($pab / ($pa * $pb), 2) : 0, // 연관강도(1=무관·>1 양의연관)
+                'cosine'    => $cosine,                    // [282차 R3] CF 유사도(0~1)
             ];
+            // 대칭 추천맵 적재(A→B, B→A)
+            $sim[$a][] = ['sku' => $b, 'name' => $skuName[$b] ?? $b, 'cosine' => $cosine, 'co_buyers' => $co];
+            $sim[$b][] = ['sku' => $a, 'name' => $skuName[$a] ?? $a, 'cosine' => $cosine, 'co_buyers' => $co];
         }
         // 연관강도(lift) 큰 순, 동률이면 동시구매 고객수
         usort($pairs, fn($x, $y) => ($y['lift'] <=> $x['lift']) ?: ($y['co_buyers'] <=> $x['co_buyers']));
         $pairs = array_slice($pairs, 0, $top);
 
-        return self::jsonRes($res, ['ok' => true, 'pairs' => $pairs, 'total_buyers' => $totalBuyers,
-            'params' => ['min_co' => $minCo], '_env' => Db::envLabel()]);
+        // [282차 R3] SKU별 협업필터 추천 — 코사인 유사도 상위 K개(크로스셀/번들 추천 근거). 상위 SKU만(폭주 방지).
+        $recommendations = [];
+        foreach ($sim as $sku => $lst) {
+            usort($lst, fn($x, $y) => ($y['cosine'] <=> $x['cosine']) ?: ($y['co_buyers'] <=> $x['co_buyers']));
+            $recommendations[] = ['sku' => $sku, 'name' => $skuName[$sku] ?? $sku, 'buyers' => $skuBuyers[$sku] ?? 0,
+                'recommended' => array_slice($lst, 0, 5)];
+        }
+        usort($recommendations, fn($x, $y) => $y['buyers'] <=> $x['buyers']);
+        $recommendations = array_slice($recommendations, 0, min(50, $top));
+
+        return self::jsonRes($res, ['ok' => true, 'pairs' => $pairs, 'recommendations' => $recommendations,
+            'total_buyers' => $totalBuyers, 'params' => ['min_co' => $minCo], '_env' => Db::envLabel()]);
     }
 
     /* ─── GET /crm/segments ─────────────────────────────────────────── */
@@ -1211,7 +1517,14 @@ class CRM
                    . " ELSE 0.5 END)";
         $predClvExpr = "(COALESCE(a.ltv,0) * (1.0 - {$churnExpr}))";
         $conds = ["c.tenant_id = $tQ"];
+        // [282차 E-P1 대량오발송 차단] 룰이 제공됐는데 유효조건이 하나도 안 붙으면(전부 무효/공란)
+        //   tenant 스코프만 남아 "전 고객"으로 확장돼 의도치 않은 전체 블라스트가 된다. 특히 숫자필드에
+        //   비수치/공란 값이 오면 종전 `$pdo->quote('')`='' 로 `COALESCE(a.ltv,0) >= ''` 가 방출돼
+        //   MySQL(운영 정본)이 '' 를 0 으로 캐스팅 → ltv>=0 → 전원 매칭(SQLite는 false 라 데모 은폐).
+        //   → 숫자필드는 is_numeric 일 때만 조건 방출, 룰이 있는데 유효조건 0이면 fail-closed(0명).
+        $ruleGiven = false;
         foreach ($rules as $rule) {
+            $ruleGiven = true;
             $field = strtolower((string)($rule['field'] ?? ''));
             $op    = match($rule['op'] ?? 'eq') { 'gte'=>'>=', 'lte'=>'<=', 'gt'=>'>', 'lt'=>'<', 'eq'=>'=', 'ne'=>'!=', default=>'' };
             if (!$op) continue;
@@ -1227,8 +1540,19 @@ class CRM
             };
             if ($expr === '') continue;
             $raw = $rule['value'] ?? '';
-            $val = is_numeric($raw) ? (float)$raw : $pdo->quote((string)$raw);
-            $conds[] = "$expr $op $val";
+            if ($field === 'grade') {
+                // grade 는 정당한 문자열 비교(등급 라벨). 공란이면 무의미한 등급조건이므로 스킵(무효 룰).
+                if (trim((string)$raw) === '') continue;
+                $conds[] = "$expr $op " . $pdo->quote((string)$raw);
+            } else {
+                // 숫자 필드: 비수치/공란 값은 무효 룰로 스킵(=`>= ''` 전원매칭 원천차단). 유효 숫자만 방출.
+                if (!is_numeric($raw)) continue;
+                $conds[] = "$expr $op " . (float)$raw;
+            }
+        }
+        // fail-closed: 룰이 명시됐는데 유효조건이 하나도 안 붙었으면 전 고객 확장을 금지(0명).
+        if ($ruleGiven && count($conds) === 1) {
+            return 0;
         }
         $whereStr = implode(' AND ', $conds);
         $sidQ = (int)$sid;

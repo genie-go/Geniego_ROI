@@ -447,6 +447,52 @@ final class Mmm
      * 그리드서치(λ,κ) → R² 최대. 유효 κ는 정상상태 보정(κ_eff=κ·(1−λ))으로 흡수.
      * @return array|null  ['beta','kappa','lambda','r2','current_daily_spend','current_daily_revenue','total_spend','total_revenue','current_roas','marginal_roas','saturation','contribution']
      */
+    /**
+     * [282차 R3 MMM 계절성/외부통제변수] 매출을 광고반응과 **함께** 추세+주간/연간 Fourier 로 다중회귀 분해한다.
+     *   종전 baseline 은 스칼라 절편이라 시즌/추세/프로모 수요가 광고효과(β)로 오귀속될 여지가 있었다(Recast/Robyn 대비 갭).
+     *   통제행렬 Z=[절편·추세·주간 sin/cos·(span≥90d 시)연간 sin/cos]. 날짜/span 부족 시 null → 호출부 2-param 폴백(회귀0).
+     */
+    private static function buildControlMatrix(array $rows): ?array
+    {
+        $n = count($rows); if ($n < 21) return null;
+        $ts = [];
+        foreach ($rows as $r) { $d = strtotime((string)($r['date'] ?? '')); if ($d === false) return null; $ts[] = $d; }
+        $t0 = min($ts); $tN = max($ts); $span = ($tN - $t0) / 86400.0;
+        if ($span < 20) return null;
+        $intercept = array_fill(0, $n, 1.0); $trend = [];
+        foreach ($ts as $t) { $trend[] = $span > 0 ? (($t - $t0) / 86400.0) / $span : 0.0; }
+        $matrix = [$intercept, $trend]; $labels = ['intercept', 'trend'];
+        $ws = []; $wc = [];
+        foreach ($ts as $t) { $day = ($t - $t0) / 86400.0; $a = 2 * M_PI * $day / 7.0; $ws[] = sin($a); $wc[] = cos($a); }
+        $matrix[] = $ws; $matrix[] = $wc; $labels[] = 'weekly_sin'; $labels[] = 'weekly_cos';
+        if ($span >= 90) {
+            $ys = []; $yc = [];
+            foreach ($ts as $t) { $day = ($t - $t0) / 86400.0; $a = 2 * M_PI * $day / 365.25; $ys[] = sin($a); $yc[] = cos($a); }
+            $matrix[] = $ys; $matrix[] = $yc; $labels[] = 'yearly_sin'; $labels[] = 'yearly_cos';
+        }
+        return ['cols' => $matrix, 'labels' => $labels, 'span' => $span];
+    }
+
+    /** 정규방정식 릿지 OLS: $Xcols(p개의 n-길이 컬럼), $y(n) → 계수 p개 | null(특이). 부분피벗 가우스소거. */
+    private static function solveOLS(array $Xcols, array $y, float $ridge = 1e-6): ?array
+    {
+        $p = count($Xcols); if ($p === 0) return null; $n = count($y);
+        $A = []; $b = [];
+        for ($i = 0; $i < $p; $i++) {
+            $bi = 0.0; for ($k = 0; $k < $n; $k++) $bi += $Xcols[$i][$k] * $y[$k]; $b[$i] = $bi;
+            $A[$i] = [];
+            for ($j = 0; $j < $p; $j++) { $s = 0.0; for ($k = 0; $k < $n; $k++) $s += $Xcols[$i][$k] * $Xcols[$j][$k]; $A[$i][$j] = $s + ($i === $j ? $ridge : 0.0); }
+        }
+        for ($col = 0; $col < $p; $col++) {
+            $piv = $col; for ($r = $col + 1; $r < $p; $r++) if (abs($A[$r][$col]) > abs($A[$piv][$col])) $piv = $r;
+            if (abs($A[$piv][$col]) < 1e-12) return null;
+            if ($piv !== $col) { $tmp = $A[$piv]; $A[$piv] = $A[$col]; $A[$col] = $tmp; $tb = $b[$piv]; $b[$piv] = $b[$col]; $b[$col] = $tb; }
+            for ($r = 0; $r < $p; $r++) { if ($r === $col) continue; $f = $A[$r][$col] / $A[$col][$col]; for ($c = $col; $c < $p; $c++) $A[$r][$c] -= $f * $A[$col][$c]; $b[$r] -= $f * $b[$col]; }
+        }
+        $coef = []; for ($i = 0; $i < $p; $i++) $coef[$i] = $b[$i] / $A[$i][$i];
+        return $coef;
+    }
+
     private static function fitChannel(array $rows): ?array
     {
         $n = count($rows);
@@ -462,26 +508,49 @@ final class Mmm
         $meanRev = $totalRev / $n; $ssTot = 0.0;
         foreach ($rev as $rv) $ssTot += ($rv - $meanRev) ** 2;
 
+        // [282차 R3] 계절성/추세 통제행렬(가능 시). null 이면 기존 2-param 절편회귀로 폴백(회귀0).
+        $ctrl = self::buildControlMatrix($rows);
+
         // [Robyn식 하이퍼파라미터 자동탐색] 단일 (λ,κ) 적합 평가 — adstock+포화 최소제곱. 반환 [beta,r2,sse,...] | null.
-        $evalFit = function (float $lam, float $kap) use ($spend, $rev, $n, $ssTot): ?array {
+        //   [282차 R3] 통제행렬 있으면 [절편·추세·Fourier | sat] 다중회귀로 계절/추세를 광고와 분리 적합(오귀속 방지).
+        $evalFit = function (float $lam, float $kap) use ($spend, $rev, $n, $ssTot, $ctrl): ?array {
             if ($kap <= 0 || $lam < 0 || $lam >= 0.97) return null;
             $ad = []; $prev = 0.0;
             foreach ($spend as $s) { $prev = $s + $lam * $prev; $ad[] = $prev; }
-            // [현 차수 P2] ★organic baseline 절편 포함 2-파라미터 OLS(rev = base + beta·sat).
-            //   기존 원점회귀(base=0)는 beta 가 organic(무광고) 매출까지 흡수 → marginal ROAS·광고기여 과대·과잉예산 유발.
-            //   rev 를 sat 에 대해 절편 포함 최소제곱 회귀. base<0(구석해)는 0 클램프(음의 유기매출 방지).
+            $sat = []; foreach ($ad as $x) $sat[] = 1.0 - exp(-$x / $kap);
+
+            if ($ctrl !== null) {
+                // 다중회귀: X = [통제 컬럼들, sat]. β = sat 계수, baseline(t) = 통제 기여.
+                $Xcols = $ctrl['cols']; $Xcols[] = $sat; $p = count($Xcols);
+                $coef = self::solveOLS($Xcols, $rev, 1e-4);
+                if ($coef === null) { $ctrlLocal = null; } // 특이 → 아래 2-param 폴백
+                else {
+                    $beta = $coef[$p - 1];
+                    if ($beta <= 0) return null; // 음의 광고효과 = 무의미
+                    $sse = 0.0; $baseSum = 0.0;
+                    for ($i = 0; $i < $n; $i++) {
+                        $pred = 0.0; for ($j = 0; $j < $p; $j++) $pred += $coef[$j] * $Xcols[$j][$i];
+                        $sse += ($rev[$i] - $pred) ** 2;
+                        $baseSum += ($pred - $beta * $sat[$i]); // 광고 제외 = baseline(t)
+                    }
+                    $r2 = $ssTot > 1e-9 ? (1.0 - $sse / $ssTot) : 0.0;
+                    $base = $baseSum / $n; if ($base < 0) $base = 0.0;
+                    return ['beta' => $beta, 'base' => $base, 'r2' => $r2, 'sse' => $sse, 'lambda' => $lam, 'kappa_raw' => $kap, 'seasonal' => true];
+                }
+            }
+            // 기존 2-param 절편회귀(rev = base + beta·sat) — 통제행렬 없음/특이 시.
             $sSat = 0.0; $sRev = 0.0; $sSatSat = 0.0; $sRevSat = 0.0;
-            foreach ($ad as $i => $x) { $sat = 1.0 - exp(-$x / $kap); $sSat += $sat; $sRev += $rev[$i]; $sSatSat += $sat * $sat; $sRevSat += $rev[$i] * $sat; }
+            foreach ($sat as $i => $st) { $sSat += $st; $sRev += $rev[$i]; $sSatSat += $st * $st; $sRevSat += $rev[$i] * $st; }
             $den = $n * $sSatSat - $sSat * $sSat;
             if (abs($den) <= 1e-9) return null;
             $beta = ($n * $sRevSat - $sRev * $sSat) / $den;
             if ($beta <= 0) return null;
             $base = ($sRev - $beta * $sSat) / $n;
-            if ($base < 0) { $base = 0.0; $beta = $sSatSat > 1e-9 ? $sRevSat / $sSatSat : $beta; if ($beta <= 0) return null; } // base=0 재적합(원점회귀)
+            if ($base < 0) { $base = 0.0; $beta = $sSatSat > 1e-9 ? $sRevSat / $sSatSat : $beta; if ($beta <= 0) return null; }
             $sse = 0.0;
-            foreach ($ad as $i => $x) { $pred = $base + $beta * (1.0 - exp(-$x / $kap)); $sse += ($rev[$i] - $pred) ** 2; }
+            foreach ($sat as $i => $st) { $pred = $base + $beta * $st; $sse += ($rev[$i] - $pred) ** 2; }
             $r2 = $ssTot > 1e-9 ? (1.0 - $sse / $ssTot) : 0.0;
-            return ['beta' => $beta, 'base' => $base, 'r2' => $r2, 'sse' => $sse, 'lambda' => $lam, 'kappa_raw' => $kap];
+            return ['beta' => $beta, 'base' => $base, 'r2' => $r2, 'sse' => $sse, 'lambda' => $lam, 'kappa_raw' => $kap, 'seasonal' => false];
         };
         // 1) coarse 그리드(λ 9 × κ 7) → 2) best 주변 fine 정제(coarse→fine, 고정 28→적응형 88+). 결정론·R²는 단조 개선.
         $best = null;
@@ -500,6 +569,7 @@ final class Mmm
         $lamBest = $best['lambda']; $kapRaw = $best['kappa_raw'];
         $kappaEff = $kapRaw * (1.0 - $lamBest); if ($kappaEff <= 0) $kappaEff = $kapRaw;
         $nrmse = $meanRev > 0 ? sqrt($best['sse'] / $n) / $meanRev : 0.0; // Robyn 기본 지표(정규화 RMSE=상대오차)
+        $seasonalUsed = !empty($best['seasonal']); // [282차 R3] 계절성/추세 통제 적합 사용 여부
         $best = ['beta' => $best['beta'], 'base' => $best['base'] ?? 0.0, 'kappa' => $kappaEff, 'lambda' => $lamBest, 'r2' => $best['r2'], 'nrmse' => $nrmse];
 
         $beta = $best['beta']; $kappa = $best['kappa']; $baseline = $best['base'];
@@ -523,6 +593,7 @@ final class Mmm
             'contribution' => round($curRev, 2), // 현 지출에서의 광고 기여 매출(일, organic 제외)
             'baseline' => round($baseline, 2),   // [현 차수 P2] 유기(무광고) 일매출 절편 — 광고기여와 분리 노출
             'baseline_daily' => round($baseline, 2),
+            'seasonality_controlled' => $seasonalUsed, // [282차 R3] 추세+주간/연간 Fourier 통제 적합 여부(계절 오귀속 방지)
         ];
     }
 

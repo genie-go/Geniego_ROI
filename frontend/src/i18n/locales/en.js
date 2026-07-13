@@ -9990,7 +9990,7 @@ export default {
     vizTable: "Table", vizBar: "Bar", vizLine: "Line", vizDonut: "Donut", vizStacked: "Stacked bar", vizCombo: "Combo (bar + line)", vizArea: "Area", vizHeatmap: "Heatmap",
     heatmapNeedsBreakdown: "Heatmap needs a secondary (pivot) dimension. Select one above.",
     chartNeedsSingleDim: "This chart supports a single dimension only. View pivot data as a table or heatmap.",
-    "srcSettlement": "Settlement / Net Profit","srcCommerce": "Orders / Sales","srcAds": "Ad Performance","source": "Data Source","dimPeriod": "Monthly","mMargin": "Margin %","mProfit": "Profit","mUnits": "Units","mAov": "AOV","mFeeRate": "Fee Rate %","mNetProfit": "Net Profit","mReturns": "Returns","mOrders": "Orders","mReturnFee": "Return fee","mCoupon": "Coupon discount","mAdFee": "Ad spend deducted","mPlatformFee": "Platform fee","mNetPayout": "Net payout","mGross": "Revenue",
+    "srcSettlement": "Settlement / Net Profit","srcCommerce": "Orders / Sales","srcAds": "Ad Performance","source": "Data Source","dimPeriod": "Monthly","mMargin": "Margin %","mProfit": "Profit","mUnits": "Units","mAov": "AOV","mFeeRate": "Fee Rate %","mNetProfit": "Settlement net (payout − ad fee)","mReturns": "Returns","mOrders": "Orders","mReturnFee": "Return fee","mCoupon": "Coupon discount","mAdFee": "Ad spend deducted","mPlatformFee": "Platform fee","mNetPayout": "Net payout","mGross": "Revenue",
     "tabCustom": "Custom Analysis",
     "mSpend": "Ad Spend",
     "mRevenue": "Revenue",

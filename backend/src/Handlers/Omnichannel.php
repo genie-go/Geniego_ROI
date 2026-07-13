@@ -425,9 +425,12 @@ final class Omnichannel
         $anyAttempt = false; $lastErr = null;
         $uid = (int)($cust['id'] ?? 0);
         foreach ($channels as $ch) {
-            // [현 차수] 선호센터 채널 옵트아웃 게이트 — 수신자가 해당 채널을 거부했으면 폴백(다음 채널).
-            //   옵트아웃 모델(무회귀): 명시적 opted_in=0 행이 없으면 기존과 동일하게 발송. 전부 테넌트 스코프.
-            if (!PreferenceCenter::isChannelAllowed($pdo, $tenant, $uid, $ch, $email)) { continue; }
+            // [282차 E-P2] 통합 발송게이트 SSOT 로 통일 — 종전엔 채널 옵트아웃만 봤고 RuleEngine frequency_window
+            //   (관리자 설정 일/주 크로스채널 캡)을 우회해 옴니 캠페인만 과발송됐다(형제 Email/Kakao/SMS/Journey 는
+            //   전부 isMarketingSendAllowed 경유). isMarketingSendAllowed = 옵트아웃+suppression+quiet+빈도캡+freq_window
+            //   단일 게이트. 수신자 quiet/캡은 배치 상위(302/322/326)서 이미 통과했으므로 실질 신규 차단은 freq_window 뿐(무회귀).
+            $gate = CRM::isMarketingSendAllowed($tenant, $uid, $ch, ['email' => $email]);
+            if (!$gate['allowed']) { continue; }
             if ($ch === 'whatsapp') {
                 if ($phone === '') continue;
                 $tpl = (string)($config['whatsapp_template'] ?? '');

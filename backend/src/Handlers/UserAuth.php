@@ -614,6 +614,19 @@ final class UserAuth
             if ($uRow) { $finalPlan = $uRow['plan'] ?? 'free'; $finalExpires = $uRow['subscription_expires_at'] ?? null; }
         } catch (\Throwable $e) {}
 
+        // [282차 R3 추천인 제도] 추천코드로 "구독플랜(유료) 신규가입"이 이뤄졌으면 추천인(기존 구독회원)에게
+        //   1개월 PRO 보상쿠폰을 자동발급(잠금·1년유효). ★무료데모 자동PRO체험($autoProTrial)은 실 구독 아님 → 제외.
+        //   ★비차단(예외 삼킴)·피추천 1명당 1회(referral_signup.referred_user_id UNIQUE)로 절대 중복 없음.
+        $referralResult = null;
+        if ($userId > 0) {
+            $refCode = trim((string)($body['referral_code'] ?? $body['referral'] ?? $body['ref_code'] ?? ''));
+            if ($refCode !== '') {
+                $isRealSubscription = $isPaidSignup && !$autoProTrial;
+                try { $referralResult = \Genie\Handlers\Referral::applyOnSignup($pdo, $userId, $email, $refCode, $isRealSubscription); }
+                catch (\Throwable $e) { error_log('[register] Referral: ' . $e->getMessage()); }
+            }
+        }
+
         self::audit($req, 'register', '회원가입: ' . $email, 'low', ['id' => $userId, 'email' => $email, 'plan' => $finalPlan, 'tenant_id' => $tenantId]);
 
         // [현 차수 초고도화] 플랫폼 자체 성장 퍼널 자동 적재 — 실 가입을 platform_growth 리드/이벤트로 기록
@@ -662,6 +675,10 @@ final class UserAuth
                 'duration_days' => $couponResult['duration_days'],
                 'expires_at'    => $couponResult['expires_at'],
                 'message'       => "\ud83c\udf81 \uc2e0\uaddc\uac00\uc785 \ud658\uc601! {$couponResult['plan']} \ud50c\ub79c {$couponResult['duration_days']}\uc77c \ubb34\ub8cc \uc774\uc6a9\uad8c\uc774 \uc989\uc2dc \uc801\uc6a9\ub418\uc5c8\uc2b5\ub2c8\ub2e4.",
+            ] : null,
+            'referral' => is_array($referralResult) ? [
+                'applied' => (bool)($referralResult['applied'] ?? false),
+                'reason'  => (string)($referralResult['reason'] ?? ''),
             ] : null,
         ], 201);
     }
@@ -1902,7 +1919,11 @@ final class UserAuth
         try {
             $pdo->prepare("INSERT INTO subscription_ledger (user_id,email,plan,cycle,unit_price,started_at,expires_at,refunded,retro_applied,created_at) VALUES (?,?,?,?,?,?,?,0,0,?)")
                 ->execute([$userId, $email, $plan, $cycle, $unitPrice, $now, $expiresAt, $now]);
-        } catch (\Throwable $e) {}
+        } catch (\Throwable $e) {
+            // [282차 I-P2] 만료일(app_user)은 위에서 선반영이라 접근권 무손실이나, MRR/소급환불 원장행 소실은
+            //   매출 대사를 불가하게 하므로 관측 로그를 남긴다.
+            error_log('[UserAuth.subscription_ledger] INSERT 실패(user=' . $userId . '): ' . $e->getMessage());
+        }
         return [$expiresAt, $retro];
     }
 

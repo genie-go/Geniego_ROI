@@ -571,7 +571,9 @@ class Reports
         $name = trim((string)($b['name'] ?? ''));
         if ($name === '') return self::json($res, ['ok' => false, 'error' => 'name_required'], 400);
         $cfg = (array)($b['config'] ?? []);
-        $viz = in_array(($b['viz'] ?? 'table'), ['table', 'bar', 'line', 'donut'], true) ? (string)$b['viz'] : 'table';
+        // [282차 R2 P2] 프론트 제공 8종과 정합 — 종전 4종 화이트리스트가 stacked/combo/area/heatmap 저장을
+        //   조용히 table 로 강등해 저장 리포트 재열람 시 차트유형이 소실됐다(ReportBuilder.jsx VIZ 집합과 통일).
+        $viz = in_array(($b['viz'] ?? 'table'), ['table', 'bar', 'line', 'donut', 'stacked', 'combo', 'area', 'heatmap'], true) ? (string)$b['viz'] : 'table';
         self::db()->prepare("INSERT INTO saved_report(tenant_id,name,config,viz,created_at) VALUES(?,?,?,?,?)")
             ->execute([self::tenant($req), mb_substr($name, 0, 200), json_encode($cfg, JSON_UNESCAPED_UNICODE), $viz, self::now()]);
         return self::json($res, ['ok' => true, 'id' => (int)self::db()->lastInsertId()]);

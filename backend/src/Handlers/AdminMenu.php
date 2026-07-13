@@ -278,6 +278,10 @@ final class AdminMenu
                 $lastMod = $r['updated_at'];
             }
         }
+        // [282차 R2 MED] "공장 기본값 복원(reset)" 항상 404 근본수정 — menu_defaults 에 스냅샷을 기록하는 코드가
+        //   어디에도 없어(CREATE+SELECT 만 존재) defaultsAvailable 이 늘 false·reset 이 항상 404 였다.
+        //   최초 admin 조회 시점의 현 menu_tree 를 baseline 스냅샷으로 1회 캡처 → 이후 롤백 지점 제공(seed-if-empty).
+        self::seedDefaultsIfEmpty($g['pdo'], $rows);
 
         return self::json($resp, [
             'tree'              => $rows,
@@ -285,6 +289,25 @@ final class AdminMenu
             'defaults_available'=> self::defaultsAvailable($g['pdo']),
             'last_modified'     => $lastMod,
         ]);
+    }
+
+    /** [282차 R2] menu_defaults 가 비어있고 현 트리에 행이 있으면 baseline 스냅샷 1회 캡처(reset 롤백 지점). */
+    private static function seedDefaultsIfEmpty(\PDO $pdo, array $rows): void
+    {
+        try {
+            if (empty($rows) || self::defaultsAvailable($pdo)) return;
+            $snap = array_map(static function ($r) {
+                return [
+                    'id'=>$r['id'] ?? null, 'parent_id'=>$r['parent_id'] ?? null, 'label_key'=>$r['label_key'] ?? '',
+                    'icon'=>$r['icon'] ?? '', 'route'=>$r['route'] ?? '', 'menu_key'=>$r['menu_key'] ?? '',
+                    'display_order'=>(int)($r['display_order'] ?? 0), 'visibility'=>$r['visibility'] ?? 'visible',
+                    'required_plan'=>$r['required_plan'] ?? '', 'required_role'=>$r['required_role'] ?? '',
+                    'is_admin_only'=>(int)($r['is_admin_only'] ?? 0),
+                ];
+            }, $rows);
+            $pdo->prepare("INSERT INTO menu_defaults(id, snapshot_data, version, created_at) VALUES(?,?,?,?)")
+                ->execute(['baseline-' . gmdate('YmdHis'), json_encode($snap, JSON_UNESCAPED_UNICODE), 'baseline', gmdate('c')]);
+        } catch (\Throwable $e) { error_log('[AdminMenu.seedDefaultsIfEmpty] ' . $e->getMessage()); }
     }
 
     private static function defaultsAvailable(\PDO $pdo): bool

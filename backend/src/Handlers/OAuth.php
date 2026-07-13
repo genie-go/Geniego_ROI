@@ -48,6 +48,10 @@ class OAuth
         'tiktok'   => ['auth' => 'https://business-api.tiktok.com/portal/auth', 'token' => 'https://business-api.tiktok.com/open_api/v1.3/oauth2/access_token/', 'scope' => '', 'extra' => [], 'dialect' => 'tiktok_marketing'],
         'kakao'    => ['auth' => 'https://kauth.kakao.com/oauth/authorize', 'token' => 'https://kauth.kakao.com/oauth/token', 'scope' => 'talk_message', 'extra' => []],
         'naver'    => ['auth' => 'https://nid.naver.com/oauth2.0/authorize', 'token' => 'https://nid.naver.com/oauth2.0/token', 'scope' => '', 'extra' => []],
+        // [282차 R3] Twitch(라이브 커머스 멀티송출) — 표준 OAuth2. 브로드캐스터 팔로워 통계 스코프(moderator:read:followers).
+        //   ※채널 조회수/동시시청자는 client_credentials(app token)로도 조회(fetchTwitchStats). 이 OAuth 는 팔로워수 등
+        //     브로드캐스터 권한 데이터용. Twitch 앱 등록 시 요구되는 OAuth Redirect URL = redirectUri() 값과 동일.
+        'twitch'   => ['auth' => 'https://id.twitch.tv/oauth2/authorize', 'token' => 'https://id.twitch.tv/oauth2/token', 'scope' => 'moderator:read:followers', 'extra' => []],
     ];
 
     private static function db(): \PDO { return Db::pdo(); }

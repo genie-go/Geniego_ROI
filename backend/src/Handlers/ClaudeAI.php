@@ -21,6 +21,24 @@ final class ClaudeAI {
     private const API_URL = 'https://api.anthropic.com/v1/messages';
     private const MAX_TOKENS = 4096;
 
+    /**
+     * [282차 F-P1 저장형 XSS 심층방어] 클라이언트가 제출한 소재 SVG 에서 활성 콘텐츠(스크립트/이벤트핸들러)를
+     *   저장 전에 제거한다. 프론트 렌더는 DOMPurify 로 이미 방어되나(근본), 서버 저장측도 정화해 이중방어.
+     *   정상 크리에이티브 SVG(도형/텍스트/gradient)는 보존하고 <script>/<foreignObject>/on*=/javascript: 만 제거.
+     */
+    public static function stripActiveSvg(string $svg): string {
+        if ($svg === '') return '';
+        // data:image (base64 래스터)는 마크업이 아니므로 그대로 통과.
+        if (stripos($svg, '<svg') === false && stripos($svg, '<script') === false) return $svg;
+        $s = preg_replace('#<script\b[^>]*>.*?</script>#is', '', $svg);
+        $s = preg_replace('#<foreignObject\b[^>]*>.*?</foreignObject>#is', '', (string)$s);
+        // 인라인 이벤트 핸들러 속성 제거(onload/onerror/onclick 등).
+        $s = preg_replace('#\son[a-z]+\s*=\s*("[^"]*"|\'[^\']*\'|[^\s>]+)#i', '', (string)$s);
+        // href/xlink:href 내 javascript: 스킴 무력화.
+        $s = preg_replace('#(href\s*=\s*["\']?)\s*javascript:#i', '$1#', (string)$s);
+        return (string)$s;
+    }
+
     /* ── 환경변수 or 하드코딩 fallback ─────────────────────── */
     private static function apiKey(): string {
         $env = getenv('CLAUDE_API_KEY');
@@ -2918,7 +2936,7 @@ PROMPT;
                 mb_substr((string)($data['product_description'] ?? ''),0,2000),
                 (string)($design['channel'] ?? ''),
                 json_encode($design, JSON_UNESCAPED_UNICODE),
-                (string)($data['svg'] ?? $data['image'] ?? ''),
+                self::stripActiveSvg((string)($data['svg'] ?? $data['image'] ?? '')),
                 $status, $now, $periodStart, $periodEnd,
             ]);
             $msg = $status === 'draft'

@@ -48,9 +48,10 @@ final class CouponRedeem
         }
 
         $pdo = Db::pdo();
+        Db::ensureCouponTables($pdo); // [282차 R3] valid_until 컬럼 보강(선존재 테이블)
         $stmt = $pdo->prepare(
             'SELECT id, code, plan, duration_days, max_uses, use_count,
-                    issued_to_user_id, issued_to_email, is_revoked, redeemed_at
+                    issued_to_user_id, issued_to_email, is_revoked, redeemed_at, valid_until, usable_from
              FROM free_coupons WHERE code = ? LIMIT 1'
         );
         $stmt->execute([$code]);
@@ -63,6 +64,23 @@ final class CouponRedeem
         if ((int)$coupon['is_revoked'] === 1) {
             return self::json($res, ['error' => 'coupon_revoked', 'message' => '무효화된 쿠폰입니다.'], 403);
         }
+        // 1.5) [282차 R3 추천인제도] 유효기간(valid_until) 만료 검증 — 추천 보상쿠폰은 발급일+1년. NULL=무기한.
+        if (!empty($coupon['valid_until']) && strtotime((string)$coupon['valid_until']) <= time()) {
+            return self::json($res, ['error' => 'coupon_expired', 'message' => '쿠폰 유효기간이 만료되었습니다.'], 403);
+        }
+        // 1.6) [282차 R3 먹튀방지] 사용가능 시작일(usable_from) 잠금 — 추천 보상은 피추천 회원 1개월 유지 후 해제.
+        if (!empty($coupon['usable_from']) && strtotime((string)$coupon['usable_from']) > time()) {
+            return self::json($res, ['error' => 'coupon_locked',
+                'message' => '아직 사용할 수 없는 쿠폰입니다. 추천 회원의 구독 유지(1개월) 확인 후 사용 가능합니다.',
+                'usable_from' => (string)$coupon['usable_from']], 403);
+        }
+        // 1.7) [282차 R3 먹튀방지] 추천 보상쿠폰은 usable_from(30일) 경과 시점에도 피추천 회원이 여전히 활성
+        //   구독이어야 사용 가능(1개월만 쓰고 탈퇴하면 영구 잠금). 일반 쿠폰은 null → 무영향.
+        $retained = \Genie\Handlers\Referral::referredRetained($pdo, (int)$coupon['id']);
+        if ($retained === false) {
+            return self::json($res, ['error' => 'coupon_locked',
+                'message' => '추천하신 회원이 구독을 유지하지 않아 아직 보상을 사용할 수 없습니다.'], 403);
+        }
         // 2) use_count check
         if ((int)$coupon['use_count'] >= (int)$coupon['max_uses']) {
             return self::json($res, ['error' => 'coupon_exhausted', 'message' => '쿠폰 사용 한도 초과.'], 403);
@@ -70,6 +88,11 @@ final class CouponRedeem
         // 3) email mismatch check (대상자 지정 쿠폰)
         if (!empty($coupon['issued_to_email']) && strcasecmp($coupon['issued_to_email'], $email) !== 0) {
             return self::json($res, ['error' => 'coupon_email_mismatch', 'message' => '본 쿠폰은 다른 사용자 전용입니다.'], 403);
+        }
+        // 3.5) [282차 R3] user_id 지정 쿠폰 검증 — 종전엔 email 만 확인해, issued_to_user_id 만 있고 email 이 빈
+        //   대상지정 쿠폰(예: 추천 보상쿠폰=추천인 user_id 지정)을 코드만 알면 아무나 리딤할 수 있었다(보안 구멍).
+        if (!empty($coupon['issued_to_user_id']) && (int)$coupon['issued_to_user_id'] !== $userId) {
+            return self::json($res, ['error' => 'coupon_user_mismatch', 'message' => '본 쿠폰은 다른 사용자 전용입니다.'], 403);
         }
         // 4) 이미 같은 사용자가 redeem 했는지
         $dupStmt = $pdo->prepare(
@@ -80,25 +103,20 @@ final class CouponRedeem
             return self::json($res, ['error' => 'coupon_already_used', 'message' => '이미 사용한 쿠폰입니다.'], 403);
         }
 
-        // 4.5) admin / enterprise downgrade 방지 (172차 P0-C.3 긴급 fix)
-        //   admin/enterprise plan 인 user 가 쿠폰으로 starter/pro 받으면 권한 손실 발생.
-        //   이런 경우 거부 — 사용자 명시 요청 시 admin 이 직접 plan 조정.
-        $protectedPlans = ['admin', 'enterprise'];
+        // 4.5) [282차 R3] 다운그레이드 방지 — rank-max 로직(형제 CouponEngine::fire 와 정합).
+        //   종전엔 admin/enterprise 만 하드코딩 거부해, Pro(rank3) 고객이 starter(rank1) 쿠폰을 리딤하면
+        //   plan 이 starter 로 강등(메뉴접근 상실)됐다. 이제 적용 plan = max(현재, 쿠폰) 등급 → 절대 하락 없음.
+        //   현재 등급이 쿠폰보다 높으면 plan 은 유지하고 기간(만료일)만 연장한다(보상 소실 없음).
         $userPlanStmt = $pdo->prepare('SELECT plan FROM app_user WHERE id = ?');
         $userPlanStmt->execute([$userId]);
         $userCurrentPlan = (string)$userPlanStmt->fetchColumn();
-        if (in_array($userCurrentPlan, $protectedPlans, true)) {
-            return self::json($res, [
-                'error' => 'protected_plan',
-                'message' => "현재 {$userCurrentPlan} 플랜이라 쿠폰을 적용하면 권한이 다운그레이드됩니다. 관리자에게 문의하세요.",
-                'currentPlan' => $userCurrentPlan,
-                'couponPlan'  => $coupon['plan'],
-            ], 403);
-        }
+        $couponPlan = (string)$coupon['plan'];
+        $applyPlan = (\Genie\PlanPolicy::rank($couponPlan) >= \Genie\PlanPolicy::rank($userCurrentPlan))
+            ? $couponPlan : $userCurrentPlan;
 
         // 5) 적용 — subscription_expires_at 갱신 + free_coupons.use_count++
         $duration = (int)$coupon['duration_days'];
-        $plan     = (string)$coupon['plan'];
+        $plan     = $applyPlan;   // 등급하락 없는 실효 플랜
         $now      = gmdate('Y-m-d H:i:s');
 
         $pdo->beginTransaction();
@@ -165,8 +183,9 @@ final class CouponRedeem
         if ($code === '') return self::json($res, ['error' => 'invalid_code'], 422);
 
         $pdo = Db::pdo();
+        Db::ensureCouponTables($pdo);
         $stmt = $pdo->prepare(
-            'SELECT code, plan, duration_days, max_uses, use_count, issued_to_email, is_revoked, redeemed_at
+            'SELECT id, code, plan, duration_days, max_uses, use_count, issued_to_email, is_revoked, redeemed_at, valid_until, usable_from
              FROM free_coupons WHERE code = ? LIMIT 1'
         );
         $stmt->execute([$code]);
@@ -176,6 +195,17 @@ final class CouponRedeem
         }
         if ((int)$coupon['is_revoked'] === 1) {
             return self::json($res, ['ok' => false, 'reason' => 'revoked', 'message' => '무효화된 쿠폰입니다.']);
+        }
+        if (!empty($coupon['valid_until']) && strtotime((string)$coupon['valid_until']) <= time()) {
+            return self::json($res, ['ok' => false, 'reason' => 'expired', 'message' => '쿠폰 유효기간이 만료되었습니다.']);
+        }
+        if (!empty($coupon['usable_from']) && strtotime((string)$coupon['usable_from']) > time()) {
+            return self::json($res, ['ok' => false, 'reason' => 'locked', 'usable_from' => (string)$coupon['usable_from'],
+                'message' => '추천 회원의 구독 유지 확인 후 사용 가능합니다(잠금).']);
+        }
+        if (\Genie\Handlers\Referral::referredRetained($pdo, (int)$coupon['id']) === false) {
+            return self::json($res, ['ok' => false, 'reason' => 'locked',
+                'message' => '추천하신 회원이 구독을 유지하지 않아 아직 사용할 수 없습니다.']);
         }
         if ((int)$coupon['use_count'] >= (int)$coupon['max_uses']) {
             return self::json($res, ['ok' => false, 'reason' => 'exhausted', 'message' => '쿠폰 사용 한도 초과.']);

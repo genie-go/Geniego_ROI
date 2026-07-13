@@ -2359,7 +2359,7 @@ const BinLocationsTab = memo(function BinLocationsTab() {
         try { const r = await binsApi.list(); setBins(Array.isArray(r?.bins) ? r.bins : (Array.isArray(r?.rows) ? r.rows : (Array.isArray(r) ? r : []))); } catch (e) { /* keep */ }
     }, []);
     const reloadStock = useCallback(async () => {
-        try { const r = await binsApi.stock(); setBinStock(Array.isArray(r?.stock) ? r.stock : (Array.isArray(r?.rows) ? r.rows : (Array.isArray(r) ? r : []))); } catch (e) { /* keep */ }
+        try { const r = await binsApi.stock(); setBinStock(Array.isArray(r?.binStock) ? r.binStock : (Array.isArray(r?.stock) ? r.stock : (Array.isArray(r?.rows) ? r.rows : (Array.isArray(r) ? r : [])))); } catch (e) { /* keep */ }
     }, []);
     useEffect(() => { reload(); reloadStock(); }, [reload, reloadStock]);
 

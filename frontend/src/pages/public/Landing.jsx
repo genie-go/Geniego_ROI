@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { st } from "./siteI18n.js";
 import { LogoOrbit } from "../../layout/PremiumLayout.jsx";
 import { detectLang } from "../../i18n/index.js"; // [현 차수] navigator/저장 기반 초기 언어감지(영어 하드코딩 제거)
+import ReferralPromo from "../../components/ReferralPromo.jsx"; // [282차 R3] 추천인 제도 홍보(15국)
 
 /* [251차 Phase2 ②] 플랫폼 성장 — 랜딩 방문 이메일 캡처(비침습 하단 슬라이드인). 공개 /v424/growth/capture 호출
    → platform_growth 리드 자동생성(퍼널 최상단 유입). 자체 완결형(메인 컴포넌트 무영향)·1회 닫으면 재노출 안 함. */
@@ -2792,6 +2793,9 @@ export default function Landing() {
           </div>
         </div>
       </section>
+
+      {/* ═══ 추천인 제도 홍보 (15개국 현지어·보상 확실성 강조) ═══ */}
+      <ReferralPromo lang={lang} onCta={() => { window.location.href = "/login"; }} />
 
       {/* ═══ FOOTER ═══ */}
       <footer style={{ borderTop: "1px solid #eef2f7", background: "#fafbfc" }}>

@@ -176,21 +176,23 @@ function useSupplyLines(){
 const isDemoMode=IS_DEMO;// [현 차수 P2] 정본 IS_DEMO 사용(기존 useAuth().isDemoMode 는 빌드플래그만 봐 데모호스트에 운영빌드 배포 시 빈화면)
 const[lines,setLines]=useState(isDemoMode?DEMO_LINES:[]);
 const[suppliers,setSuppliers]=useState(isDemoMode?DEMO_SUPPLIERS:[]);
+const[summary,setSummary]=useState(null); // [282차 R3] 서버 집계(/supply/summary) — 공급업체 수=wms 통합 마스터 기준
 const[loading,setLoading]=useState(!isDemoMode);
 const reload=useCallback(async()=>{
   if(isDemoMode){setLines(DEMO_LINES);setSuppliers(DEMO_SUPPLIERS);setLoading(false);return;}
   setLoading(true);
   try{
-    const[lr,sr]=await Promise.all([getJsonAuth('/v420/supply/lines').catch(()=>({})),getJsonAuth('/v420/supply/suppliers').catch(()=>({}))]);
+    const[lr,sr,sm]=await Promise.all([getJsonAuth('/v420/supply/lines').catch(()=>({})),getJsonAuth('/v420/supply/suppliers').catch(()=>({})),getJsonAuth('/v420/supply/summary').catch(()=>null)]);
     const sups=((sr&&sr.suppliers)||[]).map(_mapSup);
     const byName={};sups.forEach(s=>{byName[s.name]=s;});
     setSuppliers(sups);
     setLines(((lr&&lr.lines)||[]).map(r=>_mapLine(r,byName)));
-  }catch(e){setLines([]);setSuppliers([]);}
+    setSummary(sm&&sm.ok?sm:null);
+  }catch(e){setLines([]);setSuppliers([]);setSummary(null);}
   finally{setLoading(false);}
 },[isDemoMode]);
 useEffect(()=>{reload();},[reload]);
-return{lines,suppliers,loading,reload,isDemoMode};
+return{lines,suppliers,summary,loading,reload,isDemoMode};
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -198,7 +200,13 @@ return{lines,suppliers,loading,reload,isDemoMode};
    ══════════════════════════════════════════════════════════════ */
 const _emptyLine=()=>({sku:'',name:'',supplier:'',leadTime:14,risk:'normal'});
 function TimelineTab({tr,fmt}){
-const{lines,suppliers,loading,reload,isDemoMode}=useSupplyLines();
+const{lines,suppliers,summary,loading,reload,isDemoMode}=useSupplyLines();
+// [282차 R3] 라인 편집(updateLine PUT) 상태 — 공급선의 공급업체/리드타임/리스크 인플레이스 수정.
+const[editLine,setEditLine]=useState(null); // {lineDbId,supplier,leadTime,risk}
+const saveEditLine=async()=>{ if(!editLine?.lineDbId)return;
+  try{ await requestJsonAuth(`/v420/supply/lines/${editLine.lineDbId}`,'PUT',{supplier:editLine.supplier,leadTime:Number(editLine.leadTime)||0,risk:editLine.risk}); setEditLine(null); await reload(); }
+  catch(e){ setEditLine(null); }
+};
 // [현 차수] 전역 상품선택 → 그 SKU 공급선을 상단 정렬·강조(KPI는 전체 보존·실시간 동기화). 중복 메뉴 없이 기존 타임라인 재사용.
 const{selectedProduct}=useProductSelection();
 const vLines=selectedProduct?.sku?[...lines].sort((a,b)=>(String(b.sku)===selectedProduct.sku?1:0)-(String(a.sku)===selectedProduct.sku?1:0)):lines;
@@ -247,7 +255,8 @@ return(
 <ProductScopeNotice scope="list" />
 {/* KPI Cards */}
 <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(180px,1fr))',gap:12}}>
-{[{l:tr('kpiLines'),v:lines.length,c:'#4f8ef7',i:'📦'},{l:tr('kpiSuppliers'),v:new Set(lines.map(x=>x.supplier)).size,c:'#22c55e',i:'🏭'},{l:tr('kpiHighRisk'),v:lines.filter(x=>x.risk==='high').length,c:'#ef4444',i:'⚠️'},{l:tr('kpiAvgLead'),v:Math.round(lines.reduce((s,x)=>s+x.leadTime,0)/lines.length)+' '+tr('days'),c:'#a855f7',i:'⏱'},{l:tr('kpiOnTime'),v:Math.round(lines.filter(x=>x.risk!=='high').length/lines.length*100)+'%',c:'#14b8a6',i:'✅'}].map((k,i)=>(
+{/* [282차 R3] 공급업체 수 = 서버 summary(wms 통합 마스터) 우선, 없으면 클라 라인 기준 폴백 */}
+{[{l:tr('kpiLines'),v:lines.length,c:'#4f8ef7',i:'📦'},{l:tr('kpiSuppliers'),v:(summary&&Number.isFinite(summary.suppliers))?summary.suppliers:new Set(lines.map(x=>x.supplier)).size,c:'#22c55e',i:'🏭'},{l:tr('kpiHighRisk'),v:lines.filter(x=>x.risk==='high').length,c:'#ef4444',i:'⚠️'},{l:tr('kpiAvgLead'),v:Math.round(lines.reduce((s,x)=>s+x.leadTime,0)/lines.length)+' '+tr('days'),c:'#a855f7',i:'⏱'},{l:tr('kpiOnTime'),v:Math.round(lines.filter(x=>x.risk!=='high').length/lines.length*100)+'%',c:'#14b8a6',i:'✅'}].map((k,i)=>(
 <div key={i} className="card card-glass" style={{padding:16,borderLeft:'3px solid '+k.c,color:'#1e293b'}}>
 <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}><span style={{fontSize:10,fontWeight:700,color:'#94a3b8',textTransform:'uppercase',letterSpacing:0.5}}>{k.l}</span><span style={{fontSize:16}}>{k.i}</span></div>
 <div style={{fontSize:20,fontWeight:900,color:k.c}}>{k.v}</div>
@@ -265,6 +274,7 @@ return(
 <div style={{display:'flex',gap:8,alignItems:'center'}}>
 <span style={{fontSize:11,fontWeight:700,padding:'3px 10px',borderRadius:20,background:riskClr+'18',color:riskClr,border:'1px solid '+riskClr+'30'}}>{ln.risk==='high'?tr('highRisk'):tr('normal')}</span>
 <span style={{fontSize:11,color:'#64748b'}}>{tr('leadTime')}: {ln.leadTime}{tr('days')}</span>
+{!isDemoMode&&ln.lineDbId&&<button onClick={()=>setEditLine({lineDbId:ln.lineDbId,supplier:ln.supplier||'',leadTime:ln.leadTime||0,risk:ln.risk||'normal'})} title={tr('editLine','편집')} style={{fontSize:11,padding:'3px 9px',borderRadius:7,border:'1px solid #e2e8f0',background:'#fff',color:'#475569',cursor:'pointer',fontWeight:700}}>✏️</button>}
 </div>
 </div>
 {/* Stage Progress Bar */}
@@ -280,6 +290,27 @@ return(
 </div>);})}
 </div>
 {addModal}
+{/* [282차 R3] 라인 편집 모달 — updateLine PUT 배선(공급업체/리드타임/리스크) */}
+{editLine&&(
+<div onClick={()=>setEditLine(null)} style={{position:'fixed',inset:0,background:'rgba(15,23,42,0.45)',display:'grid',placeItems:'center',zIndex:1000}}>
+<div onClick={e=>e.stopPropagation()} className="card" style={{background:'#fff',padding:22,borderRadius:14,width:340,maxWidth:'92vw'}}>
+<div style={{fontSize:15,fontWeight:800,marginBottom:14,color:'#1e293b'}}>{tr('editLine','공급선 편집')}</div>
+<label style={{fontSize:11,fontWeight:700,color:'#64748b'}}>{tr('supplier')}</label>
+<input value={editLine.supplier} onChange={e=>setEditLine(v=>({...v,supplier:e.target.value}))} style={{width:'100%',padding:'9px 12px',borderRadius:9,border:'1px solid #e2e8f0',margin:'4px 0 12px',fontSize:13}}/>
+<label style={{fontSize:11,fontWeight:700,color:'#64748b'}}>{tr('leadTime')} ({tr('days')})</label>
+<input type="number" value={editLine.leadTime} onChange={e=>setEditLine(v=>({...v,leadTime:e.target.value}))} style={{width:'100%',padding:'9px 12px',borderRadius:9,border:'1px solid #e2e8f0',margin:'4px 0 12px',fontSize:13}}/>
+<label style={{fontSize:11,fontWeight:700,color:'#64748b'}}>{tr('risk','리스크')}</label>
+<select value={editLine.risk} onChange={e=>setEditLine(v=>({...v,risk:e.target.value}))} style={{width:'100%',padding:'9px 12px',borderRadius:9,border:'1px solid #e2e8f0',margin:'4px 0 16px',fontSize:13}}>
+<option value="normal">{tr('normal')}</option>
+<option value="high">{tr('highRisk')}</option>
+</select>
+<div style={{display:'flex',gap:8,justifyContent:'flex-end'}}>
+<button onClick={()=>setEditLine(null)} style={{padding:'8px 16px',borderRadius:9,border:'1px solid #e2e8f0',background:'#fff',color:'#475569',cursor:'pointer',fontWeight:700,fontSize:13}}>{tr('cancel','취소')}</button>
+<button onClick={saveEditLine} style={{padding:'8px 18px',borderRadius:9,border:'none',background:'linear-gradient(135deg,#4f8ef7,#6366f1)',color:'#fff',cursor:'pointer',fontWeight:700,fontSize:13}}>{tr('save','저장')}</button>
+</div>
+</div>
+</div>
+)}
 </div>);
 }
 

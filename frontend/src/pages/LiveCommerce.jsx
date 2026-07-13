@@ -269,6 +269,7 @@ export default function LiveCommerce() {
   const [activeId, setActiveId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState('');
+  const [overview, setOverview] = useState(null); // [282차 R3] /live/overview 서버 집계(세션·라이브중·주문·매출)
 
   const active = useMemo(() => sessions.find(s => s.id === activeId) || null, [sessions, activeId]);
 
@@ -278,6 +279,7 @@ export default function LiveCommerce() {
       const r = await liveApi.listSessions();
       const list = Array.isArray(r?.sessions) ? r.sessions : [];
       setSessions(list);
+      liveApi.getOverview().then(o => { if (o && o.overview) setOverview(o.overview); }).catch(() => {}); // [282차 R3] 서버 KPI 집계
       setActiveId(prev => {
         if (prev && list.some(s => s.id === prev)) return prev;
         const live = list.find(s => s.status === 'live');
@@ -327,6 +329,23 @@ export default function LiveCommerce() {
       {/* [현 차수] 특정상품 조회 — 전역 동기화. 선택 시 그 상품 매출·순이익·채널/국가별 인라인. */}
       <ProductSelectBar />
       <ProductMarketingPanel period="monthly" />
+
+      {/* [282차 R3] 라이브커머스 서버 KPI 집계(/live/overview) — 종전 소비 0이던 엔드포인트 배선 */}
+      {overview && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(150px,1fr))', gap: 10, marginBottom: 16 }}>
+          {[
+            { l: t('liveCommerce.kpiSessions', '전체 방송'), v: overview.total_sessions ?? 0, i: '📺' },
+            { l: t('liveCommerce.kpiLiveNow', '라이브 중'), v: overview.live_now ?? 0, i: '🔴' },
+            { l: t('liveCommerce.kpiOrders', '방송 주문'), v: overview.total_orders ?? 0, i: '🛒' },
+            { l: t('liveCommerce.kpiRevenue', '방송 매출'), v: money(overview.total_revenue ?? 0), i: '💰' },
+          ].map((k, i) => (
+            <div key={i} style={{ padding: '12px 14px', borderRadius: 12, background: C.card, border: `1px solid ${C.border}` }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: C.sub, textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 4 }}>{k.i} {k.l}</div>
+              <div style={{ fontSize: 18, fontWeight: 900, color: C.text }}>{k.v}</div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* 탭 바 */}
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', borderBottom: `2px solid ${C.border}`, marginBottom: 18 }}>

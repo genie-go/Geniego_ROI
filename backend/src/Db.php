@@ -340,6 +340,19 @@ final class Db
                 $pdo->exec("CREATE TABLE IF NOT EXISTS free_coupons (id INTEGER PRIMARY KEY AUTOINCREMENT, code TEXT NOT NULL UNIQUE, plan TEXT NOT NULL DEFAULT 'starter', duration_days INTEGER NOT NULL DEFAULT 30, max_uses INTEGER NOT NULL DEFAULT 1, use_count INTEGER NOT NULL DEFAULT 0, issued_to_user_id INTEGER NULL, issued_to_email TEXT NULL, issued_by INTEGER NOT NULL DEFAULT 0, note TEXT NULL, is_revoked INTEGER NOT NULL DEFAULT 0, redeemed_at TEXT NULL, redeemed_by_user_id INTEGER NULL, created_at TEXT NOT NULL DEFAULT (datetime('now')))");
                 $pdo->exec("CREATE TABLE IF NOT EXISTS coupon_redemptions (id INTEGER PRIMARY KEY AUTOINCREMENT, coupon_id INTEGER NOT NULL, user_id INTEGER NOT NULL, plan TEXT NOT NULL, expires_at TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT (datetime('now')), UNIQUE(coupon_id, user_id))");
             }
+            // [282차 R3 추천인제도] 쿠폰 사용 마감(발급일+유효기간). 종전 free_coupons 는 만료 개념이 없어
+            //   "추천일로부터 1년 유효" 같은 기간제 쿠폰을 강제할 수 없었다. 멱등 ADD COLUMN(선존재 테이블 보강).
+            //   NULL = 무기한(기존 쿠폰 회귀0). CouponRedeem 가 now > valid_until 이면 거부.
+            $addCol = self::isMySQL($pdo)
+                ? "ALTER TABLE free_coupons ADD COLUMN valid_until DATETIME NULL"
+                : "ALTER TABLE free_coupons ADD COLUMN valid_until TEXT NULL";
+            try { $pdo->exec($addCol); } catch (\Throwable $e) { /* 이미 존재 = 무시 */ }
+            // [282차 R3 추천인 먹튀방지] 쿠폰 사용가능 시작일(잠금해제일). NULL=즉시 사용가능.
+            //   추천 보상쿠폰은 피추천 회원 가입+30일(1개월 유지 확인)로 잠가, 1개월만 쓰고 탈퇴 시 보상 미지급.
+            $addUsable = self::isMySQL($pdo)
+                ? "ALTER TABLE free_coupons ADD COLUMN usable_from DATETIME NULL"
+                : "ALTER TABLE free_coupons ADD COLUMN usable_from TEXT NULL";
+            try { $pdo->exec($addUsable); } catch (\Throwable $e) { /* 이미 존재 = 무시 */ }
             $done[$oid] = true;
         } catch (\Throwable $e) { /* idempotent: 이미 존재 등 무시 */ }
     }

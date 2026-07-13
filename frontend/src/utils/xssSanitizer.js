@@ -9,6 +9,26 @@
 
 import DOMPurify from 'dompurify';
 
+// [282차 R3] SMIL href 하이재킹 차단 — sanitizeSvg 가 <animate> 를 허용하므로,
+//   <a><animate attributeName="href" to="javascript:..."/> 로 링크를 탈취하는 SMIL 벡터를 봉쇄한다.
+//   attributeName 이 href/xlink:href 를 겨냥하는 animate/set/animateTransform 요소를 제거(전역 1회 등록).
+let _smilHookAdded = false;
+function ensureSmilHook() {
+    if (_smilHookAdded || typeof DOMPurify.addHook !== 'function') return;
+    _smilHookAdded = true;
+    DOMPurify.addHook('uponSanitizeElement', (node) => {
+        try {
+            const tag = (node.nodeName || '').toLowerCase();
+            if (tag === 'animate' || tag === 'set' || tag === 'animatetransform' || tag === 'animatemotion') {
+                const an = node.getAttribute && (node.getAttribute('attributeName') || node.getAttribute('attributename') || '');
+                if (an && /^(xlink:)?href$/i.test(an.trim())) {
+                    node.parentNode && node.parentNode.removeChild(node);
+                }
+            }
+        } catch (e) { /* 방어적: 훅 오류는 무시(정상 살균은 계속) */ }
+    });
+}
+
 /**
  * HTML 문자열에서 위험한 태그와 속성을 제거합니다.
  * DOMPurify를 사용하여 안전하게 정제합니다.
@@ -37,8 +57,33 @@ export function sanitizeHtml(html) {
 }
 
 /**
+ * SVG 마크업을 안전하게 정제합니다(크리에이티브 렌더용).
+ * [282차 F-P1 저장형 XSS] AI 소재 SVG 는 사용자/클라 제공 필드(ad_design.svg)라
+ *   `<svg><script>...</script>` 로 세션토큰(genie_token) 탈취가 가능했다. SVG 그래픽은 보존하되
+ *   script/foreignObject/이벤트핸들러(on*)를 제거한다. sanitizeHtml 은 svg 태그를 불허하므로 전용 프로파일 사용.
+ *
+ * @param {string} svg - 정제할 SVG 문자열
+ * @returns {string} script/이벤트핸들러가 제거된 SVG
+ */
+export function sanitizeSvg(svg) {
+    if (!svg || typeof svg !== 'string') return '';
+    ensureSmilHook();
+    return DOMPurify.sanitize(svg, {
+        USE_PROFILES: { svg: true, svgFilters: true },
+        // [282차 R2 회귀수정] DOMPurify svg 프로파일은 plain <animate> 를 svgDisallowed 로 차단한다
+        //   (animateColor/Motion/Transform 만 허용). AI 소재 샘플이 plain <animate>(펄스/페이드/라인드로우)를
+        //   13곳 사용 → 정지이미지로 후퇴하던 것을 복구. 동일오리진 생성 SVG 이고 XSS 벡터(script/foreignObject/on*/js:)는
+        //   아래에서 여전히 차단하므로 <animate> 허용은 안전.
+        ADD_TAGS: ['animate'],
+        FORBID_TAGS: ['script', 'foreignObject'],
+        FORBID_ATTR: ['onload', 'onerror', 'onclick', 'onmouseover'],
+        ADD_ATTR: ['viewBox', 'preserveAspectRatio'],
+    });
+}
+
+/**
  * 텍스트를 HTML 엔티티로 이스케이프합니다.
- * 
+ *
  * @param {string} text - 이스케이프할 텍스트
  * @returns {string} 이스케이프된 텍스트
  */

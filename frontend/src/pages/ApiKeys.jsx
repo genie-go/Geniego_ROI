@@ -10,6 +10,7 @@ import { handlePlanLimit } from '../utils/planLimit.js';
 import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { getIssuanceGuide } from '../data/issuanceGuide.js';
+import { getStepCaptures, capText } from '../data/issuanceCaptures.js'; // [282차 R3] 발급 매뉴얼 실제 화면 캡처
 import CompanyProfileModal from '../components/CompanyProfileModal.jsx';
 import { profileMissing } from '../utils/profileComplete.js';
 import { tChannelName } from '../utils/tenantStorage.js';
@@ -332,6 +333,12 @@ const REAL_ADAPTER = new Set([
 const LIVE_VERIFY_CHANNELS = new Set([
   'meta_ads', 'meta', 'tiktok', 'tiktok_business', 'google_ads', 'google', 'kakao', 'kakao_moment', 'youtube',
 ]);
+// [282차 R3] OAuth 앱 등록 시 요구되는 리디렉션 URL(콜백) — 발급 콘솔에 그대로 입력할 값. 언어 독립.
+//   플랫폼 OAuth 콜백 규약(OAuth.php redirectUri): {운영도메인}/api/v425/oauth/{provider}/callback.
+const OAUTH_REDIRECT_URL = {
+  twitch: 'https://www.genieroi.com/api/v425/oauth/twitch/callback',
+};
+
 const ISSUANCE_URL = {
   // 국내 오픈마켓 — [현 차수] 웹 검증(2026-06) 반영: 11번가 오픈API센터/ESM Trading API/네이버 커머스·검색광고 콘솔로 정정
   coupang: 'https://wing.coupang.com', st11: 'https://openapi.11st.co.kr/openapi/OpenApiFrontMain.tmall',
@@ -2670,6 +2677,7 @@ function ApplyModal({ channel, currentUser, onClose, onSubmit, onRegister, t }) 
   // [현 차수] ★발급 따라하기 가이드 — 현재 UI 언어(15개국)로 표시. lang 미존재 시 en→ko 폴백.
   const { lang } = useI18n();
   const guideSteps = getIssuanceGuide(channel.key, lang);
+  const [copiedStep, setCopiedStep] = useState(-1); // [282차 R3] 발급 매뉴얼 복사 가능값(OAuth Redirect URL 등) 복사 피드백
   // [현 차수] ★발급 신청자(구독 회원) 정보 자동 불러오기 — 로그인 프로필에서 선채움 + 수정 가능.
   const fromUser = useCallback((u) => {
     const p = (u && u.profile) || {};
@@ -2794,10 +2802,53 @@ function ApplyModal({ channel, currentUser, onClose, onSubmit, onRegister, t }) 
               ✅ {t('ak.howToTitle', { ch: channel.name, defaultValue: `${channel.name} 발급 따라하기 (이대로만 따라하면 발급됩니다)` })}
             </div>
             <ol style={{ margin: 0, paddingLeft: 18, display: 'grid', gap: 7 }}>
-              {guideSteps.map((s, i) => (
-                <li key={i} style={{ fontSize: 11.5, color: 'var(--text-2)', lineHeight: 1.65 }}>{s}</li>
-              ))}
+              {guideSteps.map((s, i) => {
+                // [282차 R3] 스텝은 문자열 또는 {text,img,caption,copy} 객체. copy=복사 가능한 실제 입력값(예: OAuth Redirect URL).
+                const text = (s && typeof s === 'object') ? (s.text || '') : s;
+                const inlineImg = (s && typeof s === 'object' && s.img) ? s.img : null;
+                const copyVal = (s && typeof s === 'object' && s.copy) ? s.copy : null;
+                const caps = getStepCaptures(channel.key, i + 1);
+                return (
+                  <li key={i} style={{ fontSize: 11.5, color: 'var(--text-2)', lineHeight: 1.65 }}>
+                    {text}
+                    {copyVal && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 5, flexWrap: 'wrap' }}>
+                        <code style={{ flex: '1 1 220px', minWidth: 0, background: '#f1f5f9', border: '1px solid #e2e8f0', padding: '6px 10px', borderRadius: 7, fontSize: 11, color: '#0f172a', overflowX: 'auto', whiteSpace: 'nowrap' }}>{copyVal}</code>
+                        <button onClick={() => { try { navigator.clipboard.writeText(copyVal); setCopiedStep(i); setTimeout(() => setCopiedStep(-1), 1600); } catch { /* clipboard 차단 무시 */ } }}
+                          style={{ flexShrink: 0, padding: '6px 12px', borderRadius: 7, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 800, background: copiedStep === i ? '#16a34a' : 'linear-gradient(135deg,#4f8ef7,#6366f1)', color: '#fff' }}>
+                          {copiedStep === i ? t('ak.copied', '복사됨 ✓') : t('ak.copy', '복사')}
+                        </button>
+                      </div>
+                    )}
+                    {inlineImg && (
+                      <div style={{ marginTop: 6 }}>
+                        <img src={inlineImg} alt="" loading="lazy" style={{ maxWidth: '100%', borderRadius: 8, border: '1px solid rgba(0,0,0,0.12)', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }} />
+                        {(s.caption) && <div style={{ fontSize: 10.5, color: 'var(--text-3,#94a3b8)', marginTop: 3 }}>{s.caption}</div>}
+                      </div>
+                    )}
+                    {caps.map((c, ci) => (
+                      <figure key={ci} style={{ margin: '6px 0 0' }}>
+                        <img src={c.img} alt="" loading="lazy" style={{ maxWidth: '100%', borderRadius: 8, border: '1px solid rgba(0,0,0,0.12)', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }} />
+                        {capText(c.cap, lang) && <figcaption style={{ fontSize: 10.5, color: 'var(--text-3,#94a3b8)', marginTop: 3 }}>📷 {capText(c.cap, lang)}</figcaption>}
+                      </figure>
+                    ))}
+                  </li>
+                );
+              })}
             </ol>
+            {/* [282차 R3] OAuth 리디렉션 URL 복사 박스 — 앱 등록 콘솔에 입력할 실제 값(언어 독립·모든 언어 표시) */}
+            {OAUTH_REDIRECT_URL[channel.key] && (
+              <div style={{ marginTop: 10, padding: '10px 12px', borderRadius: 10, background: 'rgba(79,142,247,0.06)', border: '1px solid rgba(79,142,247,0.25)' }}>
+                <div style={{ fontSize: 11, fontWeight: 800, color: '#4f46e5', marginBottom: 6 }}>🔗 {t('ak.oauthRedirectLabel', 'OAuth 리디렉션 URL (앱 등록 시 이 값을 입력)')}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                  <code style={{ flex: '1 1 240px', minWidth: 0, background: '#fff', border: '1px solid #e2e8f0', padding: '7px 10px', borderRadius: 7, fontSize: 11.5, color: '#0f172a', overflowX: 'auto', whiteSpace: 'nowrap' }}>{OAUTH_REDIRECT_URL[channel.key]}</code>
+                  <button onClick={() => { try { navigator.clipboard.writeText(OAUTH_REDIRECT_URL[channel.key]); setCopiedStep(-2); setTimeout(() => setCopiedStep(-1), 1600); } catch { /* clipboard 차단 무시 */ } }}
+                    style={{ flexShrink: 0, padding: '7px 14px', borderRadius: 7, border: 'none', cursor: 'pointer', fontSize: 11.5, fontWeight: 800, background: copiedStep === -2 ? '#16a34a' : 'linear-gradient(135deg,#4f8ef7,#6366f1)', color: '#fff' }}>
+                    {copiedStep === -2 ? t('ak.copied', '복사됨 ✓') : t('ak.copy', '복사')}
+                  </button>
+                </div>
+              </div>
+            )}
             {ISSUANCE_URL[channel.key] && (
               <button onClick={() => { try { window.open(ISSUANCE_URL[channel.key], '_blank', 'noopener,noreferrer'); } catch { /* popup 차단 무시 */ } }}
                 style={{ width: '100%', marginTop: 10, padding: '9px 12px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#22c55e,#16a34a)', color: '#fff', fontSize: 12, fontWeight: 800 }}>

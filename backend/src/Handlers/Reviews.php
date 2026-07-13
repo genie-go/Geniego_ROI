@@ -141,6 +141,7 @@ final class Reviews
                ON CONFLICT(tenant_id,channel,external_review_id) DO UPDATE SET product_name=excluded.product_name,rating=excluded.rating,title=excluded.title,body=excluded.body,media_json=excluded.media_json,sentiment=excluded.sentiment,helpful=excluded.helpful,reviewed_at=excluded.reviewed_at";
         $st = $pdo->prepare($sql);
         $matchedOrderIds = []; // [R3] 리뷰가 주문 식별자를 동반하면 review_request 전환 매칭에 사용.
+        $negatives = [];       // [282차 R3] 자동 에스컬레이션(Slack) 대상 — 부정/저평점 신규 리뷰.
         foreach ($reviews as $r) {
             if (!is_array($r)) continue;
             $ext = trim((string)($r['external_review_id'] ?? $r['id'] ?? ''));
@@ -149,6 +150,10 @@ final class Reviews
             if ($oid !== '') $matchedOrderIds[] = $oid;
             $rating = (float)($r['rating'] ?? 0);
             $sentiment = (string)($r['sentiment'] ?? '') ?: self::sentimentFromRating($rating);
+            if ($sentiment === 'negative' || ($rating > 0 && $rating <= 2)) {
+                $negatives[] = ['product' => (string)($r['product_name'] ?? ''), 'rating' => $rating,
+                    'title' => (string)($r['title'] ?? ''), 'body' => mb_substr((string)($r['body'] ?? $r['text'] ?? ''), 0, 200)];
+            }
             $author = trim((string)($r['author'] ?? ''));
             $media = is_array($r['media'] ?? null) ? $r['media'] : [];
             try {
@@ -165,7 +170,34 @@ final class Reviews
         }
         // [R3] 수집된 리뷰가 주문ID 동반 시, 해당 주문의 대기중 리뷰요청을 '전환'으로 표기(실 전환신호, 과대계상 없음).
         $converted = $matchedOrderIds ? self::markRequestsReviewed($pdo, $tenant, $channel, $matchedOrderIds) : 0;
+        // [282차 R3] 부정 리뷰 자동 에스컬레이션 — 설정(autoEscalate+slackWebhook)이 있으면 Slack 통지(종전 설정 무소비 결함 해소).
+        if ($negatives) { try { self::escalateNegatives($pdo, $tenant, $channel, $negatives); } catch (\Throwable $e) { error_log('[Reviews.escalate] ' . $e->getMessage()); } }
         return ['saved' => $saved, 'converted' => $converted];
+    }
+
+    /** [282차 R3] 부정 리뷰 자동 에스컬레이션 — review_setting.autoEscalate + slackWebhook 소비(종전 미배선). */
+    private static function escalateNegatives(\PDO $pdo, string $tenant, string $channel, array $negatives): void
+    {
+        $cfg = [];
+        try {
+            $st = $pdo->prepare("SELECT settings_json FROM review_setting WHERE tenant_id=?");
+            $st->execute([$tenant]);
+            $cfg = json_decode((string)($st->fetchColumn() ?: '{}'), true) ?: [];
+        } catch (\Throwable $e) { return; }
+        if (empty($cfg['autoEscalate'])) return;
+        $webhook = (string)($cfg['slackWebhook'] ?? '');
+        if (!preg_match('#^https://hooks\.slack\.com/services/[A-Za-z0-9/_-]+$#', $webhook)) return;
+        if (!function_exists('curl_init')) return;
+        $n = count($negatives);
+        $lines = array_map(static function ($x) {
+            $star = $x['rating'] > 0 ? str_repeat('★', (int)round($x['rating'])) : '';
+            return '• ' . ($x['product'] !== '' ? $x['product'] . ' — ' : '') . $star . ' ' . ($x['title'] !== '' ? $x['title'] . ': ' : '') . $x['body'];
+        }, array_slice($negatives, 0, 10));
+        $text = "⚠️ *[{$channel}] 부정 리뷰 {$n}건 감지* (Geniego-ROI)\n" . implode("\n", $lines) . ($n > 10 ? "\n… 외 " . ($n - 10) . "건" : '');
+        $payload = json_encode(['text' => $text], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        $ch = curl_init($webhook);
+        curl_setopt_array($ch, [CURLOPT_POST => true, CURLOPT_POSTFIELDS => $payload, CURLOPT_HTTPHEADER => ['Content-Type: application/json'], CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 8, CURLOPT_SSL_VERIFYPEER => true, CURLOPT_SSL_VERIFYHOST => 2]);
+        curl_exec($ch); curl_close($ch);
     }
 
     /** 채널 자격증명 로드(channel_credential, key_name=>복호화값). Catalog 패턴 재사용(쓰기 인증과 동일 소스). */

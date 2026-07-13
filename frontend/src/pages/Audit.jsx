@@ -251,7 +251,7 @@ function UsageGuide({ t }) {
 const _authH = () => ({ Authorization: `Bearer ${localStorage.getItem("genie_token") || localStorage.getItem("demo_genie_token") || ""}`, "Content-Type": "application/json" });
 function SecurityGovernancePanel({ t }) {
   const [mfaPolicy, setMfaPolicy] = useState(null);
-  const [siem, setSiem] = useState({ endpoint: "", token: "", format: "ndjson", enabled: 0 });
+  const [siem, setSiem] = useState({ endpoint: "", token: "", format: "ndjson", enabled: 0, realtime: 0, realtime_min_severity: "high" });
   const [siemFormats, setSiemFormats] = useState(["ndjson", "cef", "splunk_hec"]);
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
@@ -328,6 +328,17 @@ function SecurityGovernancePanel({ t }) {
         <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, margin: "8px 0" }}>
           <input type="checkbox" checked={!!Number(siem.enabled)} onChange={e => setSiem(s => ({ ...s, enabled: e.target.checked ? 1 : 0 }))} />
           {t("audit.govSiemEnable", "활성화")}
+        </label>
+        {/* [282차 R3] 실시간 포워딩 토글 — 종전엔 UI 부재로 항상 realtime=0(배치만)이었다. 켜면 임계 이상 이벤트 즉시 전송. */}
+        <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, margin: "8px 0" }}>
+          <input type="checkbox" checked={!!Number(siem.realtime)} onChange={e => setSiem(s => ({ ...s, realtime: e.target.checked ? 1 : 0 }))} />
+          {t("audit.govSiemRealtime", "실시간 포워딩(이벤트 즉시 전송)")}
+          {!!Number(siem.realtime) && (
+            <select style={{ ...inp, width: "auto", padding: "4px 8px", marginLeft: 6 }} value={siem.realtime_min_severity || "high"} onChange={e => setSiem(s => ({ ...s, realtime_min_severity: e.target.value }))}>
+              <option value="high">{t("audit.govSevHigh", "high 이상")}</option>
+              <option value="medium">{t("audit.govSevMed", "medium 이상")}</option>
+            </select>
+          )}
         </label>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           <button onClick={saveSiem} disabled={busy} style={{ padding: "7px 16px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 700, background: "#a855f7", color: "#fff" }}>💾 {t("audit.govSiemSave", "SIEM 설정 저장")}</button>

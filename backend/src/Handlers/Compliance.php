@@ -191,6 +191,46 @@ final class Compliance
         return 'CEF:0|GeniegoROI|ROI-Platform|1.0|' . $esc($e['action'] ?? 'event') . '|' . $esc($e['action'] ?? 'event') . '|' . $sev . '|' . implode(' ', $ext);
     }
 
+    /** [282차 R3] IBM QRadar LEEF 2.0 1행 직렬화 — 탭 구분 key=value(SIEM 표준). */
+    private static function toLeef(array $e): string
+    {
+        $esc = fn($s) => str_replace(['\\', '|'], ['\\\\', '\\|'], (string)$s);
+        $sev = ['low' => 3, 'medium' => 6, 'high' => 9][$e['risk'] ?? 'low'] ?? 3;
+        $attrs = ['devTime=' . (string)($e['ts'] ?? ''), 'sev=' . $sev, 'cat=' . (string)($e['action'] ?? 'event')];
+        foreach (['actor' => 'usrName', 'ip' => 'src', 'role' => 'role', 'tenant' => 'tenant', 'detail' => 'msg', 'source' => 'logSource'] as $k => $leef) {
+            if (($e[$k] ?? '') !== '') $attrs[] = $leef . '=' . str_replace("\t", ' ', (string)$e[$k]);
+        }
+        // LEEF:2.0|Vendor|Product|Version|EventID|(tab)key=value...
+        return 'LEEF:2.0|GeniegoROI|ROI-Platform|1.0|' . $esc($e['action'] ?? 'event') . "|\t" . implode("\t", $attrs);
+    }
+
+    /** [282차 R3] RFC 5424 Syslog 1행 직렬화 — SIEM/rsyslog 수집 표준. PRI=facility(local0=16)*8+severity. */
+    private static function toSyslog(array $e): string
+    {
+        // risk→syslog severity(0=emerg..7=debug): high=3(err), medium=4(warning), low=6(info).
+        $sev = ['low' => 6, 'medium' => 4, 'high' => 3][$e['risk'] ?? 'low'] ?? 6;
+        $pri = 16 * 8 + $sev; // local0 facility
+        $ts = (string)($e['ts'] ?? gmdate('c')); $tsr = @strtotime($ts); $iso = $tsr ? gmdate('Y-m-d\TH:i:s\Z', $tsr) : gmdate('c');
+        $host = 'genieroi'; $app = 'audit';
+        $clean = fn($s) => str_replace(["]", '"', "\\"], [')', "'", '/'], (string)$s);
+        // STRUCTURED-DATA: 감사 컨텍스트.
+        $sd = '[genie actor="' . $clean($e['actor'] ?? '') . '" tenant="' . $clean($e['tenant'] ?? '') . '" src="' . $clean($e['ip'] ?? '') . '" action="' . $clean($e['action'] ?? '') . '"]';
+        $msg = $clean($e['detail'] ?? ($e['action'] ?? 'event'));
+        return "<{$pri}>1 {$iso} {$host} {$app} - - {$sd} {$msg}";
+    }
+
+    /** 형식별 이벤트 배열 직렬화(공용 — auditExport + siemPush 재사용). */
+    private static function serializeEvents(array $events, string $format): string
+    {
+        switch ($format) {
+            case 'cef':    return implode("\n", array_map([self::class, 'toCef'], $events));
+            case 'leef':   return implode("\n", array_map([self::class, 'toLeef'], $events));
+            case 'syslog': return implode("\n", array_map([self::class, 'toSyslog'], $events));
+            case 'ndjson':
+            default:       return implode("\n", array_map(fn($e) => json_encode($e, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), $events));
+        }
+    }
+
     /**
      * GET /v424/compliance/audit-export?window=30&format=json|ndjson|cef — 감사 증적 통합 내보내기.
      *   SOC2/ISO 심사 증적 + SIEM 적재용. auth_audit_log + audit_log 통합. 관리자 전용(requirePro+).
@@ -202,18 +242,19 @@ final class Compliance
         if ($err = UserAuth::requirePlan($req, $res, 'admin')) return $err;
         $q = $req->getQueryParams();
         $days = max(1, min(365, (int)($q['window'] ?? 30)));
-        $format = in_array(($q['format'] ?? 'json'), ['json', 'ndjson', 'cef'], true) ? (string)$q['format'] : 'json';
+        // [282차 R3] LEEF(QRadar)·Syslog(RFC5424) 형식 추가.
+        $format = in_array(($q['format'] ?? 'json'), ['json', 'ndjson', 'cef', 'leef', 'syslog'], true) ? (string)$q['format'] : 'json';
         $limit = 5000;
         $events = [];
         try { $events = self::collectAuditEvents(Db::pdo(), $days, $limit); } catch (\Throwable $e) { /* graceful */ }
         if ($format === 'ndjson') {
-            $lines = array_map(fn($e) => json_encode($e, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), $events);
-            $res->getBody()->write(implode("\n", $lines));
+            $res->getBody()->write(self::serializeEvents($events, 'ndjson'));
             return $res->withHeader('Content-Type', 'application/x-ndjson')->withHeader('Content-Disposition', 'attachment; filename="genie_audit.ndjson"');
         }
-        if ($format === 'cef') {
-            $res->getBody()->write(implode("\n", array_map([self::class, 'toCef'], $events)));
-            return $res->withHeader('Content-Type', 'text/plain; charset=utf-8')->withHeader('Content-Disposition', 'attachment; filename="genie_audit.cef"');
+        if (in_array($format, ['cef', 'leef', 'syslog'], true)) {
+            $ext = ['cef' => 'cef', 'leef' => 'leef', 'syslog' => 'log'][$format];
+            $res->getBody()->write(self::serializeEvents($events, $format));
+            return $res->withHeader('Content-Type', 'text/plain; charset=utf-8')->withHeader('Content-Disposition', 'attachment; filename="genie_audit.' . $ext . '"');
         }
         return self::json($res, ['ok' => true, 'window_days' => $days, 'format' => 'json', 'count' => count($events), 'capped_at' => $limit, 'events' => $events]);
     }
@@ -252,11 +293,13 @@ final class Compliance
             $cfg = [
                 'endpoint' => $endpoint,
                 'token' => $tok,
-                'format' => in_array(($b['format'] ?? 'ndjson'), ['ndjson', 'cef', 'splunk_hec'], true) ? (string)$b['format'] : 'ndjson',
+                'format' => in_array(($b['format'] ?? 'ndjson'), ['ndjson', 'cef', 'leef', 'syslog', 'splunk_hec'], true) ? (string)$b['format'] : 'ndjson',
                 'enabled' => !empty($b['enabled']) ? 1 : 0,
                 // [254차 초고도화] 실시간 포워딩 opt-in(기본 off=배치만·회귀0) + 최소 심각도.
-                'realtime' => !empty($b['realtime']) ? 1 : 0,
-                'realtime_min_severity' => in_array(($b['realtime_min_severity'] ?? 'high'), ['medium', 'high'], true) ? (string)$b['realtime_min_severity'] : 'high',
+                // [282차 R3] 종전엔 프론트 PUT 이 realtime 을 안 보내 매 저장이 realtime=0 으로 리셋됐다(실시간 포워딩
+                //   정상 사용 경로로 켤 수 없었음). 바디에 realtime 키가 없으면 기존값을 보존한다(token '••••' 보존과 동일).
+                'realtime' => array_key_exists('realtime', $b) ? (!empty($b['realtime']) ? 1 : 0) : (int)($cur['realtime'] ?? 0),
+                'realtime_min_severity' => in_array(($b['realtime_min_severity'] ?? ($cur['realtime_min_severity'] ?? 'high')), ['medium', 'high'], true) ? (string)($b['realtime_min_severity'] ?? ($cur['realtime_min_severity'] ?? 'high')) : 'high',
             ];
             try {
                 $now = gmdate('c'); $json = json_encode($cfg);
@@ -274,7 +317,9 @@ final class Compliance
         return self::json($res, ['ok' => true, 'config' => [
             'endpoint' => $c['endpoint'] ?? '', 'token' => (!empty($c['token']) ? '••••••••' : ''),
             'format' => $c['format'] ?? 'ndjson', 'enabled' => (int)($c['enabled'] ?? 0),
-        ], 'formats' => ['ndjson', 'cef', 'splunk_hec']]);
+            // [282차 R3] 실시간 포워딩 상태 노출 — UI 가 표시/보존할 수 있도록(종전 미노출로 항상 0 취급됐음).
+            'realtime' => (int)($c['realtime'] ?? 0), 'realtime_min_severity' => $c['realtime_min_severity'] ?? 'high',
+        ], 'formats' => ['ndjson', 'cef', 'leef', 'syslog', 'splunk_hec']]);
     }
 
     /**
@@ -328,7 +373,7 @@ final class Compliance
                 'risk' => $sev, 'source' => 'realtime', 'ts' => gmdate('c')];
             $headers = ['Content-Type: application/json'];
             if ($fmt === 'splunk_hec') { if ($token !== '') $headers[] = 'Authorization: Splunk ' . $token; $body = json_encode(['event' => $e, 'source' => 'geniego-roi', 'sourcetype' => 'audit'], JSON_UNESCAPED_UNICODE); }
-            elseif ($fmt === 'cef') { if ($token !== '') $headers[] = 'Authorization: Bearer ' . $token; $headers[0] = 'Content-Type: text/plain'; $body = self::toCef($e); }
+            elseif (in_array($fmt, ['cef', 'leef', 'syslog'], true)) { if ($token !== '') $headers[] = 'Authorization: Bearer ' . $token; $headers[0] = 'Content-Type: text/plain'; $body = self::serializeEvents([$e], $fmt); }
             else { if ($token !== '') $headers[] = 'Authorization: Bearer ' . $token; $headers[0] = 'Content-Type: application/x-ndjson'; $body = json_encode($e, JSON_UNESCAPED_UNICODE); }
             $ch = curl_init($endpoint);
             curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_POST => true, CURLOPT_POSTFIELDS => $body,
@@ -358,10 +403,10 @@ final class Compliance
             // Splunk HEC: {event: {...}} JSON lines + Authorization: Splunk <token>
             if ($token !== '') $headers[] = 'Authorization: Splunk ' . $token;
             $body = implode("\n", array_map(fn($e) => json_encode(['event' => $e, 'source' => 'geniego-roi', 'sourcetype' => 'audit'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), $events));
-        } elseif ($fmt === 'cef') {
+        } elseif (in_array($fmt, ['cef', 'leef', 'syslog'], true)) { // [282차 R3] CEF/LEEF/Syslog 공용 직렬화
             if ($token !== '') $headers[] = 'Authorization: Bearer ' . $token;
             $headers[0] = 'Content-Type: text/plain';
-            $body = implode("\n", array_map([self::class, 'toCef'], $events));
+            $body = self::serializeEvents($events, $fmt);
         } else { // ndjson
             if ($token !== '') $headers[] = 'Authorization: Bearer ' . $token;
             $headers[0] = 'Content-Type: application/x-ndjson';

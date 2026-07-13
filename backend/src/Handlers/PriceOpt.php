@@ -1624,8 +1624,12 @@ class PriceOpt
     {
         if ($err = UserAuth::requirePro($request, $response)) return $err; // [227차 감사 P0] 익명 쓰기 차단
         $db = self::db(); $t = self::tenant($request); $body = self::body($request);
+        // [282차 R2 P2] 종전 항상 '초안' 저장 → 프론트 "예정" KPI(status==='예정' 카운트)가 영원히 0이고 생성한
+        //   프로모가 예정 집계에 안 잡혔다. 시작일이 지정된 프로모는 '예정'(예약됨), 미지정은 '초안'으로 저장해 정합.
+        $startDate = (string)($body['startDate'] ?? '');
+        $status = ($startDate !== '') ? '예정' : '초안';
         $db->prepare("INSERT INTO po_calendar (tenant_id,sku,name,channel,startDate,endDate,promoPrice,discountRate,reason,status,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)")
-            ->execute([$t,$body['sku']??'',$body['name']??'',$body['channel']??'all',$body['startDate']??'',$body['endDate']??'',(float)($body['promoPrice']??0),(float)($body['discountRate']??0),$body['reason']??'','초안',gmdate('c')]);
+            ->execute([$t,$body['sku']??'',$body['name']??'',$body['channel']??'all',$startDate,$body['endDate']??'',(float)($body['promoPrice']??0),(float)($body['discountRate']??0),$body['reason']??'',$status,gmdate('c')]);
         return self::json($response, ['ok'=>true,'id'=>$db->lastInsertId()]);
     }
 

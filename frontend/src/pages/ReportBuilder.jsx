@@ -6,7 +6,7 @@ import { getJsonAuth, postJsonAuth, patchJson, delJson, requestJsonAuth } from "
 import { useVisibleTabs } from "../auth/useVisibleTabs.js";
 import ProductSelectBar from '../components/dashboards/ProductSelectBar.jsx';
 import ProductMarketingPanel from '../components/dashboards/ProductMarketingPanel.jsx';
-import { BarChart, LineChart, DonutChart, StackedBarChart, AreaChart, ComboChart, Heatmap } from "../components/dashboards/ChartUtils.jsx"; // [239차+ BI심화 / 현 차수 BI확장] 시각화 재사용
+import { BarChart, LineChart, DonutChart, StackedBarChart, AreaChart, ComboChart, Heatmap, ScatterChart, Treemap } from "../components/dashboards/ChartUtils.jsx"; // [239차+ BI심화 / 현 차수 BI확장 / 282차 산점도·트리맵] 시각화 재사용
 
 /*
  * ReportBuilder — 리포트 빌더 + 예약 발송 (193차 Sprint4 실구현).
@@ -294,7 +294,7 @@ export default function ReportBuilder() {
             <div>
               <div style={{ fontSize: 11, color: "var(--text-3)", marginBottom: 6 }}>{t("reportBuilder.viz", "시각화")}</div>
               <div style={{ display: "flex", gap: 4, flexWrap: "wrap", maxWidth: 300 }}>
-                {[["table", "📋", t("reportBuilder.vizTable", "표")], ["bar", "📊", t("reportBuilder.vizBar", "막대")], ["line", "📈", t("reportBuilder.vizLine", "선")], ["donut", "🍩", t("reportBuilder.vizDonut", "도넛")], ["stacked", "🧱", t("reportBuilder.vizStacked", "누적 막대")], ["combo", "🔀", t("reportBuilder.vizCombo", "콤보(막대+선)")], ["area", "🏔️", t("reportBuilder.vizArea", "면적")], ["heatmap", "🔥", t("reportBuilder.vizHeatmap", "히트맵")]].map(([v, ic, lab]) => (
+                {[["table", "📋", t("reportBuilder.vizTable", "표")], ["bar", "📊", t("reportBuilder.vizBar", "막대")], ["line", "📈", t("reportBuilder.vizLine", "선")], ["donut", "🍩", t("reportBuilder.vizDonut", "도넛")], ["stacked", "🧱", t("reportBuilder.vizStacked", "누적 막대")], ["combo", "🔀", t("reportBuilder.vizCombo", "콤보(막대+선)")], ["area", "🏔️", t("reportBuilder.vizArea", "면적")], ["heatmap", "🔥", t("reportBuilder.vizHeatmap", "히트맵")], ["scatter", "✴️", t("reportBuilder.vizScatter", "산점도(지표×지표)")], ["treemap", "🗂️", t("reportBuilder.vizTreemap", "트리맵(구성비)")]].map(([v, ic, lab]) => (
                   <button key={v} onClick={() => setViz(v)} title={lab} style={{ padding: "6px 9px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 13, background: viz === v ? "#4f8ef7" : "rgba(0,0,0,0.05)" }}>{ic}</button>
                 ))}
               </div>
@@ -323,7 +323,7 @@ export default function ReportBuilder() {
             const rowsN = (qResult.rows || []).length;
             // [현 차수 BI확장] 히트맵은 2차원(피벗) 전용, 그 외 차트는 단일차원(피벗 없음) 전용.
             const isHeatmap = viz === "heatmap" && !!qResult.breakdown && rowsN > 0;
-            const flatVizes = ["bar", "line", "donut", "stacked", "combo", "area"];
+            const flatVizes = ["bar", "line", "donut", "stacked", "combo", "area", "scatter", "treemap"];
             const isChart = flatVizes.includes(viz) && !qResult.breakdown && rowsN > 0;
             const canDrill = !qResult.breakdown && !qResult.filter_val && qResult.dimension !== "date" && qResult.dimension !== "period" && Q_DIMS.length > 1;
             return (
@@ -396,11 +396,23 @@ export default function ReportBuilder() {
                       </div>
                     </div>
                   )}
+                  {viz === "scatter" && (() => {
+                    // [282차] 산점도 — 지표×지표 상관(x=1지표, y=2지표). 2개 지표 필요.
+                    const yk = (qResult.metrics || []).find(m => m !== pm) || null;
+                    if (!yk) return <div style={{ fontSize: 11, color: "#f59e0b" }}>💡 {t("reportBuilder.scatterNeeds2", "산점도는 지표 2개가 필요합니다(위에서 지표를 하나 더 선택하세요).")}</div>;
+                    const pts = qResult.rows.slice(0, 200).map((r, i) => ({ x: Number(r[pm] ?? 0), y: Number(r[yk] ?? 0), label: String(r.dim), color: PALETTE[i % PALETTE.length] }));
+                    return <div style={{ overflowX: "auto" }}><ScatterChart points={pts} xLabel={colLabel(pm)} yLabel={colLabel(yk)} trend width={720} height={300} /></div>;
+                  })()}
+                  {viz === "treemap" && (
+                    <div style={{ overflowX: "auto" }}>
+                      <Treemap items={qResult.rows.slice(0, 24).map((r, i) => ({ label: String(r.dim), value: Number(r[pm] ?? 0), color: PALETTE[i % PALETTE.length] }))} width={720} height={320} />
+                    </div>
+                  )}
                 </div>
               ) : (
                 <>
                   {viz === "heatmap" && !qResult.breakdown && <div style={{ fontSize: 11, color: "#f59e0b", marginBottom: 8 }}>💡 {t("reportBuilder.heatmapNeedsBreakdown", "히트맵은 2차 차원(피벗)이 필요합니다. 위에서 2차 차원을 선택하세요.")}</div>}
-                  {["bar", "line", "donut", "stacked", "combo", "area"].includes(viz) && qResult.breakdown && <div style={{ fontSize: 11, color: "#f59e0b", marginBottom: 8 }}>💡 {t("reportBuilder.chartNeedsSingleDim", "이 차트는 단일 차원 전용입니다. 2차 차원(피벗) 데이터는 표 또는 히트맵으로 보세요.")}</div>}
+                  {["bar", "line", "donut", "stacked", "combo", "area", "scatter", "treemap"].includes(viz) && qResult.breakdown && <div style={{ fontSize: 11, color: "#f59e0b", marginBottom: 8 }}>💡 {t("reportBuilder.chartNeedsSingleDim", "이 차트는 단일 차원 전용입니다. 2차 차원(피벗) 데이터는 표 또는 히트맵으로 보세요.")}</div>}
                 <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
                   <thead><tr style={{ borderBottom: "2px solid var(--border)" }}>
                     {(qResult.columns || []).map(c => <th key={c} style={{ padding: "8px 10px", textAlign: (c === "dim" || c === "brk") ? "left" : "right", color: "var(--text-3)", fontWeight: 700, fontSize: 11 }}>{colLabel(c)}</th>)}

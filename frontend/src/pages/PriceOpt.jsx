@@ -1957,7 +1957,7 @@ function PriceCalendarTab({ token, priceCalendar, addPriceCalendarEvent }) {
                             <td style={{ fontFamily:'monospace', fontWeight:700, padding:'8px 4px', color:'#f97316' }}>{fmt(e.promoPrice)}</td>
                             <td style={{ fontSize:11, padding:'8px 4px', color:'#22c55e' }}>{e.discountRate}%↓</td>
                             <td style={{ fontSize:10, padding:'8px 4px' }}>{e.reason}</td>
-                            <td style={{ padding:'2px 8px', fontSize:9, fontWeight:700, borderRadius:20, background:e.status===t('priceOpt.statusScheduled')?'rgba(34,197,94,0.15)':'rgba(249,115,22,0.15)', color:e.status===t('priceOpt.statusScheduled')?'#22c55e':'#f97316' }} ><span>{e.status || t('priceOpt.statusDraft')}</span></td>
+                            <td style={{ padding:'2px 8px', fontSize:9, fontWeight:700, borderRadius:20, background:e.status==='예정'?'rgba(34,197,94,0.15)':'rgba(249,115,22,0.15)', color:e.status==='예정'?'#22c55e':'#f97316' }} ><span>{e.status==='예정'?t('priceOpt.statusScheduled','예정'):e.status==='초안'?t('priceOpt.statusDraft','초안'):(e.status||t('priceOpt.statusDraft','초안'))}</span></td>
                         </tr>
                     ))}
                 </tbody>

@@ -426,5 +426,103 @@ export function Heatmap({ rows, cols, matrix, color = '#4f8ef7', width = 720, ce
     );
 }
 
+// ── ScatterChart ─────────────────────────────────────────────────────────
+// [282차 R3] 산점도 — 두 지표 상관(예: 광고비 vs 매출·가격 vs 판매량). 의존성 없는 SVG.
+//   points: [{x, y, label?, color?, r?}]. 선택적 회귀추세선(trend). 축 자동 스케일.
+export function ScatterChart({ points = [], width = 640, height = 300, xLabel = '', yLabel = '', color = '#4f8ef7', trend = false, format }) {
+    if (!points.length) return null;
+    const f = typeof format === 'function' ? format : (v) => fmt(v);
+    const padL = 48, padB = 30, padT = 12, padR = 12;
+    const xs = points.map(p => Number(p.x) || 0), ys = points.map(p => Number(p.y) || 0);
+    let xmin = Math.min(...xs), xmax = Math.max(...xs), ymin = Math.min(...ys), ymax = Math.max(...ys);
+    if (xmin === xmax) { xmin -= 1; xmax += 1; } if (ymin === ymax) { ymin -= 1; ymax += 1; }
+    const plotW = width - padL - padR, plotH = height - padT - padB;
+    const sx = (v) => padL + ((v - xmin) / (xmax - xmin)) * plotW;
+    const sy = (v) => padT + plotH - ((v - ymin) / (ymax - ymin)) * plotH;
+    // 최소제곱 회귀선(옵션)
+    let line = null;
+    if (trend && points.length >= 2) {
+        const n = points.length, mx = xs.reduce((a, b) => a + b, 0) / n, my = ys.reduce((a, b) => a + b, 0) / n;
+        let num = 0, den = 0; for (let i = 0; i < n; i++) { num += (xs[i] - mx) * (ys[i] - my); den += (xs[i] - mx) ** 2; }
+        if (den !== 0) { const b = num / den, a = my - b * mx; line = { x1: sx(xmin), y1: sy(a + b * xmin), x2: sx(xmax), y2: sy(a + b * xmax) }; }
+    }
+    const ticks = 4;
+    return (
+        <div style={{ overflowX: 'auto' }}>
+            <svg width="100%" viewBox={`0 0 ${width} ${height}`} style={{ display: 'block', minWidth: 320 }}>
+                {Array.from({ length: ticks + 1 }, (_, i) => {
+                    const gy = padT + (plotH / ticks) * i, val = ymax - ((ymax - ymin) / ticks) * i;
+                    return (<g key={i}><line x1={padL} y1={gy} x2={width - padR} y2={gy} stroke="var(--border)" strokeWidth={0.5} opacity={0.5} />
+                        <text x={padL - 5} y={gy + 3} {...FONT} fill="var(--text-2)" textAnchor="end">{f(val)}</text></g>);
+                })}
+                {Array.from({ length: ticks + 1 }, (_, i) => {
+                    const gx = padL + (plotW / ticks) * i, val = xmin + ((xmax - xmin) / ticks) * i;
+                    return (<text key={i} x={gx} y={height - padB + 14} {...FONT} fill="var(--text-2)" textAnchor="middle">{f(val)}</text>);
+                })}
+                {line && <line x1={line.x1} y1={line.y1} x2={line.x2} y2={line.y2} stroke="#f59e0b" strokeWidth={1.5} strokeDasharray="5 3" opacity={0.85} />}
+                {points.map((p, i) => (
+                    <circle key={i} cx={sx(Number(p.x) || 0)} cy={sy(Number(p.y) || 0)} r={p.r || 4} fill={p.color || color} opacity={0.72} stroke="var(--surface)" strokeWidth={0.8}>
+                        <title>{`${p.label ? p.label + ' · ' : ''}${xLabel || 'x'}: ${f(Number(p.x) || 0)} · ${yLabel || 'y'}: ${f(Number(p.y) || 0)}`}</title>
+                    </circle>
+                ))}
+                {xLabel && <text x={padL + plotW / 2} y={height - 2} fontSize={9.5} fontFamily="inherit" fontWeight={600} fill="var(--text-2)" textAnchor="middle">{xLabel}</text>}
+                {yLabel && <text x={11} y={padT + plotH / 2} fontSize={9.5} fontFamily="inherit" fontWeight={600} fill="var(--text-2)" textAnchor="middle" transform={`rotate(-90 11 ${padT + plotH / 2})`}>{yLabel}</text>}
+            </svg>
+        </div>
+    );
+}
+
+// ── Treemap ──────────────────────────────────────────────────────────────
+// [282차 R3] 트리맵 — 구성비 시각화(예: 채널/카테고리 매출 점유). squarified 근사(행 스트립 배치).
+//   items: [{ label, value, color? }]. 의존성 없는 SVG.
+export function Treemap({ items = [], width = 640, height = 300, format }) {
+    const data = (items || []).filter(d => (Number(d.value) || 0) > 0).sort((a, b) => b.value - a.value);
+    if (!data.length) return null;
+    const f = typeof format === 'function' ? format : (v) => fmt(v);
+    const total = data.reduce((s, d) => s + Number(d.value), 0) || 1;
+    const PALETTE = ['#4f8ef7', '#22c55e', '#f59e0b', '#a855f7', '#ef4444', '#14b8a6', '#eab308', '#ec4899', '#6366f1', '#84cc16'];
+    // squarified 근사: 남은 영역에 행 단위로 채움.
+    const rects = []; let x = 0, y = 0, rw = width, rh = height, idx = 0;
+    let rem = data.slice();
+    while (rem.length) {
+        const horizontal = rw >= rh;              // 긴 변 기준으로 스트립(한 항목씩 배치·단순·안정)
+        const remTotal = rem.reduce((s, d) => s + d.value, 0) || 1;
+        const item = rem.shift();
+        const frac = item.value / remTotal;
+        if (horizontal) {
+            const w = rw * frac;
+            rects.push({ ...item, x, y, w, h: rh, idx });
+            x += w; rw -= w;
+        } else {
+            const h = rh * frac;
+            rects.push({ ...item, x, y, w: rw, h, idx });
+            y += h; rh -= h;
+        }
+        idx++;
+    }
+    return (
+        <div style={{ overflowX: 'auto' }}>
+            <svg width="100%" viewBox={`0 0 ${width} ${height}`} style={{ display: 'block', minWidth: 320 }}>
+                {rects.map((r, i) => {
+                    const c = r.color || PALETTE[i % PALETTE.length];
+                    const pct = ((r.value / total) * 100).toFixed(1);
+                    const showLabel = r.w > 46 && r.h > 24;
+                    return (
+                        <g key={i}>
+                            <rect x={r.x + 1} y={r.y + 1} width={Math.max(0, r.w - 2)} height={Math.max(0, r.h - 2)} rx={4} fill={c} opacity={0.86}>
+                                <title>{`${r.label}: ${f(r.value)} (${pct}%)`}</title>
+                            </rect>
+                            {showLabel && (<>
+                                <text x={r.x + 7} y={r.y + 16} fontSize={10} fontFamily="inherit" fontWeight={700} fill="#fff">{String(r.label).length > 14 ? String(r.label).slice(0, 13) + '…' : r.label}</text>
+                                <text x={r.x + 7} y={r.y + 29} fontSize={9} fontFamily="inherit" fill="#fff" opacity={0.9}>{f(r.value)} · {pct}%</text>
+                            </>)}
+                        </g>
+                    );
+                })}
+            </svg>
+        </div>
+    );
+}
+
 // ── seedSeries ────────────────────────────────────────────────────────────
 

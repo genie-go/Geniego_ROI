@@ -657,7 +657,8 @@ function SettingsTab({ t }) {
     return next;
   });
 
-  return (<div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e5e7eb", padding: 20 }}>
+  return (<div style={{ display: "grid", gap: 16 }}>
+    <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e5e7eb", padding: 20 }}>
     <div style={{ fontWeight: 800, fontSize: 15, color: "#1f2937", marginBottom: 16 }}>⚙️ {t("webPopup.globalSettings")}</div>
     {settings.map(s => (<div key={s.key} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 0", borderBottom: "1px solid #f3f4f6" }}>
       <div><div style={{ fontWeight: 700, fontSize: 13, color: "#374151" }}>{t("webPopup." + s.key)}</div>
@@ -667,7 +668,60 @@ function SettingsTab({ t }) {
         <div style={{ width: 18, height: 18, borderRadius: 9, background: "#fff", position: "absolute", top: 3, left: vals[s.key] ? 23 : 3, transition: "left .2s" }} />
       </button>
     </div>))}
+    </div>
+    <VapidConfigCard t={t} />
   </div>);
+}
+
+/* [282차 R3] 웹 푸시 VAPID 설정 — 종전 push/vapid-config·push/test 엔드포인트가 제품 UI 부재로 고아였다.
+   admin 이 여기서 VAPID 공개/개인키·subject 를 설정하면 방문자 웹푸시 구독이 활성화된다(미설정 시 opt-in 숨김). */
+function VapidConfigCard({ t }) {
+  const [v, setV] = useState({ public: "", private: "", subject: "" });
+  const [status, setStatus] = useState(null); // {configured}
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState("");
+  useEffect(() => {
+    if (_IS_DEMO) return;
+    getJsonAuth('/api/v426/push/vapid-key').then(r => setStatus({ configured: !!(r && r.enabled) })).catch(() => setStatus({ configured: false }));
+  }, []);
+  const flash = (m) => { setMsg(m); setTimeout(() => setMsg(""), 4000); };
+  const save = async () => {
+    setBusy(true);
+    try {
+      const body = {}; if (v.public.trim()) body.public = v.public.trim(); if (v.private.trim()) body.private = v.private.trim(); if (v.subject.trim()) body.subject = v.subject.trim();
+      const r = await requestJsonAuth('/api/v426/push/vapid-config', 'POST', body);
+      if (r?.ok) { flash(t('webPopup.vapidSaved', 'VAPID 키가 저장되었습니다.')); setV(s => ({ ...s, private: "" })); getJsonAuth('/api/v426/push/vapid-key').then(x => setStatus({ configured: !!(x && x.enabled) })).catch(() => {}); }
+      else flash("⚠ " + (r?.error || (t('webPopup.vapidAdminOnly', '관리자(admin)만 설정할 수 있습니다.'))));
+    } catch (e) { flash("⚠ " + String(e?.message || e)); } finally { setBusy(false); }
+  };
+  const test = async () => {
+    setBusy(true);
+    try { const r = await requestJsonAuth('/api/v426/push/test', 'POST', {}); flash(r?.ok ? `📤 ${t('webPopup.vapidTestSent', '테스트 발송')}: ${r.sent || 0}` : "⚠ " + (r?.note || r?.error || '실패')); }
+    catch (e) { flash("⚠ " + String(e?.message || e)); } finally { setBusy(false); }
+  };
+  const inp = { width: "100%", padding: "9px 12px", borderRadius: 9, border: "1px solid #e5e7eb", fontSize: 12.5, boxSizing: "border-box", marginBottom: 10 };
+  return (
+    <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e5e7eb", padding: 20 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+        <div style={{ fontWeight: 800, fontSize: 15, color: "#1f2937" }}>🔔 {t("webPopup.vapidTitle", "웹 푸시(VAPID) 설정")}</div>
+        {status && (status.configured
+          ? <span style={{ fontSize: 11, fontWeight: 700, color: "#16a34a" }}>● {t("webPopup.vapidOn", "설정됨")}</span>
+          : <span style={{ fontSize: 11, fontWeight: 700, color: "#f59e0b" }}>● {t("webPopup.vapidOff", "미설정 — 웹푸시 구독 비활성")}</span>)}
+      </div>
+      <div style={{ fontSize: 11.5, color: "#9ca3af", marginBottom: 14 }}>{t("webPopup.vapidDesc", "관리자만 설정 가능. VAPID 공개/개인키를 등록하면 방문자 웹 푸시 구독이 활성화됩니다. (web-push 라이브러리로 키 쌍 생성)")}</div>
+      <label style={{ fontSize: 11, fontWeight: 700, color: "#64748b" }}>{t("webPopup.vapidPublic", "VAPID 공개키(Public Key)")}</label>
+      <input style={inp} value={v.public} onChange={e => setV(s => ({ ...s, public: e.target.value }))} placeholder="B*** (base64url)" />
+      <label style={{ fontSize: 11, fontWeight: 700, color: "#64748b" }}>{t("webPopup.vapidPrivate", "VAPID 개인키(Private Key)")}</label>
+      <input style={inp} type="password" value={v.private} onChange={e => setV(s => ({ ...s, private: e.target.value }))} placeholder="•••• (저장 시 암호화)" />
+      <label style={{ fontSize: 11, fontWeight: 700, color: "#64748b" }}>{t("webPopup.vapidSubject", "Subject (mailto: 또는 https URL)")}</label>
+      <input style={inp} value={v.subject} onChange={e => setV(s => ({ ...s, subject: e.target.value }))} placeholder="mailto:admin@yourdomain.com" />
+      <div style={{ display: "flex", gap: 8 }}>
+        <button onClick={save} disabled={busy} style={{ padding: "9px 18px", borderRadius: 9, border: "none", background: "linear-gradient(135deg,#4f8ef7,#6366f1)", color: "#fff", fontWeight: 700, fontSize: 12.5, cursor: "pointer", opacity: busy ? 0.6 : 1 }}>💾 {t("webPopup.vapidSave", "VAPID 저장")}</button>
+        <button onClick={test} disabled={busy || !(status && status.configured)} style={{ padding: "9px 18px", borderRadius: 9, border: "1px solid #cbd5e1", background: "#fff", color: "#475569", fontWeight: 700, fontSize: 12.5, cursor: "pointer", opacity: (busy || !(status && status.configured)) ? 0.5 : 1 }}>📤 {t("webPopup.vapidTest", "테스트 발송")}</button>
+      </div>
+      {msg && <div style={{ fontSize: 12, color: "#475569", marginTop: 10, fontWeight: 600 }}>{msg}</div>}
+    </div>
+  );
 }
 
 

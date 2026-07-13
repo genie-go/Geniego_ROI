@@ -575,7 +575,7 @@ function TermsAgreementSection({ agreeTerms, setAgreeTerms, agreePrivacy, setAgr
 }
 
 /* ─── Input Field ──────────────────────────────────────────── */
-function Field({ label, type = "text", value, onChange, placeholder, required, autoComplete, hint, disabled }) {
+function Field({ label, type = "text", value, onChange, placeholder, required, autoComplete, hint, disabled, onBlur }) {
   const t = useT();
   // 207차: 비밀번호 보이기/숨기기 토글 — 자동완성으로 채워진 잘못된 값 확인용(로그인 디버깅).
   const isPw = type === "password";
@@ -593,6 +593,7 @@ function Field({ label, type = "text", value, onChange, placeholder, required, a
         <input
           type={effType} value={value}
           onChange={e => onChange(e.target.value)}
+          onBlur={onBlur}
           placeholder={placeholder} required={required} autoComplete={autoComplete} disabled={disabled}
           autoCapitalize="none" autoCorrect="off" spellCheck={false}
           inputMode={type === "email" ? "email" : undefined}
@@ -1339,6 +1340,9 @@ function FreeRegisterForm({ onSwitch, onBack, variant = "demo" }) {
   const [ceoName, setCeoName] = useState("");
   const [businessNumber, setBusinessNumber] = useState("");
   const [phone, setPhone] = useState("");
+  // [282차 R3 추천인 제도] 가입 시 추천코드(선택) — 유효하면 추천인에게 1개월 PRO 보상(구독 유지 시).
+  const [referralCode, setReferralCode] = useState(() => { try { return new URLSearchParams(window.location.search).get('ref') || ''; } catch { return ''; } });
+  const [referralInfo, setReferralInfo] = useState(null); // {valid, referrer_company, message}
   const [phoneVerified, setPhoneVerified] = useState(false); // [현 차수] 휴대폰 SMS 인증 완료 여부
   const [phoneToken, setPhoneToken] = useState("");          // 인증 완료 토큰(register 전달)
   const [agreeTerms, setAgreeTerms] = useState(false);
@@ -1367,6 +1371,7 @@ function FreeRegisterForm({ onSwitch, onBack, variant = "demo" }) {
         plan: "",
         company: company.trim(), ceo_name: ceoName.trim(), business_number: businessNumber.trim(), phone: phone.trim(),
         phone_verify_token: phoneToken,
+        referral_code: referralCode.trim(), // [282차 R3] 추천코드(선택)
       });
       navigate("/dashboard", {
         replace: true,
@@ -1410,6 +1415,27 @@ function FreeRegisterForm({ onSwitch, onBack, variant = "demo" }) {
       <PhoneVerifyField t={t} purpose="register" setPhone={setPhone} getEmail={() => email.trim()}
         onSuccess={(d) => { setPhoneVerified(true); setPhoneToken(d.verify_token || ""); }} verified={phoneVerified}
         label={t("auth.phoneLabel", '연락처(휴대폰)')} />
+
+      {/* [282차 R3] 추천코드(선택) — 유효 시 추천인에게 1개월 PRO 보상(구독 유지 확인 후 지급) */}
+      <div>
+        <Field label={t("auth.referralLabel", '추천 코드 (선택)')} value={referralCode}
+          onChange={(v) => { setReferralCode(v); setReferralInfo(null); }}
+          placeholder="REF-XXXXXXXX"
+          onBlur={async () => {
+            const c = referralCode.trim(); if (!c) { setReferralInfo(null); return; }
+            try {
+              const r = await fetch(API_BASE + "/api/auth/referral/validate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: c }) });
+              const d = await r.json().catch(() => ({}));
+              setReferralInfo(d && d.valid ? { valid: true, msg: d.referrer_company } : { valid: false });
+            } catch { setReferralInfo(null); }
+          }} />
+        {referralInfo && referralInfo.valid && (
+          <div style={{ marginTop: 4, fontSize: 11, color: "#059669" }}>✅ {t('auth.referralOk', '추천인 확인')}: {referralInfo.msg} — {t('auth.referralReward', '구독 가입 시 추천인에게 1개월 PRO 혜택이 지급됩니다.')}</div>
+        )}
+        {referralInfo && !referralInfo.valid && (
+          <div style={{ marginTop: 4, fontSize: 11, color: "#f59e0b" }}>⚠ {t('auth.referralBad', '유효하지 않은 추천코드입니다. 비워두어도 가입할 수 있습니다.')}</div>
+        )}
+      </div>
 
       {/* Terms — 4개 개별 동의 + 전체동의 + 모달 보기 */}
       <TermsAgreementSection

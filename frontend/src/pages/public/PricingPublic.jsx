@@ -7,6 +7,7 @@ import { useT, useI18n } from "../../i18n/index.js"; // 187차: i18n 배선(앱 
 import SIDEBAR_DICT from "../../layout/sidebarI18n.js"; // 212차 #5 핫픽스: gNav.* 라벨은 sidebarI18n 전용(전역 i18n 부재) → 사이드바와 동일 해석
 import { useAuth } from "../../auth/AuthContext.jsx"; // 213차 결제 게이팅 #2: 로그인 사용자 전체정보 입력 게이트
 import { localizeDeep as _dloc } from "../../utils/demoUiLocalize.js"; // [271차] 백엔드 플랜 데이터(기능/설명) 15개국 현지화
+import ReferralPromo from "../../components/ReferralPromo.jsx"; // [282차 R3] 추천인 제도 홍보(15국)
 
 /**
  * 172차 PHASE 1-A — hardcoded PLANS 제거 → backend `/auth/pricing/public-plans` 기반 동적 fetch.
@@ -911,60 +912,70 @@ export default function PricingPublic() {
                     </div>
                 )}
 
-                {/* 187차 — admin 동기화: 계정수(seat) 선택 + 기간(period) 선택. 둘 다 admin 매트릭스에서 파생. */}
-                {hasSeatPricing && availableSeatTiers.length > 1 && (
-                    <div style={{ marginTop: 30 }}>
+                {/* 187차 — admin 동기화: 계정수(seat) 선택 + 기간(period) 선택. 둘 다 admin 매트릭스에서 파생.
+                    [282차 R3] 계정수·구독주기를 한 줄(flex row)로 나란히 배치(모바일은 자동 줄바꿈). 세로 스택 대비 컴팩트. */}
+                <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 28, marginTop: 30, marginBottom: 14, textAlign: "center" }}>
+                    {hasSeatPricing && availableSeatTiers.length > 1 && (
+                        <div>
+                            <div style={{ fontSize: 11, color: T.text3, fontWeight: 800, letterSpacing: 0.8, marginBottom: 8, textTransform: "uppercase" }}>
+                                {t("appPricing.accountsLabel", "Number of accounts")}
+                            </div>
+                            <div style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: 4, borderRadius: 99, background: T.cycleBarBg, border: `1px solid ${T.cycleBarBorder}` }}>
+                                {availableSeatTiers.map(stier => {
+                                    const active = seatTier === stier.key;
+                                    return (
+                                        <button key={stier.key} data-gp={active ? "onColor" : undefined}
+                                            onClick={() => setSeatTier(stier.key)}
+                                            style={{
+                                                padding: "8px 18px", borderRadius: 99, border: "none",
+                                                background: active ? "linear-gradient(135deg,#4f8ef7,#6366f1)" : "transparent",
+                                                color: active ? "#fff" : T.cycleInactiveText,
+                                                fontSize: 12, fontWeight: 700, cursor: "pointer", transition: "all 200ms",
+                                                boxShadow: active ? "0 2px 12px rgba(79,142,247,0.3)" : "none",
+                                            }}>
+                                            {stier.label}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
+
+                    <div>
                         <div style={{ fontSize: 11, color: T.text3, fontWeight: 800, letterSpacing: 0.8, marginBottom: 8, textTransform: "uppercase" }}>
-                            {t("appPricing.accountsLabel", "Number of accounts")}
+                            {t("appPricing.periodHeader", "Billing period")}
                         </div>
                         <div style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: 4, borderRadius: 99, background: T.cycleBarBg, border: `1px solid ${T.cycleBarBorder}` }}>
-                            {availableSeatTiers.map(stier => {
-                                const active = seatTier === stier.key;
+                            {availablePeriods.map(months => {
+                                const active = cycleMonths === months;
+                                const nk = NAMED_PERIODS[months];
+                                const label = nk ? t(`appPricing.cycle.${nk}`, NAMED_PERIOD_FALLBACK[months]) : t("appPricing.nMonths", "{{n}} months", { n: months });
                                 return (
-                                    <button key={stier.key} data-gp={active ? "onColor" : undefined}
-                                        onClick={() => setSeatTier(stier.key)}
+                                    <button key={months} data-gp={active ? "onColor" : undefined}
+                                        onClick={() => setCycleMonths(months)}
                                         style={{
-                                            padding: "8px 18px", borderRadius: 99, border: "none",
+                                            padding: "8px 16px", borderRadius: 99, border: "none",
                                             background: active ? "linear-gradient(135deg,#4f8ef7,#6366f1)" : "transparent",
                                             color: active ? "#fff" : T.cycleInactiveText,
                                             fontSize: 12, fontWeight: 700, cursor: "pointer", transition: "all 200ms",
                                             boxShadow: active ? "0 2px 12px rgba(79,142,247,0.3)" : "none",
                                         }}>
-                                        {stier.label}
+                                        {label}
+                                        {months > 1 && <span style={{ fontSize: 10, marginLeft: 6, opacity: active ? 0.85 : 0.5 }}>({months}mo)</span>}
                                     </button>
                                 );
                             })}
                         </div>
                     </div>
-                )}
-
-                <div style={{ fontSize: 11, color: T.text3, fontWeight: 800, letterSpacing: 0.8, margin: "20px 0 8px", textTransform: "uppercase" }}>
-                    {t("appPricing.periodHeader", "Billing period")}
                 </div>
-                <div style={{ display: "inline-flex", alignItems: "center", gap: 4, marginBottom: 14, padding: 4, borderRadius: 99, background: T.cycleBarBg, border: `1px solid ${T.cycleBarBorder}` }}>
-                    {availablePeriods.map(months => {
-                        const active = cycleMonths === months;
-                        const nk = NAMED_PERIODS[months];
-                        const label = nk ? t(`appPricing.cycle.${nk}`, NAMED_PERIOD_FALLBACK[months]) : t("appPricing.nMonths", "{{n}} months", { n: months });
-                        return (
-                            <button key={months} data-gp={active ? "onColor" : undefined}
-                                onClick={() => setCycleMonths(months)}
-                                style={{
-                                    padding: "8px 16px", borderRadius: 99, border: "none",
-                                    background: active ? "linear-gradient(135deg,#4f8ef7,#6366f1)" : "transparent",
-                                    color: active ? "#fff" : T.cycleInactiveText,
-                                    fontSize: 12, fontWeight: 700, cursor: "pointer", transition: "all 200ms",
-                                    boxShadow: active ? "0 2px 12px rgba(79,142,247,0.3)" : "none",
-                                }}>
-                                {label}
-                                {months > 1 && <span style={{ fontSize: 10, marginLeft: 6, opacity: active ? 0.85 : 0.5 }}>({months}mo)</span>}
-                            </button>
-                        );
-                    })}
-                </div>
-                <p style={{ fontSize: 11, color: T.text3, marginBottom: 32 }}>
+                <p style={{ fontSize: 11, color: T.text3, marginBottom: 22 }}>
                     {t("appPricing.cycle.note", "Longer cycles unlock larger discounts. All cycles billed upfront via Paddle.")} <strong style={{ color: T.legalStrong }}>{t("appPricing.cardOnly", "Card payments only")}</strong>.
                 </p>
+
+                {/* [282차 R3] 추천 리워드 프로모 — 셀렉터 바로 아래(홍보 효과) · 컴팩트 배너(플랜 카드 매몰 방지) */}
+                <div style={{ textAlign: "left", marginBottom: 28 }}>
+                    <ReferralPromo lang={lang} compact onCta={() => navigate(user ? "/my-coupons" : "/login")} />
+                </div>
 
                 {/* Plan cards */}
                 {/* 206차: 3컬럼 제한 → 최대 4컬럼(플랜 4개가 한 화면 한 줄에 모두 보이도록). 1fr 컬럼이 컨테이너 폭에 맞춰 축소되어 가로 스크롤 없음. */}

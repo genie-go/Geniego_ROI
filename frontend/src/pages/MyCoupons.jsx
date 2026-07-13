@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { IS_DEMO } from '../utils/demoEnv';
 import { useI18n } from '../i18n';
 import { getJsonAuth, postJsonAuth } from '../services/apiClient.js';
+import { useAuth } from '../auth/AuthContext.jsx'; // [282차 R2] 쿠폰 등록 후 플랜/메뉴 즉시 갱신
 
 // [259차] 과거 전체 하드코딩 가짜 셸(KPI 8/5/2/14·죽은 "Create New" 탭·백엔드 미배선)이었음.
 //   실 엔드포인트 GET /v423/coupons/mine(UserAdmin::myCoupons, 세션) 배선 + 코드 등록(redeem).
@@ -14,6 +15,7 @@ const DEMO_COUPONS = [
 
 export default function MyCoupons() {
   const { t } = useI18n();
+  const { refreshPlan } = useAuth();
   const [activeTab, setActiveTab] = useState(0);
   const [coupons, setCoupons] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -34,6 +36,30 @@ export default function MyCoupons() {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+
+  // [282차 R3 추천인 제도] 내 추천코드/실적 — 구독회원만 코드 발급됨.
+  const [refCode, setRefCode] = useState(null);        // 코드 문자열
+  const [refEligible, setRefEligible] = useState(null); // true/false/null
+  const [refStats, setRefStats] = useState({ referred_count: 0, rewarded_count: 0 });
+  const [refCopied, setRefCopied] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const d = await getJsonAuth('/api/auth/referral/my-code');
+        if (!alive) return;
+        if (d && d.ok && d.eligible) { setRefCode(d.code); setRefEligible(true); }
+        else setRefEligible(false);
+        const s = await getJsonAuth('/api/auth/referral/stats');
+        if (alive && s && s.ok) setRefStats({ referred_count: s.referred_count || 0, rewarded_count: s.rewarded_count || 0 });
+      } catch { if (alive) setRefEligible(false); }
+    })();
+    return () => { alive = false; };
+  }, []);
+  const refLink = refCode ? `${window.location.origin}/login?ref=${encodeURIComponent(refCode)}` : '';
+  const copyRef = async () => {
+    try { await navigator.clipboard.writeText(refCode || ''); setRefCopied(true); setTimeout(() => setRefCopied(false), 1800); } catch {}
+  };
 
   const usable = (c) => !Number(c.is_revoked) && (Number(c.use_count) || 0) < (Number(c.max_uses) || 1);
   const kpis = useMemo(() => {
@@ -62,7 +88,12 @@ export default function MyCoupons() {
     setBusy(true); setMsg('');
     try {
       const r = await postJsonAuth('/api/auth/coupon/redeem', { code: cc });
-      if (r?.ok) { setMsg(t('myCoupons.redeemOk', '쿠폰이 적용되었습니다.')); setCode(''); load(); }
+      if (r?.ok) {
+        setMsg(t('myCoupons.redeemOk', '쿠폰이 적용되었습니다.')); setCode(''); load();
+        // [282차 R2 P2] 플랜 부여형 쿠폰 등록 후 AuthContext 플랜 리프레시 → 사이드바/메뉴 접근 즉시 재계산
+        //   (종전엔 재로그인/새로고침 전까지 새 플랜 메뉴가 안 열렸다). demo 무해.
+        try { if (typeof refreshPlan === 'function') await refreshPlan(); } catch { /* 비치명 */ }
+      }
       else setMsg(r?.error || r?.message || t('myCoupons.redeemFail', '쿠폰 적용에 실패했습니다.'));
     } catch (e) { setMsg(t('myCoupons.redeemFail', '쿠폰 적용에 실패했습니다.')); }
     finally { setBusy(false); }
@@ -93,6 +124,33 @@ export default function MyCoupons() {
         </button>
         {msg && <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-2,#475569)' }}>{msg}</span>}
       </div>
+
+      {/* [282차 R3] 추천인 제도 — 내 추천코드 + 실적(구독회원 전용) */}
+      {refEligible === true && refCode && (
+        <div style={{ marginBottom: 18, borderRadius: 16, padding: '20px 24px', background: 'linear-gradient(135deg, #0b1220, #1a2a52)', color: '#fff', border: '1px solid rgba(129,171,255,0.3)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+            <span style={{ fontSize: 22 }}>🎁</span>
+            <div style={{ fontSize: 17, fontWeight: 800 }}>{t('myCoupons.refTitle', '내 추천 코드')}</div>
+          </div>
+          <div style={{ fontSize: 12.5, color: '#c9d6ee', lineHeight: 1.6, marginBottom: 14 }}>
+            {t('myCoupons.refDesc', '이 코드로 다른 기업이 구독 가입하면, 그 회원이 1개월 구독을 유지하는 즉시 PRO 1개월 무료쿠폰이 확실하게 지급됩니다(추천일로부터 1년 유효).')}
+          </div>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+            <code style={{ fontSize: 18, fontWeight: 800, letterSpacing: 1, padding: '10px 18px', borderRadius: 10, background: 'rgba(255,255,255,0.1)', border: '1px dashed rgba(129,171,255,0.5)' }}>{refCode}</code>
+            <button onClick={copyRef} style={{ padding: '10px 18px', borderRadius: 10, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 13, background: 'linear-gradient(135deg,#4f8ef7,#6366f1)', color: '#fff' }}>
+              {refCopied ? t('myCoupons.refCopied', '복사됨 ✓') : t('myCoupons.refCopy', '코드 복사')}
+            </button>
+            <button onClick={async () => { try { await navigator.clipboard.writeText(refLink); setRefCopied(true); setTimeout(() => setRefCopied(false), 1800); } catch {} }}
+              style={{ padding: '10px 18px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.25)', cursor: 'pointer', fontWeight: 700, fontSize: 13, background: 'transparent', color: '#fff' }}>
+              {t('myCoupons.refCopyLink', '초대 링크 복사')}
+            </button>
+            <div style={{ marginLeft: 'auto', display: 'flex', gap: 18, fontSize: 12 }}>
+              <div><span style={{ fontSize: 18, fontWeight: 800 }}>{refStats.referred_count}</span> <span style={{ color: '#9fb3d4' }}>{t('myCoupons.refCount', '추천 가입')}</span></div>
+              <div><span style={{ fontSize: 18, fontWeight: 800, color: '#6ee7b7' }}>{refStats.rewarded_count}</span> <span style={{ color: '#9fb3d4' }}>{t('myCoupons.refRewards', '지급 보상')}</span></div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 14, marginBottom: 22 }}>
         {kpis.map((k, i) => (
@@ -125,18 +183,26 @@ export default function MyCoupons() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 12 }}>
             {shown.map((c, i) => {
               const left = Math.max(0, (Number(c.max_uses) || 1) - (Number(c.use_count) || 0));
-              const ok = usable(c);
+              // [282차 R3] 추천 보상쿠폰 잠금 표시 — usable_from 이 미래면 아직 사용 불가(피추천 회원 1개월 유지 대기).
+              const locked = c.usable_from && new Date(String(c.usable_from).replace(' ', 'T')).getTime() > Date.now();
+              const ok = usable(c) && !locked;
+              const unlockDate = locked ? String(c.usable_from).slice(0, 10) : '';
               return (
                 <div key={c.code + i} style={{ borderRadius: 12, padding: '16px 18px', background: ok ? 'linear-gradient(135deg, rgba(79,142,247,0.06), rgba(99,102,241,0.04))' : 'rgba(0,0,0,0.03)', border: `1px solid ${ok ? 'rgba(79,142,247,0.18)' : 'rgba(0,0,0,0.08)'}` }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                     <span style={{ fontFamily: 'monospace', fontWeight: 800, fontSize: 15, color: ok ? '#4f8ef7' : 'var(--text-3,#94a3b8)' }}>{c.code}</span>
-                    <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 99, background: ok ? 'rgba(34,197,94,0.12)' : 'rgba(0,0,0,0.06)', color: ok ? '#16a34a' : '#94a3b8' }}>
-                      {ok ? t('myCoupons.usable', '사용 가능') : (Number(c.is_revoked) ? t('myCoupons.revoked', '취소됨') : t('myCoupons.exhausted', '소진'))}
+                    <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 99, background: ok ? 'rgba(34,197,94,0.12)' : (locked ? 'rgba(245,158,11,0.14)' : 'rgba(0,0,0,0.06)'), color: ok ? '#16a34a' : (locked ? '#b45309' : '#94a3b8') }}>
+                      {ok ? t('myCoupons.usable', '사용 가능') : (locked ? `🔒 ${t('myCoupons.locked', '잠금')}` : (Number(c.is_revoked) ? t('myCoupons.revoked', '취소됨') : t('myCoupons.exhausted', '소진')))}
                     </span>
                   </div>
                   <div style={{ fontSize: 12, color: 'var(--text-2,#475569)', fontWeight: 600 }}>
                     {t('myCoupons.planLabel', '플랜')}: <b style={{ textTransform: 'capitalize' }}>{c.plan}</b> · {c.duration_days ? `${c.duration_days}${t('myCoupons.days', '일')}` : t('myCoupons.unlimited', '무기한')}
                   </div>
+                  {locked && (
+                    <div style={{ fontSize: 11, color: '#b45309', marginTop: 4, fontWeight: 600 }}>
+                      🔒 {t('myCoupons.unlockOn', '사용 가능일')}: {unlockDate} — {t('myCoupons.unlockNote', '추천 회원의 구독 유지 확인 후 자동 활성화')}
+                    </div>
+                  )}
                   <div style={{ fontSize: 11, color: 'var(--text-3,#94a3b8)', marginTop: 4 }}>
                     {t('myCoupons.usesLeft', '남은 사용')}: {left}/{Number(c.max_uses) || 1}
                   </div>

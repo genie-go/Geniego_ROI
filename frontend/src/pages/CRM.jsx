@@ -135,12 +135,25 @@ function CustomerPanel({ customer, onClose, onSendEmail, onSendKakao, onDelete, 
   const fmt = useCurrencyFmt();
   // [현 차수] 통합 고객 아이덴티티 360 — email/phone/kakao 병합 후 집계된 LTV/빈도/타임라인.
   const [identity, setIdentity] = React.useState(null);
+  const [unmerging, setUnmerging] = React.useState(0);
+  const reloadIdentity = React.useCallback(() => {
+    if (_isDemo || customer?.id == null) { setIdentity(null); return; }
+    _gjaCrm(`/api/crm/identity/${customer.id}`).then(r => setIdentity(r && (r.ok !== false) ? r : null)).catch(() => setIdentity(null));
+  }, [customer?.id]);
   React.useEffect(() => {
     if (_isDemo || customer?.id == null) { setIdentity(null); return; }
     let alive = true;
     _gjaCrm(`/api/crm/identity/${customer.id}`).then(r => { if (alive) setIdentity(r && (r.ok !== false) ? r : null); }).catch(() => { if (alive) setIdentity(null); });
     return () => { alive = false; };
   }, [customer?.id]);
+  // [282차 R3] 오병합 되돌리기 — 통합 멤버를 단독 아이덴티티로 분리(확률병합 실수 복구).
+  const unmergeMember = async (memberId) => {
+    if (_isDemo || !memberId) return;
+    setUnmerging(memberId);
+    try { await _pjaCrm('/api/crm/identity/unmerge', { customer_id: memberId }); reloadIdentity(); }
+    catch (e) { /* 무음 — 상세는 콘솔 */ console.warn('unmerge fail', e); }
+    finally { setUnmerging(0); }
+  };
   if (!customer) return null;
   const grade = getRfmGrade(t)[customer.grade] || getRfmGrade(t).normal;
   // 링크된 연락처 행 수(다중 email/phone/kakao 병합 결과) — 응답 필드 방어적 파싱
@@ -217,8 +230,12 @@ function CustomerPanel({ customer, onClose, onSendEmail, onSendKakao, onDelete, 
             {idLinked.length > 0 && (
               <div style={{ marginTop: 10, display: "flex", flexWrap: "wrap", gap: 6 }}>
                 {idLinked.slice(0, 12).map((lc, i) => (
-                  <span key={i} style={{ fontSize: 10.5, fontWeight: 600, padding: "3px 9px", borderRadius: 20, background: C.surface, color: C.muted, border: `1px solid ${C.border}` }}>
+                  <span key={i} style={{ fontSize: 10.5, fontWeight: 600, padding: "3px 9px", borderRadius: 20, background: C.surface, color: C.muted, border: `1px solid ${C.border}`, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                     {lc.email || lc.phone || lc.kakao_id || lc.identifier || lc.value || (typeof lc === 'string' ? lc : '-')}
+                    {idLinkedCount > 1 && lc.id && (
+                      <button onClick={() => unmergeMember(lc.id)} disabled={unmerging === lc.id} title={t('crm.idUnmerge', '이 연락처를 별도 고객으로 분리(오병합 되돌리기)')}
+                        style={{ border: 'none', background: 'transparent', color: unmerging === lc.id ? C.muted : '#dc2626', cursor: unmerging === lc.id ? 'default' : 'pointer', fontSize: 12, fontWeight: 800, lineHeight: 1, padding: 0 }}>✕</button>
+                    )}
                   </span>
                 ))}
               </div>
@@ -691,9 +708,17 @@ function PreferencesPanel({ t, card, labelSt, descSt, inputSt }) {
     { id: 'whatsapp', label: t('crm.channel.whatsapp', 'WhatsApp'), color: '#059669' },
     { id: 'push', label: t('crm.channel.push', '푸시'), color: '#7c3aed' },
   ];
+  // [282차 R3] 토픽(주제) 레벨 선호 — 채널과 직교(이메일 받되 프로모션만 끄기).
+  const TOPICS = [
+    { id: 'promo', label: t('crm.topic.promo', '프로모션·할인'), color: '#dc2626' },
+    { id: 'newsletter', label: t('crm.topic.newsletter', '뉴스레터·소식'), color: '#2563eb' },
+    { id: 'product', label: t('crm.topic.product', '신상품·업데이트'), color: '#059669' },
+    { id: 'event', label: t('crm.topic.event', '이벤트·웨비나'), color: '#7c3aed' },
+  ];
   const [summary, setSummary] = React.useState(null);
   const [custId, setCustId] = React.useState('');
   const [prefs, setPrefs] = React.useState(null); // { [channel]: {opted_in, quiet_start, quiet_end} }
+  const [topicPrefs, setTopicPrefs] = React.useState(null); // { [topic]: bool }
   const [busy, setBusy] = React.useState(false);
   const [msg, setMsg] = React.useState('');
 
@@ -705,28 +730,53 @@ function PreferencesPanel({ t, card, labelSt, descSt, inputSt }) {
   React.useEffect(() => { loadSummary(); }, [loadSummary]);
 
   const blankPrefs = () => { const b = {}; CHANNELS.forEach(c => { b[c.id] = { opted_in: true, quiet_start: 21, quiet_end: 8 }; }); return b; };
+  const blankTopics = () => { const b = {}; TOPICS.forEach(tp => { b[tp.id] = true; }); return b; };
   const loadCustomer = async () => {
     const id = custId.trim(); if (!id) return;
     setMsg('');
     const base = blankPrefs();
-    if (IS_DEMO) { setPrefs(base); return; }
+    const tbase = blankTopics();
+    if (IS_DEMO) { setPrefs(base); setTopicPrefs(tbase); return; }
     try {
       const r = await _gjaCrm(`/api/crm/preferences?customer_id=${encodeURIComponent(id)}`);
-      const rows = Array.isArray(r?.preferences) ? r.preferences : Array.isArray(r?.rows) ? r.rows : Array.isArray(r) ? r : [];
-      rows.forEach(p => { const ch = p.channel; if (base[ch]) base[ch] = { opted_in: p.opted_in !== 0 && p.opted_in !== false && p.opted_in !== '0', quiet_start: p.quiet_start ?? 21, quiet_end: p.quiet_end ?? 8 }; });
-      setPrefs(base);
-    } catch (e) { setPrefs(base); }
+      // 백엔드 정본 응답: { channels:{email:bool,...}, topics:{promo:{opted_in},...}, quiet:{quiet_start,quiet_end,tz_offset} }
+      const qs = r?.quiet?.quiet_start, qe = r?.quiet?.quiet_end;
+      if (r?.channels && typeof r.channels === 'object') {
+        CHANNELS.forEach(c => { if (c.id in r.channels) base[c.id] = { opted_in: !!r.channels[c.id], quiet_start: qs ?? 21, quiet_end: qe ?? 8 }; });
+      } else {
+        // 레거시 rows 형태 폴백(호환)
+        const rows = Array.isArray(r?.preferences) ? r.preferences : Array.isArray(r?.rows) ? r.rows : Array.isArray(r) ? r : [];
+        rows.forEach(p => { const ch = p.channel; if (base[ch]) base[ch] = { opted_in: p.opted_in !== 0 && p.opted_in !== false && p.opted_in !== '0', quiet_start: p.quiet_start ?? 21, quiet_end: p.quiet_end ?? 8 }; });
+      }
+      if (r?.topics && typeof r.topics === 'object') {
+        TOPICS.forEach(tp => { if (tp.id in r.topics) tbase[tp.id] = !!(r.topics[tp.id]?.opted_in ?? r.topics[tp.id]); });
+      }
+      setPrefs(base); setTopicPrefs(tbase);
+    } catch (e) { setPrefs(base); setTopicPrefs(tbase); }
   };
   const setPref = (ch, k, v) => setPrefs(p => ({ ...p, [ch]: { ...p[ch], [k]: v } }));
+  const setTopic = (tp, v) => setTopicPrefs(p => ({ ...p, [tp]: v }));
+  const clampH = (v) => Math.max(0, Math.min(23, isNaN(+v) ? 0 : Math.round(+v)));
+  // 채널 1행 저장 — 백엔드 정본 계약 {customer_id, channels:{[ch]:bool}, quiet_*}.
   const savePref = async (ch) => {
     const id = custId.trim(); if (!id || !prefs?.[ch]) return;
     const row = prefs[ch];
-    const clamp = (v) => Math.max(0, Math.min(23, isNaN(+v) ? 0 : Math.round(+v)));
-    const body = { customer_id: id, channel: ch, opted_in: !!row.opted_in, quiet_start: clamp(row.quiet_start), quiet_end: clamp(row.quiet_end) };
+    const body = { customer_id: id, channels: { [ch]: !!row.opted_in }, quiet_start: clampH(row.quiet_start), quiet_end: clampH(row.quiet_end) };
     setBusy(true); setMsg('');
     try {
       if (!IS_DEMO) await _reqCrm('/api/crm/preferences', 'PUT', body);
       setMsg(`${CHANNELS.find(c => c.id === ch)?.label || ch} · ${t('crm.prefSaved', '저장되었습니다')}`);
+      loadSummary();
+    } catch (e) { setMsg(t('crm.prefSaveErr', '저장 실패: 권한 또는 네트워크를 확인하세요')); }
+    finally { setBusy(false); }
+  };
+  // [282차 R3] 토픽 선호 일괄 저장 — {customer_id, topics:{promo:bool,...}}.
+  const saveTopics = async () => {
+    const id = custId.trim(); if (!id || !topicPrefs) return;
+    setBusy(true); setMsg('');
+    try {
+      if (!IS_DEMO) await _reqCrm('/api/crm/preferences', 'PUT', { customer_id: id, topics: { ...topicPrefs } });
+      setMsg(t('crm.topicSaved', '주제 선호가 저장되었습니다'));
       loadSummary();
     } catch (e) { setMsg(t('crm.prefSaveErr', '저장 실패: 권한 또는 네트워크를 확인하세요')); }
     finally { setBusy(false); }
@@ -780,6 +830,26 @@ function PreferencesPanel({ t, card, labelSt, descSt, inputSt }) {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* [282차 R3] 토픽(주제) 선호 — 채널과 직교 */}
+      {topicPrefs && (
+        <div style={{ marginTop: 14 }}>
+          <div style={{ fontSize: 12.5, fontWeight: 700, color: C.text, marginBottom: 4 }}>🏷️ {t('crm.topicTitle', '주제별 수신 선호')}</div>
+          <div style={{ fontSize: 11.5, color: C.muted, marginBottom: 10, lineHeight: 1.6 }}>{t('crm.topicDesc', '채널과 별개로 고객이 관심 주제만 받도록 설정합니다. 거래성 알림(주문·배송·결제)은 항상 발송되며 여기에 포함되지 않습니다.')}</div>
+          <div style={{ border: `1px solid ${C.border}`, borderRadius: 10, overflow: 'hidden' }}>
+            {TOPICS.map((tp, i) => (
+              <div key={tp.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderTop: i ? `1px solid ${C.border}` : 'none' }}>
+                <span style={{ fontWeight: 700, fontSize: 13, color: tp.color, minWidth: 120 }}>{tp.label}</span>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12.5, color: C.text, cursor: 'pointer' }}>
+                  <input type="checkbox" checked={!!topicPrefs[tp.id]} onChange={e => setTopic(tp.id, e.target.checked)} style={{ width: 15, height: 15 }} />
+                  {topicPrefs[tp.id] ? t('crm.prefOptIn', '수신 동의') : t('crm.prefOptOut', '수신거부')}
+                </label>
+              </div>
+            ))}
+          </div>
+          <button onClick={saveTopics} disabled={busy} style={{ marginTop: 10, padding: '7px 16px', borderRadius: 8, border: 'none', background: busy ? '#cbd5e1' : C.accent, color: '#fff', fontWeight: 700, fontSize: 12.5, cursor: busy ? 'default' : 'pointer' }}>{t('crm.topicSave', '주제 선호 저장')}</button>
         </div>
       )}
       {msg && <div style={{ fontSize: 12.5, fontWeight: 600, color: C.green, marginTop: 10 }}>{msg}</div>}
@@ -840,6 +910,7 @@ function ProductAffinityPanel({ t }) {
   }, []);
   if (!data) return null;
   const pairs = data.pairs || [];
+  const recs = data.recommendations || []; // [282차] 협업필터(item-item 코사인) SKU별 추천
   const liftColor = (l) => l >= 3 ? '#16a34a' : l >= 1.5 ? '#d97706' : '#64748b';
   return (
     <div style={{ background: C.card, borderRadius: 14, padding: '16px 18px' }}>
@@ -868,6 +939,26 @@ function ProductAffinityPanel({ t }) {
             </table>
           </div>
         )}
+      {recs.length > 0 && (
+        <div style={{ marginTop: 18, borderTop: `1px solid ${C.border}`, paddingTop: 14 }}>
+          <div style={{ fontWeight: 700, marginBottom: 4, color: C.text }}>🤝 {t('crm.cfTitle', '상품별 협업필터 추천')}</div>
+          <div style={{ fontSize: 11.5, color: C.muted, marginBottom: 12, lineHeight: 1.6 }}>{t('crm.cfDesc', '각 상품 구매자에게 함께 추천할 상품(item-item 코사인 유사도 기준). 인기 편향에 강건해 크로스셀/번들 추천에 그대로 활용할 수 있습니다.')}</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 10 }}>
+            {recs.slice(0, 12).map((r, i) => (
+              <div key={i} style={{ background: C.bg || 'rgba(148,163,184,0.06)', borderRadius: 10, padding: '10px 12px', border: `1px solid ${C.border}` }}>
+                <div style={{ fontSize: 12.5, fontWeight: 700, color: C.text, marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={r.name}>{r.name}</div>
+                <div style={{ fontSize: 10.5, color: C.muted, marginBottom: 6 }}>{t('crm.cfBuyers', '구매고객')} {r.buyers}{t('crm.affPeople', '명')}</div>
+                {(r.recommended || []).map((rc, j) => (
+                  <div key={j} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11.5, padding: '2px 0' }}>
+                    <span style={{ color: C.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginRight: 8 }} title={rc.name}>→ {rc.name}</span>
+                    <span style={{ color: rc.cosine >= 0.3 ? '#16a34a' : '#64748b', fontWeight: 700, flexShrink: 0 }}>{rc.cosine}</span>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1390,6 +1481,38 @@ function CRMContent() {
     finally { setResolvingId(false); }
   };
 
+  // [282차 R3] 확률 매칭 후보 — read-only 조회 → 관리자가 쌍별 승인(병합)/무시. 자동병합 없음(오병합=LTV오염 방지).
+  const [cands, setCands] = useState(null);   // null=미조회, []=조회했지만 없음
+  const [loadingCands, setLoadingCands] = useState(false);
+  const [mergingKey, setMergingKey] = useState('');
+  const REASON_LABEL = {
+    email_local_exact: t('crm.idReasonEmailExact', '이메일 아이디 동일(도메인만 다름)'),
+    email_local_similar: t('crm.idReasonEmailSim', '이메일 아이디 유사'),
+    phone_suffix: t('crm.idReasonPhone', '전화 뒷자리 일치(국가코드 차이 추정)'),
+    name_exact: t('crm.idReasonNameExact', '이름 동일'),
+    name_similar: t('crm.idReasonNameSim', '이름 유사'),
+  };
+  const loadCandidates = async () => {
+    if (IS_DEMO) { addAlert?.({ type: 'info', msg: t('crm.identityDemo', '데모에서는 아이덴티티 병합이 시뮬레이션됩니다.') }); return; }
+    setLoadingCands(true);
+    try {
+      const r = await _gjaCrm('/api/crm/identity/candidates');
+      setCands(Array.isArray(r?.candidates) ? r.candidates : []);
+    } catch (e) { setCands([]); addAlert?.({ type: 'error', msg: t('crm.idCandFail', '후보 조회 실패') + ': ' + (e?.message || '') }); }
+    finally { setLoadingCands(false); }
+  };
+  const approveMerge = async (c) => {
+    const key = `${c.a.id}-${c.b.id}`; setMergingKey(key);
+    try {
+      await _pjaCrm('/api/crm/identity/merge', { a_id: c.a.id, b_id: c.b.id, score: c.score });
+      setCands(list => (list || []).filter(x => `${x.a.id}-${x.b.id}` !== key));
+      addAlert?.({ type: 'success', msg: t('crm.idMerged', '병합 완료 — 두 고객이 한 사람으로 통합되었습니다') });
+      reloadOpCustomers(); reloadOpRfm();
+    } catch (e) { addAlert?.({ type: 'error', msg: t('crm.idMergeFail', '병합 실패') + ': ' + (e?.message || '') }); }
+    finally { setMergingKey(''); }
+  };
+  const dismissCand = (key) => setCands(list => (list || []).filter(x => `${x.a.id}-${x.b.id}` !== key));
+
   const handleExportCsv = async () => {
     const headers = [t('crm.fName'), t('crm.colEmail'), t('crm.colPhone'), t('crm.colGrade'), 'LTV', t('crm.colCnt'), t('crm.colLast')];
     // [현 차수 P1] 운영 CSV는 전건 수집(page 루프) — 목록 100행 캡으로 잘려 내보내던 문제 해소. 데모는 로컬 전건.
@@ -1485,10 +1608,57 @@ function CRMContent() {
           <>
             <button onClick={handleExportCsv} style={{ padding: "9px 18px", borderRadius: 10, border: `1px solid ${C.border}`, background: "transparent", color: C.muted, fontWeight: 700, cursor: "pointer", fontSize: 13 }}>📥 {t('crm.exportCsv')}</button>
             <button onClick={onResolveIdentities} disabled={resolvingId} title={t('crm.identity.title', '통합 고객 아이덴티티')} style={{ padding: "9px 18px", borderRadius: 10, border: `1px solid ${C.purple}55`, background: `${C.purple}12`, color: C.purple, fontWeight: 700, cursor: resolvingId ? "default" : "pointer", fontSize: 13, opacity: resolvingId ? 0.6 : 1 }}>🪪 {resolvingId ? '…' : t('crm.identity.resolve', '아이덴티티 재해석')}</button>
+            <button onClick={loadCandidates} disabled={loadingCands} title={t('crm.idCandTitle', '이름·이메일·전화 유사도로 동일인 추정 쌍을 찾아 관리자 승인 후 병합')} style={{ padding: "9px 18px", borderRadius: 10, border: `1px solid ${C.accent}55`, background: `${C.accent}12`, color: C.accent, fontWeight: 700, cursor: loadingCands ? "default" : "pointer", fontSize: 13, opacity: loadingCands ? 0.6 : 1 }}>🔗 {loadingCands ? '…' : t('crm.idCandBtn', '확률 매칭 후보')}</button>
             <button onClick={() => setShowForm(f => !f)} data-onboard-cta="crm-customer" data-onboard-hint={t('crm.onboardHint', '여기서 첫 고객을 추가하세요')} style={{ marginLeft: "auto", padding: "9px 18px", borderRadius: 10, border: "none", background: C.green, color: '#ffffff', fontWeight: 700, cursor: "pointer", fontSize: 13 }}>+ {t('crm.btnRegister')}</button>
           </>
         )}
       </div>
+
+      {/* [282차 R3] 확률 매칭 후보 검토 — 관리자가 쌍별 승인/무시(자동병합 없음) */}
+      {tab === "customers" && cands != null && (
+        <div style={{ background: C.card, borderRadius: 14, padding: 18, marginBottom: 20, border: `1px solid ${C.accent}33` }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+            <div style={{ fontWeight: 800, color: C.text }}>🔗 {t('crm.idCandHdr', '확률 매칭 후보 (동일인 추정)')}</div>
+            <span style={{ fontSize: 12, color: C.muted }}>{cands.length}{t('crm.idCandCount', '쌍')}</span>
+            <button onClick={() => setCands(null)} style={{ marginLeft: 'auto', padding: '4px 10px', borderRadius: 8, border: `1px solid ${C.border}`, background: 'transparent', color: C.muted, fontSize: 11.5, cursor: 'pointer' }}>{t('common.close', '닫기')}</button>
+          </div>
+          <div style={{ fontSize: 11.5, color: C.muted, marginBottom: 12, lineHeight: 1.6 }}>{t('crm.idCandDesc', '이름·이메일·전화 유사도로 동일인일 가능성이 높은 쌍입니다. 확인 후 [병합]하면 두 고객이 한 사람으로 통합되어 LTV·세그먼트가 합산됩니다. 자동 병합은 하지 않으며, 잘못 병합해도 고객 상세에서 되돌릴 수 있습니다.')}</div>
+          {cands.length === 0
+            ? <div style={{ fontSize: 12.5, color: C.muted, padding: '10px 0' }}>{t('crm.idCandEmpty', '병합 후보가 없습니다. (이미 통합됐거나 유사 쌍이 없음)')}</div>
+            : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {cands.map((c) => {
+                  const key = `${c.a.id}-${c.b.id}`;
+                  const sc = Math.round((c.score || 0) * 100);
+                  const scColor = sc >= 85 ? '#16a34a' : sc >= 70 ? '#d97706' : '#64748b';
+                  return (
+                    <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', border: `1px solid ${C.border}`, borderRadius: 10, flexWrap: 'wrap' }}>
+                      <div style={{ fontSize: 20, fontWeight: 900, color: scColor, minWidth: 52, textAlign: 'center' }}>{sc}%</div>
+                      <div style={{ flex: 1, minWidth: 220, display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+                        {[c.a, c.b].map((m, mi) => (
+                          <React.Fragment key={m.id}>
+                            {mi === 1 && <span style={{ color: C.muted, fontSize: 16 }}>⇄</span>}
+                            <div style={{ fontSize: 12 }}>
+                              <div style={{ color: C.text, fontWeight: 700 }}>{m.name || '(무명)'} <span style={{ color: C.muted, fontWeight: 400 }}>#{m.id}</span></div>
+                              <div style={{ color: C.muted }}>{m.email || '—'}{m.phone ? ` · ${m.phone}` : ''}</div>
+                            </div>
+                          </React.Fragment>
+                        ))}
+                      </div>
+                      <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', maxWidth: 260 }}>
+                        {(c.reasons || []).map(rz => <span key={rz} style={{ fontSize: 10.5, fontWeight: 600, padding: '2px 8px', borderRadius: 12, background: `${C.accent}14`, color: C.accent }}>{REASON_LABEL[rz] || rz}</span>)}
+                      </div>
+                      <div style={{ display: 'flex', gap: 6, marginLeft: 'auto' }}>
+                        <button onClick={() => approveMerge(c)} disabled={mergingKey === key} style={{ padding: '7px 14px', borderRadius: 8, border: 'none', background: mergingKey === key ? '#cbd5e1' : C.green, color: '#fff', fontWeight: 700, fontSize: 12, cursor: mergingKey === key ? 'default' : 'pointer' }}>{mergingKey === key ? '…' : t('crm.idMergeBtn', '병합')}</button>
+                        <button onClick={() => dismissCand(key)} style={{ padding: '7px 12px', borderRadius: 8, border: `1px solid ${C.border}`, background: 'transparent', color: C.muted, fontWeight: 600, fontSize: 12, cursor: 'pointer' }}>{t('crm.idDismiss', '무시')}</button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+        </div>
+      )}
 
       {/* Customer Registration Form */}
       {showForm && tab === "customers" && (

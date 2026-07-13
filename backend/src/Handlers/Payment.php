@@ -361,7 +361,9 @@ final class Payment
                 $plan, $cycle, 'success', $now, $expiresAt,
             ]);
         } catch (\Throwable $e) {
-            // 테이블 없으면 무시 (마이그레이션이 자동 처리)
+            // [282차 I-P2] 결제는 이미 성공(업그레이드 선반영)이라 접근권 무손실이나, 성공결제의 유일한 감사행이
+            //   DB 일시장애 시 무흔적 소실되면 대사 불가 → 관측 로그 남긴다(멱등 재기록 불필요).
+            error_log('[Payment.confirm] payment_history INSERT 실패(order=' . $orderId . '): ' . $e->getMessage());
         }
 
         // 플랜 업데이트 (subscription_expires_at 있는 경우와 없는 경우 호환)

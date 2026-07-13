@@ -140,10 +140,10 @@ class EmailMarketing
         return ($u === '' || strpos($u, 'http') !== 0) ? 'https://www.genieroi.com' : $u;
     }
     private static function unsubToken(string $tenant, string $email): string {
-        // [현 차수 보안] 공개 상수 폴백 제거 — APP_KEY 미설정 시 설치별 PG_ENC_KEY 로 강등(소스공개 상수로 위조 차단).
-        //   ★시크릿 변경으로 기 발송 구독취소 링크는 무효화됨(신규 링크는 유효). unsub 생성/검증 동일 SSOT.
-        $secret = getenv('APP_KEY') ?: getenv('PG_ENC_KEY') ?: 'genie-unsub-secret-v1';
-        return substr(hash_hmac('sha256', $tenant . '|' . strtolower(trim($email)), $secret), 0, 32);
+        // [282차 F-P2 보안] 소스공개 상수 폴백('genie-unsub-secret-v1') **완전 제거** — 설치별 KEK 파생 서브키로 서명.
+        //   Crypto::hmacTag 는 항상 존재하는 KEK(fail-closed)에서 purpose='unsub' 서브키를 파생 → 소스만 아는 자의
+        //   토큰 위조(타 테넌트 고객 임의 수신거부) 불가. ★시크릿 변경으로 기 발송 링크 무효화(신규 유효)·생성/검증 동일 SSOT.
+        return \Genie\Crypto::hmacTag($tenant . '|' . strtolower(trim($email)), 'unsub', 32);
     }
     private static function unsubUrl(string $tenant, string $email): string {
         return self::appBaseUrl() . '/api/email/unsubscribe?t=' . rawurlencode($tenant)

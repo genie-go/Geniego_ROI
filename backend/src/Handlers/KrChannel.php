@@ -46,8 +46,35 @@ final class KrChannel {
 
     // ─── Channel Registry ─────────────────────────────────────────────────────
 
+    /** [282차 R2 MED] 국내 채널 마스터 seed-if-empty — 종전엔 kr_channel 에 시더가 전무해 운영에서 항상 빈 테이블이었고
+     *   프론트가 데모만 하드코딩(DEMO_KR_CHANNELS)해 은폐했다. 그 결과 운영 "🇰🇷 채널 마스터리스트"·수수료 규칙 등록
+     *   드롭다운이 비어 채널별 수수료 규칙 등록이 불가했다. 전역 마스터(테넌트 무관)라 1회만 표준 채널을 시드한다. */
+    private static function ensureSeed(\PDO $pdo): void {
+        try {
+            if ((int)$pdo->query('SELECT COUNT(*) FROM kr_channel')->fetchColumn() > 0) return;
+            $std = [
+                ['coupang','쿠팡','주 1회(주정산)','로켓배송은 별도 정산 주기 적용'],
+                ['naver','네이버 스마트스토어','구매확정+2영업일','네이버페이 연동 정산'],
+                ['11st','11번가','월 2회(15/말)',''],
+                ['gmarket','G마켓','월 2회(익월 정산)','스마일배송 수수료 별도'],
+                ['auction','옥션','월 2회',''],
+                ['kakaogift','카카오 선물하기','월 1회','선물 수신 확정 기준 정산'],
+                ['lotteon','롯데온','월 2회',''],
+                ['wemef','위메프','월 1회',''],
+                ['tmon','티몬','월 1회',''],
+                ['ssg','SSG닷컴','월 2회',''],
+                ['cafe24','카페24','정산주기 설정별',''],
+                ['smartstore','스마트스토어','구매확정+2영업일',''],
+            ];
+            $now = gmdate('c');
+            $ins = $pdo->prepare("INSERT INTO kr_channel(channel_key,display_name,currency,settlement_cycle,fee_schema_json,vat_rate,note,created_at) VALUES(?,?,?,'KRW',NULL,0.10,?,?)");
+            foreach ($std as $c) { $ins->execute([$c[0], $c[1], $c[2], $c[3], $now]); }
+        } catch (\Throwable $e) { error_log('[KrChannel.ensureSeed] ' . $e->getMessage()); }
+    }
+
     public static function listChannels(Request $request, Response $response, array $args): Response {
         $pdo  = Db::pdo();
+        self::ensureSeed($pdo);
         $stmt = $pdo->query('SELECT * FROM kr_channel ORDER BY channel_key');
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         foreach ($rows as &$r) {

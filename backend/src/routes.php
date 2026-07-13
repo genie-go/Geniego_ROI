@@ -80,6 +80,9 @@ return function (App $app): void {
         'GET /crm/preferences/public'          => 'Genie\\Handlers\\PreferenceCenter::publicCenter',
         'POST /crm/preferences/public'         => 'Genie\\Handlers\\PreferenceCenter::publicCenter',
         'POST /crm/identity/resolve'           => 'Genie\\Handlers\\CRM::resolveIdentity',
+        'GET /crm/identity/candidates'         => 'Genie\\Handlers\\CRM::identityCandidates', // [282차] 확률매칭 후보(read-only)
+        'POST /crm/identity/merge'             => 'Genie\\Handlers\\CRM::identityMerge',       // [282차] 관리자 승인 병합
+        'POST /crm/identity/unmerge'           => 'Genie\\Handlers\\CRM::identityUnmerge',     // [282차] 오병합 되돌리기
         'GET /crm/identity/{id}'               => 'Genie\\Handlers\\CRM::identityView',
 
         // ── 상품 카탈로그 writeback (192차: 일괄 등록/가격수정 실배선, dead-route 404 대체) ──
@@ -343,9 +346,7 @@ return function (App $app): void {
         'POST /v425/live/media-config/test'            => 'Genie\\Handlers\\LiveCommerce::testMediaConfig',
         'POST /api/v425/live/media-config/test'        => 'Genie\\Handlers\\LiveCommerce::testMediaConfig',
         'GET /v425/live/overview'                      => 'Genie\\Handlers\\LiveCommerce::overview',
-        'GET /v425/live/integrations'                  => 'Genie\\Handlers\\LiveCommerce::listIntegrations',
-        'POST /v425/live/integrations'                 => 'Genie\\Handlers\\LiveCommerce::saveIntegration',
-        'DELETE /v425/live/integrations/{channel}'     => 'Genie\\Handlers\\LiveCommerce::deleteIntegration',
+        // [282차 R3] live/integrations CRUD 제거 — 고아(호출처 0)·IntegrationHub 중복. 핸들러 잔존(미배선·무해).
         'GET /v425/live/stream'                        => 'Genie\\Handlers\\LiveCommerce::stream',
         // 범용 OAuth 2.0 연결 프레임워크 — 208차 #2(활성화 준비)
         'GET /v425/oauth/status'                       => 'Genie\\Handlers\\OAuth::status',
@@ -725,6 +726,7 @@ return function (App $app): void {
         'POST /v395/templates/v2/{channel}/drafts/{draft_id}/submit'   => 'Genie\\Handlers\\FeedTemplate::submitDraft',
         'POST /v395/templates/v2/{channel}/drafts/{draft_id}/approve'  => 'Genie\\Handlers\\FeedTemplate::approveDraft',
         'POST /v395/templates/v2/{channel}/drafts/{draft_id}/publish'  => 'Genie\\Handlers\\FeedTemplate::publishDraft',
+        'POST /v395/templates/v2/{channel}/preview'                    => 'Genie\\Handlers\\FeedTemplate::preview', // [282차] 변환 dry-run
 
 
         // ── v420 Price Optimisation ───────────────────────────────────────────
@@ -1323,6 +1325,13 @@ return function (App $app): void {
         'GET /auth/coupon/preview'      => 'Genie\\Handlers\\CouponRedeem::preview',
         'POST /api/auth/coupon/redeem'  => 'Genie\\Handlers\\CouponRedeem::redeem',
         'GET /api/auth/coupon/preview'  => 'Genie\\Handlers\\CouponRedeem::preview',
+        // [282차 R3] 구독플랜 추천인 제도 — 내 추천코드 조회/발급(구독회원)·실적·가입폼 코드검증(공개)
+        'GET /auth/referral/my-code'        => 'Genie\\Handlers\\Referral::myCode',
+        'GET /api/auth/referral/my-code'    => 'Genie\\Handlers\\Referral::myCode',
+        'GET /auth/referral/stats'          => 'Genie\\Handlers\\Referral::stats',
+        'GET /api/auth/referral/stats'      => 'Genie\\Handlers\\Referral::stats',
+        'POST /auth/referral/validate'      => 'Genie\\Handlers\\Referral::validate',
+        'POST /api/auth/referral/validate'  => 'Genie\\Handlers\\Referral::validate',
         // 172차 P0-C — 쿠폰 관리 (admin 자율 발행 + 룰 토글 + 통계)
         'GET /v424/admin/coupons/overview'                  => 'Genie\\Handlers\\CouponAdmin::overview',
         'PUT /v424/admin/coupons/rules/{name}'              => 'Genie\\Handlers\\CouponAdmin::updateRule',
@@ -1871,6 +1880,7 @@ return function (App $app): void {
     $register('POST', '/v395/templates/v2/{channel}/drafts/{draft_id}/submit');
     $register('POST', '/v395/templates/v2/{channel}/drafts/{draft_id}/approve');
     $register('POST', '/v395/templates/v2/{channel}/drafts/{draft_id}/publish');
+    $register('POST', '/v395/templates/v2/{channel}/preview'); // [282차] 변환 dry-run
     $register('POST', '/v395/validate/v2');
     $register('GET', '/v397/admin/dlq');
     $register('POST', '/v397/admin/dlq/replay');
@@ -2889,6 +2899,9 @@ return function (App $app): void {
     $register('GET',    '/crm/preferences/public');
     $register('POST',   '/crm/preferences/public');
     $register('POST',   '/crm/identity/resolve');
+    $register('GET',    '/crm/identity/candidates'); // [282차] 확률매칭 후보(정적 — {id} 보다 먼저)
+    $register('POST',   '/crm/identity/merge');
+    $register('POST',   '/crm/identity/unmerge');
     $register('GET',    '/crm/identity/{id}');
     $register('POST',   '/crm/segments/{id}/refresh');
     $register('POST',   '/crm/segments/smart-seed'); // [239차+ CDP] 표준 행동 세그먼트 원클릭
@@ -3130,9 +3143,6 @@ return function (App $app): void {
     $register('PUT',    '/v425/live/media-config');          // [현 차수] 미디어서버 설정 등록(즉시 자동 활성)
     $register('POST',   '/v425/live/media-config/test');     $register('POST', '/api/v425/live/media-config/test'); // [P2] 연결 헬스체크
     $register('GET',    '/v425/live/overview');
-    $register('GET',    '/v425/live/integrations');
-    $register('POST',   '/v425/live/integrations');
-    $register('DELETE', '/v425/live/integrations/{channel}');
     $register('GET',    '/v425/live/stream');
     $register('GET',    '/v425/oauth/status');
     $register('GET',    '/v425/oauth/{provider}/authorize');
@@ -3539,6 +3549,13 @@ return function (App $app): void {
     $register('GET',    '/auth/coupon/preview');
     $register('POST',   '/api/auth/coupon/redeem');
     $register('GET',    '/api/auth/coupon/preview');
+    // [282차 R3] 추천인 제도
+    $register('GET',    '/auth/referral/my-code');
+    $register('GET',    '/api/auth/referral/my-code');
+    $register('GET',    '/auth/referral/stats');
+    $register('GET',    '/api/auth/referral/stats');
+    $register('POST',   '/auth/referral/validate');
+    $register('POST',   '/api/auth/referral/validate');
     // 172차 P0-C — coupon admin
     $register('GET',    '/v424/admin/coupons/overview');
     $register('PUT',    '/v424/admin/coupons/rules/{name}');

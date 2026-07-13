@@ -4180,7 +4180,9 @@ final class ChannelSync
         if ($tenant === 'demo' || !in_array($type, ['cancel', 'return'], true) || $orderId === '') return;
         $now = gmdate('Y-m-d H:i:s');
         try {
-            if ($sku !== '' && $qty > 0) self::incInventory($pdo, $tenant, $channel, $sku, $qty);
+            // [282차 D-P2] 멱등 ref 부여 — force 활성복구 후 재취소 시 channel_inventory 이중복원(초과판매) 차단.
+            //   자동 웹훅 경로(:3819)와 동일한 'inc-{ch}-{oid}' ref 로 incInventory 의 channel_inv_restock_log 멱등가드 활성.
+            if ($sku !== '' && $qty > 0) self::incInventory($pdo, $tenant, $channel, $sku, $qty, 'inc-' . $channel . '-' . $orderId);
             self::recordClaim($pdo, $tenant, $channel, $orderId, $type, $total, '', (string)$name, $now);
             self::recordCrmRefund($pdo, $tenant, $channel, $email, $name, $total, $orderId);
             \Genie\Handlers\OpenPlatform::emit($tenant, 'order.cancelled', ['order_id' => $orderId, 'channel' => $channel, 'amount' => $total, 'currency' => 'KRW', 'reason' => $type, 'occurred_at' => $now]);
@@ -4399,19 +4401,38 @@ final class ChannelSync
         $productCount = 0;
         $orderCount   = 0;
         $pending = !empty($result['pending']); // [현 차수] H1: stub 채널 = 연동 대기(거짓 'ok' 방지)
+        $testStatus = 'untested';
         if ($result['ok']) {
             $productCount = self::saveProducts($pdo, $tenant, $channel, $result['products'] ?? []);
             $orderCount   = self::saveOrders($pdo, $tenant, $channel, $result['orders'] ?? []);
-            $syncStatus = $pending ? 'pending' : 'ok';
-            $pdo->prepare("UPDATE channel_credential SET last_synced_at=?,sync_status=?,test_status='ok' WHERE id=?")->execute([$now,$syncStatus,$credId]);
+            // [282차 A-P1 거짓연동 위장 차단] 커머스 어댑터는 자격증명 불완전/라이브 API 4xx 여도 graceful 하게
+            //   ok=true + note('...입력 필요' / '실패(code=...)')를 반환한다. 종전엔 이때도 무조건 test_status='ok'
+            //   로 스탬프해 OmniChannel 카드가 "✓ 연동완료" 녹색으로 위장됐다(수집 0인데). 실제 수집물이 있거나
+            //   실패신호 note 가 없을 때만 'ok', 그 외엔 'error'(⚠ 빨강)로 정직 표기한다.
+            $note = (string)($result['note'] ?? '');
+            $hadData = ($productCount + $orderCount) > 0;
+            $failSignal = $note !== '' && preg_match('/(입력\s*필요|필요합니다|필요$|required|실패|code=|invalid|unauthorized|권한|미설정|not\s*configured|오류|error)/iu', $note);
+            if ($pending) {
+                $testStatus = 'pending';
+            } elseif ($failSignal && !$hadData) {
+                $testStatus = 'error';   // 자격증명 불완전/ API 실패 — 거짓 'ok' 방지
+            } else {
+                $testStatus = 'ok';
+            }
+            $syncStatus = ($testStatus === 'ok') ? 'ok' : $testStatus;
+            $pdo->prepare("UPDATE channel_credential SET last_synced_at=?,sync_status=?,test_status=? WHERE id=?")->execute([$now,$syncStatus,$testStatus,$credId]);
         }
 
-        Db::audit($pdo, $tenant, 'channel_sync.save_credential', ['cred_id'=>$credId, 'channel'=>$channel, 'synced'=>$result['ok'] && !$pending]); // 감사: 자격증명 저장(보안)
+        // [282차 R2 회귀수정] 즉시응답 synced 를 test_status 와 정합 — 종전엔 result.ok && !pending 이라
+        //   graceful 실패(자격증명 불완전·API 4xx=ok true)에도 synced=true → 프론트가 새로고침 전까지 녹색 위장.
+        //   test_status 강등 로직(ok/error/pending)과 동일 기준으로 통일(A-P1 즉시응답 경로 완결).
+        $synced = ($testStatus === 'ok');
+        Db::audit($pdo, $tenant, 'channel_sync.save_credential', ['cred_id'=>$credId, 'channel'=>$channel, 'synced'=>$synced]); // 감사: 자격증명 저장(보안)
         return TemplateResponder::respond($res, [
             'ok'            => true,
             'cred_id'       => $credId,
             'channel'       => $channel,
-            'synced'        => $result['ok'] && !$pending,
+            'synced'        => $synced,
             'pending'       => $pending,
             'product_count' => $productCount,
             'order_count'   => $orderCount,
@@ -5056,7 +5077,8 @@ final class ChannelSync
                     $eventType = $incCR; // 이하 로직(OpenPlatform reason·return 분기)에 캐논 토큰 사용
                     $affectedMonth = substr((string)($existing['ordered_at'] ?? ''), 0, 7); // 원주문 월(정산 재롤업 대상)
                     $sku = (string)($existing['sku'] ?? ''); $qty = (int)($existing['qty'] ?? 0);
-                    if ($sku !== '' && $qty > 0) self::incInventory($pdo, $tenant, $channel, $sku, $qty);
+                    // [282차 D-P2] 멱등 ref — force 재활성 후 재취소 시 채널재고 이중복원 차단(전이가드+ref 이중방어).
+                    if ($sku !== '' && $qty > 0) self::incInventory($pdo, $tenant, $channel, $sku, $qty, 'inc-' . $channel . '-' . (string)$body['order_id']);
                     self::recordClaim($pdo, $tenant, $channel, (string)$body['order_id'], $eventType, (float)($existing['total_price'] ?? 0), (string)($body['reason'] ?? ''), (string)($body['buyer_name'] ?? ''), $now);
                     // [265차 HIGH] CRM LTV 역분개(활성→취소/반품 전이 1회·멱등) — 폴링(saveOrders:2763)만 있던 것을 웹훅 전이에도 대칭 적용.
                     //   기존엔 웹훅 취소/반품 시 정산·재고는 되돌리면서 LTV/RFM/CLV/VIP등급/타겟팅 과대분개만 잔존. buyer 정보는 웹훅 body best-effort(멱등·미매칭 시 no-op).

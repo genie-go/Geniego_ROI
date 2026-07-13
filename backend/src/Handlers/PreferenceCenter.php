@@ -29,6 +29,11 @@ final class PreferenceCenter
     /** 관리 대상 채널. 'all' 은 전체 채널 일괄 옵트아웃(글로벌 수신거부). */
     public const CHANNELS = ['email', 'sms', 'kakao', 'whatsapp', 'push'];
 
+    // [282차 R3] 토픽(콘텐츠 카테고리) 레벨 선호 — 채널과 직교. 구독자가 "이메일은 받되 프로모션만 끄기" 가능.
+    //   저장은 별도 스키마 없이 crm_channel_prefs 의 channel='topic:{key}' 로 재사용(UNIQUE 키 그대로, 마이그레이션 0).
+    //   'transactional'(주문·배송·결제 등 거래성)은 절대 억제 대상이 아니므로 목록에서 제외(항상 발송).
+    public const TOPICS = ['promo' => '프로모션·할인', 'newsletter' => '뉴스레터·소식', 'product' => '신상품·업데이트', 'event' => '이벤트·웨비나'];
+
     private static function db(): PDO { return Db::pdo(); }
     private static function isMysql(PDO $pdo): bool { return $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql'; }
     private static function now(): string { return gmdate('Y-m-d H:i:s'); }
@@ -130,6 +135,18 @@ final class PreferenceCenter
     }
 
     /**
+     * [282차 R3] 토픽(콘텐츠 카테고리) 발송 허용 여부 — 옵트아웃 모델. 명시적 opted_in=0(topic:{key}) 있으면 false.
+     *   빈 토픽/미설정/오류 시 true(무회귀: 토픽 미지정 발송은 기존과 동일). 채널 'topic:{key}' 로 crm_channel_prefs 재사용.
+     *   글로벌 'all' 옵트아웃도 자동 반영(isChannelAllowed 가 IN(:ch,'all') 대조).
+     */
+    public static function isTopicAllowed(PDO $pdo, string $tenant, int $customerId, string $topic, string $email = ''): bool
+    {
+        $topic = strtolower(trim($topic));
+        if ($topic === '' || !isset(self::TOPICS[$topic])) return true; // 미지정/미정의 토픽은 게이트 없음
+        return self::isChannelAllowed($pdo, $tenant, $customerId, 'topic:' . $topic, $email);
+    }
+
+    /**
      * 고객 개인 방해금지시간(quiet-hours) 내인지 — 발송 지연(defer) 판정. 미설정 시 false(테넌트 STO 가 별도 처리).
      * [현 차수] 통합 발송 게이트 CRM::isMarketingSendAllowed 가 발송 직전 이 메서드를 호출(기존엔 미배선 dead code).
      *   public 유지(크로스핸들러 정적 호출) — 개인 quiet-hours 우선, 미설정 시 CRM::commsSendAllowedNow(테넌트) 폴백.
@@ -175,9 +192,9 @@ final class PreferenceCenter
     /* ═══ 공개 선호센터(HMAC 토큰, 로그인 불필요) ══════════════════════ */
     private static function prefToken(string $tenant, string $email): string
     {
-        // [현 차수 보안] 공개 상수 폴백 제거 — APP_KEY 미설정 시 설치별 PG_ENC_KEY 로 강등(위조 차단). EmailMarketing::unsubToken 과 동일 SSOT.
-        $secret = getenv('APP_KEY') ?: getenv('PG_ENC_KEY') ?: 'genie-unsub-secret-v1';
-        return substr(hash_hmac('sha256', $tenant . '|pref|' . strtolower(trim($email)), $secret), 0, 32);
+        // [282차 F-P2 보안] 소스공개 상수 폴백 완전 제거 — 설치별 KEK 파생 서브키(purpose='pref')로 서명(위조 차단).
+        //   EmailMarketing::unsubToken 과 동일 정책. ★시크릿 변경으로 기 발송 링크 무효화(신규 유효).
+        return \Genie\Crypto::hmacTag($tenant . '|pref|' . strtolower(trim($email)), 'pref', 32);
     }
 
     /** 발송측이 선호센터 링크 생성 시 사용(공개, 인증 불필요). */
@@ -233,7 +250,12 @@ final class PreferenceCenter
             foreach (self::CHANNELS as $ch) {
                 self::upsertPref($pdo, $tenant, $cid, $email, $ch, in_array($ch, $keep, true) ? 1 : 0, 'public');
             }
-            return $page('선호 저장 완료', '수신 채널 선호가 업데이트되었습니다.');
+            // [282차 R3] 토픽 선호 반영 — 체크된 토픽만 구독 유지, 나머지 옵트아웃(channel='topic:{key}').
+            $keepTopics = array_map('strval', (array)($b['topics'] ?? []));
+            foreach (array_keys(self::TOPICS) as $tp) {
+                self::upsertPref($pdo, $tenant, $cid, $email, 'topic:' . $tp, in_array($tp, $keepTopics, true) ? 1 : 0, 'public');
+            }
+            return $page('선호 저장 완료', '수신 채널·주제 선호가 업데이트되었습니다.');
         }
 
         // GET = 현재 상태 폼 렌더.
@@ -245,13 +267,23 @@ final class PreferenceCenter
             $checks .= '<label style="display:flex;align-items:center;gap:10px;padding:12px 14px;border:1px solid #e5e7eb;border-radius:10px;margin-bottom:8px;font-size:14px;color:#0f172a;text-align:left">'
                 . '<input type="checkbox" name="channels[]" value="' . $ch . '"' . ($state[$ch] ? ' checked' : '') . '>' . ($labels[$ch] ?? $ch) . '</label>';
         }
+        // [282차 R3] 토픽(주제) 체크박스 — 채널과 별개로 관심 주제만 구독 유지.
+        $topicState = [];
+        foreach (array_keys(self::TOPICS) as $tp) { $topicState[$tp] = self::isTopicAllowed($pdo, $tenant, $cid, $tp, $email); }
+        $topicChecks = '';
+        foreach (self::TOPICS as $tp => $lbl) {
+            $topicChecks .= '<label style="display:flex;align-items:center;gap:10px;padding:12px 14px;border:1px solid #e5e7eb;border-radius:10px;margin-bottom:8px;font-size:14px;color:#0f172a;text-align:left">'
+                . '<input type="checkbox" name="topics[]" value="' . $tp . '"' . ($topicState[$tp] ? ' checked' : '') . '>' . htmlspecialchars($lbl) . '</label>';
+        }
         $action = '/api/crm/preferences/public?t=' . rawurlencode($tenant) . '&e=' . rawurlencode($email) . '&k=' . $k;
         $html = '<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
             . '<title>수신 선호 관리</title><body style="font-family:system-ui,-apple-system,sans-serif;background:#f8fafc;margin:0">'
             . '<div style="max-width:480px;margin:48px auto;background:#fff;border-radius:16px;padding:32px;box-shadow:0 4px 24px rgba(15,23,42,.06)">'
             . '<h1 style="font-size:20px;color:#0f172a;margin:0 0 6px">수신 선호 관리</h1>'
-            . '<p style="font-size:13px;color:#64748b;margin:0 0 20px">' . htmlspecialchars($email) . ' — 받고 싶은 채널만 선택하세요.</p>'
-            . '<form method="post" action="' . htmlspecialchars($action, ENT_QUOTES) . '">' . $checks
+            . '<p style="font-size:13px;color:#64748b;margin:0 0 20px">' . htmlspecialchars($email) . ' — 받고 싶은 채널과 주제를 선택하세요.</p>'
+            . '<form method="post" action="' . htmlspecialchars($action, ENT_QUOTES) . '">'
+            . '<div style="font-size:12px;font-weight:700;color:#334155;margin:0 0 8px">받을 채널</div>' . $checks
+            . '<div style="font-size:12px;font-weight:700;color:#334155;margin:16px 0 8px">받을 주제</div>' . $topicChecks
             . '<button type="submit" style="width:100%;margin-top:12px;padding:12px;border:0;border-radius:10px;background:#4f8ef7;color:#fff;font-size:15px;font-weight:600;cursor:pointer">선호 저장</button></form>'
             . '<form method="post" action="' . htmlspecialchars($action, ENT_QUOTES) . '" style="margin-top:10px"><input type="hidden" name="all_off" value="1">'
             . '<button type="submit" style="width:100%;padding:10px;border:0;border-radius:10px;background:#f1f5f9;color:#64748b;font-size:13px;cursor:pointer">전체 수신거부</button></form>'
@@ -277,13 +309,17 @@ final class PreferenceCenter
         } catch (\Throwable $e) {}
         $channels = [];
         foreach (self::CHANNELS as $ch) { $channels[$ch] = self::isChannelAllowed($pdo, $tenant, $cid, $ch, $email); }
+        $topics = []; // [282차 R3] 토픽별 구독 상태
+        foreach (self::TOPICS as $tp => $lbl) { $topics[$tp] = ['label' => $lbl, 'opted_in' => self::isTopicAllowed($pdo, $tenant, $cid, $tp, $email)]; }
         $quiet = ['quiet_start'=>null, 'quiet_end'=>null, 'tz_offset'=>9];
         try {
             $qs = $pdo->prepare("SELECT quiet_start, quiet_end, tz_offset FROM crm_customer_prefs WHERE tenant_id=:t AND customer_id=:c");
             $qs->execute([':t'=>$tenant, ':c'=>$cid]); $qr = $qs->fetch(PDO::FETCH_ASSOC);
             if ($qr) { $quiet = ['quiet_start'=>($qr['quiet_start']!==null?(int)$qr['quiet_start']:null), 'quiet_end'=>($qr['quiet_end']!==null?(int)$qr['quiet_end']:null), 'tz_offset'=>(int)($qr['tz_offset'] ?? 9)]; }
         } catch (\Throwable $e) {}
-        return self::json($res, ['ok'=>true, 'customer_id'=>$cid, 'email'=>$email, 'channels'=>$channels, 'quiet'=>$quiet]);
+        // [282차 R3] 개인별 예측 발송시각(STO) 노출 — 관리자/캠페인이 최적 발송시간 확인.
+        $bestHour = CRM::bestSendHour($pdo, $tenant, $cid);
+        return self::json($res, ['ok'=>true, 'customer_id'=>$cid, 'email'=>$email, 'channels'=>$channels, 'topics'=>$topics, 'quiet'=>$quiet, 'best_send_hour'=>$bestHour]);
     }
 
     /* ─── PUT /crm/preferences ─── 채널 선호/quiet-hours 저장 ─── body:{customer_id, channels:{email:bool,...}, quiet_start, quiet_end, tz_offset} ─── */
@@ -312,6 +348,14 @@ final class PreferenceCenter
                 self::upsertPref($pdo, $tenant, $cid, $email, $ch, $on ? 1 : 0, 'admin');
             }
         }
+        // [282차 R3] 토픽 선호(옵션) — {topics:{promo:bool,...}}. 미전달 토픽은 미변경.
+        if (isset($b['topics']) && is_array($b['topics'])) {
+            foreach (array_keys(self::TOPICS) as $tp) {
+                if (!array_key_exists($tp, $b['topics'])) continue;
+                $on = ($b['topics'][$tp] === true || $b['topics'][$tp] === 1 || $b['topics'][$tp] === '1' || $b['topics'][$tp] === 'true');
+                self::upsertPref($pdo, $tenant, $cid, $email, 'topic:' . $tp, $on ? 1 : 0, 'admin');
+            }
+        }
         // quiet-hours(옵션). null 전달 = 해제.
         if (array_key_exists('quiet_start', $b) || array_key_exists('quiet_end', $b) || array_key_exists('tz_offset', $b)) {
             $qsVal = array_key_exists('quiet_start', $b) && $b['quiet_start'] !== null && $b['quiet_start'] !== '' ? max(0, min(23, (int)$b['quiet_start'])) : null;
@@ -337,15 +381,22 @@ final class PreferenceCenter
         if ($err = UserAuth::requirePro($req, $res)) return $err;
         self::ensureTables();
         $pdo = self::db(); $tenant = self::tenant($req);
-        $out = [];
+        $out = []; $byTopic = []; // [282차 R3] 토픽(topic:*) 은 채널 집계에서 분리
         try {
             $st = $pdo->prepare("SELECT channel, SUM(CASE WHEN opted_in=0 THEN 1 ELSE 0 END) AS opted_out,
                 SUM(CASE WHEN opted_in=1 THEN 1 ELSE 0 END) AS opted_in FROM crm_channel_prefs WHERE tenant_id=:t GROUP BY channel");
             $st->execute([':t'=>$tenant]);
             foreach ($st->fetchAll(PDO::FETCH_ASSOC) ?: [] as $r) {
-                $out[(string)$r['channel']] = ['opted_out'=>(int)$r['opted_out'], 'opted_in'=>(int)$r['opted_in']];
+                $ch = (string)$r['channel'];
+                $agg = ['opted_out'=>(int)$r['opted_out'], 'opted_in'=>(int)$r['opted_in']];
+                if (strpos($ch, 'topic:') === 0) {
+                    $tp = substr($ch, 6);
+                    $byTopic[$tp] = $agg + ['label' => self::TOPICS[$tp] ?? $tp];
+                } else {
+                    $out[$ch] = $agg;
+                }
             }
         } catch (\Throwable $e) {}
-        return self::json($res, ['ok'=>true, 'by_channel'=>$out]);
+        return self::json($res, ['ok'=>true, 'by_channel'=>$out, 'by_topic'=>$byTopic]);
     }
 }

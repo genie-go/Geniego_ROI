@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { IS_DEMO } from '../utils/demoEnv';
 import { useI18n } from '../i18n';
 import { svgToPngDataUrl } from '../utils/svgRasterize.js'; // [Track B] SVG→PNG 클라 래스터화(매체 이미지 업로드용)
+import { sanitizeSvg } from '../utils/xssSanitizer.js'; // [282차 F-P1] 저장형 SVG XSS 차단
 import { buildSamples, SAMPLE_CATEGORIES } from '../data/aiDesignSamples.js';
 
 /* 196차 — 대화형 AI 디자인. 사용자가 자유 자연어로 대화하며 광고 디자인을 생성·수정.
@@ -56,7 +57,7 @@ function Preview({ design, svg, image, video }) {
     );
   }
   if (svg) {
-    const html = svg.replace('<svg', '<svg width="100%" height="100%" preserveAspectRatio="xMidYMid slice"');
+    const html = sanitizeSvg(svg.replace('<svg', '<svg width="100%" height="100%" preserveAspectRatio="xMidYMid slice"'));
     return <div style={{ width: box.w, height: box.h, borderRadius: 16, overflow: 'hidden', boxShadow: '0 12px 38px rgba(15,23,42,0.24)', background: '#fff' }} dangerouslySetInnerHTML={{ __html: html }} />;
   }
   const p = design.palette || {};
@@ -262,7 +263,7 @@ export default function AIDesignChat({ onApplied }) {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(130px,1fr))', gap: 12 }}>
               {samples.filter(s => s.category === galCat).map(s => (
                 <button key={s.id} onClick={() => selectSample(s)} title={s.name} style={{ padding: 0, border: '1px solid rgba(0,0,0,0.08)', borderRadius: 12, overflow: 'hidden', cursor: 'pointer', background: '#fff' }}>
-                  <div style={{ width: '100%', aspectRatio: '1/1', overflow: 'hidden' }} dangerouslySetInnerHTML={{ __html: s.svg.replace('<svg', '<svg width="100%" height="100%" preserveAspectRatio="xMidYMid slice"') }} />
+                  <div style={{ width: '100%', aspectRatio: '1/1', overflow: 'hidden' }} dangerouslySetInnerHTML={{ __html: sanitizeSvg(s.svg.replace('<svg', '<svg width="100%" height="100%" preserveAspectRatio="xMidYMid slice"')) }} />
                   <div style={{ padding: '6px 8px', fontSize: 10, fontWeight: 700, color: '#475569', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.name}</div>
                 </button>
               ))}

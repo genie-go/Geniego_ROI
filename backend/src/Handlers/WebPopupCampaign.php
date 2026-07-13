@@ -485,6 +485,15 @@ final class WebPopupCampaign
         $ss = $pdo->prepare("SELECT settings_json FROM web_popup_setting WHERE tenant_id=?"); $ss->execute([$t]);
         $raw = $ss->fetchColumn();
         $settings = $raw ? (json_decode((string)$raw, true) ?: []) : [];
+        // [282차 R3] 설정 UI 토글(settingX) → 로더 소비 키 정규화. 종전 키 불일치로 "모바일 노출 끄기"가 무효였다.
+        //   로더는 showOnMobile 을 읽으므로 settingMobile(=모바일 표시) 을 반영한다(명시적으로 끈 경우만 차단).
+        if (array_key_exists('settingMobile', $settings) && !array_key_exists('showOnMobile', $settings)) {
+            $settings['showOnMobile'] = (bool)$settings['settingMobile'];
+        }
+        // 쿠키/빈도제한 OFF → 매 방문 표시(frequencyHours=0=로더 always show), ON → 세션당 1회(로더 기본).
+        if (array_key_exists('settingCookie', $settings) && !array_key_exists('frequencyHours', $settings) && !$settings['settingCookie']) {
+            $settings['frequencyHours'] = 0;
+        }
         // [264차] 활성 A/B 변형을 팝업별 그룹핑(방문자 서빙용 — 콘텐츠+가중치만, 지표 제외).
         $vst = $pdo->prepare("SELECT id,popup_id,label,title,subtitle,body,cta,link_url,discount,weight FROM web_popup_variant WHERE tenant_id=? AND status='active' ORDER BY id ASC");
         $vst->execute([$t]);

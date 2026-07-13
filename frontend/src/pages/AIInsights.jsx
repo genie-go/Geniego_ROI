@@ -246,8 +246,22 @@ const AIAssistantTab = memo(function AIAssistantTab({ t, safeguard, live = {}, n
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(false);
     const [ctx, setCtx] = useState('pnl');
+    // [282차 R3 에이전틱 코파일럿 UI 배선] 백엔드 /v422/ai/agentic(tool-use bi_query 실데이터 + propose_* 제안)이
+    //   완결됐으나 프론트 소비 0이던 것을 개통. agentMode ON = 에이전트(실데이터 조회+휴먼인루프 액션 제안), OFF = 구 P&L 분석.
+    const [agentMode, setAgentMode] = useState(true);
     const bottomRef = useRef(null);
     useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
+
+    // [282차 R3] 제안 액션 휴먼-인-루프 집행 — /v422/ai/agentic/execute(가드레일·킬스위치 재사용).
+    const executeAction = async (msgIdx, actIdx, act) => {
+        setMessages(prev => { const n = [...prev]; const m = { ...n[msgIdx] }; const acts = [...(m.actions || [])]; acts[actIdx] = { ...acts[actIdx], executing: true }; m.actions = acts; n[msgIdx] = m; return n; });
+        try {
+            const r = await postJson('/api/v422/ai/agentic/execute', { action: act.action, params: act.params });
+            setMessages(prev => { const n = [...prev]; const m = { ...n[msgIdx] }; const acts = [...(m.actions || [])]; acts[actIdx] = { ...acts[actIdx], executing: false, done: !!r?.ok, result: r?.ok ? (r.message || t('aiInsights.actExecuted', '실행되었습니다')) : (r?.error || t('aiInsights.actFailed', '실행 실패')) }; m.actions = acts; n[msgIdx] = m; return n; });
+        } catch (e) {
+            setMessages(prev => { const n = [...prev]; const m = { ...n[msgIdx] }; const acts = [...(m.actions || [])]; acts[actIdx] = { ...acts[actIdx], executing: false, done: false, result: String(e?.message || e) }; m.actions = acts; n[msgIdx] = m; return n; });
+        }
+    };
 
     const sendMessage = async (question, context) => {
         const q = safeguard(question || input.trim(), 'chat_input');
@@ -257,6 +271,23 @@ const AIAssistantTab = memo(function AIAssistantTab({ t, safeguard, live = {}, n
         setMessages(prev => [...prev, { role: 'user', text: q }]);
         setLoading(true);
         setMessages(prev => [...prev, { role: 'ai', text: '', loading: true }]);
+        // [282차 R3] 에이전트 모드 — 실데이터 조회(bi_query) + 제안 액션(propose_*). 실패 시 구 분석 폴백.
+        if (agentMode) {
+            try {
+                const d = await postJson('/api/v422/ai/agentic', { question: q });
+                if (d && d.ok && (d.answer || (d.proposed_actions || []).length)) {
+                    setMessages(prev => { const n = [...prev]; n[n.length - 1] = { role: 'ai', text: d.answer || t('aiInsights.agentNoText', '분석을 완료했습니다.'), data: d.data || null, actions: (d.proposed_actions || []).map(a => ({ ...a })), loading: false }; return n; });
+                    setTimeout(() => setLoading(false), 300);
+                    return;
+                }
+                if (d && d.configured === false) {
+                    setMessages(prev => { const n = [...prev]; n[n.length - 1] = { role: 'ai', text: d.answer || t('aiInsights.agentNoKey', 'AI 코파일럿 키가 설정되지 않았습니다.'), loading: false }; return n; });
+                    setTimeout(() => setLoading(false), 300);
+                    return;
+                }
+                // 응답이 비면 구 분석 경로로 폴백
+            } catch (e) { /* 구 분석 폴백 */ }
+        }
         try {
             const d = await postJson('/api/v422/ai/analyze', { context: c, question: q, data: {
                 platforms: [], total_spend: live.adSpend || 0, blended_roas: live.roas || 0, total_conv: 0,
@@ -312,9 +343,14 @@ const AIAssistantTab = memo(function AIAssistantTab({ t, safeguard, live = {}, n
                 )}
             </div>
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+                {/* [282차 R3] 에이전트 모드 토글 — 실데이터 조회+휴먼인루프 액션 제안(agentic) vs 구 P&L 분석 */}
+                <button onClick={() => setAgentMode(v => !v)} title={t('aiInsights.agentModeHint', '실데이터 조회 + 액션 제안(승인 후 실행)')}
+                    style={{ padding: '6px 14px', borderRadius: 99, border: '1px solid', borderColor: agentMode ? '#7c3aed' : BORDER, background: agentMode ? 'rgba(124,58,237,0.1)' : 'transparent', color: agentMode ? '#7c3aed' : TXT3, fontSize: 12, cursor: 'pointer', fontWeight: 800 }}>
+                    {agentMode ? '🤖 ' : '○ '}{t('aiInsights.agentMode', '에이전트 모드')}
+                </button>
                 <span style={{ fontSize: 11, color: TXT3, fontWeight: 700, background: SURFACE2, padding: '6px 12px', borderRadius: 8, border: `1px solid ${BORDER}` }}>{t('aiInsights.targetContext', 'Target Context')}:</span>
                 {[['pnl', t('aiInsights.ctxPnl', 'Finance P&L')], ['roas', t('aiInsights.ctxRoas', 'ROAS Optimization')], ['returns', t('aiInsights.ctxReturns', 'Risk / Returns')]].map(([k, l]) => (
-                    <button key={k} onClick={() => setCtx(k)} style={{ padding: '6px 16px', borderRadius: 99, border: '1px solid', borderColor: ctx === k ? ACCENT : BORDER, background: ctx === k ? `${ACCENT}14` : 'transparent', color: ctx === k ? '#7c3aed' : TXT3, fontSize: 12, cursor: 'pointer', fontWeight: 700, transition: 'all 200ms' }}>{l}</button>
+                    <button key={k} onClick={() => setCtx(k)} disabled={agentMode} style={{ padding: '6px 16px', borderRadius: 99, border: '1px solid', borderColor: ctx === k ? ACCENT : BORDER, background: ctx === k ? `${ACCENT}14` : 'transparent', color: ctx === k ? '#7c3aed' : TXT3, fontSize: 12, cursor: agentMode ? 'not-allowed' : 'pointer', fontWeight: 700, opacity: agentMode ? 0.4 : 1, transition: 'all 200ms' }}>{l}</button>
                 ))}
             </div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -324,7 +360,31 @@ const AIAssistantTab = memo(function AIAssistantTab({ t, safeguard, live = {}, n
             </div>
             <div style={{ ...CARD, flex: 1, minHeight: 400, padding: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                 <div style={{ flex: 1, overflowY: 'auto', padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
-                    {messages.map((m, i) => <ChatMsg key={i} {...m} t={t} />)}
+                    {messages.map((m, i) => (
+                        <React.Fragment key={i}>
+                            <ChatMsg {...m} t={t} />
+                            {/* [282차 R3] 에이전틱 제안 액션 — 휴먼-인-루프 승인·집행(가드레일 내장) */}
+                            {Array.isArray(m.actions) && m.actions.length > 0 && (
+                                <div style={{ display: 'grid', gap: 8, marginLeft: 40 }}>
+                                    {m.actions.map((a, ai) => {
+                                        const label = a.action === 'pause_campaign' ? t('aiInsights.actPause', '캠페인 일시정지') : a.action === 'budget_change' ? t('aiInsights.actBudget', '예산 변경') : a.action === 'create_segment' ? t('aiInsights.actSegment', '세그먼트 생성') : a.action;
+                                        const detail = a.action === 'budget_change' ? ` → ${(a.params?.new_daily_krw || 0).toLocaleString()}원/일` : a.params?.campaign_ext_id ? ` · ${a.params.channel || ''} ${a.params.campaign_ext_id}` : a.params?.name ? ` · ${a.params.name}` : '';
+                                        return (
+                                            <div key={ai} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 10, background: 'rgba(124,58,237,0.06)', border: '1px solid rgba(124,58,237,0.25)', flexWrap: 'wrap' }}>
+                                                <span style={{ fontSize: 12.5, fontWeight: 700, color: '#7c3aed' }}>⚡ {label}{detail}</span>
+                                                {a.params?.reason && <span style={{ fontSize: 11, color: TXT3 }}>— {a.params.reason}</span>}
+                                                <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
+                                                    {a.done === undefined
+                                                        ? <button onClick={() => executeAction(i, ai, a)} disabled={a.executing} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', cursor: a.executing ? 'wait' : 'pointer', fontSize: 11.5, fontWeight: 800, background: 'linear-gradient(135deg,#7c3aed,#4f8ef7)', color: '#fff', opacity: a.executing ? 0.6 : 1 }}>{a.executing ? t('aiInsights.actExecuting', '실행 중…') : t('aiInsights.actApprove', '승인 및 실행')}</button>
+                                                        : <span style={{ fontSize: 11.5, fontWeight: 700, color: a.done ? '#16a34a' : '#ef4444' }}>{a.done ? '✓ ' : '✗ '}{a.result}</span>}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </React.Fragment>
+                    ))}
                     <div ref={bottomRef} />
                 </div>
                 <div style={{ padding: 16, background: SURFACE2, borderTop: `1px solid ${BORDER}`, display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>

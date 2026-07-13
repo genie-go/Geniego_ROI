@@ -1009,7 +1009,7 @@ final class AdminGrowth
                 mb_substr((string)($b['product_description'] ?? 'AI 마케팅 ROI 플랫폼'), 0, 2000),
                 $channel,
                 json_encode($design, JSON_UNESCAPED_UNICODE),
-                (string)($b['svg'] ?? $b['image'] ?? ''),
+                \Genie\Handlers\ClaudeAI::stripActiveSvg((string)($b['svg'] ?? $b['image'] ?? '')), // [282차 F-P1] 저장형 XSS 심층방어
                 $status, $now,
             ]);
             $id = (int)$pdo->lastInsertId();

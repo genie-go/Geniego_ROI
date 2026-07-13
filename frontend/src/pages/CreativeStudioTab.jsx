@@ -4,6 +4,7 @@ import { IS_DEMO } from '../utils/demoEnv';
 import { getJsonAuth, postJsonAuth } from '../services/apiClient.js';
 import { useI18n } from '../i18n';
 import AIDesignStudio from '../components/AIDesignStudio.jsx'; // 196차 — AI 광고 디자인 스튜디오
+import { sanitizeSvg } from '../utils/xssSanitizer.js'; // [282차 F-P1] 저장형 SVG XSS 차단
 
 /* 197차 — 운영/데모 데이터 격리 (U-177-A: 운영에 mock/가상 데이터 유입 절대 금지).
  *  - 데모(IS_DEMO): 아래 DEMO_* 풍부한 가상 데이터로 체험감 제공.
@@ -379,7 +380,7 @@ export default function CreativeStudioTab({ sourcePage, onUseCampaign }) {
                   ? <video src={item.video} muted loop playsInline autoPlay style={{ width:'100%', height:'100%', objectFit:'cover', display:'block', background:'#000' }} />
                   : item.img
                   ? <img src={item.img} alt={item.name} style={{ width:'100%', height:'100%', objectFit:'cover', display:'block', animation:(ANIM_CSS[item.animation]||{}).css || 'none' }} />
-                  : <div style={{ width:'100%', height:'100%', animation:(ANIM_CSS[item.animation]||{}).css || 'none' }} dangerouslySetInnerHTML={{ __html: item.svg.replace('<svg', '<svg width="100%" height="100%" preserveAspectRatio="xMidYMid slice"') }} />}
+                  : <div style={{ width:'100%', height:'100%', animation:(ANIM_CSS[item.animation]||{}).css || 'none' }} dangerouslySetInnerHTML={{ __html: sanitizeSvg(item.svg.replace('<svg', '<svg width="100%" height="100%" preserveAspectRatio="xMidYMid slice"')) }} />}
                 {item.video && <span style={{ position:'absolute', top:6, left:6, padding:'2px 8px', borderRadius:6, fontSize:9, fontWeight:800, background:'rgba(236,72,153,0.92)', color:'#fff' }}>🎬 VIDEO</span>}
                 {item.animation && ANIM_CSS[item.animation] && (
                   <span style={{ position:'absolute', top:6, right:6, padding:'2px 8px', borderRadius:6, fontSize:9, fontWeight:800, background:'rgba(236,72,153,0.92)', color:'#fff' }}>📽️ {ANIM_CSS[item.animation].label}</span>

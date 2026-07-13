@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { IS_DEMO } from '../utils/demoEnv';
 import { useI18n } from '../i18n';
 import { svgToPngDataUrl } from '../utils/svgRasterize.js'; // [Track B] SVG→PNG 클라 래스터화(매체 이미지 업로드용)
+import { sanitizeSvg } from '../utils/xssSanitizer.js'; // [282차 F-P1] 저장형 SVG XSS 차단
 import AIDesignChat from './AIDesignChat.jsx'; // 196차 — 대화형 AI 디자인
 
 /* 196차 — AI 디자인 스튜디오 (Phase 1)
@@ -154,7 +155,7 @@ export default function AIDesignStudio({ onApplied }) {
     const p = d.palette || {};
     const sv = svgs[d.channel];
     if (sv?.svg) {
-      const svgHtml = sv.svg.replace('<svg', '<svg width="100%" height="100%" preserveAspectRatio="xMidYMid slice"');
+      const svgHtml = sanitizeSvg(sv.svg.replace('<svg', '<svg width="100%" height="100%" preserveAspectRatio="xMidYMid slice"'));
       return <div style={{ width: box.w, height: box.h, borderRadius: 14, overflow: 'hidden', boxShadow: '0 10px 34px rgba(15,23,42,0.22)', background: '#fff' }} dangerouslySetInnerHTML={{ __html: svgHtml }} />;
     }
     return (

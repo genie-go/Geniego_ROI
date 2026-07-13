@@ -497,6 +497,51 @@ $app->add(function (Request $request, $handler) {
         $pdo->prepare('UPDATE api_key SET last_used_at=?, use_count=COALESCE(use_count,0)+1 WHERE id=?')->execute([gmdate('c'), $keyRow['id']]);
     } catch (\Exception $ex2) { /* non-fatal */ }
 
+    // [282차 R3 보안 하드닝] 전역 레이트리밋 — API 키 단위 고정 1분 윈도우 카운터(fail-open).
+    //   대상 = 실제 api_key 프로그래매틱 트래픽만(SPA/세션 게이트 경로는 위에서 이미 return 되어 미도달).
+    //   기본 1200 req/min(관대 — 명백한 남용만 차단·정상 통합 무영향). GENIE_RATE_LIMIT_PER_MIN=0 이면 비활성(무회귀).
+    //   DB 오류/테이블 부재 시 fail-open(가용성 우선) — 인증은 이미 통과했으므로 차단 실패해도 무권한 노출 없음.
+    $rlEnv = getenv('GENIE_RATE_LIMIT_PER_MIN');
+    $rlMax = ($rlEnv !== false && $rlEnv !== '') ? (int)$rlEnv : 1200;
+    if ($rlMax > 0 && !empty($keyRow['id'])) {
+        try {
+            $win = (int)floor(time() / 60);
+            $drv = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME);
+            $doUpsert = function () use ($pdo, $drv, $keyRow, $win) {
+                if ($drv === 'mysql') {
+                    $s = $pdo->prepare('INSERT INTO api_rate_limit (key_id, window_min, cnt) VALUES (?,?,1) ON DUPLICATE KEY UPDATE cnt=cnt+1');
+                } else {
+                    $s = $pdo->prepare('INSERT INTO api_rate_limit (key_id, window_min, cnt) VALUES (?,?,1) ON CONFLICT(key_id,window_min) DO UPDATE SET cnt=cnt+1');
+                }
+                $s->execute([$keyRow['id'], $win]);
+                $q = $pdo->prepare('SELECT cnt FROM api_rate_limit WHERE key_id=? AND window_min=?');
+                $q->execute([$keyRow['id'], $win]);
+                return (int)$q->fetchColumn();
+            };
+            try {
+                $cnt = $doUpsert();
+            } catch (\Throwable $eTbl) {
+                // 테이블 부재 → 1회 자가치유 생성 후 재시도(ensureTables 패턴)
+                if ($drv === 'mysql') {
+                    $pdo->exec('CREATE TABLE IF NOT EXISTS api_rate_limit (key_id BIGINT NOT NULL, window_min BIGINT NOT NULL, cnt INT NOT NULL DEFAULT 0, PRIMARY KEY(key_id, window_min))');
+                } else {
+                    $pdo->exec('CREATE TABLE IF NOT EXISTS api_rate_limit (key_id INTEGER NOT NULL, window_min INTEGER NOT NULL, cnt INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(key_id, window_min))');
+                }
+                $cnt = $doUpsert();
+            }
+            // 오래된 윈도우 저확률 청소(테이블 무한증식 방지)
+            if (rand(1, 500) === 1) {
+                try { $pdo->prepare('DELETE FROM api_rate_limit WHERE window_min < ?')->execute([$win - 3]); } catch (\Throwable $eGc) { /* ignore */ }
+            }
+            if ($cnt > $rlMax) {
+                $retry = 60 - (time() % 60);
+                return $makeJson(429, ['error' => 'Too Many Requests', 'detail' => 'Rate limit exceeded (' . $rlMax . '/min). Retry after ' . $retry . 's', 'retry_after' => $retry])
+                    ->withHeader('Retry-After', (string)$retry)
+                    ->withHeader('X-RateLimit-Limit', (string)$rlMax);
+            }
+        } catch (\Throwable $eRl) { /* fail-open: 가용성 우선 */ }
+    }
+
     // RBAC
     $roleRank = ['viewer' => 0, 'connector' => 1, 'analyst' => 2, 'admin' => 3];
     $method   = strtoupper($request->getMethod());

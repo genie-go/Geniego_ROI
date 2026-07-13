@@ -465,6 +465,20 @@ class Catalog
             }
         }
 
+        // [282차 D-P1 초과판매 차단] 채널 전송 재고는 등록폼 정적값(po_products.initial_stock)이 아니라
+        //   실물 재고(wms_stock.on_hand SSOT)여야 한다. 종전엔 프론트가 initial_stock 을 그대로 실어보내
+        //   판매 차감(reflectChannelSale)이 wms_stock 만 줄인 뒤 재동기화하면 채널 가용재고가 실물보다 커져
+        //   초과판매가 발생했다. 해당 SKU 가 WMS 원장에 존재하면 전 창고 on_hand 합계로 덮어쓴다(미존재=WMS
+        //   미경유 상품이므로 제공값 유지). register/update 만 대상(unregister/disconnect 는 재고 무관).
+        if (!in_array($action, ['unregister', 'disconnect'], true)) {
+            try {
+                $ws = $pdo->prepare("SELECT COALESCE(SUM(on_hand),0) AS oh, COUNT(*) AS n FROM wms_stock WHERE tenant_id=? AND sku=?");
+                $ws->execute([$tenant, $sku]);
+                $wr = $ws->fetch(\PDO::FETCH_ASSOC) ?: [];
+                if ((int)($wr['n'] ?? 0) > 0) { $body['inventory'] = (int)round((float)($wr['oh'] ?? 0)); }
+            } catch (\Throwable $e) { /* wms_stock 미존재 환경 = 제공값 유지(회귀0) */ }
+        }
+
         // 기존 리스팅과 병합(누락 필드는 기존값 보존 → execute 시 부분 payload 로 인한 데이터 손실 방지).
         $f = self::mergeWithExisting($pdo, $tenant, $channel, $sku, $body, $action);
         $status = self::channelStatus($pdo, $tenant, $channel, $action);
@@ -1119,7 +1133,17 @@ class Catalog
             $priorId = self::priorChannelProductId($pdo, $t, $ch, $sku);
             // 신규 op('price_update')은 어댑터엔 알려진 upsert('publish')로 정규화 전달(가격 포함 listing 갱신).
             $pushOp = ($op === 'price_update') ? 'publish' : $op;
-            $res = self::pushToChannel($ch, $creds, $product, $pushOp, $priorId);
+            // [282차 R3] ★피드 변환 실배선 — 발행된 FeedTemplate 스펙을 전송 직전 상품에 적용(canonical 오버레이=실전송 반영).
+            //   무발행/오류 시 원본 그대로(회귀0). 신규 등록(register/publish)에서 필수필드 미충족 시 전송 차단(오피드 방지).
+            $ft = FeedTemplate::transformProduct($pdo, $t, $ch, $product);
+            $product = $ft['product'];
+            $isRegister = in_array($pushOp, ['register', 'publish'], true) && ($priorId === null || $priorId === '');
+            if ($ft['applied'] && $isRegister && !empty($ft['errors'])) {
+                $res = ['ok' => false, 'error' => 'feed_validation', 'detail' => '피드 템플릿 필수필드 누락: ' . implode(', ', $ft['errors']), 'missing' => $ft['errors'], 'feed_template' => true];
+            } else {
+                $res = self::pushToChannel($ch, $creds, $product, $pushOp, $priorId);
+                if (!empty($res['ok']) && !empty($ft['warnings'])) $res['feed_warning'] = implode('; ', $ft['warnings']);
+            }
             if (!empty($res['ok'])) {
                 $upd->execute(['done', json_encode($res, JSON_UNESCAPED_UNICODE), $attempt, $now, $j['id']]);
                 // [240차 동기화] price_update 성공 시 catalog_listing.price 도 동반 갱신(메인DB 가격 stale 해소).
@@ -1402,10 +1426,14 @@ class Catalog
         $sku = (string)($product['sku'] ?? '');
         $action = (string)($product['action'] ?? 'register');
         $policy = self::evaluatePolicy($pdo, $tenant, $channel, $product, $action);
+        $normalized = self::normalizePayload($channel, $sku, $product);
+        // [282차 R3] 발행된 피드 템플릿 반영 — 미리보기가 실제 전송값과 일치하도록.
+        $ft = FeedTemplate::transformProduct($pdo, $tenant, $channel, $normalized);
         return self::jsonRes($res, [
             'ok' => true,
             'validation' => ['ok' => $policy['ok'], 'findings' => $policy['findings']],
-            'normalized_payload' => self::normalizePayload($channel, $sku, $product),
+            'normalized_payload' => $ft['product'],
+            'feed_template' => ['applied' => $ft['applied'], 'mapped' => $ft['mapped'], 'errors' => $ft['errors'], 'warnings' => $ft['warnings']],
             'category' => self::suggestCategories($channel, $product),
         ]);
     }
@@ -1457,17 +1485,16 @@ class Catalog
         $type = (string)($body['type'] ?? 'writeback');
         $channel = (string)($body['channel'] ?? '');
         $sku = (string)($body['sku'] ?? '');
-        $payload = $body['payload'] ?? [];
-        $now = self::now();
-        try {
-            $pdo->prepare("INSERT INTO catalog_writeback_approval(tenant_id,type,channel,sku,payload,status,created_at,updated_at)
-                           VALUES(?,?,?,?,?,?,?,?)")
-                ->execute([$tenant, $type, $channel, $sku, json_encode($payload, JSON_UNESCAPED_UNICODE), 'pending', $now, $now]);
-            $id = (int)$pdo->lastInsertId();
-        } catch (\Throwable $e) {
-            return self::jsonRes($res, ['ok' => false, 'error' => $e->getMessage()], 500);
-        }
-        return self::jsonRes($res, ['ok' => true, 'approval_id' => $id, 'status' => 'pending', 'type' => $type]);
+        $payload = (array)($body['payload'] ?? []);
+        // [282차 R2 MED] 승인 블랙홀 근본수정 — 종전엔 `catalog_writeback_approval` 테이블에만 기록했는데 이 테이블은
+        //   어떤 SELECT/승인 코드도 읽지 않는 고아였다(실 승인 워크플로 SSOT = catalog_writeback_job status='pending_approval',
+        //   목록 jobs()·승인 approveQueue()가 이걸 소비). 그래서 "승인 필요" writeback 이 성공표시+안내까지 나오나
+        //   어느 화면에도 안 뜨고 승인·집행 영구 불가였다. SSOT 잡 테이블에 pending_approval 로 적재해 목록/승인 정상화.
+        $operation = (string)($payload['operation'] ?? ($type === 'writeback' ? 'publish' : $type));
+        if ($channel === '' || $sku === '') return self::jsonRes($res, ['ok' => false, 'error' => 'channel/sku required'], 400);
+        $id = self::logJob($pdo, $tenant, $channel, $sku, $operation, 'pending_approval', $payload);
+        if ($id <= 0) return self::jsonRes($res, ['ok' => false, 'error' => 'approval_enqueue_failed'], 500);
+        return self::jsonRes($res, ['ok' => true, 'approval_id' => $id, 'job_id' => $id, 'status' => 'pending_approval', 'type' => $type]);
     }
 
     /* GET /catalog/writeback/jobs — 테넌트 writeback 작업 이력(최근순·바 배열 반환) */

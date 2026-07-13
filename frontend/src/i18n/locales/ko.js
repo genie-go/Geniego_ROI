@@ -6957,6 +6957,8 @@ export default {
 
   "kpiRoas": "수익률",
 
+  "estimatedPreviewNote": "※ 예상치 — 업종 표준 가정(CTR·전환율·객단가)으로 산출한 추정 미리보기입니다. 실집행 성과와 다를 수 있습니다.",
+
   "kpiConversions": "전환",
 
   "kpiCtr": "클릭률",
@@ -20301,7 +20303,7 @@ export default {
     vizTable: "표", vizBar: "막대", vizLine: "선", vizDonut: "도넛", vizStacked: "누적 막대", vizCombo: "콤보(막대+선)", vizArea: "면적", vizHeatmap: "히트맵",
     heatmapNeedsBreakdown: "히트맵은 2차 차원(피벗)이 필요합니다. 위에서 2차 차원을 선택하세요.",
     chartNeedsSingleDim: "이 차트는 단일 차원 전용입니다. 2차 차원(피벗) 데이터는 표 또는 히트맵으로 보세요.",
-    "srcSettlement": "정산/순이익","srcCommerce": "주문/매출","srcAds": "광고 성과","source": "데이터 소스","dimPeriod": "월별","mMargin": "이익률%","mProfit": "이익","mUnits": "수량","mAov": "객단가","mFeeRate": "수수료율%","mNetProfit": "순이익","mReturns": "반품수","mOrders": "주문수","mReturnFee": "반품수수료","mCoupon": "쿠폰할인","mAdFee": "광고비차감","mPlatformFee": "플랫폼수수료","mNetPayout": "정산수령액","mGross": "매출",
+    "srcSettlement": "정산/순이익","srcCommerce": "주문/매출","srcAds": "광고 성과","source": "데이터 소스","dimPeriod": "월별","mMargin": "이익률%","mProfit": "이익","mUnits": "수량","mAov": "객단가","mFeeRate": "수수료율%","mNetProfit": "정산순이익(실수령−광고비)","mReturns": "반품수","mOrders": "주문수","mReturnFee": "반품수수료","mCoupon": "쿠폰할인","mAdFee": "광고비차감","mPlatformFee": "플랫폼수수료","mNetPayout": "정산수령액","mGross": "매출",
     tabCustom: "커스텀 분석",
     mSpend: "광고비",
     mRevenue: "매출",

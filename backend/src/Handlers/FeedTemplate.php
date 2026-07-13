@@ -38,11 +38,96 @@ final class FeedTemplate
 
     private static function now(): string { return gmdate('Y-m-d H:i:s'); }
 
-    /** 채널 화이트리스트(RulesEditorV2 CHANNEL_PRESETS 정합·임의값 차단). */
+    /** [282차 R3] 채널 화이트리스트 — writeback 실어댑터 보유 채널 전체(기존 4채널 제약 해소).
+     *   피드 변환이 실제 적용되려면 pushProductInner 어댑터가 있는 채널이어야 의미가 있다. */
+    public const CHANNELS = [
+        'shopee', 'qoo10', 'rakuten', 'amazon', 'lazada', 'ebay', 'etsy', 'walmart', 'yahoo_jp',
+        'cafe24', 'coupang', 'naver', 'naver_smartstore', 'tiktok', 'tiktok_shop', '11st', 'st11',
+        'gmarket', 'auction', 'lotteon', 'godomall', 'woocommerce', 'magento', 'shopify',
+    ];
     private static function chan(array $args): string
     {
         $c = strtolower(trim((string)($args['channel'] ?? '')));
-        return in_array($c, ['shopee', 'qoo10', 'rakuten', 'amazon'], true) ? $c : '';
+        // 형식 안전(영숫자/언더스코어) + writeback 어댑터 보유 채널만. 미보유 채널은 변환 무의미(차단).
+        if ($c === '' || !preg_match('/^[a-z0-9_]{2,40}$/', $c)) return '';
+        return in_array($c, self::CHANNELS, true) ? $c : '';
+    }
+
+    /** 실전송에 즉시 반영되는 canonical 상품 필드(오버레이 대상). 그 외 target 은 채널-네이티브 확장으로 전달만. */
+    public const CANONICAL_FIELDS = ['title', 'name', 'price', 'currency', 'inventory', 'quantity',
+        'category', 'category_code', 'channel_category', 'category_id', 'spec', 'detail_html', 'image_url',
+        'brand', 'maker', 'model', 'barcode', 'origin', 'description'];
+
+    /* ═══ [282차 R3] 피드 변환 실배선 — 스펙 파싱·발행본 해석·상품 적용 ═══ */
+
+    /** body(JSON 또는 레거시 YAML) → 정규 스펙 ['version','fields'=>[...]]. 파싱 실패 시 빈 스펙. */
+    public static function parseSpec(string $body): array
+    {
+        $body = trim($body);
+        if ($body === '') return ['version' => 2, 'fields' => []];
+        // 1) JSON 우선.
+        $j = json_decode($body, true);
+        if (is_array($j)) {
+            if (isset($j['fields']) && is_array($j['fields'])) return ['version' => (int)($j['version'] ?? 2), 'fields' => array_values($j['fields'])];
+            // mapping(오브젝트 src→target) + transforms(target→op배열) 형태 지원.
+            if (isset($j['mapping']) && is_array($j['mapping'])) {
+                $fields = [];
+                $trAll = (array)($j['transforms'] ?? []);
+                foreach ($j['mapping'] as $src => $tgt) {
+                    $tgt = (string)$tgt; if ($tgt === '') continue;
+                    $fields[] = ['target' => $tgt, 'source' => (string)$src, 'transforms' => (array)($trAll[$tgt] ?? [])];
+                }
+                return ['version' => 2, 'fields' => $fields];
+            }
+            return ['version' => 2, 'fields' => []];
+        }
+        // 2) 레거시 YAML-ish (RulesEditorV2 buildYaml): "mapping:" 블록의 "  src: target" 라인.
+        $fields = []; $inMap = false;
+        foreach (explode("\n", $body) as $ln) {
+            $trimmed = trim($ln);
+            if ($trimmed === 'mapping:') { $inMap = true; continue; }
+            if ($trimmed === 'transforms:' || (substr($ln, 0, 1) !== ' ' && $trimmed !== '')) { $inMap = ($trimmed === 'mapping:'); }
+            if ($inMap && strpos($ln, ':') !== false && substr($ln, 0, 1) === ' ') {
+                [$k, $v] = array_map('trim', explode(':', $trimmed, 2));
+                if ($k !== '' && $v !== '') $fields[] = ['target' => $v, 'source' => $k, 'transforms' => []];
+            }
+        }
+        return ['version' => 1, 'fields' => $fields];
+    }
+
+    /** 발행된(published) 스펙 해석 — 요청당 캐시(테넌트·채널). 없으면 null. */
+    private static $specCache = [];
+    public static function resolvePublished(PDO $pdo, string $tenant, string $channel): ?array
+    {
+        $channel = strtolower(trim($channel));
+        $key = $tenant . '|' . $channel;
+        if (array_key_exists($key, self::$specCache)) return self::$specCache[$key];
+        $spec = null;
+        try {
+            self::ensure($pdo);
+            $st = $pdo->prepare("SELECT body FROM feed_template WHERE tenant_id=? AND channel=? AND status='published' ORDER BY id DESC LIMIT 1");
+            $st->execute([$tenant, $channel]);
+            $body = $st->fetchColumn();
+            if ($body !== false && trim((string)$body) !== '') {
+                $parsed = self::parseSpec((string)$body);
+                if (!empty($parsed['fields'])) $spec = $parsed;
+            }
+        } catch (\Throwable $e) { $spec = null; /* 무회귀: 오류 시 미적용 */ }
+        return self::$specCache[$key] = $spec;
+    }
+
+    /**
+     * 발행 스펙을 상품에 적용 — writeback 파이프라인이 전송 직전 호출.
+     *   무발행/오류 시 상품 원본 반환(회귀0). @return ['product','applied','errors','warnings','mapped'].
+     */
+    public static function transformProduct(PDO $pdo, string $tenant, string $channel, array $product): array
+    {
+        $spec = self::resolvePublished($pdo, $tenant, $channel);
+        if ($spec === null) return ['product' => $product, 'applied' => false, 'errors' => [], 'warnings' => [], 'mapped' => []];
+        $r = FeedTransform::apply($spec, $product);
+        // mapped 를 상품에 오버레이(canonical 은 실전송 반영·나머지는 네이티브 확장으로 전달). meta 는 상품에 넣지 않음.
+        $overlaid = array_merge($product, $r['mapped']);
+        return ['product' => $overlaid, 'applied' => true, 'errors' => $r['errors'], 'warnings' => $r['warnings'], 'mapped' => $r['mapped']];
     }
 
     private static function ensure(PDO $pdo): void
@@ -212,5 +297,37 @@ final class FeedTemplate
             return self::json($res, ['ok' => false, 'error' => 'publish_failed'], 500);
         }
         return self::json($res, ['ok' => true, 'draft' => ['id' => $id, 'status' => 'published']]);
+    }
+
+    // ── POST /v395/templates/v2/{channel}/preview ── [282차 R3] 변환 dry-run(무전송·무저장) ──
+    //   body:{ text?(스펙 원문), product(샘플 상품) }. text 없으면 발행본 사용. 변환 결과+오류+경고 반환.
+    public static function preview(Request $req, Response $res, array $args): Response
+    {
+        $t = self::tenant($req); if ($t === '') return self::json($res, ['ok' => false, 'error' => 'unauthenticated'], 401);
+        $ch = self::chan($args); if ($ch === '') return self::json($res, ['ok' => false, 'error' => 'unknown_channel'], 400);
+        $b = (array)$req->getParsedBody();
+        $product = (array)($b['product'] ?? []);
+        if (!$product) return self::json($res, ['ok' => false, 'error' => 'product_required'], 400);
+        // text(편집중 스펙) 우선 — 저장 전에도 미리보기 가능. 없으면 발행본.
+        $spec = null;
+        if (isset($b['text']) && trim((string)$b['text']) !== '') {
+            $parsed = self::parseSpec((string)$b['text']);
+            if (!empty($parsed['fields'])) $spec = $parsed;
+        } else {
+            $spec = self::resolvePublished(Db::pdo(), $t, $ch);
+        }
+        if ($spec === null) return self::json($res, ['ok' => true, 'applied' => false, 'input' => $product, 'output' => $product, 'mapped' => [], 'errors' => [], 'warnings' => [], 'note' => 'no_published_template']);
+        $r = FeedTransform::apply($spec, $product);
+        return self::json($res, [
+            'ok' => empty($r['errors']),
+            'applied' => true,
+            'input' => $product,
+            'mapped' => $r['mapped'],
+            'output' => array_merge($product, $r['mapped']),
+            'errors' => $r['errors'],   // 필수 미충족 target 목록
+            'warnings' => $r['warnings'],
+            'ops' => FeedTransform::OPS,
+            'canonical_fields' => self::CANONICAL_FIELDS,
+        ]);
     }
 }

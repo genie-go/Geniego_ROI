@@ -619,14 +619,25 @@ function SSOPanel({ t, flash }) {
   const [loaded, setLoaded] = useState(false);
   const [saving, setSaving] = useState(false);
   const [scimTok, setScimTok] = useState(null);
+  const [groupRoles, setGroupRoles] = useState([]); // [282차 R3] IdP 그룹→역할 매핑(SCIM/SSO 그룹 기반 자동 역할부여)
+  const [grSaving, setGrSaving] = useState(false);
   const load = useCallback(async () => {
     try {
       const r = await getJsonAuth('/api/v430/sso/config');
       setSp(r?.sp || {});
       setCfg(r?.config || { protocol: 'oidc', enabled: 0, oidc_scopes: 'openid email profile', default_role: 'member', auto_provision: 1, scim_enabled: 0 });
     } catch (e) { setCfg({ protocol: 'oidc', enabled: 0, oidc_scopes: 'openid email profile', default_role: 'member', auto_provision: 1, scim_enabled: 0 }); }
+    try { const g = await getJsonAuth('/api/v430/sso/group-roles'); setGroupRoles(Array.isArray(g?.mappings) ? g.mappings : []); } catch { setGroupRoles([]); }
     setLoaded(true);
   }, []);
+  const saveGroupRoles = async () => {
+    setGrSaving(true);
+    try {
+      const maps = groupRoles.map(m => ({ group_name: (m.group_name || '').trim(), role: m.role === 'manager' ? 'manager' : 'member' })).filter(m => m.group_name);
+      const r = await putJson('/api/v430/sso/group-roles', { mappings: maps });
+      if (r?.ok) flash(t('teamMembers.grSaved', 'IdP 그룹 역할 매핑이 저장되었습니다.')); else flash(r?.error || '저장 실패');
+    } catch (e) { flash('저장 실패: ' + (e?.message || '')); } finally { setGrSaving(false); }
+  };
   useEffect(() => { load(); }, [load]);
   const set = (k, v) => setCfg(c => ({ ...c, [k]: v }));
   const save = async () => {
@@ -730,6 +741,31 @@ function SSOPanel({ t, flash }) {
             <code style={{ fontSize: 12, color: '#e2e8f0', wordBreak: 'break-all' }}>{scimTok}</code>
           </div>
         )}
+      </div>
+
+      {/* [282차 R3] IdP 그룹 → 역할 매핑 — 백엔드(roleForGroups)는 완성돼 있으나 writer UI 부재로 end-to-end 불능이던 것 배선.
+          Okta/Entra 등 IdP 그룹 소속에 따라 로그인 시 자동으로 역할(manager/member) 부여. 미매칭 그룹은 기본역할(default_role) 사용. */}
+      <div style={card}>
+        <div style={{ fontWeight: 800, fontSize: 13, marginBottom: 4 }}>👥 {t('teamMembers.grTitle', 'IdP 그룹 → 역할 매핑')}</div>
+        <div style={{ fontSize: 11.5, color: '#64748b', marginBottom: 12 }}>{t('teamMembers.grDesc', 'IdP(Okta·Entra 등) 그룹명과 부여할 역할을 지정하면, SSO/SCIM 로그인 시 그룹 소속에 따라 자동으로 역할이 부여됩니다. 매칭되는 그룹이 없으면 기본 역할이 적용됩니다.')}</div>
+        {groupRoles.map((m, i) => (
+          <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 8, alignItems: 'center' }}>
+            <input style={{ ...inp, flex: 1 }} placeholder={t('teamMembers.grGroupPh', 'IdP 그룹명 (예: geniego-managers)')} value={m.group_name || ''}
+              onChange={e => setGroupRoles(a => a.map((x, j) => j === i ? { ...x, group_name: e.target.value } : x))} />
+            <select style={{ ...inp, width: 130 }} value={m.role === 'manager' ? 'manager' : 'member'}
+              onChange={e => setGroupRoles(a => a.map((x, j) => j === i ? { ...x, role: e.target.value } : x))}>
+              <option value="member">member</option><option value="manager">manager</option>
+            </select>
+            <button onClick={() => setGroupRoles(a => a.filter((_, j) => j !== i))} title={t('teamMembers.grRemove', '삭제')}
+              style={{ padding: '7px 11px', borderRadius: 8, border: '1px solid #fecaca', background: '#fff', color: '#dc2626', cursor: 'pointer', fontWeight: 700 }}>✕</button>
+          </div>
+        ))}
+        <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
+          <button onClick={() => setGroupRoles(a => [...a, { group_name: '', role: 'member' }])}
+            style={{ padding: '8px 14px', borderRadius: 8, border: '1px dashed #cbd5e1', background: '#fff', color: '#475569', cursor: 'pointer', fontWeight: 700, fontSize: 12 }}>+ {t('teamMembers.grAdd', '그룹 매핑 추가')}</button>
+          <button onClick={saveGroupRoles} disabled={grSaving}
+            style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: '#4f8ef7', color: '#fff', cursor: 'pointer', fontWeight: 700, fontSize: 12, opacity: grSaving ? 0.6 : 1 }}>💾 {t('teamMembers.grSave', '매핑 저장')}</button>
+        </div>
       </div>
     </div>
   );

@@ -587,7 +587,9 @@ export default function AutoMarketing() {
                     }
                 }
             } catch (_) { /* 폴백 */ }
-            if (!s) s = generateStrategy(effectiveBudget, selCats, selAds, PRODUCT_CATEGORIES, AD_CHANNELS);
+            // [282차 H-P2] 백엔드 추천(실 AutoRecommend 엔진) 부재 시 클라 폴백은 업종 표준 가정(CTR/전환/객단가 상수)으로
+            //   산출한 "추정 미리보기"다. 실측 성과로 오인하지 않도록 _estimated 플래그를 달아 프리뷰에 명시(임의숫자 정직화).
+            if (!s) { s = generateStrategy(effectiveBudget, selCats, selAds, PRODUCT_CATEGORIES, AD_CHANNELS); if (s) s._estimated = true; }
             setDraft(s);
             setTab('preview');
         } catch(e) {
@@ -668,16 +670,24 @@ export default function AutoMarketing() {
                             },
                         }),
                     });
-                    try {
-                        const ld = await lr.json();
-                        if (ld && (ld.id != null)) backendId = ld.id; // 백엔드 정수 id 캡처
-                        if (ld && ld.live) {
-                            addAlert({ type: 'success', msg: `${name} — 승인 즉시 집행(라이브) 시작. 성과 자동 수집·최적화 진행`, channel: selAds[0] });
-                        } else if (ld && ld.activation && ld.activation.message) {
-                            addAlert({ type: 'warning', msg: `${name} — 생성됨(활성화 보류): ${ld.activation.message}`, channel: selAds[0] });
-                        }
-                    } catch (_) { /* 응답 파싱 실패 무해 */ }
-                } catch (_) {}
+                    const ld = await lr.json().catch(() => ({}));
+                    // [282차 R2 P2] 응답 미검사 유령카드 근본수정 — 종전엔 ld.ok/lr.ok 미검사 + 빈 catch 로
+                    //   플랜게이트 403·budget≤0/빈채널 422·500 에도 에러 미표시 + 무조건 addCampaign(로컬 유령카드)이었다.
+                    //   실패면 사유를 표시하고 중단(카드 미생성·미이동).
+                    if (!lr.ok || (ld && ld.ok === false)) {
+                        addAlert({ type: 'error', msg: `${name} — ${(ld && (ld.error || ld.message)) || `집행 요청 실패 (HTTP ${lr.status})`}`, channel: selAds[0] });
+                        return;
+                    }
+                    if (ld && (ld.id != null)) backendId = ld.id; // 백엔드 정수 id 캡처
+                    if (ld && ld.live) {
+                        addAlert({ type: 'success', msg: `${name} — 승인 즉시 집행(라이브) 시작. 성과 자동 수집·최적화 진행`, channel: selAds[0] });
+                    } else if (ld && ld.activation && ld.activation.message) {
+                        addAlert({ type: 'warning', msg: `${name} — 생성됨(활성화 보류): ${ld.activation.message}`, channel: selAds[0] });
+                    }
+                } catch (e) {
+                    addAlert({ type: 'error', msg: `${name} — 집행 요청 중 오류: ${String(e && e.message || e)}`, channel: selAds[0] });
+                    return;
+                }
                 const camp = {
                     id: mkId(), backendId, name, period, targetAudience, budget: strategy.budget,
                     categories: selCats.map(id => PRODUCT_CATEGORIES.find(c => c.id === id)),
@@ -1485,6 +1495,11 @@ export default function AutoMarketing() {
                                     </div>
                                 )}
                                 {/* KPI Summary */}
+                                {strategy._estimated && (
+                                    <div style={{ marginBottom: 10, padding: "7px 12px", borderRadius: 8, background: "rgba(251,191,36,0.12)", border: "1px solid rgba(251,191,36,0.4)", color: "#b45309", fontSize: 12, lineHeight: 1.5 }}>
+                                        {t('marketing.estimatedPreviewNote', '※ 예상치 — 업종 표준 가정(CTR·전환율·객단가)으로 산출한 추정 미리보기입니다. 실집행 성과와 다를 수 있습니다.')}
+                                    </div>
+                                )}
                                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(170px,1fr))", gap: 12 }}>
                                     {[
                                         { label: t("marketing.kpiTotal"), value: fmt(strategy.budget), icon: "💰", color: "#4f8ef7" },

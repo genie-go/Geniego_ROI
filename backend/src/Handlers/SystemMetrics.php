@@ -46,10 +46,26 @@ final class SystemMetrics
         } catch (\Throwable $e) { return false; }
     }
 
+    /** [282차 F-P2] 관리자 세션 여부 — 플랫폼 인프라 정찰정보(테넌트 수·DB버전·cron·마이그레이션)는 admin 전용. */
+    private static function isAdmin(Request $request): bool
+    {
+        try {
+            $h = $request->getHeaderLine('Authorization');
+            $token = preg_match('/^Bearer\s+(.+)$/i', $h, $m) ? trim($m[1]) : trim((string)($request->getQueryParams()['token'] ?? ''));
+            if ($token === '') return false;
+            $pdo = Db::pdo();
+            $st = $pdo->prepare("SELECT u.plan FROM user_session s JOIN app_user u ON u.id=s.user_id WHERE s.token=? AND s.expires_at>? LIMIT 1");
+            $st->execute([$token, gmdate('Y-m-d\TH:i:s\Z')]);
+            return strtolower((string)($st->fetchColumn() ?: '')) === 'admin';
+        } catch (\Throwable $e) { return false; }
+    }
+
     public static function metrics(Request $request, Response $response, array $args): Response
     {
         $start = microtime(true);
-        $authed = self::isAuthed($request);
+        // [282차 F-P2] 민감 인프라정보 노출은 admin 세션만. 종전엔 임의 인증 사용자(free 포함)에게 노출돼
+        //   플랫폼 테넌트 수·DB버전·cron 파이프라인 정찰이 가능했다(259차가 무인증→세션까진 올렸으나 admin 미승격).
+        $authed = self::isAdmin($request);
 
         $modules = [
             self::probeDatabase(),
