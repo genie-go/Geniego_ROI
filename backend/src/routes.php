@@ -104,6 +104,10 @@ return function (App $app): void {
         'GET /catalog/category-map'                       => 'Genie\\Handlers\\Catalog::categoryMapList',   // [227차] 채널 카테고리 매핑
         'POST /catalog/category-map'                      => 'Genie\\Handlers\\Catalog::categoryMapSave',
         'DELETE /catalog/category-map/{id}'               => 'Genie\\Handlers\\Catalog::categoryMapDelete',
+        'GET /catalog/brands'                             => 'Genie\\Handlers\\Catalog::brands',            // [285차] 브랜드 관리(11번가 상품등록 필수)
+        'POST /catalog/brands'                            => 'Genie\\Handlers\\Catalog::saveBrand',
+        'DELETE /catalog/brands/{id}'                     => 'Genie\\Handlers\\Catalog::deleteBrand',
+        'POST /catalog/assign-brand'                      => 'Genie\\Handlers\\Catalog::assignBrand',       // [285차] 상품별 브랜드 지정(+즉시 전송)
         'POST /catalog/writeback/{channel}/{sku}/prepare' => 'Genie\\Handlers\\Catalog::prepare',
         'POST /catalog/approvals'                        => 'Genie\\Handlers\\Catalog::approvalCreate',
 
@@ -2954,6 +2958,10 @@ return function (App $app): void {
     $register('GET',    '/catalog/category-map');       // [227차] 채널 카테고리 매핑
     $register('POST',   '/catalog/category-map');
     $register('DELETE', '/catalog/category-map/{id}');
+    $register('GET',    '/catalog/brands');             // [285차] 브랜드 관리(11번가 상품등록 필수)
+    $register('POST',   '/catalog/brands');
+    $register('DELETE', '/catalog/brands/{id}');
+    $register('POST',   '/catalog/assign-brand');       // [285차] 상품별 브랜드 지정(+즉시 전송)
     $register('POST',   '/catalog/writeback/{channel}/{sku}/prepare');
     $register('POST',   '/catalog/approvals');
     // Email Marketing

@@ -293,6 +293,14 @@ function ProductsTab({ token }) {
     const { inventory } = useGlobalData();
     const [products, setProducts] = useState([]);
     const [form, setForm] = useState(() => ({ ...INITIAL_FORM }));
+    // [285차] 브랜드 선택지 — 카탈로그 동기화 > 브랜드 관리의 정본 목록. 11번가 상품등록 필수값이라
+    //   자유입력만 두면 표기 흔들림(청정원/淸淨園/CJW)이 그대로 채널에 나간다.
+    const [brandOptions, setBrandOptions] = useState([]);
+    useEffect(() => {
+        getJsonAuth('/api/catalog/brands')
+            .then(d => setBrandOptions((d?.items || []).map(b => b.name).filter(Boolean)))
+            .catch(() => setBrandOptions([]));
+    }, []);
     // [276차] 상품정보제공고시 항목값 { 항목라벨: 값 }
     const [noticeItems, setNoticeItems] = useState({});
     // [276차] 계정 공통 배송/반품 설정(출고지·반품지·택배사·기본배송비)
@@ -1107,8 +1115,18 @@ function ProductsTab({ token }) {
                         <div style={{ background: 'rgba(239,68,68,0.04)', border: '1px solid rgba(239,68,68,0.18)', borderRadius: 8, padding: '10px 12px' }}>
                             <div style={{ fontSize: 11, color: '#ef4444', fontWeight: 700, marginBottom: 8 }}>🛒 {t('priceOpt.reqFieldsTitle')} <span style={{ color: '#94a3b8', fontWeight: 500 }}>({t('priceOpt.requiredMark')})</span></div>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                                <div>{lbl(t('priceOpt.brand'))}<input style={inpStyle} value={form.brand} onChange={e => set('brand', e.target.value)} placeholder="Brand" /></div>
-                                <div>{lbl(t('priceOpt.manufacturer'))}<input style={inpStyle} value={form.manufacturer} onChange={e => set('manufacturer', e.target.value)} placeholder="Maker" /></div>
+                                {/* [285차] 브랜드 — 11번가 상품등록 필수. 카탈로그 동기화 > 브랜드 관리의 정본 목록에서 선택한다.
+                                    자유입력도 허용하되(신규 브랜드), 저장 시 서버가 목록에 자동 등록해 표기 흔들림을 막는다. */}
+                                <div>
+                                    {lbl(t('priceOpt.brand', '브랜드') + ' *')}
+                                    <input style={inpStyle} list="genie-brand-options" value={form.brand}
+                                        onChange={e => set('brand', e.target.value)}
+                                        placeholder={t('priceOpt.brandPh', '선택 또는 입력 (11번가 필수)')} />
+                                    <datalist id="genie-brand-options">
+                                        {brandOptions.map(b => <option key={b} value={b} />)}
+                                    </datalist>
+                                </div>
+                                <div>{lbl(t('priceOpt.manufacturer', '제조사'))}<input style={inpStyle} value={form.manufacturer} onChange={e => set('manufacturer', e.target.value)} placeholder="Maker" /></div>
                                 <div>{lbl(t('priceOpt.origin'))}<input style={inpStyle} value={form.origin} onChange={e => set('origin', e.target.value)} placeholder="대한민국" /></div>
                                 <div>{lbl(t('priceOpt.modelName'))}<input style={inpStyle} value={form.model_name} onChange={e => set('model_name', e.target.value)} placeholder="Model" /></div>
                                 <div>{lbl(t('priceOpt.barcode'))}<input style={inpStyle} value={form.barcode} onChange={e => set('barcode', e.target.value)} placeholder="8809..." /></div>

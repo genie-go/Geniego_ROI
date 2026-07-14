@@ -139,8 +139,34 @@ class Catalog
         //   catalog_listing 에 보관 컬럼 보강(MySQL·SQLite 공통 멱등 ALTER — 이미 존재 시 예외무시).
         //   category_code: 상품별 채널 카테고리 코드(네이버 leafCategoryId). 큐 소비는 catalog_listing 에서
         //   product 를 복원하므로 여기 보존하지 않으면 전송 시점에 코드가 사라져 신규등록이 거부된다.
-        foreach (['detail_html TEXT', 'images_json TEXT', 'image_url TEXT', 'category_code TEXT'] as $col) {
+        //   [285차] brand: 상품별 브랜드. 11번가 상품등록 **필수**(브랜드코드 미보유 시 <brand> 명 필수).
+        //     종전엔 writeback job payload(channel_meta)에만 실려 카탈로그에 영속되지 않아, 수집 상품은
+        //     브랜드가 영원히 비어 등록이 거부됐다 → 리스팅의 1급 컬럼으로 승격한다.
+        foreach (['detail_html TEXT', 'images_json TEXT', 'image_url TEXT', 'category_code TEXT', 'brand VARCHAR(190)'] as $col) {
             try { $pdo->exec("ALTER TABLE catalog_listing ADD COLUMN $col"); } catch (\Throwable $e) { /* 이미 존재 */ }
+        }
+        // [285차] 테넌트 브랜드 목록 — 상품정보에서 **선택**해 쓰도록 관리하는 정본(자유입력 오타·표기흔들림 방지).
+        //   code = 채널 브랜드코드(11번가 apiPrdAttrBrandCd 등, 선택). 없으면 name 을 그대로 전송한다.
+        if (self::isMysql($pdo)) {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS catalog_brand (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo',
+                name VARCHAR(190) NOT NULL,
+                code VARCHAR(190),
+                created_at VARCHAR(32),
+                updated_at VARCHAR(32),
+                UNIQUE KEY uq_cb (tenant_id, name)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        } else {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS catalog_brand (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                tenant_id TEXT NOT NULL DEFAULT 'demo',
+                name TEXT NOT NULL,
+                code TEXT,
+                created_at TEXT,
+                updated_at TEXT,
+                UNIQUE(tenant_id, name)
+            )");
         }
         // [현 차수] 채널 카테고리 매핑에 '기본카테고리'(base_code/base_label) 추가 — 11번가처럼 한 상품에 채널 카테고리를
         //   기본카테고리 + 표시카테고리(channel_code=dispCtgrNo) 2개로 지정하는 요구. 멱등 ALTER(이미 존재 시 무시).
@@ -282,11 +308,19 @@ class Catalog
         $q = $req->getQueryParams();
         $channel = strtolower(trim((string)($q['channel'] ?? '')));
 
-        $where = ["tenant_id = ?", "(category_code IS NULL OR category_code = '')", "action <> 'unregister'"];
-        $bind = [$tenant];
+        // [285차] 브랜드 미지정도 "확정 필요"다 — 11번가는 브랜드가 없으면 카테고리를 지정해도 등록이 거부된다.
+        //   종전엔 카테고리만 봤기 때문에, 카테고리를 고른 뒤에야 브랜드 오류를 만나는 왕복이 발생했다.
+        $brandCh = self::BRAND_REQUIRED_CHANNELS;
+        $bph     = implode(',', array_fill(0, count($brandCh), '?'));
+        $where = [
+            "tenant_id = ?",
+            "((category_code IS NULL OR category_code = '') OR ((brand IS NULL OR brand = '') AND channel IN ($bph)))",
+            "action <> 'unregister'",
+        ];
+        $bind = array_merge([$tenant], $brandCh);
         if ($channel !== '') { $where[] = 'channel = ?'; $bind[] = $channel; }
         try {
-            $st = $pdo->prepare("SELECT channel, sku, name, category, price, inventory, status, updated_at
+            $st = $pdo->prepare("SELECT channel, sku, name, category, price, inventory, status, updated_at, category_code, brand
                                  FROM catalog_listing WHERE " . implode(' AND ', $where) . " ORDER BY updated_at DESC LIMIT 100");
             $st->execute($bind);
             $rows = $st->fetchAll(\PDO::FETCH_ASSOC);
@@ -294,9 +328,23 @@ class Catalog
 
         $items = [];
         foreach ($rows as $r) {
-            $items[] = $r + ['suggestions' => self::rankChannelCategories($pdo, $tenant, (string)$r['channel'], $r, 5)];
+            $needsCat   = trim((string)($r['category_code'] ?? '')) === '';
+            $needsBrand = self::channelRequiresBrand((string)$r['channel']) && trim((string)($r['brand'] ?? '')) === '';
+            $items[] = $r + [
+                'needs_category' => $needsCat,
+                'needs_brand'    => $needsBrand,
+                'suggestions'    => $needsCat ? self::rankChannelCategories($pdo, $tenant, (string)$r['channel'], $r, 5) : [],
+            ];
         }
-        return self::jsonRes($res, ['ok' => true, 'count' => count($items), 'items' => $items]);
+        // 브랜드 선택지도 함께 내려 준다(패널에서 별도 호출 없이 즉시 지정 가능).
+        $brands = [];
+        try {
+            $bs = $pdo->prepare("SELECT name FROM catalog_brand WHERE tenant_id=? ORDER BY name");
+            $bs->execute([$tenant]);
+            $brands = $bs->fetchAll(\PDO::FETCH_COLUMN) ?: [];
+        } catch (\Throwable $e) { $brands = []; }
+
+        return self::jsonRes($res, ['ok' => true, 'count' => count($items), 'items' => $items, 'brands' => $brands]);
     }
 
     /**
@@ -344,6 +392,191 @@ class Catalog
             'ok' => $done, 'assigned' => $code, 'status' => $jr['status'] ?? 'queued',
             'error' => $done ? null : ($jr['error'] ?? null), 'summary' => $sum,
         ]);
+    }
+
+    // ── [285차] 브랜드 관리 ────────────────────────────────────────────────────
+    //   11번가 상품등록은 브랜드가 **필수**다(브랜드코드 미보유 시 <brand> 명 필수). 종전엔 브랜드가
+    //   writeback payload 에만 잠깐 실려 카탈로그에 영속되지 않았고, 수집 상품(네이버 등)은 브랜드가
+    //   비어 있어 11번가 등록이 영구 거부됐다. 브랜드를 테넌트 정본 목록 + 리스팅 컬럼으로 승격한다.
+    //   ★자유입력만 두면 표기 흔들림(청정원/淸淨園/CJW)이 그대로 채널에 나가므로 **선택형**을 정본으로 한다.
+
+    /** [285차] 상품등록에 브랜드가 **필수**인 채널(단일 소스 — 어댑터 게이트와 함께 갱신할 것). */
+    private const BRAND_REQUIRED_CHANNELS = ['11st', 'st11'];
+
+    /** [285차] 이 채널은 브랜드가 필수인가(별칭 포함). */
+    public static function channelRequiresBrand(string $channel): bool
+    {
+        foreach (self::channelAliases($channel) as $a) {
+            if (in_array($a, self::BRAND_REQUIRED_CHANNELS, true)) return true;
+        }
+        return false;
+    }
+
+    /** [285차] 브랜드명을 테넌트 목록에 멱등 등록(빈값은 무시). 상품 저장 경로에서 자동 호출. */
+    private static function ensureBrand(\PDO $pdo, string $tenant, string $name): void
+    {
+        $name = trim($name);
+        if ($name === '') return;
+        $name = mb_substr($name, 0, 190);
+        try {
+            $now = self::now();
+            $sql = self::isMysql($pdo)
+                ? "INSERT INTO catalog_brand(tenant_id,name,code,created_at,updated_at) VALUES(?,?,'',?,?)
+                   ON DUPLICATE KEY UPDATE updated_at=VALUES(updated_at)"
+                : "INSERT INTO catalog_brand(tenant_id,name,code,created_at,updated_at) VALUES(?,?,'',?,?)
+                   ON CONFLICT(tenant_id,name) DO UPDATE SET updated_at=excluded.updated_at";
+            $pdo->prepare($sql)->execute([$tenant, $name, $now, $now]);
+        } catch (\Throwable $e) { /* best-effort — 브랜드 목록 등록 실패가 상품 저장을 막지 않는다 */ }
+    }
+
+    /** [285차] GET /catalog/brands — 테넌트 브랜드 목록(사용 중인 상품 수 포함). */
+    public static function brands(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $pdo = self::db();
+        $tenant = self::tenant($req);
+        $items = [];
+        try {
+            $st = $pdo->prepare(
+                "SELECT b.id, b.name, b.code,
+                        (SELECT COUNT(*) FROM catalog_listing l
+                          WHERE l.tenant_id = b.tenant_id AND l.brand = b.name) AS used
+                   FROM catalog_brand b WHERE b.tenant_id = ? ORDER BY b.name"
+            );
+            $st->execute([$tenant]);
+            $items = $st->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Throwable $e) { $items = []; }
+        return self::jsonRes($res, ['ok' => true, 'count' => count($items), 'items' => $items]);
+    }
+
+    /** [285차] POST /catalog/brands — 브랜드 추가/수정. body:{name[,code][,id]} */
+    public static function saveBrand(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $pdo = self::db();
+        $tenant = self::tenant($req);
+        $b = (array)($req->getParsedBody() ?? []);
+        $name = trim((string)($b['name'] ?? ''));
+        $code = trim((string)($b['code'] ?? ''));
+        $id   = (int)($b['id'] ?? 0);
+        if ($name === '') return self::jsonRes($res, ['ok' => false, 'error' => 'brand name required'], 400);
+        if (mb_strlen($name) > 190) return self::jsonRes($res, ['ok' => false, 'error' => 'brand name too long'], 400);
+        $now = self::now();
+        try {
+            if ($id > 0) {
+                // 이름 변경 시 이 브랜드를 쓰던 리스팅도 함께 갱신한다(고아 브랜드 방지).
+                $old = '';
+                $q = $pdo->prepare("SELECT name FROM catalog_brand WHERE id=? AND tenant_id=? LIMIT 1");
+                $q->execute([$id, $tenant]);
+                $old = (string)$q->fetchColumn();
+                if ($old === '') return self::jsonRes($res, ['ok' => false, 'error' => 'brand not found'], 404);
+                $pdo->prepare("UPDATE catalog_brand SET name=?, code=?, updated_at=? WHERE id=? AND tenant_id=?")
+                    ->execute([$name, $code, $now, $id, $tenant]);
+                if ($old !== $name) {
+                    $pdo->prepare("UPDATE catalog_listing SET brand=?, updated_at=? WHERE tenant_id=? AND brand=?")
+                        ->execute([$name, $now, $tenant, $old]);
+                }
+                return self::jsonRes($res, ['ok' => true, 'id' => $id, 'name' => $name]);
+            }
+            $sql = self::isMysql($pdo)
+                ? "INSERT INTO catalog_brand(tenant_id,name,code,created_at,updated_at) VALUES(?,?,?,?,?)
+                   ON DUPLICATE KEY UPDATE code=VALUES(code), updated_at=VALUES(updated_at)"
+                : "INSERT INTO catalog_brand(tenant_id,name,code,created_at,updated_at) VALUES(?,?,?,?,?)
+                   ON CONFLICT(tenant_id,name) DO UPDATE SET code=excluded.code, updated_at=excluded.updated_at";
+            $pdo->prepare($sql)->execute([$tenant, $name, $code, $now, $now]);
+        } catch (\Throwable $e) {
+            return self::jsonRes($res, ['ok' => false, 'error' => 'brand save failed'], 500);
+        }
+        return self::jsonRes($res, ['ok' => true, 'name' => $name]);
+    }
+
+    /** [285차] DELETE /catalog/brands/{id} — 사용 중인 브랜드는 삭제 거부(리스팅 브랜드가 조용히 사라지는 것 방지). */
+    public static function deleteBrand(Request $req, Response $res, array $args = []): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $pdo = self::db();
+        $tenant = self::tenant($req);
+        $id = (int)($args['id'] ?? 0);
+        if ($id <= 0) return self::jsonRes($res, ['ok' => false, 'error' => 'id required'], 400);
+        try {
+            $q = $pdo->prepare("SELECT name FROM catalog_brand WHERE id=? AND tenant_id=? LIMIT 1");
+            $q->execute([$id, $tenant]);
+            $name = (string)$q->fetchColumn();
+            if ($name === '') return self::jsonRes($res, ['ok' => false, 'error' => 'brand not found'], 404);
+
+            $u = $pdo->prepare("SELECT COUNT(*) FROM catalog_listing WHERE tenant_id=? AND brand=?");
+            $u->execute([$tenant, $name]);
+            $used = (int)$u->fetchColumn();
+            if ($used > 0) {
+                return self::jsonRes($res, ['ok' => false,
+                    'error' => "이 브랜드를 사용 중인 상품이 {$used}건 있습니다 — 먼저 해당 상품의 브랜드를 변경하세요",
+                    'used' => $used], 409);
+            }
+            $pdo->prepare("DELETE FROM catalog_brand WHERE id=? AND tenant_id=?")->execute([$id, $tenant]);
+        } catch (\Throwable $e) {
+            return self::jsonRes($res, ['ok' => false, 'error' => 'brand delete failed'], 500);
+        }
+        return self::jsonRes($res, ['ok' => true, 'deleted' => $id]);
+    }
+
+    /**
+     * [285차] POST /catalog/assign-brand — 상품에 브랜드 지정. body:{channel,sku|skus[],brand[,publish]}
+     *   브랜드는 테넌트 브랜드 목록에 있는 값만 허용한다(오타·표기흔들림이 실 리스팅에 나가는 것 차단).
+     *   publish=true 면 즉시 채널 전송까지 수행(assignCategory 와 동일 흐름).
+     */
+    public static function assignBrand(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $pdo = self::db();
+        $tenant = self::tenant($req);
+        $b = (array)($req->getParsedBody() ?? []);
+        $channel = strtolower(trim((string)($b['channel'] ?? '')));
+        $brand   = trim((string)($b['brand'] ?? ''));
+        $skus    = [];
+        if (!empty($b['skus']) && is_array($b['skus'])) {
+            foreach ($b['skus'] as $s) { $s = trim((string)$s); if ($s !== '') $skus[] = $s; }
+        } elseif (trim((string)($b['sku'] ?? '')) !== '') {
+            $skus[] = trim((string)$b['sku']);
+        }
+        if ($channel === '' || $brand === '' || !$skus) {
+            return self::jsonRes($res, ['ok' => false, 'error' => 'channel/sku(s)/brand required'], 400);
+        }
+        // ★정본 목록 검증 — 등록되지 않은 브랜드는 거부(자유입력 우회 차단).
+        try {
+            $q = $pdo->prepare("SELECT COUNT(*) FROM catalog_brand WHERE tenant_id=? AND name=?");
+            $q->execute([$tenant, $brand]);
+            if ((int)$q->fetchColumn() === 0) {
+                return self::jsonRes($res, ['ok' => false,
+                    'error' => '등록되지 않은 브랜드입니다 — 브랜드 관리에서 먼저 추가하세요'], 400);
+            }
+        } catch (\Throwable $e) { /* 조회 실패 시 아래 UPDATE 가 어차피 실패한다 */ }
+
+        $now = self::now();
+        $updated = 0;
+        try {
+            $up = $pdo->prepare("UPDATE catalog_listing SET brand=?, updated_at=? WHERE tenant_id=? AND channel=? AND sku=?");
+            foreach ($skus as $sku) { $up->execute([$brand, $now, $tenant, $channel, $sku]); $updated += $up->rowCount(); }
+        } catch (\Throwable $e) {
+            return self::jsonRes($res, ['ok' => false, 'error' => 'listing update failed'], 500);
+        }
+        if (empty($b['publish'])) {
+            return self::jsonRes($res, ['ok' => true, 'brand' => $brand, 'updated' => $updated]);
+        }
+        // 즉시 전송 — assignCategory 와 동일(logJob 이 기존 미완료 잡을 superseded 로 마감).
+        $results = [];
+        foreach ($skus as $sku) {
+            $st    = self::channelStatus($pdo, $tenant, $channel, 'register');
+            $jobId = self::logJob($pdo, $tenant, $channel, $sku, 'publish', $st === 'saved' ? 'awaiting_credentials' : $st, ['sku' => $sku]);
+            if ($jobId > 0) self::processJobById($pdo, $jobId);
+            $jr = $jobId > 0 ? self::jobResultById($pdo, $jobId) : [];
+            $results[] = ['sku' => $sku, 'status' => $jr['status'] ?? 'queued', 'error' => $jr['error'] ?? null];
+        }
+        $allDone = $results && !array_filter($results, static fn($r) => ($r['status'] ?? '') !== 'done');
+        return self::jsonRes($res, ['ok' => $allDone, 'brand' => $brand, 'updated' => $updated, 'results' => $results]);
     }
 
     /** [277차] 채널에서 카테고리 카탈로그를 받아 캐시에 upsert. 반환=저장 건수(실패 0). */
@@ -463,25 +696,28 @@ class Catalog
         $now = self::now();
         // [277차] detail_html·images_json·image_url 영속. 새 값이 빈 문자열이면 기존 값을 지우지 않는다
         //   (COALESCE/NULLIF — 가격만 바꾸는 repricer 경로가 상세·이미지를 날리는 회귀 방지).
+        // [285차] brand 도 동일 보존 규칙 — 빈값이 기존 브랜드를 지우지 않는다(리프라이서 가격만 push 경로 방어).
         if (self::isMysql($pdo)) {
-            $sql = "INSERT INTO catalog_listing (tenant_id,channel,sku,name,category,price,inventory,spec,action,status,created_at,updated_at,detail_html,images_json,image_url,category_code)
-                    VALUES (:t,:c,:s,:n,:cat,:p,:inv,:spec,:act,:st,:now,:now2,:dh,:ij,:iu,:cc)
+            $sql = "INSERT INTO catalog_listing (tenant_id,channel,sku,name,category,price,inventory,spec,action,status,created_at,updated_at,detail_html,images_json,image_url,category_code,brand)
+                    VALUES (:t,:c,:s,:n,:cat,:p,:inv,:spec,:act,:st,:now,:now2,:dh,:ij,:iu,:cc,:br)
                     ON DUPLICATE KEY UPDATE name=VALUES(name),category=VALUES(category),price=VALUES(price),
                       inventory=VALUES(inventory),spec=VALUES(spec),action=VALUES(action),status=VALUES(status),updated_at=VALUES(updated_at),
                       detail_html=COALESCE(NULLIF(VALUES(detail_html),''),detail_html),
                       images_json=COALESCE(NULLIF(VALUES(images_json),''),images_json),
                       image_url=COALESCE(NULLIF(VALUES(image_url),''),image_url),
-                      category_code=COALESCE(NULLIF(VALUES(category_code),''),category_code)";
+                      category_code=COALESCE(NULLIF(VALUES(category_code),''),category_code),
+                      brand=COALESCE(NULLIF(VALUES(brand),''),brand)";
         } else {
-            $sql = "INSERT INTO catalog_listing (tenant_id,channel,sku,name,category,price,inventory,spec,action,status,created_at,updated_at,detail_html,images_json,image_url,category_code)
-                    VALUES (:t,:c,:s,:n,:cat,:p,:inv,:spec,:act,:st,:now,:now2,:dh,:ij,:iu,:cc)
+            $sql = "INSERT INTO catalog_listing (tenant_id,channel,sku,name,category,price,inventory,spec,action,status,created_at,updated_at,detail_html,images_json,image_url,category_code,brand)
+                    VALUES (:t,:c,:s,:n,:cat,:p,:inv,:spec,:act,:st,:now,:now2,:dh,:ij,:iu,:cc,:br)
                     ON CONFLICT(tenant_id,channel,sku) DO UPDATE SET name=excluded.name,category=excluded.category,
                       price=excluded.price,inventory=excluded.inventory,spec=excluded.spec,action=excluded.action,
                       status=excluded.status,updated_at=excluded.updated_at,
                       detail_html=COALESCE(NULLIF(excluded.detail_html,''),catalog_listing.detail_html),
                       images_json=COALESCE(NULLIF(excluded.images_json,''),catalog_listing.images_json),
                       image_url=COALESCE(NULLIF(excluded.image_url,''),catalog_listing.image_url),
-                      category_code=COALESCE(NULLIF(excluded.category_code,''),catalog_listing.category_code)";
+                      category_code=COALESCE(NULLIF(excluded.category_code,''),catalog_listing.category_code),
+                      brand=COALESCE(NULLIF(excluded.brand,''),catalog_listing.brand)";
         }
         $oldPrice = self::currentPrice($pdo, $tenant, $channel, $sku); // 변경 전 등록가(없으면 null)
         $newPrice = (float)($f['price'] ?? 0);
@@ -501,7 +737,11 @@ class Catalog
             ':ij' => $imgs ? json_encode($imgs, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : '',
             ':iu' => str_starts_with((string)($f['image_url'] ?? ''), 'data:') ? '' : (string)($f['image_url'] ?? ''),
             ':cc' => (string)($f['category_code'] ?? ''),
+            ':br' => mb_substr(trim((string)($f['brand'] ?? '')), 0, 190),   // [285차] 브랜드(11번가 필수)
         ]);
+        // [285차] 상품에 새 브랜드가 입력되면 테넌트 브랜드 목록에 자동 등록 — 목록이 항상 실제 사용값의 정본이 된다
+        //   (상품 폼에서 직접 타이핑한 브랜드도 다음 상품에서 그대로 선택 가능).
+        self::ensureBrand($pdo, $tenant, (string)($f['brand'] ?? ''));
         // 기존 리스팅의 실제 가격 변경만 이력화(신규 등록은 변경 아님 → 제외).
         if ($oldPrice !== null && array_key_exists('price', $f)) {
             self::recordPriceChange($pdo, $tenant, $channel, $sku, $oldPrice, $newPrice, 'writeback');
@@ -749,7 +989,7 @@ class Catalog
     {
         $existing = [];
         try {
-            $st = $pdo->prepare("SELECT name,category,price,inventory,spec,detail_html,images_json,image_url,category_code FROM catalog_listing WHERE tenant_id=? AND channel=? AND sku=? LIMIT 1");
+            $st = $pdo->prepare("SELECT name,category,price,inventory,spec,detail_html,images_json,image_url,category_code,brand FROM catalog_listing WHERE tenant_id=? AND channel=? AND sku=? LIMIT 1");
             $st->execute([$tenant, $channel, $sku]);
             $existing = $st->fetch(\PDO::FETCH_ASSOC) ?: [];
         } catch (\Throwable $e) { /* best-effort */ }
@@ -780,6 +1020,8 @@ class Catalog
             'images'    => $images,
             // [277차] 상품별 채널 카테고리 코드(네이버 leafCategoryId 등) — 신규등록 필수값.
             'category_code' => array_key_exists('category_code', $body) ? (string)$body['category_code'] : (string)($existing['category_code'] ?? ''),
+            // [285차] 브랜드 — 11번가 상품등록 필수. 리스팅 컬럼으로 영속(빈값이면 기존값 보존).
+            'brand' => array_key_exists('brand', $body) ? (string)$body['brand'] : (string)($existing['brand'] ?? ''),
             // [277차] 채널 필수 메타(상품정보제공고시·배송/반품·AS·원산지·미성년자). catalog_listing 에 컬럼을 늘리지 않고
             //   writeback job payload 로 운반한다(큐 소비 시 currentListing 결과에 병합).
             //   네이버 신규등록은 이 값들이 없으면 400 이다(실 API 확정).
@@ -1290,7 +1532,8 @@ class Catalog
         try {
             // [277차] detail_html·images 도 복원. 네이버 등은 update 가 originProduct 전체 교체(PUT)라
             //   상세·이미지를 빼고 push 하면 채널에 등록된 상세페이지가 지워진다(가격만 바꾸는 리프라이서 경로 포함).
-            $st = $pdo->prepare("SELECT name,category,price,inventory,spec,action,detail_html,images_json,image_url,category_code FROM catalog_listing WHERE tenant_id=? AND channel=? AND sku=? LIMIT 1");
+            // [285차] brand 복원 — 11번가 상품등록 필수. 빠지면 큐 소비 시 브랜드가 사라져 등록이 거부된다.
+            $st = $pdo->prepare("SELECT name,category,price,inventory,spec,action,detail_html,images_json,image_url,category_code,brand FROM catalog_listing WHERE tenant_id=? AND channel=? AND sku=? LIMIT 1");
             $st->execute([$tenant, $channel, $sku]);
             $r = $st->fetch(\PDO::FETCH_ASSOC);
             if (!$r) return null;
