@@ -98,7 +98,7 @@ function renderCanvas(canvas, prompt, theme, platform) {
   lines.forEach((l,i)=>ctx.fillText(l,W/2,H/2-(lines.length-1)*fs/2+i*fs*1.3));
   ctx.shadowBlur=0; ctx.font="bold 10px Inter,sans-serif"; ctx.fillStyle="rgba(255,255,255,0.25)"; ctx.textAlign="right";
   const pl=PLATFORMS.find(p=>p.id===platform);
-  ctx.fillText(`${pl?.label||platform} · Geniego AI`,W-10,H-10);
+  ctx.fillText(`${pl?.label||platform} · Geniego`,W-10,H-10);
   ctx.font="bold 9px Inter,sans-serif"; ctx.textAlign="left"; ctx.fillStyle="rgba(255,255,255,0.2)";
   ctx.fillText("Geniego-ROI",10,H-10);
   return canvas.toDataURL("image/png");
@@ -140,12 +140,14 @@ export default function AiDesignEngine({ defaultPlatform="popup", mode=null, hid
 
   const currentPlatform = useMemo(()=>PLATFORMS.find(p=>p.id===platform)||PLATFORMS[0],[platform]);
 
-  const generate = useCallback(()=>{
+  // [현 차수] ★가짜 AI 제거 — 종전엔 setTimeout(1500) 지연 후 로컬 canvas 그라디언트를 그려 "AI 생성"으로 표기했다
+  //   (네트워크 호출 0). 이제 실제 이미지 생성 엔드포인트(/v422/ai/campaign-ad-image)를 호출한다.
+  //   AI 키 미설정·실패 시에는 로컬 템플릿으로 폴백하되 결과를 정직하게 "로컬 템플릿"으로 표기(_ai=false).
+  const generate = useCallback(async ()=>{
     setGenerating(true); setResult(null);
-    setTimeout(()=>{
-      const c=canvasRef.current; if(!c)return;
-      c.width=currentPlatform.w; c.height=currentPlatform.h;
-      const dataUrl=renderCanvas(c, prompt||headline||theme, theme, platform);
+    const localTemplate = (aiImage, note)=>{
+      const c=canvasRef.current;
+      const dataUrl = aiImage || (c ? (c.width=currentPlatform.w, c.height=currentPlatform.h, renderCanvas(c, prompt||headline||theme, theme, platform)) : '');
       const res={
         id:Date.now(), platform, theme, prompt, headline, subheadline, ctaText,
         interactiveType, popupTrigger, animation, dataUrl,
@@ -153,11 +155,29 @@ export default function AiDesignEngine({ defaultPlatform="popup", mode=null, hid
         ratio:currentPlatform.ratio,
         timestamp:new Date().toISOString(),
         platformLabel:currentPlatform.label,
+        _ai: !!aiImage,          // true=실제 AI 이미지, false=로컬 템플릿
+        _note: note || '',
       };
       setResult(res);
       setHistory(prev=>[res,...prev].slice(0,20));
       setGenerating(false);
-    },1500);
+    };
+    const promptText = (prompt||headline||theme||'').trim();
+    try {
+      const r = await fetch('/api/v422/ai/campaign-ad-image', {
+        method:'POST', headers:_adHeaders(),
+        body: JSON.stringify({ prompt: promptText || (headline||theme||'광고 비주얼'), ratio: currentPlatform.ratio || '1:1' }),
+      });
+      const d = await r.json().catch(()=>({}));
+      if (d && d.ok && d.image) { localTemplate(d.image, ''); return; }        // 실제 AI 이미지
+      // 미설정/실패 → 정직한 로컬 템플릿 폴백
+      const why = (d && d.configured === false)
+        ? 'AI 이미지 생성 키가 없어 로컬 템플릿으로 만들었습니다. [AI 광고 디자인 > API 연동]에서 키를 등록하면 실사 AI 이미지가 생성됩니다.'
+        : (d && d.error) ? ('AI 생성 실패 — 로컬 템플릿으로 대체: ' + d.error) : 'AI 미응답 — 로컬 템플릿으로 대체했습니다.';
+      localTemplate(null, why);
+    } catch(e) {
+      localTemplate(null, '네트워크 오류 — 로컬 템플릿으로 대체했습니다.');
+    }
   },[platform,theme,prompt,headline,subheadline,ctaText,interactiveType,popupTrigger,currentPlatform]);
 
   // 196차 — 디자인 백엔드 저장(임시저장 draft / 저장 approved). 저장된 디자인은 캠페인 자동화에서 연결.
@@ -468,12 +488,17 @@ export default function AiDesignEngine({ defaultPlatform="popup", mode=null, hid
                 </div>
               )}
               <div style={{display:"flex",gap:6,flexWrap:"wrap",fontSize:10}}>
+                {/* [현 차수] 정직 표기 — 실제 AI 이미지 vs 로컬 템플릿 */}
+                {result._ai
+                  ? <span style={{padding:"3px 10px",borderRadius:999,background:"rgba(34,197,94,0.12)",color:"#16a34a",fontWeight:800}}>🤖 AI 생성 이미지</span>
+                  : <span style={{padding:"3px 10px",borderRadius:999,background:"rgba(245,158,11,0.12)",color:"#b45309",fontWeight:800}}>🖼️ 로컬 템플릿</span>}
                 {result.animation && result.animation!=="none" && <span style={{padding:"3px 10px",borderRadius:999,background:"rgba(236,72,153,0.1)",color:"#ec4899",fontWeight:700}}>📽️ {(ANIMATIONS.find(a=>a.id===result.animation)||{}).label||result.animation}</span>}
                 {result.size && <span style={{padding:"3px 10px",borderRadius:999,background:"rgba(79,142,247,0.08)",color:"#4f8ef7",fontWeight:600}}>📐 {result.size}</span>}
                 {result.platformLabel && <span style={{padding:"3px 10px",borderRadius:999,background:"rgba(168,85,247,0.08)",color:"#a855f7",fontWeight:600}}>📱 {result.platformLabel}</span>}
                 {result.ratio && <span style={{padding:"3px 10px",borderRadius:999,background:"rgba(249,115,22,0.08)",color:"#f97316",fontWeight:600}}>📏 {result.ratio}</span>}
                 {result.theme && <span style={{padding:"3px 10px",borderRadius:999,background:"rgba(34,197,94,0.08)",color:"#22c55e",fontWeight:600}}>🎨 {result.theme}</span>}
               </div>
+              {result._note && <div style={{fontSize:10.5,color:"#b45309",marginTop:2,lineHeight:1.5}}>ℹ️ {result._note}</div>}
               {(headline||subheadline) && (
                 <div style={{marginTop:10,padding:"10px 14px",background:"rgba(241,245,249,0.5)",borderRadius:8,border:"1px solid rgba(0,0,0,0.04)"}}>
                   {headline && <div style={{fontSize:13,fontWeight:800,color:"#1e293b"}}>{headline}</div>}

@@ -2715,8 +2715,14 @@ const CategoryMappingTab = memo(function CategoryMappingTab() {
     }, [channel]);
     useEffect(() => { load(); }, [load]);
 
-    // ── 채널 카테고리 검색 모달 ─────────────────────────────────────────────
-    const [pickFor, setPickFor] = useState(null);   // 내 카테고리 문자열
+    // ── 채널 카테고리 선택 모달 ─────────────────────────────────────────────
+    //   [현 차수] 11번가는 한 내 카테고리에 '기본카테고리' + '표시카테고리(dispCtgrNo)' 2개를 각각 지정한다.
+    //   → 변경 다이얼로그가 두 슬롯을 갖고, 각 슬롯의 [선택]이 카테고리 검색을 열어 그 슬롯 값만 채운다. 저장은 함께.
+    const dualCat = (channel === '11st' || channel === 'st11');
+    const [pickFor, setPickFor] = useState(null);   // 편집 중인 내 카테고리(src) — null=닫힘
+    const [slotBase, setSlotBase] = useState({ code: '', label: '' });      // 기본카테고리
+    const [slotDisp, setSlotDisp] = useState({ code: '', label: '' });      // 표시카테고리
+    const [activeSlot, setActiveSlot] = useState(null); // 'base' | 'disp' | null(두 슬롯 요약)
     const [q, setQ] = useState('');
     const [found, setFound] = useState([]);
     const [searching, setSearching] = useState(false);
@@ -2734,18 +2740,38 @@ const CategoryMappingTab = memo(function CategoryMappingTab() {
     }, [channel, t]);
 
     const openPicker = (srcCategory) => {
-        setPickFor(srcCategory); setQ(srcCategory); setFound([]); setSearchErr('');
-        search(srcCategory);
+        const m = rows.find(r => r.src_category === srcCategory) || {};
+        setPickFor(srcCategory);
+        setSlotDisp({ code: m.channel_code || '', label: m.channel_label || '' });
+        setSlotBase({ code: m.base_code || '', label: m.base_label || '' });
+        setActiveSlot(dualCat ? null : 'disp'); // 단일 채널은 바로 검색 열기(기존 UX)
+        setQ(srcCategory); setFound([]); setSearchErr('');
+        if (!dualCat) search(srcCategory);
     };
 
-    const saveMapping = async (srcCategory, code, label) => {
+    // 슬롯의 [선택] — 그 슬롯의 카테고리 검색을 연다.
+    const openSlotSearch = (slot) => { setActiveSlot(slot); setQ(pickFor || ''); setFound([]); setSearchErr(''); search(pickFor || ''); };
+
+    // 검색 결과 클릭 — 활성 슬롯에 값 채우기. 단일 채널(비-11번가)은 즉시 저장(기존 동작).
+    const pickResult = (c) => {
+        const val = { code: c.code, label: c.whole_name || c.name || c.code };
+        if (!dualCat) { saveMappingDual(pickFor, val, { code: '', label: '' }); setPickFor(null); return; }
+        if (activeSlot === 'base') setSlotBase(val); else setSlotDisp(val);
+        setActiveSlot(null); // 두 슬롯 요약으로 복귀
+    };
+
+    const saveMappingDual = async (srcCategory, disp, base) => {
         setMsg(null);
+        if (!disp || !disp.code) { setMsg({ ok: false, text: t('catalogSync.cmNeedDisp', '표시카테고리를 선택하세요') }); return; }
         try {
             const d = await postJson('/api/catalog/category-map', {
-                channel, src_category: srcCategory, channel_code: code, channel_label: label || '',
+                channel, src_category: srcCategory,
+                channel_code: disp.code, channel_label: disp.label || '',
+                base_code: base?.code || '', base_label: base?.label || '',
             });
             if (!d.ok) throw new Error(d.error || 'save failed');
             setMsg({ ok: true, text: t('catalogSync.cmSaved', '매핑을 저장했습니다') });
+            setPickFor(null);
             load();
         } catch (e) {
             setMsg({ ok: false, text: e.message });
@@ -2824,8 +2850,19 @@ const CategoryMappingTab = memo(function CategoryMappingTab() {
                                             <td style={cell}>
                                                 {m ? (
                                                     <div>
-                                                        <div style={{ color: "#0f172a" }}>{m.channel_label || '(라벨 없음)'}</div>
-                                                        <div style={{ color: "#94a3b8", fontFamily: "monospace", fontSize: 10 }}>{m.channel_code}</div>
+                                                        {/* [현 차수] 11번가는 기본+표시 2코드를 함께 표시 */}
+                                                        {dualCat && (
+                                                            <div style={{ marginBottom: 3 }}>
+                                                                <span style={{ fontSize: 9, color: "#94a3b8", fontWeight: 700 }}>{t('catalogSync.cmBaseCat', '기본카테고리')}: </span>
+                                                                {m.base_code
+                                                                    ? <span style={{ color: "#0f172a" }}>{m.base_label || m.base_code} <span style={{ color: "#94a3b8", fontFamily: "monospace", fontSize: 9 }}>({m.base_code})</span></span>
+                                                                    : <span style={{ color: "#f59e0b" }}>{t('catalogSync.cmSlotUnset', '미선택')}</span>}
+                                                            </div>
+                                                        )}
+                                                        <div>
+                                                            {dualCat && <span style={{ fontSize: 9, color: "#94a3b8", fontWeight: 700 }}>{t('catalogSync.cmDispCat', '표시카테고리 (dispCtgrNo)')}: </span>}
+                                                            <span style={{ color: "#0f172a" }}>{m.channel_label || '(라벨 없음)'}</span> <span style={{ color: "#94a3b8", fontFamily: "monospace", fontSize: 10 }}>({m.channel_code})</span>
+                                                        </div>
                                                     </div>
                                                 ) : (
                                                     <span style={{ color: "#f59e0b" }}>{t('catalogSync.cmUnmapped', '미매핑 — 자동 매칭에 의존')}</span>
@@ -2862,37 +2899,76 @@ const CategoryMappingTab = memo(function CategoryMappingTab() {
                                 {t('catalogSync.cmMyCategory', '내 카테고리')}: <b>{pickFor}</b> · {targetChs.find(c => c.id === channel)?.name || channel}
                             </div>
                         </div>
-                        <div style={{ padding: "10px 16px", display: "flex", gap: 8 }}>
-                            <input value={q} onChange={e => setQ(e.target.value)}
-                                onKeyDown={e => { if (e.key === 'Enter') search(q); }}
-                                placeholder={t('catalogSync.cmSearchPh', '예: 건강식품, 니트, 이어폰')}
-                                style={{ flex: 1, border: "1px solid #e2e8f0", borderRadius: 6, padding: "8px 10px", fontSize: 12 }} />
-                            <button onClick={() => search(q)} disabled={searching}
-                                style={{ padding: "8px 14px", borderRadius: 6, border: "none", background: "#4f8ef7", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
-                                {searching ? '…' : t('catalogSync.cmSearchBtn', '검색')}
-                            </button>
-                        </div>
-                        <div style={{ flex: 1, overflowY: "auto", padding: "0 16px 12px" }}>
-                            {searchErr && <div style={{ fontSize: 11, color: "#ef4444", padding: 8 }}>❌ {searchErr}</div>}
-                            {searching && <div style={{ fontSize: 11, color: "#7c8fa8", padding: 8 }}>{t('catalogSync.cmLoading', '카테고리를 불러오는 중… (최초 1회는 수천 건 수집으로 시간이 걸립니다)')}</div>}
-                            {!searching && !searchErr && found.length === 0 && (
-                                <div style={{ fontSize: 11, color: "#94a3b8", padding: 8 }}>{t('catalogSync.cmNoResult', '검색 결과가 없습니다')}</div>
-                            )}
-                            {found.map(c => (
-                                <div key={c.code} onClick={() => { const src = pickFor; setPickFor(null); saveMapping(src, c.code, c.whole_name || c.name); }}
-                                    style={{ padding: "9px 10px", borderRadius: 6, cursor: "pointer", fontSize: 11, borderBottom: "1px solid #f1f5f9" }}
-                                    onMouseEnter={e => e.currentTarget.style.background = "#f8fafc"}
-                                    onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
-                                    <div style={{ color: "#0f172a", fontWeight: 600 }}>{c.whole_name || c.name}</div>
-                                    <div style={{ color: "#94a3b8", fontFamily: "monospace", fontSize: 10 }}>{c.code}</div>
+                        {dualCat && activeSlot === null ? (
+                            /* [현 차수] 11번가 — 기본카테고리 + 표시카테고리 두 슬롯을 하나의 매핑에 지정 */
+                            <>
+                                <div style={{ padding: "12px 16px" }}>
+                                    {[['base', t('catalogSync.cmBaseCat', '기본카테고리'), slotBase],
+                                      ['disp', t('catalogSync.cmDispCat', '표시카테고리 (dispCtgrNo)'), slotDisp]].map(([slot, label, val]) => (
+                                        <div key={slot} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: '1px solid #f1f5f9' }}>
+                                            <div style={{ width: 150, fontSize: 12, fontWeight: 800, color: '#334155' }}>{label}</div>
+                                            <div style={{ flex: 1, fontSize: 11 }}>
+                                                {val.code
+                                                    ? <div><div style={{ color: '#0f172a', fontWeight: 600 }}>{val.label}</div><div style={{ color: '#94a3b8', fontFamily: 'monospace', fontSize: 10 }}>{val.code}</div></div>
+                                                    : <span style={{ color: '#f59e0b' }}>{t('catalogSync.cmSlotUnset', '미선택')}</span>}
+                                            </div>
+                                            <button onClick={() => openSlotSearch(slot)}
+                                                style={{ padding: "5px 12px", borderRadius: 6, border: "1px solid #4f8ef7", background: "#fff", color: "#4f8ef7", fontSize: 11, fontWeight: 700, cursor: "pointer", whiteSpace: 'nowrap' }}>
+                                                🔍 {t('catalogSync.cmPick', '선택')}
+                                            </button>
+                                        </div>
+                                    ))}
                                 </div>
-                            ))}
-                        </div>
-                        <div style={{ padding: "10px 16px", borderTop: "1px solid #eef2f7", textAlign: "right" }}>
-                            <button onClick={() => setPickFor(null)} style={{ padding: "7px 14px", borderRadius: 6, border: "1px solid #e2e8f0", background: "#fff", fontSize: 12, cursor: "pointer" }}>
-                                {t('catalogSync.close')}
-                            </button>
-                        </div>
+                                <div style={{ padding: "10px 16px", borderTop: "1px solid #eef2f7", display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+                                    <button onClick={() => setPickFor(null)} style={{ padding: "7px 14px", borderRadius: 6, border: "1px solid #e2e8f0", background: "#fff", fontSize: 12, cursor: "pointer" }}>{t('catalogSync.cmCancel', '취소')}</button>
+                                    <button onClick={() => saveMappingDual(pickFor, slotDisp, slotBase)}
+                                        style={{ padding: "7px 16px", borderRadius: 6, border: "none", background: "#4f8ef7", color: "#fff", fontSize: 12, fontWeight: 800, cursor: "pointer" }}>{t('catalogSync.cmSaveBtn', '저장')}</button>
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                {dualCat && (
+                                    <div style={{ padding: "8px 16px 0" }}>
+                                        <button onClick={() => setActiveSlot(null)} style={{ fontSize: 11, color: "#4f8ef7", background: "none", border: "none", cursor: "pointer", fontWeight: 700 }}>
+                                            ← {activeSlot === 'base' ? t('catalogSync.cmBaseCat', '기본카테고리') : t('catalogSync.cmDispCat', '표시카테고리 (dispCtgrNo)')} {t('catalogSync.cmPicking', '선택 중')}
+                                        </button>
+                                    </div>
+                                )}
+                                <div style={{ padding: "10px 16px", display: "flex", gap: 8 }}>
+                                    <input value={q} onChange={e => setQ(e.target.value)}
+                                        onKeyDown={e => { if (e.key === 'Enter') search(q); }}
+                                        placeholder={t('catalogSync.cmSearchPh', '예: 건강식품, 니트, 이어폰')}
+                                        style={{ flex: 1, border: "1px solid #e2e8f0", borderRadius: 6, padding: "8px 10px", fontSize: 12 }} />
+                                    <button onClick={() => search(q)} disabled={searching}
+                                        style={{ padding: "8px 14px", borderRadius: 6, border: "none", background: "#4f8ef7", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+                                        {searching ? '…' : t('catalogSync.cmSearchBtn', '검색')}
+                                    </button>
+                                </div>
+                                <div style={{ flex: 1, overflowY: "auto", padding: "0 16px 12px" }}>
+                                    {searchErr && <div style={{ fontSize: 11, color: "#ef4444", padding: 8 }}>❌ {searchErr}</div>}
+                                    {searching && <div style={{ fontSize: 11, color: "#7c8fa8", padding: 8 }}>{t('catalogSync.cmLoading', '카테고리를 불러오는 중… (최초 1회는 수천 건 수집으로 시간이 걸립니다)')}</div>}
+                                    {!searching && !searchErr && found.length === 0 && (
+                                        <div style={{ fontSize: 11, color: "#94a3b8", padding: 8 }}>{t('catalogSync.cmNoResult', '검색 결과가 없습니다')}</div>
+                                    )}
+                                    {found.map(c => (
+                                        <div key={c.code} onClick={() => pickResult(c)}
+                                            style={{ padding: "9px 10px", borderRadius: 6, cursor: "pointer", fontSize: 11, borderBottom: "1px solid #f1f5f9" }}
+                                            onMouseEnter={e => e.currentTarget.style.background = "#f8fafc"}
+                                            onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
+                                            <div style={{ color: "#0f172a", fontWeight: 600 }}>{c.whole_name || c.name}</div>
+                                            <div style={{ color: "#94a3b8", fontFamily: "monospace", fontSize: 10 }}>{c.code}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                                {!dualCat && (
+                                    <div style={{ padding: "10px 16px", borderTop: "1px solid #eef2f7", textAlign: "right" }}>
+                                        <button onClick={() => setPickFor(null)} style={{ padding: "7px 14px", borderRadius: 6, border: "1px solid #e2e8f0", background: "#fff", fontSize: 12, cursor: "pointer" }}>
+                                            {t('catalogSync.close')}
+                                        </button>
+                                    </div>
+                                )}
+                            </>
+                        )}
                     </div>
                 </div>
             )}

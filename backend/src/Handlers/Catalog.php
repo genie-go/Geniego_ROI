@@ -142,6 +142,11 @@ class Catalog
         foreach (['detail_html TEXT', 'images_json TEXT', 'image_url TEXT', 'category_code TEXT'] as $col) {
             try { $pdo->exec("ALTER TABLE catalog_listing ADD COLUMN $col"); } catch (\Throwable $e) { /* 이미 존재 */ }
         }
+        // [현 차수] 채널 카테고리 매핑에 '기본카테고리'(base_code/base_label) 추가 — 11번가처럼 한 상품에 채널 카테고리를
+        //   기본카테고리 + 표시카테고리(channel_code=dispCtgrNo) 2개로 지정하는 요구. 멱등 ALTER(이미 존재 시 무시).
+        foreach (['base_code VARCHAR(120)', 'base_label VARCHAR(255)'] as $col) {
+            try { $pdo->exec("ALTER TABLE channel_category_map ADD COLUMN $col"); } catch (\Throwable $e) { /* 이미 존재 */ }
+        }
         // [277차] ★TEXT(64KB) 초과로 500 — 상품등록 폼은 이미지를 base64 dataURL(장당 1~2MB)로 보관하므로
         //   images_json/image_url/detail_html 이 TEXT 한계를 즉시 넘겨 "Data too long" 예외 → HTTP 500.
         //   MySQL 만 LONGTEXT 로 승격(멱등·SQLite 는 타입 길이 제한 없음).
@@ -1707,8 +1712,8 @@ class Catalog
         $pdo = self::db(); $tenant = self::tenant($req);
         $ch = (string)($req->getQueryParams()['channel'] ?? '');
         try {
-            if ($ch !== '') { $st = $pdo->prepare("SELECT id,channel,src_category,channel_code,channel_label,updated_at FROM channel_category_map WHERE tenant_id=? AND channel=? ORDER BY channel,src_category"); $st->execute([$tenant, $ch]); }
-            else { $st = $pdo->prepare("SELECT id,channel,src_category,channel_code,channel_label,updated_at FROM channel_category_map WHERE tenant_id=? ORDER BY channel,src_category"); $st->execute([$tenant]); }
+            if ($ch !== '') { $st = $pdo->prepare("SELECT id,channel,src_category,channel_code,channel_label,base_code,base_label,updated_at FROM channel_category_map WHERE tenant_id=? AND channel=? ORDER BY channel,src_category"); $st->execute([$tenant, $ch]); }
+            else { $st = $pdo->prepare("SELECT id,channel,src_category,channel_code,channel_label,base_code,base_label,updated_at FROM channel_category_map WHERE tenant_id=? ORDER BY channel,src_category"); $st->execute([$tenant]); }
             return self::jsonRes($res, ['ok' => true, 'mappings' => $st->fetchAll(\PDO::FETCH_ASSOC)]);
         } catch (\Throwable $e) { return self::jsonRes($res, ['ok' => true, 'mappings' => []]); }
     }
@@ -1721,12 +1726,14 @@ class Catalog
         $pdo = self::db(); $tenant = self::tenant($req); $b = (array)($req->getParsedBody() ?? []);
         $ch = trim((string)($b['channel'] ?? '')); $src = trim((string)($b['src_category'] ?? ''));
         $code = trim((string)($b['channel_code'] ?? '')); $label = trim((string)($b['channel_label'] ?? ''));
+        // [현 차수] 기본카테고리(base) — 표시카테고리(channel_code)와 별도로 한 매핑에 함께 저장(11번가 등).
+        $baseCode = trim((string)($b['base_code'] ?? '')); $baseLabel = trim((string)($b['base_label'] ?? ''));
         if ($ch === '' || $src === '' || $code === '') return self::jsonRes($res, ['ok' => false, 'error' => 'channel·src_category·channel_code 필수'], 400);
         $now = self::now();
         $sql = self::isMysql($pdo)
-            ? "INSERT INTO channel_category_map (tenant_id,channel,src_category,channel_code,channel_label,created_at,updated_at) VALUES (?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE channel_code=VALUES(channel_code),channel_label=VALUES(channel_label),updated_at=VALUES(updated_at)"
-            : "INSERT INTO channel_category_map (tenant_id,channel,src_category,channel_code,channel_label,created_at,updated_at) VALUES (?,?,?,?,?,?,?) ON CONFLICT(tenant_id,channel,src_category) DO UPDATE SET channel_code=excluded.channel_code,channel_label=excluded.channel_label,updated_at=excluded.updated_at";
-        try { $pdo->prepare($sql)->execute([$tenant, $ch, $src, $code, $label, $now, $now]); return self::jsonRes($res, ['ok' => true]); }
+            ? "INSERT INTO channel_category_map (tenant_id,channel,src_category,channel_code,channel_label,base_code,base_label,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE channel_code=VALUES(channel_code),channel_label=VALUES(channel_label),base_code=VALUES(base_code),base_label=VALUES(base_label),updated_at=VALUES(updated_at)"
+            : "INSERT INTO channel_category_map (tenant_id,channel,src_category,channel_code,channel_label,base_code,base_label,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?) ON CONFLICT(tenant_id,channel,src_category) DO UPDATE SET channel_code=excluded.channel_code,channel_label=excluded.channel_label,base_code=excluded.base_code,base_label=excluded.base_label,updated_at=excluded.updated_at";
+        try { $pdo->prepare($sql)->execute([$tenant, $ch, $src, $code, $label, $baseCode, $baseLabel, $now, $now]); return self::jsonRes($res, ['ok' => true]); }
         catch (\Throwable $e) { return self::jsonRes($res, ['ok' => false, 'error' => 'db_error'], 500); }
     }
 
