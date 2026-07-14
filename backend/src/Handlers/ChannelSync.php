@@ -2032,20 +2032,18 @@ final class ChannelSync
     // ── 11번가(11st) Open API — XML ─────────────────────────────────────────
 
     /**
-     * [285차] 11번가 주문 "목록" 조회 API 경로. 공식 스펙 확정 시 이 한 줄만 채우면 아래 로직이 그대로 산다.
+     * [285차] 11번가 신규주문 수집 = **기간별 결제완료 목록조회** (공식 스펙 확정 · 운영 실호출 200 검증).
+     *   개발가이드: Seller > 주문 > 결제완료 > "발주확인할 내역(기간별 결제완료_목록조회)"
+     *     GET https://api.11st.co.kr/rest/ordservices/complete/{startTime}/{endTime}
+     *     startTime/endTime = **Path Parameter** · `YYYYMMDDhhmm`(12자리·KST) · 조회기간 **최대 7일** · 최대 3,000건
      *
-     * ★284차까지 코드는 `http://api.11st.co.kr/rest/ordervice/orderList/202` 를 호출했으나 이 URL 은 11번가에
-     *   존재하지 않는다(서비스명 `ordervice` 는 오타이며, `orderList` 메서드도 없다). 운영 실키·등록 IP(1.201.177.46)
-     *   에서 실측한 결과:
-     *     GET /rest/ordservices/complete/{ordNo}                          → 200 (주문번호별 상태조회 · 공식 확정 · 단건)
-     *     GET /rest/ordservices/{orderList|orderlist|order|orders|newOrder|orderSearch|complete}  → 전부 -997
-     *     POST /rest/prodservices/product                                  → 인증 통과(JAXB 파싱 단계 도달)
-     *     GET  /rest/prodservices/product/{prdNo}                          → -997
-     *   즉 11번가는 (경로 + HTTP 메서드) 조합으로 API 를 등록하며, -997 "등록된 API 정보가 존재하지 않습니다" 는
-     *   인증 실패가 아니라 **해당 (경로,메서드) 가 미등록**이라는 뜻이다. 키·IP·API 이용신청은 정상 확인됨.
-     *   → 추측 경로 호출은 무의미하므로 확정 전까지 비워둔다. 절대 다시 지어내지 말 것.
+     * ★284차까지 코드는 `http://api.11st.co.kr/rest/ordervice/orderList/202?dateFrom=&dateTo=` 를 호출했다.
+     *   서비스명 `ordervice` 는 오타이고, `orderList` 메서드도 없으며, 기간은 쿼리스트링이 아니라 **경로**에 붙는다.
+     *   즉 존재하지 않는 URL 이었다. 그때 돌아온 -997 "등록된 API 정보가 존재하지 않습니다" 는 **인증 실패가 아니라
+     *   (경로,HTTP메서드) 미등록**을 뜻한다 — 키·IP 등록·API 이용신청 승인은 모두 정상임을 실측 확인했다.
+     *   (284차는 이를 "이용신청 미승인" 으로 오독했다. 재발 금지.)
      */
-    private const ST11_ORDER_LIST_PATH = '';
+    private const ST11_ORDER_WINDOW_DAYS = 7;
 
     private static function elevenStFetch(array $creds, string $tenant = 'demo'): array
     {
@@ -2057,15 +2055,12 @@ final class ChannelSync
         if ($apiKey === '') {
             return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>'11번가: 오픈API 키(api_key) 입력 필요'];
         }
-        // [285차] 경로 미확정 — 가짜 성공(ok=true, orders=[]) 대신 정직하게 미지원을 보고한다.
-        if (self::ST11_ORDER_LIST_PATH === '') {
-            return ['ok'=>false, 'products'=>[], 'orders'=>[],
-                    'error'=>'11번가 주문목록 조회 API 경로 미확정 — 셀러 API 스펙(주문 > 주문목록조회)의 URL 확정 필요',
-                    'note'=>'키·IP·이용신청은 정상(주문번호별 상태조회 200 확인). 목록조회 경로만 미확정.'];
-        }
-        $from = gmdate('Ymd', time() - 7 * 86400) . '0000';
-        $to   = gmdate('YmdHis');
-        $url  = 'https://api.11st.co.kr' . self::ST11_ORDER_LIST_PATH . "?dateFrom={$from}&dateTo={$to}";
+        // [285차] 조회창 = KST 기준 최근 7일. 11번가 상한(7일)을 초과하지 않도록 5분 여유를 둔다.
+        $tz    = new \DateTimeZone('Asia/Seoul');
+        $now   = new \DateTime('now', $tz);
+        $start = (clone $now)->modify('-' . self::ST11_ORDER_WINDOW_DAYS . ' days')->modify('+5 minutes');
+        $url   = 'https://api.11st.co.kr/rest/ordservices/complete/'
+               . $start->format('YmdHi') . '/' . $now->format('YmdHi');
         [$code, $raw, $err] = self::httpGetRaw($url, ['openapikey' => $apiKey, 'Accept' => 'application/xml']);
         if ($err || $code >= 400 || $raw === '') {
             // [285차] 가짜 성공 제거 — 실패는 실패로 보고한다(종전엔 ok=true 라 동기화가 조용히 0건 성공 처리됐다).
@@ -2079,7 +2074,14 @@ final class ChannelSync
             return ['ok'=>false, 'products'=>[], 'orders'=>[], 'error'=>"11번가 주문조회 거부 — {$why}"];
         }
         $orders = [];
-        $xml = @simplexml_load_string($raw);
+        // [285차] 11번가 응답은 EUC-KR + `ns2:` 네임스페이스 접두다(`<ns2:orders><ns2:order>`).
+        //   접두가 붙으면 SimpleXML 의 `$xml->order` 로 잡히지 않으므로 접두를 벗겨 파싱한다.
+        $utf = @iconv('EUC-KR', 'UTF-8//IGNORE', (string)$raw);
+        if ($utf === false || $utf === '') $utf = (string)$raw;
+        $utf = preg_replace('~<(/?)[A-Za-z0-9]+:~', '<$1', $utf);
+        $utf = preg_replace('~\sxmlns:[A-Za-z0-9]+="[^"]*"~', '', $utf);
+        $utf = preg_replace('~encoding="[^"]*"~i', 'encoding="UTF-8"', $utf, 1);
+        $xml = @simplexml_load_string($utf);
         if ($xml !== false) {
             // 11st 응답 래핑 편차 대응(order / orderList>order).
             $list = isset($xml->order) ? $xml->order : (isset($xml->orderList->order) ? $xml->orderList->order : []);
